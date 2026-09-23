@@ -14,6 +14,7 @@ var outline := true      # 怪物轮廓光
 var dof := true          # 2.5D 景深与前景
 var difficulty := 0      # 本局难度
 var diff_unlocked := 0   # 已解锁的最高难度
+var seen_shows: Array = []   # 已看过的解锁演出
 
 
 func _ready() -> void:
@@ -30,6 +31,7 @@ func _ready() -> void:
 		dof = c.get_value("video", "dof", dof)
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
+		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
 	apply.call_deferred()
 
 
@@ -62,4 +64,5 @@ func save() -> void:
 	c.set_value("video", "dof", dof)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", diff_unlocked)
+	c.set_value("progress", "seen_shows", seen_shows)
 	c.save(PATH)
