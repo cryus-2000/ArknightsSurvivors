@@ -1,0 +1,747 @@
+[
+  {
+    "frame_width": 20,
+    "frame_height": 24,
+    "frames": 2,
+    "file": "e_bone.png",
+    "name": "骨海漂流体",
+    "source": "drifter.png",
+    "sha256": "2271c4a835df11ddfa4e5e6c3605247361cdbe53dac3be6f6d5bb53c6863b9a7",
+    "opaque_bounds": [
+      [
+        3,
+        2,
+        16,
+        21
+      ],
+      [
+        2,
+        4,
+        17,
+        21
+      ]
+    ]
+  },
+  {
+    "frame_width": 22,
+    "frame_height": 18,
+    "frames": 2,
+    "file": "e_slider.png",
+    "name": "底海滑动者",
+    "source": "dart.png",
+    "sha256": "b47a7e0eefbc32757db2f1d21a35c82c86739fa010b5cf5160f1e41ae06885a0",
+    "opaque_bounds": [
+      [
+        2,
+        7,
+        19,
+        15
+      ],
+      [
+        3,
+        5,
+        18,
+        15
+      ]
+    ]
+  },
+  {
+    "frame_width": 26,
+    "frame_height": 24,
+    "frames": 2,
+    "file": "e_stone.png",
+    "name": "固海凿石者",
+    "source": "crawler.png",
+    "sha256": "50f1b903cc117a1c25a9c870aedc2ea52346ee7e25ee1df7da4a32044cc0b68e",
+    "opaque_bounds": [
+      [
+        3,
+        8,
+        22,
+        21
+      ],
+      [
+        2,
+        8,
+        23,
+        21
+      ]
+    ]
+  },
+  {
+    "frame_width": 30,
+    "frame_height": 28,
+    "frames": 2,
+    "file": "e_pocket.png",
+    "name": "囊海爬行者",
+    "source": "shell.png",
+    "sha256": "5e65d9646b439901aa7daac753077f6d96f72cfad93222b31c9e2b6c387a1102",
+    "opaque_bounds": [
+      [
+        3,
+        5,
+        26,
+        25
+      ],
+      [
+        2,
+        5,
+        27,
+        25
+      ]
+    ]
+  },
+  {
+    "frame_width": 40,
+    "frame_height": 48,
+    "frames": 2,
+    "file": "e_carmen.png",
+    "name": "圣徒卡门",
+    "source": "bosses/boss_carmen_idle.png",
+    "sha256": "3010115c7149dc2d40353d1117d45b38b9929b3c047b3b29d566348317e6a4e9",
+    "opaque_bounds": [
+      [
+        6,
+        2,
+        33,
+        45
+      ],
+      [
+        6,
+        2,
+        33,
+        45
+      ]
+    ]
+  },
+  {
+    "frame_width": 40,
+    "frame_height": 48,
+    "frames": 2,
+    "file": "e_iberia.png",
+    "name": "圣徒伊比利亚",
+    "source": "bosses/boss_iberia_idle.png",
+    "sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9",
+    "opaque_bounds": [
+      [
+        6,
+        2,
+        33,
+        45
+      ],
+      [
+        6,
+        2,
+        33,
+        45
+      ]
+    ]
+  },
+  {
+    "frame_width": 40,
+    "frame_height": 48,
+    "frames": 2,
+    "file": "e_bishop.png",
+    "name": "接潮主教",
+    "source": "bosses/boss_tide_bishop_idle.png",
+    "sha256": "d7ca23eaa591f0e0ff6d7c58c7b754e4696ba5cd5c999a2e3d714d0b3cf7027b",
+    "opaque_bounds": [
+      [
+        5,
+        3,
+        34,
+        45
+      ],
+      [
+        4,
+        2,
+        34,
+        45
+      ]
+    ]
+  },
+  {
+    "frame_width": 44,
+    "frame_height": 44,
+    "frames": 2,
+    "file": "e_archon.png",
+    "name": "接潮蔑死体",
+    "source": "bosses/boss_tide_defier_idle.png",
+    "sha256": "f72ca1bbfb742706c5fc3c1ac7a110dc471c414157e31c77791873203e987eed",
+    "opaque_bounds": [
+      [
+        4,
+        2,
+        40,
+        41
+      ],
+      [
+        4,
+        2,
+        40,
+        41
+      ]
+    ]
+  },
+  {
+    "frame_width": 42,
+    "frame_height": 40,
+    "frames": 2,
+    "file": "e_immortal.png",
+    "name": "接潮斥亡体",
+    "source": "bosses/boss_tide_rebuker_idle.png",
+    "sha256": "3986b1d005e188d58bd27d032e29b9fe830dc284343076833d6978b94e96f75d",
+    "opaque_bounds": [
+      [
+        5,
+        2,
+        36,
+        37
+      ],
+      [
+        3,
+        2,
+        38,
+        37
+      ]
+    ]
+  },
+  {
+    "frame_width": 56,
+    "frame_height": 56,
+    "frames": 2,
+    "file": "e_path.png",
+    "name": "塑路者",
+    "source": "bosses/boss_pathshaper_idle.png",
+    "sha256": "f2d1260e2b8acf11210318cf65c4ca85b6f927afe5ef588bf0b71afeb44ca15e",
+    "opaque_bounds": [
+      [
+        2,
+        18,
+        53,
+        53
+      ],
+      [
+        3,
+        18,
+        53,
+        53
+      ]
+    ]
+  },
+  {
+    "frame_width": 18,
+    "frame_height": 18,
+    "frames": 2,
+    "file": "e_fractal.png",
+    "name": "塑路者碎片",
+    "source": "bosses/pathshaper_fractal_idle.png",
+    "sha256": "212da0ce305aaa5884da49b18268601b75bd9cf3d4801559e48182904dcca6cd",
+    "opaque_bounds": [
+      [
+        2,
+        5,
+        15,
+        15
+      ],
+      [
+        2,
+        5,
+        15,
+        15
+      ]
+    ]
+  },
+  {
+    "frame_width": 72,
+    "frame_height": 72,
+    "frames": 2,
+    "file": "e_paranoia.png",
+    "name": "偏执泡影",
+    "source": "bosses/boss_paranoia_phase1_idle.png",
+    "sha256": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226",
+    "opaque_bounds": [
+      [
+        3,
+        2,
+        68,
+        69
+      ],
+      [
+        2,
+        2,
+        69,
+        69
+      ]
+    ]
+  },
+  {
+    "frame_width": 40,
+    "frame_height": 48,
+    "frames": 2,
+    "file": "e_bishop_feign.png",
+    "name": "接潮主教 假死",
+    "source": "bosses/boss_tide_bishop_feign.png",
+    "sha256": "b2c6292959b341a4388001b8c974f9ab32ec0985069ec4e971a9ca74fc174661",
+    "opaque_bounds": [
+      [
+        4,
+        16,
+        31,
+        45
+      ],
+      [
+        7,
+        16,
+        32,
+        45
+      ]
+    ]
+  },
+  {
+    "frame_width": 44,
+    "frame_height": 44,
+    "frames": 2,
+    "file": "e_archon_feign.png",
+    "name": "接潮蔑死体 假死",
+    "source": "bosses/boss_tide_defier_feign.png",
+    "sha256": "83f1a62ed9593f0f3be29222a4e284d5abcddfc5cac02e5f25a321172e10aff2",
+    "opaque_bounds": [
+      [
+        5,
+        9,
+        37,
+        42
+      ],
+      [
+        5,
+        4,
+        37,
+        42
+      ]
+    ]
+  },
+  {
+    "frame_width": 42,
+    "frame_height": 40,
+    "frames": 2,
+    "file": "e_immortal_feign.png",
+    "name": "接潮斥亡体 假死",
+    "source": "bosses/boss_tide_rebuker_feign.png",
+    "sha256": "38e9f1b774d8432b574f192769a5be9d59ccdda16219eddab4f4342ca0566836",
+    "opaque_bounds": [
+      [
+        7,
+        6,
+        34,
+        37
+      ],
+      [
+        6,
+        6,
+        35,
+        38
+      ]
+    ]
+  },
+  {
+    "frame_width": 72,
+    "frame_height": 72,
+    "frames": 2,
+    "file": "e_paranoia_phase2.png",
+    "name": "偏执泡影 二阶段",
+    "source": "bosses/boss_paranoia_phase2_idle.png",
+    "sha256": "9b5aba20f187eda656e7f701254586bd5f1ae1fbe832a0e32d6afae977f86b0a",
+    "opaque_bounds": [
+      [
+        2,
+        8,
+        69,
+        69
+      ],
+      [
+        3,
+        6,
+        68,
+        69
+      ]
+    ]
+  },
+  {
+    "name": "注亡拟嗣",
+    "frames": 2,
+    "source_id": "dd9d38b9-32e7-4f63-9f03-5bc52e23c49f",
+    "frame_height": 20,
+    "frame_width": 18,
+    "file": "e_brood.png",
+    "sha256": "8d0ac935f9ef647bbbbea0c9c9f893839af4c7f8b0b19952563c3f429eaeb047",
+    "opaque_bounds": [
+      [
+        3,
+        3,
+        14,
+        17
+      ],
+      [
+        2,
+        3,
+        14,
+        16
+      ]
+    ]
+  },
+  {
+    "name": "投嗣育母",
+    "frames": 2,
+    "source_id": "5e208dcd-fc20-4b08-86ea-4871411d041b",
+    "frame_height": 32,
+    "frame_width": 34,
+    "file": "e_mother.png",
+    "sha256": "2abb502cc73a07132aa7d14aaee713e5388d2de6010192b5a83eb64b0ae04e1f",
+    "opaque_bounds": [
+      [
+        3,
+        3,
+        30,
+        29
+      ],
+      [
+        2,
+        3,
+        31,
+        29
+      ]
+    ]
+  },
+  {
+    "name": "掠海漂移体",
+    "frames": 2,
+    "source_id": "aa9b5ca9-c592-46ae-90c5-d6ca852bd529",
+    "frame_height": 28,
+    "frame_width": 34,
+    "file": "e_skimmer.png",
+    "sha256": "4f1ec87717bfb1c564ebd6c16aa244f7b928da52f11940060e783e444f9b5142",
+    "opaque_bounds": [
+      [
+        3,
+        2,
+        30,
+        25
+      ],
+      [
+        2,
+        2,
+        31,
+        24
+      ]
+    ]
+  },
+  {
+    "name": "箱形恐鱼",
+    "frames": 2,
+    "source_id": "d547b1dd-78a2-4239-a500-f926f4805fe5",
+    "frame_height": 28,
+    "frame_width": 30,
+    "file": "e_mimic.png",
+    "sha256": "6d71eddb4b87d81aaeb78072844fc646a390b0bae23369bcc720b969000ff02e",
+    "opaque_bounds": [
+      [
+        2,
+        3,
+        27,
+        25
+      ],
+      [
+        2,
+        3,
+        27,
+        25
+      ]
+    ]
+  },
+  {
+    "name": "伊莎玛拉之泪",
+    "frames": 2,
+    "source_id": "d43b6355-f6a9-46bb-9901-b4360da9f655",
+    "frame_height": 24,
+    "frame_width": 26,
+    "file": "e_tear.png",
+    "sha256": "272385a48f4e211d12234c17af249aaa110a88ef6e781e4cddc710e8d261178c",
+    "opaque_bounds": [
+      [
+        3,
+        2,
+        22,
+        21
+      ],
+      [
+        3,
+        2,
+        22,
+        21
+      ]
+    ]
+  },
+  {
+    "name": "伊祖米克的子代",
+    "frames": 2,
+    "source_id": "6caf516e-04b3-447d-864f-df843063397c",
+    "frame_height": 30,
+    "frame_width": 30,
+    "file": "e_offspring.png",
+    "sha256": "ef2d709a52d19889f08b3e8f635e1541a976563b79b2cc48e3a8871f492fe6bf",
+    "opaque_bounds": [
+      [
+        3,
+        2,
+        26,
+        27
+      ],
+      [
+        3,
+        3,
+        26,
+        27
+      ]
+    ]
+  },
+  {
+    "name": "伊祖米克",
+    "frames": 2,
+    "source_id": "8ff5d9da-7cfc-4593-83f2-89dd533491a6",
+    "frame_height": 72,
+    "frame_width": 72,
+    "file": "e_izumik.png",
+    "sha256": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5",
+    "opaque_bounds": [
+      [
+        2,
+        2,
+        69,
+        69
+      ],
+      [
+        2,
+        7,
+        69,
+        68
+      ]
+    ]
+  },
+  {
+    "name": "伊莎玛拉",
+    "frames": 2,
+    "source_id": "4b37e5b0-3e35-4ce1-915b-1966fd718387",
+    "frame_height": 80,
+    "frame_width": 80,
+    "file": "e_ishar.png",
+    "sha256": "bda9e0c60701a0338ea01ce718b892ae1022806237c3d5439b305628b306742f",
+    "opaque_bounds": [
+      [
+        3,
+        3,
+        76,
+        77
+      ],
+      [
+        4,
+        2,
+        75,
+        77
+      ]
+    ]
+  },
+  {
+    "name": "残柱",
+    "frames": 1,
+    "source_id": "7e005063-fd7e-4e8b-95b7-ea87c92f7bef",
+    "frame_height": 56,
+    "frame_width": 32,
+    "file": "prop_pillar.png",
+    "sha256": "9a38233ea3759ed9642b73cca1b833887d394a8377a145b43772d08b9ff4106f",
+    "opaque_bounds": [
+      [
+        5,
+        2,
+        26,
+        53
+      ]
+    ]
+  },
+  {
+    "name": "断墙",
+    "frames": 1,
+    "source_id": "78d9edac-1b0d-44fa-bfe0-f7515e00b96a",
+    "frame_height": 40,
+    "frame_width": 56,
+    "file": "prop_wall.png",
+    "sha256": "eda73c9349c02e7ca91ce30448a2e30ab116b4513b12f841a6c8a953250fbe3e",
+    "opaque_bounds": [
+      [
+        2,
+        3,
+        53,
+        37
+      ]
+    ]
+  },
+  {
+    "name": "沉船碎片",
+    "frames": 1,
+    "source_id": "27da3e44-2e14-4849-bed9-1a05badbb18c",
+    "frame_height": 48,
+    "frame_width": 64,
+    "file": "prop_wreck.png",
+    "sha256": "f89cbde9a2ef29279be69709df085fd81f70ca9d09746ee73f43c673d6c084af",
+    "opaque_bounds": [
+      [
+        9,
+        2,
+        54,
+        44
+      ]
+    ]
+  },
+  {
+    "name": "海草",
+    "frames": 2,
+    "source_id": "5de7b1d5-81f1-4b67-a765-10d9e481e1e3",
+    "frame_height": 24,
+    "frame_width": 16,
+    "file": "seaweed.png",
+    "sha256": "f2d010609036697e994bd385091af2333abae06c4708b868263f87d1f97d98c4",
+    "opaque_bounds": [
+      [
+        2,
+        4,
+        13,
+        20
+      ],
+      [
+        2,
+        4,
+        13,
+        21
+      ]
+    ]
+  },
+  {
+    "name": "珊瑚",
+    "frames": 1,
+    "source_id": "f0705c93-e150-44cd-b589-f69790f60953",
+    "frame_height": 20,
+    "frame_width": 20,
+    "file": "coral.png",
+    "sha256": "cf435fa12c747b8d808bb11dabee974ac883ab6e86dbe153583dacbd05c32a46",
+    "opaque_bounds": [
+      [
+        2,
+        2,
+        16,
+        17
+      ]
+    ]
+  },
+  {
+    "file": "tiles.png",
+    "name": "暗沙基础地砖",
+    "frame_width": 16,
+    "frame_height": 16,
+    "frames": 4,
+    "sha256": "831f77c34b585d347a4017c94ec201649b4d6d0a0f8d380e3bb30f782573f3d1",
+    "opaque_bounds": [
+      [
+        0,
+        0,
+        15,
+        15
+      ],
+      [
+        0,
+        0,
+        15,
+        15
+      ],
+      [
+        0,
+        0,
+        15,
+        15
+      ],
+      [
+        0,
+        0,
+        15,
+        15
+      ]
+    ]
+  },
+  {
+    "file": "terrain_regions.png",
+    "name": "区域纹理",
+    "frame_width": 32,
+    "frame_height": 32,
+    "frames": 4,
+    "sha256": "869f231c8d294a77b0628515adfc91d32cd8c2ae414252876f3d32aa3005e79f",
+    "opaque_bounds": [
+      [
+        0,
+        0,
+        31,
+        31
+      ],
+      [
+        0,
+        0,
+        31,
+        31
+      ],
+      [
+        0,
+        0,
+        31,
+        31
+      ],
+      [
+        0,
+        0,
+        31,
+        31
+      ]
+    ]
+  },
+  {
+    "file": "terrain_patches.png",
+    "name": "大区域纹理",
+    "frame_width": 128,
+    "frame_height": 128,
+    "frames": 4,
+    "sha256": "4c218db86f71363f3ab8eaf9a11d33cf24fa369f35b8c4422bd62097e3ee64bb",
+    "opaque_bounds": [
+      [
+        0,
+        0,
+        127,
+        127
+      ],
+      [
+        0,
+        0,
+        127,
+        127
+      ],
+      [
+        0,
+        0,
+        127,
+        127
+      ],
+      [
+        0,
+        0,
+        127,
+        127
+      ]
+    ]
+  }
+]

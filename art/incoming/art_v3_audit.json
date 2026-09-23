@@ -1,0 +1,299 @@
+{
+  "godot_tested": false,
+  "enemy_definitions": 20,
+  "assets": 32,
+  "checks": [
+    {
+      "opaque_pixels": [
+        196,
+        197
+      ],
+      "frame_difference": 148,
+      "file": "e_bone.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        120,
+        108
+      ],
+      "frame_difference": 75,
+      "file": "e_slider.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        203,
+        219
+      ],
+      "frame_difference": 132,
+      "file": "e_stone.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        355,
+        376
+      ],
+      "frame_difference": 245,
+      "file": "e_pocket.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        896,
+        905
+      ],
+      "frame_difference": 624,
+      "file": "e_carmen.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        829,
+        843
+      ],
+      "frame_difference": 709,
+      "file": "e_iberia.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        929,
+        974
+      ],
+      "frame_difference": 762,
+      "file": "e_bishop.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        880,
+        893
+      ],
+      "frame_difference": 570,
+      "file": "e_archon.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        664,
+        709
+      ],
+      "frame_difference": 554,
+      "file": "e_immortal.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        1233,
+        1262
+      ],
+      "frame_difference": 780,
+      "file": "e_path.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        107,
+        102
+      ],
+      "frame_difference": 22,
+      "file": "e_fractal.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        2926,
+        3006
+      ],
+      "frame_difference": 2821,
+      "file": "e_paranoia.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        555,
+        531
+      ],
+      "frame_difference": 525,
+      "file": "e_bishop_feign.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        667,
+        708
+      ],
+      "frame_difference": 684,
+      "file": "e_archon_feign.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        528,
+        542
+      ],
+      "frame_difference": 486,
+      "file": "e_immortal_feign.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        2817,
+        2727
+      ],
+      "frame_difference": 2549,
+      "file": "e_paranoia_phase2.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        123,
+        129
+      ],
+      "frame_difference": 74,
+      "file": "e_brood.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        439,
+        444
+      ],
+      "frame_difference": 348,
+      "file": "e_mother.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        408,
+        423
+      ],
+      "frame_difference": 317,
+      "file": "e_skimmer.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        389,
+        380
+      ],
+      "frame_difference": 262,
+      "file": "e_mimic.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        195,
+        196
+      ],
+      "frame_difference": 175,
+      "file": "e_tear.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        420,
+        414
+      ],
+      "frame_difference": 353,
+      "file": "e_offspring.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        2804,
+        2691
+      ],
+      "frame_difference": 2826,
+      "file": "e_izumik.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        3499,
+        3469
+      ],
+      "frame_difference": 3369,
+      "file": "e_ishar.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        823
+      ],
+      "frame_difference": 0,
+      "file": "prop_pillar.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        1080
+      ],
+      "frame_difference": 0,
+      "file": "prop_wall.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        1074
+      ],
+      "frame_difference": 0,
+      "file": "prop_wreck.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        120,
+        118
+      ],
+      "frame_difference": 153,
+      "file": "seaweed.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        152
+      ],
+      "frame_difference": 0,
+      "file": "coral.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        256,
+        256,
+        256,
+        256
+      ],
+      "frame_difference": 117,
+      "file": "tiles.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "frame_difference": 723,
+      "file": "terrain_regions.png",
+      "pass": true
+    },
+    {
+      "opaque_pixels": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "frame_difference": 12312,
+      "file": "terrain_patches.png",
+      "pass": true
+    }
+  ],
+  "covered": 20,
+  "missing": []
+}
