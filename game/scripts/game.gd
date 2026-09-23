@@ -234,6 +234,15 @@ func _ready() -> void:
 		optional.append("relic_" + rid)
 	for n in optional:
 		tex[n] = A.tex(n)
+	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
+	for k in D.ALLIES:
+		tex["ally_%s_attack" % k] = A.tex("ally_%s_attack" % k)
+	# 美术 V5：Boss 移动帧条（4 帧，与本体同尺寸同锚点）及其白色剪影
+	for n in ["e_path", "e_izumik", "e_ishar", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2"]:
+		var mn: String = n + "_move"
+		tex[mn] = A.tex(mn)
+		if tex[mn] != null:
+			tex[mn + "_white"] = A.white_of(tex[mn])
 
 	var cm := CanvasModulate.new()
 	cm.color = AMBIENT
@@ -2089,7 +2098,14 @@ func _update_allies(dt: float) -> void:
 		var slot: Vector2 = ppos + ALLY_SLOTS[i]
 		al.pos = al.pos.lerp(slot, clamp(dt * 5.0, 0.0, 1.0))
 		al.cd -= dt
-		var lvm: float = pow(1.5, al.lv - 1)
+		# 攻击动作计时：到出手帧时结算，播完回到待机
+		if al.get("atk", -1.0) >= 0.0:
+			al.atk += dt
+			if not al.get("fired", true) and al.atk >= ALLY_EVENT_T:
+				al.fired = true
+				_ally_release(al)
+			if al.atk >= ALLY_ANIM_T:
+				al.atk = -1.0
 		match al.kind:
 			"sniper":
 				if al.cd <= 0.0:
@@ -2098,9 +2114,7 @@ func _update_allies(dt: float) -> void:
 						al.cd = 0.2
 					else:
 						al.cd = 1.0 * pow(0.87, al.lv - 1)
-						var d: Vector2 = (tgt.pos - al.pos).normalized()
-						bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 760.0, "dmg": 20.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
-						Sfx.play("swing", -16.0, 1.8)
+						_ally_start(al, tgt.pos)
 			"caster":
 				if al.cd <= 0.0:
 					var ts := _nearest(1, 360.0)
@@ -2108,16 +2122,12 @@ func _update_allies(dt: float) -> void:
 						al.cd = 0.2
 					else:
 						al.cd = 1.5 * pow(0.9, al.lv - 1)
-						var d: Vector2 = (ts[0].pos - al.pos).normalized()
-						bullets.append({"kind": "orb", "pos": al.pos + Vector2(0, -12), "vel": d * 380.0, "dmg": 14.0 * lvm * dmg_mult, "life": 1.2, "r": 7.0, "aoe": 45.0 + 10.0 * al.lv})
+						_ally_start(al, ts[0].pos)
 			"medic":
 				if al.cd <= 0.0:
 					al.cd = 3.0 / (1.0 + 0.25 * (al.lv - 1))
 					if hp < max_hp:
-						var h: float = max_hp * (0.03 + 0.01 * (al.lv - 1))
-						_heal(h)
-						_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
-						fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
+						_ally_start(al, ppos)
 			"support":
 				# 辅助：以减速控场为主，伤害只是点缀（每秒一次，最多 12 名）
 				var rad: float = _support_radius(al.lv)
@@ -2133,6 +2143,49 @@ func _update_allies(dt: float) -> void:
 					if tick and hits < 12:
 						hits += 1
 						_damage(e, (1.5 + 1.0 * al.lv) * dmg_mult)
+				if tick and hits > 0 and al.get("atk", -1.0) < 0.0 and tex.get("ally_support_attack") != null:
+					al.atk = 0.0
+					al.fired = true
+
+
+## 援护攻击动作：8fps × 4 帧，零基第 2 帧出手（美术 V5 约定）
+const ALLY_EVENT_T := 0.25
+const ALLY_ANIM_T := 0.5
+
+
+func _ally_start(al: Dictionary, aim: Vector2) -> void:
+	if absf(aim.x - al.pos.x) > 2.0:
+		al.face = signf(aim.x - al.pos.x)
+	if tex.get("ally_%s_attack" % al.kind) == null:
+		_ally_release(al)
+		return
+	al.atk = 0.0
+	al.fired = false
+
+
+## 出手：重新找目标（动作期间原目标可能已死）
+func _ally_release(al: Dictionary) -> void:
+	var lvm: float = pow(1.5, al.lv - 1)
+	match al.kind:
+		"sniper":
+			var tgt := _sniper_target(al.pos, 500.0)
+			if tgt.is_empty():
+				return
+			var d: Vector2 = (tgt.pos - al.pos).normalized()
+			bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 760.0, "dmg": 20.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
+			Sfx.play("swing", -16.0, 1.8)
+		"caster":
+			var ts := _nearest(1, 400.0)
+			if ts.is_empty():
+				return
+			var d: Vector2 = (ts[0].pos - al.pos).normalized()
+			bullets.append({"kind": "orb", "pos": al.pos + Vector2(0, -12), "vel": d * 380.0, "dmg": 14.0 * lvm * dmg_mult, "life": 1.2, "r": 7.0, "aoe": 45.0 + 10.0 * al.lv})
+		"medic":
+			if hp < max_hp:
+				var h: float = max_hp * (0.03 + 0.01 * (al.lv - 1))
+				_heal(h)
+				_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
+				fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
 
 
 func _support_radius(lv: int) -> float:
@@ -2869,7 +2922,7 @@ func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip
 	if flip:
 		# 以锚点为中心水平镜像
 		draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-		draw_texture_rect_region(tx, Rect2(-size * Vector2(1.0 - anchor.x, anchor.y), size), src, col)
+		draw_texture_rect_region(tx, Rect2(-size * anchor, size), src, col)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_texture_rect_region(tx, Rect2((pos - size * anchor).round(), size), src, col)
@@ -2952,7 +3005,11 @@ func _draw() -> void:
 				var i: int = it[2]
 				var al: Dictionary = allies[i]
 				var atx: Texture2D = tex["ally_" + al.kind]
-				if atx.get_height() >= 40:
+				var akey: String = "ally_%s_attack" % al.kind
+				if al.get("atk", -1.0) >= 0.0 and tex.get(akey) != null:
+					# 攻击动作：72×48 画布，脚底锚点 (24,45)，朝向目标
+					_spr(akey, 4, mini(3, int(al.atk * 8.0)), al.pos + Vector2(0, 16), PX, al.get("face", 1.0) < 0.0, Color.WHITE, Vector2(24.0 / 72.0, 45.0 / 48.0))
+				elif atx.get_height() >= 40:
 					# 48px 援护（脚底锚点约 (24,45)）
 					_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos + Vector2(0, 16), PX, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
 				else:
@@ -3379,7 +3436,22 @@ func _draw_enemy(e: Dictionary) -> void:
 		name = "e_paranoia2"
 	elif e.get("coma", false) and tex.get(name + "_feign") != null:
 		name = name + "_feign"
+	var frames := 2
 	var frame := int(t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
+	# 美术 V5：Boss 移动时播放 4 帧移动循环；停下、晕眩、假死时用本体
+	if e.boss:
+		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
+			e.mv_until = t + 0.2
+		e.dpos = e.pos
+		if t < e.get("mv_until", 0.0) and e.stun <= 0.0 and not e.get("coma", false) and tex.get(name + "_move") != null:
+			name += "_move"
+			frames = 4
+			var fps := 6.0
+			if e.type == "immortal":
+				fps = 8.0
+			elif e.type in ["paranoia", "izumik", "ishar"]:
+				fps = 5.0
+			frame = int(t * fps + e.id * 0.37) % 4
 	var sc: float = PX * e.r / e.r0
 	var col := Color.WHITE
 	if e.evo:
@@ -3412,10 +3484,10 @@ func _draw_enemy(e: Dictionary) -> void:
 	if Cfg.outline and tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
 		for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
-			_spr(name + "_white", 2, frame, bpos + d, sc, flip, oc, anc, sq)
-	_spr(name, 2, frame, bpos, sc, flip, col, anc, sq)
+			_spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
+	_spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		_spr(name + "_white", 2, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+		_spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
 	if e.elite:
 		var w: float = e.r * 2.0
 		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w, 4)), Color(0, 0, 0, 0.6))
