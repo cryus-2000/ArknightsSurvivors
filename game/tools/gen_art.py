@@ -543,3 +543,17 @@ save_enemy("e_archon", [e_archon(0), e_archon(1)])
 save_enemy("e_immortal", [e_immortal(0), e_immortal(1)])
 save_enemy("e_paranoia", [e_paranoia(0), e_paranoia(1)])
 print("bosses ok")
+
+# ---- v0.6 地面道具：磁铁 / 回复（通用图标）
+im = new(12, 12); d = ImageDraw.Draw(im)
+d.arc((1, 1, 10, 10), 180, 360, fill=(220, 50, 60), width=3)      # U 形上半
+d.rectangle((1, 6, 3, 9), fill=(220, 50, 60)); d.rectangle((8, 6, 10, 9), fill=(60, 110, 230))
+d.rectangle((1, 9, 3, 10), fill=(230, 235, 240)); d.rectangle((8, 9, 10, 10), fill=(230, 235, 240))
+d.point((3, 3), fill=(255, 160, 160))
+outline(im).save(f"{OUT}/pickup_magnet.png")
+im = new(12, 12); d = ImageDraw.Draw(im)
+d.ellipse((0, 0, 11, 11), fill=(40, 120, 80)); d.ellipse((1, 1, 10, 10), fill=(90, 210, 140))
+d.rectangle((5, 2, 6, 9), fill=(245, 255, 245)); d.rectangle((2, 5, 9, 6), fill=(245, 255, 245))
+d.point((3, 2), fill=(200, 255, 220))
+outline(im).save(f"{OUT}/pickup_heal.png")
+print("pickups ok")

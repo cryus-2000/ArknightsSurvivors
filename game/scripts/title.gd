@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 
 const ITEMS := [
 	{"cn": "开始探索", "en": "START"},
+	{"cn": "图鉴", "en": "GALLERY"},
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
@@ -27,6 +28,7 @@ var motes: Array = []
 var guide := false
 var leaving := -1.0
 var settings: Control
+var gallery: Control
 
 
 func _ready() -> void:
@@ -45,8 +47,23 @@ func _ready() -> void:
 	_grow(rng, Vector2(900, 700), -PI / 2, 150.0, 14.0, 0)
 	for i in 90:
 		motes.append([Vector2(rng.randf_range(0, 1280), rng.randf_range(0, 720)), rng.randf_range(6, 22), rng.randf() * TAU])
+	gallery = preload("res://scripts/gallery.gd").new()
+	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	add_child(settings)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--galleryshot="):
+			var parts := a.substr(14).split(",")
+			gallery.open()
+			gallery.tab = int(parts[0])
+			gallery._build()
+			if parts.size() > 1:
+				gallery.sel = int(parts[1])
+			if parts.size() > 2:
+				gallery.form = int(parts[2])
+			get_tree().create_timer(1.2).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery_ui.png")
+				get_tree().quit())
 	Sfx.cut_target = 1600.0
 	Sfx.vol_target = -6.0
 	if OS.get_cmdline_user_args().has("--settingsshot"):
@@ -97,7 +114,7 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or settings.visible:
+	if leaving >= 0.0 or settings.visible or gallery.visible:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if guide:
@@ -134,11 +151,14 @@ func _activate(i: int) -> void:
 			leaving = 0.0
 		1:
 			Sfx.play("ui_ok")
-			guide = true
+			gallery.open()
 		2:
 			Sfx.play("ui_ok")
-			settings.open()
+			guide = true
 		3:
+			Sfx.play("ui_ok")
+			settings.open()
+		4:
 			get_tree().quit()
 
 
@@ -212,7 +232,7 @@ func _draw() -> void:
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.5.3", 13, Color(0.4, 0.55, 0.6))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.6", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)
