@@ -1,0 +1,51 @@
+[
+  {
+    "source_id": "c9c7435c-a97d-4e7b-abc9-5a94a5de612e",
+    "frame_width": 128,
+    "frames": 1,
+    "frame_height": 80,
+    "file": "terrain_ridge.png"
+  },
+  {
+    "source_id": "b8a5a873-f72b-456a-b2e2-a0272463ff97",
+    "frame_width": 64,
+    "frames": 2,
+    "frame_height": 64,
+    "file": "terrain_mire.png"
+  },
+  {
+    "source_id": "9df45932-56aa-49d8-b41f-761a94ffd642",
+    "frame_width": 48,
+    "frames": 2,
+    "frame_height": 48,
+    "file": "ally_sniper.png"
+  },
+  {
+    "source_id": "2916b81a-2513-424a-a46b-5d8225e7759f",
+    "frame_width": 48,
+    "frames": 2,
+    "frame_height": 48,
+    "file": "ally_caster.png"
+  },
+  {
+    "source_id": "a432ab5b-9310-4769-9997-0fbc6f3ce7e8",
+    "frame_width": 48,
+    "frames": 2,
+    "frame_height": 48,
+    "file": "ally_medic.png"
+  },
+  {
+    "source_id": "b16cd359-71ce-44cb-b934-9b6e4e06491a",
+    "frame_width": 48,
+    "frames": 2,
+    "frame_height": 48,
+    "file": "ally_support.png"
+  },
+  {
+    "source_id": "7f2f563d-8879-44fc-bf14-d4c6c92a1034",
+    "frame_width": 96,
+    "frames": 1,
+    "frame_height": 96,
+    "file": "terrain_peak.png"
+  }
+]
