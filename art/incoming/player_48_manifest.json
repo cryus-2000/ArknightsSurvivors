@@ -1,0 +1,54 @@
+[
+  {
+    "loop": true,
+    "file": "player_idle.png",
+    "sha256": "d7bfe31d025ceb665454e52110ffcb2dd30973fc7b68e362ac77fa9b08e24aa3",
+    "anchor_px": [
+      24,
+      46
+    ],
+    "fps": 4,
+    "frame_height": 48,
+    "frames": 4,
+    "frame_width": 48
+  },
+  {
+    "loop": true,
+    "file": "player_run.png",
+    "sha256": "b2e4816803ef11b94cd7ec37aeccb2cc1e188c77765439d3d7f4f286822f1903",
+    "anchor_px": [
+      24,
+      46
+    ],
+    "fps": 10,
+    "frame_height": 48,
+    "frames": 6,
+    "frame_width": 48
+  },
+  {
+    "loop": false,
+    "file": "player_hurt.png",
+    "sha256": "de310fcef0803a970b78e89fc3b9c9fad1be1e82afadcde58a65ddbefd144091",
+    "anchor_px": [
+      24,
+      46
+    ],
+    "fps": 10,
+    "frame_height": 48,
+    "frames": 2,
+    "frame_width": 48
+  },
+  {
+    "loop": false,
+    "file": "player_death.png",
+    "sha256": "9cbea2dc32a0de5b71fc8f8d7ed8c10c20766f5b9336af98991465edee8ee41e",
+    "anchor_px": [
+      24,
+      46
+    ],
+    "fps": 6,
+    "frame_height": 48,
+    "frames": 4,
+    "frame_width": 48
+  }
+]
