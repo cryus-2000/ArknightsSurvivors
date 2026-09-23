@@ -142,6 +142,9 @@ var banner_t := 0.0
 var choices: Array = []
 var choice_kind := ""
 var pending_levelups := 0
+var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
+var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
+var hud_lv_flash := 0.0   # 左上角等级闪光
 var pending_chests := 0
 
 # ---------- 节点与资源 ----------
@@ -313,12 +316,14 @@ func _autotest_step() -> void:
 			get_tree().quit()
 		return
 	hp = max_hp
+	if lvup_show > 1.05 and lvup_show < 1.12 and level == 3 and DisplayServer.get_name() != "headless":
+		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_lvup.png")
 	if state == S.CHOICE:
 		choice_wait += 1
-		if choice_wait == 6 and not choice_shot and DisplayServer.get_name() != "headless":
+		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless":
 			choice_shot = true
 			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_choice.png")
-		if choice_wait > 6:
+		if choice_wait > 45:
 			choice_wait = 0
 			_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
@@ -358,6 +363,7 @@ func _process(delta: float) -> void:
 	banner_t -= delta
 	_update_visuals(dt if state == S.PLAY else 0.0)
 	_update_music(delta)
+	_animate_cards(delta)
 	queue_redraw()
 	fx_add.queue_redraw()
 	hud.queue_redraw()
@@ -515,7 +521,7 @@ func _check_pending() -> void:
 		return
 	if pending_chests > 0:
 		_open_relic_choice()
-	elif pending_levelups > 0:
+	elif pending_levelups > 0 and lvup_delay <= 0.0:
 		_open_levelup()
 
 
@@ -1589,6 +1595,12 @@ func _build_shop_ui() -> void:
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
 			card.add_theme_stylebox_override(st, empty)
+		card.set_meta("born", Time.get_ticks_msec() + i * 50)
+		card.set_meta("oy", 60.0)
+		card.set_meta("lift", 0.0)
+		card.set_meta("dy", 190.0)
+		card.set_meta("item", it)
+		card.modulate.a = 0.0
 		card.draw.connect(_draw_shop_card.bind(card, it, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
@@ -1602,6 +1614,7 @@ func _build_shop_ui() -> void:
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
+		card.set_meta("desc", desc)
 		panel_box.add_child(card)
 	panel.visible = true
 	panel.queue_redraw()
@@ -1615,7 +1628,7 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	elif it.kind == "heal":
 		col = Color(0.5, 1.0, 0.6)
 	var afford: bool = ingots >= it.price
-	var r := Rect2(Vector2(0, -6 if hov else 0), card.size)
+	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	UI.panel(card, r, Color(0.05, 0.12, 0.16, 0.97) if hov else UI.BG2, col if hov else Color(col.r, col.g, col.b, 0.4), 12.0, col)
 	UI.text(card, font, r.position + Vector2(16, 30), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7))
 	var c := r.position + Vector2(r.size.x / 2, 96)
@@ -1802,6 +1815,26 @@ func _gain_xp(v: float) -> void:
 		level += 1
 		xp_need = 8.0 + level * 3.0 + floor(level * level * 0.6)
 		pending_levelups += 1
+		_levelup_fx()
+
+
+## 升级演出：金色光环 + 冲击波推开周围敌人 + 头顶字样，0.5 秒后再弹出选项
+func _levelup_fx() -> void:
+	lvup_show = 1.3
+	hud_lv_flash = 1.0
+	if lvup_delay <= 0.0:
+		lvup_delay = 0.5
+	invuln = max(invuln, 0.9)
+	fx.append({"kind": "ring", "pos": ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
+	fx.append({"kind": "ring", "pos": ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
+	_sparks(ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
+	for e in _query(ppos, 170.0):
+		var en: Dictionary = enemies[e]
+		if en.boss or en.chest:
+			continue
+		var d: Vector2 = en.pos - ppos
+		en.kb = d.normalized() * 480.0 if d.length() > 0.1 else Vector2.RIGHT * 480.0
+	Sfx.play("levelup", -6.0, 1.3, 0.0)
 
 
 func _add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
@@ -1809,6 +1842,9 @@ func _add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 
 
 func _update_fx(dt: float) -> void:
+	lvup_delay -= dt
+	lvup_show -= dt
+	hud_lv_flash = max(0.0, hud_lv_flash - dt * 1.5)
 	for f in fx:
 		f.life -= dt
 		if f.kind == "spark":
@@ -1894,6 +1930,10 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
 			card.add_theme_stylebox_override(st, empty)
+		card.set_meta("born", Time.get_ticks_msec() + i * 70)
+		card.set_meta("oy", 60.0)
+		card.set_meta("lift", 0.0)
+		card.modulate.a = 0.0
 		card.draw.connect(_draw_card.bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
@@ -1908,9 +1948,37 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 		desc.add_theme_constant_override("line_spacing", 4)
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
+		card.set_meta("desc", desc)
+		card.set_meta("dy", 230.0)
 		panel_box.add_child(card)
 	panel.visible = true
 	panel.queue_redraw()
+
+
+## 卡片动画：入场（依次上浮淡入，轻微回弹）+ 悬停抬起；描述文字跟随卡框移动
+func _animate_cards(dt: float) -> void:
+	if not panel.visible:
+		return
+	var now := Time.get_ticks_msec()
+	for card in panel_box.get_children():
+		if not card.has_meta("born"):
+			continue
+		var age := (now - int(card.get_meta("born"))) / 1000.0
+		var k := clampf(age / 0.32, 0.0, 1.0)
+		# easeOutBack
+		var c1 := 1.7
+		var e := 1.0 + (c1 + 1.0) * pow(k - 1.0, 3) + c1 * pow(k - 1.0, 2)
+		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
+		var target := -10.0 if ((card as Button).is_hovered() and not sold) else 0.0
+		var lift: float = lerpf(card.get_meta("lift"), target, clampf(dt * 18.0, 0.0, 1.0))
+		card.set_meta("lift", lift)
+		var oy := (1.0 - e) * 60.0 + lift
+		card.set_meta("oy", oy)
+		card.modulate.a = clampf(age / 0.2, 0.0, 1.0)
+		var desc: Label = card.get_meta("desc", null)
+		if desc != null:
+			desc.position.y = float(card.get_meta("dy", 230.0)) + oy
+		card.queue_redraw()
 
 
 func _card_color(o: Dictionary) -> Color:
@@ -1927,7 +1995,7 @@ func _card_color(o: Dictionary) -> Color:
 func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var hov := card.is_hovered()
 	var col := _card_color(o)
-	var r := Rect2(Vector2(0, -8 if hov else 0), card.size)
+	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	UI.panel(card, r, Color(0.05, 0.12, 0.16, 0.97) if hov else UI.BG2, col if hov else Color(col.r, col.g, col.b, 0.45), 16.0, col)
 	# 顶部分类条
 	var cat := "成长  GROWTH"
@@ -2474,6 +2542,18 @@ func _draw_hud() -> void:
 		var sz := int(f.size * pop)
 		UI.text(hud, font, sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a), HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
 
+	# 升级字样：弹出放大 -> 轻微上浮 -> 淡出
+	if lvup_show > 0.0 and state == S.PLAY:
+		var age := 1.3 - lvup_show
+		var pop := 1.0 + 0.6 * clampf(1.0 - age / 0.15, 0.0, 1.0)
+		if age > 0.15 and age < 0.3:
+			pop = 1.0 - 0.1 * sin((age - 0.15) / 0.15 * PI)
+		var la := clampf(lvup_show / 0.35, 0.0, 1.0)
+		var lp: Vector2 = ct * (ppos + Vector2(0, -92 - age * 14.0))
+		var gold := Color(1.0, 0.86, 0.42, la)
+		UI.text(hud, font, lp - Vector2(150, 0), "LEVEL UP!", int(30 * pop), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+		UI.text(hud, font, lp + Vector2(-150, 26), "Lv.%d" % level, int(18 * pop), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+
 	# 受击时屏幕边缘泛红
 	if hurt_vignette > 0.0:
 		_edge_glow(vs, Color(0.9, 0.1, 0.15, hurt_vignette * 0.9), 90.0)
@@ -2488,9 +2568,17 @@ func _draw_hud() -> void:
 	# 左上：干员信息
 	var o := Vector2(16, 16)
 	UI.panel(hud, Rect2(o, Vector2(330, 96)), UI.BG, UI.LINE, 12.0, UI.CYAN)
-	UI.diamond(hud, o + Vector2(36, 34), 20.0, Color(0.03, 0.1, 0.13), UI.CYAN)
-	UI.text(hud, font, o + Vector2(16, 42), str(level), 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	UI.en(hud, font, o + Vector2(24, 70), "LV", 10, UI.CYAN_DIM, 2.0)
+	var lf := hud_lv_flash
+	var bc := UI.CYAN.lerp(UI.GOLD, lf)
+	UI.diamond(hud, o + Vector2(36, 42), 30.0 + 6.0 * lf, Color(bc.r, bc.g, bc.b, 0.12 + 0.3 * lf))
+	UI.diamond(hud, o + Vector2(36, 42), 25.0 + 3.0 * lf, Color(0.03, 0.1, 0.13), bc)
+	UI.diamond(hud, o + Vector2(36, 42), 21.0, Color(0, 0, 0, 0), Color(bc.r, bc.g, bc.b, 0.35))
+	var lvs := 26 if level < 10 else 22
+	UI.text(hud, font, o + Vector2(6, 51 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.35 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
+	# 菱形下方的 LV 小标签
+	hud.draw_rect(Rect2(o + Vector2(23, 62), Vector2(26, 13)), Color(0.02, 0.06, 0.08))
+	hud.draw_rect(Rect2(o + Vector2(23, 62), Vector2(26, 13)), bc, false, 1.0)
+	UI.en(hud, font, o + Vector2(28, 73), "LV", 9, bc, 2.0)
 	UI.text(hud, font, o + Vector2(66, 30), "水月", 18, UI.TEXT)
 	UI.en(hud, font, o + Vector2(112, 29), "MIZUKI", 11, UI.CYAN_DIM, 3.0)
 	UI.text(hud, font, o + Vector2(250, 29), ["精零", "精英一", "精英二"][elite_stage], 13, UI.GOLD if elite_stage > 0 else UI.SUB)
