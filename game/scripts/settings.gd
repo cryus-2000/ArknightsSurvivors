@@ -10,6 +10,7 @@ var fullscreen := false
 var dmg_numbers := true
 var shake := 1.0          # 0 / 0.5 / 1
 var hitstop := true
+var outline := true      # 怪物轮廓光
 
 
 func _ready() -> void:
@@ -22,6 +23,7 @@ func _ready() -> void:
 		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 		shake = c.get_value("game", "shake", shake)
 		hitstop = c.get_value("game", "hitstop", hitstop)
+		outline = c.get_value("game", "outline", outline)
 	apply.call_deferred()
 
 
@@ -50,4 +52,5 @@ func save() -> void:
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "shake", shake)
 	c.set_value("game", "hitstop", hitstop)
+	c.set_value("game", "outline", outline)
 	c.save(PATH)

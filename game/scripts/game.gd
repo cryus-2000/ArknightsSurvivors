@@ -163,6 +163,7 @@ var hurt_vignette := 0.0
 var crit_hit := false
 var fx_add: Node2D
 var anim_name := ""
+var dead_t := 0.0
 var settings: Control
 var result_btns: Array = []   # [Rect2, action]
 var anim_t := 0.0
@@ -194,7 +195,7 @@ func _ready() -> void:
 		if n.begins_with("e_"):
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
 	# 可选素材：有图就用，没有就用程序效果
-	var optional := ["player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
+	var optional := ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
 	optional.append_array(FXF.keys())
 	for rid in D.RELICS:
 		optional.append("relic_" + rid)
@@ -255,6 +256,11 @@ func _ready() -> void:
 	_show_banner("深海的潮水正在涌来……")
 	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
 	balance = OS.get_cmdline_user_args().has("--balance")
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shots="):
+			shot_at = []
+			for v in arg.substr(8).split(","):
+				shot_at.append(int(v))
 	if balance:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		Engine.max_fps = 0
@@ -2308,6 +2314,9 @@ func _spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
 func _update_player_anim(dt: float) -> void:
+	if tex.get("player_attack_48") != null:
+		_update_player_anim48(dt)
+		return
 	var want := "player_idle"
 	if state == S.DEAD:
 		want = "player_death"
@@ -2337,6 +2346,35 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = clampi(int(anim_t * 6.0), 0, n - 1)
 		_:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
+
+
+## 48px 统一画风：只有攻击四帧时，待机/跑步用第 1 帧（持伞站立）+ 代码起伏，
+## 受伤用闪色，死亡用倒下淡出，避免与旧 32px 美术混用导致人物来回变样。
+## 以后美术交付 player48_idle / player48_run 等帧条时，可在这里逐个替换。
+func _update_player_anim48(dt: float) -> void:
+	var tx: Texture2D = tex["player_attack_48"]
+	if anim_name != "p48":
+		anim_name = "p48"
+		anim_t = 0.0
+		sprite.texture = tx
+		sprite.hframes = max(1, tx.get_width() / tx.get_height())
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 1.0)
+	anim_t += dt
+	var n := sprite.hframes
+	if state == S.DEAD:
+		dead_t += dt
+		sprite.frame = 0
+		sprite.rotation = lerpf(0.0, -1.45 * (1.0 if facing >= 0.0 else -1.0), clampf(dead_t / 0.35, 0.0, 1.0))
+		return
+	dead_t = 0.0
+	sprite.rotation = 0.0
+	if swing_face > 0.0:
+		sprite.frame = clampi(int((0.25 - swing_face) / 0.25 * n), 0, n - 1)
+	else:
+		sprite.frame = 0
+		if not moving:
+			# 待机呼吸：每 1.6 秒上下 1 个美术像素
+			sprite.position.y -= PX * float(int(t / 0.8) % 2)
 
 
 func _draw_mire(m: Dictionary) -> void:
@@ -2411,6 +2449,11 @@ func _draw_enemy(e: Dictionary) -> void:
 	var flip: bool = e.fx < 0.0
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
+	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
+	if Cfg.outline and tex.has(name + "_white"):
+		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
+		for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
+			_spr(name + "_white", 2, frame, e.pos + d, sc, flip, oc, Vector2(0.5, 0.5), sq)
 	_spr(name, 2, frame, e.pos, sc, flip, col, Vector2(0.5, 0.5), sq)
 	if e.flash > 0.0:
 		_spr(name + "_white", 2, frame, e.pos, sc, flip, Color(1, 1, 1, 0.9), Vector2(0.5, 0.5), sq)
