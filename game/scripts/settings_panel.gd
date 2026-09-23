@@ -14,6 +14,7 @@ const ROWS := [
 	{"cn": "震屏强度", "en": "SCREEN SHAKE", "key": "shake", "type": "shake"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
 	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
+	{"cn": "景深与前景", "en": "DEPTH OF FIELD", "key": "dof", "type": "bool"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 
@@ -105,14 +106,14 @@ func _adjust(i: int, dir: int) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 250, 640, 500)
+	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 305, 640, 610)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
 	row_rects.clear()
 	for i in ROWS.size():
 		var row: Dictionary = ROWS[i]
-		var rr := Rect2(r.position.x + 30, r.position.y + 88 + i * 48, r.size.x - 60, 40)
+		var rr := Rect2(r.position.x + 30, r.position.y + 84 + i * 45, r.size.x - 60, 39)
 		row_rects.append(rr)
 		var on := i == sel
 		if on:

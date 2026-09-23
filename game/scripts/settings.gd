@@ -11,6 +11,7 @@ var dmg_numbers := true
 var shake := 1.0          # 0 / 0.5 / 1
 var hitstop := true
 var outline := true      # 怪物轮廓光
+var dof := true          # 2.5D 景深与前景
 
 
 func _ready() -> void:
@@ -24,6 +25,7 @@ func _ready() -> void:
 		shake = c.get_value("game", "shake", shake)
 		hitstop = c.get_value("game", "hitstop", hitstop)
 		outline = c.get_value("game", "outline", outline)
+		dof = c.get_value("video", "dof", dof)
 	apply.call_deferred()
 
 
@@ -53,4 +55,5 @@ func save() -> void:
 	c.set_value("game", "shake", shake)
 	c.set_value("game", "hitstop", hitstop)
 	c.set_value("game", "outline", outline)
+	c.set_value("video", "dof", dof)
 	c.save(PATH)
