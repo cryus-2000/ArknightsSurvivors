@@ -13,6 +13,7 @@ const ROWS := [
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
 	{"cn": "震屏强度", "en": "SCREEN SHAKE", "key": "shake", "type": "shake"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
+	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 
