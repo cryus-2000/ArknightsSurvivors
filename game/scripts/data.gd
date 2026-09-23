@@ -26,7 +26,7 @@ const ENEMIES = {
 	"bishop": {"name": "接潮主教", "hp": 2000.0, "spd": 36.0, "dmg": 14.0, "r": 22.0, "xp": 50.0, "tex": "e_bishop", "ai": "ranged", "range": 300.0, "cd": 1.8, "role": "boss", "pair": true},
 	"archon": {"name": "接潮蔑死体", "hp": 2200.0, "spd": 56.0, "dmg": 18.0, "r": 24.0, "xp": 50.0, "tex": "e_archon", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
 	"immortal": {"name": "接潮斥亡体", "hp": 1500.0, "spd": 82.0, "dmg": 13.0, "r": 20.0, "xp": 50.0, "tex": "e_immortal", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
-	"paranoia": {"name": "\"偏执泡影\"", "hp": 7000.0, "spd": 34.0, "dmg": 15.0, "r": 40.0, "xp": 0.0, "tex": "e_paranoia", "ai": "ranged", "range": 320.0, "cd": 1.5, "role": "boss", "corrode": 0.5, "hover": true},
+	"paranoia": {"name": "\"偏执泡影\"", "hp": 6200.0, "spd": 34.0, "dmg": 15.0, "r": 40.0, "xp": 0.0, "tex": "e_paranoia", "ai": "ranged", "range": 320.0, "cd": 1.5, "role": "boss", "corrode": 0.5, "hover": true},
 	"ishar": {"name": "伊莎玛拉，腐化之心", "hp": 9000.0, "spd": 34.0, "dmg": 18.0, "r": 46.0, "xp": 0.0, "tex": "e_ishar", "ai": "ranged", "range": 340.0, "cd": 1.5, "role": "boss"},
 }
 ## Boss 结构：3:30 与 7:00 从第三层 Boss 池各抽一个（不重复），10:00 按结局出现最终 Boss
@@ -36,12 +36,59 @@ const ENDINGS := {
 	"standard": {"name": "结局一", "en": "PRECIOUS DAYS", "boss": "paranoia"},
 }
 
-## 技能：致敬原作的三个技能，全部自动释放
+## 技能：致敬原作的三个技能，全部自动释放；按等级自动解锁，不占用升级三选一
+## 设计：S1 改变单次攻击（爆发）/ S2 改变攻击节奏（攻速+束缚）/ S3 改变攻击空间（多方向+形态）
 const SKILLS = {
-	"s1": {"name": "唤醒", "desc": "每挥伞 7 次充能 1 层（最多 3 层），下一次挥砍造成 300% 伤害，触手追击伤害 ×3"},
-	"s2": {"name": "囚徒困境", "desc": "技力充满后自动开启 21 秒：挥伞频率翻倍、伤害 +30%，触手目标 +1 并束缚 1.3 秒"},
-	"s3": {"name": "镜花水月", "desc": "技力充满后自动开启 30 秒：挥砍范围扩大、伤害 +150%，触手目标 +2 并晕眩；命中少于 3 个敌人时损失生命"},
+	"s1": {"name": "唤醒", "en": "AWAKENING", "glyph": "唤", "col": Color(1.0, 0.77, 0.42),
+		"desc": "每挥伞数次，下一次攻击自动强化为「唤醒」：伤害大幅提升、范围扩大，触手追击同样强化"},
+	"s2": {"name": "囚徒困境", "en": "PRISONER'S DILEMMA", "glyph": "囚", "col": Color(0.45, 0.8, 1.0),
+		"desc": "周期性进入高速状态：挥伞频率翻倍，触手追击目标 +1 并附带束缚"},
+	"s3": {"name": "镜花水月", "en": "MIRAGE", "glyph": "镜", "col": Color(0.8, 0.55, 1.0),
+		"desc": "周期性进入特殊形态：攻击范围扩大，斩击同时覆盖三个方向并附带短暂晕眩"},
 }
+## 技能解锁等级（精英化一 / 二分别对应 S2 / S3）
+const SKILL_UNLOCK := {"s1": 3, "s2": 10, "s3": 20}
+## 技能进阶：「基础解锁 + 进阶 I + 进阶 II」，以进阶卡形式少量混入升级选项
+const SKILL_ADV := {
+	"s1": [
+		{"name": "创伤扩散", "desc": "唤醒命中后，在目标处引发一次范围冲击，波及周围敌人", "min_lv": 5},
+		{"name": "深层唤醒", "desc": "唤醒命中后，海床下唤出 4 条触手追击附近的敌人（不会连锁）", "min_lv": 9},
+	],
+	"s2": [
+		{"name": "双重困境", "desc": "囚徒困境期间，每次挥伞额外斩向另一方向最近的敌人", "min_lv": 12},
+		{"name": "无解困境", "desc": "囚徒困境期间，每第 4 次挥伞插入一轮触手连击；束缚会传播给身边 1 名敌人", "min_lv": 16},
+	],
+	"s3": [
+		{"name": "倒影", "desc": "镜花水月期间，每次挥伞后倒影会在反方向延迟复刻一次攻击", "min_lv": 22},
+		{"name": "镜花水月·深海", "desc": "斩击覆盖全方向、触手追击 +2，并在周身展开深海幻境：范围内敌人减速", "min_lv": 26},
+	],
+}
+## 技能参数（均可调；平衡优先削减覆盖率、触发频率与额外攻击系数）
+const SKILL_P := {
+	"s1_mult": 3.0, "s1_radius": 1.3, "s1_burst_r": 80.0, "s1_burst_mult": 0.6, "s1_burst_max": 3,
+	"s1_deep_n": 4, "s1_deep_range": 260.0, "s1_deep_mult": 0.8,
+	"s2_charge": 22.0, "s2_dur": 12.0, "s2_interval": 0.5, "s2_bind": 1.0, "s2_twin_mult": 0.7,
+	"s2_combo_every": 4, "s2_combo_n": 3, "s2_spread_r": 90.0, "s2_spread_bind": 0.6,
+	"s3_charge": 45.0, "s3_dur": 14.0, "s3_radius": 1.45, "s3_mult": 1.8, "s3_stun": 0.6,
+	"s3_echo_delay": 0.35, "s3_echo_mult": 0.7, "s3_zone_r": 200.0,
+}
+## 难度（参照水月肉鸽的难度分级：逐级叠加负面效果；通关当前最高难度后解锁下一级）
+const DIFFICULTY := [
+	{"name": "标准", "desc": "深海原本的样子"},
+	{"name": "暗潮", "desc": "敌人生命 +15%"},
+	{"name": "浊流", "desc": "敌人攻击 +15%"},
+	{"name": "昏灯", "desc": "灯火消耗速度 +25%"},
+	{"name": "猎群", "desc": "精英出现间隔 -25%"},
+	{"name": "拮据", "desc": "源石锭掉落 -30%"},
+	{"name": "躁动", "desc": "敌人移动速度 +10%"},
+	{"name": "潮涌", "desc": "大群规模 +40%"},
+	{"name": "巨影", "desc": "Boss 生命 +30%"},
+	{"name": "负伤", "desc": "初始最大生命 -20%"},
+	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
+]
+
+## 技能进阶卡出现概率（每次升级至多一张）
+const SKILL_ADV_CHANCE := 0.45
 
 ## 精英化二时三选一的模组
 const MODULES = {
@@ -71,7 +118,7 @@ const ALLIES = {
 	"sniper": {"name": "狙击干员", "en": "SNIPER", "desc": "远程单体射击，优先攻击精英和生命最高的敌人", "up": "伤害 +50%，射速 +15%"},
 	"caster": {"name": "术师干员", "en": "CASTER", "desc": "发射法术弹，命中后小范围爆炸", "up": "伤害 +50%，爆炸范围扩大"},
 	"medic": {"name": "医疗干员", "en": "MEDIC", "desc": "每 3 秒为水月回复 3% 最大生命", "up": "治疗量与频率提升"},
-	"support": {"name": "辅助干员", "en": "SUPPORTER", "desc": "水月周围的敌人移动速度 -35%，并持续受到少量伤害", "up": "范围扩大，伤害提升"},
+	"support": {"name": "辅助干员", "en": "SUPPORTER", "desc": "水月身边的敌人移动速度 -35%，并每秒受到少量伤害（最多 12 名）", "up": "减速范围扩大，伤害小幅提升"},
 }
 const RECRUIT_LEVELS := [5, 15, 25]
 

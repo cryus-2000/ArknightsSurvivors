@@ -1,7 +1,7 @@
 extends Node
 ## 全局音频（自动加载为 Sfx）：背景音乐 + 音效池。标题界面与游戏共用，切换场景时音乐不中断。
 
-const NAMES := ["swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
+const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start"]
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
 const LIMIT := {"hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}

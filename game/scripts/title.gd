@@ -3,6 +3,7 @@ extends Control
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
+const D = preload("res://scripts/data.gd")
 
 const ITEMS := [
 	{"cn": "开始探索", "en": "START"},
@@ -29,6 +30,9 @@ var guide := false
 var leaving := -1.0
 var settings: Control
 var gallery: Control
+var diff_pick := false
+var diff_sel := 0
+var diff_rects := {}
 
 
 func _ready() -> void:
@@ -79,6 +83,91 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred("res://game.tscn")
 
 
+func _diff_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_LEFT, KEY_A:
+				_diff_step(-1)
+			KEY_RIGHT, KEY_D:
+				_diff_step(1)
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+				_diff_go()
+			KEY_ESCAPE, KEY_BACKSPACE:
+				diff_pick = false
+				Sfx.play("ui_move")
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		for k in diff_rects:
+			if diff_rects[k].has_point(event.position):
+				match k:
+					"left":
+						_diff_step(-1)
+					"right":
+						_diff_step(1)
+					"go":
+						_diff_go()
+					"back":
+						diff_pick = false
+				return
+
+
+func _diff_step(d: int) -> void:
+	var n := clampi(diff_sel + d, 0, D.DIFFICULTY.size() - 1)
+	if n > Cfg.diff_unlocked:
+		Sfx.play("ui_move", -4.0, 0.6)
+		return
+	if n != diff_sel:
+		diff_sel = n
+		Sfx.play("ui_move")
+
+
+func _diff_go() -> void:
+	Cfg.difficulty = diff_sel
+	Cfg.save()
+	diff_pick = false
+	Sfx.play("start")
+	leaving = 0.0
+
+
+## 难度选择：左右切换，列出所有逐级叠加的效果
+func _draw_diff(vs: Vector2) -> void:
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
+	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120)
+	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY.size() - 1))
+	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
+	UI.en(self, font, r.position + Vector2(36, 42), "DIFFICULTY", 13, col, 4.0)
+	UI.text(self, font, r.position + Vector2(36, 80), "选择难度", 26, UI.TEXT)
+	# 当前难度
+	var c := Vector2(r.get_center().x, r.position.y + 150)
+	diff_rects.clear()
+	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
+	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
+	UI.text(self, font, c + Vector2(-200, 12), "◀", 30, UI.TEXT if diff_sel > 0 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
+	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < Cfg.diff_unlocked else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
+	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
+	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
+	UI.text(self, font, c + Vector2(-40, 14), str(diff_sel), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	UI.text(self, font, c + Vector2(-150, 68), D.DIFFICULTY[diff_sel].name, 20, col, HORIZONTAL_ALIGNMENT_CENTER, 300)
+	# 效果列表
+	var y := r.position.y + 262
+	for i in range(1, D.DIFFICULTY.size()):
+		var on := i <= diff_sel
+		var locked := i > Cfg.diff_unlocked
+		var x := r.position.x + 60 + ((i - 1) / 5) * 340
+		var yy := y + ((i - 1) % 5) * 34
+		var ic := col if on else (Color(0.3, 0.36, 0.4) if locked else UI.SUB)
+		UI.diamond(self, Vector2(x, yy - 6), 5.0, ic if on else Color(0, 0, 0, 0), ic)
+		UI.text(self, font, Vector2(x + 16, yy), "%d  %s" % [i, D.DIFFICULTY[i].desc] if not locked else "%d  通关难度 %d 后解锁" % [i, i - 1], 14, UI.TEXT if on else ic)
+	# 按钮
+	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
+	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
+	diff_rects["go"] = go
+	diff_rects["back"] = back
+	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
+	UI.text(self, font, go.position + Vector2(0, 29), "出发  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
+	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+
+
 ## 递归生成巨树（像海嗣一样弯曲的枝干）
 func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, width: float, depth: int) -> void:
 	if depth > 6 or length < 10.0:
@@ -116,6 +205,9 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if leaving >= 0.0 or settings.visible or gallery.visible:
 		return
+	if diff_pick:
+		_diff_input(event)
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if guide:
 			guide = false
@@ -147,8 +239,9 @@ func _input(event: InputEvent) -> void:
 func _activate(i: int) -> void:
 	match i:
 		0:
-			Sfx.play("start")
-			leaving = 0.0
+			Sfx.play("ui_ok")
+			diff_pick = true
+			diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked)
 		1:
 			Sfx.play("ui_ok")
 			gallery.open()
@@ -232,10 +325,12 @@ func _draw() -> void:
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.6", 13, Color(0.4, 0.55, 0.6))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.7", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)
+	if diff_pick:
+		_draw_diff(vs)
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
 
@@ -249,10 +344,10 @@ func _draw_guide(vs: Vector2) -> void:
 	var lines := [
 		["移动", "WASD / 方向键"],
 		["攻击", "全自动：挥伞横扫，触手追击血量最低的敌人"],
-		["技能", "唤醒 → 精英化一「囚徒困境」→ 精英化二「镜花水月」，自动释放"],
+		["技能", "Lv3 唤醒 → Lv10 囚徒困境 → Lv20 镜花水月，自动释放；升级时可能出现技能进阶"],
 		["灯火", "随时间熄灭，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按 1 / 2 / 3 或点击选择"],
-		["暂停", "Esc　　设置：O　　静音：M　　重来：R　　回到标题：T"],
+		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 静音　　R 重来　　T 回标题"],
 	]
 	for i in lines.size():
 		var y := r.position.y + 110 + i * 48

@@ -99,7 +99,7 @@ func _build() -> void:
 			entries.append({"name": "水月", "en": "MIZUKI", "tag": "主角 · 特种", "forms": [
 				_anim("待机", "player_idle", 4.0), _anim("跑步", "player_run", 10.0), _anim("攻击", atk, 16.0),
 				_anim("受击", "player_hurt", 6.0), _anim("倒下", "player_death", 5.0, false)],
-				"stats": [], "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（初始）→ 囚徒困境（精英化一）→ 镜花水月（精英化二），全部自动释放。"})
+				"stats": [], "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（Lv3）→ 囚徒困境（Lv10 精英化一）→ 镜花水月（Lv20 精英化二），全部自动释放；每个技能各有两段进阶。"})
 			for k in D.ALLIES:
 				var a: Dictionary = D.ALLIES[k]
 				entries.append({"name": a.name, "en": a.en, "tag": "援护干员", "forms": [_anim_n("待机", "ally_" + k, 2, 3.0)],
@@ -140,6 +140,11 @@ func _build() -> void:
 			entries.append({"name": "磁铁", "en": "MAGNET", "tag": "道具", "forms": [_anim_n("磁铁", "pickup_magnet", 1, 1.0)], "stats": [], "desc": "拾取后吸取全场的经验结晶、灯油与源石锭。小怪低概率掉落，精英与 Boss 必掉磁铁或回复药剂。"})
 			entries.append({"name": "回复药剂", "en": "HEAL", "tag": "道具", "forms": [_anim_n("回复药剂", "pickup_heal", 1, 1.0)], "stats": [], "desc": "拾取后立即回复 30% 最大生命。"})
 			entries.append({"name": "补给箱", "en": "CHEST", "tag": "宝箱", "forms": [_anim_n("补给箱", "e_chest", 2, 1.0)], "stats": [], "desc": "地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。"})
+			for sp in [["遗迹残柱", "PILLAR", "prop_pillar", 1], ["断墙", "RUINED WALL", "prop_wall", 1], ["沉船碎片", "WRECK", "prop_wreck", 1],
+					["海底岩脊", "RIDGE", "terrain_ridge", 1], ["海底山峰", "PEAK", "terrain_peak", 1], ["溟痕", "MIRE", "terrain_mire", 2]]:
+				if A.tex(sp[2]) != null:
+					entries.append({"name": sp[0], "en": sp[1], "tag": "场景", "forms": [_anim_n(sp[0], sp[2], sp[3], 2.0)], "stats": [],
+						"desc": "地面上周期性出现并逐渐扩大的溟痕，站在上面会持续受到伤害并积累神经损伤。" if sp[2] == "terrain_mire" else "深海遗迹中的场景物件，会与角色前后遮挡。"})
 			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "局内会出现 3 次，停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
 	sel = clampi(sel, 0, max(0, entries.size() - 1))
 	form = 0

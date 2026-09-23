@@ -147,4 +147,10 @@ save("boom", boom, 0.9)
 save("ui_move", tone(0.04, 1500) * env(0.04, 0.001, 60), 0.35)
 save("ui_ok", pad(tone(0.12, 880) * env(0.12, 0.001, 25), tone(0.12, 1320) * env(0.12, 0.02, 25) * 0.6), 0.5)
 save("start", pad(swell * 1.5, sum(tone(1.4, f) * env(1.4, 0.05, 2.5) for f in (293, 440, 587)) * 0.4), 0.8)
+
+# 低血量：心跳（两下低频闷响）
+def thump(sec, f):
+    return tone(sec, f, f * 0.6) * env(sec, 0.004, 18)
+hb = pad(thump(0.18, 70), np.concatenate([np.zeros(int(0.2 * SR)), thump(0.16, 62) * 0.7]))
+save("heartbeat", lp(hb, 300), 0.9)
 print("ok", sorted(os.listdir(OUT)))
