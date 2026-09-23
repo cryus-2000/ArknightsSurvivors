@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>海嗣 V2 · 两帧预览</title>
+<style>body{background:#162330;color:#e0edf5;font:16px system-ui;margin:36px}main{display:flex;gap:24px;flex-wrap:wrap}article{background:#243447;padding:20px;border-radius:12px;min-width:160px}canvas{image-rendering:pixelated;display:block;margin:20px auto}small{color:#9fb8c7}h1{font-size:24px}</style>
+<h1>海嗣 V2 · 实际素材动画</h1><p>每组两帧，4 帧/秒循环；整数倍放大。</p><main></main>
+<script>
+const specs=[['drifter',14,16],['dart',16,10],['crawler',18,16],['shell',22,20],['boss',52,48]];
+for(const [name,w,h] of specs){const a=document.createElement('article');a.innerHTML=`<b>${name}</b><p><small>${w} × ${h} · 2 帧</small></p>`;const c=document.createElement('canvas');c.width=w;c.height=h;c.style.width=(w*6)+'px';c.style.height=(h*6)+'px';a.append(c);document.querySelector('main').append(a);const im=new Image();im.src=name+'.png';im.onload=()=>{const ctx=c.getContext('2d');function draw(t){ctx.clearRect(0,0,w,h);ctx.drawImage(im,(Math.floor(t/250)%2)*w,0,w,h,0,0,w,h);requestAnimationFrame(draw)}requestAnimationFrame(draw)};im.onerror=()=>a.append('无法读取素材');}
+</script></html>

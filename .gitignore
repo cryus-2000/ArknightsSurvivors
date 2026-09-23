@@ -1,0 +1,22 @@
+# Godot generated cache; keep .uid and .import sidecars tracked.
+.godot/
+/build/
+/dist/
+/node_modules/
+**/node_modules/
+.worktrees/
+# Local third-party CLI checkout, not game source.
+/tools/godot-mcp/
+# Local backups and temporary files.
+/art/backup_*/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+# Local configuration / credentials.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.godot/export_credentials.cfg
