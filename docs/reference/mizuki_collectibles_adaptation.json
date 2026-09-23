@@ -1,0 +1,2098 @@
+[
+ {
+  "id": 1,
+  "name": "精选兽肉罐头",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "每秒回复生命 +0.5",
+  "first_batch": false
+ },
+ {
+  "id": 2,
+  "name": "凉拌海草",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "挥伞速度 +3%",
+  "first_batch": false
+ },
+ {
+  "id": 3,
+  "name": "橙味风暴",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "所有伤害 +3%",
+  "first_batch": false
+ },
+ {
+  "id": 4,
+  "name": "咖啡平原咖啡糖",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "挥伞速度 +5%",
+  "first_batch": false
+ },
+ {
+  "id": 5,
+  "name": "尖叫樱桃",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "所有伤害 +5%",
+  "first_batch": false
+ },
+ {
+  "id": 6,
+  "name": "皮特水果什锦",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "伤害 +6%，最大生命 +6%，受到伤害 -1",
+  "first_batch": false
+ },
+ {
+  "id": 7,
+  "name": "特级馥郁咖啡豆",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "援护干员上限 +1，护盾 +1",
+  "first_batch": false
+ },
+ {
+  "id": 8,
+  "name": "蓝色丝巾",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +6",
+  "first_batch": false
+ },
+ {
+  "id": 9,
+  "name": "红色蝴蝶结",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "希望 + 部署人数，与 10 号重复，可省略",
+  "first_batch": false
+ },
+ {
+  "id": 10,
+  "name": "独奏八音盒",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员上限 +1，源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 11,
+  "name": "源石鸢尾花",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "源石锭 +18，下一次招募多一个选项",
+  "first_batch": false
+ },
+ {
+  "id": 12,
+  "name": "古怪的长笛",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 13,
+  "name": "玻璃小鸟",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 14,
+  "name": "赤金的远征",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员上限 +1，源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 15,
+  "name": "《杜林地上环游记》",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "护盾 +4",
+  "first_batch": false
+ },
+ {
+  "id": 16,
+  "name": "《旧高卢地名源流考》",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "护盾 +6",
+  "first_batch": false
+ },
+ {
+  "id": 17,
+  "name": "热水壶",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +10，源石锭 +3",
+  "first_batch": false
+ },
+ {
+  "id": 18,
+  "name": "特殊抑制器",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +15，立即回复 15 生命",
+  "first_batch": false
+ },
+ {
+  "id": 19,
+  "name": "石像鬼塑像",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +20",
+  "first_batch": false
+ },
+ {
+  "id": 20,
+  "name": "血魔的寝床",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +30",
+  "first_batch": false
+ },
+ {
+  "id": 21,
+  "name": "长生者之证",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +50",
+  "first_batch": false
+ },
+ {
+  "id": 22,
+  "name": "被撬开的道具箱",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 23,
+  "name": "古旧乐谱残章",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 24,
+  "name": "解约协议",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +12",
+  "first_batch": false
+ },
+ {
+  "id": 25,
+  "name": "万能钥匙",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +18",
+  "first_batch": false
+ },
+ {
+  "id": 26,
+  "name": "女妖之吻",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +24",
+  "first_batch": false
+ },
+ {
+  "id": 27,
+  "name": "古旧钱币",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "源石锭 +10",
+  "first_batch": true
+ },
+ {
+  "id": 28,
+  "name": "演员的首饰盒",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "源石锭 +18",
+  "first_batch": true
+ },
+ {
+  "id": 29,
+  "name": "无瑕宝玉",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "源石锭 +25",
+  "first_batch": true
+ },
+ {
+  "id": 30,
+  "name": "夜阳花",
+  "cat": "灯火",
+  "tier": "A",
+  "adapt": "灯火 +10",
+  "first_batch": true
+ },
+ {
+  "id": 31,
+  "name": "聚火源石虫",
+  "cat": "灯火",
+  "tier": "A",
+  "adapt": "灯火 +15",
+  "first_batch": true
+ },
+ {
+  "id": 32,
+  "name": "指路鳞",
+  "cat": "灯火",
+  "tier": "A",
+  "adapt": "灯火 +30",
+  "first_batch": true
+ },
+ {
+  "id": 33,
+  "name": "钝爪-典训",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有先锋 / 近卫 / 重装援护",
+  "first_batch": false
+ },
+ {
+  "id": 34,
+  "name": "折戟-典训",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有先锋 / 近卫 / 重装援护",
+  "first_batch": false
+ },
+ {
+  "id": 35,
+  "name": "铁卫-典训",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有先锋 / 近卫 / 重装援护",
+  "first_batch": false
+ },
+ {
+  "id": 36,
+  "name": "残弩-典训",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "狙击援护立即 +1 级（没有就立即招募）",
+  "first_batch": false
+ },
+ {
+  "id": 37,
+  "name": "断杖-典训",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "术师援护立即 +1 级（没有就立即招募）",
+  "first_batch": false
+ },
+ {
+  "id": 38,
+  "name": "支柱-典训",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "辅助援护立即 +1 级（没有就立即招募）",
+  "first_batch": false
+ },
+ {
+  "id": 39,
+  "name": "医者-典训",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "医疗援护立即 +1 级（没有就立即招募）",
+  "first_batch": false
+ },
+ {
+  "id": 40,
+  "name": "锈刃-典训",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "水月立即获得 1 次成长三选一（水月是特种）",
+  "first_batch": false
+ },
+ {
+  "id": 41,
+  "name": "开裂的束缚带",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人攻击 -7%",
+  "first_batch": true
+ },
+ {
+  "id": 42,
+  "name": "“静音小队”",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伤害 +35%，受到伤害 -25%，最大生命 +45%（超稀有）",
+  "first_batch": false
+ },
+ {
+  "id": 43,
+  "name": "奇渊面具",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人攻击 -12%",
+  "first_batch": true
+ },
+ {
+  "id": 44,
+  "name": "教母的信物",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人攻击 -17%",
+  "first_batch": true
+ },
+ {
+  "id": 45,
+  "name": "残破合影",
+  "cat": "削弱敌人",
+  "tier": "B",
+  "adapt": "所有敌人受到伤害 +8%",
+  "first_batch": false
+ },
+ {
+  "id": 46,
+  "name": "恐鱼干",
+  "cat": "削弱敌人",
+  "tier": "B",
+  "adapt": "所有敌人受到伤害 +14%",
+  "first_batch": false
+ },
+ {
+  "id": 47,
+  "name": "迷迭香之拥",
+  "cat": "削弱敌人",
+  "tier": "B",
+  "adapt": "所有敌人受到伤害 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 48,
+  "name": "镶金骨骰",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人生命 -15%",
+  "first_batch": true
+ },
+ {
+  "id": 49,
+  "name": "“黑夜呢喃”",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人生命 -10%",
+  "first_batch": true
+ },
+ {
+  "id": 50,
+  "name": "《大静谧》",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人生命 -20%",
+  "first_batch": true
+ },
+ {
+  "id": 51,
+  "name": "异铁小圆盾",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "受到伤害 -8%",
+  "first_batch": false
+ },
+ {
+  "id": 52,
+  "name": "军团护心镜",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "受到伤害 -13%",
+  "first_batch": false
+ },
+ {
+  "id": 53,
+  "name": "古旧的蒸汽甲胄",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "受到伤害 -18%",
+  "first_batch": false
+ },
+ {
+  "id": 54,
+  "name": "皇帝的恩宠",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伞击伤害 +15%",
+  "first_batch": true
+ },
+ {
+  "id": 55,
+  "name": "贵族刺剑",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伞击伤害 +25%",
+  "first_batch": true
+ },
+ {
+  "id": 56,
+  "name": "老近卫军之锋",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伞击伤害 +35%",
+  "first_batch": true
+ },
+ {
+  "id": 57,
+  "name": "显圣吊坠",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员伤害 +15%",
+  "first_batch": true
+ },
+ {
+  "id": 58,
+  "name": "银餐叉",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员伤害 +25%",
+  "first_batch": true
+ },
+ {
+  "id": 59,
+  "name": "损坏的左轮弹巢",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员伤害 +35%",
+  "first_batch": true
+ },
+ {
+  "id": 60,
+  "name": "难闻的止血剂",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 61,
+  "name": "急救药箱",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +35%",
+  "first_batch": false
+ },
+ {
+  "id": 62,
+  "name": "未知仪器",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "最大生命 +50%",
+  "first_batch": false
+ },
+ {
+  "id": 63,
+  "name": "锈蚀刀片",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "敌人受到的物理伤害（伞击、狙击）+15%",
+  "first_batch": false
+ },
+ {
+  "id": 64,
+  "name": "赶车夫的长鞭",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "同上 +25%",
+  "first_batch": false
+ },
+ {
+  "id": 65,
+  "name": "“复仇者”",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "同上 +35%",
+  "first_batch": false
+ },
+ {
+  "id": 66,
+  "name": "制式防暴用具",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "敌人受到的法术伤害（触手、术师、水母）+20%",
+  "first_batch": true
+ },
+ {
+  "id": 67,
+  "name": "皇帝的收藏",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "同上 +30%",
+  "first_batch": true
+ },
+ {
+  "id": 68,
+  "name": "“璀璨悲泣”",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "同上 +40%",
+  "first_batch": true
+ },
+ {
+  "id": 69,
+  "name": "活玫瑰",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "所有回复效果 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 70,
+  "name": "苍白花冠",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "所有回复效果 +30%",
+  "first_batch": false
+ },
+ {
+  "id": 71,
+  "name": "涌动之餐",
+  "cat": "生存",
+  "tier": "A",
+  "adapt": "所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）",
+  "first_batch": false
+ },
+ {
+  "id": 72,
+  "name": "演出用香水",
+  "cat": "生存",
+  "tier": "A",
+  "adapt": "每秒回复 1% 最大生命",
+  "first_batch": true
+ },
+ {
+  "id": 73,
+  "name": "设计师量尺",
+  "cat": "闪避",
+  "tier": "A",
+  "adapt": "闪避近战攻击 +15%",
+  "first_batch": true
+ },
+ {
+  "id": 74,
+  "name": "“法术杀手”",
+  "cat": "闪避",
+  "tier": "A",
+  "adapt": "闪避远程攻击（弹幕）+15%",
+  "first_batch": true
+ },
+ {
+  "id": 75,
+  "name": "舞者手链",
+  "cat": "闪避",
+  "tier": "A",
+  "adapt": "闪避率 +10%",
+  "first_batch": true
+ },
+ {
+  "id": 76,
+  "name": "人偶之家",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有部署费用",
+  "first_batch": false
+ },
+ {
+  "id": 77,
+  "name": "微缩舞台模型",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有部署费用",
+  "first_batch": false
+ },
+ {
+  "id": 78,
+  "name": "缠梦古堡模型",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有部署费用",
+  "first_batch": false
+ },
+ {
+  "id": 79,
+  "name": "涡旋座",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "水月伤害 +30%，术师援护伤害 +3%（水月就是特种干员）",
+  "first_batch": true
+ },
+ {
+  "id": 80,
+  "name": "海程",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "术师援护伤害 +30%，水月伤害 +3%",
+  "first_batch": false
+ },
+ {
+  "id": 81,
+  "name": "漆黑的舞鞋",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有高台 / 低地",
+  "first_batch": false
+ },
+ {
+  "id": 82,
+  "name": "洁白的舞鞋",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有高台 / 低地",
+  "first_batch": false
+ },
+ {
+  "id": 83,
+  "name": "胎生百合",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有部署费用",
+  "first_batch": false
+ },
+ {
+  "id": 84,
+  "name": "几丁质刺刃",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "随机一名已招募的援护干员本局伤害 +100%",
+  "first_batch": false
+ },
+ {
+  "id": 85,
+  "name": "古高卢银币",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技能解锁时和每次技能结束后，立即回复 10% 技力",
+  "first_batch": false
+ },
+ {
+  "id": 86,
+  "name": "高卢银行支票",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "同上 20%",
+  "first_batch": false
+ },
+ {
+  "id": 87,
+  "name": "《第二经济改革法》",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "同上 30%",
+  "first_batch": false
+ },
+ {
+  "id": 88,
+  "name": "香草沙士汽水",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技力回复速度 +15%",
+  "first_batch": false
+ },
+ {
+  "id": 89,
+  "name": "羽兽肝酱",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技力回复速度 +25%",
+  "first_batch": false
+ },
+ {
+  "id": 90,
+  "name": "迷梦香精",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技力回复速度 +35%",
+  "first_batch": false
+ },
+ {
+  "id": 91,
+  "name": "摩根队长佳酿",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "唤醒所需挥伞次数 -1",
+  "first_batch": false
+ },
+ {
+  "id": 92,
+  "name": "生命之水",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "唤醒所需挥伞次数 -1，技力回复 +10%",
+  "first_batch": false
+ },
+ {
+  "id": 93,
+  "name": "皇家利口酒",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "唤醒所需挥伞次数 -2",
+  "first_batch": false
+ },
+ {
+  "id": 94,
+  "name": "“绽放”",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "每次受到伤害回复 3% 技力，受到侵蚀或神经损伤再回复 3%",
+  "first_batch": false
+ },
+ {
+  "id": 95,
+  "name": "悬丝傀儡",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "被晕眩、束缚的敌人每秒受到法术伤害（约 60% 伞击伤害）",
+  "first_batch": true
+ },
+ {
+  "id": 96,
+  "name": "“童趣玩偶”",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "同上（约 90% 伞击伤害）",
+  "first_batch": true
+ },
+ {
+  "id": 97,
+  "name": "凯旋号角",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "晕眩、束缚、减速的持续时间 +100%",
+  "first_batch": true
+ },
+ {
+  "id": 98,
+  "name": "高闪相机",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "同上 +110%",
+  "first_batch": true
+ },
+ {
+  "id": 99,
+  "name": "精神治疗录像带",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "同上 +150%",
+  "first_batch": true
+ },
+ {
+  "id": 100,
+  "name": "皇族金胸针",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "远程伤害 -15%，每个 Boss 出现时护盾 +1",
+  "first_batch": false
+ },
+ {
+  "id": 101,
+  "name": "老蒲扇",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "每有一名职业不同的援护干员（水月也算一名），伤害 +10%",
+  "first_batch": false
+ },
+ {
+  "id": 102,
+  "name": "食腐者手杖",
+  "cat": "生存",
+  "tier": "A",
+  "adapt": "溢出的回复量转化为对周围敌人的法术伤害",
+  "first_batch": false
+ },
+ {
+  "id": 103,
+  "name": "安洁莉娜的创想",
+  "cat": "触手与控制",
+  "tier": "A",
+  "adapt": "所有敌人移动速度 -15%，更容易被击退",
+  "first_batch": false
+ },
+ {
+  "id": 104,
+  "name": "Scout的狙击镜",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员的攻击离目标越远伤害越高（最高 +50%）",
+  "first_batch": false
+ },
+ {
+  "id": 105,
+  "name": "黑色郁金香",
+  "cat": "技能与技力",
+  "tier": "A",
+  "adapt": "技能未生效时，60 秒内伤害逐渐提升至 +60%，技能结束时清零",
+  "first_batch": true
+ },
+ {
+  "id": 106,
+  "name": "突击协议-利刃",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有先锋 / 近卫",
+  "first_batch": false
+ },
+ {
+  "id": 107,
+  "name": "堡垒协议-方阵",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "辅助援护的减速和伤害 +8%",
+  "first_batch": false
+ },
+ {
+  "id": 108,
+  "name": "远程协议-遥击",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "同时有狙击和医疗援护时，两者效果 +16%",
+  "first_batch": false
+ },
+ {
+  "id": 109,
+  "name": "破坏协议-压制",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "有术师援护时，水月挥伞速度 +6%，术师射速 +6%",
+  "first_batch": false
+ },
+ {
+  "id": 110,
+  "name": "绿叶菜罐头",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技能开启后 3 秒内伤害 +60%",
+  "first_batch": false
+ },
+ {
+  "id": 111,
+  "name": "叙拉古人的愤怒",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "技能开启后 3 秒内伤害 +100%",
+  "first_batch": false
+ },
+ {
+  "id": 112,
+  "name": "荣耀绶带",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "一次挥伞只命中 1 名敌人时，这一击伤害 +100%（打 Boss 用）",
+  "first_batch": true
+ },
+ {
+  "id": 113,
+  "name": "王庭盟约",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有萨卡兹敌人",
+  "first_batch": false
+ },
+ {
+  "id": 114,
+  "name": "国王的新枪",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "生命低于 30% 时，挥伞速度 +50%（国王套装）",
+  "first_batch": true
+ },
+ {
+  "id": 115,
+  "name": "古堡的子嗣",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "开局 100 秒后，受到伤害 -30%",
+  "first_batch": false
+ },
+ {
+  "id": 116,
+  "name": "遥乡之引",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "地图上随机出现一片「遥乡」区域，站在里面每秒回复 3% 生命，技力回复加快",
+  "first_batch": false
+ },
+ {
+  "id": 117,
+  "name": "遗落之帜",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "地图上随机出现一面「旗帜」，站在附近伤害 +50%，挥伞速度 +50%",
+  "first_batch": false
+ },
+ {
+  "id": 118,
+  "name": "药枚",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "每次技能开启时护盾 +2",
+  "first_batch": false
+ },
+ {
+  "id": 119,
+  "name": "捕鳞蓑",
+  "cat": "闪避",
+  "tier": "B",
+  "adapt": "远程敌人瞄准水月的频率 -25%（原作的「迷彩」）",
+  "first_batch": false
+ },
+ {
+  "id": 120,
+  "name": "《光耀卡西米尔》",
+  "cat": "闪避",
+  "tier": "A",
+  "adapt": "闪避后 6 秒内伤害 +70%",
+  "first_batch": true
+ },
+ {
+  "id": 121,
+  "name": "《归来》",
+  "cat": "闪避",
+  "tier": "A",
+  "adapt": "闪避后 6 秒内伤害 +130%",
+  "first_batch": true
+ },
+ {
+  "id": 122,
+  "name": "疗养体验卡",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "每次升级后 10 秒内挥伞速度 +40%",
+  "first_batch": false
+ },
+ {
+  "id": 123,
+  "name": "疗养特供卡",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "每次升级后 10 秒内挥伞速度 +70%",
+  "first_batch": false
+ },
+ {
+  "id": 124,
+  "name": "古乔治营养原浆",
+  "cat": "伞击与输出",
+  "tier": "A",
+  "adapt": "生命越高伤害越高，满血时 +30%",
+  "first_batch": false
+ },
+ {
+  "id": 125,
+  "name": "紧急活性剂",
+  "cat": "伞击与输出",
+  "tier": "A",
+  "adapt": "生命越低挥伞越快，30% 生命时 +60%",
+  "first_batch": false
+ },
+ {
+  "id": 126,
+  "name": "国王的圆饼",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "生命低于 30% 时，受到伤害 -30%（国王套装）",
+  "first_batch": true
+ },
+ {
+  "id": 127,
+  "name": "国王的枝条",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "生命低于 30% 时，技力回复 +50%（国王套装）",
+  "first_batch": true
+ },
+ {
+  "id": 128,
+  "name": "诸王的冠冕",
+  "cat": "条件触发",
+  "tier": "B",
+  "adapt": "生命低于 30% 时伤害 +50%；集齐 3 件国王藏品后变为 +150%",
+  "first_batch": true
+ },
+ {
+  "id": 129,
+  "name": "散轶诗简",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员上限 +1",
+  "first_batch": false
+ },
+ {
+  "id": 130,
+  "name": "衍生者终端-超级改",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "发光水母、涨潮螺壳等召唤效果伤害 +30%，频率 +30%",
+  "first_batch": false
+ },
+ {
+  "id": 131,
+  "name": "沃特大叔养护套装",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "受到的侵蚀伤害 -40%",
+  "first_batch": false
+ },
+ {
+  "id": 132,
+  "name": "乌萨斯毡毯",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "神经损伤累积速度 -40%",
+  "first_batch": false
+ },
+ {
+  "id": 133,
+  "name": "钝爪-突破",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "先锋职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 134,
+  "name": "钝爪-爆发",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "先锋职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 135,
+  "name": "钝爪-熟稔",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "先锋职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 136,
+  "name": "钝爪-百战",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "先锋职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 137,
+  "name": "折戟-突破",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "近卫职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 138,
+  "name": "折戟-锋刃",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "近卫职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 139,
+  "name": "折戟-浴血",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "近卫职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 140,
+  "name": "折戟-一夫当关",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "近卫职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 141,
+  "name": "折戟-破釜沉舟",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "近卫职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 142,
+  "name": "铁卫-突破",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 143,
+  "name": "铁卫-侵掠",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 144,
+  "name": "铁卫-推进",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 145,
+  "name": "铁卫-无锋",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 146,
+  "name": "铁卫-临时要塞",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 147,
+  "name": "残弩-突破",
+  "cat": "援护干员·狙击",
+  "tier": "B",
+  "adapt": "招募狙击援护时直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 148,
+  "name": "残弩-百步穿杨",
+  "cat": "援护干员·狙击",
+  "tier": "B",
+  "adapt": "狙击援护伤害 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 149,
+  "name": "残弩-交叉火力",
+  "cat": "援护干员·狙击",
+  "tier": "B",
+  "adapt": "狙击援护伤害 +40%，但射速 -20%",
+  "first_batch": false
+ },
+ {
+  "id": 150,
+  "name": "残弩-神速",
+  "cat": "援护干员·狙击",
+  "tier": "B",
+  "adapt": "狙击援护射速 +70%",
+  "first_batch": false
+ },
+ {
+  "id": 151,
+  "name": "断杖-突破",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "招募术师援护时直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 152,
+  "name": "断杖-织法者",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "术师援护伤害 +25%，射速 +25%",
+  "first_batch": false
+ },
+ {
+  "id": 153,
+  "name": "断杖-凝神",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "术师援护每 8 秒额外释放一次大范围爆炸",
+  "first_batch": false
+ },
+ {
+  "id": 154,
+  "name": "断杖-苦难巫咒",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "术师援护伤害 +70%，但爆炸范围 -20%",
+  "first_batch": false
+ },
+ {
+  "id": 155,
+  "name": "支柱-突破",
+  "cat": "援护干员·辅助",
+  "tier": "B",
+  "adapt": "招募辅助援护时直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 156,
+  "name": "支柱-勤奋",
+  "cat": "援护干员·辅助",
+  "tier": "B",
+  "adapt": "辅助援护的减速范围 +40%",
+  "first_batch": false
+ },
+ {
+  "id": 157,
+  "name": "支柱-援护",
+  "cat": "援护干员·辅助",
+  "tier": "B",
+  "adapt": "处在辅助援护范围内时，水月伤害 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 158,
+  "name": "支柱-枯法",
+  "cat": "援护干员·辅助",
+  "tier": "B",
+  "adapt": "辅助援护范围内的敌人受到伤害 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 159,
+  "name": "医者-突破",
+  "cat": "援护干员·医疗",
+  "tier": "B",
+  "adapt": "招募医疗援护时直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 160,
+  "name": "医者-自医",
+  "cat": "援护干员·医疗",
+  "tier": "B",
+  "adapt": "医疗援护治疗频率 +30%",
+  "first_batch": false
+ },
+ {
+  "id": 161,
+  "name": "医者-妙手",
+  "cat": "援护干员·医疗",
+  "tier": "B",
+  "adapt": "医疗援护治疗量 +50%",
+  "first_batch": false
+ },
+ {
+  "id": 162,
+  "name": "医者-固化序列",
+  "cat": "援护干员·医疗",
+  "tier": "B",
+  "adapt": "有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）",
+  "first_batch": false
+ },
+ {
+  "id": 163,
+  "name": "锈刃-突破",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "最大生命 +40%",
+  "first_batch": false
+ },
+ {
+  "id": 164,
+  "name": "锈刃-研磨",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "挥伞速度 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 165,
+  "name": "锈刃-单兵",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伤害 +40%，受到伤害 -20%",
+  "first_batch": false
+ },
+ {
+  "id": 166,
+  "name": "锈刃-可视静谧",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "闪避后 0.35 秒内无敌（原作的「再部署」换成水影消散）",
+  "first_batch": false
+ },
+ {
+  "id": 167,
+  "name": "锈刃-神力",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "伞击击退大幅增强（原作的「力度 +2」）",
+  "first_batch": false
+ },
+ {
+  "id": 168,
+  "name": "尖刺之手",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装 / 先锋分支专属",
+  "first_batch": false
+ },
+ {
+  "id": 169,
+  "name": "扼喉之手",
+  "cat": "援护干员·狙击",
+  "tier": "B",
+  "adapt": "狙击援护会直接击杀生命低于 20% 的敌人（Boss 除外）",
+  "first_batch": true
+ },
+ {
+  "id": 170,
+  "name": "扣挠之手",
+  "cat": "援护干员·辅助",
+  "tier": "B",
+  "adapt": "辅助援护每秒额外造成目标当前生命 3% 的伤害",
+  "first_batch": false
+ },
+ {
+  "id": 171,
+  "name": "炸裂之手",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "术师爆炸每多命中一个敌人，下一发冷却缩短",
+  "first_batch": false
+ },
+ {
+  "id": 172,
+  "name": "极速之手",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "没有招募任何援护干员时，挥伞速度 +60%（伏击客分支，独行流）",
+  "first_batch": true
+ },
+ {
+  "id": 173,
+  "name": "积攒之手",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装 / 先锋分支专属",
+  "first_batch": false
+ },
+ {
+  "id": 174,
+  "name": "净尘之手",
+  "cat": "援护干员·医疗",
+  "tier": "B",
+  "adapt": "医疗援护每秒对周围敌人造成法术伤害",
+  "first_batch": false
+ },
+ {
+  "id": 175,
+  "name": "碎靶之手",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "术师每次命中伤害 +15%（最高 +150%），5 秒没命中就清零",
+  "first_batch": false
+ },
+ {
+  "id": 176,
+  "name": "永流之手",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "每释放一次技能，技力回复 +12%（最多 4 层）",
+  "first_batch": false
+ },
+ {
+  "id": 177,
+  "name": "游戏室管理员权限卡",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "立即获得 1 次成长三选一",
+  "first_batch": false
+ },
+ {
+  "id": 178,
+  "name": "Miss.Christine摸摸券",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "立即获得 2 次成长三选一",
+  "first_batch": false
+ },
+ {
+  "id": 179,
+  "name": "古旧铸物",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "立即获得 3 次成长三选一",
+  "first_batch": false
+ },
+ {
+  "id": 180,
+  "name": "地形图",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员上限 +1，受到伤害 -1",
+  "first_batch": false
+ },
+ {
+  "id": 181,
+  "name": "神音海螺",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员上限 +1，最大生命 +8%",
+  "first_batch": false
+ },
+ {
+  "id": 182,
+  "name": "林间夜话",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员伤害 +15%，受到伤害 -2",
+  "first_batch": false
+ },
+ {
+  "id": 183,
+  "name": "教堂救济餐券",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "援护干员伤害 +15%，最大生命 +12%",
+  "first_batch": false
+ },
+ {
+  "id": 184,
+  "name": "地区行动方案",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作援护干员没有星级",
+  "first_batch": false
+ },
+ {
+  "id": 185,
+  "name": "全局作战文件",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作援护干员没有星级",
+  "first_batch": false
+ },
+ {
+  "id": 186,
+  "name": "人事部密信",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作援护干员没有星级",
+  "first_batch": false
+ },
+ {
+  "id": 187,
+  "name": "一份演讲稿",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "下一次招募的援护干员直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 188,
+  "name": "锈蚀的铁锤",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "商人处所有商品价格 -50%",
+  "first_batch": true
+ },
+ {
+  "id": 189,
+  "name": "罗德岛战术电台",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "招募援护干员时多一个选项",
+  "first_batch": false
+ },
+ {
+  "id": 190,
+  "name": "四叶草化石",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "升级三选一变为四选一",
+  "first_batch": true
+ },
+ {
+  "id": 191,
+  "name": "阿卡胡拉饭碗",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "回复 40% 生命，护盾 +2",
+  "first_batch": false
+ },
+ {
+  "id": 192,
+  "name": "立体艺术装置",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "立即回复 70% 生命，此后每击败一个 Boss 回复 10%",
+  "first_batch": false
+ },
+ {
+  "id": 193,
+  "name": "“多功能”发夹",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有钥匙 / 骰子",
+  "first_batch": false
+ },
+ {
+  "id": 194,
+  "name": "三钥协定",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "接下来 3 个补给箱必定掉落藏品（钥匙换成宝箱）",
+  "first_batch": false
+ },
+ {
+  "id": 195,
+  "name": "便携经书",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有钥匙 / 骰子",
+  "first_batch": false
+ },
+ {
+  "id": 196,
+  "name": "判官经文布",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有钥匙 / 骰子",
+  "first_batch": false
+ },
+ {
+  "id": 197,
+  "name": "深洋主宰刻像",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有钥匙 / 骰子",
+  "first_batch": false
+ },
+ {
+  "id": 198,
+  "name": "鸭爵金砖",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "本作没有钥匙 / 骰子",
+  "first_batch": false
+ },
+ {
+  "id": 199,
+  "name": "御2",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "护盾 +5",
+  "first_batch": false
+ },
+ {
+  "id": 200,
+  "name": "嵌体甲片",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "最大生命 -20%，护盾 +8",
+  "first_batch": false
+ },
+ {
+  "id": 201,
+  "name": "达里奥的提灯",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "清除并免疫一个排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 202,
+  "name": "“国王的护戒”",
+  "cat": "需新机制·护盾",
+  "tier": "C",
+  "adapt": "护盾 +2，一半当前生命转成护盾",
+  "first_batch": false
+ },
+ {
+  "id": 203,
+  "name": "郁金香的秘方",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "清除并免疫一个排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 204,
+  "name": "火油与药膏",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "灯火 -30，清除并免疫一个排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 205,
+  "name": "夜阳草",
+  "cat": "灯火",
+  "tier": "A",
+  "adapt": "灯火 +5",
+  "first_batch": false
+ },
+ {
+  "id": 206,
+  "name": "大教堂拼图",
+  "cat": "需新机制·启示",
+  "tier": "C",
+  "adapt": "随机获得 1 个启示（或一件能凑成组合的藏品）",
+  "first_batch": false
+ },
+ {
+  "id": 207,
+  "name": "投币玩具",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "每持有 5 源石锭，挥伞速度 +3%（上限 +30%）",
+  "first_batch": true
+ },
+ {
+  "id": 208,
+  "name": "骑士戒律·新编",
+  "cat": "经济",
+  "tier": "A",
+  "adapt": "每持有 5 源石锭，挥伞速度 +5%（上限 +50%）",
+  "first_batch": true
+ },
+ {
+  "id": 209,
+  "name": "支援补给站",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "每 60 秒在身边掉落一个急救包",
+  "first_batch": false
+ },
+ {
+  "id": 210,
+  "name": "支援地雷组",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "每 20 秒在脚下放一枚地雷",
+  "first_batch": false
+ },
+ {
+  "id": 211,
+  "name": "支援轰隆隆",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "每 45 秒召唤一个会冲向敌群自爆的小机器（原创造型）",
+  "first_batch": false
+ },
+ {
+  "id": 212,
+  "name": "支援起重机",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "每 30 秒吊起一名精英，束缚 3 秒",
+  "first_batch": false
+ },
+ {
+  "id": 213,
+  "name": "支援防暴桩",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "每 30 秒放下 2 根阻挡敌人的防暴桩",
+  "first_batch": false
+ },
+ {
+  "id": 214,
+  "name": "支援急救包",
+  "cat": "支援装置",
+  "tier": "B",
+  "adapt": "携带 3 个急救包，生命低于 30% 时自动使用",
+  "first_batch": false
+ },
+ {
+  "id": 215,
+  "name": "布雷奥甘肖像",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "技力回复 -15%",
+  "first_batch": false
+ },
+ {
+  "id": 216,
+  "name": "海神的代谢",
+  "cat": "负面藏品",
+  "tier": "A",
+  "adapt": "所有敌人生命 +25%",
+  "first_batch": true
+ },
+ {
+  "id": 217,
+  "name": "失败的标本",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "立即获得一个随机排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 218,
+  "name": "“应急灯”",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "灯火消耗 +10%",
+  "first_batch": true
+ },
+ {
+  "id": 219,
+  "name": "“光明之躯”",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "灯火消耗 +15%",
+  "first_batch": true
+ },
+ {
+  "id": 220,
+  "name": "主教的研究",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "灯火消耗 +25%",
+  "first_batch": true
+ },
+ {
+  "id": 221,
+  "name": "深蓝之心",
+  "cat": "需新机制·结局分支",
+  "tier": "C",
+  "adapt": "灯火 -50，获得排异反应，开启另一个结局",
+  "first_batch": false
+ },
+ {
+  "id": 222,
+  "name": "海潮的气息",
+  "cat": "需新机制·猎潮的骑士",
+  "tier": "C",
+  "adapt": "获得后一名强力敌人「猎潮的骑士」追击水月，直到被击败（需原创造型）",
+  "first_batch": false
+ },
+ {
+  "id": 223,
+  "name": "退行的罗辛南特",
+  "cat": "需新机制·猎潮的骑士",
+  "tier": "C",
+  "adapt": "「猎潮的骑士」不再出现",
+  "first_batch": false
+ },
+ {
+  "id": 224,
+  "name": "“荒诞命运”",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "源石锭 +10，下一个补给箱必定掉落藏品",
+  "first_batch": false
+ },
+ {
+  "id": 225,
+  "name": "骑士骨血",
+  "cat": "需新机制·猎潮的骑士",
+  "tier": "C",
+  "adapt": "「猎潮的骑士」受到伤害 +80%",
+  "first_batch": false
+ },
+ {
+  "id": 226,
+  "name": "“绝唱”",
+  "cat": "需新机制·启示",
+  "tier": "C",
+  "adapt": "随机获得 2 个启示",
+  "first_batch": false
+ },
+ {
+  "id": 227,
+  "name": "“文明的存续”",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "对 Boss 造成的伤害 +50%",
+  "first_batch": false
+ },
+ {
+  "id": 228,
+  "name": "“时光之末”",
+  "cat": "生存",
+  "tier": "A",
+  "adapt": "仅一次：生命归零时不结束，以 50% 生命复活",
+  "first_batch": true
+ },
+ {
+  "id": 229,
+  "name": "“审判庭之火”",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "每次命中敌人回复少量技力（所有敌人都是海嗣）",
+  "first_batch": false
+ },
+ {
+  "id": 230,
+  "name": "“苦痛的快乐”",
+  "cat": "削弱敌人",
+  "tier": "A",
+  "adapt": "所有敌人生命 -15%，移动速度 -15%",
+  "first_batch": false
+ },
+ {
+  "id": 231,
+  "name": "“小格兰法洛”",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "受到伤害时，全屏敌人晕眩 5 秒（冷却 30 秒）",
+  "first_batch": false
+ },
+ {
+  "id": 232,
+  "name": "“碎片大厦的回忆”",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）",
+  "first_batch": false
+ },
+ {
+  "id": 233,
+  "name": "“荣耀套餐”",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "一次受到超过 10% 最大生命的伤害时，周围敌人晕眩 3 秒",
+  "first_batch": false
+ },
+ {
+  "id": 234,
+  "name": "“岁怒”",
+  "cat": "触手与控制",
+  "tier": "B",
+  "adapt": "每次升级时，对随机一名敌人及其周围造成大量法术伤害",
+  "first_batch": false
+ },
+ {
+  "id": 235,
+  "name": "“基岩”",
+  "cat": "生存",
+  "tier": "B",
+  "adapt": "伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -10%",
+  "first_batch": false
+ },
+ {
+  "id": 236,
+  "name": "“分浪”",
+  "cat": "技能与技力",
+  "tier": "B",
+  "adapt": "最大生命 -25%，技力回复 +50%",
+  "first_batch": false
+ },
+ {
+  "id": 237,
+  "name": "“海洋的脉搏”",
+  "cat": "伞击与输出",
+  "tier": "A",
+  "adapt": "挥伞速度 +10%，所有敌人攻击速度 -10%",
+  "first_batch": false
+ },
+ {
+  "id": 238,
+  "name": "“决心”",
+  "cat": "需新机制·结局分支",
+  "tier": "C",
+  "adapt": "开启另一个结局，并获得大幅强化",
+  "first_batch": false
+ },
+ {
+  "id": 239,
+  "name": "“观望”",
+  "cat": "需新机制·结局分支",
+  "tier": "C",
+  "adapt": "开启另一个结局",
+  "first_batch": false
+ },
+ {
+  "id": 240,
+  "name": "“犹疑”",
+  "cat": "需新机制·结局分支",
+  "tier": "C",
+  "adapt": "开启另一个结局",
+  "first_batch": false
+ },
+ {
+  "id": 241,
+  "name": "“未尽的生命”",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "每过 2 分钟获得一个随机排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 242,
+  "name": "深蓝回忆",
+  "cat": "需新机制·结局分支",
+  "tier": "C",
+  "adapt": "灯火 -100，获得排异反应",
+  "first_batch": false
+ },
+ {
+  "id": 243,
+  "name": "深蓝之树",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15（诅咒与收益并存）",
+  "first_batch": true
+ },
+ {
+  "id": 244,
+  "name": "人事部铜印",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "立即招募一名随机援护干员，直接 Lv.2",
+  "first_batch": false
+ },
+ {
+  "id": 245,
+  "name": "博士银印",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "立即招募一名随机援护干员，直接 Lv.3",
+  "first_batch": false
+ },
+ {
+  "id": 246,
+  "name": "无字珊瑚",
+  "cat": "灯火",
+  "tier": "B",
+  "adapt": "每打开一个补给箱，灯火 +5（原作的骰子换成宝箱）",
+  "first_batch": false
+ },
+ {
+  "id": 247,
+  "name": "地底的灼痕",
+  "cat": "灯火",
+  "tier": "B",
+  "adapt": "连续 60 秒未受伤时，灯火 +6",
+  "first_batch": false
+ },
+ {
+  "id": 248,
+  "name": "铸阳巨械",
+  "cat": "灯火",
+  "tier": "B",
+  "adapt": "连续 60 秒未受伤时，灯火 +9",
+  "first_batch": false
+ },
+ {
+  "id": 249,
+  "name": "凝固灯油",
+  "cat": "需新机制·受伤掉灯火",
+  "tier": "C",
+  "adapt": "受伤导致的灯火损失 -40%",
+  "first_batch": false
+ },
+ {
+  "id": 250,
+  "name": "崇圣灯油",
+  "cat": "需新机制·受伤掉灯火",
+  "tier": "C",
+  "adapt": "受伤导致的灯火损失 -60%",
+  "first_batch": false
+ },
+ {
+  "id": 251,
+  "name": "“国王的水晶”",
+  "cat": "经济",
+  "tier": "B",
+  "adapt": "每击败一个 Boss：失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
+  "first_batch": false
+ },
+ {
+  "id": 252,
+  "name": "刻勋之手",
+  "cat": "伞击与输出",
+  "tier": "B",
+  "adapt": "每次击杀永久伤害 +0.1%（上限 +30%）",
+  "first_batch": true
+ },
+ {
+  "id": 253,
+  "name": "蓝卡坞安全衣",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "每持有一件负面藏品，受到伤害 -8%",
+  "first_batch": false
+ },
+ {
+  "id": 254,
+  "name": "《刀光剑影》",
+  "cat": "负面藏品",
+  "tier": "B",
+  "adapt": "每持有一件负面藏品，挥伞速度 +15%",
+  "first_batch": false
+ },
+ {
+  "id": 255,
+  "name": "佣兵保单",
+  "cat": "生存",
+  "tier": "A",
+  "adapt": "受到伤害 -10%；灯火低于 50 时改为 -35%（原作的「庇护」）",
+  "first_batch": true
+ },
+ {
+  "id": 256,
+  "name": "断杖-学识",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "每持有一件藏品，术师援护伤害 +2%",
+  "first_batch": false
+ },
+ {
+  "id": 257,
+  "name": "断杖-智慧之光",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "每持有一件藏品，术师援护伤害 +3%，射速 +2%",
+  "first_batch": false
+ },
+ {
+  "id": 258,
+  "name": "断杖-破解",
+  "cat": "援护干员·术师",
+  "tier": "B",
+  "adapt": "有术师援护时，所有敌人受到的法术伤害 +12%",
+  "first_batch": false
+ },
+ {
+  "id": 259,
+  "name": "铁卫-城墙",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 260,
+  "name": "铁卫-高塔",
+  "cat": "不适用",
+  "tier": "D",
+  "adapt": "重装职业专属",
+  "first_batch": false
+ },
+ {
+  "id": 261,
+  "name": "生还者合约",
+  "cat": "援护干员",
+  "tier": "B",
+  "adapt": "随机一名援护干员伤害 +20%，此后每击败一个 Boss 再 +20%",
+  "first_batch": false
+ },
+ {
+  "id": 262,
+  "name": "养育者基因种",
+  "cat": "需新机制·排异反应",
+  "tier": "C",
+  "adapt": "排异反应会「进化」：失效，并获得受到伤害 -35%、攻击无视 35% 防御",
+  "first_batch": false
+ }
+]
