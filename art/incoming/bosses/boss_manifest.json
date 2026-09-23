@@ -1,0 +1,151 @@
+[
+  {
+    "frame_width": 96,
+    "fps": 2,
+    "source_id": "0187012a-ca93-4cb0-8264-c4647f45a704",
+    "file": "boss_last_knight_mounted_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "最后的骑士 与罗辛南特"
+  },
+  {
+    "frame_width": 64,
+    "fps": 2,
+    "source_id": "f14cde5d-bbb8-4c57-9d96-7a17d658a1fd",
+    "file": "boss_carmen_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 64,
+    "name": "圣徒卡门"
+  },
+  {
+    "frame_width": 64,
+    "fps": 2,
+    "source_id": "2927c355-d1ea-4b1e-888e-ebf4d30221c7",
+    "file": "boss_iberia_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 64,
+    "name": "圣徒伊比利亚"
+  },
+  {
+    "frame_width": 64,
+    "fps": 2,
+    "source_id": "e6b7e3c0-7437-4ae9-acb0-37b68f5087cb",
+    "file": "boss_tide_bishop_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 64,
+    "name": "接潮主教"
+  },
+  {
+    "frame_width": 64,
+    "fps": 2,
+    "source_id": "e6b7e3c0-7437-4ae9-acb0-37b68f5087cb",
+    "file": "boss_tide_bishop_feign.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 64,
+    "name": "接潮主教 假死"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "128b909c-1f28-4547-9680-3f546d4ce7a4",
+    "file": "boss_tide_defier_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "接潮蔑死体"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "128b909c-1f28-4547-9680-3f546d4ce7a4",
+    "file": "boss_tide_defier_feign.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "接潮蔑死体 假死"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "1457f561-f136-4991-8569-c7bceea30f8c",
+    "file": "boss_tide_rebuker_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "接潮斥亡体"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "1457f561-f136-4991-8569-c7bceea30f8c",
+    "file": "boss_tide_rebuker_feign.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "接潮斥亡体 假死"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "70c863db-39af-4c15-8c3a-cbd8bb9d56ff",
+    "file": "boss_pathshaper_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "塑路者"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "daec28bf-13d9-497a-a2b0-659e6d744ae1",
+    "file": "boss_lifeshaper_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "延命塑路者"
+  },
+  {
+    "frame_width": 32,
+    "fps": 2,
+    "source_id": "804600c9-f77b-487c-8259-97cf843141d7",
+    "file": "pathshaper_fractal_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 32,
+    "name": "塑路者分形"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "96fcf03c-d7c6-4a8b-9898-a0145f26afda",
+    "file": "boss_paranoia_phase1_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "偏执泡影 一阶段"
+  },
+  {
+    "frame_width": 80,
+    "fps": 2,
+    "source_id": "96fcf03c-d7c6-4a8b-9898-a0145f26afda",
+    "file": "boss_paranoia_phase2_idle.png",
+    "frames": 2,
+    "status": "visual_review",
+    "frame_height": 80,
+    "name": "偏执泡影 二阶段草案"
+  },
+  {
+    "frame_height": 64,
+    "status": "visual_review",
+    "frames": 2,
+    "name": "最后的骑士 步行造型草案",
+    "fps": 2,
+    "frame_width": 64,
+    "file": "boss_last_knight_idle.png"
+  }
+]
