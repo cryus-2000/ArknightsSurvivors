@@ -4,6 +4,20 @@ extends RefCounted
 
 static var _cache := {}
 
+## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
+const ALIAS := {"e_bone": "drifter", "e_slider": "dart", "e_stone": "crawler", "e_pocket": "shell"}
+
+
+static func _incoming_path(name: String) -> String:
+	var p := incoming_dir().path_join(name + ".png")
+	if FileAccess.file_exists(p):
+		return p
+	if ALIAS.has(name):
+		var a := incoming_dir().path_join(ALIAS[name] + ".png")
+		if FileAccess.file_exists(a):
+			return a
+	return ""
+
 
 static func incoming_dir() -> String:
 	if OS.has_feature("editor"):
@@ -12,7 +26,7 @@ static func incoming_dir() -> String:
 
 
 static func has_override(name: String) -> bool:
-	return FileAccess.file_exists(incoming_dir().path_join(name + ".png"))
+	return _incoming_path(name) != ""
 
 
 ## 取贴图；找不到返回 null
@@ -20,8 +34,8 @@ static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
 		return _cache[name]
 	var t: Texture2D = null
-	var p := incoming_dir().path_join(name + ".png")
-	if FileAccess.file_exists(p):
+	var p := _incoming_path(name)
+	if p != "":
 		var img := Image.load_from_file(p)
 		if img != null and not img.is_empty():
 			t = ImageTexture.create_from_image(img)

@@ -1,11 +1,39 @@
 extends RefCounted
 ## 游戏数据表：敌人、水月的成长项、技能、模组、藏品、组合
 
+## 敌人：名称与机制按「水月与深蓝之树」，数值按本作换算
+## ai: melee 近战追击 / ranged 进入射程后停下射击 / static 不移动
+## 特殊字段：corrode 侵蚀比例、nerve 每次命中的神经损伤、role elite/boss
 const ENEMIES = {
-	"drifter": {"name": "游荡海嗣", "hp": 7.0, "spd": 62.0, "dmg": 6.0, "r": 10.0, "xp": 1.0, "tex": "drifter"},
-	"dart": {"name": "疾游海嗣", "hp": 8.0, "spd": 115.0, "dmg": 6.0, "r": 9.0, "xp": 1.0, "tex": "dart"},
-	"crawler": {"name": "爬行海嗣", "hp": 20.0, "spd": 50.0, "dmg": 10.0, "r": 13.0, "xp": 2.0, "tex": "crawler"},
-	"shell": {"name": "甲壳海嗣", "hp": 55.0, "spd": 38.0, "dmg": 14.0, "r": 17.0, "xp": 4.0, "tex": "shell"},
+	# ---- 普通
+	"bone": {"name": "骨海漂流体", "hp": 7.0, "spd": 64.0, "dmg": 5.0, "r": 10.0, "xp": 1.0, "tex": "e_bone", "ai": "melee", "corrode": 0.2},
+	"slider": {"name": "底海滑动者", "hp": 12.0, "spd": 72.0, "dmg": 6.0, "r": 10.0, "xp": 1.0, "tex": "e_slider", "ai": "melee", "nerve": 15.0},
+	"stone": {"name": "固海凿石者", "hp": 22.0, "spd": 46.0, "dmg": 7.0, "r": 12.0, "xp": 2.0, "tex": "e_stone", "ai": "ranged", "range": 230.0, "cd": 2.4, "entrench": true},
+	"offspring": {"name": "伊祖米克的子代", "hp": 70.0, "spd": 28.0, "dmg": 10.0, "r": 15.0, "xp": 4.0, "tex": "e_offspring", "ai": "melee", "morph": true},
+	"brood": {"name": "注亡拟嗣", "hp": 16.0, "spd": 0.0, "dmg": 6.0, "r": 9.0, "xp": 0.5, "tex": "e_brood", "ai": "static", "corrode": 0.3, "decay": 0.08},
+	"fractal": {"name": "塑路者碎片", "hp": 18.0, "spd": 95.0, "dmg": 6.0, "r": 8.0, "xp": 1.0, "tex": "e_fractal", "ai": "melee"},
+	"tear": {"name": "伊莎玛拉之泪", "hp": 60.0, "spd": 0.0, "dmg": 0.0, "r": 14.0, "xp": 2.0, "tex": "e_tear", "ai": "static", "tear": true},
+	# ---- 精英
+	"pocket": {"name": "囊海爬行者", "hp": 32.0, "spd": 48.0, "dmg": 12.0, "r": 18.0, "xp": 2.0, "tex": "e_pocket", "ai": "melee", "role": "elite", "burst": true},
+	"skimmer": {"name": "掠海漂移体", "hp": 26.0, "spd": 62.0, "dmg": 9.0, "r": 16.0, "xp": 2.0, "tex": "e_skimmer", "ai": "ranged", "range": 200.0, "cd": 1.8, "role": "elite", "corrode": 0.5, "hover": true},
+	"mother": {"name": "投嗣育母", "hp": 30.0, "spd": 40.0, "dmg": 8.0, "r": 18.0, "xp": 2.0, "tex": "e_mother", "ai": "ranged", "range": 260.0, "cd": 2.2, "role": "elite", "brood": true},
+	"mimic": {"name": "箱形恐鱼", "hp": 45.0, "spd": 88.0, "dmg": 14.0, "r": 16.0, "xp": 3.0, "tex": "e_mimic", "ai": "melee", "role": "elite", "ingots": 10},
+	# ---- Boss
+	"path": {"name": "塑路者", "hp": 2600.0, "spd": 58.0, "dmg": 20.0, "r": 34.0, "xp": 60.0, "tex": "e_path", "ai": "melee", "role": "boss"},
+	"izumik": {"name": "伊祖米克，生态泉源", "hp": 5200.0, "spd": 30.0, "dmg": 16.0, "r": 40.0, "xp": 90.0, "tex": "e_izumik", "ai": "ranged", "range": 320.0, "cd": 1.6, "role": "boss"},
+	"iberia": {"name": "圣徒伊比利亚", "hp": 2800.0, "spd": 58.0, "dmg": 18.0, "r": 22.0, "xp": 60.0, "tex": "e_iberia", "ai": "ranged", "range": 280.0, "cd": 1.5, "role": "boss", "ammo": 3},
+	"carmen": {"name": "圣徒卡门", "hp": 2400.0, "spd": 50.0, "dmg": 16.0, "r": 22.0, "xp": 60.0, "tex": "e_carmen", "ai": "ranged", "range": 380.0, "cd": 1.2, "role": "boss", "ammo": 3},
+	"bishop": {"name": "接潮主教", "hp": 2000.0, "spd": 36.0, "dmg": 14.0, "r": 22.0, "xp": 50.0, "tex": "e_bishop", "ai": "ranged", "range": 300.0, "cd": 1.8, "role": "boss", "pair": true},
+	"archon": {"name": "接潮蔑死体", "hp": 2200.0, "spd": 56.0, "dmg": 18.0, "r": 24.0, "xp": 50.0, "tex": "e_archon", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
+	"immortal": {"name": "接潮斥亡体", "hp": 1500.0, "spd": 82.0, "dmg": 13.0, "r": 20.0, "xp": 50.0, "tex": "e_immortal", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
+	"paranoia": {"name": "\"偏执泡影\"", "hp": 7000.0, "spd": 34.0, "dmg": 15.0, "r": 40.0, "xp": 0.0, "tex": "e_paranoia", "ai": "ranged", "range": 320.0, "cd": 1.5, "role": "boss", "corrode": 0.5, "hover": true},
+	"ishar": {"name": "伊莎玛拉，腐化之心", "hp": 9000.0, "spd": 34.0, "dmg": 18.0, "r": 46.0, "xp": 0.0, "tex": "e_ishar", "ai": "ranged", "range": 340.0, "cd": 1.5, "role": "boss"},
+}
+## Boss 结构：3:30 与 7:00 从第三层 Boss 池各抽一个（不重复），10:00 按结局出现最终 Boss
+const BOSS_TIMES := [210.0, 420.0, 600.0]
+const MID_POOL := [["path"], ["iberia"], ["carmen"], ["bishop", "archon"], ["bishop", "immortal"]]
+const ENDINGS := {
+	"standard": {"name": "结局一", "en": "PRECIOUS DAYS", "boss": "paranoia"},
 }
 
 ## 技能：致敬原作的三个技能，全部自动释放

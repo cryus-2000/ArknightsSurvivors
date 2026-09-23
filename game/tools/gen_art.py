@@ -345,3 +345,201 @@ im = new(8, 8); d = ImageDraw.Draw(im)
 d.ellipse((0, 0, 7, 7), fill=(150, 110, 255)); d.ellipse((2, 2, 5, 5), fill=(230, 210, 255))
 im.save(f"{OUT}/orb.png")
 print("allies ok")
+
+# ================================================================ v0.5 海嗣（原创造型，按原作定位设计）
+def e_bone(f):      # 骨海漂流体：半透明伞体 + 外露骨刺
+    im = new(14, 16); d = ImageDraw.Draw(im)
+    d.ellipse((2, 1, 11, 9), fill=(70, 150, 150)); d.rectangle((2, 6, 11, 8), fill=(40, 100, 105))
+    for x in (4, 7, 10): d.line((x, 2, x - 1, 7), fill=(225, 225, 205))
+    for i, x in enumerate((3, 6, 9)):
+        for y in range(9, 14):
+            d.point((x + ((y + i + f) % 3 == 0) * (1 if i % 2 else -1), y), fill=(210, 210, 190))
+    d.point((5, 5), fill=(255, 90, 90)); d.point((8, 5), fill=(255, 90, 90))
+    return im
+
+def e_slider(f):    # 底海滑动者：贴地滑行、多条附肢
+    im = new(18, 12); d = ImageDraw.Draw(im)
+    d.ellipse((3, 3, 16, 10), fill=(60, 120, 170)); d.line((5, 4, 13, 4), fill=(130, 190, 230))
+    for i, x in enumerate((3, 6, 10, 14)):
+        d.line((x, 9, x - 2 + (f + i) % 2 * 2, 11), fill=(40, 80, 120))
+    d.line((15, 5, 17, 3 + f), fill=(40, 80, 120)); d.point((13, 6), fill=(255, 230, 120))
+    return im
+
+def e_stone(f):     # 固海凿石者：石质甲壳 + 凿状前肢（远程）
+    im = new(18, 16); d = ImageDraw.Draw(im)
+    d.polygon([(2, 12), (5, 3), (13, 2), (16, 11)], fill=(110, 110, 120)); d.line((5, 4, 12, 3), fill=(170, 170, 180))
+    d.line((6, 7, 11, 8), fill=(80, 80, 90)); d.rectangle((3, 12, 15, 13), fill=(60, 60, 70))
+    d.line((15, 6, 17, 2 + f), fill=(200, 150, 90)); d.point((12, 6), fill=(120, 230, 255))
+    return im
+
+def e_offspring(f): # 伊祖米克的子代：臃肿缓慢的幼体
+    im = new(20, 18); d = ImageDraw.Draw(im)
+    d.ellipse((1, 3 + f, 18, 17), fill=(120, 170, 110)); d.ellipse((4, 5 + f, 12, 11 + f), fill=(170, 210, 150))
+    for x in (5, 10, 14): d.ellipse((x, 12, x + 3, 15), fill=(90, 130, 85))
+    d.point((13, 8 + f), fill=(30, 30, 30)); d.point((15, 9 + f), fill=(30, 30, 30))
+    return im
+
+def e_brood(f):     # 注亡拟嗣：卵形诱饵
+    im = new(10, 12); d = ImageDraw.Draw(im)
+    d.ellipse((1, 1, 8, 11), fill=(170, 110, 150)); d.ellipse((3, 3, 6, 7), fill=(220, 170, 200))
+    d.line((2, 10, 1 + f, 11), fill=(120, 70, 100)); d.line((7, 10, 8 - f, 11), fill=(120, 70, 100))
+    return im
+
+def e_pocket(f):    # 囊海爬行者：背负气囊的精英
+    im = new(22, 18); d = ImageDraw.Draw(im)
+    for i, x in enumerate((3, 7, 14, 18)):
+        d.line((x, 13, x + (-1 if x < 11 else 1), 17 - (f + i) % 2), fill=(70, 50, 120))
+    d.ellipse((2, 6, 19, 15), fill=(120, 90, 190))
+    for x, y in ((4, 2), (9, 1), (14, 3)): d.ellipse((x, y, x + 5, y + 6), fill=(200, 120, 230)); d.point((x + 2, y + 2), fill=(255, 220, 255))
+    d.point((6, 11), fill=(255, 230, 120)); d.point((15, 11), fill=(255, 230, 120))
+    return im
+
+def e_skimmer(f):   # 掠海漂移体：低空悬浮的鳐形（远程）
+    im = new(24, 14); d = ImageDraw.Draw(im)
+    d.polygon([(0, 7 - f), (8, 3), (16, 3), (23, 7 - f), (16, 10), (8, 10)], fill=(70, 160, 170))
+    d.line((8, 4, 16, 4), fill=(150, 230, 230)); d.line((12, 10, 12, 13), fill=(40, 100, 110))
+    d.point((10, 6), fill=(255, 90, 90)); d.point((14, 6), fill=(255, 90, 90))
+    return im
+
+def e_mother(f):    # 投嗣育母：膨大的育囊（远程）
+    im = new(24, 22); d = ImageDraw.Draw(im)
+    d.ellipse((3, 2, 21, 18), fill=(150, 80, 110)); d.ellipse((6, 5, 18, 15), fill=(190, 110, 140))
+    for x, y in ((7, 7), (12, 9), (15, 6)): d.ellipse((x, y, x + 3, y + 3), fill=(240, 190, 210))
+    d.ellipse((9, 15, 15, 20), fill=(60, 20, 40))
+    for x in (5, 19): d.line((x, 16, x + (1 if x < 12 else -1) * (1 + f), 21), fill=(110, 50, 80))
+    return im
+
+def e_chest(f):     # 宝箱（补给箱 / 箱形恐鱼伪装）
+    im = new(16, 14); d = ImageDraw.Draw(im)
+    d.rectangle((0, 4, 15, 13), fill=(110, 75, 40)); d.rectangle((0, 1, 15, 5), fill=(140, 95, 50))
+    d.rectangle((0, 5, 15, 5), fill=(220, 175, 80)); d.rectangle((7, 4, 8, 8), fill=(255, 215, 110))
+    d.line((3, 1, 3, 13), fill=(90, 60, 30)); d.line((12, 1, 12, 13), fill=(90, 60, 30))
+    return im
+
+def e_mimic(f):     # 箱形恐鱼现形：箱盖张开、利齿与触须
+    im = new(20, 18); d = ImageDraw.Draw(im)
+    d.rectangle((2, 8, 17, 17), fill=(110, 75, 40)); d.polygon([(2, 7), (17, 7), (15, 0 + f), (4, 1 + f)], fill=(140, 95, 50))
+    d.rectangle((3, 6, 16, 9), fill=(60, 10, 25))
+    for x in range(4, 16, 3): d.polygon([(x, 6), (x + 1, 6), (x + 0.5, 9)], fill=(240, 230, 220))
+    for x in (1, 18): d.line((x, 12, x + (-1 if x < 10 else 1), 17 - f), fill=(140, 60, 100))
+    d.point((6, 3 + f), fill=(255, 60, 60)); d.point((13, 3 + f), fill=(255, 60, 60))
+    return im
+
+def e_path(f):      # 塑路者：高大的刃肢 Boss（近战）
+    im = new(40, 44); d = ImageDraw.Draw(im)
+    d.polygon([(14, 42), (12, 20), (20, 8), (28, 20), (26, 42)], fill=(60, 70, 110))
+    d.ellipse((14, 4, 26, 16), fill=(80, 95, 140)); d.line((17, 10, 23, 10), fill=(120, 240, 255))
+    d.line((12, 20, 2, 30 - f * 3), fill=(170, 180, 220), width=3); d.line((28, 20, 38, 30 - f * 3), fill=(170, 180, 220), width=3)
+    d.line((16, 24, 24, 24), fill=(110, 125, 170)); d.line((16, 30, 24, 30), fill=(110, 125, 170))
+    return im
+
+def e_fractal(f):   # 塑路者碎片
+    im = new(10, 10); d = ImageDraw.Draw(im)
+    d.polygon([(5, 0), (9, 5 - f), (5, 9), (1, 5 + f)], fill=(120, 140, 200)); d.point((5, 4), fill=(160, 250, 255))
+    return im
+
+def e_izumik(f):    # 伊祖米克：巨大的海葵状生态体（远程）
+    im = new(56, 52); d = ImageDraw.Draw(im)
+    for k in range(10):
+        a = k / 10 * math.tau + f * 0.15
+        pts = [(28 + math.cos(a + math.sin(s * 0.8 + k) * 0.2) * (12 + s * 3), 30 + math.sin(a + math.sin(s * 0.8 + k) * 0.2) * (10 + s * 2.4)) for s in range(7)]
+        d.line(pts, fill=(80, 170, 120), width=3)
+    d.ellipse((14, 16, 42, 44), fill=(60, 130, 100)); d.ellipse((20, 22, 36, 38), fill=(170, 240, 190))
+    d.ellipse((25, 27, 31, 33), fill=(255, 250, 220))
+    return im
+
+def e_ishar(f):     # 伊莎玛拉：发光的腐化之心（最终 Boss，远程）
+    im = new(64, 60); d = ImageDraw.Draw(im)
+    for k in range(12):
+        a = k / 12 * math.tau + f * 0.12
+        pts = [(32 + math.cos(a + s * 0.12) * (14 + s * 3), 30 + math.sin(a + s * 0.12) * (13 + s * 2.6)) for s in range(7)]
+        d.line(pts, fill=(60, 40, 120), width=3)
+    d.ellipse((16, 14, 48, 46), fill=(40, 30, 90)); d.ellipse((21, 19, 43, 41), fill=(110, 70, 200))
+    d.ellipse((26, 24, 38, 36), fill=(200, 170, 255)); d.ellipse((29, 27, 35, 33), fill=(255, 255, 255))
+    return im
+
+def e_tear(f):      # 伊莎玛拉之泪：地面发光水洼
+    im = new(18, 10); d = ImageDraw.Draw(im)
+    d.ellipse((0, 2, 17, 9), fill=(90, 60, 170)); d.ellipse((3, 3 + f, 14, 8), fill=(170, 130, 255)); d.ellipse((7, 4, 10, 6), fill=(240, 220, 255))
+    return im
+
+for name, fn in (("e_bone", e_bone), ("e_slider", e_slider), ("e_stone", e_stone), ("e_offspring", e_offspring),
+                 ("e_brood", e_brood), ("e_pocket", e_pocket), ("e_skimmer", e_skimmer), ("e_mother", e_mother),
+                 ("e_chest", e_chest), ("e_mimic", e_mimic), ("e_path", e_path), ("e_fractal", e_fractal),
+                 ("e_izumik", e_izumik), ("e_ishar", e_ishar), ("e_tear", e_tear)):
+    save_enemy(name, [fn(0), fn(1)])
+
+# 敌方弹、源石锭、商人
+im = new(8, 8); d = ImageDraw.Draw(im)
+d.ellipse((0, 0, 7, 7), fill=(230, 80, 140)); d.ellipse((2, 2, 5, 5), fill=(255, 190, 220)); im.save(f"{OUT}/ebullet.png")
+im = new(9, 7); d = ImageDraw.Draw(im)
+d.polygon([(1, 3), (4, 0), (8, 2), (7, 6), (2, 6)], fill=(235, 120, 50)); d.line((3, 2, 5, 1), fill=(255, 210, 140))
+outline(im).save(f"{OUT}/ingot.png")
+def merchant(f):
+    im = new(16, 20); d = ImageDraw.Draw(im)
+    d.rectangle((1, 7, 6, 16), fill=(110, 80, 50))                      # 背包
+    d.rectangle((5, 8 + f, 11, 17), fill=(70, 60, 80)); d.ellipse((4, 1 + f, 12, 10 + f), fill=(70, 60, 80))
+    d.rectangle((6, 5 + f, 10, 8 + f), fill=(40, 30, 40)); d.point((7, 6 + f), fill=(255, 220, 120)); d.point((9, 6 + f), fill=(255, 220, 120))
+    d.line((12, 9 + f, 14, 12), fill=(90, 70, 50)); d.ellipse((12, 12, 15, 16), fill=(255, 190, 90))
+    d.line((6, 18, 6, 19), fill=(30, 30, 40)); d.line((10, 18, 10, 19), fill=(30, 30, 40))
+    return outline(im)
+strip([merchant(0), merchant(1)]).save(f"{OUT}/merchant.png")
+print("v05 art ok")
+
+# ================================================================ 第三层 Boss 与最终 Boss（原创造型）
+def e_saint(f, hat, coat, weapon):   # 圣徒：宽檐帽、长外套，手持火铳/剑
+    im = new(26, 34); d = ImageDraw.Draw(im)
+    d.polygon([(8, 32), (7, 14), (13, 10), (19, 14), (18, 32)], fill=coat)
+    d.rectangle((9, 15, 17, 17), fill=(200, 170, 90))
+    d.ellipse((9, 5, 17, 13), fill=(220, 200, 180)); d.rectangle((4, 4 - f, 22, 6 - f), fill=hat); d.rectangle((9, 0 - f, 17, 5 - f), fill=hat)
+    d.point((11, 9), fill=(40, 40, 50)); d.point((15, 9), fill=(40, 40, 50))
+    if weapon == "cannon":
+        d.rectangle((17, 16, 25, 19), fill=(80, 80, 90)); d.rectangle((23, 15, 25, 20), fill=(60, 60, 70))
+    else:
+        d.line((18, 12, 25, 30), fill=(210, 220, 230), width=2)
+    d.line((9, 32, 9, 33), fill=(30, 30, 40)); d.line((16, 32, 16, 33), fill=(30, 30, 40))
+    return im
+
+def e_bishop(f):    # 接潮主教：高大的长袍主教，身上长出海嗣组织
+    im = new(24, 38); d = ImageDraw.Draw(im)
+    d.polygon([(6, 37), (5, 14), (12, 8), (19, 14), (18, 37)], fill=(40, 45, 70))
+    d.line((12, 14, 12, 36), fill=(200, 170, 90))
+    d.polygon([(8, 9), (12, 0 + f), (16, 9)], fill=(220, 215, 200)); d.ellipse((9, 7, 15, 13), fill=(200, 190, 180))
+    for y in (18, 24, 30): d.ellipse((3, y, 8, y + 4), fill=(90, 160, 150))
+    d.line((20, 8, 20, 37), fill=(160, 140, 90)); d.ellipse((18, 5, 22, 9), fill=(120, 230, 220))
+    return im
+
+def e_archon(f):    # 接潮蔑死体：粗壮的海嗣躯体（近战）
+    im = new(30, 30); d = ImageDraw.Draw(im)
+    d.ellipse((4, 6, 26, 26), fill=(60, 110, 120)); d.ellipse((8, 9, 22, 20), fill=(90, 150, 160))
+    for x in (6, 24): d.line((x, 14, x + (-5 if x < 15 else 5), 22 + f), fill=(40, 80, 90), width=3)
+    d.polygon([(10, 22), (20, 22), (15, 28)], fill=(30, 10, 20))
+    d.point((12, 13), fill=(255, 220, 90)); d.point((18, 13), fill=(255, 220, 90))
+    return im
+
+def e_immortal(f):  # 接潮斥亡体：细长迅捷的海嗣躯体（近战）
+    im = new(28, 22); d = ImageDraw.Draw(im)
+    d.ellipse((5, 6, 23, 16), fill=(90, 120, 170)); d.line((7, 8, 21, 8), fill=(150, 190, 230))
+    for i, x in enumerate((6, 11, 16, 21)): d.line((x, 15, x - 3 + (i + f) % 2 * 6, 21), fill=(60, 80, 120))
+    d.line((22, 9, 27, 5 - f), fill=(60, 80, 120), width=2); d.point((19, 10), fill=(255, 90, 90))
+    return im
+
+def e_paranoia(f):  # "偏执泡影"：悬浮的幻影气泡，外壳映出扭曲的光
+    im = new(56, 56); d = ImageDraw.Draw(im)
+    d.ellipse((6, 4 + f, 50, 48 + f), fill=(70, 50, 110)); d.ellipse((10, 8 + f, 46, 44 + f), fill=(120, 90, 170))
+    d.arc((12, 10 + f, 44, 42 + f), 200, 320, fill=(230, 210, 255), width=2)
+    for k in range(6):
+        a = k / 6 * math.tau
+        x, y = 28 + math.cos(a) * 11, 26 + f + math.sin(a) * 11
+        d.ellipse((x - 3, y - 3, x + 3, y + 3), fill=(255, 240, 180)); d.point((x, y), fill=(40, 20, 50))
+    d.ellipse((24, 22 + f, 32, 30 + f), fill=(255, 255, 255))
+    for x in (14, 28, 42): d.line((x, 48 + f, x + (2 if f else -2), 55), fill=(90, 60, 140), width=2)
+    return im
+
+save_enemy("e_iberia", [e_saint(0, (60, 40, 40), (120, 40, 40), "sword"), e_saint(1, (60, 40, 40), (120, 40, 40), "sword")])
+save_enemy("e_carmen", [e_saint(0, (30, 30, 40), (60, 60, 90), "cannon"), e_saint(1, (30, 30, 40), (60, 60, 90), "cannon")])
+save_enemy("e_bishop", [e_bishop(0), e_bishop(1)])
+save_enemy("e_archon", [e_archon(0), e_archon(1)])
+save_enemy("e_immortal", [e_immortal(0), e_immortal(1)])
+save_enemy("e_paranoia", [e_paranoia(0), e_paranoia(1)])
+print("bosses ok")

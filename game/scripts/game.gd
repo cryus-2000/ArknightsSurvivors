@@ -9,13 +9,17 @@ const A = preload("res://scripts/art.gd")
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
 	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
-const ECOL := {"drifter": Color(0.4, 0.9, 0.8), "dart": Color(0.5, 0.85, 1.0), "crawler": Color(0.7, 0.55, 1.0), "shell": Color(0.45, 0.55, 1.0)}
+const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), "stone": Color(0.7, 0.7, 0.75), "offspring": Color(0.6, 0.9, 0.5),
+	"brood": Color(0.9, 0.6, 0.8), "pocket": Color(0.8, 0.55, 1.0), "skimmer": Color(0.4, 0.9, 0.9), "mother": Color(0.9, 0.5, 0.7),
+	"mimic": Color(1.0, 0.75, 0.4), "path": Color(0.6, 0.7, 1.0), "fractal": Color(0.6, 0.7, 1.0), "izumik": Color(0.5, 1.0, 0.7),
+	"ishar": Color(0.75, 0.55, 1.0), "tear": Color(0.75, 0.55, 1.0), "iberia": Color(1.0, 0.6, 0.5), "carmen": Color(0.7, 0.7, 1.0),
+	"bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
 
-enum S { PLAY, CHOICE, PAUSE, DEAD, WIN }
+enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP }
 
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
-const BOSS_TIME := 600.0
+const MERCHANT_TIMES := [100.0, 330.0, 520.0]
 const CELL := 48.0
 const MAX_ENEMIES := 450
 const LAMP_EMPTY_SECONDS := 150.0
@@ -111,8 +115,26 @@ var orbit_a := 0.0
 var spawn_acc := 0.0
 var next_elite := 60.0
 var next_horde := 120.0
-var boss_spawned := false
-var boss = null
+var boss = null                 # 当前显示血条的 Boss
+var bosses: Array = []
+var boss_idx := 0
+var final_boss = null
+var ending := "standard"
+var force_boss := -1
+var mid_used: Array = []
+var atk_slow := 0.0
+var ebullets: Array = []
+var shocks: Array = []
+var mires: Array = []
+var next_chest := 20.0
+var next_mire := 150.0
+var merchant := {}
+var merchant_idx := 0
+var shop_items: Array = []
+var ingots := 0
+var nerve := 0.0
+var pstun := 0.0
+var corrode_pool := 0.0
 var banner := ""
 var banner_t := 0.0
 
@@ -126,6 +148,7 @@ var pending_chests := 0
 var cam: Camera2D
 var sprite: Sprite2D
 var lamp_light: PointLight2D
+var merchant_light: PointLight2D
 var hud: Control
 var panel: Control
 var panel_box: HBoxContainer
@@ -149,9 +172,12 @@ var autotest := false
 var balance := false
 var bal_done := false
 var elites_killed := 0
+var shop_visits := 0
+var dmg_log := {}
+var dmg_src := ""
 var lv_marks := {}
 var at_frames := 0
-var shot_at := [300, 4200]
+var shot_at := [3400]
 var choice_wait := 0
 var choice_shot := false
 
@@ -161,9 +187,11 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	for n in ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
-			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb"]:
+			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
+			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic",
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "ebullet", "ingot", "merchant"]:
 		tex[n] = A.tex(n)
-		if n in ["drifter", "dart", "crawler", "shell", "boss"]:
+		if n.begins_with("e_"):
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
 	# 可选素材：有图就用，没有就用程序效果
 	var optional := ["player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
@@ -193,6 +221,14 @@ func _ready() -> void:
 	fx_add.material = am
 	fx_add.draw.connect(_draw_fx_add)
 	add_child(fx_add)
+
+	merchant_light = PointLight2D.new()
+	merchant_light.texture = tex.light
+	merchant_light.color = Color(1.0, 0.75, 0.45)
+	merchant_light.energy = 1.0
+	merchant_light.texture_scale = 2.2
+	merchant_light.visible = false
+	add_child(merchant_light)
 
 	lamp_light = PointLight2D.new()
 	lamp_light.texture = tex.light
@@ -225,6 +261,8 @@ func _ready() -> void:
 		OS.low_processor_usage_mode = false
 		OS.low_processor_usage_mode_sleep_usec = 0
 	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--forceboss="):
+			force_boss = int(a.substr(12))
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			seed(int(a.substr(7)))
@@ -234,7 +272,7 @@ func _update_music(_dt: float) -> void:
 	var target := 20000.0
 	if state == S.PLAY and lamp < 30.0:
 		target = lerp(700.0, 4000.0, lamp / 30.0)
-	if state == S.PAUSE or state == S.CHOICE:
+	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP:
 		target = 1800.0
 	Sfx.cut_target = target
 	Sfx.vol_target = -12.0 if (state == S.DEAD or state == S.WIN) else -4.0
@@ -243,6 +281,16 @@ func _update_music(_dt: float) -> void:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func _autotest_step() -> void:
 	at_frames += 1
+	if state == S.SHOP:
+		for i in shop_items.size():
+			if not shop_items[i].sold and ingots >= shop_items[i].price:
+				_buy(i)
+				break
+		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not balance:
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_shop.png")
+		shop_visits += 1
+		if shop_visits % 3 == 0:
+			_close_shop()
 	for m in [120, 300, 480]:
 		if t >= m and not lv_marks.has(m):
 			lv_marks[m] = level
@@ -254,7 +302,7 @@ func _autotest_step() -> void:
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
-				"elites": elites_killed, "relics": relics.size(), "allies": allies.size(), "elite_stage": elite_stage,
+				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
 				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0}))
 			get_tree().quit()
 		return
@@ -269,10 +317,11 @@ func _autotest_step() -> void:
 			_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d mod=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, module, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
-	if boss_spawned and boss != null:
-		boss.hp -= 40.0
-		if boss.hp <= 0.0:
-			_kill(boss)
+	for bb in bosses:
+		if not bb.dead and not bb.invuln:
+			bb.hp -= 40.0
+			if bb.hp <= 0.0:
+				_kill(bb)
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_%d.png" % at_frames)
 	if state == S.WIN or at_frames > 14000:
@@ -333,7 +382,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = event.keycode
-	if k == KEY_ESCAPE:
+	if k == KEY_ESCAPE and state != S.SHOP:
 		if state == S.PLAY:
 			state = S.PAUSE
 		elif state == S.PAUSE:
@@ -346,6 +395,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().change_scene_to_file("res://main.tscn")
 	elif k == KEY_R and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
 		get_tree().reload_current_scene()
+	elif state == S.SHOP:
+		if k >= KEY_1 and k <= KEY_5:
+			_buy(k - KEY_1)
+		elif k == KEY_F:
+			_refresh_shop()
+		elif k == KEY_ESCAPE or k == KEY_E:
+			_close_shop()
 	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_3:
 		var i: int = k - KEY_1
 		if i < choices.size():
@@ -361,6 +417,9 @@ func _update(dt: float) -> void:
 		mv = _bot_move()
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
+	moving = mv != Vector2.ZERO
+	if pstun > 0.0:
+		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
 	if moving:
 		mv = mv.normalized()
@@ -384,6 +443,9 @@ func _update(dt: float) -> void:
 	_mizuki(dt)
 	_update_allies(dt)
 	_update_bullets(dt)
+	_update_ebullets(dt)
+	_update_status(dt)
+	_update_merchant(dt)
 	_update_gems(dt)
 	_update_fx(dt)
 	_cleanup()
@@ -392,7 +454,7 @@ func _update(dt: float) -> void:
 		hp = 0.0
 		state = S.DEAD
 		return
-	if boss_spawned and boss != null and boss.dead:
+	if final_boss != null and final_boss.dead:
 		state = S.WIN
 		return
 	_check_pending()
@@ -423,6 +485,17 @@ func _bot_move() -> Vector2:
 		if w < best:
 			best = w
 			pull = (g.pos - ppos).normalized() * 0.7
+	if hp > max_hp * 0.5:
+		for bb in bosses:
+			if not bb.dead and not bb.invuln and bb.pos.distance_to(ppos) > 90.0:
+				pull = (bb.pos - ppos).normalized() * 0.8
+				break
+	if not merchant.is_empty() and merchant.pos.distance_to(ppos) < 500.0 and not merchant.near:
+		pull = (merchant.pos - ppos).normalized() * 0.9
+	for e in enemies:
+		if e.chest and not e.dead and e.pos.distance_to(ppos) < 400.0:
+			pull = (e.pos - ppos).normalized() * 0.8
+			break
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and hp > max_hp * 0.4:
 		pull = (nearest_p - ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
@@ -448,28 +521,80 @@ func _edge_pos() -> Vector2:
 
 
 func _pick_type() -> String:
-	var pool := ["drifter", "drifter", "drifter"]
-	if t > 90.0:
-		pool += ["dart", "dart"]
+	var pool := ["bone", "bone", "bone", "bone", "bone", "slider", "slider"]
 	if t > 120.0:
-		pool += ["crawler", "crawler"]
-	if t > 240.0:
-		pool += ["shell"]
-	if t > 400.0:
-		pool += ["shell", "crawler"]
+		pool += ["stone"]
+	if t > 180.0:
+		pool += ["slider", "bone"]
+	if t > 300.0:
+		pool += ["offspring"]
+	if t > 420.0:
+		pool += ["stone", "bone", "bone"]
+	var pick: String = pool[rng.randi() % pool.size()]
+	if pick == "stone":
+		var ns := 0
+		for e in enemies:
+			if e.type == "stone" and not e.dead:
+				ns += 1
+		if ns >= 6:
+			pick = "bone"
+	return pick
+
+
+func _pick_elite() -> String:
+	var pool := ["pocket"]
+	if t > 120.0:
+		pool.append("skimmer")
+	if t > 300.0:
+		pool.append("mother")
 	return pool[rng.randi() % pool.size()]
 
 
+func _boss_alive() -> bool:
+	for b in bosses:
+		if not b.dead:
+			return true
+	return false
+
+
 func _spawn(dt: float) -> void:
-	if t >= BOSS_TIME and not boss_spawned:
-		boss_spawned = true
-		boss = _spawn_enemy("shell", _edge_pos(), false, true)
-		_show_banner("潮渊巨噬体 苏醒了")
+	# Boss 按时间登场
+	if boss_idx < D.BOSS_TIMES.size() and t >= D.BOSS_TIMES[boss_idx]:
+		boss_idx += 1
+		var group: Array = []
+		if boss_idx == D.BOSS_TIMES.size():
+			group = [D.ENDINGS[ending].boss]
+		else:
+			var pool: Array = []
+			for i in D.MID_POOL.size():
+				if not mid_used.has(i):
+					pool.append(i)
+			var pick: int = pool[rng.randi() % pool.size()]
+			if force_boss >= 0 and not mid_used.has(force_boss):
+				pick = force_boss
+			mid_used.append(pick)
+			group = D.MID_POOL[pick]
+		var base := _edge_pos()
+		var spawned: Array = []
+		for k in group.size():
+			var b := _spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
+			bosses.append(b)
+			spawned.append(b)
+			boss = b
+		if spawned.size() == 2:
+			spawned[0].partner = spawned[1]
+			spawned[1].partner = spawned[0]
+		if boss_idx == D.BOSS_TIMES.size():
+			final_boss = spawned[0]
+		var names: Array = []
+		for g in group:
+			names.append(D.ENEMIES[g].name)
+		_show_banner("%s 出现了" % " 与 ".join(names))
 		Sfx.play("roar", 2.0, 0.7, 0.0)
 		_shake(1.2)
 	var rate := 1.6 + t / 30.0
-	if boss_spawned:
-		rate *= 0.4
+	if _boss_alive():
+		rate *= 0.5
 	spawn_acc += rate * dt
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
@@ -477,10 +602,11 @@ func _spawn(dt: float) -> void:
 			_spawn_enemy(_pick_type(), _edge_pos())
 	if t >= next_elite:
 		next_elite += 60.0
-		_spawn_enemy("crawler", _edge_pos(), true)
-		_show_banner("精英海嗣出现！击败它获得藏品")
+		var et := _pick_elite()
+		_spawn_enemy(et, _edge_pos())
+		_show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
-	if t >= next_horde and not boss_spawned:
+	if t >= next_horde and not _boss_alive():
 		next_horde += 120.0
 		var n := int((30 + int(t / 8.0)) * horde_mult)
 		if horde_chest:
@@ -490,38 +616,96 @@ func _spawn(dt: float) -> void:
 			if enemies.size() >= MAX_ENEMIES + 60:
 				break
 			var p := ppos + Vector2.from_angle(base + TAU * i / n) * rng.randf_range(560.0, 620.0)
-			_spawn_enemy("drifter" if i % 3 else "dart", p)
+			_spawn_enemy("bone" if i % 4 else "slider", p)
 		_show_banner("大群来袭！")
+	# 补给箱
+	if t >= next_chest:
+		next_chest = t + rng.randf_range(35.0, 50.0)
+		var nch := 0
+		for e in enemies:
+			if e.chest:
+				nch += 1
+		if nch < 3:
+			_spawn_chest(ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(260.0, 420.0))
+	# 溟痕
+	if t >= next_mire:
+		next_mire = t + rng.randf_range(40.0, 60.0)
+		mires.append({"pos": ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(160.0, 360.0), "r": 16.0, "maxr": rng.randf_range(70.0, 110.0), "life": 45.0, "seed": rng.randf() * 100.0})
+	# 商人
+	if merchant.is_empty() and merchant_idx < MERCHANT_TIMES.size() and t >= MERCHANT_TIMES[merchant_idx]:
+		merchant_idx += 1
+		merchant = {"pos": ppos + Vector2.from_angle(rng.randf() * TAU) * 260.0, "life": 60.0, "near": false}
+		_show_banner("商人出现了 —— 去找他交易源石锭")
+		Sfx.play("relic", -4.0)
 
 
-func _spawn_enemy(type: String, pos: Vector2, elite := false, is_boss := false) -> Dictionary:
+func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
+	var role: String = d.get("role", "")
 	var hpm := 1.0 + t / 110.0
 	next_id += 1
 	var e := {
-		"id": next_id, "type": type, "tex": d.tex, "pos": pos,
+		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
 		"hp": d.hp * hpm, "maxhp": d.hp * hpm,
 		"spd": d.spd * rng.randf_range(0.9, 1.1), "dmg": d.dmg * (1.0 + t / 220.0),
 		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
-		"evo": false, "elite": elite, "boss": is_boss, "stun": 0.0,
+		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
+		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0), "cdt": rng.randf() * d.get("cd", 1.0),
+		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": 1.0, "set_t": 0.0, "set_done": false,
+		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 	}
-	if elite:
+	if e.elite:
 		e.hp *= 7.0
 		e.maxhp = e.hp
-		e.r *= 1.9
 		e.xp *= 10.0
-		e.dmg *= 1.5
-	if is_boss:
-		e.tex = "boss"
-		e.hp = 6000.0
-		e.maxhp = 6000.0
-		e.r = 44.0
-		e.r0 = 44.0
-		e.spd = 58.0
-		e.dmg = 30.0
+		e.dmg *= 1.3
+	if e.boss:
+		e.hp = d.hp * (1.0 + t / 600.0)
+		e.maxhp = e.hp
+		e.spd = d.spd
+	if type == "pocket":
+		e.burst_at = e.maxhp * 0.85
+	if type == "izumik":
+		e.hp = e.maxhp * 0.35
+		e.invuln = true
+	if d.has("ammo"):
+		e.ammo = d.ammo
+		e.reload_t = 20.0
+		e.channel = 0.0
+	return e
+
+
+func _spawn_enemy(type: String, pos: Vector2) -> Dictionary:
+	var e := _new_enemy(type, pos)
 	enemies.append(e)
 	return e
+
+
+## 补给箱；约 15% 是伪装的箱形恐鱼
+func _spawn_chest(pos: Vector2) -> void:
+	next_id += 1
+	enemies.append({
+		"id": next_id, "type": "chest", "name": "补给箱", "tex": "e_chest", "pos": pos, "hp": 22.0, "maxhp": 22.0,
+		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
+		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
+		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
+		"chest": true, "hidden": rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+	})
+
+
+## 箱形恐鱼现形
+func _reveal_mimic(e: Dictionary) -> void:
+	var m := _new_enemy("mimic", e.pos)
+	for k in m.keys():
+		if k != "id":
+			e[k] = m[k]
+	e.flash = 0.2
+	_show_banner("箱形恐鱼！")
+	_add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
+	Sfx.play("roar", -2.0, 1.3)
+	_shake(0.6)
+	_sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 14, 260.0)
 
 
 # =====================================================================
@@ -551,6 +735,8 @@ func _query(pos: Vector2, radius: float) -> Array:
 			var k := Vector2i(cx, cy)
 			if grid.has(k):
 				out.append_array(grid[k])
+	if out.size() > 0 and out.max() >= enemies.size():
+		out = out.filter(func(j): return j < enemies.size())
 	return out
 
 
@@ -565,64 +751,356 @@ func _update_enemies(dt: float) -> void:
 		e.jhit -= dt
 		e.stun -= dt
 		e.squash -= dt
+		e.slow -= dt
 		var to: Vector2 = ppos - e.pos
 		var dist := to.length()
 		var dir: Vector2 = to / max(dist, 0.001)
-		if abs(dir.x) > 0.1:
+		if abs(dir.x) > 0.1 and e.ai != "static":
 			e.fx = sign(dir.x)
 
+		if e.chest:
+			if dist > 1500.0:
+				e.dead = true
+			continue
 		if dist > 1300.0 and not e.boss:
-			e.pos = _edge_pos()
+			if e.ai == "static":
+				e.dead = true
+			else:
+				e.pos = _edge_pos()
 			continue
 
-		if not e.evo and not e.elite and not e.boss and e.age > evo_age:
+		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > evo_age:
 			_evolve(e)
 
+		# 注亡拟嗣：生命持续流失
+		if e.type == "brood":
+			e.hp -= e.maxhp * 0.08 * dt
+			if e.hp <= 0.0:
+				e.dead = true
+				continue
 		if e.boss:
-			e.bt += dt
+			_boss_ai(e, dt, dir, dist)
+		if e.dead:
+			continue
+
+		# ---- 移动
+		var v: Vector2 = e.kb
+		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
+		if e.get("channel", 0.0) > 0.0 or e.get("coma", false):
+			spd = 0.0
+		var move_dir := dir
+		if e.feed and final_target_valid(e):
+			move_dir = (e.feed_to.pos - e.pos).normalized()
+		if e.stun <= 0.0:
+			match e.ai:
+				"melee":
+					v += move_dir * spd
+				"ranged":
+					e.set_t -= dt
+					if e.get("hover", false) == false and D.ENEMIES[e.type].get("entrench", false) and not e.set_done and dist < e.range:
+						# 固海凿石者：首次接敌时原地架起，大幅提高防御
+						e.set_done = true
+						e.set_t = 20.0
+						e.def = 0.4
+						_add_text(e.pos + Vector2(0, -24), "架起", Color(0.75, 0.8, 0.9), 14)
+					if e.set_t > 0.0:
+						pass
+					elif dist > e.range * 0.85:
+						v += dir * spd
+					if e.set_t <= 0.0 and e.set_done:
+						e.def = 1.0
+					e.cdt -= dt
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
+						e.cdt = e.cd
+						_enemy_shoot(e, dir)
+		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
+
+		# ---- 分离 + 吞噬
+		if e.ai != "static":
+			for j in _query(e.pos, e.r + 20.0):
+				if j == i:
+					continue
+				var o: Dictionary = enemies[j]
+				if o.dead:
+					continue
+				var diff: Vector2 = e.pos - o.pos
+				var d := diff.length()
+				var min_d: float = e.r + o.r
+				if d < min_d and d > 0.01:
+					if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and rng.randf() < 0.015:
+						e.hp += o.hp
+						e.maxhp += o.maxhp
+						e.r = min(e.r + 1.5, 32.0)
+						e.xp += o.xp
+						o.dead = true
+						_add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
+						if seed_heal:
+							_heal(max_hp * 0.05)
+						continue
+					# 伊祖米克的子代被 Boss 吸收
+					if e.feed and o.type == "izumik" and o.phase == 1:
+						e.dead = true
+						o.hp = min(o.maxhp, o.hp + o.maxhp * 0.08)
+						_add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
+						break
+					if not e.boss:
+						e.pos += diff / d * (min_d - d) * 0.3
+			if e.dead:
+				continue
+		e.pos += v * dt
+
+		# ---- 囊海爬行者：每失去 15% 生命爆发一次
+		if e.has("burst_at") and e.hp <= e.burst_at:
+			e.burst_at -= e.maxhp * 0.15
+			fx.append({"kind": "ring", "pos": e.pos, "r": 95.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+			Sfx.play("tentacle", -2.0, 0.7)
+			if dist < 95.0:
+				_enemy_hit(e.dmg * 0.8, {"corrode": 0.0, "nerve": 30.0}, true)
+
+		# ---- 接触伤害
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false):
+			if D.ENEMIES[e.type].get("morph", false):
+				_morph(e)
+				continue
+			if invuln <= 0.0:
+				dmg_src = "contact_" + e.type
+				_enemy_hit(e.dmg * dark_mod, e)
+		# 伊莎玛拉之泪：站在上面持续受到真实伤害
+		if e.type == "tear" and dist < e.r + 14.0:
+			hp -= 6.0 * dt
+			hurt_flash = max(hurt_flash, 0.05)
+
+
+func final_target_valid(e: Dictionary) -> bool:
+	return e.has("feed_to") and e.feed_to != null and not e.feed_to.dead
+
+
+## 伊祖米克的子代：碰到水月就蜕变成其他敌人
+func _morph(e: Dictionary) -> void:
+	e.dead = true
+	fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
+	_add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
+	for k in 2:
+		_spawn_enemy(["bone", "slider", "stone"][rng.randi() % 3], e.pos + Vector2.from_angle(rng.randf() * TAU) * 20.0)
+
+
+## 远程攻击
+func _enemy_shoot(e: Dictionary, dir: Vector2) -> void:
+	var spd := 280.0 if e.boss else 200.0
+	var n := 1
+	if e.type == "ishar" and e.phase == 2:
+		n = 3
+	if e.type == "paranoia":
+		n = 3 if e.phase == 1 else 5
+	if e.has("ammo"):
+		e.ammo -= 1
+		if e.ammo <= 0:
+			e.ai = "melee"
+			_add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
+	for k in n:
+		var d := dir.rotated((k - (n - 1) / 2.0) * 0.22)
+		ebullets.append({"pos": e.pos, "vel": d * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
+			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0,
+			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2})
+	# 投嗣育母：每次攻击在水月附近放下一只注亡拟嗣
+	if e.type == "mother":
+		var nb := 0
+		for o in enemies:
+			if o.type == "brood" and not o.dead:
+				nb += 1
+		if nb < 12:
+			_spawn_enemy("brood", ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(45.0, 75.0))
+
+
+func _update_ebullets(dt: float) -> void:
+	for b in ebullets:
+		if b.life <= 0.0:
+			continue
+		b.pos += b.vel * dt
+		b.life -= dt
+		if b.pos.distance_to(ppos + Vector2(0, -14)) < b.r + 12.0:
+			b.life = 0.0
+			if b.get("slow", false):
+				atk_slow = 3.0
+			dmg_src = "bullet"
+			if invuln <= 0.0:
+				_enemy_hit(b.dmg, b, b["true"])
+
+
+## 敌人命中水月：闪避判定、侵蚀、神经损伤
+func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false) -> void:
+	if rng.randf() < min(dodge, 0.6):
+		invuln = 0.3
+		Sfx.play("dodge", -4.0)
+		_add_text(ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
+		on_dodge()
+		return
+	_hurt(dmg * (1.3 if lamp < 30.0 else 1.0), ignore_armor)
+	if src.get("corrode", 0.0) > 0.0:
+		corrode_pool += dmg * src.corrode * 2.0
+		_add_text(ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
+	if src.get("nerve", 0.0) > 0.0:
+		_add_nerve(src.nerve)
+
+
+func on_dodge() -> void:
+	pass
+
+
+func _add_nerve(v: float) -> void:
+	nerve += v
+	if nerve >= 100.0:
+		nerve = 0.0
+		pstun = 1.0
+		dmg_src = "nerve"
+		_hurt(max_hp * 0.1, true)
+		_add_text(ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
+		Sfx.play("skill", -4.0, 1.6)
+
+
+## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
+func _update_status(dt: float) -> void:
+	pstun -= dt
+	atk_slow -= dt
+	nerve = max(0.0, nerve - 6.0 * dt)
+	if corrode_pool > 0.0:
+		var tick: float = min(corrode_pool, (corrode_pool * 0.5 + 1.0) * dt)
+		corrode_pool -= tick
+		hp -= tick
+		dmg_log["corrode"] = dmg_log.get("corrode", 0.0) + tick
+	for m in mires:
+		m.life -= dt
+		m.r = min(m.maxr, m.r + 5.0 * dt)
+		if m.pos.distance_to(ppos) < m.r:
+			hp -= 1.5 * dt
+			dmg_log["mire"] = dmg_log.get("mire", 0.0) + 1.5 * dt
+			_add_nerve(18.0 * dt)
+	mires = mires.filter(func(m): return m.life > 0.0)
+	for s in shocks:
+		s.r += 320.0 * dt
+		if not s.hit and abs(s.pos.distance_to(ppos) - s.r) < 22.0:
+			s.hit = true
+			if invuln <= 0.0:
+				pstun = max(pstun, 0.8)
+				_enemy_hit(s.dmg, {}, true)
+	shocks = shocks.filter(func(s): return s.r < s.maxr)
+
+
+## Boss 行为
+func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
+	e.bt += dt
+	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
+	if e.get("coma", false):
+		e.hp = min(e.maxhp, e.hp + e.maxhp * 0.1 * dt)
+		var p = e.get("partner")
+		if p != null and not p.dead and p.get("coma", false):
+			e.coma = false
+			p.coma = false
+			e.invuln = false
+			p.invuln = false
+			_kill(e)
+			_kill(p)
+			_show_banner("接潮双体 同时倒下")
+			return
+		if e.hp >= e.maxhp:
+			e.coma = false
+			e.invuln = false
+			_add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
+		return
+	match e.type:
+		"iberia", "carmen":
+			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
+			if e.channel > 0.0:
+				e.channel -= dt
+				if e.channel <= 0.0:
+					e.ammo = 3
+					e.ai = "ranged"
+					_add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
+			else:
+				e.reload_t -= dt
+				if e.reload_t <= 0.0 and e.stun <= 0.0:
+					e.reload_t = 20.0
+					e.channel = 2.0
+					_add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
+		"path":
+			# 塑路者：周期冲锋；每受击 10 次召唤碎片
 			if e.bt > 5.0:
 				e.bt = 0.0
 				e.kb = dir * 520.0
-				for j in 6:
-					_spawn_enemy("drifter", e.pos + Vector2.from_angle(TAU * j / 6.0) * 70.0)
-
-		var v: Vector2 = e.kb
-		e.slow -= dt
-		if e.stun <= 0.0:
-			v += dir * e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
-		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
-
-		for j in _query(e.pos, e.r + 20.0):
-			if j == i:
-				continue
-			var o: Dictionary = enemies[j]
-			if o.dead:
-				continue
-			var diff: Vector2 = e.pos - o.pos
-			var d := diff.length()
-			var min_d: float = e.r + o.r
-			if d < min_d and d > 0.01:
-				if e.evo and not o.evo and not o.elite and not o.boss and d < e.r and rng.randf() < 0.015:
-					e.hp += o.hp
-					e.maxhp += o.maxhp
-					e.r = min(e.r + 1.5, 32.0)
-					e.xp += o.xp
-					o.dead = true
-					_add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
-					if seed_heal:
-						_heal(max_hp * 0.05)
-					continue
-				if not e.boss:
-					e.pos += diff / d * (min_d - d) * 0.3
-		e.pos += v * dt
-
-		if dist < e.r + 12.0 and invuln <= 0.0:
-			if rng.randf() < min(dodge, 0.6):
-				invuln = 0.3
-				Sfx.play("dodge", -4.0)
-				_add_text(ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
+			if e.hits >= 10:
+				e.hits = 0
+				for k in 3:
+					_spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 3.0) * 50.0)
+				_add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 16)
+		"izumik":
+			if e.phase == 1:
+				# 学习阶段：无敌，放出子代，子代回到本体会被吸收
+				e.hp = min(e.maxhp, e.hp + e.maxhp * 0.012 * dt)
+				if e.bt > 4.0:
+					e.bt = 0.0
+					for k in 2:
+						var o := _spawn_enemy("offspring", e.pos + Vector2.from_angle(rng.randf() * TAU) * 140.0)
+						o.feed = true
+						o.feed_to = e
+						o.spd = 45.0
+				if e.hp >= e.maxhp:
+					e.phase = 2
+					e.invuln = false
+					e.bt = 0.0
+					_show_banner("伊祖米克进入「解读阶段」！")
+					Sfx.play("roar", 0.0, 0.8, 0.0)
+					_shake(1.0)
 			else:
-				_hurt(e.dmg * (1.3 if lamp < 30.0 else 1.0))
+				# 解读阶段：周期冲击波，被波及会晕眩
+				if e.bt > 7.0:
+					e.bt = 0.0
+					shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false})
+					Sfx.play("skill", -2.0, 0.6)
+		"ishar":
+			# 伊莎玛拉：召唤之泪；泪未被清除时持续充能，充满后变身
+			if e.bt > 6.0:
+				e.bt = 0.0
+				_spawn_tears(e, 1)
+			var ntear := 0
+			for o in enemies:
+				if o.type == "tear" and not o.dead:
+					ntear += 1
+			if e.phase == 1:
+				e.charge += ntear * 3.0 * dt
+				if e.charge >= 100.0:
+					e.phase = 2
+					e.dmg *= 1.6
+					_show_banner("伊莎玛拉 完成了转化！")
+					Sfx.play("roar", 2.0, 0.6, 0.0)
+					_shake(1.2)
+			if not e.get("half", false) and e.hp < e.maxhp * 0.5:
+				e.half = true
+				e.dmg *= 1.3
+				_spawn_tears(e, 2)
+				_show_banner("伊莎玛拉 愈发狂暴")
+			# 治疗周围的海嗣
+			e.heal_t = e.get("heal_t", 0.0) + dt
+			if e.heal_t > 4.0:
+				e.heal_t = 0.0
+				var n := 0
+				for j in _query(e.pos, 260.0):
+					var o: Dictionary = enemies[j]
+					if o.dead or o.boss or o.chest or n >= 3:
+						continue
+					o.hp = min(o.maxhp, o.hp + o.maxhp * 0.3)
+					fx.append({"kind": "ring", "pos": o.pos, "r": 18.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.7)})
+					n += 1
+
+
+func _spawn_tears(e: Dictionary, n: int) -> void:
+	for k in n:
+		var cnt := 0
+		for o in enemies:
+			if o.type == "tear" and not o.dead:
+				cnt += 1
+		if cnt >= 6:
+			return
+		_spawn_enemy("tear", e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(140.0, 240.0))
 
 
 func _evolve(e: Dictionary) -> void:
@@ -636,9 +1114,11 @@ func _evolve(e: Dictionary) -> void:
 	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.4)})
 
 
-func _hurt(amount: float) -> void:
-	amount = max(1.0, amount - armor)
+func _hurt(amount: float, ignore_armor := false) -> void:
+	if not ignore_armor:
+		amount = max(1.0, amount - armor)
 	hp -= amount
+	dmg_log[dmg_src] = dmg_log.get(dmg_src, 0.0) + amount
 	invuln = 0.45
 	hurt_flash = 0.2
 	hurt_vignette = 0.6
@@ -651,7 +1131,17 @@ func _hurt(amount: float) -> void:
 func _damage(e: Dictionary, dmg: float) -> void:
 	if e.dead:
 		return
+	if e.invuln:
+		if texts.size() < 80 and rng.randf() < 0.2:
+			_add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
+		return
+	if e.chest and e.hidden:
+		e.hidden = false
+		_reveal_mimic(e)
+		return
+	dmg *= e.def
 	e.hp -= dmg
+	e.hits += 1
 	e.flash = 0.08
 	e.squash = 0.14
 	if texts.size() < 80 and Cfg.dmg_numbers:
@@ -659,7 +1149,35 @@ func _damage(e: Dictionary, dmg: float) -> void:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		else:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+	# 圣徒装填时被打断
+	if e.get("channel", 0.0) > 0.0:
+		e.channel = 0.0
+		e.stun = 6.0
+		e.ammo = 0
+		e.ai = "melee"
+		_add_text(e.pos + Vector2(0, -50), "装填被打断！", UI.GOLD, 20)
+		_shake(0.5)
+	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
+	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
+		e.phase = 2
+		e.range = 400.0
+		e.dmg *= 1.2
+		_show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
+		Sfx.play("roar", 0.0, 1.2, 0.0)
+	# 掠海漂移体被控制后落地，改为近战
+	if e.get("hover_lost", false) == false and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
+		e.hover_lost = true
+		e.ai = "melee"
+		e.spd = 70.0
+		_add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
+		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead:
+			e.hp = 1.0
+			e.coma = true
+			e.invuln = true
+			e.stun = 0.0
+			_add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
+			return
 		_kill(e)
 
 
@@ -692,9 +1210,20 @@ func _kill(e: Dictionary) -> void:
 	if e.dead:
 		return
 	e.dead = true
-	kills += 1
-	_sparks(e.pos, Vector2.ZERO, ECOL.get(e.type, Color.WHITE), 7, 160.0)
-	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": ECOL.get(e.type, Color.WHITE)})
+	# 补给箱被打碎
+	if e.chest:
+		Sfx.play("relic", -6.0, 1.3)
+		_sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
+		for k in rng.randi_range(3, 6):
+			_drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(4.0, 18.0), "ingot", 1.0)
+		if rng.randf() < 0.3:
+			_drop(e.pos + Vector2(10, 6), "oil", 15.0)
+		return
+	if e.type != "tear":
+		kills += 1
+	var col: Color = ECOL.get(e.type, Color(0.6, 0.9, 0.9))
+	_sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
+	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
 	Sfx.play("kill", -8.0)
 	_anim("fx_death", e.pos, 0.3, PX * max(1.0, e.r / 12.0))
 	if e.elite:
@@ -714,15 +1243,26 @@ func _kill(e: Dictionary) -> void:
 		_heal(max_hp * 0.03)
 	if ember and e.elite:
 		lamp = min(100.0, lamp + 20.0)
-	_drop(e.pos, "xp", e.xp * xp_mult)
+	if e.xp > 0.0:
+		_drop(e.pos, "xp", e.xp * xp_mult)
 	if rng.randf() < 0.02:
 		_drop(e.pos + Vector2(8, 0), "oil", 15.0)
+	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
+		ing = max(ing, rng.randi_range(3, 5))
 		_drop(e.pos, "chest", 1.0)
 		_drop(e.pos + Vector2(20, 10), "oil", 40.0)
 	if e.boss:
+		ing = 20
+		_drop(e.pos + Vector2(-20, 0), "chest", 1.0)
 		for j in 12:
 			_drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
+		# Boss 倒下时清除它召唤的东西
+		for o in enemies:
+			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
+				o.dead = true
+	for k in ing:
+		_drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(6.0, 26.0), "ingot", 1.0)
 
 
 func _drop(pos: Vector2, kind: String, val: float) -> void:
@@ -809,7 +1349,7 @@ func _mizuki(dt: float) -> void:
 		var radius := _swing_radius()
 		var targets := _nearest(1, radius + 60.0)
 		if targets.size() > 0:
-			var interval := 0.9 * u_spd_mult
+			var interval := 0.9 * u_spd_mult * (1.5 if atk_slow > 0.0 else 1.0)
 			if s2_active > 0.0:
 				interval *= 0.5
 			swing_cd = max(0.18, interval)
@@ -975,6 +1515,158 @@ func _jelly(dt: float) -> void:
 
 
 # =====================================================================
+# 商人与商店
+# =====================================================================
+func _update_merchant(dt: float) -> void:
+	if merchant.is_empty():
+		merchant_light.visible = false
+		return
+	merchant.life -= dt
+	merchant_light.visible = true
+	merchant_light.position = merchant.pos + Vector2(10, -10)
+	var d: float = merchant.pos.distance_to(ppos)
+	if d < 46.0 and not merchant.near:
+		merchant.near = true
+		_open_shop()
+	elif d > 90.0:
+		merchant.near = false
+	if merchant.life <= 0.0 and state == S.PLAY:
+		merchant = {}
+		_show_banner("商人离开了")
+
+
+func _shop_price(kind: String) -> int:
+	match kind:
+		"relic":
+			return 14
+		"heal":
+			return 6
+		"oil":
+			return 5
+		"refresh":
+			return 3
+	return 0
+
+
+func _roll_shop() -> void:
+	shop_items.clear()
+	var pool: Array = []
+	for rid in D.RELICS:
+		if not relics.has(rid):
+			pool.append(rid)
+	pool.shuffle()
+	for i in min(3, pool.size()):
+		var r: Dictionary = D.RELICS[pool[i]]
+		shop_items.append({"kind": "relic", "id": pool[i], "name": r.name, "desc": r.desc, "price": _shop_price("relic"), "sold": false})
+	shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": _shop_price("heal"), "sold": false})
+	shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": _shop_price("oil"), "sold": false})
+
+
+func _open_shop() -> void:
+	if shop_items.is_empty():
+		_roll_shop()
+	state = S.SHOP
+	Sfx.play("relic", -4.0)
+	_build_shop_ui()
+
+
+func _build_shop_ui() -> void:
+	for c in panel_box.get_children():
+		c.queue_free()
+	panel_title_text = "商人  ·  持有源石锭 %d" % ingots
+	choice_kind = "shop"
+	for i in shop_items.size():
+		var it: Dictionary = shop_items[i]
+		var card := Button.new()
+		card.custom_minimum_size = Vector2(200, 300)
+		card.focus_mode = Control.FOCUS_NONE
+		var empty := StyleBoxEmpty.new()
+		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+			card.add_theme_stylebox_override(st, empty)
+		card.draw.connect(_draw_shop_card.bind(card, it, i))
+		card.mouse_entered.connect(func(): card.queue_redraw())
+		card.mouse_exited.connect(card.queue_redraw)
+		card.pressed.connect(_buy.bind(i))
+		var desc := Label.new()
+		desc.text = it.desc
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.position = Vector2(18, 190)
+		desc.size = Vector2(164, 70)
+		desc.add_theme_font_size_override("font_size", 14)
+		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
+		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(desc)
+		panel_box.add_child(card)
+	panel.visible = true
+	panel.queue_redraw()
+
+
+func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
+	var hov: bool = card.is_hovered() and not it.sold
+	var col: Color = UI.GOLD
+	if it.kind == "relic":
+		col = UI.CAT_COL.get(D.RELICS[it.id].cat, UI.GOLD)
+	elif it.kind == "heal":
+		col = Color(0.5, 1.0, 0.6)
+	var afford: bool = ingots >= it.price
+	var r := Rect2(Vector2(0, -6 if hov else 0), card.size)
+	UI.panel(card, r, Color(0.05, 0.12, 0.16, 0.97) if hov else UI.BG2, col if hov else Color(col.r, col.g, col.b, 0.4), 12.0, col)
+	UI.text(card, font, r.position + Vector2(16, 30), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7))
+	var c := r.position + Vector2(r.size.x / 2, 96)
+	UI.diamond(card, c, 34.0, Color(0.02, 0.06, 0.08), col)
+	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
+	if ic != null:
+		card.draw_texture_rect(ic, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
+	else:
+		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, col, HORIZONTAL_ALIGNMENT_CENTER, 60)
+	UI.text(card, font, r.position + Vector2(0, 170), it.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var price_col := Color(1.0, 0.6, 0.3) if afford else Color(0.6, 0.35, 0.35)
+	if it.sold:
+		UI.text(card, font, r.position + Vector2(0, r.size.y - 18), "已售出", 16, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		card.draw_rect(Rect2(r.position, r.size), Color(0, 0, 0, 0.5))
+	else:
+		card.draw_texture_rect(tex.ingot, Rect2(r.position + Vector2(r.size.x / 2 - 30, r.size.y - 34), Vector2(18, 14)), false)
+		UI.text(card, font, r.position + Vector2(r.size.x / 2 - 6, r.size.y - 20), str(it.price), 18, price_col)
+
+
+func _buy(i: int) -> void:
+	if state != S.SHOP or i >= shop_items.size():
+		return
+	var it: Dictionary = shop_items[i]
+	if it.sold or ingots < it.price:
+		Sfx.play("ui_move", -2.0, 0.6)
+		return
+	ingots -= it.price
+	it.sold = true
+	match it.kind:
+		"relic":
+			relics.append(it.id)
+			_apply_relic(it.id)
+			_check_combos()
+		"heal":
+			_heal(max_hp * 0.4)
+		"oil":
+			lamp = min(100.0, lamp + 50.0)
+	Sfx.play("ui_ok")
+	_build_shop_ui()
+
+
+func _refresh_shop() -> void:
+	if ingots < _shop_price("refresh"):
+		return
+	ingots -= _shop_price("refresh")
+	_roll_shop()
+	Sfx.play("relic", -6.0)
+	_build_shop_ui()
+
+
+func _close_shop() -> void:
+	panel.visible = false
+	state = S.PLAY
+	Sfx.play("ui_ok", -4.0)
+
+
+# =====================================================================
 # 援护干员
 # =====================================================================
 const ALLY_SLOTS := [Vector2(-46, -8), Vector2(46, -8), Vector2(0, -52)]
@@ -1092,6 +1784,9 @@ func _update_gems(dt: float) -> void:
 					_add_text(ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
 				"chest":
 					pending_chests += 1
+				"ingot":
+					ingots += int(g.val)
+					Sfx.play("pickup", -10.0, 1.6, 0.05)
 
 
 func _gain_xp(v: float) -> void:
@@ -1122,6 +1817,7 @@ func _cleanup() -> void:
 	enemies = enemies.filter(func(e): return not e.dead)
 	gems = gems.filter(func(g): return not g.dead)
 	bullets = bullets.filter(func(b): return b.life > 0.0)
+	ebullets = ebullets.filter(func(b): return b.life > 0.0)
 	fx = fx.filter(func(f): return f.life > 0.0)
 	texts = texts.filter(func(f): return f.life > 0.0)
 
@@ -1156,19 +1852,24 @@ func _build_panel(parent: Node) -> void:
 func _draw_panel_bg() -> void:
 	var vs := panel.size
 	panel.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.78))
-	var title_col := UI.GOLD if choice_kind == "relic" else UI.CYAN
+	var title_col := UI.GOLD if choice_kind in ["relic", "shop"] else UI.CYAN
 	panel.draw_rect(Rect2(0, 62, vs.x, 64), Color(0.02, 0.06, 0.09, 0.9))
 	panel.draw_line(Vector2(0, 62), Vector2(vs.x, 62), Color(title_col.r, title_col.g, title_col.b, 0.5), 1.0)
 	panel.draw_line(Vector2(0, 126), Vector2(vs.x, 126), Color(title_col.r, title_col.g, title_col.b, 0.5), 1.0)
 	UI.text(panel, font, Vector2(0, 115), panel_title_text, 28, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 	var en_label := "RELIC" if choice_kind == "relic" else "LEVEL UP"
+	if choice_kind == "shop":
+		en_label = "MERCHANT"
 	if choices.size() > 0 and choices[0].kind == "module":
 		en_label = "MODULE"
 	elif choices.size() > 0 and choices[0].kind == "recruit":
 		en_label = "RECRUIT"
 	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_label.length() * 4.0
 	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 13, title_col, 4.0)
-	UI.text(panel, font, Vector2(0, vs.y - 50), "点击卡片，或按 1 / 2 / 3 选择", 15, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	if choice_kind == "shop":
+		UI.text(panel, font, Vector2(0, vs.y - 50), "点击或按 1–5 购买 · F 刷新（3 源石锭） · Esc 离开", 15, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	else:
+		UI.text(panel, font, Vector2(0, vs.y - 50), "点击卡片，或按 1 / 2 / 3 选择", 15, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func _show_choices(title: String, opts: Array, kind: String) -> void:
@@ -1504,6 +2205,12 @@ func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip
 
 func _draw() -> void:
 	_draw_bg()
+	for m in mires:
+		_draw_mire(m)
+	if not merchant.is_empty():
+		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * 1.2)
+		_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
+		UI.text(self, font, merchant.pos + Vector2(-40, -34), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	for g in gems:
 		match g.kind:
 			"xp":
@@ -1558,6 +2265,13 @@ func _draw() -> void:
 				draw_set_transform(f.pos, f.ang, Vector2.ONE)
 				_spr(f.get("tex", "slash"), 4, fr, Vector2.ZERO, f.scale, false, Color.WHITE if f.get("tex", "slash") != "slash" else f.col)
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for b in ebullets:
+		draw_circle(b.pos, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
+		_spr("ebullet", 1, 0, b.pos, PX * b.r / 5.0)
+	for sh in shocks:
+		var a: float = 1.0 - sh.r / sh.maxr
+		draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a), 6.0)
+		draw_arc(sh.pos, sh.r - 10.0, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a * 0.3), 3.0)
 	for s in snow:
 		var c := Color(0.8, 0.9, 1.0, 0.25 + 0.15 * sin(s.s * 2.0))
 		draw_rect(Rect2((s.p + Vector2(sin(s.s) * 6.0, 0)).round(), Vector2(2, 2)), c)
@@ -1625,6 +2339,18 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
+func _draw_mire(m: Dictionary) -> void:
+	var a: float = clamp(m.life / 3.0, 0.0, 1.0)
+	for k in 7:
+		var off: Vector2 = Vector2.from_angle(k * 0.9 + m.seed) * m.r * 0.45
+		draw_circle(m.pos + off, m.r * (0.55 + 0.1 * sin(t + k)), Color(0.08, 0.03, 0.12, 0.55 * a))
+	draw_circle(m.pos, m.r * 0.7, Color(0.12, 0.04, 0.16, 0.6 * a))
+	for k in 10:
+		var p: Vector2 = m.pos + Vector2.from_angle(k * 2.39 + m.seed) * m.r * (0.3 + 0.07 * k)
+		var gl := 0.5 + 0.5 * sin(t * 2.0 + k)
+		draw_rect(Rect2(p.round(), Vector2(2, 2)), Color(0.5, 0.9, 0.9, 0.6 * gl * a))
+
+
 func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
 	var fr := clampi(int(a * 5.0), 0, 4)
@@ -1664,13 +2390,22 @@ func _draw_enemy(e: Dictionary) -> void:
 	var name: String = e.tex
 	var frame := int(t * 5.0 + e.id * 0.37) % 2
 	var sc: float = PX * e.r / e.r0
-	if e.elite:
-		sc = PX * 1.9
 	var col := Color.WHITE
 	if e.evo:
 		col = Color(1.0, 0.62, 0.68)
-	elif e.elite:
-		col = Color(1.0, 0.85, 0.5)
+	if e.invuln:
+		col = Color(0.7, 0.85, 1.0, 0.75)
+	if e.elite:
+		draw_circle(e.pos + Vector2(0, 2), e.r + 6.0, Color(1.0, 0.75, 0.3, 0.12 + 0.06 * sin(t * 4.0)))
+	if e.chest:
+		frame = 0
+		var wob := 0.0
+		if e.hidden and fmod(t + e.id, 3.0) < 0.25:
+			wob = sin(t * 60.0) * 1.5
+		_spr(name, 2, 0, e.pos + Vector2(wob, 0), PX, false, col)
+		if e.flash > 0.0:
+			_spr(name + "_white", 2, 0, e.pos, PX, false, Color(1, 1, 1, 0.9))
+		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
 	var flip: bool = e.fx < 0.0
@@ -1723,10 +2458,30 @@ func _draw_hud() -> void:
 	UI.en(hud, font, o + Vector2(66, 78), "LIGHT", 10, lc, 1.0)
 	UI.bar(hud, Rect2(o + Vector2(110, 68), Vector2(150, 10)), lamp / 100.0, lc, 5)
 	UI.text(hud, font, o + Vector2(266, 79), "灯火 %d" % int(lamp), 13, lc)
+	# 神经损伤 / 侵蚀
+	if nerve > 1.0:
+		UI.en(hud, font, o + Vector2(66, 108), "NERVE", 10, Color(1.0, 0.5, 0.9), 1.0)
+		UI.bar(hud, Rect2(o + Vector2(110, 99), Vector2(150, 6)), nerve / 100.0, Color(1.0, 0.45, 0.85))
+	if corrode_pool > 0.5:
+		UI.text(hud, font, o + Vector2(266, 108), "侵蚀", 12, Color(0.8, 0.5, 1.0))
+	if pstun > 0.0:
+		UI.text(hud, font, ct * ppos + Vector2(-40, -110), "僵直", 16, Color(1.0, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+	# 源石锭
+	hud.draw_texture_rect(tex.ingot, Rect2(Vector2(vs.x / 2 + 170, 12), Vector2(18, 14)), false)
+	UI.text(hud, font, Vector2(vs.x / 2 + 194, 25), str(ingots), 16, Color(1.0, 0.65, 0.35))
+	# 商人方向指示
+	if not merchant.is_empty():
+		var sp: Vector2 = ct * merchant.pos
+		if not Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			var c := vs / 2.0
+			var d := (sp - c).normalized()
+			var edge: Vector2 = c + d * min(abs((vs.x / 2 - 50) / max(abs(d.x), 0.01)), abs((vs.y / 2 - 50) / max(abs(d.y), 0.01)))
+			UI.diamond(hud, edge, 9.0, UI.GOLD)
+			UI.text(hud, font, edge + Vector2(-30, -14), "商人 %d" % int(merchant.life), 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	if lamp <= 0.0:
-		UI.text(hud, font, o + Vector2(4, 122), "灯火熄灭 —— 持续受到伤害", 15, UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		UI.text(hud, font, o + Vector2(4, 132), "灯火熄灭 —— 持续受到伤害", 15, UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 	elif lamp < 30.0:
-		UI.text(hud, font, o + Vector2(4, 122), "暗潮涌动 —— 敌人更快、更凶", 15, Color(1, 0.55, 0.45), HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		UI.text(hud, font, o + Vector2(4, 132), "暗潮涌动 —— 敌人更快、更凶", 15, Color(1, 0.55, 0.45), HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 
 	# 顶部中央：时间与击杀
 	var mm := int(t) / 60
@@ -1740,13 +2495,34 @@ func _draw_hud() -> void:
 	_draw_relic_tray(Vector2(vs.x - 16, 16))
 
 	# Boss 血条
-	if boss != null and not boss.dead:
+	var bby := 0.0
+	for shown in bosses:
+		if shown.dead:
+			continue
 		var bw := 620.0
 		var bx := vs.x / 2 - bw / 2
-		UI.panel(hud, Rect2(bx - 12, 80, bw + 24, 44), UI.BG, Color(0.7, 0.2, 0.4, 0.8), 8.0)
-		UI.text(hud, font, Vector2(bx, 100), "潮渊巨噬体", 16, Color(1, 0.6, 0.7))
-		UI.en(hud, font, Vector2(bx + 96, 99), "ABYSSAL DEVOURER", 10, Color(0.8, 0.4, 0.5), 2.0)
-		UI.bar(hud, Rect2(bx, 106, bw, 10), boss.hp / boss.maxhp, Color(0.85, 0.2, 0.4), 20)
+		hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
+		bby += 54.0
+		UI.panel(hud, Rect2(bx - 12, 80, bw + 24, 48), UI.BG, Color(0.7, 0.2, 0.4, 0.8), 8.0)
+		UI.text(hud, font, Vector2(bx, 100), shown.name, 16, Color(1, 0.6, 0.7))
+		var sub := ""
+		if shown.type == "izumik":
+			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
+		elif shown.type == "ishar":
+			sub = "转化进度 %d%%（清除伊莎玛拉之泪）" % int(shown.charge) if shown.phase == 1 else "已完成转化"
+		elif shown.has("ammo"):
+			sub = "装填中 —— 攻击以打断！" if shown.channel > 0.0 else ("弹药 %d / 3" % shown.ammo if shown.ammo > 0 else "近战中")
+		elif shown.get("coma", false):
+			sub = "昏迷中 —— 趁现在击倒另一体！"
+		elif D.ENEMIES[shown.type].get("pair", false):
+			sub = "两体需同时击倒"
+		elif shown.type == "paranoia":
+			sub = "悬浮形态（控制它以击落）" if shown.phase == 1 else "第二形态"
+		UI.text(hud, font, Vector2(bx + bw - 400, 100), sub, 13, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 400)
+		UI.bar(hud, Rect2(bx, 108, bw, 10), shown.hp / shown.maxhp, Color(0.45, 0.6, 0.7) if shown.invuln else Color(0.85, 0.2, 0.4), 20)
+		if shown.type == "ishar" and shown.phase == 1:
+			hud.draw_rect(Rect2(bx, 120, bw * shown.charge / 100.0, 3), UI.PURPLE)
+		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# 右下：技能与援护干员
 	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
@@ -1772,7 +2548,7 @@ func _draw_hud() -> void:
 		S.DEAD:
 			_draw_result(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 		S.WIN:
-			_draw_result(vs, "深海归于平静", "OPERATION COMPLETE", UI.GOLD, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+			_draw_result(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, UI.GOLD, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 
 
 func _edge_glow(vs: Vector2, col: Color, w: float) -> void:
