@@ -5,7 +5,16 @@ extends RefCounted
 static var _cache := {}
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
-const ALIAS := {"e_bone": "drifter", "e_slider": "dart", "e_stone": "crawler", "e_pocket": "shell"}
+const ALIAS := {
+	"e_bone": "drifter", "e_slider": "dart", "e_stone": "crawler", "e_pocket": "shell",
+	# Boss 首轮美术（art/incoming/bosses/，2 帧待机）
+	"e_path": "bosses/boss_pathshaper_idle", "e_fractal": "bosses/pathshaper_fractal_idle",
+	"e_carmen": "bosses/boss_carmen_idle", "e_iberia": "bosses/boss_iberia_idle",
+	"e_bishop": "bosses/boss_tide_bishop_idle", "e_bishop_feign": "bosses/boss_tide_bishop_feign",
+	"e_archon": "bosses/boss_tide_defier_idle", "e_archon_feign": "bosses/boss_tide_defier_feign",
+	"e_immortal": "bosses/boss_tide_rebuker_idle", "e_immortal_feign": "bosses/boss_tide_rebuker_feign",
+	"e_paranoia": "bosses/boss_paranoia_phase1_idle", "e_paranoia2": "bosses/boss_paranoia_phase2_idle",
+}
 
 
 static func _incoming_path(name: String) -> String:

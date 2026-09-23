@@ -211,8 +211,8 @@ func _draw() -> void:
 		UI.text(self, font, r.position + Vector2(24, 34), ITEMS[i].cn, 24, UI.TEXT if on else UI.SUB)
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业 · 场景与怪物素材为原创", 13, Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.4", 13, Color(0.4, 0.55, 0.6))
+	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.5.3", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)

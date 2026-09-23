@@ -1,5 +1,5 @@
 extends Node2D
-## 水月 · 深海幸存者 —— v0.4
+## 水月 · 深海幸存者 —— v0.5.3
 ## 敌人/掉落物/特效用数据数组管理，统一在 _draw 中以像素贴图绘制（美术像素 ×2）。
 ## 灯火是一个真实光源：场景整体偏暗，只有玩家周围被照亮。
 
@@ -142,6 +142,12 @@ var banner_t := 0.0
 var choices: Array = []
 var choice_kind := ""
 var pending_levelups := 0
+var sort_props: Array = []   # 2.5D：需要与人物前后遮挡的场景物（海草、珊瑚）
+var draw_off := Vector2.ZERO
+var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D：绘制时的高度偏移（击退腾空等）
+var fg: Node2D               # 2.5D：前景视差层
+var fg_tex: Array = []       # 前景虚化剪影（运行时由海草/珊瑚图模糊生成）
+var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
 var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
 var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
 var hud_lv_flash := 0.0   # 左上角等级闪光
@@ -166,7 +172,6 @@ var hurt_vignette := 0.0
 var crit_hit := false
 var fx_add: Node2D
 var anim_name := ""
-var dead_t := 0.0
 var settings: Control
 var result_btns: Array = []   # [Rect2, action]
 var anim_t := 0.0
@@ -193,9 +198,11 @@ func _ready() -> void:
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "ebullet", "ingot", "merchant"]:
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant"]:
 		tex[n] = A.tex(n)
-		if n.begins_with("e_"):
+		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
+			foot_anchor[n] = true
+		if n.begins_with("e_") and tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
 	# 可选素材：有图就用，没有就用程序效果
 	var optional := ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
@@ -218,6 +225,7 @@ func _ready() -> void:
 	sprite.scale = Vector2(PX, PX)
 	sprite.offset = Vector2(0, -tex.player.get_height() / 2.0)
 	add_child(sprite)
+	sprite.visible = false   # 2.5D：水月改由 _draw_player 在排序后绘制，节点只负责动画状态
 
 	fx_add = Node2D.new()
 	var am := CanvasItemMaterial.new()
@@ -225,6 +233,14 @@ func _ready() -> void:
 	fx_add.material = am
 	fx_add.draw.connect(_draw_fx_add)
 	add_child(fx_add)
+
+	# 2.5D 前景视差层（镜头前的虚化海草剪影）
+	fg = Node2D.new()
+	fg.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	fg.draw.connect(_draw_fg)
+	add_child(fg)
+	for n in ["seaweed", "coral"]:
+		fg_tex.append(_blur_silhouette(tex[n], 2 if n == "seaweed" else 1))
 
 	merchant_light = PointLight2D.new()
 	merchant_light.texture = tex.light
@@ -242,6 +258,19 @@ func _ready() -> void:
 
 	for i in 70:
 		snow.append({"p": Vector2(rng.randf_range(-700, 700), rng.randf_range(-400, 400)), "v": rng.randf_range(4, 14), "s": rng.randf_range(0.0, TAU)})
+
+	# 2.5D 景深 / 远景水雾（在 HUD 之下）
+	dof_layer = CanvasLayer.new()
+	dof_layer.layer = 5
+	add_child(dof_layer)
+	var dof := ColorRect.new()
+	dof.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dof.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dm := ShaderMaterial.new()
+	dm.shader = load("res://shaders/dof.gdshader")
+	dof.material = dm
+	dof_layer.add_child(dof)
+	dof_layer.visible = Cfg.dof
 
 	var ul := CanvasLayer.new()
 	ul.layer = 10
@@ -287,9 +316,46 @@ func _update_music(_dt: float) -> void:
 	Sfx.vol_target = -12.0 if (state == S.DEAD or state == S.WIN) else -4.0
 
 
+## 开发自测：把所有 Boss（含假死/二阶段形态）摆成一排截图，检查美术接入与 2.5D 遮挡
+func _gallery_step() -> void:
+	ppos = Vector2.ZERO
+	hp = max_hp
+	lamp = 100.0
+	if at_frames == 20:
+		for e in enemies:
+			e.dead = true
+		var types := ["path", "carmen", "iberia", "bishop", "archon", "immortal", "paranoia", "paranoia", "bishop", "archon", "immortal", "fractal"]
+		for i in types.size():
+			var p := Vector2(-520 + (i % 6) * 208, -170 + (i / 6) * 250)
+			var e := _spawn_enemy(types[i], p)
+			e.spd = 0.0
+			e.dmg = 0.0
+			e["gallery"] = true
+			if i == 7:
+				e.phase = 2
+			if i >= 8 and i <= 10:
+				e["gal_coma"] = true
+	for e in enemies:
+		if not e.get("gallery", false):
+			e.dead = true
+		else:
+			e.hp = e.maxhp
+			e.stun = 0.0
+			if e.get("gal_coma", false):
+				e["coma"] = true
+				e.hp = e.maxhp * 0.5
+			e.kb = Vector2.ZERO
+	if at_frames == 90 and DisplayServer.get_name() != "headless":
+		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery.png")
+		get_tree().quit()
+
+
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func _autotest_step() -> void:
 	at_frames += 1
+	if OS.get_cmdline_user_args().has("--gallery"):
+		_gallery_step()
+		return
 	if state == S.SHOP:
 		for i in shop_items.size():
 			if not shop_items[i].sold and ingots >= shop_items[i].price:
@@ -366,6 +432,8 @@ func _process(delta: float) -> void:
 	_animate_cards(delta)
 	queue_redraw()
 	fx_add.queue_redraw()
+	fg.queue_redraw()
+	dof_layer.visible = Cfg.dof
 	hud.queue_redraw()
 
 
@@ -1281,7 +1349,10 @@ func _drop(pos: Vector2, kind: String, val: float) -> void:
 	if kind == "xp" and gems.size() > 350:
 		_gain_xp(val)
 		return
-	gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false})
+	# 2.5D：掉落物带高度，从敌人位置弹出并落地回弹
+	var sp := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(20.0, 70.0)
+	gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false,
+		"z": 6.0, "vz": rng.randf_range(150.0, 230.0), "vel": sp})
 
 
 # =====================================================================
@@ -1786,6 +1857,16 @@ func _update_gems(dt: float) -> void:
 	for g in gems:
 		if g.dead:
 			continue
+		if g.has("vz") and (g.z > 0.0 or g.vz != 0.0):
+			g.vz -= 700.0 * dt
+			g.z += g.vz * dt
+			g.pos += g.vel * dt
+			if g.z <= 0.0:
+				g.z = 0.0
+				g.vel *= 0.4
+				g.vz = -g.vz * 0.35 if g.vz < -60.0 else 0.0
+				if g.vz == 0.0:
+					g.vel = Vector2.ZERO
 		var d: float = g.pos.distance_to(ppos)
 		if g.mag or d < pickup:
 			g.mag = true
@@ -2264,6 +2345,7 @@ func _update_visuals(dt: float) -> void:
 ## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
 func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
 	var tx: Texture2D = tex[name]
+	pos += draw_off
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var src := Rect2(fw * (frame % frames), 0, fw, fh)
@@ -2286,13 +2368,22 @@ func _draw() -> void:
 		_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
 		UI.text(self, font, merchant.pos + Vector2(-40, -34), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	for g in gems:
+		var gz: float = g.get("z", 0.0)
+		if gz > 1.0:
+			draw_set_transform(g.pos + Vector2(0, 8), 0.0, Vector2(1.0, 0.45))
+			draw_circle(Vector2.ZERO, 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6)), Color(0, 0, 0, 0.35))
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		draw_off = Vector2(0, -gz)
 		match g.kind:
 			"xp":
-				_spr("gem_big" if g.val >= 5.0 else "gem_small", 1, 0, g.pos + Vector2(0, sin(t * 4.0 + g.pos.x) * 2.0))
+				_spr("gem_big" if g.val >= 5.0 else "gem_small", 1, 0, g.pos + Vector2(0, sin(t * 4.0 + g.pos.x) * 2.0 if gz <= 1.0 else 0.0))
 			"oil":
 				_spr("oil", 1, 0, g.pos)
 			"chest":
 				_spr("chest", 1, 0, g.pos)
+			"ingot":
+				_spr("ingot", 1, 0, g.pos + Vector2(0, sin(t * 3.0 + g.pos.y) * 1.5 if gz <= 1.0 else 0.0))
+		draw_off = Vector2.ZERO
 	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
 	if s2_active > 0.0 and tex.get("fx_s2_aura") == null:
 		draw_arc(ppos + Vector2(0, -10), 30.0 + sin(t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
@@ -2301,23 +2392,50 @@ func _draw() -> void:
 		draw_circle(ppos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
-		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc)
+		var hop: float = minf(e.kb.length() * 0.03, 14.0)
+		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
+	for al in allies:
+		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
 	for f in fx:
 		if f.kind == "tentacle":
 			_draw_tentacle(f)
+	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
+	var dl: Array = []
 	for e in enemies:
-		_draw_enemy(e)
+		dl.append([e.pos.y + e.r * 0.8, 0, e])
+	for i in allies.size():
+		dl.append([allies[i].pos.y + 16.0, 1, i])
+	dl.append([ppos.y + 6.0, 2, null])
+	for pr in sort_props:
+		dl.append([pr[1].y, 3, pr])
+	dl.sort_custom(func(a, b): return a[0] < b[0])
+	for it in dl:
+		match it[1]:
+			0:
+				_draw_enemy(it[2])
+			1:
+				var i: int = it[2]
+				var al: Dictionary = allies[i]
+				_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos, PX, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 0.5))
+			2:
+				_draw_player()
+			3:
+				var pr: Array = it[2]
+				# 挡在水月身前的海草半透明，避免遮住角色
+				var fade := 1.0
+				if pr[1].y > ppos.y and absf(pr[1].x - ppos.x) < 30.0 and pr[1].y - ppos.y < 50.0:
+					fade = 0.45
+				if pr[0] == "seaweed":
+					_spr("seaweed", 2, int(t * 2.0 + pr[2]) % 2, pr[1], PX, false, Color(1, 1, 1, fade), Vector2(0.5, 1.0))
+				else:
+					_spr(pr[0], 1, 0, pr[1], PX, pr[2] % 2 == 0, Color(1, 1, 1, fade), Vector2(0.5, 1.0))
 	var jf := int(t * 6.0) % 2
 	for p in jelly_pos:
-		_spr("jelly", 2, jf, p)
+		_spr("jelly", 2, jf, p + Vector2(0, -10))
 	for al in allies:
 		if al.kind == "support":
 			var rad: float = 120.0 + 25.0 * al.lv
 			draw_arc(ppos, rad, 0.0, TAU, 40, Color(0.5, 0.8, 1.0, 0.18 + 0.06 * sin(t * 3.0)), 2.0)
-	for i in allies.size():
-		var al: Dictionary = allies[i]
-		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
-		_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos, PX, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 0.5))
 	for b in bullets:
 		if b.kind == "arrow":
 			var n: Vector2 = b.vel.normalized()
@@ -2340,8 +2458,13 @@ func _draw() -> void:
 				_spr(f.get("tex", "slash"), 4, fr, Vector2.ZERO, f.scale, false, Color.WHITE if f.get("tex", "slash") != "slash" else f.col)
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for b in ebullets:
-		draw_circle(b.pos, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
-		_spr("ebullet", 1, 0, b.pos, PX * b.r / 5.0)
+		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置
+		draw_set_transform(b.pos + Vector2(0, 2), 0.0, Vector2(1.0, 0.45))
+		draw_circle(Vector2.ZERO, b.r + 1.0, Color(0, 0, 0, 0.4))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var bp: Vector2 = b.pos + Vector2(0, -16)
+		draw_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
+		_spr("ebullet", 1, 0, bp, PX * b.r / 5.0)
 	for sh in shocks:
 		var a: float = 1.0 - sh.r / sh.maxr
 		draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a), 6.0)
@@ -2352,6 +2475,7 @@ func _draw() -> void:
 
 
 func _draw_fx_add() -> void:
+	_draw_god_rays()
 	var loop := int(t * 10.0)
 	if s2_active > 0.0 and tex.get("fx_s2_aura") != null:
 		_spr_on(fx_add, "fx_s2_aura", FXF.fx_s2_aura, loop, ppos + Vector2(0, 4))
@@ -2369,6 +2493,82 @@ func _draw_fx_add() -> void:
 		var fr := clampi(int((1.0 - f.life / f.max) * n), 0, n - 1)
 		var p: Vector2 = ppos if f.follow else f.pos
 		_spr_on(fx_add, f.name, n, fr, p, f.scale)
+
+
+## 2.5D 远景光束：从水面斜射下来的淡光柱，视差 0.5，缓慢漂移
+func _draw_god_rays() -> void:
+	var vs := get_viewport_rect().size
+	var cp := cam.position
+	var span := 1900.0
+	for k in 6:
+		var base := fposmod(k * 331.0 - cp.x * 0.5 + t * 6.0, span) - span / 2.0
+		var x := cp.x + base
+		var w := 50.0 + 40.0 * float(k % 3)
+		var top := cp.y - vs.y / 2.0 - 40.0
+		var bot := cp.y + vs.y / 2.0 + 40.0
+		var sl := 260.0
+		var a := 0.05 + 0.03 * sin(t * 0.4 + k * 1.7)
+		var c0 := Color(1.8, 2.4, 2.8, a)
+		var c1 := Color(1.8, 2.4, 2.8, 0.0)
+		draw_off = Vector2.ZERO
+		fx_add.draw_polygon(PackedVector2Array([Vector2(x, top), Vector2(x + w, top), Vector2(x + w - sl, bot), Vector2(x - sl, bot)]),
+			PackedColorArray([c0, c0, c1, c1]))
+
+
+## 2.5D 前景：镜头前的虚化海草/礁石剪影，视差 1.35；靠近画面中央时变淡，不挡视线
+func _draw_fg() -> void:
+	if not Cfg.dof:
+		return
+	var vs := get_viewport_rect().size
+	var cp := cam.position
+	var par := 1.35
+	var cell := 520.0
+	var fc := cp * par
+	var x0 := floori((fc.x - vs.x) / cell)
+	var y0 := floori((fc.y - vs.y) / cell)
+	for cx in range(x0, x0 + int(vs.x * 2.0 / cell) + 2):
+		for cy in range(y0, y0 + int(vs.y * 2.0 / cell) + 2):
+			var h: int = abs(hash(Vector2i(cx, cy) * 7 + Vector2i(3, 11)))
+			if h % 5 > 1:
+				continue
+			var fp := Vector2(cx * cell + float(h % 300), cy * cell + float((h / 300) % 300))
+			var wp := fp - fc + cp
+			var sp := wp - cp
+			var dc := Vector2(sp.x / (vs.x * 0.5), sp.y / (vs.y * 0.5)).length()
+			var a := clampf((dc - 0.45) / 0.5, 0.0, 1.0) * 0.8
+			if a <= 0.01:
+				continue
+			var tx: Texture2D = fg_tex[0 if h % 3 != 0 else 1]
+			var big := 0.8 + 0.25 * float(h % 3)
+			var sway := sin(t * 0.7 + float(h % 10)) * 0.06
+			var size := Vector2(tx.get_width(), tx.get_height()) * big
+			fg.draw_set_transform(wp, sway, Vector2(-1.0 if h % 2 == 0 else 1.0, 1.0))
+			fg.draw_texture_rect(tx, Rect2(Vector2(-size.x / 2.0, -size.y), size), false, Color(0.10, 0.30, 0.34, a))
+			fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 把像素图变成柔和的剪影（取第一帧 -> 放大 -> 缩小再放大模拟高斯模糊）
+func _blur_silhouette(src: Texture2D, frames: int) -> Texture2D:
+	var img := src.get_image()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var fw := img.get_width() / frames
+	var fh := img.get_height()
+	var pad := 4
+	var out := Image.create(fw + pad * 2, fh + pad * 2, false, Image.FORMAT_RGBA8)
+	out.fill(Color(0, 0, 0, 0))
+	for y in fh:
+		for x in fw:
+			var a := img.get_pixel(x, y).a
+			if a > 0.0:
+				out.set_pixel(x + pad, y + pad, Color(1, 1, 1, a))
+	var w := out.get_width()
+	var h := out.get_height()
+	out.resize(w * 8, h * 8, Image.INTERPOLATE_BILINEAR)
+	out.resize(w * 3, h * 3, Image.INTERPOLATE_BILINEAR)
+	out.resize(w * 8, h * 8, Image.INTERPOLATE_CUBIC)
+	return ImageTexture.create_from_image(out)
 
 
 ## 同 _spr，但画在指定节点上（用于叠加发光层）
@@ -2416,34 +2616,57 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
-## 48px 统一画风：只有攻击四帧时，待机/跑步用第 1 帧（持伞站立）+ 代码起伏，
-## 受伤用闪色，死亡用倒下淡出，避免与旧 32px 美术混用导致人物来回变样。
-## 以后美术交付 player48_idle / player48_run 等帧条时，可在这里逐个替换。
+## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
+## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
+## 若只有攻击条而没有 48px 的其他动作，则用攻击第 1 帧 + 代码起伏兜底。
+const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "death": [6.0, false]}
+
+
+func _p48_tex(kind: String) -> Texture2D:
+	if kind == "attack":
+		return tex.get("player_attack_48")
+	var tx: Texture2D = tex.get("player_" + kind)
+	if tx != null and tx.get_height() == 48:
+		return tx
+	return null
+
+
 func _update_player_anim48(dt: float) -> void:
-	var tx: Texture2D = tex["player_attack_48"]
-	if anim_name != "p48":
-		anim_name = "p48"
+	var want := "idle"
+	if state == S.DEAD:
+		want = "death"
+	elif hurt_flash > 0.05:
+		want = "hurt"
+	elif swing_face > 0.0:
+		want = "attack"
+	elif moving:
+		want = "run"
+	var tx := _p48_tex(want)
+	var fallback := tx == null
+	if fallback:
+		tx = tex["player_attack_48"]
+	var key := want + ("_fb" if fallback else "")
+	if key != anim_name:
+		anim_name = key
 		anim_t = 0.0
 		sprite.texture = tx
 		sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 1.0)
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 2.0)
 	anim_t += dt
 	var n := sprite.hframes
-	if state == S.DEAD:
-		dead_t += dt
-		sprite.frame = 0
-		sprite.rotation = lerpf(0.0, -1.45 * (1.0 if facing >= 0.0 else -1.0), clampf(dead_t / 0.35, 0.0, 1.0))
-		return
-	dead_t = 0.0
 	sprite.rotation = 0.0
-	if swing_face > 0.0:
+	if want == "attack" and not fallback:
 		sprite.frame = clampi(int((0.25 - swing_face) / 0.25 * n), 0, n - 1)
-	else:
+	elif fallback:
 		sprite.frame = 0
-		if not moving:
-			# 待机呼吸：每 1.6 秒上下 1 个美术像素
+		if want == "death":
+			sprite.rotation = lerpf(0.0, -1.45 * (1.0 if facing >= 0.0 else -1.0), clampf(anim_t / 0.35, 0.0, 1.0))
+		elif want == "idle":
 			sprite.position.y -= PX * float(int(t / 0.8) % 2)
-
+	else:
+		var spec: Array = P48[want]
+		var f := int(anim_t * spec[0])
+		sprite.frame = f % n if spec[1] else mini(f, n - 1)
 
 func _draw_mire(m: Dictionary) -> void:
 	var a: float = clamp(m.life / 3.0, 0.0, 1.0)
@@ -2485,16 +2708,22 @@ func _draw_bg() -> void:
 				props.append(["rock", p + Vector2(16, 20), h])
 			elif hh % 113 == 0:
 				props.append(["shell_prop", p + Vector2(12, 22), h])
+	sort_props.clear()
 	for pr in props:
-		if pr[0] == "seaweed":
-			_spr("seaweed", 2, int(t * 2.0 + pr[2]) % 2, pr[1], PX, false, Color.WHITE, Vector2(0.5, 1.0))
+		if pr[0] == "seaweed" or pr[0] == "coral":
+			sort_props.append(pr)
 		else:
 			_spr(pr[0], 1, 0, pr[1], PX, pr[2] % 2 == 0, Color.WHITE, Vector2(0.5, 1.0))
 
 
 func _draw_enemy(e: Dictionary) -> void:
 	var name: String = e.tex
-	var frame := int(t * 5.0 + e.id * 0.37) % 2
+	# 形态切换：偏执泡影二阶段 / 接潮三件套昏迷时的假死造型
+	if e.type == "paranoia" and e.phase == 2 and tex.get("e_paranoia2") != null:
+		name = "e_paranoia2"
+	elif e.get("coma", false) and tex.get(name + "_feign") != null:
+		name = name + "_feign"
+	var frame := int(t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
 	var sc: float = PX * e.r / e.r0
 	var col := Color.WHITE
 	if e.evo:
@@ -2514,21 +2743,43 @@ func _draw_enemy(e: Dictionary) -> void:
 		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
+	draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
 	var flip: bool = e.fx < 0.0
+	var anc := Vector2(0.5, 0.5)
+	var bpos: Vector2 = e.pos
+	if foot_anchor.has(e.tex):
+		anc = Vector2(0.5, 1.0)
+		bpos = e.pos + Vector2(0, e.r * 0.8 + 3.0 * PX)
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
 		for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
-			_spr(name + "_white", 2, frame, e.pos + d, sc, flip, oc, Vector2(0.5, 0.5), sq)
-	_spr(name, 2, frame, e.pos, sc, flip, col, Vector2(0.5, 0.5), sq)
+			_spr(name + "_white", 2, frame, bpos + d, sc, flip, oc, anc, sq)
+	_spr(name, 2, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		_spr(name + "_white", 2, frame, e.pos, sc, flip, Color(1, 1, 1, 0.9), Vector2(0.5, 0.5), sq)
+		_spr(name + "_white", 2, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
 	if e.elite:
 		var w: float = e.r * 2.0
 		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w, 4)), Color(0, 0, 0, 0.6))
 		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w * e.hp / e.maxhp, 4)), Color(1.0, 0.7, 0.3))
+	draw_off = Vector2.ZERO
+
+
+## 用 Sprite2D 的动画状态手动绘制水月，以便和怪物、海草按前后排序
+func _draw_player() -> void:
+	var tx: Texture2D = sprite.texture
+	if tx == null:
+		return
+	var hf := sprite.hframes
+	var fw := tx.get_width() / hf
+	var fh := tx.get_height()
+	var src := Rect2(fw * (sprite.frame % hf), 0, fw, fh)
+	var sx := -PX if sprite.flip_h else PX
+	draw_set_transform(sprite.position, sprite.rotation, Vector2(sx, PX))
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, sprite.modulate)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_hud() -> void:
