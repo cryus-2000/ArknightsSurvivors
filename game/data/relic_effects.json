@@ -89,7 +89,8 @@
      "op": "add",
      "value": -0.07
     }
-   ]
+   ],
+   "desc": "所有敌人攻击 -7%"
   },
   "43": {
    "effects": [
@@ -109,7 +110,19 @@
      "op": "add",
      "value": -0.17
     }
-   ]
+   ],
+   "desc": "所有敌人攻击 -17%"
+  },
+  "45": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "phys_dmg",
+     "op": "add",
+     "value": 0.12
+    }
+   ],
+   "desc": "敌人受到的物理伤害 +12%"
   },
   "46": {
    "effects": [
@@ -119,7 +132,8 @@
      "op": "add",
      "value": 0.18
     }
-   ]
+   ],
+   "desc": "生命低于 50% 的敌人受到伤害 +18%"
   },
   "48": {
    "effects": [
@@ -151,65 +165,104 @@
     }
    ]
   },
+  "51": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 2
+    }
+   ],
+   "desc": "物理减伤 +2（每次受到的物理伤害 -2）"
+  },
+  "52": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 3
+    }
+   ],
+   "desc": "物理减伤 +3"
+  },
+  "53": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 5
+    }
+   ],
+   "desc": "物理减伤 +5"
+  },
   "54": {
    "effects": [
     {
      "type": "stat",
-     "stat": "mizuki_umbrella_dmg",
+     "stat": "melee_dmg",
      "op": "add",
      "value": 0.15
     }
-   ]
+   ],
+   "desc": "近战伤害 +15%（伞击、触手、技能）"
   },
   "55": {
    "effects": [
     {
      "type": "stat",
-     "stat": "mizuki_umbrella_dmg",
+     "stat": "melee_dmg",
      "op": "add",
      "value": 0.25
     }
-   ]
+   ],
+   "desc": "近战伤害 +25%"
   },
   "56": {
    "effects": [
     {
      "type": "stat",
-     "stat": "mizuki_umbrella_dmg",
+     "stat": "melee_dmg",
      "op": "add",
      "value": 0.35
     }
-   ]
+   ],
+   "desc": "近战伤害 +35%"
   },
   "57": {
    "effects": [
     {
      "type": "stat",
-     "stat": "ally_dmg",
+     "stat": "ranged_dmg",
      "op": "add",
      "value": 0.15
     }
-   ]
+   ],
+   "desc": "远程伤害 +15%（水刃、无人机、援护）"
   },
   "58": {
    "effects": [
     {
      "type": "stat",
-     "stat": "ally_dmg",
+     "stat": "ranged_dmg",
      "op": "add",
      "value": 0.25
     }
-   ]
+   ],
+   "desc": "远程伤害 +25%"
   },
   "59": {
    "effects": [
     {
      "type": "stat",
-     "stat": "ally_dmg",
+     "stat": "ranged_dmg",
      "op": "add",
      "value": 0.35
     }
-   ]
+   ],
+   "desc": "远程伤害 +35%"
   },
   "66": {
    "effects": [
@@ -220,17 +273,18 @@
      "value": 0.2
     }
    ],
-   "desc": "敌人受到的法术伤害（触手、技能、术师、辅助）+20%"
+   "desc": "法术伤害 +20%（触手、技能冲击、激光、术师 / 辅助）"
   },
   "67": {
    "effects": [
     {
      "type": "stat",
-     "stat": "arts_dmg",
+     "stat": "phys_dmg",
      "op": "add",
      "value": 0.3
     }
-   ]
+   ],
+   "desc": "物理伤害 +30%（伞击、水刃、无人机、狙击）"
   },
   "68": {
    "effects": [
@@ -241,7 +295,7 @@
      "value": 0.4
     }
    ],
-   "desc": "敌人受到的法术伤害（触手、技能、术师、辅助）+40%"
+   "desc": "法术伤害 +40%"
   },
   "72": {
    "effects": [
@@ -257,23 +311,23 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "dodge_melee",
+     "stat": "dodge_phys",
      "op": "flat",
      "value": 0.15
     }
    ],
-   "desc": "闪避近战与 Boss 招式 +15%"
+   "desc": "物理闪避 +15%（接触、冲撞、子弹等物理攻击）"
   },
   "74": {
    "effects": [
     {
      "type": "stat",
-     "stat": "dodge_ranged",
+     "stat": "dodge_arts",
      "op": "flat",
      "value": 0.15
     }
    ],
-   "desc": "闪避弹幕 +15%"
+   "desc": "法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）"
   },
   "75": {
    "effects": [
@@ -294,7 +348,7 @@
      "value": 0.3
     }
    ],
-   "desc": "水月所有伤害 +30%"
+   "desc": "所有伤害 +30%（真实伤害除外）"
   },
   "84": {
    "effects": [
@@ -404,9 +458,15 @@
     {
      "type": "rule",
      "rule": "shield_burst"
+    },
+    {
+     "type": "stat",
+     "stat": "arts_res",
+     "op": "flat",
+     "value": 0.15
     }
    ],
-   "desc": "护盾破裂时释放冲击，伤害并击退周围敌人"
+   "desc": "法术抗性 +15%；护盾破裂时释放冲击，伤害并击退周围敌人"
   },
   "105": {
    "effects": [
@@ -458,6 +518,23 @@
     "king"
    ]
   },
+  "115": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 3
+    },
+    {
+     "type": "stat",
+     "stat": "arts_res",
+     "op": "flat",
+     "value": 0.3
+    }
+   ],
+   "desc": "物理减伤 +3，法术抗性 +30%"
+  },
   "118": {
    "effects": [
     {
@@ -508,7 +585,8 @@
    ],
    "tags": [
     "king"
-   ]
+   ],
+   "desc": "生命低于 30% 时，受到伤害 -30%（国王套装）"
   },
   "127": {
    "effects": [
@@ -531,6 +609,24 @@
    "tags": [
     "king"
    ]
+  },
+  "158": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "arts_dmg",
+     "op": "add",
+     "value": 0.2
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_dmg",
+     "op": "add",
+     "value": -0.05
+    }
+   ],
+   "desc": "辅助光环范围内的敌人更脆弱：法术伤害 +20%，敌人攻击 -5%",
+   "requires": []
   },
   "169": {
    "effects": [
@@ -850,7 +946,8 @@
       "dur": 0.2
      }
     }
-   ]
+   ],
+   "desc": "受到伤害 -10%；灯火低于 50 时改为 -35%（真实伤害除外）"
   }
  }
 }

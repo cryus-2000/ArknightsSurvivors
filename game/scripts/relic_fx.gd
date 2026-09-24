@@ -26,6 +26,8 @@ var no_hurt_t := 0.0       # 深蓝之树：连续未受伤时间
 var stun_all_cd := 0.0
 var revived := false
 var king_n := 0            # 国王套装件数
+var lv := {}               # id -> 等级（纯属性型藏品可叠到 3 级，每级效果递减 100% / 70% / 50%）
+const LV_SCALE := [1.0, 0.7, 0.5]
 
 
 func _init(game) -> void:
@@ -50,10 +52,64 @@ func rule(name: String) -> int:
 	return int(rules.get(name, 0))
 
 
+## 纯属性型藏品可升到 3 级；带触发 / 规则 / 一次性效果的只有 1 级
+func max_lv(id: String) -> int:
+	var r: Dictionary = db.get_relic(id)
+	if r.is_empty() or r.rarity in ["升华", "遭诅古物"]:
+		return 1
+	for ef in r.effects:
+		if ef.get("type", "stat") != "stat":
+			return 1
+	return 3
+
+
+## 能否出现在三选一 / 商店：未拥有，或已拥有但还能升级；前置条件按拥有判断
+func can_offer(r: Dictionary, for_shop: bool) -> bool:
+	if for_shop and not r.shop_allowed:
+		return false
+	if not for_shop and r.rarity == "遭诅古物":
+		return false
+	if g.relics.has(r.id) and lv.get(r.id, 0) >= max_lv(r.id):
+		return false
+	for q in r.requirements:
+		if not g.relics.has(str(q)):
+			return false
+	for c in r.conflicts:
+		if g.relics.has(str(c)):
+			return false
+	return true
+
+
+func display_name(id: String) -> String:
+	var r: Dictionary = db.get_relic(id)
+	var cur: int = lv.get(id, 0)
+	return r.name + ("  Lv.%d → %d" % [cur, cur + 1] if cur > 0 else ("  (可升级)" if max_lv(id) > 1 else ""))
+
+
+func display_desc(id: String) -> String:
+	var r: Dictionary = db.get_relic(id)
+	var cur: int = lv.get(id, 0)
+	if cur > 0:
+		return "%s\n（本级效果为 %d%%，可叠加）" % [r.desc, int(LV_SCALE[cur] * 100.0)]
+	return r.desc
+
+
 ## ---------- 获得藏品 ----------
 func apply(id: String) -> void:
 	var r: Dictionary = db.get_relic(id)
 	if r.is_empty():
+		return
+	var cur: int = lv.get(id, 0)
+	if cur >= max_lv(id):
+		return
+	lv[id] = cur + 1
+	var sc: float = LV_SCALE[cur]
+	if cur > 0:
+		# 升级：只重复属性型效果（按递减系数）
+		for ef in r.effects:
+			if ef.get("type", "stat") == "stat":
+				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value) * sc if ef.get("op", "add") != "mult" else 1.0 - (1.0 - float(ef.value)) * sc)
+		g._add_text(g.ppos + Vector2(0, -96), "%s Lv.%d" % [r.name, cur + 1], Color(1.0, 0.9, 0.5), 16)
 		return
 	if r.tags.has("king"):
 		king_n += 1
@@ -99,8 +155,13 @@ func _apply_stat(stat: String, op: String, v: float) -> void:
 		"enemy_low_hp_dmg_taken": g.low_hp_bonus += v
 		"regen": g.regen_pct += v * 0.01
 		"dodge": g.dodge += v
-		"dodge_melee": g.dodge_melee += v
-		"dodge_ranged": g.dodge_ranged += v
+		"dodge_phys": g.dodge_phys += v
+		"dodge_arts": g.dodge_arts += v
+		"melee_dmg": g.melee_mult *= m
+		"ranged_dmg": g.ranged_mult *= m
+		"phys_dmg": g.phys_mult *= m
+		"armor": g.armor += v
+		"arts_res": g.arts_res += v
 		"sp_gain": g.sp_mult *= m
 		"control_dur": g.control_mult *= m
 		"shop_price": g.shop_price_mult *= m
@@ -170,7 +231,7 @@ func tick(dt: float) -> void:
 func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
 	var r := 95.0
-	g.out_src = "藏品"
+	g.out_src = "地雷"
 	for j in g._query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
@@ -299,7 +360,9 @@ func single_hit_mult(hit_count: int) -> float:
 ## 触手命中：扣挠之手（当前生命百分比）、炸裂之手（回技力）
 func on_tentacle_hit(e: Dictionary) -> void:
 	if g.relics.has("170") and not e.dead:
+		g.out_src = "真实"
 		g._damage(e, e.hp * (0.01 if e.boss else 0.03))
+		g.out_src = "触手"
 	if g.relics.has("171"):
 		_gain_sp(0.01)
 

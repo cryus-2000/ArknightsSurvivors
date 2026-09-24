@@ -8,9 +8,13 @@ const ENEMIES = {
 	# ---- 普通
 	"bone": {"name": "骨海漂流体", "hp": 7.0, "spd": 64.0, "dmg": 5.0, "r": 10.0, "xp": 1.0, "tex": "e_bone", "ai": "melee", "corrode": 0.2},
 	"slider": {"name": "底海滑动者", "hp": 12.0, "spd": 72.0, "dmg": 6.0, "r": 10.0, "xp": 1.0, "tex": "e_slider", "ai": "melee", "nerve": 15.0},
-	"stone": {"name": "固海凿石者", "hp": 22.0, "spd": 46.0, "dmg": 7.0, "r": 12.0, "xp": 2.0, "tex": "e_stone", "ai": "ranged", "range": 230.0, "cd": 2.4, "entrench": true},
+	"stone": {"name": "固海凿石者", "hp": 22.0, "spd": 46.0, "dmg": 7.0, "r": 12.0, "xp": 2.0, "tex": "e_stone", "ai": "ranged", "range": 230.0, "cd": 2.4, "entrench": true, "atk": "物理"},
 	"offspring": {"name": "伊祖米克的子代", "hp": 70.0, "spd": 28.0, "dmg": 10.0, "r": 15.0, "xp": 4.0, "tex": "e_offspring", "ai": "melee", "morph": true},
 	"brood": {"name": "注亡拟嗣", "hp": 16.0, "spd": 0.0, "dmg": 6.0, "r": 9.0, "xp": 0.5, "tex": "e_brood", "ai": "static", "corrode": 0.3, "decay": 0.08},
+	"ripper": {"name": "沉海撕裂者", "hp": 72.0, "spd": 50.0, "dmg": 15.0, "r": 17.0, "xp": 4.0, "tex": "e_bone", "tint": Color(0.95, 0.55, 0.6), "ai": "melee", "heavy": true, "corrode": 0.2},
+	"burrower": {"name": "潜海裂魔", "hp": 34.0, "spd": 116.0, "dmg": 12.0, "r": 12.0, "xp": 3.0, "tex": "e_slider", "tint": Color(0.7, 0.5, 1.0), "ai": "melee", "burrow": true, "nerve": 10.0},
+	"spitter": {"name": "溟海喷吐者", "hp": 42.0, "spd": 40.0, "dmg": 9.0, "r": 14.0, "xp": 3.0, "tex": "e_stone", "tint": Color(0.6, 1.0, 0.65), "ai": "ranged", "range": 320.0, "cd": 3.2, "spit": true, "corrode": 0.4},
+	"hulk": {"name": "巨骸漂流体", "hp": 420.0, "spd": 30.0, "dmg": 24.0, "r": 26.0, "xp": 14.0, "tex": "e_bone", "tint": Color(1.0, 0.95, 0.75), "ai": "melee", "heavy": true, "stomp": true, "corrode": 0.2},
 	"fractal": {"name": "塑路者碎片", "hp": 18.0, "spd": 95.0, "dmg": 6.0, "r": 8.0, "xp": 1.0, "tex": "e_fractal", "ai": "melee"},
 	"tear": {"name": "伊莎玛拉之泪", "hp": 60.0, "spd": 0.0, "dmg": 0.0, "r": 14.0, "xp": 2.0, "tex": "e_tear", "ai": "static", "tear": true},
 	# ---- 精英
@@ -21,14 +25,24 @@ const ENEMIES = {
 	# ---- Boss
 	"path": {"name": "塑路者", "hp": 2600.0, "spd": 58.0, "dmg": 20.0, "r": 34.0, "xp": 60.0, "tex": "e_path", "ai": "melee", "role": "boss"},
 	"izumik": {"name": "伊祖米克，生态泉源", "hp": 5200.0, "spd": 30.0, "dmg": 16.0, "r": 40.0, "xp": 90.0, "tex": "e_izumik", "ai": "ranged", "range": 320.0, "cd": 1.6, "role": "boss"},
-	"iberia": {"name": "圣徒伊比利亚", "hp": 2800.0, "spd": 58.0, "dmg": 18.0, "r": 22.0, "xp": 60.0, "tex": "e_iberia", "ai": "ranged", "range": 280.0, "cd": 1.5, "role": "boss", "ammo": 3},
-	"carmen": {"name": "圣徒卡门", "hp": 2400.0, "spd": 50.0, "dmg": 16.0, "r": 22.0, "xp": 60.0, "tex": "e_carmen", "ai": "ranged", "range": 380.0, "cd": 1.2, "role": "boss", "ammo": 3},
+	"iberia": {"name": "圣徒伊比利亚", "hp": 2800.0, "spd": 58.0, "dmg": 18.0, "r": 22.0, "xp": 60.0, "tex": "e_iberia", "ai": "ranged", "range": 280.0, "cd": 1.5, "role": "boss", "ammo": 3, "atk": "物理"},
+	"carmen": {"name": "圣徒卡门", "hp": 2400.0, "spd": 50.0, "dmg": 16.0, "r": 22.0, "xp": 60.0, "tex": "e_carmen", "ai": "ranged", "range": 380.0, "cd": 1.2, "role": "boss", "ammo": 3, "atk": "物理"},
 	"bishop": {"name": "接潮主教", "hp": 2000.0, "spd": 36.0, "dmg": 14.0, "r": 22.0, "xp": 50.0, "tex": "e_bishop", "ai": "ranged", "range": 300.0, "cd": 1.8, "role": "boss", "pair": true},
 	"archon": {"name": "接潮蔑死体", "hp": 2200.0, "spd": 56.0, "dmg": 18.0, "r": 24.0, "xp": 50.0, "tex": "e_archon", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
 	"immortal": {"name": "接潮斥亡体", "hp": 1500.0, "spd": 82.0, "dmg": 13.0, "r": 20.0, "xp": 50.0, "tex": "e_immortal", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
 	"paranoia": {"name": "\"偏执泡影\"", "hp": 6200.0, "spd": 34.0, "dmg": 15.0, "r": 40.0, "xp": 0.0, "tex": "e_paranoia", "ai": "ranged", "range": 320.0, "cd": 1.5, "role": "boss", "corrode": 0.5, "hover": true},
 	"ishar": {"name": "伊莎玛拉，腐化之心", "hp": 9000.0, "spd": 34.0, "dmg": 18.0, "r": 46.0, "xp": 0.0, "tex": "e_ishar", "ai": "ranged", "range": 340.0, "cd": 1.5, "role": "boss"},
 }
+## 威胁等级：随时间上升，决定刷怪池、精英间隔（秒）与大群构成；升级时刷出一小波新种类
+const THREAT := [
+	{"name": "浅滩", "en": "SHALLOWS", "t": 0.0, "elite": 45.0, "pool": ["bone", "bone", "bone", "bone", "slider"], "horde": ["bone", "bone", "bone", "slider"]},
+	{"name": "暗流", "en": "UNDERTOW", "t": 75.0, "elite": 55.0, "pool": ["bone", "bone", "bone", "slider", "slider", "stone"], "horde": ["bone", "bone", "bone", "slider"]},
+	{"name": "深潜", "en": "DESCENT", "t": 170.0, "elite": 50.0, "pool": ["bone", "bone", "slider", "slider", "stone", "stone", "brood", "ripper"], "horde": ["bone", "bone", "slider", "ripper"]},
+	{"name": "裂隙", "en": "RIFT", "t": 280.0, "elite": 44.0, "pool": ["slider", "stone", "stone", "ripper", "ripper", "brood", "offspring", "burrower", "spitter"], "horde": ["slider", "slider", "ripper", "bone"]},
+	{"name": "深渊", "en": "ABYSS", "t": 400.0, "elite": 38.0, "pool": ["stone", "ripper", "ripper", "offspring", "offspring", "burrower", "burrower", "spitter", "spitter", "slider"], "horde": ["ripper", "slider", "burrower", "ripper"]},
+	{"name": "深蓝之树", "en": "BLUE TREE", "t": 520.0, "elite": 32.0, "pool": ["ripper", "ripper", "offspring", "burrower", "burrower", "spitter", "spitter", "hulk", "stone"], "horde": ["ripper", "burrower", "burrower", "ripper"]},
+]
+
 ## Boss 结构：3:30 与 7:00 从第三层 Boss 池各抽一个（不重复），10:00 按结局出现最终 Boss
 const BOSS_TIMES := [210.0, 420.0, 600.0]
 const MID_POOL := [["path"], ["iberia"], ["carmen"], ["bishop", "archon"], ["bishop", "immortal"]]
@@ -117,13 +131,14 @@ const GROWTH = {
 	"speed": {"name": "轻盈", "desc": "移动速度 +10%", "max": 5},
 	"pickup": {"name": "感知", "desc": "拾取范围 +30%", "max": 5},
 	"regen": {"name": "自愈", "desc": "每秒回复生命 +0.6", "max": 5},
-	"armor": {"name": "硬化", "desc": "受到伤害 -2", "max": 4},
+	"armor": {"name": "硬化", "desc": "物理减伤 +2（法术、真实伤害无效）", "max": 4},
 	"wick": {"name": "护灯", "desc": "灯火消耗速度 -15%", "max": 4},
 	# ---- 进化路线专属（选定路线后才会出现）
 	"b_count": {"name": "潮刃·分", "desc": "每次挥伞多斩出 1 道水刃（扇形展开）", "max": 2, "path": "blade"},
 	"b_size": {"name": "潮刃·阔", "desc": "水刃宽度与判定范围 +25%", "max": 3, "path": "blade"},
 	"b_dmg": {"name": "潮刃·利", "desc": "水刃伤害 +30%", "max": 3, "path": "blade"},
 	"b_range": {"name": "潮刃·远", "desc": "水刃飞行距离 +30%", "max": 2, "path": "blade"},
+	"b_pierce": {"name": "潮刃·贯", "desc": "水刃可穿透 2 名敌人（Lv.2：无限穿透）", "max": 2, "path": "blade"},
 	"b_echo": {"name": "潮刃·回响", "desc": "每 2.2 秒射出一枚潮汐弹，在敌人之间反弹（Lv.2：两枚、伤害 +50% 并击退）", "max": 2, "path": "blade", "tags": ["arts", "on_hit", "basic_attack"]},
 	"t_count": {"name": "群触·增", "desc": "每次挥伞多召唤 1 根触手", "max": 3, "path": "tendril"},
 	"t_stake": {"name": "群触·桩", "desc": "触手桩持续时间 +1 秒", "max": 2, "path": "tendril"},
@@ -135,7 +150,7 @@ const GROWTH = {
 ## 进化：精英化一选路线，精英化二在路线内再选一次质变（共 4 种最终形态）
 const EVO := {
 	"blade": {"name": "潮刃", "en": "TIDE BLADE", "glyph": "刃", "col": Color(0.5, 0.9, 1.0),
-		"desc": "远斩流：每次挥伞同时斩出一道穿透的月牙水刃，贯穿直线上的所有敌人并使其减速"},
+		"desc": "远斩流：每次挥伞同时斩出一道月牙水刃，命中第一个敌人后碎裂并使其减速（可升级为穿透）"},
 	"tendril": {"name": "群触", "en": "TENDRIL SWARM", "glyph": "触", "col": Color(0.78, 0.5, 1.0),
 		"desc": "召唤流：每次挥伞额外召唤触手，触手化为「触手桩」留在原地，持续鞭打周围敌人"},
 	"blade_moon": {"name": "月轮", "en": "CRESCENT MOON", "glyph": "月", "col": Color(0.6, 0.95, 1.0), "path": "blade",

@@ -281,6 +281,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 		return
 	var e: Dictionary = w.owner
 	g.dmg_src = "boss_" + e.type
+	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
 		g._enemy_hit(w.dmg, {"corrode": w.corrode}, false, true)
 		if stun_t > 0.0:
@@ -359,6 +360,10 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.pose_max = 0.25
 			g.fx.append({"kind": "tracer", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.22, "max": 0.22, "col": c, "wid": w.wid})
 			Sfx.play("swing", -6.0, 0.7)
+			_warn_damage(w)
+		"bite":
+			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": (g.ppos - w.pos).angle(), "half": 0.9, "r": w.r + 10.0, "life": 0.25, "max": 0.25, "col": c})
+			Sfx.play("swing", -8.0, 0.9)
 			_warn_damage(w)
 		"bring":
 			for k in 14:
