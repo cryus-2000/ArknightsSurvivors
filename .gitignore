@@ -28,3 +28,6 @@ docs/reference/icons/
 game/ShuiyueSurvivors_Latest.exe
 
 build/*.bat
+
+# EdgeOne deploy token (local only)
+.edgeone_token
