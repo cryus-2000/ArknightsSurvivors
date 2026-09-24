@@ -2529,7 +2529,8 @@ func _build_shop_ui() -> void:
 	for i in shop_items.size():
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(200, 300)
+		card.custom_minimum_size = Vector2(204, 276)
+		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -2537,7 +2538,7 @@ func _build_shop_ui() -> void:
 		card.set_meta("born", Time.get_ticks_msec() + i * 50)
 		card.set_meta("oy", 60.0)
 		card.set_meta("lift", 0.0)
-		card.set_meta("dy", 190.0)
+		card.set_meta("dy", 178.0)
 		card.set_meta("item", it)
 		card.modulate.a = 0.0
 		card.draw.connect(_draw_shop_card.bind(card, it, i))
@@ -2547,9 +2548,9 @@ func _build_shop_ui() -> void:
 		var desc := Label.new()
 		desc.text = it.desc
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(18, 190)
-		desc.size = Vector2(164, 70)
-		desc.add_theme_font_size_override("font_size", 14)
+		desc.position = Vector2(16, 178)
+		desc.size = Vector2(172, 78)
+		desc.add_theme_font_size_override("font_size", 13)
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
@@ -2568,23 +2569,30 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 		col = Color(0.5, 1.0, 0.6)
 	var afford: bool = ingots >= it.price
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	UI.panel(card, r, Color(0.05, 0.12, 0.16, 0.97) if hov else UI.BG2, col if hov else Color(col.r, col.g, col.b, 0.4), 12.0, col)
-	UI.text(card, font, r.position + Vector2(16, 30), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7))
-	var c := r.position + Vector2(r.size.x / 2, 96)
-	UI.diamond(card, c, 34.0, Color(0.02, 0.06, 0.08), col)
+	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 40 + i, "vine_k": 0.9 if hov else 0.6, "glow": 1.0 if hov else 0.2, "cut": 10.0, "bracket": 10.0, "alpha": 0.5 if it.sold else 1.0})
+	UI.text(card, font, r.position + Vector2(14, 28), str(i + 1), 14, Color(col.r, col.g, col.b, 0.7))
+	var c := r.position + Vector2(r.size.x / 2, 92)
+	UI.pedestal(card, c, 38.0, col, t + i, hov)
 	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
 	if ic != null:
 		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false)
+	elif it.kind == "oil":
+		card.draw_texture_rect(tex.oil, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
+	elif it.kind == "heal" and tex.get("pickup_heal") != null:
+		card.draw_texture_rect(tex.pickup_heal, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
 	else:
-		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, col, HORIZONTAL_ALIGNMENT_CENTER, 60)
-	UI.text(card, font, r.position + Vector2(0, 170), it.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	var price_col := Color(1.0, 0.6, 0.3) if afford else Color(0.6, 0.35, 0.35)
+		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, col, HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
+	UI.text(card, font, r.position + Vector2(0, 158), it.name, 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	UI.rule(card, r.position + Vector2(30, 166), r.position + Vector2(r.size.x - 30, 166), Color(col.r, col.g, col.b, 0.4))
 	if it.sold:
-		UI.text(card, font, r.position + Vector2(0, r.size.y - 18), "已售出", 16, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-		card.draw_rect(Rect2(r.position, r.size), Color(0, 0, 0, 0.5))
+		UI.chip(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 34), "已售出", UI.SUB, 12)
 	else:
-		card.draw_texture_rect(tex.ingot, Rect2(r.position + Vector2(r.size.x / 2 - 30, r.size.y - 34), Vector2(18, 14)), false)
-		UI.text(card, font, r.position + Vector2(r.size.x / 2 - 6, r.size.y - 20), str(it.price), 18, price_col)
+		var price_col := Color(1.0, 0.65, 0.35) if afford else Color(0.6, 0.35, 0.35)
+		var pr := Rect2(r.position + Vector2(r.size.x / 2 - 34, r.size.y - 36), Vector2(68, 24))
+		card.draw_rect(pr, Color(price_col.r, price_col.g, price_col.b, 0.12))
+		card.draw_rect(pr, Color(price_col.r, price_col.g, price_col.b, 0.6), false, 1.0)
+		card.draw_texture_rect(tex.ingot, Rect2(pr.position + Vector2(8, 5), Vector2(18, 14)), false)
+		UI.text(card, font, pr.position + Vector2(32, 18), str(it.price), 15, price_col)
 
 
 func _buy(i: int) -> void:
@@ -3252,12 +3260,18 @@ func _build_panel(parent: Node) -> void:
 
 func _draw_panel_bg() -> void:
 	var vs := panel.size
-	panel.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.78))
-	var title_col := UI.GOLD if choice_kind in ["relic", "shop"] else UI.CYAN
-	panel.draw_rect(Rect2(0, 62, vs.x, 64), Color(0.02, 0.06, 0.09, 0.9))
-	panel.draw_line(Vector2(0, 62), Vector2(vs.x, 62), Color(title_col.r, title_col.g, title_col.b, 0.5), 1.0)
-	panel.draw_line(Vector2(0, 126), Vector2(vs.x, 126), Color(title_col.r, title_col.g, title_col.b, 0.5), 1.0)
-	UI.text(panel, font, Vector2(0, 115), panel_title_text, 28, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	panel.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.05, 0.8))
+	var title_col := UI.GOLD if choice_kind in ["relic", "shop"] else UI.GLOW
+	# 从上方斜射的光束
+	for i in 4:
+		var x := vs.x * 0.2 + i * vs.x * 0.2 + sin(t * 0.25 + i) * 30.0
+		var w := 50.0 + 24.0 * sin(t * 0.4 + i * 1.7)
+		panel.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + w, 0), Vector2(x + w * 2.4 - 160, vs.y), Vector2(x - 160, vs.y)]),
+			Color(title_col.r, title_col.g, title_col.b, 0.025 + 0.012 * sin(t * 0.7 + i)))
+	# 标题栏
+	var band := Rect2(vs.x / 2 - 360, 56, 720, 72)
+	UI.frame(panel, band, title_col, {"t": t, "vines": true, "seed": 11, "vine_k": 0.6, "cut": 10.0})
+	UI.caustic(panel, Rect2(band.position + Vector2(20, 8), Vector2(band.size.x - 40, 18)), t, title_col)
 	var en_label := "RELIC" if choice_kind == "relic" else "LEVEL UP"
 	if choice_kind == "shop":
 		en_label = "MERCHANT"
@@ -3265,12 +3279,11 @@ func _draw_panel_bg() -> void:
 		en_label = "EVOLUTION"
 	elif choices.size() > 0 and choices[0].kind == "recruit":
 		en_label = "RECRUIT"
-	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_label.length() * 4.0
-	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 13, title_col, 4.0)
-	if choice_kind == "shop":
-		UI.text(panel, font, Vector2(0, vs.y - 50), "点击或按 1–5 购买 · F 刷新（3 源石锭） · Esc 离开", 15, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	else:
-		UI.text(panel, font, Vector2(0, vs.y - 50), "点击卡片，或按 1 / 2 / 3 选择", 15, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + en_label.length() * 4.0
+	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 12, title_col, 4.0)
+	UI.heading(panel, font, Vector2(vs.x / 2, 106), panel_title_text, 26, title_col, 300.0)
+	var hint := "点击或按 1–5 购买 · F 刷新（3 源石锭） · Esc 离开" if choice_kind == "shop" else "点击卡片，或按 1 / 2 / 3 选择"
+	UI.text(panel, font, Vector2(0, vs.y - 46), hint, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func _show_choices(title: String, opts: Array, kind: String) -> void:
@@ -3284,7 +3297,8 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(290, 330)
+		card.custom_minimum_size = Vector2(280, 304)
+		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -3300,15 +3314,15 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 		var desc := Label.new()
 		desc.text = o.desc
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(28, 230)
-		desc.size = Vector2(234, 120)
-		desc.add_theme_font_size_override("font_size", 16)
+		desc.position = Vector2(26, 218)
+		desc.size = Vector2(228, 92)
+		desc.add_theme_font_size_override("font_size", 15)
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.add_theme_constant_override("line_spacing", 4)
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
 		card.set_meta("desc", desc)
-		card.set_meta("dy", 230.0)
+		card.set_meta("dy", 218.0)
 		panel_box.add_child(card)
 	panel.visible = true
 	panel.queue_redraw()
@@ -3476,8 +3490,8 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var hov := card.is_hovered()
 	var col := _card_color(o)
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	UI.panel(card, r, Color(0.05, 0.12, 0.16, 0.97) if hov else UI.BG2, col if hov else Color(col.r, col.g, col.b, 0.45), 16.0, col)
-	# 顶部分类条
+	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 20 + i, "vine_k": 1.0 if hov else 0.75, "glow": 1.0 if hov else 0.25, "cut": 12.0, "bracket": 12.0})
+	# 顶部分类标签
 	var cat := "成长  GROWTH"
 	if o.kind == "relic":
 		cat = D.RELICS[o.id].cat + "  RELIC"
@@ -3489,14 +3503,11 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		cat = "武器  " + D.WEAPONS[o.id].en
 	elif o.kind == "evo":
 		cat = ("进化  " if not D.EVO[o.id].has("path") else "质变  ") + D.EVO[o.id].en
-	card.draw_rect(Rect2(r.position + Vector2(16, 22), Vector2(4, 16)), col)
-	UI.text(card, font, r.position + Vector2(28, 36), cat, 13, col)
-	UI.text(card, font, r.position + Vector2(r.size.x - 44, 38), str(i + 1), 18, Color(col.r, col.g, col.b, 0.6))
-	# 图标：菱形 + 名称首字
+	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
+	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
+	# 图标底座
 	var c := r.position + Vector2(r.size.x / 2, 118)
-	var pulse := 0.5 + 0.5 * sin(t * 3.0 + i)
-	UI.diamond(card, c, 52.0 + (4.0 * pulse if hov else 0.0), Color(col.r, col.g, col.b, 0.12))
-	UI.diamond(card, c, 40.0, Color(0.02, 0.06, 0.08), col)
+	UI.pedestal(card, c, 44.0, col, t + i, hov)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
 	if o.kind == "relic":
@@ -3506,24 +3517,27 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "evo":
 		glyph = D.EVO[o.id].glyph
 	var ic: Texture2D = tex.get("relic_" + o.id) if o.kind == "relic" else null
+	var bob := sin(t * 2.0 + i) * 2.0
 	if o.kind == "recruit":
 		var at: Texture2D = tex["ally_" + o.id]
 		var fw := at.get_width() / 2
-		var ks: float = floorf(76.0 / at.get_height()) if at.get_height() <= 76 else 76.0 / at.get_height()
+		var ks: float = floorf(72.0 / at.get_height()) if at.get_height() <= 72 else 72.0 / at.get_height()
 		var asz := Vector2(fw, at.get_height()) * ks
-		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0, asz), Rect2(0, 0, fw, at.get_height()))
+		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0 + Vector2(0, bob), asz), Rect2(0, 0, fw, at.get_height()))
 	elif ic != null:
-		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false)
+		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32) + Vector2(0, bob), Vector2(64, 64)), false)
 	else:
-		UI.text(card, font, c + Vector2(-40, 13), glyph, 34, col, HORIZONTAL_ALIGNMENT_CENTER, 80)
-	# 名称
+		UI.text(card, font, c + Vector2(-40, 13 + bob), glyph, 34, col, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+	# 名称 + 分隔
 	var nm := name
 	if o.kind == "relic":
 		nm = D.RELICS[o.id].name
-	UI.text(card, font, r.position + Vector2(0, 208), nm, 21, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	card.draw_line(r.position + Vector2(40, 220), r.position + Vector2(r.size.x - 40, 220), Color(col.r, col.g, col.b, 0.35), 1.0)
+	UI.text(card, font, r.position + Vector2(0, 196), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	UI.rule(card, r.position + Vector2(36, 206), r.position + Vector2(r.size.x - 36, 206), Color(col.r, col.g, col.b, 0.45))
+	# 底部：暗色水印字 + 选择提示
+	card.draw_string(font, r.position + Vector2(r.size.x - 70, r.size.y - 14), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 54, Color(col.r, col.g, col.b, 0.06))
 	if hov:
-		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 18), "SELECT", 12, col, 3.0)
+		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 16), "SELECT", 11, col, 3.0)
 
 
 func _open_recruit() -> bool:
@@ -5039,18 +5053,19 @@ func _draw_hud() -> void:
 
 	# 溟痕：屏幕压暗 + 紫色边缘
 	if in_mire > 0.0:
-		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.03, 0.0, 0.06, 0.42 * in_mire))
-		_edge_glow(vs, Color(0.45, 0.1, 0.7, 0.75 * in_mire), 160.0)
+		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.03, 0.0, 0.06, 0.18 * in_mire))
+		_edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * in_mire), 130.0)
 		if in_mire > 0.5 and state == S.PLAY:
 			UI.text(hud, font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 受击时屏幕边缘泛红
 	if red_flash > 0.0:
-		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, red_flash * 0.45))
+		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, red_flash * 0.16))
+		_edge_glow(vs, Color(0.9, 0.08, 0.12, red_flash * 0.9), 70.0)
 	if hurt_vignette > 0.0:
 		_edge_glow(vs, Color(0.9, 0.1, 0.15, hurt_vignette * 0.9), 90.0 + 50.0 * hurt_vignette)
 	if state == S.PLAY and hp < max_hp * 0.3 and hp > 0.0:
 		var beat := pow(maxf(0.0, sin(t * (5.0 + 5.0 * (1.0 - hp / (max_hp * 0.3))))), 4.0)
-		_edge_glow(vs, Color(0.85, 0.05, 0.12, 0.35 + 0.4 * beat), 150.0)
+		_edge_glow(vs, Color(0.85, 0.05, 0.12, 0.3 + 0.35 * beat), 110.0)
 		UI.text(hud, font, Vector2(0, vs.y * 0.5 + 110), "生命垂危", 18, Color(1.0, 0.4, 0.45, 0.5 + 0.5 * beat), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 头顶血条：受伤后或低血量时显示
 	if state == S.PLAY and (head_bar_t > 0.0 or hp < max_hp * 0.3):
@@ -5062,58 +5077,52 @@ func _draw_hud() -> void:
 	if lamp < 30.0 and state == S.PLAY:
 		_edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(t * 3.0)), 140.0)
 
-	# 顶部经验条
-	hud.draw_rect(Rect2(0, 0, vs.x, 4), Color(0, 0, 0, 0.7))
-	hud.draw_rect(Rect2(0, 0, vs.x * clamp(xp / xp_need, 0.0, 1.0), 4), UI.CYAN)
-	hud.draw_rect(Rect2(0, 4, vs.x * clamp(xp / xp_need, 0.0, 1.0), 2), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
-
-	# 左上：干员信息
+	# 左上：干员卡（深海面板 + 藤蔓；等级环即经验环）
 	var o := Vector2(16, 16)
-	UI.panel(hud, Rect2(o, Vector2(330, 96)), UI.BG, UI.LINE, 12.0, UI.CYAN)
 	var lf := hud_lv_flash
-	var bc := UI.CYAN.lerp(UI.GOLD, lf)
-	UI.diamond(hud, o + Vector2(36, 42), 30.0 + 6.0 * lf, Color(bc.r, bc.g, bc.b, 0.12 + 0.3 * lf))
-	UI.diamond(hud, o + Vector2(36, 42), 25.0 + 3.0 * lf, Color(0.03, 0.1, 0.13), bc)
-	UI.diamond(hud, o + Vector2(36, 42), 21.0, Color(0, 0, 0, 0), Color(bc.r, bc.g, bc.b, 0.35))
-	var lvs := 26 if level < 10 else 22
-	UI.text(hud, font, o + Vector2(6, 51 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.35 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
-	# 菱形下方的 LV 小标签
-	hud.draw_rect(Rect2(o + Vector2(23, 62), Vector2(26, 13)), Color(0.02, 0.06, 0.08))
-	hud.draw_rect(Rect2(o + Vector2(23, 62), Vector2(26, 13)), bc, false, 1.0)
-	UI.en(hud, font, o + Vector2(28, 73), "LV", 9, bc, 2.0)
-	UI.text(hud, font, o + Vector2(66, 30), "水月", 18, UI.TEXT)
-	UI.en(hud, font, o + Vector2(112, 29), "MIZUKI", 11, UI.CYAN_DIM, 3.0)
-	UI.text(hud, font, o + Vector2(250, 29), ["精零", "精英一", "精英二"][elite_stage], 13, UI.GOLD if elite_stage > 0 else UI.SUB)
-	UI.en(hud, font, o + Vector2(66, 52), "HP", 10, UI.SUB, 2.0)
+	var bc := UI.GLOW.lerp(UI.GOLD, lf)
+	UI.frame(hud, Rect2(o, Vector2(344, 100)), bc, {"t": t, "vines": true, "seed": 7, "glow": 0.5 + lf})
+	# 等级环：环上进度 = 经验
+	var lc0 := o + Vector2(44, 50)
+	UI.ring(hud, lc0, 27.0 + 4.0 * lf, xp / xp_need, bc, lf > 0.2)
+	var lvs := 24 if level < 10 else 20
+	UI.text(hud, font, lc0 + Vector2(-30, 8 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
+	# 名字、精英阶段
+	UI.text(hud, font, o + Vector2(84, 32), "水月", 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.en(hud, font, o + Vector2(130, 31), "MIZUKI", 10, UI.CYAN_DIM, 3.0)
+	var stage_txt: String = ["精零", "精英一", "精英二"][elite_stage]
+	UI.chip(hud, font, o + Vector2(280, 18), stage_txt, UI.GOLD if elite_stage > 0 else UI.SUB, 11)
+	# 生命
 	var hs := Vector2(sin(t * 90.0), cos(t * 70.0)) * 3.0 * hp_shake / 0.35
-	var hbr := Rect2(o + Vector2(90, 42) + hs, Vector2(170, 10))
+	var hbr := Rect2(o + Vector2(84, 44) + hs, Vector2(196, 12))
 	var low := hp / max_hp < 0.3
-	hud.draw_rect(Rect2(hbr.position, Vector2(hbr.size.x * clampf(hp_trail / max_hp, 0.0, 1.0), hbr.size.y)), Color(1.0, 0.95, 0.9, 0.85))
-	UI.bar(hud, hbr, hp / max_hp, UI.RED.lerp(Color(1, 0.8, 0.8), 0.5 + 0.5 * sin(t * 10.0)) if low else Color(0.35, 0.9, 0.75), 10)
-	UI.text(hud, font, o + Vector2(266, 53) + hs, "%d" % int(hp), 14, UI.RED if low else UI.TEXT)
-	# 护盾层数
+	var hpc: Color = UI.RED.lerp(Color(1, 0.8, 0.8), 0.5 + 0.5 * sin(t * 10.0)) if low else Color(0.35, 0.9, 0.75)
+	UI.gbar(hud, hbr, hp / max_hp, hpc, 10, hp_trail / max_hp)
+	UI.text(hud, font, o + Vector2(288, 55) + hs, "%d" % int(hp), 14, UI.RED if low else UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+	# 护盾层：血条上方一排小菱形
 	for q in shield_max:
-		var sp := o + Vector2(96 + q * 14, 36)
-		UI.diamond(hud, sp, 5.0, Color(0.5, 0.85, 1.0) if q < shield else Color(0.08, 0.14, 0.18), Color(0.6, 0.9, 1.0, 0.8))
+		var sp := o + Vector2(90 + q * 12, 37)
+		UI.diamond(hud, sp, 4.0, Color(0.5, 0.85, 1.0) if q < shield else Color(0.08, 0.14, 0.18), Color(0.6, 0.9, 1.0, 0.8))
+	# 灯火：暖色分段条 + 30 / 70 刻度
 	var lc := UI.GOLD if lamp >= 30.0 else UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(t * 8.0))
-	UI.en(hud, font, o + Vector2(66, 78), "LIGHT", 10, lc, 1.0)
-	UI.bar(hud, Rect2(o + Vector2(110, 68), Vector2(150, 10)), lamp / 100.0, lc, 5)
-	# 档位刻度：30 昏暗 / 70 充盈
+	var lbr := Rect2(o + Vector2(84, 64), Vector2(196, 9))
+	UI.gbar(hud, lbr, lamp / 100.0, lc, 10)
 	for tv in [30.0, 70.0]:
-		var tx: float = o.x + 110 + 150 * tv / 100.0
-		hud.draw_line(Vector2(tx, o.y + 64), Vector2(tx, o.y + 82), Color(1, 1, 1, 0.7), 1.5)
-	UI.text(hud, font, o + Vector2(266, 79), "灯火 %d" % int(lamp), 13, lc)
+		var tx: float = lbr.position.x + lbr.size.x * tv / 100.0
+		hud.draw_rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.8))
+	# 灯火火苗小图标
+	var fl := 0.5 + 0.5 * sin(t * 12.0)
+	hud.draw_colored_polygon(PackedVector2Array([o + Vector2(74, 73), o + Vector2(70, 67), o + Vector2(74, 60 - 2 * fl), o + Vector2(78, 67)]), lc)
+	hud.draw_colored_polygon(PackedVector2Array([o + Vector2(74, 72), o + Vector2(72, 68), o + Vector2(74, 65), o + Vector2(76, 68)]), Color(1, 1, 0.85))
+	UI.text(hud, font, o + Vector2(288, 73), "%d" % int(lamp), 13, lc, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	# 神经损伤 / 侵蚀
 	if nerve > 1.0:
-		UI.en(hud, font, o + Vector2(66, 108), "NERVE", 10, Color(1.0, 0.5, 0.9), 1.0)
-		UI.bar(hud, Rect2(o + Vector2(110, 99), Vector2(150, 6)), nerve / 100.0, Color(1.0, 0.45, 0.85))
+		UI.gbar(hud, Rect2(o + Vector2(84, 80), Vector2(196, 4)), nerve / 100.0, Color(1.0, 0.45, 0.85))
+		UI.en(hud, font, o + Vector2(288, 86), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if corrode_pool > 0.5:
-		UI.text(hud, font, o + Vector2(266, 108), "侵蚀", 12, Color(0.8, 0.5, 1.0))
+		UI.text(hud, font, o + Vector2(330, 86), "蚀", 11, Color(0.8, 0.5, 1.0))
 	if pstun > 0.0:
 		UI.text(hud, font, ct * ppos + Vector2(-40, -110), "僵直", 16, Color(1.0, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
-	# 源石锭
-	hud.draw_texture_rect(tex.ingot, Rect2(Vector2(vs.x / 2 + 170, 12), Vector2(18, 14)), false)
-	UI.text(hud, font, Vector2(vs.x / 2 + 194, 25), str(ingots), 16, Color(1.0, 0.65, 0.35))
 	# 商人方向指示
 	if not merchant.is_empty():
 		var sp: Vector2 = ct * merchant.pos
@@ -5144,14 +5153,20 @@ func _draw_hud() -> void:
 			hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(hud, font, hp2 + Vector2(-60, -8), "商人 %ds" % int(merchant.life), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	_draw_minimap(vs)
+	var st_txt := ""
+	var st_col := UI.GOLD
 	if lamp <= 0.0:
-		UI.text(hud, font, o + Vector2(4, 132), "灯火熄灭 —— 持续受到伤害", 15, UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		st_txt = "灯火熄灭 · 持续受伤"
+		st_col = UI.RED
 	elif lamp < 30.0:
-		UI.text(hud, font, o + Vector2(4, 132), "暗潮涌动 —— 敌人更快、更凶", 15, Color(1, 0.55, 0.45), HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		st_txt = "暗潮涌动 · 敌人更快更凶"
+		st_col = Color(1, 0.55, 0.45)
 	elif lamp >= 70.0:
-		UI.text(hud, font, o + Vector2(4, 132), "灯火充盈 —— 技力回复 +30% · 拾取范围 +20%", 14, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		st_txt = "灯火充盈 · 技力 +30% · 拾取 +20%"
 	else:
-		UI.text(hud, font, o + Vector2(4, 132), "灯火照亮 —— 光中的敌人受到伤害 +25%", 14, Color(1.0, 0.85, 0.6, 0.8), HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		st_txt = "灯火照亮 · 光中敌人受伤 +25%"
+		st_col = Color(1.0, 0.85, 0.6)
+	UI.chip(hud, font, o + Vector2(0, 108), st_txt, st_col, 12)
 	# 黑潮：圈外警告 + 指向安全区
 	if zone_state != 0 and state == S.PLAY:
 		var out := ppos.distance_to(zone_c) - zone_r
@@ -5168,13 +5183,19 @@ func _draw_hud() -> void:
 		elif zone_state == 2:
 			UI.text(hud, font, Vector2(0, 92), "安全区收缩中", 15, Color(0.9, 0.6, 1.0, 0.6 + 0.4 * sin(t * 6.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 
-	# 顶部中央：时间与击杀
+	# 顶部中央：计时框（水波光带 + 源石锭）
 	var mm := int(t) / 60
 	var ss := int(t) % 60
-	UI.rule(hud, Vector2(vs.x / 2 - 150, 22), Vector2(vs.x / 2 - 70, 22), UI.CYAN_DIM)
-	UI.rule(hud, Vector2(vs.x / 2 + 70, 22), Vector2(vs.x / 2 + 150, 22), UI.CYAN_DIM)
-	UI.text(hud, font, Vector2(vs.x / 2 - 100, 38), "%02d:%02d" % [mm, ss], 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 200, 3)
-	UI.text(hud, font, Vector2(vs.x / 2 - 100, 62), ("击杀  %d" % kills) + (("  ·  难度 %d" % diff) if diff > 0 else ""), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200, 3)
+	var tf := Rect2(vs.x / 2 - 110, 10, 220, 58)
+	UI.frame(hud, tf, UI.GLOW, {"t": t, "cut": 8.0, "bracket": 8.0})
+	UI.caustic(hud, Rect2(tf.position + Vector2(8, 6), Vector2(tf.size.x - 16, 20)), t, UI.GLOW)
+	UI.text(hud, font, Vector2(tf.position.x, 42), "%02d:%02d" % [mm, ss], 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, tf.size.x, 3)
+	UI.text(hud, font, Vector2(tf.position.x, 62), ("击杀  %d" % kills) + (("  ·  难度 %d" % diff) if diff > 0 else ""), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tf.size.x, 2)
+	# 源石锭标签
+	var ir := Rect2(tf.end.x + 10, 18, 74, 26)
+	UI.frame(hud, ir, Color(1.0, 0.65, 0.35), {"cut": 4.0, "bracket": 5.0})
+	hud.draw_texture_rect(tex.ingot, Rect2(ir.position + Vector2(8, 6), Vector2(18, 14)), false)
+	UI.text(hud, font, ir.position + Vector2(32, 19), str(ingots), 15, Color(1.0, 0.7, 0.4))
 
 	# 右上：藏品
 	_draw_relic_tray(Vector2(vs.x - 16, 16))
@@ -5188,7 +5209,7 @@ func _draw_hud() -> void:
 		var bx := vs.x / 2 - bw / 2
 		hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
 		bby += 54.0
-		UI.panel(hud, Rect2(bx - 12, 80, bw + 24, 48), UI.BG, Color(0.7, 0.2, 0.4, 0.8), 8.0)
+		UI.frame(hud, Rect2(bx - 12, 80, bw + 24, 48), Color(1.0, 0.35, 0.5), {"cut": 8.0, "bracket": 8.0})
 		UI.text(hud, font, Vector2(bx, 100), shown.name, 16, Color(1, 0.6, 0.7))
 		var sub := ""
 		if shown.type == "izumik":
@@ -5488,23 +5509,28 @@ func _draw_stats(vs: Vector2) -> void:
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
 func _draw_minimap(vs: Vector2) -> void:
-	var sz := 164.0
-	var o := Vector2(16, vs.y - sz - 16)
-	var r := Rect2(o, Vector2(sz, sz))
-	UI.panel(hud, r, Color(0.02, 0.06, 0.08, 0.72), UI.LINE, 10.0, UI.CYAN)
-	UI.en(hud, font, o + Vector2(10, 16), "MAP", 9, UI.CYAN_DIM, 2.0)
-	var c := r.get_center() + Vector2(0, 4)
+	var rad := 78.0
+	var c := Vector2(16 + rad + 8, vs.y - rad - 24)
+	UI.porthole(hud, c, rad, UI.GLOW)
+	UI.en(hud, font, c + Vector2(-rad + 6, rad + 18), "SONAR", 9, UI.CYAN_DIM, 2.0)
 	var world := 1100.0
-	var k := (sz * 0.5 - 12.0) / world
+	var k := (rad - 8.0) / world
+	var lim := rad - 6.0
+	# 声呐扫描线
+	var sweep := fmod(t * 0.9, TAU)
+	hud.draw_line(c, c + Vector2.from_angle(sweep) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.35), 1.0)
+	for q in 6:
+		var a := sweep - q * 0.06
+		hud.draw_line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
+	hud.draw_arc(c, lim * 0.5, 0.0, TAU, 40, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 1.0)
 	# 视野框
 	var view := get_viewport_rect().size
 	hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(0.4, 0.8, 0.9, 0.25), false, 1.0)
-	var lim := sz * 0.5 - 8.0
 	for e in enemies:
 		if e.dead:
 			continue
 		var p: Vector2 = (e.pos - ppos) * k
-		if absf(p.x) > lim or absf(p.y) > lim:
+		if p.length() > lim:
 			if e.boss:
 				p = p.limit_length(lim)
 			else:
@@ -5525,8 +5551,8 @@ func _draw_minimap(vs: Vector2) -> void:
 		hud.draw_circle(c + p, 3.0, _item_col(g.kind))
 	if not merchant.is_empty():
 		var mp: Vector2 = ((merchant.pos - ppos) * k)
-		var clipped := absf(mp.x) > lim or absf(mp.y) > lim
-		mp = mp.clamp(Vector2(-lim, -lim), Vector2(lim, lim))
+		var clipped := mp.length() > lim
+		mp = mp.limit_length(lim)
 		UI.diamond(hud, c + mp, 5.0 + (1.5 * sin(t * 6.0) if clipped else 0.0), UI.GOLD)
 	for al in allies:
 		hud.draw_circle(c + (al.pos - ppos) * k, 2.0, Color(0.5, 0.9, 1.0))
@@ -5542,9 +5568,7 @@ func _mini_circle(cc: Vector2, r: float, lim: float, col: Color, c: Vector2) -> 
 	for i in n:
 		var p0 := cc + Vector2.from_angle(TAU * i / n) * r
 		var p1 := cc + Vector2.from_angle(TAU * (i + 1) / n) * r
-		var d0 := p0 - c
-		var d1 := p1 - c
-		if absf(d0.x) > lim or absf(d0.y) > lim or absf(d1.x) > lim or absf(d1.y) > lim:
+		if (p0 - c).length() > lim or (p1 - c).length() > lim:
 			continue
 		hud.draw_line(p0, p1, col, 1.5)
 
@@ -5560,27 +5584,29 @@ func _edge_glow(vs: Vector2, col: Color, w: float) -> void:
 
 func _draw_relic_tray(tr: Vector2) -> void:
 	var n := relics.size()
-	var per_row := 9
-	var cell := 36.0
-	var w: float = min(n, per_row) * cell + 16.0
-	var rows := int(ceil(n / float(per_row)))
-	UI.en(hud, font, tr + Vector2(-86, 12), "RELICS", 11, UI.SUB, 3.0)
-	UI.text(hud, font, tr + Vector2(-126, 13), "%d" % n, 13, UI.GOLD)
-	if n == 0:
-		return
-	var o := tr + Vector2(-w, 20)
-	UI.panel(hud, Rect2(o, Vector2(w, rows * cell + 10)), UI.BG, UI.LINE, 6.0)
+	var per_row := 8
+	var cell := 38.0
+	var w: float = max(min(n, per_row) * cell + 16.0, 120.0)
+	var rows: int = max(1, int(ceil(n / float(per_row))))
+	var o := tr + Vector2(-w, 0)
+	var r := Rect2(o, Vector2(w, rows * cell + 32))
+	UI.frame(hud, r, UI.GOLD, {"t": t, "vines": true, "seed": 3, "vine_k": 0.7, "cut": 6.0, "bracket": 8.0})
+	UI.en(hud, font, o + Vector2(10, 20), "RELICS", 10, UI.SUB, 3.0)
+	UI.text(hud, font, o + Vector2(w - 30, 21), "%d" % n, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 20)
 	for i in n:
-		var r: Dictionary = D.RELICS[relics[i]]
-		var col: Color = UI.CAT_COL.get(r.cat, UI.GOLD)
-		var c := o + Vector2(8 + (i % per_row) * cell + cell / 2, 5 + (i / per_row) * cell + cell / 2)
+		var rd: Dictionary = D.RELICS[relics[i]]
+		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var c := o + Vector2(8 + (i % per_row) * cell + cell / 2, 28 + (i / per_row) * cell + cell / 2)
+		var cellr := Rect2(c - Vector2(17, 17), Vector2(34, 34))
+		hud.draw_rect(cellr, Color(0.01, 0.04, 0.08, 0.9))
+		hud.draw_rect(cellr, Color(col.r, col.g, col.b, 0.7), false, 1.0)
 		var ic: Texture2D = tex.get("relic_" + relics[i])
 		if ic != null:
 			hud.draw_texture_rect(ic, Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
 		else:
-			UI.diamond(hud, c, 12.0, Color(0.03, 0.08, 0.1), col)
-			UI.text(hud, font, c + Vector2(-15, 5), r.name.substr(0, 1), 12, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
-	var cy := o.y + rows * cell + 28
+			UI.diamond(hud, c, 11.0, Color(0.03, 0.08, 0.1), col)
+			UI.text(hud, font, c + Vector2(-15, 5), rd.name.substr(0, 1), 12, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
+	var cy := r.end.y + 16
 	for cid in combos:
 		UI.text(hud, font, Vector2(tr.x - 300, cy), "◆ " + D.COMBOS[cid].name, 13, Color(1, 0.6, 0.85), HORIZONTAL_ALIGNMENT_RIGHT, 300, 3)
 		cy += 20
@@ -5589,62 +5615,58 @@ func _draw_relic_tray(tr: Vector2) -> void:
 func _draw_allies_hud(br: Vector2) -> void:
 	if allies.is_empty():
 		return
-	UI.en(hud, font, br + Vector2(-220, -52), "SUPPORT", 11, UI.SUB, 3.0)
+	UI.en(hud, font, br + Vector2(-236, -60), "SUPPORT", 10, UI.SUB, 3.0)
 	for i in allies.size():
 		var al: Dictionary = allies[i]
-		var r := Rect2(br + Vector2(-(3 - i) * 76 + 12, -44), Vector2(64, 44))
-		UI.panel(hud, r, UI.BG, Color(0.55, 0.9, 0.55, 0.45), 6.0)
+		var c := br + Vector2(-(3 - i) * 76 + 40, -30)
+		var acol := Color(0.55, 0.9, 0.55)
+		UI.ring(hud, c, 21.0, float(al.lv) / 3.0, acol)
 		var at: Texture2D = tex["ally_" + al.kind]
 		var fw := at.get_width() / 2
-		var ks: float = 28.0 / at.get_height() * (1.0 if at.get_height() >= 40 else 1.0)
-		ks = 2.0 if at.get_height() < 20 else ks
-		hud.draw_texture_rect_region(at, Rect2(r.position + Vector2(18 - fw * ks / 2.0, 34 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, r.position + Vector2(34, 20), D.ALLIES[al.kind].name.substr(0, 2), 12, UI.TEXT)
-		UI.text(hud, font, r.position + Vector2(34, 37), "Lv.%d" % al.lv, 12, Color(0.55, 0.9, 0.55))
+		var ks: float = 30.0 / at.get_height()
+		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 14 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
+		UI.text(hud, font, c + Vector2(-30, 36), D.ALLIES[al.kind].name.substr(0, 2), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
+		UI.text(hud, font, c + Vector2(12, -14), str(al.lv), 11, acol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
 
 
 func _draw_skills(br: Vector2) -> void:
-	var sz := 64.0
-	var gap := 12.0
+	var rad := 30.0
+	var gap := 78.0
 	var items := [
 		["唤", "唤醒", skill_lv.s1 >= 1, 0.0, 1.0, float(s1_count) / float(s1_need), UI.GOLD],
 		["囚", "囚徒困境", skill_lv.s2 >= 1, s2_active, D.SKILL_P.s2_dur, s2_sp / D.SKILL_P.s2_charge, Color(0.45, 0.8, 1.0)],
 		["镜", "镜花水月", skill_lv.s3 >= 1, s3_active, D.SKILL_P.s3_dur, s3_sp / D.SKILL_P.s3_charge, UI.PURPLE],
 	]
+	UI.en(hud, font, br + Vector2(-3 * gap + 8, -rad * 2 - 34), "SKILL", 10, UI.SUB, 3.0)
 	for i in 3:
 		var it: Array = items[i]
-		var pos := br + Vector2(-(3 - i) * (sz + gap) + gap, -sz - 22)
-		var r := Rect2(pos, Vector2(sz, sz))
+		var c := br + Vector2(-(3 - i) * gap + gap / 2.0 + 8, -rad - 24)
 		var col: Color = it[6]
 		var unlocked: bool = it[2]
 		var active: float = it[3]
-		UI.panel(hud, r, UI.BG, col if active > 0.0 else Color(col.r, col.g, col.b, 0.35 if unlocked else 0.15), 8.0)
-		if unlocked:
-			var frac: float = clamp(it[5], 0.0, 1.0)
-			if active > 0.0:
-				frac = active / it[4]
-			var fh := (sz - 4) * frac
-			hud.draw_rect(Rect2(r.position.x + 2, r.end.y - 2 - fh, sz - 4, fh), Color(col.r, col.g, col.b, 0.35 if active > 0.0 else 0.18))
+		var frac: float = clamp(it[5], 0.0, 1.0)
+		if active > 0.0:
+			frac = active / it[4]
+		UI.ring(hud, c, rad, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
 		var gcol: Color = col if unlocked else Color(0.3, 0.38, 0.42)
 		if active > 0.0:
 			gcol = Color(1, 1, 1)
 		var icon: Texture2D = tex.get("skill_s%d" % (i + 1))
 		if icon != null:
-			hud.draw_texture_rect(icon, Rect2(r.position + Vector2(8, 8), Vector2(sz - 16, sz - 16)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+			hud.draw_texture_rect(icon, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
 		else:
-			UI.text(hud, font, r.position + Vector2(0, 42), it[0], 28, gcol, HORIZONTAL_ALIGNMENT_CENTER, sz)
-		UI.text(hud, font, r.position + Vector2(-10, sz + 17), it[1] if unlocked else "未解锁", 12, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, sz + 20)
+			UI.text(hud, font, c + Vector2(-rad, 10), it[0], 26, gcol, HORIZONTAL_ALIGNMENT_CENTER, rad * 2, 3)
+		UI.text(hud, font, c + Vector2(-40, rad + 16), it[1] if unlocked else "未解锁", 11, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, 80, 2)
 		if active > 0.0:
-			UI.text(hud, font, r.position + Vector2(sz - 26, 16), "%d" % int(ceil(active)), 12, UI.TEXT)
+			UI.text(hud, font, c + Vector2(rad - 14, -rad + 8), "%d" % int(ceil(active)), 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
 		if i == 0 and unlocked:
 			for k in 3:
-				UI.diamond(hud, r.position + Vector2(14 + k * 18, sz - 8), 5.0, UI.GOLD if k < s1_charges else Color(0.15, 0.18, 0.2))
-		# 进阶等级（右上角两颗小菱形）
+				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, UI.GOLD if k < s1_charges else Color(0.15, 0.18, 0.2), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.5))
+		# 进阶等级：环外上方两颗小点
 		var slv: int = skill_lv["s%d" % (i + 1)]
 		if slv >= 1:
 			for k in 2:
-				UI.diamond(hud, r.position + Vector2(10 + k * 11, 10), 3.5, col if slv >= k + 2 else Color(0.15, 0.18, 0.2))
-	UI.en(hud, font, br + Vector2(-3 * (sz + gap) + gap, -sz - 32), "SKILL", 11, UI.SUB, 3.0)
+				UI.diamond(hud, c + Vector2(-6 + k * 12, -rad - 5), 3.0, col if slv >= k + 2 else Color(0.15, 0.18, 0.2))
 
 
 func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array) -> void:
