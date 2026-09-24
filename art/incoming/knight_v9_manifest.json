@@ -1,0 +1,135 @@
+[
+  {
+    "w": 96,
+    "anchor": [
+      48,
+      77
+    ],
+    "fps": 3,
+    "loop": true,
+    "h": 80,
+    "frames": 2,
+    "opaque_pixels": [
+      3437,
+      3540
+    ],
+    "sha256": "7896c805a8f1fc15dd10551f3899364d4469f72493cc1e158c24200c8b53f890",
+    "file": "e_knight.png"
+  },
+  {
+    "w": 96,
+    "anchor": [
+      48,
+      77
+    ],
+    "fps": 8,
+    "loop": true,
+    "h": 80,
+    "frames": 4,
+    "opaque_pixels": [
+      3807,
+      4021,
+      3735,
+      3950
+    ],
+    "sha256": "42045384d43625d830db916cba40e3c0195afd186e2e3ecd840c1798899882c6",
+    "file": "e_knight_move.png"
+  },
+  {
+    "w": 96,
+    "anchor": [
+      48,
+      77
+    ],
+    "fps": 10,
+    "loop": false,
+    "h": 80,
+    "frames": 4,
+    "opaque_pixels": [
+      2489,
+      2358,
+      2434,
+      2381
+    ],
+    "sha256": "8d4489bfae6f0b148dd8d8ef62113d84934c1f5f685f8faaac5ff096fbfd8d0c",
+    "file": "e_knight_attack.png",
+    "event_frame_zero_based": 2
+  },
+  {
+    "w": 96,
+    "anchor": [
+      48,
+      77
+    ],
+    "fps": 10,
+    "loop": false,
+    "h": 80,
+    "frames": 4,
+    "opaque_pixels": [
+      3881,
+      3579,
+      3788,
+      3917
+    ],
+    "sha256": "02aafd9b174a0e002e69e368dfb07d813d3524b81ea9bfacaa02db7ed1f863d5",
+    "file": "e_knight_charge.png",
+    "event_frame_zero_based": 2
+  },
+  {
+    "w": 96,
+    "anchor": [
+      48,
+      77
+    ],
+    "fps": 6,
+    "loop": false,
+    "h": 80,
+    "frames": 4,
+    "opaque_pixels": [
+      4357,
+      3375,
+      3149,
+      2205
+    ],
+    "sha256": "dbe0116dc4aabc99c4d9f9342d559c76dd10e7f161f7f0e20714ebbcee9f08c6",
+    "file": "e_knight_death.png"
+  },
+  {
+    "w": 80,
+    "anchor": [
+      40,
+      40
+    ],
+    "fps": 10,
+    "loop": false,
+    "h": 80,
+    "frames": 4,
+    "opaque_pixels": [
+      664,
+      1857,
+      2935,
+      824
+    ],
+    "sha256": "2a6e142ad6ae3fc5968daf480bd60820a584457770ff472dabb0bbf0dcdb2e0a",
+    "file": "fx_knight_rebirth.png"
+  },
+  {
+    "w": 48,
+    "anchor": [
+      24,
+      24
+    ],
+    "fps": 12,
+    "loop": false,
+    "h": 48,
+    "frames": 4,
+    "opaque_pixels": [
+      117,
+      385,
+      758,
+      187
+    ],
+    "sha256": "1a67316d7f69a56d5132aa1b9087e2f52227f39eb65ab469976be23a3fda83aa",
+    "file": "fx_knight_impact.png"
+  }
+]
