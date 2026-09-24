@@ -314,6 +314,7 @@ func _ready() -> void:
 	# 可选素材：有图就用，没有就用程序效果
 	var optional := ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
 	optional.append_array(FXF.keys())
+	optional.append_array(["fx_umbrella_slash", "fx_umbrella_slash_awaken", "fx_umbrella_slash_mirage"])
 	for rid in RL:
 		optional.append("relic_" + rid)
 	for gid in D.GROWTH:
@@ -2145,11 +2146,39 @@ func _slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Col
 	var span := 2.2
 	var segs := int(ceil(half * 2.0 / span))
 	var sc := radius / 22.0
+	var frames := 4
+	var anchor := Vector2(0.5, 0.5)
+	if tex_name.begins_with("fx_umbrella_slash"):
+		# V7 伞击帧条：6 帧，锚点 (4, h/2) 在伞柄，弧半径 = 帧宽 × 0.80，弧展开约 150°
+		frames = 6
+		var tx: Texture2D = tex[tex_name]
+		var fw := float(tx.get_width()) / 6.0
+		sc = radius / (fw * 0.80)
+		anchor = Vector2(4.0 / fw, 0.5)
+		span = 2.5
+		segs = int(ceil(half * 2.0 / span))
 	for k in segs:
 		var a := ang
 		if segs > 1:
 			a = ang - half + span * 0.5 + (half * 2.0 - span) * float(k) / float(segs - 1)
-		fx.append({"kind": "slash", "tex": tex_name, "pos": origin, "ang": a, "scale": sc, "life": life, "max": life, "col": col})
+		fx.append({"kind": "slash", "tex": tex_name, "pos": origin, "ang": a, "scale": sc, "life": life, "max": life, "col": col,
+			"frames": frames, "anchor": anchor})
+
+
+## 伞击贴图选择：有 V7 帧条就用，没有就退回旧 slash
+func _slash_tex(kind := "base") -> String:
+	var n := "fx_umbrella_slash"
+	if kind == "awaken":
+		n += "_awaken"
+	elif kind == "mirage":
+		n += "_mirage"
+	if tex.get(n) != null:
+		return n
+	if kind == "awaken" and tex.get("fx_s1_slash") != null:
+		return "fx_s1_slash"
+	if kind == "mirage" and tex.get("fx_s3_slash") != null:
+		return "fx_s3_slash"
+	return "slash"
 
 
 func _umbrella(target: Dictionary) -> void:
@@ -2267,7 +2296,7 @@ func _umbrella(target: Dictionary) -> void:
 						_damage(e, dmg * P.s2_twin_mult)
 						if not e.dead:
 							e.stun = maxf(e.stun, 0.3)
-				_slash_fx(ppos, a2, half * 0.8, radius, Color(0.5, 0.85, 1.4), "slash", 0.18)
+				_slash_fx(ppos, a2, half * 0.8, radius, Color(0.8, 1.1, 1.4) if _slash_tex().begins_with("fx_") else Color(0.5, 0.85, 1.4), _slash_tex(), 0.18)
 		if skill_lv.s2 >= 3:
 			s2_combo += 1
 			if s2_combo >= P.s2_combo_every:
@@ -2289,19 +2318,17 @@ func _umbrella(target: Dictionary) -> void:
 		slash_col = Color(1.2, 0.85, 1.6)
 	elif s2_active > 0.0:
 		slash_col = Color(0.8, 1.1, 1.5)
-	var slash_tex := "slash"
-	if empowered and tex.get("fx_s1_slash") != null:
-		slash_tex = "fx_s1_slash"
-	elif s3_active > 0.0 and tex.get("fx_s3_slash") != null:
-		slash_tex = "fx_s3_slash"
+	var slash_tex := _slash_tex("awaken" if empowered else ("mirage" if s3_active > 0.0 else "base"))
+	if slash_tex.begins_with("fx_umbrella_slash"):
+		slash_col = Color(1.15, 1.15, 1.15)
 	if empowered and alive.size() > 0:
 		_anim("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
 		_anim("fx_hit", hit[k].pos, 0.16)
 	for d in dirs:
 		_slash_fx(ppos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
-	if empowered:
-		# 唤醒：外圈再叠一层更大的金色斩痕
+	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
+		# 唤醒（旧素材）：外圈再叠一层更大的金色斩痕
 		_slash_fx(ppos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
 	_evo_on_swing(ang, dmg)
 
@@ -2525,7 +2552,7 @@ func _run_delayed(dl: Dictionary) -> void:
 					_damage(e, dl.dmg)
 					if not e.dead:
 						e.stun = maxf(e.stun, P.s3_stun * 0.5)
-				_slash_fx(mp, d, dl.half, dl.radius, Color(0.9, 0.6, 1.6, 0.8), "slash", 0.3)
+				_slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if _slash_tex("mirage").begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), _slash_tex("mirage"), 0.3)
 			mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
 			Sfx.play("swing", -9.0, 0.7, 0.05)
 
@@ -4431,9 +4458,12 @@ func _draw() -> void:
 					var p0: Vector2 = f.pos + Vector2.from_angle(ang) * rr
 					draw_line(p0, p0 + Vector2.from_angle(ang) * 40.0 * a, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.5 * a), 2.0)
 			"slash":
-				var fr := clampi(int((1.0 - a) * 4.0), 0, 3)
+				var nf: int = f.get("frames", 4)
+				var fr := clampi(int((1.0 - a) * float(nf)), 0, nf - 1)
+				var tn: String = f.get("tex", "slash")
 				draw_set_transform(f.pos, f.ang, Vector2.ONE)
-				_spr(f.get("tex", "slash"), 4, fr, Vector2.ZERO, f.scale, false, Color.WHITE if f.get("tex", "slash") != "slash" else f.col)
+				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
+				_spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for b in ebullets:
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置

@@ -6,10 +6,10 @@
   "frames": 6,
   "fps": 18,
   "anchor": [
-   5,
+   4,
    24
   ],
-  "sha256": "440f8579cd17f70c0e99ace94a19ff7a19960935b9e8fa0e0f490b8d178adadb",
+  "sha256": "933f5e7088d4ca54d75c79fedeb099c8c671323375496f0de0f93eb7da5338b6",
   "event_frame_zero_based": 2
  },
  {
@@ -19,10 +19,10 @@
   "frames": 6,
   "fps": 18,
   "anchor": [
-   5,
+   4,
    28
   ],
-  "sha256": "6e9ad2793ffd0f4bf4b0033175e25a6c7b99474c6317dcee2c2b7530f07b4e9b",
+  "sha256": "76aaf44d0f09a696014b3bcffb78f10f47fd38250ed7ec0bc013bb0528b3b4b7",
   "event_frame_zero_based": 2
  },
  {
@@ -32,10 +32,10 @@
   "frames": 6,
   "fps": 18,
   "anchor": [
-   5,
+   4,
    24
   ],
-  "sha256": "97c46ccc7ae96e277f1505ad4031b071d23f3b93251be21260db067142a2a0f5",
+  "sha256": "515b932655e16a3989db760e467d34c2d87b29ba0a067745c942e453abae6596",
   "event_frame_zero_based": 2
  },
  {
