@@ -2562,7 +2562,7 @@ func _update_bullets(dt: float) -> void:
 			if b.trail <= 0.0:
 				b.trail = 0.03
 				fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
-					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.55, 0.2) if b.kind == "fire" else Color(0.9, 0.9, 1.0)})
+					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0) if b.kind == "fire" else Color(0.9, 0.9, 1.0)})
 		for j in _query(b.pos, 40.0):
 			var e: Dictionary = enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
@@ -2594,12 +2594,13 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			_fx_sprite("fx_arrow_hit", e.pos, PX, b.vel.angle())
 			b.life = 0.0
 		"fire", "missile":
-			# 火球 / 导弹：爆炸
+			# 法术团 / 导弹：爆炸
 			for k in _query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					_damage(o, b.dmg)
-			var fc := Color(1.0, 0.5, 0.15) if b.kind == "fire" else Color(1.0, 0.8, 0.4)
+			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
+			var fc := Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4)
 			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈
 			var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
 			if _fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
@@ -2608,7 +2609,7 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc})
 			for k in 6:
 				fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
-					"col": fc.lerp(Color(1, 0.95, 0.6), randf())})
+					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
 			Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
 			b.life = 0.0
 		"arcane":
@@ -3584,7 +3585,7 @@ func _draw() -> void:
 				"arrow":
 					draw_line(b.pos - n * 34.0, b.pos - n * 12.0, Color(1.6, 1.4, 1.0, 0.3), 2.0)
 				"fire":
-					draw_circle(b.pos, 14.0, Color(2.0, 0.8, 0.2, 0.2))
+					draw_circle(b.pos, 14.0, Color(1.4, 0.6, 2.2, 0.2))
 				"arcane":
 					draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
 				"dbullet":

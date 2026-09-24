@@ -4,8 +4,14 @@
 
 | 角色 | 目录 | 分支 | 主要范围 |
 |---|---|---|---|
-| Claude | E:\ArknightsSurvivors | main | game/、接入、测试、构建 |
-| Codex | E:\ArknightsSurvivors\.worktrees\codex-art | codex/art | art/incoming/、美术交接说明 |
+| Claude | E:\ArknightsSurvivors | main | game/、接入、测试、构建；以及人物 / 怪物以外的全部美术（特效、弹道、预警、图标、地形、道具、UI） |
+| Codex | E:\ArknightsSurvivors\.worktrees\codex-art | codex/art | art/incoming/ 中的人物与怪物形象（玩家、援护、NPC、敌人、Boss 的待机 / 移动 / 攻击 / 假死帧条与头像）及其交接说明 |
+
+## 美术分工（2026-09-24 更新）
+
+- Codex 只负责**人物与怪物形象**：`player_*`、`ally_*`、`e_*`、`boss*`、`bosses/`、`doctor`、`merchant`、`mizuki_*`。
+- 其余美术由 Claude 在 main 上直接制作与修改：`fx_*`、`proj_*`、`evo_*`、`weapon_*`、`skill_*`、`relic_*`、`growth_*`、`terrain_*`、`prop_*`、`tiles`、掉落物、`slash`、`tentacle`、`drone_*`、`light` 等。这些文件 Codex 不要改；Codex `git merge main` 时照单全收即可。
+- 如果一张图同时涉及两边（例如怪物攻击帧里带弹道），先由用户裁定归属。
 
 两个工作目录共享本地 Git 提交历史，但文件各自独立。Codex 在美术目录修改不会立刻改变原目录里的游戏。不要在另一个代理的工作目录切换分支。
 
