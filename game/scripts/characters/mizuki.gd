@@ -558,7 +558,7 @@ func _run_delayed(dl: Dictionary) -> void:
 func _skill_cast(sid: String) -> void:
 	g.rfx.on_skill_start()
 	var sk: Dictionary = D.SKILLS[sid]
-	g.skill_cut = {"id": sid, "t": 0.0}
+	# 技能名横幅已取消（每次释放都弹太吵）；首次获得技能仍有演示
 	Sfx.play("skill", -1.0, 1.0 if sid == "s2" else 0.8, 0.0)
 	g._anim("fx_cast", g.ppos, 0.5, g.PX * (1.3 if sid == "s3" else 1.0), true)
 	g._shake(0.5 if sid == "s2" else 0.8)

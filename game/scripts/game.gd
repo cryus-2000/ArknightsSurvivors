@@ -2012,7 +2012,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	e.hits += 1
 	e.flash = 0.08
 	e.squash = 0.14
-	if texts.size() < 80 and Cfg.dmg_numbers:
+	if texts.size() < 80 and Cfg.dmg_numbers and (crit_hit or weak_hit or texts.size() < 28):
 		if crit_hit:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		elif weak_hit:
@@ -4348,12 +4348,13 @@ func _draw_enemy(e: Dictionary) -> void:
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
 		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
 		UI.diamond(self, wp, 4.5, Color(0.02, 0.04, 0.08), wc)
-		if e.elite or e.boss:
+		if e.boss:
 			UI.text(self, font, wp + Vector2(-20, 16), ("弱" + wk.substr(0, 1)) if wk != "双" else "双弱", 10, wc, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	if e.elite:
-		var w: float = e.r * 2.0
-		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w, 4)), Color(0, 0, 0, 0.6))
-		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w * e.hp / e.maxhp, 4)), Color(1.0, 0.7, 0.3))
+		# 精英血条：窄一些（1.3 倍半径、3 px），少占画面
+		var w: float = maxf(22.0, e.r * 1.3)
+		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 12), Vector2(w, 3)), Color(0, 0, 0, 0.55))
+		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 12), Vector2(w * e.hp / e.maxhp, 3)), Color(1.0, 0.7, 0.3, 0.9))
 	draw_off = Vector2.ZERO
 
 
