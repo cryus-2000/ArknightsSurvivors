@@ -288,7 +288,7 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "phys_dmg",
+     "stat": "physical_dmg",
      "op": "add",
      "value": 0.3
     }

@@ -43,6 +43,16 @@ func update(_dt: float) -> void:
 
 # ---------------------------------------------------------------- 数值
 
+## 角色专属属性定义（stat 名 -> {base, min, max, name}），带角色前缀
+func stat_defs() -> Dictionary:
+	return {}
+
+
+## 属性块有变化时由 game.gd 调用：把 g.stats 里的专属属性同步到角色缓存变量
+func sync_stats(_st) -> void:
+	pass
+
+
 ## 普攻半径（自动索敌 / 机器人走位用）
 func _swing_radius() -> float:
 	return 90.0

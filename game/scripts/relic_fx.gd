@@ -108,7 +108,7 @@ func apply(id: String) -> void:
 		# 升级：只重复属性型效果（按递减系数）
 		for ef in r.effects:
 			if ef.get("type", "stat") == "stat":
-				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value) * sc if ef.get("op", "add") != "mult" else 1.0 - (1.0 - float(ef.value)) * sc)
+				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value) * sc if ef.get("op", "add") != "mult" else 1.0 - (1.0 - float(ef.value)) * sc, "relic:" + id)
 		g._add_text(g.ppos + Vector2(0, -96), "%s Lv.%d" % [r.name, cur + 1], Color(1.0, 0.9, 0.5), 16)
 		return
 	if r.tags.has("king"):
@@ -116,7 +116,7 @@ func apply(id: String) -> void:
 	for ef in r.effects:
 		match ef.get("type", "stat"):
 			"stat":
-				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value))
+				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value), "relic:" + id)
 			"rule":
 				rules[ef.rule] = rules.get(ef.rule, 0) + int(ef.get("value", 1))
 				if ef.rule == "shield_burst":
@@ -140,44 +140,20 @@ func apply(id: String) -> void:
 				pass  # 触发型由 on_*() 钩子按 id 查询
 
 
-## stat 名 -> game.gd 变量
-func _apply_stat(stat: String, op: String, v: float) -> void:
-	var m: float = (1.0 + v) if op == "add" else v   # add = 百分比累加；mult = 直接乘；flat = 直接加
-	match stat:
-		"dmg": g.dmg_mult *= m
-		"mizuki_umbrella_dmg": g.ch.u_dmg_mult *= m
-		"mizuki_tentacle_mult": g.ch.t_mult *= m
-		"ally_dmg": g.ally_mult *= m
-		"arts_dmg": g.arts_mult *= m
-		"enemy_dmg": g.enemy_dmg_mult *= m
-		"enemy_hp": g.enemy_hp_mult *= m
-		"enemy_atk_speed": g.enemy_cd_mult /= m
-		"enemy_low_hp_dmg_taken": g.low_hp_bonus += v
-		"regen": g.regen_pct += v * 0.01
-		"dodge": g.dodge += v
-		"dodge_phys": g.dodge_phys += v
-		"dodge_arts": g.dodge_arts += v
-		"melee_dmg": g.melee_mult *= m
-		"ranged_dmg": g.ranged_mult *= m
-		"phys_dmg": g.phys_mult *= m
-		"armor": g.armor += v
-		"weak_bonus": g.weak_bonus += v
-		"arts_res": g.arts_res += v
-		"sp_gain": g.sp_mult *= m
-		"control_dur": g.control_mult *= m
-		"shop_price": g.shop_price_mult *= m
-		"light_decay": g.lamp_decay *= m
-		"dmg_taken": g.dmg_taken_mult *= m
-		"max_hp":
-			g.max_hp = maxf(20.0, g.max_hp + v)
-			g.hp = minf(g.hp + maxf(v, 0.0), g.max_hp)
-		"shield_max":
-			if g.shield_max == 0:
-				g.shield_cd = 1.0
-			g.shield_max += int(v)
-		"shield_interval": g.shield_every *= m
-		_:
-			push_warning("未知藏品属性: " + stat)
+## stat 名 -> 属性块（core/stat_defs.gd）。add = 百分比加算；mult = 直接乘；flat = 直接加
+## 数据里的别名："regen"（按最大生命百分比）→ regen_pct
+const STAT_ALIAS := {"regen": &"regen_pct"}
+
+
+func _apply_stat(stat: String, op: String, v: float, source := "relic") -> void:
+	var name: StringName = STAT_ALIAS.get(stat, StringName(stat))
+	if stat == "regen":
+		v *= 0.01
+	if not g.stats.has_stat(name):
+		push_warning("未知藏品属性: " + stat)
+		return
+	g.stats.add(name, op, v, source)
+	g._sync_stats()
 
 
 ## ---------- 每帧 ----------

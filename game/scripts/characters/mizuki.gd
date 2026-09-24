@@ -4,6 +4,7 @@ extends "res://scripts/characters/character.gd"
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
 const GIANT_R := 185.0
 const GIANT_RISE := 0.45
@@ -768,23 +769,40 @@ func _growth_preview(id: String) -> String:
 
 
 func _apply_growth(id: String) -> void:
+	var st = g.stats
+	var src := "growth:" + id
 	match id:
-		"u_dmg": u_dmg_mult *= 1.15
-		"u_area": u_area_mult *= 1.1
-		"u_spd": u_spd_mult *= 0.92
-		"t_dmg": t_mult *= 1.2
+		"u_dmg": st.add(&"mizuki_umbrella_dmg", "mult", 1.15, src)
+		"u_area": st.add(&"mizuki_umbrella_area", "mult", 1.1, src)
+		"u_spd": st.add(&"mizuki_umbrella_interval", "mult", 0.92, src)
+		"t_dmg": st.add(&"mizuki_tentacle_mult", "mult", 1.2, src)
 		"sp":
-			g.sp_mult *= 1.15
-			s1_need = max(5, s1_need - 1)
-		"dodge": g.dodge += 0.05
-		"hp":
-			g.max_hp += 20.0
-			g.hp += 20.0
-		"speed": g.speed *= 1.1
-		"pickup": g.pickup *= 1.3
-		"regen": g.regen += 0.6
-		"armor": g.armor += 2.0
-		"wick": g.lamp_decay *= 0.85
+			st.add(&"sp_gain", "mult", 1.15, src)
+			st.add(&"mizuki_s1_swings", "flat", -1.0, src)
+		"dodge": st.add(&"dodge", "flat", 0.05, src)
+		"hp": st.add(&"max_hp", "flat", 20.0, src)
+		"speed": st.add(&"move_speed", "mult", 1.1, src)
+		"pickup": st.add(&"pickup", "mult", 1.3, src)
+		"regen": st.add(&"regen", "flat", 0.6, src)
+		"armor": st.add(&"armor", "flat", 2.0, src)
+		"wick": st.add(&"light_decay", "mult", 0.85, src)
+	g._sync_stats()
+
+
+## 水月专属属性（带 mizuki_ 前缀）
+func stat_defs() -> Dictionary:
+	return StatDefs.MIZUKI
+
+
+## 属性块 → 缓存变量（战斗代码读缓存，避免每帧查表）
+func sync_stats(st) -> void:
+	u_dmg_mult = st.value(&"mizuki_umbrella_dmg")
+	u_area_mult = st.value(&"mizuki_umbrella_area")
+	u_spd_mult = st.value(&"mizuki_umbrella_interval")
+	rib_bonus = st.value(&"mizuki_umbrella_arc")
+	t_mult = st.value(&"mizuki_tentacle_mult")
+	extra_targets = int(st.value(&"mizuki_tentacle_targets")) - 1
+	s1_need = int(st.value(&"mizuki_s1_swings"))
 
 
 func _draw_tentacle(f: Dictionary) -> void:

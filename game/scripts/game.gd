@@ -10,6 +10,8 @@ const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Map = preload("res://scripts/world/map.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const StatBlock = preload("res://scripts/core/stat_block.gd")
+const StatDefs = preload("res://scripts/core/stat_defs.gd")
 ## 造成伤害的类型：out_src -> [近战/远程, 物理/法术/真实]。真实伤害不吃任何倍率与防御
 const DMG_TYPE := {
 	"伞击": ["近战", "物理"], "技能": ["近战", "物理"], "技能·法术": ["近战", "法术"],
@@ -212,6 +214,8 @@ var banner_t := 0.0
 var choices: Array = []
 var choice_kind := ""
 var pending_levelups := 0
+var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
+var _stats_ver := -1
 var ch: RefCounted             # 当前角色（scripts/characters/<id>.gd），水月专属逻辑都在里面
 var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
@@ -277,6 +281,10 @@ func _ready() -> void:
 	bai = BossAI.new(self)
 	map = Map.new(self, Cfg.map_id)
 	ch = Character.create(self, Cfg.character_id)
+	stats = StatBlock.new()
+	stats.define_all(StatDefs.PLAYER)
+	stats.define_all(StatDefs.ENEMY)
+	stats.define_all(ch.stat_defs())
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	rfx = RelicFx.new(self)
 	RL = rfx.table()
@@ -406,10 +414,11 @@ func _ready() -> void:
 		if a.begins_with("--diff="):
 			diff = int(a.substr(7))
 	if diff >= 3:
-		lamp_decay *= 1.25
+		stats.add(&"light_decay", "mult", 1.25, "difficulty")
 	if diff >= 9:
-		max_hp = 80.0
-		hp = max_hp
+		stats.add(&"max_hp", "override", 80.0, "difficulty")
+	_sync_stats()
+	hp = max_hp
 	hp_trail = hp
 	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
 	if OS.get_cmdline_user_args().has("--introshot"):
@@ -823,6 +832,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _update(dt: float) -> void:
 	t += dt
+	_sync_stats()
 	var mv := Vector2(
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
@@ -1823,6 +1833,38 @@ func _shield_block() -> void:
 					e.kb += (e.pos - ppos).normalized() * 420.0
 		fx.append({"kind": "explode", "pos": ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
 		_shake(0.6)
+
+
+## 属性块 → 旧变量缓存。stat 名见 core/stat_defs.gd；战斗代码继续读旧变量，所有修改都走 stats.add()
+const STAT_SYNC := {
+	&"dmg": "dmg_mult", &"physical_dmg": "phys_mult", &"arts_dmg": "arts_mult", &"melee_dmg": "melee_mult", &"ranged_dmg": "ranged_mult",
+	&"regen": "regen", &"regen_pct": "regen_pct", &"armor": "armor", &"dodge": "dodge", &"dodge_phys": "dodge_phys", &"dodge_arts": "dodge_arts",
+	&"arts_res": "arts_res", &"weak_bonus": "weak_bonus", &"move_speed": "speed", &"pickup": "pickup", &"dmg_taken": "dmg_taken_mult",
+	&"sp_gain": "sp_mult", &"control_dur": "control_mult", &"light_decay": "lamp_decay", &"oil_gain": "oil_mult", &"xp_gain": "xp_mult",
+	&"shop_price": "shop_price_mult", &"ally_dmg": "ally_mult", &"shield_interval": "shield_every",
+	&"enemy_hp": "enemy_hp_mult", &"enemy_dmg": "enemy_dmg_mult",
+}
+
+
+func _sync_stats() -> void:
+	if stats == null or stats.version == _stats_ver:
+		return
+	_stats_ver = stats.version
+	for k in STAT_SYNC:
+		set(STAT_SYNC[k], stats.value(k))
+	# 有换算的几项
+	enemy_cd_mult = 1.0 / maxf(0.1, stats.value(&"enemy_atk_speed"))
+	low_hp_bonus = stats.value(&"enemy_low_hp_dmg_taken") - 1.0
+	var new_max: float = maxf(20.0, stats.value(&"max_hp"))
+	if new_max != max_hp:
+		hp = clampf(hp + maxf(new_max - max_hp, 0.0), 0.0, new_max)
+		max_hp = new_max
+	var new_shield: int = int(stats.value(&"shield_max"))
+	if new_shield != shield_max:
+		if shield_max == 0 and new_shield > 0:
+			shield_cd = 1.0
+		shield_max = new_shield
+	ch.sync_stats(stats)
 
 
 ## 灯火：灯光照亮范围（游戏判定用）

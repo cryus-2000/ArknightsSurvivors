@@ -131,7 +131,8 @@ func test_db_and_profile() -> void:
 		c.gain_relic(id)
 	ok(c.profile.lane_scores().A > c.profile.lane_scores().B, "伞击藏品提高 A 流派")
 	ok(c.profile.affinity(["mizuki_umbrella"]) > c.profile.affinity(["support"]), "相关度")
-	near(c.stats.value(&"mizuki_umbrella_dmg"), 1.5, "藏品效果生效")
+	c.gain_relic("79")
+	near(c.stats.value(&"dmg"), 1.3, "藏品效果生效（79：全伤害 +30%）")
 	# 商店与 Boss 奖励
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7

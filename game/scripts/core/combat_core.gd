@@ -29,6 +29,7 @@ var relics: Array = []   # 已拥有藏品 id（String）
 
 func _init() -> void:
 	stats.define_all(Defs.PLAYER)
+	stats.define_all(Defs.MIZUKI)
 	enemy.define_all(Defs.ENEMY)
 	mods = Mods.new(stats, enemy, bus)
 	profile.attach(bus)

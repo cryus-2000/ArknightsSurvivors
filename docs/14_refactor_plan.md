@@ -79,7 +79,7 @@ game.gd 不再出现 `s1_` / `evo1 ==` / `u_dmg_mult` 这类水月专属名字�
 
 - [x] ① 地图（v1.8 refactor-1）
 - [x] ② 角色（refactor-2）：`characters/character.gd` 基类 + `characters/mizuki.gd`（995 行）+ `data/characters/mizuki.json`；game.gd 5300 → 5200 行，不再出现水月专属名字
-- [ ] ③
+- [x] ③ 藏品 / 成长 / 难度的数值修正全部走 `stats: StatBlock`（带来源，可撤销，可 breakdown）；旧变量成为同步缓存（`STAT_SYNC` 表 + `_sync_stats()`）；角色专属属性由 `ch.stat_defs()` 定义、`ch.sync_stats()` 回填；`test_core` 37/37
 - [ ] ④
 
 ## 5. 新增一个角色要做什么（② 完成后的实际流程）
