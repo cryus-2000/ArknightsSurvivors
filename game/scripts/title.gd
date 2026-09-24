@@ -323,22 +323,21 @@ func _draw() -> void:
 	# 标题：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
 	var lg := _seg(1.0, 0.8)
 	var ly := 24.0 * (1.0 - lg)
-	UI.en(self, font, Vector2(tx + 4, 128 + ly), "ARKNIGHTS  FAN  GAME", 13, _fa(UI.CYAN_DIM, _seg(1.3, 0.5)), 4.0)
 	if tex_logo != null:
 		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
-		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 140 + ly), ls * k), false, Color(1, 1, 1, lg))
+		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 112 + ly), ls * k), false, Color(1, 1, 1, lg))
 	else:
-		UI.text(self, font, Vector2(tx, 230 + ly), "水月", 96, _fa(UI.TEXT, lg))
-		UI.text(self, font, Vector2(tx + 210, 228 + ly), "深海幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 268 + ly), "MIZUKI  :  ABYSSAL  SURVIVORS", 15, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
+		UI.text(self, font, Vector2(tx, 210 + ly), "水月", 96, _fa(UI.TEXT, lg))
+		UI.text(self, font, Vector2(tx + 210, 208 + ly), "深海幸存者", 40, _fa(UI.CYAN, lg))
+	UI.en(self, font, Vector2(tx + 6, 270 + ly), "MIZUKI  :  ABYSSAL  SURVIVORS", 14, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
 	# 分隔线：1.6s 起从左向右划出，线头带一点亮光
 	var rl := _seg(1.6, 0.6)
 	if rl > 0.0:
-		UI.rule(self, Vector2(tx, 290), Vector2(tx + 500 * rl, 290), UI.CYAN_DIM)
+		UI.rule(self, Vector2(tx, 294), Vector2(tx + 500 * rl, 294), UI.CYAN_DIM)
 		if rl < 1.0:
-			draw_circle(Vector2(tx + 500 * rl, 290), 3.0, UI.CYAN)
-			draw_circle(Vector2(tx + 500 * rl, 290), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
+			draw_circle(Vector2(tx + 500 * rl, 294), 3.0, UI.CYAN)
+			draw_circle(Vector2(tx + 500 * rl, 294), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
 
 	# 菜单：2.0s 起逐项从左滑入
 	item_rects.clear()
