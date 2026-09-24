@@ -423,4 +423,12 @@ func _draw_detail(vs: Vector2) -> void:
 	var dy := maxf(y + 34, box.end.y + 60)
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
 	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
-	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), UI.soft(desc), HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, 15, -1, Color(0.8, 0.9, 0.92), UI.BRK)
+	# 介绍文字：按剩余高度自适应字号（15 → 12），仍放不下则按行裁切，不越出面板
+	var avail := pr.end.y - 16.0 - (dy + 4)
+	var fs := 15
+	var soft := UI.soft(desc)
+	while fs > 12 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, -1, UI.BRK).y > avail:
+		fs -= 1
+	var lh := font.get_height(fs)
+	var max_lines := maxi(1, int(avail / lh))
+	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, max_lines, Color(0.8, 0.9, 0.92), UI.BRK)
