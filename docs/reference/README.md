@@ -13,4 +13,5 @@
 | 文件 | 内容 | 来源 / 备注 |
 |---|---|---|
 | `mizuki_collectibles_zh_262.json` | 明日方舟「水月与深蓝之树」全部 262 件收藏品（id / name / effect） | 用户提供；以 BWIKI/PRTS 核对，MAA shopping.json 作底表。可作为本项目藏品设计的参考池 |
-| `mizuki_collectibles_adaptation.json` | 262 件藏品在本作中的分类、A/B/C/D 分级和改编效果 | 由 Claude 生成，与 `docs/08_relic_adaptation.md` 同步 |
+| `global_design_framework_v1.0.md` | **全局游戏设计框架 v1.0（最高设计依据）**：Build 系统、藏品 Tag / 等级、商店、Boss 奖励、灯火、架构、开发优先级 | 用户与 GPT 讨论产出（2026-09-24） |
+| `mizuki_collectibles_adaptation.json` | 262 件藏品在本作中的改编效果、实现难度、等级、流派、Tag | 由 Claude 生成，与 `docs/08_relic_adaptation.md` 同步；复制为 `game/data/relics.json` 供游戏读取 |
