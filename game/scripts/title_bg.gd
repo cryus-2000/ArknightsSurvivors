@@ -10,7 +10,8 @@ const W := 640
 const H := 360
 const HZ := 150            # 海平线
 const SHORE := 238         # 静水时的岸线
-const K := 2.0             # 放大倍率
+const K := 2.0             # 基准放大倍率（1280×720 时）
+var ks := 2.0              # 实际倍率：按视口「覆盖」缩放，宽屏 / 高屏都不留边
 const WAVE_PERIOD := 7.5
 const FEET := Vector2(452, 298)
 
@@ -155,11 +156,12 @@ func _wave_phase(i: int) -> float:
 
 # ------------------------------------------------------------------ 绘制
 func _draw() -> void:
-	# 非 16:9 的窗口：画面居中，多出来的边用深色补齐（避免露出引擎的灰底）
+	# 非 16:9 的窗口：按覆盖方式放大并居中裁切，不留边
 	var vs := get_viewport_rect().size
-	off = ((vs - Vector2(W, H) * K) / 2.0).round()
+	ks = K * maxf(vs.x / (W * K), vs.y / (H * K))
+	off = ((vs - Vector2(W, H) * ks) / 2.0).round()
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03))
-	draw_set_transform(off, 0.0, Vector2(K, K))
+	draw_set_transform(off, 0.0, Vector2(ks, ks))
 	draw_texture(tex_sky, Vector2.ZERO)
 	# 星星闪烁
 	for s in stars:
@@ -171,9 +173,9 @@ func _draw() -> void:
 			draw_rect(Rect2(s[0] + Vector2(0, -1), Vector2(1, 3)), Color(c.r, c.g, c.b, (a - 0.7) * 1.6))
 	# 远景：深蓝之树（海平线右侧）与水面倒影（压扁、随水波轻晃、越远越淡）
 	draw_texture(tex_tree, Vector2.ZERO)
-	draw_set_transform(off + Vector2(sin(t * 0.9) * 1.2 * K, (HZ + 2) * K), 0.0, Vector2(K, -K * 0.45))
+	draw_set_transform(off + Vector2(sin(t * 0.9) * 1.2 * ks, (HZ + 2) * ks), 0.0, Vector2(ks, -ks * 0.45))
 	draw_texture_rect_region(tex_tree, Rect2(Vector2(0, -(HZ + 2)), Vector2(W, HZ + 2)), Rect2(0, 0, W, HZ + 2), Color(0.5, 0.65, 0.85, 0.32))
-	draw_set_transform(off, 0.0, Vector2(K, K))
+	draw_set_transform(off, 0.0, Vector2(ks, ks))
 	# 沙滩（岸线以下）
 	draw_texture(tex_sand, Vector2(0, SHORE - 30))
 	# 发光脚印
@@ -191,13 +193,6 @@ func _draw() -> void:
 	var scrim := PackedColorArray([Color(0.0, 0.01, 0.03, 0.72), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.72)])
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(300, 0), Vector2(300, H), Vector2(0, H)]), scrim)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# 居中后上下 / 左右露出的边：用天空顶色 / 沙滩底色渐入
-	if off.y > 0.0:
-		draw_rect(Rect2(0, 0, vs.x, off.y), Color(0.02, 0.02, 0.06))
-		draw_rect(Rect2(0, vs.y - off.y, vs.x, off.y), Color(0.0, 0.01, 0.03))
-	if off.x > 0.0:
-		draw_rect(Rect2(0, 0, off.x, vs.y), Color(0.0, 0.01, 0.03))
-		draw_rect(Rect2(vs.x - off.x, 0, off.x, vs.y), Color(0.0, 0.01, 0.03))
 
 
 func _draw_wave(i: int) -> void:
@@ -253,7 +248,7 @@ func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: 
 
 ## 加法发光层：银河亮核、蓝眼泪、浪尖、荧光颗粒、流星
 func _draw_glow() -> void:
-	glow.draw_set_transform(off, 0.0, Vector2(K, K))
+	glow.draw_set_transform(off, 0.0, Vector2(ks, ks))
 	# 深蓝之树：整体柔光呼吸 + 树冠光环 + 枝梢星点 + 沿主干上行的能量脉冲
 	var tb := 0.85 + 0.15 * sin(t * 0.6)
 	glow.draw_texture(tex_tree_glow, Vector2.ZERO, Color(tb, tb, tb, 1.0))
@@ -328,11 +323,11 @@ func _draw_glow() -> void:
 			if br > 0.05:
 				var x3 := 180.0
 				while x3 < W:
-					var wp := Vector2(x3, _wave_y(i, x3)) * K
+					var wp := Vector2(x3, _wave_y(i, x3)) * ks
 					glow.draw_texture_rect(tex_light, Rect2(wp - Vector2(70, 22), Vector2(140, 44)), false, Color(0.05, 0.25, 0.6, 0.35 * br))
 					x3 += 40.0
-		glow.draw_texture_rect(tex_light, Rect2(Vector2(0, HZ * K - 90), Vector2(W * K, 180)), false, Color(0.12, 0.08, 0.3, 0.35))
-		var c := FEET * K + Vector2(0, -60)
+		glow.draw_texture_rect(tex_light, Rect2(Vector2(0, HZ * ks - 90), Vector2(W * ks, 180)), false, Color(0.12, 0.08, 0.3, 0.35))
+		var c := FEET * ks + Vector2(0, -60)
 		var pulse := 1.0 + 0.04 * sin(t * 2.0)
 		glow.draw_texture_rect(tex_light, Rect2(c - Vector2(210, 210) * pulse, Vector2(420, 420) * pulse), false, Color(0.12, 0.3, 0.55, 0.5))
 		glow.draw_texture_rect(tex_light, Rect2(c + Vector2(-60, 10), Vector2(120, 120)), false, Color(0.5, 0.35, 0.15, 0.35 + 0.05 * sin(t * 9.0)))
