@@ -1,0 +1,301 @@
+[
+ {
+  "file": "fx_umbrella_slash.png",
+  "frame_width": 48,
+  "frame_height": 48,
+  "frames": 6,
+  "fps": 18,
+  "anchor": [
+   5,
+   24
+  ],
+  "sha256": "440f8579cd17f70c0e99ace94a19ff7a19960935b9e8fa0e0f490b8d178adadb",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "fx_umbrella_slash_awaken.png",
+  "frame_width": 56,
+  "frame_height": 56,
+  "frames": 6,
+  "fps": 18,
+  "anchor": [
+   5,
+   28
+  ],
+  "sha256": "6e9ad2793ffd0f4bf4b0033175e25a6c7b99474c6317dcee2c2b7530f07b4e9b",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "fx_umbrella_slash_mirage.png",
+  "frame_width": 48,
+  "frame_height": 48,
+  "frames": 6,
+  "fps": 18,
+  "anchor": [
+   5,
+   24
+  ],
+  "sha256": "97c46ccc7ae96e277f1505ad4031b071d23f3b93251be21260db067142a2a0f5",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "fx_tentacle_strike.png",
+  "frame_width": 32,
+  "frame_height": 48,
+  "frames": 6,
+  "fps": 16,
+  "anchor": [
+   16,
+   46
+  ],
+  "sha256": "4a7615ea4ce17bfd1ba7b813247d403d2156dba405791ed4b92f2ba06fa3245c",
+  "event_frame_zero_based": 3
+ },
+ {
+  "file": "fx_tentacle_grab.png",
+  "frame_width": 24,
+  "frame_height": 24,
+  "frames": 4,
+  "fps": 20,
+  "anchor": [
+   12,
+   12
+  ],
+  "sha256": "61be8271125e2b974e16129e33ef7c0dbc607b03a29a26aea11f944314663a69"
+ },
+ {
+  "file": "proj_tide_blade.png",
+  "frame_width": 32,
+  "frame_height": 24,
+  "frames": 4,
+  "fps": 12,
+  "anchor": [
+   16,
+   12
+  ],
+  "sha256": "a1066fc53103e936caaa241764a539e279ca008e6b31d70cda916e8ca5c4649f"
+ },
+ {
+  "file": "proj_tide_blade_moon.png",
+  "frame_width": 32,
+  "frame_height": 32,
+  "frames": 4,
+  "fps": 12,
+  "anchor": [
+   16,
+   16
+  ],
+  "sha256": "80e1197f4369a203cb65f717325130a1137286694bb0a2d8e32e84ede60bbad4"
+ },
+ {
+  "file": "fx_tide_blade_hit.png",
+  "frame_width": 24,
+  "frame_height": 24,
+  "frames": 4,
+  "fps": 20,
+  "anchor": [
+   12,
+   12
+  ],
+  "sha256": "2dce832a9c852dc35f5f4876cc89abdf2def0baff10727e51200cac1aeda33fd"
+ },
+ {
+  "file": "fx_tendril_stake.png",
+  "frame_width": 32,
+  "frame_height": 64,
+  "frames": 4,
+  "fps": 8,
+  "anchor": [
+   16,
+   62
+  ],
+  "sha256": "f3521d07dbe5a65c17c4c3078f8b6c55311cc892c3ad320ca50b501d0e11a5e0"
+ },
+ {
+  "file": "fx_tendril_stake_whip.png",
+  "frame_width": 48,
+  "frame_height": 64,
+  "frames": 4,
+  "fps": 16,
+  "anchor": [
+   16,
+   62
+  ],
+  "sha256": "7fd28f53a0d38d75fee575b9a2c29e7b546e69bffa8cddc445cce7266fd6aabd",
+  "event_frame_zero_based": 1
+ },
+ {
+  "file": "fx_kraken_rise.png",
+  "frame_width": 96,
+  "frame_height": 96,
+  "frames": 6,
+  "fps": 12,
+  "anchor": [
+   48,
+   90
+  ],
+  "sha256": "fdc93d5204c67bff58a7f6d9794a2a9f4ebea4494d5b679d04a00d21b03df8a2",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "e_bone_attack.png",
+  "frame_width": 20,
+  "frame_height": 24,
+  "frames": 4,
+  "fps": 10,
+  "anchor": [
+   10,
+   23
+  ],
+  "sha256": "4061ef3e1f483633112aae5e115e1b967aaf34d3c8067fa19ad2d7706a06898b",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "e_slider_attack.png",
+  "frame_width": 22,
+  "frame_height": 18,
+  "frames": 4,
+  "fps": 10,
+  "anchor": [
+   11,
+   17
+  ],
+  "sha256": "90bf54632c1bbdcd38de529446def5b78eed6d8413a15e24b4e09122230470db",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "e_offspring_attack.png",
+  "frame_width": 30,
+  "frame_height": 30,
+  "frames": 4,
+  "fps": 10,
+  "anchor": [
+   15,
+   29
+  ],
+  "sha256": "ab3580049e8e40e20f0406a33add8bb9202a50d7e6c6ddf7d3bf8fc328d486b2",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "e_pocket_attack.png",
+  "frame_width": 30,
+  "frame_height": 28,
+  "frames": 4,
+  "fps": 10,
+  "anchor": [
+   15,
+   27
+  ],
+  "sha256": "ffeed918640f472820893af3b29eeb00f765340d52cc907b5cfe3b5eb3a38258",
+  "event_frame_zero_based": 2
+ },
+ {
+  "file": "fx_warn_line.png",
+  "frame_width": 16,
+  "frame_height": 16,
+  "frames": 4,
+  "fps": 12,
+  "anchor": [
+   0,
+   8
+  ],
+  "sha256": "d6d6f077c1fc3a6d12848df99030a0779e8e75aa7679f134c66b0649f0bfd0fe"
+ },
+ {
+  "file": "fx_warn_end.png",
+  "frame_width": 32,
+  "frame_height": 32,
+  "frames": 4,
+  "fps": 12,
+  "anchor": [
+   16,
+   16
+  ],
+  "sha256": "a4b94f65ff541f8a4e95f6c08a4b4550dd7939c26b5777897923b45b753dde04"
+ },
+ {
+  "file": "fx_warn_ring.png",
+  "frame_width": 64,
+  "frame_height": 64,
+  "frames": 4,
+  "fps": 12,
+  "anchor": [
+   32,
+   32
+  ],
+  "sha256": "47f64a1f4e31c4cd2c7fa3a7d4d00aadde10afd0f1934b256fb2af6be23e32fb",
+  "radius_px": 30
+ },
+ {
+  "file": "fx_hit_flesh.png",
+  "frame_width": 16,
+  "frame_height": 16,
+  "frames": 4,
+  "fps": 20,
+  "anchor": [
+   8,
+   8
+  ],
+  "sha256": "06c22f9fe34ef77c46476304c33e54e28a4b895e6b9c5b53fbd8e418f8298f00"
+ },
+ {
+  "file": "fx_hit_shell.png",
+  "frame_width": 16,
+  "frame_height": 16,
+  "frames": 4,
+  "fps": 20,
+  "anchor": [
+   8,
+   8
+  ],
+  "sha256": "c50ab3dbf3835fb1638e75ecf9abfc3754e985b69aa31e29b0e54562d872f0a3"
+ },
+ {
+  "file": "fx_hit_spirit.png",
+  "frame_width": 16,
+  "frame_height": 16,
+  "frames": 4,
+  "fps": 20,
+  "anchor": [
+   8,
+   8
+  ],
+  "sha256": "b679cfd252155565438db8ffcc6c4bc0906a1f99f0e1ce96ce939399d5aae59e"
+ },
+ {
+  "file": "fx_death_dissolve.png",
+  "frame_width": 32,
+  "frame_height": 32,
+  "frames": 6,
+  "fps": 14,
+  "anchor": [
+   16,
+   16
+  ],
+  "sha256": "d57e80890f67f014136d219ae031e85c572b25edbf0fccab75e9afa37312f3fe"
+ },
+ {
+  "file": "terrain_mire_grow.png",
+  "frame_width": 64,
+  "frame_height": 64,
+  "frames": 4,
+  "fps": 6,
+  "anchor": [
+   32,
+   32
+  ],
+  "sha256": "f173805b35b8c7ae8029962ab6b8dd5c4b10eff364ec7edc51aa94ee1da1f0e7"
+ },
+ {
+  "file": "fx_mire_bubble.png",
+  "frame_width": 16,
+  "frame_height": 16,
+  "frames": 4,
+  "fps": 8,
+  "anchor": [
+   8,
+   12
+  ],
+  "sha256": "d3d17688eb3e588ae6c0b1a571f055c1c974b4e3b8e4158113d6dc0286b71e7b"
+ }
+]
