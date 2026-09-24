@@ -51,7 +51,7 @@ func _init(game, def_: Dictionary) -> void:
 
 
 func _swing_radius() -> float:
-	var r := 95.0 * u_area_mult
+	var r: float = base("swing_radius", 95.0) * u_area_mult
 	if s3_active > 0.0:
 		r *= 1.4
 	return r
@@ -125,7 +125,7 @@ func update(dt: float) -> void:
 		var radius := _swing_radius()
 		var targets = g._nearest(1, radius + 60.0)
 		if targets.size() > 0:
-			var interval: float = 0.9 * u_spd_mult * (1.5 if g.atk_slow > 0.0 else 1.0) * g.rfx.umbrella_interval_mult()
+			var interval: float = base("swing_interval", 0.9) * u_spd_mult * (1.5 if g.atk_slow > 0.0 else 1.0) * g.rfx.umbrella_interval_mult()
 			if s2_active > 0.0:
 				interval *= D.SKILL_P.s2_interval
 			swing_cd = max(0.18, interval)
@@ -144,7 +144,7 @@ func _umbrella(target: Dictionary) -> void:
 	var ang: float = (target.pos - g.ppos).angle()
 	g.facing = 1.0 if cos(ang) >= 0.0 else -1.0
 	g.swing_face = 0.25
-	var dmg := 18.0 * u_dmg_mult * _dmg_bonus()
+	var dmg: float = base("umbrella_dmg", 18.0) * u_dmg_mult * _dmg_bonus()
 	if s3_active > 0.0:
 		dmg *= P.s3_mult
 	# S1「唤醒」：挥伞充能，满层后强化下一击
@@ -753,9 +753,9 @@ func _draw_skill_over() -> void:
 ## 升级卡上的数值预览：「当前 → 升级后」
 func _growth_preview(id: String) -> String:
 	match id:
-		"u_dmg": return "伞击伤害 %d → %d" % [int(18 * u_dmg_mult * g.dmg_mult), int(18 * u_dmg_mult * 1.15 * g.dmg_mult)]
-		"u_area": return "挥砍半径 %d → %d" % [int(95 * u_area_mult), int(95 * u_area_mult * 1.12)]
-		"u_spd": return "挥伞间隔 %.2f → %.2f 秒" % [0.9 * u_spd_mult, 0.9 * u_spd_mult * 0.9]
+		"u_dmg": return "伞击伤害 %d → %d" % [int(base("umbrella_dmg", 18.0) * u_dmg_mult * g.dmg_mult), int(base("umbrella_dmg", 18.0) * u_dmg_mult * 1.15 * g.dmg_mult)]
+		"u_area": return "挥砍半径 %d → %d" % [int(base("swing_radius", 95.0) * u_area_mult), int(base("swing_radius", 95.0) * u_area_mult * 1.12)]
+		"u_spd": return "挥伞间隔 %.2f → %.2f 秒" % [base("swing_interval", 0.9) * u_spd_mult, base("swing_interval", 0.9) * u_spd_mult * 0.9]
 		"t_dmg": return "触手倍率 ×%.2f → ×%.2f" % [t_mult, t_mult * 1.2]
 		"sp": return "技力回复 ×%.2f → ×%.2f" % [g.sp_mult, g.sp_mult * 1.15]
 		"dodge": return "闪避 %d%% → %d%%" % [int(g.dodge * 100), int(g.dodge * 100) + 5]
@@ -941,11 +941,11 @@ func skill_hud() -> Array:
 
 ## 属性面板：角色专属数值行
 func stats_rows() -> Array:
-	var interval: float = 0.9 * u_spd_mult
+	var interval: float = base("swing_interval", 0.9) * u_spd_mult
 	var half: float = minf(180.0, 75.0 + rib_bonus + 15.0 * g.growth.get("u_area", 0))
 	return [
-		["伞击伤害", "%d" % int(18.0 * u_dmg_mult * g.dmg_mult)], ["全局伤害", "×%.2f" % g.dmg_mult], ["挥伞间隔", "%.2f 秒" % max(0.18, interval)],
-		["挥砍半径", "%d" % int(95.0 * u_area_mult)], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % t_mult],
+		["伞击伤害", "%d" % int(base("umbrella_dmg", 18.0) * u_dmg_mult * g.dmg_mult)], ["全局伤害", "×%.2f" % g.dmg_mult], ["挥伞间隔", "%.2f 秒" % max(0.18, interval)],
+		["挥砍半径", "%d" % int(base("swing_radius", 95.0) * u_area_mult)], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % t_mult],
 		["追击目标", "%d" % (1 + extra_targets)], ["技力回复", "×%.2f" % g.sp_mult],
 	]
 

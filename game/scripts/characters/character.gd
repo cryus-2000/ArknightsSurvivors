@@ -14,6 +14,16 @@ func _init(game, def_: Dictionary) -> void:
 	id = def.get("id", "")
 
 
+static func list_ids() -> Array:
+	var out: Array = []
+	var d := DirAccess.open("res://data/characters")
+	if d != null:
+		for f in d.get_files():
+			if f.ends_with(".json"):
+				out.append(f.get_basename())
+	return out
+
+
 static func load_def(cid: String) -> Dictionary:
 	var f := FileAccess.open("res://data/characters/%s.json" % cid, FileAccess.READ)
 	if f == null:
@@ -42,6 +52,11 @@ func update(_dt: float) -> void:
 
 
 # ---------------------------------------------------------------- 数值
+
+## 角色 JSON 的 base 段：专属基础数值（如伞击伤害、挥砍半径），缺项用默认
+func base(key: String, default: float) -> float:
+	return float(def.get("base", {}).get(key, default))
+
 
 ## 角色专属属性定义（stat 名 -> {base, min, max, name}），带角色前缀
 func stat_defs() -> Dictionary:

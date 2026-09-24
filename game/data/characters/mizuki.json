@@ -41,5 +41,24 @@
     "s1": "skill_s1",
     "s2": "skill_s2",
     "s3": "skill_s3"
+  },
+  "stats": {
+    "max_hp": 100,
+    "regen": 0.6,
+    "move_speed": 150,
+    "dodge": 0.25,
+    "pickup": 70
+  },
+  "base": {
+    "umbrella_dmg": 18,
+    "swing_radius": 95,
+    "swing_interval": 0.9,
+    "swing_arc": 150,
+    "tentacle_mult": 0.6,
+    "awaken_swings": 7
+  },
+  "gallery": {
+    "tag": "主角 · 特种",
+    "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（Lv3）→ 囚徒困境（Lv10 精英化一）→ 镜花水月（Lv20 精英化二），全部自动释放；每个技能各有两段进阶。"
   }
 }

@@ -288,6 +288,10 @@ func _ready() -> void:
 	stats.define_all(StatDefs.PLAYER)
 	stats.define_all(StatDefs.ENEMY)
 	stats.define_all(ch.stat_defs())
+	# 角色 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
+	for k in ch.def.get("stats", {}):
+		if stats.has_stat(k):
+			stats.set_base(k, float(ch.def.stats[k]))
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	rfx = RelicFx.new(self)
 	RL = rfx.table()

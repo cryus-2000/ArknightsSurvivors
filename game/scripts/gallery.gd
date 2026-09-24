@@ -5,6 +5,7 @@ extends Control
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
+const Character = preload("res://scripts/characters/character.gd")
 
 const TABS := [
 	{"cn": "干员", "en": "OPERATOR"},
@@ -96,10 +97,20 @@ func _build() -> void:
 	match tab:
 		0:
 			var atk := "player_attack_48" if A.tex("player_attack_48") != null else "player_attack"
-			entries.append({"name": "水月", "en": "MIZUKI", "tag": "主角 · 特种", "forms": [
-				_anim("待机", "player_idle", 4.0), _anim("跑步", "player_run", 10.0), _anim("攻击", atk, 16.0),
-				_anim("受击", "player_hurt", 6.0), _anim("倒下", "player_death", 5.0, false)],
-				"stats": [], "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（Lv3）→ 囚徒困境（Lv10 精英化一）→ 镜花水月（Lv20 精英化二），全部自动释放；每个技能各有两段进阶。"})
+			for cid in Character.list_ids():
+				var cd: Dictionary = Character.load_def(cid)
+				var sp: Dictionary = cd.get("sprites", {})
+				var cs: Dictionary = cd.get("stats", {})
+				var cb: Dictionary = cd.get("base", {})
+				var st: Array = [["生命", str(int(cs.get("max_hp", 100)))], ["回复", "%.1f / 秒" % float(cs.get("regen", 0.0))], ["移速", str(int(cs.get("move_speed", 150)))],
+					["闪避", "%d%%" % int(float(cs.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(cs.get("pickup", 70)))]]
+				if cb.has("umbrella_dmg"):
+					st.append_array([["伞击", "%d 伤害 · 半径 %d · %.1f 秒" % [int(cb.umbrella_dmg), int(cb.get("swing_radius", 95)), float(cb.get("swing_interval", 0.9))]],
+						["触手", "×%.1f 伞击伤害" % float(cb.get("tentacle_mult", 0.6))]])
+				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": cd.get("gallery", {}).get("tag", "干员"), "forms": [
+					_anim("待机", sp.get("idle", "player_idle"), 4.0), _anim("跑步", sp.get("run", "player_run"), 10.0), _anim("攻击", sp.get("attack", atk), 16.0),
+					_anim("受击", sp.get("hurt", "player_hurt"), 6.0), _anim("倒下", sp.get("death", "player_death"), 5.0, false)],
+					"stats": st, "desc": cd.get("gallery", {}).get("desc", "")})
 			for k in D.ALLIES:
 				var a: Dictionary = D.ALLIES[k]
 				entries.append({"name": a.name, "en": a.en, "tag": "援护干员", "forms": [_anim_n("待机", "ally_" + k, 2, 3.0)],
