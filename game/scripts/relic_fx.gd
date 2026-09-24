@@ -265,7 +265,7 @@ func dmg_extra() -> float:
 ## 挥伞间隔倍率（<1 更快）：极速之手、国王的新枪、投币玩具 / 骑士戒律
 func umbrella_interval_mult() -> float:
 	var m := 1.0
-	if g.relics.has("172") and g.allies.is_empty():
+	if g.relics.has("172") and g.squad.size() <= 1:
 		m *= 0.625
 	if rule("king_gun") > 0 and g.hp < g.max_hp * 0.3:
 		m *= 0.667

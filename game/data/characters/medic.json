@@ -1,0 +1,126 @@
+{
+ "id": "medic",
+ "name": "医疗干员",
+ "en": "MEDIC",
+ "class": "医疗",
+ "script": "res://scripts/characters/medic.gd",
+ "sprites": {
+  "idle": "ally_medic",
+  "run": {
+   "tex": "ally_medic_move",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    45
+   ]
+  },
+  "attack": {
+   "tex": "ally_medic_attack",
+   "frames": 4,
+   "foot": [
+    24,
+    45
+   ]
+  },
+  "size": 48,
+  "foot": [
+   24,
+   45
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "治疗",
+  "desc": "每 3.5 秒为博士回复 3.5% 最大生命；博士满血时向最近敌人投掷小法术"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "急救",
+  "sp": 14,
+  "desc": "技力充满时立刻为博士回复 15% 最大生命并清除神经损伤"
+ },
+ "talent": {
+  "name": "仁心",
+  "desc": "精英化一解锁：治疗量 +50%"
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "治疗 · 厚",
+   "desc": "治疗量 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "治疗 · 频",
+   "desc": "治疗间隔 -15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「仁心」：治疗量 +50%；急救充能 +25%",
+   "effects": [
+    {
+     "key": "op_skill_sp",
+     "op": "add",
+     "value": 0.25
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "治疗 · 厚 II",
+   "desc": "治疗量 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "治疗 · 频 II",
+   "desc": "治疗间隔 -15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "急救额外给博士 1 层护盾；治疗时溢出的部分转为博士 5 秒内受伤 -20%",
+   "requires": {
+    "doctor_passive": "hp"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "治疗",
+   "护博士"
+  ],
+  "desc": "周期性为博士回复生命"
+ }
+}

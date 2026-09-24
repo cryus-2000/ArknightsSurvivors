@@ -35,10 +35,16 @@ const PLAYER := {
 	&"oil_gain": {"base": 1.0, "old": "oil_mult", "name": "灯油效果倍率"},
 	&"xp_gain": {"base": 1.0, "old": "xp_mult", "name": "经验倍率"},
 	&"shop_price": {"base": 1.0, "min": 0.1, "name": "商店价格倍率"},
-	# ---- 公共：援护
-	&"ally_cap": {"base": 3.0, "min": 0.0, "max": 5.0, "name": "援护干员上限"},
-	&"ally_dmg": {"base": 1.0, "min": 0.0, "name": "援护伤害倍率"},
-	&"ally_rate": {"base": 1.0, "min": 0.1, "name": "援护攻击频率倍率"},
+	# ---- 干员层（docs/23 §5）：每个干员按 value_for(stat, ["class:<职业>", "op:<id>"]) 读取；全局修正对全队生效
+	&"op_atk": {"base": 1.0, "min": 0.0, "name": "干员攻击倍率"},
+	&"op_aspd": {"base": 1.0, "min": 0.2, "name": "干员攻速倍率"},
+	&"op_range": {"base": 1.0, "min": 0.3, "name": "干员射程 / 范围倍率"},
+	&"op_skill_sp": {"base": 1.0, "min": 0.1, "name": "干员技能充能倍率"},
+	&"op_skill_power": {"base": 1.0, "min": 0.0, "name": "干员技能强度倍率"},
+	# ---- 兼容：旧援护系统的键（藏品数据仍引用；现在等价于全队干员修正）
+	&"ally_cap": {"base": 3.0, "min": 0.0, "max": 5.0, "name": "编队上限（旧键）"},
+	&"ally_dmg": {"base": 1.0, "min": 0.0, "name": "干员伤害倍率（旧键，全队）"},
+	&"ally_rate": {"base": 1.0, "min": 0.1, "name": "干员攻速倍率（旧键，全队）"},
 }
 
 ## 水月专属（由 characters/mizuki.gd 的 stat_defs() 返回；新干员写自己的一份，不放这里）

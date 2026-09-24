@@ -1,0 +1,127 @@
+{
+ "id": "caster",
+ "name": "术师干员",
+ "en": "CASTER",
+ "class": "术师",
+ "script": "res://scripts/characters/caster.gd",
+ "sprites": {
+  "idle": "ally_caster",
+  "run": {
+   "tex": "ally_caster_move",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    45
+   ]
+  },
+  "attack": {
+   "tex": "ally_caster_attack",
+   "frames": 4,
+   "foot": [
+    24,
+    45
+   ]
+  },
+  "size": 48,
+  "foot": [
+   24,
+   45
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "法术弹",
+  "desc": "向最近的敌人发射爆裂法术，命中后范围爆炸（法术伤害，无视护甲）"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "火雨",
+  "sp": 11,
+  "desc": "技力充满时向敌群最密处连投 3 枚大范围法术弹"
+ },
+ "talent": {
+  "name": "余烬",
+  "desc": "精英化一解锁：爆炸范围 +30%"
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "法术 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 广",
+   "desc": "范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「余烬」：爆炸范围 +30%；火雨充能 +25%",
+   "effects": [
+    {
+     "key": "op_skill_sp",
+     "op": "add",
+     "value": 0.25
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 锐",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "火雨改为 5 枚并留下灼烧地面；普攻爆炸附带减速",
+   "requires": {
+    "doctor_passive": "sp"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "范围",
+   "法术"
+  ],
+  "desc": "向最近的敌人发射爆裂法术，命中后范围爆炸"
+ }
+}

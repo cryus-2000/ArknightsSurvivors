@@ -115,24 +115,66 @@ func _build() -> void:
 	match tab:
 		0:
 			var atk := "player_attack_48" if A.tex("player_attack_48") != null else "player_attack"
+			# 博士：受击体（data/doctor.json）
+			var dd: Dictionary = {}
+			var df := FileAccess.open("res://data/doctor.json", FileAccess.READ)
+			if df != null:
+				var dj = JSON.parse_string(df.get_as_text())
+				if dj is Dictionary:
+					dd = dj
+			var ds: Dictionary = dd.get("stats", {})
+			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 唯一受击体", "forms": [_anim_n("待机", "doctor", 2, 2.0)],
+				"stats": [["生命", str(int(ds.get("max_hp", 100)))], ["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
+					["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
+				"chips": ["移动", "受击", "拾取", "指挥"], "desc": _lore_text("doctor", "博士是场上唯一会受伤的人：用 WASD 走位、拉怪、躲弹幕、抢掉落；干员们跟在身边自动输出，不会倒下。")})
+			# 干员：data/characters/*.json（职业、普攻 / 技能 / 天赋、成长线）
 			for cid in Character.list_ids():
 				var cd: Dictionary = Character.load_def(cid)
 				var sp: Dictionary = cd.get("sprites", {})
-				var cs: Dictionary = cd.get("stats", {})
 				var cb: Dictionary = cd.get("base", {})
-				var st: Array = [["生命", str(int(cs.get("max_hp", 100)))], ["回复", "%.1f / 秒" % float(cs.get("regen", 0.0))], ["移速", str(int(cs.get("move_speed", 150)))],
-					["闪避", "%d%%" % int(float(cs.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(cs.get("pickup", 70)))]]
+				var st: Array = []
+				if cd.has("attack"):
+					st.append(["普攻", cd.attack.get("name", "")])
+				if cd.has("skill"):
+					st.append(["技能", "%s%s" % [cd.skill.get("name", ""), ("（充能 %d）" % int(cd.skill.sp)) if cd.skill.has("sp") else ""]])
+				if cd.has("talent"):
+					st.append(["天赋", cd.talent.get("name", "")])
 				if cb.has("umbrella_dmg"):
 					st.append_array([["伞击", "%d 伤害 · 半径 %d · %.1f 秒" % [int(cb.umbrella_dmg), int(cb.get("swing_radius", 95)), float(cb.get("swing_interval", 0.9))]],
 						["触手", "×%.1f 伞击伤害" % float(cb.get("tentacle_mult", 0.6))]])
-				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": cd.get("gallery", {}).get("tag", "干员"), "forms": [
-					_anim("待机", sp.get("idle", "player_idle"), 4.0), _anim("跑步", sp.get("run", "player_run"), 10.0), _anim("攻击", sp.get("attack", atk), 16.0),
-					_anim("受击", sp.get("hurt", "player_hurt"), 6.0), _anim("倒下", sp.get("death", "player_death"), 5.0, false)],
-					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": _lore_text(cid, cd.get("gallery", {}).get("desc", ""))})
-			for k in D.ALLIES:
-				var a: Dictionary = D.ALLIES[k]
-				entries.append({"name": a.name, "en": a.en, "tag": "援护干员", "forms": [_anim_n("待机", "ally_" + k, 2, 3.0)],
-					"stats": [], "desc": _lore_text(k, a.desc + "\n升级：" + a.up + "（Lv.5 / 15 / 25 时招募或升级）")})
+				var pg: Array = cd.get("progression", [])
+				for n in pg:
+					if n.get("type", "") == "elite" and n.has("requires"):
+						var req: Dictionary = n.requires
+						var parts: Array = []
+						for rid in req.get("relic", []):
+							parts.append("藏品 #%s" % str(rid))
+						if req.has("level"):
+							parts.append("博士 Lv.%d" % int(req.level))
+						if req.has("class_in_squad"):
+							parts.append("编队中有%s" % req.class_in_squad)
+						if req.has("doctor_passive"):
+							parts.append("博士被动「%s」" % D.GROWTH.get(req.doctor_passive, {"name": req.doctor_passive}).name)
+						st.append(["精%s条件" % ["", "一", "二"][int(n.level)], "、".join(parts)])
+				var forms: Array = []
+				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
+					if not sp.has(kind[1]):
+						continue
+					var v = sp[kind[1]]
+					if v is String:
+						forms.append(_anim(kind[0], v, kind[2], kind[1] != "death"))
+					else:
+						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2]))))
+				var mech: String = cd.get("gallery", {}).get("desc", "")
+				var lines: Array = []
+				if cd.has("skill"):
+					lines.append("技能「%s」：%s" % [cd.skill.get("name", ""), cd.skill.get("desc", "")])
+				if cd.has("talent"):
+					lines.append("天赋「%s」：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
+				if not lines.is_empty():
+					mech += "\n" + "\n".join(lines)
+				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": "%s干员" % cd.get("class", ""), "forms": forms,
+					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": _lore_text(cid, mech)})
 		1, 2, 3:
 			var role: String = ["", "", "elite", "boss"][tab]
 			for k in D.ENEMIES:

@@ -65,7 +65,7 @@ func _swing_radius() -> float:
 
 
 func _dmg_bonus() -> float:
-	var m = g.dmg_mult
+	var m: float = stat(&"dmg") * stat(&"op_atk")
 	if talent2_on and _low_hp_enemy_near():
 		m *= 1.22
 	if g.backlight and g.lamp < 30.0:
@@ -1036,10 +1036,60 @@ func evo_label() -> Array:
 
 
 ## 精英化一 / 二到达时的处理（stage 1：天赋二 + 等待选路线；stage 2：等待选质变）
-func on_elite(stage: int) -> void:
+## 精英化：一 = 解锁囚徒困境 + 天赋反移情 + 进化方向（choice = 路线 id）；二 = 解锁镜花水月 + 质变（choice = 质变 id）
+func on_elite(stage: int, choice: String = "") -> void:
 	if stage == 1:
 		talent2_on = true
-		evo_pending = true
+		g.skill_lv.s2 = maxi(g.skill_lv.s2, 1)
+		g.elite_stage = 1
+		g.show_queue.append({"head": "精英化一", "en": "ELITE  PROMOTION  I", "col": Color(0.5, 0.8, 1.0), "demo": "s2", "items": [
+			g._skill_item("s2"),
+			{"tag": "天赋", "tag_en": "TALENT", "glyph": "反", "name": "反移情", "desc": "击杀敌人时回复生命（每秒有上限）", "col": Color(0.5, 1.0, 0.65)}]})
+		if choice != "":
+			on_evo_pick(choice)
+	elif stage == 2:
+		g.elite_stage = 2
+		if choice != "":
+			on_evo_pick(choice)
+
+
+## 成长线里的自定义节点：s1 = 解锁唤醒
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	if nid == "s1":
+		g.skill_lv.s1 = maxi(g.skill_lv.s1, 1)
+		g.show_queue.append({"head": "技能解锁", "en": "SKILL  UNLOCKED", "col": UI.GOLD, "demo": "s1", "items": [g._skill_item("s1")]})
+
+
+## 精英化节点的选项：一 = 进化路线，二 = 当前路线的质变
+func elite_choices(n: Dictionary) -> Dictionary:
+	var E: Dictionary = evo_table()
+	var out: Dictionary = {}
+	var ids: Array = evo_paths() if int(n.level) == 1 else evo_mutations(evo1)
+	for k in ids:
+		out[k] = {"name": E[k].name, "desc": E[k].desc, "icon": "evo_" + k, "col": E[k].col}
+	return out
+
+
+## 追加的深度卡：技能进阶（各两段）+ 当前进化路线的专属成长
+func extra_cards() -> Array:
+	var out: Array = []
+	for sid in ["s1", "s2", "s3"]:
+		var lv: int = g.skill_lv[sid]
+		if lv >= 1 and lv < 3:
+			var ad: Dictionary = skill_adv()[sid][lv - 1]
+			if g.level >= ad.min_lv:
+				out.append({"kind": "skill", "op": id, "id": sid, "name": "%s · %s" % [skills()[sid].name, ad.name], "desc": ad.desc, "stage": lv})
+	var GT: Dictionary = growth_table()
+	for gid in GT:
+		var gr: Dictionary = GT[gid]
+		if not gr.has("path") or gr.path != evo1:
+			continue
+		var n: int = g.growth.get(gid, 0)
+		if n >= gr.max:
+			continue
+		var nm: String = gr.name if gr.max > 90 else "%s  %d/%d" % [gr.name, n + 1, gr.max]
+		out.append({"kind": "growth", "op": id, "id": gid, "name": nm, "desc": gr.desc + "\n" + _growth_preview(gid)})
+	return out
 
 
 ## 选中精英化选项（路线或质变）
