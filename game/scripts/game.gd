@@ -139,6 +139,11 @@ var relics: Array = []
 # ---------- 援护干员 ----------
 var weapons := {}                # 武器 id -> 等级
 var intro_page := 0
+var intro_dots: Array = []          # 指南页码点的点击区 [Rect2, page]
+var intro_panel := Rect2()
+var intro_btn_prev := Rect2()
+var intro_btn_next := Rect2()
+var intro_btn_skip := Rect2()
 var intro_back := S.PLAY
 var intro_t := 0.0
 var shield := 0                  # 当前护盾层数
@@ -844,6 +849,55 @@ func _do_action(act: String) -> void:
 			get_tree().change_scene_to_file("res://main.tscn")
 
 
+## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
+func _input(event: InputEvent) -> void:
+	if state != S.INTRO or settings.visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_ESCAPE:
+				_close_intro()
+			KEY_LEFT, KEY_A, KEY_PAGEUP, KEY_BACKSPACE:
+				_intro_prev()
+			_:
+				_intro_next()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.pressed:
+		var mp: Vector2 = hud.get_local_mouse_position()
+		if event.button_index == MOUSE_BUTTON_RIGHT or event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_intro_prev()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_intro_next()
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			var hit := false
+			for d in intro_dots:
+				if d[0].has_point(mp):
+					intro_page = d[1]
+					intro_t = 0.0
+					Sfx.play("ui_move")
+					hit = true
+					break
+			if not hit:
+				if intro_btn_prev.has_point(mp):
+					_intro_prev()
+				elif intro_btn_skip.has_point(mp):
+					_close_intro()
+				elif intro_btn_next.has_point(mp):
+					_intro_next()
+				elif intro_panel.has_point(mp) and mp.x < intro_panel.position.x + intro_panel.size.x * 0.3:
+					_intro_prev()
+				else:
+					_intro_next()
+		get_viewport().set_input_as_handled()
+
+
+func _intro_prev() -> void:
+	if intro_page > 0:
+		intro_page -= 1
+		intro_t = 0.0
+		Sfx.play("ui_move")
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if settings.visible:
 		return
@@ -863,23 +917,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_close_show()
 		return
 	if state == S.INTRO:
-		if event is InputEventKey and event.pressed and not event.echo:
-			match event.keycode:
-				KEY_ESCAPE:
-					_close_intro()
-				KEY_LEFT, KEY_A:
-					intro_page = maxi(0, intro_page - 1)
-					intro_t = 0.0
-					Sfx.play("ui_move")
-				_:
-					_intro_next()
-		elif event is InputEventMouseButton and event.pressed:
-			if event.button_index == MOUSE_BUTTON_RIGHT:
-				intro_page = maxi(0, intro_page - 1)
-				intro_t = 0.0
-			else:
-				_intro_next()
-		return
+		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = event.keycode
@@ -1317,7 +1355,7 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
+		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		# 贴图变体在生成时查一次，绘制时不再每帧拼字符串
 		"tex_move": tex.get(d.tex + "_move") != null, "tex_feign": tex.get(d.tex + "_feign") != null, "tex_attack": tex.get(d.tex + "_attack") != null,
 		"tex_charge": tex.get(d.tex + "_charge") != null, "tex_death": tex.get(d.tex + "_death") != null,
@@ -1363,7 +1401,7 @@ func _spawn_chest(pos: Vector2, event_id := "") -> void:
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
 		"chest": true, "hidden": event_id == "" and rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
+		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
 	})
 
@@ -1562,21 +1600,14 @@ func _update_enemies(dt: float) -> void:
 		if not e.boss and e.ai != "static" and (i + frame_n) % 2 == 0:
 			e.pos = map.push_out(e.pos, e.r * 0.8)
 
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.4 秒鼓胀预警，爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
-		if e.has("burst_at"):
-			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
-			if e.get("burst_w", 0.0) > 0.0:
-				e.burst_w -= dt
-				if e.burst_w <= 0.0:
-					fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
-					Sfx.play("tentacle", -2.0, 0.7)
-					if dist < 80.0:
-						in_type = ["近战", "法术"]
-						_enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
-			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
-				e.burst_at -= e.maxhp * 0.15
-				e.burst_w = 0.4
-				e.burst_cd = 1.2
+		# ---- 囊海爬行者：每失去 15% 生命爆发一次
+		if e.has("burst_at") and e.hp <= e.burst_at:
+			e.burst_at -= e.maxhp * 0.15
+			fx.append({"kind": "ring", "pos": e.pos, "r": 95.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+			Sfx.play("tentacle", -2.0, 0.7)
+			if dist < 95.0:
+				in_type = ["近战", "法术"]
+				_enemy_hit(e.dmg * 0.8, {"corrode": 0.0, "nerve": 30.0}, true)
 
 		# ---- 接触伤害
 		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
@@ -4226,12 +4257,6 @@ func _draw_enemy(e: Dictionary) -> void:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))
 		col = col.lerp(Color(2.0, 1.2, 2.4), nk * 0.6)
-	if e.get("burst_w", 0.0) > 0.0:
-		# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
-		var bk: float = 1.0 - e.burst_w / 0.4
-		draw_arc(e.pos, 80.0 * bk, 0.0, TAU, 32, Color(1.6, 0.6, 2.2, 0.35 + 0.4 * bk), 2.0)
-		draw_circle(e.pos, 80.0 * bk, Color(0.8, 0.4, 1.2, 0.08))
-		col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
 	draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
 	var flip: bool = e.fx < 0.0
 	var anc := Vector2(0.5, 0.5)
@@ -4948,10 +4973,36 @@ func _draw_intro(vs: Vector2) -> void:
 		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
 		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea))
 		y += 100
-	# 页码点
+	# 页码点（可点击）
+	intro_panel = r
+	intro_dots.clear()
+	var mp: Vector2 = hud.get_local_mouse_position()
 	for i in INTRO_PAGES.size():
-		UI.diamond(hud, Vector2(vs.x / 2 - (INTRO_PAGES.size() - 1) * 11 + i * 22, r.end.y - 30), 5.0, UI.CYAN if i == intro_page else Color(0.15, 0.25, 0.28))
-	UI.text(hud, font, Vector2(r.position.x, r.end.y + 30), "任意键 / 点击：下一页　　← / 右键：上一页　　Esc：跳过", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		var dp := Vector2(vs.x / 2 - (INTRO_PAGES.size() - 1) * 13 + i * 26, r.end.y - 30)
+		var dr := Rect2(dp - Vector2(12, 12), Vector2(24, 24))
+		intro_dots.append([dr, i])
+		var hov: bool = dr.has_point(mp)
+		UI.diamond(hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
+	# 上一页 / 跳过 / 下一页 按钮
+	var btns: Array = [["‹ 上一页", "prev"], ["跳过  Esc", "skip"], ["下一页 ›", "next"]]
+	for k in 3:
+		var bw := 118.0
+		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
+		var br := Rect2(bx, r.end.y - 52, bw, 34)
+		match k:
+			0: intro_btn_prev = br
+			1: intro_btn_skip = br
+			2: intro_btn_next = br
+		var hov2: bool = br.has_point(mp)
+		var dim: bool = k == 0 and intro_page == 0
+		if k == 1:
+			br.position.y = r.end.y + 16
+			intro_btn_skip = br
+			UI.text(hud, font, br.position + Vector2(0, 22), btns[k][0], 13, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+			continue
+		UI.frame(hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
+		UI.text(hud, font, br.position + Vector2(0, 23), btns[k][0] if k != 2 or intro_page < INTRO_PAGES.size() - 1 else "开始探索 ›", 14, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+	UI.text(hud, font, Vector2(r.position.x, r.end.y + 60), "左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 func _draw_intro_icon(kind: String, c: Vector2) -> void:
