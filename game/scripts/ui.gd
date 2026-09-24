@@ -51,6 +51,27 @@ static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int,
 	ci.draw_string(font, pos, s, align, width, size, col)
 
 
+## 中文自动换行：在每个 CJK 字符后插入零宽空格（U+200B）作为换行机会，
+## 避免文本服务把整段中文当成一个「词」、只在空格处换行（表现为第一行极短）。
+## 不在开头标点（《「（）后、也不在结尾标点（》」，。）前插入，避免标点悬在行首。
+const _NO_BREAK_AFTER := "《「『（【〈"
+const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？"
+static func soft(s: String) -> String:
+	var out := ""
+	var n := s.length()
+	for i in n:
+		var ch := s[i]
+		out += ch
+		if i + 1 >= n:
+			break
+		var code := ch.unicode_at(0)
+		var nx := s[i + 1]
+		var cjk := (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3000 and code <= 0x303F) or (code >= 0xFF00 and code <= 0xFFEF)
+		if cjk and not _NO_BREAK_AFTER.contains(ch) and not _NO_BREAK_BEFORE.contains(nx) and nx != " ":
+			out += "\u200B"
+	return out
+
+
 ## 分段细条
 static func bar(ci: CanvasItem, r: Rect2, frac: float, col: Color, segments := 0) -> void:
 	ci.draw_rect(r, Color(0, 0, 0, 0.55))

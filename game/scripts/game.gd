@@ -3220,7 +3220,7 @@ func _draw_show(vs: Vector2) -> void:
 			UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		UI.chip(hud, font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(hud, font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		hud.draw_multiline_string(font, r.position + Vector2(150, 106), it.desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e), UI.BRK)
+		hud.draw_multiline_string(font, r.position + Vector2(150, 106), UI.soft(it.desc), HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e), UI.BRK)
 	if st > 1.0:
 		var ba := 0.5 + 0.5 * sin(st * 4.0)
 		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
@@ -4989,7 +4989,7 @@ func _draw_intro(vs: Vector2) -> void:
 	var y := r.position.y + 156
 	for ln in pg.lines:
 		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
-		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea), UI.BRK)
+		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), UI.soft(ln), HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea), UI.BRK)
 		y += 100
 	# 页码点（可点击）
 	intro_panel = r

@@ -427,7 +427,7 @@ func _draw_credits(vs: Vector2) -> void:
 	var heights: Array = []
 	var total := 0.0
 	for sec in secs:
-		var hh: float = font.get_multiline_string_size(sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
+		var hh: float = font.get_multiline_string_size(UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
 		if sec.size() > 2 and sec[2] != "":
 			hh += 18.0
 		hh = maxf(hh, 24.0) + 22.0
@@ -443,9 +443,9 @@ func _draw_credits(vs: Vector2) -> void:
 		var sec: Array = secs[i]
 		UI.diamond(self, Vector2(r.position.x + 44, y + 8), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 58, y + 14), sec[0], 16, UI.CYAN)
-		draw_multiline_string(font, Vector2(r.position.x + 190, y + 12), sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.TEXT, UI.BRK)
+		draw_multiline_string(font, Vector2(r.position.x + 190, y + 12), UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.TEXT, UI.BRK)
 		if sec.size() > 2 and sec[2] != "":
-			var th: float = font.get_multiline_string_size(sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
+			var th: float = font.get_multiline_string_size(UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
 			UI.text(self, font, Vector2(r.position.x + 190, y + 12 + th + 6), sec[2], 12, Color(0.5, 0.75, 0.85))
 		y += heights[i]
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 44), credits_data.get("footer", ""), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
