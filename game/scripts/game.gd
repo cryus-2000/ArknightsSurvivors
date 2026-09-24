@@ -278,6 +278,12 @@ func _ready() -> void:
 	optional.append_array(FXF.keys())
 	for rid in D.RELICS:
 		optional.append("relic_" + rid)
+	for gid in D.GROWTH:
+		optional.append("growth_" + gid)
+	for wid in D.WEAPONS:
+		optional.append("weapon_" + wid)
+	for eid in D.EVO:
+		optional.append("evo_" + eid)
 	for n in optional:
 		tex[n] = A.tex(n)
 	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
@@ -3356,7 +3362,7 @@ func _animate_cards(dt: float) -> void:
 
 func _skill_item(sid: String) -> Dictionary:
 	var sk: Dictionary = D.SKILLS[sid]
-	return {"tag": "技能", "tag_en": "SKILL", "glyph": sk.glyph, "name": sk.name, "desc": sk.desc, "col": sk.col}
+	return {"tag": "技能", "tag_en": "SKILL", "glyph": sk.glyph, "icon": "skill_" + sid, "name": sk.name, "desc": sk.desc, "col": sk.col}
 
 
 func _open_show(sc: Dictionary) -> void:
@@ -3460,7 +3466,11 @@ func _draw_show(vs: Vector2) -> void:
 		var gc := r.position + Vector2(70, 84)
 		UI.diamond(hud, gc, 46.0, Color(ic.r, ic.g, ic.b, 0.12 * e))
 		UI.diamond(hud, gc, 36.0, Color(0.02, 0.06, 0.08, e), Color(ic.r, ic.g, ic.b, e))
-		UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
+		var itex: Texture2D = tex.get(it.get("icon", "")) if it.has("icon") else null
+		if itex != null:
+			hud.draw_texture_rect(itex, Rect2(gc - Vector2(32, 32), Vector2(64, 64)), false, Color(1, 1, 1, e))
+		else:
+			UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		hud.draw_rect(Rect2(r.position + Vector2(140, 24), Vector2(4, 16)), Color(ic.r, ic.g, ic.b, e))
 		UI.text(hud, font, r.position + Vector2(152, 38), "新%s" % it.tag, 14, Color(ic.r, ic.g, ic.b, e))
 		UI.en(hud, font, r.position + Vector2(206, 37), "NEW  " + it.tag_en, 11, Color(ic.r, ic.g, ic.b, 0.7 * e), 3.0)
@@ -3469,6 +3479,22 @@ func _draw_show(vs: Vector2) -> void:
 	if st > 1.0:
 		var ba := 0.5 + 0.5 * sin(st * 4.0)
 		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+
+
+## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
+func _card_icon(o: Dictionary) -> Texture2D:
+	match o.kind:
+		"relic":
+			return tex.get("relic_" + o.id)
+		"growth":
+			return tex.get("growth_" + o.id)
+		"weapon":
+			return tex.get("weapon_" + o.id)
+		"evo":
+			return tex.get("evo_" + o.id)
+		"skill":
+			return tex.get("skill_" + o.id)
+	return null
 
 
 func _card_color(o: Dictionary) -> Color:
@@ -3516,14 +3542,14 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = D.WEAPONS[o.id].glyph
 	elif o.kind == "evo":
 		glyph = D.EVO[o.id].glyph
-	var ic: Texture2D = tex.get("relic_" + o.id) if o.kind == "relic" else null
+	var ic: Texture2D = _card_icon(o)
 	var bob := sin(t * 2.0 + i) * 2.0
 	if o.kind == "recruit":
 		var at: Texture2D = tex["ally_" + o.id]
 		var fw := at.get_width() / 2
-		var ks: float = floorf(72.0 / at.get_height()) if at.get_height() <= 72 else 72.0 / at.get_height()
+		var ks: float = 2.0 if at.get_height() <= 48 else 72.0 / at.get_height()
 		var asz := Vector2(fw, at.get_height()) * ks
-		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0 + Vector2(0, bob), asz), Rect2(0, 0, fw, at.get_height()))
+		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, fw, at.get_height()))
 	elif ic != null:
 		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32) + Vector2(0, bob), Vector2(64, 64)), false)
 	else:
@@ -3688,7 +3714,7 @@ func _pick(i: int) -> void:
 				s3_sp = 30.0
 				show_queue.append({"head": "精英化二", "en": "ELITE  PROMOTION  II", "col": Color(0.8, 0.55, 1.0), "demo": "s3", "items": [
 					_skill_item("s3"),
-					{"tag": "质变", "tag_en": "EVOLUTION", "glyph": ev.glyph, "name": "%s · %s" % [D.EVO[evo1].name, ev.name], "desc": ev.desc, "col": ev.col}]})
+					{"tag": "质变", "tag_en": "EVOLUTION", "glyph": ev.glyph, "icon": "evo_" + o.id, "name": "%s · %s" % [D.EVO[evo1].name, ev.name], "desc": ev.desc, "col": ev.col}]})
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
@@ -5630,8 +5656,8 @@ func _draw_allies_hud(br: Vector2) -> void:
 
 
 func _draw_skills(br: Vector2) -> void:
-	var rad := 30.0
-	var gap := 78.0
+	var rad := 37.0
+	var gap := 88.0
 	var items := [
 		["唤", "唤醒", skill_lv.s1 >= 1, 0.0, 1.0, float(s1_count) / float(s1_need), UI.GOLD],
 		["囚", "囚徒困境", skill_lv.s2 >= 1, s2_active, D.SKILL_P.s2_dur, s2_sp / D.SKILL_P.s2_charge, Color(0.45, 0.8, 1.0)],
@@ -5653,7 +5679,7 @@ func _draw_skills(br: Vector2) -> void:
 			gcol = Color(1, 1, 1)
 		var icon: Texture2D = tex.get("skill_s%d" % (i + 1))
 		if icon != null:
-			hud.draw_texture_rect(icon, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+			hud.draw_texture_rect(icon, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
 		else:
 			UI.text(hud, font, c + Vector2(-rad, 10), it[0], 26, gcol, HORIZONTAL_ALIGNMENT_CENTER, rad * 2, 3)
 		UI.text(hud, font, c + Vector2(-40, rad + 16), it[1] if unlocked else "未解锁", 11, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, 80, 2)
