@@ -672,9 +672,27 @@ func _draw_wave(b: Dictionary) -> void:
 	var c: Vector2 = b.pos - dir * R * 0.55
 	var ang := dir.angle()
 	var fade: float = clampf(b.life / 0.15, 0.0, 1.0)
+	if b.giant and g.tex.get("proj_tide_blade_abyss") != null:
+		# 深渊巨斩专用贴图（96×72，已是普通水刃的 3 倍，size 3 时按 1:1 显示）：
+		# 底层大范围金紫辉光 + 两道残影 + 本体 + 刃口加法高光；出手瞬间带一圈扩散水环
+		var spec_g: Array = g.V6_FRAMES["proj_tide_blade_abyss"]
+		var fr_g := int(g.t * spec_g[1]) % int(spec_g[0])
+		var sc_g: float = g.PX * b.size / 3.0
+		var age: float = b.max - b.life
+		# 辉光：用本体放大 12% 的低透明副本做贴合轮廓的光晕（比宽弧线更贴形，不会露出扇形色块）
+		g._spr_rot("proj_tide_blade_abyss", fr_g, b.pos, ang, sc_g * 1.12, Color(1.5, 0.7, 2.2, 0.16 * fade))
+		for k in range(2, 0, -1):
+			var gp: Vector2 = b.pos - dir * (14.0 * k) * b.size / 3.0
+			g._spr_rot("proj_tide_blade_abyss", (fr_g + 4 - k) % 4, gp, ang, sc_g * (1.0 - 0.04 * k), Color(1.2, 0.9, 1.6, (0.28 - 0.1 * k) * fade))
+		g._spr_rot("proj_tide_blade_abyss", fr_g, b.pos, ang, sc_g, Color(1.0, 1.0, 1.0, fade))
+		g._spr_rot("proj_tide_blade_abyss", fr_g, b.pos, ang, sc_g, Color(1.0, 0.85, 0.5, 0.25 * fade * (0.5 + 0.5 * sin(g.t * 18.0))))
+		if age < 0.25:
+			var k2: float = age / 0.25
+			g.draw_arc(b.pos - dir * 10.0, R * (0.4 + 1.2 * k2), 0.0, TAU, 32, Color(1.6, 1.2, 2.2, 0.5 * (1.0 - k2)), 3.0)
+		return
 	var tn := "proj_tide_blade_moon" if b.moon else "proj_tide_blade"
 	if g.tex.get(tn) != null:
-		# V7：月牙水刃朝右，按速度方向旋转；深渊巨斩放大并加一层辉光
+		# V7：月牙水刃朝右，按速度方向旋转；深渊巨斩无专用图时放大并加一层辉光
 		var spec: Array = g.V6_FRAMES[tn]
 		var fr := int(g.t * spec[1]) % int(spec[0])
 		var sc: float = g.PX * b.size * (1.0 if not b.giant else 1.15)
