@@ -330,7 +330,7 @@ func _evo_on_swing(ang: float, dmg: float) -> void:
 	if evo1 == "blade":
 		var n := 1 + int(g.growth.get("b_count", 0)) + (1 if evo2 == "blade_moon" else 0)
 		var size: float = (1.0 + 0.25 * g.growth.get("b_size", 0)) * (1.3 if evo2 == "blade_abyss" else 1.0)
-		var wd: float = dmg * 0.8 * (1.0 + 0.3 * g.growth.get("b_dmg", 0))
+		var wd: float = dmg * 1.0 * (1.0 + 0.3 * g.growth.get("b_dmg", 0))
 		var rng_: float = 380.0 * (1.0 + 0.3 * g.growth.get("b_range", 0))
 		for k in n:
 			var a := ang + (k - (n - 1) / 2.0) * 0.28
@@ -643,12 +643,26 @@ func _update_wave(b: Dictionary, dt: float) -> void:
 			e.kb += b.vel.normalized() * (260.0 if b.giant else 120.0)
 		g._sparks(e.pos, b.vel, Color(0.7, 1.0, 1.0), 2, 180.0)
 		g._fx_sprite("fx_tide_blade_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * clampf(b.size, 1.0, 2.5), b.vel.angle())
-		# 默认不穿透：命中即碎（潮刃·贯 可穿透 2 名 / 无限；深渊巨斩总是穿透）
-		var pn: int = [0, 2, 999][int(g.growth.get("b_pierce", 0))]
-		if not b.giant and b.hit.size() > pn:
+		# 基础可穿透 2 名，之后碎裂；碎裂时向周围溅射 60% 伤害（潮刃·贯：4 名 / 无限；深渊巨斩总是穿透）
+		var pn: int = [2, 4, 999][int(g.growth.get("b_pierce", 0))]
+		if not b.giant and b.hit.size() >= pn:
 			b.life = 0.0
-			g.fx.append({"kind": "ring", "pos": b.pos, "r": b.r * 0.8, "life": 0.2, "max": 0.2, "col": Color(0.6, 1.0, 1.0)})
+			_wave_shatter(b)
 			return
+
+
+## 水刃碎裂：以碎裂点为中心的小范围溅射（已被这道水刃命中过的不再受伤）
+func _wave_shatter(b: Dictionary) -> void:
+	var sr: float = 70.0 * b.size
+	g.fx.append({"kind": "ring", "pos": b.pos, "r": sr, "life": 0.25, "max": 0.25, "col": Color(0.6, 1.0, 1.0)})
+	for j in g._query(b.pos, sr + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or b.hit.has(e.id) or e.pos.distance_to(b.pos) > sr + e.r:
+			continue
+		g._hit("水刃")
+		g._damage(e, b.dmg * 0.6)
+		if not e.dead:
+			e.slow = maxf(e.slow, 0.6)
 
 
 ## 水刃：月牙形水光（巨斩为金紫色）

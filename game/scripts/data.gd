@@ -102,7 +102,7 @@ const GROWTH = {
 	"b_size": {"name": "潮刃·阔", "desc": "水刃宽度与判定范围 +25%", "max": 3, "path": "blade"},
 	"b_dmg": {"name": "潮刃·利", "desc": "水刃伤害 +30%", "max": 3, "path": "blade"},
 	"b_range": {"name": "潮刃·远", "desc": "水刃飞行距离 +30%", "max": 2, "path": "blade"},
-	"b_pierce": {"name": "潮刃·贯", "desc": "水刃可穿透 2 名敌人（Lv.2：无限穿透）", "max": 2, "path": "blade"},
+	"b_pierce": {"name": "潮刃·贯", "desc": "水刃穿透数 2 → 4 名（Lv.2：无限穿透）", "max": 2, "path": "blade"},
 	"b_echo": {"name": "潮刃·回响", "desc": "每 2.2 秒射出一枚潮汐弹，在敌人之间反弹（Lv.2：两枚、伤害 +50% 并击退）", "max": 2, "path": "blade", "tags": ["arts", "on_hit", "basic_attack"]},
 	"t_count": {"name": "群触·增", "desc": "每次挥伞多召唤 1 根触手", "max": 3, "path": "tendril"},
 	"t_stake": {"name": "群触·桩", "desc": "触手桩持续时间 +1 秒", "max": 2, "path": "tendril"},
@@ -114,7 +114,7 @@ const GROWTH = {
 ## 进化：精英化一选路线，精英化二在路线内再选一次质变（共 4 种最终形态）
 const EVO := {
 	"blade": {"name": "潮刃", "en": "TIDE BLADE", "glyph": "刃", "col": Color(0.5, 0.9, 1.0),
-		"desc": "远斩流：每次挥伞同时斩出一道月牙水刃，命中第一个敌人后碎裂并使其减速（可升级为穿透）"},
+		"desc": "远斩流：每次挥伞同时斩出一道与伞击同伤害的月牙水刃，穿透 2 名敌人后碎裂、溅射周围并减速（可升级为更多穿透）"},
 	"tendril": {"name": "群触", "en": "TENDRIL SWARM", "glyph": "触", "col": Color(0.78, 0.5, 1.0),
 		"desc": "召唤流：每次挥伞额外召唤触手，触手化为「触手桩」留在原地，持续鞭打周围敌人"},
 	"blade_moon": {"name": "月轮", "en": "CRESCENT MOON", "glyph": "月", "col": Color(0.6, 0.95, 1.0), "path": "blade",
