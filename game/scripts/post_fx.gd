@@ -21,7 +21,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	mat.set_shader_parameter("time", t)
-	mat.set_shader_parameter("bloom", 0.38 if Cfg.bloom else 0.0)
+	mat.set_shader_parameter("bloom", 0.3 if Cfg.bloom else 0.0)
 	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter else 0.0)
 	mat.set_shader_parameter("brightness", Cfg.brightness)
 	mat.set_shader_parameter("hurt", hurt)

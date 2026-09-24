@@ -2,7 +2,7 @@ shader_type canvas_item;
 // 全屏后期：辉光（bloom）、水下滤镜（色差 + 暗角 + 焦散光斑）、亮度、受伤红边
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform float bloom = 0.0;          // 0 关；0.4 左右为标准
-uniform float bloom_threshold = 0.7;
+uniform float bloom_threshold = 0.84;
 uniform float filter_on = 0.0;      // 水下滤镜开关
 uniform float aberration = 1.0;     // 色差强度（像素）
 uniform float vignette = 0.14;
@@ -32,9 +32,10 @@ void fragment() {
 	if (bloom > 0.001) {
 		// 用屏幕纹理的 mip 链做廉价大范围模糊，只取亮部
 		vec3 b = vec3(0.0);
-		b += textureLod(screen_tex, uv, 2.0).rgb * 0.35;
-		b += textureLod(screen_tex, uv, 3.0).rgb * 0.35;
-		b += textureLod(screen_tex, uv, 4.0).rgb * 0.30;
+		// 只用较大的 mip：光晕铺得开，但不会糊在人物轮廓上
+		b += textureLod(screen_tex, uv, 3.0).rgb * 0.45;
+		b += textureLod(screen_tex, uv, 4.0).rgb * 0.35;
+		b += textureLod(screen_tex, uv, 5.0).rgb * 0.20;
 		vec3 bright = max(b - vec3(bloom_threshold), vec3(0.0)) / (1.0 - bloom_threshold);
 		col += bright * bloom;
 	}

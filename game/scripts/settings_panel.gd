@@ -27,6 +27,7 @@ var font: Font
 var sel := 0
 var st := 0.0
 var row_rects: Array = []
+var pending_res := -1        # 分辨率：←→ 只选择，Enter / 点击「应用」才生效
 
 
 func _ready() -> void:
@@ -41,6 +42,7 @@ func open() -> void:
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
 	sel = 0
+	pending_res = Cfg.res_index
 	visible = true
 	queue_redraw()
 
@@ -68,7 +70,10 @@ func _input(event: InputEvent) -> void:
 			KEY_RIGHT, KEY_D:
 				_adjust(sel, 1)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-				_adjust(sel, 1)
+				if ROWS[sel].type == "res":
+					_apply_res()
+				else:
+					_adjust(sel, 1)
 			KEY_ESCAPE:
 				close()
 		get_viewport().set_input_as_handled()
@@ -80,9 +85,16 @@ func _input(event: InputEvent) -> void:
 		for i in row_rects.size():
 			var r: Rect2 = row_rects[i]
 			if r.has_point(event.position):
-				var dir := 1 if event.position.x > r.position.x + r.size.x * 0.62 or ROWS[i].type != "vol" else -1
+				var arrows: bool = ROWS[i].type in ["vol", "bright", "res"]
+				var fx: float = (event.position.x - r.position.x) / r.size.x
+				var dir := 1
+				if arrows:
+					dir = -1 if fx < 0.62 else 1
 				if event.button_index == MOUSE_BUTTON_LEFT:
-					_adjust(i, dir)
+					if ROWS[i].type == "res" and fx >= 0.62 and fx <= 0.88:
+						_apply_res()
+					else:
+						_adjust(i, dir)
 				elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
 					_adjust(i, 1)
 				elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -106,12 +118,23 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"res":
 			var n: int = Cfg.RESOLUTIONS.size()
-			Cfg.res_index = (Cfg.res_index + (1 if dir > 0 else n - 1)) % n
+			pending_res = (pending_res + (1 if dir > 0 else n - 1)) % n
+			Sfx.play("ui_move")
+			return
 		"back":
 			close()
 			return
 	Cfg.apply()
 	Sfx.play("ui_move")
+
+
+func _apply_res() -> void:
+	if pending_res == Cfg.res_index:
+		return
+	Cfg.res_index = pending_res
+	Cfg.apply()
+	pending_res = Cfg.res_index
+	Sfx.play("ui_ok")
 
 
 func _process(delta: float) -> void:
@@ -161,11 +184,17 @@ func _draw() -> void:
 				UI.text(self, font, Vector2(vx, rr.position.y + 24), "%d%%" % int(round(Cfg.brightness * 100.0)), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
 				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
 			"res":
-				var sz: Vector2i = Cfg.RESOLUTIONS[clampi(Cfg.res_index, 0, Cfg.RESOLUTIONS.size() - 1)]
+				var pi: int = clampi(pending_res, 0, Cfg.RESOLUTIONS.size() - 1)
+				var sz: Vector2i = Cfg.RESOLUTIONS[pi]
+				var changed: bool = pi != Cfg.res_index
 				var label := "%d × %d" % [sz.x, sz.y]
 				if Cfg.fullscreen:
-					label += "（全屏时按屏幕）"
+					label += "（全屏按屏幕）"
 				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 15 if Cfg.fullscreen else 18, UI.CYAN if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
-				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 15 if Cfg.fullscreen else 17, (UI.GOLD if changed else UI.CYAN) if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+				if changed:
+					var br := Rect2(vx + 142, rr.position.y + 6, 42, 22)
+					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
+					UI.text(self, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+				UI.text(self, font, Vector2(vx + 190, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), "↑↓ 选择 · ←→ 调整 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
