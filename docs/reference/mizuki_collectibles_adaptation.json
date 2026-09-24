@@ -1,0 +1,4606 @@
+{
+ "version": "v1.0 框架对齐",
+ "lanes": {
+  "A": "伞击 / 创伤流",
+  "B": "触手 / 猎杀流",
+  "C": "控制 / 技能循环流",
+  "D": "反移情 / 收割流",
+  "E": "深蓝 / 低灯火流",
+  "S": "援护 / 指挥（副系统）"
+ },
+ "items": [
+  {
+   "id": 1,
+   "name": "精选兽肉罐头",
+   "original": "可携带干员+1，所有我方单位每秒回复3点生命",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "每秒回复生命 +0.5",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 2,
+   "name": "凉拌海草",
+   "original": "可携带干员+1，所有我方单位的攻击速度+1",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "挥伞速度 +3%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 3,
+   "name": "橙味风暴",
+   "original": "可携带干员+1，所有我方单位的攻击力+1%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "所有伤害 +3%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 4,
+   "name": "咖啡平原咖啡糖",
+   "original": "可携带干员+2，所有我方单位的攻击速度+2",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "挥伞速度 +5%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 5,
+   "name": "尖叫樱桃",
+   "original": "可携带干员+2，所有我方单位的攻击力+2%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "所有伤害 +5%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 6,
+   "name": "皮特水果什锦",
+   "original": "可携带干员+3，所有我方单位的攻击力、防御力和生命值+3%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "伤害 +6%，最大生命 +6%，受到伤害 -1",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 7,
+   "name": "特级馥郁咖啡豆",
+   "original": "可携带干员+1，可同时部署人数+1，护盾值+1",
+   "cat": "护盾",
+   "tier": "B",
+   "adapt": "援护干员上限 +1，护盾层数上限 +1",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 8,
+   "name": "蓝色丝巾",
+   "original": "希望+2，可携带干员+1",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +6",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 9,
+   "name": "红色蝴蝶结",
+   "original": "希望+2，可同时部署人数+1",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "希望 + 部署人数，与 10 号重复，可省略",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 10,
+   "name": "独奏八音盒",
+   "original": "希望+4，可同时部署人数+1",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员上限 +1，源石锭 +12",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 11,
+   "name": "源石鸢尾花",
+   "original": "希望+6，可携带干员+2",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "源石锭 +18，下一次招募多一个选项",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 12,
+   "name": "古怪的长笛",
+   "original": "希望+4，可携带干员+1",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +12",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 13,
+   "name": "玻璃小鸟",
+   "original": "希望+4，可携带干员+1",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +12",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 14,
+   "name": "赤金的远征",
+   "original": "希望+4，可携带干员+1，可同时部署人数+1",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员上限 +1，源石锭 +12",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 15,
+   "name": "《杜林地上环游记》",
+   "original": "护盾值+4",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】护盾生成间隔 -30%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 16,
+   "name": "《旧高卢地名源流考》",
+   "original": "护盾值+6",
+   "cat": "护盾",
+   "tier": "B",
+   "adapt": "护盾层数上限 +2",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 17,
+   "name": "热水壶",
+   "original": "目标生命上限+1，希望+1",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +10，源石锭 +3",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 18,
+   "name": "特殊抑制器",
+   "original": "目标生命上限+2，回复2目标生命",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +15，立即回复 15 生命",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 19,
+   "name": "石像鬼塑像",
+   "original": "目标生命上限+3",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +20",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 20,
+   "name": "血魔的寝床",
+   "original": "目标生命上限+4",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +30",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 21,
+   "name": "长生者之证",
+   "original": "目标生命上限+6",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +50",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 22,
+   "name": "被撬开的道具箱",
+   "original": "希望+4",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +12",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 23,
+   "name": "古旧乐谱残章",
+   "original": "希望+4",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +12",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 24,
+   "name": "解约协议",
+   "original": "希望+4",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +12",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 25,
+   "name": "万能钥匙",
+   "original": "希望+6",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +18",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 26,
+   "name": "女妖之吻",
+   "original": "希望+8",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +24",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 27,
+   "name": "古旧钱币",
+   "original": "立即获得源石锭+10",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "源石锭 +10",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 28,
+   "name": "演员的首饰盒",
+   "original": "立即获得源石锭+18",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "源石锭 +18",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 29,
+   "name": "无瑕宝玉",
+   "original": "立即获得源石锭+25",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "源石锭 +25",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 30,
+   "name": "夜阳花",
+   "original": "灯火+10",
+   "cat": "灯火",
+   "tier": "A",
+   "adapt": "灯火 +10",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 31,
+   "name": "聚火源石虫",
+   "original": "灯火+15",
+   "cat": "灯火",
+   "tier": "A",
+   "adapt": "灯火 +15",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 32,
+   "name": "指路鳞",
+   "original": "灯火+30",
+   "cat": "灯火",
+   "tier": "A",
+   "adapt": "灯火 +30",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 33,
+   "name": "钝爪-典训",
+   "original": "立即进阶一个【先锋】干员（不消耗希望）",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有先锋 / 近卫 / 重装援护",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 34,
+   "name": "折戟-典训",
+   "original": "立即进阶一个【近卫】干员（不消耗希望）",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有先锋 / 近卫 / 重装援护",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 35,
+   "name": "铁卫-典训",
+   "original": "立即进阶一个【重装】干员（不消耗希望）",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有先锋 / 近卫 / 重装援护",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 36,
+   "name": "残弩-典训",
+   "original": "立即进阶一个【狙击】干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "狙击援护立即 +1 级（没有就立即招募）",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 37,
+   "name": "断杖-典训",
+   "original": "立即进阶一个【术师】干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "术师援护立即 +1 级（没有就立即招募）",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 38,
+   "name": "支柱-典训",
+   "original": "立即进阶一个【辅助】干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "辅助援护立即 +1 级（没有就立即招募）",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 39,
+   "name": "医者-典训",
+   "original": "立即进阶一个【医疗】干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "医疗援护立即 +1 级（没有就立即招募）",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 40,
+   "name": "锈刃-典训",
+   "original": "立即进阶一个【特种】干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "水月立即获得 1 次成长三选一（水月是特种）",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 41,
+   "name": "开裂的束缚带",
+   "original": "所有敌方单位的攻击力-7%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人攻击 -7%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 42,
+   "name": "“静音小队”",
+   "original": "所有我方单位的攻击力和防御力+35%，生命+45%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伤害 +35%，受到伤害 -25%，最大生命 +45%（超稀有）",
+   "rarity": "升华",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 43,
+   "name": "奇渊面具",
+   "original": "所有敌方单位的攻击力-12%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人攻击 -12%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 44,
+   "name": "教母的信物",
+   "original": "所有敌方单位的攻击力-17%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人攻击 -17%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 45,
+   "name": "残破合影",
+   "original": "所有敌方单位的防御力-12%",
+   "cat": "削弱敌人",
+   "tier": "B",
+   "adapt": "生命低于 50% 的敌人受到伤害 +10%",
+   "rarity": "基础",
+   "lanes": [
+    "D"
+   ],
+   "tags": [
+    "execute"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 46,
+   "name": "恐鱼干",
+   "original": "所有敌方单位的防御力-21%",
+   "cat": "削弱敌人",
+   "tier": "B",
+   "adapt": "生命低于 50% 的敌人受到伤害 +18%",
+   "rarity": "核心",
+   "lanes": [
+    "D"
+   ],
+   "tags": [
+    "execute"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 47,
+   "name": "迷迭香之拥",
+   "original": "所有敌方单位的防御力-30%",
+   "cat": "削弱敌人",
+   "tier": "B",
+   "adapt": "生命低于 50% 的敌人受到伤害 +25%",
+   "rarity": "升华",
+   "lanes": [
+    "D"
+   ],
+   "tags": [
+    "execute"
+   ],
+   "first_batch": false,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 48,
+   "name": "镶金骨骰",
+   "original": "所有敌方单位的生命-15%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人生命 -15%",
+   "rarity": "基础",
+   "lanes": [
+    "D"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 49,
+   "name": "“黑夜呢喃”",
+   "original": "所有敌方单位的生命-10%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人生命 -10%",
+   "rarity": "基础",
+   "lanes": [
+    "D"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 50,
+   "name": "《大静谧》",
+   "original": "所有敌方单位的生命-20%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人生命 -20%",
+   "rarity": "基础",
+   "lanes": [
+    "D"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 51,
+   "name": "异铁小圆盾",
+   "original": "所有我方单位的防御力+15%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "受到伤害 -8%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 52,
+   "name": "军团护心镜",
+   "original": "所有我方单位的防御力+25%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "受到伤害 -13%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 53,
+   "name": "古旧的蒸汽甲胄",
+   "original": "所有我方单位的防御力+35%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "受到伤害 -18%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 54,
+   "name": "皇帝的恩宠",
+   "original": "所有我方近战单位的攻击力+15%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伞击伤害 +15%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 55,
+   "name": "贵族刺剑",
+   "original": "所有我方近战单位的攻击力+25%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伞击伤害 +25%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 56,
+   "name": "老近卫军之锋",
+   "original": "所有我方近战单位的攻击力+35%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伞击伤害 +35%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 57,
+   "name": "显圣吊坠",
+   "original": "所有我方远程单位的攻击力+15%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员伤害 +15%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 58,
+   "name": "银餐叉",
+   "original": "所有我方远程单位的攻击力+25%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员伤害 +25%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 59,
+   "name": "损坏的左轮弹巢",
+   "original": "所有我方远程单位的攻击力+35%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员伤害 +35%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 60,
+   "name": "难闻的止血剂",
+   "original": "所有我方单位的生命+20%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +20%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 61,
+   "name": "急救药箱",
+   "original": "所有我方单位的生命+35%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +35%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 62,
+   "name": "未知仪器",
+   "original": "所有我方单位的生命+50%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "最大生命 +50%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 63,
+   "name": "锈蚀刀片",
+   "original": "所有敌方单位受到的物理伤害+15%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "敌人受到的物理伤害（伞击、狙击）+15%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 64,
+   "name": "赶车夫的长鞭",
+   "original": "所有敌方单位受到的物理伤害+25%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "同上 +25%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 65,
+   "name": "“复仇者”",
+   "original": "所有敌方单位受到的物理伤害+35%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "同上 +35%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 66,
+   "name": "制式防暴用具",
+   "original": "所有敌方单位受到的法术伤害+20%",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "敌人受到的法术伤害（触手、术师、水母）+20%",
+   "rarity": "基础",
+   "lanes": [
+    "B"
+   ],
+   "tags": [
+    "mizuki_tentacle",
+    "arts",
+    "summon"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 67,
+   "name": "皇帝的收藏",
+   "original": "所有敌方单位受到的法术伤害+30%",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "同上 +30%",
+   "rarity": "基础",
+   "lanes": [
+    "B"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 68,
+   "name": "“璀璨悲泣”",
+   "original": "所有敌方单位受到的法术伤害+40%",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "同上 +40%",
+   "rarity": "基础",
+   "lanes": [
+    "B"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 69,
+   "name": "活玫瑰",
+   "original": "所有我方单位受到的治疗和生命回复效果+20%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "所有回复效果 +20%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 70,
+   "name": "苍白花冠",
+   "original": "所有我方单位受到的治疗和生命回复效果+30%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "所有回复效果 +30%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 71,
+   "name": "涌动之餐",
+   "original": "所有我方单位受到的治疗和生命回复效果+30%，且受到的元素损伤-30%",
+   "cat": "生存",
+   "tier": "A",
+   "adapt": "所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 72,
+   "name": "演出用香水",
+   "original": "所有我方单位每秒回复1%的最大生命值",
+   "cat": "生存",
+   "tier": "A",
+   "adapt": "每秒回复 1% 最大生命",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 73,
+   "name": "设计师量尺",
+   "original": "所有我方单位获得15%物理闪避",
+   "cat": "闪避",
+   "tier": "A",
+   "adapt": "闪避近战攻击 +15%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "on_dodge"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 74,
+   "name": "“法术杀手”",
+   "original": "所有我方单位获得15%法术闪避",
+   "cat": "闪避",
+   "tier": "A",
+   "adapt": "闪避远程攻击（弹幕）+15%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "on_dodge"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 75,
+   "name": "舞者手链",
+   "original": "所有我方单位获得10%物理与法术闪避",
+   "cat": "闪避",
+   "tier": "A",
+   "adapt": "闪避率 +10%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "on_dodge"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 76,
+   "name": "人偶之家",
+   "original": "初始部署费用+10",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有部署费用",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 77,
+   "name": "微缩舞台模型",
+   "original": "初始部署费用+20",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有部署费用",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 78,
+   "name": "缠梦古堡模型",
+   "original": "初始部署费用+30",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有部署费用",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 79,
+   "name": "涡旋座",
+   "original": "所有【特种】干员的攻击力+30%，所有【术师】干员的攻击力+3%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "水月伤害 +30%，术师援护伤害 +3%（水月就是特种干员）",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 80,
+   "name": "海程",
+   "original": "所有【术师】干员的攻击力+30%，所有【特种】干员的攻击力+3%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "术师援护伤害 +30%，水月伤害 +3%",
+   "rarity": "基础",
+   "lanes": [
+    "B"
+   ],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 81,
+   "name": "漆黑的舞鞋",
+   "original": "可以在高台部署近战位干员",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有高台 / 低地",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 82,
+   "name": "洁白的舞鞋",
+   "original": "可以在低地部署远程位干员",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有高台 / 低地",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 83,
+   "name": "胎生百合",
+   "original": "战斗开始时，所有干员的部署费用-3并将部署费用打乱",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有部署费用",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 84,
+   "name": "几丁质刺刃",
+   "original": "战斗开始时，使随机一名干员在本局内攻击力+100%，生命+100%",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "触手追击伤害 +60%",
+   "rarity": "核心",
+   "lanes": [
+    "B"
+   ],
+   "tags": [
+    "mizuki_tentacle",
+    "arts"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 85,
+   "name": "古高卢银币",
+   "original": "所有干员的初始技力+6",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技能解锁时和每次技能结束后，立即回复 10% 技力",
+   "rarity": "稀有",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 86,
+   "name": "高卢银行支票",
+   "original": "所有干员的初始技力+12",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "同上 20%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 87,
+   "name": "《第二经济改革法》",
+   "original": "所有干员的初始技力+18",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "同上 30%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 88,
+   "name": "香草沙士汽水",
+   "original": "所有自然回复技能的技力恢复+0.2/秒",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技力回复速度 +15%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 89,
+   "name": "羽兽肝酱",
+   "original": "所有自然回复技能的技力恢复+0.35/秒",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技力回复速度 +25%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 90,
+   "name": "迷梦香精",
+   "original": "所有自然回复技能的技力恢复+0.5/秒",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技力回复速度 +35%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 91,
+   "name": "摩根队长佳酿",
+   "original": "所有攻击和受击回复的技能每3.5秒回复1点技力",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "唤醒所需挥伞次数 -1",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "mizuki_s1"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 92,
+   "name": "生命之水",
+   "original": "所有攻击和受击回复的技能每2.5秒回复1点技力",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "唤醒所需挥伞次数 -1，技力回复 +10%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "mizuki_s1",
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 93,
+   "name": "皇家利口酒",
+   "original": "所有攻击和受击回复的技能每1.5秒回复1点技力",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "唤醒所需挥伞次数 -2",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "mizuki_s1"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 94,
+   "name": "“绽放”",
+   "original": "所有干员每次受到伤害时回复1点技力，每次受到元素损伤时回复1点技力",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "每次受到伤害回复 3% 技力，受到侵蚀或神经损伤再回复 3%",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 95,
+   "name": "悬丝傀儡",
+   "original": "敌人被晕眩、冰冻、束缚时，每秒受到700点法术伤害",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "被晕眩、束缚的敌人每秒受到法术伤害（约 60% 伞击伤害）",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "arts",
+    "control"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 96,
+   "name": "“童趣玩偶”",
+   "original": "敌人被晕眩、冰冻、束缚时，每秒受到1000点法术伤害",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "同上（约 90% 伞击伤害）",
+   "rarity": "升华",
+   "lanes": [
+    "C"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 97,
+   "name": "凯旋号角",
+   "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高100%",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "晕眩、束缚、减速的持续时间 +100%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "control"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 98,
+   "name": "高闪相机",
+   "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高110%",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "同上 +110%",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 99,
+   "name": "精神治疗录像带",
+   "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高150%",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "同上 +150%",
+   "rarity": "升华",
+   "lanes": [
+    "C"
+   ],
+   "tags": [],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 100,
+   "name": "皇族金胸针",
+   "original": "所有我方单位的法术抗性+15，且部署后抵挡一次伤害",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】护盾破裂时冲击并击退周围敌人",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "control",
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 101,
+   "name": "老蒲扇",
+   "original": "战斗编队中每有一个职业不同的干员，所有干员的攻击力+10%",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "每有一名职业不同的援护干员（水月也算一名），伤害 +10%",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 102,
+   "name": "食腐者手杖",
+   "original": "所有我方单位受到的治疗溢出时，周围敌人会受到相当于该次溢出治疗量的法术伤害",
+   "cat": "生存",
+   "tier": "A",
+   "adapt": "溢出的回复量转化为对周围敌人的法术伤害",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "arts",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 103,
+   "name": "安洁莉娜的创想",
+   "original": "所有敌方单位移动速度-15%，且重量下降一个等级",
+   "cat": "触手与控制",
+   "tier": "A",
+   "adapt": "所有敌人移动速度 -15%，更容易被击退",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "control"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 104,
+   "name": "Scout的狙击镜",
+   "original": "所有敌方单位受到我方单位伤害时，距离伤害来源越远受到的伤害越高（最高50%）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员的攻击离目标越远伤害越高（最高 +50%）",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 105,
+   "name": "黑色郁金香",
+   "original": "所有我方干员技能未开启时60秒内攻击力逐渐提升至最高+60%，每次技能结束时失去该加成",
+   "cat": "技能与技力",
+   "tier": "A",
+   "adapt": "技能未生效时，60 秒内伤害逐渐提升至 +60%，技能结束时清零",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 106,
+   "name": "突击协议-利刃",
+   "original": "战斗编队中每有一名先锋和近卫干员，所有先锋和近卫干员的攻击力+8%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有先锋 / 近卫",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 107,
+   "name": "堡垒协议-方阵",
+   "original": "战斗编队中每有一名重装和辅助干员，所有重装和辅助干员的攻击力+8%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "辅助援护的减速和伤害 +8%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "control",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 108,
+   "name": "远程协议-遥击",
+   "original": "战斗编队中每有一名医疗和狙击干员，所有医疗和狙击干员的攻击力+8%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "同时有狙击和医疗援护时，两者效果 +16%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 109,
+   "name": "破坏协议-压制",
+   "original": "战斗编队中每有一名术师和特种干员，所有术师和特种干员的攻击速度+6",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "有术师援护时，水月挥伞速度 +6%，术师射速 +6%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "attack_speed",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 110,
+   "name": "绿叶菜罐头",
+   "original": "所有干员技能触发后1秒内攻击力+60%",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技能开启后 3 秒内伤害 +60%",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 111,
+   "name": "叙拉古人的愤怒",
+   "original": "所有干员技能触发后1秒内攻击力+100%",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "技能开启后 3 秒内伤害 +100%",
+   "rarity": "升华",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill"
+   ],
+   "first_batch": false,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 112,
+   "name": "荣耀绶带",
+   "original": "所有我方单位仅阻挡1名敌人时，攻击力+100%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "一次挥伞只命中 1 名敌人时，这一击伤害 +100%（打 Boss 用）",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "on_hit"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 113,
+   "name": "王庭盟约",
+   "original": "所有干员不再受到来自【萨卡兹】敌人的伤害",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有萨卡兹敌人",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 114,
+   "name": "国王的新枪",
+   "original": "目标生命为1时，所有我方单位的攻击速度+50",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "生命低于 30% 时，挥伞速度 +50%（国王套装）",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "attack_speed",
+    "low_hp"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 115,
+   "name": "古堡的子嗣",
+   "original": "所有干员在场上停留100秒后防御力+300，法术抗性+30",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "开局 100 秒后，受到伤害 -30%",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 116,
+   "name": "遥乡之引",
+   "original": "每次战斗会随机一个可部署位置，该位置上的我方单位每2秒回复1点技力，每秒回复自身3%的血量",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "地图上随机出现一片「遥乡」区域，站在里面每秒回复 3% 生命，技力回复加快",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 117,
+   "name": "遗落之帜",
+   "original": "每次战斗会随机一个可部署位置，该位置上的我方单位攻击力+50%，攻击速度+50",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "地图上随机出现一面「旗帜」，站在附近伤害 +50%，挥伞速度 +50%",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 118,
+   "name": "药枚",
+   "original": "所有我方单位在部署时获得2层护盾",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】每 12 秒生成一层护盾，抵挡一次伤害",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 119,
+   "name": "捕鳞蓑",
+   "original": "远程干员获得【迷彩】",
+   "cat": "闪避",
+   "tier": "B",
+   "adapt": "远程敌人瞄准水月的频率 -25%（原作的「迷彩」）",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 120,
+   "name": "《光耀卡西米尔》",
+   "original": "干员触发闪避后6秒内攻击力+70%",
+   "cat": "闪避",
+   "tier": "A",
+   "adapt": "闪避后 6 秒内伤害 +70%",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "on_dodge"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 121,
+   "name": "《归来》",
+   "original": "干员触发闪避后6秒内攻击力+130%",
+   "cat": "闪避",
+   "tier": "A",
+   "adapt": "闪避后 6 秒内伤害 +130%",
+   "rarity": "升华",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "on_dodge"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 122,
+   "name": "疗养体验卡",
+   "original": "所有干员部署后10秒内攻击速度+40",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "每次升级后 10 秒内挥伞速度 +40%",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 123,
+   "name": "疗养特供卡",
+   "original": "所有干员部署后10秒内攻击速度+70",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "每次升级后 10 秒内挥伞速度 +70%",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 124,
+   "name": "古乔治营养原浆",
+   "original": "干员生命值越高，攻击力越高，100%生命值时达到最大可提升攻击力（+30%）",
+   "cat": "伞击与输出",
+   "tier": "A",
+   "adapt": "生命越高伤害越高，满血时 +30%",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 125,
+   "name": "紧急活性剂",
+   "original": "干员生命值越低，攻击速度越快，30%生命值时达到最大可提升攻击速度（+60）",
+   "cat": "伞击与输出",
+   "tier": "A",
+   "adapt": "生命越低挥伞越快，30% 生命时 +60%",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 126,
+   "name": "国王的圆饼",
+   "original": "目标生命为1时，所有干员的阻挡数+2",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "生命低于 30% 时，受到伤害 -30%（国王套装）",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "low_hp",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 127,
+   "name": "国王的枝条",
+   "original": "目标生命为1时，所有干员每2秒额外回复1点技力",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "生命低于 30% 时，技力回复 +50%（国王套装）",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "skill",
+    "low_hp",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 128,
+   "name": "诸王的冠冕",
+   "original": "目标生命为1时，所有我方单位的攻击力+50%，集齐3件及以上国王收藏品后变为+150%",
+   "cat": "条件触发",
+   "tier": "B",
+   "adapt": "生命低于 30% 时伤害 +50%；集齐 3 件国王藏品后变为 +150%",
+   "rarity": "升华",
+   "lanes": [],
+   "tags": [
+    "low_hp"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 129,
+   "name": "散轶诗简",
+   "original": "【召唤物】不再消耗部署位",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员上限 +1",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 130,
+   "name": "衍生者终端-超级改",
+   "original": "【召唤物】生命值+30%，攻击力+30%，攻击速度+30",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "发光水母、涨潮螺壳等召唤效果伤害 +30%，频率 +30%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "summon"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 131,
+   "name": "沃特大叔养护套装",
+   "original": "所有我方远程单位受到元素损伤减少40%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "受到的侵蚀伤害 -40%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 132,
+   "name": "乌萨斯毡毯",
+   "original": "所有我方近战单位受到元素损伤减少40%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "神经损伤累积速度 -40%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 133,
+   "name": "钝爪-突破",
+   "original": "所有【先锋】干员的部署费用-2，生命+60%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "先锋职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 134,
+   "name": "钝爪-爆发",
+   "original": "所有【先锋】干员的初始技力+15",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "先锋职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 135,
+   "name": "钝爪-熟稔",
+   "original": "所有【先锋】干员的技力消耗-35%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "先锋职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 136,
+   "name": "钝爪-百战",
+   "original": "所有【先锋】干员的攻击力+50%，防御力+50%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "先锋职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 137,
+   "name": "折戟-突破",
+   "original": "所有【近卫】干员的部署费用-3，生命+40%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "近卫职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 138,
+   "name": "折戟-锋刃",
+   "original": "所有【近卫】干员的攻击力+25%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "近卫职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 139,
+   "name": "折戟-浴血",
+   "original": "所有【近卫】干员在攻击后获得2点技力",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "近卫职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 140,
+   "name": "折戟-一夫当关",
+   "original": "所有【近卫】干员的阻挡数+1",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "近卫职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 141,
+   "name": "折戟-破釜沉舟",
+   "original": "所有【近卫】干员的防御力-40%，但攻击力+40%，攻击速度+30",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "近卫职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 142,
+   "name": "铁卫-突破",
+   "original": "所有【重装】干员的部署费用-3，生命+40%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 143,
+   "name": "铁卫-侵掠",
+   "original": "所有【重装】干员的攻击力+60%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 144,
+   "name": "铁卫-推进",
+   "original": "所有【重装】干员阻挡数-1（部署时不会低于1），但攻击力+40%，攻击速度+40",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 145,
+   "name": "铁卫-无锋",
+   "original": "所有【重装】干员在受到攻击后获得2点技力",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 146,
+   "name": "铁卫-临时要塞",
+   "original": "【重装】干员部署后15秒内攻击力和防御力+100%，且阻挡数+1",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 147,
+   "name": "残弩-突破",
+   "original": "所有【狙击】干员的部署费用-2，生命+60%",
+   "cat": "援护干员·狙击",
+   "tier": "B",
+   "adapt": "招募狙击援护时直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 148,
+   "name": "残弩-百步穿杨",
+   "original": "所有【狙击】干员的攻击力+20%",
+   "cat": "援护干员·狙击",
+   "tier": "B",
+   "adapt": "狙击援护伤害 +20%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 149,
+   "name": "残弩-交叉火力",
+   "original": "所有【狙击】干员的生命-40%，但攻击力+40%",
+   "cat": "援护干员·狙击",
+   "tier": "B",
+   "adapt": "狙击援护伤害 +40%，但射速 -20%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "attack_speed",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 150,
+   "name": "残弩-神速",
+   "original": "所有【狙击】干员的攻击速度+70",
+   "cat": "援护干员·狙击",
+   "tier": "B",
+   "adapt": "狙击援护射速 +70%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "attack_speed",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 151,
+   "name": "断杖-突破",
+   "original": "所有【术师】干员的部署费用-3，生命+60%",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "招募术师援护时直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 152,
+   "name": "断杖-织法者",
+   "original": "所有【术师】干员的攻击力+25%，攻击速度+25",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "术师援护伤害 +25%，射速 +25%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "attack_speed",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 153,
+   "name": "断杖-凝神",
+   "original": "所有【术师】干员的技力恢复+0.4/秒",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "术师援护每 8 秒额外释放一次大范围爆炸",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 154,
+   "name": "断杖-苦难巫咒",
+   "original": "所有【术师】干员生命-40%，但造成的法术伤害+70%",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "术师援护伤害 +70%，但爆炸范围 -20%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 155,
+   "name": "支柱-突破",
+   "original": "所有【辅助】干员的部署费用-2，生命+60%",
+   "cat": "援护干员·辅助",
+   "tier": "B",
+   "adapt": "招募辅助援护时直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 156,
+   "name": "支柱-勤奋",
+   "original": "所有【辅助】干员的技力消耗-40%",
+   "cat": "援护干员·辅助",
+   "tier": "B",
+   "adapt": "辅助援护的减速范围 +40%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "control",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 157,
+   "name": "支柱-援护",
+   "original": "所有【辅助】干员使攻击范围内的我方单位攻击力+20%",
+   "cat": "援护干员·辅助",
+   "tier": "B",
+   "adapt": "处在辅助援护范围内时，水月伤害 +20%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 158,
+   "name": "支柱-枯法",
+   "original": "所有【辅助】干员攻击范围内的敌方单位防御力-20%，法术抗性-20%",
+   "cat": "援护干员·辅助",
+   "tier": "B",
+   "adapt": "辅助援护范围内的敌人受到伤害 +20%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 159,
+   "name": "医者-突破",
+   "original": "所有【医疗】干员的部署费用-2，生命+60%",
+   "cat": "援护干员·医疗",
+   "tier": "B",
+   "adapt": "招募医疗援护时直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 160,
+   "name": "医者-自医",
+   "original": "所有【医疗】干员的技力恢复+0.3/秒",
+   "cat": "援护干员·医疗",
+   "tier": "B",
+   "adapt": "医疗援护治疗频率 +30%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 161,
+   "name": "医者-妙手",
+   "original": "所有【医疗】干员的攻击速度+50",
+   "cat": "援护干员·医疗",
+   "tier": "B",
+   "adapt": "医疗援护治疗量 +50%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 162,
+   "name": "医者-固化序列",
+   "original": "所有【医疗】干员攻击范围内的我方单位获得抵抗",
+   "cat": "援护干员·医疗",
+   "tier": "B",
+   "adapt": "有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 163,
+   "name": "锈刃-突破",
+   "original": "所有【特种】干员的部署费用-2，生命+60%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "最大生命 +40%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 164,
+   "name": "锈刃-研磨",
+   "original": "所有【特种】干员的攻击速度+30",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "挥伞速度 +20%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 165,
+   "name": "锈刃-单兵",
+   "original": "所有【特种】干员的攻击力+40%，防御力+40%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伤害 +40%，受到伤害 -20%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 166,
+   "name": "锈刃-可视静谧",
+   "original": "所有【特种】干员的再部署时间-35%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "闪避后 0.35 秒内无敌（原作的「再部署」换成水影消散）",
+   "rarity": "稀有",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "on_dodge"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 167,
+   "name": "锈刃-神力",
+   "original": "所有【特种】干员的力度+2",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "伞击击退大幅增强（原作的「力度 +2」）",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "control"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 168,
+   "name": "尖刺之手",
+   "original": "【铁卫】、【驭法铁卫】和【决战者】对自身阻挡的敌人每秒造成自身防御力100%的法术伤害",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装 / 先锋分支专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 169,
+   "name": "扼喉之手",
+   "original": "【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀",
+   "cat": "援护干员·狙击",
+   "tier": "B",
+   "adapt": "狙击援护会直接击杀生命低于 20% 的敌人（Boss 除外）",
+   "rarity": "升华",
+   "lanes": [
+    "D",
+    "S"
+   ],
+   "tags": [
+    "on_kill",
+    "execute",
+    "support",
+    "ranged"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 170,
+   "name": "扣挠之手",
+   "original": "【凝滞师】、【削弱者】和【护佑者】攻击时额外造成目标当前生命值3%的法术伤害",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "触手追击额外造成目标当前生命 3% 的法术伤害（Boss 为 1%）",
+   "rarity": "核心",
+   "lanes": [
+    "B"
+   ],
+   "tags": [
+    "mizuki_tentacle",
+    "arts"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 171,
+   "name": "炸裂之手",
+   "original": "【要塞】、【链术师】和【轰击术师】每对一个单位造成伤害就回复2点技力值",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "触手每命中一个敌人回复 1% 技力",
+   "rarity": "核心",
+   "lanes": [
+    "B"
+   ],
+   "tags": [
+    "mizuki_tentacle",
+    "arts",
+    "skill",
+    "on_hit",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 172,
+   "name": "极速之手",
+   "original": "【处决者】、【伏击客】和【傀儡师】相邻四格内没有我方单位时，攻击速度+120",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "没有招募任何援护干员时，挥伞速度 +60%（伏击客分支，独行流）",
+   "rarity": "升华",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 173,
+   "name": "积攒之手",
+   "original": "【冲锋手】、【尖兵】和【战术家】的部署费用-12，且击杀敌人后额外获得6点部署费用",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装 / 先锋分支专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 174,
+   "name": "净尘之手",
+   "original": "【吟游者】【阵法术师】【疗养师】对攻击范围内敌人每秒造成50%攻击力的法术伤害",
+   "cat": "援护干员·医疗",
+   "tier": "B",
+   "adapt": "医疗援护每秒对周围敌人造成法术伤害",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "arts",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 175,
+   "name": "碎靶之手",
+   "original": "【炮手】【扩散术师】【投掷手】每对一个单位造成伤害就使自身攻击力+15%，最高+150%，5秒未造成伤害则使加成清空",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "术师每次命中伤害 +15%（最高 +150%），5 秒没命中就清零",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "on_hit",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 176,
+   "name": "永流之手",
+   "original": "【中坚术师】【秘术师】【召唤师】每使用过一次技能，自身的技力自然回复速度+0.5/秒，最多叠加4层",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "每释放一次技能，技力回复 +12%（最多 4 层）",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 177,
+   "name": "游戏室管理员权限卡",
+   "original": "立即进阶一个干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "立即获得 1 次成长三选一",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 178,
+   "name": "Miss.Christine摸摸券",
+   "original": "立即进阶两个干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "立即获得 2 次成长三选一",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 179,
+   "name": "古旧铸物",
+   "original": "立即进阶三个干员（不消耗希望）",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "立即获得 3 次成长三选一",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 180,
+   "name": "地形图",
+   "original": "可同时部署人数+1，所有我方单位的防御力+4%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员上限 +1，受到伤害 -1",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 181,
+   "name": "神音海螺",
+   "original": "可同时部署人数+1，所有我方单位的生命值+4%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员上限 +1，最大生命 +8%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 182,
+   "name": "林间夜话",
+   "original": "可同时部署人数+2，所有我方单位的防御力+6%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员伤害 +15%，受到伤害 -2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 183,
+   "name": "教堂救济餐券",
+   "original": "可同时部署人数+2，所有我方单位的生命值+6%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "援护干员伤害 +15%，最大生命 +12%",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 184,
+   "name": "地区行动方案",
+   "original": "招募4星干员的希望消耗-2",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作援护干员没有星级",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 185,
+   "name": "全局作战文件",
+   "original": "招募5星干员的希望消耗-2",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作援护干员没有星级",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 186,
+   "name": "人事部密信",
+   "original": "招募6星干员的希望消耗-2",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作援护干员没有星级",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 187,
+   "name": "一份演讲稿",
+   "original": "招募所有干员的希望消耗-2",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "下一次招募的援护干员直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 188,
+   "name": "锈蚀的铁锤",
+   "original": "商店中购买道具所需源石锭-50%",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "商人处所有商品价格 -50%",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 189,
+   "name": "罗德岛战术电台",
+   "original": "战斗后掉落招募券时，增加一个可选项",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "招募援护干员时多一个选项",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 190,
+   "name": "四叶草化石",
+   "original": "我方在得偿所愿节点和战斗后掉落战利品时，增加一个可选项",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "升级三选一变为四选一",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 191,
+   "name": "阿卡胡拉饭碗",
+   "original": "回复4目标生命，护盾值+2",
+   "cat": "护盾",
+   "tier": "B",
+   "adapt": "回复 40% 生命，立即补满护盾",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 192,
+   "name": "立体艺术装置",
+   "original": "回复7目标生命，每次战斗结束后额外回复1目标生命",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "立即回复 70% 生命，此后每击败一个 Boss 回复 10%",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "on_kill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 193,
+   "name": "“多功能”发夹",
+   "original": "钥匙+1，掷骰次数+1，护盾值+1",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有钥匙 / 骰子",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 194,
+   "name": "三钥协定",
+   "original": "钥匙+3",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "接下来 3 个补给箱必定掉落藏品（钥匙换成宝箱）",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 195,
+   "name": "便携经书",
+   "original": "掷骰次数+2",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有钥匙 / 骰子",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 196,
+   "name": "判官经文布",
+   "original": "每次战斗结束后掷骰次数+1",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有钥匙 / 骰子",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 197,
+   "name": "深洋主宰刻像",
+   "original": "掷骰次数+6",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有钥匙 / 骰子",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 198,
+   "name": "鸭爵金砖",
+   "original": "使你的骰子获得升级，按6面→8面→12面的顺序将骰子升级1档",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "本作没有钥匙 / 骰子",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 199,
+   "name": "御2",
+   "original": "护盾值+5",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】护盾层数上限 +1",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 200,
+   "name": "嵌体甲片",
+   "original": "目标生命上限-2，护盾值+8",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】最大生命 -10，护盾层数上限 +2",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 201,
+   "name": "达里奥的提灯",
+   "original": "获得时抑制指定一名干员的排异反应",
+   "cat": "需新机制·排异反应",
+   "tier": "C",
+   "adapt": "清除并免疫一个排异反应",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 202,
+   "name": "“国王的护戒”",
+   "original": "护盾值+2，将目标生命全部转化为等量护盾值（目标生命不会低于1）",
+   "cat": "护盾",
+   "tier": "A",
+   "adapt": "【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命",
+   "rarity": "核心",
+   "lanes": [],
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 203,
+   "name": "郁金香的秘方",
+   "original": "获得时抑制指定一名干员的排异反应",
+   "cat": "需新机制·排异反应",
+   "tier": "C",
+   "adapt": "清除并免疫一个排异反应",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 204,
+   "name": "火油与药膏",
+   "original": "灯火-30，获得时抑制指定一名干员的排异反应",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "灯火 -30；灯火低于 30 时技力回复 +40%",
+   "rarity": "核心",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "skill",
+    "low_light",
+    "light",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 205,
+   "name": "夜阳草",
+   "original": "灯火+5",
+   "cat": "灯火",
+   "tier": "A",
+   "adapt": "灯火 +5",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 206,
+   "name": "大教堂拼图",
+   "original": "获得时随机获得1个启示",
+   "cat": "需新机制·启示",
+   "tier": "C",
+   "adapt": "随机获得 1 个启示（或一件能凑成组合的藏品）",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 207,
+   "name": "投币玩具",
+   "original": "每有5源石锭，所有我方单位的攻击速度+3",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "每持有 5 源石锭，挥伞速度 +3%（上限 +30%）",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed",
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 208,
+   "name": "骑士戒律·新编",
+   "original": "每有5源石锭，所有我方单位的攻击速度+5",
+   "cat": "经济",
+   "tier": "A",
+   "adapt": "每持有 5 源石锭，挥伞速度 +5%（上限 +50%）",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed",
+    "economy"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 209,
+   "name": "支援补给站",
+   "original": "每次战斗中携带1个便携式补给站",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "每 60 秒在身边掉落一个急救包",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 210,
+   "name": "支援地雷组",
+   "original": "每次战斗中携带3个干扰地雷",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "每 20 秒在脚下放一枚地雷",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 211,
+   "name": "支援轰隆隆",
+   "original": "每次战斗中携带1个轰隆隆先生",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "每 45 秒召唤一个会冲向敌群自爆的小机器（原创造型）",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 212,
+   "name": "支援起重机",
+   "original": "每次战斗中携带1个雪雉的安全起重机",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "每 30 秒吊起一名精英，束缚 3 秒",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "control",
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 213,
+   "name": "支援防暴桩",
+   "original": "每次战斗中携带2个防暴桩",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "每 30 秒放下 2 根阻挡敌人的防暴桩",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 214,
+   "name": "支援急救包",
+   "original": "每次战斗中携带3个急救包",
+   "cat": "支援装置",
+   "tier": "B",
+   "adapt": "携带 3 个急救包，生命低于 30% 时自动使用",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "low_hp",
+    "summon",
+    "support"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 215,
+   "name": "布雷奥甘肖像",
+   "original": "所有干员部署时失去15点技力",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "技力回复 -15%",
+   "rarity": "遭诅古物",
+   "lanes": [],
+   "tags": [
+    "skill",
+    "survival",
+    "curse"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 216,
+   "name": "海神的代谢",
+   "original": "所有敌人生命值+25%",
+   "cat": "负面藏品",
+   "tier": "A",
+   "adapt": "所有敌人生命 +25%",
+   "rarity": "遭诅古物",
+   "lanes": [],
+   "tags": [
+    "curse"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 217,
+   "name": "失败的标本",
+   "original": "获得时立即使随机一名干员产生排异反应",
+   "cat": "需新机制·排异反应",
+   "tier": "C",
+   "adapt": "立即获得一个随机排异反应",
+   "rarity": "遭诅古物",
+   "lanes": [],
+   "tags": [
+    "curse"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 218,
+   "name": "“应急灯”",
+   "original": "每次战斗结束后灯火额外-2",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "灯火消耗 +10%",
+   "rarity": "遭诅古物",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 219,
+   "name": "“光明之躯”",
+   "original": "每次战斗结束后灯火额外-3",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "灯火消耗 +15%",
+   "rarity": "遭诅古物",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 220,
+   "name": "主教的研究",
+   "original": "每次战斗结束后灯火额外-5",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "灯火消耗 +25%",
+   "rarity": "遭诅古物",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 221,
+   "name": "深蓝之心",
+   "original": "灯火-50，获得时立即使随机一名干员产生排异反应，让探索走向不同的结局",
+   "cat": "需新机制·结局分支",
+   "tier": "C",
+   "adapt": "灯火 -50，获得排异反应，开启另一个结局",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "light",
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 222,
+   "name": "海潮的气息",
+   "original": "可同时部署人数+1；获得后【猎潮的骑士】出现在战场，直至被击败",
+   "cat": "需新机制·猎潮的骑士",
+   "tier": "C",
+   "adapt": "获得后一名强力敌人「猎潮的骑士」追击水月，直到被击败（需原创造型）",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "on_kill",
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 223,
+   "name": "退行的罗辛南特",
+   "original": "【猎潮的骑士】不再出现在战场",
+   "cat": "需新机制·猎潮的骑士",
+   "tier": "C",
+   "adapt": "「猎潮的骑士」不再出现",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 224,
+   "name": "“荒诞命运”",
+   "original": "源石锭+10，钥匙+1",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "源石锭 +10，下一个补给箱必定掉落藏品",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 225,
+   "name": "骑士骨血",
+   "original": "【猎潮的骑士】的防御力-80%",
+   "cat": "需新机制·猎潮的骑士",
+   "tier": "C",
+   "adapt": "「猎潮的骑士」受到伤害 +80%",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 226,
+   "name": "“绝唱”",
+   "original": "获得时随机获得2个启示",
+   "cat": "需新机制·启示",
+   "tier": "C",
+   "adapt": "随机获得 2 个启示",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 227,
+   "name": "“文明的存续”",
+   "original": "所有敌方单位受到的真实伤害+150%",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "对 Boss 造成的伤害 +50%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 228,
+   "name": "“时光之末”",
+   "original": "仅一次，在非区域最终战斗和领袖战中失败时不结束探索，目标生命+1并继续下一步行动",
+   "cat": "生存",
+   "tier": "A",
+   "adapt": "仅一次：生命归零时不结束，以 50% 生命复活",
+   "rarity": "升华",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 229,
+   "name": "“审判庭之火”",
+   "original": "所有干员对【海怪】造成伤害时回复2点技力",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "每次命中敌人回复少量技力（所有敌人都是海嗣）",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "on_hit",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 230,
+   "name": "“苦痛的快乐”",
+   "original": "所有敌方单位的生命-15%，移动速度-15%",
+   "cat": "削弱敌人",
+   "tier": "A",
+   "adapt": "所有敌人生命 -15%，移动速度 -15%",
+   "rarity": "基础",
+   "lanes": [
+    "D"
+   ],
+   "tags": [
+    "control"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 231,
+   "name": "“小格兰法洛”",
+   "original": "每次敌人进入保护目标点时，立刻对全场所有敌人造成5秒晕眩",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "受到伤害时，全屏敌人晕眩 5 秒（冷却 30 秒）",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "control",
+    "on_damage"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 232,
+   "name": "“碎片大厦的回忆”",
+   "original": "每次敌人进入保护目标点时，立刻对全场所有敌人造成3000点真实伤害",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）",
+   "rarity": "升华",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "on_damage"
+   ],
+   "first_batch": false,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 233,
+   "name": "“荣耀套餐”",
+   "original": "我方单位被击倒时，对周围四格的敌人造成6秒晕眩",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "一次受到超过 10% 最大生命的伤害时，周围敌人晕眩 3 秒",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "control",
+    "on_damage",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 234,
+   "name": "“岁怒”",
+   "original": "每次部署我方单位时，对场上随机一个敌人及其周围造成3000点法术伤害",
+   "cat": "触手与控制",
+   "tier": "B",
+   "adapt": "每次升级时，对随机一名敌人及其周围造成大量法术伤害",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "arts"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 235,
+   "name": "“基岩”",
+   "original": "所有干员的部署费用+5，但攻击力、防御力和生命+15%",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -10%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "control",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 236,
+   "name": "“分浪”",
+   "original": "所有干员的生命-25%，但再部署时间-50%",
+   "cat": "技能与技力",
+   "tier": "B",
+   "adapt": "最大生命 -25%，技力回复 +50%",
+   "rarity": "基础",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 237,
+   "name": "“海洋的脉搏”",
+   "original": "所有我方单位的攻击速度+10，所有敌方单位的攻击速度-10",
+   "cat": "伞击与输出",
+   "tier": "A",
+   "adapt": "挥伞速度 +10%，所有敌人攻击速度 -10%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "mizuki_umbrella",
+    "basic_attack",
+    "melee",
+    "physical",
+    "attack_speed"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 238,
+   "name": "“决心”",
+   "original": "所有我方干员阻挡数+2，防御力和生命+120%，法术抗性+20，让探索走向不同的结局",
+   "cat": "需新机制·结局分支",
+   "tier": "C",
+   "adapt": "开启另一个结局，并获得大幅强化",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 239,
+   "name": "“观望”",
+   "original": "所有我方干员阻挡数+1，让探索走向不同的结局",
+   "cat": "需新机制·结局分支",
+   "tier": "C",
+   "adapt": "开启另一个结局",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 240,
+   "name": "“犹疑”",
+   "original": "所有我方干员阻挡数-1（不会低于1），让探索走向不同的结局",
+   "cat": "需新机制·结局分支",
+   "tier": "C",
+   "adapt": "开启另一个结局",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 241,
+   "name": "“未尽的生命”",
+   "original": "每进入新的一层时，使随机一名干员产生排异反应",
+   "cat": "需新机制·排异反应",
+   "tier": "C",
+   "adapt": "每过 2 分钟获得一个随机排异反应",
+   "rarity": "遭诅古物",
+   "lanes": [],
+   "tags": [
+    "curse"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 242,
+   "name": "深蓝回忆",
+   "original": "灯火-100，获得时立即使随机一名干员产生排异反应",
+   "cat": "需新机制·结局分支",
+   "tier": "C",
+   "adapt": "灯火 -100，获得排异反应",
+   "rarity": "结局",
+   "lanes": [],
+   "tags": [
+    "light",
+    "ending"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 243,
+   "name": "深蓝之树",
+   "original": "所有敌人攻击速度+15；每次作战若未损失目标生命，战斗结束后灯火+15",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15（诅咒与收益并存）",
+   "rarity": "遭诅古物",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "attack_speed",
+    "low_light",
+    "light",
+    "curse"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 244,
+   "name": "人事部铜印",
+   "original": "随机临时招募1名5星干员，且直接就是已进阶的状态",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "立即招募一名随机援护干员，直接 Lv.2",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 245,
+   "name": "博士银印",
+   "original": "随机临时招募1名6星干员，且直接就是已进阶的状态",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "立即招募一名随机援护干员，直接 Lv.3",
+   "rarity": "基础",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 246,
+   "name": "无字珊瑚",
+   "original": "每消耗1掷骰次数，回复5灯火",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "灯火低于 30 时，触手追击目标 +1",
+   "rarity": "核心",
+   "lanes": [
+    "B",
+    "E"
+   ],
+   "tags": [
+    "mizuki_tentacle",
+    "arts",
+    "low_light",
+    "light"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 247,
+   "name": "地底的灼痕",
+   "original": "每次作战若未损失目标生命，战斗结束后灯火+6",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "连续 60 秒未受伤时，灯火 +6",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 248,
+   "name": "铸阳巨械",
+   "original": "每次作战若未损失目标生命，战斗结束后灯火+9",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "连续 60 秒未受伤时，灯火 +9",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "light"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 249,
+   "name": "凝固灯油",
+   "original": "战斗损伤导致的灯火损失降低40%",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "受击、黑潮导致的灯火流失 -40%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "on_damage",
+    "light"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 250,
+   "name": "崇圣灯油",
+   "original": "战斗损伤导致的灯火损失降低60%",
+   "cat": "灯火",
+   "tier": "B",
+   "adapt": "受击、黑潮导致的灯火流失 -60%",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "on_damage",
+    "light"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 251,
+   "name": "“国王的水晶”",
+   "original": "战斗结束后使目标生命-2（目标生命不会低于1），希望+1，源石锭+5",
+   "cat": "经济",
+   "tier": "B",
+   "adapt": "每击败一个 Boss：失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
+   "rarity": "稀有",
+   "lanes": [],
+   "tags": [
+    "on_kill",
+    "economy"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 252,
+   "name": "刻勋之手",
+   "original": "【无畏者】【决战者】【武者】每次击败敌人时，上述职业全体干员永久获得1%攻击力、1攻击速度和1%最大生命值（最多可获得99次）",
+   "cat": "伞击与输出",
+   "tier": "B",
+   "adapt": "每次击杀永久伤害 +0.1%（上限 +30%）",
+   "rarity": "升华",
+   "lanes": [
+    "D"
+   ],
+   "tags": [
+    "on_kill"
+   ],
+   "first_batch": true,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 253,
+   "name": "蓝卡坞安全衣",
+   "original": "每拥有一个遭诅古物，所有友方单位防御力+25%，法术抗性+10",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "每持有一件负面藏品，受到伤害 -8%",
+   "rarity": "核心",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "low_light",
+    "survival",
+    "curse"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 254,
+   "name": "《刀光剑影》",
+   "original": "每拥有一个遭诅古物，所有友方单位攻击速度+35",
+   "cat": "负面藏品",
+   "tier": "B",
+   "adapt": "每持有一件负面藏品，挥伞速度 +15%",
+   "rarity": "升华",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "attack_speed",
+    "low_light",
+    "curse"
+   ],
+   "first_batch": false,
+   "boss_only": true,
+   "shop_allowed": false
+  },
+  {
+   "id": 255,
+   "name": "佣兵保单",
+   "original": "所有我方单位获得10%的庇护，灯火低于50时改为获得35%的庇护",
+   "cat": "生存",
+   "tier": "A",
+   "adapt": "受到伤害 -10%；灯火低于 50 时改为 -35%（原作的「庇护」）",
+   "rarity": "核心",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "survival"
+   ],
+   "first_batch": true,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 256,
+   "name": "断杖-学识",
+   "original": "每拥有一个收藏品，【术师】干员的攻击力+2%，攻击速度+1",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "每持有一件藏品，术师援护伤害 +2%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 257,
+   "name": "断杖-智慧之光",
+   "original": "每拥有一个收藏品，【术师】干员的攻击力+3%，攻击速度+2",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "每持有一件藏品，术师援护伤害 +3%，射速 +2%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "attack_speed",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 258,
+   "name": "断杖-破解",
+   "original": "场上每有1名【术师】干员，所有敌人的法术抗性-12",
+   "cat": "援护干员·术师",
+   "tier": "B",
+   "adapt": "有术师援护时，所有敌人受到的法术伤害 +12%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "arts",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 259,
+   "name": "铁卫-城墙",
+   "original": "所有【重装】干员防御力+40%，法术抗性+10",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 260,
+   "name": "铁卫-高塔",
+   "original": "所有【重装】干员防御力+70%，法术抗性+20，受到元素损伤减少60%",
+   "cat": "不适用",
+   "tier": "D",
+   "adapt": "重装职业专属",
+   "rarity": "—",
+   "lanes": [],
+   "tags": [],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  },
+  {
+   "id": 261,
+   "name": "生还者合约",
+   "original": "战斗开始时，使随机一名干员攻击力和防御力+20%，且每次战斗结束后额外+20%",
+   "cat": "援护干员",
+   "tier": "B",
+   "adapt": "随机一名援护干员伤害 +20%，此后每击败一个 Boss 再 +20%",
+   "rarity": "稀有",
+   "lanes": [
+    "S"
+   ],
+   "tags": [
+    "on_kill",
+    "support",
+    "ranged"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 262,
+   "name": "养育者基因种",
+   "original": "排异反应干员会同化周围2名正常干员，同化完成将临时获得【进化】：排异反应无效，获得35%的庇护，攻击无视目标35%的法术抗性和防御力",
+   "cat": "需新机制·排异反应",
+   "tier": "C",
+   "adapt": "排异反应会「进化」：失效，并获得受到伤害 -35%、攻击无视 35% 防御",
+   "rarity": "基础",
+   "lanes": [],
+   "tags": [
+    "survival"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": false
+  }
+ ]
+}

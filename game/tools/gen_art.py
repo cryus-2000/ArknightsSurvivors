@@ -557,3 +557,17 @@ d.rectangle((5, 2, 6, 9), fill=(245, 255, 245)); d.rectangle((2, 5, 9, 6), fill=
 d.point((3, 2), fill=(200, 255, 220))
 outline(im).save(f"{OUT}/pickup_heal.png")
 print("pickups ok")
+
+# ---- v0.8 支援无人机（通用四旋翼造型，2 帧旋翼）
+def drone(f):
+    im = new(18, 12); d = ImageDraw.Draw(im)
+    d.rectangle((6, 4, 11, 8), fill=(70, 90, 110)); d.rectangle((7, 5, 10, 7), fill=(120, 150, 175))
+    d.point((8, 6), fill=(120, 255, 255)); d.point((9, 6), fill=(120, 255, 255))
+    d.line((2, 4, 6, 5), fill=(50, 60, 75)); d.line((11, 5, 15, 4), fill=(50, 60, 75))
+    for x in (2, 15):
+        if f == 0: d.line((x - 2, 3, x + 2, 3), fill=(200, 230, 240))
+        else: d.line((x - 1, 2, x + 1, 4), fill=(200, 230, 240))
+    d.rectangle((7, 9, 10, 9), fill=(255, 120, 80))
+    return im
+strip([drone(0), drone(1)]).save(f"{OUT}/drone.png")
+print("drone ok")

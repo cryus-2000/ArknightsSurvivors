@@ -7,7 +7,7 @@ static var _cache := {}
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {
 	"e_bone": "drifter", "e_slider": "dart", "e_stone": "crawler", "e_pocket": "shell",
-	"e_paranoia2": "e_paranoia_phase2",
+	"e_paranoia2": "e_paranoia_phase2", "e_paranoia2_move": "e_paranoia_phase2_move",
 }
 
 

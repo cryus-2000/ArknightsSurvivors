@@ -68,8 +68,9 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery_ui.png")
 				get_tree().quit())
-	Sfx.cut_target = 1600.0
+	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
+	Sfx.play_music("title")
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
 		get_tree().create_timer(1.0).timeout.connect(func():
@@ -325,7 +326,7 @@ func _draw() -> void:
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.7", 13, Color(0.4, 0.55, 0.6))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.8", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)
