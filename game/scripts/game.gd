@@ -27,7 +27,7 @@ const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), 
 	"ripper": Color(0.95, 0.55, 0.6), "burrower": Color(0.7, 0.5, 1.0), "spitter": Color(0.6, 1.0, 0.65), "hulk": Color(1.0, 0.95, 0.75),
 	"bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
 
-enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO }
+enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
@@ -59,6 +59,18 @@ var dodge := 0.25
 var invuln := 0.0
 var hurt_flash := 0.0
 var walk_t := 0.0
+# ---- 角色动画手感（程序叠加在帧动画之上）
+var p_sq := Vector2.ONE          # 当前挤压/拉伸
+var p_lean := 0.0                # 前倾角
+var p_off := Vector2.ZERO        # 受击后坐 / 开场位移
+var p_turn := 0.0                # 转身瞬间
+var p_was_moving := false
+var p_last_facing := 1.0
+var p_dust_t := 0.0
+var p_swing_prev := 0.0
+var p_hurt_prev := 0.0
+var opening_t := 0.0             # 开场动画时间
+const OPENING_DUR := 3.6
 var swing_face := 0.0
 var level := 1
 var xp := 0.0
@@ -424,8 +436,10 @@ func _ready() -> void:
 		hp = max_hp
 	hp_trail = hp
 	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
-	if not autotest or OS.get_cmdline_user_args().has("--introshot"):
+	if OS.get_cmdline_user_args().has("--introshot"):
 		_open_intro.call_deferred(S.PLAY)
+	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
+		_start_opening.call_deferred()
 	balance = OS.get_cmdline_user_args().has("--balance")
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shots="):
@@ -449,7 +463,7 @@ func _update_music(_dt: float) -> void:
 	var target := 20000.0
 	if state == S.PLAY and lamp < 30.0:
 		target = lerp(700.0, 4000.0, lamp / 30.0)
-	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP or state == S.SHOW or state == S.STATS or state == S.INTRO:
+	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP or state == S.SHOW or state == S.STATS or state == S.INTRO or state == S.OPENING:
 		target = 1800.0
 	Sfx.cut_target = target
 	Sfx.vol_target = -4.0
@@ -519,6 +533,12 @@ func _gallery_step() -> void:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func _autotest_step() -> void:
 	at_frames += 1
+	if state == S.OPENING and OS.get_cmdline_user_args().has("--openshot"):
+		if at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_open_%03d.png" % at_frames)
+		if at_frames > 240:
+			get_tree().quit()
+		return
 	if state == S.INTRO:
 		if intro_t > 0.5 and DisplayServer.get_name() != "headless":
 			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % intro_page)
@@ -740,6 +760,10 @@ func _do_action(act: String) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if settings.visible:
+		return
+	if state == S.OPENING:
+		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
+			_end_opening()
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
@@ -3946,6 +3970,7 @@ func _update_visuals(dt: float) -> void:
 	sprite.position = (ppos + Vector2(0, bob + 6)).round()
 	sprite.flip_h = facing < 0.0
 	_update_player_anim(get_process_delta_time())
+	_update_player_feel(get_process_delta_time())
 	if state == S.DEAD:
 		sprite.modulate = Color(0.5, 0.5, 0.6, 0.6)
 	elif hurt_flash > 0.12:
@@ -5165,6 +5190,142 @@ func _draw_skill_over() -> void:
 
 
 ## 用 Sprite2D 的动画状态手动绘制水月，以便和怪物、海草按前后排序
+## 角色手感：起步拉伸、停步压扁、转身缩身、奔跑起伏与前倾、挥伞前倾、受击后坐、待机呼吸；脚下扬尘
+func _update_player_feel(dt: float) -> void:
+	if dt <= 0.0:
+		return
+	var target_sq := Vector2.ONE
+	var target_lean := 0.0
+	var alive: bool = state != S.DEAD
+	if state == S.OPENING:
+		_update_opening(dt)
+		return
+	# 转身
+	if facing != p_last_facing:
+		p_turn = 1.0
+		p_last_facing = facing
+	p_turn = maxf(0.0, p_turn - dt * 9.0)
+	# 起步 / 停步冲量
+	if moving and not p_was_moving:
+		p_sq = Vector2(0.84, 1.16)
+		p_dust_t = 0.0
+	elif not moving and p_was_moving:
+		p_sq = Vector2(1.18, 0.84)
+		_feet_dust(4, 90.0)
+	p_was_moving = moving
+	if alive and moving and pstun <= 0.0:
+		var ph: float = absf(sin(walk_t))
+		target_sq = Vector2(1.0 + 0.05 * ph, 1.0 - 0.06 * ph)
+		target_lean = 0.09 * facing
+		p_dust_t -= dt
+		if p_dust_t <= 0.0:
+			p_dust_t = 0.2
+			_feet_dust(2, 60.0)
+	elif alive:
+		target_sq = Vector2(1.0 - 0.012 * sin(t * 2.2), 1.0 + 0.022 * sin(t * 2.2))
+	# 挥伞：出手瞬间前倾 + 拉伸，随后回弹
+	if swing_face > 0.0 and p_swing_prev <= 0.0:
+		p_sq = Vector2(1.12, 0.92)
+	if swing_face > 0.0:
+		target_lean += 0.13 * facing * (swing_face / 0.25)
+	p_swing_prev = swing_face
+	# 受击：向后坐一下，微微后仰
+	if hurt_flash > 0.12 and p_hurt_prev <= 0.12:
+		var away := Vector2(-facing, 0.0)
+		var nn := _nearest(1, 160.0)
+		if not nn.is_empty():
+			away = (ppos - nn[0].pos).normalized()
+		p_off = away * 9.0
+		p_sq = Vector2(1.1, 0.9)
+	p_hurt_prev = hurt_flash
+	if hurt_flash > 0.05:
+		target_lean -= 0.12 * facing
+	# 定身：轻微颤抖
+	if pstun > 0.0:
+		p_off.x += sin(t * 60.0) * 1.2
+	var k := 1.0 - exp(-dt * 16.0)
+	p_sq = p_sq.lerp(target_sq, k)
+	p_sq.x *= 1.0 - 0.3 * p_turn
+	p_lean = lerpf(p_lean, target_lean, k)
+	p_off = p_off.lerp(Vector2.ZERO, 1.0 - exp(-dt * 12.0))
+
+
+func _feet_dust(n: int, spd: float) -> void:
+	for k in n:
+		var v := Vector2(-facing * randf_range(20.0, spd), -randf_range(10.0, 40.0))
+		fx.append({"kind": "spark", "pos": ppos + Vector2(randf_range(-6, 6), 4), "vel": v, "sz": 2.0, "life": 0.35, "max": 0.35, "col": Color(0.55, 0.65, 0.7, 0.8)})
+
+
+## 开场动画：水月自海面沉降落地 → 灯火点亮 → 标题卡；任意键跳过，之后进入指南
+func _start_opening() -> void:
+	state = S.OPENING
+	opening_t = 0.0
+	p_off = Vector2(0, -320)
+	lamp_light.energy = 0.0
+	Sfx.play("start", -4.0)
+
+
+func _update_opening(dt: float) -> void:
+	opening_t += dt
+	var k1 := clampf(opening_t / 1.7, 0.0, 1.0)
+	var ease_in := 1.0 - pow(1.0 - k1, 2.2)
+	p_off = Vector2(sin(opening_t * 3.0) * 6.0 * (1.0 - k1), -320.0 * (1.0 - ease_in))
+	p_lean = sin(opening_t * 2.0) * 0.08 * (1.0 - k1)
+	p_sq = Vector2(1.0 - 0.06 * (1.0 - k1), 1.0 + 0.1 * (1.0 - k1))
+	# 上升的气泡
+	if k1 < 1.0 and randf() < 0.6:
+		fx.append({"kind": "spark", "pos": ppos + p_off + Vector2(randf_range(-22, 22), randf_range(-40, 10)), "vel": Vector2(randf_range(-8, 8), -randf_range(40, 90)), "sz": randf_range(2.0, 3.5), "life": 1.1, "max": 1.1, "col": Color(0.8, 0.95, 1.0, 0.7)})
+	# 落地
+	if opening_t >= 1.7 and opening_t - dt < 1.7:
+		p_sq = Vector2(1.3, 0.72)
+		_feet_dust(14, 150.0)
+		fx.append({"kind": "ring", "pos": ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
+		_shake(0.7)
+		Sfx.play("boom", -14.0, 1.4, 0.0)
+	if opening_t >= 1.7:
+		p_sq = p_sq.lerp(Vector2.ONE, 1.0 - exp(-dt * 10.0))
+		p_lean = lerpf(p_lean, 0.0, 1.0 - exp(-dt * 10.0))
+	# 灯火点亮：2.1s 起，先闪两下再稳定
+	if opening_t >= 2.1:
+		var k2 := clampf((opening_t - 2.1) / 0.8, 0.0, 1.0)
+		var fl := 1.0 if k2 > 0.5 else (1.0 if fmod(k2, 0.2) < 0.1 else 0.25)
+		lamp_light.energy = 1.15 * k2 * fl
+		if opening_t - dt < 2.1:
+			Sfx.play("oil", -8.0, 1.2, 0.0)
+			fx.append({"kind": "rays", "pos": ppos + Vector2(0, -20), "life": 0.8, "max": 0.8, "col": Color(1.0, 0.85, 0.5)})
+	_update_fx(dt)
+	if opening_t >= OPENING_DUR:
+		_end_opening()
+
+
+func _end_opening() -> void:
+	if state != S.OPENING:
+		return
+	p_off = Vector2.ZERO
+	p_sq = Vector2.ONE
+	p_lean = 0.0
+	lamp_light.energy = 1.15
+	state = S.PLAY
+	_open_intro(S.PLAY)
+
+
+func _draw_opening_hud(vs: Vector2) -> void:
+	# 黑场渐亮 + 上下黑边 + 标题卡
+	var dark: float = clampf(1.0 - opening_t / 1.2, 0.0, 1.0) * 0.9 + 0.1
+	if opening_t > 2.9:
+		dark = lerpf(0.1, 0.0, clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03, dark))
+	var bar: float = 70.0 * (1.0 - clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
+	hud.draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0, 0, 0.95))
+	hud.draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0, 0, 0.95))
+	if opening_t > 0.4 and opening_t < 3.3:
+		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
+		UI.en(hud, font, Vector2(vs.x / 2 - 200, vs.y * 0.22), "OPERATION  MIZUKI", 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
+		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 44), "水月  ·  深海探索", 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 74), "灯火未熄，便还能走下去", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+	UI.text(hud, font, Vector2(0, vs.y - 26), "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
+
+
 func _draw_player() -> void:
 	var tx: Texture2D = sprite.texture
 	if tx == null:
@@ -5174,7 +5335,8 @@ func _draw_player() -> void:
 	var fh := tx.get_height()
 	var src := Rect2(fw * (sprite.frame % hf), 0, fw, fh)
 	var sx := -PX if sprite.flip_h else PX
-	draw_set_transform(sprite.position, sprite.rotation, Vector2(sx, PX))
+	# 以脚底为轴做挤压 / 前倾 / 后坐（帧动画之上的程序手感）
+	draw_set_transform(sprite.position + p_off, sprite.rotation + p_lean, Vector2(sx * p_sq.x, PX * p_sq.y))
 	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, sprite.modulate)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -5182,6 +5344,9 @@ func _draw_player() -> void:
 func _draw_hud() -> void:
 	var vs := hud.size
 	var ct := get_viewport().get_canvas_transform()
+	if state == S.OPENING:
+		_draw_opening_hud(vs)
+		return
 	# 伤害数字
 	for f in texts:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
