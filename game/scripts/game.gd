@@ -158,6 +158,7 @@ var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
 var mires: Array = []
+var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
 var next_chest := 20.0
 var next_mire := 100.0
 # 缩圈（黑潮）
@@ -652,8 +653,10 @@ func _update(dt: float) -> void:
 		walk_t += dt * 12.0
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
-	pvel = mv * speed
-	ppos += mv * speed * dt
+	# 溟痕：陷在里面移动速度 -45%
+	var mspd: float = speed * (1.0 - 0.45 * in_mire)
+	pvel = mv * mspd
+	ppos += mv * mspd * dt
 	if tex.get("prop_pillar") != null:
 		ppos = _prop_push(ppos, 12.0)
 	swing_face -= dt
@@ -743,6 +746,12 @@ func _bot_move() -> Vector2:
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and hp > max_hp * 0.4:
 		pull = (nearest_p - ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
+	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）
+	for m in mires:
+		var md: Vector2 = ppos - m.pos
+		var ml := md.length()
+		if ml < m.r + 50.0 and ml > 0.01:
+			mv += md / ml * (2.5 if ml < m.r else 1.2)
 	# 缩圈：靠近圈边时往圈内走
 	if zone_state != 0:
 		var zc: float = ppos.distance_to(zone_c)
@@ -910,12 +919,12 @@ func _spawn(dt: float) -> void:
 	# 溟痕
 	if t >= next_mire:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		next_mire = t + maxf(8.0, rng.randf_range(35.0, 50.0) - t / 18.0)
+		next_mire = t + maxf(5.0, rng.randf_range(16.0, 24.0) - t / 30.0)
 		var mp := ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(160.0, 380.0)
 		if zone_state != 0 and rng.randf() < 0.6:
 			var ang := (ppos - zone_c).angle() + rng.randf_range(-0.8, 0.8)
 			mp = zone_c + Vector2.from_angle(ang) * (zone_r - rng.randf_range(20.0, 120.0))
-		if mires.size() < 14:
+		if mires.size() < 24:
 			var grow := 1.0 + t / 600.0
 			mires.append({"pos": mp, "r": 16.0, "maxr": rng.randf_range(70.0, 110.0) * grow, "life": 45.0 + t / 20.0, "seed": rng.randf() * 100.0})
 	# 商人
@@ -1359,13 +1368,19 @@ func _update_status(dt: float) -> void:
 		corrode_pool -= tick
 		hp -= tick
 		dmg_log["corrode"] = dmg_log.get("corrode", 0.0) + tick
+	var mired := false
 	for m in mires:
 		m.life -= dt
 		m.r = min(m.maxr, m.r + 5.0 * dt)
 		if m.pos.distance_to(ppos) < m.r:
-			hp -= 1.5 * dt
-			dmg_log["mire"] = dmg_log.get("mire", 0.0) + 1.5 * dt
-			_add_nerve(18.0 * dt)
+			mired = true
+	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
+	in_mire = move_toward(in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
+	if mired:
+		hp -= 2.5 * dt
+		dmg_log["mire"] = dmg_log.get("mire", 0.0) + 2.5 * dt
+		_add_nerve(22.0 * dt)
+		head_bar_t = maxf(head_bar_t, 0.6)
 	mires = mires.filter(func(m): return m.life > 0.0)
 	for s in shocks:
 		s.r += 320.0 * dt
@@ -2243,11 +2258,7 @@ func _shop_price(kind: String) -> int:
 
 func _roll_shop() -> void:
 	shop_items.clear()
-	var pool: Array = []
-	for rid in D.RELICS:
-		if not relics.has(rid) and (not D.RELICS[rid].has("need") or relics.has(D.RELICS[rid].need)):
-			pool.append(rid)
-	pool.shuffle()
+	var pool: Array = _relic_pool_ids()
 	for i in min(3, pool.size()):
 		var r: Dictionary = D.RELICS[pool[i]]
 		shop_items.append({"kind": "relic", "id": pool[i], "name": r.name, "desc": r.desc, "price": _shop_price("relic"), "sold": false})
@@ -2338,6 +2349,8 @@ func _buy(i: int) -> void:
 		return
 	ingots -= it.price
 	it.sold = true
+	if not merchant.is_empty():
+		merchant["bought"] = true
 	match it.kind:
 		"relic":
 			relics.append(it.id)
@@ -2364,6 +2377,12 @@ func _close_shop() -> void:
 	panel.visible = false
 	state = S.PLAY
 	Sfx.play("ui_ok", -4.0)
+	# 交易过就离开，避免走回去反复触发；等下一次出现
+	if not merchant.is_empty() and merchant.get("bought", false):
+		_sparks(merchant.pos, Vector2.UP, UI.GOLD, 12, 160.0)
+		merchant = {}
+		shop_items.clear()
+		_show_banner("商人收好源石锭，离开了")
 
 
 # =====================================================================
@@ -2517,10 +2536,23 @@ func _update_weapons(dt: float) -> void:
 					if ts2.is_empty():
 						dr.cd_laser = 0.2
 					else:
-						dr.cd_laser = 1.5
-						_drone_laser(dr.pos, (ts2[0].pos - dr.pos).angle())
-						dr["fire_t"] = 0.25
-						dr["face"] = signf(ts2[0].pos.x - dr.pos.x)
+						dr.cd_laser = 1.9
+						dr["beam"] = LASER_DUR
+						dr["beam_ang"] = (ts2[0].pos - dr.pos).angle()
+						dr["beam_tick"] = 0.0
+						Sfx.play("skill", -16.0, 2.2, 0.05)
+				# 照射中：光束从无人机射出，随最近的敌人平滑转向，每 0.1 秒结算一次
+				if dr.get("beam", 0.0) > 0.0:
+					dr.beam -= dt
+					var tb := _nearest(1, LASER_LEN)
+					if not tb.is_empty():
+						dr.beam_ang = lerp_angle(dr.beam_ang, (tb[0].pos - dr.pos).angle(), clampf(dt * LASER_TURN, 0.0, 1.0))
+					dr["fire_t"] = 0.2
+					dr["face"] = signf(cos(dr.beam_ang)) if absf(cos(dr.beam_ang)) > 0.1 else dr.get("face", 1.0)
+					dr.beam_tick -= dt
+					if dr.beam_tick <= 0.0:
+						dr.beam_tick = 0.1
+						_drone_laser(dr.pos, dr.beam_ang)
 			if dl >= 3:
 				dr.cd_missile -= dt * haste
 				if dr.cd_missile <= 0.0:
@@ -2533,8 +2565,8 @@ func _update_weapons(dt: float) -> void:
 						for k in n:
 							var tg: Dictionary = tm[k % tm.size()]
 							var d0 := Vector2.from_angle(-PI / 2.0 + (k - (n - 1) / 2.0) * 0.7)
-							bullets.append({"kind": "missile", "pos": dr.pos, "vel": d0 * 260.0, "dmg": 34.0 * dmg_mult, "life": 2.2, "r": 7.0,
-								"aoe": 70.0, "home": tg, "turn": 5.0})
+							bullets.append({"kind": "missile", "pos": dr.pos, "vel": d0 * 320.0, "dmg": 34.0 * dmg_mult, "life": 4.0, "r": 7.0,
+								"aoe": 70.0, "home": tg, "turn": 9.0, "accel": 2400.0, "vmax": 820.0})
 						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
 						dr["fire_t"] = 0.25
 	# 触须阵
@@ -2582,11 +2614,16 @@ func _update_weapons(dt: float) -> void:
 				Sfx.play("pickup", -10.0, 0.8, 0.05)
 
 
-## 无人机激光：一条贯穿直线
+## 无人机激光：照射 LASER_DUR 秒，每 0.1 秒对直线上的敌人结算一次（总伤害约为旧版单发的 1.6 倍，冷却 1.5→1.9 秒）
+const LASER_DUR := 0.9
+const LASER_LEN := 520.0
+const LASER_TURN := 7.0
+
+
 func _drone_laser(from: Vector2, ang: float) -> void:
 	var dir := Vector2.from_angle(ang)
-	var L := 520.0
-	var dmg := 26.0 * dmg_mult
+	var L := LASER_LEN
+	var dmg := 4.6 * dmg_mult
 	for j in _query(from + dir * L * 0.5, L * 0.5 + 30.0):
 		var e: Dictionary = enemies[j]
 		if e.dead:
@@ -2597,9 +2634,8 @@ func _drone_laser(from: Vector2, ang: float) -> void:
 			continue
 		if absf(rel.cross(dir)) < e.r + 8.0:
 			_damage(e, dmg)
-			_sparks(e.pos, dir, Color(0.6, 1.0, 1.0), 2, 160.0)
-	fx.append({"kind": "laser", "a": from, "b": from + dir * L, "life": 0.28, "max": 0.28})
-	Sfx.play("skill", -18.0, 2.2, 0.05)
+			if randf() < 0.4:
+				_sparks(e.pos, dir, Color(0.6, 1.0, 1.0), 2, 160.0)
 
 
 ## 敌人最密集的位置（在 radius 内采样）
@@ -2644,11 +2680,26 @@ func _update_bullets(dt: float) -> void:
 		var hm = b.get("home")
 		if hm != null:
 			if hm.dead:
-				var nt := _nearest(1, 300.0)
-				b.home = nt[0] if nt.size() > 0 else null
+				if b.has("accel"):
+					# 导弹：目标没了就改追导弹附近最近的敌人
+					var best = null
+					var bd := 460.0
+					for j in _query(b.pos, 460.0):
+						var q: Dictionary = enemies[j]
+						if not q.dead and not q.chest and q.pos.distance_to(b.pos) < bd:
+							bd = q.pos.distance_to(b.pos)
+							best = q
+					b.home = best
+				else:
+					var nt := _nearest(1, 300.0)
+					b.home = nt[0] if nt.size() > 0 else null
 			else:
 				var want: Vector2 = (hm.pos - b.pos).normalized() * b.vel.length()
 				b.vel = b.vel.lerp(want, clampf(dt * b.get("turn", 6.0), 0.0, 1.0))
+		# 导弹：持续加速到最高速并保持（没有目标时直线飞行，不会减速）
+		if b.has("accel"):
+			var sp: float = minf(b.vel.length() + b.accel * dt, b.vmax)
+			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
 		if b.kind == "fire" or b.kind == "missile":
@@ -3251,19 +3302,35 @@ func _open_levelup() -> void:
 	_show_choices("升级！ Lv.%d" % level, picks, "level")
 
 
-func _open_relic_choice() -> void:
+## 可选藏品（已打乱）。前期（7:00 前）护盾藏品更容易排到前面：药枚 55%、其余护盾 35%
+func _relic_pool_ids() -> Array:
 	var pool: Array = []
 	for rid in D.RELICS:
 		if not relics.has(rid) and (not D.RELICS[rid].has("need") or relics.has(D.RELICS[rid].need)):
-			var r: Dictionary = D.RELICS[rid]
-			pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, r.name], "desc": r.desc})
+			pool.append(rid)
+	pool.shuffle()
+	if t < 420.0:
+		var front: Array = []
+		for rid in pool:
+			if String(rid).begins_with("sh_") and rng.randf() < (0.55 if rid == "sh_base" else 0.35):
+				front.append(rid)
+		for rid in front:
+			pool.erase(rid)
+		pool = front + pool
+	return pool
+
+
+func _open_relic_choice() -> void:
+	var pool: Array = []
+	for rid in _relic_pool_ids():
+		var r: Dictionary = D.RELICS[rid]
+		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, r.name], "desc": r.desc})
 	if pool.is_empty():
 		pending_chests = 0
 		hp = max_hp
 		lamp = 100.0
 		_show_banner("藏品已收集齐全：生命与灯火回满")
 		return
-	pool.shuffle()
 	_show_choices("获得藏品", pool.slice(0, 3), "relic")
 
 
@@ -3628,6 +3695,15 @@ func _draw() -> void:
 		elif tex.get("drone") != null:
 			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.6, 1.6, 1.7))
 		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.5, 2.6, 2.8, 0.6 + 0.3 * sin(t * 8.0)))
+		if dr.get("beam", 0.0) > 0.0:
+			var ba: float = clampf(dr.beam / 0.15, 0.0, 1.0) * clampf((LASER_DUR - dr.beam) / 0.08, 0.3, 1.0)
+			var fl := 0.85 + 0.15 * sin(t * 60.0)
+			var a0: Vector2 = dr.pos + Vector2(0, 4)
+			var b0: Vector2 = a0 + Vector2.from_angle(dr.beam_ang) * LASER_LEN
+			draw_line(a0, b0, Color(0.4, 1.6, 2.2, 0.28 * ba), 16.0 * fl)
+			draw_line(a0, b0, Color(0.8, 2.4, 2.8, 0.8 * ba), 6.0 * fl)
+			draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
+			draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
 	var jf := int(t * 6.0) % 2
 	for p in jelly_pos:
 		_spr("jelly", 2, jf, p + Vector2(0, -10))
@@ -4491,6 +4567,12 @@ func _draw_hud() -> void:
 				var sd := dir.orthogonal() * 12.0
 				hud.draw_colored_polygon(PackedVector2Array([tip, ed + sd, ed - sd]), Color(0.9, 0.5, 1.0, 0.5 + 0.4 * pulse))
 
+	# 溟痕：屏幕压暗 + 紫色边缘
+	if in_mire > 0.0:
+		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.03, 0.0, 0.06, 0.42 * in_mire))
+		_edge_glow(vs, Color(0.45, 0.1, 0.7, 0.75 * in_mire), 160.0)
+		if in_mire > 0.5 and state == S.PLAY:
+			UI.text(hud, font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 受击时屏幕边缘泛红
 	if red_flash > 0.0:
 		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, red_flash * 0.45))

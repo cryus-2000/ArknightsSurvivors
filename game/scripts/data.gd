@@ -88,22 +88,23 @@ const DIFFICULTY := [
 ]
 
 ## 武器：升级时以卡片形式出现，最多同时持有 3 种，每种最高 Lv.5
+## tags 供 Build Profile 使用：无人机 → 援护副系统，触须阵 → 触手 / 控制流，潮汐弹 → 伞击 / 连锁清怪流
 const WEAPONS := {
-	"drone": {"name": "支援无人机", "en": "DRONE", "glyph": "机", "col": Color(0.55, 0.95, 1.0), "lv": [
+	"drone": {"tags": ["support", "summon", "ranged"], "name": "支援无人机", "en": "DRONE", "glyph": "机", "col": Color(0.55, 0.95, 1.0), "lv": [
 		"无人机跟随水月，向最近的敌人发射子弹",
 		"改装激光：周期性发射穿透激光，贯穿一条直线上的所有敌人",
 		"加装导弹：在激光之外发射追踪导弹，命中后爆炸",
 		"增派第二架无人机",
 		"导弹数量 +1，所有攻击频率 +25%",
 	]},
-	"field": {"name": "海嗣触须阵", "en": "TENTACLE FIELD", "glyph": "阵", "col": Color(0.75, 0.5, 1.0), "lv": [
+	"field": {"tags": ["mizuki_tentacle", "arts", "control"], "name": "海嗣触须阵", "en": "TENTACLE FIELD", "glyph": "阵", "col": Color(0.75, 0.5, 1.0), "lv": [
 		"每 3.5 秒在敌人最密集处升起触须阵，持续造成伤害",
 		"触须阵范围 +30%",
 		"触须阵会束缚其中的敌人",
 		"同时升起 2 处触须阵",
 		"触须阵伤害 +60%，持续时间延长",
 	]},
-	"tide": {"name": "潮汐弹", "en": "TIDE SHOT", "glyph": "潮", "col": Color(0.4, 0.75, 1.0), "lv": [
+	"tide": {"tags": ["arts", "on_hit", "basic_attack"], "name": "潮汐弹", "en": "TIDE SHOT", "glyph": "潮", "col": Color(0.4, 0.75, 1.0), "lv": [
 		"每 2.2 秒射出一枚水弹，命中后在敌人之间反弹 3 次",
 		"反弹次数 +2",
 		"同时射出 2 枚",
