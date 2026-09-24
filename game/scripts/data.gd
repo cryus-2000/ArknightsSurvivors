@@ -59,7 +59,7 @@ const SKILL_ADV := {
 		{"name": "无解困境", "desc": "囚徒困境期间，每第 4 次挥伞插入一轮触手连击；束缚会传播给身边 1 名敌人", "min_lv": 16},
 	],
 	"s3": [
-		{"name": "倒影", "desc": "镜花水月期间，每次挥伞后倒影会在反方向延迟复刻一次攻击", "min_lv": 22},
+		{"name": "镜像", "desc": "镜花水月期间，身后浮现水月的镜像分身，朝它身边的敌人同步挥伞（60% 伤害）", "min_lv": 22},
 		{"name": "镜花水月·深海", "desc": "斩击覆盖全方向、触手追击 +2，并在周身展开深海幻境：范围内敌人减速", "min_lv": 26},
 	],
 }
@@ -70,7 +70,7 @@ const SKILL_P := {
 	"s2_charge": 22.0, "s2_dur": 12.0, "s2_interval": 0.5, "s2_bind": 1.0, "s2_twin_mult": 0.7,
 	"s2_combo_every": 4, "s2_combo_n": 3, "s2_spread_r": 90.0, "s2_spread_bind": 0.6,
 	"s3_charge": 45.0, "s3_dur": 14.0, "s3_radius": 1.45, "s3_mult": 1.8, "s3_stun": 0.6,
-	"s3_echo_delay": 0.35, "s3_echo_mult": 0.7, "s3_zone_r": 200.0,
+	"s3_echo_delay": 0.12, "s3_echo_mult": 0.6, "s3_zone_r": 200.0,
 }
 ## 难度（参照水月肉鸽的难度分级：逐级叠加负面效果；通关当前最高难度后解锁下一级）
 const DIFFICULTY := [
@@ -87,8 +87,9 @@ const DIFFICULTY := [
 	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
 ]
 
-## 武器：升级时以卡片形式出现，最多同时持有 3 种，每种最高 Lv.5
-## tags 供 Build Profile 使用：无人机 → 援护副系统，触须阵 → 触手 / 控制流，潮汐弹 → 伞击 / 连锁清怪流
+## 武器：只保留支援无人机（与两条进化路线正交的远程补充），最高 Lv.5
+## 原「海嗣触须阵」「潮汐弹」已并入进化路线（群触·阵 / 潮刃·回响）
+## tags 供 Build Profile 使用：无人机 → 援护副系统
 const WEAPONS := {
 	"drone": {"tags": ["support", "summon", "ranged"], "name": "支援无人机", "en": "DRONE", "glyph": "机", "col": Color(0.55, 0.95, 1.0), "lv": [
 		"无人机跟随水月，向最近的敌人发射子弹",
@@ -97,32 +98,12 @@ const WEAPONS := {
 		"增派第二架无人机",
 		"导弹数量 +1，所有攻击频率 +25%",
 	]},
-	"field": {"tags": ["mizuki_tentacle", "arts", "control"], "name": "海嗣触须阵", "en": "TENTACLE FIELD", "glyph": "阵", "col": Color(0.75, 0.5, 1.0), "lv": [
-		"每 3.5 秒在敌人最密集处升起触须阵，持续造成伤害",
-		"触须阵范围 +30%",
-		"触须阵会束缚其中的敌人",
-		"同时升起 2 处触须阵",
-		"触须阵伤害 +60%，持续时间延长",
-	]},
-	"tide": {"tags": ["arts", "on_hit", "basic_attack"], "name": "潮汐弹", "en": "TIDE SHOT", "glyph": "潮", "col": Color(0.4, 0.75, 1.0), "lv": [
-		"每 2.2 秒射出一枚水弹，命中后在敌人之间反弹 3 次",
-		"反弹次数 +2",
-		"同时射出 2 枚",
-		"水弹伤害 +50%，击退敌人",
-		"反弹次数 +3，发射间隔 -30%",
-	]},
 }
-const MAX_WEAPONS := 3
+const MAX_WEAPONS := 1
 
 ## 技能进阶卡出现概率（每次升级至多一张）
 const SKILL_ADV_CHANCE := 0.45
 
-## 精英化二时三选一的模组
-const MODULES = {
-	"x": {"name": "X 模组「分裂创伤」", "desc": "天赋「创伤性癔症」的触手追击目标 +1"},
-	"y": {"name": "Y 模组「嗜血回响」", "desc": "「反移情」伤害加成提升至 +35%，击杀回复翻倍"},
-	"a": {"name": "α 模组「深渊拖拽」", "desc": "触手会把目标拖向水月；技能生效期间追击目标再 +2"},
-}
 
 ## 升级时的成长项（水月自身），max 为可选次数上限
 const GROWTH = {
@@ -143,10 +124,12 @@ const GROWTH = {
 	"b_size": {"name": "潮刃·阔", "desc": "水刃宽度与判定范围 +25%", "max": 3, "path": "blade"},
 	"b_dmg": {"name": "潮刃·利", "desc": "水刃伤害 +30%", "max": 3, "path": "blade"},
 	"b_range": {"name": "潮刃·远", "desc": "水刃飞行距离 +30%", "max": 2, "path": "blade"},
+	"b_echo": {"name": "潮刃·回响", "desc": "每 2.2 秒射出一枚潮汐弹，在敌人之间反弹（Lv.2：两枚、伤害 +50% 并击退）", "max": 2, "path": "blade", "tags": ["arts", "on_hit", "basic_attack"]},
 	"t_count": {"name": "群触·增", "desc": "每次挥伞多召唤 1 根触手", "max": 3, "path": "tendril"},
 	"t_stake": {"name": "群触·桩", "desc": "触手桩持续时间 +1 秒", "max": 2, "path": "tendril"},
 	"t_power": {"name": "群触·力", "desc": "触手与触手桩伤害 +30%", "max": 3, "path": "tendril"},
 	"t_reach": {"name": "群触·长", "desc": "触手桩鞭打范围 +25%", "max": 2, "path": "tendril"},
+	"t_field": {"name": "群触·阵", "desc": "每 3.5 秒在敌人最密集处升起触须阵，持续造成伤害（Lv.2：两处并束缚）", "max": 2, "path": "tendril", "tags": ["mizuki_tentacle", "arts", "control"]},
 }
 
 ## 进化：精英化一选路线，精英化二在路线内再选一次质变（共 4 种最终形态）

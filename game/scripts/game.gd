@@ -57,7 +57,6 @@ var lamp := 100.0
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
 var elite_stage := 0             # 精英化阶段 0/1/2
-var module := ""                 # 精二模组 x / y / a
 var swing_cd := 0.0
 var u_dmg_mult := 1.0
 var u_area_mult := 1.0
@@ -80,6 +79,8 @@ var s2_sp := 10.0
 var s2_active := 0.0
 var s3_sp := 30.0
 var s3_active := 0.0
+var mirror_pos := Vector2.ZERO    # S3 镜像分身位置
+var mirror_face := 1.0
 var s3_pen_cd := 0.0
 var heal_budget := 0.0           # 反移情击杀回复：每秒上限
 var talent2_on := false
@@ -525,11 +526,18 @@ func _autotest_step() -> void:
 					evo2 = ev[1] if ev.size() > 1 else ""
 					growth["b_count"] = 1
 					growth["t_count"] = 1
-			weapons = {} if evo1 != "" else {"drone": 3, "field": 3, "tide": 3}
+			weapons = {"drone": 3}
+			if evo1 == "blade":
+				growth["b_echo"] = 2
+			elif evo1 == "tendril":
+				growth["t_field"] = 2
 			for rid in ["sh_base", "sh_count", "sh_burst"]:
 				relics.append(rid)
 				_apply_relic(rid)
 			shield = 2
+			skill_lv["s3"] = maxi(skill_lv["s3"], 2)
+			s3_active = 30.0
+			mirror_pos = ppos
 			for k in ["sniper", "caster", "support"]:
 				allies.append({"kind": k, "lv": 2, "pos": ppos, "cd": 0.5})
 			t = 149.0
@@ -564,6 +572,8 @@ func _autotest_step() -> void:
 			var pi := rng.randi() % choices.size()
 			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evoblade"):
 				pi = 0
+			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evotendril"):
+				pi = choices.size() - 1
 			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
@@ -585,7 +595,7 @@ func _autotest_step() -> void:
 			choice_wait = 0
 			_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
-		print("t=%d lv=%d E%d mod=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, module, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
+		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, evo1 + "/" + evo2, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
 	for bb in bosses:
 		if not bb.dead and not bb.invuln:
 			bb.hp -= 40.0
@@ -1858,7 +1868,7 @@ func _kill(e: Dictionary) -> void:
 		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	# 天赋二「反移情」：击杀回复生命（每秒有上限）
 	if talent2_on:
-		var want := (0.02 if module == "y" else 0.01)
+		var want := 0.01
 		var got: float = min(want, heal_budget)
 		heal_budget -= got
 		_heal(max_hp * got)
@@ -1948,7 +1958,7 @@ func _swing_radius() -> float:
 func _dmg_bonus() -> float:
 	var m := dmg_mult
 	if talent2_on and _low_hp_enemy_near():
-		m *= 1.35 if module == "y" else 1.22
+		m *= 1.22
 	if backlight and lamp < 30.0:
 		m *= 1.3
 	return m
@@ -1978,6 +1988,7 @@ func _mizuki(dt: float) -> void:
 	if skill_lv.s3 >= 1:
 		if s3_active > 0.0:
 			s3_active -= dt
+			mirror_pos = mirror_pos.lerp(ppos + Vector2(-facing * 80.0, -10.0), minf(1.0, dt * 8.0))
 			# 深海幻境：周身敌人减速
 			if skill_lv.s3 >= 3:
 				for j in _query(ppos, P.s3_zone_r):
@@ -1996,6 +2007,7 @@ func _mizuki(dt: float) -> void:
 			if s3_sp >= P.s3_charge:
 				s3_sp = 0.0
 				s3_active = P.s3_dur
+				mirror_pos = ppos
 				_skill_cast("s3")
 	# 延时攻击
 	for i in range(delayed.size() - 1, -1, -1):
@@ -2116,13 +2128,11 @@ func _umbrella(target: Dictionary) -> void:
 	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
 	alive.sort_custom(func(a, b): return a.hp < b.hp)
-	var n := 1 + extra_targets + (1 if module == "x" else 0)
+	var n := 1 + extra_targets
 	if s2_active > 0.0:
 		n += 1
 	if s3_active > 0.0:
 		n += 2 if skill_lv.s3 >= 3 else 1
-	if module == "a" and (s2_active > 0.0 or s3_active > 0.0):
-		n += 2
 	var tdmg := dmg * t_mult
 	var stun := 0.0
 	if s3_active > 0.0:
@@ -2184,7 +2194,7 @@ func _umbrella(target: Dictionary) -> void:
 					delayed.append({"at": 0.05 + 0.07 * k, "kind": "combo", "target": tg2[k], "dmg": tdmg * 0.8})
 	# ---- S3 进阶：倒影
 	if s3_active > 0.0 and skill_lv.s3 >= 2:
-		delayed.append({"at": P.s3_echo_delay, "kind": "echo", "ang": ang + PI, "dmg": dmg * P.s3_echo_mult,
+		delayed.append({"at": P.s3_echo_delay, "kind": "echo", "ang": ang, "dmg": dmg * P.s3_echo_mult,
 			"half": half, "radius": radius, "dirs": dirs.size()})
 
 	# ---- 斩击表现
@@ -2345,21 +2355,31 @@ func _run_delayed(dl: Dictionary) -> void:
 			hitstop = maxf(hitstop, 0.06)
 			Sfx.play("boom", -2.0, 0.6, 0.0)
 		"echo":
-			# 倒影：在反方向复刻一次攻击（深海形态下全方向）
-			var dirs: Array = [dl.ang]
+			# 镜像：身后的镜像分身朝它身边的敌人同步挥伞（深海形态下三向）
+			var mp: Vector2 = mirror_pos
+			var ma: float = dl.ang
+			var near_d: float = dl.radius * 1.4
+			for e in enemies:
+				if e.dead:
+					continue
+				var dd: float = mp.distance_to(e.pos)
+				if dd < near_d:
+					near_d = dd
+					ma = (e.pos - mp).angle()
+			var dirs: Array = [ma]
 			if dl.dirs > 1:
-				dirs = [dl.ang, dl.ang + TAU / 3.0, dl.ang - TAU / 3.0]
+				dirs = [ma, ma + TAU / 3.0, ma - TAU / 3.0]
 			var seen := {}
 			for d in dirs:
-				for e in _arc_hit(ppos, d, dl.half, dl.radius):
+				for e in _arc_hit(mp, d, dl.half, dl.radius):
 					if seen.has(e.id):
 						continue
 					seen[e.id] = true
 					_damage(e, dl.dmg)
 					if not e.dead:
 						e.stun = maxf(e.stun, P.s3_stun * 0.5)
-				_slash_fx(ppos, d, dl.half, dl.radius, Color(0.9, 0.6, 1.6, 0.8), "slash", 0.3)
-			fx.append({"kind": "ghost", "pos": ppos + Vector2.from_angle(dl.ang) * 26.0, "flip": cos(dl.ang) < 0.0, "life": 0.35, "max": 0.35})
+				_slash_fx(mp, d, dl.half, dl.radius, Color(0.9, 0.6, 1.6, 0.8), "slash", 0.3)
+			mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
 			Sfx.play("swing", -9.0, 0.7, 0.05)
 
 
@@ -2399,8 +2419,6 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 					o.stun = P.s2_spread_bind
 					fx.append({"kind": "chain", "a": p, "b": o.pos, "life": 0.3, "max": 0.3})
 					break
-		if module == "a" and not target.boss:
-			target.kb += (ppos - p).normalized() * 260.0
 	# 深海之母：被触手击杀的敌人会在附近唤出新的触手
 	if target.dead and evo2 == "tendril_mother" and mother_cd <= 0.0:
 		mother_cd = 0.15
@@ -2737,7 +2755,7 @@ func _ally_release(al: Dictionary) -> void:
 
 
 # =====================================================================
-# 武器：支援无人机 / 海嗣触须阵 / 潮汐弹
+# 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
 # =====================================================================
 func _update_weapons(dt: float) -> void:
 	_update_stakes(dt)
@@ -2807,7 +2825,7 @@ func _update_weapons(dt: float) -> void:
 						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
 						dr["fire_t"] = 0.25
 	# 触须阵
-	var fl: int = weapons.get("field", 0)
+	var fl: int = [0, 2, 4][int(growth.get("t_field", 0))] if evo1 == "tendril" else 0   # 群触·阵
 	if fl > 0:
 		field_cd -= dt
 		if field_cd <= 0.0:
@@ -2833,7 +2851,7 @@ func _update_weapons(dt: float) -> void:
 						e.stun = maxf(e.stun, 0.35)
 	fields = fields.filter(func(f): return f.life > 0.0)
 	# 潮汐弹
-	var tl: int = weapons.get("tide", 0)
+	var tl: int = [0, 2, 4][int(growth.get("b_echo", 0))] if evo1 == "blade" else 0   # 潮刃·回响
 	if tl > 0:
 		tide_shot_cd -= dt
 		if tide_shot_cd <= 0.0:
@@ -3243,8 +3261,8 @@ func _draw_panel_bg() -> void:
 	var en_label := "RELIC" if choice_kind == "relic" else "LEVEL UP"
 	if choice_kind == "shop":
 		en_label = "MERCHANT"
-	if choices.size() > 0 and choices[0].kind == "module":
-		en_label = "MODULE"
+	if choices.size() > 0 and choices[0].kind == "evo":
+		en_label = "EVOLUTION"
 	elif choices.size() > 0 and choices[0].kind == "recruit":
 		en_label = "RECRUIT"
 	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_label.length() * 4.0
@@ -3443,8 +3461,6 @@ func _card_color(o: Dictionary) -> Color:
 	match o.kind:
 		"relic":
 			return UI.CAT_COL.get(D.RELICS[o.id].cat, UI.GOLD)
-		"module":
-			return UI.PURPLE
 		"recruit":
 			return Color(0.55, 0.9, 0.55)
 		"skill":
@@ -3465,8 +3481,6 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var cat := "成长  GROWTH"
 	if o.kind == "relic":
 		cat = D.RELICS[o.id].cat + "  RELIC"
-	elif o.kind == "module":
-		cat = "模组  MODULE"
 	elif o.kind == "recruit":
 		cat = "招募  " + D.ALLIES[o.id].en
 	elif o.kind == "skill":
@@ -3485,8 +3499,8 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	UI.diamond(card, c, 40.0, Color(0.02, 0.06, 0.08), col)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
-	if o.kind == "relic" or o.kind == "module":
-		glyph = D.RELICS[o.id].name.substr(0, 1) if o.kind == "relic" else "模"
+	if o.kind == "relic":
+		glyph = D.RELICS[o.id].name.substr(0, 1)
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
 	elif o.kind == "evo":
@@ -3544,55 +3558,52 @@ func _open_levelup() -> void:
 			if D.EVO[k].get("path", "") == evo1 and evo1 != "":
 				mopts.append({"kind": "evo", "id": k, "name": "质变 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
 		if mopts.is_empty():
-			for mid in D.MODULES:
-				mopts.append({"kind": "module", "id": mid, "name": D.MODULES[mid].name, "desc": D.MODULES[mid].desc})
-		_show_choices("精英化二：%s 的质变（同时解锁「镜花水月」）" % D.EVO.get(evo1, {"name": "模组"}).name, mopts, "level")
+			for k in D.EVO:
+				if D.EVO[k].has("path"):
+					mopts.append({"kind": "evo", "id": k, "name": "质变 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
+		_show_choices("精英化二：%s的质变（同时解锁「镜花水月」）" % D.EVO.get(evo1, {"name": ""}).name, mopts, "level")
 		return
-	var pool: Array = []
+	# ---- 升级三选一：1 张「路线」卡（路线专属升级 / 技能进阶）+ 2 张通用成长；无人机卡按概率替换一张通用卡
+	var route: Array = []
+	var general: Array = []
 	for gid in D.GROWTH:
 		var g: Dictionary = D.GROWTH[gid]
 		var n: int = growth.get(gid, 0)
 		if n >= g.max or (g.has("path") and g.path != evo1):
 			continue
 		var nm: String = g.name if g.max > 90 else "%s  %d/%d" % [g.name, n + 1, g.max]
-		pool.append({"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + _growth_preview(gid)})
+		var card := {"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + _growth_preview(gid)}
 		if g.has("path"):
-			pool.append(pool[-1])   # 路线专属升级权重 ×2
-	pool.shuffle()
-	var picks: Array = []
-	var seen_ids := {}
-	for o in pool:
-		if not seen_ids.has(o.id):
-			seen_ids[o.id] = true
-			picks.append(o)
-		if picks.size() >= 3:
-			break
-	# 武器卡：未满 3 种时可获得新武器，已有武器可升级；前期必出一张，之后约 60%
-	var wopts: Array = []
-	for wid in D.WEAPONS:
-		var wl: int = weapons.get(wid, 0)
-		if wl >= 5 or (wl == 0 and weapons.size() >= D.MAX_WEAPONS):
-			continue
-		var W: Dictionary = D.WEAPONS[wid]
-		wopts.append({"kind": "weapon", "id": wid, "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
-			"desc": W.lv[wl], "wlv": wl + 1})
-	var wslot := -1
-	if not wopts.is_empty() and picks.size() > 0 and (weapons.is_empty() or rng.randf() < 0.6):
-		wslot = rng.randi() % picks.size()
-		picks[wslot] = wopts[rng.randi() % wopts.size()]
-	# 技能进阶卡：每次至多一张，按概率混入
-	var adv: Array = []
+			route.append(card)
+		else:
+			general.append(card)
 	for sid in ["s1", "s2", "s3"]:
 		var lv: int = skill_lv[sid]
 		if lv >= 1 and lv < 3:
 			var ad: Dictionary = D.SKILL_ADV[sid][lv - 1]
 			if level >= ad.min_lv:
-				adv.append({"kind": "skill", "id": sid, "name": "%s · %s" % [D.SKILLS[sid].name, ad.name], "desc": ad.desc, "stage": lv})
-	if not adv.is_empty() and rng.randf() < D.SKILL_ADV_CHANCE and picks.size() > 1:
-		var aslot := rng.randi() % picks.size()
-		if aslot == wslot:
-			aslot = (aslot + 1) % picks.size()
-		picks[aslot] = adv[rng.randi() % adv.size()]
+				route.append({"kind": "skill", "id": sid, "name": "%s · %s" % [D.SKILLS[sid].name, ad.name], "desc": ad.desc, "stage": lv})
+	route.shuffle()
+	general.shuffle()
+	var picks: Array = []
+	if not route.is_empty():
+		picks.append(route[0])
+	for c in general:
+		if picks.size() >= 3:
+			break
+		picks.append(c)
+	var ri := 1
+	while picks.size() < 3 and ri < route.size():
+		picks.append(route[ri])
+		ri += 1
+	# 无人机：首次在 Lv.2 后必出一张，之后约 35%
+	var wl: int = weapons.get("drone", 0)
+	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.35):
+		var W: Dictionary = D.WEAPONS.drone
+		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
+			"desc": W.lv[wl], "wlv": wl + 1}
+		picks[picks.size() - 1] = wcard
+	picks.shuffle()
 	_show_choices("升级！ Lv.%d" % level, picks, "level")
 
 
@@ -3645,14 +3656,6 @@ func _pick(i: int) -> void:
 			if not found:
 				allies.append({"kind": o.id, "lv": 1, "pos": ppos + Vector2(rng.randf_range(-40, 40), 30), "cd": 0.5})
 				_show_banner("援护干员「%s」加入编队" % D.ALLIES[o.id].name)
-		"module":
-			module = o.id
-			s3_sp = 30.0
-			var gl: String = {"x": "X", "y": "Y", "a": "α"}.get(o.id, "模")
-			skill_lv.s3 = 1
-			show_queue.append({"head": "精英化二", "en": "ELITE  PROMOTION  II", "col": Color(0.8, 0.55, 1.0), "demo": "s3", "items": [
-				_skill_item("s3"),
-				{"tag": "模组", "tag_en": "MODULE", "glyph": gl, "name": D.MODULES[o.id].name, "desc": D.MODULES[o.id].desc, "col": UI.GOLD}]})
 		"relic":
 			relics.append(o.id)
 			_apply_relic(o.id)
@@ -4002,6 +4005,9 @@ func _draw() -> void:
 		var ai: Dictionary = afterimg[i]
 		var aa := 0.45 * (1.0 - float(i) / afterimg.size())
 		_draw_player_at(ai.pos + Vector2(0, 6), ai.flip, Color(0.9, 0.55, 1.8, aa), ai.frame, ai.tex, ai.hf)
+	if s3_active > 0.0 and skill_lv.s3 >= 2:
+		var ma := minf(1.0, s3_active * 3.0) * (0.62 + 0.08 * sin(t * 6.0))
+		_draw_player_at(mirror_pos + Vector2(0, 6), mirror_face < 0.0, Color(0.85, 0.6, 1.9, ma), sprite.frame, sprite.texture, sprite.hframes)
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
 	for e in enemies:
@@ -5207,8 +5213,8 @@ func _draw_hud() -> void:
 	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
 	_draw_allies_hud(Vector2(vs.x - 16, vs.y - 150))
 	# 左下：精英化 / 模组
-	if module != "":
-		UI.text(hud, font, Vector2(18, vs.y - 190), D.MODULES[module].name, 14, UI.PURPLE, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	if evo1 != "":
+		UI.text(hud, font, Vector2(18, vs.y - 190), D.EVO[evo1].name + ((" · " + D.EVO[evo2].name) if evo2 != "" else ""), 14, D.EVO[evo1].col, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 
 	# 横幅通知
 	if banner_t > 0.0:
@@ -5265,7 +5271,7 @@ const INTRO_PAGES := [
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：成长、武器（无人机 / 触须阵 / 潮汐弹）、技能进阶。",
+		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。",
 		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv20 精英化二（质变 + 镜花水月）。",
 		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。"]},
 	{"title": "资源、宝箱与商人", "en": "LOOT & MERCHANT", "icon": "loot", "lines": [
@@ -5417,7 +5423,7 @@ func _draw_stats(vs: Vector2) -> void:
 			["挥砍半径", "%d" % int(95.0 * u_area_mult)],
 			["挥砍角度", "%d°" % int(half * 2.0)],
 			["触手倍率", "×%.2f" % t_mult],
-			["追击目标", "%d" % (1 + extra_targets + (1 if module == "x" else 0))],
+			["追击目标", "%d" % (1 + extra_targets)],
 			["技力回复", "×%.2f" % sp_mult],
 		]],
 	]
