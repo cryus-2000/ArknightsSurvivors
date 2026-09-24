@@ -1,0 +1,45 @@
+{
+  "id": "mizuki",
+  "name": "水月",
+  "en": "MIZUKI",
+  "script": "res://scripts/characters/mizuki.gd",
+  "sprites": {
+    "base": "player",
+    "idle": "player_idle",
+    "run": "player_run",
+    "attack": "player_attack_48",
+    "hurt": "player_hurt",
+    "death": "player_death",
+    "size": 48,
+    "foot": [
+      24,
+      46
+    ]
+  },
+  "skills": [
+    "s1",
+    "s2",
+    "s3"
+  ],
+  "evo": {
+    "paths": [
+      "blade",
+      "tendril"
+    ],
+    "mutations": {
+      "blade": [
+        "blade_moon",
+        "blade_abyss"
+      ],
+      "tendril": [
+        "tendril_mother",
+        "tendril_giant"
+      ]
+    }
+  },
+  "icons": {
+    "s1": "skill_s1",
+    "s2": "skill_s2",
+    "s3": "skill_s3"
+  }
+}

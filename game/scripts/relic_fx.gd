@@ -145,8 +145,8 @@ func _apply_stat(stat: String, op: String, v: float) -> void:
 	var m: float = (1.0 + v) if op == "add" else v   # add = 百分比累加；mult = 直接乘；flat = 直接加
 	match stat:
 		"dmg": g.dmg_mult *= m
-		"mizuki_umbrella_dmg": g.u_dmg_mult *= m
-		"mizuki_tentacle_mult": g.t_mult *= m
+		"mizuki_umbrella_dmg": g.ch.u_dmg_mult *= m
+		"mizuki_tentacle_mult": g.ch.t_mult *= m
 		"ally_dmg": g.ally_mult *= m
 		"arts_dmg": g.arts_mult *= m
 		"enemy_dmg": g.enemy_dmg_mult *= m
@@ -187,7 +187,7 @@ func tick(dt: float) -> void:
 		temps = temps.filter(func(x): return x.until > g.t)
 	# 黑色郁金香：技能未生效时累计，最多 60 秒
 	if rule("black_tulip") > 0:
-		if g.s2_active > 0.0 or g.s3_active > 0.0:
+		if g.ch.s2_active > 0.0 or g.ch.s3_active > 0.0:
 			tulip_t = 0.0
 		else:
 			tulip_t = minf(60.0, tulip_t + dt)
@@ -222,7 +222,7 @@ func tick(dt: float) -> void:
 		dot_tick -= dt
 		if dot_tick <= 0.0:
 			dot_tick = 0.5
-			var per: float = 18.0 * g.u_dmg_mult * g.dmg_mult * dot_mult * 0.5
+			var per: float = 18.0 * g.ch.u_dmg_mult * g.dmg_mult * dot_mult * 0.5
 			g.out_src = "藏品"
 			for e in g.enemies:
 				if not e.dead and not e.chest and (e.stun > 0.0 or e.slow > 0.0) and e.pos.distance_squared_to(g.ppos) < 700.0 * 700.0:
@@ -384,5 +384,5 @@ func _temp(stat: String, value: float, dur: float) -> void:
 
 
 func _gain_sp(pct: float) -> void:
-	g.s2_sp = minf(D.SKILL_P.s2_charge, g.s2_sp + D.SKILL_P.s2_charge * pct)
-	g.s3_sp = minf(D.SKILL_P.s3_charge, g.s3_sp + D.SKILL_P.s3_charge * pct)
+	g.ch.s2_sp = minf(D.SKILL_P.s2_charge, g.ch.s2_sp + D.SKILL_P.s2_charge * pct)
+	g.ch.s3_sp = minf(D.SKILL_P.s3_charge, g.ch.s3_sp + D.SKILL_P.s3_charge * pct)

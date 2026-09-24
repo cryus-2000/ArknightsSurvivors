@@ -9,6 +9,7 @@ const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Map = preload("res://scripts/world/map.gd")
+const Character = preload("res://scripts/characters/character.gd")
 ## 造成伤害的类型：out_src -> [近战/远程, 物理/法术/真实]。真实伤害不吃任何倍率与防御
 const DMG_TYPE := {
 	"伞击": ["近战", "物理"], "技能": ["近战", "物理"], "技能·法术": ["近战", "法术"],
@@ -81,13 +82,6 @@ var lamp := 100.0
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
 var elite_stage := 0             # 精英化阶段 0/1/2
-var swing_cd := 0.0
-var u_dmg_mult := 1.0
-var u_area_mult := 1.0
-var u_spd_mult := 1.0
-var t_mult := 0.6                # 天赋一：触手追击倍率
-var rib_bonus := 0.0
-var extra_targets := 0
 # ---- 藏品驱动的通用倍率（scripts/relic_fx.gd 写入）
 var ally_mult := 1.0             # 援护伤害
 var arts_mult := 1.0             # 法术伤害（触手 / 技能 / 术师 / 辅助）
@@ -113,26 +107,9 @@ var tray_cells: Array = []       # 藏品栏格子 [Rect2, id]，用于鼠标悬
 var stats_cells: Array = []      # Tab 面板里可悬停的格子 [Rect2, kind, id]
 var rfx: RefCounted = null       # 藏品效果解释器
 var sp_mult := 1.0
-var s1_need := 7                 # 唤醒：充能所需挥伞次数
 var skill_lv := {"s1": 0, "s2": 0, "s3": 0}   # 0 未解锁 / 1 解锁 / 2 进阶I / 3 进阶II
-var delayed: Array = []          # 延时攻击（深层唤醒触手、倒影、连击）
-var s2_combo := 0
 var skill_cut := {}              # 技能发动时的横幅演出
 var flash := 0.0                 # 全屏闪光
-var afterimg: Array = []         # 镜花水月残影
-var afterimg_t := 0.0
-var s1_count := 0
-var s1_charges := 0
-var s2_sp := 10.0
-var s2_active := 0.0
-var s3_sp := 30.0
-var s3_active := 0.0
-var mirror_pos := Vector2.ZERO    # S3 镜像分身位置
-var mirror_face := 1.0
-var s3_pen_cd := 0.0
-var heal_budget := 0.0           # 反移情击杀回复：每秒上限
-var talent2_on := false
-
 # ---------- 藏品带来的附加能力 ----------
 var grip := false
 var evo_age := 35.0
@@ -151,14 +128,6 @@ var weapons := {}                # 武器 id -> 等级
 var intro_page := 0
 var intro_back := S.PLAY
 var intro_t := 0.0
-var evo1 := ""                   # 精英化一路线：blade 潮刃 / tendril 群触
-var evo2 := ""                   # 精英化二质变
-var evo_pending := false
-var abyss_n := 0                 # 深渊巨斩计数
-var giant_cd := 5.0              # 巨触吞噬冷却
-var mother_cd := 0.0
-var stakes: Array = []           # 触手桩 {pos, life, max, r, tick, dmg}
-var giants: Array = []           # 巨触横扫 {pos, t, dur, ang0, dir, dmg, hit}
 var shield := 0                  # 当前护盾层数
 var shield_max := 0
 var shield_every := 12.0
@@ -171,9 +140,6 @@ var pvel := Vector2.ZERO
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
 var drones: Array = []           # {pos, cd_shot, cd_laser, cd_missile, ang}
-var fields: Array = []           # 触须阵 {pos, r, life, max, tick, bind}
-var field_cd := 1.0
-var tide_shot_cd := 1.0
 var allies: Array = []           # {kind, lv, pos, cd}
 var bullets: Array = []
 var recruit_idx := 0
@@ -246,6 +212,7 @@ var banner_t := 0.0
 var choices: Array = []
 var choice_kind := ""
 var pending_levelups := 0
+var ch: RefCounted             # 当前角色（scripts/characters/<id>.gd），水月专属逻辑都在里面
 var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
 var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D：绘制时的高度偏移（击退腾空等）
@@ -309,6 +276,7 @@ var choice_shot := false
 func _ready() -> void:
 	bai = BossAI.new(self)
 	map = Map.new(self, Cfg.map_id)
+	ch = Character.create(self, Cfg.character_id)
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	rfx = RelicFx.new(self)
 	RL = rfx.table()
@@ -331,14 +299,25 @@ func _ready() -> void:
 	optional.append_array(["fx_umbrella_slash", "fx_umbrella_slash_awaken", "fx_umbrella_slash_mirage"])
 	for rid in RL:
 		optional.append("relic_" + rid)
-	for gid in D.GROWTH:
+	for gid in ch.growth_table():
 		optional.append("growth_" + gid)
 	for wid in D.WEAPONS:
 		optional.append("weapon_" + wid)
-	for eid in D.EVO:
+	for eid in ch.evo_table():
 		optional.append("evo_" + eid)
 	for n in optional:
 		tex[n] = A.tex(n)
+	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
+	var sp: Dictionary = ch.def.get("sprites", {})
+	for kind in ["idle", "run", "attack", "hurt", "death"]:
+		if sp.has(kind):
+			var key: String = "player_attack_48" if kind == "attack" else "player_" + kind
+			tex[key] = A.tex(sp[kind])
+	if sp.has("base"):
+		tex["player"] = A.tex(sp.base)
+	var ic: Dictionary = ch.def.get("icons", {})
+	for sid in ic:
+		tex["skill_" + sid] = A.tex(ic[sid])
 	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
 	for k in D.ALLIES:
 		tex["ally_%s_attack" % k] = A.tex("ally_%s_attack" % k)
@@ -487,7 +466,7 @@ func _update_music(_dt: float) -> void:
 			elite = true
 			break
 	var pulse := t > 12.0 or n > 30
-	var drive := n > 110 + int(t / 3.0) or horde_warn > 0.0 or horde_hit > 0.0 or elite or s2_active > 0.0 or s3_active > 0.0 or zone_state == 2
+	var drive = n > 110 + int(t / 3.0) or horde_warn > 0.0 or horde_hit > 0.0 or elite or ch.skill_active() or zone_state == 2
 	var out_zone := zone_state != 0 and ppos.distance_to(zone_c) > zone_r
 	var danger := hp < max_hp * 0.35 or lamp <= 0.0 or out_zone
 	Sfx.set_layers([1.0, 1.0 if pulse else 0.0, 1.0 if drive else 0.0, 1.0 if danger else 0.0])
@@ -589,22 +568,22 @@ func _autotest_step() -> void:
 			for a in OS.get_cmdline_user_args():
 				if a.begins_with("--evo="):
 					var ev := a.substr(6).split(",")
-					evo1 = ev[0]
-					evo2 = ev[1] if ev.size() > 1 else ""
+					ch.evo1 = ev[0]
+					ch.evo2 = ev[1] if ev.size() > 1 else ""
 					growth["b_count"] = 1
 					growth["t_count"] = 1
 			weapons = {"drone": 3}
-			if evo1 == "blade":
+			if ch.evo1 == "blade":
 				growth["b_echo"] = 2
-			elif evo1 == "tendril":
+			elif ch.evo1 == "tendril":
 				growth["t_field"] = 2
 			for rid in ["118", "199", "100"]:
 				relics.append(rid)
 				_apply_relic(rid)
 			shield = 2
 			skill_lv["s3"] = maxi(skill_lv["s3"], 2)
-			s3_active = 30.0
-			mirror_pos = ppos
+			ch.s3_active = 30.0
+			ch.mirror_pos = ppos
 			for k in ["sniper", "caster", "support"]:
 				allies.append({"kind": k, "lv": 2, "pos": ppos, "cd": 0.5})
 			t = 149.0
@@ -612,8 +591,8 @@ func _autotest_step() -> void:
 			merchant = {"pos": ppos + Vector2(900, -300), "life": 60.0, "near": false}
 		if at_frames == 150 and not tray_cells.is_empty():
 			Input.warp_mouse(tray_cells[0][0].get_center())
-		if at_frames == 110 and evo2 == "tendril_giant":
-			giants.append({"pos": ppos + Vector2(230, 20), "t": 0.0, "dur": 2.6, "ang0": PI, "dir": 1.0, "dmg": 50.0, "hit": {}, "ang": 0.0})
+		if at_frames == 110 and ch.evo2 == "tendril_giant":
+			ch.giants.append({"pos": ppos + Vector2(230, 20), "t": 0.0, "dur": 2.6, "ang0": PI, "dir": 1.0, "dmg": 50.0, "hit": {}, "ang": 0.0})
 		if at_frames == 60:
 			_drop(ppos + Vector2(120, 40), "magnet", 1.0)
 			_drop(ppos + Vector2(-120, 40), "heal", 1.0)
@@ -672,7 +651,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "evo": evo1 + "/" + evo2}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "evo": ch.evo1 + "/" + ch.evo2}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -698,7 +677,7 @@ func _autotest_step() -> void:
 			choice_wait = 0
 			_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
-		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, evo1 + "/" + evo2, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
+		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, ch.evo1 + "/" + ch.evo2, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
 	for bb in bosses:
 		if not bb.dead and not bb.invuln and not bosstest:
 			bb.hp -= 4.0 if bosstest else 40.0
@@ -890,7 +869,7 @@ func _update(dt: float) -> void:
 	_spawn(dt)
 	_build_grid()
 	_update_enemies(dt)
-	_mizuki(dt)
+	ch.update(dt)
 	_update_allies(dt)
 	_update_bullets(dt)
 	_update_ebullets(dt)
@@ -1005,26 +984,25 @@ func _check_pending() -> void:
 	if not show_queue.is_empty():
 		_open_show(show_queue.pop_front())
 		return
-	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= D.SKILL_UNLOCK.s1 and skill_lv.s1 == 0:
+	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= ch.skill_unlock().s1 and skill_lv.s1 == 0:
 		skill_lv.s1 = 1
 		_open_show({"head": "技能解锁", "en": "SKILL  UNLOCKED", "col": UI.GOLD, "demo": "s1", "items": [_skill_item("s1")]})
 		return
-	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= D.SKILL_UNLOCK.s2 and elite_stage == 0:
+	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= ch.skill_unlock().s2 and elite_stage == 0:
 		elite_stage = 1
 		skill_lv.s2 = 1
-		talent2_on = true
+		ch.on_elite(1)
 		show_queue.append({"head": "精英化一", "en": "ELITE  PROMOTION  I", "col": Color(0.5, 0.8, 1.0), "demo": "s2", "items": [
 			_skill_item("s2"),
 			{"tag": "天赋", "tag_en": "TALENT", "glyph": "反", "name": "反移情", "desc": "击杀敌人时回复生命（每秒有上限）", "col": Color(0.5, 1.0, 0.65)}]})
-		evo_pending = true
 		_open_show(show_queue.pop_front())
 		return
 	# 精英化一：选择进化路线（消耗这次升级）
-	if evo_pending and pending_levelups > 0:
-		evo_pending = false
+	if ch.evo_pending and pending_levelups > 0:
+		ch.evo_pending = false
 		var eo: Array = []
-		for k in ["blade", "tendril"]:
-			eo.append({"kind": "evo", "id": k, "name": "进化 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
+		for k in ch.evo_paths():
+			eo.append({"kind": "evo", "id": k, "name": "进化 · " + ch.evo_table()[k].name, "desc": ch.evo_table()[k].desc})
 		_show_choices("精英化一：选择进化方向", eo, "level")
 		return
 	if pending_chests > 0:
@@ -1985,12 +1963,7 @@ func _kill(e: Dictionary) -> void:
 		hitstop = max(hitstop, 0.12)
 		_shake(1.0)
 		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
-	# 天赋二「反移情」：击杀回复生命（每秒有上限）
-	if talent2_on:
-		var want := 0.01
-		var got: float = min(want, heal_budget)
-		heal_budget -= got
-		_heal(max_hp * got)
+	ch.on_kill(e)
 	if flesh_heal and e.evo:
 		_heal(max_hp * 0.03)
 	if ember and e.elite:
@@ -2067,92 +2040,6 @@ func _nearest(n: int, max_dist: float) -> Array:
 	return out
 
 
-func _swing_radius() -> float:
-	var r := 95.0 * u_area_mult
-	if s3_active > 0.0:
-		r *= 1.4
-	return r
-
-
-func _dmg_bonus() -> float:
-	var m := dmg_mult
-	if talent2_on and _low_hp_enemy_near():
-		m *= 1.22
-	if backlight and lamp < 30.0:
-		m *= 1.3
-	return m
-
-
-func _low_hp_enemy_near() -> bool:
-	for j in _query(ppos, 160.0):
-		var e: Dictionary = enemies[j]
-		if not e.dead and e.hp < e.maxhp * 0.5 and e.pos.distance_to(ppos) < 160.0:
-			return true
-	return false
-
-
-func _mizuki(dt: float) -> void:
-	heal_budget = min(heal_budget + dt * 0.05, 0.05)
-	# 技力：随时间回复；技能生效期间不回复
-	var P: Dictionary = D.SKILL_P
-	if skill_lv.s2 >= 1:
-		if s2_active > 0.0:
-			s2_active -= dt
-		else:
-			s2_sp += dt * sp_mult * _lamp_sp()
-			if s2_sp >= P.s2_charge:
-				s2_sp = 0.0
-				s2_active = P.s2_dur
-				_skill_cast("s2")
-	if skill_lv.s3 >= 1:
-		if s3_active > 0.0:
-			s3_active -= dt
-			mirror_pos = mirror_pos.lerp(ppos + Vector2(-facing * 80.0, -10.0), minf(1.0, dt * 8.0))
-			# 深海幻境：周身敌人减速
-			if skill_lv.s3 >= 3:
-				for j in _query(ppos, P.s3_zone_r):
-					var ze: Dictionary = enemies[j]
-					if not ze.dead and ze.pos.distance_to(ppos) < P.s3_zone_r:
-						ze.slow = maxf(ze.slow, 0.2)
-			afterimg_t -= dt
-			if afterimg_t <= 0.0:
-				afterimg_t = 0.06
-				afterimg.push_front({"pos": ppos, "frame": sprite.frame, "tex": sprite.texture, "hf": sprite.hframes, "flip": sprite.flip_h})
-				if afterimg.size() > 5:
-					afterimg.pop_back()
-		else:
-			afterimg.clear()
-			s3_sp += dt * sp_mult * _lamp_sp()
-			if s3_sp >= P.s3_charge:
-				s3_sp = 0.0
-				s3_active = P.s3_dur
-				mirror_pos = ppos
-				_skill_cast("s3")
-	# 延时攻击
-	for i in range(delayed.size() - 1, -1, -1):
-		var dl: Dictionary = delayed[i]
-		dl.at -= dt
-		if dl.at <= 0.0:
-			delayed.remove_at(i)
-			_run_delayed(dl)
-	s3_pen_cd -= dt
-
-	swing_cd -= dt
-	if swing_cd <= 0.0:
-		var radius := _swing_radius()
-		var targets := _nearest(1, radius + 60.0)
-		if targets.size() > 0:
-			var interval: float = 0.9 * u_spd_mult * (1.5 if atk_slow > 0.0 else 1.0) * rfx.umbrella_interval_mult()
-			if s2_active > 0.0:
-				interval *= D.SKILL_P.s2_interval
-			swing_cd = max(0.18, interval)
-			_umbrella(targets[0])
-		else:
-			swing_cd = 0.1
-
-	_update_weapons(dt)
-
-
 ## 扇形判定：返回 origin 周围 radius 内、与 ang 夹角不超过 half 的敌人
 func _arc_hit(origin: Vector2, ang: float, half: float, radius: float) -> Array:
 	var out: Array = []
@@ -2207,449 +2094,6 @@ func _slash_tex(kind := "base") -> String:
 	if kind == "mirage" and tex.get("fx_s3_slash") != null:
 		return "fx_s3_slash"
 	return "slash"
-
-
-func _umbrella(target: Dictionary) -> void:
-	var P: Dictionary = D.SKILL_P
-	var radius := _swing_radius()
-	var half := deg_to_rad(min(180.0, 75.0 + rib_bonus + 15.0 * growth.get("u_area", 0)))
-	var ang: float = (target.pos - ppos).angle()
-	facing = 1.0 if cos(ang) >= 0.0 else -1.0
-	swing_face = 0.25
-	var dmg := 18.0 * u_dmg_mult * _dmg_bonus()
-	if s3_active > 0.0:
-		dmg *= P.s3_mult
-	# S1「唤醒」：挥伞充能，满层后强化下一击
-	var empowered := false
-	if skill_lv.s1 >= 1:
-		s1_count += 1
-		if s1_count >= s1_need:
-			s1_count = 0
-			s1_charges = min(3, s1_charges + 1)
-		if s1_charges > 0:
-			s1_charges -= 1
-			empowered = true
-			dmg *= P.s1_mult
-			radius *= P.s1_radius
-	# 攻击方向：常态单方向；镜花水月三方向；深海形态全方向
-	var dirs: Array = [ang]
-	if s3_active > 0.0:
-		if skill_lv.s3 >= 3:
-			half = PI
-		else:
-			dirs = [ang, ang + TAU / 3.0, ang - TAU / 3.0]
-	var seen := {}
-	var hit: Array = []
-	for d in dirs:
-		for e in _arc_hit(ppos, d, half, radius):
-			if not seen.has(e.id):
-				seen[e.id] = true
-				hit.append(e)
-	crit_hit = empowered
-	dmg *= rfx.single_hit_mult(hit.size())
-	for e in hit:
-		out_src = "伞击"
-		_damage(e, dmg)
-		if not e.boss:
-			e.kb += (e.pos - ppos).normalized() * (360.0 if empowered else 240.0)
-		if s3_active > 0.0 and not e.dead:
-			e.stun = maxf(e.stun, P.s3_stun)
-	crit_hit = false
-	Sfx.play("swing_heavy" if empowered else "swing", -3.0 if empowered else -7.0)
-	if hit.size() > 0:
-		Sfx.play("hit", -2.0 if empowered else -5.0, 0.85 if empowered else 1.0)
-		hitstop = max(hitstop, 0.09 if empowered else 0.03)
-		_shake(0.6 if empowered else 0.18)
-		cam_kick = Vector2.from_angle(ang) * (10.0 if empowered else 4.0)
-		for k in min(hit.size(), 6):
-			var he: Dictionary = hit[k]
-			_sparks(he.pos, he.pos - ppos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
-
-	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
-	var alive := hit.filter(func(e): return not e.dead)
-	alive.sort_custom(func(a, b): return a.hp < b.hp)
-	var n: int = 1 + extra_targets + rfx.tentacle_targets_extra()
-	if s2_active > 0.0:
-		n += 1
-	if s3_active > 0.0:
-		n += 2 if skill_lv.s3 >= 3 else 1
-	var tdmg := dmg * t_mult
-	var stun := 0.0
-	if s3_active > 0.0:
-		stun = 1.0
-	elif s2_active > 0.0:
-		stun = P.s2_bind
-	for i in min(n, alive.size()):
-		_spawn_tentacle(alive[i], tdmg, stun)
-	if grip:
-		for e in alive:
-			if not e.dead and rng.randf() < 0.2:
-				_spawn_tentacle(e, tdmg * 0.6, 0.0)
-
-	# ---- S1 进阶
-	if empowered and hit.size() > 0:
-		var ip: Vector2 = hit[0].pos
-		fx.append({"kind": "impact", "pos": ip, "ang": ang, "life": 0.35, "max": 0.35, "col": UI.GOLD})
-		fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": UI.GOLD})
-		flash = maxf(flash, 0.12)
-		if skill_lv.s1 >= 2:
-			for k in mini(hit.size(), P.s1_burst_max):
-				delayed.append({"at": 0.06 * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * P.s1_burst_mult, "r": P.s1_burst_r, "arts": true})
-		if skill_lv.s1 >= 3:
-			var tg := _nearest(P.s1_deep_n, P.s1_deep_range)
-			for k in tg.size():
-				delayed.append({"at": 0.12 + 0.07 * k, "kind": "deep", "target": tg[k], "dmg": dmg * P.s1_deep_mult})
-	# ---- S2 进阶
-	if s2_active > 0.0:
-		if skill_lv.s2 >= 2:
-			# 双重困境：斩向另一方向最近的敌人
-			var best: Dictionary = {}
-			var bd := INF
-			for j in _query(ppos, radius + 60.0):
-				var e2: Dictionary = enemies[j]
-				if e2.dead or seen.has(e2.id):
-					continue
-				var o2: Vector2 = e2.pos - ppos
-				if abs(angle_difference(ang, o2.angle())) < 1.05:
-					continue
-				var dd := o2.length()
-				if dd < bd and dd < radius + 60.0:
-					bd = dd
-					best = e2
-			if not best.is_empty():
-				var a2: float = (best.pos - ppos).angle()
-				for e in _arc_hit(ppos, a2, half * 0.8, radius):
-					if not seen.has(e.id):
-						out_src = "技能"
-						_damage(e, dmg * P.s2_twin_mult)
-						if not e.dead:
-							e.stun = maxf(e.stun, 0.3)
-				_slash_fx(ppos, a2, half * 0.8, radius, Color(0.8, 1.1, 1.4) if _slash_tex().begins_with("fx_") else Color(0.5, 0.85, 1.4), _slash_tex(), 0.18)
-		if skill_lv.s2 >= 3:
-			s2_combo += 1
-			if s2_combo >= P.s2_combo_every:
-				s2_combo = 0
-				var tg2 := _nearest(8, 220.0)
-				tg2.shuffle()
-				for k in mini(P.s2_combo_n, tg2.size()):
-					delayed.append({"at": 0.05 + 0.07 * k, "kind": "combo", "target": tg2[k], "dmg": tdmg * 0.8})
-	# ---- S3 进阶：倒影
-	if s3_active > 0.0 and skill_lv.s3 >= 2:
-		delayed.append({"at": P.s3_echo_delay, "kind": "echo", "ang": ang, "dmg": dmg * P.s3_echo_mult,
-			"half": half, "radius": radius, "dirs": dirs.size()})
-
-	# ---- 斩击表现
-	var slash_col := Color.WHITE
-	if empowered:
-		slash_col = Color(1.6, 1.3, 0.7)
-	elif s3_active > 0.0:
-		slash_col = Color(1.2, 0.85, 1.6)
-	elif s2_active > 0.0:
-		slash_col = Color(0.8, 1.1, 1.5)
-	var slash_tex := _slash_tex("awaken" if empowered else ("mirage" if s3_active > 0.0 else "base"))
-	if slash_tex.begins_with("fx_umbrella_slash"):
-		slash_col = Color(1.15, 1.15, 1.15)
-	if empowered and alive.size() > 0:
-		_anim("fx_s1_burst", alive[0].pos, 0.35)
-	for k in min(hit.size(), 3):
-		_hit_fx(hit[k], hit[k].pos - ppos)
-	for d in dirs:
-		_slash_fx(ppos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
-	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
-		# 唤醒（旧素材）：外圈再叠一层更大的金色斩痕
-		_slash_fx(ppos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
-	_evo_on_swing(ang, dmg)
-
-
-## ---- 进化：潮刃（水刃）与群触（触手桩）
-func _evo_on_swing(ang: float, dmg: float) -> void:
-	if evo1 == "blade":
-		var n := 1 + int(growth.get("b_count", 0)) + (1 if evo2 == "blade_moon" else 0)
-		var size: float = (1.0 + 0.25 * growth.get("b_size", 0)) * (1.3 if evo2 == "blade_abyss" else 1.0)
-		var wd: float = dmg * 0.8 * (1.0 + 0.3 * growth.get("b_dmg", 0))
-		var rng_: float = 380.0 * (1.0 + 0.3 * growth.get("b_range", 0))
-		for k in n:
-			var a := ang + (k - (n - 1) / 2.0) * 0.28
-			_fire_wave(a, wd, size, rng_, evo2 == "blade_moon", false)
-		if evo2 == "blade_abyss":
-			abyss_n += 1
-			if abyss_n >= 4:
-				abyss_n = 0
-				_fire_wave(ang, wd * 3.0, size * 3.0, rng_ * 1.2, false, true)
-				_shake(0.6)
-				Sfx.play("swing_heavy", -2.0, 0.6, 0.0)
-	elif evo1 == "tendril":
-		var n := 1 + int(growth.get("t_count", 0)) + (2 if evo2 == "tendril_mother" else 0) + (1 if evo2 == "tendril_giant" else 0)
-		var pool := _nearest(14, 270.0)
-		pool.shuffle()
-		for k in mini(n, pool.size()):
-			delayed.append({"at": 0.05 + 0.06 * k, "kind": "summon", "target": pool[k], "dmg": dmg * 0.6 * (1.0 + 0.3 * growth.get("t_power", 0))})
-
-
-func _fire_wave(ang: float, dmg: float, size: float, dist: float, moon: bool, giant: bool) -> void:
-	var spd := 560.0 if not giant else 420.0
-	var life := dist / spd
-	bullets.append({"kind": "wave", "pos": ppos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
-		"dmg": dmg, "life": life * (2.0 if moon else 1.0), "max": life * (2.0 if moon else 1.0), "r": 20.0 * size, "size": size,
-		"aoe": 0.0, "hit": {}, "moon": moon, "ret": false, "giant": giant})
-	if not giant:
-		Sfx.play("swing", -14.0, 1.6, 0.1)
-
-
-## 触手桩：原地停留，定期鞭打范围内最近的敌人
-func _add_stake(p: Vector2, dmg: float) -> void:
-	if stakes.size() >= 16:
-		stakes.pop_front()
-	var life: float = 1.6 + 1.0 * growth.get("t_stake", 0)
-	stakes.append({"pos": p, "life": life, "max": life, "r": 60.0 * (1.0 + 0.25 * growth.get("t_reach", 0)), "tick": 0.3,
-		"dmg": dmg * 0.45, "flip": rng.randf() < 0.5, "whip": 0.0, "wt": Vector2.ZERO})
-
-
-const GIANT_R := 185.0
-const GIANT_RISE := 0.45
-const GIANT_SINK := 2.1
-
-
-## 巨触横扫：破土 0.45s → 顺 / 逆时针扫一整圈（1.65s）→ 沉回海床；扫到的敌人受重击、晕眩并被甩开
-func _update_giants(dt: float) -> void:
-	for gi in giants:
-		gi.t += dt
-		if gi.t < GIANT_RISE or gi.t > GIANT_SINK:
-			continue
-		var k: float = (gi.t - GIANT_RISE) / (GIANT_SINK - GIANT_RISE)
-		gi.ang = gi.ang0 + gi.dir * TAU * k
-		var sweep := Vector2.from_angle(gi.ang)
-		for j in _query(gi.pos, GIANT_R + 30.0):
-			var e: Dictionary = enemies[j]
-			if e.dead or gi.hit.has(e.id):
-				continue
-			var rel: Vector2 = e.pos - gi.pos
-			var dist := rel.length()
-			if dist > GIANT_R + e.r or dist < 10.0:
-				continue
-			if absf(angle_difference(rel.angle(), gi.ang)) > 0.42:
-				continue
-			gi.hit[e.id] = true
-			out_src = "巨触"
-			_damage(e, gi.dmg)
-			if not e.dead:
-				e.stun = maxf(e.stun, 0.9)
-				if not e.boss:
-					e.kb += (sweep.orthogonal() * gi.dir + rel.normalized() * 0.6).normalized() * 420.0
-			_sparks(e.pos, sweep.orthogonal() * gi.dir, Color(0.9, 0.6, 1.4), 4, 260.0)
-		if int(gi.t * 12.0) != int((gi.t - dt) * 12.0):
-			Sfx.play("tentacle", -12.0, 0.6, 0.1)
-	giants = giants.filter(func(x): return x.t < x.dur)
-
-
-func _draw_giant(gi: Dictionary) -> void:
-	var tx: Texture2D = tex.get("tentacle")
-	if tx == null:
-		return
-	# 地面阴影 + 扫过的弧
-	draw_set_transform(gi.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2.ZERO, 46.0, Color(0.6, 0.25, 1.0, 0.35))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var rise: float = clampf(gi.t / GIANT_RISE, 0.0, 1.0)
-	var sink: float = clampf((gi.t - GIANT_SINK) / (gi.dur - GIANT_SINK), 0.0, 1.0)
-	var len_k: float = (1.0 - (1.0 - rise) * (1.0 - rise)) * (1.0 - sink)
-	var ang: float = gi.ang if gi.t >= GIANT_RISE else gi.ang0
-	if gi.t >= GIANT_RISE and gi.t <= GIANT_SINK:
-		for q in 6:
-			var a0: float = ang - gi.dir * (0.12 + 0.11 * q)
-			var a1: float = ang - gi.dir * (0.11 * q)
-			draw_arc(gi.pos, GIANT_R * 0.92, minf(a0, a1), maxf(a0, a1), 10, Color(1.2, 0.6, 2.0, 0.55 - 0.08 * q), 26.0 - 3.0 * q)
-	# V7 主体：升起（0–2 帧）→ 横扫期间保持第 3 帧 → 沉回（3–5 帧）
-	var kt: Texture2D = tex.get("fx_kraken_rise")
-	if kt != null:
-		var kf := 2
-		if gi.t < GIANT_RISE:
-			kf = clampi(int(rise * 3.0), 0, 2)
-		elif gi.t > GIANT_SINK:
-			kf = clampi(3 + int(sink * 3.0), 3, 5)
-		_spr("fx_kraken_rise", 6, kf, gi.pos + Vector2(0, 12), PX * 1.3, gi.dir < 0.0, Color(1.15, 1.05, 1.25), Vector2(0.5, 90.0 / 96.0))
-	# 触手本体：沿扫掠方向平躺，从根部长出
-	var fw: int = tx.get_width() / 5
-	var fh: int = tx.get_height()
-	var fr: int = clampi(int(rise * 4.99), 0, 4)
-	var sc_len: float = GIANT_R / float(fh) * len_k * 1.05
-	var sc_w: float = PX * 4.6
-	draw_set_transform(gi.pos, ang + PI / 2.0, Vector2(sc_w, sc_len))
-	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), Color(1.4, 1.1, 1.8))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
-func _update_stakes(dt: float) -> void:
-	for st in stakes:
-		st.life -= dt
-		st.tick -= dt
-		st.whip = maxf(0.0, st.whip - dt)
-		if st.tick <= 0.0:
-			st.tick = 0.45
-			var best: Dictionary = {}
-			var bd: float = st.r
-			for j in _query(st.pos, st.r + 20.0):
-				var e: Dictionary = enemies[j]
-				if e.dead:
-					continue
-				var d: float = e.pos.distance_to(st.pos)
-				if d < bd:
-					bd = d
-					best = e
-			if not best.is_empty():
-				out_src = "触手桩"
-				_damage(best, st.dmg)
-				st.whip = 0.18
-				st.wt = best.pos
-				if not best.boss:
-					best.kb += (best.pos - st.pos).normalized() * 120.0
-	stakes = stakes.filter(func(st): return st.life > 0.0)
-	# 巨触吞噬：每 5 秒在敌群中心升起巨型触手
-	if evo2 == "tendril_giant":
-		giant_cd -= dt
-		if giant_cd <= 0.0:
-			var c := _densest_point(400.0)
-			if c == Vector2.INF:
-				giant_cd = 0.5
-			else:
-				giant_cd = 5.0
-				fx.append({"kind": "rift", "pos": c, "r": 115.0, "life": 0.55, "max": 0.55})
-				delayed.append({"at": 0.55, "kind": "giant", "pos": c, "dmg": (28.0 + level * 1.8) * dmg_mult * (1.0 + 0.3 * growth.get("t_power", 0))})
-				Sfx.play("roar", -8.0, 1.6, 0.0)
-	mother_cd -= dt
-
-
-## 延时攻击的执行
-func _run_delayed(dl: Dictionary) -> void:
-	var P: Dictionary = D.SKILL_P
-	match dl.kind:
-		"burst":
-			# 创伤扩散：目标处的范围冲击
-			for j in _query(dl.pos, dl.r):
-				var e: Dictionary = enemies[j]
-				if not e.dead and e.pos.distance_to(dl.pos) < dl.r + e.r:
-					out_src = "技能·法术"
-					_damage(e, dl.dmg)
-					if not e.boss:
-						e.kb += (e.pos - dl.pos).normalized() * 200.0
-			fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": UI.GOLD})
-			_sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
-			Sfx.play("boom", -10.0, 1.4, 0.1)
-		"deep", "combo":
-			var tg: Dictionary = dl.target
-			if tg.dead:
-				return
-			_spawn_tentacle(tg, dl.dmg, P.s2_bind if dl.kind == "combo" else 0.4)
-			fx.append({"kind": "ring", "pos": tg.pos, "r": 30.0, "life": 0.3, "max": 0.3,
-				"col": UI.GOLD if dl.kind == "deep" else Color(0.45, 0.8, 1.0)})
-			fx.append({"kind": "pillar", "pos": tg.pos, "life": 0.35, "max": 0.35,
-				"col": Color(1.0, 0.8, 0.4) if dl.kind == "deep" else Color(0.5, 0.85, 1.0)})
-		"summon":
-			# 群触：召唤触手（命中后化为触手桩）
-			var tg: Dictionary = dl.target
-			if tg.dead:
-				return
-			var sp: Vector2 = tg.pos
-			_spawn_tentacle(tg, dl.dmg, 0.35)
-			_add_stake(sp, dl.dmg)
-		"giant":
-			# 巨触吞噬：破土后横扫一圈（见 _update_giants），先把中心的敌人拖过来
-			for j in _query(dl.pos, 135.0):
-				var e: Dictionary = enemies[j]
-				if not e.dead and not e.boss and e.pos.distance_to(dl.pos) < 115.0 + e.r:
-					e.kb += (dl.pos - e.pos) * 2.0
-			giants.append({"pos": dl.pos, "t": 0.0, "dur": 2.6, "ang0": rng.randf() * TAU, "dir": (1.0 if rng.randf() < 0.5 else -1.0), "dmg": dl.dmg, "hit": {}, "ang": 0.0})
-			fx.append({"kind": "ring", "pos": dl.pos, "r": 130.0, "life": 0.5, "max": 0.5, "col": Color(0.8, 0.4, 1.0)})
-			_sparks(dl.pos, Vector2.UP, Color(0.8, 0.5, 1.0), 24, 360.0)
-			_shake(1.0)
-			hitstop = maxf(hitstop, 0.06)
-			Sfx.play("boom", -2.0, 0.6, 0.0)
-		"echo":
-			# 镜像：身后的镜像分身朝它身边的敌人同步挥伞（深海形态下三向）
-			var mp: Vector2 = mirror_pos
-			var ma: float = dl.ang
-			var near_d: float = dl.radius * 1.4
-			for e in enemies:
-				if e.dead:
-					continue
-				var dd: float = mp.distance_to(e.pos)
-				if dd < near_d:
-					near_d = dd
-					ma = (e.pos - mp).angle()
-			var dirs: Array = [ma]
-			if dl.dirs > 1:
-				dirs = [ma, ma + TAU / 3.0, ma - TAU / 3.0]
-			var seen := {}
-			for d in dirs:
-				for e in _arc_hit(mp, d, dl.half, dl.radius):
-					if seen.has(e.id):
-						continue
-					seen[e.id] = true
-					out_src = "技能"
-					_damage(e, dl.dmg)
-					if not e.dead:
-						e.stun = maxf(e.stun, P.s3_stun * 0.5)
-				_slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if _slash_tex("mirage").begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), _slash_tex("mirage"), 0.3)
-			mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
-			Sfx.play("swing", -9.0, 0.7, 0.05)
-
-
-## 技能发动：横幅 + 光环爆发 + 震屏
-func _skill_cast(sid: String) -> void:
-	rfx.on_skill_start()
-	var sk: Dictionary = D.SKILLS[sid]
-	skill_cut = {"id": sid, "t": 0.0}
-	Sfx.play("skill", -1.0, 1.0 if sid == "s2" else 0.8, 0.0)
-	_anim("fx_cast", ppos, 0.5, PX * (1.3 if sid == "s3" else 1.0), true)
-	_shake(0.5 if sid == "s2" else 0.8)
-	flash = maxf(flash, 0.25)
-	var c: Color = sk.col
-	fx.append({"kind": "ring", "pos": ppos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c})
-	fx.append({"kind": "ring", "pos": ppos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c})
-	fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": c})
-	_sparks(ppos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
-	# 发动冲击：推开身边小怪
-	for j in _query(ppos, 140.0):
-		var e: Dictionary = enemies[j]
-		if not e.dead and not e.boss and not e.chest:
-			e.kb += (e.pos - ppos).normalized() * 420.0
-
-
-func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
-	var p: Vector2 = target.pos
-	out_src = "触手"
-	_damage(target, dmg)
-	rfx.on_tentacle_hit(target)
-	if not target.dead:
-		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
-		# 无解困境：束缚有限传播给身边 1 名敌人（不会再次传播）
-		if s2_active > 0.0 and skill_lv.s2 >= 3 and stun > 0.0:
-			var P: Dictionary = D.SKILL_P
-			for j in _query(p, P.s2_spread_r):
-				var o: Dictionary = enemies[j]
-				if o.dead or is_same(o, target) or o.boss or o.stun > 0.1:
-					continue
-				if o.pos.distance_to(p) < P.s2_spread_r:
-					o.stun = P.s2_spread_bind
-					fx.append({"kind": "chain", "a": p, "b": o.pos, "life": 0.3, "max": 0.3})
-					break
-	# 深海之母：被触手击杀的敌人会在附近唤出新的触手
-	if target.dead and evo2 == "tendril_mother" and mother_cd <= 0.0:
-		mother_cd = 0.15
-		for j in _query(p, 180.0):
-			var o: Dictionary = enemies[j]
-			if not o.dead and not is_same(o, target) and o.pos.distance_to(p) < 180.0:
-				delayed.append({"at": 0.12, "kind": "summon", "target": o, "dmg": dmg * 0.8})
-				break
-	# 触手表现：地面裂隙 → 放大的触手破土 → 冲击环；再从水月脚下连一道触须线到目标
-	fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
-	var tl: float = 0.4 if tex.get("fx_tentacle_strike") != null else 0.6
-	fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": rng.randf() < 0.5})
-	_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), PX * clampf(target.r / 12.0, 1.0, 2.0), rng.randf() * TAU)
-	fx.append({"kind": "tendril", "a": ppos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
-	fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})
-	Sfx.play("tentacle", -4.0)
-	_sparks(p + Vector2(0, 8), Vector2.UP, Color(0.75, 0.5, 1.0), 7, 200.0)
 
 
 # =====================================================================
@@ -2950,8 +2394,8 @@ func _ally_release(al: Dictionary) -> void:
 # 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
 # =====================================================================
 func _update_weapons(dt: float) -> void:
-	_update_stakes(dt)
-	_update_giants(dt)
+	ch._update_stakes(dt)
+	ch._update_giants(dt)
 	var dl: int = weapons.get("drone", 0)
 	if dl > 0:
 		var want := 2 if dl >= 4 else 1
@@ -3017,50 +2461,6 @@ func _update_weapons(dt: float) -> void:
 								"aoe": 70.0, "home": tg, "turn": 9.0, "accel": 2400.0, "vmax": 820.0})
 						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
 						dr["fire_t"] = 0.25
-	# 触须阵
-	var fl: int = [0, 2, 4][int(growth.get("t_field", 0))] if evo1 == "tendril" else 0   # 群触·阵
-	if fl > 0:
-		field_cd -= dt
-		if field_cd <= 0.0:
-			field_cd = 3.5
-			for k in (2 if fl >= 4 else 1):
-				var c := _densest_point(380.0)
-				if c != Vector2.INF:
-					var fr := 70.0 * (1.3 if fl >= 2 else 1.0)
-					var dur := 2.4 if fl >= 5 else 1.8
-					fields.append({"pos": c + Vector2(randf_range(-30, 30), randf_range(-30, 30)) * k, "r": fr, "life": dur, "max": dur, "tick": 0.0,
-						"bind": fl >= 3, "dmg": 9.0 * dmg_mult * (1.6 if fl >= 5 else 1.0)})
-					Sfx.play("tentacle", -8.0, 0.7, 0.05)
-	for f in fields:
-		f.life -= dt
-		f.tick -= dt
-		if f.tick <= 0.0:
-			f.tick = 0.3
-			for j in _query(f.pos, f.r + 20.0):
-				var e: Dictionary = enemies[j]
-				if not e.dead and e.pos.distance_to(f.pos) < f.r + e.r * 0.5:
-					out_src = "触须阵"
-					_damage(e, f.dmg)
-					if f.bind and not e.boss and not e.dead:
-						e.stun = maxf(e.stun, 0.35)
-	fields = fields.filter(func(f): return f.life > 0.0)
-	# 潮汐弹
-	var tl: int = [0, 2, 4][int(growth.get("b_echo", 0))] if evo1 == "blade" else 0   # 潮刃·回响
-	if tl > 0:
-		tide_shot_cd -= dt
-		if tide_shot_cd <= 0.0:
-			var ts3 := _nearest(2, 420.0)
-			if ts3.is_empty():
-				tide_shot_cd = 0.2
-			else:
-				tide_shot_cd = 2.2 * (0.7 if tl >= 5 else 1.0)
-				var bounces := 3 + (2 if tl >= 2 else 0) + (3 if tl >= 5 else 0)
-				for k in (2 if tl >= 3 else 1):
-					var tg: Dictionary = ts3[k % ts3.size()]
-					var d: Vector2 = (tg.pos - ppos).normalized()
-					bullets.append({"kind": "tide", "pos": ppos + Vector2(0, -20), "vel": d * 520.0, "dmg": 16.0 * dmg_mult * (1.5 if tl >= 4 else 1.0),
-						"life": 1.0, "r": 7.0, "aoe": 0.0, "bounces": bounces, "hit": {}, "push": tl >= 4})
-				Sfx.play("pickup", -10.0, 0.8, 0.05)
 
 
 ## 无人机激光：照射 LASER_DUR 秒，每 0.1 秒对直线上的敌人结算一次（总伤害约为旧版单发的 1.6 倍，冷却 1.5→1.9 秒）
@@ -3153,7 +2553,7 @@ func _update_bullets(dt: float) -> void:
 		b.pos += b.vel * dt
 		b.life -= dt
 		if b.kind == "wave":
-			_update_wave(b, dt)
+			ch._update_wave(b, dt)
 			continue
 		if b.kind == "fire" or b.kind == "missile":
 			b.trail = b.get("trail", 0.0) - dt
@@ -3169,40 +2569,6 @@ func _update_bullets(dt: float) -> void:
 				continue
 			_bullet_hit(b, e)
 			break
-
-
-## 水刃：穿透，每个敌人只命中一次；月轮飞到一半折返（回程可再次命中）
-func _update_wave(b: Dictionary, dt: float) -> void:
-	if b.moon and not b.ret and b.life < b.max * 0.5:
-		b.ret = true
-		b.hit = {}
-	if b.ret:
-		var back: Vector2 = ppos + Vector2(0, -18) - b.pos
-		b.vel = b.vel.lerp(back.normalized() * 620.0, clampf(dt * 6.0, 0.0, 1.0))
-		if back.length() < 24.0:
-			b.life = 0.0
-			return
-	for j in _query(b.pos, b.r + 30.0):
-		var e: Dictionary = enemies[j]
-		if e.dead or b.hit.has(e.id) or e.pos.distance_to(b.pos) > b.r + e.r:
-			continue
-		b.hit[e.id] = true
-		out_src = "水刃"
-		_damage(e, b.dmg)
-		if not e.dead:
-			e.slow = maxf(e.slow, 1.0)
-		if b.giant and not e.dead:
-			e.stun = maxf(e.stun, 1.0)
-		if not e.boss and not e.dead:
-			e.kb += b.vel.normalized() * (260.0 if b.giant else 120.0)
-		_sparks(e.pos, b.vel, Color(0.7, 1.0, 1.0), 2, 180.0)
-		_fx_sprite("fx_tide_blade_hit", e.pos + Vector2(0, -e.r * 0.5), PX * clampf(b.size, 1.0, 2.5), b.vel.angle())
-		# 默认不穿透：命中即碎（潮刃·贯 可穿透 2 名 / 无限；深渊巨斩总是穿透）
-		var pn: int = [0, 2, 999][int(growth.get("b_pierce", 0))]
-		if not b.giant and b.hit.size() > pn:
-			b.life = 0.0
-			fx.append({"kind": "ring", "pos": b.pos, "r": b.r * 0.8, "life": 0.2, "max": 0.2, "col": Color(0.6, 1.0, 1.0)})
-			return
 
 
 ## 子弹命中：按种类结算伤害与特效
@@ -3555,7 +2921,7 @@ func _animate_cards(dt: float) -> void:
 
 
 func _skill_item(sid: String) -> Dictionary:
-	var sk: Dictionary = D.SKILLS[sid]
+	var sk: Dictionary = ch.skills()[sid]
 	return {"tag": "技能", "tag_en": "SKILL", "glyph": sk.glyph, "icon": "skill_" + sid, "name": sk.name, "desc": sk.desc, "col": sk.col}
 
 
@@ -3693,11 +3059,11 @@ func _card_color(o: Dictionary) -> Color:
 		"recruit":
 			return Color(0.55, 0.9, 0.55)
 		"skill":
-			return D.SKILLS[o.id].col
+			return ch.skills()[o.id].col
 		"weapon":
 			return D.WEAPONS[o.id].col
 		"evo":
-			return D.EVO[o.id].col
+			return ch.evo_table()[o.id].col
 	return UI.CYAN
 
 
@@ -3717,7 +3083,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "weapon":
 		cat = "武器  " + D.WEAPONS[o.id].en
 	elif o.kind == "evo":
-		cat = ("进化  " if not D.EVO[o.id].has("path") else "质变  ") + D.EVO[o.id].en
+		cat = ("进化  " if not ch.evo_table()[o.id].has("path") else "质变  ") + ch.evo_table()[o.id].en
 	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
 	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	# 图标底座
@@ -3730,7 +3096,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
 	elif o.kind == "evo":
-		glyph = D.EVO[o.id].glyph
+		glyph = ch.evo_table()[o.id].glyph
 	var ic: Texture2D = _card_icon(o)
 	var bob := sin(t * 2.0 + i) * 2.0
 	if o.kind == "recruit":
@@ -3782,26 +3148,26 @@ func _open_levelup() -> void:
 	# 精英化节点（精英化一在 _check_pending 中先播放解锁演出）
 	if level >= 19 and elite_stage == 1:
 		elite_stage = 2
+		var E: Dictionary = ch.evo_table()
 		var mopts: Array = []
-		for k in D.EVO:
-			if D.EVO[k].get("path", "") == evo1 and evo1 != "":
-				mopts.append({"kind": "evo", "id": k, "name": "质变 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
+		for k in ch.evo_mutations(ch.evo1):
+			mopts.append({"kind": "evo", "id": k, "name": "质变 · " + E[k].name, "desc": E[k].desc})
 		if mopts.is_empty():
-			for k in D.EVO:
-				if D.EVO[k].has("path"):
-					mopts.append({"kind": "evo", "id": k, "name": "质变 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
-		_show_choices("精英化二：%s的质变（同时解锁「镜花水月」）" % D.EVO.get(evo1, {"name": ""}).name, mopts, "level")
+			for pth in ch.evo_paths():
+				for k in ch.evo_mutations(pth):
+					mopts.append({"kind": "evo", "id": k, "name": "质变 · " + E[k].name, "desc": E[k].desc})
+		_show_choices("精英化二：%s的质变" % E.get(ch.evo1, {"name": ""}).name, mopts, "level")
 		return
 	# ---- 升级三选一：1 张「路线」卡（路线专属升级 / 技能进阶）+ 2 张通用成长；无人机卡按概率替换一张通用卡
 	var route: Array = []
 	var general: Array = []
-	for gid in D.GROWTH:
-		var g: Dictionary = D.GROWTH[gid]
+	for gid in ch.growth_table():
+		var g: Dictionary = ch.growth_table()[gid]
 		var n: int = growth.get(gid, 0)
-		if n >= g.max or (g.has("path") and g.path != evo1):
+		if n >= g.max or (g.has("path") and g.path != ch.evo1):
 			continue
 		var nm: String = g.name if g.max > 90 else "%s  %d/%d" % [g.name, n + 1, g.max]
-		var card := {"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + _growth_preview(gid)}
+		var card := {"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + ch._growth_preview(gid)}
 		if g.has("path"):
 			route.append(card)
 		else:
@@ -3809,9 +3175,9 @@ func _open_levelup() -> void:
 	for sid in ["s1", "s2", "s3"]:
 		var lv: int = skill_lv[sid]
 		if lv >= 1 and lv < 3:
-			var ad: Dictionary = D.SKILL_ADV[sid][lv - 1]
+			var ad: Dictionary = ch.skill_adv()[sid][lv - 1]
 			if level >= ad.min_lv:
-				route.append({"kind": "skill", "id": sid, "name": "%s · %s" % [D.SKILLS[sid].name, ad.name], "desc": ad.desc, "stage": lv})
+				route.append({"kind": "skill", "id": sid, "name": "%s · %s" % [ch.skills()[sid].name, ad.name], "desc": ad.desc, "stage": lv})
 	route.shuffle()
 	general.shuffle()
 	var picks: Array = []
@@ -3882,7 +3248,7 @@ func _pick(i: int) -> void:
 	match o.kind:
 		"growth":
 			growth[o.id] = growth.get(o.id, 0) + 1
-			_apply_growth(o.id)
+			ch._apply_growth(o.id)
 		"recruit":
 			var found := false
 			for al in allies:
@@ -3897,20 +3263,7 @@ func _pick(i: int) -> void:
 				relics.append(o.id)
 			_apply_relic(o.id)
 		"evo":
-			var ev: Dictionary = D.EVO[o.id]
-			if not ev.has("path"):
-				evo1 = o.id
-				_show_banner("进化方向：%s" % ev.name)
-				fx.append({"kind": "rays", "pos": ppos, "life": 0.7, "max": 0.7, "col": ev.col})
-				fx.append({"kind": "ring", "pos": ppos, "r": 160.0, "life": 0.6, "max": 0.6, "col": ev.col})
-				_shake(0.6)
-			else:
-				evo2 = o.id
-				skill_lv.s3 = 1
-				s3_sp = 30.0
-				show_queue.append({"head": "精英化二", "en": "ELITE  PROMOTION  II", "col": Color(0.8, 0.55, 1.0), "demo": "s3", "items": [
-					_skill_item("s3"),
-					{"tag": "质变", "tag_en": "EVOLUTION", "glyph": ev.glyph, "icon": "evo_" + o.id, "name": "%s · %s" % [D.EVO[evo1].name, ev.name], "desc": ev.desc, "col": ev.col}]})
+			ch.on_evo_pick(o.id)
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
@@ -3918,8 +3271,8 @@ func _pick(i: int) -> void:
 			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 		"skill":
 			skill_lv[o.id] += 1
-			var sk: Dictionary = D.SKILLS[o.id]
-			var ad: Dictionary = D.SKILL_ADV[o.id][o.stage - 1]
+			var sk: Dictionary = ch.skills()[o.id]
+			var ad: Dictionary = ch.skill_adv()[o.id][o.stage - 1]
 			_show_banner("技能进阶：%s · %s" % [sk.name, ad.name])
 			fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": sk.col})
 			fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": sk.col})
@@ -3934,44 +3287,6 @@ func _pick(i: int) -> void:
 		tab_hinted = true
 		tab_hint = 6.0
 	_check_pending()
-
-
-## 升级卡上的数值预览：「当前 → 升级后」
-func _growth_preview(id: String) -> String:
-	match id:
-		"u_dmg": return "伞击伤害 %d → %d" % [int(18 * u_dmg_mult * dmg_mult), int(18 * u_dmg_mult * 1.15 * dmg_mult)]
-		"u_area": return "挥砍半径 %d → %d" % [int(95 * u_area_mult), int(95 * u_area_mult * 1.12)]
-		"u_spd": return "挥伞间隔 %.2f → %.2f 秒" % [0.9 * u_spd_mult, 0.9 * u_spd_mult * 0.9]
-		"t_dmg": return "触手倍率 ×%.2f → ×%.2f" % [t_mult, t_mult * 1.2]
-		"sp": return "技力回复 ×%.2f → ×%.2f" % [sp_mult, sp_mult * 1.15]
-		"dodge": return "闪避 %d%% → %d%%" % [int(dodge * 100), int(dodge * 100) + 5]
-		"hp": return "最大生命 %d → %d" % [int(max_hp), int(max_hp) + 20]
-		"speed": return "移动速度 %d → %d" % [int(speed), int(speed * 1.1)]
-		"pickup": return "拾取范围 %d → %d" % [int(pickup), int(pickup * 1.3)]
-		"regen": return "生命回复 %.1f → %.1f / 秒" % [regen, regen + 0.6]
-		"armor": return "减伤 %d → %d" % [int(armor), int(armor) + 1]
-		"wick": return "灯火消耗 ×%.2f → ×%.2f" % [lamp_decay, lamp_decay * 0.85]
-	return ""
-
-
-func _apply_growth(id: String) -> void:
-	match id:
-		"u_dmg": u_dmg_mult *= 1.15
-		"u_area": u_area_mult *= 1.1
-		"u_spd": u_spd_mult *= 0.92
-		"t_dmg": t_mult *= 1.2
-		"sp":
-			sp_mult *= 1.15
-			s1_need = max(5, s1_need - 1)
-		"dodge": dodge += 0.05
-		"hp":
-			max_hp += 20.0
-			hp += 20.0
-		"speed": speed *= 1.1
-		"pickup": pickup *= 1.3
-		"regen": regen += 0.6
-		"armor": armor += 2.0
-		"wick": lamp_decay *= 0.85
 
 
 func _apply_relic(id: String) -> void:
@@ -4163,34 +3478,14 @@ func _draw() -> void:
 				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
 	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
-	if s2_active > 0.0 and tex.get("fx_s2_aura") == null:
-		draw_arc(ppos + Vector2(0, -10), 30.0 + sin(t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
-	if s3_active > 0.0 and tex.get("fx_s3_aura") == null:
-		draw_arc(ppos + Vector2(0, -10), 40.0 + sin(t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
-		draw_circle(ppos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
+	ch.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
 		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
 	for al in allies:
 		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
-	for f in fx:
-		if f.kind == "tentacle":
-			_draw_tentacle(f)
-	_draw_skill_floor()
-	for f in fields:
-		_draw_field(f)
-	for st in stakes:
-		_draw_stake(st)
-	for gi in giants:
-		_draw_giant(gi)
-	for i in range(afterimg.size() - 1, -1, -1):
-		var ai: Dictionary = afterimg[i]
-		var aa := 0.45 * (1.0 - float(i) / afterimg.size())
-		_draw_player_at(ai.pos + Vector2(0, 6), ai.flip, Color(0.9, 0.55, 1.8, aa), ai.frame, ai.tex, ai.hf)
-	if s3_active > 0.0 and skill_lv.s3 >= 2:
-		var ma := minf(1.0, s3_active * 3.0) * (0.62 + 0.08 * sin(t * 6.0))
-		_draw_player_at(mirror_pos + Vector2(0, 6), mirror_face < 0.0, Color(0.85, 0.6, 1.9, ma), sprite.frame, sprite.texture, sprite.hframes)
+	ch.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
 	for e in enemies:
@@ -4225,7 +3520,7 @@ func _draw() -> void:
 				_draw_player()
 			3:
 				map.draw_sort_prop(it[2])
-	_draw_skill_over()
+	ch._draw_skill_over()
 	for dr in drones:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
@@ -4265,7 +3560,7 @@ func _draw() -> void:
 			continue
 		var n: Vector2 = b.vel.normalized()
 		if b.kind == "wave":
-			_draw_wave(b)
+			ch._draw_wave(b)
 			continue
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
@@ -4547,15 +3842,7 @@ func _draw_fx_add() -> void:
 	draw_off = Vector2.ZERO
 	map.draw_god_rays(fx_add, get_viewport_rect().size, cam.position)
 	var loop := int(t * 10.0)
-	if s2_active > 0.0 and tex.get("fx_s2_aura") != null:
-		_spr_on(fx_add, "fx_s2_aura", FXF.fx_s2_aura, loop, ppos + Vector2(0, 4))
-	if s3_active > 0.0 and tex.get("fx_s3_aura") != null:
-		_spr_on(fx_add, "fx_s3_aura", FXF.fx_s3_aura, loop, ppos + Vector2(0, 4))
-	var mark := "fx_s2_bind" if s2_active > 0.0 else "fx_stun"
-	if tex.get(mark) != null:
-		for e in enemies:
-			if e.stun > 0.3:
-				_spr_on(fx_add, mark, FXF[mark], loop + e.id, e.pos + Vector2(0, -e.r - 10))
+	ch.draw_fx_add(fx_add, loop)
 	for f in fx:
 		if f.kind != "anim":
 			continue
@@ -4661,23 +3948,6 @@ func _update_player_anim48(dt: float) -> void:
 		var spec: Array = P48[want]
 		var f := int(anim_t * spec[0])
 		sprite.frame = f % n if spec[1] else mini(f, n - 1)
-
-func _draw_tentacle(f: Dictionary) -> void:
-	var a: float = 1.0 - f.life / f.max
-	# 底部紫色辉光，让触手在暗处也能看清
-	draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2.ZERO, 22.0, Color(0.9, 0.4, 1.6, 0.35 * (1.0 - a)))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if tex.get("fx_tentacle_strike") != null:
-		# V7：32×48 × 6 帧，脚底锚点 (16,46)；第 3 帧（命中）略提亮
-		var fr := clampi(int(a * 6.0), 0, 5)
-		var col := Color(1.35, 1.25, 1.5) if fr == 3 else Color.WHITE
-		_spr("fx_tentacle_strike", 6, fr, f.pos + Vector2(0, 10), PX * 1.25, f.flip, col, Vector2(0.5, 46.0 / 48.0))
-		return
-	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
-	var sc := PX * 1.7
-	_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, Color(1.5, 1.2, 1.9) if a < 0.3 else Color.WHITE, Vector2(0.5, 1.0))
-
 
 func _draw_enemy(e: Dictionary) -> void:
 	var name: String = e.tex
@@ -4854,117 +4124,6 @@ func _draw_zone() -> void:
 			draw_line(zone_next_c + Vector2.from_angle(a0) * zone_next_r, zone_next_c + Vector2.from_angle(a1) * zone_next_r, Color(2.2, 2.2, 2.4, 0.6), 2.0)
 
 
-## 水刃：月牙形水光（巨斩为金紫色）
-func _draw_wave(b: Dictionary) -> void:
-	var dir: Vector2 = b.vel.normalized()
-	var R: float = 24.0 * b.size
-	var c: Vector2 = b.pos - dir * R * 0.55
-	var ang := dir.angle()
-	var fade: float = clampf(b.life / 0.15, 0.0, 1.0)
-	var tn := "proj_tide_blade_moon" if b.moon else "proj_tide_blade"
-	if tex.get(tn) != null:
-		# V7：月牙水刃朝右，按速度方向旋转；深渊巨斩放大并加一层辉光
-		var spec: Array = V6_FRAMES[tn]
-		var fr := int(t * spec[1]) % int(spec[0])
-		var sc: float = PX * b.size * (1.0 if not b.giant else 1.15)
-		if b.giant:
-			draw_arc(c, R, ang - 1.15, ang + 1.15, 24, Color(1.8, 0.8, 2.4, 0.4 * fade), 10.0 * b.size)
-			_spr_rot(tn, fr, b.pos, ang, sc * 1.35, Color(1.6, 1.0, 2.0, 0.45 * fade))
-		_spr_rot(tn, fr, b.pos, ang, sc, Color(1.0, 1.0, 1.0, fade) if not b.giant else Color(1.4, 1.1, 1.6, fade))
-		return
-	var core := Color(2.2, 2.6, 2.8, fade) if not b.giant else Color(2.8, 2.2, 2.8, fade)
-	var glow := Color(0.5, 1.4, 2.2, 0.35 * fade) if not b.giant else Color(1.8, 0.8, 2.4, 0.4 * fade)
-	draw_arc(c, R, ang - 1.15, ang + 1.15, 24, glow, 10.0 * b.size)
-	draw_arc(c, R, ang - 1.0, ang + 1.0, 20, core, 3.0 * b.size)
-	draw_arc(c, R * 0.82, ang - 0.8, ang + 0.8, 16, Color(core.r, core.g, core.b, 0.5 * fade), 1.5 * b.size)
-
-
-## 触手桩：扎根的触手，鞭打时伸向目标
-func _draw_stake(st: Dictionary) -> void:
-	var a: float = clampf(st.life / 0.3, 0.0, 1.0)
-	draw_set_transform(st.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2.ZERO, 16.0, Color(0.15, 0.03, 0.22, 0.6 * a))
-	draw_arc(Vector2.ZERO, st.r, 0.0, TAU, 32, Color(1.3, 0.6, 2.0, 0.18 * a), 1.5)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if tex.get("fx_tendril_stake") != null:
-		# V7：待机 32×64 × 4 帧 @8fps，鞭打 48×64 × 4 帧 @16fps（第 2 帧命中），脚底 (16,62)
-		var foot: Vector2 = st.pos + Vector2(0, 10)
-		if st.whip > 0.0 and tex.get("fx_tendril_stake_whip") != null:
-			var k: float = st.whip / 0.18
-			var wf := clampi(int((1.0 - k) * 4.0), 0, 3)
-			var flip: bool = st.wt.x < st.pos.x
-			_spr("fx_tendril_stake_whip", 4, wf, foot, PX * 0.8, flip, Color(1, 1, 1, a), Vector2(16.0 / 48.0, 62.0 / 64.0))
-			var tip: Vector2 = foot + Vector2((-1.0 if flip else 1.0) * 40.0, -60.0)
-			draw_line(tip, st.wt, Color(0.6, 0.25, 0.9, 0.7 * k), 4.0)
-			draw_line(tip, st.wt, Color(1.8, 1.0, 2.6, 0.8 * k), 1.5)
-		else:
-			var sf := int(t * 8.0 + st.pos.x * 0.05) % 4
-			_spr("fx_tendril_stake", 4, sf, foot, PX * 0.8, st.flip, Color(1, 1, 1, a), Vector2(0.5, 62.0 / 64.0))
-		return
-	var fr := 3 + int(t * 4.0 + st.pos.x) % 2
-	_spr("tentacle", 5, fr, st.pos + Vector2(0, 10), PX * 1.3, st.flip, Color(1, 1, 1, a), Vector2(0.5, 1.0))
-	if st.whip > 0.0:
-		var k: float = st.whip / 0.18
-		var tip: Vector2 = st.pos + Vector2(0, -20)
-		draw_line(tip, st.wt, Color(0.6, 0.25, 0.9, k), 5.0)
-		draw_line(tip, st.wt, Color(1.8, 1.0, 2.6, k), 1.5)
-
-
-## 触须阵：地面符阵 + 触须
-func _draw_field(f: Dictionary) -> void:
-	var a := clampf(f.life / 0.3, 0.0, 1.0) * clampf((f.max - f.life) / 0.2, 0.0, 1.0)
-	draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
-	draw_circle(Vector2.ZERO, f.r, Color(0.35, 0.1, 0.5, 0.3 * a))
-	draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 40, Color(1.4, 0.8, 2.2, 0.8 * a), 2.5)
-	draw_arc(Vector2.ZERO, f.r * 0.65, t * 2.0, t * 2.0 + PI * 1.4, 24, Color(1.4, 0.8, 2.2, 0.5 * a), 2.0)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	for q in 6:
-		var an: float = q * TAU / 6.0 + f.r
-		var p: Vector2 = f.pos + Vector2(cos(an) * f.r * 0.6, sin(an) * f.r * 0.3)
-		var h := (14.0 + 10.0 * sin(t * 9.0 + q)) * a
-		draw_line(p, p + Vector2(sin(t * 6.0 + q) * 5.0, -h), Color(0.5, 0.25, 0.7, a), 4.0)
-		draw_circle(p + Vector2(sin(t * 6.0 + q) * 5.0, -h), 2.5, Color(1.4, 0.9, 2.0, a))
-
-
-## 技能的地面表现（在角色之下）
-func _draw_skill_floor() -> void:
-	var P: Dictionary = D.SKILL_P
-	var base := ppos + Vector2(0, 6)
-	# 灯火照亮范围（光中敌人受伤 +25%）
-	var lr := _lamp_r()
-	draw_set_transform(base, 0.0, Vector2(1.0, 0.5))
-	for q in 32:
-		if q % 2 == 0:
-			draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + t * 0.1, TAU * (q + 1) / 32.0 + t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if s3_active > 0.0:
-		# 镜花水月：脚下的镜面水域 + 涟漪
-		var r: float = P.s3_zone_r if skill_lv.s3 >= 3 else 110.0
-		var fade := clampf(s3_active / 1.0, 0.0, 1.0) * clampf((D.SKILL_P.s3_dur - s3_active) / 0.4, 0.0, 1.0)
-		draw_set_transform(base, 0.0, Vector2(1.0, 0.45))
-		draw_circle(Vector2.ZERO, r, Color(0.5, 0.35, 1.0, 0.13 * fade))
-		for q in 3:
-			var rp := fmod(t * 0.6 + q / 3.0, 1.0)
-			draw_arc(Vector2.ZERO, r * rp, 0.0, TAU, 48, Color(1.4, 1.0, 2.2, (1.0 - rp) * 0.55 * fade), 2.0)
-		draw_arc(Vector2.ZERO, r, 0.0, TAU, 64, Color(1.2, 0.9, 2.0, 0.7 * fade), 2.5)
-		# 刻度符文
-		for q in 12:
-			var dv := Vector2.from_angle(q * TAU / 12.0 - t * 0.4)
-			draw_line(dv * (r - 10.0), dv * r, Color(1.4, 1.1, 2.2, 0.8 * fade), 2.0)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if s2_active > 0.0:
-		var fade2 := clampf(s2_active / 1.0, 0.0, 1.0)
-		draw_set_transform(base, 0.0, Vector2(1.0, 0.45))
-		draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
-		draw_arc(Vector2.ZERO, 66.0, t * 3.0, t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if skill_lv.s1 >= 1 and s1_charges > 0:
-		# 唤醒蓄满：脚下金色光环
-		draw_set_transform(base, 0.0, Vector2(1.0, 0.45))
-		draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
 ## 护盾：淡蓝色六边形能量泡，层数越多越厚
 func _draw_shield() -> void:
 	if shield <= 0:
@@ -4988,36 +4147,6 @@ func _draw_shield() -> void:
 	var sw := fmod(t * 1.2, 1.0)
 	draw_arc(c, r, -PI * 0.9 + sw * TAU, -PI * 0.6 + sw * TAU, 12, Color(2.4, 2.8, 3.0, 0.8), 3.0)
 	draw_circle(c + Vector2(-r * 0.4, -r * 0.45), 4.0, Color(2.4, 2.6, 3.0, 0.5))
-
-
-## 技能的覆盖层表现（在角色之上）
-func _draw_skill_over() -> void:
-	_draw_shield()
-	if s2_active > 0.0:
-		# 囚徒困境：环绕的锁链
-		var fade2 := clampf(s2_active / 1.0, 0.0, 1.0)
-		for q in 10:
-			var an := t * 2.6 + q * TAU / 10.0
-			var p := ppos + Vector2(cos(an) * 46.0, sin(an) * 20.0 - 26.0)
-			var front := sin(an) > 0.0
-			UI.diamond(self, p, 4.5 if front else 3.5, Color(0.02, 0.05, 0.08, fade2), Color(0.7, 1.3, 2.0, fade2 * (1.0 if front else 0.5)))
-		# 被束缚的敌人：锁环
-		for j in _query(ppos, 320.0):
-			var e: Dictionary = enemies[j]
-			if e.dead or e.stun < 0.15:
-				continue
-			for q in 3:
-				var an2: float = t * 4.0 + q * TAU / 3.0 + e.id
-				UI.diamond(self, e.pos + Vector2(cos(an2) * (e.r + 6.0), sin(an2) * (e.r + 6.0) * 0.4 - 4.0), 3.0, Color(0.02, 0.05, 0.08, 0.9), Color(0.6, 1.2, 2.0, 0.9))
-	if s3_active > 0.0:
-		# 镜花水月：环绕的镜片
-		for q in 6:
-			var an := -t * 1.4 + q * TAU / 6.0
-			var p := ppos + Vector2(cos(an) * 64.0, sin(an) * 26.0 - 30.0 + sin(t * 3.0 + q) * 4.0)
-			var w := 5.0 + 3.0 * absf(cos(t * 2.0 + q))
-			draw_colored_polygon(PackedVector2Array([p + Vector2(0, -12), p + Vector2(w, 0), p + Vector2(0, 12), p + Vector2(-w, 0)]),
-				Color(1.3, 1.0, 2.2, 0.75))
-			draw_line(p + Vector2(0, -12), p + Vector2(0, 12), Color(2.5, 2.2, 3.0, 0.9), 1.0)
 
 
 ## 用 Sprite2D 的动画状态手动绘制水月，以便和怪物、海草按前后排序
@@ -5202,7 +4331,7 @@ func _draw_hud() -> void:
 		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, flash * 0.5))
 	# 技能发动横幅：斜切色带滑入，水月剪影 + 技能名
 	if not skill_cut.is_empty():
-		var sk: Dictionary = D.SKILLS[skill_cut.id]
+		var sk: Dictionary = ch.skills()[skill_cut.id]
 		var ct2: float = skill_cut.t
 		var c: Color = sk.col
 		var enter := clampf(ct2 / 0.15, 0.0, 1.0)
@@ -5441,8 +4570,9 @@ func _draw_hud() -> void:
 	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
 	_draw_allies_hud(Vector2(vs.x - 16, vs.y - 150))
 	# 左下：精英化 / 模组
-	if evo1 != "":
-		UI.text(hud, font, Vector2(18, vs.y - 190), D.EVO[evo1].name + ((" · " + D.EVO[evo2].name) if evo2 != "" else ""), 14, D.EVO[evo1].col, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	var evl: Array = ch.evo_label()
+	if not evl.is_empty():
+		UI.text(hud, font, Vector2(18, vs.y - 190), evl[0], 14, evl[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 
 	# 横幅通知
 	if banner_t > 0.0:
@@ -5639,8 +4769,9 @@ func _draw_stats(vs: Vector2) -> void:
 	var cx0 := r.position.x + 350
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "Lv.%d" % level, UI.GLOW, 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), ["精零", "精英化一", "精英化二"][elite_stage], UI.GOLD if elite_stage > 0 else UI.SUB, 12) + 8
-	if evo1 != "":
-		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), D.EVO[evo1].name + ((" · " + D.EVO[evo2].name) if evo2 != "" else ""), D.EVO[evo1].col, 12) + 8
+	var evl2: Array = ch.evo_label()
+	if not evl2.is_empty():
+		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), evl2[0], evl2[1], 12) + 8
 	UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12)
 	UI.rule(hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
 	# 三个子面板
@@ -5678,14 +4809,10 @@ func _draw_stats(vs: Vector2) -> void:
 	var b1: Rect2 = boxes[1]
 	UI.text(hud, font, b1.position + Vector2(16, 26), "攻击", 16, UI.CYAN)
 	UI.en(hud, font, b1.position + Vector2(60, 25), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
-	var interval := 0.9 * u_spd_mult
-	var half: float = minf(180.0, 75.0 + rib_bonus + 15.0 * growth.get("u_area", 0))
-	var rows1 := [
-		["伞击伤害", "%d" % int(18.0 * u_dmg_mult * dmg_mult)], ["全局伤害", "×%.2f" % dmg_mult], ["挥伞间隔", "%.2f 秒" % max(0.18, interval)],
-		["挥砍半径", "%d" % int(95.0 * u_area_mult)], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % t_mult],
-		["追击目标", "%d" % (1 + extra_targets)], ["技力回复", "×%.2f" % sp_mult],
+	var rows1: Array = ch.stats_rows()
+	rows1.append_array([
 		["近战 / 远程", "×%.2f / ×%.2f" % [melee_mult, ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [phys_mult, arts_mult]],
-	]
+	])
 	y = b1.position.y + 48
 	for row in rows1:
 		UI.text(hud, font, Vector2(b1.position.x + 16, y + 12), row[0], 14, UI.SUB)
@@ -5697,7 +4824,7 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.rule(hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
 	y += 10
 	for sid in ["s1", "s2", "s3"]:
-		var sk: Dictionary = D.SKILLS[sid]
+		var sk: Dictionary = ch.skills()[sid]
 		var lv: int = skill_lv[sid]
 		var col: Color = sk.col if lv >= 1 else Color(0.35, 0.42, 0.46)
 		var sc := Vector2(b1.position.x + 34, y + 18)
@@ -5705,10 +4832,10 @@ func _draw_stats(vs: Vector2) -> void:
 		var sicon: Texture2D = tex.get("skill_" + sid)
 		if sicon != null:
 			hud.draw_texture_rect(sicon, Rect2(sc - Vector2(16, 16), Vector2(32, 32)), false, Color.WHITE if lv >= 1 else Color(0.3, 0.3, 0.35))
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), sk.name if lv >= 1 else "%s（Lv.%d 解锁）" % [sk.name, D.SKILL_UNLOCK[sid]], 14, UI.TEXT if lv >= 1 else UI.SUB)
+		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), sk.name if lv >= 1 else "%s（Lv.%d 解锁）" % [sk.name, ch.skill_unlock()[sid]], 14, UI.TEXT if lv >= 1 else UI.SUB)
 		var ax: float = b1.position.x + 62
 		for k in 2:
-			var ad: Dictionary = D.SKILL_ADV[sid][k]
+			var ad: Dictionary = ch.skill_adv()[sid][k]
 			var got := lv >= k + 2
 			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, col if got else Color(0, 0, 0, 0), col if got else Color(0.35, 0.42, 0.46))
 			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name, 11, col if got else Color(0.35, 0.42, 0.46))
@@ -5761,7 +4888,7 @@ func _draw_stats(vs: Vector2) -> void:
 		if gt != null:
 			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(32, 32)), false)
 		else:
-			UI.text(hud, font, gc + Vector2(0, 26), D.GROWTH[gid].name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
+			UI.text(hud, font, gc + Vector2(0, 26), ch.growth_table()[gid].name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
 		UI.text(hud, font, gc + Vector2(20, 37), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		stats_cells.append([Rect2(gc, Vector2(38, 38)), "growth", gid])
 		gi += 1
@@ -5802,7 +4929,7 @@ func _draw_stats(vs: Vector2) -> void:
 			var rd2: Dictionary = RL[cellinfo[2]]
 			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
 		else:
-			var gd: Dictionary = D.GROWTH[cellinfo[2]]
+			var gd: Dictionary = ch.growth_table()[cellinfo[2]]
 			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
 		break
 
@@ -5963,12 +5090,7 @@ func _draw_status_bar(vs: Vector2) -> void:
 	if state == S.OPENING or state == S.INTRO or state == S.SHOW:
 		return
 	var items: Array = []   # [文字, 颜色, 进度 0..1 或 -1]
-	if s1_charges > 0:
-		items.append(["唤醒 ×%d" % s1_charges, UI.GOLD, -1.0])
-	if s2_active > 0.0:
-		items.append(["囚徒困境", Color(0.45, 0.8, 1.0), s2_active / D.SKILL_P.s2_dur])
-	if s3_active > 0.0:
-		items.append(["镜花水月", UI.PURPLE, s3_active / D.SKILL_P.s3_dur])
+	items.append_array(ch.status_items())
 	if shield > 0:
 		items.append(["护盾 ×%d" % shield, Color(0.6, 0.9, 1.0), -1.0])
 	for x in rfx.temps:
@@ -6028,11 +5150,7 @@ func _draw_allies_hud(br: Vector2) -> void:
 func _draw_skills(br: Vector2) -> void:
 	var rad := 37.0
 	var gap := 88.0
-	var items := [
-		["唤", "唤醒", skill_lv.s1 >= 1, 0.0, 1.0, float(s1_count) / float(s1_need), UI.GOLD],
-		["囚", "囚徒困境", skill_lv.s2 >= 1, s2_active, D.SKILL_P.s2_dur, s2_sp / D.SKILL_P.s2_charge, Color(0.45, 0.8, 1.0)],
-		["镜", "镜花水月", skill_lv.s3 >= 1, s3_active, D.SKILL_P.s3_dur, s3_sp / D.SKILL_P.s3_charge, UI.PURPLE],
-	]
+	var items: Array = ch.skill_hud()
 	UI.en(hud, font, br + Vector2(-3 * gap + 8, -rad * 2 - 34), "SKILL", 10, UI.SUB, 3.0)
 	for i in 3:
 		var it: Array = items[i]
@@ -6055,9 +5173,10 @@ func _draw_skills(br: Vector2) -> void:
 		UI.text(hud, font, c + Vector2(-40, rad + 16), it[1] if unlocked else "未解锁", 11, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, 80, 2)
 		if active > 0.0:
 			UI.text(hud, font, c + Vector2(rad - 14, -rad + 8), "%d" % int(ceil(active)), 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
-		if i == 0 and unlocked:
-			for k in 3:
-				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, UI.GOLD if k < s1_charges else Color(0.15, 0.18, 0.2), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.5))
+		if int(it[7]) > 0 and unlocked:
+			var np: int = it[7]
+			for k in np:
+				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, col if k < int(it[8]) else Color(0.15, 0.18, 0.2), Color(col.r, col.g, col.b, 0.5))
 		# 进阶等级：环外上方两颗小点
 		var slv: int = skill_lv["s%d" % (i + 1)]
 		if slv >= 1:

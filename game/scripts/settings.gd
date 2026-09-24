@@ -13,6 +13,7 @@ var hitstop := true
 var outline := true      # 怪物轮廓光
 var dof := true          # 2.5D 景深与前景
 var difficulty := 0      # 本局难度
+var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
 var diff_unlocked := 0   # 已解锁的最高难度
 var seen_shows: Array = []   # 已看过的解锁演出

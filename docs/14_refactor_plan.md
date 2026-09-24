@@ -78,6 +78,20 @@ game.gd 不再出现 `s1_` / `evo1 ==` / `u_dmg_mult` 这类水月专属名字�
 ## 4. 进度
 
 - [x] ① 地图（v1.8 refactor-1）
-- [ ] ②
+- [x] ② 角色（refactor-2）：`characters/character.gd` 基类 + `characters/mizuki.gd`（995 行）+ `data/characters/mizuki.json`；game.gd 5300 → 5200 行，不再出现水月专属名字
 - [ ] ③
 - [ ] ④
+
+## 5. 新增一个角色要做什么（② 完成后的实际流程）
+
+1. `data/characters/<id>.json`：`id / name / en / script / sprites{base,idle,run,attack,hurt,death,size,foot} / icons{s1,s2,s3} / evo{paths, mutations}`。
+2. `scripts/characters/<id>.gd`：`extends "res://scripts/characters/character.gd"`，实现：
+   - `update(dt)` 普攻节奏与技能计时；`_swing_radius()`、`_dmg_bonus()`
+   - `skills() / skill_unlock() / skill_adv() / growth_table() / evo_table()` 返回本角色的表（水月目前仍指向 data.gd；新角色可直接在 .gd 里写字典或读 JSON）
+   - `_apply_growth(id) / _growth_preview(id)`、`on_elite(stage) / on_evo_pick(id) / on_kill(e)`
+   - 绘制：`draw_auras() / draw_entities_floor() / draw_fx_add(ci, loop) / _draw_skill_floor() / _draw_skill_over()`
+   - HUD：`skill_hud() / status_items() / stats_rows() / evo_label()`
+3. 贴图放 `art/incoming/`，名字写进 JSON。
+4. `Cfg.character_id = "<id>"`（选人界面接上后由标题页设置）。
+
+game.gd 里仍是通用的：位置 / 生命 / 等级 / 经验 / 灯火 / 护盾 / 成长计数 `growth` / 技能等级 `skill_lv`（固定 s1–s3 三槽）/ 精英化阶段 `elite_stage`。
