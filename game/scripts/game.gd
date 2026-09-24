@@ -83,6 +83,7 @@ var enemy_dmg_mult := 1.0
 var enemy_hp_mult := 1.0
 var enemy_cd_mult := 1.0         # 敌人远程攻击间隔倍率（<1 更快）
 var low_hp_bonus := 0.0          # 生命低于 50% 的敌人受伤加成
+var weak_bonus := 0.0            # 弱点伤害额外加成（基础 +50%）
 var regen_pct := 0.0             # 每秒回复最大生命百分比
 var control_mult := 1.0          # 晕眩 / 减速持续时间倍率
 var shop_price_mult := 1.0
@@ -1099,7 +1100,7 @@ func _spawn(dt: float) -> void:
 		if enemies.size() < MAX_ENEMIES:
 			var ne := _spawn_enemy(_pick_type(), _edge_pos())
 			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-			if t > 360.0 and not ne.elite and ne.ai != "static" and rng.randf() < minf(0.06 + (t - 360.0) / 2400.0, 0.16):
+			if not ne.elite and ne.ai != "static" and rng.randf() < D.THREAT[threat].get("evo", 0.0):
 				_evolve(ne)
 	if t >= next_elite:
 		next_elite += D.THREAT[threat].elite * (0.75 if diff >= 4 else 1.0)
@@ -1118,7 +1119,7 @@ func _spawn(dt: float) -> void:
 		horde_warn = 3.0
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if t >= next_horde and horde_ok:
-		next_horde += 120.0
+		next_horde += D.THREAT[threat].get("horde_every", 120.0)
 		horde_warn = 0.0
 		horde_hit = 1.2
 		_shake(1.4)
@@ -1168,13 +1169,13 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
 	var role: String = d.get("role", "")
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
-	var hpm := (1.0 + minf(t, 480.0) / 140.0 + maxf(t - 480.0, 0.0) / 400.0) * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
+	var hpm := (1.0 + minf(t, 480.0) / 120.0 + maxf(t - 480.0, 0.0) / 300.0) * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
 	var dmm := (1.0 + (0.15 if diff >= 2 else 0.0) + (0.2 if diff >= 10 else 0.0))
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
 		"hp": d.hp * hpm * enemy_hp_mult, "maxhp": d.hp * hpm * enemy_hp_mult,
-		"spd": d.spd * rng.randf_range(0.9, 1.1), "dmg": d.dmg * (1.0 + minf(t, 480.0) / 260.0) * dmm * enemy_dmg_mult,
+		"spd": d.spd * rng.randf_range(0.9, 1.1) * D.THREAT[threat].get("spd", 1.0), "dmg": d.dmg * (1.0 + minf(t, 480.0) / 260.0) * dmm * enemy_dmg_mult,
 		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
@@ -1186,6 +1187,7 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		# 贴图变体在生成时查一次，绘制时不再每帧拼字符串
 		"tex_move": tex.has(d.tex + "_move"), "tex_feign": tex.has(d.tex + "_feign"), "tex_attack": tex.has(d.tex + "_attack"),
+		"weak": d.get("weak", ""),
 	}
 	if e.elite:
 		e.hp *= 7.0
@@ -1359,14 +1361,14 @@ func _update_enemies(dt: float) -> void:
 						# 固海凿石者：首次接敌时原地架起，大幅提高防御
 						e.set_done = true
 						e.set_t = 20.0
-						e.def = 0.4
-						_add_text(e.pos + Vector2(0, -24), "架起", Color(0.75, 0.8, 0.9), 14)
+						e.weak = "法术"
+						_add_text(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
 					if e.set_t > 0.0:
 						pass
 					elif dist > e.range * 0.85:
 						v += dir * spd
 					if e.set_t <= 0.0 and e.set_done:
-						e.def = 1.0
+						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
 					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
 						e.cdt = e.cd
@@ -1499,7 +1501,7 @@ func _minion_pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: f
 			# 潜海裂魔：潜行接近（半伤、不接触），近身后破土咬击，露头 3 秒再潜回
 			if e.get("under", true):
 				e.under = true
-				e.def = 0.5
+				e.def = 1.0
 				if dist < 84.0 and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0:
 					e.under = false
 					e.def = 1.0
@@ -1841,8 +1843,14 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		_reveal_mimic(e)
 		return
 	var ty: Array = DMG_TYPE.get(out_src, ["近战", "物理"])
+	var weak_hit := false
 	if ty[1] != "真实":
 		dmg *= e.def * rfx.dmg_extra()
+		# 弱点：对应类型伤害 +50%（藏品可加成 / 赋予双弱点）
+		var wk: String = e.get("weak", "")
+		if wk == ty[1] or (wk == "双" and ty[1] != "真实") or (rfx.rule("all_weak") > 0):
+			dmg *= 1.5 + weak_bonus
+			weak_hit = true
 		dmg *= melee_mult if ty[0] == "近战" else ranged_mult
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
 		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
@@ -1858,6 +1866,8 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	if texts.size() < 80 and Cfg.dmg_numbers:
 		if crit_hit:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
+		elif weak_hit:
+			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 		else:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
 	# 圣徒装填时被打断
@@ -1872,6 +1882,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
 		e.phase = 2
 		e.range = 400.0
+		e.weak = "物理"
 		e.dmg *= 1.2
 		_show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
 		Sfx.play("roar", 0.0, 1.2, 0.0)
@@ -4907,6 +4918,13 @@ func _draw_enemy(e: Dictionary) -> void:
 	_spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		_spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+	var wk: String = e.get("weak", "")
+	if wk != "" and not e.get("under", false):
+		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
+		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
+		UI.diamond(self, wp, 4.5, Color(0.02, 0.04, 0.08), wc)
+		if e.elite or e.boss:
+			UI.text(self, font, wp + Vector2(-20, 16), ("弱" + wk.substr(0, 1)) if wk != "双" else "双弱", 10, wc, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	if e.elite:
 		var w: float = e.r * 2.0
 		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w, 4)), Color(0, 0, 0, 0.6))

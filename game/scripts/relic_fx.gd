@@ -161,6 +161,7 @@ func _apply_stat(stat: String, op: String, v: float) -> void:
 		"ranged_dmg": g.ranged_mult *= m
 		"phys_dmg": g.phys_mult *= m
 		"armor": g.armor += v
+		"weak_bonus": g.weak_bonus += v
 		"arts_res": g.arts_res += v
 		"sp_gain": g.sp_mult *= m
 		"control_dur": g.control_mult *= m

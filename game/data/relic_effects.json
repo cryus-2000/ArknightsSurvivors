@@ -117,12 +117,12 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "phys_dmg",
-     "op": "add",
-     "value": 0.12
+     "stat": "weak_bonus",
+     "op": "flat",
+     "value": 0.25
     }
    ],
-   "desc": "敌人受到的物理伤害 +12%"
+   "desc": "弱点伤害额外 +25%（弱点基础 +50%）"
   },
   "46": {
    "effects": [
@@ -134,6 +134,15 @@
     }
    ],
    "desc": "生命低于 50% 的敌人受到伤害 +18%"
+  },
+  "47": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "all_weak"
+    }
+   ],
+   "desc": "所有敌人都视为带有你正在使用的伤害类型的弱点"
   },
   "48": {
    "effects": [
