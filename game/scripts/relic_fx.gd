@@ -96,7 +96,7 @@ func display_desc(id: String) -> String:
 	var r: Dictionary = db.get_relic(id)
 	var cur: int = lv.get(id, 0)
 	if cur > 0:
-		return "%s\n（本级效果为 %d%%，可叠加）" % [r.desc, int(LV_SCALE[cur] * 100.0)]
+		return "%s\n（可叠加，本级 %d%%）" % [r.desc, int(LV_SCALE[cur] * 100.0)]
 	return r.desc
 
 

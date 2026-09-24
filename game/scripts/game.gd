@@ -2370,10 +2370,13 @@ func _build_shop_ui() -> void:
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(_buy.bind(i))
 		var desc := Label.new()
-		desc.text = it.desc
+		desc.text = UI.soft(it.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc.position = Vector2(14, 178)
-		desc.size = Vector2(cw - 28, 78)
+		desc.size = Vector2(cw - 28, 80)
+		desc.clip_text = true
+		desc.max_lines_visible = 4
+		desc.add_theme_constant_override("line_spacing", 0)
 		desc.add_theme_font_size_override("font_size", 13)
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -3088,17 +3091,17 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 		var desc := Label.new()
 		desc.text = UI.soft(o.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(28, 214)
-		desc.size = Vector2(224, 72)
+		desc.position = Vector2(28, 212)
+		desc.size = Vector2(224, 84)
 		desc.clip_text = true
 		desc.max_lines_visible = 4
-		desc.add_theme_font_size_override("font_size", 14)
+		desc.add_theme_font_size_override("font_size", 13)
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
-		desc.add_theme_constant_override("line_spacing", 2)
+		desc.add_theme_constant_override("line_spacing", 0)
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
 		card.set_meta("desc", desc)
-		card.set_meta("dy", 214.0)
+		card.set_meta("dy", 212.0)
 		panel_box.add_child(card)
 	panel.visible = true
 	panel.queue_redraw()
