@@ -14,7 +14,9 @@ const TABS := [
 	{"cn": "Boss", "en": "BOSS"},
 	{"cn": "道具", "en": "ITEM"},
 	{"cn": "藏品", "en": "RELIC"},
+	{"cn": "结局", "en": "ENDING"},
 ]
+const ENDING_ORDER := ["standard", "knight", "resolve", "deep"]
 
 ## 敌人图鉴说明（机制按本作实现）
 const ENEMY_DESC := {
@@ -36,10 +38,13 @@ const ENEMY_DESC := {
 	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。",
 	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。",
 	"paranoia": "结局一的最终 Boss。悬浮远程散射并减速；首次被控制后失去悬浮，进入第二形态。",
-	"izumik": "后续结局登场。",
-	"ishar": "后续结局登场。",
+	"izumik": "结局四「深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
+	"ishar": "结局三「抉择」的最终 Boss。渗出伊莎玛拉之泪，泪未被清除时持续充能，充满后变身。",
+	"knight_boss": "结局二「最后的骑士」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；第一次生命归零后寒冰重生进入二阶段。",
+	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
-const LOCKED := ["izumik", "ishar", "tear"]
+## 结局 Boss 与敌对骑士：达成对应结局 / 遭遇后解锁
+const LOCK_BY_ENDING := {"izumik": "deep", "ishar": "resolve", "knight_boss": "knight", "tear": "resolve"}
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted
@@ -156,7 +161,24 @@ func _build() -> void:
 				if e.has("ammo"):
 					tags.append("装填")
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, "")), "locked": LOCKED.has(k)})
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, "")),
+					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]), "locked_text": "尚未遭遇。达成对应结局后收录。"})
+		6:
+			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
+			for i in ENDING_ORDER.size():
+				var eid: String = ENDING_ORDER[i]
+				if not D.ENDINGS.has(eid):
+					continue
+				var en: Dictionary = D.ENDINGS[eid]
+				var bd: Dictionary = D.ENEMIES.get(en.boss, {})
+				var gal: Dictionary = en.get("gallery", {})
+				var forms: Array = [_anim_n("最终 Boss", bd.get("tex", "boss"), 2, 2.0)]
+				if en.boss == "paranoia" and A.tex("e_paranoia2") != null:
+					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
+				var c = en.get("col", [0.8, 0.6, 1.0])
+				entries.append({"id": eid, "name": en.name, "en": en.get("en", eid.to_upper()), "tag": "结局 · %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][i],
+					"forms": forms, "stats": [["Boss", bd.get("name", "")]], "chips": [], "col": Color(c[0], c[1], c[2]),
+					"desc": gal.get("lore", "") + "\n\n触发：" + gal.get("hint", ""), "locked": not Cfg.endings_cleared.has(eid) and not OS.get_cmdline_user_args().has("--allend"), "locked_text": "尚未达成。\n\n线索：" + gal.get("hint", "")})
 		5:
 			# 藏品：已实装的全部列出；没获得过的显示为 ???
 			var lst: Array = relic_db.implemented()

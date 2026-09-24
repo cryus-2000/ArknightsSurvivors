@@ -190,4 +190,5 @@ func on_win() -> void:
 		return
 	if not Cfg.endings_cleared.has(cur):
 		Cfg.endings_cleared.append(cur)
+		g.ending_new = true
 		Cfg.save()

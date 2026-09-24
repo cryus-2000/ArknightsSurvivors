@@ -169,7 +169,9 @@ var spawn_acc := 0.0
 var next_elite := 45.0
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度
-var diff_new := false        # 本局通关解锁了新难度
+var diff_new := false
+var winshot := false
+var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var stinger_done := false
 var next_horde := 90.0
 var show_queue: Array = []   # 解锁演出队列
@@ -773,11 +775,22 @@ func _autotest_step() -> void:
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				_kill(bb)
+	for a in OS.get_cmdline_user_args():
+		# --winshot=deep：第 60 帧直接进入胜利结算并截图
+		if a.begins_with("--winshot=") and at_frames == 60:
+			winshot = true
+			ending = a.substr(10)
+			endg.cur = ending
+			ending_new = true
+			state = S.WIN
+		if a.begins_with("--winshot=") and at_frames == 130 and DisplayServer.get_name() != "headless":
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_win.png")
+			get_tree().quit()
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_%d.png" % at_frames)
 	if bosstest and at_frames > 610:
 		get_tree().quit()
-	if state == S.WIN or at_frames > 14000:
+	if (state == S.WIN and not winshot) or at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [state, t])
 		get_tree().quit()
 
@@ -2255,6 +2268,12 @@ func _roll_shop() -> void:
 	for i in min(3, pool.size()):
 		var r: Dictionary = RL[pool[i]]
 		shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + rfx.display_name(pool[i]), "desc": rfx.display_desc(pool[i]), "price": rfx.db.price(pool[i], shop_price_mult), "sold": false})
+	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
+	if rfx.rule("deep_sea") > 0:
+		var cursed: Array = pool.filter(func(id): return RL[id].rarity == "遭诅古物" and not shop_items.any(func(it): return it.id == id))
+		if not cursed.is_empty():
+			var cid: String = cursed[0]
+			shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + rfx.display_name(cid), "desc": rfx.display_desc(cid), "price": rfx.db.price(cid, shop_price_mult), "sold": false, "deep": true})
 	shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": _shop_price("heal"), "sold": false})
 	shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": _shop_price("oil"), "sold": false})
 
@@ -2264,18 +2283,22 @@ func _open_shop() -> void:
 		_roll_shop()
 	state = S.SHOP
 	Sfx.play("relic", -4.0)
+	if autotest:
+		print("SHOP ", shop_items.map(func(it): return it.name))
 	_build_shop_ui()
 
 
 func _build_shop_ui() -> void:
 	for c in panel_box.get_children():
 		c.queue_free()
+	panel_box.add_theme_constant_override("separation", 28 if shop_items.size() <= 5 else 14)
 	panel_title_text = "商人  ·  持有源石锭 %d" % ingots
 	choice_kind = "shop"
 	for i in shop_items.size():
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(204, 276)
+		var cw: float = 204.0 if shop_items.size() <= 5 else 180.0
+		card.custom_minimum_size = Vector2(cw, 276)
 		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
@@ -2294,8 +2317,8 @@ func _build_shop_ui() -> void:
 		var desc := Label.new()
 		desc.text = it.desc
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(16, 178)
-		desc.size = Vector2(172, 78)
+		desc.position = Vector2(14, 178)
+		desc.size = Vector2(cw - 28, 78)
 		desc.add_theme_font_size_override("font_size", 13)
 		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2317,6 +2340,8 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 40 + i, "vine_k": 0.9 if hov else 0.6, "glow": 1.0 if hov else 0.2, "cut": 10.0, "bracket": 10.0, "alpha": 0.5 if it.sold else 1.0})
 	UI.text(card, font, r.position + Vector2(14, 28), str(i + 1), 14, Color(col.r, col.g, col.b, 0.7))
+	if it.get("deep", false):
+		UI.chip(card, font, r.position + Vector2(r.size.x - 66, 12), "深海馈赠", Color(0.6, 0.5, 1.0), 10)
 	var c := r.position + Vector2(r.size.x / 2, 92)
 	UI.pedestal(card, c, 38.0, col, t + i, hov)
 	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
@@ -4824,7 +4849,7 @@ func _draw_hud() -> void:
 		S.DEAD:
 			_draw_result(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 		S.WIN:
-			_draw_result(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, UI.GOLD, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+			_draw_result(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
 
 
 ## ---- 开局指南：6 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
@@ -5420,9 +5445,30 @@ func _draw_skills(br: Vector2) -> void:
 				UI.diamond(hud, c + Vector2(-6 + k * 12, -rad - 5), 3.0, col if slv >= k + 2 else Color(0.15, 0.18, 0.2))
 
 
-func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array) -> void:
+func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
 	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72))
 	var r := Rect2(vs.x / 2 - 300, vs.y / 2 - 190, 600, 380)
+	if ending_panel:
+		# 结局结算：面板右侧浮现最终 Boss 剪影 + 结局色光晕 + 一句尾声
+		var en: Dictionary = D.ENDINGS.get(ending, {})
+		var bd: Dictionary = D.ENEMIES.get(en.get("boss", ""), {})
+		var btx: Texture2D = tex.get(bd.get("tex", ""))
+		var gc: Vector2 = Vector2(r.end.x + 120, r.get_center().y - 20)
+		for k in 4:
+			hud.draw_circle(gc, 150.0 - k * 28.0 + 6.0 * sin(t * 1.3 + k), Color(col.r, col.g, col.b, 0.05 + 0.03 * k))
+		if btx != null:
+			var fw: int = btx.get_width() / 2
+			var fh: int = btx.get_height()
+			var k2: float = minf(220.0 / fw, 240.0 / fh)
+			k2 = floorf(k2) if k2 >= 1.0 else k2
+			var sz := Vector2(fw, fh) * k2
+			var fr: int = int(t * 2.0) % 2
+			var bob: float = 4.0 * sin(t * 1.6)
+			hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
+			hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(t * 2.0)))
+		var idx: int = ["standard", "knight", "resolve", "deep"].find(ending)
+		UI.text(hud, font, Vector2(gc.x - 90, gc.y + 150), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
+		UI.text(hud, font, Vector2(gc.x - 110, gc.y + 172), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
 	UI.frame(hud, r, col, {"t": t, "vines": true, "seed": 61, "cut": 16.0, "bracket": 16.0, "glow": 0.8})
 	UI.caustic(hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), t, col)
 	var ew := font.get_string_size(en_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_title.length() * 4.0
@@ -5432,10 +5478,15 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 	var ss := int(t) % 60
 	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [level, ["精零", "精英化一", "精英化二"][elite_stage]]],
 		["击杀", str(kills)], ["难度", "%d  %s" % [diff, D.DIFFICULTY[diff].name]]]
+	if ending_panel:
+		var ep: String = D.ENDINGS.get(ending, {}).get("gallery", {}).get("epilogue", "")
+		UI.text(hud, font, Vector2(r.position.x + 40, r.position.y + 124), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
+		if ending_new:
+			UI.chip(hud, font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if diff_new and state == S.WIN:
-		UI.chip(hud, font, Vector2(r.get_center().x - 80, r.position.y + 118), "解锁难度 %d「%s」" % [diff + 1, D.DIFFICULTY[diff + 1].name], UI.GOLD, 13)
+		UI.chip(hud, font, Vector2(r.get_center().x - 80, r.position.y + (142 if ending_panel else 118)), "解锁难度 %d「%s」" % [diff + 1, D.DIFFICULTY[diff + 1].name], UI.GOLD, 13)
 	for i in stats.size():
-		var y := r.position.y + 156 + i * 34
+		var y := r.position.y + (166 if ending_panel else 156) + i * 32
 		UI.diamond(hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))
 		UI.text(hud, font, Vector2(r.position.x + 62, y), stats[i][0], 16, UI.SUB)
 		UI.text(hud, font, Vector2(r.position.x + 200, y), stats[i][1], 18, UI.TEXT)
