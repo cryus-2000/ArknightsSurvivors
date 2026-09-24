@@ -571,3 +571,21 @@ def drone(f):
     return im
 strip([drone(0), drone(1)]).save(f"{OUT}/drone.png")
 print("drone ok")
+
+# ================================================================ 事件箱：海嗣祭坛（结局事件用，2 帧脉动）
+def e_event(f):
+    im = new(26, 30); d = ImageDraw.Draw(im)
+    # 石座
+    d.polygon([(2, 29), (5, 18), (20, 18), (23, 29)], fill=(38, 44, 70)); d.rectangle((6, 16, 19, 19), fill=(58, 66, 100))
+    d.line((4, 26, 21, 26), fill=(26, 30, 50)); d.line((8, 22, 17, 22), fill=(26, 30, 50))
+    # 珊瑚与触须装饰
+    for x, h in ((3, 6), (22, 5)):
+        d.line((x, 18, x - (1 if x < 13 else -1), 18 - h), fill=(120, 60, 150)); d.point((x - (1 if x < 13 else -1), 18 - h - 1), fill=(200, 120, 240))
+    # 悬浮的深蓝之心（f 控制上下浮动与光芒）
+    cy = 8 - f
+    d.ellipse((8, cy - 3, 17, cy + 6), fill=(40, 90, 200)); d.ellipse((10, cy - 1, 15, cy + 4), fill=(120, 190, 255)); d.ellipse((11, cy, 13, cy + 2), fill=(230, 250, 255))
+    for dx, dy in ((-6, 1), (6, 1), (0, -6), (0, 8)):
+        d.point((12 + dx + (dx // 6) * f, cy + 1 + dy), fill=(180, 220, 255))
+    return im
+save_enemy("e_event", [e_event(0), e_event(1)])
+print("event altar ok")

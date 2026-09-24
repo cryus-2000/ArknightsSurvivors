@@ -176,6 +176,32 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.bt = 0.0
 					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false})
 					Sfx.play("skill", -2.0, 0.6)
+		"knight_boss":
+			# 最后的骑士（结局二）：冲锋（直线预警→突进+冰霜）/ 长枪连刺（近身三段扇形）/ 寒冰领域（20 秒一次，200 半径减速 6 秒）
+			# 二阶段（首次归零后重生）：移速 +20%，冲锋连续两次
+			var ice := Color(0.6, 0.9, 1.4)
+			if e.get("channel", 0.0) > 0.0:
+				e.channel -= dt
+				if e.channel <= 0.0:
+					e.invuln = false
+			if e.get("frost_t", 0.0) > 0.0:
+				e.frost_t -= dt
+				if g.ppos.distance_to(e.frost_pos) < 200.0:
+					g.frost = maxf(g.frost, 0.15)
+			if e.get("dash2", false) and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
+				e.dash2 = false
+				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "spd": 820.0, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
+			if ready and e.channel <= 0.0:
+				if e.age > 6.0 and _cd(e, "frost", 20.0):
+					_warn(e, "circle", 1.0, {"follow": true, "r": 200.0, "act": "frost", "name": "寒冰领域", "col": ice, "dmg": e.dmg * 0.5})
+				elif dist < 140.0 and _cd(e, "stab", 5.0):
+					for k in 3:
+						_warn(e, "cone", 0.5 + 0.3 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.3 + 0.3 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
+					e.wind = 1.2
+				elif dist > 150.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
+					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "spd": 780.0, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
+					if e.phase == 2:
+						e.dash2 = true
 		"ishar":
 			# 伊莎玛拉：召唤之泪；泪未被清除时持续充能，充满后变身
 			if e.bt > 6.0:
@@ -303,6 +329,14 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("tentacle", -5.0, 1.1)
 			g._shake(0.3)
 			_warn_damage(w, 0.4)
+		"frost":
+			e.frost_pos = w.pos
+			e.frost_t = 6.0
+			g.fx.append({"kind": "frost", "pos": w.pos, "r": w.r, "life": 6.0, "max": 6.0, "col": c})
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+			g._sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 16, 240.0)
+			Sfx.play("skill", -4.0, 0.7)
+			_warn_damage(w)
 		"slam":
 			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})

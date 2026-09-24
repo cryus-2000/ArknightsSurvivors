@@ -17,6 +17,12 @@ var u_spd_mult := 1.0
 var t_mult := 0.6                # 天赋一：触手追击倍率
 var rib_bonus := 0.0
 var extra_targets := 0
+## 排异反应（结局四）：技能进阶被替换成海嗣化版本；键 = s1a s1b s2a s2b s3a s3b fallback
+var rej: Dictionary = {}
+const REJ_NAMES := {"s1a": "创伤扩散 → 溃裂：冲击范围 +50%、伤害 +30%，唤醒次数 +2", "s1b": "深层唤醒 → 群唤：触手 6 条，但唤醒不再强化伞击本身",
+	"s2a": "双重困境 → 环触：反向斩变成全方向触手环，囚徒困境持续 −3 秒", "s2b": "无解困境 → 侵蚀：束缚变为持续法术伤害，不再传播",
+	"s3a": "镜像 → 海嗣分身：分身独立行动并吸引仇恨，最大生命 −20", "s3b": "深海 → 溟海：幻境半径 ×1.5，但水月在幻境中也减速 15%",
+	"fallback": "触手追击目标 +2，但灯火照亮加成对触手无效"}
 var s1_need := 7                 # 唤醒：充能所需挥伞次数
 var delayed: Array = []          # 延时攻击（深层唤醒触手、倒影、连击）
 var s2_combo := 0
@@ -29,6 +35,7 @@ var s2_active := 0.0
 var s3_sp := 30.0
 var s3_active := 0.0
 var mirror_pos := Vector2.ZERO    # S3 镜像分身位置
+var clone_t := 0.0                # 海嗣分身自主挥伞计时（排异）
 var mirror_face := 1.0
 var s3_pen_cd := 0.0
 var heal_budget := 0.0           # 反移情击杀回复：每秒上限
@@ -85,18 +92,41 @@ func update(dt: float) -> void:
 			s2_sp += dt * g.sp_mult * g._lamp_sp()
 			if s2_sp >= P.s2_charge:
 				s2_sp = 0.0
-				s2_active = P.s2_dur
+				s2_active = P.s2_dur - (3.0 if rej.has("s2a") else 0.0)
 				_skill_cast("s2")
 	if g.skill_lv.s3 >= 1:
 		if s3_active > 0.0:
 			s3_active -= dt
-			mirror_pos = mirror_pos.lerp(g.ppos + Vector2(-g.facing * 80.0, -10.0), minf(1.0, dt * 8.0))
+			if rej.has("s3a") and g.skill_lv.s3 >= 2:
+				# 海嗣分身（排异）：自己找目标、自己挥伞、吸引周围仇恨
+				var tgt = g._nearest(1, 320.0)
+				var want: Vector2 = g.ppos + Vector2(-g.facing * 80.0, -10.0)
+				if not tgt.is_empty():
+					want = tgt[0].pos + (mirror_pos - tgt[0].pos).normalized() * 60.0
+				mirror_pos = mirror_pos.lerp(want, minf(1.0, dt * 3.0))
+				clone_t -= dt
+				if clone_t <= 0.0:
+					clone_t = 0.55
+					delayed.append({"at": 0.0, "kind": "echo", "ang": g.facing_angle(), "dmg": 18.0 * g.u_dmg_mult * g.dmg_mult * P.s3_echo_mult,
+						"half": 1.3, "radius": 95.0 * g.u_area_mult, "dirs": 1})
+				for j in g._query(mirror_pos, 200.0):
+					var ce: Dictionary = g.enemies[j]
+					if not ce.dead and not ce.boss and ce.ai == "melee":
+						ce.aggro = mirror_pos
+			else:
+				mirror_pos = mirror_pos.lerp(g.ppos + Vector2(-g.facing * 80.0, -10.0), minf(1.0, dt * 8.0))
 			# 深海幻境：周身敌人减速
 			if g.skill_lv.s3 >= 3:
-				for j in g._query(g.ppos, P.s3_zone_r):
+				var zr: float = P.s3_zone_r * (1.5 if rej.has("s3b") else 1.0)
+				for j in g._query(g.ppos, zr):
 					var ze: Dictionary = g.enemies[j]
-					if not ze.dead and ze.pos.distance_to(g.ppos) < P.s3_zone_r:
+					if not ze.dead and ze.pos.distance_to(g.ppos) < zr:
 						ze.slow = maxf(ze.slow, 0.2)
+				if rej.has("s3b"):
+					g.atk_slow = maxf(g.atk_slow, 0.0)
+					g.rej_slow = 0.85
+			else:
+				g.rej_slow = 1.0
 			afterimg_t -= dt
 			if afterimg_t <= 0.0:
 				afterimg_t = 0.06
@@ -157,7 +187,8 @@ func _umbrella(target: Dictionary) -> void:
 		if s1_charges > 0:
 			s1_charges -= 1
 			empowered = true
-			dmg *= P.s1_mult
+			if not rej.has("s1b"):
+				dmg *= P.s1_mult
 			radius *= P.s1_radius
 	# 攻击方向：常态单方向；镜花水月三方向；深海形态全方向
 	var dirs: Array = [ang]
@@ -196,12 +227,12 @@ func _umbrella(target: Dictionary) -> void:
 	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
 	alive.sort_custom(func(a, b): return a.hp < b.hp)
-	var n: int = 1 + extra_targets + g.rfx.tentacle_targets_extra()
+	var n: int = 1 + extra_targets + g.rfx.tentacle_targets_extra() + (2 if rej.has("fallback") else 0)
 	if s2_active > 0.0:
 		n += 1
 	if s3_active > 0.0:
 		n += 2 if g.skill_lv.s3 >= 3 else 1
-	var tdmg := dmg * t_mult
+	var tdmg: float = dmg * t_mult * (P.s1_mult if (empowered and rej.has("s1b")) else 1.0)
 	var stun := 0.0
 	if s3_active > 0.0:
 		stun = 1.0
@@ -222,14 +253,19 @@ func _umbrella(target: Dictionary) -> void:
 		g.flash = maxf(g.flash, 0.12)
 		if g.skill_lv.s1 >= 2:
 			for k in mini(hit.size(), P.s1_burst_max):
-				delayed.append({"at": 0.06 * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * P.s1_burst_mult, "r": P.s1_burst_r, "arts": true})
+				delayed.append({"at": 0.06 * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * P.s1_burst_mult * (1.3 if rej.has("s1a") else 1.0), "r": P.s1_burst_r * (1.5 if rej.has("s1a") else 1.0), "arts": true})
 		if g.skill_lv.s1 >= 3:
-			var tg = g._nearest(P.s1_deep_n, P.s1_deep_range)
+			var tg = g._nearest(P.s1_deep_n + (2 if rej.has("s1b") else 0), P.s1_deep_range)
 			for k in tg.size():
 				delayed.append({"at": 0.12 + 0.07 * k, "kind": "deep", "target": tg[k], "dmg": dmg * P.s1_deep_mult})
 	# ---- S2 进阶
 	if s2_active > 0.0:
-		if g.skill_lv.s2 >= 2:
+		if g.skill_lv.s2 >= 2 and rej.has("s2a"):
+			# 环触（排异）：全方向触手环
+			var ring = g._nearest(6, radius + 40.0)
+			for k in ring.size():
+				delayed.append({"at": 0.04 * k, "kind": "combo", "target": ring[k], "dmg": tdmg * 0.7})
+		elif g.skill_lv.s2 >= 2:
 			# 双重困境：斩向另一方向最近的敌人
 			var best: Dictionary = {}
 			var bd := INF
@@ -371,7 +407,8 @@ func _draw_giant(gi: Dictionary) -> void:
 		return
 	# 地面阴影 + 扫过的弧
 	g.draw_set_transform(gi.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
-	g.draw_circle(Vector2.ZERO, 46.0, Color(0.6, 0.25, 1.0, 0.35))
+	var tc: Color = tentacle_col()
+	g.draw_circle(Vector2.ZERO, 46.0, Color(tc.r * 0.5, tc.g * 0.3, tc.b * 0.7, 0.35))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var rise: float = clampf(gi.t / GIANT_RISE, 0.0, 1.0)
 	var sink: float = clampf((gi.t - GIANT_SINK) / (gi.dur - GIANT_SINK), 0.0, 1.0)
@@ -381,7 +418,7 @@ func _draw_giant(gi: Dictionary) -> void:
 		for q in 6:
 			var a0: float = ang - gi.dir * (0.12 + 0.11 * q)
 			var a1: float = ang - gi.dir * (0.11 * q)
-			g.draw_arc(gi.pos, GIANT_R * 0.92, minf(a0, a1), maxf(a0, a1), 10, Color(1.2, 0.6, 2.0, 0.55 - 0.08 * q), 26.0 - 3.0 * q)
+			g.draw_arc(gi.pos, GIANT_R * 0.92, minf(a0, a1), maxf(a0, a1), 10, Color(tc.r, tc.g * 0.8, tc.b * 1.2, 0.55 - 0.08 * q), 26.0 - 3.0 * q)
 	# V7 主体：升起（0–2 帧）→ 横扫期间保持第 3 帧 → 沉回（3–5 帧）
 	var kt: Texture2D = g.tex.get("fx_kraken_rise")
 	if kt != null:
@@ -398,7 +435,7 @@ func _draw_giant(gi: Dictionary) -> void:
 	var sc_len: float = GIANT_R / float(fh) * len_k * 1.05
 	var sc_w: float = g.PX * 4.6
 	g.draw_set_transform(gi.pos, ang + PI / 2.0, Vector2(sc_w, sc_len))
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), Color(1.4, 1.1, 1.8))
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), tentacle_col(1.25))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -543,9 +580,15 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	g._hit("触手")
 	g._damage(target, dmg)
 	if not target.dead:
-		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
+		if rej.has("s2b") and stun > 0.3:
+			# 侵蚀（排异）：束缚改为持续法术伤害
+			target.stun = max(target.stun, 0.25)
+			target.corr_t = stun * 2.0
+			target.corr_dmg = dmg * 0.35
+		else:
+			target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
 		# 无解困境：束缚有限传播给身边 1 名敌人（不会再次传播）
-		if s2_active > 0.0 and g.skill_lv.s2 >= 3 and stun > 0.0:
+		if s2_active > 0.0 and g.skill_lv.s2 >= 3 and stun > 0.0 and not rej.has("s2b"):
 			var P: Dictionary = D.SKILL_P
 			for j in g._query(p, P.s2_spread_r):
 				var o: Dictionary = g.enemies[j]
@@ -656,7 +699,8 @@ func _draw_stake(st: Dictionary) -> void:
 			g._spr("fx_tendril_stake", 4, sf, foot, g.PX * 0.8, st.flip, Color(1, 1, 1, a), Vector2(0.5, 62.0 / 64.0))
 		return
 	var fr := 3 + int(g.t * 4.0 + st.pos.x) % 2
-	g._spr("tentacle", 5, fr, st.pos + Vector2(0, 10), g.PX * 1.3, st.flip, Color(1, 1, 1, a), Vector2(0.5, 1.0))
+	var tc := tentacle_col()
+	g._spr("tentacle", 5, fr, st.pos + Vector2(0, 10), g.PX * 1.3, st.flip, Color(tc.r, tc.g, tc.b, a), Vector2(0.5, 1.0))
 	if st.whip > 0.0:
 		var k: float = st.whip / 0.18
 		var tip: Vector2 = st.pos + Vector2(0, -20)
@@ -818,7 +862,7 @@ func _draw_tentacle(f: Dictionary) -> void:
 		return
 	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
 	var sc = g.PX * 1.7
-	g._spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, Color(1.5, 1.2, 1.9) if a < 0.3 else Color.WHITE, Vector2(0.5, 1.0))
+	g._spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, tentacle_col(1.35) if a < 0.3 else tentacle_col(), Vector2(0.5, 1.0))
 
 
 ## 进化路线的周期性附加：群触·阵（触须阵）与潮刃·回响（潮汐弹）
@@ -999,6 +1043,45 @@ func skills() -> Dictionary:
 ## 水月三个技能全部自动，没有手动技能
 func try_manual_skill() -> bool:
 	return false
+
+
+## 排异反应：从已获得的技能进阶里随机换一个成海嗣化版本；没有可换的用兜底。返回说明文字
+func apply_rejection() -> String:
+	var cands: Array = []
+	if g.skill_lv.s1 >= 2 and not rej.has("s1a"):
+		cands.append("s1a")
+	if g.skill_lv.s1 >= 3 and not rej.has("s1b"):
+		cands.append("s1b")
+	if g.skill_lv.s2 >= 2 and not rej.has("s2a"):
+		cands.append("s2a")
+	if g.skill_lv.s2 >= 3 and not rej.has("s2b"):
+		cands.append("s2b")
+	if g.skill_lv.s3 >= 2 and not rej.has("s3a"):
+		cands.append("s3a")
+	if g.skill_lv.s3 >= 3 and not rej.has("s3b"):
+		cands.append("s3b")
+	var key := "fallback"
+	if not cands.is_empty():
+		key = cands[g.rng.randi() % cands.size()]
+	elif rej.has("fallback"):
+		return "已无可海嗣化的进阶"
+	rej[key] = true
+	match key:
+		"s1a":
+			g.stats.add(&"mizuki_s1_swings", "flat", 2.0, "rejection")
+			g._sync_stats()
+		"s3a":
+			g.stats.add(&"max_hp", "flat", -20.0, "rejection")
+			g._sync_stats()
+			g.hp = minf(g.hp, g.max_hp)
+	return REJ_NAMES[key]
+
+
+## 触手颜色：常态蓝色，海嗣化后紫色
+func tentacle_col(bright := 1.0) -> Color:
+	if rej.is_empty():
+		return Color(0.62 * bright, 0.9 * bright, 1.35 * bright)
+	return Color(1.25 * bright, 0.7 * bright, 1.6 * bright)
 
 
 func skill_unlock() -> Dictionary:

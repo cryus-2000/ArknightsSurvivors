@@ -114,3 +114,46 @@
 2. 排异反应按"技能进阶换海嗣化版本"做，还是更简单地只做兜底那一条。
 3. 决心线的后半程代价（取消弱点标记 vs 其他）。
 4. 事件箱是否必定出现（本稿：必定），以及未通关结局一时是否完全隐藏。
+
+
+---
+
+## 10. 实现记录（2026-09-24，已落地）
+
+按你的定稿：事件箱用新美术「海嗣祭坛」（`art/px/e_event.png`，`tools/gen_event_art.py` 生成）；代价不掉血；灯火扣除最低 10；决心上调怪物属性；触手常态蓝、海嗣化紫；结局三 = 伊莎玛拉（抉择）、四 = 伊祖米克（深蓝）；排异按"进阶换海嗣化版本"；事件箱必定出现、未通关结局一前隐藏。
+
+### 落点
+
+| 文件 | 内容 |
+|---|---|
+| `scripts/endings.gd` | 事件箱刷新（窗口 / 条件 / 同时只有一个 / 顺延 20 秒）、选项结算、结局重算（后覆盖先；骑士线 `sticky`：骑士在队时不被抉择改走）、9:00 预告、通关记录 `Cfg.endings_cleared` |
+| `data/waves.json` | `endings`（standard / knight / resolve / deep：名字、颜色、omen、Boss、requires / forbids）与 `events`（madness / resolve1 / whisper / knight_stay / resolve2 / memory / resolve3） |
+| `data/relic_effects.json` | 221 深蓝之心、242 深蓝回忆、238 决心、239 观望、240 犹疑、222 海潮的气息、223 退行的罗辛南特、225 骑士骨血（稀有度「结局」，不进商店 / 不进三选一） |
+| `scripts/relic_fx.gd` | `on_gain: rejection / recruit_knight / light（最低 10、受 lamp_cap 限制）`；`rule: deep_sea（灯火上限 70）/ bone_blood / resolve_elite / four_choices / rare_weight / final_taken` |
+| `scripts/characters/mizuki.gd` | `rej` 表 + `apply_rejection()`：六条进阶的海嗣化版本 + 兜底；`tentacle_col()` 蓝 / 紫；触手、桩、巨触、群触按它上色 |
+| `scripts/game.gd` | 事件祭坛（`_spawn_chest(pos, event_id)`，不会是拟态）、`_gain_relic()` 统一入口、结局名 HUD / Tab chip、祭坛方位箭头与小地图标记、`rej_slow` / `frost` 移速、侵蚀 DOT（`corr_t`）、分身仇恨（`aggro`）、决心线（8:40 起去弱点、少一轮收圈、精英 +1、怪物 +10% 血 / 伤）、深蓝线（直刷进化体翻倍）、骑士 Boss 二阶段重生、Tab 面板排异标记（紫色「·排异」） |
+| `scripts/allies/knight.gd` | 猎潮的骑士同伴：跟随 / 4 秒一次冲锋→刺击（冰霜减速）/ 30% 近战仇恨 / 低血撤退 6 秒并回血 / 医疗干员可治疗 / 阵亡→223 + 敌对骑士进精英池 / 9:45 走向黑潮中心 / 10:00 原地重生为 Boss |
+| `scripts/boss_ai.gd` | `knight_boss`：冲锋（直线预警，命中冰霜）、长枪连刺（三段扇形）、寒冰领域（20 秒一次、200 半径、6 秒减速）；二阶段移速 +20%、冲锋连续两次 |
+| `data/enemies.json` | `knight` 加 `no_spawn`（同伴阵亡后解锁，每局重置）；新增 `knight_boss`（5200 血、法术弱点、两阶段） |
+| `scripts/settings.gd` | `endings_cleared` 存档 |
+
+### 测试开关
+
+- `--allend`：无视通关进度，所有事件箱都出。
+- `--eventtest=<id>`：开局 30 帧在身边刷该事件箱。
+- `--grant=221,222`：开局直接给藏品（测排异 / 骑士）。
+- `--evpick=1` 或 `--evpick=madness:0,knight_stay:0,default:1`：平衡机器人在事件面板的选项。
+- `--bosstest=knight_boss`。
+- 平衡跑（`--balance --nodeath`）四条线均能到最终 Boss；骑士线、抉择线已跑到胜利。
+
+### 数值备忘
+
+- 骑士同伴：900 血（随时间 +50%），只有把他当目标的那 30%（及精英 / Boss）会伤到他；接触伤害 ×0.4，弹幕 ×0.6；常态回血 0.5%/秒，撤退中 1.2%/秒。机器人不护送时约 5–7 分钟阵亡，玩家稍加照顾能活到终局。
+- 骑士伤害：冲锋 45 / 刺击 60，乘援护倍率与敌人生命曲线（1 + t/120）。
+- 决心 (238)：最大生命 +30%、物理减伤 +2；怪物血 / 伤 +10%（可叠到 3 层）。
+
+### 未做 / 后续
+
+- 图鉴「结局」页（四格，未达成 ???）。
+- 深蓝线"商店多一栏遭诅古物"。
+- 结局专属结算画面 / 曲子（目前复用 final / win，标题用结局名）。

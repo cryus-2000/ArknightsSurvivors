@@ -55,7 +55,11 @@ func rule(name: String) -> int:
 ## 纯属性型藏品可升到 3 级；带触发 / 规则 / 一次性效果的只有 1 级
 func max_lv(id: String) -> int:
 	var r: Dictionary = db.get_relic(id)
-	if r.is_empty() or r.rarity in ["升华", "遭诅古物"]:
+	if r.is_empty():
+		return 1
+	if int(r.get("max_lv", 0)) > 0:
+		return int(r.max_lv)
+	if r.rarity in ["升华", "遭诅古物", "结局"]:
 		return 1
 	for ef in r.effects:
 		if ef.get("type", "stat") != "stat":
@@ -68,6 +72,8 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 	if for_shop and not r.shop_allowed:
 		return false
 	if not for_shop and r.rarity == "遭诅古物":
+		return false
+	if r.rarity == "结局" or r.get("source", "any") == "event":
 		return false
 	if g.relics.has(r.id) and lv.get(r.id, 0) >= max_lv(r.id):
 		return false
@@ -119,6 +125,9 @@ func apply(id: String) -> void:
 				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value), "relic:" + id)
 			"rule":
 				rules[ef.rule] = rules.get(ef.rule, 0) + int(ef.get("value", 1))
+				if ef.rule == "deep_sea":
+					g.lamp_cap = 70.0
+					g.lamp = minf(g.lamp, g.lamp_cap)
 				if ef.rule == "shield_burst":
 					g.shield_burst = true
 				elif ef.rule == "shield_heal":
@@ -131,8 +140,17 @@ func apply(id: String) -> void:
 				var amt: float = float(ef.get("args", {}).get("amount", 0))
 				match ef.do:
 					"light":
-						g.lamp = clampf(g.lamp + amt, 0.0, 100.0)
+						# 扣灯火最低降到 10，不清零
+						g.lamp = clampf(g.lamp + amt, 10.0 if amt < 0.0 else 0.0, g.lamp_cap)
 						g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
+					"rejection":
+						var what: String = g.ch.apply_rejection()
+						g._show_banner("排异反应：%s" % what)
+						g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(0.7, 0.4, 1.0)})
+						Sfx.play("roar", -6.0, 1.4, 0.0)
+					"recruit_knight":
+						g.knight_alive = true
+						g._show_banner("猎潮的骑士 加入了你的旅程")
 					"ingots":
 						g.ingots += int(amt)
 						g._add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
@@ -265,6 +283,8 @@ func taken_mult() -> float:
 		m *= 0.75
 	if rule("king_cake") > 0 and g.hp < g.max_hp * 0.3:
 		m *= 0.7
+	if rule("bone_blood") > 0:
+		m *= 1.8
 	return m
 
 

@@ -388,7 +388,24 @@
    "dash_range": 300,
    "dash_wind": 0.6,
    "dash_speed": 5.2,
-   "ingots": 6
+   "ingots": 6,
+   "no_spawn": true
+  },
+  "knight_boss": {
+   "name": "最后的骑士",
+   "hp": 5200.0,
+   "spd": 60.0,
+   "dmg": 24.0,
+   "weak": "法术",
+   "r": 30.0,
+   "xp": 90.0,
+   "tex": "e_knight",
+   "ai": "melee",
+   "role": "boss",
+   "heavy": true,
+   "atk": "物理",
+   "move_fps": 8,
+   "phases": 2
   }
  }
 }

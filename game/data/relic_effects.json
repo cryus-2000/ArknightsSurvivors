@@ -852,6 +852,70 @@
     }
    ]
   },
+  "221": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "light",
+     "args": {
+      "amount": -50
+     }
+    },
+    {
+     "type": "on_gain",
+     "do": "rejection"
+    },
+    {
+     "type": "rule",
+     "rule": "deep_sea"
+    }
+   ],
+   "desc": "灯火 -50（最低 10），一次排异反应；海嗣更快进化，灯火上限 70。走向结局四",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event"
+  },
+  "222": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "recruit_knight"
+    }
+   ],
+   "desc": "猎潮的骑士加入你的旅程，直到他倒下。走向结局二",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event"
+  },
+  "223": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "move_speed",
+     "op": "mult",
+     "value": 1.1
+    }
+   ],
+   "desc": "骑士退行为罗辛南特：移动速度 +10%（作为纪念）",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event"
+  },
+  "225": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "bone_blood"
+    }
+   ],
+   "desc": "最终 Boss 受到伤害 +80%，你受到的伤害 +80%",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event",
+   "requires": [
+    "222"
+   ]
+  },
   "228": {
    "effects": [
     {
@@ -883,6 +947,100 @@
       "dur": 5.0
      }
     }
+   ]
+  },
+  "238": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "mult",
+     "value": 1.3
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 2
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_hp",
+     "op": "add",
+     "value": 0.1
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_dmg",
+     "op": "add",
+     "value": 0.1
+    },
+    {
+     "type": "rule",
+     "rule": "resolve_elite"
+    }
+   ],
+   "desc": "最大生命 +30%、物理减伤 +2；精英每次多来一只，海嗣生命与攻击 +10%",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event",
+   "max_lv": 3
+  },
+  "239": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "four_choices"
+    }
+   ],
+   "desc": "藏品三选一变为四选一",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event"
+  },
+  "240": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "rare_weight"
+    },
+    {
+     "type": "stat",
+     "stat": "pickup",
+     "op": "mult",
+     "value": 0.8
+    }
+   ],
+   "desc": "稀有 / 核心藏品出现率 +30%，拾取范围 -20%",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event"
+  },
+  "242": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "light",
+     "args": {
+      "amount": -50
+     }
+    },
+    {
+     "type": "on_gain",
+     "do": "rejection"
+    },
+    {
+     "type": "rule",
+     "rule": "final_taken",
+     "value": 40
+    }
+   ],
+   "desc": "灯火 -50（最低 10），第二次排异反应；最终 Boss 受到伤害 +40%",
+   "rarity": "结局",
+   "shop_allowed": false,
+   "source": "event",
+   "requires": [
+    "221"
    ]
   },
   "243": {

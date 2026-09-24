@@ -177,9 +177,311 @@
  ],
  "endings": {
   "standard": {
-   "name": "结局一",
+   "name": "结局一 · 偏执泡影",
    "en": "PRECIOUS DAYS",
-   "boss": "paranoia"
+   "boss": "paranoia",
+   "col": [
+    0.8,
+    0.55,
+    1.0
+   ],
+   "omen": "终局将至 —— 偏执泡影正在浮现"
+  },
+  "knight": {
+   "name": "结局二 · 最后的骑士",
+   "en": "THE LAST KNIGHT",
+   "boss": "knight_boss",
+   "col": [
+    0.6,
+    0.85,
+    1.0
+   ],
+   "omen": "终局将至 —— 骑士走向了黑潮中心",
+   "requires": {
+    "relic": "222",
+    "flag": "knight_alive"
+   },
+   "forbids": [
+    "223"
+   ],
+   "sticky": true
+  },
+  "resolve": {
+   "name": "结局三 · 抉择",
+   "en": "RESOLVE",
+   "boss": "ishar",
+   "col": [
+    1.0,
+    0.8,
+    0.4
+   ],
+   "omen": "终局将至 —— 海神在深处苏醒",
+   "requires": {
+    "relic_lv": [
+     "238",
+     2
+    ]
+   }
+  },
+  "deep": {
+   "name": "结局四 · 深蓝",
+   "en": "CAERULA ARBOR",
+   "boss": "izumik",
+   "col": [
+    0.35,
+    0.6,
+    1.0
+   ],
+   "omen": "终局将至 —— 深蓝之树伸出了根",
+   "requires": {
+    "relic": "221"
+   }
   }
- }
+ },
+ "events": [
+  {
+   "id": "madness",
+   "name": "狂徒妄念",
+   "window": [
+    150,
+    210
+   ],
+   "requires_cleared": "standard",
+   "options": [
+    {
+     "label": "愤怒",
+     "desc": "灯火 -40（最低 10），必得「海潮的气息」：猎潮的骑士加入你的旅程",
+     "ops": [
+      {
+       "light": -40
+      },
+      {
+       "relic": "222"
+      }
+     ]
+    },
+    {
+     "label": "呼号",
+     "desc": "60% 得到「海潮的气息」，失败则什么都没有；灯火不扣",
+     "ops": [
+      {
+       "chance": 0.6,
+       "relic": "222"
+      }
+     ]
+    },
+    {
+     "label": "离开",
+     "desc": "改为普通的藏品三选一",
+     "ops": [
+      {
+       "relic_choice": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "resolve1",
+   "name": "抉择 · 其一",
+   "window": [
+    240,
+    300
+   ],
+   "requires_cleared": "standard",
+   "options": [
+    {
+     "label": "决心",
+     "desc": "最大生命 +30%、物理减伤 +2；此后精英每次多来一只，海嗣生命与攻击 +10%。两次「决心」走向结局三",
+     "ops": [
+      {
+       "relic": "238"
+      }
+     ]
+    },
+    {
+     "label": "观望",
+     "desc": "藏品三选一变为四选一（持续到局末）",
+     "ops": [
+      {
+       "relic": "239"
+      }
+     ]
+    },
+    {
+     "label": "犹疑",
+     "desc": "稀有 / 核心藏品出现率 +30%，拾取范围 -20%",
+     "ops": [
+      {
+       "relic": "240"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "whisper",
+   "name": "深蓝的低语",
+   "window": [
+    360,
+    400
+   ],
+   "requires_cleared": "standard",
+   "options": [
+    {
+     "label": "倾听",
+     "desc": "灯火 -50（最低 10），一次排异反应：随机一个技能进阶海嗣化。走向结局四",
+     "ops": [
+      {
+       "relic": "221"
+      }
+     ]
+    },
+    {
+     "label": "离开",
+     "desc": "改为普通的藏品三选一",
+     "ops": [
+      {
+       "relic_choice": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "knight_stay",
+   "name": "骑士仍在",
+   "window": [
+    440,
+    470
+   ],
+   "requires_flag": "knight_alive",
+   "requires_relic": "222",
+   "options": [
+    {
+     "label": "挣脱",
+     "desc": "得到「骑士骨血」：最终 Boss 受到伤害 +80%，你受到的伤害也 +80%",
+     "ops": [
+      {
+       "relic": "225"
+      }
+     ]
+    },
+    {
+     "label": "沉默",
+     "desc": "什么都不发生，改为普通的藏品三选一",
+     "ops": [
+      {
+       "relic_choice": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "resolve2",
+   "name": "抉择 · 其二",
+   "window": [
+    445,
+    480
+   ],
+   "requires_cleared": "standard",
+   "options": [
+    {
+     "label": "决心",
+     "desc": "再一次决心（效果递减叠加）。两次「决心」走向结局三",
+     "ops": [
+      {
+       "relic": "238"
+      }
+     ]
+    },
+    {
+     "label": "观望",
+     "desc": "藏品三选一变为四选一",
+     "ops": [
+      {
+       "relic": "239"
+      }
+     ]
+    },
+    {
+     "label": "犹疑",
+     "desc": "稀有 / 核心藏品出现率 +30%，拾取范围 -20%",
+     "ops": [
+      {
+       "relic": "240"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "memory",
+   "name": "深蓝回忆",
+   "window": [
+    520,
+    545
+   ],
+   "requires_relic": "221",
+   "options": [
+    {
+     "label": "再次倾听",
+     "desc": "灯火再 -50（最低 10），第二次排异反应；最终 Boss 受到伤害 +40%",
+     "ops": [
+      {
+       "relic": "242"
+      }
+     ]
+    },
+    {
+     "label": "离开",
+     "desc": "改为普通的藏品三选一",
+     "ops": [
+      {
+       "relic_choice": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "resolve3",
+   "name": "抉择 · 其三",
+   "window": [
+    530,
+    560
+   ],
+   "requires_cleared": "standard",
+   "options": [
+    {
+     "label": "决心",
+     "desc": "最后一次决心。两次「决心」走向结局三",
+     "ops": [
+      {
+       "relic": "238"
+      }
+     ]
+    },
+    {
+     "label": "观望",
+     "desc": "藏品三选一变为四选一",
+     "ops": [
+      {
+       "relic": "239"
+      }
+     ]
+    },
+    {
+     "label": "犹疑",
+     "desc": "稀有 / 核心藏品出现率 +30%，拾取范围 -20%",
+     "ops": [
+      {
+       "relic": "240"
+      }
+     ]
+    }
+   ]
+  }
+ ]
 }

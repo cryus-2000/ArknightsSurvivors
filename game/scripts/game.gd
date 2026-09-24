@@ -8,6 +8,8 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
+const Endings = preload("res://scripts/endings.gd")
+const Knight = preload("res://scripts/allies/knight.gd")
 const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
@@ -55,6 +57,7 @@ var t := 0.0
 # ---------- 玩家 ----------
 var ppos := Vector2.ZERO
 var facing := 1.0
+var rej_slow := 1.0         # 排异·深海幻境：幻境内自己也减速
 var moving := false
 var hp := 100.0
 var max_hp := 100.0
@@ -183,6 +186,11 @@ var bosses: Array = []
 var boss_idx := 0
 var final_boss = null
 var ending := "standard"
+var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
+var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
+var frost := 0.0                   # 冰霜：移速 -40%
+var lamp_cap := 100.0              # 灯火上限（深蓝之心后 70）
+var knight_alive := false          # 猎潮的骑士在队中（结局二）
 var force_boss := -1
 var mid_used: Array = []
 var atk_slow := 0.0
@@ -308,13 +316,17 @@ func _ready() -> void:
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	A.normal_maps = Cfg.normal_maps
 	rfx = RelicFx.new(self)
+	endg = Endings.new(self)
+	knight = Knight.new(self)
+	if D.ENEMIES.has("knight"):
+		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
 	rng.randomize()
 	font = load("res://fonts/ui.ttf")
 	for n in ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
-			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic",
+			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
 			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_bullet", "drone_laser", "drone_missile",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
 		tex[n] = A.tex(n)
@@ -689,6 +701,11 @@ func _autotest_step() -> void:
 		if show_t > 1.6:
 			_close_show()
 		return
+	if at_frames == 30 and state == S.PLAY:
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--grant="):
+				for rid in a.substr(8).split(","):
+					_gain_relic(rid)
 	if balance:
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [t, state, level, hp, enemies.size()])
@@ -698,18 +715,39 @@ func _autotest_step() -> void:
 				pi = 0
 			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evotendril"):
 				pi = choices.size() - 1
+			for a in OS.get_cmdline_user_args():
+				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
+				if a.begins_with("--evpick=") and choice_kind == "event":
+					var spec: String = a.substr(9)
+					if spec.is_valid_int():
+						pi = mini(int(spec), choices.size() - 1)
+					else:
+						var evid: String = String(choices[0].id).split(":")[0]
+						for part in spec.split(","):
+							var kv: PackedStringArray = part.split(":")
+							if kv.size() == 2 and (kv[0] == evid or kv[0] == "default") and (kv[0] != "default" or not spec.contains(evid + ":")):
+								pi = mini(int(kv[1]), choices.size() - 1)
 			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": ch.get("rej")}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
 		hp = max_hp
 	if lvup_show > 1.05 and lvup_show < 1.12 and level == 3 and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_lvup.png")
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--eventtest=") and at_frames == 30:
+			for ev in endg.events:
+				if ev.id == a.substr(12):
+					endg._spawn_box(ev)
+					endg.done.append(ev.id)
+					for e in enemies:
+						if e.chest and e.get("event", "") != "":
+							e.pos = ppos + Vector2(120, 0)
 	if OS.get_cmdline_user_args().has("--relicshot"):
 		if at_frames == 30:
 			pending_chests = 1
@@ -898,7 +936,7 @@ func _update(dt: float) -> void:
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
 	# 溟痕：陷在里面移动速度 -45%
-	var mspd: float = speed * (1.0 - 0.45 * in_mire)
+	var mspd: float = speed * (1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0)
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
 	if tex.get("prop_pillar") != null:
@@ -929,11 +967,16 @@ func _update(dt: float) -> void:
 	_update_enemies(dt)
 	ch.update(dt)
 	_update_allies(dt)
+	knight.update(dt)
 	_update_bullets(dt)
 	_update_ebullets(dt)
 	bai._update_warns(dt)
 	_update_status(dt)
 	rfx.tick(dt)
+	endg.update(dt)
+	endg.tick_final_warning()
+	if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
+		knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
 	_update_merchant(dt)
 	_update_gems(dt)
 	_update_fx(dt)
@@ -947,6 +990,7 @@ func _update(dt: float) -> void:
 		return
 	if final_boss != null and final_boss.dead:
 		state = S.WIN
+		endg.on_win()
 		if not balance and diff >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY.size() - 1:
 			Cfg.diff_unlocked = diff + 1
 			Cfg.save()
@@ -1128,6 +1172,11 @@ func _spawn(dt: float) -> void:
 		var base := _edge_pos()
 		if zone_state != 0 and base.distance_to(zone_c) > zone_r - 90.0:
 			base = zone_c + (base - zone_c).normalized() * maxf(60.0, zone_r - 110.0)
+		if boss_idx == D.BOSS_TIMES.size() and group == ["knight_boss"]:
+			# 结局二：骑士在原地重生为最终 Boss；若骑士已不在，则从边缘出现
+			if knight.alive:
+				base = knight.take_over()
+			_show_banner("寒冰重生 —— 最后的骑士")
 		var spawned: Array = []
 		for k in group.size():
 			var b := _spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
@@ -1168,12 +1217,16 @@ func _spawn(dt: float) -> void:
 		if enemies.size() < MAX_ENEMIES:
 			var ne := _spawn_enemy(_pick_type(), _edge_pos())
 			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-			if not ne.elite and ne.ai != "static" and rng.randf() < D.THREAT[threat].get("evo", 0.0):
+			if not ne.elite and ne.ai != "static" and rng.randf() < D.THREAT[threat].get("evo", 0.0) * (2.0 if ending == "deep" else 1.0):
 				_evolve(ne)
+			if ending == "resolve" and t >= 520.0:
+				ne.weak = ""
 	if t >= next_elite:
 		next_elite += D.THREAT[threat].elite * (0.75 if diff >= 4 else 1.0)
 		var et := _pick_elite()
 		_spawn_enemy(et, _edge_pos())
+		if rfx.rule("resolve_elite") > 0:
+			_spawn_enemy(_pick_elite(), _edge_pos())
 		if threat >= 4:
 			var et2 := _pick_elite()
 			_spawn_enemy(et2, _edge_pos())
@@ -1208,7 +1261,7 @@ func _spawn(dt: float) -> void:
 		next_chest = t + rng.randf_range(35.0, 50.0)
 		var nch := 0
 		for e in enemies:
-			if e.chest:
+			if e.chest and e.get("event", "") == "":
 				nch += 1
 		if nch < 3:
 			_spawn_chest(ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(260.0, 420.0))
@@ -1256,6 +1309,7 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"tex_move": tex.get(d.tex + "_move") != null, "tex_feign": tex.get(d.tex + "_feign") != null, "tex_attack": tex.get(d.tex + "_attack") != null,
 		"tex_charge": tex.get(d.tex + "_charge") != null, "tex_death": tex.get(d.tex + "_death") != null,
 		"weak": d.get("weak", ""),
+		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
 	}
 	if e.elite:
 		e.hp *= 7.0
@@ -1286,14 +1340,15 @@ func _spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 
 
 ## 补给箱；约 15% 是伪装的箱形恐鱼
-func _spawn_chest(pos: Vector2) -> void:
+func _spawn_chest(pos: Vector2, event_id := "") -> void:
 	next_id += 1
 	enemies.append({
-		"id": next_id, "type": "chest", "name": "补给箱", "tex": "e_chest", "pos": pos, "hp": 22.0, "maxhp": 22.0,
+		"id": next_id, "type": "chest", "name": "补给箱" if event_id == "" else "海嗣祭坛", "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
+		"event": event_id,
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": true, "hidden": event_id == "" and rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
@@ -1375,6 +1430,17 @@ func _update_enemies(dt: float) -> void:
 				fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
 				if e.dead:
 					continue
+		# 侵蚀（排异·无解困境）：受控敌人每 0.5 秒受一次触手法术伤害
+		if e.get("corr_t", 0.0) > 0.0:
+			e.corr_t -= dt
+			e["corr_tick"] = e.get("corr_tick", 0.0) + dt
+			if e.corr_tick >= 0.5:
+				e.corr_tick = 0.0
+				_hit("触手", ["corrode"])
+				_damage(e, e.corr_dmg)
+				fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-8, 8), -6), "vel": Vector2(0, -40), "sz": 2.5, "life": 0.45, "max": 0.45, "col": Color(1.2, 0.6, 1.6)})
+				if e.dead:
+					continue
 		var to: Vector2 = ppos - e.pos
 		var dist := to.length()
 		var dir: Vector2 = to / max(dist, 0.001)
@@ -1416,6 +1482,10 @@ func _update_enemies(dt: float) -> void:
 		var move_dir := dir
 		if e.feed and final_target_valid(e):
 			move_dir = (e.feed_to.pos - e.pos).normalized()
+		elif e.get("aggro", Vector2.INF) != Vector2.INF:
+			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
+			move_dir = (e.aggro - e.pos).normalized()
+			e.aggro = Vector2.INF
 		var ov: Vector2 = eai.pattern(e, dir, dist, dt, spd) if e.stun <= 0.0 else Vector2.INF
 		if ov != Vector2.INF:
 			v += ov
@@ -1500,6 +1570,9 @@ func _update_enemies(dt: float) -> void:
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
 					lamp = maxf(0.0, lamp - 8.0)
 					_add_text(ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
+				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
+					frost = maxf(frost, 2.0)
+					_add_text(ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				_enemy_hit(e.dmg * dark_mod, e)
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害
 		if e.type == "tear" and dist < e.r + 14.0:
@@ -1601,6 +1674,7 @@ func _add_nerve(v: float) -> void:
 func _update_status(dt: float) -> void:
 	pstun -= dt
 	atk_slow -= dt
+	frost = maxf(0.0, frost - dt)
 	nerve = max(0.0, nerve - 6.0 * dt)
 	if corrode_pool > 0.0:
 		var tick: float = min(corrode_pool, (corrode_pool * 0.5 + 1.0) * dt)
@@ -1700,7 +1774,7 @@ func _update_zone(dt: float) -> void:
 	zone_t += dt
 	match zone_state:
 		3:
-			if zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - 1:
+			if zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if ending == "resolve" else 1):
 				zone_phase += 1
 				zone_next_r = ZONE_RADII[zone_phase]
 				var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, (zone_r - zone_next_r) * 0.7)
@@ -1858,6 +1932,8 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
 		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
 			dmg *= 1.0 + low_hp_bonus
+		if e.boss and final_boss != null and is_same(e, final_boss):
+			dmg *= 1.0 + 0.01 * rfx.rule("final_taken") + (0.8 if rfx.rule("bone_blood") > 0 else 0.0)
 	rfx.on_hit(e, hit)
 	e.hp -= dmg
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
@@ -1898,6 +1974,21 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		e.spd = 70.0
 		_add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
+		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
+		if e.type == "knight_boss" and e.phase == 1:
+			e.phase = 2
+			e.hp = e.maxhp * 0.5
+			e.spd *= 1.2
+			e.invuln = true
+			e.channel = 1.5
+			e.stun = 0.0
+			e.kb = Vector2.ZERO
+			if not _fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), PX * 1.4, 0.0):
+				fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
+			_show_banner("寒冰重生 —— 最后的骑士 第二阶段")
+			Sfx.play("roar", 0.0, 0.9, 0.0)
+			_shake(1.2)
+			return
 		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead:
 			e.hp = 1.0
 			e.coma = true
@@ -1938,6 +2029,13 @@ func _kill(e: Dictionary) -> void:
 	if e.dead:
 		return
 	e.dead = true
+	# 海嗣祭坛：打开事件选项
+	if e.chest and e.get("event", "") != "":
+		Sfx.play("relic", -2.0, 0.8)
+		_sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
+		fx.append({"kind": "rays", "pos": e.pos, "life": 0.7, "max": 0.7, "col": Color(0.5, 0.8, 1.0)})
+		endg.open(e.event)
+		return
 	# 补给箱被打碎
 	if e.chest:
 		Sfx.play("relic", -6.0, 1.3)
@@ -1970,7 +2068,7 @@ func _kill(e: Dictionary) -> void:
 	if flesh_heal and e.evo:
 		_heal(max_hp * 0.03)
 	if ember and e.elite:
-		lamp = min(100.0, lamp + 20.0)
+		lamp = min(lamp_cap, lamp + 20.0)
 	if e.xp > 0.0:
 		_drop(e.pos, "xp", e.xp * xp_mult)
 	if rng.randf() < 0.012 * (0.5 if diff >= 3 else 1.0):
@@ -2029,6 +2127,10 @@ func _drop(pos: Vector2, kind: String, val: float) -> void:
 # =====================================================================
 # 水月的攻击：伞击 + 天赋「创伤性癔症」+ 三个自动技能
 # =====================================================================
+func facing_angle() -> float:
+	return 0.0 if facing >= 0.0 else PI
+
+
 func _nearest(n: int, max_dist: float) -> Array:
 	var c: Array = []
 	for j in _query(ppos, max_dist):
@@ -2252,13 +2354,11 @@ func _buy(i: int) -> void:
 		merchant["bought"] = true
 	match it.kind:
 		"relic":
-			if not relics.has(it.id):
-				relics.append(it.id)
-			_apply_relic(it.id)
+			_gain_relic(it.id)
 		"heal":
 			_heal(max_hp * 0.4)
 		"oil":
-			lamp = min(100.0, lamp + 50.0)
+			lamp = min(lamp_cap, lamp + 50.0)
 	Sfx.play("ui_ok")
 	_build_shop_ui()
 
@@ -2332,7 +2432,7 @@ func _update_allies(dt: float) -> void:
 			"medic":
 				if al.cd <= 0.0:
 					al.cd = 3.5 / (1.0 + 0.2 * (al.lv - 1))
-					if hp < max_hp:
+					if hp < max_hp or (knight.alive and knight.hp < knight.maxhp):
 						_ally_start(al, ppos)
 			"support":
 				# 辅助：光环只减速不造成伤害；另外向 2 名敌人发射紫色法术
@@ -2386,6 +2486,8 @@ func _ally_release(al: Dictionary) -> void:
 			bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 20.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 55.0 + 10.0 * al.lv})
 			Sfx.play("oil", -12.0, 1.4, 0.05)
 		"medic":
+			if knight.alive:
+				knight.heal(knight.maxhp * 0.05)
 			if hp < max_hp:
 				var h: float = max_hp * (0.035 + 0.01 * (al.lv - 1))
 				_heal(h)
@@ -2711,7 +2813,7 @@ func _update_gems(dt: float) -> void:
 					Sfx.play("pickup", -14.0, 1.0 + min(xp / xp_need, 1.0) * 0.4, 0.03)
 				"oil":
 					var add: float = g.val * oil_mult
-					lamp = min(100.0, lamp + add)
+					lamp = min(lamp_cap, lamp + add)
 					Sfx.play("oil", -4.0)
 					_add_text(ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
 				"chest":
@@ -2856,7 +2958,7 @@ func _draw_panel_bg() -> void:
 	var band := Rect2(vs.x / 2 - 360, 56, 720, 72)
 	UI.frame(panel, band, title_col, {"t": t, "vines": true, "seed": 11, "vine_k": 0.6, "cut": 10.0})
 	UI.caustic(panel, Rect2(band.position + Vector2(20, 8), Vector2(band.size.x - 40, 18)), t, title_col)
-	var en_label := "RELIC" if choice_kind == "relic" else "LEVEL UP"
+	var en_label := "RELIC" if choice_kind == "relic" else ("EVENT" if choice_kind == "event" else "LEVEL UP")
 	if choice_kind == "shop":
 		en_label = "MERCHANT"
 	if choices.size() > 0 and choices[0].kind == "evo":
@@ -3056,6 +3158,8 @@ func _draw_show(vs: Vector2) -> void:
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
 func _card_icon(o: Dictionary) -> Texture2D:
+	if o.has("icon"):
+		return tex.get(o.icon)
 	match o.kind:
 		"relic":
 			return tex.get("relic_" + o.id)
@@ -3071,6 +3175,8 @@ func _card_icon(o: Dictionary) -> Texture2D:
 
 
 func _card_color(o: Dictionary) -> Color:
+	if o.has("col"):
+		return o.col
 	match o.kind:
 		"relic":
 			return UI.CAT_COL.get(RL[o.id].cat, UI.GOLD)
@@ -3092,7 +3198,9 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 20 + i, "vine_k": 1.0 if hov else 0.75, "glow": 1.0 if hov else 0.25, "cut": 12.0, "bracket": 12.0})
 	# 顶部分类标签
 	var cat := "成长  GROWTH"
-	if o.kind == "relic":
+	if o.has("cat"):
+		cat = o.cat
+	elif o.kind == "relic":
 		cat = RL[o.id].cat + "  ·  " + RL[o.id].rarity
 	elif o.kind == "recruit":
 		cat = "招募  " + D.ALLIES[o.id].en
@@ -3238,6 +3346,9 @@ func _relic_pool_ids(for_shop := false) -> Array:
 		# 7:00 前护盾系更容易出现
 		if t < 420.0 and r.tags.has("shield"):
 			w *= 1.6
+		# 犹疑 (240)：稀有 / 核心 权重 +30%
+		if rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
+			w *= 1.3
 		# 已拥有的藏品升级：出现率减半
 		if relics.has(r.id):
 			w *= 0.5
@@ -3264,6 +3375,8 @@ func _pick(i: int) -> void:
 		return
 	var o: Dictionary = choices[i]
 	match o.kind:
+		"event":
+			endg.pick(o)
 		"growth":
 			growth[o.id] = growth.get(o.id, 0) + 1
 			ch._apply_growth(o.id)
@@ -3277,9 +3390,7 @@ func _pick(i: int) -> void:
 				allies.append({"kind": o.id, "lv": 1, "pos": ppos + Vector2(rng.randf_range(-40, 40), 30), "cd": 0.5})
 				_show_banner("援护干员「%s」加入编队" % D.ALLIES[o.id].name)
 		"relic":
-			if not relics.has(o.id):
-				relics.append(o.id)
-			_apply_relic(o.id)
+			_gain_relic(o.id)
 		"evo":
 			ch.on_evo_pick(o.id)
 		"weapon":
@@ -3312,6 +3423,18 @@ func _apply_relic(id: String) -> void:
 	if not Cfg.seen_relics.has(id):
 		Cfg.seen_relics.append(id)
 		Cfg.save()
+
+
+## 获得藏品的唯一入口：登记、生效、重算结局
+func _gain_relic(id: String) -> void:
+	if not relics.has(id):
+		relics.append(id)
+	_apply_relic(id)
+	if id == "222" and not knight.alive and not knight.fallen:
+		knight.spawn()
+	elif id == "221" and knight.alive:
+		knight.leave()
+	endg.on_relic(id)
 
 
 # =====================================================================
@@ -3444,7 +3567,9 @@ func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0) -> bool:
 
 
 func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
-	var tx: Texture2D = tex[name]
+	var tx: Texture2D = tex.get(name)
+	if tx == null:
+		return
 	pos += draw_off
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
@@ -3514,6 +3639,8 @@ func _draw() -> void:
 		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
 	for al in allies:
 		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
+	if knight.alive:
+		_spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
 	ch.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
@@ -3522,11 +3649,15 @@ func _draw() -> void:
 	for i in allies.size():
 		dl.append([allies[i].pos.y + 16.0, 1, i])
 	dl.append([ppos.y + 6.0, 2, null])
+	if knight.alive:
+		dl.append([knight.pos.y + 18.0, 4, null])
 	for pr in map.sort_props:
 		dl.append([pr[1].y, 3, pr])
 	dl.sort_custom(func(a, b): return a[0] < b[0])
 	for it in dl:
 		match it[1]:
+			4:
+				knight.draw()
 			0:
 				_draw_enemy(it[2])
 			1:
@@ -3639,6 +3770,16 @@ func _draw() -> void:
 	for f in fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		match f.kind:
+			"frost":
+				# 寒冰领域：淡蓝地面 + 旋转冰纹
+				var fa: float = minf(1.0, f.life / 0.6) * 0.9
+				draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+				draw_circle(Vector2.ZERO, f.r, Color(0.5, 0.8, 1.2, 0.14 * fa))
+				draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 48, Color(0.8, 1.2, 1.8, 0.6 * fa), 2.0)
+				for q in 6:
+					var qa: float = t * 0.6 + TAU * q / 6.0
+					draw_line(Vector2.from_angle(qa) * f.r * 0.2, Vector2.from_angle(qa) * f.r * 0.95, Color(0.9, 1.3, 1.9, 0.25 * fa), 2.0)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"ring":
 				var rr: float = f.r * (1.15 - a * 0.3)
 				draw_arc(f.pos, rr, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.9), 4.0)
@@ -3707,9 +3848,10 @@ func _draw() -> void:
 				# 巨型触手破土
 				var k := 1.0 - a
 				var fr := clampi(int(k * 6.0), 0, 4)
-				_spr("tentacle", 5, fr, f.pos + Vector2(0, 16), PX * 4.2, false, Color(1.3, 1.1, 1.6), Vector2(0.5, 1.0))
-				_spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), PX * 2.6, true, Color(1.1, 1.0, 1.4), Vector2(0.5, 1.0))
-				_spr("tentacle", 5, fr, f.pos + Vector2(48, 22), PX * 2.4, false, Color(1.1, 1.0, 1.4), Vector2(0.5, 1.0))
+				var tc: Color = ch.tentacle_col(1.15) if ch.has_method("tentacle_col") else Color(1.3, 1.1, 1.6)
+				_spr("tentacle", 5, fr, f.pos + Vector2(0, 16), PX * 4.2, false, tc, Vector2(0.5, 1.0))
+				_spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), PX * 2.6, true, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
+				_spr("tentacle", 5, fr, f.pos + Vector2(48, 22), PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
@@ -4029,7 +4171,12 @@ func _draw_enemy(e: Dictionary) -> void:
 		var wob := 0.0
 		if e.hidden and fmod(t + e.id, 3.0) < 0.25:
 			wob = sin(t * 60.0) * 1.5
-		_spr(name, 2, 0, e.pos + Vector2(wob, 0), PX, false, col)
+		if e.get("event", "") != "":
+			frame = int(t * 2.0) % 2
+			draw_set_transform(e.pos + Vector2(0, 14), 0.0, Vector2(1.0, 0.45))
+			draw_circle(Vector2.ZERO, 34.0 + 4.0 * sin(t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_spr(name, 2, frame, e.pos + Vector2(wob, 0), PX, false, col)
 		if e.flash > 0.0:
 			_spr(name + "_white", 2, 0, e.pos, PX, false, Color(1, 1, 1, 0.9))
 		return
@@ -4520,6 +4667,29 @@ func _draw_hud() -> void:
 			var hp2 := sp + Vector2(0, -64 - bounce)
 			hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(hud, font, hp2 + Vector2(-60, -8), ("商人 %ds" if merchant.life > 15.0 else "商人即将离开 %ds") % int(merchant.life), 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
+	# 海嗣祭坛方位指示（屏幕外）
+	for e in enemies:
+		if not e.chest or e.dead or e.get("event", "") == "":
+			continue
+		var spb: Vector2 = ct * e.pos
+		if Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(spb):
+			var hb := spb + Vector2(0, -60 - absf(sin(t * 5.0)) * 8.0)
+			hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), Color(0.55, 0.8, 1.0))
+			UI.text(hud, font, hb + Vector2(-60, -8), "海嗣祭坛", 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+		else:
+			var cc := vs / 2.0
+			var dd := (spb - cc).normalized()
+			var edge2: Vector2 = cc + dd * min(abs((vs.x / 2 - 64) / max(abs(dd.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(dd.y), 0.01)))
+			var pl := 0.5 + 0.5 * sin(t * 6.0)
+			hud.draw_circle(edge2, 24.0, Color(0.03, 0.05, 0.1, 0.85))
+			hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, Color(0.55, 0.8, 1.0), 2.0)
+			var et2: Texture2D = tex.e_event
+			hud.draw_texture_rect_region(et2, Rect2(edge2 - Vector2(13, 15), Vector2(26, 30)), Rect2(0, 0, 26, 30))
+			var tip2: Vector2 = edge2 + dd * (40.0 + 5.0 * pl)
+			var base2: Vector2 = edge2 + dd * 28.0
+			var sd2 := dd.orthogonal() * 10.0
+			hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
+			UI.text(hud, font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	_draw_minimap(vs)
 	var st_txt := ""
 	var st_col := UI.GOLD
@@ -4572,8 +4742,10 @@ func _draw_hud() -> void:
 	hud.draw_texture_rect(tex.ingot, Rect2(ir.position + Vector2(8, 6), Vector2(18, 14)), false)
 	UI.text(hud, font, ir.position + Vector2(32, 19), str(ingots), 15, Color(1.0, 0.7, 0.4))
 
-	# 右上：藏品
+	# 右上：藏品 + 当前结局
 	_draw_relic_tray(Vector2(vs.x - 16, 16))
+	if ending != "standard" or Cfg.endings_cleared.size() > 0:
+		UI.text(hud, font, Vector2(vs.x - 236, 92 + 38 * maxi(1, int(ceil(relics.size() / 8.0)))), endg.cur_name(), 12, endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
 	# Boss 血条
 	var bby := 0.0
@@ -4813,6 +4985,7 @@ func _draw_stats(vs: Vector2) -> void:
 	if not evl2.is_empty():
 		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), evl2[0], evl2[1], 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12) + 14
+	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), endg.cur_name(), endg.cur_col(), 11) + 14
 	# 角色能力标签（来自角色 JSON）
 	for tg in ch.display_tags():
 		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), tg, UI.PURPLE, 11) + 6
@@ -4882,8 +5055,12 @@ func _draw_stats(vs: Vector2) -> void:
 		for k in 2:
 			var ad: Dictionary = ch.skill_adv()[sid][k]
 			var got := lv >= k + 2
-			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, col if got else Color(0, 0, 0, 0), col if got else Color(0.35, 0.42, 0.46))
-			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name, 11, col if got else Color(0.35, 0.42, 0.46))
+			# 海嗣化（排异）的进阶：紫色 + "排异" 标记
+			var rej_key: String = sid + ("a" if k == 0 else "b")
+			var rejd: bool = got and ch.get("rej") != null and ch.rej.has(rej_key)
+			var acol: Color = Color(0.85, 0.55, 1.0) if rejd else col
+			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, acol if got else Color(0, 0, 0, 0), acol if got else Color(0.35, 0.42, 0.46))
+			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name + ("·排异" if rejd else ""), 11, acol if got else Color(0.35, 0.42, 0.46))
 			ax += 120
 		y += 44
 	# ---- 队伍与成长
@@ -5022,7 +5199,7 @@ func _draw_minimap(vs: Vector2) -> void:
 			var bp := 0.5 + 0.5 * sin(t * 6.0)
 			hud.draw_circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0))
 		elif e.chest:
-			hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), UI.GOLD)
+			hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(0.55, 0.8, 1.0) if e.get("event", "") != "" else UI.GOLD)
 		elif e.elite:
 			hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
 		else:
@@ -5188,6 +5365,8 @@ func _draw_status_bar(vs: Vector2) -> void:
 
 
 func _draw_allies_hud(br: Vector2) -> void:
+	if knight.alive:
+		knight.draw_hud(hud, br + Vector2(-264, -30))
 	if allies.is_empty():
 		return
 	UI.en(hud, font, br + Vector2(-236, -60), "SUPPORT", 10, UI.SUB, 3.0)
