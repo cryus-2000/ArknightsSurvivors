@@ -57,6 +57,11 @@ var t := 0.0
 # ---------- 玩家 ----------
 var ppos := Vector2.ZERO
 var facing := 1.0
+# 博士：跟在水月身旁的同行者，不参战、不被攻击、不占援护位
+var doc_pos := Vector2.INF
+var doc_mv := 0.0
+var doc_face := 1.0
+var doc_t := 0.0
 var rej_slow := 1.0         # 排异·深海幻境：幻境内自己也减速
 var moving := false
 var hp := 100.0
@@ -338,7 +343,7 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	for n in ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
-			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
+			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
 			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_bullet", "drone_laser", "drone_missile",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
@@ -2567,6 +2572,7 @@ const ALLY_SLOTS := [Vector2(-46, -8), Vector2(46, -8), Vector2(0, -52)]
 
 
 func _update_allies(dt: float) -> void:
+	_update_doctor(dt)
 	for i in allies.size():
 		var al: Dictionary = allies[i]
 		var slot: Vector2 = ppos + ALLY_SLOTS[i]
@@ -3839,6 +3845,8 @@ func _draw() -> void:
 		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
 	for al in allies:
 		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
+	if doc_pos != Vector2.INF and tex.get("doctor") != null:
+		_spr("shadow", 1, 0, doc_pos + Vector2(0, 4), PX * 0.9)
 	if knight.alive:
 		_spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
 	ch.draw_entities_floor()
@@ -3849,6 +3857,8 @@ func _draw() -> void:
 	for i in allies.size():
 		dl.append([allies[i].pos.y + 16.0, 1, i])
 	dl.append([ppos.y + 6.0, 2, null])
+	if doc_pos != Vector2.INF and tex.get("doctor") != null:
+		dl.append([doc_pos.y + 4.0, 5, null])
 	if knight.alive:
 		dl.append([knight.pos.y + 18.0, 4, null])
 	for pr in map.sort_props:
@@ -3856,6 +3866,8 @@ func _draw() -> void:
 	dl.sort_custom(func(a, b): return a[0] < b[0])
 	for it in dl:
 		match it[1]:
+			5:
+				_draw_doctor()
 			4:
 				knight.draw()
 			0:
@@ -5784,3 +5796,42 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		UI.text(hud, font, br.position + Vector2(14, 27), op[0], 16, UI.TEXT)
 		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), op[1], 13, col)
 		bx += bw + 12
+
+
+## 博士：跟在水月侧后方（背对朝向的一侧），带一点惯性；离得太远（开局 / 传送）时直接归位
+func _update_doctor(dt: float) -> void:
+	if tex.get("doctor") == null:
+		return
+	var slot: Vector2 = ppos + Vector2(-facing * 34.0, -12.0)
+	if doc_pos == Vector2.INF or doc_pos.distance_to(ppos) > 600.0:
+		doc_pos = slot
+		doc_mv = 0.0
+		return
+	var prev: Vector2 = doc_pos
+	var d: float = doc_pos.distance_to(slot)
+	# 近处慢慢挪、远处快步跟上；始终慢过水月一点，保留"跟随"的感觉
+	var k: float = clampf(dt * (2.5 if d < 24.0 else 5.0), 0.0, 1.0)
+	doc_pos = doc_pos.lerp(slot, k)
+	if tex.get("prop_pillar") != null:
+		doc_pos = map.push_out(doc_pos, 10.0)
+	var vel: Vector2 = (doc_pos - prev) / maxf(dt, 0.0001)
+	doc_mv = lerpf(doc_mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
+	if absf(vel.x) > 25.0:
+		doc_face = signf(vel.x)
+	elif doc_mv < 20.0:
+		doc_face = facing
+	doc_t += dt
+
+
+func _draw_doctor() -> void:
+	var tx: Texture2D = tex.get("doctor")
+	if tx == null or doc_pos == Vector2.INF:
+		return
+	var moving: bool = doc_mv > 30.0
+	# 只有 2 帧待机：移动时加快切帧并加一点上下颠簸，当作小跑
+	var frame: int = int(doc_t * (7.0 if moving else 2.0)) % 2
+	var bob: float = (absf(sin(doc_t * 11.0)) * -2.0 * PX) if moving else 0.0
+	var pk: float = PX / A.hires_of(tx)
+	var fh: float = tx.get_height()
+	var anc := Vector2(0.5, (fh - 3.0 * A.hires_of(tx)) / fh)
+	_spr("doctor", 2, frame, doc_pos + Vector2(0, 4.0 + bob), pk, doc_face < 0.0, Color.WHITE, anc)
