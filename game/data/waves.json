@@ -1,0 +1,185 @@
+{
+ "_doc": "刷怪导演表（由 data.gd 迁出）：威胁等级、Boss 时间、中期 Boss 池、结局。",
+ "threat": [
+  {
+   "name": "浅滩",
+   "en": "SHALLOWS",
+   "t": 0.0,
+   "elite": 45.0,
+   "evo": 0.0,
+   "spd": 1.0,
+   "horde_every": 120.0,
+   "pool": [
+    "bone",
+    "bone",
+    "bone",
+    "bone",
+    "slider"
+   ],
+   "horde": [
+    "bone",
+    "bone",
+    "bone",
+    "slider"
+   ]
+  },
+  {
+   "name": "暗流",
+   "en": "UNDERTOW",
+   "t": 75.0,
+   "elite": 55.0,
+   "evo": 0.0,
+   "spd": 1.0,
+   "horde_every": 120.0,
+   "pool": [
+    "bone",
+    "bone",
+    "bone",
+    "slider",
+    "slider",
+    "stone"
+   ],
+   "horde": [
+    "bone",
+    "bone",
+    "bone",
+    "slider"
+   ]
+  },
+  {
+   "name": "深潜",
+   "en": "DESCENT",
+   "t": 170.0,
+   "elite": 50.0,
+   "evo": 0.03,
+   "spd": 1.0,
+   "horde_every": 120.0,
+   "pool": [
+    "bone",
+    "bone",
+    "slider",
+    "slider",
+    "stone",
+    "stone",
+    "brood",
+    "ripper"
+   ],
+   "horde": [
+    "bone",
+    "bone",
+    "slider",
+    "ripper"
+   ]
+  },
+  {
+   "name": "裂隙",
+   "en": "RIFT",
+   "t": 280.0,
+   "elite": 44.0,
+   "evo": 0.08,
+   "spd": 1.03,
+   "horde_every": 110.0,
+   "pool": [
+    "slider",
+    "stone",
+    "stone",
+    "ripper",
+    "ripper",
+    "brood",
+    "offspring",
+    "burrower",
+    "spitter"
+   ],
+   "horde": [
+    "slider",
+    "slider",
+    "ripper",
+    "bone"
+   ]
+  },
+  {
+   "name": "深渊",
+   "en": "ABYSS",
+   "t": 400.0,
+   "elite": 38.0,
+   "evo": 0.14,
+   "spd": 1.07,
+   "horde_every": 100.0,
+   "pool": [
+    "stone",
+    "ripper",
+    "ripper",
+    "offspring",
+    "offspring",
+    "burrower",
+    "burrower",
+    "spitter",
+    "spitter",
+    "slider"
+   ],
+   "horde": [
+    "ripper",
+    "slider",
+    "burrower",
+    "ripper"
+   ]
+  },
+  {
+   "name": "深蓝之树",
+   "en": "BLUE TREE",
+   "t": 520.0,
+   "elite": 32.0,
+   "evo": 0.22,
+   "spd": 1.12,
+   "horde_every": 80.0,
+   "pool": [
+    "ripper",
+    "ripper",
+    "offspring",
+    "burrower",
+    "burrower",
+    "spitter",
+    "spitter",
+    "hulk",
+    "stone"
+   ],
+   "horde": [
+    "ripper",
+    "burrower",
+    "burrower",
+    "ripper"
+   ]
+  }
+ ],
+ "boss_times": [
+  210.0,
+  420.0,
+  600.0
+ ],
+ "mid_pool": [
+  [
+   "path"
+  ],
+  [
+   "iberia"
+  ],
+  [
+   "carmen"
+  ],
+  [
+   "bishop",
+   "archon"
+  ],
+  [
+   "bishop",
+   "immortal"
+  ]
+ ],
+ "endings": {
+  "standard": {
+   "name": "结局一",
+   "en": "PRECIOUS DAYS",
+   "boss": "paranoia"
+  }
+ }
+}

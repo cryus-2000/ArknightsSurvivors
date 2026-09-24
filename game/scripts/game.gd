@@ -9,6 +9,7 @@ const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Map = preload("res://scripts/world/map.gd")
+const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
@@ -217,6 +218,7 @@ var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
 var ch: RefCounted             # 当前角色（scripts/characters/<id>.gd），水月专属逻辑都在里面
+var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
 var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
 var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D：绘制时的高度偏移（击退腾空等）
@@ -279,6 +281,7 @@ var choice_shot := false
 
 func _ready() -> void:
 	bai = BossAI.new(self)
+	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
 	ch = Character.create(self, Cfg.character_id)
 	stats = StatBlock.new()
@@ -1364,7 +1367,7 @@ func _update_enemies(dt: float) -> void:
 		var move_dir := dir
 		if e.feed and final_target_valid(e):
 			move_dir = (e.feed_to.pos - e.pos).normalized()
-		var ov := _minion_pattern(e, dir, dist, dt, spd) if e.stun <= 0.0 else Vector2.INF
+		var ov: Vector2 = eai.pattern(e, dir, dist, dt, spd) if e.stun <= 0.0 else Vector2.INF
 		if ov != Vector2.INF:
 			v += ov
 		elif e.stun <= 0.0:
@@ -1388,7 +1391,7 @@ func _update_enemies(dt: float) -> void:
 					e.cdt -= dt
 					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
 						e.cdt = e.cd
-						_enemy_shoot(e, dir)
+						eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 
 		# ---- 分离 + 吞噬
@@ -1466,124 +1469,6 @@ func _morph(e: Dictionary) -> void:
 	_add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
 		_spawn_enemy(["bone", "slider", "stone"][rng.randi() % 3], e.pos + Vector2.from_angle(rng.randf() * TAU) * 20.0)
-
-
-## 远程攻击
-func _enemy_shoot(e: Dictionary, dir: Vector2) -> void:
-	if e.type == "stone" or D.ENEMIES[e.type].get("spit", false):
-		_enemy_lob(e)
-		return
-	var spd := 280.0 if e.boss else 200.0
-	var n := 1
-	var kind := "orb"
-	var home := false
-	if e.type == "skimmer":
-		n = 3
-	if e.type == "mother":
-		kind = "acid"
-		home = true
-		spd = 150.0
-	if e.type == "ishar" and e.phase == 2:
-		n = 3
-	if e.type == "paranoia":
-		n = 3 if e.phase == 1 else 5
-	if e.type == "iberia":
-		n = 5
-	if e.has("ammo"):
-		e.ammo -= 1
-		if e.ammo <= 0:
-			e.ai = "melee"
-			_add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
-	for k in n:
-		var d := dir.rotated((k - (n - 1) / 2.0) * 0.22)
-		ebullets.append({"pos": e.pos, "vel": d * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
-			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
-			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": D.ENEMIES[e.type].get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2})
-	# 投嗣育母：每次攻击在水月附近放下一只注亡拟嗣
-	if e.type == "mother":
-		var nb := 0
-		for o in enemies:
-			if o.type == "brood" and not o.dead:
-				nb += 1
-		if nb < 12:
-			_spawn_enemy("brood", ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(45.0, 75.0))
-
-
-## 小怪的攻击模式（返回额外速度；返回 INF 表示走常规 AI）
-func _minion_pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
-	match e.type:
-		"burrower":
-			# 潜海裂魔：潜行接近（半伤、不接触），近身后破土咬击，露头 3 秒再潜回
-			if e.get("under", true):
-				e.under = true
-				e.def = 1.0
-				if dist < 84.0 and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0:
-					e.under = false
-					e.def = 1.0
-					e.up_t = 3.2
-					bai._warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
-					_sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
-					return Vector2.ZERO
-				return dir * spd
-			e.up_t = e.get("up_t", 3.0) - dt
-			if e.up_t <= 0.0 and dist > 120.0:
-				e.under = true
-				_sparks(e.pos, Vector2.DOWN, Color(0.5, 0.4, 0.7), 8, 160.0)
-			return Vector2.INF
-		"hulk":
-			# 巨骸漂流体：近身时踏地震荡
-			if dist < 170.0 and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and bai._cd(e, "stomp", 6.0):
-				bai._warn(e, "circle", 0.9, {"follow": true, "r": 135.0, "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
-			return Vector2.INF
-		"slider", "ripper":
-			# 底海滑动者：蓄力 0.5 秒后高速冲刺；沉海撕裂者：近身短距猛扑
-			var rip: bool = e.type == "ripper"
-			e["dash_cd"] = e.get("dash_cd", rng.randf_range(1.5, 3.5)) - dt
-			if e.get("dash_w", 0.0) > 0.0:
-				e.dash_w -= dt
-				if e.dash_w <= 0.0:
-					e["dash_t"] = 0.35
-				return Vector2.ZERO
-			if e.get("dash_t", 0.0) > 0.0:
-				e.dash_t -= dt
-				return e.dash_dir * spd * (4.5 if rip else 3.8)
-			if e.dash_cd <= 0.0 and dist < (150.0 if rip else 240.0) and dist > 40.0:
-				e.dash_cd = rng.randf_range(3.0, 4.5)
-				e["dash_w"] = 0.4 if rip else 0.5
-				e["dash_dir"] = dir
-				return Vector2.ZERO
-		"brood":
-			# 注亡拟嗣：站桩吐酸
-			e.cdt -= dt
-			if e.cdt <= 0.0 and dist < 300.0:
-				e.cdt = 4.2
-				ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + t / 300.0), "slow": false, "r": 5.0, "life": 2.6,
-					"corrode": 0.3, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
-			return Vector2.INF
-		"offspring":
-			# 伊祖米克的子代：发光蓄力后环形弹幕
-			e["nova_cd"] = e.get("nova_cd", rng.randf_range(2.0, 4.0)) - dt
-			if e.get("nova_w", 0.0) > 0.0:
-				e.nova_w -= dt
-				if e.nova_w <= 0.0:
-					var n := 8 if e.evo else 6
-					for k in n:
-						ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 150.0, "dmg": e.dmg * 0.3, "slow": false,
-							"r": 5.0, "life": 2.6, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "nova", "home": false})
-					Sfx.play("tentacle", -12.0, 0.7, 0.05)
-				return Vector2.ZERO
-			if e.nova_cd <= 0.0 and dist < 320.0:
-				e.nova_cd = rng.randf_range(4.0, 5.5)
-				e["nova_w"] = 0.6
-				return Vector2.ZERO
-	return Vector2.INF
-
-
-## 固海凿石者：抛射碎石，落点预警，落地范围伤害
-func _enemy_lob(e: Dictionary) -> void:
-	var to := ppos + Vector2(randf_range(-30, 30), randf_range(-30, 30)) + pvel * 0.6
-	lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": D.ENEMIES[e.type].get("spit", false)})
 
 
 func _update_lobs(dt: float) -> void:

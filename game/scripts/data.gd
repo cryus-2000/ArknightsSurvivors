@@ -1,55 +1,19 @@
 extends RefCounted
-## 游戏数据表：敌人、水月的成长项、技能、模组、藏品、组合
+## 游戏数据表：水月的成长项、技能、模组、武器、援护、难度。
+## 敌人与刷怪导演表已迁到 JSON（data/enemies.json、data/waves.json），这里只做加载，调用方仍用 D.ENEMIES / D.THREAT 等。
+
+const Loader = preload("res://scripts/enemies/enemy_db.gd")
+static var ENEMIES: Dictionary = Loader.load_enemies()
+static var THREAT: Array = Loader.load_waves().threat
+static var BOSS_TIMES: Array = Loader.load_waves().boss_times
+static var MID_POOL: Array = Loader.load_waves().mid_pool
+static var ENDINGS: Dictionary = Loader.load_waves().endings
 
 ## 敌人：名称与机制按「水月与深蓝之树」，数值按本作换算
 ## ai: melee 近战追击 / ranged 进入射程后停下射击 / static 不移动
 ## 特殊字段：corrode 侵蚀比例、nerve 每次命中的神经损伤、role elite/boss
-const ENEMIES = {
-	# ---- 普通
-	"bone": {"name": "骨海漂流体", "hp": 7.0, "spd": 64.0, "dmg": 5.0, "r": 10.0, "xp": 1.0, "tex": "e_bone", "ai": "melee", "corrode": 0.2},
-	"slider": {"name": "底海滑动者", "hp": 12.0, "spd": 72.0, "dmg": 6.0, "r": 10.0, "xp": 1.0, "tex": "e_slider", "ai": "melee", "nerve": 15.0},
-	"stone": {"name": "固海凿石者", "hp": 26.0, "spd": 46.0, "dmg": 7.0, "r": 12.0, "xp": 2.0, "tex": "e_stone", "ai": "ranged", "range": 230.0, "cd": 2.4, "entrench": true, "atk": "物理"},
-	"offspring": {"name": "伊祖米克的子代", "hp": 70.0, "spd": 28.0, "dmg": 10.0, "r": 15.0, "xp": 4.0, "tex": "e_offspring", "ai": "melee", "morph": true},
-	"brood": {"name": "注亡拟嗣", "hp": 16.0, "spd": 0.0, "dmg": 6.0, "r": 9.0, "xp": 0.5, "tex": "e_brood", "ai": "static", "corrode": 0.3, "decay": 0.08},
-	"ripper": {"name": "沉海撕裂者", "hp": 96.0, "spd": 50.0, "dmg": 16.0, "weak": "法术", "r": 17.0, "xp": 4.0, "tex": "e_bone", "tint": Color(0.95, 0.55, 0.6), "ai": "melee", "heavy": true, "corrode": 0.2},
-	"burrower": {"name": "潜海裂魔", "hp": 46.0, "spd": 116.0, "dmg": 13.0, "weak": "物理", "r": 12.0, "xp": 3.0, "tex": "e_slider", "tint": Color(0.7, 0.5, 1.0), "ai": "melee", "burrow": true, "nerve": 10.0},
-	"spitter": {"name": "溟海喷吐者", "hp": 56.0, "spd": 40.0, "dmg": 10.0, "weak": "物理", "r": 14.0, "xp": 3.0, "tex": "e_stone", "tint": Color(0.6, 1.0, 0.65), "ai": "ranged", "range": 320.0, "cd": 3.2, "spit": true, "corrode": 0.4},
-	"hulk": {"name": "巨骸漂流体", "hp": 600.0, "spd": 30.0, "dmg": 26.0, "weak": "法术", "r": 26.0, "xp": 14.0, "tex": "e_bone", "tint": Color(1.0, 0.95, 0.75), "ai": "melee", "heavy": true, "stomp": true, "corrode": 0.2},
-	"fractal": {"name": "塑路者碎片", "hp": 18.0, "spd": 95.0, "dmg": 6.0, "r": 8.0, "xp": 1.0, "tex": "e_fractal", "ai": "melee"},
-	"tear": {"name": "伊莎玛拉之泪", "hp": 60.0, "spd": 0.0, "dmg": 0.0, "r": 14.0, "xp": 2.0, "tex": "e_tear", "ai": "static", "tear": true},
-	# ---- 精英
-	"pocket": {"name": "囊海爬行者", "hp": 38.0, "weak": "法术", "spd": 48.0, "dmg": 12.0, "r": 18.0, "xp": 2.0, "tex": "e_pocket", "ai": "melee", "role": "elite", "burst": true},
-	"skimmer": {"name": "掠海漂移体", "hp": 30.0, "weak": "物理", "spd": 62.0, "dmg": 9.0, "r": 16.0, "xp": 2.0, "tex": "e_skimmer", "ai": "ranged", "range": 200.0, "cd": 1.8, "role": "elite", "corrode": 0.5, "hover": true},
-	"mother": {"name": "投嗣育母", "hp": 36.0, "weak": "物理", "spd": 40.0, "dmg": 8.0, "r": 18.0, "xp": 2.0, "tex": "e_mother", "ai": "ranged", "range": 260.0, "cd": 2.2, "role": "elite", "brood": true},
-	"mimic": {"name": "箱形恐鱼", "hp": 45.0, "spd": 88.0, "dmg": 14.0, "r": 16.0, "xp": 3.0, "tex": "e_mimic", "ai": "melee", "role": "elite", "ingots": 10},
-	# ---- Boss
-	"path": {"name": "塑路者", "hp": 3200.0, "weak": "法术", "spd": 58.0, "dmg": 20.0, "r": 34.0, "xp": 60.0, "tex": "e_path", "ai": "melee", "role": "boss"},
-	"izumik": {"name": "伊祖米克，生态泉源", "hp": 5200.0, "spd": 30.0, "dmg": 16.0, "r": 40.0, "xp": 90.0, "tex": "e_izumik", "ai": "ranged", "range": 320.0, "cd": 1.6, "role": "boss"},
-	"iberia": {"name": "圣徒伊比利亚", "hp": 3200.0, "spd": 58.0, "dmg": 18.0, "r": 22.0, "xp": 60.0, "tex": "e_iberia", "ai": "ranged", "range": 280.0, "cd": 1.5, "role": "boss", "ammo": 3, "atk": "物理"},
-	"carmen": {"name": "圣徒卡门", "hp": 2800.0, "spd": 50.0, "dmg": 16.0, "r": 22.0, "xp": 60.0, "tex": "e_carmen", "ai": "ranged", "range": 380.0, "cd": 1.2, "role": "boss", "ammo": 3, "atk": "物理"},
-	"bishop": {"name": "接潮主教", "hp": 2300.0, "weak": "物理", "spd": 36.0, "dmg": 14.0, "r": 22.0, "xp": 50.0, "tex": "e_bishop", "ai": "ranged", "range": 300.0, "cd": 1.8, "role": "boss", "pair": true},
-	"archon": {"name": "接潮蔑死体", "hp": 2600.0, "weak": "法术", "spd": 56.0, "dmg": 18.0, "r": 24.0, "xp": 50.0, "tex": "e_archon", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
-	"immortal": {"name": "接潮斥亡体", "hp": 1800.0, "weak": "物理", "spd": 82.0, "dmg": 13.0, "r": 20.0, "xp": 50.0, "tex": "e_immortal", "ai": "melee", "role": "boss", "corrode": 0.5, "pair": true},
-	"paranoia": {"name": "\"偏执泡影\"", "hp": 7400.0, "spd": 34.0, "dmg": 15.0, "r": 40.0, "xp": 0.0, "tex": "e_paranoia", "ai": "ranged", "range": 320.0, "cd": 1.5, "role": "boss", "corrode": 0.5, "hover": true},
-	"ishar": {"name": "伊莎玛拉，腐化之心", "hp": 9000.0, "spd": 34.0, "dmg": 18.0, "r": 46.0, "xp": 0.0, "tex": "e_ishar", "ai": "ranged", "range": 340.0, "cd": 1.5, "role": "boss"},
-}
 ## 威胁等级：随时间上升，决定刷怪池、精英间隔（秒）与大群构成；升级时刷出一小波新种类
-const THREAT := [
-	{"name": "浅滩", "en": "SHALLOWS", "t": 0.0, "elite": 45.0, "evo": 0.0, "spd": 1.0, "horde_every": 120.0, "pool": ["bone", "bone", "bone", "bone", "slider"], "horde": ["bone", "bone", "bone", "slider"]},
-	{"name": "暗流", "en": "UNDERTOW", "t": 75.0, "elite": 55.0, "evo": 0.0, "spd": 1.0, "horde_every": 120.0, "pool": ["bone", "bone", "bone", "slider", "slider", "stone"], "horde": ["bone", "bone", "bone", "slider"]},
-	{"name": "深潜", "en": "DESCENT", "t": 170.0, "elite": 50.0, "evo": 0.03, "spd": 1.0, "horde_every": 120.0, "pool": ["bone", "bone", "slider", "slider", "stone", "stone", "brood", "ripper"], "horde": ["bone", "bone", "slider", "ripper"]},
-	{"name": "裂隙", "en": "RIFT", "t": 280.0, "elite": 44.0, "evo": 0.08, "spd": 1.03, "horde_every": 110.0, "pool": ["slider", "stone", "stone", "ripper", "ripper", "brood", "offspring", "burrower", "spitter"], "horde": ["slider", "slider", "ripper", "bone"]},
-	{"name": "深渊", "en": "ABYSS", "t": 400.0, "elite": 38.0, "evo": 0.14, "spd": 1.07, "horde_every": 100.0, "pool": ["stone", "ripper", "ripper", "offspring", "offspring", "burrower", "burrower", "spitter", "spitter", "slider"], "horde": ["ripper", "slider", "burrower", "ripper"]},
-	{"name": "深蓝之树", "en": "BLUE TREE", "t": 520.0, "elite": 32.0, "evo": 0.22, "spd": 1.12, "horde_every": 80.0, "pool": ["ripper", "ripper", "offspring", "burrower", "burrower", "spitter", "spitter", "hulk", "stone"], "horde": ["ripper", "burrower", "burrower", "ripper"]},
-]
-
 ## Boss 结构：3:30 与 7:00 从第三层 Boss 池各抽一个（不重复），10:00 按结局出现最终 Boss
-const BOSS_TIMES := [210.0, 420.0, 600.0]
-const MID_POOL := [["path"], ["iberia"], ["carmen"], ["bishop", "archon"], ["bishop", "immortal"]]
-const ENDINGS := {
-	"standard": {"name": "结局一", "en": "PRECIOUS DAYS", "boss": "paranoia"},
-}
-
 ## 技能：致敬原作的三个技能，全部自动释放；按等级自动解锁，不占用升级三选一
 ## 设计：S1 改变单次攻击（爆发）/ S2 改变攻击节奏（攻速+束缚）/ S3 改变攻击空间（多方向+形态）
 const SKILLS = {

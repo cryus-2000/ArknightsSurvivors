@@ -80,7 +80,7 @@ game.gd 不再出现 `s1_` / `evo1 ==` / `u_dmg_mult` 这类水月专属名字�
 - [x] ① 地图（v1.8 refactor-1）
 - [x] ② 角色（refactor-2）：`characters/character.gd` 基类 + `characters/mizuki.gd`（995 行）+ `data/characters/mizuki.json`；game.gd 5300 → 5200 行，不再出现水月专属名字
 - [x] ③ 藏品 / 成长 / 难度的数值修正全部走 `stats: StatBlock`（带来源，可撤销，可 breakdown）；旧变量成为同步缓存（`STAT_SYNC` 表 + `_sync_stats()`）；角色专属属性由 `ch.stat_defs()` 定义、`ch.sync_stats()` 回填；`test_core` 37/37
-- [ ] ④
+- [x] ④ 敌人表 → `data/enemies.json`（`D.ENEMIES` 改为从 JSON 加载的静态变量，调用方不变），刷怪导演表 → `data/waves.json`；小怪招式按 `pattern` 字段分派到 `enemies/enemy_ai.gd`（burrow / stomp / dash / acid / nova），远程按 `shot_*` / `lob` / `spawn_on_shot` 字段
 
 ## 5. 新增一个角色要做什么（② 完成后的实际流程）
 
@@ -95,3 +95,20 @@ game.gd 不再出现 `s1_` / `evo1 ==` / `u_dmg_mult` 这类水月专属名字�
 4. `Cfg.character_id = "<id>"`（选人界面接上后由标题页设置）。
 
 game.gd 里仍是通用的：位置 / 生命 / 等级 / 经验 / 灯火 / 护盾 / 成长计数 `growth` / 技能等级 `skill_lv`（固定 s1–s3 三槽）/ 精英化阶段 `elite_stage`。
+
+## 6. 新增一种敌人 / 一张地图要做什么（④ 完成后）
+
+**敌人**：`data/enemies.json` 加一条：`name / hp / spd / dmg / r / xp / tex / ai(melee|ranged|static) / role(elite|boss)` 与可选字段 `tint / weak / corrode / nerve / heavy / hover / morph / entrench / burst`，招式用 `pattern` 选现成的（`burrow` `stomp` `dash` `acid` `nova`，各有参数字段），远程用 `shot_n / shot_kind / shot_spd / shot_home / lob / spit / spawn_on_shot`。新招式 = `enemy_ai.gd` 加一个 `_xxx()` 并在 `pattern()` 里登记一行。贴图 `art/incoming/<tex>.png`。加进刷怪池：`data/waves.json` 的 `threat[].pool / horde`。
+
+**地图**：`data/maps/<id>.json` 一份主题（见 §2），贴图放 `art/incoming/`，`Cfg.map_id = "<id>"`。目前只有程序生成的无限地图；手工摆放的地标可以之后在 `map.gd` 里加一个 `landmarks` 字段实现，不影响其它模块。
+
+## 7. 结果
+
+| | 重构前 | 重构后 |
+|---|---|---|
+| game.gd | 6341 行 | ≈5120 行（场景编排 / 输入 / 主循环 / 掉落 / 商店 / 升级 / HUD） |
+| 新模块 | — | `world/map.gd` 300、`characters/character.gd` 110、`characters/mizuki.gd` 1000、`enemies/enemy_ai.gd` 150、`enemies/enemy_db.gd` 40 |
+| 数据 | data.gd 硬编码 | `data/maps/*.json`、`data/characters/*.json`、`data/enemies.json`、`data/waves.json`、`data/relics.json` + `relic_effects.json` |
+| 数值 | 各处直接 `*=` | 全部 `stats.add(stat, op, value, source)`，可撤销、可 breakdown |
+
+仍留在 game.gd 里、下一步可继续抽的：援护干员（`_update_allies` / `_ally_*`）、无人机（`_update_weapons`）、商店（`_open_shop` 一族）、掉落与经验（`_update_gems`）、HUD 绘制。水月的技能 / 成长 / 精英化表仍在 `data.gd`，通过 `ch.skills()` 等访问；第二个角色出现时再决定是否把它们也搬进 JSON。
