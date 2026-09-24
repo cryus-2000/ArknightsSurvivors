@@ -9,6 +9,7 @@ const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Map = preload("res://scripts/world/map.gd")
+const PostFx = preload("res://scripts/post_fx.gd")
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
@@ -229,6 +230,7 @@ var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道
 var draw_off := Vector2.ZERO
 var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D：绘制时的高度偏移（击退腾空等）
 var fg: Node2D               # 2.5D：前景视差层
+var post: CanvasLayer          # 全屏后期（辉光 / 水下滤镜 / 亮度 / 受伤红边）
 var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
 var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
 var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
@@ -304,6 +306,7 @@ func _ready() -> void:
 		if stats.has_stat(k):
 			stats.set_base(k, float(ch.def.stats[k]))
 	next_mire = float(map.mire_cfg().get("first_at", 100))
+	A.normal_maps = Cfg.normal_maps
 	rfx = RelicFx.new(self)
 	RL = rfx.table()
 	rng.randomize()
@@ -403,6 +406,7 @@ func _ready() -> void:
 	merchant_light.texture = tex.light
 	merchant_light.color = Color(1.0, 0.75, 0.45)
 	merchant_light.energy = 1.0
+	merchant_light.height = 80.0   # 法线光照：给光一个高度，否则平面法线接不到光
 	merchant_light.texture_scale = 2.2
 	merchant_light.visible = false
 	add_child(merchant_light)
@@ -411,6 +415,7 @@ func _ready() -> void:
 	lamp_light.texture = tex.light
 	lamp_light.color = Color(1.0, 0.86, 0.62)
 	lamp_light.energy = 1.15
+	lamp_light.height = 90.0
 	add_child(lamp_light)
 
 	# 2.5D 景深 / 远景水雾（在 HUD 之下）
@@ -425,6 +430,8 @@ func _ready() -> void:
 	dof.material = dm
 	dof_layer.add_child(dof)
 	dof_layer.visible = Cfg.dof
+	post = PostFx.new()
+	add_child(post)
 
 	var ul := CanvasLayer.new()
 	ul.layer = 10
@@ -4412,8 +4419,7 @@ func _draw_hud() -> void:
 	if red_flash > 0.0:
 		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, red_flash * 0.16))
 		_edge_glow(vs, Color(0.9, 0.08, 0.12, red_flash * 0.9), 70.0)
-	if hurt_vignette > 0.0:
-		_edge_glow(vs, Color(0.9, 0.1, 0.15, hurt_vignette * 0.9), 90.0 + 50.0 * hurt_vignette)
+	post.hurt = hurt_vignette
 	if state == S.PLAY and hp < max_hp * 0.3 and hp > 0.0:
 		var beat := pow(maxf(0.0, sin(t * (5.0 + 5.0 * (1.0 - hp / (max_hp * 0.3))))), 4.0)
 		_edge_glow(vs, Color(0.85, 0.05, 0.12, 0.3 + 0.35 * beat), 110.0)

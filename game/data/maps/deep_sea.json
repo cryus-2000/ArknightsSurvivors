@@ -1,22 +1,136 @@
 {
   "id": "deep_sea",
   "name": "深海",
-  "tiles": {"tex": "tiles", "size": 32, "variants": 4, "src_px": 16},
-  "patches": {"tex": "terrain_patches", "size": 256, "src_px": 128, "kinds": 4, "cluster": 3, "skip_cluster_mod": 3, "density": 78},
+  "tiles": {
+    "tex": "tiles",
+    "size": 32,
+    "variants": 4,
+    "src_px": 16
+  },
+  "patches": {
+    "tex": "terrain_patches",
+    "size": 256,
+    "src_px": 128,
+    "kinds": 4,
+    "cluster": 3,
+    "skip_cluster_mod": 3,
+    "density": 78
+  },
   "props": [
-    {"tex": "seaweed", "every": 47,  "frames": 2, "fps": 2, "offset": [16, 20], "sort": true,  "half_width": true},
-    {"tex": "coral",   "every": 151, "frames": 1, "fps": 0, "offset": [16, 18], "sort": true},
-    {"tex": "rock",    "every": 97,  "frames": 1, "fps": 0, "offset": [16, 20], "sort": false},
-    {"tex": "shell_prop", "every": 113, "frames": 1, "fps": 0, "offset": [12, 22], "sort": false}
+    {
+      "tex": "seaweed",
+      "every": 47,
+      "frames": 2,
+      "fps": 2,
+      "offset": [
+        16,
+        20
+      ],
+      "sort": true,
+      "half_width": true
+    },
+    {
+      "tex": "coral",
+      "every": 151,
+      "frames": 1,
+      "fps": 0,
+      "offset": [
+        16,
+        18
+      ],
+      "sort": true
+    },
+    {
+      "tex": "rock",
+      "every": 97,
+      "frames": 1,
+      "fps": 0,
+      "offset": [
+        16,
+        20
+      ],
+      "sort": false
+    },
+    {
+      "tex": "shell_prop",
+      "every": 113,
+      "frames": 1,
+      "fps": 0,
+      "offset": [
+        12,
+        22
+      ],
+      "sort": false
+    }
   ],
   "big_props": {
-    "cell": 560, "chance": 55, "clear_radius": 420,
-    "list": ["prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_ridge", "terrain_peak", "terrain_peak"],
-    "base_rx": {"default": 0.3, "terrain": 0.36}, "base_ry": 0.38
+    "cell": 560,
+    "chance": 55,
+    "clear_radius": 420,
+    "list": [
+      "prop_pillar",
+      "prop_wall",
+      "prop_wreck",
+      "terrain_ridge",
+      "terrain_ridge",
+      "terrain_peak",
+      "terrain_peak"
+    ],
+    "base_rx": {
+      "default": 0.3,
+      "terrain": 0.36
+    },
+    "base_ry": 0.38
   },
-  "ambient": [0.16, 0.22, 0.32],
-  "god_rays": {"count": 6, "span": 1900, "color": [1.8, 2.4, 2.8], "alpha": 0.05},
-  "foreground": {"tex": ["seaweed", "coral"], "cell": 520, "parallax": 1.35, "color": [0.10, 0.30, 0.34]},
-  "snow": {"count": 70, "color": [0.8, 0.9, 1.0]},
-  "mire": {"tex": "terrain_mire", "first_at": 100, "interval": [16, 24], "interval_min": 5, "radius": [70, 110], "max_count": 24, "life_base": 45}
+  "ambient": [
+    0.19,
+    0.26,
+    0.37
+  ],
+  "god_rays": {
+    "count": 6,
+    "span": 1900,
+    "color": [
+      1.8,
+      2.4,
+      2.8
+    ],
+    "alpha": 0.05
+  },
+  "foreground": {
+    "tex": [
+      "seaweed",
+      "coral"
+    ],
+    "cell": 520,
+    "parallax": 1.35,
+    "color": [
+      0.1,
+      0.3,
+      0.34
+    ]
+  },
+  "snow": {
+    "count": 70,
+    "color": [
+      0.8,
+      0.9,
+      1.0
+    ]
+  },
+  "mire": {
+    "tex": "terrain_mire",
+    "first_at": 100,
+    "interval": [
+      16,
+      24
+    ],
+    "interval_min": 5,
+    "radius": [
+      70,
+      110
+    ],
+    "max_count": 24,
+    "life_base": 45
+  }
 }

@@ -64,6 +64,7 @@ func _ready() -> void:
 		var cd = JSON.parse_string(cf.get_as_text())
 		if cd is Dictionary:
 			credits_data = cd
+	add_child(preload("res://scripts/post_fx.gd").new())
 	gallery = preload("res://scripts/gallery.gd").new()
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()

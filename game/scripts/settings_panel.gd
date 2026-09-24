@@ -16,6 +16,10 @@ const ROWS := [
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
 	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
 	{"cn": "景深与前景", "en": "DEPTH OF FIELD", "key": "dof", "type": "bool"},
+	{"cn": "辉光", "en": "BLOOM", "key": "bloom", "type": "bool"},
+	{"cn": "水下滤镜", "en": "UNDERWATER FILTER", "key": "water_filter", "type": "bool"},
+	{"cn": "法线光照", "en": "NORMAL LIGHTING", "key": "normal_maps", "type": "bool", "note": "下局生效"},
+	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 
@@ -98,6 +102,8 @@ func _adjust(i: int, dir: int) -> void:
 			var v: float = Cfg.shake
 			v = [0.0, 0.5, 1.0][(int(round(v * 2.0)) + (1 if dir > 0 else 2)) % 3]
 			Cfg.shake = v
+		"bright":
+			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"res":
 			var n: int = Cfg.RESOLUTIONS.size()
 			Cfg.res_index = (Cfg.res_index + (1 if dir > 0 else n - 1)) % n
@@ -117,43 +123,49 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 328, 640, 656)
+	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 340, 640, 680)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
 	row_rects.clear()
 	for i in ROWS.size():
 		var row: Dictionary = ROWS[i]
-		var rr := Rect2(r.position.x + 30, r.position.y + 84 + i * 45, r.size.x - 60, 39)
+		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * 38, r.size.x - 60, 34)
 		row_rects.append(rr)
 		var on := i == sel
 		if on:
 			draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
 			draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
-		UI.text(self, font, rr.position + Vector2(18, 27), row.cn, 18, UI.TEXT if on else UI.SUB)
-		UI.en(self, font, rr.position + Vector2(130, 26), row.en, 10, UI.CYAN_DIM, 2.0)
+		UI.text(self, font, rr.position + Vector2(18, 24), row.cn, 17, UI.TEXT if on else UI.SUB)
+		UI.en(self, font, rr.position + Vector2(130, 23), row.en, 9, UI.CYAN_DIM, 2.0)
+		if row.has("note"):
+			UI.text(self, font, rr.position + Vector2(rr.size.x - 70, 24), row.note, 11, UI.SUB)
 		var vx := rr.position.x + rr.size.x - 230
 		match row.type:
 			"vol":
 				var v: float = Cfg.get(row.key)
-				UI.text(self, font, Vector2(vx - 10, rr.position.y + 27), "◀", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
 				for k in 10:
 					var c := UI.CYAN if k < int(round(v * 10.0)) else Color(0.15, 0.22, 0.26)
-					draw_rect(Rect2(vx + 16 + k * 16, rr.position.y + 13, 12, 14), c)
-				UI.text(self, font, Vector2(vx + 180, rr.position.y + 27), "▶", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx + 200, rr.position.y + 27), "%d" % int(round(v * 100.0)), 14, UI.TEXT)
+					draw_rect(Rect2(vx + 16 + k * 16, rr.position.y + 11, 12, 13), c)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx + 200, rr.position.y + 24), "%d" % int(round(v * 100.0)), 14, UI.TEXT)
 			"bool":
 				var b: bool = Cfg.get(row.key)
-				UI.text(self, font, Vector2(vx, rr.position.y + 27), "开" if b else "关", 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), "开" if b else "关", 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"shake":
 				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
-				UI.text(self, font, Vector2(vx, rr.position.y + 27), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			"bright":
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), "%d%%" % int(round(Cfg.brightness * 100.0)), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
 			"res":
 				var sz: Vector2i = Cfg.RESOLUTIONS[clampi(Cfg.res_index, 0, Cfg.RESOLUTIONS.size() - 1)]
 				var label := "%d × %d" % [sz.x, sz.y]
 				if Cfg.fullscreen:
 					label += "（全屏时按屏幕）"
-				UI.text(self, font, Vector2(vx - 10, rr.position.y + 27), "◀", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx, rr.position.y + 27), label, 15 if Cfg.fullscreen else 18, UI.CYAN if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
-				UI.text(self, font, Vector2(vx + 180, rr.position.y + 27), "▶", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 15 if Cfg.fullscreen else 18, UI.CYAN if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), "↑↓ 选择 · ←→ 调整 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

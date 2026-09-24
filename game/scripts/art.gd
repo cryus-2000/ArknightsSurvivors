@@ -35,6 +35,12 @@ static func has_override(name: String) -> bool:
 	return _incoming_path(name) != ""
 
 
+## 是否为贴图生成法线图（2D 法线光照）；由 game.gd 按 Cfg.normal_maps 在加载前设置
+static var normal_maps := false
+## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
+const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser"]
+
+
 ## 取贴图；找不到返回 null
 static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
@@ -47,8 +53,64 @@ static func tex(name: String) -> Texture2D:
 			t = ImageTexture.create_from_image(img)
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		t = load("res://art/px/%s.png" % name)
+	if t != null and normal_maps and _wants_normal(name):
+		t = _with_normal(t)
 	_cache[name] = t
 	return t
+
+
+static func _wants_normal(name: String) -> bool:
+	for pre in NO_NORMAL_PREFIX:
+		if name.begins_with(pre):
+			return false
+	return true
+
+
+## 用 alpha 轮廓生成粗糙的法线图（边缘向外倾斜、中间朝向镜头），再打包成 CanvasTexture 供 Light2D 使用
+static func _with_normal(src: Texture2D) -> Texture2D:
+	var img := src.get_image()
+	if img == null:
+		return src
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var w := img.get_width()
+	var h := img.get_height()
+	if w * h > 400000:
+		return src
+	# 高度场：alpha 的 3×3 均值再取两次，得到圆润的"充气"高度
+	var hgt := PackedFloat32Array()
+	hgt.resize(w * h)
+	for y in h:
+		for x in w:
+			hgt[y * w + x] = 1.0 if img.get_pixel(x, y).a > 0.5 else 0.0
+	for _pass in 2:
+		var nh := PackedFloat32Array()
+		nh.resize(w * h)
+		for y in h:
+			for x in w:
+				var acc := 0.0
+				for dy in range(-1, 2):
+					for dx in range(-1, 2):
+						var xx := clampi(x + dx, 0, w - 1)
+						var yy := clampi(y + dy, 0, h - 1)
+						acc += hgt[yy * w + xx]
+				nh[y * w + x] = acc / 9.0
+		hgt = nh
+	var nimg := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var l: float = hgt[y * w + maxi(x - 1, 0)]
+			var r: float = hgt[y * w + mini(x + 1, w - 1)]
+			var u: float = hgt[maxi(y - 1, 0) * w + x]
+			var d: float = hgt[mini(y + 1, h - 1) * w + x]
+			var n := Vector3((l - r) * 2.0, (d - u) * 2.0, 1.0).normalized()
+			nimg.set_pixel(x, y, Color(n.x * 0.5 + 0.5, n.y * 0.5 + 0.5, n.z * 0.5 + 0.5, 1.0))
+	var ct := CanvasTexture.new()
+	ct.diffuse_texture = src
+	ct.normal_texture = ImageTexture.create_from_image(nimg)
+	ct.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	return ct
 
 
 ## 由任意贴图生成白色剪影（受击闪白用）
