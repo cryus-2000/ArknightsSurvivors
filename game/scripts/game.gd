@@ -1355,7 +1355,7 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
+		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		# 贴图变体在生成时查一次，绘制时不再每帧拼字符串
 		"tex_move": tex.get(d.tex + "_move") != null, "tex_feign": tex.get(d.tex + "_feign") != null, "tex_attack": tex.get(d.tex + "_attack") != null,
 		"tex_charge": tex.get(d.tex + "_charge") != null, "tex_death": tex.get(d.tex + "_death") != null,
@@ -1401,7 +1401,7 @@ func _spawn_chest(pos: Vector2, event_id := "") -> void:
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
 		"chest": true, "hidden": event_id == "" and rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
+		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
 	})
 
@@ -1600,14 +1600,21 @@ func _update_enemies(dt: float) -> void:
 		if not e.boss and e.ai != "static" and (i + frame_n) % 2 == 0:
 			e.pos = map.push_out(e.pos, e.r * 0.8)
 
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次
-		if e.has("burst_at") and e.hp <= e.burst_at:
-			e.burst_at -= e.maxhp * 0.15
-			fx.append({"kind": "ring", "pos": e.pos, "r": 95.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
-			Sfx.play("tentacle", -2.0, 0.7)
-			if dist < 95.0:
-				in_type = ["近战", "法术"]
-				_enemy_hit(e.dmg * 0.8, {"corrode": 0.0, "nerve": 30.0}, true)
+		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.4 秒鼓胀预警，爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
+		if e.has("burst_at"):
+			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
+			if e.get("burst_w", 0.0) > 0.0:
+				e.burst_w -= dt
+				if e.burst_w <= 0.0:
+					fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+					Sfx.play("tentacle", -2.0, 0.7)
+					if dist < 80.0:
+						in_type = ["近战", "法术"]
+						_enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
+			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
+				e.burst_at -= e.maxhp * 0.15
+				e.burst_w = 0.4
+				e.burst_cd = 1.2
 
 		# ---- 接触伤害
 		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
@@ -4257,6 +4264,12 @@ func _draw_enemy(e: Dictionary) -> void:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))
 		col = col.lerp(Color(2.0, 1.2, 2.4), nk * 0.6)
+	if e.get("burst_w", 0.0) > 0.0:
+		# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
+		var bk: float = 1.0 - e.burst_w / 0.4
+		draw_arc(e.pos, 80.0 * bk, 0.0, TAU, 32, Color(1.6, 0.6, 2.2, 0.35 + 0.4 * bk), 2.0)
+		draw_circle(e.pos, 80.0 * bk, Color(0.8, 0.4, 1.2, 0.08))
+		col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
 	draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
 	var flip: bool = e.fx < 0.0
 	var anc := Vector2(0.5, 0.5)
