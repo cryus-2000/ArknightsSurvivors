@@ -20,3 +20,6 @@ Thumbs.db
 *.pem
 *.key
 .godot/export_credentials.cfg
+
+# 收集来的藏品图标（疑似官方素材），只放本地参考，不入库
+docs/reference/icons/
