@@ -22,16 +22,12 @@ static func cut_poly(r: Rect2, cut: float) -> PackedVector2Array:
 		r.end - Vector2(cut, 0), Vector2(r.position.x, r.end.y), r.position + Vector2(0, cut)])
 
 
-static func panel(ci: CanvasItem, r: Rect2, fill := BG, border := LINE, cut := 10.0, accent := Color(0, 0, 0, 0)) -> void:
-	var p := cut_poly(r, cut)
-	ci.draw_colored_polygon(p, fill)
-	var closed := p.duplicate()
-	closed.append(p[0])
-	ci.draw_polyline(closed, border, 1.0)
-	if accent.a > 0.0:
-		# 左上角荧光短线
-		ci.draw_line(r.position + Vector2(cut, 0), r.position + Vector2(cut + 36, 0), accent, 3.0)
-		ci.draw_line(r.position + Vector2(0, cut), r.position + Vector2(0, cut + 18), accent, 3.0)
+## 通用面板：统一走深海面板（frame）。accent 给了就作为主色并带外发光；vines_seed > 0 时画藤蔓
+static func panel(ci: CanvasItem, r: Rect2, fill := BG, border := LINE, cut := 10.0, accent := Color(0, 0, 0, 0), vines_seed := 0, t := 0.0) -> void:
+	var main := accent if accent.a > 0.0 else Color(border.r, border.g, border.b, 1.0)
+	var small: float = minf(r.size.x, r.size.y)
+	frame(ci, r, main, {"cut": cut, "alpha": clampf(fill.a / 0.88, 0.3, 1.0), "glow": 0.35 if accent.a > 0.0 else 0.0,
+		"bracket": clampf(small * 0.22, 5.0, 12.0), "vines": vines_seed > 0, "seed": vines_seed, "t": t, "vine_k": 0.7})
 
 
 ## 英文小标签（加字距）

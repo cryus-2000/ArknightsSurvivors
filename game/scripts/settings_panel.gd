@@ -20,6 +20,7 @@ const ROWS := [
 
 var font: Font
 var sel := 0
+var st := 0.0
 var row_rects: Array = []
 
 
@@ -103,11 +104,17 @@ func _adjust(i: int, dir: int) -> void:
 	Sfx.play("ui_move")
 
 
+func _process(delta: float) -> void:
+	if visible:
+		st += delta
+		queue_redraw()
+
+
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
 	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 305, 640, 610)
-	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
+	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
 	row_rects.clear()
