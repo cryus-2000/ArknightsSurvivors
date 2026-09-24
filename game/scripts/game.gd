@@ -2997,7 +2997,7 @@ func _draw_show(vs: Vector2) -> void:
 		var fh := at.get_height()
 		var spd := 12.0 if sc.demo == "s2" else 7.0
 		var fr := int(st * spd) % n
-		var S5 := 5.0
+		var S5: float = 5.0 / A.hires_of(at)
 		var size := Vector2(fh, fh) * S5
 		var dst := Rect2(cx - Vector2(size.x / 2.0, size.y - 60.0 + 2.0 * S5), size)
 		if sc.demo == "s3":
@@ -3928,7 +3928,7 @@ func _p48_tex(kind: String) -> Texture2D:
 	if kind == "attack":
 		return tex.get("player_attack_48")
 	var tx: Texture2D = tex.get("player_" + kind)
-	if tx != null and tx.get_height() == 48:
+	if tx != null and tx.get_height() == int(48.0 * A.hires_of(tx)):
 		return tx
 	return null
 
@@ -3953,7 +3953,7 @@ func _update_player_anim48(dt: float) -> void:
 		anim_t = 0.0
 		sprite.texture = tx
 		sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 2.0)
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 2.0 * A.hires_of(tx))
 	anim_t += dt
 	var n := sprite.hframes
 	sprite.rotation = 0.0
@@ -4101,8 +4101,9 @@ func _draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textu
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
-	draw_set_transform(pos, 0.0, Vector2(-PX if flip else PX, PX))
-	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, col)
+	var pk: float = PX / A.hires_of(tx)
+	draw_set_transform(pos, 0.0, Vector2(-pk if flip else pk, pk))
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + Vector2(0, -fh / 2.0 + 2.0 * A.hires_of(tx)), Vector2(fw, fh)), src, col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -4323,9 +4324,10 @@ func _draw_player() -> void:
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (sprite.frame % hf), 0, fw, fh)
-	var sx := -PX if sprite.flip_h else PX
+	var pk: float = PX / A.hires_of(tx)   # @2x 高清贴图按半倍画
+	var sx := -pk if sprite.flip_h else pk
 	# 以脚底为轴做挤压 / 前倾 / 后坐（帧动画之上的程序手感）
-	draw_set_transform(sprite.position + p_off, sprite.rotation + p_lean, Vector2(sx * p_sq.x, PX * p_sq.y))
+	draw_set_transform(sprite.position + p_off, sprite.rotation + p_lean, Vector2(sx * p_sq.x, pk * p_sq.y))
 	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, sprite.modulate)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -4378,7 +4380,7 @@ func _draw_hud() -> void:
 		if at != null:
 			var fh := at.get_height()
 			var fr := clampi(int(ct2 * 10.0), 0, 3)
-			var S6 := 3.0
+			var S6: float = 3.0 / A.hires_of(at)
 			hud.draw_texture_rect_region(at, Rect2(Vector2(ox + 180, by + 42 - fh * S6 + 6), Vector2(fh, fh) * S6), Rect2(fh * fr, 0, fh, fh), Color(1, 1, 1, 1.0 - leave))
 		UI.en(hud, font, Vector2(ox + 360, by - 22), "SKILL  ·  " + sk.en, 12, c, 4.0)
 		UI.text(hud, font, Vector2(ox + 356, by + 22), sk.name, 40, Color(1, 1, 1, 1.0 - leave), HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
@@ -4728,7 +4730,8 @@ func _draw_intro_icon(kind: String, c: Vector2) -> void:
 			var tx: Texture2D = tex.get("player_attack_48")
 			if tx != null:
 				var fr := int(intro_t * 8.0) % 4
-				hud.draw_texture_rect_region(tx, Rect2(c - Vector2(96, 150), Vector2(192, 192)), Rect2(48 * fr, 0, 48, 48))
+				var fh0 := tx.get_height()
+				hud.draw_texture_rect_region(tx, Rect2(c - Vector2(96, 150), Vector2(192, 192)), Rect2(fh0 * fr, 0, fh0, fh0))
 			for k in 3:
 				var et: Texture2D = tex.get(["e_bone", "e_slider", "e_stone"][k])
 				if et != null:
@@ -4792,7 +4795,7 @@ func _draw_stats(vs: Vector2) -> void:
 	if pt != null:
 		var fh := pt.get_height()
 		var fr := int(t * 4.0) % maxi(1, pt.get_width() / fh)
-		hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5), Rect2(fr * fh, 0, fh, fh))
+		hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5 / A.hires_of(pt)), Rect2(fr * fh, 0, fh, fh))
 	UI.text(hud, font, r.position + Vector2(108, 50), "水月", 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 	UI.en(hud, font, r.position + Vector2(176, 48), "MIZUKI  ·  STATUS", 12, UI.CYAN, 3.0)
 	var cx0 := r.position.x + 350

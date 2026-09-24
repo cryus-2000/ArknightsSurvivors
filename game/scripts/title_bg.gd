@@ -237,6 +237,7 @@ func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: 
 	var fw := tx.get_width() / frames
 	var f := int(t * fps + phase * 10.0) % frames
 	var sc: float = 2.0 / A.hires_of(tx)
+	foot_up = int(foot_up * A.hires_of(tx))
 	var pos := feet - Vector2(fw * sc * 0.5, (fh - foot_up) * sc)
 	var wet := 0.55
 	for row in fh:

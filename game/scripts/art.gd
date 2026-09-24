@@ -37,6 +37,10 @@ static func has_override(name: String) -> bool:
 
 ## 是否为贴图生成法线图（2D 法线光照）；由 game.gd 按 Cfg.normal_maps 在加载前设置
 static var normal_maps := false
+## 高清贴图：art/incoming/<name>@2x.png 存在时优先使用，像素密度 2 倍（96px 画 48px 的内容），
+## 绘制时倍率减半，锚点 / 判定 / 帧数都不变。_hires 按名字记倍数，_hires_rid 按贴图记倍数。
+static var _hires := {}
+static var _hires_rid := {}
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
 const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser"]
 
@@ -46,17 +50,39 @@ static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
 		return _cache[name]
 	var t: Texture2D = null
-	var p := _incoming_path(name)
-	if p != "":
-		var img := Image.load_from_file(p)
-		if img != null and not img.is_empty():
-			t = ImageTexture.create_from_image(img)
+	var density := 1.0
+	var p2 := _incoming_path(name + "@2x")
+	if p2 != "":
+		var img2 := Image.load_from_file(p2)
+		if img2 != null and not img2.is_empty():
+			t = ImageTexture.create_from_image(img2)
+			density = 2.0
+	if t == null:
+		var p := _incoming_path(name)
+		if p != "":
+			var img := Image.load_from_file(p)
+			if img != null and not img.is_empty():
+				t = ImageTexture.create_from_image(img)
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		t = load("res://art/px/%s.png" % name)
 	if t != null and normal_maps and _wants_normal(name):
 		t = _with_normal(t)
+	if t != null:
+		_hires[name] = density
+		_hires_rid[t.get_rid()] = density
 	_cache[name] = t
 	return t
+
+
+## 贴图的像素密度（1 = 普通，2 = @2x 高清），绘制倍率应除以它
+static func hires(name: String) -> float:
+	return float(_hires.get(name, 1.0))
+
+
+static func hires_of(t: Texture2D) -> float:
+	if t == null:
+		return 1.0
+	return float(_hires_rid.get(t.get_rid(), 1.0))
 
 
 static func _wants_normal(name: String) -> bool:
