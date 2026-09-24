@@ -1,0 +1,83 @@
+# 14 · 架构重构：角色 / 地图 / 藏品 / 敌人可扩展化
+
+> 2026-09-24 起，基于 v1.7.2。目标：**新增一个干员、一张地图、一件藏品、一种敌人，各自只需新增文件 + 数据，不改 game.gd。**
+> 每一步都保证游戏可玩、`--autotest --balance` 跑通、`test_core` 通过，单独提交。
+
+## 0. 现状与拆分原则
+
+- `game.gd` 6300 行，持有全部状态；`boss_ai.gd` / `relic_fx.gd` 已经用"模块持 `g` 引用"的方式拆出，本次沿用同一模式，不引入新框架。
+- 模块都是 `RefCounted`，构造时拿 `g`（Game 节点）；绘制通过 `g.draw_*` / `g._spr`，状态尽量迁到模块内。
+- 数据一律 JSON 放 `game/data/`，脚本放对应目录；`data.gd` 只保留仍未迁移的表。
+- 数值走 `core/stat_block.gd`（docs/09），角色专属属性带角色前缀。
+
+## 1. 目标目录
+
+```text
+game/
+  data/
+    maps/deep_sea.json          地图主题（地砖 / 地纹 / 道具 / 大型景物 / 溟痕 / 氛围）
+    characters/mizuki.json      角色定义（属性、贴图集、成长池、技能表、精英化树）
+    enemies.json                敌人表（从 data.gd ENEMIES 迁出）
+    relics.json / relic_effects.json（已有）
+  scripts/
+    game.gd                     场景编排：状态机、输入、主循环、掉落 / 商店 / 升级 / HUD
+    world/map.gd                Map：读主题，铺地、道具、大型景物、碰撞、氛围层
+    characters/character.gd     Character 基类：属性块、通用接口
+    characters/mizuki.gd        水月：伞击、触手、s1–s3、潮刃 / 群触、专属绘制
+    enemies/enemy_ai.gd         小怪行为：按 enemies.json 的 ai / pattern 字段分派
+    boss_ai.gd、relic_fx.gd、core/*（已有）
+```
+
+## 2. 接口
+
+### Map（`world/map.gd`）
+
+```gdscript
+Map.new(g, theme_id)          # 读 data/maps/<id>.json
+map.draw_ground(vs)           # 地砖 + 地纹 + 小道具；把需要 2.5D 排序的道具放进 map.sort_props
+map.collect_big_props(vs)     # 大型景物 → map.sort_props
+map.push_out(pos, r)          # 圆形实体推出景物底座（原 _prop_push）
+map.draw_atmosphere_add(vs)   # 远景光束（加法层）
+map.draw_foreground(vs)       # 前景虚化剪影
+map.mire_params(t, diff)      # 溟痕生成参数（间隔 / 大小 / 寿命）
+map.theme.ambient / .fog      # 氛围色，game.gd 只读
+```
+
+主题 JSON 字段：`tiles`、`tile_size`、`patches`、`props`（名称 → 权重 / 锚点）、`big_props`、`big_cell`、`clear_radius`、`ambient`、`god_rays`、`foreground`、`snow`、`mire`。
+
+### Character（`characters/character.gd`，水月为 `mizuki.gd`）
+
+```gdscript
+Character.new(g, def)          # def = data/characters/<id>.json
+ch.stats: StatBlock            # max_hp / speed / dmg / … + 角色前缀属性
+ch.update(dt)                  # 普攻节奏、技能计时、专属实体（触手桩 / 巨触 / 水刃）
+ch.on_skill(sid)               # 技能发动
+ch.on_levelup_pool() -> Array  # 本角色的成长项 / 精英化候选
+ch.apply_growth(id) / apply_evo(id)
+ch.draw_floor() / draw_over()  # 角色脚下 / 身上的技能表现
+ch.draw_entities()             # 触手桩、巨触、触须阵等专属实体
+ch.anim: 贴图集与帧率来自 def.sprites
+```
+
+game.gd 不再出现 `s1_` / `evo1 ==` / `u_dmg_mult` 这类水月专属名字；藏品与成长引用的是属性名（`mizuki_umbrella_dmg`）。
+
+### 敌人（`enemies/enemy_ai.gd` + `data/enemies.json`）
+
+- `ENEMIES` 表整体迁到 JSON，字段不变；`ai` 分派到 `melee / ranged / static` 基础行为，`pattern` 字段（burrow、stomp、spit…）分派到 `enemy_ai.gd` 的对应函数。
+- 新敌人 = JSON 一条 + 贴图（+ 若有新招式，enemy_ai.gd 一个函数）。
+
+## 3. 迁移顺序与验收
+
+| 步 | 内容 | 验收 |
+|---|---|---|
+| ① | Map 抽出 + `deep_sea.json` | 自动对局通过；同种子截图与重构前一致 |
+| ② | Character 抽出，水月迁入；成长 / 精英化 / 动画随之 | 自动对局 + `--evo=blade,blade_moon` / `tendril,tendril_giant` 两条路线通过；`BALANCE` 输出结构不变 |
+| ③ | 玩家数值走 StatBlock；`relic_fx` 的 stat 效果改写 StatBlock；事件在 `_damage/_kill/_hurt/_skill_cast` 广播 | `test_core` 通过；属性面板 breakdown 可用 |
+| ④ | 敌人表 JSON 化 + 行为分派 | 自动对局 + Boss 画廊截图 |
+
+## 4. 进度
+
+- [x] ① 地图（v1.8 refactor-1）
+- [ ] ②
+- [ ] ③
+- [ ] ④

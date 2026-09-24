@@ -8,6 +8,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
+const Map = preload("res://scripts/world/map.gd")
 ## 造成伤害的类型：out_src -> [近战/远程, 物理/法术/真实]。真实伤害不吃任何倍率与防御
 const DMG_TYPE := {
 	"伞击": ["近战", "物理"], "技能": ["近战", "物理"], "技能·法术": ["近战", "法术"],
@@ -35,7 +36,6 @@ const MERCHANT_TIMES := [100.0, 330.0, 520.0]
 const CELL := 48.0
 const MAX_ENEMIES := 450
 const LAMP_EMPTY_SECONDS := 150.0
-const AMBIENT := Color(0.16, 0.22, 0.32)
 
 var state: int = S.PLAY
 var rng := RandomNumberGenerator.new()
@@ -183,7 +183,6 @@ var enemies: Array = []
 var gems: Array = []
 var fx: Array = []
 var texts: Array = []
-var snow: Array = []
 var grid := {}
 var next_id := 0
 var orbit_a := 0.0
@@ -219,7 +218,7 @@ var mires: Array = []
 var mire_tick := 0.0
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
 var next_chest := 20.0
-var next_mire := 100.0
+var next_mire := 100.0           # 首次溟痕时间；开局由 map 主题覆盖
 # 缩圈（黑潮）
 var zone_c := Vector2.ZERO
 var zone_r := 99999.0
@@ -247,11 +246,10 @@ var banner_t := 0.0
 var choices: Array = []
 var choice_kind := ""
 var pending_levelups := 0
-var sort_props: Array = []   # 2.5D：需要与人物前后遮挡的场景物（海草、珊瑚）
+var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
 var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D：绘制时的高度偏移（击退腾空等）
 var fg: Node2D               # 2.5D：前景视差层
-var fg_tex: Array = []       # 前景虚化剪影（运行时由海草/珊瑚图模糊生成）
 var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
 var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
 var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
@@ -310,6 +308,8 @@ var choice_shot := false
 
 func _ready() -> void:
 	bai = BossAI.new(self)
+	map = Map.new(self, Cfg.map_id)
+	next_mire = float(map.mire_cfg().get("first_at", 100))
 	rfx = RelicFx.new(self)
 	RL = rfx.table()
 	rng.randomize()
@@ -354,7 +354,7 @@ func _ready() -> void:
 			tex[mn + "_white"] = A.white_of(tex[mn])
 
 	var cm := CanvasModulate.new()
-	cm.color = AMBIENT
+	cm.color = map.ambient
 	add_child(cm)
 
 	cam = Camera2D.new()
@@ -378,10 +378,8 @@ func _ready() -> void:
 	# 2.5D 前景视差层（镜头前的虚化海草剪影）
 	fg = Node2D.new()
 	fg.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	fg.draw.connect(_draw_fg)
+	fg.draw.connect(func(): if Cfg.dof: map.draw_foreground(fg, get_viewport_rect().size, cam.position))
 	add_child(fg)
-	for n in ["seaweed", "coral"]:
-		fg_tex.append(_blur_silhouette(tex[n], 2 if n == "seaweed" else 1))
 
 	merchant_light = PointLight2D.new()
 	merchant_light.texture = tex.light
@@ -396,9 +394,6 @@ func _ready() -> void:
 	lamp_light.color = Color(1.0, 0.86, 0.62)
 	lamp_light.energy = 1.15
 	add_child(lamp_light)
-
-	for i in 70:
-		snow.append({"p": Vector2(rng.randf_range(-700, 700), rng.randf_range(-400, 400)), "v": rng.randf_range(4, 14), "s": rng.randf_range(0.0, TAU)})
 
 	# 2.5D 景深 / 远景水雾（在 HUD 之下）
 	dof_layer = CanvasLayer.new()
@@ -870,7 +865,7 @@ func _update(dt: float) -> void:
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
 	if tex.get("prop_pillar") != null:
-		ppos = _prop_push(ppos, 12.0)
+		ppos = map.push_out(ppos, 12.0)
 	swing_face -= dt
 
 	hp = min(max_hp, hp + (regen + regen_pct * max_hp) * dt)
@@ -1181,14 +1176,13 @@ func _spawn(dt: float) -> void:
 	# 溟痕
 	if t >= next_mire:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		next_mire = t + maxf(5.0, rng.randf_range(16.0, 24.0) - t / 30.0)
+		next_mire = t + map.mire_next_interval(t)
 		var mp := ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(160.0, 380.0)
 		if zone_state != 0 and rng.randf() < 0.6:
 			var ang := (ppos - zone_c).angle() + rng.randf_range(-0.8, 0.8)
 			mp = zone_c + Vector2.from_angle(ang) * (zone_r - rng.randf_range(20.0, 120.0))
-		if mires.size() < 24:
-			var grow := 1.0 + t / 600.0
-			mires.append({"pos": mp, "r": 16.0, "maxr": rng.randf_range(70.0, 110.0) * grow, "life": (45.0 + t / 20.0) if diff < 8 else 9999.0, "seed": rng.randf() * 100.0})
+		if mires.size() < int(map.mire_cfg().get("max_count", 24)):
+			mires.append(map.mire_new(mp, t, diff >= 8))
 	# 商人
 	if merchant.is_empty() and merchant_idx < MERCHANT_TIMES.size() and t >= MERCHANT_TIMES[merchant_idx]:
 		merchant_idx += 1
@@ -1443,7 +1437,7 @@ func _update_enemies(dt: float) -> void:
 				continue
 		e.pos += v * dt
 		if not e.boss and e.ai != "static" and (i + frame_n) % 2 == 0:
-			e.pos = _prop_push(e.pos, e.r * 0.8)
+			e.pos = map.push_out(e.pos, e.r * 0.8)
 
 		# ---- 囊海爬行者：每失去 15% 生命爆发一次
 		if e.has("burst_at") and e.hp <= e.burst_at:
@@ -4031,19 +4025,7 @@ func _update_visuals(dt: float) -> void:
 	lamp_light.texture_scale = radius / 64.0 * flicker
 	lamp_light.color = Color(1.0, 0.86, 0.62) if lamp >= 30.0 else Color(1.0, 0.6, 0.5)
 	# 海中浮游颗粒
-	var vs := get_viewport_rect().size
-	for s in snow:
-		s.p.y -= s.v * dt
-		s.s += dt
-		var rel: Vector2 = s.p - ppos
-		if rel.y < -vs.y * 0.6:
-			s.p.y += vs.y * 1.2
-		elif rel.y > vs.y * 0.6:
-			s.p.y -= vs.y * 1.2
-		if rel.x < -vs.x * 0.6:
-			s.p.x += vs.x * 1.2
-		elif rel.x > vs.x * 0.6:
-			s.p.x -= vs.x * 1.2
+	map.update_snow(dt, get_viewport_rect().size)
 
 
 ## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
@@ -4140,9 +4122,9 @@ func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip
 
 
 func _draw() -> void:
-	_draw_bg()
+	map.draw_ground(get_viewport_rect().size)
 	for m in mires:
-		_draw_mire(m)
+		map.draw_mire(m)
 	bai._draw_warns()
 	rfx.draw()
 	if not merchant.is_empty():
@@ -4216,7 +4198,7 @@ func _draw() -> void:
 	for i in allies.size():
 		dl.append([allies[i].pos.y + 16.0, 1, i])
 	dl.append([ppos.y + 6.0, 2, null])
-	for pr in sort_props:
+	for pr in map.sort_props:
 		dl.append([pr[1].y, 3, pr])
 	dl.sort_custom(func(a, b): return a[0] < b[0])
 	for it in dl:
@@ -4242,18 +4224,7 @@ func _draw() -> void:
 			2:
 				_draw_player()
 			3:
-				var pr: Array = it[2]
-				# 挡在水月身前的海草半透明，避免遮住角色
-				var fade := 1.0
-				var ptx: Texture2D = tex[pr[0]]
-				var pw: float = ptx.get_width() * PX / (2.0 if pr[0] == "seaweed" else 1.0) * 0.5
-				var ph: float = ptx.get_height() * PX
-				if pr[1].y > ppos.y and absf(pr[1].x - ppos.x) < pw + 10.0 and pr[1].y - ppos.y < ph:
-					fade = 0.4
-				if pr[0] == "seaweed":
-					_spr("seaweed", 2, int(t * 2.0 + pr[2]) % 2, pr[1], PX, false, Color(1, 1, 1, fade), Vector2(0.5, 1.0))
-				else:
-					_spr(pr[0], 1, 0, pr[1], PX, pr[2] % 2 == 0, Color(1, 1, 1, fade), Vector2(0.5, 1.0))
+				map.draw_sort_prop(it[2])
 	_draw_skill_over()
 	for dr in drones:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
@@ -4569,13 +4540,12 @@ func _draw() -> void:
 		draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a), 6.0)
 		draw_arc(sh.pos, sh.r - 10.0, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a * 0.3), 3.0)
 	_draw_zone()
-	for s in snow:
-		var c := Color(0.8, 0.9, 1.0, 0.25 + 0.15 * sin(s.s * 2.0))
-		draw_rect(Rect2((s.p + Vector2(sin(s.s) * 6.0, 0)).round(), Vector2(2, 2)), c)
+	map.draw_snow()
 
 
 func _draw_fx_add() -> void:
-	_draw_god_rays()
+	draw_off = Vector2.ZERO
+	map.draw_god_rays(fx_add, get_viewport_rect().size, cam.position)
 	var loop := int(t * 10.0)
 	if s2_active > 0.0 and tex.get("fx_s2_aura") != null:
 		_spr_on(fx_add, "fx_s2_aura", FXF.fx_s2_aura, loop, ppos + Vector2(0, 4))
@@ -4593,82 +4563,6 @@ func _draw_fx_add() -> void:
 		var fr := clampi(int((1.0 - f.life / f.max) * n), 0, n - 1)
 		var p: Vector2 = ppos if f.follow else f.pos
 		_spr_on(fx_add, f.name, n, fr, p, f.scale)
-
-
-## 2.5D 远景光束：从水面斜射下来的淡光柱，视差 0.5，缓慢漂移
-func _draw_god_rays() -> void:
-	var vs := get_viewport_rect().size
-	var cp := cam.position
-	var span := 1900.0
-	for k in 6:
-		var base := fposmod(k * 331.0 - cp.x * 0.5 + t * 6.0, span) - span / 2.0
-		var x := cp.x + base
-		var w := 50.0 + 40.0 * float(k % 3)
-		var top := cp.y - vs.y / 2.0 - 40.0
-		var bot := cp.y + vs.y / 2.0 + 40.0
-		var sl := 260.0
-		var a := 0.05 + 0.03 * sin(t * 0.4 + k * 1.7)
-		var c0 := Color(1.8, 2.4, 2.8, a)
-		var c1 := Color(1.8, 2.4, 2.8, 0.0)
-		draw_off = Vector2.ZERO
-		fx_add.draw_polygon(PackedVector2Array([Vector2(x, top), Vector2(x + w, top), Vector2(x + w - sl, bot), Vector2(x - sl, bot)]),
-			PackedColorArray([c0, c0, c1, c1]))
-
-
-## 2.5D 前景：镜头前的虚化海草/礁石剪影，视差 1.35；靠近画面中央时变淡，不挡视线
-func _draw_fg() -> void:
-	if not Cfg.dof:
-		return
-	var vs := get_viewport_rect().size
-	var cp := cam.position
-	var par := 1.35
-	var cell := 520.0
-	var fc := cp * par
-	var x0 := floori((fc.x - vs.x) / cell)
-	var y0 := floori((fc.y - vs.y) / cell)
-	for cx in range(x0, x0 + int(vs.x * 2.0 / cell) + 2):
-		for cy in range(y0, y0 + int(vs.y * 2.0 / cell) + 2):
-			var h: int = abs(hash(Vector2i(cx, cy) * 7 + Vector2i(3, 11)))
-			if h % 5 > 1:
-				continue
-			var fp := Vector2(cx * cell + float(h % 300), cy * cell + float((h / 300) % 300))
-			var wp := fp - fc + cp
-			var sp := wp - cp
-			var dc := Vector2(sp.x / (vs.x * 0.5), sp.y / (vs.y * 0.5)).length()
-			var a := clampf((dc - 0.45) / 0.5, 0.0, 1.0) * 0.8
-			if a <= 0.01:
-				continue
-			var tx: Texture2D = fg_tex[0 if h % 3 != 0 else 1]
-			var big := 0.8 + 0.25 * float(h % 3)
-			var sway := sin(t * 0.7 + float(h % 10)) * 0.06
-			var size := Vector2(tx.get_width(), tx.get_height()) * big
-			fg.draw_set_transform(wp, sway, Vector2(-1.0 if h % 2 == 0 else 1.0, 1.0))
-			fg.draw_texture_rect(tx, Rect2(Vector2(-size.x / 2.0, -size.y), size), false, Color(0.10, 0.30, 0.34, a))
-			fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
-## 把像素图变成柔和的剪影（取第一帧 -> 放大 -> 缩小再放大模拟高斯模糊）
-func _blur_silhouette(src: Texture2D, frames: int) -> Texture2D:
-	var img := src.get_image()
-	if img.is_compressed():
-		img.decompress()
-	img.convert(Image.FORMAT_RGBA8)
-	var fw := img.get_width() / frames
-	var fh := img.get_height()
-	var pad := 4
-	var out := Image.create(fw + pad * 2, fh + pad * 2, false, Image.FORMAT_RGBA8)
-	out.fill(Color(0, 0, 0, 0))
-	for y in fh:
-		for x in fw:
-			var a := img.get_pixel(x, y).a
-			if a > 0.0:
-				out.set_pixel(x + pad, y + pad, Color(1, 1, 1, a))
-	var w := out.get_width()
-	var h := out.get_height()
-	out.resize(w * 8, h * 8, Image.INTERPOLATE_BILINEAR)
-	out.resize(w * 3, h * 3, Image.INTERPOLATE_BILINEAR)
-	out.resize(w * 8, h * 8, Image.INTERPOLATE_CUBIC)
-	return ImageTexture.create_from_image(out)
 
 
 ## 同 _spr，但画在指定节点上（用于叠加发光层）
@@ -4768,26 +4662,6 @@ func _update_player_anim48(dt: float) -> void:
 		var f := int(anim_t * spec[0])
 		sprite.frame = f % n if spec[1] else mini(f, n - 1)
 
-func _draw_mire(m: Dictionary) -> void:
-	var a: float = clamp(m.life / 3.0, 0.0, 1.0)
-	var mt: Texture2D = tex.get("terrain_mire")
-	if mt != null:
-		# 溟痕（Codex 美术，2 帧脉动）：按判定半径缩放，外圈画判定提示
-		var fw := mt.get_width() / 2
-		var sz := Vector2(m.r * 2.3, m.r * 2.3)
-		draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a))
-		draw_arc(m.pos, m.r, 0.0, TAU, 36, Color(0.7, 0.4, 1.2, 0.35 * a), 1.5)
-		return
-	for k in 7:
-		var off: Vector2 = Vector2.from_angle(k * 0.9 + m.seed) * m.r * 0.45
-		draw_circle(m.pos + off, m.r * (0.55 + 0.1 * sin(t + k)), Color(0.08, 0.03, 0.12, 0.55 * a))
-	draw_circle(m.pos, m.r * 0.7, Color(0.12, 0.04, 0.16, 0.6 * a))
-	for k in 10:
-		var p: Vector2 = m.pos + Vector2.from_angle(k * 2.39 + m.seed) * m.r * (0.3 + 0.07 * k)
-		var gl := 0.5 + 0.5 * sin(t * 2.0 + k)
-		draw_rect(Rect2(p.round(), Vector2(2, 2)), Color(0.5, 0.9, 0.9, 0.6 * gl * a))
-
-
 func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
 	# 底部紫色辉光，让触手在暗处也能看清
@@ -4803,123 +4677,6 @@ func _draw_tentacle(f: Dictionary) -> void:
 	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
 	var sc := PX * 1.7
 	_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, Color(1.5, 1.2, 1.9) if a < 0.3 else Color.WHITE, Vector2(0.5, 1.0))
-
-
-func _draw_bg() -> void:
-	var vs := get_viewport_rect().size
-	var x0 := floori((ppos.x - vs.x / 2.0) / TILE) - 1
-	var y0 := floori((ppos.y - vs.y / 2.0) / TILE) - 1
-	var nx := int(vs.x / TILE) + 3
-	var ny := int(vs.y / TILE) + 3
-	var props: Array = []
-	for cx in range(x0, x0 + nx):
-		for cy in range(y0, y0 + ny):
-			var h: int = abs(hash(Vector2i(cx, cy)))
-			var v := h % 4
-			var p := Vector2(cx * TILE, cy * TILE)
-			draw_texture_rect_region(tex.tiles, Rect2(p, Vector2(TILE, TILE)), Rect2(v * 16, 0, 16, 16))
-			var hh := h / 7
-			if hh % 47 == 0:
-				props.append(["seaweed", p + Vector2(16, 20), h])
-			elif hh % 151 == 0:
-				props.append(["coral", p + Vector2(16, 18), h])
-			elif hh % 97 == 0:
-				props.append(["rock", p + Vector2(16, 20), h])
-			elif hh % 113 == 0:
-				props.append(["shell_prop", p + Vector2(12, 22), h])
-	_draw_terrain(vs)
-	sort_props.clear()
-	_collect_big_props(vs)
-	for pr in props:
-		if pr[0] == "seaweed" or pr[0] == "coral":
-			sort_props.append(pr)
-		else:
-			_spr(pr[0], 1, 0, pr[1], PX, pr[2] % 2 == 0, Color.WHITE, Vector2(0.5, 1.0))
-
-
-## 地形区域块：3×3 聚簇的同类区域，随机镜像，避免均匀混杂
-const PATCH := 256.0
-func _draw_terrain(vs: Vector2) -> void:
-	var pt: Texture2D = tex.get("terrain_patches")
-	if pt == null:
-		return
-	var x0 := floori((ppos.x - vs.x / 2.0) / PATCH) - 1
-	var y0 := floori((ppos.y - vs.y / 2.0) / PATCH) - 1
-	for cx in range(x0, x0 + int(vs.x / PATCH) + 3):
-		for cy in range(y0, y0 + int(vs.y / PATCH) + 3):
-			var cl: int = abs(hash(Vector2i(floori(cx / 3.0), floori(cy / 3.0)) + Vector2i(77, 13)))
-			if cl % 3 == 2:
-				continue
-			var h: int = abs(hash(Vector2i(cx, cy) + Vector2i(5, 91)))
-			if h % 100 > 78:
-				continue
-			var kind: int = (cl / 3) % 4
-			var p := Vector2(cx * PATCH, cy * PATCH)
-			var fx_: float = -1.0 if h % 2 == 0 else 1.0
-			var fy_: float = -1.0 if (h / 2) % 2 == 0 else 1.0
-			draw_set_transform(p + Vector2(PATCH, PATCH) / 2.0, 0.0, Vector2(fx_, fy_))
-			draw_texture_rect_region(pt, Rect2(Vector2(-PATCH, -PATCH) / 2.0, Vector2(PATCH, PATCH)), Rect2(kind * 128, 0, 128, 128))
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
-## 大型景物：残柱 / 断墙 / 沉船 / 岩脊 / 海底山；按格子确定性生成并缓存，开局附近留空；会阻挡移动
-const BIGCELL := 560.0
-const BIG_PROPS := ["prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_ridge", "terrain_peak", "terrain_peak"]
-var big_cache := {}
-
-
-func _big_prop(cx: int, cy: int) -> Array:
-	var key := Vector2i(cx, cy)
-	if big_cache.has(key):
-		return big_cache[key]
-	var out: Array = []
-	var h: int = abs(hash(key + Vector2i(313, 7)))
-	if h % 100 <= 55:
-		var name: String = BIG_PROPS[(h / 100) % BIG_PROPS.size()]
-		var tx: Texture2D = tex.get(name)
-		if tx != null:
-			var p := Vector2(cx * BIGCELL + float((h / 7) % 380) + 90.0, cy * BIGCELL + float((h / 3001) % 380) + 90.0)
-			if p.length() > 420.0:
-				var rx: float = tx.get_width() * PX * (0.36 if name.begins_with("terrain") else 0.3)
-				out = [name, p, h, rx, rx * 0.38]
-	big_cache[key] = out
-	return out
-
-
-func _collect_big_props(vs: Vector2) -> void:
-	if tex.get("prop_pillar") == null:
-		return
-	var x0 := floori((ppos.x - vs.x / 2.0 - 260.0) / BIGCELL)
-	var y0 := floori((ppos.y - vs.y / 2.0 - 60.0) / BIGCELL)
-	for cx in range(x0, x0 + int(vs.x / BIGCELL) + 3):
-		for cy in range(y0, y0 + int(vs.y / BIGCELL) + 3):
-			var bp := _big_prop(cx, cy)
-			if not bp.is_empty():
-				sort_props.append([bp[0], bp[1], bp[2]])
-
-
-## 把圆形实体推出景物底座（椭圆）
-func _prop_push(pos: Vector2, r: float) -> Vector2:
-	var cx := floori(pos.x / BIGCELL)
-	var cy := floori(pos.y / BIGCELL)
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
-			var bp := _big_prop(cx + dx, cy + dy)
-			if bp.is_empty():
-				continue
-			var c: Vector2 = bp[1] + Vector2(0, -bp[4] * 0.6)
-			var rx: float = bp[3] + r
-			var ry: float = bp[4] + r * 0.6
-			var d := pos - c
-			var q := Vector2(d.x / rx, d.y / ry)
-			var ql := q.length()
-			if ql < 1.0:
-				if ql < 0.001:
-					q = Vector2.RIGHT
-					ql = 1.0
-				var qn := q / ql
-				pos = c + Vector2(qn.x * rx, qn.y * ry)
-	return pos
 
 
 func _draw_enemy(e: Dictionary) -> void:
