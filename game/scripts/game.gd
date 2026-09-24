@@ -1976,7 +1976,8 @@ func _kill(e: Dictionary) -> void:
 	_sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
 	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
 	Sfx.play("kill", -8.0)
-	_anim("fx_death", e.pos, 0.3, PX * max(1.0, e.r / 12.0))
+	if not _fx_sprite("fx_death_dissolve", e.pos, PX * max(1.0, e.r / 12.0)):
+		_anim("fx_death", e.pos, 0.3, PX * max(1.0, e.r / 12.0))
 	if e.elite:
 		elites_killed += 1
 	if e.elite or e.boss:
@@ -2351,7 +2352,7 @@ func _umbrella(target: Dictionary) -> void:
 	if empowered and alive.size() > 0:
 		_anim("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
-		_anim("fx_hit", hit[k].pos, 0.16)
+		_hit_fx(hit[k], hit[k].pos - ppos)
 	for d in dirs:
 		_slash_fx(ppos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
@@ -2458,6 +2459,15 @@ func _draw_giant(gi: Dictionary) -> void:
 			var a0: float = ang - gi.dir * (0.12 + 0.11 * q)
 			var a1: float = ang - gi.dir * (0.11 * q)
 			draw_arc(gi.pos, GIANT_R * 0.92, minf(a0, a1), maxf(a0, a1), 10, Color(1.2, 0.6, 2.0, 0.55 - 0.08 * q), 26.0 - 3.0 * q)
+	# V7 主体：升起（0–2 帧）→ 横扫期间保持第 3 帧 → 沉回（3–5 帧）
+	var kt: Texture2D = tex.get("fx_kraken_rise")
+	if kt != null:
+		var kf := 2
+		if gi.t < GIANT_RISE:
+			kf = clampi(int(rise * 3.0), 0, 2)
+		elif gi.t > GIANT_SINK:
+			kf = clampi(3 + int(sink * 3.0), 3, 5)
+		_spr("fx_kraken_rise", 6, kf, gi.pos + Vector2(0, 12), PX * 1.3, gi.dir < 0.0, Color(1.15, 1.05, 1.25), Vector2(0.5, 90.0 / 96.0))
 	# 触手本体：沿扫掠方向平躺，从根部长出
 	var fw: int = tx.get_width() / 5
 	var fh: int = tx.get_height()
@@ -2633,7 +2643,9 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 				break
 	# 触手表现：地面裂隙 → 放大的触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
-	fx.append({"kind": "tentacle", "pos": p, "life": 0.6, "max": 0.6, "flip": rng.randf() < 0.5})
+	var tl: float = 0.4 if tex.get("fx_tentacle_strike") != null else 0.6
+	fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": rng.randf() < 0.5})
+	_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), PX * clampf(target.r / 12.0, 1.0, 2.0), rng.randf() * TAU)
 	fx.append({"kind": "tendril", "a": ppos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
 	fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})
 	Sfx.play("tentacle", -4.0)
@@ -3184,6 +3196,7 @@ func _update_wave(b: Dictionary, dt: float) -> void:
 		if not e.boss and not e.dead:
 			e.kb += b.vel.normalized() * (260.0 if b.giant else 120.0)
 		_sparks(e.pos, b.vel, Color(0.7, 1.0, 1.0), 2, 180.0)
+		_fx_sprite("fx_tide_blade_hit", e.pos + Vector2(0, -e.r * 0.5), PX * clampf(b.size, 1.0, 2.5), b.vel.angle())
 		# 默认不穿透：命中即碎（潮刃·贯 可穿透 2 名 / 无限；深渊巨斩总是穿透）
 		var pn: int = [0, 2, 999][int(growth.get("b_pierce", 0))]
 		if not b.giant and b.hit.size() > pn:
@@ -4035,7 +4048,27 @@ const V6_FRAMES := {
 	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_arrow_hit": [4, 20.0], "fx_bullet_hit": [3, 24.0],
 	"fx_arcane_hit": [4, 20.0], "fx_tide_hit": [4, 20.0], "fx_heal_cross": [4, 10.0],
 	"fx_laser_start": [4, 20.0], "fx_laser_mid": [4, 20.0], "fx_laser_end": [4, 20.0],
+	# 美术 V7（docs/13_art_v7_spec.md）：触手 / 水刃 / 触手桩 / 巨触 / 受击 / 击杀
+	"fx_tentacle_strike": [6, 16.0], "fx_tentacle_grab": [4, 20.0],
+	"proj_tide_blade": [4, 12.0], "proj_tide_blade_moon": [4, 12.0], "fx_tide_blade_hit": [4, 20.0],
+	"fx_tendril_stake": [4, 8.0], "fx_tendril_stake_whip": [4, 16.0], "fx_kraken_rise": [6, 12.0],
+	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
 }
+## 受击材质：甲壳 / 灵体，其余为血肉
+const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
+const HIT_SPIRIT := ["skimmer", "paranoia", "tear", "brood", "bishop", "ishar"]
+
+
+## 按敌人材质播放命中效果（V7 缺图时退回 fx_hit）
+func _hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
+	var n := "fx_hit_flesh"
+	if HIT_SHELL.has(e.type):
+		n = "fx_hit_shell"
+	elif HIT_SPIRIT.has(e.type) or e.get("hover", false):
+		n = "fx_hit_spirit"
+	var sc: float = PX * clampf(e.r / 12.0, 0.9, 2.2)
+	if not _fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else rng.randf() * TAU):
+		_anim("fx_hit", e.pos, 0.16)
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "dbullet": "proj_drone_bullet",
 	"missile": "proj_missile", "tide": "proj_tide"}
 const EXPLODE_R_PX := 26.0
@@ -4751,12 +4784,18 @@ func _draw_mire(m: Dictionary) -> void:
 
 func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
-	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
-	var sc := PX * 1.7
 	# 底部紫色辉光，让触手在暗处也能看清
 	draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
 	draw_circle(Vector2.ZERO, 22.0, Color(0.9, 0.4, 1.6, 0.35 * (1.0 - a)))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if tex.get("fx_tentacle_strike") != null:
+		# V7：32×48 × 6 帧，脚底锚点 (16,46)；第 3 帧（命中）略提亮
+		var fr := clampi(int(a * 6.0), 0, 5)
+		var col := Color(1.35, 1.25, 1.5) if fr == 3 else Color.WHITE
+		_spr("fx_tentacle_strike", 6, fr, f.pos + Vector2(0, 10), PX * 1.25, f.flip, col, Vector2(0.5, 46.0 / 48.0))
+		return
+	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
+	var sc := PX * 1.7
 	_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, Color(1.5, 1.2, 1.9) if a < 0.3 else Color.WHITE, Vector2(0.5, 1.0))
 
 
@@ -5059,6 +5098,17 @@ func _draw_wave(b: Dictionary) -> void:
 	var c: Vector2 = b.pos - dir * R * 0.55
 	var ang := dir.angle()
 	var fade: float = clampf(b.life / 0.15, 0.0, 1.0)
+	var tn := "proj_tide_blade_moon" if b.moon else "proj_tide_blade"
+	if tex.get(tn) != null:
+		# V7：月牙水刃朝右，按速度方向旋转；深渊巨斩放大并加一层辉光
+		var spec: Array = V6_FRAMES[tn]
+		var fr := int(t * spec[1]) % int(spec[0])
+		var sc: float = PX * b.size * (1.0 if not b.giant else 1.15)
+		if b.giant:
+			draw_arc(c, R, ang - 1.15, ang + 1.15, 24, Color(1.8, 0.8, 2.4, 0.4 * fade), 10.0 * b.size)
+			_spr_rot(tn, fr, b.pos, ang, sc * 1.35, Color(1.6, 1.0, 2.0, 0.45 * fade))
+		_spr_rot(tn, fr, b.pos, ang, sc, Color(1.0, 1.0, 1.0, fade) if not b.giant else Color(1.4, 1.1, 1.6, fade))
+		return
 	var core := Color(2.2, 2.6, 2.8, fade) if not b.giant else Color(2.8, 2.2, 2.8, fade)
 	var glow := Color(0.5, 1.4, 2.2, 0.35 * fade) if not b.giant else Color(1.8, 0.8, 2.4, 0.4 * fade)
 	draw_arc(c, R, ang - 1.15, ang + 1.15, 24, glow, 10.0 * b.size)
@@ -5073,6 +5123,21 @@ func _draw_stake(st: Dictionary) -> void:
 	draw_circle(Vector2.ZERO, 16.0, Color(0.15, 0.03, 0.22, 0.6 * a))
 	draw_arc(Vector2.ZERO, st.r, 0.0, TAU, 32, Color(1.3, 0.6, 2.0, 0.18 * a), 1.5)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if tex.get("fx_tendril_stake") != null:
+		# V7：待机 32×64 × 4 帧 @8fps，鞭打 48×64 × 4 帧 @16fps（第 2 帧命中），脚底 (16,62)
+		var foot: Vector2 = st.pos + Vector2(0, 10)
+		if st.whip > 0.0 and tex.get("fx_tendril_stake_whip") != null:
+			var k: float = st.whip / 0.18
+			var wf := clampi(int((1.0 - k) * 4.0), 0, 3)
+			var flip: bool = st.wt.x < st.pos.x
+			_spr("fx_tendril_stake_whip", 4, wf, foot, PX * 0.8, flip, Color(1, 1, 1, a), Vector2(16.0 / 48.0, 62.0 / 64.0))
+			var tip: Vector2 = foot + Vector2((-1.0 if flip else 1.0) * 40.0, -60.0)
+			draw_line(tip, st.wt, Color(0.6, 0.25, 0.9, 0.7 * k), 4.0)
+			draw_line(tip, st.wt, Color(1.8, 1.0, 2.6, 0.8 * k), 1.5)
+		else:
+			var sf := int(t * 8.0 + st.pos.x * 0.05) % 4
+			_spr("fx_tendril_stake", 4, sf, foot, PX * 0.8, st.flip, Color(1, 1, 1, a), Vector2(0.5, 62.0 / 64.0))
+		return
 	var fr := 3 + int(t * 4.0 + st.pos.x) % 2
 	_spr("tentacle", 5, fr, st.pos + Vector2(0, 10), PX * 1.3, st.flip, Color(1, 1, 1, a), Vector2(0.5, 1.0))
 	if st.whip > 0.0:
