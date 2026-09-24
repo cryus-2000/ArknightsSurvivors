@@ -109,6 +109,7 @@ var dodge_arts := 0.0            # 法术闪避（额外）
 var in_type: Array = ["近战", "物理"]   # 当前受到的伤害类型（受击前设置）
 var dmg_type_out: Dictionary = {}     # 造成伤害按类型统计
 var RL: Dictionary = {}          # 藏品表 id -> {name, cat, desc, rarity, ...}（由 relic_fx 从 data/ 读取）
+var tray_cells: Array = []       # 藏品栏格子 [Rect2, id]，用于鼠标悬停提示
 var rfx: RefCounted = null       # 藏品效果解释器
 var sp_mult := 1.0
 var s1_need := 7                 # 唤醒：充能所需挥伞次数
@@ -608,6 +609,8 @@ func _autotest_step() -> void:
 			t = 149.0
 			next_horde = t + 60.0
 			merchant = {"pos": ppos + Vector2(900, -300), "life": 60.0, "near": false}
+		if at_frames == 150 and not tray_cells.is_empty():
+			Input.warp_mouse(tray_cells[0][0].get_center())
 		if at_frames == 110 and evo2 == "tendril_giant":
 			giants.append({"pos": ppos + Vector2(230, 20), "t": 0.0, "dur": 2.6, "ang0": PI, "dir": 1.0, "dmg": 50.0, "hit": {}, "ang": 0.0})
 		if at_frames == 60:
@@ -5638,6 +5641,8 @@ func _draw_hud() -> void:
 			UI.text(hud, font, kc.position + Vector2(0, 18), "Tab", 14, Color(1, 1, 1, ha), HORIZONTAL_ALIGNMENT_CENTER, kc.size.x)
 			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看水月的属性与技能", 15, Color(0.85, 0.95, 0.95, ha))
 
+	_draw_relic_tooltip(vs)
+	_draw_status_bar(vs)
 	match state:
 		S.SHOW:
 			_draw_show(vs)
@@ -6019,13 +6024,17 @@ func _draw_relic_tray(tr: Vector2) -> void:
 	UI.frame(hud, r, UI.GOLD, {"t": t, "vines": true, "seed": 3, "vine_k": 0.7, "cut": 6.0, "bracket": 8.0})
 	UI.en(hud, font, o + Vector2(10, 20), "RELICS", 10, UI.SUB, 3.0)
 	UI.text(hud, font, o + Vector2(w - 30, 21), "%d" % n, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 20)
+	tray_cells.clear()
+	var mouse := hud.get_local_mouse_position()
 	for i in n:
 		var rd: Dictionary = RL[relics[i]]
 		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
 		var c := o + Vector2(8 + (i % per_row) * cell + cell / 2, 28 + (i / per_row) * cell + cell / 2)
 		var cellr := Rect2(c - Vector2(17, 17), Vector2(34, 34))
-		hud.draw_rect(cellr, Color(0.01, 0.04, 0.08, 0.9))
-		hud.draw_rect(cellr, Color(col.r, col.g, col.b, 0.7), false, 1.0)
+		tray_cells.append([cellr, relics[i]])
+		var hov: bool = cellr.has_point(mouse)
+		hud.draw_rect(cellr, Color(0.01, 0.04, 0.08, 0.9) if not hov else Color(col.r * 0.25, col.g * 0.25, col.b * 0.25, 0.95))
+		hud.draw_rect(cellr, Color(col.r, col.g, col.b, 0.7 if not hov else 1.0), false, 1.0 if not hov else 2.0)
 		var ic: Texture2D = tex.get("relic_" + relics[i])
 		if ic != null:
 			hud.draw_texture_rect(ic, Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
@@ -6037,6 +6046,93 @@ func _draw_relic_tray(tr: Vector2) -> void:
 			for q in rl:
 				hud.draw_rect(Rect2(c + Vector2(-16 + q * 6, 12), Vector2(4, 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
 	var cy := r.end.y + 16
+
+
+## 藏品悬停提示：名称、分类·稀有度、等级、效果
+func _draw_relic_tooltip(vs: Vector2) -> void:
+	if state != S.PLAY and state != S.PAUSE and state != S.STATS:
+		return
+	var mouse := hud.get_local_mouse_position()
+	for cellinfo in tray_cells:
+		var cr: Rect2 = cellinfo[0]
+		if not cr.has_point(mouse):
+			continue
+		var id: String = cellinfo[1]
+		var rd: Dictionary = RL[id]
+		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var lvn: int = rfx.lv.get(id, 1)
+		var mx: int = rfx.max_lv(id)
+		var lines: Array = []
+		var desc: String = rd.desc
+		# 按 26 字折行
+		while desc.length() > 26:
+			lines.append(desc.substr(0, 26))
+			desc = desc.substr(26)
+		lines.append(desc)
+		var w := 320.0
+		var h := 66.0 + lines.size() * 20.0
+		var pos := Vector2(minf(cr.position.x, vs.x - w - 12), cr.end.y + 8)
+		var r := Rect2(pos, Vector2(w, h))
+		UI.frame(hud, r, col, {"cut": 6.0, "bracket": 6.0})
+		hud.draw_rect(Rect2(pos + Vector2(2, 2), Vector2(w - 4, h - 4)), Color(0.01, 0.04, 0.08, 0.92))
+		var ic: Texture2D = tex.get("relic_" + id)
+		if ic != null:
+			hud.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
+		UI.text(hud, font, pos + Vector2(62, 28), rd.name + ((" Lv.%d/%d" % [lvn, mx]) if mx > 1 else ""), 16, Color.WHITE)
+		UI.text(hud, font, pos + Vector2(62, 48), "%s · %s" % [rd.cat, rd.rarity], 12, col)
+		for k in lines.size():
+			UI.text(hud, font, pos + Vector2(14, 74 + k * 20), lines[k], 13, Color(0.85, 0.92, 0.95))
+		return
+
+
+## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
+func _draw_status_bar(vs: Vector2) -> void:
+	if state == S.OPENING or state == S.INTRO or state == S.SHOW:
+		return
+	var items: Array = []   # [文字, 颜色, 进度 0..1 或 -1]
+	if s1_charges > 0:
+		items.append(["唤醒 ×%d" % s1_charges, UI.GOLD, -1.0])
+	if s2_active > 0.0:
+		items.append(["囚徒困境", Color(0.45, 0.8, 1.0), s2_active / D.SKILL_P.s2_dur])
+	if s3_active > 0.0:
+		items.append(["镜花水月", UI.PURPLE, s3_active / D.SKILL_P.s3_dur])
+	if shield > 0:
+		items.append(["护盾 ×%d" % shield, Color(0.6, 0.9, 1.0), -1.0])
+	for x in rfx.temps:
+		if x.stat == "dmg":
+			items.append(["增伤 +%d%%" % int(x.value * 100.0), Color(1.0, 0.75, 0.4), clampf((x.until - t) / 6.0, 0.0, 1.0)])
+	if rfx.rule("black_tulip") > 0 and rfx.tulip_t > 1.0:
+		items.append(["郁金香 +%d%%" % int(60.0 * rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), rfx.tulip_t / 60.0])
+	if rfx.perm_dmg > 0.0:
+		items.append(["刻勋 +%.1f%%" % (rfx.perm_dmg * 100.0), Color(1.0, 0.85, 0.5), -1.0])
+	if hp < max_hp * 0.3 and (rfx.rule("king_crown") + rfx.rule("king_gun") + rfx.rule("king_cake") + rfx.rule("king_branch")) > 0:
+		items.append(["国王之势", Color(1.0, 0.8, 0.3), -1.0])
+	if corrode_pool > 0.5:
+		items.append(["侵蚀 %d" % int(corrode_pool), Color(0.8, 0.5, 1.0), -1.0])
+	if nerve > 5.0:
+		items.append(["神经损伤", Color(1.0, 0.5, 0.9), nerve / 100.0])
+	if atk_slow > 0.0:
+		items.append(["攻速减缓", Color(0.6, 0.7, 0.9), clampf(atk_slow / 3.0, 0.0, 1.0)])
+	if pstun > 0.0:
+		items.append(["定身", UI.RED, -1.0])
+	if in_mire > 0.5:
+		items.append(["溟痕 · 减速", Color(0.85, 0.45, 1.0), -1.0])
+	if zone_state != 0 and ppos.distance_to(zone_c) > zone_r:
+		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
+	if lamp < 30.0:
+		items.append(["灯火低微", Color(1.0, 0.55, 0.45), -1.0])
+	if items.is_empty():
+		return
+	var x := 16.0
+	var y := 150.0
+	for it in items:
+		var w: float = UI.chip(hud, font, Vector2(x, y), it[0], it[1], 12)
+		if it[2] >= 0.0:
+			hud.draw_rect(Rect2(x, y + 20, w * it[2], 2), it[1])
+		x += w + 6.0
+		if x > 360.0:
+			x = 16.0
+			y += 26.0
 
 
 func _draw_allies_hud(br: Vector2) -> void:
