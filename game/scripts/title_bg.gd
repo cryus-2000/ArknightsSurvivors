@@ -4,6 +4,7 @@ extends Control
 ## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 水月与倒影 → 发光叠加层
 
 const A = preload("res://scripts/art.gd")
+const TitleTree = preload("res://scripts/title_tree.gd")
 
 const W := 640
 const H := 360
@@ -27,8 +28,11 @@ var motes: Array = []       # 上升的荧光颗粒 {pos, v, ph}
 var meteor := {}
 var next_meteor := 3.0
 var next_crest := 0.0
-var tree_br: Array = []     # 远景深蓝之树 [a, b, w]
-var tree_nodes: Array = []
+var tree: RefCounted        # 远景深蓝之树（title_tree.gd，一次性栅格化）
+var tex_tree: ImageTexture
+var tex_tree_glow: ImageTexture
+const TREE_BASE := Vector2(505, HZ + 2)
+var off := Vector2.ZERO     # 画面居中偏移（非 16:9 窗口时）
 var steps: Array = []       # 发光脚印
 var glow: Control
 
@@ -52,7 +56,10 @@ func _ready() -> void:
 		stars.append([p, 2 if big else 1, rng.randf() * TAU, rng.randf_range(0.6, 2.4), col])
 	for i in 40:
 		motes.append({"pos": Vector2(rng.randf_range(200, W), rng.randf_range(170, H)), "v": rng.randf_range(3, 9), "ph": rng.randf() * TAU})
-	_grow(Vector2(560, HZ + 1), -PI / 2 - 0.08, 34.0, 3.0, 0)
+	tree = TitleTree.new()
+	tree.build(W, H, TREE_BASE, 205.0, 7)
+	tex_tree = ImageTexture.create_from_image(tree.img)
+	tex_tree_glow = ImageTexture.create_from_image(tree.glow)
 	# 走来的脚印（从左下到脚边）
 	for i in 7:
 		var k := float(i) / 6.0
@@ -145,7 +152,11 @@ func _wave_phase(i: int) -> float:
 
 # ------------------------------------------------------------------ 绘制
 func _draw() -> void:
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(K, K))
+	# 非 16:9 的窗口：画面居中，多出来的边用深色补齐（避免露出引擎的灰底）
+	var vs := get_viewport_rect().size
+	off = ((vs - Vector2(W, H) * K) / 2.0).round()
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03))
+	draw_set_transform(off, 0.0, Vector2(K, K))
 	draw_texture(tex_sky, Vector2.ZERO)
 	# 星星闪烁
 	for s in stars:
@@ -155,12 +166,11 @@ func _draw() -> void:
 		if s[1] == 2 and a > 0.7:
 			draw_rect(Rect2(s[0] + Vector2(-1, 0), Vector2(3, 1)), Color(c.r, c.g, c.b, (a - 0.7) * 1.6))
 			draw_rect(Rect2(s[0] + Vector2(0, -1), Vector2(1, 3)), Color(c.r, c.g, c.b, (a - 0.7) * 1.6))
-	# 远景：深蓝之树剪影（海平线右侧）与倒影
-	for b in tree_br:
-		draw_line(b[0], b[1], Color(0.03, 0.05, 0.12), b[2])
-		var ra: Vector2 = Vector2(b[0].x, HZ + (HZ - b[0].y) * 0.45)
-		var rb: Vector2 = Vector2(b[1].x, HZ + (HZ - b[1].y) * 0.45)
-		draw_line(ra + Vector2(sin(t * 1.3 + ra.y) * 0.8, 0), rb + Vector2(sin(t * 1.3 + rb.y) * 0.8, 0), Color(0.03, 0.06, 0.13, 0.4), b[2])
+	# 远景：深蓝之树（海平线右侧）与水面倒影（压扁、随水波轻晃、越远越淡）
+	draw_texture(tex_tree, Vector2.ZERO)
+	draw_set_transform(off + Vector2(sin(t * 0.9) * 1.2 * K, (HZ + 2) * K), 0.0, Vector2(K, -K * 0.45))
+	draw_texture_rect_region(tex_tree, Rect2(Vector2(0, -(HZ + 2)), Vector2(W, HZ + 2)), Rect2(0, 0, W, HZ + 2), Color(0.5, 0.65, 0.85, 0.32))
+	draw_set_transform(off, 0.0, Vector2(K, K))
 	# 沙滩（岸线以下）
 	draw_texture(tex_sand, Vector2(0, SHORE - 30))
 	# 发光脚印
@@ -178,6 +188,13 @@ func _draw() -> void:
 	var scrim := PackedColorArray([Color(0.0, 0.01, 0.03, 0.72), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.72)])
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(300, 0), Vector2(300, H), Vector2(0, H)]), scrim)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 居中后上下 / 左右露出的边：用天空顶色 / 沙滩底色渐入
+	if off.y > 0.0:
+		draw_rect(Rect2(0, 0, vs.x, off.y), Color(0.02, 0.02, 0.06))
+		draw_rect(Rect2(0, vs.y - off.y, vs.x, off.y), Color(0.0, 0.01, 0.03))
+	if off.x > 0.0:
+		draw_rect(Rect2(0, 0, off.x, vs.y), Color(0.0, 0.01, 0.03))
+		draw_rect(Rect2(vs.x - off.x, 0, off.x, vs.y), Color(0.0, 0.01, 0.03))
 
 
 func _draw_wave(i: int) -> void:
@@ -227,7 +244,24 @@ func _draw_mizuki() -> void:
 
 ## 加法发光层：银河亮核、蓝眼泪、浪尖、荧光颗粒、流星
 func _draw_glow() -> void:
-	glow.draw_set_transform(Vector2.ZERO, 0.0, Vector2(K, K))
+	glow.draw_set_transform(off, 0.0, Vector2(K, K))
+	# 深蓝之树：整体柔光呼吸 + 树冠光环 + 枝梢星点 + 沿主干上行的能量脉冲
+	var tb := 0.85 + 0.15 * sin(t * 0.6)
+	glow.draw_texture(tex_tree_glow, Vector2.ZERO, Color(tb, tb, tb, 1.0))
+	var crown: Vector2 = tree.crown
+	for k in 3:
+		var rr: float = 26.0 + k * 22.0 + sin(t * 0.7 + k) * 3.0
+		glow.draw_arc(crown, rr, 0.0, TAU, 48, Color(0.2, 0.5, 0.9, 0.12 - 0.03 * k), 6.0 - k)
+	for tp in tree.tips:
+		var a: float = 0.35 + 0.45 * pow(0.5 + 0.5 * sin(t * 1.6 + tp[1]), 3.0)
+		glow.draw_rect(Rect2(tp[0].round(), Vector2(1, 1)), Color(0.55, 0.9, 1.0, a))
+	for si in tree.strands.size():
+		var path: PackedVector2Array = tree.strands[si]
+		var ph: float = fmod(t * 0.22 + si * 0.137, 1.0)
+		var idx: int = int(ph * (path.size() - 1))
+		for k in 6:
+			var j: int = clampi(idx - k, 0, path.size() - 1)
+			glow.draw_rect(Rect2(path[j].round() - Vector2(1, 1), Vector2(2, 2)), Color(0.5, 0.85, 1.0, 0.45 * (1.0 - k / 6.0)))
 	# 远处浪尖
 	for c in crests:
 		var k: float = c.life / c.max
@@ -270,12 +304,6 @@ func _draw_glow() -> void:
 	for m in motes:
 		var a: float = 0.25 + 0.25 * sin(t * 2.0 + m.ph)
 		glow.draw_rect(Rect2(m.pos.round(), Vector2(1, 1)), Color(0.4, 0.8, 1.0, a))
-	# 深蓝之树的发光节点
-	for n in tree_nodes:
-		var a: float = 0.4 + 0.4 * sin(t * 1.4 + n[1])
-		glow.draw_rect(Rect2(n[0].round(), Vector2(1, 1)), Color(0.3, 0.9, 1.0, a))
-		var ry: float = HZ + (HZ - n[0].y) * 0.45
-		glow.draw_rect(Rect2(Vector2(n[0].x + sin(t * 1.3 + ry) * 0.8, ry).round(), Vector2(1, 1)), Color(0.2, 0.6, 0.9, a * 0.3))
 	# 流星
 	if not meteor.is_empty():
 		var a: float = clampf(meteor.life / 0.9, 0.0, 1.0)
@@ -283,7 +311,7 @@ func _draw_glow() -> void:
 		for k in 18:
 			glow.draw_rect(Rect2((meteor.p - dir * k * 1.5).round(), Vector2(1, 1)), Color(0.7, 0.85, 1.0, a * (1.0 - k / 18.0)))
 	# 水月身边的柔光（冷色）与一点暖色灯火；沿浪线的泛光
-	glow.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	glow.draw_set_transform(off, 0.0, Vector2.ONE)
 	if tex_light != null:
 		for i in 3:
 			var p := _wave_phase(i)
@@ -394,19 +422,3 @@ func _dither(c: Color, x: int, y: int) -> Color:
 
 
 ## 远景深蓝之树
-func _grow(p: Vector2, ang: float, length: float, width: float, depth: int) -> void:
-	if depth > 6 or length < 2.5:
-		for k in 3:
-			tree_nodes.append([p + Vector2(rng.randf_range(-3, 3), rng.randf_range(-3, 2)), rng.randf() * TAU])
-		return
-	var a := ang
-	var q := p
-	for s in 4:
-		a += rng.randf_range(-0.25, 0.25)
-		var nq := q + Vector2.from_angle(a) * length / 4.0
-		tree_br.append([q, nq, maxf(1.0, width)])
-		q = nq
-	if depth >= 2:
-		tree_nodes.append([q, rng.randf() * TAU])
-	for k in (2 if depth < 2 else rng.randi_range(2, 3)):
-		_grow(q, a + rng.randf_range(-0.9, 0.9), length * rng.randf_range(0.6, 0.78), width * 0.6, depth + 1)
