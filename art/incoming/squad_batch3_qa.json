@@ -1,0 +1,2009 @@
+[
+  {
+    "file": "op_siege_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 209,
+        "bbox": [
+          11,
+          13,
+          42,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "fc309ebd8cfa97f0dca48e4c230620bfc0c5ceb747b5e2ea9250de88af56d181",
+        "opaque_pixels": 648
+      },
+      {
+        "outline_pixels": 195,
+        "bbox": [
+          10,
+          13,
+          39,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "b1c288fad22c80276e44aa78b7051397ccf00126f9781edd752c6ad7443395ad",
+        "opaque_pixels": 618
+      },
+      {
+        "outline_pixels": 190,
+        "bbox": [
+          11,
+          13,
+          38,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "ff8668adc5791558f8cd3a3b26e07ecf85e3fbc0823de3e62607b51de4d39d5f",
+        "opaque_pixels": 606
+      },
+      {
+        "outline_pixels": 198,
+        "bbox": [
+          12,
+          13,
+          40,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "231921026af4019899e5271266c7b990ce51b71bdb02abe381c69815f92ad14e",
+        "opaque_pixels": 626
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_siege_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          4,
+          12,
+          37,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "1f683aa203ef86eb7c4e6586ccc0a95f2f217166934af645df4857825a282f38",
+        "opaque_pixels": 646
+      },
+      {
+        "outline_pixels": 203,
+        "bbox": [
+          5,
+          13,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "f24670389a588afacc7b281f69ad248cb5f6003ab4443eaaf6fd37fdce5fe652",
+        "opaque_pixels": 648
+      },
+      {
+        "outline_pixels": 206,
+        "bbox": [
+          6,
+          13,
+          38,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "c851a1bc5f8fb86e387be70e8de426e0a6745bd1c877f745260c4ef68ce7c4c1",
+        "opaque_pixels": 661
+      },
+      {
+        "outline_pixels": 210,
+        "bbox": [
+          5,
+          13,
+          38,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "b7c20c2228ecf9dd8e13bb3de5c3e178e8db085d0be2bf424d48c7b68dd5480a",
+        "opaque_pixels": 654
+      },
+      {
+        "outline_pixels": 197,
+        "bbox": [
+          7,
+          13,
+          37,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "cf8a0d930d793c2e8987c06a7e0689d55881150271dc1eaebc12205c335655d3",
+        "opaque_pixels": 625
+      },
+      {
+        "outline_pixels": 192,
+        "bbox": [
+          6,
+          13,
+          38,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "b4b75c920a454f62c52ded7b5be6b191c653474e984fac6979a000ccf4eb3fae",
+        "opaque_pixels": 620
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_siege_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 203,
+        "bbox": [
+          8,
+          13,
+          38,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "84e0546944a09f4eb20ab5add975a2af7eb6ee60c57a2654332c22ebe3c06d66",
+        "opaque_pixels": 635
+      },
+      {
+        "outline_pixels": 200,
+        "bbox": [
+          11,
+          13,
+          39,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "be52818cfae4a9f6aeaf5b26bba3021079a3ae17d0c992587ba92cf06fd616a4",
+        "opaque_pixels": 630
+      },
+      {
+        "outline_pixels": 239,
+        "bbox": [
+          7,
+          14,
+          45,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "007f1e83fde42ab2c551571df100645fdc3320c4422fb75bdfb51742525bb33e",
+        "opaque_pixels": 682
+      },
+      {
+        "outline_pixels": 218,
+        "bbox": [
+          2,
+          12,
+          38,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "3f8f0bb54624cd00aba26238a057055b4193693d719ad1c01351b7f019f9c45c",
+        "opaque_pixels": 674
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_siege_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 255,
+        "bbox": [
+          8,
+          8,
+          45,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "71bc85cbd7cbb64c4946888151987f3bb239eb98152bc9dd11747cad8932f28e",
+        "opaque_pixels": 851
+      },
+      {
+        "outline_pixels": 225,
+        "bbox": [
+          9,
+          5,
+          39,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "77b9e4631fe1d567b4fe5f8370dea5eafd263dd8ebb09210eb0b6f3b68b73705",
+        "opaque_pixels": 752
+      },
+      {
+        "outline_pixels": 255,
+        "bbox": [
+          4,
+          4,
+          37,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "13e6c3492331646572fbcf94a269d2b0f39d5c7a0140b7322f96accab8456c3e",
+        "opaque_pixels": 832
+      },
+      {
+        "outline_pixels": 236,
+        "bbox": [
+          7,
+          15,
+          45,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "26958b82886e1a7ad7327b3ab4d0ee4bc48e4c5f1a06101cbef6fe88c5a3ee03",
+        "opaque_pixels": 720
+      },
+      {
+        "outline_pixels": 205,
+        "bbox": [
+          9,
+          15,
+          45,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "768f375bc2922c0e91423ab0b16f091aae3e52a875b58e93358e464644a7e9c4",
+        "opaque_pixels": 666
+      },
+      {
+        "outline_pixels": 250,
+        "bbox": [
+          5,
+          7,
+          41,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "3f36fbd55e04d4311898adbf21a52b7752539f35b24cde357dc0029529744918",
+        "opaque_pixels": 818
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_skadi_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 177,
+        "bbox": [
+          9,
+          11,
+          38,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "e2c6f88d0732f4560fcaa9f5e8de7a251a89833bf80918ad83ee7cf0460ea620",
+        "opaque_pixels": 613
+      },
+      {
+        "outline_pixels": 174,
+        "bbox": [
+          11,
+          14,
+          42,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "92c088be8877461c6ddf3a1a009b3cd560bafda9a796c93bb8c390621c05b4c9",
+        "opaque_pixels": 580
+      },
+      {
+        "outline_pixels": 168,
+        "bbox": [
+          9,
+          13,
+          42,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "ca020726a1322ba2d2fd64e484ddf1821417eb589db96d70f5aea075f848784e",
+        "opaque_pixels": 599
+      },
+      {
+        "outline_pixels": 193,
+        "bbox": [
+          8,
+          14,
+          38,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "0b7d92918467ad74d3e46ea284a6c1948e6e7a6e3a8a5342ffb378b200a568bb",
+        "opaque_pixels": 603
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_skadi_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 173,
+        "bbox": [
+          3,
+          14,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "c1562f06b553d9930718d88e9f4161d44c6c301fad1a3f0a013257b3775e26b9",
+        "opaque_pixels": 646
+      },
+      {
+        "outline_pixels": 188,
+        "bbox": [
+          2,
+          15,
+          38,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "d10300380265de575a9bd49c748127121428fecfbb46bee18e55b9b8db542803",
+        "opaque_pixels": 645
+      },
+      {
+        "outline_pixels": 183,
+        "bbox": [
+          3,
+          15,
+          38,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "4a27458b9892681b2a44b80cd9e9e7061337f3182e5dcd9209c1b77be7b7685a",
+        "opaque_pixels": 615
+      },
+      {
+        "outline_pixels": 175,
+        "bbox": [
+          2,
+          15,
+          37,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "aefe9953913314545e3c37357f4227785003936827052dde0765de15162cd5bc",
+        "opaque_pixels": 613
+      },
+      {
+        "outline_pixels": 177,
+        "bbox": [
+          3,
+          15,
+          38,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "583c6b8a2e817ca32439ad515988a98edfca7bb8d155a6c06deadecbef0d6ed0",
+        "opaque_pixels": 627
+      },
+      {
+        "outline_pixels": 187,
+        "bbox": [
+          3,
+          14,
+          38,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "2db97c46a3282a6283b52c1fab0bb961594aafe8d8de23027836a9c8802dcd6f",
+        "opaque_pixels": 646
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_skadi_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 185,
+        "bbox": [
+          3,
+          14,
+          36,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "722b15aadb7ab630c28210528d4355dceb56183d72c5307aececa9d98a13bff2",
+        "opaque_pixels": 612
+      },
+      {
+        "outline_pixels": 186,
+        "bbox": [
+          3,
+          15,
+          36,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "ef4e453d9f6bd562e0133ad30e8a7d5a71088f295f9adc154371857b4b1acc97",
+        "opaque_pixels": 610
+      },
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          4,
+          16,
+          45,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "b7ec85f102295d353e1071f9390fb3a177872dbe4914d2a441ca67a293d09b13",
+        "opaque_pixels": 685
+      },
+      {
+        "outline_pixels": 220,
+        "bbox": [
+          5,
+          15,
+          45,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "c21a2d6d61ddd4c65bb9b443522ed301a3a5f597e86842f6f7e763358d20c508",
+        "opaque_pixels": 696
+      },
+      {
+        "outline_pixels": 185,
+        "bbox": [
+          9,
+          15,
+          45,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "c170256d485beaaaa75c2cdd4545c3901bcdcdb9c5e8b2e79a991f94c4e80312",
+        "opaque_pixels": 647
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 5
+  },
+  {
+    "file": "op_skadi_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 198,
+        "bbox": [
+          2,
+          10,
+          36,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "ae3cd3c366eace19102b9c00ffb7f204f34e3ae2edc5151968e838a5abdf7630",
+        "opaque_pixels": 757
+      },
+      {
+        "outline_pixels": 242,
+        "bbox": [
+          2,
+          3,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "1b89075ec7dcfc439a1758530cd5f06a1f3595cb14be219b963ae8143fe7d92e",
+        "opaque_pixels": 906
+      },
+      {
+        "outline_pixels": 248,
+        "bbox": [
+          5,
+          3,
+          35,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "561bcfa060e765787adf14f0b31124b32263d39d9268af3b189c58b2d11575fc",
+        "opaque_pixels": 862
+      },
+      {
+        "outline_pixels": 225,
+        "bbox": [
+          2,
+          3,
+          36,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "d913d6f06d45c08110be859bdf8ef5732a04ad86bc222b325f1c49bc6cf6486b",
+        "opaque_pixels": 842
+      },
+      {
+        "outline_pixels": 212,
+        "bbox": [
+          2,
+          14,
+          45,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "df09caadfad6215b7dbbd6d7f4c0b003cbc02eb831e4b22a456cfeedfb90d878",
+        "opaque_pixels": 800
+      },
+      {
+        "outline_pixels": 216,
+        "bbox": [
+          3,
+          12,
+          44,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "d2a678588c4eb56d42e34746aa7b5084bb448ea05cf0d76b2a177575644e8213",
+        "opaque_pixels": 824
+      },
+      {
+        "outline_pixels": 239,
+        "bbox": [
+          8,
+          9,
+          45,
+          46
+        ],
+        "index": 6,
+        "pixel_sha256": "94a996aec054019e20bf341a4f68e6d263177538a7405ca687db2846917056fa",
+        "opaque_pixels": 828
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 7
+  },
+  {
+    "file": "op_saria_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 140,
+        "bbox": [
+          13,
+          14,
+          36,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "2431b5eb7c9f6bfe7509bce23c6e40dc923ecb1ae11c61432b46f3f387210f3c",
+        "opaque_pixels": 616
+      },
+      {
+        "outline_pixels": 142,
+        "bbox": [
+          9,
+          13,
+          36,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "427260a74c8bec0718b19283b9a5ec31e86847167cd7acd34219548ea50113cb",
+        "opaque_pixels": 612
+      },
+      {
+        "outline_pixels": 132,
+        "bbox": [
+          12,
+          13,
+          37,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "8c0b8659e5d04293116cce81e30e28a099b966ceaf380a2def00fc40c46d51a7",
+        "opaque_pixels": 597
+      },
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          11,
+          13,
+          37,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "f3a938307f1e6b06774b7ee9aeb6ddea8b4b7c6d82b49290bdc2ca79e8359b5a",
+        "opaque_pixels": 619
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_saria_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 142,
+        "bbox": [
+          11,
+          13,
+          38,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "b28154e35b9394131d1717b4838e88b17239f4f1e1845eeb0f1bbe3bf5b04b81",
+        "opaque_pixels": 625
+      },
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          11,
+          13,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "9d7ace3542158bb93f965add5ffd03781199dfdb57a4663f8d6d9603af045ebe",
+        "opaque_pixels": 656
+      },
+      {
+        "outline_pixels": 137,
+        "bbox": [
+          11,
+          14,
+          37,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "b7e9cc9f69bef8eb41e24501e91e04c86c69a17d9ef819618df6add3393ece80",
+        "opaque_pixels": 595
+      },
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          10,
+          12,
+          37,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "ac56c5a70851d8a533f37faf8cf048dc316b47dfec50e26956ae3a065028f773",
+        "opaque_pixels": 653
+      },
+      {
+        "outline_pixels": 149,
+        "bbox": [
+          11,
+          13,
+          38,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "49d15a94477996830f2a0e7f5f8d0e1ec7c07053655701ea09bcd5cb5562b5b3",
+        "opaque_pixels": 629
+      },
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          12,
+          12,
+          36,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "4cbe9c053a65b098445481bcdbcde2dce027f88f600e2a214337b19412d0c855",
+        "opaque_pixels": 608
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_saria_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 167,
+        "bbox": [
+          4,
+          14,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "31aae2a740adeed56d03862c3a50a6cb91b9b43c061162e37704028c64cdc9e1",
+        "opaque_pixels": 884
+      },
+      {
+        "outline_pixels": 214,
+        "bbox": [
+          7,
+          13,
+          43,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "cff60ba8d867c1675e85546fa0e6b5316398924a5de3fa5bfaf66c653286ba46",
+        "opaque_pixels": 870
+      },
+      {
+        "outline_pixels": 216,
+        "bbox": [
+          6,
+          14,
+          45,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "928768fe4668caff81afc04e526f3f985363a78aae0cd6c3ea8c96bc197cbaa6",
+        "opaque_pixels": 890
+      },
+      {
+        "outline_pixels": 180,
+        "bbox": [
+          6,
+          11,
+          39,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "c721d701cc17cc1982101d1de908d9a0e1e30ebdaaa5be396cf7545807ae18cf",
+        "opaque_pixels": 832
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_saria_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 159,
+        "bbox": [
+          9,
+          10,
+          39,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "555b5b1a18934774a1801867ffffb974af65998457fd7f6604d2adf6229c27f7",
+        "opaque_pixels": 732
+      },
+      {
+        "outline_pixels": 180,
+        "bbox": [
+          6,
+          8,
+          38,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "0a40ea62f3a1a0c4d013d330a4eedcc1bf1909cdddff44508d46d573c0adde08",
+        "opaque_pixels": 739
+      },
+      {
+        "outline_pixels": 159,
+        "bbox": [
+          5,
+          12,
+          36,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "89cd55728aa613e991156f41e7844c464c9c9544294674e865751229043e3c92",
+        "opaque_pixels": 719
+      },
+      {
+        "outline_pixels": 173,
+        "bbox": [
+          5,
+          4,
+          35,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "63f545d5dd5605ca3cb554c3be25f2816c64c3f99fb187bb3744a41d8d72d8c7",
+        "opaque_pixels": 808
+      },
+      {
+        "outline_pixels": 187,
+        "bbox": [
+          5,
+          7,
+          35,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "3491fee43aa2711fea44f5e82bcf7b25e6fc58b870768839c186989b8b9cb749",
+        "opaque_pixels": 769
+      },
+      {
+        "outline_pixels": 151,
+        "bbox": [
+          11,
+          11,
+          38,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "05b950338d54667eb66586a5d00988c14afb7b9cb41bf1b6eb5c2a01138a8923",
+        "opaque_pixels": 694
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_eyjafjalla_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 147,
+        "bbox": [
+          13,
+          13,
+          37,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "d30a348d1ab3e456474181c368bbcf7ea2146046c48ee7cf88f3d1142abe3dc1",
+        "opaque_pixels": 555
+      },
+      {
+        "outline_pixels": 130,
+        "bbox": [
+          13,
+          13,
+          36,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "10d0a30d21e722fe7d35bc6744baebaa2d1cb1895e4199ecdcc6c6cf92642650",
+        "opaque_pixels": 547
+      },
+      {
+        "outline_pixels": 144,
+        "bbox": [
+          12,
+          13,
+          36,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "e83b0619854e9dab3551ade4576cb12b4a4387a64688519e827a0456d237dd97",
+        "opaque_pixels": 559
+      },
+      {
+        "outline_pixels": 138,
+        "bbox": [
+          12,
+          13,
+          36,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "1566fc6cfc8daf7145436266156ce0f662a9ffefdc67633a00d25e27aa965542",
+        "opaque_pixels": 561
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_eyjafjalla_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          5,
+          15,
+          35,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "720dd142567c51a382117cd12e744ecd5f80d5d7627290be7b124bab2e3c65f4",
+        "opaque_pixels": 557
+      },
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          4,
+          14,
+          34,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "86dd1effe2da2ccd222f3a385582a75b3a110e89caf1a3ebed5aa14311ab5b62",
+        "opaque_pixels": 577
+      },
+      {
+        "outline_pixels": 149,
+        "bbox": [
+          4,
+          14,
+          34,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "7c0f245ff4babec9bd84ed086bf3211c312dd02834af489b31e162474c79c89f",
+        "opaque_pixels": 569
+      },
+      {
+        "outline_pixels": 142,
+        "bbox": [
+          10,
+          15,
+          39,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "4706856f5e3019a0f51557e9fd0cf53e4bb90f42d0bc575d8e4c9659b0ac295f",
+        "opaque_pixels": 539
+      },
+      {
+        "outline_pixels": 142,
+        "bbox": [
+          11,
+          15,
+          41,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "32d6b2987a3338bbd9af358dcc3a06106eb2dce6a9724505027a8ab45afeb766",
+        "opaque_pixels": 548
+      },
+      {
+        "outline_pixels": 160,
+        "bbox": [
+          5,
+          15,
+          35,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "d01b9c461c8691ea3d6eb8edb82b0702781a65ec3a8e4938a54eef202307e859",
+        "opaque_pixels": 554
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_eyjafjalla_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 163,
+        "bbox": [
+          10,
+          13,
+          39,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "03940803dc0c4d42b7c380d2233e4013bb60e326854ec5b8bc15f9b973ac1046",
+        "opaque_pixels": 621
+      },
+      {
+        "outline_pixels": 166,
+        "bbox": [
+          9,
+          10,
+          36,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "8a2010456182fd6bb743989389fa973b41e25742e14c20755f876f3aca677ceb",
+        "opaque_pixels": 638
+      },
+      {
+        "outline_pixels": 180,
+        "bbox": [
+          7,
+          13,
+          45,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "8314543470e4813fc2193741a8f712373e8d69738dcae5a7ecb6c3c581d76043",
+        "opaque_pixels": 670
+      },
+      {
+        "outline_pixels": 166,
+        "bbox": [
+          9,
+          13,
+          36,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "fbdb70f5918c76f705c1fb759c34b94af6784e3f87acaf1782d9aaf0339df3ba",
+        "opaque_pixels": 623
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_eyjafjalla_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 165,
+        "bbox": [
+          8,
+          11,
+          38,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "df198110aad21e728cebd4d09c719851e17d0e32f555c95a448f488c4eccad0a",
+        "opaque_pixels": 677
+      },
+      {
+        "outline_pixels": 181,
+        "bbox": [
+          9,
+          11,
+          41,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "d3a44b2415a0bb73b3c259e27810054c11aa956429f9680c0bb553bf1af1b6ca",
+        "opaque_pixels": 691
+      },
+      {
+        "outline_pixels": 179,
+        "bbox": [
+          8,
+          5,
+          36,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "37af1f3068b7ac4f0345ce51880e1d4b6690e2e4574ab6dfe03b3f4758c8cafe",
+        "opaque_pixels": 698
+      },
+      {
+        "outline_pixels": 202,
+        "bbox": [
+          8,
+          6,
+          40,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "c4fc8ffc63326eb5358829a3c7c416685a4febeb4199ba3ca86f8c392c4603f8",
+        "opaque_pixels": 747
+      },
+      {
+        "outline_pixels": 204,
+        "bbox": [
+          6,
+          11,
+          45,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "8b29a9bce3449df4cfbb38837680e4c860dab5e4c1b2923e3ec0d7f38c6da11b",
+        "opaque_pixels": 746
+      },
+      {
+        "outline_pixels": 171,
+        "bbox": [
+          7,
+          11,
+          41,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "462b0ca93a30faef1cf55377c2dfd8de0eb3f2b844888ce825e62248de1be2e1",
+        "opaque_pixels": 693
+      },
+      {
+        "outline_pixels": 179,
+        "bbox": [
+          5,
+          11,
+          39,
+          46
+        ],
+        "index": 6,
+        "pixel_sha256": "9ec4918ca9804a1b5d96620c50c3a8803ef60f196ac46d59fe1514b890fa4ecc",
+        "opaque_pixels": 707
+      },
+      {
+        "outline_pixels": 160,
+        "bbox": [
+          10,
+          11,
+          38,
+          46
+        ],
+        "index": 7,
+        "pixel_sha256": "4dd27e655636c7b1f7fec018a1c78c19e8e7b6fd1565be7801b65df3ec8d494c",
+        "opaque_pixels": 656
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 8
+  },
+  {
+    "file": "op_kaltsit_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 127,
+        "bbox": [
+          14,
+          13,
+          33,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "28ffa11948c47589ae4edb48d9aad77010142a1839a4d4bd1db301b764150f05",
+        "opaque_pixels": 482
+      },
+      {
+        "outline_pixels": 114,
+        "bbox": [
+          14,
+          13,
+          33,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "673ac9e41fe2d0e6b50d0756456253059588f2ab12b02c2e8ad9ef9ec40c380f",
+        "opaque_pixels": 484
+      },
+      {
+        "outline_pixels": 122,
+        "bbox": [
+          13,
+          13,
+          33,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "0a70986592149720cfdd728dc1e82ed4b6ee2ddf7378cbb2a4d144ae93301eca",
+        "opaque_pixels": 499
+      },
+      {
+        "outline_pixels": 124,
+        "bbox": [
+          13,
+          13,
+          34,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "87702ba5e0fd8c263b218d890997785a17099056ef27684815b8b5bae0feb4e7",
+        "opaque_pixels": 492
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_kaltsit_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 146,
+        "bbox": [
+          11,
+          14,
+          37,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "ddc35ec05209e5d61e8227dc614a8f747c4592f4b9cb8f1e4a0414a75e799c91",
+        "opaque_pixels": 520
+      },
+      {
+        "outline_pixels": 143,
+        "bbox": [
+          11,
+          15,
+          36,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "c3eeebb3efdaa7fb864fb41cd6b311f4514afac44b71773972062934fbc7d459",
+        "opaque_pixels": 522
+      },
+      {
+        "outline_pixels": 131,
+        "bbox": [
+          11,
+          15,
+          37,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "9a59f135890a25e9c77924d4bf5bd74dd72d732464271f8f2d42fba5c2d2b71c",
+        "opaque_pixels": 537
+      },
+      {
+        "outline_pixels": 132,
+        "bbox": [
+          10,
+          15,
+          36,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "31efa28f19d54783ea348d615eb0b33f5f385528ae51ea2287630940b3187c64",
+        "opaque_pixels": 525
+      },
+      {
+        "outline_pixels": 138,
+        "bbox": [
+          9,
+          15,
+          36,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "a5b74af1de4515dbe23a711b6fec9007b514ad88bd4c05642e6d4f34ec6b62e6",
+        "opaque_pixels": 543
+      },
+      {
+        "outline_pixels": 125,
+        "bbox": [
+          10,
+          15,
+          37,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "50498d2e880a406406d6d4200af8572766a08e628845a153e1ed47817faf8bf9",
+        "opaque_pixels": 519
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_kaltsit_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 131,
+        "bbox": [
+          14,
+          13,
+          33,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "10bce63d4eee4bb04d1811d73b38ba999fff81c045c574bf16dd3f886c65a218",
+        "opaque_pixels": 499
+      },
+      {
+        "outline_pixels": 144,
+        "bbox": [
+          12,
+          13,
+          35,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "56b38ae7af84fdd039d0798d7d4dbbaca0c089fdbaf45be06761190c491a5f95",
+        "opaque_pixels": 514
+      },
+      {
+        "outline_pixels": 147,
+        "bbox": [
+          12,
+          13,
+          38,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "e0cb70bffcf43c6442ce6f67751921f4788a300b94b6dd927c8c44733ac1f860",
+        "opaque_pixels": 556
+      },
+      {
+        "outline_pixels": 138,
+        "bbox": [
+          13,
+          14,
+          33,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "10a70f0a7932400f40b53cfcd76afe0520613dc5c678729caa69bc8ba20d5964",
+        "opaque_pixels": 511
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_kaltsit_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 129,
+        "bbox": [
+          13,
+          12,
+          34,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "484d03c3b62363eaf51ae6506d309b92736d7481c97ab0918dabe0fe1969902a",
+        "opaque_pixels": 528
+      },
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          13,
+          12,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "4c70677a3592ec592516b5c8a0aaa6f9f34b70ffd8e0a775598d67d6454b33c8",
+        "opaque_pixels": 568
+      },
+      {
+        "outline_pixels": 127,
+        "bbox": [
+          12,
+          13,
+          34,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "98bdcd068ba9d6939246f2f49ca1ae6012d9d50bce7ede47be1d1ffe6216d7fc",
+        "opaque_pixels": 501
+      },
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          12,
+          13,
+          42,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "0763272d2667c023124c792d2be035d16cf5d1a57d3e4ab7444d5781a95a6e64",
+        "opaque_pixels": 617
+      },
+      {
+        "outline_pixels": 149,
+        "bbox": [
+          13,
+          13,
+          40,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "9c3276fe93a8e523a3c3c526efc01606e0fc9618ed08783bf856bf6ecd669d32",
+        "opaque_pixels": 587
+      },
+      {
+        "outline_pixels": 136,
+        "bbox": [
+          13,
+          13,
+          33,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "5167af258a1f9a45e7e8ee524fbb7d4e2072a0ac5dda5ad679f03a59c91f99b0",
+        "opaque_pixels": 524
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_suzuran_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 212,
+        "bbox": [
+          4,
+          13,
+          39,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "229b8dfbca0251587cba9e81993c09f24d80b0724623d571d79967e599d03606",
+        "opaque_pixels": 829
+      },
+      {
+        "outline_pixels": 206,
+        "bbox": [
+          3,
+          14,
+          39,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "18b08c1afce1b82b13f4bfccacf7f40c1239f7e8e7c2af85ad5cf3e3cf240417",
+        "opaque_pixels": 836
+      },
+      {
+        "outline_pixels": 216,
+        "bbox": [
+          4,
+          13,
+          40,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "6bedf0a56525bf1117a6c5b0d5f0ac9c715e110c41eaea35454725d94dcafbe2",
+        "opaque_pixels": 819
+      },
+      {
+        "outline_pixels": 216,
+        "bbox": [
+          4,
+          13,
+          40,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "3333819cf7efb845f4ff0b49ad93812338c2702839b5169560cee8b5d6e23279",
+        "opaque_pixels": 812
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_suzuran_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          2,
+          15,
+          42,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "7b38751ee6916cd64ac076f6509a5e016b0aea027d888dcb2a40c24b0e4c9f84",
+        "opaque_pixels": 807
+      },
+      {
+        "outline_pixels": 195,
+        "bbox": [
+          6,
+          15,
+          42,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "2f8196c104a0401425739c27c730c15c51904523c1f4fe41530df48c028fbd9d",
+        "opaque_pixels": 742
+      },
+      {
+        "outline_pixels": 187,
+        "bbox": [
+          3,
+          15,
+          41,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "62c4bb25f7f2c98a4643663ae3fe0246a1aabb1c5fc5fe90acea9e13162bdcce",
+        "opaque_pixels": 791
+      },
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          6,
+          15,
+          45,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "c44bc77ed7e2e3221ffa21da521f2f8fe400180635fa6da0c21062575e6ed0cb",
+        "opaque_pixels": 782
+      },
+      {
+        "outline_pixels": 187,
+        "bbox": [
+          6,
+          15,
+          43,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "c2031115f7fc01c5a01c59d0035ea6820c6ca0b7ec238f015a53688eba8d0731",
+        "opaque_pixels": 730
+      },
+      {
+        "outline_pixels": 190,
+        "bbox": [
+          7,
+          14,
+          43,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "fee2335e2f67827dcdb3b376f5dcb31d0a6c98f83672aca812a8670376a9abd3",
+        "opaque_pixels": 761
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_suzuran_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 239,
+        "bbox": [
+          3,
+          12,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "5d19852755859cfa87154973069665892468463fc0b10b9fbc0c07395bf44c58",
+        "opaque_pixels": 938
+      },
+      {
+        "outline_pixels": 234,
+        "bbox": [
+          3,
+          8,
+          43,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "6ca480e72fbfabc22ace9c24444f20da8328b37c3b7f203ba8a1d0a6c4fd1845",
+        "opaque_pixels": 943
+      },
+      {
+        "outline_pixels": 205,
+        "bbox": [
+          7,
+          13,
+          45,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "5a27d6f96c8422276afea70142fdcf549342324157934b7175f06480d70990c3",
+        "opaque_pixels": 867
+      },
+      {
+        "outline_pixels": 219,
+        "bbox": [
+          4,
+          12,
+          42,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "d032c8f745d2d23ad38e2836f38e1fa641d9daab8c275660eb54a411e2d9dd01",
+        "opaque_pixels": 924
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_suzuran_skill.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 225,
+        "bbox": [
+          4,
+          13,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "10d4168edb142cf61675bbe7ca949c0fda006476b1f91e615f8e9b79d8046d22",
+        "opaque_pixels": 912
+      },
+      {
+        "outline_pixels": 215,
+        "bbox": [
+          8,
+          6,
+          41,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "7f3cac8c9d384d5fbe1408a39c592114b2f76231e81f686cc2668d0ca3a17f71",
+        "opaque_pixels": 881
+      },
+      {
+        "outline_pixels": 231,
+        "bbox": [
+          2,
+          9,
+          43,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "dad69469fdc3741760f07bcc99f3f4bfce149e743da3be01b16d2c6e7c74633b",
+        "opaque_pixels": 1033
+      },
+      {
+        "outline_pixels": 240,
+        "bbox": [
+          3,
+          5,
+          41,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "2f24f10a3f993efffd8d6594498eaac7dd591ea9058d7a5b9daadb91a530c8b0",
+        "opaque_pixels": 1050
+      },
+      {
+        "outline_pixels": 240,
+        "bbox": [
+          2,
+          10,
+          43,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "b94cf5b60df29b0a5a1b8335344c2869048a40cf70b2b935dfb32a081df3123f",
+        "opaque_pixels": 966
+      },
+      {
+        "outline_pixels": 187,
+        "bbox": [
+          4,
+          14,
+          40,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "1c2193f9149d685739e4f98ba93954986edda9a9a4e819a46b74dced962279d7",
+        "opaque_pixels": 860
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_mon3tr_idle.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 343,
+        "bbox": [
+          3,
+          17,
+          60,
+          60
+        ],
+        "index": 0,
+        "pixel_sha256": "e3722f20433253a4d2fc2ab3ac051ca5c0f56020f98c151fa01907222f055e97",
+        "opaque_pixels": 1351
+      },
+      {
+        "outline_pixels": 350,
+        "bbox": [
+          3,
+          18,
+          61,
+          60
+        ],
+        "index": 1,
+        "pixel_sha256": "87dc51a2e17c679cec97703fdd25fcaff7a35d4be0c0f1d4e72a561aff254b02",
+        "opaque_pixels": 1392
+      },
+      {
+        "outline_pixels": 351,
+        "bbox": [
+          3,
+          18,
+          61,
+          60
+        ],
+        "index": 2,
+        "pixel_sha256": "12abac95f5cd7b3a2b6d74a4362cb23ed9e9ccc99ef79c6e4499ff51881a5760",
+        "opaque_pixels": 1408
+      },
+      {
+        "outline_pixels": 360,
+        "bbox": [
+          3,
+          18,
+          62,
+          60
+        ],
+        "index": 3,
+        "pixel_sha256": "fa9f6f08ffdd9ee4ba063827b56c4edd80afb1685e5c48cea9ae5a80a228115e",
+        "opaque_pixels": 1416
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_mon3tr_run.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 326,
+        "bbox": [
+          6,
+          24,
+          61,
+          60
+        ],
+        "index": 0,
+        "pixel_sha256": "b7b20df0c1dff83b67299fc25da0c410b52534052f9708065efce59c4d44b094",
+        "opaque_pixels": 1175
+      },
+      {
+        "outline_pixels": 321,
+        "bbox": [
+          9,
+          24,
+          61,
+          60
+        ],
+        "index": 1,
+        "pixel_sha256": "48fed9f55b8973420ac239b268bbdb592f217c380d2aaa58055962993a19a4c5",
+        "opaque_pixels": 1158
+      },
+      {
+        "outline_pixels": 295,
+        "bbox": [
+          7,
+          24,
+          61,
+          60
+        ],
+        "index": 2,
+        "pixel_sha256": "94b7d2ec277386c5b8c1fff912f46988f3a2e3cfa06843e472f6eaa31ced13a0",
+        "opaque_pixels": 1210
+      },
+      {
+        "outline_pixels": 310,
+        "bbox": [
+          11,
+          24,
+          61,
+          60
+        ],
+        "index": 3,
+        "pixel_sha256": "fd53f52eec053eb992795da518274933549df40531cec172507f18d37fc05983",
+        "opaque_pixels": 1109
+      },
+      {
+        "outline_pixels": 339,
+        "bbox": [
+          9,
+          23,
+          61,
+          60
+        ],
+        "index": 4,
+        "pixel_sha256": "d6f0496d81e87b97d6710da05e33bcaa180e416edfc7d273dca7b1115be90993",
+        "opaque_pixels": 1166
+      },
+      {
+        "outline_pixels": 294,
+        "bbox": [
+          8,
+          24,
+          61,
+          60
+        ],
+        "index": 5,
+        "pixel_sha256": "6f44fa06075a01914fb93b6e8f60439c63b3ae84c5be30e6203be9d537f7705c",
+        "opaque_pixels": 1212
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_mon3tr_attack.png",
+    "batch": 3,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 378,
+        "bbox": [
+          2,
+          16,
+          61,
+          60
+        ],
+        "index": 0,
+        "pixel_sha256": "243a9bd7142c5bee8f1434643364526edfd12c4ef853cafca329e5de168d01a7",
+        "opaque_pixels": 1505
+      },
+      {
+        "outline_pixels": 418,
+        "bbox": [
+          2,
+          2,
+          61,
+          60
+        ],
+        "index": 1,
+        "pixel_sha256": "8bb862d132bf41126f4c60bcf58ddd7db53780d30ad24f279bf492918214e2fc",
+        "opaque_pixels": 1632
+      },
+      {
+        "outline_pixels": 323,
+        "bbox": [
+          4,
+          15,
+          61,
+          60
+        ],
+        "index": 2,
+        "pixel_sha256": "dbe71e0a72c6266ee6ee85f230e046f3d72d9a86c93cbde486843b43cf985ae7",
+        "opaque_pixels": 1162
+      },
+      {
+        "outline_pixels": 416,
+        "bbox": [
+          2,
+          15,
+          61,
+          60
+        ],
+        "index": 3,
+        "pixel_sha256": "9479051fc2826083b18bb23b2c09dbd5132c9c6a3e8892d966e725fc2fff028e",
+        "opaque_pixels": 1589
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  }
+]
