@@ -139,6 +139,7 @@ var spawn_acc := 0.0
 var next_elite := 60.0
 var diff := 0                # 本局难度
 var diff_new := false        # 本局通关解锁了新难度
+var stinger_done := false
 var next_horde := 120.0
 var show_queue: Array = []   # 解锁演出队列
 var show_cur: Dictionary = {}
@@ -270,6 +271,10 @@ func _ready() -> void:
 	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
 	for k in D.ALLIES:
 		tex["ally_%s_attack" % k] = A.tex("ally_%s_attack" % k)
+		tex["ally_%s_move" % k] = A.tex("ally_%s_move" % k)
+	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
+	for n in V6_FRAMES:
+		tex[n] = A.tex(n)
 	# 美术 V5：Boss 移动帧条（4 帧，与本体同尺寸同锚点）及其白色剪影
 	for n in ["e_path", "e_izumik", "e_ishar", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2"]:
 		var mn: String = n + "_move"
@@ -388,7 +393,34 @@ func _update_music(_dt: float) -> void:
 	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP or state == S.SHOW or state == S.STATS:
 		target = 1800.0
 	Sfx.cut_target = target
-	Sfx.vol_target = -12.0 if (state == S.DEAD or state == S.WIN) else -4.0
+	Sfx.vol_target = -4.0
+	# ---- 选曲与战斗分层（v0.9 配乐）
+	if state == S.DEAD or state == S.WIN:
+		if not stinger_done:
+			stinger_done = true
+			Sfx.play_stinger("win" if state == S.WIN else "lose")
+		return
+	if state == S.SHOP:
+		Sfx.play_music("shop")
+		return
+	if final_boss != null and not final_boss.dead:
+		Sfx.play_music("final")
+		return
+	if _boss_alive():
+		Sfx.play_music("boss")
+		return
+	Sfx.play_music("explore")
+	var n := enemies.size()
+	var elite := false
+	for e in enemies:
+		if e.elite and not e.dead and not e.chest:
+			elite = true
+			break
+	var pulse := t > 12.0 or n > 30
+	var drive := n > 110 + int(t / 3.0) or horde_warn > 0.0 or horde_hit > 0.0 or elite or s2_active > 0.0 or s3_active > 0.0 or zone_state == 2
+	var out_zone := zone_state != 0 and ppos.distance_to(zone_c) > zone_r
+	var danger := hp < max_hp * 0.35 or lamp <= 0.0 or out_zone
+	Sfx.set_layers([1.0, 1.0 if pulse else 0.0, 1.0 if drive else 0.0, 1.0 if danger else 0.0])
 
 
 ## 开发自测：把所有 Boss（含假死/二阶段形态）摆成一排截图，检查美术接入与 2.5D 遮挡
@@ -2395,7 +2427,14 @@ func _update_allies(dt: float) -> void:
 	for i in allies.size():
 		var al: Dictionary = allies[i]
 		var slot: Vector2 = ppos + ALLY_SLOTS[i]
+		var prev: Vector2 = al.pos
 		al.pos = al.pos.lerp(slot, clamp(dt * 5.0, 0.0, 1.0))
+		# 美术 V6：移动速度（平滑）与朝向，用于移动循环
+		var vel: Vector2 = (al.pos - prev) / maxf(dt, 0.0001)
+		al["mv"] = lerpf(al.get("mv", 0.0), vel.length(), clampf(dt * 10.0, 0.0, 1.0))
+		if absf(vel.x) > 20.0:
+			al["mface"] = signf(vel.x)
+		al["mt"] = al.get("mt", 0.0) + dt
 		al.cd -= dt
 		# 攻击动作计时：到出手帧时结算，播完回到待机
 		if al.get("atk", -1.0) >= 0.0:
@@ -2731,6 +2770,7 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				fx.append({"kind": "spark", "pos": e.pos, "vel": b.vel.normalized().rotated(randf_range(-0.7, 0.7)) * randf_range(80, 220),
 					"sz": 3.0, "life": 0.4, "max": 0.4, "col": Color(0.85, 0.08, 0.12)})
 			fx.append({"kind": "blood", "pos": e.pos + Vector2(0, e.r * 0.6), "life": 2.5, "max": 2.5, "seed": randf() * 10.0})
+			_fx_sprite("fx_arrow_hit", e.pos, PX, b.vel.angle())
 			b.life = 0.0
 		"fire", "missile":
 			# 火球 / 导弹：爆炸
@@ -2739,8 +2779,13 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					_damage(o, b.dmg)
 			var fc := Color(1.0, 0.5, 0.15) if b.kind == "fire" else Color(1.0, 0.8, 0.4)
-			fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc})
-			for k in 10:
+			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈
+			var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
+			if _fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
+				fx[-1]["ring"] = b.aoe
+			else:
+				fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc})
+			for k in 6:
 				fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
 					"col": fc.lerp(Color(1, 0.95, 0.6), randf())})
 			Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
@@ -2749,16 +2794,18 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			_damage(e, b.dmg)
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
-			fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": Color(0.8, 0.45, 1.0)})
-			_sparks(e.pos, b.vel, Color(0.85, 0.5, 1.0), 5, 160.0)
+			if not _fx_sprite("fx_arcane_hit", e.pos):
+				fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": Color(0.8, 0.45, 1.0)})
+			_sparks(e.pos, b.vel, Color(0.85, 0.5, 1.0), 3, 160.0)
 			b.life = 0.0
 		"tide":
 			# 潮汐弹：在敌人之间反弹
 			_damage(e, b.dmg)
 			if b.get("push", false) and not e.boss and not e.dead:
 				e.kb += b.vel.normalized() * 220.0
-			fx.append({"kind": "ring", "pos": e.pos, "r": 20.0, "life": 0.25, "max": 0.25, "col": Color(0.45, 0.8, 1.0)})
-			_sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 4, 160.0)
+			if not _fx_sprite("fx_tide_hit", e.pos):
+				fx.append({"kind": "ring", "pos": e.pos, "r": 20.0, "life": 0.25, "max": 0.25, "col": Color(0.45, 0.8, 1.0)})
+			_sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 2, 160.0)
 			b.hit[e.id] = true
 			b.bounces -= 1
 			if b.bounces < 0:
@@ -2782,7 +2829,8 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			Sfx.play("pickup", -16.0, 1.8, 0.1)
 		_:
 			_damage(e, b.dmg)
-			_sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
+			if not _fx_sprite("fx_bullet_hit", b.pos, PX, b.vel.angle()):
+				_sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
 			b.life = 0.0
 
 
@@ -3558,6 +3606,62 @@ func _update_visuals(dt: float) -> void:
 
 
 ## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
+## 美术 V6 帧条：名称 -> [帧数, fps]
+const V6_FRAMES := {
+	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
+	"proj_missile": [2, 16.0], "proj_tide": [4, 10.0],
+	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_arrow_hit": [4, 20.0], "fx_bullet_hit": [3, 24.0],
+	"fx_arcane_hit": [4, 20.0], "fx_tide_hit": [4, 20.0], "fx_heal_cross": [4, 10.0],
+	"fx_laser_start": [4, 20.0], "fx_laser_mid": [4, 20.0], "fx_laser_end": [4, 20.0],
+}
+const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "dbullet": "proj_drone_bullet",
+	"missile": "proj_missile", "tide": "proj_tide"}
+const EXPLODE_R_PX := 26.0
+
+
+## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
+func _draw_laser_art(from: Vector2, ang: float, length: float, alpha: float) -> void:
+	var fr := int(t * 20.0) % 4
+	var mt: Texture2D = tex["fx_laser_mid"]
+	var fw := mt.get_width() / 4
+	var fh := mt.get_height()
+	var col := Color(1, 1, 1, alpha)
+	draw_set_transform(from, ang, Vector2(PX, PX))
+	var L := length / PX
+	var x := 0.0
+	while x < L:
+		var w := minf(float(fw), L - x)
+		draw_texture_rect_region(mt, Rect2(Vector2(x, -fh / 2.0), Vector2(w, fh)), Rect2(fw * fr, 0, w, fh), col)
+		x += fw
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_spr_rot("fx_laser_end", fr, from + Vector2.from_angle(ang) * length, ang, PX, col)
+	_spr_rot("fx_laser_start", fr, from, ang, PX, col)
+
+
+## 旋转绘制帧条（锚点为帧中心，朝右绘制的素材按 ang 旋转）
+func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1)) -> void:
+	var tx: Texture2D = tex.get(name)
+	if tx == null:
+		return
+	var frames: int = V6_FRAMES.get(name, [1, 0.0])[0]
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
+	draw_set_transform(pos + draw_off, ang, Vector2(scale, scale))
+	draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
+func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0) -> bool:
+	if tex.get(name) == null:
+		return false
+	var spec: Array = V6_FRAMES[name]
+	var dur: float = spec[0] / spec[1]
+	fx.append({"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur})
+	return true
+
+
 func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
 	var tx: Texture2D = tex[name]
 	pos += draw_off
@@ -3657,6 +3761,9 @@ func _draw() -> void:
 				if al.get("atk", -1.0) >= 0.0 and tex.get(akey) != null:
 					# 攻击动作：72×48 画布，脚底锚点 (24,45)，朝向目标
 					_spr(akey, 4, mini(3, int(al.atk * 8.0)), al.pos + Vector2(0, 16), 1.4, al.get("face", 1.0) < 0.0, Color.WHITE, Vector2(24.0 / 72.0, 45.0 / 48.0))
+				elif al.get("mv", 0.0) > 40.0 and tex.get("ally_%s_move" % al.kind) != null:
+					# 美术 V6：移动循环（6 帧 10fps，朝移动方向）
+					_spr("ally_%s_move" % al.kind, 6, int(al.mt * 10.0) % 6, al.pos + Vector2(0, 16), 1.4, al.get("mface", 1.0) < 0.0, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
 				elif atx.get_height() >= 40:
 					# 48px 援护（脚底锚点约 (24,45)）
 					_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos + Vector2(0, 16), 1.4, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
@@ -3701,9 +3808,12 @@ func _draw() -> void:
 			var a0: Vector2 = dr.pos + Vector2(0, 4)
 			var b0: Vector2 = a0 + Vector2.from_angle(dr.beam_ang) * LASER_LEN
 			draw_line(a0, b0, Color(0.4, 1.6, 2.2, 0.28 * ba), 16.0 * fl)
-			draw_line(a0, b0, Color(0.8, 2.4, 2.8, 0.8 * ba), 6.0 * fl)
-			draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
-			draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
+			if tex.get("fx_laser_mid") != null:
+				_draw_laser_art(a0, dr.beam_ang, LASER_LEN, ba)
+			else:
+				draw_line(a0, b0, Color(0.8, 2.4, 2.8, 0.8 * ba), 6.0 * fl)
+				draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
+				draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
 	var jf := int(t * 6.0) % 2
 	for p in jelly_pos:
 		_spr("jelly", 2, jf, p + Vector2(0, -10))
@@ -3715,6 +3825,24 @@ func _draw() -> void:
 		if b.life <= 0.0:
 			continue
 		var n: Vector2 = b.vel.normalized()
+		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
+		var ptex: String = PROJ_TEX.get(b.kind, "")
+		if ptex != "" and tex.get(ptex) != null:
+			var pspec: Array = V6_FRAMES[ptex]
+			var pfr: int = (int(t * pspec[1] + b.pos.x * 0.01) % int(pspec[0])) if pspec[1] > 0.0 else 0
+			match b.kind:
+				"arrow":
+					draw_line(b.pos - n * 34.0, b.pos - n * 12.0, Color(1.6, 1.4, 1.0, 0.3), 2.0)
+				"fire":
+					draw_circle(b.pos, 14.0, Color(2.0, 0.8, 0.2, 0.2))
+				"arcane":
+					draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
+				"dbullet":
+					draw_line(b.pos - n * 14.0, b.pos, Color(1.2, 2.4, 2.6, 0.4), 2.0)
+				"tide":
+					draw_circle(b.pos, 11.0, Color(0.5, 1.2, 2.0, 0.2))
+			_spr_rot(ptex, pfr, b.pos, b.vel.angle(), PX)
+			continue
 		match b.kind:
 			"arrow":
 				draw_line(b.pos - n * 26.0, b.pos - n * 10.0, Color(1.6, 1.4, 1.0, 0.35), 2.0)
@@ -3773,10 +3901,13 @@ func _draw() -> void:
 				var age: float = f.max - f.life
 				if age >= f.get("delay", 0.0):
 					var p: Vector2 = f.pos + Vector2(0, -40.0 * (age - f.delay))
-					var sz: float = f.sz
-					var ca := Color(0.7, 2.2, 1.0, a)
-					draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
-					draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
+					if tex.get("fx_heal_cross") != null:
+						_spr_rot("fx_heal_cross", mini(3, int((age - f.delay) * 10.0)), p, 0.0, PX * f.sz / 4.5, Color(1, 1, 1, a))
+					else:
+						var sz: float = f.sz
+						var ca := Color(0.7, 2.2, 1.0, a)
+						draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
+						draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
 			"beam":
 				var c: Color = f.col
 				draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.35 * a), f.w * 3.0)
@@ -3787,6 +3918,12 @@ func _draw() -> void:
 				draw_line(f.a, f.b, Color(0.8, 2.4, 2.8, 0.8 * a), 6.0 * a + 1.0)
 				draw_line(f.a, f.b, Color(3.0, 3.0, 3.0, a), 2.0)
 				draw_circle(f.a, 7.0 * a + 2.0, Color(2.0, 2.8, 3.0, a))
+			"sprite":
+				var spec: Array = V6_FRAMES[f.name]
+				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+				_spr_rot(f.name, fr, f.pos, f.ang, f.scale)
+				if f.get("ring", 0.0) > 0.0 and fr == 0:
+					draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
 				# 唤醒命中：十字闪光
 				var k := 1.0 - a
