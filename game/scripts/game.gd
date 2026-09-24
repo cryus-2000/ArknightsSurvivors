@@ -110,6 +110,7 @@ var in_type: Array = ["近战", "物理"]   # 当前受到的伤害类型（受�
 var dmg_type_out: Dictionary = {}     # 造成伤害按类型统计
 var RL: Dictionary = {}          # 藏品表 id -> {name, cat, desc, rarity, ...}（由 relic_fx 从 data/ 读取）
 var tray_cells: Array = []       # 藏品栏格子 [Rect2, id]，用于鼠标悬停提示
+var stats_cells: Array = []      # Tab 面板里可悬停的格子 [Rect2, kind, id]
 var rfx: RefCounted = null       # 藏品效果解释器
 var sp_mult := 1.0
 var s1_need := 7                 # 唤醒：充能所需挥伞次数
@@ -581,6 +582,11 @@ func _autotest_step() -> void:
 			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_zone.png")
 		if at_frames == 130:
 			state = S.STATS
+		if at_frames == 132:
+			for c in stats_cells:
+				if c[1] == "relic":
+					Input.warp_mouse(c[0].get_center())
+					break
 		if at_frames == 134 and DisplayServer.get_name() != "headless":
 			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_stats.png")
 			state = S.PLAY
@@ -5881,6 +5887,7 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12)
 	UI.rule(hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
 	# 三个子面板
+	stats_cells.clear()
 	var top := r.position.y + 98
 	var h := r.end.y - 44 - top
 	var boxes: Array = [Rect2(r.position.x + 22, top, 330, h), Rect2(r.position.x + 366, top, 330, h), Rect2(r.position.x + 710, top, r.size.x - 732, h)]
@@ -5999,8 +6006,48 @@ func _draw_stats(vs: Vector2) -> void:
 		else:
 			UI.text(hud, font, gc + Vector2(0, 26), D.GROWTH[gid].name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
 		UI.text(hud, font, gc + Vector2(20, 37), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+		stats_cells.append([Rect2(gc, Vector2(38, 38)), "growth", gid])
 		gi += 1
+	# 藏品：图标网格（悬停看效果）
+	y = gy + (maxi(0, gi - 1) / per + 1) * 46 + 6
+	UI.rule(hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
+	y += 8
+	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "藏品  %d 件" % relics.size(), 13, UI.SUB)
+	UI.text(hud, font, Vector2(b2.position.x + 120, y + 12), "鼠标移到图标上查看效果", 11, UI.CYAN_DIM)
+	y += 22
+	var mouse2 := hud.get_local_mouse_position()
+	for i in relics.size():
+		var rc := Vector2(gx + (i % per) * 44, y + (i / per) * 46)
+		if rc.y + 40 > b2.end.y - 8:
+			break
+		var rd: Dictionary = RL[relics[i]]
+		var rcol: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var cr := Rect2(rc, Vector2(38, 38))
+		var hov: bool = cr.has_point(mouse2)
+		hud.draw_rect(cr, Color(0.01, 0.04, 0.08, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))
+		hud.draw_rect(cr, Color(rcol.r, rcol.g, rcol.b, 0.7 if not hov else 1.0), false, 1.0 if not hov else 2.0)
+		var rt: Texture2D = tex.get("relic_" + relics[i])
+		if rt != null:
+			hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(32, 32)), false)
+		else:
+			UI.text(hud, font, rc + Vector2(0, 26), rd.name.substr(0, 1), 16, rcol, HORIZONTAL_ALIGNMENT_CENTER, 38)
+		var rl: int = rfx.lv.get(relics[i], 1)
+		if rl > 1:
+			UI.text(hud, font, rc + Vector2(20, 37), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+		stats_cells.append([cr, "relic", relics[i]])
 	UI.text(hud, font, Vector2(r.position.x, r.end.y - 18), "藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  按 Tab / C / Esc 返回" % [relics.size(), kills, ingots], 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	# 悬停提示（藏品 / 成长）
+	for cellinfo in stats_cells:
+		var cr2: Rect2 = cellinfo[0]
+		if not cr2.has_point(mouse2):
+			continue
+		if cellinfo[1] == "relic":
+			var rd2: Dictionary = RL[cellinfo[2]]
+			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
+		else:
+			var gd: Dictionary = D.GROWTH[cellinfo[2]]
+			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
+		break
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
@@ -6113,9 +6160,9 @@ func _draw_relic_tray(tr: Vector2) -> void:
 	var cy := r.end.y + 16
 
 
-## 藏品悬停提示：名称、分类·稀有度、等级、效果
+## 藏品栏悬停提示（游戏中 / 暂停）
 func _draw_relic_tooltip(vs: Vector2) -> void:
-	if state != S.PLAY and state != S.PAUSE and state != S.STATS:
+	if state != S.PLAY and state != S.PAUSE:
 		return
 	var mouse := hud.get_local_mouse_position()
 	for cellinfo in tray_cells:
@@ -6124,30 +6171,34 @@ func _draw_relic_tooltip(vs: Vector2) -> void:
 			continue
 		var id: String = cellinfo[1]
 		var rd: Dictionary = RL[id]
-		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
-		var lvn: int = rfx.lv.get(id, 1)
 		var mx: int = rfx.max_lv(id)
-		var lines: Array = []
-		var desc: String = rd.desc
-		# 按 26 字折行
-		while desc.length() > 26:
-			lines.append(desc.substr(0, 26))
-			desc = desc.substr(26)
-		lines.append(desc)
-		var w := 320.0
-		var h := 66.0 + lines.size() * 20.0
-		var pos := Vector2(minf(cr.position.x, vs.x - w - 12), cr.end.y + 8)
-		var r := Rect2(pos, Vector2(w, h))
-		UI.frame(hud, r, col, {"cut": 6.0, "bracket": 6.0})
-		hud.draw_rect(Rect2(pos + Vector2(2, 2), Vector2(w - 4, h - 4)), Color(0.01, 0.04, 0.08, 0.92))
-		var ic: Texture2D = tex.get("relic_" + id)
-		if ic != null:
-			hud.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
-		UI.text(hud, font, pos + Vector2(62, 28), rd.name + ((" Lv.%d/%d" % [lvn, mx]) if mx > 1 else ""), 16, Color.WHITE)
-		UI.text(hud, font, pos + Vector2(62, 48), "%s · %s" % [rd.cat, rd.rarity], 12, col)
-		for k in lines.size():
-			UI.text(hud, font, pos + Vector2(14, 74 + k * 20), lines[k], 13, Color(0.85, 0.92, 0.95))
+		_draw_tooltip(vs, cr, rd.name + ((" Lv.%d/%d" % [rfx.lv.get(id, 1), mx]) if mx > 1 else ""), "%s · %s" % [rd.cat, rd.rarity], rd.desc, "relic_" + id, UI.CAT_COL.get(rd.cat, UI.GOLD))
 		return
+
+
+## 通用提示卡：贴在格子下方（越界时贴上方 / 左移），图标 + 标题 + 副标题 + 折行说明
+func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: String, icon: String, col: Color) -> void:
+	var lines: Array = []
+	var d := desc
+	while d.length() > 26:
+		lines.append(d.substr(0, 26))
+		d = d.substr(26)
+	lines.append(d)
+	var w := 330.0
+	var h := 66.0 + lines.size() * 20.0
+	var pos := Vector2(clampf(cr.position.x, 12.0, vs.x - w - 12.0), cr.end.y + 8)
+	if pos.y + h > vs.y - 12.0:
+		pos.y = cr.position.y - h - 8
+	var r := Rect2(pos, Vector2(w, h))
+	hud.draw_rect(Rect2(pos + Vector2(2, 2), Vector2(w - 4, h - 4)), Color(0.01, 0.04, 0.08, 0.95))
+	UI.frame(hud, r, col, {"cut": 6.0, "bracket": 6.0})
+	var ic: Texture2D = tex.get(icon)
+	if ic != null:
+		hud.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
+	UI.text(hud, font, pos + Vector2(62, 28), title, 16, Color.WHITE)
+	UI.text(hud, font, pos + Vector2(62, 48), sub, 12, col)
+	for k in lines.size():
+		UI.text(hud, font, pos + Vector2(14, 74 + k * 20), lines[k], 13, Color(0.85, 0.92, 0.95))
 
 
 ## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
