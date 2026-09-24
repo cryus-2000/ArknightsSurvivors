@@ -3293,6 +3293,9 @@ func _pick(i: int) -> void:
 
 func _apply_relic(id: String) -> void:
 	rfx.apply(id)
+	if not Cfg.seen_relics.has(id):
+		Cfg.seen_relics.append(id)
+		Cfg.save()
 
 
 # =====================================================================
@@ -4660,7 +4663,7 @@ const INTRO_PAGES := [
 	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
 		"WASD / 方向键：移动　　Tab 或 C：查看属性与技能　　Esc：暂停",
 		"升级 / 宝箱 / 商人：按 1 2 3 或点击选择　　M：静音　　R：重来",
-		"暂停菜单按 G 可以随时重看本指南。祝你好运，水月。"]},
+		"暂停菜单按 G 可以随时重看本指南。祝你好运，博士。"]},
 ]
 
 
@@ -4851,6 +4854,7 @@ func _draw_stats(vs: Vector2) -> void:
 		var lv: int = skill_lv[sid]
 		var col: Color = sk.col if lv >= 1 else Color(0.35, 0.42, 0.46)
 		var sc := Vector2(b1.position.x + 34, y + 18)
+		stats_cells.append([Rect2(b1.position.x + 12, y - 2, b1.size.x - 24, 42), "skill", sid])
 		UI.ring(hud, sc, 17.0, 1.0 if lv >= 1 else 0.0, col, false, lv < 1)
 		var sicon: Texture2D = tex.get("skill_" + sid)
 		if sicon != null:
@@ -4951,6 +4955,17 @@ func _draw_stats(vs: Vector2) -> void:
 		if cellinfo[1] == "relic":
 			var rd2: Dictionary = RL[cellinfo[2]]
 			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
+		elif cellinfo[1] == "skill":
+			var sid2: String = cellinfo[2]
+			var sk2: Dictionary = ch.skills()[sid2]
+			var lv2: int = skill_lv[sid2]
+			var advs: Array = ch.skill_adv()[sid2]
+			var d2: String = sk2.desc
+			for k in advs.size():
+				var tag: String = "◆" if lv2 >= k + 2 else "◇"
+				d2 += "\n%s %s（Lv.%d）：%s" % [tag, advs[k].name, advs[k].min_lv, advs[k].desc]
+			var sub2: String = ("Lv.%d 解锁" % ch.skill_unlock()[sid2]) if lv2 < 1 else ("已解锁 · 进阶 %d/2" % (lv2 - 1))
+			_draw_tooltip(vs, cr2, sk2.name + "  " + sk2.en, sub2, d2, "skill_" + sid2, sk2.col)
 		else:
 			var gd: Dictionary = ch.growth_table()[cellinfo[2]]
 			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
@@ -5086,11 +5101,12 @@ func _draw_relic_tooltip(vs: Vector2) -> void:
 ## 通用提示卡：贴在格子下方（越界时贴上方 / 左移），图标 + 标题 + 副标题 + 折行说明
 func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: String, icon: String, col: Color) -> void:
 	var lines: Array = []
-	var d := desc
-	while d.length() > 26:
-		lines.append(d.substr(0, 26))
-		d = d.substr(26)
-	lines.append(d)
+	for para in desc.split("\n"):
+		var d: String = para
+		while d.length() > 26:
+			lines.append(d.substr(0, 26))
+			d = d.substr(26)
+		lines.append(d)
 	var w := 330.0
 	var h := 66.0 + lines.size() * 20.0
 	var pos := Vector2(clampf(cr.position.x, 12.0, vs.x - w - 12.0), cr.end.y + 8)

@@ -40,6 +40,12 @@ const ENEMY_DESC := {
 	"ishar": "后续结局登场。",
 }
 const LOCKED := ["izumik", "ishar", "tear"]
+const RelicDb = preload("res://scripts/core/relic_db.gd")
+var lore: Dictionary = {}       # data/lore.json
+var relic_db: RefCounted
+var scroll := 0                 # 网格滚动的行数
+const COLS := 5
+const ROWS := 4
 
 var font: Font
 var t := 0.0
@@ -55,6 +61,13 @@ var close_rect := Rect2()
 
 
 func _ready() -> void:
+	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
+	if lf != null:
+		var ld = JSON.parse_string(lf.get_as_text())
+		if ld is Dictionary:
+			lore = ld
+	relic_db = RelicDb.new()
+	relic_db.load_files()
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	font = load("res://fonts/ui.ttf")
@@ -110,11 +123,11 @@ func _build() -> void:
 				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": cd.get("gallery", {}).get("tag", "干员"), "forms": [
 					_anim("待机", sp.get("idle", "player_idle"), 4.0), _anim("跑步", sp.get("run", "player_run"), 10.0), _anim("攻击", sp.get("attack", atk), 16.0),
 					_anim("受击", sp.get("hurt", "player_hurt"), 6.0), _anim("倒下", sp.get("death", "player_death"), 5.0, false)],
-					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": cd.get("gallery", {}).get("desc", "")})
+					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": _lore_text(cid, cd.get("gallery", {}).get("desc", ""))})
 			for k in D.ALLIES:
 				var a: Dictionary = D.ALLIES[k]
 				entries.append({"name": a.name, "en": a.en, "tag": "援护干员", "forms": [_anim_n("待机", "ally_" + k, 2, 3.0)],
-					"stats": [], "desc": a.desc + "\n升级：" + a.up + "（Lv.5 / 15 / 25 时招募或升级）"})
+					"stats": [], "desc": _lore_text(k, a.desc + "\n升级：" + a.up + "（Lv.5 / 15 / 25 时招募或升级）")})
 		1, 2, 3:
 			var role: String = ["", "", "elite", "boss"][tab]
 			for k in D.ENEMIES:
@@ -143,7 +156,19 @@ func _build() -> void:
 				if e.has("ammo"):
 					tags.append("装填")
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": ENEMY_DESC.get(k, ""), "locked": LOCKED.has(k)})
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, "")), "locked": LOCKED.has(k)})
+		5:
+			# 藏品：已实装的全部列出；没获得过的显示为 ???
+			var lst: Array = relic_db.implemented()
+			var order := {"基础": 0, "稀有": 1, "核心": 2, "升华": 3, "遭诅古物": 4, "结局": 5}
+			lst.sort_custom(func(a, b): return (order.get(a.rarity, 9) * 1000 + int(a.id)) < (order.get(b.rarity, 9) * 1000 + int(b.id)))
+			for r in lst:
+				var seen: bool = Cfg.seen_relics.has(r.id)
+				var stt: Array = [["等级", r.rarity], ["类别", r.get("cat", "")]]
+				if r.has("lanes") and not r.lanes.is_empty():
+					stt.append(["流派", " / ".join(r.lanes)])
+				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen, "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火过低时敌人更快、更凶，熄灭后持续受到伤害。"})
@@ -162,8 +187,24 @@ func _build() -> void:
 	form_t = 0.0
 
 
+## 介绍文字：lore.json 的档案文字在前，机制说明在后
+func _lore_text(key: String, mech: String) -> String:
+	var l: Dictionary = lore.get(key, {})
+	var out: String = l.get("lore", "")
+	if out != "" and mech != "":
+		out += "\n\n" + mech
+	elif out == "":
+		out = mech
+	return out
+
+
 # ---------------------------------------------------------------- 输入
 func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_WHEEL_DOWN or event.button_index == MOUSE_BUTTON_WHEEL_UP):
+		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+		scroll = clampi(scroll + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, max_scroll)
+		accept_event()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if close_rect.has_point(event.position):
 			close()
@@ -217,6 +258,7 @@ func _set_tab(i: int) -> void:
 		return
 	tab = i
 	sel = 0
+	scroll = 0
 	Sfx.play("ui_move")
 	_build()
 
@@ -230,6 +272,11 @@ func _set_sel(i: int) -> void:
 		form = 0
 		form_t = 0.0
 		Sfx.play("ui_move")
+	var row: int = sel / COLS
+	if row < scroll:
+		scroll = row
+	elif row >= scroll + ROWS:
+		scroll = row - ROWS + 1
 
 
 # ---------------------------------------------------------------- 绘制
@@ -255,11 +302,11 @@ func _draw() -> void:
 		UI.panel(self, r, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.06, 0.09, 0.7), UI.CYAN if on else Color(0.2, 0.4, 0.45, 0.5), 8.0, UI.CYAN if on else Color(0, 0, 0, 0))
 		UI.text(self, font, r.position + Vector2(14, 27), TABS[i].cn, 17, UI.TEXT if on else UI.SUB)
 		UI.en(self, font, r.position + Vector2(r.size.x - 8 - TABS[i].en.length() * 6.5, 25), TABS[i].en, 8, UI.CYAN if on else Color(0.3, 0.45, 0.5), 0.5)
-	if tab == 5:
-		_draw_relic_placeholder(vs)
-	else:
-		_draw_grid()
-		_draw_detail(vs)
+	_draw_grid()
+	_draw_detail(vs)
+	if entries.size() > COLS * ROWS:
+		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+		UI.text(self, font, Vector2(60, vs.y - 34), "滚轮翻页  %d / %d" % [scroll + 1, max_scroll + 1], 12, UI.SUB)
 	UI.text(self, font, Vector2(0, vs.y - 22), "Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
@@ -271,10 +318,16 @@ func _frame_rect(f: Dictionary, frame: int) -> Rect2:
 
 func _draw_grid() -> void:
 	tile_rects.clear()
+	var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+	scroll = clampi(scroll, 0, max_scroll)
 	for i in entries.size():
 		var e: Dictionary = entries[i]
-		var r := Rect2(60 + (i % 5) * 110, 150 + (i / 5) * 124, 100, 114)
+		var row: int = i / COLS - scroll
+		var r := Rect2(60 + (i % COLS) * 110, 150 + row * 124, 100, 114)
 		tile_rects.append(r)
+		if row < 0 or row >= ROWS:
+			tile_rects[i] = Rect2()
+			continue
 		var on := i == sel
 		UI.panel(self, r, Color(0.05, 0.16, 0.2, 0.95) if on else Color(0.02, 0.06, 0.09, 0.8), UI.CYAN if on else Color(0.2, 0.4, 0.45, 0.45), 8.0, UI.CYAN if on else Color(0, 0, 0, 0))
 		var f: Dictionary = e.forms[0]
@@ -347,16 +400,5 @@ func _draw_detail(vs: Vector2) -> void:
 			cx += w + 8
 	var dy := maxf(y + 34, box.end.y + 60)
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
-	var desc: String = e.desc if not locked else "尚未遭遇。" + e.desc
+	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
 	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), desc, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, 15, -1, Color(0.8, 0.9, 0.92))
-
-
-func _draw_relic_placeholder(vs: Vector2) -> void:
-	var r := Rect2(60, 150, vs.x - 120, vs.y - 200)
-	UI.panel(self, r, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.GOLD, 72, t)
-	for i in 60:
-		var c := r.position + Vector2(60 + (i % 15) * 74, 60 + (i / 15) * 74)
-		UI.diamond(self, c, 22.0, Color(0.03, 0.08, 0.1), Color(0.3, 0.4, 0.42, 0.5))
-		UI.text(self, font, c + Vector2(-20, 7), "?", 18, Color(0.35, 0.45, 0.48), HORIZONTAL_ALIGNMENT_CENTER, 40)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 60), "藏品图鉴即将开放", 22, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 30), "藏品系统完成后，局内获得过的藏品会收录在这里", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

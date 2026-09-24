@@ -27,6 +27,9 @@ var branches: Array = []   # [a, b, width, depth]
 var nodes: Array = []      # 发光节点 [pos, phase]
 var motes: Array = []
 var guide := false
+var credits := false
+var credits_rect := Rect2()
+var credits_data: Dictionary = {}
 var leaving := -1.0
 var settings: Control
 var gallery: Control
@@ -56,6 +59,11 @@ func _ready() -> void:
 	bg_layer.layer = -1
 	add_child(bg_layer)
 	bg_layer.add_child(preload("res://scripts/title_bg.gd").new())
+	var cf := FileAccess.open("res://data/credits.json", FileAccess.READ)
+	if cf != null:
+		var cd = JSON.parse_string(cf.get_as_text())
+		if cd is Dictionary:
+			credits_data = cd
 	gallery = preload("res://scripts/gallery.gd").new()
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
@@ -215,8 +223,9 @@ func _input(event: InputEvent) -> void:
 		_diff_input(event)
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if guide:
+		if guide or credits:
 			guide = false
+			credits = false
 			Sfx.play("ui_ok")
 			return
 		match event.keycode:
@@ -234,8 +243,13 @@ func _input(event: InputEvent) -> void:
 				sel = i
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if guide:
+		if guide or credits:
 			guide = false
+			credits = false
+			return
+		if credits_rect.has_point(event.position):
+			credits = true
+			Sfx.play("ui_ok")
 			return
 		for i in item_rects.size():
 			if item_rects[i].has_point(event.position):
@@ -291,11 +305,15 @@ func _draw() -> void:
 		UI.text(self, font, r.position + Vector2(24, 34), ITEMS[i].cn, 24, UI.TEXT if on else UI.SUB)
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
+	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
+	var cr_hover := credits_rect.has_point(get_local_mouse_position())
+	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, UI.CYAN if cr_hover else Color(0.4, 0.55, 0.6))
 	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.8", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)
+	if credits:
+		_draw_credits(vs)
 	if diff_pick:
 		_draw_diff(vs)
 	if leaving >= 0.0:
@@ -322,3 +340,36 @@ func _draw_guide(vs: Vector2) -> void:
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), "按任意键返回", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
+## 致谢与声明：内容来自 data/credits.json
+func _draw_credits(vs: Vector2) -> void:
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
+	var secs: Array = credits_data.get("sections", [])
+	var tw := 760.0 - 230.0
+	var heights: Array = []
+	var total := 0.0
+	for sec in secs:
+		var hh: float = font.get_multiline_string_size(sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14).y
+		if sec.size() > 2 and sec[2] != "":
+			hh += 18.0
+		hh = maxf(hh, 24.0) + 22.0
+		heights.append(hh)
+		total += hh
+	var h: float = 150.0 + total
+	var r := Rect2(vs.x / 2 - 380, vs.y / 2 - h / 2, 760, h)
+	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
+	UI.text(self, font, r.position + Vector2(36, 52), credits_data.get("title", "致谢与声明"), 26, UI.TEXT)
+	UI.en(self, font, r.position + Vector2(190, 50), credits_data.get("en", "CREDITS"), 12, UI.CYAN, 3.0)
+	var y := r.position.y + 90
+	for i in secs.size():
+		var sec: Array = secs[i]
+		UI.diamond(self, Vector2(r.position.x + 44, y + 8), 4.0, UI.CYAN)
+		UI.text(self, font, Vector2(r.position.x + 58, y + 14), sec[0], 16, UI.CYAN)
+		draw_multiline_string(font, Vector2(r.position.x + 190, y + 12), sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.TEXT)
+		if sec.size() > 2 and sec[2] != "":
+			var th: float = font.get_multiline_string_size(sec[1], HORIZONTAL_ALIGNMENT_LEFT, tw, 14).y
+			UI.text(self, font, Vector2(r.position.x + 190, y + 12 + th + 6), sec[2], 12, Color(0.5, 0.75, 0.85))
+		y += heights[i]
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 44), credits_data.get("footer", ""), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 22), "按任意键返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
