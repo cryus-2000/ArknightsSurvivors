@@ -3220,7 +3220,7 @@ func _draw_show(vs: Vector2) -> void:
 			UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		UI.chip(hud, font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(hud, font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		hud.draw_multiline_string(font, r.position + Vector2(150, 106), it.desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e))
+		hud.draw_multiline_string(font, r.position + Vector2(150, 106), it.desc, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e), UI.BRK)
 	if st > 1.0:
 		var ba := 0.5 + 0.5 * sin(st * 4.0)
 		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
@@ -3666,10 +3666,9 @@ func _draw() -> void:
 		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * (1.6 if big_m else 1.2))
 		if big_m:
 			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos + Vector2(0, 18), PX, ppos.x < merchant.pos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
-			UI.text(self, font, merchant.pos + Vector2(-40, -84), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 		else:
 			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
-			UI.text(self, font, merchant.pos + Vector2(-40, -34), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
 	for g in gems:
 		var gz: float = g.get("z", 0.0)
 		if gz > 1.0:
@@ -4728,19 +4727,25 @@ func _draw_hud() -> void:
 			hud.draw_arc(edge, 24.0, 0.0, TAU, 28, UI.GOLD, 2.0)
 			var mt: Texture2D = tex.merchant
 			var fw := mt.get_width() / 2
-			var msc: float = 2.0 if mt.get_height() < 40 else 1.0
-			hud.draw_texture_rect_region(mt, Rect2(edge - Vector2(fw, mt.get_height()) * msc * 0.5 + Vector2(0, -mt.get_height() * msc * 0.5), Vector2(fw, mt.get_height()) * msc), Rect2(fw * mf, 0, fw, mt.get_height()))
+			# 头像整体缩放到直径 40 的圆圈里居中（高清 48px 图缩到 0.8，像素 20px 图放大 2 倍）
+			var msc: float = minf(40.0 / float(fw), 40.0 / float(mt.get_height()))
+			msc = floorf(msc) if msc >= 1.0 else msc
+			var msz := Vector2(fw, mt.get_height()) * msc
+			hud.draw_texture_rect_region(mt, Rect2((edge - msz * 0.5).round(), msz), Rect2(fw * mf, 0, fw, mt.get_height()))
 			# 指向商人的箭头
 			var tip: Vector2 = edge + d * (40.0 + 5.0 * pulse)
 			var base: Vector2 = edge + d * 28.0
 			var sd := d.orthogonal() * 10.0
 			hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), UI.GOLD)
 			var dist := int(merchant.pos.distance_to(ppos) / 32.0)
-			var lab_y := -34.0 if edge.y > vs.y / 2 else 44.0
+			# 文字放在圆圈（半径 24 + 光晕）之外：下半屏放上方，上半屏放下方
+			var lab_y := -40.0 if edge.y > vs.y / 2 else 54.0
 			UI.text(hud, font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(merchant.life)], 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 		else:
 			# 在画面内：头顶跳动的箭头
-			var hp2 := sp + Vector2(0, -64 - bounce)
+			var big_m: bool = tex.merchant != null and tex.merchant.get_height() >= 40
+			var head: float = (84.0 if big_m else 36.0) * ct.get_scale().y
+			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
 			hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(hud, font, hp2 + Vector2(-60, -8), ("商人 %ds" if merchant.life > 15.0 else "商人即将离开 %ds") % int(merchant.life), 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
 	# 海嗣祭坛方位指示（屏幕外）
@@ -4984,7 +4989,7 @@ func _draw_intro(vs: Vector2) -> void:
 	var y := r.position.y + 156
 	for ln in pg.lines:
 		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
-		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea))
+		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea), UI.BRK)
 		y += 100
 	# 页码点（可点击）
 	intro_panel = r

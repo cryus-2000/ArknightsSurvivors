@@ -11,6 +11,8 @@ const RED := Color(1.0, 0.36, 0.43)
 const PURPLE := Color(0.66, 0.52, 1.0)
 const TEXT := Color(0.90, 0.96, 0.96)
 const SUB := Color(0.50, 0.66, 0.70)
+## 多行文字折行规则：中文没有空格，必须允许按字折行，否则整段不换行溢出面板
+const BRK: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
 
 const CAT_COL := {"灯火": Color(1.0, 0.77, 0.42), "战斗": Color(0.33, 0.92, 0.88), "生存": Color(0.55, 0.9, 0.55), "海嗣": Color(0.66, 0.52, 1.0),
 	# data/relics.json 的分类

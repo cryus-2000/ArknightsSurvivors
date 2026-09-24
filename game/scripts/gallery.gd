@@ -423,4 +423,4 @@ func _draw_detail(vs: Vector2) -> void:
 	var dy := maxf(y + 34, box.end.y + 60)
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
 	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
-	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), desc, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, 15, -1, Color(0.8, 0.9, 0.92))
+	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), desc, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, 15, -1, Color(0.8, 0.9, 0.92), UI.BRK)
