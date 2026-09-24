@@ -1,0 +1,85 @@
+{
+  "spec": "docs/24_squad_art_brief.md",
+  "batch": 2,
+  "date": "2026-09-25",
+  "frame_index_convention": "zero-based event_frame_zero_based; human reference event_frame_one_based",
+  "preview": "squad_batch2_preview.png",
+  "assets": [
+    {
+      "file": "op_wisadel_idle.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "0fbeebbbc848d86d521ae710ed34b2c41823ab806d69ba26f04b0dc0eb103195"
+    },
+    {
+      "file": "op_wisadel_run.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "22b37b6950c74f776a8a94b73dc13a5f56ea4ec4e06b8220098e1c718e59ba26"
+    },
+    {
+      "file": "op_wisadel_attack.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "b9144b3633625dd5c77b8a0954c766c09c58e7b6de81d0d4188158c8d4ef238a"
+    },
+    {
+      "file": "op_wisadel_skill.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 4,
+      "event_frame_one_based": 5,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "059fe4c34ef8cf92a5ed3b130271c53e2f2f0926a92d56dc6c45025b50989b89"
+    }
+  ]
+}
