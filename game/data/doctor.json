@@ -1,0 +1,18 @@
+{
+ "id": "doctor",
+ "name": "博士",
+ "en": "DOCTOR",
+ "sprites": {
+  "idle": "doctor",
+  "size": 48,
+  "foot": [24, 45]
+ },
+ "stats": {
+  "max_hp": 100,
+  "regen": 0.6,
+  "move_speed": 150,
+  "dodge": 0.25,
+  "pickup": 70
+ },
+ "command": null
+}

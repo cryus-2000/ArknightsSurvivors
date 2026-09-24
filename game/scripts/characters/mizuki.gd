@@ -74,9 +74,9 @@ func _dmg_bonus() -> float:
 
 
 func _low_hp_enemy_near() -> bool:
-	for j in g._query(g.ppos, 160.0):
+	for j in g._query(pos, 160.0):
 		var e: Dictionary = g.enemies[j]
-		if not e.dead and e.hp < e.maxhp * 0.5 and e.pos.distance_to(g.ppos) < 160.0:
+		if not e.dead and e.hp < e.maxhp * 0.5 and e.pos.distance_to(pos) < 160.0:
 			return true
 	return false
 
@@ -99,28 +99,28 @@ func update(dt: float) -> void:
 			s3_active -= dt
 			if rej.has("s3a") and g.skill_lv.s3 >= 2:
 				# 海嗣分身（排异）：自己找目标、自己挥伞、吸引周围仇恨
-				var tgt = g._nearest(1, 320.0)
-				var want: Vector2 = g.ppos + Vector2(-g.facing * 80.0, -10.0)
+				var tgt = g._nearest(1, 320.0, pos)
+				var want: Vector2 = pos + Vector2(-face * 80.0, -10.0)
 				if not tgt.is_empty():
 					want = tgt[0].pos + (mirror_pos - tgt[0].pos).normalized() * 60.0
 				mirror_pos = mirror_pos.lerp(want, minf(1.0, dt * 3.0))
 				clone_t -= dt
 				if clone_t <= 0.0:
 					clone_t = 0.55
-					delayed.append({"at": 0.0, "kind": "echo", "ang": g.facing_angle(), "dmg": 18.0 * g.u_dmg_mult * g.dmg_mult * P.s3_echo_mult,
+					delayed.append({"at": 0.0, "kind": "echo", "ang": facing_angle(), "dmg": 18.0 * g.u_dmg_mult * g.dmg_mult * P.s3_echo_mult,
 						"half": 1.3, "radius": 95.0 * g.u_area_mult, "dirs": 1})
 				for j in g._query(mirror_pos, 200.0):
 					var ce: Dictionary = g.enemies[j]
 					if not ce.dead and not ce.boss and ce.ai == "melee":
 						ce.aggro = mirror_pos
 			else:
-				mirror_pos = mirror_pos.lerp(g.ppos + Vector2(-g.facing * 80.0, -10.0), minf(1.0, dt * 8.0))
+				mirror_pos = mirror_pos.lerp(pos + Vector2(-face * 80.0, -10.0), minf(1.0, dt * 8.0))
 			# 深海幻境：周身敌人减速
 			if g.skill_lv.s3 >= 3:
 				var zr: float = P.s3_zone_r * (1.5 if rej.has("s3b") else 1.0)
-				for j in g._query(g.ppos, zr):
+				for j in g._query(pos, zr):
 					var ze: Dictionary = g.enemies[j]
-					if not ze.dead and ze.pos.distance_to(g.ppos) < zr:
+					if not ze.dead and ze.pos.distance_to(pos) < zr:
 						ze.slow = maxf(ze.slow, 0.2)
 				if rej.has("s3b"):
 					g.atk_slow = maxf(g.atk_slow, 0.0)
@@ -130,7 +130,9 @@ func update(dt: float) -> void:
 			afterimg_t -= dt
 			if afterimg_t <= 0.0:
 				afterimg_t = 0.06
-				afterimg.push_front({"pos": g.ppos, "frame": g.sprite.frame, "tex": g.sprite.texture, "hf": g.sprite.hframes, "flip": g.sprite.flip_h})
+				var ast := anim_state()
+				if not ast.is_empty():
+					afterimg.push_front({"pos": pos, "frame": ast.frame, "tex": ast.tex, "hf": ast.hf, "flip": ast.flip})
 				if afterimg.size() > 5:
 					afterimg.pop_back()
 		else:
@@ -139,7 +141,7 @@ func update(dt: float) -> void:
 			if s3_sp >= P.s3_charge:
 				s3_sp = 0.0
 				s3_active = P.s3_dur
-				mirror_pos = g.ppos
+				mirror_pos = pos
 				_skill_cast("s3")
 	# 延时攻击
 	for i in range(delayed.size() - 1, -1, -1):
@@ -153,7 +155,7 @@ func update(dt: float) -> void:
 	swing_cd -= dt
 	if swing_cd <= 0.0:
 		var radius := _swing_radius()
-		var targets = g._nearest(1, radius + 60.0)
+		var targets = g._nearest(1, radius + 60.0, pos)
 		if targets.size() > 0:
 			var interval: float = base("swing_interval", 0.9) * u_spd_mult * (1.5 if g.atk_slow > 0.0 else 1.0) * g.rfx.umbrella_interval_mult()
 			if s2_active > 0.0:
@@ -171,9 +173,9 @@ func _umbrella(target: Dictionary) -> void:
 	var P: Dictionary = D.SKILL_P
 	var radius := _swing_radius()
 	var half := deg_to_rad(min(180.0, 75.0 + rib_bonus + 15.0 * g.growth.get("u_area", 0)))
-	var ang: float = (target.pos - g.ppos).angle()
-	g.facing = 1.0 if cos(ang) >= 0.0 else -1.0
-	g.swing_face = 0.25
+	var ang: float = (target.pos - pos).angle()
+	face_to(ang)
+	attack_t = attack_dur
 	var dmg: float = base("umbrella_dmg", 18.0) * u_dmg_mult * _dmg_bonus()
 	if s3_active > 0.0:
 		dmg *= P.s3_mult
@@ -200,7 +202,7 @@ func _umbrella(target: Dictionary) -> void:
 	var seen := {}
 	var hit: Array = []
 	for d in dirs:
-		for e in g._arc_hit(g.ppos, d, half, radius):
+		for e in g._arc_hit(pos, d, half, radius):
 			if not seen.has(e.id):
 				seen[e.id] = true
 				hit.append(e)
@@ -210,7 +212,7 @@ func _umbrella(target: Dictionary) -> void:
 		g._hit("伞击", ["empowered"] if empowered else [])
 		g._damage(e, dmg)
 		if not e.boss:
-			e.kb += (e.pos - g.ppos).normalized() * (360.0 if empowered else 240.0)
+			e.kb += (e.pos - pos).normalized() * (360.0 if empowered else 240.0)
 		if s3_active > 0.0 and not e.dead:
 			e.stun = maxf(e.stun, P.s3_stun)
 	g.crit_hit = false
@@ -222,7 +224,7 @@ func _umbrella(target: Dictionary) -> void:
 		g.cam_kick = Vector2.from_angle(ang) * (10.0 if empowered else 4.0)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
-			g._sparks(he.pos, he.pos - g.ppos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
+			g._sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
 
 	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
@@ -262,18 +264,18 @@ func _umbrella(target: Dictionary) -> void:
 	if s2_active > 0.0:
 		if g.skill_lv.s2 >= 2 and rej.has("s2a"):
 			# 环触（排异）：全方向触手环
-			var ring = g._nearest(6, radius + 40.0)
+			var ring = g._nearest(6, radius + 40.0, pos)
 			for k in ring.size():
 				delayed.append({"at": 0.04 * k, "kind": "combo", "target": ring[k], "dmg": tdmg * 0.7})
 		elif g.skill_lv.s2 >= 2:
 			# 双重困境：斩向另一方向最近的敌人
 			var best: Dictionary = {}
 			var bd := INF
-			for j in g._query(g.ppos, radius + 60.0):
+			for j in g._query(pos, radius + 60.0):
 				var e2: Dictionary = g.enemies[j]
 				if e2.dead or seen.has(e2.id):
 					continue
-				var o2: Vector2 = e2.pos - g.ppos
+				var o2: Vector2 = e2.pos - pos
 				if abs(angle_difference(ang, o2.angle())) < 1.05:
 					continue
 				var dd := o2.length()
@@ -281,19 +283,19 @@ func _umbrella(target: Dictionary) -> void:
 					bd = dd
 					best = e2
 			if not best.is_empty():
-				var a2: float = (best.pos - g.ppos).angle()
-				for e in g._arc_hit(g.ppos, a2, half * 0.8, radius):
+				var a2: float = (best.pos - pos).angle()
+				for e in g._arc_hit(pos, a2, half * 0.8, radius):
 					if not seen.has(e.id):
 						g._hit("技能")
 						g._damage(e, dmg * P.s2_twin_mult)
 						if not e.dead:
 							e.stun = maxf(e.stun, 0.3)
-				g._slash_fx(g.ppos, a2, half * 0.8, radius, Color(0.8, 1.1, 1.4) if g._slash_tex().begins_with("fx_") else Color(0.5, 0.85, 1.4), g._slash_tex(), 0.18)
+				g._slash_fx(pos, a2, half * 0.8, radius, Color(0.8, 1.1, 1.4) if g._slash_tex().begins_with("fx_") else Color(0.5, 0.85, 1.4), g._slash_tex(), 0.18)
 		if g.skill_lv.s2 >= 3:
 			s2_combo += 1
 			if s2_combo >= P.s2_combo_every:
 				s2_combo = 0
-				var tg2 = g._nearest(8, 220.0)
+				var tg2 = g._nearest(8, 220.0, pos)
 				tg2.shuffle()
 				for k in mini(P.s2_combo_n, tg2.size()):
 					delayed.append({"at": 0.05 + 0.07 * k, "kind": "combo", "target": tg2[k], "dmg": tdmg * 0.8})
@@ -316,12 +318,12 @@ func _umbrella(target: Dictionary) -> void:
 	if empowered and alive.size() > 0:
 		g._anim("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
-		g._hit_fx(hit[k], hit[k].pos - g.ppos)
+		g._hit_fx(hit[k], hit[k].pos - pos)
 	for d in dirs:
-		g._slash_fx(g.ppos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
+		g._slash_fx(pos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
 		# 唤醒（旧素材）：外圈再叠一层更大的金色斩痕
-		g._slash_fx(g.ppos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
+		g._slash_fx(pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
 	_evo_on_swing(ang, dmg)
 
 
@@ -344,7 +346,7 @@ func _evo_on_swing(ang: float, dmg: float) -> void:
 				Sfx.play("swing_heavy", -2.0, 0.6, 0.0)
 	elif evo1 == "tendril":
 		var n := 1 + int(g.growth.get("t_count", 0)) + (2 if evo2 == "tendril_mother" else 0) + (1 if evo2 == "tendril_giant" else 0)
-		var pool = g._nearest(14, 270.0)
+		var pool = g._nearest(14, 270.0, pos)
 		pool.shuffle()
 		for k in mini(n, pool.size()):
 			delayed.append({"at": 0.05 + 0.06 * k, "kind": "summon", "target": pool[k], "dmg": dmg * 0.6 * (1.0 + 0.3 * g.growth.get("t_power", 0))})
@@ -353,7 +355,7 @@ func _evo_on_swing(ang: float, dmg: float) -> void:
 func _fire_wave(ang: float, dmg: float, size: float, dist: float, moon: bool, giant: bool) -> void:
 	var spd := 560.0 if not giant else 420.0
 	var life := dist / spd
-	g.bullets.append({"kind": "wave", "pos": g.ppos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
+	g.bullets.append({"kind": "wave", "pos": pos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
 		"dmg": dmg, "life": life * (2.0 if moon else 1.0), "max": life * (2.0 if moon else 1.0), "r": 20.0 * size, "size": size,
 		"aoe": 0.0, "hit": {}, "moon": moon, "ret": false, "giant": giant})
 	if not giant:
@@ -468,7 +470,7 @@ func _update_stakes(dt: float) -> void:
 	if evo2 == "tendril_giant":
 		giant_cd -= dt
 		if giant_cd <= 0.0:
-			var c = g._densest_point(400.0)
+			var c = g._densest_point(400.0, pos)
 			if c == Vector2.INF:
 				giant_cd = 0.5
 			else:
@@ -560,19 +562,19 @@ func _skill_cast(sid: String) -> void:
 	var sk: Dictionary = D.SKILLS[sid]
 	# 技能名横幅已取消（每次释放都弹太吵）；首次获得技能仍有演示
 	Sfx.play("skill", -1.0, 1.0 if sid == "s2" else 0.8, 0.0)
-	g._anim("fx_cast", g.ppos, 0.5, g.PX * (1.3 if sid == "s3" else 1.0), true)
+	g._anim("fx_cast", pos, 0.5, g.PX * (1.3 if sid == "s3" else 1.0), true)
 	g._shake(0.5 if sid == "s2" else 0.8)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = sk.col
-	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c})
-	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c})
-	g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.6, "max": 0.6, "col": c})
-	g._sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
+	g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c})
+	g.fx.append({"kind": "ring", "pos": pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c})
+	g.fx.append({"kind": "rays", "pos": pos, "life": 0.6, "max": 0.6, "col": c})
+	g._sparks(pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
 	# 发动冲击：推开身边小怪
-	for j in g._query(g.ppos, 140.0):
+	for j in g._query(pos, 140.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.boss and not e.chest:
-			e.kb += (e.pos - g.ppos).normalized() * 420.0
+			e.kb += (e.pos - pos).normalized() * 420.0
 
 
 func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
@@ -611,7 +613,7 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
 	g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
 	g._fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU)
-	g.fx.append({"kind": "tendril", "a": g.ppos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
+	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
 	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})
 	Sfx.play("tentacle", -4.0)
 	g._sparks(p + Vector2(0, 8), Vector2.UP, Color(0.75, 0.5, 1.0), 7, 200.0)
@@ -623,7 +625,7 @@ func _update_wave(b: Dictionary, dt: float) -> void:
 		b.ret = true
 		b.hit = {}
 	if b.ret:
-		var back: Vector2 = g.ppos + Vector2(0, -18) - b.pos
+		var back: Vector2 = pos + Vector2(0, -18) - b.pos
 		b.vel = b.vel.lerp(back.normalized() * 620.0, clampf(dt * 6.0, 0.0, 1.0))
 		if back.length() < 24.0:
 			b.life = 0.0
@@ -759,7 +761,7 @@ func _draw_field(f: Dictionary) -> void:
 ## 技能的地面表现（在角色之下）
 func _draw_skill_floor() -> void:
 	var P: Dictionary = D.SKILL_P
-	var base = g.ppos + Vector2(0, 6)
+	var base = pos + Vector2(0, 6)
 	# 灯火照亮范围（光中敌人受伤 +25%）
 	var lr = g._lamp_r()
 	g.draw_set_transform(base, 0.0, Vector2(1.0, 0.5))
@@ -803,11 +805,11 @@ func _draw_skill_over() -> void:
 		var fade2 := clampf(s2_active / 1.0, 0.0, 1.0)
 		for q in 10:
 			var an = g.t * 2.6 + q * TAU / 10.0
-			var p = g.ppos + Vector2(cos(an) * 46.0, sin(an) * 20.0 - 26.0)
+			var p = pos + Vector2(cos(an) * 46.0, sin(an) * 20.0 - 26.0)
 			var front := sin(an) > 0.0
 			UI.diamond(g, p, 4.5 if front else 3.5, Color(0.02, 0.05, 0.08, fade2), Color(0.7, 1.3, 2.0, fade2 * (1.0 if front else 0.5)))
 		# 被束缚的敌人：锁环
-		for j in g._query(g.ppos, 320.0):
+		for j in g._query(pos, 320.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.stun < 0.15:
 				continue
@@ -818,7 +820,7 @@ func _draw_skill_over() -> void:
 		# 镜花水月：环绕的镜片
 		for q in 6:
 			var an = -g.t * 1.4 + q * TAU / 6.0
-			var p = g.ppos + Vector2(cos(an) * 64.0, sin(an) * 26.0 - 30.0 + sin(g.t * 3.0 + q) * 4.0)
+			var p = pos + Vector2(cos(an) * 64.0, sin(an) * 26.0 - 30.0 + sin(g.t * 3.0 + q) * 4.0)
 			var w := 5.0 + 3.0 * absf(cos(g.t * 2.0 + q))
 			g.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -12), p + Vector2(w, 0), p + Vector2(0, 12), p + Vector2(-w, 0)]),
 				Color(1.3, 1.0, 2.2, 0.75))
@@ -906,7 +908,7 @@ func _update_evo_extras(dt: float) -> void:
 		if field_cd <= 0.0:
 			field_cd = 3.5
 			for k in (2 if fl >= 4 else 1):
-				var c = g._densest_point(380.0)
+				var c = g._densest_point(380.0, pos)
 				if c != Vector2.INF:
 					var fr := 70.0 * (1.3 if fl >= 2 else 1.0)
 					var dur := 2.4 if fl >= 5 else 1.8
@@ -931,7 +933,7 @@ func _update_evo_extras(dt: float) -> void:
 	if tl > 0:
 		tide_shot_cd -= dt
 		if tide_shot_cd <= 0.0:
-			var ts3 = g._nearest(2, 420.0)
+			var ts3 = g._nearest(2, 420.0, pos)
 			if ts3.is_empty():
 				tide_shot_cd = 0.2
 			else:
@@ -939,8 +941,8 @@ func _update_evo_extras(dt: float) -> void:
 				var bounces := 3 + (2 if tl >= 2 else 0) + (3 if tl >= 5 else 0)
 				for k in (2 if tl >= 3 else 1):
 					var tg: Dictionary = ts3[k % ts3.size()]
-					var d: Vector2 = (tg.pos - g.ppos).normalized()
-					g.bullets.append({"kind": "tide", "pos": g.ppos + Vector2(0, -20), "vel": d * 520.0, "dmg": 16.0 * g.dmg_mult * (1.5 if tl >= 4 else 1.0),
+					var d: Vector2 = (tg.pos - pos).normalized()
+					g.bullets.append({"kind": "tide", "pos": pos + Vector2(0, -20), "vel": d * 520.0, "dmg": 16.0 * g.dmg_mult * (1.5 if tl >= 4 else 1.0),
 						"life": 1.0, "r": 7.0, "aoe": 0.0, "bounces": bounces, "hit": {}, "push": tl >= 4})
 				Sfx.play("pickup", -10.0, 0.8, 0.05)
 
@@ -948,10 +950,10 @@ func _update_evo_extras(dt: float) -> void:
 ## 角色脚下的光环（缺帧条时的程序版）
 func draw_auras() -> void:
 	if s2_active > 0.0 and g.tex.get("fx_s2_aura") == null:
-		g.draw_arc(g.ppos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
+		g.draw_arc(pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
 	if s3_active > 0.0 and g.tex.get("fx_s3_aura") == null:
-		g.draw_arc(g.ppos + Vector2(0, -10), 40.0 + sin(g.t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
-		g.draw_circle(g.ppos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
+		g.draw_arc(pos + Vector2(0, -10), 40.0 + sin(g.t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
+		g.draw_circle(pos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
 
 
 ## 地面层专属实体：触手追击、技能地面表现、触须阵、触手桩、巨触、残影与镜像分身
@@ -969,18 +971,18 @@ func draw_entities_floor() -> void:
 	for i in range(afterimg.size() - 1, -1, -1):
 		var ai: Dictionary = afterimg[i]
 		var aa: float = 0.45 * (1.0 - float(i) / afterimg.size())
-		g._draw_player_at(ai.pos + Vector2(0, 6), ai.flip, Color(0.9, 0.55, 1.8, aa), ai.frame, ai.tex, ai.hf)
+		draw_body_at(ai.pos, ai.flip, Color(0.9, 0.55, 1.8, aa), {"tex": ai.tex, "frame": ai.frame, "hf": ai.hf, "flip": ai.flip})
 	if s3_active > 0.0 and g.skill_lv.s3 >= 2:
 		var ma: float = minf(1.0, s3_active * 3.0) * (0.62 + 0.08 * sin(g.t * 6.0))
-		g._draw_player_at(mirror_pos + Vector2(0, 6), mirror_face < 0.0, Color(0.85, 0.6, 1.9, ma), g.sprite.frame, g.sprite.texture, g.sprite.hframes)
+		draw_body_at(mirror_pos, mirror_face < 0.0, Color(0.85, 0.6, 1.9, ma))
 
 
 ## 加法发光层：技能光环 + 受控标记
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	if s2_active > 0.0 and g.tex.get("fx_s2_aura") != null:
-		g._spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, g.ppos + Vector2(0, 4))
+		g._spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, pos + Vector2(0, 4))
 	if s3_active > 0.0 and g.tex.get("fx_s3_aura") != null:
-		g._spr_on(ci, "fx_s3_aura", g.FXF.fx_s3_aura, loop, g.ppos + Vector2(0, 4))
+		g._spr_on(ci, "fx_s3_aura", g.FXF.fx_s3_aura, loop, pos + Vector2(0, 4))
 	var mark := "fx_s2_bind" if s2_active > 0.0 else "fx_stun"
 	if g.tex.get(mark) != null:
 		for e in g.enemies:
@@ -1047,8 +1049,8 @@ func on_evo_pick(eid: String) -> void:
 	if not ev.has("path"):
 		evo1 = eid
 		g._show_banner("进化方向：%s" % ev.name)
-		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.7, "max": 0.7, "col": ev.col})
-		g.fx.append({"kind": "ring", "pos": g.ppos, "r": 160.0, "life": 0.6, "max": 0.6, "col": ev.col})
+		g.fx.append({"kind": "rays", "pos": pos, "life": 0.7, "max": 0.7, "col": ev.col})
+		g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.6, "max": 0.6, "col": ev.col})
 		g._shake(0.6)
 	else:
 		evo2 = eid

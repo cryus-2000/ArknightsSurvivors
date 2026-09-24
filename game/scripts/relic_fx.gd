@@ -144,7 +144,7 @@ func apply(id: String) -> void:
 						g.lamp = clampf(g.lamp + amt, 10.0 if amt < 0.0 else 0.0, g.lamp_cap)
 						g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
 					"rejection":
-						var what: String = g.ch.apply_rejection()
+						var what: String = g.doctor.apply_rejection()
 						g._show_banner("排异反应：%s" % what)
 						g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(0.7, 0.4, 1.0)})
 						Sfx.play("roar", -6.0, 1.4, 0.0)

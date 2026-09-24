@@ -15,6 +15,8 @@ const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Squad = preload("res://scripts/characters/squad.gd")
+const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
@@ -57,11 +59,6 @@ var t := 0.0
 # ---------- 玩家 ----------
 var ppos := Vector2.ZERO
 var facing := 1.0
-# 博士：跟在水月身旁的同行者，不参战、不被攻击、不占援护位
-var doc_pos := Vector2.INF
-var doc_mv := 0.0
-var doc_face := 1.0
-var doc_t := 0.0
 var rej_slow := 1.0         # 排异·深海幻境：幻境内自己也减速
 var moving := false
 var hp := 100.0
@@ -248,7 +245,9 @@ var choice_kind := ""
 var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
-var ch: RefCounted             # 当前角色（scripts/characters/<id>.gd），水月专属逻辑都在里面
+var squad: RefCounted          # 编队（scripts/characters/squad.gd）：博士身边的干员们
+var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
+var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
 var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
 var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
@@ -318,18 +317,17 @@ func _ready() -> void:
 	bai = BossAI.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
-	ch = Character.create(self, Cfg.character_id)
 	stats = StatBlock.new()
 	stats.define_all(StatDefs.PLAYER)
 	stats.define_all(StatDefs.ENEMY)
-	stats.define_all(ch.stat_defs())
 	hit_src = HIT_BASE.duplicate(true)
-	for k in ch.def.get("hit_sources", {}):
-		hit_src[k] = ch.def.hit_sources[k]
-	# 角色 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
-	for k in ch.def.get("stats", {}):
+	doctor = Doctor.new(self)
+	# 博士 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
+	for k in doctor.def.get("stats", {}):
 		if stats.has_stat(k):
-			stats.set_base(k, float(ch.def.stats[k]))
+			stats.set_base(k, float(doctor.def.stats[k]))
+	squad = Squad.new(self)
+	ch = squad.add(Cfg.character_id)
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	A.normal_maps = Cfg.normal_maps
 	rfx = RelicFx.new(self)
@@ -367,13 +365,13 @@ func _ready() -> void:
 	for n in optional:
 		tex[n] = A.tex(n)
 	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
-	var sp: Dictionary = ch.def.get("sprites", {})
-	for kind in ["idle", "run", "attack", "hurt", "death"]:
-		if sp.has(kind):
-			var key: String = "player_attack_48" if kind == "attack" else "player_" + kind
-			tex[key] = A.tex(sp[kind])
-	if sp.has("base"):
-		tex["player"] = A.tex(sp.base)
+	for o in squad.ops:
+		var sp: Dictionary = o.def.get("sprites", {})
+		for kind in ["idle", "run", "attack", "hurt", "death"]:
+			if sp.has(kind) and not tex.has(sp[kind]):
+				tex[sp[kind]] = A.tex(sp[kind])
+		if sp.has("base"):
+			tex["player"] = A.tex(sp.base)
 	var ic: Dictionary = ch.def.get("icons", {})
 	for sid in ic:
 		tex["skill_" + sid] = A.tex(ic[sid])
@@ -750,7 +748,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": ch.get("rej"), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -973,7 +971,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var k: int = event.keycode
 	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
-		if ch.try_manual_skill():
+		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
 		return
 	if k == KEY_TAB or k == KEY_C:
@@ -1067,7 +1065,7 @@ func _update(dt: float) -> void:
 	_spawn(dt)
 	_build_grid()
 	_update_enemies(dt)
-	ch.update(dt)
+	squad.update(dt)
 	_update_allies(dt)
 	knight.update(dt)
 	touch.update(dt)
@@ -2000,7 +1998,7 @@ func _sync_stats() -> void:
 		if shield_max == 0 and new_shield > 0:
 			shield_cd = 1.0
 		shield_max = new_shield
-	ch.sync_stats(stats)
+	squad.sync_stats(stats)
 
 
 ## 灯火：灯光照亮范围（游戏判定用）
@@ -2197,7 +2195,7 @@ func _kill(e: Dictionary) -> void:
 		hitstop = max(hitstop, 0.12)
 		_shake(1.0)
 		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
-	ch.on_kill(e)
+	squad.on_kill(e)
 	if flesh_heal and e.evo:
 		_heal(max_hp * 0.03)
 	if ember and e.elite:
@@ -2264,13 +2262,15 @@ func facing_angle() -> float:
 	return 0.0 if facing >= 0.0 else PI
 
 
-func _nearest(n: int, max_dist: float) -> Array:
+func _nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if origin == Vector2.INF:
+		origin = ppos
 	var c: Array = []
-	for j in _query(ppos, max_dist):
+	for j in _query(origin, max_dist):
 		var e: Dictionary = enemies[j]
 		if e.dead:
 			continue
-		var d: float = e.pos.distance_squared_to(ppos)
+		var d: float = e.pos.distance_squared_to(origin)
 		if d < max_dist * max_dist:
 			c.append([d, e])
 	c.sort_custom(func(a, b): return a[0] < b[0])
@@ -2572,7 +2572,6 @@ const ALLY_SLOTS := [Vector2(-46, -8), Vector2(46, -8), Vector2(0, -52)]
 
 
 func _update_allies(dt: float) -> void:
-	_update_doctor(dt)
 	for i in allies.size():
 		var al: Dictionary = allies[i]
 		var slot: Vector2 = ppos + ALLY_SLOTS[i]
@@ -2789,10 +2788,10 @@ func _drone_laser(from: Vector2, ang: float) -> void:
 
 
 ## 敌人最密集的位置（在 radius 内采样）
-func _densest_point(radius: float) -> Vector2:
+func _densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 	var best := Vector2.INF
 	var bn := 0
-	var cand := _nearest(12, radius)
+	var cand := _nearest(12, radius, origin)
 	for c in cand:
 		var n := 0
 		for j in _query(c.pos, 90.0):
@@ -3838,18 +3837,17 @@ func _draw() -> void:
 				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
 	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
-	ch.draw_auras()
+	squad.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
 		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
 	for al in allies:
 		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
-	if doc_pos != Vector2.INF and tex.get("doctor") != null:
-		_spr("shadow", 1, 0, doc_pos + Vector2(0, 4), PX * 0.9)
+	squad.draw_shadows()
 	if knight.alive:
 		_spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
-	ch.draw_entities_floor()
+	squad.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
 	for e in enemies:
@@ -3857,8 +3855,9 @@ func _draw() -> void:
 	for i in allies.size():
 		dl.append([allies[i].pos.y + 16.0, 1, i])
 	dl.append([ppos.y + 6.0, 2, null])
-	if doc_pos != Vector2.INF and tex.get("doctor") != null:
-		dl.append([doc_pos.y + 4.0, 5, null])
+	for o in squad.ops:
+		if o.pos != Vector2.INF:
+			dl.append([o.pos.y + 4.0, 5, o])
 	if knight.alive:
 		dl.append([knight.pos.y + 18.0, 4, null])
 	for pr in map.sort_props:
@@ -3867,7 +3866,7 @@ func _draw() -> void:
 	for it in dl:
 		match it[1]:
 			5:
-				_draw_doctor()
+				it[2].draw_body()
 			4:
 				knight.draw()
 			0:
@@ -3892,7 +3891,7 @@ func _draw() -> void:
 				_draw_player()
 			3:
 				map.draw_sort_prop(it[2])
-	ch._draw_skill_over()
+	squad.draw_skill_over()
 	for dr in drones:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
@@ -4225,7 +4224,7 @@ func _draw_fx_add() -> void:
 	draw_off = Vector2.ZERO
 	map.draw_god_rays(fx_add, get_viewport_rect().size, cam.position)
 	var loop := int(t * 10.0)
-	ch.draw_fx_add(fx_add, loop)
+	squad.draw_fx_add(fx_add, loop)
 	for f in fx:
 		if f.kind != "anim":
 			continue
@@ -4246,6 +4245,9 @@ func _spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
 func _update_player_anim(dt: float) -> void:
+	if tex.get("doctor") != null:
+		_update_doctor_anim(dt)
+		return
 	if tex.get("player_attack_48") != null:
 		_update_player_anim48(dt)
 		return
@@ -4278,6 +4280,47 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = clampi(int(anim_t * 6.0), 0, n - 1)
 		_:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
+
+
+## 博士动画：目前只有 2 帧待机条（doctor / doctor@2x）；跑步 = 加快切帧 + 颠簸，倒下 = 侧倒，受击靠 hurt_flash 的闪白
+## 等 Codex 交付 doctor_run / doctor_hurt / doctor_death 后，在 data/doctor.json 的 sprites 里填名字即可接上
+func _update_doctor_anim(dt: float) -> void:
+	var want := "idle"
+	if state == S.DEAD:
+		want = "death"
+	elif hurt_flash > 0.05:
+		want = "hurt"
+	elif moving:
+		want = "run"
+	var sp: Dictionary = doctor.def.get("sprites", {})
+	var tx: Texture2D = tex.get(sp.get(want, ""), null) if sp.has(want) else null
+	var fallback := tx == null
+	if fallback:
+		tx = tex["doctor"]
+	var key := want + ("_fb" if fallback else "")
+	if key != anim_name:
+		anim_name = key
+		anim_t = 0.0
+		sprite.texture = tx
+		sprite.hframes = max(1, tx.get_width() / tx.get_height())
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 3.0 * A.hires_of(tx))
+	anim_t += dt
+	var n := sprite.hframes
+	sprite.rotation = 0.0
+	if fallback:
+		match want:
+			"death":
+				sprite.frame = 0
+				sprite.rotation = lerpf(0.0, -1.45 * (1.0 if facing >= 0.0 else -1.0), clampf(anim_t / 0.35, 0.0, 1.0))
+			"run":
+				sprite.frame = int(anim_t * 7.0) % n
+				sprite.position.y -= PX * absf(sin(anim_t * 11.0)) * 1.5
+			_:
+				sprite.frame = int(anim_t * 2.0) % n
+	else:
+		var spec: Array = P48.get(want, [4.0, true])
+		var f := int(anim_t * spec[0])
+		sprite.frame = f % n if spec[1] else mini(f, n - 1)
 
 
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
@@ -4466,6 +4509,19 @@ func _draw_enemy(e: Dictionary) -> void:
 
 
 ## 在任意位置绘制水月（残影、倒影用）
+## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
+func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
+	if tx == null:
+		return
+	var fw := tx.get_width() / hf
+	var fh := tx.get_height()
+	var src := Rect2(fw * (frame % hf), 0, fw, fh)
+	var pk: float = PX / A.hires_of(tx)
+	draw_set_transform((pos + draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D = null, hf: int = 0) -> void:
 	if tx == null:
 		tx = sprite.texture
@@ -5376,7 +5432,7 @@ func _draw_stats(vs: Vector2) -> void:
 			var got := lv >= k + 2
 			# 海嗣化（排异）的进阶：紫色 + "排异" 标记
 			var rej_key: String = sid + ("a" if k == 0 else "b")
-			var rejd: bool = got and ch.get("rej") != null and ch.rej.has(rej_key)
+			var rejd: bool = got and doctor.rej().has(rej_key)
 			var acol: Color = Color(0.85, 0.55, 1.0) if rejd else col
 			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, acol if got else Color(0, 0, 0, 0), acol if got else Color(0.35, 0.42, 0.46))
 			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name + ("·排异" if rejd else ""), 11, acol if got else Color(0.35, 0.42, 0.46))
@@ -5797,41 +5853,3 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), op[1], 13, col)
 		bx += bw + 12
 
-
-## 博士：跟在水月侧后方（背对朝向的一侧），带一点惯性；离得太远（开局 / 传送）时直接归位
-func _update_doctor(dt: float) -> void:
-	if tex.get("doctor") == null:
-		return
-	var slot: Vector2 = ppos + Vector2(-facing * 34.0, -12.0)
-	if doc_pos == Vector2.INF or doc_pos.distance_to(ppos) > 600.0:
-		doc_pos = slot
-		doc_mv = 0.0
-		return
-	var prev: Vector2 = doc_pos
-	var d: float = doc_pos.distance_to(slot)
-	# 近处慢慢挪、远处快步跟上；始终慢过水月一点，保留"跟随"的感觉
-	var k: float = clampf(dt * (2.5 if d < 24.0 else 5.0), 0.0, 1.0)
-	doc_pos = doc_pos.lerp(slot, k)
-	if tex.get("prop_pillar") != null:
-		doc_pos = map.push_out(doc_pos, 10.0)
-	var vel: Vector2 = (doc_pos - prev) / maxf(dt, 0.0001)
-	doc_mv = lerpf(doc_mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
-	if absf(vel.x) > 25.0:
-		doc_face = signf(vel.x)
-	elif doc_mv < 20.0:
-		doc_face = facing
-	doc_t += dt
-
-
-func _draw_doctor() -> void:
-	var tx: Texture2D = tex.get("doctor")
-	if tx == null or doc_pos == Vector2.INF:
-		return
-	var moving: bool = doc_mv > 30.0
-	# 只有 2 帧待机：移动时加快切帧并加一点上下颠簸，当作小跑
-	var frame: int = int(doc_t * (7.0 if moving else 2.0)) % 2
-	var bob: float = (absf(sin(doc_t * 11.0)) * -2.0 * PX) if moving else 0.0
-	var pk: float = PX / A.hires_of(tx)
-	var fh: float = tx.get_height()
-	var anc := Vector2(0.5, (fh - 3.0 * A.hires_of(tx)) / fh)
-	_spr("doctor", 2, frame, doc_pos + Vector2(0, 4.0 + bob), pk, doc_face < 0.0, Color.WHITE, anc)
