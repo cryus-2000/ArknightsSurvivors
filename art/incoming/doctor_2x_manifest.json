@@ -1,0 +1,29 @@
+{
+  "changed_vs_nearest_pixels": 5034,
+  "opaque_pixels": [
+    3332,
+    3416
+  ],
+  "density": 2,
+  "source_sha256": "187fcd87744c9fbdd1e41970f6372748a86d9a9f673647026fad9cbd4cecaab0",
+  "frame_width": 96,
+  "facing": "front_right",
+  "adjacent_changed_pixels": 3002,
+  "silhouette_deviation_after_translation": 0,
+  "frames": 2,
+  "anchor_px": [
+    48,
+    92
+  ],
+  "translation_from_doubled_original": [
+    0,
+    2
+  ],
+  "source_id": "fceeff3c-90ee-4346-a16a-b225e5129e9a",
+  "fps": 2,
+  "frame_height": 96,
+  "sha256": "3d69cef7b54beb42899504238c9127ea38db95c3461254ef206a8b7cd299e708",
+  "file": "doctor@2x.png",
+  "source_file": "doctor.png",
+  "loop": true
+}
