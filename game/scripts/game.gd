@@ -351,12 +351,25 @@ func _ready() -> void:
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
-	# 美术 V5：Boss 移动帧条（4 帧，与本体同尺寸同锚点）及其白色剪影
-	for n in ["e_path", "e_izumik", "e_ishar", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2"]:
-		var mn: String = n + "_move"
-		tex[mn] = A.tex(mn)
-		if tex[mn] != null:
-			tex[mn + "_white"] = A.white_of(tex[mn])
+	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
+	var etex: Array = ["e_paranoia2"]
+	for k in D.ENEMIES:
+		var tn: String = D.ENEMIES[k].tex
+		if not etex.has(tn):
+			etex.append(tn)
+	for n in etex:
+		if tex.get(n) == null:
+			tex[n] = A.tex(n)
+			if tex[n] != null:
+				tex[n + "_white"] = A.white_of(tex[n])
+		if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
+			foot_anchor[n] = true
+		for suffix in ["_move", "_attack", "_charge", "_death"]:
+			var mn: String = n + suffix
+			if tex.get(mn) == null:
+				tex[mn] = A.tex(mn)
+				if tex[mn] != null and suffix != "_death":
+					tex[mn + "_white"] = A.white_of(tex[mn])
 
 	var cm := CanvasModulate.new()
 	cm.color = map.ambient
@@ -1066,11 +1079,13 @@ func _pick_type() -> String:
 
 
 func _pick_elite() -> String:
-	var pool := ["pocket"]
-	if t > 120.0:
-		pool.append("skimmer")
-	if t > 300.0:
-		pool.append("mother")
+	var pool: Array = []
+	for k in D.ENEMIES:
+		var d: Dictionary = D.ENEMIES[k]
+		if d.get("role", "") == "elite" and t >= float(d.get("elite_after", 0.0)) and not d.get("no_spawn", false):
+			pool.append(k)
+	if pool.is_empty():
+		return "pocket"
 	return pool[rng.randi() % pool.size()]
 
 
@@ -1225,7 +1240,8 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		# 贴图变体在生成时查一次，绘制时不再每帧拼字符串
-		"tex_move": tex.has(d.tex + "_move"), "tex_feign": tex.has(d.tex + "_feign"), "tex_attack": tex.has(d.tex + "_attack"),
+		"tex_move": tex.get(d.tex + "_move") != null, "tex_feign": tex.get(d.tex + "_feign") != null, "tex_attack": tex.get(d.tex + "_attack") != null,
+		"tex_charge": tex.get(d.tex + "_charge") != null, "tex_death": tex.get(d.tex + "_death") != null,
 		"weak": d.get("weak", ""),
 	}
 	if e.elite:
@@ -1267,7 +1283,7 @@ func _spawn_chest(pos: Vector2) -> void:
 		"chest": true, "hidden": rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
-		"tex_move": false, "tex_feign": false, "tex_attack": false,
+		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
 	})
 
 
@@ -1924,7 +1940,11 @@ func _kill(e: Dictionary) -> void:
 	_sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
 	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
 	Sfx.play("kill", -8.0)
-	if not _fx_sprite("fx_death_dissolve", e.pos, PX * max(1.0, e.r / 12.0)):
+	if e.get("tex_death", false) and V6_FRAMES.has(e.tex + "_death"):
+		var dtx: Texture2D = tex[e.tex + "_death"]
+		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * PX)
+		_fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * PX * 0.5), PX, 0.0)
+	elif not _fx_sprite("fx_death_dissolve", e.pos, PX * max(1.0, e.r / 12.0)):
 		_anim("fx_death", e.pos, 0.3, PX * max(1.0, e.r / 12.0))
 	if e.elite:
 		elites_killed += 1
@@ -3326,6 +3346,8 @@ const V6_FRAMES := {
 	"proj_tide_blade": [4, 12.0], "proj_tide_blade_moon": [4, 12.0], "fx_tide_blade_hit": [4, 20.0],
 	"fx_tendril_stake": [4, 8.0], "fx_tendril_stake_whip": [4, 16.0], "fx_kraken_rise": [6, 12.0],
 	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
+	# 美术 V9：最后的骑士
+	"e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
 }
 ## 受击材质：甲壳 / 灵体，其余为血肉
 const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
@@ -3413,9 +3435,15 @@ func _draw() -> void:
 	bai._draw_warns()
 	rfx.draw()
 	if not merchant.is_empty():
-		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * 1.2)
-		_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
-		UI.text(self, font, merchant.pos + Vector2(-40, -34), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+		var mtx: Texture2D = tex.merchant
+		var big_m: bool = mtx != null and mtx.get_height() >= 40
+		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * (1.6 if big_m else 1.2))
+		if big_m:
+			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos + Vector2(0, 18), PX, ppos.x < merchant.pos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
+			UI.text(self, font, merchant.pos + Vector2(-40, -84), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+		else:
+			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
+			UI.text(self, font, merchant.pos + Vector2(-40, -34), "商人", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	for g in gems:
 		var gz: float = g.get("z", 0.0)
 		if gz > 1.0:
@@ -3928,20 +3956,28 @@ func _draw_enemy(e: Dictionary) -> void:
 		name = name + "_feign"
 	var frames := 2
 	var frame := int(t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
-	# 美术 V5：Boss 移动时播放 4 帧移动循环；停下、晕眩、假死时用本体
-	if e.boss:
+	# 移动帧条（美术 V5 / V8 / V9）：移动中播放 4 帧循环；停下、晕眩、假死时用本体
+	if e.tex_move:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
 			e.mv_until = t + 0.2
 		e.dpos = e.pos
-		if t < e.mv_until and e.stun <= 0.0 and not e.coma and e.tex_move:
+		if t < e.mv_until and e.stun <= 0.0 and not e.coma:
 			name += "_move"
 			frames = 4
-			var fps := 6.0
+			var fps: float = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
 			if e.type == "immortal":
 				fps = 8.0
 			elif e.type in ["paranoia", "izumik", "ishar"]:
 				fps = 5.0
 			frame = int(t * fps + e.id * 0.37) % 4
+	# 冲刺帧条（V9 骑士）：蓄力用前 2 帧，冲出去用后 2 帧
+	if e.get("tex_charge", false) and (e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0):
+		name = e.tex + "_charge"
+		frames = 4
+		if e.dash_w > 0.0:
+			frame = 0 if e.dash_w > 0.25 else 1
+		else:
+			frame = 2 if e.dash_t > 0.12 else 3
 	var sc: float = PX * e.r / e.r0
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
@@ -4437,7 +4473,8 @@ func _draw_hud() -> void:
 			hud.draw_arc(edge, 24.0, 0.0, TAU, 28, UI.GOLD, 2.0)
 			var mt: Texture2D = tex.merchant
 			var fw := mt.get_width() / 2
-			hud.draw_texture_rect_region(mt, Rect2(edge - Vector2(fw, mt.get_height()), Vector2(fw, mt.get_height()) * 2.0), Rect2(fw * mf, 0, fw, mt.get_height()))
+			var msc: float = 2.0 if mt.get_height() < 40 else 1.0
+			hud.draw_texture_rect_region(mt, Rect2(edge - Vector2(fw, mt.get_height()) * msc * 0.5 + Vector2(0, -mt.get_height() * msc * 0.5), Vector2(fw, mt.get_height()) * msc), Rect2(fw * mf, 0, fw, mt.get_height()))
 			# 指向商人的箭头
 			var tip: Vector2 = edge + d * (40.0 + 5.0 * pulse)
 			var base: Vector2 = edge + d * 28.0

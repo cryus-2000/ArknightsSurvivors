@@ -189,7 +189,8 @@
    "tex": "e_pocket",
    "ai": "melee",
    "role": "elite",
-   "burst": true
+   "burst": true,
+   "elite_after": 0
   },
   "skimmer": {
    "name": "掠海漂移体",
@@ -206,7 +207,8 @@
    "role": "elite",
    "corrode": 0.5,
    "hover": true,
-   "shot_n": 3
+   "shot_n": 3,
+   "elite_after": 120
   },
   "mother": {
    "name": "投嗣育母",
@@ -226,7 +228,8 @@
    "shot_home": true,
    "shot_spd": 150,
    "spawn_on_shot": "brood",
-   "spawn_max": 12
+   "spawn_max": 12,
+   "elite_after": 300
   },
   "mimic": {
    "name": "箱形恐鱼",
@@ -365,6 +368,27 @@
    "range": 340.0,
    "cd": 1.5,
    "role": "boss"
+  },
+  "knight": {
+   "name": "最后的骑士",
+   "hp": 110.0,
+   "spd": 74.0,
+   "dmg": 22.0,
+   "weak": "法术",
+   "r": 24.0,
+   "xp": 16.0,
+   "tex": "e_knight",
+   "ai": "melee",
+   "role": "elite",
+   "elite_after": 240,
+   "heavy": true,
+   "atk": "物理",
+   "move_fps": 8,
+   "pattern": "dash",
+   "dash_range": 300,
+   "dash_wind": 0.6,
+   "dash_speed": 5.2,
+   "ingots": 6
   }
  }
 }

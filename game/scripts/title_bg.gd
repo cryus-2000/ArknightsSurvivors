@@ -19,6 +19,8 @@ var rng := RandomNumberGenerator.new()
 var tex_sky: ImageTexture
 var tex_sand: ImageTexture
 var tex_player: Texture2D
+var tex_doctor: Texture2D   # 博士：站在水月身旁（仅标题页）
+const DOCTOR_FEET := Vector2(404, 300)
 var tex_light: Texture2D
 var pframes := 1
 var stars: Array = []       # [pos, size, phase, speed, col]
@@ -47,6 +49,7 @@ func _ready() -> void:
 		tex_player = A.tex("player")
 	pframes = maxi(1, tex_player.get_width() / tex_player.get_height())
 	tex_light = A.tex("light")
+	tex_doctor = A.tex("doctor")
 	_build_sky()
 	_build_sand()
 	for i in 170:
@@ -226,20 +229,26 @@ func _draw_wave(i: int) -> void:
 
 
 func _draw_mizuki() -> void:
-	var fh := tex_player.get_height()
-	var fw := tex_player.get_width() / pframes
-	var f := int(t * 4.0) % pframes
+	# 博士站在水月左侧稍后一点（先画，被水月遮挡一点）
+	if tex_doctor != null:
+		_draw_figure(tex_doctor, 2, 2.0, DOCTOR_FEET, 0.45, 3)
+	_draw_figure(tex_player, pframes, 4.0, FEET, 0.0, 2)
+
+
+## 站在浅水里的人物：逐行错位的水波倒影 + 本体（帧条横向等宽，脚底在帧底部上方 foot_up 像素）
+func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: float, foot_up: int) -> void:
+	var fh := tx.get_height()
+	var fw := tx.get_width() / frames
+	var f := int(t * fps + phase * 10.0) % frames
 	var sc := 2.0
-	var pos := FEET - Vector2(fw * sc * 0.5, fh * sc - 2.0 * sc)
-	# 倒影：逐行错位的水波
+	var pos := feet - Vector2(fw * sc * 0.5, (fh - foot_up) * sc)
 	var wet := 0.55
 	for row in fh:
 		var src := Rect2(f * fw, fh - 1 - row, fw, 1)
-		var off := sin(t * 2.2 + row * 0.5) * (0.6 + row * 0.03)
-		var dst := Rect2(Vector2(pos.x + off, FEET.y - 2.0 * sc + row * sc), Vector2(fw * sc, sc))
-		draw_texture_rect_region(tex_player, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55))
-	# 本体
-	draw_texture_rect_region(tex_player, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh))
+		var off := sin(t * 2.2 + row * 0.5 + phase) * (0.6 + row * 0.03)
+		var dst := Rect2(Vector2(pos.x + off, feet.y - foot_up * sc + row * sc), Vector2(fw * sc, sc))
+		draw_texture_rect_region(tx, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55))
+	draw_texture_rect_region(tx, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh))
 
 
 ## 加法发光层：银河亮核、蓝眼泪、浪尖、荧光颗粒、流星
