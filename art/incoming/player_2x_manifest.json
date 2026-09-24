@@ -1,0 +1,177 @@
+[
+  {
+    "fps": 4,
+    "density": 2,
+    "source_sha256": "d7bfe31d025ceb665454e52110ffcb2dd30973fc7b68e362ac77fa9b08e24aa3",
+    "sha256": "43aa3077bd79830d3726308254f3c72ccd9fc339e6b271b957744cbe0472b4b6",
+    "file": "player_idle@2x.png",
+    "anchor_px": [
+      48,
+      92
+    ],
+    "loop": true,
+    "frames": 4,
+    "frame_width": 96,
+    "adjacent_frame_changes": [
+      0,
+      1203,
+      1268,
+      1172
+    ],
+    "changed_vs_nearest_pixels": [
+      1380,
+      1345,
+      1382,
+      1308
+    ],
+    "opaque_pixels": [
+      2296,
+      2324,
+      2316,
+      2324
+    ],
+    "silhouette_max_deviation_px": 0,
+    "frame_height": 96,
+    "source_file": "player_idle.png"
+  },
+  {
+    "fps": 10,
+    "density": 2,
+    "source_sha256": "b2e4816803ef11b94cd7ec37aeccb2cc1e188c77765439d3d7f4f286822f1903",
+    "sha256": "b239232882c44b7ac730b477e4d62992bb43d8a4399ed9cf0473fad5279590c6",
+    "file": "player_run@2x.png",
+    "anchor_px": [
+      48,
+      92
+    ],
+    "loop": true,
+    "frames": 6,
+    "frame_width": 96,
+    "adjacent_frame_changes": [
+      0,
+      1965,
+      1810,
+      1349,
+      1462,
+      1631
+    ],
+    "changed_vs_nearest_pixels": [
+      1238,
+      1117,
+      1100,
+      1219,
+      1102,
+      1136
+    ],
+    "opaque_pixels": [
+      2296,
+      2052,
+      2128,
+      2268,
+      2104,
+      2144
+    ],
+    "silhouette_max_deviation_px": 0,
+    "frame_height": 96,
+    "source_file": "player_run.png"
+  },
+  {
+    "fps": 16,
+    "density": 2,
+    "source_sha256": "07ced93df33f5a6c6a09646e2e52389e2a5c5ac6037c7d4767c6512acbffcaf3",
+    "sha256": "767532d9ddbd907fd778d0247531ab8666c3d983495158a03490c9cf36d7dee0",
+    "file": "player_attack_48@2x.png",
+    "anchor_px": [
+      48,
+      92
+    ],
+    "loop": false,
+    "frames": 4,
+    "frame_width": 96,
+    "adjacent_frame_changes": [
+      0,
+      2142,
+      2503,
+      2537
+    ],
+    "changed_vs_nearest_pixels": [
+      1473,
+      1535,
+      1506,
+      1406
+    ],
+    "opaque_pixels": [
+      2212,
+      2368,
+      2368,
+      2132
+    ],
+    "silhouette_max_deviation_px": 0,
+    "frame_height": 96,
+    "source_file": "player_attack_48.png"
+  },
+  {
+    "fps": 10,
+    "density": 2,
+    "source_sha256": "de310fcef0803a970b78e89fc3b9c9fad1be1e82afadcde58a65ddbefd144091",
+    "sha256": "0d531fd56b9d1a97ad4cc8a4a9714bd1406d8b0d59e9ae12f278e4b8f09c0760",
+    "file": "player_hurt@2x.png",
+    "anchor_px": [
+      48,
+      92
+    ],
+    "loop": false,
+    "frames": 2,
+    "frame_width": 96,
+    "adjacent_frame_changes": [
+      0,
+      2415
+    ],
+    "changed_vs_nearest_pixels": [
+      1259,
+      1091
+    ],
+    "opaque_pixels": [
+      2524,
+      2376
+    ],
+    "silhouette_max_deviation_px": 0,
+    "frame_height": 96,
+    "source_file": "player_hurt.png"
+  },
+  {
+    "fps": 6,
+    "density": 2,
+    "source_sha256": "9cbea2dc32a0de5b71fc8f8d7ed8c10c20766f5b9336af98991465edee8ee41e",
+    "sha256": "3c4a16601c2e3b15102981b8ebbad272f9981209bec9faa963a735a6ddcf80dc",
+    "file": "player_death@2x.png",
+    "anchor_px": [
+      48,
+      92
+    ],
+    "loop": false,
+    "frames": 4,
+    "frame_width": 96,
+    "adjacent_frame_changes": [
+      0,
+      2545,
+      2290,
+      1254
+    ],
+    "changed_vs_nearest_pixels": [
+      1322,
+      1171,
+      1033,
+      913
+    ],
+    "opaque_pixels": [
+      2272,
+      1964,
+      1788,
+      1636
+    ],
+    "silhouette_max_deviation_px": 0,
+    "frame_height": 96,
+    "source_file": "player_death.png"
+  }
+]
