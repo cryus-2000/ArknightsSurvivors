@@ -8,6 +8,9 @@ static var _cache := {}
 const ALIAS := {
 	"e_bone": "drifter", "e_slider": "dart", "e_stone": "crawler", "e_pocket": "shell",
 	"e_paranoia2": "e_paranoia_phase2", "e_paranoia2_move": "e_paranoia_phase2_move",
+	# 藏品图标按原作编号命名（docs/11）；代码里仍用旧 id 的护盾藏品先做对照
+	"relic_sh_base": "relic_118", "relic_sh_count": "relic_199", "relic_sh_fast": "relic_15",
+	"relic_sh_burst": "relic_100", "relic_sh_plate": "relic_200", "relic_sh_ring": "relic_202",
 }
 
 

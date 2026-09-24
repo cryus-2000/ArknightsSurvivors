@@ -2556,7 +2556,7 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.diamond(card, c, 34.0, Color(0.02, 0.06, 0.08), col)
 	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
 	if ic != null:
-		card.draw_texture_rect(ic, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
+		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false)
 	else:
 		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, col, HORIZONTAL_ALIGNMENT_CENTER, 60)
 	UI.text(card, font, r.position + Vector2(0, 170), it.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
@@ -3499,7 +3499,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		var asz := Vector2(fw, at.get_height()) * ks
 		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0, asz), Rect2(0, 0, fw, at.get_height()))
 	elif ic != null:
-		card.draw_texture_rect(ic, Rect2(c - Vector2(24, 24), Vector2(48, 48)), false)
+		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false)
 	else:
 		UI.text(card, font, c + Vector2(-40, 13), glyph, 34, col, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	# 名称
@@ -5555,7 +5555,7 @@ func _edge_glow(vs: Vector2, col: Color, w: float) -> void:
 func _draw_relic_tray(tr: Vector2) -> void:
 	var n := relics.size()
 	var per_row := 9
-	var cell := 30.0
+	var cell := 36.0
 	var w: float = min(n, per_row) * cell + 16.0
 	var rows := int(ceil(n / float(per_row)))
 	UI.en(hud, font, tr + Vector2(-86, 12), "RELICS", 11, UI.SUB, 3.0)
@@ -5570,7 +5570,7 @@ func _draw_relic_tray(tr: Vector2) -> void:
 		var c := o + Vector2(8 + (i % per_row) * cell + cell / 2, 5 + (i / per_row) * cell + cell / 2)
 		var ic: Texture2D = tex.get("relic_" + relics[i])
 		if ic != null:
-			hud.draw_texture_rect(ic, Rect2(c - Vector2(12, 12), Vector2(24, 24)), false)
+			hud.draw_texture_rect(ic, Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
 		else:
 			UI.diamond(hud, c, 12.0, Color(0.03, 0.08, 0.1), col)
 			UI.text(hud, font, c + Vector2(-15, 5), r.name.substr(0, 1), 12, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
