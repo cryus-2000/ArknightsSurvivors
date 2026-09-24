@@ -252,7 +252,7 @@ func _ready() -> void:
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone",
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_bullet", "drone_laser", "drone_missile",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
 		tex[n] = A.tex(n)
 		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
@@ -266,6 +266,15 @@ func _ready() -> void:
 		optional.append("relic_" + rid)
 	for n in optional:
 		tex[n] = A.tex(n)
+	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
+	for k in D.ALLIES:
+		tex["ally_%s_attack" % k] = A.tex("ally_%s_attack" % k)
+	# 美术 V5：Boss 移动帧条（4 帧，与本体同尺寸同锚点）及其白色剪影
+	for n in ["e_path", "e_izumik", "e_ishar", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2"]:
+		var mn: String = n + "_move"
+		tex[mn] = A.tex(mn)
+		if tex[mn] != null:
+			tex[mn + "_white"] = A.white_of(tex[mn])
 
 	var cm := CanvasModulate.new()
 	cm.color = AMBIENT
@@ -495,7 +504,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -791,7 +800,7 @@ func _pick_type() -> String:
 	if t > 420.0:
 		pool += ["stone", "offspring", "bone", "bone"]
 	var pick: String = pool[rng.randi() % pool.size()]
-	var caps := {"stone": 10, "brood": 8, "offspring": 8}
+	var caps := {"stone": 8, "brood": 6, "offspring": 6}
 	if caps.has(pick):
 		var ns := 0
 		for e in enemies:
@@ -1245,7 +1254,7 @@ func _minion_pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: f
 			# 注亡拟嗣：站桩吐酸
 			e.cdt -= dt
 			if e.cdt <= 0.0 and dist < 300.0:
-				e.cdt = 3.2
+				e.cdt = 4.2
 				ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + t / 300.0), "slow": false, "r": 5.0, "life": 2.6,
 					"corrode": 0.3, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
 			return Vector2.INF
@@ -1255,9 +1264,9 @@ func _minion_pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: f
 			if e.get("nova_w", 0.0) > 0.0:
 				e.nova_w -= dt
 				if e.nova_w <= 0.0:
-					var n := 10 if e.evo else 8
+					var n := 8 if e.evo else 6
 					for k in n:
-						ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 150.0, "dmg": e.dmg * 0.4, "slow": false,
+						ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 150.0, "dmg": e.dmg * 0.3, "slow": false,
 							"r": 5.0, "life": 2.6, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "nova", "home": false})
 					Sfx.play("tentacle", -12.0, 0.7, 0.05)
 				return Vector2.ZERO
@@ -1271,7 +1280,7 @@ func _minion_pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: f
 ## 固海凿石者：抛射碎石，落点预警，落地范围伤害
 func _enemy_lob(e: Dictionary) -> void:
 	var to := ppos + Vector2(randf_range(-30, 30), randf_range(-30, 30)) + pvel * 0.6
-	lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.8})
+	lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6})
 
 
 func _update_lobs(dt: float) -> void:
@@ -2369,7 +2378,14 @@ func _update_allies(dt: float) -> void:
 		var slot: Vector2 = ppos + ALLY_SLOTS[i]
 		al.pos = al.pos.lerp(slot, clamp(dt * 5.0, 0.0, 1.0))
 		al.cd -= dt
-		var lvm: float = pow(1.5, al.lv - 1)
+		# 攻击动作计时：到出手帧时结算，播完回到待机
+		if al.get("atk", -1.0) >= 0.0:
+			al.atk += dt
+			if not al.get("fired", true) and al.atk >= ALLY_EVENT_T:
+				al.fired = true
+				_ally_release(al)
+			if al.atk >= ALLY_ANIM_T:
+				al.atk = -1.0
 		match al.kind:
 			"sniper":
 				if al.cd <= 0.0:
@@ -2378,10 +2394,7 @@ func _update_allies(dt: float) -> void:
 						al.cd = 0.2
 					else:
 						al.cd = 1.0 * pow(0.87, al.lv - 1)
-						var d: Vector2 = (tgt.pos - al.pos).normalized()
-						bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 900.0, "dmg": 20.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
-						fx.append({"kind": "ring", "pos": al.pos + Vector2(0, -12) + d * 12.0, "r": 10.0, "life": 0.12, "max": 0.12, "col": Color(1.0, 0.9, 0.7)})
-						Sfx.play("swing", -16.0, 1.8)
+						_ally_start(al, tgt.pos)
 			"caster":
 				if al.cd <= 0.0:
 					var ts := _nearest(1, 360.0)
@@ -2389,23 +2402,12 @@ func _update_allies(dt: float) -> void:
 						al.cd = 0.2
 					else:
 						al.cd = 1.5 * pow(0.9, al.lv - 1)
-						var d: Vector2 = (ts[0].pos - al.pos).normalized()
-						bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 14.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 45.0 + 10.0 * al.lv})
-						Sfx.play("oil", -12.0, 1.4, 0.05)
+						_ally_start(al, ts[0].pos)
 			"medic":
 				if al.cd <= 0.0:
 					al.cd = 3.0 / (1.0 + 0.25 * (al.lv - 1))
 					if hp < max_hp:
-						var h: float = max_hp * (0.03 + 0.01 * (al.lv - 1))
-						_heal(h)
-						_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
-						fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
-						# 回血：水月身上升起绿色十字
-						for k in 6:
-							fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
-								"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
-						# 医疗干员到水月的治疗光线
-						fx.append({"kind": "beam", "a": al.pos + Vector2(0, -20), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 3.0})
+						_ally_start(al, ppos)
 			"support":
 				# 辅助：光环只减速不造成伤害；另外向 2 名敌人发射紫色法术
 				var rad: float = _support_radius(al.lv)
@@ -2420,11 +2422,63 @@ func _update_allies(dt: float) -> void:
 						al.cd = 0.2
 					else:
 						al.cd = 1.4 * pow(0.88, al.lv - 1)
-						for k in ts.size():
-							var d: Vector2 = (ts[k].pos - al.pos).normalized().rotated(0.6 * (1 if k == 0 else -1))
-							bullets.append({"kind": "arcane", "pos": al.pos + Vector2(0, -16), "vel": d * 330.0, "dmg": 12.0 * lvm * dmg_mult,
-								"life": 1.6, "r": 7.0, "aoe": 0.0, "home": ts[k], "turn": 7.0})
-						Sfx.play("tentacle", -14.0, 1.6, 0.05)
+						_ally_start(al, ts[0].pos)
+
+
+## 援护攻击动作：8fps × 4 帧，零基第 2 帧出手（美术 V5 约定）
+const ALLY_EVENT_T := 0.25
+const ALLY_ANIM_T := 0.5
+
+
+func _ally_start(al: Dictionary, aim: Vector2) -> void:
+	if absf(aim.x - al.pos.x) > 2.0:
+		al.face = signf(aim.x - al.pos.x)
+	if tex.get("ally_%s_attack" % al.kind) == null:
+		_ally_release(al)
+		return
+	al.atk = 0.0
+	al.fired = false
+
+
+## 出手：重新找目标（动作期间原目标可能已死）
+func _ally_release(al: Dictionary) -> void:
+	var lvm: float = pow(1.5, al.lv - 1)
+	match al.kind:
+		"sniper":
+			var tgt := _sniper_target(al.pos, 500.0)
+			if tgt.is_empty():
+				return
+			var d: Vector2 = (tgt.pos - al.pos).normalized()
+			bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 900.0, "dmg": 20.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
+			fx.append({"kind": "ring", "pos": al.pos + Vector2(0, -12) + d * 12.0, "r": 10.0, "life": 0.12, "max": 0.12, "col": Color(1.0, 0.9, 0.7)})
+			Sfx.play("swing", -16.0, 1.8)
+		"caster":
+			var ts := _nearest(1, 400.0)
+			if ts.is_empty():
+				return
+			var d: Vector2 = (ts[0].pos - al.pos).normalized()
+			bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 14.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 45.0 + 10.0 * al.lv})
+			Sfx.play("oil", -12.0, 1.4, 0.05)
+		"medic":
+			if hp < max_hp:
+				var h: float = max_hp * (0.03 + 0.01 * (al.lv - 1))
+				_heal(h)
+				_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
+				fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
+				# 回血：水月身上升起绿色十字 + 医疗干员到水月的治疗光线
+				for k in 6:
+					fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
+						"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
+				fx.append({"kind": "beam", "a": al.pos + Vector2(0, -20), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 3.0})
+		"support":
+			# 辅助：向 2 名敌人发射追踪的紫色法术
+			var ts2 := _nearest(2, 400.0)
+			for k in ts2.size():
+				var d2: Vector2 = (ts2[k].pos - al.pos).normalized().rotated(0.6 * (1 if k == 0 else -1))
+				bullets.append({"kind": "arcane", "pos": al.pos + Vector2(0, -16), "vel": d2 * 330.0, "dmg": 12.0 * lvm * dmg_mult,
+					"life": 1.6, "r": 7.0, "aoe": 0.0, "home": ts2[k], "turn": 7.0})
+			if not ts2.is_empty():
+				Sfx.play("tentacle", -14.0, 1.6, 0.05)
 
 
 # =====================================================================
@@ -2439,6 +2493,7 @@ func _update_weapons(dt: float) -> void:
 		var haste := 1.25 if dl >= 5 else 1.0
 		for i in drones.size():
 			var dr: Dictionary = drones[i]
+			dr["fire_t"] = dr.get("fire_t", 0.0) - dt
 			dr.ang += dt * 1.6
 			var slot := ppos + Vector2(cos(dr.ang) * 52.0, -96.0 + sin(dr.ang * 2.0) * 6.0)
 			dr.pos = dr.pos.lerp(slot, clampf(dt * 6.0, 0.0, 1.0))
@@ -2452,6 +2507,8 @@ func _update_weapons(dt: float) -> void:
 						dr.cd_shot = 0.55
 						var d: Vector2 = (ts[0].pos - dr.pos).normalized()
 						bullets.append({"kind": "dbullet", "pos": dr.pos, "vel": d * 700.0, "dmg": 10.0 * dmg_mult, "life": 0.8, "r": 4.0, "aoe": 0.0})
+						dr["fire_t"] = 0.25
+						dr["face"] = signf(d.x)
 						Sfx.play("swing", -20.0, 2.4, 0.1)
 			else:
 				dr.cd_laser -= dt * haste
@@ -2462,6 +2519,8 @@ func _update_weapons(dt: float) -> void:
 					else:
 						dr.cd_laser = 1.5
 						_drone_laser(dr.pos, (ts2[0].pos - dr.pos).angle())
+						dr["fire_t"] = 0.25
+						dr["face"] = signf(ts2[0].pos.x - dr.pos.x)
 			if dl >= 3:
 				dr.cd_missile -= dt * haste
 				if dr.cd_missile <= 0.0:
@@ -2477,6 +2536,7 @@ func _update_weapons(dt: float) -> void:
 							bullets.append({"kind": "missile", "pos": dr.pos, "vel": d0 * 260.0, "dmg": 34.0 * dmg_mult, "life": 2.2, "r": 7.0,
 								"aoe": 70.0, "home": tg, "turn": 5.0})
 						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
+						dr["fire_t"] = 0.25
 	# 触须阵
 	var fl: int = weapons.get("field", 0)
 	if fl > 0:
@@ -3441,7 +3501,7 @@ func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip
 	if flip:
 		# 以锚点为中心水平镜像
 		draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-		draw_texture_rect_region(tx, Rect2(-size * Vector2(1.0 - anchor.x, anchor.y), size), src, col)
+		draw_texture_rect_region(tx, Rect2(-size * anchor, size), src, col)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_texture_rect_region(tx, Rect2((pos - size * anchor).round(), size), src, col)
@@ -3526,7 +3586,11 @@ func _draw() -> void:
 				var i: int = it[2]
 				var al: Dictionary = allies[i]
 				var atx: Texture2D = tex["ally_" + al.kind]
-				if atx.get_height() >= 40:
+				var akey: String = "ally_%s_attack" % al.kind
+				if al.get("atk", -1.0) >= 0.0 and tex.get(akey) != null:
+					# 攻击动作：72×48 画布，脚底锚点 (24,45)，朝向目标
+					_spr(akey, 4, mini(3, int(al.atk * 8.0)), al.pos + Vector2(0, 16), 1.4, al.get("face", 1.0) < 0.0, Color.WHITE, Vector2(24.0 / 72.0, 45.0 / 48.0))
+				elif atx.get_height() >= 40:
 					# 48px 援护（脚底锚点约 (24,45)）
 					_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos + Vector2(0, 16), 1.4, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
 				else:
@@ -3552,7 +3616,16 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		draw_circle(dr.pos, 20.0, Color(0.4, 1.2, 1.6, 0.18))
-		if tex.get("drone") != null:
+		# Codex 美术 V5：子弹型 / 激光型 / 导弹型，4 帧（0-1 悬浮，2 发射，3 回稳）
+		var dlv: int = weapons.get("drone", 1)
+		var dkey: String = "drone_bullet" if dlv == 1 else ("drone_laser" if dlv == 2 else "drone_missile")
+		if tex.get(dkey) != null:
+			var dfr := int(t * 6.0) % 2
+			var ft: float = dr.get("fire_t", 0.0)
+			if ft > 0.0:
+				dfr = 2 if ft > 0.12 else 3
+			_spr(dkey, 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0)
+		elif tex.get("drone") != null:
 			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.6, 1.6, 1.7))
 		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.5, 2.6, 2.8, 0.6 + 0.3 * sin(t * 8.0)))
 	var jf := int(t * 6.0) % 2
@@ -4084,7 +4157,22 @@ func _draw_enemy(e: Dictionary) -> void:
 		name = "e_paranoia2"
 	elif e.get("coma", false) and tex.get(name + "_feign") != null:
 		name = name + "_feign"
+	var frames := 2
 	var frame := int(t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
+	# 美术 V5：Boss 移动时播放 4 帧移动循环；停下、晕眩、假死时用本体
+	if e.boss:
+		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
+			e.mv_until = t + 0.2
+		e.dpos = e.pos
+		if t < e.get("mv_until", 0.0) and e.stun <= 0.0 and not e.get("coma", false) and tex.get(name + "_move") != null:
+			name += "_move"
+			frames = 4
+			var fps := 6.0
+			if e.type == "immortal":
+				fps = 8.0
+			elif e.type in ["paranoia", "izumik", "ishar"]:
+				fps = 5.0
+			frame = int(t * fps + e.id * 0.37) % 4
 	var sc: float = PX * e.r / e.r0
 	var col := Color.WHITE
 	if e.evo:
@@ -4129,10 +4217,10 @@ func _draw_enemy(e: Dictionary) -> void:
 	if Cfg.outline and tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
 		for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
-			_spr(name + "_white", 2, frame, bpos + d, sc, flip, oc, anc, sq)
-	_spr(name, 2, frame, bpos, sc, flip, col, anc, sq)
+			_spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
+	_spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		_spr(name + "_white", 2, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+		_spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
 	if e.elite:
 		var w: float = e.r * 2.0
 		draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 14), Vector2(w, 4)), Color(0, 0, 0, 0.6))
