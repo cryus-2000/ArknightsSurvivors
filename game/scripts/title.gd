@@ -320,6 +320,11 @@ func _fa(c: Color, a: float) -> Color:
 func _draw() -> void:
 	var vs := size
 	var tx := 90.0
+	# 左侧柔和暗角：让标题与菜单浮在星空上，不与银河抢
+	var vg := _ease(intro / 1.6)
+	for i in 14:
+		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
+		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
 	# 标题：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
 	var lg := _seg(1.0, 0.8)
 	var ly := 24.0 * (1.0 - lg)
@@ -351,12 +356,19 @@ func _draw() -> void:
 		var rr := Rect2(r.position + Vector2(-40.0 * (1.0 - f), 0), r.size)
 		var on := i == sel
 		if on:
-			UI.panel(self, rr, _fa(Color(0.05, 0.2, 0.24, 0.85), f), _fa(UI.CYAN, f), 10.0, _fa(UI.CYAN, f))
-			UI.diamond(self, rr.position + Vector2(-18, 25), 6.0, _fa(UI.CYAN, f))
+			var pulse := 0.5 + 0.5 * sin(t * 3.0)
+			UI.panel(self, rr, _fa(Color(0.05, 0.2, 0.24, 0.85), f), _fa(UI.CYAN, f), 10.0, _fa(UI.CYAN, f * (0.75 + 0.25 * pulse)))
+			UI.diamond(self, rr.position + Vector2(-18 - 3.0 * pulse, 25), 6.0, _fa(UI.CYAN, f))
 		else:
-			UI.panel(self, rr, _fa(Color(0.02, 0.06, 0.09, 0.55), f), _fa(Color(0.2, 0.4, 0.45, 0.5), f), 10.0)
-		UI.text(self, font, rr.position + Vector2(24, 34), ITEMS[i].cn, 24, _fa(UI.TEXT if on else UI.SUB, f))
+			# 未选中：只留一条细竖线，文字压暗，整体更轻
+			draw_rect(Rect2(rr.position + Vector2(0, 12), Vector2(2, 26)), _fa(Color(0.2, 0.42, 0.46, 0.7), f))
+		UI.text(self, font, rr.position + Vector2(24, 34), ITEMS[i].cn, 24, _fa(UI.TEXT if on else Color(0.62, 0.76, 0.8), f))
 		UI.en(self, font, rr.position + Vector2(170, 32), ITEMS[i].en, 13, _fa(UI.CYAN if on else Color(0.3, 0.45, 0.5), f), 3.0)
+	# 操作提示
+	var hf := _seg(2.7, 0.5)
+	if hf > 0.0 and not diff_pick:
+		var hy := my + ITEMS.size() * 60 + 6
+		UI.en(self, font, Vector2(tx + 2, hy), "W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
 
 	# 页脚：最后淡入
 	var ff := _seg(2.8, 0.5)
