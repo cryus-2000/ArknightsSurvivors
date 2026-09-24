@@ -1,0 +1,818 @@
+[
+ {
+  "file": "relic_100.png",
+  "id": 100,
+  "name": "皇族金胸针",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "2688caf3c9d1b55a557b56d789d96c236861b3777d5c00369bef94d349fdc92e"
+ },
+ {
+  "file": "relic_105.png",
+  "id": 105,
+  "name": "黑色郁金香",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "c7a040402704c1515e0fa34658d44217aa3b78e85ea75af8f1f1e10ee39489d6"
+ },
+ {
+  "file": "relic_110.png",
+  "id": 110,
+  "name": "绿叶菜罐头",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 10,
+  "sha256": "6d349f3828f54c6e27301b5374d713795f2f5c0b03cd033218910ca885a97c72"
+ },
+ {
+  "file": "relic_112.png",
+  "id": 112,
+  "name": "荣耀绶带",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "b90f419157cb4135c94def414e5deb6eba8bf79195b754bd96fb1e78a545c6a7"
+ },
+ {
+  "file": "relic_114.png",
+  "id": 114,
+  "name": "国王的新枪",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 14,
+  "sha256": "3aa177305ee2e898e314792d979c3f89caec0ef36162365aa056f13153ce20d8"
+ },
+ {
+  "file": "relic_118.png",
+  "id": 118,
+  "name": "药枚",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "c5ddff9c93a8666dcf0f27547dceec6847d79e5913a8cffb95722d64509a9e93"
+ },
+ {
+  "file": "relic_120.png",
+  "id": 120,
+  "name": "《光耀卡西米尔》",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "5e6ec30d1a97c3d4f064753efd8eba12088dfda73fde5a48f4665ad0b39920fc"
+ },
+ {
+  "file": "relic_121.png",
+  "id": 121,
+  "name": "《归来》",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "2382a73b303f08af4136e1c25c049a6a489278ed1548f3d01a20ed7c7fa5cac7"
+ },
+ {
+  "file": "relic_126.png",
+  "id": 126,
+  "name": "国王的圆饼",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "562ee23c8812d4c1b72d09609b0848e88fd72e12b7313fc9f52197ef07912536"
+ },
+ {
+  "file": "relic_127.png",
+  "id": 127,
+  "name": "国王的枝条",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 11,
+  "sha256": "8bd984be49e86b7686f7e27b1a09e1a95faf00db4ec639412dbf12f759374efe"
+ },
+ {
+  "file": "relic_128.png",
+  "id": 128,
+  "name": "诸王的冠冕",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "4be73b3b574016d41dee6097a18bb8046342d2b2a5644793326770a148d2216b"
+ },
+ {
+  "file": "relic_15.png",
+  "id": 15,
+  "name": "《杜林地上环游记》",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "f2008ae605578e32af69bccd0415f25456596c056e87c4387b63839ec2cc676a"
+ },
+ {
+  "file": "relic_169.png",
+  "id": 169,
+  "name": "扼喉之手",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "a244ba7808b7b49eb649f8398f575eaedec72fae077eca793e4495628f8f5d2d"
+ },
+ {
+  "file": "relic_170.png",
+  "id": 170,
+  "name": "扣挠之手",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "53cb411c01cc98364dbe123718eaa6fa0668b6ffc3969f90ca1110fd82dbc0e8"
+ },
+ {
+  "file": "relic_171.png",
+  "id": 171,
+  "name": "炸裂之手",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "051e0113a20e8c395a533bed72b7a445b0904c7889b321c23b51e8ac0bd77e37"
+ },
+ {
+  "file": "relic_172.png",
+  "id": 172,
+  "name": "极速之手",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "d4c4468df7ed56978d39058ab227810d42ee66e4f22bd46c91a2d17fe6ec3844"
+ },
+ {
+  "file": "relic_188.png",
+  "id": 188,
+  "name": "锈蚀的铁锤",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "3e20874eb2cf6477b5784d9f4bcb3c1fa11e760c31297ee3fa1c80aebe5b81f4"
+ },
+ {
+  "file": "relic_190.png",
+  "id": 190,
+  "name": "四叶草化石",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "71b3fb34ee6d63f5e61f53578bcd1adf2304c8b7a040bd0ccb9f7b380d9a2074"
+ },
+ {
+  "file": "relic_199.png",
+  "id": 199,
+  "name": "御2",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "5d9fcc2618880ba17fa54fc59f24f14c2f745045a77323e266d0551e5b4ed0ba"
+ },
+ {
+  "file": "relic_200.png",
+  "id": 200,
+  "name": "嵌体甲片",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 5,
+  "sha256": "04973acf30fc867f30ef2dc7df95f8aa899e9a0d16b8f4a45d44a6b9d4d43b91"
+ },
+ {
+  "file": "relic_202.png",
+  "id": 202,
+  "name": "“国王的护戒”",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "b17a4bba306cb79d58923427bc33a0194fbe12adb561d5b5d2ad726f4b1887d9"
+ },
+ {
+  "file": "relic_204.png",
+  "id": 204,
+  "name": "火油与药膏",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 14,
+  "sha256": "66143b2e00eb9a74f269b9f528c304dbd4bc153699d5d5f68ce4446d8050128b"
+ },
+ {
+  "file": "relic_207.png",
+  "id": 207,
+  "name": "投币玩具",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "a0c305c60cbb73ab76948fa655a267a20fb3d0f48f02802eb86e3591f164aff6"
+ },
+ {
+  "file": "relic_208.png",
+  "id": 208,
+  "name": "骑士戒律·新编",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 11,
+  "sha256": "6536e3ecdd62df92f4bbf6d8620a25c8811a88e5155d90069983901bde28912b"
+ },
+ {
+  "file": "relic_216.png",
+  "id": 216,
+  "name": "海神的代谢",
+  "rarity": "遭诅古物",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "9f2a3181d4f72c5366bcbebe5bfa53ab431b8b6469a0a0c655b2d9fe4711fad6"
+ },
+ {
+  "file": "relic_218.png",
+  "id": 218,
+  "name": "“应急灯”",
+  "rarity": "遭诅古物",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "df25b02ca298059029093bdace254b30f48d0efae56ef6ec005a9db515541d62"
+ },
+ {
+  "file": "relic_219.png",
+  "id": 219,
+  "name": "“光明之躯”",
+  "rarity": "遭诅古物",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "49a83c68639499ba8dbccdbbc6abdd58464b30cae1b422b0c9e58c5574d1e904"
+ },
+ {
+  "file": "relic_220.png",
+  "id": 220,
+  "name": "主教的研究",
+  "rarity": "遭诅古物",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "6e34c29c46cebf987061298382585ee2ad8f2549f2cb0f629b3d85ba2a4fa2af"
+ },
+ {
+  "file": "relic_228.png",
+  "id": 228,
+  "name": "“时光之末”",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "46b66ae81a5b99427989f9fcc2d6e357bf9ce1efa4fd389855c73a77802769eb"
+ },
+ {
+  "file": "relic_229.png",
+  "id": 229,
+  "name": "“审判庭之火”",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "a27a8735d0303648be264b2ecf086452cc352e73a9aad3265c25070ce323f2cb"
+ },
+ {
+  "file": "relic_243.png",
+  "id": 243,
+  "name": "深蓝之树",
+  "rarity": "遭诅古物",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "0ac10e61aaac793268cc919d522d7550bc4ff7f3a4861b10ff77c505869b5b78"
+ },
+ {
+  "file": "relic_246.png",
+  "id": 246,
+  "name": "无字珊瑚",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "a0269e2a3cdd7e249e33c3d8a56c1beb56f046aba0bfe562c609afaeb180a400"
+ },
+ {
+  "file": "relic_252.png",
+  "id": 252,
+  "name": "刻勋之手",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "fb9e5eed35391a2b96f5a1a6d515b84e738538d32171c6fac079c4cc087ebcb6"
+ },
+ {
+  "file": "relic_255.png",
+  "id": 255,
+  "name": "佣兵保单",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "394637d1f25e1cafd634b7d541d553fd3908c600a7fc2446f36e0c2c3af0887b"
+ },
+ {
+  "file": "relic_27.png",
+  "id": 27,
+  "name": "古旧钱币",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "894c2064e7aa0004d073381f29f7b8fb7897ab9969c451ecaaca7925f8922d8d"
+ },
+ {
+  "file": "relic_28.png",
+  "id": 28,
+  "name": "演员的首饰盒",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 11,
+  "sha256": "0925195a1ab6a3b35c20bf173e671ad0168095994436f2906b0a9d5c0c7aaedc"
+ },
+ {
+  "file": "relic_29.png",
+  "id": 29,
+  "name": "无瑕宝玉",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "3329cc625f51a6f94c22c98c2db00ea25945a2719af6e1f19eb825232772d8b0"
+ },
+ {
+  "file": "relic_30.png",
+  "id": 30,
+  "name": "夜阳花",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "f51e2b8110e34f6ceb1bab92d49c64776891d2ab2cbcdc2f2745ead3f038ecb5"
+ },
+ {
+  "file": "relic_31.png",
+  "id": 31,
+  "name": "聚火源石虫",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "602347afd7dda72c4f623e2605375b80ff9b899a4b1fc62ab4e77837d7d848e0"
+ },
+ {
+  "file": "relic_32.png",
+  "id": 32,
+  "name": "指路鳞",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "3a9bcd089c41bcd30e0af45c64d2f44a30e3cadd095c1f25281525b4e8b6c4c0"
+ },
+ {
+  "file": "relic_41.png",
+  "id": 41,
+  "name": "开裂的束缚带",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "ef355a7f682952136b1188491c78b9faf061843c57f2f7380adc5ac1a5d69a0b"
+ },
+ {
+  "file": "relic_43.png",
+  "id": 43,
+  "name": "奇渊面具",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "d412a75d4717b682a6d235e387ede87e05f6f23808f1caaf37cd849038f53553"
+ },
+ {
+  "file": "relic_44.png",
+  "id": 44,
+  "name": "教母的信物",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "7783dfad566b2e567a20011ad75b6ed64fec798a04ef00c7a42786766f50281d"
+ },
+ {
+  "file": "relic_46.png",
+  "id": 46,
+  "name": "恐鱼干",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "b01b0d28cc07eca15599c38a9735422533ec71e772c0c1410d9ea721e5476104"
+ },
+ {
+  "file": "relic_48.png",
+  "id": 48,
+  "name": "镶金骨骰",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "13f0f1ceb88aa38934f27831b93d4a88e988351a34c8b35c210ce34e1f140a93"
+ },
+ {
+  "file": "relic_49.png",
+  "id": 49,
+  "name": "“黑夜呢喃”",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "d0d1f89b8836498aeef8f75ab23941de60eddf451243c4a9f8626b3110a06180"
+ },
+ {
+  "file": "relic_50.png",
+  "id": 50,
+  "name": "《大静谧》",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "ef8b6de6512f9bbd41a73625632a0e473e8bbd315ab04d79fd0d61223a66a97b"
+ },
+ {
+  "file": "relic_54.png",
+  "id": 54,
+  "name": "皇帝的恩宠",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "c6f9cc64962145ffe6cf0706088d76137a1c561eabee65d0d87bce2b18d59623"
+ },
+ {
+  "file": "relic_55.png",
+  "id": 55,
+  "name": "贵族刺剑",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "7c01b5c4d87f796de61641cf383c3faedbf0462b746bfbd5d11e14202e94c103"
+ },
+ {
+  "file": "relic_56.png",
+  "id": 56,
+  "name": "老近卫军之锋",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 10,
+  "sha256": "e0428649b0cad3e4820395f3355d9b92c09a70b5be69903eb2547a0524f5e631"
+ },
+ {
+  "file": "relic_57.png",
+  "id": 57,
+  "name": "显圣吊坠",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "736d43f10dcddb239cc9a036e3ac6304088616c837522140f59f7dfbdc6f943b"
+ },
+ {
+  "file": "relic_58.png",
+  "id": 58,
+  "name": "银餐叉",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 5,
+  "sha256": "736a12a0c8449d1f40483bceffe14440c92667b667da06870fbe47ec157f7f7b"
+ },
+ {
+  "file": "relic_59.png",
+  "id": 59,
+  "name": "损坏的左轮弹巢",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 8,
+  "sha256": "9a6b6f71e2e0e63d864cee14b51d9cbf76767eeec5d8744c6b5caefa43d4e71e"
+ },
+ {
+  "file": "relic_66.png",
+  "id": 66,
+  "name": "制式防暴用具",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "84ca8cbb3c80920c0a251261d01052ca07bfc09de3dac6de25aae25f82cf541d"
+ },
+ {
+  "file": "relic_67.png",
+  "id": 67,
+  "name": "皇帝的收藏",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 10,
+  "sha256": "279dbf08e125fc7d928856fd5900885c80efddc240b01b2d216ec37fb5344ba0"
+ },
+ {
+  "file": "relic_68.png",
+  "id": 68,
+  "name": "“璀璨悲泣”",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 7,
+  "sha256": "fefbe672a3e47a2255588db42f49e519a165cb906f8e71e69bd56fd5f9a7ed7d"
+ },
+ {
+  "file": "relic_72.png",
+  "id": 72,
+  "name": "演出用香水",
+  "rarity": "稀有",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "97153f330accf4d3ca0cb43ef5f80e6f761977833988851bd450d6b3771d84cb"
+ },
+ {
+  "file": "relic_73.png",
+  "id": 73,
+  "name": "设计师量尺",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "009c3db371c7ddeb68d013cd79e72bef9047339deb07ac0157f5eb6e1f7bfe5b"
+ },
+ {
+  "file": "relic_74.png",
+  "id": 74,
+  "name": "“法术杀手”",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "27713ffbaf6ce46ea493032a7b668d6b3d8be07830ea3201daa74939acac2376"
+ },
+ {
+  "file": "relic_75.png",
+  "id": 75,
+  "name": "舞者手链",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "0271f3f18740d5d9b64d5a6f4efeeee7cafe7d12aa066dab43d08804f17564f6"
+ },
+ {
+  "file": "relic_79.png",
+  "id": 79,
+  "name": "涡旋座",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "f242e59431bd0ff53543dd8a478591167062600ee3eec28c8cd0cd63c3c94a2d"
+ },
+ {
+  "file": "relic_84.png",
+  "id": 84,
+  "name": "几丁质刺刃",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 9,
+  "sha256": "dda50e224247273e127d906f6e7ce39bba762e7d4455aab8d77a4c33bb229e1a"
+ },
+ {
+  "file": "relic_94.png",
+  "id": 94,
+  "name": "“绽放”",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 10,
+  "sha256": "a2cd0e64aa946ed8a8367687064a68873b201ff73b31ddefa27ef905f480ff51"
+ },
+ {
+  "file": "relic_95.png",
+  "id": 95,
+  "name": "悬丝傀儡",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 6,
+  "sha256": "5093799b9901f560fd694e719f9d315c4052582eb7106e9eb9da6f2262a56929"
+ },
+ {
+  "file": "relic_96.png",
+  "id": 96,
+  "name": "“童趣玩偶”",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 11,
+  "sha256": "e62df4f18285ec4b4bdb0e3fc6cfb888dfa28e50a956a69e71f9a856416d2cc6"
+ },
+ {
+  "file": "relic_97.png",
+  "id": 97,
+  "name": "凯旋号角",
+  "rarity": "基础",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 12,
+  "sha256": "5067f4f24f7c35a6188a57830c265355c43cde4c95914e89d88ce2ba0a448010"
+ },
+ {
+  "file": "relic_98.png",
+  "id": 98,
+  "name": "高闪相机",
+  "rarity": "核心",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 13,
+  "sha256": "35f27b7abf293fdd79ba608a4488f8c33137e5631daa0b6ecbc921419a0ea156"
+ },
+ {
+  "file": "relic_99.png",
+  "id": 99,
+  "name": "精神治疗录像带",
+  "rarity": "升华",
+  "size": [
+   32,
+   32
+  ],
+  "colors": 11,
+  "sha256": "f8f686a2b7d8c2573c038c3ef9abdf359b561edc70e980a8eb184856e63b0c1a"
+ }
+]

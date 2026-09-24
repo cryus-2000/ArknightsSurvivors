@@ -1,5 +1,5 @@
 extends Control
-## 标题界面：深海背景 + 荧光巨树剪影 + 光束 + 菜单
+## 标题界面：蓝眼泪银河沙滩背景（title_bg.gd）+ 菜单
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -51,6 +51,11 @@ func _ready() -> void:
 	_grow(rng, Vector2(900, 700), -PI / 2, 150.0, 14.0, 0)
 	for i in 90:
 		motes.append([Vector2(rng.randf_range(0, 1280), rng.randf_range(0, 720)), rng.randf_range(6, 22), rng.randf() * TAU])
+	# 封面背景：蓝眼泪银河沙滩（放在更底层的 CanvasLayer，菜单画在它上面）
+	var bg_layer := CanvasLayer.new()
+	bg_layer.layer = -1
+	add_child(bg_layer)
+	bg_layer.add_child(preload("res://scripts/title_bg.gd").new())
 	gallery = preload("res://scripts/gallery.gd").new()
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
@@ -258,45 +263,6 @@ func _activate(i: int) -> void:
 
 func _draw() -> void:
 	var vs := size
-	# 背景渐变
-	draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), vs, Vector2(0, vs.y)]),
-		PackedColorArray([Color(0.01, 0.04, 0.07), Color(0.01, 0.05, 0.08), Color(0.04, 0.16, 0.2), Color(0.03, 0.12, 0.16)]))
-	if tex_bg != null:
-		draw_texture_rect(tex_bg, Rect2(Vector2.ZERO, vs), false)
-	# 光束
-	for i in 5:
-		var x := 200.0 + i * 230.0 + sin(t * 0.3 + i) * 40.0
-		var w := 60.0 + 30.0 * sin(t * 0.5 + i * 1.7)
-		draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + w, 0), Vector2(x + w * 3.0 - 200, vs.y), Vector2(x - 200, vs.y)]),
-			Color(0.4, 0.9, 0.95, 0.025 + 0.012 * sin(t * 0.7 + i)))
-	# 巨树
-	for b in branches:
-		var sway: float = sin(t * 0.6 + b[3] * 0.8) * b[3] * 0.8
-		draw_line(b[0] + Vector2(sway * 0.5, 0), b[1] + Vector2(sway, 0), Color(0.05, 0.22, 0.27, 0.9), max(1.0, b[2]))
-	for n in nodes:
-		var a: float = 0.5 + 0.5 * sin(t * 1.5 + n[1])
-		var p: Vector2 = n[0] + Vector2(sin(t * 0.6 + 5.0) * 4.0, 0)
-		draw_circle(p, 7.0 + a * 4.0, Color(0.3, 0.9, 0.9, 0.08 * a))
-		draw_rect(Rect2(p.round() - Vector2(2, 2), Vector2(4, 4)), Color(0.5, 1.0, 0.95, 0.5 + 0.5 * a))
-	# 海床
-	var ty := vs.y - 64.0
-	for x in range(0, int(vs.x) + 32, 32):
-		for y in range(int(ty), int(vs.y) + 32, 32):
-			draw_texture_rect_region(tex_tiles, Rect2(x, y, 32, 32), Rect2((x / 32 + y / 32) % 4 * 16, 0, 16, 16), Color(0.35, 0.45, 0.55))
-	draw_polygon(PackedVector2Array([Vector2(0, ty - 40), Vector2(vs.x, ty - 40), Vector2(vs.x, ty + 10), Vector2(0, ty + 10)]),
-		PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0.02, 0.06, 0.08, 0.7), Color(0.02, 0.06, 0.08, 0.7)]))
-	# 主角与灯火
-	var pp := Vector2(600, ty + 6)
-	var flick := 1.0 + sin(t * 9.0) * 0.03
-	draw_texture_rect(tex_light, Rect2(pp - Vector2(170, 210) * flick, Vector2(340, 340) * flick), false, Color(1.0, 0.8, 0.5, 0.35))
-	var fw := tex_player.get_width() / player_frames
-	var ps := Vector2(fw, tex_player.get_height()) * 3.0
-	var pf := int(t * 6.0) % player_frames
-	draw_texture_rect_region(tex_player, Rect2((pp - Vector2(ps.x / 2, ps.y)).round(), ps), Rect2(pf * fw, 0, fw, tex_player.get_height()))
-	# 漂浮颗粒
-	for m in motes:
-		draw_rect(Rect2((m[0] + Vector2(sin(t + m[2]) * 8.0, 0)).round(), Vector2(2, 2)), Color(0.7, 0.95, 1.0, 0.25 + 0.2 * sin(t * 2.0 + m[2])))
-
 	# 标题
 	var tx := 90.0
 	UI.en(self, font, Vector2(tx + 4, 128), "ARKNIGHTS  FAN  GAME", 13, UI.CYAN_DIM, 4.0)
@@ -326,7 +292,7 @@ func _draw() -> void:
 		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
 
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业", 13, Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v0.8", 13, Color(0.4, 0.55, 0.6))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.4", 13, Color(0.4, 0.55, 0.6))
 
 	if guide:
 		_draw_guide(vs)

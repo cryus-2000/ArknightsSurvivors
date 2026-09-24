@@ -1,0 +1,412 @@
+extends Control
+## 标题背景：蓝眼泪银河沙滩（全部程序生成，像素风）
+## 画布 640×360，按 ×2 最近邻放大到 1280×720，与游戏内像素密度一致。
+## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 水月与倒影 → 发光叠加层
+
+const A = preload("res://scripts/art.gd")
+
+const W := 640
+const H := 360
+const HZ := 150            # 海平线
+const SHORE := 238         # 静水时的岸线
+const K := 2.0             # 放大倍率
+const WAVE_PERIOD := 7.5
+const FEET := Vector2(452, 298)
+
+var t := 0.0
+var rng := RandomNumberGenerator.new()
+var tex_sky: ImageTexture
+var tex_sand: ImageTexture
+var tex_player: Texture2D
+var tex_light: Texture2D
+var pframes := 1
+var stars: Array = []       # [pos, size, phase, speed, col]
+var crests: Array = []      # 远处发光浪尖 {y, x0, x1, life, max}
+var tears: Array = []       # 沙滩上的蓝眼泪光点 {pos, life, max, ph}
+var motes: Array = []       # 上升的荧光颗粒 {pos, v, ph}
+var meteor := {}
+var next_meteor := 3.0
+var next_crest := 0.0
+var tree_br: Array = []     # 远景深蓝之树 [a, b, w]
+var tree_nodes: Array = []
+var steps: Array = []       # 发光脚印
+var glow: Control
+
+
+func _ready() -> void:
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rng.seed = 20260924
+	tex_player = A.tex("player_idle")
+	if tex_player == null:
+		tex_player = A.tex("player")
+	pframes = maxi(1, tex_player.get_width() / tex_player.get_height())
+	tex_light = A.tex("light")
+	_build_sky()
+	_build_sand()
+	for i in 170:
+		var p := Vector2(rng.randf_range(0, W), rng.randf_range(0, HZ - 6))
+		var big := rng.randf() < 0.1
+		var col := Color(0.8, 0.9, 1.0).lerp(Color(0.7, 0.8, 1.0) if rng.randf() < 0.5 else Color(1.0, 0.9, 0.8), rng.randf() * 0.6)
+		stars.append([p, 2 if big else 1, rng.randf() * TAU, rng.randf_range(0.6, 2.4), col])
+	for i in 40:
+		motes.append({"pos": Vector2(rng.randf_range(200, W), rng.randf_range(170, H)), "v": rng.randf_range(3, 9), "ph": rng.randf() * TAU})
+	_grow(Vector2(560, HZ + 1), -PI / 2 - 0.08, 34.0, 3.0, 0)
+	# 走来的脚印（从左下到脚边）
+	for i in 7:
+		var k := float(i) / 6.0
+		var p := Vector2(250, 352).lerp(FEET + Vector2(-14, 8), k)
+		steps.append([p + Vector2(0, 3 if i % 2 == 0 else -3), 0.3 + 0.7 * k])
+	# 发光叠加层（加法混合）
+	glow = Control.new()
+	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = mat
+	glow.draw.connect(_draw_glow)
+	add_child(glow)
+	# 开场先让几道浪、几颗蓝眼泪已经在场上
+	for i in 90:
+		_step(0.1)
+
+
+func _process(delta: float) -> void:
+	_step(delta)
+	queue_redraw()
+	glow.queue_redraw()
+
+
+func _step(dt: float) -> void:
+	t += dt
+	# 流星
+	next_meteor -= dt
+	if next_meteor <= 0.0:
+		next_meteor = rng.randf_range(4.0, 9.0)
+		meteor = {"p": Vector2(rng.randf_range(180, 600), rng.randf_range(4, 60)), "v": Vector2(-rng.randf_range(160, 240), rng.randf_range(50, 90)), "life": 0.9}
+	if not meteor.is_empty():
+		meteor.p += meteor.v * dt
+		meteor.life -= dt
+		if meteor.life <= 0.0:
+			meteor = {}
+	# 远处发光浪尖：从海平线附近生成，向岸边移动、变长、再熄灭
+	next_crest -= dt
+	if next_crest <= 0.0:
+		next_crest = rng.randf_range(0.08, 0.2)
+		var cx := rng.randf_range(160, W + 40)
+		var mx := 3.2 if rng.randf() < 0.5 else 2.2
+		crests.append({"y": HZ + 6 + pow(rng.randf(), 0.7) * (SHORE - 26 - HZ), "x0": cx - rng.randf_range(10, 40), "x1": cx + rng.randf_range(10, 60), "life": mx, "max": mx})
+	for c in crests:
+		c.life -= dt
+		c.y += dt * (2.0 + (c.y - HZ) * 0.06)
+		c.x0 -= dt * 4.0
+		c.x1 += dt * 4.0
+	crests = crests.filter(func(c): return c.life > 0.0 and c.y < SHORE)
+	# 涌浪前沿：冲上沙滩时沿线留下蓝眼泪
+	for i in 3:
+		var p := fmod(t / WAVE_PERIOD + i / 3.0, 1.0)
+		for q in int(dt * 140.0 + rng.randf()) if p < 0.42 else 0:
+			var x := rng.randf_range(120, W)
+			tears.append({"pos": Vector2(x, _wave_y(i, x) + rng.randf_range(-1, 2)), "life": rng.randf_range(2.5, 6.0), "max": 6.0, "ph": rng.randf() * TAU})
+	for tr in tears:
+		tr.life -= dt
+	tears = tears.filter(func(tr): return tr.life > 0.0)
+	if tears.size() > 900:
+		tears = tears.slice(tears.size() - 900)
+	for m in motes:
+		m.pos.y -= m.v * dt
+		m.pos.x += sin(t * 0.8 + m.ph) * 4.0 * dt
+		if m.pos.y < HZ + 10:
+			m.pos = Vector2(rng.randf_range(200, W), H + 4)
+
+
+## 第 i 道浪在 x 处的前沿高度（冲上 → 退回）
+func _wave_front(i: int) -> float:
+	var p := fmod(t / WAVE_PERIOD + i / 3.0, 1.0)
+	var reach := 58.0 + 8.0 * sin(i * 2.1)
+	var k: float
+	if p < 0.42:
+		k = 1.0 - pow(1.0 - p / 0.42, 2.2)          # 冲上沙滩：先快后慢
+	else:
+		k = 1.0 - smoothstep(0.42, 1.0, p)          # 退回
+	return SHORE - 6.0 + reach * k
+
+
+func _wave_y(i: int, x: float) -> float:
+	# 越靠右（离观众越远）浪冲得越短，形成斜向海岸
+	var slant := (x - 320.0) * 0.07
+	return _wave_front(i) - slant + 3.0 * sin(x * 0.035 + i * 1.9) + 1.5 * sin(x * 0.11 + t * 1.3 + i)
+
+
+func _wave_phase(i: int) -> float:
+	return fmod(t / WAVE_PERIOD + i / 3.0, 1.0)
+
+
+# ------------------------------------------------------------------ 绘制
+func _draw() -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(K, K))
+	draw_texture(tex_sky, Vector2.ZERO)
+	# 星星闪烁
+	for s in stars:
+		var a: float = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(t * s[3] + s[2]), 2.0)
+		var c: Color = s[4]
+		draw_rect(Rect2(s[0], Vector2(1, 1)), Color(c.r, c.g, c.b, a))
+		if s[1] == 2 and a > 0.7:
+			draw_rect(Rect2(s[0] + Vector2(-1, 0), Vector2(3, 1)), Color(c.r, c.g, c.b, (a - 0.7) * 1.6))
+			draw_rect(Rect2(s[0] + Vector2(0, -1), Vector2(1, 3)), Color(c.r, c.g, c.b, (a - 0.7) * 1.6))
+	# 远景：深蓝之树剪影（海平线右侧）与倒影
+	for b in tree_br:
+		draw_line(b[0], b[1], Color(0.03, 0.05, 0.12), b[2])
+		var ra: Vector2 = Vector2(b[0].x, HZ + (HZ - b[0].y) * 0.45)
+		var rb: Vector2 = Vector2(b[1].x, HZ + (HZ - b[1].y) * 0.45)
+		draw_line(ra + Vector2(sin(t * 1.3 + ra.y) * 0.8, 0), rb + Vector2(sin(t * 1.3 + rb.y) * 0.8, 0), Color(0.03, 0.06, 0.13, 0.4), b[2])
+	# 沙滩（岸线以下）
+	draw_texture(tex_sand, Vector2(0, SHORE - 30))
+	# 发光脚印
+	for st in steps:
+		var a: float = st[1] * (0.35 + 0.25 * sin(t * 1.5 + st[0].x))
+		draw_rect(Rect2(st[0].round(), Vector2(3, 1)), Color(0.3, 0.75, 1.0, a))
+	# 涌浪：从后到前画三道水膜
+	var order := [0, 1, 2]
+	order.sort_custom(func(a, b): return _wave_front(a) < _wave_front(b))
+	for i in order:
+		_draw_wave(i)
+	# 水月与倒影
+	_draw_mizuki()
+	# 左侧压暗，保证菜单文字清晰
+	var scrim := PackedColorArray([Color(0.0, 0.01, 0.03, 0.72), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.72)])
+	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(300, 0), Vector2(300, H), Vector2(0, H)]), scrim)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_wave(i: int) -> void:
+	var p := _wave_phase(i)
+	var adv := p < 0.42
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var top := float(HZ + 20)
+	var x := 0.0
+	while x <= W:
+		pts.append(Vector2(x, top))
+		x += 8.0
+	x = W
+	while x >= 0.0:
+		pts.append(Vector2(x, _wave_y(i, x)))
+		x -= 8.0
+	var wa := 0.5 if adv else 0.5 * (1.0 - smoothstep(0.42, 1.0, p))
+	for k in pts.size():
+		var d: float = (pts[k].y - top) / 90.0
+		cols.append(Color(0.02, 0.07, 0.16, wa * (0.4 + 0.6 * d)))
+	draw_polygon(pts, cols)
+	# 湿沙反光：刚退下去的一条暗亮带
+	if not adv:
+		var x2 := 150.0
+		while x2 < W:
+			var y := _wave_y(i, x2)
+			draw_rect(Rect2(Vector2(x2, y + 1).round(), Vector2(4, 1)), Color(0.25, 0.4, 0.6, 0.12 * (1.0 - p)))
+			x2 += 4.0
+
+
+func _draw_mizuki() -> void:
+	var fh := tex_player.get_height()
+	var fw := tex_player.get_width() / pframes
+	var f := int(t * 4.0) % pframes
+	var sc := 2.0
+	var pos := FEET - Vector2(fw * sc * 0.5, fh * sc - 2.0 * sc)
+	# 倒影：逐行错位的水波
+	var wet := 0.55
+	for row in fh:
+		var src := Rect2(f * fw, fh - 1 - row, fw, 1)
+		var off := sin(t * 2.2 + row * 0.5) * (0.6 + row * 0.03)
+		var dst := Rect2(Vector2(pos.x + off, FEET.y - 2.0 * sc + row * sc), Vector2(fw * sc, sc))
+		draw_texture_rect_region(tex_player, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55))
+	# 本体
+	draw_texture_rect_region(tex_player, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh))
+
+
+## 加法发光层：银河亮核、蓝眼泪、浪尖、荧光颗粒、流星
+func _draw_glow() -> void:
+	glow.draw_set_transform(Vector2.ZERO, 0.0, Vector2(K, K))
+	# 远处浪尖
+	for c in crests:
+		var k: float = c.life / c.max
+		var a: float = sin(k * PI) * 0.55
+		var y: float = round(c.y)
+		var near: float = clampf((c.y - HZ) / float(SHORE - HZ), 0.0, 1.0)
+		a *= 0.5 + 0.8 * near
+		var xx: float = c.x0
+		while xx < c.x1:
+			var n := 0.55 + 0.45 * sin(xx * 0.9 + t * 4.0)
+			glow.draw_rect(Rect2(Vector2(xx, y), Vector2(2, 1)), Color(0.15, 0.6, 1.0, a * n))
+			xx += 2.0
+		glow.draw_rect(Rect2(Vector2(c.x0 + 4, y - 1), Vector2(maxf(0.0, c.x1 - c.x0 - 8), 1)), Color(0.05, 0.3, 0.75, a * 0.5))
+		if near > 0.5:
+			glow.draw_rect(Rect2(Vector2(c.x0 + 8, y + 1), Vector2(maxf(0.0, c.x1 - c.x0 - 16), 1)), Color(0.05, 0.3, 0.75, a * 0.35))
+	# 涌浪前沿：冲上来时亮蓝，退去时变暗
+	for i in 3:
+		var p := _wave_phase(i)
+		var br := (1.0 - p / 0.42 * 0.3) if p < 0.42 else 0.7 * (1.0 - smoothstep(0.42, 0.85, p))
+		if br <= 0.01:
+			continue
+		var x := 0.0
+		while x < W:
+			var y := _wave_y(i, x)
+			var n := 0.6 + 0.4 * sin(x * 0.7 + t * 5.0 + i)
+			glow.draw_rect(Rect2(Vector2(x, y).round(), Vector2(2, 1)), Color(0.3, 0.8, 1.0, 0.9 * br * n))
+			glow.draw_rect(Rect2(Vector2(x, y - 1).round(), Vector2(2, 1)), Color(0.1, 0.5, 1.0, 0.55 * br * n))
+			glow.draw_rect(Rect2(Vector2(x, y - 3).round(), Vector2(2, 2)), Color(0.04, 0.22, 0.7, 0.35 * br * n))
+			glow.draw_rect(Rect2(Vector2(x, y - 7).round(), Vector2(2, 4)), Color(0.02, 0.1, 0.4, 0.25 * br * n))
+			x += 2.0
+	# 蓝眼泪
+	for tr in tears:
+		var k: float = tr.life / tr.max
+		var tw: float = 0.6 + 0.4 * sin(t * 6.0 + tr.ph)
+		var a: float = clampf(k * 1.4, 0.0, 1.0) * tw
+		glow.draw_rect(Rect2(tr.pos.round(), Vector2(1, 1)), Color(0.35, 0.85, 1.0, a))
+		if a > 0.6:
+			glow.draw_rect(Rect2(tr.pos.round() + Vector2(-1, 0), Vector2(3, 1)), Color(0.1, 0.4, 0.9, (a - 0.6)))
+	# 荧光颗粒
+	for m in motes:
+		var a: float = 0.25 + 0.25 * sin(t * 2.0 + m.ph)
+		glow.draw_rect(Rect2(m.pos.round(), Vector2(1, 1)), Color(0.4, 0.8, 1.0, a))
+	# 深蓝之树的发光节点
+	for n in tree_nodes:
+		var a: float = 0.4 + 0.4 * sin(t * 1.4 + n[1])
+		glow.draw_rect(Rect2(n[0].round(), Vector2(1, 1)), Color(0.3, 0.9, 1.0, a))
+		var ry: float = HZ + (HZ - n[0].y) * 0.45
+		glow.draw_rect(Rect2(Vector2(n[0].x + sin(t * 1.3 + ry) * 0.8, ry).round(), Vector2(1, 1)), Color(0.2, 0.6, 0.9, a * 0.3))
+	# 流星
+	if not meteor.is_empty():
+		var a: float = clampf(meteor.life / 0.9, 0.0, 1.0)
+		var dir: Vector2 = meteor.v.normalized()
+		for k in 18:
+			glow.draw_rect(Rect2((meteor.p - dir * k * 1.5).round(), Vector2(1, 1)), Color(0.7, 0.85, 1.0, a * (1.0 - k / 18.0)))
+	# 水月身边的柔光（冷色）与一点暖色灯火；沿浪线的泛光
+	glow.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if tex_light != null:
+		for i in 3:
+			var p := _wave_phase(i)
+			var br := (1.0 - p / 0.42 * 0.3) if p < 0.42 else 0.7 * (1.0 - smoothstep(0.42, 0.85, p))
+			if br > 0.05:
+				var x3 := 180.0
+				while x3 < W:
+					var wp := Vector2(x3, _wave_y(i, x3)) * K
+					glow.draw_texture_rect(tex_light, Rect2(wp - Vector2(70, 22), Vector2(140, 44)), false, Color(0.05, 0.25, 0.6, 0.35 * br))
+					x3 += 40.0
+		glow.draw_texture_rect(tex_light, Rect2(Vector2(0, HZ * K - 90), Vector2(W * K, 180)), false, Color(0.12, 0.08, 0.3, 0.35))
+		var c := FEET * K + Vector2(0, -60)
+		var pulse := 1.0 + 0.04 * sin(t * 2.0)
+		glow.draw_texture_rect(tex_light, Rect2(c - Vector2(210, 210) * pulse, Vector2(420, 420) * pulse), false, Color(0.12, 0.3, 0.55, 0.5))
+		glow.draw_texture_rect(tex_light, Rect2(c + Vector2(-60, 10), Vector2(120, 120)), false, Color(0.5, 0.35, 0.15, 0.35 + 0.05 * sin(t * 9.0)))
+
+
+# ------------------------------------------------------------------ 预渲染
+func _build_sky() -> void:
+	var img := Image.create(W, H, false, Image.FORMAT_RGBA8)
+	var n1 := FastNoiseLite.new()
+	n1.seed = 7
+	n1.frequency = 0.02
+	n1.fractal_octaves = 4
+	var n2 := FastNoiseLite.new()
+	n2.seed = 11
+	n2.frequency = 0.045
+	n2.fractal_octaves = 3
+	var n3 := FastNoiseLite.new()
+	n3.seed = 3
+	n3.frequency = 0.008
+	# 银河：从左上斜向右侧海平线
+	var a := Vector2(40, -40)
+	var b := Vector2(640, 175)
+	var dirv := (b - a).normalized()
+	var nrm := dirv.orthogonal()
+	for y in HZ:
+		for x in W:
+			var p := Vector2(x, y)
+			var d: float = (p - a).dot(nrm)
+			var along: float = (p - a).dot(dirv) / (b - a).length()
+			var base := Color(0.012, 0.015, 0.05).lerp(Color(0.07, 0.07, 0.2), pow(float(y) / HZ, 1.6))
+			base = base.lerp(Color(0.2, 0.14, 0.36), pow(float(y) / HZ, 6.0) * 0.8)
+			var band: float = exp(-pow(d / 46.0, 2.0)) * (0.5 + 0.5 * (n1.get_noise_2d(x, y) * 0.5 + 0.5)) * (0.55 + 0.45 * along)
+			var dust: float = exp(-pow((d - 5.0) / 11.0, 2.0)) * clampf(n2.get_noise_2d(x, y) * 0.8 + 0.5, 0.0, 1.0)
+			band = maxf(0.0, band - dust * 0.55)
+			var hue: float = clampf(n3.get_noise_2d(x, y) * 0.9 + 0.5, 0.0, 1.0)
+			var bc := Color(0.55, 0.38, 0.85).lerp(Color(0.3, 0.7, 1.0), hue)
+			var c := base.lerp(bc, clampf(band * 0.85, 0.0, 0.9))
+			# 银河里的微星
+			if rng.randf() < 0.004 + band * 0.08:
+				c = c.lerp(Color(0.85, 0.9, 1.0), rng.randf_range(0.3, 0.8))
+			img.set_pixel(x, y, _dither(c, x, y))
+	# 海面：天空的模糊倒影，越近越暗
+	for y in range(HZ, H):
+		var dy := y - HZ
+		for x in W:
+			var sy := clampi(HZ - 1 - int(dy * 1.7), 0, HZ - 1)
+			var sx := clampi(x + int(n1.get_noise_2d(x * 0.3, y * 3.0) * 10.0), 0, W - 1)
+			var sc := img.get_pixel(sx, sy)
+			var k: float = exp(-dy / 55.0)
+			var c := Color(0.01, 0.03, 0.08).lerp(sc, 0.6 * k + 0.08)
+			if dy <= 1:
+				c = c.lerp(Color(0.2, 0.2, 0.4), 0.5)
+			img.set_pixel(x, y, _dither(c, x, y))
+	# 远处礁石剪影
+	for x in W:
+		var h1: float = maxf(0.0, 9.0 * sin(x * 0.02 + 1.0) + 6.0 * sin(x * 0.07) - 6.0) if x < 230 else 0.0
+		var h2: float = maxf(0.0, 5.0 * sin(x * 0.05 + 2.0) + 3.0 * sin(x * 0.13) - 4.0) if x > 470 and x < 540 else 0.0
+		var hh := int(maxf(h1, h2))
+		for k in hh:
+			img.set_pixel(x, HZ - 1 - k, Color(0.02, 0.025, 0.06))
+	tex_sky = ImageTexture.create_from_image(img)
+
+
+func _build_sand() -> void:
+	var sh := H - SHORE + 30
+	var img := Image.create(W, sh, false, Image.FORMAT_RGBA8)
+	var n := FastNoiseLite.new()
+	n.seed = 5
+	n.frequency = 0.06
+	for y in sh:
+		for x in W:
+			var wy := SHORE - 30 + y
+			# 斜向岸线：右边岸线更高（更远）
+			var edge := SHORE - (x - 320.0) * 0.07 + 2.0 * sin(x * 0.05)
+			if wy < edge - 4:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+			var k: float = clampf((wy - edge) / 110.0, 0.0, 1.0)
+			var c := Color(0.05, 0.07, 0.14).lerp(Color(0.1, 0.11, 0.18), k)
+			c = c.lerp(Color(0.13, 0.13, 0.2), clampf(n.get_noise_2d(x, wy * 2.0) * 0.5 + 0.2, 0.0, 1.0) * 0.5)
+			if rng.randf() < 0.03:
+				c = c.lightened(0.12)
+			var a := clampf((wy - edge + 4.0) / 4.0, 0.0, 1.0)
+			var d := _dither(c, x, y)
+			d.a = a
+			img.set_pixel(x, y, d)
+	tex_sand = ImageTexture.create_from_image(img)
+
+
+## 4×4 有序抖动 + 颜色分级，得到像素画质感
+const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+func _dither(c: Color, x: int, y: int) -> Color:
+	var th: float = (BAYER[(y % 4) * 4 + (x % 4)] / 16.0 - 0.5) / 28.0
+	var q := 28.0
+	return Color(round((c.r + th) * q) / q, round((c.g + th) * q) / q, round((c.b + th) * q) / q, 1.0)
+
+
+## 远景深蓝之树
+func _grow(p: Vector2, ang: float, length: float, width: float, depth: int) -> void:
+	if depth > 6 or length < 2.5:
+		for k in 3:
+			tree_nodes.append([p + Vector2(rng.randf_range(-3, 3), rng.randf_range(-3, 2)), rng.randf() * TAU])
+		return
+	var a := ang
+	var q := p
+	for s in 4:
+		a += rng.randf_range(-0.25, 0.25)
+		var nq := q + Vector2.from_angle(a) * length / 4.0
+		tree_br.append([q, nq, maxf(1.0, width)])
+		q = nq
+	if depth >= 2:
+		tree_nodes.append([q, rng.randf() * TAU])
+	for k in (2 if depth < 2 else rng.randi_range(2, 3)):
+		_grow(q, a + rng.randf_range(-0.9, 0.9), length * rng.randf_range(0.6, 0.78), width * 0.6, depth + 1)

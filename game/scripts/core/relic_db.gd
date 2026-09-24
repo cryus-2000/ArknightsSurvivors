@@ -25,7 +25,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		var id := str(int(r.id))
 		var e: Dictionary = effects.get(id, {})
 		items[id] = {
-			"id": id, "name": r.name, "desc": e.get("desc", r.adapt), "rarity": e.get("rarity", r.rarity),
+			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": e.get("rarity", r.rarity),
 			"tags": e.get("tags", r.tags), "lanes": r.lanes, "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),

@@ -225,6 +225,10 @@ func _set_sel(i: int) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 1.0))
+	for i in 4:
+		var lx := vs.x * 0.15 + i * vs.x * 0.24 + sin(t * 0.25 + i) * 30.0
+		var lw := 50.0 + 24.0 * sin(t * 0.4 + i * 1.7)
+		draw_colored_polygon(PackedVector2Array([Vector2(lx, 0), Vector2(lx + lw, 0), Vector2(lx + lw * 2.4 - 160, vs.y), Vector2(lx - 160, vs.y)]), Color(0.33, 0.92, 0.88, 0.02 + 0.01 * sin(t * 0.7 + i)))
 	draw_rect(Rect2(0, 0, vs.x, 140), Color(0.03, 0.09, 0.12, 0.6))
 	UI.text(self, font, Vector2(60, 64), "图鉴", 30, UI.TEXT)
 	UI.en(self, font, Vector2(132, 62), "GALLERY", 13, UI.CYAN, 4.0)
@@ -282,7 +286,7 @@ func _draw_detail(vs: Vector2) -> void:
 	var e: Dictionary = entries[sel]
 	var locked: bool = e.get("locked", false)
 	var pr := Rect2(640, 150, vs.x - 700, vs.y - 200)
-	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN)
+	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN, 71, t)
 	# 展示台
 	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, 290))
 	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)
@@ -338,7 +342,7 @@ func _draw_detail(vs: Vector2) -> void:
 
 func _draw_relic_placeholder(vs: Vector2) -> void:
 	var r := Rect2(60, 150, vs.x - 120, vs.y - 200)
-	UI.panel(self, r, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.GOLD)
+	UI.panel(self, r, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.GOLD, 72, t)
 	for i in 60:
 		var c := r.position + Vector2(60 + (i % 15) * 74, 60 + (i / 15) * 74)
 		UI.diamond(self, c, 22.0, Color(0.03, 0.08, 0.1), Color(0.3, 0.4, 0.42, 0.5))

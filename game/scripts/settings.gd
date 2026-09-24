@@ -15,6 +15,7 @@ var dof := true          # 2.5D 景深与前景
 var difficulty := 0      # 本局难度
 var diff_unlocked := 0   # 已解锁的最高难度
 var seen_shows: Array = []   # 已看过的解锁演出
+var seen_intro := false      # 已看过开局指南
 
 
 func _ready() -> void:
@@ -32,6 +33,7 @@ func _ready() -> void:
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
+		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 	apply.call_deferred()
 
 
@@ -65,4 +67,5 @@ func save() -> void:
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", diff_unlocked)
 	c.set_value("progress", "seen_shows", seen_shows)
+	c.set_value("progress", "seen_intro", seen_intro)
 	c.save(PATH)
