@@ -499,13 +499,18 @@ func _update_music(_dt: float) -> void:
 	if state == S.SHOP:
 		Sfx.play_music("shop")
 		return
+	if state == S.OPENING or (state == S.INTRO and intro_back == S.PLAY and Sfx.track_playing("opening")):
+		# 开场动画（及首次进入的指南）：播放开场引子《沉降》，动画结束后战斗曲淡入
+		Sfx.play_music("opening")
+		return
 	if final_boss != null and not final_boss.dead:
 		Sfx.play_music("final")
 		return
 	if _boss_alive():
 		Sfx.play_music("boss")
 		return
-	Sfx.play_music("explore")
+	# 战斗曲三段：按威胁等级推进（0–1 开局 / 2–3 中期 / 4+ 后期）
+	Sfx.play_music("explore" if threat < 2 else ("explore2" if threat < 4 else "explore3"))
 	var n := enemies.size()
 	var elite := false
 	for e in enemies:
@@ -1139,6 +1144,7 @@ func _spawn(dt: float) -> void:
 			names.append(D.ENEMIES[g].name)
 		_show_banner("%s 出现了" % " 与 ".join(names))
 		Sfx.play("roar", 2.0, 0.7, 0.0)
+		Sfx.play_overlay("boss_in")
 		_shake(1.2)
 	# 威胁等级上升：横幅 + 刷一小波新种类
 	if threat < D.THREAT.size() - 1 and t >= D.THREAT[threat + 1].t:
@@ -1985,6 +1991,8 @@ func _kill(e: Dictionary) -> void:
 		_drop(e.pos + Vector2(20, 10), "oil", 25.0)
 	if e.boss:
 		ing = 20
+		if not is_same(e, final_boss) and not _boss_alive():
+			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
 		_drop(e.pos + Vector2(-20, 0), "chest", 1.0)
 		for j in 12:
 			_drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)

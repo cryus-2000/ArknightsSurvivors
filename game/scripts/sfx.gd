@@ -13,17 +13,29 @@ var last := {}
 ## 音乐：多曲目 + 战斗曲分层（同长同步的四层，按局势调各层音量）
 const MUSIC := {
 	"title": ["title"],
+	"opening": ["opening"],
 	"explore": ["explore_base", "explore_pulse", "explore_drive", "explore_danger"],
+	"explore2": ["explore2_base", "explore2_pulse", "explore2_drive", "explore2_danger"],
+	"explore3": ["explore3_base", "explore3_pulse", "explore3_drive", "explore3_danger"],
 	"boss": ["boss"],
 	"final": ["final"],
 	"shop": ["shop"],
+	"win_loop": ["win_loop"],
+	"lose_loop": ["lose_loop"],
 }
+## 不循环的曲目（播完即停，之后由游戏选下一首）
+const ONESHOT := ["opening"]
+## 叠加短乐句（Boss 登场/击破），叠在当前音乐之上，不打断曲目
+const OVERLAYS := ["boss_in", "boss_down"]
 var groups := {}          # 曲目 -> Array[AudioStreamPlayer]
 var group_vol := {}       # 曲目 -> 当前音量（0~1）
 var cur_track := ""
 var layers := [1.0, 0.0, 0.0, 0.0]        # 战斗曲各层目标音量
 var layer_vol := [1.0, 0.0, 0.0, 0.0]
 var stinger: AudioStreamPlayer
+var after_stinger := ""      # 结算短乐句播完后接续的循环曲目
+var overlay: AudioStreamPlayer
+var overlays := {}
 var music: AudioStreamPlayer               # 兼容旧引用：指向当前曲目的第一层
 var music_lp: AudioEffectLowPassFilter
 var cut_target := 20000.0
@@ -54,7 +66,7 @@ func _ready() -> void:
 			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
 			if st == null:
 				continue
-			st.loop = true
+			st.loop = not ONESHOT.has(tname)
 			var pl := AudioStreamPlayer.new()
 			pl.stream = st
 			pl.bus = "Music"
@@ -66,6 +78,14 @@ func _ready() -> void:
 	stinger = AudioStreamPlayer.new()
 	stinger.bus = "Music"
 	add_child(stinger)
+	overlay = AudioStreamPlayer.new()
+	overlay.bus = "Music"
+	add_child(overlay)
+	for o in OVERLAYS:
+		var ost: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % o)
+		if ost != null:
+			ost.loop = false
+			overlays[o] = ost
 	play_music("title")
 
 
@@ -108,6 +128,7 @@ func play_music(tname: String) -> void:
 	if tname == cur_track or not groups.has(tname) or groups[tname].is_empty():
 		return
 	cur_track = tname
+	after_stinger = ""
 	stinger.stop()
 	for pl in groups[tname]:
 		pl.play(0.0)
@@ -121,9 +142,31 @@ func play_stinger(sname: String) -> void:
 		return
 	st.loop = false
 	cur_track = ""
+	after_stinger = sname + "_loop" if groups.has(sname + "_loop") else ""
 	stinger.stream = st
 	stinger.volume_db = vol_target
 	stinger.play()
+
+
+## 叠加短乐句：不改变当前曲目，直接叠在音乐之上（Boss 登场 / 击破）
+func play_overlay(oname: String, gain_db := 2.0) -> void:
+	if not overlays.has(oname):
+		return
+	overlay.stream = overlays[oname]
+	overlay.volume_db = vol_target + gain_db
+	overlay.play()
+
+
+## 某曲目是否正是当前曲目且仍在播放（用于等待不循环曲目播完）
+func track_playing(tname: String) -> bool:
+	if cur_track != tname or not groups.has(tname) or groups[tname].is_empty():
+		return false
+	return (groups[tname][0] as AudioStreamPlayer).playing
+
+
+## 当前曲目是否为战斗曲（三段之一）
+func is_explore(tname: String) -> bool:
+	return tname.begins_with("explore")
 
 
 ## 战斗曲分层：base / pulse / drive / danger 的目标音量（0~1）
@@ -154,13 +197,18 @@ func _process(delta: float) -> void:
 		var arr: Array = groups[tname]
 		for i in arr.size():
 			var pl: AudioStreamPlayer = arr[i]
-			var lv: float = layer_vol[i] if tname == "explore" else 1.0
+			var lv: float = layer_vol[i] if is_explore(tname) else 1.0
 			var v := gv * lv
 			pl.volume_db = linear_to_db(maxf(v, 0.0001)) + vol_target
 			if gv <= 0.0 and pl.playing:
 				pl.stop()
 	if stinger.playing:
 		stinger.volume_db = vol_target + 4.0
+	elif after_stinger != "":
+		# 结算短乐句播完：接续对应的循环（胜利变奏 / 沉底氛围）
+		var nxt := after_stinger
+		after_stinger = ""
+		play_music(nxt)
 
 
 func toggle_music() -> bool:
