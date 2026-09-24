@@ -250,6 +250,7 @@ var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
 var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
 var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
 var hud_lv_flash := 0.0   # 左上角等级闪光
+var xp_flash := 0.0       # 吃到经验时经验环亮一下
 var pending_chests := 0
 
 # ---------- 节点与资源 ----------
@@ -755,6 +756,15 @@ func _autotest_step() -> void:
 					for e in enemies:
 						if e.chest and e.get("event", "") != "":
 							e.pos = ppos + Vector2(120, 0)
+	if OS.get_cmdline_user_args().has("--gemshot"):
+		if at_frames == 60:
+			for k in 14:
+				_drop(ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
+			_drop(ppos + Vector2(60, -40), "xp", 1.0)
+		if at_frames in [72, 100] and DisplayServer.get_name() != "headless":
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gem_%d.png" % at_frames)
+			if at_frames == 100:
+				get_tree().quit()
 	if OS.get_cmdline_user_args().has("--relicshot"):
 		if at_frames == 30:
 			pending_chests = 1
@@ -2177,9 +2187,9 @@ func _drop(pos: Vector2, kind: String, val: float) -> void:
 	# 2.5D：掉落物带高度，从敌人位置弹出并落地回弹
 	var sp := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(20.0, 70.0)
 	var special := kind == "magnet" or kind == "heal" or kind == "chest"
-	gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false,
-		"z": 6.0, "vz": rng.randf_range(260.0, 300.0) if special else rng.randf_range(150.0, 230.0), "vel": sp * (0.5 if special else 1.0),
-		"special": special, "landed": false, "age": 0.0})
+	gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
+		"z": 6.0, "vz": rng.randf_range(260.0, 300.0) if special else rng.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
+		"special": special, "landed": false, "age": 0.0, "seed": rng.randf() * TAU})
 
 
 # =====================================================================
@@ -2872,14 +2882,21 @@ func _update_gems(dt: float) -> void:
 		var d: float = g.pos.distance_to(ppos)
 		if g.get("special", false) and g.kind != "chest" and d > 40.0 and not g.mag:
 			continue
-		if g.mag or d < pickup * (1.2 if lamp >= 70.0 else (0.7 if lamp < 30.0 else 1.0)):
+		# 掉落先弹出落地、停留一瞬（让玩家看见），再被吸向水月：越吸越快
+		var settled: bool = g.get("z", 0.0) <= 0.0 and g.age > 0.4
+		if g.mag or (settled and d < pickup * (1.2 if lamp >= 70.0 else (0.7 if lamp < 30.0 else 1.0))):
 			g.mag = true
-			g.pos = g.pos.move_toward(ppos, 480.0 * dt)
-		if d < 18.0:
+			g["mag_t"] = g.get("mag_t", 0.0) + dt
+			g.z = 0.0
+			g.pos = g.pos.move_toward(ppos + Vector2(0, -12), (240.0 + 1300.0 * g.mag_t) * dt)
+			d = g.pos.distance_to(ppos + Vector2(0, -12))
+		if d < 20.0:
 			g.dead = true
 			match g.kind:
 				"xp":
 					_gain_xp(g.val)
+					xp_flash = 0.3
+					_sparks(ppos + Vector2(0, -22), Vector2.ZERO, UI.CYAN if g.val < 5.0 else Color(0.85, 0.6, 1.0), 3 if g.val < 5.0 else 7, 150.0)
 					Sfx.play("pickup", -14.0, 1.0 + min(xp / xp_need, 1.0) * 0.4, 0.03)
 				"oil":
 					var add: float = g.val * oil_mult
@@ -2968,6 +2985,7 @@ func _update_fx(dt: float) -> void:
 	lvup_delay -= dt
 	lvup_show -= dt
 	hud_lv_flash = max(0.0, hud_lv_flash - dt * 1.5)
+	xp_flash = maxf(0.0, xp_flash - dt * 3.0)
 	for f in fx:
 		f.life -= dt
 		if f.kind == "spark" or f.kind == "shard":
@@ -3690,7 +3708,23 @@ func _draw() -> void:
 		draw_off = Vector2(0, -gz)
 		match g.kind:
 			"xp":
-				_spr("gem_big" if g.val >= 5.0 else "gem_small", 1, 0, g.pos + Vector2(0, sin(t * 4.0 + g.pos.x) * 2.0 if gz <= 1.0 else 0.0))
+				# 经验结晶：放大 + 常驻辉光 + 闪烁；被吸时拖尾
+				var big: bool = g.val >= 5.0
+				var gc: Color = Color(0.85, 0.6, 1.0) if big else UI.CYAN
+				var tw: float = 0.75 + 0.25 * sin(t * 6.0 + g.get("seed", 0.0))
+				var gp: Vector2 = g.pos + Vector2(0, (sin(t * 4.0 + g.pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
+				if g.mag:
+					var dv: Vector2 = (gp - (ppos + Vector2(0, -12))).normalized()
+					var tl: float = 10.0 + 24.0 * minf(1.0, g.get("mag_t", 0.0) * 2.0)
+					draw_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
+					draw_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
+				draw_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
+				draw_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
+				draw_off = Vector2.ZERO
+				_spr("gem_big" if big else "gem_small", 1, 0, gp, PX * (1.9 if big else 1.45), false, Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5))
+				var sp2: float = 2.0 + 1.5 * tw
+				draw_line(gp + Vector2(-sp2, -8), gp + Vector2(sp2, -8), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
+				draw_line(gp + Vector2(0, -8 - sp2), gp + Vector2(0, -8 + sp2), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
 			"oil":
 				_spr("oil", 1, 0, g.pos)
 			"chest":
@@ -4669,7 +4703,7 @@ func _draw_hud() -> void:
 	# 左上：干员卡（深海面板 + 藤蔓；等级环即经验环）
 	var o := Vector2(16, 16)
 	var lf := hud_lv_flash
-	var bc := UI.GLOW.lerp(UI.GOLD, lf)
+	var bc := UI.GLOW.lerp(UI.GOLD, lf).lerp(Color(0.8, 1.6, 1.8), xp_flash * 0.7)
 	UI.frame(hud, Rect2(o, Vector2(344, 100)), bc, {"t": t, "vines": true, "seed": 7, "glow": 0.5 + lf})
 	# 等级环：环上进度 = 经验
 	var lc0 := o + Vector2(44, 50)
