@@ -634,7 +634,7 @@ func _update_wave(b: Dictionary, dt: float) -> void:
 			continue
 		b.hit[e.id] = true
 		g._hit("水刃")
-		g._damage(e, b.dmg)
+		g._damage(e, b.dmg * (1.25 if b.ret else 1.0))   # 月轮回程 +25%：让月轮线与巨斩 / 群触持平
 		if not e.dead:
 			e.slow = maxf(e.slow, 1.0)
 		if b.giant and not e.dead:
