@@ -2012,7 +2012,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	e.hits += 1
 	e.flash = 0.08
 	e.squash = 0.14
-	if texts.size() < 80 and Cfg.dmg_numbers and (crit_hit or weak_hit or texts.size() < 28):
+	if texts.size() < 80 and Cfg.dmg_numbers:
 		if crit_hit:
 			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		elif weak_hit:
