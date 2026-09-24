@@ -45,7 +45,7 @@ enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
-const MERCHANT_TIMES := [100.0, 330.0, 520.0]
+const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 const CELL := 48.0
 const MAX_ENEMIES := 450
 const LAMP_EMPTY_SECONDS := 150.0
@@ -4969,9 +4969,9 @@ const INTRO_PAGES := [
 		"小心伪装成宝箱的箱形恐鱼 —— 它现形扑来时会造成伤害，但击败后掉落大量源石锭。",
 		"藏品分基础 / 稀有 / 核心 / 升华，同一件再次拿到会升级；商店里偶尔有「遭诅古物」：效果强但带代价。"]},
 	{"title": "商人只停留 60 秒", "en": "MERCHANT", "icon": "merchant", "lines": [
-		"商人每局出现 3 次：1:40、5:30、8:40。出现时有横幅提示，屏幕边缘的金色箭头会一直指向他，小地图上也有标记。",
+		"商人每局出现 3 次：2:00、5:00、8:00，都在 Boss 登场之前。出现时有横幅提示，屏幕边缘的金色箭头会一直指向他，小地图上也有标记。",
 		"他只停留 60 秒：头顶显示倒计时，最后 15 秒会有横幅提醒并变红闪烁 —— 还没交易就先放下手里的怪去找他，错过就要等下一次。",
-		"靠近即可用源石锭购买藏品、急救包与灯油；每次到访可以花钱刷新一次货架。交易完成后他会自行离开。"]},
+		"靠近即可用源石锭购买藏品、急救包与灯油；每次到访只能花钱刷新一次货架（按 F）。交易完成后他会自行离开。"]},
 	{"title": "海嗣祭坛与结局", "en": "ALTAR & ENDINGS", "icon": "altar", "lines": [
 		"通关一次之后，深海里会出现「海嗣祭坛」：打碎它做出选择，选项会给你藏品、灯火或代价。每个祭坛都在固定的时间段必定出现，可以规划。",
 		"结局由你做出的决定决定，后做的决定覆盖先做的；右上角藏品栏下方与 Tab 面板会一直显示当前走向，9:00 有终局预告。",
@@ -5143,7 +5143,7 @@ func _draw_intro_icon(kind: String, c: Vector2) -> void:
 			UI.text(hud, font, c + Vector2(-30, -114), "%ds" % left, 15, mc, HORIZONTAL_ALIGNMENT_CENTER, 60)
 			UI.text(hud, font, c + Vector2(-80, 74), "商人  ·  停留 60 秒", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 160)
 			for k in 3:
-				UI.chip(hud, font, c + Vector2(-118 + k * 84, 90), ["1:40", "5:30", "8:40"][k], UI.GOLD, 12)
+				UI.chip(hud, font, c + Vector2(-118 + k * 84, 90), ["2:00", "5:00", "8:00"][k], UI.GOLD, 12)
 		"altar":
 			var atx: Texture2D = tex.get("e_event")
 			if atx != null:
