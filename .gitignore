@@ -23,3 +23,8 @@ Thumbs.db
 
 # 收集来的藏品图标（疑似官方素材），只放本地参考，不入库
 docs/reference/icons/
+
+# 直接运行最新源码的启动器（build 里 exe 的副本，放在 game/ 下双击即可）
+game/ShuiyueSurvivors_Latest.exe
+
+build/*.bat
