@@ -15,7 +15,7 @@ const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), 
 	"ishar": Color(0.75, 0.55, 1.0), "tear": Color(0.75, 0.55, 1.0), "iberia": Color(1.0, 0.6, 0.5), "carmen": Color(0.7, 0.7, 1.0),
 	"bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
 
-enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS }
+enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO }
 
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
@@ -106,6 +106,16 @@ var combos: Array = []
 
 # ---------- 援护干员 ----------
 var weapons := {}                # 武器 id -> 等级
+var intro_page := 0
+var intro_back := S.PLAY
+var intro_t := 0.0
+var evo1 := ""                   # 精英化一路线：blade 潮刃 / tendril 群触
+var evo2 := ""                   # 精英化二质变
+var evo_pending := false
+var abyss_n := 0                 # 深渊巨斩计数
+var giant_cd := 5.0              # 巨触吞噬冷却
+var mother_cd := 0.0
+var stakes: Array = []           # 触手桩 {pos, life, max, r, tick, dmg}
 var shield := 0                  # 当前护盾层数
 var shield_max := 0
 var shield_every := 12.0
@@ -159,6 +169,7 @@ var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
 var mires: Array = []
+var mire_tick := 0.0
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
 var next_chest := 20.0
 var next_mire := 100.0
@@ -367,6 +378,8 @@ func _ready() -> void:
 		hp = max_hp
 	hp_trail = hp
 	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
+	if (not Cfg.seen_intro and not autotest) or OS.get_cmdline_user_args().has("--introshot"):
+		_open_intro.call_deferred(S.PLAY)
 	balance = OS.get_cmdline_user_args().has("--balance")
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shots="):
@@ -390,7 +403,7 @@ func _update_music(_dt: float) -> void:
 	var target := 20000.0
 	if state == S.PLAY and lamp < 30.0:
 		target = lerp(700.0, 4000.0, lamp / 30.0)
-	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP or state == S.SHOW or state == S.STATS:
+	if state == S.PAUSE or state == S.CHOICE or state == S.SHOP or state == S.SHOW or state == S.STATS or state == S.INTRO:
 		target = 1800.0
 	Sfx.cut_target = target
 	Sfx.vol_target = -4.0
@@ -460,6 +473,15 @@ func _gallery_step() -> void:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func _autotest_step() -> void:
 	at_frames += 1
+	if state == S.INTRO:
+		if intro_t > 0.5 and DisplayServer.get_name() != "headless":
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % intro_page)
+			if intro_page >= INTRO_PAGES.size() - 1:
+				get_tree().quit()
+				return
+			intro_page += 1
+			intro_t = 0.0
+		return
 	if OS.get_cmdline_user_args().has("--gallery"):
 		_gallery_step()
 		return
@@ -496,7 +518,14 @@ func _autotest_step() -> void:
 			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
-			weapons = {"drone": 3, "field": 3, "tide": 3}
+			for a in OS.get_cmdline_user_args():
+				if a.begins_with("--evo="):
+					var ev := a.substr(6).split(",")
+					evo1 = ev[0]
+					evo2 = ev[1] if ev.size() > 1 else ""
+					growth["b_count"] = 1
+					growth["t_count"] = 1
+			weapons = {} if evo1 != "" else {"drone": 3, "field": 3, "tide": 3}
 			for rid in ["sh_base", "sh_count", "sh_burst"]:
 				relics.append(rid)
 				_apply_relic(rid)
@@ -532,12 +561,15 @@ func _autotest_step() -> void:
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [t, state, level, hp, enemies.size()])
 		if state == S.CHOICE:
-			_pick(rng.randi() % choices.size())
+			var pi := rng.randi() % choices.size()
+			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evoblade"):
+				pi = 0
+			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "evo": evo1 + "/" + evo2}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -592,6 +624,8 @@ func _process(delta: float) -> void:
 	_animate_cards(delta)
 	if state == S.SHOW:
 		show_t += delta
+	if state == S.INTRO:
+		intro_t += delta
 	queue_redraw()
 	fx_add.queue_redraw()
 	fg.queue_redraw()
@@ -605,6 +639,8 @@ func _do_action(act: String) -> void:
 			state = S.PLAY
 		"settings":
 			settings.open()
+		"guide":
+			_open_intro(S.PAUSE)
 		"restart":
 			get_tree().reload_current_scene()
 		"title":
@@ -624,6 +660,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == S.SHOW:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
 			_close_show()
+		return
+	if state == S.INTRO:
+		if event is InputEventKey and event.pressed and not event.echo:
+			match event.keycode:
+				KEY_ESCAPE:
+					_close_intro()
+				KEY_LEFT, KEY_A:
+					intro_page = maxi(0, intro_page - 1)
+					intro_t = 0.0
+					Sfx.play("ui_move")
+				_:
+					_intro_next()
+		elif event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				intro_page = maxi(0, intro_page - 1)
+				intro_t = 0.0
+			else:
+				_intro_next()
 		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
@@ -648,6 +702,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			state = S.PLAY
 	elif k == KEY_O and state == S.PAUSE:
 		settings.open()
+	elif k == KEY_G and state == S.PAUSE:
+		_open_intro(S.PAUSE)
 	elif k == KEY_M:
 		_show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
@@ -813,7 +869,16 @@ func _check_pending() -> void:
 		show_queue.append({"head": "精英化一", "en": "ELITE  PROMOTION  I", "col": Color(0.5, 0.8, 1.0), "demo": "s2", "items": [
 			_skill_item("s2"),
 			{"tag": "天赋", "tag_en": "TALENT", "glyph": "反", "name": "反移情", "desc": "击杀敌人时回复生命（每秒有上限）", "col": Color(0.5, 1.0, 0.65)}]})
+		evo_pending = true
 		_open_show(show_queue.pop_front())
+		return
+	# 精英化一：选择进化路线（消耗这次升级）
+	if evo_pending and pending_levelups > 0:
+		evo_pending = false
+		var eo: Array = []
+		for k in ["blade", "tendril"]:
+			eo.append({"kind": "evo", "id": k, "name": "进化 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
+		_show_choices("精英化一：选择进化方向", eo, "level")
 		return
 	if pending_chests > 0:
 		_open_relic_choice()
@@ -1409,10 +1474,21 @@ func _update_status(dt: float) -> void:
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
 	in_mire = move_toward(in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	if mired:
-		hp -= 2.5 * dt
-		dmg_log["mire"] = dmg_log.get("mire", 0.0) + 2.5 * dt
+		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
+		mire_tick -= dt
+		if mire_tick <= 0.0:
+			mire_tick = 0.5
+			var md: float = 3.0 + max_hp * 0.015
+			hp -= md
+			dmg_log["mire"] = dmg_log.get("mire", 0.0) + md
+			red_flash = maxf(red_flash, 0.08)
+			hp_shake = 0.2
+			hurt_flash = maxf(hurt_flash, 0.06)
+			_add_text(ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
 		_add_nerve(22.0 * dt)
 		head_bar_t = maxf(head_bar_t, 0.6)
+	else:
+		mire_tick = 0.0
 	mires = mires.filter(func(m): return m.life > 0.0)
 	for s in shocks:
 		s.r += 320.0 * dt
@@ -2133,6 +2209,90 @@ func _umbrella(target: Dictionary) -> void:
 	if empowered:
 		# 唤醒：外圈再叠一层更大的金色斩痕
 		_slash_fx(ppos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
+	_evo_on_swing(ang, dmg)
+
+
+## ---- 进化：潮刃（水刃）与群触（触手桩）
+func _evo_on_swing(ang: float, dmg: float) -> void:
+	if evo1 == "blade":
+		var n := 1 + int(growth.get("b_count", 0)) + (1 if evo2 == "blade_moon" else 0)
+		var size: float = (1.0 + 0.25 * growth.get("b_size", 0)) * (1.3 if evo2 == "blade_abyss" else 1.0)
+		var wd: float = dmg * 0.85 * (1.0 + 0.3 * growth.get("b_dmg", 0))
+		var rng_: float = 380.0 * (1.0 + 0.3 * growth.get("b_range", 0))
+		for k in n:
+			var a := ang + (k - (n - 1) / 2.0) * 0.28
+			_fire_wave(a, wd, size, rng_, evo2 == "blade_moon", false)
+		if evo2 == "blade_abyss":
+			abyss_n += 1
+			if abyss_n >= 4:
+				abyss_n = 0
+				_fire_wave(ang, wd * 3.0, size * 3.0, rng_ * 1.2, false, true)
+				_shake(0.6)
+				Sfx.play("swing_heavy", -2.0, 0.6, 0.0)
+	elif evo1 == "tendril":
+		var n := 1 + int(growth.get("t_count", 0)) + (2 if evo2 == "tendril_mother" else 0) + (1 if evo2 == "tendril_giant" else 0)
+		var pool := _nearest(14, 270.0)
+		pool.shuffle()
+		for k in mini(n, pool.size()):
+			delayed.append({"at": 0.05 + 0.06 * k, "kind": "summon", "target": pool[k], "dmg": dmg * 0.6 * (1.0 + 0.3 * growth.get("t_power", 0))})
+
+
+func _fire_wave(ang: float, dmg: float, size: float, dist: float, moon: bool, giant: bool) -> void:
+	var spd := 560.0 if not giant else 420.0
+	var life := dist / spd
+	bullets.append({"kind": "wave", "pos": ppos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
+		"dmg": dmg, "life": life * (2.0 if moon else 1.0), "max": life * (2.0 if moon else 1.0), "r": 20.0 * size, "size": size,
+		"aoe": 0.0, "hit": {}, "moon": moon, "ret": false, "giant": giant})
+	if not giant:
+		Sfx.play("swing", -14.0, 1.6, 0.1)
+
+
+## 触手桩：原地停留，定期鞭打范围内最近的敌人
+func _add_stake(p: Vector2, dmg: float) -> void:
+	if stakes.size() >= 16:
+		stakes.pop_front()
+	var life: float = 1.6 + 1.0 * growth.get("t_stake", 0)
+	stakes.append({"pos": p, "life": life, "max": life, "r": 60.0 * (1.0 + 0.25 * growth.get("t_reach", 0)), "tick": 0.3,
+		"dmg": dmg * 0.45, "flip": rng.randf() < 0.5, "whip": 0.0, "wt": Vector2.ZERO})
+
+
+func _update_stakes(dt: float) -> void:
+	for st in stakes:
+		st.life -= dt
+		st.tick -= dt
+		st.whip = maxf(0.0, st.whip - dt)
+		if st.tick <= 0.0:
+			st.tick = 0.45
+			var best: Dictionary = {}
+			var bd: float = st.r
+			for j in _query(st.pos, st.r + 20.0):
+				var e: Dictionary = enemies[j]
+				if e.dead:
+					continue
+				var d: float = e.pos.distance_to(st.pos)
+				if d < bd:
+					bd = d
+					best = e
+			if not best.is_empty():
+				_damage(best, st.dmg)
+				st.whip = 0.18
+				st.wt = best.pos
+				if not best.boss:
+					best.kb += (best.pos - st.pos).normalized() * 120.0
+	stakes = stakes.filter(func(st): return st.life > 0.0)
+	# 巨触吞噬：每 5 秒在敌群中心升起巨型触手
+	if evo2 == "tendril_giant":
+		giant_cd -= dt
+		if giant_cd <= 0.0:
+			var c := _densest_point(400.0)
+			if c == Vector2.INF:
+				giant_cd = 0.5
+			else:
+				giant_cd = 5.0
+				fx.append({"kind": "rift", "pos": c, "r": 115.0, "life": 0.55, "max": 0.55})
+				delayed.append({"at": 0.55, "kind": "giant", "pos": c, "dmg": (40.0 + level * 2.5) * dmg_mult * (1.0 + 0.3 * growth.get("t_power", 0))})
+				Sfx.play("roar", -8.0, 1.6, 0.0)
+	mother_cd -= dt
 
 
 ## 延时攻击的执行
@@ -2159,6 +2319,31 @@ func _run_delayed(dl: Dictionary) -> void:
 				"col": UI.GOLD if dl.kind == "deep" else Color(0.45, 0.8, 1.0)})
 			fx.append({"kind": "pillar", "pos": tg.pos, "life": 0.35, "max": 0.35,
 				"col": Color(1.0, 0.8, 0.4) if dl.kind == "deep" else Color(0.5, 0.85, 1.0)})
+		"summon":
+			# 群触：召唤触手（命中后化为触手桩）
+			var tg: Dictionary = dl.target
+			if tg.dead:
+				return
+			var sp: Vector2 = tg.pos
+			_spawn_tentacle(tg, dl.dmg, 0.35)
+			_add_stake(sp, dl.dmg)
+		"giant":
+			# 巨触吞噬：范围重击 + 拖向中心 + 晕眩
+			for j in _query(dl.pos, 135.0):
+				var e: Dictionary = enemies[j]
+				if e.dead or e.pos.distance_to(dl.pos) > 115.0 + e.r:
+					continue
+				_damage(e, dl.dmg)
+				if not e.dead:
+					e.stun = maxf(e.stun, 1.2)
+					if not e.boss:
+						e.kb += (dl.pos - e.pos) * 3.5
+			fx.append({"kind": "giant_t", "pos": dl.pos, "life": 0.8, "max": 0.8})
+			fx.append({"kind": "ring", "pos": dl.pos, "r": 130.0, "life": 0.5, "max": 0.5, "col": Color(0.8, 0.4, 1.0)})
+			_sparks(dl.pos, Vector2.UP, Color(0.8, 0.5, 1.0), 24, 360.0)
+			_shake(1.0)
+			hitstop = maxf(hitstop, 0.06)
+			Sfx.play("boom", -2.0, 0.6, 0.0)
 		"echo":
 			# 倒影：在反方向复刻一次攻击（深海形态下全方向）
 			var dirs: Array = [dl.ang]
@@ -2216,9 +2401,21 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 					break
 		if module == "a" and not target.boss:
 			target.kb += (ppos - p).normalized() * 260.0
-	fx.append({"kind": "tentacle", "pos": p, "life": 0.45, "max": 0.45, "flip": rng.randf() < 0.5})
-	Sfx.play("tentacle", -6.0)
-	_sparks(p + Vector2(0, 8), Vector2.UP, Color(0.6, 0.45, 1.0), 4, 150.0)
+	# 深海之母：被触手击杀的敌人会在附近唤出新的触手
+	if target.dead and evo2 == "tendril_mother" and mother_cd <= 0.0:
+		mother_cd = 0.15
+		for j in _query(p, 180.0):
+			var o: Dictionary = enemies[j]
+			if not o.dead and not is_same(o, target) and o.pos.distance_to(p) < 180.0:
+				delayed.append({"at": 0.12, "kind": "summon", "target": o, "dmg": dmg * 0.8})
+				break
+	# 触手表现：地面裂隙 → 放大的触手破土 → 冲击环；再从水月脚下连一道触须线到目标
+	fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
+	fx.append({"kind": "tentacle", "pos": p, "life": 0.6, "max": 0.6, "flip": rng.randf() < 0.5})
+	fx.append({"kind": "tendril", "a": ppos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
+	fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})
+	Sfx.play("tentacle", -4.0)
+	_sparks(p + Vector2(0, 8), Vector2.UP, Color(0.75, 0.5, 1.0), 7, 200.0)
 
 
 func _tide() -> void:
@@ -2451,7 +2648,7 @@ func _update_allies(dt: float) -> void:
 					if tgt.is_empty():
 						al.cd = 0.2
 					else:
-						al.cd = 1.0 * pow(0.87, al.lv - 1)
+						al.cd = 0.8 * pow(0.87, al.lv - 1)
 						_ally_start(al, tgt.pos)
 			"caster":
 				if al.cd <= 0.0:
@@ -2459,11 +2656,11 @@ func _update_allies(dt: float) -> void:
 					if ts.is_empty():
 						al.cd = 0.2
 					else:
-						al.cd = 1.5 * pow(0.9, al.lv - 1)
+						al.cd = 1.25 * pow(0.9, al.lv - 1)
 						_ally_start(al, ts[0].pos)
 			"medic":
 				if al.cd <= 0.0:
-					al.cd = 3.0 / (1.0 + 0.25 * (al.lv - 1))
+					al.cd = 2.4 / (1.0 + 0.25 * (al.lv - 1))
 					if hp < max_hp:
 						_ally_start(al, ppos)
 			"support":
@@ -2479,7 +2676,7 @@ func _update_allies(dt: float) -> void:
 					if ts.is_empty():
 						al.cd = 0.2
 					else:
-						al.cd = 1.4 * pow(0.88, al.lv - 1)
+						al.cd = 1.2 * pow(0.88, al.lv - 1)
 						_ally_start(al, ts[0].pos)
 
 
@@ -2507,7 +2704,7 @@ func _ally_release(al: Dictionary) -> void:
 			if tgt.is_empty():
 				return
 			var d: Vector2 = (tgt.pos - al.pos).normalized()
-			bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 900.0, "dmg": 20.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
+			bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 900.0, "dmg": 34.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
 			fx.append({"kind": "ring", "pos": al.pos + Vector2(0, -12) + d * 12.0, "r": 10.0, "life": 0.12, "max": 0.12, "col": Color(1.0, 0.9, 0.7)})
 			Sfx.play("swing", -16.0, 1.8)
 		"caster":
@@ -2515,11 +2712,11 @@ func _ally_release(al: Dictionary) -> void:
 			if ts.is_empty():
 				return
 			var d: Vector2 = (ts[0].pos - al.pos).normalized()
-			bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 14.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 45.0 + 10.0 * al.lv})
+			bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 24.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 55.0 + 10.0 * al.lv})
 			Sfx.play("oil", -12.0, 1.4, 0.05)
 		"medic":
 			if hp < max_hp:
-				var h: float = max_hp * (0.03 + 0.01 * (al.lv - 1))
+				var h: float = max_hp * (0.05 + 0.015 * (al.lv - 1))
 				_heal(h)
 				_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
 				fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
@@ -2530,10 +2727,10 @@ func _ally_release(al: Dictionary) -> void:
 				fx.append({"kind": "beam", "a": al.pos + Vector2(0, -20), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 3.0})
 		"support":
 			# 辅助：向 2 名敌人发射追踪的紫色法术
-			var ts2 := _nearest(2, 400.0)
+			var ts2 := _nearest(3 if al.lv >= 3 else 2, 400.0)
 			for k in ts2.size():
 				var d2: Vector2 = (ts2[k].pos - al.pos).normalized().rotated(0.6 * (1 if k == 0 else -1))
-				bullets.append({"kind": "arcane", "pos": al.pos + Vector2(0, -16), "vel": d2 * 330.0, "dmg": 12.0 * lvm * dmg_mult,
+				bullets.append({"kind": "arcane", "pos": al.pos + Vector2(0, -16), "vel": d2 * 330.0, "dmg": 20.0 * lvm * dmg_mult,
 					"life": 1.6, "r": 7.0, "aoe": 0.0, "home": ts2[k], "turn": 7.0})
 			if not ts2.is_empty():
 				Sfx.play("tentacle", -14.0, 1.6, 0.05)
@@ -2543,6 +2740,7 @@ func _ally_release(al: Dictionary) -> void:
 # 武器：支援无人机 / 海嗣触须阵 / 潮汐弹
 # =====================================================================
 func _update_weapons(dt: float) -> void:
+	_update_stakes(dt)
 	var dl: int = weapons.get("drone", 0)
 	if dl > 0:
 		var want := 2 if dl >= 4 else 1
@@ -2741,6 +2939,9 @@ func _update_bullets(dt: float) -> void:
 			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
+		if b.kind == "wave":
+			_update_wave(b, dt)
+			continue
 		if b.kind == "fire" or b.kind == "missile":
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:
@@ -2755,6 +2956,32 @@ func _update_bullets(dt: float) -> void:
 				continue
 			_bullet_hit(b, e)
 			break
+
+
+## 水刃：穿透，每个敌人只命中一次；月轮飞到一半折返（回程可再次命中）
+func _update_wave(b: Dictionary, dt: float) -> void:
+	if b.moon and not b.ret and b.life < b.max * 0.5:
+		b.ret = true
+		b.hit = {}
+	if b.ret:
+		var back: Vector2 = ppos + Vector2(0, -18) - b.pos
+		b.vel = b.vel.lerp(back.normalized() * 620.0, clampf(dt * 6.0, 0.0, 1.0))
+		if back.length() < 24.0:
+			b.life = 0.0
+			return
+	for j in _query(b.pos, b.r + 30.0):
+		var e: Dictionary = enemies[j]
+		if e.dead or b.hit.has(e.id) or e.pos.distance_to(b.pos) > b.r + e.r:
+			continue
+		b.hit[e.id] = true
+		_damage(e, b.dmg)
+		if not e.dead:
+			e.slow = maxf(e.slow, 1.0)
+		if b.giant and not e.dead:
+			e.stun = maxf(e.stun, 1.0)
+		if not e.boss and not e.dead:
+			e.kb += b.vel.normalized() * (260.0 if b.giant else 120.0)
+		_sparks(e.pos, b.vel, Color(0.7, 1.0, 1.0), 2, 180.0)
 
 
 ## 子弹命中：按种类结算伤害与特效
@@ -3224,6 +3451,8 @@ func _card_color(o: Dictionary) -> Color:
 			return D.SKILLS[o.id].col
 		"weapon":
 			return D.WEAPONS[o.id].col
+		"evo":
+			return D.EVO[o.id].col
 	return UI.CYAN
 
 
@@ -3244,6 +3473,8 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		cat = "技能进阶  " + ("I" if o.stage == 1 else "II")
 	elif o.kind == "weapon":
 		cat = "武器  " + D.WEAPONS[o.id].en
+	elif o.kind == "evo":
+		cat = ("进化  " if not D.EVO[o.id].has("path") else "质变  ") + D.EVO[o.id].en
 	card.draw_rect(Rect2(r.position + Vector2(16, 22), Vector2(4, 16)), col)
 	UI.text(card, font, r.position + Vector2(28, 36), cat, 13, col)
 	UI.text(card, font, r.position + Vector2(r.size.x - 44, 38), str(i + 1), 18, Color(col.r, col.g, col.b, 0.6))
@@ -3258,6 +3489,8 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = D.RELICS[o.id].name.substr(0, 1) if o.kind == "relic" else "模"
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
+	elif o.kind == "evo":
+		glyph = D.EVO[o.id].glyph
 	var ic: Texture2D = tex.get("relic_" + o.id) if o.kind == "relic" else null
 	if o.kind == "recruit":
 		var at: Texture2D = tex["ally_" + o.id]
@@ -3307,20 +3540,33 @@ func _open_levelup() -> void:
 	if level >= 20 and elite_stage == 1:
 		elite_stage = 2
 		var mopts: Array = []
-		for mid in D.MODULES:
-			mopts.append({"kind": "module", "id": mid, "name": D.MODULES[mid].name, "desc": D.MODULES[mid].desc})
-		_show_choices("精英化二：选择模组（同时解锁「镜花水月」）", mopts, "level")
+		for k in D.EVO:
+			if D.EVO[k].get("path", "") == evo1 and evo1 != "":
+				mopts.append({"kind": "evo", "id": k, "name": "质变 · " + D.EVO[k].name, "desc": D.EVO[k].desc})
+		if mopts.is_empty():
+			for mid in D.MODULES:
+				mopts.append({"kind": "module", "id": mid, "name": D.MODULES[mid].name, "desc": D.MODULES[mid].desc})
+		_show_choices("精英化二：%s 的质变（同时解锁「镜花水月」）" % D.EVO.get(evo1, {"name": "模组"}).name, mopts, "level")
 		return
 	var pool: Array = []
 	for gid in D.GROWTH:
 		var g: Dictionary = D.GROWTH[gid]
 		var n: int = growth.get(gid, 0)
-		if n >= g.max:
+		if n >= g.max or (g.has("path") and g.path != evo1):
 			continue
 		var nm: String = g.name if g.max > 90 else "%s  %d/%d" % [g.name, n + 1, g.max]
 		pool.append({"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + _growth_preview(gid)})
+		if g.has("path"):
+			pool.append(pool[-1])   # 路线专属升级权重 ×2
 	pool.shuffle()
-	var picks := pool.slice(0, 3)
+	var picks: Array = []
+	var seen_ids := {}
+	for o in pool:
+		if not seen_ids.has(o.id):
+			seen_ids[o.id] = true
+			picks.append(o)
+		if picks.size() >= 3:
+			break
 	# 武器卡：未满 3 种时可获得新武器，已有武器可升级；前期必出一张，之后约 60%
 	var wopts: Array = []
 	for wid in D.WEAPONS:
@@ -3411,6 +3657,21 @@ func _pick(i: int) -> void:
 			relics.append(o.id)
 			_apply_relic(o.id)
 			_check_combos()
+		"evo":
+			var ev: Dictionary = D.EVO[o.id]
+			if not ev.has("path"):
+				evo1 = o.id
+				_show_banner("进化方向：%s" % ev.name)
+				fx.append({"kind": "rays", "pos": ppos, "life": 0.7, "max": 0.7, "col": ev.col})
+				fx.append({"kind": "ring", "pos": ppos, "r": 160.0, "life": 0.6, "max": 0.6, "col": ev.col})
+				_shake(0.6)
+			else:
+				evo2 = o.id
+				skill_lv.s3 = 1
+				s3_sp = 30.0
+				show_queue.append({"head": "精英化二", "en": "ELITE  PROMOTION  II", "col": Color(0.8, 0.55, 1.0), "demo": "s3", "items": [
+					_skill_item("s3"),
+					{"tag": "质变", "tag_en": "EVOLUTION", "glyph": ev.glyph, "name": "%s · %s" % [D.EVO[evo1].name, ev.name], "desc": ev.desc, "col": ev.col}]})
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
@@ -3735,6 +3996,8 @@ func _draw() -> void:
 	_draw_skill_floor()
 	for f in fields:
 		_draw_field(f)
+	for st in stakes:
+		_draw_stake(st)
 	for i in range(afterimg.size() - 1, -1, -1):
 		var ai: Dictionary = afterimg[i]
 		var aa := 0.45 * (1.0 - float(i) / afterimg.size())
@@ -3825,6 +4088,9 @@ func _draw() -> void:
 		if b.life <= 0.0:
 			continue
 		var n: Vector2 = b.vel.normalized()
+		if b.kind == "wave":
+			_draw_wave(b)
+			continue
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
 		if ptex != "" and tex.get(ptex) != null:
@@ -3918,6 +4184,32 @@ func _draw() -> void:
 				draw_line(f.a, f.b, Color(0.8, 2.4, 2.8, 0.8 * a), 6.0 * a + 1.0)
 				draw_line(f.a, f.b, Color(3.0, 3.0, 3.0, a), 2.0)
 				draw_circle(f.a, 7.0 * a + 2.0, Color(2.0, 2.8, 3.0, a))
+			"rift":
+				# 地面裂隙（触手 / 巨触出现前的预警）
+				var k := 1.0 - a
+				draw_set_transform(f.pos + Vector2(0, 8), 0.0, Vector2(1.0, 0.45))
+				draw_circle(Vector2.ZERO, f.r * (0.5 + 0.5 * k), Color(0.12, 0.02, 0.18, 0.6))
+				draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 36, Color(1.6, 0.7, 2.4, 0.4 + 0.5 * k), 2.0)
+				for q in 5:
+					var dv := Vector2.from_angle(q * TAU / 5.0 + f.r)
+					draw_line(dv * f.r * 0.15, dv * f.r * (0.4 + 0.5 * k), Color(1.8, 0.9, 2.6, 0.8), 2.0)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"tendril":
+				# 从水月脚下伸向目标的触须线
+				var pts := PackedVector2Array()
+				var nrm: Vector2 = (f.b - f.a).orthogonal().normalized()
+				for q in 13:
+					var u := q / 12.0
+					pts.append(f.a.lerp(f.b, u) + nrm * sin(u * PI * 2.0 + f.seed + t * 10.0) * 10.0 * (1.0 - u))
+				draw_polyline(pts, Color(0.5, 0.2, 0.8, 0.55 * a), 5.0)
+				draw_polyline(pts, Color(1.6, 0.9, 2.4, 0.8 * a), 1.5)
+			"giant_t":
+				# 巨型触手破土
+				var k := 1.0 - a
+				var fr := clampi(int(k * 6.0), 0, 4)
+				_spr("tentacle", 5, fr, f.pos + Vector2(0, 16), PX * 4.2, false, Color(1.3, 1.1, 1.6), Vector2(0.5, 1.0))
+				_spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), PX * 2.6, true, Color(1.1, 1.0, 1.4), Vector2(0.5, 1.0))
+				_spr("tentacle", 5, fr, f.pos + Vector2(48, 22), PX * 2.4, false, Color(1.1, 1.0, 1.4), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
@@ -4242,8 +4534,13 @@ func _draw_mire(m: Dictionary) -> void:
 
 func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
-	var fr := clampi(int(a * 5.0), 0, 4)
-	_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), PX, f.flip, Color.WHITE, Vector2(0.5, 1.0))
+	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
+	var sc := PX * 1.7
+	# 底部紫色辉光，让触手在暗处也能看清
+	draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
+	draw_circle(Vector2.ZERO, 22.0, Color(0.9, 0.4, 1.6, 0.35 * (1.0 - a)))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, Color(1.5, 1.2, 1.9) if a < 0.3 else Color.WHITE, Vector2(0.5, 1.0))
 
 
 func _draw_bg() -> void:
@@ -4501,6 +4798,36 @@ func _draw_zone() -> void:
 			var a0 := TAU * i / n2
 			var a1 := TAU * (i + 1) / n2
 			draw_line(zone_next_c + Vector2.from_angle(a0) * zone_next_r, zone_next_c + Vector2.from_angle(a1) * zone_next_r, Color(2.2, 2.2, 2.4, 0.6), 2.0)
+
+
+## 水刃：月牙形水光（巨斩为金紫色）
+func _draw_wave(b: Dictionary) -> void:
+	var dir: Vector2 = b.vel.normalized()
+	var R: float = 24.0 * b.size
+	var c: Vector2 = b.pos - dir * R * 0.55
+	var ang := dir.angle()
+	var fade: float = clampf(b.life / 0.15, 0.0, 1.0)
+	var core := Color(2.2, 2.6, 2.8, fade) if not b.giant else Color(2.8, 2.2, 2.8, fade)
+	var glow := Color(0.5, 1.4, 2.2, 0.35 * fade) if not b.giant else Color(1.8, 0.8, 2.4, 0.4 * fade)
+	draw_arc(c, R, ang - 1.15, ang + 1.15, 24, glow, 10.0 * b.size)
+	draw_arc(c, R, ang - 1.0, ang + 1.0, 20, core, 3.0 * b.size)
+	draw_arc(c, R * 0.82, ang - 0.8, ang + 0.8, 16, Color(core.r, core.g, core.b, 0.5 * fade), 1.5 * b.size)
+
+
+## 触手桩：扎根的触手，鞭打时伸向目标
+func _draw_stake(st: Dictionary) -> void:
+	var a: float = clampf(st.life / 0.3, 0.0, 1.0)
+	draw_set_transform(st.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
+	draw_circle(Vector2.ZERO, 16.0, Color(0.15, 0.03, 0.22, 0.6 * a))
+	draw_arc(Vector2.ZERO, st.r, 0.0, TAU, 32, Color(1.3, 0.6, 2.0, 0.18 * a), 1.5)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var fr := 3 + int(t * 4.0 + st.pos.x) % 2
+	_spr("tentacle", 5, fr, st.pos + Vector2(0, 10), PX * 1.3, st.flip, Color(1, 1, 1, a), Vector2(0.5, 1.0))
+	if st.whip > 0.0:
+		var k: float = st.whip / 0.18
+		var tip: Vector2 = st.pos + Vector2(0, -20)
+		draw_line(tip, st.wt, Color(0.6, 0.25, 0.9, k), 5.0)
+		draw_line(tip, st.wt, Color(1.8, 1.0, 2.6, k), 1.5)
 
 
 ## 触须阵：地面符阵 + 触须
@@ -4911,14 +5238,152 @@ func _draw_hud() -> void:
 	match state:
 		S.SHOW:
 			_draw_show(vs)
+		S.INTRO:
+			_draw_intro(vs)
 		S.STATS:
 			_draw_stats(vs)
 		S.PAUSE:
-			_draw_result(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
+			_draw_result(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
 		S.DEAD:
 			_draw_result(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 		S.WIN:
 			_draw_result(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, UI.GOLD, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+
+
+## ---- 开局指南：6 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
+const INTRO_PAGES := [
+	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
+		"目标：在深海中存活 10 分钟，击败最终 Boss「偏执泡影」。",
+		"水月的攻击全自动 —— 你只需要用 WASD 移动、走位、躲避弹幕。",
+		"3:30 与 7:00 会有第三层 Boss 登场，击败后获得大量经验与藏品。"]},
+	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
+		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。",
+		"灯火（金条）会持续消耗，拾取灯油补充。灯光范围内的敌人受到的伤害 +25%。",
+		"灯火 ≥70 充盈：技力回复与拾取范围提升；<30 昏暗：敌人更快更凶；熄灭后持续掉血。"]},
+	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
+		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。",
+		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
+		"看到「黑潮将至」提示时，提前往白色虚线圈里走。"]},
+	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
+		"击败敌人掉落经验，升级时三选一：成长、武器（无人机 / 触须阵 / 潮汐弹）、技能进阶。",
+		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv20 精英化二（质变 + 镜花水月）。",
+		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。"]},
+	{"title": "资源、宝箱与商人", "en": "LOOT & MERCHANT", "icon": "loot", "lines": [
+		"精英与 Boss 掉落源石锭、补给箱（藏品）与磁铁 / 回复药剂。小心伪装成宝箱的箱形恐鱼！",
+		"商人每局出现 3 次（屏幕边缘金色箭头指引），靠近即可用源石锭购买藏品与补给；交易后离开。",
+		"大群来袭前 3 秒有紫色预警，准备好退路。"]},
+	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
+		"WASD / 方向键：移动　　Tab 或 C：查看属性与技能　　Esc：暂停",
+		"升级 / 宝箱 / 商人：按 1 2 3 或点击选择　　M：静音　　R：重来",
+		"暂停菜单按 G 可以随时重看本指南。祝你好运，水月。"]},
+]
+
+
+func _open_intro(back: int) -> void:
+	intro_back = back
+	intro_page = 0
+	intro_t = 0.0
+	state = S.INTRO
+
+
+func _intro_next() -> void:
+	Sfx.play("ui_move")
+	if intro_page < INTRO_PAGES.size() - 1:
+		intro_page += 1
+		intro_t = 0.0
+	else:
+		_close_intro()
+
+
+func _close_intro() -> void:
+	Cfg.seen_intro = true
+	Cfg.save()
+	state = intro_back
+	Sfx.play("ui_ok", -4.0)
+
+
+func _draw_intro(vs: Vector2) -> void:
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
+	var pg: Dictionary = INTRO_PAGES[intro_page]
+	var r := Rect2(vs.x / 2 - 440, vs.y / 2 - 250, 880, 500)
+	var ea := clampf(intro_t / 0.25, 0.0, 1.0)
+	r.position.y += (1.0 - ea) * 20.0
+	UI.panel(hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)
+	UI.en(hud, font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [intro_page + 1, INTRO_PAGES.size(), pg.en], 12, UI.CYAN, 3.0)
+	UI.text(hud, font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
+	hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
+	# 插图区
+	var ic := r.position + Vector2(170, 270)
+	_draw_intro_icon(pg.icon, ic)
+	# 文字
+	var y := r.position.y + 170
+	for ln in pg.lines:
+		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
+		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 400, 16, 3, Color(0.85, 0.93, 0.95, ea))
+		y += 78
+	# 页码点
+	for i in INTRO_PAGES.size():
+		UI.diamond(hud, Vector2(vs.x / 2 - (INTRO_PAGES.size() - 1) * 11 + i * 22, r.end.y - 30), 5.0, UI.CYAN if i == intro_page else Color(0.15, 0.25, 0.28))
+	UI.text(hud, font, Vector2(r.position.x, r.end.y + 30), "任意键 / 点击：下一页　　← / 右键：上一页　　Esc：跳过", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
+func _draw_intro_icon(kind: String, c: Vector2) -> void:
+	match kind:
+		"mizuki":
+			var tx: Texture2D = tex.get("player_attack_48")
+			if tx != null:
+				var fr := int(intro_t * 8.0) % 4
+				hud.draw_texture_rect_region(tx, Rect2(c - Vector2(96, 150), Vector2(192, 192)), Rect2(48 * fr, 0, 48, 48))
+			for k in 3:
+				var et: Texture2D = tex.get(["e_bone", "e_slider", "e_stone"][k])
+				if et != null:
+					var fw := et.get_width() / 2
+					hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0), Rect2(0, 0, fw, et.get_height()))
+		"bars":
+			UI.en(hud, font, c + Vector2(-110, -60), "HP", 12, UI.SUB, 2.0)
+			UI.bar(hud, Rect2(c + Vector2(-80, -72), Vector2(180, 14)), 0.7, Color(0.35, 0.9, 0.75), 10)
+			UI.en(hud, font, c + Vector2(-110, -10), "LIGHT", 12, UI.GOLD, 1.0)
+			UI.bar(hud, Rect2(c + Vector2(-50, -22), Vector2(150, 14)), 0.55, UI.GOLD, 5)
+			for tv in [30.0, 70.0]:
+				var tx2: float = c.x - 50 + 150 * tv / 100.0
+				hud.draw_line(Vector2(tx2, c.y - 26), Vector2(tx2, c.y - 4), Color(1, 1, 1, 0.8), 1.5)
+			var ot: Texture2D = tex.get("oil")
+			if ot != null:
+				hud.draw_texture_rect(ot, Rect2(c + Vector2(-20, 30), Vector2(36, 48)), false)
+			UI.text(hud, font, c + Vector2(26, 64), "灯油", 14, UI.GOLD)
+		"mire":
+			var mt: Texture2D = tex.get("terrain_mire")
+			if mt != null:
+				var fw := mt.get_width() / 2
+				hud.draw_texture_rect_region(mt, Rect2(c - Vector2(80, 110), Vector2(160, 160)), Rect2(fw * (int(intro_t * 2.0) % 2), 0, fw, mt.get_height()))
+			hud.draw_arc(c + Vector2(0, 40), 140.0, PI * 1.1, PI * 1.9, 32, Color(0.85, 0.4, 1.0), 3.0)
+			UI.text(hud, font, c + Vector2(-60, 110), "黑潮边界", 14, Color(0.85, 0.5, 1.0))
+		"cards":
+			for k in 3:
+				var rc := Rect2(c + Vector2(-130 + k * 88, -90), Vector2(76, 110))
+				var cc: Color = [UI.CYAN, Color(0.55, 0.95, 1.0), UI.GOLD][k]
+				UI.panel(hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
+				UI.text(hud, font, rc.position + Vector2(0, 66), ["伞", "机", "唤"][k], 30, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
+			UI.text(hud, font, c + Vector2(-130, 60), "成长 / 武器 / 技能进阶", 14, UI.SUB)
+		"loot":
+			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
+			for k in items.size():
+				var tx3: Texture2D = tex.get(items[k])
+				if tx3 == null:
+					continue
+				var frames := 2 if items[k] == "e_chest" or items[k] == "merchant" else 1
+				var fw := tx3.get_width() / frames
+				var sc: float = 3.0 if tx3.get_height() < 20 else 2.0
+				var sz := Vector2(fw, tx3.get_height()) * sc
+				var p := c + Vector2(-120 + (k % 3) * 100, -70 + (k / 3) * 100)
+				hud.draw_texture_rect_region(tx3, Rect2(p - sz / 2.0, sz), Rect2(0, 0, fw, tx3.get_height()))
+		"keys":
+			var keys := [["W", Vector2(0, -60)], ["A", Vector2(-48, -12)], ["S", Vector2(0, -12)], ["D", Vector2(48, -12)], ["Tab", Vector2(-40, 60)], ["Esc", Vector2(40, 60)]]
+			for kk in keys:
+				var kr := Rect2(c + kk[1] - Vector2(20, 20), Vector2(40 if kk[0].length() == 1 else 56, 40))
+				hud.draw_rect(kr, Color(0.08, 0.2, 0.24))
+				hud.draw_rect(kr, UI.CYAN, false, 1.5)
+				UI.text(hud, font, kr.position + Vector2(0, 27), kk[0], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
 
 
 ## 属性面板（Tab / C 打开，游戏暂停）
@@ -4929,7 +5394,7 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.text(hud, font, r.position + Vector2(32, 46), "水月", 28, UI.TEXT)
 	UI.en(hud, font, r.position + Vector2(100, 44), "MIZUKI  ·  STATUS", 12, UI.CYAN, 3.0)
 	UI.text(hud, font, r.position + Vector2(300, 44), "Lv.%d  ·  %s%s  ·  难度 %d「%s」" % [level, ["精零", "精英化一", "精英化二"][elite_stage],
-		("  ·  " + D.MODULES[module].name) if module != "" else "", diff, D.DIFFICULTY[diff].name], 15, UI.SUB)
+		(("  ·  " + D.EVO[evo1].name + ((" · " + D.EVO[evo2].name) if evo2 != "" else "")) if evo1 != "" else ""), diff, D.DIFFICULTY[diff].name], 15, UI.SUB)
 	hud.draw_line(r.position + Vector2(30, 62), Vector2(r.end.x - 30, r.position.y + 62), UI.CYAN_DIM, 1.0)
 	var interval := 0.9 * u_spd_mult
 	var half: float = minf(180.0, 75.0 + rib_bonus + 15.0 * growth.get("u_area", 0))

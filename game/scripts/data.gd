@@ -138,14 +138,39 @@ const GROWTH = {
 	"regen": {"name": "自愈", "desc": "每秒回复生命 +0.6", "max": 5},
 	"armor": {"name": "硬化", "desc": "受到伤害 -1", "max": 5},
 	"wick": {"name": "护灯", "desc": "灯火消耗速度 -15%", "max": 4},
+	# ---- 进化路线专属（选定路线后才会出现）
+	"b_count": {"name": "潮刃·分", "desc": "每次挥伞多斩出 1 道水刃（扇形展开）", "max": 2, "path": "blade"},
+	"b_size": {"name": "潮刃·阔", "desc": "水刃宽度与判定范围 +25%", "max": 3, "path": "blade"},
+	"b_dmg": {"name": "潮刃·利", "desc": "水刃伤害 +30%", "max": 3, "path": "blade"},
+	"b_range": {"name": "潮刃·远", "desc": "水刃飞行距离 +30%", "max": 2, "path": "blade"},
+	"t_count": {"name": "群触·增", "desc": "每次挥伞多召唤 1 根触手", "max": 3, "path": "tendril"},
+	"t_stake": {"name": "群触·桩", "desc": "触手桩持续时间 +1 秒", "max": 2, "path": "tendril"},
+	"t_power": {"name": "群触·力", "desc": "触手与触手桩伤害 +30%", "max": 3, "path": "tendril"},
+	"t_reach": {"name": "群触·长", "desc": "触手桩鞭打范围 +25%", "max": 2, "path": "tendril"},
+}
+
+## 进化：精英化一选路线，精英化二在路线内再选一次质变（共 4 种最终形态）
+const EVO := {
+	"blade": {"name": "潮刃", "en": "TIDE BLADE", "glyph": "刃", "col": Color(0.5, 0.9, 1.0),
+		"desc": "远斩流：每次挥伞同时斩出一道穿透的月牙水刃，贯穿直线上的所有敌人并使其减速"},
+	"tendril": {"name": "群触", "en": "TENDRIL SWARM", "glyph": "触", "col": Color(0.78, 0.5, 1.0),
+		"desc": "召唤流：每次挥伞额外召唤触手，触手化为「触手桩」留在原地，持续鞭打周围敌人"},
+	"blade_moon": {"name": "月轮", "en": "CRESCENT MOON", "glyph": "月", "col": Color(0.6, 0.95, 1.0), "path": "blade",
+		"desc": "水刃化为月轮：飞出后折返，去程与回程各命中一次；水刃数 +1"},
+	"blade_abyss": {"name": "深渊巨斩", "en": "ABYSSAL CLEAVE", "glyph": "渊", "col": Color(0.55, 0.7, 1.0), "path": "blade",
+		"desc": "每第 4 次挥伞斩出 3 倍大小、3 倍伤害的巨型月牙并晕眩敌人；普通水刃范围 +30%"},
+	"tendril_mother": {"name": "深海之母", "en": "ABYSSAL MOTHER", "glyph": "母", "col": Color(0.85, 0.45, 1.0), "path": "tendril",
+		"desc": "每次挥伞再多召唤 2 根触手；被触手击杀的敌人会在附近唤出新的触手"},
+	"tendril_giant": {"name": "巨触吞噬", "en": "DEVOURING KRAKEN", "glyph": "吞", "col": Color(0.7, 0.35, 0.95), "path": "tendril",
+		"desc": "每 5 秒在敌群中心升起巨型触手：范围重击、把敌人拖向中心并晕眩；普通触手 +1"},
 }
 
 ## 援护干员：原创的通用职业干员（远程支援），最多 3 名，每名最高 Lv.3
 const ALLIES = {
 	"sniper": {"name": "狙击干员", "en": "SNIPER", "desc": "远程单体射击，优先攻击精英和生命最高的敌人；命中使敌人流血", "up": "伤害 +50%，射速 +15%"},
 	"caster": {"name": "术师干员", "en": "CASTER", "desc": "发射火球，命中后爆炸造成范围伤害", "up": "伤害 +50%，爆炸范围扩大"},
-	"medic": {"name": "医疗干员", "en": "MEDIC", "desc": "每 3 秒为水月回复 3% 最大生命", "up": "治疗量与频率提升"},
-	"support": {"name": "辅助干员", "en": "SUPPORTER", "desc": "减速光环：水月身边的敌人移动速度 -35%；并向 2 名敌人发射追踪的紫色法术", "up": "光环范围扩大，法术伤害与频率提升"},
+	"medic": {"name": "医疗干员", "en": "MEDIC", "desc": "每 2.4 秒为水月回复 5% 最大生命", "up": "治疗量与频率提升"},
+	"support": {"name": "辅助干员", "en": "SUPPORTER", "desc": "减速光环：水月身边的敌人移动速度 -35%；并向 2 名敌人发射追踪的紫色法术", "up": "光环范围扩大，法术伤害与频率提升；Lv.3 时同时攻击 3 个目标"},
 }
 const RECRUIT_LEVELS := [5, 15, 25]
 
