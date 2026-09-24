@@ -1,0 +1,430 @@
+[
+  {
+    "file": "ally_sniper_move.png",
+    "frame_width": 48,
+    "frame_height": 48,
+    "frames": 6,
+    "fps": 10,
+    "loop": true,
+    "anchor": [
+      24,
+      45
+    ],
+    "display_scale": 1.4,
+    "alpha": "binary",
+    "opaque_pixels": [
+      824,
+      789,
+      778,
+      836,
+      793,
+      786
+    ],
+    "source_id": "b4bdae1c-8a53-475a-863d-c6c47a35591d"
+  },
+  {
+    "file": "ally_caster_move.png",
+    "frame_width": 48,
+    "frame_height": 48,
+    "frames": 6,
+    "fps": 10,
+    "loop": true,
+    "anchor": [
+      24,
+      45
+    ],
+    "display_scale": 1.4,
+    "alpha": "binary",
+    "opaque_pixels": [
+      738,
+      707,
+      713,
+      749,
+      686,
+      715
+    ],
+    "source_id": "b811f0a5-fc47-4c6e-96bc-b850f7251e3d"
+  },
+  {
+    "file": "ally_medic_move.png",
+    "frame_width": 48,
+    "frame_height": 48,
+    "frames": 6,
+    "fps": 10,
+    "loop": true,
+    "anchor": [
+      24,
+      45
+    ],
+    "display_scale": 1.4,
+    "alpha": "binary",
+    "opaque_pixels": [
+      810,
+      743,
+      789,
+      788,
+      735,
+      767
+    ],
+    "source_id": "adda658c-dbad-416e-be92-fdf0aaefd833"
+  },
+  {
+    "file": "ally_support_move.png",
+    "frame_width": 48,
+    "frame_height": 48,
+    "frames": 6,
+    "fps": 10,
+    "loop": true,
+    "anchor": [
+      24,
+      45
+    ],
+    "display_scale": 1.4,
+    "alpha": "binary",
+    "opaque_pixels": [
+      867,
+      817,
+      793,
+      858,
+      850,
+      841
+    ],
+    "source_id": "cc1a6ac1-04ba-4f46-bd5e-17754d561cea"
+  },
+  {
+    "file": "proj_arrow.png",
+    "frame_width": 16,
+    "frame_height": 8,
+    "frames": 1,
+    "fps": 0,
+    "loop": false,
+    "anchor": [
+      8,
+      4
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      49
+    ],
+    "source_id": "5c121599-2b4c-402e-b3a0-8c737d94282b"
+  },
+  {
+    "file": "proj_fireball.png",
+    "frame_width": 16,
+    "frame_height": 16,
+    "frames": 4,
+    "fps": 12,
+    "loop": true,
+    "anchor": [
+      8,
+      8
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      77,
+      82,
+      100,
+      80
+    ],
+    "source_id": "309d4f5c-de2c-4246-b400-16d90b546007"
+  },
+  {
+    "file": "proj_arcane.png",
+    "frame_width": 12,
+    "frame_height": 12,
+    "frames": 4,
+    "fps": 12,
+    "loop": true,
+    "anchor": [
+      6,
+      6
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      39,
+      42,
+      56,
+      36
+    ],
+    "source_id": "f816fd2a-b445-45ca-97e2-9ae112d8be06"
+  },
+  {
+    "file": "proj_drone_bullet.png",
+    "frame_width": 8,
+    "frame_height": 4,
+    "frames": 1,
+    "fps": 0,
+    "loop": false,
+    "anchor": [
+      4,
+      2
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      20
+    ],
+    "source_id": "6d9157df-bd8d-46a9-93c7-32556bb7d325"
+  },
+  {
+    "file": "proj_missile.png",
+    "frame_width": 16,
+    "frame_height": 8,
+    "frames": 2,
+    "fps": 16,
+    "loop": true,
+    "anchor": [
+      8,
+      4
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      40,
+      46
+    ],
+    "source_id": "6eaa9658-90fa-4029-925e-2f2b9b8e1a29"
+  },
+  {
+    "file": "proj_tide.png",
+    "frame_width": 12,
+    "frame_height": 12,
+    "frames": 4,
+    "fps": 10,
+    "loop": true,
+    "anchor": [
+      6,
+      6
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      55,
+      70,
+      85,
+      64
+    ],
+    "source_id": "912ed980-c289-4bcf-b2e7-bbbe30daf375"
+  },
+  {
+    "file": "fx_fire_explode.png",
+    "frame_width": 64,
+    "frame_height": 64,
+    "frames": 6,
+    "fps": 15,
+    "loop": false,
+    "anchor": [
+      32,
+      32
+    ],
+    "display_scale": "damage_radius / radius_px; clamp 1.5..3",
+    "alpha": "binary",
+    "opaque_pixels": [
+      103,
+      380,
+      1570,
+      1214,
+      628,
+      176
+    ],
+    "source_id": "59976e7d-18e8-4c88-98e3-f5673fd4111f",
+    "radius_px": 26,
+    "radius_measurement": "ceil maximum distance from (32,32) of largest connected opaque component across six frames"
+  },
+  {
+    "file": "fx_missile_explode.png",
+    "frame_width": 64,
+    "frame_height": 64,
+    "frames": 6,
+    "fps": 15,
+    "loop": false,
+    "anchor": [
+      32,
+      32
+    ],
+    "display_scale": "damage_radius / radius_px; clamp 1.5..3",
+    "alpha": "binary",
+    "opaque_pixels": [
+      68,
+      329,
+      1309,
+      1020,
+      554,
+      199
+    ],
+    "source_id": "c521bdb7-459d-46f6-a270-068701873735",
+    "radius_px": 26,
+    "radius_measurement": "ceil maximum distance from (32,32) of largest connected opaque component across six frames"
+  },
+  {
+    "file": "fx_arrow_hit.png",
+    "frame_width": 16,
+    "frame_height": 16,
+    "frames": 4,
+    "fps": 20,
+    "loop": false,
+    "anchor": [
+      8,
+      8
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      38,
+      147,
+      74,
+      34
+    ],
+    "source_id": "aa13311f-a076-4bac-a483-94cd56ee780b"
+  },
+  {
+    "file": "fx_bullet_hit.png",
+    "frame_width": 12,
+    "frame_height": 12,
+    "frames": 3,
+    "fps": 24,
+    "loop": false,
+    "anchor": [
+      6,
+      6
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      25,
+      76,
+      27
+    ],
+    "source_id": "9e777d03-349f-4a99-aa9e-ce12eed2b152"
+  },
+  {
+    "file": "fx_arcane_hit.png",
+    "frame_width": 24,
+    "frame_height": 24,
+    "frames": 4,
+    "fps": 20,
+    "loop": false,
+    "anchor": [
+      12,
+      12
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      62,
+      376,
+      273,
+      104
+    ],
+    "source_id": "49af424d-6b52-4fb1-847f-0b5b8afdc16b"
+  },
+  {
+    "file": "fx_tide_hit.png",
+    "frame_width": 24,
+    "frame_height": 24,
+    "frames": 4,
+    "fps": 20,
+    "loop": false,
+    "anchor": [
+      12,
+      12
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      100,
+      321,
+      219,
+      65
+    ],
+    "source_id": "8cae8f18-fe99-44e3-8799-d693172efef4"
+  },
+  {
+    "file": "fx_heal_cross.png",
+    "frame_width": 12,
+    "frame_height": 12,
+    "frames": 4,
+    "fps": 10,
+    "loop": false,
+    "anchor": [
+      6,
+      6
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      22,
+      51,
+      93,
+      59
+    ],
+    "source_id": "f805552e-703a-45e5-8f9a-10b60c14e488"
+  },
+  {
+    "file": "fx_laser_start.png",
+    "frame_width": 16,
+    "frame_height": 16,
+    "frames": 4,
+    "fps": 20,
+    "loop": true,
+    "anchor": [
+      8,
+      8
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      89,
+      103,
+      108,
+      71
+    ],
+    "source_id": "0ba3492a-6501-4c4b-b003-cf62f9baaf55"
+  },
+  {
+    "file": "fx_laser_mid.png",
+    "frame_width": 16,
+    "frame_height": 8,
+    "frames": 4,
+    "fps": 20,
+    "loop": true,
+    "anchor": [
+      0,
+      4
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      96,
+      96,
+      88,
+      96
+    ],
+    "source_id": "358ddec0-aaaf-43c1-bbd7-6677123848a8",
+    "edges_match": true
+  },
+  {
+    "file": "fx_laser_end.png",
+    "frame_width": 16,
+    "frame_height": 16,
+    "frames": 4,
+    "fps": 20,
+    "loop": true,
+    "anchor": [
+      8,
+      8
+    ],
+    "display_scale": 2,
+    "alpha": "binary",
+    "opaque_pixels": [
+      118,
+      140,
+      121,
+      88
+    ],
+    "source_id": "6f4178eb-1ce0-4daf-a095-754ba1c51276"
+  }
+]
