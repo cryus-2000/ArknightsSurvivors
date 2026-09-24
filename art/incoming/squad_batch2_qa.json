@@ -1,0 +1,318 @@
+[
+  {
+    "file": "op_wisadel_idle.png",
+    "batch": 2,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 201,
+        "bbox": [
+          7,
+          13,
+          34,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "fb002a4b3436b688995a914d7d91321d8feb1af68d9fa14d9e2654cf7840a2f0",
+        "opaque_pixels": 672
+      },
+      {
+        "outline_pixels": 204,
+        "bbox": [
+          7,
+          13,
+          34,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "cbcf1efe7a0c26aa9e63de730c8249bbc71c40fa3fb16d10106646531a4a15fd",
+        "opaque_pixels": 648
+      },
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          8,
+          13,
+          34,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "86f96b35d69fcdac65096ca23727ea2b61490c776fd112cedd1420fe94dd9465",
+        "opaque_pixels": 649
+      },
+      {
+        "outline_pixels": 198,
+        "bbox": [
+          7,
+          13,
+          34,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "481bf026b856ddd372452129eee8d6f8583503bff1f5c9633596a850094c2cb9",
+        "opaque_pixels": 651
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "op_wisadel_run.png",
+    "batch": 2,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 239,
+        "bbox": [
+          6,
+          14,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "6af4c97be3983b1a413b5463f68980e794abfd291f27d260620e2d0a16733ed7",
+        "opaque_pixels": 725
+      },
+      {
+        "outline_pixels": 215,
+        "bbox": [
+          3,
+          13,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "29f486b1c8cccdb61683d19c415f6781f73f0a59ae2cdb6e5a16b272a89c6354",
+        "opaque_pixels": 694
+      },
+      {
+        "outline_pixels": 235,
+        "bbox": [
+          4,
+          13,
+          39,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "3d3ff7eb4b3592a111dd91f64e50b55fc5205baa9a247aa4ff5da3db62cc4839",
+        "opaque_pixels": 727
+      },
+      {
+        "outline_pixels": 216,
+        "bbox": [
+          5,
+          13,
+          39,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "d7b43601e61b5f97fcd4c481216fbddd3964ed0d62d95a5c8f8307abf91c998b",
+        "opaque_pixels": 700
+      },
+      {
+        "outline_pixels": 214,
+        "bbox": [
+          6,
+          13,
+          41,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "1e1a8f6f47529d7108196bf1e5ff00606904f1e184247e0d9004f9cff84a047a",
+        "opaque_pixels": 694
+      },
+      {
+        "outline_pixels": 222,
+        "bbox": [
+          6,
+          13,
+          40,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "50f798756a8101318c9388526ebdef1801a9c2768fba666e1ec356d77be48822",
+        "opaque_pixels": 697
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "op_wisadel_attack.png",
+    "batch": 2,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 177,
+        "bbox": [
+          10,
+          12,
+          41,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "78238066d022e332cda341c17813728695bff61b066917906c945daaddbc4ad1",
+        "opaque_pixels": 617
+      },
+      {
+        "outline_pixels": 170,
+        "bbox": [
+          12,
+          14,
+          43,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "6f4a4d3a625fe0ffaba0e6616fdf46288248e59720b5fb8b3dac619a84a909a6",
+        "opaque_pixels": 613
+      },
+      {
+        "outline_pixels": 182,
+        "bbox": [
+          7,
+          13,
+          39,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "421014d45d7f6a99d1b3feac15a32c2cbfb46e24cc28f76583484c70ed21fc41",
+        "opaque_pixels": 644
+      },
+      {
+        "outline_pixels": 173,
+        "bbox": [
+          10,
+          14,
+          43,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "16c3160abcd898bcfd9ef157f0d61e1538189c62a1a1817a91b4c78b9e1c7f9a",
+        "opaque_pixels": 623
+      },
+      {
+        "outline_pixels": 175,
+        "bbox": [
+          10,
+          13,
+          42,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "db78b9b9d92370f28dddfd20079b882b8064cd52fee6b48c34f13e5a8f996a30",
+        "opaque_pixels": 608
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 5
+  },
+  {
+    "file": "op_wisadel_skill.png",
+    "batch": 2,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 173,
+        "bbox": [
+          12,
+          12,
+          39,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "7bb00b6263ce903d717ad423bcda8fa97cf94579b6120ae19fee8d1aa2b1ca77",
+        "opaque_pixels": 622
+      },
+      {
+        "outline_pixels": 191,
+        "bbox": [
+          11,
+          9,
+          37,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "c6f1910c55b12e9b0349e56ee6f5e9bd039f7e11c54ea28f770030a575623fd3",
+        "opaque_pixels": 682
+      },
+      {
+        "outline_pixels": 161,
+        "bbox": [
+          12,
+          13,
+          39,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "10c4a2ec0fdd3ce1d6672631d24e2164222fdfc6b74285d4be53f2a8ca3b0816",
+        "opaque_pixels": 605
+      },
+      {
+        "outline_pixels": 188,
+        "bbox": [
+          9,
+          10,
+          36,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "d1a7e5558884f849f39da6fcd848379cac1927a4f32eba4341a168307e02f2f5",
+        "opaque_pixels": 685
+      },
+      {
+        "outline_pixels": 195,
+        "bbox": [
+          9,
+          11,
+          41,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "b285be47ab6d8138368506d8181f8f27fb39ef316ffe409c683a963a66d5b772",
+        "opaque_pixels": 709
+      },
+      {
+        "outline_pixels": 173,
+        "bbox": [
+          10,
+          12,
+          39,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "4f9c30d46364bc4d112b2144674f294725b18ce6a0c4240a7dbde441b26c728a",
+        "opaque_pixels": 624
+      },
+      {
+        "outline_pixels": 189,
+        "bbox": [
+          11,
+          11,
+          39,
+          46
+        ],
+        "index": 6,
+        "pixel_sha256": "ee600db999565f2add971dd358f0f8d60d531a3ed7533a1e5b75bdbc3d7e8476",
+        "opaque_pixels": 625
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 7
+  }
+]
