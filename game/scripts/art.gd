@@ -41,6 +41,9 @@ static func has_override(name: String) -> bool:
 static var normal_maps := false
 ## 高清贴图：art/incoming/<name>@2x.png 存在时优先使用，像素密度 2 倍（96px 画 48px 的内容），
 ## 绘制时倍率减半，锚点 / 判定 / 帧数都不变。_hires 按名字记倍数，_hires_rid 按贴图记倍数。
+## 是否启用 @2x 高清贴图。编队制阶段全员统一 48px（干员首批只交 48px），先关掉，
+## 免得水月 / 博士比其他干员细一倍。@2x 文件保留在 art/incoming，改回 true 即恢复。
+const USE_HIRES := false
 static var _hires := {}
 static var _hires_rid := {}
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
@@ -53,7 +56,7 @@ static func tex(name: String) -> Texture2D:
 		return _cache[name]
 	var t: Texture2D = null
 	var density := 1.0
-	var p2 := _incoming_path(name + "@2x")
+	var p2 := _incoming_path(name + "@2x") if USE_HIRES else ""
 	if p2 != "":
 		var img2 := Image.load_from_file(p2)
 		if img2 != null and not img2.is_empty():
