@@ -5,6 +5,7 @@ extends Control
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
+const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
 
 const TABS := [
@@ -154,7 +155,7 @@ func _build() -> void:
 						if req.has("class_in_squad"):
 							parts.append("编队中有%s" % req.class_in_squad)
 						if req.has("doctor_passive"):
-							parts.append("博士被动「%s」" % D.GROWTH.get(req.doctor_passive, {"name": req.doctor_passive}).name)
+							parts.append("博士被动「%s」" % Doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
 						st.append(["精%s条件" % ["", "一", "二"][int(n.level)], "、".join(parts)])
 				var forms: Array = []
 				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:

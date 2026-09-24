@@ -83,20 +83,13 @@ const MAX_WEAPONS := 1
 const SKILL_ADV_CHANCE := 0.45
 
 
-## 升级时的成长项（水月自身），max 为可选次数上限
+## 升级时的成长项（水月专属：伞击 / 触手 / 进化路线），max 为可选次数上限
 const GROWTH = {
 	"u_dmg": {"name": "伞击·锋", "desc": "伞击伤害 +15%", "max": 5},
 	"u_area": {"name": "伞击·展", "desc": "伞击半径 +10%，挥砍角度 +15°", "max": 5},
 	"u_spd": {"name": "伞击·迅", "desc": "挥伞间隔 -8%", "max": 4},
 	"t_dmg": {"name": "触手·蚀", "desc": "触手追击伤害倍率 +20%", "max": 5},
-	"sp": {"name": "技力", "desc": "技力回复速度 +15%，唤醒所需挥伞次数 -1", "max": 3},
-	"dodge": {"name": "水影", "desc": "闪避率 +5%", "max": 4},
-	"hp": {"name": "坚韧", "desc": "最大生命 +20", "max": 99},
-	"speed": {"name": "轻盈", "desc": "移动速度 +10%", "max": 5},
-	"pickup": {"name": "感知", "desc": "拾取范围 +30%", "max": 5},
-	"regen": {"name": "自愈", "desc": "每秒回复生命 +0.6", "max": 5},
-	"armor": {"name": "硬化", "desc": "物理减伤 +2（法术、真实伤害无效）", "max": 4},
-	"wick": {"name": "护灯", "desc": "受击时灯火损失 -15%", "max": 4},
+	# 博士 / 全队被动（坚韧 / 自愈 / 硬化 / 水影 / 轻盈 / 感知 / 护灯 / 协同·×）见 characters/doctor.gd PASSIVES
 	# ---- 进化路线专属（选定路线后才会出现）
 	"b_count": {"name": "潮刃·分", "desc": "每次挥伞多斩出 1 道水刃（扇形展开）", "max": 2, "path": "blade"},
 	"b_size": {"name": "潮刃·阔", "desc": "水刃宽度与判定范围 +25%", "max": 3, "path": "blade"},

@@ -853,16 +853,6 @@ func _apply_growth(id: String) -> void:
 		"u_area": st.add(&"mizuki_umbrella_area", "mult", 1.1, src)
 		"u_spd": st.add(&"mizuki_umbrella_interval", "mult", 0.92, src)
 		"t_dmg": st.add(&"mizuki_tentacle_mult", "mult", 1.2, src)
-		"sp":
-			st.add(&"sp_gain", "mult", 1.15, src)
-			st.add(&"mizuki_s1_swings", "flat", -1.0, src)
-		"dodge": st.add(&"dodge", "flat", 0.05, src)
-		"hp": st.add(&"max_hp", "flat", 20.0, src)
-		"speed": st.add(&"move_speed", "mult", 1.1, src)
-		"pickup": st.add(&"pickup", "mult", 1.3, src)
-		"regen": st.add(&"regen", "flat", 0.6, src)
-		"armor": st.add(&"armor", "flat", 2.0, src)
-		"wick": st.add(&"light_decay", "mult", 0.85, src)
 	g._sync_stats()
 
 

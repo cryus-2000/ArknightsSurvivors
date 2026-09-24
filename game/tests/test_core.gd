@@ -26,6 +26,7 @@ func _init() -> void:
 	test_bus()
 	test_modifiers()
 	test_db_and_profile()
+	test_squad_contract()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -154,3 +155,34 @@ func test_db_and_profile() -> void:
 	c.bus.emit(E.DAMAGE_DEALT, {"src": "tentacle", "amount": 10.0})
 	near(c.profile.dmg_share().umbrella, 0.75, "伤害来源占比")
 	c.dispose()
+
+
+## 编队制（docs/23）：数值分层、干员契约、成长线解析
+func test_squad_contract() -> void:
+	# 数值分层：全局修正对所有作用域生效，class:/op: 只对命中的干员生效
+	var s = SB.new()
+	s.define(&"op_atk", 1.0, 0.0)
+	s.add(&"op_atk", "add", 0.1, "squad_passive", "squad")
+	s.add(&"op_atk", "add", 0.2, "class_relic", "class:狙击")
+	s.add(&"op_atk", "add", 0.3, "prog", "op:sniper")
+	near(s.value(&"op_atk"), 1.1, "全局值只含 squad 层")
+	near(s.value_for(&"op_atk", ["class:狙击", "op:sniper"]), 1.6, "狙击干员：squad + class + op")
+	near(s.value_for(&"op_atk", ["class:术师", "op:caster"]), 1.1, "术师干员：只有 squad 层")
+	s.remove_source("prog")
+	near(s.value_for(&"op_atk", ["class:狙击", "op:sniper"]), 1.3, "撤销 op 层来源后重算")
+	# 干员契约：所有 data/characters/*.json 都通过校验，且每个都有 6 节点成长线
+	var Ch = load("res://scripts/characters/character.gd")
+	var ids: Array = Ch.list_ids()
+	ok(ids.size() >= 5, "干员定义数量 ≥ 5（水月 + 四职业）")
+	for cid in ids:
+		var d: Dictionary = Ch.load_def(cid)
+		ok(Ch.validate_operator(cid, d), "干员契约：%s" % cid)
+		var pg: Array = d.get("progression", [])
+		ok(pg.size() == 6, "成长线 6 节点：%s" % cid)
+		var elites: Array = pg.filter(func(nd): return nd.get("type", "") == "elite")
+		ok(elites.size() == 2 and int(elites[0].level) == 1 and int(elites[1].level) == 2, "两次精英化：%s" % cid)
+		ok(elites[1].has("requires"), "精英化二带条件：%s" % cid)
+	# 契约反例：缺 skill / manual 技能 / 非法节点
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skill 不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skill": {"mode": "manual"}}), "干员 manual 技能不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {}, "skill": {}, "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")

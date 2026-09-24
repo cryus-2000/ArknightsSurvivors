@@ -221,7 +221,7 @@ func node_requires_text(n: Dictionary) -> String:
 	if req.has("class_in_squad"):
 		parts.append("编队中有%s干员" % req.class_in_squad)
 	if req.has("doctor_passive"):
-		parts.append("博士被动「%s」" % g.ch.growth_table().get(req.doctor_passive, {"name": req.doctor_passive}).name)
+		parts.append("博士被动「%s」" % g.doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
 	return "、".join(parts)
 
 
@@ -259,8 +259,9 @@ func deep_cards() -> Array:
 				out.append({"kind": "prog", "op": id, "choice": c, "name": "%s · %s" % [n.get("name", "精英化"), cd.get("name", c)],
 					"desc": cd.get("desc", n.get("desc", "")), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
+			var req_txt := node_requires_text(n)
 			out.append({"kind": "prog", "op": id, "choice": "", "name": "%s · %s" % [display_name(), n.get("name", "成长 " + stage_txt)],
-				"desc": n.get("desc", ""), "icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": n.get("level", 0)})
+				"desc": n.get("desc", "") + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
 	out.append_array(extra_cards())
 	return out
 
@@ -400,8 +401,9 @@ func status_items() -> Array:
 
 ## HUD 头像：g.tex 里的贴图名 + 帧数
 func portrait() -> Dictionary:
-	var sp: Dictionary = def.get("sprites", {})
-	return {"tex": sp.get("idle", ""), "frames": 2}
+	var spec := sprite_spec("idle")
+	var tx: Texture2D = anim_tex("idle")
+	return {"tex": spec.get("tex", ""), "frames": anim_hframes(tx, "idle") if tx != null else 1}
 
 
 # ---------------------------------------------------------------- 跟随与动画（squad.gd 调用）
