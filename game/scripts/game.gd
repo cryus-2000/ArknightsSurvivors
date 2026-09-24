@@ -169,6 +169,7 @@ var mid_used: Array = []
 var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
+var warns: Array = []            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
 var mire_tick := 0.0
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
@@ -254,6 +255,7 @@ var dmg_log := {}
 var dmg_src := ""
 var lv_marks := {}
 var at_frames := 0
+var bosstest := false
 var shot_at := [3400]
 var choice_wait := 0
 var choice_shot := false
@@ -555,6 +557,28 @@ func _autotest_step() -> void:
 		for f in [64, 72, 100, 125, 160, 200]:
 			if at_frames == f and DisplayServer.get_name() != "headless":
 				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_%d.png" % f)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--bosstest="):
+			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
+			bosstest = true
+			if at_frames == 20:
+				ppos = Vector2(1500, 900)
+				max_hp = 900.0
+				hp = 900.0
+				t = 150.0
+				for bt in a.substr(11).split(","):
+					var b := _spawn_enemy(bt.trim_suffix("2"), ppos + Vector2(230, -40))
+					b.age = 5.0
+					if bt.ends_with("2"):
+						b.phase = 2
+						b.range = 400.0
+					bosses.append(b)
+					boss = b
+				if bosses.size() == 2:
+					bosses[0].partner = bosses[1]
+					bosses[1].partner = bosses[0]
+			if at_frames > 20 and at_frames % 30 == 0 and at_frames <= 600 and DisplayServer.get_name() != "headless":
+				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), at_frames])
 	if OS.get_cmdline_user_args().has("--fastlevel") and state == S.PLAY and (at_frames == 30 or at_frames == 400):
 		level = 9 if at_frames == 30 else 19
 		if at_frames == 400:
@@ -603,12 +627,14 @@ func _autotest_step() -> void:
 	if at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, evo1 + "/" + evo2, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
 	for bb in bosses:
-		if not bb.dead and not bb.invuln:
-			bb.hp -= 40.0
+		if not bb.dead and not bb.invuln and not bosstest:
+			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				_kill(bb)
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_%d.png" % at_frames)
+	if bosstest and at_frames > 610:
+		get_tree().quit()
 	if state == S.WIN or at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d combos=%s" % [state, t, combos])
 		get_tree().quit()
@@ -791,6 +817,7 @@ func _update(dt: float) -> void:
 	_update_allies(dt)
 	_update_bullets(dt)
 	_update_ebullets(dt)
+	_update_warns(dt)
 	_update_status(dt)
 	_update_merchant(dt)
 	_update_gems(dt)
@@ -1163,6 +1190,12 @@ func _update_enemies(dt: float) -> void:
 		e.stun -= dt
 		e.squash -= dt
 		e.slow -= dt
+		if e.get("wind", 0.0) > 0.0:
+			e.wind -= dt
+		if e.get("pose", 0.0) > 0.0:
+			e.pose -= dt
+		if e.get("haste", 0.0) > 0.0:
+			e.haste -= dt
 		# 流血（狙击干员）：每 0.5 秒结算一次
 		if e.get("bleed", 0.0) > 0.0:
 			e.bleed -= dt
@@ -1207,8 +1240,10 @@ func _update_enemies(dt: float) -> void:
 		# ---- 移动
 		var v: Vector2 = e.kb
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
-		if e.get("channel", 0.0) > 0.0 or e.get("coma", false):
+		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0:
 			spd = 0.0
+		if e.get("haste", 0.0) > 0.0:
+			spd *= 1.4
 		var move_dir := dir
 		if e.feed and final_target_valid(e):
 			move_dir = (e.feed_to.pos - e.pos).normalized()
@@ -1284,7 +1319,7 @@ func _update_enemies(dt: float) -> void:
 				_enemy_hit(e.dmg * 0.8, {"corrode": 0.0, "nerve": 30.0}, true)
 
 		# ---- 接触伤害
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false):
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0:
 			if D.ENEMIES[e.type].get("morph", false):
 				_morph(e)
 				continue
@@ -1333,6 +1368,8 @@ func _enemy_shoot(e: Dictionary, dir: Vector2) -> void:
 		n = 3
 	if e.type == "paranoia":
 		n = 3 if e.phase == 1 else 5
+	if e.type == "iberia":
+		n = 5
 	if e.has("ammo"):
 		e.ammo -= 1
 		if e.ammo <= 0:
@@ -1342,7 +1379,8 @@ func _enemy_shoot(e: Dictionary, dir: Vector2) -> void:
 		var d := dir.rotated((k - (n - 1) / 2.0) * 0.22)
 		ebullets.append({"pos": e.pos, "vel": d * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
-			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home})
+			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home,
+			"mire": e.type == "paranoia" and e.phase == 2})
 	# 投嗣育母：每次攻击在水月附近放下一只注亡拟嗣
 	if e.type == "mother":
 		var nb := 0
@@ -1428,7 +1466,10 @@ func _update_ebullets(dt: float) -> void:
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
 		b.pos += b.vel * dt
 		b.life -= dt
-		if b.pos.distance_to(ppos + Vector2(0, -14)) < b.r + 12.0:
+		var hitp: bool = b.pos.distance_to(ppos + Vector2(0, -14)) < b.r + 12.0
+		if b.get("mire", false) and (hitp or b.life <= 0.0) and mires.size() < 32:
+			mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": rng.randf() * 100.0})
+		if hitp:
 			b.life = 0.0
 			if b.get("slow", false):
 				atk_slow = 3.0
@@ -1537,9 +1578,24 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			e.invuln = false
 			_add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
+	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.age > 2.0
 	match e.type:
 		"iberia", "carmen":
 			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
+			# 伊比利亚：裁决射线（贯穿全屏）；卡门：狙击（锁定线）、退避跳
+			if ready and e.channel <= 0.0:
+				if e.type == "iberia" and _cd(e, "judge", 11.0):
+					_warn(e, "line", 1.1, {"ang": dir.angle(), "len": 980.0, "wid": 16.0, "track": 0.7, "act": "shot", "name": "裁决", "col": Color(1.0, 0.75, 0.3), "dmg": e.dmg * 2.2})
+				elif e.type == "carmen":
+					if dist < 130.0 and _cd(e, "hop", 5.0):
+						e.kb = -dir * 720.0
+						e.pose = 0.35
+						e.pose_max = 0.35
+						_sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
+						_add_text(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
+						Sfx.play("dodge", -8.0)
+					elif dist > 150.0 and _cd(e, "snipe", 8.0):
+						_warn(e, "line", 1.2, {"ang": dir.angle(), "len": 1100.0, "wid": 10.0, "track": 0.85, "act": "shot", "name": "狙击", "col": Color(1.0, 0.85, 0.4), "dmg": e.dmg * 2.6})
 			if e.channel > 0.0:
 				e.channel -= dt
 				if e.channel <= 0.0:
@@ -1553,15 +1609,95 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.channel = 2.0
 					_add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
 		"path":
-			# 塑路者：周期冲锋；每受击 10 次召唤碎片
-			if e.bt > 5.0:
-				e.bt = 0.0
-				e.kb = dir * 520.0
-			if e.hits >= 10:
-				e.hits = 0
-				for k in 3:
-					_spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 3.0) * 50.0)
-				_add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 16)
+			# 塑路者：冲撞（直线预警→冲锋）、震地（近身蓄力→冲击波）、碎裂（75/50/25% 裂出分形）
+			if ready:
+				if dist < 170.0 and _cd(e, "slam", 9.0):
+					_warn(e, "circle", 1.0, {"r": 230.0, "follow": true, "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3})
+				elif dist > 150.0 and _cd(e, "dash", 6.0):
+					_warn(e, "line", 0.9, {"ang": dir.angle(), "len": 440.0, "wid": 30.0, "track": 0.5, "act": "dash", "spd": 620.0, "name": "冲撞", "col": Color(1.0, 0.35, 0.3)})
+			var crack: int = e.get("crack", 0)
+			if crack < 3 and e.hp < e.maxhp * (0.75 - 0.25 * crack):
+				e.crack = crack + 1
+				for k in 4:
+					_spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 56.0)
+				fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.35, "max": 0.35, "col": Color(0.6, 0.7, 1.0)})
+				_add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 18)
+				Sfx.play("boom", -6.0, 1.3, 0.0)
+		"bishop":
+			# 接潮主教：潮汐柱（脚下三圈）、召潮（4 只海嗣）、祝福（治疗并加速搭档）
+			if ready:
+				var p = e.get("partner")
+				if _cd(e, "pillar", 7.0):
+					for k in 3:
+						var off := Vector2.ZERO if k == 0 else Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(70.0, 130.0)
+						_warn(e, "circle", 1.1 + 0.15 * k, {"pos": ppos + off, "r": 64.0, "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0})
+				elif p != null and not p.dead and not p.get("coma", false) and p.hp < p.maxhp * 0.9 and _cd(e, "bless", 10.0):
+					p.hp = minf(p.maxhp, p.hp + p.maxhp * 0.08)
+					p.haste = 5.0
+					e.pose = 0.5
+					e.pose_max = 0.5
+					fx.append({"kind": "ring", "pos": p.pos, "r": p.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.8)})
+					for k in 3:
+						fx.append({"kind": "cross", "pos": p.pos + Vector2(randf_range(-18, 18), randf_range(-40, -5)), "life": 0.9, "max": 0.9, "delay": k * 0.08, "sz": 4.0})
+					_add_text(e.pos + Vector2(0, -50), "祝福", Color(0.5, 1.0, 0.8), 16)
+					_add_text(p.pos + Vector2(0, -50), "加速", Color(0.5, 1.0, 0.8), 14)
+					Sfx.play("pickup", -6.0, 0.8)
+				elif _cd(e, "summon", 14.0):
+					e.pose = 0.6
+					e.pose_max = 0.6
+					for k in 4:
+						var sp: Vector2 = e.pos + Vector2.from_angle(TAU * k / 4.0) * 70.0
+						_spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
+						fx.append({"kind": "ring", "pos": sp, "r": 22.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.9, 1.0)})
+					_add_text(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
+					Sfx.play("tentacle", -6.0, 0.8)
+		"archon":
+			# 接潮蔑死体：横扫（扇形重击+侵蚀）、跃击（跳砸目标点）
+			if ready:
+				if dist < 160.0 and _cd(e, "sweep", 5.0):
+					_warn(e, "cone", 0.8, {"follow": true, "ang": dir.angle(), "half": 1.05, "r": 165.0, "track": 0.4, "act": "sweep", "name": "横扫", "col": Color(0.6, 1.0, 0.9), "dmg": e.dmg * 1.6, "corrode": 0.5})
+				elif dist > 170.0 and dist < 520.0 and _cd(e, "leap", 9.0):
+					var w := _warn(e, "circle", 1.0, {"pos": ppos, "r": 84.0, "act": "leap", "name": "跃击", "col": Color(0.6, 1.0, 0.9), "dmg": e.dmg * 1.5, "corrode": 0.5})
+					e.leap = w
+					e.leap_from = e.pos
+			if e.has("leap"):
+				var w2: Dictionary = e.leap
+				var k := clampf(w2.t / w2.dur, 0.0, 1.0)
+				e.pos = e.leap_from.lerp(w2.pos, k)
+				e.air = sin(k * PI) * 150.0
+				if w2.t >= w2.dur:
+					e.erase("leap")
+					e.air = 0.0
+		"immortal":
+			# 接潮斥亡体：连斩（三段突刺）、搭档昏迷时狂暴
+			var p2 = e.get("partner")
+			if p2 != null and not p2.dead and p2.get("coma", false) and not e.get("rage", false):
+				e.rage = true
+				e.spd *= 1.35
+				e.dmg *= 1.2
+				_add_text(e.pos + Vector2(0, -50), "狂暴", Color(1.0, 0.4, 0.4), 18)
+				fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.3, 0.3)})
+				Sfx.play("roar", -6.0, 1.3)
+			if ready and e.get("combo_n", 0) > 0 and e.get("combo_t", 0.0) <= t:
+				e.combo_n -= 1
+				_warn(e, "line", 0.38, {"ang": dir.angle(), "len": 190.0, "wid": 22.0, "track": 0.22, "act": "stab", "spd": 820.0, "name": "" if e.combo_n < 2 else "连斩", "col": Color(0.6, 0.8, 1.0), "dmg": e.dmg * 1.1, "corrode": 0.5})
+				e.combo_t = t + 0.62
+			elif ready and dist < 280.0 and _cd(e, "combo", 6.0):
+				e.combo_n = 3
+				e.combo_t = 0.0
+		"paranoia":
+			# "偏执泡影"：一阶段 环形弹幕；二阶段 泡影爆裂、偏执凝视、子弹落地留溟痕
+			if ready:
+				if e.phase == 1:
+					if _cd(e, "ring", 6.0):
+						_warn(e, "circle", 0.6, {"follow": true, "r": 46.0, "act": "bring", "name": "泡影", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 0.6})
+				else:
+					if _cd(e, "gaze", 11.0):
+						_warn(e, "line", 1.3, {"ang": dir.angle(), "len": 820.0, "wid": 26.0, "track": 0.9, "act": "beam", "name": "凝视", "col": Color(0.9, 0.4, 1.0), "dmg": e.dmg * 2.0, "corrode": 0.5})
+					elif _cd(e, "burst", 7.0):
+						var a0 := rng.randf() * TAU
+						for k in 4:
+							_warn(e, "circle", 1.0 + 0.1 * k, {"pos": ppos + Vector2.from_angle(a0 + TAU * k / 4.0) * 88.0, "r": 70.0, "act": "burst", "name": "泡影爆裂" if k == 0 else "", "col": Color(0.85, 0.45, 1.0), "dmg": e.dmg * 1.2, "corrode": 0.5, "lock": k == 0})
 		"izumik":
 			if e.phase == 1:
 				# 学习阶段：无敌，放出子代，子代回到本体会被吸收
@@ -1620,6 +1756,198 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					o.hp = min(o.maxhp, o.hp + o.maxhp * 0.3)
 					fx.append({"kind": "ring", "pos": o.pos, "r": 18.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.7)})
 					n += 1
+
+
+## Boss 招式冷却：到时返回 true 并重置
+func _cd(e: Dictionary, key: String, dur: float) -> bool:
+	if not e.has("cds"):
+		e.cds = {}
+	if e.cds.get(key, 0.0) <= t:
+		e.cds[key] = t + dur
+		return true
+	return false
+
+
+## Boss 招式预警：shape = circle / line / cone；dur 秒后结算 act
+func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
+	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
+		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
+	w.merge(d, true)
+	warns.append(w)
+	if w.lock:
+		e.wind = maxf(e.get("wind", 0.0), dur)
+		e.pose = dur + 0.3
+		e.pose_max = dur + 0.3
+	if w.name != "":
+		_add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
+		Sfx.play("skill", -12.0, 1.4)
+	return w
+
+
+func _update_warns(dt: float) -> void:
+	for w in warns:
+		w.t += dt
+		var e: Dictionary = w.owner
+		if w.follow and not e.dead:
+			w.pos = e.pos
+		if w.track > 0.0 and w.t < w.track and w.shape != "circle":
+			var want: float = (ppos + Vector2(0, -14) - w.pos).angle()
+			w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
+		if w.t >= w.dur and not w.done:
+			w.done = true
+			if not e.dead or w.shape == "circle":
+				_warn_resolve(w)
+	warns = warns.filter(func(w): return w.t < w.dur + 0.25)
+
+
+func _warn_hit(w: Dictionary) -> bool:
+	var pp := ppos + Vector2(0, -14)
+	match w.shape:
+		"circle":
+			return pp.distance_to(w.pos) < w.r + 10.0
+		"line":
+			var b: Vector2 = w.pos + Vector2.from_angle(w.ang) * w.len
+			return Geometry2D.get_closest_point_to_segment(pp, w.pos, b).distance_to(pp) < w.wid + 12.0
+		"cone":
+			var dv: Vector2 = pp - w.pos
+			return dv.length() < w.r + 10.0 and absf(angle_difference(dv.angle(), w.ang)) < w.half + 0.12
+	return false
+
+
+func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
+	if not _warn_hit(w):
+		return
+	var e: Dictionary = w.owner
+	dmg_src = "boss_" + e.type
+	if invuln <= 0.0:
+		_enemy_hit(w.dmg, {"corrode": w.corrode})
+		if stun_t > 0.0:
+			pstun = maxf(pstun, stun_t)
+		if slow:
+			atk_slow = 3.0
+
+
+func _warn_resolve(w: Dictionary) -> void:
+	var e: Dictionary = w.owner
+	var c: Color = w.col
+	var dv := Vector2.from_angle(w.ang)
+	match w.act:
+		"pillar":
+			fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.55, "max": 0.55, "col": c})
+			fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c})
+			_sparks(w.pos, Vector2.UP, Color(0.6, 1.2, 1.6), 14, 260.0)
+			Sfx.play("tentacle", -5.0, 1.1)
+			_shake(0.3)
+			_warn_damage(w, 0.4)
+		"slam":
+			shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false})
+			fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})
+			_sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
+			Sfx.play("boom", 0.0, 0.6, 0.0)
+			_shake(1.2)
+			hitstop = maxf(hitstop, 0.05)
+		"burst":
+			fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
+			_sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)
+			Sfx.play("boom", -8.0, 1.2, 0.0)
+			_warn_damage(w)
+		"shot":
+			var b: Vector2 = w.pos + dv * w.len
+			fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
+			_sparks(w.pos + dv * 24.0, dv, Color(2.0, 1.6, 0.8), 8, 320.0)
+			Sfx.play("hit", 0.0, 0.5, 0.0)
+			_shake(0.4)
+			_warn_damage(w)
+		"beam":
+			var b2: Vector2 = w.pos + dv * w.len
+			fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+			Sfx.play("skill", -2.0, 0.5)
+			_shake(0.7)
+			_warn_damage(w, 0.0, true)
+		"sweep":
+			fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
+			_sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
+			Sfx.play("swing", -2.0, 0.55)
+			_shake(0.5)
+			_warn_damage(w, 0.25)
+		"leap":
+			e.pos = w.pos
+			e.air = 0.0
+			e.erase("leap")
+			shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false})
+			fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
+			fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
+			Sfx.play("boom", -2.0, 0.8, 0.0)
+			_shake(1.0)
+			_warn_damage(w, 0.3)
+		"dash":
+			e.kb = dv * w.get("spd", 600.0)
+			e.dash_dir = dv
+			e.dash_t = 0.45
+			e.pose = 0.45
+			e.pose_max = 0.45
+			_sparks(e.pos, -dv, Color(0.9, 0.9, 1.0), 10, 200.0)
+			Sfx.play("swing", -4.0, 0.5)
+		"stab":
+			e.kb = dv * w.get("spd", 800.0)
+			e.dash_dir = dv
+			e.dash_t = 0.2
+			e.pose = 0.25
+			e.pose_max = 0.25
+			fx.append({"kind": "tracer", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.22, "max": 0.22, "col": c, "wid": w.wid})
+			Sfx.play("swing", -6.0, 0.7)
+			_warn_damage(w)
+		"bring":
+			for k in 14:
+				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
+				ebullets.append({"pos": w.pos, "vel": d2 * 210.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
+					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false})
+			fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+			Sfx.play("tentacle", -8.0, 1.3)
+
+
+## 预警绘制：外框 + 随时间填满的内圈；结算瞬间闪白
+func _draw_warns() -> void:
+	for w in warns:
+		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
+		var c: Color = w.col
+		var pulse := 0.5 + 0.5 * sin(t * 14.0)
+		var fa := 0.10 + 0.14 * k
+		var oa := 0.55 + 0.35 * pulse * k
+		if w.done:
+			var f: float = clampf(1.0 - (w.t - w.dur) / 0.25, 0.0, 1.0)
+			c = Color(2.0, 2.0, 2.0)
+			fa = 0.45 * f
+			oa = 0.9 * f
+			k = 1.0
+		var fill := Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa)
+		var line := Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, oa)
+		match w.shape:
+			"circle":
+				draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
+				draw_circle(Vector2.ZERO, w.r, fill)
+				draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+				draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"line":
+				draw_set_transform(w.pos, w.ang, Vector2.ONE)
+				draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
+				draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+				draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"cone":
+				var pts := PackedVector2Array([w.pos])
+				var pts2 := PackedVector2Array([w.pos])
+				for q in 17:
+					var a: float = w.ang - w.half + w.half * 2.0 * q / 16.0
+					var dv := Vector2.from_angle(a)
+					pts.append(w.pos + dv * w.r)
+					pts2.append(w.pos + dv * w.r * k)
+				draw_colored_polygon(pts, fill)
+				if k > 0.05:
+					draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+				pts.append(w.pos)
+				draw_polyline(pts, line, 2.5)
 
 
 func _spawn_tears(e: Dictionary, n: int) -> void:
@@ -3983,6 +4311,7 @@ func _draw() -> void:
 	_draw_bg()
 	for m in mires:
 		_draw_mire(m)
+	_draw_warns()
 	if not merchant.is_empty():
 		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * 1.2)
 		_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
@@ -4280,6 +4609,54 @@ func _draw() -> void:
 				for q in 10:
 					var dv := Vector2.from_angle(q * TAU / 10.0 + f.r)
 					draw_line(f.pos + dv * rr * 0.8, f.pos + dv * (rr + 14.0 * a), Color(2.0, 1.8, 1.2, a), 2.0)
+			"wpillar":
+				# 潮汐柱：升起的水柱 + 水花
+				var k := 1.0 - a
+				var c: Color = f.col
+				var hgt: float = f.r * 2.4 * minf(1.0, k * 3.0)
+				var wd: float = f.r * 0.8 * a
+				draw_rect(Rect2(f.pos + Vector2(-wd / 2.0, -hgt), Vector2(wd, hgt)), Color(c.r * 1.4, c.g * 1.4, c.b * 1.6, 0.35 * a))
+				draw_rect(Rect2(f.pos + Vector2(-wd / 5.0, -hgt), Vector2(wd / 2.5, hgt)), Color(2.2, 2.6, 2.8, 0.6 * a))
+				draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+				draw_arc(Vector2.ZERO, f.r * (0.6 + 0.6 * k), 0.0, TAU, 32, Color(c.r * 1.6, c.g * 1.6, c.b * 1.8, a), 3.0)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"quake":
+				# 震地 / 跳砸：地面裂纹放射
+				var k := 1.0 - a
+				var c: Color = f.col
+				for q in 9:
+					var dv := Vector2.from_angle(q * TAU / 9.0 + f.pos.x * 0.01)
+					var l: float = f.r * (0.4 + 0.6 * minf(1.0, k * 2.5))
+					draw_line(f.pos + dv * 8.0, f.pos + dv * l, Color(0.05, 0.03, 0.02, 0.8 * a), 3.0)
+					draw_line(f.pos + dv * 8.0, f.pos + dv * l * 0.7, Color(c.r * 1.6, c.g * 1.4, c.b, a), 1.5)
+				draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+				draw_arc(Vector2.ZERO, f.r * (0.3 + 0.7 * k), 0.0, TAU, 32, Color(c.r * 1.8, c.g * 1.6, c.b * 1.2, a * 0.8), 4.0)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"tracer":
+				# 狙击 / 裁决弹道
+				var c: Color = f.col
+				draw_line(f.a, f.b, Color(c.r * 1.5, c.g * 1.5, c.b * 1.2, 0.35 * a), f.wid * 2.0 * a + 2.0)
+				draw_line(f.a, f.b, Color(2.6, 2.4, 2.0, a), 2.0)
+			"bbeam":
+				# 偏执凝视：粗光束
+				var c: Color = f.col
+				var k := 1.0 - a
+				var wd: float = f.wid * 2.0 * (0.4 + 0.6 * a) + 6.0 * sin(t * 40.0)
+				draw_line(f.a, f.b, Color(c.r * 1.2, c.g * 0.8, c.b * 1.6, 0.45 * a), wd * 1.6)
+				draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 1.4, c.b * 2.4, 0.8 * a), wd)
+				draw_line(f.a, f.b, Color(2.6, 2.2, 2.8, a), wd * 0.3)
+				for q in 6:
+					var pp: Vector2 = f.a.lerp(f.b, (q + 0.5) / 6.0 + k * 0.1)
+					draw_circle(pp, 5.0 + 4.0 * sin(t * 30.0 + q), Color(2.0, 1.6, 2.6, 0.6 * a))
+			"bslash":
+				# 横扫：宽弧刀光
+				var c: Color = f.col
+				var k := 1.0 - a
+				var a0: float = f.ang - f.half + f.half * 2.0 * minf(1.0, k * 1.6)
+				var a1: float = f.ang - f.half
+				draw_arc(f.pos, f.r * 0.9, a1, a0, 24, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, a), 14.0)
+				draw_arc(f.pos, f.r * 0.75, a1, a0, 24, Color(2.4, 2.6, 2.6, a), 4.0)
+				draw_arc(f.pos, f.r * 0.5, a1, a0, 24, Color(c.r * 1.2, c.g * 1.2, c.b * 1.2, 0.5 * a), 8.0)
 			"pillar":
 				# 触手破土：光柱
 				var c: Color = f.col
@@ -4766,6 +5143,27 @@ func _draw_enemy(e: Dictionary) -> void:
 		bpos = e.pos + Vector2(0, e.r * 0.8 + 3.0 * PX)
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
+	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
+	if e.boss and e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0:
+		var pk: float = e.pose / e.pose_max
+		if tex.get(e.tex + "_attack") != null and not e.get("coma", false):
+			name = e.tex + "_attack"
+			frames = 4
+			frame = clampi(int((1.0 - pk) * 4.0), 0, 3)
+		elif e.pose > 0.3:
+			var wk: float = minf(1.0, (1.0 - pk) * 2.0)
+			sq *= Vector2(1.0 - 0.06 * wk, 1.0 + 0.08 * wk)
+			bpos.x -= e.fx * 4.0 * wk
+			col = col.lerp(Color(1.8, 1.5, 1.4), 0.35 * wk + 0.25 * wk * sin(t * 30.0))
+		else:
+			var rk: float = e.pose / 0.3
+			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
+			bpos.x += e.fx * 12.0 * rk
+	if e.get("air", 0.0) > 0.0:
+		draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
+		draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		draw_off.y -= e.air
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
