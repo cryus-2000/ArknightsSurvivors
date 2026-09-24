@@ -4855,28 +4855,40 @@ func _draw_hud() -> void:
 ## ---- 开局指南：6 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
-		"目标：在深海中存活 10 分钟，击败最终 Boss「偏执泡影」。",
-		"水月的攻击全自动 —— 你只需要用 WASD 移动、走位、躲避弹幕。",
-		"3:30 与 7:00 会有第三层 Boss 登场，击败后获得大量经验与藏品。"]},
+		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
+		"水月的伞击与三个技能全自动出手 —— 你只需要用 WASD 移动：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
+		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
-		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。",
-		"灯火（金条）会持续消耗，拾取灯油补充。灯光范围内的敌人受到的伤害 +25%。",
-		"灯火 ≥70 充盈：技力回复与拾取范围提升；<30 昏暗：敌人更快更凶；熄灭后持续掉血。"]},
+		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
+		"灯火（金条）会持续消耗，拾取敌人掉落的灯油补充。灯光范围内的敌人受到的伤害 +25%，这是最稳定的输出加成。",
+		"灯火 ≥70 充盈：技力回复与拾取范围提升；<30 昏暗：敌人更快更凶；熄灭后持续掉血。深海底部的抉择也会以灯火为代价。"]},
+	{"title": "威胁等级与大群", "en": "THREAT & HORDE", "icon": "threat", "lines": [
+		"计时器下方的进度条是威胁等级 Ⅰ→Ⅵ：浅滩 → 暗流(1:15) → 深潜(2:50) → 裂隙(4:40) → 深渊(6:40) → 深蓝之树(8:40)。每升一级会出现新的海嗣种类，旧种类逐渐退场。",
+		"「大群来袭」：每隔一段时间（浅滩 2 分钟一次，越深越频繁，最后 80 秒一次）会从四面八方涌来一整群海嗣，来袭前 3 秒有紫色预警环 —— 提前找好退路，别被堵在角落。",
+		"精英海嗣定期出现（带金色光环与血条），击败必掉源石锭和补给箱；进化体（红色）更强，越到后期比例越高。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
 	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
-		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。",
+		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。远程海嗣的弹幕落地也会留下溟痕。",
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
-		"看到「黑潮将至」提示时，提前往白色虚线圈里走。"]},
+		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。",
-		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv20 精英化二（质变 + 镜花水月）。",
-		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。"]},
-	{"title": "资源、宝箱与商人", "en": "LOOT & MERCHANT", "icon": "loot", "lines": [
-		"精英与 Boss 掉落源石锭、补给箱（藏品）与磁铁 / 回复药剂。小心伪装成宝箱的箱形恐鱼！",
-		"商人每局出现 3 次（屏幕边缘金色箭头指引），靠近即可用源石锭购买藏品与补给；交易后离开。",
-		"大群来袭前 3 秒有紫色预警，准备好退路。"]},
+		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。第一次拿到新技能或进阶时会有演示。",
+		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv19 镜花水月 → Lv20 精英化二（质变）。进阶让技能改变形态，而不只是数字变大。",
+		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。按 Tab 随时查看属性、技能与藏品效果。"]},
+	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
+		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。补给箱也会定期在地图上出现（屏幕边缘有指示）。",
+		"小心伪装成宝箱的箱形恐鱼 —— 它现形扑来时会造成伤害，但击败后掉落大量源石锭。",
+		"藏品分基础 / 稀有 / 核心 / 升华，同一件再次拿到会升级；商店里偶尔有「遭诅古物」：效果强但带代价。"]},
+	{"title": "商人只停留 60 秒", "en": "MERCHANT", "icon": "merchant", "lines": [
+		"商人每局出现 3 次：1:40、5:30、8:40。出现时有横幅提示，屏幕边缘的金色箭头会一直指向他，小地图上也有标记。",
+		"他只停留 60 秒：头顶显示倒计时，最后 15 秒会有横幅提醒并变红闪烁 —— 还没交易就先放下手里的怪去找他，错过就要等下一次。",
+		"靠近即可用源石锭购买藏品、急救包与灯油；每次到访可以花钱刷新一次货架。交易完成后他会自行离开。"]},
+	{"title": "海嗣祭坛与结局", "en": "ALTAR & ENDINGS", "icon": "altar", "lines": [
+		"通关一次之后，深海里会出现「海嗣祭坛」：打碎它做出选择，选项会给你藏品、灯火或代价。每个祭坛都在固定的时间段必定出现，可以规划。",
+		"结局由你做出的决定决定，后做的决定覆盖先做的；右上角藏品栏下方与 Tab 面板会一直显示当前走向，9:00 有终局预告。",
+		"四个结局各有不同的最终 Boss 与后半程规则，达成后会收录进标题页的图鉴「结局」分页。"]},
 	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
 		"WASD / 方向键：移动　　Tab 或 C：查看属性与技能　　Esc：暂停",
-		"升级 / 宝箱 / 商人：按 1 2 3 或点击选择　　M：静音　　R：重来",
+		"升级 / 宝箱 / 商人 / 祭坛：按 1 2 3 或点击选择　　M：静音　　R：重来",
 		"暂停菜单按 G 可以随时重看本指南。祝你好运，博士。"]},
 ]
 
@@ -4907,7 +4919,7 @@ func _close_intro() -> void:
 func _draw_intro(vs: Vector2) -> void:
 	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
 	var pg: Dictionary = INTRO_PAGES[intro_page]
-	var r := Rect2(vs.x / 2 - 440, vs.y / 2 - 250, 880, 500)
+	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - 285, 900, 570)
 	var ea := clampf(intro_t / 0.25, 0.0, 1.0)
 	r.position.y += (1.0 - ea) * 20.0
 	UI.panel(hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)
@@ -4918,11 +4930,11 @@ func _draw_intro(vs: Vector2) -> void:
 	var ic := r.position + Vector2(170, 270)
 	_draw_intro_icon(pg.icon, ic)
 	# 文字
-	var y := r.position.y + 170
+	var y := r.position.y + 156
 	for ln in pg.lines:
 		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
-		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 400, 16, 3, Color(0.85, 0.93, 0.95, ea))
-		y += 78
+		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), ln, HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea))
+		y += 100
 	# 页码点
 	for i in INTRO_PAGES.size():
 		UI.diamond(hud, Vector2(vs.x / 2 - (INTRO_PAGES.size() - 1) * 11 + i * 22, r.end.y - 30), 5.0, UI.CYAN if i == intro_page else Color(0.15, 0.25, 0.28))
@@ -4980,6 +4992,57 @@ func _draw_intro_icon(kind: String, c: Vector2) -> void:
 				var sz := Vector2(fw, tx3.get_height()) * sc
 				var p := c + Vector2(-120 + (k % 3) * 100, -70 + (k / 3) * 100)
 				hud.draw_texture_rect_region(tx3, Rect2(p - sz / 2.0, sz), Rect2(0, 0, fw, tx3.get_height()))
+		"threat":
+			# 威胁等级条 Ⅰ–Ⅵ + 大群预警环
+			var names := ["浅滩", "暗流", "深潜", "裂隙", "深渊", "深蓝之树"]
+			var lit: int = int(intro_t * 1.2) % 7
+			for k in 6:
+				var rc := Rect2(c + Vector2(-138 + k * 46, -96), Vector2(40, 14))
+				var on: bool = k < lit
+				hud.draw_rect(rc, Color(0.6, 0.35, 1.0, 0.9) if on else Color(0.08, 0.12, 0.16))
+				hud.draw_rect(rc, Color(0.7, 0.5, 1.0, 0.8), false, 1.0)
+				UI.text(hud, font, rc.position + Vector2(0, -6), ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][k], 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
+				UI.text(hud, font, rc.position + Vector2(-8, 30), names[k], 10, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x + 16)
+			var hk: float = fmod(intro_t, 2.4) / 2.4
+			hud.draw_arc(c + Vector2(0, 30), 30.0 + hk * 90.0, 0.0, TAU, 48, Color(0.75, 0.3, 1.0, 0.7 * (1.0 - hk)), 3.0)
+			hud.draw_arc(c + Vector2(0, 30), 36.0, 0.0, TAU, 32, Color(0.75, 0.3, 1.0, 0.5), 2.0)
+			var etx: Texture2D = tex.get("e_bone")
+			if etx != null:
+				for k in 8:
+					var an: float = TAU * k / 8.0 + intro_t * 0.4
+					var fw2: int = etx.get_width() / 2
+					var pp: Vector2 = c + Vector2(0, 30) + Vector2.from_angle(an) * (78.0 - 30.0 * hk)
+					hud.draw_texture_rect_region(etx, Rect2(pp - Vector2(fw2, etx.get_height()), Vector2(fw2, etx.get_height()) * 2.0), Rect2(0, 0, fw2, etx.get_height()))
+			UI.text(hud, font, c + Vector2(-60, 116), "大群来袭", 14, Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120)
+		"merchant":
+			var mtx: Texture2D = tex.get("merchant")
+			if mtx != null:
+				var fw3: int = mtx.get_width() / 2
+				var fr3: int = int(intro_t * 2.0) % 2
+				var sz3 := Vector2(fw3, mtx.get_height()) * 3.0
+				hud.draw_texture_rect_region(mtx, Rect2(c - Vector2(sz3.x / 2.0, sz3.y - 40), sz3), Rect2(fw3 * fr3, 0, fw3, mtx.get_height()))
+			var left: int = 60 - int(fmod(intro_t * 6.0, 60.0))
+			var mc: Color = UI.GOLD if left > 15 else UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(intro_t * 8.0))
+			UI.ring(hud, c + Vector2(0, -120), 22.0, left / 60.0, mc)
+			UI.text(hud, font, c + Vector2(-30, -114), "%ds" % left, 15, mc, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			UI.text(hud, font, c + Vector2(-80, 74), "商人  ·  停留 60 秒", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 160)
+			for k in 3:
+				UI.chip(hud, font, c + Vector2(-118 + k * 84, 90), ["1:40", "5:30", "8:40"][k], UI.GOLD, 12)
+		"altar":
+			var atx: Texture2D = tex.get("e_event")
+			if atx != null:
+				var fw4: int = atx.get_width() / 2
+				var fr4: int = int(intro_t * 2.0) % 2
+				var sz4 := Vector2(fw4, atx.get_height()) * 4.0
+				hud.draw_set_transform(c + Vector2(0, 46), 0.0, Vector2(1.0, 0.45))
+				hud.draw_circle(Vector2.ZERO, 70.0 + 6.0 * sin(intro_t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
+				hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				hud.draw_texture_rect_region(atx, Rect2(c - Vector2(sz4.x / 2.0, sz4.y - 50), sz4), Rect2(fw4 * fr4, 0, fw4, atx.get_height()))
+			var ends := [["Ⅰ", Color(0.8, 0.6, 1.0)], ["Ⅱ", Color(0.6, 0.85, 1.0)], ["Ⅲ", UI.GOLD], ["Ⅳ", Color(0.35, 0.55, 1.0)]]
+			for k in 4:
+				var ec: Color = ends[k][1]
+				UI.diamond(hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
+				UI.text(hud, font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		"keys":
 			var keys := [["W", Vector2(0, -60)], ["A", Vector2(-48, -12)], ["S", Vector2(0, -12)], ["D", Vector2(48, -12)], ["Tab", Vector2(-40, 60)], ["Esc", Vector2(40, 60)]]
 			for kk in keys:
