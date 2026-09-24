@@ -1,0 +1,42 @@
+[
+  {
+    "anchor": [
+      24,
+      45
+    ],
+    "frame_height": 48,
+    "sha256": "187fcd87744c9fbdd1e41970f6372748a86d9a9f673647026fad9cbd4cecaab0",
+    "frames": 2,
+    "facing": "front_right",
+    "opaque_pixels": [
+      833,
+      854
+    ],
+    "scale": 2,
+    "file": "doctor.png",
+    "changed_pixels": 661,
+    "frame_width": 48,
+    "fps": 2,
+    "loop": true
+  },
+  {
+    "anchor": [
+      24,
+      45
+    ],
+    "frame_height": 48,
+    "sha256": "e1279eb02c34b4567ef140d921d100d5553651e7fa8ae50e5086812c635c9130",
+    "frames": 2,
+    "facing": "front_right",
+    "opaque_pixels": [
+      1162,
+      1208
+    ],
+    "scale": 2,
+    "file": "merchant.png",
+    "changed_pixels": 1132,
+    "frame_width": 48,
+    "fps": 2,
+    "loop": true
+  }
+]
