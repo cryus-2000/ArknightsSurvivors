@@ -146,14 +146,16 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 340, 640, 680)
+	var compact: bool = vs.y < 680.0
+	var rh: float = minf(680.0, vs.y - 8.0)
+	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - rh / 2.0, 640, rh)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
 	row_rects.clear()
 	for i in ROWS.size():
 		var row: Dictionary = ROWS[i]
-		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * 38, r.size.x - 60, 34)
+		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * (34 if compact else 38), r.size.x - 60, 34)
 		row_rects.append(rr)
 		var on := i == sel
 		if on:

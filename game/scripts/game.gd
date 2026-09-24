@@ -2418,7 +2418,8 @@ func _build_shop_ui() -> void:
 	for i in shop_items.size():
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
-		var cw: float = 204.0 if shop_items.size() <= 5 else 180.0
+		var sep: float = 28.0 if shop_items.size() <= 5 else 14.0
+		var cw: float = minf(204.0 if shop_items.size() <= 5 else 180.0, (get_viewport_rect().size.x - 60.0 - sep * (shop_items.size() - 1)) / shop_items.size())
 		card.custom_minimum_size = Vector2(cw, 276)
 		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		card.focus_mode = Control.FOCUS_NONE
@@ -5110,7 +5111,8 @@ func _close_intro() -> void:
 func _draw_intro(vs: Vector2) -> void:
 	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
 	var pg: Dictionary = INTRO_PAGES[intro_page]
-	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - 285, 900, 570)
+	var rh: float = minf(570.0, vs.y - 16.0)
+	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - rh / 2.0, 900, rh)
 	var ea := clampf(intro_t / 0.25, 0.0, 1.0)
 	r.position.y += (1.0 - ea) * 20.0
 	UI.panel(hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)

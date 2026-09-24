@@ -346,9 +346,11 @@ func _draw() -> void:
 
 	# 菜单：2.0s 起逐项从左滑入
 	item_rects.clear()
-	var my := 306.0
+	var compact: bool = vs.y < 680.0   # 触屏放大后的紧凑排版
+	var my := 282.0 if compact else 306.0
+	var step := 54.0 if compact else 60.0
 	for i in ITEMS.size():
-		var r := Rect2(tx, my + i * 60, 300, 50)
+		var r := Rect2(tx, my + i * step, 300, 50)
 		item_rects.append(r)
 		var f := _seg(2.0 + i * 0.12, 0.35)
 		if f <= 0.0:
@@ -367,7 +369,7 @@ func _draw() -> void:
 	# 操作提示
 	var hf := _seg(2.7, 0.5)
 	if hf > 0.0 and not diff_pick:
-		var hy := my + ITEMS.size() * 60 + 6
+		var hy := my + ITEMS.size() * step + 6
 		UI.en(self, font, Vector2(tx + 2, hy), "W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
 
 	# 页脚：最后淡入
