@@ -2094,6 +2094,11 @@ func _update_merchant(dt: float) -> void:
 		merchant_light.visible = false
 		return
 	merchant.life -= dt
+	# 离开前 15 秒提醒一次（横幅 + 音效），之后倒计时变红闪烁
+	if merchant.life <= 15.0 and not merchant.get("warned", false):
+		merchant.warned = true
+		_show_banner("商人 15 秒后离开 —— 还没交易就快去")
+		Sfx.play("ui_move", -2.0, 0.8)
 	merchant_light.visible = true
 	merchant_light.position = merchant.pos + Vector2(10, -10)
 	var d: float = merchant.pos.distance_to(ppos)
@@ -2105,6 +2110,13 @@ func _update_merchant(dt: float) -> void:
 	if merchant.life <= 0.0 and state == S.PLAY:
 		merchant = {}
 		_show_banner("商人离开了")
+
+
+## 商人倒计时颜色：最后 15 秒红色闪烁
+func _merchant_col() -> Color:
+	if merchant.is_empty() or merchant.life > 15.0:
+		return UI.GOLD
+	return UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(t * 8.0))
 
 
 func _shop_price(kind: String) -> int:
@@ -4482,12 +4494,12 @@ func _draw_hud() -> void:
 			hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), UI.GOLD)
 			var dist := int(merchant.pos.distance_to(ppos) / 32.0)
 			var lab_y := -34.0 if edge.y > vs.y / 2 else 44.0
-			UI.text(hud, font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(merchant.life)], 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			UI.text(hud, font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(merchant.life)], 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 		else:
 			# 在画面内：头顶跳动的箭头
 			var hp2 := sp + Vector2(0, -64 - bounce)
 			hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
-			UI.text(hud, font, hp2 + Vector2(-60, -8), "商人 %ds" % int(merchant.life), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			UI.text(hud, font, hp2 + Vector2(-60, -8), ("商人 %ds" if merchant.life > 15.0 else "商人即将离开 %ds") % int(merchant.life), 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
 	_draw_minimap(vs)
 	var st_txt := ""
 	var st_col := UI.GOLD
