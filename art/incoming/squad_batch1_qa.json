@@ -1,0 +1,246 @@
+[
+  {
+    "file": "doctor_idle.png",
+    "batch": 1,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          14,
+          13,
+          34,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "07d619790229be00e358ac37cee948294f4e417b37ae29dc7524c964127e95f7",
+        "opaque_pixels": 554
+      },
+      {
+        "outline_pixels": 156,
+        "bbox": [
+          14,
+          13,
+          34,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "a142952bedfbd959aa8c4ef6d0bf059a2366535d1f34cdf470233e6b73872b22",
+        "opaque_pixels": 547
+      },
+      {
+        "outline_pixels": 162,
+        "bbox": [
+          14,
+          13,
+          35,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "33268b9347709c7d7ebbc4847668f2b4392eae475247dab7f77dfa8be2882e3c",
+        "opaque_pixels": 550
+      },
+      {
+        "outline_pixels": 142,
+        "bbox": [
+          14,
+          13,
+          34,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "4c05e663d15b6bed14489afac8fc76db9fb2ca01407d8bcddfbf68d56c04e5c7",
+        "opaque_pixels": 550
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  },
+  {
+    "file": "doctor_run.png",
+    "batch": 1,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 161,
+        "bbox": [
+          9,
+          13,
+          31,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "11ec29d57832ea4dec81d99aba858da6610662f37d8f108425929469f604289a",
+        "opaque_pixels": 527
+      },
+      {
+        "outline_pixels": 160,
+        "bbox": [
+          6,
+          13,
+          29,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "99d32866549a56192eba2be9860185ec50942a71c8dfd973a37adf9b977e1b23",
+        "opaque_pixels": 522
+      },
+      {
+        "outline_pixels": 169,
+        "bbox": [
+          8,
+          14,
+          32,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "e0096579392d872c864de23be1ccc2748ff619d039e5b21507d806509ed6481f",
+        "opaque_pixels": 524
+      },
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          8,
+          14,
+          32,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "10118fcda14ad5b61b7e5efb2763260f59131255e5b20e7cdb8952b1e0fa8329",
+        "opaque_pixels": 523
+      },
+      {
+        "outline_pixels": 157,
+        "bbox": [
+          12,
+          13,
+          34,
+          46
+        ],
+        "index": 4,
+        "pixel_sha256": "dd30171cf78940c157470b5dffb1bc3e1591f876c80096227377337618efeebb",
+        "opaque_pixels": 508
+      },
+      {
+        "outline_pixels": 154,
+        "bbox": [
+          8,
+          14,
+          32,
+          46
+        ],
+        "index": 5,
+        "pixel_sha256": "41388b5eb4c6c5e12e1a64ebad136490878bf3c6c5a40bb9ee04f02cc5a9c984",
+        "opaque_pixels": 519
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 6
+  },
+  {
+    "file": "doctor_hurt.png",
+    "batch": 1,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 168,
+        "bbox": [
+          7,
+          15,
+          34,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "f8d54f9fce4b670a6f9cddb5755392e3d145f8652b9ec442c3f2c399390428a7",
+        "opaque_pixels": 590
+      },
+      {
+        "outline_pixels": 171,
+        "bbox": [
+          6,
+          17,
+          34,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "77a9a0129c4a034eb1211e8c07d4243e6173df1e296f1df6917cfaa133c1a573",
+        "opaque_pixels": 577
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 2
+  },
+  {
+    "file": "doctor_death.png",
+    "batch": 1,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "outline_pixels": 148,
+        "bbox": [
+          14,
+          18,
+          38,
+          46
+        ],
+        "index": 0,
+        "pixel_sha256": "01e533fb9c585ef8e82e37200ccadd38a8d7015b63d6d6c42dd6077ba63454f0",
+        "opaque_pixels": 480
+      },
+      {
+        "outline_pixels": 119,
+        "bbox": [
+          15,
+          24,
+          42,
+          46
+        ],
+        "index": 1,
+        "pixel_sha256": "6518f0934d8b19bf1e031b561dcdba4d75b6bd8f4b423ecbc2873ecaa613a401",
+        "opaque_pixels": 418
+      },
+      {
+        "outline_pixels": 124,
+        "bbox": [
+          8,
+          30,
+          40,
+          46
+        ],
+        "index": 2,
+        "pixel_sha256": "83d7a81bb60721dca5b96fc18af8c1a54551c82763ffe1b5a5d0f74f77d3ca25",
+        "opaque_pixels": 398
+      },
+      {
+        "outline_pixels": 119,
+        "bbox": [
+          6,
+          32,
+          42,
+          46
+        ],
+        "index": 3,
+        "pixel_sha256": "4ff20d7f21a5321c680484baecb69ad5f3beacd5b622bf50edd4121fcb87595f",
+        "opaque_pixels": 387
+      }
+    ],
+    "clear_canvas_border": true,
+    "outline": "#080E18",
+    "distinct_frames": 4
+  }
+]
