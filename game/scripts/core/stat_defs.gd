@@ -30,7 +30,7 @@ const PLAYER := {
 	&"sp_gain": {"base": 1.0, "min": 0.0, "old": "sp_mult", "name": "技力回复倍率"},
 	&"control_dur": {"base": 1.0, "min": 0.0, "name": "控制持续时间倍率"},
 	# ---- 公共：资源
-	&"light_decay": {"base": 1.0, "min": 0.0, "old": "lamp_decay", "name": "灯火消耗倍率"},
+	&"light_decay": {"base": 1.0, "min": 0.0, "old": "lamp_decay", "name": "受击灯火损失倍率"},
 	&"light_loss": {"base": 1.0, "min": 0.0, "name": "受击 / 黑潮灯火流失倍率"},
 	&"oil_gain": {"base": 1.0, "old": "oil_mult", "name": "灯油效果倍率"},
 	&"xp_gain": {"base": 1.0, "old": "xp_mult", "name": "经验倍率"},

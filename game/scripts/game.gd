@@ -5248,7 +5248,7 @@ func _draw_stats(vs: Vector2) -> void:
 	y += 30
 	var rows0 := [
 		["生命回复", "%.1f / 秒" % (regen + regen_pct * max_hp)], ["物理减伤 / 法抗", "%d / %d%%" % [int(armor), int(arts_res * 100.0)]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(dodge + dodge_phys, 0.6) * 100.0), int(minf(dodge + dodge_arts, 0.6) * 100.0)]],
-		["移动速度", "%d" % int(speed)], ["拾取范围", "%d" % int(pickup)], ["灯火消耗", "×%.2f" % lamp_decay],
+		["移动速度", "%d" % int(speed)], ["拾取范围", "%d" % int(pickup)], ["受击灯火损失", "×%.2f" % lamp_decay],
 		["照亮范围", "%d" % int(_lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [shield, shield_max, shield_every]) if shield_max > 0 else "无"],
 	]

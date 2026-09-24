@@ -839,7 +839,7 @@ func _growth_preview(id: String) -> String:
 		"pickup": return "拾取范围 %d → %d" % [int(g.pickup), int(g.pickup * 1.3)]
 		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.regen, g.regen + 0.6]
 		"armor": return "减伤 %d → %d" % [int(g.armor), int(g.armor) + 1]
-		"wick": return "灯火消耗 ×%.2f → ×%.2f" % [g.lamp_decay, g.lamp_decay * 0.85]
+		"wick": return "受击灯火损失 ×%.2f → ×%.2f" % [g.lamp_decay, g.lamp_decay * 0.85]
 	return ""
 
 
