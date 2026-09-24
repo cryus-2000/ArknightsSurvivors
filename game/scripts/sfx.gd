@@ -42,7 +42,7 @@ func _ready() -> void:
 		music_lp = AudioServer.get_bus_effect(mbus, 0)
 	_ensure_bus("SFX")
 	for n in NAMES:
-		streams[n] = load("res://audio/sfx/%s.wav" % n)
+		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 	for i in 24:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"
@@ -51,7 +51,9 @@ func _ready() -> void:
 	for tname in MUSIC:
 		var arr: Array = []
 		for f in MUSIC[tname]:
-			var st: AudioStreamOggVorbis = load("res://audio/music/%s.ogg" % f)
+			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
+			if st == null:
+				continue
 			st.loop = true
 			var pl := AudioStreamPlayer.new()
 			pl.stream = st
@@ -65,6 +67,28 @@ func _ready() -> void:
 	stinger.bus = "Music"
 	add_child(stinger)
 	play_music("title")
+
+
+## 加载音频：优先用编辑器导入好的资源；直接用源码运行而没有导入记录时（.godot/imported 缺失），
+## 退回到从原始文件解码，这样不打开编辑器也有声音
+func _load_ogg(path: String) -> AudioStreamOggVorbis:
+	if ResourceLoader.exists(path):
+		var r = load(path)
+		if r is AudioStreamOggVorbis:
+			return r
+	if FileAccess.file_exists(path):
+		return AudioStreamOggVorbis.load_from_file(path)
+	return null
+
+
+func _load_wav(path: String) -> AudioStream:
+	if ResourceLoader.exists(path):
+		var r = load(path)
+		if r is AudioStream:
+			return r
+	if FileAccess.file_exists(path):
+		return AudioStreamWAV.load_from_file(path)
+	return null
 
 
 func _ensure_bus(name: String) -> int:
@@ -81,7 +105,7 @@ func _ensure_bus(name: String) -> int:
 func play_music(tname: String) -> void:
 	if tname != "title":
 		driven_t = 0.0
-	if tname == cur_track or not groups.has(tname):
+	if tname == cur_track or not groups.has(tname) or groups[tname].is_empty():
 		return
 	cur_track = tname
 	stinger.stop()
@@ -92,7 +116,7 @@ func play_music(tname: String) -> void:
 
 ## 结算短乐句：当前曲目淡出
 func play_stinger(sname: String) -> void:
-	var st: AudioStreamOggVorbis = load("res://audio/music/%s.ogg" % sname)
+	var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % sname)
 	if st == null:
 		return
 	st.loop = false
@@ -162,6 +186,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	if p == null:
 		p = players[next]
 		next = (next + 1) % players.size()
+	if streams[name] == null:
+		return
 	p.stream = streams[name]
 	p.volume_db = vol
 	p.pitch_scale = pitch * randf_range(1.0 - pitch_var, 1.0 + pitch_var)
