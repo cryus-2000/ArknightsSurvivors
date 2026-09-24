@@ -6,7 +6,7 @@
     ["同人声明", "《水月 · 深海幸存者》是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。", ""],
     ["明日方舟游戏数据", "藏品名称、编号与敌人设定的核对参考自社区整理的游戏数据仓库。", "https://github.com/Kengxxiao/ArknightsGameData"],
     ["PRTS Wiki", "机制与文案参考。", "https://prts.wiki"],
-    ["像素美术", "角色、敌人、场景与特效均为本作原创像素画，由 Claude（Anthropic）与 ChatGPT / Codex（OpenAI）程序化绘制；没有使用游戏原图。", ""],
+    ["像素美术", "角色、敌人、场景与特效为根据《明日方舟》游戏美术二次创作的像素画，由 Claude（Anthropic）与 ChatGPT / Codex（OpenAI）程序化绘制。", ""],
     ["引擎", "Godot Engine 4.4（MIT 许可）。", "https://godotengine.org"],
     ["开发协作", "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT（OpenAI）共同完成。", "https://claude.ai  ·  https://chatgpt.com"],
     ["音乐与音效", "原创合成。", ""]
