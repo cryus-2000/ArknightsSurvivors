@@ -8,7 +8,7 @@
    "elite": 45.0,
    "evo": 0.0,
    "spd": 1.0,
-   "horde_every": 120.0,
+   "horde_every": 90.0,
    "pool": [
     "bone",
     "bone",
@@ -30,7 +30,7 @@
    "elite": 55.0,
    "evo": 0.0,
    "spd": 1.0,
-   "horde_every": 120.0,
+   "horde_every": 90.0,
    "pool": [
     "bone",
     "bone",
@@ -53,7 +53,7 @@
    "elite": 50.0,
    "evo": 0.03,
    "spd": 1.0,
-   "horde_every": 120.0,
+   "horde_every": 85.0,
    "pool": [
     "bone",
     "bone",
@@ -78,7 +78,7 @@
    "elite": 44.0,
    "evo": 0.08,
    "spd": 1.03,
-   "horde_every": 110.0,
+   "horde_every": 80.0,
    "pool": [
     "slider",
     "stone",
@@ -104,7 +104,7 @@
    "elite": 38.0,
    "evo": 0.14,
    "spd": 1.07,
-   "horde_every": 100.0,
+   "horde_every": 70.0,
    "pool": [
     "stone",
     "ripper",
@@ -131,7 +131,7 @@
    "elite": 32.0,
    "evo": 0.22,
    "spd": 1.12,
-   "horde_every": 80.0,
+   "horde_every": 60.0,
    "pool": [
     "ripper",
     "ripper",
@@ -146,7 +146,7 @@
    "horde": [
     "ripper",
     "burrower",
-    "burrower",
+    "slider",
     "ripper"
    ]
   }

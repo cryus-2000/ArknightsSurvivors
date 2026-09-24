@@ -128,6 +128,7 @@ var grip := false
 var evo_age := 35.0
 var evo_xp := 2.0
 var horde_mult := 1.0
+var horde_log: Array = []          # 平衡测试：每次大群的统计
 var horde_chest := false
 var seed_heal := false
 var flesh_heal := false
@@ -178,7 +179,8 @@ var diff_new := false
 var winshot := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var stinger_done := false
-var next_horde := 90.0
+var next_horde := 75.0
+var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
 var show_queue: Array = []   # 解锁演出队列
 var shop_refreshed := false  # 本次商人只能刷新一次
 var seen_shows_run: Array = []  # 本局已完整播放过的解锁演出
@@ -740,7 +742,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": ch.get("rej")}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": ch.get("rej"), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -1043,6 +1045,10 @@ func _update(dt: float) -> void:
 	_update_fx(dt)
 	_cleanup()
 
+	if not horde_log.is_empty():
+		var hl0: Dictionary = horde_log[horde_log.size() - 1]
+		if t - hl0.t < 20.0:
+			hl0.minhp = minf(hl0.minhp, hp)
 	if balance and OS.get_cmdline_user_args().has("--nodeath"):
 		hp = maxf(hp, max_hp * 0.5)
 	if hp <= 0.0 and not rfx.on_death():
@@ -1295,10 +1301,12 @@ func _spawn(dt: float) -> void:
 		else:
 			_show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
-	var horde_ok: bool = not _boss_alive() or diff >= 7
+	# 大群：Boss 在场时顺延（难度 7+ 不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
+	var horde_ok: bool = (not _boss_alive() or diff >= 7) and t < 570.0
 	if t >= next_horde - 3.0 and horde_warned != next_horde and horde_ok:
 		horde_warned = next_horde
 		horde_warn = 3.0
+		horde_gap = rng.randf() * TAU
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if t >= next_horde and horde_ok:
 		next_horde += D.THREAT[threat].get("horde_every", 120.0)
@@ -1307,16 +1315,25 @@ func _spawn(dt: float) -> void:
 		_shake(1.4)
 		fx.append({"kind": "horde_ring", "pos": ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
-		var n := int((22 + int(t / 7.0)) * horde_mult * (1.4 if diff >= 7 else 1.0))
+		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
+		var n := int((24 + int(t / 9.0)) * horde_mult * (1.4 if diff >= 7 else 1.0))
 		if horde_chest:
 			_drop(ppos + Vector2(70, 0), "chest", 1.0)
-		var base := rng.randf() * TAU
+		var gap_half := deg_to_rad(35.0)
+		var span: float = TAU - gap_half * 2.0
+		var hl := {"t": int(t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": hp, "hp0": hp, "comp": D.THREAT[threat].horde.duplicate()}
+		horde_log.append(hl)
 		for i in n:
 			if enemies.size() >= MAX_ENEMIES + 60:
 				break
-			var p := ppos + Vector2.from_angle(base + TAU * i / n) * rng.randf_range(560.0, 620.0)
+			var ang: float = horde_gap + gap_half + span * (i + 0.5) / n
+			var p := ppos + Vector2.from_angle(ang) * rng.randf_range(560.0, 640.0)
 			var hp_: Array = D.THREAT[threat].horde
-			_spawn_enemy(hp_[i % hp_.size()], p)
+			var he := _spawn_enemy(hp_[i % hp_.size()], p)
+			he["horde"] = horde_log.size() - 1
+			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
+			he.dmg *= 0.7
+			hl.hp += he.maxhp
 	# 补给箱
 	if t >= next_chest:
 		next_chest = t + rng.randf_range(35.0, 50.0)
@@ -2115,6 +2132,11 @@ func _kill(e: Dictionary) -> void:
 		return
 	if e.type != "tear":
 		kills += 1
+	if e.has("horde") and e.horde < horde_log.size():
+		var hl: Dictionary = horde_log[e.horde]
+		hl.killed += 1
+		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
+			hl.t80 = int(t) - hl.t
 	var col: Color = ECOL.get(e.type, Color(0.6, 0.9, 0.9))
 	_sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
 	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
@@ -4672,8 +4694,10 @@ func _draw_hud() -> void:
 		if hw:
 			UI.en(hud, font, Vector2(vs.x / 2 - 130, cy - 40), "THE  SWARM  APPROACHES  ·  %d" % int(ceil(horde_warn)), 12, Color(0.85, 0.6, 1.0, ta), 3.0)
 			# 四周方向警示箭头（向内）
-			for j in 8:
-				var ang := TAU * j / 8.0
+			for j in 12:
+				var ang := TAU * j / 12.0
+				if absf(angle_difference(ang, horde_gap)) < deg_to_rad(40.0):
+					continue  # 缺口方向不画箭头：那边没有敌人
 				var dir := Vector2.from_angle(ang)
 				var c := vs / 2.0
 				var ed: Vector2 = c + dir * min(abs((vs.x / 2 - 40) / max(abs(dir.x), 0.01)), abs((vs.y / 2 - 40) / max(abs(dir.y), 0.01)))
@@ -4960,7 +4984,7 @@ const INTRO_PAGES := [
 		"灯火 ≥70 充盈：技力回复与拾取范围提升；<30 昏暗：敌人更快更凶；熄灭后持续掉血。深海底部的抉择也会以灯火为代价。"]},
 	{"title": "威胁等级与大群", "en": "THREAT & HORDE", "icon": "threat", "lines": [
 		"计时器下方的进度条是威胁等级 Ⅰ→Ⅵ：浅滩 → 暗流(1:15) → 深潜(2:50) → 裂隙(4:40) → 深渊(6:40) → 深蓝之树(8:40)。每升一级会出现新的海嗣种类，旧种类逐渐退场。",
-		"「大群来袭」：每隔一段时间（浅滩 2 分钟一次，越深越频繁，最后 80 秒一次）会从四面八方涌来一整群海嗣，来袭前 3 秒有紫色预警环 —— 提前找好退路，别被堵在角落。",
+		"「大群来袭」：每隔一段时间（浅滩 90 秒一次，越深越频繁，最后 60 秒一次）会从四周涌来一整群海嗣。来袭前 3 秒有紫色预警和屏幕边缘的箭头 —— 包围圈总留有一个缺口，没有箭头的那一侧就是突围方向。",
 		"精英海嗣定期出现（带金色光环与血条），击败必掉源石锭和补给箱；进化体（红色）更强，越到后期比例越高。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
 	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
 		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。远程海嗣的弹幕落地也会留下溟痕。",
