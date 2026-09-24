@@ -41,7 +41,45 @@ static func create(game, cid: String) -> RefCounted:
 	if scr == null:
 		push_error("character script missing: " + path)
 		return null
-	return scr.new(game, d)
+	var inst = scr.new(game, d)
+	validate_skills(cid, inst.skills(), d)
+	return inst
+
+
+## 三技能契约：恰好 3 个核心技能；释放方式只能是 auto / manual，且 manual 最多 1 个。
+## 基础攻击与天赋不占槽；技能进阶、E1/E2、藏品只能改造这三个技能，不能新增可施放槽位。
+static func validate_skills(cid: String, table: Dictionary, d: Dictionary) -> bool:
+	var ids: Array = d.get("skills", table.keys())
+	var ok := true
+	if ids.size() != 3:
+		push_error("角色 %s 必须恰好定义 3 个核心技能，现在是 %d" % [cid, ids.size()])
+		ok = false
+	var manual := 0
+	for sid in ids:
+		if not table.has(sid):
+			push_error("角色 %s 的技能 %s 没有定义" % [cid, sid])
+			ok = false
+			continue
+		var mode: String = table[sid].get("mode", "auto")
+		if mode != "auto" and mode != "manual":
+			push_error("角色 %s 技能 %s 的 mode 只能是 auto / manual" % [cid, sid])
+			ok = false
+		if mode == "manual":
+			manual += 1
+	if manual > 1:
+		push_error("角色 %s 最多只能有 1 个手动技能，现在是 %d" % [cid, manual])
+		ok = false
+	return ok
+
+
+## 手动技能入口（Space / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
+func try_manual_skill() -> bool:
+	return false
+
+
+## 图鉴 / 面板显示用的能力标签（3–5 个玩家能懂的词），来自角色 JSON 的 gallery.tags
+func display_tags() -> Array:
+	return def.get("gallery", {}).get("tags", [])
 
 
 # ---------------------------------------------------------------- 每帧

@@ -17,11 +17,11 @@ static var ENDINGS: Dictionary = Loader.load_waves().endings
 ## 技能：致敬原作的三个技能，全部自动释放；按等级自动解锁，不占用升级三选一
 ## 设计：S1 改变单次攻击（爆发）/ S2 改变攻击节奏（攻速+束缚）/ S3 改变攻击空间（多方向+形态）
 const SKILLS = {
-	"s1": {"name": "唤醒", "en": "AWAKENING", "glyph": "唤", "col": Color(1.0, 0.77, 0.42),
+	"s1": {"name": "唤醒", "en": "AWAKENING", "glyph": "唤", "col": Color(1.0, 0.77, 0.42), "mode": "auto", "trigger": "count",
 		"desc": "每挥伞数次，下一次攻击自动强化为「唤醒」：伤害大幅提升、范围扩大，触手追击同样强化"},
-	"s2": {"name": "囚徒困境", "en": "PRISONER'S DILEMMA", "glyph": "囚", "col": Color(0.45, 0.8, 1.0),
+	"s2": {"name": "囚徒困境", "en": "PRISONER'S DILEMMA", "glyph": "囚", "col": Color(0.45, 0.8, 1.0), "mode": "auto", "trigger": "sp",
 		"desc": "周期性进入高速状态：挥伞频率翻倍，触手追击目标 +1 并附带束缚"},
-	"s3": {"name": "镜花水月", "en": "MIRAGE", "glyph": "镜", "col": Color(0.8, 0.55, 1.0),
+	"s3": {"name": "镜花水月", "en": "MIRAGE", "glyph": "镜", "col": Color(0.8, 0.55, 1.0), "mode": "auto", "trigger": "sp",
 		"desc": "周期性进入特殊形态：攻击范围扩大，斩击同时覆盖三个方向并附带短暂晕眩"},
 }
 ## 技能解锁等级（精英化一 / 二分别对应 S2 / S3）

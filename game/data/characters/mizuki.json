@@ -1,64 +1,162 @@
 {
-  "id": "mizuki",
-  "name": "水月",
-  "en": "MIZUKI",
-  "script": "res://scripts/characters/mizuki.gd",
-  "sprites": {
-    "base": "player",
-    "idle": "player_idle",
-    "run": "player_run",
-    "attack": "player_attack_48",
-    "hurt": "player_hurt",
-    "death": "player_death",
-    "size": 48,
-    "foot": [
-      24,
-      46
-    ]
-  },
-  "skills": [
-    "s1",
-    "s2",
-    "s3"
+ "id": "mizuki",
+ "name": "水月",
+ "en": "MIZUKI",
+ "script": "res://scripts/characters/mizuki.gd",
+ "sprites": {
+  "base": "player",
+  "idle": "player_idle",
+  "run": "player_run",
+  "attack": "player_attack_48",
+  "hurt": "player_hurt",
+  "death": "player_death",
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "skills": [
+  "s1",
+  "s2",
+  "s3"
+ ],
+ "evo": {
+  "paths": [
+   "blade",
+   "tendril"
   ],
-  "evo": {
-    "paths": [
-      "blade",
-      "tendril"
-    ],
-    "mutations": {
-      "blade": [
-        "blade_moon",
-        "blade_abyss"
-      ],
-      "tendril": [
-        "tendril_mother",
-        "tendril_giant"
-      ]
-    }
-  },
-  "icons": {
-    "s1": "skill_s1",
-    "s2": "skill_s2",
-    "s3": "skill_s3"
-  },
-  "stats": {
-    "max_hp": 100,
-    "regen": 0.6,
-    "move_speed": 150,
-    "dodge": 0.25,
-    "pickup": 70
-  },
-  "base": {
-    "umbrella_dmg": 18,
-    "swing_radius": 95,
-    "swing_interval": 0.9,
-    "swing_arc": 150,
-    "tentacle_mult": 0.6,
-    "awaken_swings": 7
-  },
-  "gallery": {
-    "tag": "主角 · 特种",
-    "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（Lv3）→ 囚徒困境（Lv10 精英化一）→ 镜花水月（Lv20 精英化二），全部自动释放；每个技能各有两段进阶。"
+  "mutations": {
+   "blade": [
+    "blade_moon",
+    "blade_abyss"
+   ],
+   "tendril": [
+    "tendril_mother",
+    "tendril_giant"
+   ]
   }
+ },
+ "icons": {
+  "s1": "skill_s1",
+  "s2": "skill_s2",
+  "s3": "skill_s3"
+ },
+ "stats": {
+  "max_hp": 100,
+  "regen": 0.6,
+  "move_speed": 150,
+  "dodge": 0.25,
+  "pickup": 70
+ },
+ "base": {
+  "umbrella_dmg": 18,
+  "swing_radius": 95,
+  "swing_interval": 0.9,
+  "swing_arc": 150,
+  "tentacle_mult": 0.6,
+  "awaken_swings": 7
+ },
+ "gallery": {
+  "tag": "主角 · 特种 · 三自动",
+  "desc": "持伞近战，挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人。\n技能：唤醒（Lv3）→ 囚徒困境（Lv10 精英化一）→ 镜花水月（Lv19 精英化二），全部自动释放；每个技能各有两段进阶。",
+  "tags": [
+   "近战",
+   "追击",
+   "控制",
+   "范围",
+   "法术追击"
+  ]
+ },
+ "hit_sources": {
+  "伞击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic"
+   ]
+  },
+  "技能": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill"
+   ]
+  },
+  "技能·法术": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "aftershock",
+    "area"
+   ]
+  },
+  "触手": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "follow_up"
+   ]
+  },
+  "触手桩": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "触须阵": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area",
+    "control"
+   ]
+  },
+  "巨触": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area",
+    "control"
+   ]
+  },
+  "水刃": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile"
+   ]
+  },
+  "潮汐弹": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "ricochet"
+   ]
+  }
+ }
 }

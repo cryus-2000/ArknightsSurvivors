@@ -13,14 +13,20 @@ const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
-## 造成伤害的类型：out_src -> [近战/远程, 物理/法术/真实]。真实伤害不吃任何倍率与防御
-const DMG_TYPE := {
-	"伞击": ["近战", "物理"], "技能": ["近战", "物理"], "技能·法术": ["近战", "法术"],
-	"触手": ["近战", "法术"], "触手桩": ["近战", "法术"], "触须阵": ["近战", "法术"], "巨触": ["近战", "法术"],
-	"水刃": ["远程", "物理"], "潮汐弹": ["远程", "法术"],
-	"无人机": ["远程", "物理"], "无人机激光": ["远程", "法术"],
-	"援护": ["远程", "物理"], "法术援护": ["远程", "法术"],
-	"藏品": ["远程", "法术"], "地雷": ["远程", "物理"], "真实": ["近战", "真实"],
+## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
+##   src      来源名（统计与显示）        emitter  operator / summon / support / relic
+##   origin   core / talent / skill / route / support / relic
+##   range    近战 / 远程                 kind     物理 / 法术 / 真实（真实不吃任何倍率与防御）
+##   tags     basic empowered follow_up skill aftershock area projectile beam pierce ricochet entity control dot detonation execute
+## 这里只放共享来源（支援 / 藏品 / 真实）；角色专属来源由 data/characters/<id>.json 的 hit_sources 合并进来。
+const HIT_BASE := {
+	"无人机": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
+	"无人机激光": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["beam", "pierce"]},
+	"援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
+	"法术援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["projectile", "area"]},
+	"藏品": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["dot"]},
+	"地雷": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "物理", "tags": ["area", "detonation"]},
+	"真实": {"emitter": "operator", "origin": "relic", "range": "近战", "kind": "真实", "tags": ["execute"]},
 }
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
@@ -269,7 +275,9 @@ var elites_killed := 0
 var shop_visits := 0
 var dmg_log := {}
 var dmg_out: Dictionary = {}     # 造成的伤害按来源统计（balance 输出）
-var out_src := "伞击"
+var hit_src: Dictionary = {}        # 合并后的伤害来源表（HIT_BASE + 角色 hit_sources）
+var hit: Dictionary = {"src": "?", "emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []}
+var dmg_tag_out: Dictionary = {}    # 造成伤害按 tag 统计（Tab 面板"本局构成"）
 var dmg_src := ""
 var lv_marks := {}
 var at_frames := 0
@@ -288,6 +296,9 @@ func _ready() -> void:
 	stats.define_all(StatDefs.PLAYER)
 	stats.define_all(StatDefs.ENEMY)
 	stats.define_all(ch.stat_defs())
+	hit_src = HIT_BASE.duplicate(true)
+	for k in ch.def.get("hit_sources", {}):
+		hit_src[k] = ch.def.hit_sources[k]
 	# 角色 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
 	for k in ch.def.get("stats", {}):
 		if stats.has_stat(k):
@@ -667,7 +678,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "evo": ch.evo1 + "/" + ch.evo2}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -796,6 +807,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = event.keycode
+	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
+		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
+		if ch.try_manual_skill():
+			get_viewport().set_input_as_handled()
+		return
 	if k == KEY_TAB or k == KEY_C:
 		if state == S.PLAY:
 			state = S.STATS
@@ -1325,7 +1341,7 @@ func _update_enemies(dt: float) -> void:
 			e["bleed_t"] = e.get("bleed_t", 0.0) + dt
 			if e.bleed_t >= 0.5:
 				e.bleed_t = 0.0
-				out_src = "援护"
+				_hit("援护")
 				_damage(e, e.bleed_dps * 0.5)
 				fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
 				if e.dead:
@@ -1765,6 +1781,27 @@ func _lamp_sp() -> float:
 	return (1.3 if lamp >= 70.0 else 1.0) * rfx.sp_extra()
 
 
+## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
+func _hit(src: String, extra_tags: Array = []) -> void:
+	var base: Dictionary = hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
+	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags}
+
+
+## 本局造成伤害的构成（按来源前三，占比），Tab 面板与结算用
+func _dmg_mix_text() -> String:
+	var total := 0.0
+	for k in dmg_out:
+		total += dmg_out[k]
+	if total <= 0.0:
+		return "—"
+	var ks: Array = dmg_out.keys()
+	ks.sort_custom(func(a, b): return dmg_out[a] > dmg_out[b])
+	var parts: Array = []
+	for i in mini(3, ks.size()):
+		parts.append("%s %d%%" % [ks[i], int(round(dmg_out[ks[i]] / total * 100.0))])
+	return " · ".join(parts)
+
+
 func _damage(e: Dictionary, dmg: float) -> void:
 	if e.dead:
 		return
@@ -1779,7 +1816,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		e.hidden = false
 		_reveal_mimic(e)
 		return
-	var ty: Array = DMG_TYPE.get(out_src, ["近战", "物理"])
+	var ty: Array = [hit.range, hit.kind]
 	var weak_hit := false
 	if ty[1] != "真实":
 		dmg *= e.def * rfx.dmg_extra()
@@ -1792,11 +1829,13 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
 		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
 			dmg *= 1.0 + low_hp_bonus
-	rfx.on_hit()
+	rfx.on_hit(e, hit)
 	e.hp -= dmg
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	dmg_out[out_src] = dmg_out.get(out_src, 0.0) + eff
+	dmg_out[hit.src] = dmg_out.get(hit.src, 0.0) + eff
 	dmg_type_out[ty[1]] = dmg_type_out.get(ty[1], 0.0) + eff
+	for tg in hit.tags:
+		dmg_tag_out[tg] = dmg_tag_out.get(tg, 0.0) + eff
 	e.hits += 1
 	e.flash = 0.08
 	e.squash = 0.14
@@ -2413,7 +2452,7 @@ func _drone_laser(from: Vector2, ang: float) -> void:
 		if along < 0.0 or along > L:
 			continue
 		if absf(rel.cross(dir)) < e.r + 8.0:
-			out_src = "无人机激光"
+			_hit("无人机激光")
 			_damage(e, dmg)
 			if randf() < 0.4:
 				_sparks(e.pos, dir, Color(0.6, 1.0, 1.0), 2, 160.0)
@@ -2504,14 +2543,14 @@ func _update_bullets(dt: float) -> void:
 
 ## 子弹命中：按种类结算伤害与特效
 func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
-	out_src = "无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
+	_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
 			_damage(e, b.dmg)
-			if rfx.sniper_execute(e):
+			if rfx.sniper_execute(e, hit):
 				_add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
-				out_src = "真实"
+				_hit("真实")
 				_damage(e, e.hp + 1.0)
 			if not e.dead:
 				e["bleed"] = 3.0
@@ -4703,7 +4742,10 @@ func _draw_stats(vs: Vector2) -> void:
 	var evl2: Array = ch.evo_label()
 	if not evl2.is_empty():
 		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), evl2[0], evl2[1], 12) + 8
-	UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12)
+	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12) + 14
+	# 角色能力标签（来自角色 JSON）
+	for tg in ch.display_tags():
+		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), tg, UI.PURPLE, 11) + 6
 	UI.rule(hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
 	# 三个子面板
 	stats_cells.clear()
@@ -4743,6 +4785,7 @@ func _draw_stats(vs: Vector2) -> void:
 	var rows1: Array = ch.stats_rows()
 	rows1.append_array([
 		["近战 / 远程", "×%.2f / ×%.2f" % [melee_mult, ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [phys_mult, arts_mult]],
+		["本局构成", _dmg_mix_text()],
 	])
 	y = b1.position.y + 48
 	for row in rows1:

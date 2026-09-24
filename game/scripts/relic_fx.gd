@@ -199,7 +199,7 @@ func tick(dt: float) -> void:
 		if dot_tick <= 0.0:
 			dot_tick = 0.5
 			var per: float = 18.0 * g.ch.u_dmg_mult * g.dmg_mult * dot_mult * 0.5
-			g.out_src = "藏品"
+			g._hit("藏品")
 			for e in g.enemies:
 				if not e.dead and not e.chest and (e.stun > 0.0 or e.slow > 0.0) and e.pos.distance_squared_to(g.ppos) < 700.0 * 700.0:
 					g._damage(e, per)
@@ -208,7 +208,7 @@ func tick(dt: float) -> void:
 func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
 	var r := 95.0
-	g.out_src = "地雷"
+	g._hit("地雷")
 	for j in g._query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
@@ -334,25 +334,23 @@ func single_hit_mult(hit_count: int) -> float:
 	return 2.0 if hit_count == 1 and g.relics.has("112") else 1.0
 
 
-## 触手命中：扣挠之手（当前生命百分比）、炸裂之手（回技力）
-func on_tentacle_hit(e: Dictionary) -> void:
-	if g.relics.has("170") and not e.dead:
-		g.out_src = "真实"
-		g._damage(e, e.hp * (0.01 if e.boss else 0.03))
-		g.out_src = "触手"
-	if g.relics.has("171"):
-		_gain_sp(0.01)
-
-
-## 任意命中：审判庭之火
-func on_hit() -> void:
+## 任意命中（带伤害描述符）：审判庭之火；追加攻击命中 → 扣挠之手 / 炸裂之手
+func on_hit(e: Dictionary, h: Dictionary) -> void:
 	if g.relics.has("229"):
 		_gain_sp(0.002)
+	if h.tags.has("follow_up") and h.kind != "真实":
+		if g.relics.has("170") and not e.dead:
+			var keep: Dictionary = g.hit
+			g._hit("真实")
+			g._damage(e, e.hp * (0.01 if e.boss else 0.03))
+			g.hit = keep
+		if g.relics.has("171"):
+			_gain_sp(0.01)
 
 
-## 狙击命中：扼喉之手处决
-func sniper_execute(e: Dictionary) -> bool:
-	return g.relics.has("169") and not e.boss and e.hp < e.maxhp * 0.2
+## 狙击命中：扼喉之手处决（只认支援狙击的投射命中）
+func sniper_execute(e: Dictionary, h: Dictionary) -> bool:
+	return g.relics.has("169") and h.src == "援护" and not e.boss and e.hp < e.maxhp * 0.2
 
 
 func _temp(stat: String, value: float, dur: float) -> void:

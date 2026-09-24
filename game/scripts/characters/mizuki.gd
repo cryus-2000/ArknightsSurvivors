@@ -176,7 +176,7 @@ func _umbrella(target: Dictionary) -> void:
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
 	for e in hit:
-		g.out_src = "伞击"
+		g._hit("伞击", ["empowered"] if empowered else [])
 		g._damage(e, dmg)
 		if not e.boss:
 			e.kb += (e.pos - g.ppos).normalized() * (360.0 if empowered else 240.0)
@@ -248,7 +248,7 @@ func _umbrella(target: Dictionary) -> void:
 				var a2: float = (best.pos - g.ppos).angle()
 				for e in g._arc_hit(g.ppos, a2, half * 0.8, radius):
 					if not seen.has(e.id):
-						g.out_src = "技能"
+						g._hit("技能")
 						g._damage(e, dmg * P.s2_twin_mult)
 						if not e.dead:
 							e.stun = maxf(e.stun, 0.3)
@@ -353,7 +353,7 @@ func _update_giants(dt: float) -> void:
 			if absf(angle_difference(rel.angle(), gi.ang)) > 0.42:
 				continue
 			gi.hit[e.id] = true
-			g.out_src = "巨触"
+			g._hit("巨触")
 			g._damage(e, gi.dmg)
 			if not e.dead:
 				e.stun = maxf(e.stun, 0.9)
@@ -420,7 +420,7 @@ func _update_stakes(dt: float) -> void:
 					bd = d
 					best = e
 			if not best.is_empty():
-				g.out_src = "触手桩"
+				g._hit("触手桩")
 				g._damage(best, st.dmg)
 				st.whip = 0.18
 				st.wt = best.pos
@@ -451,7 +451,7 @@ func _run_delayed(dl: Dictionary) -> void:
 			for j in g._query(dl.pos, dl.r):
 				var e: Dictionary = g.enemies[j]
 				if not e.dead and e.pos.distance_to(dl.pos) < dl.r + e.r:
-					g.out_src = "技能·法术"
+					g._hit("技能·法术")
 					g._damage(e, dl.dmg)
 					if not e.boss:
 						e.kb += (e.pos - dl.pos).normalized() * 200.0
@@ -508,7 +508,7 @@ func _run_delayed(dl: Dictionary) -> void:
 					if seen.has(e.id):
 						continue
 					seen[e.id] = true
-					g.out_src = "技能"
+					g._hit("技能", ["echo"])
 					g._damage(e, dl.dmg)
 					if not e.dead:
 						e.stun = maxf(e.stun, P.s3_stun * 0.5)
@@ -540,9 +540,8 @@ func _skill_cast(sid: String) -> void:
 
 func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	var p: Vector2 = target.pos
-	g.out_src = "触手"
+	g._hit("触手")
 	g._damage(target, dmg)
-	g.rfx.on_tentacle_hit(target)
 	if not target.dead:
 		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
 		# 无解困境：束缚有限传播给身边 1 名敌人（不会再次传播）
@@ -591,7 +590,7 @@ func _update_wave(b: Dictionary, dt: float) -> void:
 		if e.dead or b.hit.has(e.id) or e.pos.distance_to(b.pos) > b.r + e.r:
 			continue
 		b.hit[e.id] = true
-		g.out_src = "水刃"
+		g._hit("水刃")
 		g._damage(e, b.dmg)
 		if not e.dead:
 			e.slow = maxf(e.slow, 1.0)
@@ -846,7 +845,7 @@ func _update_evo_extras(dt: float) -> void:
 			for j in g._query(f.pos, f.r + 20.0):
 				var e: Dictionary = g.enemies[j]
 				if not e.dead and e.pos.distance_to(f.pos) < f.r + e.r * 0.5:
-					g.out_src = "触须阵"
+					g._hit("触须阵")
 					g._damage(e, f.dmg)
 					if f.bind and not e.boss and not e.dead:
 						e.stun = maxf(e.stun, 0.35)
@@ -995,6 +994,11 @@ func on_kill(_e: Dictionary) -> void:
 # ---- 表：本角色的技能 / 成长 / 精英化定义（目前仍在 data.gd）
 func skills() -> Dictionary:
 	return D.SKILLS
+
+
+## 水月三个技能全部自动，没有手动技能
+func try_manual_skill() -> bool:
+	return false
 
 
 func skill_unlock() -> Dictionary:

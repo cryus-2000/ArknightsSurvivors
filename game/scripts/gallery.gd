@@ -110,7 +110,7 @@ func _build() -> void:
 				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": cd.get("gallery", {}).get("tag", "干员"), "forms": [
 					_anim("待机", sp.get("idle", "player_idle"), 4.0), _anim("跑步", sp.get("run", "player_run"), 10.0), _anim("攻击", sp.get("attack", atk), 16.0),
 					_anim("受击", sp.get("hurt", "player_hurt"), 6.0), _anim("倒下", sp.get("death", "player_death"), 5.0, false)],
-					"stats": st, "desc": cd.get("gallery", {}).get("desc", "")})
+					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": cd.get("gallery", {}).get("desc", "")})
 			for k in D.ALLIES:
 				var a: Dictionary = D.ALLIES[k]
 				entries.append({"name": a.name, "en": a.en, "tag": "援护干员", "forms": [_anim_n("待机", "ally_" + k, 2, 3.0)],
