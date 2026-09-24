@@ -7,6 +7,8 @@ var master := 1.0
 var music := 0.8
 var sfx := 0.9
 var fullscreen := false
+const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]
+var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
 var shake := 1.0          # 0 / 0.5 / 1
 var hitstop := true
@@ -28,6 +30,7 @@ func _ready() -> void:
 		music = c.get_value("audio", "music", music)
 		sfx = c.get_value("audio", "sfx", sfx)
 		fullscreen = c.get_value("video", "fullscreen", fullscreen)
+		res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 		shake = c.get_value("game", "shake", shake)
 		hitstop = c.get_value("game", "hitstop", hitstop)
@@ -49,6 +52,16 @@ func apply() -> void:
 		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != want:
 			DisplayServer.window_set_mode(want)
+		if not fullscreen:
+			var sz: Vector2i = RESOLUTIONS[clampi(res_index, 0, RESOLUTIONS.size() - 1)]
+			var scr: Vector2i = DisplayServer.screen_get_size()
+			# 比屏幕还大的档位就退到能放下的最大一档
+			while (sz.x > scr.x or sz.y > scr.y) and res_index > 0:
+				res_index -= 1
+				sz = RESOLUTIONS[res_index]
+			if DisplayServer.window_get_size() != sz:
+				DisplayServer.window_set_size(sz)
+				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
 
 
 func _bus(name: String, v: float) -> void:
@@ -63,6 +76,7 @@ func save() -> void:
 	c.set_value("audio", "music", music)
 	c.set_value("audio", "sfx", sfx)
 	c.set_value("video", "fullscreen", fullscreen)
+	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "shake", shake)
 	c.set_value("game", "hitstop", hitstop)

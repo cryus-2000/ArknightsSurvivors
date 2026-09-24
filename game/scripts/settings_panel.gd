@@ -10,6 +10,7 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
+	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
 	{"cn": "震屏强度", "en": "SCREEN SHAKE", "key": "shake", "type": "shake"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
@@ -97,6 +98,9 @@ func _adjust(i: int, dir: int) -> void:
 			var v: float = Cfg.shake
 			v = [0.0, 0.5, 1.0][(int(round(v * 2.0)) + (1 if dir > 0 else 2)) % 3]
 			Cfg.shake = v
+		"res":
+			var n: int = Cfg.RESOLUTIONS.size()
+			Cfg.res_index = (Cfg.res_index + (1 if dir > 0 else n - 1)) % n
 		"back":
 			close()
 			return
@@ -113,7 +117,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 305, 640, 610)
+	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - 328, 640, 656)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
@@ -144,4 +148,12 @@ func _draw() -> void:
 			"shake":
 				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
 				UI.text(self, font, Vector2(vx, rr.position.y + 27), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			"res":
+				var sz: Vector2i = Cfg.RESOLUTIONS[clampi(Cfg.res_index, 0, Cfg.RESOLUTIONS.size() - 1)]
+				var label := "%d × %d" % [sz.x, sz.y]
+				if Cfg.fullscreen:
+					label += "（全屏时按屏幕）"
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + 27), "◀", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + 27), label, 15 if Cfg.fullscreen else 18, UI.CYAN if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + 27), "▶", 14, UI.CYAN if on else UI.SUB)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), "↑↓ 选择 · ←→ 调整 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
