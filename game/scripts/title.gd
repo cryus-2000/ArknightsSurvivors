@@ -68,8 +68,9 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery_ui.png")
 				get_tree().quit())
-	Sfx.cut_target = 1600.0
+	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
+	Sfx.play_music("title")
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
 		get_tree().create_timer(1.0).timeout.connect(func():
