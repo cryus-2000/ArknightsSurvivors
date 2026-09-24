@@ -48,7 +48,6 @@ const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 const CELL := 48.0
 const MAX_ENEMIES := 450
-const LAMP_EMPTY_SECONDS := 150.0
 
 var state: int = S.PLAY
 var rng := RandomNumberGenerator.new()
@@ -1007,7 +1006,6 @@ func _update(dt: float) -> void:
 	swing_face -= dt
 
 	hp = min(max_hp, hp + (regen + regen_pct * max_hp) * dt)
-	lamp = max(0.0, lamp - dt * (100.0 / LAMP_EMPTY_SECONDS) * lamp_decay)
 	if lamp <= 0.0:
 		hp -= 3.0 * dt
 		hurt_flash = max(hurt_flash, 0.05)
@@ -1729,8 +1727,11 @@ func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := 
 		_shield_block()
 		return
 	_hurt(dmg * (1.15 if lamp < 30.0 else 1.0), ignore_armor)
-	# 受击时灯火摇曳熄灭一截
-	lamp = maxf(0.0, lamp - 2.0)
+	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
+	var lamp_loss: float = (4.0 + 30.0 * dmg / max_hp) * lamp_decay
+	lamp = maxf(0.0, lamp - lamp_loss)
+	if lamp_loss >= 6.0:
+		_add_text(ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
 		corrode_pool += dmg * src.corrode * 2.0
 		_add_text(ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
@@ -4980,8 +4981,9 @@ const INTRO_PAGES := [
 		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
-		"灯火（金条）会持续消耗，拾取敌人掉落的灯油补充。灯光范围内的敌人受到的伤害 +25%，这是最稳定的输出加成。",
-		"灯火 ≥70 充盈：技力回复与拾取范围提升；<30 昏暗：敌人更快更凶；熄灭后持续掉血。深海底部的抉择也会以灯火为代价。"]},
+		"灯火（金条）不会自己燃尽，只在受击时熄灭一截：伤害越重熄得越多，黑潮里也会持续流失。拾取敌人掉落的灯油、或向商人购买灯油补充。灯光范围内的敌人受到的伤害 +25%，灯越亮范围越大。",
+		"灯火分四档 —— ≥70 充盈：技力回复 +30%、拾取范围 +20%；30–69 照亮：无加成也无惩罚。",
+		"<30 昏暗：受到伤害 +15%，海嗣移速与接触伤害 +20%、刷新 +15%，拾取范围 -30%，灯光转红；0 熄灭：每秒失去 3 点生命。深海底部的抉择也会以灯火为代价。"]},
 	{"title": "威胁等级与大群", "en": "THREAT & HORDE", "icon": "threat", "lines": [
 		"计时器下方的进度条是威胁等级 Ⅰ→Ⅵ：浅滩 → 暗流(1:15) → 深潜(2:50) → 裂隙(4:40) → 深渊(6:40) → 深蓝之树(8:40)。每升一级会出现新的海嗣种类，旧种类逐渐退场。",
 		"「大群来袭」：每隔一段时间（浅滩 90 秒一次，越深越频繁，最后 60 秒一次）会从四周涌来一整群海嗣。来袭前 3 秒有紫色预警和屏幕边缘的箭头 —— 包围圈总留有一个缺口，没有箭头的那一侧就是突围方向。",
