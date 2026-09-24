@@ -10,6 +10,7 @@ const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
 const Knight = preload("res://scripts/allies/knight.gd")
+const Touch = preload("res://scripts/touch.gd")
 const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
@@ -176,6 +177,7 @@ var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度
 var diff_new := false
 var winshot := false
+var touchtest_p0 := Vector2.ZERO
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var stinger_done := false
 var next_horde := 75.0
@@ -196,6 +198,7 @@ var final_boss = null
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
+var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var frost := 0.0                   # 冰霜：移速 -40%
 var lamp_cap := 100.0              # 灯火上限（深蓝之心后 70）
 var knight_alive := false          # 猎潮的骑士在队中（结局二）
@@ -327,6 +330,7 @@ func _ready() -> void:
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
 	knight = Knight.new(self)
+	touch = Touch.new(self)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
@@ -757,6 +761,31 @@ func _autotest_step() -> void:
 					for e in enemies:
 						if e.chest and e.get("event", "") != "":
 							e.pos = ppos + Vector2(120, 0)
+	if OS.get_cmdline_user_args().has("--touchtest") and state == S.PLAY:
+		# 模拟：第 60 帧按下左半屏，拖到右上，第 120 帧松开；第 90 帧截图
+		if at_frames == 60:
+			var tp := InputEventScreenTouch.new()
+			tp.index = 0
+			tp.pressed = true
+			tp.position = Vector2(200, 500)
+			Input.parse_input_event(tp)
+			touchtest_p0 = ppos
+		elif at_frames > 60 and at_frames < 120:
+			var td := InputEventScreenDrag.new()
+			td.index = 0
+			td.position = Vector2(200, 500) + Vector2(1.2, -0.7) * float(at_frames - 60)
+			Input.parse_input_event(td)
+		elif at_frames == 120:
+			var tr := InputEventScreenTouch.new()
+			tr.index = 0
+			tr.pressed = false
+			tr.position = Vector2(272, 458)
+			Input.parse_input_event(tr)
+			print("TOUCHTEST moved=%s" % str((ppos - touchtest_p0).round()))
+		if at_frames == 90 and DisplayServer.get_name() != "headless":
+			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_touch.png")
+		if at_frames == 130:
+			get_tree().quit()
 	if OS.get_cmdline_user_args().has("--gemshot"):
 		if at_frames == 60:
 			for k in 14:
@@ -862,7 +891,12 @@ func _do_action(act: String) -> void:
 
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
-	if state != S.INTRO or settings.visible:
+	if settings.visible:
+		return
+	if touch.handle(event):
+		get_viewport().set_input_as_handled()
+		return
+	if state != S.INTRO:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
@@ -986,6 +1020,8 @@ func _update(dt: float) -> void:
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
 	if balance:
 		mv = _bot_move()
+	elif touch.active and touch.move_vec() != Vector2.ZERO:
+		mv = touch.move_vec()
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
 	moving = mv != Vector2.ZERO
@@ -1029,6 +1065,7 @@ func _update(dt: float) -> void:
 	ch.update(dt)
 	_update_allies(dt)
 	knight.update(dt)
+	touch.update(dt)
 	_update_bullets(dt)
 	_update_ebullets(dt)
 	bai._update_warns(dt)
@@ -2372,6 +2409,12 @@ func _build_shop_ui() -> void:
 	panel_box.add_theme_constant_override("separation", 28 if shop_items.size() <= 5 else 14)
 	panel_title_text = "商人  ·  持有源石锭 %d" % ingots
 	choice_kind = "shop"
+	for c in panel.get_children():
+		if c.has_meta("shopbtn"):
+			c.queue_free()
+	var vs0: Vector2 = get_viewport_rect().size
+	_panel_button("刷新一次  %d" % _shop_price("refresh") if not shop_refreshed else "已刷新过", Vector2(vs0.x / 2 - 250, vs0.y - 100), _refresh_shop, not shop_refreshed and ingots >= _shop_price("refresh"))
+	_panel_button("离开  Esc", Vector2(vs0.x / 2 + 70, vs0.y - 100), _close_shop, true)
 	for i in shop_items.size():
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
@@ -2408,6 +2451,28 @@ func _build_shop_ui() -> void:
 		panel_box.add_child(card)
 	panel.visible = true
 	panel.queue_redraw()
+
+
+## 面板底部的文字按钮（商店：刷新 / 离开），鼠标与触屏都能点
+func _panel_button(text: String, pos: Vector2, cb: Callable, enabled: bool) -> void:
+	var b := Button.new()
+	b.set_meta("shopbtn", true)
+	b.position = pos
+	b.size = Vector2(180, 40)
+	b.focus_mode = Control.FOCUS_NONE
+	b.disabled = not enabled
+	var empty := StyleBoxEmpty.new()
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		b.add_theme_stylebox_override(st, empty)
+	b.draw.connect(func():
+		var hov: bool = b.is_hovered() and enabled
+		var col: Color = UI.GOLD if enabled else Color(0.4, 0.45, 0.5)
+		UI.frame(b, Rect2(Vector2.ZERO, b.size), col, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov else 0.0, "alpha": 1.0 if hov else 0.7})
+		UI.text(b, font, Vector2(0, 26), text, 15, UI.TEXT if enabled else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, b.size.x))
+	b.mouse_entered.connect(b.queue_redraw)
+	b.mouse_exited.connect(b.queue_redraw)
+	b.pressed.connect(cb)
+	panel.add_child(b)
 
 
 func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
@@ -2480,6 +2545,9 @@ func _refresh_shop() -> void:
 
 
 func _close_shop() -> void:
+	for c in panel.get_children():
+		if c.has_meta("shopbtn"):
+			c.queue_free()
 	panel.visible = false
 	state = S.PLAY
 	Sfx.play("ui_ok", -4.0)
@@ -4942,7 +5010,7 @@ func _draw_hud() -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if state == S.PLAY:
 		if t < 6.0:
-			UI.text(hud, font, Vector2(0, vs.y - 60), "WASD 移动 · 攻击全自动 · Esc 暂停", 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			UI.text(hud, font, Vector2(0, vs.y - 60), ("按住左半屏拖动移动 · 攻击全自动" if touch.active else "WASD 移动 · 攻击全自动 · Esc 暂停"), 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (t < 16.0 and not tab_used) or tab_hint > 0.0:
 			var ha := clampf(minf(t - 6.0, 16.0 - t) / 0.5, 0.0, 1.0) if tab_hint <= 0.0 else clampf(tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(t * 5.0)
@@ -4957,6 +5025,7 @@ func _draw_hud() -> void:
 			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看水月的属性与技能", 15, Color(0.85, 0.95, 0.95, ha))
 
 	_draw_relic_tooltip(vs)
+	touch.draw_hud(vs)
 	_draw_status_bar(vs)
 	match state:
 		S.SHOW:

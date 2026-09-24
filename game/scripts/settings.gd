@@ -30,6 +30,12 @@ var title_seen := false      # 本次运行已播过标题开场动画（仅内�
 
 
 func _ready() -> void:
+	# 网页版 / 移动端：默认关掉最吃性能的后期（玩家仍可在设置里打开）
+	if OS.has_feature("web"):
+		bloom = false
+		water_filter = false
+		normal_maps = false
+		dof = DisplayServer.is_touchscreen_available() == false
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		master = c.get_value("audio", "master", master)

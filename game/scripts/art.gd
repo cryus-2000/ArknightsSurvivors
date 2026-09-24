@@ -26,6 +26,8 @@ static func _incoming_path(name: String) -> String:
 
 
 static func incoming_dir() -> String:
+	if OS.has_feature("web"):
+		return "res://art/incoming"  # 网页版：导出时把 art/incoming 打进包里（export_presets 的 include_filter）
 	if OS.has_feature("editor"):
 		return ProjectSettings.globalize_path("res://").path_join("../art/incoming").simplify_path()
 	return OS.get_executable_path().get_base_dir().path_join("../art/incoming").simplify_path()
