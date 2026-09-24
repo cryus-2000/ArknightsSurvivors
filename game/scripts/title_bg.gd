@@ -36,6 +36,7 @@ var tex_tree: ImageTexture
 var tex_tree_glow: ImageTexture
 const TREE_BASE := Vector2(505, HZ + 2)
 var off := Vector2.ZERO     # 画面居中偏移（非 16:9 窗口时）
+var zoom := 1.0             # 开场动画用：>1 时以画面中心放大
 var steps: Array = []       # 发光脚印
 var glow: Control
 
@@ -158,7 +159,7 @@ func _wave_phase(i: int) -> float:
 func _draw() -> void:
 	# 非 16:9 的窗口：按覆盖方式放大并居中裁切，不留边
 	var vs := get_viewport_rect().size
-	ks = K * maxf(vs.x / (W * K), vs.y / (H * K))
+	ks = K * maxf(vs.x / (W * K), vs.y / (H * K)) * zoom
 	off = ((vs - Vector2(W, H) * ks) / 2.0).round()
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03))
 	draw_set_transform(off, 0.0, Vector2(ks, ks))
@@ -235,7 +236,7 @@ func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: 
 	var fh := tx.get_height()
 	var fw := tx.get_width() / frames
 	var f := int(t * fps + phase * 10.0) % frames
-	var sc := 2.0
+	var sc: float = 2.0 / A.hires_of(tx)
 	var pos := feet - Vector2(fw * sc * 0.5, (fh - foot_up) * sc)
 	var wet := 0.55
 	for row in fh:

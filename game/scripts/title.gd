@@ -36,6 +36,10 @@ var gallery: Control
 var diff_pick := false
 var diff_sel := 0
 var diff_rects := {}
+## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
+const INTRO_LEN := 3.4
+var intro := 0.0
+var title_bg: Control
 
 
 func _ready() -> void:
@@ -58,7 +62,8 @@ func _ready() -> void:
 	var bg_layer := CanvasLayer.new()
 	bg_layer.layer = -1
 	add_child(bg_layer)
-	bg_layer.add_child(preload("res://scripts/title_bg.gd").new())
+	title_bg = preload("res://scripts/title_bg.gd").new()
+	bg_layer.add_child(title_bg)
 	var cf := FileAccess.open("res://data/credits.json", FileAccess.READ)
 	if cf != null:
 		var cd = JSON.parse_string(cf.get_as_text())
@@ -85,6 +90,17 @@ func _ready() -> void:
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")
+	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
+	var args := OS.get_cmdline_user_args()
+	if (not args.is_empty() and not args.has("--introshot")) or Cfg.title_seen:
+		intro = INTRO_LEN
+	Cfg.title_seen = true
+	if args.has("--introshot"):
+		# 开场动画分镜截图：/tmp/claude-0/shot_intro_<n>.png
+		for i in [0.5, 1.2, 1.8, 2.3, 2.8, 3.6]:
+			get_tree().create_timer(i).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % int(i * 10)))
+		get_tree().create_timer(4.0).timeout.connect(func(): get_tree().quit())
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
 		get_tree().create_timer(1.0).timeout.connect(func():
@@ -206,6 +222,11 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 func _process(delta: float) -> void:
 	t += delta
+	if intro < INTRO_LEN:
+		intro = minf(intro + delta, INTRO_LEN)
+	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
+	if title_bg != null:
+		title_bg.zoom = 1.0 + 0.12 * (1.0 - _ease(intro / 2.2))
 	for m in motes:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
@@ -219,6 +240,12 @@ func _process(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	if leaving >= 0.0 or settings.visible or gallery.visible:
+		return
+	if intro < INTRO_LEN:
+		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
+		if (event is InputEventKey and event.pressed and not event.echo) \
+				or (event is InputEventMouseButton and event.pressed):
+			intro = INTRO_LEN
 		return
 	if diff_pick:
 		_diff_input(event)
@@ -276,40 +303,78 @@ func _activate(i: int) -> void:
 			get_tree().quit()
 
 
+## 开场动画进度：seg 段在 [t0, t0+dur] 内从 0 缓动到 1
+func _seg(t0: float, dur: float) -> float:
+	return _ease((intro - t0) / dur)
+
+
+func _ease(x: float) -> float:
+	x = clampf(x, 0.0, 1.0)
+	return 1.0 - pow(1.0 - x, 3.0)
+
+
+func _fa(c: Color, a: float) -> Color:
+	return Color(c.r, c.g, c.b, c.a * a)
+
+
 func _draw() -> void:
 	var vs := size
-	# 标题
 	var tx := 90.0
-	UI.en(self, font, Vector2(tx + 4, 128), "ARKNIGHTS  FAN  GAME", 13, UI.CYAN_DIM, 4.0)
+	# 标题：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
+	var lg := _seg(1.0, 0.8)
+	var ly := 24.0 * (1.0 - lg)
+	UI.en(self, font, Vector2(tx + 4, 128 + ly), "ARKNIGHTS  FAN  GAME", 13, _fa(UI.CYAN_DIM, _seg(1.3, 0.5)), 4.0)
 	if tex_logo != null:
 		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
-		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 140), ls * k), false)
+		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 140 + ly), ls * k), false, Color(1, 1, 1, lg))
 	else:
-		UI.text(self, font, Vector2(tx, 230), "水月", 96, UI.TEXT)
-		UI.text(self, font, Vector2(tx + 210, 228), "深海幸存者", 40, UI.CYAN)
-	UI.en(self, font, Vector2(tx + 6, 268), "MIZUKI  :  ABYSSAL  SURVIVORS", 15, UI.SUB, 3.0)
-	UI.rule(self, Vector2(tx, 290), Vector2(tx + 500, 290), UI.CYAN_DIM)
+		UI.text(self, font, Vector2(tx, 230 + ly), "水月", 96, _fa(UI.TEXT, lg))
+		UI.text(self, font, Vector2(tx + 210, 228 + ly), "深海幸存者", 40, _fa(UI.CYAN, lg))
+	UI.en(self, font, Vector2(tx + 6, 268 + ly), "MIZUKI  :  ABYSSAL  SURVIVORS", 15, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
+	# 分隔线：1.6s 起从左向右划出，线头带一点亮光
+	var rl := _seg(1.6, 0.6)
+	if rl > 0.0:
+		UI.rule(self, Vector2(tx, 290), Vector2(tx + 500 * rl, 290), UI.CYAN_DIM)
+		if rl < 1.0:
+			draw_circle(Vector2(tx + 500 * rl, 290), 3.0, UI.CYAN)
+			draw_circle(Vector2(tx + 500 * rl, 290), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
 
-	# 菜单
+	# 菜单：2.0s 起逐项从左滑入
 	item_rects.clear()
 	var my := 340.0
 	for i in ITEMS.size():
 		var r := Rect2(tx, my + i * 64, 300, 50)
 		item_rects.append(r)
+		var f := _seg(2.0 + i * 0.12, 0.35)
+		if f <= 0.0:
+			continue
+		var rr := Rect2(r.position + Vector2(-40.0 * (1.0 - f), 0), r.size)
 		var on := i == sel
 		if on:
-			UI.panel(self, r, Color(0.05, 0.2, 0.24, 0.85), UI.CYAN, 10.0, UI.CYAN)
-			UI.diamond(self, r.position + Vector2(-18, 25), 6.0, UI.CYAN)
+			UI.panel(self, rr, _fa(Color(0.05, 0.2, 0.24, 0.85), f), _fa(UI.CYAN, f), 10.0, _fa(UI.CYAN, f))
+			UI.diamond(self, rr.position + Vector2(-18, 25), 6.0, _fa(UI.CYAN, f))
 		else:
-			UI.panel(self, r, Color(0.02, 0.06, 0.09, 0.55), Color(0.2, 0.4, 0.45, 0.5), 10.0)
-		UI.text(self, font, r.position + Vector2(24, 34), ITEMS[i].cn, 24, UI.TEXT if on else UI.SUB)
-		UI.en(self, font, r.position + Vector2(170, 32), ITEMS[i].en, 13, UI.CYAN if on else Color(0.3, 0.45, 0.5), 3.0)
+			UI.panel(self, rr, _fa(Color(0.02, 0.06, 0.09, 0.55), f), _fa(Color(0.2, 0.4, 0.45, 0.5), f), 10.0)
+		UI.text(self, font, rr.position + Vector2(24, 34), ITEMS[i].cn, 24, _fa(UI.TEXT if on else UI.SUB, f))
+		UI.en(self, font, rr.position + Vector2(170, 32), ITEMS[i].en, 13, _fa(UI.CYAN if on else Color(0.3, 0.45, 0.5), f), 3.0)
 
+	# 页脚：最后淡入
+	var ff := _seg(2.8, 0.5)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
-	var cr_hover := credits_rect.has_point(get_local_mouse_position())
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, UI.CYAN if cr_hover else Color(0.4, 0.55, 0.6))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.8", 13, Color(0.4, 0.55, 0.6))
+	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
+	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.4, 0.55, 0.6), ff))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.8", 13, _fa(Color(0.4, 0.55, 0.6), ff))
+
+	# 开场：黑幕淡出 + 上下黑边收起
+	if intro < INTRO_LEN:
+		var dark := 1.0 - _ease(intro / 1.6)
+		if dark > 0.0:
+			draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.005, 0.015, dark))
+		var bar := 90.0 * (1.0 - _seg(0.3, 1.5))
+		if bar > 0.5:
+			draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0.005, 0.015))
+			draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0.005, 0.015))
 
 	if guide:
 		_draw_guide(vs)

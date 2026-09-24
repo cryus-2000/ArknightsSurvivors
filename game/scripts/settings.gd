@@ -25,6 +25,7 @@ var diff_unlocked := 0   # 已解锁的最高难度
 var seen_shows: Array = []   # 已看过的解锁演出
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
+var title_seen := false      # 本次运行已播过标题开场动画（仅内存，不存档；对局返回标题不重播）
 
 
 func _ready() -> void:
