@@ -13,8 +13,9 @@ var charge_next := false      # S1：下一锤 ×1.5
 var skull := 0.0              # S3 碎颅剩余
 
 
+## 基础数值全部可由 data/characters/siege.json 的 base 段覆盖（docs/27 §3）
 func _reach() -> float:
-	return 72.0 * stat(&"op_range")
+	return base("reach", 72.0) * stat(&"op_range")
 
 
 func follow_target(slot_pos: Vector2) -> Vector2:
@@ -31,7 +32,7 @@ func update(dt: float) -> void:
 	if ready == 0:
 		spend_sp(0)
 		charge_next = true
-		g.squad.gain_sp(0.15 * skill_power(), self)
+		g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
 		_sp_motes(2)
 		fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
 		g._add_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
@@ -44,7 +45,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = 1.0 / stat(&"op_aspd") * (1.33 if skull > 0.0 else 1.0)
+			cd = base("cd", 1.0) / stat(&"op_aspd") * (1.33 if skull > 0.0 else 1.0)
 			start_attack(ts[0].pos)
 
 
@@ -57,10 +58,10 @@ func _release() -> void:
 	var mult := 1.0
 	if charge_next:
 		charge_next = false
-		mult *= 1.5 * skill_power()
+		mult *= base("s1_mult", 1.5) * skill_power()
 	if skull > 0.0:
-		mult *= 1.8 * skill_power()
-	var hits := melee_hit("锤击", pos + Vector2(0, -10), ang, 1.2, _reach(), 30.0 * mult * _dmg_bonus(), 140.0)
+		mult *= base("s3_mult", 1.8) * skill_power()
+	var hits := melee_hit("锤击", pos + Vector2(0, -10), ang, 1.2, _reach(), base("atk", 30.0) * mult * _dmg_bonus(), 140.0)
 	if skull > 0.0:
 		for e in hits:
 			if not e.dead and not e.boss and g.rng.randf() < 0.5:
@@ -71,7 +72,7 @@ func _release() -> void:
 		fx({"kind": "mote", "pos": hp + Vector2(g.rng.randf_range(-10, 10), 0), "vel": Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-50, -25)), "life": 0.5, "col": DUST, "sz": 3.0})
 	if not hits.is_empty():
 		# 每次命中（不论几个目标）全队 +0.5 秒技力，精一翻倍
-		_squad_sp_seconds(1.0 if elite >= 1 else 0.5)
+		_squad_sp_seconds(base("hit_sp", 0.5) * (2.0 if elite >= 1 else 1.0))
 		_sp_motes(1)
 		Sfx.play("swing", -11.0, 0.7, 0.05)
 
@@ -85,8 +86,8 @@ func _release_skill() -> void:
 	match cur_skill:
 		1:
 			# 空中锤：砸地
-			var r: float = 110.0 * stat(&"op_range")
-			area_hit("震地", pos, r, 30.0 * 2.2 * _dmg_bonus() * skill_power(), 220.0, 0.6)
+			var r: float = base("s2_r", 110.0) * stat(&"op_range")
+			area_hit("震地", pos, r, base("atk", 30.0) * base("s2_mult", 2.2) * _dmg_bonus() * skill_power(), 220.0, 0.6)
 			fx({"kind": "glow", "pos": pos + Vector2(12.0 * face, -6), "r": 30.0, "life": 0.18, "col": Color(1.8, 1.5, 0.8), "alpha": 0.7})
 			fx({"kind": "ring", "pos": pos, "r": r, "r0": 12.0, "life": 0.4, "col": GOLD, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r * 0.6, "r0": 8.0, "life": 0.5, "col": Color(1.0, 0.9, 0.6), "floor": true, "w": 2.0})
@@ -94,7 +95,7 @@ func _release_skill() -> void:
 			for k in 14:
 				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-30, 30), 0), "vel": Vector2(g.rng.randf_range(-60, 60), g.rng.randf_range(-170, -80)), "life": 0.6, "col": DUST, "sz": 3.5, "grav": 240.0})
 			g.shake = maxf(g.shake, 5.0)
-			g.squad.gain_sp(0.2 * skill_power(), self)
+			g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
 			_sp_motes(3)
 			Sfx.play("boom", -9.0, 0.6)
 		2:

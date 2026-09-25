@@ -9,6 +9,20 @@
   0.2
  ],
  "script": "res://scripts/characters/wisadel.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 34,
+  "cd": 1.4,
+  "range": 480,
+  "aoe": 52,
+  "s1_mult": 1.5,
+  "s2_mult": 3.0,
+  "s2_size": 1.6,
+  "s3_mult": 1.6,
+  "quake": 0.4,
+  "quake_e1": 0.6,
+  "shade": 0.4
+ },
  "sprites": {
   "idle": {
    "tex": "op_wisadel_idle",

@@ -17,8 +17,9 @@ var volley_t := 0.0
 var volley_tg: Array = []
 
 
+## 基础数值全部可由 data/characters/wisadel.json 的 base 段覆盖（docs/27 §3）
 func _aoe() -> float:
-	return 52.0 * stat(&"op_range") * (1.15 if elite >= 1 else 1.0)
+	return base("aoe", 52.0) * stat(&"op_range") * (1.15 if elite >= 1 else 1.0)
 
 
 func update(dt: float) -> void:
@@ -32,7 +33,7 @@ func update(dt: float) -> void:
 			var tg: Dictionary = volley_tg[volley % volley_tg.size()] if not volley_tg.is_empty() else {}
 			var to: Vector2 = tg.pos if not tg.is_empty() and not tg.dead else _fallback_spot()
 			if to != Vector2.INF:
-				_fire(to + Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), 34.0 * 1.6 * skill_power(), "饱和炮击", 1.2, true, 0.0)
+				_fire(to + Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), base("atk", 34.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", 1.2, true, 0.0)
 		return
 	if acting():
 		return
@@ -48,11 +49,11 @@ func update(dt: float) -> void:
 		start_skill(tg.pos if not tg.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var tgt: Dictionary = g._sniper_target(pos, 480.0 * stat(&"op_range"))
+		var tgt: Dictionary = g._sniper_target(pos, base("range", 480.0) * stat(&"op_range"))
 		if tgt.is_empty():
 			cd = 0.2
 		else:
-			cd = 1.4 / stat(&"op_aspd")
+			cd = base("cd", 1.4) / stat(&"op_aspd")
 			start_attack(tgt.pos)
 
 
@@ -67,9 +68,9 @@ func _release() -> void:
 		return
 	if ash > 0:
 		ash -= 1
-		_fire(tgt.pos, 34.0 * 1.5 * skill_power(), "炮击", 1.1, true, 0.0)
+		_fire(tgt.pos, base("atk", 34.0) * base("s1_mult", 1.5) * skill_power(), "炮击", 1.1, true, 0.0)
 	else:
-		_fire(tgt.pos, 34.0, "炮击", 1.0, true, 0.0)
+		_fire(tgt.pos, base("atk", 34.0), "炮击", 1.0, true, 0.0)
 
 
 func _release_skill() -> void:
@@ -79,7 +80,7 @@ func _release_skill() -> void:
 			var tgt: Dictionary = g._sniper_target(pos, 540.0 * stat(&"op_range"))
 			if tgt.is_empty():
 				return
-			_fire(tgt.pos, 34.0 * 3.0 * skill_power(), "凋零处刑", 1.6, true, 0.8)
+			_fire(tgt.pos, base("atk", 34.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), RED, 10, 200.0, 0.3)
 			g.shake = maxf(g.shake, 3.0)
@@ -134,7 +135,7 @@ func _update_shells(dt: float) -> void:
 			_explode(s.to, s.dmg, s.r, s.src, 0, s.stun)
 			# 余震：E1 起伤害 40% → 60%
 			if s.quake:
-				quakes.append({"pos": s.to, "t": 0.45, "dmg": s.dmg * (0.6 if elite >= 1 else 0.4), "r": s.r * 1.2})
+				quakes.append({"pos": s.to, "t": 0.45, "dmg": s.dmg * (base("quake_e1", 0.6) if elite >= 1 else base("quake", 0.4)), "r": s.r * 1.2})
 	shells = shells.filter(func(s): return s.t < s.dur)
 	for q in quakes:
 		q.t -= dt
@@ -183,7 +184,7 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 	Sfx.play("boom", -16.0 if src == "余震" else -13.0, 1.2, 0.1)
 	if elite >= 1 and depth < 1:
 		for k in mini(killed.size(), 3):
-			shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * 0.4, "r": r * 0.8, "depth": depth + 1})
+			shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * base("shade", 0.4), "r": r * 0.8, "depth": depth + 1})
 			fx({"kind": "shade", "pos": killed[k], "life": 0.3, "col": DARK})
 
 

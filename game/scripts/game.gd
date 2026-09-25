@@ -19,6 +19,7 @@ const Squad = preload("res://scripts/characters/squad.gd")
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
+const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
 ##   src      来源名（统计与显示）        emitter  operator / summon / support / relic
 ##   origin   core / talent / skill / route / support / relic
@@ -510,6 +511,7 @@ func _ready() -> void:
 	_sync_stats()
 	hp = max_hp
 	hp_trail = hp
+	xp_need = Bal.v("xp/first", 8.0)
 	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
@@ -586,6 +588,36 @@ func _update_music(_dt: float) -> void:
 	var out_zone := zone_state != 0 and ppos.distance_to(zone_c) > zone_r
 	var danger := hp < max_hp * 0.35 or lamp <= 0.0 or out_zone
 	Sfx.set_layers([1.0, 1.0 if pulse else 0.0, 1.0 if drive else 0.0, 1.0 if danger else 0.0])
+
+
+## 平衡机器人选卡（docs/27 §6）：像一个「懂玩」的玩家——优先干员深度 / 技能卡，早期见招募就招，
+## 被动按 data/balance.json bot.growth_weights 加权，填充卡只在没得选时拿；--botrandom 退回纯随机
+func _bot_pick() -> int:
+	if choices.is_empty():
+		return 0
+	if OS.get_cmdline_user_args().has("--botrandom"):
+		return rng.randi() % choices.size()
+	var W: Dictionary = Bal.sec("bot/weights")
+	var GW: Dictionary = Bal.sec("bot/growth_weights")
+	var early_recruit: int = Bal.vi("bot/prefer_recruit_before", 8)
+	var ws: Array = []
+	var total := 0.0
+	for c in choices:
+		var w: float = float(W.get(c.get("kind", ""), 1.0))
+		if c.kind == "recruit" and level < early_recruit:
+			w = 100.0
+		elif c.kind == "growth":
+			w *= float(GW.get(c.get("id", ""), 1.0))
+		elif c.kind == "prog" and int(c.get("elite", 0)) > 0:
+			w *= 1.5   # 精英化卡：解锁技能与天赋，价值最高
+		ws.append(w)
+		total += w
+	var r := rng.randf() * total
+	for i in ws.size():
+		r -= ws[i]
+		if r <= 0.0:
+			return i
+	return ws.size() - 1
 
 
 ## 图鉴演示每帧：博士满状态站定；三个位置各维持一只不动、不伤人的假人海嗣，被打死 1.5 秒后原地重生。
@@ -794,7 +826,7 @@ func _autotest_step() -> void:
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [t, state, level, hp, enemies.size()])
 		if state == S.CHOICE:
-			var pi := rng.randi() % choices.size()
+			var pi := _bot_pick()
 			for a in OS.get_cmdline_user_args():
 				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
 				if a.begins_with("--evpick=") and choice_kind == "event":
@@ -1147,6 +1179,7 @@ func _update(dt: float) -> void:
 	_build_grid()
 	_update_enemies(dt)
 	squad.update(dt)
+	_update_weapons(dt)   # 支援无人机：跟随博士，与编队里有谁无关
 	knight.update(dt)
 	touch.update(dt)
 	_update_bullets(dt)
@@ -1371,7 +1404,7 @@ func _spawn(dt: float) -> void:
 		if not fresh.is_empty():
 			for k in 6:
 				_spawn_enemy(fresh[k % fresh.size()], _edge_pos())
-	var rate := 1.6 + t / 30.0
+	var rate := Bal.v("enemy/spawn_base", 1.6) + t / Bal.v("enemy/spawn_div", 30.0)
 	if _boss_alive():
 		rate *= 0.8
 	if lamp < 30.0:
@@ -1465,13 +1498,16 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
 	var role: String = d.get("role", "")
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
-	var hpm := (1.0 + minf(t, 480.0) / 120.0 + maxf(t - 480.0, 0.0) / 300.0) * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
+	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
+	var hk: float = Bal.v("enemy/hp_knee", 480.0)
+	var hpm := (1.0 + minf(t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)) * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
 	var dmm := (1.0 + (0.15 if diff >= 2 else 0.0) + (0.2 if diff >= 10 else 0.0))
+	var dmg_t := 1.0 + minf(t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
 		"hp": d.hp * hpm * enemy_hp_mult, "maxhp": d.hp * hpm * enemy_hp_mult,
-		"spd": d.spd * rng.randf_range(0.9, 1.1) * D.THREAT[threat].get("spd", 1.0), "dmg": d.dmg * (1.0 + minf(t, 480.0) / 260.0) * dmm * enemy_dmg_mult,
+		"spd": d.spd * rng.randf_range(0.9, 1.1) * D.THREAT[threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * enemy_dmg_mult,
 		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
@@ -1488,12 +1524,12 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
 	}
 	if e.elite:
-		e.hp *= 7.0
+		e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
 		e.maxhp = e.hp
-		e.xp *= 10.0
-		e.dmg *= 1.3
+		e.xp *= Bal.v("enemy/elite_xp_mult", 10.0)
+		e.dmg *= Bal.v("enemy/elite_dmg_mult", 1.3)
 	if e.boss:
-		e.hp = d.hp * (1.0 + t / 600.0) * (1.15 if diff >= 1 else 1.0) * enemy_hp_mult
+		e.hp = d.hp * (1.0 + t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if diff >= 1 else 1.0) * enemy_hp_mult
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * (1.25 if diff >= 10 else 1.0) * enemy_dmg_mult
@@ -2997,7 +3033,7 @@ func _gain_xp(v: float) -> void:
 	while xp >= xp_need:
 		xp -= xp_need
 		level += 1
-		xp_need = 24.0 + level * 8.0 + floor(level * level * 0.8)
+		xp_need = Bal.v("xp/a", 24.0) + level * Bal.v("xp/b", 8.0) + floor(level * level * Bal.v("xp/c", 0.8))
 		pending_levelups += 1
 		lv_times.append(int(t))
 		_levelup_fx()
@@ -3432,7 +3468,7 @@ func _open_levelup() -> void:
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 	var recruit: Array = _recruit_cards()
-	var must_recruit: bool = not recruit.is_empty() and ((level >= 6 and squad.size() <= 1) or (level >= 12 and squad.size() < Squad.REGULAR_MAX))
+	var must_recruit: bool = not recruit.is_empty() and ((level >= Bal.vi("levelup/force_recruit_level_1", 6) and squad.size() <= 1) or (level >= Bal.vi("levelup/force_recruit_level_3", 12) and squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
 		recruit.shuffle()
 		_show_choices("招募干员", recruit.slice(0, want), "level")
@@ -3450,13 +3486,13 @@ func _open_levelup() -> void:
 	if not deep.is_empty():
 		picks.append(deep[0])
 		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
-		if squad.size() >= 2 and rng.randf() < 0.5:
+		if squad.size() >= 2 and rng.randf() < Bal.v("levelup/second_deep_chance", 0.5):
 			for rc in deep.slice(1):
 				if rc.get("op", "") != deep[0].get("op", ""):
 					picks.append(rc)
 					break
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
-	if level >= 5 and not recruit.is_empty() and rng.randf() < 0.45:
+	if level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and rng.randf() < Bal.v("levelup/recruit_chance", 0.45):
 		picks.append(recruit[rng.randi() % recruit.size()])
 	# ---- 博士被动 / 全队被动：种类各上限 4
 	var passives: Array = doctor.passive_cards("doctor") + doctor.passive_cards("squad")
@@ -3479,7 +3515,7 @@ func _open_levelup() -> void:
 		fi += 1
 	# ---- 无人机：Lv.2 后首次必出一张，之后约 25%，替换最后一张非深度卡
 	var wl: int = weapons.get("drone", 0)
-	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.25):
+	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < Bal.v("levelup/drone_chance", 0.25)):
 		var W: Dictionary = D.WEAPONS.drone
 		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
 			"desc": W.lv[wl], "wlv": wl + 1}

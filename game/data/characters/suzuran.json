@@ -9,6 +9,18 @@
   0.45
  ],
  "script": "res://scripts/characters/suzuran.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 16,
+  "cd": 1.2,
+  "range": 380,
+  "shots": 2,
+  "aura": 85,
+  "s1_shots": 5,
+  "s1_mult": 1.2,
+  "s2_buff": 0.15,
+  "s3_buff": 0.2
+ },
  "sprites": {
   "idle": {
    "tex": "op_suzuran_idle",

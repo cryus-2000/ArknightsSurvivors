@@ -9,6 +9,17 @@
   0.5
  ],
  "script": "res://scripts/characters/kaltsit.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "heal_pct": 0.035,
+  "heal_cd": 3.5,
+  "s1_heal": 0.08,
+  "m_atk": 22,
+  "m_cd": 0.9,
+  "m_reach": 62,
+  "s3_mult": 1.6,
+  "melt_mult": 5.0
+ },
  "sprites": {
   "idle": {
    "tex": "op_kaltsit_idle",

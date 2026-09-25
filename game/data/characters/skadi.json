@@ -9,6 +9,16 @@
   0.95
  ],
  "script": "res://scripts/characters/skadi.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 26,
+  "cd": 0.75,
+  "reach": 88,
+  "s1_mult": 2.0,
+  "s2_mult": 3.0,
+  "s2_r": 150,
+  "s3_mult": 1.5
+ },
  "sprites": {
   "idle": {
    "tex": "op_skadi_idle",

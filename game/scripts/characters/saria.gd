@@ -16,12 +16,13 @@ var hot_t := 0.0              # S2 持续回复剩余
 var hot_acc := 0.0
 
 
+## 基础数值全部可由 data/characters/saria.json 的 base 段覆盖（docs/27 §3）
 func block_radius() -> float:
-	return 62.0 * stat(&"op_range")
+	return base("block_r", 62.0) * stat(&"op_range")
 
 
 func _reach() -> float:
-	return 70.0 * stat(&"op_range")
+	return base("reach", 70.0) * stat(&"op_range")
 
 
 ## 站位：博士面前一侧（贴身护卫），不前压
@@ -71,7 +72,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = 1.1 / stat(&"op_aspd")
+			cd = base("cd", 1.1) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
@@ -103,7 +104,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
-	melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), 28.0 * _dmg_bonus(), 200.0, 0.2)
+	melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), base("atk", 28.0) * _dmg_bonus(), 200.0, 0.2)
 	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
 	var d := Vector2.from_angle(ang)
 	fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
@@ -120,13 +121,13 @@ func _release_skill() -> void:
 	match cur_skill:
 		0:
 			# 急救
-			var h: float = g.max_hp * 0.08 * skill_power() * (2.0 if g.hp < g.max_hp * 0.5 else 1.0)
+			var h: float = g.max_hp * base("s1_heal", 0.08) * skill_power() * (2.0 if g.hp < g.max_hp * 0.5 else 1.0)
 			g._heal(h)
 			_heal_fx(h)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 		1:
 			# 药剂散布：立即回复 + 5 秒持续回复
-			var h2: float = g.max_hp * 0.10 * skill_power()
+			var h2: float = g.max_hp * base("s2_heal", 0.10) * skill_power()
 			g._heal(h2)
 			_heal_fx(h2)
 			hot_t = 5.0
