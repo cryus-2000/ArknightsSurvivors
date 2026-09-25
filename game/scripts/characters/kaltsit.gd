@@ -1,7 +1,7 @@
 ## 凯尔希（医疗，契约 v2.1）：周期治疗博士（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬博士身边的敌人。
 ## S1 医疗单元：立即治疗 + 清神经损伤；S2 战术协同（永久型）：充能一次后 Mon3tr 攻速 / 范围与治疗频率永久提升；S3 熔毁：Mon3tr 真伤，结束时熔毁爆炸。
 ## Mon3tr 是本干员的附属实体（64×64 帧条，脚底 (32, 60)），自己寻敌、自己播动画，通过 extra_bodies 参与 2.5D 排序。
-## 特效（docs/25，2026-09-26 照原作截图修改）：荧光绿。普通爪击三道平行爪痕；协同后改为绿色宽月牙横扫 + 白亮冲击闪；
+## 特效（docs/25，2026-09-26 照原作截图修改）：荧光绿。普通爪击三道平行爪痕、协同后双爪爪痕；
 ## 熔毁期间 Mon3tr 染猩红、周身红雾红光、每爪一道巨大猩红月牙斩；熔毁结束绿色八面体晶核碎裂，迸出空心方形晶片 + 黑色碎片 + 放射光束。
 extends "res://scripts/characters/character.gd"
 
@@ -190,8 +190,8 @@ func _m_strike() -> void:
 	var ang: float = 0.0 if m.face >= 0.0 else PI
 	var o: Vector2 = m.pos + Vector2(0, -14)
 	var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, 1.3, _m_reach() + 16.0, _m_dmg(), 120.0)
-	if melt > 0.0 or coord:
-		# 照原作：协同后一整道宽月牙横扫（绿），熔毁期间是更大的猩红月牙斩；方向上下交替，像两只爪轮流挥
+	if melt > 0.0:
+		# 照原作：熔毁期间一整道巨大的猩红月牙斩；方向上下交替，像两只爪轮流挥
 		m_swing = -m_swing
 		var red: bool = melt > 0.0
 		var R: float = _m_reach() * (1.25 if red else 1.05)
@@ -203,8 +203,8 @@ func _m_strike() -> void:
 		fx({"kind": "impact", "pos": hp, "r": 20.0 if red else 16.0, "life": 0.14, "col": CRIMSON if red else GREEN})
 		fx_sparks(hp, Color(2.0, 1.6, 1.2) if not red else Color(1.6, 0.4, 0.4), 7, 240.0, 0.28, 2.5)
 	else:
-		# 普通爪痕帧条（Ninja Adventure Claw 调绿）；没有帧条时退回程序画的三道爪痕
-		if not g._fx_sprite("fx_claw_green", o + Vector2.from_angle(ang) * (_m_reach() * 0.55), g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2), 0.0, m.face < 0.0):
+		# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
+		if not g._fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", o + Vector2.from_angle(ang) * (_m_reach() * 0.55), g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2), 0.0, m.face < 0.0):
 			fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 		fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 	if not hits.is_empty():
