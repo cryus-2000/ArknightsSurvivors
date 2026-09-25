@@ -22,6 +22,43 @@ var aegir := false            # 自定义节点「艾格尼之深」已选
 var hunters_applied := 0      # 已计入的深海猎人数
 
 
+## 锯环：半径 0→r 快速张开（前 25%），锯齿斜切、按 spin 旋转；地面透视压扁（y × 0.55）；顶点对齐 2 像素网格
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if f.kind != "saw":
+		return false
+	var u: float = 1.0 - a
+	var rr: float = f.r * (0.55 + 0.45 * (1.0 - pow(1.0 - minf(1.0, u / 0.25), 2.0)))
+	var rot: float = f.ang + f.spin * u * f.max
+	var c: Color = f.col
+	var T: float = f.tooth
+	var n: int = clampi(int(TAU * rr / (T * 1.6)), 16, 48)
+	var P := func(v: Vector2) -> Vector2: return (v / 2.0).round() * 2.0
+	var flat := func(v: Vector2) -> Vector2: return f.pos + Vector2(v.x, v.y * 0.55)
+	# 残影：上一瞬的锯环，淡、略小
+	g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+	g.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18 * a), T * 1.6)
+	# 锯身：暗描边 + 本色环 + 内侧亮边
+	g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(0.05, 0.06, 0.09, 0.8 * a), 7.0)
+	g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r * 0.8, c.g * 0.8, c.b * 0.85, 0.95 * a), 4.0)
+	g.draw_arc(Vector2.ZERO, rr - 3.0, 0.0, TAU, 56, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.7 * a), 1.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 锯齿：外缘一圈斜三角（齿尖朝旋转方向）
+	var sgn: float = signf(f.spin)
+	for i in n:
+		var t0: float = rot + TAU * i / n
+		var t1: float = t0 + sgn * TAU / n * 0.75
+		var base0: Vector2 = Vector2.from_angle(t0) * rr
+		var base1: Vector2 = Vector2.from_angle(t1) * rr
+		var tip: Vector2 = Vector2.from_angle(t1) * (rr + T)
+		var pts := PackedVector2Array([P.call(flat.call(base0)), P.call(flat.call(tip)), P.call(flat.call(base1))])
+		if absf((pts[1] - pts[0]).cross(pts[2] - pts[0])) < 2.0:
+			continue   # 对齐网格后退化成线的齿不画（否则三角化报错）
+		# 前半圈（屏幕下方，y > 0）更亮：像锯盘朝镜头这一侧反光
+		var lit: float = 0.75 + 0.35 * clampf(sin(t0), 0.0, 1.0)
+		g.draw_colored_polygon(pts, Color(c.r * lit * 1.3, c.g * lit * 1.3, c.b * lit * 1.35, a))
+	return true
+
+
 func _reach() -> float:
 	return base("reach", 75.0) * stat(&"op_range") * (base("s3_reach", 1.5) if s3_t > 0.0 else 1.0)
 
@@ -89,11 +126,16 @@ func _release() -> void:
 		if not e.dead and not e.boss:
 			e.kb += (e.pos - pos).normalized() * 70.0
 		_hit_fx(e, pos)
-	if not g._fx_sprite("fx_slash_circle_blood" if s3_t > 0.0 else "fx_slash_circle_ghost", pos + Vector2(0, -14), r * 2.0 / 66.0, 0.0):
-		g._slash_fx(pos + Vector2(0, -14), 0.0, PI, r, GHOST, "slash", 0.22)
-	for k in 6:
-		var a: float = g.rng.randf() * TAU
-		fx({"kind": "shard", "pos": pos + Vector2(cos(a), sin(a) * 0.6) * r * 0.7 + Vector2(0, -10), "vel": Vector2(cos(a), sin(a)) * 90.0, "life": 0.3, "col": GHOST, "sz": 5.0, "ang": a, "spin": 12.0})
+	# 锯环（2026-09-25，替换斩击环帧条：她用的是长柄圆锯，不是刀）：锯盘绕身一圈的轨迹画成高速旋转的锯齿圆环，
+	# 贴地压扁；锯过的敌人沿切线甩出火星。S3 求生之压：血红、齿更大
+	var heavy: bool = s3_t > 0.0
+	fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r, "life": 0.3 if heavy else 0.24, "col": RED if heavy else GHOST,
+		"spin": (1.0 if face >= 0.0 else -1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.rng.randf() * TAU})
+	for e in hits:
+		var ea: float = (e.pos - pos).angle() + PI / 2.0 * (1.0 if face >= 0.0 else -1.0)
+		for k in 3:
+			fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": Vector2.from_angle(ea + g.rng.randf_range(-0.35, 0.35)) * g.rng.randf_range(160, 300),
+				"life": 0.22, "col": Color(1.4, 1.55, 1.75) if not heavy else Color(1.6, 0.5, 0.55), "sz": 2.0, "drag": 3.0})
 	# 求生之压期间：更响、更低沉
 	Sfx.op(id, "atk", 4.0 if s3_t > 0.0 else 0.0, 0.8 if s3_t > 0.0 else 1.0, 0.06)
 

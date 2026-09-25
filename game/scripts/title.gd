@@ -96,10 +96,15 @@ func _ready() -> void:
 				gallery.sel = int(parts[1])
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
-			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）
-			get_tree().create_timer(float(parts[3]) if parts.size() > 3 else 1.2).timeout.connect(func():
-				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_gallery_ui.png")
-				get_tree().quit())
+			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）；第 5 / 6 项：连拍张数 / 间隔秒（特效逐帧检查用）
+			var wait: float = float(parts[3]) if parts.size() > 3 else 1.2
+			var burst: int = int(parts[4]) if parts.size() > 4 else 1
+			var gap: float = float(parts[5]) if parts.size() > 5 else 0.05
+			for bi in burst:
+				get_tree().create_timer(wait + bi * gap).timeout.connect(func():
+					get_viewport().get_texture().get_image().save_png(_shot_dir() + ("/shot_gallery_ui.png" if burst == 1 else "/shot_gallery_%02d.png" % bi))
+					if bi == burst - 1:
+						get_tree().quit())
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")

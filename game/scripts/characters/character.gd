@@ -312,10 +312,6 @@ func draw_pfx(floor_layer: bool) -> void:
 				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
 			"mote":
 				g.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
-			"dust":
-				# 扬尘：灰色尘团胀大淡出；圆心 / 半径对齐 2 像素网格，保持像素感
-				var rr2: float = snappedf(f.get("sz", 4.0) * (1.0 + 1.2 * (1.0 - a)), 2.0)
-				g.draw_circle((f.pos / 2.0).round() * 2.0, rr2, Color(c.r, c.g, c.b, f.get("alpha", 0.4) * a))
 			"crack":
 				# 地裂：从中心放射的暗线 + 亮芯
 				var k3: float = 1.0 - a
@@ -599,7 +595,6 @@ func follow(dt: float, target: Vector2) -> void:
 	if g.tex.get("prop_pillar") != null:
 		pos = g.map.push_out(pos, 10.0)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
-	_kick_dust(vel, dt)
 	_sample_motion(vel, dt)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
 	if attack_t <= 0.0:
@@ -627,29 +622,6 @@ func follow(dt: float, target: Vector2) -> void:
 		anim_kind = want
 		anim_t = 0.0
 	anim_t += dt
-
-
-## 移动扬尘（2026-09-25）：快步（> DUST_SPEED）时脚后方每 0.07 秒一团；从近乎静止突然冲出时一次扬起 4 团。
-## 跟随博士慢走不触发，只在前压 / 追赶 / 瞬移落地这种「一下子移动」时出现
-const DUST_SPEED := 170.0
-const DUST_COL := Color(0.62, 0.66, 0.66)
-var dust_t := 0.0
-var dust_rng := RandomNumberGenerator.new()   # 纯表现，不碰游戏随机流
-
-func _kick_dust(vel: Vector2, dt: float) -> void:
-	dust_t -= dt
-	var spd: float = vel.length()
-	if spd < DUST_SPEED or dust_t > 0.0:
-		return
-	var back: Vector2 = -vel / spd
-	var burst: bool = mv < 80.0 and spd > DUST_SPEED * 1.4
-	var n: int = 4 if burst else 1
-	dust_t = 0.12 if burst else 0.07
-	for i in n:
-		var side: Vector2 = back.orthogonal() * dust_rng.randf_range(-8.0, 8.0)
-		fx({"kind": "dust", "pos": pos + Vector2(0, 2) + back * dust_rng.randf_range(4.0, 12.0) + side, "floor": true,
-			"vel": back * dust_rng.randf_range(20.0, 60.0) + Vector2(0, -dust_rng.randf_range(6.0, 16.0)), "drag": 4.0,
-			"life": dust_rng.randf_range(0.3, 0.45), "col": DUST_COL, "sz": dust_rng.randf_range(3.0, 5.0) if not burst else dust_rng.randf_range(4.0, 6.0), "alpha": 0.45})
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手

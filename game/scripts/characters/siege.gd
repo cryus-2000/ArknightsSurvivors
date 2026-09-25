@@ -1,10 +1,9 @@
 ## 推进之王（先锋，契约 v2.1）：节奏位。前压到博士身边的敌人面前抡锤，命中时为全队回复技力。
 ## S1 冲锋号令：全队技力 + 下一锤强化；S2 空中锤：砸地范围晕眩 + 全队技力；S3 碎颅：8 秒重锤，命中概率眩晕，攻速下降。
-## 特效（docs/25）：狮王金。锤击重弧 + 命中十字闪 + 尘土；命中后金色技力粒子飞向每名队友（回 DP）；砸地双环 + 地裂 + 尘柱。
+## 特效（docs/25）：狮王金。锤击重弧 + 命中十字闪；命中后金色技力粒子飞向每名队友（回 DP）；砸地双环 + 地裂 + 火星。
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.78, 0.35)
-const DUST := Color(0.55, 0.5, 0.42)
 const LEASH := 150.0          # 前压：只追博士这么远以内的敌人
 const S3_DUR := 8.0
 
@@ -68,9 +67,6 @@ func _release() -> void:
 			if not e.dead and not e.boss and g.rng.randf() < 0.5:
 				e.stun = maxf(e.stun, 0.8 * (0.5 if e.elite else 1.0))
 	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach(), GOLD if skull <= 0.0 else Color(1.0, 0.6, 0.3))
-	var hp: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
-	for k in 4:
-		fx({"kind": "mote", "pos": hp + Vector2(g.rng.randf_range(-10, 10), 0), "vel": Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-50, -25)), "life": 0.5, "col": DUST, "sz": 3.0})
 	if not hits.is_empty():
 		# 每次命中（不论几个目标）全队 +0.5 秒技力，精一翻倍
 		_squad_sp_seconds(base("hit_sp", 0.5) * (2.0 if elite >= 1 else 1.0))
@@ -93,13 +89,8 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": r, "r0": 12.0, "life": 0.4, "col": GOLD, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r * 0.6, "r0": 8.0, "life": 0.5, "col": Color(1.0, 0.9, 0.6), "floor": true, "w": 2.0})
 			fx({"kind": "crack", "pos": pos + Vector2(12.0 * face, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
-			# 碎石（Ninja Adventure Rock / RockSpike 调狮王金）：锤下处一丛石刺 + 周围三处碎石
-			g._fx_sprite("fx_rock_spike", pos + Vector2(26.0 * face, 6), g.PX * 1.3, 0.0, face < 0.0, true)
-			for k in 3:
-				var ra: float = k * TAU / 3.0 + g.t
-				g._fx_sprite("fx_rock_burst", pos + Vector2(cos(ra) * r * 0.55, sin(ra) * r * 0.3 + 6.0), g.PX * 1.2, 0.0, false, true)
-			for k in 14:
-				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-30, 30), 0), "vel": Vector2(g.rng.randf_range(-60, 60), g.rng.randf_range(-170, -80)), "life": 0.6, "col": DUST, "sz": 3.5, "grav": 240.0})
+			# 砸地火星（原来的黄土 / 橙色碎石和深海不搭，2026-09-25 删除）
+			fx_sparks(pos + Vector2(12.0 * face, -4), GOLD, 12, 240.0, 0.4, 2.5, 320.0)
 			g.shake = maxf(g.shake, 5.0)
 			g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
 			_sp_motes(3)

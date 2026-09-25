@@ -20,6 +20,50 @@ var airborne: Array = []      # {e, t, dur, h}
 var strikes: Array = []       # S3 灯光轰击队列：{t}
 var judge_c := Vector2.INF
 var judge_left := 0.0
+var thrust_n := 0             # 刺击计数：两段刺击左右错开
+
+
+## 四边形：对齐网格后宽度可能收成 0（两侧顶点重合）→ 退化时画成一条线，避免三角化报错
+func _quad(q: PackedVector2Array, c: Color) -> void:
+	if q[1].distance_to(q[3]) < 2.0:
+		g.draw_line(q[0], q[2], c, 2.0)
+	else:
+		g.draw_colored_polygon(q, c)
+
+
+## 刺击光束：u = 进度 0→1；前 30% 伸到最长（缓出），之后宽度收细、淡出；顶点对齐 2 像素网格保持像素感
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if f.kind != "thrust":
+		return false
+	var u: float = 1.0 - a
+	var ext: float = 1.0 - pow(1.0 - minf(1.0, u / 0.3), 3.0)
+	var d: Vector2 = f.dir
+	var n: Vector2 = d.orthogonal()
+	var L: float = f.len * ext
+	var o: Vector2 = f.pos + d * 14.0 * u          # 整体略向前推
+	var tip: Vector2 = o + d * L
+	var wide: float = f.w * (1.0 - 0.7 * maxf(0.0, (u - 0.3) / 0.7))
+	var c: Color = f.col
+	var P := func(v: Vector2) -> Vector2: return (v / 2.0).round() * 2.0
+	if L < 12.0:
+		return true   # 刚伸出、还太短：对齐网格后会退化，不画
+	# 外层：玫瑰色长菱形（尾细、70% 处最宽、剑尖尖）
+	_quad(PackedVector2Array([P.call(o + d * 6.0), P.call(o + d * L * 0.7 + n * wide * 0.5), P.call(tip), P.call(o + d * L * 0.7 - n * wide * 0.5)]),
+		Color(c.r, c.g, c.b, 0.55 * a))
+	# 内芯：白热细线
+	_quad(PackedVector2Array([P.call(o + d * L * 0.25), P.call(o + d * L * 0.72 + n * wide * 0.18), P.call(tip + d * 2.0), P.call(o + d * L * 0.72 - n * wide * 0.18)]),
+		Color(2.2, 2.1, 2.2, 0.95 * a))
+	# 两侧速度线
+	for s in [-1.0, 1.0]:
+		var off: Vector2 = n * s * (wide * 0.5 + 5.0)
+		g.draw_line(P.call(o + d * L * 0.35 + off), P.call(o + d * L * 0.85 + off), Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.45 * a), 1.0)
+	# 剑尖星形闪光（伸到最长那一刻最亮）
+	if u > 0.2 and u < 0.75:
+		var k: float = 1.0 - absf(u - 0.35) / 0.4
+		var sz: float = 7.0 * k
+		g.draw_line(P.call(tip - d * sz), P.call(tip + d * sz), Color(2.4, 2.2, 2.4, k), 2.0)
+		g.draw_line(P.call(tip - n * sz * 0.6), P.call(tip + n * sz * 0.6), Color(2.4, 2.2, 2.4, k), 2.0)
+	return true
 
 
 func _reach() -> float:
@@ -113,10 +157,12 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
-	# 剑光：玫瑰色弧光帧条（Ninja Slash Arc 重调色）沿刺击方向拉长；缺图退回细亮线
-	if not g._fx_sprite("fx_slash_arc_rose", o + d * L * 0.55, L * 0.9 / 40.0, ang):
-		fx({"kind": "line", "pos": o + d * 10.0, "to": o + d * L, "life": 0.12, "col": SILVER, "w": 3.0})
-	fx({"kind": "line", "pos": o + d * 10.0, "to": o + d * L * 0.7, "life": 0.08, "col": PINK, "w": 1.5})
+	# 刺击光束（2026-09-25，替换原来的弧光帧条：她是刺剑，不是斩击）：细长尖头光束瞬间伸到最长再收细消失，
+	# 剑尖星形闪光 + 两侧速度线；两段刺击左右错开几像素（参考《哈迪斯》长矛突刺、《死亡细胞》细剑）
+	thrust_n += 1
+	var side: float = 4.0 if thrust_n % 2 == 0 else -4.0
+	fx({"kind": "thrust", "pos": o + d.orthogonal() * side, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
+		"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 	if not first.is_empty():
 		Sfx.op(id, "hit")
