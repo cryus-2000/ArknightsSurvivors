@@ -1,0 +1,163 @@
+{
+  "status": "candidate",
+  "assets": [
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_idle.png",
+      "fps": 4,
+      "sha256": "fc7a979ef10ae92309cdd2dc38946438919494e863518862a8bb79004a09316f"
+    },
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_run.png",
+      "fps": 10,
+      "sha256": "2d385cb5da471515ab9ebb948cc8cb9fcd4de61d45c0e869cf7dbbc4f4372b03"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 2,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_attack.png",
+      "fps": 12,
+      "sha256": "c7157a675acb4b748743bec16c144d486731eeb7d276d493838cfc0a39885091"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 3,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_skill.png",
+      "fps": 12,
+      "sha256": "f80b71135a2eca58d49817fa4e8ad9be3a29f7bd466481f5d33eab869f482468"
+    },
+    {
+      "loop": true,
+      "frame_width": 64,
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "lighthouse_1",
+      "density": 1,
+      "frame_count": 2,
+      "frame_height": 64,
+      "file": "prop_lighthouse.png",
+      "fps": 4,
+      "sha256": "1bc00a279ce6ca9e0344c2aa35bb1b9b5b4fd24e9de3f26ff836608b16096109"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_idle@2x.png",
+      "fps": 4,
+      "sha256": "9e156c5fab803c170e10aed21f86d0052326aff8b0f90708451b9c0cade6d4f7"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_run@2x.png",
+      "fps": 10,
+      "sha256": "01949227888b5253284531a565ceb036a935d8f3fe5d1963225ce2314dee8193"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 2,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_attack@2x.png",
+      "fps": 12,
+      "sha256": "f91453c28657d64591c7dc099bd0687ec5a47b7583c44ad7dda077397edcef27"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 3,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_skill@2x.png",
+      "fps": 12,
+      "sha256": "bc345cfcbe7f8846099019eab8a8339733d70270d5e376df852f015718715027"
+    },
+    {
+      "loop": true,
+      "frame_width": 128,
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "lighthouse_2",
+      "density": 2,
+      "frame_count": 2,
+      "frame_height": 128,
+      "file": "prop_lighthouse@2x.png",
+      "fps": 4,
+      "sha256": "94c0de0f16a77e8e671f8dc178913beb7aac2ef2ddbde6cbf58e1eeb054812bd"
+    }
+  ]
+}
