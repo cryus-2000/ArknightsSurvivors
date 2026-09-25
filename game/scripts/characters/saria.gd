@@ -1,6 +1,5 @@
-## 塞雷娅（重装，契约 v2.1）：护博士。站在博士身侧；阻挡圈把贴近博士的敌人推开并减速，盾击击退身前敌人。
-## S1 急救：博士回复 8%（低血翻倍）；S2 药剂散布：博士护盾 +2 并回复 5%；S3 钙质化：8 秒琥珀区域，敌人减速 + 易伤，博士持续回复。
-## 护盾层与局内护盾共用 g.shield（docs/23 §9.4）。
+## 塞雷娅（重装，契约 v2.1）：护博士。站在博士身侧；阻挡圈把贴近博士的敌人推开并减速，持盾出拳击退身前敌人（攻击较高）。
+## 技能全部是治疗，不给护盾（护盾太强）：S1 急救：回复 8%（低血翻倍）；S2 药剂散布：回复 10% + 5 秒持续回复；S3 钙质化：8 秒琥珀区域，敌人减速 + 易伤，博士持续回复。
 ## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环 + 绕行小晶体；盾击短弧 + 推力线；钙质化在博士周围升起琥珀晶柱。
 extends "res://scripts/characters/character.gd"
 
@@ -13,6 +12,8 @@ var block_t := 0.0
 var calc := 0.0               # S3 钙质化剩余
 var calc_acc := 0.0
 var shard_t := 0.0
+var hot_t := 0.0              # S2 持续回复剩余
+var hot_acc := 0.0
 
 
 func block_radius() -> float:
@@ -31,13 +32,21 @@ func follow_target(_slot_pos: Vector2) -> Vector2:
 func update(dt: float) -> void:
 	cd -= dt
 	_block(dt)
+	if hot_t > 0.0:
+		hot_t -= dt
+		hot_acc += dt
+		if hot_acc >= 1.0:
+			hot_acc -= 1.0
+			if g.hp < g.max_hp:
+				g._heal(g.max_hp * 0.01)
+				fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
 	if calc > 0.0:
 		calc -= dt
 		calc_acc += dt
 		if calc_acc >= 1.0:
 			calc_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.01)
+				g._heal(g.max_hp * 0.015)
 		# 区域内敌人：减速 + 易伤
 		for j in g._query(g.ppos, S3_R + 20.0):
 			var e: Dictionary = g.enemies[j]
@@ -94,7 +103,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
-	melee_hit("盾击", pos + Vector2(0, -10), ang, 1.1, _reach(), 22.0 * _dmg_bonus(), 260.0, 0.2)
+	melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), 28.0 * _dmg_bonus(), 200.0, 0.2)
 	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
 	var d := Vector2.from_angle(ang)
 	fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
@@ -116,20 +125,17 @@ func _release_skill() -> void:
 			_heal_fx(h)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 		1:
-			# 药剂散布：护盾 + 回复
-			g.shield += 2
-			g.shield_pop = 0.4
-			var h2: float = g.max_hp * 0.05 * skill_power()
+			# 药剂散布：立即回复 + 5 秒持续回复
+			var h2: float = g.max_hp * 0.10 * skill_power()
 			g._heal(h2)
 			_heal_fx(h2)
-			g._add_text(g.ppos + Vector2(0, -108), "护盾 +2", Color(0.6, 0.9, 1.0), 16)
+			hot_t = 5.0
+			hot_acc = 0.0
 			fx({"kind": "ring", "pos": g.ppos, "r": 60.0, "r0": 10.0, "life": 0.5, "col": AMBER, "floor": true})
 		2:
 			# 钙质化：晶柱升起 + 区域
 			calc = S3_DUR
 			calc_acc = 0.0
-			g.shield += 1
-			g.shield_pop = 0.4
 			for k in 8:
 				var a: float = k * TAU / 8.0 + 0.3
 				fx({"kind": "crystal", "pos": g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), "h": g.rng.randf_range(22, 40), "life": 1.5 + k * 0.03, "col": AMBER, "lean": g.rng.randf_range(-0.25, 0.25)})
@@ -196,6 +202,9 @@ func draw_auras() -> void:
 
 
 func status_items() -> Array:
+	var out: Array = []
+	if hot_t > 0.0:
+		out.append(["药剂散布", AMBER])
 	if calc > 0.0:
-		return [["钙质化", AMBER]]
-	return []
+		out.append(["钙质化", AMBER])
+	return out

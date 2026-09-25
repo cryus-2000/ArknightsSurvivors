@@ -1,5 +1,5 @@
 ## 凯尔希（医疗，契约 v2.1）：周期治疗博士（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬博士身边的敌人。
-## S1 医疗单元：立即治疗 + 清神经损伤；S2 战术协同：Mon3tr 攻速 / 范围 + 治疗频率；S3 熔毁：Mon3tr 真伤，结束时熔毁爆炸。
+## S1 医疗单元：立即治疗 + 清神经损伤；S2 战术协同（永久型）：充能一次后 Mon3tr 攻速 / 范围与治疗频率永久提升；S3 熔毁：Mon3tr 真伤，结束时熔毁爆炸。
 ## Mon3tr 是本干员的附属实体（64×64 帧条，脚底 (32, 60)），自己寻敌、自己播动画，通过 extra_bodies 参与 2.5D 排序。
 ## 特效（docs/25）：荧光绿。爪击三道平行爪痕；协同 / 熔毁期间脉冲环 + 上升光点 + 残影；熔毁绿白闪光 + 三重环 + 地裂。
 extends "res://scripts/characters/character.gd"
@@ -7,14 +7,13 @@ extends "res://scripts/characters/character.gd"
 const GREEN := Color(0.55, 1.0, 0.5)
 const M_LEASH := 190.0        # Mon3tr 离博士的最远距离
 const M_REACH := 62.0         # 爪击半径（基础）
-const S2_DUR := 6.0
 const S3_DUR := 8.0
 
 var cd := 1.0
 var guard_t := 0.0            # 溢出治疗后博士减伤的剩余时间
 # ---- Mon3tr
 var m := {"pos": Vector2.INF, "face": 1.0, "mv": 0.0, "kind": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "cd": 0.8, "tgt": null}
-var coord := 0.0              # S2 战术协同剩余
+var coord := false            # S2 战术协同（永久）
 var melt := 0.0               # S3 熔毁剩余
 var glow_t := 0.0
 var ghost := {}               # 残影：{pos, face, kind, at, t}
@@ -25,13 +24,12 @@ func _heal_mult() -> float:
 
 
 func _boosted() -> bool:
-	return coord > 0.0 or melt > 0.0
+	return melt > 0.0
 
 
 func update(dt: float) -> void:
 	cd -= dt
 	guard_t = maxf(0.0, guard_t - dt)
-	coord = maxf(0.0, coord - dt)
 	if melt > 0.0:
 		melt -= dt
 		if melt <= 0.0:
@@ -44,7 +42,7 @@ func update(dt: float) -> void:
 		start_skill(m.pos if m.pos != Vector2.INF else g.ppos, ready)
 		return
 	if cd <= 0.0:
-		cd = 3.5 / stat(&"op_aspd") / (1.5 if coord > 0.0 else 1.0)
+		cd = 3.5 / stat(&"op_aspd") / (1.3 if coord else 1.0)
 		if g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp):
 			start_attack(g.ppos)
 
@@ -77,8 +75,9 @@ func _release_skill() -> void:
 			g.nerve = 0.0
 			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
 		1:
-			coord = S2_DUR
+			coord = true
 			_mon3tr_burst()
+			g._show_banner("战术协同：Mon3tr 永久强化")
 		2:
 			melt = S3_DUR
 			_mon3tr_burst()
@@ -95,11 +94,11 @@ func _mon3tr_burst() -> void:
 
 
 func skill_active_left(i: int) -> float:
-	return [0.0, coord, melt][i]
+	return melt if i == 2 else 0.0
 
 
 func skill_active_dur(i: int) -> float:
-	return [1.0, S2_DUR, S3_DUR][i]
+	return S3_DUR if i == 2 else 1.0
 
 
 # ---------------------------------------------------------------- Mon3tr
@@ -109,7 +108,7 @@ func _m_dmg() -> float:
 
 
 func _m_reach() -> float:
-	return M_REACH * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord > 0.0 else 1.0)
+	return M_REACH * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
 
 
 func _update_mon3tr(dt: float) -> void:
@@ -148,7 +147,7 @@ func _update_mon3tr(dt: float) -> void:
 	if absf(vel.x) > 20.0 and m.act <= 0.0:
 		m.face = signf(vel.x)
 	# 爪击
-	m.cd -= dt * (1.7 if coord > 0.0 else 1.0)
+	m.cd -= dt * (1.4 if coord else 1.0)
 	if m.act > 0.0:
 		m.act -= dt
 		if m.fire >= 0.0:
@@ -251,7 +250,7 @@ func draw_extra(_it: Dictionary) -> void:
 				g._draw_sprite_at(ghost.pos, ghost.face < 0.0, Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(GREEN.r, GREEN.g, GREEN.b, k), 2.0)
-	var col := Color(1.25, 1.5, 1.15) if melt > 0.0 else (Color(1.15, 1.35, 1.1) if coord > 0.0 else Color.WHITE)
+	var col := Color(1.25, 1.5, 1.15) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	g._draw_sprite_at(m.pos, m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
 
 
@@ -267,8 +266,6 @@ func dmg_taken_mult() -> float:
 
 func status_items() -> Array:
 	var out: Array = []
-	if coord > 0.0:
-		out.append(["战术协同", GREEN])
 	if melt > 0.0:
 		out.append(["熔毁", GREEN])
 	if guard_t > 0.0:

@@ -102,9 +102,9 @@
   {
    "name": "战术协同",
    "en": "TACTICAL COORDINATION",
-   "sp": 16,
-   "desc": "Mon3tr 6 秒内攻速 +70%、爪击范围 +30%；凯尔希的治疗频率 +50%",
-   "dur": 6.0
+   "sp": 20,
+   "desc": "充能一次后永久生效：Mon3tr 攻速 +40%、爪击范围 +30%，凯尔希的治疗频率 +30%",
+   "permanent": true
   },
   {
    "name": "熔毁",

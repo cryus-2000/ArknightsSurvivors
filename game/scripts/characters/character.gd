@@ -21,6 +21,7 @@ var prog := 0              # 已应用的成长节点数（progression 数组下
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
 var cur_skill := 0                # 正在起手的技能序号（start_skill → _release_skill）
 var rej: Dictionary = {}          # 排异反应：被海嗣化的技能序号 → true
+var perm: Array = [false, false, false]   # 永久型技能（JSON permanent）：充能一次释放后永久生效，不再充能
 var attack_t := 0.0        # >0 表示正在播放攻击动作（由干员在出手时设置）
 var attack_dur := 0.25
 var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
@@ -162,7 +163,8 @@ func skill_hud() -> Array:
 		var sd := skill_def(i)
 		var need := sp_need(i)
 		var sc: Color = Color(0.85, 0.55, 1.0) if rej.has(i) else c
-		out.append([sd.get("name", "技").substr(0, 1), sd.get("name", "技能 %d" % (i + 1)), skill_unlocked(i), skill_active_left(i), skill_active_dur(i),
+		var nm: String = sd.get("name", "技能 %d" % (i + 1)) + ("·永久" if perm[i] else "")
+		out.append([sd.get("name", "技").substr(0, 1), nm, skill_unlocked(i), skill_active_left(i), skill_active_dur(i),
 			(sp[i] / need) if need > 0.0 else 1.0, sc, 0, 0, sd.get("icon", "")])
 	return out
 
@@ -170,7 +172,7 @@ func skill_hud() -> Array:
 ## 编队栏头像环：已解锁的最高技能的充能比例
 func hud_sp_frac() -> float:
 	for i in [2, 1, 0]:
-		if skill_unlocked(i) and sp_need(i) > 0.0:
+		if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i]:
 			return clampf(sp[i] / sp_need(i), 0.0, 1.0)
 	return 1.0
 
@@ -182,7 +184,7 @@ func charge_skills(dt: float) -> int:
 		if not skill_unlocked(i):
 			continue
 		var need := sp_need(i)
-		if need <= 0.0 or skill_active_left(i) > 0.0:
+		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
@@ -194,13 +196,16 @@ func charge_skills(dt: float) -> int:
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
 func spend_sp(i: int) -> void:
 	sp[i] = 0.0
+	if skill_def(i).get("permanent", false):
+		perm[i] = true
+		sp[i] = sp_need(i)
 	g.rfx.on_skill_start()
 
 
 ## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能
 func gain_sp(pct: float) -> void:
 	for i in 3:
-		if skill_unlocked(i) and sp_need(i) > 0.0:
+		if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i]:
 			sp[i] = minf(sp_need(i), sp[i] + sp_need(i) * pct)
 
 

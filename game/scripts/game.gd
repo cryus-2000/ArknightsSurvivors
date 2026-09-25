@@ -5779,7 +5779,9 @@ func _draw_generic_skill_rows(b1: Rect2, y: float) -> float:
 		var on: bool = ch.skill_unlocked(i)
 		var need: float = ch.sp_need(i)
 		var extra: String = ""
-		if on and need > 0.0:
+		if on and ch.perm[i]:
+			extra = "（已永久生效）"
+		elif on and need > 0.0:
 			extra = "（充能 %d · %d%%）" % [int(need), int(100.0 * ch.sp[i] / need)]
 		elif not on:
 			extra = "（%s解锁）" % ["招募", "精英化一", "精英化二"][i]
