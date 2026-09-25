@@ -478,7 +478,8 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "ca639f721916fec1f481c3d1b7004bb47ad2a08225f204cbeff3384b49200d39"
+      "sha256": "4eedd3ad54d8737e35e0433521ca7e7db4db9304ca66ec0068c74628234fb39c",
+      "pose": "legless_hover"
     },
     {
       "file": "op_mon3tr_run.png",
@@ -497,7 +498,8 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "00263318a9050a291dd392c17e394dd71c28c1211e3d00bf5b21dc3b9ab025be"
+      "sha256": "fe0a0a1be8fb38149367d2e8b5ce841ecfd69f755de5e6ed44e890b9ed7c2a37",
+      "pose": "legless_hover"
     },
     {
       "file": "op_mon3tr_attack.png",
@@ -516,7 +518,8 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "45d402a56eac1da8eefe76f99c693c55726dae64160e29f90c77f6a9cc70a01c"
+      "sha256": "a64bac60b142e23a9449ef3f4789c3bb04a6ea99d5786cf8f28054aa3f747c72",
+      "pose": "legless_hover"
     }
   ]
 }
