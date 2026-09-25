@@ -321,6 +321,11 @@ var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 
 var dbg_pick := {}
 const DEMO_SLOTS := [Vector2(-150, 30), Vector2(140, -40), Vector2(90, 80)]
 var demo_respawn: Array = []
+var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
+var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 按 demo_cycle 轮流）
+var demo_fill_t := 0.0
+var show_vp: SubViewport = null  # 精英化演出里的实机演示画面
+var show_game: Node = null
 
 
 func _ready() -> void:
@@ -518,6 +523,13 @@ func _ready() -> void:
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
 		_sync_stats()
+		# 精英化演出：把干员直接推进到目标阶段（精英化节点有选项时取第一个）
+		var guard := 0
+		while ch.elite < demo_elite and not ch.next_node().is_empty() and guard < 12:
+			guard += 1
+			var n: Dictionary = ch.next_node()
+			var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
+			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif OS.get_cmdline_user_args().has("--introshot"):
 		_open_intro.call_deferred(S.PLAY)
 	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
@@ -630,10 +642,11 @@ func _demo_step(dt: float) -> void:
 	xp = 0.0
 	gems.clear()
 	# 三个技能全部解锁，S1 → S2 → S3 轮流充满（永久型只放一次）
-	if ch.elite < 2:
-		ch.elite = 2
+	var want_elite: int = demo_elite if demo_elite > 0 else 2
+	if ch.elite < want_elite:
+		ch.elite = want_elite
 	demo_cycle_t -= dt
-	if demo_cycle_t <= 0.0 and not ch.acting() and not ch.skill_active():
+	if demo_skill < 0 and demo_cycle_t <= 0.0 and not ch.acting() and not ch.skill_active():
 		demo_cycle_t = 4.0
 		for k in 3:
 			var i: int = (demo_cycle_i + k) % 3
@@ -665,6 +678,15 @@ func _demo_step(dt: float) -> void:
 		var d: Vector2 = ch.pos - e.pos
 		if d.length() > 70.0:
 			e.pos += d.normalized() * 28.0 * dt
+	# 指定技能循环施放：每 6 秒把它充满，其余技能压住，画面里只出现要展示的那一招
+	if demo_skill >= 0 and ch.skill_unlocked(demo_skill):
+		demo_fill_t -= dt
+		for i in 3:
+			if i != demo_skill and not ch.perm[i]:
+				ch.sp[i] = 0.0
+		if demo_fill_t <= 0.0 and ch.skill_active_left(demo_skill) <= 0.0 and not ch.perm[demo_skill]:
+			demo_fill_t = 6.0
+			ch.sp[demo_skill] = ch.sp_need(demo_skill)
 
 
 ## 开发自测：把所有 Boss（含假死/二阶段形态）摆成一排截图，检查美术接入与 2.5D 遮挡
@@ -3268,13 +3290,34 @@ func _open_show(sc: Dictionary) -> void:
 	show_cur = sc
 	show_t = 0.0
 	state = S.SHOW
+	# 精英化演出：左侧放一个实机演示（demo 模式的 game.tscn），干员已在新阶段并循环施放新解锁的技能
+	_show_demo_stop()
+	if sc.has("op") and int(sc.get("elite", 0)) > 0 and not balance and DisplayServer.get_name() != "headless":
+		show_vp = SubViewport.new()
+		show_vp.size = Vector2i(540, 300)
+		show_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		show_vp.handle_input_locally = false
+		add_child(show_vp)
+		show_game = load("res://game.tscn").instantiate()
+		show_game.demo_op = sc.op.id
+		show_game.demo_elite = int(sc.elite)
+		show_game.demo_skill = int(sc.elite)   # 精一 → S2（序号 1），精二 → S3（序号 2）
+		show_vp.add_child(show_game)
 	Sfx.play("relic", 0.0, 0.8, 0.0)
 	Sfx.play("levelup", -4.0, 0.7, 0.0)
+
+
+func _show_demo_stop() -> void:
+	if show_vp != null:
+		show_vp.queue_free()
+	show_vp = null
+	show_game = null
 
 
 func _close_show() -> void:
 	if state != S.SHOW or show_t < 1.0:
 		return
+	_show_demo_stop()
 	show_cur = {}
 	state = S.PLAY
 	Sfx.play("ui_ok", -4.0)
@@ -3297,9 +3340,23 @@ func _draw_show(vs: Vector2) -> void:
 	var hx := lerpf(-60.0, 0.0, ha)
 	UI.en(hud, font, Vector2(90 + hx, 94), sc.en, 13, Color(col.r, col.g, col.b, ha), 5.0)
 	UI.text(hud, font, Vector2(88 + hx, 126), sc.head + "  ·  新能力解锁", 28, Color(1, 1, 1, ha))
-	# 左侧：水月演示
+	# 左侧：干员演示。有实机演示画面就画它（新阶段的干员在假人堆里循环放新技能），否则退回静态挥击示意
 	var cx := Vector2(330, vs.y * 0.58)
 	var da := clampf((st - 0.35) / 0.35, 0.0, 1.0)
+	if show_vp != null:
+		var dr := Rect2(Vector2(60, 180), Vector2(540, 300))
+		hud.draw_texture_rect(show_vp.get_texture(), dr, false, Color(1, 1, 1, da))
+		hud.draw_rect(dr, Color(col.r, col.g, col.b, 0.6 * da), false, 2.0)
+		var sop0 = sc.get("op", ch)
+		var skn: String = sop0.skill_def(int(sc.get("elite", 0))).get("name", "") if sop0.has_method("skill_def") else ""
+		if skn != "":
+			UI.chip(hud, font, dr.position + Vector2(14, 14), "实机演示 · %s" % skn, Color(col.r, col.g, col.b, da), 11)
+		var items0: Array = sc["items"]
+		_draw_show_cards(items0, st)
+		if st > 1.0:
+			var ba0 := 0.5 + 0.5 * sin(st * 4.0)
+			UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba0), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+		return
 	for k in 3:
 		var rp := fmod(st * 0.8 + k / 3.0, 1.0)
 		hud.draw_arc(cx + Vector2(0, -10), 60.0 + rp * 130.0, 0.0, TAU, 48, Color(col.r, col.g, col.b, (1.0 - rp) * 0.5 * da), 3.0)
@@ -3326,7 +3383,13 @@ func _draw_show(vs: Vector2) -> void:
 			var ssz := Vector2(sfw, sl.get_height()) * 5.0
 			hud.draw_texture_rect_region(sl, Rect2(cx + Vector2(-ssz.x / 2.0 + 60.0, -ssz.y / 2.0 - 70.0), ssz), Rect2(sfw * sfr, 0, sfw, sl.get_height()), Color(col.r * 1.3, col.g * 1.3, col.b * 1.3, 0.9 * da))
 	# 右侧：说明卡
-	var items: Array = sc["items"]
+	_draw_show_cards(sc["items"], st)
+	if st > 1.0:
+		var ba := 0.5 + 0.5 * sin(st * 4.0)
+		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+
+
+func _draw_show_cards(items: Array, st: float) -> void:
 	for i in items.size():
 		var it: Dictionary = items[i]
 		var ia := clampf((st - 0.55 - i * 0.25) / 0.3, 0.0, 1.0)
@@ -3346,9 +3409,6 @@ func _draw_show(vs: Vector2) -> void:
 		UI.chip(hud, font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(hud, font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
 		hud.draw_multiline_string(font, r.position + Vector2(150, 106), UI.soft(it.desc), HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e), UI.BRK)
-	if st > 1.0:
-		var ba := 0.5 + 0.5 * sin(st * 4.0)
-		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
@@ -5275,11 +5335,28 @@ func _draw_intro_icon(kind: String, c: Vector2) -> void:
 			hud.draw_arc(c + Vector2(0, 40), 140.0, PI * 1.1, PI * 1.9, 32, Color(0.85, 0.4, 1.0), 3.0)
 			UI.text(hud, font, c + Vector2(-60, 110), "黑潮边界", 14, Color(0.85, 0.5, 1.0))
 		"cards":
+			# 三张示意卡：开局干员的待机帧（成长）/ 另一名干员的待机帧（招募）/ 被动图标
+			var other_id := ""
+			for cid0 in Character.list_ids():
+				if cid0 != ch.id and Character.load_def(cid0).get("recruitable", true):
+					other_id = cid0
+					break
 			for k in 3:
 				var rc := Rect2(c + Vector2(-130 + k * 88, -90), Vector2(76, 110))
 				var cc: Color = [UI.CYAN, Color(0.55, 0.95, 1.0), UI.GOLD][k]
 				UI.panel(hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
-				UI.text(hud, font, rc.position + Vector2(0, 66), ["长", "招", "被"][k], 30, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
+				var cc0 := rc.position + Vector2(rc.size.x / 2.0, 48)
+				if k < 2:
+					var idl: Dictionary = _op_idle(ch.id if k == 0 else other_id)
+					if not idl.is_empty():
+						var ks: float = 1.5 if idl.fh <= 48 else 72.0 / idl.fh
+						var asz := Vector2(idl.fw, idl.fh) * ks
+						hud.draw_texture_rect_region(idl.tex, Rect2(cc0 - asz / 2.0 + Vector2(0, 4), asz), Rect2(0, 0, idl.fw, idl.fh))
+				else:
+					var gt: Texture2D = tex.get("growth_hp")
+					if gt != null:
+						hud.draw_texture_rect(gt, Rect2(cc0 - Vector2(24, 24), Vector2(48, 48)), false)
+				UI.text(hud, font, rc.position + Vector2(0, 100), ["成长", "招募", "被动"][k], 12, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
 			UI.text(hud, font, c + Vector2(-130, 60), "干员成长 / 招募 / 博士被动", 14, UI.SUB)
 		"loot":
 			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
