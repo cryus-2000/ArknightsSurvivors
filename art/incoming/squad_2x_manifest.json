@@ -854,14 +854,15 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "e5463781b211c4075323bac303a78326b19346488707e0379bf9d2ec40352033",
+      "sha256": "99a141cf0c00a1ffb15ca62bdc2016151c0efb99c9ef2ed0ab3a0b7f21503f58",
       "density": 2,
       "original_file": "op_mon3tr_idle.png",
-      "original_sha256": "ca639f721916fec1f481c3d1b7004bb47ad2a08225f204cbeff3384b49200d39",
+      "original_sha256": "4eedd3ad54d8737e35e0433521ca7e7db4db9304ca66ec0068c74628234fb39c",
       "logical_anchor": [
         32,
         60
-      ]
+      ],
+      "pose": "legless_hover"
     },
     {
       "file": "op_mon3tr_run@2x.png",
@@ -880,14 +881,15 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "3165794a25180d65b0c416641298e97587445575b693740f9d6d7f0c240b08db",
+      "sha256": "52e597581f459e2396890cfe4f0ab3c72fa3f797c40d922431d0f5d0eda26659",
       "density": 2,
       "original_file": "op_mon3tr_run.png",
-      "original_sha256": "00263318a9050a291dd392c17e394dd71c28c1211e3d00bf5b21dc3b9ab025be",
+      "original_sha256": "fe0a0a1be8fb38149367d2e8b5ce841ecfd69f755de5e6ed44e890b9ed7c2a37",
       "logical_anchor": [
         32,
         60
-      ]
+      ],
+      "pose": "legless_hover"
     },
     {
       "file": "op_mon3tr_attack@2x.png",
@@ -906,14 +908,15 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "a14919883e8e86ff7be6272888514c1de0b17806d88a5b4aa82dfe32d01f1f1e",
+      "sha256": "53e3aa238fd0014c7cffdb8be6ab9ac4bb171f05fd1e0004e6351c5164c56f67",
       "density": 2,
       "original_file": "op_mon3tr_attack.png",
-      "original_sha256": "45d402a56eac1da8eefe76f99c693c55726dae64160e29f90c77f6a9cc70a01c",
+      "original_sha256": "a64bac60b142e23a9449ef3f4789c3bb04a6ea99d5786cf8f28054aa3f747c72",
       "logical_anchor": [
         32,
         60
-      ]
+      ],
+      "pose": "legless_hover"
     }
   ]
 }
