@@ -1,0 +1,745 @@
+{
+  "assets": [
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_idle.png",
+      "fps": 4,
+      "sha256": "fc7a979ef10ae92309cdd2dc38946438919494e863518862a8bb79004a09316f"
+    },
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_run.png",
+      "fps": 10,
+      "sha256": "2d385cb5da471515ab9ebb948cc8cb9fcd4de61d45c0e869cf7dbbc4f4372b03"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 2,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_attack.png",
+      "fps": 12,
+      "sha256": "c7157a675acb4b748743bec16c144d486731eeb7d276d493838cfc0a39885091"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 3,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_skill.png",
+      "fps": 12,
+      "sha256": "f80b71135a2eca58d49817fa4e8ad9be3a29f7bd466481f5d33eab869f482468"
+    },
+    {
+      "loop": true,
+      "frame_width": 64,
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "lighthouse_1",
+      "density": 1,
+      "frame_count": 2,
+      "frame_height": 64,
+      "file": "prop_lighthouse.png",
+      "fps": 4,
+      "sha256": "1bc00a279ce6ca9e0344c2aa35bb1b9b5b4fd24e9de3f26ff836608b16096109"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_idle@2x.png",
+      "fps": 4,
+      "sha256": "9e156c5fab803c170e10aed21f86d0052326aff8b0f90708451b9c0cade6d4f7"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_run@2x.png",
+      "fps": 10,
+      "sha256": "01949227888b5253284531a565ceb036a935d8f3fe5d1963225ce2314dee8193"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 2,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_attack@2x.png",
+      "fps": 12,
+      "sha256": "f91453c28657d64591c7dc099bd0687ec5a47b7583c44ad7dda077397edcef27"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 3,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_skill@2x.png",
+      "fps": 12,
+      "sha256": "bc345cfcbe7f8846099019eab8a8339733d70270d5e376df852f015718715027"
+    },
+    {
+      "loop": true,
+      "frame_width": 128,
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "lighthouse_2",
+      "density": 2,
+      "frame_count": 2,
+      "frame_height": 128,
+      "file": "prop_lighthouse@2x.png",
+      "fps": 4,
+      "sha256": "94c0de0f16a77e8e671f8dc178913beb7aac2ef2ddbde6cbf58e1eeb054812bd"
+    },
+    {
+      "character": "irene_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "irene",
+      "file": "op_irene_idle.png",
+      "sha256": "0dc1a1f88dd2acdf1f9089b2320e57f6a3017251d0385554ad0b0b16e2c02de5"
+    },
+    {
+      "character": "irene_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 10,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "irene",
+      "file": "op_irene_run.png",
+      "sha256": "8f246f42d30a19cc7dd65525cc2130739f748fd6e08e0589d65187ad8c556f28"
+    },
+    {
+      "secondary_event_frames_zero_based": [
+        3
+      ],
+      "character": "irene_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 1,
+      "frame_count": 5,
+      "operator_id": "irene",
+      "file": "op_irene_attack.png",
+      "sha256": "c640ea79ab614b41da1e98f56add677a68bbc510aedc6bf55e941de1e13c4285"
+    },
+    {
+      "character": "irene_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "operator_id": "irene",
+      "file": "op_irene_skill.png",
+      "sha256": "8e32ed75802fddcac57668d749007fa42fb4ec257da4c77bb54a9575f6fc0a1a"
+    },
+    {
+      "character": "irene_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "irene",
+      "file": "op_irene_idle@2x.png",
+      "sha256": "c170f504bc824d7e57d0274a48b81e596c9d666c9cd78cc4e54820382204b34b"
+    },
+    {
+      "character": "irene_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 10,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "irene",
+      "file": "op_irene_run@2x.png",
+      "sha256": "5c181e8d75b5224513cf7b3032933dfab8df17c472f09020435c544d43b58e82"
+    },
+    {
+      "secondary_event_frames_zero_based": [
+        3
+      ],
+      "character": "irene_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 1,
+      "frame_count": 5,
+      "operator_id": "irene",
+      "file": "op_irene_attack@2x.png",
+      "sha256": "b4a3211ee33c36fac5239adfe3390a5d64765f37a8a7d18da114647e01a07ddb"
+    },
+    {
+      "character": "irene_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "operator_id": "irene",
+      "file": "op_irene_skill@2x.png",
+      "sha256": "5daf3dbe3682bcfeef4e5ae27ecfa55c304c8bbcb38e14f8a6294347e83134bc"
+    },
+    {
+      "character": "ulpianus_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_idle.png",
+      "sha256": "65845c2ef85487f358f7bf98742ec435bd837d8b4e46515592813a4b310972ee"
+    },
+    {
+      "character": "ulpianus_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 10,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_run.png",
+      "sha256": "d6f0a2d02f0ba7dd7a5254713c5e409286f7e718ea607cef0bdc5d6acd21a475"
+    },
+    {
+      "character": "ulpianus_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 3,
+      "frame_count": 5,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_attack.png",
+      "sha256": "964c0bada2b9793f74221dfe21c51d6acda98c9b3eae3a076568b00576748739"
+    },
+    {
+      "character": "ulpianus_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_skill.png",
+      "sha256": "476ad12afe54aa4f2d7c3f0c28a6daa6b79007cc58a38d5ca3c967ac6e3726f9"
+    },
+    {
+      "character": "ulpianus_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_idle@2x.png",
+      "sha256": "df25b9a80c54f1cd974c7e2638ead62604078efbb4ba2f8bdddc7f2e86cd252e"
+    },
+    {
+      "character": "ulpianus_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 10,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_run@2x.png",
+      "sha256": "9515010316fdfed915bf6b8e64bfcd3b4cccf5155d9cb9ac6924cc6e46c7c61b"
+    },
+    {
+      "character": "ulpianus_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 3,
+      "frame_count": 5,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_attack@2x.png",
+      "sha256": "f930241e92b02159f63001961ae130ddebacd99a84e80e100b2b2f42fe675219"
+    },
+    {
+      "character": "ulpianus_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "operator_id": "ulpianus",
+      "file": "op_ulpianus_skill@2x.png",
+      "sha256": "e0dba5b8561709c970917fad64d76e758cbaeda7f4656101ea0df6f561d35bcf"
+    },
+    {
+      "character": "logos_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_idle.png",
+      "sha256": "90f759c27dad4657a84b9a8d6bb23a261a448f7b0c53e2723a646bef2c0382ad"
+    },
+    {
+      "character": "logos_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 10,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "logos",
+      "file": "op_logos_run.png",
+      "sha256": "08937c4ecad698bee3a8058c8cd5e2b16546f298b90c667cb64b8b0d8b627069"
+    },
+    {
+      "character": "logos_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 2,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_attack.png",
+      "sha256": "0a7bd1fe4d59193abc5494b20fa1366cdfa5a9d16205a636d15be11a5b11849b"
+    },
+    {
+      "character": "logos_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 4,
+      "frame_count": 8,
+      "operator_id": "logos",
+      "file": "op_logos_skill.png",
+      "sha256": "b81434a90d92f71f9d539c54b5a4644e4ecba93400c0db6e47464afad0fbd2b8"
+    },
+    {
+      "character": "logos_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_idle@2x.png",
+      "sha256": "9a6571aed46871ddacded8e2163b1ecbfb3ef94b35bb2127507b1d694c195e6e"
+    },
+    {
+      "character": "logos_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 10,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "logos",
+      "file": "op_logos_run@2x.png",
+      "sha256": "1dee1ceccb9faf8aecc9efa044c23fbdee9b453ee00595ebfeed125174877b8a"
+    },
+    {
+      "character": "logos_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 2,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_attack@2x.png",
+      "sha256": "81efc2154a51a2a74e830f47b4d6aefbc2833024a71373d1ea0e5f39d0e59216"
+    },
+    {
+      "character": "logos_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 4,
+      "frame_count": 8,
+      "operator_id": "logos",
+      "file": "op_logos_skill@2x.png",
+      "sha256": "f21b91617d48324a99480bca05e43c014c2602d2041157e0fe35cd9b27e05eb6"
+    },
+    {
+      "character": "specter_unchained_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_idle.png",
+      "sha256": "ec8bc79224f99a4f57d797cc7841f10f2e0c20b0fe26cf1d9c665a8d726a32ac"
+    },
+    {
+      "character": "specter_unchained_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 10,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_run.png",
+      "sha256": "a9e327c94a87575634bd44fc4ed0eda615fb07288102d8f21552aac28cc42c4c"
+    },
+    {
+      "character": "specter_unchained_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 2,
+      "frame_count": 5,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_attack.png",
+      "sha256": "4777ef73befaa1968e896e1d3ff9525b1bac431249cce52ea2e272c93eda5122"
+    },
+    {
+      "character": "specter_unchained_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 4,
+      "frame_count": 7,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_skill.png",
+      "sha256": "b2fc7a34f857277a5b0e2e9abd5953e7545afe86788a6b135b23c51b833df6a8"
+    },
+    {
+      "character": "specter_unchained_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_idle@2x.png",
+      "sha256": "d61304aa006b0b671909152f4f08bd018a0a1284deb5127262243af418889247"
+    },
+    {
+      "character": "specter_unchained_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 10,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_run@2x.png",
+      "sha256": "5a557d87338138bd25ea7bc6e9b9a4419d303e897cceec1a55cc96b2a3e00738"
+    },
+    {
+      "character": "specter_unchained_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 2,
+      "frame_count": 5,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_attack@2x.png",
+      "sha256": "7c84f0acecf7d731bd9f88f245a736ab2c197b8bdd455014ac604336705bce49"
+    },
+    {
+      "character": "specter_unchained_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 4,
+      "frame_count": 7,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_skill@2x.png",
+      "sha256": "fa278c2169d9c43fd100d2533787fd9d1a92e882f21aa1384f2b5c93ee273279"
+    },
+    {
+      "character": "specter_doll_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "frame_count": 4,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_doll.png",
+      "sha256": "72c86e94556a839d7e820f163cbaefd7e8dd2aa8e6727485e2a771a2d767b97b"
+    },
+    {
+      "character": "specter_doll_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "frame_count": 4,
+      "operator_id": "specter_unchained",
+      "file": "op_specter_unchained_doll@2x.png",
+      "sha256": "656922c316e95c57ebe9772ce21661a87a2480f3018eed2127634ebedd67bee9"
+    }
+  ],
+  "batch": "squad_batch4"
+}
