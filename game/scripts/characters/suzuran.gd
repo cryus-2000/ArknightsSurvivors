@@ -12,6 +12,7 @@ var warm := false             # S2 暖光（永久）
 var haze_t := 0.0             # S3 狐火迷雾
 var mote_t := 0.0
 var heal_acc := 0.0
+var pillar_t := 0.0
 
 
 func aura_radius() -> float:
@@ -34,6 +35,13 @@ func update(dt: float) -> void:
 			var a: float = g.rng.randf() * TAU
 			var rr: float = g.rng.randf() * aura_radius()
 			fx({"kind": "mote", "pos": pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": GOLD, "sz": 1.8})
+		# 迷雾期间：光域里不时落下一根小光柱
+		pillar_t -= dt
+		if haze_t > 0.0 and pillar_t <= 0.0:
+			pillar_t = 0.9
+			var a2: float = g.rng.randf() * TAU
+			var rr2: float = g.rng.randf_range(0.3, 0.9) * aura_radius()
+			g._fx_sprite("fx_holy_pillar", pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
 		# 光域内的博士缓慢回复（原作：范围内友军回复）
 		heal_acc += dt
 		if heal_acc >= 1.0:
@@ -62,6 +70,7 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		volley_next = true
 		fx({"kind": "glow", "pos": pos + Vector2(0, -30), "r": 18.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
+		g._fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 1.6)
 		return
 	if ready > 0:
 		start_skill(Vector2.INF, ready)
@@ -122,8 +131,13 @@ func _release_skill() -> void:
 			g._show_banner("狐火迷雾")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD})
-	for k in 10:
-		fx({"kind": "flame", "pos": pos + Vector2(0, -20), "vel": Vector2.from_angle(k * TAU / 10.0) * 120.0, "life": 0.5, "col": GOLD, "sz": 9.0, "drag": 2.5})
+	# 圣光光柱（Pimen Holy VFX 02）：中心一根 + 光域边缘六根小的
+	g._fx_sprite("fx_holy_pillar", pos + Vector2(0, 4), g.PX * (1.4 if cur_skill == 2 else 1.0), 0.0, false, true)
+	var rr3 := aura_radius()
+	for k in 6:
+		var a3: float = k * TAU / 6.0 + g.t * 0.8
+		g._fx_sprite("fx_holy_pillar", pos + Vector2(4, 4) + Vector2(cos(a3) * rr3, sin(a3) * rr3 * 0.55), g.PX * 0.6, 0.0, false, true)
+	g._fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 2.2)
 
 
 ## 其他干员攻击加成：只写入别的干员的 op:<id> 作用域，不给自己
@@ -166,13 +180,15 @@ func draw_auras() -> void:
 
 
 func _draw_skill_over() -> void:
-	# 自绘狐火弹：金白火球
+	# 狐火弹：OGA Light Bolt 调金（proj_foxfire），按速度方向旋转 + 外圈热光
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != id or b.kind != "arcane":
 			continue
-		g.draw_circle(b.pos, 10.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.28))
-		g.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
-		g.draw_circle(b.pos, 2.5, Color(2.8, 2.7, 2.2))
+		g.draw_circle(b.pos, 10.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
+		if g.tex.get("proj_foxfire") != null:
+			g._spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
+		else:
+			g.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
 
 
 func status_items() -> Array:

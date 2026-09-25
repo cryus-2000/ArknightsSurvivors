@@ -53,10 +53,20 @@ func _aim() -> float:
 	return a
 
 
-## 双层斩击弧光 + 水珠
+## 斩击弧光（Ninja Adventure Slash 调深海蓝：普通 / 重斩 / 潮汐全方向三条帧条；缺图退回程序双层弧）+ 水珠
 func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: float) -> void:
-	g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
-	g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
+	var name := "fx_slash_arc_deep"
+	var sc: float = r * 1.15 / 40.0
+	if half >= PI - 0.01:
+		name = "fx_slash_circle_deep"
+		sc = r * 2.0 / 56.0
+	elif half > 1.6:
+		name = "fx_slash_heavy_deep"
+		sc = r * 1.2 / 28.0
+	var at: Vector2 = pos + Vector2(0, -14) + (Vector2.ZERO if name == "fx_slash_circle_deep" else Vector2.from_angle(ang) * r * 0.5)
+	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0):
+		g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
+		g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
 	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
 	for k in 5:
 		fx({"kind": "mote", "pos": sp + Vector2(g.rng.randf_range(-12, 12), g.rng.randf_range(-8, 8)), "vel": Vector2.from_angle(ang + g.rng.randf_range(-0.8, 0.8)) * g.rng.randf_range(40, 110) + Vector2(0, -60), "life": 0.4, "col": DROP, "sz": 2.0, "grav": 260.0})
@@ -117,6 +127,7 @@ func _heavy(ang: float) -> void:
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
 	fx({"kind": "ring", "pos": c, "r": r * 0.7, "r0": 10.0, "life": 0.35, "col": BLUE, "floor": true, "w": 3.0})
 	fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 34.0, "life": 0.2, "col": FOAM, "alpha": 0.5})
+	g._fx_sprite("fx_water_splash", c + Vector2(0, 6), g.PX * 1.6, 0.0, false, true)
 	for k in 18:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	g.shake = maxf(g.shake, 4.0)

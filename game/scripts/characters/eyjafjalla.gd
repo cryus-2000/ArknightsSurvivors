@@ -127,6 +127,8 @@ func bullet_exploded(b: Dictionary) -> void:
 	for k in 6:
 		fx({"kind": "mote", "pos": b.pos, "vel": Vector2(g.rng.randf_range(-90, 90), g.rng.randf_range(-160, -60)), "life": 0.45, "col": LAVA, "sz": 2.5, "grav": 320.0})
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
+	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放
+	g._fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
 	if b.get("burn", false) or b.get("weak", 0.0) > 0.0:
 		for e in g._arc_hit(b.pos, 0.0, PI, b.aoe):
 			if e.dead:
@@ -141,6 +143,7 @@ func _erupt(c: Vector2) -> void:
 	var r: float = 75.0 * stat(&"op_range")
 	area_hit("火山", c, r, 20.0 * 1.8 * _dmg_bonus() * skill_power())
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
+	g._fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": ORANGE, "floor": true, "w": 3.0})
 	for k in 8:
@@ -201,6 +204,9 @@ func draw_entities_floor() -> void:
 		g.draw_circle(Vector2.ZERO, l.r * 0.6, Color(1.5, 0.55, 0.1, 0.22 * a + 0.06 * sin(g.t * 9.0 + l.pos.x)))
 		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(1.8, 0.7, 0.2, 0.5 * a), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 熔岩池中心的翻滚熔岩（CodeManu sunburn 调橙红，循环）
+		if g.tex.get("fx_sunburst") != null:
+			g._spr_rot("fx_sunburst", int(g.t * 16.0 + l.pos.x * 0.1) % 16, l.pos + Vector2(0, -4), 0.0, l.r * 1.3 / 62.0, Color(1.0, 1.0, 1.0, 0.75 * a))
 
 
 func draw_auras() -> void:
@@ -219,8 +225,12 @@ func _draw_skill_over() -> void:
 		var big: bool = b.get("src", "") == "点燃弹"
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + b.pos.x)
 		g.draw_circle(b.pos, (17.0 if big else 13.0) * fl, Color(1.6, 0.6, 0.15, 0.22))
-		g.draw_circle(b.pos, (10.0 if big else 7.5) * fl, Color(2.2, 0.9, 0.25, 0.9))
-		g.draw_circle(b.pos, 4.5 if big else 3.5, Color(2.8, 2.4, 1.6))
+		if g.tex.get("proj_lavaball") != null:
+			# 熔岩球（OGA Fireball 调橙红），按速度方向旋转
+			g._spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1))
+		else:
+			g.draw_circle(b.pos, (10.0 if big else 7.5) * fl, Color(2.2, 0.9, 0.25, 0.9))
+			g.draw_circle(b.pos, 4.5 if big else 3.5, Color(2.8, 2.4, 1.6))
 
 
 func status_items() -> Array:
