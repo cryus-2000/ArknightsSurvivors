@@ -185,8 +185,23 @@ func hud_sp_frac() -> float:
 
 
 ## 三个技能同时充能（生效中的不充）；返回本帧该释放的技能序号（S3 > S2 > S1，一次只放一个），没有返回 -1
-func charge_skills(dt: float) -> int:
+## 充能改由 squad.update 每帧调 tick_sp()（2026-09-26 修：以前充能写在各干员「出手中就 return」之后，
+## 攻速快的干员几乎一直在出手，技能实际要等 2–3 倍时间）。这里只判断谁充满了；dt 参数保留兼容
+func charge_skills(_dt: float) -> int:
 	var ready := -1
+	for i in 3:
+		if not skill_unlocked(i):
+			continue
+		var need := sp_need(i)
+		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
+			continue
+		if sp[i] >= need and not is_manual(i):
+			ready = i
+	return ready
+
+
+## 技能充能（每帧，不论是否在出手）：生效中的持续型技能与永久型不充
+func tick_sp(dt: float) -> void:
 	for i in 3:
 		if not skill_unlocked(i):
 			continue
@@ -195,9 +210,6 @@ func charge_skills(dt: float) -> int:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
-		if sp[i] >= need and not is_manual(i):
-			ready = i
-	return ready
 
 
 ## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
