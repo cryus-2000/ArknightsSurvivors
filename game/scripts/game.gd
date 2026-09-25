@@ -26,8 +26,6 @@ const StatDefs = preload("res://scripts/core/stat_defs.gd")
 ##   tags     basic empowered follow_up skill aftershock area projectile beam pierce ricochet entity control dot detonation execute
 ## 这里只放共享来源（支援 / 藏品 / 真实）；角色专属来源由 data/characters/<id>.json 的 hit_sources 合并进来。
 const HIT_BASE := {
-	"无人机": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
-	"无人机激光": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["beam", "pierce"]},
 	"援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
 	"法术援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["projectile", "area"]},
 	"藏品": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["dot"]},
@@ -138,7 +136,7 @@ var ember := false
 var relics: Array = []
 
 # ---------- 援护干员 ----------
-var weapons := {}                # 武器 id -> 等级
+var weapons := {"drone": 1}      # 支援 id -> 等级（医疗无人机开局自带 Lv.1，docs/23 §17）
 var intro_page := 0
 var intro_dots: Array = []          # 指南页码点的点击区 [Rect2, page]
 var intro_panel := Rect2()
@@ -158,7 +156,8 @@ var shield_pop := 0.0            # 新护盾生成动画
 var pvel := Vector2.ZERO
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
-var drones: Array = []           # {pos, cd_shot, cd_laser, cd_missile, ang}
+var drones: Array = []           # 医疗无人机 {pos, cd, ang, beam, face}
+var drone_rescue_cd := 0.0       # Lv.3 急救冷却
 var bullets: Array = []
 
 # ---------- 世界 ----------
@@ -361,7 +360,7 @@ func _ready() -> void:
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_bullet", "drone_laser", "drone_missile",
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
 		tex[n] = A.tex(n)
 		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
@@ -732,7 +731,7 @@ func _autotest_step() -> void:
 			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
-			weapons = {"drone": 3}
+			weapons = {"drone": 4}
 			for rid in ["118", "199", "100"]:
 				relics.append(rid)
 				_apply_relic(rid)
@@ -1153,6 +1152,7 @@ func _update(dt: float) -> void:
 	_build_grid()
 	_update_enemies(dt)
 	squad.update(dt)
+	_update_weapons(dt)
 	knight.update(dt)
 	touch.update(dt)
 	_update_bullets(dt)
@@ -2643,99 +2643,53 @@ func _close_shop() -> void:
 
 
 # =====================================================================
-# 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
+# 医疗无人机（保底治疗，2026-09-25）：开局 Lv.1，不占编队位；跟在博士头顶两侧，周期性治疗博士
+# Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
+const DRONE_HEAL := [0.0, 0.02, 0.03, 0.03, 0.03, 0.04]
+const DRONE_EVERY := [0.0, 6.0, 5.0, 5.0, 5.0, 4.0]
+
+
 func _update_weapons(dt: float) -> void:
 	var dl: int = weapons.get("drone", 0)
-	if dl > 0:
-		var want := 2 if dl >= 4 else 1
-		while drones.size() < want:
-			drones.append({"pos": ppos + Vector2(0, -60), "cd_shot": 0.3, "cd_laser": 1.0, "cd_missile": 1.5, "ang": drones.size() * PI})
-		var haste := 1.25 if dl >= 5 else 1.0
-		for i in drones.size():
-			var dr: Dictionary = drones[i]
-			dr["fire_t"] = dr.get("fire_t", 0.0) - dt
-			dr.ang += dt * 1.6
-			var slot := ppos + Vector2(cos(dr.ang) * 52.0, -96.0 + sin(dr.ang * 2.0) * 6.0)
-			dr.pos = dr.pos.lerp(slot, clampf(dt * 6.0, 0.0, 1.0))
-			if dl == 1:
-				dr.cd_shot -= dt
-				if dr.cd_shot <= 0.0:
-					var ts := _nearest(1, 420.0)
-					if ts.is_empty():
-						dr.cd_shot = 0.15
-					else:
-						dr.cd_shot = 0.55
-						var d: Vector2 = (ts[0].pos - dr.pos).normalized()
-						bullets.append({"kind": "dbullet", "pos": dr.pos, "vel": d * 700.0, "dmg": 8.0 * dmg_mult, "life": 0.8, "r": 4.0, "aoe": 0.0})
-						dr["fire_t"] = 0.25
-						dr["face"] = signf(d.x)
-						Sfx.play("swing", -20.0, 2.4, 0.1)
-			else:
-				dr.cd_laser -= dt * haste
-				if dr.cd_laser <= 0.0:
-					var ts2 := _nearest(1, 480.0)
-					if ts2.is_empty():
-						dr.cd_laser = 0.2
-					else:
-						dr.cd_laser = 1.9
-						dr["beam"] = LASER_DUR
-						dr["beam_ang"] = (ts2[0].pos - dr.pos).angle()
-						dr["beam_tick"] = 0.0
-						Sfx.play("skill", -16.0, 2.2, 0.05)
-				# 照射中：光束从无人机射出，随最近的敌人平滑转向，每 0.1 秒结算一次
-				if dr.get("beam", 0.0) > 0.0:
-					dr.beam -= dt
-					var tb := _nearest(1, LASER_LEN)
-					if not tb.is_empty():
-						dr.beam_ang = lerp_angle(dr.beam_ang, (tb[0].pos - dr.pos).angle(), clampf(dt * LASER_TURN, 0.0, 1.0))
-					dr["fire_t"] = 0.2
-					dr["face"] = signf(cos(dr.beam_ang)) if absf(cos(dr.beam_ang)) > 0.1 else dr.get("face", 1.0)
-					dr.beam_tick -= dt
-					if dr.beam_tick <= 0.0:
-						dr.beam_tick = 0.1
-						_drone_laser(dr.pos, dr.beam_ang)
-			if dl >= 3:
-				dr.cd_missile -= dt * haste
-				if dr.cd_missile <= 0.0:
-					var tm := _nearest(4, 520.0)
-					if tm.is_empty():
-						dr.cd_missile = 0.3
-					else:
-						dr.cd_missile = 2.2
-						var n := 3 if dl >= 5 else 2
-						for k in n:
-							var tg: Dictionary = tm[k % tm.size()]
-							var d0 := Vector2.from_angle(-PI / 2.0 + (k - (n - 1) / 2.0) * 0.7)
-							bullets.append({"kind": "missile", "pos": dr.pos, "vel": d0 * 320.0, "dmg": 26.0 * dmg_mult, "life": 4.0, "r": 7.0,
-								"aoe": 70.0, "home": tg, "turn": 9.0, "accel": 2400.0, "vmax": 820.0})
-						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
-						dr["fire_t"] = 0.25
+	if dl <= 0:
+		return
+	var want := 2 if dl >= 4 else 1
+	while drones.size() < want:
+		drones.append({"pos": ppos + Vector2(0, -60), "cd": 2.0 + drones.size() * 2.5, "ang": drones.size() * PI, "beam": 0.0, "face": 1.0})
+	drone_rescue_cd = maxf(0.0, drone_rescue_cd - dt)
+	for i in drones.size():
+		var dr: Dictionary = drones[i]
+		dr.ang += dt * 1.2
+		var want_pos: Vector2 = ppos + Vector2(cos(dr.ang) * 46.0, -66.0 + sin(dr.ang * 2.0) * 6.0)
+		var prev: Vector2 = dr.pos
+		dr.pos = dr.pos.lerp(want_pos, clampf(dt * 4.0, 0.0, 1.0))
+		if absf(dr.pos.x - prev.x) > 0.3:
+			dr.face = signf(dr.pos.x - prev.x)
+		dr.beam = maxf(0.0, dr.beam - dt)
+		dr.cd -= dt * sp_mult
+		if dr.cd <= 0.0:
+			dr.cd = DRONE_EVERY[dl]
+			if hp < max_hp:
+				_drone_heal(dr, max_hp * DRONE_HEAL[dl], dl >= 5)
+		# Lv.3：低血急救
+		if dl >= 3 and drone_rescue_cd <= 0.0 and hp < max_hp * 0.4 and i == 0:
+			drone_rescue_cd = 20.0
+			_drone_heal(dr, max_hp * 0.08, dl >= 5)
+			_add_text(ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
 
 
-## 无人机激光：照射 LASER_DUR 秒，每 0.1 秒对直线上的敌人结算一次（总伤害约为旧版单发的 1.6 倍，冷却 1.5→1.9 秒）
-const LASER_DUR := 0.9
-const LASER_LEN := 520.0
-const LASER_TURN := 7.0
-
-
-func _drone_laser(from: Vector2, ang: float) -> void:
-	var dir := Vector2.from_angle(ang)
-	var L := LASER_LEN
-	var dmg := 3.4 * dmg_mult
-	for j in _query(from + dir * L * 0.5, L * 0.5 + 30.0):
-		var e: Dictionary = enemies[j]
-		if e.dead:
-			continue
-		var rel: Vector2 = e.pos - from
-		var along := rel.dot(dir)
-		if along < 0.0 or along > L:
-			continue
-		if absf(rel.cross(dir)) < e.r + 8.0:
-			_hit("无人机激光")
-			_damage(e, dmg)
-			if randf() < 0.4:
-				_sparks(e.pos, dir, Color(0.6, 1.0, 1.0), 2, 160.0)
+func _drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
+	_heal(amount)
+	if cure:
+		nerve = 0.0
+	dr.beam = 0.35
+	_add_text(ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
+	fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})
+	if not _fx_sprite("fx_heal_aura_green", ppos + Vector2(0, 6), PX * 1.1, 0.0, false, true):
+		for k in 4:
+			fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-18, 18), randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": randf_range(3.0, 4.5)})
+	Sfx.play("pickup", -14.0, 1.4, 0.05)
 
 
 ## 敌人最密集的位置（在 radius 内采样）
@@ -2798,12 +2752,12 @@ func _update_bullets(dt: float) -> void:
 			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
-		if (b.kind == "fire" or b.kind == "missile") and not b.get("hidden", false):
+		if b.kind == "fire" and not b.get("hidden", false):
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:
 				b.trail = 0.03
 				fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
-					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0) if b.kind == "fire" else Color(0.9, 0.9, 1.0)})
+					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
 		for j in _query(b.pos, 40.0):
 			var e: Dictionary = enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
@@ -2819,7 +2773,7 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if b.has("src"):
 		_hit(b.src, b.get("tags", []))
 	else:
-		_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
+		_hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
@@ -2842,8 +2796,8 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				b.hit_ids[e.id] = true
 			else:
 				b.life = 0.0
-		"fire", "missile":
-			# 法术团 / 导弹：爆炸
+		"fire":
+			# 法术团：爆炸
 			for k in _query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
@@ -3342,7 +3296,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "prog":
 		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
 	elif o.kind == "weapon":
-		cat = "武器  " + D.WEAPONS[o.id].en
+		cat = "支援  " + D.WEAPONS[o.id].en
 	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
 	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	# 图标底座
@@ -3484,12 +3438,11 @@ func _open_levelup() -> void:
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
 		fi += 1
-	# ---- 无人机：Lv.2 后首次必出一张，之后约 25%，替换最后一张非深度卡
+	# ---- 医疗无人机升级（保底治疗）：Lv.3 起约 18% 出一张，替换最后一张非深度卡
 	var wl: int = weapons.get("drone", 0)
-	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.25):
+	if wl < 5 and level >= 3 and picks.size() >= 2 and rng.randf() < 0.18:
 		var W: Dictionary = D.WEAPONS.drone
-		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
-			"desc": W.lv[wl], "wlv": wl + 1}
+		var wcard := {"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1}
 		for k in range(picks.size() - 1, -1, -1):
 			if picks[k].kind != "prog":
 				picks[k] = wcard
@@ -3593,7 +3546,7 @@ func _pick(i: int) -> void:
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
-			_show_banner(("获得武器「%s」" if o.wlv == 1 else "「%s」升至 Lv.%d") % ([W.name] if o.wlv == 1 else [W.name, o.wlv]))
+			_show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
 			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 	if choice_kind == "relic":
 		pending_chests -= 1
@@ -3715,31 +3668,11 @@ func _hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 	var sc: float = PX * clampf(e.r / 12.0, 0.9, 2.2)
 	if not _fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else rng.randf() * TAU):
 		_anim("fx_hit", e.pos, 0.16)
-const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "dbullet": "proj_drone_bullet",
-	"missile": "proj_missile", "tide": "proj_tide"}
+const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
 const EXPLODE_R_PX := 26.0
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func _draw_laser_art(from: Vector2, ang: float, length: float, alpha: float) -> void:
-	var fr := int(t * 20.0) % 4
-	var mt: Texture2D = tex["fx_laser_mid"]
-	var fw := mt.get_width() / 4
-	var fh := mt.get_height()
-	var col := Color(1, 1, 1, alpha)
-	draw_set_transform(from, ang, Vector2(PX, PX))
-	var L := length / PX
-	var x := 0.0
-	while x < L:
-		var w := minf(float(fw), L - x)
-		draw_texture_rect_region(mt, Rect2(Vector2(x, -fh / 2.0), Vector2(w, fh)), Rect2(fw * fr, 0, w, fh), col)
-		x += fw
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_spr_rot("fx_laser_end", fr, from + Vector2.from_angle(ang) * length, ang, PX, col)
-	_spr_rot("fx_laser_start", fr, from, ang, PX, col)
-
-
-## 旋转绘制帧条（锚点为帧中心，朝右绘制的素材按 ang 旋转）
 func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
 	var tx: Texture2D = tex.get(name)
 	if tx == null:
@@ -3893,31 +3826,18 @@ func _draw() -> void:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		draw_circle(dr.pos, 20.0, Color(0.4, 1.2, 1.6, 0.18))
-		# Codex 美术 V5：子弹型 / 激光型 / 导弹型，4 帧（0-1 悬浮，2 发射，3 回稳）
-		var dlv: int = weapons.get("drone", 1)
-		var dkey: String = "drone_bullet" if dlv == 1 else ("drone_laser" if dlv == 2 else "drone_missile")
-		if tex.get(dkey) != null:
-			var dfr := int(t * 6.0) % 2
-			var ft: float = dr.get("fire_t", 0.0)
-			if ft > 0.0:
-				dfr = 2 if ft > 0.12 else 3
-			_spr(dkey, 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0)
+		draw_circle(dr.pos, 20.0, Color(0.5, 1.4, 0.8, 0.16))
+		# Codex 美术 V5 的激光型机体（4 帧：0-1 悬浮，2-3 发射）染成医疗绿；治疗瞬间用发射帧
+		var dfr := int(t * 6.0) % 2
+		if dr.get("beam", 0.0) > 0.2:
+			dfr = 2
+		elif dr.get("beam", 0.0) > 0.0:
+			dfr = 3
+		if tex.get("drone_laser") != null:
+			_spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
 		elif tex.get("drone") != null:
-			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.6, 1.6, 1.7))
-		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.5, 2.6, 2.8, 0.6 + 0.3 * sin(t * 8.0)))
-		if dr.get("beam", 0.0) > 0.0:
-			var ba: float = clampf(dr.beam / 0.15, 0.0, 1.0) * clampf((LASER_DUR - dr.beam) / 0.08, 0.3, 1.0)
-			var fl := 0.85 + 0.15 * sin(t * 60.0)
-			var a0: Vector2 = dr.pos + Vector2(0, 4)
-			var b0: Vector2 = a0 + Vector2.from_angle(dr.beam_ang) * LASER_LEN
-			draw_line(a0, b0, Color(0.4, 1.6, 2.2, 0.28 * ba), 16.0 * fl)
-			if tex.get("fx_laser_mid") != null:
-				_draw_laser_art(a0, dr.beam_ang, LASER_LEN, ba)
-			else:
-				draw_line(a0, b0, Color(0.8, 2.4, 2.8, 0.8 * ba), 6.0 * fl)
-				draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
-				draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
+			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.2, 1.7, 1.4))
+		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(t * 8.0)))
 	var jf := int(t * 6.0) % 2
 	for b in bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
@@ -3935,8 +3855,6 @@ func _draw() -> void:
 					draw_circle(b.pos, 14.0, Color(1.4, 0.6, 2.2, 0.2))
 				"arcane":
 					draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
-				"dbullet":
-					draw_line(b.pos - n * 14.0, b.pos, Color(1.2, 2.4, 2.6, 0.4), 2.0)
 				"tide":
 					draw_circle(b.pos, 11.0, Color(0.5, 1.2, 2.0, 0.2))
 			_spr_rot(ptex, pfr, b.pos, b.vel.angle(), PX)
@@ -3954,14 +3872,6 @@ func _draw() -> void:
 				draw_line(b.pos - n * 18.0, b.pos, Color(1.4, 0.6, 2.2, 0.4), 4.0)
 				draw_circle(b.pos, 8.0, Color(1.2, 0.5, 2.0, 0.35))
 				UI.diamond(self, b.pos, 5.0, Color(1.8, 1.0, 2.6), Color(2.2, 1.6, 2.8))
-			"dbullet":
-				draw_line(b.pos - n * 10.0, b.pos + n * 3.0, Color(1.2, 2.4, 2.6), 2.5)
-			"missile":
-				draw_set_transform(b.pos, b.vel.angle(), Vector2.ONE)
-				draw_rect(Rect2(-7, -2.5, 12, 5), Color(0.75, 0.8, 0.9))
-				draw_colored_polygon(PackedVector2Array([Vector2(5, -2.5), Vector2(9, 0), Vector2(5, 2.5)]), Color(1.0, 0.4, 0.3))
-				draw_circle(Vector2(-8, 0), 3.0 + sin(t * 50.0), Color(2.5, 1.6, 0.6))
-				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"tide":
 				draw_circle(b.pos, 10.0, Color(0.5, 1.2, 2.0, 0.25))
 				draw_circle(b.pos, 6.0, Color(0.7, 1.5, 2.2, 0.9))
@@ -4020,12 +3930,6 @@ func _draw() -> void:
 				var c: Color = f.col
 				draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.35 * a), f.w * 3.0)
 				draw_line(f.a, f.b, Color(2.5, 2.5, 2.5, a), f.w * 0.6)
-			"laser":
-				# 无人机激光
-				draw_line(f.a, f.b, Color(0.4, 1.6, 2.2, 0.3 * a), 18.0 * a + 2.0)
-				draw_line(f.a, f.b, Color(0.8, 2.4, 2.8, 0.8 * a), 6.0 * a + 1.0)
-				draw_line(f.a, f.b, Color(3.0, 3.0, 3.0, a), 2.0)
-				draw_circle(f.a, 7.0 * a + 2.0, Color(2.0, 2.8, 3.0, a))
 			"rift":
 				# 地面裂隙（触手 / 巨触出现前的预警）
 				var k := 1.0 - a
@@ -5095,9 +4999,9 @@ const INTRO_PAGES := [
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。第一次拿到新技能或进阶时会有演示。",
-		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv19 镜花水月 → Lv20 精英化二（质变）。进阶让技能改变形态，而不只是数字变大。",
-		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。按 Tab 随时查看属性、技能与藏品效果。"]},
+		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，Lv.5 起会出现招募卡，偶尔出现医疗无人机升级。第一次拿到新技能或进阶时会有演示。",
+		"每名干员招募即有一技能，精英化一解锁二技能与天赋，精英化二解锁三技能。三个技能全部自动释放，先练谁、练到几精是这一局的核心取舍。",
+		"编队最多 3 名常规干员（开局 1 名 + 局内招募 2 名）。开局自带一架医疗无人机，全输出编队也有保底回复。按 Tab 随时查看博士属性、编队与藏品效果。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
 		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。补给箱也会定期在地图上出现（屏幕边缘有指示）。",
 		"小心伪装成宝箱的箱形恐鱼 —— 它现形扑来时会造成伤害，但击败后掉落大量源石锭。",
@@ -5417,7 +5321,7 @@ func _draw_stats(vs: Vector2) -> void:
 			UI.text(hud, font, Vector2(ax2, y + 12), "已满", 11, UI.GOLD)
 		y += 30
 	y += 6
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "武器", 13, UI.SUB)
+	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "支援", 13, UI.SUB)
 	var ax2: float = b2.position.x + 90
 	if weapons.is_empty():
 		UI.text(hud, font, Vector2(ax2, y + 12), "暂无", 13, UI.SUB)

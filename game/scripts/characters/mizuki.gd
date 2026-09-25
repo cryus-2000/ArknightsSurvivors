@@ -111,7 +111,6 @@ func update(dt: float) -> void:
 			_umbrella(targets[0])
 		else:
 			swing_cd = 0.1
-	g._update_weapons(dt)
 
 
 func skill_active_left(i: int) -> float:
