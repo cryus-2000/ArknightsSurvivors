@@ -5676,7 +5676,7 @@ func _draw_squad_hud(br: Vector2) -> void:
 			var fw := at.get_width() / int(pt.frames)
 			var ks: float = 34.0 / at.get_height()
 			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, c + Vector2(-SQ_COL_W / 2.0, 41), o.display_name().substr(0, 3), 11, UI.TEXT if o == ch else Color(0.75, 0.85, 0.9), HORIZONTAL_ALIGNMENT_CENTER, SQ_COL_W, 2)
+		UI.text(hud, font, c + Vector2(-SQ_COL_W / 2.0, 41), o.display_name().substr(0, 4), 11, UI.TEXT if o == ch else Color(0.75, 0.85, 0.9), HORIZONTAL_ALIGNMENT_CENTER, SQ_COL_W, 2)
 		UI.text(hud, font, c + Vector2(14, -14), ["零", "一", "二"][o.elite], 11, ocol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
 		if o == ch:
 			UI.diamond(hud, c + Vector2(-26, -20), 3.5, ocol)
