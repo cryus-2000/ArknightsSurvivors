@@ -11,8 +11,8 @@
  "script": "res://scripts/characters/suzuran.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 16,
-  "cd": 1.2,
+  "atk": 20,
+  "cd": 1.0,
   "range": 380,
   "shots": 2,
   "aura": 85,

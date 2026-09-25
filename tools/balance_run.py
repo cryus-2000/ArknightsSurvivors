@@ -110,8 +110,10 @@ def summarize(records):
             for o in d.get("ops", []):
                 elites.append((o["id"], o.get("elite", 0)))
         e2 = sum(1 for _, e in elites if e >= 2)
+        floor = [d.get("floor_hits", 0) for d in ok]
         rows.append({
-            "squad": key, "n": len(ok), "win": wins / len(ok),
+            "squad": key, "n": len(ok), "win": wins / len(ok), "floor": statistics.mean(floor),
+            "floor_first": statistics.mean([d["floor_times"][0] for d in ok if d.get("floor_times")]) if any(d.get("floor_times") for d in ok) else None,
             "t_mean": statistics.mean(ts), "t_min": min(ts),
             "lv2": mark("120"), "lv5": mark("300"), "lv8": mark("480"), "lv_end": statistics.mean(lv),
             "boss_hp": statistics.mean(boss_hp) if boss_hp else None,
@@ -124,15 +126,16 @@ def summarize(records):
 
 
 def table(rows):
-    lines = ["| 编队 | n | 胜率 | 存活(均/最短) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 主要死因 |",
-             "|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 主要死因 |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         if "error" in r:
-            lines.append("| %s | %d | 失败: %s | | | | | | | | |" % (r["squad"], r["n"], r["error"]))
+            lines.append("| %s | %d | 失败: %s | | | | | | | | | |" % (r["squad"], r["n"], r["error"]))
             continue
         top = " ".join("%s %d%%" % (k, v * 100) for k, v in r["top"][:4])
-        lines.append("| %s | %d | %d%% | %s / %s | %.0f / %.0f / %.0f / %.0f | %s | %d%% | %.0f | %.0f | %s | %s |" % (
+        lines.append("| %s | %d | %d%% | %s / %s | %.1f / %s | %.0f / %.0f / %.0f / %.0f | %s | %d%% | %.0f | %.0f | %s | %s |" % (
             r["squad"], r["n"], r["win"] * 100, fmt_t(r["t_mean"]), fmt_t(r["t_min"]),
+            r["floor"], fmt_t(r["floor_first"]) if r["floor_first"] is not None else "-",
             r["lv2"], r["lv5"], r["lv8"], r["lv_end"],
             ("%d%%" % (r["boss_hp"] * 100)) if r["boss_hp"] is not None else "-",
             r["e2_share"] * 100, r["lamp"], r["kills"], top, r["killer"]))

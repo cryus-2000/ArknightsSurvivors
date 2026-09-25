@@ -309,6 +309,8 @@ var shot_at := [3400]
 var shot_dir := "/tmp/claude-0"     # 自测截图目录（--shotdir= 覆盖，Windows 本地用）
 var choice_wait := 0
 var choice_shot := false
+var floor_hits := 0            # --nodeath：生命归零被托住的次数
+var floor_times: Array = []
 
 # ---------- 图鉴演示（gallery.gd 把本场景放进 SubViewport，demo_op 为要演示的干员 id）----------
 # 不刷怪、不掉落、不升级、没有 HUD 与音乐；博士站定，几只假人海嗣在旁边挨打并循环重生
@@ -840,11 +842,12 @@ func _autotest_step() -> void:
 							if kv.size() == 2 and (kv[0] == evid or kv[0] == "default") and (kv[0] != "default" or not spec.contains(evid + ":")):
 								pi = mini(int(kv[1]), choices.size() - 1)
 			_pick(pi)
-		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
+		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
+		if (state == S.DEAD or state == S.WIN or t > 780.0) and not bal_done:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -1202,6 +1205,9 @@ func _update(dt: float) -> void:
 		if t - hl0.t < 20.0:
 			hl0.minhp = minf(hl0.minhp, hp)
 	if balance and OS.get_cmdline_user_args().has("--nodeath"):
+		if hp <= 0.0:
+			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
+			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
@@ -1235,6 +1241,22 @@ func _bot_move() -> Vector2:
 		var danger: float = 48.0 + e.r
 		if l < danger and l > 0.01:
 			push += d / l * (danger - l) / danger * (3.0 if (e.elite or e.boss) else 1.0)
+		# 远程怪：像真人一样不站在它射程里干等（保持在它射程外沿）
+		if e.ai == "ranged" and not e.boss and l > 0.01 and l < e.range + 20.0:
+			push += d / l * 0.6
+	# 低血量：远离敌群重心，先活下来再打
+	if hp < max_hp * 0.5:
+		var cen := Vector2.ZERO
+		var cn := 0
+		for j in _query(ppos, 320.0):
+			var e2: Dictionary = enemies[j]
+			if not e2.dead:
+				cen += e2.pos
+				cn += 1
+		if cn > 0:
+			var away: Vector2 = ppos - cen / cn
+			if away.length() > 1.0:
+				push += away.normalized() * (1.6 if hp < max_hp * 0.3 else 0.9)
 	# 躲开招式预警、溟痕与敌方弹幕（让自测更接近真人）
 	for w in warns:
 		if w.done:
@@ -1255,10 +1277,20 @@ func _bot_move() -> Vector2:
 		if dm.length() < m.r + 24.0:
 			push += dm.normalized() * 2.0
 	for bl in ebullets:
-		if bl.life > 0.0 and bl.pos.distance_to(ppos) < 90.0:
-			var toward: Vector2 = (ppos - bl.pos)
-			if bl.vel.dot(toward) > 0.0:
-				push += bl.vel.normalized().orthogonal() * 0.5 * (1.0 if int(bl.pos.x) % 2 == 0 else -1.0)
+		if bl.life <= 0.0 or bl.pos.distance_to(ppos) > 170.0:
+			continue
+		var toward: Vector2 = (ppos - bl.pos)
+		if bl.vel.dot(toward) <= 0.0:
+			continue
+		# 只躲会打到自己的子弹：算它的直线路径离自己多近，往远离路径的一侧闪
+		var vdir: Vector2 = bl.vel.normalized()
+		var along: float = toward.dot(vdir)
+		var side: Vector2 = toward - vdir * along
+		var miss: float = side.length()
+		if miss < bl.r + 40.0:
+			var sdir: Vector2 = side.normalized() if miss > 1.0 else vdir.orthogonal()
+			var urgency: float = clampf(1.0 - along / 170.0, 0.3, 1.0)
+			push += sdir * 1.6 * urgency
 	var pull := Vector2.ZERO
 	var best := 260.0
 	for g in gems:
@@ -1447,7 +1479,7 @@ func _spawn(dt: float) -> void:
 		fx.append({"kind": "horde_ring", "pos": ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
-		var n := int((24 + int(t / 9.0)) * horde_mult * (1.4 if diff >= 7 else 1.0))
+		var n := int((Bal.v("enemy/horde_base", 24.0) + int(t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * (1.4 if diff >= 7 else 1.0))
 		if horde_chest:
 			_drop(ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
@@ -1871,12 +1903,12 @@ func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := 
 			dmg *= o.dmg_taken_mult()
 	_hurt(dmg * (1.15 if lamp < 30.0 else 1.0), ignore_armor)
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (4.0 + 30.0 * dmg / max_hp) * lamp_decay
+	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / max_hp) * lamp_decay
 	lamp = maxf(0.0, lamp - lamp_loss)
 	if lamp_loss >= 6.0:
 		_add_text(ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
-		corrode_pool += dmg * src.corrode * 2.0
+		corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0)
 		_add_text(ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
 		_add_nerve(src.nerve)
