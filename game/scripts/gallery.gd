@@ -64,6 +64,11 @@ var tab_rects: Array = []
 var tile_rects: Array = []
 var form_rects: Array = []
 var close_rect := Rect2()
+## 攻击演示：把 game.tscn 以 demo_op 模式放进 SubViewport，在展示台位置画出来（见 game.gd _demo_step）
+var demo_vp: SubViewport
+var demo_game: Node
+var demo_id := ""
+const DEMO_H := 290
 
 
 func _ready() -> void:
@@ -88,7 +93,34 @@ func open() -> void:
 
 func close() -> void:
 	visible = false
+	_demo_stop()
 	Sfx.play("ui_ok")
+
+
+## 启动 / 切换演示：同一干员不重建
+func _demo_start(cid: String, sz: Vector2i) -> void:
+	if demo_id == cid and demo_vp != null:
+		if demo_vp.size != sz:
+			demo_vp.size = sz
+		return
+	_demo_stop()
+	demo_vp = SubViewport.new()
+	demo_vp.size = sz
+	demo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	demo_vp.handle_input_locally = false
+	add_child(demo_vp)
+	demo_game = load("res://game.tscn").instantiate()
+	demo_game.demo_op = cid
+	demo_vp.add_child(demo_game)
+	demo_id = cid
+
+
+func _demo_stop() -> void:
+	if demo_vp != null:
+		demo_vp.queue_free()
+	demo_vp = null
+	demo_game = null
+	demo_id = ""
 
 
 func _process(delta: float) -> void:
@@ -180,6 +212,8 @@ func _build() -> void:
 						forms.append(_anim(kind[0], v, kind[2], kind[1] != "death"))
 					else:
 						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2]))))
+				# 攻击演示：实机跑一段（弹道 / 命中 / 技能都是战斗里的真实效果）
+				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 				var mech: String = cd.get("gallery", {}).get("desc", "")
 				var lines: Array = []
 				if cd.has("skill"):
@@ -430,16 +464,28 @@ func _draw_detail(vs: Vector2) -> void:
 	var locked: bool = e.get("locked", false)
 	var pr := Rect2(640, 150, vs.x - 700, vs.y - 200)
 	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN, 71, t)
-	# 展示台
-	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, 290))
-	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)
-	draw_circle(base + Vector2(0, -90), 120.0, Color(0.3, 0.8, 0.9, 0.05))
-	draw_set_transform(base, 0.0, Vector2(1.0, 0.3))
-	draw_circle(Vector2.ZERO, 80.0, Color(0.3, 0.8, 0.9, 0.12))
-	draw_arc(Vector2.ZERO, 80.0, 0.0, TAU, 40, Color(0.3, 0.9, 0.9, 0.5), 2.0)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	form = clampi(form, 0, e.forms.size() - 1)
 	var f: Dictionary = e.forms[form]
+	var demo: bool = f.has("demo") and not locked
+	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）
+	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H))
+	if demo:
+		var dr := Rect2(box.position, Vector2(pr.size.x - 40, DEMO_H))
+		_demo_start(f.demo, Vector2i(dr.size))
+		if demo_vp != null:
+			draw_texture_rect(demo_vp.get_texture(), dr, false)
+		draw_rect(dr, Color(0.3, 0.9, 0.9, 0.5), false, 1.0)
+		UI.en(self, font, dr.position + Vector2(12, 20), e.en, 11, UI.CYAN, 3.0)
+		UI.text(self, font, dr.position + Vector2(12, 44), "%s · 攻击演示" % e.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	else:
+		_demo_stop()
+	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)
+	if not demo:
+		draw_circle(base + Vector2(0, -90), 120.0, Color(0.3, 0.8, 0.9, 0.05))
+		draw_set_transform(base, 0.0, Vector2(1.0, 0.3))
+		draw_circle(Vector2.ZERO, 80.0, Color(0.3, 0.8, 0.9, 0.12))
+		draw_arc(Vector2.ZERO, 80.0, 0.0, TAU, 40, Color(0.3, 0.9, 0.9, 0.5), 2.0)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if f.tex != null:
 		var fr := int(form_t * f.fps)
 		fr = fr % f.frames if f.loop else mini(fr, f.frames - 1)
@@ -461,12 +507,13 @@ func _draw_detail(vs: Vector2) -> void:
 	# 文字
 	var tx := pr.position.x + 300
 	var tw := pr.end.x - tx - 20
-	UI.en(self, font, Vector2(tx, pr.position.y + 40), e.en if not locked else "UNKNOWN", 11, UI.CYAN_DIM, 3.0)
-	UI.text(self, font, Vector2(tx, pr.position.y + 76), e.name if not locked else "???", 26, UI.TEXT)
-	draw_rect(Rect2(Vector2(tx, pr.position.y + 92), Vector2(4, 16)), UI.CYAN)
-	UI.text(self, font, Vector2(tx + 12, pr.position.y + 106), e.tag, 14, UI.CYAN)
 	var y := pr.position.y + 140
-	if not locked:
+	if not demo:
+		UI.en(self, font, Vector2(tx, pr.position.y + 40), e.en if not locked else "UNKNOWN", 11, UI.CYAN_DIM, 3.0)
+		UI.text(self, font, Vector2(tx, pr.position.y + 76), e.name if not locked else "???", 26, UI.TEXT)
+		draw_rect(Rect2(Vector2(tx, pr.position.y + 92), Vector2(4, 16)), UI.CYAN)
+		UI.text(self, font, Vector2(tx + 12, pr.position.y + 106), e.tag, 14, UI.CYAN)
+	if not locked and not demo:
 		for s in e.stats:
 			UI.text(self, font, Vector2(tx, y), s[0], 14, UI.SUB)
 			UI.text(self, font, Vector2(tx + 60, y), s[1], 15, UI.TEXT)
