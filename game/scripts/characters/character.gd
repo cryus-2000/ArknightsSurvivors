@@ -17,6 +17,9 @@ var mv := 0.0              # 平滑后的移动速度（切换跑步动画用）
 var mt := 0.0              # 移动计时（跑步循环）
 var slot := 0              # 编队位序号
 var is_leader := false     # 主控干员（玩家操控、唯一受击体，docs/23 v0.7）
+var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
+const NODE_ATK := 0.06
+var aura_t := 0.0
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
@@ -284,6 +287,16 @@ func fx(f: Dictionary) -> void:
 
 
 func _tick_pfx(dt: float) -> void:
+	# 气场：节点数 / 精英阶段越高，身上升起的职业色光点越密、越亮（精零无节点时没有）
+	var power: int = node_lv + elite * 2
+	if power > 0 and pos != Vector2.INF:
+		aura_t -= dt
+		if aura_t <= 0.0:
+			aura_t = 0.5 / float(power)
+			var c: Color = col().lerp(Color.WHITE, 0.25)
+			var br: float = 1.0 + 0.12 * power
+			fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-14, 14), g.rng.randf_range(-40, -6)), "vel": Vector2(g.rng.randf_range(-6, 6), -30.0 - 3.0 * power),
+				"life": 0.6 + 0.05 * power, "col": Color(c.r * br, c.g * br, c.b * br), "sz": 1.6 + 0.15 * power})
 	if pfx.is_empty():
 		return
 	for f in pfx:
@@ -453,6 +466,7 @@ func _draw_pfx(_f: Dictionary, _a: float) -> bool:
 
 ## 一圈火花
 func fx_sparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))   # 节点越多火花越多（每节点 +20%）
 	for k in n:
 		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(spd * 0.4, spd), "life": life * g.rng.randf_range(0.7, 1.2),
 			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})
@@ -580,6 +594,15 @@ func advance(choice: String = "") -> void:
 			_elite_show(elite)
 		"custom":
 			on_custom_node(n.get("id", ""), choice)
+	# 每个普通节点的统一小强化（docs/25 §5.1 第 9 条）：攻击 +6%；气场与命中火花随节点数增强
+	if n.type != "elite":
+		node_lv += 1
+		g.stats.add(&"op_atk", "add", NODE_ATK, "node:%s:%d" % [id, prog], "op:" + id)
+		g._sync_stats()
+		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
+		if pos != Vector2.INF:
+			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0})
+			fx_sparks(pos + Vector2(0, -24), col().lerp(Color.WHITE, 0.4), 12, 180.0, 0.5, 3.0, -120.0)
 	if n.has("banner"):
 		g._show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)
 
