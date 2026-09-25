@@ -1,0 +1,62 @@
+[
+  {
+    "sha256": "909E47A8CC16F2371EBEE529A868A87ADF3D4B6C73FC30C54628244F51558A2D",
+    "source": "https://wiki.biligame.com/arknights/流明",
+    "retrieved_at": "2026-09-25",
+    "character": "lumen",
+    "weapon_approved": true,
+    "standing_art_approved": true,
+    "notes": "旅行包、折伞与小提灯；无长灯杖",
+    "file": "E:\\水月\\reference_cache\\batch4\\lumen.png",
+    "version": "default",
+    "approval_note": "2026-09-25 用户确认五套原皮及图示装备：可以，然后把反馈也写给claude"
+  },
+  {
+    "sha256": "7033A15CCA2C69DAF40EB7083850798727728B9FA63163E657181146C05E84D4",
+    "source": "https://wiki.biligame.com/arknights/艾丽妮",
+    "retrieved_at": "2026-09-25",
+    "character": "irene",
+    "weapon_approved": true,
+    "standing_art_approved": true,
+    "notes": "提灯、细剑与腰间枪械",
+    "file": "E:\\水月\\reference_cache\\batch4\\irene.png",
+    "version": "default",
+    "approval_note": "2026-09-25 用户确认五套原皮及图示装备：可以，然后把反馈也写给claude"
+  },
+  {
+    "sha256": "FE88F85AC90FFAE8C4F395D7DC0BEB4A14DF416937B4197257039340C81015CC",
+    "source": "https://www.9game.cn/mrfz/10166371.html",
+    "retrieved_at": "2026-09-25",
+    "character": "ulpianus",
+    "weapon_approved": true,
+    "standing_art_approved": true,
+    "notes": "巨锚与锁链",
+    "file": "E:\\水月\\reference_cache\\batch4\\ulpianus.jpg",
+    "version": "default",
+    "approval_note": "2026-09-25 用户确认五套原皮及图示装备：可以，然后把反馈也写给claude"
+  },
+  {
+    "sha256": "647BC59418EC5910F20ABF4E84F9256D031954EE248DF467DE1A541A8103BD79",
+    "source": "https://arknights.wiki.gg/wiki/Logos",
+    "retrieved_at": "2026-09-25",
+    "character": "logos",
+    "weapon_approved": true,
+    "standing_art_approved": true,
+    "notes": "细长笔状道具；无大法杖或书",
+    "file": "E:\\水月\\reference_cache\\batch4\\logos.png",
+    "version": "default",
+    "approval_note": "2026-09-25 用户确认五套原皮及图示装备：可以，然后把反馈也写给claude"
+  },
+  {
+    "sha256": "A1B0452DCB582ADC69385060371A4028A1377A7DBBF5CE7F692F6EEF027E5AE2",
+    "source": "https://wiki.biligame.com/arknights/归溟幽灵鲨",
+    "retrieved_at": "2026-09-25",
+    "character": "specter_unchained",
+    "weapon_approved": true,
+    "standing_art_approved": true,
+    "notes": "长柄圆锯及齿轮结构",
+    "file": "E:\\水月\\reference_cache\\batch4\\specter_unchained.png",
+    "version": "default",
+    "approval_note": "2026-09-25 用户确认五套原皮及图示装备：可以，然后把反馈也写给claude"
+  }
+]
