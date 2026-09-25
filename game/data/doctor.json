@@ -3,9 +3,15 @@
  "name": "博士",
  "en": "DOCTOR",
  "sprites": {
-  "idle": "doctor",
+  "idle": "doctor_idle",
+  "run": "doctor_run",
+  "hurt": "doctor_hurt",
+  "death": "doctor_death",
   "size": 48,
-  "foot": [24, 45]
+  "foot": [
+   24,
+   46
+  ]
  },
  "stats": {
   "max_hp": 100,

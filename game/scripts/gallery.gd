@@ -111,6 +111,19 @@ func _anim_n(label: String, name: String, frames: int, fps: float) -> Dictionary
 	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": true}
 
 
+## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
+func _doctor_forms(dd: Dictionary) -> Array:
+	var sp: Dictionary = dd.get("sprites", {})
+	var out: Array = []
+	for kind in [["待机", "idle", 4, 4.0], ["跑步", "run", 6, 10.0], ["受击", "hurt", 2, 10.0], ["倒下", "death", 4, 6.0]]:
+		var n = sp.get(kind[1], "")
+		if n is String and n != "" and A.tex(n) != null:
+			out.append(_anim_n(kind[0], n, kind[2], kind[3]))
+	if out.is_empty():
+		out.append(_anim_n("待机", "doctor", 2, 2.0))
+	return out
+
+
 func _build() -> void:
 	entries.clear()
 	match tab:
@@ -124,7 +137,7 @@ func _build() -> void:
 				if dj is Dictionary:
 					dd = dj
 			var ds: Dictionary = dd.get("stats", {})
-			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 唯一受击体", "forms": [_anim_n("待机", "doctor", 2, 2.0)],
+			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 唯一受击体", "forms": _doctor_forms(dd),
 				"stats": [["生命", str(int(ds.get("max_hp", 100)))], ["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
 					["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 				"chips": ["移动", "受击", "拾取", "指挥"], "desc": _lore_text("doctor", "博士是场上唯一会受伤的人：用 WASD 走位、拉怪、躲弹幕、抢掉落；干员们跟在身边自动输出，不会倒下。")})
@@ -158,7 +171,8 @@ func _build() -> void:
 							parts.append("博士被动「%s」" % Doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
 						st.append(["精%s条件" % ["", "一", "二"][int(n.level)], "、".join(parts)])
 				var forms: Array = []
-				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
+				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0],
+						["Mon3tr", "m_idle", 4.0], ["爪击", "m_attack", 14.0]]:
 					if not sp.has(kind[1]):
 						continue
 					var v = sp[kind[1]]

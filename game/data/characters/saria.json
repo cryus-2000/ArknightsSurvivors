@@ -1,0 +1,162 @@
+{
+ "id": "saria",
+ "name": "塞雷娅",
+ "en": "SARIA",
+ "class": "重装",
+ "script": "res://scripts/characters/saria.gd",
+ "sprites": {
+  "idle": {
+   "tex": "op_saria_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_saria_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_saria_attack",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_saria_skill",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "盾击",
+  "desc": "阻挡圈：贴近博士的敌人被推开并减速；用盾击退身前的敌人（物理）"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "钙质化",
+  "sp": 16,
+  "desc": "技力充满时举盾：博士获得 2 层护盾并回复 5% 生命"
+ },
+ "talent": {
+  "name": "坚守",
+  "desc": "精英化一解锁：博士受到的伤害 -12%"
+ },
+ "hit_sources": {
+  "盾击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "control"
+   ]
+  },
+  "阻挡": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "control",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "盾击 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "阻挡 · 广",
+   "desc": "阻挡圈与盾击范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「坚守」：博士受到伤害 -12%"
+  },
+  {
+   "type": "stat",
+   "name": "钙质化 · 频",
+   "desc": "技能充能 +20%",
+   "effects": [
+    {
+     "key": "op_skill_sp",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "盾击 · 锐",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "钙质化护盾 2 → 3 层并震开周围敌人；阻挡圈每秒对圈内敌人造成伤害",
+   "requires": {
+    "class_in_squad": "医疗"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "护博士",
+   "护盾",
+   "推开"
+  ],
+  "desc": "阻挡圈推开贴身的敌人，技能为博士加护盾"
+ }
+}

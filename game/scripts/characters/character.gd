@@ -21,7 +21,8 @@ var prog := 0              # 已应用的成长节点数（progression 数组下
 var sp := 0.0              # 自动技能充能
 var attack_t := 0.0        # >0 表示正在播放攻击动作（由干员在出手时设置）
 var attack_dur := 0.25
-var fire_t := -1.0         # 出手帧倒计时（start_attack 后到点调用 _release）
+var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
+var act_kind := "attack"   # 当前动作条：attack / skill
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
 var anim_kind := ""
 var anim_t := 0.0
@@ -415,6 +416,7 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		return
 	var prev: Vector2 = pos
+	target = follow_target(target)
 	var d: float = pos.distance_to(target)
 	var k: float = clampf(dt * (3.0 if d < 20.0 else 6.0), 0.0, 1.0)
 	pos = pos.lerp(target, k)
@@ -432,12 +434,15 @@ func follow(dt: float, target: Vector2) -> void:
 		fire_t -= dt
 		if fire_t < 0.0:
 			fire_t = -1.0
-			_release()
+			if act_kind == "skill":
+				_release_skill()
+			else:
+				_release()
 	mt += dt
 	# 动画状态
 	var want := "idle"
-	if attack_t > 0.0 and anim_tex("attack") != null:
-		want = "attack"
+	if attack_t > 0.0 and anim_tex(act_kind) != null:
+		want = act_kind
 	elif mv > 30.0 and anim_tex("run") != null:
 		want = "run"
 	if want != anim_kind:
@@ -447,20 +452,106 @@ func follow(dt: float, target: Vector2) -> void:
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手
+## 贴图槽带 fps + fire（出手帧，零基）时，时长与出手时刻按帧条算，dur / fire_at 参数被忽略（docs/24 §1）
 func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25) -> void:
-	if absf(aim.x - pos.x) > 2.0:
+	_start_action("attack", aim, dur, fire_at)
+
+
+## 起手技能动作（skill 帧条）；没有 skill 条时直接出手
+func start_skill(aim: Vector2, dur: float = 0.6, fire_at: float = 0.3) -> void:
+	_start_action("skill", aim, dur, fire_at)
+
+
+func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float) -> void:
+	if aim != Vector2.INF and absf(aim.x - pos.x) > 2.0:
 		face = signf(aim.x - pos.x)
-	if anim_tex("attack") == null:
-		_release()
+	act_kind = kind
+	if anim_tex(kind) == null:
+		if kind == "skill":
+			_release_skill()
+		else:
+			_release()
 		return
+	var spec := sprite_spec(kind)
+	if spec.has("fps") and spec.has("fire"):
+		var n := float(spec.get("frames", anim_hframes(anim_tex(kind), kind)))
+		dur = n / float(spec.fps)
+		fire_at = (float(spec.fire) + 0.5) / float(spec.fps)
+	# 攻速快于动作时压缩动作，保证出手不被下一次起手打断
 	attack_dur = dur
 	attack_t = dur
 	fire_t = fire_at
+	anim_kind = ""
 
 
 ## 出手（到出手帧时调用；重新找目标，动作期间原目标可能已死）
 func _release() -> void:
 	pass
+
+
+## 技能出手帧
+func _release_skill() -> void:
+	pass
+
+
+## 是否正在播放动作（攻击 / 技能），用于避免打断
+func acting() -> bool:
+	return attack_t > 0.0
+
+
+## 跟随目标点：默认是编队位；近战干员可以改成"前压到敌人身边"（离博士不超过 leash）
+func follow_target(slot_pos: Vector2) -> Vector2:
+	return slot_pos
+
+
+## 近战前压：博士 leash 范围内最近的敌人；返回站位点（敌人身前 gap 处）或 INF
+func melee_spot(leash: float, gap: float) -> Vector2:
+	var ts: Array = g._nearest(1, leash, g.ppos)
+	if ts.is_empty():
+		return Vector2.INF
+	var e: Dictionary = ts[0]
+	var d: Vector2 = pos - e.pos
+	if d.length() < 1.0:
+		d = Vector2(-face, 0)
+	return e.pos + d.normalized() * (gap + e.r)
+
+
+## 召唤物等附属实体：参与 2.5D 排序的条目 [{"y": 脚底 y, …}]，由 draw_extra 绘制
+func extra_bodies() -> Array:
+	return []
+
+
+func draw_extra(_it: Dictionary) -> void:
+	pass
+
+
+func draw_extra_shadows() -> void:
+	pass
+
+
+## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人
+func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
+	var hits: Array = g._arc_hit(origin, ang, half, radius)
+	for e in hits:
+		g._hit(src, tags)
+		g._damage(e, dmg)
+		if e.dead or e.boss:
+			continue
+		if kb > 0.0:
+			e.kb += (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0)
+		if stun > 0.0:
+			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+	return hits
+
+
+## 圆形范围伤害（技能 / 爆炸）：返回命中的敌人
+func area_hit(src: String, c: Vector2, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
+	return melee_hit(src, c, 0.0, PI, radius, dmg, kb, stun, tags)
+
+
+## 技能强度倍率（全队被动「协同·锐」等）
+func skill_power() -> float:
+	return stat(&"op_skill_power")
 
 
 ## 干员面向某个方向（出手时由干员调用）
@@ -508,7 +599,7 @@ func anim_state() -> Dictionary:
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
 	match kind:
-		"attack":
+		"attack", "skill":
 			fr = clampi(int(anim_t / attack_dur * n), 0, n - 1)
 		_:
 			fr = int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n

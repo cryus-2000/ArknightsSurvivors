@@ -85,7 +85,7 @@ func _ready() -> void:
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
 			get_tree().create_timer(1.2).timeout.connect(func():
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery_ui.png")
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_gallery_ui.png")
 				get_tree().quit())
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
@@ -99,16 +99,16 @@ func _ready() -> void:
 		# 开场动画分镜截图：/tmp/claude-0/shot_intro_<n>.png
 		for i in [0.5, 1.2, 1.8, 2.3, 2.8, 3.6]:
 			get_tree().create_timer(i).timeout.connect(func():
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % int(i * 10)))
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(4.0).timeout.connect(func(): get_tree().quit())
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
 		get_tree().create_timer(1.0).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_settings.png")
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
 			get_tree().quit())
 	if OS.get_cmdline_user_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_title.png")
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
 	if OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance"):
 		get_tree().change_scene_to_file.call_deferred("res://game.tscn")
@@ -452,3 +452,11 @@ func _draw_credits(vs: Vector2) -> void:
 		y += heights[i]
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 44), credits_data.get("footer", ""), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 22), "按任意键返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
+## 自测截图目录：默认 /tmp/claude-0，--shotdir= 覆盖（Windows 本地用）
+func _shot_dir() -> String:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--shotdir="):
+			return a.substr(10)
+	return "/tmp/claude-0"

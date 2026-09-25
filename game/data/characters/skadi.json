@@ -1,0 +1,172 @@
+{
+ "id": "skadi",
+ "name": "斯卡蒂",
+ "en": "SKADI",
+ "class": "近卫",
+ "script": "res://scripts/characters/skadi.gd",
+ "sprites": {
+  "idle": {
+   "tex": "op_skadi_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_skadi_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_skadi_attack",
+   "frames": 5,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_skadi_skill",
+   "frames": 7,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "大剑",
+  "desc": "在博士身边高频横扫大剑（物理，扇形 160°）"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "重斩",
+  "sp": 10,
+  "desc": "技力充满时高举大剑下劈：前方 220° 半径 150 内 3 倍伤害并击退"
+ },
+ "talent": {
+  "name": "深海猎人",
+  "desc": "精英化一解锁：每第 3 次横扫追加一次反手斩（70%）"
+ },
+ "hit_sources": {
+  "大剑": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "重斩": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "反手斩": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "大剑 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "大剑 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「深海猎人」：每第 3 次横扫追加反手斩"
+  },
+  {
+   "type": "stat",
+   "name": "大剑 · 广",
+   "desc": "范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "大剑 · 锐",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "重斩范围 +20%，0.3 秒后第二次下劈（60%）",
+   "requires": {
+    "doctor_passive": "armor"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "范围",
+   "高频"
+  ],
+  "desc": "贴身高频横扫，技能大范围重斩"
+ }
+}

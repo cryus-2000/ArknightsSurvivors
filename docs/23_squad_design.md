@@ -323,11 +323,37 @@ scope ∈ "doctor" | "squad" | "class:<职业>" | "op:<id>"
 |---|---|---|
 | P1 | `05bdfcb` | `characters/doctor.gd` + `data/doctor.json`（博士层：基础属性、唯一手动入口、排异落到干员）；`characters/squad.gd`（编队位 3+1、招募 / 移除、契约校验、跟随队形、update / draw 分发）；`character.gd` 干员有 pos / face / 动画 / follow / draw_body；水月出手原点改为自身位置；玩家精灵改为博士 |
 | P2 | `c2ae032` | `stat_block` 作用域 `scope`（"" / doctor / squad 全局，class:<职业> / op:<id> 只对匹配干员生效，`value_for`）；`stat_defs` 干员层 `op_atk / op_aspd / op_range / op_skill_sp / op_skill_power`；干员契约 `validate_operator`（attack + skill 且 auto、progression 结构）；成长线 progression（stat / elite / custom、requires、elite 选项）；狙击 / 术师 / 医疗 / 辅助改为 Character 子类 + JSON；水月 attack / skill / talent / progression；图鉴干员页 |
-| P3 | 本次 | 升级池按 §6：Lv.2–4 只养开局干员、招募 Lv.5 起进池（45%）、保底 Lv.6 / Lv.12、精二门槛未满足不出卡、博士被动 / 全队被动各 4 种上限（`doctor.gd PASSIVES`）、填充卡；Tab 面板：博士标题 + 编队行（职业 / 精英化 / 成长点 / 下一步 / 精二条件）；HUD 编队栏；`--balance` 输出 `lv_times` 与各干员 elite / prog；test_core 新增 28 项（分层、契约、成长线） |
+| P3 | `790e466` | 升级池按 §6：Lv.2–4 只养开局干员、招募 Lv.5 起进池（45%）、保底 Lv.6 / Lv.12、精二门槛未满足不出卡、博士被动 / 全队被动各 4 种上限（`doctor.gd PASSIVES`）、填充卡；Tab 面板：博士标题 + 编队行（职业 / 精英化 / 成长点 / 下一步 / 精二条件）；HUD 编队栏；`--balance` 输出 `lv_times` 与各干员 elite / prog；test_core 新增 28 项（分层、契约、成长线） |
+| P4（干员） | 本次 | 首批 7 名干员接入 Codex 编队美术（第 1–3 批，`squad_batch*_manifest.json` 的帧数 / fps / 出手帧写进各自 JSON 的 `sprites`）：通用狙击 / 术师 / 医疗 / 辅助改名重写为维什戴尔 / 艾雅法拉 / 凯尔希（含 Mon3tr）/ 铃兰，新增推进之王（先锋）、斯卡蒂（近卫）、塞雷娅（重装）；博士 idle / run / hurt / death 四组动画。详见下方「P4 干员接入」 |
 
 数据约定（已落地）：
 - 干员 JSON：`class`、`attack{mode,name,desc}`、`skill{mode,name,desc,sp}`、`talent{name,desc}`、`progression[6]`（stat 节点 `effects[{key,op,value}]` 写入 `op:<id>` 作用域；elite 节点 `level` + 可选 `requires{relic,level,class_in_squad,doctor_passive}`；custom 节点交给 `on_custom_node`）、`sprites{idle,run,attack{tex,frames,foot,fps},…}`、`recruitable`。
 - 博士 / 全队被动在 `doctor.gd PASSIVES`（cat doctor / squad），`growth` 计数仍在 game.gd；水月专属成长（伞击 / 触手 / 路线）留在 `data.gd GROWTH`，作为她的追加深度卡。
 - 自动对局机器人 70% 偏好深度卡；3 局 Lv.29–33、1 胜——比单角色版弱，符合预期，一局拉到 15 分钟与重新平衡放 P5。
 
-未做 / 待办：博士指挥技能（`doctor.json command`，P4 与维什戴尔一起）；第 4 位解锁来源（`squad.extra_slot` 已留接口）；事件替换干员（`squad.remove`）；选人界面改为选开局干员；`test_core` 里「效果数据校验」失败来自结局藏品 221 / 222 / 242 的 on_gain 动作 `rejection / recruit_knight` 未登记到校验表（隔壁模块）。
+未做 / 待办：博士指挥技能（`doctor.json command`，P4 与维什戴尔一起）；第 4 位解锁来源（`squad.extra_slot` 已留接口）；事件替换干员（`squad.remove`）；选人界面改为选开局干员。（`test_core` 的效果数据校验已修：`rejection / recruit_knight` 登记进 `combat_core.GAME_ACTIONS`。）
+
+### P4 干员接入（2026-09-25）
+
+| 干员 | 职业 | 普攻 | 技能（SP） | 精一天赋 | 精二条件 |
+|---|---|---|---|---|---|
+| 推进之王 `siege` | 先锋 | 前压锤击（扇形，物理），命中全队技力 +0.5 秒 | 震地（12）：r110 ×2.2 晕眩，全队技力 +20% | 鼓舞：锤击回技力翻倍 | 编队中有近卫 |
+| 斯卡蒂 `skadi` | 近卫 | 前压横扫 160°（0.75 秒） | 重斩（10）：前方 220° r150 ×3 击退 | 深海猎人：每第 3 次追加反手斩 | 博士被动「硬化」 |
+| 塞雷娅 `saria` | 重装 | 阻挡圈（博士周围推开 + 减速）+ 盾击击退 | 钙质化（16）：博士护盾 +2 层、回复 5% | 坚守：博士受伤 -12% | 编队中有医疗 |
+| 维什戴尔 `wisadel` | 狙击 | 炮击（精英优先，落点爆炸 + 0.45 秒余震） | 饱和炮击（14）：5 发重炮 | 殉爆：击杀处再爆（40%） | 编队中有先锋 |
+| 艾雅法拉 `eyjafjalla` | 术师 | 火山弹（范围法伤） | 火山（16）：6 次喷发 + 3 秒熔岩 | 炽热：范围 +25%、点燃 | 博士被动「协同·技」 |
+| 凯尔希 `kaltsit` | 医疗 | 治疗博士；Mon3tr 撕咬博士身边的敌人 | Mon3tr·强化（16）：回复 12%，Mon3tr 狂暴 6 秒 | 指挥：治疗 +50%，Mon3tr 伤害 / 范围提升 | 博士被动「坚韧」 |
+| 铃兰 `suzuran` | 辅助 | 减速光域 + 追踪狐火 | 光域（12）：范围 +60%，其他干员攻击 +20% | 祈愿：光域内受伤 +10%，狐火 +1 | 编队中有狙击 |
+
+框架（都不认具体干员）：
+- `character.gd`：`start_attack / start_skill` 按贴图槽的 `frames / fps / fire` 计算动作时长与出手时刻，出手帧回调 `_release / _release_skill`；`follow_target()`（近战前压 `melee_spot()`、重装贴身）；`melee_hit / area_hit / skill_power`；附属实体 `extra_bodies / draw_extra / draw_extra_shadows`（Mon3tr 用，参与 2.5D 排序）。
+- 伤害描述符（契约 v2.0 §4.2）：`g.hit` 新增只读 `class / op`，由 `squad.add()` 登记干员 `hit_sources` 时写入；子弹可带 `src`（及 `on_hit` 回调）。藏品 169 扼喉之手改读 `class == 狙击`。
+- 编队 3 号位 (-6,-44) → (22,-46)，避免站在博士正后方被挡住。
+- 测试：`--squad=a,b` 开局直接编入干员；`--shotdir=` 覆盖截图目录（默认仍是 /tmp/claude-0）。
+
+自测（`--autotest --balance --nodeath`，每组 1 局，水月 + 2 名新干员）：7 人均无脚本错误；新干员输出占比 10–40%，已把 Mon3tr 基础伤害 28 → 22、殉爆 50% → 40%。数值只做了粗调，统一平衡放 P5。
+
+待做：
+- 特效（Claude）：艾雅法拉仍复用旧术师的紫色 `fx_fire_explode`，需要橙色熔岩系列；维什戴尔的炮弹 / 余震、锤击 / 大剑 / 盾击的专属刀光、Mon3tr 爪痕目前是程序绘制或复用旧 slash。
+- 美术（Codex）：可选 `doctor_command`；第 4 批（浊心斯卡蒂、精二外观）。
+- 选人界面改为选开局干员（另一会话）；目前开局仍是水月（`Cfg.character_id`），其余干员靠升级招募。

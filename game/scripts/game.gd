@@ -308,6 +308,7 @@ var lv_marks := {}
 var at_frames := 0
 var bosstest := false
 var shot_at := [3400]
+var shot_dir := "/tmp/claude-0"     # 自测截图目录（--shotdir= 覆盖，Windows 本地用）
 var choice_wait := 0
 var choice_shot := false
 
@@ -327,6 +328,11 @@ func _ready() -> void:
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
 	ch = squad.add(Cfg.character_id)
+	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
+	for kind in ["idle", "run", "hurt", "death"]:
+		var dn = doctor.def.get("sprites", {}).get(kind, "")
+		if dn is String and dn != "":
+			tex[dn] = A.tex(dn)
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	A.normal_maps = Cfg.normal_maps
 	rfx = RelicFx.new(self)
@@ -368,8 +374,8 @@ func _ready() -> void:
 	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
 	for o in squad.ops:
 		var sp: Dictionary = o.def.get("sprites", {})
-		for kind in ["idle", "run", "attack", "hurt", "death"]:
-			if sp.has(kind) and not tex.has(sp[kind]):
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death"]:
+			if sp.has(kind) and sp[kind] is String and not tex.has(sp[kind]):
 				tex[sp[kind]] = A.tex(sp[kind])
 		if sp.has("base"):
 			tex["player"] = A.tex(sp.base)
@@ -380,7 +386,7 @@ func _ready() -> void:
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "hurt", "death"]:
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
 			if csp.has(kind):
 				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 				if not tex.has(tn):
@@ -499,6 +505,8 @@ func _ready() -> void:
 		_start_opening.call_deferred()
 	balance = OS.get_cmdline_user_args().has("--balance")
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shotdir="):
+			shot_dir = arg.substr(10)
 		if arg.begins_with("--shots="):
 			shot_at = []
 			for v in arg.substr(8).split(","):
@@ -514,6 +522,11 @@ func _ready() -> void:
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			seed(int(a.substr(7)))
+		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
+		if a.begins_with("--squad="):
+			for cid in a.substr(8).split(","):
+				if squad.add(cid) != null:
+					_load_op_tex(cid)
 
 
 func _update_music(_dt: float) -> void:
@@ -588,7 +601,7 @@ func _gallery_step() -> void:
 				e.hp = e.maxhp * 0.5
 			e.kb = Vector2.ZERO
 	if at_frames == 90 and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery.png")
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_gallery.png")
 		get_tree().quit()
 
 
@@ -597,13 +610,13 @@ func _autotest_step() -> void:
 	at_frames += 1
 	if state == S.OPENING and OS.get_cmdline_user_args().has("--openshot"):
 		if at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_open_%03d.png" % at_frames)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_open_%03d.png" % at_frames)
 		if at_frames > 240:
 			get_tree().quit()
 		return
 	if state == S.INTRO:
 		if intro_t > 0.5 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % intro_page)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_intro_%d.png" % intro_page)
 			if intro_page >= INTRO_PAGES.size() - 1:
 				get_tree().quit()
 				return
@@ -619,7 +632,7 @@ func _autotest_step() -> void:
 				_buy(i)
 				break
 		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not balance:
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_shop.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_shop.png")
 		shop_visits += 1
 		if shop_visits % 3 == 0:
 			_close_shop()
@@ -632,14 +645,14 @@ func _autotest_step() -> void:
 			hp = max_hp * 0.2
 			_hurt(max_hp * 0.1)
 		if at_frames == 96 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_hurt.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_hurt.png")
 		if at_frames == 175:
 			zone_c = ppos + Vector2(560, 60)
 			zone_r = 480.0
 			zone_state = 3
 			zone_t = -999.0
 		if at_frames == 188 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_zone.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_zone.png")
 		if at_frames == 130:
 			state = S.STATS
 		if at_frames == 132:
@@ -648,7 +661,7 @@ func _autotest_step() -> void:
 					Input.warp_mouse(c[0].get_center())
 					break
 		if at_frames == 134 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_stats.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
 			for a in OS.get_cmdline_user_args():
@@ -670,7 +683,7 @@ func _autotest_step() -> void:
 			skill_lv["s3"] = maxi(skill_lv["s3"], 2)
 			ch.s3_active = 30.0
 			ch.mirror_pos = ppos
-			for k in ["sniper", "caster", "support"]:
+			for k in ["wisadel", "eyjafjalla", "suzuran"]:
 				var op = squad.add(k)
 				if op != null:
 					op.advance()
@@ -687,7 +700,7 @@ func _autotest_step() -> void:
 			_drop(ppos + Vector2(-120, 40), "heal", 1.0)
 		for f in [64, 72, 100, 125, 160, 200]:
 			if at_frames == f and DisplayServer.get_name() != "headless":
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_%d.png" % f)
+				get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_%d.png" % f)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--bosstest="):
 			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
@@ -709,7 +722,7 @@ func _autotest_step() -> void:
 					bosses[0].partner = bosses[1]
 					bosses[1].partner = bosses[0]
 			if at_frames > 20 and at_frames % 30 == 0 and at_frames <= 600 and DisplayServer.get_name() != "headless":
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), at_frames])
+				get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), at_frames])
 	if OS.get_cmdline_user_args().has("--fastlevel") and state == S.PLAY and (at_frames == 30 or at_frames == 400):
 		level = 9 if at_frames == 30 else 19
 		_gain_xp(xp_need + 0.1)
@@ -720,7 +733,7 @@ func _autotest_step() -> void:
 			return
 		if show_t > 1.4 and not show_shot and DisplayServer.get_name() != "headless":
 			show_shot = true
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_show_%d.png" % elite_stage)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_show_%d.png" % elite_stage)
 		if show_t > 1.6:
 			_close_show()
 		return
@@ -761,7 +774,7 @@ func _autotest_step() -> void:
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
 		hp = max_hp
 	if lvup_show > 1.05 and lvup_show < 1.12 and level == 3 and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_lvup.png")
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_lvup.png")
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--eventtest=") and at_frames == 30:
 			for ev in endg.events:
@@ -793,7 +806,7 @@ func _autotest_step() -> void:
 			Input.parse_input_event(tr)
 			print("TOUCHTEST moved=%s" % str((ppos - touchtest_p0).round()))
 		if at_frames == 90 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_touch.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_touch.png")
 		if at_frames == 130:
 			get_tree().quit()
 	if OS.get_cmdline_user_args().has("--gemshot"):
@@ -802,7 +815,7 @@ func _autotest_step() -> void:
 				_drop(ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
 			_drop(ppos + Vector2(60, -40), "xp", 1.0)
 		if at_frames in [72, 100] and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gem_%d.png" % at_frames)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_gem_%d.png" % at_frames)
 			if at_frames == 100:
 				get_tree().quit()
 	if OS.get_cmdline_user_args().has("--relicshot"):
@@ -813,13 +826,13 @@ func _autotest_step() -> void:
 			merchant = {"pos": ppos, "life": 60.0, "near": false}
 			_open_shop()
 		if at_frames == 440 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_shop.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_shop.png")
 			get_tree().quit()
 	if state == S.CHOICE:
 		choice_wait += 1
 		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless" and (choice_kind == "relic" or not OS.get_cmdline_user_args().has("--relicshot")):
 			choice_shot = true
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_choice.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_choice.png")
 		if choice_wait > 45:
 			choice_wait = 0
 			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机
@@ -847,10 +860,10 @@ func _autotest_step() -> void:
 			ending_new = true
 			state = S.WIN
 		if a.begins_with("--winshot=") and at_frames == 130 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_win.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_win.png")
 			get_tree().quit()
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_%d.png" % at_frames)
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_%d.png" % at_frames)
 	if bosstest and at_frames > 610:
 		get_tree().quit()
 	if (state == S.WIN and not winshot) or at_frames > 14000:
@@ -2011,7 +2024,8 @@ func _lamp_sp() -> float:
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
 func _hit(src: String, extra_tags: Array = []) -> void:
 	var base: Dictionary = hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
-	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags}
+	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
+		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
 ## 本局造成伤害的构成（按来源前三，占比），Tab 面板与结算用
@@ -2744,7 +2758,10 @@ func _update_bullets(dt: float) -> void:
 
 ## 子弹命中：按种类结算伤害与特效
 func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
-	_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
+	if b.has("src"):
+		_hit(b.src, b.get("tags", []))
+	else:
+		_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
@@ -2788,6 +2805,9 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
 			Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
 			b.life = 0.0
+			# 干员自带的命中后效果（点燃 / 分裂等）
+			if b.get("on_hit") != null:
+				b.on_hit.bullet_exploded(b)
 		"arcane":
 			_damage(e, b.dmg)
 			if not e.dead:
@@ -3328,6 +3348,17 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 16), "SELECT", 11, col, 3.0)
 
 
+## 干员贴图集（运行中招募 / 测试编入时补加载）
+func _load_op_tex(cid: String) -> void:
+	var cdef: Dictionary = Character.load_def(cid)
+	var csp: Dictionary = cdef.get("sprites", {})
+	for kind in ["idle", "run", "attack", "skill"] + cdef.get("extra_sprites", []):
+		if csp.has(kind):
+			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
+			if tex.get(tn) == null:
+				tex[tn] = A.tex(tn)
+
+
 ## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
 func _recruit_cards() -> Array:
 	var opts: Array = []
@@ -3781,6 +3812,8 @@ func _draw() -> void:
 	for o in squad.ops:
 		if o.pos != Vector2.INF:
 			dl.append([o.pos.y + 4.0, 5, o])
+		for xb in o.extra_bodies():
+			dl.append([xb.y, 6, [o, xb]])
 	if knight.alive:
 		dl.append([knight.pos.y + 18.0, 4, null])
 	for pr in map.sort_props:
@@ -3790,6 +3823,8 @@ func _draw() -> void:
 		match it[1]:
 			5:
 				it[2].draw_body()
+			6:
+				it[2][0].draw_extra(it[2][1])
 			4:
 				knight.draw()
 			0:
@@ -4185,8 +4220,8 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
-## 博士动画：目前只有 2 帧待机条（doctor / doctor@2x）；跑步 = 加快切帧 + 颠簸，倒下 = 侧倒，受击靠 hurt_flash 的闪白
-## 等 Codex 交付 doctor_run / doctor_hurt / doctor_death 后，在 data/doctor.json 的 sprites 里填名字即可接上
+## 博士动画：data/doctor.json 的 sprites（编队美术第一批：idle 4 / run 6 / hurt 2 / death 4 帧，脚底 46）；
+## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func _update_doctor_anim(dt: float) -> void:
 	var want := "idle"
 	if state == S.DEAD:
@@ -4206,7 +4241,9 @@ func _update_doctor_anim(dt: float) -> void:
 		anim_t = 0.0
 		sprite.texture = tx
 		sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 3.0 * A.hires_of(tx))
+		# 脚底锚点：data/doctor.json 的 sprites.foot（旧 2 帧待机条为 45，编队美术第一批为 46）
+		var foot_y: float = float(sp.get("foot", [24, 45])[1])
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (48.0 - foot_y) * A.hires_of(tx))
 	anim_t += dt
 	var n := sprite.hframes
 	sprite.rotation = 0.0

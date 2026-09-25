@@ -370,7 +370,8 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 
 ## 狙击命中：扼喉之手处决（只认支援狙击的投射命中）
 func sniper_execute(e: Dictionary, h: Dictionary) -> bool:
-	return g.relics.has("169") and h.src == "援护" and not e.boss and e.hp < e.maxhp * 0.2
+	# 契约 v2.0：按描述符的职业判定（狙击干员的任意命中）；旧援护来源保留兼容
+	return g.relics.has("169") and (h.get("class", "") == "狙击" or h.src == "援护") and not e.boss and e.hp < e.maxhp * 0.2
 
 
 func _temp(stat: String, value: float, dur: float) -> void:

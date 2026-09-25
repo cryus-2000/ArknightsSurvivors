@@ -6,7 +6,7 @@ const Character = preload("res://scripts/characters/character.gd")
 
 const REGULAR_MAX := 3
 ## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
-const SLOTS := [Vector2(-34, -14), Vector2(38, 10), Vector2(-6, -44), Vector2(-44, 26)]
+const SLOTS := [Vector2(-34, -14), Vector2(38, 10), Vector2(22, -46), Vector2(-44, 26)]
 
 var g
 var ops: Array = []            # Character 实例，按入队顺序
@@ -58,7 +58,10 @@ func add(cid: String):
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
 	for k in op.def.get("hit_sources", {}):
-		g.hit_src[k] = op.def.hit_sources[k]
+		var hs: Dictionary = op.def.hit_sources[k].duplicate(true)
+		hs["class"] = op.cls
+		hs["op"] = op.id
+		g.hit_src[k] = hs
 	op.pos = g.ppos + _slot_offset(op.slot)
 	if op.has_method("on_join"):
 		op.on_join()
@@ -132,6 +135,7 @@ func draw_shadows() -> void:
 	for o in ops:
 		if o.pos != Vector2.INF:
 			g._spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
+		o.draw_extra_shadows()
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
