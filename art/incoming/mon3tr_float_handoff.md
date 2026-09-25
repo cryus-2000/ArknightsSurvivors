@@ -1,13 +1,26 @@
-# Mon3tr 无脚悬浮修正
+# Mon3tr 实机轮廓重构（2026-09-26）
 
-按用户2026-09-25提供的原作立绘重做：黑色晶体棘冠、绿色裂纹、弯曲节状悬浮躯干与镰刃，无腿、脚掌或落地步态。不包含立绘中的凯尔希。
+依据用户提供的实机截图重构：宽厚黑色分节甲壳、背部尖棘、低垂头部、双侧巨大刃爪、短弯尾，无腿无脚，悬浮。刃爪属于身体结构，没有手持武器。颜色以黑灰和冷色轮廓高光为主，绿色仅作少量缝隙点缀。
 
-替换 op_mon3tr_{idle,run,attack}.png 及同名@2x共6文件。64px与128px均修正，4/6/4帧、fps4/10/14、攻击出手索引2保持不变。run文件名保留兼容代码，内容改为浮游。
+## 交付与兼容
 
-逻辑锚点仍为(32,60)/(64,120)，不是身体的接地点。悬浮轮廓底端约在104–108新像素，锚点上方留空。已明确允许悬浮，因此验收使用SkipBaseline；其他尺寸、二值alpha、边缘、描边、48色和帧差异检查均通过。用户要求重做解剖，旧剪影2像素限制不适用于此修正。
+- 替换 `op_mon3tr_{idle,run,attack}.png` 及同名 `@2x` 共 6 张游戏帧条。
+- 64×64 / 128×128 单帧；idle 4 帧、4 FPS；run 6 帧、10 FPS；attack 4 帧、14 FPS，出手仍为索引 2（第 3 帧）。
+- 锚点保持 (32,60) / (64,120)，代表地面逻辑位置，画面底端悬在上方，不能按脚底自动裁边。idle/run 循环，attack 单次。
+- run 仍是兼容文件名，内容为浮游、身体前倾与刃爪摆动；不是步行。
+- 高清版从同一高分辨率母图独立采样，增加真实像素密度，未由 64px 简单放大。两套保持同一逻辑尺寸。
+- `mon3tr_float_manifest.json`、`mon3tr_float_qa.json`、`mon3tr_float_frames.png` 和 `mon3tr_float_preview.png` 更新为本次版本；同步 `squad_2x_mon3tr_preview.png`。两个旧批次 manifest 只更新 Mon3tr 的素材哈希。旧全编队预览属于历史记录。
 
-本次mon3tr_float_manifest.json和mon3tr_float_qa.json是Mon3tr现行数据；squad_2x_manifest.json、squad_batch3_manifest.json中相应文件hash已更新。以前整队QA和预览属于历史验收，不代表本次修正后的Mon3tr。mon3tr_float_frames.png为本批全部帧，mon3tr_float_preview.png为精选动作。
+## 来源与导出
 
-源图由内置imagegen依据用户立绘生成：C:/Users/colafax/.codex/generated_images/01a08159-bde5-7d50-b7e0-571e2eeb3a31/exec-f341b973-059e-420f-8b18-02498b373916.png。详细生成提示见mon3tr_float_prompt.txt。机械导出使用新矩形裁切，未套用锁定旧带脚轮廓的legacy导出器。
+用户确认截图：`C:/Users/colafax/AppData/Local/Temp/codex-clipboard-fe59c8a7-b797-40a4-a591-450056348f70.png`。本次明确授权直接制作，不再要求核对不存在的武器。
 
-已同步main，当前USE_HIRES=true。Claude接收此美术提交后检查移动/攻击播放和场景悬浮观感；Codex未修改game/，未进行引擎内验证。
+内置 imagegen 绘制母图并调整收紧挥击轮廓。接受的母图为 manifest 中的 `source_path`（exec-6f692d48-4040-4210-876e-04fbd5297cfb.png）。母图布局为三行 4/6/4；导出使用明确行边界 [0,330,645,1024]，中行列边界 [0,267,516,779,1026,1285,1536]，其余行按四等分。先前生成图带烘焙棋盘格，未用作成品；最终使用纯品红背景母图，机械移除品红键色及边缘杂色。
+
+使用 System.Drawing 完成裁切、最近邻采样、23 色共享色板、二值 alpha 与 1 像素 #080E18 外描边。同行各帧使用共同变换，保留动画中的起伏；三个动作的源图绘制比例经同一目标体量标准校正。母图、局部导出脚本和提示词保存在本机，最终素材和提示词随本提交交付。
+
+## 验证与接入
+
+六条 / 28 帧通过 pixel-sprite-pipeline 验证：尺寸、二值透明、非空、画布边缘留白、描边、色板、帧差异和 SHA256。使用 `-SkipBaseline`，因为本体悬浮；保留逻辑锚点。已逐帧查看预览，修复中行切片混入下行像素的问题，并核对无脚、无外置武器及完整刃爪。
+
+开始时工作树干净，已合并 main（合并提交 70fb53b，包含凯尔希近期代码）。本次美术提交不修改 game/；当前 USE_HIRES=true。Claude cherry-pick 本次美术提交后，沿用现有切帧与播放参数，并以静音实战连拍确认浮游及攻击效果。尚未进行引擎内视觉验收。

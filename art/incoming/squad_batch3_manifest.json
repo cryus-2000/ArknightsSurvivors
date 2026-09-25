@@ -478,7 +478,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "4eedd3ad54d8737e35e0433521ca7e7db4db9304ca66ec0068c74628234fb39c",
+      "sha256": "3dcbe4a284092cdce338a10c1a63ae4b4af146b8359cb0d1bb7b7e348099f3df",
       "pose": "legless_hover"
     },
     {
@@ -498,7 +498,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "fe0a0a1be8fb38149367d2e8b5ce841ecfd69f755de5e6ed44e890b9ed7c2a37",
+      "sha256": "ec4c06186ab9feaffb34b23debcabf43b6119095b839e326ba06d24abaab55e8",
       "pose": "legless_hover"
     },
     {
@@ -518,7 +518,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "a64bac60b142e23a9449ef3f4789c3bb04a6ea99d5786cf8f28054aa3f747c72",
+      "sha256": "4217db110da041f2670731fb8de2a2f860db76e296d32b04a410823540f2d426",
       "pose": "legless_hover"
     }
   ]
