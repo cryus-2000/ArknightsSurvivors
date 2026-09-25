@@ -4782,7 +4782,7 @@ func _draw_opening_hud(vs: Vector2) -> void:
 	if opening_t > 0.4 and opening_t < 3.3:
 		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
 		UI.en(hud, font, Vector2(vs.x / 2 - 200, vs.y * 0.22), "OPERATION  MIZUKI", 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
-		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 44), "水月  ·  深海探索", 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 44), "%s  ·  深海探索" % ch.display_name(), 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 74), "灯火未熄，便还能走下去", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	UI.text(hud, font, Vector2(0, vs.y - 26), "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
 
@@ -5128,7 +5128,7 @@ func _draw_hud() -> void:
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
 		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
-		"水月的伞击与三个技能全自动出手 —— 你只需要用 WASD 移动：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
+		"你操控的是博士 —— 场上唯一会受伤的人。干员们跟在身边，普攻与三个技能全自动出手；你只需要用 WASD 移动：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
 		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
@@ -5144,9 +5144,9 @@ const INTRO_PAGES := [
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。第一次拿到新技能或进阶时会有演示。",
-		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv19 镜花水月 → Lv20 精英化二（质变）。进阶让技能改变形态，而不只是数字变大。",
-		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。按 Tab 随时查看属性、技能与藏品效果。"]},
+		"击败敌人掉落经验，升级时三选一：至少一张干员深度卡（成长节点 / 精英化）+ 博士被动或全队被动，Lv5 起会出现招募卡，偶尔出现支援无人机。",
+		"每名干员 6 个成长节点：精英化一解锁二技能与天赋，精英化二解锁三技能（有编队职业 / 博士被动等条件）。三个技能各自充能、自动释放。",
+		"编队最多 3 人：Lv6 仍单人、Lv12 仍不满 3 人时必出招募。博士被动与全队被动各最多 4 种，可叠层。按 Tab 随时查看编队、属性与藏品效果。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
 		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。补给箱也会定期在地图上出现（屏幕边缘有指示）。",
 		"小心伪装成宝箱的箱形恐鱼 —— 它现形扑来时会造成伤害，但击败后掉落大量源石锭。",
@@ -5279,8 +5279,8 @@ func _draw_intro_icon(kind: String, c: Vector2) -> void:
 				var rc := Rect2(c + Vector2(-130 + k * 88, -90), Vector2(76, 110))
 				var cc: Color = [UI.CYAN, Color(0.55, 0.95, 1.0), UI.GOLD][k]
 				UI.panel(hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
-				UI.text(hud, font, rc.position + Vector2(0, 66), ["伞", "机", "唤"][k], 30, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-			UI.text(hud, font, c + Vector2(-130, 60), "成长 / 武器 / 技能进阶", 14, UI.SUB)
+				UI.text(hud, font, rc.position + Vector2(0, 66), ["长", "招", "被"][k], 30, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
+			UI.text(hud, font, c + Vector2(-130, 60), "干员成长 / 招募 / 博士被动", 14, UI.SUB)
 		"loot":
 			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
 			for k in items.size():

@@ -18,7 +18,8 @@ var rules := {}            # rule -> value
 var temps: Array = []      # 限时修正 {stat, value, until}
 var timers: Array = []     # 周期生成 {every, left, what}
 var mines: Array = []      # 地雷 {pos, life}
-var dot_mult := 0.0        # 受控敌人每秒法术伤害（伞击伤害倍数）
+var dot_mult := 0.0        # 受控敌人每秒法术伤害（基础伤害倍数）
+var _haste_last := 1.0     # 上次写入的攻速藏品倍率
 var dot_tick := 0.0
 var perm_dmg := 0.0        # 刻勋之手：击杀永久累加（上限 0.3）
 var tulip_t := 0.0         # 黑色郁金香：技能未生效的持续时间
@@ -179,6 +180,14 @@ func tick(dt: float) -> void:
 	# 限时修正过期
 	if not temps.is_empty():
 		temps = temps.filter(func(x): return x.until > g.t)
+	# 攻速类藏品（极速之手 / 国王的新枪 / 投币玩具）：对全队生效，写进 op_aspd（变化时才重写，避免每帧刷新属性）
+	var hm := umbrella_interval_mult()
+	if absf(hm - _haste_last) > 0.001:
+		_haste_last = hm
+		g.stats.remove_source("relic_haste")
+		if absf(hm - 1.0) > 0.001:
+			g.stats.add(&"op_aspd", "mult", 1.0 / hm, "relic_haste")
+		g._sync_stats()
 	# 黑色郁金香：技能未生效时累计，最多 60 秒
 	if rule("black_tulip") > 0:
 		if g.squad.any_skill_active():
@@ -338,7 +347,7 @@ func on_death() -> bool:
 		g.hp = g.max_hp * 0.5
 		g.invuln = 2.0
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(1.0, 0.85, 0.5)})
-		g._show_banner("时光之末 —— 水月重新站了起来")
+		g._show_banner("时光之末 —— 博士重新站了起来")
 		Sfx.play("levelup", 0.0, 0.7)
 		return true
 	return false
