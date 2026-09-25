@@ -353,7 +353,14 @@ scope ∈ "doctor" | "squad" | "class:<职业>" | "op:<id>"
 
 自测（`--autotest --balance --nodeath`，每组 1 局，水月 + 2 名新干员）：7 人均无脚本错误；新干员输出占比 10–40%，已把 Mon3tr 基础伤害 28 → 22、殉爆 50% → 40%。数值只做了粗调，统一平衡放 P5。
 
+### P4 补充（同日第二次提交）：自选开局干员 + 干员特效
+
+- **选开局干员**：标题「开始探索」→ 选人页（`title.gd _draw_op_pick`，按职业排列 8 人：待机动画、普攻 / 技能 / 天赋、精二条件、档案）→ 选难度。写入 `Cfg.character_id`（存档）。测试：`--op=<id>`、`--opshot --opsel=<n>`、`--sptest`（每 2 秒全队技力充满）。
+- **架构**：`ch` 只表示"开局干员"，任何干员都可以是 `ch`。`character.gd` 给出全部开局干员接口的默认实现（`skills / skill_adv / growth_table / evo_table / evo_label / on_evo_pick / skill_hud / skill_active / evo_text / gain_sp / _update_stakes / _update_giants / _update_wave / _draw_wave`），水月只是覆盖其中的旧三技能 / 路线部分。`game.gd` 不再假设 `ch` 是水月：Tab 面板对没有三技能表的干员画普攻 / 技能 / 天赋三行（`_draw_generic_skill_rows`）、HUD 右下三环改为普攻 / 技能（SP）/ 天赋、专属实体更新对全队分发、水刃子弹带 `owner`、藏品回技力走 `squad.gain_sp()`、黑色郁金香 / 音乐强度走 `squad.any_skill_active()`。
+- **干员特效**：docs/25。每个干员按原作技能表现配色与形状，程序绘制在各自脚本里（`character.gd` 的 `pfx` 粒子 + `_draw_pfx` 自定义 kind）；子弹支持 `src / fx_col / hidden`。干员主色写在 JSON `col`。
+- 注意：辅助 / 医疗 / 重装单人开局前两分钟偏弱（铃兰开局的机器人 10 分钟只到 Lv.19），docs/23 §10 的"每个职业普攻都能独立清前两分钟"还没达到，放 P5 与博士指挥技能一起调。
+
 待做：
-- 特效（Claude）：艾雅法拉仍复用旧术师的紫色 `fx_fire_explode`，需要橙色熔岩系列；维什戴尔的炮弹 / 余震、锤击 / 大剑 / 盾击的专属刀光、Mon3tr 爪痕目前是程序绘制或复用旧 slash。
+- 特效若在像素风下不够"实"再补帧条（docs/25 §3）。
 - 美术（Codex）：可选 `doctor_command`；第 4 批（浊心斯卡蒂、精二外观）。
-- 选人界面改为选开局干员（另一会话）；目前开局仍是水月（`Cfg.character_id`），其余干员靠升级招募。
+- 博士指挥技能（`doctor.json command`）。

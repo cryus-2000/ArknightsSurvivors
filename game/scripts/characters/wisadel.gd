@@ -1,10 +1,15 @@
-## 维什戴尔（狙击，docs/23 §11.1）：炮击 → 余震爆炸 → 击杀再爆。
+## 维什戴尔（狙击，docs/23 §11.1）：炮击 → 余震爆炸 → 击杀再爆（残影）。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
+## 特效（docs/25）：黑红。炮弹黑体红尾、落点黑烟 + 红环、余震地面双环 + 黑雾丝、殉爆先浮起黑色残影再炸并眩晕。
 extends "res://scripts/characters/character.gd"
 
+const RED := Color(0.95, 0.22, 0.2)
+const DARK := Color(0.1, 0.06, 0.08)
+
 var cd := 0.6
-var shells: Array = []       # {from, to, t, dur, dmg, r, src, tail}
+var shells: Array = []       # {from, to, t, dur, dmg, r, src, trail}
 var quakes: Array = []       # 余震：{pos, t, dmg, r}
+var shades: Array = []       # 残影（殉爆前摇）：{pos, t, dmg, r, depth}
 var volley := 0              # 饱和炮击剩余发数
 var volley_t := 0.0
 var volley_tg: Array = []
@@ -63,7 +68,8 @@ func _release_skill() -> void:
 		volley_tg.push_front(best)
 	volley = n
 	volley_t = 0.0
-	g.fx.append({"kind": "ring", "pos": _muzzle(), "r": 26.0, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.45, 0.35)})
+	fx({"kind": "glow", "pos": _muzzle(), "r": 24.0, "life": 0.3, "col": RED, "alpha": 0.5})
+	fx_sparks(_muzzle(), RED, 8, 160.0, 0.3)
 	Sfx.play("boom", -12.0, 0.8, 0.05)
 
 
@@ -75,14 +81,26 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float) -> void:
 	face = signf(to.x - pos.x) if absf(to.x - pos.x) > 2.0 else face
 	var from := _muzzle()
 	var dur: float = clampf(from.distance_to(to) / 900.0, 0.18, 0.5)
-	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src})
-	g.fx.append({"kind": "spark", "pos": from, "vel": (to - from).normalized() * 160.0, "sz": 4.0, "life": 0.15, "max": 0.15, "col": Color(1.0, 0.75, 0.5)})
+	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src, "trail": 0.0})
+	# 炮口：暗红闪 + 后坐火星
+	fx({"kind": "glow", "pos": from, "r": 12.0, "life": 0.12, "col": RED, "alpha": 0.6})
+	for k in 3:
+		fx({"kind": "spark", "pos": from, "vel": (from - to).normalized().rotated(g.rng.randf_range(-0.6, 0.6)) * g.rng.randf_range(60, 140), "life": 0.2, "col": Color(1.0, 0.7, 0.5), "sz": 2.0, "drag": 3.0})
 	Sfx.play("swing", -15.0, 0.7, 0.05)
+
+
+func _shell_pos(s: Dictionary) -> Vector2:
+	var k: float = s.t / s.dur
+	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(120.0, s.from.distance_to(s.to) * 0.35))
 
 
 func _update_shells(dt: float) -> void:
 	for s in shells:
 		s.t += dt
+		s.trail -= dt
+		if s.trail <= 0.0 and s.t < s.dur:
+			s.trail = 0.03
+			fx({"kind": "spark", "pos": _shell_pos(s), "vel": Vector2(g.rng.randf_range(-15, 15), g.rng.randf_range(-10, 20)), "life": 0.22, "col": RED, "sz": 2.0})
 		if s.t >= s.dur:
 			_explode(s.to, s.dmg, s.r, s.src, 0)
 			# 余震：普攻与 E2 技能都有；E1 起伤害 40% → 60%
@@ -94,9 +112,14 @@ func _update_shells(dt: float) -> void:
 		if q.t <= 0.0:
 			_explode(q.pos, q.dmg, q.r, "余震", 0)
 	quakes = quakes.filter(func(q): return q.t > 0.0)
+	for sh in shades:
+		sh.t -= dt
+		if sh.t <= 0.0:
+			_explode(sh.pos, sh.dmg, sh.r, "殉爆", sh.depth)
+	shades = shades.filter(func(sh): return sh.t > 0.0)
 
 
-## 爆炸：范围伤害；E1 起被炸死的敌人原地殉爆（depth 限制连锁层数，E2 可连锁一次）
+## 爆炸：范围伤害；E1 起被炸死的敌人留下残影，0.25 秒后殉爆并眩晕（depth 限制连锁层数，E2 可连锁一次）
 func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int) -> void:
 	var killed: Array = []
 	for e in g._arc_hit(c, 0.0, PI, r):
@@ -107,27 +130,83 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int) -> void
 			g._damage(e, e.hp + 1.0)
 		if e.dead:
 			killed.append(e.pos)
-	if src == "余震":
-		g.fx.append({"kind": "quake", "pos": c, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.6, 0.45)})
-		g.fx.append({"kind": "ring", "pos": c, "r": r, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.55, 0.4)})
-	elif not g._fx_sprite("fx_missile_explode", c, clampf(r / g.EXPLODE_R_PX, 1.5, 3.0)):
-		g.fx.append({"kind": "explode", "pos": c, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.45, 0.35)})
+		elif src == "殉爆" and not e.boss:
+			e.stun = maxf(e.stun, 0.6 * (0.5 if e.elite else 1.0))
+	match src:
+		"余震":
+			fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": RED, "floor": true, "w": 3.0})
+			fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": r * 0.1, "life": 0.45, "col": Color(1.0, 0.45, 0.35), "floor": true, "w": 2.0})
+			fx({"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": RED, "floor": true, "n": 7, "ang": c.x * 0.01})
+			for k in 3:
+				fx({"kind": "wisp", "pos": c + Vector2(g.rng.randf_range(-r * 0.4, r * 0.4), 0), "vel": Vector2(0, -45.0), "life": 0.55, "col": DARK, "ph": g.rng.randf() * TAU})
+		"殉爆":
+			fx({"kind": "glow", "pos": c, "r": r * 0.7, "life": 0.2, "col": RED, "alpha": 0.6})
+			fx({"kind": "smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": DARK})
+			fx({"kind": "ring", "pos": c, "r": r, "life": 0.3, "col": RED, "w": 3.0})
+			fx_sparks(c, RED, 8, 220.0, 0.35)
+		_:
+			fx({"kind": "glow", "pos": c, "r": r * 0.6, "life": 0.16, "col": Color(1.4, 0.5, 0.4), "alpha": 0.7})
+			fx({"kind": "smoke", "pos": c, "r": r, "life": 0.5, "col": DARK})
+			fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": RED, "w": 3.0})
+			for k in 5:
+				fx({"kind": "shard", "pos": c, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 200) + Vector2(0, -80), "life": 0.45, "col": Color(0.3, 0.2, 0.22), "sz": 5.0, "ang": g.rng.randf() * TAU, "spin": 12.0, "grav": 400.0})
+			fx_sparks(c, Color(1.0, 0.55, 0.4), 6, 200.0, 0.3)
 	Sfx.play("boom", -16.0 if src == "余震" else -13.0, 1.2, 0.1)
 	var max_depth: int = 2 if elite >= 2 else 1
 	if elite >= 1 and depth < max_depth:
 		for k in mini(killed.size(), 3):
-			_explode(killed[k], dmg * 0.4, r * 0.8, "殉爆", depth + 1)
+			shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * 0.4, "r": r * 0.8, "depth": depth + 1})
+			fx({"kind": "shade", "pos": killed[k], "life": 0.3, "col": DARK})
+
+
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	match f.kind:
+		"smoke":
+			# 黑烟团：膨胀、变淡、略上飘
+			var k := 1.0 - a
+			var p: Vector2 = f.pos + Vector2(0, -14.0 * k)
+			g.draw_circle(p, f.r * (0.45 + 0.75 * k), Color(0.14, 0.1, 0.12, 0.55 * a))
+			g.draw_circle(p + Vector2(f.r * 0.25, -f.r * 0.15), f.r * (0.3 + 0.5 * k), Color(0.2, 0.14, 0.16, 0.4 * a))
+			return true
+		"wisp":
+			# 上飘的黑色雾丝
+			var pts := PackedVector2Array()
+			for i in 5:
+				pts.append(f.pos + Vector2(sin(f.ph + g.t * 9.0 + i * 1.3) * 4.0, -i * 7.0))
+			g.draw_polyline(pts, Color(0.08, 0.05, 0.07, 0.8 * a), 3.0)
+			return true
+		"shade":
+			# 残影：黑色人形 + 一对红点，浮起
+			var p: Vector2 = f.pos + Vector2(0, -6.0 - 10.0 * (1.0 - a))
+			g.draw_set_transform(p, 0.0, Vector2(1.0, 1.7))
+			g.draw_circle(Vector2.ZERO, 9.0, Color(0.05, 0.03, 0.05, 0.8 * a))
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			g.draw_circle(p + Vector2(-3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
+			g.draw_circle(p + Vector2(3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
+			return true
+	return false
+
+
+func draw_entities_floor() -> void:
+	# 落点预告：炮弹飞行后半程在落点画暗红圈
+	for s in shells:
+		var k: float = s.t / s.dur
+		if k > 0.5:
+			g.draw_set_transform(s.to, 0.0, Vector2(1.0, 0.55))
+			g.draw_arc(Vector2.ZERO, s.r * 0.6, 0.0, TAU, 24, Color(RED.r, RED.g, RED.b, 0.35 * (k - 0.5) * 2.0), 2.0)
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for q in quakes:
+		var a: float = 1.0 - q.t / 0.45
+		g.draw_set_transform(q.pos, 0.0, Vector2(1.0, 0.55))
+		g.draw_arc(Vector2.ZERO, q.r * (0.25 + 0.2 * a), 0.0, TAU, 20, Color(RED.r, RED.g, RED.b, 0.5 * a), 2.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_skill_over() -> void:
 	for s in shells:
-		var k: float = s.t / s.dur
-		var p: Vector2 = s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(120.0, s.from.distance_to(s.to) * 0.35))
-		g.draw_circle(p, 5.0, Color(0.12, 0.08, 0.1))
-		g.draw_circle(p, 3.0, Color(2.2, 1.2, 0.8))
-	for q in quakes:
-		var a: float = 1.0 - q.t / 0.45
-		g.draw_arc(q.pos, q.r * (0.3 + 0.2 * a), 0.0, TAU, 20, Color(1.0, 0.5, 0.35, 0.4 * a), 2.0)
+		var p := _shell_pos(s)
+		g.draw_circle(p, 5.5, Color(0.08, 0.05, 0.07))
+		g.draw_circle(p + Vector2(-1, -1), 2.0, Color(1.6, 0.5, 0.4))
 
 
 func status_items() -> Array:

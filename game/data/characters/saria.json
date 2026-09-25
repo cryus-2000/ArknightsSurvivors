@@ -3,6 +3,11 @@
  "name": "塞雷娅",
  "en": "SARIA",
  "class": "重装",
+ "col": [
+  1.0,
+  0.72,
+  0.38
+ ],
  "script": "res://scripts/characters/saria.gd",
  "sprites": {
   "idle": {

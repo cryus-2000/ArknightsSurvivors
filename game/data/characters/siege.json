@@ -3,6 +3,11 @@
  "name": "推进之王",
  "en": "SIEGE",
  "class": "先锋",
+ "col": [
+  1.0,
+  0.78,
+  0.35
+ ],
  "script": "res://scripts/characters/siege.gd",
  "sprites": {
   "idle": {

@@ -3,6 +3,11 @@
  "name": "艾雅法拉",
  "en": "EYJAFJALLA",
  "class": "术师",
+ "col": [
+  1.0,
+  0.5,
+  0.2
+ ],
  "script": "res://scripts/characters/eyjafjalla.gd",
  "sprites": {
   "idle": {

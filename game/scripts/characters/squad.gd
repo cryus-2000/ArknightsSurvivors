@@ -107,6 +107,22 @@ func update(dt: float) -> void:
 		o.follow(dt, g.ppos + _slot_offset(o.slot))
 	for o in ops:
 		o.update(dt)
+		o._tick_pfx(dt)
+
+
+## 任一干员的持续型技能生效中
+func any_skill_active() -> bool:
+	for o in ops:
+		if o.skill_active():
+			return true
+	return false
+
+
+## 全队技力（按各自需求的百分比）；exclude 为不充能的干员（先锋自己）
+func gain_sp(pct: float, exclude = null) -> void:
+	for o in ops:
+		if o != exclude:
+			o.gain_sp(pct)
 
 
 func sync_stats(st) -> void:
@@ -129,6 +145,7 @@ func draw_auras() -> void:
 func draw_entities_floor() -> void:
 	for o in ops:
 		o.draw_entities_floor()
+		o.draw_pfx(true)
 
 
 func draw_shadows() -> void:
@@ -151,3 +168,4 @@ func draw_skill_floor() -> void:
 func draw_skill_over() -> void:
 	for o in ops:
 		o._draw_skill_over()
+		o.draw_pfx(false)

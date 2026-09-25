@@ -3,6 +3,11 @@
  "name": "凯尔希",
  "en": "KAL'TSIT",
  "class": "医疗",
+ "col": [
+  0.55,
+  1.0,
+  0.5
+ ],
  "script": "res://scripts/characters/kaltsit.gd",
  "sprites": {
   "idle": {

@@ -181,7 +181,7 @@ func tick(dt: float) -> void:
 		temps = temps.filter(func(x): return x.until > g.t)
 	# 黑色郁金香：技能未生效时累计，最多 60 秒
 	if rule("black_tulip") > 0:
-		if g.ch.s2_active > 0.0 or g.ch.s3_active > 0.0:
+		if g.squad.any_skill_active():
 			tulip_t = 0.0
 		else:
 			tulip_t = minf(60.0, tulip_t + dt)
@@ -216,7 +216,7 @@ func tick(dt: float) -> void:
 		dot_tick -= dt
 		if dot_tick <= 0.0:
 			dot_tick = 0.5
-			var per: float = 18.0 * g.ch.u_dmg_mult * g.dmg_mult * dot_mult * 0.5
+			var per: float = 18.0 * (g.ch.u_dmg_mult if "u_dmg_mult" in g.ch else 1.0) * g.dmg_mult * dot_mult * 0.5
 			g._hit("藏品")
 			for e in g.enemies:
 				if not e.dead and not e.chest and (e.stun > 0.0 or e.slow > 0.0) and e.pos.distance_squared_to(g.ppos) < 700.0 * 700.0:
@@ -378,6 +378,6 @@ func _temp(stat: String, value: float, dur: float) -> void:
 	temps.append({"stat": stat, "value": value, "until": g.t + dur})
 
 
+## 藏品回技力：全队干员按各自需求的百分比充能（水月充 s2 / s3）
 func _gain_sp(pct: float) -> void:
-	g.ch.s2_sp = minf(D.SKILL_P.s2_charge, g.ch.s2_sp + D.SKILL_P.s2_charge * pct)
-	g.ch.s3_sp = minf(D.SKILL_P.s3_charge, g.ch.s3_sp + D.SKILL_P.s3_charge * pct)
+	g.squad.gain_sp(pct)

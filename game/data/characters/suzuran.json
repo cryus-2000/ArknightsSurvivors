@@ -3,6 +3,11 @@
  "name": "铃兰",
  "en": "SUZURAN",
  "class": "辅助",
+ "col": [
+  1.0,
+  0.82,
+  0.45
+ ],
  "script": "res://scripts/characters/suzuran.gd",
  "sprites": {
   "idle": {

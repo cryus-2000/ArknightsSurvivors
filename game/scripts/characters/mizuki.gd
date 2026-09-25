@@ -355,7 +355,7 @@ func _evo_on_swing(ang: float, dmg: float) -> void:
 func _fire_wave(ang: float, dmg: float, size: float, dist: float, moon: bool, giant: bool) -> void:
 	var spd := 560.0 if not giant else 420.0
 	var life := dist / spd
-	g.bullets.append({"kind": "wave", "pos": pos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
+	g.bullets.append({"kind": "wave", "owner": self, "pos": pos + Vector2(0, -18) + Vector2.from_angle(ang) * 20.0, "vel": Vector2.from_angle(ang) * spd,
 		"dmg": dmg, "life": life * (2.0 if moon else 1.0), "max": life * (2.0 if moon else 1.0), "r": 20.0 * size, "size": size,
 		"aoe": 0.0, "hit": {}, "moon": moon, "ret": false, "giant": giant})
 	if not giant:
@@ -981,8 +981,18 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 
 
 ## 任一技能是否生效中（音乐强度用）
+func evo_text() -> String:
+	return evo1 + "/" + evo2
+
+
 func skill_active() -> bool:
 	return s2_active > 0.0 or s3_active > 0.0
+
+
+## 藏品给的技力：充 s2 / s3（水月没有 SP 型自动技能）
+func gain_sp(pct: float) -> void:
+	s2_sp = minf(D.SKILL_P.s2_charge, s2_sp + D.SKILL_P.s2_charge * pct)
+	s3_sp = minf(D.SKILL_P.s3_charge, s3_sp + D.SKILL_P.s3_charge * pct)
 
 
 ## 状态栏条目：[文字, 颜色, 进度 0..1 或 -1]
@@ -1033,7 +1043,7 @@ func on_elite(stage: int, choice: String = "") -> void:
 		g.skill_lv.s2 = maxi(g.skill_lv.s2, 1)
 		g.elite_stage = 1
 		g.show_queue.append({"head": "精英化一", "en": "ELITE  PROMOTION  I", "col": Color(0.5, 0.8, 1.0), "demo": "s2", "items": [
-			g._skill_item("s2"),
+			g._skill_item("s2", self),
 			{"tag": "天赋", "tag_en": "TALENT", "glyph": "反", "name": "反移情", "desc": "击杀敌人时回复生命（每秒有上限）", "col": Color(0.5, 1.0, 0.65)}]})
 		if choice != "":
 			on_evo_pick(choice)
@@ -1047,7 +1057,7 @@ func on_elite(stage: int, choice: String = "") -> void:
 func on_custom_node(nid: String, _choice: String = "") -> void:
 	if nid == "s1":
 		g.skill_lv.s1 = maxi(g.skill_lv.s1, 1)
-		g.show_queue.append({"head": "技能解锁", "en": "SKILL  UNLOCKED", "col": UI.GOLD, "demo": "s1", "items": [g._skill_item("s1")]})
+		g.show_queue.append({"head": "技能解锁", "en": "SKILL  UNLOCKED", "col": UI.GOLD, "demo": "s1", "items": [g._skill_item("s1", self)]})
 
 
 ## 精英化节点的选项：一 = 进化路线，二 = 当前路线的质变
@@ -1097,7 +1107,7 @@ func on_evo_pick(eid: String) -> void:
 		g.skill_lv.s3 = 1
 		s3_sp = 30.0
 		g.show_queue.append({"head": "精英化二", "en": "ELITE  PROMOTION  II", "col": Color(0.8, 0.55, 1.0), "demo": "s3", "items": [
-			g._skill_item("s3"),
+			g._skill_item("s3", self),
 			{"tag": "质变", "tag_en": "EVOLUTION", "glyph": ev.glyph, "icon": "evo_" + eid, "name": "%s · %s" % [E[evo1].name, ev.name], "desc": ev.desc, "col": ev.col}]})
 
 

@@ -1,7 +1,11 @@
 ## 斯卡蒂（近卫，docs/23 §10 / §11.1）：近战输出。前压到博士身边的敌人面前高频横扫大剑；
 ## 技能「重斩」：高举下劈，前方大范围重击并击退；精二追加第二次下劈。
+## 特效（docs/25）：深海蓝 + 白浪。横扫双层弧光（深蓝 + 窄白边）+ 水珠飞溅；重斩抬剑时眼位红光，下劈巨大新月 + 地裂 + 水花柱。
 extends "res://scripts/characters/character.gd"
 
+const BLUE := Color(0.35, 0.55, 0.95)
+const FOAM := Color(0.8, 0.95, 1.0)
+const DROP := Color(0.6, 0.9, 1.0)
 const LEASH := 160.0
 
 var cd := 0.3
@@ -31,6 +35,7 @@ func update(dt: float) -> void:
 	if charge_skill(dt):
 		var ts: Array = g._nearest(1, 200.0, pos)
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF)
+		fx({"kind": "glow", "pos": pos + Vector2(0, -20), "r": 26.0, "life": 0.3, "col": BLUE, "alpha": 0.35})
 		return
 	if cd <= 0.0:
 		var ts: Array = g._nearest(1, _reach() + 30.0, pos)
@@ -50,17 +55,31 @@ func _aim() -> float:
 	return a
 
 
+## 双层斩击弧光 + 水珠
+func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: float) -> void:
+	g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
+	g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
+	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
+	for k in 5:
+		fx({"kind": "mote", "pos": sp + Vector2(g.rng.randf_range(-12, 12), g.rng.randf_range(-8, 8)), "vel": Vector2.from_angle(ang + g.rng.randf_range(-0.8, 0.8)) * g.rng.randf_range(40, 110) + Vector2(0, -60), "life": 0.4, "col": DROP, "sz": 2.0, "grav": 260.0})
+
+
 func _release() -> void:
 	var ang := _aim()
 	var dmg: float = 26.0 * _dmg_bonus()
 	melee_hit("大剑", pos + Vector2(0, -10), ang, 1.4, _reach(), dmg, 60.0)
-	g._slash_fx(pos + Vector2(0, -14), ang, 1.4, _reach(), Color(0.75, 0.9, 1.0))
+	_slash(ang, 1.4, _reach(), BLUE, FOAM, 0.22)
 	Sfx.play("swing", -12.0, 1.0, 0.08)
 	swings += 1
 	if elite >= 1 and swings % 3 == 0:
 		var back: float = ang + PI
 		melee_hit("反手斩", pos + Vector2(0, -10), back, 1.4, _reach(), dmg * 0.7, 60.0)
-		g._slash_fx(pos + Vector2(0, -14), back, 1.4, _reach(), Color(0.55, 0.75, 1.0))
+		_slash(back, 1.4, _reach(), FOAM, Color(1.2, 1.5, 1.7), 0.2)
+
+
+func _hit_fx(e: Dictionary, origin: Vector2) -> void:
+	var d: Vector2 = (e.pos - origin).normalized()
+	fx({"kind": "line", "pos": e.pos + Vector2(0, -e.r * 0.5) - d.orthogonal() * 8.0, "to": e.pos + Vector2(0, -e.r * 0.5) + d.orthogonal() * 8.0, "life": 0.15, "col": FOAM, "w": 2.0})
 
 
 func _release_skill() -> void:
@@ -74,7 +93,20 @@ func _release_skill() -> void:
 func _heavy(ang: float, mult: float) -> void:
 	var r: float = 150.0 * stat(&"op_range") * (1.2 if elite >= 2 else 1.0)
 	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, 26.0 * 3.0 * mult * _dmg_bonus() * skill_power(), 240.0)
-	g._slash_fx(pos + Vector2(0, -14), ang, 1.92, r, Color(0.6, 0.85, 1.0), "slash", 0.3)
-	g.fx.append({"kind": "quake", "pos": pos + Vector2.from_angle(ang) * r * 0.45, "r": r * 0.6, "life": 0.4, "max": 0.4, "col": Color(0.6, 0.85, 1.0)})
+	_slash(ang, 1.92, r, Color(0.25, 0.4, 0.85), FOAM, 0.32)
+	var c: Vector2 = pos + Vector2.from_angle(ang) * r * 0.45
+	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
+	fx({"kind": "ring", "pos": c, "r": r * 0.7, "r0": 10.0, "life": 0.35, "col": BLUE, "floor": true, "w": 3.0})
+	fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 34.0, "life": 0.2, "col": FOAM, "alpha": 0.5})
+	for k in 18:
+		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	g.shake = maxf(g.shake, 4.0)
 	Sfx.play("boom", -11.0, 0.8, 0.05)
+
+
+func _draw_skill_over() -> void:
+	# 重斩起手：眼位一点红光（精二红瞳）
+	if acting() and act_kind == "skill" and fire_t >= 0.0:
+		var p := pos + Vector2(5.0 * face, -38)
+		g.draw_circle(p, 3.0 + sin(g.t * 30.0), Color(2.4, 0.4, 0.4, 0.9))
+		g.draw_circle(p, 7.0, Color(1.0, 0.2, 0.2, 0.25))

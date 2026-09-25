@@ -4,6 +4,9 @@ extends Control
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
+const Character = preload("res://scripts/characters/character.gd")
+## 选人页的职业顺序（docs/23 §11.1）
+const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
 const ITEMS := [
 	{"cn": "开始探索", "en": "START"},
@@ -36,6 +39,12 @@ var gallery: Control
 var diff_pick := false
 var diff_sel := 0
 var diff_rects := {}
+## 选开局干员（docs/23 §14 P4）：开始探索 → 选人 → 选难度
+var op_pick := false
+var op_sel := 0
+var op_rects := {}
+var op_defs: Array = []        # [{id, def, tex, frames, lore}]
+var op_lore: Dictionary = {}
 ## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
 const INTRO_LEN := 3.4
 var intro := 0.0
@@ -84,7 +93,8 @@ func _ready() -> void:
 				gallery.sel = int(parts[1])
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
-			get_tree().create_timer(1.2).timeout.connect(func():
+			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）
+			get_tree().create_timer(float(parts[3]) if parts.size() > 3 else 1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_gallery_ui.png")
 				get_tree().quit())
 	Sfx.cut_target = 20000.0
@@ -105,6 +115,15 @@ func _ready() -> void:
 		settings.open()
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
+			get_tree().quit())
+	if OS.get_cmdline_user_args().has("--opshot"):
+		# 选人页截图（可选 --opsel=<n>）
+		_open_op_pick()
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--opsel="):
+				op_sel = clampi(int(a.substr(8)), 0, op_defs.size() - 1)
+		get_tree().create_timer(1.2).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
 			get_tree().quit())
 	if OS.get_cmdline_user_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
@@ -250,6 +269,9 @@ func _input(event: InputEvent) -> void:
 	if diff_pick:
 		_diff_input(event)
 		return
+	if op_pick:
+		_op_input(event)
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if guide or credits:
 			guide = false
@@ -288,8 +310,7 @@ func _activate(i: int) -> void:
 	match i:
 		0:
 			Sfx.play("ui_ok")
-			diff_pick = true
-			diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked)
+			_open_op_pick()
 		1:
 			Sfx.play("ui_ok")
 			gallery.open()
@@ -368,7 +389,7 @@ func _draw() -> void:
 		UI.en(self, font, rr.position + Vector2(170, 32), ITEMS[i].en, 13, _fa(UI.CYAN if on else Color(0.3, 0.45, 0.5), f), 3.0)
 	# 操作提示
 	var hf := _seg(2.7, 0.5)
-	if hf > 0.0 and not diff_pick:
+	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + ITEMS.size() * step + 6
 		UI.en(self, font, Vector2(tx + 2, hy), "W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
 
@@ -393,6 +414,8 @@ func _draw() -> void:
 		_draw_guide(vs)
 	if credits:
 		_draw_credits(vs)
+	if op_pick:
+		_draw_op_pick(vs)
 	if diff_pick:
 		_draw_diff(vs)
 	if leaving >= 0.0:
@@ -460,3 +483,205 @@ func _shot_dir() -> String:
 		if a.begins_with("--shotdir="):
 			return a.substr(10)
 	return "/tmp/claude-0"
+
+
+# =====================================================================
+# 选开局干员：data/characters/*.json 里 recruitable 的干员按职业排列；选中后进入选难度
+# =====================================================================
+func _open_op_pick() -> void:
+	if op_defs.is_empty():
+		var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
+		if lf != null:
+			var ld = JSON.parse_string(lf.get_as_text())
+			if ld is Dictionary:
+				op_lore = ld
+		for cid in Character.list_ids():
+			var d: Dictionary = Character.load_def(cid)
+			if not d.get("recruitable", true):
+				continue
+			var sp: Dictionary = d.get("sprites", {})
+			var idle = sp.get("idle", "")
+			var tn: String = idle if idle is String else idle.get("tex", "")
+			var tx: Texture2D = A.tex(tn) if tn != "" else null
+			var frames: int = 1
+			if idle is Dictionary and idle.has("frames"):
+				frames = int(idle.frames)
+			elif tx != null:
+				frames = max(1, tx.get_width() / tx.get_height())
+			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "lore": op_lore.get(cid, {}).get("lore", "")})
+		op_defs.sort_custom(func(a, b):
+			var ca: int = CLASS_ORDER.find(a.def.get("class", ""))
+			var cb: int = CLASS_ORDER.find(b.def.get("class", ""))
+			return ca < cb if ca != cb else a.id < b.id)
+	op_sel = 0
+	for i in op_defs.size():
+		if op_defs[i].id == Cfg.character_id:
+			op_sel = i
+	op_pick = true
+
+
+func _op_input(event: InputEvent) -> void:
+	var cols := 4
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_LEFT, KEY_A:
+				_op_step(-1)
+			KEY_RIGHT, KEY_D:
+				_op_step(1)
+			KEY_UP, KEY_W:
+				_op_step(-cols)
+			KEY_DOWN, KEY_S:
+				_op_step(cols)
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+				_op_go()
+			KEY_ESCAPE, KEY_BACKSPACE:
+				op_pick = false
+				Sfx.play("ui_move")
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		for k in op_rects:
+			if op_rects[k].has_point(event.position):
+				if k is int:
+					if op_sel == k:
+						_op_go()
+					else:
+						op_sel = k
+						Sfx.play("ui_move")
+				elif k == "go":
+					_op_go()
+				elif k == "back":
+					op_pick = false
+					Sfx.play("ui_move")
+				return
+
+
+func _op_step(d: int) -> void:
+	var n := clampi(op_sel + d, 0, op_defs.size() - 1)
+	if n != op_sel:
+		op_sel = n
+		Sfx.play("ui_move")
+
+
+func _op_go() -> void:
+	Cfg.character_id = op_defs[op_sel].id
+	Cfg.save()
+	Sfx.play("ui_ok")
+	op_pick = false
+	diff_pick = true
+	diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked)
+
+
+## 选人页：左侧 4×2 干员格（待机动画 + 名字 + 职业），右侧详情（普攻 / 技能 / 天赋 / 档案）
+func _draw_op_pick(vs: Vector2) -> void:
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
+	var r := Rect2(vs.x / 2 - 560, 40, 1120, vs.y - 80)
+	var cur: Dictionary = op_defs[op_sel]
+	var d: Dictionary = cur.def
+	var col: Color = Character.CLASS_COL.get(d.get("class", ""), UI.CYAN)
+	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
+	UI.en(self, font, r.position + Vector2(36, 42), "OPERATOR", 13, col, 4.0)
+	UI.text(self, font, r.position + Vector2(36, 80), "选择开局干员", 26, UI.TEXT)
+	UI.text(self, font, r.position + Vector2(220, 80), "其余干员在探索中通过升级招募", 13, UI.SUB)
+	op_rects.clear()
+	# ---- 左：干员格
+	var cols := 4
+	var cw := 128.0
+	var chh := 150.0
+	var gx := r.position.x + 36
+	var gy := r.position.y + 110
+	for i in op_defs.size():
+		var od: Dictionary = op_defs[i]
+		var cr := Rect2(gx + (i % cols) * (cw + 10), gy + (i / cols) * (chh + 10), cw, chh)
+		op_rects[i] = cr
+		var on := i == op_sel
+		var oc: Color = Character.CLASS_COL.get(od.def.get("class", ""), UI.CYAN)
+		var hov := cr.has_point(get_local_mouse_position())
+		UI.panel(self, cr, Color(0.03, 0.09, 0.12, 0.9) if on else Color(0.02, 0.05, 0.08, 0.8), oc if on else (Color(oc.r, oc.g, oc.b, 0.5) if hov else UI.LINE), 10.0, oc if on else Color(0, 0, 0, 0))
+		var tx: Texture2D = od.tex
+		if tx != null:
+			var fh := tx.get_height()
+			var fw := tx.get_width() / int(od.frames)
+			var fr := int(t * 4.0 + i) % int(od.frames)
+			var sc := 2.0 / A.hires_of(tx)
+			var pos := Vector2(cr.get_center().x - fw * sc / 2.0, cr.position.y + 92 - fh * sc + 6.0 * sc)
+			if on:
+				draw_set_transform(pos + Vector2(fw * sc / 2.0, fh * sc - 4.0 * sc), 0.0, Vector2(1.0, 0.4))
+				draw_circle(Vector2.ZERO, 26.0, Color(oc.r, oc.g, oc.b, 0.18))
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			draw_texture_rect_region(tx, Rect2(pos, Vector2(fw, fh) * sc), Rect2(fw * fr, 0, fw, fh), Color.WHITE if on or hov else Color(0.75, 0.8, 0.85))
+		UI.text(self, font, cr.position + Vector2(0, 116), od.def.get("name", od.id), 15, UI.TEXT if on else Color(0.7, 0.8, 0.85), HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 136), od.def.get("class", ""), 12, oc if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cw)
+	# ---- 右：详情
+	var dx := r.position.x + 36 + cols * (cw + 10) + 24
+	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy)
+	UI.panel(self, dr, Color(0.02, 0.05, 0.08, 0.7), Color(col.r, col.g, col.b, 0.35), 12.0)
+	var px := dr.position.x + 24
+	var py := dr.position.y + 34
+	UI.en(self, font, Vector2(px, py), d.get("en", ""), 12, col, 3.0)
+	UI.text(self, font, Vector2(px, py + 40), d.get("name", cur.id), 30, UI.TEXT)
+	var cx := px + 150
+	cx += UI.chip(self, font, Vector2(cx, py + 18), d.get("class", ""), col, 12) + 8
+	for tg in d.get("gallery", {}).get("tags", []):
+		cx += UI.chip(self, font, Vector2(cx, py + 18), tg, UI.PURPLE, 11) + 6
+	py += 74
+	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
+	py += 18
+	var lines: Array = []
+	if d.has("attack"):
+		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
+	if d.has("skill"):
+		lines.append(["技能", "%s%s" % [d.skill.get("name", ""), ("（充能 %d）" % int(d.skill.sp)) if d.skill.has("sp") else ""], d.skill.get("desc", "")])
+	if d.has("talent"):
+		lines.append(["天赋", d.talent.get("name", ""), d.talent.get("desc", "")])
+	for ln in lines:
+		UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
+		UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
+		py += 24
+		py += _wrap_text(Vector2(px, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48) + 12
+	# 精二条件
+	for n in d.get("progression", []):
+		if n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):
+			var req: Dictionary = n.requires
+			var parts: Array = []
+			if req.has("class_in_squad"):
+				parts.append("编队中有%s干员" % req.class_in_squad)
+			if req.has("doctor_passive"):
+				parts.append("博士被动「%s」" % preload("res://scripts/characters/doctor.gd").PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
+			for rid in req.get("relic", []):
+				parts.append("藏品 #%s" % str(rid))
+			if not parts.is_empty():
+				UI.text(self, font, Vector2(px, py + 12), "精英化二条件：" + "、".join(parts), 12, Color(0.8, 0.55, 1.0))
+				py += 26
+	# 档案
+	if cur.lore != "":
+		py += 6
+		UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
+		py += 10
+		_wrap_text(Vector2(px, py + 14), cur.lore, 13, Color(0.7, 0.8, 0.85), dr.size.x - 48)
+	# ---- 按钮
+	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
+	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
+	op_rects["go"] = go
+	op_rects["back"] = back
+	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
+	UI.text(self, font, go.position + Vector2(0, 29), "下一步  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
+	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 48), "W A S D  ·  ARROWS   SELECT        ENTER   NEXT", 11, Color(0.36, 0.5, 0.55), 2.0)
+
+
+## 按像素宽度折行绘制，返回占用高度
+func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float) -> float:
+	var lines: Array = []
+	var cur := ""
+	for ch in s:
+		if ch == "\n" or font.get_string_size(cur + ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+			lines.append(cur)
+			cur = "" if ch == "\n" else ch
+		else:
+			cur += ch
+	if cur != "":
+		lines.append(cur)
+	var lh := size + 6.0
+	for i in lines.size():
+		UI.text(self, font, pos + Vector2(0, i * lh), lines[i], size, col)
+	return lines.size() * lh
