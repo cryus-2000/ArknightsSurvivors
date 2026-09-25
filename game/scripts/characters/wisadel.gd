@@ -2,11 +2,12 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
-## 特效（docs/25）：黑红。弹体顺飞行方向的黑色椭圆 + 红热尾端，灰黑烟点拖尾；落点从出膛起画收缩的红色准星；
+## 特效（docs/25）：黑红。弹体是发光的能量弹（白粉核心 + 红紫光晕 + 长彗尾，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
 
 const RED := Color(0.95, 0.22, 0.2)
+const BOLT := Color(1.0, 0.16, 0.42)     # 弹体：红紫色能量光
 const EMBER := Color(1.0, 0.55, 0.3)
 const DARK := Color(0.1, 0.06, 0.08)
 const CLUSTER_SLACK := 40.0      # 离博士最近的几个敌人距离相差在此以内时，改挑周围敌人最多的
@@ -163,7 +164,7 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, 
 	var from := _muzzle()
 	var dur: float = clampf(from.distance_to(to) / 900.0, 0.18, 0.5)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
-		"trail": 0.0, "quake": quake, "stun": stun, "light": light})
+		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [from]})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.08, "col": RED, "sz": 22.0 * size})
@@ -187,10 +188,14 @@ func _update_shells(dt: float) -> void:
 		if s.trail <= 0.0 and s.t < s.dur:
 			s.trail = 0.03
 			var p := _shell_pos(s)
-			# 灰黑烟点拖尾（停留、膨胀）+ 少量亮红余烬
-			fx({"kind": "puff", "pos": p, "vel": Vector2(g.rng.randf_range(-6, 6), g.rng.randf_range(-12, -4)), "life": 0.4, "col": DARK, "sz": g.rng.randf_range(2.0, 3.5)})
-			if g.rng.randf() < 0.5:
-				fx({"kind": "spark", "pos": p, "vel": Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-10, 24)), "life": 0.18, "col": Color(1.6, 0.5, 0.35), "sz": 2.0})
+			# 彗尾上甩出的黑色碎屑 + 粉红光点
+			fx({"kind": "ember_shard", "pos": p, "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-20, 30)), "life": 0.3, "col": DARK, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
+			if g.rng.randf() < 0.6:
+				fx({"kind": "mote", "pos": p, "vel": Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), "life": 0.22, "col": BOLT, "sz": 1.6})
+		if s.t < s.dur:
+			s.hist.append(_shell_pos(s))
+			if s.hist.size() > 6:
+				s.hist.pop_front()
 		if s.t >= s.dur:
 			_explode(s.to, s.dmg, s.r, s.src, 0, s.stun, s.light)
 			# 余震：E1 起伤害 40% → 60%
@@ -234,6 +239,8 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 		"殉爆":
 			fx({"kind": "smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": DARK})
 			_impact_fx(c, r, light)
+		"饱和炮击":
+			_burst_fx(c, r)
 		_:
 			_impact_fx(c, r, light)
 	Sfx.play("boom", -16.0 if src == "余震" else -13.0, 1.2, 0.1)
@@ -257,6 +264,16 @@ func _impact_fx(c: Vector2, r: float, light: bool) -> void:
 	fx({"kind": "scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
 
 
+## 饱和炮击的爆炸（照原作）：白粉核心星芒 → 放射状红色刀锋光条 → 紫灰烟环旋开 → 红色碎刃飞散
+func _burst_fx(c: Vector2, r: float) -> void:
+	fx({"kind": "burst", "pos": c, "r": r * 1.6, "life": 0.55, "seed": g.rng.randf() * TAU})
+	fx({"kind": "smoke_ring", "pos": c, "r": r * 1.5, "life": 0.7, "seed": g.rng.randf() * TAU})
+	for k in 8:
+		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 260)
+		fx({"kind": "sliver", "pos": c, "vel": v, "life": 0.45, "col": BOLT, "sz": g.rng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
+	fx({"kind": "scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
+
+
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	match f.kind:
 		"muzzle":
@@ -267,15 +284,51 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			g.draw_colored_polygon(PackedVector2Array([f.pos + n * 3.0, f.pos + d * L, f.pos - n * 3.0, f.pos - d * 2.0]), Color(RED.r, RED.g, RED.b, 0.7 * a))
 			g.draw_colored_polygon(PackedVector2Array([f.pos + n * 1.4, f.pos + d * L * 0.55, f.pos - n * 1.4]), Color(2.2, 1.2, 0.8, 0.9 * a))
 			return true
-		"puff":
-			# 烟点：膨胀、变淡
+		"burst":
 			var k := 1.0 - a
-			g.draw_circle(f.pos, f.sz * (1.0 + 1.6 * k), Color(0.16, 0.11, 0.13, 0.5 * a))
+			var r: float = f.r
+			var sd: float = f.seed
+			# 红色底光（先胀后消）
+			g.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * a))
+			# 放射状刀锋光条：12 根，长短错落，随时间向外抽出并变细
+			for q in 12:
+				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
+				var ang: float = sd + q * TAU / 12.0 + (h - 0.5) * 0.35
+				var dv: Vector2 = Vector2.from_angle(ang)
+				var nv: Vector2 = dv.orthogonal()
+				var L: float = r * (0.55 + 0.7 * h) * minf(1.0, k * 2.2)
+				var w: float = (2.5 + 3.5 * h) * (1.0 - k * 0.7)
+				var s0: Vector2 = f.pos + dv * L * (0.1 + 0.35 * k)
+				var s1: Vector2 = f.pos + dv * L
+				var sm: Vector2 = f.pos + dv * L * 0.45
+				g.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w, s1, sm - nv * w]), Color(1.9, 0.1, 0.26, 0.9 * a))
+				g.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * a))
+			# 核心：小而亮的白粉星芒，很快收掉
+			var cr: float = r * 0.16 * (1.0 if k < 0.2 else maxf(0.0, 1.0 - (k - 0.2) / 0.45))
+			g.draw_circle(f.pos, cr * 1.8, Color(2.0, 0.3, 0.6, 0.55 * a))
+			g.draw_circle(f.pos, cr, Color(2.8, 2.0, 2.4, a))
+			return true
+		"smoke_ring":
+			# 紫灰烟环：由若干团烟组成的圆环，边旋边扩、变淡
+			var k := 1.0 - a
+			var rr: float = f.r * (0.55 + 0.55 * k)
+			for q in 10:
+				var ang: float = f.seed + q * TAU / 10.0 + k * 1.2
+				var pp: Vector2 = f.pos + Vector2.from_angle(ang) * rr
+				g.draw_circle(pp, f.r * (0.2 + 0.12 * k), Color(0.38, 0.24, 0.46, 0.4 * a))
+				g.draw_circle(pp + Vector2(4, -4), f.r * (0.1 + 0.08 * k), Color(0.55, 0.36, 0.62, 0.28 * a))
+			return true
+		"sliver":
+			# 红色碎刃：细长的双尖梭形，沿飞行方向
+			var dv: Vector2 = Vector2.from_angle(f.ang) * f.sz
+			var nv: Vector2 = dv.orthogonal().normalized() * 1.6
+			g.draw_colored_polygon(PackedVector2Array([f.pos - dv, f.pos + nv, f.pos + dv, f.pos - nv]), Color(2.2, 0.3, 0.5, a))
+			g.draw_line(f.pos - dv * 0.6, f.pos + dv * 0.6, Color(2.8, 1.4, 1.6, a), 1.0)
 			return true
 		"flash":
 			# 落地一瞬的橙白闪光
-			g.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.4, 1.6, 1.1, 0.8 * a))
-			g.draw_circle(f.pos, f.r * 0.4 * a, Color(3.0, 2.8, 2.4, a))
+			g.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.2, 0.6, 1.1, 0.75 * a))
+			g.draw_circle(f.pos, f.r * 0.4 * a, Color(3.0, 2.4, 2.8, a))
 			return true
 		"smoke":
 			# 黑烟团：膨胀、变淡、上鼓
@@ -289,10 +342,11 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			g.draw_circle(p + Vector2(-f.r * 0.2, -f.r * 0.1), f.r * (0.2 + 0.4 * k), Color(0.3, 0.2, 0.22, 0.3 * a))
 			return true
 		"ember_shard":
-			# 黑色碎片，前端带一点火
+			# 黑色碎片，前端带一点火（cold：彗尾碎屑，不带火）
 			var sv: Vector2 = Vector2.from_angle(f.ang) * f.sz
-			g.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(0.2, 0.12, 0.14, a))
-			g.draw_circle(f.pos + sv, 1.6, Color(2.0, 0.9, 0.5, a))
+			g.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(0.16, 0.08, 0.12, a))
+			if not f.get("cold", false):
+				g.draw_circle(f.pos + sv, 1.6, Color(2.0, 0.9, 0.5, a))
 			return true
 		"scorch":
 			# 地面焦痕：暗色椭圆，慢慢淡出
@@ -333,16 +387,26 @@ func draw_entities_floor() -> void:
 
 
 func _draw_skill_over() -> void:
-	# 弹体：顺飞行方向的黑色椭圆，尾端红热，外围一圈暗红光
+	# 能量弹：长彗尾（按历史位置逐段收窄、变淡）→ 红紫光晕 → 粉红弹体 → 白粉核心，都用高亮色让辉光吃到
 	for s in shells:
 		var k: float = s.t / s.dur
 		var p := _shell_at(s, k)
-		var ang: float = (_shell_at(s, minf(1.0, k + 0.02)) - p).angle()
-		g.draw_circle(p, 8.0, Color(RED.r, RED.g, RED.b, 0.22))
-		g.draw_set_transform(p, ang, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, 5.0, Color(0.08, 0.05, 0.07))
-		g.draw_circle(Vector2(-3.2, 0), 2.6, Color(1.8, 0.45, 0.3))
-		g.draw_circle(Vector2(1.5, -1.2), 1.2, Color(0.35, 0.28, 0.3))
+		var dir: Vector2 = (_shell_at(s, minf(1.0, k + 0.02)) - p).normalized()
+		var n: int = s.hist.size()
+		for i in range(n - 1):
+			var u: float = float(i + 1) / float(n)       # 0 尾 … 1 头
+			var w: float = 1.0 + 8.0 * u * u
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(BOLT.r * 1.4, BOLT.g * 0.8, BOLT.b * 1.4, 0.35 * u), w * 1.8)
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(2.0, 0.5, 1.0, 0.7 * u), w)
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(2.6, 1.6, 2.2, 0.6 * u * u), w * 0.35)
+		if n > 0:
+			g.draw_line(s.hist[n - 1], p, Color(2.0, 0.5, 1.0, 0.8), 9.0)
+		var ang: float = dir.angle()
+		g.draw_circle(p, 13.0, Color(BOLT.r, BOLT.g, BOLT.b, 0.28))
+		g.draw_set_transform(p, ang, Vector2(1.0, 0.6))
+		g.draw_circle(Vector2(-3, 0), 9.0, Color(1.8, 0.35, 0.85, 0.75))
+		g.draw_circle(Vector2(-1, 0), 6.0, Color(2.4, 0.9, 1.5, 0.95))
+		g.draw_circle(Vector2(1, 0), 3.4, Color(3.0, 2.6, 2.9, 1.0))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

@@ -542,6 +542,12 @@ func _ready() -> void:
 			for cid in a.substr(8).split(","):
 				if squad.add(cid) != null:
 					_load_op_tex(cid)
+	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--prog="):
+			for o in squad.ops:
+				for k in int(a.substr(7)):
+					o.advance()
 
 
 func _update_music(_dt: float) -> void:
@@ -3727,7 +3733,7 @@ func _draw_laser_art(from: Vector2, ang: float, length: float, alpha: float) -> 
 
 
 ## 旋转绘制帧条（锚点为帧中心，朝右绘制的素材按 ang 旋转）
-func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1)) -> void:
+func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
 	var tx: Texture2D = tex.get(name)
 	if tx == null:
 		return
@@ -3735,18 +3741,23 @@ func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, c
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
-	draw_set_transform(pos + draw_off, ang, Vector2(scale, scale))
+	draw_set_transform(pos + draw_off, ang, Vector2(-scale if flip else scale, scale))
 	draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
-func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0) -> bool:
+## 播放一条帧条特效：flip 镜像；bottom=true 时 pos 为脚底（帧条底部对齐）
+func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
 	if tex.get(name) == null:
 		return false
 	var spec: Array = V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
-	fx.append({"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur})
+	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
+	if bottom:
+		var tx: Texture2D = tex[name]
+		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
+	fx.append(f)
 	return true
 
 
@@ -4038,7 +4049,7 @@ func _draw() -> void:
 			"sprite":
 				var spec: Array = V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
-				_spr_rot(f.name, fr, f.pos, f.ang, f.scale)
+				_spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
