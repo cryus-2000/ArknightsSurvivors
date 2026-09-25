@@ -2646,8 +2646,9 @@ func _close_shop() -> void:
 # 医疗无人机（保底治疗，2026-09-25）：开局 Lv.1，不占编队位；跟在博士头顶两侧，周期性治疗博士
 # Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
-const DRONE_HEAL := [0.0, 0.02, 0.03, 0.03, 0.03, 0.04]
-const DRONE_EVERY := [0.0, 6.0, 5.0, 5.0, 5.0, 4.0]
+# 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）
+const DRONE_HEAL := [0.0, 0.02, 0.03, 0.03, 0.02, 0.025]
+const DRONE_EVERY := [0.0, 6.0, 6.0, 6.0, 6.0, 5.0]
 
 
 func _update_weapons(dt: float) -> void:
@@ -2674,8 +2675,8 @@ func _update_weapons(dt: float) -> void:
 				_drone_heal(dr, max_hp * DRONE_HEAL[dl], dl >= 5)
 		# Lv.3：低血急救
 		if dl >= 3 and drone_rescue_cd <= 0.0 and hp < max_hp * 0.4 and i == 0:
-			drone_rescue_cd = 20.0
-			_drone_heal(dr, max_hp * 0.08, dl >= 5)
+			drone_rescue_cd = 25.0
+			_drone_heal(dr, max_hp * 0.06, dl >= 5)
 			_add_text(ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
 
 
