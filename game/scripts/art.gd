@@ -41,9 +41,9 @@ static func has_override(name: String) -> bool:
 static var normal_maps := false
 ## 高清贴图：art/incoming/<name>@2x.png 存在时优先使用，像素密度 2 倍（96px 画 48px 的内容），
 ## 绘制时倍率减半，锚点 / 判定 / 帧数都不变。_hires 按名字记倍数，_hires_rid 按贴图记倍数。
-## 是否启用 @2x 高清贴图。编队制阶段全员统一 48px（干员首批只交 48px），先关掉，
-## 免得水月 / 博士比其他干员细一倍。@2x 文件保留在 art/incoming，改回 true 即恢复。
-const USE_HIRES := false
+## 是否启用 @2x 高清贴图。人物以 96px 为标准（art/incoming/squad_2x_handoff.md）：
+## 水月、博士与具名编队全员都有 @2x；没有 @2x 的贴图（旧预备干员、敌人）继续用原图。
+const USE_HIRES := true
 static var _hires := {}
 static var _hires_rid := {}
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
@@ -157,4 +157,6 @@ static func white_of(src: Texture2D) -> Texture2D:
 			var c := img.get_pixel(x, y)
 			if c.a > 0.0:
 				img.set_pixel(x, y, Color(1, 1, 1, c.a))
-	return ImageTexture.create_from_image(img)
+	var w := ImageTexture.create_from_image(img)
+	_hires_rid[w.get_rid()] = hires_of(src)
+	return w

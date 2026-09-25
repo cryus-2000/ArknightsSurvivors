@@ -2,7 +2,6 @@
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
-const P = D.SKILL_P
 
 var g  # Game (Node2D)
 
