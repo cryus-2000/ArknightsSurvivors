@@ -23,7 +23,16 @@
   "s3_strikes": 12,
   "s3_lift": 4.0,
   "s3_strike_mult": 1.55,
-  "talent_bonus": 0.3
+  "talent_bonus": 0.3,
+  "retrial_mult": 0.6,
+  "strict_len": 1.25,
+  "strict_width": 1.4,
+  "gale_r": 70,
+  "gale_lift": 0.8,
+  "tide2_delay": 0.35,
+  "tide2_mult": 0.8,
+  "pursue_mult": 0.6,
+  "pursue_cd": 0.4
  },
  "sprites": {
   "idle": {
@@ -153,32 +162,32 @@
     "skill",
     "area"
    ]
+  },
+  "追诉": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "剑 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "retrial",
+   "name": "再审",
+   "icon": "growth_u_spd",
+   "desc": "刺击变为 3 段（第三段刺击 60% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "剑 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "strict",
+   "name": "严律",
+   "icon": "growth_b_range",
+   "desc": "刺击长度 +25%、宽度 +40%"
   },
   {
    "type": "elite",
@@ -187,34 +196,24 @@
    "desc": "解锁二技能「碎潮」；解锁天赋「涤罪之焰」：对受控敌人伤害 +30%"
   },
   {
-   "type": "stat",
-   "name": "净罪之剑",
-   "desc": "攻速 +25%（原作：场上有海嗣时攻速翻倍）",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.25
-    }
-   ]
+   "type": "custom",
+   "id": "gale",
+   "name": "卷风",
+   "icon": "skill_s1",
+   "desc": "「疾风」浮空的目标卷起身边 70 内的敌人一起浮空 0.8 秒"
   },
   {
-   "type": "stat",
-   "name": "剑 · 锋 II",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "tide2",
+   "name": "二度裂潮",
+   "icon": "skill_s2",
+   "desc": "「碎潮」0.35 秒后再斩一次（80% 伤害，重新瞄准）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「审判」：冲击波掀起一片，随后转身手炮连射 12 发"
+   "desc": "解锁三技能「审判」：冲击波掀起一片，随后转身手炮连射 12 发；普攻质变「追诉」：刺中浮空 / 被她控住的敌人时追加一发手炮（手炮一发的 60%，每 0.4 秒至多一次）"
   }
  ],
  "gallery": {

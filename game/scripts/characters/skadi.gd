@@ -1,6 +1,8 @@
 ## 斯卡蒂（近卫，契约 v2.1）：近战输出。前压到博士身边的敌人面前高频横扫大剑。
 ## S1 潮涌斩：立即一次 ×2 宽幅横扫；S2 重斩：高举下劈大范围重击并击退；S3 潮汐：8 秒全方向横扫、范围与伤害提升。
 ## 特效（docs/25）：深海蓝 + 白浪。横扫双层弧光（深蓝 + 窄白边）+ 水珠飞溅；重斩抬剑时眼位红光，下劈巨大新月 + 地裂 + 水花柱。
+## 可见成长（docs/25 §5，档案「挥剑扭曲狂放，像跳异国舞蹈」）：一击 → 两连斩（镜像弧）→ 三连斩（第三下旋身斩）；
+## 重斩掀起海浪墙；潮汐期间脚下每秒涌出水环；精二每轮连斩收尾涌起一圈小海浪。
 extends "res://scripts/characters/character.gd"
 
 const BLUE := Color(0.35, 0.55, 0.95)
@@ -12,6 +14,15 @@ const S3_DUR := 8.0
 var cd := 0.3
 var swings := 0               # 横扫计数（天赋：每第 3 次追加反手斩）
 var tide := 0.0               # S3 潮汐剩余
+# ---- 可见成长
+var combo_n := 1              # N1「狂舞」2 连斩 / N2「异乡之舞」3 连斩
+var wave_on := false          # N4「跃浪」：重斩掀起一道向前推进的海浪墙
+var surge_on := false         # N5「涌潮」：潮汐期间每秒从脚下涌出一圈水环
+var elegy_on := false         # 精二「悲歌」：每轮连斩收尾，身边涌起一圈小海浪
+var pending: Array = []       # 连斩后续段 {at, step, dmg}
+var waves: Array = []         # 跃浪海浪墙 {pos, dir, dist, max, w, dmg, hit, drop}
+var pulse_t := 0.0            # 涌潮计时
+const WAVE_MAX := 2
 
 
 ## 基础数值全部可由 data/characters/skadi.json 的 base 段覆盖（docs/27 §3）
@@ -24,9 +35,41 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
+## 成长节点（data/characters/skadi.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"combo2":
+			combo_n = maxi(combo_n, 2)
+		"combo3":
+			combo_n = maxi(combo_n, 3)
+		"leap_wave":
+			wave_on = true
+		"surge":
+			surge_on = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		elegy_on = true
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	tide = maxf(0.0, tide - dt)
+	_update_waves(dt)
+	# 连斩的后续段（与动作无关，按时间出手）
+	for i in range(pending.size() - 1, -1, -1):
+		var pd: Dictionary = pending[i]
+		pd.at -= dt
+		if pd.at <= 0.0:
+			pending.remove_at(i)
+			_combo_step(pd)
+	# 涌潮：潮汐期间每秒一圈水环
+	if surge_on and tide > 0.0:
+		pulse_t -= dt
+		if pulse_t <= 0.0:
+			pulse_t = base("pulse_every", 1.0)
+			_surge_pulse()
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -55,7 +98,8 @@ func _aim() -> float:
 
 
 ## 斩击弧光（Ninja Adventure Slash 调深海蓝：普通 / 重斩 / 潮汐全方向三条帧条；缺图退回程序双层弧）+ 水珠
-func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: float) -> void:
+## mirror：沿挥砍方向镜像（连斩第二下反向挥回来）；tint 覆盖帧条的染色
+func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: float, mirror := false, tint := Color(0.72, 0.86, 1.05, 0.88)) -> void:
 	var name := "fx_slash_arc_deep"
 	var sc: float = r * 1.15 / 40.0
 	if half >= PI - 0.01:
@@ -65,8 +109,16 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 		name = "fx_slash_heavy_deep"
 		sc = r * 1.2 / 28.0
 	var at: Vector2 = pos + Vector2(0, -14) + (Vector2.ZERO if name == "fx_slash_circle_deep" else Vector2.from_angle(ang) * r * 0.5)
+	# 镜像：水平翻转 + 转半圈 = 沿挥砍方向上下翻转
+	var sa: float = 0.0
+	var sf := false
+	if name != "fx_slash_circle_deep":
+		sa = ang + (PI if mirror else 0.0)
+		sf = mirror
+	else:
+		sf = mirror
 	# 染一层深海蓝、略透明：帧条高光接近纯白，叠辉光后会糊成一整片白
-	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0, false, false, Color(0.72, 0.86, 1.05, 0.88)):
+	if not g._fx_sprite(name, at, sc, sa, sf, false, tint):
 		g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
 		g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
 	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
@@ -88,6 +140,95 @@ func _release() -> void:
 		var back: float = ang + PI
 		melee_hit("反手斩", pos + Vector2(0, -10), back, 1.4, _reach(), dmg * 0.7, 60.0)
 		_slash(back, 1.4, _reach(), FOAM, Color(1.2, 1.5, 1.7), 0.2)
+	# 狂舞 / 异乡之舞：连斩后续段；只有一击时这一击就是整轮连斩的收尾
+	if combo_n >= 2:
+		pending.append({"at": base("combo2_delay", 0.12), "step": 2, "dmg": dmg})
+	elif elegy_on:
+		_elegy(dmg)
+
+
+## 连斩后续段：第二下镜像回挥（70%），第三下旋身斩一整圈（80%）；最后一段收尾时触发悲歌
+func _combo_step(pd: Dictionary) -> void:
+	var ang := _aim()
+	var dmg: float = pd.dmg
+	if pd.step == 2:
+		var half: float = PI if tide > 0.0 else 1.4
+		melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg * base("combo2_mult", 0.55), 60.0, 0.0, ["follow_up"])
+		_slash(ang, half, _reach(), Color(0.3, 0.5, 0.95), FOAM, 0.2, true, Color(0.8, 0.92, 1.1, 0.85))
+		Sfx.op(id, "atk", -3.0, 1.12, 0.08)
+		if combo_n >= 3:
+			pending.append({"at": base("combo3_delay", 0.12), "step": 3, "dmg": dmg})
+			return
+	else:
+		# 旋身斩：一整圈，略大一圈，白浪色，外加一圈沿切线甩出的水珠
+		var r: float = _reach() * base("combo3_reach", 1.1)
+		melee_hit("大剑", pos + Vector2(0, -10), ang, PI, r, dmg * base("combo3_mult", 0.6), 90.0, 0.0, ["follow_up"])
+		_slash(ang, PI, r, FOAM, Color(1.2, 1.5, 1.7), 0.24, face < 0.0, Color(0.95, 1.05, 1.2, 0.8))
+		for k in 12:
+			var a: float = k * TAU / 12.0
+			var p: Vector2 = pos + Vector2(0, -12) + Vector2(cos(a), sin(a) * 0.55) * r * 0.8
+			fx({"kind": "mote", "pos": p, "vel": Vector2.from_angle(a + PI / 2.0 * face) * 140.0 + Vector2(0, -40), "life": 0.35, "col": FOAM, "sz": 2.0, "grav": 200.0})
+		Sfx.op(id, "atk", -1.0, 0.9, 0.08)
+	if elegy_on:
+		_elegy(dmg)
+
+
+## 悲歌（精二）：一轮连斩收尾，身边涌起一圈小海浪（50% 伤害，击退）
+func _elegy(dmg: float) -> void:
+	var r: float = base("elegy_r", 90.0)
+	area_hit("悲歌", pos, r, dmg * base("elegy_mult", 0.5), base("elegy_kb", 220.0))
+	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 16.0, "life": 0.4, "col": BLUE, "floor": true, "w": 5.0, "alpha": 0.8})
+	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.8, "r0": 10.0, "life": 0.32, "col": FOAM, "floor": true, "w": 2.0})
+	for k in 10:
+		var a: float = k * TAU / 10.0 + g.rng.randf_range(-0.2, 0.2)
+		fx({"kind": "mote", "pos": pos + Vector2(cos(a) * r * 0.8, sin(a) * r * 0.44 + 2.0), "vel": Vector2(cos(a) * 30.0, g.rng.randf_range(-170, -90)), "life": 0.45, "col": DROP, "sz": 2.5, "grav": 360.0})
+
+
+## 涌潮（N5）：潮汐期间每秒从脚下涌出一圈水环（潮汐普攻 40% 伤害，击退）
+func _surge_pulse() -> void:
+	var r: float = base("pulse_r", 120.0)
+	var dmg: float = base("atk", 26.0) * _dmg_bonus() * base("s3_mult", 1.5) * skill_power() * base("pulse_mult", 0.4)
+	area_hit("涌潮", pos, r, dmg, base("pulse_kb", 200.0))
+	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 12.0, "life": 0.5, "col": Color(0.3, 0.55, 1.0), "floor": true, "w": 6.0, "alpha": 0.7})
+	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.9, "r0": 8.0, "life": 0.42, "col": FOAM, "floor": true, "w": 2.0})
+	g._fx_sprite("fx_splash_blue", pos + Vector2(0, 6), g.PX * 0.9, 0.0, false, true)
+
+
+## 跃浪（N4）：重斩落点掀起一道向前推进的海浪墙（重斩 80% 伤害，每名敌人只打一次，击退）
+func _spawn_wave(ang: float, dmg: float, from: Vector2) -> void:
+	if waves.size() >= WAVE_MAX:
+		waves.pop_front()
+	waves.append({"pos": from, "dir": Vector2.from_angle(ang), "dist": 0.0, "max": base("wave_dist", 200.0), "w": base("wave_w", 140.0),
+		"dmg": dmg * base("wave_mult", 0.8), "hit": {}, "drop": 0.0})
+
+
+func _update_waves(dt: float) -> void:
+	if waves.is_empty():
+		return
+	var spd: float = base("wave_spd", 480.0)
+	for w in waves:
+		var step: float = spd * dt
+		w.pos += w.dir * step
+		w.dist += step
+		var nrm: Vector2 = w.dir.orthogonal()
+		for j in g._query(w.pos, w.w * 0.5 + 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hit.has(e.id):
+				continue
+			var rel: Vector2 = e.pos - w.pos
+			if absf(rel.dot(w.dir)) > 18.0 + e.r or absf(rel.dot(nrm)) > w.w * 0.5 + e.r:
+				continue
+			w.hit[e.id] = true
+			g._hit("跃浪")
+			g._damage(e, w.dmg)
+			if not e.dead and not e.boss:
+				e.kb += w.dir * base("wave_kb", 260.0) * (0.3 if e.elite else 1.0)
+		w.drop -= dt
+		if w.drop <= 0.0:
+			w.drop = 0.03
+			var l: float = g.rng.randf_range(-0.5, 0.5) * w.w
+			fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.rng.randf_range(-120, -60)), "life": 0.4, "col": FOAM, "sz": 2.0, "grav": 320.0})
+	waves = waves.filter(func(w): return w.dist < w.max)
 
 
 func _hit_fx(e: Dictionary, origin: Vector2) -> void:
@@ -108,6 +249,7 @@ func _release_skill() -> void:
 			_heavy(_aim())
 		2:
 			tide = S3_DUR
+			pulse_t = base("pulse_every", 1.0)
 			fx({"kind": "ring", "pos": pos, "r": 120.0, "r0": 10.0, "life": 0.5, "col": BLUE, "floor": true})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE})
 			for k in 16:
@@ -125,7 +267,8 @@ func skill_active_dur(i: int) -> float:
 
 func _heavy(ang: float) -> void:
 	var r: float = base("s2_r", 150.0) * stat(&"op_range")
-	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, base("atk", 26.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power(), 240.0)
+	var hdmg: float = base("atk", 26.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power()
+	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, hdmg, 240.0)
 	_slash(ang, 1.92, r, Color(0.25, 0.4, 0.85), FOAM, 0.32)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * r * 0.45
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
@@ -137,6 +280,8 @@ func _heavy(ang: float) -> void:
 		g._fx_sprite("fx_splash_blue", c + Vector2(sd * r * 0.3, 10), g.PX * 0.9, 0.0, sd < 0.0, true)
 	for k in 18:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
+	if wave_on:
+		_spawn_wave(ang, hdmg, c)
 	g.shake = maxf(g.shake, 4.0)
 	Sfx.op(id, "big")
 
@@ -146,6 +291,29 @@ func draw_auras() -> void:
 		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		g.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(BLUE.r, BLUE.g, BLUE.b, 0.3 + 0.1 * sin(g.t * 5.0)), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 地面层：跃浪海浪墙——贴地的弧形水墙（中间高两头低），深蓝水体 + 白色浪尖，推进到尽头时淡出
+func draw_entities_floor() -> void:
+	for w in waves:
+		var a: float = clampf((w.max - w.dist) / 60.0, 0.0, 1.0)
+		var nrm: Vector2 = w.dir.orthogonal()
+		var basel := PackedVector2Array()
+		var top := PackedVector2Array()
+		var N := 12
+		for i in N + 1:
+			var u: float = float(i) / N * 2.0 - 1.0
+			var bp: Vector2 = w.pos + nrm * u * w.w * 0.5 - w.dir * (u * u) * 16.0
+			var h: float = 26.0 * (1.0 - u * u) + 4.0 + sin(g.t * 14.0 + i) * 2.0
+			basel.append(bp)
+			top.append(bp + Vector2(0, -h))
+		var poly: PackedVector2Array = basel.duplicate()
+		var rt: PackedVector2Array = top.duplicate()
+		rt.reverse()
+		poly.append_array(rt)
+		g.draw_colored_polygon(poly, Color(0.25, 0.45, 0.95, 0.45 * a))
+		g.draw_polyline(top, Color(1.4, 1.8, 2.2, 0.9 * a), 3.0)
+		g.draw_polyline(basel, Color(0.5, 0.8, 1.4, 0.5 * a), 2.0)
 
 
 func _draw_skill_over() -> void:

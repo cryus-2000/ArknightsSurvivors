@@ -24,7 +24,17 @@
   "s3_cd": 0.6,
   "quake": 0.4,
   "quake_e1": 0.6,
-  "shade": 0.4
+  "shade": 0.4,
+  "quake2_delay": 0.3,
+  "quake2_size": 1.25,
+  "quake2_mult": 1.0,
+  "twin_mult": 0.6,
+  "ash_stun": 0.8,
+  "mark_dur": 4.0,
+  "mark_mult": 0.45,
+  "soul_cd": 2.0,
+  "soul_range": 300,
+  "soul_speed": 520
  },
  "sprites": {
   "idle": {
@@ -157,28 +167,18 @@
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "炮击 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "echo_quake",
+   "name": "余响",
+   "icon": "growth_b_echo",
+   "desc": "每发炮击的余震再来一次：第一次余震后 0.3 秒，同一处再震一次（范围 ×1.25）"
   },
   {
-   "type": "stat",
-   "name": "炮击 · 广",
-   "desc": "爆炸范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "twin_shot",
+   "name": "礼尚往来",
+   "icon": "growth_b_count",
+   "desc": "每次炮击同时向第二个目标再打一发炮弹（60% 伤害，同样余震）"
   },
   {
    "type": "elite",
@@ -187,34 +187,24 @@
    "desc": "解锁二技能「凋零处刑」；解锁天赋「残影」：被炮击或余震击杀的敌人留下残影，0.25 秒后爆炸（40% 伤害）并眩晕 0.6 秒"
   },
   {
-   "type": "stat",
-   "name": "炮击 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "ash_rings",
+   "name": "余烬未冷",
+   "icon": "skill_s1",
+   "desc": "「灰烬弹幕」强化的 3 发炮击，余震变为三圈并眩晕 0.8 秒（精英减半，Boss 免疫）"
   },
   {
-   "type": "stat",
-   "name": "炮击 · 锐",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "exec_mark",
+   "name": "亡者回响",
+   "icon": "skill_s2",
+   "desc": "「凋零处刑」爆炸波及的敌人全部挂上残影标记（4 秒）：被标记的敌人死亡时必定殉爆（60% 伤害）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「饱和炮击」：装填 8 发巨型炮弹：之后的炮击换成高速巨炮（伤害 ×1.6、爆炸范围 ×2、必定余震，射速更快），打完 8 发为止"
+   "desc": "解锁三技能「饱和炮击」：装填 8 发巨型炮弹：之后的炮击换成高速巨炮（伤害 ×1.6、爆炸范围 ×2、必定余震，射速更快），打完 8 发为止；普攻质变「死魂灵的余息」：两个魂灵之影跟随维什戴尔，每 2 秒各自飞向附近一名敌人挂上残影标记，被标记的敌人死亡时必定殉爆"
   }
  ],
  "gallery": {

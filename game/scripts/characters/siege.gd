@@ -17,6 +17,17 @@ const LEAP_DUR := 0.42
 const LEAP_H := 42.0
 const FLAME := Color(1.0, 0.55, 0.15)
 var heavy_swing := false      # S3 碎颅期间：这一锤用技能动作（原 S2 双手砸地）出手
+# ---- 可见成长（docs/25 §5：只长锤击落地的冲击。原作依据：S2 跃空锤可存多次、狮王号令）
+var quake_on := false         # N1「震地」：每一锤落地打出一圈贴地冲击环
+var roar_on := false          # N2「狮吼」：冲击环扩大并击退
+var leap2_on := false         # N4「再跃」：跃空锤落地后立刻再跃向下一群敌人
+var king_on := false          # N5「万兽之王」：冲锋号令放出一圈向外扩张的金色号令波
+var breach_on := false        # 精二「破阵」：每一锤向前方砸出一道直线金色地裂
+var leap_n := 0               # 本次跃空锤还剩几跳（再跃）
+var leap_second := false      # 正在进行的是第二跳（伤害按 leap2_mult 折算、不再回技力）
+var cmd_waves: Array = []     # 号令波 {pos, t, r, dmg, hit}
+var fissures: Array = []      # 破阵地裂 {a, b, t, pts, w}
+const FISSURE_MAX := 6
 
 
 ## 基础数值全部可由 data/characters/siege.json 的 base 段覆盖（docs/27 §3）
@@ -29,9 +40,31 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
+## 成长节点（data/characters/siege.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"quake":
+			quake_on = true
+		"roar":
+			roar_on = true
+		"leap_again":
+			leap2_on = true
+		"beast_king":
+			king_on = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		breach_on = true
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	skull = maxf(0.0, skull - dt)
+	_update_cmd_waves(dt)
+	for fs in fissures:
+		fs.t -= dt
+	fissures = fissures.filter(func(fs): return fs.t > 0.0)
 	if leap_t >= 0.0:
 		# 跃空锤：空中转一圈，落地砸击（在 follow 之后覆盖位置，沿起跳点 → 落点飞过去）
 		leap_t += dt
@@ -39,7 +72,14 @@ func update(dt: float) -> void:
 		pos = leap_pos.lerp(leap_to, lu)
 		if leap_t >= LEAP_DUR:
 			leap_t = -1.0
-			_slam()
+			_slam(leap_second)
+			# 再跃：落地后立刻跃向下一群敌人（主控时连博士一起带过去）
+			if leap_n > 0:
+				leap_n -= 1
+				var nc = _next_cluster()
+				if nc != null:
+					leap_second = true
+					_start_leap(nc, base("leap2_dist", 150.0))
 		return
 	if acting():
 		return
@@ -51,6 +91,8 @@ func update(dt: float) -> void:
 		_sp_motes(2)
 		fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
 		g._add_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
+		if king_on:
+			_command_wave()
 		return
 	if ready > 0:
 		start_skill(Vector2.INF, ready)
@@ -96,6 +138,11 @@ func _release() -> void:
 		fx({"kind": "crack", "pos": hp + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": FLAME, "floor": true, "n": 6})
 		fx_sparks(hp, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		g.hitstop = maxf(g.hitstop, 0.04)
+	var land: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
+	if quake_on:
+		_quake(land, mult)
+	if breach_on:
+		_breach(land, ang, mult)
 	if not hits.is_empty():
 		# 每次命中（不论几个目标）全队 +0.5 秒技力，精一翻倍
 		_squad_sp_seconds(base("hit_sp", 0.5) * (2.0 if elite >= 1 else 1.0))
@@ -115,16 +162,11 @@ func _release_skill() -> void:
 		return
 	match cur_skill:
 		1:
-			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）
-			leap_t = 0.0
-			leap_pos = pos
-			leap_to = pos
+			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）；再跃：落地后还有一跳
+			leap_n = 1 if leap2_on else 0
+			leap_second = false
 			var ts: Array = g._nearest(1, 160.0, pos)
-			if not ts.is_empty():
-				var dv: Vector2 = ts[0].pos - pos
-				leap_to = pos + dv.normalized() * clampf(dv.length() - 24.0, 0.0, 90.0)
-				face = signf(dv.x) if absf(dv.x) > 1.0 else face
-			fx({"kind": "ring", "pos": pos, "r": 26.0, "r0": 6.0, "life": 0.2, "col": GOLD, "floor": true, "w": 2.0})
+			_start_leap(ts[0] if not ts.is_empty() else null, 90.0)
 		2:
 			# 碎颅：8 秒重锤
 			skull = S3_DUR
@@ -134,9 +176,11 @@ func _release_skill() -> void:
 
 
 ## 跃空锤落地：伤害 / 眩晕 / 全队技力在这一刻结算；特效照原作截图：一圈向上窜的橙黄火焰 + 黄色光柱与放射光线 + 贴地冲击波
-func _slam() -> void:
+## second：再跃的第二跳（伤害 × leap2_mult，不再给全队技力）
+func _slam(second := false) -> void:
 	var r: float = base("s2_r", 110.0) * stat(&"op_range")
-	area_hit("震地", pos, r, base("atk", 30.0) * base("s2_mult", 2.2) * _dmg_bonus() * skill_power(), 220.0, 0.6)
+	var sm: float = base("leap2_mult", 0.6) if second else 1.0
+	area_hit("震地", pos, r, base("atk", 30.0) * base("s2_mult", 2.2) * _dmg_bonus() * skill_power() * sm, 220.0, 0.6)
 	fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
 	fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": FLAME, "floor": true, "w": 4.0})
 	fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
@@ -152,9 +196,130 @@ func _slam() -> void:
 		_blaze_ring(r)
 	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
 	g.hitstop = maxf(g.hitstop, 0.07)
-	g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
-	_sp_motes(3)
+	if not second:
+		g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
+		_sp_motes(3)
 	Sfx.op(id, "big")
+
+
+## 起跳：朝目标敌人跃过去（最多 maxd），落在它面前；没有目标就原地跃起
+func _start_leap(tg, maxd: float) -> void:
+	leap_t = 0.0
+	leap_pos = pos
+	leap_to = pos
+	if tg != null:
+		var dv: Vector2 = tg.pos - pos
+		leap_to = pos + dv.normalized() * clampf(dv.length() - 24.0, 0.0, maxd)
+		face = signf(dv.x) if absf(dv.x) > 1.0 else face
+	fx({"kind": "ring", "pos": pos, "r": 26.0, "r0": 6.0, "life": 0.2, "col": GOLD, "floor": true, "w": 2.0})
+
+
+## 再跃的落点：落点半径之外、身边 leap2_range 以内敌人最密的一处（按 70 以内的邻居数打分）
+func _next_cluster():
+	var rng_r: float = base("leap2_range", 220.0)
+	var near_r: float = base("s2_r", 110.0) * stat(&"op_range") * 0.6
+	var best = null
+	var best_s := -1.0
+	var cands: Array = g._query(pos, rng_r)
+	for j in cands:
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.chest:
+			continue
+		var d: float = e.pos.distance_to(pos)
+		if d > rng_r or d < near_r:
+			continue
+		var s := 0.0
+		for j2 in g._query(e.pos, 70.0):
+			var o: Dictionary = g.enemies[j2]
+			if not o.dead and o.pos.distance_to(e.pos) < 70.0:
+				s += 1.0
+		s -= d * 0.002
+		if s > best_s:
+			best_s = s
+			best = e
+	if best == null:
+		var ts: Array = g._nearest(1, rng_r, pos)
+		best = ts[0] if not ts.is_empty() else null
+	return best
+
+
+## 震地 / 狮吼：锤子落地处打出一圈贴地冲击环（锤击 40% 伤害；狮吼范围 +40% 并击退）+ 尘土
+func _quake(p: Vector2, mult: float) -> void:
+	var r: float = base("quake_r", 70.0) * (base("roar_r_mult", 1.4) if roar_on else 1.0) * stat(&"op_range")
+	var kb: float = base("roar_kb", 200.0) if roar_on else 0.0
+	area_hit("震地余波", p, r, base("atk", 30.0) * mult * base("quake_mult", 0.25) * _dmg_bonus(), kb)
+	fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r, "r0": 10.0, "life": 0.32, "col": GOLD, "floor": true, "w": 3.0 if roar_on else 2.0})
+	if roar_on:
+		fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r * 0.7, "r0": 6.0, "life": 0.26, "col": Color(2.0, 1.6, 0.8), "floor": true, "w": 1.5})
+	# 尘土：贴地向外扑的土黄色烟团
+	for k in (8 if roar_on else 5):
+		var a: float = k * TAU / (8.0 if roar_on else 5.0) + g.rng.randf_range(-0.3, 0.3)
+		fx({"kind": "dust", "pos": p + Vector2(cos(a) * r * 0.35, sin(a) * r * 0.2 + 4.0), "vel": Vector2(cos(a), sin(a) * 0.5) * r * 1.6, "drag": 5.0,
+			"r": g.rng.randf_range(7.0, 11.0), "life": 0.45, "col": Color(0.62, 0.52, 0.4), "floor": true})
+
+
+## 破阵：锤子落点沿锤击方向砸出一道直线金色地裂（锤击 50% 伤害），发光裂隙 0.6 秒淡出
+func _breach(p: Vector2, ang: float, mult: float) -> void:
+	var L: float = base("crack_len", 180.0)
+	var w: float = base("crack_w", 30.0)
+	var dir: Vector2 = Vector2.from_angle(ang)
+	var a: Vector2 = p + Vector2(0, 6)
+	var b: Vector2 = a + dir * L
+	var dmg: float = base("atk", 30.0) * mult * base("crack_mult", 0.5) * _dmg_bonus()
+	for j in g._query(a + dir * L * 0.5, L * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var t: float = clampf((e.pos - a).dot(dir) / L, 0.0, 1.0)
+		if e.pos.distance_to(a + dir * L * t) > w * 0.5 + e.r:
+			continue
+		g._hit("破阵")
+		g._damage(e, dmg)
+		fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.rng.randf() * PI})
+	# 锯齿状的裂隙折线（生成一次，绘制时逐渐淡出）
+	var pts := PackedVector2Array()
+	var n: int = 9
+	var nrm: Vector2 = dir.orthogonal()
+	for i in n + 1:
+		var u: float = float(i) / n
+		var jit: float = 0.0 if i == 0 or i == n else g.rng.randf_range(-7.0, 7.0)
+		pts.append(a + dir * L * u + nrm * jit)
+	if fissures.size() >= FISSURE_MAX:
+		fissures.pop_front()
+	var life: float = base("crack_life", 0.6)
+	fissures.append({"pts": pts, "t": life, "max": life, "w": w})
+	for k in 4:
+		fx_sparks(a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
+
+
+## 万兽之王：冲锋号令放出一圈向外扩张的金色号令波（锤击 60% 伤害，推开小怪）
+func _command_wave() -> void:
+	if cmd_waves.size() >= 2:
+		cmd_waves.pop_front()
+	cmd_waves.append({"pos": pos, "t": 0.0, "r": 0.0, "dmg": base("atk", 30.0) * base("cmd_mult", 0.6) * _dmg_bonus() * skill_power(), "hit": {}})
+	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": GOLD})
+	Sfx.op(id, "big", -4.0, 1.2)
+
+
+func _update_cmd_waves(dt: float) -> void:
+	if cmd_waves.is_empty():
+		return
+	var R: float = base("cmd_r", 180.0)
+	var dur: float = base("cmd_dur", 0.4)
+	for w in cmd_waves:
+		w.t += dt
+		w.r = R * (1.0 - pow(1.0 - clampf(w.t / dur, 0.0, 1.0), 2.0))
+		for j in g._query(w.pos, w.r + 30.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hit.has(e.id) or e.pos.distance_to(w.pos) > w.r + e.r:
+				continue
+			w.hit[e.id] = true
+			g._hit("号令")
+			g._damage(e, w.dmg)
+			if not e.dead and not e.boss and not e.elite:
+				e.kb += (e.pos - w.pos).normalized() * base("cmd_kb", 380.0)
+			fx_sparks(e.pos, GOLD, 2, 140.0, 0.3, 2.0)
+	cmd_waves = cmd_waves.filter(func(w): return w.t < dur + 0.25)
 
 
 ## 程序火苗（缺 fx_flames 帧条时的后备）：落点周围贴地的椭圆上窜起，内圈高、外圈矮
@@ -245,6 +410,15 @@ func _sp_motes(n: int) -> void:
 
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	match f.kind:
+		"dust":
+			# 尘土：贴地的一团灰黄烟，边扩散边淡出（没有亮芯，不像光点）
+			var k0: float = 1.0 - a
+			var dc: Color = f.col
+			g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.6))
+			g.draw_circle(Vector2.ZERO, f.r * (0.7 + 0.8 * k0), Color(dc.r, dc.g, dc.b, 0.35 * a))
+			g.draw_circle(Vector2(f.r * 0.3, -f.r * 0.2), f.r * (0.45 + 0.6 * k0), Color(dc.r * 1.1, dc.g * 1.1, dc.b * 1.1, 0.3 * a))
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return true
 		"blaze":
 			# 火焰（照原作截图）：下宽上尖的水滴形，边缘抖动的火苗；外层橙、内层黄白（高亮触发辉光），底部一团光晕；先窜高再缩小熄灭
 			var k: float = 1.0 - a
@@ -299,6 +473,32 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			g.draw_circle(f.pos, 5.0 * a + 2.0, Color(2.4, 2.2, 1.6, a))
 			return true
 	return false
+
+
+## 地面层：破阵地裂（深色裂口 + 金色亮芯，前 0.08 秒向前裂开）与万兽之王号令波
+func draw_entities_floor() -> void:
+	for fs in fissures:
+		var a: float = clampf(fs.t / fs.max, 0.0, 1.0)
+		var grow: float = clampf((fs.max - fs.t) / 0.08, 0.0, 1.0)
+		var pts: PackedVector2Array = fs.pts
+		var m: int = maxi(2, int(ceil(pts.size() * grow)))
+		var sub: PackedVector2Array = pts.slice(0, m)
+		g.draw_polyline(sub, Color(1.0, 0.7, 0.3, 0.2 * a), fs.w)
+		g.draw_polyline(sub, Color(1.6, 1.1, 0.4, 0.35 * a), fs.w * 0.4)
+		g.draw_polyline(sub, Color(0.06, 0.04, 0.03, 0.85 * minf(1.0, a * 2.0)), 5.0)
+		g.draw_polyline(sub, Color(2.4, 1.8, 0.8, a), 2.0)
+	for w in cmd_waves:
+		var dur: float = base("cmd_dur", 0.4)
+		var fade: float = clampf(1.0 - (w.t - dur) / 0.25, 0.0, 1.0) if w.t > dur else 1.0
+		g.draw_set_transform(w.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		g.draw_circle(Vector2.ZERO, w.r, Color(GOLD.r, GOLD.g, GOLD.b, 0.08 * fade))
+		g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
+		g.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.45 * fade), 2.0)
+		# 号令波上的放射纹（狮鬃）
+		for q in 16:
+			var dv := Vector2.from_angle(q * TAU / 16.0)
+			g.draw_line(dv * w.r * 0.75, dv * w.r, Color(2.0, 1.6, 0.7, 0.6 * fade), 2.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_auras() -> void:

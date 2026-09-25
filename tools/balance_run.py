@@ -47,7 +47,25 @@ PRESETS = {
     "pairs": [list(p) for p in itertools.combinations(OPS, 2)],
     # 单人开局、自然招募（真实流程）：每个职业一名代表
     "starts": [["wisadel"], ["eyjafjalla"], ["skadi"], ["mizuki"], ["saria"], ["kaltsit"], ["suzuran"]],
+    # 干员横向对比（docs/29 §5）：被测干员 + 两名低输出的固定队友（推进之王 + 流明；测他们自己时换成塞雷娅 / 凯尔希），
+    # 开局即满编，被测干员的伤害占比 / 每分钟伤害就是她自己的水平
+    "opcmp": [[o] + {"siege": ["saria", "lumen"], "lumen": ["siege", "saria"]}.get(o, ["siege", "lumen"]) for o in OPS],
 }
+
+
+def src_to_op():
+    """伤害来源名 → 干员 id（读 data/characters/*.json 的 hit_sources）"""
+    m = {}
+    d = os.path.join(GAME, "data", "characters")
+    for f in os.listdir(d):
+        if f.endswith(".json"):
+            try:
+                hs = json.load(open(os.path.join(d, f), encoding="utf-8")).get("hit_sources") or {}
+            except Exception:
+                continue
+            for k in hs:
+                m[k] = f[:-5]
+    return m
 
 BOTS = ["afk", "bad", "normal", "expert"]
 ## 各档机器人的难度目标（docs/29 §3）：win 胜率区间、t 平均存活秒数区间、s330 3:30 存活率下限
@@ -87,6 +105,11 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None):
         out = (e.stdout or b"").decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
     m = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
     rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "wall": round(time.time() - t0, 1)}
+    # 脚本错误不会让模拟停下，但可能让某段逻辑整段失效（例如 Boss 没刷出来）→ 计数并在报告顶部警告
+    errs = re.findall(r"^SCRIPT ERROR: .*$", out, re.M)
+    if errs:
+        rec["script_errors"] = len(errs)
+        rec["first_error"] = errs[0][:200]
     if m:
         try:
             rec["data"] = json.loads(m.group(1))
@@ -111,6 +134,7 @@ def summarize(records):
         if r.get("bot", "normal") != "normal" or multi_bot:
             key = "[%s] %s" % (r.get("bot", "normal"), key)
         groups.setdefault(key, []).append(r)
+    s2o = src_to_op()
     rows = []
     for key, rs in groups.items():
         ok = [r["data"] for r in rs if "data" in r]
@@ -166,6 +190,9 @@ def summarize(records):
             "top": top, "killer": killer,
             "heal_top": heal_top, "heal_abs": heal_abs, "drone_lv": drone_lv,
             **bot_cols(ok),
+            "lead": rs[0]["squad"][0],
+            "lead_share": statistics.mean([sum(v for k, v in d.get("out", {}).items() if s2o.get(k) == rs[0]["squad"][0]) / (sum(d.get("out", {}).values()) or 1.0) for d in ok]),
+            "lead_dpm": statistics.mean([sum(v for k, v in d.get("out", {}).items() if s2o.get(k) == rs[0]["squad"][0]) / max(1, d["t"]) * 60 for d in ok]),
         })
     return rows
 
@@ -207,16 +234,16 @@ def _ft(v):
 
 def bot_table(rows):
     """机器人指标表（每个 机器人 × 编队 一行）"""
-    lines = ["| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 主要死因 |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines = ["| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         if "error" in r:
             continue
-        lines.append("| %s | %d | %d%% | %s / %s | %d%% | %d%% | %s | %s / %s | %.1f / %s | %.1f | %.0f | %.0f | %.0f | %.0f | %s |" % (
+        lines.append("| %s | %d | %d%% | %s / %s | %d%% | %d%% | %s | %s / %s | %.1f / %s | %.1f | %.0f | %.0f | %.0f | %.0f | %d%% / %.0f | %s |" % (
             r["squad"], r["n"], r["win"] * 100, fmt_t(r["t_mean"]), fmt_t(r["t_min"]), r["s330"] * 100, r["s500"] * 100,
             _ft(r["rec1"]), _ft(r["e1"]), _ft(r["e2"]), r["bosses_killed"],
             ("%ds" % r["boss_ttk"]) if r["boss_ttk"] is not None else "-",
-            r["hits_pm"], r["taken_pm"], r["low_hp_s"], r["dark_s"], r["still"], r["death_mode"]))
+            r["hits_pm"], r["taken_pm"], r["low_hp_s"], r["dark_s"], r["still"], r["lead_share"] * 100, r["lead_dpm"], r["death_mode"]))
     return "\n".join(lines)
 
 
@@ -303,7 +330,12 @@ def main():
     with ThreadPoolExecutor(a.jobs) as ex:
         records = list(ex.map(lambda j: run_one(godot, j[0], j[1], a.diff, extra, a.timeout, j[2]), jobs))
     rows = summarize(records)
-    md = table(rows) + "\n\n### 机器人指标（docs/29）\n\n" + bot_table(rows)
+    bad = [r for r in records if r.get("script_errors")]
+    warn = ""
+    if bad:
+        warn = "> ⚠ %d 局出现脚本错误，结果可能无效。首条：`%s`\n\n" % (len(bad), bad[0]["first_error"])
+        print(warn)
+    md = warn + table(rows) + "\n\n### 机器人指标（docs/29）\n\n" + bot_table(rows)
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md

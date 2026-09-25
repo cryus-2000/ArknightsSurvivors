@@ -14,6 +14,15 @@ var erupt_t := 0.0
 var lava: Array = []        # {pos, r, t, tick, dmg, bub}
 var burns: Array = []       # 点燃：{e, t, dps, ft}
 var pending: Array = []     # 喷发前摇：{pos, t}
+# ---- 可见成长（docs/25 §5：原作 S1 二重咏唱 / S2 点燃溅射 / S3 火山落下熔岩弹）
+var twin_cast := false      # N1「复咏」：每次施法 2 发（第二发 60%）
+var embers_on := false      # N2「火星迸溅」：熔岩弹爆炸迸出 2 颗火星弹跳向附近敌人
+var ignite_blobs := false   # N4「星火燎原」：点燃的重弹炸开后向外溅出 4 团熔岩
+var meteor_on := false      # N5「熔岩天降」：火山每次喷发向 2 名随机敌人抛出熔岩弹
+var triple := false         # 精二「三重咏唱」：每次施法 3 发，后两发 1.5 倍大、1.5 倍伤害
+var queued: Array = []      # 复咏 / 三重咏唱的后续熔岩弹：{t, to, dmg, aoe, sz, hot}
+var lobs: Array = []        # 抛射小火团（火星 / 熔岩团 / 熔岩天降）：{from, to, t, dur, dmg, r, src, h, sz}
+const LOB_MAX := 12
 
 
 ## 基础数值全部可由 data/characters/eyjafjalla.json 的 base 段覆盖（docs/27 §3）
@@ -21,10 +30,34 @@ func _aoe() -> float:
 	return base("aoe", 58.0) * stat(&"op_range") * (1.25 if elite >= 1 else 1.0)
 
 
+## 成长节点（data/characters/eyjafjalla.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"twin_cast":
+			twin_cast = true
+		"embers":
+			embers_on = true
+		"ignite_blobs":
+			ignite_blobs = true
+		"meteor":
+			meteor_on = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		triple = true
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	_update_ground(dt)
 	_update_orbs(dt)
+	_update_lobs(dt)
+	for q in queued:
+		q.t -= dt
+		if q.t <= 0.0 and pos != Vector2.INF:
+			_cast(pos + Vector2(10.0 * face, -30), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)
+	queued = queued.filter(func(q): return q.t > 0.0)
 	for p in pending:
 		p.t -= dt
 		if p.t <= 0.0:
@@ -75,8 +108,34 @@ func _release() -> void:
 	var hot := heat > 0
 	if hot:
 		heat -= 1
-	_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * (1.0 if not hot else skill_power()), _aoe() * (base("s1_aoe", 1.4) if hot else 1.0), "火山弹", hot, 0.0)
+	var dmg: float = base("atk", 22.0) * (1.0 if not hot else skill_power())
+	var aoe: float = _aoe() * (base("s1_aoe", 1.4) if hot else 1.0)
+	_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, dmg, aoe, "火山弹", hot, 0.0)
 	fx({"kind": "glow", "pos": pos + Vector2(10.0 * face, -30), "r": 10.0, "life": 0.12, "col": ORANGE, "alpha": 0.6})
+	# 复咏 / 三重咏唱：后续熔岩弹隔 0.12 秒依次出手，打其他目标（没有就在首发目标两侧偏开）
+	var n: int = 2 if triple else (1 if twin_cast else 0)
+	if n <= 0:
+		return
+	var tos: Array = _extra_targets(ts[0], n)
+	for k in n:
+		if triple:
+			queued.append({"t": 0.12 * (k + 1), "to": tos[k], "dmg": dmg * base("tri_mult", 1.5), "aoe": aoe * base("tri_aoe", 1.2), "sz": base("tri_size", 1.5), "hot": hot})
+		else:
+			queued.append({"t": 0.12, "to": tos[k], "dmg": dmg * base("twin_mult", 0.6), "aoe": aoe, "sz": 0.85, "hot": hot})
+
+
+## 后续熔岩弹的落点：首发目标之外最近的敌人；不够就在首发目标两侧垂直偏开 40px
+func _extra_targets(first: Dictionary, n: int) -> Array:
+	var out: Array = []
+	for e in g._nearest(n + 3, 420.0 * stat(&"op_range"), pos):
+		if e.id != first.id and out.size() < n:
+			out.append(e.pos)
+	var side: Vector2 = (first.pos - pos).normalized().orthogonal() * 40.0
+	var k := 0
+	while out.size() < n:
+		out.append(first.pos + side * (1.0 if k % 2 == 0 else -1.0))
+		k += 1
+	return out
 
 
 func _release_skill() -> void:
@@ -103,11 +162,12 @@ func skill_active_dur(i: int) -> float:
 	return 2.0 if i == 2 else 1.0
 
 
-func _cast(from: Vector2, target: Vector2, base_dmg: float, aoe: float, src: String, burn: bool, weak: float) -> void:
+## sz：弹体大小倍率（三重咏唱的后两发 1.5 倍，复咏的第二发 0.85 倍）
+func _cast(from: Vector2, target: Vector2, base_dmg: float, aoe: float, src: String, burn: bool, weak: float, sz := 1.0) -> void:
 	var d: Vector2 = (target - from).normalized()
 	face = signf(d.x) if absf(d.x) > 0.01 else face
-	g.bullets.append({"kind": "fire", "pos": from, "vel": d * 360.0, "dmg": base_dmg * _dmg_bonus(), "life": 1.3, "r": 8.0,
-		"aoe": aoe, "src": src, "op": id, "on_hit": self, "burn": burn, "weak": weak, "fx_col": ORANGE, "hidden": true, "etrail": 0.0})
+	g.bullets.append({"kind": "fire", "pos": from, "vel": d * 360.0, "dmg": base_dmg * _dmg_bonus(), "life": 1.3, "r": 8.0 * sz,
+		"aoe": aoe, "src": src, "op": id, "on_hit": self, "burn": burn, "weak": weak, "fx_col": ORANGE, "hidden": true, "etrail": 0.0, "sz": sz})
 	Sfx.op(id, "atk")
 
 
@@ -129,6 +189,22 @@ func bullet_exploded(b: Dictionary) -> void:
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
 	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放
 	g._fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
+	# N2「火星迸溅」：普攻熔岩弹炸开迸出 2 颗火星，弹跳向附近的敌人（优先爆炸圈外的）
+	if embers_on and b.get("src", "") == "火山弹":
+		var near: Array = []
+		for e in g._nearest(6, base("ember_reach", 200.0), b.pos):
+			if e.pos.distance_to(b.pos) > b.aoe * 0.6 and near.size() < 2:
+				near.append(e.pos)
+		while near.size() < 2:
+			near.append(b.pos + Vector2.from_angle(g.rng.randf() * TAU) * b.aoe * 1.5)
+		for p in near:
+			_lob(b.pos, p, b.dmg * base("ember_mult", 0.3), base("ember_r", 30.0), "火星", 30.0, 0.7)
+	# N4「星火燎原」：点燃的重弹炸开后向四周溅出 4 团熔岩，各自落地再炸
+	if ignite_blobs and b.get("src", "") == "点燃弹":
+		var a0: float = g.rng.randf() * TAU
+		for k in 4:
+			var to: Vector2 = b.pos + Vector2.from_angle(a0 + k * TAU / 4.0) * b.aoe * 1.4
+			_lob(b.pos, to, base("atk", 22.0) * base("blob_mult", 0.5) * _dmg_bonus() * skill_power(), base("blob_r", 40.0), "熔岩团", 44.0, 1.0)
 	if b.get("burn", false) or b.get("weak", 0.0) > 0.0:
 		for e in g._arc_hit(b.pos, 0.0, PI, b.aoe):
 			if e.dead:
@@ -141,7 +217,14 @@ func bullet_exploded(b: Dictionary) -> void:
 
 func _erupt(c: Vector2) -> void:
 	var r: float = base("s3_r", 75.0) * stat(&"op_range")
-	area_hit("火山", c, r, base("atk", 22.0) * base("s3_mult", 1.64) * _dmg_bonus() * skill_power())
+	var edmg: float = base("atk", 22.0) * base("s3_mult", 1.64) * _dmg_bonus() * skill_power()
+	area_hit("火山", c, r, edmg)
+	# N5「熔岩天降」：每次喷发再向附近 2 名随机敌人高抛一颗熔岩弹（喷发伤害的 50%）
+	if meteor_on:
+		var cands: Array = g._nearest(10, base("meteor_reach", 320.0), c)
+		cands.shuffle()
+		for k in mini(2, cands.size()):
+			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
 	g._fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})
@@ -149,8 +232,38 @@ func _erupt(c: Vector2) -> void:
 	for k in 8:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-8, 8), -30), "vel": Vector2(g.rng.randf_range(-120, 120), g.rng.randf_range(-260, -120)), "life": 0.6, "col": LAVA, "sz": 3.0, "grav": 420.0})
 	lava.append({"pos": c, "r": r * 0.8, "t": 3.0, "tick": 0.0, "bub": 0.0, "dmg": base("atk", 22.0) * base("lava_mult", 0.23) * _dmg_bonus() * skill_power()})
-	g.shake = maxf(g.shake, 2.5)
 	Sfx.op(id, "big", 0.0, 1.0, 0.1)
+
+
+## 抛射小火团：从 from 沿抛物线（最高 h）飞到 to，落地后范围爆炸；同时最多 LOB_MAX 个
+func _lob(from: Vector2, to: Vector2, dmg: float, r: float, src: String, h: float, sz: float) -> void:
+	if lobs.size() >= LOB_MAX:
+		return
+	var dur: float = clampf(from.distance_to(to) / 420.0, 0.25, 0.6) + (0.2 if h > 80.0 else 0.0)
+	lobs.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": dmg, "r": r, "src": src, "h": h, "sz": sz, "trail": 0.0})
+
+
+func _lob_pos(l: Dictionary) -> Vector2:
+	var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+	return l.from.lerp(l.to, k) + Vector2(0, -sin(k * PI) * l.h)
+
+
+func _update_lobs(dt: float) -> void:
+	for l in lobs:
+		l.t += dt
+		l.trail -= dt
+		if l.trail <= 0.0 and l.t < l.dur:
+			l.trail = 0.05
+			fx({"kind": "spark", "pos": _lob_pos(l), "vel": Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-20, 10)), "life": 0.25, "col": ORANGE, "sz": 2.0 * l.sz})
+		if l.t >= l.dur:
+			area_hit(l.src, l.to, l.r, l.dmg)
+			fx({"kind": "ring", "pos": l.to, "r": l.r, "r0": l.r * 0.3, "life": 0.28, "col": LAVA, "floor": true, "w": 2.0})
+			fx({"kind": "glow", "pos": l.to, "r": l.r * 0.6, "life": 0.18, "col": Color(1.6, 0.8, 0.3), "alpha": 0.6})
+			for k in (6 if l.sz >= 1.0 else 3):
+				fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.rng.randf_range(-80, 80), g.rng.randf_range(-140, -50)), "life": 0.4, "col": LAVA, "sz": 2.0, "grav": 320.0})
+			if l.sz >= 1.0:
+				g._fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
+	lobs = lobs.filter(func(l): return l.t < l.dur)
 
 
 func _update_ground(dt: float) -> void:
@@ -223,14 +336,28 @@ func _draw_skill_over() -> void:
 		if b.life <= 0.0 or b.get("op", "") != id or b.kind != "fire":
 			continue
 		var big: bool = b.get("src", "") == "点燃弹"
+		var sz: float = float(b.get("sz", 1.0))
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + b.pos.x)
-		g.draw_circle(b.pos, (17.0 if big else 13.0) * fl, Color(1.6, 0.6, 0.15, 0.22))
+		g.draw_circle(b.pos, (17.0 if big else 13.0) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
 		if g.tex.get("proj_lavaball") != null:
 			# 熔岩球（OGA Fireball 调橙红），按速度方向旋转
-			g._spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1))
+			g._spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1) * sz)
 		else:
-			g.draw_circle(b.pos, (10.0 if big else 7.5) * fl, Color(2.2, 0.9, 0.25, 0.9))
-			g.draw_circle(b.pos, 4.5 if big else 3.5, Color(2.8, 2.4, 1.6))
+			g.draw_circle(b.pos, (10.0 if big else 7.5) * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
+			g.draw_circle(b.pos, (4.5 if big else 3.5) * sz, Color(2.8, 2.4, 1.6))
+	# 抛射小火团：橙色光晕 + 白黄芯；熔岩天降带一圈暗红外壳；地面有落点影子
+	for l in lobs:
+		var p: Vector2 = _lob_pos(l)
+		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+		g.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
+		g.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var rr: float = 5.5 * l.sz
+		g.draw_circle(p, rr * 1.9, Color(1.6, 0.55, 0.12, 0.25))
+		if l.src == "熔岩天降":
+			g.draw_circle(p, rr * 1.2, Color(0.45, 0.08, 0.03, 0.95))
+		g.draw_circle(p, rr, Color(2.2, 0.8, 0.2, 0.95))
+		g.draw_circle(p, rr * 0.45, Color(2.8, 2.3, 1.4))
 
 
 func status_items() -> Array:

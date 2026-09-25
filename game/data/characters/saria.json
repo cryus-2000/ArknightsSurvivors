@@ -16,7 +16,23 @@
   "reach": 70,
   "block_r": 62,
   "s1_heal": 0.08,
-  "s2_heal": 0.1
+  "s2_heal": 0.1,
+  "orb_n1": 3,
+  "orb_n2": 5,
+  "orb_r": 70,
+  "orb_spin": 2.2,
+  "orb_mult": 0.18,
+  "orb_cd": 0.5,
+  "syringe_n": 3,
+  "syringe_mult": 0.6,
+  "syringe_slow": 2.0,
+  "shatter_every": 1.2,
+  "shatter_n": 4,
+  "shatter_mult": 0.5,
+  "suit_seg_t": 5.0,
+  "suit_r": 110,
+  "suit_mult": 1.8,
+  "suit_kb": 320
  },
  "sprites": {
   "idle": {
@@ -113,32 +129,53 @@
     "basic",
     "control"
    ]
+  },
+  "钙晶": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity",
+    "follow_up"
+   ]
+  },
+  "急救针剂": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile",
+    "control"
+   ]
+  },
+  "碎晶": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "盾击 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "calc_orb",
+   "name": "钙质沉积",
+   "icon": "growth_armor",
+   "desc": "3 枚钙质晶体环绕塞雷娅，撞到的敌人受到拳击 30% 伤害（同一敌人 0.5 秒一次）"
   },
   {
-   "type": "stat",
-   "name": "阻挡 · 广",
-   "desc": "阻挡圈与盾击范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "calc_cluster",
+   "name": "晶簇",
+   "icon": "growth_b_count",
+   "desc": "环绕的钙质晶体增加到 5 枚"
   },
   {
    "type": "elite",
@@ -147,34 +184,24 @@
    "desc": "解锁二技能「药剂散布」；解锁天赋「坚守」：博士受到的伤害 -12%"
   },
   {
-   "type": "stat",
-   "name": "钙质化 · 频",
-   "desc": "技能充能 +20%",
-   "effects": [
-    {
-     "key": "op_skill_sp",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "syringe",
+   "name": "急救针剂",
+   "icon": "skill_s1",
+   "desc": "「急救」同时朝附近 3 名敌人掷出注射器：拳击 60% 伤害并减速 2 秒"
   },
   {
-   "type": "stat",
-   "name": "盾击 · 锐",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "shatter",
+   "name": "碎晶",
+   "icon": "skill_s3",
+   "desc": "「钙质化」期间，塞雷娅每 1.2 秒击碎一根琥珀晶柱，碎片飞向区域内至多 4 名敌人（各拳击 50% 伤害）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「钙质化」：博士周围升起琥珀晶柱并展开 8 秒钙质化区域（半径 180）：敌人移速 -50%、受到的伤害 +20%，博士每秒回复 1.5% 生命"
+   "desc": "解锁三技能「钙质化」：博士周围升起琥珀晶柱并展开 8 秒钙质化区域（半径 180）：敌人移速 -50%、受到的伤害 +20%，博士每秒回复 1.5% 生命；普攻质变「莱茵充能护服」：护服每 5 秒充满一格（脚下 4 格琥珀），满格后下一次拳击变为全方位冲击（半径 110、拳击 ×1.8、强力击退）"
   }
  ],
  "gallery": {

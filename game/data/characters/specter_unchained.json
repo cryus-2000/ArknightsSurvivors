@@ -27,7 +27,20 @@
   "s3_mult": 3.2,
   "s3_reach": 1.5,
   "s3_low_mult": 1.5,
-  "dark_bonus": 0.25
+  "dark_bonus": 0.25,
+  "spin2_delay": 0.15,
+  "spin2_mult": 0.7,
+  "ring_dur": 1.5,
+  "ring_tick": 0.5,
+  "ring_mult": 0.2,
+  "ring_max": 6,
+  "beast_reach": 1.5,
+  "elegy_every": 0.8,
+  "elegy_r_mult": 2.0,
+  "whirl_dur": 0.6,
+  "whirl_dur_dark": 1.2,
+  "whirl_tick": 0.15,
+  "whirl_mult": 0.45
  },
  "sprites": {
   "idle": {
@@ -140,32 +153,33 @@
     "area",
     "dot"
    ]
+  },
+  "血色潮痕": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "dot",
+    "entity"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "锯 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "double_spin",
+   "name": "双重回转",
+   "icon": "growth_b_echo",
+   "desc": "环斩后 0.15 秒反向再转一圈（70% 伤害）：两道锯环"
   },
   {
-   "type": "stat",
-   "name": "锯 · 广",
-   "desc": "环斩范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "blood_ring",
+   "name": "血色潮痕",
+   "icon": "growth_t_field",
+   "desc": "环斩在地上留下一圈血色水痕 1.5 秒，每 0.5 秒对圈内敌人造成 20% 伤害（最多 6 圈）"
   },
   {
    "type": "elite",
@@ -175,27 +189,23 @@
   },
   {
    "type": "custom",
-   "id": "aegir",
-   "name": "艾格尼之深",
-   "desc": "编队里每名深海猎人，博士最大生命 +5%"
+   "id": "beast",
+   "name": "困兽",
+   "icon": "skill_s1",
+   "desc": "「求生之技」期间锯刃变红、环斩半径 +50%"
   },
   {
-   "type": "stat",
-   "name": "锯 · 锋 II",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "elegy",
+   "name": "阿戈尔挽歌",
+   "icon": "skill_s2",
+   "desc": "替身唱起阿戈尔挽歌：每 0.8 秒一圈水纹外扩，减速范围翻倍（240）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「求生之压」：慢而重的环斩，对残血敌人再增伤"
+   "desc": "解锁三技能「求生之压」：慢而重的环斩，对残血敌人再增伤；普攻质变「无尽回旋」：每次环斩化为持续旋转 0.6 秒，每 0.15 秒再斩一段（45%）；灯火 <30 时延长到 1.2 秒"
   }
  ],
  "gallery": {
