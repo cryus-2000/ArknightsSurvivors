@@ -16,8 +16,9 @@ var burns: Array = []       # 点燃：{e, t, dps, ft}
 var pending: Array = []     # 喷发前摇：{pos, t}
 
 
+## 基础数值全部可由 data/characters/eyjafjalla.json 的 base 段覆盖（docs/27 §3）
 func _aoe() -> float:
-	return 58.0 * stat(&"op_range") * (1.25 if elite >= 1 else 1.0)
+	return base("aoe", 58.0) * stat(&"op_range") * (1.25 if elite >= 1 else 1.0)
 
 
 func update(dt: float) -> void:
@@ -59,11 +60,11 @@ func update(dt: float) -> void:
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, 380.0 * stat(&"op_range"), pos)
+		var ts: Array = g._nearest(1, base("range", 380.0) * stat(&"op_range"), pos)
 		if ts.is_empty():
 			cd = 0.2
 		else:
-			cd = 1.2 / stat(&"op_aspd")
+			cd = base("cd", 1.2) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
@@ -74,7 +75,7 @@ func _release() -> void:
 	var hot := heat > 0
 	if hot:
 		heat -= 1
-	_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, 22.0 * (1.0 if not hot else skill_power()), _aoe() * (1.4 if hot else 1.0), "火山弹", hot, 0.0)
+	_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * (1.0 if not hot else skill_power()), _aoe() * (base("s1_aoe", 1.4) if hot else 1.0), "火山弹", hot, 0.0)
 	fx({"kind": "glow", "pos": pos + Vector2(10.0 * face, -30), "r": 10.0, "life": 0.12, "col": ORANGE, "alpha": 0.6})
 
 
@@ -85,10 +86,10 @@ func _release_skill() -> void:
 			var ts: Array = g._nearest(1, 440.0 * stat(&"op_range"), pos)
 			if ts.is_empty():
 				return
-			_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, 22.0 * 2.5 * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
+			_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.4, "max": 0.4, "col": ORANGE})
 		2:
-			erupt = 10
+			erupt = int(base("s3_count", 10.0))
 			erupt_t = 0.0
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": ORANGE})
 			fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": ORANGE, "floor": true})
@@ -140,15 +141,15 @@ func bullet_exploded(b: Dictionary) -> void:
 
 
 func _erupt(c: Vector2) -> void:
-	var r: float = 75.0 * stat(&"op_range")
-	area_hit("火山", c, r, 20.0 * 1.8 * _dmg_bonus() * skill_power())
+	var r: float = base("s3_r", 75.0) * stat(&"op_range")
+	area_hit("火山", c, r, base("atk", 22.0) * base("s3_mult", 1.64) * _dmg_bonus() * skill_power())
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
 	g._fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": ORANGE, "floor": true, "w": 3.0})
 	for k in 8:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-8, 8), -30), "vel": Vector2(g.rng.randf_range(-120, 120), g.rng.randf_range(-260, -120)), "life": 0.6, "col": LAVA, "sz": 3.0, "grav": 420.0})
-	lava.append({"pos": c, "r": r * 0.8, "t": 3.0, "tick": 0.0, "bub": 0.0, "dmg": 20.0 * 0.25 * _dmg_bonus() * skill_power()})
+	lava.append({"pos": c, "r": r * 0.8, "t": 3.0, "tick": 0.0, "bub": 0.0, "dmg": base("atk", 22.0) * base("lava_mult", 0.23) * _dmg_bonus() * skill_power()})
 	g.shake = maxf(g.shake, 2.5)
 	Sfx.play("boom", -13.0, 0.9, 0.1)
 

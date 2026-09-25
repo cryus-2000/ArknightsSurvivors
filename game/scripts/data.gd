@@ -47,7 +47,7 @@ const MAX_WEAPONS := 1
 const ALLIES = {
 	"sniper": {"name": "狙击干员", "en": "SNIPER", "desc": "远程单体射击，优先打精英和生命最高的敌人；命中使其流血", "up": "伤害 +35%，射速 +15%"},
 	"caster": {"name": "术师干员", "en": "CASTER", "desc": "发射法术团，命中后爆炸造成范围伤害", "up": "伤害 +35%，爆炸范围扩大"},
-	"medic": {"name": "医疗干员", "en": "MEDIC", "desc": "每 3.5 秒为水月回复 3.5% 最大生命", "up": "治疗量与频率提升"},
+	"medic": {"name": "医疗干员", "en": "MEDIC", "desc": "每 3.5 秒为博士回复 3.5% 最大生命", "up": "治疗量与频率提升"},
 	"support": {"name": "辅助干员", "en": "SUPPORTER", "desc": "减速光环：身边敌人移速 -35%；并向 2 名敌人发射追踪法术", "up": "光环范围扩大，法术伤害与频率提升；Lv.3 时同时攻击 3 个目标"},
 }
 const RECRUIT_LEVELS := [5, 15, 25]

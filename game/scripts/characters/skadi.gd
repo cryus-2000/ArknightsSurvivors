@@ -14,8 +14,9 @@ var swings := 0               # 横扫计数（天赋：每第 3 次追加反手
 var tide := 0.0               # S3 潮汐剩余
 
 
+## 基础数值全部可由 data/characters/skadi.json 的 base 段覆盖（docs/27 §3）
 func _reach() -> float:
-	return 88.0 * stat(&"op_range") * (1.4 if tide > 0.0 else 1.0)
+	return base("reach", 88.0) * stat(&"op_range") * (1.4 if tide > 0.0 else 1.0)
 
 
 func follow_target(slot_pos: Vector2) -> Vector2:
@@ -40,7 +41,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = 0.75 / stat(&"op_aspd")
+			cd = base("cd", 0.75) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
@@ -74,7 +75,7 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 
 func _release() -> void:
 	var ang := _aim()
-	var dmg: float = 26.0 * _dmg_bonus() * (1.5 * skill_power() if tide > 0.0 else 1.0)
+	var dmg: float = base("atk", 26.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
 	var half: float = PI if tide > 0.0 else 1.4
 	melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
 	_slash(ang, half, _reach(), BLUE if tide <= 0.0 else Color(0.25, 0.4, 0.85), FOAM, 0.22)
@@ -96,7 +97,7 @@ func _release_skill() -> void:
 		0:
 			# 潮涌斩：一次 ×2 宽幅横扫
 			var ang := _aim()
-			melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, 26.0 * 2.0 * _dmg_bonus() * skill_power(), 120.0)
+			melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
 			Sfx.play("swing_heavy", -8.0, 1.0, 0.05)
 		1:
@@ -120,8 +121,8 @@ func skill_active_dur(i: int) -> float:
 
 
 func _heavy(ang: float) -> void:
-	var r: float = 150.0 * stat(&"op_range")
-	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, 26.0 * 3.0 * _dmg_bonus() * skill_power(), 240.0)
+	var r: float = base("s2_r", 150.0) * stat(&"op_range")
+	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, base("atk", 26.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power(), 240.0)
 	_slash(ang, 1.92, r, Color(0.25, 0.4, 0.85), FOAM, 0.32)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * r * 0.45
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})

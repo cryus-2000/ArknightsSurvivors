@@ -15,8 +15,9 @@ var heal_acc := 0.0
 var pillar_t := 0.0
 
 
+## 基础数值全部可由 data/characters/suzuran.json 的 base 段覆盖（docs/27 §3）
 func aura_radius() -> float:
-	var r: float = (85.0 + 15.0 * elite) * stat(&"op_range")
+	var r: float = (base("aura", 85.0) + 15.0 * elite) * stat(&"op_range")
 	if haze_t > 0.0:
 		return r * 2.2
 	return r * (1.6 if warm else 1.0)
@@ -51,7 +52,7 @@ func update(dt: float) -> void:
 		if was_haze and haze_t <= 0.0:
 			# 迷雾刚结束：回到暖光（永久）或清除加成
 			if warm:
-				_field_buff(0.15 * skill_power())
+				_field_buff(base("s2_buff", 0.15) * skill_power())
 			else:
 				g.stats.remove_source("suzuran_field")
 				g._sync_stats()
@@ -78,21 +79,21 @@ func update(dt: float) -> void:
 	if haze_t > 0.0:
 		return   # 狐火迷雾：期间不普攻
 	if cd <= 0.0:
-		var ts: Array = g._nearest(2, 380.0 * stat(&"op_range"), pos)
+		var ts: Array = g._nearest(2, base("range", 380.0) * stat(&"op_range"), pos)
 		if ts.is_empty():
 			cd = 0.2
 		else:
-			cd = 1.2 / stat(&"op_aspd")
+			cd = base("cd", 1.2) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
 func _release() -> void:
-	var n: int = 3 if elite >= 1 else 2
+	var n: int = int(base("shots", 2.0)) + (1 if elite >= 1 else 0)
 	var mult := 1.0
 	if volley_next:
 		volley_next = false
-		n = 5
-		mult = 1.2 * skill_power()
+		n = int(base("s1_shots", 5.0))
+		mult = base("s1_mult", 1.2) * skill_power()
 	var ts: Array = g._nearest(n, 400.0 * stat(&"op_range"), pos)
 	var from := pos + Vector2(12.0 * face, -30)
 	for k in n:
@@ -100,7 +101,7 @@ func _release() -> void:
 			break
 		var tg: Dictionary = ts[k % ts.size()]
 		var d: Vector2 = (tg.pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
-		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": 16.0 * mult * _dmg_bonus(),
+		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 16.0) * mult * _dmg_bonus(),
 			"life": 1.6, "r": 7.0, "aoe": 0.0, "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
 	if not ts.is_empty():
 		fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": GOLD, "alpha": 0.5})
@@ -123,11 +124,11 @@ func _release_skill() -> void:
 	match cur_skill:
 		1:
 			warm = true
-			_field_buff(0.15 * skill_power())
+			_field_buff(base("s2_buff", 0.15) * skill_power())
 			g._show_banner("暖光：光域永久扩大")
 		2:
 			haze_t = S3_DUR
-			_field_buff(0.2 * skill_power())
+			_field_buff(base("s3_buff", 0.2) * skill_power())
 			g._show_banner("狐火迷雾")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD})

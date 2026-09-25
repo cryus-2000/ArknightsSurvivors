@@ -3,6 +3,7 @@
 extends RefCounted
 
 const Character = preload("res://scripts/characters/character.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
 ## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
@@ -57,6 +58,12 @@ func add(cid: String):
 	op.slot = ops.size()
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
+	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
+	var bal: Dictionary = Bal.op(cid)
+	for k in ["atk", "aspd", "range", "skill_power"]:
+		var v: float = float(bal.get(k, 0.0))
+		if v != 0.0:
+			g.stats.add(StringName("op_" + k), "add", v, "balance:" + cid, "op:" + cid)
 	for k in op.def.get("hit_sources", {}):
 		var hs: Dictionary = op.def.hit_sources[k].duplicate(true)
 		hs["class"] = op.cls

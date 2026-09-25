@@ -42,7 +42,7 @@ func update(dt: float) -> void:
 		start_skill(m.pos if m.pos != Vector2.INF else g.ppos, ready)
 		return
 	if cd <= 0.0:
-		cd = 3.5 / stat(&"op_aspd") / (1.3 if coord else 1.0)
+		cd = base("heal_cd", 3.5) / stat(&"op_aspd") / (1.3 if coord else 1.0)
 		if g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp):
 			start_attack(g.ppos)
 
@@ -51,7 +51,7 @@ func _release() -> void:
 	if g.knight.alive:
 		g.knight.heal(g.knight.maxhp * 0.05)
 	if g.hp < g.max_hp:
-		_heal(g.max_hp * 0.035 * _heal_mult(), 16)
+		_heal(g.max_hp * base("heal_pct", 0.035) * _heal_mult(), 16)
 
 
 func _heal(h: float, size: int) -> void:
@@ -74,7 +74,7 @@ func _heal(h: float, size: int) -> void:
 func _release_skill() -> void:
 	match cur_skill:
 		0:
-			_heal(g.max_hp * 0.08 * _heal_mult() * skill_power(), 18)
+			_heal(g.max_hp * base("s1_heal", 0.08) * _heal_mult() * skill_power(), 18)
 			g.nerve = 0.0
 			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
 		1:
@@ -106,12 +106,13 @@ func skill_active_dur(i: int) -> float:
 
 # ---------------------------------------------------------------- Mon3tr
 
+## 基础数值全部可由 data/characters/kaltsit.json 的 base 段覆盖（docs/27 §3）
 func _m_dmg() -> float:
-	return 22.0 * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (1.6 * skill_power() if melt > 0.0 else 1.0)
+	return base("m_atk", 22.0) * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (base("s3_mult", 1.6) * skill_power() if melt > 0.0 else 1.0)
 
 
 func _m_reach() -> float:
-	return M_REACH * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
+	return base("m_reach", M_REACH) * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
 
 
 func _update_mon3tr(dt: float) -> void:
@@ -159,7 +160,7 @@ func _update_mon3tr(dt: float) -> void:
 				m.fire = -1.0
 				_m_strike()
 	elif tg != null and m.cd <= 0.0 and m.pos.distance_to(tg.pos) < tg.r + _m_reach():
-		m.cd = 0.9 / stat(&"op_aspd")
+		m.cd = base("m_cd", 0.9) / stat(&"op_aspd")
 		m.face = signf(tg.pos.x - m.pos.x) if absf(tg.pos.x - m.pos.x) > 2.0 else m.face
 		var spec := sprite_spec("m_attack")
 		var fps: float = float(spec.get("fps", 14))
@@ -196,7 +197,7 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 
 func _meltdown() -> void:
 	var r := 130.0
-	area_hit("Mon3tr · 熔毁", m.pos, r, 22.0 * 5.0 * _dmg_bonus() * skill_power(), 260.0, 0.5)
+	area_hit("Mon3tr · 熔毁", m.pos, r, base("m_atk", 22.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power(), 260.0, 0.5)
 	fx({"kind": "glow", "pos": m.pos + Vector2(0, -20), "r": 50.0, "life": 0.25, "col": Color(1.4, 2.2, 1.3), "alpha": 0.8})
 	for i in 3:
 		fx({"kind": "ring", "pos": m.pos, "r": r * (0.7 + 0.15 * i), "r0": 12.0, "life": 0.35 + 0.1 * i, "col": GREEN, "floor": true, "w": 4.0 - i})

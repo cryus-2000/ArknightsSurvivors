@@ -43,8 +43,18 @@ var vol_target := -4.0
 var music_muted := false
 
 
+## 自动测试 / 截图 / 平衡批跑（任何 `--xxx` 命令行用户参数）一律静音：开发者在跑测试时还要工作
+static func is_automated() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--"):
+			return true
+	return false
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if is_automated():
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
 	var mbus := _ensure_bus("Music")
 	if AudioServer.get_bus_effect_count(mbus) == 0:
 		music_lp = AudioEffectLowPassFilter.new()
