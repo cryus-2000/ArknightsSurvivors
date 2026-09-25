@@ -2,7 +2,7 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
-## 特效（docs/25）：黑红。弹体是黑红色的能量弹（黑色弹芯 + 暗红光晕 + 红色彗尾，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
+## 特效（docs/25）：黑红。弹体是黑红色的能量流（黑色前端融进暗红彗尾，不画明显弹头，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
 
@@ -392,7 +392,7 @@ func draw_entities_floor() -> void:
 
 
 func _draw_skill_over() -> void:
-	# 能量弹：长彗尾（按历史位置逐段收窄、变淡）→ 红紫光晕 → 粉红弹体 → 白粉核心，都用高亮色让辉光吃到
+	# 黑红能量流：彗尾按历史位置逐段收窄、变淡，前端收成黑色尖梢，不画弹头
 	for s in shells:
 		var k: float = s.t / s.dur
 		var p := _shell_at(s, k)
@@ -404,15 +404,13 @@ func _draw_skill_over() -> void:
 			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.2, 0.08, 0.1, 0.35 * u), w * 1.8)
 			g.draw_line(s.hist[i], s.hist[i + 1], Color(0.35, 0.03, 0.05, 0.85 * u), w)
 			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.9, 0.3, 0.22, 0.6 * u * u), w * 0.3)
-		if n > 0:
-			g.draw_line(s.hist[n - 1], p, Color(0.35, 0.03, 0.05, 0.9), 9.0)
-		var ang: float = dir.angle()
-		g.draw_circle(p, 13.0, Color(1.2, 0.08, 0.1, 0.3))
-		g.draw_set_transform(p, ang, Vector2(1.0, 0.6))
-		g.draw_circle(Vector2(-3, 0), 9.0, Color(1.6, 0.18, 0.16, 0.8))     # 暗红光晕
-		g.draw_circle(Vector2(-1, 0), 6.2, Color(0.1, 0.02, 0.04, 1.0))     # 黑色弹芯
-		g.draw_circle(Vector2(1.5, 0), 2.6, Color(2.2, 0.45, 0.25, 1.0))    # 前端红热点
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 前端不画弹头：彗尾最后一段收成尖梢（外暗红、内黑），融进飞行方向
+		var back: Vector2 = s.hist[n - 1] if n > 0 else p - dir * 8.0
+		var nv: Vector2 = dir.orthogonal()
+		var tip: Vector2 = p + dir * 6.0
+		g.draw_colored_polygon(PackedVector2Array([back + nv * 6.5, tip, back - nv * 6.5]), Color(1.2, 0.08, 0.1, 0.35))
+		g.draw_colored_polygon(PackedVector2Array([back + nv * 4.5, tip, back - nv * 4.5]), Color(0.35, 0.03, 0.05, 0.9))
+		g.draw_colored_polygon(PackedVector2Array([back + nv * 2.2, p, back - nv * 2.2]), Color(0.08, 0.01, 0.03, 0.95))
 
 
 func status_items() -> Array:
