@@ -144,7 +144,7 @@ func apply(id: String) -> void:
 						g.lamp = clampf(g.lamp + amt, 10.0 if amt < 0.0 else 0.0, g.lamp_cap)
 						g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
 					"rejection":
-						var what: String = g.ch.apply_rejection()
+						var what: String = g.doctor.apply_rejection()
 						g._show_banner("排异反应：%s" % what)
 						g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(0.7, 0.4, 1.0)})
 						Sfx.play("roar", -6.0, 1.4, 0.0)
@@ -265,7 +265,7 @@ func dmg_extra() -> float:
 ## 挥伞间隔倍率（<1 更快）：极速之手、国王的新枪、投币玩具 / 骑士戒律
 func umbrella_interval_mult() -> float:
 	var m := 1.0
-	if g.relics.has("172") and g.allies.is_empty():
+	if g.relics.has("172") and g.squad.size() <= 1:
 		m *= 0.625
 	if rule("king_gun") > 0 and g.hp < g.max_hp * 0.3:
 		m *= 0.667
@@ -370,7 +370,8 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 
 ## 狙击命中：扼喉之手处决（只认支援狙击的投射命中）
 func sniper_execute(e: Dictionary, h: Dictionary) -> bool:
-	return g.relics.has("169") and h.src == "援护" and not e.boss and e.hp < e.maxhp * 0.2
+	# 契约 v2.0：按描述符的职业判定（狙击干员的任意命中）；旧援护来源保留兼容
+	return g.relics.has("169") and (h.get("class", "") == "狙击" or h.src == "援护") and not e.boss and e.hp < e.maxhp * 0.2
 
 
 func _temp(stat: String, value: float, dur: float) -> void:

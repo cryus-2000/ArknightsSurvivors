@@ -16,7 +16,7 @@ const Defs = preload("res://scripts/core/stat_defs.gd")
 
 ## 游戏需要注册的动作（modifier_system 里 do 字段可用的名字）
 const GAME_ACTIONS := ["light", "ingots", "heal", "sp", "stun_all", "damage_all", "damage_area", "execute",
-	"bonus_current_hp", "scale_hit", "spawn"]
+	"bonus_current_hp", "scale_hit", "spawn", "rejection", "recruit_knight"]
 
 var bus = Bus.new()
 var stats = SB.new()

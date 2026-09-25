@@ -1,0 +1,182 @@
+{
+ "id": "eyjafjalla",
+ "name": "艾雅法拉",
+ "en": "EYJAFJALLA",
+ "class": "术师",
+ "script": "res://scripts/characters/eyjafjalla.gd",
+ "sprites": {
+  "idle": {
+   "tex": "op_eyjafjalla_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_eyjafjalla_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_eyjafjalla_attack",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_eyjafjalla_skill",
+   "frames": 8,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "火山弹",
+  "desc": "向最近敌人投出熔岩弹，命中范围爆炸（法术）"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "火山",
+  "sp": 16,
+  "desc": "技力充满时在敌群最密处连续喷发 6 次（伤害 ×1.8），落点留下 3 秒熔岩"
+ },
+ "talent": {
+  "name": "炽热",
+  "desc": "精英化一解锁：火山弹爆炸范围 +25%，并点燃命中的敌人（3 秒内 30% 法术伤害）"
+ },
+ "hit_sources": {
+  "火山弹": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "area"
+   ]
+  },
+  "火山": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "熔岩": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "dot",
+    "area"
+   ]
+  },
+  "点燃": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "dot"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "法术 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 广",
+   "desc": "爆炸范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「炽热」：爆炸范围 +25%，命中点燃"
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "法术 · 锐",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "火山喷发 6 → 10 次、熔岩范围 +40%；火山弹命中后分裂出 2 枚小弹",
+   "requires": {
+    "doctor_passive": "sp"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "范围",
+   "法术",
+   "持续伤害"
+  ],
+  "desc": "熔岩弹清群，技能在敌群里喷发火山、留下熔岩"
+ }
+}

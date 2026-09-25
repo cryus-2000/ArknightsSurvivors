@@ -15,6 +15,8 @@ const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Squad = preload("res://scripts/characters/squad.gd")
+const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
@@ -57,11 +59,6 @@ var t := 0.0
 # ---------- 玩家 ----------
 var ppos := Vector2.ZERO
 var facing := 1.0
-# 博士：跟在水月身旁的同行者，不参战、不被攻击、不占援护位
-var doc_pos := Vector2.INF
-var doc_mv := 0.0
-var doc_face := 1.0
-var doc_t := 0.0
 var rej_slow := 1.0         # 排异·深海幻境：幻境内自己也减速
 var moving := false
 var hp := 100.0
@@ -99,6 +96,7 @@ var lamp := 100.0
 
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
+var lv_times: Array = []         # 每次升级的时间点（秒），--balance 输出用（docs/23 §8）
 var elite_stage := 0             # 精英化阶段 0/1/2
 # ---- 藏品驱动的通用倍率（scripts/relic_fx.gd 写入）
 var ally_mult := 1.0             # 援护伤害
@@ -164,9 +162,7 @@ var pvel := Vector2.ZERO
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
 var drones: Array = []           # {pos, cd_shot, cd_laser, cd_missile, ang}
-var allies: Array = []           # {kind, lv, pos, cd}
 var bullets: Array = []
-var recruit_idx := 0
 
 # ---------- 世界 ----------
 var enemies: Array = []
@@ -248,7 +244,9 @@ var choice_kind := ""
 var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
-var ch: RefCounted             # 当前角色（scripts/characters/<id>.gd），水月专属逻辑都在里面
+var squad: RefCounted          # 编队（scripts/characters/squad.gd）：博士身边的干员们
+var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
+var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
 var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
 var map: RefCounted            # 地图（scripts/world/map.gd）：铺地 / 道具 / 景物 / 碰撞 / 氛围
 var draw_off := Vector2.ZERO
@@ -310,6 +308,7 @@ var lv_marks := {}
 var at_frames := 0
 var bosstest := false
 var shot_at := [3400]
+var shot_dir := "/tmp/claude-0"     # 自测截图目录（--shotdir= 覆盖，Windows 本地用）
 var choice_wait := 0
 var choice_shot := false
 
@@ -318,18 +317,22 @@ func _ready() -> void:
 	bai = BossAI.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
-	ch = Character.create(self, Cfg.character_id)
 	stats = StatBlock.new()
 	stats.define_all(StatDefs.PLAYER)
 	stats.define_all(StatDefs.ENEMY)
-	stats.define_all(ch.stat_defs())
 	hit_src = HIT_BASE.duplicate(true)
-	for k in ch.def.get("hit_sources", {}):
-		hit_src[k] = ch.def.hit_sources[k]
-	# 角色 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
-	for k in ch.def.get("stats", {}):
+	doctor = Doctor.new(self)
+	# 博士 JSON 的 stats 段覆盖公共属性的基础值（生命 / 回复 / 移速 / 闪避 / 拾取…）
+	for k in doctor.def.get("stats", {}):
 		if stats.has_stat(k):
-			stats.set_base(k, float(ch.def.stats[k]))
+			stats.set_base(k, float(doctor.def.stats[k]))
+	squad = Squad.new(self)
+	ch = squad.add(Cfg.character_id)
+	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
+	for kind in ["idle", "run", "hurt", "death"]:
+		var dn = doctor.def.get("sprites", {}).get(kind, "")
+		if dn is String and dn != "":
+			tex[dn] = A.tex(dn)
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	A.normal_maps = Cfg.normal_maps
 	rfx = RelicFx.new(self)
@@ -360,6 +363,8 @@ func _ready() -> void:
 		optional.append("relic_" + rid)
 	for gid in ch.growth_table():
 		optional.append("growth_" + gid)
+	for pid in doctor.PASSIVES:
+		optional.append("growth_" + pid)
 	for wid in D.WEAPONS:
 		optional.append("weapon_" + wid)
 	for eid in ch.evo_table():
@@ -367,20 +372,25 @@ func _ready() -> void:
 	for n in optional:
 		tex[n] = A.tex(n)
 	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
-	var sp: Dictionary = ch.def.get("sprites", {})
-	for kind in ["idle", "run", "attack", "hurt", "death"]:
-		if sp.has(kind):
-			var key: String = "player_attack_48" if kind == "attack" else "player_" + kind
-			tex[key] = A.tex(sp[kind])
-	if sp.has("base"):
-		tex["player"] = A.tex(sp.base)
+	for o in squad.ops:
+		var sp: Dictionary = o.def.get("sprites", {})
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death"]:
+			if sp.has(kind) and sp[kind] is String and not tex.has(sp[kind]):
+				tex[sp[kind]] = A.tex(sp[kind])
+		if sp.has("base"):
+			tex["player"] = A.tex(sp.base)
 	var ic: Dictionary = ch.def.get("icons", {})
 	for sid in ic:
 		tex["skill_" + sid] = A.tex(ic[sid])
-	# 美术 V5：援护攻击帧条（4 帧，72×48，脚底锚点 (24,45)）
-	for k in D.ALLIES:
-		tex["ally_%s_attack" % k] = A.tex("ally_%s_attack" % k)
-		tex["ally_%s_move" % k] = A.tex("ally_%s_move" % k)
+	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
+	for cid in Character.list_ids():
+		var cdef: Dictionary = Character.load_def(cid)
+		var csp: Dictionary = cdef.get("sprites", {})
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+			if csp.has(kind):
+				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
+				if not tex.has(tn):
+					tex[tn] = A.tex(tn)
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
@@ -495,6 +505,8 @@ func _ready() -> void:
 		_start_opening.call_deferred()
 	balance = OS.get_cmdline_user_args().has("--balance")
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shotdir="):
+			shot_dir = arg.substr(10)
 		if arg.begins_with("--shots="):
 			shot_at = []
 			for v in arg.substr(8).split(","):
@@ -510,6 +522,11 @@ func _ready() -> void:
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			seed(int(a.substr(7)))
+		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
+		if a.begins_with("--squad="):
+			for cid in a.substr(8).split(","):
+				if squad.add(cid) != null:
+					_load_op_tex(cid)
 
 
 func _update_music(_dt: float) -> void:
@@ -584,7 +601,7 @@ func _gallery_step() -> void:
 				e.hp = e.maxhp * 0.5
 			e.kb = Vector2.ZERO
 	if at_frames == 90 and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gallery.png")
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_gallery.png")
 		get_tree().quit()
 
 
@@ -593,13 +610,13 @@ func _autotest_step() -> void:
 	at_frames += 1
 	if state == S.OPENING and OS.get_cmdline_user_args().has("--openshot"):
 		if at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_open_%03d.png" % at_frames)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_open_%03d.png" % at_frames)
 		if at_frames > 240:
 			get_tree().quit()
 		return
 	if state == S.INTRO:
 		if intro_t > 0.5 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_intro_%d.png" % intro_page)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_intro_%d.png" % intro_page)
 			if intro_page >= INTRO_PAGES.size() - 1:
 				get_tree().quit()
 				return
@@ -615,7 +632,7 @@ func _autotest_step() -> void:
 				_buy(i)
 				break
 		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not balance:
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_shop.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_shop.png")
 		shop_visits += 1
 		if shop_visits % 3 == 0:
 			_close_shop()
@@ -628,14 +645,14 @@ func _autotest_step() -> void:
 			hp = max_hp * 0.2
 			_hurt(max_hp * 0.1)
 		if at_frames == 96 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_hurt.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_hurt.png")
 		if at_frames == 175:
 			zone_c = ppos + Vector2(560, 60)
 			zone_r = 480.0
 			zone_state = 3
 			zone_t = -999.0
 		if at_frames == 188 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_zone.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_zone.png")
 		if at_frames == 130:
 			state = S.STATS
 		if at_frames == 132:
@@ -644,7 +661,7 @@ func _autotest_step() -> void:
 					Input.warp_mouse(c[0].get_center())
 					break
 		if at_frames == 134 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_stats.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
 			for a in OS.get_cmdline_user_args():
@@ -666,8 +683,11 @@ func _autotest_step() -> void:
 			skill_lv["s3"] = maxi(skill_lv["s3"], 2)
 			ch.s3_active = 30.0
 			ch.mirror_pos = ppos
-			for k in ["sniper", "caster", "support"]:
-				allies.append({"kind": k, "lv": 2, "pos": ppos, "cd": 0.5})
+			for k in ["wisadel", "eyjafjalla", "suzuran"]:
+				var op = squad.add(k)
+				if op != null:
+					op.advance()
+					op.advance()
 			t = 149.0
 			next_horde = t + 60.0
 			merchant = {"pos": ppos + Vector2(900, -300), "life": 60.0, "near": false}
@@ -680,7 +700,7 @@ func _autotest_step() -> void:
 			_drop(ppos + Vector2(-120, 40), "heal", 1.0)
 		for f in [64, 72, 100, 125, 160, 200]:
 			if at_frames == f and DisplayServer.get_name() != "headless":
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_fx_%d.png" % f)
+				get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_%d.png" % f)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--bosstest="):
 			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
@@ -702,11 +722,9 @@ func _autotest_step() -> void:
 					bosses[0].partner = bosses[1]
 					bosses[1].partner = bosses[0]
 			if at_frames > 20 and at_frames % 30 == 0 and at_frames <= 600 and DisplayServer.get_name() != "headless":
-				get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), at_frames])
+				get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), at_frames])
 	if OS.get_cmdline_user_args().has("--fastlevel") and state == S.PLAY and (at_frames == 30 or at_frames == 400):
 		level = 9 if at_frames == 30 else 19
-		if at_frames == 400:
-			recruit_idx = 2
 		_gain_xp(xp_need + 0.1)
 	if state == S.SHOW:
 		if balance:
@@ -715,7 +733,7 @@ func _autotest_step() -> void:
 			return
 		if show_t > 1.4 and not show_shot and DisplayServer.get_name() != "headless":
 			show_shot = true
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_show_%d.png" % elite_stage)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_show_%d.png" % elite_stage)
 		if show_t > 1.6:
 			_close_show()
 		return
@@ -748,15 +766,15 @@ func _autotest_step() -> void:
 			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "kills": kills,
-				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": allies.size(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": ch.get("rej"), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "kills": kills,
+				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": elite_stage,
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo1 + "/" + ch.evo2, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
 		hp = max_hp
 	if lvup_show > 1.05 and lvup_show < 1.12 and level == 3 and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_lvup.png")
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_lvup.png")
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--eventtest=") and at_frames == 30:
 			for ev in endg.events:
@@ -788,7 +806,7 @@ func _autotest_step() -> void:
 			Input.parse_input_event(tr)
 			print("TOUCHTEST moved=%s" % str((ppos - touchtest_p0).round()))
 		if at_frames == 90 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_touch.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_touch.png")
 		if at_frames == 130:
 			get_tree().quit()
 	if OS.get_cmdline_user_args().has("--gemshot"):
@@ -797,7 +815,7 @@ func _autotest_step() -> void:
 				_drop(ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
 			_drop(ppos + Vector2(60, -40), "xp", 1.0)
 		if at_frames in [72, 100] and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_gem_%d.png" % at_frames)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_gem_%d.png" % at_frames)
 			if at_frames == 100:
 				get_tree().quit()
 	if OS.get_cmdline_user_args().has("--relicshot"):
@@ -808,18 +826,26 @@ func _autotest_step() -> void:
 			merchant = {"pos": ppos, "life": 60.0, "near": false}
 			_open_shop()
 		if at_frames == 440 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_shop.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_shop.png")
 			get_tree().quit()
 	if state == S.CHOICE:
 		choice_wait += 1
 		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless" and (choice_kind == "relic" or not OS.get_cmdline_user_args().has("--relicshot")):
 			choice_shot = true
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_choice.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_choice.png")
 		if choice_wait > 45:
 			choice_wait = 0
-			_pick(rng.randi() % choices.size())
+			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机
+			var deep: Array = []
+			for ci in choices.size():
+				if choices[ci].kind in ["prog", "skill"]:
+					deep.append(ci)
+			if not deep.is_empty() and rng.randf() < 0.7:
+				_pick(deep[rng.randi() % deep.size()])
+			else:
+				_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
-		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s allies=%s fps=%d" % [t, level, elite_stage, ch.evo1 + "/" + ch.evo2, hp, enemies.size(), kills, lamp, growth, relics, allies.map(func(a): return "%s%d" % [a.kind, a.lv]), Engine.get_frames_per_second()])
+		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [t, level, elite_stage, ch.evo1 + "/" + ch.evo2, hp, enemies.size(), kills, lamp, growth, relics, squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in bosses:
 		if not bb.dead and not bb.invuln and not bosstest:
 			bb.hp -= 4.0 if bosstest else 40.0
@@ -834,10 +860,10 @@ func _autotest_step() -> void:
 			ending_new = true
 			state = S.WIN
 		if a.begins_with("--winshot=") and at_frames == 130 and DisplayServer.get_name() != "headless":
-			get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_win.png")
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_win.png")
 			get_tree().quit()
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/shot_%d.png" % at_frames)
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_%d.png" % at_frames)
 	if bosstest and at_frames > 610:
 		get_tree().quit()
 	if (state == S.WIN and not winshot) or at_frames > 14000:
@@ -973,7 +999,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var k: int = event.keycode
 	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
-		if ch.try_manual_skill():
+		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
 		return
 	if k == KEY_TAB or k == KEY_C:
@@ -1067,8 +1093,7 @@ func _update(dt: float) -> void:
 	_spawn(dt)
 	_build_grid()
 	_update_enemies(dt)
-	ch.update(dt)
-	_update_allies(dt)
+	squad.update(dt)
 	knight.update(dt)
 	touch.update(dt)
 	_update_bullets(dt)
@@ -1192,27 +1217,6 @@ func _check_pending() -> void:
 		return
 	if not show_queue.is_empty():
 		_open_show(show_queue.pop_front())
-		return
-	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= ch.skill_unlock().s1 and skill_lv.s1 == 0:
-		skill_lv.s1 = 1
-		_open_show({"head": "技能解锁", "en": "SKILL  UNLOCKED", "col": UI.GOLD, "demo": "s1", "items": [_skill_item("s1")]})
-		return
-	if pending_levelups > 0 and lvup_delay <= 0.0 and level >= ch.skill_unlock().s2 and elite_stage == 0:
-		elite_stage = 1
-		skill_lv.s2 = 1
-		ch.on_elite(1)
-		show_queue.append({"head": "精英化一", "en": "ELITE  PROMOTION  I", "col": Color(0.5, 0.8, 1.0), "demo": "s2", "items": [
-			_skill_item("s2"),
-			{"tag": "天赋", "tag_en": "TALENT", "glyph": "反", "name": "反移情", "desc": "击杀敌人时回复生命（每秒有上限）", "col": Color(0.5, 1.0, 0.65)}]})
-		_open_show(show_queue.pop_front())
-		return
-	# 精英化一：选择进化路线（消耗这次升级）
-	if ch.evo_pending and pending_levelups > 0:
-		ch.evo_pending = false
-		var eo: Array = []
-		for k in ch.evo_paths():
-			eo.append({"kind": "evo", "id": k, "name": "进化 · " + ch.evo_table()[k].name, "desc": ch.evo_table()[k].desc})
-		_show_choices("精英化一：选择进化方向", eo, "level")
 		return
 	if pending_chests > 0:
 		_open_relic_choice()
@@ -1537,6 +1541,8 @@ func _update_enemies(dt: float) -> void:
 			e.pose -= dt
 		if e.get("haste", 0.0) > 0.0:
 			e.haste -= dt
+		if e.get("aura_weak", 0.0) > 0.0:
+			e.aura_weak -= dt
 		# 流血（狙击干员）：每 0.5 秒结算一次
 		if e.get("bleed", 0.0) > 0.0:
 			e.bleed -= dt
@@ -1768,6 +1774,9 @@ func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := 
 	if shield > 0:
 		_shield_block()
 		return
+	for o in squad.ops:
+		if o.has_method("dmg_taken_mult"):
+			dmg *= o.dmg_taken_mult()
 	_hurt(dmg * (1.15 if lamp < 30.0 else 1.0), ignore_armor)
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (4.0 + 30.0 * dmg / max_hp) * lamp_decay
@@ -2000,7 +2009,7 @@ func _sync_stats() -> void:
 		if shield_max == 0 and new_shield > 0:
 			shield_cd = 1.0
 		shield_max = new_shield
-	ch.sync_stats(stats)
+	squad.sync_stats(stats)
 
 
 ## 灯火：灯光照亮范围（游戏判定用）
@@ -2015,7 +2024,8 @@ func _lamp_sp() -> float:
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
 func _hit(src: String, extra_tags: Array = []) -> void:
 	var base: Dictionary = hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
-	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags}
+	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
+		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
 ## 本局造成伤害的构成（按来源前三，占比），Tab 面板与结算用
@@ -2057,6 +2067,8 @@ func _damage(e: Dictionary, dmg: float) -> void:
 			dmg *= 1.5 + weak_bonus
 			weak_hit = true
 		dmg *= melee_mult if ty[0] == "近战" else ranged_mult
+		if e.get("aura_weak", 0.0) > 0.0:
+			dmg *= 1.1
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
 		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
 			dmg *= 1.0 + low_hp_bonus
@@ -2197,7 +2209,7 @@ func _kill(e: Dictionary) -> void:
 		hitstop = max(hitstop, 0.12)
 		_shake(1.0)
 		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
-	ch.on_kill(e)
+	squad.on_kill(e)
 	if flesh_heal and e.evo:
 		_heal(max_hp * 0.03)
 	if ember and e.elite:
@@ -2264,13 +2276,15 @@ func facing_angle() -> float:
 	return 0.0 if facing >= 0.0 else PI
 
 
-func _nearest(n: int, max_dist: float) -> Array:
+func _nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if origin == Vector2.INF:
+		origin = ppos
 	var c: Array = []
-	for j in _query(ppos, max_dist):
+	for j in _query(origin, max_dist):
 		var e: Dictionary = enemies[j]
 		if e.dead:
 			continue
-		var d: float = e.pos.distance_squared_to(ppos)
+		var d: float = e.pos.distance_squared_to(origin)
 		if d < max_dist * max_dist:
 			c.append([d, e])
 	c.sort_custom(func(a, b): return a[0] < b[0])
@@ -2566,131 +2580,6 @@ func _close_shop() -> void:
 
 
 # =====================================================================
-# 援护干员
-# =====================================================================
-const ALLY_SLOTS := [Vector2(-46, -8), Vector2(46, -8), Vector2(0, -52)]
-
-
-func _update_allies(dt: float) -> void:
-	_update_doctor(dt)
-	for i in allies.size():
-		var al: Dictionary = allies[i]
-		var slot: Vector2 = ppos + ALLY_SLOTS[i]
-		var prev: Vector2 = al.pos
-		al.pos = al.pos.lerp(slot, clamp(dt * 5.0, 0.0, 1.0))
-		# 美术 V6：移动速度（平滑）与朝向，用于移动循环
-		var vel: Vector2 = (al.pos - prev) / maxf(dt, 0.0001)
-		al["mv"] = lerpf(al.get("mv", 0.0), vel.length(), clampf(dt * 10.0, 0.0, 1.0))
-		if absf(vel.x) > 20.0:
-			al["mface"] = signf(vel.x)
-		al["mt"] = al.get("mt", 0.0) + dt
-		al.cd -= dt
-		# 攻击动作计时：到出手帧时结算，播完回到待机
-		if al.get("atk", -1.0) >= 0.0:
-			al.atk += dt
-			if not al.get("fired", true) and al.atk >= ALLY_EVENT_T:
-				al.fired = true
-				_ally_release(al)
-			if al.atk >= ALLY_ANIM_T:
-				al.atk = -1.0
-		match al.kind:
-			"sniper":
-				if al.cd <= 0.0:
-					var tgt := _sniper_target(al.pos, 460.0)
-					if tgt.is_empty():
-						al.cd = 0.2
-					else:
-						al.cd = 0.8 * pow(0.87, al.lv - 1)
-						_ally_start(al, tgt.pos)
-			"caster":
-				if al.cd <= 0.0:
-					var ts := _nearest(1, 360.0)
-					if ts.is_empty():
-						al.cd = 0.2
-					else:
-						al.cd = 1.25 * pow(0.9, al.lv - 1)
-						_ally_start(al, ts[0].pos)
-			"medic":
-				if al.cd <= 0.0:
-					al.cd = 3.5 / (1.0 + 0.2 * (al.lv - 1))
-					if hp < max_hp or (knight.alive and knight.hp < knight.maxhp):
-						_ally_start(al, ppos)
-			"support":
-				# 辅助：光环只减速不造成伤害；另外向 2 名敌人发射紫色法术
-				var rad: float = _support_radius(al.lv)
-				for j in _query(ppos, rad + 20.0):
-					var e: Dictionary = enemies[j]
-					if e.dead or e.pos.distance_to(ppos) > rad:
-						continue
-					e.slow = maxf(e.slow, 0.2)
-				if al.cd <= 0.0:
-					var ts := _nearest(2, 380.0)
-					if ts.is_empty():
-						al.cd = 0.2
-					else:
-						al.cd = 1.2 * pow(0.88, al.lv - 1)
-						_ally_start(al, ts[0].pos)
-
-
-## 援护攻击动作：8fps × 4 帧，零基第 2 帧出手（美术 V5 约定）
-const ALLY_EVENT_T := 0.25
-const ALLY_ANIM_T := 0.5
-
-
-func _ally_start(al: Dictionary, aim: Vector2) -> void:
-	if absf(aim.x - al.pos.x) > 2.0:
-		al.face = signf(aim.x - al.pos.x)
-	if tex.get("ally_%s_attack" % al.kind) == null:
-		_ally_release(al)
-		return
-	al.atk = 0.0
-	al.fired = false
-
-
-## 出手：重新找目标（动作期间原目标可能已死）
-func _ally_release(al: Dictionary) -> void:
-	var lvm: float = pow(1.35, al.lv - 1) * ally_mult
-	match al.kind:
-		"sniper":
-			var tgt := _sniper_target(al.pos, 500.0)
-			if tgt.is_empty():
-				return
-			var d: Vector2 = (tgt.pos - al.pos).normalized()
-			bullets.append({"kind": "arrow", "pos": al.pos + Vector2(0, -12), "vel": d * 900.0, "dmg": 24.0 * lvm * dmg_mult, "life": 0.8, "r": 5.0, "aoe": 0.0})
-			fx.append({"kind": "ring", "pos": al.pos + Vector2(0, -12) + d * 12.0, "r": 10.0, "life": 0.12, "max": 0.12, "col": Color(1.0, 0.9, 0.7)})
-			Sfx.play("swing", -16.0, 1.8)
-		"caster":
-			var ts := _nearest(1, 400.0)
-			if ts.is_empty():
-				return
-			var d: Vector2 = (ts[0].pos - al.pos).normalized()
-			bullets.append({"kind": "fire", "pos": al.pos + Vector2(0, -14), "vel": d * 340.0, "dmg": 20.0 * lvm * dmg_mult, "life": 1.3, "r": 8.0, "aoe": 55.0 + 10.0 * al.lv})
-			Sfx.play("oil", -12.0, 1.4, 0.05)
-		"medic":
-			if knight.alive:
-				knight.heal(knight.maxhp * 0.05)
-			if hp < max_hp:
-				var h: float = max_hp * (0.035 + 0.01 * (al.lv - 1))
-				_heal(h)
-				_add_text(ppos + Vector2(0, -90), "+%d" % int(h), Color(0.5, 1.0, 0.6), 16)
-				fx.append({"kind": "ring", "pos": ppos, "r": 26.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 1.0, 0.6)})
-				# 回血：水月身上升起绿色十字 + 医疗干员到水月的治疗光线
-				for k in 6:
-					fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
-						"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
-				fx.append({"kind": "beam", "a": al.pos + Vector2(0, -20), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 3.0})
-		"support":
-			# 辅助：向 2 名敌人发射追踪的紫色法术
-			var ts2 := _nearest(3 if al.lv >= 3 else 2, 400.0)
-			for k in ts2.size():
-				var d2: Vector2 = (ts2[k].pos - al.pos).normalized().rotated(0.6 * (1 if k == 0 else -1))
-				bullets.append({"kind": "arcane", "pos": al.pos + Vector2(0, -16), "vel": d2 * 330.0, "dmg": 16.0 * lvm * dmg_mult,
-					"life": 1.6, "r": 7.0, "aoe": 0.0, "home": ts2[k], "turn": 7.0})
-			if not ts2.is_empty():
-				Sfx.play("tentacle", -14.0, 1.6, 0.05)
-
-
-# =====================================================================
 # 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
 # =====================================================================
 func _update_weapons(dt: float) -> void:
@@ -2789,10 +2678,10 @@ func _drone_laser(from: Vector2, ang: float) -> void:
 
 
 ## 敌人最密集的位置（在 radius 内采样）
-func _densest_point(radius: float) -> Vector2:
+func _densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 	var best := Vector2.INF
 	var bn := 0
-	var cand := _nearest(12, radius)
+	var cand := _nearest(12, radius, origin)
 	for c in cand:
 		var n := 0
 		for j in _query(c.pos, 90.0):
@@ -2802,10 +2691,6 @@ func _densest_point(radius: float) -> Vector2:
 			bn = n
 			best = c.pos
 	return best
-
-
-func _support_radius(lv: int) -> float:
-	return 85.0 + 15.0 * lv
 
 
 func _sniper_target(from: Vector2, reach: float) -> Dictionary:
@@ -2873,7 +2758,10 @@ func _update_bullets(dt: float) -> void:
 
 ## 子弹命中：按种类结算伤害与特效
 func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
-	_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
+	if b.has("src"):
+		_hit(b.src, b.get("tags", []))
+	else:
+		_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
@@ -2890,13 +2778,20 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					"sz": 3.0, "life": 0.4, "max": 0.4, "col": Color(0.85, 0.08, 0.12)})
 			fx.append({"kind": "blood", "pos": e.pos + Vector2(0, e.r * 0.6), "life": 2.5, "max": 2.5, "seed": randf() * 10.0})
 			_fx_sprite("fx_arrow_hit", e.pos, PX, b.vel.angle())
-			b.life = 0.0
+			if b.get("pierce", false):
+				if not b.has("hit_ids"):
+					b["hit_ids"] = {}
+				b.hit_ids[e.id] = true
+			else:
+				b.life = 0.0
 		"fire", "missile":
 			# 法术团 / 导弹：爆炸
 			for k in _query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					_damage(o, b.dmg)
+					if b.get("slow", false):
+						o.slow = maxf(o.slow, 1.2)
 			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
 			var fc := Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4)
 			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈
@@ -2910,6 +2805,9 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
 			Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
 			b.life = 0.0
+			# 干员自带的命中后效果（点燃 / 分裂等）
+			if b.get("on_hit") != null:
+				b.on_hit.bullet_exploded(b)
 		"arcane":
 			_damage(e, b.dmg)
 			if not e.dead:
@@ -3048,6 +2946,7 @@ func _gain_xp(v: float) -> void:
 		level += 1
 		xp_need = 24.0 + level * 8.0 + floor(level * level * 0.8)
 		pending_levelups += 1
+		lv_times.append(int(t))
 		_levelup_fx()
 
 
@@ -3362,6 +3261,11 @@ func _card_icon(o: Dictionary) -> Texture2D:
 			return tex.get("evo_" + o.id)
 		"skill":
 			return tex.get("skill_" + o.id)
+		"prog":
+			return tex.get(o.get("icon", ""), null) if o.get("icon", "") != "" else null
+		"recruit":
+			var pt: Texture2D = tex.get("ally_" + o.id)
+			return pt
 	return null
 
 
@@ -3374,7 +3278,11 @@ func _card_color(o: Dictionary) -> Color:
 		"recruit":
 			return Color(0.55, 0.9, 0.55)
 		"skill":
-			return ch.skills()[o.id].col
+			return squad.get_op(o.get("op", ch.id)).skills()[o.id].col
+		"prog":
+			if o.get("col", null) != null:
+				return o.col
+			return Color(0.8, 0.55, 1.0) if o.get("elite", 0) > 0 else Color(0.55, 0.85, 1.0)
 		"weapon":
 			return D.WEAPONS[o.id].col
 		"evo":
@@ -3394,7 +3302,9 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "relic":
 		cat = RL[o.id].cat + "  ·  " + RL[o.id].rarity
 	elif o.kind == "recruit":
-		cat = "招募  " + D.ALLIES[o.id].en
+		cat = "招募  " + o.get("cls", "")
+	elif o.kind == "prog":
+		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
 	elif o.kind == "skill":
 		cat = "技能进阶  " + ("I" if o.stage == 1 else "II")
 	elif o.kind == "weapon":
@@ -3416,7 +3326,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = ch.evo_table()[o.id].glyph
 	var ic: Texture2D = _card_icon(o)
 	var bob := sin(t * 2.0 + i) * 2.0
-	if o.kind == "recruit":
+	if o.kind == "recruit" and tex.get("ally_" + o.id) != null:
 		var at: Texture2D = tex["ally_" + o.id]
 		var fw := at.get_width() / 2
 		var ks: float = 2.0 if at.get_height() <= 48 else 72.0 / at.get_height()
@@ -3438,86 +3348,124 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 16), "SELECT", 11, col, 3.0)
 
 
-func _open_recruit() -> bool:
+## 干员贴图集（运行中招募 / 测试编入时补加载）
+func _load_op_tex(cid: String) -> void:
+	var cdef: Dictionary = Character.load_def(cid)
+	var csp: Dictionary = cdef.get("sprites", {})
+	for kind in ["idle", "run", "attack", "skill"] + cdef.get("extra_sprites", []):
+		if csp.has(kind):
+			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
+			if tex.get(tn) == null:
+				tex[tn] = A.tex(tn)
+
+
+## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
+func _recruit_cards() -> Array:
 	var opts: Array = []
-	for k in D.ALLIES:
-		var a: Dictionary = D.ALLIES[k]
-		var cur: Dictionary = {}
-		for al in allies:
-			if al.kind == k:
-				cur = al
-		if cur.is_empty() and allies.size() < 3:
-			opts.append({"kind": "recruit", "id": k, "name": a.name, "desc": a.desc})
-		elif not cur.is_empty() and cur.lv < 3:
-			opts.append({"kind": "recruit", "id": k, "name": "%s  Lv.%d" % [a.name, cur.lv + 1], "desc": a.up})
+	if squad.is_full():
+		return opts
+	for cid in Character.list_ids():
+		if squad.has(cid):
+			continue
+		var d: Dictionary = Character.load_def(cid)
+		if not d.get("recruitable", true):
+			continue
+		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")), "cls": d.get("class", "")})
+	return opts
+
+
+func _open_recruit() -> bool:
+	var opts := _recruit_cards()
 	if opts.is_empty():
 		return false
 	opts.shuffle()
-	_show_choices("招募援护干员", opts.slice(0, 3), "level")
+	_show_choices("招募干员", opts.slice(0, 3), "level")
 	return true
 
 
 func _open_levelup() -> void:
-	if recruit_idx < D.RECRUIT_LEVELS.size() and level >= D.RECRUIT_LEVELS[recruit_idx]:
-		recruit_idx += 1
-		if _open_recruit():
-			return
-	# 精英化节点（精英化一在 _check_pending 中先播放解锁演出）
-	if level >= 19 and elite_stage == 1:
-		elite_stage = 2
-		var E: Dictionary = ch.evo_table()
-		var mopts: Array = []
-		for k in ch.evo_mutations(ch.evo1):
-			mopts.append({"kind": "evo", "id": k, "name": "质变 · " + E[k].name, "desc": E[k].desc})
-		if mopts.is_empty():
-			for pth in ch.evo_paths():
-				for k in ch.evo_mutations(pth):
-					mopts.append({"kind": "evo", "id": k, "name": "质变 · " + E[k].name, "desc": E[k].desc})
-		_show_choices("精英化二：%s的质变" % E.get(ch.evo1, {"name": ""}).name, mopts, "level")
-		return
-	# ---- 升级三选一：1 张「路线」卡（路线专属升级 / 技能进阶）+ 2 张通用成长；无人机卡按概率替换一张通用卡
-	var route: Array = []
-	var general: Array = []
-	for gid in ch.growth_table():
-		var g: Dictionary = ch.growth_table()[gid]
-		var n: int = growth.get(gid, 0)
-		if n >= g.max or (g.has("path") and g.path != ch.evo1):
-			continue
-		var nm: String = g.name if g.max > 90 else "%s  %d/%d" % [g.name, n + 1, g.max]
-		var card := {"kind": "growth", "id": gid, "name": nm, "desc": g.desc + "\n" + ch._growth_preview(gid)}
-		if g.has("path"):
-			route.append(card)
-		else:
-			general.append(card)
-	for sid in ["s1", "s2", "s3"]:
-		var lv: int = skill_lv[sid]
-		if lv >= 1 and lv < 3:
-			var ad: Dictionary = ch.skill_adv()[sid][lv - 1]
-			if level >= ad.min_lv:
-				route.append({"kind": "skill", "id": sid, "name": "%s · %s" % [ch.skills()[sid].name, ad.name], "desc": ad.desc, "stage": lv})
-	route.shuffle()
-	general.shuffle()
-	var picks: Array = []
-	if not route.is_empty():
-		picks.append(route[0])
 	var want: int = 3 + rfx.rule("four_choices")
-	for c in general:
+	var picks: Array = []
+	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
+	var recruit: Array = _recruit_cards()
+	var must_recruit: bool = not recruit.is_empty() and ((level >= 6 and squad.size() <= 1) or (level >= 12 and squad.size() < Squad.REGULAR_MAX))
+	if must_recruit:
+		recruit.shuffle()
+		_show_choices("招募干员", recruit.slice(0, want), "level")
+		return
+	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
+	var deep: Array = []
+	for o in squad.ops:
+		if level <= 4 and o != ch:
+			continue
+		for c in o.deep_cards():
+			if c.kind == "prog" and not c.get("avail", true):
+				continue
+			deep.append(c)
+	deep.shuffle()
+	if not deep.is_empty():
+		picks.append(deep[0])
+		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
+		if squad.size() >= 2 and rng.randf() < 0.5:
+			for rc in deep.slice(1):
+				if rc.get("op", "") != deep[0].get("op", ""):
+					picks.append(rc)
+					break
+	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
+	if level >= 5 and not recruit.is_empty() and rng.randf() < 0.45:
+		picks.append(recruit[rng.randi() % recruit.size()])
+	# ---- 博士被动 / 全队被动：种类各上限 4
+	var passives: Array = doctor.passive_cards("doctor") + doctor.passive_cards("squad")
+	passives.shuffle()
+	for c in passives:
 		if picks.size() >= want:
 			break
 		picks.append(c)
-	var ri := 1
-	while picks.size() < want and ri < route.size():
-		picks.append(route[ri])
-		ri += 1
-	# 无人机：首次在 Lv.2 后必出一张，之后约 35%
+	# ---- 深度卡补位，再不够用填充卡
+	var di := 1
+	while picks.size() < want and di < deep.size():
+		if not picks.has(deep[di]):
+			picks.append(deep[di])
+		di += 1
+	var fillers: Array = doctor.filler_cards()
+	fillers.shuffle()
+	var fi := 0
+	while picks.size() < want and fi < fillers.size():
+		picks.append(fillers[fi])
+		fi += 1
+	# ---- 无人机：Lv.2 后首次必出一张，之后约 25%，替换最后一张非深度卡
 	var wl: int = weapons.get("drone", 0)
-	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.35):
+	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.25):
 		var W: Dictionary = D.WEAPONS.drone
 		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
 			"desc": W.lv[wl], "wlv": wl + 1}
-		picks[picks.size() - 1] = wcard
+		for k in range(picks.size() - 1, -1, -1):
+			if picks[k].kind != "prog" and picks[k].kind != "skill":
+				picks[k] = wcard
+				break
 	picks.shuffle()
-	_show_choices("升级！ Lv.%d" % level, picks, "level")
+	_show_choices("升级！ Lv.%d" % level, picks.slice(0, want), "level")
+
+
+## 成长项定义：博士 / 全队被动在 doctor.PASSIVES，干员专属在各干员的 growth_table()
+func _growth_def(gid: String) -> Dictionary:
+	if doctor.PASSIVES.has(gid):
+		return doctor.PASSIVES[gid]
+	for o in squad.ops:
+		if o.growth_table().has(gid):
+			return o.growth_table()[gid]
+	return {"name": gid, "desc": "", "max": 1}
+
+
+## 全队的干员深度卡：每个干员的下一个成长节点（条件未满足的精英化卡不出）+ 子类追加卡
+func _deep_cards() -> Array:
+	var out: Array = []
+	for o in squad.ops:
+		for c in o.deep_cards():
+			if c.kind == "prog" and not c.get("avail", true):
+				continue
+			out.append(c)
+	return out
 
 
 ## 可选藏品：已实装、未拥有、满足前置；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
@@ -3570,16 +3518,24 @@ func _pick(i: int) -> void:
 			endg.pick(o)
 		"growth":
 			growth[o.id] = growth.get(o.id, 0) + 1
-			ch._apply_growth(o.id)
+			if not doctor.apply_passive(o.id):
+				var gop = squad.get_op(o.get("op", ch.id))
+				if gop != null:
+					gop._apply_growth(o.id)
+		"filler":
+			doctor.apply_filler(o.id)
+		"prog":
+			var pop = squad.get_op(o.op)
+			if pop != null:
+				pop.advance(o.get("choice", ""))
+				fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
+				if o.get("elite", 0) > 0:
+					_show_banner("%s 精英化%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
 		"recruit":
-			var found := false
-			for al in allies:
-				if al.kind == o.id:
-					al.lv += 1
-					found = true
-			if not found:
-				allies.append({"kind": o.id, "lv": 1, "pos": ppos + Vector2(rng.randf_range(-40, 40), 30), "cd": 0.5})
-				_show_banner("援护干员「%s」加入编队" % D.ALLIES[o.id].name)
+			var nop = squad.add(o.id)
+			if nop != null:
+				_show_banner("「%s」加入编队" % nop.display_name())
+				fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
 		"relic":
 			_gain_relic(o.id)
 		"evo":
@@ -3591,8 +3547,9 @@ func _pick(i: int) -> void:
 			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 		"skill":
 			skill_lv[o.id] += 1
-			var sk: Dictionary = ch.skills()[o.id]
-			var ad: Dictionary = ch.skill_adv()[o.id][o.stage - 1]
+			var sop = squad.get_op(o.get("op", ch.id))
+			var sk: Dictionary = sop.skills()[o.id]
+			var ad: Dictionary = sop.skill_adv()[o.id][o.stage - 1]
 			_show_banner("技能进阶：%s · %s" % [sk.name, ad.name])
 			fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": sk.col})
 			fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": sk.col})
@@ -3838,27 +3795,25 @@ func _draw() -> void:
 				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
 	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
-	ch.draw_auras()
+	squad.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
 		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
-	for al in allies:
-		_spr("shadow", 1, 0, al.pos + Vector2(0, 16), PX)
-	if doc_pos != Vector2.INF and tex.get("doctor") != null:
-		_spr("shadow", 1, 0, doc_pos + Vector2(0, 4), PX * 0.9)
+	squad.draw_shadows()
 	if knight.alive:
 		_spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
-	ch.draw_entities_floor()
+	squad.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
 	for e in enemies:
 		dl.append([e.pos.y + e.r * 0.8, 0, e])
-	for i in allies.size():
-		dl.append([allies[i].pos.y + 16.0, 1, i])
 	dl.append([ppos.y + 6.0, 2, null])
-	if doc_pos != Vector2.INF and tex.get("doctor") != null:
-		dl.append([doc_pos.y + 4.0, 5, null])
+	for o in squad.ops:
+		if o.pos != Vector2.INF:
+			dl.append([o.pos.y + 4.0, 5, o])
+		for xb in o.extra_bodies():
+			dl.append([xb.y, 6, [o, xb]])
 	if knight.alive:
 		dl.append([knight.pos.y + 18.0, 4, null])
 	for pr in map.sort_props:
@@ -3867,32 +3822,18 @@ func _draw() -> void:
 	for it in dl:
 		match it[1]:
 			5:
-				_draw_doctor()
+				it[2].draw_body()
+			6:
+				it[2][0].draw_extra(it[2][1])
 			4:
 				knight.draw()
 			0:
 				_draw_enemy(it[2])
-			1:
-				var i: int = it[2]
-				var al: Dictionary = allies[i]
-				var atx: Texture2D = tex["ally_" + al.kind]
-				var akey: String = "ally_%s_attack" % al.kind
-				if al.get("atk", -1.0) >= 0.0 and tex.get(akey) != null:
-					# 攻击动作：72×48 画布，脚底锚点 (24,45)，朝向目标
-					_spr(akey, 4, mini(3, int(al.atk * 8.0)), al.pos + Vector2(0, 16), 1.4, al.get("face", 1.0) < 0.0, Color.WHITE, Vector2(24.0 / 72.0, 45.0 / 48.0))
-				elif al.get("mv", 0.0) > 40.0 and tex.get("ally_%s_move" % al.kind) != null:
-					# 美术 V6：移动循环（6 帧 10fps，朝移动方向）
-					_spr("ally_%s_move" % al.kind, 6, int(al.mt * 10.0) % 6, al.pos + Vector2(0, 16), 1.4, al.get("mface", 1.0) < 0.0, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
-				elif atx.get_height() >= 40:
-					# 48px 援护（脚底锚点约 (24,45)）
-					_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos + Vector2(0, 16), 1.4, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
-				else:
-					_spr("ally_" + al.kind, 2, int(t * 3.0 + i) % 2, al.pos, PX, al.pos.x > ppos.x, Color.WHITE, Vector2(0.5, 0.5))
 			2:
 				_draw_player()
 			3:
 				map.draw_sort_prop(it[2])
-	ch._draw_skill_over()
+	squad.draw_skill_over()
 	for dr in drones:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
@@ -3923,10 +3864,6 @@ func _draw() -> void:
 				draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
 				draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
 	var jf := int(t * 6.0) % 2
-	for al in allies:
-		if al.kind == "support":
-			var rad: float = _support_radius(al.lv)
-			draw_arc(ppos, rad, 0.0, TAU, 40, Color(0.5, 0.8, 1.0, 0.18 + 0.06 * sin(t * 3.0)), 2.0)
 	for b in bullets:
 		if b.life <= 0.0:
 			continue
@@ -4225,7 +4162,7 @@ func _draw_fx_add() -> void:
 	draw_off = Vector2.ZERO
 	map.draw_god_rays(fx_add, get_viewport_rect().size, cam.position)
 	var loop := int(t * 10.0)
-	ch.draw_fx_add(fx_add, loop)
+	squad.draw_fx_add(fx_add, loop)
 	for f in fx:
 		if f.kind != "anim":
 			continue
@@ -4246,6 +4183,9 @@ func _spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
 func _update_player_anim(dt: float) -> void:
+	if tex.get("doctor") != null:
+		_update_doctor_anim(dt)
+		return
 	if tex.get("player_attack_48") != null:
 		_update_player_anim48(dt)
 		return
@@ -4278,6 +4218,49 @@ func _update_player_anim(dt: float) -> void:
 			sprite.frame = clampi(int(anim_t * 6.0), 0, n - 1)
 		_:
 			sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
+
+
+## 博士动画：data/doctor.json 的 sprites（编队美术第一批：idle 4 / run 6 / hurt 2 / death 4 帧，脚底 46）；
+## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
+func _update_doctor_anim(dt: float) -> void:
+	var want := "idle"
+	if state == S.DEAD:
+		want = "death"
+	elif hurt_flash > 0.05:
+		want = "hurt"
+	elif moving:
+		want = "run"
+	var sp: Dictionary = doctor.def.get("sprites", {})
+	var tx: Texture2D = tex.get(sp.get(want, ""), null) if sp.has(want) else null
+	var fallback := tx == null
+	if fallback:
+		tx = tex["doctor"]
+	var key := want + ("_fb" if fallback else "")
+	if key != anim_name:
+		anim_name = key
+		anim_t = 0.0
+		sprite.texture = tx
+		sprite.hframes = max(1, tx.get_width() / tx.get_height())
+		# 脚底锚点：data/doctor.json 的 sprites.foot（旧 2 帧待机条为 45，编队美术第一批为 46）
+		var foot_y: float = float(sp.get("foot", [24, 45])[1])
+		sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (48.0 - foot_y) * A.hires_of(tx))
+	anim_t += dt
+	var n := sprite.hframes
+	sprite.rotation = 0.0
+	if fallback:
+		match want:
+			"death":
+				sprite.frame = 0
+				sprite.rotation = lerpf(0.0, -1.45 * (1.0 if facing >= 0.0 else -1.0), clampf(anim_t / 0.35, 0.0, 1.0))
+			"run":
+				sprite.frame = int(anim_t * 7.0) % n
+				sprite.position.y -= PX * absf(sin(anim_t * 11.0)) * 1.5
+			_:
+				sprite.frame = int(anim_t * 2.0) % n
+	else:
+		var spec: Array = P48.get(want, [4.0, true])
+		var f := int(anim_t * spec[0])
+		sprite.frame = f % n if spec[1] else mini(f, n - 1)
 
 
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
@@ -4466,6 +4449,19 @@ func _draw_enemy(e: Dictionary) -> void:
 
 
 ## 在任意位置绘制水月（残影、倒影用）
+## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
+func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
+	if tx == null:
+		return
+	var fw := tx.get_width() / hf
+	var fh := tx.get_height()
+	var src := Rect2(fw * (frame % hf), 0, fw, fh)
+	var pk: float = PX / A.hires_of(tx)
+	draw_set_transform((pos + draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D = null, hf: int = 0) -> void:
 	if tx == null:
 		tx = sprite.texture
@@ -4823,10 +4819,9 @@ func _draw_hud() -> void:
 	var lvs := 24 if level < 10 else 20
 	UI.text(hud, font, lc0 + Vector2(-30, 8 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
 	# 名字、精英阶段
-	UI.text(hud, font, o + Vector2(84, 32), "水月", 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, o + Vector2(130, 31), "MIZUKI", 10, UI.CYAN_DIM, 3.0)
-	var stage_txt: String = ["精零", "精英一", "精英二"][elite_stage]
-	UI.chip(hud, font, o + Vector2(280, 18), stage_txt, UI.GOLD if elite_stage > 0 else UI.SUB, 11)
+	UI.text(hud, font, o + Vector2(84, 32), doctor.name(), 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.en(hud, font, o + Vector2(130, 31), doctor.def.get("en", "DOCTOR"), 10, UI.CYAN_DIM, 3.0)
+	UI.chip(hud, font, o + Vector2(264, 18), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 11)
 	# 生命
 	var hs := Vector2(sin(t * 90.0), cos(t * 70.0)) * 3.0 * hp_shake / 0.35
 	var hbr := Rect2(o + Vector2(84, 44) + hs, Vector2(196, 12))
@@ -5035,7 +5030,7 @@ func _draw_hud() -> void:
 			hud.draw_rect(kc, Color(0.1, 0.25, 0.3, ha))
 			hud.draw_rect(kc, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ha), false, 1.5)
 			UI.text(hud, font, kc.position + Vector2(0, 18), "Tab", 14, Color(1, 1, 1, ha), HORIZONTAL_ALIGNMENT_CENTER, kc.size.x)
-			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看水月的属性与技能", 15, Color(0.85, 0.95, 0.95, ha))
+			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看博士与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 	_draw_relic_tooltip(vs)
 	touch.draw_hud(vs)
@@ -5290,16 +5285,16 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.frame(hud, r, UI.GLOW, {"t": t, "vines": true, "seed": 31, "cut": 14.0, "bracket": 14.0, "glow": 0.3})
 	UI.caustic(hud, Rect2(r.position + Vector2(20, 8), Vector2(r.size.x - 40, 22)), t, UI.GLOW)
 	# 标题行
-	var pt: Texture2D = tex.get("player_idle")
+	var pt: Texture2D = tex.get("doctor", tex.get("player_idle"))
 	if pt != null:
 		var fh := pt.get_height()
-		var fr := int(t * 4.0) % maxi(1, pt.get_width() / fh)
+		var fr := int(t * 2.0) % maxi(1, pt.get_width() / fh)
 		hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5 / A.hires_of(pt)), Rect2(fr * fh, 0, fh, fh))
-	UI.text(hud, font, r.position + Vector2(108, 50), "水月", 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, r.position + Vector2(176, 48), "MIZUKI  ·  STATUS", 12, UI.CYAN, 3.0)
+	UI.text(hud, font, r.position + Vector2(108, 50), doctor.name(), 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.en(hud, font, r.position + Vector2(176, 48), doctor.def.get("en", "DOCTOR") + "  ·  STATUS", 12, UI.CYAN, 3.0)
 	var cx0 := r.position.x + 350
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "Lv.%d" % level, UI.GLOW, 12) + 8
-	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), ["精零", "精英化一", "精英化二"][elite_stage], UI.GOLD if elite_stage > 0 else UI.SUB, 12) + 8
+	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 12) + 8
 	var evl2: Array = ch.evo_label()
 	if not evl2.is_empty():
 		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), evl2[0], evl2[1], 12) + 8
@@ -5369,14 +5364,14 @@ func _draw_stats(vs: Vector2) -> void:
 		var sicon: Texture2D = tex.get("skill_" + sid)
 		if sicon != null:
 			hud.draw_texture_rect(sicon, Rect2(sc - Vector2(16, 16), Vector2(32, 32)), false, Color.WHITE if lv >= 1 else Color(0.3, 0.3, 0.35))
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), sk.name if lv >= 1 else "%s（Lv.%d 解锁）" % [sk.name, ch.skill_unlock()[sid]], 14, UI.TEXT if lv >= 1 else UI.SUB)
+		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), sk.name if lv >= 1 else "%s（未解锁）" % sk.name, 14, UI.TEXT if lv >= 1 else UI.SUB)
 		var ax: float = b1.position.x + 62
 		for k in 2:
 			var ad: Dictionary = ch.skill_adv()[sid][k]
 			var got := lv >= k + 2
 			# 海嗣化（排异）的进阶：紫色 + "排异" 标记
 			var rej_key: String = sid + ("a" if k == 0 else "b")
-			var rejd: bool = got and ch.get("rej") != null and ch.rej.has(rej_key)
+			var rejd: bool = got and doctor.rej().has(rej_key)
 			var acol: Color = Color(0.85, 0.55, 1.0) if rejd else col
 			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, acol if got else Color(0, 0, 0, 0), acol if got else Color(0.35, 0.42, 0.46))
 			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name + ("·排异" if rejd else ""), 11, acol if got else Color(0.35, 0.42, 0.46))
@@ -5387,20 +5382,42 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.text(hud, font, b2.position + Vector2(16, 26), "队伍与成长", 16, UI.CYAN)
 	UI.en(hud, font, b2.position + Vector2(110, 25), "BUILD", 10, UI.CYAN_DIM, 3.0)
 	y = b2.position.y + 44
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "援护干员", 13, UI.SUB)
-	var ax2: float = b2.position.x + 90
-	if allies.is_empty():
-		UI.text(hud, font, Vector2(ax2, y + 12), "暂无", 13, UI.SUB)
-	for al in allies:
-		var at: Texture2D = tex["ally_" + al.kind]
-		var fw := at.get_width() / 2
-		var ks := 26.0 / at.get_height()
-		hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 4), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, Vector2(ax2 + fw * ks + 2, y + 16), "Lv.%d" % al.lv, 11, Color(0.55, 0.9, 0.55))
-		ax2 += fw * ks + 40
-	y += 34
+	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "编队 %d/%d" % [squad.size(), squad.cap()], 13, UI.SUB)
+	y += 22
+	for o in squad.ops:
+		var ax2: float = b2.position.x + 16
+		var opt: Dictionary = o.portrait()
+		var at: Texture2D = tex.get(opt.tex)
+		if at != null:
+			var fw := at.get_width() / int(opt.frames)
+			var ks := 26.0 / at.get_height()
+			hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 6), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
+			ax2 += fw * ks + 6
+		UI.text(hud, font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], 13, UI.TEXT)
+		ax2 += 116
+		ax2 += UI.chip(hud, font, Vector2(ax2, y), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, 10) + 6
+		# 成长线进度点
+		var pg: Array = o.progression()
+		for k in pg.size():
+			var dc := Vector2(ax2 + k * 12, y + 8)
+			var done: bool = k < o.prog
+			var is_elite: bool = pg[k].get("type", "") == "elite"
+			if is_elite:
+				UI.diamond(hud, dc, 4.0, UI.GOLD if done else Color(0.08, 0.14, 0.18), Color(1.0, 0.85, 0.5, 0.8))
+			else:
+				hud.draw_circle(dc, 3.0, Color(0.55, 0.9, 0.55) if done else Color(0.1, 0.18, 0.22))
+		ax2 += pg.size() * 12 + 8
+		var nn: Dictionary = o.next_node()
+		if not nn.is_empty():
+			var rq: String = o.node_requires_text(nn)
+			var ok_rq: bool = o.node_available(nn)
+			UI.text(hud, font, Vector2(ax2, y + 12), ("下一步：%s" % nn.get("name", "")) + (("（需%s）" % rq) if rq != "" and not ok_rq else ""), 11, UI.SUB if ok_rq else Color(1.0, 0.7, 0.5), HORIZONTAL_ALIGNMENT_LEFT, b2.end.x - ax2 - 12)
+		else:
+			UI.text(hud, font, Vector2(ax2, y + 12), "已满", 11, UI.GOLD)
+		y += 30
+	y += 6
 	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "武器", 13, UI.SUB)
-	ax2 = b2.position.x + 90
+	var ax2: float = b2.position.x + 90
 	if weapons.is_empty():
 		UI.text(hud, font, Vector2(ax2, y + 12), "暂无", 13, UI.SUB)
 	for wid in weapons:
@@ -5429,7 +5446,7 @@ func _draw_stats(vs: Vector2) -> void:
 		if gt != null:
 			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(32, 32)), false)
 		else:
-			UI.text(hud, font, gc + Vector2(0, 26), ch.growth_table()[gid].name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
+			UI.text(hud, font, gc + Vector2(0, 26), _growth_def(gid).name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
 		UI.text(hud, font, gc + Vector2(20, 37), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		stats_cells.append([Rect2(gc, Vector2(38, 38)), "growth", gid])
 		gi += 1
@@ -5478,10 +5495,10 @@ func _draw_stats(vs: Vector2) -> void:
 			for k in advs.size():
 				var tag: String = "◆" if lv2 >= k + 2 else "◇"
 				d2 += "\n%s %s（Lv.%d）：%s" % [tag, advs[k].name, advs[k].min_lv, advs[k].desc]
-			var sub2: String = ("Lv.%d 解锁" % ch.skill_unlock()[sid2]) if lv2 < 1 else ("已解锁 · 进阶 %d/2" % (lv2 - 1))
+			var sub2: String = "成长线解锁" if lv2 < 1 else ("已解锁 · 进阶 %d/2" % (lv2 - 1))
 			_draw_tooltip(vs, cr2, sk2.name + "  " + sk2.en, sub2, d2, "skill_" + sid2, sk2.col)
 		else:
-			var gd: Dictionary = ch.growth_table()[cellinfo[2]]
+			var gd: Dictionary = _growth_def(cellinfo[2])
 			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
 		break
 
@@ -5533,8 +5550,9 @@ func _draw_minimap(vs: Vector2) -> void:
 		var clipped := mp.length() > lim
 		mp = mp.limit_length(lim)
 		UI.diamond(hud, c + mp, 5.0 + (1.5 * sin(t * 6.0) if clipped else 0.0), UI.GOLD)
-	for al in allies:
-		hud.draw_circle(c + (al.pos - ppos) * k, 2.0, Color(0.5, 0.9, 1.0))
+	for o in squad.ops:
+		if o.pos != Vector2.INF:
+			hud.draw_circle(c + (o.pos - ppos) * k, 2.0, Color(0.5, 0.9, 1.0))
 	if zone_state != 0:
 		_mini_circle(c + (zone_c - ppos) * k, zone_r * k, lim, Color(0.85, 0.4, 1.0, 0.9), c)
 		if zone_state == 1:
@@ -5686,20 +5704,24 @@ func _draw_status_bar(vs: Vector2) -> void:
 func _draw_allies_hud(br: Vector2) -> void:
 	if knight.alive:
 		knight.draw_hud(hud, br + Vector2(-264, -30))
-	if allies.is_empty():
+	if squad.size() <= 1:
 		return
-	UI.en(hud, font, br + Vector2(-236, -60), "SUPPORT", 10, UI.SUB, 3.0)
-	for i in allies.size():
-		var al: Dictionary = allies[i]
-		var c := br + Vector2(-(3 - i) * 76 + 40, -30)
+	UI.en(hud, font, br + Vector2(-236, -60), "SQUAD", 10, UI.SUB, 3.0)
+	var n: int = squad.size() - 1
+	for i in n:
+		var o = squad.ops[i + 1]
+		var c := br + Vector2(-(n - i) * 76 + 40, -30)
 		var acol := Color(0.55, 0.9, 0.55)
-		UI.ring(hud, c, 21.0, float(al.lv) / 3.0, acol)
-		var at: Texture2D = tex["ally_" + al.kind]
-		var fw := at.get_width() / 2
-		var ks: float = 30.0 / at.get_height()
-		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 14 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, c + Vector2(-30, 36), D.ALLIES[al.kind].name.substr(0, 2), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
-		UI.text(hud, font, c + Vector2(12, -14), str(al.lv), 11, acol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
+		var need: float = float(o.skill_def().get("sp", 0.0))
+		UI.ring(hud, c, 21.0, clampf(o.sp / need, 0.0, 1.0) if need > 0.0 else 1.0, acol)
+		var pt: Dictionary = o.portrait()
+		var at: Texture2D = tex.get(pt.tex)
+		if at != null:
+			var fw := at.get_width() / int(pt.frames)
+			var ks: float = 30.0 / at.get_height()
+			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 14 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
+		UI.text(hud, font, c + Vector2(-30, 36), o.display_name().substr(0, 2), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
+		UI.text(hud, font, c + Vector2(12, -14), ["零", "一", "二"][o.elite], 11, acol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
 
 
 func _draw_skills(br: Vector2) -> void:
@@ -5797,41 +5819,3 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), op[1], 13, col)
 		bx += bw + 12
 
-
-## 博士：跟在水月侧后方（背对朝向的一侧），带一点惯性；离得太远（开局 / 传送）时直接归位
-func _update_doctor(dt: float) -> void:
-	if tex.get("doctor") == null:
-		return
-	var slot: Vector2 = ppos + Vector2(-facing * 34.0, -12.0)
-	if doc_pos == Vector2.INF or doc_pos.distance_to(ppos) > 600.0:
-		doc_pos = slot
-		doc_mv = 0.0
-		return
-	var prev: Vector2 = doc_pos
-	var d: float = doc_pos.distance_to(slot)
-	# 近处慢慢挪、远处快步跟上；始终慢过水月一点，保留"跟随"的感觉
-	var k: float = clampf(dt * (2.5 if d < 24.0 else 5.0), 0.0, 1.0)
-	doc_pos = doc_pos.lerp(slot, k)
-	if tex.get("prop_pillar") != null:
-		doc_pos = map.push_out(doc_pos, 10.0)
-	var vel: Vector2 = (doc_pos - prev) / maxf(dt, 0.0001)
-	doc_mv = lerpf(doc_mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
-	if absf(vel.x) > 25.0:
-		doc_face = signf(vel.x)
-	elif doc_mv < 20.0:
-		doc_face = facing
-	doc_t += dt
-
-
-func _draw_doctor() -> void:
-	var tx: Texture2D = tex.get("doctor")
-	if tx == null or doc_pos == Vector2.INF:
-		return
-	var moving: bool = doc_mv > 30.0
-	# 只有 2 帧待机：移动时加快切帧并加一点上下颠簸，当作小跑
-	var frame: int = int(doc_t * (7.0 if moving else 2.0)) % 2
-	var bob: float = (absf(sin(doc_t * 11.0)) * -2.0 * PX) if moving else 0.0
-	var pk: float = PX / A.hires_of(tx)
-	var fh: float = tx.get_height()
-	var anc := Vector2(0.5, (fh - 3.0 * A.hires_of(tx)) / fh)
-	_spr("doctor", 2, frame, doc_pos + Vector2(0, 4.0 + bob), pk, doc_face < 0.0, Color.WHITE, anc)

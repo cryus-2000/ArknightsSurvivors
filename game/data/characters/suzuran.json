@@ -1,0 +1,152 @@
+{
+ "id": "suzuran",
+ "name": "铃兰",
+ "en": "SUZURAN",
+ "class": "辅助",
+ "script": "res://scripts/characters/suzuran.gd",
+ "sprites": {
+  "idle": {
+   "tex": "op_suzuran_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_suzuran_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_suzuran_attack",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_suzuran_skill",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "狐火",
+  "desc": "减速光域：身边敌人移速降低；并向 2 名敌人发射追踪狐火（法术）"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "光域",
+  "sp": 12,
+  "desc": "技力充满时展开 5 秒光域：范围 +60%、减速加深，其他干员攻击 +20%"
+ },
+ "talent": {
+  "name": "祈愿",
+  "desc": "精英化一解锁：光域内的敌人受到伤害 +10%；狐火 +1 发"
+ },
+ "hit_sources": {
+  "狐火": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "control"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "光域 · 广",
+   "desc": "光域范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "狐火 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁天赋「祈愿」：光域内敌人受伤 +10%，狐火 3 发"
+  },
+  {
+   "type": "stat",
+   "name": "光域 · 广 II",
+   "desc": "光域范围 +20%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "狐火 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "光域持续 10 秒，其他干员攻击 +35%",
+   "requires": {
+    "class_in_squad": "狙击"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "控制",
+   "减速",
+   "增益"
+  ],
+  "desc": "减速光域 + 追踪狐火，技能为全队加攻"
+ }
+}

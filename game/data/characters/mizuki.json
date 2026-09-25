@@ -158,5 +158,91 @@
     "ricochet"
    ]
   }
- }
+ },
+ "class": "特种",
+ "attack": {
+  "mode": "auto",
+  "name": "伞击",
+  "desc": "持伞近战：挥伞横扫身前的敌人；天赋「创伤性癔症」让触手追击生命最低的敌人"
+ },
+ "skill": {
+  "mode": "auto",
+  "name": "唤醒",
+  "desc": "每挥伞数次，下一次攻击自动强化为「唤醒」：伤害大幅提升、范围扩大，触手追击同样强化",
+  "trigger": "count"
+ },
+ "talent": {
+  "name": "反移情",
+  "desc": "精英化一解锁：击杀敌人时回复博士生命（每秒有上限）"
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "s1",
+   "name": "技能 · 唤醒",
+   "desc": "解锁自动技能「唤醒」：每挥伞数次，下一次攻击大幅强化，触手追击同样强化",
+   "icon": "skill_s1"
+  },
+  {
+   "type": "stat",
+   "name": "伞击 · 锋",
+   "desc": "伞击伤害 +15%",
+   "effects": [
+    {
+     "key": "mizuki_umbrella_dmg",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "icon": "growth_u_dmg"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁「囚徒困境」与天赋「反移情」，并选择进化方向",
+   "icon": "skill_s2"
+  },
+  {
+   "type": "stat",
+   "name": "伞击 · 迅",
+   "desc": "挥伞间隔 -10%",
+   "effects": [
+    {
+     "key": "mizuki_umbrella_interval",
+     "op": "mult",
+     "value": 0.9
+    }
+   ],
+   "icon": "growth_u_spd"
+  },
+  {
+   "type": "stat",
+   "name": "触手 · 蚀",
+   "desc": "触手追击目标 +1，触手伤害系数 +0.1",
+   "effects": [
+    {
+     "key": "mizuki_tentacle_targets",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "key": "mizuki_tentacle_mult",
+     "op": "flat",
+     "value": 0.1
+    }
+   ],
+   "icon": "growth_t_dmg"
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "解锁「镜花水月」，进化路线发生质变",
+   "icon": "skill_s3",
+   "requires": {
+    "level": 12
+   }
+  }
+ ]
 }

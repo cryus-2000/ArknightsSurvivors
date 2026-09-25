@@ -4,14 +4,18 @@ extends RefCounted
 ##   value = ((base + Σflat) × (1 + Σadd) × Πmult)，有 override 时取最后加入的 override
 ## 任何藏品、技能、成长都只能通过 add() 加修正，不能直接改最终值。
 ## 每条修正带 source，用 remove_source() 整体撤销（临时增益、藏品移除、排异反应消除）。
+## 作用域 scope（docs/23 §5）："" / "doctor" / "squad" 为全局，value() 直接生效；"class:<职业>" / "op:<干员 id>" 只对
+## 匹配的干员生效，干员用 value_for(stat, scopes) 取值（全局修正 + 自己命中的作用域修正）。
 
 enum Op { FLAT, ADD, MULT, OVERRIDE }
 const OP_NAMES := {"flat": Op.FLAT, "add": Op.ADD, "mult": Op.MULT, "override": Op.OVERRIDE}
 
 var _base := {}      # stat -> float
 var _limit := {}     # stat -> Vector2(min, max)
-var _mods := {}      # stat -> Array[{op, value, source}]
+var _mods := {}      # stat -> Array[{op, value, source, scope}]
 var _cache := {}
+var _cache_scoped := {}   # stat -> {scopes_key -> value}
+const GLOBAL_SCOPES := ["", "doctor", "squad"]
 var version := 0     # 任何修改都会 +1，外部可据此判断是否需要刷新
 
 
@@ -42,12 +46,12 @@ func get_base(stat: StringName) -> float:
 
 
 ## 加一条修正。op 可以是 Op 枚举或字符串 "flat"/"add"/"mult"/"override"
-func add(stat: StringName, op: Variant, value: float, source: String = "") -> void:
+func add(stat: StringName, op: Variant, value: float, source: String = "", scope: String = "") -> void:
 	assert(_base.has(stat), "未定义的属性: %s" % stat)
 	var o: int = OP_NAMES[op] if op is String else int(op)
 	if not _mods.has(stat):
 		_mods[stat] = []
-	_mods[stat].append({"op": o, "value": value, "source": source})
+	_mods[stat].append({"op": o, "value": value, "source": source, "scope": scope})
 	_dirty(stat)
 
 
@@ -75,12 +79,35 @@ func count_source(source: String) -> int:
 func value(stat: StringName) -> float:
 	if _cache.has(stat):
 		return _cache[stat]
+	var v := _calc(stat, [])
+	_cache[stat] = v
+	return v
+
+
+## 干员视角的值：全局修正 + scopes（如 ["class:狙击", "op:sniper"]）命中的修正
+func value_for(stat: StringName, scopes: Array) -> float:
+	if scopes.is_empty():
+		return value(stat)
+	var key := ",".join(scopes)
+	if _cache_scoped.has(stat) and _cache_scoped[stat].has(key):
+		return _cache_scoped[stat][key]
+	var v := _calc(stat, scopes)
+	if not _cache_scoped.has(stat):
+		_cache_scoped[stat] = {}
+	_cache_scoped[stat][key] = v
+	return v
+
+
+func _calc(stat: StringName, scopes: Array) -> float:
 	var base: float = _base.get(stat, 0.0)
 	var flat := 0.0
 	var addp := 0.0
 	var mult := 1.0
 	var ov = null
 	for m in _mods.get(stat, []):
+		var sc: String = m.get("scope", "")
+		if not (sc in GLOBAL_SCOPES or sc in scopes):
+			continue
 		match m.op:
 			Op.FLAT: flat += m.value
 			Op.ADD: addp += m.value
@@ -90,9 +117,7 @@ func value(stat: StringName) -> float:
 	if ov != null:
 		v = ov
 	var lim: Vector2 = _limit.get(stat, Vector2(-INF, INF))
-	v = clampf(v, lim.x, lim.y)
-	_cache[stat] = v
-	return v
+	return clampf(v, lim.x, lim.y)
 
 
 ## 属性面板用：列出计算过程
@@ -104,7 +129,7 @@ func breakdown(stat: StringName) -> Dictionary:
 			Op.ADD: out.add += m.value
 			Op.MULT: out.mult *= m.value
 			Op.OVERRIDE: out.override = m.value
-		out.sources.append({"source": m.source, "op": m.op, "value": m.value})
+		out.sources.append({"source": m.source, "op": m.op, "value": m.value, "scope": m.get("scope", "")})
 	return out
 
 
@@ -114,4 +139,5 @@ func stats() -> Array:
 
 func _dirty(stat: StringName) -> void:
 	_cache.erase(stat)
+	_cache_scoped.erase(stat)
 	version += 1
