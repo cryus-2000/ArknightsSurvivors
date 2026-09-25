@@ -2,12 +2,12 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
-## 特效（docs/25）：黑红。弹体是发光的能量弹（白粉核心 + 红紫光晕 + 长彗尾，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
+## 特效（docs/25）：黑红。弹体是黑红色的能量弹（黑色弹芯 + 暗红光晕 + 红色彗尾，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
 
 const RED := Color(0.95, 0.22, 0.2)
-const BOLT := Color(1.0, 0.16, 0.42)     # 弹体：红紫色能量光
+const BOLT := Color(0.9, 0.08, 0.1)      # 弹体：黑红色能量光
 const EMBER := Color(1.0, 0.55, 0.3)
 const DARK := Color(0.1, 0.06, 0.08)
 const CLUSTER_SLACK := 40.0      # 离博士最近的几个敌人距离相差在此以内时，改挑周围敌人最多的
@@ -241,6 +241,8 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			_impact_fx(c, r, light)
 		"饱和炮击":
 			_burst_fx(c, r)
+		"凋零处刑":
+			_burst_fx(c, r, true)
 		_:
 			_impact_fx(c, r, light)
 	Sfx.play("boom", -16.0 if src == "余震" else -13.0, 1.2, 0.1)
@@ -265,10 +267,11 @@ func _impact_fx(c: Vector2, r: float, light: bool) -> void:
 
 
 ## 饱和炮击的爆炸（照原作）：白粉核心星芒 → 放射状红色刀锋光条 → 紫灰烟环旋开 → 红色碎刃飞散
-func _burst_fx(c: Vector2, r: float) -> void:
-	fx({"kind": "burst", "pos": c, "r": r * 1.6, "life": 0.55, "seed": g.rng.randf() * TAU})
-	fx({"kind": "smoke_ring", "pos": c, "r": r * 1.5, "life": 0.7, "seed": g.rng.randf() * TAU})
-	for k in 8:
+func _burst_fx(c: Vector2, r: float, small := false) -> void:
+	var sc: float = 0.7 if small else 1.0
+	fx({"kind": "burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.rng.randf() * TAU, "n": 8 if small else 12})
+	fx({"kind": "smoke_ring", "pos": c, "r": r * 1.5 * sc, "life": 0.6 if small else 0.7, "seed": g.rng.randf() * TAU})
+	for k in (5 if small else 8):
 		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 260)
 		fx({"kind": "sliver", "pos": c, "vel": v, "life": 0.45, "col": BOLT, "sz": g.rng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
 	fx({"kind": "scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
@@ -291,9 +294,10 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			# 红色底光（先胀后消）
 			g.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * a))
 			# 放射状刀锋光条：12 根，长短错落，随时间向外抽出并变细
-			for q in 12:
+			var nq: int = f.get("n", 12)
+			for q in nq:
 				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
-				var ang: float = sd + q * TAU / 12.0 + (h - 0.5) * 0.35
+				var ang: float = sd + q * TAU / nq + (h - 0.5) * 0.35
 				var dv: Vector2 = Vector2.from_angle(ang)
 				var nv: Vector2 = dv.orthogonal()
 				var L: float = r * (0.55 + 0.7 * h) * minf(1.0, k * 2.2)
@@ -305,8 +309,9 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				g.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * a))
 			# 核心：小而亮的白粉星芒，很快收掉
 			var cr: float = r * 0.16 * (1.0 if k < 0.2 else maxf(0.0, 1.0 - (k - 0.2) / 0.45))
-			g.draw_circle(f.pos, cr * 1.8, Color(2.0, 0.3, 0.6, 0.55 * a))
-			g.draw_circle(f.pos, cr, Color(2.8, 2.0, 2.4, a))
+			g.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * a))
+			g.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, a))
+			g.draw_circle(f.pos, cr * 0.45, Color(0.12, 0.02, 0.04, a))
 			return true
 		"smoke_ring":
 			# 紫灰烟环：由若干团烟组成的圆环，边旋边扩、变淡
@@ -327,8 +332,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			return true
 		"flash":
 			# 落地一瞬的橙白闪光
-			g.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.2, 0.6, 1.1, 0.75 * a))
-			g.draw_circle(f.pos, f.r * 0.4 * a, Color(3.0, 2.4, 2.8, a))
+			g.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.0, 0.4, 0.3, 0.75 * a))
+			g.draw_circle(f.pos, f.r * 0.4 * a, Color(2.8, 1.6, 1.2, a))
 			return true
 		"smoke":
 			# 黑烟团：膨胀、变淡、上鼓
@@ -396,17 +401,17 @@ func _draw_skill_over() -> void:
 		for i in range(n - 1):
 			var u: float = float(i + 1) / float(n)       # 0 尾 … 1 头
 			var w: float = 1.0 + 8.0 * u * u
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(BOLT.r * 1.4, BOLT.g * 0.8, BOLT.b * 1.4, 0.35 * u), w * 1.8)
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(2.0, 0.5, 1.0, 0.7 * u), w)
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(2.6, 1.6, 2.2, 0.6 * u * u), w * 0.35)
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.2, 0.08, 0.1, 0.35 * u), w * 1.8)
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(0.35, 0.03, 0.05, 0.85 * u), w)
+			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.9, 0.3, 0.22, 0.6 * u * u), w * 0.3)
 		if n > 0:
-			g.draw_line(s.hist[n - 1], p, Color(2.0, 0.5, 1.0, 0.8), 9.0)
+			g.draw_line(s.hist[n - 1], p, Color(0.35, 0.03, 0.05, 0.9), 9.0)
 		var ang: float = dir.angle()
-		g.draw_circle(p, 13.0, Color(BOLT.r, BOLT.g, BOLT.b, 0.28))
+		g.draw_circle(p, 13.0, Color(1.2, 0.08, 0.1, 0.3))
 		g.draw_set_transform(p, ang, Vector2(1.0, 0.6))
-		g.draw_circle(Vector2(-3, 0), 9.0, Color(1.8, 0.35, 0.85, 0.75))
-		g.draw_circle(Vector2(-1, 0), 6.0, Color(2.4, 0.9, 1.5, 0.95))
-		g.draw_circle(Vector2(1, 0), 3.4, Color(3.0, 2.6, 2.9, 1.0))
+		g.draw_circle(Vector2(-3, 0), 9.0, Color(1.6, 0.18, 0.16, 0.8))     # 暗红光晕
+		g.draw_circle(Vector2(-1, 0), 6.2, Color(0.1, 0.02, 0.04, 1.0))     # 黑色弹芯
+		g.draw_circle(Vector2(1.5, 0), 2.6, Color(2.2, 0.45, 0.25, 1.0))    # 前端红热点
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
