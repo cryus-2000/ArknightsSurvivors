@@ -1,5 +1,6 @@
 ## 维什戴尔（狙击，契约 v2.1）：炮击 → 余震爆炸 → 残影殉爆。
-## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
+## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；
+## S3 饱和炮击（2026-09-25 改为次数型，用户要求）：装填 4 发巨型炮弹，之后的普攻换成巨炮（×2.4、爆炸范围 ×2、必余震、间隔 ×1.25），打完为止。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
 ## 特效（docs/25）：黑红。弹体是黑红彗星（一整条连续轮廓：圆头最宽，沿轨迹平滑收细到尾尖，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
@@ -17,9 +18,7 @@ var shells: Array = []       # {from, to, t, dur, dmg, r, src, trail, quake, stu
 var quakes: Array = []       # 余震：{pos, t, dmg, r}
 var shades: Array = []       # 残影（殉爆前摇）：{pos, t, dmg, r, depth}
 var ash := 0                 # S1：剩余强化炮击数
-var volley := 0              # S3：饱和炮击剩余发数
-var volley_t := 0.0
-var volley_tg: Array = []
+var ammo := 0                # S3：巨型炮弹剩余发数（次数型）
 
 
 ## 基础数值全部可由 data/characters/wisadel.json 的 base 段覆盖（docs/27 §3）
@@ -79,16 +78,6 @@ func _count_around(c: Vector2, r: float) -> int:
 func update(dt: float) -> void:
 	cd -= dt
 	_update_shells(dt)
-	if volley > 0:
-		volley_t -= dt
-		if volley_t <= 0.0:
-			volley_t = 0.08
-			volley -= 1
-			var tg: Dictionary = volley_tg[volley % volley_tg.size()] if not volley_tg.is_empty() else {}
-			var to: Vector2 = tg.pos if not tg.is_empty() and not tg.dead else _fallback_spot()
-			if to != Vector2.INF:
-				_fire(to + Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), base("atk", 34.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", 1.2, true, 0.0, true)
-		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -107,20 +96,18 @@ func update(dt: float) -> void:
 		if tgt.is_empty():
 			cd = 0.2
 		else:
-			cd = base("cd", 1.4) / stat(&"op_aspd")
+			cd = base("cd", 1.4) / stat(&"op_aspd") * (base("s3_cd", 1.25) if ammo > 0 else 1.0)
 			start_attack(tgt.pos)
-
-
-func _fallback_spot() -> Vector2:
-	var tg := _target(_reach(520.0))
-	return tg.pos if not tg.is_empty() else Vector2.INF
 
 
 func _release() -> void:
 	var tgt: Dictionary = _target(_reach(520.0))
 	if tgt.is_empty():
 		return
-	if ash > 0:
+	if ammo > 0:
+		ammo -= 1
+		_fire_giant(tgt.pos)
+	elif ash > 0:
 		ash -= 1
 		_fire(tgt.pos, base("atk", 34.0) * base("s1_mult", 1.5) * skill_power(), "炮击", 1.1, true, 0.0)
 	else:
@@ -139,20 +126,34 @@ func _release_skill() -> void:
 			fx_sparks(_muzzle(), EMBER, 10, 200.0, 0.3)
 			Sfx.op(id, "atk", 5.0, 0.75)
 		2:
-			# 饱和炮击：离博士最近的 8 个不同目标轮流落弹
-			var n := 8
-			volley_tg = []
-			for e in g._nearest(n, _reach(520.0), g.ppos):
-				if e.pos.distance_to(pos) <= _reach(520.0):
-					volley_tg.append(e)
-			volley = n
-			volley_t = 0.0
-			fx({"kind": "glow", "pos": _muzzle(), "r": 24.0, "life": 0.3, "col": RED, "alpha": 0.5})
-			fx_sparks(_muzzle(), EMBER, 8, 160.0, 0.3)
+			# 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
+			ammo = int(base("s3_ammo", 4.0))
+			g._show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
+			fx({"kind": "glow", "pos": _muzzle(), "r": 30.0, "life": 0.4, "col": RED, "alpha": 0.6})
+			fx_sparks(_muzzle(), EMBER, 10, 160.0, 0.3)
+			var tg3: Dictionary = _target(_reach(540.0))
+			if not tg3.is_empty():
+				ammo -= 1
+				_fire_giant(tg3.pos)
+				cd = base("cd", 1.4) / stat(&"op_aspd") * base("s3_cd", 1.25)
 
 
+## 次数型：S3 的「剩余时间」用剩余弹数表示（HUD 环 = 剩余 / 装填数，数字 = 剩几发；打完才重新充能）
 func skill_active_left(i: int) -> float:
-	return float(volley) * 0.08 if i == 2 else 0.0
+	return float(ammo) if i == 2 else 0.0
+
+
+func skill_active_dur(i: int) -> float:
+	return base("s3_ammo", 4.0) if i == 2 else 1.0
+
+
+## 巨型炮弹：伤害 ×2.4、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
+func _fire_giant(to: Vector2) -> void:
+	_fire(to, base("atk", 34.0) * base("s3_mult", 2.4) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
+	var dir: Vector2 = (to - _muzzle()).normalized()
+	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
+	for k in 8:
+		fx({"kind": "spark", "pos": _muzzle(), "vel": (-dir).rotated(g.rng.randf_range(-0.9, 0.9)) * g.rng.randf_range(120, 260), "life": 0.3, "col": EMBER, "sz": 2.5, "drag": 3.0})
 
 
 func _muzzle() -> Vector2:
@@ -164,7 +165,7 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, 
 	var from := _muzzle()
 	var dur: float = clampf(from.distance_to(to) / 900.0, 0.18, 0.5)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
-		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": []})
+		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.08, "col": RED, "sz": 22.0 * size})
@@ -239,6 +240,7 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			_impact_fx(c, r, light)
 		"饱和炮击":
 			_burst_fx(c, r)
+			g.hitstop = maxf(g.hitstop, 0.05)   # 巨炮落地：短顿帧
 		"凋零处刑":
 			_burst_fx(c, r, true)
 		_:
@@ -403,12 +405,14 @@ func _draw_skill_over() -> void:
 				pts.append(q)
 		if pts.is_empty() or p.distance_to(pts[-1]) > 1.0:
 			pts.append(p)
+		# 巨炮（size 2）粗 1.6 倍
+		var wk: float = 1.0 + (float(s.get("size", 1.0)) - 1.0) * 0.6
 		if pts.size() < 2:
-			g.draw_circle(p, 5.5, Color(0.16, 0.02, 0.04))
+			g.draw_circle(p, 5.5 * wk, Color(0.16, 0.02, 0.04))
 			continue
-		g.draw_colored_polygon(_comet_outline(pts, 11.0), Color(1.2, 0.08, 0.1, 0.3))
-		g.draw_colored_polygon(_comet_outline(pts, 7.5), Color(0.34, 0.03, 0.06, 0.95))
-		g.draw_colored_polygon(_comet_outline(pts, 4.0), Color(0.1, 0.01, 0.03, 1.0))
+		g.draw_colored_polygon(_comet_outline(pts, 11.0 * wk), Color(1.2, 0.08, 0.1, 0.3))
+		g.draw_colored_polygon(_comet_outline(pts, 7.5 * wk), Color(0.34, 0.03, 0.06, 0.95))
+		g.draw_colored_polygon(_comet_outline(pts, 4.0 * wk), Color(0.1, 0.01, 0.03, 1.0))
 
 
 ## 彗星轮廓：pts 从尾到头；半宽按 (u^1.6) 从 0 平滑增到 hw，头部接半圆帽
@@ -441,6 +445,6 @@ func status_items() -> Array:
 	var out: Array = []
 	if ash > 0:
 		out.append(["灰烬弹幕 ×%d" % ash, RED])
-	if volley > 0:
-		out.append(["饱和炮击", Color(1.0, 0.55, 0.45)])
+	if ammo > 0:
+		out.append(["巨炮 ×%d" % ammo, Color(1.0, 0.55, 0.45)])
 	return out

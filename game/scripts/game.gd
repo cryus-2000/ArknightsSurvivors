@@ -749,7 +749,8 @@ func _demo_new_op() -> void:
 	if ch.elite < want:
 		ch.elite = want
 	show_queue.clear()
-	ch.pos = ppos + Vector2(26, -6)
+	facing = 1.0   # 博士面朝右侧怪海
+	ch.pos = ppos + squad._slot_offset(0)   # 直接站在跟随位上，开场不再先走一步
 
 
 ## 右边刷一片怪海：椭圆区域里随机撒开，慢慢向博士推进（演示里敌人不造成伤害）

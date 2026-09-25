@@ -8,6 +8,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const REGULAR_MAX := 3
 ## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
 const SLOTS := [Vector2(-34, -14), Vector2(38, 10), Vector2(22, -46), Vector2(-44, 26)]
+const DEMO_SLOT := Vector2(44, -6)
 
 var g
 var ops: Array = []            # Character 实例，按入队顺序
@@ -89,21 +90,26 @@ func remove(cid: String) -> void:
 
 
 func _slot_offset(i: int) -> Vector2:
+	if g.demo_op != "":
+		return DEMO_SLOT   # 图鉴演示：站在博士前方（朝右侧怪海），重置后不用先走回身后
 	var o: Vector2 = SLOTS[mini(i, SLOTS.size() - 1)]
 	return Vector2(o.x * g.facing, o.y)
 
 
-## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；全队手动技能恰好 1 个且属于博士（干员一律 auto）
+## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；每名干员至多 1 个手动技能（契约 v2.2，按 Space / J 由 doctor.try_manual_skill 路由）
 func validate_squad() -> bool:
 	var ok := true
 	if ops.size() > cap():
 		push_error("编队超员：%d / %d" % [ops.size(), cap()])
 		ok = false
 	for o in ops:
+		var n := 0
 		for i in o.skills_def().size():
 			if o.skills_def()[i].get("mode", "auto") == "manual":
-				push_error("干员 %s 的技能 %d 是 manual：手动技能只能属于博士" % [o.id, i + 1])
-				ok = false
+				n += 1
+		if n > 1:
+			push_error("干员 %s 有 %d 个手动技能：至多 1 个" % [o.id, n])
+			ok = false
 	return ok
 
 
