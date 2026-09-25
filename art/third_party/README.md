@@ -21,6 +21,33 @@
 | `particles/kenney_particle_pack` | Kenney · Particle Pack（Calinou 打包） | 80 张柔光 / 烟 / 火花粒子（非像素） | CC0 | 加法发光层的柔光、烟雾底 |
 | `icons/pixelboy_ninja_adventure` | pixel-boy · Ninja Adventure | 16px：FX（Slash / Claw / Explosion / Flam / Aura / Circle / Shield / Spirit / Smoke / Projectile）、Items 技能图标、粒子 | CC0 | **HUD 技能小图标**、爪痕 / 斩击参考；已删掉两个 Godot 工程包 |
 
+## ansimuz 爆炸与魔法合集（2026-09-26 加入，用户购买）
+
+目录 `ansimuz_explosions_magic/`：18 个包、约 130 个特效，逐帧 PNG（部分另有 spritesheet），原始 zip 在 `_zips/`，每包三帧预览在 `_preview/<包>.png`，帧数 / 尺寸清单在 `_catalog.json`；`_music_mystery_track/` 是附赠的一首音乐（wav / ogg / mp3）。
+**许可（包内 readme）**：可用于个人及商业项目、可修改；**不得再分发**（无论改动多少）→ 不入库，只在游戏里用处理后的帧条；致谢页已加署名。
+**画风**：统一的高对比像素风，帧宽多为 32–96px，按游戏 2 倍显示正合适（不必像 Ninja Adventure 那样放大 4–6 倍）。
+
+| 包 | 内容（帧数 · 尺寸） | 建议用途 |
+|---|---|---|
+| 01 Magic N1 | 绿色旋风 air（17f 128×143）、冰晶升起 ice（17f 111）、落雷 thunder（15f 111×159） | 冰：敌对骑士 / 冰霜；雷：备用 |
+| 02 Magic N2 Fire | 火团爆开 fire（14f 95）、**火焰光环 fire_aura**（13f 95，地面火圈张开）、**火苗 flame / flame-loop**（31f / 16f 47×75） | 推进之王跃空锤落地火圈；艾雅法拉点燃；铃兰狐火（调金） |
+| 03 Magic N3 | 大落雷 big-bolt（23f 96×144）、蓝色能量球 small-spark 1–3、电弧 spark、雷柱 thunderrays | 雷系备用；small-spark-3 可作法术弹命中 |
+| 04 Magic 4 | **治疗光柱 Cure**（29f 48×64，青色）、金色放射爆 Radial Explosion（10f 48）、电球 Sparks、水柱 Water（26f 48×88）、**紫红鬼火 wisp**（24f / 14f 48×55） | Cure → 凯尔希 / 塞雷娅 / 流明治疗；wisp → 逻各斯；Radial → 推进之王技力 / 金色冲击 |
+| 05 Magic 5 | **火球弹 fire-missile**（5f 57×33）、火球爆 fireball、闪光 flash、**落地尘 impact-dust**（10f 45×27，白）、烟团 puff / vertical-puff / Smoke（17f 70×64）、**蓝色水花 water splash**（17f 64） | fire-missile → 艾雅法拉熔岩弹体；water splash → 斯卡蒂 / 乌尔比安（替换现在的米白水花）；flash → 炮口 / 手炮 |
+| 06 Magic 6 | 白蓝斩击 slash / slash_b / slash-horizontal、绿边斩击 slash-e、**火焰斩 FireSlash**（11f 95）、紫电斩 electric slash | 斩击底稿（比 Ninja 的更细、密度对）：斯卡蒂、艾丽妮 S2、幽灵鲨 |
+| 07 / 08 Warped Explosion 3 / 4 | 小型爆炸 20 种（16–48px，橙 / 白 / 烟） | **艾丽妮 S3 手炮 12 连击的落点小爆**；维什戴尔余震；通用命中 |
+| 09 Warped Explosion 5 | 大爆炸 A（11f 80）、**蘑菇云 B**（9f 144×145，红黑）、烟尘爆 C（15f 192×160） | 维什戴尔巨炮 / 凋零处刑；艾雅法拉火山喷发 |
+| 10 Magic 7 | 蓝水球 vfx-a、**暗红裂纹法球 vfx-b**、浪花球 vfx-c、紫→金爆 vfx-d（17f 80）、蓝能量爆 vfx-e | vfx-b / vfx-d → 逻各斯；vfx-c → 深海猎人 |
+| 11 Warped Explosions 6 | 12 种：**火柱 explosion-e**（10f 64×82）、火苗柱 h / i / l、**冲击环 k**、黑烟爆 j（90）、碎片 c / d | 火柱 → 艾雅法拉火山；冲击环 → 通用落地；黑烟 → 维什戴尔 |
+| 12 Warped VFX 1 | 血液 4 种（红）、**命中闪光 Hit-a…L 12 种**（蓝白：星芒、光环、定向刺光 Hit-H、弧光 Hit-k） | 通用命中特效（可替换现有 fx_hit_*）；Hit-H → 艾丽妮刺击；Hit-G → 剑尖星闪；血 → 幽灵鲨 S3 |
+| 13 Magic 8 | 青色爪痕 Beam-slash（6f 64）、火爆 burst、青色能量盾 Spark、**水柱 water**（18f 64×192） | Beam-slash → Mon3tr 爪击（调绿）；水柱 → 斯卡蒂潮汐 / 涌潮悲歌 |
+| 14 Magic 10 | 雷爆 Blast、落雷 Lightning-Bolt、电射线 Ray、Raybolt、电弧 Sparks | 雷系备用 |
+| 15 Magic 11 | 冰刺 Ice_A / 冰柱 Ice_b / 冰晶 Ice_c（16–23f） | 冰系：骑士 Boss、减速地面 |
+| 16 / 17 Warped Explosions 7 / 8 | 黑烟红火星爆炸、蓝色能量爆、白色冰爆、小爆 | 维什戴尔（黑红烟）、法术命中（蓝）、通用 |
+| 18 Magic 12 | 金色十字闪 AirSlash、**龙息 DragonBreath**（8f 256×176）、**火焰 Flames**（7f 48×64）、绿色新月斩 GroundSlash、**毒云 Venom Cloud**（8f 128×80） | Flames → 推进之王落地火（替换程序火苗）、艾雅法拉；毒云调紫 → 溟痕 / 侵蚀；GroundSlash 调钢蓝 → 乌尔比安 |
+
+**没有的**：地裂（仍用程序生成）、水母触手、锯盘、钩锚、光束 / 光柱（圣光仍用 Pimen）。
+
 ## 下一步（接入方式）
 
 1. 圣光：Pimen VFX 02 光柱 → `fx_holy_pillar.png`（48px × 16 帧），铃兰暖光 / 迷雾展开时在光域中心与边缘播放；塞雷娅钙质化用同一条改琥珀色。
