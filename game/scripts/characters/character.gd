@@ -341,14 +341,74 @@ func draw_pfx(floor_layer: bool) -> void:
 			"mote":
 				g.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
 			"crack":
-				# 地裂：从中心放射的暗线 + 亮芯
-				var k3: float = 1.0 - a
-				var n: int = f.get("n", 8)
-				for q in n:
-					var dv := Vector2.from_angle(q * TAU / n + f.get("ang", 0.0))
-					var l: float = f.r * (0.35 + 0.65 * minf(1.0, k3 * 3.0))
-					g.draw_line(f.pos + dv * 6.0, f.pos + dv * l, Color(0.03, 0.02, 0.02, 0.85 * a), 3.0)
-					g.draw_line(f.pos + dv * 6.0, f.pos + dv * l * 0.75, Color(c.r * 1.7, c.g * 1.5, c.b, a), 1.5)
+				_draw_crack(f, a, c)
+
+
+## 地裂（2026-09-26 重做，用户：原来的均匀放射线不像裂地）：第一次绘制时按落点生成一组不规则裂缝并缓存在 f.segs：
+## 主裂缝 n 条（方向 / 长短随机）由锯齿折线组成、从中心往外变细，途中随机分出短支裂；中心一圈不规则碎地块轮廓。
+## 贴地透视（y × 0.55），顶点对齐 2 像素网格；前 0.06 秒从中心裂开，暗色裂缝停留到后半程再淡出，干员色亮芯先消失。
+func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
+	if not f.has("segs"):
+		f["segs"] = _crack_segs(f)
+	var age: float = f.max - f.life
+	var grow: float = clampf(age / 0.06, 0.0, 1.0)
+	var al: float = minf(1.0, a * 2.0)             # 前半程保持不透明，后半程淡出
+	var glow: float = clampf((a - 0.5) * 2.0, 0.0, 1.0)
+	for sg in f.segs:
+		var pts: PackedVector2Array = sg.pts
+		var m: int = maxi(2, int(ceil(pts.size() * grow)))
+		if m > pts.size():
+			m = pts.size()
+		for i in m - 1:
+			var w: float = sg.w * (1.0 - float(i) / pts.size() * 0.6)
+			g.draw_line(pts[i], pts[i + 1], Color(0.04, 0.03, 0.035, 0.85 * al), w + 1.5)
+			if glow > 0.0 and w > 1.5:
+				g.draw_line(pts[i], pts[i + 1], Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.8 * glow), maxf(1.0, w - 1.5))
+
+
+func _crack_segs(f: Dictionary) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(Vector2i(int(f.pos.x), int(f.pos.y))) + int(f.get("ang", 0.0) * 1000.0)
+	var R: float = f.r
+	var o: Vector2 = f.pos
+	var snap := func(v: Vector2) -> Vector2: return ((o + Vector2(v.x, v.y * 0.55)) / 2.0).round() * 2.0   # 贴地透视 + 对齐 2 像素网格
+	var segs: Array = []
+	# 中心碎地块：不规则多边形轮廓 + 连向中心的短裂
+	var ring := PackedVector2Array()
+	var nv: int = rng.randi_range(7, 10)
+	var cr: float = R * rng.randf_range(0.16, 0.24)
+	for i in nv + 1:
+		var an: float = TAU * float(i % nv) / nv + rng.randf_range(-0.2, 0.2)
+		ring.append(snap.call(Vector2.from_angle(an) * cr * rng.randf_range(0.75, 1.2)))
+	segs.append({"pts": ring, "w": 1.5})
+	for i in 3:
+		var an2: float = rng.randf() * TAU
+		segs.append({"pts": PackedVector2Array([snap.call(Vector2.from_angle(an2) * cr * 0.2), snap.call(Vector2.from_angle(an2 + 0.3) * cr)]), "w": 1.5})
+	# 主裂缝
+	var n: int = f.get("n", 8)
+	var base_ang: float = f.get("ang", rng.randf() * TAU)
+	for q in n:
+		var ang: float = base_ang + TAU * q / n + rng.randf_range(-0.35, 0.35)
+		var L: float = R * rng.randf_range(0.5, 1.0)
+		var steps: int = rng.randi_range(4, 6)
+		var p: Vector2 = Vector2.from_angle(ang) * cr * 0.9
+		var pts := PackedVector2Array([snap.call(p)])
+		for st in steps:
+			ang += rng.randf_range(-0.55, 0.55)
+			p += Vector2.from_angle(ang) * (L - cr) / steps * rng.randf_range(0.7, 1.3)
+			pts.append(snap.call(p))
+			# 支裂：短、偏开 0.6–1.1 弧度
+			if st >= 1 and st < steps - 1 and rng.randf() < 0.35:
+				var ba: float = ang + rng.randf_range(0.6, 1.1) * (1.0 if rng.randf() < 0.5 else -1.0)
+				var bp: Vector2 = p
+				var bpts := PackedVector2Array([snap.call(bp)])
+				for bs in rng.randi_range(1, 3):
+					ba += rng.randf_range(-0.4, 0.4)
+					bp += Vector2.from_angle(ba) * (L - cr) / steps * rng.randf_range(0.5, 0.9)
+					bpts.append(snap.call(bp))
+				segs.append({"pts": bpts, "w": 1.5})
+		segs.append({"pts": pts, "w": rng.randf_range(2.5, 3.5)})
+	return segs
 
 
 ## 子类的自定义粒子；返回 true 表示已绘制
@@ -713,6 +773,8 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 var melee_tgt = null
 
 func melee_spot(leash: float, gap: float) -> Vector2:
+	if g.demo_op != "":
+		leash *= 2.0   # 图鉴演示：场地里全是靶子，近战放宽前压范围，一直追着怪海打
 	var e = melee_tgt
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > leash * 1.3:
 		var ts: Array = g._nearest(1, leash, g.ppos)

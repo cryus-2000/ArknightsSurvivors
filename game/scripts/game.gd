@@ -758,8 +758,8 @@ func _demo_horde(n: int) -> void:
 	for k in n:
 		var a: float = rng.randf() * TAU
 		var r: float = sqrt(rng.randf())
-		# 前排离博士约 160（近战干员的前压范围），一开场就能接敌
-		var p: Vector2 = demo_origin + Vector2(105 + cos(a) * r * 90.0, sin(a) * r * 72.0)
+		# 前排离博士约 140（近战干员的前压范围 150 以内），一开场就能接敌
+		var p: Vector2 = demo_origin + Vector2(85 + cos(a) * r * 90.0, sin(a) * r * 72.0)
 		var ne := _spawn_enemy("bone", p)
 		ne.spd = 16.0
 		ne.dmg = 0.0

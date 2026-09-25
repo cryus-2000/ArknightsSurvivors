@@ -16,6 +16,7 @@ var leap_to := Vector2.ZERO   # 落点：朝最近的敌人跃过去（最多 90
 const LEAP_DUR := 0.42
 const LEAP_H := 42.0
 const FLAME := Color(1.0, 0.55, 0.15)
+var heavy_swing := false      # S3 碎颅期间：这一锤用技能动作（原 S2 双手砸地）出手
 
 
 ## 基础数值全部可由 data/characters/siege.json 的 base 段覆盖（docs/27 §3）
@@ -60,7 +61,12 @@ func update(dt: float) -> void:
 			cd = 0.1
 		else:
 			cd = base("cd", 1.0) / stat(&"op_aspd") * (1.33 if skull > 0.0 else 1.0)
-			start_attack(ts[0].pos)
+			if skull > 0.0:
+				# 碎颅：每一锤都是强化版砸地（播技能动作帧），出手时仍走 _release 结算
+				heavy_swing = true
+				_start_action("skill", ts[0].pos, 0.6, 0.3)
+			else:
+				start_attack(ts[0].pos)
 
 
 func _release() -> void:
@@ -82,6 +88,14 @@ func _release() -> void:
 			if not e.dead and not e.boss and g.rng.randf() < 0.5:
 				e.stun = maxf(e.stun, 0.8 * (0.5 if e.elite else 1.0))
 	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach(), GOLD if skull <= 0.0 else Color(1.0, 0.6, 0.3))
+	if skull > 0.0:
+		# 碎颅的每一锤：落点一次小型砸地（闪光 + 冲击环 + 不规则地裂 + 火星）
+		var hp: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
+		fx({"kind": "glow", "pos": hp + Vector2(0, -4), "r": 24.0, "life": 0.14, "col": Color(2.0, 1.5, 0.8), "alpha": 0.8})
+		fx({"kind": "ring", "pos": hp + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": FLAME, "floor": true, "w": 3.0})
+		fx({"kind": "crack", "pos": hp + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": FLAME, "floor": true, "n": 6})
+		fx_sparks(hp, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
+		g.hitstop = maxf(g.hitstop, 0.04)
 	if not hits.is_empty():
 		# 每次命中（不论几个目标）全队 +0.5 秒技力，精一翻倍
 		_squad_sp_seconds(base("hit_sp", 0.5) * (2.0 if elite >= 1 else 1.0))
@@ -95,6 +109,10 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 
 
 func _release_skill() -> void:
+	if heavy_swing:
+		heavy_swing = false
+		_release()
+		return
 	match cur_skill:
 		1:
 			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）
@@ -130,8 +148,8 @@ func _slam() -> void:
 		var rr: float = r * g.rng.randf_range(0.25, 0.75)
 		var p: Vector2 = pos + Vector2(cos(a) * rr, sin(a) * rr * 0.5 + 2.0)
 		var inner: bool = rr < r * 0.5
-		fx({"kind": "flame", "pos": p, "vel": Vector2(cos(a) * 30.0, -g.rng.randf_range(20.0, 50.0)), "life": g.rng.randf_range(0.3, 0.45),
-			"col": FLAME if k % 3 else Color(1.0, 0.85, 0.3), "sz": g.rng.randf_range(18.0, 26.0) if inner else g.rng.randf_range(10.0, 16.0)})
+		fx({"kind": "blaze", "pos": p, "vel": Vector2(cos(a) * 24.0, -g.rng.randf_range(10.0, 30.0)), "life": g.rng.randf_range(0.32, 0.48),
+			"sz": g.rng.randf_range(20.0, 28.0) if inner else g.rng.randf_range(12.0, 18.0), "seed": g.rng.randf() * 10.0})
 	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
 	g.hitstop = maxf(g.hitstop, 0.07)
 	g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
@@ -180,7 +198,7 @@ func _sp_motes(n: int) -> void:
 			fx({"kind": "sp_mote", "pos": pos + Vector2(0, -22), "start": pos + Vector2(0, -22), "tgt": o, "life": 0.45 + 0.08 * k, "col": GOLD, "bend": g.rng.randf_range(-40, 40)})
 
 
-## 空中翻转的拖影：绕身体中心一道白色圆弧，前端一截橙色（照原作截图）
+## 空中翻转的拖影（照原作）：绕身体一整圈的渐变白环——最前端最亮最粗，往后逐段变细变透明，拖将近一整圈；前端一小截橙色
 func _draw_skill_over() -> void:
 	if leap_t < 0.0:
 		return
@@ -189,16 +207,47 @@ func _draw_skill_over() -> void:
 	var sgn: float = 1.0 if face >= 0.0 else -1.0
 	var c: Vector2 = pos + Vector2(0, -h - 24.0)
 	var head: float = -PI / 2.0 + u * TAU * sgn
-	var tail: float = head - sgn * minf(u * TAU, 4.4)
+	var sweep: float = minf(u * TAU + 0.6, 5.8)       # 起跳瞬间就有一截，最长拖将近一整圈
 	var R := 30.0
-	g.draw_arc(c, R, minf(tail, head), maxf(tail, head), 28, Color(1.6, 1.6, 1.7, 0.55), 5.0)
-	g.draw_arc(c, R, minf(tail, head), maxf(tail, head), 28, Color(2.0, 2.0, 2.1, 0.8), 2.0)
-	var o0: float = head - sgn * 0.7
-	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 8, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.95), 6.0)
+	var N := 40
+	for i in N:
+		var t0: float = float(i) / N
+		var t1: float = float(i + 1) / N
+		var a0: float = head - sgn * sweep * t0
+		var a1: float = head - sgn * sweep * t1
+		var k: float = pow(1.0 - t0, 1.6)
+		g.draw_arc(c, R, minf(a0, a1), maxf(a0, a1), 3, Color(1.9, 1.9, 2.0, 0.85 * k), 1.5 + 5.5 * k)
+	var o0: float = head - sgn * 0.45
+	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.95), 6.5)
 
 
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	match f.kind:
+		"blaze":
+			# 火焰（照原作截图）：下宽上尖的水滴形，边缘抖动的火苗；外层橙、内层黄白（高亮触发辉光），底部一团光晕；先窜高再缩小熄灭
+			var k: float = 1.0 - a
+			var h: float = f.sz * (0.55 + 0.9 * minf(1.0, k * 3.0)) * (0.4 + 0.6 * a)
+			var w: float = f.sz * 0.36 * (0.5 + 0.5 * a)
+			var b: Vector2 = f.pos
+			g.draw_circle(b + Vector2(0, -h * 0.15), w * 1.4, Color(2.0, 0.9, 0.25, 0.22 * a))
+			for layer in 2:
+				var s2: float = 1.0 if layer == 0 else 0.55
+				var hh: float = h * s2
+				var ww: float = w * s2
+				var left := PackedVector2Array()
+				var right := PackedVector2Array()
+				for i in 7:
+					var t: float = float(i) / 6.0            # 0 = 底 → 1 = 火尖
+					var hw: float = ww * sqrt(maxf(0.0, 1.0 - t)) * (0.75 + 1.6 * t if t < 0.15 else 1.0)
+					var wob: float = sin(g.t * 22.0 + f.seed + t * 5.0) * ww * 0.3 * t
+					left.append(b + Vector2(-hw + wob, -hh * t))
+					right.append(b + Vector2(hw + wob, -hh * t))
+				right.reverse()
+				var pts: PackedVector2Array = left
+				pts.append_array(right.slice(1))
+				var col: Color = Color(2.0, 0.85, 0.22, 0.8 * a) if layer == 0 else Color(2.6, 2.1, 1.1, 0.9 * a)
+				g.draw_colored_polygon(pts, col)
+			return true
 		"pillar":
 			# 落地光柱：底宽上窄的黄色光束迅速升起再变细消失，外加几条向上张开的放射光线
 			var k: float = 1.0 - a
