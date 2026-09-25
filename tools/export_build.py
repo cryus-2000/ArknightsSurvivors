@@ -66,7 +66,7 @@ def main():
     os.makedirs(src)
     # 1. 干净副本
     data = subprocess.run(["git", "archive", "--format=tar", a.ref], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
-    tarfile.open(fileobj=io.BytesIO(data)).extractall(src)
+    tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     print("源码：%s @ %s" % (a.ref, commit))
 
     # 2. 导入 + 导出
