@@ -181,7 +181,7 @@ func test_squad_contract() -> void:
 		ok(pg.size() == 6, "成长线 6 节点：%s" % cid)
 		var elites: Array = pg.filter(func(nd): return nd.get("type", "") == "elite")
 		ok(elites.size() == 2 and int(elites[0].level) == 1 and int(elites[1].level) == 2, "两次精英化：%s" % cid)
-		ok(elites[1].has("requires"), "精英化二带条件：%s" % cid)
+		ok(not elites[1].has("requires"), "精英化二不带条件（2026-09-25 用户决定）：%s" % cid)
 	# 契约反例：缺 skill / manual 技能 / 非法节点
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skills 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}]}), "技能不足 3 个不通过")

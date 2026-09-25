@@ -312,6 +312,10 @@ var choice_shot := false
 # ---------- 图鉴演示（gallery.gd 把本场景放进 SubViewport，demo_op 为要演示的干员 id）----------
 # 不刷怪、不掉落、不升级、没有 HUD 与音乐；博士站定，几只假人海嗣在旁边挨打并循环重生
 var demo_op := ""
+var demo_cycle_t := 2.0          # 演示：每隔几秒轮流充满一个技能
+var demo_cycle_i := 0
+var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 被选中的次数
+var dbg_pick := {}
 const DEMO_SLOTS := [Vector2(-150, 30), Vector2(140, -40), Vector2(90, 80)]
 var demo_respawn: Array = []
 
@@ -591,6 +595,18 @@ func _demo_step(dt: float) -> void:
 	hp = max_hp
 	xp = 0.0
 	gems.clear()
+	# 三个技能全部解锁，S1 → S2 → S3 轮流充满（永久型只放一次）
+	if ch.elite < 2:
+		ch.elite = 2
+	demo_cycle_t -= dt
+	if demo_cycle_t <= 0.0 and not ch.acting() and not ch.skill_active():
+		demo_cycle_t = 4.0
+		for k in 3:
+			var i: int = (demo_cycle_i + k) % 3
+			if not ch.perm[i] and ch.sp_need(i) > 0.0:
+				ch.sp[i] = ch.sp_need(i)
+				demo_cycle_i = (i + 1) % 3
+				break
 	if demo_respawn.is_empty():
 		demo_respawn.resize(DEMO_SLOTS.size())
 		demo_respawn.fill(0.0)
@@ -794,7 +810,7 @@ func _autotest_step() -> void:
 			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "kills": kills,
+			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
 				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
@@ -3472,6 +3488,9 @@ func _open_levelup() -> void:
 				picks[k] = wcard
 				break
 	picks.shuffle()
+	for c in picks.slice(0, want):
+		if c.kind == "prog":
+			dbg_offer[c.op] = dbg_offer.get(c.op, 0) + 1
 	_show_choices("升级！ Lv.%d" % level, picks.slice(0, want), "level")
 
 
@@ -3550,6 +3569,7 @@ func _pick(i: int) -> void:
 		"filler":
 			doctor.apply_filler(o.id)
 		"prog":
+			dbg_pick[o.op] = dbg_pick.get(o.op, 0) + 1
 			var pop = squad.get_op(o.op)
 			if pop != null:
 				pop.advance(o.get("choice", ""))

@@ -675,16 +675,25 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return slot_pos
 
 
-## 近战前压：博士 leash 范围内最近的敌人；返回站位点（敌人身前 gap 处）或 INF
+## 近战前压：博士 leash 范围内最近的敌人；返回站位点（敌人朝博士一侧、身前 gap 处）或 INF。
+## 目标带滞回（现目标死亡或超出 leash × 1.3 才换），已经够得着时原地不动，避免在两个目标 / 两侧之间来回抖。
+var melee_tgt = null
+
 func melee_spot(leash: float, gap: float) -> Vector2:
-	var ts: Array = g._nearest(1, leash, g.ppos)
-	if ts.is_empty():
+	var e = melee_tgt
+	if e == null or e.dead or e.pos.distance_to(g.ppos) > leash * 1.3:
+		var ts: Array = g._nearest(1, leash, g.ppos)
+		e = ts[0] if not ts.is_empty() else null
+		melee_tgt = e
+	if e == null:
 		return Vector2.INF
-	var e: Dictionary = ts[0]
-	var d: Vector2 = pos - e.pos
+	var reach: float = gap + e.r
+	if pos.distance_to(e.pos) <= reach + 14.0:
+		return pos
+	var d: Vector2 = g.ppos - e.pos
 	if d.length() < 1.0:
 		d = Vector2(-face, 0)
-	return e.pos + d.normalized() * (gap + e.r)
+	return e.pos + d.normalized() * reach
 
 
 ## 召唤物等附属实体：参与 2.5D 排序的条目 [{"y": 脚底 y, …}]，由 draw_extra 绘制

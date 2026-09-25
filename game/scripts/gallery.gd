@@ -177,7 +177,6 @@ func _build() -> void:
 			for cid in Character.list_ids():
 				var cd: Dictionary = Character.load_def(cid)
 				var sp: Dictionary = cd.get("sprites", {})
-				var cb: Dictionary = cd.get("base", {})
 				var st: Array = []
 				if cd.has("attack"):
 					st.append(["普攻", cd.attack.get("name", "")])
@@ -186,23 +185,6 @@ func _build() -> void:
 					st.append(["技能 %d" % (si + 1), "%s%s · %s" % [sks[si].get("name", ""), ("（充能 %d）" % int(sks[si].sp)) if sks[si].has("sp") else "", ["招募", "精一", "精二"][si]]])
 				if cd.has("talent"):
 					st.append(["天赋", cd.talent.get("name", "")])
-				if cb.has("umbrella_dmg"):
-					st.append_array([["伞击", "%d 伤害 · 半径 %d · %.1f 秒" % [int(cb.umbrella_dmg), int(cb.get("swing_radius", 95)), float(cb.get("swing_interval", 0.9))]],
-						["触手", "×%.1f 伞击伤害" % float(cb.get("tentacle_mult", 0.6))]])
-				var pg: Array = cd.get("progression", [])
-				for n in pg:
-					if n.get("type", "") == "elite" and n.has("requires"):
-						var req: Dictionary = n.requires
-						var parts: Array = []
-						for rid in req.get("relic", []):
-							parts.append("藏品 #%s" % str(rid))
-						if req.has("level"):
-							parts.append("博士 Lv.%d" % int(req.level))
-						if req.has("class_in_squad"):
-							parts.append("编队中有%s" % req.class_in_squad)
-						if req.has("doctor_passive"):
-							parts.append("博士被动「%s」" % Doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
-						st.append(["精%s条件" % ["", "一", "二"][int(n.level)], "、".join(parts)])
 				var forms: Array = []
 				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0],
 						["Mon3tr", "m_idle", 4.0], ["爪击", "m_attack", 14.0]]:
@@ -304,6 +286,10 @@ func _build() -> void:
 
 ## 介绍文字：lore.json 的档案文字在前，机制说明在后
 func _lore_text(key: String, mech: String) -> String:
+	var lr: String = str(lore.get(key, {}).get("lore", ""))
+	if lr != "" and tab == 0:
+		var first: String = lr.split("\n")[0]
+		return first + ("\n" + mech if mech != "" else "")
 	var l: Dictionary = lore.get(key, {})
 	var out: String = l.get("lore", "")
 	if out != "" and mech != "":
@@ -470,7 +456,7 @@ func _draw_detail(vs: Vector2) -> void:
 	var f: Dictionary = e.forms[form]
 	var demo: bool = f.has("demo") and not locked
 	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）
-	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H))
+	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H if demo else 236))
 	if demo:
 		var dr := Rect2(box.position, Vector2(pr.size.x - 40, DEMO_H))
 		_demo_start(f.demo, Vector2i(dr.size))
@@ -492,7 +478,7 @@ func _draw_detail(vs: Vector2) -> void:
 		var fr := int(form_t * f.fps)
 		fr = fr % f.frames if f.loop else mini(fr, f.frames - 1)
 		var src := _frame_rect(f, fr)
-		var k: float = minf(240.0 / src.size.x, 250.0 / src.size.y)
+		var k: float = minf(240.0 / src.size.x, 200.0 / src.size.y)
 		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
 		var sz := src.size * k
 		var col := Color(0, 0, 0, 0.95) if locked else Color.WHITE
@@ -520,6 +506,9 @@ func _draw_detail(vs: Vector2) -> void:
 			UI.text(self, font, Vector2(tx, y), s[0], 14, UI.SUB)
 			UI.text(self, font, Vector2(tx + 60, y), s[1], 15, UI.TEXT)
 			y += 26
+		# 标签行放在动作按钮行之下，避免与按钮重叠
+		if e.forms.size() > 1:
+			y = maxf(y, box.end.y + 52)
 		var cx := tx
 		for c in e.get("chips", []):
 			var w: float = 16.0 + c.length() * 14.0
@@ -533,7 +522,7 @@ func _draw_detail(vs: Vector2) -> void:
 	var avail := pr.end.y - 16.0 - (dy + 4)
 	var fs := 15
 	var soft := UI.soft(desc)
-	while fs > 12 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, -1, UI.BRK).y > avail:
+	while fs > 11 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, -1, UI.BRK).y > avail:
 		fs -= 1
 	var lh := font.get_height(fs)
 	var max_lines := maxi(1, int(avail / lh))
