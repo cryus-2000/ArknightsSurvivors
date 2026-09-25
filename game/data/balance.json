@@ -39,8 +39,7 @@
   "_doc": "升级卡池（game.gd _open_levelup）",
   "recruit_from_level": 5, "recruit_chance": 0.45,
   "force_recruit_level_1": 6, "force_recruit_level_3": 12,
-  "second_deep_chance": 0.5,
-  "drone_chance": 0.18
+  "second_deep_chance": 0.5
  },
 
  "bot": {

@@ -3558,6 +3558,11 @@ func _open_levelup() -> void:
 		picks.append(recruit[rng.randi() % recruit.size()])
 	# ---- 博士被动 / 全队被动：种类各上限 4
 	var passives: Array = doctor.passive_cards("doctor") + doctor.passive_cards("squad")
+	# 医疗无人机升级（保底治疗）：和被动卡同池的常规选项，没满级就一直在池里（用户决定，2026-09-25）
+	var wl: int = weapons.get("drone", 0)
+	if wl < 5:
+		var W: Dictionary = D.WEAPONS.drone
+		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
 	passives.shuffle()
 	for c in passives:
 		if picks.size() >= want:
@@ -3575,15 +3580,6 @@ func _open_levelup() -> void:
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
 		fi += 1
-	# ---- 医疗无人机升级（保底治疗）：Lv.3 起约 18% 出一张，替换最后一张非深度卡
-	var wl: int = weapons.get("drone", 0)
-	if wl < 5 and level >= 3 and picks.size() >= 2 and rng.randf() < Bal.v("levelup/drone_chance", 0.18):
-		var W: Dictionary = D.WEAPONS.drone
-		var wcard := {"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1}
-		for k in range(picks.size() - 1, -1, -1):
-			if picks[k].kind != "prog":
-				picks[k] = wcard
-				break
 	picks.shuffle()
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
@@ -5137,7 +5133,7 @@ const INTRO_PAGES := [
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，Lv.5 起会出现招募卡，偶尔出现医疗无人机升级。第一次拿到新技能或进阶时会有演示。",
+		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，Lv.5 起会出现招募卡；医疗无人机升级也是常规选项（最高 Lv.5）。第一次拿到新技能或进阶时会有演示。",
 		"每名干员招募即有一技能，精英化一解锁二技能与天赋，精英化二解锁三技能。三个技能全部自动释放，先练谁、练到几精是这一局的核心取舍。",
 		"编队最多 3 名常规干员（开局 1 名 + 局内招募 2 名）。开局自带一架医疗无人机，全输出编队也有保底回复。按 Tab 随时查看博士属性、编队与藏品效果。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
