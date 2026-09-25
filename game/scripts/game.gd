@@ -271,7 +271,6 @@ var tex := {}
 var panel_title_text := ""
 # ---------- 打击感 ----------
 var hitstop := 0.0
-var mblur := ""                  # 干员动态模糊示例：--mblur=ghost|smear|lines（默认关闭，character.draw_body）
 var shake := 0.0
 var cam_kick := Vector2.ZERO
 var hurt_vignette := 0.0
@@ -571,8 +570,6 @@ func _ready() -> void:
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			seed(int(a.substr(7)))
-		if a.begins_with("--mblur="):
-			mblur = a.substr(8)
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
 		if a.begins_with("--squad="):
 			for cid in a.substr(8).split(","):
@@ -4687,14 +4684,14 @@ func _draw_enemy(e: Dictionary) -> void:
 
 ## 在任意位置绘制水月（残影、倒影用）
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
-func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float, sq := Vector2.ONE) -> void:
+func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
 	if tx == null:
 		return
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = PX / A.hires_of(tx)
-	draw_set_transform((pos + draw_off).round(), 0.0, Vector2((-pk if flip else pk) * sq.x, pk * sq.y))
+	draw_set_transform((pos + draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
 	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

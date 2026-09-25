@@ -816,49 +816,30 @@ func draw_body() -> void:
 	if st.is_empty():
 		g.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
 		return
-	var fo: float = foot_off(st.tex, st.get("kind", ""))
-	var sq := Vector2.ONE
-	match g.mblur:
-		"ghost":
-			# A 残影：身后 3–4 个带职业色的渐隐分身
-			var c: Color = col()
-			for gh in ghosts:
-				var a: float = 0.42 * (1.0 - gh.age / GHOST_LIFE)
-				g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), gh.st.frame, gh.st.tex, gh.st.hf, fo)
-		"smear":
-			# B 拉伸：沿运动方向拉长、另一方向压扁（速度越快越明显，封顶 +22%）
-			var k: float = clampf((vel_s.length() - 120.0) / 500.0, 0.0, 1.0) * 0.22
-			if k > 0.0:
-				var ax: float = absf(vel_s.normalized().x)
-				sq = Vector2(1.0 + k * ax - k * 0.5 * (1.0 - ax), 1.0 + k * (1.0 - ax) - k * 0.5 * ax)
-		"lines":
-			# C 速度线：身后三道细线
-			var sp: float = vel_s.length()
-			if sp > 160.0:
-				var d: Vector2 = vel_s / sp
-				var L: float = clampf(sp * 0.09, 12.0, 46.0)
-				for i in 3:
-					var o: Vector2 = pos + Vector2(0, -14.0 - i * 10.0) - d * 10.0 + d.orthogonal() * (i - 1) * 4.0
-					g.draw_line(o, o - d * L * (1.0 - 0.2 * absf(i - 1)), Color(1.4, 1.5, 1.6, 0.45), 2.0)
-	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, fo, sq)
+	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
+	var c: Color = col().lerp(Color.WHITE, 0.35)
+	for gh in ghosts:
+		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
+		g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
-## 动态模糊示例（--mblur=ghost|smear|lines，默认关闭；docs 待定）：follow() 采样速度与残影
-const GHOST_LIFE := 0.16
-var vel_s := Vector2.ZERO        # 平滑后的移动速度
+## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。
+## 跟着博士慢走不触发，只在前压 / 追赶 / 技能位移这种「一下子移动」时出现
+const GHOST_SPEED := 200.0
+const GHOST_EVERY := 0.04
+const GHOST_LIFE := 0.18
+const GHOST_ALPHA := 0.55
 var ghosts: Array = []           # [{p, st, age}]
 var ghost_t := 0.0
 
 func _sample_motion(vel: Vector2, dt: float) -> void:
-	vel_s = vel_s.lerp(vel, clampf(dt * 12.0, 0.0, 1.0))
-	if g.mblur != "ghost":
-		return
 	for gh in ghosts:
 		gh.age += dt
 	ghosts = ghosts.filter(func(gh): return gh.age < GHOST_LIFE)
 	ghost_t -= dt
-	if vel.length() > 200.0 and ghost_t <= 0.0:
-		ghost_t = 0.035
+	if vel.length() > GHOST_SPEED and ghost_t <= 0.0:
+		ghost_t = GHOST_EVERY
 		var st := anim_state()
 		if not st.is_empty():
 			ghosts.push_front({"p": pos, "st": st, "age": 0.0})
