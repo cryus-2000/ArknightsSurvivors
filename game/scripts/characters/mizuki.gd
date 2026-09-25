@@ -163,8 +163,6 @@ func _umbrella(target: Dictionary) -> void:
 	if hit.size() > 0:
 		Sfx.play("hit", -2.0 if empowered else -5.0, 0.85 if empowered else 1.0)
 		g.hitstop = max(g.hitstop, 0.09 if empowered else 0.03)
-		g._shake(0.6 if empowered else 0.18)
-		g.cam_kick = Vector2.from_angle(ang) * (10.0 if empowered else 4.0)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
 			g._sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)

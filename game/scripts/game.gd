@@ -2203,8 +2203,9 @@ func _anim(name: String, pos: Vector2, dur: float, scale := PX, follow := false)
 	return true
 
 
-func _shake(a: float) -> void:
-	shake = max(shake, a * Cfg.shake)
+## 镜头震动已整体移除（看着头疼）：保留入口以免各处调用改动，一律不震
+func _shake(_a: float) -> void:
+	pass
 
 
 func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
