@@ -89,7 +89,7 @@ func _release() -> void:
 		if not e.dead and not e.boss:
 			e.kb += (e.pos - pos).normalized() * 70.0
 		_hit_fx(e, pos)
-	if not g._fx_sprite("fx_slash_circle_blood" if s3_t > 0.0 else "fx_slash_circle_ghost", pos + Vector2(0, -14), r * 2.0 / 56.0, 0.0):
+	if not g._fx_sprite("fx_slash_circle_blood" if s3_t > 0.0 else "fx_slash_circle_ghost", pos + Vector2(0, -14), r * 2.0 / 66.0, 0.0):
 		g._slash_fx(pos + Vector2(0, -14), 0.0, PI, r, GHOST, "slash", 0.22)
 	for k in 6:
 		var a: float = g.rng.randf() * TAU

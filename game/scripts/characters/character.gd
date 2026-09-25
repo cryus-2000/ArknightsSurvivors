@@ -312,6 +312,10 @@ func draw_pfx(floor_layer: bool) -> void:
 				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
 			"mote":
 				g.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
+			"dust":
+				# 扬尘：灰色尘团胀大淡出；圆心 / 半径对齐 2 像素网格，保持像素感
+				var rr2: float = snappedf(f.get("sz", 4.0) * (1.0 + 1.2 * (1.0 - a)), 2.0)
+				g.draw_circle((f.pos / 2.0).round() * 2.0, rr2, Color(c.r, c.g, c.b, f.get("alpha", 0.4) * a))
 			"crack":
 				# 地裂：从中心放射的暗线 + 亮芯
 				var k3: float = 1.0 - a
@@ -595,6 +599,8 @@ func follow(dt: float, target: Vector2) -> void:
 	if g.tex.get("prop_pillar") != null:
 		pos = g.map.push_out(pos, 10.0)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
+	_kick_dust(vel, dt)
+	_sample_motion(vel, dt)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
 	if attack_t <= 0.0:
 		if absf(vel.x) > 25.0 and mv > 30.0:
@@ -621,6 +627,29 @@ func follow(dt: float, target: Vector2) -> void:
 		anim_kind = want
 		anim_t = 0.0
 	anim_t += dt
+
+
+## 移动扬尘（2026-09-25）：快步（> DUST_SPEED）时脚后方每 0.07 秒一团；从近乎静止突然冲出时一次扬起 4 团。
+## 跟随博士慢走不触发，只在前压 / 追赶 / 瞬移落地这种「一下子移动」时出现
+const DUST_SPEED := 170.0
+const DUST_COL := Color(0.62, 0.66, 0.66)
+var dust_t := 0.0
+var dust_rng := RandomNumberGenerator.new()   # 纯表现，不碰游戏随机流
+
+func _kick_dust(vel: Vector2, dt: float) -> void:
+	dust_t -= dt
+	var spd: float = vel.length()
+	if spd < DUST_SPEED or dust_t > 0.0:
+		return
+	var back: Vector2 = -vel / spd
+	var burst: bool = mv < 80.0 and spd > DUST_SPEED * 1.4
+	var n: int = 4 if burst else 1
+	dust_t = 0.12 if burst else 0.07
+	for i in n:
+		var side: Vector2 = back.orthogonal() * dust_rng.randf_range(-8.0, 8.0)
+		fx({"kind": "dust", "pos": pos + Vector2(0, 2) + back * dust_rng.randf_range(4.0, 12.0) + side, "floor": true,
+			"vel": back * dust_rng.randf_range(20.0, 60.0) + Vector2(0, -dust_rng.randf_range(6.0, 16.0)), "drag": 4.0,
+			"life": dust_rng.randf_range(0.3, 0.45), "col": DUST_COL, "sz": dust_rng.randf_range(3.0, 5.0) if not burst else dust_rng.randf_range(4.0, 6.0), "alpha": 0.45})
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手
@@ -815,7 +844,52 @@ func draw_body() -> void:
 	if st.is_empty():
 		g.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
 		return
-	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	var fo: float = foot_off(st.tex, st.get("kind", ""))
+	var sq := Vector2.ONE
+	match g.mblur:
+		"ghost":
+			# A 残影：身后 3–4 个带职业色的渐隐分身
+			var c: Color = col()
+			for gh in ghosts:
+				var a: float = 0.42 * (1.0 - gh.age / GHOST_LIFE)
+				g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), gh.st.frame, gh.st.tex, gh.st.hf, fo)
+		"smear":
+			# B 拉伸：沿运动方向拉长、另一方向压扁（速度越快越明显，封顶 +22%）
+			var k: float = clampf((vel_s.length() - 120.0) / 500.0, 0.0, 1.0) * 0.22
+			if k > 0.0:
+				var ax: float = absf(vel_s.normalized().x)
+				sq = Vector2(1.0 + k * ax - k * 0.5 * (1.0 - ax), 1.0 + k * (1.0 - ax) - k * 0.5 * ax)
+		"lines":
+			# C 速度线：身后三道细线
+			var sp: float = vel_s.length()
+			if sp > 160.0:
+				var d: Vector2 = vel_s / sp
+				var L: float = clampf(sp * 0.09, 12.0, 46.0)
+				for i in 3:
+					var o: Vector2 = pos + Vector2(0, -14.0 - i * 10.0) - d * 10.0 + d.orthogonal() * (i - 1) * 4.0
+					g.draw_line(o, o - d * L * (1.0 - 0.2 * absf(i - 1)), Color(1.4, 1.5, 1.6, 0.45), 2.0)
+	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, fo, sq)
+
+
+## 动态模糊示例（--mblur=ghost|smear|lines，默认关闭；docs 待定）：follow() 采样速度与残影
+const GHOST_LIFE := 0.16
+var vel_s := Vector2.ZERO        # 平滑后的移动速度
+var ghosts: Array = []           # [{p, st, age}]
+var ghost_t := 0.0
+
+func _sample_motion(vel: Vector2, dt: float) -> void:
+	vel_s = vel_s.lerp(vel, clampf(dt * 12.0, 0.0, 1.0))
+	if g.mblur != "ghost":
+		return
+	for gh in ghosts:
+		gh.age += dt
+	ghosts = ghosts.filter(func(gh): return gh.age < GHOST_LIFE)
+	ghost_t -= dt
+	if vel.length() > 200.0 and ghost_t <= 0.0:
+		ghost_t = 0.035
+		var st := anim_state()
+		if not st.is_empty():
+			ghosts.push_front({"p": pos, "st": st, "age": 0.0})
 
 
 ## 在别处画一份当前帧（分身 / 残影）

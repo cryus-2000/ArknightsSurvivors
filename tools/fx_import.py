@@ -162,7 +162,7 @@ JOBS = {
     # ---- 深海（斯卡蒂）
     'fx_slash_arc_deep':    (na('Slash/SpriteSheetArc.png'), 'even', 6, 40, 'deep', 'center', 18),
     'fx_slash_heavy_deep':  (na('Slash/SpriteSheetSlash01.png'), 'even', 5, 40, 'deep', 'center', 16),
-    'fx_slash_circle_deep': (na('Slash/SpriteSheetCircular.png'), 'even', 7, 56, 'deep', 'center', 16),
+    'fx_slash_circle_deep': (na('Slash/SpriteSheetCircular.png'), 'even', 6, 56, 'deep', 'center', 16),
     'fx_water_splash':      (na('Elemental/Water/SpriteSheet.png'), 'even', 11, 34, None, 'bottom', 14),
     # ---- 狮王金（推进之王）
     'fx_rock_burst':        (na('Elemental/Rock/SpriteSheet.png'), 'even', 14, 32, 'lion', 'bottom', 14),

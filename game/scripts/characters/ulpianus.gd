@@ -69,8 +69,8 @@ func _release() -> void:
 func _slam_fx(c: Vector2, r: float, k: float) -> void:
 	fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": STEEL, "floor": true, "n": 7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": STEEL, "floor": true, "w": 3.0})
-	g._fx_sprite("fx_rock_burst", c + Vector2(0, 6), g.PX * clampf(r / 60.0, 1.0, 2.4), 0.0, false, true)
-	g._fx_sprite("fx_water_splash", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true)
+	# 深海猎人：只用水花（橙色碎石是推进之王的狮王金，和钢蓝不搭）
+	g._fx_sprite("fx_water_splash", c + Vector2(0, 6), g.PX * clampf(r / 70.0, 1.0, 1.4), 0.0, false, true)
 	fx_sparks(c + Vector2(0, -8), CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
 	g.shake = maxf(g.shake, 2.5 * k)
 
@@ -110,7 +110,7 @@ func _release_skill() -> void:
 			if to == Vector2.INF:
 				sp[0] = sp_need(0) * 0.6   # 没目标：退回大半充能
 				return
-			anchor = {"from": pos + Vector2(8.0 * face, -22), "to": to, "t": 0.0, "dur": 0.35, "kind": 0, "back": false}
+			anchor = {"from": pos + Vector2(8.0 * face, -22), "to": to, "t": 0.0, "dur": base("s1_throw", 0.16), "kind": 0, "back": false, "trail": []}
 		1:
 			kept = true
 			g.stats.add(&"op_atk", "add", 0.4, "ulpianus_kept", "op:" + id)
@@ -124,7 +124,7 @@ func _release_skill() -> void:
 			if to2 == Vector2.INF:
 				sp[2] = sp_need(2) * 0.6
 				return
-			anchor = {"from": pos + Vector2(8.0 * face, -22), "to": to2, "t": 0.0, "dur": 0.45, "kind": 2, "back": false}
+			anchor = {"from": pos + Vector2(8.0 * face, -22), "to": to2, "t": 0.0, "dur": base("s3_throw", 0.24), "kind": 2, "back": false, "trail": []}
 
 
 func skill_active_left(i: int) -> float:
@@ -140,12 +140,47 @@ func _update_anchor(dt: float) -> void:
 		return
 	anchor.t += dt
 	var k: float = clampf(anchor.t / anchor.dur, 0.0, 1.0)
+	# 残影：最近 4 个锚位
+	anchor.trail.push_front(_anchor_pos(k))
+	if anchor.trail.size() > 4:
+		anchor.trail.pop_back()
 	if not anchor.back:
 		if k >= 1.0:
 			_anchor_land()
 	else:
+		# 回收：被锚链串住的敌人一路被拽回脚边（先慢后快）
+		var kk: float = k * k
+		for dg in anchor.get("drag", []):
+			var e: Dictionary = dg[0]
+			if not e.dead:
+				e.pos = dg[1].lerp(dg[2], kk)
 		if k >= 1.0:
+			_drag_arrive()
 			anchor = {}
+
+
+## 锚当前的位置：几乎平直地飞出（只留 10 像素弧度），回收时同样
+func _anchor_pos(k: float) -> Vector2:
+	return (anchor.from as Vector2).lerp(anchor.to, k) + Vector2(0, -sin(k * PI) * 10.0)
+
+
+## 拖拽到位：结算伤害 + 脚下砸地
+func _drag_arrive() -> void:
+	var drag: Array = anchor.get("drag", [])
+	if drag.is_empty():
+		return
+	var dmg: float = base("atk", 38.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+	for dg in drag:
+		var e: Dictionary = dg[0]
+		if e.dead:
+			continue
+		e.kb = (e.pos - pos).normalized() * 40.0
+		g._hit("掷锚")
+		g._damage(e, dmg)
+	var c: Vector2 = anchor.get("feet", pos)
+	_slam_fx(c, _reach() * 0.8, 0.8)
+	g.hitstop = maxf(g.hitstop, 0.06)
+	g._add_text(c + Vector2(0, -50), "拖拽 ×%d" % drag.size(), STEEL, 14)
 
 
 ## 锚落地
@@ -167,18 +202,19 @@ func _anchor_land() -> void:
 				cands.append([along, e])
 		cands.sort_custom(func(a, b): return a[0] > b[0])
 		var n: int = mini(int(base("s1_drag", 6.0)), cands.size())
-		var dmg: float = base("atk", 38.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+		# 不再瞬移：记下起点 / 落点，回收阶段一路拽回来，到位时才结算伤害（_drag_arrive）
+		var drag: Array = []
 		for i in n:
 			var e: Dictionary = cands[i][1]
 			var land: Vector2 = from + dir * (28.0 + e.r + i * 8.0) + dir.orthogonal() * g.rng.randf_range(-12, 12)
-			e.pos = land
-			e.kb = -dir * 40.0
-			e.stun = maxf(e.stun, 0.5 * (0.5 if e.elite else 1.0))
-			g._hit("掷锚")
-			g._damage(e, dmg)
-			fx({"kind": "line", "pos": land, "to": to, "life": 0.18, "col": CHAIN, "w": 2.0})
-		_slam_fx(from + dir * 30.0, _reach() * 0.8, 0.8)
-		g._add_text(from + dir * 30.0 + Vector2(0, -50), "拖拽 ×%d" % n if n > 0 else "落空", STEEL, 14)
+			e.stun = maxf(e.stun, 0.5 * (0.5 if e.elite else 1.0) + 0.2)
+			e.kb = Vector2.ZERO
+			drag.append([e, e.pos, land])
+		anchor["drag"] = drag
+		anchor["feet"] = from + dir * 30.0
+		_bite_fx(to, dir, 1.0)
+		if n == 0:
+			g._add_text(to + Vector2(0, -40), "落空", STEEL, 14)
 	else:
 		# 必须开辟：落点 r140 ×3 + 眩晕，自己瞬移到锚点
 		var r: float = base("s3_r", 140.0) * stat(&"op_range")
@@ -194,6 +230,8 @@ func _anchor_land() -> void:
 				e.stun = maxf(e.stun, st)
 				e.kb += (e.pos - to).normalized() * 60.0
 		fx({"kind": "ring", "pos": pos, "r": 30.0, "r0": 4.0, "life": 0.25, "col": STEEL, "floor": true})
+		_bite_fx(to, (to - pos).normalized(), 1.6)
+		g.hitstop = maxf(g.hitstop, 0.1)
 		pos = to + Vector2(-16.0 * face, 6)
 		melee_tgt = null
 		_slam_fx(to, r, 1.6)
@@ -203,10 +241,22 @@ func _anchor_land() -> void:
 		g._add_text(to + Vector2(0, -70), "必须开辟", STEEL, 18)
 		Sfx.op(id, "big")
 	anchor.back = true
+	anchor.trail = []
 	anchor.t = 0.0
-	anchor.dur = 0.25
+	anchor.dur = base("s1_pull", 0.2) if anchor.kind == 0 else 0.16
 	anchor.from = to
 	anchor.to = pos + Vector2(8.0 * face, -22)
+
+
+## 锚咬地：短顿帧 + 钢蓝火花沿飞行方向迸开 + 冲击环 + 碎石
+func _bite_fx(at: Vector2, dir: Vector2, k: float) -> void:
+	g.hitstop = maxf(g.hitstop, 0.05 * k)
+	fx({"kind": "glow", "pos": at + Vector2(0, -6), "r": 16.0 * k, "life": 0.12, "col": Color(1.6, 1.8, 2.2), "alpha": 0.8})
+	fx({"kind": "ring", "pos": at, "r": 42.0 * k, "r0": 6.0, "life": 0.22, "col": STEEL, "floor": true, "w": 3.0})
+	for i in int(8 * k):
+		var a: float = dir.angle() + g.rng.randf_range(-0.9, 0.9)
+		fx({"kind": "spark", "pos": at + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.rng.randf_range(160, 320), "life": 0.25, "col": CHAIN, "sz": 2.5})
+	g._fx_sprite("fx_water_splash", at + Vector2(0, 6), g.PX * 0.9 * k, 0.0, false, true)
 
 
 # ---------------------------------------------------------------- 天赋：血脉滋养
@@ -244,22 +294,61 @@ func _draw_skill_over() -> void:
 	if anchor.is_empty():
 		return
 	var k: float = clampf(anchor.t / anchor.dur, 0.0, 1.0)
-	var a: Vector2 = anchor.from
-	var b: Vector2 = anchor.to
-	var p: Vector2 = a.lerp(b, k) + Vector2(0, -sin(k * PI) * 40.0)
+	var p: Vector2 = _anchor_pos(k)
 	var hand: Vector2 = pos + Vector2(8.0 * face, -22)
-	# 锁链：手到锚，中段下垂
-	var mid: Vector2 = (hand + p) * 0.5 + Vector2(0, 12.0 * (1.0 - absf(k - 0.5) * 2.0))
-	g.draw_polyline(PackedVector2Array([hand, mid, p]), Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.9), 2.0)
-	for i in 6:
-		var q: Vector2 = hand.lerp(mid, i / 5.0) if i < 3 else mid.lerp(p, (i - 3) / 2.0)
-		g.draw_circle(q, 2.0, Color(CHAIN.r * 0.8, CHAIN.g * 0.8, CHAIN.b * 0.8))
-	# 锚：一个带钩的 T 形
-	var d: Vector2 = (b - a).normalized()
+	# 锚头始终朝外（回收时也是锚冠朝外、被拖回来）
+	var d: Vector2 = ((anchor.to - anchor.from) if not anchor.back else (anchor.from - anchor.to)).normalized()
+	# 锁链：飞出时绷直，回收时略下垂；链节交替横竖，读得出是铁链
+	var sag: float = 8.0 * sin(k * PI) if anchor.back else 0.0
+	var mid: Vector2 = (hand + p) * 0.5 + Vector2(0, sag)
+	g.draw_polyline(PackedVector2Array([hand, mid, p]), Color(0.1, 0.12, 0.16, 0.7), 5.0)
+	g.draw_polyline(PackedVector2Array([hand, mid, p]), Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95), 2.5)
+	var links: int = clampi(int(hand.distance_to(p) / 10.0), 2, 40)
+	for i in links:
+		var u: float = float(i) / links
+		var q: Vector2 = hand.lerp(mid, u * 2.0) if u < 0.5 else mid.lerp(p, u * 2.0 - 1.0)
+		if i % 2 == 0:
+			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.75, CHAIN.g * 0.75, CHAIN.b * 0.8))
+		else:
+			g.draw_circle(q, 1.4, Color(1.2, 1.3, 1.4))
+	# 飞出时：残影 + 速度线
+	if not anchor.back:
+		var tr: Array = anchor.trail
+		for i in range(tr.size() - 1, 0, -1):
+			_draw_anchor(tr[i], d, 0.35 * (1.0 - float(i) / tr.size()))
+		for s in 3:
+			var off: Vector2 = d.orthogonal() * (s - 1) * 9.0
+			g.draw_line(p - d * 26.0 + off, p - d * (60.0 + s * 12.0) + off, Color(1.4, 1.5, 1.7, 0.35), 1.5)
+	_draw_anchor(p, d, 1.0)
+
+
+## 船锚：锚杆 + 锚环 + 横杆 + 两只弯钩，2 倍大（原来是几根 3 像素细线，扔出去像根牙签）
+func _draw_anchor(p: Vector2, d: Vector2, a: float) -> void:
 	var n: Vector2 = d.orthogonal()
-	g.draw_line(p - d * 10.0, p + d * 8.0, Color(STEEL.r, STEEL.g, STEEL.b), 4.0)
-	g.draw_line(p + d * 4.0 - n * 9.0, p + d * 4.0 + n * 9.0, Color(STEEL.r, STEEL.g, STEEL.b), 3.0)
-	g.draw_circle(p - d * 10.0, 3.0, CHAIN)
+	var dark := Color(0.08, 0.1, 0.14, 0.8 * a)
+	var body := Color(STEEL.r * 1.1, STEEL.g * 1.1, STEEL.b * 1.15, a)
+	var hi := Color(1.6, 1.7, 1.9, a)
+	var crown: Vector2 = p + d * 14.0         # 锚冠（朝外）
+	var tail: Vector2 = p - d * 14.0          # 锚环端（连链）
+	# 描边
+	g.draw_line(tail, crown, dark, 8.0)
+	g.draw_line(tail + d * 4.0 - n * 9.0, tail + d * 4.0 + n * 9.0, dark, 6.0)
+	# 锚杆 + 横杆
+	g.draw_line(tail, crown, body, 5.0)
+	g.draw_line(tail + d * 4.0 - n * 8.0, tail + d * 4.0 + n * 8.0, body, 3.5)
+	g.draw_line(tail + d * 1.0, crown - d * 2.0, hi, 1.5)
+	# 两只弯钩：从锚冠向后弯
+	for sgn in [-1.0, 1.0]:
+		var pts := PackedVector2Array()
+		for i in 7:
+			var u: float = float(i) / 6.0
+			var ang: float = lerpf(0.0, 2.0, u)
+			pts.append(crown + n * sgn * sin(ang) * 13.0 - d * (1.0 - cos(ang)) * 9.0)
+		g.draw_polyline(pts, dark, 7.0)
+		g.draw_polyline(pts, body, 4.0)
+		g.draw_circle(pts[pts.size() - 1], 3.0, hi)
+	# 锚环
+	g.draw_arc(tail - d * 3.0, 4.0, 0.0, TAU, 12, body, 2.5)
 
 
 func status_items() -> Array:

@@ -271,6 +271,7 @@ var tex := {}
 var panel_title_text := ""
 # ---------- 打击感 ----------
 var hitstop := 0.0
+var mblur := ""                  # 干员动态模糊示例：--mblur=ghost|smear|lines（默认关闭，character.draw_body）
 var shake := 0.0
 var cam_kick := Vector2.ZERO
 var hurt_vignette := 0.0
@@ -570,6 +571,8 @@ func _ready() -> void:
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			seed(int(a.substr(7)))
+		if a.begins_with("--mblur="):
+			mblur = a.substr(8)
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
 		if a.begins_with("--squad="):
 			for cid in a.substr(8).split(","):
@@ -873,6 +876,12 @@ func _autotest_step() -> void:
 			if a.begins_with("--grant="):
 				for rid in a.substr(8).split(","):
 					_gain_relic(rid)
+	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
+	if balance and shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_%d.png" % at_frames)
+	if balance and OS.get_cmdline_user_args().has("--sptest") and at_frames % 45 == 0:
+		for o in squad.ops:
+			o.fill_sp()
 	if balance:
 		if bot != null and state == S.PLAY:
 			bot.tick(0.066)
@@ -2563,6 +2572,17 @@ func _arc_hit(origin: Vector2, ang: float, half: float, radius: float) -> Array:
 	return out
 
 
+## 斩击 / 爪痕帧的统一缩放（2026-09-25）：帧条本身只有 28–56 像素，各干员按「命中半径 ÷ 帧宽」放大后
+## 常到 4–6 倍，像素颗粒比人物（PX = 2 倍）粗一倍多，又大又糙。统一 ×0.7 再封顶 3 倍：弧光比判定略小，
+## 判定范围由地面环 / 裂纹表达。_fx_sprite（fx_slash_* / fx_claw_*）与 _slash_fx 都走这里
+const BLADE_SCALE_K := 0.7
+const BLADE_SCALE_MAX := 3.0
+const FX_SCALE_MAX := 3.2        # 所有帧条特效（碎石 / 水花 / 法阵…）的放大上限，避免颗粒比人物粗太多
+
+func _blade_scale(sc: float) -> float:
+	return minf(sc * BLADE_SCALE_K, BLADE_SCALE_MAX)
+
+
 ## 斩击贴图（覆盖约 126°，更宽的角度用多段拼接）
 func _slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Color, tex_name := "slash", life := 0.22) -> void:
 	var span := 2.2
@@ -2579,6 +2599,7 @@ func _slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Col
 		anchor = Vector2(4.0 / fw, 0.5)
 		span = 2.5
 		segs = int(ceil(half * 2.0 / span))
+	sc = _blade_scale(sc)
 	for k in segs:
 		var a := ang
 		if segs > 1:
@@ -2933,11 +2954,20 @@ func _update_bullets(dt: float) -> void:
 							best = q
 					b.home = best
 				else:
-					var nt := _nearest(1, 300.0)
+					# 法术追踪弹：从弹体附近重新找目标（原来从博士身边找，常常找不到就直线飞走）
+					var nt := _nearest(1, 360.0, b.pos)
 					b.home = nt[0] if nt.size() > 0 else null
 			else:
-				var want: Vector2 = (hm.pos - b.pos).normalized() * b.vel.length()
-				b.vel = b.vel.lerp(want, clampf(dt * b.get("turn", 6.0), 0.0, 1.0))
+				# 匀速转向（2026-09-25）：原来 vel.lerp(want) 转弯时向量变短 → 越绕越慢、显得疲软。
+				# 现在速度大小恒定、只转方向；转向角速度随飞行时间增大，保证一定追上、不会绕圈；目标还在就不会中途消失
+				var spd: float = b.vel.length() if b.has("accel") else b.get("spd", b.vel.length())
+				b["spd"] = spd
+				b["age"] = b.get("age", 0.0) + dt
+				var turn: float = b.get("turn", 6.0) * (1.0 + b.age * 2.5)
+				var a0: float = b.vel.angle()
+				var a1: float = rotate_toward(a0, (hm.pos - b.pos).angle(), turn * dt)
+				b.vel = Vector2.from_angle(a1) * spd
+				b.life = maxf(b.life, 0.2)
 		# 导弹：持续加速到最高速并保持（没有目标时直线飞行，不会减速）
 		if b.has("accel"):
 			var sp: float = minf(b.vel.length() + b.accel * dt, b.vmax)
@@ -3892,12 +3922,12 @@ const V6_FRAMES := {
 	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
 	"fx_flam_hit": [8, 14.0], "fx_sunburst": [16, 16.0], "proj_lavaball": [6, 12.0],
 	"fx_claw_green": [4, 16.0], "fx_claw_double_green": [5, 16.0], "fx_felspell": [17, 16.0],
-	"fx_slash_arc_deep": [6, 18.0], "fx_slash_heavy_deep": [5, 16.0], "fx_slash_circle_deep": [7, 16.0], "fx_water_splash": [11, 14.0],
+	"fx_slash_arc_deep": [6, 18.0], "fx_slash_heavy_deep": [5, 16.0], "fx_slash_circle_deep": [6, 16.0], "fx_water_splash": [11, 14.0],
 	"fx_rock_burst": [14, 14.0], "fx_rock_spike": [10, 14.0], "proj_foxfire": [6, 12.0],
 	# 第二批干员的重调色变体（tools/fx_recolor.py，帧数 / fps 与源相同）
-	"fx_slash_arc_rose": [6, 18.0], "fx_slash_heavy_rose": [5, 16.0], "fx_slash_circle_rose": [7, 16.0],
+	"fx_slash_arc_rose": [6, 18.0], "fx_slash_heavy_rose": [5, 16.0], "fx_slash_circle_rose": [6, 16.0],
 	"fx_slash_heavy_steel": [5, 16.0], "fx_circle_steel": [4, 8.0],
-	"fx_slash_circle_ghost": [7, 16.0], "fx_slash_circle_blood": [7, 16.0], "fx_circle_ghost": [4, 8.0],
+	"fx_slash_circle_ghost": [6, 16.0], "fx_slash_circle_blood": [6, 16.0], "fx_circle_ghost": [4, 8.0],
 	"fx_ink_hit": [8, 14.0], "fx_holy_pillar_ink": [16, 14.0], "fx_circle_ink": [4, 8.0],
 	"proj_lumen_bolt": [6, 12.0], "fx_holy_impact_lantern": [7, 16.0],
 }
@@ -3939,6 +3969,9 @@ func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, c
 func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
 	if tex.get(name) == null:
 		return false
+	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
+		scale = _blade_scale(scale)
+	scale = minf(scale, FX_SCALE_MAX)
 	var spec: Array = V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
 	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
@@ -4654,14 +4687,14 @@ func _draw_enemy(e: Dictionary) -> void:
 
 ## 在任意位置绘制水月（残影、倒影用）
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
-func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
+func _draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float, sq := Vector2.ONE) -> void:
 	if tx == null:
 		return
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = PX / A.hires_of(tx)
-	draw_set_transform((pos + draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
+	draw_set_transform((pos + draw_off).round(), 0.0, Vector2((-pk if flip else pk) * sq.x, pk * sq.y))
 	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

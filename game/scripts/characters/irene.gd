@@ -210,7 +210,7 @@ func _release_skill() -> void:
 			strikes.clear()
 			for i in int(base("s3_strikes", 10.0)):
 				strikes.append({"t": 0.3 + i * 0.27})
-			if not g._fx_sprite("fx_slash_circle_rose", pos + Vector2(0, -14), r3 * 2.0 / 56.0, 0.0):
+			if not g._fx_sprite("fx_slash_circle_rose", pos + Vector2(0, -14), r3 * 2.0 / 66.0, 0.0):
 				g._slash_fx(pos + Vector2(0, -14), 0.0, PI, r3, PINK, "slash", 0.3)
 			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 20.0, "life": 0.5, "col": LAMP, "floor": true, "w": 3.0})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})

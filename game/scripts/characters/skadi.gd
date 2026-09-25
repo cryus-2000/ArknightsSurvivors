@@ -60,12 +60,13 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 	var sc: float = r * 1.15 / 40.0
 	if half >= PI - 0.01:
 		name = "fx_slash_circle_deep"
-		sc = r * 2.0 / 56.0
+		sc = r * 2.0 / 66.0
 	elif half > 1.6:
 		name = "fx_slash_heavy_deep"
 		sc = r * 1.2 / 28.0
 	var at: Vector2 = pos + Vector2(0, -14) + (Vector2.ZERO if name == "fx_slash_circle_deep" else Vector2.from_angle(ang) * r * 0.5)
-	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0):
+	# 染一层深海蓝、略透明：帧条高光接近纯白，叠辉光后会糊成一整片白
+	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0, false, false, Color(0.72, 0.86, 1.05, 0.88)):
 		g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
 		g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
 	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
