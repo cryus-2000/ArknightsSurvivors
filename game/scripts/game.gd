@@ -714,6 +714,10 @@ func _demo_step(dt: float) -> void:
 		if demo_fill_t <= 0.0 and ch.skill_active_left(demo_skill) <= 0.0 and not ch.perm[demo_skill]:
 			demo_fill_t = 6.0
 			ch.sp[demo_skill] = ch.sp_need(demo_skill)
+	# 手动技能（幽灵鲨 S2）在演示里没人按键：充满就替玩家放掉，否则永远看不到
+	var mi: int = ch.manual_index()
+	if mi >= 0 and ch.sp_need(mi) > 0.0 and ch.sp[mi] >= ch.sp_need(mi):
+		ch.cast_manual(mi)
 
 
 ## 开发自测：把所有 Boss（含假死/二阶段形态）摆成一排截图，检查美术接入与 2.5D 遮挡
@@ -876,6 +880,12 @@ func _autotest_step() -> void:
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if balance and shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_%d.png" % at_frames)
+	# 机器人的手动技能（幽灵鲨 S2 保命）：博士生命低于阈值时替玩家按下
+	if state == S.PLAY and hp < max_hp * Bal.v("bot/manual_hp", 0.3):
+		for o in squad.ops:
+			if o.manual_ready(o.manual_index()):
+				o.cast_manual(o.manual_index())
+				break
 	if balance and OS.get_cmdline_user_args().has("--sptest") and at_frames % 45 == 0:
 		for o in squad.ops:
 			o.fill_sp()
@@ -5943,6 +5953,13 @@ func _draw_squad_hud(br: Vector2) -> void:
 				UI.diamond(hud, sc + Vector2(SQ_ICON_R - 3, SQ_ICON_R - 3), 3.0, col, Color(1, 1, 1, 0.6))
 			if o.rej.has(k):
 				UI.diamond(hud, sc + Vector2(0, -SQ_ICON_R - 3), 3.0, Color(0.85, 0.55, 1.0))
+			# 手动技能（契约 v2.2）：图标上方标出按键；充满可放时外圈呼吸发光、标签变亮
+			if o.is_manual(k) and unlocked:
+				var rdy: bool = o.manual_ready(k)
+				if rdy:
+					var pulse: float = 0.5 + 0.5 * sin(t * 6.0)
+					hud.draw_arc(sc, SQ_ICON_R + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(col.r * 1.5, col.g * 1.5, col.b * 1.5, 0.45 + 0.4 * pulse), 2.5)
+				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("空格", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
 		# 悬停某枚图标：技能名 + 说明
 		var mp := hud.get_local_mouse_position()
 		for k in 3:

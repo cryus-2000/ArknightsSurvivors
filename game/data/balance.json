@@ -48,8 +48,9 @@
  },
 
  "bot": {
-  "_doc": "--balance 机器人的选卡偏好（docs/27 §6）。weights 为各类卡的相对权重；prefer_recruit_before 之前遇到招募卡必选",
+  "_doc": "--balance 机器人的选卡偏好（docs/27 §6）。weights 为各类卡的相对权重；prefer_recruit_before 之前遇到招募卡必选；manual_hp：博士生命低于该比例时机器人按下手动保命技能（幽灵鲨 S2）",
   "prefer_recruit_before": 8,
+  "manual_hp": 0.3,
   "weights": {"prog": 6.0, "skill": 5.0, "recruit": 4.0, "weapon": 2.0, "growth": 3.0, "filler": 0.5, "relic": 1.0},
   "growth_weights": {"squad_atk": 3.0, "sp": 3.0, "squad_aspd": 2.5, "squad_crit": 2.0, "squad_range": 1.5, "hp": 2.0, "regen": 1.5, "armor": 1.5, "dodge": 1.5, "speed": 1.0, "pickup": 1.0, "wick": 0.5}
  }

@@ -94,9 +94,12 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 			if not (sk[i] is Dictionary) or not sk[i].has("name"):
 				push_error("干员 %s 的技能 %d 缺 name" % [cid, i + 1])
 				ok = false
-			elif sk[i].get("mode", "auto") != "auto":
-				push_error("干员 %s 的技能 %d 必须是 auto（手动技能只属于博士）" % [cid, i + 1])
+			elif not sk[i].get("mode", "auto") in ["auto", "manual"]:
+				push_error("干员 %s 的技能 %d 的 mode 只能是 auto / manual" % [cid, i + 1])
 				ok = false
+		if sk.filter(func(x): return x is Dictionary and x.get("mode", "auto") == "manual").size() > 1:
+			push_error("干员 %s 最多只能有 1 个手动技能" % cid)
+			ok = false
 	var prog = d.get("progression", [])
 	if not (prog is Array):
 		push_error("干员 %s 的 progression 必须是数组" % cid)
@@ -188,9 +191,34 @@ func charge_skills(dt: float) -> int:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
-		if sp[i] >= need:
+		if sp[i] >= need and not is_manual(i):
 			ready = i
 	return ready
+
+
+## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
+## 充满后等玩家按 Space / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
+func is_manual(i: int) -> bool:
+	return skill_def(i).get("mode", "auto") == "manual"
+
+
+func manual_index() -> int:
+	for i in 3:
+		if is_manual(i):
+			return i
+	return -1
+
+
+## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）
+func manual_ready(i: int) -> bool:
+	return i >= 0 and skill_unlocked(i) and not perm[i] and sp_need(i) > 0.0 and sp[i] >= sp_need(i) 		and skill_active_left(i) <= 0.0 and not acting() and pos != Vector2.INF and not (has_method("away") and call("away"))
+
+
+func cast_manual(i: int) -> bool:
+	if not manual_ready(i):
+		return false
+	start_skill(Vector2.INF, i)
+	return true
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
