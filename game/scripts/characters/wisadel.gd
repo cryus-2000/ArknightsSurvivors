@@ -2,7 +2,7 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
-## 特效（docs/25）：黑红。弹体是黑红彗星（前粗后细：圆头最粗，往后逐段变细变淡，不画明显弹头，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
+## 特效（docs/25）：黑红。弹体是黑红彗星（一整条连续轮廓：圆头最宽，沿轨迹平滑收细到尾尖，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
 
@@ -164,7 +164,7 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, 
 	var from := _muzzle()
 	var dur: float = clampf(from.distance_to(to) / 900.0, 0.18, 0.5)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
-		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [from]})
+		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": []})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.08, "col": RED, "sz": 22.0 * size})
@@ -187,14 +187,12 @@ func _update_shells(dt: float) -> void:
 		s.trail -= dt
 		if s.trail <= 0.0 and s.t < s.dur:
 			s.trail = 0.03
-			# 彗尾上甩出的黑色碎屑 + 暗红光点（生成在彗头后方，不压在头上）
-			var p: Vector2 = s.hist[0] if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
+			# 彗尾上甩出的黑色碎屑（生成在彗头后方，不压在头上）
+			var p: Vector2 = _shell_pos(s) if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
 			fx({"kind": "ember_shard", "pos": p, "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-20, 30)), "life": 0.3, "col": DARK, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
-			if g.rng.randf() < 0.6:
-				fx({"kind": "mote", "pos": p, "vel": Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), "life": 0.22, "col": Color(0.7, 0.05, 0.07), "sz": 1.4})
 		if s.t < s.dur:
 			s.hist.append(_shell_pos(s))
-			if s.hist.size() > 10:
+			if s.hist.size() > 9:
 				s.hist.pop_front()
 		if s.t >= s.dur:
 			_explode(s.to, s.dmg, s.r, s.src, 0, s.stun, s.light)
@@ -392,21 +390,48 @@ func draw_entities_floor() -> void:
 
 
 func _draw_skill_over() -> void:
-	# 彗星：前端最粗、圆头，往后逐段变细变淡；三层同色系（外暗红光 / 黑红体 / 黑芯），头部不单独画弹头
+	# 彗星：一整条连续的轮廓，从彗头（圆头，最宽）沿飞行轨迹平滑收细到彗尾尖；
+	# 三层同形叠画：外层暗红光 → 黑红体 → 黑芯，头尾之间没有接缝
 	for s in shells:
-		var k: float = s.t / s.dur
-		var p := _shell_at(s, k)
-		var pts: Array = s.hist.duplicate()
-		pts.append(p)
-		var n: int = pts.size()
-		const HEAD := 11.0
-		for i in range(n - 1):
-			var u: float = float(i + 1) / float(n - 1)     # 0 尾 … 1 头
-			var w: float = 0.8 + (HEAD - 0.8) * pow(u, 2.4)
-			g.draw_line(pts[i], pts[i + 1], Color(1.2, 0.08, 0.1, 0.35 * u * u), w * 1.6)
-			g.draw_line(pts[i], pts[i + 1], Color(0.3, 0.03, 0.05, 0.15 + 0.8 * u), w)
-		# 圆头：一整块实心，和彗尾最粗处同宽
-		g.draw_circle(p, HEAD * 0.52, Color(0.16, 0.02, 0.04, 1.0))
+		var p := _shell_at(s, s.t / s.dur)
+		var pts: Array = []
+		for q in s.hist:
+			if pts.is_empty() or q.distance_to(pts[-1]) > 1.0:
+				pts.append(q)
+		if pts.is_empty() or p.distance_to(pts[-1]) > 1.0:
+			pts.append(p)
+		if pts.size() < 2:
+			g.draw_circle(p, 5.5, Color(0.16, 0.02, 0.04))
+			continue
+		g.draw_colored_polygon(_comet_outline(pts, 11.0), Color(1.2, 0.08, 0.1, 0.3))
+		g.draw_colored_polygon(_comet_outline(pts, 7.5), Color(0.34, 0.03, 0.06, 0.95))
+		g.draw_colored_polygon(_comet_outline(pts, 4.0), Color(0.1, 0.01, 0.03, 1.0))
+
+
+## 彗星轮廓：pts 从尾到头；半宽按 (u^1.6) 从 0 平滑增到 hw，头部接半圆帽
+func _comet_outline(pts: Array, hw: float) -> PackedVector2Array:
+	var n: int = pts.size()
+	var L := PackedVector2Array()
+	var R := PackedVector2Array()
+	for i in n:
+		var a0: Vector2 = pts[maxi(i - 1, 0)]
+		var a1: Vector2 = pts[mini(i + 1, n - 1)]
+		var nv: Vector2 = (a1 - a0).normalized().orthogonal()
+		var u: float = float(i) / float(n - 1)
+		var w: float = hw * pow(u, 1.3)
+		L.append(pts[i] + nv * w)
+		R.append(pts[i] - nv * w)
+	var head: Vector2 = pts[n - 1]
+	var dir: Vector2 = (pts[n - 1] - pts[n - 2]).normalized()
+	var out := PackedVector2Array()
+	out.append_array(L)
+	# 半圆帽：从左侧绕过前方到右侧
+	var a_start: float = dir.orthogonal().angle()
+	for k in range(1, 8):
+		out.append(head + Vector2.from_angle(a_start + PI * k / 8.0) * hw)
+	R.reverse()
+	out.append_array(R)
+	return out
 
 
 func status_items() -> Array:
