@@ -1,0 +1,634 @@
+{
+  "engine_tested": false,
+  "assets": [
+    {
+      "anchor": [
+        20,
+        10
+      ],
+      "source_x_cuts": [
+        0,
+        897,
+        1774
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1bd3f988-50c5-42c2-b133-456c503af888.png",
+      "prompt_subject": "Two identical horizontal dark navy four-pronged grappling anchors facing RIGHT, long shaft to left, small chain attachment ring at far left. Exactly FOUR swept-back talon-like claws on right head, arranged in perspective as a monstrous four-claw anchor NOT traditional ship anchor, NOT single hook. Second frame only bright blue cutting-edge glint. Palette #1A1F33 #2B3552 #6699FF.",
+      "loop": true,
+      "frame_count": 2,
+      "frame_height": 20,
+      "character": "proj_ulpianus_anchor",
+      "event_frame_zero_based": 0,
+      "frame_width": 40,
+      "file": "proj_ulpianus_anchor.png",
+      "fps": 10,
+      "source_sha256": "2e007f3319256d8b9f8e16a27be03e31f163b37637f9ba250a79f423c1b38428",
+      "sha256": "dbfd447d36076ca5677ae2b02d6bd09cdbc4715194929ec8fe68781e12c7f019"
+    },
+    {
+      "anchor": [
+        40,
+        20
+      ],
+      "source_x_cuts": [
+        0,
+        897,
+        1774
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1bd3f988-50c5-42c2-b133-456c503af888.png",
+      "prompt_subject": "Two identical horizontal dark navy four-pronged grappling anchors facing RIGHT, long shaft to left, small chain attachment ring at far left. Exactly FOUR swept-back talon-like claws on right head, arranged in perspective as a monstrous four-claw anchor NOT traditional ship anchor, NOT single hook. Second frame only bright blue cutting-edge glint. Palette #1A1F33 #2B3552 #6699FF.",
+      "loop": true,
+      "frame_count": 2,
+      "frame_height": 40,
+      "character": "proj_ulpianus_anchor",
+      "event_frame_zero_based": 0,
+      "frame_width": 80,
+      "file": "proj_ulpianus_anchor@2x.png",
+      "fps": 10,
+      "source_sha256": "2e007f3319256d8b9f8e16a27be03e31f163b37637f9ba250a79f423c1b38428",
+      "sha256": "3b188ce92862659ceadce0baa0340af8829f1475461f1603dba35f24755d3d51"
+    },
+    {
+      "anchor": [
+        0,
+        6
+      ],
+      "source_x_cuts": [
+        0,
+        316,
+        845,
+        1238,
+        1616,
+        2048
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7b904cdf-3534-43d3-87bc-5475c9c91e48.png",
+      "prompt_subject": "Five frames of straight slender rapier thrust beam facing RIGHT; left emission point fixed. Frame1 short one-third length bright pink beam; frame2 full length slender pointed beam with four-point star at tip; frames3,4,5 successively thinner shorter diminishing beam and shrinking tip star. No sword, no curved slash. Palette #F299CC #FFF4FA.",
+      "loop": false,
+      "frame_count": 5,
+      "frame_height": 12,
+      "character": "fx_irene_thrust",
+      "event_frame_zero_based": 1,
+      "frame_width": 64,
+      "file": "fx_irene_thrust.png",
+      "fps": 25,
+      "source_sha256": "a553cc2b34ffd415aad803970a923a5d13d865e349b9d4ea9432e32c8f9cc780",
+      "sha256": "0ec9ffe0073df39fc14935d1c3a4dcff702c3b96cb9e1d3d71b73116bceb6921"
+    },
+    {
+      "anchor": [
+        0,
+        12
+      ],
+      "source_x_cuts": [
+        0,
+        316,
+        845,
+        1238,
+        1616,
+        2048
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7b904cdf-3534-43d3-87bc-5475c9c91e48.png",
+      "prompt_subject": "Five frames of straight slender rapier thrust beam facing RIGHT; left emission point fixed. Frame1 short one-third length bright pink beam; frame2 full length slender pointed beam with four-point star at tip; frames3,4,5 successively thinner shorter diminishing beam and shrinking tip star. No sword, no curved slash. Palette #F299CC #FFF4FA.",
+      "loop": false,
+      "frame_count": 5,
+      "frame_height": 24,
+      "character": "fx_irene_thrust",
+      "event_frame_zero_based": 1,
+      "frame_width": 128,
+      "file": "fx_irene_thrust@2x.png",
+      "fps": 25,
+      "source_sha256": "a553cc2b34ffd415aad803970a923a5d13d865e349b9d4ea9432e32c8f9cc780",
+      "sha256": "d7db7a7db68593f32b7908c63a3a8cb87fd08b70e2c0577fae0df6ce092c8dbb"
+    },
+    {
+      "anchor": [
+        40,
+        22
+      ],
+      "source_x_cuts": [
+        0,
+        270,
+        627,
+        1027,
+        1420,
+        1775,
+        2071
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-91da1022-4aa4-44eb-a372-5dc57a70ef94.png",
+      "prompt_subject": "Six frames silver-blue serrated elliptical saw ring seen from 45-degree top down, hollow transparent center. F1 small ring F2 expanded F3 full ring F4 clockwise offset teeth and short crisp residual streaks F5 fragmented diminishing ring F6 sparse fading residual teeth. Front bottom half brighter. Sharp slanted clockwise saw teeth clear. Palette #8FA3BF #E6F0FF dark blue shadows.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 44,
+      "character": "fx_specter_saw",
+      "event_frame_zero_based": 2,
+      "frame_width": 80,
+      "file": "fx_specter_saw.png",
+      "fps": 24,
+      "source_sha256": "fe4f460a9a7fb84704d75c11f580a8b8e60974eaf0b098787d3be7678783d36f",
+      "sha256": "c95a938dca330175678b62c9183556c401c3cb20a63366d87acfea14566f6662"
+    },
+    {
+      "anchor": [
+        80,
+        44
+      ],
+      "source_x_cuts": [
+        0,
+        270,
+        627,
+        1027,
+        1420,
+        1775,
+        2071
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-91da1022-4aa4-44eb-a372-5dc57a70ef94.png",
+      "prompt_subject": "Six frames silver-blue serrated elliptical saw ring seen from 45-degree top down, hollow transparent center. F1 small ring F2 expanded F3 full ring F4 clockwise offset teeth and short crisp residual streaks F5 fragmented diminishing ring F6 sparse fading residual teeth. Front bottom half brighter. Sharp slanted clockwise saw teeth clear. Palette #8FA3BF #E6F0FF dark blue shadows.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 88,
+      "character": "fx_specter_saw",
+      "event_frame_zero_based": 2,
+      "frame_width": 160,
+      "file": "fx_specter_saw@2x.png",
+      "fps": 24,
+      "source_sha256": "fe4f460a9a7fb84704d75c11f580a8b8e60974eaf0b098787d3be7678783d36f",
+      "sha256": "48a5950dbeb3d47a5652b0e15992a397f7f60306274bf85120ea84a4ee43e226"
+    },
+    {
+      "anchor": [
+        40,
+        22
+      ],
+      "source_x_cuts": [
+        0,
+        220,
+        565,
+        986,
+        1393,
+        1763,
+        2048
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-021a1f0d-e17e-4a48-8316-e0cde9febe95.png",
+      "prompt_subject": "Six frames blood crimson serrated elliptical saw ring seen from 45-degree top down, hollow transparent center. F1 small ring F2 expanded F3 full ring F4 clockwise offset large teeth and short crisp residual streaks F5 fragmented diminishing ring F6 sparse residual teeth. Front bottom half brighter. Large clear slanted saw teeth. Palette #8C2A38 #FF8090.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 44,
+      "character": "fx_specter_saw_blood",
+      "event_frame_zero_based": 2,
+      "frame_width": 80,
+      "file": "fx_specter_saw_blood.png",
+      "fps": 24,
+      "source_sha256": "bcf632bbb8b1a2d6c348f6472878d498077995e24c30022259376dcac860181a",
+      "sha256": "200a0f8164d66717d512bcad2979185e558ed4e8567214c6e398fd13801a0ef3"
+    },
+    {
+      "anchor": [
+        80,
+        44
+      ],
+      "source_x_cuts": [
+        0,
+        220,
+        565,
+        986,
+        1393,
+        1763,
+        2048
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-021a1f0d-e17e-4a48-8316-e0cde9febe95.png",
+      "prompt_subject": "Six frames blood crimson serrated elliptical saw ring seen from 45-degree top down, hollow transparent center. F1 small ring F2 expanded F3 full ring F4 clockwise offset large teeth and short crisp residual streaks F5 fragmented diminishing ring F6 sparse residual teeth. Front bottom half brighter. Large clear slanted saw teeth. Palette #8C2A38 #FF8090.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 88,
+      "character": "fx_specter_saw_blood",
+      "event_frame_zero_based": 2,
+      "frame_width": 160,
+      "file": "fx_specter_saw_blood@2x.png",
+      "fps": 24,
+      "source_sha256": "bcf632bbb8b1a2d6c348f6472878d498077995e24c30022259376dcac860181a",
+      "sha256": "a91d8582653155545b1a97d74a2b26f794cba90e73fd9c66bb4aac040bea0b00"
+    },
+    {
+      "anchor": [
+        12,
+        53
+      ],
+      "source_x_cuts": [
+        0,
+        330,
+        680,
+        1015,
+        1410,
+        1675,
+        2006
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-07924da7-f6e2-4ddb-a441-eb1fc1563730.png",
+      "prompt_subject": "Six frames single graceful moon-jellyfish tentacle rising UP from fixed bottom center root. F1 small curled emergence F2 half-height unfurl F3 full height elegant S curve F4 whiplash bent right F5 retracting curl F6 small root withdrawing. Pale cyan pearlescent ribbon tapered very fine, NO octopus suckers, NO eyes. #DDEFF2 #8FC7D6 lavender #B9A6E0 tip.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 56,
+      "character": "fx_mizuki_tentacle",
+      "event_frame_zero_based": 3,
+      "frame_width": 24,
+      "file": "fx_mizuki_tentacle.png",
+      "fps": 15,
+      "source_sha256": "f1e6842529bf45cf603b2ed928225badf7b5fef346dc5ab5a2aca7b7f3b41136",
+      "sha256": "7bab67acf9b6118c2c2e403261d9116b07edfed0ec36a4d7b343dc960fd75eef"
+    },
+    {
+      "anchor": [
+        24,
+        106
+      ],
+      "source_x_cuts": [
+        0,
+        330,
+        680,
+        1015,
+        1410,
+        1675,
+        2006
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-07924da7-f6e2-4ddb-a441-eb1fc1563730.png",
+      "prompt_subject": "Six frames single graceful moon-jellyfish tentacle rising UP from fixed bottom center root. F1 small curled emergence F2 half-height unfurl F3 full height elegant S curve F4 whiplash bent right F5 retracting curl F6 small root withdrawing. Pale cyan pearlescent ribbon tapered very fine, NO octopus suckers, NO eyes. #DDEFF2 #8FC7D6 lavender #B9A6E0 tip.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 112,
+      "character": "fx_mizuki_tentacle",
+      "event_frame_zero_based": 3,
+      "frame_width": 48,
+      "file": "fx_mizuki_tentacle@2x.png",
+      "fps": 15,
+      "source_sha256": "f1e6842529bf45cf603b2ed928225badf7b5fef346dc5ab5a2aca7b7f3b41136",
+      "sha256": "e6353afec2942c725a09d686fcf4e61e8cc62b55bfefac536d9a45e2c2bfa0d6"
+    },
+    {
+      "anchor": [
+        48,
+        45
+      ],
+      "source_x_cuts": [
+        0,
+        324,
+        706,
+        1098,
+        1503,
+        1867,
+        2172
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1319cf9d-d8a3-4982-a054-979f3331fbb6.png",
+      "prompt_subject": "Six frames of a ground-hugging fan of SIX pale moon-jellyfish ribbon tentacles emerging from center-bottom and spreading forward/right. F1 short curls F2 growing F3 full graceful branching fan F4 sweeping whiplash F5 contracting F6 small residual curls. Pale cyan #DDEFF2 #8FC7D6 with lavender #B9A6E0 tips. No eyes no suckers.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 48,
+      "character": "fx_mizuki_tentacle_mass",
+      "event_frame_zero_based": 3,
+      "frame_width": 96,
+      "file": "fx_mizuki_tentacle_mass.png",
+      "fps": 15,
+      "source_sha256": "4d5888a19b62176417ed4774e81a7ff35421420cc0889b27352daf358631e2b8",
+      "sha256": "65b9878db9a62fa7953f04eae7ba54db99699a21391b6d141e646dd2f823d677"
+    },
+    {
+      "anchor": [
+        96,
+        90
+      ],
+      "source_x_cuts": [
+        0,
+        324,
+        706,
+        1098,
+        1503,
+        1867,
+        2172
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1319cf9d-d8a3-4982-a054-979f3331fbb6.png",
+      "prompt_subject": "Six frames of a ground-hugging fan of SIX pale moon-jellyfish ribbon tentacles emerging from center-bottom and spreading forward/right. F1 short curls F2 growing F3 full graceful branching fan F4 sweeping whiplash F5 contracting F6 small residual curls. Pale cyan #DDEFF2 #8FC7D6 with lavender #B9A6E0 tips. No eyes no suckers.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 96,
+      "character": "fx_mizuki_tentacle_mass",
+      "event_frame_zero_based": 3,
+      "frame_width": 192,
+      "file": "fx_mizuki_tentacle_mass@2x.png",
+      "fps": 15,
+      "source_sha256": "4d5888a19b62176417ed4774e81a7ff35421420cc0889b27352daf358631e2b8",
+      "sha256": "4250be8547b98ceb2909a6f01c47507f444c356bd46cef90fbf5d67c38f2cc78"
+    },
+    {
+      "anchor": [
+        16,
+        16
+      ],
+      "source_x_cuts": [
+        0,
+        377,
+        754,
+        1093,
+        1462,
+        1795,
+        2172
+      ],
+      "density": 1,
+      "hold_last_frame": true,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-34c94fcf-7bcb-431b-a998-04f4b05f2a7b.png",
+      "prompt_subject": "Six frames exactly THREE little pointed foxfire wisps gathering. F1 three golden white-core flames in triangle F2 rotating inward F3 closer orbit F4 touching merging F5 bright single merged flame F6 one compact pointed flame ready to launch right. #FFD173 #FFFBE8 limited amber outlines, no smoke no dust.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 32,
+      "character": "fx_suzuran_foxfire_gather",
+      "event_frame_zero_based": 4,
+      "frame_width": 32,
+      "file": "fx_suzuran_foxfire_gather.png",
+      "fps": 18,
+      "source_sha256": "2b3337f06c4fb9e4b9c217fd7c727061baee8d14047e5d83e5b8aeb93d22013c",
+      "sha256": "69ebfbc2369f0c44f8ef477e183377016696b72c377e64fdadf019a7b87255c1"
+    },
+    {
+      "anchor": [
+        32,
+        32
+      ],
+      "source_x_cuts": [
+        0,
+        377,
+        754,
+        1093,
+        1462,
+        1795,
+        2172
+      ],
+      "density": 2,
+      "hold_last_frame": true,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-34c94fcf-7bcb-431b-a998-04f4b05f2a7b.png",
+      "prompt_subject": "Six frames exactly THREE little pointed foxfire wisps gathering. F1 three golden white-core flames in triangle F2 rotating inward F3 closer orbit F4 touching merging F5 bright single merged flame F6 one compact pointed flame ready to launch right. #FFD173 #FFFBE8 limited amber outlines, no smoke no dust.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 64,
+      "character": "fx_suzuran_foxfire_gather",
+      "event_frame_zero_based": 4,
+      "frame_width": 64,
+      "file": "fx_suzuran_foxfire_gather@2x.png",
+      "fps": 18,
+      "source_sha256": "2b3337f06c4fb9e4b9c217fd7c727061baee8d14047e5d83e5b8aeb93d22013c",
+      "sha256": "51fe840085017b2115814b29e5a190b248bed72dc99134313f6e13e6fbd74166"
+    },
+    {
+      "anchor": [
+        12,
+        12
+      ],
+      "source_x_cuts": [
+        0,
+        297,
+        628,
+        944,
+        1323,
+        1674,
+        1942
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2e9dedf4-2956-46ce-804c-6b7b38f0cdcd.png",
+      "prompt_subject": "Six frames one mysterious angular handwritten bone-quill spell sigil appearing, igniting, shattering. F1 short ink stroke F2 partial angular branching glyph F3 complete asymmetric vertical calligraphic rune F4 luminous rune F5 broken rune shards F6 sparse tiny fragments. Not alphabet not readable text not religious symbol, no circular seal. #3A48B8 #EEF0FF dark red fine accents.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 24,
+      "character": "fx_logos_glyph",
+      "event_frame_zero_based": 3,
+      "frame_width": 24,
+      "file": "fx_logos_glyph.png",
+      "fps": 18,
+      "source_sha256": "43676bdbcab215cc6fd0245095bb39bc9c9483a25e2aa80080e316bc6db650fc",
+      "sha256": "64239cbf9c4b30478d4c9597d4621a7bda4ddf0c0d7b1d04ea41b23311394002"
+    },
+    {
+      "anchor": [
+        24,
+        24
+      ],
+      "source_x_cuts": [
+        0,
+        297,
+        628,
+        944,
+        1323,
+        1674,
+        1942
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2e9dedf4-2956-46ce-804c-6b7b38f0cdcd.png",
+      "prompt_subject": "Six frames one mysterious angular handwritten bone-quill spell sigil appearing, igniting, shattering. F1 short ink stroke F2 partial angular branching glyph F3 complete asymmetric vertical calligraphic rune F4 luminous rune F5 broken rune shards F6 sparse tiny fragments. Not alphabet not readable text not religious symbol, no circular seal. #3A48B8 #EEF0FF dark red fine accents.",
+      "loop": false,
+      "frame_count": 6,
+      "frame_height": 48,
+      "character": "fx_logos_glyph",
+      "event_frame_zero_based": 3,
+      "frame_width": 48,
+      "file": "fx_logos_glyph@2x.png",
+      "fps": 18,
+      "source_sha256": "43676bdbcab215cc6fd0245095bb39bc9c9483a25e2aa80080e316bc6db650fc",
+      "sha256": "0eaa819fb6ad686abddfcbe7a5eb11b7caa396eadf1625c1fb5f9f21ee874f3f"
+    },
+    {
+      "anchor": [
+        0,
+        6
+      ],
+      "source_x_cuts": [
+        0,
+        551,
+        1080,
+        1620,
+        2172
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c639896f-0318-4a4f-a7ad-d3254e501c1f.png",
+      "prompt_subject": "Four frames seamless horizontally repeating band of small angular bone-quill handwritten imaginary glyphs drifting toward RIGHT, indigo strokes with lavender white moving bright writing tips and dark red small accents. Four frames continuous cycling luminous writing, equal density and evenly spaced small invented runes, no English letters no circle.",
+      "loop": true,
+      "frame_count": 4,
+      "frame_height": 12,
+      "character": "fx_logos_script",
+      "event_frame_zero_based": null,
+      "frame_width": 64,
+      "file": "fx_logos_script.png",
+      "fps": 12,
+      "source_sha256": "caea792ef47b52f7825bc36b65b6a1227e125ada42131e89f914a65d93586124",
+      "sha256": "a6bf36d61cb587216a8dcd08f421074b3bb82631057b3b4fbdd1d462d0ebbec6"
+    },
+    {
+      "anchor": [
+        0,
+        12
+      ],
+      "source_x_cuts": [
+        0,
+        551,
+        1080,
+        1620,
+        2172
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c639896f-0318-4a4f-a7ad-d3254e501c1f.png",
+      "prompt_subject": "Four frames seamless horizontally repeating band of small angular bone-quill handwritten imaginary glyphs drifting toward RIGHT, indigo strokes with lavender white moving bright writing tips and dark red small accents. Four frames continuous cycling luminous writing, equal density and evenly spaced small invented runes, no English letters no circle.",
+      "loop": true,
+      "frame_count": 4,
+      "frame_height": 24,
+      "character": "fx_logos_script",
+      "event_frame_zero_based": null,
+      "frame_width": 128,
+      "file": "fx_logos_script@2x.png",
+      "fps": 12,
+      "source_sha256": "caea792ef47b52f7825bc36b65b6a1227e125ada42131e89f914a65d93586124",
+      "sha256": "e486e9be4dce8e69d2006ab84df0ad7bb04c26f819a8722bc71455dff5e620f3"
+    },
+    {
+      "anchor": [
+        0,
+        16
+      ],
+      "source_x_cuts": [
+        0,
+        367,
+        788,
+        1200,
+        1600,
+        1983
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-752bc099-f9d4-47b0-bb92-61a90e2fe297.png",
+      "prompt_subject": "Five frames shield bash impact facing right, not actual shield or character. F1 short tight compression lines F2 broad forward convex impact arc F3 sharp bright rightward impact lines and small angular crystal fragments F4 separating fragments F5 sparse small residual fragments. Cold white core with #FFB861 amber thin accent edge. No dust no smoke.",
+      "loop": false,
+      "frame_count": 5,
+      "frame_height": 32,
+      "character": "fx_saria_shield_bash",
+      "event_frame_zero_based": 1,
+      "frame_width": 40,
+      "file": "fx_saria_shield_bash.png",
+      "fps": 20,
+      "source_sha256": "81ec59b64302ec55cad2f6cd4c617833393d5b51cc03571c19b56cf0e7626afb",
+      "sha256": "e48460536e871dd265128b74d0efe1c1a95c006a792adecb7b2fd9bdb0a79a4b"
+    },
+    {
+      "anchor": [
+        0,
+        32
+      ],
+      "source_x_cuts": [
+        0,
+        367,
+        788,
+        1200,
+        1600,
+        1983
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-752bc099-f9d4-47b0-bb92-61a90e2fe297.png",
+      "prompt_subject": "Five frames shield bash impact facing right, not actual shield or character. F1 short tight compression lines F2 broad forward convex impact arc F3 sharp bright rightward impact lines and small angular crystal fragments F4 separating fragments F5 sparse small residual fragments. Cold white core with #FFB861 amber thin accent edge. No dust no smoke.",
+      "loop": false,
+      "frame_count": 5,
+      "frame_height": 64,
+      "character": "fx_saria_shield_bash",
+      "event_frame_zero_based": 1,
+      "frame_width": 80,
+      "file": "fx_saria_shield_bash@2x.png",
+      "fps": 20,
+      "source_sha256": "81ec59b64302ec55cad2f6cd4c617833393d5b51cc03571c19b56cf0e7626afb",
+      "sha256": "a4a24ecc970c5b0f5fe6c64a4d90172b1346aeabc8c16807f5745ccdbf399b6d"
+    },
+    {
+      "anchor": [
+        16,
+        37
+      ],
+      "source_x_cuts": [
+        0,
+        247,
+        486,
+        726,
+        982,
+        1235,
+        1485,
+        1742,
+        1983
+      ],
+      "density": 1,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a8f437ec-bbd1-4ccc-8e72-ecc4b9a76426.png",
+      "prompt_subject": "Eight frames calcite crystalline cluster growing UP fixed bottom-center: F1 three tiny crystal tips F2 half-grown F3 taller F4 fully-grown faceted sharp white calcite cluster F5 hold sparkling full cluster F6 cracking F7 angular shards falling apart F8 scattered small base shards. Cool ivory-white facets with delicate amber edge accents, no brown no dust no ground.",
+      "loop": false,
+      "frame_count": 8,
+      "frame_height": 40,
+      "character": "fx_saria_calcite",
+      "event_frame_zero_based": 3,
+      "frame_width": 32,
+      "file": "fx_saria_calcite.png",
+      "fps": 16,
+      "source_sha256": "2259592eb421e612bbcb04b810ead0f45a16e522c127f0d889289b628ffc58b6",
+      "sha256": "a151d5bdb5ebed39c9efc015578850baf54384ef1d2517fde4a49f370037ef9a"
+    },
+    {
+      "anchor": [
+        32,
+        74
+      ],
+      "source_x_cuts": [
+        0,
+        247,
+        486,
+        726,
+        982,
+        1235,
+        1485,
+        1742,
+        1983
+      ],
+      "density": 2,
+      "hold_last_frame": false,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a8f437ec-bbd1-4ccc-8e72-ecc4b9a76426.png",
+      "prompt_subject": "Eight frames calcite crystalline cluster growing UP fixed bottom-center: F1 three tiny crystal tips F2 half-grown F3 taller F4 fully-grown faceted sharp white calcite cluster F5 hold sparkling full cluster F6 cracking F7 angular shards falling apart F8 scattered small base shards. Cool ivory-white facets with delicate amber edge accents, no brown no dust no ground.",
+      "loop": false,
+      "frame_count": 8,
+      "frame_height": 80,
+      "character": "fx_saria_calcite",
+      "event_frame_zero_based": 3,
+      "frame_width": 64,
+      "file": "fx_saria_calcite@2x.png",
+      "fps": 16,
+      "source_sha256": "2259592eb421e612bbcb04b810ead0f45a16e522c127f0d889289b628ffc58b6",
+      "sha256": "3abf45874f6d23ae82a37c3a7649697217753260236c8e74aa720aa9f6307ba8"
+    }
+  ],
+  "generator": "built-in imagegen",
+  "export": "Nearest sampling from generated masters at independent 1x/2x densities; alpha threshold 210; shared fixed palette; 1px exterior outline",
+  "spec": "docs/30_codex_fx_requests.md"
+}
