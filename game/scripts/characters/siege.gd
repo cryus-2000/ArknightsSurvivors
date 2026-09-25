@@ -1,5 +1,5 @@
 ## 推进之王（先锋，契约 v2.1）：节奏位。前压到博士身边的敌人面前抡锤，命中时为全队回复技力。
-## S1 冲锋号令：全队技力 + 下一锤强化；S2 空中锤：砸地范围晕眩 + 全队技力；S3 碎颅：8 秒重锤，命中概率眩晕，攻速下降。
+## S1 冲锋号令：全队技力 + 下一锤强化；S2 跃空锤：跃起空中转一圈、落地砸击范围晕眩 + 全队技力；S3 碎颅：8 秒重锤，命中概率眩晕，攻速下降。
 ## 特效（docs/25）：狮王金。锤击重弧 + 命中十字闪；命中后金色技力粒子飞向每名队友（回 DP）；砸地双环 + 地裂 + 火星。
 extends "res://scripts/characters/character.gd"
 
@@ -10,6 +10,12 @@ const S3_DUR := 8.0
 var cd := 0.4
 var charge_next := false      # S1：下一锤 ×1.5
 var skull := 0.0              # S3 碎颅剩余
+var leap_t := -1.0            # S2 跃空锤：跃起后经过的秒数（-1 = 不在空中）
+var leap_pos := Vector2.ZERO  # 起跳点
+var leap_to := Vector2.ZERO   # 落点：朝最近的敌人跃过去（最多 90），落在它面前
+const LEAP_DUR := 0.42
+const LEAP_H := 42.0
+const FLAME := Color(1.0, 0.55, 0.15)
 
 
 ## 基础数值全部可由 data/characters/siege.json 的 base 段覆盖（docs/27 §3）
@@ -25,6 +31,15 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 func update(dt: float) -> void:
 	cd -= dt
 	skull = maxf(0.0, skull - dt)
+	if leap_t >= 0.0:
+		# 跃空锤：空中转一圈，落地砸击（在 follow 之后覆盖位置，沿起跳点 → 落点飞过去）
+		leap_t += dt
+		var lu: float = clampf(leap_t / LEAP_DUR, 0.0, 1.0)
+		pos = leap_pos.lerp(leap_to, lu)
+		if leap_t >= LEAP_DUR:
+			leap_t = -1.0
+			_slam()
+		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -82,25 +97,70 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 func _release_skill() -> void:
 	match cur_skill:
 		1:
-			# 空中锤：砸地
-			var r: float = base("s2_r", 110.0) * stat(&"op_range")
-			area_hit("震地", pos, r, base("atk", 30.0) * base("s2_mult", 2.2) * _dmg_bonus() * skill_power(), 220.0, 0.6)
-			fx({"kind": "glow", "pos": pos + Vector2(12.0 * face, -6), "r": 30.0, "life": 0.18, "col": Color(1.8, 1.5, 0.8), "alpha": 0.7})
-			fx({"kind": "ring", "pos": pos, "r": r, "r0": 12.0, "life": 0.4, "col": GOLD, "floor": true, "w": 5.0})
-			fx({"kind": "ring", "pos": pos, "r": r * 0.6, "r0": 8.0, "life": 0.5, "col": Color(1.0, 0.9, 0.6), "floor": true, "w": 2.0})
-			fx({"kind": "crack", "pos": pos + Vector2(12.0 * face, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
-			# 砸地火星（原来的黄土 / 橙色碎石和深海不搭，2026-09-25 删除）
-			fx_sparks(pos + Vector2(12.0 * face, -4), GOLD, 12, 240.0, 0.4, 2.5, 320.0)
-			g.shake = maxf(g.shake, 5.0)
-			g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
-			_sp_motes(3)
-			Sfx.op(id, "big")
+			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）
+			leap_t = 0.0
+			leap_pos = pos
+			leap_to = pos
+			var ts: Array = g._nearest(1, 160.0, pos)
+			if not ts.is_empty():
+				var dv: Vector2 = ts[0].pos - pos
+				leap_to = pos + dv.normalized() * clampf(dv.length() - 24.0, 0.0, 90.0)
+				face = signf(dv.x) if absf(dv.x) > 1.0 else face
+			fx({"kind": "ring", "pos": pos, "r": 26.0, "r0": 6.0, "life": 0.2, "col": GOLD, "floor": true, "w": 2.0})
 		2:
 			# 碎颅：8 秒重锤
 			skull = S3_DUR
 			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.35, "col": Color(1.0, 0.6, 0.3), "alpha": 0.6})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": GOLD})
 			g._show_banner("碎颅")
+
+
+## 跃空锤落地：伤害 / 眩晕 / 全队技力在这一刻结算；特效照原作截图：一圈向上窜的橙黄火焰 + 黄色光柱与放射光线 + 贴地冲击波
+func _slam() -> void:
+	var r: float = base("s2_r", 110.0) * stat(&"op_range")
+	area_hit("震地", pos, r, base("atk", 30.0) * base("s2_mult", 2.2) * _dmg_bonus() * skill_power(), 220.0, 0.6)
+	fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
+	fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": FLAME, "floor": true, "w": 4.0})
+	fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
+	# 光柱 + 放射光线
+	fx({"kind": "pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
+	# 一圈火焰：落点周围贴地的椭圆上窜起，内圈高、外圈矮
+	for k in 16:
+		var a: float = k * TAU / 16.0 + g.rng.randf_range(-0.15, 0.15)
+		var rr: float = r * g.rng.randf_range(0.25, 0.75)
+		var p: Vector2 = pos + Vector2(cos(a) * rr, sin(a) * rr * 0.5 + 2.0)
+		var inner: bool = rr < r * 0.5
+		fx({"kind": "flame", "pos": p, "vel": Vector2(cos(a) * 30.0, -g.rng.randf_range(20.0, 50.0)), "life": g.rng.randf_range(0.3, 0.45),
+			"col": FLAME if k % 3 else Color(1.0, 0.85, 0.3), "sz": g.rng.randf_range(18.0, 26.0) if inner else g.rng.randf_range(10.0, 16.0)})
+	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
+	g.hitstop = maxf(g.hitstop, 0.07)
+	g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
+	_sp_motes(3)
+	Sfx.op(id, "big")
+
+
+## 空中：身体绕身体中心整圈翻转（贴图按帧画、只加旋转），高度抛物线；阴影由 squad 按 pos 画在地面
+func draw_body() -> void:
+	if leap_t < 0.0:
+		super()
+		return
+	var st := anim_state()
+	if st.is_empty():
+		return
+	var u: float = clampf(leap_t / LEAP_DUR, 0.0, 1.0)
+	var h: float = 4.0 * LEAP_H * u * (1.0 - u)
+	var ang: float = u * TAU * (1.0 if face >= 0.0 else -1.0)
+	var tx: Texture2D = st.tex
+	var hf: int = st.hf
+	var fw: float = tx.get_width() / hf
+	var fh: float = tx.get_height()
+	var fo: float = foot_off(tx, st.get("kind", ""))
+	var pk: float = g.PX / A.hires_of(tx)
+	var cy: float = (-fh + fo) / 2.0                 # 身体中心相对脚底（贴图像素）
+	var center: Vector2 = pos + Vector2(0, -h + cy * pk)
+	g.draw_set_transform(center.round(), ang, Vector2(-pk if st.flip else pk, pk))
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + fo - cy), Vector2(fw, fh)), Rect2(fw * (st.frame % hf), 0, fw, fh))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func skill_active_left(i: int) -> float:
@@ -120,8 +180,38 @@ func _sp_motes(n: int) -> void:
 			fx({"kind": "sp_mote", "pos": pos + Vector2(0, -22), "start": pos + Vector2(0, -22), "tgt": o, "life": 0.45 + 0.08 * k, "col": GOLD, "bend": g.rng.randf_range(-40, 40)})
 
 
+## 空中翻转的拖影：绕身体中心一道白色圆弧，前端一截橙色（照原作截图）
+func _draw_skill_over() -> void:
+	if leap_t < 0.0:
+		return
+	var u: float = clampf(leap_t / LEAP_DUR, 0.0, 1.0)
+	var h: float = 4.0 * LEAP_H * u * (1.0 - u)
+	var sgn: float = 1.0 if face >= 0.0 else -1.0
+	var c: Vector2 = pos + Vector2(0, -h - 24.0)
+	var head: float = -PI / 2.0 + u * TAU * sgn
+	var tail: float = head - sgn * minf(u * TAU, 4.4)
+	var R := 30.0
+	g.draw_arc(c, R, minf(tail, head), maxf(tail, head), 28, Color(1.6, 1.6, 1.7, 0.55), 5.0)
+	g.draw_arc(c, R, minf(tail, head), maxf(tail, head), 28, Color(2.0, 2.0, 2.1, 0.8), 2.0)
+	var o0: float = head - sgn * 0.7
+	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 8, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.95), 6.0)
+
+
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	match f.kind:
+		"pillar":
+			# 落地光柱：底宽上窄的黄色光束迅速升起再变细消失，外加几条向上张开的放射光线
+			var k: float = 1.0 - a
+			var H: float = 150.0 * minf(1.0, k * 4.0)
+			var w: float = 30.0 * (1.0 - k * 0.8)
+			var b: Vector2 = f.pos
+			var c: Color = f.col
+			g.draw_colored_polygon(PackedVector2Array([b + Vector2(-w, 0), b + Vector2(-w * 0.25, -H), b + Vector2(w * 0.25, -H), b + Vector2(w, 0)]), Color(c.r, c.g, c.b, 0.35 * a))
+			g.draw_colored_polygon(PackedVector2Array([b + Vector2(-w * 0.35, 0), b + Vector2(-2, -H * 0.9), b + Vector2(2, -H * 0.9), b + Vector2(w * 0.35, 0)]), Color(2.2, 2.1, 1.6, 0.6 * a))
+			for q in 6:
+				var ang: float = -PI / 2.0 + (q - 2.5) * 0.28
+				g.draw_line(b + Vector2(0, -8), b + Vector2(0, -8) + Vector2.from_angle(ang) * H * (0.6 + 0.08 * (q % 3)), Color(c.r, c.g, c.b, 0.5 * a), 2.0)
+			return true
 		"sp_mote":
 			var k := 1.0 - a
 			var to: Vector2 = f.tgt.pos + Vector2(0, -24)
