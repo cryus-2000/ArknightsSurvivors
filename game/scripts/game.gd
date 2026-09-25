@@ -26,8 +26,6 @@ const StatDefs = preload("res://scripts/core/stat_defs.gd")
 ##   tags     basic empowered follow_up skill aftershock area projectile beam pierce ricochet entity control dot detonation execute
 ## 这里只放共享来源（支援 / 藏品 / 真实）；角色专属来源由 data/characters/<id>.json 的 hit_sources 合并进来。
 const HIT_BASE := {
-	"无人机": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
-	"无人机激光": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["beam", "pierce"]},
 	"援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "物理", "tags": ["projectile"]},
 	"法术援护": {"emitter": "support", "origin": "support", "range": "远程", "kind": "法术", "tags": ["projectile", "area"]},
 	"藏品": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["dot"]},
@@ -138,7 +136,7 @@ var ember := false
 var relics: Array = []
 
 # ---------- 援护干员 ----------
-var weapons := {}                # 武器 id -> 等级
+var weapons := {"drone": 1}      # 支援 id -> 等级（医疗无人机开局自带 Lv.1，docs/23 §17）
 var intro_page := 0
 var intro_dots: Array = []          # 指南页码点的点击区 [Rect2, page]
 var intro_panel := Rect2()
@@ -158,7 +156,8 @@ var shield_pop := 0.0            # 新护盾生成动画
 var pvel := Vector2.ZERO
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
-var drones: Array = []           # {pos, cd_shot, cd_laser, cd_missile, ang}
+var drones: Array = []           # 医疗无人机 {pos, cd, ang, beam, face}
+var drone_rescue_cd := 0.0       # Lv.3 急救冷却
 var bullets: Array = []
 
 # ---------- 世界 ----------
@@ -312,6 +311,10 @@ var choice_shot := false
 # ---------- 图鉴演示（gallery.gd 把本场景放进 SubViewport，demo_op 为要演示的干员 id）----------
 # 不刷怪、不掉落、不升级、没有 HUD 与音乐；博士站定，几只假人海嗣在旁边挨打并循环重生
 var demo_op := ""
+var demo_cycle_t := 2.0          # 演示：每隔几秒轮流充满一个技能
+var demo_cycle_i := 0
+var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 被选中的次数
+var dbg_pick := {}
 const DEMO_SLOTS := [Vector2(-150, 30), Vector2(140, -40), Vector2(90, 80)]
 var demo_respawn: Array = []
 
@@ -357,7 +360,7 @@ func _ready() -> void:
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_bullet", "drone_laser", "drone_missile",
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
 		tex[n] = A.tex(n)
 		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
@@ -538,6 +541,12 @@ func _ready() -> void:
 			for cid in a.substr(8).split(","):
 				if squad.add(cid) != null:
 					_load_op_tex(cid)
+	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--prog="):
+			for o in squad.ops:
+				for k in int(a.substr(7)):
+					o.advance()
 
 
 func _update_music(_dt: float) -> void:
@@ -591,6 +600,18 @@ func _demo_step(dt: float) -> void:
 	hp = max_hp
 	xp = 0.0
 	gems.clear()
+	# 三个技能全部解锁，S1 → S2 → S3 轮流充满（永久型只放一次）
+	if ch.elite < 2:
+		ch.elite = 2
+	demo_cycle_t -= dt
+	if demo_cycle_t <= 0.0 and not ch.acting() and not ch.skill_active():
+		demo_cycle_t = 4.0
+		for k in 3:
+			var i: int = (demo_cycle_i + k) % 3
+			if not ch.perm[i] and ch.sp_need(i) > 0.0:
+				ch.sp[i] = ch.sp_need(i)
+				demo_cycle_i = (i + 1) % 3
+				break
 	if demo_respawn.is_empty():
 		demo_respawn.resize(DEMO_SLOTS.size())
 		demo_respawn.fill(0.0)
@@ -710,7 +731,7 @@ func _autotest_step() -> void:
 			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
-			weapons = {"drone": 3}
+			weapons = {"drone": 4}
 			for rid in ["118", "199", "100"]:
 				relics.append(rid)
 				_apply_relic(rid)
@@ -794,7 +815,7 @@ func _autotest_step() -> void:
 			_pick(pi)
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "kills": kills,
+			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
 				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
@@ -1131,6 +1152,7 @@ func _update(dt: float) -> void:
 	_build_grid()
 	_update_enemies(dt)
 	squad.update(dt)
+	_update_weapons(dt)
 	knight.update(dt)
 	touch.update(dt)
 	_update_bullets(dt)
@@ -2187,8 +2209,9 @@ func _anim(name: String, pos: Vector2, dur: float, scale := PX, follow := false)
 	return true
 
 
-func _shake(a: float) -> void:
-	shake = max(shake, a * Cfg.shake)
+## 镜头震动已整体移除（看着头疼）：保留入口以免各处调用改动，一律不震
+func _shake(_a: float) -> void:
+	pass
 
 
 func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
@@ -2620,99 +2643,54 @@ func _close_shop() -> void:
 
 
 # =====================================================================
-# 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
+# 医疗无人机（保底治疗，2026-09-25）：开局 Lv.1，不占编队位；跟在博士头顶两侧，周期性治疗博士
+# Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
+# 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）
+const DRONE_HEAL := [0.0, 0.02, 0.03, 0.03, 0.02, 0.025]
+const DRONE_EVERY := [0.0, 6.0, 6.0, 6.0, 6.0, 5.0]
+
+
 func _update_weapons(dt: float) -> void:
 	var dl: int = weapons.get("drone", 0)
-	if dl > 0:
-		var want := 2 if dl >= 4 else 1
-		while drones.size() < want:
-			drones.append({"pos": ppos + Vector2(0, -60), "cd_shot": 0.3, "cd_laser": 1.0, "cd_missile": 1.5, "ang": drones.size() * PI})
-		var haste := 1.25 if dl >= 5 else 1.0
-		for i in drones.size():
-			var dr: Dictionary = drones[i]
-			dr["fire_t"] = dr.get("fire_t", 0.0) - dt
-			dr.ang += dt * 1.6
-			var slot := ppos + Vector2(cos(dr.ang) * 52.0, -96.0 + sin(dr.ang * 2.0) * 6.0)
-			dr.pos = dr.pos.lerp(slot, clampf(dt * 6.0, 0.0, 1.0))
-			if dl == 1:
-				dr.cd_shot -= dt
-				if dr.cd_shot <= 0.0:
-					var ts := _nearest(1, 420.0)
-					if ts.is_empty():
-						dr.cd_shot = 0.15
-					else:
-						dr.cd_shot = 0.55
-						var d: Vector2 = (ts[0].pos - dr.pos).normalized()
-						bullets.append({"kind": "dbullet", "pos": dr.pos, "vel": d * 700.0, "dmg": 8.0 * dmg_mult, "life": 0.8, "r": 4.0, "aoe": 0.0})
-						dr["fire_t"] = 0.25
-						dr["face"] = signf(d.x)
-						Sfx.play("swing", -20.0, 2.4, 0.1)
-			else:
-				dr.cd_laser -= dt * haste
-				if dr.cd_laser <= 0.0:
-					var ts2 := _nearest(1, 480.0)
-					if ts2.is_empty():
-						dr.cd_laser = 0.2
-					else:
-						dr.cd_laser = 1.9
-						dr["beam"] = LASER_DUR
-						dr["beam_ang"] = (ts2[0].pos - dr.pos).angle()
-						dr["beam_tick"] = 0.0
-						Sfx.play("skill", -16.0, 2.2, 0.05)
-				# 照射中：光束从无人机射出，随最近的敌人平滑转向，每 0.1 秒结算一次
-				if dr.get("beam", 0.0) > 0.0:
-					dr.beam -= dt
-					var tb := _nearest(1, LASER_LEN)
-					if not tb.is_empty():
-						dr.beam_ang = lerp_angle(dr.beam_ang, (tb[0].pos - dr.pos).angle(), clampf(dt * LASER_TURN, 0.0, 1.0))
-					dr["fire_t"] = 0.2
-					dr["face"] = signf(cos(dr.beam_ang)) if absf(cos(dr.beam_ang)) > 0.1 else dr.get("face", 1.0)
-					dr.beam_tick -= dt
-					if dr.beam_tick <= 0.0:
-						dr.beam_tick = 0.1
-						_drone_laser(dr.pos, dr.beam_ang)
-			if dl >= 3:
-				dr.cd_missile -= dt * haste
-				if dr.cd_missile <= 0.0:
-					var tm := _nearest(4, 520.0)
-					if tm.is_empty():
-						dr.cd_missile = 0.3
-					else:
-						dr.cd_missile = 2.2
-						var n := 3 if dl >= 5 else 2
-						for k in n:
-							var tg: Dictionary = tm[k % tm.size()]
-							var d0 := Vector2.from_angle(-PI / 2.0 + (k - (n - 1) / 2.0) * 0.7)
-							bullets.append({"kind": "missile", "pos": dr.pos, "vel": d0 * 320.0, "dmg": 26.0 * dmg_mult, "life": 4.0, "r": 7.0,
-								"aoe": 70.0, "home": tg, "turn": 9.0, "accel": 2400.0, "vmax": 820.0})
-						Sfx.play("swing_heavy", -16.0, 1.8, 0.05)
-						dr["fire_t"] = 0.25
+	if dl <= 0:
+		return
+	var want := 2 if dl >= 4 else 1
+	while drones.size() < want:
+		drones.append({"pos": ppos + Vector2(0, -60), "cd": 2.0 + drones.size() * 2.5, "ang": drones.size() * PI, "beam": 0.0, "face": 1.0})
+	drone_rescue_cd = maxf(0.0, drone_rescue_cd - dt)
+	for i in drones.size():
+		var dr: Dictionary = drones[i]
+		dr.ang += dt * 1.2
+		var want_pos: Vector2 = ppos + Vector2(cos(dr.ang) * 46.0, -66.0 + sin(dr.ang * 2.0) * 6.0)
+		var prev: Vector2 = dr.pos
+		dr.pos = dr.pos.lerp(want_pos, clampf(dt * 4.0, 0.0, 1.0))
+		if absf(dr.pos.x - prev.x) > 0.3:
+			dr.face = signf(dr.pos.x - prev.x)
+		dr.beam = maxf(0.0, dr.beam - dt)
+		dr.cd -= dt * sp_mult
+		if dr.cd <= 0.0:
+			dr.cd = DRONE_EVERY[dl]
+			if hp < max_hp:
+				_drone_heal(dr, max_hp * DRONE_HEAL[dl], dl >= 5)
+		# Lv.3：低血急救
+		if dl >= 3 and drone_rescue_cd <= 0.0 and hp < max_hp * 0.4 and i == 0:
+			drone_rescue_cd = 25.0
+			_drone_heal(dr, max_hp * 0.06, dl >= 5)
+			_add_text(ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
 
 
-## 无人机激光：照射 LASER_DUR 秒，每 0.1 秒对直线上的敌人结算一次（总伤害约为旧版单发的 1.6 倍，冷却 1.5→1.9 秒）
-const LASER_DUR := 0.9
-const LASER_LEN := 520.0
-const LASER_TURN := 7.0
-
-
-func _drone_laser(from: Vector2, ang: float) -> void:
-	var dir := Vector2.from_angle(ang)
-	var L := LASER_LEN
-	var dmg := 3.4 * dmg_mult
-	for j in _query(from + dir * L * 0.5, L * 0.5 + 30.0):
-		var e: Dictionary = enemies[j]
-		if e.dead:
-			continue
-		var rel: Vector2 = e.pos - from
-		var along := rel.dot(dir)
-		if along < 0.0 or along > L:
-			continue
-		if absf(rel.cross(dir)) < e.r + 8.0:
-			_hit("无人机激光")
-			_damage(e, dmg)
-			if randf() < 0.4:
-				_sparks(e.pos, dir, Color(0.6, 1.0, 1.0), 2, 160.0)
+func _drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
+	_heal(amount)
+	if cure:
+		nerve = 0.0
+	dr.beam = 0.35
+	_add_text(ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
+	fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})
+	if not _fx_sprite("fx_heal_aura_green", ppos + Vector2(0, 6), PX * 1.1, 0.0, false, true):
+		for k in 4:
+			fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-18, 18), randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": randf_range(3.0, 4.5)})
+	Sfx.play("pickup", -14.0, 1.4, 0.05)
 
 
 ## 敌人最密集的位置（在 radius 内采样）
@@ -2775,12 +2753,12 @@ func _update_bullets(dt: float) -> void:
 			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
-		if (b.kind == "fire" or b.kind == "missile") and not b.get("hidden", false):
+		if b.kind == "fire" and not b.get("hidden", false):
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:
 				b.trail = 0.03
 				fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
-					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0) if b.kind == "fire" else Color(0.9, 0.9, 1.0)})
+					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
 		for j in _query(b.pos, 40.0):
 			var e: Dictionary = enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
@@ -2796,7 +2774,7 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if b.has("src"):
 		_hit(b.src, b.get("tags", []))
 	else:
-		_hit("无人机" if b.kind in ["dbullet", "missile"] else ("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护")))
+		_hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
@@ -2819,8 +2797,8 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				b.hit_ids[e.id] = true
 			else:
 				b.life = 0.0
-		"fire", "missile":
-			# 法术团 / 导弹：爆炸
+		"fire":
+			# 法术团：爆炸
 			for k in _query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
@@ -3319,7 +3297,7 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	elif o.kind == "prog":
 		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
 	elif o.kind == "weapon":
-		cat = "武器  " + D.WEAPONS[o.id].en
+		cat = "支援  " + D.WEAPONS[o.id].en
 	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
 	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	# 图标底座
@@ -3461,17 +3439,19 @@ func _open_levelup() -> void:
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
 		fi += 1
-	# ---- 无人机：Lv.2 后首次必出一张，之后约 25%，替换最后一张非深度卡
+	# ---- 医疗无人机升级（保底治疗）：Lv.3 起约 18% 出一张，替换最后一张非深度卡
 	var wl: int = weapons.get("drone", 0)
-	if wl < 5 and level >= 2 and picks.size() >= 2 and (wl == 0 or rng.randf() < 0.25):
+	if wl < 5 and level >= 3 and picks.size() >= 2 and rng.randf() < 0.18:
 		var W: Dictionary = D.WEAPONS.drone
-		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
-			"desc": W.lv[wl], "wlv": wl + 1}
+		var wcard := {"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1}
 		for k in range(picks.size() - 1, -1, -1):
 			if picks[k].kind != "prog":
 				picks[k] = wcard
 				break
 	picks.shuffle()
+	for c in picks.slice(0, want):
+		if c.kind == "prog":
+			dbg_offer[c.op] = dbg_offer.get(c.op, 0) + 1
 	_show_choices("升级！ Lv.%d" % level, picks.slice(0, want), "level")
 
 
@@ -3550,6 +3530,7 @@ func _pick(i: int) -> void:
 		"filler":
 			doctor.apply_filler(o.id)
 		"prog":
+			dbg_pick[o.op] = dbg_pick.get(o.op, 0) + 1
 			var pop = squad.get_op(o.op)
 			if pop != null:
 				pop.advance(o.get("choice", ""))
@@ -3566,7 +3547,7 @@ func _pick(i: int) -> void:
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
-			_show_banner(("获得武器「%s」" if o.wlv == 1 else "「%s」升至 Lv.%d") % ([W.name] if o.wlv == 1 else [W.name, o.wlv]))
+			_show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
 			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 	if choice_kind == "relic":
 		pending_chests -= 1
@@ -3665,6 +3646,13 @@ const V6_FRAMES := {
 	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
 	# 美术 V9：最后的骑士
 	"e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
+	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
+	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
+	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
+	"fx_flam_hit": [8, 14.0], "fx_sunburst": [16, 16.0], "proj_lavaball": [6, 12.0],
+	"fx_claw_green": [4, 16.0], "fx_claw_double_green": [5, 16.0], "fx_felspell": [17, 16.0],
+	"fx_slash_arc_deep": [6, 18.0], "fx_slash_heavy_deep": [5, 16.0], "fx_slash_circle_deep": [7, 16.0], "fx_water_splash": [11, 14.0],
+	"fx_rock_burst": [14, 14.0], "fx_rock_spike": [10, 14.0], "proj_foxfire": [6, 12.0],
 }
 ## 受击材质：甲壳 / 灵体，其余为血肉
 const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
@@ -3681,32 +3669,12 @@ func _hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 	var sc: float = PX * clampf(e.r / 12.0, 0.9, 2.2)
 	if not _fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else rng.randf() * TAU):
 		_anim("fx_hit", e.pos, 0.16)
-const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "dbullet": "proj_drone_bullet",
-	"missile": "proj_missile", "tide": "proj_tide"}
+const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
 const EXPLODE_R_PX := 26.0
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func _draw_laser_art(from: Vector2, ang: float, length: float, alpha: float) -> void:
-	var fr := int(t * 20.0) % 4
-	var mt: Texture2D = tex["fx_laser_mid"]
-	var fw := mt.get_width() / 4
-	var fh := mt.get_height()
-	var col := Color(1, 1, 1, alpha)
-	draw_set_transform(from, ang, Vector2(PX, PX))
-	var L := length / PX
-	var x := 0.0
-	while x < L:
-		var w := minf(float(fw), L - x)
-		draw_texture_rect_region(mt, Rect2(Vector2(x, -fh / 2.0), Vector2(w, fh)), Rect2(fw * fr, 0, w, fh), col)
-		x += fw
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_spr_rot("fx_laser_end", fr, from + Vector2.from_angle(ang) * length, ang, PX, col)
-	_spr_rot("fx_laser_start", fr, from, ang, PX, col)
-
-
-## 旋转绘制帧条（锚点为帧中心，朝右绘制的素材按 ang 旋转）
-func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1)) -> void:
+func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
 	var tx: Texture2D = tex.get(name)
 	if tx == null:
 		return
@@ -3714,18 +3682,23 @@ func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, c
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
-	draw_set_transform(pos + draw_off, ang, Vector2(scale, scale))
+	draw_set_transform(pos + draw_off, ang, Vector2(-scale if flip else scale, scale))
 	draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
-func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0) -> bool:
+## 播放一条帧条特效：flip 镜像；bottom=true 时 pos 为脚底（帧条底部对齐）
+func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
 	if tex.get(name) == null:
 		return false
 	var spec: Array = V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
-	fx.append({"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur})
+	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
+	if bottom:
+		var tx: Texture2D = tex[name]
+		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
+	fx.append(f)
 	return true
 
 
@@ -3854,31 +3827,18 @@ func _draw() -> void:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		draw_circle(dr.pos, 20.0, Color(0.4, 1.2, 1.6, 0.18))
-		# Codex 美术 V5：子弹型 / 激光型 / 导弹型，4 帧（0-1 悬浮，2 发射，3 回稳）
-		var dlv: int = weapons.get("drone", 1)
-		var dkey: String = "drone_bullet" if dlv == 1 else ("drone_laser" if dlv == 2 else "drone_missile")
-		if tex.get(dkey) != null:
-			var dfr := int(t * 6.0) % 2
-			var ft: float = dr.get("fire_t", 0.0)
-			if ft > 0.0:
-				dfr = 2 if ft > 0.12 else 3
-			_spr(dkey, 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0)
+		draw_circle(dr.pos, 20.0, Color(0.5, 1.4, 0.8, 0.16))
+		# Codex 美术 V5 的激光型机体（4 帧：0-1 悬浮，2-3 发射）染成医疗绿；治疗瞬间用发射帧
+		var dfr := int(t * 6.0) % 2
+		if dr.get("beam", 0.0) > 0.2:
+			dfr = 2
+		elif dr.get("beam", 0.0) > 0.0:
+			dfr = 3
+		if tex.get("drone_laser") != null:
+			_spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
 		elif tex.get("drone") != null:
-			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.6, 1.6, 1.7))
-		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.5, 2.6, 2.8, 0.6 + 0.3 * sin(t * 8.0)))
-		if dr.get("beam", 0.0) > 0.0:
-			var ba: float = clampf(dr.beam / 0.15, 0.0, 1.0) * clampf((LASER_DUR - dr.beam) / 0.08, 0.3, 1.0)
-			var fl := 0.85 + 0.15 * sin(t * 60.0)
-			var a0: Vector2 = dr.pos + Vector2(0, 4)
-			var b0: Vector2 = a0 + Vector2.from_angle(dr.beam_ang) * LASER_LEN
-			draw_line(a0, b0, Color(0.4, 1.6, 2.2, 0.28 * ba), 16.0 * fl)
-			if tex.get("fx_laser_mid") != null:
-				_draw_laser_art(a0, dr.beam_ang, LASER_LEN, ba)
-			else:
-				draw_line(a0, b0, Color(0.8, 2.4, 2.8, 0.8 * ba), 6.0 * fl)
-				draw_line(a0, b0, Color(3.0, 3.0, 3.0, ba), 2.0)
-				draw_circle(a0, 7.0 * fl, Color(2.0, 2.8, 3.0, ba))
+			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.2, 1.7, 1.4))
+		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(t * 8.0)))
 	var jf := int(t * 6.0) % 2
 	for b in bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
@@ -3896,8 +3856,6 @@ func _draw() -> void:
 					draw_circle(b.pos, 14.0, Color(1.4, 0.6, 2.2, 0.2))
 				"arcane":
 					draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
-				"dbullet":
-					draw_line(b.pos - n * 14.0, b.pos, Color(1.2, 2.4, 2.6, 0.4), 2.0)
 				"tide":
 					draw_circle(b.pos, 11.0, Color(0.5, 1.2, 2.0, 0.2))
 			_spr_rot(ptex, pfr, b.pos, b.vel.angle(), PX)
@@ -3915,14 +3873,6 @@ func _draw() -> void:
 				draw_line(b.pos - n * 18.0, b.pos, Color(1.4, 0.6, 2.2, 0.4), 4.0)
 				draw_circle(b.pos, 8.0, Color(1.2, 0.5, 2.0, 0.35))
 				UI.diamond(self, b.pos, 5.0, Color(1.8, 1.0, 2.6), Color(2.2, 1.6, 2.8))
-			"dbullet":
-				draw_line(b.pos - n * 10.0, b.pos + n * 3.0, Color(1.2, 2.4, 2.6), 2.5)
-			"missile":
-				draw_set_transform(b.pos, b.vel.angle(), Vector2.ONE)
-				draw_rect(Rect2(-7, -2.5, 12, 5), Color(0.75, 0.8, 0.9))
-				draw_colored_polygon(PackedVector2Array([Vector2(5, -2.5), Vector2(9, 0), Vector2(5, 2.5)]), Color(1.0, 0.4, 0.3))
-				draw_circle(Vector2(-8, 0), 3.0 + sin(t * 50.0), Color(2.5, 1.6, 0.6))
-				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"tide":
 				draw_circle(b.pos, 10.0, Color(0.5, 1.2, 2.0, 0.25))
 				draw_circle(b.pos, 6.0, Color(0.7, 1.5, 2.2, 0.9))
@@ -3981,12 +3931,6 @@ func _draw() -> void:
 				var c: Color = f.col
 				draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.35 * a), f.w * 3.0)
 				draw_line(f.a, f.b, Color(2.5, 2.5, 2.5, a), f.w * 0.6)
-			"laser":
-				# 无人机激光
-				draw_line(f.a, f.b, Color(0.4, 1.6, 2.2, 0.3 * a), 18.0 * a + 2.0)
-				draw_line(f.a, f.b, Color(0.8, 2.4, 2.8, 0.8 * a), 6.0 * a + 1.0)
-				draw_line(f.a, f.b, Color(3.0, 3.0, 3.0, a), 2.0)
-				draw_circle(f.a, 7.0 * a + 2.0, Color(2.0, 2.8, 3.0, a))
 			"rift":
 				# 地面裂隙（触手 / 巨触出现前的预警）
 				var k := 1.0 - a
@@ -4017,7 +3961,7 @@ func _draw() -> void:
 			"sprite":
 				var spec: Array = V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
-				_spr_rot(f.name, fr, f.pos, f.ang, f.scale)
+				_spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
@@ -4991,8 +4935,7 @@ func _draw_hud() -> void:
 		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# 右下：技能与援护干员
-	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
-	_draw_allies_hud(Vector2(vs.x - 16, vs.y - 150))
+	_draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
 
 	# 横幅通知
 	if banner_t > 0.0:
@@ -5057,9 +5000,9 @@ const INTRO_PAGES := [
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：一张路线卡（进化路线成长 / 技能进阶）+ 两张通用成长，偶尔出现支援无人机。第一次拿到新技能或进阶时会有演示。",
-		"Lv3 唤醒 → Lv10 精英化一（选择进化：潮刃 / 群触）→ Lv19 镜花水月 → Lv20 精英化二（质变）。进阶让技能改变形态，而不只是数字变大。",
-		"Lv5 / 15 / 25 招募或升级援护干员（狙击、术师、医疗、辅助）。按 Tab 随时查看属性、技能与藏品效果。"]},
+		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，Lv.5 起会出现招募卡，偶尔出现医疗无人机升级。第一次拿到新技能或进阶时会有演示。",
+		"每名干员招募即有一技能，精英化一解锁二技能与天赋，精英化二解锁三技能。三个技能全部自动释放，先练谁、练到几精是这一局的核心取舍。",
+		"编队最多 3 名常规干员（开局 1 名 + 局内招募 2 名）。开局自带一架医疗无人机，全输出编队也有保底回复。按 Tab 随时查看博士属性、编队与藏品效果。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
 		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。补给箱也会定期在地图上出现（屏幕边缘有指示）。",
 		"小心伪装成宝箱的箱形恐鱼 —— 它现形扑来时会造成伤害，但击败后掉落大量源石锭。",
@@ -5379,7 +5322,7 @@ func _draw_stats(vs: Vector2) -> void:
 			UI.text(hud, font, Vector2(ax2, y + 12), "已满", 11, UI.GOLD)
 		y += 30
 	y += 6
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "武器", 13, UI.SUB)
+	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "支援", 13, UI.SUB)
 	var ax2: float = b2.position.x + 90
 	if weapons.is_empty():
 		UI.text(hud, font, Vector2(ax2, y + 12), "暂无", 13, UI.SUB)
@@ -5654,61 +5597,68 @@ func _draw_status_bar(vs: Vector2) -> void:
 			y += 26.0
 
 
-func _draw_allies_hud(br: Vector2) -> void:
+## 右下编队栏（2026-09-25 改版）：每名干员一列——底部头像（环 = 已解锁最高技能充能），上方三枚小技能图标
+## （环 = 各自充能 / 生效倒计时；未解锁灰显；永久型打勾；海嗣化紫点）。开局干员在最左，第 4 位在最右。
+const SQ_COL_W := 122.0
+const SQ_ICON_R := 14.0
+
+func _draw_squad_hud(br: Vector2) -> void:
 	if knight.alive:
-		knight.draw_hud(hud, br + Vector2(-264, -30))
-	if squad.size() <= 1:
-		return
-	UI.en(hud, font, br + Vector2(-236, -60), "SQUAD", 10, UI.SUB, 3.0)
-	var n: int = squad.size() - 1
+		knight.draw_hud(hud, br + Vector2(-squad.size() * SQ_COL_W - 120, -30))
+	var n: int = squad.size()
+	UI.en(hud, font, br + Vector2(-n * SQ_COL_W + 4, -118), "SQUAD", 10, UI.SUB, 3.0)
 	for i in n:
-		var o = squad.ops[i + 1]
-		var c := br + Vector2(-(n - i) * 76 + 40, -30)
-		var acol := Color(0.55, 0.9, 0.55)
-		UI.ring(hud, c, 21.0, o.hud_sp_frac(), acol)
+		var o = squad.ops[i]
+		var cx: float = br.x - (n - i) * SQ_COL_W + SQ_COL_W / 2.0
+		var c := Vector2(cx, br.y - 34)
+		var ocol: Color = o.col()
+		# ---- 头像
+		UI.ring(hud, c, 24.0, o.hud_sp_frac(), ocol, o.skill_active())
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = tex.get(pt.tex)
 		if at != null:
 			var fw := at.get_width() / int(pt.frames)
-			var ks: float = 30.0 / at.get_height()
-			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 14 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, c + Vector2(-30, 36), o.display_name().substr(0, 2), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
-		UI.text(hud, font, c + Vector2(12, -14), ["零", "一", "二"][o.elite], 11, acol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
-
-
-func _draw_skills(br: Vector2) -> void:
-	var rad := 37.0
-	var gap := 88.0
-	var items: Array = ch.skill_hud()
-	UI.en(hud, font, br + Vector2(-3 * gap + 8, -rad * 2 - 34), "SKILL", 10, UI.SUB, 3.0)
-	for i in 3:
-		var it: Array = items[i]
-		var c := br + Vector2(-(3 - i) * gap + gap / 2.0 + 8, -rad - 24)
-		var col: Color = it[6]
-		var unlocked: bool = it[2]
-		var active: float = it[3]
-		var frac: float = clamp(it[5], 0.0, 1.0)
-		if active > 0.0:
-			frac = active / it[4]
-		UI.ring(hud, c, rad, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
-		var gcol: Color = col if unlocked else Color(0.3, 0.38, 0.42)
-		if active > 0.0:
-			gcol = Color(1, 1, 1)
-		var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
-		if icon != null:
-			hud.draw_texture_rect(icon, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
-		else:
-			UI.text(hud, font, c + Vector2(-rad, 10), it[0], 26, gcol, HORIZONTAL_ALIGNMENT_CENTER, rad * 2, 3)
-		UI.text(hud, font, c + Vector2(-40, rad + 16), it[1] if unlocked else "未解锁", 11, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, 80, 2)
-		if active > 0.0:
-			UI.text(hud, font, c + Vector2(rad - 14, -rad + 8), "%d" % int(ceil(active)), 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
-		if int(it[7]) > 0 and unlocked:
-			var np: int = it[7]
-			for k in np:
-				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, col if k < int(it[8]) else Color(0.15, 0.18, 0.2), Color(col.r, col.g, col.b, 0.5))
-		# 海嗣化（排异）：环下一枚紫点
-		if ch.rej.has(i):
-			UI.diamond(hud, c + Vector2(0, -rad - 5), 3.5, Color(0.85, 0.55, 1.0))
+			var ks: float = 34.0 / at.get_height()
+			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
+		UI.text(hud, font, c + Vector2(-SQ_COL_W / 2.0, 41), o.display_name().substr(0, 4), 11, UI.TEXT if o == ch else Color(0.75, 0.85, 0.9), HORIZONTAL_ALIGNMENT_CENTER, SQ_COL_W, 2)
+		UI.text(hud, font, c + Vector2(14, -14), ["零", "一", "二"][o.elite], 11, ocol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
+		if o == ch:
+			UI.diamond(hud, c + Vector2(-26, -20), 3.5, ocol)
+		# ---- 三枚技能图标：横排在头像上方
+		var items: Array = o.skill_hud()
+		for k in 3:
+			var it: Array = items[k]
+			var sc := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
+			var col: Color = it[6]
+			var unlocked: bool = it[2]
+			var active: float = it[3]
+			var frac: float = clamp(it[5], 0.0, 1.0)
+			if active > 0.0:
+				frac = active / it[4]
+			UI.ring(hud, sc, SQ_ICON_R, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
+			var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
+			if icon != null:
+				hud.draw_texture_rect(icon, Rect2(sc - Vector2(11, 11), Vector2(22, 22)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+			else:
+				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.38, 0.42)
+				UI.text(hud, font, sc + Vector2(-SQ_ICON_R, 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, SQ_ICON_R * 2.0, 2)
+			if active > 0.0:
+				UI.text(hud, font, sc + Vector2(SQ_ICON_R - 8, -SQ_ICON_R + 2), "%d" % int(ceil(active)), 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 16, 2)
+			if o.perm[k]:
+				UI.diamond(hud, sc + Vector2(SQ_ICON_R - 3, SQ_ICON_R - 3), 3.0, col, Color(1, 1, 1, 0.6))
+			if o.rej.has(k):
+				UI.diamond(hud, sc + Vector2(0, -SQ_ICON_R - 3), 3.0, Color(0.85, 0.55, 1.0))
+		# 悬停某枚图标：技能名 + 说明
+		var mp := hud.get_local_mouse_position()
+		for k in 3:
+			var sc2 := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
+			if mp.distance_to(sc2) < SQ_ICON_R + 2.0:
+				var sd: Dictionary = o.skill_def(k)
+				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英化一", "精英化二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
+				var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
+				var tr := Rect2(Vector2(minf(sc2.x - tw / 2.0, hud.size.x - tw - 8.0), br.y - 150), Vector2(tw, 28))
+				UI.panel(hud, tr, UI.BG2, o.col(), 6.0)
+				UI.text(hud, font, tr.position + Vector2(12, 19), tip, 12, UI.TEXT)
 
 
 func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:

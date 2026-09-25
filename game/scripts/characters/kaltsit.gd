@@ -61,9 +61,12 @@ func _heal(h: float, size: int) -> void:
 		guard_t = 5.0
 	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)
 	fx({"kind": "ring", "pos": g.ppos, "r": 30.0, "r0": 8.0, "life": 0.4, "col": GREEN, "floor": true})
-	for k in 6:
-		g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
-			"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
+	# 治疗光环（Ninja Adventure Aura 调绿）+ 星光命中（Pimen，染绿）
+	if not g._fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.3, 0.0, false, true):
+		for k in 6:
+			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
+				"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
+	g._fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX * 0.9, 0.0, false, false, Color(0.75, 1.3, 0.8))
 	g.fx.append({"kind": "beam", "a": pos + Vector2(0, -24), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": GREEN, "w": 3.0})
 	fx({"kind": "glow", "pos": pos + Vector2(8.0 * face, -26), "r": 10.0, "life": 0.25, "col": GREEN, "alpha": 0.5})
 
@@ -178,7 +181,10 @@ func _m_strike() -> void:
 	var ang: float = 0.0 if m.face >= 0.0 else PI
 	var o: Vector2 = m.pos + Vector2(0, -14)
 	var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, 1.3, _m_reach() + 16.0, _m_dmg(), 120.0)
-	fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
+	# 爪痕帧条（Ninja Adventure Claw 调绿；协同 / 熔毁期间用双爪）；没有帧条时退回程序画的三道爪痕
+	var claw_tex := "fx_claw_double_green" if (coord or melt > 0.0) else "fx_claw_green"
+	if not g._fx_sprite(claw_tex, o + Vector2.from_angle(ang) * (_m_reach() * 0.55), g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2), 0.0, m.face < 0.0):
+		fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 	fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 	if not hits.is_empty():
 		Sfx.play("swing", -12.0, 0.8, 0.05)
@@ -196,6 +202,7 @@ func _meltdown() -> void:
 		fx({"kind": "ring", "pos": m.pos, "r": r * (0.7 + 0.15 * i), "r0": 12.0, "life": 0.35 + 0.1 * i, "col": GREEN, "floor": true, "w": 4.0 - i})
 	fx({"kind": "crack", "pos": m.pos, "r": r * 0.8, "life": 0.5, "col": GREEN, "floor": true, "n": 10})
 	g.fx.append({"kind": "rays", "pos": m.pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": GREEN})
+	g._fx_sprite("fx_felspell", m.pos + Vector2(0, -16), g.PX * (r / 66.0))
 	fx_sparks(m.pos + Vector2(0, -16), GREEN, 16, 260.0, 0.45, 3.0, 200.0)
 	g._add_text(m.pos + Vector2(0, -70), "熔毁", GREEN, 18)
 	g.shake = maxf(g.shake, 5.0)
@@ -251,12 +258,18 @@ func draw_extra(_it: Dictionary) -> void:
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(GREEN.r, GREEN.g, GREEN.b, k), 2.0)
 	var col := Color(1.25, 1.5, 1.15) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
-	g._draw_sprite_at(m.pos, m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
+	g._draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+
+
+## 悬浮起伏（像素）：越高影子越小
+func _hover() -> float:
+	return -4.0 - 3.0 * sin(g.t * 2.6 + m.pos.x * 0.01)
 
 
 func draw_extra_shadows() -> void:
 	if m.pos != Vector2.INF:
-		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * 1.5)
+		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
 
 
 ## 溢出治疗后 5 秒博士受伤 -20%（game.gd _enemy_hit 查询）

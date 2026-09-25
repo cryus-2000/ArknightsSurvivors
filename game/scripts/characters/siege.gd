@@ -91,6 +91,11 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": r, "r0": 12.0, "life": 0.4, "col": GOLD, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r * 0.6, "r0": 8.0, "life": 0.5, "col": Color(1.0, 0.9, 0.6), "floor": true, "w": 2.0})
 			fx({"kind": "crack", "pos": pos + Vector2(12.0 * face, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
+			# 碎石（Ninja Adventure Rock / RockSpike 调狮王金）：锤下处一丛石刺 + 周围三处碎石
+			g._fx_sprite("fx_rock_spike", pos + Vector2(26.0 * face, 6), g.PX * 1.3, 0.0, face < 0.0, true)
+			for k in 3:
+				var ra: float = k * TAU / 3.0 + g.t
+				g._fx_sprite("fx_rock_burst", pos + Vector2(cos(ra) * r * 0.55, sin(ra) * r * 0.3 + 6.0), g.PX * 1.2, 0.0, false, true)
 			for k in 14:
 				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-30, 30), 0), "vel": Vector2(g.rng.randf_range(-60, 60), g.rng.randf_range(-170, -80)), "life": 0.6, "col": DUST, "sz": 3.5, "grav": 240.0})
 			g.shake = maxf(g.shake, 5.0)

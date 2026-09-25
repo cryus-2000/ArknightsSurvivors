@@ -114,6 +114,9 @@ func _heal_fx(h: float) -> void:
 	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), AMBER, 16)
 	for k in 6:
 		fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": AMBER, "sz": 2.5})
+	# 治疗光环（Ninja Adventure Aura 调琥珀）+ 星光命中（Pimen）
+	g._fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	g._fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX)
 
 
 func _release_skill() -> void:
@@ -132,6 +135,7 @@ func _release_skill() -> void:
 			hot_t = 5.0
 			hot_acc = 0.0
 			fx({"kind": "ring", "pos": g.ppos, "r": 60.0, "r0": 10.0, "life": 0.5, "col": AMBER, "floor": true})
+			g._fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
 		2:
 			# 钙质化：晶柱升起 + 区域
 			calc = S3_DUR
@@ -141,6 +145,9 @@ func _release_skill() -> void:
 				fx({"kind": "crystal", "pos": g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), "h": g.rng.randf_range(22, 40), "life": 1.5 + k * 0.03, "col": AMBER, "lean": g.rng.randf_range(-0.25, 0.25)})
 			fx({"kind": "ring", "pos": g.ppos, "r": S3_R, "r0": 30.0, "life": 0.5, "col": AMBER, "floor": true, "w": 4.0})
 			fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": AMBER, "floor": true, "n": 10})
+			# 琥珀光柱 + 地面法阵（Pimen / Ninja Adventure 调色）
+			g._fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
+			g._fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
 			g._show_banner("钙质化")
 			g.shake = maxf(g.shake, 3.0)
 	Sfx.play("dodge", -8.0, 0.8)

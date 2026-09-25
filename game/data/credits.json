@@ -1,15 +1,48 @@
 {
-  "_doc": "标题页「致谢与声明」面板的内容。sections 里每条 [标题, 说明, 链接（可空）]。改这里即可，不用改代码。",
-  "title": "致谢与声明",
-  "en": "CREDITS  &  DISCLAIMER",
-  "sections": [
-    ["同人声明", "《水月·深海幸存者》是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。", ""],
-    ["明日方舟游戏数据", "藏品名称、编号与敌人设定的核对参考自社区整理的游戏数据仓库。", "https://github.com/Kengxxiao/ArknightsGameData"],
-    ["PRTS Wiki", "机制与文案参考。", "https://prts.wiki"],
-    ["像素美术", "角色、敌人、场景与特效为根据《明日方舟》游戏美术二次创作的像素画，由 Claude（Anthropic）与 ChatGPT / Codex（OpenAI）程序化绘制。", ""],
-    ["引擎", "Godot Engine 4.4（MIT 许可）。", "https://godotengine.org"],
-    ["开发协作", "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT（OpenAI）共同完成。", "https://claude.ai  ·  https://chatgpt.com"],
-    ["音乐与音效", "全部由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。", ""]
+ "_doc": "标题页「致谢与声明」面板的内容。sections 里每条 [标题, 说明, 链接（可空）]。改这里即可，不用改代码。",
+ "title": "致谢与声明",
+ "en": "CREDITS  &  DISCLAIMER",
+ "sections": [
+  [
+   "同人声明",
+   "《水月·深海幸存者》是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。",
+   ""
   ],
-  "footer": "如有侵权请联系作者，将立即处理。"
+  [
+   "明日方舟游戏数据",
+   "藏品名称、编号与敌人设定的核对参考自社区整理的游戏数据仓库。",
+   "https://github.com/Kengxxiao/ArknightsGameData"
+  ],
+  [
+   "PRTS Wiki",
+   "机制与文案参考。",
+   "https://prts.wiki"
+  ],
+  [
+   "像素美术",
+   "角色、敌人、场景与特效为根据《明日方舟》游戏美术二次创作的像素画，由 Claude（Anthropic）与 ChatGPT / Codex（OpenAI）程序化绘制。",
+   ""
+  ],
+  [
+   "引擎",
+   "Godot Engine 4.4（MIT 许可）。",
+   "https://godotengine.org"
+  ],
+  [
+   "开发协作",
+   "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT（OpenAI）共同完成。",
+   "https://claude.ai  ·  https://chatgpt.com"
+  ],
+  [
+   "第三方开放许可特效素材",
+   "部分技能特效改自开放许可像素素材（均按其许可使用并做了缩放 / 重调色）：CodeManu「Free Pixel Effects Pack」（CC-BY 4.0）、pixel-boy「Ninja Adventure」（CC0）、Pixel Art Spells（OpenGameArt，CC0）、Pimen「Holy Spell Effect」（已购买许可）。",
+   "https://codemanu.itch.io/pixelart-effect-pack"
+  ],
+  [
+   "音乐与音效",
+   "全部由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。",
+   ""
+  ]
+ ],
+ "footer": "如有侵权请联系作者，将立即处理。"
 }

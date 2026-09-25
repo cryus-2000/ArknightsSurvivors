@@ -29,8 +29,25 @@
 - 每次普攻的粒子数 ≤ 12，技能 ≤ 60；粒子寿命 ≤ 0.6 秒（地面残留物除外：熔岩 3 秒、晶柱 1.5 秒）。
 - 命中反馈仍由 `_damage()` 的敌人闪白 / 挤压承担，干员特效只负责"是谁打的、打的是哪种伤害"。
 
-## 3. 待办
+## 3. 第三方素材接入（2026-09-25）
 
-- 目前全部程序绘制；若某个特效在像素风下不够"实"，再补帧条（`fx_<op>_*.png`，走 V6_FRAMES）。
+`tools/fx_import.py` 把 `art/third_party/`（不入库，见其 README）里的开放许可素材切帧、最近邻缩放、按干员色板做亮度分档重调色，输出到 `art/incoming/`（入库）并登记 `V6_FRAMES`：
+
+| 帧条 | 来源 | 用在 |
+|---|---|---|
+| `fx_holy_pillar` / `_amber` | Pimen Holy VFX 02（16 帧 48px） | 铃兰 暖光 / 迷雾（中心 + 边缘六根，迷雾期间随机落柱）；塞雷娅 钙质化（琥珀） |
+| `fx_holy_impact` | Pimen Holy VFX 01 Impact | 治疗命中星光（塞雷娅琥珀、凯尔希染绿） |
+| `fx_heal_aura_green` / `_amber`、`fx_circle_gold` / `_amber`、`fx_shield_amber` | Ninja Adventure Magic/Aura、Circle、Shield | 治疗光环、法阵、药剂散布护体 |
+| `fx_flam_hit`、`fx_sunburst`、`proj_lavaball` | Ninja Flam、CodeManu sunburn、OGA Fireball | 艾雅法拉 火山弹命中 / 喷发、熔岩池翻滚、弹体 |
+| `fx_claw_green` / `_double`、`fx_felspell` | Ninja Claw / ClawDouble、CodeManu felspell | Mon3tr 爪击（协同 / 熔毁用双爪）、熔毁 |
+| `fx_slash_arc_deep` / `_heavy` / `_circle`、`fx_water_splash` | Ninja Slash Arc / Slash01 / Circular、Water | 斯卡蒂 横扫 / 重斩 / 潮汐、水花 |
+| `fx_rock_burst`、`fx_rock_spike` | Ninja Rock / RockSpike | 推进之王 空中锤碎石 |
+| `proj_foxfire` | OGA Light Bolt | 铃兰 狐火弹 |
+
+维什戴尔暂不改（另一会话在做）。缺图时各处仍退回程序绘制。`_fx_sprite()` 新增 flip / 底部锚点 / 染色参数。
+
+## 4. 待办
+
+- 若某个特效在像素风下不够"实"，再补帧条（`fx_<op>_*.png`，走 V6_FRAMES）。
 - 博士指挥技能（`doctor.json command`）的特效随技能一起做。
 - 浊心斯卡蒂（第 4 批）：歌声光环（浅青 + 深红波纹）。
