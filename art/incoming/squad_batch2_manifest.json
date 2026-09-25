@@ -22,7 +22,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "0fbeebbbc848d86d521ae710ed34b2c41823ab806d69ba26f04b0dc0eb103195"
+      "sha256": "55df8d2dd717a76aa4d9a871ee688097ea5a788cab596f5116d3f6952ae97629"
     },
     {
       "file": "op_wisadel_run.png",
@@ -41,7 +41,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "22b37b6950c74f776a8a94b73dc13a5f56ea4ec4e06b8220098e1c718e59ba26"
+      "sha256": "79605acc502c2628163e4d72b17a801e20b307f592983d593f3942ffb0304631"
     },
     {
       "file": "op_wisadel_attack.png",
@@ -60,7 +60,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "b9144b3633625dd5c77b8a0954c766c09c58e7b6de81d0d4188158c8d4ef238a"
+      "sha256": "3de270d9c092a9233ece5b61cde56c8c43c63d49c8504c616a92b434a96187bd"
     },
     {
       "file": "op_wisadel_skill.png",
@@ -79,7 +79,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "059fe4c34ef8cf92a5ed3b130271c53e2f2f0926a92d56dc6c45025b50989b89"
+      "sha256": "8f3e51cba45015f152e2690be02e7469527df3e45c34351af23f79036daf898b"
     }
   ]
 }
