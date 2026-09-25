@@ -15,7 +15,7 @@
       "frame_height": 48,
       "file": "op_lumen_idle.png",
       "fps": 4,
-      "sha256": "fc7a979ef10ae92309cdd2dc38946438919494e863518862a8bb79004a09316f"
+      "sha256": "0bf7c6456798985556f1c3e72d2cc8f833309f87d76ba4470720cf2e05e053e1"
     },
     {
       "loop": true,
@@ -31,7 +31,7 @@
       "frame_height": 48,
       "file": "op_lumen_run.png",
       "fps": 10,
-      "sha256": "2d385cb5da471515ab9ebb948cc8cb9fcd4de61d45c0e869cf7dbbc4f4372b03"
+      "sha256": "12ff3be5e8fb798bf76972b42cb23939f98f7634b7df5d986dab923255160451"
     },
     {
       "loop": false,
@@ -47,7 +47,7 @@
       "frame_height": 48,
       "file": "op_lumen_attack.png",
       "fps": 12,
-      "sha256": "c7157a675acb4b748743bec16c144d486731eeb7d276d493838cfc0a39885091"
+      "sha256": "6dff5b00dd61e2a41425d992d49b40a48a447c2ec7de8b7b1d62640cc0a9824e"
     },
     {
       "loop": false,
@@ -63,7 +63,7 @@
       "frame_height": 48,
       "file": "op_lumen_skill.png",
       "fps": 12,
-      "sha256": "f80b71135a2eca58d49817fa4e8ad9be3a29f7bd466481f5d33eab869f482468"
+      "sha256": "97258595da1da22b30f9e658103fe9429a03fe96773c3bea2f29261ec78b0c2b"
     },
     {
       "loop": true,
@@ -94,7 +94,7 @@
       "frame_height": 96,
       "file": "op_lumen_idle@2x.png",
       "fps": 4,
-      "sha256": "9e156c5fab803c170e10aed21f86d0052326aff8b0f90708451b9c0cade6d4f7"
+      "sha256": "8a962b3b79d19be3ab14436af23ff66f4b874502df7a7a6b8744037ba7337567"
     },
     {
       "loop": true,
@@ -110,7 +110,7 @@
       "frame_height": 96,
       "file": "op_lumen_run@2x.png",
       "fps": 10,
-      "sha256": "01949227888b5253284531a565ceb036a935d8f3fe5d1963225ce2314dee8193"
+      "sha256": "73c572752b29116c05494f3739f5ca6c2f6789756652919b92340c224d0b701f"
     },
     {
       "loop": false,
@@ -126,7 +126,7 @@
       "frame_height": 96,
       "file": "op_lumen_attack@2x.png",
       "fps": 12,
-      "sha256": "f91453c28657d64591c7dc099bd0687ec5a47b7583c44ad7dda077397edcef27"
+      "sha256": "2296b409705de04bf5b0f3b9d709bb87df038ee9f2f87de2b84b89782b751ccd"
     },
     {
       "loop": false,
@@ -142,7 +142,7 @@
       "frame_height": 96,
       "file": "op_lumen_skill@2x.png",
       "fps": 12,
-      "sha256": "bc345cfcbe7f8846099019eab8a8339733d70270d5e376df852f015718715027"
+      "sha256": "45f5543b53e6be6b92645cdcd1f2c0f91664843d39d8bc5934449924241e0418"
     },
     {
       "loop": true,
