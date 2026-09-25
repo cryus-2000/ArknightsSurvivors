@@ -1,7 +1,8 @@
 ## 艾丽妮（近卫·剑豪，契约 v2.1，docs/26 第二批）：控制 + 处决。刺剑直线穿刺一列敌人，每次两段；唯一会把敌人打浮空的干员。
 ## S1 疾风：下一次刺击命中的第一个敌人浮空 1 秒，落下时补一刺（两段各 ×1.6）；
 ## S2 碎潮：前方锥形斩击最多 8 名 ×2.8，浮空 2 秒（精英 1 秒，Boss 不浮空）；
-## S3 审判：自身 r160 斩击 ×2.5 并浮空全部敌人 3 秒，随后用手炮连射 10 发 ×1.8（原作：她转身用手炮向四周射击），优先打浮空目标。
+## S3 审判（照原作「判决」，2026-09-26）：冲击波掀起周身 r160 全部敌人 ×1.9 并浮空 4 秒，随后她转着身用手炮向四周连射 12 发，
+## 每发打随机目标周围小范围 ×1.55（原作 300% / 250% 的比例，总伤害与旧版持平），优先打浮空目标。
 ## 天赋 涤罪之焰：对浮空 / 眩晕 / 束缚（slow）中的敌人伤害 +30%。
 ## 浮空 = e.stun + e.air（Boss 跳跃已在用的高度字段，game.gd 绘制时按 air 抬高），本脚本每帧写一条 sin 弧线；不改 game.gd。
 extends "res://scripts/characters/character.gd"
@@ -21,6 +22,7 @@ var strikes: Array = []       # S3 手炮轰击队列：{t}
 var judge_c := Vector2.INF
 var judge_left := 0.0
 var thrust_n := 0             # 刺击计数：两段刺击左右错开
+var draw_spin_t := 0.0        # S3 转身开火的转身残影剩余时间
 
 
 ## 四边形：对齐网格后宽度可能收成 0（两侧顶点重合）→ 退化时画成一条线，避免三角化报错
@@ -247,22 +249,24 @@ func _release_skill() -> void:
 			fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 			# 发动音 op_irene_s2 由 spend_sp 播放（锥形重斩本身）
 		2:
-			# 审判：周身 r160 斩击 ×2.5 + 全部浮空 3 秒，然后手炮连射 10 发
+			# 审判（照原作）：以她为中心的冲击波掀起周身全部敌人、浮空 4 秒；随后转身手炮连射 12 发
 			var r3: float = base("s3_r", 160.0) * stat(&"op_range")
-			var dmg3: float = base("atk", 16.0) * base("s3_mult", 2.5) * _dmg_bonus() * skill_power()
+			var dmg3: float = base("atk", 16.0) * base("s3_mult", 1.9) * _dmg_bonus() * skill_power()
 			for e in g._arc_hit(pos + Vector2(0, -10), 0.0, PI, r3):
 				g._hit("审判")
 				g._damage(e, dmg3 * _talent_mult(e))
-				_lift(e, 3.0, 40.0)
+				_lift(e, base("s3_lift", 4.0), 44.0)
 			judge_c = pos
-			judge_left = 3.0
+			judge_left = 3.6
 			strikes.clear()
-			for i in int(base("s3_strikes", 10.0)):
-				strikes.append({"t": 0.3 + i * 0.27})
-			if not g._fx_sprite("fx_slash_circle_rose", pos + Vector2(0, -14), r3 * 2.0 / 66.0, 0.0):
-				g._slash_fx(pos + Vector2(0, -14), 0.0, PI, r3, PINK, "slash", 0.3)
-			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 20.0, "life": 0.5, "col": LAMP, "floor": true, "w": 3.0})
+			for i in int(base("s3_strikes", 12.0)):
+				strikes.append({"t": 0.35 + i * 0.25})
+			# 冲击波：提灯一闪 → 两道贴地冲击环由内向外扩散 + 放射光线；被掀起的敌人脚下各一小圈
+			fx({"kind": "glow", "pos": pos + Vector2(-8.0 * face, -34), "r": 30.0, "life": 0.25, "col": Color(1.8, 1.5, 0.9), "alpha": 0.8})
+			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 16.0, "life": 0.4, "col": LAMP, "floor": true, "w": 5.0})
+			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
+			g.hitstop = maxf(g.hitstop, 0.08)
 			g._show_banner("审判")
 
 
@@ -276,6 +280,7 @@ func skill_active_dur(i: int) -> float:
 
 func _update_strikes(dt: float) -> void:
 	judge_left = maxf(0.0, judge_left - dt)
+	draw_spin_t = maxf(0.0, draw_spin_t - dt)
 	if strikes.is_empty():
 		return
 	var r3: float = base("s3_r", 160.0) * stat(&"op_range")
@@ -293,7 +298,11 @@ func _update_strikes(dt: float) -> void:
 			var c: Vector2 = e.pos
 			area_hit("手炮轰击", c, 40.0, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), 0.0, 0.0)
 			# 手炮（照原作）：炮口一闪 → 弹道光直线打到目标 → 目标处带黑烟的小爆炸（ansimuz 素材；缺图退回程序）
+			# 转身开火：每一发先转向目标（原作她转着身向四周射击），身后留一道转身的残影
+			var prev_face: float = face
 			face_to((c - pos).angle())
+			if face != prev_face:
+				draw_spin_t = 0.12
 			var muzzle: Vector2 = pos + Vector2(12.0 * face, -30)
 			g._fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
 			fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
@@ -312,6 +321,12 @@ func _draw_skill_over() -> void:
 		var p := pos + Vector2(-8.0 * face, -34)
 		g.draw_circle(p, 5.0 + sin(g.t * 20.0), Color(1.6, 1.3, 0.7, 0.8))
 		g.draw_circle(p, 12.0, Color(1.0, 0.85, 0.5, 0.2))
+	# 转身开火：身后一道半圆的玫瑰色转身弧 + 反向的淡残影
+	if draw_spin_t > 0.0:
+		var k: float = draw_spin_t / 0.12
+		var c: Vector2 = pos + Vector2(0, -24)
+		g.draw_arc(c, 22.0, PI * 0.5, PI * 1.5, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0) if face > 0.0 			else g.draw_arc(c, 22.0, -PI * 0.5, PI * 0.5, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0)
+		draw_body_at(pos, face > 0.0, Color(PINK.r * 1.3, PINK.g * 1.2, PINK.b * 1.3, 0.45 * k))
 	# 浮空敌人脚下的小影环
 	for a in airborne:
 		if not a.e.dead:
