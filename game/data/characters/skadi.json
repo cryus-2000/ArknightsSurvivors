@@ -17,7 +17,24 @@
   "s1_mult": 2.0,
   "s2_mult": 3.0,
   "s2_r": 150,
-  "s3_mult": 1.5
+  "s3_mult": 1.5,
+  "combo2_delay": 0.12,
+  "combo2_mult": 0.55,
+  "combo3_delay": 0.12,
+  "combo3_mult": 0.6,
+  "combo3_reach": 1.1,
+  "wave_dist": 200,
+  "wave_w": 140,
+  "wave_spd": 480,
+  "wave_mult": 0.8,
+  "wave_kb": 260,
+  "pulse_every": 1.0,
+  "pulse_r": 120,
+  "pulse_mult": 0.4,
+  "pulse_kb": 200,
+  "elegy_r": 90,
+  "elegy_mult": 0.5,
+  "elegy_kb": 220
  },
  "sprites": {
   "idle": {
@@ -124,32 +141,55 @@
     "follow_up",
     "area"
    ]
+  },
+  "跃浪": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "entity"
+   ]
+  },
+  "涌潮": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "aftershock"
+   ]
+  },
+  "悲歌": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "aftershock"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "大剑 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "combo2",
+   "name": "狂舞",
+   "icon": "growth_u_spd",
+   "desc": "每次横扫变为两连斩：0.12 秒后反向回挥一刀（70% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "大剑 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "combo3",
+   "name": "异乡之舞",
+   "icon": "growth_u_area",
+   "desc": "连斩变为三段：第三下旋身斩一整圈（80% 伤害）"
   },
   {
    "type": "elite",
@@ -158,34 +198,24 @@
    "desc": "解锁二技能「重斩」；解锁天赋「深海猎人」：每第 3 次横扫追加一次反手斩（70%）"
   },
   {
-   "type": "stat",
-   "name": "大剑 · 广",
-   "desc": "范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "leap_wave",
+   "name": "跃浪",
+   "icon": "skill_s2",
+   "desc": "「重斩」落点掀起一道向前推进约 200 的海浪墙，击退并伤害沿途敌人（重斩 80% 伤害，每名敌人一次）"
   },
   {
-   "type": "stat",
-   "name": "大剑 · 锐",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "surge",
+   "name": "涌潮",
+   "icon": "skill_s3",
+   "desc": "「潮汐」期间每秒从脚下涌出一圈水环（半径 120，40% 伤害，击退）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5"
+   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5；普攻质变「悲歌」：每轮连斩收尾，身边涌起一圈小海浪（半径 90，50% 伤害，击退）"
   }
  ],
  "gallery": {

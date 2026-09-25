@@ -4,6 +4,9 @@
 ## S3 审判（照原作「判决」，2026-09-26）：冲击波掀起周身 r160 全部敌人 ×1.9 并浮空 4 秒，随后她转着身用手炮向四周连射 12 发，
 ## 每发打随机目标周围小范围 ×1.55（原作 300% / 250% 的比例，总伤害与旧版持平），优先打浮空目标。
 ## 天赋 涤罪之焰：对浮空 / 眩晕 / 束缚（slow）中的敌人伤害 +30%。
+## 可见成长（docs/25 §5.2，审判庭司法词）：N1 再审：刺击 3 段；N2 严律：刺击更长（+25%）更宽（+40%）；
+## N4 卷风：疾风浮空的目标卷起身边 70 内的敌人；N5 二度裂潮：碎潮 0.35 秒后再斩一次（80%）；
+## 精二「追诉」：刺中浮空 / 被她控住的敌人时追加一发手炮（手炮一发的 60%，0.4 秒一次）。
 ## 浮空 = e.stun + e.air（Boss 跳跃已在用的高度字段，game.gd 绘制时按 air 抬高），本脚本每帧写一条 sin 弧线；不改 game.gd。
 extends "res://scripts/characters/character.gd"
 
@@ -23,6 +26,15 @@ var judge_c := Vector2.INF
 var judge_left := 0.0
 var thrust_n := 0             # 刺击计数：两段刺击左右错开
 var draw_spin_t := 0.0        # S3 转身开火的转身残影剩余时间
+# ---- 可见成长
+var retrial_on := false       # N1 再审：第三段刺击
+var strict_on := false        # N2 严律：刺击更长更宽
+var gale_on := false          # N4 卷风
+var tide2_on := false         # N5 二度裂潮
+var pursue_on := false        # 精二 追诉
+var pursue_cd := 0.0
+var stage_i := 0              # 当前刺击段数（1 / 2 / 3）
+var tide2_t := -1.0           # 二度裂潮倒计时
 
 
 ## 四边形：对齐网格后宽度可能收成 0（两侧顶点重合）→ 退化时画成一条线，避免三角化报错
@@ -35,6 +47,17 @@ func _quad(q: PackedVector2Array, c: Color) -> void:
 
 ## 刺击光束：u = 进度 0→1；前 30% 伸到最长（缓出），之后宽度收细、淡出；顶点对齐 2 像素网格保持像素感
 func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if f.kind == "gale":
+		# 卷风：贴地三道玫瑰色旋风弧由外向内收拢，外圈一道淡环标出卷起范围
+		var u0: float = 1.0 - a
+		g.draw_set_transform(f.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		g.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(PINK.r, PINK.g, PINK.b, 0.35 * a), 1.5)
+		for q in 3:
+			var rr: float = f.r * (1.0 - 0.6 * u0) * (1.0 - q * 0.22)
+			var a0: float = u0 * 9.0 + q * TAU / 3.0
+			g.draw_arc(Vector2.ZERO, rr, a0, a0 + 2.0, 12, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.5, 0.8 * a), 3.0 - q * 0.6)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return true
 	if f.kind != "thrust":
 		return false
 	var u: float = 1.0 - a
@@ -69,7 +92,29 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 
 
 func _reach() -> float:
-	return base("len", 120.0) * stat(&"op_range")
+	return base("len", 120.0) * stat(&"op_range") * (base("strict_len", 1.25) if strict_on else 1.0)
+
+
+func _width() -> float:
+	return base("width", 26.0) * (base("strict_width", 1.4) if strict_on else 1.0)
+
+
+## 成长节点（data/characters/irene.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"retrial":
+			retrial_on = true
+		"strict":
+			strict_on = true
+		"gale":
+			gale_on = true
+		"tide2":
+			tide2_on = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		pursue_on = true
 
 
 func follow_target(slot_pos: Vector2) -> Vector2:
@@ -81,11 +126,24 @@ func update(dt: float) -> void:
 	cd -= dt
 	_update_airborne(dt)
 	_update_strikes(dt)
+	pursue_cd = maxf(0.0, pursue_cd - dt)
 	if second_t >= 0.0:
 		second_t -= dt
 		if second_t < 0.0:
 			second_t = -1.0
-			_thrust(second_ang, second_mult, false)
+			stage_i += 1
+			if stage_i == 3:
+				# 再审：第三段刺击（刺击伤害 60%）
+				_thrust(second_ang, second_mult * base("retrial_mult", 0.6), false)
+			else:
+				_thrust(second_ang, second_mult, false)
+				if retrial_on:
+					second_t = _stage_gap()
+	if tide2_t >= 0.0:
+		tide2_t -= dt
+		if tide2_t < 0.0:
+			tide2_t = -1.0
+			_shattertide(base("tide2_mult", 0.8))
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -119,16 +177,31 @@ func _release() -> void:
 	gust_next = false
 	if gust:
 		mult = base("s1_mult", 1.6) * skill_power()
+	stage_i = 1
 	var first := _thrust(ang, mult, gust)
-	var spec := sprite_spec("attack")
-	var fps: float = float(spec.get("fps", 12))
-	second_t = maxf(0.05, (float(spec.get("second", 3)) - float(spec.get("fire", 1))) / fps)
+	second_t = _stage_gap()
 	second_ang = ang
 	second_mult = mult
 	if gust and not first.is_empty():
 		# 疾风：第一个命中者浮空 1 秒，落下时再补一刺
 		_lift(first, 1.0, 26.0)
 		fx({"kind": "ring", "pos": first.pos, "r": 30.0, "r0": 6.0, "life": 0.3, "col": PINK, "floor": true})
+		# 卷风：浮空的目标卷起身边 70 内的敌人一起浮空 0.8 秒；贴地一圈旋风
+		if gale_on:
+			var gr: float = base("gale_r", 70.0)
+			for j in g._query(first.pos, gr + 30.0):
+				var e: Dictionary = g.enemies[j]
+				if e.dead or is_same(e, first) or e.pos.distance_to(first.pos) > gr + e.r:
+					continue
+				_lift(e, base("gale_lift", 0.8), 20.0)
+			fx({"kind": "gale", "pos": first.pos, "r": gr, "life": 0.45, "floor": true})
+
+
+## 段间隔：按帧条的 second 帧与出手帧之差
+func _stage_gap() -> float:
+	var spec := sprite_spec("attack")
+	var fps: float = float(spec.get("fps", 12))
+	return maxf(0.05, (float(spec.get("second", 3)) - float(spec.get("fire", 1))) / fps)
 
 
 ## 直线穿刺：返回命中的第一个敌人（最近的）
@@ -136,7 +209,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	var d := Vector2.from_angle(ang)
 	var o: Vector2 = pos + Vector2(0, -12)
 	var L: float = _reach()
-	var W: float = base("width", 26.0)
+	var W: float = _width()
 	var hits: Array = []
 	for j in g._query(o + d * L * 0.5, L * 0.6 + 40.0):
 		var e: Dictionary = g.enemies[j]
@@ -154,8 +227,13 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	var first: Dictionary = {}
 	for h in hits:
 		var e: Dictionary = h[1]
+		# 追诉：刺中浮空 / 被她控住的敌人时追加一发手炮（先判定：本次伤害可能把它打死）
+		var pursue: bool = pursue_on and pursue_cd <= 0.0 and not e.dead and (e.get("air", 0.0) > 0.0 or _is_airborne(e))
 		g._hit("疾风" if tag_gust else "刺剑")
 		g._damage(e, dmg * _talent_mult(e))
+		if pursue:
+			pursue_cd = base("pursue_cd", 0.4)
+			_cannon(e.pos, base("atk", 18.0) * base("s3_strike_mult", 1.55) * base("pursue_mult", 0.6) * _dmg_bonus(), "追诉")
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
@@ -171,6 +249,13 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		fx({"kind": "thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
 			"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
 		g._fx_sprite("fx_star_hit_rose", st + d * (L + 10.0), g.PX * 0.8)
+	elif strict_on:
+		# 严律：帧条长度伸缩上限 1.1，更长更宽的部分由程序光束叠出（剑尖星芒标出新的刺击末端）
+		fx({"kind": "thrust", "pos": st, "dir": d, "len": L, "w": 7.0 * base("strict_width", 1.4), "life": 0.16, "col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
+		g._fx_sprite("fx_star_hit_rose", st + d * (L + 6.0), g.PX * 0.8)
+	if stage_i == 3:
+		# 第三段（再审）：剑尖多一道金色星芒，和前两段区分
+		fx({"kind": "glow", "pos": st + d * L, "r": 10.0, "life": 0.18, "col": LAMP, "alpha": 0.7})
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 	if not first.is_empty():
 		Sfx.op(id, "hit")
@@ -231,25 +316,10 @@ func _airborne_enemies(c: Vector2, r: float) -> Array:
 func _release_skill() -> void:
 	match cur_skill:
 		1:
-			# 碎潮：前方锥形，最多 8 名，×2.8，浮空 2 秒
-			var ts: Array = g._nearest(1, 240.0, pos)
-			var ang: float = facing_angle()
-			if not ts.is_empty():
-				ang = (ts[0].pos - pos).angle()
-				face_to(ang)
-			var r: float = _reach() * 1.3
-			var hits: Array = g._arc_hit(pos + Vector2(0, -10), ang, 0.8, r)
-			hits.sort_custom(func(a, b): return a.pos.distance_squared_to(pos) < b.pos.distance_squared_to(pos))
-			var dmg: float = base("atk", 16.0) * base("s2_mult", 2.8) * _dmg_bonus() * skill_power()
-			var n: int = mini(int(base("s2_n", 8.0)), hits.size())
-			for i in n:
-				var e: Dictionary = hits[i]
-				g._hit("碎潮")
-				g._damage(e, dmg * _talent_mult(e))
-				_lift(e, 2.0, 34.0)
-			if not g._fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.5, r * 1.2 / 28.0, ang):
-				g._slash_fx(pos + Vector2(0, -14), ang, 0.8, r, PINK, "slash", 0.25)
-			fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
+			_shattertide(1.0)
+			# 二度裂潮（原作 S2 可存 2 次）：0.35 秒后再斩一次，80% 伤害
+			if tide2_on:
+				tide2_t = base("tide2_delay", 0.35)
 			# 发动音 op_irene_s2 由 spend_sp 播放（锥形重斩本身）
 		2:
 			# 审判（照原作）：以她为中心的冲击波掀起周身全部敌人、浮空 4 秒；随后转身手炮连射 12 发
@@ -271,6 +341,33 @@ func _release_skill() -> void:
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
 			g.hitstop = maxf(g.hitstop, 0.08)
 			g._show_banner("审判")
+
+
+## 碎潮：前方锥形，最多 8 名，×2.8 × mult，浮空 2 秒（每次重新瞄准最近的敌人）
+func _shattertide(mult: float) -> void:
+	var ts: Array = g._nearest(1, 240.0, pos)
+	var ang: float = facing_angle()
+	if not ts.is_empty():
+		ang = (ts[0].pos - pos).angle()
+		face_to(ang)
+	var r: float = _reach() * 1.3
+	var hits: Array = g._arc_hit(pos + Vector2(0, -10), ang, 0.8, r)
+	hits.sort_custom(func(a, b): return a.pos.distance_squared_to(pos) < b.pos.distance_squared_to(pos))
+	var dmg: float = base("atk", 16.0) * base("s2_mult", 2.8) * _dmg_bonus() * skill_power() * mult
+	var n: int = mini(int(base("s2_n", 8.0)), hits.size())
+	for i in n:
+		var e: Dictionary = hits[i]
+		g._hit("碎潮")
+		g._damage(e, dmg * _talent_mult(e))
+		_lift(e, 2.0, 34.0)
+	# 第二斩：镜像翻转 + 偏银白，与第一斩区分
+	var second: bool = mult < 1.0
+	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
+	if not g._fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.5, r * 1.2 / 28.0, ang, second, false, tint):
+		g._slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
+	fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
+	if second:
+		Sfx.op(id, "atk", 2.0, 0.9)
 
 
 func skill_active_left(i: int) -> float:
@@ -299,21 +396,33 @@ func _update_strikes(dt: float) -> void:
 				continue
 			var e: Dictionary = pool[g.rng.randi() % pool.size()]
 			var c: Vector2 = e.pos
-			area_hit("手炮轰击", c, 40.0, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), 0.0, 0.0)
-			# 手炮（照原作）：炮口一闪 → 弹道光直线打到目标 → 目标处带黑烟的小爆炸（ansimuz 素材；缺图退回程序）
 			# 转身开火：每一发先转向目标（原作她转着身向四周射击），身后留一道转身的残影
 			var prev_face: float = face
 			face_to((c - pos).angle())
 			if face != prev_face:
 				draw_spin_t = 0.12
-			var muzzle: Vector2 = pos + Vector2(12.0 * face, -30)
-			g._fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
-			fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
-			if not g._fx_sprite("fx_cannon_burst", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
-				fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": LAMP, "alpha": 0.6})
-			fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": LAMP, "floor": true})
-			Sfx.op(id, "big", -4.0, 1.0, 0.1)
+			_cannon(c, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), "手炮轰击")
 	strikes = strikes.filter(func(s): return s.t > 0.0)
+
+
+## 手炮一发（审判连射与精二追诉共用）：目标周围 40 小范围伤害。
+## 表现照原作：炮口一闪 → 弹道光直线打到目标 → 目标处带黑烟的小爆炸（ansimuz 素材；缺图退回程序）
+func _cannon(c: Vector2, dmg: float, src: String) -> void:
+	area_hit(src, c, 40.0, dmg, 0.0, 0.0)
+	var muzzle: Vector2 = pos + Vector2(12.0 * face, -30)
+	g._fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
+	fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
+	if not g._fx_sprite("fx_cannon_burst", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+		fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": LAMP, "alpha": 0.6})
+	fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": LAMP, "floor": true})
+	Sfx.op(id, "big", -4.0, 1.0, 0.1)
+
+
+func _is_airborne(e: Dictionary) -> bool:
+	for a in airborne:
+		if is_same(a.e, e):
+			return true
+	return false
 
 
 # ---------------------------------------------------------------- 绘制
@@ -328,7 +437,8 @@ func _draw_skill_over() -> void:
 	if draw_spin_t > 0.0:
 		var k: float = draw_spin_t / 0.12
 		var c: Vector2 = pos + Vector2(0, -24)
-		g.draw_arc(c, 22.0, PI * 0.5, PI * 1.5, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0) if face > 0.0 			else g.draw_arc(c, 22.0, -PI * 0.5, PI * 0.5, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0)
+		var a0: float = PI * 0.5 if face > 0.0 else -PI * 0.5   # 身后半圆（原来的三元表达式对 void 取值会报错）
+		g.draw_arc(c, 22.0, a0, a0 + PI, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0)
 		draw_body_at(pos, face > 0.0, Color(PINK.r * 1.3, PINK.g * 1.2, PINK.b * 1.3, 0.45 * k))
 	# 浮空敌人脚下的小影环
 	for a in airborne:

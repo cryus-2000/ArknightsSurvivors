@@ -24,7 +24,22 @@
   "s3_burst_mult": 3.0,
   "talent_lamp": 2,
   "bolt_cd": 1.0,
-  "bolt_aoe": 24
+  "bolt_aoe": 24,
+  "unit_cd": 1.4,
+  "unit_mult": 0.6,
+  "rain_dur": 3.0,
+  "rain_r": 140,
+  "rain_tick": 0.5,
+  "rain_mult": 0.15,
+  "beam_len": 260,
+  "beam_period": 2.0,
+  "beam_tick": 0.2,
+  "beam_mult": 0.4,
+  "beam_cd": 0.4,
+  "charge_need": 8,
+  "charge_shots": 8,
+  "charge_mult": 2.0,
+  "charge_heal": 0.005
  },
  "sprites": {
   "idle": {
@@ -134,32 +149,53 @@
     "skill",
     "area"
    ]
+  },
+  "发光单元": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "entity"
+   ]
+  },
+  "沐雨": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area",
+    "dot"
+   ]
+  },
+  "灯塔光束": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "荧光 · 厚",
-   "desc": "治疗与光弹 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "unit_a",
+   "name": "发光单元",
+   "icon": "growth_b_count",
+   "desc": "身边浮起一个自制发光单元，每 1.4 秒射出光弹（60% 伤害，照亮命中者）"
   },
   {
-   "type": "stat",
-   "name": "荧光 · 频",
-   "desc": "治疗与射击频率 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "unit_b",
+   "name": "灯影成双",
+   "icon": "growth_b_count",
+   "desc": "发光单元 +1（共 2 个）"
   },
   {
    "type": "elite",
@@ -168,34 +204,24 @@
    "desc": "解锁二技能「领航灯」；解锁天赋「余晖」：每次回复或驱散灯火 +2，灯火充盈时自身充能 +20%"
   },
   {
-   "type": "stat",
-   "name": "荧光 · 厚 II",
-   "desc": "治疗与光弹 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "rain",
+   "name": "沐雨",
+   "icon": "skill_s1",
+   "desc": "「净化之光」时发光单元在博士周围 140 内洒下光雨 3 秒：雨中敌人被照亮，每 0.5 秒受 15% 伤害"
   },
   {
-   "type": "stat",
-   "name": "灯 · 迅",
-   "desc": "技能充能 +20%",
-   "effects": [
-    {
-     "key": "op_skill_sp",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "watch",
+   "name": "灯塔守望",
+   "icon": "skill_s3",
+   "desc": "「指引灯塔」射出一道旋转光束（长 260，2 秒一圈），扫到的敌人受 40% 伤害并被照亮（精二解锁灯塔后生效）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「指引灯塔」：立起灯塔 10 秒，区内回复、免疫负面、灯火回升，结束时光爆"
+   "desc": "解锁三技能「指引灯塔」：立起灯塔 10 秒，区内回复、免疫负面、灯火回升，结束时光爆；普攻质变「灯火不灭」：发光单元每射 8 发攒满一轮，接下来 8 发变为强化光弹（更大更亮、2 倍伤害，每发为博士回复 0.5% 最大生命）"
   }
  ],
  "gallery": {

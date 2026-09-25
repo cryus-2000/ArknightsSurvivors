@@ -20,7 +20,19 @@
   "s3_count": 10,
   "s3_r": 75,
   "s3_mult": 1.64,
-  "lava_mult": 0.23
+  "lava_mult": 0.23,
+  "twin_mult": 0.6,
+  "tri_mult": 1.5,
+  "tri_size": 1.5,
+  "tri_aoe": 1.2,
+  "ember_mult": 0.3,
+  "ember_r": 30,
+  "ember_reach": 200,
+  "blob_mult": 0.5,
+  "blob_r": 40,
+  "meteor_mult": 0.5,
+  "meteor_r": 45,
+  "meteor_reach": 320
  },
  "sprites": {
   "idle": {
@@ -146,32 +158,54 @@
     "projectile",
     "area"
    ]
+  },
+  "火星": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "area"
+   ]
+  },
+  "熔岩团": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "projectile",
+    "area"
+   ]
+  },
+  "熔岩天降": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "projectile",
+    "area"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "法术 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "twin_cast",
+   "name": "复咏",
+   "icon": "growth_b_count",
+   "desc": "每次施法投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 60%"
   },
   {
-   "type": "stat",
-   "name": "法术 · 广",
-   "desc": "爆炸范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "embers",
+   "name": "火星迸溅",
+   "icon": "growth_b_echo",
+   "desc": "熔岩弹爆炸时迸出 2 颗火星，弹跳到附近的敌人身上小范围爆炸（40% 伤害）"
   },
   {
    "type": "elite",
@@ -180,34 +214,24 @@
    "desc": "解锁二技能「点燃」；解锁天赋「炽热」：火山弹爆炸范围 +25%；点燃持续时间 +1 秒"
   },
   {
-   "type": "stat",
-   "name": "法术 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "ignite_blobs",
+   "name": "星火燎原",
+   "icon": "skill_s2",
+   "desc": "「点燃」的重弹炸开后向四周溅出 4 团熔岩，落地各自爆炸（普攻熔岩弹的 50% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "法术 · 锐",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "meteor",
+   "name": "熔岩天降",
+   "icon": "skill_s3",
+   "desc": "「火山」每次喷发，同时向附近 2 名随机敌人高抛一颗熔岩弹（喷发伤害的 50%）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.8），每处留下 3 秒熔岩"
+   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.8），每处留下 3 秒熔岩；普攻质变「三重咏唱」：每次施法投出 3 发熔岩弹，后两发体积 ×1.5、伤害 ×1.5（取代复咏的 60%）"
   }
  ],
  "gallery": {

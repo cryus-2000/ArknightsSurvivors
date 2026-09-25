@@ -20,6 +20,15 @@ var melt := 0.0               # S3 熔毁剩余
 var glow_t := 0.0
 var ghost := {}               # 残影：{pos, face, kind, at, t}
 var m_swing := 1.0            # 月牙斩方向（上下交替）
+# ---- 可见成长（docs/25 §5：原作八面晶体展开四爪 / S1 结构加固 / 天赋不毁重构 / S2 攻击所有阻挡）
+var twin_claw := false        # N1「骨爪增生」：每次爪击两爪（第二爪 0.08 秒后、60%，交叉爪痕）
+var wide_arc := false         # N2「清创」：爪击扇面 +40%
+var s1_shell := false         # N4「结构加固」：医疗单元附带 3 秒减伤护壳
+var melt_triple := false      # N5「不毁重构」：熔毁收尾三连爆并眩晕
+var dual_side := false        # 精二「八面展开」：Mon3tr 前后同时出爪
+var shell_t := 0.0            # 结构加固护壳剩余
+var m_pend: Array = []        # 延迟的第二爪：{t, mult}
+var melt_echo: Array = []     # 不毁重构的后续爆炸：{t, pos, r, dmg}
 
 
 func _heal_mult() -> float:
@@ -30,13 +39,37 @@ func _boosted() -> bool:
 	return melt > 0.0
 
 
+## 成长节点（data/characters/kaltsit.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"twin_claw":
+			twin_claw = true
+		"wide_arc":
+			wide_arc = true
+		"s1_shell":
+			s1_shell = true
+		"melt_triple":
+			melt_triple = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		dual_side = true
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	guard_t = maxf(0.0, guard_t - dt)
+	shell_t = maxf(0.0, shell_t - dt)
 	if melt > 0.0:
 		melt -= dt
 		if melt <= 0.0:
 			_meltdown()
+	for me in melt_echo:
+		me.t -= dt
+		if me.t <= 0.0:
+			_melt_burst(me.pos, me.r, me.dmg, false)
+	melt_echo = melt_echo.filter(func(me): return me.t > 0.0)
 	_update_mon3tr(dt)
 	if acting():
 		return
@@ -81,6 +114,10 @@ func _release_skill() -> void:
 			_heal(g.max_hp * base("s1_heal", 0.08) * _heal_mult() * skill_power(), 18)
 			g.nerve = 0.0
 			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
+			# N4「结构加固」：主控身上罩一层绿色六边形护壳，受到的伤害 -35%
+			if s1_shell:
+				shell_t = base("shell_dur", 3.0)
+				fx({"kind": "ring", "pos": g.ppos + Vector2(0, -22), "r": 40.0, "r0": 12.0, "life": 0.35, "col": Color(0.7, 1.6, 0.8), "w": 2.5})
 		1:
 			coord = true
 			_mon3tr_burst()
@@ -160,6 +197,11 @@ func _update_mon3tr(dt: float) -> void:
 		m.face = signf(vel.x)
 	# 爪击
 	m.cd -= dt * (1.4 if coord else 1.0)
+	for pc in m_pend:
+		pc.t -= dt
+		if pc.t <= 0.0:
+			_m_claw(pc.mult, true)
+	m_pend = m_pend.filter(func(pc): return pc.t > 0.0)
 	if m.act > 0.0:
 		m.act -= dt
 		if m.fire >= 0.0:
@@ -187,28 +229,52 @@ func _m_set_kind(k: String) -> void:
 
 
 func _m_strike() -> void:
-	var ang: float = 0.0 if m.face >= 0.0 else PI
-	var o: Vector2 = m.pos + Vector2(0, -14)
-	var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, 1.3, _m_reach() + 16.0, _m_dmg(), 120.0)
 	if melt > 0.0:
-		# 照原作：熔毁期间一整道巨大的猩红月牙斩；方向上下交替，像两只爪轮流挥
 		m_swing = -m_swing
-		var red: bool = melt > 0.0
-		var R: float = _m_reach() * (1.25 if red else 1.05)
-		fx({"kind": "crescent", "pos": o + Vector2(-10.0 * m.face, 0), "ang": ang, "r": R, "w": 22.0 if red else 14.0,
-			"sweep": 2.3 if red else 2.0, "dir": m_swing * m.face, "life": 0.26 if red else 0.22, "col": CRIMSON if red else GREEN})
-		if red:
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * m.face, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": m_swing * m.face, "life": 0.2, "col": Color(1.0, 0.45, 0.4)})
-		var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
-		fx({"kind": "impact", "pos": hp, "r": 20.0 if red else 16.0, "life": 0.14, "col": CRIMSON if red else GREEN})
-		fx_sparks(hp, Color(2.0, 1.6, 1.2) if not red else Color(1.6, 0.4, 0.4), 7, 240.0, 0.28, 2.5)
-	else:
-		# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
-		if not g._fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", o + Vector2.from_angle(ang) * (_m_reach() * 0.55), g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2), 0.0, m.face < 0.0):
-			fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
-		fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
-	if not hits.is_empty():
-		Sfx.op(id, "atk", 2.0 if melt > 0.0 else 0.0, 0.85 if melt > 0.0 else 1.0)
+	_m_claw(1.0, false)
+	# N1「骨爪增生」：0.08 秒后第二爪（60%），爪痕与第一爪交叉
+	if twin_claw:
+		m_pend.append({"t": base("claw2_delay", 0.08), "mult": base("claw2_mult", 0.6)})
+
+
+## 一次爪击：朝 Mon3tr 面向挥爪；精二「八面展开」时同时向身后镜像出爪（背后一爪 70%）。
+## second：N1 的第二爪（爪痕旋转交叉、月牙反向扫）
+func _m_claw(mult: float, second: bool) -> void:
+	var fwd: float = 0.0 if m.face >= 0.0 else PI
+	var o: Vector2 = m.pos + Vector2(0, -14)
+	var half: float = base("m_arc", 1.3) * (base("m_arc_wide", 1.4) if wide_arc else 1.0)
+	var dirs: Array = [fwd, fwd + PI] if dual_side else [fwd]
+	var any := false
+	for i in dirs.size():
+		var ang: float = dirs[i]
+		var sd: float = 1.0 if cos(ang) >= 0.0 else -1.0   # 这一爪朝向的左右
+		var dmg: float = _m_dmg() * mult * (1.0 if i == 0 else base("m_back_mult", 0.7))
+		var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, half, _m_reach() + 16.0, dmg, 120.0)
+		any = any or not hits.is_empty()
+		if melt > 0.0:
+			# 照原作：熔毁期间一整道巨大的猩红月牙斩；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
+			var sw: float = -m_swing if second else m_swing
+			var R: float = _m_reach() * 1.25
+			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
+				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": CRIMSON})
+			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(1.0, 0.45, 0.4)})
+			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
+			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": CRIMSON})
+			fx_sparks(hp, Color(1.6, 0.4, 0.4), 7, 240.0, 0.28, 2.5)
+		else:
+			# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
+			# 第二爪：爪痕旋转约 60°，与第一爪交叉
+			var rot: float = (1.05 * sd) if second else 0.0
+			var cp: Vector2 = o + Vector2.from_angle(ang) * (_m_reach() * 0.55)
+			var sc: float = g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2) * (0.9 if second else 1.0)
+			if not g._fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", cp, sc, rot, sd < 0.0):
+				fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang + rot, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
+			fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
+			# N2「清创」：更宽的扇面用一道淡绿细月牙画出来
+			if wide_arc and not second:
+				fx({"kind": "crescent", "pos": o, "ang": ang, "r": _m_reach() + 8.0, "w": 5.0, "sweep": half * 2.0, "dir": sd, "life": 0.2, "col": Color(0.5, 1.1, 0.55)})
+	if any:
+		Sfx.op(id, "atk", 2.0 if melt > 0.0 else 0.0, (0.85 if melt > 0.0 else 1.0) * (1.15 if second else 1.0))
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
@@ -217,9 +283,32 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 
 func _meltdown() -> void:
 	var r := 130.0
-	area_hit("Mon3tr · 熔毁", m.pos, r, base("m_atk", 22.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power(), 260.0, 0.5)
+	var dmg: float = base("m_atk", 22.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power()
+	_melt_burst(m.pos, r, dmg, true)
+	# N5「不毁重构」：再接两次更大的爆炸（间隔 0.2 秒，半径 ×1.25 / ×1.5，伤害 50%）
+	if melt_triple:
+		for k in 2:
+			melt_echo.append({"t": base("melt_echo_gap", 0.2) * (k + 1), "pos": m.pos, "r": r * (1.25 + 0.25 * k), "dmg": dmg * base("melt_echo_mult", 0.5)})
+
+
+## 熔毁爆炸（main：第一次，带晶核碎裂全套特效；后续爆炸只有光束 + 晶片 + 地面环）。
+## 不毁重构后每次都眩晕 1.5 秒（精英减半、Boss 免疫，由 melee_hit 处理）
+func _melt_burst(at: Vector2, r: float, dmg: float, main: bool) -> void:
+	var stun: float = base("melt_stun", 1.5) if melt_triple else 0.5
+	area_hit("Mon3tr · 熔毁", at, r, dmg, 260.0 if main else 160.0, stun)
+	if not main:
+		var c2: Vector2 = at + Vector2(0, -24)
+		fx({"kind": "glow", "pos": c2, "r": 40.0, "life": 0.25, "col": Color(1.2, 2.2, 1.0), "alpha": 0.5})
+		for i in 8:
+			fx({"kind": "beamray", "pos": c2, "ang": TAU * i / 8.0 + g.rng.randf_range(-0.3, 0.3), "len": r * g.rng.randf_range(0.8, 1.1), "life": 0.3, "col": GREEN})
+		for i in 6:
+			var v3: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160, 340)
+			fx({"kind": "qshard", "pos": c2, "vel": v3, "drag": 2.2, "life": 0.5, "sz": g.rng.randf_range(5.0, 9.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-9, 9)})
+		fx({"kind": "ring", "pos": at, "r": r, "r0": r * 0.5, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
+		Sfx.op(id, "big", -4.0, 1.15)
+		return
 	# 照原作：绿色八面体晶核亮起胀大后碎裂 → 空心方形晶片 + 黑色碎片四散、放射光束、大量绿色光点
-	var c: Vector2 = m.pos + Vector2(0, -24)
+	var c: Vector2 = at + Vector2(0, -24)
 	fx({"kind": "glow", "pos": c, "r": 60.0, "life": 0.3, "col": Color(1.2, 2.2, 1.0), "alpha": 0.7})
 	fx({"kind": "core", "pos": c, "r": 26.0, "life": 0.4})
 	for i in 10:
@@ -233,10 +322,9 @@ func _meltdown() -> void:
 		fx({"kind": "shard", "pos": c, "vel": v2, "drag": 2.0, "life": 0.5, "col": Color(0.03, 0.05, 0.04), "sz": g.rng.randf_range(4.0, 7.0), "ang": v2.angle(), "spin": 10.0})
 	for i in 24:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": GREEN, "sz": g.rng.randf_range(1.5, 3.0)})
-	fx({"kind": "ring", "pos": m.pos, "r": r, "r0": 12.0, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
+	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
 	g.hitstop = maxf(g.hitstop, 0.1)
-	g._add_text(m.pos + Vector2(0, -70), "熔毁", GREEN, 18)
-	g.shake = maxf(g.shake, 5.0)
+	g._add_text(at + Vector2(0, -70), "熔毁", GREEN, 18)
 	Sfx.op(id, "big")
 
 
@@ -374,6 +462,25 @@ func draw_extra(_it: Dictionary) -> void:
 	var col := Color(1.7, 0.45, 0.45) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
 	g._draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+	_draw_claw_blades()
+
+
+## 常驻爪刃（可见成长）：Mon3tr 身侧发光的月牙爪刃，数量 = 每次爪击的爪数（骨爪增生后 2 道）；
+## 精二「八面展开」后身后镜像再展开一组，一眼看出前后都会出爪。熔毁期间染猩红
+func _draw_claw_blades() -> void:
+	var n: int = 2 if twin_claw else 1
+	var sides: Array = [m.face, -m.face] if dual_side else [m.face]
+	var c: Color = CRIMSON if melt > 0.0 else GREEN
+	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
+	for s in sides:
+		var base_a: float = 0.0 if s >= 0.0 else PI
+		for j in n:
+			var sway: float = sin(g.t * 3.0 + j * 1.7 + s) * 0.18
+			var cp: Vector2 = body + Vector2(s * (27.0 + 5.0 * j), -10.0 + j * 15.0)
+			var a0: float = base_a - 0.95 + sway
+			var a1: float = base_a + 0.95 + sway
+			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
+			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
 
 
 ## 悬浮起伏（像素）：越高影子越小
@@ -386,9 +493,30 @@ func draw_extra_shadows() -> void:
 		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
 
 
-## 溢出治疗后 5 秒博士受伤 -20%（game.gd _enemy_hit 查询）
+## 溢出治疗后 5 秒博士受伤 -20%；结构加固护壳期间再 -35%（game.gd _enemy_hit 查询）
 func dmg_taken_mult() -> float:
-	return 0.8 if guard_t > 0.0 else 1.0
+	var k: float = 0.8 if guard_t > 0.0 else 1.0
+	if shell_t > 0.0:
+		k *= 1.0 - base("shell_red", 0.35)
+	return k
+
+
+## N4「结构加固」护壳：主控周身一层半透明绿色六边形，边缘描亮、缓慢自转，最后 0.5 秒闪烁淡出
+func _draw_skill_over() -> void:
+	if shell_t <= 0.0 or g.ppos == Vector2.INF:
+		return
+	var al: float = 1.0 if shell_t > 0.5 else (0.35 + 0.65 * absf(sin(shell_t * 18.0)))
+	var c: Vector2 = g.ppos + Vector2(0, -22)
+	var R: float = 34.0 + 1.5 * sin(g.t * 5.0)
+	var hexp := PackedVector2Array()
+	for i in 7:
+		var an: float = g.t * 0.6 + i * TAU / 6.0
+		hexp.append(c + Vector2(cos(an) * R, sin(an) * R * 1.12))
+	g.draw_colored_polygon(hexp.slice(0, 6), Color(0.4, 1.3, 0.5, 0.13 * al))
+	g.draw_polyline(hexp, Color(0.9, 2.0, 0.9, 0.7 * al), 2.0)
+	# 内侧淡淡的蜂窝线：三条对角线
+	for i in 3:
+		g.draw_line(hexp[i], hexp[i + 3], Color(0.7, 1.7, 0.7, 0.18 * al), 1.0)
 
 
 func status_items() -> Array:
@@ -397,4 +525,6 @@ func status_items() -> Array:
 		out.append(["熔毁", CRIMSON])
 	if guard_t > 0.0:
 		out.append(["庇护", GREEN])
+	if shell_t > 0.0:
+		out.append(["结构加固", GREEN])
 	return out
