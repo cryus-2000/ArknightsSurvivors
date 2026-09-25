@@ -20,7 +20,18 @@
   "s1_shots": 5,
   "s1_mult": 1.2,
   "s2_buff": 0.15,
-  "s3_buff": 0.2
+  "s3_buff": 0.2,
+  "n1_shots": 1,
+  "merge_every": 3,
+  "merge_mult": 2.2,
+  "merge_spd": 340,
+  "merge_life": 1.3,
+  "merge_r": 14,
+  "seal_stun": 0.5,
+  "seal_stun_elite": 0.25,
+  "hearth_n": 6,
+  "hearth_mult": 0.3,
+  "hearth_cd": 0.5
  },
  "sprites": {
   "idle": {
@@ -109,32 +120,33 @@
     "area",
     "control"
    ]
+  },
+  "围炉": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "entity",
+    "area"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "光域 · 广",
-   "desc": "光域范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "fox_plus",
+   "name": "狐火点点",
+   "icon": "growth_b_count",
+   "desc": "每次普攻狐火 +1；身边常驻的小狐火数 = 每次普攻的狐火数"
   },
   {
-   "type": "stat",
-   "name": "狐火 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "fox_merge",
+   "name": "三火归一",
+   "icon": "growth_b_size",
+   "desc": "每第 3 次普攻，三团狐火在身前汇成一团大狐火射出：贯穿沿途敌人，伤害为一团狐火的 2.2 倍"
   },
   {
    "type": "elite",
@@ -143,34 +155,24 @@
    "desc": "解锁二技能「暖光」；解锁天赋「祈愿」：光域内的敌人受到伤害 +10%；狐火 +1 发"
   },
   {
-   "type": "stat",
-   "name": "光域 · 广 II",
-   "desc": "光域范围 +20%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "fox_seal",
+   "name": "画地为牢",
+   "icon": "skill_s1",
+   "desc": "「狐火连珠」命中的敌人被定身 0.5 秒（精英 0.25 秒，首领无效），脚下浮现金色封印"
   },
   {
-   "type": "stat",
-   "name": "狐火 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "fox_hearth",
+   "name": "围炉",
+   "icon": "skill_s2",
+   "desc": "「暖光」生效后，光域边缘的六团狐火会灼伤碰到的敌人（狐火 30% 伤害，每名敌人 0.5 秒一次）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「狐火迷雾」：10 秒大光域（范围 ×2.2）：敌人移速 -60%、受到的伤害 +25%，博士每秒回复 1% 生命；期间铃兰不再普攻"
+   "desc": "解锁三技能「狐火迷雾」：10 秒大光域（范围 ×2.2）：敌人移速 -60%、受到的伤害 +25%，博士每秒回复 1% 生命；期间铃兰不再普攻；普攻质变「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一"
   }
  ],
  "gallery": {

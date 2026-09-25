@@ -68,6 +68,10 @@ var close_rect := Rect2()
 var demo_vp: SubViewport
 var demo_game: Node
 var demo_id := ""
+## 手动切换（2026-09-26 用户要求）：阶段 0 精零 / 1 精一 / 2 精二；动作 -1 轮播 / 0–2 只放该技能 / 3 只普攻。换干员时保留，方便横向比较
+var demo_stage := 2
+var demo_mode := -1
+var demo_rects: Array = []       # [Rect2, "stage" | "mode", 值]
 const DEMO_H := 290
 
 
@@ -111,8 +115,24 @@ func _demo_start(cid: String, sz: Vector2i) -> void:
 	add_child(demo_vp)
 	demo_game = load("res://game.tscn").instantiate()
 	demo_game.demo_op = cid
+	demo_game.demo_configure(demo_stage, demo_mode)
 	demo_vp.add_child(demo_game)
 	demo_id = cid
+
+
+## 点击阶段 / 动作按钮：未解锁的技能（阶段不够）不响应
+func _demo_click(kind: String, v: int) -> void:
+	if kind == "stage":
+		demo_stage = v
+		if demo_mode >= 0 and demo_mode <= 2 and demo_mode > demo_stage:
+			demo_mode = -1   # 降阶段后当前技能还没解锁：回到轮播
+	else:
+		if v >= 0 and v <= 2 and v > demo_stage:
+			return
+		demo_mode = v
+	if demo_game != null:
+		demo_game.demo_configure(demo_stage, demo_mode)
+	Sfx.play("ui_move")
 
 
 func _demo_stop() -> void:
@@ -318,6 +338,11 @@ func _gui_input(event: InputEvent) -> void:
 			if tile_rects[i].has_point(event.position):
 				_set_sel(i)
 				return
+		for dr0 in demo_rects:
+			if dr0[0].has_point(event.position):
+				_demo_click(dr0[1], dr0[2])
+				accept_event()
+				return
 		for i in form_rects.size():
 			if form_rects[i].has_point(event.position):
 				form = i
@@ -465,21 +490,37 @@ func _draw_detail(vs: Vector2) -> void:
 		draw_rect(dr, Color(0.3, 0.9, 0.9, 0.5), false, 1.0)
 		UI.en(self, font, dr.position + Vector2(12, 20), e.en, 11, UI.CYAN, 3.0)
 		UI.text(self, font, dr.position + Vector2(12, 44), "%s · 攻击演示" % e.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-		# 分段标签：一技能 / 二技能 / 三技能，当前这段高亮（game.gd _demo_step 按段循环）
+		# 两排可点按钮（右上角）：阶段 精零 / 精一 / 精二；动作 普攻 / 一技能 / 二技能 / 三技能 / 轮播
+		demo_rects.clear()
+		var cur: int = -9
 		if demo_game != null and demo_game.demo_pi >= 0 and not demo_game.demo_phases.is_empty():
-			var cur: int = demo_game.demo_phases[demo_game.demo_pi]
+			cur = demo_game.demo_phases[demo_game.demo_pi]
+		var rows := [
+			["stage", [["精零", 0], ["精一", 1], ["精二", 2]]],
+			["mode", [["普攻", 3], ["一技能", 0], ["二技能", 1], ["三技能", 2], ["轮播", -1]]],
+		]
+		for ri in rows.size():
+			var kind: String = rows[ri][0]
 			var cx := dr.end.x - 12.0
-			for k in [2, 1, 0]:
-				var on: bool = k == cur
-				var lbl: String = ["一技能", "二技能", "三技能"][k]
-				var w: float = font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16.0
+			var items: Array = rows[ri][1]
+			for ii in range(items.size() - 1, -1, -1):
+				var lbl: String = items[ii][0]
+				var v: int = items[ii][1]
+				var w: float = font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 				cx -= w
-				var cr := Rect2(Vector2(cx, dr.position.y + 10), Vector2(w, 22))
-				UI.panel(self, cr, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.05, 0.08, 0.6), UI.CYAN if on else UI.LINE, 4.0)
-				UI.text(self, font, cr.position + Vector2(0, 16), lbl, 12, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, w, 2)
+				var cr := Rect2(Vector2(cx, dr.position.y + 10 + ri * 28), Vector2(w, 22))
+				var on: bool = (demo_stage == v) if kind == "stage" else (demo_mode == v)
+				var locked_skill: bool = kind == "mode" and v >= 0 and v <= 2 and v > demo_stage
+				var playing: bool = kind == "mode" and demo_mode == -1 and v == cur and not demo_game.demo_basic
+				var edge: Color = UI.CYAN if on else (Color(0.5, 0.8, 0.9, 0.7) if playing else UI.LINE)
+				UI.panel(self, cr, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.05, 0.08, 0.6), edge, 4.0)
+				UI.text(self, font, cr.position + Vector2(0, 16), lbl, 12, Color(0.35, 0.4, 0.45) if locked_skill else (UI.TEXT if on or playing else UI.SUB), HORIZONTAL_ALIGNMENT_CENTER, w, 2)
+				demo_rects.append([cr, kind, v])
 				cx -= 6.0
+		if demo_game != null:
 			UI.text(self, font, dr.position + Vector2(12, 68), demo_game.demo_label, 14, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	else:
+		demo_rects.clear()
 		_demo_stop()
 	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)
 	if not demo:

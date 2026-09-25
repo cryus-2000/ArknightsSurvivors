@@ -16,6 +16,10 @@ var face := 1.0
 var mv := 0.0              # 平滑后的移动速度（切换跑步动画用）
 var mt := 0.0              # 移动计时（跑步循环）
 var slot := 0              # 编队位序号
+var is_leader := false     # 主控干员（玩家操控、唯一受击体，docs/23 v0.7）
+var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
+const NODE_ATK := 0.06
+var aura_t := 0.0
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
@@ -283,6 +287,16 @@ func fx(f: Dictionary) -> void:
 
 
 func _tick_pfx(dt: float) -> void:
+	# 气场：节点数 / 精英阶段越高，身上升起的职业色光点越密、越亮（精零无节点时没有）
+	var power: int = node_lv + elite * 2
+	if power > 0 and pos != Vector2.INF:
+		aura_t -= dt
+		if aura_t <= 0.0:
+			aura_t = 0.5 / float(power)
+			var c: Color = col().lerp(Color.WHITE, 0.25)
+			var br: float = 1.0 + 0.12 * power
+			fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-14, 14), g.rng.randf_range(-40, -6)), "vel": Vector2(g.rng.randf_range(-6, 6), -30.0 - 3.0 * power),
+				"life": 0.6 + 0.05 * power, "col": Color(c.r * br, c.g * br, c.b * br), "sz": 1.6 + 0.15 * power})
 	if pfx.is_empty():
 		return
 	for f in pfx:
@@ -452,6 +466,7 @@ func _draw_pfx(_f: Dictionary, _a: float) -> bool:
 
 ## 一圈火花
 func fx_sparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))   # 节点越多火花越多（每节点 +20%）
 	for k in n:
 		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(spd * 0.4, spd), "life": life * g.rng.randf_range(0.7, 1.2),
 			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})
@@ -579,6 +594,15 @@ func advance(choice: String = "") -> void:
 			_elite_show(elite)
 		"custom":
 			on_custom_node(n.get("id", ""), choice)
+	# 每个普通节点的统一小强化（docs/25 §5.1 第 9 条）：攻击 +6%；气场与命中火花随节点数增强
+	if n.type != "elite":
+		node_lv += 1
+		g.stats.add(&"op_atk", "add", NODE_ATK, "node:%s:%d" % [id, prog], "op:" + id)
+		g._sync_stats()
+		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
+		if pos != Vector2.INF:
+			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0})
+			fx_sparks(pos + Vector2(0, -24), col().lerp(Color.WHITE, 0.4), 12, 180.0, 0.5, 3.0, -120.0)
 	if n.has("banner"):
 		g._show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)
 
@@ -710,12 +734,15 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		return
 	var prev: Vector2 = pos
-	target = follow_target(target)
-	var d: float = pos.distance_to(target)
-	var k: float = clampf(dt * (3.0 if d < 20.0 else 6.0), 0.0, 1.0)
-	pos = pos.lerp(target, k)
-	if g.tex.get("prop_pillar") != null:
-		pos = g.map.push_out(pos, 10.0)
+	if is_leader:
+		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
+	else:
+		target = follow_target(target)
+		var d: float = pos.distance_to(target)
+		var k: float = clampf(dt * (3.0 if d < 20.0 else 6.0), 0.0, 1.0)
+		pos = pos.lerp(target, k)
+		if g.tex.get("prop_pillar") != null:
+			pos = g.map.push_out(pos, 10.0)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
@@ -945,7 +972,9 @@ func draw_body() -> void:
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
-	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
+	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
+	g._draw_sprite_at(pos, st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。

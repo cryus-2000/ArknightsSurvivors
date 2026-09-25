@@ -4,6 +4,7 @@
 ## S2 湮灭（永久）：射程 +30%、攻击 +50%；普攻处决生命低于攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人；
 ## S3 延展敏锐：12 秒射程 +60%、攻击 +150%、同时 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失。
 ## 天赋 词法演化：40% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒。
+## 可见成长（docs/25 §5）：N1 铭文 / N2 复指 / N4 转喻 / N5 墓志铭 / 精二质变 众声喧哗。
 extends "res://scripts/characters/character.gd"
 
 const INK := Color(0.55, 0.6, 1.0)
@@ -16,6 +17,23 @@ var lock_e = null
 var lock_tick := 0.0
 var lock_n := 0
 var acuity_t := 0.0           # S3 剩余
+# ---- 可见成长（docs/25 §5：只长咒文；原作依据 档案「用骨笔书写咒文」/ 天赋词法演化；命名用语言学术语）
+var inscription := false      # N1「铭文」：命中处留下一枚发光咒文 1 秒，持续灼烧周围
+var anaphora := false         # N2「复指」：每次「言」多打 1 个目标（70%）
+var metonymy := false         # N4「转喻」：提喻目标死亡时链接跳到最近的敌人
+var epitaph := false          # N5「墓志铭」：湮灭处决处写下大咒文，1 秒后爆开
+var chorus := false           # 精二质变「众声喧哗」：词法演化的额外攻击打 2 名随机敌人
+var glyphs: Array = []        # 铭文 {pos, t, tick, dmg, pat}
+var epitaphs: Array = []      # 墓志铭 {pos, t, dmg, pat}
+const RESIDUE_MAX := 6        # 铭文 + 墓志铭 同时存在的地面残留上限
+## 咒文笔画（单位坐标 -1..1，每条 = 起点 → 终点）：几种像字又像符文的写法，随机取一种
+const RUNES := [
+	[[Vector2(0, -1), Vector2(0, 1)], [Vector2(-0.7, -0.5), Vector2(0.7, -0.5)], [Vector2(0, 1), Vector2(-0.45, 0.7)]],
+	[[Vector2(-0.6, -0.6), Vector2(0.6, -0.6)], [Vector2(0.6, -0.6), Vector2(0.6, 0.6)], [Vector2(0.6, 0.6), Vector2(-0.6, 0.6)], [Vector2(-0.6, 0.6), Vector2(-0.6, -0.6)], [Vector2(-0.9, -1), Vector2(0.9, 1)]],
+	[[Vector2(0, -1), Vector2(-0.8, 1)], [Vector2(-0.1, -0.2), Vector2(0.8, 1)], [Vector2(-0.6, -0.25), Vector2(0.6, -0.25)]],
+	[[Vector2(-0.5, -1), Vector2(-0.5, 1)], [Vector2(-0.5, -0.6), Vector2(0.6, -1)], [Vector2(-0.5, 0), Vector2(0.6, -0.4)]],
+	[[Vector2(-0.8, 0), Vector2(0.8, 0)], [Vector2(0, -1), Vector2(0, 1)], [Vector2(-0.55, -0.65), Vector2(-0.3, -0.4)], [Vector2(0.55, 0.45), Vector2(0.3, 0.7)]],
+]
 
 
 func _range() -> float:
@@ -30,6 +48,7 @@ func update(dt: float) -> void:
 	cd -= dt
 	_update_lock(dt)
 	_update_acuity(dt)
+	_update_glyphs(dt)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -49,16 +68,19 @@ func update(dt: float) -> void:
 ## 「言」：单体法伤 + 安魂；精一天赋概率追加；湮灭处决
 func _release() -> void:
 	var n: int = int(base("s3_targets", 4.0)) if acuity_t > 0.0 else 1
-	var ts: Array = g._nearest(n, _range(), pos)
+	# N2 复指：多打 1 个目标，多出的这一道 70%
+	var ts: Array = g._nearest(n + (1 if anaphora else 0), _range(), pos)
 	if ts.is_empty():
 		return
-	for e in ts:
-		_word(e, _atk(), "言")
-	# 天赋：40% 额外攻击随机一名敌人（60% 伤害）并减速
+	for k in ts.size():
+		_word(ts[k], _atk() * (base("second_mult", 0.7) if k >= n else 1.0), "言")
+	# 天赋：50% 额外攻击随机一名敌人（60% 伤害）并减速；精二「众声喧哗」同时打 2 名
 	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.4):
 		var pool: Array = g._nearest(8, _range(), pos)
-		if not pool.is_empty():
-			var e2: Dictionary = pool[g.rng.randi() % pool.size()]
+		for q in (2 if chorus else 1):
+			if pool.is_empty():
+				break
+			var e2: Dictionary = pool.pop_at(g.rng.randi() % pool.size())
 			_word(e2, _atk() * base("talent_mult", 0.6), "词法演化")
 			e2.slow = maxf(e2.slow, 0.8)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
@@ -76,6 +98,11 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 		Sfx.op(id, "big", -3.0)
 		g._add_text(e.pos + Vector2(0, -e.r - 14), "湮灭", INK, 14)
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 16.0, "life": 0.3, "col": INK, "alpha": 0.7})
+		# N5 墓志铭：在处决处写下一枚大咒文，1 秒后爆开
+		# （同时最多 3 枚，写满时新的处决不再写字）
+		if epitaph and epitaphs.size() < int(base("epitaph_max", 3.0)):
+			_make_room()
+			epitaphs.append({"pos": e.pos, "t": base("epitaph_delay", 1.0), "dmg": _atk() * base("epitaph_mult", 1.2), "pat": g.rng.randi() % RUNES.size()})
 		if over > 0.0:
 			var pool: Array = g._nearest(6, _range(), pos)
 			pool = pool.filter(func(o): return not is_same(o, e) and not o.dead)
@@ -89,6 +116,11 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 	g._hit(src)
 	g._damage(e, dmg)
 	e["requiem"] = base("requiem_dur", 5.0)
+	# N1 铭文：命中处留下一枚发光咒文（与墓志铭合计最多 6 枚，旧的先消失）
+	if inscription:
+		_make_room()
+		if glyphs.size() + epitaphs.size() < RESIDUE_MAX:
+			glyphs.append({"pos": e.pos, "t": base("glyph_dur", 1.0), "tick": base("glyph_tick", 0.25), "dmg": dmg * base("glyph_mult", 0.15), "pat": g.rng.randi() % RUNES.size()})
 	# 命中处小范围溅射（纯单体清不动 1:15 的骨潮，同铃兰 P5.1 的处理）
 	var ar: float = base("aoe", 30.0)
 	if ar > 0.0:
@@ -164,6 +196,8 @@ func _update_lock(dt: float) -> void:
 	if lock_t <= 0.0:
 		return
 	lock_t -= dt
+	if lock_e != null and lock_e.dead and metonymy and lock_t > 0.0:
+		_metonymy_jump()
 	if lock_e == null or lock_e.dead:
 		lock_t = 0.0
 		lock_e = null
@@ -179,6 +213,74 @@ func _update_lock(dt: float) -> void:
 		lock_e.slow = maxf(lock_e.slow, 0.6 * ramp)
 		fx({"kind": "line", "pos": pos + Vector2(10.0 * face, -28), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})
 		fx({"kind": "glow", "pos": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": PALE, "alpha": 0.5})
+
+
+## N4 转喻：提喻目标死亡，链接跳到离它最近的敌人（射程内），剩余时间与叠层照旧
+func _metonymy_jump() -> void:
+	var from: Vector2 = lock_e.pos
+	var best = null
+	var bd: float = INF
+	for j in g._query(from, _range()):
+		var o: Dictionary = g.enemies[j]
+		if o.dead or o.pos.distance_to(pos) > _range():
+			continue
+		var d: float = o.pos.distance_to(from)
+		if d < bd:
+			bd = d
+			best = o
+	if best == null:
+		return
+	lock_e = best
+	var to: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
+	# 链接跳转：一道墨蓝折线从旧目标弹到新目标 + 新目标脚下的锁定圈
+	var mid: Vector2 = (from + to) * 0.5 + Vector2(0, -24)
+	fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": PALE, "w": 2.5})
+	fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": PALE, "w": 2.5})
+	fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": INK, "floor": true})
+	g._fx_sprite("fx_circle_ink", best.pos + Vector2(0, best.r * 0.8), g.PX * clampf(best.r / 14.0, 1.2, 2.6))
+	g._add_text(best.pos + Vector2(0, -best.r - 16), "转喻", INK, 14)
+
+
+## 铭文 / 墓志铭的地面残留超过上限时，先挤掉最旧的铭文
+func _make_room() -> void:
+	while glyphs.size() + epitaphs.size() >= RESIDUE_MAX and not glyphs.is_empty():
+		glyphs.pop_front()
+
+
+## 铭文每 0.25 秒灼烧 30 内的敌人；墓志铭到点爆开
+func _update_glyphs(dt: float) -> void:
+	if not glyphs.is_empty():
+		var gr: float = base("glyph_r", 30.0)
+		for gl in glyphs:
+			gl.t -= dt
+			gl.tick -= dt
+			if gl.tick <= 0.0 and gl.t > -0.01:
+				gl.tick += base("glyph_tick", 0.25)
+				for j in g._query(gl.pos, gr + 20.0):
+					var e: Dictionary = g.enemies[j]
+					if e.dead or e.pos.distance_to(gl.pos) > gr + e.r:
+						continue
+					g._hit("铭文")
+					g._damage(e, gl.dmg)
+		glyphs = glyphs.filter(func(gl): return gl.t > 0.0)
+	if not epitaphs.is_empty():
+		for ep in epitaphs:
+			ep.t -= dt
+			if ep.t <= 0.0:
+				_epitaph_burst(ep)
+		epitaphs = epitaphs.filter(func(ep): return ep.t > 0.0)
+
+
+func _epitaph_burst(ep: Dictionary) -> void:
+	ep.t = 0.0
+	var r: float = base("epitaph_r", 70.0)
+	area_hit("墓志铭", ep.pos, r, ep.dmg)
+	fx({"kind": "ring", "pos": ep.pos, "r": r, "r0": 10.0, "life": 0.4, "col": INK, "floor": true, "w": 3.0})
+	fx({"kind": "ring", "pos": ep.pos, "r": r * 0.7, "r0": 6.0, "life": 0.3, "col": PALE, "floor": true, "w": 2.0})
+	fx({"kind": "glow", "pos": ep.pos + Vector2(0, -20), "r": 34.0, "life": 0.35, "col": INK, "alpha": 0.6})
+	g._fx_sprite("fx_logos_glyph", ep.pos + Vector2(0, -20), g.PX * 1.4)
+	fx_sparks(ep.pos + Vector2(0, -20), PALE, 10, 200.0, 0.45, 2.5)
+	Sfx.op(id, "big", -6.0, 1.2)
 
 
 func _update_acuity(dt: float) -> void:
@@ -207,7 +309,59 @@ func _update_acuity(dt: float) -> void:
 		fx({"kind": "ring", "pos": pos, "r": r, "r0": r * 0.5, "life": 0.5, "col": INK, "floor": true})
 
 
+# ---------------------------------------------------------------- 成长节点（data/characters/logos.json 的 custom 节点）
+
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"inscription":
+			inscription = true
+		"anaphora":
+			anaphora = true
+		"metonymy":
+			metonymy = true
+		"epitaph":
+			epitaph = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		chorus = true
+
+
 # ---------------------------------------------------------------- 绘制
+
+## 一枚咒文：按笔顺逐笔写出（write 0..1），暗色描边 + 墨蓝笔画 + 亮芯；顶点对齐 2 像素网格
+func _draw_rune(c: Vector2, sz: float, pat: int, write: float, al: float) -> void:
+	var strokes: Array = RUNES[pat % RUNES.size()]
+	var ns: int = strokes.size()
+	for i in ns:
+		var k: float = clampf(write * ns - i, 0.0, 1.0)
+		if k <= 0.0:
+			break
+		var a: Vector2 = ((c + strokes[i][0] * sz) / 2.0).round() * 2.0
+		var b: Vector2 = ((c + (strokes[i][0].lerp(strokes[i][1], k)) * sz) / 2.0).round() * 2.0
+		g.draw_line(a, b, Color(0.03, 0.03, 0.08, 0.7 * al), 4.0)
+		g.draw_line(a, b, Color(INK.r * 1.5, INK.g * 1.5, INK.b * 1.8, 0.95 * al), 2.0)
+		g.draw_line(a, b, Color(1.8, 1.9, 2.4, 0.6 * al), 1.0)
+
+
+## 地面层：铭文 / 墓志铭脚下的书写圈
+func draw_entities_floor() -> void:
+	for gl in glyphs:
+		var al: float = clampf(gl.t / 0.3, 0.0, 1.0)
+		g.draw_set_transform(gl.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		g.draw_circle(Vector2.ZERO, base("glyph_r", 30.0), Color(INK.r, INK.g, INK.b, 0.1 * al))
+		g.draw_arc(Vector2.ZERO, base("glyph_r", 30.0), 0.0, TAU, 24, Color(INK.r * 1.3, INK.g * 1.3, INK.b * 1.5, 0.45 * al), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for ep in epitaphs:
+		var k: float = 1.0 - ep.t / base("epitaph_delay", 1.0)
+		var r: float = base("epitaph_r", 70.0)
+		g.draw_set_transform(ep.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		g.draw_circle(Vector2.ZERO, r, Color(INK.r, INK.g, INK.b, 0.08 + 0.12 * k))
+		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.7, 0.4 + 0.4 * k), 2.0)
+		g.draw_arc(Vector2.ZERO, r * k, 0.0, TAU, 40, Color(PALE.r, PALE.g, PALE.b, 0.5), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 
 func draw_auras() -> void:
 	if acuity_t > 0.0 and pos != Vector2.INF:
@@ -217,6 +371,19 @@ func draw_auras() -> void:
 
 
 func _draw_skill_over() -> void:
+	# 铭文：命中处浮着一枚发光咒文（0.15 秒内逐笔写出，最后 0.3 秒淡出）
+	for gl in glyphs:
+		var life: float = base("glyph_dur", 1.0)
+		var al: float = clampf(gl.t / 0.3, 0.0, 1.0)
+		var bob: float = sin(g.t * 5.0 + gl.pat) * 1.5
+		g.draw_circle(gl.pos + Vector2(0, -16 + bob), 13.0, Color(INK.r, INK.g, INK.b, 0.18 * al))
+		_draw_rune(gl.pos + Vector2(0, -16 + bob), 9.0, gl.pat, (life - gl.t) / 0.15, al)
+	# 墓志铭：大咒文在 1 秒内一笔一笔写完，越写越亮，写完即爆
+	for ep in epitaphs:
+		var k: float = 1.0 - ep.t / base("epitaph_delay", 1.0)
+		var c: Vector2 = ep.pos + Vector2(0, -26)
+		g.draw_circle(c, 18.0 + 6.0 * k, Color(INK.r, INK.g, INK.b, 0.12 + 0.2 * k))
+		_draw_rune(c, 16.0, ep.pat, k * 1.25, 0.7 + 0.3 * k)
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead and g.tex.get("fx_logos_script") != null:
 		# 提喻：一行骨笔符文从手边流向目标（64×12 书写带平铺，4 帧循环）
 		var hand: Vector2 = pos + Vector2(10.0 * face, -28)

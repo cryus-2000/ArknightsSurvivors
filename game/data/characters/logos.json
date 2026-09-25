@@ -31,7 +31,17 @@
   "talent_mult": 0.6,
   "aoe": 30,
   "aoe_mult": 0.5,
-  "s1_tick_mult": 0.5
+  "s1_tick_mult": 0.5,
+  "glyph_dur": 1.0,
+  "glyph_tick": 0.25,
+  "glyph_mult": 0.15,
+  "glyph_r": 30,
+  "glyph_max": 6,
+  "second_mult": 0.7,
+  "epitaph_delay": 1.0,
+  "epitaph_r": 70,
+  "epitaph_mult": 1.2,
+  "epitaph_max": 3
  },
  "sprites": {
   "idle": {
@@ -148,32 +158,43 @@
    "tags": [
     "talent"
    ]
+  },
+  "铭文": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "dot",
+    "entity"
+   ]
+  },
+  "墓志铭": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "aftershock"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "言 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "inscription",
+   "name": "铭文",
+   "icon": "growth_t_field",
+   "desc": "「言」命中处留下一枚发光咒文 1 秒，每 0.25 秒对 30 内敌人造成 15% 伤害（最多 6 枚）"
   },
   {
-   "type": "stat",
-   "name": "言 · 远",
-   "desc": "射程 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "anaphora",
+   "name": "复指",
+   "icon": "growth_b_count",
+   "desc": "每次「言」同时攻击 2 个目标（第二道 70%）"
   },
   {
    "type": "elite",
@@ -182,34 +203,24 @@
    "desc": "解锁二技能「湮灭」；解锁天赋「词法演化」：40% 概率额外攻击随机敌人"
   },
   {
-   "type": "stat",
-   "name": "言 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "metonymy",
+   "name": "转喻",
+   "icon": "skill_s1",
+   "desc": "「提喻」锁定的目标死亡时，链接跳到最近的敌人，继续剩余时间"
   },
   {
-   "type": "stat",
-   "name": "言 · 锋 II",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "epitaph",
+   "name": "墓志铭",
+   "icon": "skill_s2",
+   "desc": "「湮灭」处决敌人时，在其位置写下一枚大咒文，1 秒后爆开（半径 70，120% 伤害）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「延展敏锐」：多目标、减慢并消除敌方弹幕"
+   "desc": "解锁三技能「延展敏锐」：多目标、减慢并消除敌方弹幕；普攻质变「众声喧哗」：天赋「词法演化」的额外攻击改为同时打 2 名随机敌人"
   }
  ],
  "gallery": {

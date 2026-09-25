@@ -159,28 +159,18 @@
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "伞击 · 锋",
-   "desc": "伞击伤害 +15%",
-   "effects": [
-    {
-     "key": "mizuki_umbrella_dmg",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "tentacle_a",
+   "name": "强迫性重复",
+   "icon": "growth_t_count",
+   "desc": "创伤性癔症追击的触手 +1"
   },
   {
-   "type": "stat",
-   "name": "伞击 · 迅",
-   "desc": "挥伞间隔 -10%",
-   "effects": [
-    {
-     "key": "mizuki_umbrella_interval",
-     "op": "mult",
-     "value": 0.9
-    }
-   ]
+   "type": "custom",
+   "id": "tentacle_b",
+   "name": "群体性癔症",
+   "icon": "growth_t_count",
+   "desc": "追击的触手再 +1"
   },
   {
    "type": "elite",
@@ -189,34 +179,24 @@
    "desc": "解锁二技能「囚徒困境」；解锁天赋「反移情」：附近有半血敌人时伤害 +22%；击杀回复 1% 最大生命（每秒有上限）"
   },
   {
-   "type": "stat",
-   "name": "触手 · 蚀",
-   "desc": "触手追击目标 +1",
-   "effects": [
-    {
-     "key": "mizuki_tentacle_targets",
-     "op": "flat",
-     "value": 1
-    }
-   ]
+   "type": "custom",
+   "id": "awaken_burst",
+   "name": "惊跳反射",
+   "icon": "skill_s1",
+   "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人"
   },
   {
-   "type": "stat",
-   "name": "伞击 · 锐",
-   "desc": "伞击伤害 +20%",
-   "effects": [
-    {
-     "key": "mizuki_umbrella_dmg",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "bind_drag",
+   "name": "病理性依恋",
+   "icon": "skill_s2",
+   "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「镜花水月」：14 秒：伞击范围 ×1.45、伤害 ×1.8、同时斩向三个方向并晕眩 0.6 秒；身后浮现镜像分身同步挥伞（60%）"
+   "desc": "解锁三技能「镜花水月」：14 秒：伞击范围 ×1.45、伤害 ×1.8、同时斩向三个方向并晕眩 0.6 秒；身后浮现镜像分身同步挥伞（60%）；普攻质变「固着」：触手命中后留在原地继续抽打 1.5 秒（最多 6 根）"
   }
  ],
  "gallery": {

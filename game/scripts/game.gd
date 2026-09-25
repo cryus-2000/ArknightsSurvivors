@@ -327,6 +327,8 @@ var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 
 var dbg_pick := {}
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
+var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
+var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 var show_vp: SubViewport = null  # 精英化演出里的实机演示画面
 var show_game: Node = null
 
@@ -681,10 +683,22 @@ func _demo_step(dt: float) -> void:
 	gems.clear()
 	if demo_origin == Vector2.INF:
 		demo_origin = ppos
-		demo_phases = [demo_skill] if demo_skill >= 0 else [0, 1, 2]
+		demo_phases = _demo_phase_list()
 		_demo_next_phase()
 	var si: int = demo_phases[demo_pi]
 	demo_ph_t += dt
+	if demo_basic:
+		# 三联对照：只看普攻，技能全部压住；怪少了就补
+		for i in 3:
+			if not ch.perm[i]:
+				ch.sp[i] = 0.0
+		var alive0 := 0
+		for e in enemies:
+			if not e.dead:
+				alive0 += 1
+		if alive0 < 8:
+			_demo_horde(10)
+		return
 	# 只让本段的技能充能：其余压成 0
 	for i in 3:
 		if i != si and not ch.perm[i]:
@@ -718,6 +732,28 @@ func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
 
+## 图鉴手动切换（gallery.gd 点击调用）：stage 0 精零（N1 N2 后）/ 1 精一（N5 后）/ 2 精二；
+## mode -1 轮播已解锁的技能 / 0–2 只放该技能 / 3 只普攻。立即重置场地与干员
+func demo_configure(stage: int, mode: int) -> void:
+	demo_stage = clampi(stage, 0, 2)
+	demo_basic = mode == 3
+	demo_skill = mode if mode >= 0 and mode <= 2 else -1
+	if demo_origin == Vector2.INF:
+		return   # 还没开始跑：第一帧 _demo_step 初始化时按这些设置来
+	demo_phases = _demo_phase_list()
+	demo_pi = -1
+	_demo_next_phase()
+
+
+## 本阶段可展示的技能段：只轮播已解锁的技能（精零只有一技能）
+func _demo_phase_list() -> Array:
+	if demo_skill >= 0:
+		return [demo_skill]
+	if demo_stage >= 0:
+		return range(demo_stage + 1)
+	return [0, 1, 2]
+
+
 func _demo_next_phase() -> void:
 	demo_pi = (demo_pi + 1) % demo_phases.size()
 	demo_ph_t = 0.0
@@ -728,7 +764,7 @@ func _demo_next_phase() -> void:
 	_demo_new_op()
 	_demo_horde(DEMO_HORDE)
 	var si: int = demo_phases[demo_pi]
-	demo_label = "%s技能「%s」" % [["一", "二", "三"][si], ch.skill_def(si).get("name", "")]
+	demo_label = "普攻「%s」" % ch.attack_def().get("name", "") if demo_basic else "%s技能「%s」" % [["一", "二", "三"][si], ch.skill_def(si).get("name", "")]
 
 
 ## 重新生成演示干员：清掉旧实例挂在 op:<id> 作用域上的全部修正，再按演示要求推到精英化阶段
@@ -739,6 +775,19 @@ func _demo_new_op() -> void:
 	stats.remove_scope("op:" + id)
 	_sync_stats()
 	ch = squad.add(id)
+	if demo_stage >= 0:
+		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）
+		var nodes: int = [2, 5, 6][clampi(demo_stage, 0, 2)]
+		for k in nodes:
+			if ch.next_node().is_empty():
+				break
+			var n0: Dictionary = ch.next_node()
+			var chs0: Dictionary = ch.elite_choices(n0) if n0.get("type", "") == "elite" else {}
+			ch.advance(chs0.keys()[0] if not chs0.is_empty() else "")
+		show_queue.clear()
+		facing = 1.0
+		ch.pos = ppos
+		return
 	var want: int = demo_elite if demo_elite > 0 else 2
 	var guard := 0
 	while ch.elite < want and not ch.next_node().is_empty() and guard < 12 and demo_elite > 0:
@@ -3909,10 +3958,34 @@ func _gain_relic(id: String) -> void:
 # =====================================================================
 # 绘制
 # =====================================================================
+## 博士挂件（docs/23 v0.7）：不受击、不攻击，慢慢跑着跟在主控身后；离太远（传送 / 开局）才直接归位
+const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但不会贴身
+const DOC_BEHIND := Vector2(-40, 30)
+var doc_pos := Vector2.INF
+var doc_moving := false
+var doc_face := 1.0
+
+
+func _update_doc_follow(dt: float) -> void:
+	var want: Vector2 = ppos + Vector2(DOC_BEHIND.x * facing, DOC_BEHIND.y)
+	if doc_pos == Vector2.INF or doc_pos.distance_to(want) > 600.0:
+		doc_pos = want
+	var d: Vector2 = want - doc_pos
+	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
+	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
+	doc_pos += mv
+	doc_moving = mv.length() > 20.0 * dt
+	if absf(mv.x) > 6.0 * dt:
+		doc_face = signf(mv.x)
+	elif not doc_moving:
+		doc_face = facing
+
+
 func _update_visuals(dt: float) -> void:
-	var bob: float = -abs(sin(walk_t)) * 2.0 if moving else 0.0
-	sprite.position = (ppos + Vector2(0, bob + 6)).round()
-	sprite.flip_h = facing < 0.0
+	_update_doc_follow(dt)
+	var bob: float = -abs(sin(walk_t)) * 2.0 if doc_moving else 0.0
+	sprite.position = (doc_pos + Vector2(0, bob + 6)).round()
+	sprite.flip_h = doc_face < 0.0
 	_update_player_anim(get_process_delta_time())
 	_update_player_feel(get_process_delta_time())
 	if state == S.DEAD:
@@ -4125,7 +4198,7 @@ func _draw() -> void:
 			"magnet", "heal":
 				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
-	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
+	_spr("shadow", 1, 0, doc_pos + Vector2(0, 6), PX * 1.3)
 	squad.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
@@ -4139,7 +4212,7 @@ func _draw() -> void:
 	var dl: Array = []
 	for e in enemies:
 		dl.append([e.pos.y + e.r * 0.8, 0, e])
-	dl.append([ppos.y + 6.0, 2, null])
+	dl.append([doc_pos.y + 6.0, 2, null])
 	for o in squad.ops:
 		if o.pos != Vector2.INF:
 			dl.append([o.pos.y + 4.0, 5, o])
@@ -4523,12 +4596,11 @@ func _update_player_anim(dt: float) -> void:
 ## 博士动画：data/doctor.json 的 sprites（编队美术第一批：idle 4 / run 6 / hurt 2 / death 4 帧，脚底 46）；
 ## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func _update_doctor_anim(dt: float) -> void:
+	# 博士是挂件：不受击，只有待机 / 跑步；主控倒下时一起倒下
 	var want := "idle"
 	if state == S.DEAD:
 		want = "death"
-	elif hurt_flash > 0.05:
-		want = "hurt"
-	elif moving:
+	elif doc_moving:
 		want = "run"
 	var sp: Dictionary = doctor.def.get("sprites", {})
 	var tx: Texture2D = tex.get(sp.get(want, ""), null) if sp.has(want) else null
@@ -4998,7 +5070,9 @@ func _draw_player() -> void:
 	var sx := -pk if sprite.flip_h else pk
 	# 以脚底为轴做挤压 / 前倾 / 后坐（帧动画之上的程序手感）
 	draw_set_transform(sprite.position + p_off, sprite.rotation + p_lean, Vector2(sx * p_sq.x, pk * p_sq.y))
-	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, sprite.modulate)
+	# 博士挂件不受击：不吃主控的受击闪白 / 无敌闪烁（那些现在画在主控干员身上）
+	var dmod: Color = Color(0.5, 0.5, 0.6, 0.6) if state == S.DEAD else Color.WHITE
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, dmod)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -5097,8 +5171,10 @@ func _draw_hud() -> void:
 	var lvs := 24 if level < 10 else 20
 	UI.text(hud, font, lc0 + Vector2(-30, 8 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
 	# 名字、精英阶段
-	UI.text(hud, font, o + Vector2(84, 32), doctor.name(), 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, o + Vector2(130, 31), doctor.def.get("en", "DOCTOR"), 10, UI.CYAN_DIM, 3.0)
+	# 主控干员的名字（生命 / 灯火是她的）
+	var lname: String = ch.display_name()
+	UI.text(hud, font, o + Vector2(84, 32), lname, 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.en(hud, font, o + Vector2(90 + lname.length() * 20, 31), String(ch.def.get("en", "LEADER")), 10, UI.CYAN_DIM, 3.0)
 	UI.chip(hud, font, o + Vector2(264, 18), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 11)
 	# 生命
 	var hs := Vector2(sin(t * 90.0), cos(t * 70.0)) * 3.0 * hp_shake / 0.35

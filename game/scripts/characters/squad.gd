@@ -7,7 +7,9 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
 ## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
-const SLOTS := [Vector2(-34, -14), Vector2(38, 10), Vector2(22, -46), Vector2(-44, 26)]
+## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
+## 博士挂件在主控左下后方（game.gd DOC_BEHIND），这里避开那个位置
+const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -72), Vector2(-80, 44)]
 const DEMO_SLOT := Vector2(44, -6)
 
 var g
@@ -57,6 +59,7 @@ func add(cid: String):
 	if op == null:
 		return null
 	op.slot = ops.size()
+	op.is_leader = ops.is_empty()   # 开局干员 = 主控
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
 	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
@@ -87,6 +90,8 @@ func remove(cid: String) -> void:
 			break
 	for i in ops.size():
 		ops[i].slot = i
+	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
+		ops[0].is_leader = true
 
 
 func _slot_offset(i: int) -> Vector2:
@@ -117,10 +122,22 @@ func validate_squad() -> bool:
 
 func update(dt: float) -> void:
 	for o in ops:
-		o.follow(dt, g.ppos + _slot_offset(o.slot))
+		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	for o in ops:
 		o.update(dt)
+		# 主控的技能位移（推进之王跃空锤、乌尔比安顺锁链弹射）带着玩家一起走，位移中短暂无敌
+		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
+			g.ppos = o.pos
+			g.invuln = maxf(g.invuln, 0.12)
 		o._tick_pfx(dt)
+
+
+## 主控干员（docs/23 v0.7：玩家操控的干员，唯一受击体）
+func leader():
+	for o in ops:
+		if o.is_leader:
+			return o
+	return ops[0] if not ops.is_empty() else null
 
 
 ## 干员侧挂点（同 dmg_taken_mult 询问模式，docs/26 第二批）
@@ -193,6 +210,14 @@ func draw_shadows() -> void:
 	for o in ops:
 		if o.pos != Vector2.INF:
 			g._spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
+			if o.is_leader:
+				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
+				var c: Color = o.col()
+				g.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+				g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
+				g.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
 		o.draw_extra_shadows()
 
 

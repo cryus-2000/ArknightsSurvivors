@@ -18,7 +18,17 @@
   "m_cd": 0.9,
   "m_reach": 62,
   "s3_mult": 1.6,
-  "melt_mult": 5.0
+  "melt_mult": 5.0,
+  "m_arc": 1.3,
+  "m_arc_wide": 1.4,
+  "claw2_delay": 0.08,
+  "claw2_mult": 0.6,
+  "m_back_mult": 0.7,
+  "shell_dur": 3.0,
+  "shell_red": 0.35,
+  "melt_stun": 1.5,
+  "melt_echo_gap": 0.2,
+  "melt_echo_mult": 0.5
  },
  "sprites": {
   "idle": {
@@ -164,28 +174,18 @@
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "治疗 · 厚",
-   "desc": "治疗与 Mon3tr 伤害 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "twin_claw",
+   "name": "骨爪增生",
+   "icon": "growth_t_count",
+   "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "治疗 · 频",
-   "desc": "治疗与爪击频率 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "wide_arc",
+   "name": "清创",
+   "icon": "growth_u_area",
+   "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"
   },
   {
    "type": "elite",
@@ -194,34 +194,24 @@
    "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"
   },
   {
-   "type": "stat",
-   "name": "治疗 · 厚 II",
-   "desc": "治疗与 Mon3tr 伤害 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "s1_shell",
+   "name": "结构加固",
+   "icon": "skill_s1",
+   "desc": "「医疗单元」同时给主控罩上 3 秒绿色护壳：受到的伤害 -35%"
   },
   {
-   "type": "stat",
-   "name": "Mon3tr · 迅",
-   "desc": "技能充能 +20%",
-   "effects": [
-    {
-     "key": "op_skill_sp",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "melt_triple",
+   "name": "不毁重构",
+   "icon": "skill_s3",
+   "desc": "「熔毁」收尾的爆炸变为三连爆（间隔 0.2 秒、逐次扩大，后两次 50% 伤害），并眩晕 1.5 秒（精英减半，Boss 免疫）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害"
+   "desc": "解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 展开四爪，前后同时出爪（身后一爪 70% 伤害）"
   }
  ],
  "gallery": {

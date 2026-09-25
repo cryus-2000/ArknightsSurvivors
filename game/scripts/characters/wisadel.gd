@@ -19,6 +19,16 @@ var quakes: Array = []       # 余震：{pos, t, dmg, r}
 var shades: Array = []       # 残影（殉爆前摇）：{pos, t, dmg, r, depth}
 var ash := 0                 # S1：剩余强化炮击数
 var ammo := 0                # S3：巨型炮弹剩余发数（次数型）
+# ---- 可见成长（docs/25 §5：原作特性余震 / S1 额外余震 / S2 多目标 / 天赋与 S3 魂灵之影）
+var echo_quake := false      # N1「余响」：每发余震再来一次（0.3 秒后，环更大）
+var twin_shot := false       # N2「礼尚往来」：普攻同时打第二个目标（60%）
+var ash_rings := false       # N4「余烬未冷」：灰烬弹幕的余震变成三圈并眩晕
+var exec_mark := false       # N5「亡者回响」：凋零处刑炸到的敌人挂残影标记
+var souls_on := false        # 精二「死魂灵的余息」：两个魂灵之影跟随、给敌人挂残影
+var marks: Dictionary = {}   # 残影标记：e.id → {e, t}；被标记的敌人死亡必定殉爆
+var souls: Array = []        # 魂灵之影：{p, st, tgt, cd}
+const MARK_MAX := 12
+const SHADE_MAX := 12
 
 
 ## 基础数值全部可由 data/characters/wisadel.json 的 base 段覆盖（docs/27 §3）
@@ -75,9 +85,29 @@ func _count_around(c: Vector2, r: float) -> int:
 
 # ---------------------------------------------------------------- 更新
 
+## 成长节点（data/characters/wisadel.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"echo_quake":
+			echo_quake = true
+		"twin_shot":
+			twin_shot = true
+		"ash_rings":
+			ash_rings = true
+		"exec_mark":
+			exec_mark = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		souls_on = true
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	_update_shells(dt)
+	_update_marks(dt)
+	_update_souls(dt)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -109,9 +139,31 @@ func _release() -> void:
 		_fire_giant(tgt.pos)
 	elif ash > 0:
 		ash -= 1
-		_fire(tgt.pos, base("atk", 34.0) * base("s1_mult", 1.5) * skill_power(), "炮击", 1.1, true, 0.0)
+		var d1: float = base("atk", 34.0) * base("s1_mult", 1.5) * skill_power()
+		_fire(tgt.pos, d1, "炮击", 1.1, true, 0.0, false, ash_rings)
+		_twin(tgt, d1, ash_rings)
 	else:
 		_fire(tgt.pos, base("atk", 34.0), "炮击", 1.0, true, 0.0)
+		_twin(tgt, base("atk", 34.0), false)
+
+
+## N2「礼尚往来」：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 60%
+func _twin(first: Dictionary, dmg: float, rings: bool) -> void:
+	if not twin_shot:
+		return
+	var reach := _reach(520.0)
+	var best: Dictionary = {}
+	for e in g._nearest(8, reach, g.ppos):
+		if e.id == first.id or e.pos.distance_to(pos) > reach:
+			continue
+		if best.is_empty():
+			best = e
+		if e.pos.distance_to(first.pos) > _aoe():
+			best = e
+			break
+	if best.is_empty():
+		return
+	_fire(best.pos, dmg * base("twin_mult", 0.6), "炮击", 0.85, true, 0.0, false, rings)
 
 
 func _release_skill() -> void:
@@ -160,14 +212,15 @@ func _muzzle() -> Vector2:
 	return pos + Vector2(14.0 * face, -34)
 
 
-func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, stun: float, light := false) -> void:
+## rings：N4 灰烬弹幕的强化炮弹，余震变三圈并眩晕
+func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, stun: float, light := false, rings := false) -> void:
 	face = signf(to.x - pos.x) if absf(to.x - pos.x) > 2.0 else face
 	var from := _muzzle()
 	# 高速炮弹（2026-09-25 还原原作，用户要求）：原来 900px/s、最高拱 120px 像迫击炮 → 2300px/s 又太快看不清炮弹
 	# → 1500px/s、最高拱 18px：仍是平射，但炮弹本身看得见
 	var dur: float = clampf(from.distance_to(to) / 1500.0, 0.08, 0.3)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
-		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size})
+		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size, "rings": rings})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.07, "col": RED, "sz": 30.0 * size})
@@ -204,12 +257,18 @@ func _update_shells(dt: float) -> void:
 			fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": RED, "w": 2.0 * float(s.get("size", 1.0))})
 			# 余震：E1 起伤害 40% → 60%
 			if s.quake:
-				quakes.append({"pos": s.to, "t": 0.45, "dmg": s.dmg * (base("quake_e1", 0.6) if elite >= 1 else base("quake", 0.4)), "r": s.r * 1.2})
+				var qd: float = s.dmg * (base("quake_e1", 0.6) if elite >= 1 else base("quake", 0.4))
+				var qs: float = base("ash_stun", 0.8) if s.rings else 0.0
+				quakes.append({"pos": s.to, "t": 0.45, "dmg": qd, "r": s.r * 1.2, "rings": s.rings, "stun": qs})
+				# N1「余响」：0.3 秒后同一处再余震一次，范围 ×1.25
+				if echo_quake:
+					quakes.append({"pos": s.to, "t": 0.45 + base("quake2_delay", 0.3), "dmg": qd * base("quake2_mult", 1.0),
+						"r": s.r * 1.2 * base("quake2_size", 1.25), "rings": s.rings, "stun": qs})
 	shells = shells.filter(func(s): return s.t < s.dur)
 	for q in quakes:
 		q.t -= dt
 		if q.t <= 0.0:
-			_explode(q.pos, q.dmg, q.r, "余震", 0, 0.0)
+			_explode(q.pos, q.dmg, q.r, "余震", 0, q.stun, false, q.rings)
 	quakes = quakes.filter(func(q): return q.t > 0.0)
 	for sh in shades:
 		sh.t -= dt
@@ -218,8 +277,95 @@ func _update_shells(dt: float) -> void:
 	shades = shades.filter(func(sh): return sh.t > 0.0)
 
 
-## 爆炸：范围伤害；E1 起被炸死的敌人留下残影，0.25 秒后殉爆并眩晕。light：饱和炮击的减量特效
-func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: float, light := false) -> void:
+## 挂残影标记（N5 凋零处刑 / 精二魂灵之影）：mark_dur 秒内该敌人死亡（不论谁击杀）必定殉爆；同时最多 12 个
+func _mark(e: Dictionary) -> void:
+	if e.dead or e.get("chest", false):
+		return
+	if not marks.has(e.id) and marks.size() >= MARK_MAX:
+		return
+	marks[e.id] = {"e": e, "t": base("mark_dur", 4.0)}
+	fx({"kind": "shade", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3, "col": DARK})
+
+
+func _update_marks(dt: float) -> void:
+	if marks.is_empty():
+		return
+	for k in marks.keys():
+		var mk: Dictionary = marks[k]
+		mk.t -= dt
+		if mk.t <= 0.0 or mk.e.dead:
+			marks.erase(k)
+
+
+## 击杀钩子：带残影标记的敌人殉爆（沿用天赋残影的 0.25 秒前摇 → 殉爆，伤害 = 普攻炮击的 60%）
+func on_kill(e: Dictionary) -> void:
+	if not marks.has(e.id):
+		return
+	marks.erase(e.id)
+	e["wis_det"] = true
+	if shades.size() >= SHADE_MAX:
+		return
+	shades.append({"pos": e.pos, "t": 0.25, "dmg": base("atk", 34.0) * base("mark_mult", 0.45) * _dmg_bonus(), "r": _aoe() * 0.9, "depth": 1})
+	fx({"kind": "shade", "pos": e.pos, "life": 0.3, "col": DARK})
+
+
+## 精二「死魂灵的余息」：两个魂灵之影悬在维什戴尔肩后；每 2 秒各自飞向附近一名（优先未标记的）敌人挂上残影，再飞回来
+func _update_souls(dt: float) -> void:
+	if not souls_on or pos == Vector2.INF:
+		return
+	while souls.size() < 2:
+		souls.append({"p": pos + Vector2(0, -50), "st": "idle", "tgt": null, "cd": 0.8 + 1.0 * souls.size()})
+	var spd: float = base("soul_speed", 520.0)
+	for k in souls.size():
+		var s: Dictionary = souls[k]
+		var home: Vector2 = _soul_home(k)
+		match s.st:
+			"idle":
+				s.p = s.p.lerp(home, minf(1.0, dt * 6.0))
+				s.cd -= dt
+				if s.cd <= 0.0:
+					var tg: Dictionary = _soul_target()
+					if tg.is_empty():
+						s.cd = 0.3
+					else:
+						s.tgt = tg
+						s.st = "go"
+						s.cd = base("soul_cd", 2.0)
+			"go":
+				var tg2 = s.tgt
+				if tg2 == null or tg2.dead:
+					s.st = "back"
+				else:
+					var to: Vector2 = tg2.pos + Vector2(0, -tg2.r - 10.0)
+					s.p = s.p.move_toward(to, spd * dt)
+					if g.rng.randf() < dt * 30.0:
+						fx({"kind": "mote", "pos": s.p + Vector2(g.rng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
+					if s.p.distance_to(to) < 8.0:
+						_mark(tg2)
+						fx({"kind": "ring", "pos": tg2.pos, "r": tg2.r + 16.0, "r0": 4.0, "life": 0.3, "col": RED, "floor": true, "w": 2.0})
+						s.st = "back"
+			"back":
+				s.p = s.p.move_toward(home, spd * dt)
+				if s.p.distance_to(home) < 10.0:
+					s.st = "idle"
+
+
+func _soul_home(k: int) -> Vector2:
+	var side: float = -1.0 if k == 0 else 1.0
+	return pos + Vector2(side * 32.0 - face * 6.0, -78.0 + sin(g.t * 2.2 + k * 2.0) * 4.0)
+
+
+## 魂灵之影的目标：离维什戴尔 soul_range 以内最近的未标记敌人；都标记过就取最近的
+func _soul_target() -> Dictionary:
+	var ts: Array = g._nearest(8, base("soul_range", 300.0), pos)
+	for e in ts:
+		if not marks.has(e.id) and not e.get("chest", false):
+			return e
+	return ts[0] if not ts.is_empty() else {}
+
+
+## 爆炸：范围伤害；E1 起被炸死的敌人留下残影，0.25 秒后殉爆并眩晕。light：饱和炮击的减量特效；rings：N4 三圈余震
+func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: float, light := false, rings := false) -> void:
 	var killed: Array = []
 	for e in g._arc_hit(c, 0.0, PI, r):
 		g._hit(src)
@@ -228,14 +374,24 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			g._hit("真实")
 			g._damage(e, e.hp + 1.0)
 		if e.dead:
-			killed.append(e.pos)
-		elif stun > 0.0 and not e.boss:
-			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			# 带残影标记的敌人已在 on_kill 里殉爆，这里不再重复留残影
+			if not e.get("wis_det", false):
+				killed.append(e.pos)
+		else:
+			if stun > 0.0 and not e.boss:
+				e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			# N5「亡者回响」：凋零处刑炸到的敌人全部挂上残影标记
+			if src == "凋零处刑" and exec_mark:
+				_mark(e)
 	match src:
 		"余震":
 			# 只在地面：双红环 + 裂纹 + 一圈向上的余烬，不闪光不冒烟
 			fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": RED, "floor": true, "w": 3.0})
 			fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": r * 0.1, "life": 0.45, "col": Color(1.0, 0.45, 0.35), "floor": true, "w": 2.0})
+			if rings:
+				# 余烬未冷：外面再推出第三圈亮橙环（慢一拍、更粗），圈内被震到的敌人眩晕
+				fx({"kind": "ring", "pos": c, "r": r * 1.3, "r0": r * 0.5, "life": 0.6, "col": Color(1.6, 0.6, 0.3), "floor": true, "w": 4.0})
+				fx_sparks(c, EMBER, 6, 160.0, 0.35, 2.5, -80.0)
 			fx({"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": RED, "floor": true, "n": 7, "ang": c.x * 0.01})
 			for k in (4 if light else 8):
 				var ox: float = g.rng.randf_range(-r * 0.6, r * 0.6)
@@ -256,6 +412,8 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 		Sfx.op(id, "hit", -3.0 if light else 0.0, 1.0, 0.08)
 	if elite >= 1 and depth < 1:
 		for k in mini(killed.size(), 3):
+			if shades.size() >= SHADE_MAX:
+				break
 			shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * base("shade", 0.4), "r": r * 0.8, "depth": depth + 1})
 			fx({"kind": "shade", "pos": killed[k], "life": 0.3, "col": DARK})
 
@@ -391,6 +549,9 @@ func draw_entities_floor() -> void:
 			g.draw_line(dv * rr * 0.55, dv * rr * 0.85, Color(RED.r, RED.g, RED.b, al), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for q in quakes:
+		# 余响的第二次余震排在后面：进入最后 0.45 秒才画前兆环
+		if q.t > 0.45:
+			continue
 		var a: float = 1.0 - q.t / 0.45
 		g.draw_set_transform(q.pos, 0.0, Vector2(1.0, 0.55))
 		g.draw_arc(Vector2.ZERO, q.r * (0.25 + 0.2 * a), 0.0, TAU, 20, Color(RED.r, RED.g, RED.b, 0.5 * a), 2.0)
@@ -416,6 +577,45 @@ func _draw_skill_over() -> void:
 		g.draw_colored_polygon(_comet_outline(pts, 11.0 * wk), Color(1.2, 0.08, 0.1, 0.3))
 		g.draw_colored_polygon(_comet_outline(pts, 7.5 * wk), Color(0.34, 0.03, 0.06, 0.95))
 		g.draw_colored_polygon(_comet_outline(pts, 4.0 * wk), Color(0.1, 0.01, 0.03, 1.0))
+	_draw_marks()
+	_draw_souls()
+
+
+## 残影标记：敌人头顶一个小的黑色人形 + 一对红眼，上下浮动；最后 0.6 秒闪烁
+func _draw_marks() -> void:
+	for k in marks:
+		var mk: Dictionary = marks[k]
+		var e: Dictionary = mk.e
+		if e.dead:
+			continue
+		if mk.t < 0.6 and fmod(mk.t * 8.0, 1.0) < 0.35:
+			continue
+		var p: Vector2 = e.pos + Vector2(0, -e.r - 18.0 + sin(g.t * 4.0 + e.id) * 2.0)
+		g.draw_circle(p, 9.0, Color(0.9, 0.05, 0.1, 0.18))
+		_draw_shade_body(p, 5.5, 0.85)
+
+
+## 魂灵之影：比标记大一号的黑色人形，身后拖一缕黑烟，红眼更亮
+func _draw_souls() -> void:
+	for s in souls:
+		var p: Vector2 = s.p
+		var tail := PackedVector2Array()
+		for q in 5:
+			tail.append(p + Vector2(sin(g.t * 5.0 + q * 0.9) * (1.0 + q), 8.0 + q * 4.0))
+		g.draw_polyline(tail, Color(0.08, 0.03, 0.05, 0.7), 5.0)
+		g.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
+		_draw_shade_body(p, 9.5, 0.95)
+
+
+## 残影人形：竖椭圆黑影 + 两点红眼（与天赋残影 fx 同形）
+func _draw_shade_body(p: Vector2, r: float, al: float) -> void:
+	g.draw_set_transform(p, 0.0, Vector2(1.0, 1.7))
+	g.draw_circle(Vector2.ZERO, r, Color(0.05, 0.03, 0.05, al))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 20, Color(1.2, 0.12, 0.16, 0.8 * al), 1.2)   # 暗红描边，在暗色地面上也分得清
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var ey: float = -r * 0.75
+	g.draw_circle(p + Vector2(-r * 0.35, ey), maxf(1.2, r * 0.18), Color(2.2, 0.3, 0.3, al))
+	g.draw_circle(p + Vector2(r * 0.35, ey), maxf(1.2, r * 0.18), Color(2.2, 0.3, 0.3, al))
 
 
 ## 彗星轮廓：pts 从尾到头；半宽按 (u^1.6) 从 0 平滑增到 hw，头部接半圆帽

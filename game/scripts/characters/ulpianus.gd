@@ -6,6 +6,9 @@
 ## 全部走现成挂点，不改 game.gd：弹射 = 在 update 里覆盖自身 pos（follow 之后执行），眩晕 = e.stun，层数走 stats.add(op:<id>)。
 ## 表现（2026-09-25 重做）：锚画成他手里那把深色钩锚（黑蓝锚身 + 一只大弯钩 + 蓝色刃光），锁链绷直；
 ## 掷出 → 咬地（顿帧、蓝色水花）→ 人沿锁链弹射（残影 + 速度线）→ 落地砸击。
+## 可见成长（docs/25 §5.2）：N1 定点爆破：锚击 0.2 秒后第二道冲击环；N2 锁链回旋：每第 3 击锁链甩一整圈；
+## N4 不容挣脱：必须接触落地时用锁链拽来 3 名敌人；N5 通路洞开：必须开辟从起点到锚点裂开一道通路，掀飞沿途敌人；
+## 精二「血脉沸腾」：身上常亮血脉红纹，击杀精英后下一次锚击变为大爆破（红纹脉动提示）。
 extends "res://scripts/characters/character.gd"
 
 const STEEL := Color(0.55, 0.75, 0.95)
@@ -13,6 +16,7 @@ const CHAIN := Color(0.62, 0.68, 0.78)
 const ABYSS := Color(0.1, 0.12, 0.2)        # 锚身：黑蓝
 const EDGE := Color(0.4, 0.62, 1.1)         # 刃光：深海蓝
 const WATER := Color(0.45, 0.78, 1.0)
+const BLOOD := Color(1.0, 0.25, 0.3)        # 血脉红纹
 const LEASH := 170.0
 const HUNTERS := ["skadi", "specter_unchained"]
 
@@ -23,6 +27,16 @@ var haste_t := 0.0            # S3 之后 8 秒锚击加速
 ## 锚：{kind, phase: "throw" / "zip", t, dur, from, to, start, trail}
 ## throw：锚从手里飞向 to；zip：锚咬在 to，人从 start 弹射到落点
 var anchor: Dictionary = {}
+# ---- 可见成长
+var blast2_on := false        # N1 定点爆破
+var whirl_on := false         # N2 锁链回旋
+var drag_on := false          # N4 不容挣脱
+var rift_on := false          # N5 通路洞开
+var blood_on := false         # 精二 血脉沸腾
+var blood_ready := false      # 已击杀精英：下一次锚击大爆破
+var slam_n := 0               # 锚击计数（每第 3 击锁链回旋）
+var delayed: Array = []       # 延时冲击 {t, c}
+var launched: Array = []      # 通路洞开掀飞的敌人 {e, t, dur, h}
 
 
 func _reach() -> float:
@@ -38,10 +52,40 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
+## 成长节点（data/characters/ulpianus.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"blast2":
+			blast2_on = true
+		"whirl":
+			whirl_on = true
+		"drag":
+			drag_on = true
+		"rift":
+			rift_on = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		blood_on = true
+
+
+func _slam_dmg() -> float:
+	return base("atk", 42.0) * _dmg_bonus()
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	haste_t = maxf(0.0, haste_t - dt)
 	_update_anchor(dt)
+	_update_launched(dt)
+	# 定点爆破：锚击后 0.2 秒的第二道冲击环
+	for i in range(delayed.size() - 1, -1, -1):
+		delayed[i].t -= dt
+		if delayed[i].t <= 0.0:
+			var dl: Dictionary = delayed[i]
+			delayed.remove_at(i)
+			_blast2(dl.c)
 	if acting() or not anchor.is_empty():
 		return
 	var ready := charge_skills(dt)
@@ -66,11 +110,57 @@ func _release() -> void:
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * _reach() * 0.55
-	melee_hit("锚击", c, 0.0, PI, _reach(), base("atk", 38.0) * _dmg_bonus(), 90.0)
+	# 精二 血脉沸腾：击杀精英后的这一击变为大爆破（半径 160、×2.5）
+	if blood_ready:
+		blood_ready = false
+		_blood_blast(c)
+		return
+	melee_hit("锚击", c, 0.0, PI, _reach(), _slam_dmg(), 90.0)
 	# 抡锚弧光（Ninja Slash01 钢蓝重调色）+ 落地
 	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + Vector2.from_angle(ang) * _reach() * 0.45, _reach() * 1.3 / 28.0, ang)
 	_slam_fx(c, _reach(), 1.0)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.06)
+	# 定点爆破：0.2 秒后同一落点再炸一道更大的冲击环
+	if blast2_on:
+		delayed.append({"t": base("blast2_delay", 0.2), "c": c})
+	# 锁链回旋：每第 3 击抡着锁链甩一整圈
+	slam_n += 1
+	if whirl_on and slam_n % 3 == 0:
+		_whirl()
+
+
+## 定点爆破（档案：四爪巨锚「定点爆破」）：半径 100、锚击 50% 伤害
+func _blast2(c: Vector2) -> void:
+	var r: float = base("blast2_r", 100.0) * stat(&"op_range")
+	area_hit("定点爆破", c, r, _slam_dmg() * base("blast2_mult", 0.5), 60.0)
+	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.4, "life": 0.3, "col": EDGE, "floor": true, "w": 4.0})
+	fx({"kind": "ring", "pos": c, "r": r * 0.7, "r0": 6.0, "life": 0.22, "col": Color(1.3, 1.6, 2.2), "floor": true, "w": 2.0})
+	fx({"kind": "glow", "pos": c + Vector2(0, -8), "r": 16.0, "life": 0.18, "col": Color(1.2, 1.5, 2.2), "alpha": 0.7})
+	_splash(c, 5, 0.8)
+	Sfx.play("boom", -12.0, 1.3, 0.1)
+
+
+## 锁链回旋：以自身为中心半径 130、锚击 60% 伤害；锁链带着锚在腰高甩一整圈（whirl 粒子）
+func _whirl() -> void:
+	var r: float = base("whirl_r", 130.0) * stat(&"op_range")
+	area_hit("锁链回旋", pos, r, _slam_dmg() * base("whirl_mult", 0.6), 140.0)
+	fx({"kind": "whirl", "pos": pos, "r": r, "life": 0.32, "a0": g.rng.randf() * TAU, "dir": face})
+	fx({"kind": "ring", "pos": pos, "r": r, "r0": r * 0.6, "life": 0.3, "col": CHAIN, "floor": true, "w": 2.0, "alpha": 0.6})
+
+
+## 血脉沸腾：大爆破（半径 160、锚击 ×2.5），红色冲击 + 地裂
+func _blood_blast(c: Vector2) -> void:
+	var r: float = base("blood_r", 160.0) * stat(&"op_range")
+	melee_hit("锚击", c, 0.0, PI, r, _slam_dmg() * base("blood_mult", 2.5), 220.0, 0.4, ["empowered"])
+	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + (c - pos) * 0.8, _reach() * 1.5 / 28.0, (c - pos).angle(), false, false, Color(1.6, 0.6, 0.6))
+	fx({"kind": "crack", "pos": c, "r": r * 0.8, "life": 0.6, "col": BLOOD, "floor": true, "n": 9})
+	fx({"kind": "ring", "pos": c, "r": r, "r0": 20.0, "life": 0.4, "col": BLOOD, "floor": true, "w": 5.0})
+	fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": 10.0, "life": 0.5, "col": STEEL, "floor": true, "w": 2.5})
+	fx({"kind": "glow", "pos": c + Vector2(0, -12), "r": 34.0, "life": 0.3, "col": BLOOD, "alpha": 0.7})
+	_splash(c, 10, 1.3)
+	fx_sparks(c + Vector2(0, -10), BLOOD, 12, 260.0, 0.45, 3.0, 200.0)
+	g.hitstop = maxf(g.hitstop, 0.08)
+	Sfx.op(id, "big")
 
 
 ## 砸地：地裂 + 冲击环 + 深海蓝水珠（不用帧条水花：它前几帧是米黄色的尘团，和深海不搭）
@@ -206,7 +296,7 @@ func _zip_land() -> void:
 	var c: Vector2 = anchor.land
 	if anchor.kind == 0:
 		var r: float = base("s1_r", 90.0) * stat(&"op_range")
-		var dmg: float = base("atk", 38.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+		var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
 		for j in g._query(c, r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r + e.r:
@@ -220,10 +310,13 @@ func _zip_land() -> void:
 		_slam_fx(c, r, 1.0)
 		g.hitstop = maxf(g.hitstop, 0.06)
 		Sfx.op(id, "atk", 2.0, 0.85)
+		# 不容挣脱（原作 S1 把敌人拖过来）：锁链甩出去拽来附近至多 3 名敌人，拖到落点并造成掷锚 60% 伤害
+		if drag_on:
+			_drag_in(c, dmg * base("drag_mult", 0.6))
 	else:
 		# 必须开辟：落点 r140 ×3 + 眩晕
 		var r3: float = base("s3_r", 140.0) * stat(&"op_range")
-		var dmg3: float = base("atk", 38.0) * base("s3_mult", 3.0) * _dmg_bonus() * skill_power()
+		var dmg3: float = base("atk", 42.0) * base("s3_mult", 3.0) * _dmg_bonus() * skill_power()
 		for j in g._query(c, r3 + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r3 + e.r:
@@ -241,6 +334,80 @@ func _zip_land() -> void:
 		g._add_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
 		g.hitstop = maxf(g.hitstop, 0.1)
 		Sfx.op(id, "big")
+		# 通路洞开：从起跳点到锚点裂开一道直线裂隙，沿途敌人被掀飞 0.8 秒并受到锚击 80% 伤害
+		if rift_on:
+			_open_rift(anchor.start, c)
+
+
+## 不容挣脱：落点 200 内最近的至多 3 名（不含已在落点身边的）敌人被锁链拽过来
+func _drag_in(c: Vector2, dmg: float) -> void:
+	var cands: Array = g._nearest(12, base("drag_r", 200.0), c).filter(func(e): return e.pos.distance_to(c) > 36.0)
+	for k in mini(int(base("drag_n", 3.0)), cands.size()):
+		var e: Dictionary = cands[k]
+		g._hit("不容挣脱")
+		g._damage(e, dmg)
+		fx({"kind": "chain", "pos": c + Vector2(0, -12), "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3})
+		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": STEEL, "alpha": 0.6})
+		if e.dead or e.boss:
+			continue
+		# 击退速度按拖拽距离换算（kb 以 900/s² 衰减：位移 = v² / 1800），拖到落点身前 24 处
+		var dist: float = maxf(0.0, e.pos.distance_to(c) - 24.0)
+		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
+		e.kb += (c - e.pos).normalized() * v
+		e.stun = maxf(e.stun, 0.3)
+
+
+## 通路洞开：裂隙贴地停留 0.8 秒（地面残留），沿线敌人掀飞
+func _open_rift(a: Vector2, b: Vector2) -> void:
+	if a.distance_to(b) < 8.0:
+		return
+	var dmg: float = _slam_dmg() * base("rift_mult", 0.8) * skill_power()
+	var w: float = base("rift_w", 26.0)
+	var d: Vector2 = (b - a).normalized()
+	var L: float = a.distance_to(b)
+	for j in g._query((a + b) * 0.5, L * 0.5 + w + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var rel: Vector2 = e.pos - a
+		var along: float = rel.dot(d)
+		if along < -e.r or along > L + e.r or absf(rel.cross(d)) > w + e.r:
+			continue
+		g._hit("通路洞开")
+		g._damage(e, dmg)
+		_launch(e, base("rift_air", 0.8), 30.0)
+	fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.rng.randf() * 100.0})
+	for k in 5:
+		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
+		fx_sparks(p + Vector2(0, -4), EDGE, 3, 160.0, 0.35, 2.5, 260.0)
+
+
+## 掀飞：眩晕 + 一条 sin 弧线的 air 高度（game.gd 按 e.air 抬高绘制；与艾丽妮浮空同法）
+func _launch(e: Dictionary, dur: float, h: float) -> void:
+	if e.dead or e.boss:
+		return
+	if e.elite:
+		dur *= 0.5
+	e.stun = maxf(e.stun, dur)
+	for l in launched:
+		if is_same(l.e, e):
+			l.t = 0.0
+			l.dur = maxf(l.dur, dur)
+			return
+	launched.append({"e": e, "t": 0.0, "dur": dur, "h": h})
+
+
+func _update_launched(dt: float) -> void:
+	if launched.is_empty():
+		return
+	for l in launched:
+		l.t += dt
+		var e: Dictionary = l.e
+		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+		e.air = 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h
+		if not e.dead:
+			e.kb = Vector2.ZERO
+	launched = launched.filter(func(l): return l.t < l.dur and not l.e.dead)
 
 
 # ---------------------------------------------------------------- 天赋：血脉滋养
@@ -253,6 +420,11 @@ func on_kill(e: Dictionary) -> void:
 		add = 3
 	elif e.elite:
 		add = 1
+	# 精二 血脉沸腾：击杀精英 / Boss 后下一次锚击大爆破
+	if add > 0 and blood_on and not blood_ready:
+		blood_ready = true
+		g._add_text(pos + Vector2(0, -78), "血脉沸腾", BLOOD, 14)
+		fx({"kind": "ring", "pos": pos, "r": 50.0, "r0": 10.0, "life": 0.35, "col": BLOOD, "floor": true, "w": 3.0})
 	if add <= 0 or stacks >= _stack_cap():
 		return
 	stacks = mini(_stack_cap(), stacks + add)
@@ -274,7 +446,108 @@ func _apply_stacks() -> void:
 
 # ---------------------------------------------------------------- 绘制
 
+## 锁链：暗描边 + 链节交替（掷锚、回旋、拽敌共用）
+func _draw_chain(a: Vector2, b: Vector2, al: float) -> void:
+	g.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
+	g.draw_line(a, b, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95 * al), 2.5)
+	var links: int = clampi(int(a.distance_to(b) / 10.0), 1, 50)
+	for i in links:
+		var q: Vector2 = a.lerp(b, float(i) / links)
+		if i % 2 == 0:
+			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75, al))
+		else:
+			g.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
+
+
+## 自定义粒子：whirl 锁链回旋 / chain 拽敌锁链 / rift 通路裂隙
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	match f.kind:
+		"whirl":
+			# 锁链带着锚在腰高甩一整圈（贴地椭圆），锚头后拖一段渐隐的回旋轨迹
+			var u: float = 1.0 - a
+			var head: float = f.a0 + f.dir * TAU * (1.0 - (1.0 - u) * (1.0 - u))
+			var c: Vector2 = f.pos + Vector2(0, -14)
+			var R: float = f.r * 0.85
+			var trail := PackedVector2Array()
+			for i in 16:
+				var an: float = head - f.dir * 2.2 * float(i) / 15.0
+				trail.append(c + Vector2(cos(an) * R, sin(an) * R * 0.55))
+			for i in 15:
+				var al: float = (1.0 - float(i) / 15.0) * minf(1.0, a * 2.0)
+				g.draw_line(trail[i], trail[i + 1], Color(EDGE.r * 1.4, EDGE.g * 1.4, EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
+			var hp: Vector2 = trail[0]
+			_draw_chain(f.pos + Vector2(0, -22), hp, minf(1.0, a * 2.0))
+			_draw_anchor(hp, Vector2.from_angle(head + f.dir * PI * 0.5), minf(1.0, a * 2.0))
+			return true
+		"chain":
+			# 前 40% 锁链甩出去，之后收回（链头从敌人处拉回落点）
+			var u2: float = 1.0 - a
+			var tip: Vector2 = (f.pos as Vector2).lerp(f.to, minf(1.0, u2 / 0.4)) if u2 < 0.4 else (f.to as Vector2).lerp(f.pos, (u2 - 0.4) / 0.6)
+			_draw_chain(f.pos, tip, 1.0)
+			g.draw_circle(tip, 4.0, Color(EDGE.r * 1.5, EDGE.g * 1.5, EDGE.b * 1.5, 0.9))
+			return true
+		"rift":
+			# 通路裂隙：锯齿状深色裂缝（两头细、中间宽），裂缝芯一道深海蓝光，后半程淡出
+			var A: Vector2 = f.pos
+			var B: Vector2 = f.to
+			var L: float = A.distance_to(B)
+			var d: Vector2 = (B - A) / maxf(1.0, L)
+			var n: Vector2 = d.orthogonal()
+			var m: int = clampi(int(L / 14.0), 3, 40)
+			var al2: float = minf(1.0, a * 2.0)
+			var prev: Vector2 = A
+			for i in range(1, m + 1):
+				var t: float = float(i) / m
+				var p: Vector2 = A + d * L * t + n * (sin(f.seed + i * 1.7) * 5.0 if i < m else 0.0)
+				var w: float = 2.0 + 5.0 * sin(t * PI)
+				g.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
+				g.draw_line(prev, p, Color(EDGE.r * 1.6, EDGE.g * 1.6, EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
+				prev = p
+			return true
+	return false
+
+
+## 精二 血脉沸腾：身上常亮的血脉红纹（躯干几道分叉红线，缓慢呼吸）；大爆破就绪时脉动加快、加亮并带一圈红光
+func _draw_veins() -> void:
+	var ready: bool = blood_ready
+	var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if ready else 2.5))
+	var al: float = (0.55 + 0.45 * pul) if ready else (0.35 + 0.25 * pul)
+	var c := Color(BLOOD.r * 1.8, BLOOD.g * 1.4, BLOOD.b * 1.4, al)
+	var o: Vector2 = pos + Vector2(0, -44)
+	var sx: float = face
+	var veins := [
+		[Vector2(0, 0), Vector2(-3, 8), Vector2(-7, 14), Vector2(-9, 22)],
+		[Vector2(0, 0), Vector2(4, 7), Vector2(6, 15), Vector2(10, 20)],
+		[Vector2(0, 0), Vector2(2, -6), Vector2(-2, -12), Vector2(1, -17)],
+		[Vector2(-3, 8), Vector2(-10, 6), Vector2(-14, 9)],
+		[Vector2(4, 7), Vector2(11, 3), Vector2(15, 5)],
+	]
+	for v in veins:
+		var pts := PackedVector2Array()
+		for q in v:
+			pts.append(o + Vector2(q.x * sx, q.y))
+		g.draw_polyline(pts, Color(0.2, 0.0, 0.02, al * 0.6), 3.0)
+		g.draw_polyline(pts, c, 1.5)
+	g.draw_circle(o, 3.0 + pul, Color(BLOOD.r * 2.0, BLOOD.g * 1.5, BLOOD.b * 1.5, al))
+	if ready:
+		g.draw_arc(pos + Vector2(0, -34), 28.0 + 4.0 * pul, 0.0, TAU, 32, Color(BLOOD.r * 1.6, BLOOD.g, BLOOD.b, 0.5 * pul + 0.2), 2.5)
+		g.draw_circle(pos + Vector2(0, -34), 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, 0.08 + 0.08 * pul))
+
+
+## 脚下：精二常驻的淡红血脉光环（就绪时更亮）
+func draw_auras() -> void:
+	if not blood_on or pos == Vector2.INF:
+		return
+	var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if blood_ready else 2.5))
+	g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	g.draw_circle(Vector2.ZERO, 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, (0.12 if blood_ready else 0.06) + 0.05 * pul))
+	g.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(BLOOD.r * 1.5, BLOOD.g, BLOOD.b, (0.6 if blood_ready else 0.3) * (0.6 + 0.4 * pul)), 2.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _draw_skill_over() -> void:
+	if blood_on and pos != Vector2.INF:
+		_draw_veins()
 	if anchor.is_empty():
 		return
 	var k: float = clampf(anchor.t / anchor.dur, 0.0, 1.0)
@@ -353,6 +626,8 @@ func status_items() -> Array:
 		out.append(["血脉 ×%d" % stacks, Color(0.9, 0.4, 0.45)])
 	if haste_t > 0.0:
 		out.append(["开辟", STEEL])
+	if blood_ready:
+		out.append(["血脉沸腾", BLOOD])
 	return out
 
 

@@ -20,7 +20,22 @@
   "s2_r": 110,
   "s2_mult": 2.2,
   "s2_sp": 0.2,
-  "s3_mult": 1.8
+  "s3_mult": 1.8,
+  "quake_r": 70,
+  "quake_mult": 0.25,
+  "roar_r_mult": 1.4,
+  "roar_kb": 200,
+  "leap2_range": 220,
+  "leap2_dist": 150,
+  "leap2_mult": 0.6,
+  "cmd_r": 180,
+  "cmd_dur": 0.4,
+  "cmd_mult": 0.6,
+  "cmd_kb": 380,
+  "crack_len": 180,
+  "crack_w": 30,
+  "crack_mult": 0.5,
+  "crack_life": 0.6
  },
  "sprites": {
   "idle": {
@@ -118,32 +133,55 @@
     "area",
     "control"
    ]
+  },
+  "震地余波": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "aftershock",
+    "area"
+   ]
+  },
+  "破阵": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "aftershock",
+    "area"
+   ]
+  },
+  "号令": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "control"
+   ]
   }
  },
  "progression": [
   {
-   "type": "stat",
-   "name": "锤击 · 锋",
-   "desc": "攻击 +15%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "quake",
+   "name": "震地",
+   "icon": "growth_u_area",
+   "desc": "每一锤落地打出一圈贴地冲击环（半径 70，锤击 40% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "锤击 · 迅",
-   "desc": "攻速 +15%",
-   "effects": [
-    {
-     "key": "op_aspd",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "roar",
+   "name": "狮吼",
+   "icon": "growth_b_range",
+   "desc": "冲击环范围 +40%，并击退敌人"
   },
   {
    "type": "elite",
@@ -152,34 +190,24 @@
    "desc": "解锁二技能「跃空锤」；解锁天赋「鼓舞」：锤击命中时回复的全队技力翻倍"
   },
   {
-   "type": "stat",
-   "name": "锤击 · 广",
-   "desc": "范围 +15%",
-   "effects": [
-    {
-     "key": "op_range",
-     "op": "add",
-     "value": 0.15
-    }
-   ]
+   "type": "custom",
+   "id": "leap_again",
+   "name": "再跃",
+   "icon": "skill_s2",
+   "desc": "「跃空锤」落地后立刻再跃向下一群敌人砸第二下（60% 伤害）"
   },
   {
-   "type": "stat",
-   "name": "锤击 · 锐",
-   "desc": "攻击 +20%",
-   "effects": [
-    {
-     "key": "op_atk",
-     "op": "add",
-     "value": 0.2
-    }
-   ]
+   "type": "custom",
+   "id": "beast_king",
+   "name": "万兽之王",
+   "icon": "skill_s1",
+   "desc": "「冲锋号令」放出一圈向外扩张的金色号令波（半径 180，锤击 60% 伤害），推开小怪"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英化二",
-   "desc": "解锁三技能「碎颅」：8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%"
+   "desc": "解锁三技能「碎颅」：8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%；普攻质变「破阵」：每一锤向前砸出一道长 180 的直线金色地裂，沿途敌人受到锤击 50% 伤害"
   }
  ],
  "gallery": {
