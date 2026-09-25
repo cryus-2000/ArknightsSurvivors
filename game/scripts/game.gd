@@ -683,7 +683,7 @@ func _demo_step(dt: float) -> void:
 	gems.clear()
 	if demo_origin == Vector2.INF:
 		demo_origin = ppos
-		demo_phases = [demo_skill] if demo_skill >= 0 else [0, 1, 2]
+		demo_phases = _demo_phase_list()
 		_demo_next_phase()
 	var si: int = demo_phases[demo_pi]
 	demo_ph_t += dt
@@ -732,6 +732,28 @@ func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
 
+## 图鉴手动切换（gallery.gd 点击调用）：stage 0 精零（N1 N2 后）/ 1 精一（N5 后）/ 2 精二；
+## mode -1 轮播已解锁的技能 / 0–2 只放该技能 / 3 只普攻。立即重置场地与干员
+func demo_configure(stage: int, mode: int) -> void:
+	demo_stage = clampi(stage, 0, 2)
+	demo_basic = mode == 3
+	demo_skill = mode if mode >= 0 and mode <= 2 else -1
+	if demo_origin == Vector2.INF:
+		return   # 还没开始跑：第一帧 _demo_step 初始化时按这些设置来
+	demo_phases = _demo_phase_list()
+	demo_pi = -1
+	_demo_next_phase()
+
+
+## 本阶段可展示的技能段：只轮播已解锁的技能（精零只有一技能）
+func _demo_phase_list() -> Array:
+	if demo_skill >= 0:
+		return [demo_skill]
+	if demo_stage >= 0:
+		return range(demo_stage + 1)
+	return [0, 1, 2]
+
+
 func _demo_next_phase() -> void:
 	demo_pi = (demo_pi + 1) % demo_phases.size()
 	demo_ph_t = 0.0
@@ -742,7 +764,7 @@ func _demo_next_phase() -> void:
 	_demo_new_op()
 	_demo_horde(DEMO_HORDE)
 	var si: int = demo_phases[demo_pi]
-	demo_label = "%s技能「%s」" % [["一", "二", "三"][si], ch.skill_def(si).get("name", "")]
+	demo_label = "普攻「%s」" % ch.attack_def().get("name", "") if demo_basic else "%s技能「%s」" % [["一", "二", "三"][si], ch.skill_def(si).get("name", "")]
 
 
 ## 重新生成演示干员：清掉旧实例挂在 op:<id> 作用域上的全部修正，再按演示要求推到精英化阶段

@@ -89,6 +89,11 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
+		if a.begins_with("--demoset="):
+			# 截图自测：图鉴演示的阶段 / 动作（同 gallery.gd demo_stage / demo_mode）
+			var dp := a.substr(10).split(",")
+			gallery.demo_stage = int(dp[0])
+			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
