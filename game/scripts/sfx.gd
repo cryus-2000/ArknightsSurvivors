@@ -10,6 +10,7 @@ var streams := {}
 var players: Array = []
 var next := 0
 var last := {}
+var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟时间，不能碰全局随机流（否则 --seed 不可复现）
 ## 音乐：多曲目 + 战斗曲分层（同长同步的四层，按局势调各层音量）
 const MUSIC := {
 	"title": ["title"],
@@ -43,8 +44,18 @@ var vol_target := -4.0
 var music_muted := false
 
 
+## 自动测试 / 截图 / 平衡批跑（任何 `--xxx` 命令行用户参数）一律静音：开发者在跑测试时还要工作
+static func is_automated() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--"):
+			return true
+	return false
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if is_automated():
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
 	var mbus := _ensure_bus("Music")
 	if AudioServer.get_bus_effect_count(mbus) == 0:
 		music_lp = AudioEffectLowPassFilter.new()
@@ -238,5 +249,5 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		return
 	p.stream = streams[name]
 	p.volume_db = vol
-	p.pitch_scale = pitch * randf_range(1.0 - pitch_var, 1.0 + pitch_var)
+	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p.play()

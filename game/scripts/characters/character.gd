@@ -239,7 +239,7 @@ func _elite_show(stage: int) -> void:
 	var td := talent_def()
 	if stage == 1 and not td.is_empty():
 		items.append({"tag": "天赋", "tag_en": "TALENT", "glyph": td.get("name", "赋").substr(0, 1), "name": td.get("name", ""), "desc": td.get("desc", ""), "col": col().lerp(Color(1, 1, 1), 0.3)})
-	g.show_queue.append({"head": "%s · 精英化%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "items": items})
+	g.show_queue.append({"head": "%s · 精英化%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "elite": stage, "items": items})
 
 
 # ---------------------------------------------------------------- 干员特效粒子（docs/25）

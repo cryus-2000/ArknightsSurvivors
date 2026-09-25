@@ -11,4 +11,5 @@ Read docs/06_git_collaboration.md before making changes.
 - Deliver art with a commit hash and affected paths. Claude reviews then cherry-picks the art commit into main from a clean working tree. If conflicts occur, resolve deliberately; do not overwrite either side wholesale.
 - Art under incoming is authoritative delivery. Refer to docs/05_art_handoff.md for filenames, dimensions and import rules.
 - Do not commit .godot/, build outputs, node_modules, credentials or local art backups.
+- Automated runs must be silent: any launch with a `--xxx` user argument (autotest, balance, screenshots, gallery shots) mutes the Master bus in sfx.gd. Never remove that mute, and never add a test mode that bypasses it — the user works while tests run. Prefer `--headless` for anything that does not need a screenshot.
 - Git is local version control, not an automatic agent messaging service. No remote is configured by this setup.

@@ -9,6 +9,19 @@
   0.35
  ],
  "script": "res://scripts/characters/siege.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 30,
+  "cd": 1.0,
+  "reach": 72,
+  "hit_sp": 0.5,
+  "s1_sp": 0.15,
+  "s1_mult": 1.5,
+  "s2_r": 110,
+  "s2_mult": 2.2,
+  "s2_sp": 0.2,
+  "s3_mult": 1.8
+ },
  "sprites": {
   "idle": {
    "tex": "op_siege_idle",

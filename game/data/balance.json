@@ -1,0 +1,52 @@
+{
+ "version": "p5.0",
+ "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
+
+ "operators": {
+  "_doc": "干员档位系数（docs/27 §3）：全员可玩，档位差压缩到 ±5%。atk / aspd / range / skill_power 以 add 方式写入 op:<id> 作用域，来源 balance。",
+  "wisadel":    {"tier": "S+", "atk": 0.05, "aspd": 0.0, "range": 0.0, "skill_power": 0.05},
+  "eyjafjalla": {"tier": "S",  "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03},
+  "kaltsit":    {"tier": "S",  "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03},
+  "saria":      {"tier": "A+", "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
+  "suzuran":    {"tier": "A+", "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
+  "mizuki":     {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
+  "siege":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
+  "skadi":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
+ },
+
+ "enemy": {
+  "_doc": "敌人生命 / 攻击随时间的曲线（docs/27 §4）。hp = base × (1 + min(t,hp_knee)/hp_div + max(t-hp_knee,0)/hp_late_div)；dmg = base × (1 + min(t,dmg_knee)/dmg_div)",
+  "hp_knee": 480, "hp_div": 150, "hp_late_div": 300,
+  "dmg_knee": 480, "dmg_div": 420,
+  "horde_base": 20, "horde_div": 12,
+  "corrode_mult": 1.2,
+  "elite_hp_mult": 7.0, "elite_dmg_mult": 1.3, "elite_xp_mult": 10.0,
+  "boss_hp_time_div": 600,
+  "spawn_base": 1.6, "spawn_div": 30, "spawn_boss_mult": 0.8, "spawn_dark_mult": 1.15, "spawn_cap": 450
+ },
+
+ "lamp": {
+  "_doc": "受击灯火损失 = (hit_base + hit_scale × 伤害/最大生命) × light_decay。原值 4 / 30：一记 16 伤害就掉 8.8，十次就熄灯进入死亡螺旋",
+  "hit_base": 3, "hit_scale": 18
+ },
+
+ "xp": {
+  "_doc": "升级所需经验：first 为 Lv1→2；之后 a + b·L + c·L²（docs/23 §8 目标：10 分钟约 32 级）",
+  "first": 8, "a": 24, "b": 8, "c": 0.8
+ },
+
+ "levelup": {
+  "_doc": "升级卡池（game.gd _open_levelup）",
+  "recruit_from_level": 5, "recruit_chance": 0.45,
+  "force_recruit_level_1": 6, "force_recruit_level_3": 12,
+  "second_deep_chance": 0.5,
+  "drone_chance": 0.18
+ },
+
+ "bot": {
+  "_doc": "--balance 机器人的选卡偏好（docs/27 §6）。weights 为各类卡的相对权重；prefer_recruit_before 之前遇到招募卡必选",
+  "prefer_recruit_before": 8,
+  "weights": {"prog": 6.0, "skill": 5.0, "recruit": 4.0, "weapon": 2.0, "growth": 3.0, "filler": 0.5, "relic": 1.0},
+  "growth_weights": {"squad_atk": 3.0, "sp": 3.0, "squad_aspd": 2.5, "squad_crit": 2.0, "squad_range": 1.5, "hp": 2.0, "regen": 1.5, "armor": 1.5, "dodge": 1.5, "speed": 1.0, "pickup": 1.0, "wick": 0.5}
+ }
+}

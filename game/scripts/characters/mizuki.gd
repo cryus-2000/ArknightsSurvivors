@@ -104,7 +104,8 @@ func update(dt: float) -> void:
 		var radius := _swing_radius()
 		var targets = g._nearest(1, radius + 60.0, pos)
 		if targets.size() > 0:
-			var interval: float = base("swing_interval", 0.9) * u_spd_mult / stat(&"op_aspd") * (1.5 if g.atk_slow > 0.0 else 1.0) * g.rfx.umbrella_interval_mult()
+			# 藏品加速（极速之手 / 国王的新枪 / 投币玩具）已由 relic_fx 写进全队的 op_aspd，不再单独乘
+			var interval: float = base("swing_interval", 0.9) * u_spd_mult / stat(&"op_aspd") * (1.5 if g.atk_slow > 0.0 else 1.0)
 			if s2_active > 0.0:
 				interval *= S2_INTERVAL
 			swing_cd = max(0.18, interval)
@@ -462,7 +463,7 @@ func on_kill(_e: Dictionary) -> void:
 	if elite >= 1:
 		var got: float = min(0.01, heal_budget)
 		heal_budget -= got
-		g._heal(g.max_hp * got)
+		g._heal(g.max_hp * got, "水月")
 
 
 ## 触手颜色：常态蓝色，海嗣化后紫色

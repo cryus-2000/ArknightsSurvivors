@@ -9,6 +9,19 @@
   0.2
  ],
  "script": "res://scripts/characters/eyjafjalla.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 22,
+  "cd": 1.2,
+  "range": 380,
+  "aoe": 58,
+  "s1_aoe": 1.4,
+  "s2_mult": 2.5,
+  "s3_count": 10,
+  "s3_r": 75,
+  "s3_mult": 1.64,
+  "lava_mult": 0.23
+ },
  "sprites": {
   "idle": {
    "tex": "op_eyjafjalla_idle",

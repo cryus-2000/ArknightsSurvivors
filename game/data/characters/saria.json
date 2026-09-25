@@ -9,6 +9,15 @@
   0.38
  ],
  "script": "res://scripts/characters/saria.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "atk": 28,
+  "cd": 1.1,
+  "reach": 70,
+  "block_r": 62,
+  "s1_heal": 0.08,
+  "s2_heal": 0.1
+ },
  "sprites": {
   "idle": {
    "tex": "op_saria_idle",
