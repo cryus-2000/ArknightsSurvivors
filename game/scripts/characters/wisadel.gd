@@ -2,7 +2,7 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；S3 饱和炮击：8 发连射，每发余震。
 ## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
-## 特效（docs/25）：黑红。弹体是黑红色的能量流（黑色前端融进暗红彗尾，不画明显弹头，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
+## 特效（docs/25）：黑红。弹体是黑红彗星（前粗后细：圆头最粗，往后逐段变细变淡，不画明显弹头，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
 
@@ -187,14 +187,14 @@ func _update_shells(dt: float) -> void:
 		s.trail -= dt
 		if s.trail <= 0.0 and s.t < s.dur:
 			s.trail = 0.03
-			var p := _shell_pos(s)
-			# 彗尾上甩出的黑色碎屑 + 粉红光点
+			# 彗尾上甩出的黑色碎屑 + 暗红光点（生成在彗头后方，不压在头上）
+			var p: Vector2 = s.hist[0] if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
 			fx({"kind": "ember_shard", "pos": p, "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-20, 30)), "life": 0.3, "col": DARK, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
 			if g.rng.randf() < 0.6:
-				fx({"kind": "mote", "pos": p, "vel": Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), "life": 0.22, "col": BOLT, "sz": 1.6})
+				fx({"kind": "mote", "pos": p, "vel": Vector2(g.rng.randf_range(-24, 24), g.rng.randf_range(-24, 24)), "life": 0.22, "col": Color(0.7, 0.05, 0.07), "sz": 1.4})
 		if s.t < s.dur:
 			s.hist.append(_shell_pos(s))
-			if s.hist.size() > 6:
+			if s.hist.size() > 10:
 				s.hist.pop_front()
 		if s.t >= s.dur:
 			_explode(s.to, s.dmg, s.r, s.src, 0, s.stun, s.light)
@@ -392,25 +392,21 @@ func draw_entities_floor() -> void:
 
 
 func _draw_skill_over() -> void:
-	# 黑红能量流：彗尾按历史位置逐段收窄、变淡，前端收成黑色尖梢，不画弹头
+	# 彗星：前端最粗、圆头，往后逐段变细变淡；三层同色系（外暗红光 / 黑红体 / 黑芯），头部不单独画弹头
 	for s in shells:
 		var k: float = s.t / s.dur
 		var p := _shell_at(s, k)
-		var dir: Vector2 = (_shell_at(s, minf(1.0, k + 0.02)) - p).normalized()
-		var n: int = s.hist.size()
+		var pts: Array = s.hist.duplicate()
+		pts.append(p)
+		var n: int = pts.size()
+		const HEAD := 11.0
 		for i in range(n - 1):
-			var u: float = float(i + 1) / float(n)       # 0 尾 … 1 头
-			var w: float = 1.0 + 8.0 * u * u
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.2, 0.08, 0.1, 0.35 * u), w * 1.8)
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(0.35, 0.03, 0.05, 0.85 * u), w)
-			g.draw_line(s.hist[i], s.hist[i + 1], Color(1.9, 0.3, 0.22, 0.6 * u * u), w * 0.3)
-		# 前端不画弹头：彗尾最后一段收成尖梢（外暗红、内黑），融进飞行方向
-		var back: Vector2 = s.hist[n - 1] if n > 0 else p - dir * 8.0
-		var nv: Vector2 = dir.orthogonal()
-		var tip: Vector2 = p + dir * 6.0
-		g.draw_colored_polygon(PackedVector2Array([back + nv * 6.5, tip, back - nv * 6.5]), Color(1.2, 0.08, 0.1, 0.35))
-		g.draw_colored_polygon(PackedVector2Array([back + nv * 4.5, tip, back - nv * 4.5]), Color(0.35, 0.03, 0.05, 0.9))
-		g.draw_colored_polygon(PackedVector2Array([back + nv * 2.2, p, back - nv * 2.2]), Color(0.08, 0.01, 0.03, 0.95))
+			var u: float = float(i + 1) / float(n - 1)     # 0 尾 … 1 头
+			var w: float = 0.8 + (HEAD - 0.8) * pow(u, 2.4)
+			g.draw_line(pts[i], pts[i + 1], Color(1.2, 0.08, 0.1, 0.35 * u * u), w * 1.6)
+			g.draw_line(pts[i], pts[i + 1], Color(0.3, 0.03, 0.05, 0.15 + 0.8 * u), w)
+		# 圆头：一整块实心，和彗尾最粗处同宽
+		g.draw_circle(p, HEAD * 0.52, Color(0.16, 0.02, 0.04, 1.0))
 
 
 func status_items() -> Array:
