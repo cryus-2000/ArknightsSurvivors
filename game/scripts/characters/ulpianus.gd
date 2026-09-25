@@ -81,8 +81,9 @@ func _slam_fx(c: Vector2, r: float, k: float) -> void:
 	fx_sparks(c + Vector2(0, -8), CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
 
 
-## 深海蓝水珠：向上迸开、带重力落回
+## 深海蓝水珠：向上迸开、带重力落回；落点一团蓝色水花（ansimuz water splash）
 func _splash(c: Vector2, n: int, k: float) -> void:
+	g._fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
 	for i in n:
 		var a: float = -PI / 2.0 + g.rng.randf_range(-1.1, 1.1)
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.rng.randf_range(90, 190) * k,

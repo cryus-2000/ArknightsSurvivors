@@ -131,6 +131,10 @@ func _heavy(ang: float) -> void:
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
 	fx({"kind": "ring", "pos": c, "r": r * 0.7, "r0": 10.0, "life": 0.35, "col": BLUE, "floor": true, "w": 3.0})
 	fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 34.0, "life": 0.2, "col": FOAM, "alpha": 0.5})
+	# 蓝色水花（ansimuz water splash）：落点一大团 + 两侧各一小团
+	g._fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	for sd in [-1.0, 1.0]:
+		g._fx_sprite("fx_splash_blue", c + Vector2(sd * r * 0.3, 10), g.PX * 0.9, 0.0, sd < 0.0, true)
 	for k in 18:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	g.shake = maxf(g.shake, 4.0)

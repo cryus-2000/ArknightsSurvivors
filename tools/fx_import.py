@@ -16,6 +16,7 @@ NA = os.path.join(TP, 'icons', 'pixelboy_ninja_adventure', 'Ninja Adventure - As
 CM = os.path.join(TP, 'fire_lava', 'codemanu_pixel_effects', 'Free Pixel Effects Pack')
 PM = os.path.join(TP, 'holy_light', 'pimen_holy_vfx_01_02')
 OG = os.path.join(TP, 'generic_fx', 'oga_pixel_art_spells', 'pixelart_spells_1', 'Pixelart Spells', 'PNG Files')
+AM = os.path.join(TP, 'ansimuz_explosions_magic')   # ansimuz 爆炸与魔法合集（逐帧 PNG 目录）
 
 # 干员色板（docs/25）：暗 → 中 → 亮 → 高光
 RAMPS = {
@@ -25,6 +26,8 @@ RAMPS = {
     'lava':  ['#3A0E04', '#C8420E', '#FF8A2A', '#FFF0B0'],   # 艾雅法拉
     'deep':  ['#0B1E4A', '#2E5EC9', '#8FD3FF', '#F0FBFF'],   # 斯卡蒂
     'lion':  ['#2B1A0A', '#8A5A22', '#E0A54A', '#FFF0C0'],   # 推进之王
+    'rose':  ['#3A0F24', '#B2336F', '#FF8FC4', '#FFF0F7'],   # 艾丽妮（同 fx_recolor.py）
+    'steel': ['#0A1A2C', '#2F5F8A', '#8FC4EE', '#EAF6FF'],   # 乌尔比安（同 fx_recolor.py）
 }
 
 
@@ -92,6 +95,14 @@ def split_even(sheet, n):
     W, H = sheet.size
     fw = W // n
     return [sheet.crop((i * fw, 0, i * fw + fw, H)) for i in range(n)]
+
+
+def load_dir(path, step=1):
+    """逐帧 PNG 目录（ansimuz 合集的格式）：按文件名里的数字排序，隔 step 帧取一帧"""
+    import re
+    fs = sorted([f for f in os.listdir(path) if f.lower().endswith('.png')],
+                key=lambda f: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', f)])
+    return [Image.open(os.path.join(path, f)).convert('RGBA') for f in fs[::step]]
 
 
 def split_grid(sheet, cell, count, step=1, start=0):
@@ -169,13 +180,23 @@ JOBS = {
     'fx_rock_spike':        (na('Elemental/RockSpike/SpriteSheet.png'), 'even', 10, 48, 'lion', 'bottom', 14),
     # ---- 狐火弹（铃兰）
     'proj_foxfire':         (os.path.join(OG, 'Light Bolt.png'), 'even', 6, 16, 'gold', 'center', 12),
+    # ---- ansimuz 爆炸与魔法合集（2026-09-26）：'dir' = 逐帧目录，参数 = 隔几帧取一帧
+    'fx_flames':            (os.path.join(AM, '18_gothicvania_magic_pack_12', 'Sprites', 'Flames'), 'dir', 1, 40, None, 'bottom', 12),
+    'fx_fire_aura':         (os.path.join(AM, '02_gothicvania_magic_pack_n2_fire', 'sprites', 'fire_aura'), 'dir', 1, 48, None, 'bottom', 18),
+    'fx_splash_blue':       (os.path.join(AM, '05_gothicvania_magic_pack_5', 'sprites', 'water splash', 'sprites'), 'dir', 2, 40, None, 'bottom', 18),
+    'fx_thrust_hit_rose':   (os.path.join(AM, '12_warped_vfx_pack_1', 'Sprites', 'Hit-H'), 'dir', 1, 32, 'rose', 'center', 20),
+    'fx_star_hit_rose':     (os.path.join(AM, '12_warped_vfx_pack_1', 'Sprites', 'Hit-G'), 'dir', 1, 28, 'rose', 'center', 20),
+    'fx_cannon_burst':      (os.path.join(AM, '16_warped_explosions_pack_7', 'Sprites', 'explosion-h'), 'dir', 1, 32, None, 'bottom', 20),
+    'fx_muzzle_flash':      (os.path.join(AM, '05_gothicvania_magic_pack_5', 'sprites', 'flash', 'sprites'), 'dir', 2, 32, None, 'center', 28),
 }
 
 
 def run(name):
     src, mode, arg, height, ramp, anchor, fps = JOBS[name]
-    sheet = Image.open(src).convert('RGBA')
-    if mode == 'even':
+    sheet = Image.open(src).convert('RGBA') if mode != 'dir' else None
+    if mode == 'dir':
+        frames = load_dir(src, arg)
+    elif mode == 'even':
         frames = split_even(sheet, arg)
     elif mode == 'gaps':
         frames = split_by_gaps(sheet)

@@ -142,7 +142,23 @@ func _slam() -> void:
 	fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": GOLD, "floor": true, "n": 10, "ang": g.t})
 	# 光柱 + 放射光线
 	fx({"kind": "pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
-	# 一圈火焰：落点周围贴地的椭圆上窜起，内圈高、外圈矮
+	# 火（ansimuz 素材，照原作截图）：中心地面火圈张开 + 周围一圈大小不一的火焰；缺图退回程序水滴火苗
+	if g._fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
+		for k in 8:
+			var fa: float = k * TAU / 8.0 + g.rng.randf_range(-0.2, 0.2)
+			var fr: float = r * g.rng.randf_range(0.35, 0.7)
+			g._fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.rng.randf_range(0.7, 1.05), 0.0, g.rng.randf() < 0.5, true)
+	else:
+		_blaze_ring(r)
+	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
+	g.hitstop = maxf(g.hitstop, 0.07)
+	g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
+	_sp_motes(3)
+	Sfx.op(id, "big")
+
+
+## 程序火苗（缺 fx_flames 帧条时的后备）：落点周围贴地的椭圆上窜起，内圈高、外圈矮
+func _blaze_ring(r: float) -> void:
 	for k in 16:
 		var a: float = k * TAU / 16.0 + g.rng.randf_range(-0.15, 0.15)
 		var rr: float = r * g.rng.randf_range(0.25, 0.75)
@@ -150,11 +166,6 @@ func _slam() -> void:
 		var inner: bool = rr < r * 0.5
 		fx({"kind": "blaze", "pos": p, "vel": Vector2(cos(a) * 24.0, -g.rng.randf_range(10.0, 30.0)), "life": g.rng.randf_range(0.32, 0.48),
 			"sz": g.rng.randf_range(20.0, 28.0) if inner else g.rng.randf_range(12.0, 18.0), "seed": g.rng.randf() * 10.0})
-	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
-	g.hitstop = maxf(g.hitstop, 0.07)
-	g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
-	_sp_motes(3)
-	Sfx.op(id, "big")
 
 
 ## 空中翻转的速度感（照原作，用户确认）：以干员为圆心的**实心**扇形渐变盘——旋转扫过的区域整块填白，

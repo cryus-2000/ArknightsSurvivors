@@ -1,7 +1,7 @@
 ## 艾丽妮（近卫·剑豪，契约 v2.1，docs/26 第二批）：控制 + 处决。刺剑直线穿刺一列敌人，每次两段；唯一会把敌人打浮空的干员。
 ## S1 疾风：下一次刺击命中的第一个敌人浮空 1 秒，落下时补一刺（两段各 ×1.6）；
 ## S2 碎潮：前方锥形斩击最多 8 名 ×2.8，浮空 2 秒（精英 1 秒，Boss 不浮空）；
-## S3 审判：自身 r160 斩击 ×2.5 并浮空全部敌人 3 秒，随后 10 次灯光轰击 ×1.8，优先砸浮空目标。
+## S3 审判：自身 r160 斩击 ×2.5 并浮空全部敌人 3 秒，随后用手炮连射 10 发 ×1.8（原作：她转身用手炮向四周射击），优先打浮空目标。
 ## 天赋 涤罪之焰：对浮空 / 眩晕 / 束缚（slow）中的敌人伤害 +30%。
 ## 浮空 = e.stun + e.air（Boss 跳跃已在用的高度字段，game.gd 绘制时按 air 抬高），本脚本每帧写一条 sin 弧线；不改 game.gd。
 extends "res://scripts/characters/character.gd"
@@ -17,7 +17,7 @@ var second_ang := 0.0
 var second_mult := 1.0
 var gust_next := false        # S1：下一次刺击带浮空
 var airborne: Array = []      # {e, t, dur, h}
-var strikes: Array = []       # S3 灯光轰击队列：{t}
+var strikes: Array = []       # S3 手炮轰击队列：{t}
 var judge_c := Vector2.INF
 var judge_left := 0.0
 var thrust_n := 0             # 刺击计数：两段刺击左右错开
@@ -57,8 +57,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	for s in [-1.0, 1.0]:
 		var off: Vector2 = n * s * (wide * 0.5 + 5.0)
 		g.draw_line(P.call(o + d * L * 0.35 + off), P.call(o + d * L * 0.85 + off), Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.45 * a), 1.0)
-	# 剑尖星形闪光（伸到最长那一刻最亮）
-	if u > 0.2 and u < 0.75:
+	# 剑尖星形闪光（伸到最长那一刻最亮）；有 fx_star_hit_rose 帧条时由帧条画
+	if u > 0.2 and u < 0.75 and g.tex.get("fx_star_hit_rose") == null:
 		var k: float = 1.0 - absf(u - 0.35) / 0.4
 		var sz: float = 7.0 * k
 		g.draw_line(P.call(tip - d * sz), P.call(tip + d * sz), Color(2.4, 2.2, 2.4, k), 2.0)
@@ -157,12 +157,15 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
+			g._fx_sprite("fx_thrust_hit_rose", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
 	# 刺击光束（2026-09-25，替换原来的弧光帧条：她是刺剑，不是斩击）：细长尖头光束瞬间伸到最长再收细消失，
 	# 剑尖星形闪光 + 两侧速度线；两段刺击左右错开几像素（参考《哈迪斯》长矛突刺、《死亡细胞》细剑）
 	thrust_n += 1
 	var side: float = 4.0 if thrust_n % 2 == 0 else -4.0
 	fx({"kind": "thrust", "pos": o + d.orthogonal() * side, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
 		"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
+	# 剑尖星芒（ansimuz Hit-G 调玫瑰色）；有图时程序光束就不再画星
+	g._fx_sprite("fx_star_hit_rose", o + d.orthogonal() * side + d * (L + 10.0), g.PX * 0.8)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 	if not first.is_empty():
 		Sfx.op(id, "hit")
@@ -244,7 +247,7 @@ func _release_skill() -> void:
 			fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 			# 发动音 op_irene_s2 由 spend_sp 播放（锥形重斩本身）
 		2:
-			# 审判：周身 r160 斩击 ×2.5 + 全部浮空 3 秒，然后 10 次灯光轰击
+			# 审判：周身 r160 斩击 ×2.5 + 全部浮空 3 秒，然后手炮连射 10 发
 			var r3: float = base("s3_r", 160.0) * stat(&"op_range")
 			var dmg3: float = base("atk", 16.0) * base("s3_mult", 2.5) * _dmg_bonus() * skill_power()
 			for e in g._arc_hit(pos + Vector2(0, -10), 0.0, PI, r3):
@@ -280,19 +283,23 @@ func _update_strikes(dt: float) -> void:
 		s.t -= dt
 		if s.t <= 0.0:
 			# 优先砸浮空目标，其次范围内随机敌人
+			# 手炮是远程：优先打审判圈内的浮空目标，其次她身边 1.6 倍范围内最近的几个
 			var pool: Array = _airborne_enemies(judge_c, r3)
 			if pool.is_empty():
-				pool = g._nearest(6, r3, judge_c)
+				pool = g._nearest(6, r3 * 1.6, pos)
 			if pool.is_empty():
 				continue
 			var e: Dictionary = pool[g.rng.randi() % pool.size()]
 			var c: Vector2 = e.pos
-			area_hit("灯光轰击", c, 40.0, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), 0.0, 0.0)
-			if not g._fx_sprite("fx_holy_pillar_amber", c + Vector2(0, 4), g.PX * 0.9, 0.0, false, true):
-				fx({"kind": "line", "pos": c + Vector2(0, -140), "to": c, "life": 0.2, "col": LAMP, "w": 6.0})
-			g._fx_sprite("fx_holy_impact_lantern", c + Vector2(0, -16), g.PX * 0.8)
-			fx({"kind": "ring", "pos": c, "r": 40.0, "r0": 6.0, "life": 0.3, "col": LAMP, "floor": true})
-			fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": LAMP, "alpha": 0.6})
+			area_hit("手炮轰击", c, 40.0, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), 0.0, 0.0)
+			# 手炮（照原作）：炮口一闪 → 弹道光直线打到目标 → 目标处带黑烟的小爆炸（ansimuz 素材；缺图退回程序）
+			face_to((c - pos).angle())
+			var muzzle: Vector2 = pos + Vector2(12.0 * face, -30)
+			g._fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
+			fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
+			if not g._fx_sprite("fx_cannon_burst", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+				fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": LAMP, "alpha": 0.6})
+			fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": LAMP, "floor": true})
 			Sfx.op(id, "big", -4.0, 1.0, 0.1)
 	strikes = strikes.filter(func(s): return s.t > 0.0)
 
