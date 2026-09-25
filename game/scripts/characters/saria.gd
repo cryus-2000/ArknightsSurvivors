@@ -1,8 +1,8 @@
-## 塞雷娅（重装，契约 v2.1）：护博士。站在博士身侧；阻挡圈把贴近博士的敌人推开并减速，持盾盾击击退身前敌人（攻击较高；原作档案：盾即法杖）。
+## 塞雷娅（重装，契约 v2.1）：护博士。站在博士身侧；阻挡圈把贴近博士的敌人推开并减速，持盾出拳击退身前敌人（攻击较高）。
 ## 技能全部是治疗，不给护盾（护盾太强）：S1 急救：回复 8%（低血翻倍）；S2 药剂散布：回复 10% + 5 秒持续回复；S3 钙质化：8 秒琥珀区域，敌人减速 + 易伤，博士持续回复。
-## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环；盾击为一道短而宽的琥珀盾弧向前撞出；钙质化在博士周围升起琥珀晶柱。
+## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环；拳击为琥珀冲击 + 推力线；钙质化在博士周围升起琥珀晶柱。
 ## 可见成长（docs/25 §5.2）：N1 钙质沉积 3 枚环绕钙晶 → N2 晶簇 5 枚；N4 急救针剂：急救掷出 3 支注射器；
-## N5 碎晶：钙质化期间每 1.2 秒击碎一根晶柱，碎片飞向区域内敌人；精二「莱茵充能护服」：护服 4 格充能，满格下一次盾击变为全方位冲击。
+## N5 碎晶：钙质化期间每 1.2 秒击碎一根晶柱，碎片飞向区域内敌人；精二「莱茵充能护服」：护服 4 格充能，满格下一次出拳变为全方位冲击。
 extends "res://scripts/characters/character.gd"
 
 const AMBER := Color(1.0, 0.72, 0.38)
@@ -44,7 +44,7 @@ func follow_target(_slot_pos: Vector2) -> Vector2:
 	return g.ppos + Vector2(26.0 * g.facing, 6)
 
 
-## 盾击基础伤害（成长节点的额外命中都按它折算）
+## 拳击基础伤害（成长节点的额外命中都按它折算）
 func _bash_dmg() -> float:
 	return base("atk", 28.0) * _dmg_bonus()
 
@@ -72,7 +72,7 @@ func update(dt: float) -> void:
 	_block(dt)
 	_update_orbs(dt)
 	_update_shots(dt)
-	# 精二 莱茵充能护服：每 5 秒充满一格，4 格满后等下一次盾击放出
+	# 精二 莱茵充能护服：每 5 秒充满一格，4 格满后等下一次出拳放出
 	if suit_on and suit_seg < 4:
 		suit_t += dt
 		if suit_t >= base("suit_seg_t", 5.0):
@@ -163,9 +163,12 @@ func _release() -> void:
 		suit_t = 0.0
 		_suit_blast()
 		return
-	var hits := melee_hit("盾击", pos + Vector2(0, -10), ang, 1.1, _reach(), _bash_dmg(), 200.0, 0.2)
-	# 盾击（用户定：原作档案「盾即法杖」，不是出拳）：一道短而宽的琥珀盾弧从身前向前撞出，身后三道推力短线
-	fx({"kind": "bash", "pos": pos + Vector2(0, -14), "ang": ang, "reach": _reach(), "life": 0.2})
+	var hits := melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), _bash_dmg(), 200.0, 0.2)
+	# 拳击（2026-09-26 用户定：保持出拳，不改盾击）：Codex 冲击帧条；缺图退回弧光 + 推力线
+	var d := Vector2.from_angle(ang)
+	if not g._fx_sprite("fx_saria_shield_bash", pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
+		g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
+		fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
 	Sfx.op(id, "hit" if not hits.is_empty() else "atk")
 
 
@@ -176,10 +179,10 @@ func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": dv.rotated(g.rng.randf_range(-0.7, 0.7)) * g.rng.randf_range(120, 220), "life": 0.2, "col": AMBER, "sz": 2.0, "drag": 3.0})
 
 
-## 莱茵充能护服：以自身为中心的全方位盾击冲击波；六面盾弧向外撞出 + 两道贴地冲击环
+## 莱茵充能护服：以自身为中心的全方位冲击波；六道琥珀冲击向外撞出 + 两道贴地冲击环
 func _suit_blast() -> void:
 	var r: float = base("suit_r", 110.0)
-	var hits := melee_hit("盾击", pos + Vector2(0, -6), 0.0, PI, r, _bash_dmg() * base("suit_mult", 1.8), base("suit_kb", 320.0), 0.3, ["empowered"])
+	var hits := melee_hit("拳击", pos + Vector2(0, -6), 0.0, PI, r, _bash_dmg() * base("suit_mult", 1.8), base("suit_kb", 320.0), 0.3, ["empowered"])
 	for k in 6:
 		fx({"kind": "bash", "pos": pos + Vector2(0, -14), "ang": k * TAU / 6.0, "reach": r * 0.8, "life": 0.26, "big": true})
 	fx({"kind": "ring", "pos": pos, "r": r, "r0": 16.0, "life": 0.35, "col": AMBER, "floor": true, "w": 4.0})
@@ -217,7 +220,7 @@ func _orb_ground(k: int) -> Vector2:
 	return pos + Vector2(cos(a) * R, sin(a) * R + 2.0)
 
 
-## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成盾击 30% 伤害，同一敌人 0.5 秒冷却
+## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成拳击 30% 伤害，同一敌人 0.5 秒冷却
 func _update_orbs(dt: float) -> void:
 	if orb_n <= 0 or pos == Vector2.INF:
 		return
@@ -318,7 +321,7 @@ func _release_skill() -> void:
 			g._heal(h, "塞雷娅")
 			_heal_fx(h)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
-			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 盾击伤害并减速 2 秒
+			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 拳击伤害并减速 2 秒
 			if syringe_on:
 				var dmg: float = _bash_dmg() * base("syringe_mult", 0.6) * skill_power()
 				for e in g._nearest(int(base("syringe_n", 3.0)), 260.0, pos):
@@ -402,7 +405,7 @@ func draw_auras() -> void:
 	# （阻挡圈上原来的三枚装饰小晶体已去掉：环绕的晶体改由 N1 / N2 的钙晶表示，数量 = 节点成长，一眼可数）
 
 
-## 盾击：一道短而宽的琥珀盾弧（凸面朝前）由身前 10px 撞到约 0.45 × 射程处，内侧暗描边、外缘白热亮边；身后三道推力短线。
+## 全方位冲击的单道冲击弧（莱茵充能护服用）：一道短而宽的琥珀盾弧（凸面朝前）由身前 10px 撞到约 0.45 × 射程处，内侧暗描边、外缘白热亮边；身后三道推力短线。
 ## big = 护服冲击（六面同时撞出，更厚更远）
 func _draw_bash(f: Dictionary, a: float) -> void:
 	var u: float = 1.0 - a
