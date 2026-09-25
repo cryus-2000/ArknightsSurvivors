@@ -157,6 +157,39 @@ func _slam() -> void:
 	Sfx.op(id, "big")
 
 
+## 空中翻转的速度感（照原作，用户确认）：以干员为圆心的**实心**扇形渐变盘——旋转扫过的区域整块填白，
+## 最前端（当前朝向）最亮，往后按角度逐渐透明，最长拖将近一整圈；前端一小条橙色。画在人物身后。
+func _draw_spin_disc(c: Vector2, u: float) -> void:
+	var sgn: float = 1.0 if face >= 0.0 else -1.0
+	var head: float = -PI / 2.0 + u * TAU * sgn
+	var sweep: float = minf(u * TAU + 0.6, 5.8)
+	var R := 36.0
+	var N := 36
+	for i in N:
+		var t0: float = float(i) / N
+		var t1: float = float(i + 1) / N
+		var a0: float = head - sgn * sweep * t0
+		var a1: float = head - sgn * sweep * t1
+		var k: float = pow(1.0 - t0, 1.7)
+		var col := Color(1.9, 1.9, 2.0, 0.7 * k)
+		g.draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a0) * R, c + Vector2.from_angle(a1) * R]), col)
+	# 前端：一条橙色的扫描边 + 外沿一段更亮的弧
+	g.draw_line(c, c + Vector2.from_angle(head) * R, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.9), 3.0)
+	var o0: float = head - sgn * 0.5
+	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(2.2, 2.2, 2.3, 0.9), 3.0)
+
+
+## 空中时的身体中心：脚底上方半个身高（按当前帧贴图的脚底锚点算），翻转与拖影圆环都以它为圆心
+func _air_center(h: float) -> Vector2:
+	var st := anim_state()
+	if st.is_empty():
+		return pos + Vector2(0, -h - 24.0)
+	var tx: Texture2D = st.tex
+	var fo: float = foot_off(tx, st.get("kind", ""))
+	var pk: float = g.PX / A.hires_of(tx)
+	return pos + Vector2(0, -h + (-tx.get_height() + fo) / 2.0 * pk)
+
+
 ## 空中：身体绕身体中心整圈翻转（贴图按帧画、只加旋转），高度抛物线；阴影由 squad 按 pos 画在地面
 func draw_body() -> void:
 	if leap_t < 0.0:
@@ -175,7 +208,8 @@ func draw_body() -> void:
 	var fo: float = foot_off(tx, st.get("kind", ""))
 	var pk: float = g.PX / A.hires_of(tx)
 	var cy: float = (-fh + fo) / 2.0                 # 身体中心相对脚底（贴图像素）
-	var center: Vector2 = pos + Vector2(0, -h + cy * pk)
+	var center: Vector2 = _air_center(h)
+	_draw_spin_disc(center, u)
 	g.draw_set_transform(center.round(), ang, Vector2(-pk if st.flip else pk, pk))
 	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + fo - cy), Vector2(fw, fh)), Rect2(fw * (st.frame % hf), 0, fw, fh))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -196,29 +230,6 @@ func _sp_motes(n: int) -> void:
 			continue
 		for k in n:
 			fx({"kind": "sp_mote", "pos": pos + Vector2(0, -22), "start": pos + Vector2(0, -22), "tgt": o, "life": 0.45 + 0.08 * k, "col": GOLD, "bend": g.rng.randf_range(-40, 40)})
-
-
-## 空中翻转的拖影（照原作）：绕身体一整圈的渐变白环——最前端最亮最粗，往后逐段变细变透明，拖将近一整圈；前端一小截橙色
-func _draw_skill_over() -> void:
-	if leap_t < 0.0:
-		return
-	var u: float = clampf(leap_t / LEAP_DUR, 0.0, 1.0)
-	var h: float = 4.0 * LEAP_H * u * (1.0 - u)
-	var sgn: float = 1.0 if face >= 0.0 else -1.0
-	var c: Vector2 = pos + Vector2(0, -h - 24.0)
-	var head: float = -PI / 2.0 + u * TAU * sgn
-	var sweep: float = minf(u * TAU + 0.6, 5.8)       # 起跳瞬间就有一截，最长拖将近一整圈
-	var R := 30.0
-	var N := 40
-	for i in N:
-		var t0: float = float(i) / N
-		var t1: float = float(i + 1) / N
-		var a0: float = head - sgn * sweep * t0
-		var a1: float = head - sgn * sweep * t1
-		var k: float = pow(1.0 - t0, 1.6)
-		g.draw_arc(c, R, minf(a0, a1), maxf(a0, a1), 3, Color(1.9, 1.9, 2.0, 0.85 * k), 1.5 + 5.5 * k)
-	var o0: float = head - sgn * 0.45
-	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.95), 6.5)
 
 
 func _draw_pfx(f: Dictionary, a: float) -> bool:
