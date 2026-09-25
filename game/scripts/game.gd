@@ -3909,10 +3909,34 @@ func _gain_relic(id: String) -> void:
 # =====================================================================
 # 绘制
 # =====================================================================
+## 博士挂件（docs/23 v0.7）：不受击、不攻击，慢慢跑着跟在主控身后；离太远（传送 / 开局）才直接归位
+const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但不会贴身
+const DOC_BEHIND := Vector2(-40, 30)
+var doc_pos := Vector2.INF
+var doc_moving := false
+var doc_face := 1.0
+
+
+func _update_doc_follow(dt: float) -> void:
+	var want: Vector2 = ppos + Vector2(DOC_BEHIND.x * facing, DOC_BEHIND.y)
+	if doc_pos == Vector2.INF or doc_pos.distance_to(want) > 600.0:
+		doc_pos = want
+	var d: Vector2 = want - doc_pos
+	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
+	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
+	doc_pos += mv
+	doc_moving = mv.length() > 20.0 * dt
+	if absf(mv.x) > 6.0 * dt:
+		doc_face = signf(mv.x)
+	elif not doc_moving:
+		doc_face = facing
+
+
 func _update_visuals(dt: float) -> void:
-	var bob: float = -abs(sin(walk_t)) * 2.0 if moving else 0.0
-	sprite.position = (ppos + Vector2(0, bob + 6)).round()
-	sprite.flip_h = facing < 0.0
+	_update_doc_follow(dt)
+	var bob: float = -abs(sin(walk_t)) * 2.0 if doc_moving else 0.0
+	sprite.position = (doc_pos + Vector2(0, bob + 6)).round()
+	sprite.flip_h = doc_face < 0.0
 	_update_player_anim(get_process_delta_time())
 	_update_player_feel(get_process_delta_time())
 	if state == S.DEAD:
@@ -4125,7 +4149,7 @@ func _draw() -> void:
 			"magnet", "heal":
 				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
-	_spr("shadow", 1, 0, ppos + Vector2(0, 6), PX * 1.3)
+	_spr("shadow", 1, 0, doc_pos + Vector2(0, 6), PX * 1.3)
 	squad.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
@@ -4139,7 +4163,7 @@ func _draw() -> void:
 	var dl: Array = []
 	for e in enemies:
 		dl.append([e.pos.y + e.r * 0.8, 0, e])
-	dl.append([ppos.y + 6.0, 2, null])
+	dl.append([doc_pos.y + 6.0, 2, null])
 	for o in squad.ops:
 		if o.pos != Vector2.INF:
 			dl.append([o.pos.y + 4.0, 5, o])
@@ -4523,12 +4547,11 @@ func _update_player_anim(dt: float) -> void:
 ## 博士动画：data/doctor.json 的 sprites（编队美术第一批：idle 4 / run 6 / hurt 2 / death 4 帧，脚底 46）；
 ## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func _update_doctor_anim(dt: float) -> void:
+	# 博士是挂件：不受击，只有待机 / 跑步；主控倒下时一起倒下
 	var want := "idle"
 	if state == S.DEAD:
 		want = "death"
-	elif hurt_flash > 0.05:
-		want = "hurt"
-	elif moving:
+	elif doc_moving:
 		want = "run"
 	var sp: Dictionary = doctor.def.get("sprites", {})
 	var tx: Texture2D = tex.get(sp.get(want, ""), null) if sp.has(want) else null
@@ -4998,7 +5021,9 @@ func _draw_player() -> void:
 	var sx := -pk if sprite.flip_h else pk
 	# 以脚底为轴做挤压 / 前倾 / 后坐（帧动画之上的程序手感）
 	draw_set_transform(sprite.position + p_off, sprite.rotation + p_lean, Vector2(sx * p_sq.x, pk * p_sq.y))
-	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, sprite.modulate)
+	# 博士挂件不受击：不吃主控的受击闪白 / 无敌闪烁（那些现在画在主控干员身上）
+	var dmod: Color = Color(0.5, 0.5, 0.6, 0.6) if state == S.DEAD else Color.WHITE
+	draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + sprite.offset, Vector2(fw, fh)), src, dmod)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -5097,8 +5122,10 @@ func _draw_hud() -> void:
 	var lvs := 24 if level < 10 else 20
 	UI.text(hud, font, lc0 + Vector2(-30, 8 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
 	# 名字、精英阶段
-	UI.text(hud, font, o + Vector2(84, 32), doctor.name(), 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, o + Vector2(130, 31), doctor.def.get("en", "DOCTOR"), 10, UI.CYAN_DIM, 3.0)
+	# 主控干员的名字（生命 / 灯火是她的）
+	var lname: String = ch.display_name()
+	UI.text(hud, font, o + Vector2(84, 32), lname, 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.en(hud, font, o + Vector2(90 + lname.length() * 20, 31), String(ch.def.get("en", "LEADER")), 10, UI.CYAN_DIM, 3.0)
 	UI.chip(hud, font, o + Vector2(264, 18), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 11)
 	# 生命
 	var hs := Vector2(sin(t * 90.0), cos(t * 70.0)) * 3.0 * hp_shake / 0.35

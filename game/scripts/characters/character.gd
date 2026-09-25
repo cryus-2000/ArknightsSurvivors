@@ -16,6 +16,7 @@ var face := 1.0
 var mv := 0.0              # 平滑后的移动速度（切换跑步动画用）
 var mt := 0.0              # 移动计时（跑步循环）
 var slot := 0              # 编队位序号
+var is_leader := false     # 主控干员（玩家操控、唯一受击体，docs/23 v0.7）
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
@@ -710,12 +711,15 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		return
 	var prev: Vector2 = pos
-	target = follow_target(target)
-	var d: float = pos.distance_to(target)
-	var k: float = clampf(dt * (3.0 if d < 20.0 else 6.0), 0.0, 1.0)
-	pos = pos.lerp(target, k)
-	if g.tex.get("prop_pillar") != null:
-		pos = g.map.push_out(pos, 10.0)
+	if is_leader:
+		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
+	else:
+		target = follow_target(target)
+		var d: float = pos.distance_to(target)
+		var k: float = clampf(dt * (3.0 if d < 20.0 else 6.0), 0.0, 1.0)
+		pos = pos.lerp(target, k)
+		if g.tex.get("prop_pillar") != null:
+			pos = g.map.push_out(pos, 10.0)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
@@ -945,7 +949,9 @@ func draw_body() -> void:
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
-	g._draw_sprite_at(pos, st.flip, Color.WHITE, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
+	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
+	g._draw_sprite_at(pos, st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。
