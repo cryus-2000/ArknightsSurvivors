@@ -35,6 +35,6 @@
 - `Character.validate_operator()`：attack + 恰好 3 个 skills（都 auto）；`skill_unlocked(i) = elite >= i`。
 - 充能：`character.gd charge_skills(dt)` 三个技能并行充能（`sp[i]`），`skill_active_left(i) > 0` 的技能不充；返回就绪的最高序号，干员 `start_skill(aim, i)` / `spend_sp(i)` 后在 `_release_skill()` 按 `cur_skill` 分派。
 - 精英化节点 `advance()` 后自动排队解锁演出（`_elite_show`：新技能 + 精一天赋）。
-- HUD 右下三环 = 开局干员的 S1/S2/S3（未解锁灰显）；编队栏头像环 = 已解锁的最高技能充能；Tab 攻击栏 = 三技能 + 天赋。
+- HUD 右下编队栏（2026-09-25 改版）：每名干员一列，底部头像（环 = 已解锁最高技能充能），上方三枚小技能图标（环 = 各自充能 / 生效倒计时，未解锁灰显，永久型打勾，海嗣化紫点，悬停显示技能名与解锁阶段）；开局干员在最左。Tab 攻击栏 = 开局干员三技能 + 天赋。
 - 排异反应（结局四）通用化：随机一个已解锁技能海嗣化（技能强度 +40%、充能 +30%、博士最大生命 -10），HUD 环上紫点、Tab 标「排异」。
 - 下线：`skill_lv`、技能进阶卡、`data.gd` 的 SKILLS / SKILL_ADV / SKILL_P / GROWTH / EVO、水月的潮刃 / 群触路线与路线成长卡、水刃 / 触手桩 / 巨触 / 触须阵、`--evo=` 等测试参数。相关藏品属性（`mizuki_umbrella_*`、`mizuki_tentacle_*`）保留。

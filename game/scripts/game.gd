@@ -4991,8 +4991,7 @@ func _draw_hud() -> void:
 		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# 右下：技能与援护干员
-	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
-	_draw_allies_hud(Vector2(vs.x - 16, vs.y - 150))
+	_draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
 
 	# 横幅通知
 	if banner_t > 0.0:
@@ -5654,61 +5653,68 @@ func _draw_status_bar(vs: Vector2) -> void:
 			y += 26.0
 
 
-func _draw_allies_hud(br: Vector2) -> void:
+## 右下编队栏（2026-09-25 改版）：每名干员一列——底部头像（环 = 已解锁最高技能充能），上方三枚小技能图标
+## （环 = 各自充能 / 生效倒计时；未解锁灰显；永久型打勾；海嗣化紫点）。开局干员在最左，第 4 位在最右。
+const SQ_COL_W := 122.0
+const SQ_ICON_R := 14.0
+
+func _draw_squad_hud(br: Vector2) -> void:
 	if knight.alive:
-		knight.draw_hud(hud, br + Vector2(-264, -30))
-	if squad.size() <= 1:
-		return
-	UI.en(hud, font, br + Vector2(-236, -60), "SQUAD", 10, UI.SUB, 3.0)
-	var n: int = squad.size() - 1
+		knight.draw_hud(hud, br + Vector2(-squad.size() * SQ_COL_W - 120, -30))
+	var n: int = squad.size()
+	UI.en(hud, font, br + Vector2(-n * SQ_COL_W + 4, -118), "SQUAD", 10, UI.SUB, 3.0)
 	for i in n:
-		var o = squad.ops[i + 1]
-		var c := br + Vector2(-(n - i) * 76 + 40, -30)
-		var acol := Color(0.55, 0.9, 0.55)
-		UI.ring(hud, c, 21.0, o.hud_sp_frac(), acol)
+		var o = squad.ops[i]
+		var cx: float = br.x - (n - i) * SQ_COL_W + SQ_COL_W / 2.0
+		var c := Vector2(cx, br.y - 34)
+		var ocol: Color = o.col()
+		# ---- 头像
+		UI.ring(hud, c, 24.0, o.hud_sp_frac(), ocol, o.skill_active())
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = tex.get(pt.tex)
 		if at != null:
 			var fw := at.get_width() / int(pt.frames)
-			var ks: float = 30.0 / at.get_height()
-			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 14 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, c + Vector2(-30, 36), o.display_name().substr(0, 2), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
-		UI.text(hud, font, c + Vector2(12, -14), ["零", "一", "二"][o.elite], 11, acol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
-
-
-func _draw_skills(br: Vector2) -> void:
-	var rad := 37.0
-	var gap := 88.0
-	var items: Array = ch.skill_hud()
-	UI.en(hud, font, br + Vector2(-3 * gap + 8, -rad * 2 - 34), "SKILL", 10, UI.SUB, 3.0)
-	for i in 3:
-		var it: Array = items[i]
-		var c := br + Vector2(-(3 - i) * gap + gap / 2.0 + 8, -rad - 24)
-		var col: Color = it[6]
-		var unlocked: bool = it[2]
-		var active: float = it[3]
-		var frac: float = clamp(it[5], 0.0, 1.0)
-		if active > 0.0:
-			frac = active / it[4]
-		UI.ring(hud, c, rad, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
-		var gcol: Color = col if unlocked else Color(0.3, 0.38, 0.42)
-		if active > 0.0:
-			gcol = Color(1, 1, 1)
-		var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
-		if icon != null:
-			hud.draw_texture_rect(icon, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
-		else:
-			UI.text(hud, font, c + Vector2(-rad, 10), it[0], 26, gcol, HORIZONTAL_ALIGNMENT_CENTER, rad * 2, 3)
-		UI.text(hud, font, c + Vector2(-40, rad + 16), it[1] if unlocked else "未解锁", 11, col if unlocked else Color(0.35, 0.42, 0.46), HORIZONTAL_ALIGNMENT_CENTER, 80, 2)
-		if active > 0.0:
-			UI.text(hud, font, c + Vector2(rad - 14, -rad + 8), "%d" % int(ceil(active)), 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
-		if int(it[7]) > 0 and unlocked:
-			var np: int = it[7]
-			for k in np:
-				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, col if k < int(it[8]) else Color(0.15, 0.18, 0.2), Color(col.r, col.g, col.b, 0.5))
-		# 海嗣化（排异）：环下一枚紫点
-		if ch.rej.has(i):
-			UI.diamond(hud, c + Vector2(0, -rad - 5), 3.5, Color(0.85, 0.55, 1.0))
+			var ks: float = 34.0 / at.get_height()
+			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
+		UI.text(hud, font, c + Vector2(-SQ_COL_W / 2.0, 41), o.display_name().substr(0, 3), 11, UI.TEXT if o == ch else Color(0.75, 0.85, 0.9), HORIZONTAL_ALIGNMENT_CENTER, SQ_COL_W, 2)
+		UI.text(hud, font, c + Vector2(14, -14), ["零", "一", "二"][o.elite], 11, ocol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
+		if o == ch:
+			UI.diamond(hud, c + Vector2(-26, -20), 3.5, ocol)
+		# ---- 三枚技能图标：横排在头像上方
+		var items: Array = o.skill_hud()
+		for k in 3:
+			var it: Array = items[k]
+			var sc := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
+			var col: Color = it[6]
+			var unlocked: bool = it[2]
+			var active: float = it[3]
+			var frac: float = clamp(it[5], 0.0, 1.0)
+			if active > 0.0:
+				frac = active / it[4]
+			UI.ring(hud, sc, SQ_ICON_R, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
+			var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
+			if icon != null:
+				hud.draw_texture_rect(icon, Rect2(sc - Vector2(11, 11), Vector2(22, 22)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+			else:
+				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.38, 0.42)
+				UI.text(hud, font, sc + Vector2(-SQ_ICON_R, 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, SQ_ICON_R * 2.0, 2)
+			if active > 0.0:
+				UI.text(hud, font, sc + Vector2(SQ_ICON_R - 8, -SQ_ICON_R + 2), "%d" % int(ceil(active)), 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 16, 2)
+			if o.perm[k]:
+				UI.diamond(hud, sc + Vector2(SQ_ICON_R - 3, SQ_ICON_R - 3), 3.0, col, Color(1, 1, 1, 0.6))
+			if o.rej.has(k):
+				UI.diamond(hud, sc + Vector2(0, -SQ_ICON_R - 3), 3.0, Color(0.85, 0.55, 1.0))
+		# 悬停某枚图标：技能名 + 说明
+		var mp := hud.get_local_mouse_position()
+		for k in 3:
+			var sc2 := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
+			if mp.distance_to(sc2) < SQ_ICON_R + 2.0:
+				var sd: Dictionary = o.skill_def(k)
+				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英化一", "精英化二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
+				var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
+				var tr := Rect2(Vector2(minf(sc2.x - tw / 2.0, hud.size.x - tw - 8.0), br.y - 150), Vector2(tw, 28))
+				UI.panel(hud, tr, UI.BG2, o.col(), 6.0)
+				UI.text(hud, font, tr.position + Vector2(12, 19), tip, 12, UI.TEXT)
 
 
 func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
