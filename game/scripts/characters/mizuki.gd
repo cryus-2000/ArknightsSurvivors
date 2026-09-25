@@ -35,6 +35,15 @@ var s3_active := 0.0
 var mirror_pos := Vector2.ZERO   # S3 镜像分身位置
 var mirror_face := 1.0
 var heal_budget := 0.0           # 反移情击杀回复：每秒上限
+# ---- 可见成长（docs/25 §5：只长触手，原作依据「创伤性癔症」触手追击 / S3 苍白触手铺开）
+var awaken_burst := false        # N4「唤醒 · 涌」：唤醒一击额外钻出 2 根触手
+var bind_drag := false           # N5「囚徒 · 缚」：囚徒困境期间触手把目标拖向水月
+var stake_on := false            # 精二：触手命中后留在原地继续抽打（触手桩）
+var stakes: Array = []           # {pos, t, tick, dmg, flip}
+const STAKE_LIFE := 1.5
+const STAKE_EVERY := 0.5
+const STAKE_R := 60.0
+const STAKE_MAX := 6
 
 
 func _swing_radius() -> float:
@@ -61,8 +70,46 @@ func _low_hp_enemy_near() -> bool:
 	return false
 
 
+## 成长节点（data/characters/mizuki.json 的 custom 节点）
+func on_custom_node(nid: String, _choice: String = "") -> void:
+	match nid:
+		"tentacle_a", "tentacle_b":
+			g.stats.add(&"mizuki_tentacle_targets", "flat", 1.0, "prog:%s:%s" % [id, nid], "op:" + id)
+			g._sync_stats()
+		"awaken_burst":
+			awaken_burst = true
+		"bind_drag":
+			bind_drag = true
+
+
+func on_elite(stage: int, _choice: String = "") -> void:
+	if stage >= 2:
+		stake_on = true
+
+
+func _update_stakes(dt: float) -> void:
+	for s in stakes:
+		s.t -= dt
+		s.tick -= dt
+		if s.tick <= 0.0 and s.t > 0.0:
+			s.tick = STAKE_EVERY
+			var any := false
+			for j in g._query(s.pos, STAKE_R + 20.0):
+				var e: Dictionary = g.enemies[j]
+				if e.dead or e.pos.distance_to(s.pos) > STAKE_R + e.r:
+					continue
+				any = true
+				g._hit("触手")
+				g._damage(e, s.dmg)
+			if any:
+				g._fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true)
+				s.flip = not s.flip
+	stakes = stakes.filter(func(s): return s.t > 0.0)
+
+
 func update(dt: float) -> void:
 	heal_budget = min(heal_budget + dt * 0.05, 0.05)
+	_update_stakes(dt)
 	s2_active = maxf(0.0, s2_active - dt)
 	if s3_active > 0.0:
 		s3_active -= dt
@@ -189,6 +236,12 @@ func _umbrella(target: Dictionary) -> void:
 		stun = S2_BIND
 	for i in min(n, alive.size()):
 		_spawn_tentacle(alive[i], tdmg, stun)
+	# 「唤醒 · 涌」：强化一击时，身边再钻出 2 根触手打附近的敌人
+	if empowered and awaken_burst:
+		var near: Array = g._nearest(2, radius * 1.6, pos)
+		for ne in near:
+			if not ne.dead:
+				_spawn_tentacle(ne, tdmg, 0.4)
 	if g.grip:
 		for e in alive:
 			if not e.dead and g.rng.randf() < 0.2:
@@ -295,6 +348,14 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	g._damage(target, dmg)
 	if not target.dead:
 		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
+		# 「囚徒 · 缚」：囚徒困境期间，触手把被束缚的敌人拖向水月
+		if bind_drag and s2_active > 0.0 and not target.boss:
+			target.kb += (pos - target.pos).normalized() * (160.0 if target.elite else 320.0)
+	# 精二：触手留在原地继续抽打（最多 6 根，旧的先消失）
+	if stake_on:
+		if stakes.size() >= STAKE_MAX:
+			stakes.pop_front()
+		stakes.append({"pos": p, "t": STAKE_LIFE, "tick": STAKE_EVERY, "dmg": dmg * 0.4, "flip": g.rng.randf() < 0.5})
 	# 触手表现：地面裂隙 → 触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	# Codex 苍白水母触手（原作水月：海月水母触手，根部在底）；缺图退回旧触手帧条
@@ -346,7 +407,34 @@ func _draw_skill_floor() -> void:
 
 
 ## 技能的覆盖层表现（在角色之上）
+## 常驻的苍白小水母（原作：水月是海月水母）：数量 = 触手追击数，一眼看出触手长到了几根。
+## 每只是半透明伞盖 + 三缕垂下的触须，在水月身后上方缓慢漂浮；精二后多一圈淡紫光。
+func _draw_jellies() -> void:
+	var n: int = 1 + extra_targets
+	var c: Color = tentacle_col()
+	for k in n:
+		# 围着水月的腰身一圈排开（身前身后都有），比无人机低，不会被挡住
+		var ang: float = g.t * 0.6 + k * TAU / float(n)
+		var ph: float = g.t * 1.3 + k * 2.1
+		var p: Vector2 = pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
+		if stake_on:
+			g.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
+		# 伞盖
+		g.draw_set_transform(p, 0.0, Vector2(1.0, 0.62))
+		g.draw_circle(Vector2.ZERO, 8.5, Color(c.r, c.g, c.b, 0.6))
+		g.draw_arc(Vector2.ZERO, 8.5, PI, TAU, 14, Color(1.7, 1.9, 2.3, 0.9), 1.6)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 触须
+		for q in 3:
+			var x0: float = (q - 1) * 4.0
+			var pts := PackedVector2Array()
+			for s in 5:
+				pts.append(p + Vector2(x0 + sin(ph * 2.0 + s * 0.9 + q) * (1.0 + s * 0.9), 3.0 + s * 4.5))
+			g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.65 - q * 0.08), 1.5)
+
+
 func _draw_skill_over() -> void:
+	_draw_jellies()
 	if s2_active > 0.0:
 		# 囚徒困境：环绕的锁链
 		var fade2 := clampf(s2_active / 1.0, 0.0, 1.0)
@@ -381,12 +469,14 @@ func stat_defs() -> Dictionary:
 
 ## 属性块 → 缓存变量（战斗代码读缓存，避免每帧查表）
 func sync_stats(st) -> void:
-	u_dmg_mult = st.value(&"mizuki_umbrella_dmg")
-	u_area_mult = st.value(&"mizuki_umbrella_area")
-	u_spd_mult = st.value(&"mizuki_umbrella_interval")
-	rib_bonus = st.value(&"mizuki_umbrella_arc")
-	t_mult = st.value(&"mizuki_tentacle_mult")
-	extra_targets = int(st.value(&"mizuki_tentacle_targets")) - 1
+	# 成长节点写在 op:mizuki 作用域，必须按本干员作用域读（之前读全局值，节点加成不生效）
+	var sc := scopes()
+	u_dmg_mult = st.value_for(&"mizuki_umbrella_dmg", sc)
+	u_area_mult = st.value_for(&"mizuki_umbrella_area", sc)
+	u_spd_mult = st.value_for(&"mizuki_umbrella_interval", sc)
+	rib_bonus = st.value_for(&"mizuki_umbrella_arc", sc)
+	t_mult = st.value_for(&"mizuki_tentacle_mult", sc)
+	extra_targets = int(st.value_for(&"mizuki_tentacle_targets", sc)) - 1
 
 
 func _draw_tentacle(f: Dictionary) -> void:
@@ -420,6 +510,13 @@ func draw_entities_floor() -> void:
 	for f in g.fx:
 		if f.kind == "tentacle":
 			_draw_tentacle(f)
+	# 触手桩：地面一圈淡紫水痕 + 裂隙，随剩余时间淡出
+	for s in stakes:
+		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
+		g.draw_set_transform(s.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.45))
+		g.draw_circle(Vector2.ZERO, STAKE_R * 0.8, Color(0.55, 0.4, 0.85, 0.12 * a))
+		g.draw_arc(Vector2.ZERO, STAKE_R * 0.8, 0.0, TAU, 24, Color(0.85, 0.7, 1.2, 0.45 * a), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_skill_floor()
 	for i in range(afterimg.size() - 1, -1, -1):
 		var ai: Dictionary = afterimg[i]

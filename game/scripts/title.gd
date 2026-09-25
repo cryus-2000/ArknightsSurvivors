@@ -87,6 +87,8 @@ func _ready() -> void:
 	settings = preload("res://scripts/settings_panel.gd").new()
 	add_child(settings)
 	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--compareshot="):
+			_compare_shot(a.substr(14))
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
@@ -488,6 +490,58 @@ func _draw_credits(vs: Vector2) -> void:
 
 
 ## 自测截图目录：默认 /tmp/claude-0，--shotdir= 覆盖（Windows 本地用）
+## 三联对照截图（docs/25 §5 验收：精一前 / 精二前 / 全部三个阶段并排，只看普攻）
+## 用法：--compareshot=<干员 id>[,等待秒数]；输出 shot_compare_<id>.png 后退出
+func _compare_shot(spec: String) -> void:
+	var parts := spec.split(",")
+	var cid: String = parts[0]
+	var wait: float = float(parts[1]) if parts.size() > 1 else 6.0
+	var layer := CanvasLayer.new()
+	layer.layer = 50
+	add_child(layer)
+	var bg := ColorRect.new()
+	bg.color = Color(0.01, 0.03, 0.05)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(bg)
+	var w: int = 520
+	var h: int = 420
+	var labels := ["精零 · N1 N2", "精一 · N4 N5", "精二"]
+	for k in 3:
+		var box := SubViewportContainer.new()
+		box.stretch = false
+		layer.add_child(box)
+		var vp := SubViewport.new()
+		vp.handle_input_locally = false
+		box.add_child(vp)
+		vp.size = Vector2i(w, h)
+		box.position = Vector2(10 + k * (w + 10), 70)
+		box.size = Vector2(w, h)
+		var gm: Node = load("res://game.tscn").instantiate()
+		gm.demo_op = cid
+		gm.demo_stage = k
+		gm.demo_basic = true
+		vp.add_child(gm)
+		var lb := Label.new()
+		lb.text = labels[k]
+		lb.position = Vector2(10 + k * (w + 10) + 12, 30)
+		lb.add_theme_font_size_override("font_size", 22)
+		layer.add_child(lb)
+	# 直接取三个 SubViewport 的像素横向拼接（不受界面缩放影响）；从左到右 = 精零 N1 N2 / 精一 N4 N5 / 精二
+	get_tree().create_timer(wait).timeout.connect(func():
+		var imgs: Array = []
+		for ch0 in layer.get_children():
+			if ch0 is SubViewportContainer:
+				imgs.append((ch0.get_child(0) as SubViewport).get_texture().get_image())
+		var iw: int = imgs[0].get_width()
+		var ih: int = imgs[0].get_height()
+		var out := Image.create(iw * imgs.size() + 8 * (imgs.size() - 1), ih, false, imgs[0].get_format())
+		out.fill(Color(0.9, 0.9, 0.9))
+		for k in imgs.size():
+			out.blit_rect(imgs[k], Rect2i(0, 0, iw, ih), Vector2i(k * (iw + 8), 0))
+		out.save_png(_shot_dir() + "/shot_compare_%s.png" % cid)
+		get_tree().quit())
+
+
 func _shot_dir() -> String:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shotdir="):

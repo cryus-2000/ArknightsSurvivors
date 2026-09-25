@@ -327,6 +327,8 @@ var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 
 var dbg_pick := {}
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
+var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
+var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 var show_vp: SubViewport = null  # 精英化演出里的实机演示画面
 var show_game: Node = null
 
@@ -685,6 +687,18 @@ func _demo_step(dt: float) -> void:
 		_demo_next_phase()
 	var si: int = demo_phases[demo_pi]
 	demo_ph_t += dt
+	if demo_basic:
+		# 三联对照：只看普攻，技能全部压住；怪少了就补
+		for i in 3:
+			if not ch.perm[i]:
+				ch.sp[i] = 0.0
+		var alive0 := 0
+		for e in enemies:
+			if not e.dead:
+				alive0 += 1
+		if alive0 < 8:
+			_demo_horde(10)
+		return
 	# 只让本段的技能充能：其余压成 0
 	for i in 3:
 		if i != si and not ch.perm[i]:
@@ -739,6 +753,19 @@ func _demo_new_op() -> void:
 	stats.remove_scope("op:" + id)
 	_sync_stats()
 	ch = squad.add(id)
+	if demo_stage >= 0:
+		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）
+		var nodes: int = [2, 5, 6][clampi(demo_stage, 0, 2)]
+		for k in nodes:
+			if ch.next_node().is_empty():
+				break
+			var n0: Dictionary = ch.next_node()
+			var chs0: Dictionary = ch.elite_choices(n0) if n0.get("type", "") == "elite" else {}
+			ch.advance(chs0.keys()[0] if not chs0.is_empty() else "")
+		show_queue.clear()
+		facing = 1.0
+		ch.pos = ppos
+		return
 	var want: int = demo_elite if demo_elite > 0 else 2
 	var guard := 0
 	while ch.elite < want and not ch.next_node().is_empty() and guard < 12 and demo_elite > 0:
