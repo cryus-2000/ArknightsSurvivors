@@ -3753,8 +3753,9 @@ func _update_visuals(dt: float) -> void:
 		if heart_cd <= 0.0:
 			heart_cd = 0.55 + 0.6 * hp / (max_hp * 0.3)
 			Sfx.play("heartbeat", -2.0, 1.0, 0.0)
-	var s2 := shake * shake
-	cam.offset = (Vector2(rng.randf_range(-1, 1), rng.randf_range(-1, 1)) * 10.0 * s2 + cam_kick).round()
+	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
+	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
+	cam.offset = cam_kick.round()
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, lamp / 100.0)
 	var flicker := 1.0 + sin(t * 13.0) * 0.02 + sin(t * 7.3) * 0.03
@@ -5750,7 +5751,8 @@ func _draw_status_bar(vs: Vector2) -> void:
 			y += 26.0
 
 
-## 右下编队栏（2026-09-25 改版）：每名干员一列——底部头像（环 = 已解锁最高技能充能），上方三枚小技能图标
+## 右下编队栏（2026-09-25 改版）：每名干员一列——底部头像（静态职业色框，技能生效时外圈发光；不画充能进度，
+## 以免被当成干员经验条——干员没有等级，只有博士等级），上方三枚小技能图标
 ## （环 = 各自充能 / 生效倒计时；未解锁灰显；永久型打勾；海嗣化紫点）。开局干员在最左，第 4 位在最右。
 const SQ_COL_W := 122.0
 const SQ_ICON_R := 14.0
@@ -5766,7 +5768,7 @@ func _draw_squad_hud(br: Vector2) -> void:
 		var c := Vector2(cx, br.y - 34)
 		var ocol: Color = o.col()
 		# ---- 头像
-		UI.ring(hud, c, 24.0, o.hud_sp_frac(), ocol, o.skill_active())
+		UI.ring(hud, c, 24.0, 0.0, ocol, o.skill_active())
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = tex.get(pt.tex)
 		if at != null:
