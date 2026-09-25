@@ -1,7 +1,7 @@
 ## 维什戴尔（狙击，契约 v2.1）：炮击 → 余震爆炸 → 残影殉爆。
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；
-## S3 饱和炮击（2026-09-25 改为次数型，用户要求）：装填 4 发巨型炮弹，之后的普攻换成巨炮（×2.4、爆炸范围 ×2、必余震、间隔 ×1.25），打完为止。
-## 炮弹是本干员自己的实体（抛物线飞行 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
+## S3 饱和炮击（2026-09-25 改为次数型，用户要求）：装填 8 发巨型炮弹，之后的普攻换成巨炮（×1.6、爆炸范围 ×2、必余震、间隔 ×0.6），打完为止；所有炮弹都是高速平射。
+## 炮弹是本干员自己的实体（高速平射 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
 ## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
 ## 特效（docs/25）：黑红。弹体是黑红彗星（一整条连续轮廓：圆头最宽，沿轨迹平滑收细到尾尖，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
@@ -96,7 +96,7 @@ func update(dt: float) -> void:
 		if tgt.is_empty():
 			cd = 0.2
 		else:
-			cd = base("cd", 1.4) / stat(&"op_aspd") * (base("s3_cd", 1.25) if ammo > 0 else 1.0)
+			cd = base("cd", 1.4) / stat(&"op_aspd") * (base("s3_cd", 0.6) if ammo > 0 else 1.0)
 			start_attack(tgt.pos)
 
 
@@ -127,7 +127,7 @@ func _release_skill() -> void:
 			Sfx.op(id, "atk", 5.0, 0.75)
 		2:
 			# 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
-			ammo = int(base("s3_ammo", 4.0))
+			ammo = int(base("s3_ammo", 8.0))
 			g._show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 30.0, "life": 0.4, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), EMBER, 10, 160.0, 0.3)
@@ -135,7 +135,7 @@ func _release_skill() -> void:
 			if not tg3.is_empty():
 				ammo -= 1
 				_fire_giant(tg3.pos)
-				cd = base("cd", 1.4) / stat(&"op_aspd") * base("s3_cd", 1.25)
+				cd = base("cd", 1.4) / stat(&"op_aspd") * base("s3_cd", 0.6)
 
 
 ## 次数型：S3 的「剩余时间」用剩余弹数表示（HUD 环 = 剩余 / 装填数，数字 = 剩几发；打完才重新充能）
@@ -144,12 +144,12 @@ func skill_active_left(i: int) -> float:
 
 
 func skill_active_dur(i: int) -> float:
-	return base("s3_ammo", 4.0) if i == 2 else 1.0
+	return base("s3_ammo", 8.0) if i == 2 else 1.0
 
 
-## 巨型炮弹：伤害 ×2.4、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
+## 巨型炮弹：伤害 ×1.6、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
 func _fire_giant(to: Vector2) -> void:
-	_fire(to, base("atk", 34.0) * base("s3_mult", 2.4) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
+	_fire(to, base("atk", 34.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
 	var dir: Vector2 = (to - _muzzle()).normalized()
 	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
 	for k in 8:
@@ -163,12 +163,14 @@ func _muzzle() -> Vector2:
 func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, stun: float, light := false) -> void:
 	face = signf(to.x - pos.x) if absf(to.x - pos.x) > 2.0 else face
 	var from := _muzzle()
-	var dur: float = clampf(from.distance_to(to) / 900.0, 0.18, 0.5)
+	# 高速炮弹（2026-09-25 还原原作，用户要求）：原来 900px/s、最高拱 120px 像迫击炮 → 约 2300px/s、几乎平直
+	var dur: float = clampf(from.distance_to(to) / 2300.0, 0.06, 0.2)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
 		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
 	var dir := (to - from).normalized()
-	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.08, "col": RED, "sz": 22.0 * size})
+	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.07, "col": RED, "sz": 30.0 * size})
+	fx({"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
 	for k in 3:
 		fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.rng.randf_range(-0.6, 0.6)) * g.rng.randf_range(60, 140), "life": 0.2, "col": EMBER, "sz": 2.0, "drag": 3.0})
 	Sfx.op(id, "atk", 0.0 if size <= 1.2 else 3.0, 1.0 if size <= 1.2 else 0.85)
@@ -179,7 +181,7 @@ func _shell_pos(s: Dictionary) -> Vector2:
 
 
 func _shell_at(s: Dictionary, k: float) -> Vector2:
-	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(120.0, s.from.distance_to(s.to) * 0.35))
+	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(12.0, s.from.distance_to(s.to) * 0.04))
 
 
 func _update_shells(dt: float) -> void:
@@ -197,6 +199,8 @@ func _update_shells(dt: float) -> void:
 				s.hist.pop_front()
 		if s.t >= s.dur:
 			_explode(s.to, s.dmg, s.r, s.src, 0, s.stun, s.light)
+			# 弹道余光：炮口到落点一道迅速消失的红线（高速炮弹的速度感）
+			fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": RED, "w": 2.0 * float(s.get("size", 1.0))})
 			# 余震：E1 起伤害 40% → 60%
 			if s.quake:
 				quakes.append({"pos": s.to, "t": 0.45, "dmg": s.dmg * (base("quake_e1", 0.6) if elite >= 1 else base("quake", 0.4)), "r": s.r * 1.2})
