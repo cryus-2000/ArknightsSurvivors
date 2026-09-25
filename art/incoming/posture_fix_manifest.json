@@ -1,0 +1,269 @@
+{
+  "assets": [
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_idle.png",
+      "fps": 4,
+      "sha256": "0bf7c6456798985556f1c3e72d2cc8f833309f87d76ba4470720cf2e05e053e1"
+    },
+    {
+      "loop": true,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": null,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_run.png",
+      "fps": 10,
+      "sha256": "12ff3be5e8fb798bf76972b42cb23939f98f7634b7df5d986dab923255160451"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 2,
+      "density": 1,
+      "frame_count": 4,
+      "frame_height": 48,
+      "file": "op_lumen_attack.png",
+      "fps": 12,
+      "sha256": "6dff5b00dd61e2a41425d992d49b40a48a447c2ec7de8b7b1d62640cc0a9824e"
+    },
+    {
+      "loop": false,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "character": "lumen_1",
+      "event_frame_zero_based": 3,
+      "density": 1,
+      "frame_count": 6,
+      "frame_height": 48,
+      "file": "op_lumen_skill.png",
+      "fps": 12,
+      "sha256": "97258595da1da22b30f9e658103fe9429a03fe96773c3bea2f29261ec78b0c2b"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_idle@2x.png",
+      "fps": 4,
+      "sha256": "8a962b3b79d19be3ab14436af23ff66f4b874502df7a7a6b8744037ba7337567"
+    },
+    {
+      "loop": true,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": null,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_run@2x.png",
+      "fps": 10,
+      "sha256": "73c572752b29116c05494f3739f5ca6c2f6789756652919b92340c224d0b701f"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 2,
+      "density": 2,
+      "frame_count": 4,
+      "frame_height": 96,
+      "file": "op_lumen_attack@2x.png",
+      "fps": 12,
+      "sha256": "2296b409705de04bf5b0f3b9d709bb87df038ee9f2f87de2b84b89782b751ccd"
+    },
+    {
+      "loop": false,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "character": "lumen_2",
+      "event_frame_zero_based": 3,
+      "density": 2,
+      "frame_count": 6,
+      "frame_height": 96,
+      "file": "op_lumen_skill@2x.png",
+      "fps": 12,
+      "sha256": "45f5543b53e6be6b92645cdcd1f2c0f91664843d39d8bc5934449924241e0418"
+    },
+    {
+      "character": "logos_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 4,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_idle.png",
+      "sha256": "860e7a97f8a7c741a28c5144a96589fd064c887840b7039be237de0a160c9b32"
+    },
+    {
+      "character": "logos_1",
+      "loop": true,
+      "frame_height": 48,
+      "fps": 10,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "logos",
+      "file": "op_logos_run.png",
+      "sha256": "f39d17e970396376621466b1369ad693c5f74cff648030a9f3a6373938b062e2"
+    },
+    {
+      "character": "logos_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 2,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_attack.png",
+      "sha256": "c05f5347590339059f4605e4f96fdb1c27f49a8f9983021c4bf6166532e76845"
+    },
+    {
+      "character": "logos_1",
+      "loop": false,
+      "frame_height": 48,
+      "fps": 12,
+      "frame_width": 48,
+      "anchor": [
+        24,
+        46
+      ],
+      "density": 1,
+      "event_frame_zero_based": 4,
+      "frame_count": 8,
+      "operator_id": "logos",
+      "file": "op_logos_skill.png",
+      "sha256": "8bde1e60f3bb172071d95ab1a83dec126ee3192550a59aaa61823f82e72caddc"
+    },
+    {
+      "character": "logos_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 4,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_idle@2x.png",
+      "sha256": "2c1fe30e1aa3bbdb48a0f98643cdf6c3e804611365da40a2878dc4570ea7cb17"
+    },
+    {
+      "character": "logos_2",
+      "loop": true,
+      "frame_height": 96,
+      "fps": 10,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "operator_id": "logos",
+      "file": "op_logos_run@2x.png",
+      "sha256": "9163e50c9e6086d517b27f10c1c7c69c9237c07eded0add3f484560b80b08959"
+    },
+    {
+      "character": "logos_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 2,
+      "frame_count": 4,
+      "operator_id": "logos",
+      "file": "op_logos_attack@2x.png",
+      "sha256": "b38d80a208a291cca35713188b4c2ac828f19a776909e1899d8c6a5b41ba2606"
+    },
+    {
+      "character": "logos_2",
+      "loop": false,
+      "frame_height": 96,
+      "fps": 12,
+      "frame_width": 96,
+      "anchor": [
+        48,
+        92
+      ],
+      "density": 2,
+      "event_frame_zero_based": 4,
+      "frame_count": 8,
+      "operator_id": "logos",
+      "file": "op_logos_skill@2x.png",
+      "sha256": "8e9217befbce036b46d4bda4a14be3fd0eb0fa7c759345f0dff33f52acef5b8f"
+    }
+  ],
+  "batch": "squad_batch4"
+}
