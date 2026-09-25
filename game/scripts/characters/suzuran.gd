@@ -106,7 +106,7 @@ func _release() -> void:
 			"life": 1.6, "r": 7.0, "aoe": base("aoe", 26.0), "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
 	if not ts.is_empty():
 		fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": GOLD, "alpha": 0.5})
-		Sfx.play("tentacle", -14.0, 1.6, 0.05)
+		Sfx.op(id, "atk")
 
 
 ## 狐火弹的火舌尾

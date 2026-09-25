@@ -216,9 +216,9 @@ func _draw_diff(vs: Vector2) -> void:
 	diff_rects["go"] = go
 	diff_rects["back"] = back
 	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), "出发  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 
 
 ## 递归生成巨树（像海嗣一样弯曲的枝干）
@@ -243,6 +243,7 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 
 func _process(delta: float) -> void:
+	Pad.context = "title"
 	t += delta
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
@@ -394,7 +395,7 @@ func _draw() -> void:
 	var hf := _seg(2.7, 0.5)
 	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + ITEMS.size() * step + 6
-		UI.en(self, font, Vector2(tx + 2, hy), "W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
+		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
 
 	# 页脚：最后淡入
 	var ff := _seg(2.8, 0.5)
@@ -427,7 +428,7 @@ func _draw() -> void:
 
 func _draw_guide(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.75))
-	var r := Rect2(vs.x / 2 - 330, vs.y / 2 - 220, 660, 440)
+	var r := Rect2(vs.x / 2 - 330, vs.y / 2 - 230, 660, 460)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(170, 54), "GUIDE", 13, UI.CYAN, 3.0)
@@ -438,13 +439,14 @@ func _draw_guide(vs: Vector2) -> void:
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按 1 / 2 / 3 或点击选择"],
 		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 静音　　R 重来　　T 回标题"],
+		["手柄", "左摇杆移动　Ⓐ 确认　Ⓑ 返回　START 暂停　SELECT 属性　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 110 + i * 48
+		var y := r.position.y + 106 + i * 46
 		UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), "按任意键返回", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 致谢与声明：内容来自 data/credits.json
@@ -712,9 +714,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 	op_rects["go"] = go
 	op_rects["back"] = back
 	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), "下一步  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("下一步  Enter", "下一步  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 48), "W A S D  ·  ARROWS   SELECT        ENTER   NEXT", 11, Color(0.36, 0.5, 0.55), 2.0)
 
 

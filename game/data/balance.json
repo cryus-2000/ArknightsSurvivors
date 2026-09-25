@@ -11,7 +11,12 @@
   "suzuran":    {"tier": "A+", "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
   "mizuki":     {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
   "siege":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
-  "skadi":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
+  "skadi":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
+  "ulpianus":   {"tier": "S",  "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03},
+  "irene":      {"tier": "S",  "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03},
+  "specter_unchained": {"tier": "A+", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
+  "logos":      {"tier": "S+", "atk": 0.05, "aspd": 0.0, "range": 0.0, "skill_power": 0.05},
+  "lumen":      {"tier": "A",  "atk": 0.0,  "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
  },
 
  "enemy": {

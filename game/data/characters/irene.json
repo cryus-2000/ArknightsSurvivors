@@ -1,0 +1,228 @@
+{
+ "id": "irene",
+ "name": "艾丽妮",
+ "en": "IRENE",
+ "class": "近卫",
+ "col": [
+  0.95,
+  0.6,
+  0.8
+ ],
+ "script": "res://scripts/characters/irene.gd",
+ "base": {
+  "_doc": "基础数值",
+  "atk": 18,
+  "cd": 0.8,
+  "len": 120,
+  "width": 26,
+  "s1_mult": 1.6,
+  "s2_mult": 2.8,
+  "s2_n": 8,
+  "s3_mult": 2.5,
+  "s3_r": 160,
+  "s3_strikes": 10,
+  "s3_strike_mult": 1.8,
+  "talent_bonus": 0.3
+ },
+ "sprites": {
+  "idle": {
+   "tex": "op_irene_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_irene_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_irene_attack",
+   "frames": 5,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 1
+  },
+  "skill": {
+   "tex": "op_irene_skill",
+   "frames": 7,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ],
+  "second": 3
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "刺剑",
+  "desc": "朝最近敌人直线穿刺（长 120、宽 26，穿透），每次两段（剑豪）"
+ },
+ "skills": [
+  {
+   "name": "疾风",
+   "en": "GUST",
+   "sp": 6,
+   "desc": "下一次刺击命中的第一个敌人浮空 1 秒，落下时再补一刺（两段各 ×1.6）"
+  },
+  {
+   "name": "碎潮",
+   "en": "SHATTERTIDE",
+   "sp": 14,
+   "desc": "向前方锥形斩击，最多 8 名敌人 ×2.8，浮空 2 秒（精英 1 秒，Boss 不浮空）"
+  },
+  {
+   "name": "审判",
+   "en": "JUDGMENT",
+   "sp": 28,
+   "dur": 3.0,
+   "desc": "自身半径 160 斩击 ×2.5 并浮空全部敌人 3 秒，随后区域内落下 10 次灯光轰击，每次 ×1.8，优先砸浮空目标"
+  }
+ ],
+ "talent": {
+  "name": "涤罪之焰",
+  "desc": "精英化一解锁：对浮空 / 眩晕 / 束缚中的敌人伤害 +30%"
+ },
+ "hit_sources": {
+  "刺剑": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "pierce",
+    "basic"
+   ]
+  },
+  "疾风": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "pierce"
+   ]
+  },
+  "碎潮": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "stun"
+   ]
+  },
+  "审判": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "stun"
+   ]
+  },
+  "灯光轰击": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "剑 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "剑 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁二技能「碎潮」；解锁天赋「涤罪之焰」：对受控敌人伤害 +30%"
+  },
+  {
+   "type": "stat",
+   "name": "净罪之剑",
+   "desc": "攻速 +25%（原作：场上有海嗣时攻速翻倍）",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.25
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "剑 · 锋 II",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "解锁三技能「审判」：周身斩击浮空一片，随后 10 次灯光轰击"
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "穿透",
+   "浮空",
+   "控制"
+  ],
+  "desc": "两段直刺穿透一列敌人；唯一会把敌人打上天的干员，对受控目标增伤"
+ }
+}

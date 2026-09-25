@@ -117,6 +117,34 @@ func update(dt: float) -> void:
 		o._tick_pfx(dt)
 
 
+## 干员侧挂点（同 dmg_taken_mult 询问模式，docs/26 第二批）
+## 圣域：任一干员的 sanctuary() 覆盖到 p（流明的灯塔）→ 溟痕、黑潮圈外惩罚失效
+func in_sanctuary(p: Vector2) -> bool:
+	for o in ops:
+		if o.has_method("sanctuary"):
+			var sc: Dictionary = o.sanctuary()
+			if not sc.is_empty() and p.distance_to(sc.pos) < sc.r:
+				return true
+	return false
+
+
+## 博士本该倒下时，任一干员阻止（幽灵鲨 S2）
+func prevent_death() -> bool:
+	for o in ops:
+		if o.has_method("prevent_death") and o.prevent_death():
+			return true
+	return false
+
+
+## 博士光照半径倍率（流明 S2）
+func light_radius_mult() -> float:
+	var m := 1.0
+	for o in ops:
+		if o.has_method("light_radius_mult"):
+			m *= o.light_radius_mult()
+	return m
+
+
 ## 任一干员的持续型技能生效中
 func any_skill_active() -> bool:
 	for o in ops:

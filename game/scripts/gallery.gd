@@ -393,7 +393,7 @@ func _draw() -> void:
 	UI.en(self, font, Vector2(132, 62), "GALLERY", 13, UI.CYAN, 4.0)
 	close_rect = Rect2(vs.x - 150, 34, 100, 36)
 	UI.panel(self, close_rect, Color(0.03, 0.08, 0.1, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, close_rect.position + Vector2(0, 24), "返回  Esc", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, close_rect.size.x)
+	UI.text(self, font, close_rect.position + Vector2(0, 24), Pad.hint("返回  Esc", "返回  Ⓑ"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, close_rect.size.x)
 	# 分页
 	tab_rects.clear()
 	for i in TABS.size():
@@ -408,7 +408,7 @@ func _draw() -> void:
 	if entries.size() > COLS * ROWS:
 		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
 		UI.text(self, font, Vector2(60, vs.y - 34), "滚轮翻页  %d / %d" % [scroll + 1, max_scroll + 1], 12, UI.SUB)
-	UI.text(self, font, Vector2(0, vs.y - 22), "Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	UI.text(self, font, Vector2(0, vs.y - 22), Pad.hint("Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", "LB / RB 切换分页 · 摇杆选择 · Ⓧ / Ⓨ 切换动作与形态 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func _frame_rect(f: Dictionary, frame: int) -> Rect2:

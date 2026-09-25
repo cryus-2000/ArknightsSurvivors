@@ -1,0 +1,590 @@
+{
+  "allow_repeated_frames": false,
+  "baseline_checked": true,
+  "assets": [
+    {
+      "file": "op_lumen_idle.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            11,
+            13,
+            35,
+            46
+          ],
+          "opaque_pixels": 490,
+          "pixel_sha256": "ff2f709b18d6c811783f483db404d4fc31bf5c10d327bf4adc1beae9f0e05b17",
+          "index": 0
+        },
+        {
+          "bbox": [
+            12,
+            13,
+            35,
+            46
+          ],
+          "opaque_pixels": 488,
+          "pixel_sha256": "dae3dbdfe364ffea43d47a4f2bdcec19cfb35d784d9983c320dca78ab0ba040a",
+          "index": 1
+        },
+        {
+          "bbox": [
+            12,
+            13,
+            35,
+            46
+          ],
+          "opaque_pixels": 487,
+          "pixel_sha256": "934d28ee6ed5cab22f6569ecc7409c5858a0d7052d2d3ee1053db36e43b1349c",
+          "index": 2
+        },
+        {
+          "bbox": [
+            12,
+            13,
+            34,
+            46
+          ],
+          "opaque_pixels": 485,
+          "pixel_sha256": "f6d2f9acc9f652841e3bac60936f7416235b63f3c165258c45f6a6d1f9817250",
+          "index": 3
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "fc7a979ef10ae92309cdd2dc38946438919494e863518862a8bb79004a09316f"
+    },
+    {
+      "file": "op_lumen_run.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            9,
+            13,
+            38,
+            46
+          ],
+          "opaque_pixels": 507,
+          "pixel_sha256": "0d34864b5824f8b7789bfc6ffd25b7f6f133a124b74e1894e1af6acfed703559",
+          "index": 0
+        },
+        {
+          "bbox": [
+            10,
+            13,
+            38,
+            46
+          ],
+          "opaque_pixels": 490,
+          "pixel_sha256": "fa243e97adb5929cc3de17ea6bb66c9236c7fa8aaa9e2e894d7aa46ca5e9493e",
+          "index": 1
+        },
+        {
+          "bbox": [
+            9,
+            13,
+            38,
+            46
+          ],
+          "opaque_pixels": 495,
+          "pixel_sha256": "fb960044dd11297c96a101e040f68c609ead5438df923da1a70981a7297690e1",
+          "index": 2
+        },
+        {
+          "bbox": [
+            7,
+            13,
+            36,
+            46
+          ],
+          "opaque_pixels": 486,
+          "pixel_sha256": "73faa028825864a41f952c6c8f031eb7ea08b3efdb56649cf223b48ea2e352a4",
+          "index": 3
+        },
+        {
+          "bbox": [
+            8,
+            14,
+            37,
+            46
+          ],
+          "opaque_pixels": 494,
+          "pixel_sha256": "1ce76ff50de6139bab32d5422f456eb30d074275a77a8f9391708f5d5697720f",
+          "index": 4
+        },
+        {
+          "bbox": [
+            9,
+            13,
+            38,
+            46
+          ],
+          "opaque_pixels": 493,
+          "pixel_sha256": "b870993e548af593976a1868effa6c7a7275a9165c4a0e23f48babcd53bc6a0e",
+          "index": 5
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "2d385cb5da471515ab9ebb948cc8cb9fcd4de61d45c0e869cf7dbbc4f4372b03"
+    },
+    {
+      "file": "op_lumen_attack.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            12,
+            13,
+            35,
+            46
+          ],
+          "opaque_pixels": 511,
+          "pixel_sha256": "8b1634dd1882a8944b12f36f80d00d4e689651553f176b4707f1339c4d9ca659",
+          "index": 0
+        },
+        {
+          "bbox": [
+            10,
+            14,
+            37,
+            46
+          ],
+          "opaque_pixels": 539,
+          "pixel_sha256": "01d826d2e992db1b0d6395a611f96053a979f0a73c93774b3a3b0c22aee008c7",
+          "index": 1
+        },
+        {
+          "bbox": [
+            9,
+            14,
+            38,
+            46
+          ],
+          "opaque_pixels": 529,
+          "pixel_sha256": "dc5526e448084baa434b1402a7fb580e17d3d76391da5879a294c1da56ca19b1",
+          "index": 2
+        },
+        {
+          "bbox": [
+            12,
+            14,
+            36,
+            46
+          ],
+          "opaque_pixels": 503,
+          "pixel_sha256": "83457f957859cf6af80a2019e3d436ee9f5f91cfc584ace235bb96ae50e9e903",
+          "index": 3
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "c7157a675acb4b748743bec16c144d486731eeb7d276d493838cfc0a39885091"
+    },
+    {
+      "file": "op_lumen_skill.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            12,
+            13,
+            35,
+            46
+          ],
+          "opaque_pixels": 520,
+          "pixel_sha256": "661dc5ee2b3254162edbf2e5f12cb23a6c8cbd751356d604c56b40224dd39e31",
+          "index": 0
+        },
+        {
+          "bbox": [
+            12,
+            13,
+            36,
+            46
+          ],
+          "opaque_pixels": 516,
+          "pixel_sha256": "2d2c0ae11ad045ce537faca4f7edf599fa04218ef307e5c06c3f0f809c57b510",
+          "index": 1
+        },
+        {
+          "bbox": [
+            11,
+            13,
+            37,
+            46
+          ],
+          "opaque_pixels": 538,
+          "pixel_sha256": "e2c258793df5e479d3fa4540a44b6b4c92102f44d3ea83c6b3e15331cff5d622",
+          "index": 2
+        },
+        {
+          "bbox": [
+            9,
+            14,
+            39,
+            46
+          ],
+          "opaque_pixels": 558,
+          "pixel_sha256": "b3828ad4d52407027ecd73451b11c196dcd21f1a0ed8b79556b6c482542c5481",
+          "index": 3
+        },
+        {
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "opaque_pixels": 569,
+          "pixel_sha256": "07de746ce50091f55d5ae019652b4dbf5fbc7ce2778f155128d3494d7e2e5fcf",
+          "index": 4
+        },
+        {
+          "bbox": [
+            11,
+            13,
+            36,
+            46
+          ],
+          "opaque_pixels": 535,
+          "pixel_sha256": "f8057b716161997adbd311ef23c692ff9aaa4dc684710421935b28a6c14e1edc",
+          "index": 5
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "f80b71135a2eca58d49817fa4e8ad9be3a29f7bd466481f5d33eab869f482468"
+    },
+    {
+      "file": "prop_lighthouse.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            23,
+            5,
+            39,
+            60
+          ],
+          "opaque_pixels": 657,
+          "pixel_sha256": "147f5e5d568ef62bef7f52fa49d817e3001f9f167f014aa5aefbf7d0a110cfe1",
+          "index": 0
+        },
+        {
+          "bbox": [
+            23,
+            5,
+            39,
+            60
+          ],
+          "opaque_pixels": 656,
+          "pixel_sha256": "e83f14d78b1b9887c451034dd899ba760d9ffbdf27ef2d66ac7bd2df92e5f046",
+          "index": 1
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "1bc00a279ce6ca9e0344c2aa35bb1b9b5b4fd24e9de3f26ff836608b16096109"
+    },
+    {
+      "file": "op_lumen_idle@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            23,
+            25,
+            72,
+            92
+          ],
+          "opaque_pixels": 1982,
+          "pixel_sha256": "8612c49d633ec83afbf3b3532f82e92bb5e1245ab0511fc0301b9fc1361d2e06",
+          "index": 0
+        },
+        {
+          "bbox": [
+            23,
+            25,
+            72,
+            92
+          ],
+          "opaque_pixels": 1967,
+          "pixel_sha256": "3b4f68cd6a51705503252f34a08d9166371481cad205d33f09fa7783f3c6fd27",
+          "index": 1
+        },
+        {
+          "bbox": [
+            23,
+            25,
+            72,
+            92
+          ],
+          "opaque_pixels": 1962,
+          "pixel_sha256": "ab7f58a9e10a470eb09060155ca76c26ddf962aadbff88b0abed0411450eb81c",
+          "index": 2
+        },
+        {
+          "bbox": [
+            23,
+            25,
+            72,
+            92
+          ],
+          "opaque_pixels": 1968,
+          "pixel_sha256": "2ba08647e801a45e4e937f62449bd18ab1ef058ae74a5f514f1a0626c16d6898",
+          "index": 3
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "9e156c5fab803c170e10aed21f86d0052326aff8b0f90708451b9c0cade6d4f7"
+    },
+    {
+      "file": "op_lumen_run@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            18,
+            26,
+            78,
+            92
+          ],
+          "opaque_pixels": 2040,
+          "pixel_sha256": "a3fffdfa00d63f1e11d4d8a689a5b9b41c9d671b87bf5d72178cf2eb7afba87f",
+          "index": 0
+        },
+        {
+          "bbox": [
+            18,
+            25,
+            77,
+            92
+          ],
+          "opaque_pixels": 1956,
+          "pixel_sha256": "323dfe0f43c39a389147181d8179cb409bcc322b3c7d505d8a332df573f9c796",
+          "index": 1
+        },
+        {
+          "bbox": [
+            17,
+            25,
+            77,
+            92
+          ],
+          "opaque_pixels": 1989,
+          "pixel_sha256": "f2403fc5e2e8fc2295b3fcbb7caf9fdc8ee2462ac1ae4825fc747d213274f95f",
+          "index": 2
+        },
+        {
+          "bbox": [
+            12,
+            25,
+            73,
+            92
+          ],
+          "opaque_pixels": 1951,
+          "pixel_sha256": "55a714967ddd41a2d4a528f611c938f7424d472c8c598acad730a1e58354169b",
+          "index": 3
+        },
+        {
+          "bbox": [
+            17,
+            26,
+            77,
+            92
+          ],
+          "opaque_pixels": 1973,
+          "pixel_sha256": "5a8a7448887e3f4db0fe9a79c478348358f6cb0267fac2e6348853967a3ba7a0",
+          "index": 4
+        },
+        {
+          "bbox": [
+            18,
+            25,
+            77,
+            92
+          ],
+          "opaque_pixels": 1967,
+          "pixel_sha256": "97305535761ede5f86f32ab9c5839f93ad1a8038e69bb2b53350f95201b78801",
+          "index": 5
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "01949227888b5253284531a565ceb036a935d8f3fe5d1963225ce2314dee8193"
+    },
+    {
+      "file": "op_lumen_attack@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            22,
+            26,
+            72,
+            92
+          ],
+          "opaque_pixels": 2048,
+          "pixel_sha256": "04df5a5b2c8b36620aca8a93008642d80037160afb33510af5ceb37d09aa23ce",
+          "index": 0
+        },
+        {
+          "bbox": [
+            20,
+            26,
+            76,
+            92
+          ],
+          "opaque_pixels": 2162,
+          "pixel_sha256": "8e87db075dc7332eea2933b92b8721f734dfb37e7cebd43662688a442adad68f",
+          "index": 1
+        },
+        {
+          "bbox": [
+            17,
+            27,
+            78,
+            92
+          ],
+          "opaque_pixels": 2163,
+          "pixel_sha256": "002d4f805e314e50431ba2c2c81e60c81d1129915621b9a8c3c8431a5b4abb6e",
+          "index": 2
+        },
+        {
+          "bbox": [
+            22,
+            27,
+            72,
+            92
+          ],
+          "opaque_pixels": 2010,
+          "pixel_sha256": "d73a8e0a9aa0b83d63cbddd2067ad3aeacb35331e6bc605b3a6ccdec6ae0a656",
+          "index": 3
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "f91453c28657d64591c7dc099bd0687ec5a47b7583c44ad7dda077397edcef27"
+    },
+    {
+      "file": "op_lumen_skill@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            22,
+            25,
+            72,
+            92
+          ],
+          "opaque_pixels": 2129,
+          "pixel_sha256": "14a9d585fb447fe47ebec046e2c094b2fcf92fb9b4d7b8da6e54ff8059b911cb",
+          "index": 0
+        },
+        {
+          "bbox": [
+            22,
+            25,
+            73,
+            92
+          ],
+          "opaque_pixels": 2061,
+          "pixel_sha256": "152278624226f44908d26190db778a5ed4a91c89c28090ed13b0dd809094754f",
+          "index": 1
+        },
+        {
+          "bbox": [
+            20,
+            24,
+            75,
+            92
+          ],
+          "opaque_pixels": 2204,
+          "pixel_sha256": "810b846c49a112af5ba3040fcd5e39e2772c58ad2a7868ca12594d1f192e811d",
+          "index": 2
+        },
+        {
+          "bbox": [
+            15,
+            26,
+            79,
+            92
+          ],
+          "opaque_pixels": 2269,
+          "pixel_sha256": "74c107e1b49476c0bbab1629e6c2c909b9278fd511df9f1e903b217ac7eb0f12",
+          "index": 3
+        },
+        {
+          "bbox": [
+            16,
+            24,
+            78,
+            92
+          ],
+          "opaque_pixels": 2288,
+          "pixel_sha256": "a2d81d34704b8d31d273e5921177e9cc4286d7b114d5dd24a01ab83c67b3423e",
+          "index": 4
+        },
+        {
+          "bbox": [
+            22,
+            24,
+            73,
+            92
+          ],
+          "opaque_pixels": 2161,
+          "pixel_sha256": "9d060491a664604a7c45b9e52acb7545055317e7cf3f6e86d3803e4fc122a427",
+          "index": 5
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "bc345cfcbe7f8846099019eab8a8339733d70270d5e376df852f015718715027"
+    },
+    {
+      "file": "prop_lighthouse@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            46,
+            9,
+            80,
+            120
+          ],
+          "opaque_pixels": 2635,
+          "pixel_sha256": "753cac964be9a91c5aeb7f75ad80f35310adccce6f5fa41131855940a8a13694",
+          "index": 0
+        },
+        {
+          "bbox": [
+            46,
+            9,
+            80,
+            120
+          ],
+          "opaque_pixels": 2628,
+          "pixel_sha256": "629ce72022ed35978e52494c05c7e4360fe5826676485fd83c634ec92fca12dd",
+          "index": 1
+        }
+      ],
+      "outline": "080E18",
+      "sha256": "94c0de0f16a77e8e671f8dc178913beb7aac2ef2ddbde6cbf58e1eeb054812bd"
+    }
+  ],
+  "engine_tested": false,
+  "passed": true,
+  "palette_counts": [
+    {
+      "character": "lumen_2",
+      "colors": 48
+    },
+    {
+      "character": "lumen_1",
+      "colors": 24
+    },
+    {
+      "character": "lighthouse_1",
+      "colors": 24
+    },
+    {
+      "character": "lighthouse_2",
+      "colors": 48
+    }
+  ]
+}

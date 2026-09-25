@@ -77,9 +77,11 @@ func _release() -> void:
 	var ang := _aim()
 	var dmg: float = base("atk", 26.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
 	var half: float = PI if tide > 0.0 else 1.4
-	melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
+	var hits := melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
 	_slash(ang, half, _reach(), BLUE if tide <= 0.0 else Color(0.25, 0.4, 0.85), FOAM, 0.22)
-	Sfx.play("swing", -12.0, 1.0, 0.08)
+	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
+	if not hits.is_empty():
+		Sfx.op(id, "hit", 2.0 if tide > 0.0 else 0.0)
 	swings += 1
 	if elite >= 1 and swings % 3 == 0 and tide <= 0.0:
 		var back: float = ang + PI
@@ -97,9 +99,10 @@ func _release_skill() -> void:
 		0:
 			# 潮涌斩：一次 ×2 宽幅横扫
 			var ang := _aim()
-			melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0)
+			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
+				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
-			Sfx.play("swing_heavy", -8.0, 1.0, 0.05)
+			Sfx.op(id, "atk", 5.0, 0.8)
 		1:
 			_heavy(_aim())
 		2:
@@ -109,7 +112,6 @@ func _release_skill() -> void:
 			for k in 16:
 				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-40, 40), 0), "vel": Vector2(g.rng.randf_range(-40, 40), g.rng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
 			g._show_banner("潮汐")
-			Sfx.play("roar", -12.0, 1.5, 0.05)
 
 
 func skill_active_left(i: int) -> float:
@@ -132,7 +134,7 @@ func _heavy(ang: float) -> void:
 	for k in 18:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	g.shake = maxf(g.shake, 4.0)
-	Sfx.play("boom", -11.0, 0.8, 0.05)
+	Sfx.op(id, "big")
 
 
 func draw_auras() -> void:

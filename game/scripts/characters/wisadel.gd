@@ -137,7 +137,7 @@ func _release_skill() -> void:
 			_fire(tgt.pos, base("atk", 34.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), EMBER, 10, 200.0, 0.3)
-			Sfx.play("boom", -8.0, 0.6, 0.05)
+			Sfx.op(id, "atk", 5.0, 0.75)
 		2:
 			# 饱和炮击：离博士最近的 8 个不同目标轮流落弹
 			var n := 8
@@ -149,7 +149,6 @@ func _release_skill() -> void:
 			volley_t = 0.0
 			fx({"kind": "glow", "pos": _muzzle(), "r": 24.0, "life": 0.3, "col": RED, "alpha": 0.5})
 			fx_sparks(_muzzle(), EMBER, 8, 160.0, 0.3)
-			Sfx.play("boom", -12.0, 0.8, 0.05)
 
 
 func skill_active_left(i: int) -> float:
@@ -171,7 +170,7 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, 
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.08, "col": RED, "sz": 22.0 * size})
 	for k in 3:
 		fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.rng.randf_range(-0.6, 0.6)) * g.rng.randf_range(60, 140), "life": 0.2, "col": EMBER, "sz": 2.0, "drag": 3.0})
-	Sfx.play("swing", -15.0, 0.7, 0.05)
+	Sfx.op(id, "atk", 0.0 if size <= 1.2 else 3.0, 1.0 if size <= 1.2 else 0.85)
 
 
 func _shell_pos(s: Dictionary) -> Vector2:
@@ -244,7 +243,10 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			_burst_fx(c, r, true)
 		_:
 			_impact_fx(c, r, light)
-	Sfx.play("boom", -16.0 if src == "余震" else -13.0, 1.2, 0.1)
+	if src == "余震":
+		Sfx.op(id, "quake", 0.0, 1.0, 0.1)
+	else:
+		Sfx.op(id, "hit", -3.0 if light else 0.0, 1.0, 0.08)
 	if elite >= 1 and depth < 1:
 		for k in mini(killed.size(), 3):
 			shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * base("shade", 0.4), "r": r * 0.8, "depth": depth + 1})

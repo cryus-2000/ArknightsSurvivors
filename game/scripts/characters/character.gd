@@ -196,6 +196,10 @@ func charge_skills(dt: float) -> int:
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
 func spend_sp(i: int) -> void:
 	sp[i] = 0.0
+	# 技能发动音（op_<id>_s1/s2/s3）。character.gd 也被 -s 测试脚本直接加载，那时没有 Sfx 自动加载，所以按节点路径取
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		sfx.op(id, "s%d" % (i + 1), 0.0, 1.0, 0.0)
 	if skill_def(i).get("permanent", false):
 		perm[i] = true
 		sp[i] = sp_need(i)

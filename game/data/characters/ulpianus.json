@@ -1,0 +1,206 @@
+{
+ "id": "ulpianus",
+ "name": "乌尔比安",
+ "en": "ULPIANUS",
+ "class": "近卫",
+ "col": [
+  0.45,
+  0.7,
+  0.95
+ ],
+ "script": "res://scripts/characters/ulpianus.gd",
+ "base": {
+  "_doc": "基础数值",
+  "atk": 42,
+  "cd": 1.5,
+  "reach": 70,
+  "s1_mult": 1.7,
+  "s1_drag": 6,
+  "s3_mult": 3.0,
+  "s3_r": 140,
+  "s3_stun": 3.0,
+  "s3_haste": 8.0,
+  "stack_atk": 0.04,
+  "stack_cap": 10
+ },
+ "sprites": {
+  "idle": {
+   "tex": "op_ulpianus_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_ulpianus_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_ulpianus_attack",
+   "frames": 5,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
+  "skill": {
+   "tex": "op_ulpianus_skill",
+   "frames": 7,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "锚击",
+  "desc": "每 1.5 秒抡锚砸向身前，命中半径 70 内的全部敌人（撼地者），单击伤害高"
+ },
+ "skills": [
+  {
+   "name": "必须接触",
+   "en": "CONTACT MUST BE MADE",
+   "sp": 8,
+   "desc": "向最近的精英（没有则敌群最密处）掷锚，把锚链沿途最多 6 名敌人拖到身前并造成 ×1.7 伤害"
+  },
+  {
+   "name": "必须坚守",
+   "en": "BOUNDARIES MUST BE KEPT",
+   "sp": 20,
+   "desc": "充能一次后永久生效：攻击 +40%、锚击范围 +30%，天赋层数上限 10 → 15",
+   "permanent": true
+  },
+  {
+   "name": "必须开辟",
+   "en": "PATHS MUST BE OPENED",
+   "sp": 28,
+   "dur": 8.0,
+   "desc": "掷锚到敌群最密处：落点半径 140 内 ×3 伤害并眩晕 3 秒（精英 1.5 秒、Boss 0.8 秒），乌尔比安瞬移到锚点；之后 8 秒锚击间隔 -30%"
+  }
+ ],
+ "talent": {
+  "name": "血脉滋养",
+  "desc": "精英化一解锁：击杀精英 +1 层、Boss +3 层，每层攻击 +4%（上限 10 层）；编队里其他深海猎人（斯卡蒂、幽灵鲨）获得一半"
+ },
+ "hit_sources": {
+  "锚击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic"
+   ]
+  },
+  "掷锚": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "必须开辟": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "stun"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "锚 · 重",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "锚 · 广",
+   "desc": "锚击范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁二技能「必须坚守」；解锁天赋「血脉滋养」：击杀精英叠攻击，其他深海猎人得一半"
+  },
+  {
+   "type": "stat",
+   "name": "锚 · 重 II",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "锚 · 迅",
+   "desc": "锚击频率 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "解锁三技能「必须开辟」：掷锚眩晕一片并瞬移过去，之后 8 秒锚击加速"
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "范围",
+   "聚怪",
+   "精英克制"
+  ],
+  "desc": "抡锚砸身前一片，掷锚把敌人拖到脚下；击杀精英越打越狠"
+ }
+}

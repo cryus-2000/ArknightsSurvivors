@@ -57,6 +57,7 @@ func _release() -> void:
 func _heal(h: float, size: int) -> void:
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
 	g._heal(h, "凯尔希")
+	Sfx.op(id, "heal")
 	if over > 0.0:
 		guard_t = 5.0
 	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)
@@ -85,7 +86,6 @@ func _release_skill() -> void:
 			melt = S3_DUR
 			_mon3tr_burst()
 			g._add_text(m.pos + Vector2(0, -70), "熔毁", GREEN, 16)
-	Sfx.play("dodge", -8.0, 0.7)
 
 
 func _mon3tr_burst() -> void:
@@ -188,7 +188,7 @@ func _m_strike() -> void:
 		fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 	fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 	if not hits.is_empty():
-		Sfx.play("swing", -12.0, 0.8, 0.05)
+		Sfx.op(id, "atk", 2.0 if melt > 0.0 else 0.0, 0.85 if melt > 0.0 else 1.0)
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
@@ -207,7 +207,7 @@ func _meltdown() -> void:
 	fx_sparks(m.pos + Vector2(0, -16), GREEN, 16, 260.0, 0.45, 3.0, 200.0)
 	g._add_text(m.pos + Vector2(0, -70), "熔毁", GREEN, 18)
 	g.shake = maxf(g.shake, 5.0)
-	Sfx.play("boom", -9.0, 0.7)
+	Sfx.op(id, "big")
 
 
 func _draw_pfx(f: Dictionary, a: float) -> bool:

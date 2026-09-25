@@ -43,3 +43,18 @@
 每个角色的所有动画共同量化到24色（包含描边），外沿明确为1px #080E18。校验图像大小、帧数、alpha、画布边界透明、基线、轮廓色、各帧非空且不同；逐帧像素摘要与每文件SHA256见QA和manifest。透明背景像素不计入角色色数。
 
 程序接入使用manifest中的锚点，不要从每帧可见包围盒重新取中心。本次仅交付美术，游戏内视觉与动画事件验证交由Claude接入后完成。
+
+## squad_batch4（2026-09-25）
+
+五人采用用户批准的原皮立绘与武器，审批哈希见 squad_batch4_reference_approval.json。
+- 流明：https://wiki.biligame.com/arknights/流明
+- 艾丽妮：https://wiki.biligame.com/arknights/艾丽妮
+- 乌尔比安：https://www.9game.cn/mrfz/10166371.html （官方角色宣传图转载）
+- 逻各斯：https://arknights.wiki.gg/wiki/Logos
+- 归溟幽灵鲨：https://wiki.biligame.com/arknights/归溟幽灵鲨
+- 修女替身：用户本轮截图 codex-clipboard-06a01742-d42e-4fb9-a653-156c7de0d50c.png；明确回复“是这个修女的形象”。白发、黑头纱、放射头饰、闭眼祈祷、红饰结，无圆锯。
+- 前期误截的浊心斯卡蒂已由用户纠正并废弃，没有用于任何交付图。
+
+内置 imagegen 绘制母图；艾丽妮小跑与技能、乌尔比安小跑单独补绘。
+分离完整像素连通角色，逐源图保存共同尺度和分割记录，清除单色背景，统一 48/96px 导出；低清/高清共享各自角色色板，二值 alpha 与1px深色轮廓。
+详细完整 prompts、母图路径及哈希见 squad_batch4_generation.json；流明与灯塔先前制作记录见 squad_batch4_lumen_handoff.md。

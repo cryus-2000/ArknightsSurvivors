@@ -61,6 +61,7 @@ func _release() -> void:
 		mult *= base("s1_mult", 1.5) * skill_power()
 	if skull > 0.0:
 		mult *= base("s3_mult", 1.8) * skill_power()
+	Sfx.op(id, "atk")
 	var hits := melee_hit("锤击", pos + Vector2(0, -10), ang, 1.2, _reach(), base("atk", 30.0) * mult * _dmg_bonus(), 140.0)
 	if skull > 0.0:
 		for e in hits:
@@ -74,7 +75,7 @@ func _release() -> void:
 		# 每次命中（不论几个目标）全队 +0.5 秒技力，精一翻倍
 		_squad_sp_seconds(base("hit_sp", 0.5) * (2.0 if elite >= 1 else 1.0))
 		_sp_motes(1)
-		Sfx.play("swing", -11.0, 0.7, 0.05)
+		Sfx.op(id, "hit", 2.0 if skull > 0.0 else 0.0, 0.85 if skull > 0.0 else 1.0)
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
@@ -102,14 +103,13 @@ func _release_skill() -> void:
 			g.shake = maxf(g.shake, 5.0)
 			g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
 			_sp_motes(3)
-			Sfx.play("boom", -9.0, 0.6)
+			Sfx.op(id, "big")
 		2:
 			# 碎颅：8 秒重锤
 			skull = S3_DUR
 			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.35, "col": Color(1.0, 0.6, 0.3), "alpha": 0.6})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": GOLD})
 			g._show_banner("碎颅")
-			Sfx.play("roar", -12.0, 1.3, 0.05)
 
 
 func skill_active_left(i: int) -> float:

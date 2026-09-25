@@ -1,0 +1,94 @@
+{
+  "export_script_local": "E:\\水月\\art_staging\\batch4/export-rest.ps1",
+  "method": "built-in imagegen",
+  "export_script_sha256": "25d4818270b13fa7c79b17ffc3cff8ff8f55f89afee7aee89debb44cf64841ee",
+  "jobs": [
+    {
+      "job": "irene_job",
+      "parameters": {
+        "prompt": "Create a chibi pixel-art game sprite animation master, exact character from reference1, style and density matching reference2 only. True transparent background, no checkerboard, no ground, no text or labels, no FX or projectiles. 4 rows, 8 equally spaced columns, uniform square cells. Keep empty cells after specified count blank. All characters face RIGHT or 3/4 RIGHT. Same physical scale all poses. Cute large head, readable eyes, crisp hard pixels thin #080E18 outline, limited48colors, suitable96px sprites. Generous clear gutters above/below each row and between every cell; keep entire weapons inside each cell. Row1 FOUR idle frames breathing/blinking, row2 SIX running frames with genuinely alternating left/right legs and passing steps. Character IRENE: silver straight hair, black feather head ornaments, pale pink eyes, black/white inquisitor uniform with dusty rose lining, pale grey tights and black shoes, slender ornate silver rapier, black handheld lantern pink glass, small holstered pistol at waist. Do not turn rapier into broad sword. Row3 FIVE attack poses: ready, fully extended straight stab to RIGHT, half-retract, second extended stab to RIGHT with step, recover. Row4 SEVEN skill poses: lantern at waist, lift lantern, turn shoulders sword pulled back, big horizontal rightward slash sword extended (event), lantern raised overhead sword lowered, hold with open eyes, recover. Total22sprites. Lantern stays in opposite hand to rapier. Keep consistent body height even weapon raised. Flat pure magenta #FF00FF background instead of simulated transparency if alpha unsupported, no pink background gradients.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-5cbf92e3-4f7d-4921-b7d6-938d81df9499.png",
+        "reference": "E:/水月/reference_cache/batch4/irene.png",
+        "status": "generated_needs_export"
+      },
+      "source_sha256": "8aa58aef99b9bdcd53e8a287bb998f82925944f266867ca3762b0b1247d17f5e"
+    },
+    {
+      "job": "irene_run_job",
+      "parameters": {
+        "prompt": "Using this exact Irene sprite character design, create ONLY six frames of a right-facing running animation in ONE horizontal row, equally spaced, all six full-body characters separate. All weapon equipment unchanged: thin rapier trailing safely behind, opposite hand holds small pink-glass lantern, holstered pistol. SAME scale and ground baseline. SIX DISTINCT phases: right foot front left foot back; passing knees with right support; left foot front right foot back; passing knees with left support; right contact extended; left crossing recovery. Correct alternating legs, no clone poses, no floating feet. Crisp96px-target chibi pixel art, thin dark outline. Canvas wide1536x384, feet alongy330, each character about250pxhigh. Pure flat magenta #FF00FF background, no text or labels, no effects, no shadows.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4e1e4962-2304-4f5f-b607-e06f7f43ee38.png"
+      },
+      "source_sha256": "bb1452815186a16f7309bf1b4f328cb4253b554ce61008c83349fcef7d9b43e6"
+    },
+    {
+      "job": "irene_skill_job",
+      "parameters": {
+        "prompt": "Edit into a SINGLE horizontal strip of SEVEN Irene skill poses, chibi pixel art same exact character/weapon as reference. Pure flat magenta #FF00FF background. Each pose widely separated by minimum40px blank gap, no touching sword to adjacent character! Canvas wide 2048x512. All bodies same size and feet baseline, stand3/4RIGHT. Pose0 ready sword down and lantern waist; pose1 lift lantern; pose2 coil body sword behind; pose3 HORIZONTAL SLASH TO RIGHT rapier extended and opposite lantern hand stays visible; pose4 lantern ABOVE HEAD sword lowered; pose5 hold lantern above head head tilted slightly; pose6 return ready. Only7characters no other rows. Thin rapier silver blade with ornate guard, small pinkglass lantern held oppositehand, silverhair black featherhairornaments black/white inquisitor dress dustyrose lining greytights blackshoes waistpistol. Complete swords within cell space. No FX shadows labels.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-fb1c9e41-dff7-42dd-b7b2-14d30c3be4cd.png"
+      },
+      "source_sha256": "be718876a781879ac83f5952b4639442004e119906cea8f06f27429651816c51"
+    },
+    {
+      "job": "logos_job",
+      "parameters": {
+        "prompt": "Create a chibi pixel-art game sprite animation master, exact character from reference1, style and density matching reference2 only. True transparent background, no checkerboard, no ground, no text or labels, no FX or projectiles. 4 rows, 8 equally spaced columns, uniform square cells. Keep empty cells after specified count blank. All characters face RIGHT or 3/4 RIGHT. Same physical scale all poses. Cute large head, readable eyes, crisp hard pixels thin #080E18 outline, limited48colors, suitable96px sprites. Generous clear gutters above/below each row and between every cell; keep entire weapons inside each cell. Row1 FOUR idle frames breathing/blinking, row2 SIX running frames with genuinely alternating left/right legs and passing steps. LOGOS default: silvergrey hair, small black horn-like head ornaments, red eyes, black longcoat with blue inner edging and white ribbon straps, dark pants boots, holds thin bluewhite bone PEN horizontally like reference, no staff no book. Row3 FOUR casts: ready, draw pen back to chest, extend pen hand pointing RIGHT (event), recover. Row4 EIGHT poses: ready, lift pen, fold hands near chest, spread forearms, both arms fully open with pen still in one hand (event), hold arms wide coat ribbons flare, relax, recover. Keep pen in hand every pose. No magic circles particles lightFX or floor shadows. Exactly4/6/4/8 sprites. Use pure magenta #FF00FF flat background, not checkerboard. Leave extra cell space so ribbons do not touch neighboring sprites.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-d3f6b082-4320-4eed-bbaa-64ba9022fa1f.png",
+        "reference": "E:/水月/reference_cache/batch4/logos.png",
+        "status": "generated_needs_export"
+      },
+      "source_sha256": "80b8b7ab766f948e9009cde00a4af83b9d63f3fa0d02fa03620e1e06fd382cbb"
+    },
+    {
+      "job": "specter_doll_job",
+      "parameters": {
+        "prompt": "Create pixel-art game sprites of the exact NUN FORM in reference1, NOT reference2's hat or weapon. Reference2 is ONLY chibi rendering style. One horizontal row FOUR full-body poses, identical scale, wide clear gaps. White/silver hair, black nun veil edged white, black radial/spoked head ornament as reference1, eyes CLOSED gently, hands crossed/clasped over upper chest in prayer, two red bow/flower accents chest sides, black bodice with white vertical lace/buttons, black and ivory split jagged skirt, pale legs and crisscross white/black footwear. NO circular saw, NO staff, NO weapons, NO pirate hat. Exact reference1 silhouette. Four subtly different idle prayer poses: upright inhale, slight lean right veil sways, exhale slightly lowered head, slight lean left veil sways. Feet remain on same baseline; no floating. Cute large head matching96px game characters, hard crisp pixels, restrained palette48colors, dark thin #080E18 outline. Pure flat magenta #FF00FF background. No groundcircle, no shadows, no effects, no text, no UI. All body height about2.5 heads and artwork complete in each cell.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4e58a7af-8bcf-4df4-91d9-5e13caf9c13a.png",
+        "reference": "E:/水月/reference_cache/batch4/specter_doll_approved.png",
+        "standing_art_approved": true,
+        "weapon_approved": true,
+        "weapon": "none; hands clasped",
+        "approval": "User supplied and identified nun form 2026-09-25; rejected previous screenshot as Skadi"
+      },
+      "source_sha256": "9b3bb84a31dede757f0b9725449fcd8c3b5fa57cfad028273b66f9f0d81580ec"
+    },
+    {
+      "job": "specter_unchained_job",
+      "parameters": {
+        "prompt": "Create a chibi pixel-art game sprite animation master, exact character from reference1, style and density matching reference2 only. True transparent background, no checkerboard, no ground, no text or labels, no FX or projectiles. 4 rows, 8 equally spaced columns, uniform square cells. Keep empty cells after specified count blank. All characters face RIGHT or 3/4 RIGHT. Same physical scale all poses. Cute large head, readable eyes, crisp hard pixels thin #080E18 outline, limited48colors, suitable96px sprites. Generous clear gutters above/below each row and between every cell; keep entire weapons inside each cell. Row1 FOUR idle frames breathing/blinking, row2 SIX running frames with genuinely alternating left/right legs and passing steps. SPECTER THE UNCHAINED: silver long hair, red eyes, white/black elaborate broad hat, navy black and white long dress, flowing blue ribbons, exact long-shaft CIRCULAR SAW with huge toothed silver disc and smaller brass gear from reference, NO generic sword. Row3 FIVE: ready with saw diagonal, twist back to wind up, swing saw RIGHT across front with disc in front of body(event), followthrough turn, recover. Row4 SEVEN: ready, raise saw shaft, lift saw disc high overhead, begin downward chop, saw disc slammed low to RIGHT at foot height(event), hold low recovering weight, recover upright. Exactly4 idle,6 RUN,5 attack,7 skill. Preserve saw attachment and teeth all frames, same body scale even when saw raised. Pure flat #FF00FF magenta background. No sparks, splashes, trails, glow or shadows.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7f1b023f-b432-47d5-bd0e-aa0c6ded9915.png",
+        "status": "generated_needs_export"
+      },
+      "source_sha256": "396d847a8aa1cc386114539dea35e4b2ef5ac1b968509546248260e1ba4fd873"
+    },
+    {
+      "job": "ulpianus_job",
+      "parameters": {
+        "prompt": "Create a chibi pixel-art game sprite animation master, exact character from reference1, style and density matching reference2 only. True transparent background, no checkerboard, no ground, no text or labels, no FX or projectiles. 4 rows, 8 equally spaced columns, uniform square cells. Keep empty cells after specified count blank. All characters face RIGHT or 3/4 RIGHT. Same physical scale all poses. Cute large head, readable eyes, crisp hard pixels thin #080E18 outline, limited48colors, suitable96px sprites. Generous clear gutters above/below each row and between every cell; keep entire weapons inside each cell. Row1 FOUR idle frames breathing/blinking, row2 SIX running frames with genuinely alternating left/right legs and passing steps. ULPIANUS exact default art: silver grey hair, wide dark jagged brim hat with red interior crest, high black collar covers mouth, long dark navy coat with white lapels and silver panels, dark trousers boots. Huge distinctive chained ANCHOR, curved silver flukes and dark angular central shaft as reference, not axe or sword. Heavy low center of gravity. Row3 FIVE poses: anchor ready, haul back, overhead windup, slam anchor head onto ground immediately to RIGHT (event), recover. Row4 SEVEN: ready holding anchor, lean back, coil chain pull back, full throw to RIGHT with torso leaning forward and arm extended EMPTY HAND gripping ONLY short chain end and NO anchor visible (event), empty hand followthrough chain, pull back short chain, recover empty hand. Flying anchor is excluded, rendered by engine. Entire weapons inside each cell, character body size remains same. Exactly4/6/5/7 sprites in respective rows. Flat pure magenta #FF00FF background.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-335758a4-bf11-4b4c-aaad-1dc9319a9caa.png",
+        "reference": "E:/水月/reference_cache/batch4/ulpianus.jpg",
+        "status": "generated_needs_export"
+      },
+      "source_sha256": "06819fc88b3ed569d9d477679bb0545682a68bfeb1d41d4c161e9c01443b8bd1"
+    },
+    {
+      "job": "ulpianus_run_job",
+      "parameters": {
+        "prompt": "Same exact Ulpianus chibi sprite design as this sheet. Make ONLY a six-frame RUN CYCLE, one horizontal row of six widely separated figures on flat pure magenta #FF00FF. Camera3/4RIGHT same throughout. KEEP black high collar, silver hair, jagged hat red stripe, heavy coat, original large chained anchor carried trailing behind. Need natural ALTERNATING leg phases not six repeated right-foot-forward poses: 0 front leg stretches forward back leg back; 1 front foot supports body below hip while back knee passes forward; 2 opposite leg forward foot while first leg bent behind; 3 opposite foot below hip other knee forward; 4 front leg stepping down with back heel rising; 5 passing tucked legs. Show distinguishable two boot silhouettes, don't swap weapon hand. All six figures same size, feet baseline consistent, coat and hat consistent. No text shadows effects. Clear40px gaps so sprites don't touch. Sharp96px-target pixel clusters.",
+        "generated_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4489d5b6-ba2d-406b-a81d-54668b40ae0a.png"
+      },
+      "source_sha256": "05bed447fbac3cf7745b748e48a58fa033b41126a9c27b16a3a707d8ec891f3f"
+    }
+  ],
+  "reference_approval": "squad_batch4_reference_approval.json",
+  "doll_reference": {
+    "rejected_reference": "substitute_detail.png was Skadi, rejected and never used in generation",
+    "file": "E:/水月/reference_cache/batch4/specter_doll_approved.png",
+    "standing_art_approved": true,
+    "sha256": "ab95149deb533c50f8b9d518b18cbc0579a33d7f17f963b53c5192991b5c669c",
+    "user_confirmation": "是这个修女的形象",
+    "weapon": "none",
+    "weapon_approved": true
+  },
+  "engine_tested": false
+}

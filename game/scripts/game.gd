@@ -20,6 +20,7 @@ const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
 ##   src      来源名（统计与显示）        emitter  operator / summon / support / relic
 ##   origin   core / talent / skill / route / support / relic
@@ -287,12 +288,19 @@ var fx_add: Node2D
 var anim_name := ""
 var settings: Control
 var result_btns: Array = []   # [Rect2, action]
+# ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
+var nav_sel := 0               # 当前焦点卡片（选卡 / 商店共用 panel_box 的下标）
+var res_sel := 0               # 暂停 / 结算按钮焦点
+var kb_nav := false            # 键盘方向键导航过（显示焦点而不是鼠标悬停），鼠标一动就关
+var state_age := 0.0           # 进入当前状态的秒数（防止手柄连按把刚弹出的选卡 / 演出直接点掉）
+var _last_state := -1
 var anim_t := 0.0
 
 # ---------- 自测 ----------
 var autotest := false
 var balance := false
 var bal_done := false
+var bot = null                   # --balance 机器人（docs/29）；--bot=afk|bad|normal|expert
 var elites_killed := 0
 var shop_visits := 0
 var dmg_log := {}
@@ -535,6 +543,15 @@ func _ready() -> void:
 	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
 		_start_opening.call_deferred()
 	balance = OS.get_cmdline_user_args().has("--balance")
+	if balance:
+		var bot_p := "normal"
+		var bot_seed := 0
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--bot="):
+				bot_p = a.substr(6)
+			elif a.begins_with("--seed="):
+				bot_seed = int(a.substr(7))
+		bot = Bot.new(self, bot_p, bot_seed)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
@@ -615,6 +632,10 @@ func _update_music(_dt: float) -> void:
 func _bot_pick() -> int:
 	if choices.is_empty():
 		return 0
+	if bot != null:
+		var bp: int = bot.pick(choices)
+		if bp >= 0:
+			return bp
 	if OS.get_cmdline_user_args().has("--botrandom"):
 		return rng.randi() % choices.size()
 	var W: Dictionary = Bal.sec("bot/weights")
@@ -853,6 +874,8 @@ func _autotest_step() -> void:
 				for rid in a.substr(8).split(","):
 					_gain_relic(rid)
 	if balance:
+		if bot != null and state == S.PLAY:
+			bot.tick(0.066)
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [t, state, level, hp, enemies.size()])
 		if state == S.CHOICE:
@@ -875,7 +898,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "heal": heal_log, "drone": weapons.get("drone", 0), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "heal": heal_log, "drone": weapons.get("drone", 0), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out, "bot": bot.report() if bot != null else {}}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -987,6 +1010,13 @@ func _autotest_step() -> void:
 # =====================================================================
 func _process(delta: float) -> void:
 	var dt: float = min(delta, 0.05)
+	if state != _last_state:
+		_last_state = state
+		state_age = 0.0
+		res_sel = 0
+	else:
+		state_age += delta
+	Pad.context = "play" if state == S.PLAY else "game_menu"
 	if autotest:
 		_autotest_step()
 		dt = 0.066 if balance else 0.05
@@ -1033,6 +1063,8 @@ func _do_action(act: String) -> void:
 
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and event.relative.length() > 6.0:
+		kb_nav = false
 	if settings.visible:
 		return
 	if touch.handle(event):
@@ -1099,6 +1131,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					Sfx.play("ui_ok")
 					_do_action(b[1])
 					return
+	if event is InputEventKey and event.device == Pad.SYNTH_DEVICE and state_age < 0.35 and state != S.PLAY:
+		return
 	if state == S.SHOW:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
 			_close_show()
@@ -1108,6 +1142,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = event.keycode
+	if _nav_key(k):
+		get_viewport().set_input_as_handled()
+		return
 	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
@@ -1154,6 +1191,53 @@ func _unhandled_input(event: InputEvent) -> void:
 			_pick(i)
 
 
+## 方向键 / 手柄导航：选卡与商店左右切换焦点、Enter 确认；暂停 / 结算按钮左右（上下）切换、Enter 执行。返回是否已处理
+func _nav_key(k: int) -> bool:
+	var dx := 0
+	if k == KEY_LEFT or k == KEY_UP:
+		dx = -1
+	elif k == KEY_RIGHT or k == KEY_DOWN:
+		dx = 1
+	var enter: bool = k == KEY_ENTER or k == KEY_KP_ENTER
+	if state == S.CHOICE or state == S.SHOP:
+		var n: int = choices.size() if state == S.CHOICE else shop_items.size()
+		if n <= 0:
+			return false
+		if dx != 0:
+			nav_sel = (nav_sel + dx + n) % n
+			kb_nav = true
+			Sfx.play("ui_move")
+			return true
+		if enter:
+			nav_sel = clampi(nav_sel, 0, n - 1)
+			if state == S.CHOICE:
+				_pick(nav_sel)
+			else:
+				_buy(nav_sel)
+			return true
+	elif state == S.PAUSE or state == S.DEAD or state == S.WIN:
+		var m: int = result_btns.size()
+		if m <= 0:
+			return false
+		if dx != 0:
+			res_sel = (res_sel + dx + m) % m
+			kb_nav = true
+			Sfx.play("ui_move")
+			return true
+		if enter:
+			Sfx.play("ui_ok")
+			_do_action(result_btns[clampi(res_sel, 0, m - 1)][1])
+			return true
+	return false
+
+
+## 卡片是否"被选中"：用手柄 / 方向键时看焦点，否则看鼠标悬停
+func _card_hot(card: Button, i: int) -> bool:
+	if Pad.using or kb_nav:
+		return i == nav_sel
+	return card.is_hovered()
+
+
 func _update(dt: float) -> void:
 	t += dt
 	_sync_stats()
@@ -1163,9 +1247,11 @@ func _update(dt: float) -> void:
 	if demo_op != "":
 		mv = Vector2.ZERO
 	elif balance:
-		mv = _bot_move()
+		mv = bot.move(dt) if bot != null else _bot_move()
 	elif touch.active and touch.move_vec() != Vector2.ZERO:
 		mv = touch.move_vec()
+	elif Pad.move_vec() != Vector2.ZERO:
+		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
 	moving = mv != Vector2.ZERO
@@ -1173,7 +1259,7 @@ func _update(dt: float) -> void:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
 	if moving:
-		mv = mv.normalized()
+		mv = mv.normalized() * minf(mv.length(), 1.0)   # 键盘斜向归一；手柄半推 = 慢走
 		walk_t += dt * 12.0
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
@@ -1237,9 +1323,12 @@ func _update(dt: float) -> void:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
+	if hp <= 0.0 and squad.prevent_death():
+		hp = 1.0   # 幽灵鲨「求生之渴」：博士生命不会低于 1
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
 		state = S.DEAD
+		Pad.rumble(0.6, 1.0, 0.6)
 		return
 	if final_boss != null and final_boss.dead:
 		state = S.WIN
@@ -1693,6 +1782,10 @@ func _update_enemies(dt: float) -> void:
 			e.haste -= dt
 		if e.get("aura_weak", 0.0) > 0.0:
 			e.aura_weak -= dt
+		if e.get("lit", 0.0) > 0.0:
+			e.lit -= dt
+		if e.get("requiem", 0.0) > 0.0:
+			e.requiem -= dt
 		# 流血（狙击干员）：每 0.5 秒结算一次
 		if e.get("bleed", 0.0) > 0.0:
 			e.bleed -= dt
@@ -1971,10 +2064,11 @@ func _update_status(dt: float) -> void:
 		hp -= tick
 		dmg_log["corrode"] = dmg_log.get("corrode", 0.0) + tick
 	var mired := false
+	var sanct: bool = squad.in_sanctuary(ppos)   # 流明灯塔：区内溟痕失效
 	for m in mires:
 		m.life -= dt
 		m.r = min(m.maxr, m.r + 5.0 * dt)
-		if m.pos.distance_to(ppos) < m.r:
+		if m.pos.distance_to(ppos) < m.r and not sanct:
 			mired = true
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
 	in_mire = move_toward(in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
@@ -2038,6 +2132,7 @@ func _hurt(amount: float, ignore_armor := false) -> void:
 	_shake(0.55 + 0.8 * sev)
 	hitstop = max(hitstop, 0.045 + 0.06 * sev)
 	Sfx.play("hurt", -1.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)
+	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
 	_sparks(ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
 	fx.append({"kind": "ring", "pos": ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
 	_add_text(ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
@@ -2088,7 +2183,7 @@ func _update_zone(dt: float) -> void:
 				zone_t = 0.0
 	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
 	var out := ppos.distance_to(zone_c) - zone_r
-	if out > 0.0 and state == S.PLAY:
+	if out > 0.0 and state == S.PLAY and not squad.in_sanctuary(ppos):
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
 		hp -= dps * dt
 		dmg_log["zone"] = dmg_log.get("zone", 0.0) + dps * dt
@@ -2166,7 +2261,7 @@ func _sync_stats() -> void:
 
 ## 灯火：灯光照亮范围（游戏判定用）
 func _lamp_r() -> float:
-	return lerpf(110.0, 360.0, lamp / 100.0)
+	return lerpf(110.0, 360.0, lamp / 100.0) * squad.light_radius_mult()
 
 
 func _lamp_sp() -> float:
@@ -2198,8 +2293,8 @@ func _dmg_mix_text() -> String:
 func _damage(e: Dictionary, dmg: float) -> void:
 	if e.dead:
 		return
-	# 灯火照亮：光中的敌人受到的伤害 +25%
-	if e.pos.distance_squared_to(ppos) < _lamp_r() * _lamp_r():
+	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
+	if e.pos.distance_squared_to(ppos) < _lamp_r() * _lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
 	if e.invuln:
 		if texts.size() < 80 and rng.randf() < 0.2:
@@ -2222,6 +2317,9 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		if e.get("aura_weak", 0.0) > 0.0:
 			dmg *= 1.1
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
+		# Logos「安魂」：受到的法术伤害 +15%
+		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
+			dmg *= 1.15
 		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
 			dmg *= 1.0 + low_hp_bonus
 		if e.boss and final_boss != null and is_same(e, final_boss):
@@ -2578,6 +2676,7 @@ func _open_shop() -> void:
 
 
 func _build_shop_ui() -> void:
+	nav_sel = clampi(nav_sel, 0, maxi(0, shop_items.size() - 1))
 	for c in panel_box.get_children():
 		c.queue_free()
 	panel_box.add_theme_constant_override("separation", 28 if shop_items.size() <= 5 else 14)
@@ -2651,7 +2750,7 @@ func _panel_button(text: String, pos: Vector2, cb: Callable, enabled: bool) -> v
 
 
 func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
-	var hov: bool = card.is_hovered() and not it.sold
+	var hov: bool = _card_hot(card, i) and not it.sold
 	var col: Color = UI.GOLD
 	if it.kind == "relic":
 		col = UI.CAT_COL.get(RL[it.id].cat, UI.GOLD)
@@ -2908,7 +3007,10 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			for k in 6:
 				fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
 					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
-			Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
+			if b.has("op"):
+				Sfx.op(b.op, "hit", 0.0, 1.0, 0.1)   # 干员法术弹（艾雅法拉熔岩弹）
+			else:
+				Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
 			b.life = 0.0
 			# 干员自带的命中后效果（点燃 / 分裂等）
 			if b.get("on_hit") != null:
@@ -2926,6 +3028,8 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			if b.has("fx_col") or not _fx_sprite("fx_arcane_hit", e.pos):
 				fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
 			_sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
+			if b.has("op"):
+				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
 		"tide":
 			# 潮汐弹：在敌人之间反弹
@@ -3164,12 +3268,15 @@ func _draw_panel_bg() -> void:
 	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 12, title_col, 4.0)
 	UI.heading(panel, font, Vector2(vs.x / 2, 106), panel_title_text, 26, title_col, 300.0)
 	var hint := ("点击或按 1–5 购买 · " + ("已刷新过" if shop_refreshed else "F 刷新一次（%d 源石锭）" % _shop_price("refresh")) + " · Esc 离开") if choice_kind == "shop" else "点击卡片，或按 1 / 2 / 3 选择"
+	if Pad.using:
+		hint = ("←→ 选择 · Ⓐ 购买 · " + ("已刷新过" if shop_refreshed else "Ⓨ 刷新一次（%d 源石锭）" % _shop_price("refresh")) + " · Ⓑ 离开") if choice_kind == "shop" else "←→ 选择 · Ⓐ 确认"
 	UI.text(panel, font, Vector2(0, vs.y - 46), hint, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func _show_choices(title: String, opts: Array, kind: String) -> void:
 	choices = opts
 	choice_kind = kind
+	nav_sel = 0
 	state = S.CHOICE
 	panel_title_text = title
 	Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
@@ -3225,7 +3332,7 @@ func _animate_cards(dt: float) -> void:
 		var c1 := 1.7
 		var e := 1.0 + (c1 + 1.0) * pow(k - 1.0, 3) + c1 * pow(k - 1.0, 2)
 		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
-		var target := -10.0 if ((card as Button).is_hovered() and not sold) else 0.0
+		var target := -10.0 if (_card_hot(card as Button, card.get_index()) and not sold) else 0.0
 		var lift: float = lerpf(card.get_meta("lift"), target, clampf(dt * 18.0, 0.0, 1.0))
 		card.set_meta("lift", lift)
 		var oy := (1.0 - e) * 60.0 + lift
@@ -3418,7 +3525,7 @@ func _card_color(o: Dictionary) -> Color:
 
 
 func _draw_card(card: Button, o: Dictionary, i: int) -> void:
-	var hov := card.is_hovered()
+	var hov := _card_hot(card, i)
 	var col := _card_color(o)
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 20 + i, "vine_k": 1.0 if hov else 0.75, "glow": 1.0 if hov else 0.25, "cut": 12.0, "bracket": 12.0})
@@ -3504,7 +3611,8 @@ func _load_op_tex(cid: String) -> void:
 ## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
 func _recruit_cards() -> Array:
 	var opts: Array = []
-	if squad.is_full():
+	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
+	if squad.is_full() or (balance and OS.get_cmdline_user_args().has("--norecruit")):
 		return opts
 	for cid in Character.list_ids():
 		if squad.has(cid):
@@ -3753,7 +3861,7 @@ func _update_visuals(dt: float) -> void:
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
 	cam.offset = cam_kick.round()
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
-	var radius: float = lerp(150.0, 520.0, lamp / 100.0)
+	var radius: float = lerp(150.0, 520.0, lamp / 100.0) * squad.light_radius_mult()
 	var flicker := 1.0 + sin(t * 13.0) * 0.02 + sin(t * 7.3) * 0.03
 	if lamp < 30.0:
 		flicker += sin(t * 23.0) * 0.06
@@ -3786,6 +3894,12 @@ const V6_FRAMES := {
 	"fx_claw_green": [4, 16.0], "fx_claw_double_green": [5, 16.0], "fx_felspell": [17, 16.0],
 	"fx_slash_arc_deep": [6, 18.0], "fx_slash_heavy_deep": [5, 16.0], "fx_slash_circle_deep": [7, 16.0], "fx_water_splash": [11, 14.0],
 	"fx_rock_burst": [14, 14.0], "fx_rock_spike": [10, 14.0], "proj_foxfire": [6, 12.0],
+	# 第二批干员的重调色变体（tools/fx_recolor.py，帧数 / fps 与源相同）
+	"fx_slash_arc_rose": [6, 18.0], "fx_slash_heavy_rose": [5, 16.0], "fx_slash_circle_rose": [7, 16.0],
+	"fx_slash_heavy_steel": [5, 16.0], "fx_circle_steel": [4, 8.0],
+	"fx_slash_circle_ghost": [7, 16.0], "fx_slash_circle_blood": [7, 16.0], "fx_circle_ghost": [4, 8.0],
+	"fx_ink_hit": [8, 14.0], "fx_holy_pillar_ink": [16, 14.0], "fx_circle_ink": [4, 8.0],
+	"proj_lumen_bolt": [6, 12.0], "fx_holy_impact_lantern": [7, 16.0],
 }
 ## 受击材质：甲壳 / 灵体，其余为血肉
 const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
@@ -5081,7 +5195,7 @@ func _draw_hud() -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if state == S.PLAY:
 		if t < 6.0:
-			UI.text(hud, font, Vector2(0, vs.y - 60), ("按住左半屏拖动移动 · 攻击全自动" if touch.active else "WASD 移动 · 攻击全自动 · Esc 暂停"), 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			UI.text(hud, font, Vector2(0, vs.y - 60), ("按住左半屏拖动移动 · 攻击全自动" if touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")), 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (t < 16.0 and not tab_used) or tab_hint > 0.0:
 			var ha := clampf(minf(t - 6.0, 16.0 - t) / 0.5, 0.0, 1.0) if tab_hint <= 0.0 else clampf(tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(t * 5.0)
@@ -5092,7 +5206,7 @@ func _draw_hud() -> void:
 			var kc := Rect2(cx - 132, y - 14, 50, 24)
 			hud.draw_rect(kc, Color(0.1, 0.25, 0.3, ha))
 			hud.draw_rect(kc, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ha), false, 1.5)
-			UI.text(hud, font, kc.position + Vector2(0, 18), "Tab", 14, Color(1, 1, 1, ha), HORIZONTAL_ALIGNMENT_CENTER, kc.size.x)
+			UI.text(hud, font, kc.position + Vector2(0, 18), Pad.hint("Tab", "SELECT"), 14 if not Pad.using else 11, Color(1, 1, 1, ha), HORIZONTAL_ALIGNMENT_CENTER, kc.size.x)
 			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看博士与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 	_draw_relic_tooltip(vs)
@@ -5151,7 +5265,7 @@ const INTRO_PAGES := [
 	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
 		"WASD / 方向键：移动　　Tab 或 C：查看属性与技能　　Esc：暂停",
 		"升级 / 宝箱 / 商人 / 祭坛：按 1 2 3 或点击选择　　M：静音　　R：重来",
-		"暂停菜单按 G 可以随时重看本指南。祝你好运，博士。"]},
+		"手柄：左摇杆移动 · Ⓐ 确认 · Ⓑ 返回 · START 暂停 · SELECT 属性面板 · LB / RB 翻页。暂停菜单按 G 可随时重看本指南。祝你好运，博士。"]},
 ]
 
 
@@ -5209,7 +5323,7 @@ func _draw_intro(vs: Vector2) -> void:
 		var hov: bool = dr.has_point(mp)
 		UI.diamond(hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
 	# 上一页 / 跳过 / 下一页 按钮
-	var btns: Array = [["‹ 上一页", "prev"], ["跳过  Esc", "skip"], ["下一页 ›", "next"]]
+	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ"), "skip"], ["下一页 ›", "next"]]
 	for k in 3:
 		var bw := 118.0
 		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
@@ -5227,7 +5341,7 @@ func _draw_intro(vs: Vector2) -> void:
 			continue
 		UI.frame(hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
 		UI.text(hud, font, br.position + Vector2(0, 23), btns[k][0] if k != 2 or intro_page < INTRO_PAGES.size() - 1 else "开始探索 ›", 14, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-	UI.text(hud, font, Vector2(r.position.x, r.end.y + 60), "左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(hud, font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 func _draw_intro_icon(kind: String, c: Vector2) -> void:
@@ -5533,7 +5647,7 @@ func _draw_stats(vs: Vector2) -> void:
 		if rl > 1:
 			UI.text(hud, font, rc + Vector2(20, 37), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		stats_cells.append([cr, "relic", relics[i]])
-	UI.text(hud, font, Vector2(r.position.x, r.end.y - 18), "藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  按 Tab / C / Esc 返回" % [relics.size(), kills, ingots], 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(hud, font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [relics.size(), kills, ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	# 悬停提示（藏品 / 成长）
 	for cellinfo in stats_cells:
 		var cr2: Rect2 = cellinfo[0]
@@ -5863,11 +5977,12 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 	var mouse := hud.get_local_mouse_position()
 	for op in opts:
 		var br := Rect2(bx, r.end.y - 70, bw, 40)
+		var bi: int = result_btns.size()
 		result_btns.append([br, op[2]])
-		var hov := br.has_point(mouse)
+		var hov: bool = (bi == res_sel) if (Pad.using or kb_nav) else br.has_point(mouse)
 		UI.frame(hud, br, col, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov else 0.0, "alpha": 1.0 if hov else 0.7})
 		UI.text(hud, font, br.position + Vector2(14, 27), op[0], 16, UI.TEXT)
-		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), op[1], 13, col)
+		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), ("Ⓐ" if hov else "") if Pad.using else op[1], 13, col)
 		bx += bw + 12
 
 

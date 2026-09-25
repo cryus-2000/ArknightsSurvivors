@@ -93,7 +93,6 @@ func _release_skill() -> void:
 			erupt_t = 0.0
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": ORANGE})
 			fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": ORANGE, "floor": true})
-			Sfx.play("roar", -14.0, 1.6, 0.05)
 
 
 func skill_active_left(i: int) -> float:
@@ -109,7 +108,7 @@ func _cast(from: Vector2, target: Vector2, base_dmg: float, aoe: float, src: Str
 	face = signf(d.x) if absf(d.x) > 0.01 else face
 	g.bullets.append({"kind": "fire", "pos": from, "vel": d * 360.0, "dmg": base_dmg * _dmg_bonus(), "life": 1.3, "r": 8.0,
 		"aoe": aoe, "src": src, "op": id, "on_hit": self, "burn": burn, "weak": weak, "fx_col": ORANGE, "hidden": true, "etrail": 0.0})
-	Sfx.play("oil", -12.0, 1.2, 0.05)
+	Sfx.op(id, "atk")
 
 
 ## 自己的熔岩球：火星尾
@@ -151,7 +150,7 @@ func _erupt(c: Vector2) -> void:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-8, 8), -30), "vel": Vector2(g.rng.randf_range(-120, 120), g.rng.randf_range(-260, -120)), "life": 0.6, "col": LAVA, "sz": 3.0, "grav": 420.0})
 	lava.append({"pos": c, "r": r * 0.8, "t": 3.0, "tick": 0.0, "bub": 0.0, "dmg": base("atk", 22.0) * base("lava_mult", 0.23) * _dmg_bonus() * skill_power()})
 	g.shake = maxf(g.shake, 2.5)
-	Sfx.play("boom", -13.0, 0.9, 0.1)
+	Sfx.op(id, "big", 0.0, 1.0, 0.1)
 
 
 func _update_ground(dt: float) -> void:

@@ -1,0 +1,209 @@
+{
+ "id": "specter_unchained",
+ "name": "归溟幽灵鲨",
+ "en": "SPECTER THE UNCHAINED",
+ "class": "特种",
+ "col": [
+  0.75,
+  0.85,
+  0.95
+ ],
+ "script": "res://scripts/characters/specter_unchained.gd",
+ "base": {
+  "_doc": "基础数值",
+  "atk": 34,
+  "cd": 1.2,
+  "reach": 80,
+  "s1_dur": 8,
+  "s1_atk": 0.4,
+  "s2_dur": 10,
+  "s2_aspd": 0.6,
+  "s2_atk": 0.4,
+  "doll_dur": 12,
+  "doll_r": 120,
+  "doll_dps": 10,
+  "s3_dur": 12,
+  "s3_cd_mult": 1.6,
+  "s3_mult": 3.2,
+  "s3_reach": 1.5,
+  "s3_low_mult": 1.5,
+  "dark_bonus": 0.25
+ },
+ "sprites": {
+  "idle": {
+   "tex": "op_specter_unchained_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_specter_unchained_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_specter_unchained_attack",
+   "frames": 5,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_specter_unchained_skill",
+   "frames": 7,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ],
+  "doll": {
+   "tex": "op_specter_unchained_doll",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  }
+ },
+ "extra_sprites": [
+  "doll"
+ ],
+ "attack": {
+  "mode": "auto",
+  "name": "锯刃",
+  "desc": "每 1.2 秒贴身 360° 环斩（半径 75），伤害较高"
+ },
+ "skills": [
+  {
+   "name": "求生之技",
+   "en": "THE SKILL TO SURVIVE",
+   "sp": 10,
+   "dur": 8.0,
+   "desc": "8 秒内攻击 +（40% + 博士已损失生命的百分比）：博士越危险她越狠"
+  },
+  {
+   "name": "求生之渴",
+   "en": "THE THIRST TO SURVIVE",
+   "sp": 18,
+   "dur": 10.0,
+   "desc": "10 秒内攻速 +60%、攻击 +40%，期间博士生命不会低于 1；结束时本体倒下，原地留下替身 12 秒后归队"
+  },
+  {
+   "name": "求生之压",
+   "en": "THE PRESSURE TO SURVIVE",
+   "sp": 28,
+   "dur": 12.0,
+   "desc": "12 秒内环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命低于 50% 的敌人再 ×1.5"
+  }
+ ],
+ "talent": {
+  "name": "拥抱自我",
+  "desc": "精英化一解锁：替身每秒对周围 120 内敌人造成法伤并减速；灯火 <30「昏暗」时她的伤害 +25%"
+ },
+ "hit_sources": {
+  "锯刃": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic"
+   ]
+  },
+  "替身": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area",
+    "dot"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "锯 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "锯 · 广",
+   "desc": "环斩范围 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁二技能「求生之渴」；解锁天赋「拥抱自我」：替身光环，昏暗时伤害 +25%"
+  },
+  {
+   "type": "custom",
+   "id": "aegir",
+   "name": "艾格尼之深",
+   "desc": "编队里每名深海猎人，博士最大生命 +5%"
+  },
+  {
+   "type": "stat",
+   "name": "锯 · 锋 II",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "解锁三技能「求生之压」：慢而重的环斩，对残血敌人再增伤"
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "范围",
+   "爆发",
+   "低灯火"
+  ],
+  "desc": "贴身环斩；博士越危险她越狠，昏暗中更强，倒下时留下替身"
+ }
+}
