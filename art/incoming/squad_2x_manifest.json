@@ -1,0 +1,919 @@
+{
+  "date": "2026-09-25",
+  "spec": "docs/20_hires_spec.md + existing squad batch manifests",
+  "density": 2,
+  "strip_count": 35,
+  "frame_count": 176.0,
+  "assets": [
+    {
+      "file": "doctor_idle@2x.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "caa0be8f7d0aad6b18909c17e8ac05e4ea950a776f78b151b1d550005e5c6542",
+      "density": 2,
+      "original_file": "doctor_idle.png",
+      "original_sha256": "c37d284c1c0422b18ce1f7991b1fc8252898a3f8fdbeca8841ea2394ebd53207",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "doctor_run@2x.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "6f94c3b0914298b36e1945e2f97bea4d82eb179b841b2d7afa753429fe338e4f",
+      "density": 2,
+      "original_file": "doctor_run.png",
+      "original_sha256": "c6a667233bfc1fc0193bbbfee758a3ce05be5b4619511bf44509c2be9feda7e6",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "doctor_hurt@2x.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 2,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "4d37b4a2c4bc509b86a7a47a78098072ee923483a940ecb36a8e8ebdf7c025c0",
+      "density": 2,
+      "original_file": "doctor_hurt.png",
+      "original_sha256": "3b3976ccc027acc24ccdd421593bba17f6a23e26040ac62cf73441445d638718",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "doctor_death@2x.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": false,
+      "hold_last_frame": true,
+      "direction": "right",
+      "sha256": "74a386cad2dc559777d4a211001acae1691d865d580b9a8767a0f4a482cc4348",
+      "density": 2,
+      "original_file": "doctor_death.png",
+      "original_sha256": "5504f2f895e8f62608aa55289e6765f4afc9e7f017516aecf0b9217b73a5b5b0",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_wisadel_idle@2x.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "771d07db680df1682e00f93df003f8134c75f8cfdb8dd812c6a40334ac894d03",
+      "density": 2,
+      "original_file": "op_wisadel_idle.png",
+      "original_sha256": "55df8d2dd717a76aa4d9a871ee688097ea5a788cab596f5116d3f6952ae97629",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_wisadel_run@2x.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "17dde13c66f11c66e2553f91a8ad17d9cc56915f825e48209e3321c40d1e8027",
+      "density": 2,
+      "original_file": "op_wisadel_run.png",
+      "original_sha256": "79605acc502c2628163e4d72b17a801e20b307f592983d593f3942ffb0304631",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_wisadel_attack@2x.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "2d9cc03dc0701aa691a39339cb073fb1c97e3d53aef1ece4ca382dff77c37532",
+      "density": 2,
+      "original_file": "op_wisadel_attack.png",
+      "original_sha256": "3de270d9c092a9233ece5b61cde56c8c43c63d49c8504c616a92b434a96187bd",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_wisadel_skill@2x.png",
+      "character": "wisadel",
+      "batch": 2,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 4,
+      "event_frame_one_based": 5,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "fe31aba305a3547d9c7b21ac4de02c5a23bc430da204f1c9b140bffe1dd14b7e",
+      "density": 2,
+      "original_file": "op_wisadel_skill.png",
+      "original_sha256": "8f3e51cba45015f152e2690be02e7469527df3e45c34351af23f79036daf898b",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_siege_idle@2x.png",
+      "character": "siege",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "dd125408de6471ae88c9de9f3f63b9bcc592b1cf4baae5d44935488d7efc83fa",
+      "density": 2,
+      "original_file": "op_siege_idle.png",
+      "original_sha256": "0a8b9bb8755fb80fd4d8488cbf317c8016afa889cadb525b4c431417d13fc94c",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_siege_run@2x.png",
+      "character": "siege",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "4720abc1f95bd6f405457a58cb8c586557c429cfc69dc8cd26b288f05ef99011",
+      "density": 2,
+      "original_file": "op_siege_run.png",
+      "original_sha256": "5d7490543445ff0f3a4ff3743851cd675cab279f9ec791910e08da617ea8d929",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_siege_attack@2x.png",
+      "character": "siege",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "bdf429fb77ca86a677d72dc44214863faa7a60c6b0a1feecb27701fbabcf9b95",
+      "density": 2,
+      "original_file": "op_siege_attack.png",
+      "original_sha256": "c6fadfbe44027ae914e59a5c8715cf8ae77a4d80d60f6de7114ddb3c3893a38c",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_siege_skill@2x.png",
+      "character": "siege",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "event_frame_one_based": 4,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "a961c07158c36d8eaa536d60ed19dde378226448646499549fc48da7ea7c575f",
+      "density": 2,
+      "original_file": "op_siege_skill.png",
+      "original_sha256": "9315bd11b5d00aebf679b29c8b826851293f6e946a102818479bf9103a9333ac",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_skadi_idle@2x.png",
+      "character": "skadi",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "9fe8c2be640199b917a47872dd540d81861937eaa7976c0e58f9a8e88d6e6f87",
+      "density": 2,
+      "original_file": "op_skadi_idle.png",
+      "original_sha256": "02599f47b2bae1001ff29d4765d8eedd15b1d0192d0a3d01fec545576eb97fc9",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_skadi_run@2x.png",
+      "character": "skadi",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "e7ac6f61c0b40663938f15a282e4b3313104b126f4161bc06b0071960be1b909",
+      "density": 2,
+      "original_file": "op_skadi_run.png",
+      "original_sha256": "cbd3592dab651f1d9aefdced77fe6cbd08a049a690b115910452e31d6bd81c20",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_skadi_attack@2x.png",
+      "character": "skadi",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "e910d52ce85b7b86cae32ad9949f9c90bca2839bdd0bfbad62263ca2a237aaf2",
+      "density": 2,
+      "original_file": "op_skadi_attack.png",
+      "original_sha256": "9cec8646916587471ea05dbf38d9048a1fb980dd4c27f475e9741620badc092d",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_skadi_skill@2x.png",
+      "character": "skadi",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 4,
+      "event_frame_one_based": 5,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "c66eb35572e31fa281c909b74be926f8fd9ba8e6216d9b5d3ee617f87bef977f",
+      "density": 2,
+      "original_file": "op_skadi_skill.png",
+      "original_sha256": "071c60e5de4a76841b670a4b6611231ce0fbadd2aaf828b954e7f36461c17938",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_saria_idle@2x.png",
+      "character": "saria",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "7d8c91c067b9fdc2c8648cfc8954c77f0d68290bea1ace43c45ca1475005ac20",
+      "density": 2,
+      "original_file": "op_saria_idle.png",
+      "original_sha256": "14e4e39c4b6873e92072b37a36003314bcd362b632ed98791b4544c7ab805a6d",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_saria_run@2x.png",
+      "character": "saria",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "1b3b5c42f26838fbdc93f7ab39ad4cd712edc6bf3060542d2eb65e5a091b6887",
+      "density": 2,
+      "original_file": "op_saria_run.png",
+      "original_sha256": "e9b5bf4636ea4f7c1046b9aa2ff01923645843ec731c414b1f25e063b4fd0109",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_saria_attack@2x.png",
+      "character": "saria",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "7f394737cfa1c4401256391467182f15b1520c7ff0f69b0efe8223bafcdfefc5",
+      "density": 2,
+      "original_file": "op_saria_attack.png",
+      "original_sha256": "aefe58cc46d38c3c635226351580aecba4c62a8f7283af9922aef32fe5a6ede1",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_saria_skill@2x.png",
+      "character": "saria",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "event_frame_one_based": 4,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "6059680babe16842de9513946db687af5ce6f933451b8dbf09b9e63a75b76815",
+      "density": 2,
+      "original_file": "op_saria_skill.png",
+      "original_sha256": "55c6fab9b5f3a45bfcb3d97683d3f5eb3b6827df39a47d04cf1e97060996c52b",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_idle@2x.png",
+      "character": "eyjafjalla",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "2c8d815415c319088e4e8e52823847c4f8f0199b171580b3fea9f85ece716e6e",
+      "density": 2,
+      "original_file": "op_eyjafjalla_idle.png",
+      "original_sha256": "a404b54f85c9b47d61f9d0610aa54e578f2b4d1f58a060ae056e1a13d3c7b100",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_run@2x.png",
+      "character": "eyjafjalla",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "addeb5aabaedfe1f9826d351e452f7e53823b6765e661639cef984619c3067c2",
+      "density": 2,
+      "original_file": "op_eyjafjalla_run.png",
+      "original_sha256": "ec132d5f0d14860b0b08f7ac873d8edff163621a2024613c4ea89a12f64a6c95",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_attack@2x.png",
+      "character": "eyjafjalla",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "92e6aade6fcc5757aade9352d88753537bfee89c67a8153c3fbb8475db3dfa07",
+      "density": 2,
+      "original_file": "op_eyjafjalla_attack.png",
+      "original_sha256": "5d24f0ccb46e4bb24370bc2bd512b90dd8c3c79d983324c3dde82bc97a9b6ed3",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_skill@2x.png",
+      "character": "eyjafjalla",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 4,
+      "event_frame_one_based": 5,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "a175a5ee15ea8ce087199862ef7ffc5bdde9e4c5a4c24e5181e7b4596f94385c",
+      "density": 2,
+      "original_file": "op_eyjafjalla_skill.png",
+      "original_sha256": "05972544b1a44d0907ea0f819f83eadafca3570c976e9f29ab4408fff0d39108",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_kaltsit_idle@2x.png",
+      "character": "kaltsit",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "fbef30ca66588eb58efb76b45b1cc91003191a13afac03bc5e082a56898deaa4",
+      "density": 2,
+      "original_file": "op_kaltsit_idle.png",
+      "original_sha256": "482cd18aa3b7e62d06ce82b9541bd63edf6b55d16cf447a128d48d0aece1358e",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_kaltsit_run@2x.png",
+      "character": "kaltsit",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "56550a89947f8f8e7d9d1a35f05098b644c36e9f885d208c8354482c97b6555c",
+      "density": 2,
+      "original_file": "op_kaltsit_run.png",
+      "original_sha256": "9dd2150480e3cdc7946a481d9db363c6f33aee8ba340349b4b3b36e7e4ff2e4c",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_kaltsit_attack@2x.png",
+      "character": "kaltsit",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "d8ce1b3fc8f6ed2f9593b5906de7193c47ed44e1ed0f820d1d011fe96e3b1d72",
+      "density": 2,
+      "original_file": "op_kaltsit_attack.png",
+      "original_sha256": "47a43e93d2c99865d6b7b0ac51ecb7f74c330e1c0305d57f83614961636e7531",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_kaltsit_skill@2x.png",
+      "character": "kaltsit",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "event_frame_one_based": 4,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "15a52578926a9879c78fad9ae6173e86e20091f16dfa3d2c367220321df1ea25",
+      "density": 2,
+      "original_file": "op_kaltsit_skill.png",
+      "original_sha256": "5bb455ef15526b4758c6a55af71819422b5b6534d9eabcdaac3a4383ad9cf1d2",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_suzuran_idle@2x.png",
+      "character": "suzuran",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "4ab3ff05dc3173f921dc8d91cb66f1fde5d50a3d5dc5e8d2d83610250beaf635",
+      "density": 2,
+      "original_file": "op_suzuran_idle.png",
+      "original_sha256": "9bc67e5b695f8bce02dee6660fc60448356ede401f738bc7f364dfee6838094b",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_suzuran_run@2x.png",
+      "character": "suzuran",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "c447e6bcc08d67174d6f156539e8b38cf1159fb5bd180473c906631e6dd682d9",
+      "density": 2,
+      "original_file": "op_suzuran_run.png",
+      "original_sha256": "31bf815a31a4ab205f20ea5f631de395194f66a930edc7d83ae0ee1c58ac35e1",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_suzuran_attack@2x.png",
+      "character": "suzuran",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "4902c3bdfb0e5398656c462d1b0d453230d89bb88acf3a0e331169d07d85c22c",
+      "density": 2,
+      "original_file": "op_suzuran_attack.png",
+      "original_sha256": "e602b6220455bba56712cbe96d98777585da3c1ca9bd684c101c5e8002bef446",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_suzuran_skill@2x.png",
+      "character": "suzuran",
+      "batch": 3,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "event_frame_one_based": 4,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "f2963e8ace663b1e690a27f3bd0d6921a200e703aa9947dfeb3704ae1acb7f32",
+      "density": 2,
+      "original_file": "op_suzuran_skill.png",
+      "original_sha256": "a20781e0f808679b9768ca6e973672194c7aa5d30ec3b20c4869d3320957311f",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "file": "op_mon3tr_idle@2x.png",
+      "character": "mon3tr",
+      "batch": 3,
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        64,
+        120
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "e5463781b211c4075323bac303a78326b19346488707e0379bf9d2ec40352033",
+      "density": 2,
+      "original_file": "op_mon3tr_idle.png",
+      "original_sha256": "ca639f721916fec1f481c3d1b7004bb47ad2a08225f204cbeff3384b49200d39",
+      "logical_anchor": [
+        32,
+        60
+      ]
+    },
+    {
+      "file": "op_mon3tr_run@2x.png",
+      "character": "mon3tr",
+      "batch": 3,
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        64,
+        120
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "3165794a25180d65b0c416641298e97587445575b693740f9d6d7f0c240b08db",
+      "density": 2,
+      "original_file": "op_mon3tr_run.png",
+      "original_sha256": "00263318a9050a291dd392c17e394dd71c28c1211e3d00bf5b21dc3b9ab025be",
+      "logical_anchor": [
+        32,
+        60
+      ]
+    },
+    {
+      "file": "op_mon3tr_attack@2x.png",
+      "character": "mon3tr",
+      "batch": 3,
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "fps": 14,
+      "anchor": [
+        64,
+        120
+      ],
+      "event_frame_zero_based": 2,
+      "event_frame_one_based": 3,
+      "loop": false,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "a14919883e8e86ff7be6272888514c1de0b17806d88a5b4aa82dfe32d01f1f1e",
+      "density": 2,
+      "original_file": "op_mon3tr_attack.png",
+      "original_sha256": "45d402a56eac1da8eefe76f99c693c55726dae64160e29f90c77f6a9cc70a01c",
+      "logical_anchor": [
+        32,
+        60
+      ]
+    }
+  ]
+}
