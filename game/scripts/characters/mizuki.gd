@@ -159,9 +159,12 @@ func _umbrella(target: Dictionary) -> void:
 		if s3_active > 0.0 and not e.dead:
 			e.stun = maxf(e.stun, S3_STUN)
 	g.crit_hit = false
-	Sfx.play("swing_heavy" if empowered else "swing", -3.0 if empowered else -7.0)
+	if empowered:
+		Sfx.play("swing_heavy", -3.0)
+	else:
+		Sfx.op(id, "atk", 3.0)
 	if hit.size() > 0:
-		Sfx.play("hit", -2.0 if empowered else -5.0, 0.85 if empowered else 1.0)
+		Sfx.op(id, "hit", 8.0 if empowered else 4.0, 0.85 if empowered else 1.0)
 		g.hitstop = max(g.hitstop, 0.09 if empowered else 0.03)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
@@ -263,12 +266,12 @@ func _run_delayed(dl: Dictionary) -> void:
 						e.stun = maxf(e.stun, S3_STUN * 0.5)
 				g._slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if g._slash_tex("mirage").begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), g._slash_tex("mirage"), 0.3)
 			mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
-			Sfx.play("swing", -9.0, 0.7, 0.05)
+			Sfx.op(id, "atk", 0.0, 0.8)
 
 
 ## 技能发动：光环爆发 + 震屏 + 推开身边小怪
 func _skill_cast(i: int) -> void:
-	Sfx.play("skill", -1.0, 1.0 if i == 1 else 0.8, 0.0)
+	# 发动音由 spend_sp 统一播放（op_mizuki_s2 / s3）
 	g._anim("fx_cast", pos, 0.5, g.PX * (1.3 if i == 2 else 1.0), true)
 	g._shake(0.5 if i == 1 else 0.8)
 	g.flash = maxf(g.flash, 0.25)

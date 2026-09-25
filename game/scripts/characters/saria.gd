@@ -104,11 +104,11 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
-	melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), base("atk", 28.0) * _dmg_bonus(), 200.0, 0.2)
+	var hits := melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), base("atk", 28.0) * _dmg_bonus(), 200.0, 0.2)
 	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
 	var d := Vector2.from_angle(ang)
 	fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
-	Sfx.play("swing", -12.0, 0.6, 0.05)
+	Sfx.op(id, "hit" if not hits.is_empty() else "atk")
 
 
 func _heal_fx(h: float) -> void:
@@ -151,7 +151,6 @@ func _release_skill() -> void:
 			g._fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
 			g._show_banner("钙质化")
 			g.shake = maxf(g.shake, 3.0)
-	Sfx.play("dodge", -8.0, 0.8)
 
 
 func skill_active_left(i: int) -> float:

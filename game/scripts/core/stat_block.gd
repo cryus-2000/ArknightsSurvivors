@@ -67,6 +67,18 @@ func remove_source(source: String) -> int:
 	return n
 
 
+## 撤销某个作用域（如 "op:<干员 id>"）的全部修正，返回撤销条数（图鉴演示重生干员用）
+func remove_scope(scope: String) -> int:
+	var n := 0
+	for stat in _mods:
+		var before: int = _mods[stat].size()
+		_mods[stat] = _mods[stat].filter(func(m): return m.scope != scope)
+		if _mods[stat].size() != before:
+			n += before - _mods[stat].size()
+			_dirty(stat)
+	return n
+
+
 func count_source(source: String) -> int:
 	var n := 0
 	for stat in _mods:

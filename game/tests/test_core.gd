@@ -185,5 +185,8 @@ func test_squad_contract() -> void:
 	# 契约反例：缺 skill / manual 技能 / 非法节点
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skills 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}]}), "技能不足 3 个不通过")
-	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c", "mode": "manual"}]}), "干员 manual 技能不通过")
+	# 契约 v2.2：干员最多 1 个手动技能（幽灵鲨 S2 保命）
+	ok(Ch.validate_operator("ok1", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b", "mode": "manual"}, {"name": "c"}]}), "干员 1 个 manual 技能通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a", "mode": "manual"}, {"name": "b"}, {"name": "c", "mode": "manual"}]}), "干员 2 个 manual 技能不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b", "mode": "toggle"}, {"name": "c"}]}), "非法技能 mode 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c"}], "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")

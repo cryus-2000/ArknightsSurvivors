@@ -38,9 +38,28 @@ func name() -> String:
 	return def.get("name", "博士")
 
 
-## 唯一的手动技能入口（Space / J）。P1 阶段博士还没有指挥技能：返回 false
+## 唯一的手动技能入口（Space / J，手柄 Ⓐ / Ⓧ）：路由到编队里干员的手动技能（契约 v2.2，目前只有幽灵鲨 S2）。
+## 有就绪的就放；有手动技能但没就绪时提示原因并吞掉按键；编队里没有手动技能返回 false
 func try_manual_skill() -> bool:
-	return false
+	var owner = null
+	for o in g.squad.ops:
+		var i: int = o.manual_index()
+		if i < 0 or not o.skill_unlocked(i):
+			continue
+		if o.cast_manual(i):
+			return true
+		owner = o
+	if owner == null:
+		return false
+	var mi: int = owner.manual_index()
+	var why := "充能中"
+	if owner.skill_active_left(mi) > 0.0:
+		why = "生效中"
+	elif owner.has_method("away") and owner.away():
+		why = "暂时离场"
+	g._add_text(g.ppos + Vector2(0, -96), "%s %s" % [owner.skill_def(mi).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
+	Sfx.play("ui_move", -8.0, 0.7)
+	return true
 
 
 ## 排异反应：博士承受，效果落在编队里随机一名能被海嗣化的干员身上（干员实现 apply_rejection）；

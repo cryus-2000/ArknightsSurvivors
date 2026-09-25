@@ -44,6 +44,9 @@ var op_pick := false
 var op_sel := 0
 var op_rects := {}
 var op_defs: Array = []        # [{id, def, tex, frames, lore}]
+var op_scroll := 0             # 干员格滚动到第几行（干员多于可视行数时）
+var op_rows_vis := 2           # 可视行数（_draw_op_pick 按面板高度算）
+var op_seen_sel := -1          # 上一帧绘制时的选中项：变化时把它滚进可视区（键盘 / 手柄 / --opsel 都走这里）
 var op_lore: Dictionary = {}
 ## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
 const INTRO_LEN := 3.4
@@ -93,10 +96,15 @@ func _ready() -> void:
 				gallery.sel = int(parts[1])
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
-			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）
-			get_tree().create_timer(float(parts[3]) if parts.size() > 3 else 1.2).timeout.connect(func():
-				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_gallery_ui.png")
-				get_tree().quit())
+			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）；第 5 / 6 项：连拍张数 / 间隔秒（特效逐帧检查用）
+			var wait: float = float(parts[3]) if parts.size() > 3 else 1.2
+			var burst: int = int(parts[4]) if parts.size() > 4 else 1
+			var gap: float = float(parts[5]) if parts.size() > 5 else 0.05
+			for bi in burst:
+				get_tree().create_timer(wait + bi * gap).timeout.connect(func():
+					get_viewport().get_texture().get_image().save_png(_shot_dir() + ("/shot_gallery_ui.png" if burst == 1 else "/shot_gallery_%02d.png" % bi))
+					if bi == burst - 1:
+						get_tree().quit())
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")
@@ -213,9 +221,9 @@ func _draw_diff(vs: Vector2) -> void:
 	diff_rects["go"] = go
 	diff_rects["back"] = back
 	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), "出发  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 
 
 ## 递归生成巨树（像海嗣一样弯曲的枝干）
@@ -240,6 +248,7 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 
 func _process(delta: float) -> void:
+	Pad.context = "title"
 	t += delta
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
@@ -391,7 +400,7 @@ func _draw() -> void:
 	var hf := _seg(2.7, 0.5)
 	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + ITEMS.size() * step + 6
-		UI.en(self, font, Vector2(tx + 2, hy), "W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
+		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
 
 	# 页脚：最后淡入
 	var ff := _seg(2.8, 0.5)
@@ -424,7 +433,7 @@ func _draw() -> void:
 
 func _draw_guide(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.75))
-	var r := Rect2(vs.x / 2 - 330, vs.y / 2 - 220, 660, 440)
+	var r := Rect2(vs.x / 2 - 330, vs.y / 2 - 230, 660, 460)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(170, 54), "GUIDE", 13, UI.CYAN, 3.0)
@@ -435,13 +444,14 @@ func _draw_guide(vs: Vector2) -> void:
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按 1 / 2 / 3 或点击选择"],
 		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 静音　　R 重来　　T 回标题"],
+		["手柄", "左摇杆移动　Ⓐ 确认　Ⓑ 返回　START 暂停　SELECT 属性　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 110 + i * 48
+		var y := r.position.y + 106 + i * 46
 		UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), "按任意键返回", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 致谢与声明：内容来自 data/credits.json
@@ -517,6 +527,8 @@ func _open_op_pick() -> void:
 	for i in op_defs.size():
 		if op_defs[i].id == Cfg.character_id:
 			op_sel = i
+	op_scroll = 0
+	op_seen_sel = -1
 	op_pick = true
 
 
@@ -537,6 +549,8 @@ func _op_input(event: InputEvent) -> void:
 			KEY_ESCAPE, KEY_BACKSPACE:
 				op_pick = false
 				Sfx.play("ui_move")
+	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		_op_scroll_by(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		for k in op_rects:
 			if op_rects[k].has_point(event.position):
@@ -558,6 +572,23 @@ func _op_step(d: int) -> void:
 	var n := clampi(op_sel + d, 0, op_defs.size() - 1)
 	if n != op_sel:
 		op_sel = n
+		Sfx.play("ui_move")
+
+
+## 选中项滚进可视区
+func _op_follow() -> void:
+	var row: int = op_sel / 4
+	if row < op_scroll:
+		op_scroll = row
+	elif row >= op_scroll + op_rows_vis:
+		op_scroll = row - op_rows_vis + 1
+
+
+func _op_scroll_by(d: int) -> void:
+	var rows: int = ceili(op_defs.size() / 4.0)
+	var n := clampi(op_scroll + d, 0, maxi(0, rows - op_rows_vis))
+	if n != op_scroll:
+		op_scroll = n
 		Sfx.play("ui_move")
 
 
@@ -585,12 +616,34 @@ func _draw_op_pick(vs: Vector2) -> void:
 	# ---- 左：干员格
 	var cols := 4
 	var cw := 128.0
-	var chh := 150.0
+	var chh := 134.0
 	var gx := r.position.x + 36
 	var gy := r.position.y + 110
+	# 可视行数 = 格区高度（到按钮上沿）能放下的整行；干员更多时按行滚动（滚轮 / 方向键跟随选中）
+	var grid_bottom := r.end.y - 96
+	op_rows_vis = maxi(1, int((grid_bottom - gy + 10) / (chh + 10)))
+	var rows: int = ceili(op_defs.size() / float(cols))
+	if op_sel != op_seen_sel:
+		op_seen_sel = op_sel
+		_op_follow()
+	op_scroll = clampi(op_scroll, 0, maxi(0, rows - op_rows_vis))
+	if rows > op_rows_vis:
+		# 滚动条：格区右侧细条
+		var sx := gx + cols * (cw + 10) - 4
+		var track := Rect2(sx, gy, 4, op_rows_vis * (chh + 10) - 10)
+		draw_rect(track, Color(1, 1, 1, 0.06))
+		var th: float = track.size.y * op_rows_vis / rows
+		draw_rect(Rect2(sx, gy + (track.size.y - th) * op_scroll / float(rows - op_rows_vis), 4, th), Color(col.r, col.g, col.b, 0.7))
+		if op_scroll > 0:
+			UI.text(self, font, Vector2(gx, gy - 8), "▲ 滚轮查看更多", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
+		if op_scroll < rows - op_rows_vis:
+			UI.text(self, font, Vector2(gx, gy + op_rows_vis * (chh + 10) + 6), "▼ 还有 %d 名干员" % (op_defs.size() - (op_scroll + op_rows_vis) * cols), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
 	for i in op_defs.size():
 		var od: Dictionary = op_defs[i]
-		var cr := Rect2(gx + (i % cols) * (cw + 10), gy + (i / cols) * (chh + 10), cw, chh)
+		var row: int = i / cols - op_scroll
+		if row < 0 or row >= op_rows_vis:
+			continue
+		var cr := Rect2(gx + (i % cols) * (cw + 10), gy + row * (chh + 10), cw, chh)
 		op_rects[i] = cr
 		var on := i == op_sel
 		var oc: Color = Character.CLASS_COL.get(od.def.get("class", ""), UI.CYAN)
@@ -602,14 +655,14 @@ func _draw_op_pick(vs: Vector2) -> void:
 			var fw := tx.get_width() / int(od.frames)
 			var fr := int(t * 4.0 + i) % int(od.frames)
 			var sc := 2.0 / A.hires_of(tx)
-			var pos := Vector2(cr.get_center().x - fw * sc / 2.0, cr.position.y + 92 - fh * sc + 6.0 * sc)
+			var pos := Vector2(cr.get_center().x - fw * sc / 2.0, cr.position.y + 84 - fh * sc + 6.0 * sc)
 			if on:
 				draw_set_transform(pos + Vector2(fw * sc / 2.0, fh * sc - 4.0 * sc), 0.0, Vector2(1.0, 0.4))
 				draw_circle(Vector2.ZERO, 26.0, Color(oc.r, oc.g, oc.b, 0.18))
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			draw_texture_rect_region(tx, Rect2(pos, Vector2(fw, fh) * sc), Rect2(fw * fr, 0, fw, fh), Color.WHITE if on or hov else Color(0.75, 0.8, 0.85))
-		UI.text(self, font, cr.position + Vector2(0, 116), od.def.get("name", od.id), 15, UI.TEXT if on else Color(0.7, 0.8, 0.85), HORIZONTAL_ALIGNMENT_CENTER, cw)
-		UI.text(self, font, cr.position + Vector2(0, 136), od.def.get("class", ""), 12, oc if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 104), od.def.get("name", od.id), 15, UI.TEXT if on else Color(0.7, 0.8, 0.85), HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12, oc if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cw)
 	# ---- 右：详情
 	var dx := r.position.x + 36 + cols * (cw + 10) + 24
 	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy)
@@ -666,9 +719,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 	op_rects["go"] = go
 	op_rects["back"] = back
 	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), "下一步  Enter", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("下一步  Enter", "下一步  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), "返回  Esc", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 48), "W A S D  ·  ARROWS   SELECT        ENTER   NEXT", 11, Color(0.36, 0.5, 0.55), 2.0)
 
 

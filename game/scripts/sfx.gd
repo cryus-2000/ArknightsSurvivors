@@ -6,10 +6,36 @@ const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", 
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
 const LIMIT := {"hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
+## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
+## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
+const OP_SFX := {
+	"mizuki": ["atk", "hit", "s1", "s2", "s3"],
+	"skadi": ["atk", "hit", "s1", "s2", "s3", "big"],
+	"siege": ["atk", "hit", "s1", "s2", "s3", "big"],
+	"saria": ["atk", "hit", "s1", "s2", "s3"],
+	"suzuran": ["atk", "hit", "s1", "s2", "s3"],
+	"eyjafjalla": ["atk", "hit", "s1", "s2", "s3", "big"],
+	"kaltsit": ["atk", "s1", "s2", "s3", "big", "heal"],
+	"wisadel": ["atk", "hit", "s1", "s2", "s3", "quake"],
+	# 第二批（docs/28 §第二批）
+	"irene": ["atk", "hit", "s1", "s2", "s3", "big"],
+	"logos": ["atk", "s1", "s2", "s3", "big"],
+	"lumen": ["atk", "hit", "s1", "s2", "s3", "big"],
+	"specter_unchained": ["atk", "s1", "s2", "s3"],
+	"ulpianus": ["atk", "s1", "s2", "s3", "big"],
+}
+## 各类别的默认音量（dB）：普攻 / 命中最频繁，压低；技能发动是一局里少数几次的"高光"，放开
+const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0, "big": -6.0, "heal": -9.0, "quake": -13.0}
+## 各类别的最短间隔（秒，按单个干员计）：三四名干员同时开火时不糊成一片
+const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 0.3}
+## 缺文件时退回的通用音效（新干员还没配音时也有声音）
+const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill", "s3": "skill", "big": "boom", "heal": "oil", "quake": "boom"}
+
 var streams := {}
 var players: Array = []
 var next := 0
 var last := {}
+var op_limit := {}         # op_<干员>_<类别> -> 最短间隔（由 OP_LIMIT 展开）
 var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟时间，不能碰全局随机流（否则 --seed 不可复现）
 ## 音乐：多曲目 + 战斗曲分层（同长同步的四层，按局势调各层音量）
 const MUSIC := {
@@ -66,7 +92,13 @@ func _ready() -> void:
 	_ensure_bus("SFX")
 	for n in NAMES:
 		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
-	for i in 24:
+	for oid in OP_SFX:
+		for kind in OP_SFX[oid]:
+			var sn := "op_%s_%s" % [oid, kind]
+			streams[sn] = _load_wav("res://audio/sfx/%s.wav" % sn)
+			if OP_LIMIT.has(kind):
+				op_limit[sn] = OP_LIMIT[kind]
+	for i in 32:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"
 		add_child(p)
@@ -232,7 +264,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	if not streams.has(name):
 		return
 	var now := Time.get_ticks_msec() / 1000.0
-	if LIMIT.has(name) and now - float(last.get(name, -1.0)) < LIMIT[name]:
+	var lim: float = LIMIT.get(name, op_limit.get(name, 0.0))
+	if lim > 0.0 and now - float(last.get(name, -1.0)) < lim:
 		return
 	last[name] = now
 	var p: AudioStreamPlayer = null
@@ -251,3 +284,13 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p.play()
+
+
+## 干员音效：op("skadi", "atk")；vol 为相对该类别默认音量的偏移。没有专属文件时退回通用音效
+func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) -> void:
+	var sn := "op_%s_%s" % [oid, kind]
+	var v: float = float(OP_VOL.get(kind, -8.0)) + vol
+	if streams.get(sn) != null:
+		play(sn, v, pitch, pitch_var)
+	elif OP_FALLBACK.has(kind):
+		play(OP_FALLBACK[kind], v, pitch, pitch_var)

@@ -60,12 +60,13 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 	var sc: float = r * 1.15 / 40.0
 	if half >= PI - 0.01:
 		name = "fx_slash_circle_deep"
-		sc = r * 2.0 / 56.0
+		sc = r * 2.0 / 66.0
 	elif half > 1.6:
 		name = "fx_slash_heavy_deep"
 		sc = r * 1.2 / 28.0
 	var at: Vector2 = pos + Vector2(0, -14) + (Vector2.ZERO if name == "fx_slash_circle_deep" else Vector2.from_angle(ang) * r * 0.5)
-	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0):
+	# 染一层深海蓝、略透明：帧条高光接近纯白，叠辉光后会糊成一整片白
+	if not g._fx_sprite(name, at, sc, ang if name != "fx_slash_circle_deep" else 0.0, false, false, Color(0.72, 0.86, 1.05, 0.88)):
 		g._slash_fx(pos + Vector2(0, -14), ang, half, r, main, "slash", life)
 		g._slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
 	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
@@ -77,9 +78,11 @@ func _release() -> void:
 	var ang := _aim()
 	var dmg: float = base("atk", 26.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
 	var half: float = PI if tide > 0.0 else 1.4
-	melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
+	var hits := melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
 	_slash(ang, half, _reach(), BLUE if tide <= 0.0 else Color(0.25, 0.4, 0.85), FOAM, 0.22)
-	Sfx.play("swing", -12.0, 1.0, 0.08)
+	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
+	if not hits.is_empty():
+		Sfx.op(id, "hit", 2.0 if tide > 0.0 else 0.0)
 	swings += 1
 	if elite >= 1 and swings % 3 == 0 and tide <= 0.0:
 		var back: float = ang + PI
@@ -97,9 +100,10 @@ func _release_skill() -> void:
 		0:
 			# 潮涌斩：一次 ×2 宽幅横扫
 			var ang := _aim()
-			melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0)
+			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
+				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
-			Sfx.play("swing_heavy", -8.0, 1.0, 0.05)
+			Sfx.op(id, "atk", 5.0, 0.8)
 		1:
 			_heavy(_aim())
 		2:
@@ -109,7 +113,6 @@ func _release_skill() -> void:
 			for k in 16:
 				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-40, 40), 0), "vel": Vector2(g.rng.randf_range(-40, 40), g.rng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
 			g._show_banner("潮汐")
-			Sfx.play("roar", -12.0, 1.5, 0.05)
 
 
 func skill_active_left(i: int) -> float:
@@ -128,11 +131,14 @@ func _heavy(ang: float) -> void:
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
 	fx({"kind": "ring", "pos": c, "r": r * 0.7, "r0": 10.0, "life": 0.35, "col": BLUE, "floor": true, "w": 3.0})
 	fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 34.0, "life": 0.2, "col": FOAM, "alpha": 0.5})
-	g._fx_sprite("fx_water_splash", c + Vector2(0, 6), g.PX * 1.6, 0.0, false, true)
+	# 蓝色水花（ansimuz water splash）：落点一大团 + 两侧各一小团
+	g._fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	for sd in [-1.0, 1.0]:
+		g._fx_sprite("fx_splash_blue", c + Vector2(sd * r * 0.3, 10), g.PX * 0.9, 0.0, sd < 0.0, true)
 	for k in 18:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	g.shake = maxf(g.shake, 4.0)
-	Sfx.play("boom", -11.0, 0.8, 0.05)
+	Sfx.op(id, "big")
 
 
 func draw_auras() -> void:

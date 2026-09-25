@@ -1,5 +1,5 @@
 extends Control
-## 设置面板：标题界面与暂停菜单共用。键盘 ↑↓ 选择、←→ 调整、Esc 返回；也可用鼠标点击。
+## 设置面板：标题界面与暂停菜单共用。键盘 ↑↓ 选择、←→ 调整、Esc 返回；也可用鼠标点击；手柄经 Pad 翻译成同样的按键。
 
 signal closed
 
@@ -20,6 +20,7 @@ const ROWS := [
 	{"cn": "水下滤镜", "en": "UNDERWATER FILTER", "key": "water_filter", "type": "bool"},
 	{"cn": "法线光照", "en": "NORMAL LIGHTING", "key": "normal_maps", "type": "bool", "note": "下局生效"},
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
+	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 
@@ -153,9 +154,11 @@ func _draw() -> void:
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
 	row_rects.clear()
+	# 行距按面板高度自适应：标题 76 + 行 + 底部提示 40 都要放得下
+	var step: float = minf(34.0 if compact else 38.0, (rh - 76.0 - 40.0 - 34.0) / float(ROWS.size() - 1))
 	for i in ROWS.size():
 		var row: Dictionary = ROWS[i]
-		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * (34 if compact else 38), r.size.x - 60, 34)
+		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * step, r.size.x - 60, minf(34.0, step))
 		row_rects.append(rr)
 		var on := i == sel
 		if on:
@@ -199,4 +202,4 @@ func _draw() -> void:
 					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 					UI.text(self, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 				UI.text(self, font, Vector2(vx + 190, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), "↑↓ 选择 · ←→ 调整 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("↑↓ 选择 · ←→ 调整 · Esc 返回", "摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 切换 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

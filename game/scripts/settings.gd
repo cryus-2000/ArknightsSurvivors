@@ -18,6 +18,7 @@ var bloom := true        # 辉光
 var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
+var pad_rumble := true   # 手柄震动
 var difficulty := 0      # 本局难度
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
@@ -55,6 +56,7 @@ func _ready() -> void:
 		water_filter = c.get_value("video", "water_filter", water_filter)
 		normal_maps = c.get_value("video", "normal_maps", normal_maps)
 		brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
+		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
@@ -106,6 +108,7 @@ func save() -> void:
 	c.set_value("video", "water_filter", water_filter)
 	c.set_value("video", "normal_maps", normal_maps)
 	c.set_value("video", "brightness", brightness)
+	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", diff_unlocked)
 	c.set_value("progress", "seen_shows", seen_shows)

@@ -1,0 +1,224 @@
+{
+ "id": "logos",
+ "name": "Logos",
+ "en": "LOGOS",
+ "class": "术师",
+ "col": [
+  0.55,
+  0.6,
+  1.0
+ ],
+ "script": "res://scripts/characters/logos.gd",
+ "base": {
+  "_doc": "基础数值",
+  "atk": 40,
+  "cd": 0.9,
+  "range": 420,
+  "requiem_dur": 5,
+  "requiem_bonus": 0.15,
+  "s1_dur": 5,
+  "s1_tick": 0.25,
+  "s1_max": 3.0,
+  "s2_range": 0.3,
+  "s2_atk": 0.5,
+  "s2_exec": 1.5,
+  "s3_dur": 12,
+  "s3_range": 0.6,
+  "s3_atk": 1.5,
+  "s3_targets": 4,
+  "s3_bullet_slow": 0.2,
+  "talent_chance": 0.5,
+  "talent_mult": 0.6,
+  "aoe": 30,
+  "aoe_mult": 0.5,
+  "s1_tick_mult": 0.5
+ },
+ "sprites": {
+  "idle": {
+   "tex": "op_logos_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_logos_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_logos_attack",
+   "frames": 4,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_logos_skill",
+   "frames": 8,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
+  },
+  "size": 48,
+  "foot": [
+   24,
+   46
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "言",
+  "desc": "每秒对一名敌人造成法伤（单体，射程远，命中处小范围溅射 45%），并附加「安魂」5 秒：受到的法术伤害 +15%（全队法伤受益）"
+ },
+ "skills": [
+  {
+   "name": "提喻",
+   "en": "SYNECDOCHE",
+   "sp": 10,
+   "dur": 5.0,
+   "desc": "5 秒内锁定一名敌人（优先精英 / Boss），每 0.25 秒造成法伤，对同一目标伤害逐步升到 ×3、减速加深"
+  },
+  {
+   "name": "湮灭",
+   "en": "PERISH",
+   "sp": 20,
+   "desc": "充能一次后永久生效：射程 +30%、攻击 +50%；普攻直接处决生命低于其攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人",
+   "permanent": true
+  },
+  {
+   "name": "延展敏锐",
+   "en": "EXTENDED ACUITY",
+   "sp": 30,
+   "dur": 12.0,
+   "desc": "12 秒内射程 +60%、攻击 +150%，同时攻击 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失"
+  }
+ ],
+ "talent": {
+  "name": "词法演化",
+  "desc": "精英化一解锁：50% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒"
+ },
+ "hit_sources": {
+  "言": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "single"
+   ]
+  },
+  "提喻": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "dot"
+   ]
+  },
+  "湮灭": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "真实",
+   "tags": [
+    "execute"
+   ]
+  },
+  "词法演化": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "talent"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "stat",
+   "name": "言 · 锋",
+   "desc": "攻击 +15%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "言 · 远",
+   "desc": "射程 +15%",
+   "effects": [
+    {
+     "key": "op_range",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英化一",
+   "desc": "解锁二技能「湮灭」；解锁天赋「词法演化」：40% 概率额外攻击随机敌人"
+  },
+  {
+   "type": "stat",
+   "name": "言 · 迅",
+   "desc": "攻速 +15%",
+   "effects": [
+    {
+     "key": "op_aspd",
+     "op": "add",
+     "value": 0.15
+    }
+   ]
+  },
+  {
+   "type": "stat",
+   "name": "言 · 锋 II",
+   "desc": "攻击 +20%",
+   "effects": [
+    {
+     "key": "op_atk",
+     "op": "add",
+     "value": 0.2
+    }
+   ]
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英化二",
+   "desc": "解锁三技能「延展敏锐」：多目标、减慢并消除敌方弹幕"
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "单体",
+   "法术",
+   "反弹幕"
+  ],
+  "desc": "远程单体法伤，给目标上安魂；精一起处决残血，精二能吃掉敌方弹幕"
+ }
+}

@@ -393,7 +393,7 @@ func _draw() -> void:
 	UI.en(self, font, Vector2(132, 62), "GALLERY", 13, UI.CYAN, 4.0)
 	close_rect = Rect2(vs.x - 150, 34, 100, 36)
 	UI.panel(self, close_rect, Color(0.03, 0.08, 0.1, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, close_rect.position + Vector2(0, 24), "返回  Esc", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, close_rect.size.x)
+	UI.text(self, font, close_rect.position + Vector2(0, 24), Pad.hint("返回  Esc", "返回  Ⓑ"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, close_rect.size.x)
 	# 分页
 	tab_rects.clear()
 	for i in TABS.size():
@@ -408,7 +408,7 @@ func _draw() -> void:
 	if entries.size() > COLS * ROWS:
 		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
 		UI.text(self, font, Vector2(60, vs.y - 34), "滚轮翻页  %d / %d" % [scroll + 1, max_scroll + 1], 12, UI.SUB)
-	UI.text(self, font, Vector2(0, vs.y - 22), "Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	UI.text(self, font, Vector2(0, vs.y - 22), Pad.hint("Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", "LB / RB 切换分页 · 摇杆选择 · Ⓧ / Ⓨ 切换动作与形态 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func _frame_rect(f: Dictionary, frame: int) -> Rect2:
@@ -465,6 +465,20 @@ func _draw_detail(vs: Vector2) -> void:
 		draw_rect(dr, Color(0.3, 0.9, 0.9, 0.5), false, 1.0)
 		UI.en(self, font, dr.position + Vector2(12, 20), e.en, 11, UI.CYAN, 3.0)
 		UI.text(self, font, dr.position + Vector2(12, 44), "%s · 攻击演示" % e.name, 18, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		# 分段标签：一技能 / 二技能 / 三技能，当前这段高亮（game.gd _demo_step 按段循环）
+		if demo_game != null and demo_game.demo_pi >= 0 and not demo_game.demo_phases.is_empty():
+			var cur: int = demo_game.demo_phases[demo_game.demo_pi]
+			var cx := dr.end.x - 12.0
+			for k in [2, 1, 0]:
+				var on: bool = k == cur
+				var lbl: String = ["一技能", "二技能", "三技能"][k]
+				var w: float = font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16.0
+				cx -= w
+				var cr := Rect2(Vector2(cx, dr.position.y + 10), Vector2(w, 22))
+				UI.panel(self, cr, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.05, 0.08, 0.6), UI.CYAN if on else UI.LINE, 4.0)
+				UI.text(self, font, cr.position + Vector2(0, 16), lbl, 12, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, w, 2)
+				cx -= 6.0
+			UI.text(self, font, dr.position + Vector2(12, 68), demo_game.demo_label, 14, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	else:
 		_demo_stop()
 	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)

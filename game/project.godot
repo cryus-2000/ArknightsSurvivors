@@ -37,3 +37,4 @@ enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 Sfx="*res://scripts/sfx.gd"
 Cfg="*res://scripts/settings.gd"
+Pad="*res://scripts/pad.gd"
