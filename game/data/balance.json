@@ -27,7 +27,7 @@
   "corrode_mult": 1.2,
   "elite_hp_mult": 7.0, "elite_dmg_mult": 1.3, "elite_xp_mult": 10.0,
   "boss_hp_time_div": 600,
-  "spawn_base": 1.6, "spawn_div": 30, "spawn_boss_mult": 0.8, "spawn_dark_mult": 1.15, "spawn_cap": 450
+  "spawn_base": 1.6, "spawn_div": 35, "first_elite": 90, "bullet_dmg_mult": 0.85, "spawn_boss_mult": 0.8, "spawn_dark_mult": 1.15, "spawn_cap": 450
  },
 
  "lamp": {

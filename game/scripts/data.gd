@@ -7,6 +7,8 @@ static var ENEMIES: Dictionary = Loader.load_enemies()
 static var THREAT: Array = Loader.load_waves().threat
 static var BOSS_TIMES: Array = Loader.load_waves().boss_times
 static var MID_POOL: Array = Loader.load_waves().mid_pool
+## 第一个中期 Boss（3:30）只从这些 MID_POOL 下标里抽；双 Boss 与远程风筝型留到第二个（7:00），编队成型后再考（docs/29 §6）
+static var MID_FIRST: Array = Loader.load_waves().get("mid_first", []).map(func(x): return int(x))   # JSON 数字是 float，转 int 才能和下标比较
 static var ENDINGS: Dictionary = Loader.load_waves().endings
 
 ## 敌人：名称与机制按「水月与深蓝之树」，数值按本作换算

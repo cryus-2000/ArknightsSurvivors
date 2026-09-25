@@ -171,7 +171,7 @@ var grid := {}
 var next_id := 0
 var orbit_a := 0.0
 var spawn_acc := 0.0
-var next_elite := 45.0
+var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度
 var diff_new := false
@@ -1573,7 +1573,7 @@ func _spawn(dt: float) -> void:
 		else:
 			var pool: Array = []
 			for i in D.MID_POOL.size():
-				if not mid_used.has(i):
+				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)):
 					pool.append(i)
 			var pick: int = pool[rng.randi() % pool.size()]
 			if force_boss >= 0 and not mid_used.has(force_boss):
@@ -2043,7 +2043,7 @@ func _update_lobs(dt: float) -> void:
 			if l.to.distance_to(ppos) < l.r + 8.0 and invuln <= 0.0:
 				dmg_src = "bullet"
 				in_type = ["远程", "法术"]
-				_enemy_hit(l.dmg, {})
+				_enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
 	lobs = lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -2067,7 +2067,7 @@ func _update_ebullets(dt: float) -> void:
 			dmg_src = "bullet"
 			in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
 			if invuln <= 0.0:
-				_enemy_hit(b.dmg, b, b["true"])
+				_enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
 
 
 ## 敌人命中水月：闪避判定、侵蚀、神经损伤

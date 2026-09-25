@@ -105,6 +105,16 @@
     "area"
    ]
   },
+  "潮涌斩": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
   "重斩": {
    "emitter": "operator",
    "origin": "skill",
