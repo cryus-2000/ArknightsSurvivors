@@ -56,7 +56,7 @@ func _release() -> void:
 
 func _heal(h: float, size: int) -> void:
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
-	g._heal(h)
+	g._heal(h, "凯尔希")
 	if over > 0.0:
 		guard_t = 5.0
 	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)

@@ -10,6 +10,7 @@ var streams := {}
 var players: Array = []
 var next := 0
 var last := {}
+var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟时间，不能碰全局随机流（否则 --seed 不可复现）
 ## 音乐：多曲目 + 战斗曲分层（同长同步的四层，按局势调各层音量）
 const MUSIC := {
 	"title": ["title"],
@@ -248,5 +249,5 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		return
 	p.stream = streams[name]
 	p.volume_db = vol
-	p.pitch_scale = pitch * randf_range(1.0 - pitch_var, 1.0 + pitch_var)
+	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p.play()

@@ -100,6 +100,17 @@ def summarize(records):
             for k, v in d.get("out", {}).items():
                 out_tot[k] = out_tot.get(k, 0.0) + v / tot / len(ok)
         top = sorted(out_tot.items(), key=lambda kv: -kv[1])[:6]
+        # 治疗占比（BALANCE 的 heal 段：来源 → 有效治疗量），用来看医疗无人机 / 医疗干员是不是保底
+        heal_tot = {}
+        heal_abs = 0.0
+        for d in ok:
+            h = d.get("heal", {})
+            tot = sum(h.values()) or 1.0
+            heal_abs += sum(h.values()) / len(ok)
+            for k, v in h.items():
+                heal_tot[k] = heal_tot.get(k, 0.0) + v / tot / len(ok)
+        heal_top = sorted(heal_tot.items(), key=lambda kv: -kv[1])[:3]
+        drone_lv = statistics.mean([d.get("drone", 0) for d in ok])
         dmg_in = {}
         for d in ok:
             for k, v in d.get("dmg", {}).items():
@@ -121,24 +132,26 @@ def summarize(records):
             "kills": statistics.mean([d.get("kills", 0) for d in ok]),
             "e2_share": e2 / max(1, len(elites)),
             "top": top, "killer": killer,
+            "heal_top": heal_top, "heal_abs": heal_abs, "drone_lv": drone_lv,
         })
     return rows
 
 
 def table(rows):
-    lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 主要死因 |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         if "error" in r:
-            lines.append("| %s | %d | 失败: %s | | | | | | | | | |" % (r["squad"], r["n"], r["error"]))
+            lines.append("| %s | %d | 失败: %s | | | | | | | | | | |" % (r["squad"], r["n"], r["error"]))
             continue
         top = " ".join("%s %d%%" % (k, v * 100) for k, v in r["top"][:4])
-        lines.append("| %s | %d | %d%% | %s / %s | %.1f / %s | %.0f / %.0f / %.0f / %.0f | %s | %d%% | %.0f | %.0f | %s | %s |" % (
+        heal = " ".join("%s %d%%" % (k, v * 100) for k, v in r["heal_top"]) or "-"
+        lines.append("| %s | %d | %d%% | %s / %s | %.1f / %s | %.0f / %.0f / %.0f / %.0f | %s | %d%% | %.0f | %.0f | %s | %s (%.0f / %.1f) | %s |" % (
             r["squad"], r["n"], r["win"] * 100, fmt_t(r["t_mean"]), fmt_t(r["t_min"]),
             r["floor"], fmt_t(r["floor_first"]) if r["floor_first"] is not None else "-",
             r["lv2"], r["lv5"], r["lv8"], r["lv_end"],
             ("%d%%" % (r["boss_hp"] * 100)) if r["boss_hp"] is not None else "-",
-            r["e2_share"] * 100, r["lamp"], r["kills"], top, r["killer"]))
+            r["e2_share"] * 100, r["lamp"], r["kills"], top, heal, r["heal_abs"], r["drone_lv"], r["killer"]))
     return "\n".join(lines)
 
 

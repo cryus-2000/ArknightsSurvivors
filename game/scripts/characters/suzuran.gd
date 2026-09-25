@@ -48,7 +48,7 @@ func update(dt: float) -> void:
 		if heal_acc >= 1.0:
 			heal_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * (0.01 if haze_t > 0.0 else 0.005))
+				g._heal(g.max_hp * (0.01 if haze_t > 0.0 else 0.005), "铃兰")
 		if was_haze and haze_t <= 0.0:
 			# 迷雾刚结束：回到暖光（永久）或清除加成
 			if warm:
@@ -101,8 +101,9 @@ func _release() -> void:
 			break
 		var tg: Dictionary = ts[k % ts.size()]
 		var d: Vector2 = (tg.pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
-		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 16.0) * mult * _dmg_bonus(),
-			"life": 1.6, "r": 7.0, "aoe": 0.0, "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
+		# aoe：狐火命中时的小范围溅射（P5.1：纯单体的辅助单人开局清不动 1:15 的骨潮，永远到不了招募等级）
+		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 20.0) * mult * _dmg_bonus(),
+			"life": 1.6, "r": 7.0, "aoe": base("aoe", 26.0), "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
 	if not ts.is_empty():
 		fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": GOLD, "alpha": 0.5})
 		Sfx.play("tentacle", -14.0, 1.6, 0.05)

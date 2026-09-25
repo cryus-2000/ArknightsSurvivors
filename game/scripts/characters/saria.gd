@@ -39,7 +39,7 @@ func update(dt: float) -> void:
 		if hot_acc >= 1.0:
 			hot_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.01)
+				g._heal(g.max_hp * 0.01, "塞雷娅")
 				fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
 	if calc > 0.0:
 		calc -= dt
@@ -47,7 +47,7 @@ func update(dt: float) -> void:
 		if calc_acc >= 1.0:
 			calc_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.015)
+				g._heal(g.max_hp * 0.015, "塞雷娅")
 		# 区域内敌人：减速 + 易伤
 		for j in g._query(g.ppos, S3_R + 20.0):
 			var e: Dictionary = g.enemies[j]
@@ -125,13 +125,13 @@ func _release_skill() -> void:
 		0:
 			# 急救
 			var h: float = g.max_hp * base("s1_heal", 0.08) * skill_power() * (2.0 if g.hp < g.max_hp * 0.5 else 1.0)
-			g._heal(h)
+			g._heal(h, "塞雷娅")
 			_heal_fx(h)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 		1:
 			# 药剂散布：立即回复 + 5 秒持续回复
 			var h2: float = g.max_hp * base("s2_heal", 0.10) * skill_power()
-			g._heal(h2)
+			g._heal(h2, "塞雷娅")
 			_heal_fx(h2)
 			hot_t = 5.0
 			hot_acc = 0.0

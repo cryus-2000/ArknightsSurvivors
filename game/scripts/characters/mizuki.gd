@@ -463,7 +463,7 @@ func on_kill(_e: Dictionary) -> void:
 	if elite >= 1:
 		var got: float = min(0.01, heal_budget)
 		heal_budget -= got
-		g._heal(g.max_hp * got)
+		g._heal(g.max_hp * got, "水月")
 
 
 ## 触手颜色：常态蓝色，海嗣化后紫色

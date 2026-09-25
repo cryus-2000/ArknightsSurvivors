@@ -297,6 +297,7 @@ var elites_killed := 0
 var shop_visits := 0
 var dmg_log := {}
 var dmg_out: Dictionary = {}     # 造成的伤害按来源统计（balance 输出）
+var heal_log: Dictionary = {}    # 有效治疗按来源统计（balance 输出：无人机 / 医疗干员 / 藏品 是不是保底）
 var hit_src: Dictionary = {}        # 合并后的伤害来源表（HIT_BASE + 角色 hit_sources）
 var hit: Dictionary = {"src": "?", "emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []}
 var dmg_tag_out: Dictionary = {}    # 造成伤害按 tag 统计（Tab 面板"本局构成"）
@@ -874,7 +875,7 @@ func _autotest_step() -> void:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "heal": heal_log, "drone": weapons.get("drone", 0), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -1806,7 +1807,7 @@ func _update_enemies(dt: float) -> void:
 						o.dead = true
 						_add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
 						if seed_heal:
-							_heal(max_hp * 0.05)
+							_heal(max_hp * 0.05, "藏品")
 						continue
 					# 伊祖米克的子代被 Boss 吸收
 					if e.feed and o.type == "izumik" and o.phase == 1:
@@ -2119,7 +2120,7 @@ func _shield_block() -> void:
 			"life": 0.5, "max": 0.5, "rot": randf() * TAU})
 	fx.append({"kind": "ring", "pos": ppos + Vector2(0, -20), "r": 50.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 0.9, 1.0)})
 	if shield_heal:
-		_heal(max_hp * 0.03)
+		_heal(max_hp * 0.03, "藏品")
 	if shield_burst:
 		for j in _query(ppos, 140.0):
 			var e: Dictionary = enemies[j]
@@ -2312,7 +2313,9 @@ func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void
 			"life": rng.randf_range(0.18, 0.32), "max": 0.3, "col": col, "sz": 2.0 if rng.randf() < 0.6 else 4.0})
 
 
-func _heal(v: float) -> void:
+func _heal(v: float, src: String = "其他") -> void:
+	var got: float = minf(v, maxf(0.0, max_hp - hp))
+	heal_log[src] = float(heal_log.get(src, 0.0)) + got
 	hp = min(max_hp, hp + v)
 
 
@@ -2363,7 +2366,7 @@ func _kill(e: Dictionary) -> void:
 		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	squad.on_kill(e)
 	if flesh_heal and e.evo:
-		_heal(max_hp * 0.03)
+		_heal(max_hp * 0.03, "藏品")
 	if ember and e.elite:
 		lamp = min(lamp_cap, lamp + 20.0)
 	if e.xp > 0.0:
@@ -2699,7 +2702,7 @@ func _buy(i: int) -> void:
 		"relic":
 			_gain_relic(it.id)
 		"heal":
-			_heal(max_hp * 0.4)
+			_heal(max_hp * 0.4, "拾取")
 		"oil":
 			lamp = min(lamp_cap, lamp + 50.0)
 	Sfx.play("ui_ok")
@@ -2770,7 +2773,7 @@ func _update_weapons(dt: float) -> void:
 
 
 func _drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
-	_heal(amount)
+	_heal(amount, "无人机")
 	if cure:
 		nerve = 0.0
 	dr.beam = 0.35
@@ -2914,6 +2917,12 @@ func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			_damage(e, b.dmg)
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
+			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
+			if b.get("aoe", 0.0) > 0.0:
+				for k in _query(b.pos, b.aoe + 20.0):
+					var o: Dictionary = enemies[k]
+					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
+						_damage(o, b.dmg)
 			if b.has("fx_col") or not _fx_sprite("fx_arcane_hit", e.pos):
 				fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
 			_sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
@@ -3019,7 +3028,7 @@ func _update_gems(dt: float) -> void:
 					Sfx.play("relic", -4.0, 1.2, 0.0)
 				"heal":
 					var hv := max_hp * 0.3
-					_heal(hv)
+					_heal(hv, "事件")
 					fx.append({"kind": "ring", "pos": ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
 					_sparks(ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
 					_add_text(ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
