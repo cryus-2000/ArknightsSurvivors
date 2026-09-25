@@ -515,7 +515,7 @@ func _draw_detail(vs: Vector2) -> void:
 			UI.panel(self, Rect2(cx, y - 4, w, 24), Color(0.2, 0.08, 0.25, 0.8), UI.PURPLE, 4.0)
 			UI.text(self, font, Vector2(cx, y + 13), c, 12, UI.PURPLE, HORIZONTAL_ALIGNMENT_CENTER, w)
 			cx += w + 8
-	var dy := maxf(y + 34, box.end.y + 60)
+	var dy := maxf(y + 42, box.end.y + 60)
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
 	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
 	# 介绍文字：按剩余高度自适应字号（15 → 12），仍放不下则按行裁切，不越出面板
