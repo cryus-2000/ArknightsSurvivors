@@ -251,12 +251,18 @@ func draw_extra(_it: Dictionary) -> void:
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(GREEN.r, GREEN.g, GREEN.b, k), 2.0)
 	var col := Color(1.25, 1.5, 1.15) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
-	g._draw_sprite_at(m.pos, m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
+	g._draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+
+
+## 悬浮起伏（像素）：越高影子越小
+func _hover() -> float:
+	return -4.0 - 3.0 * sin(g.t * 2.6 + m.pos.x * 0.01)
 
 
 func draw_extra_shadows() -> void:
 	if m.pos != Vector2.INF:
-		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * 1.5)
+		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
 
 
 ## 溢出治疗后 5 秒博士受伤 -20%（game.gd _enemy_hit 查询）
