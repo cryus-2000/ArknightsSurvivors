@@ -163,8 +163,9 @@ func _muzzle() -> Vector2:
 func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, stun: float, light := false) -> void:
 	face = signf(to.x - pos.x) if absf(to.x - pos.x) > 2.0 else face
 	var from := _muzzle()
-	# 高速炮弹（2026-09-25 还原原作，用户要求）：原来 900px/s、最高拱 120px 像迫击炮 → 约 2300px/s、几乎平直
-	var dur: float = clampf(from.distance_to(to) / 2300.0, 0.06, 0.2)
+	# 高速炮弹（2026-09-25 还原原作，用户要求）：原来 900px/s、最高拱 120px 像迫击炮 → 2300px/s 又太快看不清炮弹
+	# → 1500px/s、最高拱 18px：仍是平射，但炮弹本身看得见
+	var dur: float = clampf(from.distance_to(to) / 1500.0, 0.08, 0.3)
 	shells.append({"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * _dmg_bonus(), "r": _aoe() * size, "src": src,
 		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size})
 	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
@@ -181,7 +182,7 @@ func _shell_pos(s: Dictionary) -> Vector2:
 
 
 func _shell_at(s: Dictionary, k: float) -> Vector2:
-	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(12.0, s.from.distance_to(s.to) * 0.04))
+	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(18.0, s.from.distance_to(s.to) * 0.05))
 
 
 func _update_shells(dt: float) -> void:
