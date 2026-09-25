@@ -314,3 +314,20 @@ scope ∈ "doctor" | "squad" | "class:<职业>" | "op:<id>"
 9. 满级局外的总强度上限（草案约 +25%）。
 10. ~~首批 8 名干员是全部开放，还是部分需要局外解锁？~~ 已定：基础 8 人开放，额外干员靠战绩解锁（§11.2）。
 11. 其余结局 / Boss 各自解锁哪名干员。
+
+## 17. 实施记录（2026-09-25，架构会话）
+
+用户决定：**架构会话全做 P1–P3**（隔壁转做美术指令 docs/24 与后续界面）；§16 问题 4 = 不可重复招募；问题 2 = 结局不要求水月在队；问题 5 = 援护并入编队位。
+
+| 阶段 | 提交 | 内容 |
+|---|---|---|
+| P1 | `05bdfcb` | `characters/doctor.gd` + `data/doctor.json`（博士层：基础属性、唯一手动入口、排异落到干员）；`characters/squad.gd`（编队位 3+1、招募 / 移除、契约校验、跟随队形、update / draw 分发）；`character.gd` 干员有 pos / face / 动画 / follow / draw_body；水月出手原点改为自身位置；玩家精灵改为博士 |
+| P2 | `c2ae032` | `stat_block` 作用域 `scope`（"" / doctor / squad 全局，class:<职业> / op:<id> 只对匹配干员生效，`value_for`）；`stat_defs` 干员层 `op_atk / op_aspd / op_range / op_skill_sp / op_skill_power`；干员契约 `validate_operator`（attack + skill 且 auto、progression 结构）；成长线 progression（stat / elite / custom、requires、elite 选项）；狙击 / 术师 / 医疗 / 辅助改为 Character 子类 + JSON；水月 attack / skill / talent / progression；图鉴干员页 |
+| P3 | 本次 | 升级池按 §6：Lv.2–4 只养开局干员、招募 Lv.5 起进池（45%）、保底 Lv.6 / Lv.12、精二门槛未满足不出卡、博士被动 / 全队被动各 4 种上限（`doctor.gd PASSIVES`）、填充卡；Tab 面板：博士标题 + 编队行（职业 / 精英化 / 成长点 / 下一步 / 精二条件）；HUD 编队栏；`--balance` 输出 `lv_times` 与各干员 elite / prog；test_core 新增 28 项（分层、契约、成长线） |
+
+数据约定（已落地）：
+- 干员 JSON：`class`、`attack{mode,name,desc}`、`skill{mode,name,desc,sp}`、`talent{name,desc}`、`progression[6]`（stat 节点 `effects[{key,op,value}]` 写入 `op:<id>` 作用域；elite 节点 `level` + 可选 `requires{relic,level,class_in_squad,doctor_passive}`；custom 节点交给 `on_custom_node`）、`sprites{idle,run,attack{tex,frames,foot,fps},…}`、`recruitable`。
+- 博士 / 全队被动在 `doctor.gd PASSIVES`（cat doctor / squad），`growth` 计数仍在 game.gd；水月专属成长（伞击 / 触手 / 路线）留在 `data.gd GROWTH`，作为她的追加深度卡。
+- 自动对局机器人 70% 偏好深度卡；3 局 Lv.29–33、1 胜——比单角色版弱，符合预期，一局拉到 15 分钟与重新平衡放 P5。
+
+未做 / 待办：博士指挥技能（`doctor.json command`，P4 与维什戴尔一起）；第 4 位解锁来源（`squad.extra_slot` 已留接口）；事件替换干员（`squad.remove`）；选人界面改为选开局干员；`test_core` 里「效果数据校验」失败来自结局藏品 221 / 222 / 242 的 on_gain 动作 `rejection / recruit_knight` 未登记到校验表（隔壁模块）。
