@@ -315,6 +315,10 @@ func _draw_skill_over() -> void:
 ## 他手里那把钩锚：黑蓝锚身（长杆）+ 一只大弯钩向后弯 + 一根短倒刺；刃口一道深海蓝光
 ## （程序画的过渡版；Codex 出 proj_ulpianus_anchor 帧条后换成贴图，见 docs/30）
 func _draw_anchor(p: Vector2, d: Vector2, a: float) -> void:
+	if g.tex.get("proj_ulpianus_anchor") != null:
+		# Codex 四爪锚（朝右、左端小环接链，两帧刃光）
+		g._spr_rot("proj_ulpianus_anchor", int(g.t * 10.0) % 2, p, d.angle(), g.PX * 0.8, Color(1, 1, 1, a))
+		return
 	var n: Vector2 = d.orthogonal()
 	var outline := Color(0.02, 0.03, 0.06, 0.85 * a)
 	var body := Color(ABYSS.r * 1.6, ABYSS.g * 1.6, ABYSS.b * 1.6, a)

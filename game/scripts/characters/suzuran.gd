@@ -85,6 +85,8 @@ func update(dt: float) -> void:
 		else:
 			cd = base("cd", 1.2) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
+			# Codex 三团狐火汇聚（原作：三团狐火合而为一再射出），在手边播一遍
+			g._fx_sprite("fx_suzuran_foxfire_gather", pos + Vector2(12.0 * face, -30), g.PX * 0.8)
 
 
 func _release() -> void:

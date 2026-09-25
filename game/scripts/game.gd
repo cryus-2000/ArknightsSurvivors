@@ -3988,6 +3988,10 @@ const V6_FRAMES := {
 	# ansimuz 爆炸与魔法合集（tools/fx_import.py 'dir' 模式，2026-09-26）
 	"fx_flames": [7, 12.0], "fx_fire_aura": [13, 18.0], "fx_splash_blue": [9, 18.0],
 	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
+	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留
+	"proj_ulpianus_anchor": [2, 10.0], "fx_irene_thrust": [5, 25.0], "fx_specter_saw": [6, 24.0], "fx_specter_saw_blood": [6, 24.0],
+	"fx_mizuki_tentacle": [6, 15.0], "fx_mizuki_tentacle_mass": [6, 15.0], "fx_suzuran_foxfire_gather": [6, 24.0],
+	"fx_logos_glyph": [6, 18.0], "fx_logos_script": [4, 12.0], "fx_saria_shield_bash": [5, 20.0], "fx_saria_calcite": [8, 10.0],
 }
 ## 受击材质：甲壳 / 灵体，其余为血肉
 const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
@@ -4017,6 +4021,7 @@ func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, c
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
+	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
 	draw_set_transform(pos + draw_off, ang, Vector2(-scale if flip else scale, scale))
 	draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

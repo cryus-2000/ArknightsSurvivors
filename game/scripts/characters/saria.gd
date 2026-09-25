@@ -60,7 +60,7 @@ func update(dt: float) -> void:
 			shard_t = 0.35
 			var a: float = g.rng.randf() * TAU
 			var rr: float = g.rng.randf_range(S3_R * 0.3, S3_R * 0.95)
-			fx({"kind": "crystal", "pos": g.ppos + Vector2(cos(a) * rr, sin(a) * rr * 0.55 + 4.0), "h": g.rng.randf_range(12, 24), "life": 1.2, "col": AMBER, "lean": g.rng.randf_range(-0.3, 0.3)})
+			_calcite(g.ppos + Vector2(cos(a) * rr, sin(a) * rr * 0.55 + 4.0), g.rng.randf_range(0.6, 0.85), g.rng.randf_range(12, 24), 1.2)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -105,10 +105,18 @@ func _release() -> void:
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
 	var hits := melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), base("atk", 28.0) * _dmg_bonus(), 200.0, 0.2)
-	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
 	var d := Vector2.from_angle(ang)
-	fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
+	# Codex 盾击（原作：盾同时是法杖，用盾把敌人砸碎；40×32 朝右、左端贴盾）；缺图退回弧光 + 推力线
+	if not g._fx_sprite("fx_saria_shield_bash", pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
+		g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
+		fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
 	Sfx.op(id, "hit" if not hits.is_empty() else "atk")
+
+
+## 钙质晶体（Codex：冷白主体 + 琥珀边，从地面长出 → 停留 → 碎裂）；缺图退回程序琥珀晶柱
+func _calcite(p: Vector2, sc: float, h: float, life: float) -> void:
+	if not g._fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.rng.randf() < 0.5, true):
+		fx({"kind": "crystal", "pos": p, "h": h, "life": life, "col": AMBER, "lean": g.rng.randf_range(-0.3, 0.3)})
 
 
 func _heal_fx(h: float) -> void:
@@ -143,7 +151,7 @@ func _release_skill() -> void:
 			calc_acc = 0.0
 			for k in 8:
 				var a: float = k * TAU / 8.0 + 0.3
-				fx({"kind": "crystal", "pos": g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), "h": g.rng.randf_range(22, 40), "life": 1.5 + k * 0.03, "col": AMBER, "lean": g.rng.randf_range(-0.25, 0.25)})
+				_calcite(g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), g.rng.randf_range(0.9, 1.15), g.rng.randf_range(22, 40), 1.5 + k * 0.03)
 			fx({"kind": "ring", "pos": g.ppos, "r": S3_R, "r0": 30.0, "life": 0.5, "col": AMBER, "floor": true, "w": 4.0})
 			fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": AMBER, "floor": true, "n": 10})
 			# 琥珀光柱 + 地面法阵（Pimen / Ninja Adventure 调色）

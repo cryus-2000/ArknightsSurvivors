@@ -149,6 +149,9 @@ func _umbrella(target: Dictionary) -> void:
 			if not seen.has(e.id):
 				seen[e.id] = true
 				hit.append(e)
+	# 镜花水月（原作：一大片苍白触手铺开）：每次挥伞在主方向前方铺开一片触手群
+	if s3_active > 0.0:
+		g._fx_sprite("fx_mizuki_tentacle_mass", pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true)
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
 	for e in hit:
@@ -294,8 +297,10 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
 	# 触手表现：地面裂隙 → 触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
-	var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
-	g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
+	# Codex 苍白水母触手（原作水月：海月水母触手，根部在底）；缺图退回旧触手帧条
+	if not g._fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true):
+		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
+		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
 	g._fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU)
 	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
 	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})

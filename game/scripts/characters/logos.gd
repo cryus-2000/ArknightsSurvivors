@@ -101,7 +101,9 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 			o["requiem"] = base("requiem_dur", 5.0)
 	# 言：一道从手到目标的墨蓝细线 + 命中处墨蓝爆点（Ninja Flam 重调色；缺图退回光点）
 	fx({"kind": "line", "pos": hand, "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.14, "col": INK, "w": 2.0})
-	if not g._fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
+	# Codex 骨笔符文（命中单次播放）；缺图退回墨蓝爆点 / 光点
+	if not g._fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX, 0.0, g.rng.randf() < 0.5) \
+			and not g._fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.22, "col": PALE, "alpha": 0.6})
 	for k in 3:
 		fx({"kind": "mote", "pos": e.pos + Vector2(g.rng.randf_range(-8, 8), -e.r * 0.5 + g.rng.randf_range(-8, 8)), "vel": Vector2(0, -40), "life": 0.35, "col": INK, "sz": 2.0})
@@ -215,6 +217,16 @@ func draw_auras() -> void:
 
 
 func _draw_skill_over() -> void:
+	if lock_t > 0.0 and lock_e != null and not lock_e.dead and g.tex.get("fx_logos_script") != null:
+		# 提喻：一行骨笔符文从手边流向目标（64×12 书写带平铺，4 帧循环）
+		var hand: Vector2 = pos + Vector2(10.0 * face, -28)
+		var to: Vector2 = lock_e.pos + Vector2(0, -lock_e.r * 0.5)
+		var dv: Vector2 = to - hand
+		var tile: float = 64.0 * g.PX * 0.8
+		var nt: int = maxi(1, int(ceil(dv.length() / tile)))
+		for i in nt:
+			var c: Vector2 = hand + dv.normalized() * minf(dv.length(), tile * (i + 0.5))
+			g._spr_rot("fx_logos_script", (int(g.t * 12.0) + i) % 4, c, dv.angle(), g.PX * 0.8)
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead:
 		var p: Vector2 = lock_e.pos + Vector2(0, -lock_e.r - 14)
 		var k: float = 0.5 + 0.5 * sin(g.t * 8.0)

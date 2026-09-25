@@ -129,8 +129,10 @@ func _release() -> void:
 	# 锯环（2026-09-25，替换斩击环帧条：她用的是长柄圆锯，不是刀）：锯盘绕身一圈的轨迹画成高速旋转的锯齿圆环，
 	# 贴地压扁；锯过的敌人沿切线甩出火星。S3 求生之压：血红、齿更大
 	var heavy: bool = s3_t > 0.0
-	fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r, "life": 0.3 if heavy else 0.24, "col": RED if heavy else GHOST,
-		"spin": (1.0 if face >= 0.0 else -1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.rng.randf() * TAU})
+	# Codex 锯环（80×44 贴地椭圆，中心对齐人物；半径 = 40 × 缩放）；缺图退回程序锯环
+	if not g._fx_sprite("fx_specter_saw_blood" if heavy else "fx_specter_saw", pos + Vector2(0, -6), r / 40.0, 0.0, face < 0.0):
+		fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r, "life": 0.3 if heavy else 0.24, "col": RED if heavy else GHOST,
+			"spin": (1.0 if face >= 0.0 else -1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.rng.randf() * TAU})
 	for e in hits:
 		var ea: float = (e.pos - pos).angle() + PI / 2.0 * (1.0 if face >= 0.0 else -1.0)
 		for k in 3:

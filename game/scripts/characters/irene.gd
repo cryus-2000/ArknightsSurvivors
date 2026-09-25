@@ -164,10 +164,13 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	# 剑尖星形闪光 + 两侧速度线；两段刺击左右错开几像素（参考《哈迪斯》长矛突刺、《死亡细胞》细剑）
 	thrust_n += 1
 	var side: float = 4.0 if thrust_n % 2 == 0 else -4.0
-	fx({"kind": "thrust", "pos": o + d.orthogonal() * side, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
-		"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
-	# 剑尖星芒（ansimuz Hit-G 调玫瑰色）；有图时程序光束就不再画星
-	g._fx_sprite("fx_star_hit_rose", o + d.orthogonal() * side + d * (L + 10.0), g.PX * 0.8)
+	var st: Vector2 = o + d.orthogonal() * side
+	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)
+	# Codex 刺击光束（64×12，左端出剑，长度伸缩 ≤ 1.1）；缺图退回程序光束 + 剑尖星芒
+	if not g._fx_sprite("fx_irene_thrust", st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if tag_gust else Color.WHITE):
+		fx({"kind": "thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
+			"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
+		g._fx_sprite("fx_star_hit_rose", st + d * (L + 10.0), g.PX * 0.8)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 	if not first.is_empty():
 		Sfx.op(id, "hit")
