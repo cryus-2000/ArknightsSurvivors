@@ -321,17 +321,12 @@ var floor_hits := 0            # --nodeath：生命归零被托住的次数
 var floor_times: Array = []
 
 # ---------- 图鉴演示（gallery.gd 把本场景放进 SubViewport，demo_op 为要演示的干员 id）----------
-# 不刷怪、不掉落、不升级、没有 HUD 与音乐；博士站定，几只假人海嗣在旁边挨打并循环重生
+# 不刷怪、不掉落、不升级、没有 HUD 与音乐；按技能分段循环，每段重置干员与右侧怪海（见 _demo_step）
 var demo_op := ""
-var demo_cycle_t := 2.0          # 演示：每隔几秒轮流充满一个技能
-var demo_cycle_i := 0
 var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 被选中的次数
 var dbg_pick := {}
-const DEMO_SLOTS := [Vector2(-150, 30), Vector2(140, -40), Vector2(90, 80)]
-var demo_respawn: Array = []
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
-var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 按 demo_cycle 轮流）
-var demo_fill_t := 0.0
+var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
 var show_vp: SubViewport = null  # 精英化演出里的实机演示画面
 var show_game: Node = null
 
@@ -663,61 +658,113 @@ func _bot_pick() -> int:
 
 ## 图鉴演示每帧：博士满状态站定；三个位置各维持一只不动、不伤人的假人海嗣，被打死 1.5 秒后原地重生。
 ## 假人会慢慢挪向开局干员并停在 70 以外，让近战干员也够得着；击退后自然回位
+## 图鉴 / 精英化演出（2026-09-25 改版，用户要求）：按「一技能 → 二技能 → 三技能」分段循环，每段单独展示一招。
+## 每段开始时重置：干员重新生成（永久型 / 叠层等状态不带到下一段）、博士与干员站左边、右边刷一片怪海慢慢推过来；
+## 先普攻约 1 秒再充满这一段的技能（其余技能压住不充），技能放完、效果结束再停 1.5 秒进入下一段；怪清空了就在右边补一波。
+## 精英化演出（demo_skill ≥ 0）只循环刚解锁的那一招。gallery.gd 读 demo_label 显示当前是哪一段。
+const DEMO_HORDE := 16
+const DEMO_FILL_AT := 1.0
+const DEMO_HOLD := 1.5
+const DEMO_MAX := 14.0
+var demo_origin := Vector2.INF   # 场地中心（镜头固定在这里）
+var demo_phases: Array = []
+var demo_pi := -1
+var demo_ph_t := 0.0
+var demo_cast_t := -1.0          # 本段技能放出后经过的秒数（-1 = 还没放）
+var demo_label := ""
+
+
 func _demo_step(dt: float) -> void:
 	lamp = 100.0
 	hp = max_hp
 	xp = 0.0
 	gems.clear()
-	# 三个技能全部解锁，S1 → S2 → S3 轮流充满（永久型只放一次）
-	var want_elite: int = demo_elite if demo_elite > 0 else 2
-	if ch.elite < want_elite:
-		ch.elite = want_elite
-	demo_cycle_t -= dt
-	if demo_skill < 0 and demo_cycle_t <= 0.0 and not ch.acting() and not ch.skill_active():
-		demo_cycle_t = 4.0
-		for k in 3:
-			var i: int = (demo_cycle_i + k) % 3
-			if not ch.perm[i] and ch.sp_need(i) > 0.0:
-				ch.sp[i] = ch.sp_need(i)
-				demo_cycle_i = (i + 1) % 3
-				break
-	if demo_respawn.is_empty():
-		demo_respawn.resize(DEMO_SLOTS.size())
-		demo_respawn.fill(0.0)
-	for i in DEMO_SLOTS.size():
-		var e: Dictionary = {}
-		for c in enemies:
-			if c.get("demo", -1) == i and not c.dead:
-				e = c
-				break
-		if e.is_empty():
-			demo_respawn[i] -= dt
-			if demo_respawn[i] <= 0.0:
-				demo_respawn[i] = 1.5
-				var ne := _spawn_enemy("bone", ppos + DEMO_SLOTS[i])
-				ne.spd = 0.0
-				ne.dmg = 0.0
-				ne.hp = 90.0
-				ne.maxhp = 90.0
-				ne.xp = 0.0
-				ne["demo"] = i
-			continue
-		var d: Vector2 = ch.pos - e.pos
-		if d.length() > 70.0:
-			e.pos += d.normalized() * 28.0 * dt
-	# 指定技能循环施放：每 6 秒把它充满，其余技能压住，画面里只出现要展示的那一招
-	if demo_skill >= 0 and ch.skill_unlocked(demo_skill):
-		demo_fill_t -= dt
-		for i in 3:
-			if i != demo_skill and not ch.perm[i]:
-				ch.sp[i] = 0.0
-		if demo_fill_t <= 0.0 and ch.skill_active_left(demo_skill) <= 0.0 and not ch.perm[demo_skill]:
-			demo_fill_t = 6.0
-			ch.sp[demo_skill] = ch.sp_need(demo_skill)
-	# 手动技能（幽灵鲨 S2）在演示里没人按键：充满就替玩家放掉，否则永远看不到
-	var mi: int = ch.manual_index()
-	if mi >= 0 and ch.sp_need(mi) > 0.0 and ch.sp[mi] >= ch.sp_need(mi):
-		ch.cast_manual(mi)
+	if demo_origin == Vector2.INF:
+		demo_origin = ppos
+		demo_phases = [demo_skill] if demo_skill >= 0 else [0, 1, 2]
+		_demo_next_phase()
+	var si: int = demo_phases[demo_pi]
+	demo_ph_t += dt
+	# 只让本段的技能充能：其余压成 0
+	for i in 3:
+		if i != si and not ch.perm[i]:
+			ch.sp[i] = 0.0
+	if demo_cast_t < 0.0:
+		if demo_ph_t >= DEMO_FILL_AT and ch.skill_unlocked(si):
+			if ch.sp[si] < ch.sp_need(si) and demo_ph_t < DEMO_FILL_AT + dt * 1.5:
+				ch.sp[si] = ch.sp_need(si)
+			if ch.is_manual(si) and ch.sp[si] >= ch.sp_need(si):
+				ch.cast_manual(si)   # 手动技能（幽灵鲨 S2）没人按键：替玩家放
+			# 充满后被消费掉（或永久型已生效）= 放出去了
+			if ch.sp[si] < ch.sp_need(si) * 0.5 or ch.perm[si] or ch.skill_active_left(si) > 0.0:
+				demo_cast_t = 0.0
+	else:
+		demo_cast_t += dt
+	var done: bool = demo_cast_t >= DEMO_HOLD and ch.skill_active_left(si) <= 0.0 and not ch.acting()
+	if done or demo_ph_t >= DEMO_MAX:
+		_demo_next_phase()
+		return
+	# 怪海清空了：右边补一波
+	var alive := 0
+	for e in enemies:
+		if not e.dead:
+			alive += 1
+	if alive < 4:
+		_demo_horde(10)
+
+
+## 镜头看着的位置：平时跟博士；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
+func view_center() -> Vector2:
+	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
+
+
+func _demo_next_phase() -> void:
+	demo_pi = (demo_pi + 1) % demo_phases.size()
+	demo_ph_t = 0.0
+	demo_cast_t = -1.0
+	enemies.clear()
+	bullets.clear()
+	ppos = demo_origin + Vector2(-150, 10)
+	_demo_new_op()
+	_demo_horde(DEMO_HORDE)
+	var si: int = demo_phases[demo_pi]
+	demo_label = "%s技能「%s」" % [["一", "二", "三"][si], ch.skill_def(si).get("name", "")]
+
+
+## 重新生成演示干员：清掉旧实例挂在 op:<id> 作用域上的全部修正，再按演示要求推到精英化阶段
+func _demo_new_op() -> void:
+	var id: String = demo_op
+	if ch != null and squad.has(id):
+		squad.remove(id)
+	stats.remove_scope("op:" + id)
+	_sync_stats()
+	ch = squad.add(id)
+	var want: int = demo_elite if demo_elite > 0 else 2
+	var guard := 0
+	while ch.elite < want and not ch.next_node().is_empty() and guard < 12 and demo_elite > 0:
+		guard += 1
+		var n: Dictionary = ch.next_node()
+		var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
+		ch.advance(chs.keys()[0] if not chs.is_empty() else "")
+	if ch.elite < want:
+		ch.elite = want
+	show_queue.clear()
+	ch.pos = ppos + Vector2(26, -6)
+
+
+## 右边刷一片怪海：椭圆区域里随机撒开，慢慢向博士推进（演示里敌人不造成伤害）
+func _demo_horde(n: int) -> void:
+	for k in n:
+		var a: float = rng.randf() * TAU
+		var r: float = sqrt(rng.randf())
+		# 前排离博士约 160（近战干员的前压范围），一开场就能接敌
+		var p: Vector2 = demo_origin + Vector2(105 + cos(a) * r * 90.0, sin(a) * r * 72.0)
+		var ne := _spawn_enemy("bone", p)
+		ne.spd = 16.0
+		ne.dmg = 0.0
+		ne.hp = 140.0
+		ne.maxhp = 140.0
+		ne.xp = 0.0
 
 
 ## 开发自测：把所有 Boss（含假死/二阶段形态）摆成一排截图，检查美术接入与 2.5D 遮挡
@@ -3877,7 +3924,7 @@ func _update_visuals(dt: float) -> void:
 		sprite.modulate = Color(1, 1, 1, 0.6)
 	else:
 		sprite.modulate = Color.WHITE
-	cam.position = ppos.round()
+	cam.position = view_center().round()
 	var rd := get_process_delta_time()
 	shake = move_toward(shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
