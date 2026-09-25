@@ -273,11 +273,19 @@ func _impact_fx(c: Vector2, r: float, light: bool) -> void:
 	fx({"kind": "scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
 
 
-## 饱和炮击的爆炸（照原作）：白粉核心星芒 → 放射状红色刀锋光条 → 紫灰烟环旋开 → 红色碎刃飞散
+## 饱和炮击 / 凋零处刑的爆炸：白粉核心星芒 → 放射状红色刀锋光条 → 贴地暗红冲击波 + 错落翻涌的黑烟 → 红色碎刃飞散
+## （2026-09-25：原来的「紫灰烟环」是一圈等距的淡紫圆片，用户反馈太抽象，改为冲击波 + 黑烟）
 func _burst_fx(c: Vector2, r: float, small := false) -> void:
 	var sc: float = 0.7 if small else 1.0
 	fx({"kind": "burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.rng.randf() * TAU, "n": 8 if small else 12})
-	fx({"kind": "smoke_ring", "pos": c, "r": r * 1.5 * sc, "life": 0.6 if small else 0.7, "seed": g.rng.randf() * TAU})
+	fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": RED, "floor": true, "w": 2.5, "alpha": 0.75})
+	var n: int = 3 if small else 5
+	var seed: float = g.rng.randf() * TAU
+	for q in n:
+		var ang: float = seed + q * TAU / n + g.rng.randf_range(-0.45, 0.45)
+		var off: Vector2 = Vector2.from_angle(ang) * r * sc * g.rng.randf_range(0.3, 0.7)
+		off.y *= 0.55
+		fx({"kind": "smoke", "pos": c + off, "r": r * sc * g.rng.randf_range(0.32, 0.5), "life": g.rng.randf_range(0.5, 0.75), "col": DARK, "delay": q * 0.035})
 	for k in (5 if small else 8):
 		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 260)
 		fx({"kind": "sliver", "pos": c, "vel": v, "life": 0.45, "col": BOLT, "sz": g.rng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
@@ -319,16 +327,6 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			g.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * a))
 			g.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, a))
 			g.draw_circle(f.pos, cr * 0.45, Color(0.12, 0.02, 0.04, a))
-			return true
-		"smoke_ring":
-			# 紫灰烟环：由若干团烟组成的圆环，边旋边扩、变淡
-			var k := 1.0 - a
-			var rr: float = f.r * (0.55 + 0.55 * k)
-			for q in 10:
-				var ang: float = f.seed + q * TAU / 10.0 + k * 1.2
-				var pp: Vector2 = f.pos + Vector2.from_angle(ang) * rr
-				g.draw_circle(pp, f.r * (0.2 + 0.12 * k), Color(0.38, 0.24, 0.46, 0.4 * a))
-				g.draw_circle(pp + Vector2(4, -4), f.r * (0.1 + 0.08 * k), Color(0.55, 0.36, 0.62, 0.28 * a))
 			return true
 		"sliver":
 			# 红色碎刃：细长的双尖梭形，沿飞行方向
