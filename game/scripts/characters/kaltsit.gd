@@ -1,37 +1,50 @@
-## 凯尔希（医疗，docs/23 §11.1）：周期治疗博士（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬博士身边的敌人。
-## 技能「Mon3tr · 强化」：大治疗 + Mon3tr 狂暴；精二狂暴结束时熔毁（真实伤害）。
+## 凯尔希（医疗，契约 v2.1）：周期治疗博士（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬博士身边的敌人。
+## S1 医疗单元：立即治疗 + 清神经损伤；S2 战术协同：Mon3tr 攻速 / 范围 + 治疗频率；S3 熔毁：Mon3tr 真伤，结束时熔毁爆炸。
 ## Mon3tr 是本干员的附属实体（64×64 帧条，脚底 (32, 60)），自己寻敌、自己播动画，通过 extra_bodies 参与 2.5D 排序。
-## 特效（docs/25）：荧光绿。爪击三道平行爪痕；狂暴脉冲环 + 上升光点 + 残影；熔毁绿白闪光 + 三重环 + 地裂。
+## 特效（docs/25）：荧光绿。爪击三道平行爪痕；协同 / 熔毁期间脉冲环 + 上升光点 + 残影；熔毁绿白闪光 + 三重环 + 地裂。
 extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
 const M_LEASH := 190.0        # Mon3tr 离博士的最远距离
 const M_REACH := 62.0         # 爪击半径（基础）
+const S2_DUR := 6.0
+const S3_DUR := 8.0
 
 var cd := 1.0
-var guard_t := 0.0            # 精二：溢出治疗后博士减伤的剩余时间
+var guard_t := 0.0            # 溢出治疗后博士减伤的剩余时间
 # ---- Mon3tr
 var m := {"pos": Vector2.INF, "face": 1.0, "mv": 0.0, "kind": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "cd": 0.8, "tgt": null}
-var frenzy := 0.0
-var glow_t := 0.0             # 狂暴光点计时
-var ghost := {}               # 狂暴残影：{pos, face, kind, at, t}
+var coord := 0.0              # S2 战术协同剩余
+var melt := 0.0               # S3 熔毁剩余
+var glow_t := 0.0
+var ghost := {}               # 残影：{pos, face, kind, at, t}
 
 
 func _heal_mult() -> float:
 	return stat(&"op_atk") * g.ally_mult * (1.5 if elite >= 1 else 1.0)
 
 
+func _boosted() -> bool:
+	return coord > 0.0 or melt > 0.0
+
+
 func update(dt: float) -> void:
 	cd -= dt
 	guard_t = maxf(0.0, guard_t - dt)
+	coord = maxf(0.0, coord - dt)
+	if melt > 0.0:
+		melt -= dt
+		if melt <= 0.0:
+			_meltdown()
 	_update_mon3tr(dt)
 	if acting():
 		return
-	if charge_skill(dt):
-		start_skill(m.pos if m.pos != Vector2.INF else g.ppos)
+	var ready := charge_skills(dt)
+	if ready >= 0:
+		start_skill(m.pos if m.pos != Vector2.INF else g.ppos, ready)
 		return
 	if cd <= 0.0:
-		cd = 3.5 / stat(&"op_aspd")
+		cd = 3.5 / stat(&"op_aspd") / (1.5 if coord > 0.0 else 1.0)
 		if g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp):
 			start_attack(g.ppos)
 
@@ -46,7 +59,7 @@ func _release() -> void:
 func _heal(h: float, size: int) -> void:
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
 	g._heal(h)
-	if elite >= 2 and over > 0.0:
+	if over > 0.0:
 		guard_t = 5.0
 	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)
 	fx({"kind": "ring", "pos": g.ppos, "r": 30.0, "r0": 8.0, "life": 0.4, "col": GREEN, "floor": true})
@@ -58,32 +71,51 @@ func _heal(h: float, size: int) -> void:
 
 
 func _release_skill() -> void:
-	_heal(g.max_hp * 0.12 * _heal_mult(), 18)
-	g.nerve = 0.0
-	frenzy = 6.0
-	fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
-	if m.pos != Vector2.INF:
-		g.fx.append({"kind": "rays", "pos": m.pos + Vector2(0, -30), "life": 0.5, "max": 0.5, "col": GREEN})
-		g.fx.append({"kind": "beam", "a": pos + Vector2(0, -26), "b": m.pos + Vector2(0, -30), "life": 0.35, "max": 0.35, "col": GREEN, "w": 3.0})
-		fx({"kind": "glow", "pos": m.pos + Vector2(0, -28), "r": 34.0, "life": 0.35, "col": GREEN, "alpha": 0.5})
+	match cur_skill:
+		0:
+			_heal(g.max_hp * 0.08 * _heal_mult() * skill_power(), 18)
+			g.nerve = 0.0
+			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
+		1:
+			coord = S2_DUR
+			_mon3tr_burst()
+		2:
+			melt = S3_DUR
+			_mon3tr_burst()
+			g._add_text(m.pos + Vector2(0, -70), "熔毁", GREEN, 16)
 	Sfx.play("dodge", -8.0, 0.7)
+
+
+func _mon3tr_burst() -> void:
+	if m.pos == Vector2.INF:
+		return
+	g.fx.append({"kind": "rays", "pos": m.pos + Vector2(0, -30), "life": 0.5, "max": 0.5, "col": GREEN})
+	g.fx.append({"kind": "beam", "a": pos + Vector2(0, -26), "b": m.pos + Vector2(0, -30), "life": 0.35, "max": 0.35, "col": GREEN, "w": 3.0})
+	fx({"kind": "glow", "pos": m.pos + Vector2(0, -28), "r": 34.0, "life": 0.35, "col": GREEN, "alpha": 0.5})
+
+
+func skill_active_left(i: int) -> float:
+	return [0.0, coord, melt][i]
+
+
+func skill_active_dur(i: int) -> float:
+	return [1.0, S2_DUR, S3_DUR][i]
 
 
 # ---------------------------------------------------------------- Mon3tr
 
 func _m_dmg() -> float:
-	return 22.0 * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (1.4 if frenzy > 0.0 else 1.0)
+	return 22.0 * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (1.6 * skill_power() if melt > 0.0 else 1.0)
 
 
 func _m_reach() -> float:
-	return M_REACH * stat(&"op_range") * (1.2 if elite >= 1 else 1.0)
+	return M_REACH * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord > 0.0 else 1.0)
 
 
 func _update_mon3tr(dt: float) -> void:
 	if m.pos == Vector2.INF or m.pos.distance_to(g.ppos) > 700.0:
 		m.pos = pos + Vector2(-30.0 * face, 10)
-	if frenzy > 0.0:
-		frenzy -= dt
+	if _boosted():
 		glow_t -= dt
 		if glow_t <= 0.0:
 			glow_t = 0.07
@@ -92,10 +124,8 @@ func _update_mon3tr(dt: float) -> void:
 			ghost = {"pos": m.pos, "face": m.face, "kind": m.kind, "at": m.at, "t": 0.12}
 		else:
 			ghost.t -= dt
-		if frenzy <= 0.0:
-			ghost = {}
-			if elite >= 2:
-				_meltdown()
+	else:
+		ghost = {}
 	# 目标：博士 leash 范围内离 Mon3tr 最近的敌人；没有就回到凯尔希身边
 	var tg = m.tgt
 	if tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
@@ -108,7 +138,7 @@ func _update_mon3tr(dt: float) -> void:
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-m.face, 0)) * (tg.r + 26.0)
 	var prev: Vector2 = m.pos
 	if m.act <= 0.0:
-		var spd: float = 260.0 * (1.3 if frenzy > 0.0 else 1.0)
+		var spd: float = 260.0 * (1.3 if _boosted() else 1.0)
 		var d: Vector2 = want - m.pos
 		m.pos += d.normalized() * minf(d.length(), spd * dt)
 		if g.tex.get("prop_pillar") != null:
@@ -118,7 +148,7 @@ func _update_mon3tr(dt: float) -> void:
 	if absf(vel.x) > 20.0 and m.act <= 0.0:
 		m.face = signf(vel.x)
 	# 爪击
-	m.cd -= dt * (1.7 if frenzy > 0.0 else 1.0)
+	m.cd -= dt * (1.7 if coord > 0.0 else 1.0)
 	if m.act > 0.0:
 		m.act -= dt
 		if m.fire >= 0.0:
@@ -148,7 +178,7 @@ func _m_set_kind(k: String) -> void:
 func _m_strike() -> void:
 	var ang: float = 0.0 if m.face >= 0.0 else PI
 	var o: Vector2 = m.pos + Vector2(0, -14)
-	var hits := melee_hit("Mon3tr", m.pos + Vector2(0, -10), ang, 1.3, _m_reach() + 16.0, _m_dmg(), 120.0)
+	var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, 1.3, _m_reach() + 16.0, _m_dmg(), 120.0)
 	fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 	fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 	if not hits.is_empty():
@@ -213,14 +243,15 @@ func draw_extra(_it: Dictionary) -> void:
 	if fr.is_empty():
 		g.draw_circle(m.pos + Vector2(0, -14), 14.0, Color(0.3, 0.4, 0.3))
 		return
-	if frenzy > 0.0:
-		# 残影 + 周身脉冲环
+	if _boosted():
+		# 残影 + 周身脉冲环（熔毁期间更亮）
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
 				g._draw_sprite_at(ghost.pos, ghost.face < 0.0, Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
-		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(GREEN.r, GREEN.g, GREEN.b, 0.35 + 0.15 * sin(g.t * 10.0)), 2.0)
-	var col := Color(1.15, 1.35, 1.1) if frenzy > 0.0 else Color.WHITE
+		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
+		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(GREEN.r, GREEN.g, GREEN.b, k), 2.0)
+	var col := Color(1.25, 1.5, 1.15) if melt > 0.0 else (Color(1.15, 1.35, 1.1) if coord > 0.0 else Color.WHITE)
 	g._draw_sprite_at(m.pos, m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
 
 
@@ -229,23 +260,17 @@ func draw_extra_shadows() -> void:
 		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * 1.5)
 
 
-## 精二：溢出治疗后 5 秒博士受伤 -20%（game.gd _enemy_hit 查询）
+## 溢出治疗后 5 秒博士受伤 -20%（game.gd _enemy_hit 查询）
 func dmg_taken_mult() -> float:
 	return 0.8 if guard_t > 0.0 else 1.0
 
 
-func skill_active_left() -> float:
-	return maxf(0.0, frenzy)
-
-
-func skill_active_dur() -> float:
-	return 6.0
-
-
 func status_items() -> Array:
 	var out: Array = []
-	if frenzy > 0.0:
-		out.append(["Mon3tr 狂暴", GREEN])
+	if coord > 0.0:
+		out.append(["战术协同", GREEN])
+	if melt > 0.0:
+		out.append(["熔毁", GREEN])
 	if guard_t > 0.0:
 		out.append(["庇护", GREEN])
 	return out

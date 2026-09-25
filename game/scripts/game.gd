@@ -97,7 +97,6 @@ var lamp := 100.0
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
 var lv_times: Array = []         # 每次升级的时间点（秒），--balance 输出用（docs/23 §8）
-var elite_stage := 0             # 精英化阶段 0/1/2
 # ---- 藏品驱动的通用倍率（scripts/relic_fx.gd 写入）
 var ally_mult := 1.0             # 援护伤害
 var arts_mult := 1.0             # 法术伤害（触手 / 技能 / 术师 / 辅助）
@@ -123,8 +122,6 @@ var tray_cells: Array = []       # 藏品栏格子 [Rect2, id]，用于鼠标悬
 var stats_cells: Array = []      # Tab 面板里可悬停的格子 [Rect2, kind, id]
 var rfx: RefCounted = null       # 藏品效果解释器
 var sp_mult := 1.0
-var skill_lv := {"s1": 0, "s2": 0, "s3": 0}   # 0 未解锁 / 1 解锁 / 2 进阶I / 3 进阶II
-var skill_cut := {}              # 技能发动时的横幅演出
 var flash := 0.0                 # 全屏闪光
 # ---------- 藏品带来的附加能力 ----------
 var grip := false
@@ -373,14 +370,10 @@ func _ready() -> void:
 	optional.append_array(["fx_umbrella_slash", "fx_umbrella_slash_awaken", "fx_umbrella_slash_mirage"])
 	for rid in RL:
 		optional.append("relic_" + rid)
-	for gid in ch.growth_table():
-		optional.append("growth_" + gid)
 	for pid in doctor.PASSIVES:
 		optional.append("growth_" + pid)
 	for wid in D.WEAPONS:
 		optional.append("weapon_" + wid)
-	for eid in ch.evo_table():
-		optional.append("evo_" + eid)
 	for n in optional:
 		tex[n] = A.tex(n)
 	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
@@ -391,9 +384,11 @@ func _ready() -> void:
 				tex[sp[kind]] = A.tex(sp[kind])
 		if sp.has("base"):
 			tex["player"] = A.tex(sp.base)
-	var ic: Dictionary = ch.def.get("icons", {})
-	for sid in ic:
-		tex["skill_" + sid] = A.tex(ic[sid])
+	# 干员技能图标（skills[i].icon，可选）
+	for o in squad.ops:
+		for sd in o.skills_def():
+			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
+				tex[sd.icon] = A.tex(sd.icon)
 	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
@@ -715,25 +710,13 @@ func _autotest_step() -> void:
 			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_fx_stats.png")
 			state = S.PLAY
 		if at_frames == 20:
-			for a in OS.get_cmdline_user_args():
-				if a.begins_with("--evo="):
-					var ev := a.substr(6).split(",")
-					ch.evo1 = ev[0]
-					ch.evo2 = ev[1] if ev.size() > 1 else ""
-					growth["b_count"] = 1
-					growth["t_count"] = 1
 			weapons = {"drone": 3}
-			if ch.evo1 == "blade":
-				growth["b_echo"] = 2
-			elif ch.evo1 == "tendril":
-				growth["t_field"] = 2
 			for rid in ["118", "199", "100"]:
 				relics.append(rid)
 				_apply_relic(rid)
 			shield = 2
-			skill_lv["s3"] = maxi(skill_lv["s3"], 2)
-			ch.s3_active = 30.0
-			ch.mirror_pos = ppos
+			ch.elite = 2
+			ch.fill_sp()
 			for k in ["wisadel", "eyjafjalla", "suzuran"]:
 				var op = squad.add(k)
 				if op != null:
@@ -744,8 +727,6 @@ func _autotest_step() -> void:
 			merchant = {"pos": ppos + Vector2(900, -300), "life": 60.0, "near": false}
 		if at_frames == 150 and not tray_cells.is_empty():
 			Input.warp_mouse(tray_cells[0][0].get_center())
-		if at_frames == 110 and ch.evo2 == "tendril_giant":
-			ch.giants.append({"pos": ppos + Vector2(230, 20), "t": 0.0, "dur": 2.6, "ang0": PI, "dir": 1.0, "dmg": 50.0, "hit": {}, "ang": 0.0})
 		if at_frames == 60:
 			_drop(ppos + Vector2(120, 40), "magnet", 1.0)
 			_drop(ppos + Vector2(-120, 40), "heal", 1.0)
@@ -784,7 +765,7 @@ func _autotest_step() -> void:
 			return
 		if show_t > 1.4 and not show_shot and DisplayServer.get_name() != "headless":
 			show_shot = true
-			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_show_%d.png" % elite_stage)
+			get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_show_%d.png" % ch.elite)
 		if show_t > 1.6:
 			_close_show()
 		return
@@ -798,10 +779,6 @@ func _autotest_step() -> void:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [t, state, level, hp, enemies.size()])
 		if state == S.CHOICE:
 			var pi := rng.randi() % choices.size()
-			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evoblade"):
-				pi = 0
-			if choices[0].kind == "evo" and OS.get_cmdline_user_args().has("--evotendril"):
-				pi = choices.size() - 1
 			for a in OS.get_cmdline_user_args():
 				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
 				if a.begins_with("--evpick=") and choice_kind == "event":
@@ -818,8 +795,8 @@ func _autotest_step() -> void:
 		if (state == S.DEAD or state == S.WIN or t > 620.0) and not bal_done:
 			bal_done = true
 			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "kills": kills,
-				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": elite_stage,
-				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "evo": ch.evo_text(), "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
+				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
+				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out}))
 			get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and at_frames >= 90 and at_frames < 100):
@@ -889,14 +866,14 @@ func _autotest_step() -> void:
 			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机
 			var deep: Array = []
 			for ci in choices.size():
-				if choices[ci].kind in ["prog", "skill"]:
+				if choices[ci].kind == "prog":
 					deep.append(ci)
 			if not deep.is_empty() and rng.randf() < 0.7:
 				_pick(deep[rng.randi() % deep.size()])
 			else:
 				_pick(rng.randi() % choices.size())
 	if at_frames % 1200 == 0:
-		print("t=%d lv=%d E%d evo=%s hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [t, level, elite_stage, ch.evo_text(), hp, enemies.size(), kills, lamp, growth, relics, squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
+		print("t=%d lv=%d E%d hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [t, level, ch.elite, hp, enemies.size(), kills, lamp, growth, relics, squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in bosses:
 		if not bb.dead and not bb.invuln and not bosstest:
 			bb.hp -= 4.0 if bosstest else 40.0
@@ -916,9 +893,7 @@ func _autotest_step() -> void:
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
 	if OS.get_cmdline_user_args().has("--sptest") and at_frames % 120 == 0:
 		for o in squad.ops:
-			var need: float = float(o.skill_def().get("sp", 0.0))
-			if need > 0.0:
-				o.sp = need
+			o.fill_sp()
 	if shot_at.has(at_frames) and DisplayServer.get_name() != "headless":
 		get_viewport().get_texture().get_image().save_png(shot_dir + "/shot_%d.png" % at_frames)
 	if bosstest and at_frames > 610:
@@ -2648,9 +2623,6 @@ func _close_shop() -> void:
 # 武器：支援无人机；触须阵 / 潮汐弹由路线成长（群触·阵 / 潮刃·回响）驱动
 # =====================================================================
 func _update_weapons(dt: float) -> void:
-	for o in squad.ops:
-		o._update_stakes(dt)
-		o._update_giants(dt)
 	var dl: int = weapons.get("drone", 0)
 	if dl > 0:
 		var want := 2 if dl >= 4 else 1
@@ -2803,9 +2775,6 @@ func _update_bullets(dt: float) -> void:
 			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
-		if b.kind == "wave":
-			b.get("owner", ch)._update_wave(b, dt)
-			continue
 		if (b.kind == "fire" or b.kind == "missile") and not b.get("hidden", false):
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:
@@ -3043,10 +3012,6 @@ func _add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 
 func _update_fx(dt: float) -> void:
 	flash = maxf(0.0, flash - dt * 2.0)
-	if not skill_cut.is_empty():
-		skill_cut.t += dt
-		if skill_cut.t > 1.1:
-			skill_cut = {}
 	horde_warn = maxf(0.0, horde_warn - dt)
 	tab_hint = maxf(0.0, tab_hint - dt)
 	horde_hit = maxf(0.0, horde_hit - dt)
@@ -3117,9 +3082,7 @@ func _draw_panel_bg() -> void:
 	var en_label := "RELIC" if choice_kind == "relic" else ("EVENT" if choice_kind == "event" else "LEVEL UP")
 	if choice_kind == "shop":
 		en_label = "MERCHANT"
-	if choices.size() > 0 and choices[0].kind == "evo":
-		en_label = "EVOLUTION"
-	elif choices.size() > 0 and choices[0].kind == "recruit":
+	if choices.size() > 0 and choices[0].kind == "recruit":
 		en_label = "RECRUIT"
 	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + en_label.length() * 4.0
 	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 12, title_col, 4.0)
@@ -3198,9 +3161,10 @@ func _animate_cards(dt: float) -> void:
 		card.queue_redraw()
 
 
-func _skill_item(sid: String, op = null) -> Dictionary:
-	var sk: Dictionary = (op if op != null else ch).skills()[sid]
-	return {"tag": "技能", "tag_en": "SKILL", "glyph": sk.glyph, "icon": "skill_" + sid, "name": sk.name, "desc": sk.desc, "col": sk.col}
+## 解锁演出的技能卡：干员 op 的第 i 个技能
+func _skill_item(op, i: int) -> Dictionary:
+	var sk: Dictionary = op.skill_def(i)
+	return {"tag": "技能", "tag_en": "SKILL %d" % (i + 1), "glyph": sk.get("name", "技").substr(0, 1), "icon": sk.get("icon", ""), "name": sk.get("name", ""), "desc": sk.get("desc", ""), "col": op.col()}
 
 
 func _open_show(sc: Dictionary) -> void:
@@ -3259,35 +3223,24 @@ func _draw_show(vs: Vector2) -> void:
 	hud.draw_set_transform(cx + Vector2(0, 58), 0.0, Vector2(1.0, 0.3))
 	hud.draw_circle(Vector2.ZERO, 60.0, Color(0, 0, 0, 0.5 * da))
 	hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var at: Texture2D = tex.get("player_attack_48")
+	var sop = sc.get("op", ch)
+	var at: Texture2D = sop.anim_tex("attack")
 	if at != null:
 		var n := at.get_width() / at.get_height()
 		var fh := at.get_height()
-		var spd := 12.0 if sc.demo == "s2" else 7.0
+		var spd := 9.0
 		var fr := int(st * spd) % n
 		var S5: float = 5.0 / A.hires_of(at)
 		var size := Vector2(fh, fh) * S5
 		var dst := Rect2(cx - Vector2(size.x / 2.0, size.y - 60.0 + 2.0 * S5), size)
-		if sc.demo == "s3":
-			# 镜花水月：镜像残影
-			var ghost := Rect2(dst.position + Vector2(-70, 0), dst.size)
-			hud.draw_set_transform(ghost.position + Vector2(ghost.size.x, 0), 0.0, Vector2(-1, 1))
-			hud.draw_texture_rect_region(at, Rect2(Vector2.ZERO, ghost.size), Rect2(fh * ((fr + 2) % n), 0, fh, fh), Color(0.8, 0.6, 1.0, 0.35 * da))
-			hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		hud.draw_texture_rect_region(at, dst, Rect2(fh * fr, 0, fh, fh), Color(1, 1, 1, da))
 		# 技能特效示意
 		var sl: Texture2D = tex.get("slash")
 		if sl != null and fr >= 1:
 			var sfw := sl.get_width() / 4
 			var sfr := clampi(fr - 1, 0, 3)
-			var ssz := Vector2(sfw, sl.get_height()) * (7.0 if sc.demo == "s3" else 5.0)
+			var ssz := Vector2(sfw, sl.get_height()) * 5.0
 			hud.draw_texture_rect_region(sl, Rect2(cx + Vector2(-ssz.x / 2.0 + 60.0, -ssz.y / 2.0 - 70.0), ssz), Rect2(sfw * sfr, 0, sfw, sl.get_height()), Color(col.r * 1.3, col.g * 1.3, col.b * 1.3, 0.9 * da))
-		if sc.demo == "s2":
-			# 囚徒困境：束缚锁链环
-			for j in 6:
-				var ang := st * 2.0 + TAU * j / 6.0
-				var p := cx + Vector2(0, -80) + Vector2.from_angle(ang) * Vector2(150, 60)
-				UI.diamond(hud, p, 7.0, Color(0.02, 0.06, 0.1, da), Color(col.r, col.g, col.b, da))
 	# 右侧：说明卡
 	var items: Array = sc["items"]
 	for i in items.size():
@@ -3325,10 +3278,6 @@ func _card_icon(o: Dictionary) -> Texture2D:
 			return tex.get("growth_" + o.id)
 		"weapon":
 			return tex.get("weapon_" + o.id)
-		"evo":
-			return tex.get("evo_" + o.id)
-		"skill":
-			return tex.get("skill_" + o.id)
 		"prog":
 			return tex.get(o.get("icon", ""), null) if o.get("icon", "") != "" else null
 		"recruit":
@@ -3345,16 +3294,12 @@ func _card_color(o: Dictionary) -> Color:
 			return UI.CAT_COL.get(RL[o.id].cat, UI.GOLD)
 		"recruit":
 			return Color(0.55, 0.9, 0.55)
-		"skill":
-			return squad.get_op(o.get("op", ch.id)).skills()[o.id].col
 		"prog":
 			if o.get("col", null) != null:
 				return o.col
 			return Color(0.8, 0.55, 1.0) if o.get("elite", 0) > 0 else Color(0.55, 0.85, 1.0)
 		"weapon":
 			return D.WEAPONS[o.id].col
-		"evo":
-			return ch.evo_table()[o.id].col
 	return UI.CYAN
 
 
@@ -3373,12 +3318,8 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		cat = "招募  " + o.get("cls", "")
 	elif o.kind == "prog":
 		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
-	elif o.kind == "skill":
-		cat = "技能进阶  " + ("I" if o.stage == 1 else "II")
 	elif o.kind == "weapon":
 		cat = "武器  " + D.WEAPONS[o.id].en
-	elif o.kind == "evo":
-		cat = ("进化  " if not ch.evo_table()[o.id].has("path") else "质变  ") + ch.evo_table()[o.id].en
 	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
 	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	# 图标底座
@@ -3390,16 +3331,15 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = RL[o.id].name.substr(0, 1)
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
-	elif o.kind == "evo":
-		glyph = ch.evo_table()[o.id].glyph
 	var ic: Texture2D = _card_icon(o)
 	var bob := sin(t * 2.0 + i) * 2.0
-	if o.kind == "recruit" and tex.get("ally_" + o.id) != null:
-		var at: Texture2D = tex["ally_" + o.id]
-		var fw := at.get_width() / 2
-		var ks: float = 2.0 if at.get_height() <= 48 else 72.0 / at.get_height()
-		var asz := Vector2(fw, at.get_height()) * ks
-		card.draw_texture_rect_region(at, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, fw, at.get_height()))
+	# 干员相关的卡（招募 / 成长 / 精英化 / 技能进阶）没有专属图标时，画该干员的待机第一帧
+	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
+	var idle: Dictionary = _op_idle(opid) if ic == null and opid != "" else {}
+	if not idle.is_empty():
+		var ks: float = 2.0 if idle.fh <= 48 else 72.0 / idle.fh
+		var asz := Vector2(idle.fw, idle.fh) * ks
+		card.draw_texture_rect_region(idle.tex, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, idle.fw, idle.fh))
 	elif ic != null:
 		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32) + Vector2(0, bob), Vector2(64, 64)), false)
 	else:
@@ -3414,6 +3354,26 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_string(font, r.position + Vector2(r.size.x - 70, r.size.y - 14), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 54, Color(col.r, col.g, col.b, 0.06))
 	if hov:
 		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 16), "SELECT", 11, col, 3.0)
+
+
+## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
+func _op_idle(cid: String) -> Dictionary:
+	if cid == "" or not Character.list_ids().has(cid):
+		return {}
+	var sp = Character.load_def(cid).get("sprites", {}).get("idle", null)
+	if sp == null:
+		return {}
+	var tn: String = sp if sp is String else sp.get("tex", "")
+	var tx: Texture2D = tex.get(tn)
+	if tx == null:
+		tx = A.tex(tn)
+		tex[tn] = tx
+	if tx == null:
+		return {}
+	var frames: int = int(sp.get("frames", 0)) if sp is Dictionary else 0
+	if frames <= 0:
+		frames = maxi(1, tx.get_width() / tx.get_height())
+	return {"tex": tx, "fw": tx.get_width() / frames, "fh": tx.get_height()}
 
 
 ## 干员贴图集（运行中招募 / 测试编入时补加载）
@@ -3508,20 +3468,17 @@ func _open_levelup() -> void:
 		var wcard := {"kind": "weapon", "id": "drone", "name": ("%s  Lv.%d" % [W.name, wl + 1]) if wl > 0 else "新武器 · " + W.name,
 			"desc": W.lv[wl], "wlv": wl + 1}
 		for k in range(picks.size() - 1, -1, -1):
-			if picks[k].kind != "prog" and picks[k].kind != "skill":
+			if picks[k].kind != "prog":
 				picks[k] = wcard
 				break
 	picks.shuffle()
 	_show_choices("升级！ Lv.%d" % level, picks.slice(0, want), "level")
 
 
-## 成长项定义：博士 / 全队被动在 doctor.PASSIVES，干员专属在各干员的 growth_table()
+## 成长项定义：博士 / 全队被动（doctor.PASSIVES）
 func _growth_def(gid: String) -> Dictionary:
 	if doctor.PASSIVES.has(gid):
 		return doctor.PASSIVES[gid]
-	for o in squad.ops:
-		if o.growth_table().has(gid):
-			return o.growth_table()[gid]
 	return {"name": gid, "desc": "", "max": 1}
 
 
@@ -3606,21 +3563,11 @@ func _pick(i: int) -> void:
 				fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
 		"relic":
 			_gain_relic(o.id)
-		"evo":
-			ch.on_evo_pick(o.id)
 		"weapon":
 			weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
 			_show_banner(("获得武器「%s」" if o.wlv == 1 else "「%s」升至 Lv.%d") % ([W.name] if o.wlv == 1 else [W.name, o.wlv]))
 			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
-		"skill":
-			skill_lv[o.id] += 1
-			var sop = squad.get_op(o.get("op", ch.id))
-			var sk: Dictionary = sop.skills()[o.id]
-			var ad: Dictionary = sop.skill_adv()[o.id][o.stage - 1]
-			_show_banner("技能进阶：%s · %s" % [sk.name, ad.name])
-			fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": sk.col})
-			fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": sk.col})
 	if choice_kind == "relic":
 		pending_chests -= 1
 	else:
@@ -3902,6 +3849,7 @@ func _draw() -> void:
 			3:
 				map.draw_sort_prop(it[2])
 	squad.draw_skill_over()
+	_draw_shield()
 	for dr in drones:
 		draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
 		draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
@@ -3936,9 +3884,6 @@ func _draw() -> void:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
 		var n: Vector2 = b.vel.normalized()
-		if b.kind == "wave":
-			b.get("owner", ch)._draw_wave(b)
-			continue
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
 		if ptex != "" and tex.get(ptex) != null:
@@ -4800,30 +4745,6 @@ func _draw_hud() -> void:
 
 	if flash > 0.0:
 		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, flash * 0.5))
-	# 技能发动横幅：斜切色带滑入，水月剪影 + 技能名
-	if not skill_cut.is_empty():
-		var sk: Dictionary = ch.skills()[skill_cut.id]
-		var ct2: float = skill_cut.t
-		var c: Color = sk.col
-		var enter := clampf(ct2 / 0.15, 0.0, 1.0)
-		var leave := clampf((ct2 - 0.8) / 0.3, 0.0, 1.0)
-		var ox := (1.0 - enter) * vs.x * 0.6 - leave * vs.x * 0.8
-		var by := vs.y * 0.62
-		var band := PackedVector2Array([Vector2(ox + 80, by - 58), Vector2(ox + vs.x, by - 58), Vector2(ox + vs.x - 60, by + 42), Vector2(ox + 20, by + 42)])
-		hud.draw_colored_polygon(band, Color(0.02, 0.05, 0.08, 0.82))
-		hud.draw_line(band[0], band[1], c, 3.0)
-		hud.draw_line(band[3], band[2], Color(c.r, c.g, c.b, 0.5), 2.0)
-		for q in 6:
-			var lx := fmod(ct2 * 900.0 + q * 230.0, vs.x) + ox
-			hud.draw_line(Vector2(lx, by - 40 + q * 12), Vector2(lx + 120, by - 40 + q * 12), Color(c.r, c.g, c.b, 0.25), 2.0)
-		var at: Texture2D = tex.get("player_attack_48")
-		if at != null:
-			var fh := at.get_height()
-			var fr := clampi(int(ct2 * 10.0), 0, 3)
-			var S6: float = 3.0 / A.hires_of(at)
-			hud.draw_texture_rect_region(at, Rect2(Vector2(ox + 180, by + 42 - fh * S6 + 6), Vector2(fh, fh) * S6), Rect2(fh * fr, 0, fh, fh), Color(1, 1, 1, 1.0 - leave))
-		UI.en(hud, font, Vector2(ox + 360, by - 22), "SKILL  ·  " + sk.en, 12, c, 4.0)
-		UI.text(hud, font, Vector2(ox + 356, by + 22), sk.name, 40, Color(1, 1, 1, 1.0 - leave), HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
 	# 大群预警与到达演出
 	if horde_warn > 0.0 or horde_hit > 0.0:
 		var hw := horde_warn > 0.0
@@ -5072,10 +4993,6 @@ func _draw_hud() -> void:
 	# 右下：技能与援护干员
 	_draw_skills(Vector2(vs.x - 16, vs.y - 16))
 	_draw_allies_hud(Vector2(vs.x - 16, vs.y - 150))
-	# 左下：精英化 / 模组
-	var evl: Array = ch.evo_label()
-	if not evl.is_empty():
-		UI.text(hud, font, Vector2(18, vs.y - 190), evl[0], 14, evl[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 
 	# 横幅通知
 	if banner_t > 0.0:
@@ -5366,9 +5283,6 @@ func _draw_stats(vs: Vector2) -> void:
 	var cx0 := r.position.x + 350
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "Lv.%d" % level, UI.GLOW, 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 12) + 8
-	var evl2: Array = ch.evo_label()
-	if not evl2.is_empty():
-		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), evl2[0], evl2[1], 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12) + 14
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), endg.cur_name(), endg.cur_col(), 11) + 14
 	# 角色能力标签（来自角色 JSON）
@@ -5425,31 +5339,7 @@ func _draw_stats(vs: Vector2) -> void:
 	y += 8
 	UI.rule(hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
 	y += 10
-	if ch.skills().is_empty():
-		y = _draw_generic_skill_rows(b1, y)
-	for sid in (["s1", "s2", "s3"] if not ch.skills().is_empty() else []):
-		var sk: Dictionary = ch.skills()[sid]
-		var lv: int = skill_lv[sid]
-		var col: Color = sk.col if lv >= 1 else Color(0.35, 0.42, 0.46)
-		var sc := Vector2(b1.position.x + 34, y + 18)
-		stats_cells.append([Rect2(b1.position.x + 12, y - 2, b1.size.x - 24, 42), "skill", sid])
-		UI.ring(hud, sc, 17.0, 1.0 if lv >= 1 else 0.0, col, false, lv < 1)
-		var sicon: Texture2D = tex.get("skill_" + sid)
-		if sicon != null:
-			hud.draw_texture_rect(sicon, Rect2(sc - Vector2(16, 16), Vector2(32, 32)), false, Color.WHITE if lv >= 1 else Color(0.3, 0.3, 0.35))
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), sk.name if lv >= 1 else "%s（未解锁）" % sk.name, 14, UI.TEXT if lv >= 1 else UI.SUB)
-		var ax: float = b1.position.x + 62
-		for k in 2:
-			var ad: Dictionary = ch.skill_adv()[sid][k]
-			var got := lv >= k + 2
-			# 海嗣化（排异）的进阶：紫色 + "排异" 标记
-			var rej_key: String = sid + ("a" if k == 0 else "b")
-			var rejd: bool = got and doctor.rej().has(rej_key)
-			var acol: Color = Color(0.85, 0.55, 1.0) if rejd else col
-			UI.diamond(hud, Vector2(ax + 5, y + 28), 3.5, acol if got else Color(0, 0, 0, 0), acol if got else Color(0.35, 0.42, 0.46))
-			UI.text(hud, font, Vector2(ax + 13, y + 32), ad.name + ("·排异" if rejd else ""), 11, acol if got else Color(0.35, 0.42, 0.46))
-			ax += 120
-		y += 44
+	y = _draw_generic_skill_rows(b1, y)
 	# ---- 队伍与成长
 	var b2: Rect2 = boxes[2]
 	UI.text(hud, font, b2.position + Vector2(16, 26), "队伍与成长", 16, UI.CYAN)
@@ -5559,17 +5449,6 @@ func _draw_stats(vs: Vector2) -> void:
 		if cellinfo[1] == "relic":
 			var rd2: Dictionary = RL[cellinfo[2]]
 			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
-		elif cellinfo[1] == "skill":
-			var sid2: String = cellinfo[2]
-			var sk2: Dictionary = ch.skills()[sid2]
-			var lv2: int = skill_lv[sid2]
-			var advs: Array = ch.skill_adv()[sid2]
-			var d2: String = sk2.desc
-			for k in advs.size():
-				var tag: String = "◆" if lv2 >= k + 2 else "◇"
-				d2 += "\n%s %s（Lv.%d）：%s" % [tag, advs[k].name, advs[k].min_lv, advs[k].desc]
-			var sub2: String = "成长线解锁" if lv2 < 1 else ("已解锁 · 进阶 %d/2" % (lv2 - 1))
-			_draw_tooltip(vs, cr2, sk2.name + "  " + sk2.en, sub2, d2, "skill_" + sid2, sk2.col)
 		else:
 			var gd: Dictionary = _growth_def(cellinfo[2])
 			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
@@ -5786,8 +5665,7 @@ func _draw_allies_hud(br: Vector2) -> void:
 		var o = squad.ops[i + 1]
 		var c := br + Vector2(-(n - i) * 76 + 40, -30)
 		var acol := Color(0.55, 0.9, 0.55)
-		var need: float = float(o.skill_def().get("sp", 0.0))
-		UI.ring(hud, c, 21.0, clampf(o.sp / need, 0.0, 1.0) if need > 0.0 else 1.0, acol)
+		UI.ring(hud, c, 21.0, o.hud_sp_frac(), acol)
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = tex.get(pt.tex)
 		if at != null:
@@ -5816,7 +5694,7 @@ func _draw_skills(br: Vector2) -> void:
 		var gcol: Color = col if unlocked else Color(0.3, 0.38, 0.42)
 		if active > 0.0:
 			gcol = Color(1, 1, 1)
-		var icon: Texture2D = tex.get("skill_s%d" % (i + 1))
+		var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
 		if icon != null:
 			hud.draw_texture_rect(icon, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
 		else:
@@ -5828,11 +5706,9 @@ func _draw_skills(br: Vector2) -> void:
 			var np: int = it[7]
 			for k in np:
 				UI.diamond(hud, c + Vector2(-14 + k * 14, rad - 5), 4.0, col if k < int(it[8]) else Color(0.15, 0.18, 0.2), Color(col.r, col.g, col.b, 0.5))
-		# 进阶等级：环外上方两颗小点
-		var slv: int = skill_lv["s%d" % (i + 1)]
-		if slv >= 1:
-			for k in 2:
-				UI.diamond(hud, c + Vector2(-6 + k * 12, -rad - 5), 3.0, col if slv >= k + 2 else Color(0.15, 0.18, 0.2))
+		# 海嗣化（排异）：环下一枚紫点
+		if ch.rej.has(i):
+			UI.diamond(hud, c + Vector2(0, -rad - 5), 3.5, Color(0.85, 0.55, 1.0))
 
 
 func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
@@ -5866,7 +5742,7 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 	UI.heading(hud, font, Vector2(r.get_center().x, r.position.y + 90), title, 36, col, 250.0)
 	var mm := int(t) / 60
 	var ss := int(t) % 60
-	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [level, ["精零", "精英化一", "精英化二"][elite_stage]]],
+	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [level, ["精零", "精英化一", "精英化二"][ch.elite]]],
 		["击杀", str(kills)], ["难度", "%d  %s" % [diff, D.DIFFICULTY[diff].name]]]
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(ending, {}).get("gallery", {}).get("epilogue", "")
@@ -5894,21 +5770,30 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		bx += bw + 12
 
 
-## Tab 面板攻击栏下半：通用开局干员（无旧三技能表）的普攻 / 自动技能 / 天赋三行
+## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋
 func _draw_generic_skill_rows(b1: Rect2, y: float) -> float:
 	var c: Color = ch.col()
-	var rows: Array = [
-		["攻", ch.attack_def().get("name", "普攻"), ch.attack_def().get("desc", ""), true],
-		["技", ch.skill_def().get("name", "技能"), ch.skill_def().get("desc", "") + (("（充能 %d，当前 %d%%）" % [int(ch.skill_def().get("sp", 0)), int(100.0 * ch.sp / maxf(1.0, float(ch.skill_def().get("sp", 1))))]) if ch.skill_def().has("sp") else ""), true],
-		["赋", ch.talent_def().get("name", "天赋"), ch.talent_def().get("desc", ""), ch.elite >= 1],
-	]
+	var rows: Array = []
+	for i in 3:
+		var sd: Dictionary = ch.skill_def(i)
+		var on: bool = ch.skill_unlocked(i)
+		var need: float = ch.sp_need(i)
+		var extra: String = ""
+		if on and need > 0.0:
+			extra = "（充能 %d · %d%%）" % [int(need), int(100.0 * ch.sp[i] / need)]
+		elif not on:
+			extra = "（%s解锁）" % ["招募", "精英化一", "精英化二"][i]
+		rows.append(["%d" % (i + 1), sd.get("name", "技能 %d" % (i + 1)) + extra, sd.get("desc", ""), on, ch.rej.has(i)])
+	var td: Dictionary = ch.talent_def()
+	if not td.is_empty():
+		rows.append(["赋", td.get("name", "天赋") + ("" if ch.elite >= 1 else "（精英化一解锁）"), td.get("desc", ""), ch.elite >= 1, false])
 	for row in rows:
 		var on: bool = row[3]
-		var col: Color = c if on else Color(0.35, 0.42, 0.46)
+		var col: Color = (Color(0.85, 0.55, 1.0) if row[4] else c) if on else Color(0.35, 0.42, 0.46)
 		var sc := Vector2(b1.position.x + 34, y + 18)
 		UI.ring(hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
 		UI.text(hud, font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), row[1] if on else "%s（精英化一解锁）" % row[1], 14, UI.TEXT if on else UI.SUB)
+		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB)
 		UI.text(hud, font, Vector2(b1.position.x + 62, y + 32), UI.soft(row[2]).substr(0, 34), 11, col if on else Color(0.35, 0.42, 0.46))
 		y += 44
 	return y

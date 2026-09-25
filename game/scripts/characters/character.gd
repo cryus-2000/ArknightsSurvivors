@@ -18,7 +18,9 @@ var mt := 0.0              # 移动计时（跑步循环）
 var slot := 0              # 编队位序号
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
-var sp := 0.0              # 自动技能充能
+var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
+var cur_skill := 0                # 正在起手的技能序号（start_skill → _release_skill）
+var rej: Dictionary = {}          # 排异反应：被海嗣化的技能序号 → true
 var attack_t := 0.0        # >0 表示正在播放攻击动作（由干员在出手时设置）
 var attack_dur := 0.25
 var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
@@ -75,17 +77,25 @@ static func create(game, cid: String) -> RefCounted:
 	return inst
 
 
-## 干员契约（docs/23 §4.2）：必须有 attack（普攻）与 skill（自动技能），两者都是 auto；talent 可选；
-## progression 若存在必须是数组，节点 type ∈ stat / elite / custom，elite 节点带 level
+## 干员契约 v2.1（docs/23 §4.2）：attack（普攻）+ 恰好 3 个自动技能 skills[0..2]（招募 / 精一 / 精二解锁）；talent 可选（精一）；
+## 手动技能只属于博士；progression 若存在必须是数组，节点 type ∈ stat / elite / custom，elite 节点带 level
 static func validate_operator(cid: String, d: Dictionary) -> bool:
 	var ok := true
-	for key in ["attack", "skill"]:
-		if not d.has(key) or not (d[key] is Dictionary):
-			push_error("干员 %s 缺少 %s 定义" % [cid, key])
-			ok = false
-		elif d[key].get("mode", "auto") != "auto":
-			push_error("干员 %s 的 %s 必须是 auto（手动技能只属于博士）" % [cid, key])
-			ok = false
+	if not d.has("attack") or not (d.attack is Dictionary):
+		push_error("干员 %s 缺少 attack 定义" % cid)
+		ok = false
+	var sk = d.get("skills", null)
+	if not (sk is Array) or sk.size() != 3:
+		push_error("干员 %s 必须恰好定义 3 个技能（skills 数组）" % cid)
+		ok = false
+	else:
+		for i in 3:
+			if not (sk[i] is Dictionary) or not sk[i].has("name"):
+				push_error("干员 %s 的技能 %d 缺 name" % [cid, i + 1])
+				ok = false
+			elif sk[i].get("mode", "auto") != "auto":
+				push_error("干员 %s 的技能 %d 必须是 auto（手动技能只属于博士）" % [cid, i + 1])
+				ok = false
 	var prog = d.get("progression", [])
 	if not (prog is Array):
 		push_error("干员 %s 的 progression 必须是数组" % cid)
@@ -98,32 +108,6 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 		elif n.type == "elite" and not n.has("level"):
 			push_error("干员 %s 的精英化节点 %d 缺 level" % [cid, i])
 			ok = false
-	return ok
-
-
-## 三技能契约：恰好 3 个核心技能；释放方式只能是 auto / manual，且 manual 最多 1 个。
-## 基础攻击与天赋不占槽；技能进阶、E1/E2、藏品只能改造这三个技能，不能新增可施放槽位。
-static func validate_skills(cid: String, table: Dictionary, d: Dictionary) -> bool:
-	var ids: Array = d.get("skills", table.keys())
-	var ok := true
-	if ids.size() != 3:
-		push_error("角色 %s 必须恰好定义 3 个核心技能，现在是 %d" % [cid, ids.size()])
-		ok = false
-	var manual := 0
-	for sid in ids:
-		if not table.has(sid):
-			push_error("角色 %s 的技能 %s 没有定义" % [cid, sid])
-			ok = false
-			continue
-		var mode: String = table[sid].get("mode", "auto")
-		if mode != "auto" and mode != "manual":
-			push_error("角色 %s 技能 %s 的 mode 只能是 auto / manual" % [cid, sid])
-			ok = false
-		if mode == "manual":
-			manual += 1
-	if manual > 1:
-		push_error("角色 %s 最多只能有 1 个手动技能，现在是 %d" % [cid, manual])
-		ok = false
 	return ok
 
 
@@ -153,89 +137,104 @@ func col() -> Color:
 	return CLASS_COL.get(cls, Color(0.6, 0.9, 1.0))
 
 
-## 旧三技能表（s1–s3）：只有水月有；其余干员返回空，HUD / Tab 改用 attack / skill / talent
-func skills() -> Dictionary:
-	return {}
-
-
-func skill_adv() -> Dictionary:
-	return {}
-
-
-## 角色专属成长项（伞击 / 触手…）：默认无
-func growth_table() -> Dictionary:
-	return {}
-
-
-## 精英化路线表（潮刃 / 群触）：默认无
-func evo_table() -> Dictionary:
-	return {}
-
-
-func evo_label() -> Array:
-	return []
-
-
-## 平衡输出里的路线文字（水月：evo1/evo2）
-func evo_text() -> String:
-	return ""
-
-
-func on_evo_pick(_id: String) -> void:
-	pass
-
-
 ## 任一持续型技能是否生效中（音乐强度 / 黑色郁金香）
 func skill_active() -> bool:
-	return skill_active_left() > 0.0
+	for i in 3:
+		if skill_active_left(i) > 0.0:
+			return true
+	return false
 
 
-## 持续型技能的剩余秒数 / 总时长（HUD 环倒计时用）；瞬发技能返回 0
-func skill_active_left() -> float:
+## 持续型技能 i 的剩余秒数 / 总时长（HUD 环倒计时；生效期间该技能不充能）；瞬发技能返回 0
+func skill_active_left(_i: int) -> float:
 	return 0.0
 
 
-func skill_active_dur() -> float:
+func skill_active_dur(i: int) -> float:
+	return float(skill_def(i).get("dur", 1.0))
+
+
+## HUD 右下三个环：[字, 名, 已解锁, 生效剩余, 生效总长, 充能比例, 颜色, 计数格数, 已有计数, 图标名]
+func skill_hud() -> Array:
+	var out: Array = []
+	var c := col()
+	for i in 3:
+		var sd := skill_def(i)
+		var need := sp_need(i)
+		var sc: Color = Color(0.85, 0.55, 1.0) if rej.has(i) else c
+		out.append([sd.get("name", "技").substr(0, 1), sd.get("name", "技能 %d" % (i + 1)), skill_unlocked(i), skill_active_left(i), skill_active_dur(i),
+			(sp[i] / need) if need > 0.0 else 1.0, sc, 0, 0, sd.get("icon", "")])
+	return out
+
+
+## 编队栏头像环：已解锁的最高技能的充能比例
+func hud_sp_frac() -> float:
+	for i in [2, 1, 0]:
+		if skill_unlocked(i) and sp_need(i) > 0.0:
+			return clampf(sp[i] / sp_need(i), 0.0, 1.0)
 	return 1.0
 
 
-## HUD 右下三个环：[字, 名, 已解锁, 生效剩余, 生效总长, 充能比例, 颜色, 计数格数, 已有计数]
-## 通用干员：普攻 / 自动技能（SP）/ 天赋（精一解锁）
-func skill_hud() -> Array:
-	var c := col()
-	var ad := attack_def()
-	var sd := skill_def()
-	var td := talent_def()
-	var need: float = float(sd.get("sp", 0.0))
-	return [
-		[ad.get("name", "攻").substr(0, 1), ad.get("name", "普攻"), true, 0.0, 1.0, 1.0, c, 0, 0],
-		[sd.get("name", "技").substr(0, 1), sd.get("name", "技能"), true, skill_active_left(), skill_active_dur(), (sp / need) if need > 0.0 else 1.0, c, 0, 0],
-		[td.get("name", "赋").substr(0, 1), td.get("name", "天赋"), elite >= 1, 0.0, 1.0, 1.0, c.lerp(Color(1, 1, 1), 0.3), 0, 0],
-	]
+## 三个技能同时充能（生效中的不充）；返回本帧该释放的技能序号（S3 > S2 > S1，一次只放一个），没有返回 -1
+func charge_skills(dt: float) -> int:
+	var ready := -1
+	for i in 3:
+		if not skill_unlocked(i):
+			continue
+		var need := sp_need(i)
+		if need <= 0.0 or skill_active_left(i) > 0.0:
+			continue
+		if sp[i] < need:
+			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
+		if sp[i] >= need:
+			ready = i
+	return ready
 
 
-## 藏品 / 先锋等给的技力：按需求百分比充能（水月额外充 s2 / s3）
+## 消费技能 i 的充能并通知藏品（技能开始事件）
+func spend_sp(i: int) -> void:
+	sp[i] = 0.0
+	g.rfx.on_skill_start()
+
+
+## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能
 func gain_sp(pct: float) -> void:
-	var need: float = float(skill_def().get("sp", 0.0))
-	if need > 0.0:
-		sp = minf(need, sp + need * pct)
+	for i in 3:
+		if skill_unlocked(i) and sp_need(i) > 0.0:
+			sp[i] = minf(sp_need(i), sp[i] + sp_need(i) * pct)
 
 
-## 水月专属实体的更新 / 绘制钩子（game.gd 对全队调用，其他干员为空）
-func _update_stakes(_dt: float) -> void:
-	pass
+## 测试：全部充满
+func fill_sp() -> void:
+	for i in 3:
+		if skill_unlocked(i):
+			sp[i] = sp_need(i)
 
 
-func _update_giants(_dt: float) -> void:
-	pass
+## 排异反应（结局四）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，博士最大生命 -10
+func apply_rejection() -> String:
+	var cands: Array = []
+	for i in 3:
+		if skill_unlocked(i) and not rej.has(i):
+			cands.append(i)
+	if cands.is_empty():
+		return ""
+	var i: int = cands[g.rng.randi() % cands.size()]
+	rej[i] = true
+	g.stats.add(&"op_skill_power", "add", 0.4, "rej:%s:%d" % [id, i], "op:" + id)
+	g.stats.add(&"max_hp", "flat", -10.0, "rej:%s:%d" % [id, i])
+	g._sync_stats()
+	g.hp = minf(g.hp, g.max_hp)
+	return "%s「%s」海嗣化：技能强度 +40%%、充能 +30%%；博士最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
 
 
-func _update_wave(_b: Dictionary, _dt: float) -> void:
-	pass
-
-
-func _draw_wave(_b: Dictionary) -> void:
-	pass
+## 精英化演出：新技能（+ 精一天赋）
+func _elite_show(stage: int) -> void:
+	var items: Array = [g._skill_item(self, stage)]
+	var td := talent_def()
+	if stage == 1 and not td.is_empty():
+		items.append({"tag": "天赋", "tag_en": "TALENT", "glyph": td.get("name", "赋").substr(0, 1), "name": td.get("name", ""), "desc": td.get("desc", ""), "col": col().lerp(Color(1, 1, 1), 0.3)})
+	g.show_queue.append({"head": "%s · 精英化%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "items": items})
 
 
 # ---------------------------------------------------------------- 干员特效粒子（docs/25）
@@ -354,8 +353,24 @@ func attack_def() -> Dictionary:
 	return def.get("attack", {})
 
 
-func skill_def() -> Dictionary:
-	return def.get("skill", {})
+## 三个技能的定义（JSON skills 数组）：{name, en, sp, desc, dur, icon}
+func skills_def() -> Array:
+	return def.get("skills", [])
+
+
+func skill_def(i: int) -> Dictionary:
+	var sk := skills_def()
+	return sk[i] if i >= 0 and i < sk.size() else {}
+
+
+## 技能 i 是否已解锁：招募 S1 / 精一 S2 / 精二 S3
+func skill_unlocked(i: int) -> bool:
+	return i < skills_def().size() and elite >= i
+
+
+## 技能 i 的充能需求（海嗣化 +30%）
+func sp_need(i: int) -> float:
+	return float(skill_def(i).get("sp", 0.0)) * (1.3 if rej.has(i) else 1.0)
 
 
 func talent_def() -> Dictionary:
@@ -430,6 +445,7 @@ func advance(choice: String = "") -> void:
 		"elite":
 			elite = int(n.level)
 			on_elite(elite, choice)
+			_elite_show(elite)
 		"custom":
 			on_custom_node(n.get("id", ""), choice)
 	if n.has("banner"):
@@ -493,18 +509,6 @@ func on_kill(_e: Dictionary) -> void:
 	pass
 
 
-## 自动技能充能（干员每帧调用）：到 skill.sp 满时返回 true 并清零
-func charge_skill(dt: float) -> bool:
-	var need: float = float(skill_def().get("sp", 0.0))
-	if need <= 0.0:
-		return false
-	sp += dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp()
-	if sp >= need:
-		sp = 0.0
-		return true
-	return false
-
-
 ## 属性块有变化时由 game.gd 调用：把 g.stats 里的专属属性同步到角色缓存变量
 func sync_stats(_st) -> void:
 	pass
@@ -518,33 +522,6 @@ func _swing_radius() -> float:
 ## 伤害通用倍率：全伤害倍率（全局 + 本干员作用域）× 干员攻击倍率
 func _dmg_bonus() -> float:
 	return stat(&"dmg") * stat(&"op_atk") * g.ally_mult
-
-
-# ---------------------------------------------------------------- 成长 / 技能 / 精英化
-
-## 成长项生效
-func _apply_growth(_gid: String) -> void:
-	pass
-
-
-## 升级卡上的数值预览
-func _growth_preview(_gid: String) -> String:
-	return ""
-
-
-## 技能发动演出（技能自动触发时由角色内部调用）
-func _skill_cast(_sid: String) -> void:
-	pass
-
-
-## 精英化一：可选路线 id 列表
-func evo_paths() -> Array:
-	return def.get("evo", {}).get("paths", [])
-
-
-## 精英化二：某路线下的质变 id 列表
-func evo_mutations(path: String) -> Array:
-	return def.get("evo", {}).get("mutations", {}).get(path, [])
 
 
 # ---------------------------------------------------------------- 绘制（世界坐标，用 g.draw_*）
@@ -643,8 +620,11 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25) -> void
 	_start_action("attack", aim, dur, fire_at)
 
 
-## 起手技能动作（skill 帧条）；没有 skill 条时直接出手
-func start_skill(aim: Vector2, dur: float = 0.6, fire_at: float = 0.3) -> void:
+## 起手技能动作（skill 帧条）；idx 为技能序号（默认沿用 cur_skill）；没有 skill 条时直接出手
+func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3) -> void:
+	if idx >= 0:
+		cur_skill = idx
+		spend_sp(idx)
 	_start_action("skill", aim, dur, fire_at)
 
 
@@ -675,7 +655,7 @@ func _release() -> void:
 	pass
 
 
-## 技能出手帧
+## 技能出手帧（cur_skill 为技能序号）
 func _release_skill() -> void:
 	pass
 

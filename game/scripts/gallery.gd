@@ -181,8 +181,9 @@ func _build() -> void:
 				var st: Array = []
 				if cd.has("attack"):
 					st.append(["普攻", cd.attack.get("name", "")])
-				if cd.has("skill"):
-					st.append(["技能", "%s%s" % [cd.skill.get("name", ""), ("（充能 %d）" % int(cd.skill.sp)) if cd.skill.has("sp") else ""]])
+				var sks: Array = cd.get("skills", [])
+				for si in sks.size():
+					st.append(["技能 %d" % (si + 1), "%s%s · %s" % [sks[si].get("name", ""), ("（充能 %d）" % int(sks[si].sp)) if sks[si].has("sp") else "", ["招募", "精一", "精二"][si]]])
 				if cd.has("talent"):
 					st.append(["天赋", cd.talent.get("name", "")])
 				if cb.has("umbrella_dmg"):
@@ -216,8 +217,9 @@ func _build() -> void:
 				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 				var mech: String = cd.get("gallery", {}).get("desc", "")
 				var lines: Array = []
-				if cd.has("skill"):
-					lines.append("技能「%s」：%s" % [cd.skill.get("name", ""), cd.skill.get("desc", "")])
+				for si in cd.get("skills", []).size():
+					var sk3: Dictionary = cd.skills[si]
+					lines.append("S%d「%s」：%s" % [si + 1, sk3.get("name", ""), sk3.get("desc", "")])
 				if cd.has("talent"):
 					lines.append("天赋「%s」：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
 				if not lines.is_empty():

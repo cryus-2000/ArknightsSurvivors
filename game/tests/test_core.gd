@@ -183,6 +183,7 @@ func test_squad_contract() -> void:
 		ok(elites.size() == 2 and int(elites[0].level) == 1 and int(elites[1].level) == 2, "两次精英化：%s" % cid)
 		ok(elites[1].has("requires"), "精英化二带条件：%s" % cid)
 	# 契约反例：缺 skill / manual 技能 / 非法节点
-	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skill 不通过")
-	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skill": {"mode": "manual"}}), "干员 manual 技能不通过")
-	ok(not Ch.validate_operator("bad", {"attack": {}, "skill": {}, "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skills 不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}]}), "技能不足 3 个不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c", "mode": "manual"}]}), "干员 manual 技能不通过")
+	ok(not Ch.validate_operator("bad", {"attack": {}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c"}], "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")

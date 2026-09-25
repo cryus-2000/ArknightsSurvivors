@@ -52,9 +52,12 @@ func apply_rejection() -> String:
 		if o.has_method("apply_rejection"):
 			cands.append(o)
 	var what := ""
-	if not cands.is_empty():
-		what = cands[g.rng.randi() % cands.size()].apply_rejection()
-	else:
+	cands.shuffle()
+	for c in cands:
+		what = c.apply_rejection()
+		if what != "":
+			break
+	if what == "":
 		g.stats.add(&"max_hp", "flat", -20.0, "rejection")
 		g._sync_stats()
 		g.hp = minf(g.hp, g.max_hp)

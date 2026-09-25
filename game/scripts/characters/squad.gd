@@ -93,9 +93,9 @@ func validate_squad() -> bool:
 		push_error("编队超员：%d / %d" % [ops.size(), cap()])
 		ok = false
 	for o in ops:
-		for sid in o.skills():
-			if o.skills()[sid].get("mode", "auto") == "manual":
-				push_error("干员 %s 的技能 %s 是 manual：手动技能只能属于博士" % [o.id, sid])
+		for i in o.skills_def().size():
+			if o.skills_def()[i].get("mode", "auto") == "manual":
+				push_error("干员 %s 的技能 %d 是 manual：手动技能只能属于博士" % [o.id, i + 1])
 				ok = false
 	return ok
 

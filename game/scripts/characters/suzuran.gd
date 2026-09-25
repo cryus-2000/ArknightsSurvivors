@@ -1,27 +1,37 @@
-## 铃兰（辅助，docs/23 §11.1）：减速光域（只减速不伤害）+ 向 2 名敌人发射追踪狐火；技能「光域」扩大光域并给其他干员加攻。
-## 特效（docs/25）：狐火金。光域为地面淡金椭圆 + 边缘绕行的六团狐火；狐火弹金白火球带火舌尾；技能期间光点上升、博士缓慢回复。
+## 铃兰（辅助，契约 v2.1）：减速光域（只减速不伤害）+ 向 2 名敌人发射追踪狐火。
+## S1 狐火连珠：下一次普攻 5 发；S2 暖光：光域 5 秒扩大、其他干员加攻、博士回复；S3 狐火迷雾：10 秒大光域，减速 60%、易伤 25%，期间不普攻。
+## 特效（docs/25）：狐火金。光域为地面淡金椭圆 + 边缘绕行的六团狐火；狐火弹金白火球带火舌尾；技能期间光点上升。
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.82, 0.45)
+const S2_DUR := 5.0
+const S3_DUR := 10.0
 
 var cd := 0.5
-var field_t := 0.0
+var volley_next := false      # S1：下一次普攻改为 5 发
+var field_t := 0.0            # S2 暖光
+var haze_t := 0.0             # S3 狐火迷雾
 var mote_t := 0.0
 var heal_acc := 0.0
 
 
 func aura_radius() -> float:
-	return (85.0 + 15.0 * elite) * stat(&"op_range") * (1.6 if field_t > 0.0 else 1.0)
+	var r: float = (85.0 + 15.0 * elite) * stat(&"op_range")
+	if haze_t > 0.0:
+		return r * 2.2
+	return r * (1.6 if field_t > 0.0 else 1.0)
 
 
 func update(dt: float) -> void:
 	cd -= dt
 	_update_orbs(dt)
-	if field_t > 0.0:
-		field_t -= dt
+	var on := field_t > 0.0 or haze_t > 0.0
+	if on:
+		field_t = maxf(0.0, field_t - dt)
+		haze_t = maxf(0.0, haze_t - dt)
 		mote_t -= dt
 		if mote_t <= 0.0:
-			mote_t = 0.05
+			mote_t = 0.05 if haze_t <= 0.0 else 0.03
 			var a: float = g.rng.randf() * TAU
 			var rr: float = g.rng.randf() * aura_radius()
 			fx({"kind": "mote", "pos": pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": GOLD, "sz": 1.8})
@@ -30,8 +40,8 @@ func update(dt: float) -> void:
 		if heal_acc >= 1.0:
 			heal_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.005)
-		if field_t <= 0.0:
+				g._heal(g.max_hp * (0.01 if haze_t > 0.0 else 0.005))
+		if field_t <= 0.0 and haze_t <= 0.0:
 			g.stats.remove_source("suzuran_field")
 			g._sync_stats()
 	var rad := aura_radius()
@@ -39,14 +49,22 @@ func update(dt: float) -> void:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(pos) > rad:
 			continue
-		e.slow = maxf(e.slow, 0.4 if field_t > 0.0 else 0.2)
-		if elite >= 1:
-			e["aura_weak"] = 0.2
+		e.slow = maxf(e.slow, 0.6 if haze_t > 0.0 else (0.4 if field_t > 0.0 else 0.2))
+		if elite >= 1 or haze_t > 0.0:
+			e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), 0.2)
 	if acting():
 		return
-	if charge_skill(dt):
-		start_skill(Vector2.INF)
+	var ready := charge_skills(dt)
+	if ready == 0:
+		spend_sp(0)
+		volley_next = true
+		fx({"kind": "glow", "pos": pos + Vector2(0, -30), "r": 18.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
 		return
+	if ready > 0:
+		start_skill(Vector2.INF, ready)
+		return
+	if haze_t > 0.0:
+		return   # 狐火迷雾：期间不普攻
 	if cd <= 0.0:
 		var ts: Array = g._nearest(2, 380.0 * stat(&"op_range"), pos)
 		if ts.is_empty():
@@ -58,12 +76,20 @@ func update(dt: float) -> void:
 
 func _release() -> void:
 	var n: int = 3 if elite >= 1 else 2
+	var mult := 1.0
+	if volley_next:
+		volley_next = false
+		n = 5
+		mult = 1.2 * skill_power()
 	var ts: Array = g._nearest(n, 400.0 * stat(&"op_range"), pos)
 	var from := pos + Vector2(12.0 * face, -30)
-	for k in ts.size():
-		var d: Vector2 = (ts[k].pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1))
-		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": 16.0 * _dmg_bonus(),
-			"life": 1.6, "r": 7.0, "aoe": 0.0, "home": ts[k], "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
+	for k in n:
+		if ts.is_empty():
+			break
+		var tg: Dictionary = ts[k % ts.size()]
+		var d: Vector2 = (tg.pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
+		g.bullets.append({"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": 16.0 * mult * _dmg_bonus(),
+			"life": 1.6, "r": 7.0, "aoe": 0.0, "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0})
 	if not ts.is_empty():
 		fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": GOLD, "alpha": 0.5})
 		Sfx.play("tentacle", -14.0, 1.6, 0.05)
@@ -81,19 +107,37 @@ func _update_orbs(dt: float) -> void:
 
 
 func _release_skill() -> void:
-	field_t = 10.0 if elite >= 2 else 5.0
 	heal_acc = 0.0
-	# 其他干员攻击加成：只写入别的干员的 op:<id> 作用域，不给自己
-	g.stats.remove_source("suzuran_field")
-	for o in g.squad.ops:
-		if o != self:
-			g.stats.add(&"op_atk", "add", (0.35 if elite >= 2 else 0.2) * skill_power(), "suzuran_field", "op:" + o.id)
-	g._sync_stats()
-	g._show_banner("光域展开")
+	match cur_skill:
+		1:
+			field_t = S2_DUR
+			_field_buff(0.2 * skill_power())
+			g._show_banner("暖光")
+		2:
+			haze_t = S3_DUR
+			_field_buff(0.2 * skill_power())
+			g._show_banner("狐火迷雾")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD})
 	for k in 10:
 		fx({"kind": "flame", "pos": pos + Vector2(0, -20), "vel": Vector2.from_angle(k * TAU / 10.0) * 120.0, "life": 0.5, "col": GOLD, "sz": 9.0, "drag": 2.5})
+
+
+## 其他干员攻击加成：只写入别的干员的 op:<id> 作用域，不给自己
+func _field_buff(v: float) -> void:
+	g.stats.remove_source("suzuran_field")
+	for o in g.squad.ops:
+		if o != self:
+			g.stats.add(&"op_atk", "add", v, "suzuran_field", "op:" + o.id)
+	g._sync_stats()
+
+
+func skill_active_left(i: int) -> float:
+	return [0.0, field_t, haze_t][i]
+
+
+func skill_active_dur(i: int) -> float:
+	return [1.0, S2_DUR, S3_DUR][i]
 
 
 func _flame(p: Vector2, h: float, a: float) -> void:
@@ -106,14 +150,15 @@ func draw_auras() -> void:
 	if pos == Vector2.INF:
 		return
 	var r := aura_radius()
-	var on := field_t > 0.0
+	var on := field_t > 0.0 or haze_t > 0.0
 	g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	g.draw_circle(Vector2.ZERO, r, Color(GOLD.r, GOLD.g, GOLD.b, 0.09 if on else 0.05))
 	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(GOLD.r, GOLD.g, GOLD.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# 边缘六团狐火绕行
-	for k in 6:
-		var a: float = g.t * 0.8 + k * TAU / 6.0
+	# 边缘六团狐火绕行（迷雾时九团）
+	var n: int = 9 if haze_t > 0.0 else 6
+	for k in n:
+		var a: float = g.t * 0.8 + k * TAU / n
 		_flame(pos + Vector2(4, 4) + Vector2(cos(a) * r, sin(a) * r * 0.55), 9.0 if on else 6.0, 0.9 if on else 0.6)
 
 
@@ -127,15 +172,12 @@ func _draw_skill_over() -> void:
 		g.draw_circle(b.pos, 2.5, Color(2.8, 2.7, 2.2))
 
 
-func skill_active_left() -> float:
-	return maxf(0.0, field_t)
-
-
-func skill_active_dur() -> float:
-	return 10.0 if elite >= 2 else 5.0
-
-
 func status_items() -> Array:
+	var out: Array = []
+	if volley_next:
+		out.append(["狐火连珠", GOLD])
 	if field_t > 0.0:
-		return [["光域", GOLD]]
-	return []
+		out.append(["暖光", GOLD])
+	if haze_t > 0.0:
+		out.append(["狐火迷雾", GOLD])
+	return out

@@ -47,10 +47,11 @@
 ### 4.2 变化
 - `emitter` = 干员实例（或博士）；`origin` = 该干员当前位置。藏品可按 `emitter` 的职业 / id 判定。
 - 描述符新增只读字段 `class`（干员职业），供职业藏品使用。
-- **技能结构从"单角色三技能"改为"每干员两项 + 全队一个手动"**：
-  - 每个干员 JSON 必须有 `attack`（普攻，auto）和 `skill`（自动技能，SP 充能，auto）；可选 `talent`（被动，精一解锁）。
+- **技能结构（v2.1，2026-09-25 改）：每干员普攻 + 三个自动技能 + 天赋**（详见 docs/26）：
+  - 每个干员 JSON 必须有 `attack`（普攻）和 `skills`（恰好 3 个自动技能，SP 充能；招募 S1 / 精一 S2 / 精二 S3）；可选 `talent`（被动，精一解锁）。
+  - v0.6 的"每干员一个技能"已废弃：水月不再是主心骨而是 8 名可选开局干员之一，所有人同构。
   - 手动技能只有一个，属于博士（`doctor.json` 的 `command`）。唯一入口 Space / J → `doctor.try_manual_skill()`。
-  - 校验：`Character.create()` 调 `validate_operator()`（attack + skill 必须存在且都为 auto；`progression` 结构合法）；`Squad` 调 `validate_squad()`（全队 manual 恰好 1 个，来自博士；常规人数 ≤ 3，解锁后 ≤ 4）。
+  - 校验：`Character.create()` 调 `validate_operator()`（attack + 3 个 skills 且都为 auto；`progression` 结构合法）；`Squad` 调 `validate_squad()`（全队 manual 恰好 1 个，来自博士；常规人数 ≤ 3，解锁后 ≤ 4）。
 - `gallery.tags` 保留，仍然只用于展示；新增 `class` 字段（先锋/近卫/重装/狙击/术师/医疗/辅助/特种），职业会参与数值判定。
 
 ## 5. 数值分层（stat_block）
@@ -352,6 +353,12 @@ scope ∈ "doctor" | "squad" | "class:<职业>" | "op:<id>"
 - 测试：`--squad=a,b` 开局直接编入干员；`--shotdir=` 覆盖截图目录（默认仍是 /tmp/claude-0）。
 
 自测（`--autotest --balance --nodeath`，每组 1 局，水月 + 2 名新干员）：7 人均无脚本错误；新干员输出占比 10–40%，已把 Mon3tr 基础伤害 28 → 22、殉爆 50% → 40%。数值只做了粗调，统一平衡放 P5。
+
+### P4 补充（同日第三次提交）：契约 v2.1 三技能（docs/26）
+
+用户决定：回到"一个角色三个技能"，全自动、手动只属于博士、按精英化解锁（招募 S1 / 精一 S2 / 精二 S3）、水月与其他人完全一样（潮刃 / 群触路线与技能进阶砍掉）。
+- 8 名干员各 3 个技能，取材原作技能（表见 docs/26）；`character.gd` 统一充能 / 释放 / HUD / 演出 / 排异；`data.gd` 删除水月旧表；`game.gd` 删除 `skill_lv` / 进阶卡 / 进化卡 / 技能横幅；护盾绘制从水月脚本移到 `game.gd`。
+- 排异反应通用化（任一干员的已解锁技能海嗣化），不再依赖水月的进阶表。
 
 ### P4 补充（同日第二次提交）：自选开局干员 + 干员特效
 

@@ -628,15 +628,16 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var lines: Array = []
 	if d.has("attack"):
 		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
-	if d.has("skill"):
-		lines.append(["技能", "%s%s" % [d.skill.get("name", ""), ("（充能 %d）" % int(d.skill.sp)) if d.skill.has("sp") else ""], d.skill.get("desc", "")])
+	var sks: Array = d.get("skills", [])
+	for si in sks.size():
+		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精一", "精二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", "")])
 	if d.has("talent"):
 		lines.append(["天赋", d.talent.get("name", ""), d.talent.get("desc", "")])
 	for ln in lines:
 		UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
 		UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
-		py += 24
-		py += _wrap_text(Vector2(px, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48) + 12
+		py += 22
+		py += _wrap_text(Vector2(px, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48, 2) + 8
 	# 精二条件
 	for n in d.get("progression", []):
 		if n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):
@@ -651,12 +652,14 @@ func _draw_op_pick(vs: Vector2) -> void:
 			if not parts.is_empty():
 				UI.text(self, font, Vector2(px, py + 12), "精英化二条件：" + "、".join(parts), 12, Color(0.8, 0.55, 1.0))
 				py += 26
-	# 档案
+	# 档案：只画面板剩余高度放得下的行数
 	if cur.lore != "":
 		py += 6
 		UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 		py += 10
-		_wrap_text(Vector2(px, py + 14), cur.lore, 13, Color(0.7, 0.8, 0.85), dr.size.x - 48)
+		var max_lines: int = int((dr.end.y - 16 - py) / 19.0)
+		if max_lines >= 1:
+			_wrap_text(Vector2(px, py + 14), cur.lore, 13, Color(0.7, 0.8, 0.85), dr.size.x - 48, max_lines)
 	# ---- 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
@@ -670,7 +673,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 
 
 ## 按像素宽度折行绘制，返回占用高度
-func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float) -> float:
+func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float, max_lines: int = 99) -> float:
 	var lines: Array = []
 	var cur := ""
 	for ch in s:
@@ -681,6 +684,9 @@ func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float) ->
 			cur += ch
 	if cur != "":
 		lines.append(cur)
+	if lines.size() > max_lines:
+		lines = lines.slice(0, max_lines)
+		lines[max_lines - 1] = lines[max_lines - 1].substr(0, maxi(0, lines[max_lines - 1].length() - 1)) + "…"
 	var lh := size + 6.0
 	for i in lines.size():
 		UI.text(self, font, pos + Vector2(0, i * lh), lines[i], size, col)
