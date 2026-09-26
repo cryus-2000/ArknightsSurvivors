@@ -240,6 +240,23 @@ func skill_active_dur(i: int) -> float:
 	return base("s3_haste", 8.0) if i == 2 else 1.0
 
 
+## 三技能「必须开辟」当主控时手动释放（JSON mode manual，契约 v2.3）：锚还没收回时不放（按键先记下，收回就放），
+## 400 内没有敌人时不放（否则起手后找不到目标，白扣 40% 充能）
+func manual_ready(i: int) -> bool:
+	return super(i) and anchor.is_empty() and not nearest_enemies(1, 400.0, pos).is_empty()
+
+
+func manual_block_reason(_i: int) -> String:
+	if anchor.is_empty() and pos != Vector2.INF and nearest_enemies(1, 400.0, pos).is_empty():
+		return "附近没有敌人"
+	return ""
+
+
+## 机器人：就绪（锚已收回、400 内有敌人）即放，等同改手动前的自动释放，批跑数值与之前可比
+func bot_wants_manual(_i: int) -> bool:
+	return true
+
+
 func _hand() -> Vector2:
 	return pos + Vector2(8.0 * face, -22)
 

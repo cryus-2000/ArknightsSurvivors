@@ -181,11 +181,13 @@ func step() -> void:
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.balance and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	# 机器人的手动技能（幽灵鲨 S2 保命）：主控生命低于阈值时替玩家按下
-	if g.state == g.S.PLAY and g.hp < g.max_hp * Bal.v("bot/manual_hp", 0.3):
+	# 机器人的手动技能（契约 v2.3：只有主控有手动技能）：就绪且干员自己想放时替玩家按下。
+	# 时机由干员的 bot_wants_manual 决定：缺省保命型（主控生命 < bot/manual_hp），乌尔比安 S3 就绪即放
+	if g.state == g.S.PLAY:
 		for o in g.squad.ops:
-			if o.manual_ready(o.manual_index()):
-				o.cast_manual(o.manual_index())
+			var mi: int = o.manual_index()
+			if o.manual_ready(mi) and o.bot_wants_manual(mi):
+				o.cast_manual(mi)
 				break
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍

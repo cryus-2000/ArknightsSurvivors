@@ -216,12 +216,14 @@ func tick_sp(dt: float) -> void:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
+	_tick_manual_buf(dt)
 
 
-## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
-## 充满后等玩家按 Q / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
+## 手动技能（契约 v2.3，2026-09-26 用户定）：技能 JSON 带 "mode": "manual" 时，只有该干员当主控才手动——照常充能、
+## 充满不自动放，等玩家按 Q / J（手柄 Ⓐ / Ⓧ，手机技能键），入口是 doctor.try_manual_skill()；当队友时照旧自动释放。
+## 主控换人时随 is_leader 自动切换。每名干员最多一个（校验按 JSON 的 mode 计数，与是否主控无关）
 func is_manual(i: int) -> bool:
-	return skill_def(i).get("mode", "auto") == "manual"
+	return is_leader and skill_def(i).get("mode", "auto") == "manual"
 
 
 func manual_index() -> int:
@@ -231,7 +233,8 @@ func manual_index() -> int:
 	return -1
 
 
-## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）
+## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）。
+## 干员可重写追加自己的条件（乌尔比安：锚已收回、400 内有敌人）：return super(i) and ……
 func manual_ready(i: int) -> bool:
 	return i >= 0 and skill_unlocked(i) and not perm[i] and sp_need(i) > 0.0 and sp[i] >= sp_need(i) 		and skill_active_left(i) <= 0.0 and not acting() and pos != Vector2.INF and not (has_method("away") and call("away"))
 
@@ -239,8 +242,52 @@ func manual_ready(i: int) -> bool:
 func cast_manual(i: int) -> bool:
 	if not manual_ready(i):
 		return false
+	manual_buf = 0.0
 	start_skill(Vector2.INF, i)
 	return true
+
+
+## 玩家按下手动技能键（doctor.try_manual_skill 调用）：就绪就放；充能已满、只是正在出手（或干员自己的「稍等」条件，
+## manual_block_reason 返回空串）时先记下这次按键，MANUAL_BUF 秒内一满足就放，免得按键撞上出手被吞。
+## 返回 "" = 已放出或已记下；否则返回提示原因
+const MANUAL_BUF := 1.0
+var manual_buf := 0.0
+
+func press_manual(i: int) -> String:
+	if cast_manual(i):
+		return ""
+	if skill_active_left(i) > 0.0:
+		return "生效中"
+	if has_method("away") and call("away"):
+		return "暂时离场"
+	if sp[i] < sp_need(i):
+		return "充能中"
+	var why := manual_block_reason(i)
+	if why == "":
+		manual_buf = MANUAL_BUF
+	return why
+
+
+func _tick_manual_buf(dt: float) -> void:
+	if manual_buf <= 0.0:
+		return
+	manual_buf -= dt
+	var i := manual_index()
+	if i < 0:
+		manual_buf = 0.0
+	elif manual_ready(i):
+		cast_manual(i)
+
+
+## 充能已满但干员自己的条件不满足、等也没用时，按键提示的原因（如「附近没有敌人」）；空串 = 只是稍等，按键先记下
+func manual_block_reason(_i: int) -> String:
+	return ""
+
+
+## 机器人（自动测试 / 批跑）是否替玩家按下手动技能 i：已就绪时每帧询问。缺省按保命型：主控生命低于
+## balance.json bot/manual_hp（0.3）才按；进攻型手动技能重写成自己的时机（乌尔比安 S3：就绪即放）
+func bot_wants_manual(_i: int) -> bool:
+	return g.hp < g.max_hp * preload("res://scripts/core/balance.gd").v("bot/manual_hp", 0.3)
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
