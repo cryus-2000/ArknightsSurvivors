@@ -20,8 +20,10 @@ const STEEL := Color(0.494, 0.596, 0.722)       # #7e98b8 普通按钮底
 const TAB_HP := Color(0.09, 0.56, 0.65)         # 小标签头：生命值
 const TAB_LAMP := Color(0.72, 0.53, 0.04)       # 小标签头：灯火
 const TAB_GREY := Color(0.32, 0.35, 0.39)
-## 多行文字折行规则：中文没有空格，必须允许按字折行，否则整段不换行溢出面板
-const BRK: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
+## 多行文字折行规则（文字要先过 soft()）：中文没有空格，soft() 在字与字之间插零宽空格当词界，这里只在词界断行；
+## 一个「词」整行都放不下时才按字断（ADAPTIVE）。不能加 BREAK_GRAPHEME_BOUND：它允许在任意两个字之间断行，
+## soft() 的「标点不放行首」就失效了（行首出现「、」「；」）
+const BRK: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
 
 const CAT_COL := {"灯火": Color(1.0, 0.77, 0.42), "战斗": Color(0.33, 0.92, 0.88), "生存": Color(0.55, 0.9, 0.55), "海嗣": Color(0.66, 0.52, 1.0),
 	# data/relics.json 的分类
@@ -191,6 +193,85 @@ static func chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color
 	ci.draw_rect(Rect2(pos, Vector2(3, size + 8)), col)
 	ci.draw_string(font, pos + Vector2(9, size + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(col.r, col.g, col.b, col.a).lerp(Color(TEXT.r, TEXT.g, TEXT.b, col.a), 0.3))
 	return w
+
+
+## 一组标签片排成至多 rows 行、每行居中（选卡 / 商店卡片底部的作用对象）：chips = [[文字, 颜色]…]，
+## bot_c 为整块的底边中点（行数变了底边不动，贴着下面的操作条）。第一行前面可带灰色小字 label；
+## 放不下先去掉 label，再放不下把末尾收成「+N」，单个也放不下就截断加「…」。返回用了几行
+static func chip_row(ci: CanvasItem, font: Font, bot_c: Vector2, chips: Array, max_w: float, rows := 1, label := "", size := 11, a := 1.0) -> int:
+	if chips.is_empty():
+		return 0
+	var lay := _chip_layout(font, chips, max_w, rows, label, size)
+	var packed: Array = lay.packed
+	var lw: float = lay.lw
+	var h := size + 8.0
+	var y0: float = bot_c.y - packed.size() * (h + 4.0) + 4.0
+	for j in packed.size():
+		var row: Array = packed[j]
+		var w := (lw if j == 0 else 0.0) + 4.0 * (row.size() - 1)
+		for it in row:
+			w += it[2]
+		var p := Vector2(bot_c.x - w / 2.0, y0 + j * (h + 4.0)).round()
+		if j == 0 and lw > 0.0:
+			ci.draw_string(font, p + Vector2(0, size + 2), label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(SUB.r, SUB.g, SUB.b, a))
+			p.x += lw
+		for it in row:
+			if it.size() > 3:
+				# 「+N」：细边框
+				ci.draw_rect(Rect2(p, Vector2(it[2], h)), Color(1, 1, 1, 0.22 * a), false, 1.0)
+				ci.draw_string(font, p + Vector2(6, size + 2), it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(SUB.r, SUB.g, SUB.b, a))
+			else:
+				var col: Color = it[1]
+				chip(ci, font, p, it[0], Color(col.r, col.g, col.b, col.a * a), size)
+			p.x += it[2] + 4.0
+	return packed.size()
+
+
+## chip_row 能否不收起（不出现「+N」、不截断）地放下全部标签片；放不下时调用方可以在悬停提示里列全
+static func chip_fits(font: Font, chips: Array, max_w: float, rows := 1, size := 11) -> bool:
+	return chips.is_empty() or not _pack_chips(_chip_items(font, chips, size), max_w, rows, 0.0).is_empty()
+
+
+static func _chip_items(font: Font, chips: Array, size: int) -> Array:
+	return chips.map(func(c): return [c[0], c[1], font.get_string_size(c[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0])
+
+
+## chip_row 的排版：{packed: 每行的标签片 [文字, 颜色, 宽度, (是「+N」)], lw: 第一行 label 占的宽度（去掉了为 0）}
+static func _chip_layout(font: Font, chips: Array, max_w: float, rows: int, label: String, size: int) -> Dictionary:
+	var items := _chip_items(font, chips, size)
+	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 6.0 if label != "" else 0.0
+	var packed := _pack_chips(items, max_w, rows, lw)
+	if packed.is_empty() and lw > 0.0:
+		lw = 0.0
+		packed = _pack_chips(items, max_w, rows, 0.0)
+	var k := items.size() - 1
+	while packed.is_empty() and k >= 1:
+		var more := "+%d" % (items.size() - k)
+		packed = _pack_chips(items.slice(0, k) + [[more, SUB, font.get_string_size(more, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0, true]], max_w, rows, 0.0)
+		k -= 1
+	if packed.is_empty():
+		var fl := fit_line(font, items[0][0], size, max_w - 16.0, size)
+		packed = [[[fl[0], items[0][1], font.get_string_size(fl[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0]]]
+	return {"packed": packed, "lw": lw}
+
+
+## chip_row 的排版：按顺序装进至多 rows 行（第一行先让出 label 的宽度）；装不下返回空数组
+static func _pack_chips(items: Array, max_w: float, rows: int, lw: float) -> Array:
+	var out: Array = [[]]
+	var x := lw
+	for it in items:
+		var need: float = it[2] + (4.0 if not out[-1].is_empty() else 0.0)
+		if x + need > max_w and not out[-1].is_empty():
+			if out.size() >= rows:
+				return []
+			out.append([])
+			x = 0.0
+			need = it[2]
+		if x + need > max_w:
+			return []
+		out[-1].append(it)
+		x += need
+	return out
 
 
 ## 按键牌：细边框里的按键名（SPACE / Esc / 1）；返回宽度

@@ -6,6 +6,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Affects = preload("res://scripts/run/affects.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -17,10 +18,11 @@ var serif: Font                # 事件标题用的衬线粗体（fonts/serif.tt
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
-## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 + 底部操作条。
-## 悬停 / 焦点：青色细边与外晕，标签条与操作条变青
+## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 +
+## 作用对象标签（影响当前编队里的哪些干员，run/affects.gd）+ 底部操作条。悬停 / 焦点：青色细边与外晕，标签条与操作条变青
 const CARD_W := 272.0
-const CARD_H := 368.0
+const CARD_H := 382.0
+const CARDS_TOP := 190.0       # 卡片顶边；标题从它上方 92 处开始，底边（572）不压到底栏的技能图标
 
 
 func _init(game: Game) -> void:
@@ -157,13 +159,13 @@ func layout(kind: String) -> void:
 		g.panel_box.anchor_right = 0.5
 		g.panel_box.offset_left = -280.0
 		g.panel_box.offset_right = 588.0
-		g.panel_box.offset_top = 234.0
+		g.panel_box.offset_top = 222.0
 	else:
 		g.panel_box.anchor_left = 0.0
 		g.panel_box.anchor_right = 1.0
 		g.panel_box.offset_left = 0.0
 		g.panel_box.offset_right = 0.0
-		g.panel_box.offset_top = 196.0
+		g.panel_box.offset_top = CARDS_TOP
 	g.panel_box.visible = kind != "event"
 	g.panel_col.visible = kind == "event"
 
@@ -179,9 +181,9 @@ func draw_bg() -> void:
 			var en_label := "RELIC" if g.choice_kind == "relic" else "LEVEL UP"
 			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
 				en_label = "RECRUIT"
-			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text)
+			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, CARDS_TOP - 92.0)
 			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击卡片，或按 1–%d 选择" % g.choices.size()
-			UI.text(g.panel_fg, g.font, Vector2(0, 196 + CARD_H + 30), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+			UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -357,6 +359,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 				f0 = UI.fit(g.font, o.desc, CARD_W - 40.0, 108.0, [13, 12, 11])
 			card.set_meta("fit", f0)
 			card.set_meta("compact", compact)
+			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
+			var chips := Affects.chips(g, o)
+			card.set_meta("affects", chips)
+			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, CARD_W - 32.0))
 		(g.panel_col if ev else g.panel_box).add_child(card)
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
@@ -379,7 +385,7 @@ func animate_cards(dt: float) -> void:
 		var e := 1.0 + (c1 + 1.0) * pow(k - 1.0, 3) + c1 * pow(k - 1.0, 2)
 		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
 		var hot := card_hot(card as Button, card.get_index()) and not sold
-		var desc: Label = card.get_meta("desc", null)
+		var desc: Label = card.get_meta("desc") if card.has_meta("desc") else null   # get_meta 的默认值给 null 会报错
 		card.modulate.a = clampf(age / 0.2, 0.0, 1.0)
 		if card.has_meta("bar"):
 			# 事件选项条：从右侧滑入，悬停时向左探出一点
@@ -455,7 +461,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		UI.ctext(card, g.font, r.position + Vector2(19, 52), tag[2], 10, Color(0.08, 0.06, 0.02))
 	# 图标 + 光环
 	var compact: bool = card.get_meta("compact", false)
-	var c := r.position + Vector2(r.size.x / 2.0, 104.0 if compact else 128.0)
+	var c := r.position + Vector2(r.size.x / 2.0, 100.0 if compact else 124.0)
 	UI.halo(card, c, 40.0 if compact else 58.0, UI.CYAN, hov)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
@@ -479,10 +485,14 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var nm := name
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
-	UI.text(card, g.font, r.position + Vector2(0, 196.0 if compact else 244.0), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	UI.text(card, g.font, r.position + Vector2(0, 184.0 if compact else 230.0), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(20, 210.0 if compact else 258.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+		UI.draw_fit(card, g.font, r.position + Vector2(20, 198.0 if compact else 244.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
+	var chips: Array = card.get_meta("affects", [])
+	if not chips.is_empty():
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 53.0), chips, r.size.x - 32.0, 1, "特性" if o.kind == "recruit" else "影响")
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
@@ -603,7 +613,7 @@ func load_op_tex(cid: String) -> void:
 				g.tex[tn] = A.tex(tn)
 
 
-## 选卡 / 商店 / 事件：焦点卡片的说明被截断时，在面板最上层画完整说明（卡片下方，放不下放上方）
+## 选卡 / 商店 / 事件：焦点卡片的说明被截断（或作用对象标签收成了「+N」）时，在面板最上层画完整说明（卡片下方，放不下放上方）
 func draw_panel_tip() -> void:
 	var box: BoxContainer = g.panel_col if (g.choice_kind == "event" and g.state == Game.S.CHOICE) else g.panel_box
 	var vs := g.panel_tip.size
@@ -611,11 +621,14 @@ func draw_panel_tip() -> void:
 		if not (card is Button) or card.is_queued_for_deletion():
 			continue
 		var fd: Dictionary = card.get_meta("fit", {})
-		if fd.is_empty() or fd.get("fit", true) or not g.panel_ui.card_hot(card, card.get_index()):
+		var cut: bool = card.get_meta("chips_cut", false)
+		if ((fd.is_empty() or fd.get("fit", true)) and not cut) or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
 		var title: String = it.get("name", "") if not it.is_empty() else (g.choices[card.get_index()].get("name", "") if card.get_index() < g.choices.size() else "")
 		var desc: String = it.get("desc", "") if not it.is_empty() else (g.choices[card.get_index()].get("desc", "") if card.get_index() < g.choices.size() else "")
+		if cut:
+			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
 		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, g.panel_tip)
 		return
