@@ -24,12 +24,13 @@ var demo_hurt_t := 0.0
 const DEMO_HURT_EVERY := 3.0     # 每 3 秒把主控生命压到 70%：治疗干员（凯尔希、铃兰…）才有东西可治（演示里怪不伤人）
 ## 走位（见 wander）：是否正在走向怪
 var charging := false
+var skill_hold := 0.0            # 放技能的动作期间及之后 1 秒站着不动：施放特效（铃兰金环、光柱）画在起手点，走开就偏到身后
 var charge_t := 0.0              # 这次起步后走了多久：至少走 WALK_MIN_T 才允许停（不走一帧就停）
 const WALK_MIN_T := 0.3
 const WALK_MV := 0.7             # 摇杆量（匀速）
 const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
 const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
-const DEMO_DY := 30.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr 别钻到下面
+const DEMO_DY := 40.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr / 跃空锤（跳高 42）别钻到下面
 
 
 func _init(game: Game) -> void:
@@ -63,9 +64,9 @@ func step(dt: float) -> void:
 		if alive0 < 8:
 			horde(10)
 		return
-	# 只让本段的技能充能：其余压成 0
+	# 只让本段的技能充能：其余压成 0；本段的技能放出后也压住，免得短冷却的技能在长段里自然回满再放一遍（docs/45）
 	for i in 3:
-		if i != si and not g.ch.perm[i]:
+		if (i != si or demo_cast_t >= 0.0) and not g.ch.perm[i]:
 			g.ch.sp[i] = 0.0
 	if demo_cast_t < 0.0:
 		if demo_ph_t >= DEMO_FILL_AT and g.ch.skill_unlocked(si):
@@ -82,7 +83,7 @@ func step(dt: float) -> void:
 	# 技能结束后还有留场表现（幽灵鲨 S2 结束本体倒下、替身跟随 12 秒，away()）：等它演完再切下一段，
 	# 否则一切段就重建干员，替身只出现一帧（docs/32 §3，测试与验收发现）
 	var lingering: bool = g.ch.has_method("away") and g.ch.away()
-	var busy: bool = g.ch.skill_active_left(si) > 0.0 or lingering
+	var busy: bool = g.ch.skill_active_left(si) > 0.0 or g.ch.skill_pending(si) or lingering
 	# 从效果结束起再停 DEMO_HOLD 秒（以前从放出时算：凯尔希熔毁 8 秒一结束就切段，收尾大爆演不到）；普攻出手不算忙，只是不在出手中途切
 	demo_after_t = 0.0 if busy or demo_cast_t < 0.0 else demo_after_t + dt
 	var done: bool = demo_cast_t >= 0.0 and demo_after_t >= DEMO_HOLD and not g.ch.acting()
@@ -104,6 +105,12 @@ func step(dt: float) -> void:
 ## 只挑身前（右边、不比主控靠左 20 以上）的怪，怪一直在主控右边，出手时就不会左右翻身；朝向照常跟移动方向
 func wander() -> Vector2:
 	if g.demo_origin == Vector2.INF or g.ch == null:
+		return Vector2.ZERO
+	if g.ch.acting() and g.ch.act_kind == "skill":
+		skill_hold = 1.0
+	if skill_hold > 0.0:
+		skill_hold -= g.get_process_delta_time()
+		charging = false
 		return Vector2.ZERO
 	var best: Dictionary = {}
 	var bd := 99999.0
@@ -161,6 +168,7 @@ func next_phase() -> void:
 	demo_ph_t = 0.0
 	demo_cast_t = -1.0
 	charging = false
+	skill_hold = 0.0
 	# 每段从干净的场地开始，不继承上一段的任何东西（用户要求）：怪、弹幕、特效、飘字、预警、溟痕、掉落、博士位置、朝向
 	g.enemies.clear()
 	g.bullets.clear()

@@ -259,6 +259,12 @@ func cast_manual(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
 	return true
 
 
+## 技能 i 放出后还有没打完的次数型效果（维什戴尔 / 艾雅法拉 S1「接下来 3 发强化」）：skill_active_left 管的是持续时间，
+## 这类按发数算的效果它恒为 0。图鉴演示用它判断这一段还没演完（run/demo.gd），干员按需重写
+func skill_pending(_i: int) -> bool:
+	return false
+
+
 ## 预计落点（瞄准指示用）：dir 同上；干员没实现或此刻没有落点返回 Vector2.INF
 func manual_aim_point(_i: int, _dir: Vector2 = Vector2.ZERO) -> Vector2:
 	return Vector2.INF

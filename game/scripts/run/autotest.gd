@@ -172,7 +172,10 @@ func step() -> void:
 			return
 		if g.show_t > 1.4 and not g.show_shot and DisplayServer.get_name() != "headless":
 			g.show_shot = true
-			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_show_%d.png" % g.ch.elite)
+			# 按演出的干员和阶段命名（编队里别的干员精英化时，主控的 elite 对不上）
+			var sc: Dictionary = g.show_screen.show_cur
+			var tag: String = "%s_%d" % [sc.op.id, int(sc.get("elite", 0))] if sc.has("op") and sc.op != null else str(g.ch.elite)
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_show_%s.png" % tag)
 		if g.show_t > 1.6:
 			g.show_screen.close()
 		return

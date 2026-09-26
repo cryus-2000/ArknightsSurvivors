@@ -28,8 +28,8 @@ func draw() -> void:
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
 		return
-	# 伤害数字
-	for f in g.texts:
+	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
+	for f in (g.texts if g.state != Game.S.SHOW or g.demo_op != "" else []):
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)

@@ -162,6 +162,11 @@ func skill_active_dur(i: int) -> float:
 	return 2.0 if i == 2 else 1.0
 
 
+## S1 炽热的 3 发强化火山弹还没打完（图鉴演示等它打完再切段）
+func skill_pending(i: int) -> bool:
+	return i == 0 and heat > 0
+
+
 ## sz：弹体大小倍率（三重咏唱的后两发 1.5 倍，复咏的第二发 0.85 倍）
 func _cast(from: Vector2, target: Vector2, base_dmg: float, aoe: float, src: String, burn: bool, weak: float, sz := 1.0) -> void:
 	var d: Vector2 = (target - from).normalized()

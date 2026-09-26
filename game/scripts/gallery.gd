@@ -211,8 +211,10 @@ func _build() -> void:
 				if cd.has("talent"):
 					st.append(["天赋", cd.talent.get("name", "")])
 				var forms: Array = []
-				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0],
-						["Mon3tr", "m_idle", 4.0], ["爪击", "m_attack", 14.0]]:
+				# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
+				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
+						["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
+						["受击", "hurt", 6.0], ["倒下", "death", 5.0], ["Mon3tr", "m_idle", 4.0], ["爪击", "m_attack", 14.0], ["熔毁", "m_skill", 12.0]]:
 					if not sp.has(kind[1]):
 						continue
 					var v = sp[kind[1]]
