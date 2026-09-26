@@ -178,7 +178,7 @@ func update(dt: float) -> void:
 			spawn_enemy(et2, edge_pos())
 			var n1: String = D.ENEMIES[et].name
 			var n2: String = D.ENEMIES[et2].name
-			g.vfx.show_banner(("两只精英「%s」同时出现！" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！" % [n1, n2]))
+			g.vfx.show_banner(("两只精英「%s」同时出现！击败它们获得藏品" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！击败它们获得藏品" % [n1, n2]))
 		else:
 			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
