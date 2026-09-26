@@ -122,8 +122,10 @@ func update(dt: float) -> void:
 	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
 	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
 	# Boss 在场 / 灯火不足时的刷怪倍率（balance.json enemy 段，docs/38 B0 第 11 项；现值 0.8 / 1.15）
+	# 中期 / 最终 Boss 在场分开两个倍率（缺省都读原来的 spawn_boss_mult）；用户 9/27：中期 Boss 在场时普通刷怪照常，由数值填 mid 1.0
 	if boss_alive():
-		rate *= Bal.v("enemy/spawn_boss_mult", 0.8)
+		var fin: bool = g.final_boss != null and not g.final_boss.dead
+		rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	spawn_acc += rate * dt
@@ -154,14 +156,18 @@ func update(dt: float) -> void:
 		else:
 			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
-	# 大群：Boss 在场时顺延（难度修正 horde_in_boss 时不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
-	var horde_ok: bool = (not boss_alive() or int(g.dmod.horde_in_boss) > 0) and g.t < 570.0
-	if g.t >= g.next_horde - 3.0 and horde_warned != g.next_horde and horde_ok:
-		horde_warned = g.next_horde
+	# 大群：Boss 在场时顺延，最多顺延 boss/horde_defer_max 秒（数值起点 40），到时照常带 3 秒预警出场（用户 9/27）；
+	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不顺延；9:30 之后不再刷（给最终 Boss 留空间）
+	var due: float = g.next_horde
+	if boss_alive() and int(g.dmod.horde_in_boss) <= 0:
+		due += Bal.v("boss/horde_defer_max", 40.0)
+	var horde_ok: bool = g.t < 570.0
+	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
+		horde_warned = due
 		g.horde_warn = 3.0
 		g.horde_gap = g.rng.randf() * TAU
 		Sfx.play("roar", -2.0, 0.55, 0.0)
-	if g.t >= g.next_horde and horde_ok:
+	if g.t >= due and horde_ok:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
