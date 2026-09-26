@@ -46,7 +46,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	UI.heading(g.hud, g.font, Vector2(r.get_center().x, r.position.y + 90), title, 36, col, 250.0)
 	var mm := int(g.t) / 60
 	var ss := int(g.t) % 60
-	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英化一", "精英化二"][g.ch.elite]]],
+	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
 		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
@@ -54,7 +54,8 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if g.diff_new and g.state == Game.S.WIN:
-		UI.chip(g.hud, g.font, Vector2(r.get_center().x - 80, r.position.y + (142 if ending_panel else 118)), "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name, UI.GOLD, 13)
+		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
+		UI.chip(g.hud, g.font, Vector2(r.get_center().x - (g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0) / 2.0, r.position.y + (142 if ending_panel else 118)), ul, UI.GOLD, 13)   # 按字宽居中（档名变长）
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32
 		UI.diamond(g.hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))

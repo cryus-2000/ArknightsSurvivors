@@ -53,7 +53,7 @@ func draw(vs: Vector2) -> void:
 	var cx0 := maxf(r.position.x + 350, r.position.x + 118 + dn_w + en_w + 18)
 	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), "Lv.%d" % g.level, UI.GLOW, 12) + 8
 	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [g.squad.size(), g.squad.cap()], UI.CYAN_DIM, 12) + 8
-	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), "难度「%s」" % D.DIFFICULTY_TIERS[g.tier].name, UI.CYAN_DIM, 12) + 14
+	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), str(D.DIFFICULTY_TIERS[g.tier].name), UI.CYAN_DIM, 12) + 14   # 档名本身已经能认出是难度（「波涛迭起·Ⅷ」），不再套「难度「」」，免得标签行过长
 	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), g.endg.cur_name(), g.endg.cur_col(), 11) + 14
 	# 角色能力标签（来自角色 JSON）
 	for tg in g.ch.display_tags():

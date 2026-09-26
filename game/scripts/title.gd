@@ -236,7 +236,7 @@ func _draw_diff(vs: Vector2) -> void:
 	UI.en(self, font, r.position + Vector2(36, 42), "DIFFICULTY", 13, col, 4.0)
 	UI.text(self, font, r.position + Vector2(36, 80), "选择难度", 26, UI.TEXT)
 	# 当前难度
-	var c := Vector2(r.get_center().x, r.position.y + 150)
+	var c := Vector2(r.get_center().x, r.position.y + 140)
 	diff_rects.clear()
 	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
 	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
@@ -245,16 +245,24 @@ func _draw_diff(vs: Vector2) -> void:
 	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
 	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
 	var tdef: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
-	UI.text(self, font, c + Vector2(-40, 12), tdef.name, 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
-	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x / 2.0 - 12, 66), tdef.en, 12, col, 4.0)
+	# 档名「波涛迭起·Ⅳ」（2026-09-27 用户定，贴原作）：菱形里只放「·」后的级数（Ⅳ / Ⅷ），首档没有级数画一道潮纹「≈」；
+	# 完整档名放在菱形下方一行，英文再下一行。旧的两字档名（标准 / 困难）仍直接放进菱形
+	var tname: String = str(tdef.name)
+	var parts: PackedStringArray = tname.split("·")
+	var mark: String = parts[1].strip_edges() if parts.size() > 1 else ("≈" if tname.length() > 2 else tname)
+	UI.text(self, font, c + Vector2(-40, 12), mark, 28 if mark.length() <= 1 else 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	if tname != mark:
+		UI.text(self, font, c + Vector2(-160, 68), tname, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 320)
+	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x / 2.0 - 10, 90 if tname != mark else 66), tdef.en, 11, col, 3.0)
 	# 效果列表：选中档的全部修正（各档独立，不再逐级叠加）；未解锁的档写解锁条件
 	var y := r.position.y + 292
 	var locked := diff_sel > Cfg.diff_unlocked
 	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
-	var sub_txt := "深海原本的样子" if lines.is_empty() else "本难度的全部效果"
+	# 副标题：档位说明（DIFFICULTY_TIERS 的 desc，文案定）；没有 desc 时沿用旧写法
+	var sub_txt: String = str(tdef.get("desc", "深海原本的样子" if lines.is_empty() else "本难度的全部效果"))
 	if diff_sel > 0 and diff_sel > Cfg.diff_unlocked:
 		sub_txt = "通关「%s」后解锁" % D.DIFFICULTY_TIERS[diff_sel - 1].name
-	UI.text(self, font, Vector2(r.position.x, y - 42), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, y - 32), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var ic := Color(0.3, 0.36, 0.4) if locked else col
 	for k in lines.size():
 		var x := r.position.x + 60 + (k / 7) * 340
