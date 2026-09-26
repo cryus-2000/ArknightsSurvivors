@@ -135,9 +135,6 @@ func update(dt: float) -> void:
 				g.enemies_sys.evolve(ne)
 			if g.ending == "resolve" and g.t >= 520.0:
 				ne.weak = ""
-	# Boss 在场时冻结精英计时：Boss 战不刷精英，Boss 倒下后接着倒计时（docs/38 §1.7、B0 第 8 项）
-	if boss_alive():
-		next_elite += dt
 	if g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()
