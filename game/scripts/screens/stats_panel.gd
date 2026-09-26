@@ -229,11 +229,11 @@ func draw(vs: Vector2) -> void:
 			continue
 		if cellinfo[1] == "skill":
 			var srow: Array = cellinfo[2]
-			g._draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else "技能 %s" % srow[0], srow[2], "", g.ch.col())
+			g.hud_view.draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else "技能 %s" % srow[0], srow[2], "", g.ch.col())
 		elif cellinfo[1] == "relic":
 			var rd2: Dictionary = g.RL[cellinfo[2]]
-			g._draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [g.rfx.lv.get(cellinfo[2], 1), g.rfx.max_lv(cellinfo[2])]) if g.rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
+			g.hud_view.draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [g.rfx.lv.get(cellinfo[2], 1), g.rfx.max_lv(cellinfo[2])]) if g.rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
 		else:
 			var gd: Dictionary = g.progression.growth_def(cellinfo[2])
-			g._draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, g.growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
+			g.hud_view.draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, g.growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
 		break
