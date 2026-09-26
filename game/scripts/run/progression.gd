@@ -11,6 +11,35 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var tab_hinted := false
+var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张数（telemetry）
+var heal_pick := 0
+
+## 回复类升级卡（1.1 用户要求：回血偏弱，出现率调高）：[kind, id]——博士被动「自愈」「坚韧」、医疗无人机、填充卡「急救补给」。
+## 吸血 / 击杀回复等在藏品池（relic_pool_ids），不在这里
+const HEAL_CARDS := [["growth", "regen"], ["growth", "hp"], ["weapon", "drone"], ["filler", "heal"]]
+
+
+static func is_heal_card(c: Dictionary) -> bool:
+	return HEAL_CARDS.has([str(c.get("kind", "")), str(c.get("id", ""))])
+
+
+## 选卡权重：回复类 ×levelup/heal_weight；主控生命低于 levelup/heal_low_hp（比例）时再 ×levelup/heal_low_hp_mult
+func card_weight(c: Dictionary) -> float:
+	if not is_heal_card(c):
+		return 1.0
+	var w: float = Bal.v("levelup/heal_weight", 1.5)
+	if g.hp < g.max_hp * Bal.v("levelup/heal_low_hp", 0.5):
+		w *= Bal.v("levelup/heal_low_hp_mult", 1.5)
+	return w
+
+
+## 按 card_weight 加权的随机排序（权重越大越靠前；全为 1 时等同均匀洗牌），用对局随机数 g.rng
+func weighted_order(cards: Array) -> Array:
+	var keyed: Array = []
+	for c in cards:
+		keyed.append([-log(g.rng.randf() + 0.0001) / card_weight(c), c])
+	keyed.sort_custom(func(a, b): return a[0] < b[0])
+	return keyed.map(func(x): return x[1])
 
 
 func _init(game: Game) -> void:
@@ -80,7 +109,7 @@ func open_levelup() -> void:
 	if wl < 5:
 		var W: Dictionary = D.WEAPONS.drone
 		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
-	g._shuffle(passives)
+	passives = weighted_order(passives)
 	for c in passives:
 		if picks.size() >= want:
 			break
@@ -91,8 +120,7 @@ func open_levelup() -> void:
 		if not picks.has(deep[di]):
 			picks.append(deep[di])
 		di += 1
-	var fillers: Array = g.doctor.filler_cards()
-	g._shuffle(fillers)
+	var fillers: Array = weighted_order(g.doctor.filler_cards())
 	var fi := 0
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
@@ -101,6 +129,8 @@ func open_levelup() -> void:
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
 			g.dbg_offer[c.op] = g.dbg_offer.get(c.op, 0) + 1
+		if is_heal_card(c):
+			heal_offer += 1
 	g.panel_ui.show_choices("升级！ Lv.%d" % g.level, picks.slice(0, want), "level")
 
 
@@ -184,6 +214,8 @@ func pick(i: int) -> void:
 	if g.state != g.S.CHOICE or i >= g.choices.size():
 		return
 	var o: Dictionary = g.choices[i]
+	if g.choice_kind == "level" and is_heal_card(o):
+		heal_pick += 1
 	match o.kind:
 		"event":
 			g.endg.pick(o)
