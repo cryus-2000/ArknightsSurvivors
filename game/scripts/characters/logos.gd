@@ -535,13 +535,13 @@ func _draw_skill_over() -> void:
 		for i in range(1, h.size()):
 			var k: float = float(i) / float(h.size())
 			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
-		# 咒文字符：优先 fx_logos_runes（原作字母表，每帧一个字符，每发随机一个；界面与美术出图，有就读），
+		# 咒文字符：优先 fx_logos_glyphs（原作字母表，每帧一个字符，每发随机一个；界面与美术出图，有就读），
 		# 否则 fx_logos_glyph 写完的末帧；轻微摇摆旋转；都缺图退回墨蓝弹头
-		var rtx: Texture2D = g.tex.get("fx_logos_runes")
+		var rtx: Texture2D = g.tex.get("fx_logos_glyphs")
 		var rn: int = int(rtx.get_width() / maxi(1, rtx.get_height())) if rtx != null else 0   # 正方形帧横排，帧数 = 宽 / 高
-		if g.tex.get("fx_logos_runes") != null and rn > 0:
+		if g.tex.get("fx_logos_glyphs") != null and rn > 0:
 			var fa2: float = clampf(b.life / 0.25, 0.0, 1.0)
-			draw_spr_rot("fx_logos_runes", int(b.rune) % rn, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa2))
+			draw_spr_rot("fx_logos_glyphs", int(b.rune) % rn, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa2))
 		elif g.tex.get("fx_logos_glyph") != null:
 			var fa: float = clampf(b.life / 0.25, 0.0, 1.0)
 			draw_spr_rot("fx_logos_glyph", 5, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa))
