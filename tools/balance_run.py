@@ -52,6 +52,8 @@ PRESETS = {
     "pairs": [list(p) for p in itertools.combinations(OPS, 2)],
     # 单人开局、自然招募（真实流程）：每个职业一名代表
     "starts": [["wisadel"], ["eyjafjalla"], ["skadi"], ["mizuki"], ["saria"], ["kaltsit"], ["suzuran"]],
+    # 流派矩阵（--lanes）用的缩小开局：远程 / 法术 / 近战 / 重装各一，覆盖 A（近战）、E（远程）、B（追击：维什戴尔、塞雷娅）的对口编队
+    "lanes4": [["wisadel"], ["eyjafjalla"], ["skadi"], ["saria"]],
     # 干员横向对比（docs/29 §5）：被测干员 + 两名低输出的固定队友（推进之王 + 流明；测他们自己时换成塞雷娅 / 凯尔希），
     # 开局即满编，被测干员的伤害占比 / 每分钟伤害就是她自己的水平
     "opcmp": [[o] + {"siege": ["saria", "lumen"], "lumen": ["siege", "saria"]}.get(o, ["siege", "lumen"]) for o in OPS],
@@ -143,6 +145,8 @@ def summarize(records):
         key = "+".join(r["squad"])
         if r.get("bot", "normal") != "normal" or multi_bot:
             key = "[%s] %s" % (r.get("bot", "normal"), key)
+        if r.get("lane"):
+            key = "{%s} %s" % (r["lane"], key)
         groups.setdefault(key, []).append(r)
     s2o = src_to_op()
     rows = []
@@ -357,6 +361,60 @@ def relic_table(records):
     return "\n".join(lines)
 
 
+LANE_NAMES = {"none": "不偏好", "A": "前锋·近战", "B": "追击·召唤", "C": "控制·技能循环", "D": "收割·弱点", "E": "远程·火力",
+              "F": "深蓝·低灯火", "G": "编队·协同", "H": "守护·续航"}
+
+
+def _boss_phase(b):
+    """Boss 按出场时间分段：第一个（3:30 前后）/ 第二个（7:00 前后）/ 终局（10:00）"""
+    t0 = b.get("t0", 0)
+    return 0 if t0 < 300 else (1 if t0 < 540 else 2)
+
+
+def lane_summary(records):
+    """流派矩阵（--lanes）：每个 流派 × 机器人 一行，与「不偏好」对照；同 seed 同开局配对，差值只来自选藏品的偏好。
+    Boss 用时按出场分段（击杀数 / 出场数，平均秒数）；8:00 后承伤取机器人曲线里 t > 480 的 30 秒窗口"""
+    by = {}
+    for r in records:
+        if "data" in r:
+            by.setdefault((r.get("lane", "none"), r.get("bot", "normal")), []).append(r)
+    lines = ["| 流派 | 机器人 | 局数 | 胜率 | 平均存活 | 3:30 / 5:00 存活 | 终局等级 | 击杀 | Boss1 / Boss2 / 终局 用时（击杀/出场） | 终 Boss 剩余 | 承伤/分 全程 · 8:00 后 | 该流派藏品 5:00 / 末 | 藏品数 | 藏品直接伤害 |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    order = list(LANE_NAMES)
+    for (ln, bot), rs in sorted(by.items(), key=lambda kv: (kv[0][1], order.index(kv[0][0]) if kv[0][0] in order else 99)):
+        ds = [r["data"] for r in rs]
+        bs = [d.get("bot", {}) for d in ds]
+        cols = bot_cols(ds)
+        boss_hp = [d.get("boss_hp", -1) for d in ds if d.get("boss_hp", -1) >= 0 and not d.get("win")]
+        share = [d.get("relic_out", 0.0) / (sum(d.get("out", {}).values()) or 1.0) for d in ds]
+        M = relic_meta()
+        def lane_n(d, t_max=99999):
+            # 该流派拿到的藏品件数（按 id 去重，升级不重复计），由记录里的 relic_take 推算
+            return len({tk[1] for tk in d.get("relic_take", []) if tk[0] <= t_max and ln in M.get(tk[1], {}).get("lanes", [])})
+        n300 = [lane_n(d, 300) for d in ds if d["t"] >= 300] if ln != "none" else []
+        ph = [[], [], []]
+        seen = [0, 0, 0]
+        for b in bs:
+            for bo in b.get("bosses", []):
+                k = _boss_phase(bo)
+                seen[k] += 1
+                if bo.get("t1", -1) >= 0:
+                    ph[k].append(bo["t1"] - bo["t0"])
+        boss_s = " / ".join(("%ds（%d/%d）" % (statistics.mean(ph[k]), len(ph[k]), seen[k])) if ph[k] else ("-（0/%d）" % seen[k]) for k in range(3))
+        late = []
+        for b in bs:
+            w = [c.get("taken", 0) for c in b.get("curve", []) if c.get("t", 0) > 480]
+            if w:
+                late.append(sum(w) / (len(w) * 0.5))
+        lines.append("| %s %s | %s | %d | %d%% | %s | %d%% / %d%% | %.1f | %.0f | %s | %s | %.0f · %s | %s / %s | %.1f | %.1f%% |" % (
+            ln, LANE_NAMES.get(ln, ""), bot, len(ds), 100 * sum(1 for d in ds if d.get("win")) / len(ds), fmt_t(statistics.mean([d["t"] for d in ds])),
+            cols["s330"] * 100, cols["s500"] * 100, statistics.mean([d["lv"] for d in ds]), statistics.mean([d.get("kills", 0) for d in ds]),
+            boss_s, ("%d%%" % (100 * statistics.mean(boss_hp))) if boss_hp else "-", cols["taken_pm"], ("%.0f" % statistics.mean(late)) if late else "-",
+            ("%.1f" % statistics.mean(n300)) if n300 else "-", ("%.1f" % statistics.mean([lane_n(d) for d in ds])) if ln != "none" else "-",
+            statistics.mean([len(d.get("relic_take", [])) for d in ds]), 100 * statistics.mean(share)))
+    return "\n".join(lines)
+
+
 def table(rows):
     lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -389,6 +447,7 @@ def main():
     ap.add_argument("--extra", default="", help="透传给游戏的额外参数，空格分隔，例如 \"--nodeath --botrandom\"")
     ap.add_argument("--bot", choices=BOTS, default=None, help="机器人档位（docs/29），缺省 normal")
     ap.add_argument("--bots", default=None, help="逗号分隔的多档机器人矩阵，例如 afk,bad,normal,expert")
+    ap.add_argument("--lanes", default=None, help="逗号分隔的藏品流派矩阵（机器人优先拿该流派，docs/27 §5），none 表示不偏好，例如 none,A,B,C,D,E,F,G,H")
     ap.add_argument("--game", default=None, help="要测的 game/ 目录（缺省为本仓库的 game/；A/B 对比时指向临时工作树）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存")
     ap.add_argument("--out", default=None, help="报告输出目录（缺省 build/balance）")
@@ -404,12 +463,20 @@ def main():
     bots = a.bots.split(",") if a.bots else [a.bot]
     game = os.path.abspath(a.game) if a.game else GAME
     tkey = None if a.nocache else GR.tree_key(game)
-    jobs = [(s, a.seed0 + i, b) for b in bots for s in squads for i in range(a.seeds)]
-    print("跑 %d 局（%d 机器人 × %d 编队 × %d seed），并行 %d（全机上限 %d）%s" % (len(jobs), len(bots), len(squads), a.seeds, a.jobs, GR.MAX_PROCS,
+    lanes = a.lanes.split(",") if a.lanes else ["none"]
+    jobs = [(s, a.seed0 + i, b, ln) for ln in lanes for b in bots for s in squads for i in range(a.seeds)]
+    print("跑 %d 局（%d 流派 × %d 机器人 × %d 编队 × %d seed），并行 %d（全机上限 %d）%s" % (len(jobs), len(lanes), len(bots), len(squads), a.seeds, a.jobs, GR.MAX_PROCS,
           "，源文件摘要 " + tkey if tkey else "，不用缓存"), flush=True)
     t0 = time.time()
+
+    def one(j):
+        ex2 = extra + (["--lane=" + j[3]] if j[3] != "none" else [])
+        rec = run_one(godot, j[0], j[1], a.diff, ex2, a.timeout, j[2], game, tkey)
+        if a.lanes:
+            rec["lane"] = j[3]
+        return rec
     with ThreadPoolExecutor(a.jobs) as ex:
-        records = list(ex.map(lambda j: run_one(godot, j[0], j[1], a.diff, extra, a.timeout, j[2], game, tkey), jobs))
+        records = list(ex.map(one, jobs))
     hits = sum(1 for r in records if r.get("cached"))
     if hits:
         print("其中 %d 局读自缓存" % hits)
@@ -426,6 +493,8 @@ def main():
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
+    if a.lanes:
+        md = "### 按流派汇总\n\n" + lane_summary(records) + "\n\n" + md
     print(md)
     print("耗时 %.0fs" % (time.time() - t0))
     outdir = a.out or os.path.join(ROOT, "build", "balance")

@@ -143,12 +143,12 @@
   "lane_weight_cap": 2.0,
   "h_early": 0.7,
   "h_late": 1.0,
-  "wrath_dmg": 30.0,
+  "wrath_dmg": 45.0,
   "dust_dmg": 10.0,
   "scavenge_mult": 4.0,
-  "coin_sp": 0.08,
+  "coin_sp": 0.12,
   "iron_sp": 0.05,
-  "judge_cap": 0.03,
+  "judge_cap": 0.04,
   "coral_followup": 0.6
  },
  "bot": {

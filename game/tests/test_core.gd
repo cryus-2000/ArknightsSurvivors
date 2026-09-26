@@ -143,7 +143,7 @@ func test_db_and_profile() -> void:
 	ok(c.profile.lane_scores().A > c.profile.lane_scores().B, "近战藏品提高 A 流派")
 	ok(c.profile.affinity(["melee"]) > c.profile.affinity(["squad"]), "相关度")
 	c.gain_relic("79")
-	near(c.stats.value(&"dmg"), 1.3, "藏品效果生效（79：全伤害 +30%）")
+	near(c.stats.value(&"dmg"), 1.2, "藏品效果生效（79：全伤害 +20%）")
 	# 商店与 Boss 奖励
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7

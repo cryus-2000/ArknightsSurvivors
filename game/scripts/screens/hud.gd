@@ -354,8 +354,10 @@ func draw() -> void:
 			var box := Rect2(cx - 150, y - 22, 300, 40)
 			g.hud.draw_rect(box, Color(0.03, 0.035, 0.045, 0.82 * ha))
 			g.hud.draw_rect(box, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.3 + 0.5 * pulse) * ha), false, 1.0)
-			UI.keycap(g.hud, g.font, Vector2(cx - 134, y - 12), Pad.hint("TAB", "SELECT"), Color(1, 1, 1, ha), 12)
-			UI.text(g.hud, g.font, Vector2(cx - 72, y + 4), "查看主控与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
+			# 触屏没有 Tab：写成点右侧「属性」按钮（按钮本身也跟着呼吸，见 touch.draw_hud）
+			var tkey: String = "点「属性」" if g.touch.active else Pad.hint("TAB", "SELECT")
+			var tkw: float = UI.keycap(g.hud, g.font, Vector2(cx - 134, y - 12), tkey, Color(1, 1, 1, ha), 12)
+			UI.text(g.hud, g.font, Vector2(cx - 134 + tkw + 12.0, y + 4), "查看主控与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 	draw_relic_tooltip(vs)
 	g.touch.draw_hud(vs)
@@ -696,6 +698,11 @@ func draw_status_bar(vs: Vector2) -> void:
 			y += 26.0
 
 
+## 编队区最上沿（源石锭框顶）的 y：触屏冲刺键 / 技能键摆在它上方，不压住「编队 n / m」和源石锭
+func squad_top(vs: Vector2) -> float:
+	return vs.y - 16.0 - SQ_CARD.y - SQ_SK - 14.0 - 46.0
+
+
 func draw_squad_hud(br: Vector2) -> void:
 	var n: int = g.squad.size()
 	var x_left: float = br.x - n * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
@@ -704,7 +711,7 @@ func draw_squad_hud(br: Vector2) -> void:
 	var card_y: float = br.y - SQ_CARD.y
 	var sk_y: float = card_y - SQ_SK - 14.0
 	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
-	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))
+	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))   # 顶 = squad_top()
 	g.hud.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.82))
 	g.hud.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
 	g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
