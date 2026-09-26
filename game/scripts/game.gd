@@ -38,6 +38,7 @@ const Progression = preload("res://scripts/run/progression.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
+const Hunt = preload("res://scripts/run/hunt.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
@@ -81,6 +82,7 @@ var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var hunt = Hunt.new(self)          # 约 1:30 的「围猎」强制交战（run/hunt.gd）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
@@ -1013,6 +1015,7 @@ func _update(dt: float) -> void:
 	last_mv = mv if moving else last_mv
 	if tex.get("prop_pillar") != null:
 		ppos = map.push_out(ppos, 12.0)
+	hunt.clamp_player()   # 围猎：从圈内往外走、那个方位的海嗣还活着就夹回圈内
 	swing_face -= dt
 
 	var rg: float = (regen + regen_pct * max_hp) * heal_mult * dt
@@ -1066,6 +1069,7 @@ func _update(dt: float) -> void:
 	if not trial.active:
 		endg.update(dt)
 		endg.tick_final_warning()
+		hunt.update(dt)
 		if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
 			knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
 		if demo_op == "":
