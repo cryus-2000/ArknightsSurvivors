@@ -144,3 +144,20 @@
 耗时 1300s
 写入 build/cloud/hunt-new/hunt_new_0926_1904.{json,md}
 Switched to a new branch 'cloud-results/hunt-new'
+[cloud-results/hunt-new a9b9487] 云端批跑 hunt-new
+ 5 files changed, 148003 insertions(+)
+ create mode 100644 build/cloud/hunt-new/balance.log
+ create mode 100644 build/cloud/hunt-new/env.txt
+ create mode 100644 build/cloud/hunt-new/hunt_new_0926_1904.json
+ create mode 100644 build/cloud/hunt-new/hunt_new_0926_1904.md
+ create mode 100644 build/cloud/hunt-new/run_stdout.log
+remote: 
+remote: Create a pull request for 'cloud-results/hunt-new' on GitHub by visiting:        
+remote:      https://github.com/cryus-2000/ArknightsSurvivors/pull/new/cloud-results/hunt-new        
+remote: 
+To https://github.com/cryus-2000/ArknightsSurvivors
+ * [new branch]      cloud-results/hunt-new -> cloud-results/hunt-new
+===HUNT_NEW_DONE===
+elapsed_seconds=1299
+run_exit_code=0
+commit_exit=0 push_exit=0
