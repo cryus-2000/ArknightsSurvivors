@@ -180,6 +180,8 @@ def main():
     members -= set(preload_consts)
     funcs = spec["funcs"]
     rename = spec.get("rename", {})
+    clash = [v for v in rename.values() if v in BUILTIN or v in INHERITED or v in KEYWORDS]
+    assert not clash, ("新名字和内置函数 / Node 方法 / 关键字重名", clash)
     byname = {b[1]: b for b in blocks if b[0] == "func"}
     missing = [f for f in funcs if f not in byname]
     assert not missing, ("找不到函数", missing)
