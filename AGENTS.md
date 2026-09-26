@@ -2,6 +2,8 @@
 
 Read docs/06_git_collaboration.md before making changes.
 
+Multi-session coordination (Claude sessions): docs/41_agent_team.md. The user normally talks to one coordinator session, which relays tasks; worker sessions report 【收到】/【完成】/【卡住】 to the coordinator and CC it (【抄送】) when the user gives them tasks directly.
+
 - User owns product decisions. Codex owns character and monster art (player, allies, NPCs, enemies, bosses: idle / move / attack / feign strips and their portraits). Claude owns gameplay code, integration, builds, and all other art: attack and hit effects (fx_*), projectiles (proj_*), warnings, drone / weapon / evo / skill / relic / growth icons, terrain, props, pickups and UI.
 - Claude uses E:\ArknightsSurvivors on main. Codex uses E:\ArknightsSurvivors\.worktrees\codex-art on codex/art.
 - Worktree convention: .worktrees/ (ignored by Git). Do not change branches in the other agent's directory.
