@@ -118,3 +118,51 @@
 | 机器人矩阵 | `build/check/bots_<时间>/`、`build/balance/<tag>_<时间>.md/.json` |
 | A/B 对比 | `build/check/ab_<时间>/compare.md` |
 | 结果缓存 | 主仓库 `build/balance/cache/<源文件摘要>/` |
+
+## 7. 云端批跑
+
+> 2026-09-26 加入：把大批量的机器人批跑挪到云端 Linux 机器上，本机留给开发和快检。脚本在 `tools/cloud/`，日常使用由「测试与验收」负责。
+
+### 7.1 怎么启动
+
+在云端机器（Claude Code 云端会话，或任意 Ubuntu / Debian x86_64）上，克隆 GitHub 仓库后：
+
+```
+bash tools/cloud/setup_linux.sh          # 只需一次：装依赖、下载 Godot 4.7.2 官方 Linux 版并核对 SHA512、大小写检查、导入项目
+ONLY=check bash tools/cloud/run_cloud.sh # 第一次先只跑快检，确认环境没问题
+bash tools/cloud/run_cloud.sh            # 快检 + 标准矩阵（普通 / 高手 × 7 开局 × SEEDS，缺省 4）
+SEEDS=8 BOTS=expert,normal PRESET=starts bash tools/cloud/run_cloud.sh
+AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
+```
+
+- `setup_linux.sh` 生成 `tools/cloud/env.sh`（Godot 路径与并发），`run_cloud.sh` 自动读取；换机器要重新跑 `setup_linux.sh`。
+- 大小写：Windows 不分文件名大小写，Linux 分。`tools/cloud/case_check.py` 检查代码 / 数据里写死的 `res://` 路径与美术名，初始化时会跑；本机也能跑，改了资源路径后建议先跑一遍。动态拼出来的名字查不到，要看云端日志里有没有 `Failed loading` / `Cannot open file`。
+- 换行：`.sh` 由 `.gitattributes` 强制 LF（在 Windows 上编辑也不会变成 CRLF）。
+- 云端没有声卡和显示器：`--headless` 下 Godot 自动用空的音频与显示驱动，测试本来就静音（§2）。截图类测试（需要窗口）不在云端跑。
+
+### 7.2 并发多少
+
+- 缺省 `GODOT_MAX_PROCS = 核数`：云端机器只跑这一批，不用像本机那样给别的会话留余量（本机是核数 − 4，所有会话共用）。
+- 内存：无界面 Godot 每个约 300–500 MB，按 `min(核数, 内存 GB × 2)` 设上限，例如 8 核 16 GB 设 8。`GODOT_MAX_PROCS=6 bash tools/cloud/run_cloud.sh` 可临时覆盖。
+- 同 seed 可复现、结果缓存（§3、§4）在云端照常生效；缓存放在云端机器自己的 `build/balance/cache/`，不和本机共享。
+
+### 7.3 结果怎么拿回本地
+
+每次运行的结果在 `build/cloud/<时间>/`（报告 `.md`、原始 `.json`、`env.txt` 里有提交号 / Godot 版本 / 核数、各段日志），另打一个 `build/cloud/cloud_<时间>.tar.gz`。`build/` 不进仓库，拿回本地的办法：
+
+1. **推一个结果分支**（推荐）：云端会话里
+   ```
+   git checkout -b cloud-results/<时间>
+   git add -f build/cloud/<时间>/*.md build/cloud/<时间>/*.json build/cloud/<时间>/env.txt
+   git commit -m "云端批跑结果 <时间>" && git push origin cloud-results/<时间>
+   ```
+   本机 `git fetch origin cloud-results/<时间>`，再 `git checkout origin/cloud-results/<时间> -- build/cloud/<时间>` 取出。结果分支只放报告，不合入 main，看完可删。
+2. **只要结论**：让云端会话把 `.md` 报告的汇总表贴出来（适合「胜率 / 存活变了多少」这类问题）。
+
+### 7.4 与本地结果是否逐局一致
+
+**尚未验证（第一次云端运行时要测）。** 预期可能不完全一致：GDScript 的浮点运算两边都是 IEEE 双精度，但 `sin / cos / sqrt / pow` 这类函数用的是各平台自己的数学库（Windows 是 MSVC，Linux 是 glibc），末位可能不同，一局跑久了就可能分叉。
+
+验证办法：在云端和本机各跑同一个提交、同一组 seed 的矩阵，用 `check.py` 的 `compare()` 对比两份 `.json`，看「结果完全相同的局」有多少（做法同 §2 的 A/B）。结论出来后更新本节。
+
+在验证之前的规则：**A/B 的两边必须在同一个平台上跑**（都在云端，或都在本机）；不要拿云端报告和本机报告互相当「改动前 / 改动后」。
