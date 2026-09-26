@@ -184,7 +184,7 @@ func _release() -> void:
 		var tg: Dictionary = ts[k % ts.size()]
 		var d: Vector2 = (tg.pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
 		# aoe：狐火命中时的小范围溅射（P5.1：纯单体的辅助单人开局清不动 1:15 的骨潮，永远到不了招募等级）
-		var b := {"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 26.0) * mult * _dmg_bonus(),
+		var b := {"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 26.0) * mult * _dmg_bonus() * (vs_elite() if tg.elite or tg.boss else 1.0),
 			"life": 1.6, "r": 7.0, "aoe": base("aoe", 26.0), "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0}
 		g.bullets.append(b)
 		# 画地为牢：狐火连珠的狐火命中后定身（命中由 game.gd 结算，这里记住弹体，下一帧看它是否撞上了敌人）
@@ -224,7 +224,7 @@ func _update_bigfox(dt: float) -> void:
 				continue
 			f.hit[e.id] = true
 			log_hit("狐火", ["pierce"])
-			deal_damage(e, f.dmg)
+			deal_damage(e, f.dmg * (vs_elite() if e.elite or e.boss else 1.0))
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
 			fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": GOLD, "w": 2.5})
