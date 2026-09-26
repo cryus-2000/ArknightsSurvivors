@@ -45,13 +45,14 @@ const DMOD_DEFAULT := {
 	"lamp_hit": 1.0, "oil_drop": 1.0, "ingot": 1.0,                      # 受击灯火损失、小怪灯油掉落率、源石锭掉落
 	"elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.0,               # 精英出现间隔、Boss 招式预警时间、大群规模
 	"horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、溟痕不消散、主控初始最大生命
+	"mire_dmg": 1.0,                                                      # 溟痕伤害（run/enemies.gd，数值要求可按档单独加重）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关
 const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人攻击 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 攻击再 +%d%%", "up"],
 	["max_hp", "初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 招式预警时间 -%d%%", "down"], ["horde", "大群规模 +%d%%", "up"],
-	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "溟痕不再消散", "flag"],
+	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "溟痕不再消散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"],
 ]
 
 

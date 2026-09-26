@@ -323,7 +323,8 @@ func update_status(dt: float) -> void:
 		mire_tick -= dt
 		if mire_tick <= 0.0:
 			mire_tick = 0.5
-			var md: float = 3.0 + g.max_hp * 0.015
+			# 溟痕每跳（0.5 秒）伤害：balance.json 的 enemy/mire_flat + 最大生命 × enemy/mire_pct，再乘难度修正 mire_dmg（缺省与原来相同）
+			var md: float = (Bal.v("enemy/mire_flat", 3.0) + g.max_hp * Bal.v("enemy/mire_pct", 0.015)) * float(g.dmod.get("mire_dmg", 1.0))
 			md = g.combat.lose_hp(md, "mire", not mire_nat)
 			if md >= 1.0:   # Boss 溟痕这一跳被持续伤害上限截到不足 1 点时不闪、不飘「-0」（自然溟痕每跳 ≥3，照旧）
 				g.red_flash = maxf(g.red_flash, 0.08)
