@@ -94,6 +94,8 @@ func _ready() -> void:
 			var dp := a.substr(10).split(",")
 			gallery.demo_stage = int(dp[0])
 			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
+		if a.begins_with("--infotab="):
+			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（档案 / 技能 / 数值）
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()

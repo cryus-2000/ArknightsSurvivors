@@ -7,6 +7,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const TABS := [
 	{"cn": "干员", "en": "OPERATOR"},
@@ -72,6 +73,10 @@ var demo_id := ""
 var demo_stage := 2
 var demo_mode := -1
 var demo_rects: Array = []       # [Rect2, "stage" | "mode", 值]
+## 干员详情的信息页（2026-09-26）：档案 / 技能 / 数值 分页显示，解决「档案 + 三技能 + 天赋挤在一个文本框里放不下」
+var info_tab := 0
+var info_rects: Array = []
+const INFO_TABS := ["档案", "技能", "数值"]
 const DEMO_H := 290
 
 
@@ -202,7 +207,7 @@ func _build() -> void:
 					st.append(["普攻", cd.attack.get("name", "")])
 				var sks: Array = cd.get("skills", [])
 				for si in sks.size():
-					st.append(["技能 %d" % (si + 1), "%s%s · %s" % [sks[si].get("name", ""), ("（充能 %d）" % int(sks[si].sp)) if sks[si].has("sp") else "", ["招募", "精一", "精二"][si]]])
+					st.append(["技能 %d" % (si + 1), "%s · %s" % [sks[si].get("name", ""), ["招募", "精一", "精二"][si]]])
 				if cd.has("talent"):
 					st.append(["天赋", cd.talent.get("name", "")])
 				var forms: Array = []
@@ -227,7 +232,8 @@ func _build() -> void:
 				if not lines.is_empty():
 					mech += "\n" + "\n".join(lines)
 				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": "%s干员" % cd.get("class", ""), "forms": forms,
-					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": _lore_text(cid, mech)})
+					"stats": st, "chips": cd.get("gallery", {}).get("tags", []), "desc": _lore_text(cid, mech),
+					"pages": {"档案": _op_profile(cid, cd), "技能": _op_skill_rows(cd), "数值": _op_numbers(cid, cd)}})
 		1, 2, 3:
 			var role: String = ["", "", "elite", "boss"][tab]
 			for k in D.ENEMIES:
@@ -337,6 +343,12 @@ func _gui_input(event: InputEvent) -> void:
 		for i in tile_rects.size():
 			if tile_rects[i].has_point(event.position):
 				_set_sel(i)
+				return
+		for ir in info_rects:
+			if ir[0].has_point(event.position):
+				info_tab = ir[1]
+				Sfx.play("ui_move")
+				accept_event()
 				return
 		for dr0 in demo_rects:
 			if dr0[0].has_point(event.position):
@@ -523,7 +535,12 @@ func _draw_detail(vs: Vector2) -> void:
 		demo_rects.clear()
 		_demo_stop()
 	var base := box.position + Vector2(box.size.x / 2, box.size.y - 34)
-	if not demo:
+	# 技能 / 数值页：信息区占满面板，立绘缩小到名字左侧的小展示台，不画动作按钮
+	var wide: bool = e.has("pages") and not locked and not demo and info_tab != 0
+	if wide:
+		box = Rect2(pr.position + Vector2(20, 14), Vector2(260, 110))
+		base = box.position + Vector2(box.size.x / 2, box.size.y - 6)
+	if not demo and not wide:
 		draw_circle(base + Vector2(0, -90), 120.0, Color(0.3, 0.8, 0.9, 0.05))
 		draw_set_transform(base, 0.0, Vector2(1.0, 0.3))
 		draw_circle(Vector2.ZERO, 80.0, Color(0.3, 0.8, 0.9, 0.12))
@@ -533,14 +550,14 @@ func _draw_detail(vs: Vector2) -> void:
 		var fr := int(form_t * f.fps)
 		fr = fr % f.frames if f.loop else mini(fr, f.frames - 1)
 		var src := _frame_rect(f, fr)
-		var k: float = minf(240.0 / src.size.x, 200.0 / src.size.y)
+		var k: float = minf(240.0 / src.size.x, (100.0 if wide else 200.0) / src.size.y)
 		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
 		var sz := src.size * k
 		var col := Color(0, 0, 0, 0.95) if locked else Color.WHITE
 		draw_texture_rect_region(f.tex, Rect2((base - Vector2(sz.x / 2, sz.y - 6)).round(), sz), src, col)
 	# 动作 / 形态切换
 	form_rects.clear()
-	if e.forms.size() > 1 and not locked:
+	if e.forms.size() > 1 and not locked and not wide:
 		for i in e.forms.size():
 			var br := Rect2(box.position.x + i * 52, box.end.y + 8, 48, 28)
 			form_rects.append(br)
@@ -557,12 +574,14 @@ func _draw_detail(vs: Vector2) -> void:
 		draw_rect(Rect2(Vector2(tx, pr.position.y + 92), Vector2(4, 16)), UI.CYAN)
 		UI.text(self, font, Vector2(tx + 12, pr.position.y + 106), e.tag, 14, UI.CYAN)
 	if not locked and not demo:
-		for s in e.stats:
-			UI.text(self, font, Vector2(tx, y), s[0], 14, UI.SUB)
-			UI.text(self, font, Vector2(tx + 60, y), s[1], 15, UI.TEXT)
-			y += 26
-		# 标签行放在动作按钮行之下，避免与按钮重叠
-		if e.forms.size() > 1:
+		# 干员有「档案 / 技能 / 数值」分页，右侧不再重复列技能名：标签放在名字下面，下方信息区更高
+		if not e.has("pages"):
+			for s in e.stats:
+				UI.text(self, font, Vector2(tx, y), s[0], 14, UI.SUB)
+				UI.text(self, font, Vector2(tx + 60, y), s[1], 15, UI.TEXT)
+				y += 26
+		# 标签行放在动作按钮行之下，避免与按钮重叠（干员页标签在名字下方，不受此限）
+		if e.forms.size() > 1 and not e.has("pages"):
 			y = maxf(y, box.end.y + 52)
 		var cx := tx
 		for c in e.get("chips", []):
@@ -570,8 +589,14 @@ func _draw_detail(vs: Vector2) -> void:
 			UI.panel(self, Rect2(cx, y - 4, w, 24), Color(0.2, 0.08, 0.25, 0.8), UI.PURPLE, 4.0)
 			UI.text(self, font, Vector2(cx, y + 13), c, 12, UI.PURPLE, HORIZONTAL_ALIGNMENT_CENTER, w)
 			cx += w + 8
-	var dy := maxf(y + 42, box.end.y + 60)
+	var dy := maxf(y + 42, box.end.y + 60) if not (e.has("pages") and not locked and not demo) else box.end.y + 64
+	if wide:
+		dy = pr.position.y + 160
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
+	info_rects.clear()
+	if e.has("pages") and not locked:
+		_draw_pages(e, pr, dy)
+		return
 	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
 	# 介绍文字：按剩余高度自适应字号（15 → 12），仍放不下则按行裁切，不越出面板
 	var avail := pr.end.y - 16.0 - (dy + 4)
@@ -582,3 +607,149 @@ func _draw_detail(vs: Vector2) -> void:
 	var lh := font.get_height(fs)
 	var max_lines := maxi(1, int(avail / lh))
 	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, max_lines, Color(0.8, 0.9, 0.92), UI.BRK)
+
+
+# ---------------------------------------------------------------- 干员信息页（档案 / 技能 / 数值）
+
+## 分页标签 + 当前页内容；内容按剩余高度自适应字号（15 → 11），仍放不下才裁行
+func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
+	var cx := pr.position.x + 24
+	for i in INFO_TABS.size():
+		var w: float = font.get_string_size(INFO_TABS[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 22.0
+		var r := Rect2(Vector2(cx, dy - 12), Vector2(w, 24))
+		var on: bool = i == info_tab
+		UI.panel(self, r, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.05, 0.08, 0.6), UI.CYAN if on else UI.LINE, 4.0)
+		UI.text(self, font, r.position + Vector2(0, 17), INFO_TABS[i], 13, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, w, 2)
+		info_rects.append([r, i])
+		cx += w + 8
+	var top := dy + 22
+	var avail := pr.end.y - 14.0 - top
+	var width := pr.size.x - 48
+	var x := pr.position.x + 24
+	var page = e.pages[INFO_TABS[info_tab]]
+	match info_tab:
+		0:
+			_draw_fit_text(page, Vector2(x, top), width, avail)
+		1:
+			# 技能页：每条「标签 名称」一行 + 说明；整体放不下时统一缩字号
+			var fs := 14
+			while fs > 11 and _skill_rows_h(page, width, fs) > avail:
+				fs -= 1
+			var yy := top
+			for row in page:
+				var tag_w: float = UI.chip(self, font, Vector2(x, yy + 2), row[0], row[3], 11) + 8
+				UI.text(self, font, Vector2(x + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT)
+				yy += fs + 8
+				var soft := UI.soft(row[2])
+				var h: float = font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, UI.BRK).y
+				if yy + h > top + avail:
+					break
+				draw_multiline_string(font, Vector2(x + 8, yy + fs - 2), soft, HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, Color(0.78, 0.88, 0.9), UI.BRK)
+				yy += h + 7
+		2:
+			# 数值页：两列表格
+			var col_w := width / 2.0
+			var yy2 := top + 14
+			for i in page.size():
+				var cxx: float = x + (i % 2) * col_w
+				if i % 2 == 0 and i > 0:
+					yy2 += 30
+				UI.text(self, font, Vector2(cxx, yy2), page[i][0], 13, UI.SUB)
+				UI.text(self, font, Vector2(cxx + 92, yy2), page[i][1], 15, UI.TEXT)
+			UI.text(self, font, Vector2(x, top + avail - 4), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
+
+
+func _skill_rows_h(rows: Array, width: float, fs: int) -> float:
+	var h := 0.0
+	for row in rows:
+		h += fs + 8 + font.get_multiline_string_size(UI.soft(row[2]), HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, UI.BRK).y + 7
+	return h
+
+
+func _draw_fit_text(txt: String, at: Vector2, width: float, avail: float) -> void:
+	var soft := UI.soft(txt)
+	var fs := 15
+	while fs > 11 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, width, fs, -1, UI.BRK).y > avail:
+		fs -= 1
+	var max_lines := maxi(1, int(avail / font.get_height(fs)))
+	draw_multiline_string(font, at + Vector2(0, fs), soft, HORIZONTAL_ALIGNMENT_LEFT, width, fs, max_lines, Color(0.82, 0.9, 0.92), UI.BRK)
+
+
+## 档案页：lore.json 的 profile（代号 / 性别 / 出身 / 种族 / 所属，来自 PRTS 档案）+ 介绍；再接玩法定位一句
+func _op_profile(cid: String, cd: Dictionary) -> String:
+	var lr: Dictionary = lore.get(cid, {})
+	var out: Array = []
+	var pf: Dictionary = lr.get("profile", {})
+	var fields: Array = []
+	for k in ["性别", "出身地", "种族", "所属"]:
+		if pf.has(k) and str(pf[k]) != "":
+			fields.append("%s：%s" % [k, pf[k]])
+	if not fields.is_empty():
+		out.append("　".join(fields))
+	if lr.has("lore"):
+		out.append(str(lr.lore))
+	var mech: String = cd.get("gallery", {}).get("desc", "")
+	if mech != "":
+		out.append("【本作定位】" + mech)
+	return "\n\n".join(out)
+
+
+## 技能页：普攻 / S1–S3 / 天赋，每条 [标签, 名称, 说明, 颜色]
+func _op_skill_rows(cd: Dictionary) -> Array:
+	var rows: Array = []
+	var col := Color(0.4, 0.85, 0.9)
+	if cd.has("attack"):
+		rows.append(["普攻", cd.attack.get("name", ""), cd.attack.get("desc", ""), col])
+	var sks: Array = cd.get("skills", [])
+	for si in sks.size():
+		var sk: Dictionary = sks[si]
+		var meta: Array = [["招募", "精一", "精二"][si] + "解锁"]
+		if sk.has("sp"):
+			meta.append("充能 %d 秒" % int(sk.sp))
+		if sk.get("permanent", false):
+			meta.append("永久")
+		if sk.get("mode", "auto") == "manual":
+			meta.append("手动")
+		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD])
+	if cd.has("talent"):
+		rows.append(["天赋", cd.talent.get("name", "") + "　（精一解锁）", cd.talent.get("desc", ""), UI.PURPLE])
+	return rows
+
+
+## 数值页：从 base 段取各干员的基础数值（键名因人而异，这里统一成 攻击 / 间隔 / DPS / 距离 / 范围 / 治疗）
+func _op_numbers(cid: String, cd: Dictionary) -> Array:
+	var b: Dictionary = cd.get("base", {})
+	var pick := func(keys: Array):
+		for k in keys:
+			if b.has(k):
+				return float(b[k])
+		return -1.0
+	var atk: float = pick.call(["atk", "m_atk", "umbrella_dmg", "bolt_atk"])
+	var cdv: float = pick.call(["cd", "m_cd", "swing_interval", "bolt_cd"])
+	var rng_v: float = pick.call(["range", "bolt_range"])
+	var reach: float = pick.call(["reach", "m_reach", "swing_radius", "len"])
+	var aoe: float = pick.call(["aoe"])
+	var out: Array = []
+	out.append(["职业", "%s · %s" % [cd.get("class", ""), "远程" if rng_v > 0.0 else "近战"]])
+	var tier: String = str(Bal.op(cid).get("tier", "—"))
+	out.append(["档位", tier])
+	if atk > 0.0:
+		out.append(["攻击", "%d%s" % [int(atk), "（Mon3tr）" if b.has("m_atk") else ""]])
+	if cdv > 0.0:
+		out.append(["攻击间隔", "%.2f 秒" % cdv])
+	if atk > 0.0 and cdv > 0.0:
+		out.append(["每秒伤害", "%.1f" % (atk / cdv)])
+	if rng_v > 0.0:
+		out.append(["射程", "%d" % int(rng_v)])
+	elif reach > 0.0:
+		out.append(["攻击范围", "%d" % int(reach)])
+	if aoe > 0.0:
+		out.append(["爆炸 / 溅射", "半径 %d" % int(aoe)])
+	if b.has("heal_pct"):
+		out.append(["治疗", "%.1f%% / %.1f 秒" % [float(b.heal_pct) * 100.0, float(b.get("heal_cd", 3.0))]])
+	var sks: Array = cd.get("skills", [])
+	var sp: Array = []
+	for sk in sks:
+		sp.append(str(int(sk.get("sp", 0))))
+	out.append(["技能充能", " / ".join(sp) + " 秒"])
+	return out
