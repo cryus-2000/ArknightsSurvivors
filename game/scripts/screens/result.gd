@@ -18,6 +18,8 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
 	if ending_panel:
+		# 面板 + 右侧剪影（约 260 宽）整体居中，剪影和「结局 Ⅱ / 已达成」不再贴屏幕右边、压到编队 HUD（触屏紧凑版 1113 宽）
+		r.position.x = maxf(16.0, (vs.x - (pw + 260.0)) / 2.0)
 		# 结局结算：面板右侧浮现最终 Boss 剪影 + 结局色光晕 + 一句尾声
 		var en: Dictionary = D.ENDINGS.get(g.ending, {})
 		var bd: Dictionary = D.ENEMIES.get(en.get("boss", ""), {})
@@ -28,7 +30,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		if btx != null:
 			var fw: int = btx.get_width() / 2
 			var fh: int = btx.get_height()
-			var k2: float = minf(220.0 / fw, 240.0 / fh)
+			var k2: float = minf(200.0 / fw, 200.0 / fh)
 			k2 = floorf(k2) if k2 >= 1.0 else k2
 			var sz := Vector2(fw, fh) * k2
 			var fr: int = int(g.t * 2.0) % 2
@@ -36,14 +38,18 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(g.t * 2.0)))
 		var idx: int = ["standard", "knight", "resolve", "deep"].find(g.ending)
-		UI.text(g.hud, g.font, Vector2(gc.x - 90, gc.y + 150), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
-		UI.text(g.hud, g.font, Vector2(gc.x - 110, gc.y + 172), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
+		UI.text(g.hud, g.font, Vector2(gc.x - 90, gc.y + 124), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
+		UI.text(g.hud, g.font, Vector2(gc.x - 110, gc.y + 144), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
 	UI.frame(g.hud, r, col, {"t": g.t})
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
 	UI.caustic(g.hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), g.t, col)
 	var ew := g.font.get_string_size(en_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_title.length() * 4.0
 	UI.en(g.hud, g.font, Vector2(r.get_center().x - ew / 2.0, r.position.y + 50), en_title, 13, col, 4.0)
-	UI.heading(g.hud, g.font, Vector2(r.get_center().x, r.position.y + 90), title, 36, col, 250.0)
+	# 标题连两侧装饰线要在面板内：结局名长（「xx · 探索完成」36 号字）时缩字号，装饰线收到面板边内 24
+	var tsz := 36
+	while tsz > 22 and g.font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x > pw - 124.0:
+		tsz -= 2
+	UI.heading(g.hud, g.font, Vector2(r.get_center().x, r.position.y + 90), title, tsz, col, minf(250.0, pw / 2.0 - 24.0))
 	var mm := int(g.t) / 60
 	var ss := int(g.t) % 60
 	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
@@ -55,7 +61,10 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if g.diff_new and g.state == Game.S.WIN:
 		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
-		UI.chip(g.hud, g.font, Vector2(r.get_center().x - (g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0) / 2.0, r.position.y + (142 if ending_panel else 118)), ul, UI.GOLD, 13)   # 按字宽居中（档名变长）
+		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0
+		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
+		var ulp := Vector2(r.end.x - 30.0 - ulw, r.position.y + 30) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
+		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32
 		UI.diamond(g.hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))

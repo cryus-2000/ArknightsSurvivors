@@ -797,7 +797,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var k: int = event.keycode
 	if _nav_key(k):
-		get_viewport().set_input_as_handled()
+		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
+			get_viewport().set_input_as_handled()
 		return
 	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
 		_try_dash()

@@ -274,9 +274,12 @@ func _draw_diff(vs: Vector2) -> void:
 		sub_txt = "通关「%s」后解锁" % D.DIFFICULTY_TIERS[diff_sel - 1].name
 	UI.text(self, font, Vector2(r.position.x, y - 32), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var ic := Color(0.3, 0.36, 0.4) if locked else col
+	# 两列均分（原来左列固定 7 行）；行距按按钮上沿以上的空间压缩（触屏紧凑版面板矮，Ⅷ 有 11 条）
+	var per: int = maxi(1, ceili(lines.size() / 2.0))
+	var step: float = clampf((r.end.y - 70.0 - 14.0 - y) / float(per), 22.0, 30.0)
 	for k in lines.size():
-		var x := r.position.x + 60 + (k / 7) * 340
-		var yy := y + (k % 7) * 30
+		var x := r.position.x + 60 + (k / per) * 340
+		var yy := y + (k % per) * step
 		UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic, ic)
 		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14, UI.SUB if locked else UI.TEXT)
 	# 按钮
@@ -369,6 +372,10 @@ func _input(event: InputEvent) -> void:
 				Sfx.play("ui_move")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_activate(sel)
+			KEY_C, KEY_X:
+				# 致谢与声明：键盘 C、手柄 Ⓨ（标题页 Ⓨ 映射为 X）也能打开（原来只能鼠标点页脚）
+				credits = true
+				Sfx.play("ui_ok")
 	elif event is InputEventMouseMotion:
 		for i in item_rects.size():
 			if item_rects[i].has_point(event.position) and sel != i:
@@ -436,6 +443,10 @@ func _draw() -> void:
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
 	if Cfg.unlock_all:
+		# 暗底衬板：右上角是明亮的巨树枝，金字直接压在上面看不清
+		var tbw: float = font.get_string_size("测试版 · 已全部解锁（不写入存档）", HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, tbw + 24, 24), Color(0.02, 0.03, 0.05, 0.85))
+		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, 3, 24), UI.GOLD)
 		UI.text(self, font, Vector2(vs.x - 330, 30), "测试版 · 已全部解锁（不写入存档）", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
 	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
 	var lg := _seg(2.6, 0.6)
@@ -538,7 +549,7 @@ func _draw() -> void:
 	var ff := _seg(4.1, 0.4)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
+	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ"), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
 	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
 
 	# 开场：黑幕淡出 + 上下黑边收起
@@ -594,16 +605,18 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines := [
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q 放手动技能"],
-		["攻击", "全自动：编队干员跟在主控身边普攻，三个技能各自充能后自动释放"],
-		["编队", "升级时选干员深度卡成长、精英化解锁新技能；Lv5 起可招募，最多 3 人"],
+		["攻击", "全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q）"],
+		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
-		["升级 / 藏品", "按 1 / 2 / 3 或点击选择"],
-		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 静音　　R 重来　　T 回标题"],
-		["手柄", "左摇杆移动　Ⓐ 确认　Ⓑ 返回　START 暂停　SELECT 属性　LB / RB 翻页"],
+		["升级 / 藏品", "按数字键或点击选择"],
+		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 开关音乐　　R 重来　　T 回标题"],
+		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓧ 手动技能　START 暂停　SELECT 属性"],
+		["", "菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 106 + i * 46
-		UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
+		var y := r.position.y + 106 + i * 42
+		if lines[i][0] != "":
+			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
 		UI.text_fit(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT, r.size.x - 190 - 36, 13)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
@@ -839,7 +852,8 @@ func _op_go() -> void:
 ## 选人页：左侧 4×2 干员格（待机动画 + 名字 + 职业），右侧详情（普攻 / 技能 / 天赋 / 档案）
 func _draw_op_pick(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
-	var r := Rect2(vs.x / 2 - 560, 40, 1120, vs.y - 80)
+	var pw: float = minf(1120.0, vs.x - 24.0)   # 触屏紧凑版逻辑宽 1113：面板别伸出屏幕
+	var r := Rect2(vs.x / 2 - pw / 2.0, 40, pw, vs.y - 80)
 	var cur: Dictionary = op_defs[op_sel]
 	var d: Dictionary = cur.def
 	var col: Color = Character.CLASS_COL.get(d.get("class", ""), UI.CYAN)
@@ -913,14 +927,15 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var py := dr.position.y + 34
 	UI.en(self, font, Vector2(px, py), d.get("en", ""), 12, col, 3.0)
 	UI.text(self, font, Vector2(px, py + 40), d.get("name", cur.id), 30, UI.TEXT)
-	var cx := px + 150
+	var nx: float = px + maxf(150.0, font.get_string_size(d.get("name", cur.id), HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x + 18.0)   # 名字长（归溟幽灵鲨）时标签往右让
+	var cx := nx
 	cx += UI.chip(self, font, Vector2(cx, py + 18), d.get("class", ""), col, 12) + 8
 	for tg in d.get("gallery", {}).get("tags", []):
 		cx += UI.chip(self, font, Vector2(cx, py + 18), tg, UI.PURPLE, 11) + 6
 	# 当主控时的受击属性（JSON leader 段，按原作精二满级换算）：标签下面一行
 	var ld: Dictionary = d.get("leader", {})
 	if not ld.is_empty():
-		UI.text_fit(self, font, Vector2(px + 150, py + 58), "主控　生命 %d · 回复 %.1f/秒 · 减伤 %s · 法抗 %d%%" % [int(ld.get("max_hp", 120)), float(ld.get("regen", 1.0)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95), dr.end.x - 24.0 - (px + 150))
+		UI.text_fit(self, font, Vector2(nx, py + 58), "主控　生命 %d · 回复 %.1f/秒 · 减伤 %s · 法抗 %d%%" % [int(ld.get("max_hp", 120)), float(ld.get("regen", 1.0)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95), dr.end.x - 24.0 - nx)
 	py += 74
 	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 	py += 18
@@ -932,7 +947,24 @@ func _draw_op_pick(vs: Vector2) -> void:
 		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精英一", "精英二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
 	if d.has("talent"):
 		lines.append(["天赋", d.talent.get("name", "") + "　（精英一解锁）", d.talent.get("desc", "")])
+	# 高度预算（触屏紧凑版面板矮）：每条说明先给 2 行，放不下就从后往前减到 1 行、再减到只留名字
+	var dlh := 18.0
+	var desc_n: Array = []
 	for ln in lines:
+		desc_n.append(2)
+	var room: float = dr.end.y - 14.0 - py
+	var need := func() -> float:
+		var h := 0.0
+		for i in lines.size():
+			h += 30.0 + dlh * desc_n[i]
+		return h
+	for cap in [1, 0]:
+		var i: int = lines.size() - 1
+		while need.call() > room and i >= 0:
+			desc_n[i] = mini(desc_n[i], cap)
+			i -= 1
+	for li in lines.size():
+		var ln: Array = lines[li]
 		# 技能行：左边画技能图标（32px 原尺寸），名字与说明右移；普攻 / 天赋仍是小标签
 		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null
 		var ix := 0.0
@@ -944,7 +976,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 			UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
 			UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
 		py += 22
-		py += maxf(_wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, 2), 12.0 if itx != null else 0.0) + 8
+		py += maxf(_wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, desc_n[li]), 12.0 if itx != null else 0.0) + 8
 	# 精二条件
 	for n in d.get("progression", []):
 		if n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):
@@ -976,21 +1008,15 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var mp := get_local_mouse_position()
 	UI.button(self, font, go, Pad.hint("下一步  Enter", "下一步  Ⓐ"), "primary", go.has_point(mp), 17)
 	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ"), "outline", back.has_point(mp), 17)
-	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), "WASD / ARROWS  SELECT     ENTER  NEXT", 11, Color(0.45, 0.49, 0.53), 1.5)
+	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), Pad.hint("WASD / ARROWS  SELECT     ENTER  NEXT", "STICK  SELECT     A  NEXT     B  BACK"), 11, Color(0.45, 0.49, 0.53), 1.5)
 
 
 ## 按像素宽度折行绘制，返回占用高度
 func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float, max_lines: int = 99) -> float:
-	var lines: Array = []
-	var cur := ""
-	for ch in s:
-		if ch == "\n" or font.get_string_size(cur + ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
-			lines.append(cur)
-			cur = "" if ch == "\n" else ch
-		else:
-			cur += ch
-	if cur != "":
-		lines.append(cur)
+	# 折行走 UI.wrap_lines（避头尾：「；」「%」不落行首，末行不只剩一两个字）
+	var lines: Array = Array(UI.wrap_lines(font, s, size, width))
+	if max_lines <= 0:
+		return 0.0
 	if lines.size() > max_lines:
 		lines = lines.slice(0, max_lines)
 		lines[max_lines - 1] = lines[max_lines - 1].substr(0, maxi(0, lines[max_lines - 1].length() - 1)) + "…"

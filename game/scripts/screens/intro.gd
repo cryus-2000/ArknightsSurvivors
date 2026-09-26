@@ -88,7 +88,12 @@ func draw_opening_hud(vs: Vector2) -> void:
 	g.hud.draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0, 0, 0.95))
 	if opening_t > 0.4 and opening_t < 3.3:
 		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
-		UI.en(g.hud, g.font, Vector2(vs.x / 2 - 200, vs.y * 0.22), "OPERATION  MIZUKI", 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
+		# 英文行按开局干员（data/characters 的 en），按字宽 + 字距居中
+		var ens: String = "OPERATION  %s" % String(g.ch.def.get("en", "MIZUKI")).to_upper()
+		var enw := -5.0
+		for ch in ens:
+			enw += UI.cond(g.font).get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 5.0   # 同 UI.en 的逐字排法
+		UI.en(g.hud, g.font, Vector2(vs.x / 2 - enw / 2.0, vs.y * 0.22), ens, 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 44), "%s  ·  深海探索" % g.ch.display_name(), 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 74), "灯火未熄，便还能走下去", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)

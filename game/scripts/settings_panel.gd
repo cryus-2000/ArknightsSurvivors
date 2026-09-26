@@ -258,9 +258,10 @@ func _draw() -> void:
 				var changed: bool = pi != Cfg.res_index
 				var label := "%d × %d" % [sz.x, sz.y]
 				if Cfg.fullscreen:
-					label += "（全屏按屏幕）"
+					# 全屏说明放在 ◀ 左边的小字（原来接在数值后面，140 宽放不下、压到 ◀）
+					UI.text(self, font, Vector2(vx - 196, rr.position.y + 23), "全屏时按屏幕分辨率", 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 176)
 				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 15 if Cfg.fullscreen else 17, (UI.GOLD if changed else UI.CYAN) if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 17, (UI.GOLD if changed else UI.CYAN) if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
 				if changed:
 					var br := Rect2(vx + 142, rr.position.y + 6, 42, 22)
 					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
