@@ -734,7 +734,7 @@ func draw_body() -> void:
 				var c := Color(1.0, 0.45, 0.5, al * ring[1])
 				for i in 8:
 					var off: Vector2 = Vector2.from_angle(i * TAU / 8.0) * ring[0]
-					draw_sprite_at(pos + off, st.flip, c, st.frame, wt, st.hf, fo)
+					draw_sprite_at(pos + off + Vector2(foot_dx(st), 0), st.flip, c, st.frame, wt, st.hf, fo)
 	super()
 
 

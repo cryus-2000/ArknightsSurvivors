@@ -184,7 +184,8 @@ const M_REST := Vector2(44.0, 18.0)
 func _m_route(want: Vector2) -> Vector2:
 	# 滞回：进了绕行就一直走到绕行点再回到直线（原来每帧重判，在绕行点和目标之间来回切，之字形走位、每帧翻身）
 	if m.get("via", Vector2.INF) != Vector2.INF:
-		if m.pos.distance_to(m.via) > 10.0:
+		# 退出：到点（16 内）或绕行超过 1.2 秒（via 附近有障碍被 push_out 顶住时不会卡死；runretest P0）
+		if m.pos.distance_to(m.via) > 16.0 and g.t - float(m.get("via_t", g.t)) < 1.2:
 			return m.via
 		m["via"] = Vector2.INF
 	for c in [pos, g.ppos]:
@@ -193,8 +194,11 @@ func _m_route(want: Vector2) -> Vector2:
 		var q: Vector2 = Geometry2D.get_closest_point_to_segment(c, m.pos, want)
 		if q.distance_to(c) < 40.0 and absf(m.pos.y - c.y) < 50.0:
 			var via: Vector2 = c + Vector2(0, 56)
-			if m.pos.distance_to(via) > 8.0:
+			if g.tex.get("prop_pillar") != null:
+				via = g.map.push_out(via, 14.0)   # 绕行点先推出柱子再存
+			if m.pos.distance_to(via) > 16.0:
 				m["via"] = via
+				m["via_t"] = g.t
 				return via
 	return want
 

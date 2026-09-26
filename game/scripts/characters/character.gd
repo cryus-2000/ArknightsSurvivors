@@ -856,7 +856,7 @@ func follow(dt: float, target: Vector2) -> void:
 	if attack_t <= 0.0:
 		if absf(vel.x) > 25.0 and mv > 30.0:
 			# 主控跟着玩家移动即时转身；队友明显横向移动（> 90）时也即时转，不再倒着跑
-			_set_face(signf(vel.x), is_leader or absf(vel.x) > 90.0)
+			_set_face(signf(vel.x), is_leader)   # 队友走 FACE_MIN 防抖（强制转身会在 0.35 秒内反复翻，runretest P1）
 		elif mv < 20.0 and g.t - face_flip_t > FACE_IDLE:
 			_set_face(g.facing)   # 站定回正：离上次翻身满 FACE_IDLE 秒才回，免得出手转向后立刻翻回来
 	attack_t = maxf(0.0, attack_t - dt)
@@ -1104,7 +1104,7 @@ func anim_state() -> Dictionary:
 ## 跑步帧率缩放（2026-09-27）：帧条按 RUN_REF 移速画，实际速度按比例加快 / 放慢
 const RUN_REF := 150.0
 const RUN_K_MIN := 0.6
-const RUN_K_MAX := 3.0
+const RUN_K_MAX := 2.0   # 最高 20fps，再快腿部发糊（runretest P2）
 const RUN_ENTER := 40.0
 const RUN_EXIT := 20.0
 var run_ph := 0.0
