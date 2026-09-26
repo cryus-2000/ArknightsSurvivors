@@ -322,12 +322,18 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 
 ## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
 ## 播放一条帧条特效：flip 镜像；bottom=true 时 pos 为脚底（帧条底部对齐）
+## 普通敌人击杀溶解染成淡紫（docs/48 P1：击杀溶解、经验结晶、敌人描边都是青色，后期连成一片）：
+## 经验结晶留青色（拾取物），溶解偏紫、描边偏中性白
+const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
+
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
 	if g.tex.get(name) == null:
 		return false
 	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
 		scale = blade_scale(scale)
 	scale = minf(scale, FX_SCALE_MAX)
+	if name == "fx_death_dissolve" and col == Color.WHITE:
+		col = DISSOLVE_TINT
 	var spec: Array = Game.V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
 	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}

@@ -164,6 +164,7 @@ func draw_world() -> void:
 	for m in g.mires:
 		g.map.draw_mire(m)
 	g.bai._draw_warns()
+	draw_nest_auras()
 	g.rfx.draw()
 	if not g.merchant.is_empty():
 		var mtx: Texture2D = g.tex.merchant
@@ -819,11 +820,8 @@ func draw_enemy(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	if ed.has("aura_r") and g.tex.get("fx_nest_aura") != null:
-		# 巢涌者神经光环：脚下的光环帧条按光环半径放大，外圈描出实际判定范围
-		var ar: float = ed.aura_r
-		g.vfx.spr("fx_nest_aura", 4, int(g.t * 10.0 + e.id) % 4, e.pos, ar / 24.0, false, Color(1, 1, 1, 0.45))
-		g.draw_arc(e.pos, ar, 0.0, TAU, 40, Color(0.9, 0.5, 1.6, 0.35), 2.0)
+	var rage_fx: bool = e.get("enraged", false)   # 狂暴：除了待机帧换图，移动 / 攻击帧也染红、脚下红光（docs/48 P1：原来只在待机帧生效）
+	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0))
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
@@ -854,6 +852,12 @@ func draw_enemy(e: Dictionary) -> void:
 		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
+	if rage_fx:
+		var rp: float = 0.5 + 0.5 * sin(g.t * 10.0 + e.id)
+		col = col * Color(1.35, 0.78, 0.72).lerp(Color(1.6, 0.7, 0.6), rp)
+		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.7), 0.0, Vector2(1.0, 0.45))
+		g.draw_circle(Vector2.ZERO, e.r * 1.3, Color(1.6, 0.25, 0.2, 0.18 + 0.12 * rp))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 冲刺预警线改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②）
 	if e.get("dash_t", 0.0) > 0.0:
 		g.vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
@@ -919,7 +923,7 @@ func draw_enemy(e: Dictionary) -> void:
 		g.draw_off.y -= e.air
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and g.tex.has(name + "_white"):
-		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
+		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
 		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
@@ -1055,6 +1059,28 @@ func _enemy_top(e: Dictionary) -> Vector2:
 		return e.pos + Vector2(0, -e.r - 8.0)
 	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0)) / A.hires_of(tx)
 	return e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
+
+
+## 巢涌者神经光环（docs/48 P1：帧条放大 4.6 倍后颗粒很粗，画在实体层会盖住其他东西）：
+## 地面层程序绘制——淡紫柔光底、两道向内收的涟漪、缓慢转动的虚线外圈 = 判定范围
+func draw_nest_auras() -> void:
+	for e in g.enemies:
+		if e.dead:
+			continue
+		var ed: Dictionary = D.ENEMIES.get(e.type, {})
+		if not ed.has("aura_r"):
+			continue
+		var ar: float = ed.aura_r
+		var ac := Color(0.9, 0.5, 1.6)
+		for q in 4:
+			g.draw_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035))
+		for q in 2:
+			var u: float = fmod(g.t * 0.5 + q * 0.5 + e.id * 0.17, 1.0)
+			g.draw_arc(e.pos, ar * (1.0 - u * 0.85), 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u)), 1.5)
+		var rot: float = g.t * 0.4 + e.id
+		for q in 18:
+			var a0: float = rot + q * TAU / 18.0
+			g.draw_arc(e.pos, ar, a0, a0 + TAU / 36.0, 4, Color(ac.r, ac.g, ac.b, 0.55), 2.0)
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
