@@ -42,15 +42,13 @@
 | `op_eyjafjalla_run`、`op_eyjafjalla_idle` | 艾雅法拉：前后 3 帧不要错开 6px（@2x），重心 x=48；着地帧最低；idle 加 1px 呼吸 |
 | `op_logos_run`、`op_logos_idle` | 逻各斯：f3、f5 不要前移 11px（@2x），两步对称各沉 1px；idle 加 1px 呼吸 |
 | `doctor_run`、`doctor_idle` | 博士：f1 不后移、f4 不前移，重心 x=48（@2x）；着地帧最低；idle 加 1px 呼吸 |
+| `player_idle`、`player_run` | 水月（用户已确认列入）：按规则 4 重画 idle 4 帧 / run 6 帧，两腿交替、着地沉 1–2px、待机呼吸 1px、重心 x=48（@2x）；造型配色照现有 `player_*` 与 `mizuki_48_original.png`，不改设计 |
 
 ## 第 5 组：P2
 | 文件 | 要求 |
 |---|---|
 | `op_specter_unchained_run` | 幽灵鲨：头躯干水平 ±2px（现晃 10px）；加 1–2px 起伏 |
 | `op_irene_run` | 艾丽妮：第 2 组完成后，起伏两步调匀 |
-
-## 不要改（用户已确认保留）
-- 水月：`game/art/px/mizuki_chibi_walk.png` 保持原样，不补新帧条。
 
 ## 以后再做（先不做，等通知）
 - 凿石者碎石弹、吐酸者酸团与溅开、掠海漂移体移动 / 攻击帧（带前摇）、投嗣育母产卵动作、塑路者攻击 / 冲撞帧。
