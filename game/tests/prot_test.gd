@@ -9,6 +9,7 @@ extends Node
 ##   僵直中也能冲刺（方向取按住的方向）。
 ## 攻速 / 移速下限（B0-3）：Boss 来源和 Boss 存活期间不写 atk_slow（预警、带 slow 的子弹、神经损伤溢出），改成等量移速减速；
 ##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
+## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -47,6 +48,7 @@ func _process(_d: float) -> void:
 	test_non_boss()
 	test_no_hard_cc()
 	test_atk_slow_floor()
+	test_horde_mix()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -558,3 +560,40 @@ func test_atk_slow_floor() -> void:
 	ok(game.atk_slow <= 0.0 and c.ctrl.aslow_t > as0, "Boss 战中直接写的 atk_slow 被换掉并记违规")
 	c.ctrl.aslow_t = as0
 	reset()
+
+
+## 大群混编（EA 1.1，data/waves.json horde_mix）：每个威胁等级的每套编成展开后刷怪位数 = n、特种不超过一半、
+## 敌人 ID 都存在、位置在包围圈 0–1 之内；随机抽编成但不连续重复
+func test_horde_mix() -> void:
+	var D = preload("res://scripts/data.gd")
+	var sp = game.spawner
+	var th0: int = game.threat
+	for ti in D.THREAT.size():
+		game.threat = ti
+		var mixes: Array = D.THREAT[ti].get("horde_mix", [])
+		ok(not mixes.is_empty(), "威胁等级 %s 写了 horde_mix" % D.THREAT[ti].name)
+		for m in mixes:
+			for nn in [20, 44, 90]:
+				var plan: Array = sp.horde_plan(m, nn)
+				var body_n := 0
+				var bad := ""
+				for s in plan:
+					if not D.ENEMIES.has(s.id):
+						bad = s.id
+					if float(s.u) < 0.0 or float(s.u) > 1.0:
+						bad = "u=%s" % s.u
+					if m.body.has(s.id) and float(s.dr) == 0.0:
+						body_n += 1
+				ok(plan.size() == nn and body_n >= nn - nn / 2 and bad == "", "大群「%s」n=%d：%d 个位、主体 ≥ 一半（%d）、ID / 位置合法 %s" % [m.name, nn, plan.size(), body_n, bad])
+	# 随机抽编成，但不连着来两次同一套：上一次大群是某套时，这次一定换另一套
+	game.threat = 1
+	var hl0: Array = game.horde_log.duplicate()
+	var rep := 0
+	for k in 40:
+		var last: String = D.THREAT[1].horde_mix[k % 2].name
+		game.horde_log = [{"mix": last}]
+		if sp.horde_mix().name == last:
+			rep += 1
+	ok(rep == 0, "大群编成不连续重复（40 次里重复 %d 次）" % rep)
+	game.horde_log = hl0
+	game.threat = th0

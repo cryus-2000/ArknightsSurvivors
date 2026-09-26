@@ -162,15 +162,19 @@ func update(dt: float) -> void:
 			g.pickups.drop(g.ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
 		var span: float = TAU - gap_half * 2.0
-		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "comp": D.THREAT[g.threat].horde.duplicate()}
+		var mix := horde_mix()
+		var plan := horde_plan(mix, n)
+		var comp := {}
+		for s in plan:
+			comp[s.id] = int(comp.get(s.id, 0)) + 1
+		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "mix": str(mix.get("name", "")), "comp": comp}
 		g.horde_log.append(hl)
-		for i in n:
+		for s in plan:
 			if g.enemies.size() >= MAX_ENEMIES + 60:
 				break
-			var ang: float = g.horde_gap + gap_half + span * (i + 0.5) / n
-			var p := g.ppos + Vector2.from_angle(ang) * g.rng.randf_range(560.0, 640.0)
-			var hp_: Array = D.THREAT[g.threat].horde
-			var he := spawn_enemy(hp_[i % hp_.size()], p)
+			var ang: float = g.horde_gap + gap_half + span * float(s.u)
+			var p := g.ppos + Vector2.from_angle(ang) * (g.rng.randf_range(560.0, 640.0) + float(s.dr))
+			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= 0.7
@@ -265,6 +269,52 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.reload_t = 20.0
 		e.channel = 0.0
 	return e
+
+
+## 本次大群的编成（data/waves.json，EA 1.1 大群混编）：威胁等级写了 horde_mix 就从中随机抽一套（g.rng，同 seed 可复现），
+## 和上一次大群同名时换下一套，不连着来两次一样的；没写就沿用旧格式 horde（主体列表）。
+## 编成 = body 主体（按列表循环填满）+ extra 特种（远程 / 冲锋 / 坦克按比例混入）
+func horde_mix() -> Dictionary:
+	var tr: Dictionary = D.THREAT[g.threat]
+	var mixes: Array = tr.get("horde_mix", [])
+	if mixes.is_empty():
+		return {"name": "", "body": tr.horde, "extra": []}
+	var i := g.rng.randi() % mixes.size()
+	if mixes.size() > 1 and not g.horde_log.is_empty() and str(g.horde_log[g.horde_log.size() - 1].get("mix", "")) == str(mixes[i].name):
+		i = (i + 1) % mixes.size()
+	return mixes[i]
+
+
+## 把编成展开成 n 个刷怪位 {id, u 包围圈上的位置 0–1, dr 半径偏移}。特种先排（刷怪上限截断时先截主体）。
+## extra 每项：id、pct 占总数比例（四舍五入后夹在 min–max）、at 站位：
+##   ring 沿整圈均匀分布 / back 均匀分布且靠后 90（远程站后排）/ front 靠前 70（慢速坦克顶在前面）/ pack 挤在一段弧上成群冲来
+## 特种合计最多占一半，主体至少一半，保证「大群」仍是一大群
+func horde_plan(mix: Dictionary, n: int) -> Array:
+	var out: Array = []
+	var body: Array = mix.get("body", D.THREAT[g.threat].horde)
+	var room := n / 2
+	var ei := 0
+	for ex in mix.get("extra", []):
+		var k := clampi(roundi(n * float(ex.get("pct", 0.0))), int(ex.get("min", 0)), int(ex.get("max", 99)))
+		k = mini(k, room)
+		room -= k
+		var at: String = ex.get("at", "ring")
+		var dr := {"back": 90.0, "front": -70.0}.get(at, 0.0) as float
+		# 不同特种错开一点角度，免得和上一种叠在同一个方位
+		var off := 0.37 * ei
+		var pc := g.rng.randf_range(0.15, 0.85) if at == "pack" else 0.0
+		for j in k:
+			var u: float
+			if at == "pack":
+				u = clampf(pc + (j - (k - 1) * 0.5) * 0.025, 0.0, 1.0)
+			else:
+				u = fposmod((j + 0.5 + off) / k, 1.0)
+			out.append({"id": ex.id, "u": u, "dr": dr})
+		ei += 1
+	var nb := n - out.size()
+	for i in nb:
+		out.append({"id": body[i % body.size()], "u": (i + 0.5) / nb, "dr": 0.0})
+	return out
 
 
 func spawn_enemy(type: String, pos: Vector2) -> Dictionary:

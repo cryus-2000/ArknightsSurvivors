@@ -21,6 +21,26 @@
     "bone",
     "bone",
     "slider"
+   ],
+   "horde_mix": [
+    {
+     "name": "漂流潮",
+     "body": [
+      "bone",
+      "bone",
+      "bone",
+      "slider"
+     ],
+     "extra": [
+      {
+       "id": "stone",
+       "pct": 0.08,
+       "min": 2,
+       "max": 3,
+       "at": "back"
+      }
+     ]
+    }
    ]
   },
   {
@@ -44,6 +64,43 @@
     "bone",
     "bone",
     "slider"
+   ],
+   "horde_mix": [
+    {
+     "name": "滑行群",
+     "body": [
+      "bone",
+      "bone",
+      "slider"
+     ],
+     "extra": [
+      {
+       "id": "slider",
+       "pct": 0.15,
+       "min": 3,
+       "max": 6,
+       "at": "pack"
+      }
+     ]
+    },
+    {
+     "name": "凿石阵",
+     "body": [
+      "bone",
+      "bone",
+      "bone",
+      "slider"
+     ],
+     "extra": [
+      {
+       "id": "stone",
+       "pct": 0.12,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    }
    ]
   },
   {
@@ -69,6 +126,58 @@
     "bone",
     "slider",
     "ripper"
+   ],
+   "horde_mix": [
+    {
+     "name": "撕裂者先锋",
+     "body": [
+      "bone",
+      "bone",
+      "slider",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "ripper",
+       "pct": 0.08,
+       "min": 2,
+       "max": 4,
+       "at": "pack"
+      },
+      {
+       "id": "stone",
+       "pct": 0.08,
+       "min": 2,
+       "max": 3,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "子代壁垒",
+     "body": [
+      "bone",
+      "slider",
+      "bone",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "offspring",
+       "pct": 0.06,
+       "min": 2,
+       "max": 3,
+       "at": "front"
+      },
+      {
+       "id": "stone",
+       "pct": 0.08,
+       "min": 2,
+       "max": 3,
+       "at": "back"
+      }
+     ]
+    }
    ]
   },
   {
@@ -95,6 +204,58 @@
     "slider",
     "ripper",
     "bone"
+   ],
+   "horde_mix": [
+    {
+     "name": "潜袭",
+     "body": [
+      "slider",
+      "slider",
+      "ripper",
+      "bone"
+     ],
+     "extra": [
+      {
+       "id": "burrower",
+       "pct": 0.12,
+       "min": 3,
+       "max": 6,
+       "at": "ring"
+      },
+      {
+       "id": "ripper",
+       "pct": 0.05,
+       "min": 1,
+       "max": 3,
+       "at": "pack"
+      }
+     ]
+    },
+    {
+     "name": "酸雨围城",
+     "body": [
+      "slider",
+      "bone",
+      "ripper",
+      "slider"
+     ],
+     "extra": [
+      {
+       "id": "spitter",
+       "pct": 0.1,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      },
+      {
+       "id": "offspring",
+       "pct": 0.05,
+       "min": 2,
+       "max": 3,
+       "at": "front"
+      }
+     ]
+    }
    ]
   },
   {
@@ -122,6 +283,58 @@
     "slider",
     "burrower",
     "ripper"
+   ],
+   "horde_mix": [
+    {
+     "name": "撕裂潮",
+     "body": [
+      "ripper",
+      "slider",
+      "burrower",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "spitter",
+       "pct": 0.06,
+       "min": 2,
+       "max": 4,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "重甲推进",
+     "body": [
+      "slider",
+      "ripper",
+      "bone",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "offspring",
+       "pct": 0.07,
+       "min": 3,
+       "max": 4,
+       "at": "front"
+      },
+      {
+       "id": "stone",
+       "pct": 0.08,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      },
+      {
+       "id": "burrower",
+       "pct": 0.06,
+       "min": 2,
+       "max": 4,
+       "at": "ring"
+      }
+     ]
+    }
    ]
   },
   {
@@ -148,6 +361,65 @@
     "burrower",
     "slider",
     "ripper"
+   ],
+   "horde_mix": [
+    {
+     "name": "巨骸",
+     "body": [
+      "ripper",
+      "burrower",
+      "slider",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "hulk",
+       "pct": 0.0,
+       "min": 1,
+       "max": 1,
+       "at": "pack"
+      },
+      {
+       "id": "spitter",
+       "pct": 0.08,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "深蓝合围",
+     "body": [
+      "burrower",
+      "slider",
+      "ripper",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "spitter",
+       "pct": 0.08,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      },
+      {
+       "id": "offspring",
+       "pct": 0.06,
+       "min": 3,
+       "max": 4,
+       "at": "front"
+      },
+      {
+       "id": "stone",
+       "pct": 0.06,
+       "min": 2,
+       "max": 4,
+       "at": "back"
+      }
+     ]
+    }
    ]
   }
  ],
@@ -512,5 +784,6 @@
     }
    ]
   }
- ]
+ ],
+ "_horde_mix_doc": "大群混编（EA 1.1）：每个威胁等级的 horde_mix 随机抽一套（同 seed 可复现，不连续重复）；body 主体按列表循环，extra 特种 pct 占总数比例（夹在 min–max，合计最多一半），at 站位 ring 整圈 / back 后排 / front 前排 / pack 一段弧上成群。没写 horde_mix 时用旧的 horde 列表。实现见 run/spawner.gd horde_plan()"
 }
