@@ -134,8 +134,9 @@ func update(dt: float) -> void:
 
 
 ## 横幅队列（EA 1.1，docs/38 B0 第 8 条的横幅部分，Boss与怪物同意由界面接手）：
-## - 优先级 prio：3 Boss 登场 / 换阶段 > 2 黑潮、生命垂危 > 1 普通 > 0 通知（精英、商人、威胁、入队、精英化…）。
-##   调用方可以传 show_banner(text, prio)；不传时按文字猜（Boss 名、「黑潮」「生命垂危」、通知类关键词）
+## - 优先级 prio：3 Boss 登场 / 换阶段 > 2 黑潮、生命垂危 > 1 普通（精英、商人、威胁等局内事件）> 0 提示（干员技能名、入队、精英化、音乐开关）。
+##   调用方可以传 show_banner(text, prio)；不传时按文字猜（Boss 名、「黑潮」「生命垂危」、提示类关键词）；干员脚本经 op_api 一律传 0
+## - prio 0 的提示只在空闲时显示，有横幅在播就直接丢掉、不排队（干员技能名反复触发，排队会把精英出现这类事件挤掉）
 ## - 同时只显示一条；优先级更高的立即顶掉当前这条，否则排队，队列最多 3 条（满了丢优先级最低里最旧的）
 ## - 去重：和正在显示的、队列里的都比，同一句不重复排
 ## - 选卡 / 商人面板打开时 game.gd 暂停 banner_t，队列也跟着停（本函数只在 PLAY 里跑），关掉后一条播完才轮到下一条
@@ -145,7 +146,7 @@ func update(dt: float) -> void:
 const BANNER_Q_MAX := 3
 const NOTICE_MAX := 4
 const NOTICE_LIFE := 4.0
-const NOTICE_WORDS := ["精英", "商人", "威胁上升", "加入编队", "加入支援", "升至 Lv", "精英化", "音乐：", "箱形恐鱼"]
+const HINT_WORDS := ["加入编队", "加入支援", "升至 Lv", "精英化", "音乐："]
 var banner_seen := {}
 var banner_small := false
 var banner_prio := 0
@@ -160,6 +161,8 @@ func show_banner(text: String, prio := -1) -> void:
 		_notice(text)
 		return
 	if g.banner_t > 0.0 and g.banner == text:
+		return
+	if prio == 0 and g.banner_t > 0.0:
 		return
 	for q in banner_q:
 		if q.text == text:
@@ -227,7 +230,7 @@ func _guess_prio(text: String) -> int:
 		return 3
 	if "黑潮" in text or "生命垂危" in text:
 		return 2
-	for w in NOTICE_WORDS:
+	for w in HINT_WORDS:
 		if w in text:
 			return 0
 	return 1

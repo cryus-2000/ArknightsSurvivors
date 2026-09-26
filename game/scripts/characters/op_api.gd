@@ -104,9 +104,9 @@ func float_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	g.vfx.add_text(pos, text, col, size)
 
 
-## 屏幕中上方横幅
+## 屏幕中上方横幅：干员技能名等提示一律最低优先级（vfx 横幅队列：有横幅在播时直接丢掉，不挤掉精英出现等局内事件）
 func show_banner(text: String) -> void:
-	g.vfx.show_banner(text)
+	g.vfx.show_banner(text, 0)
 
 
 ## 屏幕震动（强度 0–1，受设置里的震动开关缩放）
