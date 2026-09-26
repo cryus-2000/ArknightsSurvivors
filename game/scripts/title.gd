@@ -527,7 +527,7 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines := [
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q 放手动技能"],
-		["攻击", "全自动：干员跟在博士身边普攻，三个技能各自充能后自动释放"],
+		["攻击", "全自动：编队干员跟在主控身边普攻，三个技能各自充能后自动释放"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；Lv5 起可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按 1 / 2 / 3 或点击选择"],
@@ -544,7 +544,7 @@ func _draw_guide(vs: Vector2) -> void:
 
 ## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行，不再压到右列）、右列说明 + 链接；
 ## 面板 960 宽，整页按屏幕高度挑字号（14 → 13 → 12，间距跟着收），16:9 下也能整页放下、标题和底部提示不被裁掉。
-## 说明按像素宽度排版（docs/37），末行只剩一两个字时收窄一点重排，免得「成。」这样单独掉一行
+## 说明按像素宽度排版（docs/37，UI.fit 自带防孤字，「成。」这样的单字不会单独掉一行）
 const CREDITS_W := 960.0
 const CREDITS_LX := 58.0       # 条目名左边（菱形在它左边）
 const CREDITS_LW := 150.0      # 条目名列宽
@@ -594,12 +594,7 @@ func _credits_layout(secs: Array, fs: int, tw: float) -> Dictionary:
 		if not lab.fit:
 			var half: float = font.get_string_size(sec[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x / 2.0 + 14.0
 			lab = UI.fit(font, sec[0], minf(CREDITS_LW, half), 2.0 * font.get_height(14), [14, 13])
-		var txt := UI.fit(font, sec[1], tw, 9999.0, [fs])
-		# 末行只剩一两个字（多为「字 + 句号」）：收窄三个字宽重排，把前一行的字匀下来
-		if txt.lines.size() > 1 and String(txt.lines[txt.lines.size() - 1]).length() <= 2:
-			var alt := UI.fit(font, sec[1], tw - 3.0 * fs, 9999.0, [fs])
-			if alt.lines.size() == txt.lines.size():
-				txt = alt
+		var txt := UI.fit(font, sec[1], tw, 9999.0, [fs])   # UI.fit 自带防孤字
 		var link: String = sec[2] if sec.size() > 2 else ""
 		var rh: float = maxf(float(lab.h), float(txt.h) + (4.0 + font.get_height(12) if link != "" else 0.0)) + gap
 		rows.append({"label": lab, "text": txt, "link": link, "h": rh})

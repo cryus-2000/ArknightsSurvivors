@@ -318,7 +318,7 @@ func draw() -> void:
 		elif shown.has("ammo"):
 			sub = "装填中 —— 攻击以打断！" if shown.channel > 0.0 else ("弹药 %d / 3" % shown.ammo if shown.ammo > 0 else "近战中")
 		elif shown.get("coma", false):
-			sub = "昏迷中 —— 趁现在击倒另一体！"
+			sub = "假死中 —— 趁现在击倒另一体！"
 		elif D.ENEMIES[shown.type].get("pair", false):
 			sub = "两体需同时击倒"
 		elif shown.type == "paranoia":
