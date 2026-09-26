@@ -102,7 +102,7 @@ func _update_stakes(dt: float) -> void:
 				g._hit("触手")
 				g._damage(e, s.dmg)
 			if any:
-				g._fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true)
+				g._fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true, deep_col())
 				s.flip = not s.flip
 	stakes = stakes.filter(func(s): return s.t > 0.0)
 
@@ -198,7 +198,7 @@ func _umbrella(target: Dictionary) -> void:
 				hit.append(e)
 	# 镜花水月（原作：一大片苍白触手铺开）：每次挥伞在主方向前方铺开一片触手群
 	if s3_active > 0.0:
-		g._fx_sprite("fx_mizuki_tentacle_mass", pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true)
+		g._fx_sprite("fx_mizuki_tentacle_mass", pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true, deep_col())
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
 	for e in hit:
@@ -359,14 +359,14 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	# 触手表现：地面裂隙 → 触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	# Codex 苍白水母触手（原作水月：海月水母触手，根部在底）；缺图退回旧触手帧条
-	if not g._fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true):
+	if not g._fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true, deep_col()):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
 		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
-	g._fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU)
+	g._fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU, false, false, deep_col(1.4))
 	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
-	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.45, 1.0)})
+	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": deep_col(1.6)})
 	Sfx.play("tentacle", -4.0)
-	g._sparks(p + Vector2(0, 8), Vector2.UP, Color(0.75, 0.5, 1.0), 7, 200.0)
+	g._sparks(p + Vector2(0, 8), Vector2.UP, deep_col(1.5), 7, 200.0)
 
 
 ## 技能的地面表现（在角色之下）
@@ -507,17 +507,18 @@ func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
 	# 底部紫色辉光，让触手在暗处也能看清
 	g.draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
-	g.draw_circle(Vector2.ZERO, 22.0, Color(0.9, 0.4, 1.6, 0.35 * (1.0 - a)))
+	var gc: Color = deep_col(1.4)
+	g.draw_circle(Vector2.ZERO, 22.0, Color(gc.r, gc.g, gc.b, 0.35 * (1.0 - a)))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if g.tex.get("fx_tentacle_strike") != null:
 		# V7：32×48 × 6 帧，脚底锚点 (16,46)；第 3 帧（命中）略提亮
 		var fr := clampi(int(a * 6.0), 0, 5)
-		var col := Color(1.35, 1.25, 1.5) if fr == 3 else Color.WHITE
+		var col := deep_col(1.3 if fr == 3 else 1.0)
 		g._spr("fx_tentacle_strike", 6, fr, f.pos + Vector2(0, 10), g.PX * 1.25, f.flip, col, Vector2(0.5, 46.0 / 48.0))
 		return
 	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
 	var sc = g.PX * 1.7
-	g._spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, tentacle_col(1.35) if a < 0.3 else tentacle_col(), Vector2(0.5, 1.0))
+	g._spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, deep_col(1.35) if a < 0.3 else deep_col(), Vector2(0.5, 1.0))
 
 
 ## 角色脚下的光环（缺帧条时的程序版）
@@ -593,6 +594,14 @@ func on_kill(_e: Dictionary) -> void:
 		var got: float = min(0.01, heal_budget)
 		heal_budget -= got
 		g._heal(g.max_hp * got, "水月")
+
+
+## 触手本体的染色（2026-09-26 用户定：深蓝色）：Codex 触手图是苍白青色，乘上这个颜色就成深海蓝；
+## 海嗣化（被排斥）后改成深紫。小水母 / 触须线仍用 tentacle_col 的浅色
+func deep_col(bright := 1.0) -> Color:
+	if rej.is_empty():
+		return Color(0.22 * bright, 0.34 * bright, 0.88 * bright)
+	return Color(0.62 * bright, 0.34 * bright, 1.0 * bright)
 
 
 ## 触手颜色：常态蓝色，海嗣化后紫色
