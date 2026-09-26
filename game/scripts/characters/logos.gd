@@ -153,7 +153,12 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 				g._hit("言")
 				g._damage(o, over)
 				o["requiem"] = base("requiem_dur", 5.0)
-				fx({"kind": "line", "pos": e.pos + Vector2(0, -e.r * 0.5), "to": o.pos + Vector2(0, -o.r * 0.5), "life": 0.2, "col": INK, "w": 2.0})
+				var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
+				var lb: Vector2 = o.pos + Vector2(0, -o.r * 0.5)
+				if g.tex.get("fx_logos_s1_link") != null:
+					fx({"kind": "s1link", "pos": la, "to": lb, "life": 0.3})
+				else:
+					fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": INK, "w": 2.0})
 		return
 	g._hit(src)
 	g._damage(e, dmg)
@@ -418,9 +423,13 @@ func _draw_skill_over() -> void:
 		for i in range(1, h.size()):
 			var k: float = float(i) / float(h.size())
 			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.25 + 0.55 * k), 1.5 + 6.0 * k)
-		g.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
-		g.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
-		g.draw_circle(b.pos, 2.5, Color(1.8, 1.9, 2.2))
+		if g.tex.get("proj_logos_ink") != null and h.size() >= 2:
+			# Codex 墨蓝尖头法术弹（朝右），按飞行方向旋转；保留拖尾、去掉圆亮芯
+			g._spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
+		else:
+			g.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
+			g.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
+			g.draw_circle(b.pos, 2.5, Color(1.8, 1.9, 2.2))
 	# 铭文：命中处浮着一枚发光咒文（0.15 秒内逐笔写出，最后 0.3 秒淡出）
 	for gl in glyphs:
 		var life: float = base("glyph_dur", 1.0)
@@ -438,12 +447,7 @@ func _draw_skill_over() -> void:
 		# 提喻：一行骨笔符文从手边流向目标（64×12 书写带平铺，4 帧循环）
 		var hand: Vector2 = pos + Vector2(10.0 * face, -28)
 		var to: Vector2 = lock_e.pos + Vector2(0, -lock_e.r * 0.5)
-		var dv: Vector2 = to - hand
-		var tile: float = 64.0 * g.PX * 0.8
-		var nt: int = maxi(1, int(ceil(dv.length() / tile)))
-		for i in nt:
-			var c: Vector2 = hand + dv.normalized() * minf(dv.length(), tile * (i + 0.5))
-			g._spr_rot("fx_logos_script", (int(g.t * 12.0) + i) % 4, c, dv.angle(), g.PX * 0.8)
+		_draw_tiled("fx_logos_script", hand, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead:
 		var p: Vector2 = lock_e.pos + Vector2(0, -lock_e.r - 14)
 		var k: float = 0.5 + 0.5 * sin(g.t * 8.0)
@@ -453,6 +457,60 @@ func _draw_skill_over() -> void:
 	if acuity_t > 0.0:
 		var q := pos + Vector2(0, -44)
 		g.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(INK.r * 1.6, INK.g * 1.6, INK.b * 1.4, 0.8))
+
+
+## 沿 a→b 平铺一张横向帧条（每段 64px 宽的帧），offset 为沿方向的滚动位移（屏幕像素）；最后一段按端点裁剪，不越过目标
+func _draw_tiled(tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE) -> void:
+	var tx: Texture2D = g.tex.get(tn)
+	if tx == null:
+		return
+	var frames: int = g.V6_FRAMES[tn][0]
+	var fw: float = tx.get_width() / frames
+	var fh: float = tx.get_height()
+	var k: float = sc / A.hires_of(tx)
+	var seg: float = fw * k                               # 一段在屏幕上的长度
+	var L: float = a.distance_to(b)
+	if L < 2.0:
+		return
+	var fr: int = (int(g.t * 12.0) + frame_off) % frames
+	g.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
+	var x: float = -fmod(offset, seg)
+	while x < L:
+		var x0: float = maxf(x, 0.0)
+		var x1: float = minf(x + seg, L)
+		if x1 > x0:
+			var u0: float = (x0 - x) / k
+			var u1: float = (x1 - x) / k
+			g.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
+		x += seg
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## S3 延异视阈：绕身旋转的符咒，拆成人物后 / 前两层（同一相位、同一中心锚点）
+func _acuity_layer(front: bool) -> void:
+	if acuity_t <= 0.0 or pos == Vector2.INF:
+		return
+	var tn: String = "fx_logos_s3_front" if front else "fx_logos_s3_back"
+	if g.tex.get(tn) == null:
+		if front and g.tex.get("fx_logos_s3_orbit") != null:
+			g._spr_rot("fx_logos_s3_orbit", int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
+		return
+	g._spr_rot(tn, int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
+
+
+func draw_body() -> void:
+	_acuity_layer(false)
+	super()
+	_acuity_layer(true)
+
+
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if f.kind == "s1link":
+		# 湮灭余伤传递：黑色咒文联系，全不透明、从起点铺向目标
+		var grow: float = minf(1.0, (1.0 - a) / 0.3)
+		_draw_tiled("fx_logos_s1_link", f.pos, f.pos.lerp(f.to, grow), g.PX * 0.8, 0.0)
+		return true
+	return false
 
 
 func status_items() -> Array:
