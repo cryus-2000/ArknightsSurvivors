@@ -65,7 +65,7 @@ func move(dt: float) -> Vector2:
 			return _move_bad(dt)
 		"expert":
 			return _move_expert()
-	return g._bot_move()
+	return g.autotest_sys.bot_move()
 
 
 ## 手残：随机方向走 0.8–2.2 秒再换；每 0.5 秒检查一次危险，30% 概率在 0.4 秒后躲 0.5 秒（用普通机器人的躲法）
@@ -85,7 +85,7 @@ func _move_bad(dt: float) -> Vector2:
 			dodge_t = 0.5
 	if dodge_t > 0.0:
 		dodge_t -= dt
-		return g._bot_move()
+		return g.autotest_sys.bot_move()
 	# 缩圈外会被烧死：手残玩家也知道往圈里走，但慢半拍
 	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r - 40.0:
 		return (g.zone_c - g.ppos).normalized()
