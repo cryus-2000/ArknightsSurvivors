@@ -138,7 +138,9 @@
   "recruit_chance": 0.45,
   "force_recruit_level_1": 6,
   "force_recruit_level_3": 12,
-  "second_deep_chance": 0.5
+  "second_deep_chance": 0.5,
+  "heal_weight": 1.0,
+  "heal_low_hp_mult": 1.0
  },
  "relic": {
   "_doc": "藏品层旋钮（docs/35）：流派加权、守护·续航随时间的权重、藏品直接伤害（按敌人生命的时间倍率缩放）、技力类藏品上限。代码里的缺省值与这里一致",
