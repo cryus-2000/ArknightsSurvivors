@@ -116,6 +116,7 @@
   "first_elite": 60,
   "bullet_dmg_mult": 0.75,
   "spawn_boss_mult": 0.8,
+  "spawn_boss_mult_mid": 1.0,
   "spawn_dark_mult": 1.15,
   "spawn_cap": 450
  },
@@ -188,6 +189,7 @@
   "hp_x_path": 1.6,
   "hp_x_paranoia": 1.6,
   "hp_x_knight_boss": 3.0,
+  "horde_defer_max": 40.0,
   "hit_cap_pct": 0.04
  },
  "difficulty": {
