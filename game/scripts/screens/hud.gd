@@ -109,12 +109,14 @@ func draw() -> void:
 		edge_glow(vs, Color(0.85, 0.05, 0.12, 0.3 + 0.35 * beat), 110.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 110), "生命垂危", 18, Color(1.0, 0.4, 0.45, 0.5 + 0.5 * beat), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 头顶血条：受伤后或低血量时显示
-	if g.state == Game.S.PLAY and (g.head_bar_t > 0.0 or g.hp < g.max_hp * 0.3):
+	var pool: float = g.corrode_pool
+	if g.state == Game.S.PLAY and (g.head_bar_t > 0.0 or g.hp < g.max_hp * 0.3 or pool > 0.5):
 		var hpos: Vector2 = ct * g.ppos + Vector2(-24, -104)
-		var ha := clampf(g.head_bar_t / 0.5, 0.0, 1.0) if g.hp >= g.max_hp * 0.3 else 1.0
+		var ha := clampf(g.head_bar_t / 0.5, 0.0, 1.0) if g.hp >= g.max_hp * 0.3 and pool <= 0.5 else 1.0
 		g.hud.draw_rect(Rect2(hpos - Vector2(1, 1), Vector2(50, 7)), Color(0, 0, 0, 0.7 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp_trail / g.max_hp, 0.0, 1.0), 5)), Color(1, 0.95, 0.9, 0.9 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp / g.max_hp, 0.0, 1.0), 5)), Color(1.0, 0.3, 0.35, ha) if g.hp < g.max_hp * 0.3 else Color(0.35, 0.95, 0.75, ha))
+		corrode_seg(Rect2(hpos, Vector2(48, 5)), ha)
 	if g.lamp < 30.0 and g.state == Game.S.PLAY and not low_hp and not zone_out and g.in_mire <= 0.0:
 		edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(g.t * 3.0)), 140.0)
 
@@ -140,6 +142,7 @@ func draw() -> void:
 	UI.ctext(g.hud, g.font, Vector2(hx, o.y + 40) + hs, hps, 21, UI.RED if low else UI.TEXT)
 	UI.ctext(g.hud, g.font, Vector2(hx + UI.cwidth(g.font, hps, 21) + 4, o.y + 40) + hs, "/ %d" % int(g.max_hp), 13, UI.SUB)
 	UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), g.hp / g.max_hp, hpc, 0, g.hp_trail / g.max_hp)
+	corrode_seg(Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), 1.0)
 	# 灯火：30 / 70 两道刻度
 	var lx := hx + 172.0
 	var lamp_low := g.lamp < 30.0
@@ -824,7 +827,7 @@ func draw_elite_marks(ct: Transform2D) -> void:
 const DEATH_T := 1.7
 
 func draw_death_transition(vs: Vector2) -> void:
-	var k: float = clampf(g.state_age / 1.2, 0.0, 1.0)
+	var k: float = clampf(g.state_age / DEATH_LAMP_T, 0.0, 1.0)
 	var e: float = 1.0 - pow(1.0 - k, 2.0)
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.62 * e))
 	# 海水色暗角：四条边往里渐隐的青黑带，越来越厚
@@ -849,6 +852,49 @@ func draw_death_transition(vs: Vector2) -> void:
 	# 右下角小字：可跳过
 	if g.state_age > 0.3:
 		UI.text(g.hud, g.font, Vector2(vs.x - 240, vs.y - 24), "点击或按任意键跳过", 12, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, 220)
+
+
+## 侵蚀待扣段（2026-09-27 协调人 / 数值）：侵蚀池 g.corrode_pool 里还没流出的量，画在血条当前值的末端往左、
+## 长度 = min(侵蚀池, 当前生命)——这一截血「已经注定要掉」；暗紫底 + 洋红斜纹，斜纹缓缓右移、微微呼吸，随流出缩短，净化后消失
+const CORRODE_COL := Color(0.62, 0.16, 0.72)
+const CORRODE_HI := Color(1.0, 0.36, 0.86)
+
+func corrode_seg(r: Rect2, a: float) -> void:
+	var pool: float = minf(g.corrode_pool, g.hp)
+	if pool <= 0.0 or g.max_hp <= 0.0:
+		return
+	var x1: float = r.position.x + r.size.x * clampf(g.hp / g.max_hp, 0.0, 1.0)
+	var x0: float = maxf(r.position.x, x1 - r.size.x * pool / g.max_hp)
+	if x1 - x0 < 1.0:
+		x0 = x1 - 1.0   # 太少也留 1 像素，看得出「有」
+	var y0: float = r.position.y
+	var h: float = r.size.y
+	var br: float = 0.8 + 0.2 * sin(g.t * 6.0)
+	g.hud.draw_rect(Rect2(x0, y0, x1 - x0, h), Color(CORRODE_COL.r, CORRODE_COL.g, CORRODE_COL.b, 0.95 * a))
+	# 斜纹：每 4 像素一道，左下到右上；两端按段落裁切
+	var ph: float = fmod(g.t * 6.0, 4.0)
+	var sx: float = x0 - h - 4.0 + ph
+	var hc := Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, br * a)
+	while sx < x1:
+		var ax: float = sx
+		var ay: float = y0 + h
+		var bx: float = sx + h
+		var by: float = y0
+		if ax < x0:
+			ay -= x0 - ax
+			ax = x0
+		if bx > x1:
+			by += bx - x1
+			bx = x1
+		if bx > ax:
+			g.hud.draw_line(Vector2(ax, ay), Vector2(bx, by), hc, 1.2)
+		sx += 4.0
+	# 左端一道亮边：流失到这里为止
+	g.hud.draw_rect(Rect2(x0, y0 - 1, 1, h + 2), Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, 0.9 * a))
+
+
+## 倒下过渡里灯火熄灭的时刻（灯光半径收到 0；音频 music_director 在这一刻播「灯灭」，引用本常量）
+const DEATH_LAMP_T := 1.2
 
 
 ## 招式名在副标题行停留的秒数（boss_ai 出招时写 e.move_name / e.move_t）

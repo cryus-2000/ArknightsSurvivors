@@ -79,7 +79,7 @@ func update_visuals(dt: float) -> void:
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
-		radius *= 1.0 - clampf(g.state_age / 1.2, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
+		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
 	var flicker := 1.0 + sin(g.t * 13.0) * 0.02 + sin(g.t * 7.3) * 0.03
 	if g.lamp < 30.0:
 		flicker += sin(g.t * 23.0) * 0.06
