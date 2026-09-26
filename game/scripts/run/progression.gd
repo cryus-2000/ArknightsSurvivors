@@ -13,6 +13,8 @@ var g: Game
 var tab_hinted := false
 var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张数（telemetry）
 var heal_pick := 0
+var low_levelups := 0        # 主控生命低于门槛时弹出的升级次数
+var heal_offer_low := 0      # 其中提供的回复类卡张数
 
 ## 回复类升级卡（1.1 用户要求：回血偏弱，出现率调高）：[kind, id]——博士被动「自愈」「坚韧」、医疗无人机、填充卡「急救补给」。
 ## 吸血 / 击杀回复等在藏品池（relic_pool_ids），不在这里
@@ -126,11 +128,16 @@ func open_levelup() -> void:
 		picks.append(fillers[fi])
 		fi += 1
 	g._shuffle(picks)
+	var low: bool = g.hp < g.max_hp * Bal.v("levelup/heal_low_hp", 0.5)
+	if low:
+		low_levelups += 1
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
 			g.dbg_offer[c.op] = g.dbg_offer.get(c.op, 0) + 1
 		if is_heal_card(c):
 			heal_offer += 1
+			if low:
+				heal_offer_low += 1
 	g.panel_ui.show_choices("升级！ Lv.%d" % g.level, picks.slice(0, want), "level")
 
 

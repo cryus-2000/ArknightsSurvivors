@@ -215,6 +215,7 @@ func record(marks = null) -> Dictionary:
 	return {"win": g.state == g.S.WIN, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
 		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
 		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
+		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,
 		"relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
 		"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp,
 		"bosses": g.bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]),
