@@ -833,7 +833,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			shop_sys.refresh()
 		elif k == KEY_ESCAPE or k == KEY_E:
 			shop_sys.close()
-	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_3:
+	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_9:
+		# 数字键 1..n 对应第 n 张卡（藏品 / Boss 奖励可能多于 3 张，docs/38 B0 第 10 项）
 		var i: int = k - KEY_1
 		if i < choices.size():
 			progression.pick(i)
