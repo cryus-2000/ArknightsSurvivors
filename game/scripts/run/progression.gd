@@ -244,7 +244,7 @@ func pick(i: int) -> void:
 				pop.advance(o.get("choice", ""))
 				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
 				if o.get("elite", 0) > 0:
-					g.vfx.show_banner("%s 精英化%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
+					g.vfx.show_banner("%s 晋升至精英%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
 		"recruit":
 			var nop = g.squad.add(o.id)
 			if nop != null:

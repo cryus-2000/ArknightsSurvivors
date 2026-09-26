@@ -201,7 +201,7 @@ func update(dt: float) -> void:
 const BANNER_Q_MAX := 3
 const NOTICE_MAX := 4
 const NOTICE_LIFE := 4.0
-const HINT_WORDS := ["加入编队", "加入支援", "升至 Lv", "精英化", "音乐："]
+const HINT_WORDS := ["加入编队", "加入支援", "升至 Lv", "晋升至精英", "音乐："]
 var banner_seen := {}
 var banner_small := false
 var banner_prio := 0
