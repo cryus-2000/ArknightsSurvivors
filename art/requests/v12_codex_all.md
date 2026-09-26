@@ -42,7 +42,7 @@
 | `op_eyjafjalla_run`、`op_eyjafjalla_idle` | 艾雅法拉：前后 3 帧不要错开 6px（@2x），重心 x=48；着地帧最低；idle 加 1px 呼吸 |
 | `op_logos_run`、`op_logos_idle` | 逻各斯：f3、f5 不要前移 11px（@2x），两步对称各沉 1px；idle 加 1px 呼吸 |
 | `doctor_run`、`doctor_idle` | 博士：f1 不后移、f4 不前移，重心 x=48（@2x）；着地帧最低；idle 加 1px 呼吸 |
-| `player_idle`、`player_run` | 水月（用户已确认列入）：按规则 4 重画 idle 4 帧 / run 6 帧，两腿交替、着地沉 1–2px、待机呼吸 1px、重心 x=48（@2x）；造型配色照现有 `player_*` 与 `mizuki_48_original.png`，不改设计 |
+| `player_idle`、`player_run` | 水月（用户已确认列入，规格不变）：idle 加 1px 呼吸；run 改成两腿交替两步（f0、f3 两次着地，现在只有一次），两次着地各沉 1–2px；重心保持现在的 x=48（@2x），不要加前后平移；造型配色不改 |
 
 ## 第 5 组：P2
 | 文件 | 要求 |
