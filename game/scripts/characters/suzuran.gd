@@ -166,7 +166,7 @@ func _release() -> void:
 	var big := merging and not volley
 	merging = false
 	var ts: Array = nearest_enemies(n, 400.0 * stat(&"op_range"), pos)
-	var from := pos + Vector2(12.0 * face, -30)
+	var from := _staff_head()
 	if ts.is_empty():
 		return
 	if not volley:
@@ -176,7 +176,7 @@ func _release() -> void:
 		# 三火归一：身前汇成的一团大狐火朝最近的敌人直线射出、贯穿沿途敌人；多出来的狐火照常发射
 		room -= 1
 		n = maxi(0, n - 3)
-		_fire_big(pos + Vector2(20.0 * face, -34), ts[0])
+		_fire_big(_staff_head(), ts[0])
 	for k in n:
 		if room <= 0:
 			break
@@ -192,6 +192,11 @@ func _release() -> void:
 			sealed.append(b)
 	fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": GOLD, "alpha": 0.5})
 	Sfx.op(id, "atk")
+
+
+## 出手帧星环杖头的中心（op_suzuran_attack@2x 第 2 帧量得：脚底前 35、上 46；docs/32 §3）
+func _staff_head() -> Vector2:
+	return pos + Vector2(35.0 * face, -46.0)
 
 
 ## 三火归一：大狐火（伤害 = 一团狐火 × merge_mult，贯穿，每名敌人只伤一次）
