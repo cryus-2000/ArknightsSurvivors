@@ -60,7 +60,7 @@ func draw() -> void:
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))
 	# 大群预警与到达演出
-	if g.horde_warn > 0.0 or g.horde_hit > 0.0:
+	if (g.horde_warn > 0.0 or g.horde_hit > 0.0) and not g.panel.visible:   # 选卡 / 商人面板打开时不画（EA 1.1：升级面板压在「大群来袭」上）
 		var hw := g.horde_warn > 0.0
 		var pulse := 0.5 + 0.5 * sin(g.t * (10.0 if hw else 4.0))
 		var ea := (0.25 + 0.3 * pulse) if hw else g.horde_hit / 1.2 * 0.6
@@ -88,10 +88,14 @@ func draw() -> void:
 				var sd := dir.orthogonal() * 12.0
 				g.hud.draw_colored_polygon(PackedVector2Array([tip, ed + sd, ed - sd]), Color(0.9, 0.5, 1.0, 0.5 + 0.4 * pulse))
 
+	# 屏幕边缘光只留最要紧的一种（EA 1.1：低血红暗角和圈外紫光叠在一起分不清）：生命垂危 > 圈外 > 溟痕 > 灯火低
+	var low_hp: bool = g.state == Game.S.PLAY and g.hp < g.max_hp * 0.3 and g.hp > 0.0
+	var zone_out: bool = g.zone_state != 0 and g.state == Game.S.PLAY and g.ppos.distance_to(g.zone_c) > g.zone_r
 	# 溟痕：屏幕压暗 + 紫色边缘
 	if g.in_mire > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.03, 0.0, 0.06, 0.18 * g.in_mire))
-		edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * g.in_mire), 130.0)
+		if not low_hp and not zone_out:
+			edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * g.in_mire), 130.0)
 		if g.in_mire > 0.5 and g.state == Game.S.PLAY:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, g.in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 受击时屏幕边缘泛红
@@ -110,7 +114,7 @@ func draw() -> void:
 		g.hud.draw_rect(Rect2(hpos - Vector2(1, 1), Vector2(50, 7)), Color(0, 0, 0, 0.7 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp_trail / g.max_hp, 0.0, 1.0), 5)), Color(1, 0.95, 0.9, 0.9 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp / g.max_hp, 0.0, 1.0), 5)), Color(1.0, 0.3, 0.35, ha) if g.hp < g.max_hp * 0.3 else Color(0.35, 0.95, 0.75, ha))
-	if g.lamp < 30.0 and g.state == Game.S.PLAY:
+	if g.lamp < 30.0 and g.state == Game.S.PLAY and not low_hp and not zone_out and g.in_mire <= 0.0:
 		edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(g.t * 3.0)), 140.0)
 
 	# 左上（方案 A · 原作顶栏）：等级圆（外圈 = 经验）+「生命值」「灯火」彩色小标签头 + 数值 + 细条；
@@ -240,7 +244,8 @@ func draw() -> void:
 		var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 		if out > 0.0:
 			var pz := 0.5 + 0.5 * sin(g.t * 8.0)
-			edge_glow(vs, Color(0.55, 0.1, 0.8, 0.4 + 0.3 * pz), 140.0)
+			if not (g.hp < g.max_hp * 0.3 and g.hp > 0.0):   # 生命垂危的红暗角优先
+				edge_glow(vs, Color(0.55, 0.1, 0.8, 0.4 + 0.3 * pz), 140.0)
 			# 指向安全区的箭头与掉血倒计时见 draw_zone_hint
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
@@ -337,9 +342,10 @@ func draw() -> void:
 	draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
 
 	# 横幅通知
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW:   # 精英化演出的遮罩只有 86%，横幅会透出来
+	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and (not horde_band or g.vfx.banner_prio >= 3):   # 精英化演出的遮罩只有 86%，横幅会透出来
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
-		var by := vs.y * 0.24
+		var by := vs.y * 0.24 if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		if g.vfx.banner_small:
 			# 同一句第二次起（反复放的技能名）：窄暗带 + 小字，不压满屏宽（EA 1.1 后期降噪）
 			UI.fade_band(g.hud, Rect2(vs.x * 0.36, by - 22, vs.x * 0.28, 30), Color(0.03, 0.035, 0.045, 0.7 * a), 60.0)
@@ -351,6 +357,7 @@ func draw() -> void:
 				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.16, yy), Color(1, 1, 1), 0.4 * a, 0.0)
 				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.84, yy), Color(1, 1, 1), 0.4 * a, 0.0)
 			UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+	draw_notices(vs)
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
@@ -666,13 +673,11 @@ func draw_manual_aim() -> void:
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
 ## 主控身边朝安全区圆心方向画三道逐个亮起的人字纹 + 大箭头，主控脚下写掉血倒计时。
 ## 前 ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
-## 数据：g.combat.zone_out_t / zone_dir()（玩法系统提供）；接口还没合入时按 g.zone_c / zone_r 自己算
+## 数据：g.combat.zone_out_t / zone_dir()（玩法系统提供）；接口还没合入时按 g.zone_c / zone_r 自己算方向，且没有宽限期
 const ZONE_GRACE := 2.0
-var zone_out_local := 0.0
 
 func draw_zone_hint(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.demo_op != "" or g.zone_state == 0:
-		zone_out_local = 0.0
 		return
 	var out: bool = g.ppos.distance_to(g.zone_c) > g.zone_r
 	var out_t: float
@@ -680,8 +685,8 @@ func draw_zone_hint(vs: Vector2) -> void:
 		out_t = g.combat.zone_out_t
 		out = out_t > 0.0
 	else:
-		zone_out_local = zone_out_local + g.get_process_delta_time() if out else 0.0
-		out_t = zone_out_local
+		# combat 还没有宽限期（玩法系统 v11 未合入）时一出圈就掉血：直接按「持续掉血」显示，不画倒计时
+		out_t = ZONE_GRACE if out else 0.0
 	if not out:
 		return
 	var dir: Vector2 = g.combat.zone_dir() if g.combat.has_method("zone_dir") else (g.zone_c - g.ppos).normalized()
@@ -711,6 +716,20 @@ func draw_zone_hint(vs: Vector2) -> void:
 	var tp: Vector2 = ct * (g.ppos + Vector2(0, 30))
 	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
 	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
+
+
+## Boss 战期间的次要横幅改成左侧小字通知（vfx.notices）：横幅暗带下方、左对齐一行一条，4 秒淡出
+func draw_notices(vs: Vector2) -> void:
+	if g.state != Game.S.PLAY or g.vfx.notices.is_empty():
+		return
+	var y: float = vs.y * 0.24 + 44.0   # 横幅暗带下方，不和它叠
+	for n in g.vfx.notices:
+		var a: float = clampf(n.t / 0.6, 0.0, 1.0) * clampf((g.vfx.NOTICE_LIFE - n.t) / 0.2, 0.0, 1.0)
+		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 22.0, vs.x * 0.4)
+		g.hud.draw_rect(Rect2(16, y - 15, tw, 22), Color(0.03, 0.035, 0.045, 0.7 * a))
+		g.hud.draw_rect(Rect2(16, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
+		UI.text_fit(g.hud, g.font, Vector2(26, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)
+		y += 26.0
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来

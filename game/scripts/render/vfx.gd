@@ -3,6 +3,7 @@ extends RefCounted
 ## 加色混合层（fx_add 节点）的绘制；特效与各种提示计时的逐帧衰减。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
 const A = preload("res://scripts/art.gd")
+const D = preload("res://scripts/data.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -129,17 +130,107 @@ func update(dt: float) -> void:
 	for f in g.texts:
 		f.life -= dt
 		f.pos.y -= 30.0 * dt
+	_update_banner_queue(dt)
 
 
-## 横幅：同一局里第二次起的同一句（反复放的技能名「潮汐」「审判」…）改成小横幅、1.5 秒，不再每次整条压在屏幕上方
+## 横幅队列（EA 1.1，docs/38 B0 第 8 条的横幅部分，Boss与怪物同意由界面接手）：
+## - 优先级 prio：3 Boss 登场 / 换阶段 > 2 黑潮、生命垂危 > 1 普通 > 0 通知（精英、商人、威胁、入队、精英化…）。
+##   调用方可以传 show_banner(text, prio)；不传时按文字猜（Boss 名、「黑潮」「生命垂危」、通知类关键词）
+## - 同时只显示一条；优先级更高的立即顶掉当前这条，否则排队，队列最多 3 条（满了丢优先级最低里最旧的）
+## - 去重：和正在显示的、队列里的都比，同一句不重复排
+## - 选卡 / 商人面板打开时 game.gd 暂停 banner_t，队列也跟着停（本函数只在 PLAY 里跑），关掉后一条播完才轮到下一条
+## - 大群来袭的大横幅在场时，普通横幅先停住（计时冻结、不画），Boss 横幅照常画在大群横幅下方
+## - Boss 战期间，prio ≤ 1 的改成左侧小字通知（notices），不占屏幕中间
+## - 同一局第二次起的同一句（反复放的技能名「潮汐」「审判」…）改成小横幅、1.5 秒
+const BANNER_Q_MAX := 3
+const NOTICE_MAX := 4
+const NOTICE_LIFE := 4.0
+const NOTICE_WORDS := ["精英", "商人", "威胁上升", "加入编队", "加入支援", "升至 Lv", "精英化", "音乐：", "箱形恐鱼"]
 var banner_seen := {}
 var banner_small := false
+var banner_prio := 0
+var banner_q: Array = []          # [{text, prio}]
+var notices: Array = []           # [{text, t}]
+var _boss_words: Array = []
 
-func show_banner(text: String) -> void:
+func show_banner(text: String, prio := -1) -> void:
+	if prio < 0:
+		prio = _guess_prio(text)
+	if prio <= 1 and _boss_fight():
+		_notice(text)
+		return
+	if g.banner_t > 0.0 and g.banner == text:
+		return
+	for q in banner_q:
+		if q.text == text:
+			return
+	if g.banner_t <= 0.0 or prio > banner_prio:
+		_banner_now(text, prio)
+		return
+	banner_q.append({"text": text, "prio": prio})
+	banner_q.sort_custom(func(a, b): return a.prio > b.prio)   # sort_custom 不稳定也无妨：同级顺序只影响先后
+	while banner_q.size() > BANNER_Q_MAX:
+		banner_q.pop_back()
+
+
+func _banner_now(text: String, prio: int) -> void:
 	g.banner = text
+	banner_prio = prio
 	banner_small = banner_seen.has(text)
 	banner_seen[text] = true
 	g.banner_t = 1.5 if banner_small else 3.0
+
+
+func horde_band_on() -> bool:
+	return g.horde_warn > 0.0 or g.horde_hit > 0.0
+
+
+func _update_banner_queue(dt: float) -> void:
+	if g.banner_t > 0.0 and horde_band_on() and banner_prio < 3:
+		g.banner_t += dt   # 大群横幅在场：普通横幅冻结，等大群横幅退场再播完
+	if g.banner_t <= 0.0 and not banner_q.is_empty():
+		var q: Dictionary = banner_q.pop_front()
+		_banner_now(q.text, q.prio)
+	for n in notices:
+		n.t -= dt
+	notices = notices.filter(func(n): return n.t > 0.0)
+
+
+func _notice(text: String) -> void:
+	for n in notices:
+		if n.text == text:
+			n.t = NOTICE_LIFE
+			return
+	notices.append({"text": text, "t": NOTICE_LIFE})
+	while notices.size() > NOTICE_MAX:
+		notices.pop_front()
+
+
+func _boss_fight() -> bool:
+	for b in g.bosses:
+		if not b.dead:
+			return true
+	return false
+
+
+func _guess_prio(text: String) -> int:
+	if _boss_words.is_empty():
+		for k in D.ENEMIES:
+			var e: Dictionary = D.ENEMIES[k]
+			if e.get("role", "") == "boss":
+				_boss_words.append(str(e.get("name", k)).split("，")[0].replace("\"", ""))
+		_boss_words.append("骑士")
+	for w in _boss_words:
+		if w != "" and w in text:
+			return 3
+	if "阶段" in text or "形态" in text:
+		return 3
+	if "黑潮" in text or "生命垂危" in text:
+		return 2
+	for w in NOTICE_WORDS:
+		if w in text:
+			return 0
+	return 1
 
 
 ## 按敌人材质播放命中效果（V7 缺图时退回 fx_hit）

@@ -22,6 +22,7 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
+var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
@@ -91,6 +92,12 @@ func update_visuals(dt: float) -> void:
 	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - CROWD_FROM) / CROWD_SPAN, 0.0, 1.0)
 	crowd = move_toward(crowd, want, rd * (3.0 if want > crowd else 0.8))
 	fx_dim = lerpf(1.0, 0.45, crowd)
+	var ne := 0
+	for e in g.enemies:
+		if not e.dead:
+			ne += 1
+	var ewant: float = 0.0 if g.demo_op != "" else clampf((ne - 90.0) / 120.0, 0.0, 1.0)
+	ecrowd = move_toward(ecrowd, ewant, rd * 0.8)
 	g.fx_add.modulate.a = lerpf(1.0, 0.6, crowd)
 	if g.post != null and "crowd" in g.post:
 		g.post.crowd = crowd
@@ -748,6 +755,8 @@ func draw_enemy(e: Dictionary) -> void:
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and g.tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
+		if not e.elite and not e.boss:
+			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
 		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
 			g.vfx.spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
 	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
