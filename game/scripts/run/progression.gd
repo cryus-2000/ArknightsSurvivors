@@ -168,9 +168,11 @@ func open_relic_choice() -> void:
 		var r: Dictionary = g.RL[rid]
 		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
 	if pool.is_empty():
+		# 每个待开的宝箱各补 12 源石锭
+		var n: int = maxi(1, g.pending_chests)
 		g.pending_chests = 0
-		g.ingots += 12
-		g.vfx.add_text(g.ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +12", UI.GOLD, 16)
+		g.ingots += 12 * n
+		g.vfx.add_text(g.ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
 		return
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
 	if g.balance:
@@ -213,9 +215,10 @@ func pick(i: int) -> void:
 			var W: Dictionary = D.WEAPONS[o.id]
 			g.vfx.show_banner(("「%s」加入支援" % W.name) if o.wlv == 1 else ("「%s」升至 Lv.%d" % [W.name, o.wlv]))
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
+	# 事件选项不占升级 / 宝箱次数（祭坛被打碎时直接弹出，没有计入 pending）
 	if g.choice_kind == "relic":
 		g.pending_chests -= 1
-	else:
+	elif g.choice_kind != "event":
 		g.pending_levelups -= 1
 	g.panel.visible = false
 	Sfx.play("ui_ok", -4.0)
