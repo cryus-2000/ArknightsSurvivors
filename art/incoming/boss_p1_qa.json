@@ -1,0 +1,182 @@
+[
+  {
+    "file": "e_knight_plant.png",
+    "size": [
+      384,
+      80
+    ],
+    "frame_opaque_pixels": [
+      1889,
+      1913,
+      2046,
+      2601
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_knight_plant@2x.png",
+    "size": [
+      768,
+      160
+    ],
+    "frame_opaque_pixels": [
+      7689,
+      7678,
+      8104,
+      10300
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_knight_charge_form.png",
+    "size": [
+      384,
+      80
+    ],
+    "frame_opaque_pixels": [
+      3383,
+      3089,
+      3301,
+      3134
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_knight_charge_form@2x.png",
+    "size": [
+      768,
+      160
+    ],
+    "frame_opaque_pixels": [
+      13564,
+      12484,
+      13291,
+      12561
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_transform.png",
+    "size": [
+      480,
+      80
+    ],
+    "frame_opaque_pixels": [
+      1500,
+      1719,
+      1916,
+      2030,
+      2585,
+      3206
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_transform@2x.png",
+    "size": [
+      960,
+      160
+    ],
+    "frame_opaque_pixels": [
+      6025,
+      6828,
+      7714,
+      8074,
+      10232,
+      12910
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t.png",
+    "size": [
+      160,
+      80
+    ],
+    "frame_opaque_pixels": [
+      3398,
+      3453
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t@2x.png",
+    "size": [
+      320,
+      160
+    ],
+    "frame_opaque_pixels": [
+      13866,
+      14021
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t_move.png",
+    "size": [
+      320,
+      80
+    ],
+    "frame_opaque_pixels": [
+      3374,
+      3388,
+      3360,
+      3513
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t_move@2x.png",
+    "size": [
+      640,
+      160
+    ],
+    "frame_opaque_pixels": [
+      13356,
+      13484,
+      13291,
+      14243
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t_attack.png",
+    "size": [
+      320,
+      80
+    ],
+    "frame_opaque_pixels": [
+      2875,
+      3071,
+      3461,
+      3304
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  },
+  {
+    "file": "e_ishar_t_attack@2x.png",
+    "size": [
+      640,
+      160
+    ],
+    "frame_opaque_pixels": [
+      11574,
+      12434,
+      13932,
+      13258
+    ],
+    "binary_alpha": true,
+    "clear_sheet_border": true
+  }
+]

@@ -1,0 +1,145 @@
+{
+  "spec": "docs/38_boss_redesign.md §6",
+  "format": "horizontal RGBA PNG",
+  "outline": "#080E18; 2px base / 4px @2x",
+  "sheets": [
+    {
+      "name": "e_knight_plant",
+      "frames": 4,
+      "cell": [
+        96,
+        80
+      ],
+      "source_sha256": "f235c0650e9fa4e14c3abb55b25c1c39f4c6c3e79088a2ac7ef52194c61f9595",
+      "outputs": [
+        {
+          "file": "e_knight_plant.png",
+          "width": 384,
+          "height": 80,
+          "sha256": "98c8e2f96ea7629614263f5c5033b69b76233d97f495636ebcbc44f3fdd024b0"
+        },
+        {
+          "file": "e_knight_plant@2x.png",
+          "width": 768,
+          "height": 160,
+          "sha256": "568ddbaed7565a50a4b6a181780fbacfe057e25d2afab7e5817d7449afeaf621"
+        }
+      ]
+    },
+    {
+      "name": "e_knight_charge_form",
+      "frames": 4,
+      "cell": [
+        96,
+        80
+      ],
+      "source_sha256": "02cad656b440bd5549d93ccb91d6884e9ac57efab24cc85f319b786832280a7c",
+      "outputs": [
+        {
+          "file": "e_knight_charge_form.png",
+          "width": 384,
+          "height": 80,
+          "sha256": "56a9498055a1c4c47015f12bec81a8b67719d80fa7983bcfda51a14457bcaf74"
+        },
+        {
+          "file": "e_knight_charge_form@2x.png",
+          "width": 768,
+          "height": 160,
+          "sha256": "bcbcb5f931c1ef9f6af5c81b16917561f554f771259f48ac3fac4f9feb52ba25"
+        }
+      ]
+    },
+    {
+      "name": "e_ishar_transform",
+      "frames": 6,
+      "cell": [
+        80,
+        80
+      ],
+      "source_sha256": "26228f00e6dd459210a0b1bd73d69fc8a04af57cfaa32ec0e9948c5c6143f375",
+      "outputs": [
+        {
+          "file": "e_ishar_transform.png",
+          "width": 480,
+          "height": 80,
+          "sha256": "d30a8f9d2fac4588a1a90e4885c56a172b2de66d433b94662f8e1ec4a8dbeb82"
+        },
+        {
+          "file": "e_ishar_transform@2x.png",
+          "width": 960,
+          "height": 160,
+          "sha256": "7f5e3a1eb3f091a5ac10cb5244a2f52b937b1e0f3e8199a30430821250d67c63"
+        }
+      ]
+    },
+    {
+      "name": "e_ishar_t",
+      "frames": 2,
+      "cell": [
+        80,
+        80
+      ],
+      "source_sha256": "918dffc9d0bcd2997b50ddf0d74424d08c0785251b12d42a152f1b2d6589526e",
+      "outputs": [
+        {
+          "file": "e_ishar_t.png",
+          "width": 160,
+          "height": 80,
+          "sha256": "f8e7cb4979a9f1ef2b9319d98ded49273d839f45cc3ee6ffd1f89fa26fe31847"
+        },
+        {
+          "file": "e_ishar_t@2x.png",
+          "width": 320,
+          "height": 160,
+          "sha256": "86826476cacdcfce2c92a0b4b0f41e5753cfaf53dcc1ca053e52a983a72de7e9"
+        }
+      ]
+    },
+    {
+      "name": "e_ishar_t_move",
+      "frames": 4,
+      "cell": [
+        80,
+        80
+      ],
+      "source_sha256": "b4ac7e36af171a5a0d7bf72902042a0f88360782a88012ea873a8a18c2800769",
+      "outputs": [
+        {
+          "file": "e_ishar_t_move.png",
+          "width": 320,
+          "height": 80,
+          "sha256": "57eefd1695ff830bed35216f73cec92c413b36f34e3986f84099867f0186d7f6"
+        },
+        {
+          "file": "e_ishar_t_move@2x.png",
+          "width": 640,
+          "height": 160,
+          "sha256": "9df59daf01b77c538e64b4d84bcd74ca88a66c3479000e042324220fdb77f04b"
+        }
+      ]
+    },
+    {
+      "name": "e_ishar_t_attack",
+      "frames": 4,
+      "cell": [
+        80,
+        80
+      ],
+      "source_sha256": "7c78f948ea3dfb83cd33bc1e04ea58fca3702fa328fc599c4e9ff5f0497350d2",
+      "outputs": [
+        {
+          "file": "e_ishar_t_attack.png",
+          "width": 320,
+          "height": 80,
+          "sha256": "b13a812d15096e2fb0a61a35ea2792b3a073cc5af20c84420caf3e1ab5f1fd6d"
+        },
+        {
+          "file": "e_ishar_t_attack@2x.png",
+          "width": 640,
+          "height": 160,
+          "sha256": "ebcd9f3879e4538b3fc0609d8c4f57c9f35f8b8ac818e8bcfb2d700602ad05d9"
+        }
+      ]
+    }
+  ]
+}
