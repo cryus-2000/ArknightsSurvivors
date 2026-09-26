@@ -336,7 +336,9 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	if not _warn_hit(w):
 		return
 	var e: Dictionary = w.owner
-	g.dmg_src = "boss_" + e.type
+	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
+	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
+	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0))}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
