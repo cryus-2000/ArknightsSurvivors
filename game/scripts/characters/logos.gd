@@ -43,7 +43,7 @@ const RUNES := [
 
 
 func _range() -> float:
-	return base("range", 250.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0)
+	return base("range", 280.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0)
 
 
 func _atk() -> float:
@@ -131,11 +131,8 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 
 ## 咒文飞行：base.bolt_speed（缓慢，260），追踪目标当前位置，行进方向左右摆动（有飘动感）；目标半路死了就飞向它最后的位置、
 ## 落地后找 60 内最近的敌人结算；word_life 秒内没飞到就消散（飞行距离有限）
-var word_heal_budget := 0.0
-
 func _update_bolts(dt: float) -> void:
 	_update_word_q(dt)
-	word_heal_budget = minf(base("word_heal_cap", 0.02), word_heal_budget + dt * base("word_heal_cap", 0.02))
 	var spd: float = base("bolt_speed", 260.0)
 	for b in bolts:
 		b.life -= dt
@@ -200,11 +197,6 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	log_hit(src)
 	deal_damage(e, dmg)
 	e["requiem"] = base("requiem_dur", 5.0)
-	# 兜底（削弱轮 r2）：命中精英 / Boss 时为主控回复 word_heal 最大生命，每秒上限 word_heal_cap（会走位的高手掉血更多，不会走位的普通档有兜底）
-	if (e.elite or e.boss) and word_heal_budget > 0.0:
-		var hv: float = minf(base("word_heal", 0.01), word_heal_budget)
-		word_heal_budget -= hv
-		heal_leader(g.max_hp * hv, "逻各斯")
 	# N1 铭文：命中处留下一枚发光咒文（与墓志铭合计最多 6 枚，旧的先消失）
 	if inscription:
 		_make_room()
