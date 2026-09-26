@@ -600,15 +600,9 @@ func _draw_detail(vs: Vector2) -> void:
 		_draw_pages(e, pr, dy)
 		return
 	var desc: String = e.desc if not locked else e.get("locked_text", "尚未遭遇。" + e.desc)
-	# 介绍文字：按剩余高度自适应字号（15 → 12），仍放不下则按行裁切，不越出面板
+	# 介绍文字：按剩余高度自适应字号（15 → 11）；最小字号仍放不下才截断，末行加「…」，不越出面板
 	var avail := pr.end.y - 16.0 - (dy + 4)
-	var fs := 15
-	var soft := UI.soft(desc)
-	while fs > 11 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, -1, UI.BRK).y > avail:
-		fs -= 1
-	var lh := font.get_height(fs)
-	var max_lines := maxi(1, int(avail / lh))
-	draw_multiline_string(font, Vector2(pr.position.x + 24, dy + 4), soft, HORIZONTAL_ALIGNMENT_LEFT, pr.size.x - 48, fs, max_lines, Color(0.8, 0.9, 0.92), UI.BRK)
+	UI.draw_fit(self, font, Vector2(pr.position.x + 24, dy + 4 - font.get_ascent(15) + 2), UI.fit(font, desc, pr.size.x - 48, avail, [15, 14, 13, 12, 11]), Color(0.8, 0.9, 0.92))
 
 
 # ---------------------------------------------------------------- 干员信息页（档案 / 技能 / 数值）
@@ -635,19 +629,19 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 		1:
 			# 技能页：每条「标签 名称」一行 + 说明；整体放不下时统一缩字号
 			var fs := 14
-			while fs > 11 and _skill_rows_h(page, width, fs) > avail:
+			while fs > 10 and _skill_rows_h(page, width, fs) > avail:
 				fs -= 1
+			# 最小字号还放不下：每条技能都画，说明平分剩余高度，排不完的末行加「…」（不再整条被丢掉）
+			var fits := _skill_rows_h(page, width, fs) <= avail
+			var per_desc: float = maxf(font.get_height(fs - 1), (avail - page.size() * (fs + 15)) / maxf(1.0, page.size()))
 			var yy := top
 			for row in page:
 				var tag_w: float = UI.chip(self, font, Vector2(x, yy + 2), row[0], row[3], 11) + 8
-				UI.text(self, font, Vector2(x + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT)
+				UI.text_fit(self, font, Vector2(x + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT, width - tag_w, 10)
 				yy += fs + 8
-				var soft := UI.soft(row[2])
-				var h: float = font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, UI.BRK).y
-				if yy + h > top + avail:
-					break
-				draw_multiline_string(font, Vector2(x + 8, yy + fs - 2), soft, HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, Color(0.78, 0.88, 0.9), UI.BRK)
-				yy += h + 7
+				var fd := UI.fit(font, row[2], width - 8, 9999.0 if fits else per_desc, [fs - 1])
+				UI.draw_fit(self, font, Vector2(x + 8, yy + fs - 2 - font.get_ascent(fs - 1)), fd, Color(0.78, 0.88, 0.9))
+				yy += float(fd.h) + 7
 		2:
 			# 数值页：两列表格
 			# 行距按剩余高度收缩（演示时下方空间小）；脚注紧跟表格，放不下就不画
@@ -674,12 +668,7 @@ func _skill_rows_h(rows: Array, width: float, fs: int) -> float:
 
 
 func _draw_fit_text(txt: String, at: Vector2, width: float, avail: float) -> void:
-	var soft := UI.soft(txt)
-	var fs := 15
-	while fs > 11 and font.get_multiline_string_size(soft, HORIZONTAL_ALIGNMENT_LEFT, width, fs, -1, UI.BRK).y > avail:
-		fs -= 1
-	var max_lines := maxi(1, int(avail / font.get_height(fs)))
-	draw_multiline_string(font, at + Vector2(0, fs), soft, HORIZONTAL_ALIGNMENT_LEFT, width, fs, max_lines, Color(0.82, 0.9, 0.92), UI.BRK)
+	UI.draw_fit(self, font, at + Vector2(0, 15 - font.get_ascent(15)), UI.fit(font, txt, width, avail, [15, 14, 13, 12, 11]), Color(0.82, 0.9, 0.92))
 
 
 ## 档案页：lore.json 的 profile（代号 / 性别 / 出身 / 种族 / 所属，来自 PRTS 档案）+ 介绍；再接玩法定位一句

@@ -264,6 +264,8 @@ var panel_col: VBoxContainer   # 事件选项条（C 版式）的竖排容器
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_fg: Control          # 标题、商人立绘、事件插画画在这层（压暗带之上、卡片之下）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
+var ev_bars_h := 0.0           # 事件选项条的总高度（选项条按说明行数加高，提示文字跟在后面）
+var panel_tip: Control         # 面板最上层：截断说明的完整提示
 var serif: Font                # 事件标题用的衬线粗体（fonts/serif.ttf，缺失时退回 UI 字体）
 var font: Font
 var tex := {}
@@ -655,7 +657,8 @@ func _process(delta: float) -> void:
 				_pm("autotest")
 				if state == S.PLAY:
 					_update(dt)
-	banner_t -= delta
+	if not panel.visible:
+		banner_t -= delta   # 选卡 / 商人面板开着时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	_update_visuals(dt if state == S.PLAY else 0.0)
 	_pm("visuals")
@@ -1244,20 +1247,12 @@ func _build_shop_ui() -> void:
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(shop_sys.buy.bind(i))
-		var desc := Label.new()
-		desc.text = UI.soft(it.desc)
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(10, 174)
-		desc.size = Vector2(cw - 20, 56)
-		desc.clip_text = true
-		desc.max_lines_visible = 3
-		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc.add_theme_constant_override("line_spacing", 0)
-		desc.add_theme_font_size_override("font_size", 12)
-		desc.add_theme_color_override("font_color", Color(0.655, 0.69, 0.725))
-		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card.add_child(desc)
-		card.set_meta("desc", desc)
+		var fs0 := UI.fit(font, it.desc, cw - 20.0, 64.0, [12, 11])
+		var sc_compact: bool = not fs0.fit
+		if sc_compact:
+			fs0 = UI.fit(font, it.desc, cw - 20.0, 80.0, [12, 11])
+		card.set_meta("fit", fs0)
+		card.set_meta("compact", sc_compact)
 		panel_box.add_child(card)
 	panel.visible = true
 	panel_fg.queue_redraw()
@@ -1333,7 +1328,8 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.strip(card, font, r.position + Vector2(10, 10), en_s, cn_s, sc, UI.TEXT, 11)
 	if it.get("deep", false):
 		UI.chip(card, font, r.position + Vector2(10, 36), "深海馈赠", Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
-	var c := r.position + Vector2(r.size.x / 2.0, 94)
+	var sc_compact: bool = card.get_meta("compact", false)
+	var c := r.position + Vector2(r.size.x / 2.0, 80.0 if sc_compact else 94.0)
 	UI.halo(card, c, 32.0, UI.CYAN, hov, a)
 	var mod := Color(1, 1, 1, a) if not it.sold else Color(0.45, 0.45, 0.45, a)
 	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
@@ -1346,7 +1342,10 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	else:
 		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	var fs := 15 if font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x <= r.size.x - 14.0 else 12
-	UI.text(card, font, r.position + Vector2(0, 164), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	UI.text(card, font, r.position + Vector2(0, 150.0 if sc_compact else 164.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	var fd: Dictionary = card.get_meta("fit", {})
+	if not fd.is_empty():
+		UI.draw_fit(card, font, r.position + Vector2(10, 158.0 if sc_compact else 172.0), fd, Color(0.655, 0.69, 0.725, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
 	var pb := Rect2(r.position + Vector2(10, r.size.y - 44), Vector2(r.size.x - 20, 32))
 	if it.sold:
 		card.draw_rect(pb, Color(1, 1, 1, 0.06))
@@ -1464,6 +1463,13 @@ func _build_panel(parent: Node) -> void:
 	panel_col.offset_bottom = 560
 	panel_col.visible = false
 	panel.add_child(panel_col)
+	# 最上层：说明被截断（排不下末行带「…」）的卡片，悬停 / 焦点时在这里画完整说明
+	panel_tip = Control.new()
+	panel_tip.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel_tip.z_index = 10
+	panel_tip.draw.connect(_draw_panel_tip)
+	panel.add_child(panel_tip)
 	# 事件标题的衬线字；没导入（别的工作区的 .godot 缓存里还没有）就用 UI 字体
 	var sf: Font = load("res://fonts/serif.ttf") if ResourceLoader.exists("res://fonts/serif.ttf") else null
 	if sf != null:
@@ -1684,7 +1690,7 @@ func _draw_event_bg(vs: Vector2) -> void:
 	UI.en(panel_fg, font, Vector2(cx + 20, 142), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	panel_fg.draw_string(serif, Vector2(cx + 20, 178), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击选项，或按 1–%d" % choices.size()
-	UI.text(panel_fg, font, Vector2(cx + 20, 196 + choices.size() * 114 + 20), hint, 12, Color(0.55, 0.54, 0.52))
+	UI.text(panel_fg, font, Vector2(cx + 20, 196 + ev_bars_h + 6), hint, 12, Color(0.55, 0.54, 0.52))
 
 
 ## 墨点 / 笔触多边形平移到插画框里；超出框的部分交给撕纸边外的暗底盖住（这里只做平移）
@@ -1716,6 +1722,7 @@ func _show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		c.queue_free()
 	_layout_panel(kind)
 	var ev := kind == "event"
+	ev_bars_h = 0.0
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var card := Button.new()
@@ -1735,37 +1742,48 @@ func _show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(progression.pick.bind(i))
-		var desc := Label.new()
-		desc.text = UI.soft(o.desc)
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.clip_text = true
-		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_constant_override("line_spacing", 0)
-		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
+		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			desc.position = Vector2(112, 50)
-			desc.size = Vector2(420, 44)
-			desc.max_lines_visible = 2
-			desc.add_theme_color_override("font_color", Color(0.81, 0.79, 0.76))
-			card.set_meta("dx", 112.0)
+			var fe := UI.fit(font, o.desc, 420.0, 4.0 * font.get_height(13), [13, 12])
+			card.set_meta("fit", fe)
+			card.custom_minimum_size.y = 100.0 + maxf(0.0, fe.lines.size() - 2) * float(fe.lh)
+			ev_bars_h += card.custom_minimum_size.y + 14.0
 		else:
-			desc.position = Vector2(20, 258)
-			desc.size = Vector2(CARD_W - 40, 58)
-			desc.max_lines_visible = 3
-			desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			desc.add_theme_color_override("font_color", Color(0.655, 0.69, 0.725))
-		card.add_child(desc)
-		card.set_meta("desc", desc)
-		card.set_meta("dy", 50.0 if ev else 258.0)
+			var f0 := UI.fit(font, o.desc, CARD_W - 40.0, 60.0, [13, 12])
+			var compact: bool = not f0.fit
+			if compact:
+				f0 = UI.fit(font, o.desc, CARD_W - 40.0, 108.0, [13, 12, 11])
+			card.set_meta("fit", f0)
+			card.set_meta("compact", compact)
 		(panel_col if ev else panel_box).add_child(card)
 	panel.visible = true
 	panel_fg.queue_redraw()
+
+
+## 选卡 / 商店 / 事件：焦点卡片的说明被截断时，在面板最上层画完整说明（卡片下方，放不下放上方）
+func _draw_panel_tip() -> void:
+	var box: BoxContainer = panel_col if (choice_kind == "event" and state == S.CHOICE) else panel_box
+	var vs := panel_tip.size
+	for card in box.get_children():
+		if not (card is Button) or card.is_queued_for_deletion():
+			continue
+		var fd: Dictionary = card.get_meta("fit", {})
+		if fd.is_empty() or fd.get("fit", true) or not _card_hot(card, card.get_index()):
+			continue
+		var gr: Rect2 = card.get_global_rect()
+		var it: Dictionary = card.get_meta("item", {})
+		var title: String = it.get("name", "") if not it.is_empty() else (choices[card.get_index()].get("name", "") if card.get_index() < choices.size() else "")
+		var desc: String = it.get("desc", "") if not it.is_empty() else (choices[card.get_index()].get("desc", "") if card.get_index() < choices.size() else "")
+		_draw_tooltip(vs, Rect2(gr.position - panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, panel_tip)
+		return
 
 
 func _animate_cards(dt: float) -> void:
 	if not panel.visible:
 		return
 	panel_fg.queue_redraw()
+	panel_tip.queue_redraw()
 	var now := Time.get_ticks_msec()
 	var box: BoxContainer = panel_col if (choice_kind == "event" and state == S.CHOICE) else panel_box
 	for card in box.get_children():
@@ -1939,7 +1957,7 @@ func _draw_show_cards(items: Array, st: float) -> void:
 			UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		UI.chip(hud, font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(hud, font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		hud.draw_multiline_string(font, r.position + Vector2(150, 106), UI.soft(it.desc), HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 172, 15, 3, Color(0.78, 0.88, 0.9, e), UI.BRK)
+		UI.draw_fit(hud, font, r.position + Vector2(150, 91), UI.fit(font, it.desc, r.size.x - 172, 72.0, [15, 14, 13, 12]), Color(0.78, 0.88, 0.9, e))
 
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
@@ -2002,8 +2020,9 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 		card.draw_rect(Rect2(r.position + Vector2(14, 40), Vector2(rw, 15)), tag[3])
 		UI.ctext(card, font, r.position + Vector2(19, 52), tag[2], 10, Color(0.08, 0.06, 0.02))
 	# 图标 + 光环
-	var c := r.position + Vector2(r.size.x / 2.0, 128)
-	UI.halo(card, c, 58.0, UI.CYAN, hov)
+	var compact: bool = card.get_meta("compact", false)
+	var c := r.position + Vector2(r.size.x / 2.0, 104.0 if compact else 128.0)
+	UI.halo(card, c, 40.0 if compact else 58.0, UI.CYAN, hov)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
 	if o.kind == "relic":
@@ -2016,17 +2035,20 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
 	var idle: Dictionary = _op_idle(opid) if ic == null and opid != "" else {}
 	if not idle.is_empty():
-		var ks: float = 2.0 if idle.fh <= 48 else 96.0 / idle.fh
+		var ks: float = ((1.0 if compact else 2.0) if idle.fh <= 48 else (64.0 if compact else 96.0) / idle.fh)
 		var asz := Vector2(idle.fw, idle.fh) * ks
 		card.draw_texture_rect_region(idle.tex, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, idle.fw, idle.fh))
 	elif ic != null:
-		_draw_icon_fit(card, ic, c + Vector2(0, bob), 96.0)
+		_draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
 	else:
 		UI.text(card, font, c + Vector2(-40, 13 + bob), glyph, 34, _card_color(o), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	var nm := name
 	if o.kind == "relic":
 		nm = RL[o.id].name
-	UI.text(card, font, r.position + Vector2(0, 244), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	UI.text(card, font, r.position + Vector2(0, 196.0 if compact else 244.0), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	var fd: Dictionary = card.get_meta("fit", {})
+	if not fd.is_empty():
+		UI.draw_fit(card, font, r.position + Vector2(20, 210.0 if compact else 258.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
@@ -2085,20 +2107,20 @@ func _draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var shape: PackedVector2Array = art.bars[i % art.bars.size()]
 	var sp := PackedVector2Array()
 	for q in shape:
-		sp.append(base + Vector2(q.x * w / 596.0, q.y))
+		sp.append(base + Vector2(q.x * w / 596.0, q.y * card.size.y / 100.0))
 	card.draw_colored_polygon(sp, Color(0.925, 0.91, 0.882, 0.14) if hov else Color(0.07, 0.07, 0.075, 0.9))
 	var en_ring: PackedVector2Array = art.ensos[i % art.ensos.size()]
 	var er := PackedVector2Array()
 	for q in en_ring:
-		er.append(base + q)
+		er.append(base + q + Vector2(0, card.size.y / 2.0 - 50.0))
 	card.draw_colored_polygon(er, Color(0.925, 0.91, 0.882, 0.55 if hov else 0.22))
 	var ink := Color(0.925, 0.91, 0.882)
 	var icn: String = o.get("icon", "")
 	var itx: Texture2D = tex.get(icn) if icn != "" and icn != "exit" else null
 	if itx != null:
-		_draw_icon_fit(card, itx, base + Vector2(56, 50), 64.0)
+		_draw_icon_fit(card, itx, base + Vector2(56, card.size.y / 2.0), 64.0)
 	else:
-		UI.icon(card, "exit", base + Vector2(56, 50), 32.0, ink)
+		UI.icon(card, "exit", base + Vector2(56, card.size.y / 2.0), 32.0, ink)
 	card.draw_string(serif, base + Vector2(112, 38), o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
 	var x := 112.0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
 	for chp in o.get("chips", []):
@@ -2107,10 +2129,13 @@ func _draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 		card.draw_rect(cr, Color(chp[1].r, chp[1].g, chp[1].b, 0.9), false, 1.0)
 		card.draw_string(font, cr.position + Vector2(6, 13), chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])
 		x += cw + 6.0
-	UI.ctext(card, font, base + Vector2(w - 46, 60), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
+	var fb: Dictionary = card.get_meta("fit", {})
+	if not fb.is_empty():
+		UI.draw_fit(card, font, base + Vector2(112, 50), fb, Color(0.81, 0.79, 0.76))
+	UI.ctext(card, font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
-		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, 60)), Color(0.18, 0.72, 1.0, 0.25))
-		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, 56)), Color(0.18, 0.72, 1.0))
+		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, card.size.y - 40.0)), Color(0.18, 0.72, 1.0, 0.25))
+		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
@@ -3580,7 +3605,7 @@ func _draw_hud() -> void:
 	_draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
 
 	# 横幅通知
-	if banner_t > 0.0:
+	if banner_t > 0.0 and not panel.visible:
 		var a: float = clamp(banner_t, 0.0, 1.0)
 		var by := vs.y * 0.24
 		# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）
@@ -3703,12 +3728,35 @@ func _draw_intro(vs: Vector2) -> void:
 	# 插图区
 	var ic := r.position + Vector2(170, 270)
 	_draw_intro_icon(pg.icon, ic)
-	# 文字
-	var y := r.position.y + 156
-	for ln in pg.lines:
-		UI.diamond(hud, Vector2(r.position.x + 340, y - 6), 4.0, UI.CYAN)
-		hud.draw_multiline_string(font, Vector2(r.position.x + 356, y), UI.soft(ln), HORIZONTAL_ALIGNMENT_LEFT, r.size.x - 392, 15, 4, Color(0.85, 0.93, 0.95, ea), UI.BRK)
-		y += 100
+	# 文字：按实际折行高度一段接一段排（旧版每段固定 100 像素、最多 4 行，一页 4 段时会压到按钮）；
+	# 整页放不下先缩字号（15 → 12）
+	var tx := r.position.x + 356
+	var tw := r.size.x - 392
+	var top := r.position.y + 142
+	var avail := r.end.y - 62.0 - top
+	var fsz := 15
+	var paras: Array = []
+	while true:
+		paras.clear()
+		var tot := 0.0
+		for ln in pg.lines:
+			var ls: PackedStringArray = UI.wrap_lines(font, ln, fsz, tw)
+			paras.append(ls)
+			tot += ls.size() * (font.get_height(fsz) + 1.0) + 14.0
+		if tot - 14.0 <= avail or fsz <= 12:
+			break
+		fsz -= 1
+	var lhh: float = font.get_height(fsz) + 1.0
+	var asc: float = font.get_ascent(fsz)
+	var y := top
+	for ls in paras:
+		UI.diamond(hud, Vector2(r.position.x + 340, y + asc - 6), 4.0, UI.CYAN)
+		for ln2 in ls:
+			if y + lhh > r.end.y - 58.0:
+				break
+			hud.draw_string(font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.85, 0.93, 0.95, ea))
+			y += lhh
+		y += 14.0
 	# 页码点（可点击）
 	intro_panel = r
 	intro_dots.clear()
@@ -3922,7 +3970,7 @@ func _draw_stats(vs: Vector2) -> void:
 	]
 	for row in rows0:
 		UI.text(hud, font, Vector2(b0.position.x + 16, y + 12), row[0], 14, UI.SUB)
-		UI.text(hud, font, Vector2(b0.position.x + 130, y + 12), row[1], 14, UI.TEXT)
+		UI.text_fit(hud, font, Vector2(b0.position.x + 130, y + 12), row[1], 14, UI.TEXT, b0.size.x - 146.0, 10)
 		hud.draw_rect(Rect2(b0.position.x + 16, y + 19, b0.size.x - 32, 1), Color(1, 1, 1, 0.05))
 		y += 25
 	# ---- 攻击
@@ -3935,16 +3983,21 @@ func _draw_stats(vs: Vector2) -> void:
 		["本局构成", _dmg_mix_text()],
 	])
 	y = b1.position.y + 48
+	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
+	var skill_rows: Array = _skill_rows_data()
+	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + font.get_height(11) + 1.0) + 18.0
+	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 19.0, 25.0)
+	var rfs := 14 if rh1 >= 23.0 else 13
 	for row in rows1:
-		UI.text(hud, font, Vector2(b1.position.x + 16, y + 12), row[0], 14, UI.SUB)
-		UI.text(hud, font, Vector2(b1.position.x + 130, y + 12), row[1], 14, UI.TEXT)
-		hud.draw_rect(Rect2(b1.position.x + 16, y + 19, b1.size.x - 32, 1), Color(1, 1, 1, 0.05))
-		y += 25
+		UI.text(hud, font, Vector2(b1.position.x + 16, y + 12), row[0], rfs, UI.SUB)
+		UI.text_fit(hud, font, Vector2(b1.position.x + 130, y + 12), row[1], rfs, UI.TEXT, b1.size.x - 146.0, 10)
+		hud.draw_rect(Rect2(b1.position.x + 16, y + rh1 - 6, b1.size.x - 32, 1), Color(1, 1, 1, 0.05))
+		y += rh1
 	# 技能（攻击面板下半）
 	y += 8
 	UI.rule(hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
 	y += 10
-	y = _draw_generic_skill_rows(b1, y)
+	y = _draw_generic_skill_rows(b1, y, skill_rows)
 	# ---- 队伍与成长
 	var b2: Rect2 = boxes[2]
 	UI.text(hud, font, b2.position + Vector2(16, 26), "队伍与成长", 16, UI.CYAN)
@@ -3999,51 +4052,63 @@ func _draw_stats(vs: Vector2) -> void:
 	y += 8
 	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "成长", 13, UI.SUB)
 	y += 22
-	# 成长：图标网格，右下角次数
+	# 成长 + 藏品：两块图标网格共用剩余高度，格子取「全部放得下」的最大尺寸（46 → 26 像素），
+	# 不再出现数量多了后面的图标被藏起来的情况；悬停看效果
 	var gx: float = b2.position.x + 16
 	var gy: float = y
-	var per := int((b2.size.x - 32) / 44.0)
+	var ng: int = growth.size()
+	var nr: int = relics.size()
+	var room: float = b2.end.y - 8.0 - gy - 36.0
+	var pitch := 46.0
+	var per := 1
+	for pc in [46.0, 40.0, 34.0, 30.0, 26.0]:
+		pitch = pc
+		per = maxi(1, int((b2.size.x - 32) / pitch))
+		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
+			break
+	var cs := pitch - 6.0
+	var isz := cs - 6.0
 	var gi := 0
 	for gid in growth:
-		var gc := Vector2(gx + (gi % per) * 44, gy + (gi / per) * 46)
-		if gc.y + 40 > b2.end.y - 8:
+		var gc := Vector2(gx + (gi % per) * pitch, gy + (gi / per) * pitch)
+		if gc.y + cs > b2.end.y - 2:
 			break
-		hud.draw_rect(Rect2(gc, Vector2(38, 38)), Color(0.01, 0.04, 0.08, 0.9))
-		hud.draw_rect(Rect2(gc, Vector2(38, 38)), UI.EDGE_DIM, false, 1.0)
+		hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(0.03, 0.035, 0.045, 0.9))
+		hud.draw_rect(Rect2(gc, Vector2(cs, cs)), UI.EDGE_DIM, false, 1.0)
 		var gt: Texture2D = tex.get("growth_" + gid)
 		if gt != null:
-			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(32, 32)), false)
+			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(hud, font, gc + Vector2(0, 26), progression.growth_def(gid).name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
-		UI.text(hud, font, gc + Vector2(20, 37), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
-		stats_cells.append([Rect2(gc, Vector2(38, 38)), "growth", gid])
+			UI.text(hud, font, gc + Vector2(0, cs * 0.68), progression.growth_def(gid).name.substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
+		UI.text(hud, font, gc + Vector2(cs - 18, cs - 1), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+		stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
 		gi += 1
-	# 藏品：图标网格（悬停看效果）
-	y = gy + (maxi(0, gi - 1) / per + 1) * 46 + 6
+	y = gy + maxi(1, int(ceil(ng / float(per)))) * pitch + 6
 	UI.rule(hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
 	y += 8
 	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "藏品  %d 件" % relics.size(), 13, UI.SUB)
 	UI.text(hud, font, Vector2(b2.position.x + 120, y + 12), "鼠标移到图标上查看效果", 11, UI.CYAN_DIM)
 	y += 22
 	var mouse2 := hud.get_local_mouse_position()
-	for i in relics.size():
-		var rc := Vector2(gx + (i % per) * 44, y + (i / per) * 46)
-		if rc.y + 40 > b2.end.y - 8:
+	for i in nr:
+		var rc := Vector2(gx + (i % per) * pitch, y + (i / per) * pitch)
+		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = RL[relics[i]]
 		var rcol: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
-		var cr := Rect2(rc, Vector2(38, 38))
+		var cr := Rect2(rc, Vector2(cs, cs))
 		var hov: bool = cr.has_point(mouse2)
-		hud.draw_rect(cr, Color(0.01, 0.04, 0.08, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))
-		hud.draw_rect(cr, Color(rcol.r, rcol.g, rcol.b, 0.7 if not hov else 1.0), false, 1.0 if not hov else 2.0)
+		hud.draw_rect(cr, Color(0.03, 0.035, 0.045, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))
+		hud.draw_rect(cr, Color(1, 1, 1, 0.13) if not hov else rcol, false, 1.0)
+		hud.draw_rect(Rect2(rc, Vector2(8, 2)), Color(rcol.r, rcol.g, rcol.b, 0.85))
 		var rt: Texture2D = tex.get("relic_" + relics[i])
 		if rt != null:
-			hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(32, 32)), false)
+			hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(hud, font, rc + Vector2(0, 26), rd.name.substr(0, 1), 16, rcol, HORIZONTAL_ALIGNMENT_CENTER, 38)
+			UI.text(hud, font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		var rl: int = rfx.lv.get(relics[i], 1)
 		if rl > 1:
-			UI.text(hud, font, rc + Vector2(20, 37), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+			UI.text(hud, font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		stats_cells.append([cr, "relic", relics[i]])
 	UI.text(hud, font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [relics.size(), kills, ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	# 悬停提示（藏品 / 成长）
@@ -4051,7 +4116,10 @@ func _draw_stats(vs: Vector2) -> void:
 		var cr2: Rect2 = cellinfo[0]
 		if not cr2.has_point(mouse2):
 			continue
-		if cellinfo[1] == "relic":
+		if cellinfo[1] == "skill":
+			var srow: Array = cellinfo[2]
+			_draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else "技能 %s" % srow[0], srow[2], "", ch.col())
+		elif cellinfo[1] == "relic":
 			var rd2: Dictionary = RL[cellinfo[2]]
 			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
 		else:
@@ -4196,29 +4264,27 @@ func _draw_relic_tooltip(vs: Vector2) -> void:
 
 
 ## 通用提示卡：贴在格子下方（越界时贴上方 / 左移），图标 + 标题 + 副标题 + 折行说明
-func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: String, icon: String, col: Color) -> void:
-	var lines: Array = []
-	for para in desc.split("\n"):
-		var d: String = para
-		while d.length() > 26:
-			lines.append(d.substr(0, 26))
-			d = d.substr(26)
-		lines.append(d)
-	var w := 330.0
-	var h := 66.0 + lines.size() * 20.0
+func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: String, icon: String, col: Color, on: CanvasItem = null) -> void:
+	var ci: CanvasItem = hud if on == null else on
+	var w := 340.0
+	# 说明按像素宽度折行（旧版按 26 个字硬切，13 号字会超出框）；太长先缩字号，整屏都放不下才截断
+	var fd := UI.fit(font, desc, w - 28.0, vs.y - 24.0 - 74.0, [13, 12, 11], 3.0)
+	var h := 66.0 + float(fd.h) + 12.0
 	var pos := Vector2(clampf(cr.position.x, 12.0, vs.x - w - 12.0), cr.end.y + 8)
 	if pos.y + h > vs.y - 12.0:
 		pos.y = cr.position.y - h - 8
+	pos.y = clampf(pos.y, 12.0, maxf(12.0, vs.y - h - 12.0))
 	var r := Rect2(pos, Vector2(w, h))
-	hud.draw_rect(Rect2(pos + Vector2(2, 2), Vector2(w - 4, h - 4)), Color(0.01, 0.04, 0.08, 0.95))
-	UI.frame(hud, r, col, {"cut": 6.0, "bracket": 6.0})
-	var ic: Texture2D = tex.get(icon)
+	ci.draw_rect(Rect2(pos + Vector2(2, 2), Vector2(w - 4, h - 4)), Color(0.03, 0.035, 0.045, 0.96))
+	UI.frame(ci, r, col)
+	var tx0 := 14.0
+	var ic: Texture2D = tex.get(icon) if icon != "" else null
 	if ic != null:
-		hud.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
-	UI.text(hud, font, pos + Vector2(62, 28), title, 16, Color.WHITE)
-	UI.text(hud, font, pos + Vector2(62, 48), sub, 12, col)
-	for k in lines.size():
-		UI.text(hud, font, pos + Vector2(14, 74 + k * 20), lines[k], 13, Color(0.85, 0.92, 0.95))
+		ci.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
+		tx0 = 62.0
+	UI.text_fit(ci, font, pos + Vector2(tx0, 28), title, 16, Color.WHITE, w - tx0 - 12.0, 12)
+	UI.text_fit(ci, font, pos + Vector2(tx0, 48), sub, 12, col, w - tx0 - 12.0, 10)
+	UI.draw_fit(ci, font, pos + Vector2(14, 62), fd, Color(0.85, 0.92, 0.95))
 
 
 ## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
@@ -4478,8 +4544,7 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 
 
 ## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋
-func _draw_generic_skill_rows(b1: Rect2, y: float) -> float:
-	var c: Color = ch.col()
+func _skill_rows_data() -> Array:
 	var rows: Array = []
 	for i in 3:
 		var sd: Dictionary = ch.skill_def(i)
@@ -4496,13 +4561,55 @@ func _draw_generic_skill_rows(b1: Rect2, y: float) -> float:
 	var td: Dictionary = ch.talent_def()
 	if not td.is_empty():
 		rows.append(["赋", td.get("name", "天赋") + ("" if ch.elite >= 1 else "（精英化一解锁）"), td.get("desc", ""), ch.elite >= 1, false])
+	return rows
+
+
+## Tab 面板攻击栏下半：开局干员的三个技能 + 天赋。说明按栏宽折行；先每条给 1 行，再轮流给还没排完的加行，
+## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
+func _draw_generic_skill_rows(b1: Rect2, y: float, rows: Array) -> float:
+	var c: Color = ch.col()
+	var x0 := b1.position.x + 62.0
+	var dw := b1.end.x - 14.0 - x0
+	var dfs := 11
+	var lh: float = font.get_height(dfs) + 1.0
+	var avail: float = b1.end.y - 6.0 - y
+	var rh := func(n: int) -> float: return maxf(42.0, 30.0 + n * lh)
+	var wrapped: Array = []
+	var give: Array = []
+	var used := 0.0
 	for row in rows:
+		var wl: PackedStringArray = UI.wrap_lines(font, row[2], dfs, dw)
+		wrapped.append(wl)
+		give.append(mini(1, wl.size()))
+		used += rh.call(give[give.size() - 1])
+	var grew := true
+	while grew:
+		grew = false
+		for k in rows.size():
+			if give[k] < wrapped[k].size():
+				var add: float = rh.call(give[k] + 1) - rh.call(give[k])
+				if used + add <= avail:
+					give[k] += 1
+					used += add
+					grew = true
+	for k in rows.size():
+		var row: Array = rows[k]
 		var on: bool = row[3]
 		var col: Color = (Color(0.85, 0.55, 1.0) if row[4] else c) if on else Color(0.35, 0.42, 0.46)
-		var sc := Vector2(b1.position.x + 34, y + 18)
+		var sc := Vector2(b1.position.x + 34, y + 20)
 		UI.ring(hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
 		UI.text(hud, font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 14), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB)
-		UI.text(hud, font, Vector2(b1.position.x + 62, y + 32), UI.soft(row[2]).substr(0, 34), 11, col if on else Color(0.35, 0.42, 0.46))
-		y += 44
+		UI.text_fit(hud, font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB, dw, 11)
+		var lines: PackedStringArray = wrapped[k]
+		var dcol: Color = col if on else Color(0.42, 0.48, 0.52)
+		for j in give[k]:
+			var ln: String = lines[j]
+			if j == give[k] - 1 and give[k] < lines.size():
+				while ln.length() > 0 and font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x > dw:
+					ln = ln.substr(0, ln.length() - 1)
+				ln += "…"
+			UI.text(hud, font, Vector2(x0, y + 33 + j * lh), ln, dfs, dcol)
+		var row_h: float = rh.call(give[k])
+		stats_cells.append([Rect2(Vector2(b1.position.x + 14, y), Vector2(b1.size.x - 28, row_h)), "skill", row])
+		y += row_h
 	return y

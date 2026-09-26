@@ -513,3 +513,77 @@ static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> flo
 	var ew := cond(font, true).get_string_size(en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1).x + 13.0 if en_s != "" else 0.0
 	var cw := font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 15.0 if cn != "" else 0.0
 	return ew + cw
+
+
+# ---------------------------------------------------------------- 文字排版（按像素宽度折行，放不下时先缩字号，最后才截断加「…」）
+## 按像素宽度折行（中文按字断行，遵守 soft() 的标点规则）；\n 分段。返回每一行的文字
+static func wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
+	var out := PackedStringArray()
+	for para in s.split("\n"):
+		var sp := soft(para)
+		if sp.strip_edges() == "":
+			out.append("")
+			continue
+		var p := TextParagraph.new()
+		p.break_flags = BRK
+		p.width = width
+		p.add_string(sp, font, size)
+		for i in p.get_line_count():
+			var rg: Vector2i = p.get_line_range(i)
+			out.append(sp.substr(rg.x, rg.y - rg.x).replace("​", "").strip_edges())
+	return out
+
+
+## 把文字排进 width × max_h：从 sizes（由大到小）里挑最大的能整段放下的字号；
+## 最小字号也放不下时截断，末行加「…」（fit = false，调用方可以另给悬停提示）。
+## 返回 {size, lines, lh（行高）, h（总高）, fit}
+static func fit(font: Font, s: String, width: float, max_h: float, sizes: Array = [13, 12, 11], gap := 0.0) -> Dictionary:
+	var res := {}
+	for fs in sizes:
+		var lines := wrap_lines(font, s, fs, width)
+		var lh: float = font.get_height(fs) + gap
+		var n := maxi(1, int(floor((max_h + gap) / lh)))
+		res = {"size": fs, "lines": lines, "lh": lh, "n": n, "fit": lines.size() <= n}
+		if lines.size() <= n:
+			res.h = lines.size() * lh
+			return res
+	var ls: PackedStringArray = res.lines
+	var nn: int = res.n
+	if ls.size() > nn:
+		ls = ls.slice(0, nn)
+		var last := ls[nn - 1]
+		while last.length() > 0 and font.get_string_size(last + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, res.size).x > width:
+			last = last.substr(0, last.length() - 1)
+		ls[nn - 1] = last + "…"
+	res.lines = ls
+	res.h = ls.size() * float(res.lh)
+	return res
+
+
+## 画 fit() 排好的文字；pos 是第一行的顶边。align / width 同 draw_string。返回占用高度
+static func draw_fit(ci: CanvasItem, font: Font, pos: Vector2, f: Dictionary, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> float:
+	var y := pos.y
+	var asc := font.get_ascent(f.size)
+	for ln in f.lines:
+		ci.draw_string(font, Vector2(pos.x, y + asc), ln, align, width, f.size, col)
+		y += f.lh
+	return y - pos.y
+
+
+## 单行文字限宽：太宽先缩字号（最小 min_size），还放不下就截断加「…」
+static func text_fit(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, max_w: float, min_size := 10) -> void:
+	var fl := fit_line(font, s, size, max_w, min_size)
+	ci.draw_string(font, pos, fl[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fl[1], col)
+
+
+## text_fit 的排版部分：返回 [文字, 字号]
+static func fit_line(font: Font, s: String, size: int, max_w: float, min_size := 10) -> Array:
+	var fs := size
+	while fs > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
+		fs -= 1
+	var t := s
+	if font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
+		while t.length() > 1 and font.get_string_size(t + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
+			t = t.substr(0, t.length() - 1)
+		t += "…"
+	return [t, fs]
