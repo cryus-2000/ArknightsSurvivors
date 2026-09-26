@@ -268,6 +268,10 @@ def check_repro(godot):
     da, db = dict(a["data"]), dict(b["data"])
     da.pop("prof", None)
     db.pop("prof", None)
+    # 同屏数量峰值（telemetry peak / peak_min）只观察画面：特效里有绘制时追加的项，两局可能差一两个，不算复现失败
+    for d in (da, db):
+        if isinstance(d.get("bot"), dict):
+            d["bot"] = {k: v for k, v in d["bot"].items() if k not in ("peak", "peak_min")}
     diff = [k for k in sorted(set(da) | set(db)) if da.get(k) != db.get(k)]
     return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
