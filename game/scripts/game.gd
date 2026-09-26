@@ -741,6 +741,19 @@ func _demo_step(dt: float) -> void:
 		_demo_horde(10)
 
 
+## 演示里主控不再原地站桩（2026-09-26 用户要求）：绕出发点慢慢走一个 8 字（左右 ±55、上下 ±30），
+## 每段从出发点起步；返回摇杆量（≤0.55），走路动画 / 朝向与平时一致，干员照常跟随
+func _demo_wander() -> Vector2:
+	if demo_origin == Vector2.INF:
+		return Vector2.ZERO
+	var k: float = demo_ph_t
+	var tgt: Vector2 = demo_origin + Vector2(-150, 10) + Vector2(sin(k * 0.9) * 55.0, sin(k * 1.8) * 30.0)
+	var d: Vector2 = tgt - ppos
+	if d.length() < 3.0:
+		return Vector2.ZERO
+	return (d / maxf(speed * 0.3, 1.0)).limit_length(0.55)
+
+
 ## 镜头看着的位置：平时跟博士；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
 func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
@@ -1406,7 +1419,7 @@ func _update(dt: float) -> void:
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
 	if demo_op != "":
-		mv = Vector2.ZERO
+		mv = _demo_wander()
 	elif balance:
 		mv = bot.move(dt) if bot != null else _bot_move()
 	elif touch.active and touch.move_vec() != Vector2.ZERO:
