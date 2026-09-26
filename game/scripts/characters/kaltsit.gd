@@ -7,7 +7,7 @@ extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
 const MELT := Color(0.45, 1.5, 0.6)   # 熔毁的特效色（2026-09-26 用户定：不再猩红，配合新帧条的绿色裂隙）
-const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
+const M_LEASH := 260.0        # Mon3tr 离主控的最远距离（2026-09-27 近战前压加大，原 190）
 const M_REACH := 93.0         # 爪击半径（基础）
 const S3_DUR := 8.0
 

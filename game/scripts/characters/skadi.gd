@@ -8,7 +8,7 @@ extends "res://scripts/characters/character.gd"
 const BLUE := Color(0.35, 0.55, 0.95)
 const FOAM := Color(0.8, 0.95, 1.0)
 const DROP := Color(0.6, 0.9, 1.0)
-const LEASH := 160.0
+const LEASH := 260.0   # 2026-09-27 用户定：近战前压加大（原 160.0）
 const S3_DUR := 8.0
 
 var cd := 0.3

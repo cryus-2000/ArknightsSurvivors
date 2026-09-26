@@ -19,7 +19,7 @@ const ABYSS := Color(0.1, 0.12, 0.2)        # 锚身：黑蓝
 const EDGE := Color(0.4, 0.62, 1.1)         # 刃光：深海蓝
 const WATER := Color(0.45, 0.78, 1.0)
 const BLOOD := Color(1.0, 0.25, 0.3)        # 血脉红纹
-const LEASH := 170.0
+const LEASH := 260.0   # 2026-09-27 用户定：近战前压加大（原 170.0）
 const HUNTERS := ["skadi", "specter_unchained"]
 
 var cd := 0.5

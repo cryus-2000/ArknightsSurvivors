@@ -9,7 +9,7 @@ extends "res://scripts/characters/character.gd"
 
 const GHOST := Color(0.75, 0.85, 0.95)
 const RED := Color(0.9, 0.3, 0.4)
-const LEASH := 150.0
+const LEASH := 260.0   # 2026-09-27 用户定：近战前压加大（原 150.0）
 
 var cd := 0.4
 var s1_t := 0.0

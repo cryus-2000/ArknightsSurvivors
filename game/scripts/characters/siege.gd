@@ -4,7 +4,7 @@
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.78, 0.35)
-const LEASH := 150.0          # 前压：只追主控这么远以内的敌人
+const LEASH := 260.0   # 2026-09-27 用户定：近战前压加大（原 150.0）          # 前压：只追主控这么远以内的敌人
 const S3_DUR := 8.0
 
 var cd := 0.4
