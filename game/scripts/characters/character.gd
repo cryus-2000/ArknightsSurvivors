@@ -31,7 +31,8 @@ var perm: Array = [false, false, false]   # 永久型技能（JSON permanent）�
 var attack_t := 0.0        # >0 表示正在播放攻击动作（由干员在出手时设置）
 var attack_dur := 0.25
 var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
-var act_kind := "attack"   # 当前动作条：attack / skill
+var act_kind := "attack"   # 当前动作的逻辑类型：attack（出手调 _release）/ skill（出手调 _release_skill）
+var act_anim := "attack"   # 当前动作实际播放的帧条（通常同 act_kind；技能可借用别的帧条，见 skill_anim）
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
 var anim_kind := ""
 var anim_t := 0.0
@@ -102,6 +103,9 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 				ok = false
 			elif not sk[i].get("mode", "auto") in ["auto", "manual"]:
 				push_error("干员 %s 的技能 %d 的 mode 只能是 auto / manual" % [cid, i + 1])
+				ok = false
+			elif sk[i].has("anim") and not d.get("sprites", {}).has(str(sk[i].anim)):
+				push_error("干员 %s 的技能 %d 的 anim「%s」不是它的帧条（sprites 里没有）" % [cid, i + 1, sk[i].anim])
 				ok = false
 		if sk.filter(func(x): return x is Dictionary and x.get("mode", "auto") == "manual").size() > 1:
 			push_error("干员 %s 最多只能有 1 个手动技能" % cid)
@@ -790,8 +794,8 @@ func follow(dt: float, target: Vector2) -> void:
 	mt += dt
 	# 动画状态
 	var want := "idle"
-	if attack_t > 0.0 and anim_tex(act_kind) != null:
-		want = act_kind
+	if attack_t > 0.0 and anim_tex(act_anim) != null:
+		want = act_anim
 	elif mv > 30.0 and anim_tex("run") != null:
 		want = "run"
 	if want != anim_kind:
@@ -806,27 +810,36 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25) -> void
 	_start_action("attack", aim, dur, fire_at)
 
 
-## 起手技能动作（skill 帧条）；idx 为技能序号（默认沿用 cur_skill）；没有 skill 条时直接出手
-func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3) -> void:
+## 起手技能动作；idx 为技能序号（默认沿用 cur_skill）。播哪套帧条由 skill_anim() 决定（缺省 skill 条），
+## anim 参数可临时指定；那套帧条不存在时退回 skill 条，都没有就直接出手
+func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3, anim := "") -> void:
 	if idx >= 0:
 		cur_skill = idx
 		spend_sp(idx)
-	_start_action("skill", aim, dur, fire_at)
+	_start_action("skill", aim, dur, fire_at, anim if anim != "" else skill_anim(cur_skill))
 
 
-func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float) -> void:
+## 技能 i 播放的帧条（2026-09-26）：缺省读干员 JSON skills[i].anim（例如 "attack" = 放技能时播普攻动作），没写就是 "skill"。
+## 干员脚本也可以重写这个函数按状态决定。出手时机按实际播放的那套帧条的 fps / fire 算。
+func skill_anim(i: int) -> String:
+	return str(skill_def(i).get("anim", "skill")) if i >= 0 else "skill"
+
+
+## kind：逻辑类型（attack / skill，决定出手调哪个函数）；anim：播放的帧条（缺省同 kind）
+func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "") -> void:
 	if aim != Vector2.INF and absf(aim.x - pos.x) > 2.0:
 		face = signf(aim.x - pos.x)
 	act_kind = kind
-	if anim_tex(kind) == null:
+	act_anim = anim if anim != "" and anim_tex(anim) != null else kind
+	if anim_tex(act_anim) == null:
 		if kind == "skill":
 			_release_skill()
 		else:
 			_release()
 		return
-	var spec := sprite_spec(kind)
+	var spec := sprite_spec(act_anim)
 	if spec.has("fps") and spec.has("fire"):
-		var n := float(spec.get("frames", anim_hframes(anim_tex(kind), kind)))
+		var n := float(spec.get("frames", anim_hframes(anim_tex(act_anim), act_anim)))
 		dur = n / float(spec.fps)
 		fire_at = (float(spec.fire) + 0.5) / float(spec.fps)
 	# 攻速快于动作时压缩动作，保证出手不被下一次起手打断

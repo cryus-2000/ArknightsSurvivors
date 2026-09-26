@@ -46,14 +46,18 @@
 | 架构 | 代码结构、模块边界、接口层、跨模块基础设施（局内数据记录）、重构工具 | `game.gd`、`characters/op_api.gd`、`render/`、`tools/split_module.py`、docs/39 / 40 |
 | 干员 | 干员技能、成长线、干员数值与表现 | `characters/<id>.gd`、`data/characters/*.json`、docs/26 |
 | Boss与怪物 | Boss 与怪物机制、刷怪、敌人数值 | `boss_ai.gd`、`bosses/`、`run/enemies.gd`、`run/spawner.gd`、`data/enemies.json`、`waves.json`、docs/38 |
-| 藏品（分析：藏品与怪物数值曲线对齐，出报告后归档） | 藏品效果、流派、数值曲线 | `relic_fx.gd`、`data/relics.json`、`data/balance.json` 相关段、docs/35 |
+| 数值（原「藏品与怪物数值曲线对齐」） | 整体难度曲线与目标（各难度胜率区间、Boss 用时、后期承伤，目标由用户定）；`balance.json` 全局参数；各领域数值改动合入前用批跑核对整体曲线 | `data/balance.json`（全局段）、平衡报告、docs/35 曲线部分 |
+| 藏品 | 藏品效果、流派、藏品数值 | `relic_fx.gd`、`data/relics.json`、`data/balance.json` 相关段、docs/35 |
 | 界面与美术 | 界面风格与界面、非人物美术、界面层 | `screens/`、`ui.gd`、`title*.gd`、`gallery.gd`、docs/37 |
 | 测试与验收 | 测试工具、机器人、批跑与平衡报告；美术验收（审查意见交 Codex / 对口会话，不改代码） | `tools/check.py`、`tools/balance_run.py`、`tools/godot_runner.py`、`core/bot.gd`、docs/29 / 32 / 36 |
 | 音频 | 配乐、音效、语音与音频引擎；音频体积 | `scripts/sfx.gd`、`audio/`、`tools/gen_music*.py`、`default_bus_layout.tres`、docs/21 |
-| 部署上线（待用户新开） | 打包、发布、上线 | `tools/export_build.py`、`export_presets.cfg`、docs/22 / 33 |
+| 玩法系统 | 局内规则与流程：升级选卡规则、商店 / 商人、事件、拾取、局外成长、新手教程、结局 | `run/progression.gd`、`run/shop.gd`、`run/pickups.gd`、`run/affects.gd`、`endings.gd`、`data/maps/`；界面外观归界面与美术 |
+| 文案 | 所有玩家可见文字的口径与质量：事件、干员 / 藏品 / 敌人说明、教程、世界观、致谢与声明；日后本地化 | `data/lore.json`、`data/credits.json`、各 json 的说明字段（改前【协调】该文件的负责会话）、docs/37 文字部分 |
+| 部署 | 打包、发布、上线 | `tools/export_build.py`、`export_presets.cfg`、docs/22 / 33 |
 | Codex（不在此体系内） | 人物与怪物形象美术 | 见 docs/06 |
 
 - 共享文件（`run/combat.gd`、`game.gd`、`data/balance.json`……）改之前【协调】一下管这块的会话。
+- **工作树规则（用户 2026-09-26 确认）**：每个工作会话都在自己的工作树（`.claude/worktrees/<名字>`，自己的分支）里改代码、跑测试；检查通过后再快进合入 main。主工作区（`E:\ArknightsSurvivors`）只用于合入，**不得留下未提交的改动**——半截改动会挡住别人的快进合入。临时要在主工作区试什么，用完立即提交或移回自己的工作树。合入步骤：工作树里 rebase 到最新 main → 跑快检 → `git merge --ff-only`；若期间 main 又前进，再 rebase 一次，无冲突则只跑核心测试即可。
 - 临时会话（例如一次性排查任务）做完【完成】后由协调人从名单里划掉。
 - 会话改名或新开会话时，协调人更新本表。
 
@@ -72,14 +76,17 @@
    - 收到【完成】并核对提交后，立即从下面的待派队列挑对口、且符合第 5 条可直接派的任务派给该会话；要用户决定的留在队列里等。
    - 待派队列（协调人维护）：
      - [已派 09-26] docs/32 §3 发射点坐标修正（维什戴尔除外）→ 测试与验收，干员过目
-     - [等干员完成] 藏品流派批跑 → 藏品
-     - [等部署上线会话] 网页版不打包审稿拼图 → 部署上线
+     - [已派 09-26] 藏品流派批跑 → 藏品（合入时通知 Boss与怪物：B1 用时 / hp_scale 以它为基准）
+     - [已派 09-26] 网页版不打包审稿拼图 → 部署
      - [需决定] 配乐降码率 或 拆包；语音改 OGG → 音频
      - [已派 09-26，排在技能图标之后] 「致谢与声明」页格式与排版 → 界面与美术
      - [已派 09-26] 竖琴偏音重生成 → 音频（含 boss_down，用户确认）
      - [用户同意 09-26，等干员 / 界面与美术合入 + check.py 全过] 推送 GitHub → 架构
+     - [等推送 GitHub] 云端批跑试点 → 测试与验收
      - [用户同意 09-26] docs/32 §1 + §2 优先 6 条转 Codex（用户转发，走 docs/06）
-7. 维护一份「进行中」清单（谁在做什么、卡在哪、等谁），用户问「现在什么情况」时照它回答。
+7. 机器资源（用户 2026-09-26 确认）：全机 Godot 进程总数 ≤16；各会话批跑用 GODOT_MAX_PROCS / --jobs，默认 ≤4；关键路径上的任务优先，协调人可请其他会话临时降到 ≤2；测试结束务必确认进程已退出。
+8. 云端批跑（用户 2026-09-26 同意试点）：推送 GitHub 后，由测试与验收在云端配好 Godot 试跑一次流派批跑，对比耗时与结果；可行则大批量测试放云端，开发 / 看画面 / 协作留本地。
+9. 维护一份「进行中」清单（谁在做什么、卡在哪、等谁），用户问「现在什么情况」时照它回答。
 
 ## 5. 限制
 
