@@ -173,7 +173,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				# 解读阶段：周期冲击波，被波及会晕眩
 				if e.bt > 7.0:
 					e.bt = 0.0
-					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false})
+					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false, "boss": e.boss})
 					Sfx.play("skill", -2.0, 0.6)
 		"knight_boss":
 			# 最后的骑士（结局二）：冲锋（直线预警→突进+冰霜）/ 长枪连刺（近身三段扇形）/ 寒冰领域（20 秒一次，200 半径减速 6 秒）
@@ -308,7 +308,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	g.dmg_src = "boss_" + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
-		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": true}, false, true)
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if stun_t > 0.0:
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow:
@@ -337,7 +337,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("skill", -4.0, 0.7)
 			_warn_damage(w)
 		"slam":
-			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false})
+			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})
 			g.vfx.sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
 			Sfx.play("boom", 0.0, 0.6, 0.0)
@@ -371,7 +371,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.pos = w.pos
 			e.air = 0.0
 			e.erase("leap")
-			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false})
+			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
 			Sfx.play("boom", -2.0, 0.8, 0.0)
@@ -402,7 +402,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			for k in 14:
 				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
 				g.ebullets.append({"pos": w.pos, "vel": d2 * 210.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
-					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": true})
+					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			Sfx.play("tentacle", -8.0, 1.3)
 

@@ -335,7 +335,7 @@ func update_status(dt: float) -> void:
 				g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock"
 				g.in_type = ["近战", "物理"]
-				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", true)}, true, true)   # 冲击环目前只有 Boss 会放（boss_ai.gd）
+				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 
 

@@ -264,4 +264,21 @@ func test_non_boss() -> void:
 	hp0 = game.hp
 	game.enemies_sys.update_status(dt)
 	ok(absf((hp0 - game.hp) - (3.0 + game.max_hp * 0.015)) < EPS, "自然溟痕照原数值结算（%s）" % pct(hp0 - game.hp))
+	# 预警 / 冲击环系统精英也在用（钻地咬击、踏地震荡）：按放招的敌人是不是 Boss 决定截不截
+	for is_boss in [false, true]:
+		reset()
+		game.invuln = 0.0
+		var own := {"type": "burrower" if not is_boss else "path", "boss": is_boss}
+		var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": own, "act": "bite", "dmg": game.max_hp * 0.8, "corrode": 0.0}
+		hp0 = game.hp
+		game.bai._warn_damage(w)
+		var lw: float = hp0 - game.hp
+		ok((lw <= 0.4 * game.max_hp + EPS) == is_boss, "预警扣血（放招的%s Boss）扣 %s" % ["是" if is_boss else "不是", pct(lw)])
+		reset()
+		game.invuln = 0.0
+		game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": game.max_hp * 0.8, "hit": false, "boss": is_boss})
+		hp0 = game.hp
+		game.enemies_sys.update_status(dt)
+		var ls: float = hp0 - game.hp
+		ok(ls > 0.0 and (ls <= 0.4 * game.max_hp + EPS) == is_boss, "冲击环扣血（放招的%s Boss）扣 %s" % ["是" if is_boss else "不是", pct(ls)])
 	reset()
