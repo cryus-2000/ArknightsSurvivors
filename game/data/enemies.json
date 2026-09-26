@@ -10,7 +10,8 @@
    "xp": 1.0,
    "tex": "e_bone",
    "ai": "melee",
-   "corrode": 0.2
+   "corrode": 0.2,
+   "atk_anim": true
   },
   "slider": {
    "name": "底海滑动者",
@@ -25,7 +26,8 @@
    "pattern": "dash",
    "dash_range": 240,
    "dash_wind": 0.5,
-   "dash_speed": 3.8
+   "dash_speed": 3.8,
+   "atk_anim": true
   },
   "stone": {
    "name": "固海凿石者",
@@ -54,7 +56,8 @@
    "morph": true,
    "pattern": "nova",
    "nova_range": 320,
-   "nova_n": 6
+   "nova_n": 6,
+   "atk_anim": true
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -331,7 +334,8 @@
    "ai": "melee",
    "role": "elite",
    "burst": true,
-   "elite_after": 0
+   "elite_after": 0,
+   "atk_anim": true
   },
   "skimmer": {
    "name": "掠海漂移体",

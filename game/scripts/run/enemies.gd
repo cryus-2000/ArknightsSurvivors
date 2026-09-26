@@ -219,6 +219,7 @@ func update(dt: float) -> void:
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
 				e.burst_w = 0.8
+				e.burst_dur = 0.8   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 				e.burst_cd = 1.2
 
 		# ---- 接触伤害
@@ -238,6 +239,7 @@ func update(dt: float) -> void:
 					g.frost = maxf(g.frost, 2.0)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
+				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
 		if e.type == "tear" and dist < e.r + 14.0:
 			g.combat.lose_hp(6.0 * dt, "tear", true)
