@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const IntroScreen = preload("res://scripts/screens/intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
@@ -70,6 +71,7 @@ var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
+var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -102,8 +104,6 @@ var p_last_facing := 1.0
 var p_dust_t := 0.0
 var p_swing_prev := 0.0
 var p_hurt_prev := 0.0
-var opening_t := 0.0             # 开场动画时间
-const OPENING_DUR := 3.6
 var swing_face := 0.0
 var level := 1
 var xp := 0.0
@@ -564,9 +564,9 @@ func _ready() -> void:
 			var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif OS.get_cmdline_user_args().has("--introshot"):
-		_open_intro.call_deferred(S.PLAY)
+		intro_screen.open.call_deferred(S.PLAY)
 	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
-		_start_opening.call_deferred()
+		intro_screen.start_opening.call_deferred()
 	balance = OS.get_cmdline_user_args().has("--balance")
 	if balance:
 		var bot_p := "normal"
@@ -687,7 +687,7 @@ func _do_action(act: String) -> void:
 		"settings":
 			settings.open()
 		"guide":
-			_open_intro(S.PAUSE)
+			intro_screen.open(S.PAUSE)
 		"restart":
 			get_tree().reload_current_scene()
 		"title":
@@ -708,18 +708,18 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_ESCAPE:
-				_close_intro()
+				intro_screen.close()
 			KEY_LEFT, KEY_A, KEY_PAGEUP, KEY_BACKSPACE:
-				_intro_prev()
+				intro_screen.prev_page()
 			_:
-				_intro_next()
+				intro_screen.next_page()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed:
 		var mp: Vector2 = hud.get_local_mouse_position()
 		if event.button_index == MOUSE_BUTTON_RIGHT or event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_intro_prev()
+			intro_screen.prev_page()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_intro_next()
+			intro_screen.next_page()
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			var hit := false
 			for d in intro_dots:
@@ -731,23 +731,16 @@ func _input(event: InputEvent) -> void:
 					break
 			if not hit:
 				if intro_btn_prev.has_point(mp):
-					_intro_prev()
+					intro_screen.prev_page()
 				elif intro_btn_skip.has_point(mp):
-					_close_intro()
+					intro_screen.close()
 				elif intro_btn_next.has_point(mp):
-					_intro_next()
+					intro_screen.next_page()
 				elif intro_panel.has_point(mp) and mp.x < intro_panel.position.x + intro_panel.size.x * 0.3:
-					_intro_prev()
+					intro_screen.prev_page()
 				else:
-					_intro_next()
+					intro_screen.next_page()
 		get_viewport().set_input_as_handled()
-
-
-func _intro_prev() -> void:
-	if intro_page > 0:
-		intro_page -= 1
-		intro_t = 0.0
-		Sfx.play("ui_move")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -755,7 +748,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.OPENING:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
-			_end_opening()
+			intro_screen.end_opening()
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
@@ -812,7 +805,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif k == KEY_O and state == S.PAUSE:
 		settings.open()
 	elif k == KEY_G and state == S.PAUSE:
-		_open_intro(S.PAUSE)
+		intro_screen.open(S.PAUSE)
 	elif k == KEY_M:
 		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
@@ -2961,7 +2954,7 @@ func _update_player_feel(dt: float) -> void:
 	var target_lean := 0.0
 	var alive: bool = state != S.DEAD
 	if state == S.OPENING:
-		_update_opening(dt)
+		intro_screen.update_opening(dt)
 		return
 	# 转身
 	if facing != p_last_facing:
@@ -3019,76 +3012,6 @@ func _feet_dust(n: int, spd: float) -> void:
 		fx.append({"kind": "spark", "pos": ppos + Vector2(randf_range(-6, 6), 4), "vel": v, "sz": 2.0, "life": 0.35, "max": 0.35, "col": Color(0.55, 0.65, 0.7, 0.8)})
 
 
-## 开场动画：水月自海面沉降落地 → 灯火点亮 → 标题卡；任意键跳过，之后进入指南
-func _start_opening() -> void:
-	state = S.OPENING
-	opening_t = 0.0
-	p_off = Vector2(0, -320)
-	lamp_light.energy = 0.0
-	Sfx.play("start", -4.0)
-
-
-func _update_opening(dt: float) -> void:
-	opening_t += dt
-	var k1 := clampf(opening_t / 1.7, 0.0, 1.0)
-	var ease_in := 1.0 - pow(1.0 - k1, 2.2)
-	p_off = Vector2(sin(opening_t * 3.0) * 6.0 * (1.0 - k1), -320.0 * (1.0 - ease_in))
-	p_lean = sin(opening_t * 2.0) * 0.08 * (1.0 - k1)
-	p_sq = Vector2(1.0 - 0.06 * (1.0 - k1), 1.0 + 0.1 * (1.0 - k1))
-	# 上升的气泡
-	if k1 < 1.0 and randf() < 0.6:
-		fx.append({"kind": "spark", "pos": ppos + p_off + Vector2(randf_range(-22, 22), randf_range(-40, 10)), "vel": Vector2(randf_range(-8, 8), -randf_range(40, 90)), "sz": randf_range(2.0, 3.5), "life": 1.1, "max": 1.1, "col": Color(0.8, 0.95, 1.0, 0.7)})
-	# 落地
-	if opening_t >= 1.7 and opening_t - dt < 1.7:
-		p_sq = Vector2(1.3, 0.72)
-		_feet_dust(14, 150.0)
-		fx.append({"kind": "ring", "pos": ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
-		vfx.shake_screen(0.7)
-		Sfx.play("boom", -14.0, 1.4, 0.0)
-	if opening_t >= 1.7:
-		p_sq = p_sq.lerp(Vector2.ONE, 1.0 - exp(-dt * 10.0))
-		p_lean = lerpf(p_lean, 0.0, 1.0 - exp(-dt * 10.0))
-	# 灯火点亮：2.1s 起，先闪两下再稳定
-	if opening_t >= 2.1:
-		var k2 := clampf((opening_t - 2.1) / 0.8, 0.0, 1.0)
-		var fl := 1.0 if k2 > 0.5 else (1.0 if fmod(k2, 0.2) < 0.1 else 0.25)
-		lamp_light.energy = 1.15 * k2 * fl
-		if opening_t - dt < 2.1:
-			Sfx.play("oil", -8.0, 1.2, 0.0)
-			fx.append({"kind": "rays", "pos": ppos + Vector2(0, -20), "life": 0.8, "max": 0.8, "col": Color(1.0, 0.85, 0.5)})
-	vfx.update(dt)
-	if opening_t >= OPENING_DUR:
-		_end_opening()
-
-
-func _end_opening() -> void:
-	if state != S.OPENING:
-		return
-	p_off = Vector2.ZERO
-	p_sq = Vector2.ONE
-	p_lean = 0.0
-	lamp_light.energy = 1.15
-	state = S.PLAY
-	_open_intro(S.PLAY)
-
-
-func _draw_opening_hud(vs: Vector2) -> void:
-	# 黑场渐亮 + 上下黑边 + 标题卡
-	var dark: float = clampf(1.0 - opening_t / 1.2, 0.0, 1.0) * 0.9 + 0.1
-	if opening_t > 2.9:
-		dark = lerpf(0.1, 0.0, clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03, dark))
-	var bar: float = 70.0 * (1.0 - clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
-	hud.draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0, 0, 0.95))
-	hud.draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0, 0, 0.95))
-	if opening_t > 0.4 and opening_t < 3.3:
-		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
-		UI.en(hud, font, Vector2(vs.x / 2 - 200, vs.y * 0.22), "OPERATION  MIZUKI", 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
-		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 44), "%s  ·  深海探索" % ch.display_name(), 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
-		UI.text(hud, font, Vector2(0, vs.y * 0.22 + 74), "灯火未熄，便还能走下去", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-	UI.text(hud, font, Vector2(0, vs.y - 26), "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
-
-
 func _draw_player() -> void:
 	var tx: Texture2D = sprite.texture
 	if tx == null:
@@ -3111,7 +3034,7 @@ func _draw_hud() -> void:
 	var vs := hud.size
 	var ct := get_viewport().get_canvas_transform()
 	if state == S.OPENING:
-		_draw_opening_hud(vs)
+		intro_screen.draw_opening_hud(vs)
 		return
 	# 伤害数字
 	for f in texts:
@@ -3451,7 +3374,7 @@ func _draw_hud() -> void:
 		S.SHOW:
 			_draw_show(vs)
 		S.INTRO:
-			_draw_intro(vs)
+			intro_screen.draw(vs)
 		S.STATS:
 			_draw_stats(vs)
 		S.PAUSE:
@@ -3502,233 +3425,6 @@ const INTRO_PAGES := [
 		"升级 / 宝箱 / 商人 / 祭坛：按 1 2 3 或点击选择　　M：静音　　R：重来",
 		"手柄：左摇杆移动 · Ⓐ 确认 · Ⓑ 返回 · START 暂停 · SELECT 属性面板 · LB / RB 翻页。暂停菜单按 G 可随时重看本指南。祝你好运，博士。"]},
 ]
-
-
-func _open_intro(back: int) -> void:
-	intro_back = back
-	intro_page = 0
-	intro_t = 0.0
-	state = S.INTRO
-
-
-func _intro_next() -> void:
-	Sfx.play("ui_move")
-	if intro_page < INTRO_PAGES.size() - 1:
-		intro_page += 1
-		intro_t = 0.0
-	else:
-		_close_intro()
-
-
-func _close_intro() -> void:
-	Cfg.seen_intro = true
-	Cfg.save()
-	state = intro_back
-	Sfx.play("ui_ok", -4.0)
-
-
-func _draw_intro(vs: Vector2) -> void:
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
-	var pg: Dictionary = INTRO_PAGES[intro_page]
-	var rh: float = minf(570.0, vs.y - 16.0)
-	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - rh / 2.0, 900, rh)
-	var ea := clampf(intro_t / 0.25, 0.0, 1.0)
-	r.position.y += (1.0 - ea) * 20.0
-	UI.panel(hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)
-	UI.en(hud, font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [intro_page + 1, INTRO_PAGES.size(), pg.en], 12, UI.CYAN, 3.0)
-	UI.text(hud, font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
-	hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
-	# 插图区
-	var ic := r.position + Vector2(170, 270)
-	_draw_intro_icon(pg.icon, ic)
-	# 文字：按实际折行高度一段接一段排（旧版每段固定 100 像素、最多 4 行，一页 4 段时会压到按钮）；
-	# 整页放不下先缩字号（15 → 12）
-	var tx := r.position.x + 356
-	var tw := r.size.x - 392
-	var top := r.position.y + 142
-	var avail := r.end.y - 62.0 - top
-	var fsz := 15
-	var paras: Array = []
-	while true:
-		paras.clear()
-		var tot := 0.0
-		for ln in pg.lines:
-			var ls: PackedStringArray = UI.wrap_lines(font, ln, fsz, tw)
-			paras.append(ls)
-			tot += ls.size() * (font.get_height(fsz) + 1.0) + 14.0
-		if tot - 14.0 <= avail or fsz <= 12:
-			break
-		fsz -= 1
-	var lhh: float = font.get_height(fsz) + 1.0
-	var asc: float = font.get_ascent(fsz)
-	var y := top
-	for ls in paras:
-		UI.diamond(hud, Vector2(r.position.x + 340, y + asc - 6), 4.0, UI.CYAN)
-		for ln2 in ls:
-			if y + lhh > r.end.y - 58.0:
-				break
-			hud.draw_string(font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.85, 0.93, 0.95, ea))
-			y += lhh
-		y += 14.0
-	# 页码点（可点击）
-	intro_panel = r
-	intro_dots.clear()
-	var mp: Vector2 = hud.get_local_mouse_position()
-	for i in INTRO_PAGES.size():
-		var dp := Vector2(vs.x / 2 - (INTRO_PAGES.size() - 1) * 13 + i * 26, r.end.y - 30)
-		var dr := Rect2(dp - Vector2(12, 12), Vector2(24, 24))
-		intro_dots.append([dr, i])
-		var hov: bool = dr.has_point(mp)
-		UI.diamond(hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
-	# 上一页 / 跳过 / 下一页 按钮
-	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ"), "skip"], ["下一页 ›", "next"]]
-	for k in 3:
-		var bw := 118.0
-		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
-		var br := Rect2(bx, r.end.y - 52, bw, 34)
-		match k:
-			0: intro_btn_prev = br
-			1: intro_btn_skip = br
-			2: intro_btn_next = br
-		var hov2: bool = br.has_point(mp)
-		var dim: bool = k == 0 and intro_page == 0
-		if k == 1:
-			br.position.y = r.end.y + 16
-			intro_btn_skip = br
-			UI.text(hud, font, br.position + Vector2(0, 22), btns[k][0], 13, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-			continue
-		UI.frame(hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
-		UI.text(hud, font, br.position + Vector2(0, 23), btns[k][0] if k != 2 or intro_page < INTRO_PAGES.size() - 1 else "开始探索 ›", 14, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-	UI.text(hud, font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-
-
-func _draw_intro_icon(kind: String, c: Vector2) -> void:
-	match kind:
-		"mizuki":
-			# 开局干员的攻击动作（水月沿用 48px 挥伞条）
-			var tx: Texture2D = tex.get("player_attack_48") if ch.id == "mizuki" else ch.anim_tex("attack")
-			if tx != null:
-				var fh0 := tx.get_height()
-				var fr := int(intro_t * 8.0) % maxi(1, tx.get_width() / fh0)
-				hud.draw_texture_rect_region(tx, Rect2(c - Vector2(96, 150), Vector2(192, 192)), Rect2(fh0 * fr, 0, fh0, fh0))
-			for k in 3:
-				var et: Texture2D = tex.get(["e_bone", "e_slider", "e_stone"][k])
-				if et != null:
-					var fw := et.get_width() / 2
-					hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0), Rect2(0, 0, fw, et.get_height()))
-		"bars":
-			UI.en(hud, font, c + Vector2(-110, -60), "HP", 12, UI.SUB, 2.0)
-			UI.bar(hud, Rect2(c + Vector2(-80, -72), Vector2(180, 14)), 0.7, Color(0.35, 0.9, 0.75), 10)
-			UI.en(hud, font, c + Vector2(-110, -10), "LIGHT", 12, UI.GOLD, 1.0)
-			UI.bar(hud, Rect2(c + Vector2(-50, -22), Vector2(150, 14)), 0.55, UI.GOLD, 5)
-			for tv in [30.0, 70.0]:
-				var tx2: float = c.x - 50 + 150 * tv / 100.0
-				hud.draw_line(Vector2(tx2, c.y - 26), Vector2(tx2, c.y - 4), Color(1, 1, 1, 0.8), 1.5)
-			var ot: Texture2D = tex.get("oil")
-			if ot != null:
-				hud.draw_texture_rect(ot, Rect2(c + Vector2(-20, 30), Vector2(36, 48)), false)
-			UI.text(hud, font, c + Vector2(26, 64), "灯油", 14, UI.GOLD)
-		"mire":
-			var mt: Texture2D = tex.get("terrain_mire")
-			if mt != null:
-				var fw := mt.get_width() / 2
-				hud.draw_texture_rect_region(mt, Rect2(c - Vector2(80, 110), Vector2(160, 160)), Rect2(fw * (int(intro_t * 2.0) % 2), 0, fw, mt.get_height()))
-			hud.draw_arc(c + Vector2(0, 40), 140.0, PI * 1.1, PI * 1.9, 32, Color(0.85, 0.4, 1.0), 3.0)
-			UI.text(hud, font, c + Vector2(-60, 110), "黑潮边界", 14, Color(0.85, 0.5, 1.0))
-		"cards":
-			# 三张示意卡：开局干员的待机帧（成长）/ 另一名干员的待机帧（招募）/ 被动图标
-			var other_id := ""
-			for cid0 in Character.list_ids():
-				if cid0 != ch.id and Character.load_def(cid0).get("recruitable", true):
-					other_id = cid0
-					break
-			for k in 3:
-				var rc := Rect2(c + Vector2(-130 + k * 88, -90), Vector2(76, 110))
-				var cc: Color = [UI.CYAN, Color(0.55, 0.95, 1.0), UI.GOLD][k]
-				UI.panel(hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
-				var cc0 := rc.position + Vector2(rc.size.x / 2.0, 48)
-				if k < 2:
-					var idl: Dictionary = _op_idle(ch.id if k == 0 else other_id)
-					if not idl.is_empty():
-						var ks: float = 1.5 if idl.fh <= 48 else 72.0 / idl.fh
-						var asz := Vector2(idl.fw, idl.fh) * ks
-						hud.draw_texture_rect_region(idl.tex, Rect2(cc0 - asz / 2.0 + Vector2(0, 4), asz), Rect2(0, 0, idl.fw, idl.fh))
-				else:
-					var gt: Texture2D = tex.get("growth_hp")
-					if gt != null:
-						hud.draw_texture_rect(gt, Rect2(cc0 - Vector2(24, 24), Vector2(48, 48)), false)
-				UI.text(hud, font, rc.position + Vector2(0, 100), ["成长", "招募", "被动"][k], 12, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-			UI.text(hud, font, c + Vector2(-130, 60), "干员成长 / 招募 / 博士被动", 14, UI.SUB)
-		"loot":
-			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
-			for k in items.size():
-				var tx3: Texture2D = tex.get(items[k])
-				if tx3 == null:
-					continue
-				var frames := 2 if items[k] == "e_chest" or items[k] == "merchant" else 1
-				var fw := tx3.get_width() / frames
-				var sc: float = 3.0 if tx3.get_height() < 20 else 2.0
-				var sz := Vector2(fw, tx3.get_height()) * sc
-				var p := c + Vector2(-120 + (k % 3) * 100, -70 + (k / 3) * 100)
-				hud.draw_texture_rect_region(tx3, Rect2(p - sz / 2.0, sz), Rect2(0, 0, fw, tx3.get_height()))
-		"threat":
-			# 威胁等级条 Ⅰ–Ⅵ + 大群预警环
-			var names := ["浅滩", "暗流", "深潜", "裂隙", "深渊", "深蓝之树"]
-			var lit: int = int(intro_t * 1.2) % 7
-			for k in 6:
-				var rc := Rect2(c + Vector2(-138 + k * 46, -96), Vector2(40, 14))
-				var on: bool = k < lit
-				hud.draw_rect(rc, Color(0.6, 0.35, 1.0, 0.9) if on else Color(0.08, 0.12, 0.16))
-				hud.draw_rect(rc, Color(0.7, 0.5, 1.0, 0.8), false, 1.0)
-				UI.text(hud, font, rc.position + Vector2(0, -6), ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][k], 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-				UI.text(hud, font, rc.position + Vector2(-8, 30), names[k], 10, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x + 16)
-			var hk: float = fmod(intro_t, 2.4) / 2.4
-			hud.draw_arc(c + Vector2(0, 30), 30.0 + hk * 90.0, 0.0, TAU, 48, Color(0.75, 0.3, 1.0, 0.7 * (1.0 - hk)), 3.0)
-			hud.draw_arc(c + Vector2(0, 30), 36.0, 0.0, TAU, 32, Color(0.75, 0.3, 1.0, 0.5), 2.0)
-			var etx: Texture2D = tex.get("e_bone")
-			if etx != null:
-				for k in 8:
-					var an: float = TAU * k / 8.0 + intro_t * 0.4
-					var fw2: int = etx.get_width() / 2
-					var pp: Vector2 = c + Vector2(0, 30) + Vector2.from_angle(an) * (78.0 - 30.0 * hk)
-					hud.draw_texture_rect_region(etx, Rect2(pp - Vector2(fw2, etx.get_height()), Vector2(fw2, etx.get_height()) * 2.0), Rect2(0, 0, fw2, etx.get_height()))
-			UI.text(hud, font, c + Vector2(-60, 116), "大群来袭", 14, Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120)
-		"merchant":
-			var mtx: Texture2D = tex.get("merchant")
-			if mtx != null:
-				var fw3: int = mtx.get_width() / 2
-				var fr3: int = int(intro_t * 2.0) % 2
-				var sz3 := Vector2(fw3, mtx.get_height()) * 3.0
-				hud.draw_texture_rect_region(mtx, Rect2(c - Vector2(sz3.x / 2.0, sz3.y - 40), sz3), Rect2(fw3 * fr3, 0, fw3, mtx.get_height()))
-			var left: int = 60 - int(fmod(intro_t * 6.0, 60.0))
-			var mc: Color = UI.GOLD if left > 15 else UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(intro_t * 8.0))
-			UI.ring(hud, c + Vector2(0, -120), 22.0, left / 60.0, mc)
-			UI.text(hud, font, c + Vector2(-30, -114), "%ds" % left, 15, mc, HORIZONTAL_ALIGNMENT_CENTER, 60)
-			UI.text(hud, font, c + Vector2(-80, 74), "商人  ·  停留 60 秒", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 160)
-			for k in 3:
-				UI.chip(hud, font, c + Vector2(-118 + k * 84, 90), ["2:00", "5:00", "8:00"][k], UI.GOLD, 12)
-		"altar":
-			var atx: Texture2D = tex.get("e_event")
-			if atx != null:
-				var fw4: int = atx.get_width() / 2
-				var fr4: int = int(intro_t * 2.0) % 2
-				var sz4 := Vector2(fw4, atx.get_height()) * 4.0
-				hud.draw_set_transform(c + Vector2(0, 46), 0.0, Vector2(1.0, 0.45))
-				hud.draw_circle(Vector2.ZERO, 70.0 + 6.0 * sin(intro_t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
-				hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				hud.draw_texture_rect_region(atx, Rect2(c - Vector2(sz4.x / 2.0, sz4.y - 50), sz4), Rect2(fw4 * fr4, 0, fw4, atx.get_height()))
-			var ends := [["Ⅰ", Color(0.8, 0.6, 1.0)], ["Ⅱ", Color(0.6, 0.85, 1.0)], ["Ⅲ", UI.GOLD], ["Ⅳ", Color(0.35, 0.55, 1.0)]]
-			for k in 4:
-				var ec: Color = ends[k][1]
-				UI.diamond(hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
-				UI.text(hud, font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
-		"keys":
-			var keys := [["W", Vector2(0, -60)], ["A", Vector2(-48, -12)], ["S", Vector2(0, -12)], ["D", Vector2(48, -12)], ["Tab", Vector2(-40, 60)], ["Esc", Vector2(40, 60)]]
-			for kk in keys:
-				var kr := Rect2(c + kk[1] - Vector2(20, 20), Vector2(40 if kk[0].length() == 1 else 56, 40))
-				hud.draw_rect(kr, Color(0.08, 0.2, 0.24))
-				hud.draw_rect(kr, UI.CYAN, false, 1.5)
-				UI.text(hud, font, kr.position + Vector2(0, 27), kk[0], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
 
 
 ## 属性面板（Tab / C 打开，游戏暂停）
