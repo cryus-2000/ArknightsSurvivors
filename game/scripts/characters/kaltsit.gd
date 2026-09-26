@@ -167,9 +167,27 @@ func _m_reach() -> float:
 	return base("m_reach", M_REACH) * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
 
 
+## Mon3tr 闲时站位（相对凯尔希脚底，x 乘朝向）
+const M_REST := Vector2(44.0, 18.0)
+
+
+## 回位 / 追击路径绕开凯尔希与博士：直线会从两人身上穿过时，先走到那人脚下前方 56 的绕行点（Mon3tr 身高约 60，
+## 从这里经过画在人前面也不盖住躯干；docs/45 §5：原来回位 / 凯尔希转身换边时直线穿过她约 0.4 秒）
+func _m_route(want: Vector2) -> Vector2:
+	for c in [pos, g.ppos]:
+		if c == Vector2.INF or m.pos.distance_to(c) < 12.0 or want.distance_to(c) < 12.0:
+			continue
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(c, m.pos, want)
+		if q.distance_to(c) < 40.0 and absf(m.pos.y - c.y) < 50.0:
+			var via: Vector2 = c + Vector2(0, 56)
+			if m.pos.distance_to(via) > 8.0:
+				return via
+	return want
+
+
 func _update_mon3tr(dt: float) -> void:
 	if m.pos == Vector2.INF or m.pos.distance_to(g.ppos) > 700.0:
-		m.pos = pos + Vector2(-30.0 * face, 10)
+		m.pos = pos + M_REST * Vector2(face, 1.0)   # 出生点与回位点一致：凯尔希身前偏下（docs/45 §5）
 	if _boosted():
 		glow_t -= dt
 		if glow_t <= 0.0:
@@ -192,14 +210,14 @@ func _update_mon3tr(dt: float) -> void:
 		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg
-	var want: Vector2 = pos + Vector2(44.0 * face, 18)   # 闲时站凯尔希身前偏下，不压在凯尔希 / 博士身上（docs/45 §4 #6）
+	var want: Vector2 = pos + M_REST * Vector2(face, 1.0)   # 闲时站凯尔希身前偏下，不压在凯尔希 / 博士身上（docs/45 §4 #6）
 	if tg != null:
 		var off: Vector2 = m.pos - tg.pos
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-m.face, 0)) * (tg.r + 26.0)
 	var prev: Vector2 = m.pos
 	if m.act <= 0.0:
 		var spd: float = 260.0 * (1.3 if _boosted() else 1.0)
-		var d: Vector2 = want - m.pos
+		var d: Vector2 = _m_route(want) - m.pos
 		m.pos += d.normalized() * minf(d.length(), spd * dt)
 		if g.tex.get("prop_pillar") != null:
 			m.pos = g.map.push_out(m.pos, 14.0)
