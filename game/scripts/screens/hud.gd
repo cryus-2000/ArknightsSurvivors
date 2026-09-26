@@ -672,27 +672,20 @@ func draw_manual_aim() -> void:
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
 ## 主控身边朝安全区圆心方向画三道逐个亮起的人字纹 + 大箭头，主控脚下写掉血倒计时。
-## 前 ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
-## 数据：g.combat.zone_out_t / zone_dir()（玩法系统提供）；接口还没合入时按 g.zone_c / zone_r 自己算方向，且没有宽限期
-const ZONE_GRACE := 2.0
+## 前 Combat.ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
+## 数据：g.combat.zone_out_t（本次出圈秒数，圈内 / 庇护所为 0）与 zone_dir()（指向安全区圆心），玩法系统 d941889
+const Combat = preload("res://scripts/run/combat.gd")
 
 func draw_zone_hint(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.demo_op != "" or g.zone_state == 0:
 		return
-	var out: bool = g.ppos.distance_to(g.zone_c) > g.zone_r
-	var out_t: float
-	if "zone_out_t" in g.combat:
-		out_t = g.combat.zone_out_t
-		out = out_t > 0.0
-	else:
-		# combat 还没有宽限期（玩法系统 v11 未合入）时一出圈就掉血：直接按「持续掉血」显示，不画倒计时
-		out_t = ZONE_GRACE if out else 0.0
-	if not out:
+	var out_t: float = g.combat.zone_out_t
+	if out_t <= 0.0:
 		return
-	var dir: Vector2 = g.combat.zone_dir() if g.combat.has_method("zone_dir") else (g.zone_c - g.ppos).normalized()
+	var dir: Vector2 = g.combat.zone_dir()
 	if dir == Vector2.ZERO:
 		return
-	var hurting: bool = out_t >= ZONE_GRACE
+	var hurting: bool = out_t >= Combat.ZONE_GRACE
 	var col: Color = UI.RED if hurting else UI.GOLD
 	var pulse: float = 0.5 + 0.5 * sin(g.t * (9.0 if hurting else 5.0))
 	var ct := g.get_viewport().get_canvas_transform()
@@ -714,7 +707,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 	g.hud.draw_line(ap - dir * 4.0, ap - dir * 26.0, Color(col.r, col.g, col.b, 0.8), 7.0)
 	# 文字：主控下方（不跟箭头转，免得倒着读）
 	var tp: Vector2 = ct * (g.ppos + Vector2(0, 30))
-	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
+	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, Combat.ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
 	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
 
 
