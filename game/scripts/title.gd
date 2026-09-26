@@ -520,10 +520,11 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 
 func _draw_guide(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.75))
-	var r := Rect2(vs.x / 2 - 330, vs.y / 2 - 230, 660, 460)
+	# 面板 880 宽：说明列 654px，最长一行（手柄）也放得下；再长就按宽度缩字号（text_fit），不会伸出面板
+	var r := Rect2(vs.x / 2 - 440, vs.y / 2 - 230, 880, 460)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(170, 54), "GUIDE", 13, UI.CYAN, 3.0)
+	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines := [
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q 放手动技能"],
 		["攻击", "全自动：干员跟在博士身边普攻，三个技能各自充能后自动释放"],
@@ -537,41 +538,73 @@ func _draw_guide(vs: Vector2) -> void:
 		var y := r.position.y + 106 + i * 46
 		UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
-		UI.text(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT)
+		UI.text_fit(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT, r.size.x - 190 - 36, 13)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
-## 致谢与声明：内容来自 data/credits.json
+## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行，不再压到右列）、右列说明 + 链接；
+## 面板 960 宽，整页按屏幕高度挑字号（14 → 13 → 12，间距跟着收），16:9 下也能整页放下、标题和底部提示不被裁掉。
+## 说明按像素宽度排版（docs/37），末行只剩一两个字时收窄一点重排，免得「成。」这样单独掉一行
+const CREDITS_W := 960.0
+const CREDITS_LX := 58.0       # 条目名左边（菱形在它左边）
+const CREDITS_LW := 150.0      # 条目名列宽
+const CREDITS_HEAD := 84.0     # 标题区高度
+const CREDITS_FOOT := 58.0     # 底部声明 + 返回提示
+
+
 func _draw_credits(vs: Vector2) -> void:
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.9))
 	var secs: Array = credits_data.get("sections", [])
-	var tw := 760.0 - 230.0
-	var heights: Array = []
-	var total := 0.0
-	for sec in secs:
-		var hh: float = font.get_multiline_string_size(UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
-		if sec.size() > 2 and sec[2] != "":
-			hh += 18.0
-		hh = maxf(hh, 24.0) + 22.0
-		heights.append(hh)
-		total += hh
-	var h: float = 150.0 + total
-	var r := Rect2(vs.x / 2 - 380, vs.y / 2 - h / 2, 760, h)
+	var pw: float = minf(CREDITS_W, vs.x - 48.0)
+	var tx: float = CREDITS_LX + CREDITS_LW + 16.0
+	var tw: float = pw - tx - 36.0
+	var lay: Dictionary = {}
+	for fs in [14, 13, 12]:
+		lay = _credits_layout(secs, fs, tw)
+		if CREDITS_HEAD + lay.h + CREDITS_FOOT <= vs.y - 32.0:
+			break
+	var h: float = CREDITS_HEAD + lay.h + CREDITS_FOOT
+	var r := Rect2(roundf(vs.x / 2 - pw / 2), roundf(maxf(16.0, vs.y / 2 - h / 2)), pw, h)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
-	UI.text(self, font, r.position + Vector2(36, 52), credits_data.get("title", "致谢与声明"), 26, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(190, 50), credits_data.get("en", "CREDITS"), 12, UI.CYAN, 3.0)
-	var y := r.position.y + 90
-	for i in secs.size():
-		var sec: Array = secs[i]
-		UI.diamond(self, Vector2(r.position.x + 44, y + 8), 4.0, UI.CYAN)
-		UI.text(self, font, Vector2(r.position.x + 58, y + 14), sec[0], 16, UI.CYAN)
-		draw_multiline_string(font, Vector2(r.position.x + 190, y + 12), UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.TEXT, UI.BRK)
-		if sec.size() > 2 and sec[2] != "":
-			var th: float = font.get_multiline_string_size(UI.soft(sec[1]), HORIZONTAL_ALIGNMENT_LEFT, tw, 14, -1, UI.BRK).y
-			UI.text(self, font, Vector2(r.position.x + 190, y + 12 + th + 6), sec[2], 12, Color(0.5, 0.75, 0.85))
-		y += heights[i]
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 44), credits_data.get("footer", ""), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 22), "按任意键返回", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var title: String = credits_data.get("title", "致谢与声明")
+	UI.text(self, font, r.position + Vector2(36, 52), title, 26, UI.TEXT)
+	UI.en(self, font, r.position + Vector2(36 + font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x + 18, 50), credits_data.get("en", "CREDITS"), 12, UI.CYAN, 3.0)
+	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
+	var y: float = r.position.y + CREDITS_HEAD
+	for row in lay.rows:
+		UI.diamond(self, Vector2(r.position.x + 44, y + 9), 4.0, UI.CYAN)
+		UI.draw_fit(self, font, Vector2(r.position.x + CREDITS_LX, y), row.label, UI.CYAN)
+		var th: float = UI.draw_fit(self, font, Vector2(r.position.x + tx, y + 1), row.text, UI.TEXT)
+		if row.link != "":
+			UI.text_fit(self, font, Vector2(r.position.x + tx, y + 1 + th + 4 + font.get_ascent(12)), row.link, 12, Color(0.5, 0.75, 0.85), tw, 10)
+		y += row.h
+	var ft := UI.fit_line(font, credits_data.get("footer", ""), 13, pw - 72, 11)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 34), ft[0], ft[1], UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 14), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+
+
+## 致谢页排版：每条 {label: 条目名 fit, text: 说明 fit, link, h}；返回 {rows, h}
+func _credits_layout(secs: Array, fs: int, tw: float) -> Dictionary:
+	var rows: Array = []
+	var total := 0.0
+	var gap: float = fs - 1.0
+	for sec in secs:
+		# 条目名：先试一行（最小 13 号），放不下再折成两行，按半长折开（「第三方开放许可 / 特效素材」）
+		var lab := UI.fit(font, sec[0], CREDITS_LW, font.get_height(15), [15, 14, 13])
+		if not lab.fit:
+			var half: float = font.get_string_size(sec[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x / 2.0 + 14.0
+			lab = UI.fit(font, sec[0], minf(CREDITS_LW, half), 2.0 * font.get_height(14), [14, 13])
+		var txt := UI.fit(font, sec[1], tw, 9999.0, [fs])
+		# 末行只剩一两个字（多为「字 + 句号」）：收窄三个字宽重排，把前一行的字匀下来
+		if txt.lines.size() > 1 and String(txt.lines[txt.lines.size() - 1]).length() <= 2:
+			var alt := UI.fit(font, sec[1], tw - 3.0 * fs, 9999.0, [fs])
+			if alt.lines.size() == txt.lines.size():
+				txt = alt
+		var link: String = sec[2] if sec.size() > 2 else ""
+		var rh: float = maxf(float(lab.h), float(txt.h) + (4.0 + font.get_height(12) if link != "" else 0.0)) + gap
+		rows.append({"label": lab, "text": txt, "link": link, "h": rh})
+		total += rh
+	return {"rows": rows, "h": total}
 
 
 ## 自测截图目录：默认 /tmp/claude-0，--shotdir= 覆盖（Windows 本地用）

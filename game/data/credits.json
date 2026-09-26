@@ -25,24 +25,29 @@
   ],
   [
    "引擎",
-   "Godot Engine 4.4（MIT 许可）。",
+   "Godot Engine 4.7（MIT 许可）。",
    "https://godotengine.org"
   ],
   [
    "开发协作",
-   "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT（OpenAI）共同完成。",
+   "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT / Codex（OpenAI）共同完成。",
    "https://claude.ai  ·  https://chatgpt.com"
   ],
   [
-   "第三方开放许可特效素材",
-   "部分技能特效改自开放许可像素素材（均按其许可使用并做了缩放 / 重调色）：CodeManu「Free Pixel Effects Pack」（CC-BY 4.0）、pixel-boy「Ninja Adventure」（CC0）、Pixel Art Spells（OpenGameArt，CC0）、Pimen「Holy Spell Effect」（已购买许可）、ansimuz「Gothicvania Magic / Warped Explosions / Warped VFX」系列（已购买许可）。",
+   "第三方特效素材",
+   "部分技能特效改自第三方像素素材（均按其许可使用并做了缩放 / 重调色）：CodeManu「Free Pixel Effects Pack」（CC-BY 4.0）、pixel-boy「Ninja Adventure」（CC0）、Pixel Art Spells（OpenGameArt，CC0）、Pimen「Holy Spell Effect」（已购买许可）、ansimuz「Gothicvania Magic / Warped Explosions / Warped VFX」系列（已购买许可）。",
    "https://codemanu.itch.io/pixelart-effect-pack"
   ],
   [
    "音乐与音效",
-   "全部由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。",
+   "配乐与音效由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。",
    ""
+  ],
+  [
+   "干员语音",
+   "部分干员语音剪辑自《明日方舟》中文语音，索引参考 Ark-Voice（isHarryh）。原始录音版权归鹰角网络（Hypergryph）及配音演员所有，本作仅使用少量短片段。",
+   "https://github.com/isHarryh/Ark-Voice"
   ]
  ],
- "footer": "如有侵权请联系作者，将立即处理。"
+ "footer": "如有侵权请通过小红书 菜月colafax（373145407）联系作者，将立即处理。"
 }
