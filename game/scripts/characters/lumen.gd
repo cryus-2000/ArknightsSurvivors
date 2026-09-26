@@ -29,6 +29,7 @@ var rain_on := false           # N4「沐雨」：净化之光时发光单元洒
 var rain_t := 0.0
 var rain_tick := 0.0
 var watch := false             # N5「灯塔守望」：指引灯塔射出旋转光束
+var beam_t := 0.0              # 灯塔守望：净化之光后光束持续（精二前也有）
 var beam_tick := 0.0
 var beam_hit: Dictionary = {}  # 光束每名敌人的冷却：敌人 id → 剩余秒
 var charge_on := false         # 精二质变「灯火不灭」：发光单元攒弹，满 8 发后连射 8 发强化光弹
@@ -167,6 +168,9 @@ func _release_skill() -> void:
 			spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 4), g.PX * 1.1, 0.0, false, true)
 			spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 4), g.PX * 1.8)
 			float_text(g.ppos + Vector2(0, -110), "净化", PALE, 15)
+			# N5 灯塔守望：主控身上亮起旋转光束 3 秒（精二后指引灯塔全程也有）
+			if watch:
+				beam_t = base("watch_s1_dur", 3.0)
 			# N4 沐雨：发光单元在主控周围洒下光雨 3 秒
 			if rain_on and units > 0:
 				rain_t = base("rain_dur", 3.0)
@@ -334,6 +338,16 @@ func _update_rain(dt: float) -> void:
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": WARM, "alpha": 0.5})
 
 
+## 光束是否在转：指引灯塔期间，或净化之光后的 3 秒
+func _beam_on() -> bool:
+	return watch and ((tower_t > 0.0 and tower_pos != Vector2.INF) or beam_t > 0.0)
+
+
+## 光束的中心：有灯塔用灯塔，否则主控
+func _beam_origin() -> Vector2:
+	return tower_pos if tower_t > 0.0 and tower_pos != Vector2.INF else g.ppos
+
+
 ## 灯塔光束的方向（地面透视：y × 0.55）
 func _beam_dir() -> Vector2:
 	var a: float = g.t * TAU / base("beam_period", 2.0)
@@ -346,16 +360,17 @@ func _update_beam(dt: float) -> void:
 		beam_hit[k] -= dt
 		if beam_hit[k] <= 0.0:
 			beam_hit.erase(k)
-	if not watch or tower_t <= 0.0 or tower_pos == Vector2.INF:
+	beam_t = maxf(0.0, beam_t - dt)
+	if not _beam_on():
 		return
 	beam_tick -= dt
 	if beam_tick > 0.0:
 		return
 	beam_tick += base("beam_tick", 0.2)
 	var L: float = base("beam_len", 260.0)
-	var a: Vector2 = tower_pos
-	var b: Vector2 = tower_pos + _beam_dir() * L
-	for j in query_ids(tower_pos, L + 20.0):
+	var a: Vector2 = _beam_origin()
+	var b: Vector2 = a + _beam_dir() * L
+	for j in query_ids(a, L + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or beam_hit.has(e.id):
 			continue
@@ -467,15 +482,17 @@ func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
 	for b in bolts:
 		ci.draw_circle(b.pos, 14.0 if b.get("big", false) else 9.0, Color(0.9, 0.7, 0.3, 0.35))
 	# 灯塔守望：塔顶灯室射出的旋转光束（贴地的细长光楔 + 塔顶到地面的光柱连线）
-	if watch and tower_t > 0.0 and tower_pos != Vector2.INF:
+	if _beam_on():
 		var L: float = base("beam_len", 260.0)
+		var o: Vector2 = _beam_origin()
+		var twr: bool = tower_t > 0.0 and tower_pos != Vector2.INF
 		var d: Vector2 = _beam_dir()
 		var n: Vector2 = Vector2(-d.y, d.x).normalized()
-		var tip: Vector2 = tower_pos + d * L
-		var fade: float = clampf(tower_t / 0.5, 0.0, 1.0)
-		ci.draw_colored_polygon(PackedVector2Array([tower_pos + n * 4.0, tip + n * 26.0, tip - n * 26.0, tower_pos - n * 4.0]), Color(0.9, 0.7, 0.35, 0.28 * fade))
-		ci.draw_colored_polygon(PackedVector2Array([tower_pos + n * 2.0, tip + n * 10.0, tip - n * 10.0, tower_pos - n * 2.0]), Color(1.0, 0.85, 0.5, 0.35 * fade))
-		ci.draw_line(tower_pos + Vector2(0, -100), tower_pos + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
+		var tip: Vector2 = o + d * L
+		var fade: float = clampf((tower_t if twr else beam_t) / 0.5, 0.0, 1.0)
+		ci.draw_colored_polygon(PackedVector2Array([o + n * 4.0, tip + n * 26.0, tip - n * 26.0, o - n * 4.0]), Color(0.9, 0.7, 0.35, 0.28 * fade))
+		ci.draw_colored_polygon(PackedVector2Array([o + n * 2.0, tip + n * 10.0, tip - n * 10.0, o - n * 2.0]), Color(1.0, 0.85, 0.5, 0.35 * fade))
+		ci.draw_line(o + Vector2(0, -100.0 if twr else -44.0), o + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
 
 
 func extra_bodies() -> Array:

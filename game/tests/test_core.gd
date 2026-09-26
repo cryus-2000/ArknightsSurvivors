@@ -191,6 +191,17 @@ func test_squad_contract() -> void:
 		var elites: Array = pg.filter(func(nd): return nd.get("type", "") == "elite")
 		ok(elites.size() == 2 and int(elites[0].level) == 1 and int(elites[1].level) == 2, "两次精英化：%s" % cid)
 		ok(not elites[1].has("requires"), "精英化二不带条件（2026-09-25 用户决定）：%s" % cid)
+		# 节点不许只强化还没解锁的技能（2026-09-26：六名干员的 N5 强化精二才有的三技能，选了当下没效果）。
+		# 说明里「精二后……」之后的部分是对未来的补充，不算
+		var sk_names: Array = d.get("skills", []).map(func(s): return str(s.get("name", "")))
+		var unlocked := 1
+		for nd in pg:
+			if nd.get("type", "") == "elite":
+				unlocked = int(nd.level) + 1
+				continue
+			var txt: String = str(nd.get("desc", "")).split("精二后")[0]
+			for si in range(unlocked, sk_names.size()):
+				ok(sk_names[si] == "" or not txt.contains("「%s」" % sk_names[si]), "%s 节点「%s」强化了还没解锁的技能「%s」" % [cid, nd.get("name", ""), sk_names[si]])
 	# 契约反例：缺 skill / manual 技能 / 非法节点
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skills 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}]}), "技能不足 3 个不通过")

@@ -307,6 +307,9 @@ func _anchor_bite() -> void:
 		fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.rng.randf_range(160, 300), "life": 0.22, "col": CHAIN, "sz": 2.5})
 	# S1：钩住落点附近的敌人收链拽回（钩住 Boss 拖不动 → 下面退回弹射）
 	if anchor.kind == 0 and _start_reel(to, dir):
+		# 通路洞开（N5）：锁链绷直的一瞬，从乌尔比安到锚点裂开通路（精二后「必须开辟」的弹射同样开路）
+		if rift_on:
+			_open_rift(pos, to)
 		return
 	# 落点停在锚前一点（锚咬在敌人身上，人砸在它面前）
 	var land: Vector2 = to - dir * 18.0
@@ -419,6 +422,9 @@ func _zip_land() -> void:
 		# 不容挣脱（原作 S1 把敌人拖过来）：锁链甩出去拽来附近至多 3 名敌人，拖到落点并造成掷锚 60% 伤害
 		if drag_on:
 			_drag_in(c, dmg * base("drag_mult", 0.6))
+		# 通路洞开（N5）：顺锁链弹射到 Boss 面前时，起跳点到落点同样裂开通路
+		if rift_on:
+			_open_rift(anchor.start, c)
 	else:
 		# 必须开辟：落点 r140 ×3 + 眩晕
 		var r3: float = base("s3_r", 140.0) * stat(&"op_range")

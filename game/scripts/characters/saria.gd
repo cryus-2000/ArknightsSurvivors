@@ -23,6 +23,7 @@ var orb_cd: Dictionary = {}   # 敌人 id → 钙晶命中冷却
 var syringe_on := false       # N4 急救针剂
 var shatter_on := false       # N5 碎晶
 var shatter_t := 0.0
+var orb_broken := {}           # 碎晶（精二前）：被击碎的环绕钙晶 -> 重新长出的剩余秒数
 var pillars: Array = []       # 钙质化期间长出的晶柱 {pos, ref}（ref = 晶柱特效条目，击碎时提前结束）
 var shots: Array = []         # 投射物 {kind: syringe / shard, pos, vel, t, dmg}
 var suit_on := false          # 精二 莱茵充能护服
@@ -114,6 +115,11 @@ func update(dt: float) -> void:
 				shatter_t = base("shatter_every", 1.2)
 	else:
 		pillars.clear()
+		# N5 碎晶（平时）：每 3 秒击碎一枚环绕钙晶，碎片飞向附近至多 3 名敌人，1 秒后重新长出
+		if shatter_on and orb_n > 0:
+			shatter_t -= dt
+			if shatter_t <= 0.0 and _shatter_orb():
+				shatter_t = base("orb_shatter_every", 3.0)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -229,7 +235,13 @@ func _update_orbs(dt: float) -> void:
 		if orb_cd[k] <= 0.0:
 			orb_cd.erase(k)
 	var dmg: float = _bash_dmg() * base("orb_mult", 0.18)
+	for k in orb_broken.keys():
+		orb_broken[k] -= dt
+		if orb_broken[k] <= 0.0:
+			orb_broken.erase(k)
 	for k in orb_n:
+		if orb_broken.has(k):
+			continue
 		var p: Vector2 = _orb_ground(k)
 		for j in query_ids(p, 40.0):
 			var e: Dictionary = g.enemies[j]
@@ -301,6 +313,35 @@ func _shatter() -> bool:
 	for k in mini(int(base("shatter_n", 4.0)), ts.size()):
 		_shoot("shard", p + Vector2(0, -16), ts[k].pos + Vector2(0, -16), 560.0, dmg)
 	Sfx.op(id, "hit", -2.0, 1.3)
+	return true
+
+
+## 碎晶（平时）：挑离最近敌人最近的一枚完好钙晶击碎，碎片飞向附近至多 3 名敌人（各拳击 40%）；没有目标就先不碎
+func _shatter_orb() -> bool:
+	var ts: Array = nearest_enemies(6, base("orb_shatter_reach", 260.0), pos)
+	if ts.is_empty():
+		return false
+	var best := -1
+	var bd := INF
+	for k in orb_n:
+		if orb_broken.has(k):
+			continue
+		var d: float = _orb_ground(k).distance_to(ts[0].pos)
+		if d < bd:
+			bd = d
+			best = k
+	if best < 0:
+		return false
+	orb_broken[best] = base("orb_regrow", 1.0)
+	var p: Vector2 = _orb_ground(best) + Vector2(0, -16)
+	fx({"kind": "glow", "pos": p, "r": 12.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
+	for q in 6:
+		fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 150), "life": 0.3, "col": AMBER,
+			"sz": g.rng.randf_range(2.5, 4.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-14, 14), "grav": 260.0})
+	var dmg: float = _bash_dmg() * base("orb_shatter_mult", 0.4)
+	for k in mini(int(base("orb_shatter_n", 3.0)), ts.size()):
+		_shoot("shard", p, ts[k].pos + Vector2(0, -16), 560.0, dmg)
+	Sfx.op(id, "hit", -4.0, 1.4)
 	return true
 
 
@@ -433,6 +474,8 @@ func _draw_skill_over() -> void:
 		return
 	# 环绕钙晶（N1 3 枚 / N2 5 枚）：冷白菱形晶体 + 琥珀边，腰高绕行，身后的略暗；地面一点投影
 	for k in orb_n:
+		if orb_broken.has(k):
+			continue
 		var gp: Vector2 = _orb_ground(k)
 		var back: bool = gp.y < pos.y + 2.0
 		var p: Vector2 = gp + Vector2(0, -16 + sin(g.t * 3.0 + k) * 2.0)
