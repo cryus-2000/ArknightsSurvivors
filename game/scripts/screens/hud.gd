@@ -250,7 +250,7 @@ func draw() -> void:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
-			var zy := 116.0 + 54.0 * g.bosses.filter(func(b): return not b.dead).size()
+			var zy := 116.0 + 54.0 * mini(boss_bars().size(), BOSS_BARS_MAX)
 			if g.zone_state == 1:
 				UI.text(g.hud, g.font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			elif g.zone_state == 2:
@@ -305,11 +305,11 @@ func draw() -> void:
 	if g.ending != "standard" or Cfg.endings_cleared.size() > 0:
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 60 + 38 * maxi(1, int(ceil(g.relics.size() / 8.0)))), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
-	# Boss 血条
+	# Boss 血条：只给真 Boss 画（boss_bars），最多 BOSS_BARS_MAX 条，多出来的写一行「另有 N 个 Boss」
 	var bby := 0.0
-	for shown in g.bosses:
-		if shown.dead:
-			continue
+	var bars: Array = boss_bars()
+	for bi in mini(bars.size(), BOSS_BARS_MAX):
+		var shown: Dictionary = bars[bi]
 		var bw := 620.0
 		var bx := vs.x / 2 - bw / 2
 		g.hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
@@ -337,6 +337,13 @@ func draw() -> void:
 		if shown.type == "ishar" and shown.phase == 1:
 			g.hud.draw_rect(Rect2(bx, 139, bw * shown.charge / 100.0, 2), UI.PURPLE)
 		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if bars.size() > BOSS_BARS_MAX:
+		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
+		var ow: float = g.font.get_string_size(ot, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
+		g.hud.draw_rect(Rect2(vs.x / 2.0 - ow / 2.0, 100 + bby - 2, ow, 20), Color(0.03, 0.035, 0.045, 0.8))
+		UI.text(g.hud, g.font, Vector2(0, 100 + bby + 13), ot, 12, Color(1, 0.82, 0.88), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		bby += 22.0
+	boss_bottom = 100.0 + bby if bby > 0.0 else 0.0
 
 	# 右下：技能与援护干员
 	draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
@@ -345,7 +352,7 @@ func draw() -> void:
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
 	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and (not horde_band or g.vfx.banner_prio >= 3):   # 精英化演出的遮罩只有 86%，横幅会透出来
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
-		var by := vs.y * 0.24 if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
+		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		if g.vfx.banner_small:
 			# 同一句第二次起（反复放的技能名）：窄暗带 + 小字，不压满屏宽（EA 1.1 后期降噪）
 			UI.fade_band(g.hud, Rect2(vs.x * 0.36, by - 22, vs.x * 0.28, 30), Color(0.03, 0.035, 0.045, 0.7 * a), 60.0)
@@ -715,7 +722,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 func draw_notices(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.vfx.notices.is_empty():
 		return
-	var y: float = vs.y * 0.24 + 44.0   # 横幅暗带下方，不和它叠
+	var y: float = banner_y(vs) + 44.0   # 横幅暗带下方，不和它叠
 	for n in g.vfx.notices:
 		var a: float = clampf(n.t / 0.6, 0.0, 1.0) * clampf((g.vfx.NOTICE_LIFE - n.t) / 0.2, 0.0, 1.0)
 		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 22.0, vs.x * 0.4)
@@ -723,6 +730,25 @@ func draw_notices(vs: Vector2) -> void:
 		g.hud.draw_rect(Rect2(16, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
 		UI.text_fit(g.hud, g.font, Vector2(26, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)
 		y += 26.0
+
+
+## 横幅高度：默认屏幕 24% 处；有 Boss 血条时从血条块底部往下让（docs/38：横幅高度从 Boss 块实际底部 +16 起算）
+var boss_bottom := 0.0
+
+func banner_y(vs: Vector2) -> float:
+	return maxf(vs.y * 0.24, boss_bottom + 16.0 + 30.0) if boss_bottom > 0.0 else vs.y * 0.24
+
+
+## 顶部 Boss 大血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
+## 只算活着、且 enemies.json 里 role == "boss" 的；两体 Boss（接潮双体等）正好 2 条，所以上限 2
+const BOSS_BARS_MAX := 2
+
+func boss_bars() -> Array:
+	var out: Array = []
+	for b in g.bosses:
+		if not b.dead and D.ENEMIES.get(b.type, {}).get("role", "") == "boss":
+			out.append(b)
+	return out
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来

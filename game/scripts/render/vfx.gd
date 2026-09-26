@@ -213,7 +213,7 @@ func _notice(text: String) -> void:
 
 func _boss_fight() -> bool:
 	for b in g.bosses:
-		if not b.dead:
+		if not b.dead and D.ENEMIES.get(b.type, {}).get("role", "") == "boss":   # 召唤物 / 分身不算 Boss 战
 			return true
 	return false
 
