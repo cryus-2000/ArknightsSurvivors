@@ -55,3 +55,65 @@
 3. 爆炸：a_klingon `explosionbig` 缩到 64px 调成暗红黑 → 维什戴尔炮击落点。
 4. 图标：Ninja Adventure / CraftPix 的 16–32px 图标改成我们 8 人 × 3 技能的 HUD 小图标。
 5. 全部经 `V6_FRAMES` 登记；致谢页加一行第三方素材来源（CC-BY 的 CodeManu 必须署名）。
+
+## CreativeKind 31 合 1（2026-09-26 加入，用户购买）
+
+目录 `creativekind/`：30 个子包（编号 01–31，没有 13）、**400 张精灵表 PNG**（12.4 MB），从仓库根目录的 `4313_CreativeKind 31 in one pack.zip`（32 MB，嵌套 zip + 1 个 rar）解出；只留 PNG，gif / zip / rar 没留。
+**许可：CreativeKind（itch.io 购买），许可待用户确认**——包内没有许可文件，条款以购买页为准；**确认前可以在本地试做帧条，但先不要进发布包**；和其他第三方素材一样**不入库、不推 GitHub**，只在游戏里用处理后的帧条。
+
+- `_catalog.json`：每张图的路径、尺寸、**推断的**帧尺寸 / 帧数 / 朝向（`orient`：h 横条 / v 竖条）、类别关键词（`tags`）、主色（`color`）。帧数是按「宽 / 高成整数倍」自动推断的，多行网格表会推错，用前对照 `_preview` 与原图核对。
+- `_preview/<包>.png`：每包前 12 张各取中间一帧，缩到 64px 横排，挑素材先看这里。
+- 画风：高对比像素、帧多为 32–128px（少数整张 300–1900px 的大表），按游戏 2 倍显示时多数要缩到 1 倍或重采样。
+- 类别计数（一张可多类）：魔法 166、雷 56、火 47、冰 37、毒 37、暗 33、圣 29、空间 11、弹道 10、水 8、地 3、斩击 3、风 1、护盾 1
+- 主色计数：青 95、蓝 77、橙 53、黄 43、红 40、绿 38、紫 16、白 14、粉 14、透明 6、灰 3、黑 1
+
+| 子包 | 张数 | 类别 | 主色 | 常见帧边长 | 代表名 |
+|---|---|---|---|---|---|
+| 01_Ice_spell_effects | 8 | 冰 | 蓝 / 青 / 白 | 128 / 64 px | ice crystal、ice_prison、ice_spear_from_sky_few、ice_spear_from_sky_singl |
+| 02_Lightning_spell_effects | 5 | 雷 / 弹道 | 白 / 绿 | 256 / 224 px | CLOUD LIGHTNING ATTACK、God_Spear、Lightning_ball_attack、Raijin_lightnin |
+| 03_Magic_spell_effects | 9 | 魔法 / 冰 / 暗 | 青 / 蓝 / 红 | 128 / 160 px | Dark hand attack、Dragon head attack_blue、Dragon head attack_red、Energy |
+| 04_Magic_spell_effects_2 | 8 | 魔法 / 火 / 空间 | 橙 / 蓝 / 青 | 128 / 300 px | Meteorite、SKY LASER_many、SKY LASER_single、comet_fire、comet_green |
+| 05_Magic_Spell_Effects_3 | 9 | 魔法 / 雷 / 火 | 青 / 黄 / 蓝 | 256 / 240 px | Arrow、Fire bow attack、Hand attack、Lightning v1、Lightning v2 |
+| 06_Magic_Spell_Effects_4 | 12 | 暗 / 火 / 弹道 | 红 / 蓝 / 黄 | 64 / 208 px | Starfall_blue、Starfall_yellow、explosion_simple、lightning_1、lightning_2 |
+| 07_Fire_Spells_Effects | 16 | 火 / 空间 / 斩击 | 青 / 橙 / 紫 | 144 / 128 px | Fire vortex_blue、Fire vortex_green、Fire vortex_red、FireHammerBlueV1、Fi |
+| 08_Dark_Spell_Effects | 10 | 暗 / 斩击 / 雷 | 红 / 紫 | 2112 / 1920 px | Dark Lord Anger、Dark Lord Anger_no_lord、Dark Lord Wrath、Dark Lord Wrat |
+| 09_Magic_Spell_Effects_5 | 7 | 火 / 魔法 / 雷 | 黄 / 蓝 / 红 | 336 / 468 px | Ancient_Dragon_blue、Ancient_Dragon_red、demon_fire、fire_breath、fire_lig |
+| 10_Dark_Electricity_Spell_Effects | 6 | 雷 / 暗 / 弹道 | 蓝 / 紫 / 灰 | 2016 / 576 px | Dark_eyes、Dark_octopus、Dark_tentacle_sphere、Electric_tentacle、two_elec |
+| 11_Magic_Spell_Effects_6 | 10 | 雷 / 火 / 魔法 | 青 / 蓝 / 紫 | 1600 / 832 px | 4_magic_balls_explosion、Dark_spirit、Electric_explosion、Energy_beam、Kin |
+| 12_Water_Spell_Effects | 7 | 水 | 蓝 | 112 / 96 px | Water_Spell_1、Water_Spell_2、Water_Spell_3、Water_Spell_4、Water_Spell_5 |
+| 14_Magic_Spell_Effects_7 | 9 | 火 / 魔法 / 暗 | 红 | 128 / 192 px | Spell1_DarkBeam_black、Spell2_ExplosionSphere、Spell3_Smoke、Spell4_Small |
+| 15_Space_Spell_Effects | 6 | 暗 / 空间 | 蓝 | 224 / 240 px | DarkSpell1、DarkSpell2、DarkSpell3、DarkSpell4、DarkSpell5 |
+| 16_Fire_Spell_Effects_2 | 11 | 火 | 橙 / 青 / 黄 | 1728 / 448 px | Fire Spell 1、Fire Spell 2、Fire Spell 2 blue、Fire Spell 3、Fire Spell 3  |
+| 17_Lightning_Spell_Effects_2 | 12 | 雷 | 青 / 黄 / 蓝 | 1056 / 1968 px | Lightning Spell 1、Lightning Spell 2、Lightning Spell 3、Lightning Spell  |
+| 18_Ice_Spell_Effects_2 | 7 | 冰 | 青 / 蓝 | 160 / 576 px | Ice Spell、Ice Spell 2、Ice Spell 3、Ice Spell 4、Ice Spell 5 |
+| 19_Magic_Spell_Effects_8 | 10 | 魔法 | 青 / 橙 / 蓝 | 448 / 100 px | Spell 1、Spell 2、Spell 3、Spell 3(2)、Spell 4 |
+| 20_Magic_Spell_Effects_8 | 11 | 魔法 | 橙 / 蓝 / 青 | 352 / 96 px | Spell 1、Spell 1_blue、Spell 2、Spell 2_blue、Spell 3 |
+| 21_Color_Spell_Effects | 6 | 魔法 | 蓝 / 红 / 橙 | 240 / 160 px | Spell 1、Spell 2、Spell 3、Spell 4、Spell 5 |
+| 22_Magic_Spell_Effects_10 | 27 | 魔法 | 绿 / 蓝 / 红 | 1728 / 1184 px | Spell 1_blue、Spell 1_green、Spell 1_red、Spell 2_blue、Spell 2_green |
+| 23_Holy_Spell_Effects | 26 | 圣 | 黄 / 青 / 透明 | 912 / 160 px | Spell 1、Spell 10、Spell 10_blue、Spell 11、Spell 12 |
+| 24_Poison_Spell_Effects | 37 | 毒 / 水 | 绿 / 蓝 / 橙 | 288 / 320 px | Spell 1、Spell 1_blue、Spell 1_magenta、Spell 1_red、Spell 2 |
+| 25_Magic_Spell_Effects_11 | 17 | 魔法 / 暗 / 圣 | 蓝 / 绿 / 红 | 1936 / 832 px | Spell 1_blue、Spell 1_dark_red、Spell 1_green、Spell 1_red、Spell 2_blue |
+| 26_Magic_Spell_Effects_12 | 18 | 魔法 | 绿 / 橙 / 黄 | 512 / 320 px | Spell 1_blue、Spell 1_green、Spell 1_magenta、Spell 1_red、Spell 2_blue |
+| 27_Lightning_Spell_Effects_3 | 21 | 雷 | 青 / 黄 / 绿 | 384 / 288 px | Spell 1_blue、Spell 1_green、Spell 1_red、Spell 2_blue、Spell 2_grey |
+| 28_Magic_Spell_Effects_13 | 17 | 魔法 | 橙 / 蓝 / 青 | 1568 / 128 px | Spell 1、Spell 2.1、Spell 2.2、Spell 3、Spell 3_blue |
+| 29_Magic_Spell_Effects_14 | 12 | 魔法 | 青 / 橙 / 黄 | 480 / 1936 px | Spell 1_blue、Spell 1_orange、Spell 2_blue、Spell 2_orange、Spell 3_blue |
+| 30_Magic_Spell_Effects_15 | 26 | 魔法 | 青 / 黄 / 橙 | 432 / 576 px | Spell 1_blue、Spell 1_yellow、Spell 2_blue、Spell 2_yellow、Spell 3.1_blue |
+| 31_Ice_Spell_Effects_3 | 20 | 冰 | 青 / 蓝 | 440 / 1760 px | Spell 1、Spell 1_emerald、Spell 2、Spell 2_emerald、Spell 3 |
+
+**按用途找**（括号里是该包里这一类的张数）：
+- **魔法**：03（6）、04（5）、05（5）、09（2）、11（3）、14（3）、19（10）、20（11）、21（6）、22（27）、25（15）、26（18）、28（17）、29（12）、30（26）
+- **雷**：02（5）、05（2）、06（3）、08（2）、09（1）、10（6）、11（4）、17（12）、27（21）
+- **火**：04（2）、05（1）、06（5）、07（16）、09（5）、11（3）、14（4）、16（11）
+- **冰**：01（8）、03（2）、18（7）、31（20）
+- **毒**：24（37）
+- **暗**：03（1）、06（6）、08（10）、10（6）、11（1）、14（2）、15（6）、25（1）
+- **圣**：06（2）、23（26）、25（1）
+- **空间**：04（1）、06（2）、07（2）、15（6）
+- **弹道**：02（1）、06（4）、08（2）、10（2）、11（1）
+- **水**：12（7）、24（1）
+- **地**：04（1）、06（2）
+- **斩击**：07（1）、08（2）
+- **风**：05（1）
+- **护盾**：11（1）
+
+**当前需求的推荐**：蓝色 / 靛蓝能量（逻各斯二技能）先看 03（Dragon head blue、Energy comet）、11、21、22 / 25 / 26 的 `_blue` 变体；冰 / 寒气（Boss）看 01、18、31（31 另有 `_emerald` 变体）；声波 / 冲击环看 23（圣光环）与 27（雷环），需要再调色。
