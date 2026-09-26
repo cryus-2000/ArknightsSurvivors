@@ -98,7 +98,8 @@ func add_nerve(v: float) -> void:
 		g.nerve = 0.0
 		if not stun_as_slow():
 			g.pstun = 0.4
-		g.atk_slow = maxf(g.atk_slow, 2.5)
+		if not atk_slow_as_slow(2.5):
+			g.atk_slow = maxf(g.atk_slow, 2.5)
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
 		hurt(g.max_hp * 0.08, true)
@@ -106,14 +107,16 @@ func add_nerve(v: float) -> void:
 		Sfx.play("skill", -4.0, 1.6)
 
 
-## ---- 主控保护「永不硬控」（docs/38 §1.11，B0-2）
+## ---- 主控保护「永不硬控」「移速下限」「攻速」（docs/38 §1.11，B0-2 / B0-3）
 ## Boss 存活期间（或这一下本身是 Boss 来源），会让主控僵直的地方（预警僵直、冲击环、神经损伤溢出）改成移速减速：
 ## boss/stun_as_slow_t（0.5）秒 × boss/stun_as_slow_mult（0.7）。没有 Boss 时照旧僵直。冲刺不查僵直（game._try_dash）。
-## 同一种减速重复吃到只刷新时长、不叠乘；不同种之间相乘（move_mult）。
+## 攻速减缓 g.atk_slow（只有水月读：挥伞间隔 ×1.5）同样改成等量的移速减速：时长不变、倍率 boss/atk_slow_as_slow_mult（0.67）。
+## 同一种减速重复吃到只刷新时长、不叠乘；不同种之间相乘（move_mult），Boss 存活期间合计不低于 boss/move_floor（0.7）。
 var slows: Dictionary = {}   # 主控移速减速：种类 -> [剩余秒数, 倍率]
-var ctrl_boss := false       # 上一帧有没有 Boss 存活：Boss 刚出现时残留的僵直直接换掉，不算违规
-## 验收计数（BALANCE 的 "ctrl"，快检冒烟会查）：Boss 存活总秒数；其间主控仍处于僵直的秒数（应恒为 0）；僵直换成减速的次数
-var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "stun_slow": 0}
+var ctrl_boss := false       # 上一帧有没有 Boss 存活：Boss 刚出现时残留的僵直 / 攻速减缓直接换掉，不算违规
+## 验收计数（BALANCE 的 "ctrl"，快检冒烟会查）：Boss 存活总秒数；其间主控仍处于僵直 / atk_slow 的秒数（应恒为 0）；
+## 其间移速倍率的最小值 move_min（含下限，应 ≥ floor）和不含下限的减速乘积最小值 slow_min；僵直 / 攻速减缓换成减速的次数
+var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "aslow_t": 0.0, "move_min": 1.0, "slow_min": 1.0, "stun_slow": 0, "aslow_slow": 0}
 
 
 ## Boss 战里把一次僵直换成减速。返回 true = 已换成减速，调用处不再写 g.pstun
@@ -125,6 +128,15 @@ func stun_as_slow(boss_src := false) -> bool:
 	return true
 
 
+## Boss 战里把一次攻速减缓（t 秒）换成等量的移速减速。返回 true = 已换成减速，调用处不再写 g.atk_slow
+func atk_slow_as_slow(t: float, boss_src := false) -> bool:
+	if not boss_src and not g.spawner.boss_alive():
+		return false
+	slow_leader("atk", t, Bal.v("boss/atk_slow_as_slow_mult", 0.67))
+	ctrl.aslow_slow += 1
+	return true
+
+
 ## 给主控挂一种移速减速：t 秒、倍率 mult；同种只刷新（取较长的时长、用这次的倍率）
 func slow_leader(kind: String, t: float, mult: float) -> void:
 	if not slows.has(kind):
@@ -133,14 +145,20 @@ func slow_leader(kind: String, t: float, mult: float) -> void:
 	slows[kind] = [maxf(old, t), mult]
 
 
-## 主控移速倍率：raw = 溟痕 / 排异幻境 / 冰霜等原有减速的乘积，再乘上 slows 里的减速（game._update 每帧调一次）
+## 主控移速倍率：raw = 溟痕 / 排异幻境 / 冰霜等原有减速的乘积，再乘上 slows 里的减速（game._update 每帧调一次）。
+## Boss 存活期间不低于 boss/move_floor（0.7），并记下验收用的最小值；冲刺速度不走这里，不受减速影响
 func move_mult(raw: float) -> float:
 	for k in slows:
 		raw *= float(slows[k][1])
+	if not g.spawner.boss_alive():
+		return raw
+	ctrl.slow_min = minf(ctrl.slow_min, raw)
+	raw = maxf(Bal.v("boss/move_floor", 0.7), raw)
+	ctrl.move_min = minf(ctrl.move_min, raw)
 	return raw
 
 
-## 每帧（enemies.update_status，在僵直计时递减之前）：推进减速计时；Boss 存活期间残留的僵直换成减速并记账
+## 每帧（enemies.update_status，在僵直 / 攻速减缓计时递减之前）：推进减速计时；Boss 存活期间残留的僵直 / 攻速减缓换成减速并记账
 func update_ctrl(dt: float) -> void:
 	var on: bool = g.spawner.boss_alive()
 	if on:
@@ -150,6 +168,11 @@ func update_ctrl(dt: float) -> void:
 				ctrl.stun_t += dt   # Boss 战中还有地方直接写了 g.pstun：违规，记下来（快检会报）
 			g.pstun = 0.0
 			stun_as_slow(true)
+		if g.atk_slow > 0.0:
+			if ctrl_boss:
+				ctrl.aslow_t += dt   # 同上，g.atk_slow
+			atk_slow_as_slow(g.atk_slow, true)
+			g.atk_slow = 0.0
 	ctrl_boss = on
 	for k in slows.keys():
 		slows[k][0] -= dt
@@ -157,9 +180,9 @@ func update_ctrl(dt: float) -> void:
 			slows.erase(k)
 
 
-## BALANCE 输出用：ctrl 里的秒数取两位小数
+## BALANCE 输出用：ctrl 里的秒数 / 倍率取两位小数，附上移速下限 floor
 func ctrl_report() -> Dictionary:
-	var r := {}
+	var r := {"floor": Bal.v("boss/move_floor", 0.7)}
 	for k in ctrl:
 		r[k] = snappedf(ctrl[k], 0.01) if ctrl[k] is float else ctrl[k]
 	return r

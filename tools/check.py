@@ -70,11 +70,16 @@ def smoke_cases():
 
 
 def ctrl_errors(d):
-    """主控保护的自动检查（docs/38 §1.11，BALANCE 的 ctrl，run/combat.gd）：Boss 存活期间主控僵直恒为 0"""
+    """主控保护的自动检查（docs/38 §1.11，BALANCE 的 ctrl，run/combat.gd）：Boss 存活期间主控僵直、atk_slow 恒为 0，
+    移速倍率不低于下限 floor"""
     c = (d or {}).get("ctrl") or {}
     errs = []
     if c.get("stun_t", 0) > 0:
         errs.append("主控保护：Boss 存活期间主控僵直 %.2f 秒（应为 0）" % c["stun_t"])
+    if c.get("aslow_t", 0) > 0:
+        errs.append("主控保护：Boss 存活期间 atk_slow %.2f 秒（应为 0）" % c["aslow_t"])
+    if c.get("move_min", 1) < c.get("floor", 0) - 1e-6:
+        errs.append("主控保护：Boss 存活期间移速倍率最低 %.2f（应 ≥%.2f）" % (c["move_min"], c["floor"]))
     return errs
 
 

@@ -283,7 +283,7 @@ func update_ebullets(dt: float) -> void:
 			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": g.rng.randf() * 100.0, "boss": b.get("boss", false)})
 		if hitp:
 			b.life = 0.0
-			if b.get("slow", false):
+			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			g.dmg_src = "bullet"
 			g.in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]

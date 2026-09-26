@@ -912,7 +912,7 @@ func _update(dt: float) -> void:
 		walk_t += dt * 12.0
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
-	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直换成的减速也乘在这里（combat.move_mult）
+	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直 / 攻速减缓换成的减速也乘在这里，Boss 存活期间合计不低于 0.7（combat.move_mult）
 	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0))
 	pvel = mv * mspd
 	ppos += mv * mspd * dt

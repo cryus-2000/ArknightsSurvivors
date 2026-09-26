@@ -7,6 +7,8 @@ extends Node
 ##   非 Boss 来源（小怪、自然溟痕、普通侵蚀，含流明净化之后的）不受影响。
 ## 永不硬控（B0-2）：Boss 存活期间预警僵直 / 冲击环 / 神经损伤溢出都换成 0.5 秒 −30% 减速，主控僵直恒为 0；没有 Boss 时照旧僵直；
 ##   僵直中也能冲刺（方向取按住的方向）。
+## 攻速 / 移速下限（B0-3）：Boss 来源和 Boss 存活期间不写 atk_slow（预警、带 slow 的子弹、神经损伤溢出），改成等量移速减速；
+##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -44,6 +46,7 @@ func _process(_d: float) -> void:
 	test_dot_cap()
 	test_non_boss()
 	test_no_hard_cc()
+	test_atk_slow_floor()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -436,13 +439,16 @@ func test_no_hard_cc() -> void:
 			ok(game.pstun > 0.4, "%s：精英冲击环照旧僵直（%.2f）" % [tag, game.pstun])
 	boss_e.dead = false
 	# 减速的数值与时长：0.5 秒 × 0.7，同种重复吃到只刷新不叠乘，到时自动解除
+	# （神经损伤溢出在 Boss 战里还会把攻速减缓换成另一种减速 "atk"（B0-3），这里只测僵直换来的 "stun"，先把 "atk" 去掉）
 	reset()
 	game.invuln = 0.0
 	game.nerve = 99.0
 	c.add_nerve(5.0)
+	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "僵直换成的减速：移速 ×%.2f（应 ×%.2f）" % [c.move_mult(1.0), sm])
 	game.nerve = 99.0
 	c.add_nerve(5.0)
+	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "同种减速重复吃到不叠乘（×%.2f）" % c.move_mult(1.0))
 	run(st + 0.05)
 	ok(c.slows.is_empty() and absf(c.move_mult(1.0) - 1.0) < EPS, "%.1f 秒后减速解除" % st)
@@ -481,4 +487,74 @@ func test_no_hard_cc() -> void:
 	game.dash_cd = 0.0
 	game.dash_t = 0.0
 	game.state = st0
+	reset()
+
+
+## 一颗贴脸的敌方子弹（和 boss_ai「bring」/ enemy_ai 的字段一致），逐帧结算一次
+func slow_bullet(boss: bool) -> void:
+	game.ebullets.clear()
+	game.ebullets.append({"pos": game.ppos + Vector2(0, -14), "vel": Vector2.ZERO, "dmg": 1.0, "slow": true, "r": 7.0, "life": 3.0,
+		"corrode": 0.0, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": boss})
+	game.enemies_sys.update_ebullets(1.0 / 60.0)
+	game.ebullets.clear()
+
+
+## 攻速（docs/38 §1.11，B0-3）：Boss 来源 / Boss 存活期间不写 atk_slow，改成等量移速减速；Boss 存活期间移速倍率 ≥0.7
+func test_atk_slow_floor() -> void:
+	var am: float = Bal.v("boss/atk_slow_as_slow_mult", 0.67)
+	var fl: float = Bal.v("boss/move_floor", 0.7)
+	for alive in [true, false]:
+		boss_e.dead = not alive
+		var tag: String = "Boss 存活" if alive else "没有 Boss"
+		# 带减攻速的预警（泡影凝视等）：Boss 存活时连精英放的也不写
+		reset()
+		game.invuln = 0.0
+		var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "burrower", "boss": false},
+			"act": "gaze", "dmg": 1.0, "corrode": 0.0}
+		game.bai._warn_damage(w, 0.0, true)
+		if alive:
+			ok(game.atk_slow <= 0.0 and c.slows.has("atk") and absf(float(c.slows["atk"][0]) - 3.0) < EPS, "%s：减攻速预警换成 3 秒移速减速（atk_slow %.2f）" % [tag, game.atk_slow])
+		else:
+			ok(absf(game.atk_slow - 3.0) < EPS and c.slows.is_empty(), "%s：精英的减攻速预警照旧（atk_slow %.2f）" % [tag, game.atk_slow])
+		# 神经损伤溢出
+		reset()
+		game.invuln = 0.0
+		game.nerve = 99.0
+		c.add_nerve(5.0)
+		if alive:
+			ok(game.atk_slow <= 0.0 and c.slows.has("atk") and absf(float(c.slows["atk"][0]) - 2.5) < EPS, "%s：神经损伤溢出不写 atk_slow，换成 2.5 秒减速" % tag)
+		else:
+			ok(absf(game.atk_slow - 2.5) < EPS, "%s：神经损伤溢出照旧 atk_slow 2.5（%.2f）" % [tag, game.atk_slow])
+		# 带 slow 的子弹：Boss 的（任何时候都不写）和不是 Boss 的
+		for bb in [true, false]:
+			reset()
+			game.invuln = 0.0
+			slow_bullet(bb)
+			if alive or bb:
+				ok(game.atk_slow <= 0.0 and c.slows.has("atk"), "%s：%s的减速子弹不写 atk_slow（%.2f）" % [tag, "Boss " if bb else "小怪", game.atk_slow])
+			else:
+				ok(absf(game.atk_slow - 3.0) < EPS, "%s：小怪的减速子弹照旧 atk_slow 3（%.2f）" % [tag, game.atk_slow])
+	# 移速下限：溟痕 ×0.55、冰霜 ×0.6、僵直换来的 ×0.7、攻速减缓换来的 ×0.67 同时吃到
+	var raw: float = 0.55 * 0.6
+	reset()
+	c.slow_leader("stun", 0.5, Bal.v("boss/stun_as_slow_mult", 0.7))
+	c.slow_leader("atk", 3.0, am)
+	boss_e.dead = true
+	var prod: float = raw * Bal.v("boss/stun_as_slow_mult", 0.7) * am
+	ok(absf(c.move_mult(raw) - prod) < EPS, "没有 Boss：减速照旧相乘（×%.3f）" % c.move_mult(raw))
+	boss_e.dead = false
+	ok(absf(c.move_mult(raw) - fl) < EPS, "Boss 存活：移速倍率被下限兜住（×%.3f，应 ×%.2f）" % [c.move_mult(raw), fl])
+	ok(absf(c.move_mult(1.0) - fl) < EPS and absf(c.move_mult(0.9 / (Bal.v("boss/stun_as_slow_mult", 0.7) * am)) - 0.9) < EPS, "Boss 存活：高于下限时照常（×%.3f）" % c.move_mult(1.0))
+	ok(c.ctrl.move_min >= fl - EPS and c.ctrl.slow_min <= prod + EPS, "验收计数：move_min %.3f ≥ %.2f，slow_min %.3f" % [c.ctrl.move_min, fl, c.ctrl.slow_min])
+	# Boss 出现前残留的 atk_slow：Boss 一出现就换成减速，不算违规；Boss 战中直接写的：换掉并记违规
+	reset()
+	game.atk_slow = 1.5
+	c.ctrl_boss = false
+	var as0: float = c.ctrl.aslow_t
+	game.enemies_sys.update_status(1.0 / 60.0)
+	ok(game.atk_slow <= 0.0 and c.slows.has("atk") and c.ctrl.aslow_t == as0, "Boss 出现前残留的 atk_slow 换成减速、不记违规")
+	game.atk_slow = 1.0
+	game.enemies_sys.update_status(1.0 / 60.0)
+	ok(game.atk_slow <= 0.0 and c.ctrl.aslow_t > as0, "Boss 战中直接写的 atk_slow 被换掉并记违规")
+	c.ctrl.aslow_t = as0
 	reset()
