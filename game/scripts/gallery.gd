@@ -568,6 +568,8 @@ func _draw_detail(vs: Vector2) -> void:
 	var tx := pr.position.x + 300
 	var tw := pr.end.x - tx - 20
 	var y := pr.position.y + 140
+	if wide:
+		y = pr.position.y + 134   # 技能 / 数值页：标签紧跟在职业行下，分隔线让到标签下方
 	if not demo:
 		UI.en(self, font, Vector2(tx, pr.position.y + 40), e.en if not locked else "UNKNOWN", 11, UI.CYAN_DIM, 3.0)
 		UI.text(self, font, Vector2(tx, pr.position.y + 76), e.name if not locked else "???", 26, UI.TEXT)
@@ -591,7 +593,7 @@ func _draw_detail(vs: Vector2) -> void:
 			cx += w + 8
 	var dy := maxf(y + 42, box.end.y + 60) if not (e.has("pages") and not locked and not demo) else box.end.y + 64
 	if wide:
-		dy = pr.position.y + 160
+		dy = y + 50
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
 	info_rects.clear()
 	if e.has("pages") and not locked:
@@ -648,15 +650,20 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 				yy += h + 7
 		2:
 			# 数值页：两列表格
+			# 行距按剩余高度收缩（演示时下方空间小）；脚注紧跟表格，放不下就不画
 			var col_w := width / 2.0
+			var nrow: int = (page.size() + 1) / 2
+			var step: float = clampf((avail - 26.0) / maxf(nrow, 1), 20.0, 30.0)
+			var fs2: int = 15 if step >= 26.0 else 13
 			var yy2 := top + 14
 			for i in page.size():
 				var cxx: float = x + (i % 2) * col_w
 				if i % 2 == 0 and i > 0:
-					yy2 += 30
-				UI.text(self, font, Vector2(cxx, yy2), page[i][0], 13, UI.SUB)
-				UI.text(self, font, Vector2(cxx + 92, yy2), page[i][1], 15, UI.TEXT)
-			UI.text(self, font, Vector2(x, top + avail - 4), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
+					yy2 += step
+				UI.text(self, font, Vector2(cxx, yy2), page[i][0], fs2 - 2, UI.SUB)
+				UI.text(self, font, Vector2(cxx + 92, yy2), page[i][1], fs2, UI.TEXT)
+			if yy2 + 24 <= top + avail:
+				UI.text(self, font, Vector2(x, yy2 + 24), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
 
 
 func _skill_rows_h(rows: Array, width: float, fs: int) -> float:
