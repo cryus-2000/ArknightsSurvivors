@@ -204,6 +204,14 @@ func update(dt: float) -> void:
 		Sfx.play("relic", -4.0)
 
 
+## 是不是结局的最终 Boss（偏执泡影 / 最后的骑士 / 伊莎玛拉 / 伊祖米克，按 waves.json 的结局表）；其余 Boss 都是中期 Boss
+func is_final_boss_type(type: String) -> bool:
+	for k in D.ENDINGS:
+		if str(D.ENDINGS[k].get("boss", "")) == type:
+			return true
+	return false
+
+
 func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
 	var role: String = d.get("role", "")
@@ -242,6 +250,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	if e.boss:
 		# Boss 吃削血藏品（镶金骨骰 / 黑夜呢喃 / 大静谧）最多 -20%（docs/42 §3.3：原来全额生效，2 件以上时 Boss 9 秒被秒）
 		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if g.diff >= 1 else 1.0) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
+		# Boss 血量旋钮（数值会话在 balance.json 的 boss 段填）：中期 / 最终各一个总倍率，另有每只 Boss 单独的倍率；缺省都是 1.0
+		e.hp *= Bal.v("boss/hp_final" if is_final_boss_type(type) else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + type, 1.0)
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * (1.25 if g.diff >= 10 else 1.0) * g.enemy_dmg_mult
