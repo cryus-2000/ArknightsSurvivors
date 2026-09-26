@@ -597,7 +597,8 @@ static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> flo
 
 
 # ---------------------------------------------------------------- 文字排版（按像素宽度折行，放不下时先缩字号，最后才截断加「…」）
-## 按像素宽度折行（中文按字断行，遵守 soft() 的标点规则）；\n 分段。返回每一行的文字
+## 按像素宽度折行（中文按字断行，遵守 soft() 的标点规则）；\n 分段。返回每一行的文字。
+## 防孤字：某段末行只剩一两个字（多为「字 + 句号」）时，把这段收窄一到四个字宽重排，行数不变才采用（不会让文字变高）
 static func wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
 	var out := PackedStringArray()
 	for para in s.split("\n"):
@@ -605,13 +606,26 @@ static func wrap_lines(font: Font, s: String, size: int, width: float) -> Packed
 		if sp.strip_edges() == "":
 			out.append("")
 			continue
-		var p := TextParagraph.new()
-		p.break_flags = BRK
-		p.width = width
-		p.add_string(sp, font, size)
-		for i in p.get_line_count():
-			var rg: Vector2i = p.get_line_range(i)
-			out.append(sp.substr(rg.x, rg.y - rg.x).replace("​", "").strip_edges())
+		var pl := _wrap_para(font, sp, size, width)
+		if pl.size() >= 2 and pl[pl.size() - 1].length() <= 2:
+			for k in range(1, 5):
+				var alt := _wrap_para(font, sp, size, width - k * size)
+				if alt.size() == pl.size() and alt[alt.size() - 1].length() > 2:
+					pl = alt
+					break
+		out.append_array(pl)
+	return out
+
+
+static func _wrap_para(font: Font, sp: String, size: int, width: float) -> PackedStringArray:
+	var p := TextParagraph.new()
+	p.break_flags = BRK
+	p.width = width
+	p.add_string(sp, font, size)
+	var out := PackedStringArray()
+	for i in p.get_line_count():
+		var rg: Vector2i = p.get_line_range(i)
+		out.append(sp.substr(rg.x, rg.y - rg.x).replace("​", "").strip_edges())
 	return out
 
 

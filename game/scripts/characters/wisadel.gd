@@ -36,8 +36,9 @@ func _aoe() -> float:
 	return base("aoe", 52.0) * stat(&"op_range") * (1.15 if elite >= 1 else 1.0)
 
 
+## 索敌距离：代码里的 480 / 520 / 540 是原射程下的值，统一按 JSON range / 480 同比例缩放（2026-09-26 远程射程略缩）
 func _reach(k: float = 480.0) -> float:
-	return k * stat(&"op_range")
+	return k * (base("range", 420.0) / 480.0) * stat(&"op_range")
 
 
 # ---------------------------------------------------------------- 索敌
@@ -122,7 +123,7 @@ func update(dt: float) -> void:
 		start_skill(tg.pos if not tg.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var tgt: Dictionary = _target(_reach(base("range", 480.0)))
+		var tgt: Dictionary = _target(_reach())
 		if tgt.is_empty():
 			cd = 0.2
 		else:

@@ -74,7 +74,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 
 
 func _reach() -> float:
-	return base("reach", 75.0) * stat(&"op_range") * (base("s3_reach", 1.5) if s3_t > 0.0 else 1.0) * (base("beast_reach", 1.5) if _beast_on() else 1.0)
+	return base("reach", 120.0) * stat(&"op_range") * (base("s3_reach", 1.5) if s3_t > 0.0 else 1.0) * (base("beast_reach", 1.5) if _beast_on() else 1.0)
 
 
 ## 「困兽」生效中：求生之技期间

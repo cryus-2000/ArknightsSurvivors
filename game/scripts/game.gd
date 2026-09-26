@@ -1,5 +1,5 @@
 extends Node2D
-## 水月 · 深海幸存者 —— v0.8
+## 方舟幸存者 —— 对局场景（状态与调度；玩法 / 界面 / 绘制分在 run/、screens/、render/，见 docs/39）
 ## 敌人/掉落物/特效用数据数组管理，统一在 _draw 中以像素贴图绘制（美术像素 ×2）。
 ## 灯火是一个真实光源：场景整体偏暗，只有玩家周围被照亮。
 
@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Telemetry = preload("res://scripts/run/telemetry.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -86,6 +87,7 @@ var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
 var world = WorldView.new(self)   # 世界绘制（2.5D）
+var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -425,9 +427,9 @@ func _ready() -> void:
 				tex[sp[kind]] = A.tex(sp[kind])
 		if sp.has("base"):
 			tex["player"] = A.tex(sp.base)
-	# 干员技能图标（skills[i].icon，可选）
-	for o in squad.ops:
-		for sd in o.skills_def():
+	# 干员技能图标（skills[i].icon，可选）：所有干员都加载——中途招募的干员 HUD 技能格、技能强化卡也要用
+	for cid in Character.list_ids():
+		for sd in Character.load_def(cid).get("skills", []):
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
 	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
@@ -631,6 +633,7 @@ func _process(delta: float) -> void:
 	var dt: float = min(delta, 0.05)
 	if state != _last_state:
 		_last_state = state
+		telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 		state_age = 0.0
 		res_sel = 0
 	else:
@@ -870,12 +873,14 @@ var dash_t := 0.0
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
 var last_mv := Vector2.ZERO
+var move_in := Vector2.ZERO   # 这一帧的移动输入（僵直时也记）：冲刺方向用
 
 
+## 冲刺任何时候都能按（docs/38 §1.11「永不硬控」）：只看冷却、是否正在冲刺、是否在局内；僵直时也能冲，方向取按住的方向
 func _try_dash() -> void:
-	if dash_cd > 0.0 or dash_t > 0.0 or pstun > 0.0 or state != S.PLAY:
+	if dash_cd > 0.0 or dash_t > 0.0 or state != S.PLAY:
 		return
-	dash_dir = (last_mv if moving and last_mv != Vector2.ZERO else Vector2(facing, 0)).normalized()
+	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
 	dash_used = true
@@ -887,6 +892,8 @@ func _try_dash() -> void:
 func _update(dt: float) -> void:
 	_pm("")
 	t += dt
+	if not autotest:
+		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	_sync_stats()
 	var mv := Vector2(
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
@@ -901,7 +908,7 @@ func _update(dt: float) -> void:
 		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
-	moving = mv != Vector2.ZERO
+	move_in = mv
 	if pstun > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
@@ -910,11 +917,11 @@ func _update(dt: float) -> void:
 		walk_t += dt * 12.0
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
-	# 溟痕：陷在里面移动速度 -45%
-	var mspd: float = speed * (1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0)
+	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直 / 攻速减缓换成的减速也乘在这里，Boss 存活期间合计不低于 0.7（combat.move_mult）
+	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0))
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
-	# 冲刺：主控沿冲刺方向高速位移，期间无敌（被僵直时不能冲刺，已在 _try_dash 里拦）
+	# 冲刺：主控沿冲刺方向高速位移，期间无敌；僵直时也能冲，冲刺距离不受减速影响
 	dash_cd = maxf(0.0, dash_cd - dt)
 	if dash_t > 0.0:
 		dash_t -= dt
@@ -1142,6 +1149,11 @@ var doc_moving := false
 var doc_face := 1.0
 
 
+## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
+func _exit_tree() -> void:
+	telemetry.on_exit()
+
+
 ## 世界绘制（引擎回调）：转发到 render/world.gd
 func _draw() -> void:
 	world.draw_world()
@@ -1209,8 +1221,8 @@ const V6_FRAMES := {
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
 		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
-		"你操控的是开局干员 —— 她是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、空格冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
-		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
+		"你操控的是开局干员 —— 主控是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、空格冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
+		"3:30 与 7:00 各有一次中期 Boss（塑路者、圣徒伊比利亚、圣徒卡门、接潮主教与同伴中随机；3:30 只会是塑路者或伊比利亚），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
 		"灯火（金条）不会自己燃尽，只在受击时熄灭一截：伤害越重熄得越多，黑潮里也会持续流失。拾取敌人掉落的灯油、或向商人购买灯油补充。灯光范围内的敌人受到的伤害 +25%，灯越亮范围越大。",

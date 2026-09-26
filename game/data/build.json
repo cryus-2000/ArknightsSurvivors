@@ -1,0 +1,5 @@
+{
+ "_doc": "构建信息：局内数据记录（run/telemetry.gd）的版本字段。开发时 commit 为 dev；tools/export_build.py 打包时写入真实提交号。",
+ "version": "2.0",
+ "commit": "dev"
+}

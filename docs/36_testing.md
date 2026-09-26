@@ -16,7 +16,7 @@
 1. **核心契约测试**（`tests/test_core.gd`）：干员结构、成长线、藏品数据、属性分层。
 2. **冒烟**：每名干员各当一次主控、带两名队友（按名单轮换，每人也都当过队友），开局拿全部藏品、推到成长线末端、技力常满，三个 Boss 提前到 0:30 / 1:00 / 1:30，跑 2 分钟游戏时间；另跑两局不作弊的自然流程（高手、普通机器人，跑过第一个商人）。只看「有没有报错、能不能跑完」。
 3. **成长节点当场生效**（`tests/node_test.tscn`）：每名干员逐个应用 6 个成长节点，记录选下那一刻干员身上变了什么（脚本变量、按本干员作用域取的属性、技能解锁与充能）。有节点什么都没变就失败。`--effecttest=K` 让主控停在第 K 个节点跑 40 秒、打印各伤害来源占比，用来确认节点的效果当下就在打。
-4. **主控保护**（`tests/prot_test.tscn`，docs/38 §1.11）：把一局跑起来后直接调用扣血入口 `combat.lose_hp` / `enemy_hit`，检查 Boss 来源的扣血截断——骨血 + 灯火 20 下单发 ≤40%、带侵蚀的招式「扣血 + 追加侵蚀」≤40%、连发任意 2 秒合计 ≤50%、满血吃连击不死、Boss 在场时 Boss 侵蚀和 Boss 溟痕每秒 ≤4%，以及非 Boss 来源照旧。
+4. **主控保护**（`tests/prot_test.tscn`，docs/38 §1.11）：把一局跑起来后直接调用扣血入口 `combat.lose_hp` / `enemy_hit`，检查 Boss 来源的扣血截断——骨血 + 灯火 20 下单发 ≤40%、带侵蚀的招式「扣血 + 追加侵蚀」≤40%、连发任意 2 秒合计 ≤50%（「扣血 + 追加的侵蚀」和「实际扣血，含侵蚀结算」两种口径，窗口满时追加的侵蚀也作废）、满血吃连击（带侵蚀的、夹小怪伤害的）不死而且满血保护只兜这一轮连击、Boss 在场时 Boss 侵蚀和 Boss 溟痕每秒 ≤4%，以及非 Boss 来源照旧（含流明净化之后的普通侵蚀）。
 5. **复现**：同一组参数跑两次，结果必须逐字段相同。
 
 **为什么要冒烟**：核心测试不运行干员脚本。2026-09-26 删掉一个藏品函数时漏改了水月的调用点，核心测试全绿，水月却每次出手都报错；这类问题只有真的跑一局才抓得到。
@@ -118,3 +118,63 @@
 | 机器人矩阵 | `build/check/bots_<时间>/`、`build/balance/<tag>_<时间>.md/.json` |
 | A/B 对比 | `build/check/ab_<时间>/compare.md` |
 | 结果缓存 | 主仓库 `build/balance/cache/<源文件摘要>/` |
+
+## 7. 云端批跑
+
+> 2026-09-26 加入：把大批量的机器人批跑挪到云端 Linux 机器上，本机留给开发和快检。脚本在 `tools/cloud/`，日常使用由「测试与验收」负责。
+
+### 7.1 怎么启动
+
+在云端机器（Claude Code 云端会话，或任意 Ubuntu / Debian x86_64）上，克隆 GitHub 仓库后：
+
+```
+bash tools/cloud/setup_linux.sh          # 只需一次：装依赖、下载 Godot 4.7.2 官方 Linux 版并核对 SHA512、大小写检查、导入项目
+ONLY=check bash tools/cloud/run_cloud.sh # 第一次先只跑快检，确认环境没问题
+bash tools/cloud/run_cloud.sh            # 快检 + 标准矩阵（普通 / 高手 × 7 开局 × SEEDS，缺省 4）
+SEEDS=8 BOTS=expert,normal PRESET=starts bash tools/cloud/run_cloud.sh
+AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
+```
+
+- `setup_linux.sh` 生成 `tools/cloud/env.sh`（Godot 路径与并发），`run_cloud.sh` 自动读取；换机器要重新跑 `setup_linux.sh`。
+- 大小写：Windows 不分文件名大小写，Linux 分。`tools/cloud/case_check.py` 检查代码 / 数据里写死的 `res://` 路径与美术名，初始化时会跑；本机也能跑，改了资源路径后建议先跑一遍。动态拼出来的名字查不到，要看云端日志里有没有 `Failed loading` / `Cannot open file`。
+- 换行：`.sh` 由 `.gitattributes` 强制 LF（在 Windows 上编辑也不会变成 CRLF）。
+- `.uid` / `.import`：Godot 给每个脚本 / 资源生成的旁路文件**必须入库**（`.gitignore` 第 1 行的约定）。**新增 `.gd` 时把同名 `.gd.uid` 一起提交**；漏交的话每台机器导入时各自生成随机 UID，云端会冒出一堆未跟踪文件（2026-09-26 首跑就遇到 35 个，已补交）。`setup_linux.sh` 导入后会列出未入库的旁路文件——那是云端临时生成的，不要从云端提交，回本机补交原件。
+- 云端没有声卡和显示器：`--headless` 下 Godot 自动用空的音频与显示驱动，测试本来就静音（§2）。截图类测试（需要窗口）不在云端跑。
+
+### 7.2 并发多少
+
+- 缺省 `GODOT_MAX_PROCS = 核数`：云端机器只跑这一批，不用像本机那样给别的会话留余量（本机是核数 − 4，所有会话共用）。
+- 内存：无界面 Godot 每个约 300–500 MB，按 `min(核数, 内存 GB × 2)` 设上限，例如 8 核 16 GB 设 8。`GODOT_MAX_PROCS=6 bash tools/cloud/run_cloud.sh` 可临时覆盖。
+- 同 seed 可复现、结果缓存（§3、§4）在云端照常生效；缓存放在云端机器自己的 `build/balance/cache/`，不和本机共享。
+
+### 7.3 结果怎么拿回本地
+
+每次运行的结果在 `build/cloud/<时间>/`（报告 `.md`、原始 `.json`、`env.txt` 里有提交号 / Godot 版本 / 核数、各段日志），另打一个 `build/cloud/cloud_<时间>.tar.gz`。`build/` 不进仓库，拿回本地的办法：
+
+1. **推一个结果分支**（推荐）：云端会话里
+   ```
+   git checkout -b cloud-results/<时间>
+   git add -f build/cloud/<时间>/*.md build/cloud/<时间>/*.json build/cloud/<时间>/env.txt
+   git commit -m "云端批跑结果 <时间>" && git push origin cloud-results/<时间>
+   ```
+   本机 `git fetch origin cloud-results/<时间>`，再 `git checkout origin/cloud-results/<时间> -- build/cloud/<时间>` 取出。结果分支只放报告，不合入 main，看完可删。
+2. **只要结论**：让云端会话把 `.md` 报告的汇总表贴出来（适合「胜率 / 存活变了多少」这类问题）。
+
+### 7.4 与本地结果是否逐局一致：**不一致**（2026-09-26 实测）
+
+同一提交（`7578248`）、同一组参数（`--preset starts --bots expert,normal --seeds 2 --nocache`，28 局），本机 Windows 与云端 Linux（4 核）各跑一遍，逐局对比：
+
+| | 结果完全相同的局 | 胜率 本机 / 云端 | 平均存活 本机 / 云端 |
+| --- | --- | --- | --- |
+| 高手 | 7 / 14 | 78% / 85% | 9:57 / 10:04 |
+| 普通 | 0 / 14 | 28% / 28% | 8:27 / 8:07 |
+
+- **分叉时间**：21 局不同，按每 30 秒曲线看，分叉点在局内 1:30–7:30；分叉之前曲线完全一致（种子、刷怪、选卡同步），不是环境没配好。
+- **原因**：浮点末位。有一局（高手·斯卡蒂·seed 1）存活、等级、每 30 秒曲线全都相同，只有累计的「余震」伤害末位不同——两边 `sin / cos` 等数学库的结果差一点点，积累下去某次判定翻转，整局就分叉。要做到跨平台逐局一致，得把玩法里的超越函数全换成自己的实现，代价大，目前不做。
+- **汇总层面**：两边的胜率 / 存活只差在 2 seed 的噪声以内，可以当「同一个游戏」看趋势。
+- 原始数据：本机 `xplat_win_0926_2004.json`，云端分支 `cloud-results/xplat`（`build/xplat/xplat_linux_0926_1004.json`）。
+
+**规则（定稿）**：
+1. **A/B 的两边必须在同一个平台上跑**（都在云端，或都在本机）。云端跑 A/B 用 `AB=<提交> bash tools/cloud/run_cloud.sh`，基准与改动都在云端算。
+2. 不要拿云端报告和本机报告互相当「改动前 / 改动后」，也不要用云端结果去对本机某一局的复现。
+3. 同一平台内同 seed 仍然逐局可复现（§3）；云端的结果缓存只在云端机器上有效。

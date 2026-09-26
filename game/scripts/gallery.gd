@@ -23,20 +23,20 @@ const ENDING_ORDER := ["standard", "knight", "resolve", "deep"]
 ## 敌人图鉴说明（机制按本作实现）
 const ENEMY_DESC := {
 	"bone": "最常见的海嗣个体，成群漂流而来。近战，命中附带「侵蚀」。",
-	"slider": "贴着海床高速滑行。近战，命中造成「神经损伤」，积满后博士会短暂僵直。",
+	"slider": "贴着海床高速滑行。近战，命中造成「神经损伤」，积满后主控会短暂僵直。",
 	"stone": "远程投掷碎石；停下射击时会掘入海床，变得更难击退。",
-	"offspring": "伊祖米克的子代，行动迟缓但生命很高，存活一段时间后会变异。",
+	"offspring": "伊祖米克的子代，行动迟缓但生命很高；碰到主控时蜕变成 2 只其他海嗣。",
 	"brood": "由投嗣育母产下的诱饵，不会移动并逐渐衰亡，接触造成侵蚀。",
-	"fractal": "塑路者受击时分裂出的高速碎片。",
+	"fractal": "塑路者碎裂时放出的高速碎片。",
 	"tear": "伊莎玛拉渗出的泪滴，停留在原地造成真实伤害。",
 	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.4 秒后爆裂一次（范围 80，附带神经损伤），看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。远程攻击，并不断在身边产下注亡拟嗣。",
 	"mimic": "精英。伪装成补给箱，被靠近时现形扑来；击败后掉落大量源石锭。",
-	"path": "第三层 Boss。高大的刃肢海嗣，近战；受到 10 次攻击后召唤塑路者碎片。",
-	"iberia": "第三层 Boss。持剑的圣徒，携带 3 发弹药；每 20 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
-	"carmen": "第三层 Boss。持火铳的圣徒，射程更远；装填机制与伊比利亚相同。",
-	"bishop": "第三层 Boss。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。",
+	"path": "中期 Boss（3:30 / 7:00）。高大的刃肢海嗣：直线冲撞、近身震地；生命降到 75% / 50% / 25% 时各碎裂一次，放出 4 块塑路者碎片。",
+	"iberia": "中期 Boss（3:30 / 7:00）。持剑的圣徒，携带 3 发弹药；每 20 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
+	"carmen": "中期 Boss（7:00）。持火铳的圣徒，攻击范围更远；装填机制与伊比利亚相同。",
+	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。",
 	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。",
 	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。",
 	"paranoia": "结局一的最终 Boss。悬浮远程散射并减速；首次被控制后失去悬浮，进入第二形态。",
@@ -636,12 +636,18 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 			var per_desc: float = maxf(font.get_height(fs - 1), (avail - page.size() * (fs + 15)) / maxf(1.0, page.size()))
 			var yy := top
 			for row in page:
-				var tag_w: float = UI.chip(self, font, Vector2(x, yy + 2), row[0], row[3], 11) + 8
-				UI.text_fit(self, font, Vector2(x + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT, width - tag_w, 10)
+				# 技能行左边画技能图标（32px 原尺寸），标题与说明整体右移
+				var itx: Texture2D = A.tex(row[4]) if row.size() > 4 and row[4] != "" else null
+				var ix: float = SKILL_ICON_W if itx != null else 0.0
+				if itx != null:
+					draw_texture_rect(itx, Rect2(Vector2(x, yy + 1), Vector2(32, 32)), false)
+				var tag_w: float = UI.chip(self, font, Vector2(x + ix, yy + 2), row[0], row[3], 11) + 8
+				UI.text_fit(self, font, Vector2(x + ix + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT, width - ix - tag_w, 10)
+				var y0 := yy
 				yy += fs + 8
-				var fd := UI.fit(font, row[2], width - 8, 9999.0 if fits else per_desc, [fs - 1])
-				UI.draw_fit(self, font, Vector2(x + 8, yy + fs - 2 - font.get_ascent(fs - 1)), fd, Color(0.78, 0.88, 0.9))
-				yy += float(fd.h) + 7
+				var fd := UI.fit(font, row[2], width - ix - 8, 9999.0 if fits else per_desc, [fs - 1])
+				UI.draw_fit(self, font, Vector2(x + ix + 8, yy + fs - 2 - font.get_ascent(fs - 1)), fd, Color(0.78, 0.88, 0.9))
+				yy = maxf(yy + float(fd.h) + 7, y0 + (40.0 if itx != null else 0.0))
 		2:
 			# 数值页：两列表格
 			# 行距按剩余高度收缩（演示时下方空间小）；脚注紧跟表格，放不下就不画
@@ -660,10 +666,16 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 				UI.text(self, font, Vector2(x, yy2 + 24), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
 
 
+const SKILL_ICON_W := 40.0   # 技能页：图标 32px + 间距
+
+
 func _skill_rows_h(rows: Array, width: float, fs: int) -> float:
 	var h := 0.0
 	for row in rows:
-		h += fs + 8 + font.get_multiline_string_size(UI.soft(row[2]), HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, UI.BRK).y + 7
+		var has_icon: bool = row.size() > 4 and row[4] != "" and A.tex(row[4]) != null
+		var ix: float = SKILL_ICON_W if has_icon else 0.0
+		var rh: float = fs + 8 + font.get_multiline_string_size(UI.soft(row[2]), HORIZONTAL_ALIGNMENT_LEFT, width - ix - 8, fs - 1, -1, UI.BRK).y + 7
+		h += maxf(rh, 40.0 if has_icon else 0.0)
 	return h
 
 
@@ -706,7 +718,7 @@ func _op_skill_rows(cd: Dictionary) -> Array:
 			meta.append("永久")
 		if sk.get("mode", "auto") == "manual":
 			meta.append("手动")
-		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD])
+		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD, sk.get("icon", "")])
 	if cd.has("talent"):
 		rows.append(["天赋", cd.talent.get("name", "") + "　（精一解锁）", cd.talent.get("desc", ""), UI.PURPLE])
 	return rows

@@ -31,7 +31,8 @@ var perm: Array = [false, false, false]   # 永久型技能（JSON permanent）�
 var attack_t := 0.0        # >0 表示正在播放攻击动作（由干员在出手时设置）
 var attack_dur := 0.25
 var fire_t := -1.0         # 出手帧倒计时（start_attack / start_skill 后到点调用 _release / _release_skill）
-var act_kind := "attack"   # 当前动作条：attack / skill
+var act_kind := "attack"   # 当前动作的逻辑类型：attack（出手调 _release）/ skill（出手调 _release_skill）
+var act_anim := "attack"   # 当前动作实际播放的帧条（通常同 act_kind；技能可借用别的帧条，见 skill_anim）
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
 var anim_kind := ""
 var anim_t := 0.0
@@ -102,6 +103,9 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 				ok = false
 			elif not sk[i].get("mode", "auto") in ["auto", "manual"]:
 				push_error("干员 %s 的技能 %d 的 mode 只能是 auto / manual" % [cid, i + 1])
+				ok = false
+			elif sk[i].has("anim") and not d.get("sprites", {}).has(str(sk[i].anim)):
+				push_error("干员 %s 的技能 %d 的 anim「%s」不是它的帧条（sprites 里没有）" % [cid, i + 1, sk[i].anim])
 				ok = false
 		if sk.filter(func(x): return x is Dictionary and x.get("mode", "auto") == "manual").size() > 1:
 			push_error("干员 %s 最多只能有 1 个手动技能" % cid)
@@ -212,12 +216,14 @@ func tick_sp(dt: float) -> void:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
+	_tick_manual_buf(dt)
 
 
-## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
-## 充满后等玩家按 Q / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
+## 手动技能（契约 v2.3，2026-09-26 用户定）：技能 JSON 带 "mode": "manual" 时，只有该干员当主控才手动——照常充能、
+## 充满不自动放，等玩家按 Q / J（手柄 Ⓐ / Ⓧ，手机技能键），入口是 doctor.try_manual_skill()；当队友时照旧自动释放。
+## 主控换人时随 is_leader 自动切换。每名干员最多一个（校验按 JSON 的 mode 计数，与是否主控无关）
 func is_manual(i: int) -> bool:
-	return skill_def(i).get("mode", "auto") == "manual"
+	return is_leader and skill_def(i).get("mode", "auto") == "manual"
 
 
 func manual_index() -> int:
@@ -227,16 +233,82 @@ func manual_index() -> int:
 	return -1
 
 
-## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）
-func manual_ready(i: int) -> bool:
+## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）。dir：玩家给的方向（单位向量），
+## Vector2.ZERO = 自动瞄准。干员可重写追加自己的条件（乌尔比安：锚已收回、自动瞄准时 400 内有敌人）：return super(i, dir) and ……
+func manual_ready(i: int, _dir: Vector2 = Vector2.ZERO) -> bool:
 	return i >= 0 and skill_unlocked(i) and not perm[i] and sp_need(i) > 0.0 and sp[i] >= sp_need(i) 		and skill_active_left(i) <= 0.0 and not acting() and pos != Vector2.INF and not (has_method("away") and call("away"))
 
 
-func cast_manual(i: int) -> bool:
-	if not manual_ready(i):
+## 带方向的手动技能（契约 v2.4，2026-09-26 用户定）：技能 JSON 带 "aim": true 时，按键会把方向传进来——键鼠 = 当前移动方向，
+## 手柄 = 右摇杆（没推取左摇杆移动方向），手机 = 按住技能键拖出的方向；站着不动 / 直接点 = Vector2.ZERO（自动瞄准）。
+## 干员在出手帧读 manual_dir（读完清零），并重写 manual_aim_point 给出预计落点（界面画瞄准线与落点圈）。机器人一律自动瞄准
+func manual_aims(i: int) -> bool:
+	return i >= 0 and bool(skill_def(i).get("aim", false))
+
+
+var manual_dir := Vector2.ZERO
+
+func cast_manual(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+	if not manual_aims(i):
+		dir = Vector2.ZERO
+	if not manual_ready(i, dir):
 		return false
-	start_skill(Vector2.INF, i)
+	manual_buf = 0.0
+	manual_dir = dir.normalized() if dir != Vector2.ZERO else Vector2.ZERO
+	start_skill(pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF, i)
 	return true
+
+
+## 预计落点（瞄准指示用）：dir 同上；干员没实现或此刻没有落点返回 Vector2.INF
+func manual_aim_point(_i: int, _dir: Vector2 = Vector2.ZERO) -> Vector2:
+	return Vector2.INF
+
+
+## 玩家按下手动技能键（doctor.try_manual_skill 调用）：就绪就放；充能已满、只是正在出手（或干员自己的「稍等」条件，
+## manual_block_reason 返回空串）时先记下这次按键（连同方向），MANUAL_BUF 秒内一满足就放，免得按键撞上出手被吞。
+## 返回 "" = 已放出或已记下；否则返回提示原因
+const MANUAL_BUF := 1.0
+var manual_buf := 0.0
+var manual_buf_dir := Vector2.ZERO
+
+func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
+	if not manual_aims(i):
+		dir = Vector2.ZERO
+	if cast_manual(i, dir):
+		return ""
+	if skill_active_left(i) > 0.0:
+		return "生效中"
+	if has_method("away") and call("away"):
+		return "暂时离场"
+	if sp[i] < sp_need(i):
+		return "充能中"
+	var why := manual_block_reason(i, dir)
+	if why == "":
+		manual_buf = MANUAL_BUF
+		manual_buf_dir = dir
+	return why
+
+
+func _tick_manual_buf(dt: float) -> void:
+	if manual_buf <= 0.0:
+		return
+	manual_buf -= dt
+	var i := manual_index()
+	if i < 0:
+		manual_buf = 0.0
+	elif manual_ready(i, manual_buf_dir):
+		cast_manual(i, manual_buf_dir)
+
+
+## 充能已满但干员自己的条件不满足、等也没用时，按键提示的原因（如「附近没有敌人」）；空串 = 只是稍等，按键先记下
+func manual_block_reason(_i: int, _dir: Vector2 = Vector2.ZERO) -> String:
+	return ""
+
+
+## 机器人（自动测试 / 批跑）是否替玩家按下手动技能 i：已就绪时每帧询问。缺省按保命型：主控生命低于
+## balance.json bot/manual_hp（0.3）才按；进攻型手动技能重写成自己的时机（乌尔比安 S3：就绪即放）
+func bot_wants_manual(_i: int) -> bool:
+	return g.hp < g.max_hp * preload("res://scripts/core/balance.gd").v("bot/manual_hp", 0.3)
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
@@ -291,7 +363,7 @@ func _elite_show(stage: int) -> void:
 	var td := talent_def()
 	if stage == 1 and not td.is_empty():
 		items.append({"tag": "天赋", "tag_en": "TALENT", "glyph": td.get("name", "赋").substr(0, 1), "name": td.get("name", ""), "desc": td.get("desc", ""), "col": col().lerp(Color(1, 1, 1), 0.3)})
-	g.show_queue.append({"head": "%s · 精英化%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "elite": stage, "items": items})
+	g.show_queue.append({"head": "%s · 精英%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "elite": stage, "items": items})
 
 
 # ---------------------------------------------------------------- 干员特效粒子（docs/25）
@@ -790,8 +862,8 @@ func follow(dt: float, target: Vector2) -> void:
 	mt += dt
 	# 动画状态
 	var want := "idle"
-	if attack_t > 0.0 and anim_tex(act_kind) != null:
-		want = act_kind
+	if attack_t > 0.0 and anim_tex(act_anim) != null:
+		want = act_anim
 	elif mv > 30.0 and anim_tex("run") != null:
 		want = "run"
 	if want != anim_kind:
@@ -806,27 +878,36 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25) -> void
 	_start_action("attack", aim, dur, fire_at)
 
 
-## 起手技能动作（skill 帧条）；idx 为技能序号（默认沿用 cur_skill）；没有 skill 条时直接出手
-func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3) -> void:
+## 起手技能动作；idx 为技能序号（默认沿用 cur_skill）。播哪套帧条由 skill_anim() 决定（缺省 skill 条），
+## anim 参数可临时指定；那套帧条不存在时退回 skill 条，都没有就直接出手
+func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3, anim := "") -> void:
 	if idx >= 0:
 		cur_skill = idx
 		spend_sp(idx)
-	_start_action("skill", aim, dur, fire_at)
+	_start_action("skill", aim, dur, fire_at, anim if anim != "" else skill_anim(cur_skill))
 
 
-func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float) -> void:
+## 技能 i 播放的帧条（2026-09-26）：缺省读干员 JSON skills[i].anim（例如 "attack" = 放技能时播普攻动作），没写就是 "skill"。
+## 干员脚本也可以重写这个函数按状态决定。出手时机按实际播放的那套帧条的 fps / fire 算。
+func skill_anim(i: int) -> String:
+	return str(skill_def(i).get("anim", "skill")) if i >= 0 else "skill"
+
+
+## kind：逻辑类型（attack / skill，决定出手调哪个函数）；anim：播放的帧条（缺省同 kind）
+func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "") -> void:
 	if aim != Vector2.INF and absf(aim.x - pos.x) > 2.0:
 		face = signf(aim.x - pos.x)
 	act_kind = kind
-	if anim_tex(kind) == null:
+	act_anim = anim if anim != "" and anim_tex(anim) != null else kind
+	if anim_tex(act_anim) == null:
 		if kind == "skill":
 			_release_skill()
 		else:
 			_release()
 		return
-	var spec := sprite_spec(kind)
+	var spec := sprite_spec(act_anim)
 	if spec.has("fps") and spec.has("fire"):
-		var n := float(spec.get("frames", anim_hframes(anim_tex(kind), kind)))
+		var n := float(spec.get("frames", anim_hframes(anim_tex(act_anim), act_anim)))
 		dur = n / float(spec.fps)
 		fire_at = (float(spec.fire) + 0.5) / float(spec.fps)
 	# 攻速快于动作时压缩动作，保证出手不被下一次起手打断

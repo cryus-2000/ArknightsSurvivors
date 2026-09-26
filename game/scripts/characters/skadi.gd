@@ -27,7 +27,7 @@ const WAVE_MAX := 2
 
 ## 基础数值全部可由 data/characters/skadi.json 的 base 段覆盖（docs/27 §3）
 func _reach() -> float:
-	return base("reach", 88.0) * stat(&"op_range") * (1.4 if tide > 0.0 else 1.0)
+	return base("reach", 132.0) * stat(&"op_range") * (1.4 if tide > 0.0 else 1.0)
 
 
 func follow_target(slot_pos: Vector2) -> Vector2:

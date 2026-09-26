@@ -27,14 +27,28 @@ static func _incoming_path(name: String) -> String:
 
 static func incoming_dir() -> String:
 	if OS.has_feature("web"):
-		return "res://art/incoming"  # 网页版：导出时把 art/incoming 打进包里（export_presets 的 include_filter）
+		return "res://art/incoming"  # 网页版：导出时把 art/incoming 打进包里，但包里是导入后的贴图（原图读不到，见 _packed_path）
 	if OS.has_feature("editor"):
 		return ProjectSettings.globalize_path("res://").path_join("../art/incoming").simplify_path()
 	return OS.get_executable_path().get_base_dir().path_join("../art/incoming").simplify_path()
 
 
+## 网页版的 art/incoming：导出时被导入进 pck，包里只有 .import 与导入后的贴图，没有原始 PNG——
+## FileAccess / Image.load_from_file 读不到，要用 ResourceLoader 读导入后的贴图（2026-09-26 查到：网页版选人页没有头像、
+## 技能 / 藏品图标全空，都是这个原因）。编辑器与桌面版读 art/incoming 原图，走不到这里
+static func _packed_path(name: String) -> String:
+	var p := "res://art/incoming/%s.png" % name
+	if ResourceLoader.exists(p):
+		return p
+	if ALIAS.has(name):
+		var a := "res://art/incoming/%s.png" % ALIAS[name]
+		if ResourceLoader.exists(a):
+			return a
+	return ""
+
+
 static func has_override(name: String) -> bool:
-	return _incoming_path(name) != ""
+	return _incoming_path(name) != "" or _packed_path(name) != ""
 
 
 ## 是否为贴图生成法线图（2D 法线光照）；由 game.gd 按 Cfg.normal_maps 在加载前设置
@@ -62,12 +76,22 @@ static func tex(name: String) -> Texture2D:
 		if img2 != null and not img2.is_empty():
 			t = ImageTexture.create_from_image(img2)
 			density = 2.0
+	elif USE_HIRES:
+		var q2 := _packed_path(name + "@2x")
+		if q2 != "":
+			t = load(q2)
+			if t != null:
+				density = 2.0
 	if t == null:
 		var p := _incoming_path(name)
 		if p != "":
 			var img := Image.load_from_file(p)
 			if img != null and not img.is_empty():
 				t = ImageTexture.create_from_image(img)
+		else:
+			var q := _packed_path(name)
+			if q != "":
+				t = load(q)
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		t = load("res://art/px/%s.png" % name)
 	if t != null and normal_maps and _wants_normal(name):

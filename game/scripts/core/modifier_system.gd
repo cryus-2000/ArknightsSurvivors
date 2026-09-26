@@ -20,6 +20,9 @@ var stats          # 玩家 StatBlock
 var enemy          # 敌人 StatBlock
 var bus            # EventBus
 var ctx_provider: Callable   # 返回 {light, hp_ratio, allies, ...}，用于条件判断
+## 条件里的概率（"chance"）用的随机数（2026-09-26）：玩法随机不能用全局 randf()（docs/36 §3、AGENTS.md）。
+## 缺省自带一个固定种子的 RNG（核心测试可复现）；接进对局时由持有方注入对局随机数：mods.rng = g.rng
+var rng := RandomNumberGenerator.new()
 var t := 0.0
 
 var _actions := {}           # name -> Callable(args: Dictionary, ev: Dictionary)
@@ -35,6 +38,7 @@ var fired := {}              # owner_id -> 触发次数（统计）
 
 
 func _init(p_stats, p_enemy, p_bus) -> void:
+	rng.seed = 1
 	stats = p_stats
 	enemy = p_enemy
 	bus = p_bus
@@ -128,7 +132,7 @@ func check(cond: Dictionary, ev: Dictionary) -> bool:
 	if cond.is_empty():
 		return true
 	var c: Dictionary = ctx_provider.call() if ctx_provider.is_valid() else {}
-	if cond.has("chance") and randf() >= float(cond.chance):
+	if cond.has("chance") and rng.randf() >= float(cond.chance):
 		return false
 	if cond.has("light_below") and c.get("light", 100.0) >= float(cond.light_below):
 		return false

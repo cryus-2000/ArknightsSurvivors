@@ -92,7 +92,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 
 
 func _reach() -> float:
-	return base("len", 120.0) * stat(&"op_range") * (base("strict_len", 1.25) if strict_on else 1.0)
+	return base("len", 180.0) * stat(&"op_range") * (base("strict_len", 1.25) if strict_on else 1.0)
 
 
 func _width() -> float:

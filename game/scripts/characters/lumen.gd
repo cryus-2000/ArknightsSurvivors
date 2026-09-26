@@ -20,6 +20,7 @@ var tower_pos := Vector2.INF
 var tower_tick := 0.0
 var bolts: Array = []          # 光弹：{pos, vel, dmg, life, src, big, heal}
 var mote_t := 0.0
+var hand_glow := 0.0            # 出手时提灯的闪光（加法层画，见 draw_fx_add）
 # ---- 可见成长（docs/25 §5：只长发光单元；原作依据 档案「灯塔工程师之子、自制发光单元」/ 原作技能 沐雨、灯火不灭）
 var units := 0                 # N1 / N2：身边漂浮的发光单元数（0–2）
 var unit_cd: Array = [0.5, 1.2]   # 每个单元自己的射击计时（错开出手）
@@ -46,6 +47,7 @@ func _heal_mult() -> float:
 
 func update(dt: float) -> void:
 	cd -= dt
+	hand_glow = maxf(0.0, hand_glow - dt)
 	immune_t = maxf(0.0, immune_t - dt)
 	if immune_t > 0.0:
 		g.nerve = 0.0
@@ -75,7 +77,7 @@ func update(dt: float) -> void:
 
 ## 荧光出手帧（灯最亮）：到点则驱散优先、其次治疗；同时向最近敌人射光弹
 func _release() -> void:
-	var lamp_hand: Vector2 = pos + Vector2(10.0 * face, -26)
+	var lamp_hand: Vector2 = _lamp_hand()
 	var did := false
 	if heal_t < base("heal_cd", 3.0):
 		pass
@@ -91,7 +93,7 @@ func _release() -> void:
 		heal_t = 0.0
 		_talent_lamp()
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
-	fx({"kind": "glow", "pos": lamp_hand, "r": 12.0, "life": 0.3, "col": WARM, "alpha": 0.6})
+	hand_glow = 0.3
 	# 光弹
 	var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
 	if not ts.is_empty():
@@ -472,10 +474,16 @@ func _draw_rain() -> void:
 
 
 func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
+	# 出手时提灯的暖光（加法层，不再用普通混合的发光团，避免在身上糊成浑色圆斑）
+	if hand_glow > 0.0:
+		var hk: float = sin(hand_glow / 0.3 * PI)
+		var hp: Vector2 = _lamp_hand()
+		ci.draw_circle(hp, 11.0 * (0.5 + 0.5 * hk), Color(0.9, 0.7, 0.35, 0.45 * hk))
+		ci.draw_circle(hp, 4.0 * hk, Color(1.0, 0.9, 0.6, 0.8 * hk))
 	# 灯塔光柱与光区（加法层）
 	if tower_t > 0.0 and tower_pos != Vector2.INF:
 		var k: float = 0.5 + 0.5 * sin(g.t * 3.0)
-		ci.draw_circle(tower_pos + Vector2(0, -100), 26.0 + 4.0 * k, Color(0.9, 0.7, 0.35, 0.35))
+		ci.draw_circle(_tower_lamp(), 26.0 + 4.0 * k, Color(0.9, 0.7, 0.35, 0.35))
 		ci.draw_set_transform(tower_pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		ci.draw_circle(Vector2.ZERO, base("s3_r", 220.0) * 0.9, Color(0.6, 0.45, 0.2, 0.06 + 0.02 * k))
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -492,7 +500,22 @@ func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
 		var fade: float = clampf((tower_t if twr else beam_t) / 0.5, 0.0, 1.0)
 		ci.draw_colored_polygon(PackedVector2Array([o + n * 4.0, tip + n * 26.0, tip - n * 26.0, o - n * 4.0]), Color(0.9, 0.7, 0.35, 0.28 * fade))
 		ci.draw_colored_polygon(PackedVector2Array([o + n * 2.0, tip + n * 10.0, tip - n * 10.0, o - n * 2.0]), Color(1.0, 0.85, 0.5, 0.35 * fade))
-		ci.draw_line(o + Vector2(0, -100.0 if twr else -44.0), o + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
+		ci.draw_line(_tower_lamp() if twr else o + Vector2(0, -44.0), o + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
+
+
+## 出手帧提灯的位置（op_lumen_attack@2x 第 2 帧量得：脚底前 26、上 32；docs/32 §3）
+func _lamp_hand() -> Vector2:
+	return pos + Vector2(26.0 * face, -32.0)
+
+
+## 悬浮灯塔贴图的脚底位置（光域中心 tower_pos 在主控脚下，贴图画在身后一侧）
+func _tower_sprite_pos() -> Vector2:
+	return tower_pos + Vector2(-40.0 * g.facing, -8.0 + 3.0 * sin(g.t * 2.4))
+
+
+## 灯室中心（prop_lighthouse@2x 第 1 帧量得：脚底正上方 83）
+func _tower_lamp() -> Vector2:
+	return _tower_sprite_pos() + Vector2(0, -83.0)
 
 
 func extra_bodies() -> Array:
@@ -507,14 +530,15 @@ func draw_extra(_it: Dictionary) -> void:
 		g.draw_rect(Rect2(tower_pos + Vector2(-8, -60), Vector2(16, 60)), Color(0.5, 0.6, 0.7))
 		return
 	var n: int = anim_hframes(tx, "lighthouse")
-	var fr: int = 1 if int(g.t * 4.0) % 2 == 1 else 0
-	# 灯塔悬在主控身后一侧随行（缩小一些、轻微上下浮动）
-	draw_sprite_at(tower_pos + Vector2(-40.0 * g.facing, -8.0 + 3.0 * sin(g.t * 2.4)), false, Color.WHITE, fr % n, tx, n, foot_off(tx, "lighthouse"))
+	# 灯塔悬在主控身后一侧随行、轻微上下浮动；灯室常亮（帧 1），不再 4Hz 亮灭频闪（docs/32 §3）
+	draw_sprite_at(_tower_sprite_pos(), false, Color.WHITE, 1 % n, tx, n, foot_off(tx, "lighthouse"))
 
 
 func draw_extra_shadows() -> void:
 	if tower_t > 0.0 and tower_pos != Vector2.INF:
-		draw_spr("shadow", 1, 0, tower_pos + Vector2(0, 4), g.PX * 1.5)
+		# 影子落在悬浮灯塔正下方的地面上，随浮动高度轻微缩放
+		var sp: Vector2 = _tower_sprite_pos()
+		draw_spr("shadow", 1, 0, Vector2(sp.x, tower_pos.y + 4.0), g.PX * (1.3 - 0.02 * (tower_pos.y - sp.y - 8.0)))
 
 
 func status_items() -> Array:

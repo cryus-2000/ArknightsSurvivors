@@ -283,7 +283,7 @@ func update_ebullets(dt: float) -> void:
 			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": g.rng.randf() * 100.0, "boss": b.get("boss", false)})
 		if hitp:
 			b.life = 0.0
-			if b.get("slow", false):
+			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			g.dmg_src = "bullet"
 			g.in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
@@ -293,6 +293,7 @@ func update_ebullets(dt: float) -> void:
 
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
 func update_status(dt: float) -> void:
+	g.combat.update_ctrl(dt)   # 主控减速计时；Boss 战中僵直恒为 0（docs/38 §1.11）
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
@@ -319,10 +320,11 @@ func update_status(dt: float) -> void:
 			mire_tick = 0.5
 			var md: float = 3.0 + g.max_hp * 0.015
 			md = g.combat.lose_hp(md, "mire", not mire_nat)
-			g.red_flash = maxf(g.red_flash, 0.08)
-			g.hp_shake = 0.2
-			g.hurt_flash = maxf(g.hurt_flash, 0.06)
-			g.vfx.add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
+			if md >= 1.0:   # Boss 溟痕这一跳被持续伤害上限截到不足 1 点时不闪、不飘「-0」（自然溟痕每跳 ≥3，照旧）
+				g.red_flash = maxf(g.red_flash, 0.08)
+				g.hp_shake = 0.2
+				g.hurt_flash = maxf(g.hurt_flash, 0.06)
+				g.vfx.add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
 		g.head_bar_t = maxf(g.head_bar_t, 0.6)
 	else:
 		mire_tick = 0.0
@@ -332,7 +334,8 @@ func update_status(dt: float) -> void:
 		if not s.hit and abs(s.pos.distance_to(g.ppos) - s.r) < 22.0:
 			s.hit = true
 			if g.invuln <= 0.0:
-				g.pstun = max(g.pstun, 0.5)
+				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
+					g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock"
 				g.in_type = ["近战", "物理"]
 				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）

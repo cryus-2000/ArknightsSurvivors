@@ -111,8 +111,15 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array) -> float:
 		var on: bool = row[3]
 		var col: Color = (Color(0.85, 0.55, 1.0) if row[4] else c) if on else Color(0.35, 0.42, 0.46)
 		var sc := Vector2(b1.position.x + 34, y + 20)
-		UI.ring(g.hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
-		UI.text(g.hud, g.font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
+		var itx: Texture2D = g.tex.get(row[5]) if row.size() > 5 and row[5] != "" else null
+		if itx != null:
+			# 技能图标（32px 原尺寸），未解锁压暗；左下角小牌标技能序号
+			g.hud.draw_texture_rect(itx, Rect2(sc - Vector2(16, 16), Vector2(32, 32)), false, Color.WHITE if on else Color(0.34, 0.37, 0.41))
+			g.hud.draw_rect(Rect2(sc + Vector2(-17, 5), Vector2(11, 12)), Color(0.03, 0.035, 0.045, 0.92))
+			UI.ctext(g.hud, g.font, sc + Vector2(-16, 15), row[0], 10, col, HORIZONTAL_ALIGNMENT_CENTER, 9)
+		else:
+			UI.ring(g.hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
+			UI.text(g.hud, g.font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
 		UI.text_fit(g.hud, g.font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB, dw, 11)
 		var lines: PackedStringArray = wrapped[k]
 		var dcol: Color = col if on else Color(0.42, 0.48, 0.52)

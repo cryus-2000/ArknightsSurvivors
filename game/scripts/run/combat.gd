@@ -30,10 +30,13 @@ const NO_LOG := ["tear", "dark"]
 ## 主控保护（docs/38 §1.11）：只管 Boss 来源的扣血（Boss 本体接触、Boss 预警 / 冲击环 / 子弹、Boss 子弹留下的溟痕、
 ## Boss 招式追加的侵蚀、伊莎玛拉之泪）；自然溟痕、黑潮、小怪都不算。数值旋钮 boss/*（Bal.v，默认值即现值）
 const BOSS_DOT := ["corrode", "mire"]   # 算「持续伤害」的来源：Boss 在场时合计每秒封顶
-var boss_log: Array = []     # [时刻, 实际扣血]：Boss 来源的扣血（含 Boss 侵蚀结算），查「任意 2 秒合计」
+## 「任意 2 秒合计 ≤50%」按两种口径同时截，同一份伤害在每个口径里只算一次：
+var boss_log: Array = []     # [时刻, 数值]：Boss 扣血 + Boss 招式追加进侵蚀池的量（docs/38 §1.11「含追加的侵蚀」；窗口满时追加的侵蚀也作废）
+var loss_log: Array = []     # [时刻, 数值]：Boss 来源的实际扣血，含 Boss 侵蚀结算（实际掉血口径）
 var dot_log: Array = []      # [时刻, 实际扣血]：Boss 来源的持续伤害，查「每秒上限」
-var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分
-var burst_hp := 0.0          # 这一轮 Boss 连击开始前的生命（2 秒窗口里第一次 Boss 扣血之前），满血保护用
+var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分；用之前先 _boss_pool() 截到池子以内
+var high_t := -INF           # 最近一次「扣血前生命 ≥ fullhp_guard_at」的时刻，满血保护用
+var guard_end := -INF        # 满血保护触发后兜底到的时刻（这一轮连击结束：high_t + fullhp_guard_combo）
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
 
 
@@ -67,13 +70,17 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
 		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
+		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
 		if boss:
-			# 侵蚀算进单发上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血。
+			# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
 			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
-			corrode_boss = minf(corrode_boss, g.corrode_pool)
-			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * g.max_hp - lost, Bal.v("boss/corrode_pool_cap", 0.40) * g.max_hp - corrode_boss)
-			add = maxf(0.0, minf(add, room))
-			corrode_boss += add
+			var mh: float = g.max_hp
+			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * mh - lost, Bal.v("boss/leader_2s_cap", 0.50) * mh - _window_sum(boss_log, 2.0))
+			room = minf(room, Bal.v("boss/corrode_pool_cap", 0.40) * mh - corrode_boss)
+			add = _guard(clampf(add, 0.0, maxf(0.0, room)))
+			if add > 0.0:
+				boss_log.append([g.t, add])
+				corrode_boss += add
 		g.corrode_pool += add
 		if not boss or add > 0.0:
 			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
@@ -89,8 +96,10 @@ func add_nerve(v: float) -> void:
 	g.nerve += v
 	if g.nerve >= 100.0:
 		g.nerve = 0.0
-		g.pstun = 0.4
-		g.atk_slow = maxf(g.atk_slow, 2.5)
+		if not stun_as_slow():
+			g.pstun = 0.4
+		if not atk_slow_as_slow(2.5):
+			g.atk_slow = maxf(g.atk_slow, 2.5)
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
 		hurt(g.max_hp * 0.08, true)
@@ -98,10 +107,93 @@ func add_nerve(v: float) -> void:
 		Sfx.play("skill", -4.0, 1.6)
 
 
+## ---- 主控保护「永不硬控」「移速下限」「攻速」（docs/38 §1.11，B0-2 / B0-3）
+## Boss 存活期间（或这一下本身是 Boss 来源），会让主控僵直的地方（预警僵直、冲击环、神经损伤溢出）改成移速减速：
+## boss/stun_as_slow_t（0.5）秒 × boss/stun_as_slow_mult（0.7）。没有 Boss 时照旧僵直。冲刺不查僵直（game._try_dash）。
+## 攻速减缓 g.atk_slow（只有水月读：挥伞间隔 ×1.5）同样改成等量的移速减速：时长不变、倍率 boss/atk_slow_as_slow_mult（0.67）。
+## 同一种减速重复吃到只刷新时长、不叠乘；不同种之间相乘（move_mult），Boss 存活期间合计不低于 boss/move_floor（0.7）。
+var slows: Dictionary = {}   # 主控移速减速：种类 -> [剩余秒数, 倍率]
+var ctrl_boss := false       # 上一帧有没有 Boss 存活：Boss 刚出现时残留的僵直 / 攻速减缓直接换掉，不算违规
+## 验收计数（BALANCE 的 "ctrl"，快检冒烟会查）：Boss 存活总秒数；其间主控仍处于僵直 / atk_slow 的秒数（应恒为 0）；
+## 其间移速倍率的最小值 move_min（含下限，应 ≥ floor）和不含下限的减速乘积最小值 slow_min；僵直 / 攻速减缓换成减速的次数
+var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "aslow_t": 0.0, "move_min": 1.0, "slow_min": 1.0, "stun_slow": 0, "aslow_slow": 0}
+
+
+## Boss 战里把一次僵直换成减速。返回 true = 已换成减速，调用处不再写 g.pstun
+func stun_as_slow(boss_src := false) -> bool:
+	if not boss_src and not g.spawner.boss_alive():
+		return false
+	slow_leader("stun", Bal.v("boss/stun_as_slow_t", 0.5), Bal.v("boss/stun_as_slow_mult", 0.7))
+	ctrl.stun_slow += 1
+	return true
+
+
+## Boss 战里把一次攻速减缓（t 秒）换成等量的移速减速。返回 true = 已换成减速，调用处不再写 g.atk_slow
+func atk_slow_as_slow(t: float, boss_src := false) -> bool:
+	if not boss_src and not g.spawner.boss_alive():
+		return false
+	slow_leader("atk", t, Bal.v("boss/atk_slow_as_slow_mult", 0.67))
+	ctrl.aslow_slow += 1
+	return true
+
+
+## 给主控挂一种移速减速：t 秒、倍率 mult；同种只刷新（取较长的时长、用这次的倍率）
+func slow_leader(kind: String, t: float, mult: float) -> void:
+	if not slows.has(kind):
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "减速", Color(0.6, 0.8, 1.0), 14)
+	var old: float = slows[kind][0] if slows.has(kind) else 0.0
+	slows[kind] = [maxf(old, t), mult]
+
+
+## 主控移速倍率：raw = 溟痕 / 排异幻境 / 冰霜等原有减速的乘积，再乘上 slows 里的减速（game._update 每帧调一次）。
+## Boss 存活期间不低于 boss/move_floor（0.7），并记下验收用的最小值；冲刺速度不走这里，不受减速影响
+func move_mult(raw: float) -> float:
+	for k in slows:
+		raw *= float(slows[k][1])
+	if not g.spawner.boss_alive():
+		return raw
+	ctrl.slow_min = minf(ctrl.slow_min, raw)
+	raw = maxf(Bal.v("boss/move_floor", 0.7), raw)
+	ctrl.move_min = minf(ctrl.move_min, raw)
+	return raw
+
+
+## 每帧（enemies.update_status，在僵直 / 攻速减缓计时递减之前）：推进减速计时；Boss 存活期间残留的僵直 / 攻速减缓换成减速并记账
+func update_ctrl(dt: float) -> void:
+	var on: bool = g.spawner.boss_alive()
+	if on:
+		ctrl.boss_t += dt
+		if g.pstun > 0.0:
+			if ctrl_boss:
+				ctrl.stun_t += dt   # Boss 战中还有地方直接写了 g.pstun：违规，记下来（快检会报）
+			g.pstun = 0.0
+			stun_as_slow(true)
+		if g.atk_slow > 0.0:
+			if ctrl_boss:
+				ctrl.aslow_t += dt   # 同上，g.atk_slow
+			atk_slow_as_slow(g.atk_slow, true)
+			g.atk_slow = 0.0
+	ctrl_boss = on
+	for k in slows.keys():
+		slows[k][0] -= dt
+		if slows[k][0] <= 0.0:
+			slows.erase(k)
+
+
+## BALANCE 输出用：ctrl 里的秒数 / 倍率取两位小数，附上移速下限 floor
+func ctrl_report() -> Dictionary:
+	var r := {"floor": Bal.v("boss/move_floor", 0.7)}
+	for k in ctrl:
+		r[k] = snappedf(ctrl[k], 0.01) if ctrl[k] is float else ctrl[k]
+	return r
+
+
 ## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
 ## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。boss = Boss 来源，按主控保护截断（_boss_clamp）。
 ## 返回实际扣掉的生命。
 func lose_hp(amount: float, src: String, boss := false) -> float:
+	if g.hp >= Bal.v("boss/fullhp_guard_at", 0.9) * g.max_hp:
+		high_t = g.t   # 满血保护的「受击前生命」：只记账，不改非 Boss 来源的扣血
 	if boss:
 		amount = _boss_clamp(amount, src)
 	g.hp -= amount
@@ -113,29 +205,55 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 ## 主控保护（docs/38 §1.11）：Boss 来源的一次扣血依次截断，并记账。调用时所有倍率（骨血、灯火 <30、护甲、法抗）都已算完。
 ##   单发上限：≤ boss/leader_hit_cap（40%）最大生命；
 ##   持续伤害：Boss 在场时，Boss 带来的侵蚀结算 + Boss 溟痕任意 1 秒合计 ≤ boss/dot_cap_per_s（4%）；
-##   2 秒合计：任意 2 秒内 Boss 来源合计 ≤ boss/leader_2s_cap（50%），超出作废；
-##   满血保护：受击前生命 ≥ boss/fullhp_guard_at（90%）——或这一轮 Boss 连击开始前 ≥90%（连击 = 2 秒窗口里接连不断的 Boss 扣血）——
-##   时，最多打到剩 boss/fullhp_guard_left（10%）；每 boss/fullhp_guard_cd（30）秒一次，飘「险些倒下」。
+##   2 秒合计：任意 2 秒内 ≤ boss/leader_2s_cap（50%），超出作废。两种口径同时截：boss_log（Boss 扣血 + 追加的 Boss 侵蚀）
+##   和 loss_log（实际扣血，含 Boss 侵蚀结算）；Boss 侵蚀结算追加时已计入 boss_log，这里只计 loss_log；
+##   满血保护：见 _guard。
 func _boss_clamp(amount: float, src: String) -> float:
 	var mh: float = g.max_hp
 	var dot: bool = src in BOSS_DOT
+	var drain: bool = src == "corrode"
 	amount = clampf(amount, 0.0, Bal.v("boss/leader_hit_cap", 0.40) * mh)
 	if dot:
 		amount = minf(amount, dot_room())
-	var used := _window_sum(boss_log, 2.0)
-	if boss_log.is_empty():
-		burst_hp = g.hp
-	amount = minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.50) * mh - used))
-	var floor_hp: float = Bal.v("boss/fullhp_guard_left", 0.10) * mh
-	if amount > 0.0 and g.hp - amount < floor_hp and g.t >= guard_ready and maxf(g.hp, burst_hp) >= Bal.v("boss/fullhp_guard_at", 0.9) * mh:
-		amount = maxf(0.0, g.hp - floor_hp)
-		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 30.0)
-		g.vfx.add_text(g.ppos + Vector2(0, -112), "险些倒下", UI.GOLD, 20)
+	var used := _window_sum(loss_log, 2.0)
+	if not drain:
+		used = maxf(used, _window_sum(boss_log, 2.0))
+	amount = _guard(minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.50) * mh - used)))
 	if amount > 0.0:
-		boss_log.append([g.t, amount])
+		loss_log.append([g.t, amount])
+		if not drain:
+			boss_log.append([g.t, amount])
 		if dot:
 			dot_log.append([g.t, amount])
 	return amount
+
+
+## 满血保护（docs/38 §1.11）：扣血前生命 ≥ boss/fullhp_guard_at（90%）之后的 boss/fullhp_guard_combo（2）秒内（一轮连击），
+## Boss 来源的扣血和追加的侵蚀最多把「生命 − 池里待流出的 Boss 侵蚀」压到 boss/fullhp_guard_left（10%）。
+## 每 boss/fullhp_guard_cd（30）秒触发一次，飘「险些倒下」；触发后兜底到这一轮连击结束。fullhp_guard_combo = 0 即字面规则「受击前生命 ≥90%」。
+## amount = 这次要扣的血（g.hp 还没扣）或要追加进池子的 Boss 侵蚀；返回截过的量
+func _guard(amount: float) -> float:
+	var room: float = g.hp - _boss_pool() - Bal.v("boss/fullhp_guard_left", 0.10) * g.max_hp
+	if amount <= 0.0 or amount <= room:
+		return amount
+	if g.t > guard_end:
+		var combo: float = Bal.v("boss/fullhp_guard_combo", 2.0)
+		if g.t < guard_ready or g.t - high_t > combo:
+			return amount
+		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 30.0)
+		guard_end = high_t + combo
+		g.vfx.add_text(g.ppos + Vector2(0, -112), "险些倒下", UI.GOLD, 20)
+	# 池里待流出的 Boss 侵蚀就已经压过线：清掉多出的那部分
+	var cut: float = minf(corrode_boss, maxf(0.0, -room))
+	corrode_boss -= cut
+	g.corrode_pool -= cut
+	return clampf(room + cut, 0.0, amount)
+
+
+## 侵蚀池里的 Boss 部分：池子被别处清空或减少（流明净化）时跟着截到池子以内，返回截过的值
+func _boss_pool() -> float:
+	corrode_boss = maxf(0.0, minf(corrode_boss, g.corrode_pool))
+	return corrode_boss
 
 
 ## Boss 在场时，Boss 来源的持续伤害这一秒还能扣多少；没有 Boss 在场时不限
@@ -156,10 +274,10 @@ func _window_sum(rows: Array, span: float) -> float:
 
 
 ## 侵蚀结算（enemies.update_status 每帧调用，tick = 本帧流出量）：按池子里的比例拆成普通部分和 Boss 部分；
-## Boss 部分受持续伤害上限，流不出去的留在池里下一帧再流
+## Boss 部分受持续伤害上限，流不出去的留在池里下一帧再流；流出后被 2 秒合计 / 满血保护截掉的部分作废
 func drain_corrode(tick: float) -> void:
-	corrode_boss = clampf(corrode_boss, 0.0, g.corrode_pool)   # 池子被别处清空（流明净化）时跟着截
-	var bt: float = tick * corrode_boss / g.corrode_pool if corrode_boss > 0.0 else 0.0
+	var cb := _boss_pool()
+	var bt: float = tick * cb / g.corrode_pool if cb > 0.0 else 0.0
 	var nt: float = tick - bt
 	if bt > 0.0:
 		bt = minf(bt, dot_room())
@@ -194,7 +312,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
 	g.vfx.sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
 	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
-	g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
+	if amount >= 1.0 or not boss:   # Boss 这一击被主控保护截到不足 1 点（2 秒合计已满、满血保护）时不飘「-0」
+		g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
 	# 首次跌破 30%：时间短暂变慢 + 警告
 	if g.hp > 0.0 and g.hp < g.max_hp * 0.3 and not low_warned:
 		low_warned = true
@@ -408,7 +527,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.coma = true
 			e.invuln = true
 			e.stun = 0.0
-			g.vfx.add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
+			g.vfx.add_text(e.pos + Vector2(0, -50), "假死（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
 			return
 		kill(e)
 

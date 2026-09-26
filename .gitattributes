@@ -8,3 +8,4 @@
 *.ogg binary
 *.wav binary
 *.ttf binary
+*.sh text eol=lf

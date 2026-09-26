@@ -309,9 +309,9 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
-		if stun_t > 0.0:
+		if stun_t > 0.0 and not g.combat.stun_as_slow(e.boss):   # Boss 战里僵直改成减速（docs/38 §1.11）
 			g.pstun = maxf(g.pstun, stun_t)
-		if slow:
+		if slow and not g.combat.atk_slow_as_slow(3.0, e.boss):   # Boss 来源不写 atk_slow，改成移速减速（docs/38 §1.11）
 			g.atk_slow = 3.0
 
 

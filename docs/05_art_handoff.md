@@ -83,7 +83,8 @@ E:\ArknightsSurvivors\art\incoming\
 | 文件名 | 尺寸 | 说明 |
 |---|---|---|
 | `relic_<藏品id>.png` | 24×24 | 藏品图标，id 见下方列表 |
-| `skill_s1.png` / `skill_s2.png` / `skill_s3.png` | 32×32 | 技能图标：唤醒、囚徒困境、镜花水月 |
+| `skill_s1.png` / `skill_s2.png` / `skill_s3.png` | 32×32 | 水月的技能图标：唤醒、囚徒困境、镜花水月 |
+| `skill_<干员 id>_s1.png` … `_s3.png` | 32×32 | 其余干员的技能图标（Claude 用 `tools/make_skill_icons.py` 生成，JSON 的 `skills[].icon` 引用）。风格按原作技能图标的构图重画：方形底（深灰渐变 / 治疗蓝 / 防御金 / 充能绿）+ 红色放射、X 或五边形 + 常见的 2px 白框 + 扁平白色主体；不使用原作图片 |
 | `title_bg.png` | 640×360 | 标题背景（游戏内放大 2 倍到 1280×720）；左侧 40% 留给标题和菜单，尽量暗 |
 | `logo.png` | 自定 | 标题字"水月 · 深海幸存者"，透明背景 |
 

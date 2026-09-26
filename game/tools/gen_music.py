@@ -8,17 +8,28 @@
   opening.ogg                   开场动画引子《沉降》（不循环，对齐 3.6 s 动画）
   boss_in.ogg / boss_down.ogg   Boss 登场 / 击破叠加短乐句（不循环，叠在当前音乐之上）
 全部为原创旋律与编曲，合成方式：减法/FM/Karplus-Strong + 卷积混响。
-战斗曲、中期 Boss、最终 Boss 自 v2.0 起由 gen_music_battle.py 生成（电子 + 管弦混合），本脚本不再生成它们。
+战斗曲、中期 Boss、最终 Boss 自 v2.0 起由 gen_music_battle.py 生成，本脚本不再生成它们。
+依赖 numpy / scipy / soundfile（不需要 ffmpeg）。
+随机数序列取决于同一个进程里前面跑过什么，现有文件是分三轮生成的；要重做其中几首并保持随机细节和现有文件一致，按原来的轮次跑，
+同轮里不想覆盖的曲目用 --skip 列出（照样「算」，只是不写文件）。竖琴音准修正（2026-09-26）就是这样重做的：
+  python gen_music.py title
+  python gen_music.py opening boss_cues shop --skip boss_in
+  python gen_music.py result_loops --skip lose_loop
+win / lose 短乐句还是 v0.9 时生成的，没有竖琴，没重做。shop 的现有文件在竖琴修正之前就与本脚本对不上
+（当时生成它的代码后来改过），所以重做后音符不变、随机细节（力度抖动等）会变。
 """
 import numpy as np
 from scipy.signal import butter, sosfilt, fftconvolve
-import subprocess, os, wave
+import soundfile as sf
+import os
 
 SR = 44100
 rng = np.random.default_rng(7)
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(HERE, "..", "audio", "music")
 os.makedirs(OUTDIR, exist_ok=True)
+SKIP = set()       # 只算不写的曲目名（见文件头）
+OGG_LEVEL = 0.45   # Vorbis 压缩档（libsndfile；码率与原来的 ffmpeg -q:a 5 相当，五首平均约 120 kbps）
 
 
 # ============================================================ 基础
@@ -108,12 +119,13 @@ def finish(track, name, loop=True, peak=0.8, verb=(2.6, 2.4, 0.35), gain=None):
     else:
         data *= gain
         data = np.tanh(data * 1.1) / 1.1
-    wav = "/tmp/claude-0/_m.wav"
-    with wave.open(wav, "wb") as w:
-        w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
-        w.writeframes((np.clip(data, -1, 1) * 32767).astype(np.int16).tobytes())
+    if name in SKIP:
+        return np.max(np.abs(data))
+    pcm = np.clip(data, -1, 1).astype(np.float32)
     dst = os.path.join(OUTDIR, name + ".ogg")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis", "-q:a", "5", dst], check=True)
+    with sf.SoundFile(dst, "w", SR, 2, format="OGG", subtype="VORBIS", compression_level=OGG_LEVEL) as f:
+        for i in range(0, len(pcm), 8192):   # libsndfile 一次写整段 Vorbis 会崩，分块写
+            f.write(pcm[i:i + 8192])
     print(name, round(len(data) / SR, 2), "s")
     return np.max(np.abs(data))
 
@@ -192,7 +204,11 @@ def pluck(note, dur=0.6, amp=0.1, bright=0.5):
         j = min(i + p - 1, n)
         out[i:j] = 0.5 * damp * (out[i - p:j - p] + out[i - p + 1:j - p + 1])
         i = j
-    out = out[:n]
+    # 循环延迟只能取整数采样 p，加上平均滤波的半个采样，实际音高是 SR / (p - 0.5)，比目标偏高（音越高越偏，
+    # 竖琴最高的几个音偏一个多半音）。按「实际 / 目标」音高比放慢读取，拉回精确音高。随机数消耗与原来一样，
+    # 所以重做后同一首里的其他声部、同一轮里后面的曲目，随机细节都不变
+    ratio = SR / (p - 0.5) / f
+    out = np.interp(np.arange(n) / ratio, np.arange(n), out[:n])
     return out * amp
 
 
@@ -666,6 +682,11 @@ def make_result_loops():
 
 if __name__ == "__main__":
     import sys
-    which = sys.argv[1:] or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops"]
+    args = sys.argv[1:]
+    if "--skip" in args:   # --skip a,b：这几首照样算，只是不写文件（见文件头）
+        k = args.index("--skip")
+        SKIP.update(args[k + 1].split(","))
+        del args[k:k + 2]
+    which = args or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops"]
     for w in which:
         globals()["make_" + w]()

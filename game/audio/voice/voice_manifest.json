@@ -1,6 +1,6 @@
 {
   "language": "zh-CN",
-  "format": "WAV PCM 16-bit mono 44100 Hz",
+  "format": "OGG Vorbis mono 44100 Hz, per-clip ogg_quality (soundfile compression_level); masters: WAV PCM 16-bit mono 44100 Hz in masters/ (sha256 is of the master)",
   "source": "https://github.com/isHarryh/Ark-Voice/tree/main/voice_cn",
   "source_metadata": "Ark-Voice voice_data.json; game data region zh_CN; generated 2025-02-02",
   "source_note": "Original voice recordings are copyrighted by Hypergryph. The user confirmed permission for these selected clips in this noncommercial fan project.",
@@ -23,728 +23,860 @@
     {
       "operator": "mizuki",
       "event": "entry",
-      "file": "mizuki_entry.wav",
+      "file": "mizuki_entry.ogg",
       "source_operator": "char_437_mizuki",
       "source_clip": "CN_023",
       "source_start_seconds": 220.7999,
       "source_end_seconds": 222.7749,
       "duration_seconds": 1.975,
-      "sha256": "8412f5e145dcfebd83c314a9d02b8e4804294690780d42737f0d82c992b40c17"
+      "sha256": "8412f5e145dcfebd83c314a9d02b8e4804294690780d42737f0d82c992b40c17",
+      "ogg_quality": 0.5,
+      "master": "masters/mizuki_entry.wav"
     },
     {
       "operator": "mizuki",
       "event": "skill_1",
-      "file": "mizuki_skill_1.wav",
+      "file": "mizuki_skill_1.ogg",
       "source_operator": "char_437_mizuki",
       "source_clip": "CN_025",
       "source_start_seconds": 224.3649,
       "source_end_seconds": 225.3199,
       "duration_seconds": 0.955,
-      "sha256": "8c7c1f95368d7c4594fd6f9a2e80e41ece14b46fb4a672cca40291f17d546212"
+      "sha256": "8c7c1f95368d7c4594fd6f9a2e80e41ece14b46fb4a672cca40291f17d546212",
+      "ogg_quality": 0.5,
+      "master": "masters/mizuki_skill_1.wav"
     },
     {
       "operator": "mizuki",
       "event": "skill_2",
-      "file": "mizuki_skill_2.wav",
+      "file": "mizuki_skill_2.ogg",
       "source_operator": "char_437_mizuki",
       "source_clip": "CN_026",
       "source_start_seconds": 225.3199,
       "source_end_seconds": 226.0349,
       "duration_seconds": 0.715,
-      "sha256": "53696e502d66e66a5bec277d4cf6474943183414567fdeb53b617d088ca6489d"
+      "sha256": "53696e502d66e66a5bec277d4cf6474943183414567fdeb53b617d088ca6489d",
+      "ogg_quality": 0.3,
+      "master": "masters/mizuki_skill_2.wav"
     },
     {
       "operator": "mizuki",
       "event": "skill_3",
-      "file": "mizuki_skill_3.wav",
+      "file": "mizuki_skill_3.ogg",
       "source_operator": "char_437_mizuki",
       "source_clip": "CN_027",
       "source_start_seconds": 226.0349,
       "source_end_seconds": 229.1399,
       "duration_seconds": 3.105,
-      "sha256": "a926c62a530b34548a1289f2c2733e29731a5951a2db0f73e3424f6148312c42"
+      "sha256": "a926c62a530b34548a1289f2c2733e29731a5951a2db0f73e3424f6148312c42",
+      "ogg_quality": 0.4,
+      "master": "masters/mizuki_skill_3.wav"
     },
     {
       "operator": "mizuki",
       "event": "battle",
-      "file": "mizuki_battle.wav",
+      "file": "mizuki_battle.ogg",
       "source_operator": "char_437_mizuki",
       "source_clip": "CN_028",
       "source_start_seconds": 229.1399,
       "source_end_seconds": 232.4249,
       "duration_seconds": 3.285,
-      "sha256": "3773f9ee93aef33ce9622e95a9244f3d16f3378ad01890ac9ebd55eace0c8e9f"
+      "sha256": "3773f9ee93aef33ce9622e95a9244f3d16f3378ad01890ac9ebd55eace0c8e9f",
+      "ogg_quality": 0.7,
+      "master": "masters/mizuki_battle.wav"
     },
     {
       "operator": "skadi",
       "event": "entry",
-      "file": "skadi_entry.wav",
+      "file": "skadi_entry.ogg",
       "source_operator": "char_263_skadi",
       "source_clip": "CN_023",
       "source_start_seconds": 224.6999,
       "source_end_seconds": 225.7499,
       "duration_seconds": 1.05,
-      "sha256": "12fa2c6a2b317091ad80d4e3fadefde7aa6b3446b13d5348c61c4b65e610bc7d"
+      "sha256": "12fa2c6a2b317091ad80d4e3fadefde7aa6b3446b13d5348c61c4b65e610bc7d",
+      "ogg_quality": 0.7,
+      "master": "masters/skadi_entry.wav"
     },
     {
       "operator": "skadi",
       "event": "skill_1",
-      "file": "skadi_skill_1.wav",
+      "file": "skadi_skill_1.ogg",
       "source_operator": "char_263_skadi",
       "source_clip": "CN_025",
       "source_start_seconds": 226.8599,
       "source_end_seconds": 230.7899,
       "duration_seconds": 3.93,
-      "sha256": "217baa32ba60123d93b6e385b08fa82925f30c96176cafedd2752e805e64409e"
+      "sha256": "217baa32ba60123d93b6e385b08fa82925f30c96176cafedd2752e805e64409e",
+      "ogg_quality": 0.5,
+      "master": "masters/skadi_skill_1.wav"
     },
     {
       "operator": "skadi",
       "event": "skill_2",
-      "file": "skadi_skill_2.wav",
+      "file": "skadi_skill_2.ogg",
       "source_operator": "char_263_skadi",
       "source_clip": "CN_026",
       "source_start_seconds": 230.7899,
       "source_end_seconds": 234.2149,
       "duration_seconds": 3.425,
-      "sha256": "9fea64b8a9a46229407e32599840bf494bef0ebc3fa66c50c32a11cfcd97f0d9"
+      "sha256": "9fea64b8a9a46229407e32599840bf494bef0ebc3fa66c50c32a11cfcd97f0d9",
+      "ogg_quality": 0.5,
+      "master": "masters/skadi_skill_2.wav"
     },
     {
       "operator": "skadi",
       "event": "skill_3",
-      "file": "skadi_skill_3.wav",
+      "file": "skadi_skill_3.ogg",
       "source_operator": "char_263_skadi",
       "source_clip": "CN_027",
       "source_start_seconds": 234.2149,
       "source_end_seconds": 237.6598,
       "duration_seconds": 3.445,
-      "sha256": "44e402d180ad7234a5e33c37d21353d71ec36362854072fdba9e4fe6e8c830b8"
+      "sha256": "44e402d180ad7234a5e33c37d21353d71ec36362854072fdba9e4fe6e8c830b8",
+      "ogg_quality": 0.5,
+      "master": "masters/skadi_skill_3.wav"
     },
     {
       "operator": "skadi",
       "event": "battle",
-      "file": "skadi_battle.wav",
+      "file": "skadi_battle.ogg",
       "source_operator": "char_263_skadi",
       "source_clip": "CN_028",
       "source_start_seconds": 237.6598,
       "source_end_seconds": 240.6048,
       "duration_seconds": 2.945,
-      "sha256": "a08a16b7ad1fb31cf2f69f793397ccad2f2bf30caf1fae2d2b82754ad40e5e08"
+      "sha256": "a08a16b7ad1fb31cf2f69f793397ccad2f2bf30caf1fae2d2b82754ad40e5e08",
+      "ogg_quality": 0.6,
+      "master": "masters/skadi_battle.wav"
     },
     {
       "operator": "siege",
       "event": "entry",
-      "file": "siege_entry.wav",
+      "file": "siege_entry.ogg",
       "source_operator": "char_112_siege",
       "source_clip": "CN_023",
       "source_start_seconds": 107.6299,
       "source_end_seconds": 108.1799,
       "duration_seconds": 0.55,
-      "sha256": "611fedcc00b49078343e1feffa1a3c3f7f17acbb910cfc12e6d98c349a37f012"
+      "sha256": "611fedcc00b49078343e1feffa1a3c3f7f17acbb910cfc12e6d98c349a37f012",
+      "ogg_quality": 0.4,
+      "master": "masters/siege_entry.wav"
     },
     {
       "operator": "siege",
       "event": "skill_1",
-      "file": "siege_skill_1.wav",
+      "file": "siege_skill_1.ogg",
       "source_operator": "char_112_siege",
       "source_clip": "CN_025",
       "source_start_seconds": 109.1149,
       "source_end_seconds": 111.3998,
       "duration_seconds": 2.285,
-      "sha256": "d1bfc73c981e73af1b80c0b2b07e2c6f2a55b7b651dd0c202a5271a6e9446722"
+      "sha256": "d1bfc73c981e73af1b80c0b2b07e2c6f2a55b7b651dd0c202a5271a6e9446722",
+      "ogg_quality": 0.7,
+      "master": "masters/siege_skill_1.wav"
     },
     {
       "operator": "siege",
       "event": "skill_2",
-      "file": "siege_skill_2.wav",
+      "file": "siege_skill_2.ogg",
       "source_operator": "char_112_siege",
       "source_clip": "CN_026",
       "source_start_seconds": 111.3998,
       "source_end_seconds": 111.8898,
       "duration_seconds": 0.49,
-      "sha256": "e3d60f996d3dfe645598bba71105251f6dd021d5e3c5626d774b7414bfaa3b44"
+      "sha256": "e3d60f996d3dfe645598bba71105251f6dd021d5e3c5626d774b7414bfaa3b44",
+      "ogg_quality": 0.3,
+      "master": "masters/siege_skill_2.wav"
     },
     {
       "operator": "siege",
       "event": "skill_3",
-      "file": "siege_skill_3.wav",
+      "file": "siege_skill_3.ogg",
       "source_operator": "char_112_siege",
       "source_clip": "CN_027",
       "source_start_seconds": 111.8898,
       "source_end_seconds": 114.6448,
       "duration_seconds": 2.755,
-      "sha256": "d30598639a97d05ed34af90ea3a5f75c050dd45042e9bc5c61db608775f6e46a"
+      "sha256": "d30598639a97d05ed34af90ea3a5f75c050dd45042e9bc5c61db608775f6e46a",
+      "ogg_quality": 0.7,
+      "master": "masters/siege_skill_3.wav"
     },
     {
       "operator": "siege",
       "event": "battle",
-      "file": "siege_battle.wav",
+      "file": "siege_battle.ogg",
       "source_operator": "char_112_siege",
       "source_clip": "CN_028",
       "source_start_seconds": 114.6448,
       "source_end_seconds": 115.9948,
       "duration_seconds": 1.35,
-      "sha256": "893715c88634391fe1230741bb4e65449c14fefe51d7cd74b1e2b9903e520bfe"
+      "sha256": "893715c88634391fe1230741bb4e65449c14fefe51d7cd74b1e2b9903e520bfe",
+      "ogg_quality": 0.7,
+      "master": "masters/siege_battle.wav"
     },
     {
       "operator": "saria",
       "event": "entry",
-      "file": "saria_entry.wav",
+      "file": "saria_entry.ogg",
       "source_operator": "char_202_demkni",
       "source_clip": "CN_023",
       "source_start_seconds": 144.7198,
       "source_end_seconds": 145.2153,
       "duration_seconds": 0.495,
-      "sha256": "c3614b527c6c0006f37ab67288d2c4212332a232fb6be8b4528d4202ae90e688"
+      "sha256": "c3614b527c6c0006f37ab67288d2c4212332a232fb6be8b4528d4202ae90e688",
+      "ogg_quality": 0.4,
+      "master": "masters/saria_entry.wav"
     },
     {
       "operator": "saria",
       "event": "skill_1",
-      "file": "saria_skill_1.wav",
+      "file": "saria_skill_1.ogg",
       "source_operator": "char_202_demkni",
       "source_clip": "CN_025",
       "source_start_seconds": 145.695,
       "source_end_seconds": 148.1831,
       "duration_seconds": 2.488,
-      "sha256": "99dcc7a53915d3463b2529335545a3f09b78513ac37669c261e0ee7ec4460c97"
+      "sha256": "99dcc7a53915d3463b2529335545a3f09b78513ac37669c261e0ee7ec4460c97",
+      "ogg_quality": 0.7,
+      "master": "masters/saria_skill_1.wav"
     },
     {
       "operator": "saria",
       "event": "skill_2",
-      "file": "saria_skill_2.wav",
+      "file": "saria_skill_2.ogg",
       "source_operator": "char_202_demkni",
       "source_clip": "CN_026",
       "source_start_seconds": 148.1831,
       "source_end_seconds": 149.4074,
       "duration_seconds": 1.224,
-      "sha256": "9d62043e958cb9b3ad8b13ac896b532146cb59c13b71a22911d6554369142d37"
+      "sha256": "9d62043e958cb9b3ad8b13ac896b532146cb59c13b71a22911d6554369142d37",
+      "ogg_quality": 0.5,
+      "master": "masters/saria_skill_2.wav"
     },
     {
       "operator": "saria",
       "event": "skill_3",
-      "file": "saria_skill_3.wav",
+      "file": "saria_skill_3.ogg",
       "source_operator": "char_202_demkni",
       "source_clip": "CN_027",
       "source_start_seconds": 149.4074,
       "source_end_seconds": 150.0405,
       "duration_seconds": 0.633,
-      "sha256": "6eb0e84d32f2317a6493f398dc16171e6a107704b95dcc3ad5a6a00ca8526b89"
+      "sha256": "6eb0e84d32f2317a6493f398dc16171e6a107704b95dcc3ad5a6a00ca8526b89",
+      "ogg_quality": 0.4,
+      "master": "masters/saria_skill_3.wav"
     },
     {
       "operator": "saria",
       "event": "battle",
-      "file": "saria_battle.wav",
+      "file": "saria_battle.ogg",
       "source_operator": "char_202_demkni",
       "source_clip": "CN_028",
       "source_start_seconds": 150.0405,
       "source_end_seconds": 150.7196,
       "duration_seconds": 0.679,
-      "sha256": "000df2dd47ffc344809ca18db0b53edf456eeb03b1f04773967d5e089e036211"
+      "sha256": "000df2dd47ffc344809ca18db0b53edf456eeb03b1f04773967d5e089e036211",
+      "ogg_quality": 0.4,
+      "master": "masters/saria_battle.wav"
     },
     {
       "operator": "suzuran",
       "event": "entry",
-      "file": "suzuran_entry.wav",
+      "file": "suzuran_entry.ogg",
       "source_operator": "char_358_lisa",
       "source_clip": "CN_023",
       "source_start_seconds": 251.3885,
       "source_end_seconds": 253.6585,
       "duration_seconds": 2.27,
-      "sha256": "e13730ce95e3416555bc6883bdd96c26db29c5dc0ecf120e09bedcd2301289dc"
+      "sha256": "e13730ce95e3416555bc6883bdd96c26db29c5dc0ecf120e09bedcd2301289dc",
+      "ogg_quality": 0.4,
+      "master": "masters/suzuran_entry.wav"
     },
     {
       "operator": "suzuran",
       "event": "skill_1",
-      "file": "suzuran_skill_1.wav",
+      "file": "suzuran_skill_1.ogg",
       "source_operator": "char_358_lisa",
       "source_clip": "CN_025",
       "source_start_seconds": 255.6635,
       "source_end_seconds": 256.7373,
       "duration_seconds": 1.074,
-      "sha256": "7470eb1462ba26479f345203bb184ea1f14353e1c62c4973ec3ec11ffeebdffb"
+      "sha256": "7470eb1462ba26479f345203bb184ea1f14353e1c62c4973ec3ec11ffeebdffb",
+      "ogg_quality": 0.7,
+      "master": "masters/suzuran_skill_1.wav"
     },
     {
       "operator": "suzuran",
       "event": "skill_2",
-      "file": "suzuran_skill_2.wav",
+      "file": "suzuran_skill_2.ogg",
       "source_operator": "char_358_lisa",
       "source_clip": "CN_026",
       "source_start_seconds": 256.7373,
       "source_end_seconds": 258.5123,
       "duration_seconds": 1.775,
-      "sha256": "4312fa23543ab8aee98e9ed0dbcf39732f7ec93144e5984de5a03500038899ed"
+      "sha256": "4312fa23543ab8aee98e9ed0dbcf39732f7ec93144e5984de5a03500038899ed",
+      "ogg_quality": 0.7,
+      "master": "masters/suzuran_skill_2.wav"
     },
     {
       "operator": "suzuran",
       "event": "skill_3",
-      "file": "suzuran_skill_3.wav",
+      "file": "suzuran_skill_3.ogg",
       "source_operator": "char_358_lisa",
       "source_clip": "CN_027",
       "source_start_seconds": 258.5123,
       "source_end_seconds": 259.2223,
       "duration_seconds": 0.71,
-      "sha256": "7d164a6960c96b3577d1717c17bf1a3aa071570a197e55f1beb51e4c897abd91"
+      "sha256": "7d164a6960c96b3577d1717c17bf1a3aa071570a197e55f1beb51e4c897abd91",
+      "ogg_quality": 0.7,
+      "master": "masters/suzuran_skill_3.wav"
     },
     {
       "operator": "suzuran",
       "event": "battle",
-      "file": "suzuran_battle.wav",
+      "file": "suzuran_battle.ogg",
       "source_operator": "char_358_lisa",
       "source_clip": "CN_028",
       "source_start_seconds": 259.2223,
       "source_end_seconds": 260.0623,
       "duration_seconds": 0.84,
-      "sha256": "e3bc5315f5f2b44659a0905fc820b2fc92fa73033fae2d37fa754e645b4578b0"
+      "sha256": "e3bc5315f5f2b44659a0905fc820b2fc92fa73033fae2d37fa754e645b4578b0",
+      "ogg_quality": 0.7,
+      "master": "masters/suzuran_battle.wav"
     },
     {
       "operator": "eyjafjalla",
       "event": "entry",
-      "file": "eyjafjalla_entry.wav",
+      "file": "eyjafjalla_entry.ogg",
       "source_operator": "char_180_amgoat",
       "source_clip": "CN_023",
       "source_start_seconds": 161.3699,
       "source_end_seconds": 162.6399,
       "duration_seconds": 1.19,
-      "sha256": "0e4680d495f27e2bec7a20344959e001b86d7a2152ae10051741728ffa2fddd6"
+      "sha256": "0e4680d495f27e2bec7a20344959e001b86d7a2152ae10051741728ffa2fddd6",
+      "ogg_quality": 0.3,
+      "master": "masters/eyjafjalla_entry.wav"
     },
     {
       "operator": "eyjafjalla",
       "event": "skill_1",
-      "file": "eyjafjalla_skill_1.wav",
+      "file": "eyjafjalla_skill_1.ogg",
       "source_operator": "char_180_amgoat",
       "source_clip": "CN_025",
       "source_start_seconds": 163.2099,
       "source_end_seconds": 164.6399,
       "duration_seconds": 1.238,
-      "sha256": "483a6a76897b58064d70d56a1e8ac867e24ef2fdd58e89c71ff4a8e950ef94ea"
+      "sha256": "483a6a76897b58064d70d56a1e8ac867e24ef2fdd58e89c71ff4a8e950ef94ea",
+      "ogg_quality": 0.3,
+      "master": "masters/eyjafjalla_skill_1.wav"
     },
     {
       "operator": "eyjafjalla",
       "event": "skill_2",
-      "file": "eyjafjalla_skill_2.wav",
+      "file": "eyjafjalla_skill_2.ogg",
       "source_operator": "char_180_amgoat",
       "source_clip": "CN_026",
       "source_start_seconds": 164.6399,
       "source_end_seconds": 166.3199,
       "duration_seconds": 1.614,
-      "sha256": "223982af02c5b0626836d7e9b0e2bd51ed270d5eeadac9f0b59454690c62f96d"
+      "sha256": "223982af02c5b0626836d7e9b0e2bd51ed270d5eeadac9f0b59454690c62f96d",
+      "ogg_quality": 0.5,
+      "master": "masters/eyjafjalla_skill_2.wav"
     },
     {
       "operator": "eyjafjalla",
       "event": "skill_3",
-      "file": "eyjafjalla_skill_3.wav",
+      "file": "eyjafjalla_skill_3.ogg",
       "source_operator": "char_180_amgoat",
       "source_clip": "CN_027",
       "source_start_seconds": 166.3199,
       "source_end_seconds": 167.8199,
       "duration_seconds": 1.399,
-      "sha256": "c56ed973454df00f4115c82ef3f758d4bb43047e12b7dbfa7f1850382175192f"
+      "sha256": "c56ed973454df00f4115c82ef3f758d4bb43047e12b7dbfa7f1850382175192f",
+      "ogg_quality": 0.7,
+      "master": "masters/eyjafjalla_skill_3.wav"
     },
     {
       "operator": "eyjafjalla",
       "event": "battle",
-      "file": "eyjafjalla_battle.wav",
+      "file": "eyjafjalla_battle.ogg",
       "source_operator": "char_180_amgoat",
       "source_clip": "CN_028",
       "source_start_seconds": 167.8199,
       "source_end_seconds": 169.1399,
       "duration_seconds": 1.234,
-      "sha256": "2d81c643c81c6dbe721715130655c9300f2227d563bfeda4f07f67342f2ef2d5"
+      "sha256": "2d81c643c81c6dbe721715130655c9300f2227d563bfeda4f07f67342f2ef2d5",
+      "ogg_quality": 0.5,
+      "master": "masters/eyjafjalla_battle.wav"
     },
     {
       "operator": "kaltsit",
       "event": "entry",
-      "file": "kaltsit_entry.wav",
+      "file": "kaltsit_entry.ogg",
       "source_operator": "char_003_kalts",
       "source_clip": "CN_023",
       "source_start_seconds": 204.3966,
       "source_end_seconds": 205.4916,
       "duration_seconds": 1.077,
-      "sha256": "9fa354dcadbe77ad15f38bbd07b0ef658eea43672956a387f6bf89efa2378879"
+      "sha256": "9fa354dcadbe77ad15f38bbd07b0ef658eea43672956a387f6bf89efa2378879",
+      "ogg_quality": 0.3,
+      "master": "masters/kaltsit_entry.wav"
     },
     {
       "operator": "kaltsit",
       "event": "skill_1",
-      "file": "kaltsit_skill_1.wav",
+      "file": "kaltsit_skill_1.ogg",
       "source_operator": "char_003_kalts",
       "source_clip": "CN_025",
       "source_start_seconds": 206.9516,
       "source_end_seconds": 207.5016,
       "duration_seconds": 0.55,
-      "sha256": "20b7b13aa055d52445d77e4bd7d3faaaf3422f11c87251703e424613d7f426a1"
+      "sha256": "20b7b13aa055d52445d77e4bd7d3faaaf3422f11c87251703e424613d7f426a1",
+      "ogg_quality": 0.4,
+      "master": "masters/kaltsit_skill_1.wav"
     },
     {
       "operator": "kaltsit",
       "event": "skill_2",
-      "file": "kaltsit_skill_2.wav",
+      "file": "kaltsit_skill_2.ogg",
       "source_operator": "char_003_kalts",
       "source_clip": "CN_026",
       "source_start_seconds": 207.5016,
       "source_end_seconds": 208.437,
       "duration_seconds": 0.935,
-      "sha256": "4dd83cf44a1e1b8405e4ab62379f9047c3fe01999023343ca4315c2cee1fd8d6"
+      "sha256": "4dd83cf44a1e1b8405e4ab62379f9047c3fe01999023343ca4315c2cee1fd8d6",
+      "ogg_quality": 0.7,
+      "master": "masters/kaltsit_skill_2.wav"
     },
     {
       "operator": "kaltsit",
       "event": "skill_3",
-      "file": "kaltsit_skill_3.wav",
+      "file": "kaltsit_skill_3.ogg",
       "source_operator": "char_003_kalts",
       "source_clip": "CN_027",
       "source_start_seconds": 208.437,
       "source_end_seconds": 209.0319,
       "duration_seconds": 0.595,
-      "sha256": "0055ae484ff284fd9b1792af318f53a87ebf528b33da609ba0ac8b92d963e9a5"
+      "sha256": "0055ae484ff284fd9b1792af318f53a87ebf528b33da609ba0ac8b92d963e9a5",
+      "ogg_quality": 0.5,
+      "master": "masters/kaltsit_skill_3.wav"
     },
     {
       "operator": "kaltsit",
       "event": "battle",
-      "file": "kaltsit_battle.wav",
+      "file": "kaltsit_battle.ogg",
       "source_operator": "char_003_kalts",
       "source_clip": "CN_028",
       "source_start_seconds": 209.0319,
       "source_end_seconds": 209.4019,
       "duration_seconds": 0.37,
-      "sha256": "780239c79d482cd733e97b874b92fcd59a0b361b6dfc0e3da52d8684483bd9d2"
+      "sha256": "780239c79d482cd733e97b874b92fcd59a0b361b6dfc0e3da52d8684483bd9d2",
+      "ogg_quality": 0.3,
+      "master": "masters/kaltsit_battle.wav"
     },
     {
       "operator": "wisadel",
       "event": "entry",
-      "file": "wisadel_entry.wav",
+      "file": "wisadel_entry.ogg",
       "source_operator": "char_1035_wisdel",
       "source_clip": "CN_023",
       "source_start_seconds": 296.9159,
       "source_end_seconds": 300.7746,
       "duration_seconds": 3.859,
-      "sha256": "36a4d06aeb00015baddaf009738f95d3686eeb5c6cf741090fd01d578413d353"
+      "sha256": "36a4d06aeb00015baddaf009738f95d3686eeb5c6cf741090fd01d578413d353",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_entry.wav"
     },
     {
       "operator": "wisadel",
       "event": "skill_1",
-      "file": "wisadel_skill_1.wav",
+      "file": "wisadel_skill_1.ogg",
       "source_operator": "char_1035_wisdel",
       "source_clip": "CN_025",
       "source_start_seconds": 304.258,
       "source_end_seconds": 308.612,
       "duration_seconds": 4.354,
-      "sha256": "ea55e428d599233737824df385169669b2d7f457c6936fb7e0b599dc9bfa3208"
+      "sha256": "ea55e428d599233737824df385169669b2d7f457c6936fb7e0b599dc9bfa3208",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_skill_1.wav"
     },
     {
       "operator": "wisadel",
       "event": "skill_2",
-      "file": "wisadel_skill_2.wav",
+      "file": "wisadel_skill_2.ogg",
       "source_operator": "char_1035_wisdel",
       "source_clip": "CN_026",
       "source_start_seconds": 308.612,
       "source_end_seconds": 310.9813,
       "duration_seconds": 2.369,
-      "sha256": "d0d0ad794d2d621c117edf7abdfd6de6b4ea2c9def9bb90a7d99ce85670a9640"
+      "sha256": "d0d0ad794d2d621c117edf7abdfd6de6b4ea2c9def9bb90a7d99ce85670a9640",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_skill_2.wav"
     },
     {
       "operator": "wisadel",
       "event": "skill_3",
-      "file": "wisadel_skill_3.wav",
+      "file": "wisadel_skill_3.ogg",
       "source_operator": "char_1035_wisdel",
       "source_clip": "CN_027",
       "source_start_seconds": 310.9813,
       "source_end_seconds": 317.3331,
       "duration_seconds": 6.352,
-      "sha256": "a25aacbec38da317c99db0e99eb129656190ce347dd78115dcbe658308d2e459"
+      "sha256": "a25aacbec38da317c99db0e99eb129656190ce347dd78115dcbe658308d2e459",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_skill_3.wav"
     },
     {
       "operator": "wisadel",
       "event": "battle",
-      "file": "wisadel_battle.wav",
+      "file": "wisadel_battle.ogg",
       "source_operator": "char_1035_wisdel",
       "source_clip": "CN_028",
       "source_start_seconds": 317.3331,
       "source_end_seconds": 322.7394,
       "duration_seconds": 5.406,
-      "sha256": "0a6dd2873717299bfdad2baab15e617f4ad3499781e80b4eb7a2e5f4ea1b1dca"
+      "sha256": "0a6dd2873717299bfdad2baab15e617f4ad3499781e80b4eb7a2e5f4ea1b1dca",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_battle.wav"
     },
     {
       "operator": "irene",
       "event": "entry",
-      "file": "irene_entry.wav",
+      "file": "irene_entry.ogg",
       "source_operator": "char_4009_irene",
       "source_clip": "CN_023",
       "source_start_seconds": 236.6499,
       "source_end_seconds": 238.2549,
       "duration_seconds": 1.605,
-      "sha256": "e00f07e87fdeea4c7b3bde4f3bd6cbbb8b093370d27bcf06bce7847364f75b13"
+      "sha256": "e00f07e87fdeea4c7b3bde4f3bd6cbbb8b093370d27bcf06bce7847364f75b13",
+      "ogg_quality": 0.5,
+      "master": "masters/irene_entry.wav"
     },
     {
       "operator": "irene",
       "event": "skill_1",
-      "file": "irene_skill_1.wav",
+      "file": "irene_skill_1.ogg",
       "source_operator": "char_4009_irene",
       "source_clip": "CN_025",
       "source_start_seconds": 238.9249,
       "source_end_seconds": 240.9199,
       "duration_seconds": 1.995,
-      "sha256": "d7ab71d275c15bd6f20604ae48ea08c1386c919e8c4eb4122b90e46cc2fa507a"
+      "sha256": "d7ab71d275c15bd6f20604ae48ea08c1386c919e8c4eb4122b90e46cc2fa507a",
+      "ogg_quality": 0.5,
+      "master": "masters/irene_skill_1.wav"
     },
     {
       "operator": "irene",
       "event": "skill_2",
-      "file": "irene_skill_2.wav",
+      "file": "irene_skill_2.ogg",
       "source_operator": "char_4009_irene",
       "source_clip": "CN_026",
       "source_start_seconds": 240.9199,
       "source_end_seconds": 242.8699,
       "duration_seconds": 1.95,
-      "sha256": "ccf6b8f89dc9d39d2b1ec89bbed6e2054e6940cacedd715440a2680fbbb1094d"
+      "sha256": "ccf6b8f89dc9d39d2b1ec89bbed6e2054e6940cacedd715440a2680fbbb1094d",
+      "ogg_quality": 0.6,
+      "master": "masters/irene_skill_2.wav"
     },
     {
       "operator": "irene",
       "event": "skill_3",
-      "file": "irene_skill_3.wav",
+      "file": "irene_skill_3.ogg",
       "source_operator": "char_4009_irene",
       "source_clip": "CN_027",
       "source_start_seconds": 242.8699,
       "source_end_seconds": 245.1299,
       "duration_seconds": 2.26,
-      "sha256": "ea89b52ee71f64a34e43952eb661cd209dcb82b72190c2ce72ef3bd51801a118"
+      "sha256": "ea89b52ee71f64a34e43952eb661cd209dcb82b72190c2ce72ef3bd51801a118",
+      "ogg_quality": 0.5,
+      "master": "masters/irene_skill_3.wav"
     },
     {
       "operator": "irene",
       "event": "battle",
-      "file": "irene_battle.wav",
+      "file": "irene_battle.ogg",
       "source_operator": "char_4009_irene",
       "source_clip": "CN_028",
       "source_start_seconds": 245.1299,
       "source_end_seconds": 247.3049,
       "duration_seconds": 2.175,
-      "sha256": "9ef83a315583b5073aed6121a6f07c5451145777641b67b1da4b9fe00f77b44c"
+      "sha256": "9ef83a315583b5073aed6121a6f07c5451145777641b67b1da4b9fe00f77b44c",
+      "ogg_quality": 0.6,
+      "master": "masters/irene_battle.wav"
     },
     {
       "operator": "logos",
       "event": "entry",
-      "file": "logos_entry.wav",
+      "file": "logos_entry.ogg",
       "source_operator": "char_4133_logos",
       "source_clip": "CN_023",
       "source_start_seconds": 234.519,
       "source_end_seconds": 235.5918,
       "duration_seconds": 1.073,
-      "sha256": "f54fdd1e57364a3838403875972e3121a238a7aae3e284e51a69959a77666a14"
+      "sha256": "f54fdd1e57364a3838403875972e3121a238a7aae3e284e51a69959a77666a14",
+      "ogg_quality": 0.5,
+      "master": "masters/logos_entry.wav"
     },
     {
       "operator": "logos",
       "event": "skill_1",
-      "file": "logos_skill_1.wav",
+      "file": "logos_skill_1.ogg",
       "source_operator": "char_4133_logos",
       "source_clip": "CN_025",
       "source_start_seconds": 237.3458,
       "source_end_seconds": 239.1733,
       "duration_seconds": 1.828,
-      "sha256": "3b18f29c88279ff1fc9c48c04c717911930dd0edc4465e8e1dda992ff569093f"
+      "sha256": "3b18f29c88279ff1fc9c48c04c717911930dd0edc4465e8e1dda992ff569093f",
+      "ogg_quality": 0.6,
+      "master": "masters/logos_skill_1.wav"
     },
     {
       "operator": "logos",
       "event": "skill_2",
-      "file": "logos_skill_2.wav",
+      "file": "logos_skill_2.ogg",
       "source_operator": "char_4133_logos",
       "source_clip": "CN_026",
       "source_start_seconds": 239.1733,
       "source_end_seconds": 241.2272,
       "duration_seconds": 2.054,
-      "sha256": "14896e2bdb1139cd909ba99e8f838c5420d699cab334e3332f1492f2cce697f6"
+      "sha256": "14896e2bdb1139cd909ba99e8f838c5420d699cab334e3332f1492f2cce697f6",
+      "ogg_quality": 0.7,
+      "master": "masters/logos_skill_2.wav"
     },
     {
       "operator": "logos",
       "event": "skill_3",
-      "file": "logos_skill_3.wav",
+      "file": "logos_skill_3.ogg",
       "source_operator": "char_4133_logos",
       "source_clip": "CN_027",
       "source_start_seconds": 241.2272,
       "source_end_seconds": 243.0939,
       "duration_seconds": 1.867,
-      "sha256": "d23c5399a2b96730117e68e9a92897c0cab9595a4ac5a4be4e505a633428c986"
+      "sha256": "d23c5399a2b96730117e68e9a92897c0cab9595a4ac5a4be4e505a633428c986",
+      "ogg_quality": 0.7,
+      "master": "masters/logos_skill_3.wav"
     },
     {
       "operator": "logos",
       "event": "battle",
-      "file": "logos_battle.wav",
+      "file": "logos_battle.ogg",
       "source_operator": "char_4133_logos",
       "source_clip": "CN_028",
       "source_start_seconds": 243.0939,
       "source_end_seconds": 245.2578,
       "duration_seconds": 2.164,
-      "sha256": "249f49cd7d76facc6dbc13189bfe8ae9f6966cbea2fc21caf65f31d6c3202b94"
+      "sha256": "249f49cd7d76facc6dbc13189bfe8ae9f6966cbea2fc21caf65f31d6c3202b94",
+      "ogg_quality": 0.7,
+      "master": "masters/logos_battle.wav"
     },
     {
       "operator": "lumen",
       "event": "entry",
-      "file": "lumen_entry.wav",
+      "file": "lumen_entry.ogg",
       "source_operator": "char_4042_lumen",
       "source_clip": "CN_023",
       "source_start_seconds": 212.4799,
       "source_end_seconds": 213.4249,
       "duration_seconds": 0.945,
-      "sha256": "dfeeed0802792c810a5c82581e5590803d6e64f719c01cbbcdcca0803e135808"
+      "sha256": "dfeeed0802792c810a5c82581e5590803d6e64f719c01cbbcdcca0803e135808",
+      "ogg_quality": 0.4,
+      "master": "masters/lumen_entry.wav"
     },
     {
       "operator": "lumen",
       "event": "skill_1",
-      "file": "lumen_skill_1.wav",
+      "file": "lumen_skill_1.ogg",
       "source_operator": "char_4042_lumen",
       "source_clip": "CN_025",
       "source_start_seconds": 216.1499,
       "source_end_seconds": 218.6149,
       "duration_seconds": 2.465,
-      "sha256": "c4b628e8a7e5704459f10f45688c2da5c98c5680806d5370e47d08ecaa10d51b"
+      "sha256": "c4b628e8a7e5704459f10f45688c2da5c98c5680806d5370e47d08ecaa10d51b",
+      "ogg_quality": 0.3,
+      "master": "masters/lumen_skill_1.wav"
     },
     {
       "operator": "lumen",
       "event": "skill_2",
-      "file": "lumen_skill_2.wav",
+      "file": "lumen_skill_2.ogg",
       "source_operator": "char_4042_lumen",
       "source_clip": "CN_026",
       "source_start_seconds": 218.6149,
       "source_end_seconds": 223.7049,
       "duration_seconds": 5.09,
-      "sha256": "2b68498c2004e96b1f99072aaa2807f07af9ece1932627f57d3c3b082375d492"
+      "sha256": "2b68498c2004e96b1f99072aaa2807f07af9ece1932627f57d3c3b082375d492",
+      "ogg_quality": 0.3,
+      "master": "masters/lumen_skill_2.wav"
     },
     {
       "operator": "lumen",
       "event": "skill_3",
-      "file": "lumen_skill_3.wav",
+      "file": "lumen_skill_3.ogg",
       "source_operator": "char_4042_lumen",
       "source_clip": "CN_027",
       "source_start_seconds": 223.7049,
       "source_end_seconds": 226.5098,
       "duration_seconds": 2.805,
-      "sha256": "f5382eb5b34b296dc24c46519b6d91ed7e9a7fc85a8846dd5bbee6c898ca81e5"
+      "sha256": "f5382eb5b34b296dc24c46519b6d91ed7e9a7fc85a8846dd5bbee6c898ca81e5",
+      "ogg_quality": 0.3,
+      "master": "masters/lumen_skill_3.wav"
     },
     {
       "operator": "lumen",
       "event": "battle",
-      "file": "lumen_battle.wav",
+      "file": "lumen_battle.ogg",
       "source_operator": "char_4042_lumen",
       "source_clip": "CN_028",
       "source_start_seconds": 226.5098,
       "source_end_seconds": 231.2548,
       "duration_seconds": 4.745,
-      "sha256": "5d2b81ba2cff00e8414cb891e5e7733800a5bbcbbdd62449fc7b824df3c971e2"
+      "sha256": "5d2b81ba2cff00e8414cb891e5e7733800a5bbcbbdd62449fc7b824df3c971e2",
+      "ogg_quality": 0.4,
+      "master": "masters/lumen_battle.wav"
     },
     {
       "operator": "specter_unchained",
       "event": "entry",
-      "file": "specter_unchained_entry.wav",
+      "file": "specter_unchained_entry.ogg",
       "source_operator": "char_1023_ghost2",
       "source_clip": "CN_023",
       "source_start_seconds": 267.4111,
       "source_end_seconds": 270.0593,
       "duration_seconds": 2.648,
-      "sha256": "5302b9ced3862f735bb231b137fc44ef0680570f4ccd5ca8f93ae0bb7d647306"
+      "sha256": "5302b9ced3862f735bb231b137fc44ef0680570f4ccd5ca8f93ae0bb7d647306",
+      "ogg_quality": 0.4,
+      "master": "masters/specter_unchained_entry.wav"
     },
     {
       "operator": "specter_unchained",
       "event": "skill_1",
-      "file": "specter_unchained_skill_1.wav",
+      "file": "specter_unchained_skill_1.ogg",
       "source_operator": "char_1023_ghost2",
       "source_clip": "CN_025",
       "source_start_seconds": 273.3193,
       "source_end_seconds": 274.7493,
       "duration_seconds": 1.43,
-      "sha256": "c6133075f4db08e26236aa1ac3dd14d080a2ffe1f998ad3f3fcf725d4b3bd118"
+      "sha256": "c6133075f4db08e26236aa1ac3dd14d080a2ffe1f998ad3f3fcf725d4b3bd118",
+      "ogg_quality": 0.7,
+      "master": "masters/specter_unchained_skill_1.wav"
     },
     {
       "operator": "specter_unchained",
       "event": "skill_2",
-      "file": "specter_unchained_skill_2.wav",
+      "file": "specter_unchained_skill_2.ogg",
       "source_operator": "char_1023_ghost2",
       "source_clip": "CN_026",
       "source_start_seconds": 274.7493,
       "source_end_seconds": 275.9193,
       "duration_seconds": 1.17,
-      "sha256": "42e4d2aa30fbd8a7c9936136aaf8b2f4feb3a0c7221379b2ceae606431842a65"
+      "sha256": "42e4d2aa30fbd8a7c9936136aaf8b2f4feb3a0c7221379b2ceae606431842a65",
+      "ogg_quality": 0.6,
+      "master": "masters/specter_unchained_skill_2.wav"
     },
     {
       "operator": "specter_unchained",
       "event": "skill_3",
-      "file": "specter_unchained_skill_3.wav",
+      "file": "specter_unchained_skill_3.ogg",
       "source_operator": "char_1023_ghost2",
       "source_clip": "CN_027",
       "source_start_seconds": 275.9193,
       "source_end_seconds": 278.4242,
       "duration_seconds": 2.462,
-      "sha256": "3070e0ea0a147dd28a80803dcc417daaabce64ea80ea5c224ae50edd91929d54"
+      "sha256": "3070e0ea0a147dd28a80803dcc417daaabce64ea80ea5c224ae50edd91929d54",
+      "ogg_quality": 0.7,
+      "master": "masters/specter_unchained_skill_3.wav"
     },
     {
       "operator": "specter_unchained",
       "event": "battle",
-      "file": "specter_unchained_battle.wav",
+      "file": "specter_unchained_battle.ogg",
       "source_operator": "char_1023_ghost2",
       "source_clip": "CN_028",
       "source_start_seconds": 278.4242,
       "source_end_seconds": 283.5842,
       "duration_seconds": 5.05,
-      "sha256": "8003727232191a79b04a68341b9c1a3325c8255da328f6422a97c2085c84dad5"
+      "sha256": "8003727232191a79b04a68341b9c1a3325c8255da328f6422a97c2085c84dad5",
+      "ogg_quality": 0.6,
+      "master": "masters/specter_unchained_battle.wav"
     },
     {
       "operator": "ulpianus",
       "event": "entry",
-      "file": "ulpianus_entry.wav",
+      "file": "ulpianus_entry.ogg",
       "source_operator": "char_4145_ulpia",
       "source_clip": "CN_023",
       "source_start_seconds": 181.728,
       "source_end_seconds": 183.6754,
       "duration_seconds": 1.947,
-      "sha256": "a9def43f7232d25f9d0c288c00102dd5944cdfeeabe7911d2a0e196ef8c5bd14"
+      "sha256": "a9def43f7232d25f9d0c288c00102dd5944cdfeeabe7911d2a0e196ef8c5bd14",
+      "ogg_quality": 0.3,
+      "master": "masters/ulpianus_entry.wav"
     },
     {
       "operator": "ulpianus",
       "event": "skill_1",
-      "file": "ulpianus_skill_1.wav",
+      "file": "ulpianus_skill_1.ogg",
       "source_operator": "char_4145_ulpia",
       "source_clip": "CN_025",
       "source_start_seconds": 186.054,
       "source_end_seconds": 187.5173,
       "duration_seconds": 1.463,
-      "sha256": "4f7fc45794f1b4eb6a482662d7f34ec0ef855dbcdb90ae92a92f7e7ca57e0cf8"
+      "sha256": "4f7fc45794f1b4eb6a482662d7f34ec0ef855dbcdb90ae92a92f7e7ca57e0cf8",
+      "ogg_quality": 0.7,
+      "master": "masters/ulpianus_skill_1.wav"
     },
     {
       "operator": "ulpianus",
       "event": "skill_2",
-      "file": "ulpianus_skill_2.wav",
+      "file": "ulpianus_skill_2.ogg",
       "source_operator": "char_4145_ulpia",
       "source_clip": "CN_026",
       "source_start_seconds": 187.5173,
       "source_end_seconds": 189.0693,
       "duration_seconds": 1.552,
-      "sha256": "b7cc506db076adac34a7c5c7747123f3f7896ff9ba23b0ee940be2e52bee4126"
+      "sha256": "b7cc506db076adac34a7c5c7747123f3f7896ff9ba23b0ee940be2e52bee4126",
+      "ogg_quality": 0.7,
+      "master": "masters/ulpianus_skill_2.wav"
     },
     {
       "operator": "ulpianus",
       "event": "skill_3",
-      "file": "ulpianus_skill_3.wav",
+      "file": "ulpianus_skill_3.ogg",
       "source_operator": "char_4145_ulpia",
       "source_clip": "CN_027",
       "source_start_seconds": 189.0693,
       "source_end_seconds": 190.9136,
       "duration_seconds": 1.844,
-      "sha256": "a8aec711e3ed3133881746c0fa3d4314e0f93df663889ce7ce6cd44e727245b7"
+      "sha256": "a8aec711e3ed3133881746c0fa3d4314e0f93df663889ce7ce6cd44e727245b7",
+      "ogg_quality": 0.5,
+      "master": "masters/ulpianus_skill_3.wav"
     },
     {
       "operator": "ulpianus",
       "event": "battle",
-      "file": "ulpianus_battle.wav",
+      "file": "ulpianus_battle.ogg",
       "source_operator": "char_4145_ulpia",
       "source_clip": "CN_028",
       "source_start_seconds": 190.9136,
       "source_end_seconds": 194.1554,
       "duration_seconds": 3.242,
-      "sha256": "d43ffd509850dff2e5ba5ecb9cc0b7789bfc2bf008316ed3ad0925998153a39f"
+      "sha256": "d43ffd509850dff2e5ba5ecb9cc0b7789bfc2bf008316ed3ad0925998153a39f",
+      "ogg_quality": 0.5,
+      "master": "masters/ulpianus_battle.wav"
     },
     {
       "operator": "wisadel",
       "event": "w_laugh",
-      "file": "wisadel_w_laugh.wav",
+      "file": "wisadel_w_laugh.ogg",
       "source_operator": "char_113_cqbw",
       "source_clip": "CN_028",
       "source_start_seconds": 269.7598,
       "source_end_seconds": 272.7348,
       "duration_seconds": 2.966,
-      "sha256": "813e1cac690b77dce7c334dcbfe5e12c090551cd3c93496263dff9f13d58a074"
+      "sha256": "813e1cac690b77dce7c334dcbfe5e12c090551cd3c93496263dff9f13d58a074",
+      "ogg_quality": 0.7,
+      "master": "masters/wisadel_w_laugh.wav"
     }
   ]
 }

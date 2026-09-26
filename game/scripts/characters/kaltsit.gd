@@ -8,7 +8,7 @@ extends "res://scripts/characters/character.gd"
 const GREEN := Color(0.55, 1.0, 0.5)
 const CRIMSON := Color(1.0, 0.12, 0.16)   # 熔毁（照原作：Mon3tr 整体变猩红）
 const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
-const M_REACH := 62.0         # 爪击半径（基础）
+const M_REACH := 93.0         # 爪击半径（基础）
 const S3_DUR := 8.0
 
 var cd := 1.0

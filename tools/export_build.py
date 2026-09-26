@@ -10,29 +10,29 @@
 1. git archive 把 <ref> 解到 build/_export/src —— 只含已提交内容，其它会话的未提交改动不会混进包里；
 2. Godot 导入资源（--import），再用 "Windows Desktop" 预设导出发布版（需要 4.7.2 导出模板，见 docs/33）；
 3. 组装发布目录：游戏 exe 按 art.gd incoming_dir() 从「exe 所在目录/../art/incoming」读美术，所以结构是
-       水月深海幸存者/
+       方舟幸存者/
          开始游戏.bat              双击启动
          说明.txt
-         game/ShuiyueSurvivors.exe + .pck
+         game/ArknightsSurvivors.exe + .pck
          art/incoming/*.png       （不含交接文档、预览图）
 4. 打成 build/release/<名字>_<日期>_<提交>.zip。
 """
-import argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfile
+import json, argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
 WORK = os.path.join(ROOT, "build", "_export")
 OUT = os.path.join(ROOT, "build", "release")
-NAME = "水月深海幸存者"
+NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、预览图不带
 SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
 
-README = """水月 · 深海幸存者（明日方舟同人，非商业）
+README = """方舟幸存者（明日方舟同人，非商业）
 版本：{ver}（{date}）
 
 【怎么玩】
-双击「开始游戏.bat」，或进入 game 文件夹双击 ShuiyueSurvivors.exe。
+双击「开始游戏.bat」，或进入 game 文件夹双击 ArknightsSurvivors.exe。
 不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
 
 【操作】
@@ -68,6 +68,12 @@ def main():
     data = subprocess.run(["git", "archive", "--format=tar", a.ref], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     print("源码：%s @ %s" % (a.ref, commit))
+    # 构建信息：写进包里的 data/build.json，局内数据记录（run/telemetry.gd）按它标版本（docs/40）
+    bj = os.path.join(src, "game", "data", "build.json")
+    binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}
+    binfo["commit"] = commit
+    binfo["built"] = date
+    json.dump(binfo, open(bj, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     # 2. 导入 + 导出
     pkg = os.path.join(WORK, NAME)
@@ -75,8 +81,8 @@ def main():
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
     run([GODOT, "--headless", "--path", gpath, "--import"])
-    out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ShuiyueSurvivors.exe")])
-    if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ShuiyueSurvivors.exe")):
+    out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
+    if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ArknightsSurvivors.exe")):
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
 
@@ -91,7 +97,7 @@ def main():
             n += 1
     print("美术 PNG：%d 张" % n)
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
-        fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ShuiyueSurvivors.exe"\r\n')
+        fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
         fh.write(README.format(ver=commit, date=date).replace("\n", "\r\n"))
 
