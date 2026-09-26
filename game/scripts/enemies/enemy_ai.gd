@@ -149,7 +149,8 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 	if e.get("dash_w", 0.0) > 0.0:
 		e.dash_w -= dt
 		if e.dash_w <= 0.0:
-			e["dash_t"] = 0.35
+			e["dash_t"] = e.get("dash_dur", 0.35)
+			e.last_act = {"act": "charge", "shape": "line", "pos": e.pos, "ang": e.dash_dir.angle(), "len": e.get("dash_len", 0.0), "t": g.t}
 		return Vector2.ZERO
 	if e.get("dash_t", 0.0) > 0.0:
 		e.dash_t -= dt
@@ -158,7 +159,11 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 		e.dash_cd = g.rng.randf_range(3.0, 4.5)
 		e["dash_w"] = float(d.get("dash_wind", 0.5))
 		e["dash_dir"] = dir
-		e["dash_len"] = spd * float(d.get("dash_speed", 3.8)) * 0.35   # 实际冲出距离（冲刺 0.35 秒），画冲刺预警线用
+		# 冲刺时长按起冲时的距离算，保证能冲到主控身上再多 30（原来固定 0.35 秒，滑动者只冲 96、骑士精英 135，起冲距离却是 240 / 300，
+		# 根本碰不到人——用户实机反馈 9/27）；夹在 0.2–1.0 秒。dash_len = 实际冲出距离，画冲刺预警线用
+		var dv_spd: float = maxf(1.0, spd * float(d.get("dash_speed", 3.8)))
+		e["dash_dur"] = clampf((dist + 30.0) / dv_spd, 0.2, 1.0)
+		e["dash_len"] = dv_spd * e.dash_dur
 		return Vector2.ZERO
 	return Vector2.INF
 

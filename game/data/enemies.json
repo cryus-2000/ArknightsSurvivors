@@ -522,7 +522,7 @@
    "spd": 74.0,
    "dmg": 22.0,
    "weak": "法术",
-   "r": 24.0,
+   "r": 18.0,
    "xp": 16.0,
    "tex": "e_knight",
    "ai": "melee",
@@ -536,7 +536,8 @@
    "dash_wind": 0.6,
    "dash_speed": 5.2,
    "ingots": 6,
-   "no_spawn": true
+   "no_spawn": true,
+   "draw_scale": 0.7
   },
   "knight_boss": {
    "name": "最后的骑士",
@@ -544,7 +545,7 @@
    "spd": 60.0,
    "dmg": 24.0,
    "weak": "法术",
-   "r": 30.0,
+   "r": 23.0,
    "xp": 90.0,
    "tex": "e_knight",
    "ai": "melee",
@@ -552,7 +553,8 @@
    "heavy": true,
    "atk": "物理",
    "move_fps": 8,
-   "phases": 2
+   "phases": 2,
+   "draw_scale": 0.7
   }
  }
 }

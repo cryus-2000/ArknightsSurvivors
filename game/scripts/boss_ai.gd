@@ -73,7 +73,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					# 震地：砸在主控当前位置（固定落点、不跟随 Boss），r 90（docs/48 P0-4；原来 r230 跟着 Boss 走）
 					_warn(e, "circle", 1.0, {"pos": g.ppos, "r": 90.0, "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3})
 				elif dist > 150.0 and _cd(e, "dash", 6.0):
-					_warn(e, "line", 0.9, {"ang": dir.angle(), "len": 440.0, "wid": 30.0, "track": 0.45, "act": "dash", "spd": 620.0, "name": "冲撞", "col": Color(1.0, 0.35, 0.3)})
+					_warn(e, "line", 0.9, {"ang": dir.angle(), "len": 440.0, "wid": 30.0, "track": 0.45, "act": "dash", "fit_len": true, "name": "冲撞", "col": Color(1.0, 0.35, 0.3)})
 			var crack: int = e.get("crack", 0)
 			if crack < 3 and e.hp < e.maxhp * (0.75 - 0.25 * crack):
 				e.crack = crack + 1
@@ -196,7 +196,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					g.frost = maxf(g.frost, 0.15)
 			if e.get("dash2", false) and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 				e.dash2 = false
-				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "spd": 820.0, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
+				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
 			if ready and e.channel <= 0.0:
 				if e.age > 6.0 and _cd(e, "frost", 20.0):
 					_warn(e, "circle", 1.0, {"follow": true, "r": 200.0, "act": "frost", "name": "寒冰领域", "col": ice, "dmg": e.dmg * 0.5})
@@ -206,7 +206,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 						_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.2 + 0.6 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
 					e.wind = 1.9
 				elif dist > 150.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
-					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "spd": 780.0, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
+					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
 					if e.phase == 2:
 						e.dash2 = true
 		"ishar":
@@ -267,10 +267,13 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		w.dur = maxf(w.dur, 0.6)
 		w.track = minf(w.track, maxf(0.0, w.dur - 0.4))
 	# 冲刺 / 突刺的预警线长 = 实际冲出的距离（docs/48 P0-3：原来斥亡体画 190 冲 373、塑路者画 440 冲 214）：
-	# 速度 v 按击退每秒衰减 900 算，距离 v²/1800，重型怪位移 ×0.3；再加本体半径
+	# 按击退每秒衰减 900 算，距离 = v²/1800 + 本体半径（自冲不受重型削减）。fit_len：按设计线长反推速度（骑士冲锋、塑路者冲撞要真冲到位）
 	if w.act in ["dash", "stab"] and shape == "line":
-		var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
-		w.len = (0.3 if D.ENEMIES.get(e.type, {}).get("heavy", false) else 1.0) * v * v / 1800.0 + e.r
+		if w.get("fit_len", false):
+			w.spd = sqrt(1800.0 * maxf(w.len - e.r, 40.0))
+		else:
+			var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
+			w.len = v * v / 1800.0 + e.r
 	# 难度缩短预警只压缩追踪段（跟着主控转向的那段），总时长至少 0.6 秒，原本就短于 0.6 的不动（docs/38 B0 第 5 项）；
 	# 修正值大于 1（放宽）时整体拉长
 	var wm := float(g.dmod.boss_warn)
@@ -345,6 +348,8 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 func _warn_resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
+	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
 	var dv := Vector2.from_angle(w.ang)
 	match w.act:
 		"pillar":
@@ -406,6 +411,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			_warn_damage(w, 0.3)
 		"dash":
 			e.kb = dv * w.get("spd", 600.0)
+			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.45
 			e.pose = 0.45
@@ -414,6 +420,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -4.0, 0.5)
 		"stab":
 			e.kb = dv * w.get("spd", 800.0)
+			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.2
 			e.pose = 0.25
