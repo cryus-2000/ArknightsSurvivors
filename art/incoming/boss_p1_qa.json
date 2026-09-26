@@ -62,16 +62,16 @@
   {
     "file": "e_ishar_transform.png",
     "size": [
-      480,
-      80
+      672,
+      96
     ],
     "frame_opaque_pixels": [
-      1899,
-      2238,
-      2218,
-      2280,
-      2387,
-      3882
+      3575,
+      3535,
+      3713,
+      3821,
+      4458,
+      6224
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -79,16 +79,16 @@
   {
     "file": "e_ishar_transform@2x.png",
     "size": [
-      960,
-      160
+      1344,
+      192
     ],
     "frame_opaque_pixels": [
-      7509,
-      9023,
-      8794,
-      9246,
-      9554,
-      15440
+      14331,
+      14182,
+      15060,
+      15279,
+      17816,
+      24987
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -96,12 +96,12 @@
   {
     "file": "e_ishar_t.png",
     "size": [
-      160,
-      80
+      224,
+      96
     ],
     "frame_opaque_pixels": [
-      3320,
-      3331
+      7027,
+      6993
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -109,12 +109,12 @@
   {
     "file": "e_ishar_t@2x.png",
     "size": [
-      320,
-      160
+      448,
+      192
     ],
     "frame_opaque_pixels": [
-      13300,
-      13214
+      28188,
+      28048
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -122,14 +122,14 @@
   {
     "file": "e_ishar_t_move.png",
     "size": [
-      320,
-      80
+      448,
+      96
     ],
     "frame_opaque_pixels": [
-      2337,
-      2888,
-      2629,
-      2406
+      5179,
+      6230,
+      5749,
+      5329
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -137,14 +137,14 @@
   {
     "file": "e_ishar_t_move@2x.png",
     "size": [
-      640,
-      160
+      896,
+      192
     ],
     "frame_opaque_pixels": [
-      9475,
-      11556,
-      10512,
-      9808
+      20589,
+      24909,
+      23004,
+      21241
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -152,14 +152,14 @@
   {
     "file": "e_ishar_t_attack.png",
     "size": [
-      320,
-      80
+      448,
+      96
     ],
     "frame_opaque_pixels": [
-      1630,
-      1815,
-      2662,
-      1721
+      3541,
+      3873,
+      5762,
+      3792
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -167,14 +167,14 @@
   {
     "file": "e_ishar_t_attack@2x.png",
     "size": [
-      640,
-      160
+      896,
+      192
     ],
     "frame_opaque_pixels": [
-      6587,
-      7267,
-      10797,
-      6960
+      14253,
+      15408,
+      23311,
+      15161
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
