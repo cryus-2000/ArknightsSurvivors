@@ -168,6 +168,13 @@ func _anim_n(label: String, name: String, frames: int, fps: float, loop := true)
 	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": loop}
 
 
+## 干员 json 的 sprites 项：字符串（帧数按宽高比推算）或 {tex, frames, fps}
+func _sprite_form(label: String, v, fps: float, loop: bool) -> Dictionary:
+	if v is String:
+		return _anim(label, v, fps, loop)
+	return _anim_n(label, v.tex, int(v.get("frames", 2)), float(v.get("fps", fps)), loop)
+
+
 ## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
 func _doctor_forms(dd: Dictionary) -> Array:
 	var sp: Dictionary = dd.get("sprites", {})
@@ -214,14 +221,16 @@ func _build() -> void:
 				# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
 				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
 						["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
-						["受击", "hurt", 6.0], ["倒下", "death", 5.0], ["Mon3tr", "m_idle", 4.0], ["Mon3tr 跑步", "m_run", 10.0], ["爪击", "m_attack", 14.0], ["熔毁", "m_skill", 12.0]]:
+						["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
 					if not sp.has(kind[1]):
 						continue
-					var v = sp[kind[1]]
-					if v is String:
-						forms.append(_anim(kind[0], v, kind[2], kind[1] != "death"))
-					else:
-						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2])), kind[1] != "death" and kind[1] != "fall"))
+					var fm: Dictionary = _sprite_form(kind[0], sp[kind[1]], kind[2], kind[1] != "death" and kind[1] != "fall")
+					# 召唤物（凯尔希的 Mon3tr，帧条键 m_*）不单列：和本体同名动作并排站在一起（2026-09-27 用户）
+					if sp.has("m_" + kind[1]):
+						fm.pair = _sprite_form(kind[0], sp["m_" + kind[1]], kind[2], true)
+						fm.pair_label = {"attack": "Mon3tr 爪击", "skill": "Mon3tr 熔毁"}.get(kind[1], "Mon3tr")
+						fm.main_label = cd.get("name", cid)
+					forms.append(fm)
 				# 攻击演示：实机跑一段（弹道 / 命中 / 技能都是战斗里的真实效果）
 				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 				var mech: String = cd.get("gallery", {}).get("desc", "")
@@ -456,6 +465,11 @@ func _draw() -> void:
 	UI.text(self, font, Vector2(0, vs.y - 22), Pad.hint("Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", "LB / RB 切换分页 · 摇杆选择 · Ⓧ / Ⓨ 切换动作与形态 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
+func _form_frame(f: Dictionary) -> int:
+	var fr := int(form_t * f.fps)
+	return fr % f.frames if f.loop else mini(fr, f.frames - 1)
+
+
 func _frame_rect(f: Dictionary, frame: int) -> Rect2:
 	var tx: Texture2D = f.tex
 	var fw: int = tx.get_width() / f.frames
@@ -554,10 +568,25 @@ func _draw_detail(vs: Vector2) -> void:
 		draw_circle(Vector2.ZERO, 80.0, Color(0.3, 0.8, 0.9, 0.12))
 		draw_arc(Vector2.ZERO, 80.0, 0.0, TAU, 40, Color(0.3, 0.9, 0.9, 0.5), 2.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if f.tex != null:
-		var fr := int(form_t * f.fps)
-		fr = fr % f.frames if f.loop else mini(fr, f.frames - 1)
-		var src := _frame_rect(f, fr)
+	var pf: Dictionary = f.get("pair", {})
+	if f.tex != null and pf.get("tex") != null:
+		# 本体 + 召唤物并排（同一倍率，保持相对大小）：本体在左、召唤物在右，脚下各一行小字
+		var src := _frame_rect(f, _form_frame(f))
+		var src2 := _frame_rect(pf, _form_frame(pf))
+		var gap := 4.0
+		var k: float = minf(250.0 / (src.size.x + src2.size.x + gap), (100.0 if wide else 190.0) / maxf(src.size.y, src2.size.y))
+		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
+		var sz := src.size * k
+		var sz2 := src2.size * k
+		var x0: float = base.x - (sz.x + sz2.x + gap * k) / 2.0
+		var col := Color(0, 0, 0, 0.95) if locked else Color.WHITE
+		draw_texture_rect_region(f.tex, Rect2(Vector2(x0, base.y - sz.y + 6).round(), sz), src, col)
+		draw_texture_rect_region(pf.tex, Rect2(Vector2(x0 + sz.x + gap * k, base.y - sz2.y + 6).round(), sz2), src2, col)
+		if not wide and not locked:
+			UI.text(self, font, Vector2(x0 - 20, base.y + 28), f.get("main_label", ""), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sz.x + 40)
+			UI.text(self, font, Vector2(x0 + sz.x + gap * k - 20, base.y + 28), pf.get("pair_label", f.get("pair_label", "")), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sz2.x + 40)
+	elif f.tex != null:
+		var src := _frame_rect(f, _form_frame(f))
 		var k: float = minf(240.0 / src.size.x, (100.0 if wide else 200.0) / src.size.y)
 		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
 		var sz := src.size * k
@@ -566,7 +595,7 @@ func _draw_detail(vs: Vector2) -> void:
 	# 动作 / 形态切换
 	form_rects.clear()
 	if e.forms.size() > 1 and not locked and not wide:
-		# 按钮宽度按文字算（至少 44）：「Mon3tr 跑步」这类长标签不再被截成「Mon3tr」；一行放不下时按比例压窄
+		# 按钮宽度按文字算（至少 44）：长标签不被截断；一行放不下时按比例压窄
 		var ws: Array = []
 		var total := 0.0
 		for i in e.forms.size():
