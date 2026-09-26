@@ -20,6 +20,8 @@ Thumbs.db
 *.pem
 *.key
 .godot/export_credentials.cfg
+# 由 tools/cloud/setup_linux.sh 生成，机器本地路径，不入库
+tools/cloud/env.sh
 
 # 收集来的藏品图标（疑似官方素材），只放本地参考，不入库
 docs/reference/icons/
