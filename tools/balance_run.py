@@ -373,12 +373,12 @@ def _boss_phase(b):
 
 def lane_summary(records):
     """流派矩阵（--lanes）：每个 流派 × 机器人 一行，与「不偏好」对照；同 seed 同开局配对，差值只来自选藏品的偏好。
-    Boss 用时按出场分段（击杀数 / 出场数，平均秒数）；8:00 后承伤取机器人曲线里 t > 480 的 30 秒窗口"""
+    Boss 用时按出场分段（击杀数 / 出场数，平均与中位秒数；最终 Boss 在胜利的局按「出现 → 通关」计）；8:00 后承伤取机器人曲线里 t > 480 的 30 秒窗口"""
     by = {}
     for r in records:
         if "data" in r:
             by.setdefault((r.get("lane", "none"), r.get("bot", "normal")), []).append(r)
-    lines = ["| 流派 | 机器人 | 局数 | 胜率 | 平均存活 | 3:30 / 5:00 存活 | 终局等级 | 击杀 | Boss1 / Boss2 / 终局 用时（击杀/出场） | 终 Boss 剩余 | 承伤/分 全程 · 8:00 后 | 该流派藏品 5:00 / 末 | 藏品数 | 藏品直接伤害 |",
+    lines = ["| 流派 | 机器人 | 局数 | 胜率 | 平均存活 | 3:30 / 5:00 存活 | 终局等级 | 击杀 | Boss1 / Boss2 / 终局 用时 均·中（击杀/出场） | 终 Boss 剩余 | 承伤/分 全程 · 8:00 后 | 该流派藏品 5:00 / 末 | 藏品数 | 藏品直接伤害 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     order = list(LANE_NAMES)
     for (ln, bot), rs in sorted(by.items(), key=lambda kv: (kv[0][1], order.index(kv[0][0]) if kv[0][0] in order else 99)):
@@ -394,13 +394,16 @@ def lane_summary(records):
         n300 = [lane_n(d, 300) for d in ds if d["t"] >= 300] if ln != "none" else []
         ph = [[], [], []]
         seen = [0, 0, 0]
-        for b in bs:
+        for d, b in zip(ds, bs):
             for bo in b.get("bosses", []):
                 k = _boss_phase(bo)
                 seen[k] += 1
                 if bo.get("t1", -1) >= 0:
                     ph[k].append(bo["t1"] - bo["t0"])
-        boss_s = " / ".join(("%ds（%d/%d）" % (statistics.mean(ph[k]), len(ph[k]), seen[k])) if ph[k] else ("-（0/%d）" % seen[k]) for k in range(3))
+                elif k == 2 and d.get("win"):
+                    # 最终 Boss 死的同一帧就判胜利、结束对局，机器人来不及记 t1：胜利的局按「出现 → 通关」计（数值 2026-09-26 指出）
+                    ph[k].append(d["t"] - bo["t0"])
+        boss_s = " / ".join(("%ds·中%ds（%d/%d）" % (statistics.mean(ph[k]), statistics.median(ph[k]), len(ph[k]), seen[k])) if ph[k] else ("-（0/%d）" % seen[k]) for k in range(3))
         late = []
         for b in bs:
             w = [c.get("taken", 0) for c in b.get("curve", []) if c.get("t", 0) > 480]
