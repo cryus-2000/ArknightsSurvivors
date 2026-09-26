@@ -74,6 +74,11 @@
 | `press_manual(i) -> String` | 按键入口（`doctor.try_manual_skill` 调它） | 正在出手时先记下按键，1 秒内满足条件就放（`MANUAL_BUF` / `manual_buf`，每帧在 `tick_sp` 末尾处理）；返回给玩家看的提示 |
 | `bot_wants_manual(i) -> bool` | 平衡机器人什么时候按 | 缺省：主控生命 < `balance.json bot/manual_hp`；`run/autotest.gd` 调它。想和改成手动前的批跑数据可比，就重写成「就绪即放」 |
 
+**对精英 / Boss 的伤害倍率（2026-09-27，`characters/character.gd` 的 `vs_elite()`，928a18a）**：干员 JSON `base.vs_elite`，缺省 1。只从干员 JSON 读：balance.json 的 operators 段只管 atk / aspd / range / skill_power，覆盖不了它。
+- 自动生效：`melee_hit`，以及转调它的 `area_hit`，命中 `e.elite or e.boss` 时伤害乘它。
+- 不自动生效：干员自己推进的弹体、持续伤害、直接调 `deal_damage` 的伤害——要在生成弹体或结算时自己乘 `vs_elite()`（铃兰狐火是这么做的）。
+  给新干员加这个键之前，先查清它的主要伤害走哪条路。现有：铃兰 2.5、塞雷娅 2.2（数值 b1-cal，开局主控打中期 Boss 太慢）。
+
 ## 5. 搬运工具 `tools/split_module.py`
 
 按函数名把 `game.gd` 里的一组函数整段搬到新模块（或追加到已有模块）：自动给主场景成员加 `g.` / `Game.`、
