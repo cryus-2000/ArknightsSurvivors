@@ -44,7 +44,7 @@ func update(dt: float) -> void:
 
 
 func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
-	g._heal(amount, "无人机")
+	g.combat.heal(amount, "无人机")
 	if cure:
 		g.nerve = 0.0
 	dr.beam = 0.35
@@ -128,17 +128,17 @@ func update_bullets(dt: float) -> void:
 ## 子弹命中：按种类结算伤害与特效
 func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if b.has("src"):
-		g._hit(b.src, b.get("tags", []))
+		g.combat.hit(b.src, b.get("tags", []))
 	else:
-		g._hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
+		g.combat.hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
-			g._damage(e, b.dmg)
+			g.combat.damage(e, b.dmg)
 			if g.rfx.sniper_execute(e, g.hit):
 				g._add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
-				g._hit("真实")
-				g._damage(e, e.hp + 1.0)
+				g.combat.hit("真实")
+				g.combat.damage(e, e.hp + 1.0)
 			if not e.dead:
 				e["bleed"] = 3.0
 				e["bleed_dps"] = b.dmg * 0.2
@@ -158,7 +158,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = g.enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-					g._damage(o, b.dmg)
+					g.combat.damage(o, b.dmg)
 					if b.get("slow", false):
 						o.slow = maxf(o.slow, 1.2)
 			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
@@ -181,7 +181,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			if b.get("on_hit") != null:
 				b.on_hit.bullet_exploded(b)
 		"arcane":
-			g._damage(e, b.dmg)
+			g.combat.damage(e, b.dmg)
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
 			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
@@ -189,7 +189,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-						g._damage(o, b.dmg)
+						g.combat.damage(o, b.dmg)
 			if b.has("fx_col") or not g._fx_sprite("fx_arcane_hit", e.pos):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
 			g._sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
@@ -198,7 +198,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			b.life = 0.0
 		"tide":
 			# 潮汐弹：在敌人之间反弹
-			g._damage(e, b.dmg)
+			g.combat.damage(e, b.dmg)
 			if b.get("push", false) and not e.boss and not e.dead:
 				e.kb += b.vel.normalized() * 220.0
 			if not g._fx_sprite("fx_tide_hit", e.pos):
@@ -226,7 +226,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			b.life = 1.0
 			Sfx.play("pickup", -16.0, 1.8, 0.1)
 		_:
-			g._damage(e, b.dmg)
+			g.combat.damage(e, b.dmg)
 			if not g._fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
 				g._sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
 			b.life = 0.0

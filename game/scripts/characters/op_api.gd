@@ -34,17 +34,17 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 
 ## 登记这一击的伤害来源（结算统计、藏品触发按来源分类）；在 deal_damage 之前调用
 func log_hit(src: String, extra_tags: Array = []) -> void:
-	g._hit(src, extra_tags)
+	g.combat.hit(src, extra_tags)
 
 
 ## 对敌人造成伤害（走护甲、易伤、藏品倍率、击杀结算）
 func deal_damage(e: Dictionary, dmg: float) -> void:
-	g._damage(e, dmg)
+	g.combat.damage(e, dmg)
 
 
 ## 治疗主控（src 进治疗统计）
 func heal_leader(v: float, src: String = "其他") -> void:
-	g._heal(v, src)
+	g.combat.heal(v, src)
 
 
 ## 属性块变动后立即刷新 game.gd 的缓存变量（stats.add 之后需要当帧生效时调用）

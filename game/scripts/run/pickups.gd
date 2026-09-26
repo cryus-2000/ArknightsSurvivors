@@ -95,7 +95,7 @@ func update(dt: float) -> void:
 					Sfx.play("relic", -4.0, 1.2, 0.0)
 				"heal":
 					var hv := g.max_hp * 0.3
-					g._heal(hv, "事件")
+					g.combat.heal(hv, "事件")
 					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
 					g._sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
 					g._add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)

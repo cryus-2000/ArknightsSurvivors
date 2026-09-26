@@ -77,8 +77,8 @@ func update(dt: float) -> void:
 			e["bleed_t"] = e.get("bleed_t", 0.0) + dt
 			if e.bleed_t >= 0.5:
 				e.bleed_t = 0.0
-				g._hit("援护")
-				g._damage(e, e.bleed_dps * 0.5)
+				g.combat.hit("援护")
+				g.combat.damage(e, e.bleed_dps * 0.5)
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
 				if e.dead:
 					continue
@@ -88,8 +88,8 @@ func update(dt: float) -> void:
 			e["corr_tick"] = e.get("corr_tick", 0.0) + dt
 			if e.corr_tick >= 0.5:
 				e.corr_tick = 0.0
-				g._hit("触手", ["corrode"])
-				g._damage(e, e.corr_dmg)
+				g.combat.hit("触手", ["corrode"])
+				g.combat.damage(e, e.corr_dmg)
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-8, 8), -6), "vel": Vector2(0, -40), "sz": 2.5, "life": 0.45, "max": 0.45, "col": Color(1.2, 0.6, 1.6)})
 				if e.dead:
 					continue
@@ -185,7 +185,7 @@ func update(dt: float) -> void:
 						o.dead = true
 						g._add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
 						if seed_heal:
-							g._heal(g.max_hp * 0.05, "藏品")
+							g.combat.heal(g.max_hp * 0.05, "藏品")
 						continue
 					# 伊祖米克的子代被 Boss 吸收
 					if e.feed and o.type == "izumik" and o.phase == 1:
@@ -211,7 +211,7 @@ func update(dt: float) -> void:
 					Sfx.play("tentacle", -2.0, 0.7)
 					if dist < 80.0:
 						g.in_type = ["近战", "法术"]
-						g._enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
+						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
 				e.burst_w = 0.4
@@ -232,7 +232,7 @@ func update(dt: float) -> void:
 				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
 					g.frost = maxf(g.frost, 2.0)
 					g._add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
-				g._enemy_hit(e.dmg * dark_mod, e)
+				g.combat.enemy_hit(e.dmg * dark_mod, e)
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害
 		if e.type == "tear" and dist < e.r + 14.0:
 			g.hp -= 6.0 * dt
@@ -264,7 +264,7 @@ func update_lobs(dt: float) -> void:
 			if l.to.distance_to(g.ppos) < l.r + 8.0 and g.invuln <= 0.0:
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
-				g._enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -288,7 +288,7 @@ func update_ebullets(dt: float) -> void:
 			g.dmg_src = "bullet"
 			g.in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
 			if g.invuln <= 0.0:
-				g._enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
+				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
 
 
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
@@ -335,7 +335,7 @@ func update_status(dt: float) -> void:
 				g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock"
 				g.in_type = ["近战", "物理"]
-				g._enemy_hit(s.dmg, {}, true, true)
+				g.combat.enemy_hit(s.dmg, {}, true, true)
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 
 

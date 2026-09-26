@@ -176,7 +176,7 @@ func filler_cards() -> Array:
 
 func apply_filler(fid: String) -> void:
 	match fid:
-		"heal": g._heal(g.max_hp * 0.3, "填充卡")
+		"heal": g.combat.heal(g.max_hp * 0.3, "填充卡")
 		"oil": g.lamp = minf(g.lamp_cap, g.lamp + 30.0)
 		"atk":
 			g.stats.add(&"op_atk", "add", 0.04, "filler", "squad")

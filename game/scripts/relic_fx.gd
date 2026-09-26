@@ -201,7 +201,7 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			g._add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
 		"heal":
 			# amount = 最大生命的比例
-			g._heal(g.max_hp * amt, "藏品")
+			g.combat.heal(g.max_hp * amt, "藏品")
 			g._add_text(g.ppos + Vector2(0, -90), "生命 +%d%%" % int(amt * 100.0), Color(0.55, 1.0, 0.6), 16)
 		"shield_fill":
 			if g.shield_max > 0:
@@ -424,20 +424,20 @@ func tick(dt: float) -> void:
 		if dot_tick <= 0.0:
 			dot_tick = 0.5
 			var per: float = 18.0 * (g.ch.u_dmg_mult if "u_dmg_mult" in g.ch else 1.0) * g.dmg_mult * dot_mult * 0.5
-			g._hit("藏品")
+			g.combat.hit("藏品")
 			for e in g.enemies:
 				if not e.dead and not e.chest and (e.stun > 0.0 or e.slow > 0.0) and e.pos.distance_squared_to(g.ppos) < 700.0 * 700.0:
-					g._damage(e, per)
+					g.combat.damage(e, per)
 
 
 func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
 	var r := 95.0
-	g._hit("地雷")
+	g.combat.hit("地雷")
 	for j in g.enemies_sys.query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
-			g._damage(e, 60.0 * g.dmg_mult)
+			g.combat.damage(e, 60.0 * g.dmg_mult)
 			if not e.boss:
 				e.kb += (e.pos - mn.pos).normalized() * 360.0
 	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
@@ -449,18 +449,18 @@ func _explode_mine(mn: Dictionary) -> void:
 ## 藏品直接伤害的范围结算（岁怒 / 净尘 / 食腐）：不打宝箱，结算后恢复原描述符
 func _area(src: String, p: Vector2, r: float, dmg: float) -> void:
 	var keep: Dictionary = g.hit
-	g._hit(src)
+	g.combat.hit(src)
 	for j in g.enemies_sys.query(p, r + 24.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.chest and e.pos.distance_to(p) < r + e.r:
-			g._damage(e, dmg)
+			g.combat.damage(e, dmg)
 	g.hit = keep
 
 
 ## 岁怒：追击命中处引爆一次大范围法术伤害（按敌人生命的时间倍率缩放）
 func _wrath_blast(p: Vector2) -> void:
 	var r := 130.0
-	_area("岁怒", p, r, Bal.v("relic/wrath_dmg", 30.0) * g.enemy_hp_time_mult())
+	_area("岁怒", p, r, Bal.v("relic/wrath_dmg", 30.0) * g.combat.enemy_hp_time_mult())
 	g.fx.append({"kind": "explode", "pos": p, "r": r, "life": 0.45, "max": 0.45, "col": Color(1.0, 0.45, 0.3)})
 	g._sparks(p, Vector2.ZERO, Color(1.0, 0.6, 0.35), 16, 280.0)
 	Sfx.play("boom", -8.0, 0.8, 0.05)
@@ -471,7 +471,7 @@ func _dust() -> void:
 	for o in g.squad.ops:
 		if o.cls != "医疗" or o.pos == Vector2.INF:
 			continue
-		var dmg: float = Bal.v("relic/dust_dmg", 10.0) * g.enemy_hp_time_mult() * o._dmg_bonus()
+		var dmg: float = Bal.v("relic/dust_dmg", 10.0) * g.combat.enemy_hp_time_mult() * o._dmg_bonus()
 		_area("净尘", o.pos, 120.0, dmg)
 		g.fx.append({"kind": "ring", "pos": o.pos, "r": 120.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 1.0, 0.9, 0.45)})
 
@@ -486,7 +486,7 @@ func on_overheal(v: float) -> void:
 func _scavenge() -> void:
 	var amt := overheal
 	overheal = 0.0
-	var dmg: float = amt * Bal.v("relic/scavenge_mult", 4.0) * g.enemy_hp_time_mult()
+	var dmg: float = amt * Bal.v("relic/scavenge_mult", 4.0) * g.combat.enemy_hp_time_mult()
 	if dmg < 1.0:
 		return
 	_area("食腐", g.ppos, 150.0, dmg)
@@ -506,7 +506,7 @@ func _tick_home(dt: float) -> void:
 		home_pos = p
 		g.fx.append({"kind": "ring", "pos": home_pos, "r": HOME_R, "life": 0.8, "max": 0.8, "col": Color(0.5, 1.0, 0.9)})
 	if in_home():
-		g._heal(g.max_hp * 0.03 * dt, "遥乡")
+		g.combat.heal(g.max_hp * 0.03 * dt, "遥乡")
 
 
 func in_home() -> bool:
@@ -674,14 +674,14 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 	if cls == "术师" and g.relics.has("175"):
 		shatter = mini(15, shatter + 1)
 		shatter_t = g.t
-	if not g.is_followup(h):
+	if not g.combat.is_followup(h):
 		return
 	# 追击命中：扣挠之手（目标当前生命 2%，Boss 0.5%，每个敌人每 0.5 秒一次）
 	if g.relics.has("170") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
 		e["claw_t"] = g.t + 0.5
 		var keep: Dictionary = g.hit
-		g._hit("真实")
-		g._damage(e, e.hp * (0.005 if e.boss else 0.02))
+		g.combat.hit("真实")
+		g.combat.damage(e, e.hp * (0.005 if e.boss else 0.02))
 		g.hit = keep
 	# 炸裂之手：造成这次追击的干员回技力（每秒最多 2.5%）
 	if g.relics.has("171"):

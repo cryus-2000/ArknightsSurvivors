@@ -93,7 +93,7 @@ func step() -> void:
 		g.ppos = Vector2(1500, 900)
 		if g.at_frames == 90:
 			g.hp = g.max_hp * 0.2
-			g._hurt(g.max_hp * 0.1)
+			g.combat.hurt(g.max_hp * 0.1)
 		if g.at_frames == 96 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fx_hurt.png")
 		if g.at_frames == 175:
@@ -319,7 +319,7 @@ func step() -> void:
 		if not bb.dead and not bb.invuln and not bosstest:
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
-				g._kill(bb)
+				g.combat.kill(bb)
 	for a in OS.get_cmdline_user_args():
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
 		if a.begins_with("--winshot=") and g.at_frames == 60:

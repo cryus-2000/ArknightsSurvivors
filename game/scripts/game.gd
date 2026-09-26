@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Combat = preload("res://scripts/run/combat.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
 const Progression = preload("res://scripts/run/progression.gd")
@@ -46,17 +47,9 @@ const HIT_BASE := {
 	"净尘": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area", "dot"]},
 	"食腐": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
 }
-## 「追击」（docs/35）：带这些标签的伤害吃 followup_dmg 与追击类藏品（追击、余震、殉爆、召唤物）
-const FOLLOWUP_TAGS := ["follow_up", "aftershock", "detonation", "entity"]
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
 	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
-const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), "stone": Color(0.7, 0.7, 0.75), "offspring": Color(0.6, 0.9, 0.5),
-	"brood": Color(0.9, 0.6, 0.8), "pocket": Color(0.8, 0.55, 1.0), "skimmer": Color(0.4, 0.9, 0.9), "mother": Color(0.9, 0.5, 0.7),
-	"mimic": Color(1.0, 0.75, 0.4), "path": Color(0.6, 0.7, 1.0), "fractal": Color(0.6, 0.7, 1.0), "izumik": Color(0.5, 1.0, 0.7),
-	"ishar": Color(0.75, 0.55, 1.0), "tear": Color(0.75, 0.55, 1.0), "iberia": Color(1.0, 0.6, 0.5), "carmen": Color(0.7, 0.7, 1.0),
-	"ripper": Color(0.95, 0.55, 0.6), "burrower": Color(0.7, 0.5, 1.0), "spitter": Color(0.6, 1.0, 0.65), "hulk": Color(1.0, 0.95, 0.75),
-	"bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
 
 enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 
@@ -74,6 +67,7 @@ var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
+var combat = Combat.new(self)   # 战斗结算
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -151,9 +145,7 @@ var flash := 0.0                 # 全屏闪光
 # ---------- 藏品带来的附加能力 ----------
 var grip := false
 var horde_log: Array = []          # 平衡测试：每次大群的统计
-var flesh_heal := false
 var backlight := false
-var ember := false
 
 var relics: Array = []
 
@@ -224,16 +216,10 @@ var next_mire := 100.0           # 首次溟痕时间；开局由 map 主题覆�
 # 缩圈（黑潮）
 var zone_c := Vector2.ZERO
 var zone_r := 99999.0
-var zone_from_c := Vector2.ZERO
-var zone_from_r := 99999.0
 var zone_next_c := Vector2.ZERO
 var zone_next_r := 0.0
-var zone_phase := 0
 var zone_state := 0          # 0 未开始 / 1 预告 / 2 收缩 / 3 稳定
 var zone_t := 0.0
-var zone_hurt_t := 0.0
-const ZONE_START := 150.0
-const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var merchant := {}
 var merchant_idx := 0
 var shop_items: Array = []
@@ -293,7 +279,6 @@ var hp_trail := 100.0        # 血条上的「被扣掉」残影
 var hp_shake := 0.0
 var head_bar_t := 0.0        # 头顶血条显示时长
 var heart_cd := 0.0
-var low_warned := false
 var red_flash := 0.0
 var crit_hit := false
 var fx_add: Node2D
@@ -961,7 +946,7 @@ func _update(dt: float) -> void:
 	if lamp <= 0.0:
 		hp -= 3.0 * dt
 		hurt_flash = max(hurt_flash, 0.05)
-	_update_zone(dt)
+	combat.update_zone(dt)
 	if shield_max > 0 and shield < shield_max:
 		shield_cd -= dt
 		if shield_cd <= 0.0:
@@ -1060,168 +1045,6 @@ func _check_pending() -> void:
 # =====================================================================
 
 
-## 敌人命中水月：闪避判定、侵蚀、神经损伤
-func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false) -> void:
-	if demo_op != "":
-		return
-	if not no_dodge and in_type[1] != "真实" and rng.randf() < min(dodge + (dodge_arts if in_type[1] == "法术" else dodge_phys), 0.6):
-		invuln = 0.3
-		Sfx.play("dodge", -4.0)
-		_add_text(ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
-		on_dodge()
-		return
-	if shield > 0:
-		_shield_block()
-		return
-	for o in squad.ops:
-		if o.has_method("dmg_taken_mult"):
-			dmg *= o.dmg_taken_mult()
-	_hurt(dmg * (1.15 if lamp < 30.0 else 1.0), ignore_armor)
-	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / max_hp) * lamp_decay
-	lamp = maxf(0.0, lamp - lamp_loss)
-	if lamp_loss >= 6.0:
-		_add_text(ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
-	if src.get("corrode", 0.0) > 0.0:
-		corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * corrode_taken_mult
-		_add_text(ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
-	if src.get("nerve", 0.0) > 0.0:
-		_add_nerve(src.nerve * nerve_taken_mult)
-
-
-func on_dodge() -> void:
-	rfx.on_dodge()
-
-
-func _add_nerve(v: float) -> void:
-	nerve += v
-	if nerve >= 100.0:
-		nerve = 0.0
-		pstun = 0.4
-		atk_slow = maxf(atk_slow, 2.5)
-		dmg_src = "nerve"
-		in_type = ["近战", "真实"]
-		_hurt(max_hp * 0.08, true)
-		_add_text(ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
-		Sfx.play("skill", -4.0, 1.6)
-
-
-func _hurt(amount: float, ignore_armor := false) -> void:
-	if in_type[1] != "真实":
-		amount *= rfx.taken_mult()
-	if not ignore_armor and in_type[1] == "物理":
-		amount = max(1.0, amount - armor)
-	elif in_type[1] == "法术":
-		amount = max(1.0, amount * (1.0 - minf(arts_res, 0.7)))
-	hp -= amount
-	rfx.on_hurt(dmg_src == "nerve")
-	dmg_log[dmg_src] = dmg_log.get(dmg_src, 0.0) + amount
-	invuln = 0.45
-	hurt_flash = 0.2
-	# 受击反馈按伤害占最大生命的比例分级
-	var sev := clampf(amount / max_hp / 0.12, 0.0, 1.0)
-	hurt_vignette = 0.6 + 0.4 * sev
-	red_flash = maxf(red_flash, 0.12 + 0.25 * sev)
-	hp_shake = 0.35
-	head_bar_t = 2.5
-	_shake(0.55 + 0.8 * sev)
-	hitstop = max(hitstop, 0.045 + 0.06 * sev)
-	Sfx.play("hurt", -1.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)
-	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
-	_sparks(ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
-	fx.append({"kind": "ring", "pos": ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
-	_add_text(ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
-	# 首次跌破 30%：时间短暂变慢 + 警告
-	if hp > 0.0 and hp < max_hp * 0.3 and not low_warned:
-		low_warned = true
-		hitstop = max(hitstop, 0.35)
-		_show_banner("生命垂危！")
-	elif hp > max_hp * 0.45:
-		low_warned = false
-
-
-## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」
-func _update_zone(dt: float) -> void:
-	if zone_state == 0:
-		if t < ZONE_START:
-			return
-		zone_c = ppos
-		zone_r = ZONE_RADII[0] + 400.0
-		zone_phase = -1
-		zone_state = 3
-		zone_t = 0.0
-	zone_t += dt
-	match zone_state:
-		3:
-			if zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if ending == "resolve" else 1):
-				zone_phase += 1
-				zone_next_r = ZONE_RADII[zone_phase]
-				var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, (zone_r - zone_next_r) * 0.7)
-				zone_next_c = zone_c + off
-				zone_state = 1
-				zone_t = 0.0
-				_show_banner("黑潮将至：%d 秒后安全区缩小" % 20)
-				Sfx.play("roar", -6.0, 0.5, 0.0)
-		1:
-			if zone_t >= 20.0:
-				zone_state = 2
-				zone_t = 0.0
-				zone_from_c = zone_c
-				zone_from_r = zone_r
-				_show_banner("黑潮正在逼近！")
-		2:
-			var k := clampf(zone_t / 25.0, 0.0, 1.0)
-			zone_c = zone_from_c.lerp(zone_next_c, k)
-			zone_r = lerpf(zone_from_r, zone_next_r, k)
-			if k >= 1.0:
-				zone_state = 3
-				zone_t = 0.0
-	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
-	var out := ppos.distance_to(zone_c) - zone_r
-	if out > 0.0 and state == S.PLAY and not squad.in_sanctuary(ppos):
-		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		hp -= dps * dt
-		dmg_log["zone"] = dmg_log.get("zone", 0.0) + dps * dt
-		lamp = maxf(0.0, lamp - 6.0 * dt)
-		zone_hurt_t -= dt
-		if zone_hurt_t <= 0.0:
-			zone_hurt_t = 0.8
-			hurt_flash = maxf(hurt_flash, 0.08)
-			head_bar_t = 2.0
-			_add_text(ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
-
-
-func _in_zone(p: Vector2, margin := 0.0) -> bool:
-	return zone_state == 0 or p.distance_to(zone_c) < zone_r - margin
-
-
-## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复
-func _shield_block() -> void:
-	shield -= 1
-	shield_flash = 0.3
-	invuln = 0.5
-	if shield < shield_max and shield_cd <= 0.0:
-		shield_cd = shield_every
-	Sfx.play("dodge", -2.0, 1.4, 0.0)
-	_add_text(ppos + Vector2(0, -84), "护盾抵挡", Color(0.6, 0.9, 1.0), 16)
-	# 碎片
-	for k in 14:
-		fx.append({"kind": "shard", "pos": ppos + Vector2(0, -24), "vel": Vector2.from_angle(randf() * TAU) * randf_range(120, 260),
-			"life": 0.5, "max": 0.5, "rot": randf() * TAU})
-	fx.append({"kind": "ring", "pos": ppos + Vector2(0, -20), "r": 50.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 0.9, 1.0)})
-	if shield_heal:
-		_heal(max_hp * 0.03, "藏品")
-	if shield_burst:
-		for j in enemies_sys.query(ppos, 140.0):
-			var e: Dictionary = enemies[j]
-			if not e.dead and e.pos.distance_to(ppos) < 140.0:
-				_damage(e, 30.0 * dmg_mult)
-				if not e.boss:
-					e.kb += (e.pos - ppos).normalized() * 420.0
-		fx.append({"kind": "explode", "pos": ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
-		_shake(0.6)
-
-
 ## 属性块 → 旧变量缓存。stat 名见 core/stat_defs.gd；战斗代码继续读旧变量，所有修改都走 stats.add()
 const STAT_SYNC := {
 	&"dmg": "dmg_mult", &"physical_dmg": "phys_mult", &"arts_dmg": "arts_mult", &"melee_dmg": "melee_mult", &"ranged_dmg": "ranged_mult",
@@ -1283,27 +1106,6 @@ func _pm(k: String) -> void:
 	_prof_t = now
 
 
-## 这次伤害是否算「追击」（docs/35）
-func is_followup(h: Dictionary) -> bool:
-	for tg in h.tags:
-		if tg in FOLLOWUP_TAGS:
-			return true
-	return false
-
-
-## 敌人生命的时间倍率（不含难度）：藏品的直接伤害按它缩放，保证各时段同样「有感」
-func enemy_hp_time_mult() -> float:
-	var hk: float = Bal.v("enemy/hp_knee", 480.0)
-	return 1.0 + minf(t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)
-
-
-## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
-func _hit(src: String, extra_tags: Array = []) -> void:
-	var base: Dictionary = hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
-	hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
-		"class": base.get("class", ""), "op": base.get("op", "")}
-
-
 ## 本局造成伤害的构成（按来源前三，占比），Tab 面板与结算用
 func _dmg_mix_text() -> String:
 	var total := 0.0
@@ -1317,110 +1119,6 @@ func _dmg_mix_text() -> String:
 	for i in mini(3, ks.size()):
 		parts.append("%s %d%%" % [ks[i], int(round(dmg_out[ks[i]] / total * 100.0))])
 	return " · ".join(parts)
-
-
-func _damage(e: Dictionary, dmg: float) -> void:
-	if e.dead:
-		return
-	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
-	if e.pos.distance_squared_to(ppos) < _lamp_r() * _lamp_r() or e.get("lit", 0.0) > 0.0:
-		dmg *= 1.25
-	if e.invuln:
-		if texts.size() < 80 and vrng.randf() < 0.2:
-			_add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
-		return
-	if e.chest and e.hidden:
-		e.hidden = false
-		spawner.reveal_mimic(e)
-		return
-	var ty: Array = [hit.range, hit.kind]
-	var weak_hit := false
-	if ty[1] != "真实":
-		dmg *= e.def * rfx.dmg_extra()
-		# 弱点：对应类型伤害 +50%（藏品可加成 / 赋予双弱点）
-		var wk: String = e.get("weak", "")
-		if wk == ty[1] or (wk == "双" and ty[1] != "真实") or (rfx.rule("all_weak") > 0):
-			dmg *= 1.5 + weak_bonus
-			weak_hit = true
-		dmg *= melee_mult if ty[0] == "近战" else ranged_mult
-		if e.get("aura_weak", 0.0) > 0.0:
-			dmg *= 1.1
-		dmg *= arts_mult if ty[1] == "法术" else phys_mult
-		if is_followup(hit):
-			dmg *= followup_mult * rfx.followup_extra()
-		dmg *= rfx.hit_mult(hit)
-		# Logos「安魂」：受到的法术伤害 +15%
-		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
-			dmg *= 1.15
-		if low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
-			dmg *= 1.0 + low_hp_bonus
-		if e.boss and final_boss != null and is_same(e, final_boss):
-			dmg *= 1.0 + 0.01 * rfx.rule("final_taken") + (0.8 if rfx.rule("bone_blood") > 0 else 0.0)
-	rfx.on_hit(e, hit)
-	e.hp -= dmg
-	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	dmg_out[hit.src] = dmg_out.get(hit.src, 0.0) + eff
-	if hit.origin == "relic":
-		relic_out += eff
-	dmg_type_out[ty[1]] = dmg_type_out.get(ty[1], 0.0) + eff
-	for tg in hit.tags:
-		dmg_tag_out[tg] = dmg_tag_out.get(tg, 0.0) + eff
-	e.hits += 1
-	e.flash = 0.08
-	e.squash = 0.14
-	if texts.size() < 80 and Cfg.dmg_numbers:
-		if crit_hit:
-			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
-		elif weak_hit:
-			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
-		else:
-			_add_text(e.pos + Vector2(rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
-	# 圣徒装填时被打断
-	if e.get("channel", 0.0) > 0.0:
-		e.channel = 0.0
-		e.stun = 6.0
-		e.ammo = 0
-		e.ai = "melee"
-		_add_text(e.pos + Vector2(0, -50), "装填被打断！", UI.GOLD, 20)
-		_shake(0.5)
-	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
-	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
-		e.phase = 2
-		e.range = 400.0
-		e.weak = "物理"
-		e.dmg *= 1.2
-		_show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
-		Sfx.play("roar", 0.0, 1.2, 0.0)
-	# 掠海漂移体被控制后落地，改为近战
-	if e.get("hover_lost", false) == false and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
-		e.hover_lost = true
-		e.ai = "melee"
-		e.spd = 70.0
-		_add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
-	if e.hp <= 0.0:
-		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
-		if e.type == "knight_boss" and e.phase == 1:
-			e.phase = 2
-			e.hp = e.maxhp * 0.5
-			e.spd *= 1.2
-			e.invuln = true
-			e.channel = 1.5
-			e.stun = 0.0
-			e.kb = Vector2.ZERO
-			if not _fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), PX * 1.4, 0.0):
-				fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-			_show_banner("寒冰重生 —— 最后的骑士 第二阶段")
-			Sfx.play("roar", 0.0, 0.9, 0.0)
-			_shake(1.2)
-			return
-		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead:
-			e.hp = 1.0
-			e.coma = true
-			e.invuln = true
-			e.stun = 0.0
-			_add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
-			return
-		_kill(e)
 
 
 ## 播放美术交付的帧动画特效；素材不存在时返回 false，由调用方使用程序效果
@@ -1443,100 +1141,6 @@ func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void
 		var a := vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + vrng.randf_range(-0.7, 0.7)
 		fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * vrng.randf_range(0.4, 1.0),
 			"life": vrng.randf_range(0.18, 0.32), "max": 0.3, "col": col, "sz": 2.0 if vrng.randf() < 0.6 else 4.0})
-
-
-func _heal(v: float, src: String = "其他") -> void:
-	v *= heal_mult
-	var got: float = minf(v, maxf(0.0, max_hp - hp))
-	heal_log[src] = float(heal_log.get(src, 0.0)) + got
-	if v > got:
-		rfx.on_overheal(v - got)
-	hp = min(max_hp, hp + v)
-
-
-func _kill(e: Dictionary) -> void:
-	rfx.on_kill(e)
-	if e.dead:
-		return
-	e.dead = true
-	# 海嗣祭坛：打开事件选项
-	if e.chest and e.get("event", "") != "":
-		Sfx.play("relic", -2.0, 0.8)
-		_sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
-		fx.append({"kind": "rays", "pos": e.pos, "life": 0.7, "max": 0.7, "col": Color(0.5, 0.8, 1.0)})
-		endg.open(e.event)
-		return
-	# 补给箱被打碎
-	if e.chest:
-		Sfx.play("relic", -6.0, 1.3)
-		_sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
-		for k in rng.randi_range(3, 6):
-			pickups.drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(4.0, 18.0), "ingot", 1.0)
-		if rng.randf() < 0.3:
-			pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
-		return
-	if e.type != "tear":
-		kills += 1
-	if e.has("horde") and e.horde < horde_log.size():
-		var hl: Dictionary = horde_log[e.horde]
-		hl.killed += 1
-		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
-			hl.t80 = int(t) - hl.t
-	var col: Color = ECOL.get(e.type, Color(0.6, 0.9, 0.9))
-	_sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
-	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
-	Sfx.play("kill", -8.0)
-	if e.get("tex_death", false) and V6_FRAMES.has(e.tex + "_death"):
-		var dtx: Texture2D = tex[e.tex + "_death"]
-		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * PX)
-		_fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * PX * 0.5), PX, 0.0)
-	elif not _fx_sprite("fx_death_dissolve", e.pos, PX * max(1.0, e.r / 12.0)):
-		_anim("fx_death", e.pos, 0.3, PX * max(1.0, e.r / 12.0))
-	if e.elite:
-		elites_killed += 1
-	if e.elite or e.boss:
-		Sfx.play("boom", 0.0, 1.0, 0.0)
-		hitstop = max(hitstop, 0.12)
-		_shake(1.0)
-		_sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
-	squad.on_kill(e)
-	if flesh_heal and e.evo:
-		_heal(max_hp * 0.03, "藏品")
-	if ember and e.elite:
-		lamp = min(lamp_cap, lamp + 20.0)
-	if e.xp > 0.0:
-		pickups.drop(e.pos, "xp", e.xp * xp_mult)
-	if rng.randf() < 0.012 * (0.5 if diff >= 3 else 1.0):
-		pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
-	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
-	if e.elite or e.boss:
-		pickups.drop(e.pos + Vector2(-16, 8), "magnet" if rng.randf() < 0.5 else "heal", 1.0)
-	elif pickups.count_items() < 3:
-		var r := rng.randf()
-		if r < 0.0025:
-			pickups.drop(e.pos, "magnet", 1.0)
-		elif r < 0.006:
-			pickups.drop(e.pos, "heal", 1.0)
-	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
-	if e.elite:
-		ing = max(ing, rng.randi_range(3, 5))
-		pickups.drop(e.pos, "chest", 1.0)
-		pickups.drop(e.pos + Vector2(20, 10), "oil", 25.0)
-	if e.boss:
-		ing = 20
-		if not is_same(e, final_boss) and not spawner.boss_alive():
-			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
-		pickups.drop(e.pos + Vector2(-20, 0), "chest", 1.0)
-		for j in 12:
-			pickups.drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
-		# Boss 倒下时清除它召唤的东西
-		for o in enemies:
-			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
-				o.dead = true
-	if diff >= 5 and ing > 0:
-		ing = int(floor(ing * 0.7 + rng.randf()))
-	for k in ing:
-		pickups.drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(6.0, 26.0), "ingot", 1.0)
 
 
 # =====================================================================

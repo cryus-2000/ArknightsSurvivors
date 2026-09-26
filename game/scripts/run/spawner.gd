@@ -209,7 +209,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var role: String = d.get("role", "")
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
 	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
-	var hpm := g.enemy_hp_time_mult() * (1.0 + (0.15 if g.diff >= 1 else 0.0) + (0.2 if g.diff >= 10 else 0.0))
+	var hpm := g.combat.enemy_hp_time_mult() * (1.0 + (0.15 if g.diff >= 1 else 0.0) + (0.2 if g.diff >= 10 else 0.0))
 	var dmm := (1.0 + (0.15 if g.diff >= 2 else 0.0) + (0.2 if g.diff >= 10 else 0.0))
 	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
 	next_id += 1

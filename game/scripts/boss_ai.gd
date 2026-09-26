@@ -22,8 +22,8 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			p.coma = false
 			e.invuln = false
 			p.invuln = false
-			g._kill(e)
-			g._kill(p)
+			g.combat.kill(e)
+			g.combat.kill(p)
 			g._show_banner("接潮双体 同时倒下")
 			return
 		if e.hp >= e.maxhp:
@@ -308,7 +308,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	g.dmg_src = "boss_" + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
-		g._enemy_hit(w.dmg, {"corrode": w.corrode}, false, true)
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode}, false, true)
 		if stun_t > 0.0:
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow:

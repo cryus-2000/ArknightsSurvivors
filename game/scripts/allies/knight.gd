@@ -167,8 +167,8 @@ func update(dt: float) -> void:
 				if e.dead or e.chest or dash_hit.has(e.id) or e.pos.distance_to(pos) > e.r + R + 6.0:
 					continue
 				dash_hit[e.id] = true
-				g._hit("骑士", ["ally", "charge"])
-				g._damage(e, 45.0 * lvm * g.dmg_mult)
+				g.combat.hit("骑士", ["ally", "charge"])
+				g.combat.damage(e, 45.0 * lvm * g.dmg_mult)
 				if not e.dead:
 					e.kb += dash_dir * 260.0
 				g._sparks(e.pos, dash_dir, Color(0.7, 0.9, 1.4), 5, 160.0)
@@ -197,8 +197,8 @@ func update(dt: float) -> void:
 				for e in g.enemies_sys.arc_hit(pos, ang, 0.9, 92.0):
 					if e.chest:
 						continue
-					g._hit("骑士", ["ally", "stab"])
-					g._damage(e, 60.0 * lvm * g.dmg_mult)
+					g.combat.hit("骑士", ["ally", "stab"])
+					g.combat.damage(e, 60.0 * lvm * g.dmg_mult)
 					if not e.dead:
 						e.slow = maxf(e.slow, FROST_T)
 				Sfx.play("swing", -4.0, 0.9)
