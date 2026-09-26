@@ -263,13 +263,15 @@ func damage(e: Dictionary, dmg: float) -> void:
 	e.hits += 1
 	e.flash = 0.08
 	e.squash = 0.14
+	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
+	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.texts.size() < 80 and Cfg.dmg_numbers:
 		if g.crit_hit:
-			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
+			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		elif weak_hit:
-			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
+			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 		else:
-			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
 	# 圣徒装填时被打断
 	if e.get("channel", 0.0) > 0.0:
 		e.channel = 0.0
