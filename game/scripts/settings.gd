@@ -6,6 +6,7 @@ const PATH := "user://settings.cfg"
 var master := 1.0
 var music := 0.8
 var sfx := 0.9
+var voice := 0.8        # 干员语音（Voice 总线）
 var fullscreen := false
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
@@ -45,6 +46,7 @@ func _ready() -> void:
 		master = c.get_value("audio", "master", master)
 		music = c.get_value("audio", "music", music)
 		sfx = c.get_value("audio", "sfx", sfx)
+		voice = c.get_value("audio", "voice", voice)
 		fullscreen = c.get_value("video", "fullscreen", fullscreen)
 		res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
@@ -70,6 +72,7 @@ func apply() -> void:
 	_bus("Master", master)
 	_bus("Music", music)
 	_bus("SFX", sfx)
+	_bus("Voice", voice)
 	if DisplayServer.get_name() != "headless":
 		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != want:
@@ -97,6 +100,7 @@ func save() -> void:
 	c.set_value("audio", "master", master)
 	c.set_value("audio", "music", music)
 	c.set_value("audio", "sfx", sfx)
+	c.set_value("audio", "voice", voice)
 	c.set_value("video", "fullscreen", fullscreen)
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)

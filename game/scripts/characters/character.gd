@@ -20,6 +20,7 @@ var is_leader := false     # 主控干员（玩家操控、唯一受击体，doc
 var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
 const NODE_ATK := 0.06
 var aura_t := 0.0
+var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
@@ -244,6 +245,8 @@ func spend_sp(i: int) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
 	if sfx != null:
 		sfx.op(id, "s%d" % (i + 1), 0.0, 1.0, 0.0)
+		if g.demo_op == "":
+			sfx.voice(id, "skill_%d" % (i + 1))   # 技能语音（>3 秒的不播，见 sfx.gd）
 	if skill_def(i).get("permanent", false):
 		perm[i] = true
 		sp[i] = sp_need(i)

@@ -90,6 +90,13 @@ func _ready() -> void:
 	else:
 		music_lp = AudioServer.get_bus_effect(mbus, 0)
 	_ensure_bus("SFX")
+	_ensure_bus("Voice")
+	voice_player = AudioStreamPlayer.new()
+	voice_player.bus = "Voice"
+	add_child(voice_player)
+	var cfg: Node = get_node_or_null("/root/Cfg")
+	if cfg != null and "voice" in cfg:
+		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(cfg.voice), 0.0001)))
 	for n in NAMES:
 		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 	for oid in OP_SFX:
@@ -221,7 +228,75 @@ func set_layers(l: Array) -> void:
 var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
 
 
+# ---------------------------------------------------------------- 干员语音（Codex 交付 game/audio/voice，README 事件映射）
+## 用户定（2026-09-26）：只用 3 秒以内的短语音，更长的一律不播。同一时刻只有一条；技能语音优先级最高；
+## 部署语音排队；同一干员同一句有冷却，战斗台词每人至少 30 秒一次。缺文件静默跳过，不退回战斗音效。
+const VOICE_MAX_LEN := 3.0
+const VOICE_GAP := 1.0                 # 两条语音之间至少间隔
+const VOICE_CD := {"entry": 0.0, "skill_1": 8.0, "skill_2": 8.0, "skill_3": 8.0, "battle": 30.0, "w_laugh": 45.0}
+const VOICE_PRIO := {"skill_3": 4, "skill_2": 3, "skill_1": 3, "entry": 2, "battle": 1, "w_laugh": 1}
+## 响度归一（Codex 交付的各段 RMS 相差约 7 dB）：按各干员实测平均 RMS 拉到 -17 dB 附近（2026-09-26 测量）
+const VOICE_TRIM := {"eyjafjalla": -4.0, "saria": 1.0, "wisadel": 1.0, "logos": 0.5}
+var voice_player: AudioStreamPlayer
+var voice_streams := {}                # 路径 -> AudioStream（null = 缺文件或超长）
+var voice_last := {}                   # "cid:key" -> 上次播放时间
+var voice_prio := 0
+var voice_end := 0.0
+var voice_queue: Array = []            # [cid, key]
+
+
+func _voice_stream(cid: String, key: String) -> AudioStream:
+	var path := "res://audio/voice/%s_%s.wav" % [cid, key]
+	if not voice_streams.has(path):
+		var st: AudioStream = _load_wav(path)
+		if st != null and st.get_length() > VOICE_MAX_LEN:
+			st = null
+		voice_streams[path] = st
+	return voice_streams[path]
+
+
+## 播一条干员语音；queue = true 时占线则排队（部署语音用），否则直接放弃
+func voice(cid: String, key: String, queue := false) -> void:
+	var st := _voice_stream(cid, key)
+	if st == null:
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var lk := cid + ":" + key
+	if now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
+		return
+	var prio: int = VOICE_PRIO.get(key, 1)
+	var busy: bool = voice_player.playing or now < voice_end
+	if busy and prio <= voice_prio:
+		if queue and voice_queue.size() < 4:
+			voice_queue.append([cid, key])
+		return
+	voice_last[lk] = now
+	voice_prio = prio
+	voice_player.stream = st
+	voice_player.volume_db = float(VOICE_TRIM.get(cid, 0.0))
+	voice_player.play()
+	voice_end = now + st.get_length() + VOICE_GAP
+
+
+func _voice_tick() -> void:
+	if voice_queue.is_empty() or voice_player.playing:
+		return
+	if Time.get_ticks_msec() / 1000.0 < voice_end:
+		return
+	var q: Array = voice_queue.pop_front()
+	voice_prio = 0
+	voice(q[0], q[1], false)
+
+
+## 场景切换 / 回标题时清空（避免上一局的部署语音串到下一局）
+func voice_reset() -> void:
+	voice_queue.clear()
+	voice_player.stop()
+	voice_prio = 0
+
+
 func _process(delta: float) -> void:
+	_voice_tick()
 	music_lp.cutoff_hz = lerp(music_lp.cutoff_hz, cut_target, clamp(delta * 3.0, 0.0, 1.0))
 	# 兜底：若游戏场景没有主动选曲（未接入分层逻辑的版本），进入战斗时自动播放战斗曲
 	driven_t += delta

@@ -9,6 +9,7 @@ const ROWS := [
 	{"cn": "主音量", "en": "MASTER", "key": "master", "type": "vol"},
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
+	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},

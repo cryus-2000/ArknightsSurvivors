@@ -60,6 +60,11 @@ func add(cid: String):
 		return null
 	op.slot = ops.size()
 	op.is_leader = ops.is_empty()   # 开局干员 = 主控
+	op.voice_t = g.rng.randf_range(20.0, 40.0)
+	# 部署语音：排队播，多名干员不会同帧抢话（图鉴演示不播）
+	var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx0 != null and g.demo_op == "":
+		sfx0.voice(cid, "entry", true)
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
 	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
@@ -125,12 +130,26 @@ func update(dt: float) -> void:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	for o in ops:
 		o.tick_sp(dt)
+		_battle_voice(o, dt)
 		o.update(dt)
 		# 主控的技能位移（推进之王跃空锤、乌尔比安顺锁链弹射）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
 			g.invuln = maxf(g.invuln, 0.12)
 		o._tick_pfx(dt)
+
+
+## 战斗台词：每人 30–55 秒一次，身边 300 内有敌人才说；维什戴尔四成概率换成 W 的笑声
+func _battle_voice(o, dt: float) -> void:
+	o.voice_t -= dt
+	if o.voice_t > 0.0:
+		return
+	o.voice_t = g.rng.randf_range(30.0, 55.0)
+	if g.demo_op != "" or g._nearest(1, 300.0, o.pos).is_empty():
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null:
+		sfx.voice(o.id, "w_laugh" if o.id == "wisadel" and g.rng.randf() < 0.4 else "battle")
 
 
 ## 主控干员（docs/23 v0.7：玩家操控的干员，唯一受击体）

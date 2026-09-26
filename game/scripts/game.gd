@@ -334,6 +334,8 @@ var show_game: Node = null
 
 
 func _ready() -> void:
+	if demo_op == "":
+		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
