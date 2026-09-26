@@ -22,14 +22,14 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			p.coma = false
 			e.invuln = false
 			p.invuln = false
-			g._kill(e)
-			g._kill(p)
-			g._show_banner("接潮双体 同时倒下")
+			g.combat.kill(e)
+			g.combat.kill(p)
+			g.vfx.show_banner("接潮双体 同时倒下")
 			return
 		if e.hp >= e.maxhp:
 			e.coma = false
 			e.invuln = false
-			g._add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
+			g.vfx.add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
 	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.age > 2.0
 	match e.type:
@@ -44,8 +44,8 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 						e.kb = -dir * 720.0
 						e.pose = 0.35
 						e.pose_max = 0.35
-						g._sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
-						g._add_text(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
+						g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
+						g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
 						Sfx.play("dodge", -8.0)
 					elif dist > 150.0 and _cd(e, "snipe", 8.0):
 						_warn(e, "line", 1.2, {"ang": dir.angle(), "len": 1100.0, "wid": 10.0, "track": 0.6, "act": "shot", "name": "狙击", "col": Color(1.0, 0.85, 0.4), "dmg": e.dmg * 2.6})
@@ -54,13 +54,13 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.channel <= 0.0:
 					e.ammo = 3
 					e.ai = "ranged"
-					g._add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
+					g.vfx.add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
 			else:
 				e.reload_t -= dt
 				if e.reload_t <= 0.0 and e.stun <= 0.0:
 					e.reload_t = 20.0
 					e.channel = 2.0
-					g._add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
+					g.vfx.add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
 		"path":
 			# 塑路者：冲撞（直线预警→冲锋）、震地（近身蓄力→冲击波）、碎裂（75/50/25% 裂出分形）
 			if ready:
@@ -72,9 +72,9 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if crack < 3 and e.hp < e.maxhp * (0.75 - 0.25 * crack):
 				e.crack = crack + 1
 				for k in 4:
-					g._spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 56.0)
+					g.spawner.spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 56.0)
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.35, "max": 0.35, "col": Color(0.6, 0.7, 1.0)})
-				g._add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 18)
+				g.vfx.add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 18)
 				Sfx.play("boom", -6.0, 1.3, 0.0)
 		"bishop":
 			# 接潮主教：潮汐柱（脚下三圈）、召潮（4 只海嗣）、祝福（治疗并加速搭档）
@@ -92,17 +92,17 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					g.fx.append({"kind": "ring", "pos": p.pos, "r": p.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.8)})
 					for k in 3:
 						g.fx.append({"kind": "cross", "pos": p.pos + Vector2(randf_range(-18, 18), randf_range(-40, -5)), "life": 0.9, "max": 0.9, "delay": k * 0.08, "sz": 4.0})
-					g._add_text(e.pos + Vector2(0, -50), "祝福", Color(0.5, 1.0, 0.8), 16)
-					g._add_text(p.pos + Vector2(0, -50), "加速", Color(0.5, 1.0, 0.8), 14)
+					g.vfx.add_text(e.pos + Vector2(0, -50), "祝福", Color(0.5, 1.0, 0.8), 16)
+					g.vfx.add_text(p.pos + Vector2(0, -50), "加速", Color(0.5, 1.0, 0.8), 14)
 					Sfx.play("pickup", -6.0, 0.8)
 				elif _cd(e, "summon", 14.0):
 					e.pose = 0.6
 					e.pose_max = 0.6
 					for k in 4:
 						var sp: Vector2 = e.pos + Vector2.from_angle(TAU * k / 4.0) * 70.0
-						g._spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
+						g.spawner.spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
 						g.fx.append({"kind": "ring", "pos": sp, "r": 22.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.9, 1.0)})
-					g._add_text(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
+					g.vfx.add_text(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
 					Sfx.play("tentacle", -6.0, 0.8)
 		"archon":
 			# 接潮蔑死体：横扫（扇形重击+侵蚀）、跃击（跳砸目标点）
@@ -128,7 +128,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				e.rage = true
 				e.spd *= 1.35
 				e.dmg *= 1.2
-				g._add_text(e.pos + Vector2(0, -50), "狂暴", Color(1.0, 0.4, 0.4), 18)
+				g.vfx.add_text(e.pos + Vector2(0, -50), "狂暴", Color(1.0, 0.4, 0.4), 18)
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.3, 0.3)})
 				Sfx.play("roar", -6.0, 1.3)
 			if ready and e.get("combo_n", 0) > 0 and e.get("combo_t", 0.0) <= g.t:
@@ -158,7 +158,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.bt > 4.0:
 					e.bt = 0.0
 					for k in 2:
-						var o: Dictionary = g._spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
+						var o: Dictionary = g.spawner.spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
 						o.feed = true
 						o.feed_to = e
 						o.spd = 45.0
@@ -166,14 +166,14 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.phase = 2
 					e.invuln = false
 					e.bt = 0.0
-					g._show_banner("伊祖米克进入「解读阶段」！")
+					g.vfx.show_banner("伊祖米克进入「解读阶段」！")
 					Sfx.play("roar", 0.0, 0.8, 0.0)
-					g._shake(1.0)
+					g.vfx.shake_screen(1.0)
 			else:
 				# 解读阶段：周期冲击波，被波及会晕眩
 				if e.bt > 7.0:
 					e.bt = 0.0
-					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false})
+					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false, "boss": e.boss})
 					Sfx.play("skill", -2.0, 0.6)
 		"knight_boss":
 			# 最后的骑士（结局二）：冲锋（直线预警→突进+冰霜）/ 长枪连刺（近身三段扇形）/ 寒冰领域（20 秒一次，200 半径减速 6 秒）
@@ -215,20 +215,20 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.charge >= 100.0:
 					e.phase = 2
 					e.dmg *= 1.6
-					g._show_banner("伊莎玛拉 完成了转化！")
+					g.vfx.show_banner("伊莎玛拉 完成了转化！")
 					Sfx.play("roar", 2.0, 0.6, 0.0)
-					g._shake(1.2)
+					g.vfx.shake_screen(1.2)
 			if not e.get("half", false) and e.hp < e.maxhp * 0.5:
 				e.half = true
 				e.dmg *= 1.3
 				_spawn_tears(e, 2)
-				g._show_banner("伊莎玛拉 愈发狂暴")
+				g.vfx.show_banner("伊莎玛拉 愈发狂暴")
 			# 治疗周围的海嗣
 			e.heal_t = e.get("heal_t", 0.0) + dt
 			if e.heal_t > 4.0:
 				e.heal_t = 0.0
 				var n := 0
-				for j in g._query(e.pos, 260.0):
+				for j in g.enemies_sys.query(e.pos, 260.0):
 					var o: Dictionary = g.enemies[j]
 					if o.dead or o.boss or o.chest or n >= 3:
 						continue
@@ -263,7 +263,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		e.pose = dur + 0.3
 		e.pose_max = dur + 0.3
 	if w.name != "":
-		g._add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
+		g.vfx.add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
 		Sfx.play("skill", -12.0, 1.4)
 	return w
 
@@ -308,7 +308,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	g.dmg_src = "boss_" + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
-		g._enemy_hit(w.dmg, {"corrode": w.corrode}, false, true)
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if stun_t > 0.0:
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow:
@@ -324,58 +324,58 @@ func _warn_resolve(w: Dictionary) -> void:
 		"pillar":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.55, "max": 0.55, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c})
-			g._sparks(w.pos, Vector2.UP, Color(0.6, 1.2, 1.6), 14, 260.0)
+			g.vfx.sparks(w.pos, Vector2.UP, Color(0.6, 1.2, 1.6), 14, 260.0)
 			Sfx.play("tentacle", -5.0, 1.1)
-			g._shake(0.3)
+			g.vfx.shake_screen(0.3)
 			_warn_damage(w, 0.4)
 		"frost":
 			e.frost_pos = w.pos
 			e.frost_t = 6.0
 			g.fx.append({"kind": "frost", "pos": w.pos, "r": w.r, "life": 6.0, "max": 6.0, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
-			g._sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 16, 240.0)
+			g.vfx.sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 16, 240.0)
 			Sfx.play("skill", -4.0, 0.7)
 			_warn_damage(w)
 		"slam":
-			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false})
+			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})
-			g._sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
+			g.vfx.sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
 			Sfx.play("boom", 0.0, 0.6, 0.0)
-			g._shake(1.2)
+			g.vfx.shake_screen(1.2)
 			g.hitstop = maxf(g.hitstop, 0.05)
 		"burst":
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
-			g._sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)
+			g.vfx.sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)
 			Sfx.play("boom", -8.0, 1.2, 0.0)
 			_warn_damage(w)
 		"shot":
 			var b: Vector2 = w.pos + dv * w.len
 			g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
-			g._sparks(w.pos + dv * 24.0, dv, Color(2.0, 1.6, 0.8), 8, 320.0)
+			g.vfx.sparks(w.pos + dv * 24.0, dv, Color(2.0, 1.6, 0.8), 8, 320.0)
 			Sfx.play("hit", 0.0, 0.5, 0.0)
-			g._shake(0.4)
+			g.vfx.shake_screen(0.4)
 			_warn_damage(w)
 		"beam":
 			var b2: Vector2 = w.pos + dv * w.len
 			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
 			Sfx.play("skill", -2.0, 0.5)
-			g._shake(0.7)
+			g.vfx.shake_screen(0.7)
 			_warn_damage(w, 0.0, true)
 		"sweep":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
-			g._sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
+			g.vfx.sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
 			Sfx.play("swing", -2.0, 0.55)
-			g._shake(0.5)
+			g.vfx.shake_screen(0.5)
 			_warn_damage(w, 0.25)
 		"leap":
 			e.pos = w.pos
 			e.air = 0.0
 			e.erase("leap")
-			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false})
+			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
 			Sfx.play("boom", -2.0, 0.8, 0.0)
-			g._shake(1.0)
+			g.vfx.shake_screen(1.0)
 			_warn_damage(w, 0.3)
 		"dash":
 			e.kb = dv * w.get("spd", 600.0)
@@ -383,7 +383,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.dash_t = 0.45
 			e.pose = 0.45
 			e.pose_max = 0.45
-			g._sparks(e.pos, -dv, Color(0.9, 0.9, 1.0), 10, 200.0)
+			g.vfx.sparks(e.pos, -dv, Color(0.9, 0.9, 1.0), 10, 200.0)
 			Sfx.play("swing", -4.0, 0.5)
 		"stab":
 			e.kb = dv * w.get("spd", 800.0)
@@ -402,7 +402,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			for k in 14:
 				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
 				g.ebullets.append({"pos": w.pos, "vel": d2 * 210.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
-					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false})
+					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			Sfx.play("tentacle", -8.0, 1.3)
 
@@ -461,6 +461,6 @@ func _spawn_tears(e: Dictionary, n: int) -> void:
 				cnt += 1
 		if cnt >= 6:
 			return
-		g._spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
+		g.spawner.spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
 
 

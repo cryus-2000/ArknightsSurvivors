@@ -1,0 +1,83 @@
+# 39 · 代码结构与界面分层
+
+> 2026-09-26 架构整理：`game.gd` 从 7013 行拆到约 1250 行，按职责分成 run / screens / render 三层；
+> 干员经 `characters/op_api.gd` 调用主场景。视觉风格（配色、组件、字体）见 docs/37，测试见 docs/36。
+
+## 1. 目录一览（`game/scripts/`）
+
+| 目录 / 文件 | 职责 | 在 game.gd 里的字段 |
+| --- | --- | --- |
+| `game.gd` | **状态与调度**：对局状态变量（生命、灯火、敌人列表、编队……）、`_ready` 初始化、主循环 `_update` 调度各模块、输入分发、属性同步 `_sync_stats`、对局随机数 `_shuffle` | — |
+| `run/spawner.gd` | 刷怪：波次、精英、宝箱、拟态箱 | `spawner` |
+| `run/enemies.gd` | 敌人逐帧更新、状态、敌方弹幕；空间网格与索敌（query / nearest / arc_hit / densest_point） | `enemies_sys` |
+| `run/combat.gd` | 战斗结算：对敌伤害、击杀、主控受击、治疗、神经损伤、缩圈 | `combat` |
+| `run/weapons.gd` | 医疗无人机、玩家侧子弹 | `weapons_sys` |
+| `run/pickups.gd` | 掉落与拾取、经验与升级触发 | `pickups` |
+| `run/progression.gd` | 升级卡池、藏品候选与发放、选中结算 | `progression` |
+| `run/shop.gd` | 商人出现、货架、定价、购买（逻辑） | `shop_sys` |
+| `run/music_director.gd` | 局内配乐调度 | `music_dir` |
+| `run/demo.gd` | 图鉴攻击演示 / 精英化演出里的实机演示 | `demo_sys` |
+| `run/autotest.gd` | 自动测试与平衡机器人（只在带测试参数时运行） | `autotest_sys` |
+| `render/world.gd` | 世界绘制（2.5D 纵深排序）、主控 / 博士动画与手感；`game.gd._draw` 只转发到这里 | `world` |
+| `render/vfx.gd` | 特效帧条、刀光、火花、飘字、横幅、屏幕震动、加色层 | `vfx` |
+| `screens/hud.gd` | 局内 HUD，并按 `state` 分派到下列界面 | `hud_view` |
+| `screens/choice_panel.gd` | 弹窗框架（面板、布局、标题、按钮、提示）与选卡界面 | `panel_ui` |
+| `screens/shop_screen.gd` | 商店界面 | `shop_ui` |
+| `screens/elite_show.gd` | 精英化 / 解锁演出 | `show_screen` |
+| `screens/intro.gd` | 开场演出与新手教程 | `intro_screen` |
+| `screens/stats_panel.gd` | 属性面板（Tab） | `stats_screen` |
+| `screens/result.gd` | 结算 | `result_screen` |
+| `ui.gd` | 界面主题与控件（语义色、字体、面板、按钮、进度条……），docs/37 | 常量 `UI` |
+| `characters/op_api.gd` | 干员 → 主场景的接口层（索敌、伤害、治疗、特效、飘字、绘制） | 干员基类的父类 |
+| 已有的独立模块 | `boss_ai.gd`、`enemies/enemy_ai.gd`、`relic_fx.gd`、`endings.gd`、`world/map.gd`、`allies/knight.gd`、`characters/*`、`core/*` | — |
+
+## 2. 模块写法
+
+- 每个模块 `extends RefCounted`，持有带类型的 `g: Game`（`const Game = preload("res://scripts/game.gd")`）。带类型意味着 `var x := g.ppos` 能推断类型、成员名拼错在加载时就报错。
+- 在 `game.gd` 里以成员变量持有：`var spawner = Spawner.new(self)`（成员初始化时就建好，`_ready` 之前也能用）。
+- 读写对局状态一律 `g.xxx`；访问 `game.gd` 的常量 / 枚举用 `Game.PX`、`Game.S.PLAY`（常量表达式，参数默认值里也合法）。
+- 模块之间互相调用走 `g.<字段>.<函数>`，例如 `g.combat.damage(e, dmg)`、`g.vfx.show_banner("…")`。
+- 只被本模块使用的状态可以放在模块里（如 `run/music_director.gd` 的配乐状态）；**被多个模块或其他脚本读的状态留在 `game.gd`**。
+- 被 `set(name, …)` / `get("name")` 按字符串访问的变量（如 `STAT_SYNC` 表里的 `enemy_hp_mult`）必须留在 `game.gd`。
+
+## 3. 界面层约定（screens/）
+
+目的：以后改界面（再换一套风格、调布局、加新面板）只动 `screens/` 与 `ui.gd`，不碰玩法。
+
+1. **一个界面一个文件**，负责这个界面的布局与绘制；配色、字体、控件只用 `ui.gd`（docs/37），不在界面里硬写颜色常量。
+2. **只读状态**：界面从 `g` 读对局状态来画，不在绘制里改状态（计时、动画插值这类纯展示状态除外）。
+3. **操作走逻辑层**：按钮 / 选卡 / 购买回调调用 `run/` 的函数（`g.progression.pick(i)`、`g.shop_sys.buy(i)`），界面自己不结算。
+4. **分派在 HUD**：`screens/hud.gd` 的 `draw()` 按 `g.state` 把全屏界面交给对应模块画；新增一个全屏界面 = 新文件 + 在这里加一个分支 + `game.gd` 加一个字段。
+5. **弹窗框架共用**：面板节点、标题、按钮、提示在 `screens/choice_panel.gd`（`g.panel_ui.button(...)` 等），商店等弹窗复用它。
+
+## 4. 干员接口层（characters/op_api.gd）
+
+干员脚本调用主场景的能力（索敌、伤害、治疗、特效、飘字、绘制）一律走 `op_api.gd` 的方法，不直接调用 `g._xxx` 或各模块。
+主场景内部怎么拆、函数怎么改名，只改 `op_api.gd` 一处；本次拆分里敌人 / 战斗 / 特效三次搬家，13 名干员脚本一行没动。
+读写公共状态（`g.ppos`、`g.enemies`、`g.stats`、`g.hitstop`、`g.t`）与 `g.draw_*` 仍直接用 `g`。
+
+## 5. 搬运工具 `tools/split_module.py`
+
+按函数名把 `game.gd` 里的一组函数整段搬到新模块（或追加到已有模块）：自动给主场景成员加 `g.` / `Game.`、
+把只被搬走代码使用的变量与常量一起搬走、改写 `game.gd` 与其他脚本的调用。用法见文件头；先 `--dry` 看报告
+（「不认识的标识符」需要人看），搬完跑 `python tools/check.py`，再用 `--ab` 确认逐局相同。
+
+已知限制：
+- 只认 `g.` / `game.` / `_g.` 写法的外部调用，其他变量名（如 `tests/pad_sim.gd` 的 `sc.`）会列出「注意」，需手工改。
+- 函数里叫 `g` 的局部变量会被改名为 `g_item`，避免遮住模块的 `g`。
+- 引擎回调（`_draw`、`_process`、`_input`）要留在 `game.gd`，搬走后在原处写一行转发。
+
+## 6. 验证记录（2026-09-26）
+
+- 每一步：快检（docs/36）通过；界面步骤另跑 `--padsim`（标题 → 开场 → 教程 → 暂停 / 设置 → 属性面板 → 选卡）并截图目视（教程、商店、事件选卡、结算、属性面板、对局 HUD 与世界）。
+- 整体 A/B：基准 = 拆分前的 main（`64376e5`）+ 期间合入的玩法修复（`0dc2270` 成长节点），即临时提交 `2b40d43`；
+  标准矩阵（普通 / 高手 × 7 开局 × 4 seed）**54 / 56 局逐字段相同**，胜率、平均存活、等级合计完全一致。
+  另 2 局都是塞雷娅开局（普通·seed 4、高手·seed 3）。复查：拆分后的提交 `853c006` 与拆分中途的 `b8d481f` 单独跑都与基准相同（t=542）；
+  同一份代码并发 12 份跑同一局，10 份 t=542、2 份 t=552——**是这一局在高负载下本身不能严格复现**，与拆分无关（已另开排查任务）。
+
+## 7. 敌人字典字段校验
+
+`run/spawner.gd check_enemy()`：以 `new_enemy()` 的字段为模板，测试运行（带 `--xxx` 参数）时检查每个加入 `g.enemies` 的字典，
+缺字段直接 `assert` 失败（输出 `SCRIPT ERROR: Assertion failed`，快检记为失败；导出的正式版不执行 assert）。
+第一次运行就查出补给箱字典少了 `weak / aggro / corr_t / corr_dmg` 四个字段（各处读取时都带了同值默认，所以之前没出错），已补齐。
+另起炉灶拼敌人字典时（新的宝箱、召唤物……）先走 `spawn_enemy()`，或者在 append 之后调一次 `check_enemy(e, "来源")`。

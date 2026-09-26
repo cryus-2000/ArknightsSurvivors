@@ -1,12 +1,11 @@
 ## 编队（docs/23 §3）：持有编队位上的干员实例，负责招募 / 替换、编队校验、跟随队形与统一的 update / draw 分发。
-## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追博士。
+## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
 
 const Character = preload("res://scripts/characters/character.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
-## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
 ## 博士挂件在主控左下后方（game.gd DOC_BEHIND），这里避开那个位置
 const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -72), Vector2(-80, 44)]
@@ -51,7 +50,7 @@ func ids() -> Array:
 	return ops.map(func(o): return o.id)
 
 
-## 招募：实例化干员、登记专属属性与伤害来源、放到博士身边。满员返回 null
+## 招募：实例化干员、登记专属属性与伤害来源、放到主控身边。满员返回 null
 func add(cid: String):
 	if has(cid) or is_full():
 		return null
@@ -60,6 +59,8 @@ func add(cid: String):
 		return null
 	op.slot = ops.size()
 	op.is_leader = ops.is_empty()   # 开局干员 = 主控
+	if op.is_leader:
+		_apply_leader_regen(op)
 	op.voice_t = g.rng.randf_range(20.0, 40.0)
 	# 部署语音：排队播，多名干员不会同帧抢话（图鉴演示不播）
 	var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -82,6 +83,8 @@ func add(cid: String):
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
+	if g.get("rfx") != null:
+		g.rfx.refresh_squad()
 	return op
 
 
@@ -97,11 +100,25 @@ func remove(cid: String) -> void:
 		ops[i].slot = i
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
+		_apply_leader_regen(ops[0])
+	if g.get("rfx") != null:
+		g.rfx.refresh_squad()
+
+
+## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
+## 生命 / 物理减伤 / 法抗在 game.gd 开局处按同一个 leader 段覆盖；回复放这里，是因为主控换人（事件替换）时也要跟着换。
+## --noleader：平衡对照用，全部退回博士的统一值
+func _apply_leader_regen(op) -> void:
+	if g.stats == null or not g.stats.has_stat(&"regen") or OS.get_cmdline_user_args().has("--noleader"):
+		return
+	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
+	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
+	g._sync_stats()
 
 
 func _slot_offset(i: int) -> Vector2:
 	if g.demo_op != "":
-		return DEMO_SLOT   # 图鉴演示：站在博士前方（朝右侧怪海），重置后不用先走回身后
+		return DEMO_SLOT   # 图鉴演示：站在主控前方（朝右侧怪海），重置后不用先走回身后
 	var o: Vector2 = SLOTS[mini(i, SLOTS.size() - 1)]
 	return Vector2(o.x * g.facing, o.y)
 
@@ -145,7 +162,7 @@ func _battle_voice(o, dt: float) -> void:
 	if o.voice_t > 0.0:
 		return
 	o.voice_t = g.rng.randf_range(30.0, 55.0)
-	if g.demo_op != "" or g._nearest(1, 300.0, o.pos).is_empty():
+	if g.demo_op != "" or g.enemies_sys.nearest(1, 300.0, o.pos).is_empty():
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
@@ -171,7 +188,7 @@ func in_sanctuary(p: Vector2) -> bool:
 	return false
 
 
-## 博士本该倒下时，任一干员阻止（幽灵鲨 S2）
+## 主控本该倒下时，任一干员阻止（幽灵鲨 S2）
 func prevent_death() -> bool:
 	for o in ops:
 		if o.has_method("prevent_death") and o.prevent_death():
@@ -179,7 +196,7 @@ func prevent_death() -> bool:
 	return false
 
 
-## 博士光照半径倍率（流明 S2）
+## 主控光照半径倍率（流明 S2）
 func light_radius_mult() -> float:
 	var m := 1.0
 	for o in ops:
@@ -229,7 +246,7 @@ func draw_entities_floor() -> void:
 func draw_shadows() -> void:
 	for o in ops:
 		if o.pos != Vector2.INF:
-			g._spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
+			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
 			if o.is_leader:
 				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
 				var c: Color = o.col()

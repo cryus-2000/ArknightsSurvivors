@@ -1,10 +1,10 @@
-## 推进之王（先锋，契约 v2.1）：节奏位。前压到博士身边的敌人面前抡锤，命中时为全队回复技力。
+## 推进之王（先锋，契约 v2.1）：节奏位。前压到主控身边的敌人面前抡锤，命中时为全队回复技力。
 ## S1 冲锋号令：全队技力 + 下一锤强化；S2 跃空锤：跃起空中转一圈、落地砸击范围晕眩 + 全队技力；S3 碎颅：8 秒重锤，命中概率眩晕，攻速下降。
 ## 特效（docs/25）：狮王金。锤击重弧 + 命中十字闪；命中后金色技力粒子飞向每名队友（回 DP）；砸地双环 + 地裂 + 火星。
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.78, 0.35)
-const LEASH := 150.0          # 前压：只追博士这么远以内的敌人
+const LEASH := 150.0          # 前压：只追主控这么远以内的敌人
 const S3_DUR := 8.0
 
 var cd := 0.4
@@ -73,7 +73,7 @@ func update(dt: float) -> void:
 		if leap_t >= LEAP_DUR:
 			leap_t = -1.0
 			_slam(leap_second)
-			# 再跃：落地后立刻跃向下一群敌人（主控时连博士一起带过去）
+			# 再跃：落地后立刻跃向下一群敌人（主控时连博士挂件一起带过去）
 			if leap_n > 0:
 				leap_n -= 1
 				var nc = _next_cluster()
@@ -90,7 +90,7 @@ func update(dt: float) -> void:
 		g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
 		_sp_motes(2)
 		fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
-		g._add_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
+		float_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
 		if king_on:
 			_command_wave()
 		return
@@ -98,7 +98,7 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, _reach() + 30.0, pos)
+		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
 		if ts.is_empty():
 			cd = 0.1
 		else:
@@ -113,7 +113,7 @@ func update(dt: float) -> void:
 
 func _release() -> void:
 	var ang := facing_angle()
-	var ts: Array = g._nearest(1, _reach() + 40.0, pos)
+	var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
@@ -129,7 +129,7 @@ func _release() -> void:
 		for e in hits:
 			if not e.dead and not e.boss and g.rng.randf() < 0.5:
 				e.stun = maxf(e.stun, 0.8 * (0.5 if e.elite else 1.0))
-	g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach(), GOLD if skull <= 0.0 else Color(1.0, 0.6, 0.3))
+	slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach(), GOLD if skull <= 0.0 else Color(1.0, 0.6, 0.3))
 	if skull > 0.0:
 		# 碎颅的每一锤：落点一次小型砸地（闪光 + 冲击环 + 不规则地裂 + 火星）
 		var hp: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
@@ -165,14 +165,14 @@ func _release_skill() -> void:
 			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）；再跃：落地后还有一跳
 			leap_n = 1 if leap2_on else 0
 			leap_second = false
-			var ts: Array = g._nearest(1, 160.0, pos)
+			var ts: Array = nearest_enemies(1, 160.0, pos)
 			_start_leap(ts[0] if not ts.is_empty() else null, 90.0)
 		2:
 			# 碎颅：8 秒重锤
 			skull = S3_DUR
 			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.35, "col": Color(1.0, 0.6, 0.3), "alpha": 0.6})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": GOLD})
-			g._show_banner("碎颅")
+			show_banner("碎颅")
 
 
 ## 跃空锤落地：伤害 / 眩晕 / 全队技力在这一刻结算；特效照原作截图：一圈向上窜的橙黄火焰 + 黄色光柱与放射光线 + 贴地冲击波
@@ -187,11 +187,11 @@ func _slam(second := false) -> void:
 	# 光柱 + 放射光线
 	fx({"kind": "pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
 	# 火（ansimuz 素材，照原作截图）：中心地面火圈张开 + 周围一圈大小不一的火焰；缺图退回程序水滴火苗
-	if g._fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
+	if spawn_fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
 		for k in 8:
 			var fa: float = k * TAU / 8.0 + g.rng.randf_range(-0.2, 0.2)
 			var fr: float = r * g.rng.randf_range(0.35, 0.7)
-			g._fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.rng.randf_range(0.7, 1.05), 0.0, g.rng.randf() < 0.5, true)
+			spawn_fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.rng.randf_range(0.7, 1.05), 0.0, g.rng.randf() < 0.5, true)
 	else:
 		_blaze_ring(r)
 	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
@@ -220,7 +220,7 @@ func _next_cluster():
 	var near_r: float = base("s2_r", 110.0) * stat(&"op_range") * 0.6
 	var best = null
 	var best_s := -1.0
-	var cands: Array = g._query(pos, rng_r)
+	var cands: Array = query_ids(pos, rng_r)
 	for j in cands:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.chest:
@@ -229,7 +229,7 @@ func _next_cluster():
 		if d > rng_r or d < near_r:
 			continue
 		var s := 0.0
-		for j2 in g._query(e.pos, 70.0):
+		for j2 in query_ids(e.pos, 70.0):
 			var o: Dictionary = g.enemies[j2]
 			if not o.dead and o.pos.distance_to(e.pos) < 70.0:
 				s += 1.0
@@ -238,7 +238,7 @@ func _next_cluster():
 			best_s = s
 			best = e
 	if best == null:
-		var ts: Array = g._nearest(1, rng_r, pos)
+		var ts: Array = nearest_enemies(1, rng_r, pos)
 		best = ts[0] if not ts.is_empty() else null
 	return best
 
@@ -266,15 +266,15 @@ func _breach(p: Vector2, ang: float, mult: float) -> void:
 	var a: Vector2 = p + Vector2(0, 6)
 	var b: Vector2 = a + dir * L
 	var dmg: float = base("atk", 30.0) * mult * base("crack_mult", 0.5) * _dmg_bonus()
-	for j in g._query(a + dir * L * 0.5, L * 0.5 + 40.0):
+	for j in query_ids(a + dir * L * 0.5, L * 0.5 + 40.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
 		var t: float = clampf((e.pos - a).dot(dir) / L, 0.0, 1.0)
 		if e.pos.distance_to(a + dir * L * t) > w * 0.5 + e.r:
 			continue
-		g._hit("破阵")
-		g._damage(e, dmg)
+		log_hit("破阵")
+		deal_damage(e, dmg)
 		fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.rng.randf() * PI})
 	# 锯齿状的裂隙折线（生成一次，绘制时逐渐淡出）
 	var pts := PackedVector2Array()
@@ -309,13 +309,13 @@ func _update_cmd_waves(dt: float) -> void:
 	for w in cmd_waves:
 		w.t += dt
 		w.r = R * (1.0 - pow(1.0 - clampf(w.t / dur, 0.0, 1.0), 2.0))
-		for j in g._query(w.pos, w.r + 30.0):
+		for j in query_ids(w.pos, w.r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or w.hit.has(e.id) or e.pos.distance_to(w.pos) > w.r + e.r:
 				continue
 			w.hit[e.id] = true
-			g._hit("号令")
-			g._damage(e, w.dmg)
+			log_hit("号令")
+			deal_damage(e, w.dmg)
 			if not e.dead and not e.boss and not e.elite:
 				e.kb += (e.pos - w.pos).normalized() * base("cmd_kb", 380.0)
 			fx_sparks(e.pos, GOLD, 2, 140.0, 0.3, 2.0)

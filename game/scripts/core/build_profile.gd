@@ -6,14 +6,16 @@ extends RefCounted
 
 const E = preload("res://scripts/core/events.gd")
 
-## 五条核心流派 + 援护副系统：由 Tag 权重算流派得分（框架第 7、8 节）
+## 八条流派：由 Tag 权重算流派得分（框架第 7、8 节；docs/35 藏品流派重做）
 const LANES := {
-	"A": {"name": "伞击 / 创伤", "tags": {"mizuki_umbrella": 1.0, "basic_attack": 0.6, "attack_speed": 0.6, "physical": 0.4, "melee": 0.3}},
-	"B": {"name": "触手 / 猎杀", "tags": {"mizuki_tentacle": 1.0, "arts": 0.5, "on_hit": 0.3, "on_kill": 0.3}},
-	"C": {"name": "控制 / 技能循环", "tags": {"control": 1.0, "skill": 0.8, "mizuki_s2": 0.6, "mizuki_s3": 0.6}},
-	"D": {"name": "反移情 / 收割", "tags": {"execute": 1.0, "on_kill": 0.6}},
-	"E": {"name": "深蓝 / 低灯火", "tags": {"low_light": 1.0, "curse": 0.4}},
-	"S": {"name": "援护 / 指挥", "tags": {"support": 1.0, "ranged": 0.3, "summon": 0.5}},
+	"A": {"name": "前锋·近战", "tags": {"melee": 1.0, "basic_attack": 0.5, "attack_speed": 0.4, "physical": 0.4, "on_dodge": 0.3}},
+	"B": {"name": "追击·召唤", "tags": {"follow_up": 1.0, "summon": 0.8, "arts": 0.3, "on_hit": 0.3}},
+	"C": {"name": "控制·技能循环", "tags": {"control": 1.0, "skill": 0.8}},
+	"D": {"name": "收割·弱点", "tags": {"execute": 1.0, "on_kill": 0.6}},
+	"E": {"name": "远程·火力", "tags": {"ranged": 1.0, "arts": 0.3}},
+	"F": {"name": "深蓝·低灯火", "tags": {"low_light": 1.0, "curse": 0.4}},
+	"G": {"name": "编队·协同", "tags": {"squad": 1.0}},
+	"H": {"name": "守护·续航", "tags": {"survival": 1.0, "shield": 0.6, "heal": 0.6}},
 }
 
 var tag_w := {}          # tag -> 权重

@@ -35,7 +35,7 @@ const DIFFICULTY := [
 ## tags 供 Build Profile 使用
 const WEAPONS := {
 	"drone": {"tags": ["support", "summon", "heal"], "name": "医疗无人机", "en": "MEDIC DRONE", "glyph": "机", "col": Color(0.55, 1.0, 0.7), "lv": [
-		"跟随博士，每 6 秒回复 2% 最大生命",
+		"加入支援：跟随主控，每 6 秒回复 2% 最大生命",
 		"回复 3%",
 		"博士生命低于 40% 时立即急救 6%（冷却 25 秒）",
 		"增派第二架无人机（各回复 2%）",

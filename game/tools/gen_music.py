@@ -2,15 +2,13 @@
 
 输出到 audio/music/：
   title.ogg                     标题《海底祈愿》升 F 小调 60 BPM（海愿气质：钢琴+竖琴+人声+弦乐涌浪）
-  explore{,2,3}_base/pulse/drive/danger.ogg   战斗《深潮》三段（按威胁等级切换）× 四层同长同步，游戏按局势叠加
-  boss.ogg                      中期 Boss《海嗣之主》D 弗里吉亚 132 BPM
-  final.ogg                     最终 Boss《深蓝之树》D 和声小调 140 BPM
   shop.ogg                      商人《灯下小憩》F 大调 92 BPM
   win.ogg / lose.ogg            结算短乐句（不循环）
   win_loop.ogg / lose_loop.ogg  结算短乐句之后接续的循环
   opening.ogg                   开场动画引子《沉降》（不循环，对齐 3.6 s 动画）
   boss_in.ogg / boss_down.ogg   Boss 登场 / 击破叠加短乐句（不循环，叠在当前音乐之上）
 全部为原创旋律与编曲，合成方式：减法/FM/Karplus-Strong + 卷积混响。
+战斗曲、中期 Boss、最终 Boss 自 v2.0 起由 gen_music_battle.py 生成（电子 + 管弦混合），本脚本不再生成它们。
 """
 import numpy as np
 from scipy.signal import butter, sosfilt, fftconvolve
@@ -518,191 +516,6 @@ def make_title():
     TRANSPOSE = 0
 
 
-# ============================================================ 2. 战斗《深潮》三段 × 四层
-# 三段同 BPM 同调性，按威胁等级切换：explore（开局）/ explore2（中期）/ explore3（后期）。
-# 每段四层同长同步：base 氛围 / pulse 律动 / drive 驱动+旋律 / danger 危险，游戏按局势叠加。
-EXPLORE_SECTIONS = {
-    "explore": dict(
-        prog=[[50, 57, 62, 65], [46, 53, 58, 62], [48, 55, 60, 64], [45, 52, 57, 60],   # Dm Bb C Am
-              [50, 57, 62, 65], [46, 53, 58, 62], [43, 50, 55, 58], [45, 52, 57, 61]],  # Dm Bb Gm A
-        roots=[38, 34, 36, 33, 38, 34, 31, 33],
-        motif=[74, 72, 69, 70],
-        mel=[(74, 1.5), (72, 0.5), (69, 1), (72, 1), (70, 2), (67, 2),
-             (72, 1.5), (70, 0.5), (69, 1), (67, 1), (69, 4),
-             (74, 1.5), (72, 0.5), (69, 1), (72, 1), (77, 2), (76, 2),
-             (74, 1), (72, 1), (70, 1), (67, 1), (69, 4)],
-        kick_a=(0, 2, 2.75), kick_b=(0, 1.5, 2, 3.5), lead_bright=2800),
-    "explore2": dict(
-        prog=[[50, 57, 62, 65], [43, 50, 55, 58], [46, 53, 58, 62], [45, 52, 57, 61],   # Dm Gm Bb A
-              [50, 57, 62, 65], [48, 55, 60, 64], [46, 53, 58, 62], [45, 52, 57, 61]],  # Dm C Bb A（安达卢西亚下行）
-        roots=[38, 31, 34, 33, 38, 36, 34, 33],
-        motif=[69, 74, 72, 70],
-        mel=[(69, 1), (70, 1), (72, 1.5), (74, 0.5), (77, 2), (74, 1), (72, 1),
-             (70, 1.5), (72, 0.5), (70, 1), (69, 1), (67, 4),
-             (69, 1), (70, 1), (72, 1.5), (74, 0.5), (79, 2), (77, 1), (76, 1),
-             (77, 1), (74, 1), (72, 1), (70, 1), (69, 4)],
-        kick_a=(0, 1.5, 2, 3), kick_b=(0, 0.75, 2, 2.5, 3.5), lead_bright=3200),
-    "explore3": dict(
-        prog=[[50, 57, 62, 65], [51, 58, 63, 67], [50, 57, 62, 65], [45, 52, 57, 61],   # Dm Eb Dm A（那不勒斯）
-              [46, 53, 58, 62], [43, 50, 55, 58], [45, 52, 57, 61], [45, 52, 57, 61]],  # Bb Gm A A
-        roots=[38, 39, 38, 33, 34, 31, 33, 33],
-        motif=[74, 75, 74, 69],
-        mel=[(74, 0.5), (75, 0.5), (74, 1), (81, 2), (79, 1), (77, 1), (75, 1), (74, 1),
-             (72, 1), (70, 1), (69, 2), (None, 1), (73, 1),
-             (74, 0.5), (75, 0.5), (74, 1), (81, 2), (82, 1), (81, 1), (79, 1), (77, 1),
-             (76, 1), (77, 1), (79, 1), (81, 4)],
-        kick_a=(0, 1, 2, 3), kick_b=(0, 0.5, 1, 2, 2.5, 3, 3.5), lead_bright=3600),
-}
-
-
-def make_explore_section(name, prog, roots, motif, mel, kick_a, kick_b, lead_bright):
-    bars = 16
-
-    def base():
-        tr = Track(104, bars)
-        for b in range(0, bars, 2):
-            ch = prog[b // 2]
-            tr.add(strings([n + 12 for n in ch[:3]], tr.bar * 2 + 1.2, amp=0.012, a=1.0, r=1.2, bright=900), tr.at(b), pan=-0.15)
-            tr.add(voice([ch[1] + 12, ch[2] + 12, ch[3] + 12], tr.bar * 2 + 1.5, amp=0.011, a=1.2, r=1.4), tr.at(b), pan=0.2)
-            tr.add(sub(roots[b // 2], tr.bar * 2, amp=0.11, a=0.3, r=0.6), tr.at(b))
-        for b in range(0, bars, 4):
-            for k, note in enumerate(motif):
-                tr.add(bell(note, 2.2, amp=0.03, ratio=2.0, index=0.8, decay=1.6), tr.at(b + 1, k * 0.75), pan=0.3)
-        n = tr.len
-        w = wash(n, 0.012, 500, 8)
-        tr.buf[:n, 0] += w
-        tr.buf[:n, 1] += np.roll(w, 3000)
-        return tr
-
-    def pulse():
-        tr = Track(104, bars)
-        for b in range(bars):
-            r = roots[b // 2]
-            for e in range(8):
-                note = r + (12 if e in (3, 6) else 0) + (7 if e == 5 else 0)
-                tr.add(reese(note + 12, tr.beat * 0.45, amp=0.07, cut=700), tr.at(b, e * 0.5))
-            for beat in (0, 2):
-                tr.add(kick(0.32), tr.at(b, beat))
-            for s16 in range(16):
-                tr.add(hat(0.018 if s16 % 2 else 0.03), tr.at(b, s16 * 0.25), pan=0.35)
-        return tr
-
-    def drive():
-        tr = Track(104, bars)
-        for b in range(bars):
-            ch = prog[b // 2]
-            for beat in kick_b if b % 2 else kick_a:
-                tr.add(kick(0.42), tr.at(b, beat))
-            for beat in (1, 3):
-                tr.add(snare(0.2), tr.at(b, beat))
-            for e in range(8):
-                tr.add(hat(0.04, open_=(e == 7)), tr.at(b, e * 0.5), pan=-0.3)
-            arp = [ch[0] + 24, ch[1] + 12, ch[2] + 12, ch[3] + 12]
-            for s16 in range(16):
-                tr.add(harp(arp[(s16 * 3) % 4], 0.35, amp=0.04), tr.at(b, s16 * 0.25), pan=0.4 * np.sin(s16))
-            if b % 4 == 3:
-                tr.add(riser(tr.bar, 0.04), tr.at(b))
-            if b % 4 == 0:
-                tr.add(cymbal(0.05), tr.at(b), pan=0.2)
-        play_melody(tr, mel, 0, lambda n, d, **k: lead(n, d, amp=0.04, bright=lead_bright))
-        play_melody(tr, mel, 8, lambda n, d, **k: strings([n, n - 12], d, amp=0.028, a=0.08, r=0.3, bright=3000))
-        return tr
-
-    def danger():
-        tr = Track(104, bars)
-        for b in range(0, bars, 2):
-            r = roots[b // 2]
-            tr.add(strings([r + 12, r + 13], tr.bar * 2 + 0.5, amp=0.02, a=0.6, r=0.6, bright=1200, trem=8), tr.at(b))
-            tr.add(voice([r + 36, r + 37], tr.bar * 2, amp=0.007, a=1.0, r=1.0, morph=False), tr.at(b), pan=0.3)
-        for b in range(bars):
-            tr.add(heartbeat(0.3), tr.at(b, 0))
-            tr.add(heartbeat(0.3), tr.at(b, 2))
-        return tr
-
-    layers = {name + "_base": base(), name + "_pulse": pulse(), name + "_drive": drive(), name + "_danger": danger()}
-    for lname, trk in layers.items():
-        finish(trk, lname, verb=(2.4, 2.6, 0.3), gain=0.9)
-
-
-def make_explore():
-    for name, cfg in EXPLORE_SECTIONS.items():
-        make_explore_section(name, **cfg)
-
-
-# ============================================================ 3. 中期 Boss《海嗣之主》
-def make_boss():
-    tr = Track(132, 16)
-    # D 弗里吉亚：Dm – Eb – Dm – C / Dm – Eb – Bb – A
-    prog = [[50, 57, 62, 65], [51, 58, 63, 67], [50, 57, 62, 65], [48, 55, 60, 64],
-            [50, 57, 62, 65], [51, 58, 63, 67], [46, 53, 58, 62], [45, 52, 57, 61]]
-    roots = [26, 27, 26, 24, 26, 27, 22, 21]
-    for b in range(16):
-        ch = prog[b // 2]
-        r = roots[b // 2]
-        # 16 分音符驱动低音
-        for s16 in range(16):
-            note = r + 12 + (12 if s16 % 8 == 6 else 0)
-            tr.add(reese(note, tr.beat * 0.22, amp=0.09, cut=900), tr.at(b, s16 * 0.25))
-        # 太鼓 + 军鼓
-        for beat in (0, 0.75, 1.5, 2, 3, 3.5):
-            tr.add(taiko(0.45 if beat in (0, 2) else 0.3, 62 if beat in (0, 2) else 85), tr.at(b, beat))
-        for beat in (1, 3):
-            tr.add(snare(0.22), tr.at(b, beat))
-        for e in range(8):
-            tr.add(hat(0.035), tr.at(b, e * 0.5), pan=0.3)
-        # 铜管重音
-        if b % 2 == 0:
-            tr.add(brass([n + 12 for n in ch], tr.beat * 1.2, amp=0.035), tr.at(b, 0), pan=-0.2)
-            tr.add(brass([n + 12 for n in ch], tr.beat * 0.6, amp=0.03), tr.at(b, 1.5), pan=0.2)
-        if b % 2 == 0:
-            tr.add(strings([n + 12 for n in ch], tr.bar * 2, amp=0.014, a=0.3, r=0.4, trem=16), tr.at(b))
-        if b >= 8 and b % 2 == 0:
-            tr.add(choir([ch[1] + 12, ch[2] + 12, ch[3] + 12], tr.bar * 2, amp=0.012), tr.at(b), pan=0.1)
-        if b % 4 == 0:
-            tr.add(cymbal(0.07), tr.at(b))
-    mel = [(62, 0.5), (63, 0.5), (62, 1), (70, 1), (69, 1), (67, 1.5), (65, 0.5), (63, 1), (62, 1),
-           (62, 0.5), (63, 0.5), (65, 1), (67, 1), (69, 1), (70, 2), (69, 2)]
-    play_melody(tr, mel, 4, lambda n, d, **k: lead(n + 12, d, amp=0.035, bright=3500))
-    play_melody(tr, mel, 12, lambda n, d, **k: strings([n + 12, n], d, amp=0.03, a=0.05, r=0.2, bright=3500))
-    finish(tr, "boss", verb=(2.0, 3.0, 0.25))
-
-
-# ============================================================ 4. 最终 Boss《深蓝之树》
-def make_final():
-    tr = Track(140, 24)
-    # D 和声小调：Dm – Bb – Gm – A7 / Dm – F – Eb – A
-    prog = [[50, 57, 62, 65], [46, 53, 58, 62], [43, 50, 55, 58], [45, 52, 55, 61],
-            [50, 57, 62, 65], [41, 48, 53, 57], [39, 46, 51, 55], [45, 52, 57, 61],
-            [50, 57, 62, 65], [46, 53, 58, 62], [43, 50, 55, 58], [45, 52, 55, 61]]
-    roots = [26, 22, 19, 21, 26, 17, 15, 21, 26, 22, 19, 21]
-    for b in range(24):
-        ch = prog[b // 2]
-        r = roots[b // 2]
-        for s16 in range(16):
-            tr.add(reese(r + 12 + (7 if s16 % 4 == 3 else 0), tr.beat * 0.22, amp=0.085, cut=1000), tr.at(b, s16 * 0.25))
-        for beat in (0, 0.5, 1.5, 2, 2.5, 3.5):
-            tr.add(kick(0.4), tr.at(b, beat))
-        for beat in (1, 3):
-            tr.add(snare(0.24), tr.at(b, beat))
-            tr.add(taiko(0.3, 90), tr.at(b, beat + 0.5))
-        for s16 in range(16):
-            tr.add(hat(0.03 if s16 % 2 else 0.045), tr.at(b, s16 * 0.25), pan=-0.3)
-        if b % 2 == 0:
-            tr.add(choir([n + 12 for n in ch], tr.bar * 2, amp=0.016, a=0.5), tr.at(b))
-            tr.add(strings([n + 12 for n in ch], tr.bar * 2, amp=0.013, trem=16), tr.at(b), pan=0.2)
-            tr.add(brass([n + 12 for n in ch[:3]], tr.beat * 1.0, amp=0.04), tr.at(b))
-        if b % 4 == 0:
-            tr.add(cymbal(0.08), tr.at(b))
-        if b % 8 == 7:
-            tr.add(riser(tr.bar, 0.06), tr.at(b))
-    # 引用「灯火动机」：和声小调变形（升 C）
-    theme2 = [(n if n != 60 else 61, d) for n, d in THEME]
-    play_melody(tr, theme2, 4, lambda n, d, **k: lead(n + 12, d * 0.999, amp=0.04, bright=3800))
-    play_melody(tr, theme2, 12, lambda n, d, **k: brass([n + 12, n], d, amp=0.03))
-    play_melody(tr, theme2, 18, lambda n, d, **k: bell(n + 24, d + 1.0, amp=0.04))
-    finish(tr, "final", verb=(2.2, 2.8, 0.28))
-
-
 # ============================================================ 5. 商人《灯下小憩》
 def make_shop():
     tr = Track(92, 8)
@@ -853,6 +666,6 @@ def make_result_loops():
 
 if __name__ == "__main__":
     import sys
-    which = sys.argv[1:] or ["title", "explore", "boss", "final", "shop", "stingers", "opening", "boss_cues", "result_loops"]
+    which = sys.argv[1:] or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops"]
     for w in which:
         globals()["make_" + w]()

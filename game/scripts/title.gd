@@ -1,5 +1,5 @@
 extends Control
-## 标题界面：蓝眼泪银河沙滩背景（title_bg.gd）+ 菜单
+## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与水月站在浪边）
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -9,12 +9,14 @@ const Character = preload("res://scripts/characters/character.gd")
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
 const ITEMS := [
-	{"cn": "开始探索", "en": "START"},
+	{"cn": "集结出发", "en": "DEPLOY"},
 	{"cn": "图鉴", "en": "GALLERY"},
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
 ]
+## 菜单当前项下方的一行说明（方案 A 纵向时间轴菜单）
+const ITEM_SUB := ["选择干员与难度，走进深海", "干员、敌人、藏品与结局档案", "键盘、手柄与触屏操作", "画面、声音与操作设置", "离开游戏"]
 
 var font: Font
 var tex_player: Texture2D
@@ -32,6 +34,7 @@ var motes: Array = []
 var guide := false
 var credits := false
 var credits_rect := Rect2()
+var deploy_rect := Rect2()   # 右下「选择干员 》」主按钮
 var credits_data: Dictionary = {}
 var leaving := -1.0
 var settings: Control
@@ -46,12 +49,16 @@ var op_rects := {}
 var op_defs: Array = []        # [{id, def, tex, frames, lore}]
 var op_scroll := 0             # 干员格滚动到第几行（干员多于可视行数时）
 var op_rows_vis := 2           # 可视行数（_draw_op_pick 按面板高度算）
+## 平滑滚动（2026-09-26 用户要求）：op_scroll 是目标行，op_scroll_f 每帧指数逼近它，格子按小数行偏移绘制，出入边缘时淡出
+var op_scroll_f := 0.0
 var op_seen_sel := -1          # 上一帧绘制时的选中项：变化时把它滚进可视区（键盘 / 手柄 / --opsel 都走这里）
 var op_lore: Dictionary = {}
 ## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
 const INTRO_LEN := 3.4
 var intro := 0.0
 var title_bg: Control
+var map_title := ""        # 地图副标题（data/maps/<id>.json 的 title / title_en）
+var map_title_en := ""
 
 
 func _ready() -> void:
@@ -65,6 +72,12 @@ func _ready() -> void:
 	tex_tiles = A.tex("tiles")
 	tex_bg = A.tex("title_bg")
 	tex_logo = A.tex("logo")
+	var mf := FileAccess.open("res://data/maps/%s.json" % Cfg.map_id, FileAccess.READ)
+	if mf != null:
+		var md = JSON.parse_string(mf.get_as_text())
+		if md is Dictionary:
+			map_title = str(md.get("title", md.get("name", "")))
+			map_title_en = str(md.get("title_en", ""))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20260923
 	_grow(rng, Vector2(900, 700), -PI / 2, 150.0, 14.0, 0)
@@ -94,6 +107,8 @@ func _ready() -> void:
 			var dp := a.substr(10).split(",")
 			gallery.demo_stage = int(dp[0])
 			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
+		if a.begins_with("--infotab="):
+			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（档案 / 技能 / 数值）
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
@@ -137,6 +152,11 @@ func _ready() -> void:
 		for a in OS.get_cmdline_user_args():
 			if a.begins_with("--opsel="):
 				op_sel = clampi(int(a.substr(8)), 0, op_defs.size() - 1)
+		if OS.get_cmdline_user_args().has("--opburst"):
+			# 平滑滚动自测：开页后 0.05–0.4 秒连拍 8 张（选中项在可视区外时能看到滚动过程）
+			for bi in 8:
+				get_tree().create_timer(0.05 + bi * 0.05).timeout.connect(func():
+					get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick_%d.png" % bi))
 		get_tree().create_timer(1.2).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
 			get_tree().quit())
@@ -257,6 +277,9 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 func _process(delta: float) -> void:
 	Pad.context = "title"
 	t += delta
+	op_scroll_f = lerpf(op_scroll_f, float(op_scroll), 1.0 - exp(-14.0 * delta))
+	if absf(op_scroll_f - op_scroll) < 0.002:
+		op_scroll_f = float(op_scroll)
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
 	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
@@ -317,6 +340,9 @@ func _input(event: InputEvent) -> void:
 			credits = true
 			Sfx.play("ui_ok")
 			return
+		if deploy_rect.has_point(event.position):
+			_activate(0)
+			return
 		for i in item_rects.size():
 			if item_rects[i].has_point(event.position):
 				_activate(i)
@@ -362,7 +388,11 @@ func _draw() -> void:
 	for i in 14:
 		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
 		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
-	# 标题：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
+	# 顶部小标（方案 A）：本作徽记 + 英文
+	var hf0 := _seg(0.9, 0.5)
+	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
+	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
+	# 标题（像素 Logo）：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
 	var lg := _seg(1.0, 0.8)
 	var ly := 24.0 * (1.0 - lg)
 	if tex_logo != null:
@@ -370,51 +400,91 @@ func _draw() -> void:
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
 		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 84 + ly), ls * k), false, Color(1, 1, 1, lg))
 	else:
-		UI.text(self, font, Vector2(tx, 182 + ly), "水月", 96, _fa(UI.TEXT, lg))
-		UI.text(self, font, Vector2(tx + 210, 180 + ly), "深海幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 242 + ly), "MIZUKI  :  ABYSSAL  SURVIVORS", 14, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
-	# 分隔线：1.6s 起从左向右划出，线头带一点亮光
+		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
+		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
+	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(1.5, 0.5)), 5.0)
+	# 地图副标题：随地图变化，英文副标题下一行（菱形 + 中文名 + 英文名），和 Logo 组成一块
+	if map_title != "":
+		var mf2 := _seg(1.7, 0.5)
+		UI.diamond(self, Vector2(tx + 11, 257 + ly), 4.0, _fa(UI.CYAN, mf2))
+		UI.text(self, font, Vector2(tx + 22, 263 + ly), map_title, 15, _fa(UI.TEXT, mf2))
+		if map_title_en != "":
+			var mw: float = font.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+			UI.en(self, font, Vector2(tx + 34 + mw, 262 + ly), map_title_en, 10, _fa(Color(0.5, 0.54, 0.58), mf2), 2.5)
+	# 分隔线：1.6s 起从左向右划出，右端一个小方块
 	var rl := _seg(1.6, 0.6)
+	var ry := 282.0
 	if rl > 0.0:
-		UI.rule(self, Vector2(tx, 266), Vector2(tx + 500 * rl, 266), UI.CYAN_DIM)
-		if rl < 1.0:
-			draw_circle(Vector2(tx + 500 * rl, 266), 3.0, UI.CYAN)
-			draw_circle(Vector2(tx + 500 * rl, 266), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
+		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
+		draw_rect(Rect2(Vector2(tx + 420 * rl - 2, ry - 2), Vector2(5, 5)), Color(1, 1, 1, 0.55 * rl))
 
-	# 菜单：2.0s 起逐项从左滑入
+	# 菜单（原作「主题选择」左侧的纵向时间轴）：一条竖细线串起各项；当前项实心圆点 + 外圈、白字 + 青色英文 + 一行说明
 	item_rects.clear()
 	var compact: bool = vs.y < 680.0   # 触屏放大后的紧凑排版
-	var my := 282.0 if compact else 306.0
-	var step := 54.0 if compact else 60.0
+	var my := 300.0 if compact else 318.0
+	var step := 52.0 if compact else 58.0
+	var lx := tx + 4.0
+	var mf0 := _seg(1.9, 0.5)
+	if mf0 > 0.0:
+		var y0 := my - 8.0
+		var y1 := my + (ITEMS.size() - 1) * step + 46.0
+		draw_rect(Rect2(Vector2(lx, y0), Vector2(1, (y1 - y0) * mf0)), Color(1, 1, 1, 0.22))
+		draw_rect(Rect2(Vector2(lx - 2, y0 - 4), Vector2(5, 5)), Color(1, 1, 1, 0.55 * mf0))
+		if mf0 >= 1.0:
+			draw_rect(Rect2(Vector2(lx - 2, y1), Vector2(5, 5)), Color(1, 1, 1, 0.55))
 	for i in ITEMS.size():
-		var r := Rect2(tx, my + i * step, 300, 50)
+		var r := Rect2(tx - 10, my + i * step, 330, 48)
 		item_rects.append(r)
 		var f := _seg(2.0 + i * 0.12, 0.35)
 		if f <= 0.0:
 			continue
-		var rr := Rect2(r.position + Vector2(-40.0 * (1.0 - f), 0), r.size)
+		var dx := -30.0 * (1.0 - f)
 		var on := i == sel
+		var cy := r.position.y + 20.0
 		if on:
-			var pulse := 0.5 + 0.5 * sin(t * 3.0)
-			UI.panel(self, rr, _fa(Color(0.05, 0.2, 0.24, 0.85), f), _fa(UI.CYAN, f), 10.0, _fa(UI.CYAN, f * (0.75 + 0.25 * pulse)))
-			UI.diamond(self, rr.position + Vector2(-18 - 3.0 * pulse, 25), 6.0, _fa(UI.CYAN, f))
+			var b0 := Color(0.03, 0.035, 0.045, 0.72 * f)
+			var b1 := Color(0.03, 0.035, 0.045, 0.0)
+			draw_polygon(PackedVector2Array([Vector2(lx + 8 + dx, r.position.y - 4), Vector2(lx + 340 + dx, r.position.y - 4), Vector2(lx + 340 + dx, r.end.y + 8), Vector2(lx + 8 + dx, r.end.y + 8)]), PackedColorArray([b0, b1, b1, b0]))
+			draw_circle(Vector2(lx + 0.5, cy), 5.5, _fa(UI.TEXT, f))
+			draw_arc(Vector2(lx + 0.5, cy), 10.0, 0.0, TAU, 28, _fa(Color(1, 1, 1, 0.4), f), 1.0)
 		else:
-			# 未选中：只留一条细竖线，文字压暗，整体更轻
-			draw_rect(Rect2(rr.position + Vector2(0, 12), Vector2(2, 26)), _fa(Color(0.2, 0.42, 0.46, 0.7), f))
-		UI.text(self, font, rr.position + Vector2(24, 34), ITEMS[i].cn, 24, _fa(UI.TEXT if on else Color(0.62, 0.76, 0.8), f))
-		UI.en(self, font, rr.position + Vector2(170, 32), ITEMS[i].en, 13, _fa(UI.CYAN if on else Color(0.3, 0.45, 0.5), f), 3.0)
+			draw_circle(Vector2(lx + 0.5, cy), 4.0, _fa(Color(0.04, 0.05, 0.06), f))
+			draw_arc(Vector2(lx + 0.5, cy), 4.0, 0.0, TAU, 16, _fa(Color(1, 1, 1, 0.5), f), 1.2)
+			draw_line(Vector2(lx + 7, cy), Vector2(lx + 13, cy), _fa(Color(1, 1, 1, 0.3), f), 1.0)
+		var tx2 := lx + 26.0 + dx
+		var cn: String = ITEMS[i].cn
+		var fs := 24 if on else 20
+		UI.text(self, font, Vector2(tx2, cy + (9 if on else 7)), cn, fs, _fa(UI.TEXT if on else Color(0.76, 0.79, 0.81), f))
+		var cw: float = font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		UI.en(self, font, Vector2(tx2 + cw + 14, cy + 6), ITEMS[i].en, 12, _fa(UI.CYAN if on else Color(0.41, 0.45, 0.49), f), 3.5)
+		if on:
+			UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
 	# 操作提示
 	var hf := _seg(2.7, 0.5)
 	if hf > 0.0 and not diff_pick and not op_pick:
-		var hy := my + ITEMS.size() * step + 6
-		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.36, 0.5, 0.55), hf), 2.0)
+		var hy := my + ITEMS.size() * step + 12
+		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
+	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
+	var df := _seg(2.6, 0.5)
+	deploy_rect = Rect2()
+	if df > 0.0 and not diff_pick and not op_pick:
+		var bx := vs.x - 240.0
+		var by := vs.y - 98.0
+		deploy_rect = Rect2(Vector2(bx - 8, by + 8), Vector2(214, 50))
+		var dh := deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
+		UI.en(self, font, Vector2(bx, by), "READY TO DEPLOY", 11, _fa(UI.CYAN, df), 3.5)
+		_draw_emblem(Vector2(bx + 14, by + 33), 14.0, _fa(UI.TEXT, df))
+		UI.text(self, font, Vector2(bx + 40, by + 42), "选择干员", 22, _fa(UI.TEXT, df))
+		UI.text(self, font, Vector2(bx + 138, by + 41), "》", 22, _fa(UI.CYAN if dh else Color(0.81, 0.84, 0.85), df))
+		draw_rect(Rect2(Vector2(bx, by + 56), Vector2(192, 1)), _fa(Color(1, 1, 1, 0.3), df))
+		draw_rect(Rect2(Vector2(bx, by + 55), Vector2(28.0 + (44.0 if dh else 0.0), 3)), _fa(UI.CYAN, df))
 
 	# 页脚：最后淡入
 	var ff := _seg(2.8, 0.5)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.4, 0.55, 0.6), ff))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.8", 13, _fa(Color(0.4, 0.55, 0.6), ff))
+	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
 
 	# 开场：黑幕淡出 + 上下黑边收起
 	if intro < INTRO_LEN:
@@ -436,6 +506,16 @@ func _draw() -> void:
 		_draw_diff(vs)
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
+
+
+## 本作徽记（菱形 + 一道浪）：标题页小标与主按钮用（不用原作的集成战略标志）
+func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
+	draw_polyline(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0), c + Vector2(0, -r)]), col, 1.4)
+	var w := PackedVector2Array()
+	for k in 13:
+		var u := k / 12.0
+		w.append(c + Vector2(-r * 0.55 + u * r * 1.1, sin(u * TAU) * r * 0.16 + r * 0.06))
+	draw_polyline(w, col, 1.4)
 
 
 func _draw_guide(vs: Vector2) -> void:
@@ -587,6 +667,7 @@ func _open_op_pick() -> void:
 		if op_defs[i].id == Cfg.character_id:
 			op_sel = i
 	op_scroll = 0
+	op_scroll_f = 0.0
 	op_seen_sel = -1
 	op_pick = true
 
@@ -692,22 +773,29 @@ func _draw_op_pick(vs: Vector2) -> void:
 		var track := Rect2(sx, gy, 4, op_rows_vis * (chh + 10) - 10)
 		draw_rect(track, Color(1, 1, 1, 0.06))
 		var th: float = track.size.y * op_rows_vis / rows
-		draw_rect(Rect2(sx, gy + (track.size.y - th) * op_scroll / float(rows - op_rows_vis), 4, th), Color(col.r, col.g, col.b, 0.7))
+		draw_rect(Rect2(sx, gy + (track.size.y - th) * clampf(op_scroll_f / float(rows - op_rows_vis), 0.0, 1.0), 4, th), Color(col.r, col.g, col.b, 0.7))
 		if op_scroll > 0:
 			UI.text(self, font, Vector2(gx, gy - 8), "▲ 滚轮查看更多", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
 		if op_scroll < rows - op_rows_vis:
 			UI.text(self, font, Vector2(gx, gy + op_rows_vis * (chh + 10) + 6), "▼ 还有 %d 名干员" % (op_defs.size() - (op_scroll + op_rows_vis) * cols), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
 	for i in op_defs.size():
 		var od: Dictionary = op_defs[i]
-		var row: int = i / cols - op_scroll
-		if row < 0 or row >= op_rows_vis:
+		# 小数行位置：滚动中的格子按 op_scroll_f 平移；超出可视区的部分按越界程度淡出，完全出界不画
+		var row: float = i / cols - op_scroll_f
+		var fa: float = 1.0
+		if row < 0.0:
+			fa = clampf(1.0 + row * 1.6, 0.0, 1.0)
+		elif row > op_rows_vis - 1:
+			fa = clampf(1.0 - (row - (op_rows_vis - 1)) * 1.6, 0.0, 1.0)
+		if fa <= 0.01:
 			continue
 		var cr := Rect2(gx + (i % cols) * (cw + 10), gy + row * (chh + 10), cw, chh)
-		op_rects[i] = cr
+		if fa > 0.6:
+			op_rects[i] = cr
 		var on := i == op_sel
 		var oc: Color = Character.CLASS_COL.get(od.def.get("class", ""), UI.CYAN)
-		var hov := cr.has_point(get_local_mouse_position())
-		UI.panel(self, cr, Color(0.03, 0.09, 0.12, 0.9) if on else Color(0.02, 0.05, 0.08, 0.8), oc if on else (Color(oc.r, oc.g, oc.b, 0.5) if hov else UI.LINE), 10.0, oc if on else Color(0, 0, 0, 0))
+		var hov := cr.has_point(get_local_mouse_position()) and fa > 0.6
+		UI.panel(self, cr, _fa(Color(0.03, 0.09, 0.12, 0.9) if on else Color(0.02, 0.05, 0.08, 0.8), fa), _fa(oc if on else (Color(oc.r, oc.g, oc.b, 0.5) if hov else UI.LINE), fa), 10.0, _fa(oc, fa) if on else Color(0, 0, 0, 0))
 		var tx: Texture2D = od.tex
 		if tx != null:
 			var fh := tx.get_height()
@@ -717,11 +805,11 @@ func _draw_op_pick(vs: Vector2) -> void:
 			var pos := Vector2(cr.get_center().x - fw * sc / 2.0, cr.position.y + 84 - fh * sc + 6.0 * sc)
 			if on:
 				draw_set_transform(pos + Vector2(fw * sc / 2.0, fh * sc - 4.0 * sc), 0.0, Vector2(1.0, 0.4))
-				draw_circle(Vector2.ZERO, 26.0, Color(oc.r, oc.g, oc.b, 0.18))
+				draw_circle(Vector2.ZERO, 26.0, Color(oc.r, oc.g, oc.b, 0.18 * fa))
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			draw_texture_rect_region(tx, Rect2(pos, Vector2(fw, fh) * sc), Rect2(fw * fr, 0, fw, fh), Color.WHITE if on or hov else Color(0.75, 0.8, 0.85))
-		UI.text(self, font, cr.position + Vector2(0, 104), od.def.get("name", od.id), 15, UI.TEXT if on else Color(0.7, 0.8, 0.85), HORIZONTAL_ALIGNMENT_CENTER, cw)
-		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12, oc if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cw)
+			draw_texture_rect_region(tx, Rect2(pos, Vector2(fw, fh) * sc), Rect2(fw * fr, 0, fw, fh), _fa(Color.WHITE if on or hov else Color(0.75, 0.8, 0.85), fa))
+		UI.text(self, font, cr.position + Vector2(0, 104), od.def.get("name", od.id), 15, _fa(UI.TEXT if on else Color(0.7, 0.8, 0.85), fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12, _fa(oc if on else UI.SUB, fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
 	# ---- 右：详情
 	var dx := r.position.x + 36 + cols * (cw + 10) + 24
 	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy)
@@ -734,6 +822,10 @@ func _draw_op_pick(vs: Vector2) -> void:
 	cx += UI.chip(self, font, Vector2(cx, py + 18), d.get("class", ""), col, 12) + 8
 	for tg in d.get("gallery", {}).get("tags", []):
 		cx += UI.chip(self, font, Vector2(cx, py + 18), tg, UI.PURPLE, 11) + 6
+	# 当主控时的受击属性（JSON leader 段，按原作精二满级换算）：标签下面一行
+	var ld: Dictionary = d.get("leader", {})
+	if not ld.is_empty():
+		UI.text_fit(self, font, Vector2(px + 150, py + 58), "主控　生命 %d · 回复 %.1f/秒 · 减伤 %s · 法抗 %d%%" % [int(ld.get("max_hp", 120)), float(ld.get("regen", 1.0)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95), dr.end.x - 24.0 - (px + 150))
 	py += 74
 	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 	py += 18
@@ -777,11 +869,11 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
 	op_rects["go"] = go
 	op_rects["back"] = back
-	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("下一步  Enter", "下一步  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
-	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
-	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 48), "W A S D  ·  ARROWS   SELECT        ENTER   NEXT", 11, Color(0.36, 0.5, 0.55), 2.0)
+	# 方案 A：主操作青底深字，返回为暗底细边
+	var mp := get_local_mouse_position()
+	UI.button(self, font, go, Pad.hint("下一步  Enter", "下一步  Ⓐ"), "primary", go.has_point(mp), 17)
+	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ"), "outline", back.has_point(mp), 17)
+	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), "WASD / ARROWS  SELECT     ENTER  NEXT", 11, Color(0.45, 0.49, 0.53), 1.5)
 
 
 ## 按像素宽度折行绘制，返回占用高度

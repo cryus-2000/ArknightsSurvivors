@@ -11,6 +11,7 @@ const PRICE := {"基础": 10, "稀有": 14, "核心": 20, "升华": 30, "遭诅�
 const STEER := 0.6
 
 var items := {}       # id(String) -> RelicData Dictionary
+var lane_names := {}  # 流派代号 -> 名称（relics.json 顶层 lanes，docs/35）
 
 
 func load_files(meta_path: String = "res://data/relics.json", fx_path: String = "res://data/relic_effects.json") -> int:
@@ -21,15 +22,17 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		push_error("读取藏品表失败: " + meta_path)
 		return 0
 	var effects: Dictionary = fx.get("relics", {}) if fx is Dictionary else {}
+	lane_names = meta.get("lanes", {})
 	for r in meta.items:
 		var id := str(int(r.id))
 		var e: Dictionary = effects.get(id, {})
 		items[id] = {
 			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": e.get("rarity", r.rarity),
-			"tags": e.get("tags", r.tags), "lanes": r.lanes, "tier": r.tier,
+			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),
 			"requirements": e.get("requires", []), "conflicts": e.get("conflicts", []),
+			"requires_class": e.get("requires_class", []),
 			"price_class": e.get("price_class", r.rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),

@@ -1,8 +1,9 @@
 ## 流明（医疗，契约 v2.1，docs/26 第二批）：不治血条，治环境。荧光周期治疗 + 驱散侵蚀 / 神经损伤，顺带射出「照亮」敌人的光弹。
 ## S1 净化之光：治疗 + 全部驱散 + 短暂免疫 + 灯火；S2 领航灯（永久）：光照半径 +35%、受击灯火流失 ×0.7、荧光回复升到 3%；
-## S3 指引灯塔：在博士脚下立起不动的灯塔 10 秒（圣域：回复、免疫负面、溟痕 / 黑潮圈外惩罚失效、灯火回升），结束时光爆。
+## S3 指引灯塔（2026-09-26 用户定：跟随主控干员）：10 秒内灯塔悬在主控干员身侧随行，以主控为中心展开光域（圣域：回复、免疫负面、
+## 溟痕 / 黑潮圈外惩罚失效、灯火回升），结束时在主控身边光爆。
 ## 天赋 余晖：每次回复 / 驱散灯火 +2；灯火 ≥70 时自身充能 +20%。
-## 挂点：g._heal / g.corrode_pool / g.nerve / g.lamp；光弹是本脚本自己推进的投射物（不改 game.gd 的子弹表）；
+## 挂点：heal_leader / g.corrode_pool / g.nerve / g.lamp；光弹是本脚本自己推进的投射物（不改 game.gd 的子弹表）；
 ## 圣域通过 sanctuary()、光照半径通过 light_radius_mult() 供 game.gd 询问（同 dmg_taken_mult 模式）。
 ## 可见成长（docs/25 §5）：N1 发光单元 / N2 灯影成双 / N4 沐雨 / N5 灯塔守望 / 精二质变 灯火不灭。
 extends "res://scripts/characters/character.gd"
@@ -28,6 +29,7 @@ var rain_on := false           # N4「沐雨」：净化之光时发光单元洒
 var rain_t := 0.0
 var rain_tick := 0.0
 var watch := false             # N5「灯塔守望」：指引灯塔射出旋转光束
+var beam_t := 0.0              # 灯塔守望：净化之光后光束持续（精二前也有）
 var beam_tick := 0.0
 var beam_hit: Dictionary = {}  # 光束每名敌人的冷却：敌人 id → 剩余秒
 var charge_on := false         # 精二质变「灯火不灭」：发光单元攒弹，满 8 发后连射 8 发强化光弹
@@ -37,7 +39,7 @@ const BOLT_MAX := 12           # 同时存在的光弹上限
 
 
 func _heal_mult() -> float:
-	return stat(&"op_atk") * g.ally_mult
+	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out")
 
 
 # ---------------------------------------------------------------- 每帧
@@ -56,7 +58,7 @@ func update(dt: float) -> void:
 	if elite >= 1 and g.lamp >= 70.0:
 		for i in 3:
 			if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i] and skill_active_left(i) <= 0.0:
-				sp[i] = minf(sp_need(i), sp[i] + dt * 0.2 * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
+				sp[i] = minf(sp_need(i), sp[i] + dt * 0.2 * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -66,7 +68,7 @@ func update(dt: float) -> void:
 	heal_t += dt
 	if cd <= 0.0:
 		cd = base("bolt_cd", 1.0) / stat(&"op_aspd")
-		var ts: Array = g._nearest(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
+		var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
 		if not ts.is_empty() or heal_t >= base("heal_cd", 3.0):
 			start_attack(ts[0].pos if not ts.is_empty() else g.ppos)
 
@@ -80,7 +82,7 @@ func _release() -> void:
 	elif g.corrode_pool > 0.5 or g.nerve > 0.5:
 		g.corrode_pool = 0.0
 		g.nerve = maxf(0.0, g.nerve - 15.0)
-		g._add_text(g.ppos + Vector2(0, -96), "驱散", PALE, 14)
+		float_text(g.ppos + Vector2(0, -96), "驱散", PALE, 14)
 		did = true
 	elif g.hp < g.max_hp:
 		_heal_doctor(g.max_hp * base("heal_pct", 0.02) * (1.5 if guiding else 1.0) * _heal_mult(), 15)
@@ -91,21 +93,21 @@ func _release() -> void:
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
 	fx({"kind": "glow", "pos": lamp_hand, "r": 12.0, "life": 0.3, "col": WARM, "alpha": 0.6})
 	# 光弹
-	var ts: Array = g._nearest(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
 	if not ts.is_empty():
 		var d: Vector2 = (ts[0].pos - lamp_hand).normalized()
 		if bolts.size() < BOLT_MAX:
-			bolts.append({"pos": lamp_hand, "vel": d * 380.0, "dmg": base("bolt_atk", 8.0) * _dmg_bonus(), "life": 1.4, "src": "光弹"})
+			bolts.append({"pos": lamp_hand, "vel": d * 380.0, "dmg": base("bolt_atk", 22.0) * _dmg_bonus(), "life": 1.4, "src": "光弹"})
 		Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
 
 func _heal_doctor(h: float, size: int) -> void:
 	if h <= 0.0:
 		return
-	g._heal(h, "流明")
-	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), WARM, size)
-	g._fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
-	if not g._fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+	heal_leader(h, "流明")
+	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), WARM, size)
+	spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
+	if not spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": WARM, "floor": true})
 
 
@@ -122,30 +124,30 @@ func _update_bolts(dt: float) -> void:
 		b.pos += b.vel * dt
 		b.life -= dt
 		mote_t -= dt
-		for j in g._query(b.pos, 30.0):
+		for j in query_ids(b.pos, 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(b.pos) > e.r + 8.0:
 				continue
 			var src: String = b.get("src", "光弹")
-			g._hit(src)
-			g._damage(e, b.dmg)
+			log_hit(src)
+			deal_damage(e, b.dmg)
 			e["lit"] = 3.0
 			Sfx.op(id, "hit", -4.0 if src != "光弹" else 0.0)
-			# 灯火不灭：强化光弹命中时为博士回复 0.5% 最大生命
+			# 灯火不灭：强化光弹命中时为主控回复 0.5% 最大生命
 			if b.get("heal", 0.0) > 0.0 and g.hp < g.max_hp:
-				g._heal(b.heal, "流明")
+				heal_leader(b.heal, "流明")
 				fx({"kind": "glow", "pos": g.ppos + Vector2(0, -26), "r": 10.0, "life": 0.25, "col": WARM, "alpha": 0.5})
 			# 小范围溅射（60%），溅到的也被照亮
 			var ar: float = base("bolt_aoe", 24.0)
-			for j2 in g._query(b.pos, ar + 20.0):
+			for j2 in query_ids(b.pos, ar + 20.0):
 				var o: Dictionary = g.enemies[j2]
 				if o.dead or is_same(o, e) or o.pos.distance_to(b.pos) > ar + o.r:
 					continue
-				g._hit(src)
-				g._damage(o, b.dmg * 0.6)
+				log_hit(src)
+				deal_damage(o, b.dmg * 0.6)
 				o["lit"] = 3.0
 			b.life = 0.0
-			if not g._fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
+			if not spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
 				fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": WARM, "alpha": 0.6})
 			fx_sparks(e.pos + Vector2(0, -e.r * 0.5), WARM, 4, 120.0, 0.3, 2.0)
 			break
@@ -163,25 +165,28 @@ func _release_skill() -> void:
 			immune_t = 3.0
 			g.lamp = minf(g.lamp_cap, g.lamp + base("s1_lamp", 8.0))
 			_talent_lamp()
-			g._fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 4), g.PX * 1.1, 0.0, false, true)
-			g._fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 4), g.PX * 1.8)
-			g._add_text(g.ppos + Vector2(0, -110), "净化", PALE, 15)
-			# N4 沐雨：发光单元在博士周围洒下光雨 3 秒
+			spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 4), g.PX * 1.1, 0.0, false, true)
+			spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 4), g.PX * 1.8)
+			float_text(g.ppos + Vector2(0, -110), "净化", PALE, 15)
+			# N5 灯塔守望：主控身上亮起旋转光束 3 秒（精二后指引灯塔全程也有）
+			if watch:
+				beam_t = base("watch_s1_dur", 3.0)
+			# N4 沐雨：发光单元在主控周围洒下光雨 3 秒
 			if rain_on and units > 0:
 				rain_t = base("rain_dur", 3.0)
 				rain_tick = 0.0
 		1:
 			guiding = true
 			g.stats.add(&"light_decay", "mult", 0.7, "lumen_guiding")
-			g._sync_stats()
-			g._show_banner("领航灯：博士光照永久扩大")
-			g._fx_sprite("fx_sunburst", g.ppos + Vector2(0, -20), g.PX * 1.4)
+			refresh_stats()
+			show_banner("领航灯：主控光照永久扩大")
+			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -20), g.PX * 1.4)
 		2:
 			tower_pos = g.ppos
 			tower_t = base("s3_dur", 10.0)
 			tower_tick = 0.0
-			g._show_banner("指引灯塔")
-			g._fx_sprite("fx_holy_pillar_amber", tower_pos + Vector2(0, 4), g.PX * 1.6, 0.0, false, true)
+			show_banner("指引灯塔")
+			spawn_fx_sprite("fx_holy_pillar_amber", tower_pos + Vector2(0, 4), g.PX * 1.6, 0.0, false, true)
 			fx({"kind": "ring", "pos": tower_pos, "r": base("s3_r", 220.0), "r0": 20.0, "life": 0.7, "col": WARM, "floor": true, "w": 3.0})
 	# 技能发动音 op_lumen_s1/s2/s3 由 spend_sp 播放
 
@@ -194,7 +199,7 @@ func skill_active_dur(i: int) -> float:
 	return base("s3_dur", 10.0) if i == 2 else 1.0
 
 
-## game.gd 询问：博士光照半径倍率（S2 领航灯）
+## game.gd 询问：主控光照半径倍率（S2 领航灯）
 func light_radius_mult() -> float:
 	return 1.35 if guiding else 1.0
 
@@ -214,6 +219,8 @@ func _update_tower(dt: float) -> void:
 	if tower_t <= 0.0:
 		return
 	tower_t -= dt
+	# 随行：光域中心平滑跟到主控干员脚下
+	tower_pos = tower_pos.lerp(g.ppos, clampf(dt * 10.0, 0.0, 1.0))
 	var r: float = base("s3_r", 220.0)
 	if _in_tower(g.ppos):
 		g.corrode_pool = 0.0
@@ -223,7 +230,7 @@ func _update_tower(dt: float) -> void:
 			tower_tick -= 1.0
 			g.lamp = minf(g.lamp_cap, g.lamp + base("s3_lamp", 2.0))
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * base("s3_heal", 0.015) * _heal_mult(), "流明")
+				heal_leader(g.max_hp * base("s3_heal", 0.015) * _heal_mult(), "流明")
 				_talent_lamp()
 	# 塔顶光点 + 区内漂浮光尘
 	mote_t -= dt
@@ -239,13 +246,13 @@ func _update_tower(dt: float) -> void:
 ## 灯塔结束：范围内法伤 ×3 并眩晕 0.6 秒
 func _light_burst() -> void:
 	var r: float = base("s3_r", 220.0)
-	area_hit("光爆", tower_pos, r, base("bolt_atk", 8.0) * base("s3_burst_mult", 3.0) * _dmg_bonus() * skill_power(), 160.0, 0.6)
-	g._fx_sprite("fx_sunburst", tower_pos + Vector2(0, -40), g.PX * 2.4)
+	area_hit("光爆", tower_pos, r, base("bolt_atk", 22.0) * base("s3_burst_mult", 3.0) * _dmg_bonus() * skill_power(), 160.0, 0.6)
+	spawn_fx_sprite("fx_sunburst", tower_pos + Vector2(0, -40), g.PX * 2.4)
 	for i in 3:
 		fx({"kind": "ring", "pos": tower_pos, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": WARM, "floor": true, "w": 4.0 - i})
 	g.fx.append({"kind": "rays", "pos": tower_pos + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": WARM})
 	fx_sparks(tower_pos + Vector2(0, -30), WARM, 18, 240.0, 0.5, 3.0, 160.0)
-	g._add_text(tower_pos + Vector2(0, -90), "光爆", WARM, 18)
+	float_text(tower_pos + Vector2(0, -90), "光爆", WARM, 18)
 	g.shake = maxf(g.shake, 4.0)
 	Sfx.op(id, "big")
 	tower_pos = Vector2.INF
@@ -283,14 +290,14 @@ func _update_units(dt: float) -> void:
 		unit_cd[k] -= dt
 		if unit_cd[k] > 0.0:
 			continue
-		var ts: Array = g._nearest(1, rng_r, pos)
+		var ts: Array = nearest_enemies(1, rng_r, pos)
 		if ts.is_empty() or bolts.size() >= BOLT_MAX:
 			unit_cd[k] = 0.15
 			continue
 		unit_cd[k] = base("unit_cd", 1.4) / stat(&"op_aspd")
 		var up: Vector2 = _unit_pos(k)
 		var d: Vector2 = (ts[0].pos + Vector2(0, -ts[0].r * 0.5) - up).normalized()
-		var dmg: float = base("bolt_atk", 8.0) * _dmg_bonus() * base("unit_mult", 0.6)
+		var dmg: float = base("bolt_atk", 22.0) * _dmg_bonus() * base("unit_mult", 0.6)
 		var big := false
 		if charge_on:
 			if empowered > 0:
@@ -311,7 +318,7 @@ func _update_units(dt: float) -> void:
 		fx({"kind": "glow", "pos": up, "r": 12.0 if big else 8.0, "life": 0.2, "col": WARM, "alpha": 0.6})
 
 
-## 沐雨：博士周围 140 内的敌人被照亮，每 0.5 秒受 15% 光弹伤害
+## 沐雨：主控周围 140 内的敌人被照亮，每 0.5 秒受 15% 光弹伤害
 func _update_rain(dt: float) -> void:
 	if rain_t <= 0.0:
 		return
@@ -321,14 +328,24 @@ func _update_rain(dt: float) -> void:
 		return
 	rain_tick += base("rain_tick", 0.5)
 	var r: float = base("rain_r", 140.0)
-	for j in g._query(g.ppos, r + 20.0):
+	for j in query_ids(g.ppos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(g.ppos) > r + e.r:
 			continue
 		e["lit"] = maxf(e.get("lit", 0.0), 1.0)
-		g._hit("沐雨")
-		g._damage(e, base("bolt_atk", 8.0) * _dmg_bonus() * base("rain_mult", 0.15) * skill_power())
+		log_hit("沐雨")
+		deal_damage(e, base("bolt_atk", 22.0) * _dmg_bonus() * base("rain_mult", 0.15) * skill_power())
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": WARM, "alpha": 0.5})
+
+
+## 光束是否在转：指引灯塔期间，或净化之光后的 3 秒
+func _beam_on() -> bool:
+	return watch and ((tower_t > 0.0 and tower_pos != Vector2.INF) or beam_t > 0.0)
+
+
+## 光束的中心：有灯塔用灯塔，否则主控
+func _beam_origin() -> Vector2:
+	return tower_pos if tower_t > 0.0 and tower_pos != Vector2.INF else g.ppos
 
 
 ## 灯塔光束的方向（地面透视：y × 0.55）
@@ -343,16 +360,17 @@ func _update_beam(dt: float) -> void:
 		beam_hit[k] -= dt
 		if beam_hit[k] <= 0.0:
 			beam_hit.erase(k)
-	if not watch or tower_t <= 0.0 or tower_pos == Vector2.INF:
+	beam_t = maxf(0.0, beam_t - dt)
+	if not _beam_on():
 		return
 	beam_tick -= dt
 	if beam_tick > 0.0:
 		return
 	beam_tick += base("beam_tick", 0.2)
 	var L: float = base("beam_len", 260.0)
-	var a: Vector2 = tower_pos
-	var b: Vector2 = tower_pos + _beam_dir() * L
-	for j in g._query(tower_pos, L + 20.0):
+	var a: Vector2 = _beam_origin()
+	var b: Vector2 = a + _beam_dir() * L
+	for j in query_ids(a, L + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or beam_hit.has(e.id):
 			continue
@@ -361,8 +379,8 @@ func _update_beam(dt: float) -> void:
 			continue
 		beam_hit[e.id] = base("beam_cd", 0.4)
 		e["lit"] = 3.0
-		g._hit("灯塔光束")
-		g._damage(e, base("bolt_atk", 8.0) * _dmg_bonus() * base("beam_mult", 0.4) * skill_power())
+		log_hit("灯塔光束")
+		deal_damage(e, base("bolt_atk", 22.0) * _dmg_bonus() * base("beam_mult", 0.4) * skill_power())
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": WARM, "alpha": 0.6})
 
 
@@ -386,7 +404,7 @@ func _draw_skill_over() -> void:
 				# 强化光弹：外圈亮晕 + 拖尾，更大更亮
 				g.draw_line(b.pos - b.vel.normalized() * 22.0, b.pos, Color(2.0, 1.6, 0.9, 0.55), 6.0)
 				g.draw_circle(b.pos, 8.0, Color(1.6, 1.3, 0.7, 0.5))
-			g._spr_rot("proj_lumen_bolt", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.0), Color(1.5, 1.35, 1.1) if big else Color.WHITE)
+			draw_spr_rot("proj_lumen_bolt", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.0), Color(1.5, 1.35, 1.1) if big else Color.WHITE)
 		else:
 			g.draw_line(b.pos - b.vel.normalized() * 14.0, b.pos, Color(WARM.r * 1.4, WARM.g * 1.3, WARM.b, 0.5), 5.0 if big else 3.0)
 			g.draw_circle(b.pos, 6.0 if big else 4.0, Color(2.0, 1.8, 1.2))
@@ -428,7 +446,7 @@ func _draw_units() -> void:
 			g.draw_rect(Rect2(pp - Vector2(2, 2), Vector2(4, 4)), col)
 
 
-## 沐雨：发光单元洒下的光雨（程序生成的落雨线，落点在博士周围 140 的椭圆内）
+## 沐雨：发光单元洒下的光雨（程序生成的落雨线，落点在主控周围 140 的椭圆内）
 func _draw_rain() -> void:
 	if rain_t <= 0.0:
 		return
@@ -464,15 +482,17 @@ func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
 	for b in bolts:
 		ci.draw_circle(b.pos, 14.0 if b.get("big", false) else 9.0, Color(0.9, 0.7, 0.3, 0.35))
 	# 灯塔守望：塔顶灯室射出的旋转光束（贴地的细长光楔 + 塔顶到地面的光柱连线）
-	if watch and tower_t > 0.0 and tower_pos != Vector2.INF:
+	if _beam_on():
 		var L: float = base("beam_len", 260.0)
+		var o: Vector2 = _beam_origin()
+		var twr: bool = tower_t > 0.0 and tower_pos != Vector2.INF
 		var d: Vector2 = _beam_dir()
 		var n: Vector2 = Vector2(-d.y, d.x).normalized()
-		var tip: Vector2 = tower_pos + d * L
-		var fade: float = clampf(tower_t / 0.5, 0.0, 1.0)
-		ci.draw_colored_polygon(PackedVector2Array([tower_pos + n * 4.0, tip + n * 26.0, tip - n * 26.0, tower_pos - n * 4.0]), Color(0.9, 0.7, 0.35, 0.28 * fade))
-		ci.draw_colored_polygon(PackedVector2Array([tower_pos + n * 2.0, tip + n * 10.0, tip - n * 10.0, tower_pos - n * 2.0]), Color(1.0, 0.85, 0.5, 0.35 * fade))
-		ci.draw_line(tower_pos + Vector2(0, -100), tower_pos + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
+		var tip: Vector2 = o + d * L
+		var fade: float = clampf((tower_t if twr else beam_t) / 0.5, 0.0, 1.0)
+		ci.draw_colored_polygon(PackedVector2Array([o + n * 4.0, tip + n * 26.0, tip - n * 26.0, o - n * 4.0]), Color(0.9, 0.7, 0.35, 0.28 * fade))
+		ci.draw_colored_polygon(PackedVector2Array([o + n * 2.0, tip + n * 10.0, tip - n * 10.0, o - n * 2.0]), Color(1.0, 0.85, 0.5, 0.35 * fade))
+		ci.draw_line(o + Vector2(0, -100.0 if twr else -44.0), o + d * 30.0, Color(0.9, 0.75, 0.4, 0.3 * fade), 3.0)
 
 
 func extra_bodies() -> Array:
@@ -488,12 +508,13 @@ func draw_extra(_it: Dictionary) -> void:
 		return
 	var n: int = anim_hframes(tx, "lighthouse")
 	var fr: int = 1 if int(g.t * 4.0) % 2 == 1 else 0
-	g._draw_sprite_at(tower_pos, false, Color.WHITE, fr % n, tx, n, foot_off(tx, "lighthouse"))
+	# 灯塔悬在主控身后一侧随行（缩小一些、轻微上下浮动）
+	draw_sprite_at(tower_pos + Vector2(-40.0 * g.facing, -8.0 + 3.0 * sin(g.t * 2.4)), false, Color.WHITE, fr % n, tx, n, foot_off(tx, "lighthouse"))
 
 
 func draw_extra_shadows() -> void:
 	if tower_t > 0.0 and tower_pos != Vector2.INF:
-		g._spr("shadow", 1, 0, tower_pos + Vector2(0, 4), g.PX * 1.5)
+		draw_spr("shadow", 1, 0, tower_pos + Vector2(0, 4), g.PX * 1.5)
 
 
 func status_items() -> Array:

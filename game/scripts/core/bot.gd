@@ -65,7 +65,7 @@ func move(dt: float) -> Vector2:
 			return _move_bad(dt)
 		"expert":
 			return _move_expert()
-	return g._bot_move()
+	return g.autotest_sys.bot_move()
 
 
 ## 手残：随机方向走 0.8–2.2 秒再换；每 0.5 秒检查一次危险，30% 概率在 0.4 秒后躲 0.5 秒（用普通机器人的躲法）
@@ -85,7 +85,7 @@ func _move_bad(dt: float) -> Vector2:
 			dodge_t = 0.5
 	if dodge_t > 0.0:
 		dodge_t -= dt
-		return g._bot_move()
+		return g.autotest_sys.bot_move()
 	# 缩圈外会被烧死：手残玩家也知道往圈里走，但慢半拍
 	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r - 40.0:
 		return (g.zone_c - g.ppos).normalized()
@@ -97,11 +97,12 @@ func _move_bad(dt: float) -> Vector2:
 func _move_expert() -> Vector2:
 	var p: Vector2 = g.ppos
 	var near: Array = []
-	for j in g._query(p, 380.0):
+	for j in g.enemies_sys.query(p, 380.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.get("chest", false) or float(e.get("dmg", 1.0)) <= 0.0:
 			continue
 		near.append(e)
+	_prep_near(near)
 	var bullets: Array = []
 	for bl in g.ebullets:
 		if bl.life > 0.0 and bl.pos.distance_to(p) < 320.0:
@@ -144,17 +145,41 @@ func _bullet_risk(p: Vector2, d: Vector2, spd: float, bullets: Array) -> float:
 	return s
 
 
-## 一个位置的安全分（越高越安全）：敌人距离、预警、溟痕、弹幕、缩圈
-func _score_point(q: Vector2, near: Array) -> float:
+## 每步把附近敌人的打分参数先算好（位置、半径、权重、速度余量、远程射程），33 个候选点共用，
+## 不再每个点都去字典里取一遍（机器人原来占一局耗时的四分之一；算式与原来逐项相同，行为不变）
+var _np := PackedVector2Array()
+var _nr := PackedFloat64Array()
+var _nw := PackedFloat64Array()
+var _nf := PackedFloat64Array()
+var _nrg := PackedFloat64Array()   # 远程怪（非 Boss）的「射程 + 10」；不是远程为 -1
+
+
+func _prep_near(near: Array) -> void:
+	var n := near.size()
+	_np.resize(n)
+	_nr.resize(n)
+	_nw.resize(n)
+	_nf.resize(n)
+	_nrg.resize(n)
+	for i in n:
+		var e: Dictionary = near[i]
+		_np[i] = e.pos
+		_nr[i] = float(e.r)
+		_nw[i] = 3.0 if (e.elite or e.boss) else 1.0
+		_nf[i] = 1.0 + clampf((float(e.get("spd", 50.0)) - 50.0) / 60.0, 0.0, 1.0)   # 快的怪要留更大余量
+		_nrg[i] = float(e.get("range", 200.0)) + 10.0 if (e.get("ai", "") == "ranged" and not e.boss) else -1.0
+
+
+## 一个位置的安全分（越高越安全）：敌人距离、预警、溟痕、弹幕、缩圈。敌人部分读 _prep_near 的缓存
+func _score_point(q: Vector2, _near: Array) -> float:
 	var s := 0.0
-	for e in near:
-		var dd: float = q.distance_to(e.pos) - float(e.r)
-		var w: float = 3.0 if (e.elite or e.boss) else 1.0
-		if e.get("ai", "") == "ranged" and not e.boss:
-			# 远程怪：待在射程外沿
-			if dd < float(e.get("range", 200.0)) + 10.0:
-				s -= 0.6
-		var fast: float = 1.0 + clampf((float(e.get("spd", 50.0)) - 50.0) / 60.0, 0.0, 1.0)   # 快的怪要留更大余量
+	for i in _np.size():
+		var dd: float = q.distance_to(_np[i]) - _nr[i]
+		var w: float = _nw[i]
+		# 远程怪：待在射程外沿
+		if _nrg[i] >= 0.0 and dd < _nrg[i]:
+			s -= 0.6
+		var fast: float = _nf[i]
 		if dd < 30.0 * fast:
 			s -= 12.0 * w
 		elif dd < keep * fast:
@@ -243,7 +268,7 @@ func _in_danger(q: Vector2, pad: float) -> bool:
 	for m in g.mires:
 		if q.distance_to(m.pos) < float(m.r) + pad:
 			return true
-	for j in g._query(q, 60.0):
+	for j in g.enemies_sys.query(q, 60.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.get("chest", false) and q.distance_to(e.pos) < float(e.r) + 30.0:
 			return true

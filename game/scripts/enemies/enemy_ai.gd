@@ -44,13 +44,13 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 			e.def = 1.0
 			e.up_t = float(d.get("up_time", 3.2))
 			g.bai._warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
-			g._sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
+			g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
 			return Vector2.ZERO
 		return dir * spd
 	e.up_t = e.get("up_t", 3.0) - dt
 	if e.up_t <= 0.0 and dist > 120.0:
 		e.under = true
-		g._sparks(e.pos, Vector2.DOWN, Color(0.5, 0.4, 0.7), 8, 160.0)
+		g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.4, 0.7), 8, 160.0)
 	return Vector2.INF
 
 
@@ -85,7 +85,7 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 	e.cdt -= dt
 	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)):
 		e.cdt = float(d.get("acid_cd", 4.2))
-		g.ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + g.t / 300.0), "slow": false, "r": 5.0, "life": 2.6,
+		g.ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
 			"corrode": 0.3, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
 	return Vector2.INF
 
@@ -129,13 +129,13 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		e.ammo -= 1
 		if e.ammo <= 0:
 			e.ai = "melee"
-			g._add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
+			g.vfx.add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
 	for k in n:
 		var dk := dir.rotated((k - (n - 1) / 2.0) * 0.22)
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2})
+			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss})
 	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
 	var so: String = d.get("spawn_on_shot", "")
 	if so != "":
@@ -144,10 +144,10 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			if o.type == so and not o.dead:
 				nb += 1
 		if nb < int(d.get("spawn_max", 12)):
-			g._spawn_enemy(so, g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0))
+			g.spawner.spawn_enemy(so, g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0))
 
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
 func lob(e: Dictionary) -> void:
-	var to: Vector2 = g.ppos + Vector2(randf_range(-30, 30), randf_range(-30, 30)) + g.pvel * 0.6
+	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false)})

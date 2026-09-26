@@ -12,6 +12,8 @@
     python tools/balance_run.py --preset starts --bots afk,bad,normal,expert --seeds 4 --tag bots   # 四档机器人（docs/29）
 
 输出：build/balance/<tag>_<时间>.json（原始）与同名 .md（汇总表）；终端打印汇总表。
+速度与复用（docs/36）：同 seed 可复现，「游戏源文件内容 + 参数」相同的局读缓存（--nocache 关掉）；
+全机并发上限见 tools/godot_runner.py（GODOT_MAX_PROCS）；--game 指向别的工作树的 game/（A/B 对比用）。
 机器人（docs/29）：--bot 选一档，--bots 逗号分隔跑多档矩阵；afk 挂机 / bad 手残 / normal 普通（缺省）/ expert 高手。
 多档时额外输出「按机器人汇总」表，并对照 BOT_TARGETS 给出 达标 / 偏难 / 偏易。
 指标：胜率、存活时间、等级里程碑（2:00 / 5:00 / 8:00）、最终 Boss 剩余、伤害占比（按干员 / 来源）、
@@ -19,6 +21,9 @@
 """
 import argparse, json, os, re, subprocess, sys, time, datetime, statistics, itertools
 from concurrent.futures import ThreadPoolExecutor
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import godot_runner as GR
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
@@ -50,6 +55,9 @@ PRESETS = {
     # 干员横向对比（docs/29 §5）：被测干员 + 两名低输出的固定队友（推进之王 + 流明；测他们自己时换成塞雷娅 / 凯尔希），
     # 开局即满编，被测干员的伤害占比 / 每分钟伤害就是她自己的水平
     "opcmp": [[o] + {"siege": ["saria", "lumen"], "lumen": ["siege", "saria"]}.get(o, ["siege", "lumen"]) for o in OPS],
+    # 输出占比（2026-09-26）：被测干员 + 推进之王 + 水月，配 --extra=--nodeath 跑满。队友固定且不在本轮改动里，前后占比才可比
+    # （opcmp 的「每分钟伤害」在怪被清空时封顶，而且队友一改动所有人的数字都跟着变，只适合看同一版本内的排名）
+    "share": [[o, "siege", "mizuki"] for o in OPS if o not in ("siege", "mizuki")],
 }
 
 
@@ -77,36 +85,31 @@ BOT_TARGETS = {
 }
 
 
-def find_godot():
-    import shutil
-    for c in [os.environ.get("GODOT"), "godot", "godot4",
-              r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe"]:
-        if not c:
-            continue
-        if os.path.exists(c):
-            return c
-        if os.sep not in c and shutil.which(c):
-            return shutil.which(c)
-    sys.exit("找不到 Godot，请设置环境变量 GODOT")
+find_godot = GR.find_godot
 
 
-def run_one(godot, squad, seed, diff, extra, timeout, bot=None):
-    args = [godot, "--headless", "--path", GAME, "--", "--balance", "--seed=%d" % seed, "--diff=%d" % diff, "--op=" + squad[0]]
+def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=None):
+    game = game or GAME
+    args = [godot, "--headless", "--path", game, "--", "--balance", "--seed=%d" % seed, "--diff=%d" % diff, "--op=" + squad[0]]
     if bot:
         args.append("--bot=" + bot)
     if len(squad) > 1:
         args.append("--squad=" + ",".join(squad[1:]))
     args += extra
+    # 缓存：同一份源文件 + 同一组参数 = 同一局（docs/36 §3）
+    akey = json.dumps([squad, seed, diff, bot or "normal", extra])
+    if tkey:
+        hit = GR.cache_get(tkey, akey)
+        if hit is not None:
+            hit["cached"] = True
+            return hit
     t0 = time.time()
-    try:
-        p = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
-        out = p.stdout
-    except subprocess.TimeoutExpired as e:
-        out = (e.stdout or b"").decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+    out, err, _ = GR.run_godot(args, timeout)
     m = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
     rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "wall": round(time.time() - t0, 1)}
     # 脚本错误不会让模拟停下，但可能让某段逻辑整段失效（例如 Boss 没刷出来）→ 计数并在报告顶部警告
-    errs = re.findall(r"^SCRIPT ERROR: .*$", out, re.M)
+    # Godot 把脚本错误写到 stderr（2026-09-26 前只查 stdout，漏掉了水月每次出手报错的整批数据）
+    errs = GR.script_errors(out, err)
     if errs:
         rec["script_errors"] = len(errs)
         rec["first_error"] = errs[0][:200]
@@ -118,6 +121,8 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None):
     else:
         rec["error"] = "no BALANCE line"
         rec["tail"] = out[-600:]
+    if tkey and "data" in rec and not rec.get("script_errors"):
+        GR.cache_put(tkey, akey, rec)
     return rec
 
 
@@ -282,6 +287,71 @@ def bot_summary(records):
     return "\n".join(lines), verdicts
 
 
+def relic_meta():
+    """藏品编号 → {name, lanes, rarity, req}（lanes 空 = 通用；req = requires_class 职业门槛）"""
+    meta = json.load(open(os.path.join(GAME, "data", "relics.json"), encoding="utf-8"))
+    fx = json.load(open(os.path.join(GAME, "data", "relic_effects.json"), encoding="utf-8")).get("relics", {})
+    out = {}
+    for r in meta["items"]:
+        i = str(int(r["id"]))
+        e = fx.get(i, {})
+        out[i] = {"name": r["name"], "lanes": r.get("lanes") or ["通用"], "rarity": e.get("rarity", r.get("rarity")),
+                  "req": e.get("requires_class", r.get("requires_class", []))}
+    return out
+
+
+def relic_table(records):
+    """藏品指标（docs/35）：按 机器人 × 开局干员 统计藏品直接伤害占比、各流派出现 / 拿取次数、无效拿取
+    （拿到时编队里没有该藏品要求的职业）。流派按当前 relics.json 归类，所以旧 json 换新数据重算也能对照。"""
+    M = relic_meta()
+    by = {}
+    for r in records:
+        if "data" in r and "relic_take" in r["data"]:
+            by.setdefault((r.get("bot", "normal"), r["squad"][0]), []).append(r["data"])
+    if not by:
+        return ""
+    lines = ["| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |", "|---|---|---|---|---|---|---|"]
+    tot_offer, tot_take, per_id = {}, {}, {}
+
+    def lane_str(offer, take):
+        ks = sorted(set(offer) | set(take))
+        return " ".join("%s %d/%d" % (k, offer.get(k, 0), take.get(k, 0)) for k in ks)
+
+    for (bot, op), ds in sorted(by.items()):
+        offer, take = {}, {}
+        dead = 0
+        ntake = 0
+        share = []
+        for d in ds:
+            tot = sum(d.get("out", {}).values()) or 1.0
+            share.append(d.get("relic_out", 0.0) / tot)
+            for o in d.get("relic_offer", []):
+                for i in o[2]:
+                    if i in M:
+                        per_id.setdefault(i, [0, 0])[0] += 1
+                        for ln in M[i]["lanes"]:
+                            offer[ln] = offer.get(ln, 0) + 1
+                            tot_offer[ln] = tot_offer.get(ln, 0) + 1
+            for tk in d.get("relic_take", []):
+                i = tk[1]
+                if i not in M:
+                    continue
+                ntake += 1
+                per_id.setdefault(i, [0, 0])[1] += 1
+                for ln in M[i]["lanes"]:
+                    take[ln] = take.get(ln, 0) + 1
+                    tot_take[ln] = tot_take.get(ln, 0) + 1
+                req = M[i]["req"]
+                if req and not any(c in tk[2] for c in req):
+                    dead += 1
+        lines.append("| %s | %s | %d | %.1f | %.1f%% | %s | %d |" % (bot, op, len(ds), ntake / len(ds), 100 * statistics.mean(share), lane_str(offer, take), dead))
+    lines.append("| 合计 | | | | | %s | |" % lane_str(tot_offer, tot_take))
+    top = sorted(per_id.items(), key=lambda kv: -kv[1][1])[:12]
+    lines.append("")
+    lines.append("拿取最多（出现 / 拿取）：" + "，".join("%s %d/%d" % (M[i]["name"], v[0], v[1]) for i, v in top))
+    return "\n".join(lines)
+
+
 def table(rows):
     lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -308,12 +378,15 @@ def main():
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--seed0", type=int, default=1)
     ap.add_argument("--diff", type=int, default=0)
-    ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 4) - 1))
+    ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS, help="本批并行数；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--tag", default="run")
     ap.add_argument("--extra", default="", help="透传给游戏的额外参数，空格分隔，例如 \"--nodeath --botrandom\"")
     ap.add_argument("--bot", choices=BOTS, default=None, help="机器人档位（docs/29），缺省 normal")
     ap.add_argument("--bots", default=None, help="逗号分隔的多档机器人矩阵，例如 afk,bad,normal,expert")
+    ap.add_argument("--game", default=None, help="要测的 game/ 目录（缺省为本仓库的 game/；A/B 对比时指向临时工作树）")
+    ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存")
+    ap.add_argument("--out", default=None, help="报告输出目录（缺省 build/balance）")
     a = ap.parse_args()
     if a.squad:
         squads = [a.squad.split(",")]
@@ -324,11 +397,17 @@ def main():
     extra = a.extra.split() if a.extra else []
     godot = find_godot()
     bots = a.bots.split(",") if a.bots else [a.bot]
+    game = os.path.abspath(a.game) if a.game else GAME
+    tkey = None if a.nocache else GR.tree_key(game)
     jobs = [(s, a.seed0 + i, b) for b in bots for s in squads for i in range(a.seeds)]
-    print("跑 %d 局（%d 机器人 × %d 编队 × %d seed），并行 %d" % (len(jobs), len(bots), len(squads), a.seeds, a.jobs), flush=True)
+    print("跑 %d 局（%d 机器人 × %d 编队 × %d seed），并行 %d（全机上限 %d）%s" % (len(jobs), len(bots), len(squads), a.seeds, a.jobs, GR.MAX_PROCS,
+          "，源文件摘要 " + tkey if tkey else "，不用缓存"), flush=True)
     t0 = time.time()
     with ThreadPoolExecutor(a.jobs) as ex:
-        records = list(ex.map(lambda j: run_one(godot, j[0], j[1], a.diff, extra, a.timeout, j[2]), jobs))
+        records = list(ex.map(lambda j: run_one(godot, j[0], j[1], a.diff, extra, a.timeout, j[2], game, tkey), jobs))
+    hits = sum(1 for r in records if r.get("cached"))
+    if hits:
+        print("其中 %d 局读自缓存" % hits)
     rows = summarize(records)
     bad = [r for r in records if r.get("script_errors")]
     warn = ""
@@ -336,12 +415,15 @@ def main():
         warn = "> ⚠ %d 局出现脚本错误，结果可能无效。首条：`%s`\n\n" % (len(bad), bad[0]["first_error"])
         print(warn)
     md = warn + table(rows) + "\n\n### 机器人指标（docs/29）\n\n" + bot_table(rows)
+    rt = relic_table(records)
+    if rt:
+        md += "\n\n### 藏品（docs/35）\n\n" + rt
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
     print(md)
     print("耗时 %.0fs" % (time.time() - t0))
-    outdir = os.path.join(ROOT, "build", "balance")
+    outdir = a.out or os.path.join(ROOT, "build", "balance")
     os.makedirs(outdir, exist_ok=True)
     stamp = datetime.datetime.now().strftime("%m%d_%H%M")
     base = os.path.join(outdir, "%s_%s" % (a.tag, stamp))

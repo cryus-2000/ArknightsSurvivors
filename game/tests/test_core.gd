@@ -127,11 +127,20 @@ func test_db_and_profile() -> void:
 		printerr("  数据错误: ", e)
 	ok(errs.is_empty(), "效果数据校验")
 	ok(c.db.implemented().size() > 20, "已实装藏品数量")
-	# Build Profile：拿伞击藏品后，A 流派领先
+	# docs/35 藏品契约：说明非空、不再出现「援护干员」、职业门槛合法、流派只用 A–H
+	var classes := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
+	for r in c.db.implemented():
+		ok(str(r.desc).strip_edges() != "", "藏品 %s 说明非空" % r.id)
+		ok(not str(r.desc).contains("援护干员"), "藏品 %s 说明不含「援护干员」" % r.id)
+		for cl in r.get("requires_class", []):
+			ok(cl in classes, "藏品 %s 职业门槛合法（%s）" % [r.id, cl])
+		for ln in r.lanes:
+			ok(ln in ["A", "B", "C", "D", "E", "F", "G", "H"], "藏品 %s 流派代号合法（%s）" % [r.id, ln])
+	# Build Profile：拿近战藏品后，A 流派领先
 	for id in ["54", "56", "120", "121"]:
 		c.gain_relic(id)
-	ok(c.profile.lane_scores().A > c.profile.lane_scores().B, "伞击藏品提高 A 流派")
-	ok(c.profile.affinity(["mizuki_umbrella"]) > c.profile.affinity(["support"]), "相关度")
+	ok(c.profile.lane_scores().A > c.profile.lane_scores().B, "近战藏品提高 A 流派")
+	ok(c.profile.affinity(["melee"]) > c.profile.affinity(["squad"]), "相关度")
 	c.gain_relic("79")
 	near(c.stats.value(&"dmg"), 1.3, "藏品效果生效（79：全伤害 +30%）")
 	# 商店与 Boss 奖励
@@ -182,6 +191,17 @@ func test_squad_contract() -> void:
 		var elites: Array = pg.filter(func(nd): return nd.get("type", "") == "elite")
 		ok(elites.size() == 2 and int(elites[0].level) == 1 and int(elites[1].level) == 2, "两次精英化：%s" % cid)
 		ok(not elites[1].has("requires"), "精英化二不带条件（2026-09-25 用户决定）：%s" % cid)
+		# 节点不许只强化还没解锁的技能（2026-09-26：六名干员的 N5 强化精二才有的三技能，选了当下没效果）。
+		# 说明里「精二后……」之后的部分是对未来的补充，不算
+		var sk_names: Array = d.get("skills", []).map(func(s): return str(s.get("name", "")))
+		var unlocked := 1
+		for nd in pg:
+			if nd.get("type", "") == "elite":
+				unlocked = int(nd.level) + 1
+				continue
+			var txt: String = str(nd.get("desc", "")).split("精二后")[0]
+			for si in range(unlocked, sk_names.size()):
+				ok(sk_names[si] == "" or not txt.contains("「%s」" % sk_names[si]), "%s 节点「%s」强化了还没解锁的技能「%s」" % [cid, nd.get("name", ""), sk_names[si]])
 	# 契约反例：缺 skill / manual 技能 / 非法节点
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}}), "缺 skills 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b"}]}), "技能不足 3 个不通过")

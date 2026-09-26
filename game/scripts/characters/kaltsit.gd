@@ -1,4 +1,4 @@
-## 凯尔希（医疗，契约 v2.1）：周期治疗博士（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬博士身边的敌人。
+## 凯尔希（医疗，契约 v2.1）：周期治疗主控（与骑士同伴）；Mon3tr 作为近身输出单位，撕咬主控身边的敌人。
 ## S1 医疗单元：立即治疗 + 清神经损伤；S2 战术协同（永久型）：充能一次后 Mon3tr 攻速 / 范围与治疗频率永久提升；S3 熔毁：Mon3tr 真伤，结束时熔毁爆炸。
 ## Mon3tr 是本干员的附属实体（64×64 帧条，脚底 (32, 60)），自己寻敌、自己播动画，通过 extra_bodies 参与 2.5D 排序。
 ## 特效（docs/25，2026-09-26 照原作截图修改）：荧光绿。普通爪击三道平行爪痕、协同后双爪爪痕；
@@ -7,12 +7,12 @@ extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
 const CRIMSON := Color(1.0, 0.12, 0.16)   # 熔毁（照原作：Mon3tr 整体变猩红）
-const M_LEASH := 190.0        # Mon3tr 离博士的最远距离
+const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
 const M_REACH := 62.0         # 爪击半径（基础）
 const S3_DUR := 8.0
 
 var cd := 1.0
-var guard_t := 0.0            # 溢出治疗后博士减伤的剩余时间
+var guard_t := 0.0            # 溢出治疗后主控减伤的剩余时间
 # ---- Mon3tr
 var m := {"pos": Vector2.INF, "face": 1.0, "mv": 0.0, "kind": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "cd": 0.8, "tgt": null}
 var coord := false            # S2 战术协同（永久）
@@ -32,7 +32,7 @@ var melt_echo: Array = []     # 不毁重构的后续爆炸：{t, pos, r, dmg}
 
 
 func _heal_mult() -> float:
-	return stat(&"op_atk") * g.ally_mult * (1.5 if elite >= 1 else 1.0)
+	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out") * (1.5 if elite >= 1 else 1.0)
 
 
 func _boosted() -> bool:
@@ -68,7 +68,7 @@ func update(dt: float) -> void:
 	for me in melt_echo:
 		me.t -= dt
 		if me.t <= 0.0:
-			_melt_burst(me.pos, me.r, me.dmg, false)
+			_melt_burst(me.pos, me.r, me.dmg, false, float(me.get("stun", -1.0)))
 	melt_echo = melt_echo.filter(func(me): return me.t > 0.0)
 	_update_mon3tr(dt)
 	if acting():
@@ -92,18 +92,18 @@ func _release() -> void:
 
 func _heal(h: float, size: int) -> void:
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
-	g._heal(h, "凯尔希")
+	heal_leader(h, "凯尔希")
 	Sfx.op(id, "heal")
 	if over > 0.0:
 		guard_t = 5.0
-	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)
+	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), GREEN, size)
 	fx({"kind": "ring", "pos": g.ppos, "r": 30.0, "r0": 8.0, "life": 0.4, "col": GREEN, "floor": true})
 	# 治疗光环（Ninja Adventure Aura 调绿）+ 星光命中（Pimen，染绿）
-	if not g._fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.3, 0.0, false, true):
+	if not spawn_fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.3, 0.0, false, true):
 		for k in 6:
 			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
 				"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
-	g._fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX * 0.9, 0.0, false, false, Color(0.75, 1.3, 0.8))
+	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX * 0.9, 0.0, false, false, Color(0.75, 1.3, 0.8))
 	g.fx.append({"kind": "beam", "a": pos + Vector2(0, -24), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": GREEN, "w": 3.0})
 	fx({"kind": "glow", "pos": pos + Vector2(8.0 * face, -26), "r": 10.0, "life": 0.25, "col": GREEN, "alpha": 0.5})
 
@@ -114,6 +114,14 @@ func _release_skill() -> void:
 			_heal(g.max_hp * base("s1_heal", 0.08) * _heal_mult() * skill_power(), 18)
 			g.nerve = 0.0
 			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
+			# N5「不毁重构」：Mon3tr 就地重构外壳，三连爆（半径逐次扩大，Mon3tr 攻击 120% / 60% / 60% 真实伤害）并眩晕 0.8 秒；
+			# 精二后「熔毁」收尾同样三连爆（伤害更高、眩晕 1.5 秒）
+			if melt_triple and m.pos != Vector2.INF:
+				var rr: float = base("rebuild_r", 70.0) * stat(&"op_range")
+				var rd: float = base("m_atk", 25.0) * base("rebuild_mult", 1.2) * _dmg_bonus() * skill_power()
+				_melt_burst(m.pos, rr, rd, false, base("rebuild_stun", 0.8))
+				for k in 2:
+					melt_echo.append({"t": base("melt_echo_gap", 0.2) * (k + 1), "pos": m.pos, "r": rr * (1.25 + 0.25 * k), "dmg": rd * 0.5, "stun": base("rebuild_stun", 0.8)})
 			# N4「结构加固」：主控身上罩一层绿色六边形护壳，受到的伤害 -35%
 			if s1_shell:
 				shell_t = base("shell_dur", 3.0)
@@ -121,11 +129,11 @@ func _release_skill() -> void:
 		1:
 			coord = true
 			_mon3tr_burst()
-			g._show_banner("战术协同：Mon3tr 永久强化")
+			show_banner("战术协同：Mon3tr 永久强化")
 		2:
 			melt = S3_DUR
 			_mon3tr_burst()
-			g._add_text(m.pos + Vector2(0, -70), "熔毁", CRIMSON, 16)
+			float_text(m.pos + Vector2(0, -70), "熔毁", CRIMSON, 16)
 
 
 func _mon3tr_burst() -> void:
@@ -148,7 +156,7 @@ func skill_active_dur(i: int) -> float:
 
 ## 基础数值全部可由 data/characters/kaltsit.json 的 base 段覆盖（docs/27 §3）
 func _m_dmg() -> float:
-	return base("m_atk", 22.0) * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (base("s3_mult", 1.6) * skill_power() if melt > 0.0 else 1.0)
+	return base("m_atk", 25.0) * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (base("s3_mult", 1.6) * skill_power() if melt > 0.0 else 1.0)
 
 
 func _m_reach() -> float:
@@ -174,10 +182,10 @@ func _update_mon3tr(dt: float) -> void:
 			ghost.t -= dt
 	else:
 		ghost = {}
-	# 目标：博士 leash 范围内离 Mon3tr 最近的敌人；没有就回到凯尔希身边
+	# 目标：主控 leash 范围内离 Mon3tr 最近的敌人；没有就回到凯尔希身边
 	var tg = m.tgt
 	if tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
-		var ts: Array = g._nearest(1, M_LEASH, g.ppos)
+		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg
 	var want: Vector2 = pos + Vector2(-34.0 * face, 14)
@@ -267,7 +275,7 @@ func _m_claw(mult: float, second: bool) -> void:
 			var rot: float = (1.05 * sd) if second else 0.0
 			var cp: Vector2 = o + Vector2.from_angle(ang) * (_m_reach() * 0.55)
 			var sc: float = g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2) * (0.9 if second else 1.0)
-			if not g._fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", cp, sc, rot, sd < 0.0):
+			if not spawn_fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", cp, sc, rot, sd < 0.0):
 				fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang + rot, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 			fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 			# N2「清创」：更宽的扇面用一道淡绿细月牙画出来
@@ -283,7 +291,7 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 
 func _meltdown() -> void:
 	var r := 130.0
-	var dmg: float = base("m_atk", 22.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power()
+	var dmg: float = base("m_atk", 25.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power()
 	_melt_burst(m.pos, r, dmg, true)
 	# N5「不毁重构」：再接两次更大的爆炸（间隔 0.2 秒，半径 ×1.25 / ×1.5，伤害 50%）
 	if melt_triple:
@@ -293,8 +301,8 @@ func _meltdown() -> void:
 
 ## 熔毁爆炸（main：第一次，带晶核碎裂全套特效；后续爆炸只有光束 + 晶片 + 地面环）。
 ## 不毁重构后每次都眩晕 1.5 秒（精英减半、Boss 免疫，由 melee_hit 处理）
-func _melt_burst(at: Vector2, r: float, dmg: float, main: bool) -> void:
-	var stun: float = base("melt_stun", 1.5) if melt_triple else 0.5
+func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override := -1.0) -> void:
+	var stun: float = stun_override if stun_override >= 0.0 else (base("melt_stun", 1.5) if melt_triple else 0.5)
 	area_hit("Mon3tr · 熔毁", at, r, dmg, 260.0 if main else 160.0, stun)
 	if not main:
 		var c2: Vector2 = at + Vector2(0, -24)
@@ -324,7 +332,7 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool) -> void:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": GREEN, "sz": g.rng.randf_range(1.5, 3.0)})
 	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
 	g.hitstop = maxf(g.hitstop, 0.1)
-	g._add_text(at + Vector2(0, -70), "熔毁", GREEN, 18)
+	float_text(at + Vector2(0, -70), "熔毁", GREEN, 18)
 	Sfx.op(id, "big")
 
 
@@ -447,7 +455,7 @@ func draw_extra(_it: Dictionary) -> void:
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
-				g._draw_sprite_at(ghost.pos, ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
+				draw_sprite_at(ghost.pos, ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
 		var ac: Color = CRIMSON if melt > 0.0 else GREEN
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
@@ -461,15 +469,17 @@ func draw_extra(_it: Dictionary) -> void:
 	# 熔毁：整体染猩红（原作截图）；协同：略偏绿
 	var col := Color(1.7, 0.45, 0.45) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
-	g._draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
+	draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
 	_draw_claw_blades()
 
 
-## 常驻爪刃（可见成长）：Mon3tr 身侧发光的月牙爪刃，数量 = 每次爪击的爪数（骨爪增生后 2 道）；
-## 精二「八面展开」后身后镜像再展开一组，一眼看出前后都会出爪。熔毁期间染猩红
+## 常驻爪刃（可见成长）：只在精二出现（用户定，2026-09-26：精零 / 精一不显示），身体两侧对称各一组绿色月牙爪刃，
+## 数量 = 每次爪击的爪数（骨爪增生后 2 道）。熔毁期间染猩红
 func _draw_claw_blades() -> void:
+	if elite < 2:
+		return
 	var n: int = 2 if twin_claw else 1
-	var sides: Array = [m.face, -m.face] if dual_side else [m.face]
+	var sides: Array = [m.face, -m.face]
 	var c: Color = CRIMSON if melt > 0.0 else GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
 	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，
@@ -502,10 +512,10 @@ func _hover() -> float:
 
 func draw_extra_shadows() -> void:
 	if m.pos != Vector2.INF:
-		g._spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
+		draw_spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
 
 
-## 溢出治疗后 5 秒博士受伤 -20%；结构加固护壳期间再 -35%（game.gd _enemy_hit 查询）
+## 溢出治疗后 5 秒主控受伤 -20%；结构加固护壳期间再 -35%（game.gd _enemy_hit 查询）
 func dmg_taken_mult() -> float:
 	var k: float = 0.8 if guard_t > 0.0 else 1.0
 	if shell_t > 0.0:

@@ -96,6 +96,11 @@ func _bus(name: String, v: float) -> void:
 
 
 func save() -> void:
+	# 自动测试（任何 --xxx 启动参数，与 sfx.gd 静音同一判定）不写玩家的存档：
+	# 否则批跑 / 冒烟里机器人拿到的藏品、解锁的难度都会记进玩家的图鉴与进度（docs/36）
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--"):
+			return
 	var c := ConfigFile.new()
 	c.set_value("audio", "master", master)
 	c.set_value("audio", "music", music)

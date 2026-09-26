@@ -69,8 +69,8 @@ func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(300.0, 420.0)
 	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r - 80.0:
 		p = g.zone_c + (p - g.zone_c).normalized() * maxf(60.0, g.zone_r - 120.0)
-	g._spawn_chest(p, ev.id)
-	g._show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
+	g.spawner.spawn_chest(p, ev.id)
+	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 
 
@@ -84,12 +84,25 @@ func open(ev_id: String) -> void:
 		for i in ev.options.size():
 			var op: Dictionary = ev.options[i]
 			var icon: String = "e_event"
+			# 选项条上的效果小牌（C 版式）：概率 / 灯火 / 得到藏品 / 改为三选一 / 源石锭
+			var chips: Array = []
 			for o in op.get("ops", []):
+				if o.has("chance"):
+					chips.append(["%d%%" % int(round(float(o.chance) * 100.0)), Color(0.18, 0.72, 1.0)])
+				if o.has("light"):
+					chips.append(["灯火 %+d" % int(o.light), Color(0.95, 0.89, 0.76)])
 				if o.has("relic"):
 					icon = "relic_" + str(o.relic)
-			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon,
+					chips.append(["得到藏品", Color(0.18, 0.72, 1.0)])
+				if o.has("relic_choice"):
+					if icon == "e_event":
+						icon = "exit"
+					chips.append(["藏品三选一", Color(0.62, 0.6, 0.57)])
+				if o.has("ingots"):
+					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
+			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
-		g._show_choices(ev.name, opts, "event")
+		g.panel_ui.show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 		return
 
 
@@ -102,13 +115,13 @@ func pick(o: Dictionary) -> void:
 		var op: Dictionary = ev.options[int(parts[1])]
 		for x in op.get("ops", []):
 			if x.has("chance") and g.rng.randf() >= float(x.chance):
-				g._add_text(g.ppos + Vector2(0, -90), "什么都没有发生", Color(0.7, 0.75, 0.8), 16)
+				g.vfx.add_text(g.ppos + Vector2(0, -90), "什么都没有发生", Color(0.7, 0.75, 0.8), 16)
 				continue
 			if x.has("light"):
 				g.lamp = clampf(g.lamp + float(x.light), 10.0, g.lamp_cap) if float(x.light) < 0.0 else minf(g.lamp_cap, g.lamp + float(x.light))
-				g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(x.light), Color(1.0, 0.8, 0.45), 16)
+				g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(x.light), Color(1.0, 0.8, 0.45), 16)
 			if x.has("relic"):
-				g._gain_relic(str(x.relic))
+				g.progression.gain_relic(str(x.relic))
 			if x.has("relic_choice"):
 				g.pending_chests += int(x.relic_choice)
 			if x.has("ingots"):
@@ -163,7 +176,7 @@ func recalc() -> void:
 	if best != cur:
 		cur = best
 		g.ending = cur
-		g._show_banner("探索的走向改变了：%s" % endings[cur].name)
+		g.vfx.show_banner("探索的走向改变了：%s" % endings[cur].name)
 		Sfx.play("roar", -6.0, 0.5, 0.0)
 
 
@@ -171,7 +184,7 @@ func recalc() -> void:
 func tick_final_warning() -> void:
 	if not warned_final and g.t >= 540.0:
 		warned_final = true
-		g._show_banner(endings.get(cur, {}).get("omen", "终局将至"))
+		g.vfx.show_banner(endings.get(cur, {}).get("omen", "终局将至"))
 		Sfx.play("roar", -4.0, 0.6, 0.0)
 
 

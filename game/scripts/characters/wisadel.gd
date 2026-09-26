@@ -2,7 +2,7 @@
 ## S1 灰烬弹幕：接下来 3 发炮击 ×1.5 且必余震；S2 凋零处刑：一发 ×3 重炮 + 眩晕；
 ## S3 饱和炮击（2026-09-25 改为次数型，用户要求）：装填 8 发巨型炮弹，之后的普攻换成巨炮（×1.6、爆炸范围 ×2、必余震、间隔 ×0.6），打完为止；所有炮弹都是高速平射。
 ## 炮弹是本干员自己的实体（高速平射 → 落点爆炸 → 0.45 秒后原地余震），不走 game.gd 的子弹表。
-## 索敌：打离博士最近的敌人（博士是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
+## 索敌：打离主控最近的敌人（主控是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
 ## 特效（docs/25）：黑红。弹体是黑红彗星（一整条连续轮廓：圆头最宽，沿轨迹平滑收细到尾尖，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
 extends "res://scripts/characters/character.gd"
@@ -11,7 +11,7 @@ const RED := Color(0.95, 0.22, 0.2)
 const BOLT := Color(0.9, 0.08, 0.1)      # 弹体：黑红色能量光
 const EMBER := Color(1.0, 0.55, 0.3)
 const DARK := Color(0.1, 0.06, 0.08)
-const CLUSTER_SLACK := 40.0      # 离博士最近的几个敌人距离相差在此以内时，改挑周围敌人最多的
+const CLUSTER_SLACK := 40.0      # 离主控最近的几个敌人距离相差在此以内时，改挑周围敌人最多的
 
 var cd := 0.6
 var shells: Array = []       # {from, to, t, dur, dmg, r, src, trail, quake, stun, light}
@@ -42,10 +42,10 @@ func _reach(k: float = 480.0) -> float:
 
 # ---------------------------------------------------------------- 索敌
 
-## 普攻 / S1 / S3 的目标：离博士最近；最近几个距离相仿（40px 内）时挑落点周围敌人最多的
+## 普攻 / S1 / S3 的目标：离主控最近；最近几个距离相仿（40px 内）时挑落点周围敌人最多的
 func _target(reach: float) -> Dictionary:
 	var cands: Array = []
-	for e in g._nearest(6, reach, g.ppos):
+	for e in nearest_enemies(6, reach, g.ppos):
 		if e.pos.distance_to(pos) <= reach:
 			cands.append(e)
 	if cands.is_empty():
@@ -67,7 +67,7 @@ func _target(reach: float) -> Dictionary:
 func _execute_target(reach: float) -> Dictionary:
 	var best: Dictionary = {}
 	var hp := -1.0
-	for e in g._nearest(24, reach, pos):
+	for e in nearest_enemies(24, reach, pos):
 		if (e.elite or e.boss) and e.hp > hp:
 			hp = e.hp
 			best = e
@@ -76,7 +76,7 @@ func _execute_target(reach: float) -> Dictionary:
 
 func _count_around(c: Vector2, r: float) -> int:
 	var n := 0
-	for j in g._query(c, r):
+	for j in query_ids(c, r):
 		var q: Dictionary = g.enemies[j]
 		if not q.dead and q.pos.distance_to(c) < r:
 			n += 1
@@ -115,7 +115,7 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		ash = 3
 		fx({"kind": "glow", "pos": _muzzle(), "r": 16.0, "life": 0.3, "col": RED, "alpha": 0.5})
-		g._add_text(pos + Vector2(0, -80), "灰烬弹幕", RED, 14)
+		float_text(pos + Vector2(0, -80), "灰烬弹幕", RED, 14)
 		return
 	if ready > 0:
 		var tg: Dictionary = _execute_target(_reach(540.0)) if ready == 1 else _target(_reach(520.0))
@@ -139,12 +139,12 @@ func _release() -> void:
 		_fire_giant(tgt.pos)
 	elif ash > 0:
 		ash -= 1
-		var d1: float = base("atk", 34.0) * base("s1_mult", 1.5) * skill_power()
+		var d1: float = base("atk", 30.0) * base("s1_mult", 1.5) * skill_power()
 		_fire(tgt.pos, d1, "炮击", 1.1, true, 0.0, false, ash_rings)
 		_twin(tgt, d1, ash_rings)
 	else:
-		_fire(tgt.pos, base("atk", 34.0), "炮击", 1.0, true, 0.0)
-		_twin(tgt, base("atk", 34.0), false)
+		_fire(tgt.pos, base("atk", 30.0), "炮击", 1.0, true, 0.0)
+		_twin(tgt, base("atk", 30.0), false)
 
 
 ## N2「礼尚往来」：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 60%
@@ -153,7 +153,7 @@ func _twin(first: Dictionary, dmg: float, rings: bool) -> void:
 		return
 	var reach := _reach(520.0)
 	var best: Dictionary = {}
-	for e in g._nearest(8, reach, g.ppos):
+	for e in nearest_enemies(8, reach, g.ppos):
 		if e.id == first.id or e.pos.distance_to(pos) > reach:
 			continue
 		if best.is_empty():
@@ -173,14 +173,14 @@ func _release_skill() -> void:
 			var tgt: Dictionary = _execute_target(_reach(540.0))
 			if tgt.is_empty():
 				return
-			_fire(tgt.pos, base("atk", 34.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
+			_fire(tgt.pos, base("atk", 30.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), EMBER, 10, 200.0, 0.3)
 			Sfx.op(id, "atk", 5.0, 0.75)
 		2:
 			# 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
 			ammo = int(base("s3_ammo", 8.0))
-			g._show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
+			show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 30.0, "life": 0.4, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), EMBER, 10, 160.0, 0.3)
 			var tg3: Dictionary = _target(_reach(540.0))
@@ -201,7 +201,7 @@ func skill_active_dur(i: int) -> float:
 
 ## 巨型炮弹：伤害 ×1.6、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
 func _fire_giant(to: Vector2) -> void:
-	_fire(to, base("atk", 34.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
+	_fire(to, base("atk", 30.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
 	var dir: Vector2 = (to - _muzzle()).normalized()
 	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
 	for k in 8:
@@ -305,7 +305,7 @@ func on_kill(e: Dictionary) -> void:
 	e["wis_det"] = true
 	if shades.size() >= SHADE_MAX:
 		return
-	shades.append({"pos": e.pos, "t": 0.25, "dmg": base("atk", 34.0) * base("mark_mult", 0.45) * _dmg_bonus(), "r": _aoe() * 0.9, "depth": 1})
+	shades.append({"pos": e.pos, "t": 0.25, "dmg": base("atk", 30.0) * base("mark_mult", 0.45) * _dmg_bonus(), "r": _aoe() * 0.9, "depth": 1})
 	fx({"kind": "shade", "pos": e.pos, "life": 0.3, "col": DARK})
 
 
@@ -358,7 +358,7 @@ func _soul_home(k: int) -> Vector2:
 
 ## 魂灵之影的目标：离维什戴尔 soul_range 以内最近的未标记敌人；都标记过就取最近的
 func _soul_target() -> Dictionary:
-	var ts: Array = g._nearest(8, base("soul_range", 300.0), pos)
+	var ts: Array = nearest_enemies(8, base("soul_range", 300.0), pos)
 	for e in ts:
 		if not marks.has(e.id) and not e.get("chest", false):
 			return e
@@ -368,12 +368,12 @@ func _soul_target() -> Dictionary:
 ## 爆炸：范围伤害；E1 起被炸死的敌人留下残影，0.25 秒后殉爆并眩晕。light：饱和炮击的减量特效；rings：N4 三圈余震
 func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: float, light := false, rings := false) -> void:
 	var killed: Array = []
-	for e in g._arc_hit(c, 0.0, PI, r):
-		g._hit(src)
-		g._damage(e, dmg)
+	for e in arc_targets(c, 0.0, PI, r):
+		log_hit(src)
+		deal_damage(e, dmg)
 		if not e.dead and g.rfx.sniper_execute(e, g.hit):
-			g._hit("真实")
-			g._damage(e, e.hp + 1.0)
+			log_hit("真实")
+			deal_damage(e, e.hp + 1.0)
 		if e.dead:
 			# 带残影标记的敌人已在 on_kill 里殉爆，这里不再重复留残影
 			if not e.get("wis_det", false):

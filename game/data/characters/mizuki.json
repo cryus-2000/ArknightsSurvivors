@@ -17,13 +17,6 @@
    46
   ]
  },
- "stats": {
-  "max_hp": 100,
-  "regen": 0.6,
-  "move_speed": 150,
-  "dodge": 0.25,
-  "pickup": 70
- },
  "base": {
   "umbrella_dmg": 18,
   "swing_radius": 95,
@@ -31,6 +24,13 @@
   "swing_arc": 150,
   "tentacle_mult": 0.6,
   "awaken_swings": 7
+ },
+ "leader": {
+  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
+  "max_hp": 110,
+  "armor": 2.5,
+  "arts_res": 0.3,
+  "regen": 1.1
  },
  "attack": {
   "mode": "auto",
@@ -163,14 +163,14 @@
    "id": "tentacle_a",
    "name": "强迫性重复",
    "icon": "growth_t_count",
-   "desc": "创伤性癔症追击的触手 +1"
+   "desc": "创伤性癔症追击的触手 +1（挥伞打中的敌人不够时，追向附近的敌人）"
   },
   {
    "type": "custom",
    "id": "tentacle_b",
    "name": "群体性癔症",
    "icon": "growth_t_count",
-   "desc": "追击的触手再 +1"
+   "desc": "追击的触手再 +1（同样会追向附近的敌人）"
   },
   {
    "type": "elite",

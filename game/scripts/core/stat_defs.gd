@@ -17,6 +17,9 @@ const PLAYER := {
 	&"move_speed": {"base": 150.0, "min": 40.0, "old": "speed", "name": "移动速度"},
 	&"pickup": {"base": 70.0, "old": "pickup", "name": "拾取范围"},
 	&"heal_mult": {"base": 1.0, "min": 0.0, "name": "回复效果倍率"},
+	&"heal_out": {"base": 1.0, "min": 0.0, "name": "干员治疗量倍率（按职业作用域，医疗干员读）"},
+	&"corrode_taken": {"base": 1.0, "min": 0.0, "name": "受到的侵蚀倍率"},
+	&"nerve_taken": {"base": 1.0, "min": 0.0, "name": "神经损伤累积倍率"},
 	&"shield_max": {"base": 0.0, "min": 0.0, "old": "shield_max", "name": "护盾层数上限"},
 	&"shield_interval": {"base": 12.0, "min": 2.0, "old": "shield_every", "name": "护盾生成间隔"},
 	# ---- 公共：输出
@@ -27,6 +30,7 @@ const PLAYER := {
 	&"melee_dmg": {"base": 1.0, "min": 0.0, "old": "melee_mult", "name": "近战伤害倍率"},
 	&"ranged_dmg": {"base": 1.0, "min": 0.0, "old": "ranged_mult", "name": "远程伤害倍率"},
 	&"weak_bonus": {"base": 0.0, "min": 0.0, "old": "weak_bonus", "name": "弱点伤害额外加成"},
+	&"followup_dmg": {"base": 1.0, "min": 0.0, "name": "追击与召唤物伤害倍率（follow_up / aftershock / detonation / entity）"},
 	&"sp_gain": {"base": 1.0, "min": 0.0, "old": "sp_mult", "name": "技力回复倍率"},
 	&"control_dur": {"base": 1.0, "min": 0.0, "name": "控制持续时间倍率"},
 	# ---- 公共：资源

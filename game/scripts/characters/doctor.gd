@@ -57,7 +57,7 @@ func try_manual_skill() -> bool:
 		why = "生效中"
 	elif owner.has_method("away") and owner.away():
 		why = "暂时离场"
-	g._add_text(g.ppos + Vector2(0, -96), "%s %s" % [owner.skill_def(mi).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
+	g.vfx.add_text(g.ppos + Vector2(0, -96), "%s %s" % [owner.skill_def(mi).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
 	Sfx.play("ui_move", -8.0, 0.7)
 	return true
 
@@ -71,7 +71,7 @@ func apply_rejection() -> String:
 		if o.has_method("apply_rejection"):
 			cands.append(o)
 	var what := ""
-	cands.shuffle()
+	g._shuffle(cands)   # 对局随机数（同 seed 可复现，docs/36）
 	for c in cands:
 		what = c.apply_rejection()
 		if what != "":
@@ -176,7 +176,7 @@ func filler_cards() -> Array:
 
 func apply_filler(fid: String) -> void:
 	match fid:
-		"heal": g._heal(g.max_hp * 0.3, "填充卡")
+		"heal": g.combat.heal(g.max_hp * 0.3, "填充卡")
 		"oil": g.lamp = minf(g.lamp_cap, g.lamp + 30.0)
 		"atk":
 			g.stats.add(&"op_atk", "add", 0.04, "filler", "squad")
