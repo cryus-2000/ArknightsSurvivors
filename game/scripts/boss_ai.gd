@@ -2,6 +2,7 @@
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 var g  # Game (Node2D)
 
@@ -46,9 +47,13 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if ready and e.channel <= 0.0:
 				if e.type == "iberia" and _cd(e, "judge", 11.0):
 					_warn(e, "line", 1.1, {"ang": dir.angle(), "len": 980.0, "wid": 16.0, "track": 0.55, "act": "shot", "name": "裁决", "col": Color(1.0, 0.75, 0.3), "dmg": e.dmg * 2.2})
+					# 裁决后站定输出窗口（协调人 9/27：低射程编队追不上圣徒，伊比利亚中位 122 秒）：出手后原地站 boss/saint_stand 秒不动、不出招
+					e.wind = maxf(e.wind, 1.1 + Bal.v("boss/saint_stand", 3.5))
 				elif e.type == "carmen":
-					if dist < 130.0 and _cd(e, "hop", 5.0):
-						e.kb = -dir * 720.0
+					# 退避跳：冷却 5 → 9 秒、距离缩短（720 → 480，约 128 像素），落地后站定 boss/saint_stand 秒（同上，给低射程编队输出窗口）
+					if dist < 130.0 and _cd(e, "hop", Bal.v("boss/carmen_hop_cd", 9.0)):
+						e.kb = -dir * Bal.v("boss/carmen_hop_spd", 480.0)
+						e.wind = maxf(e.wind, 0.35 + Bal.v("boss/saint_stand", 3.5))
 						e.pose = 0.35
 						e.pose_max = 0.35
 						g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
