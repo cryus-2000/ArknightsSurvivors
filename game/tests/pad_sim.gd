@@ -1,5 +1,5 @@
 extends Node
-## 手柄模拟（--padsim，仅测试）：按时间线注入手柄事件，从标题一路走进对局，在关键画面截图到 /tmp/claude-0/pad_*.png。
+## 手柄模拟（--padsim，仅测试）：按时间线注入手柄事件，从标题一路走进对局，在关键画面截图到 --shotdir=<目录>（缺省 user://padsim）/pad_*.png。
 
 var t := 0.0
 var step := 0
@@ -27,8 +27,16 @@ func _axis(a: int, v: float) -> void:
 	Input.parse_input_event(e)
 
 
+func _shot_dir() -> String:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--shotdir="):
+			return a.substr(10)
+	DirAccess.make_dir_recursive_absolute("user://padsim")
+	return "user://padsim"
+
+
 func _shot(name: String) -> void:
-	get_viewport().get_texture().get_image().save_png("/tmp/claude-0/pad_%s.png" % name)
+	get_viewport().get_texture().get_image().save_png(_shot_dir() + "/pad_%s.png" % name)
 	print("PADSIM shot ", name)
 
 
@@ -52,8 +60,9 @@ func _process(dt: float) -> void:
 		stage_t += dt
 	match st:
 		"title":
-			# 1s 跳过开场 → 2s 选「开始」→ 进选人 → 右移一格 → Ⓐ → 难度页 Ⓐ
-			var seq := [[1.0, JOY_BUTTON_A], [2.2, JOY_BUTTON_A], [3.2, "shot_op"], [3.4, JOY_BUTTON_DPAD_RIGHT], [3.8, "shot_op2"], [4.2, JOY_BUTTON_A], [5.0, "shot_diff"], [5.3, JOY_BUTTON_A]]
+			# 带命令行参数时标题开场自动跳过（2026-09-27 起），所以不再先按一次 Ⓐ 跳开场：
+			# 1s 选「集结出发」→ 进选人 → 右移一格 → Ⓐ → 难度页（停在第一档，不右移，避免选到未解锁档）Ⓐ
+			var seq := [[1.0, JOY_BUTTON_A], [2.0, "shot_op"], [2.2, JOY_BUTTON_DPAD_RIGHT], [2.6, "shot_op2"], [3.0, JOY_BUTTON_A], [3.8, "shot_diff"], [4.1, JOY_BUTTON_A]]
 			_run(seq)
 		"game:OPENING":
 			if stage_t > 0.6 and step < 100:
