@@ -13,7 +13,7 @@
        方舟幸存者/
          开始游戏.bat              双击启动
          说明.txt
-         game/ShuiyueSurvivors.exe + .pck
+         game/ArknightsSurvivors.exe + .pck
          art/incoming/*.png       （不含交接文档、预览图）
 4. 打成 build/release/<名字>_<日期>_<提交>.zip。
 """
@@ -32,7 +32,7 @@ README = """方舟幸存者（明日方舟同人，非商业）
 版本：{ver}（{date}）
 
 【怎么玩】
-双击「开始游戏.bat」，或进入 game 文件夹双击 ShuiyueSurvivors.exe。
+双击「开始游戏.bat」，或进入 game 文件夹双击 ArknightsSurvivors.exe。
 不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
 
 【操作】
@@ -75,8 +75,8 @@ def main():
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
     run([GODOT, "--headless", "--path", gpath, "--import"])
-    out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ShuiyueSurvivors.exe")])
-    if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ShuiyueSurvivors.exe")):
+    out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
+    if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ArknightsSurvivors.exe")):
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
 
@@ -91,7 +91,7 @@ def main():
             n += 1
     print("美术 PNG：%d 张" % n)
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
-        fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ShuiyueSurvivors.exe"\r\n')
+        fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
         fh.write(README.format(ver=commit, date=date).replace("\n", "\r\n"))
 

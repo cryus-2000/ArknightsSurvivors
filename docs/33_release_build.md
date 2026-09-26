@@ -21,7 +21,7 @@ python tools/export_build.py
 水月深海幸存者/
   开始游戏.bat
   说明.txt
-  game/ShuiyueSurvivors.exe + ShuiyueSurvivors.pck
+  game/ArknightsSurvivors.exe + ArknightsSurvivors.pck
   art/incoming/*.png        （跳过交接文档、清单和 preview / overview 预览图）
 ```
 
