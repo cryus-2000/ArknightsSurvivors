@@ -135,7 +135,7 @@ func update(dt: float) -> void:
 			if g.ending == "resolve" and g.t >= 520.0:
 				ne.weak = ""
 	if g.t >= next_elite:
-		next_elite += D.THREAT[g.threat].elite * (0.75 if g.diff >= 4 else 1.0)
+		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()
 		spawn_enemy(et, edge_pos())
 		if g.rfx.rule("resolve_elite") > 0:
@@ -147,8 +147,8 @@ func update(dt: float) -> void:
 		else:
 			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
-	# 大群：Boss 在场时顺延（难度 7+ 不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
-	var horde_ok: bool = (not boss_alive() or g.diff >= 7) and g.t < 570.0
+	# 大群：Boss 在场时顺延（难度修正 horde_in_boss 时不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
+	var horde_ok: bool = (not boss_alive() or int(g.dmod.horde_in_boss) > 0) and g.t < 570.0
 	if g.t >= g.next_horde - 3.0 and horde_warned != g.next_horde and horde_ok:
 		horde_warned = g.next_horde
 		g.horde_warn = 3.0
@@ -161,8 +161,8 @@ func update(dt: float) -> void:
 		g.vfx.shake_screen(1.4)
 		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
-		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
-		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * (1.4 if g.diff >= 7 else 1.0))
+		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
+		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * float(g.dmod.horde))
 		if horde_chest:
 			g.pickups.drop(g.ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
@@ -203,7 +203,7 @@ func update(dt: float) -> void:
 			var ang := (g.ppos - g.zone_c).angle() + g.rng.randf_range(-0.8, 0.8)
 			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng.randf_range(20.0, 120.0))
 		if g.mires.size() < int(g.map.mire_cfg().get("max_count", 24)):
-			g.mires.append(g.map.mire_new(mp, g.t, g.diff >= 8))
+			g.mires.append(g.map.mire_new(mp, g.t, int(g.dmod.mire_permanent) > 0))
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
 		g.merchant_idx += 1
@@ -227,8 +227,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var role: String = d.get("role", "")
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
 	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
-	var hpm := g.combat.enemy_hp_time_mult() * (1.0 + (0.15 if g.diff >= 1 else 0.0) + (0.2 if g.diff >= 10 else 0.0))
-	var dmm := (1.0 + (0.15 if g.diff >= 2 else 0.0) + (0.2 if g.diff >= 10 else 0.0))
+	var hpm := g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp)
+	var dmm := float(g.dmod.enemy_dmg)
 	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
 	next_id += 1
 	var e := {
@@ -261,12 +261,12 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.dmg *= Bal.v("enemy/elite_dmg_mult", 1.3)
 	if e.boss:
 		# Boss 吃削血藏品（镶金骨骰 / 黑夜呢喃 / 大静谧）最多 -20%（docs/42 §3.3：原来全额生效，2 件以上时 Boss 9 秒被秒）
-		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if g.diff >= 1 else 1.0) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
+		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * float(g.dmod.boss_hp) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
 		# Boss 血量旋钮（数值会话在 balance.json 的 boss 段填）：中期 / 最终各一个总倍率，另有每只 Boss 单独的倍率；缺省都是 1.0
 		e.hp *= Bal.v("boss/hp_final" if is_final_boss_type(type) else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + type, 1.0)
 		e.maxhp = e.hp
 		e.spd = d.spd
-		e.dmg = d.dmg * dmm * (1.25 if g.diff >= 10 else 1.0) * g.enemy_dmg_mult
+		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult
 	if type == "pocket":
 		e.burst_at = e.maxhp * 0.85
 	if type == "izumik":

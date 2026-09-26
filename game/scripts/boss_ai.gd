@@ -258,9 +258,9 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
-	if g.diff >= 6:
-		w.dur *= 0.75
-		w.track *= 0.75
+	if float(g.dmod.boss_warn) != 1.0:
+		w.dur *= float(g.dmod.boss_warn)
+		w.track *= float(g.dmod.boss_warn)
 	g.warns.append(w)
 	if w.lock:
 		e.wind = maxf(e.get("wind", 0.0), dur)

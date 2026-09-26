@@ -195,6 +195,7 @@ var orbit_a := 0.0
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
 var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「标准 / 困难 / 极难」）
+var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var next_horde := Bal.v("enemy/first_horde", 75.0)   # 第一次大群（balance.json，docs/46 §1.2）
@@ -544,17 +545,21 @@ func _ready() -> void:
 		vfx.show_banner("深海的潮水正在涌来……")
 	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
 	diff = D.DIFFICULTY_TIERS[tier].level
+	dmod = D.dmod_for_tier(tier)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--diff="):
+			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			diff = int(a.substr(7))
 			tier = D.tier_of_level(diff)
+			dmod = D.dmod_for_level(diff)
 		elif a.begins_with("--tier="):
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
 			diff = D.DIFFICULTY_TIERS[tier].level
-	if diff >= 3:
-		stats.add(&"light_decay", "mult", 1.25, "difficulty")
-	if diff >= 9:
-		stats.add(&"max_hp", "mult", 0.8, "difficulty")   # 「负伤」：初始最大生命 -20%（1.1 数值定：原 ×0.67 与说明不符）
+			dmod = D.dmod_for_tier(tier)
+	if float(dmod.lamp_hit) != 1.0:
+		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
+	if float(dmod.max_hp) != 1.0:
+		stats.add(&"max_hp", "mult", float(dmod.max_hp), "difficulty")
 	_sync_stats()
 	hp = max_hp
 	hp_trail = hp

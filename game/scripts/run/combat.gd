@@ -622,7 +622,7 @@ func kill(e: Dictionary) -> void:
 		g.lamp = min(g.lamp_cap, g.lamp + 20.0)
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
-	if g.rng.randf() < 0.012 * (0.5 if g.diff >= 3 else 1.0):
+	if g.rng.randf() < 0.012 * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
 	if e.elite or e.boss:
@@ -649,7 +649,7 @@ func kill(e: Dictionary) -> void:
 		for o in g.enemies:
 			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
 				o.dead = true
-	if g.diff >= 5 and ing > 0:
-		ing = int(floor(ing * 0.7 + g.rng.randf()))
+	if float(g.dmod.ingot) != 1.0 and ing > 0:
+		ing = int(floor(ing * float(g.dmod.ingot) + g.rng.randf()))
 	for k in ing:
 		g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(6.0, 26.0), "ingot", 1.0)
