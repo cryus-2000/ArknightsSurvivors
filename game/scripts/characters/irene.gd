@@ -460,4 +460,4 @@ func status_items() -> Array:
 
 ## 提灯位置（docs/32 §3）：平时提在身前下方（op_irene_idle@2x：脚底前 19、上 15），举灯技能帧举过头顶（skill 第 4 帧：前 21、上 60）
 func _lantern(raised: bool) -> Vector2:
-	return pos + (Vector2(21.0 * face, -60.0) if raised else Vector2(19.0 * face, -15.0))
+	return pos + (Vector2(20.0 * face, -56.0) if raised else Vector2(16.0 * face, -15.0))

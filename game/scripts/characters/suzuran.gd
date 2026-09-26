@@ -196,7 +196,7 @@ func _release() -> void:
 
 ## 出手帧星环杖头的中心（op_suzuran_attack@2x 第 2 帧量得：脚底前 35、上 46；docs/32 §3）
 func _staff_head() -> Vector2:
-	return pos + Vector2(35.0 * face, -46.0)
+	return pos + Vector2(34.0 * face, -42.0)
 
 
 ## 三火归一：大狐火（伤害 = 一团狐火 × merge_mult，贯穿，每名敌人只伤一次）

@@ -245,7 +245,7 @@ func _release_skill() -> void:
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED})
 	# 锯盘砸地的落点（op_specter_unchained_skill@2x 出手帧第 4 帧：锯盘中心在脚底前 34、上 13）：一小圈贴地冲击 + 火星，
 	# 原来只在脚下画光环，锯头落地处什么都没有（docs/32 §3）
-	var saw: Vector2 = pos + Vector2(34.0 * face, 0)
+	var saw: Vector2 = pos + Vector2(27.0 * face, 0)
 	fx({"kind": "ring", "pos": saw, "r": 30.0, "r0": 6.0, "life": 0.3, "col": GHOST if cur_skill < 2 else RED, "floor": true, "w": 3.0})
 	fx_sparks(saw + Vector2(0, -13), Color(0.85, 0.9, 1.0) if cur_skill < 2 else RED, 8, 200.0, 0.3, 2.5, 320.0)
 

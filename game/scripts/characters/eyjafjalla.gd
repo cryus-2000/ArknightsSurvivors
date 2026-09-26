@@ -384,4 +384,4 @@ func status_items() -> Array:
 
 ## 杖尖（docs/32 §3）：普攻出手帧 op_eyjafjalla_attack@2x 第 2 帧（脚底前 40、上 46），技能出手帧第 4 帧杖举高（前 42、上 68）
 func _staff_tip() -> Vector2:
-	return pos + (Vector2(42.0 * face, -68.0) if act_kind == "skill" else Vector2(40.0 * face, -46.0))
+	return pos + (Vector2(42.0 * face, -63.0) if act_kind == "skill" else Vector2(42.0 * face, -49.0))

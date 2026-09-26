@@ -525,4 +525,4 @@ func status_items() -> Array:
 
 ## 笔尖（op_logos_attack@2x 出手帧第 2 帧量得：脚底前 33、上 35；docs/32 §3）
 func _pen_tip() -> Vector2:
-	return pos + Vector2(33.0 * face, -35.0)
+	return pos + Vector2(40.0 * face, -36.0)

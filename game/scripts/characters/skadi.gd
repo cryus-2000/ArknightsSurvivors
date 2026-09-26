@@ -358,10 +358,8 @@ func _draw_skill_over() -> void:
 	# 重斩 / 潮汐起手：眼位一点红光（精二红瞳）。只在技能起手时画在眼睛上（op_skadi_skill@2x 第 0–3 帧眼睛约在脚底前 8、上 49）；
 	# 潮汐 8 秒期间不再画——帧条本来就是红瞳，原来的光点比眼睛低约 10 像素，整段压在脸上（docs/32 §3）
 	# 一技能潮涌斩借用普攻帧条（skadi.json skills[0].anim），那时不画：光点位置是按技能帧条的眼睛量的
-	if acting() and act_kind == "skill" and act_anim == "skill" and fire_t >= 0.0:
-		var p := pos + Vector2(8.0 * face, -49)
-		g.draw_circle(p, 3.0 + sin(g.t * 30.0), Color(2.4, 0.4, 0.4, 0.9))
-		g.draw_circle(p, 7.0, Color(1.0, 0.2, 0.2, 0.25))
+	# 2026-09-26 Codex 返修稿 a9471c7：新图眼睛不再是红色，红瞳光去掉（docs/32 验收 §5）
+	pass
 
 
 func status_items() -> Array:

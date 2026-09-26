@@ -505,7 +505,7 @@ func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
 
 ## 出手帧提灯的位置（op_lumen_attack@2x 第 2 帧量得：脚底前 26、上 32；docs/32 §3）
 func _lamp_hand() -> Vector2:
-	return pos + Vector2(26.0 * face, -32.0)
+	return pos + Vector2(31.0 * face, -42.0)
 
 
 ## 悬浮灯塔贴图的脚底位置（光域中心 tower_pos 在主控脚下，贴图画在身后一侧）
