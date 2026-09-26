@@ -432,23 +432,29 @@ def final_boss_summary(records):
         for bo in d.get("bot", {}).get("bosses", []):
             if _boss_phase(bo) != 2:
                 continue
-            e = by.setdefault((r.get("bot", "normal"), bo.get("type", "?")), {"n": 0, "t": [], "hp": [], "end": {}})
+            e = by.setdefault((r.get("bot", "normal"), bo.get("type", "?")), {"n": 0, "t": [], "th": [], "sh": [], "gates": [], "hp": [], "end": {}})
             e["n"] += 1
             e["end"][d.get("ending", "?")] = e["end"].get(d.get("ending", "?"), 0) + 1
-            if bo.get("t1", -1) >= 0:
-                e["t"].append(bo["t1"] - bo["t0"])
-            elif d.get("win"):
-                e["t"].append(d["t"] - bo["t0"])
+            t_end = bo["t1"] if bo.get("t1", -1) >= 0 else (d["t"] if d.get("win") else None)
+            if t_end is not None:
+                e["t"].append(t_end - bo["t0"])
+                if bo.get("tv", -1) >= 0:   # 可受伤起算：tv = 第一次不无敌的时刻（Boss与怪物 1db221e 起有；伊祖米克不含学习期）
+                    e["th"].append(t_end - bo["tv"])
             elif d.get("boss_hp", -1) >= 0:
                 e["hp"].append(d["boss_hp"])
+            if "shield" in bo:
+                e["sh"].append(bo["shield"]); e["gates"].append(bo.get("gates", 0))
     if not by:
         return ""
-    lines = ["| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / 最短–最长 | 未击杀时剩余血量 |", "|---|---|---|---|---|---|---|"]
+    lines = ["| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / P90 / 最短–最长（出现起算） | 中 / P90（可受伤起算） | 阶段护盾秒 / 过卡点数 均 | 未击杀时剩余血量 |", "|---|---|---|---|---|---|---|---|---|"]
+    p90 = lambda xs: sorted(xs)[min(len(xs) - 1, int(0.9 * len(xs)))]
     for (bot, ty), e in sorted(by.items(), key=lambda kv: (kv[0][0], -kv[1]["n"])):
-        ts = e["t"]
-        lines.append("| %s | %s | %s | %d | %d | %s | %s |" % (
+        ts, th = e["t"], e["th"]
+        lines.append("| %s | %s | %s | %d | %d | %s | %s | %s | %s |" % (
             bot, FINAL_BOSS_NAMES.get(ty, ty), " ".join("%s %d" % kv for kv in sorted(e["end"].items())), e["n"], len(ts),
-            ("%ds / %ds / %d–%ds" % (statistics.mean(ts), statistics.median(ts), min(ts), max(ts))) if ts else "-",
+            ("%ds / %ds / %ds / %d–%ds" % (statistics.mean(ts), statistics.median(ts), p90(ts), min(ts), max(ts))) if ts else "-",
+            ("%.0fs / %.0fs" % (statistics.median(th), p90(th))) if th else "-",
+            ("%.1f / %.1f" % (statistics.mean(e["sh"]), statistics.mean(e["gates"]))) if e["sh"] else "-",
             ("%d%%" % (100 * statistics.mean(e["hp"]))) if e["hp"] else "-"))
     return "\n".join(lines)
 
