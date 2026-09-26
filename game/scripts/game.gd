@@ -913,6 +913,9 @@ func _update(dt: float) -> void:
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
 	move_in = mv
+	if balance and autotest_sys.want_dash:
+		autotest_sys.want_dash = false
+		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
 	if pstun > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
