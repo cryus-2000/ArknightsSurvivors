@@ -243,7 +243,7 @@ func _next_cluster():
 	return best
 
 
-## 震地 / 狮吼：锤子落地处打出一圈贴地冲击环（锤击 40% 伤害；狮吼范围 +40% 并击退）+ 尘土
+## 震地 / 狮吼：锤子落地处打出一圈贴地冲击环（锤击 25% 伤害；狮吼范围 +40% 并击退）+ 尘土
 func _quake(p: Vector2, mult: float) -> void:
 	var r: float = base("quake_r", 70.0) * (base("roar_r_mult", 1.4) if roar_on else 1.0) * stat(&"op_range")
 	var kb: float = base("roar_kb", 200.0) if roar_on else 0.0
