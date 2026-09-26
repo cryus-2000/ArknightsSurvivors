@@ -235,8 +235,7 @@ func apply_relic(id: String) -> void:
 
 ## 获得藏品的唯一入口：登记、生效、重算结局
 func gain_relic(id: String) -> void:
-	if g.balance:
-		g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])
+	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])   # 玩家局也记（docs/40）
 	if not g.relics.has(id):
 		g.relics.append(id)
 	apply_relic(id)

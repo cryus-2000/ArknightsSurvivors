@@ -216,7 +216,7 @@ func step() -> void:
 				hsum += e.pos.x * 0.37 + e.pos.y * 0.11 + e.hp * 0.01
 			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state, g.ppos.x, g.ppos.y, hsum])
 		if g.bot != null and g.state == g.S.PLAY:
-			g.bot.tick(0.066)
+			g.telemetry.tick(0.066)   # 整局指标（原 bot.tick，挪到 run/telemetry.gd）
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [g.t, g.state, g.level, g.hp, g.enemies.size()])
 		if g.state == g.S.CHOICE:
@@ -237,9 +237,7 @@ func step() -> void:
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (g.state == g.S.DEAD or g.state == g.S.WIN or g.t > g.bal_maxt) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": g.state == g.S.WIN, "t": int(g.t), "lv": g.level, "marks": lv_marks, "lv_times": g.lv_times, "ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick, "relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
-				"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp, "bosses": g.bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": g.squad.size() - 1, "squad": g.squad.ids(), "elite_stage": g.ch.elite,
-				"boss_hp": (g.boss.hp / g.boss.maxhp) if g.boss != null else -1.0, "dmg": g.dmg_log, "out": g.dmg_out, "out_type": g.dmg_type_out, "out_tag": g.dmg_tag_out, "ending": g.ending, "lamp": int(g.lamp), "rej": g.doctor.rej(), "heal": g.heal_log, "drone": g.weapons.get("drone", 0), "floor_hits": g.floor_hits, "floor_times": g.floor_times, "hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "bot": g.bot.report() if g.bot != null else {}}))
+			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			g.get_tree().quit()
 		return
 	if not (OS.get_cmdline_user_args().has("--fxtest") and g.at_frames >= 90 and g.at_frames < 100):

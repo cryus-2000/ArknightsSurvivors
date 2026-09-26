@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Telemetry = preload("res://scripts/run/telemetry.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -86,6 +87,7 @@ var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
 var world = WorldView.new(self)   # 世界绘制（2.5D）
+var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -631,6 +633,7 @@ func _process(delta: float) -> void:
 	var dt: float = min(delta, 0.05)
 	if state != _last_state:
 		_last_state = state
+		telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 		state_age = 0.0
 		res_sel = 0
 	else:
@@ -889,6 +892,8 @@ func _try_dash() -> void:
 func _update(dt: float) -> void:
 	_pm("")
 	t += dt
+	if not autotest:
+		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	_sync_stats()
 	var mv := Vector2(
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
@@ -1142,6 +1147,11 @@ const DOC_BEHIND := Vector2(-40, 30)
 var doc_pos := Vector2.INF
 var doc_moving := false
 var doc_face := 1.0
+
+
+## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
+func _exit_tree() -> void:
+	telemetry.on_exit()
 
 
 ## 世界绘制（引擎回调）：转发到 render/world.gd

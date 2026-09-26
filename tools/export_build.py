@@ -17,7 +17,7 @@
          art/incoming/*.png       （不含交接文档、预览图）
 4. 打成 build/release/<名字>_<日期>_<提交>.zip。
 """
-import argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfile
+import json, argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
@@ -68,6 +68,12 @@ def main():
     data = subprocess.run(["git", "archive", "--format=tar", a.ref], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     print("源码：%s @ %s" % (a.ref, commit))
+    # 构建信息：写进包里的 data/build.json，局内数据记录（run/telemetry.gd）按它标版本（docs/40）
+    bj = os.path.join(src, "game", "data", "build.json")
+    binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}
+    binfo["commit"] = commit
+    binfo["built"] = date
+    json.dump(binfo, open(bj, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     # 2. 导入 + 导出
     pkg = os.path.join(WORK, NAME)

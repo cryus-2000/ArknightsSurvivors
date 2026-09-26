@@ -1,5 +1,5 @@
 extends RefCounted
-## 平衡测试机器人（docs/29）：四档玩家画像 + 统一的局内指标采集。
+## 平衡测试机器人（docs/29）：四档玩家画像（走位 + 选卡）。局内指标采集在 run/telemetry.gd（docs/40，玩家局共用）。
 ## 只在 `--balance` 下由 game.gd 创建；`--bot=afk|bad|normal|expert` 选档，缺省 normal（= 原有机器人，便于和旧基线对比）。
 ##
 ##   afk     挂机：原地不动，只靠干员自动攻击；选卡随机。            → 下限：什么都不做能活多久
@@ -10,7 +10,6 @@ extends RefCounted
 ## 所有随机都走自己的 RandomNumberGenerator（按 --seed 派生），不碰全局随机流，同 seed 可复现性不变差。
 
 const PROFILES := ["afk", "bad", "normal", "expert"]
-const SAMPLE_EVERY := 30.0      # 曲线采样间隔（秒）
 
 var g                           # game.gd
 var profile := "normal"
@@ -28,24 +27,7 @@ var last_dir := Vector2.RIGHT
 var keep := 100.0               # 与敌人保持的距离：近战编队要贴近些让干员打得到
 const MELEE := ["近卫", "重装", "先锋", "特种"]
 
-# ---- 指标
-var sample_next := 0.0          # 下一个采样时间点（按局内时间对齐到 0 / 30 / 60 …）
-var curve: Array = []           # 每 30 秒：{t, hp, lamp, lv, kills, squad, taken}
-var low_hp_s := 0.0             # 生命 < 35% 的累计秒数
-var dark_s := 0.0               # 灯火熄灭的累计秒数
-var dark_dmg := 0.0             # 熄灯每秒 3 点的持续掉血（不进 dmg_log，单独记）
-var hits := 0                   # 受击次数
-var taken_last := 0.0
-var taken_window := 0.0         # 当前采样窗口内的承伤
-var last_src := ""              # 最近一次掉血的来源（死因）
-var last_log: Dictionary = {}
-var boss_seen: Dictionary = {}  # instance_id -> {type, t0, t1}
-var elite_t: Dictionary = {}    # "<op>:<elite>" -> 秒
-var recruit_t: Array = []       # 每名干员入队时间
-var squad_n := 0
-var dist_moved := 0.0
-var last_pos := Vector2.ZERO
-var still_s := 0.0              # 站着不动的累计秒数
+# 整局指标（受击 / 低血 / 死因 / 曲线……）2026-09-26 挪到 run/telemetry.gd，所有对局共用
 
 
 func _init(game, p: String, seed_v: int) -> void:
@@ -297,7 +279,7 @@ func pick(choices: Array) -> int:
 func _pick_expert(choices: Array) -> int:
 	var classes: Array = g.squad.ops.map(func(o): return o.def.get("class", "") if "def" in o else "")
 	var has_sustain := classes.has("医疗") or classes.has("重装")
-	var hurting: bool = g.hp < g.max_hp * 0.6 or low_hp_s > 20.0
+	var hurting: bool = g.hp < g.max_hp * 0.6 or g.telemetry.low_hp_s > 20.0
 	var best := 0
 	var best_s := -999.0
 	for i in choices.size():
@@ -344,68 +326,3 @@ func _pick_expert(choices: Array) -> int:
 			best_s = s
 			best = i
 	return best
-
-
-# =====================================================================
-# 指标采集（每个模拟步调用一次）
-# =====================================================================
-func tick(dt: float) -> void:
-	var t: float = g.t
-	if last_pos == Vector2.ZERO:
-		last_pos = g.ppos
-	var step: float = g.ppos.distance_to(last_pos)
-	dist_moved += step
-	if step < 0.5:
-		still_s += dt
-	last_pos = g.ppos
-	if g.hp < g.max_hp * 0.35:
-		low_hp_s += dt
-	if g.lamp <= 0.0:
-		dark_s += dt
-		dark_dmg += 3.0 * dt
-		if g.hp <= 3.0 * dt * 2.0:
-			last_src = "dark"
-	# 承伤：比较 dmg_log 的增量，记录受击次数与最近的来源
-	var tot := 0.0
-	var inc_best := 0.0
-	for k in g.dmg_log:
-		var v: float = g.dmg_log[k]
-		tot += v
-		var inc: float = v - float(last_log.get(k, 0.0))
-		if inc > inc_best:
-			inc_best = inc
-			last_src = k
-		last_log[k] = v
-	if tot > taken_last + 0.01:
-		hits += 1
-		taken_window += tot - taken_last
-	taken_last = tot
-	# Boss 出现 / 击杀时间
-	for b in g.bosses:
-		var key := str(b.get("id", b.type))
-		if not boss_seen.has(key):
-			boss_seen[key] = {"type": b.type, "t0": int(t), "t1": -1}
-		elif b.dead and boss_seen[key].t1 < 0:
-			boss_seen[key].t1 = int(t)
-	# 精英化 / 入队时间
-	for o in g.squad.ops:
-		var ek := "%s:%d" % [o.id, o.elite]
-		if o.elite > 0 and not elite_t.has(ek):
-			elite_t[ek] = int(t)
-	if g.squad.size() > squad_n:
-		if squad_n > 0:
-			recruit_t.append(int(t))
-		squad_n = g.squad.size()
-	if t >= sample_next:
-		sample_next += SAMPLE_EVERY
-		curve.append({"t": int(t), "hp": int(100.0 * g.hp / maxf(1.0, g.max_hp)), "lamp": int(g.lamp), "lv": g.level,
-			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size()})
-		taken_window = 0.0
-
-
-func report() -> Dictionary:
-	var t: float = maxf(1.0, g.t)
-	return {"profile": profile, "hits": hits, "hits_pm": snappedf(hits / t * 60.0, 0.1), "taken": int(taken_last),
-		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
-		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
-		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve}
