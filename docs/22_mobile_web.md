@@ -32,10 +32,16 @@
 ## 构建
 
 ```
-copy ..\art\incoming\*.png game\art\incoming\
-godot --headless --path game --export-release "Web" ../build/web/index.html
-cd ../build/web && gzip -9 index.wasm     # 得到 index.wasm.gz，删掉 index.wasm
+python tools/export_web.py        # 导出 HEAD 到 build/web/（改了 Web 预设还没提交时加 --worktree-presets）
 ```
+
+一步完成：`git archive` 干净副本 → 把 `art/incoming/*.png` 复制进 `game/art/incoming/`（审稿拼图由 Web 预设 `exclude_filter` 排除）→ Godot 导出 `Web` → **分片** → 内联加载器。需要 Godot 4.7.2 的 `web_nothreads_*.zip` 导出模板（官方 tpz，按 SHA512-SUMS 核对后解压到 `%APPDATA%\Godot\export_templates.7.2.stable\`）。
+
+- **分片**（2026-09-26，绕开 25 MB 单文件上限）：`index.pck` / `index.wasm` 按原始字节每 10 MiB 切一片（`--part-mib`），每片 `gzip -9` 成 `index.pck.00.gz` …，删掉原文件；脚本最后逐个检查，有文件超 25 MB 就报错。
+- **加载器** `tools/web/loader.js` + `loader.css`：导出时内联到 Web 预设 `html/head_include` 里的 `<!--SHUIYUE_LOADER-->` 处，分片清单（每片字节数、原文件大小）写进脚本。它拦截引擎对 `index.pck` / `index.wasm` 的 fetch，并行下载全部分片、逐片 DecompressionStream 解压、拼回并核对大小后交给引擎；每片失败自动重试 2 次。游戏代码不动。取代了原来 head_include 里只管 `.wasm.gz` 的拦截脚本。
+- **加载画面**：「加载中，请耐心等待」+ 进度条，博士（`doctor_run@2x.png` 复制为 `loader_doctor.png`，6 帧 CSS 动画）跟着进度跑。进度 = 已下载字节 / 分片总字节，真实平滑；下载完显示「正在启动…」，引擎移除自带 `#status` 后淡出；引擎报错（`#status-notice`）时也撤掉让报错露出来。视觉按 docs/37，由「界面与美术」定。
+- 本地试玩要走 HTTP（不能双击 index.html）：`python -m http.server -d build/web 8000`。
+
 云端已跑通：Chromium 手机模拟（844×390，触屏）从标题 → 选难度 → 指南 → 对局 → 摇杆移动全流程正常。产物在 `build/web/`，本地试玩说明见 `build/web/本地试玩.md`。
 
 ## 测试开关
