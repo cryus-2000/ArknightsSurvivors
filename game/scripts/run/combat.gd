@@ -444,7 +444,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.coma = true
 			e.invuln = true
 			e.stun = 0.0
-			g.vfx.add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
+			g.vfx.add_text(e.pos + Vector2(0, -50), "假死（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
 			return
 		kill(e)
 
