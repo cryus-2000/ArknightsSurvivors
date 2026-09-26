@@ -241,10 +241,7 @@ func draw() -> void:
 		if out > 0.0:
 			var pz := 0.5 + 0.5 * sin(g.t * 8.0)
 			edge_glow(vs, Color(0.55, 0.1, 0.8, 0.4 + 0.3 * pz), 140.0)
-			var dirz := (g.zone_c - g.ppos).normalized()
-			var cp: Vector2 = ct * g.ppos + Vector2(0, -30) + dirz * 80.0
-			var sd := dirz.orthogonal() * 12.0
-			g.hud.draw_colored_polygon(PackedVector2Array([cp + dirz * 22.0, cp + sd, cp - sd]), Color(1.0, 0.8, 1.0, 0.7 + 0.3 * pz))
+			# 指向安全区的箭头与掉血倒计时见 draw_zone_hint
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
@@ -343,12 +340,17 @@ func draw() -> void:
 	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW:   # 精英化演出的遮罩只有 86%，横幅会透出来
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := vs.y * 0.24
-		# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）
-		UI.fade_band(g.hud, Rect2(vs.x * 0.12, by - 30, vs.x * 0.76, 46), Color(0.03, 0.035, 0.045, 0.84 * a), 160.0)
-		for yy in [by - 30.0, by + 16.0]:
-			UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.16, yy), Color(1, 1, 1), 0.4 * a, 0.0)
-			UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.84, yy), Color(1, 1, 1), 0.4 * a, 0.0)
-		UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		if g.vfx.banner_small:
+			# 同一句第二次起（反复放的技能名）：窄暗带 + 小字，不压满屏宽（EA 1.1 后期降噪）
+			UI.fade_band(g.hud, Rect2(vs.x * 0.36, by - 22, vs.x * 0.28, 30), Color(0.03, 0.035, 0.045, 0.7 * a), 60.0)
+			UI.text(g.hud, g.font, Vector2(0, by - 2), g.banner, 15, Color(1, 1, 1, 0.85 * a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		else:
+			# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）
+			UI.fade_band(g.hud, Rect2(vs.x * 0.12, by - 30, vs.x * 0.76, 46), Color(0.03, 0.035, 0.045, 0.84 * a), 160.0)
+			for yy in [by - 30.0, by + 16.0]:
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.16, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.84, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+			UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
@@ -371,6 +373,7 @@ func draw() -> void:
 	if not overlay_left():
 		draw_status_bar(vs)
 	draw_dash_hint(vs)
+	draw_zone_hint(vs)
 	draw_manual_aim()
 	draw_manual_hint()
 	match g.state:
@@ -468,8 +471,12 @@ func edge_glow(vs: Vector2, col: Color, w: float) -> void:
 
 func draw_relic_tray(tr: Vector2) -> void:
 	var n := g.relics.size()
-	var per_row := 8
-	var cell := 38.0
+	# 藏品多了（> 16）改成紧凑格：22 像素格、图标缩到一半（16，整数倍）、一行 14 个；35 件从 5 行 220 高压到 3 行 96 高，
+	# 不再盖住右上四分之一的战场（EA 1.1 后期降噪）。悬停提示照旧
+	var compact: bool = n > 16
+	var per_row := 14 if compact else 8
+	var cell := 22.0 if compact else 38.0
+	var icon_sz := 16.0 if compact else 32.0
 	var w: float = max(min(n, per_row) * cell + 12.0, 132.0)
 	var rows: int = max(1, int(ceil(n / float(per_row))))
 	var o := tr + Vector2(-w, 0)
@@ -488,22 +495,23 @@ func draw_relic_tray(tr: Vector2) -> void:
 		var rd: Dictionary = g.RL[g.relics[i]]
 		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
 		var c := o + Vector2(6 + (i % per_row) * cell + cell / 2, 26 + (i / per_row) * cell + cell / 2)
-		var cellr := Rect2(c - Vector2(17, 17), Vector2(34, 34))
+		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
 		g.tray_cells.append([cellr, g.relics[i]])
 		var hov: bool = cellr.has_point(mouse)
 		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
 		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.13) if not hov else col, false, 1.0)
-		g.hud.draw_rect(Rect2(cellr.position, Vector2(8, 2)), Color(col.r, col.g, col.b, 0.85))
+		g.hud.draw_rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
 		var ic: Texture2D = g.tex.get("relic_" + g.relics[i])
 		if ic != null:
-			g.hud.draw_texture_rect(ic, Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
+			g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false)
 		else:
-			UI.diamond(g.hud, c, 11.0, Color(0.03, 0.08, 0.1), col)
-			UI.text(g.hud, g.font, c + Vector2(-15, 5), rd.name.substr(0, 1), 12, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
+			UI.diamond(g.hud, c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
+			UI.text(g.hud, g.font, c + Vector2(-15, 5), rd.name.substr(0, 1), 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
+			var pip: float = 6.0 if not compact else 3.0
 			for q in rl:
-				g.hud.draw_rect(Rect2(c + Vector2(-16 + q * 6, 12), Vector2(4, 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+				g.hud.draw_rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
 	var cy := r.end.y + 16
 
 
@@ -653,6 +661,56 @@ func draw_manual_aim() -> void:
 	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
 	if g.touch.active and dir == Vector2.ZERO:
 		UI.text(g.hud, g.font, to + Vector2(-40, -rad - 8.0), "自动瞄准", 12, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
+
+
+## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
+## 主控身边朝安全区圆心方向画三道逐个亮起的人字纹 + 大箭头，主控脚下写掉血倒计时。
+## 前 ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
+## 数据：g.combat.zone_out_t / zone_dir()（玩法系统提供）；接口还没合入时按 g.zone_c / zone_r 自己算
+const ZONE_GRACE := 2.0
+var zone_out_local := 0.0
+
+func draw_zone_hint(vs: Vector2) -> void:
+	if g.state != Game.S.PLAY or g.demo_op != "" or g.zone_state == 0:
+		zone_out_local = 0.0
+		return
+	var out: bool = g.ppos.distance_to(g.zone_c) > g.zone_r
+	var out_t: float
+	if "zone_out_t" in g.combat:
+		out_t = g.combat.zone_out_t
+		out = out_t > 0.0
+	else:
+		zone_out_local = zone_out_local + g.get_process_delta_time() if out else 0.0
+		out_t = zone_out_local
+	if not out:
+		return
+	var dir: Vector2 = g.combat.zone_dir() if g.combat.has_method("zone_dir") else (g.zone_c - g.ppos).normalized()
+	if dir == Vector2.ZERO:
+		return
+	var hurting: bool = out_t >= ZONE_GRACE
+	var col: Color = UI.RED if hurting else UI.GOLD
+	var pulse: float = 0.5 + 0.5 * sin(g.t * (9.0 if hurting else 5.0))
+	var ct := g.get_viewport().get_canvas_transform()
+	var sp: Vector2 = ct * (g.ppos + Vector2(0, -24))
+	# 人字纹：从主控往外三道，依次点亮
+	var side: Vector2 = dir.orthogonal()
+	for q in 3:
+		var d0: float = 58.0 + q * 18.0
+		var lit: float = clampf(1.0 - absf(fmod(g.t * 3.0, 3.0) - q), 0.25, 1.0)
+		var tip: Vector2 = sp + dir * (d0 + 8.0)
+		var c2 := Color(col.r, col.g, col.b, 0.9 * lit)
+		g.hud.draw_polyline(PackedVector2Array([tip - dir * 9.0 + side * 9.0, tip, tip - dir * 9.0 - side * 9.0]), Color(0, 0, 0, 0.6 * lit), 5.0)
+		g.hud.draw_polyline(PackedVector2Array([tip - dir * 9.0 + side * 9.0, tip, tip - dir * 9.0 - side * 9.0]), c2, 3.0)
+	# 大箭头
+	var ap: Vector2 = sp + dir * (120.0 + 6.0 * pulse)
+	var head := PackedVector2Array([ap + dir * 28.0, ap - dir * 4.0 + side * 20.0, ap - dir * 4.0 - side * 20.0])
+	g.hud.draw_colored_polygon(PackedVector2Array([ap + dir * 32.0, ap - dir * 7.0 + side * 24.0, ap - dir * 7.0 - side * 24.0]), Color(0, 0, 0, 0.6))
+	g.hud.draw_colored_polygon(head, Color(col.r, col.g, col.b, 0.75 + 0.25 * pulse))
+	g.hud.draw_line(ap - dir * 4.0, ap - dir * 26.0, Color(col.r, col.g, col.b, 0.8), 7.0)
+	# 文字：主控下方（不跟箭头转，免得倒着读）
+	var tp: Vector2 = ct * (g.ppos + Vector2(0, 30))
+	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
+	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来

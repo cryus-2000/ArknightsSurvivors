@@ -88,8 +88,28 @@ func slash_tex(kind := "base") -> String:
 	return "slash"
 
 
+## 飘字合并 / 限量（EA 1.1 后期降噪）：刚冒出（0.25 秒内）、同色同字号、离得近（28 以内）的纯数字飘字合成一个，
+## 数字相加、重新计时、字号略放大；总数超过 TEXT_CAP 时丢掉最早的
+const TEXT_CAP := 48
+const TEXT_MERGE_R := 28.0
+const TEXT_MERGE_T := 0.25
+
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
+	if text.is_valid_int():
+		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
+			var t: Dictionary = g.texts[i]
+			if t.max - t.life > TEXT_MERGE_T or t.col != col or not str(t.text).is_valid_int() or t.pos.distance_to(pos) > TEXT_MERGE_R:
+				continue
+			if t.get("base", t.size) != size:
+				continue
+			t["base"] = t.get("base", t.size)
+			t.text = str(int(t.text) + int(text))
+			t.size = mini(t.base + 6, t.size + 1)
+			t.life = t.max
+			return
 	g.texts.append({"pos": pos, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
+	if g.texts.size() > TEXT_CAP:
+		g.texts.pop_front()
 
 
 func update(dt: float) -> void:
@@ -111,9 +131,15 @@ func update(dt: float) -> void:
 		f.pos.y -= 30.0 * dt
 
 
+## 横幅：同一局里第二次起的同一句（反复放的技能名「潮汐」「审判」…）改成小横幅、1.5 秒，不再每次整条压在屏幕上方
+var banner_seen := {}
+var banner_small := false
+
 func show_banner(text: String) -> void:
 	g.banner = text
-	g.banner_t = 3.0
+	banner_small = banner_seen.has(text)
+	banner_seen[text] = true
+	g.banner_t = 1.5 if banner_small else 3.0
 
 
 ## 按敌人材质播放命中效果（V7 缺图时退回 fx_hit）

@@ -18,6 +18,14 @@ var cam_kick := Vector2.ZERO
 var heart_cd := 0.0
 var anim_name := ""
 var anim_t := 0.0
+## 后期画面降噪（EA 1.1，docs/37 §7）：场上特效粒子一多，友方特效整体降透明度、加色发光层变淡、辉光减弱，
+## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
+var crowd := 0.0
+var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
+const CROWD_FROM := 80.0          # 特效总数超过这个开始降
+const CROWD_SPAN := 220.0         # 再多这么多降到底
+## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
+const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost"]
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
 ## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
@@ -76,6 +84,16 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.get_viewport_rect().size)
+	# 特效密度 → 友方特效降噪（图鉴演示不降，演示本来就是看特效的）
+	var nfx: int = g.fx.size()
+	for o in g.squad.ops:
+		nfx += o.pfx.size()
+	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - CROWD_FROM) / CROWD_SPAN, 0.0, 1.0)
+	crowd = move_toward(crowd, want, rd * (3.0 if want > crowd else 0.8))
+	fx_dim = lerpf(1.0, 0.45, crowd)
+	g.fx_add.modulate.a = lerpf(1.0, 0.6, crowd)
+	if g.post != null and "crowd" in g.post:
+		g.post.crowd = crowd
 
 
 func draw_world() -> void:
@@ -114,8 +132,10 @@ func draw_world() -> void:
 		g.draw_off = Vector2(0, -gz)
 		match g_item.kind:
 			"xp":
-				# 经验结晶：放大 + 常驻辉光 + 闪烁；被吸时拖尾
+				# 经验结晶：放大 + 常驻辉光 + 闪烁；被吸时拖尾。后期满地结晶时（> 60 颗）离主控 170 以外的不画辉光和闪光，
+				# 只留结晶本体 + 深色底，免得一地青光和敌人的青色描边搅在一起
 				var big: bool = g_item.val >= 5.0
+				var quiet: bool = g.gems.size() > 60 and not g_item.mag and g_item.pos.distance_to(g.ppos) > 170.0
 				var gc: Color = Color(0.85, 0.6, 1.0) if big else UI.CYAN
 				var tw: float = 0.75 + 0.25 * sin(g.t * 6.0 + g_item.get("seed", 0.0))
 				var gp: Vector2 = g_item.pos + Vector2(0, (sin(g.t * 4.0 + g_item.pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
@@ -124,13 +144,19 @@ func draw_world() -> void:
 					var tl: float = 10.0 + 24.0 * minf(1.0, g_item.get("mag_t", 0.0) * 2.0)
 					g.draw_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
 					g.draw_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
-				g.draw_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
-				g.draw_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
+				if not quiet:
+					g.draw_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
+					g.draw_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
 				g.draw_off = Vector2.ZERO
-				g.vfx.spr("gem_big" if big else "gem_small", 1, 0, gp, Game.PX * (1.9 if big else 1.45), false, Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5))
-				var sp2: float = 2.0 + 1.5 * tw
-				g.draw_line(gp + Vector2(-sp2, -8), gp + Vector2(sp2, -8), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
-				g.draw_line(gp + Vector2(0, -8 - sp2), gp + Vector2(0, -8 + sp2), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
+				g.draw_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, Color(0.0, 0.02, 0.05, 0.55))   # 深色底：压在特效和敌人上也分得出
+				var gcol: Color = Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5)
+				if quiet:
+					gcol = Color(0.9, 0.95, 1.0, 0.7)   # 远处的结晶压暗一些，贴近主控或被吸时才亮
+				g.vfx.spr("gem_big" if big else "gem_small", 1, 0, gp, Game.PX * (1.9 if big else 1.45), false, gcol)
+				if not quiet:
+					var sp2: float = 2.0 + 1.5 * tw
+					g.draw_line(gp + Vector2(-sp2, -8), gp + Vector2(sp2, -8), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
+					g.draw_line(gp + Vector2(0, -8 - sp2), gp + Vector2(0, -8 + sp2), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
 			"oil":
 				g.vfx.spr("oil", 1, 0, g_item.pos)
 			"chest":
@@ -239,6 +265,8 @@ func draw_world() -> void:
 				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
+		if fx_dim < 1.0 and DIM_KINDS.has(f.kind):
+			a *= fx_dim
 		match f.kind:
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹
@@ -319,7 +347,9 @@ func draw_world() -> void:
 			"sprite":
 				var spec: Array = Game.V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
-				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+				var scol: Color = f.get("col", Color.WHITE)
+				scol.a *= fx_dim
+				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
@@ -439,6 +469,8 @@ func draw_world() -> void:
 		g.draw_circle(Vector2.ZERO, b.r + 1.0, Color(0, 0, 0, 0.4))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var bp: Vector2 = b.pos + Vector2(0, -16)
+		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
+		g.draw_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		match b.get("kind", "orb"):
 			"acid":
 				g.draw_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
@@ -450,6 +482,7 @@ func draw_world() -> void:
 			_:
 				g.draw_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
 				g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
+		g.draw_arc(bp, b.r + 2.0, 0.0, TAU, 16, Color(2.4, 0.8, 1.8, 0.9), 1.5)
 	# 抛射碎石：落点预警 + 空中石块
 	for l in g.lobs:
 		var k: float = l.t / l.dur
@@ -469,6 +502,7 @@ func draw_world() -> void:
 		var a: float = 1.0 - sh.r / sh.maxr
 		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a), 6.0)
 		g.draw_arc(sh.pos, sh.r - 10.0, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a * 0.3), 3.0)
+	draw_warn_outlines()
 	draw_zone()
 	g.map.draw_snow()
 
@@ -764,6 +798,36 @@ func draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 
 
 ## 黑潮：圈外暗紫雾 + 圈边脉动溟痕 + 下一圈预告
+## Boss 招式预警的轮廓再描一遍（填色仍在地面层，boss_ai._draw_warns）：地面层会被友方特效盖住，
+## 轮廓画在特效之上，后期满屏特效时也看得到往哪躲
+func draw_warn_outlines() -> void:
+	for w in g.warns:
+		if w.done:
+			continue
+		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
+		var c: Color = w.col
+		var line := Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.45 + 0.4 * k)
+		var dark := Color(0.0, 0.0, 0.0, 0.5)
+		match w.shape:
+			"circle":
+				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
+				g.draw_arc(Vector2.ZERO, w.r + 2.0, 0.0, TAU, 40, dark, 2.0)
+				g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"line":
+				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
+				g.draw_rect(Rect2(0.0, -w.wid - 2.0, w.len, w.wid * 2.0 + 4.0), dark, false, 2.0)
+				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"cone":
+				var pts := PackedVector2Array([w.pos])
+				for q in 17:
+					pts.append(w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * q / 16.0) * w.r)
+				pts.append(w.pos)
+				g.draw_polyline(pts, dark, 4.0)
+				g.draw_polyline(pts, line, 2.0)
+
+
 func draw_zone() -> void:
 	if g.zone_state == 0:
 		return

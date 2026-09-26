@@ -411,7 +411,8 @@ func draw_pfx(floor_layer: bool) -> void:
 	for f in pfx:
 		if f.get("floor", false) != floor_layer:
 			continue
-		var a: float = clampf(f.life / f.max, 0.0, 1.0)
+		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
+		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
 		if _draw_pfx(f, a):
 			continue
 		var c: Color = f.get("col", col())
