@@ -5,7 +5,7 @@
 ##   trigger {event, if, do, args}              —— 由 game.gd 在对应时机调用 on_*()
 ##   status  {status: bind|stun, args.dot_mult} —— 受控敌人每秒受法术伤害
 ##   spawn   {every, do: spawn, args.what}      —— 周期生成（地雷）
-##   rule    {rule, value, args?}               —— 开关型规则，game.gd 查询 rule()；squad_scale / lone_haste 按编队构成生效（refresh_squad）
+##   rule    {rule, value, args?}               —— 开关型规则，game.gd 查询 rule()；squad_scale 按编队构成生效（refresh_squad）
 ##   on_gain {do, args}                         —— 获得时执行一次：light / ingots / heal / shield_fill / growth_pick /
 ##                                                 advance_class / silver_seal / extra_slot / contract / rejection / recruit_knight
 ## 条目字段 requires_class（docs/35）：编队里有其中任一职业时才会出现在三选一 / 商店。
@@ -163,7 +163,7 @@ func apply(id: String) -> void:
 				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value), "relic:" + id, ef.get("scope", ""))
 			"rule":
 				rules[ef.rule] = rules.get(ef.rule, 0) + int(ef.get("value", 1))
-				if ef.rule in ["squad_scale", "lone_haste"]:
+				if ef.rule == "squad_scale":
 					squad_dep = true
 				if ef.rule == "deep_sea":
 					g.lamp_cap = 70.0
@@ -292,9 +292,9 @@ func _apply_stat(stat: String, op: String, v: float, source := "relic", scope :=
 
 
 ## 按编队构成生效的藏品（协议 / 老蒲扇 / 断杖-破解 / 支柱-援护 / 极速之手）：编队变化与获得时重算
-##   squad_scale {stat, per, count: [职业…] | "distinct", classes?: [职业…], cap?}
-##     n = 编队里 count 职业的人数（distinct = 不同职业数，上限 cap），效果 per × n；classes 给了就只加到这些职业的干员
-##   lone_haste  {solo, value}：编队只有 1 人时全队攻速 +solo，否则 +value
+##   squad_scale {stat, per, count: [职业…] | "distinct" | "all", classes?: [职业…], cap?}
+##     n = 编队里 count 职业的人数（distinct = 不同职业数，all = 编队人数，上限 cap），效果 per × n；classes 给了就只加到这些职业的干员
+##   （原 lone_haste「编队只有 1 人时攻速 +35%」随「独狼」一起删除，2026-09-27 用户定；极速之手改为 squad_scale all）
 func refresh_squad() -> void:
 	if g.stats == null:
 		return
@@ -310,7 +310,9 @@ func refresh_squad() -> void:
 				"squad_scale":
 					var n := 0
 					var cnt = a.get("count", [])
-					if cnt is String and cnt == "distinct":
+					if cnt is String and cnt == "all":
+						n = classes.size()
+					elif cnt is String and cnt == "distinct":
 						var seen := {}
 						for c in classes:
 							seen[c] = true
@@ -329,9 +331,6 @@ func refresh_squad() -> void:
 					else:
 						for c in scs:
 							g.stats.add(StringName(a.stat), "add", v, "relic_squad", "class:" + str(c))
-				"lone_haste":
-					var v2: float = float(a.get("solo", 0.0)) if g.squad.size() <= 1 else float(a.get("value", 0.0))
-					g.stats.add(&"op_aspd", "add", v2, "relic_squad")
 	g._sync_stats()
 
 

@@ -1759,14 +1759,17 @@
    "effects": [
     {
      "type": "rule",
-     "rule": "lone_haste",
+     "rule": "squad_scale",
+     "value": 1,
      "args": {
-      "solo": 0.35,
-      "value": 0.15
+      "stat": "op_aspd",
+      "per": 0.05,
+      "count": "all",
+      "cap": 4
      }
     }
    ],
-   "desc": "编队只有 1 名干员时，全队攻击速度 +35%；2 名及以上时改为 +15%",
+   "desc": "编队每有 1 名干员，全队攻击速度 +5%（最多 +20%）",
    "rarity": "核心",
    "tags": [
     "attack_speed",
