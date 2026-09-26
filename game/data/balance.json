@@ -193,7 +193,7 @@
  "difficulty": {
   "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准",
   "standard": {},
-  "hard": {"enemy_hp": 1.15, "boss_hp": 1.15, "enemy_dmg": 1.15, "boss_dmg": 1.0, "lamp_hit": 1.25, "oil_drop": 0.5, "ingot": 1.0, "elite_interval": 0.75, "boss_warn": 1.0, "horde": 1.0, "horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0},
-  "extreme": {"enemy_hp": 1.15, "boss_hp": 1.15, "enemy_dmg": 1.15, "boss_dmg": 1.0, "lamp_hit": 1.25, "oil_drop": 0.5, "ingot": 0.7, "elite_interval": 0.75, "boss_warn": 0.75, "horde": 1.4, "horde_in_boss": 1, "mire_permanent": 1, "max_hp": 1.0}
+  "hard": {"enemy_hp": 1.2, "boss_hp": 1.15, "enemy_dmg": 1.15, "boss_dmg": 1.0, "lamp_hit": 1.25, "oil_drop": 0.75, "ingot": 0.9, "elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.1, "horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0},
+  "extreme": {"enemy_hp": 1.4, "boss_hp": 1.35, "enemy_dmg": 1.35, "boss_dmg": 1.25, "lamp_hit": 1.4, "oil_drop": 0.5, "ingot": 0.7, "elite_interval": 1.0, "boss_warn": 0.75, "horde": 1.4, "horde_in_boss": 1, "mire_permanent": 1, "max_hp": 0.85}
  }
 }
