@@ -153,16 +153,16 @@ func draw_hud(vs: Vector2) -> void:
 		var c := Vector2(150, vs.y - 150)
 		hud.draw_arc(c, 40.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12), 1.5)
 		hud.draw_circle(c, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12))
-	# 冲刺按钮：右下角大圆（冷却中显示进度环）
+	# 冲刺按钮：右下角大圆（冷却中显示进度环），摆在编队区（源石锭框 + 「编队 n / m」）正上方；技能键再往上
 	if g.state == g.S.PLAY:
-		var dc := Vector2(vs.x - 110, vs.y - 170)
+		var dc := Vector2(vs.x - 80, g.hud_view.squad_top(vs) - 14.0 - BTN * 0.7)
 		var dr0 := Rect2(dc - Vector2(BTN * 0.7, BTN * 0.7), Vector2(BTN * 1.4, BTN * 1.4))
 		btn_rects.append([dr0, "dash"])
 		var ready: bool = g.dash_cd <= 0.0
 		hud.draw_circle(dc, BTN * 0.7, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
 		hud.draw_arc(dc, BTN * 0.7, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
 		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
-		_draw_skill_button(hud, font, dc + Vector2(0, -BTN * 1.4 - 26.0))
+		_draw_skill_button(hud, font, dc + Vector2(-BTN * 2.0, -BTN * 0.65))   # 左上斜方：正上方会撞「属性」键（触屏 HUD 缩放后只有约 626 高）
 	else:
 		skill_rect = Rect2()
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
@@ -177,6 +177,10 @@ func draw_hud(vs: Vector2) -> void:
 			hud.draw_arc(c, BTN / 2.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
 			UI.text(hud, font, c + Vector2(-20, 7), items[i][0], 20, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
 			UI.text(hud, font, c + Vector2(-30, BTN / 2.0 + 14), items[i][2], 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			# 开局「点「属性」查看……」提示期间，属性键跟着呼吸（提示条件同 hud.gd）
+			if items[i][1] == "stats" and g.state == g.S.PLAY and (((g.t >= 6.0 and g.t < 16.0) and not g.tab_used) or g.tab_hint > 0.0):
+				var pulse: float = 0.5 + 0.5 * sin(g.t * 5.0)
+				hud.draw_arc(c, BTN / 2.0 + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
 
 
 ## 手动技能键：圆底 + 技能图标 + 外圈充能；就绪时青色呼吸外圈。只在主控有已解锁的手动技能时画（干员契约 v2.3：手动只对主控）
