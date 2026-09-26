@@ -1,5 +1,5 @@
 ## Logos（术师·中坚，契约 v2.1，docs/26 第二批）：远程单体法伤 + 清场处决 + 反弹幕。
-## 普攻「言」：对一名敌人法伤并附「安魂」5 秒（受到的法术伤害 +15%，全队法伤受益，game.gd _damage 读 e.requiem）；
+## 普攻「言」（2026-09-26 用户改：高速法术弹，不再是瞬发光线）：骨笔写下的咒文化作墨蓝法术弹高速飞向目标，命中后法伤并附「安魂」5 秒（受到的法术伤害 +15%，全队法伤受益，game.gd _damage 读 e.requiem）；
 ## S1 提喻：5 秒锁定一名敌人（优先精英 / Boss），每 0.25 秒法伤，对同一目标逐步升到 ×3、减速加深；
 ## S2 湮灭（永久）：射程 +30%、攻击 +50%；普攻处决生命低于攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人；
 ## S3 延展敏锐：12 秒射程 +60%、攻击 +150%、同时 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失。
@@ -24,6 +24,8 @@ var metonymy := false         # N4「转喻」：提喻目标死亡时链接跳�
 var epitaph := false          # N5「墓志铭」：湮灭处决处写下大咒文，1 秒后爆开
 var chorus := false           # 精二质变「众声喧哗」：词法演化的额外攻击打 2 名随机敌人
 var glyphs: Array = []        # 铭文 {pos, t, tick, dmg, pat}
+var bolts: Array = []         # 「言」法术弹 {pos, e, dmg, src, hist, life}（同时 ≤ 12）
+const BOLT_MAX := 12
 var epitaphs: Array = []      # 墓志铭 {pos, t, dmg, pat}
 const RESIDUE_MAX := 6        # 铭文 + 墓志铭 同时存在的地面残留上限
 ## 咒文笔画（单位坐标 -1..1，每条 = 起点 → 终点）：几种像字又像符文的写法，随机取一种
@@ -49,6 +51,7 @@ func update(dt: float) -> void:
 	_update_lock(dt)
 	_update_acuity(dt)
 	_update_glyphs(dt)
+	_update_bolts(dt)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -86,10 +89,49 @@ func _release() -> void:
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
 
+## 「言」出手：从手中射出一发高速法术弹（伤害结算在命中时，见 _word_hit）；弹数到上限时直接结算
 func _word(e: Dictionary, dmg: float, src: String) -> void:
 	if e.dead:
 		return
 	var hand: Vector2 = pos + Vector2(10.0 * face, -28)
+	if bolts.size() >= BOLT_MAX:
+		_word_hit(e, dmg, src)
+		return
+	bolts.append({"pos": hand, "e": e, "dmg": dmg, "src": src, "hist": [hand], "life": 1.2, "to": e.pos + Vector2(0, -e.r * 0.5)})
+	fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": PALE, "alpha": 0.7})
+
+
+## 法术弹飞行：base.bolt_speed（高速），追踪目标当前位置；目标半路死了就飞向它最后的位置、落地后找 60 内最近的敌人结算
+func _update_bolts(dt: float) -> void:
+	var spd: float = base("bolt_speed", 800.0)
+	for b in bolts:
+		b.life -= dt
+		var e: Dictionary = b.e
+		if not e.dead:
+			b.to = e.pos + Vector2(0, -e.r * 0.5)
+		var d: Vector2 = b.to - b.pos
+		var step: float = spd * dt
+		if d.length() <= step + 4.0:
+			b.pos = b.to
+			b.life = -1.0
+			var tgt: Dictionary = e
+			if e.dead:
+				var near: Array = g._nearest(1, 60.0, b.to)
+				tgt = near[0] if not near.is_empty() else {}
+			if not tgt.is_empty():
+				_word_hit(tgt, b.dmg, b.src)
+			continue
+		b.pos += d.normalized() * step
+		b.hist.append(b.pos)
+		if b.hist.size() > 6:
+			b.hist.pop_front()
+	bolts = bolts.filter(func(b): return b.life > 0.0)
+
+
+## 「言」命中结算（原瞬发逻辑）：湮灭处决 / 伤害 + 安魂 / 铭文 / 溅射 / 命中特效
+func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
+	if e.dead:
+		return
 	# 湮灭：处决非精英残血，溢出转给随机另一名敌人
 	if perish and not e.elite and not e.boss and e.hp < _atk() * base("s2_exec", 1.5):
 		var over: float = maxf(0.0, dmg - e.hp)
@@ -131,8 +173,7 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 			g._hit(src)
 			g._damage(o, dmg * base("aoe_mult", 0.45))
 			o["requiem"] = base("requiem_dur", 5.0)
-	# 言：一道从手到目标的墨蓝细线 + 命中处墨蓝爆点（Ninja Flam 重调色；缺图退回光点）
-	fx({"kind": "line", "pos": hand, "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.14, "col": INK, "w": 2.0})
+	# 命中处墨蓝爆点（弹体自己画在 _draw_skill_over；这里不再拉瞬发光线）
 	# Codex 骨笔符文（命中单次播放）；缺图退回墨蓝爆点 / 光点
 	if not g._fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX, 0.0, g.rng.randf() < 0.5) \
 			and not g._fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
@@ -371,6 +412,15 @@ func draw_auras() -> void:
 
 
 func _draw_skill_over() -> void:
+	# 「言」法术弹：墨蓝拖尾（最近 6 个位置渐细）+ 淡蓝亮芯 + 外圈微光
+	for b in bolts:
+		var h: Array = b.hist
+		for i in range(1, h.size()):
+			var k: float = float(i) / float(h.size())
+			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.25 + 0.55 * k), 1.5 + 6.0 * k)
+		g.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
+		g.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
+		g.draw_circle(b.pos, 2.5, Color(1.8, 1.9, 2.2))
 	# 铭文：命中处浮着一枚发光咒文（0.15 秒内逐笔写出，最后 0.3 秒淡出）
 	for gl in glyphs:
 		var life: float = base("glyph_dur", 1.0)
