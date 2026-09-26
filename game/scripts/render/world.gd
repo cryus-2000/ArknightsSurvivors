@@ -23,6 +23,7 @@ var anim_t := 0.0
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
+var ishar_tf: Array = []         # 伊莎玛拉变身演出：[boss, 开始时刻]（换幕时记下，播 e_ishar_transform 一次）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
@@ -141,6 +142,8 @@ func _flash(col: Color, t: float) -> void:
 
 ## 换幕：洋红冲击波两圈 + 放射光刺 + 全屏洋红一闪
 func boss_phase_fx(b: Dictionary) -> void:
+	if b.type == "ishar":
+		ishar_tf = [b, g.t]
 	g.fx.append({"kind": "boss_phase", "pos": b.pos, "r": b.r, "life": 0.9, "max": 0.9})
 	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.4, 0.4, 1.1), 20, 300.0)
 	_flash(Color(1.0, 0.3, 0.8), 0.35)
@@ -760,6 +763,13 @@ func draw_enemy(e: Dictionary) -> void:
 		name = "e_paranoia2"
 	elif e.coma and e.tex_feign:
 		name = name + "_feign"
+	# 伊莎玛拉完成转化（phase 2）：换成白壳金棘的变身形态 e_ishar_t*（112×96，docs/38 §6.2，docs/48 P1）；刚变身时先播 e_ishar_transform 一次
+	var tbase: String = e.tex
+	if e.type == "ishar" and e.phase == 2 and _lazy_tex("e_ishar_t") != null:
+		tbase = "e_ishar_t"
+		name = tbase
+		_lazy_tex("e_ishar_t_move")
+		_lazy_tex("e_ishar_t_attack")
 	var frames := 2
 	var frame := int(g.t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
 	# 移动帧条（美术 V5 / V8 / V9）：移动中播放 4 帧循环；停下、晕眩、假死时用本体
@@ -767,7 +777,7 @@ func draw_enemy(e: Dictionary) -> void:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
 			e.mv_until = g.t + 0.2
 		e.dpos = e.pos
-		if g.t < e.mv_until and e.stun <= 0.0 and not e.coma:
+		if g.t < e.mv_until and e.stun <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = 4
 			var fps: float = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
@@ -881,8 +891,8 @@ func draw_enemy(e: Dictionary) -> void:
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
 	if e.boss and e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0:
 		var pk: float = e.pose / e.pose_max
-		if e.tex_attack and not e.coma:
-			name = e.tex + "_attack"
+		if (e.tex_attack or g.tex.get(tbase + "_attack") != null) and not e.coma:
+			name = tbase + "_attack"
 			frames = 4
 			frame = clampi(int((1.0 - pk) * 4.0), 0, 3)
 		elif e.pose > 0.3:
@@ -894,6 +904,14 @@ func draw_enemy(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
+	if tbase != e.tex and not ishar_tf.is_empty() and is_same(ishar_tf[0], e) and g.t - ishar_tf[1] < 0.9 and _lazy_tex("e_ishar_transform") != null:
+		name = "e_ishar_transform"
+		frames = 6
+		frame = clampi(int((g.t - ishar_tf[1]) / 0.15), 0, 5)
+	# @2x 高清帧条（伊莎玛拉变身形态有 @2x）：同一逻辑尺寸，按密度减半
+	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
+	if hr > 1.0:
+		sc /= hr
 	if e.get("air", 0.0) > 0.0:
 		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
 		g.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
@@ -1016,6 +1034,99 @@ func draw_enemy_tells() -> void:
 			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
 			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
+		if e.type == "tear":
+			_tear_zone(e)
+		elif e.boss:
+			_boss_state(e)
+
+
+## 地面进度环（脚下椭圆，从正上方顺时针填充）
+func _ground_ring(p: Vector2, r: float, k: float, c: Color) -> void:
+	g.draw_set_transform(p, 0.0, Vector2(1.0, 0.5))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0, 0, 0, 0.55), 7.0)
+	g.draw_arc(Vector2.ZERO, r, -PI / 2.0, -PI / 2.0 + TAU * k, 48, c, 4.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 敌人贴图头顶的世界坐标（脚底锚点的贴图从脚往上长，不能按 e.r 算）
+func _enemy_top(e: Dictionary) -> Vector2:
+	var tx: Texture2D = g.tex.get(e.tex)
+	if tx == null or not g.foot_anchor.has(e.tex):
+		return e.pos + Vector2(0, -e.r - 8.0)
+	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0)) / A.hires_of(tx)
+	return e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
+
+
+## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
+func _lazy_tex(n: String) -> Texture2D:
+	if not g.tex.has(n):
+		g.tex[n] = A.tex(n)
+		if g.tex[n] != null:
+			g.tex[n + "_white"] = A.white_of(g.tex[n])
+	return g.tex[n]
+
+
+## 伊莎玛拉之泪（docs/48 P1：没有危险圈，外形像掉落物）：脚下洋红危险圈 = 灼伤范围（enemies.gd：距离 < r + 14 每秒掉 6 血），
+## 缓慢呼吸；伊莎玛拉还在转化（phase 1）时，一串光点从泪流向她，读得出「泪在给她充能，打掉它」
+func _tear_zone(e: Dictionary) -> void:
+	var r: float = e.r + 14.0
+	var pulse: float = 0.5 + 0.5 * sin(g.t * 4.0 + e.id)
+	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, ground_y()))
+	g.draw_circle(Vector2.ZERO, r, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.12 + 0.06 * pulse))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(0, 0, 0, 0.5), 4.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(ENEMY_TELL.r * 1.3, ENEMY_TELL.g * 1.3, ENEMY_TELL.b * 1.3, 0.6 + 0.3 * pulse), 2.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for b in g.bosses:
+		if b.dead or b.type != "ishar" or b.phase != 1:
+			continue
+		var d: Vector2 = b.pos - e.pos
+		for q in 5:
+			var u: float = fmod(g.t * 0.6 + q / 5.0 + e.id * 0.13, 1.0)
+			g.draw_circle(e.pos + d * u, 2.5, Color(0.6, 1.6, 1.4, 0.7 * sin(u * PI)))
+
+
+## Boss 身上的状态（docs/48 P1）：
+## 接潮组假死 → 身边一圈倒计时环（假死期间每秒回 10% 血，回满苏醒：环 = 血量），连一条虚线到另一体，提示「同时击倒」；
+## 圣徒装填 → 金色装填环 + 三颗弹药格依次点亮，「装填中 · 攻击打断」；装填被打断 / 其他晕眩 → 头顶三颗转圈的星 + 剩余秒数
+func _boss_state(e: Dictionary) -> void:
+	var top: Vector2 = _enemy_top(e) + Vector2(0, -18.0)
+	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8) if g.foot_anchor.has(e.tex) else e.pos
+	if e.get("coma", false):
+		var k: float = clampf(e.hp / e.maxhp, 0.0, 1.0)
+		var rr: float = e.r + 12.0
+		var tc := Color(0.5, 1.5, 1.4)
+		_ground_ring(foot, rr, k, tc)
+		var left: float = (e.maxhp - e.hp) / maxf(e.maxhp * 0.1, 0.001)
+		UI.text(g, g.font, top + Vector2(-120, -4), "假死 %d 秒 · 同时击倒另一体" % ceili(left), 13, tc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		var p = e.get("partner")
+		if p != null and not p.dead:
+			var d: Vector2 = p.pos - e.pos
+			var L: float = d.length()
+			var dn: Vector2 = d / maxf(L, 1.0)
+			var s: float = fmod(g.t * 40.0, 16.0)
+			while s < L:
+				g.draw_line(e.pos + dn * s, e.pos + dn * minf(s + 8.0, L), Color(tc.r, tc.g, tc.b, 0.45), 2.0)
+				s += 16.0
+		return
+	if e.get("channel", 0.0) > 0.0 and e.type in ["iberia", "carmen"]:
+		var k: float = clampf(1.0 - e.channel / 2.0, 0.0, 1.0)
+		var rr: float = e.r + 10.0
+		var gc := Color(1.6, 1.2, 0.5)
+		_ground_ring(foot, rr, k, gc)
+		for q in 3:
+			var on: bool = k >= (q + 1) / 3.0
+			var pp: Vector2 = top + Vector2(-14 + q * 14, 10)
+			g.draw_rect(Rect2(pp - Vector2(3, 5), Vector2(6, 10)), gc if on else Color(0.2, 0.15, 0.1, 0.8))
+			g.draw_rect(Rect2(pp - Vector2(3, 5), Vector2(6, 10)), Color(0, 0, 0, 0.7), false, 1.0)
+		UI.text(g, g.font, top + Vector2(-120, -6), "装填中 · 攻击打断", 13, gc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		return
+	if e.stun > 0.05:
+		for q in 3:
+			var a: float = g.t * 5.0 + q * TAU / 3.0
+			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
+			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
+		if e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
+			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 晕眩 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 
 
 ## 地面形状的纵向压缩：和判定一致（combat.gd 的 GROUND_Y，Boss与怪物「画即判」；还没有这个常量时按正圆 1.0）
