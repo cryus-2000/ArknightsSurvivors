@@ -138,7 +138,7 @@ def tree_key(game_dir):
                     with open(p, "rb") as fh:
                         h.update(fh.read().replace(b"\r\n", b"\n"))
     for n in sorted(os.listdir(game_dir)):
-        if n.endswith(_SRC_EXT):
+        if n.endswith(_SRC_EXT) and os.path.isfile(os.path.join(game_dir, n)):   # 注意 .godot 目录本身也以 .godot 结尾
             with open(os.path.join(game_dir, n), "rb") as fh:
                 h.update(n.encode() + fh.read().replace(b"\r\n", b"\n"))
     for art in [os.path.join(os.path.dirname(game_dir), "art", "incoming"), os.path.join(game_dir, "art", "px")]:
