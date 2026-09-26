@@ -240,7 +240,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.xp *= Bal.v("enemy/elite_xp_mult", 10.0)
 		e.dmg *= Bal.v("enemy/elite_dmg_mult", 1.3)
 	if e.boss:
-		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if g.diff >= 1 else 1.0) * g.enemy_hp_mult
+		# Boss 吃削血藏品（镶金骨骰 / 黑夜呢喃 / 大静谧）最多 -20%（docs/42 §3.3：原来全额生效，2 件以上时 Boss 9 秒被秒）
+		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if g.diff >= 1 else 1.0) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * (1.25 if g.diff >= 10 else 1.0) * g.enemy_dmg_mult
