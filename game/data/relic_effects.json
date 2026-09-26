@@ -1,6 +1,26 @@
 {
  "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / tags / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。",
  "relics": {
+  "1": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "extra_slot"
+    },
+    {
+     "type": "stat",
+     "stat": "regen",
+     "op": "flat",
+     "value": 0.5
+    }
+   ],
+   "desc": "编队上限 +1；主控干员每秒回复 0.5% 最大生命（每局最多一件编队上限类藏品）",
+   "rarity": "升华",
+   "tags": [
+    "squad",
+    "survival"
+   ]
+  },
   "15": {
    "requires": [
     "118"
@@ -13,7 +33,11 @@
      "value": -0.3
     }
    ],
-   "desc": "护盾生成间隔 -30%"
+   "desc": "护盾生成间隔 -30%",
+   "tags": [
+    "survival",
+    "shield"
+   ]
   },
   "27": {
    "effects": [
@@ -24,6 +48,9 @@
       "amount": 10
      }
     }
+   ],
+   "tags": [
+    "economy"
    ]
   },
   "28": {
@@ -35,6 +62,9 @@
       "amount": 18
      }
     }
+   ],
+   "tags": [
+    "economy"
    ]
   },
   "29": {
@@ -46,6 +76,9 @@
       "amount": 25
      }
     }
+   ],
+   "tags": [
+    "economy"
    ]
   },
   "30": {
@@ -57,6 +90,9 @@
       "amount": 10
      }
     }
+   ],
+   "tags": [
+    "light"
    ]
   },
   "31": {
@@ -68,6 +104,9 @@
       "amount": 15
      }
     }
+   ],
+   "tags": [
+    "light"
    ]
   },
   "32": {
@@ -79,7 +118,170 @@
       "amount": 30
      }
     }
+   ],
+   "tags": [
+    "light"
    ]
+  },
+  "33": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "先锋"
+     }
+    }
+   ],
+   "desc": "立即让一名先锋干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true
+  },
+  "34": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "近卫"
+     }
+    }
+   ],
+   "desc": "立即让一名近卫干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "35": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "重装"
+     }
+    }
+   ],
+   "desc": "立即让一名重装干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "36": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "狙击"
+     }
+    }
+   ],
+   "desc": "立即让一名狙击干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "狙击"
+   ],
+   "shop_allowed": true
+  },
+  "37": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "立即让一名术师干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "术师"
+   ],
+   "shop_allowed": true
+  },
+  "38": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "辅助"
+     }
+    }
+   ],
+   "desc": "立即让一名辅助干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "辅助"
+   ],
+   "shop_allowed": true
+  },
+  "39": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "医疗"
+     }
+    }
+   ],
+   "desc": "立即让一名医疗干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "医疗"
+   ],
+   "shop_allowed": true
+  },
+  "40": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "特种"
+     }
+    }
+   ],
+   "desc": "立即让一名特种干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "特种"
+   ],
+   "shop_allowed": true
   },
   "41": {
    "effects": [
@@ -90,7 +292,8 @@
      "value": -0.07
     }
    ],
-   "desc": "所有敌人攻击 -7%"
+   "desc": "所有敌人攻击 -7%",
+   "tags": []
   },
   "43": {
    "effects": [
@@ -100,7 +303,8 @@
      "op": "add",
      "value": -0.12
     }
-   ]
+   ],
+   "tags": []
   },
   "44": {
    "effects": [
@@ -111,7 +315,8 @@
      "value": -0.17
     }
    ],
-   "desc": "所有敌人攻击 -17%"
+   "desc": "所有敌人攻击 -17%",
+   "tags": []
   },
   "45": {
    "effects": [
@@ -122,7 +327,10 @@
      "value": 0.25
     }
    ],
-   "desc": "弱点伤害额外 +25%（弱点基础 +50%）"
+   "desc": "弱点伤害额外 +25%（弱点基础 +50%）",
+   "tags": [
+    "execute"
+   ]
   },
   "46": {
    "effects": [
@@ -133,7 +341,10 @@
      "value": 0.18
     }
    ],
-   "desc": "生命低于 50% 的敌人受到伤害 +18%"
+   "desc": "生命低于 50% 的敌人受到伤害 +18%",
+   "tags": [
+    "execute"
+   ]
   },
   "47": {
    "effects": [
@@ -142,7 +353,10 @@
      "rule": "all_weak"
     }
    ],
-   "desc": "所有敌人都视为带有你正在使用的伤害类型的弱点"
+   "desc": "所有敌人都视为带有你正在使用的伤害类型的弱点",
+   "tags": [
+    "execute"
+   ]
   },
   "48": {
    "effects": [
@@ -152,7 +366,8 @@
      "op": "add",
      "value": -0.15
     }
-   ]
+   ],
+   "tags": []
   },
   "49": {
    "effects": [
@@ -162,7 +377,8 @@
      "op": "add",
      "value": -0.1
     }
-   ]
+   ],
+   "tags": []
   },
   "50": {
    "effects": [
@@ -172,7 +388,8 @@
      "op": "add",
      "value": -0.2
     }
-   ]
+   ],
+   "tags": []
   },
   "51": {
    "effects": [
@@ -183,7 +400,10 @@
      "value": 2
     }
    ],
-   "desc": "物理减伤 +2（每次受到的物理伤害 -2）"
+   "desc": "物理减伤 +2（每次受到的物理伤害 -2）",
+   "tags": [
+    "survival"
+   ]
   },
   "52": {
    "effects": [
@@ -194,7 +414,10 @@
      "value": 3
     }
    ],
-   "desc": "物理减伤 +3"
+   "desc": "物理减伤 +3",
+   "tags": [
+    "survival"
+   ]
   },
   "53": {
    "effects": [
@@ -205,7 +428,10 @@
      "value": 5
     }
    ],
-   "desc": "物理减伤 +5"
+   "desc": "物理减伤 +5",
+   "tags": [
+    "survival"
+   ]
   },
   "54": {
    "effects": [
@@ -216,7 +442,12 @@
      "value": 0.15
     }
    ],
-   "desc": "近战伤害 +15%（近战干员的普攻与技能、触手）"
+   "desc": "近战伤害 +15%（近战攻击与技能）",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ]
   },
   "55": {
    "effects": [
@@ -227,7 +458,12 @@
      "value": 0.25
     }
    ],
-   "desc": "近战伤害 +25%"
+   "desc": "近战伤害 +25%（近战攻击与技能）",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ]
   },
   "56": {
    "effects": [
@@ -238,7 +474,12 @@
      "value": 0.35
     }
    ],
-   "desc": "近战伤害 +35%"
+   "desc": "近战伤害 +35%（近战攻击与技能）",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ]
   },
   "57": {
    "effects": [
@@ -249,7 +490,10 @@
      "value": 0.15
     }
    ],
-   "desc": "远程伤害 +15%（狙击 / 术师 / 辅助等远程干员）"
+   "desc": "远程伤害 +15%（远程攻击与技能）",
+   "tags": [
+    "ranged"
+   ]
   },
   "58": {
    "effects": [
@@ -260,7 +504,10 @@
      "value": 0.25
     }
    ],
-   "desc": "远程伤害 +25%"
+   "desc": "远程伤害 +25%（远程攻击与技能）",
+   "tags": [
+    "ranged"
+   ]
   },
   "59": {
    "effects": [
@@ -271,7 +518,40 @@
      "value": 0.35
     }
    ],
-   "desc": "远程伤害 +35%"
+   "desc": "远程伤害 +35%（远程攻击与技能）",
+   "tags": [
+    "ranged"
+   ]
+  },
+  "60": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "最大生命 +20%",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ]
+  },
+  "61": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "最大生命 +35%",
+   "rarity": "稀有",
+   "tags": [
+    "survival"
+   ]
   },
   "66": {
    "effects": [
@@ -282,7 +562,12 @@
      "value": 0.2
     }
    ],
-   "desc": "法术伤害 +20%（触手、技能冲击、激光、术师 / 辅助）"
+   "desc": "法术伤害 +20%",
+   "tags": [
+    "follow_up",
+    "arts",
+    "summon"
+   ]
   },
   "67": {
    "effects": [
@@ -293,7 +578,8 @@
      "value": 0.3
     }
    ],
-   "desc": "物理伤害 +30%（伞击、锤击、大剑、炮击等物理来源）"
+   "desc": "物理伤害 +30%",
+   "tags": []
   },
   "68": {
    "effects": [
@@ -304,7 +590,52 @@
      "value": 0.4
     }
    ],
-   "desc": "法术伤害 +40%"
+   "desc": "法术伤害 +40%",
+   "tags": []
+  },
+  "69": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_mult",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "主控干员受到的所有回复效果 +20%",
+   "rarity": "基础",
+   "tags": [
+    "survival",
+    "heal"
+   ]
+  },
+  "71": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_mult",
+     "op": "add",
+     "value": 0.3
+    },
+    {
+     "type": "stat",
+     "stat": "corrode_taken",
+     "op": "add",
+     "value": -0.3
+    },
+    {
+     "type": "stat",
+     "stat": "nerve_taken",
+     "op": "add",
+     "value": -0.3
+    }
+   ],
+   "desc": "主控干员受到的回复效果 +30%；受到的侵蚀与神经损伤 -30%",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "heal"
+   ]
   },
   "72": {
    "effects": [
@@ -314,6 +645,9 @@
      "op": "flat",
      "value": 1.0
     }
+   ],
+   "tags": [
+    "survival"
    ]
   },
   "73": {
@@ -325,7 +659,10 @@
      "value": 0.15
     }
    ],
-   "desc": "物理闪避 +15%（接触、冲撞、子弹等物理攻击）"
+   "desc": "物理闪避 +15%（接触、冲撞、子弹等物理攻击）",
+   "tags": [
+    "on_dodge"
+   ]
   },
   "74": {
    "effects": [
@@ -336,7 +673,10 @@
      "value": 0.15
     }
    ],
-   "desc": "法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）"
+   "desc": "法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）",
+   "tags": [
+    "on_dodge"
+   ]
   },
   "75": {
    "effects": [
@@ -346,6 +686,9 @@
      "op": "flat",
      "value": 0.1
     }
+   ],
+   "tags": [
+    "on_dodge"
    ]
   },
   "79": {
@@ -357,16 +700,90 @@
      "value": 0.3
     }
    ],
-   "desc": "所有伤害 +30%（真实伤害除外）"
+   "desc": "所有伤害 +30%（真实伤害除外）",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ]
+  },
+  "81": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.25,
+     "scope": "range:近战"
+    }
+   ],
+   "desc": "近战干员（近卫 / 重装 / 先锋 / 特种）攻击范围 +25%",
+   "rarity": "稀有",
+   "tags": [
+    "melee"
+   ],
+   "requires_class": [
+    "近卫",
+    "重装",
+    "先锋",
+    "特种"
+   ],
+   "shop_allowed": true
+  },
+  "82": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.2,
+     "scope": "range:远程"
+    }
+   ],
+   "desc": "远程干员（狙击 / 术师 / 医疗 / 辅助）射程 +20%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged"
+   ],
+   "requires_class": [
+    "狙击",
+    "术师",
+    "医疗",
+    "辅助"
+   ],
+   "shop_allowed": true
   },
   "84": {
    "effects": [
     {
      "type": "stat",
-     "stat": "mizuki_tentacle_mult",
+     "stat": "followup_dmg",
      "op": "add",
-     "value": 0.6
+     "value": 0.5
     }
+   ],
+   "desc": "追击与召唤物伤害 +50%（追击、余震、殉爆，以及 Mon3tr、触手桩、替身等召唤物）",
+   "rarity": "核心",
+   "tags": [
+    "follow_up",
+    "summon"
+   ]
+  },
+  "85": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillEnded",
+     "do": "sp",
+     "args": {
+      "pct": 0.08
+     }
+    }
+   ],
+   "desc": "干员的技能结束时，该干员的技能各回复 8% 技力",
+   "rarity": "稀有",
+   "tags": [
+    "skill"
    ]
   },
   "89": {
@@ -377,6 +794,10 @@
      "op": "add",
      "value": 0.25
     }
+   ],
+   "tags": [
+    "skill",
+    "survival"
    ]
   },
   "94": {
@@ -390,6 +811,10 @@
       "corrode_extra": 0.03
      }
     }
+   ],
+   "tags": [
+    "skill",
+    "survival"
    ]
   },
   "95": {
@@ -408,6 +833,10 @@
       "dot_mult": 0.6
      }
     }
+   ],
+   "tags": [
+    "arts",
+    "control"
    ]
   },
   "96": {
@@ -427,7 +856,8 @@
      }
     }
    ],
-   "desc": "被晕眩、束缚的敌人每秒受到法术伤害（约 90% 基础伤害）"
+   "desc": "被晕眩、束缚的敌人每秒受到法术伤害（约 90% 基础伤害）",
+   "tags": []
   },
   "97": {
    "effects": [
@@ -437,6 +867,9 @@
      "op": "add",
      "value": 1.0
     }
+   ],
+   "tags": [
+    "control"
    ]
   },
   "98": {
@@ -447,7 +880,8 @@
      "op": "add",
      "value": 1.1
     }
-   ]
+   ],
+   "tags": []
   },
   "99": {
    "effects": [
@@ -457,7 +891,8 @@
      "op": "add",
      "value": 1.5
     }
-   ]
+   ],
+   "tags": []
   },
   "100": {
    "requires": [
@@ -475,7 +910,49 @@
      "value": 0.15
     }
    ],
-   "desc": "法术抗性 +15%；护盾破裂时释放冲击，伤害并击退周围敌人"
+   "desc": "法术抗性 +15%；护盾破裂时释放冲击，伤害并击退周围敌人",
+   "tags": [
+    "control",
+    "survival",
+    "shield"
+   ]
+  },
+  "101": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.06,
+      "count": "distinct"
+     }
+    }
+   ],
+   "desc": "编队每有一种不同职业，全队伤害 +6%",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ]
+  },
+  "102": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Healed",
+     "do": "damage_area",
+     "args": {
+      "radius": 150
+     }
+    }
+   ],
+   "desc": "溢出的回复量会转化为对主控干员周围敌人的法术伤害（随时间成长）",
+   "rarity": "核心",
+   "tags": [
+    "survival",
+    "heal",
+    "arts"
+   ]
   },
   "105": {
    "effects": [
@@ -483,6 +960,129 @@
      "type": "rule",
      "rule": "black_tulip"
     }
+   ],
+   "tags": [
+    "skill"
+   ]
+  },
+  "106": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.08,
+      "count": [
+       "先锋",
+       "近卫"
+      ],
+      "classes": [
+       "先锋",
+       "近卫"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名先锋或近卫干员，先锋与近卫干员伤害 +8%",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "melee"
+   ],
+   "requires_class": [
+    "先锋",
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "107": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.08,
+      "count": [
+       "重装",
+       "辅助"
+      ],
+      "classes": [
+       "重装",
+       "辅助"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名重装或辅助干员，重装与辅助干员伤害 +8%",
+   "rarity": "基础",
+   "tags": [
+    "squad"
+   ],
+   "requires_class": [
+    "重装",
+    "辅助"
+   ]
+  },
+  "108": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.08,
+      "count": [
+       "医疗",
+       "狙击"
+      ],
+      "classes": [
+       "医疗",
+       "狙击"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名医疗或狙击干员，医疗与狙击干员伤害 +8%",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "ranged"
+   ],
+   "requires_class": [
+    "医疗",
+    "狙击"
+   ]
+  },
+  "109": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.06,
+      "count": [
+       "术师",
+       "特种"
+      ],
+      "classes": [
+       "术师",
+       "特种"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名术师或特种干员，术师与特种干员攻击速度 +6%",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "术师",
+    "特种"
    ]
   },
   "110": {
@@ -498,6 +1098,29 @@
       "dur": 3.0
      }
     }
+   ],
+   "tags": [
+    "skill"
+   ]
+  },
+  "111": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "stat": "dmg",
+      "op": "add",
+      "value": 1.0,
+      "dur": 1.0
+     }
+    }
+   ],
+   "desc": "任一干员技能开启后 1 秒内，全队伤害 +100%",
+   "rarity": "升华",
+   "tags": [
+    "skill"
    ]
   },
   "112": {
@@ -506,14 +1129,19 @@
      "type": "trigger",
      "event": "Hit",
      "if": {
-      "src_is": "umbrella",
       "hit_count_max": 1
      },
      "do": "scale_hit",
      "args": {
-      "mult": 2.0
+      "mult": 1.6
      }
     }
+   ],
+   "desc": "单体攻击（不带范围效果的攻击）伤害 +60%，打 Boss 用",
+   "rarity": "核心",
+   "tags": [
+    "execute",
+    "on_hit"
    ]
   },
   "114": {
@@ -542,7 +1170,24 @@
      "value": 0.3
     }
    ],
-   "desc": "物理减伤 +3，法术抗性 +30%"
+   "desc": "物理减伤 +3，法术抗性 +30%",
+   "tags": [
+    "survival"
+   ]
+  },
+  "116": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "home_zone"
+    }
+   ],
+   "desc": "地图上出现一片「遥乡」：主控干员站在里面每秒回复 3% 生命、技力回复 +30%；每 60 秒换一次位置",
+   "rarity": "核心",
+   "tags": [
+    "survival",
+    "skill"
+   ]
   },
   "118": {
    "effects": [
@@ -553,7 +1198,11 @@
      "value": 1
     }
    ],
-   "desc": "每 12 秒生成一层护盾，抵挡一次伤害"
+   "desc": "每 12 秒生成一层护盾，抵挡一次伤害",
+   "tags": [
+    "survival",
+    "shield"
+   ]
   },
   "120": {
    "effects": [
@@ -568,6 +1217,12 @@
       "dur": 6.0
      }
     }
+   ],
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical",
+    "on_dodge"
    ]
   },
   "121": {
@@ -583,6 +1238,12 @@
       "dur": 6.0
      }
     }
+   ],
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical",
+    "on_dodge"
    ]
   },
   "126": {
@@ -619,6 +1280,250 @@
     "king"
    ]
   },
+  "129": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "desc": "追击与召唤物伤害 +25%",
+   "rarity": "基础",
+   "tags": [
+    "follow_up",
+    "summon"
+   ],
+   "shop_allowed": true
+  },
+  "136": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:先锋"
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "先锋干员伤害 +50%；全队技力回复 +20%",
+   "rarity": "升华",
+   "tags": [
+    "melee",
+    "class",
+    "skill"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true
+  },
+  "138": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.25,
+     "scope": "class:近卫"
+    }
+   ],
+   "desc": "近卫干员伤害 +25%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "class"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "139": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "do": "sp",
+     "args": {
+      "pct": 0.0025,
+      "cap": 0.02,
+      "class": "近卫"
+     }
+    }
+   ],
+   "desc": "近卫干员每次命中回复 0.25% 技力（每名每秒最多 2%）",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "skill",
+    "on_hit"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "141": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "desc": "近卫干员伤害 +40%、攻击速度 +30%；主控干员受到的伤害 +15%",
+   "rarity": "核心",
+   "tags": [
+    "melee",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "143": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:重装"
+    }
+   ],
+   "desc": "重装干员伤害 +40%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "class"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "145": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "sp",
+     "args": {
+      "pct": 0.05,
+      "class": "重装",
+      "icd": 0.5
+     }
+    }
+   ],
+   "desc": "主控干员每次受击，重装干员回复 5% 技力（0.5 秒内最多一次）",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "skill"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "148": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.2,
+     "scope": "class:狙击"
+    }
+   ],
+   "desc": "狙击干员伤害 +20%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class"
+   ],
+   "requires_class": [
+    "狙击"
+   ]
+  },
+  "152": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.25,
+     "scope": "class:术师"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.1,
+     "scope": "class:术师"
+    }
+   ],
+   "desc": "术师干员伤害 +25%、攻击速度 +10%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "术师"
+   ]
+  },
+  "157": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.15,
+      "count": [
+       "辅助"
+      ],
+      "cap": 1
+     }
+    }
+   ],
+   "desc": "编队有辅助干员时，全队伤害 +15%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "squad"
+   ],
+   "requires_class": [
+    "辅助"
+   ]
+  },
   "158": {
    "effects": [
     {
@@ -635,7 +1540,74 @@
     }
    ],
    "desc": "辅助光环范围内的敌人更脆弱：法术伤害 +20%，敌人攻击 -5%",
-   "requires": []
+   "requires": [],
+   "tags": [
+    "ranged"
+   ]
+  },
+  "159": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_out",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:医疗"
+    }
+   ],
+   "desc": "医疗干员的治疗量 +40%",
+   "rarity": "基础",
+   "tags": [
+    "survival",
+    "heal"
+   ],
+   "requires_class": [
+    "医疗"
+   ]
+  },
+  "162": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "nerve_taken",
+     "op": "add",
+     "value": -0.5
+    },
+    {
+     "type": "stat",
+     "stat": "corrode_taken",
+     "op": "add",
+     "value": -0.3
+    }
+   ],
+   "desc": "神经损伤累积 -50%；受到的侵蚀 -30%",
+   "rarity": "稀有",
+   "tags": [
+    "survival"
+   ],
+   "requires_class": [
+    "医疗"
+   ]
+  },
+  "165": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:特种"
+    }
+   ],
+   "desc": "特种干员伤害 +40%",
+   "rarity": "核心",
+   "tags": [
+    "melee",
+    "class"
+   ],
+   "requires_class": [
+    "特种"
+   ]
   },
   "169": {
    "effects": [
@@ -643,14 +1615,24 @@
      "type": "trigger",
      "event": "Hit",
      "if": {
-      "src_is": "sniper",
       "target_hp_below": 0.2
      },
      "do": "execute",
      "args": {
-      "not_boss": true
+      "not_boss": true,
+      "class": "狙击"
      }
     }
+   ],
+   "desc": "狙击干员的攻击会直接击杀生命低于 20% 的敌人（Boss 除外）",
+   "rarity": "升华",
+   "tags": [
+    "on_kill",
+    "execute",
+    "ranged"
+   ],
+   "requires_class": [
+    "狙击"
    ]
   },
   "170": {
@@ -659,14 +1641,26 @@
      "type": "trigger",
      "event": "Hit",
      "if": {
-      "src_is": "tentacle"
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ]
      },
      "do": "bonus_current_hp",
      "args": {
-      "pct": 0.03,
-      "boss_pct": 0.01
+      "pct": 0.02,
+      "boss_pct": 0.005,
+      "icd": 0.5
      }
     }
+   ],
+   "desc": "追击命中时，额外造成目标当前生命 2% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）",
+   "rarity": "核心",
+   "tags": [
+    "follow_up",
+    "on_hit"
    ]
   },
   "171": {
@@ -675,31 +1669,105 @@
      "type": "trigger",
      "event": "Hit",
      "if": {
-      "src_is": "tentacle"
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ]
      },
      "do": "sp",
      "args": {
-      "pct": 0.01
+      "pct": 0.005,
+      "cap": 0.025
      }
     }
+   ],
+   "desc": "追击每命中一个敌人，造成这次追击的干员回复 0.5% 技力（每秒最多 2.5%）",
+   "rarity": "核心",
+   "tags": [
+    "follow_up",
+    "skill",
+    "on_hit"
    ]
   },
   "172": {
    "effects": [
     {
-     "type": "trigger",
-     "event": "Tick",
-     "if": {
-      "no_allies": true
-     },
-     "do": "temp_stat",
+     "type": "rule",
+     "rule": "lone_haste",
      "args": {
-      "stat": "mizuki_umbrella_interval",
-      "op": "mult",
-      "value": 0.625,
-      "dur": 0.2
+      "solo": 0.35,
+      "value": 0.15
      }
     }
+   ],
+   "desc": "编队只有 1 名干员时，全队攻击速度 +35%；2 名及以上时改为 +15%",
+   "rarity": "核心",
+   "tags": [
+    "attack_speed",
+    "squad"
+   ]
+  },
+  "174": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Tick",
+     "do": "damage_area",
+     "args": {
+      "every": 1,
+      "radius": 120,
+      "class": "医疗"
+     }
+    }
+   ],
+   "desc": "医疗干员每秒对身边敌人造成法术伤害（约其攻击力的 50%，随时间成长）",
+   "rarity": "核心",
+   "tags": [
+    "ranged",
+    "arts"
+   ],
+   "requires_class": [
+    "医疗"
+   ]
+  },
+  "175": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "do": "scale_hit",
+     "args": {
+      "per": 0.05,
+      "max": 15,
+      "reset": 3,
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "术师干员每次命中，术师伤害 +5%（最多 +75%）；3 秒没有命中就清空",
+   "rarity": "核心",
+   "tags": [
+    "ranged",
+    "on_hit",
+    "arts"
+   ],
+   "requires_class": [
+    "术师"
+   ]
+  },
+  "177": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick"
+    }
+   ],
+   "desc": "立即获得一次成长三选一",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
    ]
   },
   "188": {
@@ -710,6 +1778,9 @@
      "op": "mult",
      "value": 0.5
     }
+   ],
+   "tags": [
+    "economy"
    ]
   },
   "190": {
@@ -718,6 +1789,31 @@
      "type": "rule",
      "rule": "four_choices"
     }
+   ],
+   "tags": [
+    "economy"
+   ]
+  },
+  "191": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "heal",
+     "args": {
+      "amount": 0.4
+     }
+    },
+    {
+     "type": "on_gain",
+     "do": "shield_fill"
+    }
+   ],
+   "desc": "获得时回复 40% 生命，并补满护盾",
+   "rarity": "基础",
+   "tags": [
+    "survival",
+    "shield",
+    "heal"
    ]
   },
   "199": {
@@ -732,7 +1828,11 @@
      "value": 1
     }
    ],
-   "desc": "护盾层数上限 +1"
+   "desc": "护盾层数上限 +1",
+   "tags": [
+    "survival",
+    "shield"
+   ]
   },
   "200": {
    "effects": [
@@ -752,7 +1852,11 @@
    "requires": [
     "118"
    ],
-   "desc": "最大生命 -10，护盾层数上限 +2"
+   "desc": "最大生命 -10，护盾层数上限 +2",
+   "tags": [
+    "survival",
+    "shield"
+   ]
   },
   "202": {
    "effects": [
@@ -764,7 +1868,11 @@
    "requires": [
     "118"
    ],
-   "desc": "护盾抵挡伤害时回复 3% 最大生命"
+   "desc": "护盾抵挡伤害时回复 3% 最大生命",
+   "tags": [
+    "survival",
+    "shield"
+   ]
   },
   "204": {
    "effects": [
@@ -779,6 +1887,12 @@
      "type": "rule",
      "rule": "low_light_sp"
     }
+   ],
+   "tags": [
+    "skill",
+    "low_light",
+    "light",
+    "survival"
    ]
   },
   "207": {
@@ -788,6 +1902,13 @@
      "rule": "coin_toy",
      "value": 3
     }
+   ],
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical",
+    "attack_speed",
+    "economy"
    ]
   },
   "208": {
@@ -798,7 +1919,14 @@
      "value": 5
     }
    ],
-   "desc": "每持有 5 源石锭，全队攻击速度 +5%（上限 +50%）"
+   "desc": "每持有 5 源石锭，全队攻击速度 +5%（上限 +50%）",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical",
+    "attack_speed",
+    "economy"
+   ]
   },
   "210": {
    "effects": [
@@ -810,6 +1938,10 @@
       "what": "mine"
      }
     }
+   ],
+   "tags": [
+    "summon",
+    "squad"
    ]
   },
   "216": {
@@ -820,6 +1952,9 @@
      "op": "add",
      "value": 0.25
     }
+   ],
+   "tags": [
+    "curse"
    ]
   },
   "218": {
@@ -830,6 +1965,11 @@
      "op": "add",
      "value": 0.1
     }
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
    ]
   },
   "219": {
@@ -840,6 +1980,11 @@
      "op": "add",
      "value": 0.15
     }
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
    ]
   },
   "220": {
@@ -850,6 +1995,11 @@
      "op": "add",
      "value": 0.25
     }
+   ],
+   "tags": [
+    "low_light",
+    "light",
+    "curse"
    ]
   },
   "221": {
@@ -873,7 +2023,11 @@
    "desc": "灯火 -50（最低 10），一次排异反应；海嗣更快进化，灯火上限 70。走向结局四",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event"
+   "source": "event",
+   "tags": [
+    "light",
+    "ending"
+   ]
   },
   "222": {
    "effects": [
@@ -885,7 +2039,11 @@
    "desc": "猎潮的骑士加入你的旅程，直到他倒下。走向结局二",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event"
+   "source": "event",
+   "tags": [
+    "on_kill",
+    "ending"
+   ]
   },
   "223": {
    "effects": [
@@ -899,7 +2057,10 @@
    "desc": "骑士退行为罗辛南特：移动速度 +10%（作为纪念）",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event"
+   "source": "event",
+   "tags": [
+    "ending"
+   ]
   },
   "225": {
    "effects": [
@@ -914,6 +2075,9 @@
    "source": "event",
    "requires": [
     "222"
+   ],
+   "tags": [
+    "ending"
    ]
   },
   "228": {
@@ -922,6 +2086,9 @@
      "type": "rule",
      "rule": "revive_once"
     }
+   ],
+   "tags": [
+    "survival"
    ]
   },
   "229": {
@@ -934,6 +2101,11 @@
       "pct": 0.002
      }
     }
+   ],
+   "tags": [
+    "skill",
+    "on_hit",
+    "survival"
    ]
   },
   "231": {
@@ -947,7 +2119,39 @@
       "dur": 5.0
      }
     }
+   ],
+   "tags": [
+    "control",
+    "on_damage"
    ]
+  },
+  "234": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ]
+     },
+     "do": "damage_area",
+     "args": {
+      "radius": 130,
+      "cd": 8
+     }
+    }
+   ],
+   "desc": "每 8 秒，下一次追击会在目标处引发一次大范围法术伤害（伤害随时间成长）",
+   "rarity": "核心",
+   "tags": [
+    "follow_up",
+    "arts"
+   ],
+   "shop_allowed": true
   },
   "238": {
    "effects": [
@@ -984,7 +2188,10 @@
    "rarity": "结局",
    "shop_allowed": false,
    "source": "event",
-   "max_lv": 3
+   "max_lv": 3,
+   "tags": [
+    "ending"
+   ]
   },
   "239": {
    "effects": [
@@ -996,7 +2203,10 @@
    "desc": "藏品三选一变为四选一",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event"
+   "source": "event",
+   "tags": [
+    "ending"
+   ]
   },
   "240": {
    "effects": [
@@ -1014,7 +2224,10 @@
    "desc": "稀有 / 核心藏品出现率 +30%，拾取范围 -20%",
    "rarity": "结局",
    "shop_allowed": false,
-   "source": "event"
+   "source": "event",
+   "tags": [
+    "ending"
+   ]
   },
   "242": {
    "effects": [
@@ -1041,6 +2254,10 @@
    "source": "event",
    "requires": [
     "221"
+   ],
+   "tags": [
+    "light",
+    "ending"
    ]
   },
   "243": {
@@ -1056,7 +2273,26 @@
      "rule": "tree_light"
     }
    ],
-   "desc": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15"
+   "desc": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15",
+   "tags": [
+    "attack_speed",
+    "low_light",
+    "light",
+    "curse"
+   ]
+  },
+  "245": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "silver_seal"
+    }
+   ],
+   "desc": "立即招募一名随机干员，并直接推进到精英一；编队已满时改为全队各推进 1 个成长节点",
+   "rarity": "升华",
+   "tags": [
+    "squad"
+   ]
   },
   "246": {
    "effects": [
@@ -1068,12 +2304,19 @@
      },
      "do": "temp_stat",
      "args": {
-      "stat": "mizuki_tentacle_targets",
-      "op": "flat",
-      "value": 1,
+      "stat": "followup_dmg",
+      "op": "add",
+      "value": 0.6,
       "dur": 0.2
      }
     }
+   ],
+   "desc": "灯火低于 30 时，追击与召唤物伤害 +60%",
+   "rarity": "核心",
+   "tags": [
+    "follow_up",
+    "low_light",
+    "light"
    ]
   },
   "252": {
@@ -1089,6 +2332,9 @@
       "cap": 0.3
      }
     }
+   ],
+   "tags": [
+    "on_kill"
    ]
   },
   "255": {
@@ -1114,7 +2360,102 @@
      }
     }
    ],
-   "desc": "受到伤害 -10%；灯火低于 50 时改为 -35%（真实伤害除外）"
+   "desc": "受到伤害 -10%；灯火低于 50 时改为 -35%（真实伤害除外）",
+   "tags": [
+    "low_light",
+    "light",
+    "survival"
+   ]
+  },
+  "258": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "arts_dmg",
+      "per": 0.1,
+      "count": [
+       "术师"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名术师干员，法术伤害 +10%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "arts",
+    "squad"
+   ],
+   "requires_class": [
+    "术师"
+   ]
+  },
+  "259": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.12
+    },
+    {
+     "type": "stat",
+     "stat": "arts_res",
+     "op": "flat",
+     "value": 0.1
+    }
+   ],
+   "desc": "主控干员受到的伤害 -12%，法术抗性 +10%",
+   "rarity": "稀有",
+   "tags": [
+    "survival"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "260": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.25
+    },
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    }
+   ],
+   "desc": "主控干员受到的伤害 -25%，护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾）",
+   "rarity": "升华",
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "261": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "contract"
+    }
+   ],
+   "desc": "随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%",
+   "rarity": "核心",
+   "tags": [
+    "squad",
+    "on_kill"
+   ]
   }
  }
 }

@@ -1,23 +1,27 @@
 {
  "version": "v1.0 框架对齐",
  "lanes": {
-  "A": "近战 / 创伤流",
-  "B": "触手 / 猎杀流",
-  "C": "控制 / 技能循环流",
-  "D": "反移情 / 收割流",
-  "E": "深蓝 / 低灯火流",
-  "S": "援护 / 指挥（副系统）"
+  "A": "前锋·近战（近卫 / 重装 / 先锋 / 特种）",
+  "B": "追击·召唤（追击、余震、殉爆、召唤物）",
+  "C": "控制·技能循环",
+  "D": "收割·弱点",
+  "E": "远程·火力（狙击 / 术师 / 医疗 / 辅助）",
+  "F": "深蓝·低灯火",
+  "G": "编队·协同",
+  "H": "守护·续航"
  },
  "items": [
   {
    "id": 1,
    "name": "精选兽肉罐头",
    "original": "可携带干员+1，所有我方单位每秒回复3点生命",
-   "cat": "生存",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "每秒回复生命 +0.5",
    "rarity": "稀有",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [
     "survival"
    ],
@@ -37,9 +41,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed"
    ],
@@ -59,9 +62,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -80,9 +82,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed"
    ],
@@ -102,9 +103,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -178,12 +178,12 @@
    "id": 10,
    "name": "独奏八音盒",
    "original": "希望+4，可同时部署人数+1",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员上限 +1，源石锭 +12",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -198,12 +198,12 @@
    "id": 11,
    "name": "源石鸢尾花",
    "original": "希望+6，可携带干员+2",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "源石锭 +18，下一次招募多一个选项",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -250,12 +250,12 @@
    "id": 14,
    "name": "赤金的远征",
    "original": "希望+4，可携带干员+1，可同时部署人数+1",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员上限 +1，源石锭 +12",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -274,7 +274,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】护盾生成间隔 -30%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -561,11 +563,13 @@
    "id": 33,
    "name": "钝爪-典训",
    "original": "立即进阶一个【先锋】干员（不消耗希望）",
-   "cat": "不适用",
+   "cat": "编队协同",
    "tier": "D",
    "adapt": "本作没有先锋 / 近卫 / 重装援护",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -575,11 +579,13 @@
    "id": 34,
    "name": "折戟-典训",
    "original": "立即进阶一个【近卫】干员（不消耗希望）",
-   "cat": "不适用",
+   "cat": "编队协同",
    "tier": "D",
    "adapt": "本作没有先锋 / 近卫 / 重装援护",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -589,11 +595,13 @@
    "id": 35,
    "name": "铁卫-典训",
    "original": "立即进阶一个【重装】干员（不消耗希望）",
-   "cat": "不适用",
+   "cat": "编队协同",
    "tier": "D",
    "adapt": "本作没有先锋 / 近卫 / 重装援护",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -603,12 +611,12 @@
    "id": 36,
    "name": "残弩-典训",
    "original": "立即进阶一个【狙击】干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "狙击援护立即 +1 级（没有就立即招募）",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -622,12 +630,12 @@
    "id": 37,
    "name": "断杖-典训",
    "original": "立即进阶一个【术师】干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "术师援护立即 +1 级（没有就立即招募）",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -641,12 +649,12 @@
    "id": 38,
    "name": "支柱-典训",
    "original": "立即进阶一个【辅助】干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "辅助援护立即 +1 级（没有就立即招募）",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -660,12 +668,12 @@
    "id": 39,
    "name": "医者-典训",
    "original": "立即进阶一个【医疗】干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "医疗援护立即 +1 级（没有就立即招募）",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -679,12 +687,12 @@
    "id": 40,
    "name": "锈刃-典训",
    "original": "立即进阶一个【特种】干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "特种干员立即获得 1 次成长节点",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -720,9 +728,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "survival"
    ],
@@ -868,7 +875,9 @@
    "tier": "B",
    "adapt": "受到伤害 -8%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -884,7 +893,9 @@
    "tier": "B",
    "adapt": "受到伤害 -13%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -900,7 +911,9 @@
    "tier": "B",
    "adapt": "受到伤害 -18%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -920,9 +933,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": true,
@@ -941,9 +953,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": true,
@@ -962,9 +973,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": true,
@@ -975,12 +985,12 @@
    "id": 57,
    "name": "显圣吊坠",
    "original": "所有我方远程单位的攻击力+15%",
-   "cat": "援护干员",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "援护干员伤害 +15%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -994,12 +1004,12 @@
    "id": 58,
    "name": "银餐叉",
    "original": "所有我方远程单位的攻击力+25%",
-   "cat": "援护干员",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "援护干员伤害 +25%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -1013,12 +1023,12 @@
    "id": 59,
    "name": "损坏的左轮弹巢",
    "original": "所有我方远程单位的攻击力+35%",
-   "cat": "援护干员",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "援护干员伤害 +35%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -1036,7 +1046,9 @@
    "tier": "B",
    "adapt": "最大生命 +20%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1052,7 +1064,9 @@
    "tier": "B",
    "adapt": "最大生命 +35%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1088,9 +1102,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -1109,9 +1122,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -1130,9 +1142,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -1143,15 +1154,13 @@
    "id": 66,
    "name": "制式防暴用具",
    "original": "所有敌方单位受到的法术伤害+20%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "敌人受到的法术伤害（触手、术师、水母）+20%",
    "rarity": "基础",
-   "lanes": [
-    "B"
-   ],
+   "lanes": [],
    "tags": [
-    "mizuki_tentacle",
+    "follow_up",
     "arts",
     "summon"
    ],
@@ -1163,13 +1172,11 @@
    "id": 67,
    "name": "皇帝的收藏",
    "original": "所有敌方单位受到的法术伤害+30%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "同上 +30%",
    "rarity": "基础",
-   "lanes": [
-    "B"
-   ],
+   "lanes": [],
    "tags": [],
    "first_batch": true,
    "boss_only": false,
@@ -1179,13 +1186,11 @@
    "id": 68,
    "name": "“璀璨悲泣”",
    "original": "所有敌方单位受到的法术伤害+40%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "同上 +40%",
    "rarity": "基础",
-   "lanes": [
-    "B"
-   ],
+   "lanes": [],
    "tags": [],
    "first_batch": true,
    "boss_only": false,
@@ -1199,7 +1204,9 @@
    "tier": "B",
    "adapt": "所有回复效果 +20%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1231,7 +1238,9 @@
    "tier": "A",
    "adapt": "所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1247,7 +1256,9 @@
    "tier": "A",
    "adapt": "每秒回复 1% 最大生命",
    "rarity": "稀有",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1263,7 +1274,9 @@
    "tier": "A",
    "adapt": "闪避近战攻击 +15%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "on_dodge"
    ],
@@ -1279,7 +1292,9 @@
    "tier": "A",
    "adapt": "闪避远程攻击（弹幕）+15%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "on_dodge"
    ],
@@ -1295,7 +1310,9 @@
    "tier": "A",
    "adapt": "闪避率 +10%",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "on_dodge"
    ],
@@ -1353,13 +1370,10 @@
    "tier": "B",
    "adapt": "特种干员伤害 +30%，术师伤害 +3%",
    "rarity": "基础",
-   "lanes": [
-    "A"
-   ],
+   "lanes": [],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": true,
@@ -1386,11 +1400,13 @@
    "id": 81,
    "name": "漆黑的舞鞋",
    "original": "可以在高台部署近战位干员",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "本作没有高台 / 低地",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -1400,11 +1416,13 @@
    "id": 82,
    "name": "洁白的舞鞋",
    "original": "可以在低地部署远程位干员",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "本作没有高台 / 低地",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "E"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -1428,7 +1446,7 @@
    "id": 84,
    "name": "几丁质刺刃",
    "original": "战斗开始时，使随机一名干员在本局内攻击力+100%，生命+100%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "触手追击伤害 +60%",
    "rarity": "核心",
@@ -1436,7 +1454,7 @@
     "B"
    ],
    "tags": [
-    "mizuki_tentacle",
+    "follow_up",
     "arts"
    ],
    "first_batch": true,
@@ -1630,7 +1648,7 @@
    "id": 95,
    "name": "悬丝傀儡",
    "original": "敌人被晕眩、冰冻、束缚时，每秒受到700点法术伤害",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "被晕眩、束缚的敌人每秒受到法术伤害（约 60% 基础伤害）",
    "rarity": "核心",
@@ -1649,7 +1667,7 @@
    "id": 96,
    "name": "“童趣玩偶”",
    "original": "敌人被晕眩、冰冻、束缚时，每秒受到1000点法术伤害",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "同上（约 90% 基础伤害）",
    "rarity": "升华",
@@ -1665,7 +1683,7 @@
    "id": 97,
    "name": "凯旋号角",
    "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高100%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "晕眩、束缚、减速的持续时间 +100%",
    "rarity": "基础",
@@ -1683,7 +1701,7 @@
    "id": 98,
    "name": "高闪相机",
    "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高110%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "同上 +110%",
    "rarity": "核心",
@@ -1699,7 +1717,7 @@
    "id": 99,
    "name": "精神治疗录像带",
    "original": "敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高150%",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "同上 +150%",
    "rarity": "升华",
@@ -1719,7 +1737,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】护盾破裂时冲击并击退周围敌人",
    "rarity": "核心",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "control",
     "survival",
@@ -1733,11 +1753,13 @@
    "id": 101,
    "name": "老蒲扇",
    "original": "战斗编队中每有一个职业不同的干员，所有干员的攻击力+10%",
-   "cat": "条件触发",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "编队里每有一种不同职业，伤害 +10%",
    "rarity": "稀有",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -1751,7 +1773,9 @@
    "tier": "A",
    "adapt": "溢出的回复量转化为对周围敌人的法术伤害",
    "rarity": "核心",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "arts",
     "survival"
@@ -1764,7 +1788,7 @@
    "id": 103,
    "name": "安洁莉娜的创想",
    "original": "所有敌方单位移动速度-15%，且重量下降一个等级",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "A",
    "adapt": "所有敌人移动速度 -15%，更容易被击退",
    "rarity": "基础",
@@ -1782,12 +1806,12 @@
    "id": 104,
    "name": "Scout的狙击镜",
    "original": "所有敌方单位受到我方单位伤害时，距离伤害来源越远受到的伤害越高（最高50%）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员的攻击离目标越远伤害越高（最高 +50%）",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -1819,11 +1843,13 @@
    "id": 106,
    "name": "突击协议-利刃",
    "original": "战斗编队中每有一名先锋和近卫干员，所有先锋和近卫干员的攻击力+8%",
-   "cat": "不适用",
+   "cat": "编队协同",
    "tier": "D",
    "adapt": "本作没有先锋 / 近卫",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "G"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -1833,12 +1859,12 @@
    "id": 107,
    "name": "堡垒协议-方阵",
    "original": "战斗编队中每有一名重装和辅助干员，所有重装和辅助干员的攻击力+8%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "辅助援护的减速和伤害 +8%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "control",
@@ -1853,12 +1879,12 @@
    "id": 108,
    "name": "远程协议-遥击",
    "original": "战斗编队中每有一名医疗和狙击干员，所有医疗和狙击干员的攻击力+8%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "同时有狙击和医疗援护时，两者效果 +16%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -1872,12 +1898,12 @@
    "id": 109,
    "name": "破坏协议-压制",
    "original": "战斗编队中每有一名术师和特种干员，所有术师和特种干员的攻击速度+6",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "编队里有术师时，全队攻击速度 +6%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "attack_speed",
@@ -1933,12 +1959,11 @@
    "adapt": "一次攻击只命中 1 名敌人时，这一击伤害 +100%（打 Boss 用）",
    "rarity": "核心",
    "lanes": [
-    "A"
+    "D"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "on_hit"
    ],
@@ -1985,7 +2010,9 @@
    "tier": "B",
    "adapt": "开局 100 秒后，受到伤害 -30%",
    "rarity": "稀有",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -1997,11 +2024,13 @@
    "id": 116,
    "name": "遥乡之引",
    "original": "每次战斗会随机一个可部署位置，该位置上的我方单位每2秒回复1点技力，每秒回复自身3%的血量",
-   "cat": "条件触发",
+   "cat": "生存",
    "tier": "B",
    "adapt": "地图上随机出现一片「遥乡」区域，站在里面每秒回复 3% 生命，技力回复加快",
    "rarity": "核心",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "skill",
     "survival"
@@ -2034,7 +2063,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】每 12 秒生成一层护盾，抵挡一次伤害",
    "rarity": "核心",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -2069,9 +2100,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "on_dodge"
    ],
@@ -2091,9 +2121,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "on_dodge"
    ],
@@ -2145,9 +2174,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -2166,9 +2194,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -2230,12 +2257,12 @@
    "id": 129,
    "name": "散轶诗简",
    "original": "【召唤物】不再消耗部署位",
-   "cat": "援护干员",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "援护干员上限 +1",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "B"
    ],
    "tags": [
     "support",
@@ -2249,7 +2276,7 @@
    "id": 130,
    "name": "衍生者终端-超级改",
    "original": "【召唤物】生命值+30%，攻击力+30%，攻击速度+30",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "发光水母、涨潮螺壳等召唤效果伤害 +30%，频率 +30%",
    "rarity": "基础",
@@ -2341,11 +2368,13 @@
    "id": 136,
    "name": "钝爪-百战",
    "original": "所有【先锋】干员的攻击力+50%，防御力+50%",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "先锋职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2369,11 +2398,13 @@
    "id": 138,
    "name": "折戟-锋刃",
    "original": "所有【近卫】干员的攻击力+25%",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "近卫职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2383,11 +2414,13 @@
    "id": 139,
    "name": "折戟-浴血",
    "original": "所有【近卫】干员在攻击后获得2点技力",
-   "cat": "不适用",
+   "cat": "技能与技力",
    "tier": "D",
    "adapt": "近卫职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2411,11 +2444,13 @@
    "id": 141,
    "name": "折戟-破釜沉舟",
    "original": "所有【近卫】干员的防御力-40%，但攻击力+40%，攻击速度+30",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "近卫职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2439,11 +2474,13 @@
    "id": 143,
    "name": "铁卫-侵掠",
    "original": "所有【重装】干员的攻击力+60%",
-   "cat": "不适用",
+   "cat": "攻击与输出",
    "tier": "D",
    "adapt": "重装职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2467,11 +2504,13 @@
    "id": 145,
    "name": "铁卫-无锋",
    "original": "所有【重装】干员在受到攻击后获得2点技力",
-   "cat": "不适用",
+   "cat": "技能与技力",
    "tier": "D",
    "adapt": "重装职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "A"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -2495,12 +2534,12 @@
    "id": 147,
    "name": "残弩-突破",
    "original": "所有【狙击】干员的部署费用-2，生命+60%",
-   "cat": "援护干员·狙击",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "招募狙击援护时直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2514,12 +2553,12 @@
    "id": 148,
    "name": "残弩-百步穿杨",
    "original": "所有【狙击】干员的攻击力+20%",
-   "cat": "援护干员·狙击",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "狙击援护伤害 +20%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -2533,12 +2572,12 @@
    "id": 149,
    "name": "残弩-交叉火力",
    "original": "所有【狙击】干员的生命-40%，但攻击力+40%",
-   "cat": "援护干员·狙击",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "狙击援护伤害 +40%，但射速 -20%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "attack_speed",
@@ -2553,12 +2592,12 @@
    "id": 150,
    "name": "残弩-神速",
    "original": "所有【狙击】干员的攻击速度+70",
-   "cat": "援护干员·狙击",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "狙击援护射速 +70%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "attack_speed",
@@ -2573,12 +2612,12 @@
    "id": 151,
    "name": "断杖-突破",
    "original": "所有【术师】干员的部署费用-3，生命+60%",
-   "cat": "援护干员·术师",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "招募术师援护时直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2592,12 +2631,12 @@
    "id": 152,
    "name": "断杖-织法者",
    "original": "所有【术师】干员的攻击力+25%，攻击速度+25",
-   "cat": "援护干员·术师",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "术师援护伤害 +25%，射速 +25%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "attack_speed",
@@ -2612,12 +2651,12 @@
    "id": 153,
    "name": "断杖-凝神",
    "original": "所有【术师】干员的技力恢复+0.4/秒",
-   "cat": "援护干员·术师",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "术师援护每 8 秒额外释放一次大范围爆炸",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2631,12 +2670,12 @@
    "id": 154,
    "name": "断杖-苦难巫咒",
    "original": "所有【术师】干员生命-40%，但造成的法术伤害+70%",
-   "cat": "援护干员·术师",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "术师援护伤害 +70%，但爆炸范围 -20%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2650,12 +2689,12 @@
    "id": 155,
    "name": "支柱-突破",
    "original": "所有【辅助】干员的部署费用-2，生命+60%",
-   "cat": "援护干员·辅助",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "招募辅助援护时直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2669,12 +2708,12 @@
    "id": 156,
    "name": "支柱-勤奋",
    "original": "所有【辅助】干员的技力消耗-40%",
-   "cat": "援护干员·辅助",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "辅助援护的减速范围 +40%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "control",
@@ -2689,12 +2728,12 @@
    "id": 157,
    "name": "支柱-援护",
    "original": "所有【辅助】干员使攻击范围内的我方单位攻击力+20%",
-   "cat": "援护干员·辅助",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "处在辅助光域内时，全队伤害 +20%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -2708,12 +2747,12 @@
    "id": 158,
    "name": "支柱-枯法",
    "original": "所有【辅助】干员攻击范围内的敌方单位防御力-20%，法术抗性-20%",
-   "cat": "援护干员·辅助",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "辅助援护范围内的敌人受到伤害 +20%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "support",
@@ -2727,12 +2766,12 @@
    "id": 159,
    "name": "医者-突破",
    "original": "所有【医疗】干员的部署费用-2，生命+60%",
-   "cat": "援护干员·医疗",
+   "cat": "生存",
    "tier": "B",
    "adapt": "招募医疗援护时直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "H"
    ],
    "tags": [
     "support",
@@ -2746,12 +2785,12 @@
    "id": 160,
    "name": "医者-自医",
    "original": "所有【医疗】干员的技力恢复+0.3/秒",
-   "cat": "援护干员·医疗",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "医疗援护治疗频率 +30%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2765,12 +2804,12 @@
    "id": 161,
    "name": "医者-妙手",
    "original": "所有【医疗】干员的攻击速度+50",
-   "cat": "援护干员·医疗",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "医疗援护治疗量 +50%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -2784,12 +2823,12 @@
    "id": 162,
    "name": "医者-固化序列",
    "original": "所有【医疗】干员攻击范围内的我方单位获得抵抗",
-   "cat": "援护干员·医疗",
+   "cat": "生存",
    "tier": "B",
    "adapt": "有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "H"
    ],
    "tags": [
     "support",
@@ -2811,9 +2850,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "survival"
    ],
@@ -2833,9 +2871,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed"
    ],
@@ -2855,9 +2892,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "survival"
    ],
@@ -2877,9 +2913,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "on_dodge"
    ],
@@ -2899,9 +2934,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "control"
    ],
@@ -2927,13 +2961,13 @@
    "id": 169,
    "name": "扼喉之手",
    "original": "【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀",
-   "cat": "援护干员·狙击",
+   "cat": "削弱敌人",
    "tier": "B",
    "adapt": "狙击援护会直接击杀生命低于 20% 的敌人（Boss 除外）",
    "rarity": "升华",
    "lanes": [
     "D",
-    "S"
+    "E"
    ],
    "tags": [
     "on_kill",
@@ -2949,7 +2983,7 @@
    "id": 170,
    "name": "扣挠之手",
    "original": "【凝滞师】、【削弱者】和【护佑者】攻击时额外造成目标当前生命值3%的法术伤害",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "触手追击额外造成目标当前生命 3% 的法术伤害（Boss 为 1%）",
    "rarity": "核心",
@@ -2957,7 +2991,7 @@
     "B"
    ],
    "tags": [
-    "mizuki_tentacle",
+    "follow_up",
     "arts"
    ],
    "first_batch": true,
@@ -2968,7 +3002,7 @@
    "id": 171,
    "name": "炸裂之手",
    "original": "【要塞】、【链术师】和【轰击术师】每对一个单位造成伤害就回复2点技力值",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "触手每命中一个敌人回复 1% 技力",
    "rarity": "核心",
@@ -2976,7 +3010,7 @@
     "B"
    ],
    "tags": [
-    "mizuki_tentacle",
+    "follow_up",
     "arts",
     "skill",
     "on_hit",
@@ -2990,17 +3024,16 @@
    "id": 172,
    "name": "极速之手",
    "original": "【处决者】、【伏击客】和【傀儡师】相邻四格内没有我方单位时，攻击速度+120",
-   "cat": "攻击与输出",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "没有招募任何援护干员时，攻击速度 +60%（伏击客分支，独行流）",
    "rarity": "升华",
    "lanes": [
-    "A"
+    "G"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed"
    ],
@@ -3026,12 +3059,12 @@
    "id": 174,
    "name": "净尘之手",
    "original": "【吟游者】【阵法术师】【疗养师】对攻击范围内敌人每秒造成50%攻击力的法术伤害",
-   "cat": "援护干员·医疗",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "医疗援护每秒对周围敌人造成法术伤害",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "arts",
@@ -3046,12 +3079,12 @@
    "id": 175,
    "name": "碎靶之手",
    "original": "【炮手】【扩散术师】【投掷手】每对一个单位造成伤害就使自身攻击力+15%，最高+150%，5秒未造成伤害则使加成清空",
-   "cat": "援护干员·术师",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "术师每次命中伤害 +15%（最高 +150%），5 秒没命中就清零",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "on_hit",
@@ -3085,12 +3118,12 @@
    "id": 177,
    "name": "游戏室管理员权限卡",
    "original": "立即进阶一个干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "立即获得 1 次成长三选一",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3104,12 +3137,12 @@
    "id": 178,
    "name": "Miss.Christine摸摸券",
    "original": "立即进阶两个干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "立即获得 2 次成长三选一",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3123,12 +3156,12 @@
    "id": 179,
    "name": "古旧铸物",
    "original": "立即进阶三个干员（不消耗希望）",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "立即获得 3 次成长三选一",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3142,12 +3175,12 @@
    "id": 180,
    "name": "地形图",
    "original": "可同时部署人数+1，所有我方单位的防御力+4%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员上限 +1，受到伤害 -1",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3162,12 +3195,12 @@
    "id": 181,
    "name": "神音海螺",
    "original": "可同时部署人数+1，所有我方单位的生命值+4%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员上限 +1，最大生命 +8%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3182,12 +3215,12 @@
    "id": 182,
    "name": "林间夜话",
    "original": "可同时部署人数+2，所有我方单位的防御力+6%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员伤害 +15%，受到伤害 -2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3202,12 +3235,12 @@
    "id": 183,
    "name": "教堂救济餐券",
    "original": "可同时部署人数+2，所有我方单位的生命值+6%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "援护干员伤害 +15%，最大生命 +12%",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3264,12 +3297,12 @@
    "id": 187,
    "name": "一份演讲稿",
    "original": "招募所有干员的希望消耗-2",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "下一次招募的援护干员直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3299,12 +3332,12 @@
    "id": 189,
    "name": "罗德岛战术电台",
    "original": "战斗后掉落招募券时，增加一个可选项",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "招募援护干员时多一个选项",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -3334,11 +3367,13 @@
    "id": 191,
    "name": "阿卡胡拉饭碗",
    "original": "回复4目标生命，护盾值+2",
-   "cat": "护盾",
+   "cat": "生存",
    "tier": "B",
    "adapt": "回复 40% 生命，立即补满护盾",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -3458,7 +3493,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】护盾层数上限 +1",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -3475,7 +3512,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】最大生命 -10，护盾层数上限 +2",
    "rarity": "基础",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -3506,7 +3545,9 @@
    "tier": "A",
    "adapt": "【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命",
    "rarity": "核心",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival",
     "shield"
@@ -3538,7 +3579,7 @@
    "adapt": "灯火 -30；灯火低于 30 时技力回复 +40%",
    "rarity": "核心",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "skill",
@@ -3588,13 +3629,10 @@
    "tier": "A",
    "adapt": "每持有 5 源石锭，攻击速度 +3%（上限 +30%）",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
+   "lanes": [],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed",
     "economy"
@@ -3611,13 +3649,10 @@
    "tier": "A",
    "adapt": "每持有 5 源石锭，攻击速度 +5%（上限 +50%）",
    "rarity": "核心",
-   "lanes": [
-    "A"
-   ],
+   "lanes": [],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed",
     "economy"
@@ -3635,7 +3670,7 @@
    "adapt": "每 60 秒在身边掉落一个急救包",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "summon",
@@ -3653,9 +3688,7 @@
    "tier": "B",
    "adapt": "每 20 秒在脚下放一枚地雷",
    "rarity": "稀有",
-   "lanes": [
-    "S"
-   ],
+   "lanes": [],
    "tags": [
     "summon",
     "support"
@@ -3673,7 +3706,7 @@
    "adapt": "每 45 秒召唤一个会冲向敌群自爆的小机器（原创造型）",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "summon",
@@ -3692,7 +3725,7 @@
    "adapt": "每 30 秒吊起一名精英，束缚 3 秒",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "control",
@@ -3712,7 +3745,7 @@
    "adapt": "每 30 秒放下 2 根阻挡敌人的防暴桩",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "summon",
@@ -3731,7 +3764,7 @@
    "adapt": "携带 3 个急救包，生命低于 30% 时自动使用",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "low_hp",
@@ -3801,7 +3834,7 @@
    "adapt": "受击时灯火损失 +10%",
    "rarity": "遭诅古物",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "low_light",
@@ -3821,7 +3854,7 @@
    "adapt": "受击时灯火损失 +15%",
    "rarity": "遭诅古物",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "low_light",
@@ -3841,7 +3874,7 @@
    "adapt": "受击时灯火损失 +25%",
    "rarity": "遭诅古物",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "low_light",
@@ -3960,9 +3993,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical"
    ],
    "first_batch": false,
@@ -3977,7 +4009,9 @@
    "tier": "A",
    "adapt": "仅一次：生命归零时不结束，以 50% 生命复活",
    "rarity": "升华",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [
     "survival"
    ],
@@ -4027,7 +4061,7 @@
    "id": 231,
    "name": "“小格兰法洛”",
    "original": "每次敌人进入保护目标点时，立刻对全场所有敌人造成5秒晕眩",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "受到伤害时，全屏敌人晕眩 5 秒（冷却 30 秒）",
    "rarity": "核心",
@@ -4046,7 +4080,7 @@
    "id": 232,
    "name": "“碎片大厦的回忆”",
    "original": "每次敌人进入保护目标点时，立刻对全场所有敌人造成3000点真实伤害",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）",
    "rarity": "升华",
@@ -4064,7 +4098,7 @@
    "id": 233,
    "name": "“荣耀套餐”",
    "original": "我方单位被击倒时，对周围四格的敌人造成6秒晕眩",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "一次受到超过 10% 最大生命的伤害时，周围敌人晕眩 3 秒",
    "rarity": "核心",
@@ -4084,12 +4118,12 @@
    "id": 234,
    "name": "“岁怒”",
    "original": "每次部署我方单位时，对场上随机一个敌人及其周围造成3000点法术伤害",
-   "cat": "触手与控制",
+   "cat": "追击与控制",
    "tier": "B",
    "adapt": "每次升级时，对随机一名敌人及其周围造成大量法术伤害",
    "rarity": "核心",
    "lanes": [
-    "C"
+    "B"
    ],
    "tags": [
     "arts"
@@ -4146,9 +4180,8 @@
     "A"
    ],
    "tags": [
-    "mizuki_umbrella",
-    "basic_attack",
     "melee",
+    "basic_attack",
     "physical",
     "attack_speed"
    ],
@@ -4246,7 +4279,7 @@
    "adapt": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15（诅咒与收益并存）",
    "rarity": "遭诅古物",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "attack_speed",
@@ -4262,12 +4295,12 @@
    "id": 244,
    "name": "人事部铜印",
    "original": "随机临时招募1名5星干员，且直接就是已进阶的状态",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "立即招募一名随机援护干员，直接 Lv.2",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -4281,12 +4314,12 @@
    "id": 245,
    "name": "博士银印",
    "original": "随机临时招募1名6星干员，且直接就是已进阶的状态",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "立即招募一名随机援护干员，直接 Lv.3",
    "rarity": "基础",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -4306,10 +4339,10 @@
    "rarity": "核心",
    "lanes": [
     "B",
-    "E"
+    "F"
    ],
    "tags": [
-    "mizuki_tentacle",
+    "follow_up",
     "arts",
     "low_light",
     "light"
@@ -4428,7 +4461,7 @@
    "adapt": "每持有一件负面藏品，受到伤害 -8%",
    "rarity": "核心",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "low_light",
@@ -4448,7 +4481,7 @@
    "adapt": "每持有一件负面藏品，攻击速度 +15%",
    "rarity": "升华",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "attack_speed",
@@ -4468,7 +4501,7 @@
    "adapt": "受到伤害 -10%；灯火低于 50 时改为 -35%（原作的「庇护」）",
    "rarity": "核心",
    "lanes": [
-    "E"
+    "F"
    ],
    "tags": [
     "low_light",
@@ -4483,12 +4516,12 @@
    "id": 256,
    "name": "断杖-学识",
    "original": "每拥有一个收藏品，【术师】干员的攻击力+2%，攻击速度+1",
-   "cat": "援护干员·术师",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "每持有一件藏品，术师援护伤害 +2%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "support",
@@ -4502,12 +4535,12 @@
    "id": 257,
    "name": "断杖-智慧之光",
    "original": "每拥有一个收藏品，【术师】干员的攻击力+3%，攻击速度+2",
-   "cat": "援护干员·术师",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "每持有一件藏品，术师援护伤害 +3%，射速 +2%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "attack_speed",
@@ -4522,12 +4555,12 @@
    "id": 258,
    "name": "断杖-破解",
    "original": "场上每有1名【术师】干员，所有敌人的法术抗性-12",
-   "cat": "援护干员·术师",
+   "cat": "攻击与输出",
    "tier": "B",
    "adapt": "有术师援护时，所有敌人受到的法术伤害 +12%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "E"
    ],
    "tags": [
     "arts",
@@ -4542,11 +4575,13 @@
    "id": 259,
    "name": "铁卫-城墙",
    "original": "所有【重装】干员防御力+40%，法术抗性+10",
-   "cat": "不适用",
+   "cat": "生存",
    "tier": "D",
    "adapt": "重装职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -4556,11 +4591,13 @@
    "id": 260,
    "name": "铁卫-高塔",
    "original": "所有【重装】干员防御力+70%，法术抗性+20，受到元素损伤减少60%",
-   "cat": "不适用",
+   "cat": "生存",
    "tier": "D",
    "adapt": "重装职业专属",
    "rarity": "—",
-   "lanes": [],
+   "lanes": [
+    "H"
+   ],
    "tags": [],
    "first_batch": false,
    "boss_only": false,
@@ -4570,12 +4607,12 @@
    "id": 261,
    "name": "生还者合约",
    "original": "战斗开始时，使随机一名干员攻击力和防御力+20%，且每次战斗结束后额外+20%",
-   "cat": "援护干员",
+   "cat": "编队协同",
    "tier": "B",
    "adapt": "随机一名援护干员伤害 +20%，此后每击败一个 Boss 再 +20%",
    "rarity": "稀有",
    "lanes": [
-    "S"
+    "G"
    ],
    "tags": [
     "on_kill",

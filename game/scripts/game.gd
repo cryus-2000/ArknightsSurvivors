@@ -33,7 +33,12 @@ const HIT_BASE := {
 	"藏品": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["dot"]},
 	"地雷": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "物理", "tags": ["area", "detonation"]},
 	"真实": {"emitter": "operator", "origin": "relic", "range": "近战", "kind": "真实", "tags": ["execute"]},
+	"岁怒": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
+	"净尘": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area", "dot"]},
+	"食腐": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
 }
+## 「追击」（docs/35）：带这些标签的伤害吃 followup_dmg 与追击类藏品（追击、余震、殉爆、召唤物）
+const FOLLOWUP_TAGS := ["follow_up", "aftershock", "detonation", "entity"]
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
 	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
@@ -115,6 +120,10 @@ var phys_mult := 1.0             # 物理伤害
 var arts_res := 0.0              # 法术抗性（受到的法术伤害 -x%）
 var dodge_phys := 0.0            # 物理闪避（额外）
 var dodge_arts := 0.0            # 法术闪避（额外）
+var followup_mult := 1.0         # 追击与召唤物伤害（docs/35）
+var heal_mult := 1.0             # 主控干员受到的回复效果
+var corrode_taken_mult := 1.0    # 受到的侵蚀
+var nerve_taken_mult := 1.0      # 神经损伤累积
 var in_type: Array = ["近战", "物理"]   # 当前受到的伤害类型（受击前设置）
 var dmg_type_out: Dictionary = {}     # 造成伤害按类型统计
 var RL: Dictionary = {}          # 藏品表 id -> {name, cat, desc, rarity, ...}（由 relic_fx 从 data/ 读取）
@@ -988,6 +997,13 @@ func _autotest_step() -> void:
 			if o.manual_ready(o.manual_index()):
 				o.cast_manual(o.manual_index())
 				break
+	# --relics=id,id…（仅 --balance）：开局第 20 帧直接获得这些藏品，用来冒烟测试藏品效果（docs/35）
+	if balance and at_frames == 20:
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--relics="):
+				for rid in a.substr(9).split(","):
+					if RL.has(rid):
+						_gain_relic(rid)
 	if balance and OS.get_cmdline_user_args().has("--sptest") and at_frames % 45 == 0:
 		for o in squad.ops:
 			o.fill_sp()
@@ -1424,7 +1440,10 @@ func _update(dt: float) -> void:
 		ppos = map.push_out(ppos, 12.0)
 	swing_face -= dt
 
-	hp = min(max_hp, hp + (regen + regen_pct * max_hp) * dt)
+	var rg: float = (regen + regen_pct * max_hp) * heal_mult * dt
+	if hp + rg > max_hp:
+		rfx.on_overheal(hp + rg - maxf(hp, max_hp))
+	hp = min(max_hp, hp + rg)
 	if lamp <= 0.0:
 		hp -= 3.0 * dt
 		hurt_flash = max(hurt_flash, 0.05)
@@ -1801,8 +1820,7 @@ func _new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var role: String = d.get("role", "")
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
 	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
-	var hk: float = Bal.v("enemy/hp_knee", 480.0)
-	var hpm := (1.0 + minf(t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)) * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
+	var hpm := enemy_hp_time_mult() * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
 	var dmm := (1.0 + (0.15 if diff >= 2 else 0.0) + (0.2 if diff >= 10 else 0.0))
 	var dmg_t := 1.0 + minf(t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
 	next_id += 1
@@ -2182,10 +2200,10 @@ func _enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := 
 	if lamp_loss >= 6.0:
 		_add_text(ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
-		corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0)
+		corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * corrode_taken_mult
 		_add_text(ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
-		_add_nerve(src.nerve)
+		_add_nerve(src.nerve * nerve_taken_mult)
 
 
 func on_dodge() -> void:
@@ -2388,6 +2406,7 @@ const STAT_SYNC := {
 	&"sp_gain": "sp_mult", &"control_dur": "control_mult", &"light_decay": "lamp_decay", &"oil_gain": "oil_mult", &"xp_gain": "xp_mult",
 	&"shop_price": "shop_price_mult", &"ally_dmg": "ally_mult", &"shield_interval": "shield_every",
 	&"enemy_hp": "enemy_hp_mult", &"enemy_dmg": "enemy_dmg_mult",
+	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
 }
 
 
@@ -2419,6 +2438,20 @@ func _lamp_r() -> float:
 
 func _lamp_sp() -> float:
 	return (1.3 if lamp >= 70.0 else 1.0) * rfx.sp_extra()
+
+
+## 这次伤害是否算「追击」（docs/35）
+func is_followup(h: Dictionary) -> bool:
+	for tg in h.tags:
+		if tg in FOLLOWUP_TAGS:
+			return true
+	return false
+
+
+## 敌人生命的时间倍率（不含难度）：藏品的直接伤害按它缩放，保证各时段同样「有感」
+func enemy_hp_time_mult() -> float:
+	var hk: float = Bal.v("enemy/hp_knee", 480.0)
+	return 1.0 + minf(t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)
 
 
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
@@ -2470,6 +2503,9 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		if e.get("aura_weak", 0.0) > 0.0:
 			dmg *= 1.1
 		dmg *= arts_mult if ty[1] == "法术" else phys_mult
+		if is_followup(hit):
+			dmg *= followup_mult * rfx.followup_extra()
+		dmg *= rfx.hit_mult(hit)
 		# Logos「安魂」：受到的法术伤害 +15%
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
 			dmg *= 1.15
@@ -2567,8 +2603,11 @@ func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void
 
 
 func _heal(v: float, src: String = "其他") -> void:
+	v *= heal_mult
 	var got: float = minf(v, maxf(0.0, max_hp - hp))
 	heal_log[src] = float(heal_log.get(src, 0.0)) + got
+	if v > got:
+		rfx.on_overheal(v - got)
 	hp = min(max_hp, hp + v)
 
 
@@ -3891,9 +3930,15 @@ func _deep_cards() -> Array:
 	return out
 
 
-## 可选藏品：已实装、未拥有、满足前置；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
+## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
+## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2）；守护·续航（H）随时间变多（3:00 前 ×0.8 → 9:00 后 ×1.4）
 func _relic_pool_ids(for_shop := false) -> Array:
 	var cands: Array = rfx.db.implemented().filter(func(r): return rfx.can_offer(r, for_shop))
+	var lane_n := {}
+	for rid in relics:
+		for ln in RL.get(rid, {}).get("lanes", []):
+			lane_n[ln] = lane_n.get(ln, 0) + 1
+	var h_w: float = lerpf(Bal.v("relic/h_early", 0.8), Bal.v("relic/h_late", 1.4), clampf((t - 180.0) / 360.0, 0.0, 1.0))
 	var weighted: Array = []
 	for r in cands:
 		var w := 0.0
@@ -3905,9 +3950,13 @@ func _relic_pool_ids(for_shop := false) -> Array:
 			"遭诅古物": w = 8.0 if for_shop else 0.0
 		if w <= 0.0:
 			continue
-		# 7:00 前护盾系更容易出现
-		if t < 420.0 and r.tags.has("shield"):
-			w *= 1.6
+		var best_n := 0
+		for ln in r.lanes:
+			best_n = maxi(best_n, lane_n.get(ln, 0))
+		if best_n > 0:
+			w *= minf(pow(Bal.v("relic/lane_weight", 1.3), best_n), Bal.v("relic/lane_weight_cap", 2.0))
+		if r.lanes.has("H"):
+			w *= h_w
 		# 犹疑 (240)：稀有 / 核心 权重 +30%
 		if rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
 			w *= 1.3

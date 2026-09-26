@@ -32,7 +32,7 @@ var melt_echo: Array = []     # 不毁重构的后续爆炸：{t, pos, r, dmg}
 
 
 func _heal_mult() -> float:
-	return stat(&"op_atk") * g.ally_mult * (1.5 if elite >= 1 else 1.0)
+	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out") * (1.5 if elite >= 1 else 1.0)
 
 
 func _boosted() -> bool:

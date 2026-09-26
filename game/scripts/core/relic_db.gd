@@ -26,10 +26,11 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		var e: Dictionary = effects.get(id, {})
 		items[id] = {
 			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": e.get("rarity", r.rarity),
-			"tags": e.get("tags", r.tags), "lanes": r.lanes, "tier": r.tier,
+			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),
 			"requirements": e.get("requires", []), "conflicts": e.get("conflicts", []),
+			"requires_class": e.get("requires_class", []),
 			"price_class": e.get("price_class", r.rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),

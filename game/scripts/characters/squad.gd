@@ -82,6 +82,8 @@ func add(cid: String):
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
+	if g.get("rfx") != null:
+		g.rfx.refresh_squad()
 	return op
 
 
@@ -97,6 +99,8 @@ func remove(cid: String) -> void:
 		ops[i].slot = i
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
+	if g.get("rfx") != null:
+		g.rfx.refresh_squad()
 
 
 func _slot_offset(i: int) -> Vector2:

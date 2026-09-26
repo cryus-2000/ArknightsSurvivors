@@ -250,7 +250,7 @@ func spend_sp(i: int) -> void:
 	if skill_def(i).get("permanent", false):
 		perm[i] = true
 		sp[i] = sp_need(i)
-	g.rfx.on_skill_start()
+	g.rfx.on_skill_start(self, i)
 
 
 ## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能
@@ -499,9 +499,17 @@ func stat_defs() -> Dictionary:
 	return {}
 
 
-## 本干员命中的作用域（docs/23 §5）
+## 近战职业（其余为远程）：藏品「近战干员 / 远程干员」按职业判定（docs/35）
+const MELEE_CLASSES := ["近卫", "重装", "先锋", "特种"]
+
+
+func range_cls() -> String:
+	return "近战" if cls in MELEE_CLASSES else "远程"
+
+
+## 本干员命中的作用域（docs/23 §5）；range:近战 / range:远程 给按近远生效的藏品用（docs/35）
 func scopes() -> Array:
-	return ["class:" + cls, "op:" + id]
+	return ["class:" + cls, "range:" + range_cls(), "op:" + id]
 
 
 ## 干员视角的属性值：全局修正 + 职业 / 本人作用域的修正

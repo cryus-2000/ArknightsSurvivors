@@ -37,7 +37,7 @@ const BOLT_MAX := 12           # 同时存在的光弹上限
 
 
 func _heal_mult() -> float:
-	return stat(&"op_atk") * g.ally_mult
+	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out")
 
 
 # ---------------------------------------------------------------- 每帧
