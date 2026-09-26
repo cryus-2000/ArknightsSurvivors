@@ -36,6 +36,8 @@ var dist_moved := 0.0
 var last_pos := Vector2.ZERO
 var still_s := 0.0              # 站着不动的累计秒数
 var lv_marks := {}              # 2:00 / 5:00 / 8:00 时的等级（玩家局用；平衡局沿用 autotest 自己的）
+var peak: Array = [0, 0, 0, 0, 0]   # 同屏数量峰值：敌人 / 敌方弹幕（含抛射物）/ 我方子弹 / 特效 / 飘字（后期画面优化的量化，2026-09-27）
+var peak_min: Array = []            # 每分钟的峰值，同上 5 项；peak_min[i] 为第 i 分钟
 # ---- 本地保存
 var saved := false
 var build: Dictionary = {}
@@ -101,11 +103,33 @@ func tick(dt: float) -> void:
 	for m in [120, 300, 480]:
 		if t >= m and not lv_marks.has(m):
 			lv_marks[m] = g.level
+	var mi := int(t / 60.0)
+	while peak_min.size() <= mi:
+		peak_min.append([0, 0, 0, 0, 0])
+	var now := [g.enemies.size(), g.ebullets.size() + g.lobs.size(), g.bullets.size(), g.fx.size(), g.texts.size()]
+	for i in 5:
+		peak[i] = maxi(peak[i], now[i])
+		peak_min[mi][i] = maxi(peak_min[mi][i], now[i])
 	if t >= sample_next:
 		sample_next += SAMPLE_EVERY
 		curve.append({"t": int(t), "hp": int(100.0 * g.hp / maxf(1.0, g.max_hp)), "lamp": int(g.lamp), "lv": g.level,
-			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size()})
+			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size(),
+			"zone": g.zone_state, "boss": int(_boss_alive())})
 		taken_window = 0.0
+
+
+func _boss_alive() -> bool:
+	for b in g.bosses:
+		if not b.dead:
+			return true
+	return false
+
+
+## 结束时的局面（死因 × 缩圈阶段 × Boss 在场；A/B 缩圈规则用，2026-09-27）
+func end_ctx() -> Dictionary:
+	var out: float = g.ppos.distance_to(g.zone_c) - g.zone_r
+	return {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
+		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp)}
 
 
 ## 整局指标块（记录里的 "bot" 字段：名字沿用平衡工具的历史叫法，玩家局 profile = "player"）
@@ -114,7 +138,8 @@ func metrics(profile: String) -> Dictionary:
 	return {"profile": profile, "hits": hits, "hits_pm": snappedf(hits / t * 60.0, 0.1), "taken": int(taken_last),
 		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
-		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve}
+		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve,
+		"peak": peak, "peak_min": peak_min, "end": end_ctx()}
 
 
 ## 整局记录（平衡测试打印的 BALANCE 同一份；字段改名 / 删除要同步 tools/balance_run.py 与 SCHEMA）
