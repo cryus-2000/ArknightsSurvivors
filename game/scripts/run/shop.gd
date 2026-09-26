@@ -57,7 +57,7 @@ func price(kind: String) -> int:
 
 func roll() -> void:
 	g.shop_items.clear()
-	var pool: Array = g._relic_pool_ids(true)
+	var pool: Array = g.progression.relic_pool_ids(true)
 	for i in min(3, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
 		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], g.shop_price_mult), "sold": false})
@@ -96,7 +96,7 @@ func buy(i: int) -> void:
 		g.merchant["bought"] = true
 	match it.kind:
 		"relic":
-			g._gain_relic(it.id)
+			g.progression.gain_relic(it.id)
 		"heal":
 			g._heal(g.max_hp * 0.4, "拾取")
 		"oil":

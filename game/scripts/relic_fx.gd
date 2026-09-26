@@ -243,7 +243,7 @@ func _advance_target(cls: String):
 
 ## 博士银印：招募一名随机干员并直接推进到精一；编队已满时全队各推进 1 个节点
 func _silver_seal() -> void:
-	var cards: Array = g._recruit_cards()
+	var cards: Array = g.progression.recruit_cards()
 	if not cards.is_empty():
 		var c: Dictionary = cards[g.rng.randi() % cards.size()]
 		var o = g.squad.add(c.id)

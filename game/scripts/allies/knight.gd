@@ -67,7 +67,7 @@ func leave() -> void:
 	g._show_banner("骑士无法接受海嗣的气息 —— 他离开了")
 	g._sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
 	if not g.relics.has("223"):
-		g._gain_relic("223")
+		g.progression.gain_relic("223")
 
 
 ## 道中阵亡：退行为罗辛南特
@@ -87,7 +87,7 @@ func die() -> void:
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = false
 	if not g.relics.has("223"):
-		g._gain_relic("223")
+		g.progression.gain_relic("223")
 
 
 ## 终局：走向黑潮中心（9:45 起）

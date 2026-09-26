@@ -121,7 +121,7 @@ func pick(o: Dictionary) -> void:
 				g.lamp = clampf(g.lamp + float(x.light), 10.0, g.lamp_cap) if float(x.light) < 0.0 else minf(g.lamp_cap, g.lamp + float(x.light))
 				g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(x.light), Color(1.0, 0.8, 0.45), 16)
 			if x.has("relic"):
-				g._gain_relic(str(x.relic))
+				g.progression.gain_relic(str(x.relic))
 			if x.has("relic_choice"):
 				g.pending_chests += int(x.relic_choice)
 			if x.has("ingots"):

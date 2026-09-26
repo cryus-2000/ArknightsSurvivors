@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Progression = preload("res://scripts/run/progression.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
@@ -69,6 +70,7 @@ var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
+var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -300,7 +302,6 @@ var shake := 0.0
 var cam_kick := Vector2.ZERO
 var hurt_vignette := 0.0
 var tab_hint := 0.0          # 首次升级后再提醒一次 Tab
-var tab_hinted := false
 var tab_used := false
 var hp_trail := 100.0        # 血条上的「被扣掉」残影
 var hp_shake := 0.0
@@ -969,7 +970,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_3:
 		var i: int = k - KEY_1
 		if i < choices.size():
-			_pick(i)
+			progression.pick(i)
 
 
 ## 方向键 / 手柄导航：选卡与商店左右切换焦点、Enter 确认；暂停 / 结算按钮左右（上下）切换、Enter 执行。返回是否已处理
@@ -992,7 +993,7 @@ func _nav_key(k: int) -> bool:
 		if enter:
 			nav_sel = clampi(nav_sel, 0, n - 1)
 			if state == S.CHOICE:
-				_pick(nav_sel)
+				progression.pick(nav_sel)
 			else:
 				shop_sys.buy(nav_sel)
 			return true
@@ -1175,9 +1176,9 @@ func _check_pending() -> void:
 		_open_show(show_queue.pop_front())
 		return
 	if pending_chests > 0:
-		_open_relic_choice()
+		progression.open_relic_choice()
 	elif pending_levelups > 0 and lvup_delay <= 0.0:
-		_open_levelup()
+		progression.open_levelup()
 
 
 # =====================================================================
@@ -2640,7 +2641,7 @@ func _show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		card.draw.connect((_draw_event_bar if ev else _draw_card).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		card.pressed.connect(_pick.bind(i))
+		card.pressed.connect(progression.pick.bind(i))
 		var desc := Label.new()
 		desc.text = UI.soft(o.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -3048,236 +3049,6 @@ func _load_op_tex(cid: String) -> void:
 			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 			if tex.get(tn) == null:
 				tex[tn] = A.tex(tn)
-
-
-## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
-func _recruit_cards() -> Array:
-	var opts: Array = []
-	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
-	if squad.is_full() or (balance and OS.get_cmdline_user_args().has("--norecruit")):
-		return opts
-	for cid in Character.list_ids():
-		if squad.has(cid):
-			continue
-		var d: Dictionary = Character.load_def(cid)
-		if not d.get("recruitable", true):
-			continue
-		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")), "cls": d.get("class", "")})
-	return opts
-
-
-func _open_recruit() -> bool:
-	var opts := _recruit_cards()
-	if opts.is_empty():
-		return false
-	_shuffle(opts)
-	_show_choices("招募干员", opts.slice(0, 3), "level")
-	return true
-
-
-func _open_levelup() -> void:
-	var want: int = 3 + rfx.rule("four_choices")
-	var picks: Array = []
-	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
-	var recruit: Array = _recruit_cards()
-	var must_recruit: bool = not recruit.is_empty() and ((level >= Bal.vi("levelup/force_recruit_level_1", 6) and squad.size() <= 1) or (level >= Bal.vi("levelup/force_recruit_level_3", 12) and squad.size() < Squad.REGULAR_MAX))
-	if must_recruit:
-		_shuffle(recruit)
-		_show_choices("招募干员", recruit.slice(0, want), "level")
-		return
-	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
-	var deep: Array = []
-	for o in squad.ops:
-		if level <= 4 and o != ch:
-			continue
-		for c in o.deep_cards():
-			if c.kind == "prog" and not c.get("avail", true):
-				continue
-			deep.append(c)
-	_shuffle(deep)
-	if not deep.is_empty():
-		picks.append(deep[0])
-		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
-		if squad.size() >= 2 and rng.randf() < Bal.v("levelup/second_deep_chance", 0.5):
-			for rc in deep.slice(1):
-				if rc.get("op", "") != deep[0].get("op", ""):
-					picks.append(rc)
-					break
-	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
-	if level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and rng.randf() < Bal.v("levelup/recruit_chance", 0.45):
-		picks.append(recruit[rng.randi() % recruit.size()])
-	# ---- 博士被动 / 全队被动：种类各上限 4
-	var passives: Array = doctor.passive_cards("doctor") + doctor.passive_cards("squad")
-	# 医疗无人机升级（保底治疗）：和被动卡同池的常规选项，没满级就一直在池里（用户决定，2026-09-25）
-	var wl: int = weapons.get("drone", 0)
-	if wl < 5:
-		var W: Dictionary = D.WEAPONS.drone
-		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
-	_shuffle(passives)
-	for c in passives:
-		if picks.size() >= want:
-			break
-		picks.append(c)
-	# ---- 深度卡补位，再不够用填充卡
-	var di := 1
-	while picks.size() < want and di < deep.size():
-		if not picks.has(deep[di]):
-			picks.append(deep[di])
-		di += 1
-	var fillers: Array = doctor.filler_cards()
-	_shuffle(fillers)
-	var fi := 0
-	while picks.size() < want and fi < fillers.size():
-		picks.append(fillers[fi])
-		fi += 1
-	_shuffle(picks)
-	for c in picks.slice(0, want):
-		if c.kind == "prog":
-			dbg_offer[c.op] = dbg_offer.get(c.op, 0) + 1
-	_show_choices("升级！ Lv.%d" % level, picks.slice(0, want), "level")
-
-
-## 成长项定义：博士 / 全队被动（doctor.PASSIVES）
-func _growth_def(gid: String) -> Dictionary:
-	if doctor.PASSIVES.has(gid):
-		return doctor.PASSIVES[gid]
-	return {"name": gid, "desc": "", "max": 1}
-
-
-## 全队的干员深度卡：每个干员的下一个成长节点（条件未满足的精英化卡不出）+ 子类追加卡
-func _deep_cards() -> Array:
-	var out: Array = []
-	for o in squad.ops:
-		for c in o.deep_cards():
-			if c.kind == "prog" and not c.get("avail", true):
-				continue
-			out.append(c)
-	return out
-
-
-## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
-## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
-## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
-func _relic_pool_ids(for_shop := false) -> Array:
-	var cands: Array = rfx.db.implemented().filter(func(r): return rfx.can_offer(r, for_shop))
-	var lane_n := {}
-	for rid in relics:
-		for ln in RL.get(rid, {}).get("lanes", []):
-			if ln != "H":
-				lane_n[ln] = lane_n.get(ln, 0) + 1
-	var h_w: float = lerpf(Bal.v("relic/h_early", 0.7), Bal.v("relic/h_late", 1.0), clampf((t - 180.0) / 360.0, 0.0, 1.0))
-	var weighted: Array = []
-	for r in cands:
-		var w := 0.0
-		match r.rarity:
-			"基础": w = 60.0
-			"稀有": w = 26.0
-			"核心": w = 12.0
-			"升华": w = 3.0 if t > 420.0 else 0.0
-			"遭诅古物": w = 8.0 if for_shop else 0.0
-		if w <= 0.0:
-			continue
-		var best_n := 0
-		for ln in r.lanes:
-			best_n = maxi(best_n, lane_n.get(ln, 0))
-		if best_n > 0:
-			w *= minf(pow(Bal.v("relic/lane_weight", 1.3), best_n), Bal.v("relic/lane_weight_cap", 2.0))
-		if r.lanes.has("H"):
-			w *= h_w
-		# 犹疑 (240)：稀有 / 核心 权重 +30%
-		if rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
-			w *= 1.3
-		# 已拥有的藏品升级：出现率减半
-		if relics.has(r.id):
-			w *= 0.5
-		weighted.append([-log(rng.randf() + 0.0001) / w, r.id])
-	weighted.sort_custom(func(a, b): return a[0] < b[0])
-	return weighted.map(func(x): return x[1])
-
-
-func _open_relic_choice() -> void:
-	var pool: Array = []
-	for rid in _relic_pool_ids():
-		var r: Dictionary = RL[rid]
-		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, rfx.display_name(rid)], "desc": rfx.display_desc(rid)})
-	if pool.is_empty():
-		pending_chests = 0
-		ingots += 12
-		_add_text(ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +12", UI.GOLD, 16)
-		return
-	var shown: Array = pool.slice(0, 3 + rfx.rule("four_choices"))
-	if balance:
-		dbg_relic_offer.append([int(t), "choice", shown.map(func(c): return c.id)])
-	_show_choices("获得藏品", shown, "relic")
-
-
-func _pick(i: int) -> void:
-	if state != S.CHOICE or i >= choices.size():
-		return
-	var o: Dictionary = choices[i]
-	match o.kind:
-		"event":
-			endg.pick(o)
-		"growth":
-			growth[o.id] = growth.get(o.id, 0) + 1
-			if not doctor.apply_passive(o.id):
-				var gop = squad.get_op(o.get("op", ch.id))
-				if gop != null:
-					gop._apply_growth(o.id)
-		"filler":
-			doctor.apply_filler(o.id)
-		"prog":
-			dbg_pick[o.op] = dbg_pick.get(o.op, 0) + 1
-			var pop = squad.get_op(o.op)
-			if pop != null:
-				pop.advance(o.get("choice", ""))
-				fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
-				if o.get("elite", 0) > 0:
-					_show_banner("%s 精英化%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
-		"recruit":
-			var nop = squad.add(o.id)
-			if nop != null:
-				_show_banner("「%s」加入编队" % nop.display_name())
-				fx.append({"kind": "ring", "pos": ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
-		"relic":
-			_gain_relic(o.id)
-		"weapon":
-			weapons[o.id] = o.wlv
-			var W: Dictionary = D.WEAPONS[o.id]
-			_show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
-			fx.append({"kind": "ring", "pos": ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
-	if choice_kind == "relic":
-		pending_chests -= 1
-	else:
-		pending_levelups -= 1
-	panel.visible = false
-	Sfx.play("ui_ok", -4.0)
-	state = S.PLAY
-	if not tab_hinted and not tab_used:
-		tab_hinted = true
-		tab_hint = 6.0
-	_check_pending()
-
-
-func _apply_relic(id: String) -> void:
-	rfx.apply(id)
-	if not Cfg.seen_relics.has(id):
-		Cfg.seen_relics.append(id)
-		Cfg.save()
-
-
-## 获得藏品的唯一入口：登记、生效、重算结局
-func _gain_relic(id: String) -> void:
-	if balance:
-		dbg_relic_take.append([int(t), id, squad.ops.map(func(o): return o.cls)])
-	if not relics.has(id):
-		relics.append(id)
-	_apply_relic(id)
-	if id == "222" and not knight.alive and not knight.fallen:
-		knight.spawn()
-	elif id == "221" and knight.alive:
-		knight.leave()
-	endg.on_relic(id)
 
 
 # =====================================================================
@@ -5150,7 +4921,7 @@ func _draw_stats(vs: Vector2) -> void:
 		if gt != null:
 			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(32, 32)), false)
 		else:
-			UI.text(hud, font, gc + Vector2(0, 26), _growth_def(gid).name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
+			UI.text(hud, font, gc + Vector2(0, 26), progression.growth_def(gid).name.substr(0, 1), 16, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 38)
 		UI.text(hud, font, gc + Vector2(20, 37), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		stats_cells.append([Rect2(gc, Vector2(38, 38)), "growth", gid])
 		gi += 1
@@ -5191,7 +4962,7 @@ func _draw_stats(vs: Vector2) -> void:
 			var rd2: Dictionary = RL[cellinfo[2]]
 			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
 		else:
-			var gd: Dictionary = _growth_def(cellinfo[2])
+			var gd: Dictionary = progression.growth_def(cellinfo[2])
 			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
 		break
 

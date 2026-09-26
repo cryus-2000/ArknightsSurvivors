@@ -117,7 +117,7 @@ func step() -> void:
 			g.weapons = {"drone": 4}
 			for rid in ["118", "199", "100"]:
 				g.relics.append(rid)
-				g._apply_relic(rid)
+				g.progression.apply_relic(rid)
 			g.shield = 2
 			g.ch.elite = 2
 			g.ch.fill_sp()
@@ -177,7 +177,7 @@ func step() -> void:
 		for a in OS.get_cmdline_user_args():
 			if a.begins_with("--grant="):
 				for rid in a.substr(8).split(","):
-					g._gain_relic(rid)
+					g.progression.gain_relic(rid)
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.balance and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
@@ -196,7 +196,7 @@ func step() -> void:
 				var ids: Array = g.RL.keys() if want == "all" else Array(want.split(","))
 				for rid in ids:
 					if g.RL.has(rid):
-						g._gain_relic(rid)
+						g.progression.gain_relic(rid)
 		if OS.get_cmdline_user_args().has("--maxprog"):
 			for o in g.squad.ops:
 				var guard := 0
@@ -231,7 +231,7 @@ func step() -> void:
 							var kv: PackedStringArray = part.split(":")
 							if kv.size() == 2 and (kv[0] == evid or kv[0] == "default") and (kv[0] != "default" or not spec.contains(evid + ":")):
 								pi = mini(int(kv[1]), g.choices.size() - 1)
-			g._pick(pi)
+			g.progression.pick(pi)
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (g.state == g.S.DEAD or g.state == g.S.WIN or g.t > g.bal_maxt) and not bal_done:
 			bal_done = true
@@ -310,9 +310,9 @@ func step() -> void:
 				if g.choices[ci].kind == "prog":
 					deep.append(ci)
 			if not deep.is_empty() and g.rng.randf() < 0.7:
-				g._pick(deep[g.rng.randi() % deep.size()])
+				g.progression.pick(deep[g.rng.randi() % deep.size()])
 			else:
-				g._pick(g.rng.randi() % g.choices.size())
+				g.progression.pick(g.rng.randi() % g.choices.size())
 	if g.at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:
