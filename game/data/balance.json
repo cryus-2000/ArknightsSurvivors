@@ -184,7 +184,7 @@
   "hp_mid": 1.3,
   "hp_final": 2.5,
   "hp_x_path": 1.6,
-  "hp_x_paranoia": 1.4,
+  "hp_x_paranoia": 1.6,
   "hp_x_knight_boss": 3.0,
   "hit_cap_pct": 0.04
  }
