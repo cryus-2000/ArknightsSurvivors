@@ -949,13 +949,20 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 ## 目标带滞回（现目标死亡或超出 leash × 1.3 才换），已经够得着时原地不动，避免在两个目标 / 两侧之间来回抖。
 var melee_tgt = null
 
+const GUARD_MARGIN := 50.0
+
 func melee_spot(leash: float, gap: float) -> Vector2:
 	if g.demo_op != "":
 		leash *= 2.0   # 图鉴演示：场地里全是靶子，近战放宽前压范围，一直追着怪海打
 	var e = melee_tgt
+	var near: Array = nearest_enemies(1, leash, g.ppos)
+	var n0 = near[0] if not near.is_empty() else null
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > leash * 1.3:
-		var ts: Array = nearest_enemies(1, leash, g.ppos)
-		e = ts[0] if not ts.is_empty() else null
+		e = n0
+		melee_tgt = e
+	elif n0 != null and not is_same(n0, e) and n0.pos.distance_to(g.ppos) + GUARD_MARGIN < e.pos.distance_to(g.ppos):
+		# 护主（2026-09-27 range-melee r2）：主控身边出现明显更近的怪就换过去，不再死追远处的目标
+		e = n0
 		melee_tgt = e
 	if e == null:
 		return Vector2.INF

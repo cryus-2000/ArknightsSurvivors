@@ -13,7 +13,7 @@ extends "res://scripts/characters/character.gd"
 const PINK := Color(0.95, 0.6, 0.8)
 const SILVER := Color(0.9, 0.92, 1.0)
 const LAMP := Color(1.0, 0.85, 0.5)
-const LEASH := 170.0
+const LEASH := 200.0   # 2026-09-27 近战前压（r1 的 260 让队友离开主控、主控身边空了，改 200 + 护主换目标；原 170.0）
 
 var cd := 0.4
 var second_t := -1.0          # 第二刺倒计时
