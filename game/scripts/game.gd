@@ -644,7 +644,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = 0.066 if balance else 0.05
-	if hitstop > 0.0 and not autotest and Cfg.hitstop:
+	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
+	if hitstop > 0.0 and not autotest and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:
 		_update(dt)
@@ -1146,6 +1147,8 @@ const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但
 const DOC_BEHIND := Vector2(-40, 30)
 var doc_pos := Vector2.INF
 var doc_moving := false
+var doc_still_t := 0.0           # 博士连续「几乎没动」的时间：超过 DOC_STOP_T 才切站立（走停滞后，免得跑 / 站帧条一闪一闪）
+const DOC_STOP_T := 0.15
 var doc_face := 1.0
 
 
@@ -1167,7 +1170,14 @@ func _update_doc_follow(dt: float) -> void:
 	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
 	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
 	doc_pos += mv
-	doc_moving = mv.length() > 20.0 * dt
+	# 走停滞后：起步要够快（> 30 像素 / 秒）；停下要连续慢（< 20）DOC_STOP_T 秒
+	var spd: float = mv.length() / maxf(dt, 0.0001)
+	if doc_moving:
+		doc_still_t = doc_still_t + dt if spd < 20.0 else 0.0
+		doc_moving = doc_still_t < DOC_STOP_T
+	else:
+		doc_moving = spd > 30.0
+		doc_still_t = 0.0
 	if absf(mv.x) > 6.0 * dt:
 		doc_face = signf(mv.x)
 	elif not doc_moving:

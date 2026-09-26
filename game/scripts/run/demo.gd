@@ -1,5 +1,5 @@
 extends RefCounted
-## 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）：分段轮播技能、刷怪海、主控走走停停。
+## 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）：分段轮播技能、刷怪海、主控冲向怪群出手。
 ## 演示状态（demo_op / demo_stage / demo_label …）仍在 game.gd，图鉴直接读。2026-09-26 从 game.gd 拆出。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -18,13 +18,13 @@ const DEMO_MAX := 14.0
 const DEMO_MAX_LINGER := 27.0    # 留场表现中的上限（幽灵鲨：S2 10 秒 + 替身 12 秒 + 起手）
 var demo_ph_t := 0.0
 var demo_cast_t := -1.0          # 本段技能放出后经过的秒数（-1 = 还没放）
-## 走位（见 wander）：当前要走去的点（INF = 站着）、还要站多久
-var walk_to := Vector2.INF
-var stand_t := 0.0
-const WALK_X := Vector2(-45.0, 65.0)    # 落脚点：出发点左 45 到右 65（再往左贴画面边）、上下 ±48（演示画面是固定机位）
-const WALK_Y := 48.0
-const WALK_MIN_GAP := 105.0              # 落脚点离最近的怪至少这么远；怪贴到 WALK_BACK 以内就先往后退
-const WALK_BACK := 62.0
+## 走位（见 wander）：是否正在走向怪
+var charging := false
+var charge_t := 0.0              # 这次起步后走了多久：至少走 WALK_MIN_T 才允许停（不走一帧就停）
+const WALK_MIN_T := 0.3
+const WALK_MV := 0.7             # 摇杆量（匀速）
+const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
+const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
 
 
 func _init(game: Game) -> void:
@@ -42,7 +42,6 @@ func step(dt: float) -> void:
 		next_phase()
 	var si: int = g.demo_phases[g.demo_pi]
 	demo_ph_t += dt
-	_walk_plan(dt)
 	if g.demo_basic:
 		# 三联对照：只看普攻，技能全部压住；怪少了就补
 		for i in 3:
@@ -86,60 +85,40 @@ func step(dt: float) -> void:
 		horde(10)
 
 
-## 演示走位（2026-09-26 用户要求：像对局里一样走，不要固定绕圈）：走走停停——站 0.6–1.6 秒，再走到附近一个
-## 随机落脚点（出发点附近 WALK_X × WALK_Y 内、离怪至少 WALK_MIN_GAP），走到就停；怪贴脸（WALK_BACK 以内）时先往后退一步，
-## 和机器人躲贴身敌人一个思路。返回摇杆量（≤0.6），朝向 / 走路动画 / 队友跟随都走对局的同一套逻辑
+## 演示走位（2026-09-26 用户定的简单方案，替代「走走停停 + 后退 + 保持间距」：那几条规则互相打架，主控来回抽）：
+## 主控朝身前最近的怪直走过去，进出手距离就停下出手；那只死了 / 被打飞到 WALK_SLACK 以外再走向下一只。不后退、不绕。
+## 出手距离：近战 = 贴身（怪半径 + 40），远程 = JSON range 的 0.7（至多 230，开场多半已经够得着，站着打）。
+## 只挑身前（右边、不比主控靠左 20 以上）的怪，怪一直在主控右边，出手时就不会左右翻身；朝向照常跟移动方向
 func wander() -> Vector2:
-	if g.demo_origin == Vector2.INF:
+	if g.demo_origin == Vector2.INF or g.ch == null:
 		return Vector2.ZERO
-	var push := Vector2.ZERO
+	var best: Dictionary = {}
+	var bd := 99999.0
 	for e in g.enemies:
-		if e.dead:
+		if e.dead or e.pos.x < g.ppos.x - 20.0:
 			continue
-		var d: Vector2 = g.ppos - e.pos
-		var l: float = d.length()
-		if l < WALK_BACK and l > 0.01:
-			push += d / l * (WALK_BACK - l) / WALK_BACK
-	if push != Vector2.ZERO:
-		walk_to = Vector2.INF
-		return push.normalized() * 0.6
-	if walk_to == Vector2.INF:
+		var d: float = g.ppos.distance_to(e.pos)
+		if d < bd:
+			bd = d
+			best = e
+	if best.is_empty():
+		charging = false
 		return Vector2.ZERO
-	var dv: Vector2 = walk_to - g.ppos
-	if dv.length() < 6.0:
-		walk_to = Vector2.INF
-		stand_t = g.rng.randf_range(0.6, 1.6)
+	var stop: float = best.r + 40.0 if g.ch.range_cls() == "近战" else minf(float(g.ch.def.get("range", 260.0)) * 0.7, 230.0)
+	if charging:
+		charge_t += g.get_process_delta_time()
+		charging = bd > stop or (charge_t < WALK_MIN_T and bd > best.r + 24.0)
+	elif bd > stop + WALK_SLACK:
+		charging = true
+		charge_t = 0.0
+	if not charging:
 		return Vector2.ZERO
-	return (dv / maxf(g.speed * 0.25, 1.0)).limit_length(0.6)
-
-
-## 每帧：站够了就挑下一个落脚点（试几次，挑离怪最远的那个）
-func _walk_plan(dt: float) -> void:
-	if walk_to != Vector2.INF:
-		return
-	stand_t -= dt
-	if stand_t > 0.0:
-		return
-	var home: Vector2 = g.demo_origin + Vector2(-150, 10)
-	var best := Vector2.INF
-	var best_gap := -1.0
-	for k in 6:
-		var p: Vector2 = home + Vector2(g.rng.randf_range(WALK_X.x, WALK_X.y), g.rng.randf_range(-WALK_Y, WALK_Y))
-		if p.distance_to(g.ppos) < 30.0:
-			continue   # 太近的挪一小步看不出在走
-		var gap := 99999.0
-		for e in g.enemies:
-			if not e.dead:
-				gap = minf(gap, p.distance_to(e.pos))
-		if gap >= WALK_MIN_GAP:
-			best = p
-			break
-		if gap > best_gap:
-			best_gap = gap
-			best = p
-	walk_to = best
-	if walk_to == Vector2.INF:
-		stand_t = 0.3
+	var dv: Vector2 = best.pos - g.ppos
+	if g.ppos.x > g.demo_origin.x + WALK_MAX_X and dv.x > 0.0:
+		dv.x = 0.0
+	if dv.length() < 1.0:
+		return Vector2.ZERO
+	return dv.normalized() * WALK_MV
 
 
 ## 图鉴手动切换（gallery.gd 点击调用）：stage 0 精零（N1 N2 后）/ 1 精一（N5 后）/ 2 精二；
@@ -168,10 +147,21 @@ func next_phase() -> void:
 	g.demo_pi = (g.demo_pi + 1) % g.demo_phases.size()
 	demo_ph_t = 0.0
 	demo_cast_t = -1.0
-	walk_to = Vector2.INF
-	stand_t = 1.0   # 开场先站着普攻一会儿
+	charging = false
+	# 每段从干净的场地开始，不继承上一段的任何东西（用户要求）：怪、弹幕、特效、飘字、预警、溟痕、掉落、博士位置、朝向
 	g.enemies.clear()
 	g.bullets.clear()
+	g.ebullets.clear()
+	g.lobs.clear()
+	g.shocks.clear()
+	g.warns.clear()
+	g.mires.clear()
+	g.gems.clear()
+	g.fx.clear()
+	g.texts.clear()
+	g.hitstop = 0.0
+	g.dash_t = 0.0
+	g.doc_pos = Vector2.INF
 	g.ppos = g.demo_origin + Vector2(-150, 10)
 	new_op()
 	horde(DEMO_HORDE)
