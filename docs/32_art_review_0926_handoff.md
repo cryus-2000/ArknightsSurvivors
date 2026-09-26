@@ -50,7 +50,7 @@ Saria/Siege/Skadi/Kaltsit 四条新增动作的最后一帧复用各自 idle f0�
 - `art_review_0926_ground_qa.json`：110 张地面素材 / 578 帧，检查尺寸、帧数、二值 alpha、描边、画框留白、精确脚底、色数、逐帧非重复、事件索引及 SHA256。
 - `art_review_0926_float_qa.json`：8 张 Mon3tr / 40 帧，同样检查，因其悬浮只跳过“可见底端等于地面锚点”。
 - `art_review_0926_style_qa.json`：118 张全部检查；人形高清两层外缘均为描边色，暗洋红残留为零；灯塔灯室外变化像素为零。
-- `art_review_0926_outline_compare.png`：第四批旧/新待机横向对照；`art_review_0926_<角色>.png`：角色全动作预览。
+- `art_review_0926_outline_compare_preview.png`：第四批旧/新待机横向对照；`art_review_0926_<角色>_preview.png`：角色全动作预览。（合入 main 时由 Claude 加了 `_preview` 后缀，让桌面 / 网页导出的排除规则跳过这些对照图，不打进游戏包。）
 - `art_review_0926_preview.html`：离线自包含预览，支持两种密度、播放/暂停/逐帧、背景颜色与锚点显示。
 - `art_review_0926_provenance.json`：内置 image_gen 提示词、源图路径和哈希、机械导出脚本哈希。原始高分辨率生成稿和脚本保留本机 `E:/水月/squad_review_20260926/`，不作为运行资源入库。
 
