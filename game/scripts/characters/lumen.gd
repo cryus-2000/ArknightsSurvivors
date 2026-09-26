@@ -22,6 +22,8 @@ var mote_t := 0.0
 # ---- 可见成长（docs/25 §5：只长发光单元；原作依据 档案「灯塔工程师之子、自制发光单元」/ 原作技能 沐雨、灯火不灭）
 var units := 0                 # N1 / N2：身边漂浮的发光单元数（0–2）
 var unit_cd: Array = [0.5, 1.2]   # 每个单元自己的射击计时（错开出手）
+var unit_fire: Array = [-9.0, -9.0]   # 每个单元上次开火的时刻（g.t），帧条开火帧显示约 83ms
+var unit_fdir: Array = [1.0, 1.0]     # 上次开火的左右朝向（开火帧闪光朝右画，朝左时镜像）
 var rain_on := false           # N4「沐雨」：净化之光时发光单元洒下光雨
 var rain_t := 0.0
 var rain_tick := 0.0
@@ -302,6 +304,8 @@ func _update_units(dt: float) -> void:
 					empowered = int(base("charge_shots", 8.0))
 					fx({"kind": "ring", "pos": pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": WARM})
 					fx_sparks(pos + Vector2(0, -94), WARM, 8, 120.0, 0.4, 2.0)
+		unit_fire[k] = g.t
+		unit_fdir[k] = -1.0 if d.x < 0.0 else 1.0
 		bolts.append({"pos": up, "vel": d * (340.0 if big else 400.0), "dmg": dmg, "life": 1.4, "src": "发光单元", "big": big,
 			"heal": g.max_hp * base("charge_heal", 0.005) if big else 0.0})
 		fx({"kind": "glow", "pos": up, "r": 12.0 if big else 8.0, "life": 0.2, "col": WARM, "alpha": 0.6})
@@ -394,11 +398,19 @@ func _draw_skill_over() -> void:
 func _draw_units() -> void:
 	if units <= 0 or pos == Vector2.INF:
 		return
+	# Codex 成长线帧条 fx_lumen_unit（12×14、5 帧、中心锚点）：0–3 灯芯 6fps 循环，4 开火帧（刚开火后约 83ms，闪光朝右，朝左开火时镜像）；
+	# 强化待发时整体提亮。背后的暖光晕保留；缺图退回下面的程序小灯
+	var utx: Texture2D = A.tex("fx_lumen_unit")
 	for k in units:
 		var p: Vector2 = _unit_pos(k)
 		var hot: bool = empowered > 0
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0 + k * 2.0)
 		g.draw_circle(p, 9.0 + 2.0 * pulse, Color(1.0, 0.8, 0.4, 0.16 if not hot else 0.3))
+		if utx != null:
+			var firing: bool = g.t - float(unit_fire[k]) < 0.083
+			var uf: int = 4 if firing else (int(g.t * 6.0) + k * 2) % 4
+			_strip(utx, 5, uf, p, g.PX, Vector2(6, 7), firing and float(unit_fdir[k]) < 0.0, Color(1.35, 1.25, 1.05) if hot else Color.WHITE)
+			continue
 		# 灯罩（上下两片暗色黄铜）+ 灯芯
 		g.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, -4), p + Vector2(5, -4), p + Vector2(3, -7), p + Vector2(-3, -7)]), Color(0.35, 0.27, 0.18))
 		g.draw_rect(Rect2(p + Vector2(-4, -4), Vector2(8, 7)), Color(1.0, 0.85, 0.5, 0.55))
@@ -491,3 +503,15 @@ func status_items() -> Array:
 	if immune_t > 0.0:
 		out.append(["净化", PALE])
 	return out
+
+
+## 画一帧横向帧条（Codex 成长线 growth_fx，双密度）：anchor_px 按 @1x 帧内像素给，sc 为 @1x 每像素的世界尺寸；
+## @2x 贴图自动把倍率减半、锚点加倍（同 game.gd _spr_rot 的口径）
+func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_px: Vector2, flip := false, col := Color.WHITE) -> void:
+	var hi: float = A.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var k: float = sc / hi
+	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

@@ -177,8 +177,9 @@ func _combo_step(pd: Dictionary) -> void:
 func _elegy(dmg: float) -> void:
 	var r: float = base("elegy_r", 90.0)
 	area_hit("悲歌", pos, r, dmg * base("elegy_mult", 0.5), base("elegy_kb", 220.0))
-	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 16.0, "life": 0.4, "col": BLUE, "floor": true, "w": 5.0, "alpha": 0.8})
-	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.8, "r0": 10.0, "life": 0.32, "col": FOAM, "floor": true, "w": 2.0})
+	if not _surge_fx(pos + Vector2(0, 4), r):
+		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 16.0, "life": 0.4, "col": BLUE, "floor": true, "w": 5.0, "alpha": 0.8})
+		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.8, "r0": 10.0, "life": 0.32, "col": FOAM, "floor": true, "w": 2.0})
 	for k in 10:
 		var a: float = k * TAU / 10.0 + g.rng.randf_range(-0.2, 0.2)
 		fx({"kind": "mote", "pos": pos + Vector2(cos(a) * r * 0.8, sin(a) * r * 0.44 + 2.0), "vel": Vector2(cos(a) * 30.0, g.rng.randf_range(-170, -90)), "life": 0.45, "col": DROP, "sz": 2.5, "grav": 360.0})
@@ -189,9 +190,28 @@ func _surge_pulse() -> void:
 	var r: float = base("pulse_r", 120.0)
 	var dmg: float = base("atk", 26.0) * _dmg_bonus() * base("s3_mult", 1.5) * skill_power() * base("pulse_mult", 0.4)
 	area_hit("涌潮", pos, r, dmg, base("pulse_kb", 200.0))
-	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 12.0, "life": 0.5, "col": Color(0.3, 0.55, 1.0), "floor": true, "w": 6.0, "alpha": 0.7})
-	fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.9, "r0": 8.0, "life": 0.42, "col": FOAM, "floor": true, "w": 2.0})
+	if not _surge_fx(pos + Vector2(0, 4), r):
+		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 12.0, "life": 0.5, "col": Color(0.3, 0.55, 1.0), "floor": true, "w": 6.0, "alpha": 0.7})
+		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.9, "r0": 8.0, "life": 0.42, "col": FOAM, "floor": true, "w": 2.0})
 	g._fx_sprite("fx_splash_blue", pos + Vector2(0, 6), g.PX * 0.9, 0.0, false, true)
+
+
+## 涌潮 / 悲歌水环帧条 fx_skadi_surge（Codex 成长线，80×44、6 帧 14fps 单次、椭圆中心 = 作用中心）：
+## 第 2 帧最宽的水环半宽约 37 美术像素，按作用半径缩放让它正好压在判定圈上；播完最后一帧即移除。缺图返回 false，调用方画程序水环
+func _surge_fx(at: Vector2, r: float) -> bool:
+	if A.tex("fx_skadi_surge") == null:
+		return false
+	fx({"kind": "surge", "pos": at, "sc": r / 37.0, "life": 6.0 / 14.0, "floor": true})
+	return true
+
+
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if f.kind == "surge":
+		var tx: Texture2D = A.tex("fx_skadi_surge")
+		if tx != null:
+			_strip(tx, 6, clampi(int((1.0 - a) * 6.0), 0, 5), f.pos, f.sc, Vector2(40, 22))
+		return true
+	return false
 
 
 ## 跃浪（N4）：重斩落点掀起一道向前推进的海浪墙（重斩 80% 伤害，每名敌人只打一次，击退）
@@ -294,7 +314,22 @@ func draw_auras() -> void:
 
 
 ## 地面层：跃浪海浪墙——贴地的弧形水墙（中间高两头低），深蓝水体 + 白色浪尖，推进到尽头时淡出
+## 有帧条 fx_skadi_wave（Codex 成长线，64×32、6 帧、朝右、底部锚点 (32, 30)）时：沿浪墙排三朵浪（两头略靠后，按 y 由远到近画），
+## 朝左推进时水平镜像（像素图不旋转）；帧按推进进度 dist / max 走完 0–5——默认 200 / 480 ≈ 0.42 秒，几乎就是原速 14fps 的 6 帧，
+## 改了射程 / 速度也会整条拉伸或压缩到浪墙寿命上，推进到尽头正好播完最后一帧并移除
 func draw_entities_floor() -> void:
+	var wtx: Texture2D = A.tex("fx_skadi_wave")
+	if wtx != null:
+		for w in waves:
+			var nrm2: Vector2 = w.dir.orthogonal()
+			var wf: int = clampi(int(w.dist / w.max * 6.0), 0, 5)
+			var pts: Array = []
+			for u in [-0.62, 0.0, 0.62]:
+				pts.append(w.pos + nrm2 * u * w.w * 0.5 - w.dir * (u * u) * 16.0)
+			pts.sort_custom(func(p1, p2): return p1.y < p2.y)
+			for bp in pts:
+				_strip(wtx, 6, wf, bp, g.PX, Vector2(32, 30), w.dir.x < 0.0)
+		return
 	for w in waves:
 		var a: float = clampf((w.max - w.dist) / 60.0, 0.0, 1.0)
 		var nrm: Vector2 = w.dir.orthogonal()
@@ -328,3 +363,15 @@ func status_items() -> Array:
 	if tide > 0.0:
 		return [["潮汐", BLUE]]
 	return []
+
+
+## 画一帧横向帧条（Codex 成长线 growth_fx，双密度）：anchor_px 按 @1x 帧内像素给，sc 为 @1x 每像素的世界尺寸；
+## @2x 贴图自动把倍率减半、锚点加倍（同 game.gd _spr_rot 的口径）
+func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_px: Vector2, flip := false, col := Color.WHITE) -> void:
+	var hi: float = A.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var k: float = sc / hi
+	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

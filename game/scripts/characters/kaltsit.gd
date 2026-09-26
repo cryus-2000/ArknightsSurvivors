@@ -472,6 +472,18 @@ func _draw_claw_blades() -> void:
 	var sides: Array = [m.face, -m.face] if dual_side else [m.face]
 	var c: Color = CRIMSON if melt > 0.0 else GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
+	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，
+	# 身前 / 身后两组都让刃背朝外——朝右的一侧由程序水平镜像；熔毁时整体染猩红。缺图退回下面的程序弧
+	var btx: Texture2D = A.tex("fx_mon3tr_blade")
+	if btx != null:
+		var bc: Color = Color(1.8, 0.35, 0.35) if melt > 0.0 else Color.WHITE
+		var bf: int = int(g.t * 4.0) % 2
+		for s in sides:
+			for j in n:
+				var bob: float = sin(g.t * 3.0 + j * 1.7 + s) * 2.5
+				var bp: Vector2 = body + Vector2(s * (33.0 + 5.0 * j), -10.0 + j * 15.0 + bob)
+				_strip(btx, 2, (bf + j) % 2, bp, g.PX, Vector2(8, 12), s > 0.0, bc)
+		return
 	for s in sides:
 		var base_a: float = 0.0 if s >= 0.0 else PI
 		for j in n:
@@ -507,6 +519,14 @@ func _draw_skill_over() -> void:
 		return
 	var al: float = 1.0 if shell_t > 0.5 else (0.35 + 0.65 * absf(sin(shell_t * 18.0)))
 	var c: Vector2 = g.ppos + Vector2(0, -22)
+	# Codex 成长线帧条 fx_kaltsit_shell（48×40、4 帧 6fps 循环、中心锚点）：轮廓是二值透明，整体半透明靠 modulate（建议 0.5）；
+	# 刚罩上 0.2 秒内从 0 淡入，最后 0.5 秒沿用闪烁淡出。缺图退回下面的程序六边形
+	var stx: Texture2D = A.tex("fx_kaltsit_shell")
+	if stx != null:
+		var dur: float = base("shell_dur", 3.0)
+		var fin: float = clampf((dur - shell_t) / 0.2, 0.0, 1.0)
+		_strip(stx, 4, int(g.t * 6.0) % 4, c, g.PX, Vector2(24, 20), false, Color(1, 1, 1, 0.5 * al * fin))
+		return
 	var R: float = 34.0 + 1.5 * sin(g.t * 5.0)
 	var hexp := PackedVector2Array()
 	for i in 7:
@@ -528,3 +548,15 @@ func status_items() -> Array:
 	if shell_t > 0.0:
 		out.append(["结构加固", GREEN])
 	return out
+
+
+## 画一帧横向帧条（Codex 成长线 growth_fx，双密度）：anchor_px 按 @1x 帧内像素给，sc 为 @1x 每像素的世界尺寸；
+## @2x 贴图自动把倍率减半、锚点加倍（同 game.gd _spr_rot 的口径）
+func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_px: Vector2, flip := false, col := Color.WHITE) -> void:
+	var hi: float = A.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var k: float = sc / hi
+	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
