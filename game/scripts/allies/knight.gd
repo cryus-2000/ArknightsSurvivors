@@ -1,5 +1,5 @@
 ## 猎潮的骑士（结局二同伴，docs/18 §2）：不占援护位；跟在水月侧后方，每 4 秒对 320 内目标冲锋→刺击；
-## 有生命，会被接触与弹幕伤害，30% 的近战敌人把他当目标；血量 <30% 退到水月身后 6 秒。
+## 有生命（固定 600，不随时间涨），会被接触与弹幕伤害，50% 的近战敌人把他当目标；血量 <30% 退到水月身后 3 秒（2026-09-27 协调人定）。
 ## 阵亡 → 退行的罗辛南特 (223)，结局回退；10:00 若结局为骑士，走入黑潮中心重生为 Boss（由 game.gd 调 walk_to_center / take_over）。
 extends RefCounted
 
@@ -52,7 +52,7 @@ func _init(game) -> void:
 func spawn() -> void:
 	alive = true
 	fallen = false
-	maxhp = 900.0 * (1.0 + 0.5 * minf(g.t, 600.0) / 600.0)
+	maxhp = 600.0   # 2026-09-27：原 900 起、随时间涨到 1350，改为固定 600
 	hp = maxhp
 	pos = g.ppos + Vector2(-g.facing * 520.0, 40.0)
 	state = "idle"
@@ -226,10 +226,10 @@ func update(dt: float) -> void:
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
 	if state == "walk":
 		return
-	# 仇恨：30% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆）
+	# 仇恨：50% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆；2026-09-27 原 30%）
 	for j in g.enemies_sys.query(pos, 420.0):
 		var e: Dictionary = g.enemies[j]
-		if e.dead or e.chest or e.boss or e.ai != "melee" or e.id % 10 >= 3:
+		if e.dead or e.chest or e.boss or e.ai != "melee" or e.id % 10 >= 5:
 			continue
 		e.aggro = pos
 	# 接触伤害（每个敌人 1 秒一次）
@@ -261,7 +261,7 @@ func update(dt: float) -> void:
 		low_armed = true
 	if state in ["idle", "wind"] and hp < maxhp * 0.3 and low_armed:
 		state = "retreat"
-		retreat_t = 6.0
+		retreat_t = 3.0   # 2026-09-27 原 6 秒
 		g.vfx.add_text(pos + Vector2(0, -60), "骑士退到了你身后", Color(0.7, 0.85, 1.0), 14)
 
 
