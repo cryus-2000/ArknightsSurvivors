@@ -159,9 +159,6 @@ func step() -> void:
 						b.range = 400.0
 					g.bosses.append(b)
 					g.boss = b
-					# 结局 Boss 也设「最终 Boss」标记，走终局音乐 / 终局藏品倍率（docs/38 B0 第 9 项）
-					if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
-						g.final_boss = b
 				if g.bosses.size() == 2:
 					g.bosses[0].partner = g.bosses[1]
 					g.bosses[1].partner = g.bosses[0]
