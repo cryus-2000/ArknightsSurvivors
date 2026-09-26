@@ -30,6 +30,32 @@ const DIFFICULTY := [
 	{"name": "负伤", "desc": "初始最大生命 -20%"},
 	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
 ]
+## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度）。level = 上表的累计档位：
+## 局内判断（g.diff >= N）和批跑参数 --diff=N 仍按累计档位；存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
+## 各档对应哪一级由「数值」按基线数据定
+const DIFFICULTY_TIERS := [
+	{"name": "标准", "en": "STANDARD", "level": 0},
+	{"name": "困难", "en": "HARD", "level": 4},
+	{"name": "极难", "en": "EXTREME", "level": 8},
+]
+
+
+## 累计档位落在哪一档（取 level 不超过它的最高档）
+static func tier_of_level(level: int) -> int:
+	var t := 0
+	for i in DIFFICULTY_TIERS.size():
+		if DIFFICULTY_TIERS[i].level <= level:
+			t = i
+	return t
+
+
+## 这一档相对上一档新增的效果（DIFFICULTY 的 desc）
+static func tier_new_effects(tier: int) -> Array:
+	var lo: int = DIFFICULTY_TIERS[tier - 1].level if tier > 0 else 0
+	var out: Array = []
+	for i in range(lo + 1, DIFFICULTY_TIERS[tier].level + 1):
+		out.append(DIFFICULTY[i].desc)
+	return out
 
 ## 支援：医疗无人机（保底治疗，开局自带 Lv.1，不占编队位），最高 Lv.5
 ## tags 供 Build Profile 使用

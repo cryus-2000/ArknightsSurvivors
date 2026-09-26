@@ -47,14 +47,14 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	var mm := int(g.t) / 60
 	var ss := int(g.t) % 60
 	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英化一", "精英化二"][g.ch.elite]]],
-		["击杀", str(g.kills)], ["难度", "%d  %s" % [g.diff, D.DIFFICULTY[g.diff].name]]]
+		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
 		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 124), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if g.diff_new and g.state == Game.S.WIN:
-		UI.chip(g.hud, g.font, Vector2(r.get_center().x - 80, r.position.y + (142 if ending_panel else 118)), "解锁难度 %d「%s」" % [g.diff + 1, D.DIFFICULTY[g.diff + 1].name], UI.GOLD, 13)
+		UI.chip(g.hud, g.font, Vector2(r.get_center().x - 80, r.position.y + (142 if ending_panel else 118)), "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name, UI.GOLD, 13)
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32
 		UI.diamond(g.hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))
