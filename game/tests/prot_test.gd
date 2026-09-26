@@ -11,6 +11,7 @@ extends Node
 ##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
 ## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
 ## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
+## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -51,6 +52,7 @@ func _process(_d: float) -> void:
 	test_atk_slow_floor()
 	test_horde_mix()
 	test_v8()
+	test_gates()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -644,4 +646,45 @@ func test_v8() -> void:
 	ok(game.nerve > n0, "巢涌者光环累积神经损伤（%.1f → %.1f）" % [n0, game.nerve])
 	ne.dead = true
 	game.nerve = 0.0
+	game.warns.clear()
+
+
+## B1 ① 阶段卡点与每幕最短时长（docs/38 §1.3）：伤害截在刻度上；没满最短时长升护盾、护盾期间不掉血；
+## 满时长后过卡点（0.8 秒不受伤，之后能继续打）；最终 Boss 两道刻度 0.66 / 0.33、伊祖米克每幕 10 秒
+func test_gates() -> void:
+	var sp = game.spawner
+	c.hit("test")
+	var m: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1600, 0))
+	ok(m.gates == [0.5] and absf(m.act_min - Bal.v("boss/act_min_mid", 6.0)) < EPS, "中期 Boss 一道刻度 0.5（%s）、每幕 %.0f 秒" % [str(m.gates), m.act_min])
+	var k := 0
+	while not m.gate_hold and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.gate_hold and absf(m.hp - m.maxhp * 0.5) < 0.01, "打太快：停在 50%% 刻度升起护盾（%.1f%%）" % (100.0 * m.hp / m.maxhp))
+	var h0: float = m.hp
+	c.damage(m, m.maxhp)
+	ok(m.hp == h0, "护盾期间不掉血")
+	c.gate_update(m, m.act_min)
+	ok(not m.gate_hold and m.gates.is_empty() and m.gate_inv > 0.0, "满最短时长后护盾碎、过卡点、短暂不受伤")
+	c.damage(m, m.maxhp)
+	ok(m.hp == h0, "过卡点后 0.8 秒内不受伤")
+	c.gate_update(m, 1.0)
+	k = 0
+	while not m.dead and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.dead, "第二幕打完正常死亡（%d 击）" % k)
+	# 最终 Boss：两道刻度；这一幕已满时长则越过刻度立刻过卡点、不升护盾
+	var f: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1700, 0))
+	ok(f.gates == [0.66, 0.33] and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 0.66 / 0.33、每幕 %.0f 秒" % f.act_min)
+	f.act_t = 99.0
+	k = 0
+	while f.gates.size() == 2 and k < 200:
+		c.damage(f, f.maxhp)
+		k += 1
+	ok(not f.gate_hold and f.gates == [0.33] and absf(f.hp - f.maxhp * 0.66) < 0.01, "满时长越过刻度：直接过卡点、截在 66%")
+	f.dead = true
+	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1800, 0))
+	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
+	iz.dead = true
 	game.warns.clear()

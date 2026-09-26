@@ -446,12 +446,81 @@ func hit(src: String, extra_tags: Array = []) -> void:
 		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
+## ---- Boss 阶段卡点与每幕最短时长（docs/38 §1.3，B1 ①；2026-09-27 用户确认，不做力竭）
+## 刻度在 enemies.json 的 gates（最大生命比例，从高到低）；没写时中期 [0.5]、最终 [0.66, 0.33]。
+## 只在「这一击前高于刻度、这一击后不高于刻度」时触发，伤害截在刻度上：
+##   这一幕已满最短时长 → 立刻过卡点；没满 → 停在刻度上升起阶段护盾，满了再过。
+## 过卡点：0.8 秒不受伤、取消它瞄准主控的预警、0.8 秒内不出新招；最终 Boss 另掉回复和灯油。
+## 总开关 boss/gates_on（1 = 开）。每幕计时 e.act_t 只在 Boss 可受伤时走（boss_ai.gd 调 gate_update）。
+func gate_init(e: Dictionary, type: String) -> void:
+	var d: Dictionary = D.ENEMIES.get(type, {})
+	var fin: bool = g.spawner.is_final_boss_type(type)
+	var gl: Array = d.get("gates", [0.66, 0.33] if fin else [0.5])
+	e.gates = gl.duplicate() if Bal.v("boss/gates_on", 1.0) > 0.0 else []
+	e.act_min = float(d.get("act_min", Bal.v("boss/act_min_final", 13.0) if fin else Bal.v("boss/act_min_mid", 6.0)))
+	e.act_t = 0.0
+	e.gate_hold = false
+	e.gate_inv = 0.0
+	e.gate_final = fin
+	e.shield_t = 0.0   # 阶段护盾累计秒数（报表用）
+
+
+func gate_clamp(e: Dictionary, dmg: float) -> float:
+	var gates: Array = e.get("gates", [])
+	if gates.is_empty() or dmg <= 0.0:
+		return dmg
+	var line: float = e.maxhp * float(gates[0])
+	if e.hp > line and e.hp - dmg <= line:
+		dmg = e.hp - line
+		if e.act_t >= e.act_min:
+			gate_pass(e)   # 这一击照样结算（截在刻度上），之后 0.8 秒不受伤
+		else:
+			e.gate_hold = true
+			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+	return dmg
+
+
+## 每帧由 boss_ai.gd 调用：可受伤时推进这一幕的计时；护盾撑满最短时长后过卡点
+func gate_update(e: Dictionary, dt: float) -> void:
+	if e.get("gate_inv", 0.0) > 0.0:
+		e.gate_inv = maxf(0.0, e.gate_inv - dt)
+	if not e.invuln and not e.get("coma", false):
+		e.act_t = e.get("act_t", 0.0) + dt
+	if e.get("gate_hold", false):
+		e.shield_t += dt
+		if e.act_t >= e.act_min:
+			gate_pass(e)
+
+
+func gate_pass(e: Dictionary) -> void:
+	if e.dead or e.get("gates", []).is_empty():
+		return
+	e.gates.pop_front()
+	e.gate_hold = false
+	e.act_t = 0.0
+	e.gate_inv = Bal.v("boss/gate_inv", 0.8)
+	e.wind = maxf(e.get("wind", 0.0), e.gate_inv)   # 0.8 秒内不出新招
+	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": UI.GOLD})
+	Sfx.play("roar", -4.0, 1.1, 0.0)
+	if e.gate_final:
+		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
+		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
+			var n: float = Bal.v(kd[1], 1.0)
+			var cnt := int(n) + (1 if g.rng.randf() < n - floorf(n) else 0)
+			for k in cnt:
+				g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 40.0, kd[0], kd[2])
+
+
 func damage(e: Dictionary, dmg: float) -> void:
 	if e.dead:
 		return
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
+	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
+	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
+		return
 	if e.invuln:
 		if g.texts.size() < 80 and g.vrng.randf() < 0.2:
 			g.vfx.add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
@@ -488,6 +557,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
 		if hcap > 0.0:
 			dmg = minf(dmg, e.maxhp * hcap)
+	if e.boss:
+		dmg = gate_clamp(e, dmg)
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))

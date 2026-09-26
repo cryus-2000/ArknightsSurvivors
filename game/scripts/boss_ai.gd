@@ -13,6 +13,7 @@ func _init(game) -> void:
 ## Boss 行为
 func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	e.bt += dt
+	g.combat.gate_update(e, dt)   # 阶段卡点：每幕计时、护盾到时过卡点（docs/38 §1.3）
 	# 冲锋 / 突刺计时（_warn_resolve 的 "dash" / "stab" 写入）：Boss 不走 enemy_ai 的冲刺递减，必须在这里递减，
 	# 否则骑士二阶段「再冲锋」（等 dash_t 归零）永远不会触发，冲锋帧条也会一直停在冲刺姿势（docs/38 B0 第 1 项）
 	if e.get("dash_t", 0.0) > 0.0:

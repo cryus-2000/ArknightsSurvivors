@@ -403,7 +403,8 @@
    "ai": "ranged",
    "range": 320.0,
    "cd": 1.6,
-   "role": "boss"
+   "role": "boss",
+   "act_min": 10.0
   },
   "iberia": {
    "name": "圣徒伊比利亚",

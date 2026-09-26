@@ -753,6 +753,12 @@ func draw_enemy(e: Dictionary) -> void:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		g.draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))
 		col = col.lerp(Color(2.0, 1.2, 2.4), nk * 0.6)
+	if e.get("gate_hold", false):
+		# 阶段护盾（docs/38 §1.3）：Boss 停在刻度上，金色护盾环脉动；这一幕满最短时长后碎掉
+		var gp: float = 0.5 + 0.5 * sin(g.t * 8.0)
+		g.draw_circle(e.pos, e.r + 14.0, Color(1.0, 0.8, 0.3, 0.08 + 0.06 * gp))
+		g.draw_arc(e.pos, e.r + 14.0 + 3.0 * gp, 0.0, TAU, 40, Color(1.8, 1.4, 0.5, 0.55 + 0.3 * gp), 2.5)
+		col = col.lerp(Color(1.8, 1.5, 0.9), 0.25)
 	if e.get("blast_w", 0.0) > 0.0:
 		# 壳海狂奔者自爆鼓胀：爆炸范围预警圈从小到大，本体胀大变亮
 		var xd: Dictionary = D.ENEMIES.get(e.type, {})

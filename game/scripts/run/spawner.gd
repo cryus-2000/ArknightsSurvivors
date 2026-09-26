@@ -274,6 +274,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult
+		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
 		e.burst_at = e.maxhp * 0.85
 	if type == "izumik":
