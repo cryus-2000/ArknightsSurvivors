@@ -15,6 +15,7 @@ const DEMO_HORDE := 16
 const DEMO_FILL_AT := 1.0
 const DEMO_HOLD := 1.5
 const DEMO_MAX := 14.0
+const DEMO_MAX_LINGER := 27.0    # 留场表现中的上限（幽灵鲨：S2 10 秒 + 替身 12 秒 + 起手）
 var demo_ph_t := 0.0
 var demo_cast_t := -1.0          # 本段技能放出后经过的秒数（-1 = 还没放）
 
@@ -61,8 +62,11 @@ func step(dt: float) -> void:
 				demo_cast_t = 0.0
 	else:
 		demo_cast_t += dt
-	var done: bool = demo_cast_t >= DEMO_HOLD and g.ch.skill_active_left(si) <= 0.0 and not g.ch.acting()
-	if done or demo_ph_t >= DEMO_MAX:
+	# 技能结束后还有留场表现（幽灵鲨 S2 结束本体倒下、替身跟随 12 秒，away()）：等它演完再切下一段，
+	# 否则一切段就重建干员，替身只出现一帧（docs/32 §3，测试与验收发现）
+	var lingering: bool = g.ch.has_method("away") and g.ch.away()
+	var done: bool = demo_cast_t >= DEMO_HOLD and g.ch.skill_active_left(si) <= 0.0 and not g.ch.acting() and not lingering
+	if done or demo_ph_t >= (DEMO_MAX_LINGER if lingering else DEMO_MAX):
 		next_phase()
 		return
 	# 怪海清空了：右边补一波
