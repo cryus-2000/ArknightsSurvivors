@@ -99,7 +99,7 @@ func update(dt: float) -> void:
 		start_skill(aim if aim != Vector2.INF else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, _reach() + 40.0, pos)
+		var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
 		if ts.is_empty():
 			cd = 0.1
 		else:
@@ -109,7 +109,7 @@ func update(dt: float) -> void:
 
 ## 锚击：身前半径内全部敌人
 func _release() -> void:
-	var ts: Array = g._nearest(1, _reach() + 60.0, pos)
+	var ts: Array = nearest_enemies(1, _reach() + 60.0, pos)
 	var ang: float = facing_angle()
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
@@ -122,7 +122,7 @@ func _release() -> void:
 		return
 	melee_hit("锚击", c, 0.0, PI, _reach(), _slam_dmg(), 90.0)
 	# 抡锚弧光（Ninja Slash01 钢蓝重调色）+ 落地
-	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + Vector2.from_angle(ang) * _reach() * 0.45, _reach() * 1.3 / 28.0, ang)
+	spawn_fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + Vector2.from_angle(ang) * _reach() * 0.45, _reach() * 1.3 / 28.0, ang)
 	_slam_fx(c, _reach(), 1.0)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.06)
 	# 定点爆破：0.2 秒后同一落点再炸一道更大的冲击环
@@ -157,7 +157,7 @@ func _whirl() -> void:
 func _blood_blast(c: Vector2) -> void:
 	var r: float = base("blood_r", 160.0) * stat(&"op_range")
 	melee_hit("锚击", c, 0.0, PI, r, _slam_dmg() * base("blood_mult", 2.5), 220.0, 0.4, ["empowered"])
-	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + (c - pos) * 0.8, _reach() * 1.5 / 28.0, (c - pos).angle(), false, false, Color(1.6, 0.6, 0.6))
+	spawn_fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + (c - pos) * 0.8, _reach() * 1.5 / 28.0, (c - pos).angle(), false, false, Color(1.6, 0.6, 0.6))
 	fx({"kind": "crack", "pos": c, "r": r * 0.8, "life": 0.6, "col": BLOOD, "floor": true, "n": 9})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": 20.0, "life": 0.4, "col": BLOOD, "floor": true, "w": 5.0})
 	fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": 10.0, "life": 0.5, "col": STEEL, "floor": true, "w": 2.5})
@@ -178,7 +178,7 @@ func _slam_fx(c: Vector2, r: float, k: float) -> void:
 
 ## 深海蓝水珠：向上迸开、带重力落回；落点一团蓝色水花（ansimuz water splash）
 func _splash(c: Vector2, n: int, k: float) -> void:
-	g._fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
+	spawn_fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
 	for i in n:
 		var a: float = -PI / 2.0 + g.rng.randf_range(-1.1, 1.1)
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.rng.randf_range(90, 190) * k,
@@ -196,7 +196,7 @@ func _skill_target(i: int) -> Vector2:
 		# 最近的精英；没有就敌群最密处
 		var best: Dictionary = {}
 		var bd := INF
-		for j in g._query(pos, 420.0):
+		for j in query_ids(pos, 420.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or not (e.elite or e.boss):
 				continue
@@ -206,9 +206,9 @@ func _skill_target(i: int) -> Vector2:
 				best = e
 		if not best.is_empty():
 			return best.pos
-	var c: Vector2 = g._densest_point(400.0, pos)
+	var c: Vector2 = densest_point(400.0, pos)
 	if c == Vector2.INF:
-		var ts: Array = g._nearest(1, 400.0, pos)
+		var ts: Array = nearest_enemies(1, 400.0, pos)
 		return ts[0].pos if not ts.is_empty() else Vector2.INF
 	return c
 
@@ -225,11 +225,11 @@ func _release_skill() -> void:
 		1:
 			kept = true
 			g.stats.add(&"op_atk", "add", 0.4, "ulpianus_kept", "op:" + id)
-			g._sync_stats()
+			refresh_stats()
 			_apply_stacks()
-			g._show_banner("必须坚守：攻击与范围永久提升")
+			show_banner("必须坚守：攻击与范围永久提升")
 			fx({"kind": "ring", "pos": pos, "r": 90.0, "r0": 8.0, "life": 0.5, "col": STEEL, "floor": true})
-			g._fx_sprite("fx_shield_amber", pos + Vector2(0, -20), g.PX * 1.4, 0.0, false, false, Color(0.7, 0.9, 1.2))
+			spawn_fx_sprite("fx_shield_amber", pos + Vector2(0, -20), g.PX * 1.4, 0.0, false, false, Color(0.7, 0.9, 1.2))
 
 
 func skill_active_left(i: int) -> float:
@@ -322,7 +322,7 @@ func _anchor_bite() -> void:
 ## 必须接触：钩取锚点附近至多 2 名（不容挣脱 5 名）非 Boss 敌人，排在身前一列；锚点最近的是 Boss 或一个都没有 → false
 func _start_reel(to: Vector2, dir: Vector2) -> bool:
 	var hr: float = base("s1_hook_r", 50.0) * (1.8 if drag_on else 1.0)
-	var near: Array = g._nearest(12, hr, to)
+	var near: Array = nearest_enemies(12, hr, to)
 	if near.is_empty() or near[0].boss:
 		return false
 	var n: int = int(base("s1_pull_n", 2.0)) + (int(base("drag_n", 3.0)) if drag_on else 0)
@@ -348,7 +348,7 @@ func _start_reel(to: Vector2, dir: Vector2) -> bool:
 	anchor.head = to
 	anchor.trail = []
 	anchor.elite = hooked[0].e.elite
-	g._add_text(to + Vector2(0, -40), "钩住！", STEEL, 14)
+	float_text(to + Vector2(0, -40), "钩住！", STEEL, 14)
 	Sfx.play("tentacle", -6.0, 0.7)
 	return true
 
@@ -380,17 +380,17 @@ func _reel_slam() -> void:
 	var r: float = base("s1_r", 90.0) * stat(&"op_range")
 	var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
 	var first: Dictionary = hooked[0].e if not hooked.is_empty() else {}
-	for j in g._query(c, r + 30.0):
+	for j in query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
-		g._hit("掷锚")
-		g._damage(e, dmg * (base("s1_elite_mult", 1.5) if is_same(e, first) and e.elite else 1.0))
+		log_hit("掷锚")
+		deal_damage(e, dmg * (base("s1_elite_mult", 1.5) if is_same(e, first) and e.elite else 1.0))
 		if not e.dead:
 			e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite or e.boss else 1.0))
 			if not e.boss:
 				e.kb += (e.pos - pos).normalized() * 70.0
-	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + dir * _reach() * 0.45, _reach() * 1.5 / 28.0, dir.angle())
+	spawn_fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + dir * _reach() * 0.45, _reach() * 1.5 / 28.0, dir.angle())
 	_slam_fx(c, r, 1.2)
 	g.hitstop = maxf(g.hitstop, 0.07)
 	Sfx.op(id, "atk", 2.0, 0.85)
@@ -403,12 +403,12 @@ func _zip_land() -> void:
 	if anchor.kind == 0:
 		var r: float = base("s1_r", 90.0) * stat(&"op_range")
 		var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
-		for j in g._query(c, r + 30.0):
+		for j in query_ids(c, r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r + e.r:
 				continue
-			g._hit("掷锚")
-			g._damage(e, dmg)
+			log_hit("掷锚")
+			deal_damage(e, dmg)
 			if not e.dead:
 				e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite or e.boss else 1.0))
 				if not e.boss:
@@ -423,12 +423,12 @@ func _zip_land() -> void:
 		# 必须开辟：落点 r140 ×3 + 眩晕
 		var r3: float = base("s3_r", 140.0) * stat(&"op_range")
 		var dmg3: float = base("atk", 42.0) * base("s3_mult", 3.0) * _dmg_bonus() * skill_power()
-		for j in g._query(c, r3 + 30.0):
+		for j in query_ids(c, r3 + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r3 + e.r:
 				continue
-			g._hit("必须开辟")
-			g._damage(e, dmg3)
+			log_hit("必须开辟")
+			deal_damage(e, dmg3)
 			if not e.dead:
 				var st: float = base("s3_stun", 3.0) * (0.27 if e.boss else (0.5 if e.elite else 1.0))
 				e.stun = maxf(e.stun, st)
@@ -436,8 +436,8 @@ func _zip_land() -> void:
 		_slam_fx(c, r3, 1.6)
 		_splash(c, 10, 1.3)
 		haste_t = base("s3_haste", 8.0)
-		g._fx_sprite("fx_circle_steel", c + Vector2(0, 4), g.PX * (r3 / 40.0))
-		g._add_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
+		spawn_fx_sprite("fx_circle_steel", c + Vector2(0, 4), g.PX * (r3 / 40.0))
+		float_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
 		g.hitstop = maxf(g.hitstop, 0.1)
 		Sfx.op(id, "big")
 		# 通路洞开：从起跳点到锚点裂开一道直线裂隙，沿途敌人被掀飞 0.8 秒并受到锚击 80% 伤害
@@ -447,11 +447,11 @@ func _zip_land() -> void:
 
 ## 不容挣脱：落点 200 内最近的至多 3 名（不含已在落点身边的）敌人被锁链拽过来
 func _drag_in(c: Vector2, dmg: float) -> void:
-	var cands: Array = g._nearest(12, base("drag_r", 200.0), c).filter(func(e): return e.pos.distance_to(c) > 36.0)
+	var cands: Array = nearest_enemies(12, base("drag_r", 200.0), c).filter(func(e): return e.pos.distance_to(c) > 36.0)
 	for k in mini(int(base("drag_n", 3.0)), cands.size()):
 		var e: Dictionary = cands[k]
-		g._hit("不容挣脱")
-		g._damage(e, dmg)
+		log_hit("不容挣脱")
+		deal_damage(e, dmg)
 		fx({"kind": "chain", "pos": c + Vector2(0, -12), "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3})
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": STEEL, "alpha": 0.6})
 		if e.dead or e.boss:
@@ -471,7 +471,7 @@ func _open_rift(a: Vector2, b: Vector2) -> void:
 	var w: float = base("rift_w", 26.0)
 	var d: Vector2 = (b - a).normalized()
 	var L: float = a.distance_to(b)
-	for j in g._query((a + b) * 0.5, L * 0.5 + w + 30.0):
+	for j in query_ids((a + b) * 0.5, L * 0.5 + w + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
@@ -479,8 +479,8 @@ func _open_rift(a: Vector2, b: Vector2) -> void:
 		var along: float = rel.dot(d)
 		if along < -e.r or along > L + e.r or absf(rel.cross(d)) > w + e.r:
 			continue
-		g._hit("通路洞开")
-		g._damage(e, dmg)
+		log_hit("通路洞开")
+		deal_damage(e, dmg)
 		_launch(e, base("rift_air", 0.8), 30.0)
 	fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.rng.randf() * 100.0})
 	for k in 5:
@@ -529,13 +529,13 @@ func on_kill(e: Dictionary) -> void:
 	# 精二 血脉沸腾：击杀精英 / Boss 后下一次锚击大爆破
 	if add > 0 and blood_on and not blood_ready:
 		blood_ready = true
-		g._add_text(pos + Vector2(0, -78), "血脉沸腾", BLOOD, 14)
+		float_text(pos + Vector2(0, -78), "血脉沸腾", BLOOD, 14)
 		fx({"kind": "ring", "pos": pos, "r": 50.0, "r0": 10.0, "life": 0.35, "col": BLOOD, "floor": true, "w": 3.0})
 	if add <= 0 or stacks >= _stack_cap():
 		return
 	stacks = mini(_stack_cap(), stacks + add)
 	_apply_stacks()
-	g._add_text(pos + Vector2(0, -60), "血脉 ×%d" % stacks, STEEL, 13)
+	float_text(pos + Vector2(0, -60), "血脉 ×%d" % stacks, STEEL, 13)
 	fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 16.0, "life": 0.3, "col": Color(0.9, 0.3, 0.35), "alpha": 0.5})
 
 
@@ -547,7 +547,7 @@ func _apply_stacks() -> void:
 		for o in g.squad.ops:
 			if o != self and o.id in HUNTERS:
 				g.stats.add(&"op_atk", "add", v * 0.5, "ulpianus_blood", "op:" + o.id)
-	g._sync_stats()
+	refresh_stats()
 
 
 # ---------------------------------------------------------------- 绘制
@@ -642,7 +642,7 @@ func draw_body() -> void:
 				var c := Color(1.0, 0.45, 0.5, al * ring[1])
 				for i in 8:
 					var off: Vector2 = Vector2.from_angle(i * TAU / 8.0) * ring[0]
-					g._draw_sprite_at(pos + off, st.flip, c, st.frame, wt, st.hf, fo)
+					draw_sprite_at(pos + off, st.flip, c, st.frame, wt, st.hf, fo)
 	super()
 
 
@@ -703,7 +703,7 @@ func _draw_skill_over() -> void:
 func _draw_anchor(p: Vector2, d: Vector2, a: float) -> void:
 	if g.tex.get("proj_ulpianus_anchor") != null:
 		# Codex 四爪锚（朝右、左端小环接链，两帧刃光）
-		g._spr_rot("proj_ulpianus_anchor", int(g.t * 10.0) % 2, p, d.angle(), g.PX * 0.8, Color(1, 1, 1, a))
+		draw_spr_rot("proj_ulpianus_anchor", int(g.t * 10.0) % 2, p, d.angle(), g.PX * 0.8, Color(1, 1, 1, a))
 		return
 	var n: Vector2 = d.orthogonal()
 	var outline := Color(0.02, 0.03, 0.06, 0.85 * a)

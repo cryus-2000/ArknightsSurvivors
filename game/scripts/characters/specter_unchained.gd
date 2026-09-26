@@ -1,9 +1,9 @@
-## 归溟幽灵鲨（特种·傀儡师，契约 v2.1，docs/26 第二批）：危机爆发 + 低灯火。贴身 360° 环斩，博士越危险她越狠。
+## 归溟幽灵鲨（特种·傀儡师，契约 v2.1，docs/26 第二批）：危机爆发 + 低灯火。贴身 360° 环斩，主控越危险她越狠。
 ## S1 求生之技：8 秒攻击 +（40% + 主控已损失生命%）；银蓝锯环 + 周身红色兽性气焰（与 S3 血锯区分）；
 ## S2 求生之渴（自动，2026-09-26 用户定）：10 秒攻速 +60%、攻击 +40%，期间主控生命不会低于 1；结束时本体倒下，替身跟随主控 12 秒后归队；
 ## S3 求生之压：12 秒环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命 <50% 的敌人再 ×1.5；血红锯环 + 每斩地裂与顿帧。
 ## 天赋 拥抱自我：替身每秒对周围 120 内敌人法伤并减速；灯火 <30「昏暗」时她的伤害 +25%。
-## 博士不死通过 prevent_death() 供 game.gd 询问（同 dmg_taken_mult 模式）；替身是不动的附属实体（extra_bodies）。
+## 主控不死通过 prevent_death() 供 game.gd 询问（同 dmg_taken_mult 模式）；替身是不动的附属实体（extra_bodies）。
 ## 可见成长（docs/25 §5）：N1 双重回转 / N2 血色潮痕 / N4 困兽 / N5 阿戈尔挽歌 / 精二质变 无尽回旋。
 extends "res://scripts/characters/character.gd"
 
@@ -113,7 +113,7 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, _reach() + 30.0, pos)
+		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
 		if ts.is_empty():
 			cd = 0.1
 		else:
@@ -181,13 +181,13 @@ func _update_spins(dt: float) -> void:
 ## 一圈环斩：kind 0 = 主圈 / 1 = 双重回转的反向第二圈 / 2 = 无尽回旋的持续段
 func _spin(dmg: float, kind: int) -> void:
 	var r := _reach()
-	var hits: Array = g._arc_hit(pos + Vector2(0, -10), 0.0, PI, r)
+	var hits: Array = arc_targets(pos + Vector2(0, -10), 0.0, PI, r)
 	for e in hits:
 		var d: float = dmg
 		if s3_t > 0.0 and e.hp < e.maxhp * 0.5:
 			d *= base("s3_low_mult", 1.5)
-		g._hit("锯刃")
-		g._damage(e, d)
+		log_hit("锯刃")
+		deal_damage(e, d)
 		if not e.dead and not e.boss and kind == 0:
 			e.kb += (e.pos - pos).normalized() * 70.0
 		_hit_fx(e, pos)
@@ -200,7 +200,7 @@ func _spin(dmg: float, kind: int) -> void:
 		rev = (face < 0.0) != (whirl_n % 2 == 1)
 	# Codex 锯环（80×44 贴地椭圆，中心对齐人物；半径 = 40 × 缩放）；缺图退回程序锯环
 	# 持续段只画程序锯环（每 0.15 秒一段，帧条叠太多会糊成一片）
-	if kind == 2 or not g._fx_sprite("fx_specter_saw_blood" if heavy else "fx_specter_saw", pos + Vector2(0, -6), r / 40.0, 0.0, rev):
+	if kind == 2 or not spawn_fx_sprite("fx_specter_saw_blood" if heavy else "fx_specter_saw", pos + Vector2(0, -6), r / 40.0, 0.0, rev):
 		fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r * (0.9 if kind == 2 else 1.0), "life": 0.3 if heavy else 0.24, "col": RED if heavy else GHOST,
 			"spin": (-1.0 if rev else 1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.rng.randf() * TAU})
 	# 第二圈：外侧再加一道淡蓝锯环，两道锯痕一眼可辨
@@ -233,15 +233,15 @@ func _release_skill() -> void:
 	match cur_skill:
 		0:
 			s1_t = base("s1_dur", 8.0)
-			g._add_text(pos + Vector2(0, -60), "求生之技", GHOST, 15)
+			float_text(pos + Vector2(0, -60), "求生之技", GHOST, 15)
 		1:
 			s2_t = base("s2_dur", 10.0)
-			g._show_banner("求生之渴：主控暂不会倒下")
+			show_banner("求生之渴：主控暂不会倒下")
 		2:
 			s3_t = base("s3_dur", 12.0)
-			g._show_banner("求生之压")
+			show_banner("求生之压")
 	fx({"kind": "ring", "pos": pos, "r": _reach(), "r0": 8.0, "life": 0.45, "col": GHOST if cur_skill < 2 else RED, "floor": true})
-	g._fx_sprite("fx_circle_ghost", pos + Vector2(0, 4), g.PX * 1.8)
+	spawn_fx_sprite("fx_circle_ghost", pos + Vector2(0, 4), g.PX * 1.8)
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED})
 
 
@@ -269,7 +269,7 @@ func _fall() -> void:
 	doll_tick = 0.0
 	doll_at = 0.0
 	melee_tgt = null
-	g._add_text(pos + Vector2(0, -60), "替身", GHOST, 15)
+	float_text(pos + Vector2(0, -60), "替身", GHOST, 15)
 	fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.5, "col": GHOST, "alpha": 0.6})
 	fx_sparks(pos + Vector2(0, -20), GHOST, 10, 120.0, 0.5, 2.5)
 
@@ -298,7 +298,7 @@ func _update_doll(dt: float) -> void:
 			doll_tick -= 1.0
 			var r: float = base("doll_r", 120.0)
 			var sr: float = _doll_slow_r()
-			for j in g._query(doll_pos, sr + 20.0):
+			for j in query_ids(doll_pos, sr + 20.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead:
 					continue
@@ -308,16 +308,16 @@ func _update_doll(dt: float) -> void:
 				e.slow = maxf(e.slow, 1.0)
 				if d > r:
 					continue
-				g._hit("替身")
-				g._damage(e, base("doll_dps", 10.0) * _dmg_bonus())
-			if not g._fx_sprite("fx_circle_ghost", doll_pos + Vector2(0, 4), g.PX * (r / 40.0)):
+				log_hit("替身")
+				deal_damage(e, base("doll_dps", 10.0) * _dmg_bonus())
+			if not spawn_fx_sprite("fx_circle_ghost", doll_pos + Vector2(0, 4), g.PX * (r / 40.0)):
 				fx({"kind": "ring", "pos": doll_pos, "r": r, "r0": r * 0.6, "life": 0.5, "col": GHOST, "floor": true, "alpha": 0.5})
 	if doll_t <= 0.0:
 		elegy_t = 0.0
 		# 归队：从替身处回到编队位
 		pos = doll_pos
 		doll_pos = Vector2.INF
-		g._add_text(pos + Vector2(0, -60), "归队", GHOST, 14)
+		float_text(pos + Vector2(0, -60), "归队", GHOST, 14)
 		fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 24.0, "life": 0.4, "col": GHOST, "alpha": 0.5})
 
 
@@ -335,12 +335,12 @@ func _update_rings(dt: float) -> void:
 		rg.tick -= dt
 		if rg.tick <= 0.0 and rg.t > -0.01:
 			rg.tick += base("ring_tick", 0.5)
-			for j in g._query(rg.pos, rg.r + 20.0):
+			for j in query_ids(rg.pos, rg.r + 20.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or e.pos.distance_to(rg.pos) > rg.r + e.r:
 					continue
-				g._hit("血色潮痕")
-				g._damage(e, rg.dmg)
+				log_hit("血色潮痕")
+				deal_damage(e, rg.dmg)
 			fx_sparks(rg.pos + Vector2(0, 2), Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 2.0, 0.0, true)
 	rings = rings.filter(func(rg): return rg.t > 0.0)
 
@@ -444,12 +444,12 @@ func draw_extra(_it: Dictionary) -> void:
 	var n: int = anim_hframes(tx, "doll")
 	var fr: int = int(doll_at * 4.0) % n
 	var sway: float = sin(doll_at * 2.0) * 1.0
-	g._draw_sprite_at(doll_pos + Vector2(sway, 0), face < 0.0, Color(0.95, 0.95, 1.0), fr, tx, n, foot_off(tx, "doll"))
+	draw_sprite_at(doll_pos + Vector2(sway, 0), face < 0.0, Color(0.95, 0.95, 1.0), fr, tx, n, foot_off(tx, "doll"))
 
 
 func draw_extra_shadows() -> void:
 	if doll_t > 0.0 and doll_pos != Vector2.INF:
-		g._spr("shadow", 1, 0, doll_pos + Vector2(0, 4), g.PX)
+		draw_spr("shadow", 1, 0, doll_pos + Vector2(0, 4), g.PX)
 
 
 func status_items() -> Array:

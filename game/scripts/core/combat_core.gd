@@ -1,9 +1,8 @@
 extends RefCounted
-## P0 底层的统一入口：game.gd 只需要持有一个 CombatCore。
-##   var core := preload("res://scripts/core/combat_core.gd").new()
-##   core.stats.value(&"max_hp")
-##   core.bus.emit(E.HIT, {...})
-##   core.gain_relic("54")
+## 核心模块（属性块、事件总线、修正系统、藏品库、流派档案）的组装器——**只给 tests/test_core.gd 用**：
+## 在没有场景的情况下搭一套核心、加载藏品数据并校验（validate() 检查效果里的 action 是否都有实现，GAME_ACTIONS 为 game.gd 实现的动作）。
+## 游戏本体不经过这里：game.gd 自己持有 stats / bus / mods 等模块（2026-09-26 架构检查确认；早期设想的「game.gd 只持有一个 core」没有落地）。
+## 在 game.gd / relic_fx.gd 新增藏品动作时，记得把动作名登记进 GAME_ACTIONS，否则核心测试会报「未知动作」。
 ## 设计见 docs/09_p0_architecture.md。
 
 const E = preload("res://scripts/core/events.gd")

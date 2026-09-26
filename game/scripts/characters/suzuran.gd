@@ -1,5 +1,5 @@
 ## 铃兰（辅助，契约 v2.1）：减速光域（只减速不伤害）+ 向 2 名敌人发射追踪狐火。
-## S1 狐火连珠：下一次普攻 5 发；S2 暖光（永久型）：充能一次后光域永久扩大、其他干员加攻、博士回复；S3 狐火迷雾：10 秒大光域，减速 60%、易伤 25%，期间不普攻。
+## S1 狐火连珠：下一次普攻 5 发；S2 暖光（永久型）：充能一次后光域永久扩大、其他干员加攻、主控回复；S3 狐火迷雾：10 秒大光域，减速 60%、易伤 25%，期间不普攻。
 ## 特效（docs/25）：狐火金。光域为地面淡金椭圆 + 边缘绕行的六团狐火；狐火弹金白火球带火舌尾；技能期间光点上升。
 ## 可见成长（docs/25 §5）：身边常驻小狐火 = 每次普攻狐火数；三火归一的大狐火；狐火连珠定身金印；围炉狐火；精二九尾虚影。
 extends "res://scripts/characters/character.gd"
@@ -105,22 +105,22 @@ func update(dt: float) -> void:
 			pillar_t = 0.9
 			var a2: float = g.rng.randf() * TAU
 			var rr2: float = g.rng.randf_range(0.3, 0.9) * aura_radius()
-			g._fx_sprite("fx_holy_pillar", pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
-		# 光域内的博士缓慢回复（原作：范围内友军回复）
+			spawn_fx_sprite("fx_holy_pillar", pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
+		# 光域内的主控缓慢回复（原作：范围内友军回复）
 		heal_acc += dt
 		if heal_acc >= 1.0:
 			heal_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * (0.01 if haze_t > 0.0 else 0.005), "铃兰")
+				heal_leader(g.max_hp * (0.01 if haze_t > 0.0 else 0.005), "铃兰")
 		if was_haze and haze_t <= 0.0:
 			# 迷雾刚结束：回到暖光（永久）或清除加成
 			if warm:
 				_field_buff(base("s2_buff", 0.15) * skill_power())
 			else:
 				g.stats.remove_source("suzuran_field")
-				g._sync_stats()
+				refresh_stats()
 	var rad := aura_radius()
-	for j in g._query(pos, rad + 20.0):
+	for j in query_ids(pos, rad + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(pos) > rad:
 			continue
@@ -134,7 +134,7 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		volley_next = true
 		fx({"kind": "glow", "pos": pos + Vector2(0, -30), "r": 18.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
-		g._fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 1.6)
+		spawn_fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 1.6)
 		return
 	if ready > 0:
 		start_skill(Vector2.INF, ready)
@@ -142,7 +142,7 @@ func update(dt: float) -> void:
 	if haze_t > 0.0:
 		return   # 狐火迷雾：期间不普攻
 	if cd <= 0.0:
-		var ts: Array = g._nearest(2, base("range", 380.0) * stat(&"op_range"), pos)
+		var ts: Array = nearest_enemies(2, base("range", 380.0) * stat(&"op_range"), pos)
 		if ts.is_empty():
 			cd = 0.2
 		else:
@@ -151,7 +151,7 @@ func update(dt: float) -> void:
 			start_attack(ts[0].pos)
 			# Codex 三团狐火汇聚（原作：三团狐火合而为一再射出）：三火归一的那一次在身前播一遍
 			if merging:
-				g._fx_sprite("fx_suzuran_foxfire_gather", pos + Vector2(20.0 * face, -34), g.PX * 0.9)
+				spawn_fx_sprite("fx_suzuran_foxfire_gather", pos + Vector2(20.0 * face, -34), g.PX * 0.9)
 
 
 func _release() -> void:
@@ -165,7 +165,7 @@ func _release() -> void:
 		mult = base("s1_mult", 1.2) * skill_power()
 	var big := merging and not volley
 	merging = false
-	var ts: Array = g._nearest(n, 400.0 * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(n, 400.0 * stat(&"op_range"), pos)
 	var from := pos + Vector2(12.0 * face, -30)
 	if ts.is_empty():
 		return
@@ -213,13 +213,13 @@ func _update_bigfox(dt: float) -> void:
 		if f.trail <= 0.0:
 			f.trail = 0.03
 			fx({"kind": "flame", "pos": f.pos - f.vel.normalized() * 10.0 + Vector2(g.rng.randf_range(-4, 4), g.rng.randf_range(-4, 4)), "vel": -f.vel * 0.12 + Vector2(0, -20), "life": 0.3, "col": GOLD, "sz": 11.0})
-		for j in g._query(f.pos, f.r + 40.0):
+		for j in query_ids(f.pos, f.r + 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or f.hit.has(e.id) or e.pos.distance_to(f.pos) > f.r + e.r:
 				continue
 			f.hit[e.id] = true
-			g._hit("狐火", ["pierce"])
-			g._damage(e, f.dmg)
+			log_hit("狐火", ["pierce"])
+			deal_damage(e, f.dmg)
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
 			fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": GOLD, "w": 2.5})
@@ -238,7 +238,7 @@ func _update_seals(dt: float) -> void:
 			continue
 		var best = null
 		var bd := 40.0
-		for j in g._query(b.pos, 40.0):
+		for j in query_ids(b.pos, 40.0):
 			var e: Dictionary = g.enemies[j]
 			var dd: float = e.pos.distance_to(b.pos) - e.r
 			if not e.dead and dd < bd:
@@ -271,13 +271,13 @@ func _update_hearth() -> void:
 	for k in n:
 		var a: float = g.t * 0.8 + k * TAU / n
 		var p: Vector2 = pos + Vector2(4, 4) + Vector2(cos(a) * r, sin(a) * r * 0.55)
-		for j in g._query(p, 40.0):
+		for j in query_ids(p, 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(p) > 14.0 + e.r or float(hearth_hit.get(e.id, -1.0)) > g.t:
 				continue
 			hearth_hit[e.id] = g.t + every
-			g._hit("围炉")
-			g._damage(e, dmg)
+			log_hit("围炉")
+			deal_damage(e, dmg)
 			fx({"kind": "flame", "pos": e.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": GOLD, "sz": 10.0})
 	if hearth_hit.size() > 200:
 		for key in hearth_hit.keys():
@@ -302,20 +302,20 @@ func _release_skill() -> void:
 		1:
 			warm = true
 			_field_buff(base("s2_buff", 0.15) * skill_power())
-			g._show_banner("暖光：光域永久扩大")
+			show_banner("暖光：光域永久扩大")
 		2:
 			haze_t = S3_DUR
 			_field_buff(base("s3_buff", 0.2) * skill_power())
-			g._show_banner("狐火迷雾")
+			show_banner("狐火迷雾")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD})
 	# 圣光光柱（Pimen Holy VFX 02）：中心一根 + 光域边缘六根小的
-	g._fx_sprite("fx_holy_pillar", pos + Vector2(0, 4), g.PX * (1.4 if cur_skill == 2 else 1.0), 0.0, false, true)
+	spawn_fx_sprite("fx_holy_pillar", pos + Vector2(0, 4), g.PX * (1.4 if cur_skill == 2 else 1.0), 0.0, false, true)
 	var rr3 := aura_radius()
 	for k in 6:
 		var a3: float = k * TAU / 6.0 + g.t * 0.8
-		g._fx_sprite("fx_holy_pillar", pos + Vector2(4, 4) + Vector2(cos(a3) * rr3, sin(a3) * rr3 * 0.55), g.PX * 0.6, 0.0, false, true)
-	g._fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 2.2)
+		spawn_fx_sprite("fx_holy_pillar", pos + Vector2(4, 4) + Vector2(cos(a3) * rr3, sin(a3) * rr3 * 0.55), g.PX * 0.6, 0.0, false, true)
+	spawn_fx_sprite("fx_circle_gold", pos + Vector2(0, 4), g.PX * 2.2)
 
 
 ## 其他干员攻击加成：只写入别的干员的 op:<id> 作用域，不给自己
@@ -324,7 +324,7 @@ func _field_buff(v: float) -> void:
 	for o in g.squad.ops:
 		if o != self:
 			g.stats.add(&"op_atk", "add", v, "suzuran_field", "op:" + o.id)
-	g._sync_stats()
+	refresh_stats()
 
 
 func skill_active_left(i: int) -> float:
@@ -466,7 +466,7 @@ func _draw_skill_over() -> void:
 		if _fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
 			pass
 		elif g.tex.get("proj_foxfire") != null:
-			g._spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
+			draw_spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
 		else:
 			g.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
 	# 狐火弹：OGA Light Bolt 调金（proj_foxfire），按速度方向旋转 + 外圈热光
@@ -475,7 +475,7 @@ func _draw_skill_over() -> void:
 			continue
 		g.draw_circle(b.pos, 10.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
 		if g.tex.get("proj_foxfire") != null:
-			g._spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
+			draw_spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
 		else:
 			g.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
 

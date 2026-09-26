@@ -18,7 +18,7 @@
 | `modifier_system.gd` | 29 Modifier System | 执行效果数据：stat / trigger / status / spawn / rule / on_gain；条件判断；冷却；限时修正；有上限的永久累加 |
 | `build_profile.gd` | 31 Build Profile、35 测试标准 | Tag 权重、流派得分、主流派、相关度；伤害来源占比、击杀来源、承伤来源、灯火均值、成型时间 |
 | `relic_db.gd` | 32 RelicData、13 商店、17 Boss 奖励 | 读取藏品表；候选池（前置 / 冲突 / 已拥有）；三个商店阶段的权重与 Soft Steering；精英箱；Boss 奖励规则 |
-| `combat_core.gd` | — | 统一入口：`game.gd` 只持有一个 `core` |
+| `combat_core.gd` | — | 原设想为统一入口（`game.gd` 只持有一个 `core`），**未落地**：游戏里 `game.gd` 自己持有各模块；现在只作 `tests/test_core.gd` 的组装器与藏品数据校验（2026-09-26） |
 
 数据：
 

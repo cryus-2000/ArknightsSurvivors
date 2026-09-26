@@ -68,9 +68,9 @@ func update(dt: float) -> void:
 		if erupt_t <= 0.0:
 			erupt_t = 0.2
 			erupt -= 1
-			var c: Vector2 = g._densest_point(440.0 * stat(&"op_range"), pos)
+			var c: Vector2 = densest_point(440.0 * stat(&"op_range"), pos)
 			if c == Vector2.INF:
-				var ts: Array = g._nearest(1, 440.0 * stat(&"op_range"), pos)
+				var ts: Array = nearest_enemies(1, 440.0 * stat(&"op_range"), pos)
 				if ts.is_empty():
 					erupt = 0
 					return
@@ -86,14 +86,14 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		heat = 3
 		fx({"kind": "glow", "pos": pos + Vector2(0, -30), "r": 22.0, "life": 0.3, "col": ORANGE, "alpha": 0.5})
-		g._add_text(pos + Vector2(0, -80), "炽热", ORANGE, 14)
+		float_text(pos + Vector2(0, -80), "炽热", ORANGE, 14)
 		return
 	if ready > 0:
-		var ts: Array = g._nearest(1, 440.0, pos)
+		var ts: Array = nearest_enemies(1, 440.0, pos)
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, base("range", 380.0) * stat(&"op_range"), pos)
+		var ts: Array = nearest_enemies(1, base("range", 380.0) * stat(&"op_range"), pos)
 		if ts.is_empty():
 			cd = 0.2
 		else:
@@ -102,7 +102,7 @@ func update(dt: float) -> void:
 
 
 func _release() -> void:
-	var ts: Array = g._nearest(1, 420.0 * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(1, 420.0 * stat(&"op_range"), pos)
 	if ts.is_empty():
 		return
 	var hot := heat > 0
@@ -127,7 +127,7 @@ func _release() -> void:
 ## 后续熔岩弹的落点：首发目标之外最近的敌人；不够就在首发目标两侧垂直偏开 40px
 func _extra_targets(first: Dictionary, n: int) -> Array:
 	var out: Array = []
-	for e in g._nearest(n + 3, 420.0 * stat(&"op_range"), pos):
+	for e in nearest_enemies(n + 3, 420.0 * stat(&"op_range"), pos):
 		if e.id != first.id and out.size() < n:
 			out.append(e.pos)
 	var side: Vector2 = (first.pos - pos).normalized().orthogonal() * 40.0
@@ -142,7 +142,7 @@ func _release_skill() -> void:
 	match cur_skill:
 		1:
 			# 点燃：一发重弹 + 易伤
-			var ts: Array = g._nearest(1, 440.0 * stat(&"op_range"), pos)
+			var ts: Array = nearest_enemies(1, 440.0 * stat(&"op_range"), pos)
 			if ts.is_empty():
 				return
 			_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
@@ -188,14 +188,14 @@ func bullet_exploded(b: Dictionary) -> void:
 		fx({"kind": "mote", "pos": b.pos, "vel": Vector2(g.rng.randf_range(-90, 90), g.rng.randf_range(-160, -60)), "life": 0.45, "col": LAVA, "sz": 2.5, "grav": 320.0})
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
 	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放；点燃弹换成大团熔岩爆炸（ansimuz Explosion A）
-	if b.get("src", "") == "点燃弹" and g._fx_sprite("fx_eyja_ignite_boom", b.pos + Vector2(0, -10), b.aoe * 2.3 / 68.0):
+	if b.get("src", "") == "点燃弹" and spawn_fx_sprite("fx_eyja_ignite_boom", b.pos + Vector2(0, -10), b.aoe * 2.3 / 68.0):
 		g.hitstop = maxf(g.hitstop, 0.05)
 	else:
-		g._fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
+		spawn_fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
 	# N2「火星迸溅」：普攻熔岩弹炸开迸出 2 颗火星，弹跳向附近的敌人（优先爆炸圈外的）
 	if embers_on and b.get("src", "") == "火山弹":
 		var near: Array = []
-		for e in g._nearest(6, base("ember_reach", 200.0), b.pos):
+		for e in nearest_enemies(6, base("ember_reach", 200.0), b.pos):
 			if e.pos.distance_to(b.pos) > b.aoe * 0.6 and near.size() < 2:
 				near.append(e.pos)
 		while near.size() < 2:
@@ -209,7 +209,7 @@ func bullet_exploded(b: Dictionary) -> void:
 			var to: Vector2 = b.pos + Vector2.from_angle(a0 + k * TAU / 4.0) * b.aoe * 1.4
 			_lob(b.pos, to, base("atk", 22.0) * base("blob_mult", 0.5) * _dmg_bonus() * skill_power(), base("blob_r", 40.0), "熔岩团", 44.0, 1.0)
 	if b.get("burn", false) or b.get("weak", 0.0) > 0.0:
-		for e in g._arc_hit(b.pos, 0.0, PI, b.aoe):
+		for e in arc_targets(b.pos, 0.0, PI, b.aoe):
 			if e.dead:
 				continue
 			if b.get("burn", false):
@@ -224,12 +224,12 @@ func _erupt(c: Vector2) -> void:
 	area_hit("火山", c, r, edmg)
 	# N5「熔岩天降」：每次喷发再向附近 2 名随机敌人高抛一颗熔岩弹（喷发伤害的 50%）
 	if meteor_on:
-		var cands: Array = g._nearest(10, base("meteor_reach", 320.0), c)
-		g._shuffle(cands)   # 对局随机数（同 seed 可复现，docs/36）
+		var cands: Array = nearest_enemies(10, base("meteor_reach", 320.0), c)
+		shuffle_rng(cands)   # 对局随机数（同 seed 可复现，docs/36）
 		for k in mini(2, cands.size()):
 			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
-	g._fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
+	spawn_fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": ORANGE, "floor": true, "w": 3.0})
 	for k in 8:
@@ -265,7 +265,7 @@ func _update_lobs(dt: float) -> void:
 			for k in (6 if l.sz >= 1.0 else 3):
 				fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.rng.randf_range(-80, 80), g.rng.randf_range(-140, -50)), "life": 0.4, "col": LAVA, "sz": 2.0, "grav": 320.0})
 			if l.sz >= 1.0:
-				g._fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
+				spawn_fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
 	lobs = lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -293,8 +293,8 @@ func _update_ground(dt: float) -> void:
 			b.ft = 0.14
 			fx({"kind": "flame", "pos": b.e.pos + Vector2(g.rng.randf_range(-b.e.r * 0.5, b.e.r * 0.5), -b.e.r * 0.4), "vel": Vector2(0, -20), "life": 0.3, "col": ORANGE, "sz": 9.0})
 		if int((b.t + dt) * 2.0) != int(b.t * 2.0):
-			g._hit("点燃")
-			g._damage(b.e, b.dps * 0.5)
+			log_hit("点燃")
+			deal_damage(b.e, b.dps * 0.5)
 	burns = burns.filter(func(b): return b.t > 0.0)
 
 
@@ -322,7 +322,7 @@ func draw_entities_floor() -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		# 熔岩池中心的翻滚熔岩（CodeManu sunburn 调橙红，循环）
 		if g.tex.get("fx_sunburst") != null:
-			g._spr_rot("fx_sunburst", int(g.t * 16.0 + l.pos.x * 0.1) % 16, l.pos + Vector2(0, -4), 0.0, l.r * 1.3 / 62.0, Color(1.0, 1.0, 1.0, 0.75 * a))
+			draw_spr_rot("fx_sunburst", int(g.t * 16.0 + l.pos.x * 0.1) % 16, l.pos + Vector2(0, -4), 0.0, l.r * 1.3 / 62.0, Color(1.0, 1.0, 1.0, 0.75 * a))
 
 
 func draw_auras() -> void:
@@ -345,10 +345,10 @@ func _draw_skill_over() -> void:
 		if big and g.tex.get("proj_eyja_ignite") != null:
 			# 点燃弹（2026-09-26 用户要求更大）：拖着火焰尾的大彗星火球，头朝飞行方向
 			g.draw_circle(b.pos, 26.0 * fl, Color(1.6, 0.5, 0.1, 0.25))
-			g._spr_rot("proj_eyja_ignite", int(g.t * 14.0) % 5, b.pos - b.vel.normalized() * 14.0, b.vel.angle(), g.PX * 1.5)
+			draw_spr_rot("proj_eyja_ignite", int(g.t * 14.0) % 5, b.pos - b.vel.normalized() * 14.0, b.vel.angle(), g.PX * 1.5)
 		elif g.tex.get("proj_lavaball") != null:
 			# 熔岩球（OGA Fireball 调橙红），按速度方向旋转
-			g._spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1) * sz)
+			draw_spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1) * sz)
 		else:
 			g.draw_circle(b.pos, (10.0 if big else 7.5) * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
 			g.draw_circle(b.pos, (4.5 if big else 3.5) * sz, Color(2.8, 2.4, 1.6))

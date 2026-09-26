@@ -56,11 +56,11 @@ func update(dt: float) -> void:
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
-		var ts: Array = g._nearest(1, _range(), pos)
+		var ts: Array = nearest_enemies(1, _range(), pos)
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts2: Array = g._nearest(1, _range(), pos)
+		var ts2: Array = nearest_enemies(1, _range(), pos)
 		if ts2.is_empty():
 			cd = 0.15
 		else:
@@ -72,14 +72,14 @@ func update(dt: float) -> void:
 func _release() -> void:
 	var n: int = int(base("s3_targets", 4.0)) if acuity_t > 0.0 else 1
 	# N2 复指：多打 1 个目标，多出的这一道 70%
-	var ts: Array = g._nearest(n + (1 if anaphora else 0), _range(), pos)
+	var ts: Array = nearest_enemies(n + (1 if anaphora else 0), _range(), pos)
 	if ts.is_empty():
 		return
 	for k in ts.size():
 		_word(ts[k], _atk() * (base("second_mult", 0.7) if k >= n else 1.0), "言")
 	# 天赋：50% 额外攻击随机一名敌人（60% 伤害）并减速；精二「众声喧哗」同时打 2 名
 	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.4):
-		var pool: Array = g._nearest(8, _range(), pos)
+		var pool: Array = nearest_enemies(8, _range(), pos)
 		for q in (2 if chorus else 1):
 			if pool.is_empty():
 				break
@@ -116,7 +116,7 @@ func _update_bolts(dt: float) -> void:
 			b.life = -1.0
 			var tgt: Dictionary = e
 			if e.dead:
-				var near: Array = g._nearest(1, 60.0, b.to)
+				var near: Array = nearest_enemies(1, 60.0, b.to)
 				tgt = near[0] if not near.is_empty() else {}
 			if not tgt.is_empty():
 				_word_hit(tgt, b.dmg, b.src)
@@ -135,10 +135,10 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	# 湮灭：处决非精英残血，溢出转给随机另一名敌人
 	if perish and not e.elite and not e.boss and e.hp < _atk() * base("s2_exec", 1.5):
 		var over: float = maxf(0.0, dmg - e.hp)
-		g._hit("湮灭")
-		g._damage(e, e.hp + 1.0)
+		log_hit("湮灭")
+		deal_damage(e, e.hp + 1.0)
 		Sfx.op(id, "big", -3.0)
-		g._add_text(e.pos + Vector2(0, -e.r - 14), "湮灭", INK, 14)
+		float_text(e.pos + Vector2(0, -e.r - 14), "湮灭", INK, 14)
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 16.0, "life": 0.3, "col": INK, "alpha": 0.7})
 		# N5 墓志铭：在处决处写下一枚大咒文，1 秒后爆开
 		# （同时最多 3 枚，写满时新的处决不再写字）
@@ -146,12 +146,12 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 			_make_room()
 			epitaphs.append({"pos": e.pos, "t": base("epitaph_delay", 1.0), "dmg": _atk() * base("epitaph_mult", 1.2), "pat": g.rng.randi() % RUNES.size()})
 		if over > 0.0:
-			var pool: Array = g._nearest(6, _range(), pos)
+			var pool: Array = nearest_enemies(6, _range(), pos)
 			pool = pool.filter(func(o): return not is_same(o, e) and not o.dead)
 			if not pool.is_empty():
 				var o: Dictionary = pool[g.rng.randi() % pool.size()]
-				g._hit("言")
-				g._damage(o, over)
+				log_hit("言")
+				deal_damage(o, over)
 				o["requiem"] = base("requiem_dur", 5.0)
 				var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 				var lb: Vector2 = o.pos + Vector2(0, -o.r * 0.5)
@@ -160,8 +160,8 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 				else:
 					fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": INK, "w": 2.0})
 		return
-	g._hit(src)
-	g._damage(e, dmg)
+	log_hit(src)
+	deal_damage(e, dmg)
 	e["requiem"] = base("requiem_dur", 5.0)
 	# N1 铭文：命中处留下一枚发光咒文（与墓志铭合计最多 6 枚，旧的先消失）
 	if inscription:
@@ -171,17 +171,17 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	# 命中处小范围溅射（纯单体清不动 1:15 的骨潮，同铃兰 P5.1 的处理）
 	var ar: float = base("aoe", 30.0)
 	if ar > 0.0:
-		for j in g._query(e.pos, ar + 20.0):
+		for j in query_ids(e.pos, ar + 20.0):
 			var o: Dictionary = g.enemies[j]
 			if o.dead or is_same(o, e) or o.pos.distance_to(e.pos) > ar + o.r:
 				continue
-			g._hit(src)
-			g._damage(o, dmg * base("aoe_mult", 0.45))
+			log_hit(src)
+			deal_damage(o, dmg * base("aoe_mult", 0.45))
 			o["requiem"] = base("requiem_dur", 5.0)
 	# 命中处墨蓝爆点（弹体自己画在 _draw_skill_over；这里不再拉瞬发光线）
 	# Codex 骨笔符文（命中单次播放）；缺图退回墨蓝爆点 / 光点
-	if not g._fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX, 0.0, g.rng.randf() < 0.5) \
-			and not g._fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
+	if not spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX, 0.0, g.rng.randf() < 0.5) \
+			and not spawn_fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.22, "col": PALE, "alpha": 0.6})
 	for k in 3:
 		fx({"kind": "mote", "pos": e.pos + Vector2(g.rng.randf_range(-8, 8), -e.r * 0.5 + g.rng.randf_range(-8, 8)), "vel": Vector2(0, -40), "life": 0.35, "col": INK, "sz": 2.0})
@@ -195,7 +195,7 @@ func _release_skill() -> void:
 			# 提喻：锁定精英 / Boss 优先
 			var best = null
 			var bd := INF
-			for j in g._query(pos, _range()):
+			for j in query_ids(pos, _range()):
 				var e: Dictionary = g.enemies[j]
 				if e.dead:
 					continue
@@ -210,18 +210,18 @@ func _release_skill() -> void:
 			lock_t = base("s1_dur", 5.0)
 			lock_tick = 0.0
 			lock_n = 0
-			g._fx_sprite("fx_circle_ink", best.pos + Vector2(0, best.r * 0.8), g.PX * clampf(best.r / 14.0, 1.2, 2.6))
-			g._add_text(best.pos + Vector2(0, -best.r - 16), "提喻", INK, 15)
+			spawn_fx_sprite("fx_circle_ink", best.pos + Vector2(0, best.r * 0.8), g.PX * clampf(best.r / 14.0, 1.2, 2.6))
+			float_text(best.pos + Vector2(0, -best.r - 16), "提喻", INK, 15)
 		1:
 			perish = true
-			g._show_banner("湮灭：射程与攻击永久提升，处决残血")
+			show_banner("湮灭：射程与攻击永久提升，处决残血")
 			fx({"kind": "ring", "pos": pos, "r": 80.0, "r0": 8.0, "life": 0.5, "col": INK, "floor": true})
-			g._fx_sprite("fx_felspell", pos + Vector2(0, -16), g.PX * 1.2, 0.0, false, false, Color(0.8, 0.85, 1.4))
+			spawn_fx_sprite("fx_felspell", pos + Vector2(0, -16), g.PX * 1.2, 0.0, false, false, Color(0.8, 0.85, 1.4))
 		2:
 			acuity_t = base("s3_dur", 12.0)
-			g._show_banner("延展敏锐")
-			g._fx_sprite("fx_holy_pillar_ink", pos + Vector2(0, 4), g.PX * 1.3, 0.0, false, true)
-			g._fx_sprite("fx_circle_ink", pos + Vector2(0, 4), g.PX * 2.4)
+			show_banner("延展敏锐")
+			spawn_fx_sprite("fx_holy_pillar_ink", pos + Vector2(0, 4), g.PX * 1.3, 0.0, false, true)
+			spawn_fx_sprite("fx_circle_ink", pos + Vector2(0, 4), g.PX * 2.4)
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -26), "life": 0.6, "max": 0.6, "col": INK})
 			fx({"kind": "ring", "pos": pos, "r": _range(), "r0": 30.0, "life": 0.8, "col": INK, "floor": true, "w": 2.0})
 	# 技能发动音 op_logos_s1/s2/s3 由 spend_sp 播放
@@ -254,8 +254,8 @@ func _update_lock(dt: float) -> void:
 		lock_tick -= tick
 		lock_n += 1
 		var ramp: float = lerpf(1.0, base("s1_max", 3.0), clampf(lock_n / 12.0, 0.0, 1.0))
-		g._hit("提喻")
-		g._damage(lock_e, _atk() * base("s1_tick_mult", 0.5) * ramp * skill_power())
+		log_hit("提喻")
+		deal_damage(lock_e, _atk() * base("s1_tick_mult", 0.5) * ramp * skill_power())
 		lock_e.slow = maxf(lock_e.slow, 0.6 * ramp)
 		fx({"kind": "line", "pos": pos + Vector2(10.0 * face, -28), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})
 		fx({"kind": "glow", "pos": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": PALE, "alpha": 0.5})
@@ -266,7 +266,7 @@ func _metonymy_jump() -> void:
 	var from: Vector2 = lock_e.pos
 	var best = null
 	var bd: float = INF
-	for j in g._query(from, _range()):
+	for j in query_ids(from, _range()):
 		var o: Dictionary = g.enemies[j]
 		if o.dead or o.pos.distance_to(pos) > _range():
 			continue
@@ -283,8 +283,8 @@ func _metonymy_jump() -> void:
 	fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": PALE, "w": 2.5})
 	fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": PALE, "w": 2.5})
 	fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": INK, "floor": true})
-	g._fx_sprite("fx_circle_ink", best.pos + Vector2(0, best.r * 0.8), g.PX * clampf(best.r / 14.0, 1.2, 2.6))
-	g._add_text(best.pos + Vector2(0, -best.r - 16), "转喻", INK, 14)
+	spawn_fx_sprite("fx_circle_ink", best.pos + Vector2(0, best.r * 0.8), g.PX * clampf(best.r / 14.0, 1.2, 2.6))
+	float_text(best.pos + Vector2(0, -best.r - 16), "转喻", INK, 14)
 
 
 ## 铭文 / 墓志铭的地面残留超过上限时，先挤掉最旧的铭文
@@ -302,12 +302,12 @@ func _update_glyphs(dt: float) -> void:
 			gl.tick -= dt
 			if gl.tick <= 0.0 and gl.t > -0.01:
 				gl.tick += base("glyph_tick", 0.25)
-				for j in g._query(gl.pos, gr + 20.0):
+				for j in query_ids(gl.pos, gr + 20.0):
 					var e: Dictionary = g.enemies[j]
 					if e.dead or e.pos.distance_to(gl.pos) > gr + e.r:
 						continue
-					g._hit("铭文")
-					g._damage(e, gl.dmg)
+					log_hit("铭文")
+					deal_damage(e, gl.dmg)
 		glyphs = glyphs.filter(func(gl): return gl.t > 0.0)
 	if not epitaphs.is_empty():
 		for ep in epitaphs:
@@ -324,7 +324,7 @@ func _epitaph_burst(ep: Dictionary) -> void:
 	fx({"kind": "ring", "pos": ep.pos, "r": r, "r0": 10.0, "life": 0.4, "col": INK, "floor": true, "w": 3.0})
 	fx({"kind": "ring", "pos": ep.pos, "r": r * 0.7, "r0": 6.0, "life": 0.3, "col": PALE, "floor": true, "w": 2.0})
 	fx({"kind": "glow", "pos": ep.pos + Vector2(0, -20), "r": 34.0, "life": 0.35, "col": INK, "alpha": 0.6})
-	g._fx_sprite("fx_logos_glyph", ep.pos + Vector2(0, -20), g.PX * 1.4)
+	spawn_fx_sprite("fx_logos_glyph", ep.pos + Vector2(0, -20), g.PX * 1.4)
 	fx_sparks(ep.pos + Vector2(0, -20), PALE, 10, 200.0, 0.45, 2.5)
 	Sfx.op(id, "big", -6.0, 1.2)
 
@@ -351,7 +351,7 @@ func _update_acuity(dt: float) -> void:
 				n += 1
 				fx({"kind": "glow", "pos": b.pos, "r": 8.0, "life": 0.25, "col": INK, "alpha": 0.6})
 		if n > 0:
-			g._add_text(pos + Vector2(0, -70), "消除弹幕 ×%d" % n, INK, 15)
+			float_text(pos + Vector2(0, -70), "消除弹幕 ×%d" % n, INK, 15)
 		fx({"kind": "ring", "pos": pos, "r": r, "r0": r * 0.5, "life": 0.5, "col": INK, "floor": true})
 
 
@@ -425,7 +425,7 @@ func _draw_skill_over() -> void:
 			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.25 + 0.55 * k), 1.5 + 6.0 * k)
 		if g.tex.get("proj_logos_ink") != null and h.size() >= 2:
 			# Codex 墨蓝尖头法术弹（朝右），按飞行方向旋转；保留拖尾、去掉圆亮芯
-			g._spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
+			draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
 		else:
 			g.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
 			g.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
@@ -493,9 +493,9 @@ func _acuity_layer(front: bool) -> void:
 	var tn: String = "fx_logos_s3_front" if front else "fx_logos_s3_back"
 	if g.tex.get(tn) == null:
 		if front and g.tex.get("fx_logos_s3_orbit") != null:
-			g._spr_rot("fx_logos_s3_orbit", int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
+			draw_spr_rot("fx_logos_s3_orbit", int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
 		return
-	g._spr_rot(tn, int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
+	draw_spr_rot(tn, int(g.t * 10.0) % 6, pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), face < 0.0)
 
 
 func draw_body() -> void:

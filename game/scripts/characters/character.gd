@@ -1,11 +1,12 @@
-## 编队干员的基类（docs/23）：干员跟随博士、自动输出、没有生命值；定义 game.gd / squad.gd 调用的接口，默认实现为空。
+## 编队干员的基类（docs/23）：开局干员是玩家操控的主控（唯一受击体，生命 / 减伤 / 法抗见 JSON leader 段），
+## 招募的干员跟随主控、自动输出、不会倒下；定义 game.gd / squad.gd 调用的接口，默认实现为空。
 ## 每个干员 = data/characters/<id>.json（名字、职业、贴图集、技能表、成长线）+ scripts/characters/<id>.gd（行为）。
-## 博士（受击体、移动、拾取、等级、经验）由 game.gd + characters/doctor.gd 持有，干员通过 g 读写。
-extends RefCounted
+## 生命、等级、经验、拾取由 game.gd 持有；博士是挂件（characters/doctor.gd：指挥技能、被动、排异反应）。
+## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
+extends "res://scripts/characters/op_api.gd"
 
 const A = preload("res://scripts/art.gd")
 
-var g                      # Game (Node2D)
 var def: Dictionary = {}   # 角色定义（JSON）
 var id := ""
 var cls := ""              # 职业：先锋/近卫/重装/狙击/术师/医疗/辅助/特种（def.class）
@@ -210,7 +211,7 @@ func tick_sp(dt: float) -> void:
 		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
 		if sp[i] < need:
-			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
+			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
 
 
 ## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
@@ -267,7 +268,7 @@ func fill_sp() -> void:
 			sp[i] = sp_need(i)
 
 
-## 排异反应（结局四）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，博士最大生命 -10
+## 排异反应（结局四）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，主控最大生命 -10
 func apply_rejection() -> String:
 	var cands: Array = []
 	for i in 3:
@@ -279,14 +280,14 @@ func apply_rejection() -> String:
 	rej[i] = true
 	g.stats.add(&"op_skill_power", "add", 0.4, "rej:%s:%d" % [id, i], "op:" + id)
 	g.stats.add(&"max_hp", "flat", -10.0, "rej:%s:%d" % [id, i])
-	g._sync_stats()
+	refresh_stats()
 	g.hp = minf(g.hp, g.max_hp)
-	return "%s「%s」海嗣化：技能强度 +40%%、充能 +30%%；博士最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
+	return "%s「%s」海嗣化：技能强度 +40%%、充能 +30%%；主控最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
 
 
 ## 精英化演出：新技能（+ 精一天赋）
 func _elite_show(stage: int) -> void:
-	var items: Array = [g._skill_item(self, stage)]
+	var items: Array = [skill_item(stage)]
 	var td := talent_def()
 	if stage == 1 and not td.is_empty():
 		items.append({"tag": "天赋", "tag_en": "TALENT", "glyph": td.get("name", "赋").substr(0, 1), "name": td.get("name", ""), "desc": td.get("desc", ""), "col": col().lerp(Color(1, 1, 1), 0.3)})
@@ -610,7 +611,7 @@ func advance(choice: String = "") -> void:
 		"stat":
 			for ef in n.get("effects", []):
 				g.stats.add(StringName(ef.key), ef.get("op", "add"), float(ef.value), "prog:%s:%d" % [id, prog], "op:" + id)
-			g._sync_stats()
+			refresh_stats()
 		"elite":
 			elite = int(n.level)
 			on_elite(elite, choice)
@@ -621,13 +622,13 @@ func advance(choice: String = "") -> void:
 	if n.type != "elite":
 		node_lv += 1
 		g.stats.add(&"op_atk", "add", NODE_ATK, "node:%s:%d" % [id, prog], "op:" + id)
-		g._sync_stats()
+		refresh_stats()
 		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
 		if pos != Vector2.INF:
 			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0})
 			fx_sparks(pos + Vector2(0, -24), col().lerp(Color.WHITE, 0.4), 12, 180.0, 0.5, 3.0, -120.0)
 	if n.has("banner"):
-		g._show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)
+		show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)
 
 
 ## 干员深度卡：下一个成长节点（elite 带 choices 时每个选项一张）+ 子类追加的卡（技能进阶等）
@@ -750,7 +751,7 @@ func portrait() -> Dictionary:
 
 # ---------------------------------------------------------------- 跟随与动画（squad.gd 调用）
 
-## 跟随博士的编队位：近处慢慢挪、远处快步跟上；离得太远（开局 / 传送）直接归位
+## 跟随主控的编队位：近处慢慢挪、远处快步跟上；离得太远（开局 / 传送）直接归位
 func follow(dt: float, target: Vector2) -> void:
 	if pos == Vector2.INF or pos.distance_to(target) > 700.0:
 		pos = target
@@ -847,12 +848,12 @@ func acting() -> bool:
 	return attack_t > 0.0
 
 
-## 跟随目标点：默认是编队位；近战干员可以改成"前压到敌人身边"（离博士不超过 leash）
+## 跟随目标点：默认是编队位；近战干员可以改成"前压到敌人身边"（离主控不超过 leash）
 func follow_target(slot_pos: Vector2) -> Vector2:
 	return slot_pos
 
 
-## 近战前压：博士 leash 范围内最近的敌人；返回站位点（敌人朝博士一侧、身前 gap 处）或 INF。
+## 近战前压：主控 leash 范围内最近的敌人；返回站位点（敌人朝主控一侧、身前 gap 处）或 INF。
 ## 目标带滞回（现目标死亡或超出 leash × 1.3 才换），已经够得着时原地不动，避免在两个目标 / 两侧之间来回抖。
 var melee_tgt = null
 
@@ -861,7 +862,7 @@ func melee_spot(leash: float, gap: float) -> Vector2:
 		leash *= 2.0   # 图鉴演示：场地里全是靶子，近战放宽前压范围，一直追着怪海打
 	var e = melee_tgt
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > leash * 1.3:
-		var ts: Array = g._nearest(1, leash, g.ppos)
+		var ts: Array = nearest_enemies(1, leash, g.ppos)
 		e = ts[0] if not ts.is_empty() else null
 		melee_tgt = e
 	if e == null:
@@ -890,10 +891,10 @@ func draw_extra_shadows() -> void:
 
 ## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人
 func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
-	var hits: Array = g._arc_hit(origin, ang, half, radius)
+	var hits: Array = arc_targets(origin, ang, half, radius)
 	for e in hits:
-		g._hit(src, tags)
-		g._damage(e, dmg)
+		log_hit(src, tags)
+		deal_damage(e, dmg)
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
@@ -994,14 +995,14 @@ func draw_body() -> void:
 	var c: Color = col().lerp(Color.WHITE, 0.35)
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
-		g._draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+		draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
-	g._draw_sprite_at(pos, st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(pos, st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。
-## 跟着博士慢走不触发，只在前压 / 追赶 / 技能位移这种「一下子移动」时出现
+## 跟着主控慢走不触发，只在前压 / 追赶 / 技能位移这种「一下子移动」时出现
 const GHOST_SPEED := 200.0
 const GHOST_EVERY := 0.04
 const GHOST_LIFE := 0.18
@@ -1027,4 +1028,4 @@ func draw_body_at(p: Vector2, flip: bool, col: Color, st: Dictionary = {}) -> vo
 		st = anim_state()
 	if st.is_empty():
 		return
-	g._draw_sprite_at(p, flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(p, flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))

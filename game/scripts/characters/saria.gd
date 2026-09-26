@@ -1,6 +1,6 @@
-## 塞雷娅（重装，契约 v2.1）：护博士。站在博士身侧；阻挡圈把贴近博士的敌人推开并减速，持盾出拳击退身前敌人（攻击较高）。
-## 技能全部是治疗，不给护盾（护盾太强）：S1 急救：回复 8%（低血翻倍）；S2 药剂散布：回复 10% + 5 秒持续回复；S3 钙质化：8 秒琥珀区域，敌人减速 + 易伤，博士持续回复。
-## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环；拳击为琥珀冲击 + 推力线；钙质化在博士周围升起琥珀晶柱。
+## 塞雷娅（重装，契约 v2.1）：护主控。站在主控身侧；阻挡圈把贴近主控的敌人推开并减速，持盾出拳击退身前敌人（攻击较高）。
+## 技能全部是治疗，不给护盾（护盾太强）：S1 急救：回复 8%（低血翻倍）；S2 药剂散布：回复 10% + 5 秒持续回复；S3 钙质化：8 秒琥珀区域，敌人减速 + 易伤，主控持续回复。
+## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环；拳击为琥珀冲击 + 推力线；钙质化在主控周围升起琥珀晶柱。
 ## 可见成长（docs/25 §5.2）：N1 钙质沉积 3 枚环绕钙晶 → N2 晶簇 5 枚；N4 急救针剂：急救掷出 3 支注射器；
 ## N5 碎晶：钙质化期间每 1.2 秒击碎一根晶柱，碎片飞向区域内敌人；精二「莱茵充能护服」：护服 4 格充能，满格下一次出拳变为全方位冲击。
 extends "res://scripts/characters/character.gd"
@@ -39,7 +39,7 @@ func _reach() -> float:
 	return base("reach", 70.0) * stat(&"op_range")
 
 
-## 站位：博士面前一侧（贴身护卫），不前压
+## 站位：主控面前一侧（贴身护卫），不前压
 func follow_target(_slot_pos: Vector2) -> Vector2:
 	return g.ppos + Vector2(26.0 * g.facing, 6)
 
@@ -85,7 +85,7 @@ func update(dt: float) -> void:
 		if hot_acc >= 1.0:
 			hot_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.01, "塞雷娅")
+				heal_leader(g.max_hp * 0.01, "塞雷娅")
 				fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
 	if calc > 0.0:
 		calc -= dt
@@ -93,9 +93,9 @@ func update(dt: float) -> void:
 		if calc_acc >= 1.0:
 			calc_acc -= 1.0
 			if g.hp < g.max_hp:
-				g._heal(g.max_hp * 0.015, "塞雷娅")
+				heal_leader(g.max_hp * 0.015, "塞雷娅")
 		# 区域内敌人：减速 + 易伤
-		for j in g._query(g.ppos, S3_R + 20.0):
+		for j in query_ids(g.ppos, S3_R + 20.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(g.ppos) > S3_R:
 				continue
@@ -121,7 +121,7 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = g._nearest(1, _reach() + 40.0, pos)
+		var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
 		if ts.is_empty():
 			cd = 0.1
 		else:
@@ -129,7 +129,7 @@ func update(dt: float) -> void:
 			start_attack(ts[0].pos)
 
 
-## 阻挡圈：每 0.25 秒把博士周围 block_radius 内的非 Boss 敌人推到圈外、减速
+## 阻挡圈：每 0.25 秒把主控周围 block_radius 内的非 Boss 敌人推到圈外、减速
 func _block(dt: float) -> void:
 	block_t -= dt
 	if block_t > 0.0:
@@ -137,7 +137,7 @@ func _block(dt: float) -> void:
 	block_t = 0.25
 	var r := block_radius()
 	var shown := 0
-	for j in g._query(g.ppos, r + 30.0):
+	for j in query_ids(g.ppos, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.boss or e.chest:
 			continue
@@ -152,7 +152,7 @@ func _block(dt: float) -> void:
 
 
 func _release() -> void:
-	var ts: Array = g._nearest(1, _reach() + 40.0, pos)
+	var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
 	var ang := facing_angle()
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
@@ -166,8 +166,8 @@ func _release() -> void:
 	var hits := melee_hit("拳击", pos + Vector2(0, -10), ang, 1.1, _reach(), _bash_dmg(), 200.0, 0.2)
 	# 拳击（2026-09-26 用户定：保持出拳，不改盾击）：Codex 冲击帧条；缺图退回弧光 + 推力线
 	var d := Vector2.from_angle(ang)
-	if not g._fx_sprite("fx_saria_shield_bash", pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
-		g._slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
+	if not spawn_fx_sprite("fx_saria_shield_bash", pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
+		slash_fx(pos + Vector2(0, -14), ang, 1.0, _reach() * 0.8, AMBER)
 		fx({"kind": "line", "pos": pos + Vector2(0, -12) + d * 14.0, "to": pos + Vector2(0, -12) + d * _reach() * 1.3, "life": 0.15, "col": AMBER, "w": 3.0})
 	Sfx.op(id, "hit" if not hits.is_empty() else "atk")
 
@@ -197,7 +197,7 @@ func _suit_blast() -> void:
 ## 钙质晶体（Codex：冷白主体 + 琥珀边，从地面长出 → 停留 → 碎裂）；缺图退回程序琥珀晶柱。返回该晶柱的特效条目
 func _calcite(p: Vector2, sc: float, h: float, life: float) -> Dictionary:
 	var ref: Dictionary = {}
-	if g._fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.rng.randf() < 0.5, true):
+	if spawn_fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.rng.randf() < 0.5, true):
 		ref = g.fx.back()
 	else:
 		fx({"kind": "crystal", "pos": p, "h": h, "life": life, "col": AMBER, "lean": g.rng.randf_range(-0.3, 0.3)})
@@ -231,13 +231,13 @@ func _update_orbs(dt: float) -> void:
 	var dmg: float = _bash_dmg() * base("orb_mult", 0.18)
 	for k in orb_n:
 		var p: Vector2 = _orb_ground(k)
-		for j in g._query(p, 40.0):
+		for j in query_ids(p, 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or orb_cd.has(e.id) or e.pos.distance_to(p) > 12.0 + e.r:
 				continue
 			orb_cd[e.id] = base("orb_cd", 0.5)
-			g._hit("钙晶")
-			g._damage(e, dmg)
+			log_hit("钙晶")
+			deal_damage(e, dmg)
 			fx({"kind": "glow", "pos": p + Vector2(0, -16), "r": 7.0, "life": 0.14, "col": AMBER, "alpha": 0.6})
 			fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.rng.randf() * TAU) * 90.0, "life": 0.22, "col": AMBER, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 12.0})
 
@@ -258,19 +258,19 @@ func _update_shots(dt: float) -> void:
 		s.pos += s.vel * dt
 		# 投射物飞在腰高（-16），按地面位置判定
 		var gp: Vector2 = s.pos + Vector2(0, 16)
-		for j in g._query(gp, 36.0):
+		for j in query_ids(gp, 36.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(gp) > 6.0 + e.r:
 				continue
 			if s.kind == "syringe":
-				g._hit("急救针剂")
-				g._damage(e, s.dmg)
+				log_hit("急救针剂")
+				deal_damage(e, s.dmg)
 				if not e.dead:
 					e.slow = maxf(e.slow, base("syringe_slow", 2.0))
 				fx({"kind": "glow", "pos": s.pos, "r": 7.0, "life": 0.18, "col": Color(0.7, 1.2, 0.9), "alpha": 0.6})
 			else:
-				g._hit("碎晶")
-				g._damage(e, s.dmg)
+				log_hit("碎晶")
+				deal_damage(e, s.dmg)
 				fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": AMBER, "alpha": 0.6})
 				for q in 3:
 					fx({"kind": "shard", "pos": s.pos, "vel": Vector2.from_angle(g.rng.randf() * TAU) * 110.0, "life": 0.25, "col": AMBER, "sz": 2.5, "ang": g.rng.randf() * TAU, "spin": 14.0})
@@ -286,7 +286,7 @@ func _shatter() -> bool:
 		return false
 	var pl: Dictionary = pillars[g.rng.randi() % pillars.size()]
 	var p: Vector2 = pl.pos
-	var ts: Array = g._nearest(8, S3_R * 2.0, p).filter(func(e): return e.pos.distance_to(g.ppos) <= S3_R + e.r)
+	var ts: Array = nearest_enemies(8, S3_R * 2.0, p).filter(func(e): return e.pos.distance_to(g.ppos) <= S3_R + e.r)
 	if ts.is_empty():
 		return false
 	pillars.erase(pl)
@@ -305,12 +305,12 @@ func _shatter() -> bool:
 
 
 func _heal_fx(h: float) -> void:
-	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(h), AMBER, 16)
+	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), AMBER, 16)
 	for k in 6:
 		fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": AMBER, "sz": 2.5})
 	# 治疗光环（Ninja Adventure Aura 调琥珀）+ 星光命中（Pimen）
-	g._fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
-	g._fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX)
+	spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX)
 
 
 func _release_skill() -> void:
@@ -318,23 +318,23 @@ func _release_skill() -> void:
 		0:
 			# 急救
 			var h: float = g.max_hp * base("s1_heal", 0.08) * skill_power() * (2.0 if g.hp < g.max_hp * 0.5 else 1.0)
-			g._heal(h, "塞雷娅")
+			heal_leader(h, "塞雷娅")
 			_heal_fx(h)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 拳击伤害并减速 2 秒
 			if syringe_on:
 				var dmg: float = _bash_dmg() * base("syringe_mult", 0.6) * skill_power()
-				for e in g._nearest(int(base("syringe_n", 3.0)), 260.0, pos):
+				for e in nearest_enemies(int(base("syringe_n", 3.0)), 260.0, pos):
 					_shoot("syringe", pos + Vector2(8.0 * face, -24), e.pos + Vector2(0, -16), 460.0, dmg)
 		1:
 			# 药剂散布：立即回复 + 5 秒持续回复
 			var h2: float = g.max_hp * base("s2_heal", 0.10) * skill_power()
-			g._heal(h2, "塞雷娅")
+			heal_leader(h2, "塞雷娅")
 			_heal_fx(h2)
 			hot_t = 5.0
 			hot_acc = 0.0
 			fx({"kind": "ring", "pos": g.ppos, "r": 60.0, "r0": 10.0, "life": 0.5, "col": AMBER, "floor": true})
-			g._fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
+			spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
 		2:
 			# 钙质化：晶柱升起 + 区域
 			calc = S3_DUR
@@ -345,9 +345,9 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": g.ppos, "r": S3_R, "r0": 30.0, "life": 0.5, "col": AMBER, "floor": true, "w": 4.0})
 			fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": AMBER, "floor": true, "n": 10})
 			# 琥珀光柱 + 地面法阵（Pimen / Ninja Adventure 调色）
-			g._fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
-			g._fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
-			g._show_banner("钙质化")
+			spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
+			spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
+			show_banner("钙质化")
 			g.shake = maxf(g.shake, 3.0)
 
 
@@ -378,7 +378,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	return false
 
 
-## 精一「坚守」：博士受到的伤害 -12%（game.gd _enemy_hit 查询）
+## 精一「坚守」：主控受到的伤害 -12%（game.gd _enemy_hit 查询）
 func dmg_taken_mult() -> float:
 	return 0.88 if elite >= 1 else 1.0
 

@@ -63,7 +63,7 @@ func _dmg_bonus() -> float:
 
 
 func _low_hp_enemy_near() -> bool:
-	for j in g._query(pos, 160.0):
+	for j in query_ids(pos, 160.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.hp < e.maxhp * 0.5 and e.pos.distance_to(pos) < 160.0:
 			return true
@@ -75,7 +75,7 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 	match nid:
 		"tentacle_a", "tentacle_b":
 			g.stats.add(&"mizuki_tentacle_targets", "flat", 1.0, "prog:%s:%s" % [id, nid], "op:" + id)
-			g._sync_stats()
+			refresh_stats()
 		"awaken_burst":
 			awaken_burst = true
 		"bind_drag":
@@ -94,15 +94,15 @@ func _update_stakes(dt: float) -> void:
 		if s.tick <= 0.0 and s.t > 0.0:
 			s.tick = STAKE_EVERY
 			var any := false
-			for j in g._query(s.pos, STAKE_R + 20.0):
+			for j in query_ids(s.pos, STAKE_R + 20.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or e.pos.distance_to(s.pos) > STAKE_R + e.r:
 					continue
 				any = true
-				g._hit("触手")
-				g._damage(e, s.dmg)
+				log_hit("触手")
+				deal_damage(e, s.dmg)
 			if any:
-				g._fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true, deep_col())
+				spawn_fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true, deep_col())
 				s.flip = not s.flip
 	stakes = stakes.filter(func(s): return s.t > 0.0)
 
@@ -131,7 +131,7 @@ func update(dt: float) -> void:
 		match ready:
 			0:
 				s1_charges = mini(3, s1_charges + 1)
-				g._add_text(pos + Vector2(0, -80), "唤醒", UI.GOLD, 15)
+				float_text(pos + Vector2(0, -80), "唤醒", UI.GOLD, 15)
 			1:
 				s2_active = S2_DUR
 				_skill_cast(1)
@@ -149,7 +149,7 @@ func update(dt: float) -> void:
 	swing_cd -= dt
 	if swing_cd <= 0.0:
 		var radius := _swing_radius()
-		var targets = g._nearest(1, radius + 60.0, pos)
+		var targets = nearest_enemies(1, radius + 60.0, pos)
 		if targets.size() > 0:
 			# 藏品加速（极速之手 / 国王的新枪 / 投币玩具）已由 relic_fx 写进全队的 op_aspd，不再单独乘
 			var interval: float = base("swing_interval", 0.9) * u_spd_mult / stat(&"op_aspd") * (1.5 if g.atk_slow > 0.0 else 1.0)
@@ -192,18 +192,18 @@ func _umbrella(target: Dictionary) -> void:
 	var seen := {}
 	var hit: Array = []
 	for d in dirs:
-		for e in g._arc_hit(pos, d, half, radius):
+		for e in arc_targets(pos, d, half, radius):
 			if not seen.has(e.id):
 				seen[e.id] = true
 				hit.append(e)
 	# 镜花水月（原作：一大片苍白触手铺开）：每次挥伞在主方向前方铺开一片触手群
 	if s3_active > 0.0:
-		g._fx_sprite("fx_mizuki_tentacle_mass", pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true, deep_col())
+		spawn_fx_sprite("fx_mizuki_tentacle_mass", pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true, deep_col())
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
 	for e in hit:
-		g._hit("伞击", ["empowered"] if empowered else [])
-		g._damage(e, dmg)
+		log_hit("伞击", ["empowered"] if empowered else [])
+		deal_damage(e, dmg)
 		if not e.boss:
 			e.kb += (e.pos - pos).normalized() * (360.0 if empowered else 240.0)
 		if s3_active > 0.0 and not e.dead:
@@ -218,7 +218,7 @@ func _umbrella(target: Dictionary) -> void:
 		g.hitstop = max(g.hitstop, 0.09 if empowered else 0.03)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
-			g._sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
+			sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
 
 	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
@@ -238,7 +238,7 @@ func _umbrella(target: Dictionary) -> void:
 		_spawn_tentacle(alive[i], tdmg, stun)
 	# 「唤醒 · 涌」：强化一击时，身边再钻出 2 根触手打附近的敌人
 	if empowered and awaken_burst:
-		var near: Array = g._nearest(2, radius * 1.6, pos)
+		var near: Array = nearest_enemies(2, radius * 1.6, pos)
 		for ne in near:
 			if not ne.dead:
 				_spawn_tentacle(ne, tdmg, 0.4)
@@ -267,17 +267,17 @@ func _umbrella(target: Dictionary) -> void:
 		slash_col = Color(1.2, 0.85, 1.6)
 	elif s2_active > 0.0:
 		slash_col = Color(0.8, 1.1, 1.5)
-	var slash_tex = g._slash_tex("awaken" if empowered else ("mirage" if s3_active > 0.0 else "base"))
+	var slash_tex = slash_tex_name("awaken" if empowered else ("mirage" if s3_active > 0.0 else "base"))
 	if slash_tex.begins_with("fx_umbrella_slash"):
 		slash_col = Color(1.15, 1.15, 1.15)
 	if empowered and alive.size() > 0:
-		g._anim("fx_s1_burst", alive[0].pos, 0.35)
+		play_anim_fx("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
-		g._hit_fx(hit[k], hit[k].pos - pos)
+		enemy_hit_fx(hit[k], hit[k].pos - pos)
 	for d in dirs:
-		g._slash_fx(pos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
+		slash_fx(pos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
 	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
-		g._slash_fx(pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
+		slash_fx(pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
 
 
 ## 延时攻击的执行
@@ -285,15 +285,15 @@ func _run_delayed(dl: Dictionary) -> void:
 	match dl.kind:
 		"burst":
 			# 创伤扩散：目标处的范围冲击
-			for j in g._query(dl.pos, dl.r):
+			for j in query_ids(dl.pos, dl.r):
 				var e: Dictionary = g.enemies[j]
 				if not e.dead and e.pos.distance_to(dl.pos) < dl.r + e.r:
-					g._hit("技能·法术")
-					g._damage(e, dl.dmg)
+					log_hit("技能·法术")
+					deal_damage(e, dl.dmg)
 					if not e.boss:
 						e.kb += (e.pos - dl.pos).normalized() * 200.0
 			g.fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": UI.GOLD})
-			g._sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
+			sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
 			Sfx.play("boom", -10.0, 1.4, 0.1)
 		"echo":
 			# 镜像：身后的镜像分身朝它身边的敌人同步挥伞
@@ -312,15 +312,15 @@ func _run_delayed(dl: Dictionary) -> void:
 				dirs = [ma, ma + TAU / 3.0, ma - TAU / 3.0]
 			var seen := {}
 			for d in dirs:
-				for e in g._arc_hit(mp, d, dl.half, dl.radius):
+				for e in arc_targets(mp, d, dl.half, dl.radius):
 					if seen.has(e.id):
 						continue
 					seen[e.id] = true
-					g._hit("技能", ["echo"])
-					g._damage(e, dl.dmg)
+					log_hit("技能", ["echo"])
+					deal_damage(e, dl.dmg)
 					if not e.dead:
 						e.stun = maxf(e.stun, S3_STUN * 0.5)
-				g._slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if g._slash_tex("mirage").begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), g._slash_tex("mirage"), 0.3)
+				slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if slash_tex_name("mirage").begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), slash_tex_name("mirage"), 0.3)
 			mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
 			Sfx.op(id, "atk", 0.0, 0.8)
 
@@ -328,15 +328,15 @@ func _run_delayed(dl: Dictionary) -> void:
 ## 技能发动：光环爆发 + 震屏 + 推开身边小怪
 func _skill_cast(i: int) -> void:
 	# 发动音由 spend_sp 统一播放（op_mizuki_s2 / s3）
-	g._anim("fx_cast", pos, 0.5, g.PX * (1.3 if i == 2 else 1.0), true)
-	g._shake(0.5 if i == 1 else 0.8)
+	play_anim_fx("fx_cast", pos, 0.5, g.PX * (1.3 if i == 2 else 1.0), true)
+	screen_shake(0.5 if i == 1 else 0.8)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = Color(0.45, 0.8, 1.0) if i == 1 else UI.PURPLE
 	g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c})
 	g.fx.append({"kind": "ring", "pos": pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c})
 	g.fx.append({"kind": "rays", "pos": pos, "life": 0.6, "max": 0.6, "col": c})
-	g._sparks(pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
-	for j in g._query(pos, 140.0):
+	sparks(pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
+	for j in query_ids(pos, 140.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.boss and not e.chest:
 			e.kb += (e.pos - pos).normalized() * 420.0
@@ -344,8 +344,8 @@ func _skill_cast(i: int) -> void:
 
 func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	var p: Vector2 = target.pos
-	g._hit("触手")
-	g._damage(target, dmg)
+	log_hit("触手")
+	deal_damage(target, dmg)
 	if not target.dead:
 		target.stun = max(target.stun, stun if stun > 0.0 else 0.25)
 		# 「囚徒 · 缚」：囚徒困境期间，触手把被束缚的敌人拖向水月
@@ -359,21 +359,21 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	# 触手表现：地面裂隙 → 触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	# Codex 苍白水母触手（原作水月：海月水母触手，根部在底）；缺图退回旧触手帧条
-	if not g._fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true, deep_col()):
+	if not spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true, deep_col()):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
 		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
-	g._fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU, false, false, deep_col(1.4))
+	spawn_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU, false, false, deep_col(1.4))
 	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
 	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": deep_col(1.6)})
 	Sfx.play("tentacle", -4.0)
-	g._sparks(p + Vector2(0, 8), Vector2.UP, deep_col(1.5), 7, 200.0)
+	sparks(p + Vector2(0, 8), Vector2.UP, deep_col(1.5), 7, 200.0)
 
 
 ## 技能的地面表现（在角色之下）
 func _draw_skill_floor() -> void:
 	var base_p = pos + Vector2(0, 6)
 	# 灯火照亮范围（光中敌人受伤 +25%）
-	var lr = g._lamp_r()
+	var lr = lamp_radius()
 	g.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.5))
 	for q in 32:
 		if q % 2 == 0:
@@ -468,7 +468,7 @@ func _draw_skill_over() -> void:
 			var front := sin(an) > 0.0
 			UI.diamond(g, p, 4.5 if front else 3.5, Color(0.02, 0.05, 0.08, fade2), Color(0.7, 1.3, 2.0, fade2 * (1.0 if front else 0.5)))
 		# 被束缚的敌人：锁环
-		for j in g._query(pos, 320.0):
+		for j in query_ids(pos, 320.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.stun < 0.15:
 				continue
@@ -514,11 +514,11 @@ func _draw_tentacle(f: Dictionary) -> void:
 		# V7：32×48 × 6 帧，脚底锚点 (16,46)；第 3 帧（命中）略提亮
 		var fr := clampi(int(a * 6.0), 0, 5)
 		var col := deep_col(1.3 if fr == 3 else 1.0)
-		g._spr("fx_tentacle_strike", 6, fr, f.pos + Vector2(0, 10), g.PX * 1.25, f.flip, col, Vector2(0.5, 46.0 / 48.0))
+		draw_spr("fx_tentacle_strike", 6, fr, f.pos + Vector2(0, 10), g.PX * 1.25, f.flip, col, Vector2(0.5, 46.0 / 48.0))
 		return
 	var fr := clampi(int(a * 5.0 / 0.75), 0, 4)
 	var sc = g.PX * 1.7
-	g._spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, deep_col(1.35) if a < 0.3 else deep_col(), Vector2(0.5, 1.0))
+	draw_spr("tentacle", 5, fr, f.pos + Vector2(0, 10), sc, f.flip, deep_col(1.35) if a < 0.3 else deep_col(), Vector2(0.5, 1.0))
 
 
 ## 角色脚下的光环（缺帧条时的程序版）
@@ -555,14 +555,14 @@ func draw_entities_floor() -> void:
 ## 加法发光层：技能光环 + 受控标记
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	if s2_active > 0.0 and g.tex.get("fx_s2_aura") != null:
-		g._spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, pos + Vector2(0, 4))
+		draw_spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, pos + Vector2(0, 4))
 	if s3_active > 0.0 and g.tex.get("fx_s3_aura") != null:
-		g._spr_on(ci, "fx_s3_aura", g.FXF.fx_s3_aura, loop, pos + Vector2(0, 4))
+		draw_spr_on(ci, "fx_s3_aura", g.FXF.fx_s3_aura, loop, pos + Vector2(0, 4))
 	var mark := "fx_s2_bind" if s2_active > 0.0 else "fx_stun"
 	if g.tex.get(mark) != null:
 		for e in g.enemies:
 			if e.stun > 0.3:
-				g._spr_on(ci, mark, g.FXF[mark], loop + e.id, e.pos + Vector2(0, -e.r - 10))
+				draw_spr_on(ci, mark, g.FXF[mark], loop + e.id, e.pos + Vector2(0, -e.r - 10))
 
 
 ## 状态栏条目：[文字, 颜色, 进度 0..1 或 -1]
@@ -593,7 +593,7 @@ func on_kill(_e: Dictionary) -> void:
 	if elite >= 1:
 		var got: float = min(0.01, heal_budget)
 		heal_budget -= got
-		g._heal(g.max_hp * got, "水月")
+		heal_leader(g.max_hp * got, "水月")
 
 
 ## 触手本体的染色（2026-09-26 用户定：深蓝色）：Codex 触手图是苍白青色，乘上这个颜色就成深海蓝；

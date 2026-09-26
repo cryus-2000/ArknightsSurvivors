@@ -1,12 +1,11 @@
 ## 编队（docs/23 §3）：持有编队位上的干员实例，负责招募 / 替换、编队校验、跟随队形与统一的 update / draw 分发。
-## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追博士。
+## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
 
 const Character = preload("res://scripts/characters/character.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
-## 编队位相对博士的偏移（博士朝右时；朝左镜像 x）：1 号位侧后、2 号位另一侧、3 号位正后、4 号位更后
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
 ## 博士挂件在主控左下后方（game.gd DOC_BEHIND），这里避开那个位置
 const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -72), Vector2(-80, 44)]
@@ -51,7 +50,7 @@ func ids() -> Array:
 	return ops.map(func(o): return o.id)
 
 
-## 招募：实例化干员、登记专属属性与伤害来源、放到博士身边。满员返回 null
+## 招募：实例化干员、登记专属属性与伤害来源、放到主控身边。满员返回 null
 func add(cid: String):
 	if has(cid) or is_full():
 		return null
@@ -105,7 +104,7 @@ func remove(cid: String) -> void:
 
 func _slot_offset(i: int) -> Vector2:
 	if g.demo_op != "":
-		return DEMO_SLOT   # 图鉴演示：站在博士前方（朝右侧怪海），重置后不用先走回身后
+		return DEMO_SLOT   # 图鉴演示：站在主控前方（朝右侧怪海），重置后不用先走回身后
 	var o: Vector2 = SLOTS[mini(i, SLOTS.size() - 1)]
 	return Vector2(o.x * g.facing, o.y)
 
@@ -175,7 +174,7 @@ func in_sanctuary(p: Vector2) -> bool:
 	return false
 
 
-## 博士本该倒下时，任一干员阻止（幽灵鲨 S2）
+## 主控本该倒下时，任一干员阻止（幽灵鲨 S2）
 func prevent_death() -> bool:
 	for o in ops:
 		if o.has_method("prevent_death") and o.prevent_death():
@@ -183,7 +182,7 @@ func prevent_death() -> bool:
 	return false
 
 
-## 博士光照半径倍率（流明 S2）
+## 主控光照半径倍率（流明 S2）
 func light_radius_mult() -> float:
 	var m := 1.0
 	for o in ops:

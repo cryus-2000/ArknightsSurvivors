@@ -153,11 +153,11 @@ func update(dt: float) -> void:
 		fx({"kind": "glow", "pos": pos + Vector2(10.0 * face, -30), "r": 14.0, "life": 0.3, "col": PINK, "alpha": 0.5})
 		return
 	if ready > 0:
-		var ts: Array = g._nearest(1, 220.0, pos)
+		var ts: Array = nearest_enemies(1, 220.0, pos)
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts2: Array = g._nearest(1, _reach() + 20.0, pos)
+		var ts2: Array = nearest_enemies(1, _reach() + 20.0, pos)
 		if ts2.is_empty():
 			cd = 0.1
 		else:
@@ -167,7 +167,7 @@ func update(dt: float) -> void:
 
 ## 出手帧（第一刺）；第二刺按帧条的 second 帧延后
 func _release() -> void:
-	var ts: Array = g._nearest(1, _reach() + 40.0, pos)
+	var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
 	var ang: float = facing_angle()
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
@@ -189,7 +189,7 @@ func _release() -> void:
 		# 卷风：浮空的目标卷起身边 70 内的敌人一起浮空 0.8 秒；贴地一圈旋风
 		if gale_on:
 			var gr: float = base("gale_r", 70.0)
-			for j in g._query(first.pos, gr + 30.0):
+			for j in query_ids(first.pos, gr + 30.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or is_same(e, first) or e.pos.distance_to(first.pos) > gr + e.r:
 					continue
@@ -211,7 +211,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	var L: float = _reach()
 	var W: float = _width()
 	var hits: Array = []
-	for j in g._query(o + d * L * 0.5, L * 0.6 + 40.0):
+	for j in query_ids(o + d * L * 0.5, L * 0.6 + 40.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
@@ -229,15 +229,15 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		var e: Dictionary = h[1]
 		# 追诉：刺中浮空 / 被她控住的敌人时追加一发手炮（先判定：本次伤害可能把它打死）
 		var pursue: bool = pursue_on and pursue_cd <= 0.0 and not e.dead and (e.get("air", 0.0) > 0.0 or _is_airborne(e))
-		g._hit("疾风" if tag_gust else "刺剑")
-		g._damage(e, dmg * _talent_mult(e))
+		log_hit("疾风" if tag_gust else "刺剑")
+		deal_damage(e, dmg * _talent_mult(e))
 		if pursue:
 			pursue_cd = base("pursue_cd", 0.4)
 			_cannon(e.pos, base("atk", 18.0) * base("s3_strike_mult", 1.55) * base("pursue_mult", 0.6) * _dmg_bonus(), "追诉")
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
-			g._fx_sprite("fx_thrust_hit_rose", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
+			spawn_fx_sprite("fx_thrust_hit_rose", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
 	# 刺击光束（2026-09-25，替换原来的弧光帧条：她是刺剑，不是斩击）：细长尖头光束瞬间伸到最长再收细消失，
 	# 剑尖星形闪光 + 两侧速度线；两段刺击左右错开几像素（参考《哈迪斯》长矛突刺、《死亡细胞》细剑）
 	thrust_n += 1
@@ -245,14 +245,14 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	var st: Vector2 = o + d.orthogonal() * side
 	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)
 	# Codex 刺击光束（64×12，左端出剑，长度伸缩 ≤ 1.1）；缺图退回程序光束 + 剑尖星芒
-	if not g._fx_sprite("fx_irene_thrust", st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if tag_gust else Color.WHITE):
+	if not spawn_fx_sprite("fx_irene_thrust", st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if tag_gust else Color.WHITE):
 		fx({"kind": "thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if tag_gust else 7.0, "life": 0.16,
 			"col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
-		g._fx_sprite("fx_star_hit_rose", st + d * (L + 10.0), g.PX * 0.8)
+		spawn_fx_sprite("fx_star_hit_rose", st + d * (L + 10.0), g.PX * 0.8)
 	elif strict_on:
 		# 严律：帧条长度伸缩上限 1.1，更长更宽的部分由程序光束叠出（剑尖星芒标出新的刺击末端）
 		fx({"kind": "thrust", "pos": st, "dir": d, "len": L, "w": 7.0 * base("strict_width", 1.4), "life": 0.16, "col": PINK if not tag_gust else Color(1.1, 0.7, 0.95)})
-		g._fx_sprite("fx_star_hit_rose", st + d * (L + 6.0), g.PX * 0.8)
+		spawn_fx_sprite("fx_star_hit_rose", st + d * (L + 6.0), g.PX * 0.8)
 	if stage_i == 3:
 		# 第三段（再审）：剑尖多一道金色星芒，和前两段区分
 		fx({"kind": "glow", "pos": st + d * L, "r": 10.0, "life": 0.18, "col": LAMP, "alpha": 0.7})
@@ -325,9 +325,9 @@ func _release_skill() -> void:
 			# 审判（照原作）：以她为中心的冲击波掀起周身全部敌人、浮空 4 秒；随后转身手炮连射 12 发
 			var r3: float = base("s3_r", 160.0) * stat(&"op_range")
 			var dmg3: float = base("atk", 16.0) * base("s3_mult", 1.9) * _dmg_bonus() * skill_power()
-			for e in g._arc_hit(pos + Vector2(0, -10), 0.0, PI, r3):
-				g._hit("审判")
-				g._damage(e, dmg3 * _talent_mult(e))
+			for e in arc_targets(pos + Vector2(0, -10), 0.0, PI, r3):
+				log_hit("审判")
+				deal_damage(e, dmg3 * _talent_mult(e))
 				_lift(e, base("s3_lift", 4.0), 44.0)
 			judge_c = pos
 			judge_left = 3.6
@@ -340,31 +340,31 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
 			g.hitstop = maxf(g.hitstop, 0.08)
-			g._show_banner("审判")
+			show_banner("审判")
 
 
 ## 碎潮：前方锥形，最多 8 名，×2.8 × mult，浮空 2 秒（每次重新瞄准最近的敌人）
 func _shattertide(mult: float) -> void:
-	var ts: Array = g._nearest(1, 240.0, pos)
+	var ts: Array = nearest_enemies(1, 240.0, pos)
 	var ang: float = facing_angle()
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
 	var r: float = _reach() * 1.3
-	var hits: Array = g._arc_hit(pos + Vector2(0, -10), ang, 0.8, r)
+	var hits: Array = arc_targets(pos + Vector2(0, -10), ang, 0.8, r)
 	hits.sort_custom(func(a, b): return a.pos.distance_squared_to(pos) < b.pos.distance_squared_to(pos))
 	var dmg: float = base("atk", 16.0) * base("s2_mult", 2.8) * _dmg_bonus() * skill_power() * mult
 	var n: int = mini(int(base("s2_n", 8.0)), hits.size())
 	for i in n:
 		var e: Dictionary = hits[i]
-		g._hit("碎潮")
-		g._damage(e, dmg * _talent_mult(e))
+		log_hit("碎潮")
+		deal_damage(e, dmg * _talent_mult(e))
 		_lift(e, 2.0, 34.0)
 	# 第二斩：镜像翻转 + 偏银白，与第一斩区分
 	var second: bool = mult < 1.0
 	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
-	if not g._fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.5, r * 1.2 / 28.0, ang, second, false, tint):
-		g._slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
+	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.5, r * 1.2 / 28.0, ang, second, false, tint):
+		slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
 	fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 	if second:
 		Sfx.op(id, "atk", 2.0, 0.9)
@@ -391,7 +391,7 @@ func _update_strikes(dt: float) -> void:
 			# 手炮是远程：优先打审判圈内的浮空目标，其次她身边 1.6 倍范围内最近的几个
 			var pool: Array = _airborne_enemies(judge_c, r3)
 			if pool.is_empty():
-				pool = g._nearest(6, r3 * 1.6, pos)
+				pool = nearest_enemies(6, r3 * 1.6, pos)
 			if pool.is_empty():
 				continue
 			var e: Dictionary = pool[g.rng.randi() % pool.size()]
@@ -410,9 +410,9 @@ func _update_strikes(dt: float) -> void:
 func _cannon(c: Vector2, dmg: float, src: String) -> void:
 	area_hit(src, c, 40.0, dmg, 0.0, 0.0)
 	var muzzle: Vector2 = pos + Vector2(12.0 * face, -30)
-	g._fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
+	spawn_fx_sprite("fx_muzzle_flash", muzzle, g.PX * 0.7)
 	fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
-	if not g._fx_sprite("fx_cannon_burst", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
+	if not spawn_fx_sprite("fx_cannon_burst", c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": LAMP, "alpha": 0.6})
 	fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": LAMP, "floor": true})
 	Sfx.op(id, "big", -4.0, 1.0, 0.1)
