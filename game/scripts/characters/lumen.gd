@@ -1,8 +1,8 @@
 ## 流明（医疗，契约 v2.1，docs/26 第二批）：不治血条，治环境。荧光周期治疗 + 驱散侵蚀 / 神经损伤，顺带射出「照亮」敌人的光弹。
-## S1 净化之光：治疗 + 全部驱散 + 短暂免疫 + 灯火；S2 领航灯（永久）：光照半径 +35%、受击灯火流失 ×0.7、荧光回复升到 3%；
-## S3 指引灯塔（2026-09-26 用户定：跟随主控干员）：10 秒内灯塔悬在主控干员身侧随行，以主控为中心展开光域（圣域：回复、免疫负面、
+## S1 沐雨（原净化之光）：治疗 + 全部驱散 + 短暂免疫 + 灯火；S2 沛霖（永久，原领航灯）：光照半径 +35%、受击灯火流失 ×0.7、荧光回复升到 3%；
+## S3 灯火不灭（原指引灯塔；2026-09-26 用户定：跟随主控干员）：10 秒内灯塔悬在主控干员身侧随行，以主控为中心展开光域（圣域：回复、免疫负面、
 ## 溟痕 / 黑潮圈外惩罚失效、灯火回升），结束时在主控身边光爆。
-## 天赋 余晖：每次回复 / 驱散灯火 +2；灯火 ≥70 时自身充能 +20%。
+## 天赋 凡人之愿（原余晖）：每次回复 / 驱散灯火 +2；灯火 ≥70 时自身充能 +20%。
 ## 挂点：heal_leader / g.corrode_pool / g.nerve / g.lamp；光弹是本脚本自己推进的投射物（不改 game.gd 的子弹表）；
 ## 圣域通过 sanctuary()、光照半径通过 light_radius_mult() 供 game.gd 询问（同 dmg_taken_mult 模式）。
 ## 可见成长（docs/25 §5）：N1 发光单元 / N2 灯影成双 / N4 沐雨 / N5 灯塔守望 / 精二质变 灯火不灭。
@@ -14,7 +14,7 @@ const PALE := Color(0.7, 0.9, 1.0)
 var cd := 1.0                  # 光弹间隔
 var heal_t := 0.0              # 荧光治疗 / 驱散计时（每 heal_cd 秒在下一次出手时结算）
 var immune_t := 0.0            # S1：免疫神经损伤剩余
-var guiding := false           # S2 领航灯（永久）
+var guiding := false           # S2 沛霖（永久，原领航灯）
 var tower_t := 0.0             # S3 灯塔剩余
 var tower_pos := Vector2.INF
 var tower_side := 1.0          # 灯塔贴图在主控哪一侧（-1..1，平滑跟随 g.facing）
@@ -182,14 +182,14 @@ func _release_skill() -> void:
 			guiding = true
 			g.stats.add(&"light_decay", "mult", 0.7, "lumen_guiding")
 			refresh_stats()
-			show_banner("领航灯：主控光照永久扩大")
+			show_banner("沛霖：主控光照永久扩大")
 			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -84), g.PX * 0.6, 0.0, false, false, Color(1, 1, 1, 0.75))   # 头顶小光，不再盖住全身
 			fx({"kind": "ring", "pos": g.ppos, "r": 160.0, "r0": 40.0, "life": 0.9, "col": WARM, "floor": true, "w": 3.0})   # 光照范围扩大（docs/45 #15）
 		2:
 			tower_pos = g.ppos
 			tower_t = base("s3_dur", 10.0)
 			tower_tick = 0.0
-			show_banner("指引灯塔")
+			show_banner("灯火不灭")
 			spawn_fx_sprite("fx_holy_pillar_amber", tower_pos + Vector2(0, 4), g.PX * 1.6, 0.0, false, true)
 			fx({"kind": "ring", "pos": tower_pos, "r": base("s3_r", 220.0), "r0": 20.0, "life": 0.7, "col": WARM, "floor": true, "w": 3.0})
 	# 技能发动音 op_lumen_s1/s2/s3 由 spend_sp 播放
@@ -338,7 +338,7 @@ func _update_rain(dt: float) -> void:
 		if e.dead or e.pos.distance_to(g.ppos) > r + e.r:
 			continue
 		e["lit"] = maxf(e.get("lit", 0.0), 1.0)
-		log_hit("沐雨")
+		log_hit("光雨")
 		deal_damage(e, base("bolt_atk", 22.0) * _dmg_bonus() * base("rain_mult", 0.15) * skill_power())
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": WARM, "alpha": 0.5})
 
