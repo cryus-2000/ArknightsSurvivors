@@ -1,0 +1,17 @@
+{
+  "checks": [
+    {
+      "nonoverlapping": true,
+      "recomposition_exact": true,
+      "density": 1,
+      "pixels_checked": 16128
+    },
+    {
+      "nonoverlapping": true,
+      "recomposition_exact": true,
+      "density": 2,
+      "pixels_checked": 64512
+    }
+  ],
+  "note": "Layers are exact disjoint crops of verified composite. Artificial cut boundary intentionally has no extra dark seam; outer contour comes from composite."
+}

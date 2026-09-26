@@ -460,17 +460,8 @@
         0,
         6
       ],
-      "source_x_cuts": [
-        0,
-        551,
-        1080,
-        1620,
-        2172
-      ],
       "density": 1,
       "hold_last_frame": false,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c639896f-0318-4a4f-a7ad-d3254e501c1f.png",
-      "prompt_subject": "Four frames seamless horizontally repeating band of small angular bone-quill handwritten imaginary glyphs drifting toward RIGHT, indigo strokes with lavender white moving bright writing tips and dark red small accents. Four frames continuous cycling luminous writing, equal density and evenly spaced small invented runes, no English letters no circle.",
       "loop": true,
       "frame_count": 4,
       "frame_height": 12,
@@ -479,25 +470,25 @@
       "frame_width": 64,
       "file": "fx_logos_script.png",
       "fps": 12,
-      "source_sha256": "caea792ef47b52f7825bc36b65b6a1227e125ada42131e89f914a65d93586124",
-      "sha256": "a6bf36d61cb587216a8dcd08f421074b3bb82631057b3b4fbdd1d462d0ebbec6"
+      "sha256": "7d589ce61856ae6c0728454374d15be70f87ea84a47fa2c68aa05eb712fa4fb9",
+      "source_sha256": "b1b29e7daa703b0ca09c36a9dc82bc5d77633477499b05afbd53a919437427e2",
+      "source_path": "E:/水月/logos_fx_20260926/script_row.png",
+      "source_x_cuts": [
+        0,
+        444,
+        887,
+        1330,
+        1774
+      ],
+      "prompt_subject": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY the horizontal high-speed stream of luminous abstract blocky runes between caster and target. Thin violet blue filament carrying bright white lavender glyphs racing LEFT TO RIGHT, not a laser solid bar. FOUR scrolling phases, continuous horizontal writing band, no impact explosion. Each frame same overall length, connected thin central line, visible separated angular glyphs. EXACT 4 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 64x12 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red."
     },
     {
       "anchor": [
         0,
         12
       ],
-      "source_x_cuts": [
-        0,
-        551,
-        1080,
-        1620,
-        2172
-      ],
       "density": 2,
       "hold_last_frame": false,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c639896f-0318-4a4f-a7ad-d3254e501c1f.png",
-      "prompt_subject": "Four frames seamless horizontally repeating band of small angular bone-quill handwritten imaginary glyphs drifting toward RIGHT, indigo strokes with lavender white moving bright writing tips and dark red small accents. Four frames continuous cycling luminous writing, equal density and evenly spaced small invented runes, no English letters no circle.",
       "loop": true,
       "frame_count": 4,
       "frame_height": 24,
@@ -506,8 +497,17 @@
       "frame_width": 128,
       "file": "fx_logos_script@2x.png",
       "fps": 12,
-      "source_sha256": "caea792ef47b52f7825bc36b65b6a1227e125ada42131e89f914a65d93586124",
-      "sha256": "e486e9be4dce8e69d2006ab84df0ad7bb04c26f819a8722bc71455dff5e620f3"
+      "sha256": "70ef6f41590e009224be92b78e8e619d324f03768043e5c013370b9aaff8922d",
+      "source_sha256": "b1b29e7daa703b0ca09c36a9dc82bc5d77633477499b05afbd53a919437427e2",
+      "source_path": "E:/水月/logos_fx_20260926/script_row.png",
+      "source_x_cuts": [
+        0,
+        444,
+        887,
+        1330,
+        1774
+      ],
+      "prompt_subject": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY the horizontal high-speed stream of luminous abstract blocky runes between caster and target. Thin violet blue filament carrying bright white lavender glyphs racing LEFT TO RIGHT, not a laser solid bar. FOUR scrolling phases, continuous horizontal writing band, no impact explosion. Each frame same overall length, connected thin central line, visible separated angular glyphs. EXACT 4 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 64x12 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red."
     },
     {
       "anchor": [
