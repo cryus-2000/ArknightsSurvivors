@@ -258,21 +258,14 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
-	# 难度缩短预警只压缩追踪段（跟着主控转向的那段），总时长至少 0.6 秒，原本就短于 0.6 的不动（docs/38 B0 第 5 项）；
-	# 修正值大于 1（放宽）时整体拉长
-	var wm := float(g.dmod.boss_warn)
-	if wm < 1.0 and w.track > 0.0:
-		var cut: float = minf(w.track * (1.0 - wm), maxf(0.0, w.dur - 0.6))
-		w.track -= cut
-		w.dur -= cut
-	elif wm > 1.0:
-		w.dur *= wm
-		w.track *= wm
+	if float(g.dmod.boss_warn) != 1.0:
+		w.dur *= float(g.dmod.boss_warn)
+		w.track *= float(g.dmod.boss_warn)
 	g.warns.append(w)
 	if w.lock:
-		e.wind = maxf(e.get("wind", 0.0), w.dur)
-		e.pose = w.dur + 0.3
-		e.pose_max = w.dur + 0.3
+		e.wind = maxf(e.get("wind", 0.0), dur)
+		e.pose = dur + 0.3
+		e.pose_max = dur + 0.3
 	if w.name != "":
 		g.vfx.add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
 		Sfx.play("skill", -12.0, 1.4)
@@ -382,8 +375,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.pos = w.pos
 			e.air = 0.0
 			e.erase("leap")
-			# 冲击环不超过预警圆（docs/38 B0 第 5 项：原来 +40，圈外也会被打到）
-			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
+			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
 			Sfx.play("boom", -2.0, 0.8, 0.0)
