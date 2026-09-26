@@ -42,14 +42,15 @@
 
 | 会话 | 范围 | 主要文件 |
 | --- | --- | --- |
-| 助理（协调人） | 需求入口、分派、跟进、汇总；不改代码 | 只写 docs/41 的会话名单与决定记录 |
+| 协调人 | 需求入口、分派、跟进、汇总；不改代码 | 只写 docs/41 的会话名单与决定记录 |
 | 架构 | 代码结构、模块边界、接口层、跨模块基础设施（局内数据记录）、重构工具 | `game.gd`、`characters/op_api.gd`、`render/`、`tools/split_module.py`、docs/39 / 40 |
-| 干员设计 | 干员技能、成长线、干员数值与表现 | `characters/<id>.gd`、`data/characters/*.json`、docs/26 |
-| BOSS&怪物设计 | Boss 与怪物机制、刷怪、敌人数值 | `boss_ai.gd`、`bosses/`、`run/enemies.gd`、`run/spawner.gd`、`data/enemies.json`、`waves.json`、docs/38 |
-| 藏品设计 / 藏品与怪物数值曲线对齐 | 藏品效果、流派、数值曲线 | `relic_fx.gd`、`data/relics.json`、`data/balance.json` 相关段、docs/35 |
-| 美术&UI | 界面风格与界面、非人物美术、界面层 | `screens/`、`ui.gd`、`title*.gd`、`gallery.gd`、docs/37 |
-| 测试 | 测试工具、机器人、批跑与平衡报告 | `tools/check.py`、`tools/balance_run.py`、`tools/godot_runner.py`、`core/bot.gd`、docs/29 / 36 |
-| 部署 | 打包与发布 | `tools/export_build.py`、`export_presets.cfg`、docs/33 |
+| 干员 | 干员技能、成长线、干员数值与表现 | `characters/<id>.gd`、`data/characters/*.json`、docs/26 |
+| Boss与怪物 | Boss 与怪物机制、刷怪、敌人数值 | `boss_ai.gd`、`bosses/`、`run/enemies.gd`、`run/spawner.gd`、`data/enemies.json`、`waves.json`、docs/38 |
+| 藏品（分析：藏品与怪物数值曲线对齐，出报告后归档） | 藏品效果、流派、数值曲线 | `relic_fx.gd`、`data/relics.json`、`data/balance.json` 相关段、docs/35 |
+| 界面与美术 | 界面风格与界面、非人物美术、界面层 | `screens/`、`ui.gd`、`title*.gd`、`gallery.gd`、docs/37 |
+| 测试与验收 | 测试工具、机器人、批跑与平衡报告；美术验收（审查意见交 Codex / 对口会话，不改代码） | `tools/check.py`、`tools/balance_run.py`、`tools/godot_runner.py`、`core/bot.gd`、docs/29 / 32 / 36 |
+| 音频 | 配乐、音效、语音与音频引擎；音频体积 | `scripts/sfx.gd`、`audio/`、`tools/gen_music*.py`、`default_bus_layout.tres`、docs/21 |
+| 部署上线（待用户新开） | 打包、发布、上线 | `tools/export_build.py`、`export_presets.cfg`、docs/22 / 33 |
 | Codex（不在此体系内） | 人物与怪物形象美术 | 见 docs/06 |
 
 - 共享文件（`run/combat.gd`、`game.gd`、`data/balance.json`……）改之前【协调】一下管这块的会话。
@@ -62,7 +63,23 @@
 2. 需要用户决定的不自己拍板：整理成【需决定】，附选项与建议。
 3. 跟进：用空闲通知等结果；工作会话【完成】后核对它说的提交是否真在 main 上（`git log`），再汇总给用户。
 4. 冲突：两个会话要改同一处时，由协调人定先后（先完成的先合，后者 rebase），必要时问用户。
-5. 维护一份「进行中」清单（谁在做什么、卡在哪、等谁），用户问「现在什么情况」时照它回答。
+5. 空闲会话分派（用户 2026-09-26 确认）：
+   - 先按范围派；对口会话忙时可派给空闲会话，但须先【协调】取得负责会话同意、不同时改它正在改的文件、做完由负责会话过目。
+   - 可直接派的：只读分析 / 排查、用户已定方向的修复、测试与文档。改数值手感、改美术风格、推送 / 发布，一律先问用户。
+   - 工作会话发【完成】时顺带说「可接活」，协调人从待办池挑对口的派发。
+6. 推送与自动派发（用户 2026-09-26 要求）：
+   - 协调人收到【完成】【卡住】或整理出【需决定】时，给用户手机推一条通知（一行，先说要他做什么）。
+   - 收到【完成】并核对提交后，立即从下面的待派队列挑对口、且符合第 5 条可直接派的任务派给该会话；要用户决定的留在队列里等。
+   - 待派队列（协调人维护）：
+     - [已派 09-26] docs/32 §3 发射点坐标修正（维什戴尔除外）→ 测试与验收，干员过目
+     - [等干员完成] 藏品流派批跑 → 藏品
+     - [等部署上线会话] 网页版不打包审稿拼图 → 部署上线
+     - [需决定] 配乐降码率 或 拆包；语音改 OGG → 音频
+     - [已派 09-26，排在技能图标之后] 「致谢与声明」页格式与排版 → 界面与美术
+     - [已派 09-26] 竖琴偏音重生成 → 音频（含 boss_down，用户确认）
+     - [用户同意 09-26，等干员 / 界面与美术合入 + check.py 全过] 推送 GitHub → 架构
+     - [用户同意 09-26] docs/32 §1 + §2 优先 6 条转 Codex（用户转发，走 docs/06）
+7. 维护一份「进行中」清单（谁在做什么、卡在哪、等谁），用户问「现在什么情况」时照它回答。
 
 ## 5. 限制
 
