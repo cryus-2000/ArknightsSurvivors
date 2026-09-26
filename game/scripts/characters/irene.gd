@@ -242,7 +242,8 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 	# 剑尖星形闪光 + 两侧速度线；两段刺击左右错开几像素（参考《哈迪斯》长矛突刺、《死亡细胞》细剑）
 	thrust_n += 1
 	var side: float = 4.0 if thrust_n % 2 == 0 else -4.0
-	var st: Vector2 = o + d.orthogonal() * side
+	# 光束从剑身高度出剑（op_irene_attack@2x 出手帧：握剑手约在脚底前 12、上 32）；命中判定仍用贴地的 o（docs/32 §3）
+	var st: Vector2 = pos + Vector2(0, -32) + d * 12.0 + d.orthogonal() * side
 	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)
 	# Codex 刺击光束（64×12，左端出剑，长度伸缩 ≤ 1.1）；缺图退回程序光束 + 剑尖星芒
 	if not spawn_fx_sprite("fx_irene_thrust", st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if tag_gust else Color.WHITE):
@@ -335,7 +336,7 @@ func _release_skill() -> void:
 			for i in int(base("s3_strikes", 12.0)):
 				strikes.append({"t": 0.35 + i * 0.25})
 			# 冲击波：提灯一闪 → 两道贴地冲击环由内向外扩散 + 放射光线；被掀起的敌人脚下各一小圈
-			fx({"kind": "glow", "pos": pos + Vector2(-8.0 * face, -34), "r": 30.0, "life": 0.25, "col": Color(1.8, 1.5, 0.9), "alpha": 0.8})
+			fx({"kind": "glow", "pos": _lantern(true), "r": 30.0, "life": 0.25, "col": Color(1.8, 1.5, 0.9), "alpha": 0.8})
 			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 16.0, "life": 0.4, "col": LAMP, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
@@ -430,7 +431,7 @@ func _is_airborne(e: Dictionary) -> bool:
 func _draw_skill_over() -> void:
 	# 举灯 / 审判期间：提灯亮
 	if judge_left > 0.0 or (acting() and act_kind == "skill"):
-		var p := pos + Vector2(-8.0 * face, -34)
+		var p := _lantern(acting() and act_kind == "skill")
 		g.draw_circle(p, 5.0 + sin(g.t * 20.0), Color(1.6, 1.3, 0.7, 0.8))
 		g.draw_circle(p, 12.0, Color(1.0, 0.85, 0.5, 0.2))
 	# 转身开火：身后一道半圆的玫瑰色转身弧 + 反向的淡残影
@@ -455,3 +456,8 @@ func status_items() -> Array:
 	if judge_left > 0.0:
 		out.append(["审判", LAMP])
 	return out
+
+
+## 提灯位置（docs/32 §3）：平时提在身前下方（op_irene_idle@2x：脚底前 19、上 15），举灯技能帧举过头顶（skill 第 4 帧：前 21、上 60）
+func _lantern(raised: bool) -> Vector2:
+	return pos + (Vector2(21.0 * face, -60.0) if raised else Vector2(19.0 * face, -15.0))

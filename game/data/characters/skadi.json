@@ -98,6 +98,7 @@
    "name": "潮涌斩",
    "en": "WAVE STRIKE",
    "sp": 6,
+   "anim": "attack",
    "desc": "立即一次 ×2 伤害的宽幅横扫（前方 200°）",
    "icon": "skill_skadi_s1"
   },

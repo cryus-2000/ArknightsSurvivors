@@ -42,7 +42,8 @@ func _reach() -> float:
 
 ## 站位：主控面前一侧（贴身护卫），不前压
 func follow_target(_slot_pos: Vector2) -> Vector2:
-	return g.ppos + Vector2(26.0 * g.facing, 6)
+	# 原来 (26, 6) 几乎整个叠在主控身上，实机看不见她（docs/32 §3）：往前挪开一些、略靠下，按 y 排序画在主控前面
+	return g.ppos + Vector2(40.0 * g.facing, 14)
 
 
 ## 拳击基础伤害（成长节点的额外命中都按它折算）

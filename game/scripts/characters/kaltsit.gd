@@ -104,8 +104,10 @@ func _heal(h: float, size: int) -> void:
 			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-22, 22), randf_range(-50, -5)), "life": 0.9, "max": 0.9,
 				"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
 	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX * 0.9, 0.0, false, false, Color(0.75, 1.3, 0.8))
-	g.fx.append({"kind": "beam", "a": pos + Vector2(0, -24), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": GREEN, "w": 3.0})
-	fx({"kind": "glow", "pos": pos + Vector2(8.0 * face, -26), "r": 10.0, "life": 0.25, "col": GREEN, "alpha": 0.5})
+	# 治疗光束从持药剂的手发出（op_kaltsit_attack@2x 第 2 帧量得：脚底前 25、上 36；docs/32 §3）
+	var potion: Vector2 = pos + Vector2(25.0 * face, -36)
+	g.fx.append({"kind": "beam", "a": potion, "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": GREEN, "w": 3.0})
+	fx({"kind": "glow", "pos": potion, "r": 10.0, "life": 0.25, "col": GREEN, "alpha": 0.5})
 
 
 func _release_skill() -> void:
@@ -455,7 +457,7 @@ func draw_extra(_it: Dictionary) -> void:
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
-				draw_sprite_at(ghost.pos, ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
+				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
 		var ac: Color = CRIMSON if melt > 0.0 else GREEN
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
@@ -465,7 +467,8 @@ func draw_extra(_it: Dictionary) -> void:
 				var ph: float = g.t * 1.7 + q * 1.3
 				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 - 26.0)
 				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(1.0, 0.06, 0.1, 0.13))
-		g.draw_arc(m.pos + Vector2(0, -22), 30.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(ac.r, ac.g, ac.b, k), 2.0)
+		# 光环套在悬浮本体中心（新帧条三态本体中心都在脚底上方约 60；docs/32 §3）
+		g.draw_arc(m.pos + Vector2(0, _hover() - 58.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
 	# 熔毁：整体染猩红（原作截图）；协同：略偏绿
 	var col := Color(1.7, 0.45, 0.45) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
@@ -512,7 +515,8 @@ func _hover() -> float:
 
 func draw_extra_shadows() -> void:
 	if m.pos != Vector2.INF:
-		draw_spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 + 0.08 * sin(g.t * 2.6 + m.pos.x * 0.01)))
+		# 升得越高影子越小（_hover 越负越高；原来符号反了且幅度只有 ±5%）
+		draw_spr("shadow", 1, 0, m.pos + Vector2(0, 4), g.PX * (1.4 - 0.14 * sin(g.t * 2.6 + m.pos.x * 0.01)))
 
 
 ## 溢出治疗后 5 秒主控受伤 -20%；结构加固护壳期间再 -35%（game.gd _enemy_hit 查询）
