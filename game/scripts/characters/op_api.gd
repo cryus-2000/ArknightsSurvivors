@@ -116,7 +116,7 @@ func screen_shake(a: float) -> void:
 
 ## HUD 技能栏条目（HUD 与图鉴读取）
 func skill_item(i: int) -> Dictionary:
-	return g._skill_item(self, i)
+	return g.show_screen.skill_item(self, i)
 
 
 # ---------------------------------------------------------------- 绘制（只能在 draw_* 回调里调用）

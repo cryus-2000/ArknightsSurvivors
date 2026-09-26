@@ -165,13 +165,13 @@ func step() -> void:
 	if g.state == g.S.SHOW:
 		if g.balance:
 			g.show_t = 2.0
-			g._close_show()
+			g.show_screen.close()
 			return
 		if g.show_t > 1.4 and not g.show_shot and DisplayServer.get_name() != "headless":
 			g.show_shot = true
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_show_%d.png" % g.ch.elite)
 		if g.show_t > 1.6:
-			g._close_show()
+			g.show_screen.close()
 		return
 	if g.at_frames == 30 and g.state == g.S.PLAY:
 		for a in OS.get_cmdline_user_args():

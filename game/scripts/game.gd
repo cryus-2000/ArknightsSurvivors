@@ -21,6 +21,9 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const ResultScreen = preload("res://scripts/screens/result.gd")
+const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
+const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
 const IntroScreen = preload("res://scripts/screens/intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
@@ -72,6 +75,9 @@ var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
+var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
+var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -190,8 +196,6 @@ var next_horde := 75.0
 var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
 var show_queue: Array = []   # 解锁演出队列
 var shop_refreshed := false  # 本次商人只能刷新一次
-var seen_shows_run: Array = []  # 本局已完整播放过的解锁演出
-var show_cur: Dictionary = {}
 var show_t := 0.0
 var show_shot := false
 var horde_warn := 0.0        # 大群预警倒计时（HUD 演出）
@@ -336,8 +340,6 @@ var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
-var show_vp: SubViewport = null  # 精英化演出里的实机演示画面
-var show_game: Node = null
 
 
 func _ready() -> void:
@@ -765,7 +767,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.SHOW:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
-			_close_show()
+			show_screen.close()
 		return
 	if state == S.INTRO:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
@@ -1025,7 +1027,7 @@ func _check_pending() -> void:
 	if state != S.PLAY or demo_op != "":
 		return
 	if not show_queue.is_empty():
-		_open_show(show_queue.pop_front())
+		show_screen.open(show_queue.pop_front())
 		return
 	if pending_chests > 0:
 		progression.open_relic_choice()
@@ -1102,21 +1104,6 @@ func _pm(k: String) -> void:
 	if k != "":
 		prof[k] = int(prof.get(k, 0)) + (now - _prof_t)
 	_prof_t = now
-
-
-## 本局造成伤害的构成（按来源前三，占比），Tab 面板与结算用
-func _dmg_mix_text() -> String:
-	var total := 0.0
-	for k in dmg_out:
-		total += dmg_out[k]
-	if total <= 0.0:
-		return "—"
-	var ks: Array = dmg_out.keys()
-	ks.sort_custom(func(a, b): return dmg_out[a] > dmg_out[b])
-	var parts: Array = []
-	for i in mini(3, ks.size()):
-		parts.append("%s %d%%" % [ks[i], int(round(dmg_out[ks[i]] / total * 100.0))])
-	return " · ".join(parts)
 
 
 # =====================================================================
@@ -1707,150 +1694,6 @@ func _animate_cards(dt: float) -> void:
 			if desc != null:
 				desc.position.y = float(card.get_meta("dy", 230.0)) + oy
 		card.queue_redraw()
-
-
-## 解锁演出的技能卡：干员 op 的第 i 个技能
-func _skill_item(op, i: int) -> Dictionary:
-	var sk: Dictionary = op.skill_def(i)
-	return {"tag": "技能", "tag_en": "SKILL %d" % (i + 1), "glyph": sk.get("name", "技").substr(0, 1), "icon": sk.get("icon", ""), "name": sk.get("name", ""), "desc": sk.get("desc", ""), "col": op.col()}
-
-
-func _open_show(sc: Dictionary) -> void:
-	# 解锁演出只在第一次出现时完整播放，之后改为横幅提示
-	var key: String = sc.get("head", "")
-	if seen_shows_run.has(key) and not OS.get_cmdline_user_args().has("--fastlevel"):
-		var names: Array = []
-		for it in sc["items"]:
-			names.append(it.name)
-		vfx.show_banner("%s：%s" % [key, "、".join(names)])
-		fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": sc.col})
-		Sfx.play("relic", -4.0, 0.9, 0.0)
-		_check_pending.call_deferred()
-		return
-	seen_shows_run.append(key)
-	show_shot = false
-	show_cur = sc
-	show_t = 0.0
-	state = S.SHOW
-	# 精英化演出：左侧放一个实机演示（demo 模式的 game.tscn），干员已在新阶段并循环施放新解锁的技能
-	_show_demo_stop()
-	if sc.has("op") and int(sc.get("elite", 0)) > 0 and not balance and DisplayServer.get_name() != "headless":
-		show_vp = SubViewport.new()
-		show_vp.size = Vector2i(540, 300)
-		show_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-		show_vp.handle_input_locally = false
-		add_child(show_vp)
-		show_game = load("res://game.tscn").instantiate()
-		show_game.demo_op = sc.op.id
-		show_game.demo_elite = int(sc.elite)
-		show_game.demo_skill = int(sc.elite)   # 精一 → S2（序号 1），精二 → S3（序号 2）
-		show_vp.add_child(show_game)
-	Sfx.play("relic", 0.0, 0.8, 0.0)
-	Sfx.play("levelup", -4.0, 0.7, 0.0)
-
-
-func _show_demo_stop() -> void:
-	if show_vp != null:
-		show_vp.queue_free()
-	show_vp = null
-	show_game = null
-
-
-func _close_show() -> void:
-	if state != S.SHOW or show_t < 1.0:
-		return
-	_show_demo_stop()
-	show_cur = {}
-	state = S.PLAY
-	Sfx.play("ui_ok", -4.0)
-	_check_pending()
-
-
-## 解锁演出：暗场 -> 标题横幅 -> 水月演示 -> 说明卡依次滑入
-func _draw_show(vs: Vector2) -> void:
-	var sc := show_cur
-	var st := show_t
-	var col: Color = sc.col
-	var fade := clampf(st / 0.3, 0.0, 1.0)
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.86 * fade))
-	# 扫光带
-	var sweep := clampf((st - 0.1) / 0.5, 0.0, 1.0)
-	hud.draw_rect(Rect2(0, 70, vs.x * sweep, 64), Color(col.r, col.g, col.b, 0.14))
-	hud.draw_rect(Rect2(0, 70, vs.x * sweep, 2), col)
-	hud.draw_rect(Rect2(0, 132, vs.x * sweep, 2), Color(col.r, col.g, col.b, 0.5))
-	var ha := clampf((st - 0.25) / 0.3, 0.0, 1.0)
-	var hx := lerpf(-60.0, 0.0, ha)
-	UI.en(hud, font, Vector2(90 + hx, 94), sc.en, 13, Color(col.r, col.g, col.b, ha), 5.0)
-	UI.text(hud, font, Vector2(88 + hx, 126), sc.head + "  ·  新能力解锁", 28, Color(1, 1, 1, ha))
-	# 左侧：干员演示。有实机演示画面就画它（新阶段的干员在假人堆里循环放新技能），否则退回静态挥击示意
-	var cx := Vector2(330, vs.y * 0.58)
-	var da := clampf((st - 0.35) / 0.35, 0.0, 1.0)
-	if show_vp != null:
-		var dr := Rect2(Vector2(60, 180), Vector2(540, 300))
-		hud.draw_texture_rect(show_vp.get_texture(), dr, false, Color(1, 1, 1, da))
-		hud.draw_rect(dr, Color(col.r, col.g, col.b, 0.6 * da), false, 2.0)
-		var sop0 = sc.get("op", ch)
-		var skn: String = sop0.skill_def(int(sc.get("elite", 0))).get("name", "") if sop0.has_method("skill_def") else ""
-		if skn != "":
-			UI.chip(hud, font, dr.position + Vector2(14, 14), "实机演示 · %s" % skn, Color(col.r, col.g, col.b, da), 11)
-		var items0: Array = sc["items"]
-		_draw_show_cards(items0, st)
-		if st > 1.0:
-			var ba0 := 0.5 + 0.5 * sin(st * 4.0)
-			UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba0), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-		return
-	for k in 3:
-		var rp := fmod(st * 0.8 + k / 3.0, 1.0)
-		hud.draw_arc(cx + Vector2(0, -10), 60.0 + rp * 130.0, 0.0, TAU, 48, Color(col.r, col.g, col.b, (1.0 - rp) * 0.5 * da), 3.0)
-	hud.draw_circle(cx + Vector2(0, 58), 70.0, Color(col.r, col.g, col.b, 0.08 * da))
-	hud.draw_set_transform(cx + Vector2(0, 58), 0.0, Vector2(1.0, 0.3))
-	hud.draw_circle(Vector2.ZERO, 60.0, Color(0, 0, 0, 0.5 * da))
-	hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var sop = sc.get("op", ch)
-	var at: Texture2D = sop.anim_tex("attack")
-	if at != null:
-		var n := at.get_width() / at.get_height()
-		var fh := at.get_height()
-		var spd := 9.0
-		var fr := int(st * spd) % n
-		var S5: float = 5.0 / A.hires_of(at)
-		var size := Vector2(fh, fh) * S5
-		var dst := Rect2(cx - Vector2(size.x / 2.0, size.y - 60.0 + 2.0 * S5), size)
-		hud.draw_texture_rect_region(at, dst, Rect2(fh * fr, 0, fh, fh), Color(1, 1, 1, da))
-		# 技能特效示意
-		var sl: Texture2D = tex.get("slash")
-		if sl != null and fr >= 1:
-			var sfw := sl.get_width() / 4
-			var sfr := clampi(fr - 1, 0, 3)
-			var ssz := Vector2(sfw, sl.get_height()) * 5.0
-			hud.draw_texture_rect_region(sl, Rect2(cx + Vector2(-ssz.x / 2.0 + 60.0, -ssz.y / 2.0 - 70.0), ssz), Rect2(sfw * sfr, 0, sfw, sl.get_height()), Color(col.r * 1.3, col.g * 1.3, col.b * 1.3, 0.9 * da))
-	# 右侧：说明卡
-	_draw_show_cards(sc["items"], st)
-	if st > 1.0:
-		var ba := 0.5 + 0.5 * sin(st * 4.0)
-		UI.text(hud, font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-
-
-func _draw_show_cards(items: Array, st: float) -> void:
-	for i in items.size():
-		var it: Dictionary = items[i]
-		var ia := clampf((st - 0.55 - i * 0.25) / 0.3, 0.0, 1.0)
-		if ia <= 0.0:
-			continue
-		var e := 1.0 - pow(1.0 - ia, 3)
-		var r := Rect2(Vector2(620 + (1.0 - e) * 120.0, 190 + i * 190), Vector2(580, 168))
-		var ic: Color = it.col
-		UI.frame(hud, r, Color(ic.r, ic.g, ic.b, e), {"t": t, "vines": true, "seed": 50 + i, "vine_k": 0.6, "cut": 12.0, "bracket": 12.0, "alpha": e, "glow": 0.6 * e})
-		var gc := r.position + Vector2(70, 84)
-		UI.pedestal(hud, gc, 40.0, Color(ic.r, ic.g, ic.b, e), t, true)
-		var itex: Texture2D = tex.get(it.get("icon", "")) if it.has("icon") else null
-		if itex != null:
-			hud.draw_texture_rect(itex, Rect2(gc - Vector2(32, 32), Vector2(64, 64)), false, Color(1, 1, 1, e))
-		else:
-			UI.text(hud, font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
-		UI.chip(hud, font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
-		UI.text(hud, font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		UI.draw_fit(hud, font, r.position + Vector2(150, 91), UI.fit(font, it.desc, r.size.x - 172, 72.0, [15, 14, 13, 12]), Color(0.78, 0.88, 0.9, e))
 
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
@@ -3372,17 +3215,17 @@ func _draw_hud() -> void:
 	_draw_dash_hint(vs)
 	match state:
 		S.SHOW:
-			_draw_show(vs)
+			show_screen.draw(vs)
 		S.INTRO:
 			intro_screen.draw(vs)
 		S.STATS:
-			_draw_stats(vs)
+			stats_screen.draw(vs)
 		S.PAUSE:
-			_draw_result(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
+			result_screen.draw(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
 		S.DEAD:
-			_draw_result(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+			result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 		S.WIN:
-			_draw_result(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+			result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[ending].name, D.ENDINGS[ending].en, endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
 
 
 ## ---- 开局指南：6 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
@@ -3425,216 +3268,6 @@ const INTRO_PAGES := [
 		"升级 / 宝箱 / 商人 / 祭坛：按 1 2 3 或点击选择　　M：静音　　R：重来",
 		"手柄：左摇杆移动 · Ⓐ 确认 · Ⓑ 返回 · START 暂停 · SELECT 属性面板 · LB / RB 翻页。暂停菜单按 G 可随时重看本指南。祝你好运，博士。"]},
 ]
-
-
-## 属性面板（Tab / C 打开，游戏暂停）
-func _draw_stats(vs: Vector2) -> void:
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.05, 0.82))
-	var r := Rect2(60, 44, vs.x - 120, vs.y - 88)
-	UI.frame(hud, r, UI.GLOW, {"t": t, "vines": true, "seed": 31, "cut": 14.0, "bracket": 14.0, "glow": 0.3})
-	UI.caustic(hud, Rect2(r.position + Vector2(20, 8), Vector2(r.size.x - 40, 22)), t, UI.GLOW)
-	# 标题行
-	var pt: Texture2D = tex.get("doctor", tex.get("player_idle"))
-	if pt != null:
-		var fh := pt.get_height()
-		var fr := int(t * 2.0) % maxi(1, pt.get_width() / fh)
-		hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5 / A.hires_of(pt)), Rect2(fr * fh, 0, fh, fh))
-	UI.text(hud, font, r.position + Vector2(108, 50), doctor.name(), 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	var dn_w := font.get_string_size(doctor.name(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
-	var en_w := UI.en(hud, font, r.position + Vector2(118 + dn_w, 48), doctor.def.get("en", "DOCTOR") + "  ·  STATUS", 12, UI.CYAN, 3.0)
-	var cx0 := maxf(r.position.x + 350, r.position.x + 118 + dn_w + en_w + 18)
-	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "Lv.%d" % level, UI.GLOW, 12) + 8
-	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 12) + 8
-	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12) + 14
-	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), endg.cur_name(), endg.cur_col(), 11) + 14
-	# 角色能力标签（来自角色 JSON）
-	for tg in ch.display_tags():
-		cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), tg, UI.PURPLE, 11) + 6
-	UI.rule(hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
-	# 三个子面板
-	stats_cells.clear()
-	var top := r.position.y + 98
-	var h := r.end.y - 44 - top
-	var boxes: Array = [Rect2(r.position.x + 22, top, 330, h), Rect2(r.position.x + 366, top, 330, h), Rect2(r.position.x + 710, top, r.size.x - 732, h)]
-	for b in boxes:
-		UI.frame(hud, b, UI.EDGE, {"cut": 8.0, "bracket": 8.0, "alpha": 0.6})
-	# ---- 生存
-	var b0: Rect2 = boxes[0]
-	UI.text(hud, font, b0.position + Vector2(16, 26), "生存", 16, UI.CYAN)
-	UI.en(hud, font, b0.position + Vector2(60, 25), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
-	var y: float = b0.position.y + 48
-	UI.text(hud, font, b0.position + Vector2(16, y - b0.position.y + 12), "生命", 13, UI.SUB)
-	UI.gbar(hud, Rect2(b0.position.x + 70, y, 180, 10), hp / max_hp, UI.CYAN, 10)
-	UI.text(hud, font, Vector2(b0.position.x + 258, y + 11), "%d / %d" % [int(hp), int(max_hp)], 13, UI.TEXT)
-	y += 26
-	UI.text(hud, font, Vector2(b0.position.x + 16, y + 12), "灯火", 13, UI.SUB)
-	UI.gbar(hud, Rect2(b0.position.x + 70, y, 180, 10), lamp / 100.0, UI.GOLD, 10)
-	UI.text(hud, font, Vector2(b0.position.x + 258, y + 11), "%d" % int(lamp), 13, UI.TEXT)
-	y += 30
-	var rows0 := [
-		["生命回复", "%.1f / 秒" % (regen + regen_pct * max_hp)], ["物理减伤 / 法抗", "%d / %d%%" % [int(armor), int(arts_res * 100.0)]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(dodge + dodge_phys, 0.6) * 100.0), int(minf(dodge + dodge_arts, 0.6) * 100.0)]],
-		["移动速度", "%d" % int(speed)], ["拾取范围", "%d" % int(pickup)], ["受击灯火损失", "×%.2f" % lamp_decay],
-		["照亮范围", "%d" % int(_lamp_r())],
-		["护盾", ("%d / %d · 每 %.1f 秒" % [shield, shield_max, shield_every]) if shield_max > 0 else "无"],
-	]
-	for row in rows0:
-		UI.text(hud, font, Vector2(b0.position.x + 16, y + 12), row[0], 14, UI.SUB)
-		UI.text_fit(hud, font, Vector2(b0.position.x + 130, y + 12), row[1], 14, UI.TEXT, b0.size.x - 146.0, 10)
-		hud.draw_rect(Rect2(b0.position.x + 16, y + 19, b0.size.x - 32, 1), Color(1, 1, 1, 0.05))
-		y += 25
-	# ---- 攻击
-	var b1: Rect2 = boxes[1]
-	UI.text(hud, font, b1.position + Vector2(16, 26), "攻击", 16, UI.CYAN)
-	UI.en(hud, font, b1.position + Vector2(60, 25), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
-	var rows1: Array = ch.stats_rows()
-	rows1.append_array([
-		["近战 / 远程", "×%.2f / ×%.2f" % [melee_mult, ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [phys_mult, arts_mult]],
-		["本局构成", _dmg_mix_text()],
-	])
-	y = b1.position.y + 48
-	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
-	var skill_rows: Array = _skill_rows_data()
-	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + font.get_height(11) + 1.0) + 18.0
-	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 19.0, 25.0)
-	var rfs := 14 if rh1 >= 23.0 else 13
-	for row in rows1:
-		UI.text(hud, font, Vector2(b1.position.x + 16, y + 12), row[0], rfs, UI.SUB)
-		UI.text_fit(hud, font, Vector2(b1.position.x + 130, y + 12), row[1], rfs, UI.TEXT, b1.size.x - 146.0, 10)
-		hud.draw_rect(Rect2(b1.position.x + 16, y + rh1 - 6, b1.size.x - 32, 1), Color(1, 1, 1, 0.05))
-		y += rh1
-	# 技能（攻击面板下半）
-	y += 8
-	UI.rule(hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
-	y += 10
-	y = _draw_generic_skill_rows(b1, y, skill_rows)
-	# ---- 队伍与成长
-	var b2: Rect2 = boxes[2]
-	UI.text(hud, font, b2.position + Vector2(16, 26), "队伍与成长", 16, UI.CYAN)
-	UI.en(hud, font, b2.position + Vector2(110, 25), "BUILD", 10, UI.CYAN_DIM, 3.0)
-	y = b2.position.y + 44
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "编队 %d/%d" % [squad.size(), squad.cap()], 13, UI.SUB)
-	y += 22
-	for o in squad.ops:
-		var ax2: float = b2.position.x + 16
-		var opt: Dictionary = o.portrait()
-		var at: Texture2D = tex.get(opt.tex)
-		if at != null:
-			var fw := at.get_width() / int(opt.frames)
-			var ks := 26.0 / at.get_height()
-			hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 6), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-			ax2 += fw * ks + 6
-		UI.text(hud, font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], 13, UI.TEXT)
-		ax2 += 116
-		ax2 += UI.chip(hud, font, Vector2(ax2, y), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, 10) + 6
-		# 成长线进度点
-		var pg: Array = o.progression()
-		for k in pg.size():
-			var dc := Vector2(ax2 + k * 12, y + 8)
-			var done: bool = k < o.prog
-			var is_elite: bool = pg[k].get("type", "") == "elite"
-			if is_elite:
-				UI.diamond(hud, dc, 4.0, UI.GOLD if done else Color(0.08, 0.14, 0.18), Color(1.0, 0.85, 0.5, 0.8))
-			else:
-				hud.draw_circle(dc, 3.0, Color(0.55, 0.9, 0.55) if done else Color(0.1, 0.18, 0.22))
-		ax2 += pg.size() * 12 + 8
-		var nn: Dictionary = o.next_node()
-		if not nn.is_empty():
-			var rq: String = o.node_requires_text(nn)
-			var ok_rq: bool = o.node_available(nn)
-			UI.text(hud, font, Vector2(ax2, y + 12), ("下一步：%s" % nn.get("name", "")) + (("（需%s）" % rq) if rq != "" and not ok_rq else ""), 11, UI.SUB if ok_rq else Color(1.0, 0.7, 0.5), HORIZONTAL_ALIGNMENT_LEFT, b2.end.x - ax2 - 12)
-		else:
-			UI.text(hud, font, Vector2(ax2, y + 12), "已满", 11, UI.GOLD)
-		y += 30
-	y += 6
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "支援", 13, UI.SUB)
-	var ax2: float = b2.position.x + 90
-	if weapons.is_empty():
-		UI.text(hud, font, Vector2(ax2, y + 12), "暂无", 13, UI.SUB)
-	for wid in weapons:
-		var wt: Texture2D = tex.get("weapon_" + wid)
-		if wt != null:
-			hud.draw_texture_rect(wt, Rect2(Vector2(ax2, y - 6), Vector2(32, 32)), false)
-		UI.text(hud, font, Vector2(ax2 + 36, y + 14), "%s  Lv.%d" % [D.WEAPONS[wid].name, weapons[wid]], 13, D.WEAPONS[wid].col)
-		ax2 += 150
-	y += 36
-	UI.rule(hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
-	y += 8
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "成长", 13, UI.SUB)
-	y += 22
-	# 成长 + 藏品：两块图标网格共用剩余高度，格子取「全部放得下」的最大尺寸（46 → 26 像素），
-	# 不再出现数量多了后面的图标被藏起来的情况；悬停看效果
-	var gx: float = b2.position.x + 16
-	var gy: float = y
-	var ng: int = growth.size()
-	var nr: int = relics.size()
-	var room: float = b2.end.y - 8.0 - gy - 36.0
-	var pitch := 46.0
-	var per := 1
-	for pc in [46.0, 40.0, 34.0, 30.0, 26.0]:
-		pitch = pc
-		per = maxi(1, int((b2.size.x - 32) / pitch))
-		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
-			break
-	var cs := pitch - 6.0
-	var isz := cs - 6.0
-	var gi := 0
-	for gid in growth:
-		var gc := Vector2(gx + (gi % per) * pitch, gy + (gi / per) * pitch)
-		if gc.y + cs > b2.end.y - 2:
-			break
-		hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(0.03, 0.035, 0.045, 0.9))
-		hud.draw_rect(Rect2(gc, Vector2(cs, cs)), UI.EDGE_DIM, false, 1.0)
-		var gt: Texture2D = tex.get("growth_" + gid)
-		if gt != null:
-			hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
-		else:
-			UI.text(hud, font, gc + Vector2(0, cs * 0.68), progression.growth_def(gid).name.substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
-		UI.text(hud, font, gc + Vector2(cs - 18, cs - 1), "×%d" % growth[gid], 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
-		stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
-		gi += 1
-	y = gy + maxi(1, int(ceil(ng / float(per)))) * pitch + 6
-	UI.rule(hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
-	y += 8
-	UI.text(hud, font, Vector2(b2.position.x + 16, y + 12), "藏品  %d 件" % relics.size(), 13, UI.SUB)
-	UI.text(hud, font, Vector2(b2.position.x + 120, y + 12), "鼠标移到图标上查看效果", 11, UI.CYAN_DIM)
-	y += 22
-	var mouse2 := hud.get_local_mouse_position()
-	for i in nr:
-		var rc := Vector2(gx + (i % per) * pitch, y + (i / per) * pitch)
-		if rc.y + cs > b2.end.y - 2:
-			break
-		var rd: Dictionary = RL[relics[i]]
-		var rcol: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
-		var cr := Rect2(rc, Vector2(cs, cs))
-		var hov: bool = cr.has_point(mouse2)
-		hud.draw_rect(cr, Color(0.03, 0.035, 0.045, 0.9) if not hov else Color(rcol.r * 0.25, rcol.g * 0.25, rcol.b * 0.25, 0.95))
-		hud.draw_rect(cr, Color(1, 1, 1, 0.13) if not hov else rcol, false, 1.0)
-		hud.draw_rect(Rect2(rc, Vector2(8, 2)), Color(rcol.r, rcol.g, rcol.b, 0.85))
-		var rt: Texture2D = tex.get("relic_" + relics[i])
-		if rt != null:
-			hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
-		else:
-			UI.text(hud, font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
-		var rl: int = rfx.lv.get(relics[i], 1)
-		if rl > 1:
-			UI.text(hud, font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
-		stats_cells.append([cr, "relic", relics[i]])
-	UI.text(hud, font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [relics.size(), kills, ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	# 悬停提示（藏品 / 成长）
-	for cellinfo in stats_cells:
-		var cr2: Rect2 = cellinfo[0]
-		if not cr2.has_point(mouse2):
-			continue
-		if cellinfo[1] == "skill":
-			var srow: Array = cellinfo[2]
-			_draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else "技能 %s" % srow[0], srow[2], "", ch.col())
-		elif cellinfo[1] == "relic":
-			var rd2: Dictionary = RL[cellinfo[2]]
-			_draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [rfx.lv.get(cellinfo[2], 1), rfx.max_lv(cellinfo[2])]) if rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
-		else:
-			var gd: Dictionary = progression.growth_def(cellinfo[2])
-			_draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
-		break
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
@@ -3987,71 +3620,6 @@ func _draw_squad_hud(br: Vector2) -> void:
 				UI.text(hud, font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT)
 
 
-func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72))
-	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
-	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
-	if ending_panel:
-		# 结局结算：面板右侧浮现最终 Boss 剪影 + 结局色光晕 + 一句尾声
-		var en: Dictionary = D.ENDINGS.get(ending, {})
-		var bd: Dictionary = D.ENEMIES.get(en.get("boss", ""), {})
-		var btx: Texture2D = tex.get(bd.get("tex", ""))
-		var gc: Vector2 = Vector2(r.end.x + 120, r.get_center().y - 20)
-		for k in 4:
-			hud.draw_circle(gc, 150.0 - k * 28.0 + 6.0 * sin(t * 1.3 + k), Color(col.r, col.g, col.b, 0.05 + 0.03 * k))
-		if btx != null:
-			var fw: int = btx.get_width() / 2
-			var fh: int = btx.get_height()
-			var k2: float = minf(220.0 / fw, 240.0 / fh)
-			k2 = floorf(k2) if k2 >= 1.0 else k2
-			var sz := Vector2(fw, fh) * k2
-			var fr: int = int(t * 2.0) % 2
-			var bob: float = 4.0 * sin(t * 1.6)
-			hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
-			hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(t * 2.0)))
-		var idx: int = ["standard", "knight", "resolve", "deep"].find(ending)
-		UI.text(hud, font, Vector2(gc.x - 90, gc.y + 150), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
-		UI.text(hud, font, Vector2(gc.x - 110, gc.y + 172), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
-	UI.frame(hud, r, col, {"t": t})
-	hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
-	UI.caustic(hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), t, col)
-	var ew := font.get_string_size(en_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_title.length() * 4.0
-	UI.en(hud, font, Vector2(r.get_center().x - ew / 2.0, r.position.y + 50), en_title, 13, col, 4.0)
-	UI.heading(hud, font, Vector2(r.get_center().x, r.position.y + 90), title, 36, col, 250.0)
-	var mm := int(t) / 60
-	var ss := int(t) % 60
-	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [level, ["精零", "精英化一", "精英化二"][ch.elite]]],
-		["击杀", str(kills)], ["难度", "%d  %s" % [diff, D.DIFFICULTY[diff].name]]]
-	if ending_panel:
-		var ep: String = D.ENDINGS.get(ending, {}).get("gallery", {}).get("epilogue", "")
-		UI.text(hud, font, Vector2(r.position.x + 40, r.position.y + 124), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
-		if ending_new:
-			UI.chip(hud, font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
-	if diff_new and state == S.WIN:
-		UI.chip(hud, font, Vector2(r.get_center().x - 80, r.position.y + (142 if ending_panel else 118)), "解锁难度 %d「%s」" % [diff + 1, D.DIFFICULTY[diff + 1].name], UI.GOLD, 13)
-	for i in stats.size():
-		var y := r.position.y + (166 if ending_panel else 156) + i * 32
-		UI.diamond(hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))
-		UI.text(hud, font, Vector2(r.position.x + 62, y), stats[i][0], 16, UI.SUB)
-		UI.text(hud, font, Vector2(r.position.x + 200, y), stats[i][1], 18, UI.TEXT)
-	var bx := r.position.x + 40
-	var bw := (r.size.x - 80 - 12 * (opts.size() - 1)) / opts.size()
-	result_btns.clear()
-	var mouse := hud.get_local_mouse_position()
-	for op in opts:
-		var br := Rect2(bx, r.end.y - 70, bw, 40)
-		var bi: int = result_btns.size()
-		result_btns.append([br, op[2]])
-		var hov: bool = (bi == res_sel) if (Pad.using or kb_nav) else br.has_point(mouse)
-		hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
-		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
-		UI.text(hud, font, br.position + Vector2(14, 26), op[0], 15, bink)
-		var kst: String = ("Ⓐ" if hov else "") if Pad.using else op[1]
-		if kst != "":
-			UI.keycap(hud, font, Vector2(br.end.x - UI.cwidth(font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)
-		bx += bw + 12
-
-
 ## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋
 func _skill_rows_data() -> Array:
 	var rows: Array = []
@@ -4073,52 +3641,3 @@ func _skill_rows_data() -> Array:
 	return rows
 
 
-## Tab 面板攻击栏下半：开局干员的三个技能 + 天赋。说明按栏宽折行；先每条给 1 行，再轮流给还没排完的加行，
-## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
-func _draw_generic_skill_rows(b1: Rect2, y: float, rows: Array) -> float:
-	var c: Color = ch.col()
-	var x0 := b1.position.x + 62.0
-	var dw := b1.end.x - 14.0 - x0
-	var dfs := 11
-	var lh: float = font.get_height(dfs) + 1.0
-	var avail: float = b1.end.y - 6.0 - y
-	var rh := func(n: int) -> float: return maxf(42.0, 30.0 + n * lh)
-	var wrapped: Array = []
-	var give: Array = []
-	var used := 0.0
-	for row in rows:
-		var wl: PackedStringArray = UI.wrap_lines(font, row[2], dfs, dw)
-		wrapped.append(wl)
-		give.append(mini(1, wl.size()))
-		used += rh.call(give[give.size() - 1])
-	var grew := true
-	while grew:
-		grew = false
-		for k in rows.size():
-			if give[k] < wrapped[k].size():
-				var add: float = rh.call(give[k] + 1) - rh.call(give[k])
-				if used + add <= avail:
-					give[k] += 1
-					used += add
-					grew = true
-	for k in rows.size():
-		var row: Array = rows[k]
-		var on: bool = row[3]
-		var col: Color = (Color(0.85, 0.55, 1.0) if row[4] else c) if on else Color(0.35, 0.42, 0.46)
-		var sc := Vector2(b1.position.x + 34, y + 20)
-		UI.ring(hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
-		UI.text(hud, font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
-		UI.text_fit(hud, font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB, dw, 11)
-		var lines: PackedStringArray = wrapped[k]
-		var dcol: Color = col if on else Color(0.42, 0.48, 0.52)
-		for j in give[k]:
-			var ln: String = lines[j]
-			if j == give[k] - 1 and give[k] < lines.size():
-				while ln.length() > 0 and font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x > dw:
-					ln = ln.substr(0, ln.length() - 1)
-				ln += "…"
-			UI.text(hud, font, Vector2(x0, y + 33 + j * lh), ln, dfs, dcol)
-		var row_h: float = rh.call(give[k])
-		stats_cells.append([Rect2(Vector2(b1.position.x + 14, y), Vector2(b1.size.x - 28, row_h)), "skill", row])
-		y += row_h
-	return y
