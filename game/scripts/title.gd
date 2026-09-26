@@ -445,7 +445,7 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(170, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines := [
-		["移动", "WASD / 方向键；Shift / K 冲刺（无敌，冷却 2.5 秒）"],
+		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q 放手动技能"],
 		["攻击", "全自动：干员跟在博士身边普攻，三个技能各自充能后自动释放"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；Lv5 起可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],

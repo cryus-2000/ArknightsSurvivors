@@ -106,7 +106,7 @@ func _slot_offset(i: int) -> Vector2:
 	return Vector2(o.x * g.facing, o.y)
 
 
-## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；每名干员至多 1 个手动技能（契约 v2.2，按 Space / J 由 doctor.try_manual_skill 路由）
+## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；每名干员至多 1 个手动技能（契约 v2.2，按 Q / J 由 doctor.try_manual_skill 路由）
 func validate_squad() -> bool:
 	var ok := true
 	if ops.size() > cap():

@@ -1260,11 +1260,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _nav_key(k):
 		get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
+	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
 		_try_dash()
 		get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
+	if (k == KEY_Q or k == KEY_J) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
@@ -1357,11 +1357,11 @@ func _card_hot(card: Button, i: int) -> bool:
 	return card.is_hovered()
 
 
-## 主控冲刺（2026-09-26 用户要求）：Shift / K / 手柄 B·RB / 触屏「冲刺」按钮。沿移动方向（站着不动时沿朝向）
-## 0.18 秒冲出约 126 像素，全程无敌；冷却 2.5 秒。残影由干员的动态模糊（character.gd ghosts）自动产生
+## 主控冲刺（2026-09-26 用户要求）：空格 / Shift / K / 手柄 B·RB / 触屏「冲刺」按钮。沿移动方向（站着不动时沿朝向）
+## 0.18 秒冲出约 126 像素，全程无敌；冷却 1.2 秒。残影由干员的动态模糊（character.gd ghosts）自动产生
 const DASH_TIME := 0.18
 const DASH_SPEED := 700.0
-const DASH_CD := 2.5
+const DASH_CD := 1.2
 var dash_t := 0.0
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
@@ -5439,7 +5439,7 @@ func _draw_hud() -> void:
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
 		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
-		"你操控的是开局干员 —— 她是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、Shift / K 冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
+		"你操控的是开局干员 —— 她是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、空格冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
 		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
@@ -6127,7 +6127,7 @@ func _draw_squad_hud(br: Vector2) -> void:
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(t * 6.0)
 					hud.draw_arc(sc, SQ_ICON_R + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(col.r * 1.5, col.g * 1.5, col.b * 1.5, 0.45 + 0.4 * pulse), 2.5)
-				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("空格", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
+				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
 		# 悬停某枚图标：技能名 + 说明
 		var mp := hud.get_local_mouse_position()
 		for k in 3:

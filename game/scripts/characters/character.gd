@@ -120,7 +120,7 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 	return ok
 
 
-## 手动技能入口（Space / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
+## 手动技能入口（Q / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
 func try_manual_skill() -> bool:
 	return false
 
@@ -214,7 +214,7 @@ func tick_sp(dt: float) -> void:
 
 
 ## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
-## 充满后等玩家按 Space / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
+## 充满后等玩家按 Q / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
 func is_manual(i: int) -> bool:
 	return skill_def(i).get("mode", "auto") == "manual"
 
