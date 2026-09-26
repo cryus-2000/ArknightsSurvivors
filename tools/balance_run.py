@@ -418,6 +418,41 @@ def lane_summary(records):
     return "\n".join(lines)
 
 
+FINAL_BOSS_NAMES = {"paranoia": "偏执泡影", "izumik": "伊祖米克", "ishar": "伊莎玛拉", "knight_boss": "最后的骑士"}
+
+
+def final_boss_summary(records):
+    """最终 Boss 按类型分行（机器人 × 类型）：最终 Boss 由结局决定、各有自己的 boss/hp_x_<类型>，混在一起的「终局用时」不能拿来调单个 Boss。
+    用时同 lane_summary：击杀记 t1 − t0，胜利的局按「出现 → 通关」计；未击杀的局给剩余血量"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if not d:
+            continue
+        for bo in d.get("bot", {}).get("bosses", []):
+            if _boss_phase(bo) != 2:
+                continue
+            e = by.setdefault((r.get("bot", "normal"), bo.get("type", "?")), {"n": 0, "t": [], "hp": [], "end": {}})
+            e["n"] += 1
+            e["end"][d.get("ending", "?")] = e["end"].get(d.get("ending", "?"), 0) + 1
+            if bo.get("t1", -1) >= 0:
+                e["t"].append(bo["t1"] - bo["t0"])
+            elif d.get("win"):
+                e["t"].append(d["t"] - bo["t0"])
+            elif d.get("boss_hp", -1) >= 0:
+                e["hp"].append(d["boss_hp"])
+    if not by:
+        return ""
+    lines = ["| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / 最短–最长 | 未击杀时剩余血量 |", "|---|---|---|---|---|---|---|"]
+    for (bot, ty), e in sorted(by.items(), key=lambda kv: (kv[0][0], -kv[1]["n"])):
+        ts = e["t"]
+        lines.append("| %s | %s | %s | %d | %d | %s | %s |" % (
+            bot, FINAL_BOSS_NAMES.get(ty, ty), " ".join("%s %d" % kv for kv in sorted(e["end"].items())), e["n"], len(ts),
+            ("%ds / %ds / %d–%ds" % (statistics.mean(ts), statistics.median(ts), min(ts), max(ts))) if ts else "-",
+            ("%d%%" % (100 * statistics.mean(e["hp"]))) if e["hp"] else "-"))
+    return "\n".join(lines)
+
+
 def table(rows):
     lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -497,6 +532,9 @@ def main():
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
+    fb = final_boss_summary(records)
+    if fb:
+        md = "### 最终 Boss（按类型；上面的「终局」列是四种混算）\n\n" + fb + "\n\n" + md
     if a.lanes:
         md = "### 按流派汇总\n\n" + lane_summary(records) + "\n\n" + md
     print(md)
