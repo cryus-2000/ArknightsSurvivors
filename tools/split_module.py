@@ -215,7 +215,8 @@ def main():
         return any(pat2.search(_strip(s)) for s in others.values())
 
     # 搬变量：只被搬走的函数使用
-    var_blocks = [b for b in blocks if b[0] == "var"]
+    # 变量与（非 preload）常量：只被搬走的代码使用的，一并搬走
+    var_blocks = [b for b in blocks if b[0] == "var" or (b[0] == "const" and b[1] not in preload_consts)]
     move_vars = []
     for b in var_blocks:
         name = b[1]
@@ -295,7 +296,7 @@ def main():
     anchor = new_game.index("\n", anchor + 1)
     new_game = new_game[:anchor] + "\n" + const_line + new_game[anchor:]
     var_anchor = new_game.index("\nvar rng := RandomNumberGenerator.new()")
-    new_game = new_game[:var_anchor] + "\nvar %s = %s.new(self)   # %s" % (field, spec["const"], spec["doc"].split("\n")[0][:60]) + new_game[var_anchor:]
+    new_game = new_game[:var_anchor] + "\nvar %s = %s.new(self)   # %s" % (field, spec["const"], spec["doc"].split("\n")[0].split("：")[0]) + new_game[var_anchor:]
 
     # 其他脚本
     other_hits = []

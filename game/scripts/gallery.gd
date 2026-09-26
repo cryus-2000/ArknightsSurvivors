@@ -65,7 +65,7 @@ var tab_rects: Array = []
 var tile_rects: Array = []
 var form_rects: Array = []
 var close_rect := Rect2()
-## 攻击演示：把 game.tscn 以 demo_op 模式放进 SubViewport，在展示台位置画出来（见 game.gd _demo_step）
+## 攻击演示：把 game.tscn 以 demo_op 模式放进 SubViewport，在展示台位置画出来（见 scripts/run/demo.gd）
 var demo_vp: SubViewport
 var demo_game: Node
 var demo_id := ""
@@ -120,7 +120,7 @@ func _demo_start(cid: String, sz: Vector2i) -> void:
 	add_child(demo_vp)
 	demo_game = load("res://game.tscn").instantiate()
 	demo_game.demo_op = cid
-	demo_game.demo_configure(demo_stage, demo_mode)
+	demo_game.demo_sys.configure(demo_stage, demo_mode)
 	demo_vp.add_child(demo_game)
 	demo_id = cid
 
@@ -136,7 +136,7 @@ func _demo_click(kind: String, v: int) -> void:
 			return
 		demo_mode = v
 	if demo_game != null:
-		demo_game.demo_configure(demo_stage, demo_mode)
+		demo_game.demo_sys.configure(demo_stage, demo_mode)
 	Sfx.play("ui_move")
 
 

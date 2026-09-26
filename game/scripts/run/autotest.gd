@@ -74,7 +74,7 @@ func step() -> void:
 			g.intro_t = 0.0
 		return
 	if OS.get_cmdline_user_args().has("--gallery"):
-		g._gallery_step()
+		g.demo_sys.gallery_step()
 		return
 	if g.state == g.S.SHOP:
 		for i in g.shop_items.size():
