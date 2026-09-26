@@ -14,6 +14,7 @@ extends Node
 ## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
 ## 破绽 ×1.4、韧性与眩晕钩子（白名单 Boss）、伤害预算（默认关）（B1 ③④）。
 ## 最终 Boss 登场时残留中期 Boss 撤场不给奖励（B1 ②）。
+## 最终 Boss 场地（B1 第二批）：冻结、插值、主控离圈边 ≥100、位置约束。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -57,6 +58,7 @@ func _process(_d: float) -> void:
 	test_gates()
 	test_break_budget()
 	test_retreat()
+	test_arena()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -756,3 +758,25 @@ func test_retreat() -> void:
 	ok(m.dead and m.get("retreated", false), "残留中期 Boss 撤场")
 	ok(game.kills == k0 and game.pickups.count_items() == pk0, "撤场不计击杀、不掉道具")
 	game.bosses = keep
+
+
+## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
+func test_arena() -> void:
+	var zs: Array = [game.zone_state, game.zone_c, game.zone_r, game.zone_next_c, game.zone_next_r]
+	game.zone_state = 3
+	game.zone_c = game.ppos + Vector2(700, 0)
+	game.zone_r = 1000.0
+	c.freeze_zone(520.0)
+	ok(game.zone_frozen and game.zone_state == 3 and game.zone_next_r == 520.0, "场地冻结：稳定态、下一圈同步为场地")
+	ok(game.ppos.distance_to(game.zone_next_c) <= 420.0 + 0.01, "主控离场地边 ≥100（%.0f）" % game.ppos.distance_to(game.zone_next_c))
+	for k in 40:
+		c.update_zone(0.1)
+	ok(absf(game.zone_r - 520.0) < 0.01 and game.zone_c.distance_to(game.zone_next_c) < 0.01, "3 秒后圈正好是场地")
+	var p: Vector2 = c.arena_clamp(game.zone_next_c + Vector2(2000, 0), 80.0)
+	ok(p.distance_to(game.zone_next_c) <= 440.0 + 0.01, "约束点落在场地内、离圈边 ≥80")
+	game.zone_frozen = false
+	game.zone_state = zs[0]
+	game.zone_c = zs[1]
+	game.zone_r = zs[2]
+	game.zone_next_c = zs[3]
+	game.zone_next_r = zs[4]

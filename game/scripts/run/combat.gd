@@ -330,9 +330,35 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 ## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
 ## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
 func update_zone(dt: float) -> void:
+	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅），只把圈插值到场地；圈外判定照常走下面那段（docs/38 §1.7）
+	if g.zone_frozen:
+		_arena_step(dt)
+	elif not _zone_schedule(dt):
+		return
+	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
+	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
+	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
+		zone_out_t += dt
+		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
+		if zone_out_t < ZONE_GRACE:
+			return
+		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
+		lose_hp(dps * dt, "zone")
+		zone_hurt_t -= dt
+		if zone_hurt_t <= 0.0:
+			zone_hurt_t = 0.8
+			g.hurt_flash = maxf(g.hurt_flash, 0.08)
+			g.head_bar_t = 2.0
+			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
+	elif g.state == g.S.PLAY:
+		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
+
+
+## 缩圈日程（原 update_zone 前半段，逻辑不变）：返回 false = 黑潮还没开始，本帧不做圈外判定
+func _zone_schedule(dt: float) -> bool:
 	if g.zone_state == 0:
 		if g.t < ZONE_START:
-			return
+			return false
 		g.zone_c = g.ppos
 		g.zone_r = ZONE_RADII[0] + 400.0
 		zone_phase = -1
@@ -370,23 +396,50 @@ func update_zone(dt: float) -> void:
 			if k >= 1.0:
 				g.zone_state = 3
 				g.zone_t = 0.0
-	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
-	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
-	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
-		zone_out_t += dt
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
-		if zone_out_t < ZONE_GRACE:
-			return
-		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		lose_hp(dps * dt, "zone")
-		zone_hurt_t -= dt
-		if zone_hurt_t <= 0.0:
-			zone_hurt_t = 0.8
-			g.hurt_flash = maxf(g.hurt_flash, 0.08)
-			g.head_bar_t = 2.0
-			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
-	elif g.state == g.S.PLAY:
-		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
+	return true
+## ---- 最终 Boss 场地（docs/38 §1.7，B1 第二批）
+## 最终 Boss 登场时 freeze_zone(arena_r)：黑潮圈 3 秒内平滑变到场地半径；主控离新圈边不足 100（或在圈外）就把圆心往主控挪；
+## 黑潮还没开始（zone_state == 0）时以主控为圆心新建。冻结后 zone_state = 3、zone_next_* 同步成场地，机器人读到的边界与实际一致。
+var arena_from_c := Vector2.ZERO
+var arena_from_r := 0.0
+var arena_t := 0.0
+
+
+func freeze_zone(r: float) -> void:
+	if g.zone_state == 0:
+		g.zone_c = g.ppos
+		g.zone_r = r + 400.0
+		zone_phase = -1
+	var c: Vector2 = g.zone_c
+	var d: float = g.ppos.distance_to(c)
+	if d > r - 100.0 and d > 0.001:
+		c = g.ppos + (c - g.ppos) / d * (r - 100.0)
+	arena_from_c = g.zone_c
+	arena_from_r = g.zone_r
+	arena_t = 0.0
+	g.zone_next_c = c
+	g.zone_next_r = r
+	g.zone_state = 3
+	g.zone_t = 0.0
+	g.zone_frozen = true
+
+
+func _arena_step(dt: float) -> void:
+	if arena_t >= 3.0:
+		return
+	arena_t = minf(arena_t + dt, 3.0)
+	var k := smoothstep(0.0, 1.0, arena_t / 3.0)
+	g.zone_c = arena_from_c.lerp(g.zone_next_c, k)
+	g.zone_r = lerpf(arena_from_r, g.zone_next_r, k)
+
+
+## 把 Boss 本体、召唤物 / 落点的生成点约束在场地内、离圈边 ≥ margin；场地没冻结时原样返回
+func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
+	if not g.zone_frozen:
+		return p
+	var lim: float = maxf(0.0, g.zone_next_r - margin)
+	var v: Vector2 = p - g.zone_next_c
+	return p if v.length() <= lim else g.zone_next_c + v.normalized() * lim
 
 
 ## 主控指向安全区圆心的单位向量（圈外方向提示用）
