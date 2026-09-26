@@ -101,12 +101,15 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None):
     try:
         p = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
         out = p.stdout
+        err = p.stderr or ""
     except subprocess.TimeoutExpired as e:
         out = (e.stdout or b"").decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+        err = (e.stderr or b"").decode("utf-8", "replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
     m = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
     rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "wall": round(time.time() - t0, 1)}
     # 脚本错误不会让模拟停下，但可能让某段逻辑整段失效（例如 Boss 没刷出来）→ 计数并在报告顶部警告
-    errs = re.findall(r"^SCRIPT ERROR: .*$", out, re.M)
+    # Godot 把脚本错误写到 stderr（2026-09-26 前只查 stdout，漏掉了水月每次出手报错的整批数据）
+    errs = re.findall(r"^SCRIPT ERROR: .*$", out + "\n" + err, re.M)
     if errs:
         rec["script_errors"] = len(errs)
         rec["first_error"] = errs[0][:200]
