@@ -2,11 +2,12 @@ extends Node
 ## 全局音频（自动加载为 Sfx）：背景音乐 + 音效池。标题界面与游戏共用，切换场景时音乐不中断。
 
 const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
-	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out"]
+	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
+	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break"]
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震

@@ -882,6 +882,7 @@ func _enemy_act_fx() -> void:
 		var ang: float = float(la.get("ang", 0.0))
 		match str(la.get("act", "")):
 			"dash", "charge":
+				Sfx.play("knight_charge", -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
 				var L: float = float(la.get("len", 200.0))
 				var dv := Vector2.from_angle(ang)
 				var s := 0.0
@@ -891,6 +892,7 @@ func _enemy_act_fx() -> void:
 				g.vfx.fx_sprite("fx_knight_impact", p0 + dv * L, g.PX * 1.2, ang)
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			"bite":
+				Sfx.play("knight_stab", -2.0, 1.0, 0.06)   # 枪刺「锵」+ 冰光
 				g.vfx.slash_fx(p0, ang, float(la.get("half", 0.8)), float(la.get("r", 125.0)), Color(0.7, 0.9, 1.6), "slash", 0.26)
 				for q in range(g.fx.size() - 3, g.fx.size()):
 					if q >= 0:
@@ -898,6 +900,7 @@ func _enemy_act_fx() -> void:
 				g.vfx.fx_sprite("fx_knight_impact", p0 + Vector2.from_angle(ang) * float(la.get("r", 125.0)) * 0.7, g.PX, ang)
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			"frost":
+				Sfx.play("knight_frost", -4.0, 1.0, 0.0)   # 冰晶爆开
 				var fr: float = float(la.get("r", 200.0))
 				g.fx.append({"kind": "ring", "pos": p0, "r": fr, "life": 0.6, "max": 0.6, "col": Color(0.7, 0.9, 1.4), "enemy": true})
 				for q in 10:

@@ -30,7 +30,7 @@ func start_opening() -> void:
 	opening_t = 0.0
 	g.p_off = Vector2(0, -320)
 	g.lamp_light.energy = 0.0
-	Sfx.play("start", -4.0)
+	Sfx.play("start", -14.0)   # 音量巡检：开场引子开头近乎无声，-4 dB 时比音乐响 29 dB；现在只托住开头，和 1.7 秒后的引子齐平
 
 
 func update_opening(dt: float) -> void:

@@ -233,7 +233,7 @@ func _diff_go() -> void:
 	Cfg.difficulty = diff_sel
 	Cfg.save()
 	diff_pick = false
-	Sfx.play("start")
+	Sfx.play("start", -8.0)   # 音量巡检（2026-09-27）：原 0 dB 比标题曲响 18 dB，且开场一开始还会再播一次
 	leaving = 0.0
 
 
