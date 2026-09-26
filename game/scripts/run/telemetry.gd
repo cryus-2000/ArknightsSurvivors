@@ -103,8 +103,28 @@ func tick(dt: float) -> void:
 			lv_marks[m] = g.level
 	if t >= sample_next:
 		sample_next += SAMPLE_EVERY
+		var out_sum := 0.0
+		var rsrc := {}
+		for s in g.dmg_out:
+			out_sum += g.dmg_out[s]
+			if g.hit_src.get(s, {}).get("origin", "") == "relic":
+				rsrc[s] = int(g.dmg_out[s])
+		var ehp := 0.0
+		var bhp := 0.0
+		for e in g.enemies:
+			if e.dead:
+				continue
+			if e.boss:
+				bhp += e.hp
+			else:
+				ehp += e.hp
+		var heal_sum := 0.0
+		for s in g.heal_log:
+			heal_sum += float(g.heal_log[s])
 		curve.append({"t": int(t), "hp": int(100.0 * g.hp / maxf(1.0, g.max_hp)), "lamp": int(g.lamp), "lv": g.level,
-			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size()})
+			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size(),
+			"out": int(out_sum), "rout": int(g.relic_out), "rsrc": rsrc, "rel": g.relics.size(), "ehp": int(ehp), "bhp": int(bhp),
+			"heal": int(heal_sum), "mhp": int(g.max_hp), "elites": g.elites_killed})
 		taken_window = 0.0
 
 
