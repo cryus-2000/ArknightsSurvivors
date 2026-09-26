@@ -22,7 +22,10 @@ var zone_from_c := Vector2.ZERO
 var zone_from_r := 99999.0
 var zone_phase := 0
 var zone_hurt_t := 0.0
+var zone_out_t := 0.0     # 本次出圈了几秒（圈内为 0）：前 ZONE_GRACE 秒不掉血；界面据此画回圈方向提示
+var zone_paused := false  # Boss 在场，缩圈计时暂停
 const ZONE_START := 150.0
+const ZONE_GRACE := 2.0   # 1.1 用户决定：出圈后 2 秒内不掉血
 const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
 ## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
@@ -324,7 +327,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	return amount
 
 
-## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」
+## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
+## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
 func update_zone(dt: float) -> void:
 	if g.zone_state == 0:
 		if g.t < ZONE_START:
@@ -334,7 +338,13 @@ func update_zone(dt: float) -> void:
 		zone_phase = -1
 		g.zone_state = 3
 		g.zone_t = 0.0
-	g.zone_t += dt
+	var paused: bool = g.spawner.boss_alive()
+	if paused != zone_paused:
+		zone_paused = paused
+		if g.zone_state != 3 or zone_phase >= 0:
+			g.vfx.show_banner("Boss 在场：黑潮停滞" if paused else "黑潮再度涌动")
+	if not paused:
+		g.zone_t += dt
 	match g.zone_state:
 		3:
 			if g.zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if g.ending == "resolve" else 1):
@@ -363,15 +373,25 @@ func update_zone(dt: float) -> void:
 	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
+		zone_out_t += dt
+		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
+		if zone_out_t < ZONE_GRACE:
+			return
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
 		lose_hp(dps * dt, "zone")
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
 		zone_hurt_t -= dt
 		if zone_hurt_t <= 0.0:
 			zone_hurt_t = 0.8
 			g.hurt_flash = maxf(g.hurt_flash, 0.08)
 			g.head_bar_t = 2.0
 			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
+	elif g.state == g.S.PLAY:
+		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
+
+
+## 主控指向安全区圆心的单位向量（圈外方向提示用）
+func zone_dir() -> Vector2:
+	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
 
 
 func in_zone(p: Vector2, margin := 0.0) -> bool:
