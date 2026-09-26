@@ -31,13 +31,13 @@ const DIFFICULTY := [
 	{"name": "负伤", "desc": "初始最大生命 -20%"},
 	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
 ]
-## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度）。存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
+## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度；命名取原作「波涛迭起」，desc 为选难度页的副标题）。存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
 ## 每档一张修正表（g.dmod，键见 DMOD_DEFAULT），数值在 data/balance.json 的 difficulty/<key> 段填；
 ## 段里没写的键按 level（上表的累计档位）拼出来，所以不填 = 与旧累计难度逐局相同。批跑 --diff=N 也按累计档位拼表。
 const DIFFICULTY_TIERS := [
-	{"name": "标准", "en": "STANDARD", "key": "standard", "level": 0},
-	{"name": "困难", "en": "HARD", "key": "hard", "level": 4},
-	{"name": "极难", "en": "EXTREME", "key": "extreme", "level": 8},
+	{"name": "波涛迭起", "en": "RISING TIDE", "desc": "海洋的真容，才刚刚显露。", "key": "standard", "level": 0},
+	{"name": "波涛迭起·Ⅳ", "en": "RISING TIDE Ⅳ", "desc": "暗礁更多，灯火更难守住。", "key": "hard", "level": 4},
+	{"name": "波涛迭起·Ⅷ", "en": "RISING TIDE Ⅷ", "desc": "大海不再留情。", "key": "extreme", "level": 8},
 ]
 ## 难度修正表：倍率（1.0 = 不变）与开关（0 / 1）
 const DMOD_DEFAULT := {
