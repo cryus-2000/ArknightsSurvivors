@@ -149,5 +149,5 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
 func lob(e: Dictionary) -> void:
-	var to: Vector2 = g.ppos + Vector2(randf_range(-30, 30), randf_range(-30, 30)) + g.pvel * 0.6
+	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false)})

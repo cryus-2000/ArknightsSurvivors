@@ -149,7 +149,7 @@ python tools/balance_run.py --squad wisadel,suzuran,saria --seeds 5 --extra "--b
 
 ### 6.4 护栏（改数前后都要看）
 
-- `tests/test_core.gd` 全绿。
+- `python tools/check.py` 全部通过（含 `tests/test_core.gd`、每名干员冒烟、同 seed 复现，docs/36）。
 - 单人开局每名干员 3:30 存活率不掉。
 - 任何一次改动不能让某个编队胜率变化超过 25 个百分点（否则是 bug，不是平衡）。
 
@@ -229,7 +229,8 @@ python tools/balance_run.py --squad wisadel,suzuran,saria --seeds 5 --extra "--b
 ### 9.3 校验（提交前必跑）
 
 ```bash
-godot --headless --path game -s res://tests/test_core.gd          # 契约：3 技能 / 6 节点 / 成长同构
+python tools/check.py                                             # 快检（docs/36）：契约 + 每名干员冒烟 + 同 seed 复现
+python tools/check.py --ab main                                   # 与 main 同 seed 对比机器人标准矩阵
 python tools/balance_run.py --op <id> --seeds 5                   # 单人开局
 python tools/balance_run.py --squad <id>,wisadel,saria --seeds 3  # 带一个强输出 + 一个保护
 python tools/balance_run.py --squad <id>,suzuran,kaltsit --seeds 3
@@ -243,7 +244,7 @@ python tools/balance_run.py --preset squads --seeds 3             # 回归：老
 | 单人 3:30 存活率 | 与同角色的现有干员相差 ≤ 15 个百分点（例如新术师对艾雅法拉） |
 | 三人队里的伤害占比 | 主输出 30–50%；节奏 20–35%；保护 / 治疗 / 增幅 10–25% |
 | 击杀 / 分钟（`--nodeath`） | 与同角色现有干员相差 ≤ 20% |
-| 老编队回归 | 6 个预设编队的存活 / 胜率变化 ≤ 10 个百分点（新干员不在其中，理论上应为 0） |
+| 老编队回归 | 新干员不在其中的编队，同 seed 结果应逐局完全相同（2026-09-26 起可复现，docs/36 §3）；不同就说明改动影响到了别处 |
 | 无人机 / 藏品占比 | 仍在 10–20% |
 
 ### 9.4 定档

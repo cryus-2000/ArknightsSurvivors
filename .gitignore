@@ -35,3 +35,6 @@ build/*.bat
 # 第三方开放许可素材：只入库 README（各包许可不允许再分发）
 art/third_party/*
 !art/third_party/README.md
+
+# Python
+__pycache__/
