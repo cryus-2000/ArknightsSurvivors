@@ -48,6 +48,13 @@ python3 tools/cloud/case_check.py
 echo "== 4/5 导入项目（生成 game/.godot 缓存，首次约 1–3 分钟）"
 "$GODOT" --headless --path game --import >/dev/null 2>&1 || true
 test -d game/.godot/imported || { echo "导入失败：game/.godot/imported 不存在"; exit 1; }
+# .uid / .import 旁路文件应当都已入库（.gitignore 第 1 行的约定）。导入后冒出未跟踪的，说明有人新增脚本 / 资源时漏提交了，
+# 云端生成的是随机 UID，不要提交它，回到本机补交原来的那份（docs/36 §7.1）
+NEW_SIDE="$(git status --porcelain --untracked-files=all 2>/dev/null | grep -E '^\?\? .*\.(uid|import)$' || true)"
+if [ -n "$NEW_SIDE" ]; then
+    echo "注意：导入后出现未入库的 .uid / .import（$(echo "$NEW_SIDE" | wc -l) 个），不影响测试，但请在本机补交：" 
+    echo "$NEW_SIDE" | head -10
+fi
 
 echo "== 5/5 写 tools/cloud/env.sh"
 cat > tools/cloud/env.sh <<EOF

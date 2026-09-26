@@ -138,6 +138,7 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
 - `setup_linux.sh` 生成 `tools/cloud/env.sh`（Godot 路径与并发），`run_cloud.sh` 自动读取；换机器要重新跑 `setup_linux.sh`。
 - 大小写：Windows 不分文件名大小写，Linux 分。`tools/cloud/case_check.py` 检查代码 / 数据里写死的 `res://` 路径与美术名，初始化时会跑；本机也能跑，改了资源路径后建议先跑一遍。动态拼出来的名字查不到，要看云端日志里有没有 `Failed loading` / `Cannot open file`。
 - 换行：`.sh` 由 `.gitattributes` 强制 LF（在 Windows 上编辑也不会变成 CRLF）。
+- `.uid` / `.import`：Godot 给每个脚本 / 资源生成的旁路文件**必须入库**（`.gitignore` 第 1 行的约定）。**新增 `.gd` 时把同名 `.gd.uid` 一起提交**；漏交的话每台机器导入时各自生成随机 UID，云端会冒出一堆未跟踪文件（2026-09-26 首跑就遇到 35 个，已补交）。`setup_linux.sh` 导入后会列出未入库的旁路文件——那是云端临时生成的，不要从云端提交，回本机补交原件。
 - 云端没有声卡和显示器：`--headless` 下 Godot 自动用空的音频与显示驱动，测试本来就静音（§2）。截图类测试（需要窗口）不在云端跑。
 
 ### 7.2 并发多少
