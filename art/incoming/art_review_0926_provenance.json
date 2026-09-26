@@ -1,0 +1,332 @@
+{
+  "tool": "built-in image_gen",
+  "export_scripts": [
+    {
+      "sha256": "d72da91834e82356e7b9a3faf82284f4456d1a4970afc54d0efc9486cc998a54",
+      "path": "E:\\水月\\squad_review_20260926\\deliver.ps1"
+    },
+    {
+      "sha256": "317318112f65ced39981559e0c4313a4403c6b2ac986b11bf291a65037c23495",
+      "path": "E:\\水月\\squad_review_20260926\\details.ps1"
+    },
+    {
+      "sha256": "a66de15eb84a8e860cb1337b679f1e98e53b98e19ccbc08ee8ea36ff6884f467",
+      "path": "E:\\水月\\squad_review_20260926\\export.ps1"
+    },
+    {
+      "sha256": "dd0de83b2944e089c8145e998f63fe74595818ef2b6d2aaf93911e4bda23aa0f",
+      "path": "E:\\水月\\squad_review_20260926\\finalize.ps1"
+    },
+    {
+      "sha256": "27b23fc658e6935f7c079118323e438378e1610b5cd67ec3214470ef758cf04f",
+      "path": "E:\\水月\\squad_review_20260926\\idle-consistency.ps1"
+    },
+    {
+      "sha256": "8d98bb14af61d672f5d7c2d039ed90d71a0d3a348d4b37bc868ebb054d09d72e",
+      "path": "E:\\水月\\squad_review_20260926\\package.ps1"
+    },
+    {
+      "sha256": "6874d418cea9a9ebb33e89ca0499b895c717fdd02d88f703232dc57dace4fb3c",
+      "path": "E:\\水月\\squad_review_20260926\\preview.ps1"
+    },
+    {
+      "sha256": "7bf537a55b93e7fddd4e97645ed9dc5ffe7b29d57f8c20e737f00697910cf694",
+      "path": "E:\\水月\\squad_review_20260926\\refs.ps1"
+    },
+    {
+      "sha256": "115a346e186dc72d7ab255634cbbf255af837593b52df3f8173cf5b445cec099",
+      "path": "E:\\水月\\squad_review_20260926\\style-check.ps1"
+    },
+    {
+      "sha256": "d484231f275189b11ec8372b9fd4b304513af869a039b3d7ece76ac59d0c8903",
+      "path": "E:\\水月\\squad_review_20260926\\tone.ps1"
+    },
+    {
+      "sha256": "6825895c83e7d0092fbbdb8f57435a3f41596891e4a0b8d71af13a982521f95c",
+      "path": "E:\\水月\\squad_review_20260926\\export.cs"
+    }
+  ],
+  "sources": [
+    {
+      "character": "ulpianus",
+      "prompt": "Edit target: supplied ulpianus pixel animation sheet. Faithful refinement, no character redesign. Preserve exact FOUR rows and 7 equal columns grid. Row counts top to bottom 4, 6, 5, 7; unused cells stay empty. Same chibi proportions, frame footprints, facing right, eye clarity and correct neck alignment. Native crisp 96px sprite detail, no dithering/no noise, strong TWO-native-pixel dark navy #080E18 outline and legible brighter colored rim highlights. No magenta pixels on character. Transparent background, no labels/shadows/cell borders. Keep spacing and poses except these requested corrections: Four-clawed enormous anchor must read prominently: long straight silver shaft, gold circular helm wheel, FOUR thick back-curved flukes, NOT a scythe/crescent or tail. Carry it clearly separate from coat in idle/run. Broad heavy navy coat with clean large clusters, white trims and muted red hatband. Skill row frames1 and2 (zero indexed) lean back lifting and HOLDING anchor; frame3 throws anchor, frames3-5 empty hand, frame6 catches anchor. Keep all frames within cells with generous clear gutters. Make sheet clean and production ready.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-797f4d3d-e6f5-4a23-a49d-f826e8212177.png",
+      "source_sha256": "10ef619913835ce522b339ff444718e9c162eed8d4ffdc0399477a90a9ef442d",
+      "stage": "jobs1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "irene",
+      "prompt": "Edit target: supplied irene pixel animation sheet. Faithful refinement, no character redesign. Preserve exact FOUR rows and 7 equal columns grid. Row counts top to bottom 4, 6, 5, 7; unused cells stay empty. Same chibi proportions, frame footprints, facing right, eye clarity and correct neck alignment. Native crisp 96px sprite detail, no dithering/no noise, strong TWO-native-pixel dark navy #080E18 outline and legible brighter colored rim highlights. No magenta pixels on character. Transparent background, no labels/shadows/cell borders. Keep spacing and poses except these requested corrections: Keep Irene's original costume and thin sword, visibly strengthen pink coat lining and gold warm lantern. Lantern present in every single frame. Skill row frame2 turns torso winding up, frame3 is a BIG HORIZONTAL TURNING SWORD SWEEP, not a thrust. Attack row remains forward sword thrust, warm lantern in free hand every frame. Keep all frames within cells with generous clear gutters. Make sheet clean and production ready.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b7a3f9f3-cc60-4f74-b0d6-c8cbcf3a7198.png",
+      "source_sha256": "3dcec7a8d4a0fa24b1f6d847defc9d37a77d267dcfc135c3ef6dae58a3373acd",
+      "stage": "jobs1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "lumen",
+      "prompt": "Edit target: supplied lumen pixel animation sheet. Faithful refinement, no character redesign. Preserve exact FOUR rows and 6 equal columns grid. Row counts top to bottom 4, 6, 4, 6; unused cells stay empty. Same chibi proportions, frame footprints, facing right, eye clarity and correct neck alignment. Native crisp 96px sprite detail, no dithering/no noise, strong TWO-native-pixel dark navy #080E18 outline and legible brighter colored rim highlights. No magenta pixels on character. Transparent background, no labels/shadows/cell borders. Keep spacing and poses except these requested corrections: Keep Lumen's existing corrected upright neck, dark navy turquoise uniform, blue hair, bag, no forward-head posture. Clear small brass lantern hanging OUTSIDE bag silhouette in ALL idle and run frames, consistent physical size across all poses, folded umbrella on back subtly visible. Attack row frame1 lowers lantern, frame2 raises lamp and emits bright WARM YELLOW light inside glass; other frames amber dimmer. Skill same lantern size. Stable root position, no lateral jump. Keep all frames within cells with generous clear gutters. Make sheet clean and production ready.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1642f6cc-52be-4380-a556-ee8d057c26f2.png",
+      "source_sha256": "bc23eb7754a1f746d0eaa34c6ca267e6c29254b015e7307e3e910e69f39050d2",
+      "stage": "jobs1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "specter_unchained",
+      "prompt": "Edit target: supplied specter_unchained pixel animation sheet. Faithful refinement, no character redesign. Preserve exact FOUR rows and 7 equal columns grid. Row counts top to bottom 4, 6, 5, 7; unused cells stay empty. Same chibi proportions, frame footprints, facing right, eye clarity and correct neck alignment. Native crisp 96px sprite detail, no dithering/no noise, strong TWO-native-pixel dark navy #080E18 outline and legible brighter colored rim highlights. No magenta pixels on character. Transparent background, no labels/shadows/cell borders. Keep spacing and poses except these requested corrections: Keep Specter the Unchained original silver hair, black white dress and tricorne (NOT nun outfit). Long pole circular mechanical saw, long handle with bottom spike and a small gold gear, physically same length throughout. Attack frame2 rotate entire body sweeping saw around torso in broad arc rather than pushing saw forward. Preserve other poses. Keep all frames within cells with generous clear gutters. Make sheet clean and production ready.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9d7cc18a-9b92-4ee0-a3a1-919cfa10f2a3.png",
+      "source_sha256": "31cb20117e5222895716caa9f4e33a7a084406ff50eeb6adb2b4d288d1b9c0e4",
+      "stage": "jobs1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "logos",
+      "prompt": "Edit target: supplied logos pixel animation sheet. Faithful refinement, no character redesign. Preserve exact FOUR rows and 8 equal columns grid. Row counts top to bottom 4, 6, 4, 8; unused cells stay empty. Same chibi proportions, frame footprints, facing right, eye clarity and correct neck alignment. Native crisp 96px sprite detail, no dithering/no noise, strong TWO-native-pixel dark navy #080E18 outline and legible brighter colored rim highlights. No magenta pixels on character. Transparent background, no labels/shadows/cell borders. Keep spacing and poses except these requested corrections: Keep Logos's corrected upright head-neck alignment and black feather-like head ornaments. Hair medium cool grey rather than white. Bone writing quill held in hand should read pale ivory featherbone nib on dark grip, not black baton. Brighten slim silver-blue coat trims. Remove every magenta fringe but preserve original blue/black scheme and poses. Keep all frames within cells with generous clear gutters. Make sheet clean and production ready.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-d213d636-52a1-4491-a297-ff74e7c7e9fd.png",
+      "source_sha256": "7be5592663bb31d64343907882afb3e33a3b519c39334dccf92ad33c591dca3b",
+      "stage": "jobs1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "wisadel",
+      "prompt": "Edit supplied wisadel game sprite contact sheet, faithful pixel art NOT redesign. Output 4 rows in equal square cells, 7 columns. Row counts exactly 4,6,5,7, unused cells EMPTY transparent. Keep original four rows idle/run/attack/skill. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Keep ORIGINAL elaborate skeletal silver-grey heavy GUN with broad squared muzzle, red parts, compact stock, not a sword. Identical physical gun length across ALL poses including skill frames4,5. Idle more horizontal slant to show muzzle/stock silhouette. Attack f2 pronounced backward recoil of muzzle and whole torso vs f1. Keep waist firing. Remove silver noisy speckles from weapon, clean large metal planes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1f4f8c4b-61f3-4a7a-881b-86cb883b8934.png",
+      "source_sha256": "82ae6fee9ecad631c4540765577e5973b2b40d6365c208c0276c5b40e061327e",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "siege",
+      "prompt": "Edit supplied siege game sprite contact sheet, faithful pixel art NOT redesign. Output 5 rows in equal square cells, 6 columns. Row counts exactly 4,6,4,6,6, unused cells EMPTY transparent. First four rows same idle/run/attack/skill, fifth new requested action. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Lion ears, blonde hair, black leather jacket white fur collar. Enlarge heavy steel hammer head by 30%, preserve original angular hammer. Attack row4 frames: ready shoulder, overhead anticipation, down-forward broad swing, followthrough LOW FORWARD; no front-to-back teleport through body. Row4 existing groundslam unchanged. ADD FIFTH ROW 6-frame command: ready, raise hammer, hammer overhead, rally held high, settle, return ready; NO groundstrike in final row.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-5d777d39-0d07-49de-aa64-177be6308298.png",
+      "source_sha256": "c789a26fc7bbcd4be286c23e12caafcb35e96f7e06621a23ecc2040e22d71452",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "skadi",
+      "prompt": "Edit supplied skadi game sprite contact sheet, faithful pixel art NOT redesign. Output 5 rows in equal square cells, 7 columns. Row counts exactly 4,6,5,7,6, unused cells EMPTY transparent. First four rows same idle/run/attack/skill, fifth new requested action. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Original black tricorne hat: remove large saturated blue panel, make black/slate subtle cool edge only. Same consistent hat height and long hair terminal pompom in every idle frame. Stable idle sword angle. Attack row f2 wide horizontal 160-degree sword sweep, show full heavy sword length not short stab. Existing row4 downward sword cleave remains. ADD FIFTH ROW6 full-body 360-degree spin-slash frames: windup, turn side, front sweep, back-facing sweep, followthrough, neutral. Sword physical length constant.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-88789e83-32f0-4a6a-a329-4c04e3cd6740.png",
+      "source_sha256": "00f988fc87b106afb5433517a8dabb2c2699da85c82a754fe466c1cb37b2844d",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "saria",
+      "prompt": "Edit supplied saria game sprite contact sheet, faithful pixel art NOT redesign. Output 5 rows in equal square cells, 6 columns. Row counts exactly 4,6,4,6,6, unused cells EMPTY transparent. First four rows same idle/run/attack/skill, fifth new requested action. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Keep Saria original large rectangular black white shield, horns, grey hair with orange strands, black white orange coat. Strong thick ORANGE RIM on shield in EVERY pose. Left long hair strand present all idle frames. Existing skill row4 shield lift preserved. ADD FIFTH ROW6 healing animation: ready shield low, free hand reaches medical injector, extends injector at frame2, administers warm amber healing at frame3, withdraws hand, returns ready; NOT shield overhead, shield stays low.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b549d7fa-3e68-4565-9b2c-915af0427f28.png",
+      "source_sha256": "dda413947eeb44fae0eba344dfc2f5936d96f01471521fb3ee5063f70a5b3276",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "eyjafjalla",
+      "prompt": "Edit supplied eyjafjalla game sprite contact sheet, faithful pixel art NOT redesign. Output 4 rows in equal square cells, 8 columns. Row counts exactly 4,6,4,8, unused cells EMPTY transparent. Keep original four rows idle/run/attack/skill. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Keep goat horns brown hair redwhite coat. Exactly stable pelvis x on all6 run frames, legs cycle beneath root, no hopping13px side to side. Idle only f2 half-blink, other3 eyes open. Staff thicker readable darkbrown shaft with bright warm wood rim.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-210db799-7a68-4fe1-9291-9ed82fdf9f45.png",
+      "source_sha256": "2e0fb73948c8397725c2b4f19bb05b0726bdfa1d664a472ca6596a43b4de2d70",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "kaltsit",
+      "prompt": "Edit supplied kaltsit game sprite contact sheet, faithful pixel art NOT redesign. Output 5 rows in equal square cells, 6 columns. Row counts exactly 4,6,4,6,6, unused cells EMPTY transparent. First four rows same idle/run/attack/skill, fifth new requested action. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Keep original Kaltsit white hair feline ears limegreen dress white coat black shoulders. All poses CLEAN SOLID pixel clusters, remove checkerboard fragments and noise from hair/coat; constant face angle idle. No change character features. Existing healing skill row4 preserved. ADD FIFTH ROW6 commanding gesture: ready, hand to chest, extends open hand pointing RIGHT at frame2, firm extended directing arm frame3, draws arm back, neutral; no syringe/healing gesture.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-ad657884-4f79-4af5-98db-815315c37129.png",
+      "source_sha256": "5aaba997c12940b9dce6497a1bf8206f80c0bcf0b51467479b070786eaa5ea75",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "suzuran",
+      "prompt": "Edit supplied suzuran game sprite contact sheet, faithful pixel art NOT redesign. Output 4 rows in equal square cells, 6 columns. Row counts exactly 4,6,4,6, unused cells EMPTY transparent. Keep original four rows idle/run/attack/skill. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 96px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Keep fox ears blonde hair nine tails whiteblue dress gold star-ring staff. Make neutral pose width modestly narrower, staff closer to body without hiding it. LAST skill frame5 returns EXACT neutral idle pose: eyes OPEN and star staff head on upper left. Maintain9tails silhouette.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-965f8172-0f59-45ac-9058-fb66169c05a3.png",
+      "source_sha256": "34cad1353da733ed3b16abb475e2a33a06770d8c5da1fc39bbd28c1fe02627f5",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "mon3tr",
+      "prompt": "Edit supplied mon3tr game sprite contact sheet, faithful pixel art NOT redesign. Output 4 rows in equal square cells, 6 columns. Row counts exactly 4,6,4,6, unused cells EMPTY transparent. First3 rows idle4/run6/attack4, fourth newskill6. All sprites same scale, floor level within cell, same body root center, clear gutters, nothing cropped. Crisp native 128px pixel clusters, limited harmonious palette, TWO native pixel navy #080E18 outline, transparent background, NO labels, grid, shadows or background. Preserve identifiable eyes/costume and correct head supported over shoulders. Specific changes: Original Mon3tr black angular armored crystalline organism, no feet, no legs, no held weapon. Unify ALL idle/run/attack silhouettes into compact HORIZONTAL head-forward floating beast, identifiable red eye facing right. Keep huge anatomical blade forelimbs, segmented tapering lower body, armored back ridges and small green fissures. Do not invent dragon wings or quadped legs. Same head shape and width across motions. Attack body sways and one blade sweeps, not vertical ball. ADD FOURTH ROW6 MELTDOWN stance: ready, lower head, spread anatomical blades, flare vivid green seams torso, sustained fierce stance, return near ready. Remains floating, stable scale.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-aeebd106-d24e-47e8-8f98-fb56047daff7.png",
+      "source_sha256": "bce04af115a7783612fcbc5a34e19c3889838414b7a6c6fdfcc0a6de3e2ed427",
+      "stage": "jobs2.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "ulpianus",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL row4 skill: second and third cells BOTH HOLD THE ANCHOR OVERHEAD leaning backward. Fourth cell releases with EMPTY HAND, fifth and sixth empty hand, seventh retrieves anchor. Row3 attack fourth cell STILL HOLDS anchor sweeping LOW FORWARD. Anchor NEVER disappears in attack. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-ccb1ec25-f8c8-4439-8b70-35389fd6f075.png",
+      "source_sha256": "35a28657f2223c6b363a808eceb17df46c1878649dd8c932459db8100b99988b",
+      "stage": "clean1_v1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "irene",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL third row attack: remove baked pink slash trail. FOURTH ROW skill third cell shows torso turning backward to wind sword, fourth cell back/side view performing big broad sword sweep with sword angled across body, NOT pointing straight right. Keep lantern everyframe. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3adb11e0-e7a2-4960-916e-6af657defafb.png",
+      "source_sha256": "c97efc85ed732a26a18e56a8f2939025601677ed829a5b706cba8cda1ba16b0b",
+      "stage": "clean1_v1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "lumen",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL third row attack SECOND cell lantern lowered to hip, THIRD cell lifted to head height bright yellow glass. Side brass lantern visible everyframe, do not enlarge lamp lastframe. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-f8eb67c2-2820-47b1-b7d3-51ff2dbd83c0.png",
+      "source_sha256": "3028679dad9b1045a16c66a6d59f9e862a37e0e27327ca819f3278fc6d5deadf",
+      "stage": "clean1_v1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "specter_unchained",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL third row attack third cell face and torso turned BACK showing rear tricorne, with long saw swept behind in circular arc, fourth cell rotates forward again. Do NOT simply hold saw straight forward. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a8cd5638-44d8-4536-ab38-031f437a07fe.png",
+      "source_sha256": "6e8193ec01547dc2e3af4c99a023db8587d457d93b71d3f8d0ec04b51b3753f9",
+      "stage": "clean1_v1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "logos",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: Keep all existing poses and details. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b25cc227-538c-43c7-b945-b97f7e29e0cb.png",
+      "source_sha256": "69975bbd1f18325ac35be704c1d54b6455fbc0e1cec5aaa6968fed9bbf2fbe24",
+      "stage": "clean1_v1.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "ulpianus",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL row4 skill: second and third cells BOTH HOLD THE ANCHOR OVERHEAD leaning backward. Fourth cell releases with EMPTY HAND, fifth and sixth empty hand, seventh retrieves anchor. Row3 attack fourth cell STILL HOLDS anchor sweeping LOW FORWARD. Anchor NEVER disappears in attack. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-ccb1ec25-f8c8-4439-8b70-35389fd6f075.png",
+      "source_sha256": "35a28657f2223c6b363a808eceb17df46c1878649dd8c932459db8100b99988b",
+      "stage": "clean1.json",
+      "status": "used"
+    },
+    {
+      "character": "irene",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL third row attack: remove baked pink slash trail. FOURTH ROW skill third cell shows torso turning backward to wind sword, fourth cell back/side view performing big broad sword sweep with sword angled across body, NOT pointing straight right. Keep lantern everyframe. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3adb11e0-e7a2-4960-916e-6af657defafb.png",
+      "source_sha256": "c97efc85ed732a26a18e56a8f2939025601677ed829a5b706cba8cda1ba16b0b",
+      "stage": "clean1.json",
+      "status": "used"
+    },
+    {
+      "character": "lumen",
+      "prompt": "Edit this exact Lumen pixel animation sheet. Keep ALL poses, costume, proportions, eyes, root placement, grid 4/6/4/6 and solid MAGENTA #FF00FF background unchanged. ONLY improve equipment legibility: enlarge the SAME brass lantern in EVERY frame to consistent rectangle about32px wide x45px tall at this source resolution. Warm AMBER glass must be clearly visible, not hidden in bag or robe. Lantern is suspended at side in all idle/run frames; keep attack frame1 low and frame2 raised brightest pale yellow. All lanterns identical physical size, no inconsistent tiny or huge lamps. Also add the character's long slender FOLDED NAVY UMBRELLA strapped diagonally to left side/back, hook handle visible behind shoulder, narrow closed umbrella tip visible beside travel bag, unobtrusive, no open canopy. Clear two-native-pixel navy outline with bright interior gold lamp. No new effects/shadows/text. Do not change neck alignment.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c70fe4c3-ed38-4af2-92f9-10634a329409.png",
+      "source_sha256": "ed29be41336c46549f7def15672744faa740e7fcca502dd8dd3baaddd3e8b5eb",
+      "stage": "clean1.json",
+      "status": "used"
+    },
+    {
+      "character": "specter_unchained",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: CRITICAL third row attack third cell face and torso turned BACK showing rear tricorne, with long saw swept behind in circular arc, fourth cell rotates forward again. Do NOT simply hold saw straight forward. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a8cd5638-44d8-4536-ab38-031f437a07fe.png",
+      "source_sha256": "6e8193ec01547dc2e3af4c99a023db8587d457d93b71d3f8d0ec04b51b3753f9",
+      "stage": "clean1.json",
+      "status": "used"
+    },
+    {
+      "character": "logos",
+      "prompt": "Edit ONLY the supplied sheet. Replace ALL grey-white checkerboard background with perfectly flat solid neon magenta #FF00FF, also between limbs and enclosed gaps. No checkerboards or transparency simulation. Preserve complete pixel character grid EXACTLY, no crop, no labels, no extra rows. Also apply these precise pose corrections: Keep all existing poses and details. Keep same scale and clean sharp pixel art. Preserve character identities and costumes.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b25cc227-538c-43c7-b945-b97f7e29e0cb.png",
+      "source_sha256": "69975bbd1f18325ac35be704c1d54b6455fbc0e1cec5aaa6968fed9bbf2fbe24",
+      "stage": "clean1.json",
+      "status": "used"
+    },
+    {
+      "character": "wisadel",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 4 rows, counts 4,6,5,7, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Third row third cell: visibly recoil gun and upper body BACK LEFT by about 8 native pixels, muzzle raised slightly, feet stay fixed. Preserve original ornate broad silvergrey cannon shape. Fourth row fifth and sixth cell gun EXACT SAME PHYSICAL LENGTH, no stretching.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-6f83caea-b835-45e9-8036-5419e31f47f6.png",
+      "source_sha256": "7c2884da7885e8e35fbd4a30f05d8cbc64505fe98ab6ca32240050dcf4306f00",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "siege",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 5 rows, counts 4,6,4,6,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Third row ATTACK fourth cell: hammer must finish LOW ON RIGHT side of character, not behind left. Third cell hammer is angled down and forward, not straight thrust. Hammer remains same original shape all frames.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-142c5c37-b6d6-4b89-8dfb-761d98b8b7d0.png",
+      "source_sha256": "8901501f4c8776b21473484fbc46c4913e39054f63fbbd6f91feb6e9ade32f57",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "skadi",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 5 rows, counts 4,6,5,7,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Third row third cell sword visibly LONG with broad horizontal cut. Preserve new back-facing spin frame in fifth row; fifth row has six cells total, keep each pose distinct.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-217863ce-70aa-4d81-b1a1-74f090997a43.png",
+      "source_sha256": "d2a6d31443b156e71543c5666a3fd44a49c8acbae2e0a839b5673b3246bde924",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "saria",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 5 rows, counts 4,6,4,6,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. First idle cell MUST keep SAME long left grey hair strand as other idle cells. Fifth row third cell injector visible, no detached plus symbols, tiny warm light on injector only.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-216d7777-be7e-45ca-8061-79d72b0dc369.png",
+      "source_sha256": "94867a7301b3ab6591f227ce1adef270e7780e22374d0373e30033b49574af06",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "eyjafjalla",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 4 rows, counts 4,6,4,8, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Top row SECOND cell eyes OPEN, third cell briefly blinks only. Stable head alignment.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b74f26a8-0e22-439f-a7d6-52b8f90d1b28.png",
+      "source_sha256": "b4a9b676fd360bbcb343d84dadf70ab8a5795e9d37548076bfc99d1577f0a365",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "kaltsit",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 5 rows, counts 4,6,4,6,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Remove ALL checkerboard/noise. Character white hair and ivory coat remain solid clean colored masses, keep details and5 rows.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b6473f6f-15bb-4acc-8d98-06364d5fc326.png",
+      "source_sha256": "b4ed5b8049df9f50747120748a61d974d91173cd45fb501c7338c6d4d1745372",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "suzuran",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 4 rows, counts 4,6,4,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Keep final skill frame eyes open neutral staff upper left.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3c4d8206-d223-4e66-a11f-f4565f79eebb.png",
+      "source_sha256": "1e88d2f10da57c1efa580ea70030669f01ebc01bc1cc930d4174684a3a0476b9",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "mon3tr",
+      "prompt": "Edit supplied sprite sheet ONLY. Replace entire grey/white CHECKERBOARD with flat pure neon magenta #FF00FF, including all holes/gaps. Keep every character pixel and layout except specified correction. NO checkerboard anywhere, no patterns, no labels, NO added illustration shading/blur. Preserve complete 4 rows, counts 4,6,4,6, all frames fully visible and separate. Crisp limited palette pixel clusters, strong dark navy outline. Preserve all four rows, sharp red eye visible in every frame, no legs or feet.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-12889de9-4733-427d-b7f1-bbfff17bc9ba.png",
+      "source_sha256": "6555156b19f9e365236344eea88fcd46a78e248e3aa583b6cf245f18d5962754",
+      "stage": "clean2.json",
+      "status": "used"
+    },
+    {
+      "character": "specter_doll",
+      "prompt": "Create clean crisp pixel game animation sheet of Specter the Unchained from supplied references. First reference character original tricorne dress saw form, second reference nun DOLL form. EXACTLY TWO ROWS, FIVE equal square columns with generous gutters, no labels. Row1 FOUR frames nun doll quiet idle hands joined AT CHEST, slight breathing sway only, consistent veil geometry and height, readable face defined dark lashes, hands never at mouth; fifth cell empty. Row2 FIVE frames transition from original Specter to nun doll: 0 original tricorne saw stance; 1 knees buckle torso leans downward; 2 collapses into low kneeling silhouette weapon lowered; 3 pale violet small fragments reveal nun silhouette rising; 4 nun DOLL standing hands joined chest EXACT pose of first idle. Preserve scale across every cell, root center and floor consistent, original body does not resize. Faithful chibi costumes, no redesign. Solid neon MAGENTA #FF00FF background everywhere including gaps, NOT CHECKERBOARD. Crisp limited-palette pixel art for96px game sprites, thick dark navy outline, no antialias/no blur, no groundshadow. Keep all5 stages separately clearly spaced.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9ce0c99e-2628-4909-a6b1-c0f7033dcdb1.png",
+      "source_sha256": "59ee82c6751bc7be37d926edf6f001c953453e49e9918b6e68e43a3732896652",
+      "stage": "doll.json",
+      "status": "used"
+    },
+    {
+      "character": "siege",
+      "prompt": "Make a replacement ONE horizontal row, FOUR fully visible separate frames from supplied cropped reference siege. Whole bodies including boots and weapons within square cells with generous magenta gutters; do not crop as reference crop. Crisp limited color pixel art. Preserve exact character identity, costume, original weapon proportions and cute large eyes. Solid #FF00FF background, no checkerboard, no labels/groundshadow. FOUR distinct continuous hammer swing poses left to right: 0 ready carrying hammer behind shoulder; 1 lift hammer ABOVE head ready to arc down; 2 full down-FORWARD swing hammerhead on RIGHT of sprite, torso followthrough; 3 hammer stays LOW on RIGHT side, starting to recover. CRITICAL FOURTH HAMMER HEAD IS ON THE RIGHT SIDE, never left. Huge original two-sided darksteel hammer head same physical size each frame. No weapon teleport through torso. Output wide 4:1 horizontal sprite strip, identical ground level and character size.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0ec067be-2f5e-4768-b3ea-b49a28f9029f.png",
+      "source_sha256": "26c40360e4bc3c14da7d45d6e7278b8d17127c021cb0785dd93bd0c07b1420a6",
+      "stage": "details.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "skadi",
+      "prompt": "Make a replacement ONE horizontal row, FOUR fully visible separate frames from supplied cropped reference skadi. Whole bodies including boots and weapons within square cells with generous magenta gutters; do not crop as reference crop. Crisp limited color pixel art. Preserve exact character identity, costume, original weapon proportions and cute large eyes. Solid #FF00FF background, no checkerboard, no labels/groundshadow. FOUR quiet idle frames. All4 same original black tricorne hat height, same sword at45degrees lower-right, and SAME silver fluffy hair-tail pompom to left of body in EVERY frame. Only tiny breathing1pixel and one blink, absolutely no turn or sword swing. Do NOT remove pompom in second frame. Output wide 4:1 horizontal sprite strip, identical ground level and character size.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1ce6bb70-d2ba-45a8-a89a-b9515e413bd8.png",
+      "source_sha256": "04e7828fcac271b8caeb009b2926ed79bd0e7b91d6a065c73a433f79c0f4021f",
+      "stage": "details.json",
+      "status": "intermediate or rejected"
+    },
+    {
+      "character": "saria",
+      "prompt": "Make a replacement ONE horizontal row, FOUR fully visible separate frames from supplied cropped reference saria. Whole bodies including boots and weapons within square cells with generous magenta gutters; do not crop as reference crop. Crisp limited color pixel art. Preserve exact character identity, costume, original weapon proportions and cute large eyes. Solid #FF00FF background, no checkerboard, no labels/groundshadow. FOUR quiet idle frames. ALL FOUR same clearly visible LONG GREY ORANGE-STRIPED HAIR STRAND to LEFT of shield. Shield same height and thick orange outline on allfour edges. Only subtle breathing1pixel and briefblink, original unchanged costume. Output wide 4:1 horizontal sprite strip, identical ground level and character size.",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1b685f72-1329-4ea4-9960-47f758ee572b.png",
+      "source_sha256": "cf5569c0cf25e27d6a8b7fa973d0151826fa2f1d26dc76fe94910a556fd6699c",
+      "stage": "details.json",
+      "status": "intermediate or rejected"
+    }
+  ],
+  "notes": "Mechanical keyed extraction, component-isolated rectangles, uniform scale per character, native 2px contour, 48-color character palette, nearest-neighbor fallback. See handoff."
+}

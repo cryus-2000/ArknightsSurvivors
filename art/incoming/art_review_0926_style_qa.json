@@ -1,0 +1,1622 @@
+{
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline_depth": 1,
+      "file": "op_eyjafjalla_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2552,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 329
+      },
+      "outline_violations": 0,
+      "bright_pixels": 421,
+      "opaque_pixels": 2932
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_eyjafjalla_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 10208,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1820
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1697,
+      "opaque_pixels": 11766
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_eyjafjalla_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2222,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 309
+      },
+      "outline_violations": 0,
+      "bright_pixels": 382,
+      "opaque_pixels": 2567
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_eyjafjalla_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 8888,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1682
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1473,
+      "opaque_pixels": 10263
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_eyjafjalla_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3344,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 432
+      },
+      "outline_violations": 0,
+      "bright_pixels": 546,
+      "opaque_pixels": 3993
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_eyjafjalla_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13376,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2330
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2207,
+      "opaque_pixels": 15931
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_eyjafjalla_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 5615,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 747
+      },
+      "outline_violations": 0,
+      "bright_pixels": 936,
+      "opaque_pixels": 6476
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_eyjafjalla_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 22460,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 4109
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3684,
+      "opaque_pixels": 25876
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_irene_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2395,
+        "dark_magenta_pixels": 113,
+        "bright_pixels": 626
+      },
+      "outline_violations": 0,
+      "bright_pixels": 610,
+      "opaque_pixels": 2623
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_irene_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 9557,
+        "dark_magenta_pixels": 549,
+        "bright_pixels": 2692
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2412,
+      "opaque_pixels": 10489
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_irene_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 1953,
+        "dark_magenta_pixels": 117,
+        "bright_pixels": 583
+      },
+      "outline_violations": 0,
+      "bright_pixels": 483,
+      "opaque_pixels": 1961
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_irene_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 7744,
+        "dark_magenta_pixels": 473,
+        "bright_pixels": 2364
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1911,
+      "opaque_pixels": 7840
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_irene_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3268,
+        "dark_magenta_pixels": 248,
+        "bright_pixels": 944
+      },
+      "outline_violations": 0,
+      "bright_pixels": 811,
+      "opaque_pixels": 3358
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_irene_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13011,
+        "dark_magenta_pixels": 1009,
+        "bright_pixels": 3838
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3186,
+      "opaque_pixels": 13402
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_irene_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3770,
+        "dark_magenta_pixels": 412,
+        "bright_pixels": 1036
+      },
+      "outline_violations": 0,
+      "bright_pixels": 994,
+      "opaque_pixels": 4035
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_irene_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 15027,
+        "dark_magenta_pixels": 1594,
+        "bright_pixels": 4454
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3918,
+      "opaque_pixels": 16091
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_kaltsit_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2080,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 587
+      },
+      "outline_violations": 0,
+      "bright_pixels": 844,
+      "opaque_pixels": 2783
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_kaltsit_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 8320,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2680
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3396,
+      "opaque_pixels": 11122
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_kaltsit_command.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 1417,
+      "opaque_pixels": 4361
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_kaltsit_command@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 5624,
+      "opaque_pixels": 17401
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_kaltsit_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 1957,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 518
+      },
+      "outline_violations": 0,
+      "bright_pixels": 821,
+      "opaque_pixels": 2617
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_kaltsit_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 7828,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2540
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3243,
+      "opaque_pixels": 10419
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_kaltsit_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3166,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1008
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1637,
+      "opaque_pixels": 4546
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_kaltsit_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 12664,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 4748
+      },
+      "outline_violations": 0,
+      "bright_pixels": 6514,
+      "opaque_pixels": 18165
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_kaltsit_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3325,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 959
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1392,
+      "opaque_pixels": 4390
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_kaltsit_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13300,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 4642
+      },
+      "outline_violations": 0,
+      "bright_pixels": 5596,
+      "opaque_pixels": 17516
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_logos_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2039,
+        "dark_magenta_pixels": 187,
+        "bright_pixels": 139
+      },
+      "outline_violations": 0,
+      "bright_pixels": 321,
+      "opaque_pixels": 2135
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_logos_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 8138,
+        "dark_magenta_pixels": 688,
+        "bright_pixels": 756
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1244,
+      "opaque_pixels": 8536
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_logos_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 1871,
+        "dark_magenta_pixels": 164,
+        "bright_pixels": 137
+      },
+      "outline_violations": 0,
+      "bright_pixels": 297,
+      "opaque_pixels": 1917
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_logos_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 7436,
+        "dark_magenta_pixels": 687,
+        "bright_pixels": 672
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1152,
+      "opaque_pixels": 7693
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_logos_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2822,
+        "dark_magenta_pixels": 217,
+        "bright_pixels": 163
+      },
+      "outline_violations": 0,
+      "bright_pixels": 464,
+      "opaque_pixels": 3000
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_logos_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 11272,
+        "dark_magenta_pixels": 986,
+        "bright_pixels": 999
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1879,
+      "opaque_pixels": 11993
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_logos_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4412,
+        "dark_magenta_pixels": 353,
+        "bright_pixels": 313
+      },
+      "outline_violations": 0,
+      "bright_pixels": 686,
+      "opaque_pixels": 4628
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_logos_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 17659,
+        "dark_magenta_pixels": 1527,
+        "bright_pixels": 1677
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2685,
+      "opaque_pixels": 18389
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_lumen_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2153,
+        "dark_magenta_pixels": 118,
+        "bright_pixels": 241
+      },
+      "outline_violations": 0,
+      "bright_pixels": 208,
+      "opaque_pixels": 2453
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_lumen_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 8528,
+        "dark_magenta_pixels": 441,
+        "bright_pixels": 989
+      },
+      "outline_violations": 0,
+      "bright_pixels": 821,
+      "opaque_pixels": 9774
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_lumen_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2000,
+        "dark_magenta_pixels": 99,
+        "bright_pixels": 221
+      },
+      "outline_violations": 0,
+      "bright_pixels": 190,
+      "opaque_pixels": 2372
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_lumen_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 7939,
+        "dark_magenta_pixels": 415,
+        "bright_pixels": 918
+      },
+      "outline_violations": 0,
+      "bright_pixels": 791,
+      "opaque_pixels": 9476
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_lumen_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2967,
+        "dark_magenta_pixels": 123,
+        "bright_pixels": 278
+      },
+      "outline_violations": 0,
+      "bright_pixels": 255,
+      "opaque_pixels": 3596
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_lumen_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 11848,
+        "dark_magenta_pixels": 494,
+        "bright_pixels": 1172
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1037,
+      "opaque_pixels": 14267
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_lumen_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3372,
+        "dark_magenta_pixels": 162,
+        "bright_pixels": 381
+      },
+      "outline_violations": 0,
+      "bright_pixels": 308,
+      "opaque_pixels": 3896
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_lumen_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13451,
+        "dark_magenta_pixels": 675,
+        "bright_pixels": 1561
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1296,
+      "opaque_pixels": 15553
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_mon3tr_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 5272,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 157,
+      "opaque_pixels": 5813
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_mon3tr_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 19307,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 646,
+      "opaque_pixels": 23177
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_mon3tr_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 6317,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 172,
+      "opaque_pixels": 6039
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_mon3tr_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 23218,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 680,
+      "opaque_pixels": 24156
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_mon3tr_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 9430,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 236,
+      "opaque_pixels": 8614
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_mon3tr_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 34792,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 0
+      },
+      "outline_violations": 0,
+      "bright_pixels": 948,
+      "opaque_pixels": 34427
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_mon3tr_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 227,
+      "opaque_pixels": 8787
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_mon3tr_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 899,
+      "opaque_pixels": 35196
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_saria_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3476,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 726
+      },
+      "outline_violations": 0,
+      "bright_pixels": 783,
+      "opaque_pixels": 4098
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_saria_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13904,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3113
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3134,
+      "opaque_pixels": 16410
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_saria_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2444,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 507
+      },
+      "outline_violations": 0,
+      "bright_pixels": 743,
+      "opaque_pixels": 3202
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_saria_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 9776,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2295
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2881,
+      "opaque_pixels": 12795
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_saria_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3766,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 820
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1028,
+      "opaque_pixels": 5271
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_saria_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 15064,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3492
+      },
+      "outline_violations": 0,
+      "bright_pixels": 4173,
+      "opaque_pixels": 20912
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_saria_skill_heal.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 906,
+      "opaque_pixels": 4688
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_saria_skill_heal@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 3595,
+      "opaque_pixels": 18720
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_saria_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4461,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 859
+      },
+      "outline_violations": 0,
+      "bright_pixels": 831,
+      "opaque_pixels": 4941
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_saria_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 17844,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3694
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3331,
+      "opaque_pixels": 19716
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_siege_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2621,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 240
+      },
+      "outline_violations": 0,
+      "bright_pixels": 327,
+      "opaque_pixels": 3119
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_siege_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 10484,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1363
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1328,
+      "opaque_pixels": 12386
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_siege_command.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 484,
+      "opaque_pixels": 4761
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_siege_command@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 1962,
+      "opaque_pixels": 18985
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_siege_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2498,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 231
+      },
+      "outline_violations": 0,
+      "bright_pixels": 264,
+      "opaque_pixels": 2759
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_siege_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 9992,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1238
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1139,
+      "opaque_pixels": 11009
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_siege_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3854,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 327
+      },
+      "outline_violations": 0,
+      "bright_pixels": 458,
+      "opaque_pixels": 4434
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_siege_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 15416,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1841
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1844,
+      "opaque_pixels": 17693
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_siege_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4639,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 441
+      },
+      "outline_violations": 0,
+      "bright_pixels": 501,
+      "opaque_pixels": 4856
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_siege_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 18556,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2360
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2007,
+      "opaque_pixels": 19333
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_skadi_attack_spin.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 541,
+      "opaque_pixels": 3697
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_skadi_attack_spin@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 2112,
+      "opaque_pixels": 14738
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_skadi_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3250,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 215
+      },
+      "outline_violations": 0,
+      "bright_pixels": 407,
+      "opaque_pixels": 2936
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_skadi_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13000,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2106
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1596,
+      "opaque_pixels": 11656
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_skadi_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2395,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 168
+      },
+      "outline_violations": 0,
+      "bright_pixels": 345,
+      "opaque_pixels": 2341
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_skadi_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 9580,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1319
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1363,
+      "opaque_pixels": 9344
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_skadi_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3792,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 266
+      },
+      "outline_violations": 0,
+      "bright_pixels": 579,
+      "opaque_pixels": 3613
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_skadi_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 15168,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2590
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2300,
+      "opaque_pixels": 14414
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_skadi_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 5819,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 372
+      },
+      "outline_violations": 0,
+      "bright_pixels": 638,
+      "opaque_pixels": 4595
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_skadi_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 23276,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3825
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2606,
+      "opaque_pixels": 18354
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3380,
+        "dark_magenta_pixels": 232,
+        "bright_pixels": 644
+      },
+      "outline_violations": 0,
+      "bright_pixels": 840,
+      "opaque_pixels": 3490
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13501,
+        "dark_magenta_pixels": 1067,
+        "bright_pixels": 2958
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3323,
+      "opaque_pixels": 13945
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_doll.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 1904,
+        "dark_magenta_pixels": 112,
+        "bright_pixels": 419
+      },
+      "outline_violations": 0,
+      "bright_pixels": 524,
+      "opaque_pixels": 1920
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_doll@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 7602,
+        "dark_magenta_pixels": 366,
+        "bright_pixels": 1842
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2116,
+      "opaque_pixels": 7657
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_fall.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 553,
+      "opaque_pixels": 2438
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_fall@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": null,
+      "outline_violations": 0,
+      "bright_pixels": 2276,
+      "opaque_pixels": 9737
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2755,
+        "dark_magenta_pixels": 234,
+        "bright_pixels": 522
+      },
+      "outline_violations": 0,
+      "bright_pixels": 625,
+      "opaque_pixels": 2640
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 10954,
+        "dark_magenta_pixels": 1008,
+        "bright_pixels": 2359
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2521,
+      "opaque_pixels": 10526
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3523,
+        "dark_magenta_pixels": 264,
+        "bright_pixels": 686
+      },
+      "outline_violations": 0,
+      "bright_pixels": 882,
+      "opaque_pixels": 3674
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 14016,
+        "dark_magenta_pixels": 1073,
+        "bright_pixels": 3145
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3517,
+      "opaque_pixels": 14664
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_specter_unchained_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4479,
+        "dark_magenta_pixels": 321,
+        "bright_pixels": 848
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1119,
+      "opaque_pixels": 4657
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_specter_unchained_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 17882,
+        "dark_magenta_pixels": 1378,
+        "bright_pixels": 3889
+      },
+      "outline_violations": 0,
+      "bright_pixels": 4427,
+      "opaque_pixels": 18582
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_suzuran_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3672,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1187
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1200,
+      "opaque_pixels": 3697
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_suzuran_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 14688,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 4923
+      },
+      "outline_violations": 0,
+      "bright_pixels": 4771,
+      "opaque_pixels": 14776
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_suzuran_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3296,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1015
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1145,
+      "opaque_pixels": 3538
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_suzuran_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13184,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 4406
+      },
+      "outline_violations": 0,
+      "bright_pixels": 4641,
+      "opaque_pixels": 14066
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_suzuran_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4613,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1604
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1424,
+      "opaque_pixels": 4501
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_suzuran_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 18452,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 6365
+      },
+      "outline_violations": 0,
+      "bright_pixels": 5626,
+      "opaque_pixels": 17938
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_suzuran_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 5702,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1895
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1796,
+      "opaque_pixels": 5516
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_suzuran_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 22808,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 7766
+      },
+      "outline_violations": 0,
+      "bright_pixels": 7070,
+      "opaque_pixels": 21982
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_ulpianus_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2922,
+        "dark_magenta_pixels": 196,
+        "bright_pixels": 129
+      },
+      "outline_violations": 0,
+      "bright_pixels": 326,
+      "opaque_pixels": 3521
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_ulpianus_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 11635,
+        "dark_magenta_pixels": 943,
+        "bright_pixels": 659
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1345,
+      "opaque_pixels": 14019
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_ulpianus_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 2206,
+        "dark_magenta_pixels": 162,
+        "bright_pixels": 122
+      },
+      "outline_violations": 0,
+      "bright_pixels": 262,
+      "opaque_pixels": 2571
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_ulpianus_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 8782,
+        "dark_magenta_pixels": 804,
+        "bright_pixels": 636
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1076,
+      "opaque_pixels": 10275
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_ulpianus_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3390,
+        "dark_magenta_pixels": 258,
+        "bright_pixels": 165
+      },
+      "outline_violations": 0,
+      "bright_pixels": 371,
+      "opaque_pixels": 3392
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_ulpianus_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 13476,
+        "dark_magenta_pixels": 1169,
+        "bright_pixels": 953
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1509,
+      "opaque_pixels": 13529
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_ulpianus_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3867,
+        "dark_magenta_pixels": 251,
+        "bright_pixels": 165
+      },
+      "outline_violations": 0,
+      "bright_pixels": 360,
+      "opaque_pixels": 4148
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_ulpianus_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 15442,
+        "dark_magenta_pixels": 1263,
+        "bright_pixels": 885
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1486,
+      "opaque_pixels": 16638
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_wisadel_attack.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3724,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 746
+      },
+      "outline_violations": 0,
+      "bright_pixels": 807,
+      "opaque_pixels": 4051
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_wisadel_attack@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 14896,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3128
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3269,
+      "opaque_pixels": 16132
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_wisadel_idle.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 3043,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 569
+      },
+      "outline_violations": 0,
+      "bright_pixels": 549,
+      "opaque_pixels": 3060
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_wisadel_idle@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 12172,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 2314
+      },
+      "outline_violations": 0,
+      "bright_pixels": 2260,
+      "opaque_pixels": 12275
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_wisadel_run.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 4261,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 780
+      },
+      "outline_violations": 0,
+      "bright_pixels": 910,
+      "opaque_pixels": 4490
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_wisadel_run@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 17044,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 3418
+      },
+      "outline_violations": 0,
+      "bright_pixels": 3591,
+      "opaque_pixels": 17950
+    },
+    {
+      "outline_depth": 1,
+      "file": "op_wisadel_skill.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 6186,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 1204
+      },
+      "outline_violations": 0,
+      "bright_pixels": 1160,
+      "opaque_pixels": 5890
+    },
+    {
+      "outline_depth": 2,
+      "file": "op_wisadel_skill@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 24744,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 5125
+      },
+      "outline_violations": 0,
+      "bright_pixels": 4632,
+      "opaque_pixels": 23522
+    },
+    {
+      "outline_depth": 1,
+      "file": "prop_lighthouse.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 1313,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 169
+      },
+      "outline_violations": 0,
+      "bright_pixels": 140,
+      "opaque_pixels": 1314
+    },
+    {
+      "outline_depth": 1,
+      "file": "prop_lighthouse@2x.png",
+      "dark_magenta_pixels": 0,
+      "clipped_border_pixels": 0,
+      "before": {
+        "opaque_pixels": 5263,
+        "dark_magenta_pixels": 0,
+        "bright_pixels": 751
+      },
+      "outline_violations": 0,
+      "bright_pixels": 666,
+      "opaque_pixels": 5270
+    }
+  ],
+  "lighthouse": [
+    {
+      "changed_lamp_pixels": 21,
+      "file": "prop_lighthouse.png",
+      "changed_pixels_outside_lamp": 0
+    },
+    {
+      "changed_lamp_pixels": 85,
+      "file": "prop_lighthouse@2x.png",
+      "changed_pixels_outside_lamp": 0
+    }
+  ],
+  "passed": true
+}
