@@ -606,7 +606,7 @@ func on_dodge() -> void:
 	if g.relics.has("121"):
 		_temp("dmg", 1.3, 6.0, "121")
 	elif g.relics.has("120"):
-		_temp("dmg", 0.5, 6.0, "120")
+		_temp("dmg", 0.6, 6.0, "120")
 
 
 ## 技能开始（character.spend_sp）：o 为施放的干员，i 为技能序号

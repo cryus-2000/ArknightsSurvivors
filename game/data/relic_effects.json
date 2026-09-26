@@ -404,10 +404,10 @@
      "type": "stat",
      "stat": "dmg_taken",
      "op": "add",
-     "value": -0.03
+     "value": -0.06
     }
    ],
-   "desc": "主控物理减伤 +2，受到的伤害 -3%",
+   "desc": "主控物理减伤 +2，受到的伤害 -6%",
    "tags": [
     "survival"
    ],
@@ -425,10 +425,10 @@
      "type": "stat",
      "stat": "dmg_taken",
      "op": "add",
-     "value": -0.04
+     "value": -0.08
     }
    ],
-   "desc": "主控物理减伤 +3，受到的伤害 -4%",
+   "desc": "主控物理减伤 +3，受到的伤害 -8%",
    "tags": [
     "survival"
    ],
@@ -446,10 +446,10 @@
      "type": "stat",
      "stat": "dmg_taken",
      "op": "add",
-     "value": -0.05
+     "value": -0.1
     }
    ],
-   "desc": "主控物理减伤 +5，受到的伤害 -5%",
+   "desc": "主控物理减伤 +5，受到的伤害 -10%",
    "tags": [
     "survival"
    ],
@@ -461,10 +461,16 @@
      "type": "stat",
      "stat": "melee_dmg",
      "op": "add",
-     "value": 0.1
+     "value": 0.12
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.03
     }
    ],
-   "desc": "近战伤害 +10%（近战攻击与技能）",
+   "desc": "近战伤害 +12%（近战攻击与技能）；主控受到的伤害 -3%",
    "tags": [
     "melee",
     "basic_attack",
@@ -477,10 +483,10 @@
      "type": "stat",
      "stat": "melee_dmg",
      "op": "add",
-     "value": 0.2
+     "value": 0.22
     }
    ],
-   "desc": "近战伤害 +20%（近战攻击与技能）",
+   "desc": "近战伤害 +22%（近战攻击与技能）",
    "tags": [
     "melee",
     "basic_attack",
@@ -493,10 +499,10 @@
      "type": "stat",
      "stat": "melee_dmg",
      "op": "add",
-     "value": 0.3
+     "value": 0.32
     }
    ],
-   "desc": "近战伤害 +30%（近战攻击与技能）",
+   "desc": "近战伤害 +32%（近战攻击与技能）",
    "tags": [
     "melee",
     "basic_attack",
@@ -739,9 +745,15 @@
      "op": "add",
      "value": 0.25,
      "scope": "range:近战"
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.05
     }
    ],
-   "desc": "近战干员（近卫 / 重装 / 先锋 / 特种）攻击范围 +25%",
+   "desc": "近战干员（近卫 / 重装 / 先锋 / 特种）攻击范围 +25%；主控受到的伤害 -5%",
    "rarity": "稀有",
    "tags": [
     "melee"
@@ -1246,7 +1258,7 @@
      "args": {
       "stat": "dmg",
       "op": "add",
-      "value": 0.5,
+      "value": 0.6,
       "dur": 6.0
      }
     }
@@ -1257,7 +1269,7 @@
     "physical",
     "on_dodge"
    ],
-   "desc": "主控闪避后 6 秒内全队伤害 +50%（再次闪避刷新时长）"
+   "desc": "主控闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）"
   },
   "121": {
    "effects": [
@@ -1414,14 +1426,14 @@
      "type": "stat",
      "stat": "dmg",
      "op": "add",
-     "value": 0.3,
+     "value": 0.35,
      "scope": "class:近卫"
     },
     {
      "type": "stat",
      "stat": "op_aspd",
      "op": "add",
-     "value": 0.2,
+     "value": 0.25,
      "scope": "class:近卫"
     },
     {
@@ -1431,7 +1443,7 @@
      "value": 0.15
     }
    ],
-   "desc": "近卫干员伤害 +30%、攻击速度 +20%；主控受到的伤害 +15%",
+   "desc": "近卫干员伤害 +35%、攻击速度 +25%；主控受到的伤害 +15%",
    "rarity": "核心",
    "tags": [
     "melee",
