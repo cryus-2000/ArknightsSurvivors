@@ -83,6 +83,7 @@ func add(cid: String):
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
+	_apply_size_hp()
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
 	return op
@@ -98,11 +99,31 @@ func remove(cid: String) -> void:
 			break
 	for i in ops.size():
 		ops[i].slot = i
+	_apply_size_hp()
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
 		_apply_leader_regen(ops[0])
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+
+
+## 编队人数加主控最大生命（2026-09-27 用户定，数值规格）：每多 1 名干员 ×(1 + per)，最多算 cap 人
+## （per = balance.json squad/hp_per_member，缺省 0 = 关；cap = squad/hp_member_cap，缺省 3）。对 max_hp 加来源 "squad" 的 mult，
+## 叠在成长卡生命之上一起放大；人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
+func _apply_size_hp() -> void:
+	if g.stats == null or not g.stats.has_stat(&"max_hp"):
+		return
+	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var cap: int = Bal.vi("squad/hp_member_cap", 3)
+	var old_max: float = g.max_hp
+	g.stats.remove_source("squad")
+	var n: int = mini(maxi(ops.size() - 1, 0), cap)
+	if per != 0.0 and n > 0:
+		g.stats.add(&"max_hp", "mult", 1.0 + per * n, "squad")
+	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
+	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
+		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
+		g.max_hp = new_max   # 先同步，game._sync_stats 看到没变化，不会再按差值补一次
 
 
 ## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
