@@ -157,6 +157,9 @@ func step() -> void:
 					if bt.ends_with("2"):
 						b.phase = 2
 						b.range = 400.0
+					# 只有 role == boss 的进 bosses（HUD 大血条、Boss 在场判定）；参数里列的小怪（碎片、之泪等）照常刷出来当靶子
+					if not b.boss:
+						continue
 					g.bosses.append(b)
 					g.boss = b
 					# 结局 Boss 也设「最终 Boss」标记，走终局音乐 / 终局藏品倍率（docs/38 B0 第 9 项）
