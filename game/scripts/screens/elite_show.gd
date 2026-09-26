@@ -26,7 +26,7 @@ func skill_item(op, i: int) -> Dictionary:
 func open(sc: Dictionary) -> void:
 	# 解锁演出只在第一次出现时完整播放，之后改为横幅提示
 	var key: String = sc.get("head", "")
-	if seen_shows_run.has(key) and not OS.get_cmdline_user_args().has("--fastlevel"):
+	if seen_shows_run.has(key) and not Cfg.dev_args().has("--fastlevel"):
 		var names: Array = []
 		for it in sc["items"]:
 			names.append(it.name)

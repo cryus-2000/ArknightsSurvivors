@@ -28,7 +28,7 @@ var skill_rect := Rect2()
 
 func _init(game) -> void:
 	g = game
-	active = DisplayServer.is_touchscreen_available() or OS.get_cmdline_user_args().has("--touch") \
+	active = DisplayServer.is_touchscreen_available() or Cfg.dev_args().has("--touch") \
 		or OS.has_feature("web_android") or OS.has_feature("web_ios")
 
 

@@ -15,7 +15,7 @@ var music_t := 0.0              # 上次更新时的局内时间：各计时按�
 var music_horde := 0.0          # 大群来袭后维持激战的秒数
 var music_hot := 0.0            # 分数连续够「激战」的秒数（一闪而过的尖峰不升档）
 var music_danger := false
-var music_log: bool = OS.get_cmdline_user_args().has("--musiclog")   # 打印配乐状态切换（调强度阈值用）
+var music_log: bool = Cfg.dev_args().has("--musiclog")   # 打印配乐状态切换（调强度阈值用）
 var music_log_key := ""
 var music_log_tick := -1
 

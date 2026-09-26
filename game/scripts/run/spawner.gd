@@ -385,7 +385,7 @@ var tmpl_keys: Array = []
 
 
 func check_enemy(e: Dictionary, where: String) -> void:
-	if tmpl_keys.is_empty() or OS.get_cmdline_user_args().is_empty():
+	if tmpl_keys.is_empty() or Cfg.dev_args().is_empty():
 		return
 	var miss: Array = tmpl_keys.filter(func(k): return not e.has(k))
 	assert(miss.is_empty(), "敌人字典缺字段（%s）：%s" % [where, ", ".join(miss)])

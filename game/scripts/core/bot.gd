@@ -39,7 +39,7 @@ func _init(game, p: String, seed_v: int) -> void:
 	g = game
 	profile = p if p in PROFILES else "normal"
 	rng.seed = hash("bot:%s:%d" % [profile, seed_v])
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--lane="):
 			lane = a.substr(7)
 

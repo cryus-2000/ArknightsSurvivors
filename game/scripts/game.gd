@@ -345,7 +345,7 @@ func _ready() -> void:
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			vrng.seed = int(a.substr(7)) + 7919
@@ -370,7 +370,7 @@ func _ready() -> void:
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
 	if not Character.list_ids().has(Cfg.character_id):
@@ -379,7 +379,7 @@ func _ready() -> void:
 	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
 	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
 	# --noleader：平衡对照用，退回改动前「所有主控同一条血、无减伤」
-	var lead: Dictionary = {} if OS.get_cmdline_user_args().has("--noleader") else ch.def.get("leader", {})
+	var lead: Dictionary = {} if Cfg.dev_args().has("--noleader") else ch.def.get("leader", {})
 	for k in ["max_hp", "armor", "arts_res"]:
 		if lead.has(k) and stats.has_stat(k):
 			stats.set_base(k, float(lead[k]))
@@ -547,7 +547,7 @@ func _ready() -> void:
 	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
 	diff = D.DIFFICULTY_TIERS[tier].level
 	dmod = D.dmod_for_tier(tier)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			diff = int(a.substr(7))
@@ -565,7 +565,7 @@ func _ready() -> void:
 	hp = max_hp
 	hp_trail = hp
 	xp_need = Bal.v("xp/first", 8.0)
-	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
+	autotest = Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance")
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
 		_sync_stats()
@@ -576,21 +576,21 @@ func _ready() -> void:
 			var n: Dictionary = ch.next_node()
 			var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
-	elif OS.get_cmdline_user_args().has("--introshot"):
+	elif Cfg.dev_args().has("--introshot"):
 		intro_screen.open.call_deferred(S.PLAY)
-	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
+	elif not autotest or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
-	balance = OS.get_cmdline_user_args().has("--balance")
+	balance = Cfg.dev_args().has("--balance")
 	if balance:
 		var bot_p := "normal"
 		var bot_seed := 0
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--bot="):
 				bot_p = a.substr(6)
 			elif a.begins_with("--seed="):
 				bot_seed = int(a.substr(7))
 		bot = Bot.new(self, bot_p, bot_seed)
-	for arg in OS.get_cmdline_user_args():
+	for arg in Cfg.dev_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
 		if arg.begins_with("--shots="):
@@ -600,12 +600,12 @@ func _ready() -> void:
 	if balance:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		Engine.max_fps = 0
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--maxt="):
 				bal_maxt = float(a.substr(7))
-		prof_on = OS.get_cmdline_user_args().has("--prof")
-		headless_batch = DisplayServer.get_name() == "headless" and not OS.get_cmdline_user_args().has("--drawtest")
-		for a in OS.get_cmdline_user_args():
+		prof_on = Cfg.dev_args().has("--prof")
+		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
+		for a in Cfg.dev_args():
 			if a.begins_with("--trace="):
 				trace_every = float(a.substr(8))
 			# --bosstimes=30,60,90：冒烟测试把 Boss 提前（中期 Boss × 2 + 最终 Boss），一局两分钟内跑完所有 Boss 代码
@@ -613,7 +613,7 @@ func _ready() -> void:
 				D.BOSS_TIMES = Array(a.substr(12).split(",")).map(func(x): return float(x))
 		OS.low_processor_usage_mode = false
 		OS.low_processor_usage_mode_sleep_usec = 0
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--forceboss="):
 			force_boss = int(a.substr(12))
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
@@ -622,7 +622,7 @@ func _ready() -> void:
 				if squad.add(cid) != null:
 					panel_ui.load_op_tex(cid)
 	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--prog="):
 			for o in squad.ops:
 				for k in int(a.substr(7)):
@@ -1027,7 +1027,7 @@ func _update(dt: float) -> void:
 		var hl0: Dictionary = horde_log[horde_log.size() - 1]
 		if t - hl0.t < 20.0:
 			hl0.minhp = minf(hl0.minhp, hp)
-	if balance and OS.get_cmdline_user_args().has("--nodeath"):
+	if balance and Cfg.dev_args().has("--nodeath"):
 		if hp <= 0.0:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))

@@ -247,12 +247,12 @@ func save_local(result: String) -> void:
 	# 测试运行不写玩家的记录；自测写本地记录用 --runslog=<路径>（写到指定文件，不碰玩家目录）
 	var path := RUNS_PATH
 	var test_path := ""
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--runslog="):
 			test_path = a.substr(10)
 	if test_path != "":
 		path = test_path
-	elif not OS.get_cmdline_user_args().is_empty():
+	elif not Cfg.dev_args().is_empty():
 		return
 	elif not OS.is_debug_build():
 		return   # 发布版（export-release）不记任何玩家数据：用户 2026-09-26 决定暂不收集（docs/43）；只在开发试玩（编辑器 / 调试版）时记

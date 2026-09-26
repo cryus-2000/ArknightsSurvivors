@@ -52,7 +52,7 @@ func _init(game: Game) -> void:
 func recruit_cards() -> Array:
 	var opts: Array = []
 	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
-	if g.squad.is_full() or (g.balance and OS.get_cmdline_user_args().has("--norecruit")):
+	if g.squad.is_full() or (g.balance and Cfg.dev_args().has("--norecruit")):
 		return opts
 	for cid in Character.list_ids():
 		if g.squad.has(cid):

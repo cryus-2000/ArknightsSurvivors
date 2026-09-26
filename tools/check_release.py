@@ -6,7 +6,7 @@
 
 检查项：
 1. 存档字段的代码默认值是初始值（settings.gd：diff_unlocked = 0，seen_* / endings_cleared 为空，seen_intro = false）。
-2. 解锁类开发开关（--allend / --allrelics / --unlock*）只经 Cfg.dev_args() 读取（发布版里返回空）。
+2. 解锁类开发开关（--allend / --allrelics / --unlock*）以及所有命令行开关都只经 Cfg.dev_args() 读取（发布版里返回空）。
 3. 存档不会被打进包：game/ 下没有 settings.cfg / *.save，导出预设的 include_filter 不含 *.cfg。
 4. tools/export_build.py 用 --export-release（非 debug 导出，OS.is_debug_build() 为 false）。
 
@@ -48,6 +48,14 @@ def main():
             code = line.split("#")[0]   # 注释里提到开关名不算
             if any(f in code for f in UNLOCK_FLAGS) and "dev_args()" not in code:
                 errs.append("%s:%d：解锁开关没走 Cfg.dev_args()：%s" % (os.path.relpath(p, ROOT), i, line.strip()[:100]))
+
+    # 所有命令行开关（截图 / 自测 / 解锁）一律经 Cfg.dev_args()，发布版里读不到（EA 验收 P2-14：--winshot 等可直接看结局结算页）。
+    # 例外：settings.gd 里 dev_args() 本身；sfx.gd 自动加载早于 Cfg，就地用 is_debug_build() 守住
+    for p in glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True):
+        for i, line in enumerate(read(p).splitlines(), 1):
+            code = line.split("#")[0]
+            if "get_cmdline_user_args" in code and "is_debug_build" not in code:
+                errs.append("%s:%d：命令行参数没走 Cfg.dev_args()：%s" % (os.path.relpath(p, ROOT), i, line.strip()[:100]))
 
     for pat in ("settings.cfg", "*.save", "**/settings.cfg"):
         for p in glob.glob(os.path.join(GAME, pat), recursive=True):

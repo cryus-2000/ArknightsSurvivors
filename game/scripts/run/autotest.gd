@@ -32,7 +32,7 @@ func bot_pick() -> int:
 		var bp: int = g.bot.pick(g.choices)
 		if bp >= 0:
 			return bp
-	if OS.get_cmdline_user_args().has("--botrandom"):
+	if Cfg.dev_args().has("--botrandom"):
 		return g.rng.randi() % g.choices.size()
 	var W: Dictionary = Bal.sec("bot/weights")
 	var GW: Dictionary = Bal.sec("bot/growth_weights")
@@ -60,7 +60,7 @@ func bot_pick() -> int:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
-	if g.state == g.S.OPENING and OS.get_cmdline_user_args().has("--openshot"):
+	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_open_%03d.png" % g.at_frames)
 		if g.at_frames > 240:
@@ -75,7 +75,7 @@ func step() -> void:
 			g.intro_page += 1
 			g.intro_t = 0.0
 		return
-	if OS.get_cmdline_user_args().has("--gallery"):
+	if Cfg.dev_args().has("--gallery"):
 		g.demo_sys.gallery_step()
 		return
 	if g.state == g.S.SHOP:
@@ -94,7 +94,7 @@ func step() -> void:
 	for m in [120, 300, 480]:
 		if g.t >= m and not lv_marks.has(m):
 			lv_marks[m] = g.level
-	if OS.get_cmdline_user_args().has("--fxtest"):
+	if Cfg.dev_args().has("--fxtest"):
 		g.ppos = Vector2(1500, 900)
 		if g.at_frames == 90:
 			g.hp = g.max_hp * 0.2
@@ -142,7 +142,7 @@ func step() -> void:
 		for f in [64, 72, 100, 125, 160, 200]:
 			if g.at_frames == f and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fx_%d.png" % f)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--bosstest="):
 			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
 			bosstest = true
@@ -170,7 +170,7 @@ func step() -> void:
 					g.bosses[1].partner = g.bosses[0]
 			if g.at_frames > 20 and g.at_frames % 30 == 0 and g.at_frames <= 600 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), g.at_frames])
-	if OS.get_cmdline_user_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
+	if Cfg.dev_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
 		g.pickups.gain_xp(g.xp_need + 0.1)
 	if g.state == g.S.SHOW:
@@ -188,7 +188,7 @@ func step() -> void:
 			g.show_screen.close()
 		return
 	if g.at_frames == 30 and g.state == g.S.PLAY:
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--grant="):
 				for rid in a.substr(8).split(","):
 					g.progression.gain_relic(rid)
@@ -206,20 +206,20 @@ func step() -> void:
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
 	if g.balance and g.at_frames == 20:
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--relics="):
 				var want: String = a.substr(9)
 				var ids: Array = g.RL.keys() if want == "all" else Array(want.split(","))
 				for rid in ids:
 					if g.RL.has(rid):
 						g.progression.gain_relic(rid)
-		if OS.get_cmdline_user_args().has("--maxprog"):
+		if Cfg.dev_args().has("--maxprog"):
 			for o in g.squad.ops:
 				var guard := 0
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
-	if g.balance and OS.get_cmdline_user_args().has("--sptest") and g.at_frames % 45 == 0:
+	if g.balance and Cfg.dev_args().has("--sptest") and g.at_frames % 45 == 0:
 		for o in g.squad.ops:
 			o.fill_sp()
 	if g.balance:
@@ -235,7 +235,7 @@ func step() -> void:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [g.t, g.state, g.level, g.hp, g.enemies.size()])
 		if g.state == g.S.CHOICE:
 			var pi := bot_pick()
-			for a in OS.get_cmdline_user_args():
+			for a in Cfg.dev_args():
 				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
 				if a.begins_with("--evpick=") and g.choice_kind == "event":
 					var spec: String = a.substr(9)
@@ -254,11 +254,11 @@ func step() -> void:
 			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			g.get_tree().quit()
 		return
-	if not (OS.get_cmdline_user_args().has("--fxtest") and g.at_frames >= 90 and g.at_frames < 100):
+	if not (Cfg.dev_args().has("--fxtest") and g.at_frames >= 90 and g.at_frames < 100):
 		g.hp = g.max_hp
 	if g.lvup_show > 1.05 and g.lvup_show < 1.12 and g.level == 3 and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_lvup.png")
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--eventtest=") and g.at_frames == 30:
 			for ev in g.endg.events:
 				if ev.id == a.substr(12):
@@ -267,7 +267,7 @@ func step() -> void:
 					for e in g.enemies:
 						if e.chest and e.get("event", "") != "":
 							e.pos = g.ppos + Vector2(120, 0)
-	if OS.get_cmdline_user_args().has("--touchtest") and g.state == g.S.PLAY:
+	if Cfg.dev_args().has("--touchtest") and g.state == g.S.PLAY:
 		# 模拟：第 60 帧按下左半屏，拖到右上，第 120 帧松开；第 90 帧截图
 		if g.at_frames == 60:
 			var tp := InputEventScreenTouch.new()
@@ -292,7 +292,7 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_touch.png")
 		if g.at_frames == 130:
 			g.get_tree().quit()
-	if OS.get_cmdline_user_args().has("--gemshot"):
+	if Cfg.dev_args().has("--gemshot"):
 		if g.at_frames == 60:
 			for k in 14:
 				g.pickups.drop(g.ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
@@ -301,7 +301,7 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_gem_%d.png" % g.at_frames)
 			if g.at_frames == 100:
 				g.get_tree().quit()
-	if OS.get_cmdline_user_args().has("--relicshot"):
+	if Cfg.dev_args().has("--relicshot"):
 		if g.at_frames == 30:
 			g.pending_chests = 1
 			g.ingots = 40
@@ -313,7 +313,7 @@ func step() -> void:
 			g.get_tree().quit()
 	if g.state == g.S.CHOICE:
 		choice_wait += 1
-		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless" and (g.choice_kind == "relic" or not OS.get_cmdline_user_args().has("--relicshot")):
+		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless" and (g.choice_kind == "relic" or not Cfg.dev_args().has("--relicshot")):
 			choice_shot = true
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_choice.png")
 		if choice_wait > 45:
@@ -334,7 +334,7 @@ func step() -> void:
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				g.combat.kill(bb)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
 		if a.begins_with("--winshot=") and g.at_frames == 60:
 			winshot = true
@@ -346,7 +346,7 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_win.png")
 			g.get_tree().quit()
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
-	if OS.get_cmdline_user_args().has("--sptest") and g.at_frames % 120 == 0:
+	if Cfg.dev_args().has("--sptest") and g.at_frames % 120 == 0:
 		for o in g.squad.ops:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":

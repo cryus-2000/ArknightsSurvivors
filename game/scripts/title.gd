@@ -104,7 +104,7 @@ func _ready() -> void:
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	add_child(settings)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
 		if a.begins_with("--demoset="):
@@ -136,7 +136,7 @@ func _ready() -> void:
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
-	var args := OS.get_cmdline_user_args()
+	var args := Cfg.dev_args()
 	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort")) or Cfg.title_seen:
 		intro = INTRO_LEN
 	elif Cfg.opening_seen or args.has("--introshort"):
@@ -151,21 +151,21 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
-	if OS.get_cmdline_user_args().has("--settingsshot"):
+	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--settingstab="):
 				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
 			get_tree().quit())
-	if OS.get_cmdline_user_args().has("--opshot"):
+	if Cfg.dev_args().has("--opshot"):
 		# 选人页截图（可选 --opsel=<n>）
 		_open_op_pick()
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--opsel="):
 				op_sel = clampi(int(a.substr(8)), 0, op_defs.size() - 1)
-		if OS.get_cmdline_user_args().has("--opburst"):
+		if Cfg.dev_args().has("--opburst"):
 			# 平滑滚动自测：开页后 0.05–0.4 秒连拍 8 张（选中项在可视区外时能看到滚动过程）
 			for bi in 8:
 				get_tree().create_timer(0.05 + bi * 0.05).timeout.connect(func():
@@ -183,11 +183,11 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
-	if OS.get_cmdline_user_args().has("--titleshot"):
+	if Cfg.dev_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
-	if OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance"):
+	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
 		get_tree().change_scene_to_file.call_deferred("res://game.tscn")
 
 
@@ -723,7 +723,7 @@ func _compare_shot(spec: String) -> void:
 
 
 func _shot_dir() -> String:
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--shotdir="):
 			return a.substr(10)
 	return "/tmp/claude-0"

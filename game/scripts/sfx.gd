@@ -108,7 +108,7 @@ var music_muted := false
 
 ## 自动测试 / 截图 / 平衡批跑（任何 `--xxx` 命令行用户参数）一律静音：开发者在跑测试时还要工作
 static func is_automated() -> bool:
-	for a in OS.get_cmdline_user_args():
+	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
 		if a.begins_with("--"):
 			return true
 	return false
