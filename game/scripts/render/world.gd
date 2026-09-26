@@ -286,6 +286,12 @@ func draw_world() -> void:
 					var qa: float = g.t * 0.6 + TAU * q / 6.0
 					g.draw_line(Vector2.from_angle(qa) * f.r * 0.2, Vector2.from_angle(qa) * f.r * 0.95, Color(0.9, 1.3, 1.9, 0.25 * fa), 2.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"frost_step":
+				# 骑士冲锋脚下的冰霜拖尾：扁平冰斑 + 两道冰晶
+				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.45))
+				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
 			"ring":
 				var rr: float = f.r * (1.15 - a * 0.3)
 				g.draw_arc(f.pos, rr, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.9), 4.0)

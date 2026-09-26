@@ -17,6 +17,10 @@ const CHARGE_SPD := 760.0
 const STAB_T := 0.4
 const STAB_HIT_T := 0.2      # 第 3 帧（零基 2）命中
 const FROST_T := 1.2
+## 画面缩放（2026-09-27 用户反馈：骑士帧 96×80 按 2 倍画约 192×160，是主控的两倍，挡视线）：画到 0.7 倍
+const DRAW_K := 0.7
+const ICE := Color(0.7, 0.9, 1.4)
+var trail: Array = []          # 冲锋残影：[pos, frame, life]
 
 var g
 var alive := false
@@ -171,7 +175,12 @@ func update(dt: float) -> void:
 				g.combat.damage(e, 45.0 * lvm * g.dmg_mult)
 				if not e.dead:
 					e.kb += dash_dir * 260.0
-				g.vfx.sparks(e.pos, dash_dir, Color(0.7, 0.9, 1.4), 5, 160.0)
+				g.vfx.sparks(e.pos, dash_dir, ICE, 5, 160.0)
+				g.vfx.fx_sprite("fx_knight_impact", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.8, dash_dir.angle())   # 冲锋撞到的每个敌人都有冲击
+			# 冲锋残影（每 0.05 秒一个，0.25 秒淡出）+ 脚下冰霜拖尾
+			if trail.is_empty() or trail[trail.size() - 1][0].distance_to(pos) > 26.0:
+				trail.append([pos, 2 if st < CHARGE_T * 0.7 else 3, 0.25])
+				g.fx.append({"kind": "frost_step", "pos": pos + Vector2(0, R * 0.6), "life": 0.6, "max": 0.6, "r": 12.0})
 			if st >= CHARGE_T:
 				state = "stab"
 				st = 0.0
@@ -191,9 +200,12 @@ func update(dt: float) -> void:
 						nd = dd
 						ang = (ne.pos - pos).angle()
 				face = signf(cos(ang)) if absf(cos(ang)) > 0.05 else face
-				var tip: Vector2 = pos + Vector2.from_angle(ang) * 46.0
-				if not g.vfx.fx_sprite("fx_knight_impact", tip, g.PX, 0.0):
-					g.fx.append({"kind": "ring", "pos": tip, "r": 30.0, "life": 0.25, "max": 0.25, "col": Color(0.7, 0.9, 1.4)})
+				var tip: Vector2 = pos + Vector2.from_angle(ang) * 46.0 * DRAW_K / 0.7
+				if not g.vfx.fx_sprite("fx_knight_impact", tip, g.PX * 1.2, ang):
+					g.fx.append({"kind": "ring", "pos": tip, "r": 30.0, "life": 0.25, "max": 0.25, "col": ICE})
+				# 刺击刀光：沿判定扇形（半角 0.9、半径 92）画一道冰蓝弧光 + 一圈冰晶
+				g.vfx.slash_fx(pos, ang, 0.9, 92.0, Color(0.75, 0.95, 1.6), "slash", 0.24)
+				g.fx.append({"kind": "ring", "pos": tip, "r": 26.0, "life": 0.3, "max": 0.3, "col": ICE})
 				for e in g.enemies_sys.arc_hit(pos, ang, 0.9, 92.0):
 					if e.chest:
 						continue
@@ -206,6 +218,9 @@ func update(dt: float) -> void:
 				state = "idle"
 				cd = CHARGE_CD
 				dash_hit.clear()
+	for tr in trail:
+		tr[2] -= dt
+	trail = trail.filter(func(tr): return tr[2] > 0.0)
 	# 移动量（帧条选择用）
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
@@ -300,27 +315,34 @@ func draw() -> void:
 		g.draw_circle(pos, R, Color(0.6, 0.8, 1.0))
 		return
 	var anc := Vector2(0.5, 77.0 / 80.0)
-	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * g.PX)
+	var sc: float = g.PX * DRAW_K
+	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
 	var flip: bool = face < 0.0
-	# 冲锋预警线（紫色，不伤水月）
+	# 冲锋预警线（友方冰蓝，不伤水月）：蓄力时从骑士往外长出，冲锋终点一个小冰晶
 	if state == "wind":
 		var k: float = st / CHARGE_WIND
-		g.draw_line(pos, pos + dash_dir * CHARGE_SPD * CHARGE_T, Color(0.8, 0.5, 1.4, 0.2 + 0.3 * k), 10.0 * k + 2.0)
-		g.draw_line(pos, pos + dash_dir * CHARGE_SPD * CHARGE_T * k, Color(1.2, 0.8, 2.0, 0.8), 2.0)
+		var end: Vector2 = pos + dash_dir * CHARGE_SPD * CHARGE_T
+		g.draw_line(pos, end, Color(0.6, 0.85, 1.3, 0.15 + 0.25 * k), 8.0 * k + 2.0)
+		g.draw_line(pos, pos + (end - pos) * k, Color(0.9, 1.1, 1.6, 0.8), 2.0)
+		UI.diamond(g, end, 4.0 + 3.0 * k, Color(0.9, 1.1, 1.6, 0.5 + 0.4 * k))
 	if state == "charge":
-		g.vfx.sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 1, 90.0)
+		g.vfx.sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 2, 110.0)
+	# 冲锋残影：冲锋帧条的白色剪影，冰蓝色、渐隐
+	if g.tex.has("e_knight_charge_white"):
+		for tr in trail:
+			g.vfx.spr("e_knight_charge_white", 4, tr[1], tr[0] + Vector2(0, R * 0.8 + 3.0 * sc), sc, flip, Color(0.55, 0.85, 1.4, tr[2] / 0.25 * 0.45), anc)
 	if Cfg.outline and g.tex.has(name + "_white"):
 		for d in [Vector2(g.PX, 0), Vector2(-g.PX, 0), Vector2(0, g.PX), Vector2(0, -g.PX)]:
-			g.vfx.spr(name + "_white", frames, frame, bpos + d, g.PX, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
+			g.vfx.spr(name + "_white", frames, frame, bpos + d * DRAW_K, sc, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
 	var col := Color.WHITE
 	if state == "retreat":
 		col = Color(0.8, 0.85, 0.95, 0.85)
-	g.vfx.spr(name, frames, frame, bpos, g.PX, flip, col, anc)
+	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc)
 	if flash > 0.0 and g.tex.has(name + "_white"):
-		g.vfx.spr(name + "_white", frames, frame, bpos, g.PX, flip, Color(1, 1, 1, 0.9), anc)
+		g.vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc)
 	# 血条
-	var w := 56.0
-	var top: Vector2 = pos + Vector2(-w / 2.0, -R - 46.0)
+	var w := 48.0
+	var top: Vector2 = pos + Vector2(-w / 2.0, -80.0 * sc + 16.0)
 	g.draw_rect(Rect2(top, Vector2(w, 4)), Color(0, 0, 0, 0.6))
 	g.draw_rect(Rect2(top, Vector2(w * clampf(hp / maxhp, 0.0, 1.0), 4)), Color(0.6, 0.85, 1.0))
 
