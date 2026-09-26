@@ -111,6 +111,8 @@
   "boss_hp_time_div": 600,
   "spawn_base": 2.3,
   "spawn_div": 40,
+  "spawn_knee": 520,
+  "spawn_late_div": 80,
   "first_elite": 60,
   "bullet_dmg_mult": 0.75,
   "spawn_boss_mult": 0.8,
