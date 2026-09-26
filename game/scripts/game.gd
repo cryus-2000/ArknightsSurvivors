@@ -3931,14 +3931,16 @@ func _deep_cards() -> Array:
 
 
 ## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
-## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2）；守护·续航（H）随时间变多（3:00 前 ×0.8 → 9:00 后 ×1.4）
+## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
+## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
 func _relic_pool_ids(for_shop := false) -> Array:
 	var cands: Array = rfx.db.implemented().filter(func(r): return rfx.can_offer(r, for_shop))
 	var lane_n := {}
 	for rid in relics:
 		for ln in RL.get(rid, {}).get("lanes", []):
-			lane_n[ln] = lane_n.get(ln, 0) + 1
-	var h_w: float = lerpf(Bal.v("relic/h_early", 0.8), Bal.v("relic/h_late", 1.4), clampf((t - 180.0) / 360.0, 0.0, 1.0))
+			if ln != "H":
+				lane_n[ln] = lane_n.get(ln, 0) + 1
+	var h_w: float = lerpf(Bal.v("relic/h_early", 0.7), Bal.v("relic/h_late", 1.0), clampf((t - 180.0) / 360.0, 0.0, 1.0))
 	var weighted: Array = []
 	for r in cands:
 		var w := 0.0
