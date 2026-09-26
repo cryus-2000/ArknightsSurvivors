@@ -90,14 +90,15 @@ func update(dt: float) -> void:
 		var spawned: Array = []
 		for k in group.size():
 			var b := spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
+			# 最终 Boss 标记在加进 bosses、跑第一次 AI 之前就设好（docs/38 B0 第 9 项）
+			if k == 0 and boss_idx == D.BOSS_TIMES.size():
+				g.final_boss = b
 			g.bosses.append(b)
 			spawned.append(b)
 			g.boss = b
 		if spawned.size() == 2:
 			spawned[0].partner = spawned[1]
 			spawned[1].partner = spawned[0]
-		if boss_idx == D.BOSS_TIMES.size():
-			g.final_boss = spawned[0]
 		var names: Array = []
 		for g_item in group:
 			names.append(D.ENEMIES[g_item].name)

@@ -48,7 +48,9 @@ func update(_dt: float) -> void:
 		return
 	if g.final_boss != null and not g.final_boss.dead:
 		Sfx.play_music("final")
-		Sfx.set_final_phase(g.final_boss.hp < g.final_boss.maxhp * 0.5)
+		# 二段：半血以下。伊祖米克以 35% 生命、无敌的学习阶段登场，要进入解读阶段（phase 2）后才算（docs/38 B0 第 9 项）
+		var fb: Dictionary = g.final_boss
+		Sfx.set_final_phase(fb.hp < fb.maxhp * 0.5 and not (fb.type == "izumik" and fb.phase == 1))
 		music_boss = true
 		write_log("final")
 		return
