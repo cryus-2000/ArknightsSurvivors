@@ -62,6 +62,17 @@
 - 出手时机按实际播放那套帧条的 `fps / fire` 算；那套帧条缺图时退回 `skill` 条。`act_kind` 仍是逻辑类型（`"skill"` = 出手调 `_release_skill`），
   `act_anim` 才是正在播的帧条——判断「是不是在放技能」继续用 `act_kind == "skill"`。
 
+**手动技能的钩子（2026-09-26，契约 v2.3，`characters/character.gd`，fc39bc9）**：手动技能只对**主控**生效，当队友一律自动。
+这些是「游戏调用干员」方向的虚函数，干员脚本按需重写（所以放在基类，不在 op_api.gd）：
+
+| 函数 | 作用 | 缺省 / 写法 |
+| --- | --- | --- |
+| `is_manual(i)` | 技能 i 此刻是否手动 | `is_leader` 且 JSON `mode == "manual"`；`charge_skills`、`manual_index`、HUD 角标、按键路由都走它。JSON 校验仍按 `mode` 计数（每名干员至多 1 个） |
+| `manual_ready(i)` | 现在能否释放 | 已解锁、充满、不在生效中、在场且没在出手。重写写法：`return super(i) and <额外条件>`（乌尔比安：锚已收回、400 内有敌人） |
+| `manual_block_reason(i) -> String` | 充能已满却放不了、而且等也没用时的提示原因 | 缺省 `""`：表示只是稍等，按键先记下 |
+| `press_manual(i) -> String` | 按键入口（`doctor.try_manual_skill` 调它） | 正在出手时先记下按键，1 秒内满足条件就放（`MANUAL_BUF` / `manual_buf`，每帧在 `tick_sp` 末尾处理）；返回给玩家看的提示 |
+| `bot_wants_manual(i) -> bool` | 平衡机器人什么时候按 | 缺省：主控生命 < `balance.json bot/manual_hp`；`run/autotest.gd` 调它。想和改成手动前的批跑数据可比，就重写成「就绪即放」 |
+
 ## 5. 搬运工具 `tools/split_module.py`
 
 按函数名把 `game.gd` 里的一组函数整段搬到新模块（或追加到已有模块）：自动给主场景成员加 `g.` / `Game.`、
