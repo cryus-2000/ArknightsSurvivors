@@ -325,6 +325,9 @@ var floor_times: Array = []
 var demo_op := ""
 var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 被选中的次数
 var dbg_pick := {}
+var dbg_relic_offer: Array = []  # 平衡输出：藏品三选一 / 商店的候选（[t, 来源, [id...]]）
+var dbg_relic_take: Array = []   # 平衡输出：获得的藏品（[t, id, 当时编队职业]）
+var relic_out := 0.0             # 平衡输出：藏品直接造成的伤害（描述符 origin == relic）
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
@@ -1011,7 +1014,7 @@ func _autotest_step() -> void:
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (state == S.DEAD or state == S.WIN or t > 780.0) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "kills": kills,
+			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "relic_offer": dbg_relic_offer, "relic_take": dbg_relic_take, "relic_out": relic_out, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
 				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "heal": heal_log, "drone": weapons.get("drone", 0), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out, "bot": bot.report() if bot != null else {}}))
 			get_tree().quit()
@@ -2478,6 +2481,8 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	e.hp -= dmg
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	dmg_out[hit.src] = dmg_out.get(hit.src, 0.0) + eff
+	if hit.origin == "relic":
+		relic_out += eff
 	dmg_type_out[ty[1]] = dmg_type_out.get(ty[1], 0.0) + eff
 	for tg in hit.tags:
 		dmg_tag_out[tg] = dmg_tag_out.get(tg, 0.0) + eff
@@ -2823,6 +2828,8 @@ func _roll_shop() -> void:
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
 			shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + rfx.display_name(cid), "desc": rfx.display_desc(cid), "price": rfx.db.price(cid, shop_price_mult), "sold": false, "deep": true})
+	if balance:
+		dbg_relic_offer.append([int(t), "shop", shop_items.map(func(it): return it.id)])
 	shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": _shop_price("heal"), "sold": false})
 	shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": _shop_price("oil"), "sold": false})
 
@@ -3922,7 +3929,10 @@ func _open_relic_choice() -> void:
 		ingots += 12
 		_add_text(ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +12", UI.GOLD, 16)
 		return
-	_show_choices("获得藏品", pool.slice(0, 3 + rfx.rule("four_choices")), "relic")
+	var shown: Array = pool.slice(0, 3 + rfx.rule("four_choices"))
+	if balance:
+		dbg_relic_offer.append([int(t), "choice", shown.map(func(c): return c.id)])
+	_show_choices("获得藏品", shown, "relic")
 
 
 func _pick(i: int) -> void:
@@ -3982,6 +3992,8 @@ func _apply_relic(id: String) -> void:
 
 ## 获得藏品的唯一入口：登记、生效、重算结局
 func _gain_relic(id: String) -> void:
+	if balance:
+		dbg_relic_take.append([int(t), id, squad.ops.map(func(o): return o.cls)])
 	if not relics.has(id):
 		relics.append(id)
 	_apply_relic(id)

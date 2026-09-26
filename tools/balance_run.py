@@ -282,6 +282,71 @@ def bot_summary(records):
     return "\n".join(lines), verdicts
 
 
+def relic_meta():
+    """藏品编号 → {name, lanes, rarity, req}（lanes 空 = 通用；req = requires_class 职业门槛）"""
+    meta = json.load(open(os.path.join(GAME, "data", "relics.json"), encoding="utf-8"))
+    fx = json.load(open(os.path.join(GAME, "data", "relic_effects.json"), encoding="utf-8")).get("relics", {})
+    out = {}
+    for r in meta["items"]:
+        i = str(int(r["id"]))
+        e = fx.get(i, {})
+        out[i] = {"name": r["name"], "lanes": r.get("lanes") or ["通用"], "rarity": e.get("rarity", r.get("rarity")),
+                  "req": e.get("requires_class", r.get("requires_class", []))}
+    return out
+
+
+def relic_table(records):
+    """藏品指标（docs/35）：按 机器人 × 开局干员 统计藏品直接伤害占比、各流派出现 / 拿取次数、无效拿取
+    （拿到时编队里没有该藏品要求的职业）。流派按当前 relics.json 归类，所以旧 json 换新数据重算也能对照。"""
+    M = relic_meta()
+    by = {}
+    for r in records:
+        if "data" in r and "relic_take" in r["data"]:
+            by.setdefault((r.get("bot", "normal"), r["squad"][0]), []).append(r["data"])
+    if not by:
+        return ""
+    lines = ["| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |", "|---|---|---|---|---|---|---|"]
+    tot_offer, tot_take, per_id = {}, {}, {}
+
+    def lane_str(offer, take):
+        ks = sorted(set(offer) | set(take))
+        return " ".join("%s %d/%d" % (k, offer.get(k, 0), take.get(k, 0)) for k in ks)
+
+    for (bot, op), ds in sorted(by.items()):
+        offer, take = {}, {}
+        dead = 0
+        ntake = 0
+        share = []
+        for d in ds:
+            tot = sum(d.get("out", {}).values()) or 1.0
+            share.append(d.get("relic_out", 0.0) / tot)
+            for o in d.get("relic_offer", []):
+                for i in o[2]:
+                    if i in M:
+                        per_id.setdefault(i, [0, 0])[0] += 1
+                        for ln in M[i]["lanes"]:
+                            offer[ln] = offer.get(ln, 0) + 1
+                            tot_offer[ln] = tot_offer.get(ln, 0) + 1
+            for tk in d.get("relic_take", []):
+                i = tk[1]
+                if i not in M:
+                    continue
+                ntake += 1
+                per_id.setdefault(i, [0, 0])[1] += 1
+                for ln in M[i]["lanes"]:
+                    take[ln] = take.get(ln, 0) + 1
+                    tot_take[ln] = tot_take.get(ln, 0) + 1
+                req = M[i]["req"]
+                if req and not any(c in tk[2] for c in req):
+                    dead += 1
+        lines.append("| %s | %s | %d | %.1f | %.1f%% | %s | %d |" % (bot, op, len(ds), ntake / len(ds), 100 * statistics.mean(share), lane_str(offer, take), dead))
+    lines.append("| 合计 | | | | | %s | |" % lane_str(tot_offer, tot_take))
+    top = sorted(per_id.items(), key=lambda kv: -kv[1][1])[:12]
+    lines.append("")
+    lines.append("拿取最多（出现 / 拿取）：" + "，".join("%s %d/%d" % (M[i]["name"], v[0], v[1]) for i, v in top))
+    return "\n".join(lines)
+
+
 def table(rows):
     lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -336,6 +401,9 @@ def main():
         warn = "> ⚠ %d 局出现脚本错误，结果可能无效。首条：`%s`\n\n" % (len(bad), bad[0]["first_error"])
         print(warn)
     md = warn + table(rows) + "\n\n### 机器人指标（docs/29）\n\n" + bot_table(rows)
+    rt = relic_table(records)
+    if rt:
+        md += "\n\n### 藏品（docs/35）\n\n" + rt
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
