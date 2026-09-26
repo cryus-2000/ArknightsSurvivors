@@ -847,9 +847,9 @@ func follow(dt: float, target: Vector2) -> void:
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
 	if attack_t <= 0.0:
 		if absf(vel.x) > 25.0 and mv > 30.0:
-			face = signf(vel.x)
-		elif mv < 20.0:
-			face = g.facing
+			_set_face(signf(vel.x), is_leader)   # 主控跟着玩家移动即时转身
+		elif mv < 20.0 and g.t - face_flip_t > FACE_IDLE:
+			_set_face(g.facing)   # 站定回正：离上次翻身满 FACE_IDLE 秒才回，免得出手转向后立刻翻回来
 	attack_t = maxf(0.0, attack_t - dt)
 	if fire_t >= 0.0:
 		fire_t -= dt
@@ -896,8 +896,8 @@ func skill_anim(i: int) -> String:
 
 ## kind：逻辑类型（attack / skill，决定出手调哪个函数）；anim：播放的帧条（缺省同 kind）
 func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "") -> void:
-	if aim != Vector2.INF and absf(aim.x - pos.x) > 2.0:
-		face = signf(aim.x - pos.x)
+	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
+		_set_face(signf(aim.x - pos.x))
 	act_kind = kind
 	act_anim = anim if anim != "" and anim_tex(anim) != null else kind
 	if anim_tex(act_anim) == null:
@@ -1006,9 +1006,28 @@ func skill_power() -> float:
 	return stat(&"op_skill_power")
 
 
-## 干员面向某个方向（出手时由干员调用）
+## 干员面向某个方向（出手时由干员调用）。目标几乎在正上 / 正下方（水平分量 < 25%）时不转，免得来回翻
 func face_to(ang: float) -> void:
-	face = 1.0 if cos(ang) >= 0.0 else -1.0
+	var c := cos(ang)
+	if absf(c) < 0.25:
+		return
+	_set_face(1.0 if c > 0.0 else -1.0)
+
+
+## 朝向防抽搐（2026-09-26 用户反馈「左右抽搐」）：出手转向要求目标越过身体中线 FACE_DEAD 以上（_start_action），
+## 且距上次翻身至少 FACE_MIN 秒；两侧都有敌人时不再每一击都翻身。force = 主控跟随玩家移动的转身，即时生效
+const FACE_DEAD := 14.0
+const FACE_MIN := 0.35
+const FACE_IDLE := 1.0
+var face_flip_t := -99.0
+
+func _set_face(want: float, force := false) -> void:
+	if want == 0.0 or want == face:
+		return
+	if not force and g != null and g.t - face_flip_t < FACE_MIN:
+		return
+	face = want
+	face_flip_t = g.t if g != null else 0.0
 
 
 func facing_angle() -> float:

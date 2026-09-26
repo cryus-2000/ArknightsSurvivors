@@ -87,7 +87,7 @@ func update(dt: float) -> void:
 			cd = base("cd", 0.7) / stat(&"op_aspd")
 			# 潮汐 8 秒内每一斩播绕身回旋（op_skadi_attack_spin，docs/32 验收 §2）；缺图退回 attack 条
 			if tide > 0.0:
-				start_attack(ts[0].pos, 0.5, 0.25, "attack_spin")
+				start_attack(Vector2.INF, 0.5, 0.25, "attack_spin")   # 起手不转向
 			else:
 				start_attack(ts[0].pos)
 
@@ -97,7 +97,8 @@ func _aim() -> float:
 	if ts.is_empty():
 		return facing_angle()
 	var a: float = (ts[0].pos - pos).angle()
-	face_to(a)
+	if tide <= 0.0:
+		face_to(a)   # 潮汐回旋斩是绕身一整圈，不跟目标转向（防左右抽搐）
 	return a
 
 
