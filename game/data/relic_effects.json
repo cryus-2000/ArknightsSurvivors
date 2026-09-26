@@ -399,9 +399,15 @@
      "stat": "armor",
      "op": "flat",
      "value": 2
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.03
     }
    ],
-   "desc": "主控物理减伤 +2（每次受到的物理伤害 -2）",
+   "desc": "主控物理减伤 +2，受到的伤害 -3%",
    "tags": [
     "survival"
    ],
@@ -414,9 +420,15 @@
      "stat": "armor",
      "op": "flat",
      "value": 3
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.04
     }
    ],
-   "desc": "主控物理减伤 +3",
+   "desc": "主控物理减伤 +3，受到的伤害 -4%",
    "tags": [
     "survival"
    ],
@@ -429,9 +441,15 @@
      "stat": "armor",
      "op": "flat",
      "value": 5
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.05
     }
    ],
-   "desc": "主控物理减伤 +5",
+   "desc": "主控物理减伤 +5，受到的伤害 -5%",
    "tags": [
     "survival"
    ],
