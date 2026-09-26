@@ -102,7 +102,7 @@ func open(ev_id: String) -> void:
 					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
 			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
-		g._show_choices(ev.name, opts, "event", str(ev.get("text", "")))
+		g.panel_ui.show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 		return
 
 

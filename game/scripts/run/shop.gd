@@ -80,7 +80,7 @@ func open() -> void:
 	Sfx.play("relic", -4.0)
 	if g.autotest:
 		print("SHOP ", g.shop_items.map(func(it): return it.name))
-	g._build_shop_ui()
+	g.shop_ui.build()
 
 
 func buy(i: int) -> void:
@@ -102,7 +102,7 @@ func buy(i: int) -> void:
 		"oil":
 			g.lamp = min(g.lamp_cap, g.lamp + 50.0)
 	Sfx.play("ui_ok")
-	g._build_shop_ui()
+	g.shop_ui.build()
 
 
 func refresh() -> void:
@@ -112,7 +112,7 @@ func refresh() -> void:
 	g.ingots -= price("refresh")
 	roll()
 	Sfx.play("relic", -6.0)
-	g._build_shop_ui()
+	g.shop_ui.build()
 
 
 func close() -> void:

@@ -238,7 +238,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				UI.panel(g.hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
 				var cc0 := rc.position + Vector2(rc.size.x / 2.0, 48)
 				if k < 2:
-					var idl: Dictionary = g._op_idle(g.ch.id if k == 0 else other_id)
+					var idl: Dictionary = g.panel_ui.op_idle(g.ch.id if k == 0 else other_id)
 					if not idl.is_empty():
 						var ks: float = 1.5 if idl.fh <= 48 else 72.0 / idl.fh
 						var asz := Vector2(idl.fw, idl.fh) * ks

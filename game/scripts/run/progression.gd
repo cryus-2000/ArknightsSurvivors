@@ -38,7 +38,7 @@ func open_recruit() -> bool:
 	if opts.is_empty():
 		return false
 	g._shuffle(opts)
-	g._show_choices("招募干员", opts.slice(0, 3), "level")
+	g.panel_ui.show_choices("招募干员", opts.slice(0, 3), "level")
 	return true
 
 
@@ -50,7 +50,7 @@ func open_levelup() -> void:
 	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
 		g._shuffle(recruit)
-		g._show_choices("招募干员", recruit.slice(0, want), "level")
+		g.panel_ui.show_choices("招募干员", recruit.slice(0, want), "level")
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -101,7 +101,7 @@ func open_levelup() -> void:
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
 			g.dbg_offer[c.op] = g.dbg_offer.get(c.op, 0) + 1
-	g._show_choices("升级！ Lv.%d" % g.level, picks.slice(0, want), "level")
+	g.panel_ui.show_choices("升级！ Lv.%d" % g.level, picks.slice(0, want), "level")
 
 
 ## 成长项定义：博士 / 全队被动（doctor.PASSIVES）
@@ -175,7 +175,7 @@ func open_relic_choice() -> void:
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
 	if g.balance:
 		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
-	g._show_choices("获得藏品", shown, "relic")
+	g.panel_ui.show_choices("获得藏品", shown, "relic")
 
 
 func pick(i: int) -> void:
