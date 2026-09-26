@@ -385,6 +385,11 @@ func skill_active_left(i: int) -> float:
 	return judge_left if i == 2 else 0.0
 
 
+## 一技能是「下一次」强化：放出后到这一击打出去之前算未完成（图鉴演示等它打完再切段，c820b22）
+func skill_pending(i: int) -> bool:
+	return i == 0 and gust_next
+
+
 func skill_active_dur(i: int) -> float:
 	return 3.0 if i == 2 else 1.0
 

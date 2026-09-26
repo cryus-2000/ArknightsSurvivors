@@ -165,6 +165,11 @@ func skill_active_left(i: int) -> float:
 	return [0.0, s2_active, s3_active][i]
 
 
+## 一技能是「下一次」强化：放出后到这一击打出去之前算未完成（图鉴演示等它打完再切段，c820b22）
+func skill_pending(i: int) -> bool:
+	return i == 0 and s1_charges > 0
+
+
 func skill_active_dur(i: int) -> float:
 	return [1.0, S2_DUR, S3_DUR][i]
 
