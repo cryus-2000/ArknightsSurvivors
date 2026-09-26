@@ -1073,7 +1073,7 @@ func draw_zone() -> void:
 			g.draw_line(g.zone_next_c + Vector2.from_angle(a0) * g.zone_next_r, g.zone_next_c + Vector2.from_angle(a1) * g.zone_next_r, Color(2.2, 2.2, 2.4, 0.6), 2.0)
 
 
-## 黑潮边缘的溟痕带（2026-09-27 用户要求：原来是沿圈摆一个个分开的溟痕贴图，改成连成一圈的潮线）：
+## 黑潮边缘的溟痕带（2026-09-27 用户要求：原来是沿圈摆一个个分开的溟痕贴图 → 连成一圈 → 再改成溟痕本身的样子）：
 ## 沿圆周连续的一条带，内沿（安全区一侧）是起伏的亮紫潮头线，往外由溟痕紫渐隐到圈外暗色；带上有缓慢漂移的暗色溟痕团，
 ## 表现流动。只画视野附近的弧段（段长约 22 像素，封顶 420 段），手机 / 网页每帧几十到一两百个四边形。只改画面，判定仍是 zone_r
 const ZB_SEG := 22.0
@@ -1085,13 +1085,15 @@ func draw_zone_band(pulse: float) -> void:
 	var n: int = clampi(int(TAU * r / ZB_SEG), 64, 420)
 	var t: float = g.t
 	var crest := PackedVector2Array()
+	var crests: Array = []           # 内沿线段先收集，等溟痕贴图铺完再画在最上面
 	var prev_in := Vector2.ZERO
 	var prev_mid := Vector2.ZERO
 	var prev_out := Vector2.ZERO
 	var prev_vis := false
-	var c_in := Color(1.1, 0.35, 1.6, 0.55 + 0.2 * pulse)
-	var c_mid := Color(0.42, 0.1, 0.62, 0.62)
-	var c_out := Color(0.16, 0.03, 0.22, 0.0)
+	# 溟痕配色（2026-09-27 用户要求：圈边要是溟痕本身的样子——深色黏液 + 青黑纹理，和地上的溟痕一致；不再用粉紫潮线）
+	var c_in := Color(0.06, 0.03, 0.1, 0.92)
+	var c_mid := Color(0.05, 0.03, 0.08, 0.8)
+	var c_out := Color(0.05, 0.02, 0.08, 0.0)
 	for i in n + 1:
 		var a: float = TAU * i / n
 		var d := Vector2.from_angle(a)
@@ -1110,33 +1112,44 @@ func draw_zone_band(pulse: float) -> void:
 				crest.append(prev_in)
 			crest.append(pin)
 		elif crest.size() > 1:
-			_zone_crest(crest, pulse)
+			crests.append(crest)
 			crest = PackedVector2Array()
 		prev_in = pin
 		prev_mid = pmid
 		prev_out = pout
 		prev_vis = vis
 	if crest.size() > 1:
-		_zone_crest(crest, pulse)
-	# 漂移的溟痕团：每 120 像素弧长一团，沿圈缓慢流动，大小呼吸
-	var nb: int = clampi(int(TAU * r / 120.0), 12, 120)
-	for j in nb:
-		var a2: float = TAU * (j + fmod(t * 0.04, 1.0)) / nb
-		var d2 := Vector2.from_angle(a2)
-		var bp: Vector2 = c + d2 * (r + 16.0 + 8.0 * sin(j * 1.7 + t * 0.8))
-		if bp.distance_to(vc) > view:
-			continue
-		var br: float = 5.0 + 3.0 * sin(j * 2.3 + t * 1.5)
-		g.draw_set_transform(bp, a2 + PI / 2.0, Vector2(1.6, 0.8))
-		g.draw_circle(Vector2.ZERO, br + 2.0, Color(0.08, 0.0, 0.12, 0.55))
-		g.draw_circle(Vector2(-1, -1), br * 0.5, Color(0.9, 0.3, 1.3, 0.35))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		crests.append(crest)
+	# 溟痕贴图沿圈边密铺：每 26 像素弧长一块（贴图约 60 像素宽，互相叠一半以上，连成一整条），两帧脉动和地上的溟痕一致；
+	# 大小、左右翻转、前后位置按序号取固定的伪随机，看不出重复；只画视野内的块（后期同屏元素多，一屏约五六十块）
+	var mt: Texture2D = g.tex.get("terrain_mire")
+	if mt != null:
+		var fw: int = mt.get_width() / 2
+		var nb: int = clampi(int(TAU * r / 26.0), 24, 900)
+		for j in nb:
+			var a2: float = TAU * (j + 0.5 * sin(j * 12.9898)) / nb
+			var d2 := Vector2.from_angle(a2)
+			var bp: Vector2 = c + d2 * (r + 12.0 + 7.0 * sin(j * 4.1))
+			if bp.distance_to(vc) > view:
+				continue
+			var bs: float = 56.0 * (0.85 + 0.25 * (0.5 + 0.5 * sin(j * 7.3)))
+			var fl: bool = int(j * 2654435761) % 2 == 0
+			var sz := Vector2(bs, bs)
+			var fr: int = (int(t * 2.0) + j) % 2
+			if fl:
+				g.draw_set_transform(bp, 0.0, Vector2(-1, 1))
+				g.draw_texture_rect_region(mt, Rect2(-sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			else:
+				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+	for cr in crests:
+		_zone_crest(cr, pulse)
 
 
-## 潮头线：暗色描边垫底 + 亮紫细线（安全区边界一眼看清）
+## 溟痕内沿：暗色描边垫底 + 溟痕裂纹的青色细线（安全区边界一眼看清，颜色取自溟痕贴图的青色裂纹）
 func _zone_crest(pts: PackedVector2Array, pulse: float) -> void:
-	g.draw_polyline(pts, Color(0.05, 0.0, 0.08, 0.6), 5.0)
-	g.draw_polyline(pts, Color(1.6, 0.6, 2.2, 0.75 + 0.25 * pulse), 2.0)
+	g.draw_polyline(pts, Color(0.02, 0.0, 0.04, 0.75), 5.0)
+	g.draw_polyline(pts, Color(0.35, 0.95, 0.95, 0.55 + 0.25 * pulse), 2.0)
 
 
 ## 护盾：淡蓝色六边形能量泡，层数越多越厚
