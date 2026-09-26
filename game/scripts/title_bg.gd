@@ -2,7 +2,8 @@ extends Control
 ## 标题背景：蓝眼泪银河沙滩（全部程序生成，像素风）
 ## 画布 640×360，按 ×2 最近邻放大到 1280×720，与游戏内像素密度一致。
 ## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 博士与编队（含倒影）→ 发光叠加层
-## 人物：博士站在浪边 C 位，身后是上一局的编队（Cfg.last_squad，没有记录时用默认三人）；开场时干员依次跑进来站定。
+## 人物：博士站在浪边 C 位，身旁是本地图的固定人物（data/maps/<id>.json 的 title_guest，深海 = 水月），
+## 身后是上一局的编队（Cfg.last_squad，没有记录时用默认三人；与固定人物重复的不再站后排）；开场时后排干员依次跑进来站定。
 
 const A = preload("res://scripts/art.gd")
 const TitleTree = preload("res://scripts/title_tree.gd")
@@ -14,9 +15,10 @@ const SHORE := 238         # 静水时的岸线
 const K := 2.0             # 基准放大倍率（1280×720 时）
 var ks := 2.0              # 实际倍率：按视口「覆盖」缩放，宽屏 / 高屏都不留边
 const WAVE_PERIOD := 7.5
-const FEET := Vector2(446, 314)          # 博士脚底（最前、最低）
+const FEET := Vector2(420, 313)          # 博士脚底（最前、最低）
+const GUEST_FEET := Vector2(474, 307)    # 地图固定人物（水月）：博士右侧稍后
 ## 编队站位（博士身后，按脚底 y 从后往前画）与默认编队
-const SQUAD_FEET := [Vector2(506, 287), Vector2(388, 289), Vector2(560, 279)]
+const SQUAD_FEET := [Vector2(528, 286), Vector2(362, 288), Vector2(580, 278)]
 const DEFAULT_SQUAD := ["wisadel", "siege", "skadi"]
 const BACK_TINT := Color(0.66, 0.74, 0.9)   # 后排干员压暗、偏冷，拉开前后层次
 const DOCTOR_TINT := Color(1.18, 1.22, 1.3)  # 博士衣服偏深，稍微提亮让 C 位站得出来
@@ -30,6 +32,7 @@ var tex_sky: ImageTexture
 var tex_sand: ImageTexture
 var doctor := {}            # {idle: Texture2D, fi: 帧数, fps}
 var squad: Array = []       # [{idle, fi, ifps, run, fr, rfps, feet, i}]
+var guest := {}             # 地图固定人物 {idle, fi, fps}
 var intro := 99.0           # 开场动画时间（title.gd 写入；99 = 已播完）
 var tex_light: Texture2D
 var stars: Array = []       # [pos, size, phase, speed, col]
@@ -235,10 +238,17 @@ func _load_figures() -> void:
 		dt = A.tex("doctor")
 	if dt != null:
 		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0}
+	var gid: String = str(_json("res://data/maps/%s.json" % Cfg.map_id).get("title_guest", ""))
+	if gid != "":
+		var gs := _slot(_json("res://data/characters/%s.json" % gid).get("sprites", {}).get("idle"))
+		if not gs.is_empty():
+			guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps}
 	var ids: Array = Cfg.last_squad.duplicate() if not Cfg.last_squad.is_empty() else DEFAULT_SQUAD.duplicate()
 	for cid in ids:
 		if squad.size() >= SQUAD_FEET.size():
 			break
+		if cid == gid:
+			continue
 		var sp: Dictionary = _json("res://data/characters/%s.json" % cid).get("sprites", {})
 		var idle := _slot(sp.get("idle"))
 		if idle.is_empty():
@@ -284,6 +294,8 @@ func _draw_squad() -> void:
 			_draw_figure(m.run, m.fr, m.rfps, m.feet + Vector2(-46.0 * (1.0 - e), 0), m.i * 0.3, 2, e, BACK_TINT)
 		else:
 			_draw_figure(m.idle, m.fi, m.ifps, m.feet, m.i * 0.37, 2, 1.0, BACK_TINT)
+	if not guest.is_empty():
+		_draw_figure(guest.idle, guest.fi, guest.fps, GUEST_FEET, 0.2, 2)
 	if not doctor.is_empty():
 		_draw_figure(doctor.idle, doctor.fi, doctor.fps, FEET, 0.0, 2, 1.0, DOCTOR_TINT)
 
