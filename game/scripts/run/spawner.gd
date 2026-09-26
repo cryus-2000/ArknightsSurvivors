@@ -120,11 +120,10 @@ func update(dt: float) -> void:
 	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
 	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
 	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
-	# Boss 在场 / 灯火不足时的刷怪倍率（balance.json enemy 段，docs/38 B0 第 11 项；现值 0.8 / 1.15）
 	if boss_alive():
-		rate *= Bal.v("enemy/spawn_boss_mult", 0.8)
+		rate *= 0.8
 	if g.lamp < 30.0:
-		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
+		rate *= 1.15
 	spawn_acc += rate * dt
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
