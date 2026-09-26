@@ -38,7 +38,7 @@ func name() -> String:
 	return def.get("name", "博士")
 
 
-## 唯一的手动技能入口（Space / J，手柄 Ⓐ / Ⓧ）：路由到编队里干员的手动技能（契约 v2.2，目前只有幽灵鲨 S2）。
+## 唯一的手动技能入口（Q / J，手柄 Ⓐ / Ⓧ）：路由到编队里干员的手动技能（契约 v2.2，目前只有幽灵鲨 S2）。
 ## 有就绪的就放；有手动技能但没就绪时提示原因并吞掉按键；编队里没有手动技能返回 false
 func try_manual_skill() -> bool:
 	var owner = null

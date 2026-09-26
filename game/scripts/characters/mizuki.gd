@@ -419,6 +419,9 @@ func _draw_jellies() -> void:
 		var p: Vector2 = pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
 		if stake_on:
 			g.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
+		# Codex 帧条 fx_mizuki_jelly（12×16 × 4 帧，6fps 循环，中心锚点）；每只错开相位
+		if _fx_strip("fx_mizuki_jelly", 4, int(g.t * 6.0) + k * 3, p + Vector2(0, 6)):
+			continue
 		# 伞盖
 		g.draw_set_transform(p, 0.0, Vector2(1.0, 0.62))
 		g.draw_circle(Vector2.ZERO, 8.5, Color(c.r, c.g, c.b, 0.6))
@@ -431,6 +434,27 @@ func _draw_jellies() -> void:
 			for s in 5:
 				pts.append(p + Vector2(x0 + sin(ph * 2.0 + s * 0.9 + q) * (1.0 + s * 0.9), 3.0 + s * 4.5))
 			g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.65 - q * 0.08), 1.5)
+
+
+## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
+func _fx_tex(name: String) -> Texture2D:
+	if not g.tex.has(name):
+		g.tex[name] = A.tex(name)
+	return g.tex[name]
+
+
+## 帧条贴图（有图画图、缺图返回 false 走程序版）；1 美术像素 = PX 世界像素，@2x 高清帧条按 A.hires_of 半倍画；anchor 为帧内比例锚点
+func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vector2(0.5, 0.5), ang := 0.0, col := Color.WHITE, flip := false) -> bool:
+	var tx: Texture2D = _fx_tex(name)
+	if tx == null:
+		return false
+	var fw: float = float(tx.get_width() / frames)
+	var fh: float = float(tx.get_height())
+	var k: float = g.PX / A.hires_of(tx)
+	g.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
 
 
 func _draw_skill_over() -> void:

@@ -20,6 +20,7 @@ var is_leader := false     # 主控干员（玩家操控、唯一受击体，doc
 var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动统一小强化与气场
 const NODE_ATK := 0.06
 var aura_t := 0.0
+var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
@@ -119,7 +120,7 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 	return ok
 
 
-## 手动技能入口（Space / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
+## 手动技能入口（Q / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
 func try_manual_skill() -> bool:
 	return false
 
@@ -185,8 +186,23 @@ func hud_sp_frac() -> float:
 
 
 ## 三个技能同时充能（生效中的不充）；返回本帧该释放的技能序号（S3 > S2 > S1，一次只放一个），没有返回 -1
-func charge_skills(dt: float) -> int:
+## 充能改由 squad.update 每帧调 tick_sp()（2026-09-26 修：以前充能写在各干员「出手中就 return」之后，
+## 攻速快的干员几乎一直在出手，技能实际要等 2–3 倍时间）。这里只判断谁充满了；dt 参数保留兼容
+func charge_skills(_dt: float) -> int:
 	var ready := -1
+	for i in 3:
+		if not skill_unlocked(i):
+			continue
+		var need := sp_need(i)
+		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
+			continue
+		if sp[i] >= need and not is_manual(i):
+			ready = i
+	return ready
+
+
+## 技能充能（每帧，不论是否在出手）：生效中的持续型技能与永久型不充
+func tick_sp(dt: float) -> void:
 	for i in 3:
 		if not skill_unlocked(i):
 			continue
@@ -195,13 +211,10 @@ func charge_skills(dt: float) -> int:
 			continue
 		if sp[i] < need:
 			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * g._lamp_sp())
-		if sp[i] >= need and not is_manual(i):
-			ready = i
-	return ready
 
 
 ## 手动技能（契约 v2.2，2026-09-25）：技能 JSON 带 "mode": "manual" 时照常充能，但不自动释放，
-## 充满后等玩家按 Space / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
+## 充满后等玩家按 Q / J（手柄 Ⓐ / Ⓧ）——入口是 doctor.try_manual_skill()，每名干员最多一个
 func is_manual(i: int) -> bool:
 	return skill_def(i).get("mode", "auto") == "manual"
 
@@ -232,6 +245,8 @@ func spend_sp(i: int) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
 	if sfx != null:
 		sfx.op(id, "s%d" % (i + 1), 0.0, 1.0, 0.0)
+		if g.demo_op == "":
+			sfx.voice(id, "skill_%d" % (i + 1))   # 技能语音（>3 秒的不播，见 sfx.gd）
 	if skill_def(i).get("permanent", false):
 		perm[i] = true
 		sp[i] = sp_need(i)

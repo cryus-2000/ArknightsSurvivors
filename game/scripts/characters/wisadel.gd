@@ -330,6 +330,7 @@ func _update_souls(dt: float) -> void:
 					else:
 						s.tgt = tg
 						s.st = "go"
+						s.gt = g.t   # 俯冲帧从出发时刻开始播
 						s.cd = base("soul_cd", 2.0)
 			"go":
 				var tg2 = s.tgt
@@ -592,6 +593,9 @@ func _draw_marks() -> void:
 			continue
 		var p: Vector2 = e.pos + Vector2(0, -e.r - 18.0 + sin(g.t * 4.0 + e.id) * 2.0)
 		g.draw_circle(p, 9.0, Color(0.9, 0.05, 0.1, 0.18))
+		# Codex 帧条 fx_wisadel_mark（8×12 × 2 帧，4fps 循环）
+		if _fx_strip("fx_wisadel_mark", 2, int(g.t * 4.0 + e.id * 0.5), p):
+			continue
 		_draw_shade_body(p, 5.5, 0.85)
 
 
@@ -599,12 +603,43 @@ func _draw_marks() -> void:
 func _draw_souls() -> void:
 	for s in souls:
 		var p: Vector2 = s.p
+		# Codex 帧条 fx_wisadel_soul（20×28 × 6 帧）：0–3 悬浮 8fps 循环；飞去挂标记时 4–5 俯冲 12fps 单次（停在第 5 帧），朝右、向左飞时镜像
+		if _fx_tex("fx_wisadel_soul") != null:
+			g.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
+			if s.st == "go":
+				var tg = s.tgt
+				var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
+				_fx_strip("fx_wisadel_soul", 6, 4 + mini(1, int((g.t - float(s.get("gt", g.t))) * 12.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
+			else:
+				_fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + souls.find(s) * 2) % 4, p)
+			continue
 		var tail := PackedVector2Array()
 		for q in 5:
 			tail.append(p + Vector2(sin(g.t * 5.0 + q * 0.9) * (1.0 + q), 8.0 + q * 4.0))
 		g.draw_polyline(tail, Color(0.08, 0.03, 0.05, 0.7), 5.0)
 		g.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
 		_draw_shade_body(p, 9.5, 0.95)
+
+
+## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
+func _fx_tex(name: String) -> Texture2D:
+	if not g.tex.has(name):
+		g.tex[name] = A.tex(name)
+	return g.tex[name]
+
+
+## 帧条贴图（有图画图、缺图返回 false 走程序版）；1 美术像素 = PX 世界像素，@2x 高清帧条按 A.hires_of 半倍画；anchor 为帧内比例锚点
+func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vector2(0.5, 0.5), ang := 0.0, col := Color.WHITE, flip := false) -> bool:
+	var tx: Texture2D = _fx_tex(name)
+	if tx == null:
+		return false
+	var fw: float = float(tx.get_width() / frames)
+	var fh: float = float(tx.get_height())
+	var k: float = g.PX / A.hires_of(tx)
+	g.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
 
 
 ## 残影人形：竖椭圆黑影 + 两点红眼（与天赋残影 fx 同形）

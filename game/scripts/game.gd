@@ -334,6 +334,8 @@ var show_game: Node = null
 
 
 func _ready() -> void:
+	if demo_op == "":
+		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
@@ -1258,7 +1260,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _nav_key(k):
 		get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_SPACE or k == KEY_J) and state == S.PLAY:
+	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
+		_try_dash()
+		get_viewport().set_input_as_handled()
+		return
+	if (k == KEY_Q or k == KEY_J) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
@@ -1351,6 +1357,29 @@ func _card_hot(card: Button, i: int) -> bool:
 	return card.is_hovered()
 
 
+## 主控冲刺（2026-09-26 用户要求）：空格 / Shift / K / 手柄 B·RB / 触屏「冲刺」按钮。沿移动方向（站着不动时沿朝向）
+## 0.18 秒冲出约 126 像素，全程无敌；冷却 1.2 秒。残影由干员的动态模糊（character.gd ghosts）自动产生
+const DASH_TIME := 0.18
+const DASH_SPEED := 700.0
+const DASH_CD := 1.2
+var dash_t := 0.0
+var dash_cd := 0.0
+var dash_dir := Vector2.RIGHT
+var last_mv := Vector2.ZERO
+
+
+func _try_dash() -> void:
+	if dash_cd > 0.0 or dash_t > 0.0 or pstun > 0.0 or state != S.PLAY:
+		return
+	dash_dir = (last_mv if moving and last_mv != Vector2.ZERO else Vector2(facing, 0)).normalized()
+	dash_t = DASH_TIME
+	dash_cd = DASH_CD
+	dash_used = true
+	invuln = maxf(invuln, DASH_TIME + 0.05)
+	fx.append({"kind": "ring", "pos": ppos, "r": 36.0, "life": 0.25, "max": 0.25, "col": ch.col() if ch != null else UI.CYAN})
+	Sfx.play("dodge", -6.0, 1.2, 0.05)
+
+
 func _update(dt: float) -> void:
 	t += dt
 	_sync_stats()
@@ -1380,6 +1409,14 @@ func _update(dt: float) -> void:
 	var mspd: float = speed * (1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0)
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
+	# 冲刺：主控沿冲刺方向高速位移，期间无敌（被僵直时不能冲刺，已在 _try_dash 里拦）
+	dash_cd = maxf(0.0, dash_cd - dt)
+	if dash_t > 0.0:
+		dash_t -= dt
+		ppos += dash_dir * DASH_SPEED * dt
+		pvel = dash_dir * DASH_SPEED
+		invuln = maxf(invuln, 0.05)
+	last_mv = mv if moving else last_mv
 	if tex.get("prop_pillar") != null:
 		ppos = map.push_out(ppos, 12.0)
 	swing_face -= dt
@@ -5384,6 +5421,7 @@ func _draw_hud() -> void:
 	_draw_relic_tooltip(vs)
 	touch.draw_hud(vs)
 	_draw_status_bar(vs)
+	_draw_dash_hint(vs)
 	match state:
 		S.SHOW:
 			_draw_show(vs)
@@ -5403,7 +5441,7 @@ func _draw_hud() -> void:
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
 		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
-		"你操控的是博士 —— 场上唯一会受伤的人。干员们跟在身边，普攻与三个技能全自动出手；你只需要用 WASD 移动：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
+		"你操控的是开局干员 —— 她是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、空格冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
 		"3:30 与 7:00 各有一次中期 Boss（从三组圣徒 / 海嗣里随机），击败后获得大量经验、源石锭与一件藏品。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
@@ -5988,6 +6026,34 @@ func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: Str
 
 
 ## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
+## 冲刺提示（用户要求：不提示就不知道有冲刺）：
+## ① 屏幕底部中间常驻一枚按键牌「空格 冲刺」，冷却时底色按进度走满，可冲时描边亮起；
+## ② 开局前 25 秒（直到第一次冲刺为止）主控头顶浮一行「按 空格 冲刺」。触屏有自己的冲刺按钮，不画这两样
+var dash_used := false
+
+
+func _draw_dash_hint(vs: Vector2) -> void:
+	if state != S.PLAY or touch.active or demo_op != "":
+		return
+	var key: String = Pad.hint("空格", "Ⓑ")
+	var ready: bool = dash_cd <= 0.0
+	var w := 132.0
+	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 50), Vector2(w, 30))
+	hud.draw_rect(r, Color(0.02, 0.06, 0.09, 0.75))
+	var k: float = 1.0 - dash_cd / DASH_CD
+	hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 if ready else 0.1))
+	hud.draw_rect(r, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.35), false, 1.5)
+	var kr := Rect2(r.position + Vector2(6, 5), Vector2(48, 20))
+	hud.draw_rect(kr, Color(0.1, 0.25, 0.3, 0.9))
+	hud.draw_rect(kr, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.8), false, 1.0)
+	UI.text(hud, font, kr.position + Vector2(0, 15), key, 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+	UI.text(hud, font, r.position + Vector2(60, 21), "冲刺", 15, UI.TEXT if ready else UI.SUB)
+	if not dash_used and t < 25.0:
+		var a: float = 0.6 + 0.4 * sin(t * 4.0)
+		var sp: Vector2 = get_viewport().get_canvas_transform() * (ppos + Vector2(0, -92))
+		UI.text(hud, font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
+
+
 func _draw_status_bar(vs: Vector2) -> void:
 	if state == S.OPENING or state == S.INTRO or state == S.SHOW:
 		return
@@ -6091,7 +6157,7 @@ func _draw_squad_hud(br: Vector2) -> void:
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(t * 6.0)
 					hud.draw_arc(sc, SQ_ICON_R + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(col.r * 1.5, col.g * 1.5, col.b * 1.5, 0.45 + 0.4 * pulse), 2.5)
-				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("空格", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
+				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
 		# 悬停某枚图标：技能名 + 说明
 		var mp := hud.get_local_mouse_position()
 		for k in 3:
