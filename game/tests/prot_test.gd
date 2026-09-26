@@ -60,6 +60,7 @@ func _process(_d: float) -> void:
 	test_retreat()
 	test_arena()
 	test_ground()
+	test_any_cap()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -800,3 +801,33 @@ func test_ground() -> void:
 			bad += 1
 	ok(bad == 0, "圆形预警：8 个方向边缘外 4px 不中、内 4px 中（错 %d 处）" % bad)
 	game.ppos = p0
+
+
+## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
+func test_any_cap() -> void:
+	var mh: float = game.max_hp
+	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限缺省关闭")
+	var bak_p: Dictionary = Bal._data.get("protect", {}).duplicate()
+	var bak_e: Dictionary = Bal._data.get("enemy", {}).duplicate()
+	Bal._data["protect"] = {"any_2s_cap": 0.45, "any_excess_mult": 0.4}
+	c.any_log.clear()
+	var a1: float = c._any_clamp(mh * 0.3)
+	var a2: float = c._any_clamp(mh * 0.3)
+	ok(absf(a1 - mh * 0.3) < 0.01 and absf(a2 - (mh * 0.15 + mh * 0.15 * 0.4)) < 0.01, "2 秒内超过 45%% 的部分 ×0.4（%.1f%%、%.1f%%）" % [100.0 * a1 / mh, 100.0 * a2 / mh])
+	Bal._data["protect"] = bak_p
+	c.any_log.clear()
+	var e2: Dictionary = bak_e.duplicate()
+	e2["corrode_pool_cap"] = 0.3
+	Bal._data["enemy"] = e2
+	var hp0: float = game.hp
+	game.corrode_pool = 0.0
+	c.corrode_boss = 0.0
+	game.invuln = 0.0
+	game.shield = 0
+	game.in_type = ["近战", "物理"]
+	for k in 5:
+		c.enemy_hit(mh * 0.2, {"corrode": 1.0}, true, true)
+	ok(game.corrode_pool <= mh * 0.3 + 0.01, "非 Boss 侵蚀池 ≤ 30%% 最大生命（%.1f%%）" % (100.0 * game.corrode_pool / mh))
+	Bal._data["enemy"] = bak_e
+	game.corrode_pool = 0.0
+	game.hp = hp0

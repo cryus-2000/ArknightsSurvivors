@@ -74,6 +74,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if src.get("corrode", 0.0) > 0.0:
 		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
 		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
+		# 非 Boss 侵蚀池上限（用户 9/27 方案 3-B，数值旋钮 enemy/corrode_pool_cap，缺省 0 = 不封顶）：池里非 Boss 部分 ≤ 最大生命 × 上限，超出的新增作废；流出速度不变
+		var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.0)
+		if not boss and ncap > 0.0:
+			add = clampf(add, 0.0, maxf(0.0, ncap * g.max_hp - (g.corrode_pool - corrode_boss)))
 		if boss:
 			# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
 			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
@@ -85,7 +89,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 				boss_log.append([g.t, add])
 				corrode_boss += add
 		g.corrode_pool += add
-		if not boss or add > 0.0:
+		if add > 0.0:
 			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
 		add_nerve(src.nerve * g.nerve_taken_mult)
@@ -199,9 +203,28 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 		high_t = g.t   # 满血保护的「受击前生命」：只记账，不改非 Boss 来源的扣血
 	if boss:
 		amount = _boss_clamp(amount, src)
+	amount = _any_clamp(amount)
 	g.hp -= amount
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
+	return amount
+
+
+## 通用 2 秒掉血上限（用户 9/27「后期暴毙」方案 3-A，数值旋钮，缺省关）：任何来源（含 Boss、黑潮、熄灯、侵蚀结算）
+## 在 2 秒窗口内的实际扣血合计超过 最大生命 × protect/any_2s_cap 的部分，再乘 protect/any_excess_mult。
+## Boss 来源先走上面 _boss_clamp 那套，这里按截过之后的实际扣血记账，不重复截同一口径
+var any_log: Array = []   # [时刻, 实际扣血]
+
+
+func _any_clamp(amount: float) -> float:
+	var cap: float = Bal.v("protect/any_2s_cap", 0.0)
+	if cap <= 0.0 or amount <= 0.0:
+		return amount
+	var lim: float = cap * g.max_hp
+	var used := _window_sum(any_log, 2.0)
+	var over: float = maxf(0.0, used + amount - maxf(lim, used))
+	amount = amount - over + over * Bal.v("protect/any_excess_mult", 1.0)
+	any_log.append([g.t, amount])
 	return amount
 
 
