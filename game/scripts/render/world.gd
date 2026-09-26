@@ -85,6 +85,7 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.get_viewport_rect().size)
+	_enemy_act_fx()
 	# 特效密度 → 友方特效降噪（图鉴演示不降，演示本来就是看特效的）
 	var nfx: int = g.fx.size()
 	for o in g.squad.ops:
@@ -861,6 +862,46 @@ func draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 
 
 ## 黑潮：圈外暗紫雾 + 圈边脉动溟痕 + 下一圈预告
+## 敌方出招特效（2026-09-27 用户反馈：骑士攻击没有特效）：Boss与怪物 在预警结算 / 小怪起冲时写 e.last_act = {act, shape, pos, ang, r, len, wid, half, t}，
+## 这里按 t 变化触发一次。目前接骑士（敌对骑士精英 / 最后的骑士）：冲锋留冰霜拖尾 + 终点冲击、长枪连刺冰蓝刀光、寒冰领域冰晶爆开。都标 enemy，不被降噪
+const KNIGHT_TYPES := ["knight", "knight_boss"]
+
+func _enemy_act_fx() -> void:
+	for e in g.enemies:
+		if e.dead or not KNIGHT_TYPES.has(e.type):
+			continue
+		var la = e.get("last_act")
+		if not (la is Dictionary) or float(la.get("t", -1.0)) <= float(e.get("act_seen_t", -1.0)):
+			continue
+		e["act_seen_t"] = float(la.t)
+		var p0: Vector2 = la.get("pos", e.pos)
+		var ang: float = float(la.get("ang", 0.0))
+		match str(la.get("act", "")):
+			"dash", "charge":
+				var L: float = float(la.get("len", 200.0))
+				var dv := Vector2.from_angle(ang)
+				var s := 0.0
+				while s < L:
+					g.fx.append({"kind": "frost_step", "pos": p0 + dv * s + Vector2(0, 8), "life": 0.9, "max": 0.9, "r": 14.0, "enemy": true})
+					s += 30.0
+				g.vfx.fx_sprite("fx_knight_impact", p0 + dv * L, g.PX * 1.2, ang)
+				g.fx[g.fx.size() - 1]["enemy"] = true
+			"bite":
+				g.vfx.slash_fx(p0, ang, float(la.get("half", 0.8)), float(la.get("r", 125.0)), Color(0.7, 0.9, 1.6), "slash", 0.26)
+				for q in range(g.fx.size() - 3, g.fx.size()):
+					if q >= 0:
+						g.fx[q]["enemy"] = true
+				g.vfx.fx_sprite("fx_knight_impact", p0 + Vector2.from_angle(ang) * float(la.get("r", 125.0)) * 0.7, g.PX, ang)
+				g.fx[g.fx.size() - 1]["enemy"] = true
+			"frost":
+				var fr: float = float(la.get("r", 200.0))
+				g.fx.append({"kind": "ring", "pos": p0, "r": fr, "life": 0.6, "max": 0.6, "col": Color(0.7, 0.9, 1.4), "enemy": true})
+				for q in 10:
+					var dq := Vector2.from_angle(TAU * q / 10.0)
+					g.vfx.fx_sprite("fx_knight_impact", p0 + dq * fr * 0.6, g.PX * 0.7, dq.angle())
+					g.fx[g.fx.size() - 1]["enemy"] = true
+
+
 ## 敌方自带的危险提示（docs/48 全局 ②，P0 狂奔者 / 囊海爬行者 / 伊祖米克）：原来画在实体层，会被光照压暗、被友方特效盖住。
 ## 统一画在特效之上：主题色半透明填充（从小到大表示倒计时）+ 深色外描边 + 主题色线 + 白芯；颜色不乘亮度，保住色相（全局 ④）
 const ENEMY_TELL := Color(1.0, 0.3, 0.72)       # 敌方危险主色：洋红（和友方的金、青、绿、艾雅法拉的橙红都分得开）
