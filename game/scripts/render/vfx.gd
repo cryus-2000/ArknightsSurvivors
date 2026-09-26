@@ -189,6 +189,8 @@ func horde_band_on() -> bool:
 
 
 func _update_banner_queue(dt: float) -> void:
+	if g.balance:
+		g.banner_t -= dt   # 平衡 / 自测模式每渲染帧跑多步模拟：横幅按游戏时间计时，截图里的停留和排队延迟才像真人（game.gd 按真实时间再减一次，影响很小）
 	if g.banner_t > 0.0 and horde_band_on() and banner_prio < 3:
 		g.banner_t += dt   # 大群横幅在场：普通横幅冻结，等大群横幅退场再播完
 	if g.banner_t <= 0.0 and not banner_q.is_empty():
