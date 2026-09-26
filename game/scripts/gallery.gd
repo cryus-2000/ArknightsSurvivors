@@ -197,7 +197,7 @@ func _build() -> void:
 			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": _doctor_forms(dd),
 				"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
 					["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
-				"chips": ["随行", "指挥", "排异"], "desc": _lore_text("doctor", "博士跟在主控干员身后，不受击、不攻击，负责指挥技能与排异反应。回复、移速、闪避、拾取这几项基础属性由博士提供；生命、物理减伤、法术抗性按主控干员的原作属性来定。")})
+				"chips": ["随行", "指挥", "排异"], "desc": _lore_text("doctor", "罗德岛的高层领导，三大创始人之一。作为矿石病治疗与天灾研究方面的顶尖学者，拥有生物学，神经工程学博士等学历。致力于清除矿石病，是罗德岛的中流砥柱之一。虽然本身没有战斗能力，但是拥有极强的指挥能力。")})
 			# 干员：data/characters/*.json（职业、普攻 / 技能 / 天赋、成长线）
 			for cid in Character.list_ids():
 				var cd: Dictionary = Character.load_def(cid)
