@@ -223,7 +223,7 @@ func _umbrella(target: Dictionary) -> void:
 	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
 	alive.sort_custom(func(a, b): return a.hp < b.hp)
-	var n: int = 1 + extra_targets + g.rfx.tentacle_targets_extra()
+	var n: int = 1 + extra_targets   # 藏品重做（docs/35）后不再有「触手目标数」藏品
 	if s2_active > 0.0:
 		n += 1
 	if s3_active > 0.0:

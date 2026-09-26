@@ -1,6 +1,7 @@
 ## 流明（医疗，契约 v2.1，docs/26 第二批）：不治血条，治环境。荧光周期治疗 + 驱散侵蚀 / 神经损伤，顺带射出「照亮」敌人的光弹。
 ## S1 净化之光：治疗 + 全部驱散 + 短暂免疫 + 灯火；S2 领航灯（永久）：光照半径 +35%、受击灯火流失 ×0.7、荧光回复升到 3%；
-## S3 指引灯塔：在博士脚下立起不动的灯塔 10 秒（圣域：回复、免疫负面、溟痕 / 黑潮圈外惩罚失效、灯火回升），结束时光爆。
+## S3 指引灯塔（2026-09-26 用户定：跟随主控干员）：10 秒内灯塔悬在主控干员身侧随行，以主控为中心展开光域（圣域：回复、免疫负面、
+## 溟痕 / 黑潮圈外惩罚失效、灯火回升），结束时在主控身边光爆。
 ## 天赋 余晖：每次回复 / 驱散灯火 +2；灯火 ≥70 时自身充能 +20%。
 ## 挂点：g._heal / g.corrode_pool / g.nerve / g.lamp；光弹是本脚本自己推进的投射物（不改 game.gd 的子弹表）；
 ## 圣域通过 sanctuary()、光照半径通过 light_radius_mult() 供 game.gd 询问（同 dmg_taken_mult 模式）。
@@ -214,6 +215,8 @@ func _update_tower(dt: float) -> void:
 	if tower_t <= 0.0:
 		return
 	tower_t -= dt
+	# 随行：光域中心平滑跟到主控干员脚下
+	tower_pos = tower_pos.lerp(g.ppos, clampf(dt * 10.0, 0.0, 1.0))
 	var r: float = base("s3_r", 220.0)
 	if _in_tower(g.ppos):
 		g.corrode_pool = 0.0
@@ -488,7 +491,8 @@ func draw_extra(_it: Dictionary) -> void:
 		return
 	var n: int = anim_hframes(tx, "lighthouse")
 	var fr: int = 1 if int(g.t * 4.0) % 2 == 1 else 0
-	g._draw_sprite_at(tower_pos, false, Color.WHITE, fr % n, tx, n, foot_off(tx, "lighthouse"))
+	# 灯塔悬在主控身后一侧随行（缩小一些、轻微上下浮动）
+	g._draw_sprite_at(tower_pos + Vector2(-40.0 * g.facing, -8.0 + 3.0 * sin(g.t * 2.4)), false, Color.WHITE, fr % n, tx, n, foot_off(tx, "lighthouse"))
 
 
 func draw_extra_shadows() -> void:
