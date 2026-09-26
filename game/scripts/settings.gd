@@ -27,7 +27,6 @@ var diff_unlocked := 0   # 已解锁的最高难度
 var seen_shows: Array = []   # 已看过的解锁演出
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
-var last_squad: Array = []    # 上一局的编队（干员 id，开局干员在前）：标题页站在博士身后
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存，不存档；对局返回标题不重播）
 
@@ -65,7 +64,6 @@ func _ready() -> void:
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
 		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
-		last_squad = c.get_value("progress", "last_squad", last_squad)
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 	apply.call_deferred()
 
@@ -120,6 +118,5 @@ func save() -> void:
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", seen_relics)
 	c.set_value("progress", "seen_intro", seen_intro)
-	c.set_value("progress", "last_squad", last_squad)
 	c.set_value("progress", "endings_cleared", endings_cleared)
 	c.save(PATH)

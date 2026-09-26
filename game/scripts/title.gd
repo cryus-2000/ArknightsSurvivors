@@ -1,5 +1,5 @@
 extends Control
-## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与上一局编队站在浪边）
+## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与水月站在浪边）
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -282,7 +282,6 @@ func _process(delta: float) -> void:
 	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
 	if title_bg != null:
 		title_bg.zoom = 1.0 + 0.12 * (1.0 - _ease(intro / 2.2))
-		title_bg.intro = intro if intro < INTRO_LEN else 99.0
 	for m in motes:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
@@ -394,21 +393,22 @@ func _draw() -> void:
 		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
 		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
 	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 14, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
-	# 地图副标题：随地图变化（菱形 + 中文名 + 英文名），在英文副标题右侧
+	# 地图副标题：随地图变化，英文副标题下一行（菱形 + 中文名 + 英文名），和 Logo 组成一块
 	if map_title != "":
 		var mf2 := _seg(1.7, 0.5)
-		var mx := tx + 300.0
-		UI.diamond(self, Vector2(mx, 236 + ly), 5.0, _fa(UI.CYAN, mf2))
-		UI.text(self, font, Vector2(mx + 14, 243 + ly), map_title, 17, _fa(UI.TEXT, mf2))
+		UI.diamond(self, Vector2(tx + 11, 256 + ly), 4.0, _fa(UI.CYAN, mf2))
+		UI.text(self, font, Vector2(tx + 22, 262 + ly), map_title, 15, _fa(UI.TEXT, mf2))
 		if map_title_en != "":
-			UI.en(self, font, Vector2(mx + 14, 259 + ly), map_title_en, 9, _fa(Color(0.4, 0.6, 0.66), mf2), 2.0)
+			var mw: float = font.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+			UI.en(self, font, Vector2(tx + 34 + mw, 261 + ly), map_title_en, 9, _fa(Color(0.4, 0.6, 0.66), mf2), 2.0)
 	# 分隔线：1.6s 起从左向右划出，线头带一点亮光
 	var rl := _seg(1.6, 0.6)
+	var ry := 278.0
 	if rl > 0.0:
-		UI.rule(self, Vector2(tx, 266), Vector2(tx + 500 * rl, 266), UI.CYAN_DIM)
+		UI.rule(self, Vector2(tx, ry), Vector2(tx + 500 * rl, ry), UI.CYAN_DIM)
 		if rl < 1.0:
-			draw_circle(Vector2(tx + 500 * rl, 266), 3.0, UI.CYAN)
-			draw_circle(Vector2(tx + 500 * rl, 266), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
+			draw_circle(Vector2(tx + 500 * rl, ry), 3.0, UI.CYAN)
+			draw_circle(Vector2(tx + 500 * rl, ry), 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
 
 	# 菜单：2.0s 起逐项从左滑入
 	item_rects.clear()

@@ -1,9 +1,8 @@
 extends Control
 ## 标题背景：蓝眼泪银河沙滩（全部程序生成，像素风）
 ## 画布 640×360，按 ×2 最近邻放大到 1280×720，与游戏内像素密度一致。
-## 分层：天空与银河（预渲染）→ 远方海嗣剪影（巨型海嗣 + 海平线上的海嗣群，眼睛微光）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 海中水母 → 沙滩（湿沙 → 过渡 → 月光干沙）→ 涌浪与蓝眼泪 → 博士与编队（倒影只落在湿沙上）→ 发光叠加层
-## 人物：博士站在浪边 C 位，身旁是本地图的固定人物（data/maps/<id>.json 的 title_guest，深海 = 水月），
-## 身后是上一局的编队（Cfg.last_squad，没有记录时用默认三人；与固定人物重复的不再站后排）；开场时后排干员依次跑进来站定。
+## 分层：天空与银河（预渲染）→ 远方海嗣剪影（巨型海嗣 + 海平线上的海嗣群，眼睛微光）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 海中水母 → 沙滩（湿沙 → 过渡 → 月光干沙）→ 涌浪与蓝眼泪 → 博士与水月（倒影只落在湿沙上）→ 发光叠加层
+## 人物：博士站在浪边，身旁是本地图的固定人物（data/maps/<id>.json 的 title_guest，深海 = 水月）。
 
 const A = preload("res://scripts/art.gd")
 const TitleTree = preload("res://scripts/title_tree.gd")
@@ -15,25 +14,16 @@ const SHORE := 238         # 静水时的岸线
 const K := 2.0             # 基准放大倍率（1280×720 时）
 var ks := 2.0              # 实际倍率：按视口「覆盖」缩放，宽屏 / 高屏都不留边
 const WAVE_PERIOD := 7.5
-const FEET := Vector2(420, 313)          # 博士脚底（最前、最低）
-const GUEST_FEET := Vector2(474, 307)    # 地图固定人物（水月）：博士右侧稍后
-## 编队站位（博士身后，按脚底 y 从后往前画）与默认编队
-const SQUAD_FEET := [Vector2(528, 286), Vector2(362, 288), Vector2(580, 278)]
-const DEFAULT_SQUAD := ["wisadel", "siege", "skadi"]
-const BACK_TINT := Color(0.66, 0.74, 0.9)   # 后排干员压暗、偏冷，拉开前后层次
-const DOCTOR_TINT := Color(1.18, 1.22, 1.3)  # 博士衣服偏深，稍微提亮让 C 位站得出来
-const ENTER_AT := 1.1        # 第一名干员入场时刻（秒，开场动画时间轴）
-const ENTER_GAP := 0.22
-const ENTER_DUR := 0.5
+const FEET := Vector2(432, 311)          # 博士脚底
+const GUEST_FEET := Vector2(482, 305)    # 地图固定人物（水月）：博士右侧稍后
+const DOCTOR_TINT := Color(1.18, 1.22, 1.3)  # 博士衣服偏深，稍微提亮
 
 var t := 0.0
 var rng := RandomNumberGenerator.new()
 var tex_sky: ImageTexture
 var tex_sand: ImageTexture
 var doctor := {}            # {idle: Texture2D, fi: 帧数, fps}
-var squad: Array = []       # [{idle, fi, ifps, run, fr, rfps, feet, i}]
 var guest := {}             # 地图固定人物 {idle, fi, fps}
-var intro := 99.0           # 开场动画时间（title.gd 写入；99 = 已播完）
 var tex_light: Texture2D
 var stars: Array = []       # [pos, size, phase, speed, col]
 var crests: Array = []      # 远处发光浪尖 {y, x0, x1, life, max}
@@ -75,8 +65,8 @@ func _ready() -> void:
 		stars.append([p, 2 if big else 1, rng.randf() * TAU, rng.randf_range(0.6, 2.4), col])
 	for i in 40:
 		motes.append({"pos": Vector2(rng.randf_range(200, W), rng.randf_range(170, H)), "v": rng.randf_range(3, 9), "ph": rng.randf() * TAU})
-	for i in 9:
-		jellies.append(_new_jelly(rng.randf_range(HZ + 8, SHORE - 14)))
+	for i in 5:
+		jellies.append(_new_jelly(rng.randf_range(HZ + 8, SHORE - 24)))
 	_build_terrors()
 	tree = TitleTree.new()
 	tree.build(W, H, TREE_BASE, 205.0, 7)
@@ -150,7 +140,7 @@ func _step(dt: float) -> void:
 		j.pos.y -= push * 2.2 * dt
 		j.pos.x += sin(j.ph * 0.37) * 1.5 * dt
 		if j.pos.y < HZ + 6:
-			var nj := _new_jelly(SHORE - 12.0)
+			var nj := _new_jelly(SHORE - 24.0)
 			for k in nj:
 				j[k] = nj[k]
 	for m in motes:
@@ -224,8 +214,8 @@ func _draw() -> void:
 	order.sort_custom(func(a, b): return _wave_front(a) < _wave_front(b))
 	for i in order:
 		_draw_wave(i)
-	# 博士与编队（含倒影）
-	_draw_squad()
+	# 博士与水月（含倒影）
+	_draw_figures()
 	# 左侧压暗，保证菜单文字清晰
 	var scrim := PackedColorArray([Color(0.0, 0.01, 0.03, 0.72), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.72)])
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(300, 0), Vector2(300, H), Vector2(0, H)]), scrim)
@@ -272,19 +262,6 @@ func _load_figures() -> void:
 		var gs := _slot(_json("res://data/characters/%s.json" % gid).get("sprites", {}).get("idle"))
 		if not gs.is_empty():
 			guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps}
-	var ids: Array = Cfg.last_squad.duplicate() if not Cfg.last_squad.is_empty() else DEFAULT_SQUAD.duplicate()
-	for cid in ids:
-		if squad.size() >= SQUAD_FEET.size():
-			break
-		if cid == gid:
-			continue
-		var sp: Dictionary = _json("res://data/characters/%s.json" % cid).get("sprites", {})
-		var idle := _slot(sp.get("idle"))
-		if idle.is_empty():
-			continue
-		var run := _slot(sp.get("run"))
-		squad.append({"idle": idle.tex, "fi": idle.n, "ifps": idle.fps, "run": run.get("tex", idle.tex), "fr": run.get("n", idle.n),
-			"rfps": run.get("fps", 10.0), "feet": SQUAD_FEET[squad.size()], "i": squad.size()})
 
 
 ## 贴图槽：字符串或 {tex, frames, fps}
@@ -308,21 +285,8 @@ func _json(path: String) -> Dictionary:
 	return d if d is Dictionary else {}
 
 
-func _draw_squad() -> void:
-	# 按脚底 y 从后往前：编队在后、博士在最前
-	var order: Array = squad.duplicate()
-	order.sort_custom(func(a, b): return a.feet.y < b.feet.y)
-	for m in order:
-		var t0: float = ENTER_AT + m.i * ENTER_GAP
-		var k: float = clampf((intro - t0) / ENTER_DUR, 0.0, 1.0)
-		if k <= 0.0:
-			continue
-		if k < 1.0:
-			# 入场：从画面左侧方向跑到站位，边跑边显形
-			var e: float = 1.0 - pow(1.0 - k, 2.0)
-			_draw_figure(m.run, m.fr, m.rfps, m.feet + Vector2(-46.0 * (1.0 - e), 0), m.i * 0.3, 2, e, BACK_TINT)
-		else:
-			_draw_figure(m.idle, m.fi, m.ifps, m.feet, m.i * 0.37, 2, 1.0, BACK_TINT)
+func _draw_figures() -> void:
+	# 水月在后（先画），博士在前
 	if not guest.is_empty():
 		_draw_figure(guest.idle, guest.fi, guest.fps, GUEST_FEET, 0.2, 2)
 	if not doctor.is_empty():
@@ -453,7 +417,7 @@ func _draw_glow() -> void:
 
 
 func _new_jelly(y: float) -> Dictionary:
-	return {"pos": Vector2(rng.randf_range(150, W - 10), y), "r": rng.randf_range(4.5, 7.5), "ph": rng.randf() * TAU,
+	return {"pos": Vector2(rng.randf_range(230, 400), y), "r": rng.randf_range(4.5, 7.5), "ph": rng.randf() * TAU,
 		"spd": rng.randf_range(1.6, 2.6), "col": JELLY_COLS[rng.randi() % JELLY_COLS.size()]}
 
 
@@ -519,14 +483,14 @@ func _build_terrors() -> void:
 	var hw := 96.0
 	for x in range(int(cx - hw), int(cx + hw) + 1):
 		var u: float = (x - cx) / hw
-		var h: float = 34.0 * pow(maxf(0.0, 1.0 - u * u), 0.7) + 3.0 * sin(x * 0.21) + 2.0 * sin(x * 0.53)
+		var h: float = 26.0 * pow(maxf(0.0, 1.0 - u * u), 0.7) + 3.0 * sin(x * 0.21) + 2.0 * sin(x * 0.53)
 		var ph: float = fposmod(x - cx, 11.0)
 		h += 6.0 * maxf(0.0, 1.0 - absf(ph - 5.5) / 1.8) * (1.0 - absf(u)) * (0.6 + 0.4 * sin(x * 0.9))
 		_tvline(img, x, base_y - maxf(0.0, h), base_y)
 	# 冠：一圈从背上升起、向外张开的长触须（中间最高），末梢微卷
 	var crown := [
-		[-52.0, 30.0, -80.0, 58.0, 6.0], [-30.0, 36.0, -44.0, 82.0, 7.0], [-10.0, 38.0, -14.0, 96.0, 8.0],
-		[12.0, 38.0, 22.0, 92.0, 8.0], [32.0, 35.0, 52.0, 78.0, 7.0], [54.0, 29.0, 86.0, 54.0, 6.0],
+		[-52.0, 22.0, -76.0, 40.0, 5.0], [-30.0, 27.0, -42.0, 55.0, 6.0], [-10.0, 29.0, -13.0, 64.0, 7.0],
+		[12.0, 29.0, 21.0, 61.0, 7.0], [32.0, 26.0, 50.0, 52.0, 6.0], [54.0, 21.0, 82.0, 38.0, 5.0],
 	]
 	for c in crown:
 		var rx: float = cx + c[0]
@@ -538,13 +502,14 @@ func _build_terrors() -> void:
 		_tstroke(img, [root, mid, tip, curl], c[4], 1.0)
 	# 正面一排若隐若现的眼
 	for k in 5:
-		terror_eyes.append([Vector2(cx - 26 + k * 13 + (k % 2) * 2, base_y - 20 - (k % 2) * 3), k * 1.3, Color(1.0, 0.22, 0.3)])
+		terror_eyes.append([Vector2(cx - 26 + k * 13 + (k % 2) * 2, base_y - 15 - (k % 2) * 3), k * 1.3, Color(1.0, 0.22, 0.3)])
 	# 冠上两处发光器官
-	terror_eyes.append([Vector2(cx - 12, base_y - 70), 2.2, Color(0.7, 0.35, 1.0)])
-	terror_eyes.append([Vector2(cx + 20, base_y - 64), 3.6, Color(0.7, 0.35, 1.0)])
+	terror_eyes.append([Vector2(cx - 12, base_y - 48), 2.2, Color(0.7, 0.35, 1.0)])
+	terror_eyes.append([Vector2(cx + 20, base_y - 44), 3.6, Color(0.7, 0.35, 1.0)])
 	# 海平线上的海嗣群：小小的尖头剪影，高低错落
-	for i in 22:
-		var x := r2.randf_range(140, 480)
+	var packs := [170.0, 262.0, 452.0]
+	for i in 12:
+		var x: float = packs[i % 3] + r2.randf_range(-16.0, 16.0)
 		var hh := r2.randf_range(4.0, 10.0)
 		var ww := maxf(1.0, hh * 0.28)
 		for dx in range(int(-ww), int(ww) + 1):
@@ -561,8 +526,8 @@ func _build_terrors() -> void:
 ## 海嗣剪影的颜色：越贴近海平线越被紫色雾气冲淡
 func _tcol(y: float) -> Color:
 	var fog: float = clampf(1.0 - (HZ - y) / 110.0, 0.0, 1.0)
-	var c := Color(0.04, 0.032, 0.08).lerp(Color(0.14, 0.1, 0.26), fog * 0.55)
-	c.a = 0.62 + 0.38 * fog      # 越高越透，融进夜空
+	var c := Color(0.05, 0.04, 0.09).lerp(Color(0.15, 0.11, 0.27), fog * 0.6)
+	c.a = 0.45 + 0.45 * fog      # 越高越透，融进夜空
 	return c
 
 
