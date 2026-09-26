@@ -7,6 +7,8 @@
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
     python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
+    python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
+                                       只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
 
 每次快检把每局的完整输出写到 build/check/quick_<时间>/，失败时报告末尾列出失败项、原因和日志路径。
 新工作树没有导入缓存时会先自动导入（docs/36 §2.1）。
@@ -32,6 +34,108 @@ OUT_DIR = os.path.join(ROOT, "build", "check")
 
 def op_ids(game=GAME):
     return sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(game, "data", "characters", "*.json")))
+
+
+# ---------------------------------------------------------------- --auto：按改动文件选项目（docs/44 ②）
+
+# 只改这些字段的 JSON 算「纯文字改动」：说明 / 名字 / 台词，不影响玩法
+TEXT_KEYS = {"desc", "name", "en", "cn", "story", "lore", "flavor", "hint", "title", "note", "quote", "text", "tip", "subtitle"}
+# 干员范围之外、但改了就要跑全量的角色脚本（基类 / 编队 / 主控）
+SHARED_CHAR = {"character", "op_api", "squad", "doctor"}
+LEVELS = ["none", "text", "ops", "full"]
+
+
+def _git(*args):
+    r = subprocess.run(["git"] + list(args), cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    return r.stdout if r.returncode == 0 else ""
+
+
+def changed_files():
+    """相对 main 的改动：merge-base 到 HEAD 的提交 + 工作区未提交的改动 + 未跟踪的新文件。返回 (文件列表, merge-base)"""
+    base = _git("merge-base", "HEAD", "main").strip()
+    files = set()
+    if base and base != _git("rev-parse", "HEAD").strip():
+        files |= set(_git("diff", "--name-only", base, "HEAD").split())
+    files |= set(_git("diff", "--name-only", "HEAD").split())
+    files |= set(_git("ls-files", "--others", "--exclude-standard").split())
+    return sorted(f.replace("\\", "/") for f in files if f), base
+
+
+def _strip_text(o):
+    if isinstance(o, dict):
+        return {k: _strip_text(v) for k, v in o.items() if k not in TEXT_KEYS}
+    if isinstance(o, list):
+        return [_strip_text(v) for v in o]
+    return o
+
+
+def _json_text_only(path, base):
+    """这个 JSON 相对 base 是否只改了说明类字段"""
+    try:
+        old = json.loads(_git("show", "%s:%s" % (base or "HEAD", path)) or "null")
+        new = json.load(open(os.path.join(ROOT, path), encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return old is not None and _strip_text(old) == _strip_text(new)
+
+
+def plan_auto():
+    """按改动文件定档：none（不开 Godot）< text（+核心契约）< ops（+相关干员冒烟 / 成长节点 / 复现）< full（全量）。
+    返回 (档位, 相关干员集合, 理由列表)"""
+    files, base = changed_files()
+    if not files:
+        return "full", set(), ["相对 main 没有改动可比，跑全量"]
+    ids = set(op_ids())
+    level, ops, why = "none", set(), []
+
+    def bump(lv, reason):
+        nonlocal level
+        if LEVELS.index(lv) > LEVELS.index(level):
+            level = lv
+        why.append("%s → %s" % (reason, lv))
+
+    for p in files:
+        name = os.path.basename(p)
+        stem = name.split(".")[0]
+        if p.startswith("docs/") or p.endswith(".md") or p.endswith((".uid", ".import")):
+            bump("none", p)
+        elif p.startswith("art/incoming/") and ("preview" in name or name.endswith((".json", ".html", ".txt"))):
+            bump("none", p)
+        elif p.startswith("art/incoming/op_") and name.endswith(".png"):
+            hit = max((o for o in ids if name.startswith("op_" + o + "_") or name.startswith("op_" + o + "@")), key=len, default=None)
+            if hit:
+                ops.add(hit)
+                bump("ops", p)
+            else:
+                bump("text", p)   # 召唤物等附属帧条（如 op_mon3tr_*）：只影响画面，核心契约即可
+        elif p.startswith("game/data/") and name.endswith(".json"):
+            if os.path.exists(os.path.join(ROOT, p)) and _json_text_only(p, base):
+                bump("text", p + "（只改说明字段）")
+            elif p.startswith("game/data/characters/") and stem in ids:
+                ops.add(stem)
+                bump("ops", p)
+            else:
+                bump("full", p)
+        elif p.startswith("game/scripts/characters/") and name.endswith(".gd"):
+            if stem in ids and stem not in SHARED_CHAR:
+                ops.add(stem)
+                bump("ops", p)
+            else:
+                bump("full", p)
+        else:
+            bump("full", p)
+    return level, ops, why
+
+
+def check_static():
+    """不开 Godot 的检查：game/data 下所有 JSON 能解析"""
+    bad = []
+    for p in glob.glob(os.path.join(GAME, "data", "**", "*.json"), recursive=True):
+        try:
+            json.load(open(p, encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            bad.append("%s：%s" % (os.path.relpath(p, ROOT), str(e)[:120]))
+    return {"name": "数据 JSON 解析", "ok": not bad, "detail": "game/data 全部可解析" if not bad else "%d 个文件解析失败" % len(bad), "errors": bad[:5]}
 
 
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
@@ -120,9 +224,10 @@ def run_case(godot, name, extra, timeout=300):
     return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d, "log": log}
 
 
-def check_nodes(godot):
-    """成长节点当场生效（tests/node_test.tscn）：每名干员逐个应用 6 个节点，每个节点选下的那一刻必须有东西变化"""
-    ids = op_ids()
+def check_nodes(godot, only=None):
+    """成长节点当场生效（tests/node_test.tscn）：每名干员逐个应用 6 个节点，每个节点选下的那一刻必须有东西变化。
+    only：只测这些干员（--auto 按改动选）"""
+    ids = [o for o in op_ids() if only is None or o in only]
 
     def one(op):
         out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/node_test.tscn", "--", "--balance", "--seed=1", "--op=" + op], 300, "nodes_" + op)
@@ -263,6 +368,8 @@ def main():
     ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro"], help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
+    ap.add_argument("--auto", action="store_true",
+                    help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
     a = ap.parse_args()
     global JOBS, LOG_DIR
     JOBS = max(1, a.jobs)
@@ -276,17 +383,35 @@ def main():
     os.makedirs(LOG_DIR, exist_ok=True)
     load0 = GR.count_godot()
     print("快检：本次最多 %d 个 Godot 并行（全机上限 %d，开始时全机已有 %d 个）；日志 %s" % (JOBS, GR.MAX_PROCS, load0, LOG_DIR), flush=True)
-    jobs = []
-    if a.only in (None, "core"):
-        jobs.append(lambda: check_core(godot))
-    if a.only in (None, "smoke"):
-        jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
-    if a.only in (None, "nodes"):
-        jobs.append(lambda: check_nodes(godot))
-    if a.only in (None, "prot"):
-        jobs.append(lambda: check_prot(godot))
-    if a.only in (None, "repro"):
-        jobs.append(lambda: check_repro(godot))
+    jobs = [check_static]
+    if a.auto and not a.only:
+        level, ops, why = plan_auto()
+        print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
+        for w in why[:12]:
+            print("    " + w, flush=True)
+        if len(why) > 12:
+            print("    …… 另 %d 个文件" % (len(why) - 12), flush=True)
+        if level != "full":
+            print("    注意：分级只用于改的过程中；快进合入 main 前仍要跑全量（不带 --auto）", flush=True)
+        if level in ("text", "ops"):
+            jobs.append(lambda: check_core(godot))
+        if level == "ops":
+            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
+            jobs.append(lambda: check_nodes(godot, ops))
+            jobs.append(lambda: check_repro(godot))
+        if level == "full":
+            a.auto = False
+    if not a.auto:
+        if a.only in (None, "core"):
+            jobs.append(lambda: check_core(godot))
+        if a.only in (None, "smoke"):
+            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
+        if a.only in (None, "nodes"):
+            jobs.append(lambda: check_nodes(godot))
+        if a.only in (None, "prot"):
+            jobs.append(lambda: check_prot(godot))
+        if a.only in (None, "repro"):
+            jobs.append(lambda: check_repro(godot))
     with ThreadPoolExecutor(JOBS) as ex:
         results = list(ex.map(lambda f: f(), jobs))
     bad = [r for r in results if not r["ok"]]
