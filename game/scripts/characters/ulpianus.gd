@@ -8,7 +8,7 @@
 ## 掷出 → 咬地（顿帧、蓝色水花）→ 人沿锁链弹射（残影 + 速度线）→ 落地砸击。
 ## 可见成长（docs/25 §5.2）：N1 定点爆破：锚击 0.2 秒后第二道冲击环；N2 锁链回旋：每第 3 击锁链甩一整圈；
 ## N4 不容挣脱：必须接触落地时用锁链拽来 3 名敌人；N5 通路洞开：必须开辟从起点到锚点裂开一道通路，掀飞沿途敌人；
-## 精二「血脉沸腾」：身上常亮血脉红纹，击杀精英后下一次锚击变为大爆破（红纹脉动提示）。
+## 精二「血脉沸腾」：身上一圈淡红轮廓发光（2026-09-26 用户定，替换原来的血脉红纹），击杀精英后下一次锚击变为大爆破（发光加亮、加快脉动提示）。
 extends "res://scripts/characters/character.gd"
 
 const STEEL := Color(0.55, 0.75, 0.95)
@@ -34,6 +34,7 @@ var drag_on := false          # N4 不容挣脱
 var rift_on := false          # N5 通路洞开
 var blood_on := false         # 精二 血脉沸腾
 var blood_ready := false      # 已击杀精英：下一次锚击大爆破
+var sil := {}                 # 贴图 → 白色剪影（血脉轮廓发光用）
 var slam_n := 0               # 锚击计数（每第 3 击锁链回旋）
 var delayed: Array = []       # 延时冲击 {t, c}
 var launched: Array = []      # 通路洞开掀飞的敌人 {e, t, dur, h}
@@ -507,33 +508,6 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	return false
 
 
-## 精二 血脉沸腾：身上常亮的血脉红纹（躯干几道分叉红线，缓慢呼吸）；大爆破就绪时脉动加快、加亮并带一圈红光
-func _draw_veins() -> void:
-	var ready: bool = blood_ready
-	var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if ready else 2.5))
-	var al: float = (0.55 + 0.45 * pul) if ready else (0.35 + 0.25 * pul)
-	var c := Color(BLOOD.r * 1.8, BLOOD.g * 1.4, BLOOD.b * 1.4, al)
-	var o: Vector2 = pos + Vector2(0, -44)
-	var sx: float = face
-	var veins := [
-		[Vector2(0, 0), Vector2(-3, 8), Vector2(-7, 14), Vector2(-9, 22)],
-		[Vector2(0, 0), Vector2(4, 7), Vector2(6, 15), Vector2(10, 20)],
-		[Vector2(0, 0), Vector2(2, -6), Vector2(-2, -12), Vector2(1, -17)],
-		[Vector2(-3, 8), Vector2(-10, 6), Vector2(-14, 9)],
-		[Vector2(4, 7), Vector2(11, 3), Vector2(15, 5)],
-	]
-	for v in veins:
-		var pts := PackedVector2Array()
-		for q in v:
-			pts.append(o + Vector2(q.x * sx, q.y))
-		g.draw_polyline(pts, Color(0.2, 0.0, 0.02, al * 0.6), 3.0)
-		g.draw_polyline(pts, c, 1.5)
-	g.draw_circle(o, 3.0 + pul, Color(BLOOD.r * 2.0, BLOOD.g * 1.5, BLOOD.b * 1.5, al))
-	if ready:
-		g.draw_arc(pos + Vector2(0, -34), 28.0 + 4.0 * pul, 0.0, TAU, 32, Color(BLOOD.r * 1.6, BLOOD.g, BLOOD.b, 0.5 * pul + 0.2), 2.5)
-		g.draw_circle(pos + Vector2(0, -34), 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, 0.08 + 0.08 * pul))
-
-
 ## 脚下：精二常驻的淡红血脉光环（就绪时更亮）
 func draw_auras() -> void:
 	if not blood_on or pos == Vector2.INF:
@@ -545,9 +519,29 @@ func draw_auras() -> void:
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-func _draw_skill_over() -> void:
+## 精二 血脉沸腾：淡红轮廓发光——当前帧贴图向 8 个方向各偏移 2 像素、染淡红先画一圈，本体盖在上面只露出外缘一圈红光；
+## 外面再叠一层偏移 4 像素的更淡红晕。缓慢呼吸；大爆破就绪时更亮、脉动更快
+func draw_body() -> void:
 	if blood_on and pos != Vector2.INF:
-		_draw_veins()
+		var st := anim_state()
+		if not st.is_empty():
+			var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if blood_ready else 2.5))
+			var al: float = (0.55 + 0.35 * pul) if blood_ready else (0.3 + 0.2 * pul)
+			var fo: float = foot_off(st.tex, st.get("kind", ""))
+			# 白色剪影（同敌人描边的做法，A.white_of），按贴图缓存；染淡红后画成一圈轮廓
+			var wt: Texture2D = sil.get(st.tex)
+			if wt == null:
+				wt = A.white_of(st.tex)
+				sil[st.tex] = wt
+			for ring in [[4.0, 0.3], [2.0, 0.9]]:
+				var c := Color(1.0, 0.45, 0.5, al * ring[1])
+				for i in 8:
+					var off: Vector2 = Vector2.from_angle(i * TAU / 8.0) * ring[0]
+					g._draw_sprite_at(pos + off, st.flip, c, st.frame, wt, st.hf, fo)
+	super()
+
+
+func _draw_skill_over() -> void:
 	if anchor.is_empty():
 		return
 	var k: float = clampf(anchor.t / anchor.dur, 0.0, 1.0)
