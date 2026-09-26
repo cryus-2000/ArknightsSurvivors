@@ -188,6 +188,18 @@ var winshot := false
 var touchtest_p0 := Vector2.ZERO
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var stinger_done := false
+var music_lv := 0               # 战斗配乐强度：0 平静 / 1 交战（打击乐）/ 2 激战（全奏），docs/21 v2.0
+var music_hold := 0.0           # 降一档之前还要保持的秒数
+var music_calm := 0.0           # Boss 倒下后的喘息（秒）：只要局面不到激战，就压回平静层
+var music_boss := false
+var music_hp_avg := -1.0        # 生命的 4 秒指数均值：当前生命比它低多少 = 近几秒的净掉血（治疗抵掉的不算）
+var music_t := 0.0              # 上次更新时的局内时间：各计时按局内时间走（暂停 / 选卡时不动，平衡批跑加速时也对）
+var music_horde := 0.0          # 大群来袭后维持激战的秒数
+var music_hot := 0.0            # 分数连续够「激战」的秒数（一闪而过的尖峰不升档）
+var music_danger := false
+var music_log: bool = OS.get_cmdline_user_args().has("--musiclog")   # 打印配乐状态切换（调强度阈值用）
+var music_log_key := ""
+var music_log_tick := -1
 var next_horde := 75.0
 var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
 var show_queue: Array = []   # 解锁演出队列
@@ -604,7 +616,7 @@ func _update_music(_dt: float) -> void:
 		target = 1800.0
 	Sfx.cut_target = target
 	Sfx.vol_target = -4.0
-	# ---- 选曲与战斗分层（v0.9 配乐）
+	# ---- 选曲与战斗分层（v2.0 配乐，docs/21）
 	if state == S.DEAD or state == S.WIN:
 		if not stinger_done:
 			stinger_done = true
@@ -619,23 +631,96 @@ func _update_music(_dt: float) -> void:
 		return
 	if final_boss != null and not final_boss.dead:
 		Sfx.play_music("final")
+		Sfx.set_final_phase(final_boss.hp < final_boss.maxhp * 0.5)
+		music_boss = true
+		_music_log("final")
 		return
 	if _boss_alive():
 		Sfx.play_music("boss")
+		music_boss = true
+		_music_log("boss")
 		return
-	# 战斗曲三段：按威胁等级推进（0–1 开局 / 2–3 中期 / 4+ 后期）
-	Sfx.play_music("explore" if threat < 2 else ("explore2" if threat < 4 else "explore3"))
-	var n := enemies.size()
+	if music_boss:
+		music_boss = false
+		music_calm = 12.0
+		music_lv = 0
+		music_horde = 0.0
+	# 战斗曲三段：按威胁等级推进（0–1 开局 / 2–3 中期 / 4+ 后期），换段落在小节线上
+	var sec := "battle1" if threat < 2 else ("battle2" if threat < 4 else "battle3")
+	Sfx.play_music(sec)
+	var dt := clampf(t - music_t, 0.0, 1.0)
+	music_t = t
+	# 强度打分：一屏内的敌人密度（门槛随时间提高）+ 精英 + 大群 + 缩圈 + 近几秒掉血；技能不再算（几乎一直有技能在放）
+	var near := 0
 	var elite := false
 	for e in enemies:
-		if e.elite and not e.dead and not e.chest:
+		if e.dead or e.chest:
+			continue
+		if e.elite:
 			elite = true
-			break
-	var pulse := t > 12.0 or n > 30
-	var drive = n > 110 + int(t / 3.0) or horde_warn > 0.0 or horde_hit > 0.0 or elite or squad.any_skill_active() or zone_state == 2
+		if e.pos.distance_squared_to(ppos) < 640000.0:
+			near += 1
+	if music_hp_avg < 0.0:
+		music_hp_avg = hp
+	music_hp_avg += (hp - music_hp_avg) * minf(1.0, dt / 4.0)
+	var hurt := (music_hp_avg - hp) / maxf(max_hp, 1.0)
+	if horde_warn > 0.0 or horde_hit > 0.0:
+		music_horde = 15.0
+	music_horde = maxf(0.0, music_horde - dt)
+	# 正常密度（机器人实测 800 像素内敌人数，中位到上四分位之间，docs/21 标定记录）≈ 55 + 0.25·t；比它多出来的部分才加分
+	var score := maxf(0.0, float(near) / (55.0 + 0.25 * t) - 1.0)
+	if elite:
+		score += 0.45
+	if music_horde > 0.0:
+		score += 1.0
+	if zone_state == 2:
+		score += 0.45
+	if hurt > 0.12:
+		score += 0.5
+	if threat >= 4:
+		score += 0.15
+	var lv := 2 if score >= 1.15 else (1 if score >= 0.35 or t > 20.0 else 0)
+	music_hot = music_hot + dt if lv == 2 else 0.0
+	if lv == 2 and music_lv < 2 and music_hot < 1.5:
+		lv = 1
+	music_calm = maxf(0.0, music_calm - dt)
+	if music_calm > 0.0 and lv < 2:
+		lv = 0
+	# 升档马上（落在下一个小节线；激战要连续 1.5 秒够格），降档要这一档连续 12 秒不够格
+	if lv >= music_lv:
+		music_lv = lv
+		music_hold = 12.0
+	else:
+		music_hold -= dt
+		if music_hold <= 0.0:
+			music_lv -= 1
+			music_hold = 8.0
 	var out_zone := zone_state != 0 and ppos.distance_to(zone_c) > zone_r
-	var danger := hp < max_hp * 0.35 or lamp <= 0.0 or out_zone
-	Sfx.set_layers([1.0, 1.0 if pulse else 0.0, 1.0 if drive else 0.0, 1.0 if danger else 0.0])
+	music_danger = hp < max_hp * (0.42 if music_danger else 0.35) or lamp <= 0.0 or out_zone
+	Sfx.set_battle(music_lv, music_danger)
+	_music_log("%s lv%d%s score=%.2f near=%d" % [sec, music_lv, " danger" if music_danger else "", score, near])
+
+
+## --musiclog：配乐状态变化时打印一行（只比较曲目 / 档位 / 危险，分数随附）；另外每 5 秒采样一行（MUSICS）
+func _music_log(s: String) -> void:
+	if not music_log:
+		return
+	var key := s.get_slice(" score", 0)
+	if key != music_log_key:
+		music_log_key = key
+		print("MUSIC t=%.1f %s" % [t, s])
+	if int(t / 5.0) != music_log_tick:
+		music_log_tick = int(t / 5.0)
+		var close := 0
+		var elite := 0
+		for e in enemies:
+			if not e.dead and not e.chest:
+				if e.pos.distance_squared_to(ppos) < 90000.0:
+					close += 1
+				if e.elite:
+					elite += 1
+		print("MUSICS t=%.0f n=%d close=%d elite=%d horde=%.0f zone=%d hurt=%.2f threat=%d hp=%.2f | %s" % [
+			t, enemies.size(), close, elite, music_horde, zone_state, (music_hp_avg - hp) / maxf(max_hp, 1.0), threat, hp / maxf(max_hp, 1.0), s])
 
 
 ## 平衡机器人选卡（docs/27 §6）：像一个「懂玩」的玩家——优先干员深度 / 技能卡，早期见招募就招，
