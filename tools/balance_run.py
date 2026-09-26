@@ -453,6 +453,51 @@ def final_boss_summary(records):
     return "\n".join(lines)
 
 
+ZONE_STATE_NAMES = {0: "未缩圈", 1: "预告", 2: "收缩", 3: "稳定"}
+
+
+def difficulty_summary(records):
+    """难度 / 缩圈 A/B 用的三张表（2026-09-27，记录里有 bot.end / bot.peak 才输出）：
+    ① 前 3 分钟：承伤（曲线 t ≤ 180 的窗口合计）与 3:00 前死亡率；② 死因 × 缩圈阶段 × 圈外 × Boss 在场（只计失败的局）；
+    ③ 同屏数量峰值（敌人 / 敌方弹幕 / 我方子弹 / 特效 / 飘字）：全程与 8:00–10:00"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if d and "end" in d.get("bot", {}):
+            by.setdefault((r.get("bot", "normal"), r.get("diff", 0)), []).append(d)
+    if not by:
+        return ""
+    out = ["#### 前 3 分钟", "", "| 机器人 | 难度 | 局数 | 3:00 前死亡 | 前 3 分钟承伤 均 / 中 | 3:00 时生命 |", "|---|---|---|---|---|---|"]
+    for (bot, df), ds in sorted(by.items()):
+        early = [sum(c.get("taken", 0) for c in d["bot"].get("curve", []) if 0 < c.get("t", 0) <= 180) for d in ds]
+        hp3 = [c["hp"] for d in ds for c in d["bot"].get("curve", []) if c.get("t") == 180]
+        out.append("| %s | %d | %d | %d%% | %.0f / %.0f | %s |" % (bot, df, len(ds), 100 * sum(1 for d in ds if not d.get("win") and d["t"] < 180) / len(ds),
+                   statistics.mean(early), statistics.median(early), ("%.0f%%" % statistics.mean(hp3)) if hp3 else "-"))
+    out += ["", "#### 死因 × 缩圈阶段 × Boss 在场（失败的局）", "", "| 机器人 | 难度 | 死因 | 缩圈（第几轮 · 阶段） | 圈外 | Boss 在场 | 局数 | 平均死亡时间 |", "|---|---|---|---|---|---|---|---|"]
+    for (bot, df), ds in sorted(by.items()):
+        cnt = {}
+        for d in ds:
+            if d.get("win"):
+                continue
+            e = d["bot"]["end"]
+            zs = ZONE_STATE_NAMES.get(e["zone_state"], "?") if e["zone_state"] == 0 else "第 %d 轮 · %s" % (e["zone_phase"] + 1, ZONE_STATE_NAMES.get(e["zone_state"], "?"))
+            k = (e.get("src") or "?", zs, "是" if e.get("zone_out") else "否", "是" if e.get("boss") else "否")
+            cnt.setdefault(k, []).append(e["t"])
+        for k, ts in sorted(cnt.items(), key=lambda kv: -len(kv[1])):
+            out.append("| %s | %d | %s | %s | %s | %s | %d | %s |" % ((bot, df) + k + (len(ts), fmt_t(statistics.mean(ts)))))
+        if not cnt:
+            out.append("| %s | %d | （全部胜利） | | | | 0 | |" % (bot, df))
+    names = ["敌人", "敌方弹幕（含抛射）", "我方子弹", "特效", "飘字"]
+    out += ["", "#### 同屏数量峰值（每局峰值的 平均 / 最大）", "", "| 机器人 | 难度 | 局数 | 范围 | " + " | ".join(names) + " |", "|---|---|---|---|" + "---|" * len(names)]
+    for (bot, df), ds in sorted(by.items()):
+        for label, pk in (("全程", lambda d: d["bot"].get("peak")),
+                          ("8:00–10:00", lambda d: [max(m[i] for m in d["bot"]["peak_min"][8:10]) for i in range(5)] if len(d["bot"].get("peak_min", [])) > 8 else None)):
+            ps = [p for p in map(pk, ds) if p]
+            if ps:
+                out.append("| %s | %d | %d | %s | %s |" % (bot, df, len(ps), label, " | ".join("%.0f / %d" % (statistics.mean(p[i] for p in ps), max(p[i] for p in ps)) for i in range(5))))
+    return "\n".join(out)
+
+
 def table(rows):
     lines = ["| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -532,6 +577,9 @@ def main():
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
+    ds = difficulty_summary(records)
+    if ds:
+        md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
     fb = final_boss_summary(records)
     if fb:
         md = "### 最终 Boss（按类型；上面的「终局」列是四种混算）\n\n" + fb + "\n\n" + md
