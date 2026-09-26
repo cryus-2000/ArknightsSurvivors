@@ -1,7 +1,7 @@
 ## 归溟幽灵鲨（特种·傀儡师，契约 v2.1，docs/26 第二批）：危机爆发 + 低灯火。贴身 360° 环斩，博士越危险她越狠。
-## S1 求生之技：8 秒攻击 +（40% + 博士已损失生命%）；
-## S2 求生之渴：10 秒攻速 +60%、攻击 +40%，期间博士生命不会低于 1；结束时本体倒下，原地留下替身 12 秒后归队；
-## S3 求生之压：12 秒环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命 <50% 的敌人再 ×1.5。
+## S1 求生之技：8 秒攻击 +（40% + 主控已损失生命%）；银蓝锯环 + 周身红色兽性气焰（与 S3 血锯区分）；
+## S2 求生之渴（自动，2026-09-26 用户定）：10 秒攻速 +60%、攻击 +40%，期间主控生命不会低于 1；结束时本体倒下，替身跟随主控 12 秒后归队；
+## S3 求生之压：12 秒环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命 <50% 的敌人再 ×1.5；血红锯环 + 每斩地裂与顿帧。
 ## 天赋 拥抱自我：替身每秒对周围 120 内敌人法伤并减速；灯火 <30「昏暗」时她的伤害 +25%。
 ## 博士不死通过 prevent_death() 供 game.gd 询问（同 dmg_taken_mult 模式）；替身是不动的附属实体（extra_bodies）。
 ## 可见成长（docs/25 §5）：N1 双重回转 / N2 血色潮痕 / N4 困兽 / N5 阿戈尔挽歌 / 精二质变 无尽回旋。
@@ -103,6 +103,8 @@ func update(dt: float) -> void:
 			_fall()
 	_update_doll(dt)
 	_update_rings(dt)
+	if s1_t > 0.0 and not away() and g.rng.randf() < dt * 14.0:
+		fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-16, 16), g.rng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_update_spins(dt)
 	if away() or acting():
 		return
@@ -191,7 +193,7 @@ func _spin(dmg: float, kind: int) -> void:
 		_hit_fx(e, pos)
 	# 锯环（2026-09-25，替换斩击环帧条：她用的是长柄圆锯，不是刀）：锯盘绕身一圈的轨迹画成高速旋转的锯齿圆环，
 	# 贴地压扁；锯过的敌人沿切线甩出火星。S3 求生之压：血红、齿更大
-	var heavy: bool = s3_t > 0.0 or _beast_on()
+	var heavy: bool = s3_t > 0.0   # 血锯只属于 S3；困兽（S1）保持银蓝锯环，靠周身红焰区分
 	# 第二圈反向旋转（锯环镜像）；持续段交替方向
 	var rev: bool = (face < 0.0) != (kind == 1)
 	if kind == 2:
@@ -210,6 +212,10 @@ func _spin(dmg: float, kind: int) -> void:
 		for k in (3 if kind == 0 else 1):
 			fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": Vector2.from_angle(ea + g.rng.randf_range(-0.35, 0.35)) * g.rng.randf_range(160, 300),
 				"life": 0.22, "col": Color(1.4, 1.55, 1.75) if not heavy else Color(1.6, 0.5, 0.55), "sz": 2.0, "drag": 3.0})
+	# 求生之压：每一斩脚下砸出地裂 + 短顿帧（慢而重）
+	if s3_t > 0.0 and kind == 0:
+		fx({"kind": "crack", "pos": pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": RED, "floor": true, "n": 7})
+		g.hitstop = maxf(g.hitstop, 0.05)
 	# 求生之压期间：更响、更低沉；第二圈更轻，持续段不再逐段出声
 	if kind == 0:
 		Sfx.op(id, "atk", 4.0 if s3_t > 0.0 else 0.0, 0.8 if s3_t > 0.0 else 1.0, 0.06)
@@ -218,7 +224,7 @@ func _spin(dmg: float, kind: int) -> void:
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
-	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.15, "col": RED if (s3_t > 0.0 or _beast_on()) else GHOST, "alpha": 0.5})
+	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.15, "col": RED if s3_t > 0.0 else GHOST, "alpha": 0.5})
 
 
 # ---------------------------------------------------------------- 技能
@@ -230,7 +236,7 @@ func _release_skill() -> void:
 			g._add_text(pos + Vector2(0, -60), "求生之技", GHOST, 15)
 		1:
 			s2_t = base("s2_dur", 10.0)
-			g._show_banner("求生之渴：博士暂不会倒下")
+			g._show_banner("求生之渴：主控暂不会倒下")
 		2:
 			s3_t = base("s3_dur", 12.0)
 			g._show_banner("求生之压")
@@ -251,12 +257,12 @@ func skill_active_dur(i: int) -> float:
 	return [base("s1_dur", 8.0), base("s2_dur", 10.0), base("s3_dur", 12.0)][i]
 
 
-## game.gd 询问：S2 期间博士不会倒下
+## game.gd 询问：S2 期间主控不会倒下
 func prevent_death() -> bool:
 	return s2_t > 0.0
 
 
-## S2 结束：倒下，原地留下替身
+## S2 结束：倒下，留下替身（替身跟随主控干员，_update_doll）
 func _fall() -> void:
 	doll_pos = pos
 	doll_t = base("doll_dur", 12.0)
@@ -273,6 +279,9 @@ func _update_doll(dt: float) -> void:
 		return
 	doll_t -= dt
 	doll_at += dt
+	# 替身跟随主控干员（用户定：不原地停留），站在主控身后一侧
+	var want: Vector2 = g.ppos + Vector2(-46.0 * g.facing, 8.0)
+	doll_pos = doll_pos.lerp(want, clampf(dt * 4.0, 0.0, 1.0))
 	# N5 阿戈尔挽歌：替身唱挽歌，每 0.8 秒一圈水纹从脚下外扩到减速范围边缘
 	if elegy:
 		elegy_t -= dt
@@ -379,8 +388,17 @@ func draw_entities_floor() -> void:
 
 
 func draw_auras() -> void:
+	if pos != Vector2.INF and not away() and s1_t > 0.0:
+		# 求生之技：周身红色兽性气焰（一圈跳动的红色火舌）+ 身体红光，锯环仍是银蓝
+		var hk: float = 0.5 + 0.5 * sin(g.t * 9.0)
+		g.draw_circle(pos + Vector2(0, -22), 22.0 + 3.0 * hk, Color(1.0, 0.1, 0.15, 0.16))
+		for q in 7:
+			var an: float = q * TAU / 7.0 + g.t * 2.0
+			var bp: Vector2 = pos + Vector2(cos(an) * 16.0, -6.0 + sin(an) * 7.0)
+			var h: float = 14.0 + 6.0 * sin(g.t * 13.0 + q * 2.1)
+			g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-4, 0), bp + Vector2(sin(g.t * 20.0 + q) * 2.0, -h), bp + Vector2(4, 0)]), Color(1.5, 0.2, 0.25, 0.55))
 	if pos != Vector2.INF and not away() and (s1_t > 0.0 or s2_t > 0.0 or s3_t > 0.0):
-		var c: Color = RED if (s3_t > 0.0 or _beast_on()) else GHOST
+		var c: Color = RED if s3_t > 0.0 else GHOST
 		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		g.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(c.r, c.g, c.b, 0.25 + 0.1 * sin(g.t * 6.0)), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -397,7 +415,7 @@ func _draw_skill_over() -> void:
 	if whirl_t > 0.0:
 		var r: float = _reach() * 0.92
 		var fade: float = clampf(whirl_t / 0.2, 0.0, 1.0)
-		var heavy: bool = s3_t > 0.0 or _beast_on() or g.lamp < 30.0
+		var heavy: bool = s3_t > 0.0 or g.lamp < 30.0
 		var c: Color = Color(1.5, 0.45, 0.5) if heavy else Color(1.2, 1.35, 1.6)
 		g.draw_set_transform(pos + Vector2(0, -8), 0.0, Vector2(1.0, 0.55))
 		for q in 2:
