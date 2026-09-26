@@ -275,7 +275,9 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		e.pose = w.dur + 0.3
 		e.pose_max = w.dur + 0.3
 	if w.name != "":
-		g.vfx.add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
+		# 招式名进 Boss 血条的副标题行，不再头顶浮字（docs/38 §1.15，hud.gd 读 move_name / move_t）
+		e["move_name"] = w.name
+		e["move_t"] = g.t
 		Sfx.play("skill", -12.0, 1.4)
 	return w
 

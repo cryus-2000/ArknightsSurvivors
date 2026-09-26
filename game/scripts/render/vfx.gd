@@ -3,6 +3,7 @@ extends RefCounted
 ## 加色混合层（fx_add 节点）的绘制；特效与各种提示计时的逐帧衰减。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
 const A = preload("res://scripts/art.gd")
+const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -95,6 +96,52 @@ const TEXT_CAP := 48
 const TEXT_MERGE_R := 28.0
 const TEXT_MERGE_T := 0.25
 
+## 伤害数字（combat.damage 调用，docs/38 §1.15）：
+## - 对 Boss：每 0.3 秒合并成一个数字（BOSS_SUM_T），暴击 / 弱点单独照常飘；
+## - Boss 战期间，普通怪只飘暴击数字，普通伤害和弱点不飘（满屏数字会淹没招式名和预警）
+const BOSS_SUM_T := 0.3
+var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内容会变，不能当键）
+
+func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
+	if not Cfg.dmg_numbers or g.texts.size() >= 80:
+		return
+	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
+	if crit:
+		add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
+		return
+	if e.boss:
+		for s in _boss_sum:
+			if is_same(s.e, e):
+				s.dmg += dmg
+				s.weak = s.weak or weak
+				return
+		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak})
+		return
+	if _boss_fight():
+		return
+	if weak:
+		add_text(e.pos + jit + Vector2(0, -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
+	else:
+		add_text(e.pos + jit + Vector2(0, -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+
+
+## 无敌时的提示（combat.damage 的 invuln 分支）：伊祖米克学习期飘「学习中」，其余无敌不飘（§1.15 删掉「无效」）
+func immune_text(e: Dictionary) -> void:
+	if e.get("type", "") == "izumik" and e.get("phase", 0) == 1 and g.texts.size() < 80 and g.vrng.randf() < 0.15:
+		add_text(e.pos + Vector2(0, -e.r - 10), "学习中", Color(0.6, 0.85, 0.9), 13)
+
+
+func _flush_boss_sum(dt: float) -> void:
+	for s in _boss_sum:
+		s.t -= dt
+		if s.t > 0.0:
+			continue
+		var e: Dictionary = s.e
+		if s.dmg >= 1.0:
+			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
+	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
+
+
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	if text.is_valid_int():
 		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
@@ -131,6 +178,7 @@ func update(dt: float) -> void:
 		f.life -= dt
 		f.pos.y -= 30.0 * dt
 	_update_banner_queue(dt)
+	_flush_boss_sum(dt)
 
 
 ## 横幅队列（EA 1.1，docs/38 B0 第 8 条的横幅部分，Boss与怪物同意由界面接手）：

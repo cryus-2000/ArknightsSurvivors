@@ -318,9 +318,33 @@ func draw() -> void:
 		var bbr := Rect2(bx - 12, 100, bw + 24, 46)
 		g.hud.draw_rect(bbr, Color(0.03, 0.035, 0.045, 0.8))
 		g.hud.draw_rect(Rect2(bbr.position, Vector2(bbr.size.x, 1)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.7))
-		UI.strip(g.hud, g.font, Vector2(bx, 106), "BOSS", shown.name, UI.RED, Color(1, 0.82, 0.88), 12)
+		var sw: float = UI.strip(g.hud, g.font, Vector2(bx, 106), "BOSS", shown.name, UI.RED, Color(1, 0.82, 0.88), 12)
+		# 名字旁的形态小圆点（§1.15）：总幕数 = 剩余刻度 + 已过刻度 + 1，亮的是还没打完的幕（含当前这一幕）
+		var gl: Array = shown.get("gates", [])
+		var gp: int = int(shown.get("gates_passed", 0))
+		var acts: int = gl.size() + gp + 1
+		if acts > 1:
+			for q in acts:
+				var dc := Vector2(bx + sw + 10.0 + q * 11.0, 116.0)
+				if q >= gp:
+					g.hud.draw_circle(dc, 3.5, UI.RED)
+				else:
+					g.hud.draw_arc(dc, 3.5, 0.0, TAU, 12, Color(1, 1, 1, 0.3), 1.0)
+		var brk: float = shown.get("break_t", 0.0)
+		var hold: bool = shown.get("gate_hold", false)
 		var sub := ""
-		if shown.type == "izumik":
+		var sub_col := UI.SUB
+		var mv_name: String = shown.get("move_name", "")
+		if brk > 0.0:
+			sub = "破绽 %.1f 秒 · 受到伤害提高" % brk
+			sub_col = UI.GOLD
+		elif hold:
+			sub = "阶段护盾 · 撑过这一幕"
+			sub_col = UI.GOLD
+		elif mv_name != "" and g.t - float(shown.get("move_t", -99.0)) < MOVE_NAME_T:
+			sub = mv_name   # 招式名进副标题行，不再头顶浮字（§1.15）
+			sub_col = Color(1, 0.82, 0.88)
+		elif shown.type == "izumik":
 			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
 		elif shown.type == "ishar":
 			sub = "转化进度 %d%%（清除伊莎玛拉之泪）" % int(shown.charge) if shown.phase == 1 else "已完成转化"
@@ -332,10 +356,33 @@ func draw() -> void:
 			sub = "两体需同时击倒"
 		elif shown.type == "paranoia":
 			sub = "悬浮形态（控制它以击落）" if shown.phase == 1 else "第二形态"
-		UI.text(g.hud, g.font, Vector2(bx + bw - 400, 122), sub, 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 400)
-		UI.gbar(g.hud, Rect2(bx, 131, bw, 6), shown.hp / shown.maxhp, Color(0.45, 0.6, 0.7) if shown.invuln else UI.RED, 20)
+		UI.text(g.hud, g.font, Vector2(bx + bw - 400, 122), sub, 12, sub_col, HORIZONTAL_ALIGNMENT_RIGHT, 400)
+		# 血条颜色：破绽中金色；阶段护盾时金色闪；无敌灰蓝；平时洋红
+		var bcol: Color = UI.RED
+		if brk > 0.0:
+			bcol = UI.GOLD
+		elif hold:
+			bcol = UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(g.t * 10.0))
+		elif shown.invuln:
+			bcol = Color(0.45, 0.6, 0.7)
+		UI.gbar(g.hud, Rect2(bx, 131, bw, 6), shown.hp / shown.maxhp, bcol, 20)
+		# 阶段刻度：剩余刻度画在血条上（最大生命比例），停在刻度上（阶段护盾）时那一道发光
+		for gi in gl.size():
+			var gx: float = bx + bw * float(gl[gi])
+			var lit: bool = hold and gi == 0
+			var gc: Color = UI.GOLD if lit else Color(1, 1, 1, 0.85)
+			if lit:
+				g.hud.draw_rect(Rect2(gx - 3, 126, 6, 16), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.35 + 0.25 * sin(g.t * 10.0)))
+			g.hud.draw_rect(Rect2(gx - 1, 128, 2, 12), Color(0.02, 0.02, 0.03, 0.9))
+			g.hud.draw_rect(Rect2(gx - 0.5, 129, 1, 10), gc)
+		# 韧性条（§1.15）：贴在血条下沿 3px，只有开了韧性的 Boss（tough_need > 0 且在白名单里被累计）才画
+		var tn: float = shown.get("tough_need", 0.0)
+		if tn > 0.0 and shown.get("tough", 0.0) > 0.0 and brk <= 0.0:
+			g.hud.draw_rect(Rect2(bx, 138, bw, 3), Color(1, 1, 1, 0.1))
+			g.hud.draw_rect(Rect2(bx, 138, bw * clampf(shown.tough / tn, 0.0, 1.0), 3), Color(0.95, 0.85, 0.55))
 		if shown.type == "ishar" and shown.phase == 1:
-			g.hud.draw_rect(Rect2(bx, 139, bw * shown.charge / 100.0, 2), UI.PURPLE)
+			var cy: float = 142.0 if shown.get("tough", 0.0) > 0.0 else 139.0   # 有韧性条时让到它下面
+			g.hud.draw_rect(Rect2(bx, cy, bw * shown.charge / 100.0, 2), UI.PURPLE)
 		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if bars.size() > BOSS_BARS_MAX:
 		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
@@ -739,6 +786,10 @@ func banner_y(vs: Vector2) -> float:
 	return maxf(vs.y * 0.24, boss_bottom + 16.0 + 30.0) if boss_bottom > 0.0 else vs.y * 0.24
 
 
+## 招式名在副标题行停留的秒数（boss_ai 出招时写 e.move_name / e.move_t）
+const MOVE_NAME_T := 1.6
+
+
 ## 顶部 Boss 大血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
 ## 只算活着、且 enemies.json 里 role == "boss" 的；两体 Boss（接潮双体等）正好 2 条，所以上限 2
 const BOSS_BARS_MAX := 2
@@ -792,14 +843,19 @@ func draw_status_bar(vs: Vector2) -> void:
 		return
 	var x := 18.0
 	var y := 104.0
+	# 换行宽度（§1.15）：min(360, Boss 血条框左边 − 8)，有 Boss 血条时不钻到血条框下面
+	var wrap_x := 360.0
+	if not boss_bars().is_empty():
+		wrap_x = minf(360.0, g.hud.size.x / 2.0 - 310.0 - 12.0 - 8.0)
 	for it in items:
+		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16.0   # 与 UI.chip 的宽度算法一致
+		if x + cw > wrap_x and x > 18.0:
+			x = 18.0
+			y += 26.0
 		var w: float = UI.chip(g.hud, g.font, Vector2(x, y), it[0], it[1], 12)
 		if it[2] >= 0.0:
 			g.hud.draw_rect(Rect2(x, y + 20, w * it[2], 2), it[1])
 		x += w + 6.0
-		if x > 360.0:
-			x = 18.0
-			y += 26.0
 
 
 ## 编队区最上沿（源石锭框顶）的 y：触屏冲刺键 / 技能键摆在它上方，不压住「编队 n / m」和源石锭

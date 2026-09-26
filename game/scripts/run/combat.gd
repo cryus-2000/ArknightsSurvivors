@@ -574,8 +574,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
 		return
 	if e.invuln:
-		if g.texts.size() < 80 and g.vrng.randf() < 0.2:
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
+		g.vfx.immune_text(e)   # 伊祖米克学习期飘「学习中」，其余无敌不再飘「无效」（docs/38 §1.15，显示逻辑在 vfx）
 		return
 	if e.chest and e.hidden:
 		e.hidden = false
@@ -632,13 +631,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	e.squash = 0.14
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
-	if g.texts.size() < 80 and Cfg.dmg_numbers:
-		if g.crit_hit:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
-		elif weak_hit:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
-		else:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# 圣徒装填时被打断
 	if e.get("channel", 0.0) > 0.0:
 		e.channel = 0.0
