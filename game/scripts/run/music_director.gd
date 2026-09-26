@@ -5,6 +5,7 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var stinger_done := false
+var lamp_out_done := false      # 倒下过渡里灯光半径收到 0（hud.DEATH_LAMP_T）时播「灯灭」（tools/gen_sfx_lamp.py）
 var music_lv := 0               # 战斗配乐强度：0 平静 / 1 交战（打击乐）/ 2 激战（全奏），docs/21 v2.0
 var music_hold := 0.0           # 降一档之前还要保持的秒数
 var music_calm := 0.0           # Boss 倒下后的喘息（秒）：只要局面不到激战，就压回平静层
@@ -35,6 +36,11 @@ func update(_dt: float) -> void:
 	Sfx.vol_target = -4.0
 	# ---- 选曲与战斗分层（v2.0 配乐，docs/21）
 	if g.state == g.S.DEAD or g.state == g.S.WIN:
+		# 灯灭：过渡被跳过（state_age 直接跳到 DEATH_T）就不播，免得在结算面板上响
+		if g.state == g.S.DEAD and not lamp_out_done and g.state_age >= Game.HudView.DEATH_LAMP_T:
+			lamp_out_done = true
+			if g.state_age < Game.HudView.DEATH_T:
+				Sfx.play("lamp_out", Sfx.LAMP_OUT_DB, 1.0, 0.0)
 		if not stinger_done:
 			stinger_done = true
 			Sfx.play_stinger("win" if g.state == g.S.WIN else "lose")
