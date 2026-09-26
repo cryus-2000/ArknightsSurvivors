@@ -309,8 +309,17 @@ func bot_wants_manual(_i: int) -> bool:
 	return true
 
 
+## 掷锚的手（op_ulpianus_skill@2x 出手帧第 3 帧量得：脚底前 38、上 31；docs/32 §3）
 func _hand() -> Vector2:
-	return pos + Vector2(8.0 * face, -22)
+	return pos + Vector2(38.0 * face, -31)
+
+
+## 锚还在飞 / 收链时停在空手帧（f3–f5），不提前回到 f6 的持锚姿势，免得人物手里和程序画的锚同时出现两把
+func anim_state() -> Dictionary:
+	var st := super()
+	if not st.is_empty() and st.kind == "skill" and not anchor.is_empty() and int(st.frame) >= 6:
+		st.frame = 5
+	return st
 
 
 func _update_anchor(dt: float) -> void:

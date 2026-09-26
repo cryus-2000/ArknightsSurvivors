@@ -56,7 +56,7 @@ func update(dt: float) -> void:
 	for q in queued:
 		q.t -= dt
 		if q.t <= 0.0 and pos != Vector2.INF:
-			_cast(pos + Vector2(10.0 * face, -30), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)
+			_cast(_staff_tip(), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)
 	queued = queued.filter(func(q): return q.t > 0.0)
 	for p in pending:
 		p.t -= dt
@@ -110,8 +110,8 @@ func _release() -> void:
 		heat -= 1
 	var dmg: float = base("atk", 22.0) * (1.0 if not hot else skill_power())
 	var aoe: float = _aoe() * (base("s1_aoe", 1.4) if hot else 1.0)
-	_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, dmg, aoe, "火山弹", hot, 0.0)
-	fx({"kind": "glow", "pos": pos + Vector2(10.0 * face, -30), "r": 10.0, "life": 0.12, "col": ORANGE, "alpha": 0.6})
+	_cast(_staff_tip(), ts[0].pos, dmg, aoe, "火山弹", hot, 0.0)
+	fx({"kind": "glow", "pos": _staff_tip(), "r": 10.0, "life": 0.12, "col": ORANGE, "alpha": 0.6})
 	# 复咏 / 三重咏唱：后续熔岩弹隔 0.12 秒依次出手，打其他目标（没有就在首发目标两侧偏开）
 	var n: int = 2 if triple else (1 if twin_cast else 0)
 	if n <= 0:
@@ -145,7 +145,7 @@ func _release_skill() -> void:
 			var ts: Array = nearest_enemies(1, (base("range", 340.0) + 60.0) * stat(&"op_range"), pos)
 			if ts.is_empty():
 				return
-			_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
+			_cast(_staff_tip(), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.4, "max": 0.4, "col": ORANGE})
 		2:
 			erupt = int(base("s3_count", 10.0))
@@ -380,3 +380,8 @@ func status_items() -> Array:
 	if erupt > 0:
 		out.append(["火山", ORANGE])
 	return out
+
+
+## 杖尖（docs/32 §3）：普攻出手帧 op_eyjafjalla_attack@2x 第 2 帧（脚底前 40、上 46），技能出手帧第 4 帧杖举高（前 42、上 68）
+func _staff_tip() -> Vector2:
+	return pos + (Vector2(42.0 * face, -68.0) if act_kind == "skill" else Vector2(40.0 * face, -46.0))

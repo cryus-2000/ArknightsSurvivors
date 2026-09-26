@@ -93,7 +93,7 @@ func _release() -> void:
 func _word(e: Dictionary, dmg: float, src: String) -> void:
 	if e.dead:
 		return
-	var hand: Vector2 = pos + Vector2(10.0 * face, -28)
+	var hand: Vector2 = _pen_tip()
 	if bolts.size() >= BOLT_MAX:
 		_word_hit(e, dmg, src)
 		return
@@ -257,7 +257,7 @@ func _update_lock(dt: float) -> void:
 		log_hit("提喻")
 		deal_damage(lock_e, _atk() * base("s1_tick_mult", 0.5) * ramp * skill_power())
 		lock_e.slow = maxf(lock_e.slow, 0.6 * ramp)
-		fx({"kind": "line", "pos": pos + Vector2(10.0 * face, -28), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})
+		fx({"kind": "line", "pos": _pen_tip(), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})
 		fx({"kind": "glow", "pos": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": PALE, "alpha": 0.5})
 
 
@@ -445,7 +445,7 @@ func _draw_skill_over() -> void:
 		_draw_rune(c, 16.0, ep.pat, k * 1.25, 0.7 + 0.3 * k)
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead and g.tex.get("fx_logos_script") != null:
 		# 提喻：一行骨笔符文从手边流向目标（64×12 书写带平铺，4 帧循环）
-		var hand: Vector2 = pos + Vector2(10.0 * face, -28)
+		var hand: Vector2 = _pen_tip()
 		var to: Vector2 = lock_e.pos + Vector2(0, -lock_e.r * 0.5)
 		_draw_tiled("fx_logos_script", hand, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead:
@@ -455,7 +455,8 @@ func _draw_skill_over() -> void:
 		g.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), PALE, 1.5)
 		g.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), PALE, 1.5)
 	if acuity_t > 0.0:
-		var q := pos + Vector2(0, -44)
+		# 延展敏锐标记点画在头顶上方，不再压在脸上（docs/32 §3）
+		var q := pos + Vector2(0, -80)
 		g.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(INK.r * 1.6, INK.g * 1.6, INK.b * 1.4, 0.8))
 
 
@@ -520,3 +521,8 @@ func status_items() -> Array:
 	if acuity_t > 0.0:
 		out.append(["延展敏锐", INK])
 	return out
+
+
+## 笔尖（op_logos_attack@2x 出手帧第 2 帧量得：脚底前 33、上 35；docs/32 §3）
+func _pen_tip() -> Vector2:
+	return pos + Vector2(33.0 * face, -35.0)
