@@ -15,7 +15,7 @@
     var f = done ? 1 : Math.min(got / total, 0.999);
     var pct = (f * 100).toFixed(1) + '%';
     el.fill.style.width = pct;
-    el.doc.style.left = 'clamp(24px, ' + pct + ', calc(100% - 24px))';
+    el.doc.style.left = 'clamp(32px, ' + pct + ', calc(100% - 32px))';
     el.pct.textContent = done ? '正在启动…' : Math.floor(f * 100) + '%  ·  ' + (got / 1048576).toFixed(1) + ' / ' + (total / 1048576).toFixed(1) + ' MB';
   }
 

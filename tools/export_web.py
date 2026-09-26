@@ -95,8 +95,12 @@ def main():
     with open(os.path.join(tmp, "build.txt"), "w", encoding="utf-8") as fh:
         fh.write(commit + "\n")
 
-    shutil.rmtree(a.out, ignore_errors=True)
-    shutil.copytree(tmp, a.out)
+    # 只清空内容不删目录：目录本身可能正被本地静态服务器占着（Windows 删不掉）
+    os.makedirs(a.out, exist_ok=True)
+    for f in os.listdir(a.out):
+        fp = os.path.join(a.out, f)
+        shutil.rmtree(fp) if os.path.isdir(fp) else os.remove(fp)
+    shutil.copytree(tmp, a.out, dirs_exist_ok=True)
     big = 0
     for f in sorted(os.listdir(a.out)):
         s = os.path.getsize(os.path.join(a.out, f))

@@ -10,7 +10,7 @@
 1. git archive 把 <ref> 解到 build/_export/src —— 只含已提交内容，其它会话的未提交改动不会混进包里；
 2. Godot 导入资源（--import），再用 "Windows Desktop" 预设导出发布版（需要 4.7.2 导出模板，见 docs/33）；
 3. 组装发布目录：游戏 exe 按 art.gd incoming_dir() 从「exe 所在目录/../art/incoming」读美术，所以结构是
-       水月深海幸存者/
+       方舟幸存者/
          开始游戏.bat              双击启动
          说明.txt
          game/ShuiyueSurvivors.exe + .pck
@@ -23,12 +23,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
 WORK = os.path.join(ROOT, "build", "_export")
 OUT = os.path.join(ROOT, "build", "release")
-NAME = "水月深海幸存者"
+NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、预览图不带
 SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
 
-README = """水月 · 深海幸存者（明日方舟同人，非商业）
+README = """方舟幸存者（明日方舟同人，非商业）
 版本：{ver}（{date}）
 
 【怎么玩】
