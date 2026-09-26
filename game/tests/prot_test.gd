@@ -40,6 +40,12 @@ func _process(_d: float) -> void:
 	if frames != 5:
 		return
 	c = game.combat
+	# 测试期间把「全局」保护旋钮按代码缺省（关）来测：balance.json 里数值打开的通用 2 秒上限 / 非 Boss 侵蚀池上限
+	# 会改变 Boss 保护各用例的期望值；只在 test_any_cap 里临时打开。测完还原（数值 9/27 收口轮发现）
+	var bal_bak: Dictionary = Bal._data.duplicate(true)
+	Bal._data["protect"] = {}
+	if Bal._data.has("enemy"):
+		Bal._data["enemy"].erase("corrode_pool_cap")
 	# 放一只真的 Boss 在远处（「Boss 在场」），整个测试期间它不动：直接调结算函数，不推进游戏帧
 	var b: Dictionary = game.spawner.spawn_enemy("knight_boss", game.ppos + Vector2(2000, 0))
 	game.bosses.append(b)
@@ -61,6 +67,7 @@ func _process(_d: float) -> void:
 	test_arena()
 	test_ground()
 	test_any_cap()
+	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -806,7 +813,7 @@ func test_ground() -> void:
 ## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
 func test_any_cap() -> void:
 	var mh: float = game.max_hp
-	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限缺省关闭")
+	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限：代码缺省为关（测试期间 protect 段已清空）")
 	var bak_p: Dictionary = Bal._data.get("protect", {}).duplicate()
 	var bak_e: Dictionary = Bal._data.get("enemy", {}).duplicate()
 	Bal._data["protect"] = {"any_2s_cap": 0.45, "any_excess_mult": 0.4}
