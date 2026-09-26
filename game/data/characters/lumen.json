@@ -14,7 +14,7 @@
   "heal_pct": 0.02,
   "heal_cd": 3.0,
   "bolt_atk": 22,
-  "bolt_range": 360,
+  "bolt_range": 330,
   "s1_heal": 0.06,
   "s1_lamp": 8,
   "s3_dur": 10,

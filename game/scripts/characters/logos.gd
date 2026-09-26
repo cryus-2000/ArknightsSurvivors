@@ -39,7 +39,7 @@ const RUNES := [
 
 
 func _range() -> float:
-	return base("range", 370.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0) * (1.0 + base("s3_range", 0.6) if acuity_t > 0.0 else 1.0)
+	return base("range", 310.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0) * (1.0 + base("s3_range", 0.6) if acuity_t > 0.0 else 1.0)
 
 
 func _atk() -> float:

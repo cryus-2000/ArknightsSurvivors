@@ -71,7 +71,7 @@ func update(dt: float) -> void:
 	heal_t += dt
 	if cd <= 0.0:
 		cd = base("bolt_cd", 1.0) / stat(&"op_aspd")
-		var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
+		var ts: Array = nearest_enemies(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
 		if not ts.is_empty() or heal_t >= base("heal_cd", 3.0):
 			start_attack(ts[0].pos if not ts.is_empty() else g.ppos)
 
@@ -96,7 +96,7 @@ func _release() -> void:
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
 	hand_glow = 0.18   # 与出手动作等长，提灯放下后不再悬着光点（docs/45 #15）
 	# 光弹
-	var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
 	if not ts.is_empty():
 		var d: Vector2 = (ts[0].pos - lamp_hand).normalized()
 		if bolts.size() < BOLT_MAX:
@@ -290,7 +290,7 @@ func _unit_pos(k: int) -> Vector2:
 func _update_units(dt: float) -> void:
 	if units <= 0 or pos == Vector2.INF:
 		return
-	var rng_r: float = base("bolt_range", 360.0) * stat(&"op_range")
+	var rng_r: float = base("bolt_range", 330.0) * stat(&"op_range")
 	for k in units:
 		unit_cd[k] -= dt
 		if unit_cd[k] > 0.0:
