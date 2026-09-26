@@ -55,6 +55,19 @@ func pick_elite() -> String:
 	return pool[g.rng.randi() % pool.size()]
 
 
+## 最终 Boss 登场时，还没打死的中期 Boss 撤场、不给奖励（用户 9/27，docs/38 B1 ②）：直接移除，不走 kill()（不掉落、不计击杀），
+## 顺带取消它的预警；7:00 时两只中期 Boss 共存，不撤
+func retreat_mid_bosses() -> void:
+	for b in g.bosses:
+		if b.dead:
+			continue
+		b.retreated = true
+		b.dead = true
+		g.warns = g.warns.filter(func(w): return not is_same(w.owner, b))
+		g.fx.append({"kind": "ring", "pos": b.pos, "r": b.r * 2.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.7, 0.9)})
+		g.vfx.add_text(b.pos + Vector2(0, -b.r - 30.0), "%s 撤离" % b.name, Color(0.75, 0.8, 0.95), 16)
+
+
 func boss_alive() -> bool:
 	for b in g.bosses:
 		if not b.dead:
@@ -87,6 +100,8 @@ func update(dt: float) -> void:
 			if g.knight.alive:
 				base = g.knight.take_over()
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
+		if boss_idx == D.BOSS_TIMES.size():
+			retreat_mid_bosses()
 		var spawned: Array = []
 		for k in group.size():
 			var b := spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
@@ -136,9 +151,7 @@ func update(dt: float) -> void:
 				g.enemies_sys.evolve(ne)
 			if g.ending == "resolve" and g.t >= 520.0:
 				ne.weak = ""
-	# Boss 在场时冻结精英计时：Boss 战不刷精英，Boss 倒下后接着倒计时（docs/38 §1.7、B0 第 8 项）
-	if boss_alive():
-		next_elite += dt
+	# 精英计时在 Boss 在场时照常走（用户 9/27 撤回 B0 第 8 项的冻结：按时间刷，快慢玩家精英数相同）
 	if g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()

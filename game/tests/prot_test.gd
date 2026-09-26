@@ -11,7 +11,7 @@ extends Node
 ##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
 ## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
 ## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
-## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
+## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤；最终 Boss 登场时残留中期 Boss 撤场不给奖励。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -53,6 +53,7 @@ func _process(_d: float) -> void:
 	test_horde_mix()
 	test_v8()
 	test_gates()
+	test_retreat()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -688,3 +689,17 @@ func test_gates() -> void:
 	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
 	iz.dead = true
 	game.warns.clear()
+
+
+## B1 ②（用户 9/27）：最终 Boss 登场时残留的中期 Boss 撤场——直接移除、不走 kill（不计击杀、不掉落）
+func test_retreat() -> void:
+	var sp = game.spawner
+	var keep: Array = game.bosses.duplicate()
+	var m: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
+	game.bosses = [m]
+	var k0: int = game.kills
+	var pk0: int = game.pickups.count_items()
+	sp.retreat_mid_bosses()
+	ok(m.dead and m.get("retreated", false), "残留中期 Boss 撤场")
+	ok(game.kills == k0 and game.pickups.count_items() == pk0, "撤场不计击杀、不掉道具")
+	game.bosses = keep
