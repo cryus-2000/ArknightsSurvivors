@@ -656,6 +656,7 @@ func overlay_left() -> bool:
 	return g.state == Game.S.SHOP or (g.state == Game.S.CHOICE and g.choice_kind == "event")
 
 
+## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
 func draw_status_bar(vs: Vector2) -> void:
 	if g.state == Game.S.OPENING or g.state == Game.S.INTRO or g.state == Game.S.SHOW:
 		return

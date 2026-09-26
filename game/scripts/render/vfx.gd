@@ -161,6 +161,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	return true
 
 
+## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
 func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
