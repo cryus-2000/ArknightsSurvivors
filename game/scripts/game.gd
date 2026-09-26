@@ -231,6 +231,7 @@ var zone_r := 99999.0
 var zone_next_c := Vector2.ZERO
 var zone_next_r := 0.0
 var zone_state := 0          # 0 未开始 / 1 预告 / 2 收缩 / 3 稳定
+var zone_frozen := false     # 最终 Boss 场地冻结（combat.freeze_zone，docs/38 §1.7）：不再缩圈，圈边画场地描边
 var zone_t := 0.0
 var merchant := {}
 var merchant_idx := 0
