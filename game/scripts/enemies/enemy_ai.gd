@@ -85,7 +85,7 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 	e.cdt -= dt
 	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)):
 		e.cdt = float(d.get("acid_cd", 4.2))
-		g.ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + g.t / 300.0), "slow": false, "r": 5.0, "life": 2.6,
+		g.ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
 			"corrode": 0.3, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
 	return Vector2.INF
 
