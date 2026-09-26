@@ -203,6 +203,21 @@ func step() -> void:
 			if o.manual_ready(mi) and o.bot_wants_manual(mi):
 				o.cast_manual(mi)
 				break
+	# --evignore=<事件 id,…|all>[@秒]：机器人打不开这些海嗣祭坛（生命锁住），到「秒」之后恢复 22 点、可以打开；
+	# 用来复现「祭坛晾着不开」（EA 验收 P0-1 / P1-2，原为测试与验收的 probe.gd --pk_ignore / --pk_ign_t）
+	for a in Cfg.dev_args():
+		if a.begins_with("--evignore="):
+			var spec: PackedStringArray = a.substr(11).split("@")
+			var ids: PackedStringArray = spec[0].split(",")
+			var until: float = float(spec[1]) if spec.size() > 1 else 1.0e9
+			for e in g.enemies:
+				if e.chest and not e.dead and e.get("event", "") != "" and (ids.has(e.event) or spec[0] == "all"):
+					if g.t < until:
+						e.hp = 1.0e9
+						e.maxhp = 1.0e9
+					elif e.hp > 22.0:
+						e.hp = 1.0
+						e.maxhp = 22.0
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
 	if g.balance and g.at_frames == 20:

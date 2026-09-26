@@ -189,7 +189,7 @@ func _on_gain(what: String, args: Dictionary) -> void:
 	match what:
 		"light":
 			# 扣灯火最低降到 10，不清零
-			g.lamp = clampf(g.lamp + amt, 10.0 if amt < 0.0 else 0.0, g.lamp_cap)
+			g.lamp = minf(g.lamp, maxf(10.0, g.lamp + amt)) if amt < 0.0 else minf(g.lamp_cap, g.lamp + amt)   # 原本低于 10 时不因付代价反而加灯火
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
 		"rejection":
 			var what2: String = g.doctor.apply_rejection()
@@ -620,8 +620,8 @@ func taken_mult() -> float:
 		m *= 0.7
 	if rule("king_cake") > 0:
 		m *= 0.7 if king_low() else 0.95
-	if rule("bone_blood") > 0:
-		m *= 1.8
+	if rule("bone_blood") > 0 and g.knight_alive:
+		m *= 1.8   # 骑士骨血：骑士阵亡 / 离队后不再加受伤（EA 验收 P1-4）
 	return m
 
 

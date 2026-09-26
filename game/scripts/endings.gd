@@ -15,6 +15,9 @@ var cur := "standard"           # 当前结局
 var opened_id := ""             # 正在弹选项的事件
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
+var frozen := false             # 最终 Boss 已刷出：结局冻结，不再刷事件箱、不再改写结局（EA 验收 P0-1）
+var box_t := 0.0                # 当前事件箱刷出的时刻（超时消散，P1-2）
+const BOX_LIFE := 60.0          # 事件箱多久没打开就沉入海底
 
 
 func _init(game) -> void:
@@ -27,7 +30,21 @@ func _init(game) -> void:
 
 ## ---------- 事件箱刷新 ----------
 func update(dt: float) -> void:
-	if g.t < next_allowed or _box_alive():
+	if frozen:
+		return
+	if g.final_boss != null:
+		# 最终 Boss 登场：结局就此冻结（结算与解锁都按这时的结局），场上没开的祭坛沉入海底
+		frozen = true
+		_log("frozen")
+		_sink_box("")
+		return
+	if _box_alive():
+		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）
+		if g.t - box_t > BOX_LIFE:
+			_sink_box("海嗣祭坛沉入了海底")
+			next_allowed = g.t + 5.0
+		return
+	if g.t < next_allowed:
 		return
 	for ev in events:
 		if done.has(ev.id):
@@ -35,14 +52,35 @@ func update(dt: float) -> void:
 		var win: Array = ev.window
 		if g.t < win[0]:
 			continue
+		# 过了窗口还没轮到（条件不满足，或前面的祭坛占着）就作废，不在窗口外补刷（EA 验收 P0-1：补刷到终局前会改写结局）
+		if g.t > win[1]:
+			done.append(ev.id)
+			continue
 		if not _event_ok(ev):
-			if g.t > win[1] + 30.0:
-				done.append(ev.id)  # 过窗且条件不满足，放弃
 			continue
 		_spawn_box(ev)
 		done.append(ev.id)
+		box_t = g.t
+		_log("spawn " + str(ev.id))
 		next_allowed = g.t + 20.0
 		return
+
+
+## 自动测试日志：ENDEV <动作> ...
+func _log(what: String) -> void:
+	if g.autotest:
+		print("ENDEV %s t=%.1f cur=%s relics=%s" % [what, g.t, cur, str(g.relics.filter(func(r): return int(r) >= 221))])
+
+
+## 场上的事件箱消散（不打开、不掉落）；msg 为空时不弹横幅
+func _sink_box(msg: String) -> void:
+	for e in g.enemies:
+		if e.chest and not e.dead and e.get("event", "") != "":
+			e.dead = true
+			_log("sink " + str(e.event))
+			g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
+			if msg != "":
+				g.vfx.show_banner(msg)
 
 
 func _event_ok(ev: Dictionary) -> bool:
@@ -80,9 +118,13 @@ func open(ev_id: String) -> void:
 		if ev.id != ev_id:
 			continue
 		opened_id = ev_id
+		_log("open " + ev_id)
 		var opts: Array = []
+		var still_ok := _event_ok(ev)   # 打开时再查一次：刷箱之后骑士可能已经阵亡（EA 验收 P1-4）
 		for i in ev.options.size():
 			var op: Dictionary = ev.options[i]
+			if not _option_ok(op, still_ok):
+				continue
 			var icon: String = "e_event"
 			# 选项条上的效果小牌（C 版式）：概率 / 灯火 / 得到藏品 / 改为三选一 / 源石锭
 			var chips: Array = []
@@ -102,8 +144,27 @@ func open(ev_id: String) -> void:
 					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
 			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
+		if opts.is_empty():
+			# 所有选项都作废了（极少见）：给一次普通的藏品选择
+			opts.append({"kind": "event", "id": "%s:-1" % ev_id, "name": "离开", "desc": "改为普通的藏品选择", "icon": "exit",
+				"chips": [["藏品三选一", Color(0.62, 0.6, 0.57)]], "cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
 		g.panel_ui.show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 		return
+
+
+## 选项还能不能给：
+## - 事件条件在打开时已不满足（如骑士已阵亡），给藏品的选项不再出现（P1-4）；
+## - 给的藏品已经拥有且满级（观望 / 犹疑只有 1 级），选了等于空选，不再出现（P1-3）
+func _option_ok(op: Dictionary, still_ok: bool) -> bool:
+	for o in op.get("ops", []):
+		if not o.has("relic"):
+			continue
+		var rid := str(o.relic)
+		if not still_ok:
+			return false
+		if g.relics.has(rid) and int(g.rfx.lv.get(rid, 0)) >= g.rfx.max_lv(rid):
+			return false
+	return true
 
 
 ## 选项生效
@@ -112,13 +173,17 @@ func pick(o: Dictionary) -> void:
 	for ev in events:
 		if ev.id != parts[0]:
 			continue
+		if int(parts[1]) < 0:
+			g.pending_chests += 1
+			return
 		var op: Dictionary = ev.options[int(parts[1])]
 		for x in op.get("ops", []):
 			if x.has("chance") and g.rng.randf() >= float(x.chance):
 				g.vfx.add_text(g.ppos + Vector2(0, -90), "什么都没有发生", Color(0.7, 0.75, 0.8), 16)
 				continue
 			if x.has("light"):
-				g.lamp = clampf(g.lamp + float(x.light), 10.0, g.lamp_cap) if float(x.light) < 0.0 else minf(g.lamp_cap, g.lamp + float(x.light))
+				# 付灯火最低降到 10；原本就低于 10 时不变（不能因为付代价反而加灯火，P2-6）
+				g.lamp = minf(g.lamp, maxf(10.0, g.lamp + float(x.light))) if float(x.light) < 0.0 else minf(g.lamp_cap, g.lamp + float(x.light))
 				g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(x.light), Color(1.0, 0.8, 0.45), 16)
 			if x.has("relic"):
 				g.progression.gain_relic(str(x.relic))
@@ -181,11 +246,16 @@ func recalc() -> void:
 		if at > best_t:
 			best = eid
 			best_t = at
+	if frozen:
+		return   # 最终 Boss 登场后结局不再改写
 	if best != cur:
 		cur = best
 		g.ending = cur
 		g.vfx.show_banner("探索的走向改变了：%s" % endings[cur].name)
 		Sfx.play("roar", -6.0, 0.5, 0.0)
+		# 9:00 预告之后结局又变了（回忆 / 抉择·其三的窗口跨过 9:00）：按新结局再预告一次（P2-7）
+		if warned_final:
+			g.vfx.show_banner(endings[cur].get("omen", "终局将至"))
 
 
 ## 9:00 终局预告
