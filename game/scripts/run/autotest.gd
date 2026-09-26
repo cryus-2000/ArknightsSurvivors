@@ -441,12 +441,6 @@ func bot_move() -> Vector2:
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
-	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）
-	for m in g.mires:
-		var md: Vector2 = g.ppos - m.pos
-		var ml := md.length()
-		if ml < m.r + 50.0 and ml > 0.01:
-			mv += md / ml * (2.5 if ml < m.r else 1.2)
 	# 缩圈：靠近圈边时往圈内走
 	if g.zone_state != 0:
 		var zc: float = g.ppos.distance_to(g.zone_c)
@@ -454,7 +448,7 @@ func bot_move() -> Vector2:
 		var target_r: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
 		var od: float = zc - g.zone_r
 		if od > -30.0:
-			# 已贴圈边 / 出圈：真人会先回圈。敌群与溟痕的「往外推」只留侧向分量（侧身绕过去），经验 / 商人等拉力朝外的不跟，
+			# 已贴圈边 / 出圈：真人会先回圈。敌群的「往外推」只留侧向分量（侧身绕过去；溟痕在后面单独加，照样绕开），经验 / 商人等拉力朝外的不跟，
 			# 回圈拉力随出圈距离加大；出圈超过 0.5 秒且冲刺好了就朝圈心冲（2026-09-27：v11-ab 黑潮死亡多是普通机器人被怪群推在圈外，
 			# 实测圈外 165–196 像素、怪群推力 −2.6…−4.8 压过固定的 3.0 回圈拉力）
 			var toc: Vector2 = (g.zone_c - g.ppos).normalized()
@@ -473,6 +467,12 @@ func bot_move() -> Vector2:
 			zone_out_since = -1.0
 			if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
 				mv += (target_c - g.ppos).normalized() * 3.0
+	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）；放在回圈之后，回圈时也照样绕开（2026-09-27：放在前面时外推被回圈一起削掉，机器人直穿圈边溟痕，溟痕 / 侵蚀死亡变多）
+	for m in g.mires:
+		var md: Vector2 = g.ppos - m.pos
+		var ml := md.length()
+		if ml < m.r + 50.0 and ml > 0.01:
+			mv += md / ml * (2.5 if ml < m.r else 1.2)
 	if mv.length() < 0.15:
 		mv = Vector2.from_angle(g.t * 0.3) * 0.3
 	return mv
