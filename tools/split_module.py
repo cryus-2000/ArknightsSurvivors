@@ -222,6 +222,9 @@ def main():
         name = b[1]
         if name in spec.get("keep_vars", []):
             continue
+        # 按字符串名字访问的（如 STAT_SYNC 的 set(name, v)、get("name")）也算被使用，不能搬
+        if re.search(r'["\']' + re.escape(name) + r'["\']', rest_src) or any(re.search(r'["\']' + re.escape(name) + r'["\']', s) for s in others.values()):
+            continue
         if re.search(r'(?<![.\w$])' + re.escape(name) + r'\b', _strip(moved_src)) and not _used_in_rest(name, lines, in_moved, b) and not any(
                 re.search(r'\.' + re.escape(name) + r'\b', _strip(s)) for s in others.values()):
             move_vars.append(b)

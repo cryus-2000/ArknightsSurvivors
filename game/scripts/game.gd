@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Spawner = preload("res://scripts/run/spawner.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
 const AutoTest = preload("res://scripts/run/autotest.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
@@ -57,11 +58,11 @@ const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 const CELL := 48.0
-const MAX_ENEMIES := 450
 
 var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
+var spawner = Spawner.new(self)   # 刷怪
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -140,9 +141,7 @@ var flash := 0.0                 # 全屏闪光
 var grip := false
 var evo_age := 35.0
 var evo_xp := 2.0
-var horde_mult := 1.0
 var horde_log: Array = []          # 平衡测试：每次大群的统计
-var horde_chest := false
 var seed_heal := false
 var flesh_heal := false
 var backlight := false
@@ -181,10 +180,7 @@ var gems: Array = []
 var fx: Array = []
 var texts: Array = []
 var grid := {}
-var next_id := 0
 var orbit_a := 0.0
-var spawn_acc := 0.0
-var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度
 var diff_new := false
@@ -212,10 +208,8 @@ var show_t := 0.0
 var show_shot := false
 var horde_warn := 0.0        # 大群预警倒计时（HUD 演出）
 var horde_hit := 0.0         # 大群到达后的屏幕演出
-var horde_warned := -1.0
 var boss = null                 # 当前显示血条的 Boss
 var bosses: Array = []
-var boss_idx := 0
 var final_boss = null
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
@@ -225,7 +219,6 @@ var frost := 0.0                   # 冰霜：移速 -40%
 var lamp_cap := 100.0              # 灯火上限（深蓝之心后 70）
 var knight_alive := false          # 猎潮的骑士在队中（结局二）
 var force_boss := -1
-var mid_used: Array = []
 var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
@@ -234,7 +227,6 @@ var bai: RefCounted = null      # Boss AI / 招式预警（scripts/boss_ai.gd）
 var mires: Array = []
 var mire_tick := 0.0
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
-var next_chest := 20.0
 var next_mire := 100.0           # 首次溟痕时间；开局由 map 主题覆盖
 # 缩圈（黑潮）
 var zone_c := Vector2.ZERO
@@ -672,7 +664,7 @@ func _update_music(_dt: float) -> void:
 		music_boss = true
 		_music_log("final")
 		return
-	if _boss_alive():
+	if spawner.boss_alive():
 		Sfx.play_music("boss")
 		music_boss = true
 		_music_log("boss")
@@ -1112,7 +1104,7 @@ func _update(dt: float) -> void:
 	if demo_op != "":
 		demo_sys.step(dt)
 	else:
-		_spawn(dt)
+		spawner.update(dt)
 	_pm("spawn")
 	_build_grid()
 	_pm("grid")
@@ -1186,270 +1178,6 @@ func _check_pending() -> void:
 # =====================================================================
 # 刷怪
 # =====================================================================
-func _edge_pos() -> Vector2:
-	return ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(720.0, 820.0)
-
-
-func _pick_type() -> String:
-	var pool: Array = D.THREAT[threat].pool
-	var pick: String = pool[rng.randi() % pool.size()]
-	var caps := {"stone": (6 if t < 180.0 else (8 if t < 420.0 else 12)), "brood": 6, "offspring": 6 if t < 420.0 else 10, "spitter": 6, "burrower": 8, "hulk": 2, "ripper": 14}
-	if caps.has(pick):
-		var ns := 0
-		for e in enemies:
-			if e.type == pick and not e.dead:
-				ns += 1
-		if ns >= caps[pick]:
-			pick = "slider" if threat >= 3 else "bone"
-	return pick
-
-
-func _pick_elite() -> String:
-	var pool: Array = []
-	for k in D.ENEMIES:
-		var d: Dictionary = D.ENEMIES[k]
-		if d.get("role", "") == "elite" and t >= float(d.get("elite_after", 0.0)) and not d.get("no_spawn", false):
-			pool.append(k)
-	if pool.is_empty():
-		return "pocket"
-	return pool[rng.randi() % pool.size()]
-
-
-func _boss_alive() -> bool:
-	for b in bosses:
-		if not b.dead:
-			return true
-	return false
-
-
-func _spawn(dt: float) -> void:
-	# Boss 按时间登场
-	if boss_idx < D.BOSS_TIMES.size() and t >= D.BOSS_TIMES[boss_idx]:
-		boss_idx += 1
-		var group: Array = []
-		if boss_idx == D.BOSS_TIMES.size():
-			group = [D.ENDINGS[ending].boss]
-		else:
-			var pool: Array = []
-			for i in D.MID_POOL.size():
-				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)):
-					pool.append(i)
-			var pick: int = pool[rng.randi() % pool.size()]
-			if force_boss >= 0 and not mid_used.has(force_boss):
-				pick = force_boss
-			mid_used.append(pick)
-			group = D.MID_POOL[pick]
-		var base := _edge_pos()
-		if zone_state != 0 and base.distance_to(zone_c) > zone_r - 90.0:
-			base = zone_c + (base - zone_c).normalized() * maxf(60.0, zone_r - 110.0)
-		if boss_idx == D.BOSS_TIMES.size() and group == ["knight_boss"]:
-			# 结局二：骑士在原地重生为最终 Boss；若骑士已不在，则从边缘出现
-			if knight.alive:
-				base = knight.take_over()
-			_show_banner("寒冰重生 —— 最后的骑士")
-		var spawned: Array = []
-		for k in group.size():
-			var b := _spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
-			bosses.append(b)
-			spawned.append(b)
-			boss = b
-		if spawned.size() == 2:
-			spawned[0].partner = spawned[1]
-			spawned[1].partner = spawned[0]
-		if boss_idx == D.BOSS_TIMES.size():
-			final_boss = spawned[0]
-		var names: Array = []
-		for g in group:
-			names.append(D.ENEMIES[g].name)
-		_show_banner("%s 出现了" % " 与 ".join(names))
-		Sfx.play("roar", 2.0, 0.7, 0.0)
-		Sfx.play_overlay("boss_in")
-		_shake(1.2)
-	# 威胁等级上升：横幅 + 刷一小波新种类
-	if threat < D.THREAT.size() - 1 and t >= D.THREAT[threat + 1].t:
-		threat += 1
-		var tr: Dictionary = D.THREAT[threat]
-		_show_banner("威胁上升 · %s —— 新的海嗣浮现" % tr.name)
-		Sfx.play("roar", -1.0, 0.75, 0.0)
-		_shake(0.8)
-		var fresh: Array = tr.pool.filter(func(x): return not D.THREAT[threat - 1].pool.has(x))
-		if not fresh.is_empty():
-			for k in 6:
-				_spawn_enemy(fresh[k % fresh.size()], _edge_pos())
-	var rate := Bal.v("enemy/spawn_base", 1.6) + t / Bal.v("enemy/spawn_div", 30.0)
-	if _boss_alive():
-		rate *= 0.8
-	if lamp < 30.0:
-		rate *= 1.15
-	spawn_acc += rate * dt
-	while spawn_acc >= 1.0:
-		spawn_acc -= 1.0
-		if enemies.size() < MAX_ENEMIES:
-			var ne := _spawn_enemy(_pick_type(), _edge_pos())
-			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-			if not ne.elite and ne.ai != "static" and rng.randf() < D.THREAT[threat].get("evo", 0.0) * (2.0 if ending == "deep" else 1.0):
-				_evolve(ne)
-			if ending == "resolve" and t >= 520.0:
-				ne.weak = ""
-	if t >= next_elite:
-		next_elite += D.THREAT[threat].elite * (0.75 if diff >= 4 else 1.0)
-		var et := _pick_elite()
-		_spawn_enemy(et, _edge_pos())
-		if rfx.rule("resolve_elite") > 0:
-			_spawn_enemy(_pick_elite(), _edge_pos())
-		if threat >= 4:
-			var et2 := _pick_elite()
-			_spawn_enemy(et2, _edge_pos())
-			_show_banner("精英「%s」与「%s」同时出现！" % [D.ENEMIES[et].name, D.ENEMIES[et2].name])
-		else:
-			_show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
-		Sfx.play("roar", -3.0)
-	# 大群：Boss 在场时顺延（难度 7+ 不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
-	var horde_ok: bool = (not _boss_alive() or diff >= 7) and t < 570.0
-	if t >= next_horde - 3.0 and horde_warned != next_horde and horde_ok:
-		horde_warned = next_horde
-		horde_warn = 3.0
-		horde_gap = rng.randf() * TAU
-		Sfx.play("roar", -2.0, 0.55, 0.0)
-	if t >= next_horde and horde_ok:
-		next_horde += D.THREAT[threat].get("horde_every", 120.0)
-		horde_warn = 0.0
-		horde_hit = 1.2
-		_shake(1.4)
-		fx.append({"kind": "horde_ring", "pos": ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
-		Sfx.play("roar", 2.0, 0.8, 0.0)
-		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
-		var n := int((Bal.v("enemy/horde_base", 24.0) + int(t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * (1.4 if diff >= 7 else 1.0))
-		if horde_chest:
-			_drop(ppos + Vector2(70, 0), "chest", 1.0)
-		var gap_half := deg_to_rad(35.0)
-		var span: float = TAU - gap_half * 2.0
-		var hl := {"t": int(t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": hp, "hp0": hp, "comp": D.THREAT[threat].horde.duplicate()}
-		horde_log.append(hl)
-		for i in n:
-			if enemies.size() >= MAX_ENEMIES + 60:
-				break
-			var ang: float = horde_gap + gap_half + span * (i + 0.5) / n
-			var p := ppos + Vector2.from_angle(ang) * rng.randf_range(560.0, 640.0)
-			var hp_: Array = D.THREAT[threat].horde
-			var he := _spawn_enemy(hp_[i % hp_.size()], p)
-			he["horde"] = horde_log.size() - 1
-			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
-			he.dmg *= 0.7
-			hl.hp += he.maxhp
-	# 补给箱
-	if t >= next_chest:
-		next_chest = t + rng.randf_range(35.0, 50.0)
-		var nch := 0
-		for e in enemies:
-			if e.chest and e.get("event", "") == "":
-				nch += 1
-		if nch < 3:
-			_spawn_chest(ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(260.0, 420.0))
-	# 溟痕
-	if t >= next_mire:
-		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		next_mire = t + map.mire_next_interval(t)
-		var mp := ppos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(160.0, 380.0)
-		if zone_state != 0 and rng.randf() < 0.6:
-			var ang := (ppos - zone_c).angle() + rng.randf_range(-0.8, 0.8)
-			mp = zone_c + Vector2.from_angle(ang) * (zone_r - rng.randf_range(20.0, 120.0))
-		if mires.size() < int(map.mire_cfg().get("max_count", 24)):
-			mires.append(map.mire_new(mp, t, diff >= 8))
-	# 商人
-	if merchant.is_empty() and merchant_idx < MERCHANT_TIMES.size() and t >= MERCHANT_TIMES[merchant_idx]:
-		merchant_idx += 1
-		merchant = {"pos": ppos + Vector2.from_angle(rng.randf() * TAU) * 260.0, "life": 60.0, "near": false}
-		shop_items.clear()
-		shop_refreshed = false
-		_show_banner("商人出现了 —— 去找他交易源石锭")
-		Sfx.play("relic", -4.0)
-
-
-func _new_enemy(type: String, pos: Vector2) -> Dictionary:
-	var d: Dictionary = D.ENEMIES[type]
-	var role: String = d.get("role", "")
-	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
-	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
-	var hpm := enemy_hp_time_mult() * (1.0 + (0.15 if diff >= 1 else 0.0) + (0.2 if diff >= 10 else 0.0))
-	var dmm := (1.0 + (0.15 if diff >= 2 else 0.0) + (0.2 if diff >= 10 else 0.0))
-	var dmg_t := 1.0 + minf(t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
-	next_id += 1
-	var e := {
-		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
-		"hp": d.hp * hpm * enemy_hp_mult, "maxhp": d.hp * hpm * enemy_hp_mult,
-		"spd": d.spd * rng.randf_range(0.9, 1.1) * D.THREAT[threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * enemy_dmg_mult,
-		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
-		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
-		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
-		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * enemy_cd_mult, "cdt": rng.randf() * d.get("cd", 1.0),
-		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": 1.0, "set_t": 0.0, "set_done": false,
-		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
-		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
-		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
-		# 贴图变体在生成时查一次，绘制时不再每帧拼字符串
-		"tex_move": tex.get(d.tex + "_move") != null, "tex_feign": tex.get(d.tex + "_feign") != null, "tex_attack": tex.get(d.tex + "_attack") != null,
-		"tex_charge": tex.get(d.tex + "_charge") != null, "tex_death": tex.get(d.tex + "_death") != null,
-		"weak": d.get("weak", ""),
-		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
-	}
-	if e.elite:
-		e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
-		e.maxhp = e.hp
-		e.xp *= Bal.v("enemy/elite_xp_mult", 10.0)
-		e.dmg *= Bal.v("enemy/elite_dmg_mult", 1.3)
-	if e.boss:
-		e.hp = d.hp * (1.0 + t / Bal.v("enemy/boss_hp_time_div", 600.0)) * (1.15 if diff >= 1 else 1.0) * enemy_hp_mult
-		e.maxhp = e.hp
-		e.spd = d.spd
-		e.dmg = d.dmg * dmm * (1.25 if diff >= 10 else 1.0) * enemy_dmg_mult
-	if type == "pocket":
-		e.burst_at = e.maxhp * 0.85
-	if type == "izumik":
-		e.hp = e.maxhp * 0.35
-		e.invuln = true
-	if d.has("ammo"):
-		e.ammo = d.ammo
-		e.reload_t = 20.0
-		e.channel = 0.0
-	return e
-
-
-func _spawn_enemy(type: String, pos: Vector2) -> Dictionary:
-	var e := _new_enemy(type, pos)
-	enemies.append(e)
-	return e
-
-
-## 补给箱；约 15% 是伪装的箱形恐鱼
-func _spawn_chest(pos: Vector2, event_id := "") -> void:
-	next_id += 1
-	enemies.append({
-		"id": next_id, "type": "chest", "name": "补给箱" if event_id == "" else "海嗣祭坛", "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
-		"event": event_id,
-		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
-		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
-		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": event_id == "" and rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
-		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
-		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
-		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
-	})
-
-
-## 箱形恐鱼现形
-func _reveal_mimic(e: Dictionary) -> void:
-	var m := _new_enemy("mimic", e.pos)
-	for k in m.keys():
-		if k != "id":
-			e[k] = m[k]
-	e.flash = 0.2
-	_show_banner("箱形恐鱼！")
-	_add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
-	Sfx.play("roar", -2.0, 1.3)
-	_shake(0.6)
-	_sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 14, 260.0)
 
 
 # =====================================================================
@@ -1544,7 +1272,7 @@ func _update_enemies(dt: float) -> void:
 			if e.ai == "static":
 				e.dead = true
 			else:
-				e.pos = _edge_pos()
+				e.pos = spawner.edge_pos()
 			continue
 
 		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > evo_age * maxf(0.55, 1.0 - t / 900.0):
@@ -1686,7 +1414,7 @@ func _morph(e: Dictionary) -> void:
 	fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
 	_add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
-		_spawn_enemy(["bone", "slider", "stone"][rng.randi() % 3], e.pos + Vector2.from_angle(rng.randf() * TAU) * 20.0)
+		spawner.spawn_enemy(["bone", "slider", "stone"][rng.randi() % 3], e.pos + Vector2.from_angle(rng.randf() * TAU) * 20.0)
 
 
 func _update_lobs(dt: float) -> void:
@@ -2058,7 +1786,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 		return
 	if e.chest and e.hidden:
 		e.hidden = false
-		_reveal_mimic(e)
+		spawner.reveal_mimic(e)
 		return
 	var ty: Array = [hit.range, hit.kind]
 	var weak_hit := false
@@ -2251,7 +1979,7 @@ func _kill(e: Dictionary) -> void:
 		_drop(e.pos + Vector2(20, 10), "oil", 25.0)
 	if e.boss:
 		ing = 20
-		if not is_same(e, final_boss) and not _boss_alive():
+		if not is_same(e, final_boss) and not spawner.boss_alive():
 			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
 		_drop(e.pos + Vector2(-20, 0), "chest", 1.0)
 		for j in 12:

@@ -69,7 +69,7 @@ func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(300.0, 420.0)
 	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r - 80.0:
 		p = g.zone_c + (p - g.zone_c).normalized() * maxf(60.0, g.zone_r - 120.0)
-	g._spawn_chest(p, ev.id)
+	g.spawner.spawn_chest(p, ev.id)
 	g._show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 

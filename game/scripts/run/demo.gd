@@ -164,7 +164,7 @@ func horde(n: int) -> void:
 		var r: float = sqrt(g.rng.randf())
 		# 前排离博士约 140（近战干员的前压范围 150 以内），一开场就能接敌
 		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, sin(a) * r * 72.0)
-		var ne := g._spawn_enemy("bone", p)
+		var ne := g.spawner.spawn_enemy("bone", p)
 		ne.spd = 16.0
 		ne.dmg = 0.0
 		ne.hp = 140.0
@@ -183,7 +183,7 @@ func gallery_step() -> void:
 		var types := ["path", "carmen", "iberia", "bishop", "archon", "immortal", "paranoia", "paranoia", "bishop", "archon", "immortal", "fractal"]
 		for i in types.size():
 			var p := Vector2(-520 + (i % 6) * 208, -170 + (i / 6) * 250)
-			var e := g._spawn_enemy(types[i], p)
+			var e := g.spawner.spawn_enemy(types[i], p)
 			e.spd = 0.0
 			e.dmg = 0.0
 			e["gallery"] = true

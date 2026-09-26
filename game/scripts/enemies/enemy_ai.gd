@@ -144,7 +144,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			if o.type == so and not o.dead:
 				nb += 1
 		if nb < int(d.get("spawn_max", 12)):
-			g._spawn_enemy(so, g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0))
+			g.spawner.spawn_enemy(so, g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0))
 
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）

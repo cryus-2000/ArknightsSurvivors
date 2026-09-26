@@ -72,7 +72,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if crack < 3 and e.hp < e.maxhp * (0.75 - 0.25 * crack):
 				e.crack = crack + 1
 				for k in 4:
-					g._spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 56.0)
+					g.spawner.spawn_enemy("fractal", e.pos + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 56.0)
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.35, "max": 0.35, "col": Color(0.6, 0.7, 1.0)})
 				g._add_text(e.pos + Vector2(0, -60), "碎裂", Color(0.6, 0.7, 1.0), 18)
 				Sfx.play("boom", -6.0, 1.3, 0.0)
@@ -100,7 +100,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.pose_max = 0.6
 					for k in 4:
 						var sp: Vector2 = e.pos + Vector2.from_angle(TAU * k / 4.0) * 70.0
-						g._spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
+						g.spawner.spawn_enemy("bone" if k % 2 == 0 else "slider", sp)
 						g.fx.append({"kind": "ring", "pos": sp, "r": 22.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.9, 1.0)})
 					g._add_text(e.pos + Vector2(0, -50), "召潮", Color(0.5, 0.9, 1.0), 16)
 					Sfx.play("tentacle", -6.0, 0.8)
@@ -158,7 +158,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.bt > 4.0:
 					e.bt = 0.0
 					for k in 2:
-						var o: Dictionary = g._spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
+						var o: Dictionary = g.spawner.spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
 						o.feed = true
 						o.feed_to = e
 						o.spd = 45.0
@@ -461,6 +461,6 @@ func _spawn_tears(e: Dictionary, n: int) -> void:
 				cnt += 1
 		if cnt >= 6:
 			return
-		g._spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
+		g.spawner.spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
 
 

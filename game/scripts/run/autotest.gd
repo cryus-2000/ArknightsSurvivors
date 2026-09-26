@@ -147,7 +147,7 @@ func step() -> void:
 				g.hp = 900.0
 				g.t = 150.0
 				for bt in a.substr(11).split(","):
-					var b := g._spawn_enemy(bt.trim_suffix("2"), g.ppos + Vector2(230, -40))
+					var b := g.spawner.spawn_enemy(bt.trim_suffix("2"), g.ppos + Vector2(230, -40))
 					b.age = 5.0
 					if bt.ends_with("2"):
 						b.phase = 2
