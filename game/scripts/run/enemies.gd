@@ -293,6 +293,7 @@ func update_ebullets(dt: float) -> void:
 
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
 func update_status(dt: float) -> void:
+	g.combat.update_ctrl(dt)   # 主控减速计时；Boss 战中僵直恒为 0（docs/38 §1.11）
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
@@ -333,7 +334,8 @@ func update_status(dt: float) -> void:
 		if not s.hit and abs(s.pos.distance_to(g.ppos) - s.r) < 22.0:
 			s.hit = true
 			if g.invuln <= 0.0:
-				g.pstun = max(g.pstun, 0.5)
+				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
+					g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock"
 				g.in_type = ["近战", "物理"]
 				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）

@@ -870,12 +870,14 @@ var dash_t := 0.0
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
 var last_mv := Vector2.ZERO
+var move_in := Vector2.ZERO   # 这一帧的移动输入（僵直时也记）：冲刺方向用
 
 
+## 冲刺任何时候都能按（docs/38 §1.11「永不硬控」）：只看冷却、是否正在冲刺、是否在局内；僵直时也能冲，方向取按住的方向
 func _try_dash() -> void:
-	if dash_cd > 0.0 or dash_t > 0.0 or pstun > 0.0 or state != S.PLAY:
+	if dash_cd > 0.0 or dash_t > 0.0 or state != S.PLAY:
 		return
-	dash_dir = (last_mv if moving and last_mv != Vector2.ZERO else Vector2(facing, 0)).normalized()
+	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
 	dash_used = true
@@ -901,7 +903,7 @@ func _update(dt: float) -> void:
 		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
-	moving = mv != Vector2.ZERO
+	move_in = mv
 	if pstun > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
@@ -910,11 +912,11 @@ func _update(dt: float) -> void:
 		walk_t += dt * 12.0
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
-	# 溟痕：陷在里面移动速度 -45%
-	var mspd: float = speed * (1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0)
+	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直换成的减速也乘在这里（combat.move_mult）
+	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0))
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
-	# 冲刺：主控沿冲刺方向高速位移，期间无敌（被僵直时不能冲刺，已在 _try_dash 里拦）
+	# 冲刺：主控沿冲刺方向高速位移，期间无敌；僵直时也能冲，冲刺距离不受减速影响
 	dash_cd = maxf(0.0, dash_cd - dt)
 	if dash_t > 0.0:
 		dash_t -= dt

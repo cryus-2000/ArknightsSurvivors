@@ -5,9 +5,12 @@ extends Node
 ##   「实际扣血，含 Boss 侵蚀结算」两种口径都成立，窗口满时追加的侵蚀也作废）；满血吃连击（含带侵蚀的、夹小怪伤害的）不死，
 ##   满血保护只兜这一轮连击（2 秒），不会整场都在；Boss 在场时 Boss 侵蚀 / Boss 溟痕每秒 ≤4%；
 ##   非 Boss 来源（小怪、自然溟痕、普通侵蚀，含流明净化之后的）不受影响。
+## 永不硬控（B0-2）：Boss 存活期间预警僵直 / 冲击环 / 神经损伤溢出都换成 0.5 秒 −30% 减速，主控僵直恒为 0；没有 Boss 时照旧僵直；
+##   僵直中也能冲刺（方向取按住的方向）。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
+const Game = preload("res://scripts/game.gd")
 const EPS := 0.0001
 
 var game: Node
@@ -16,6 +19,7 @@ var frames := 0
 var n := 0
 var fails := 0
 var last_add := 0.0   # boss_hit 这一发追加进侵蚀池的量
+var boss_e: Dictionary   # 测试期间一直在场的 Boss
 
 
 func _ready() -> void:
@@ -31,6 +35,7 @@ func _process(_d: float) -> void:
 	# 放一只真的 Boss 在远处（「Boss 在场」），整个测试期间它不动：直接调结算函数，不推进游戏帧
 	var b: Dictionary = game.spawner.spawn_enemy("knight_boss", game.ppos + Vector2(2000, 0))
 	game.bosses.append(b)
+	boss_e = b
 	test_hit_cap()
 	test_corrode_budget()
 	test_2s_cap()
@@ -38,6 +43,7 @@ func _process(_d: float) -> void:
 	test_guard_knobs()
 	test_dot_cap()
 	test_non_boss()
+	test_no_hard_cc()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -73,6 +79,9 @@ func reset(bone := false, lamp := 100.0) -> void:
 	c.guard_ready = 0.0
 	c.guard_end = -INF
 	c.high_t = -INF
+	c.slows.clear()
+	game.pstun = 0.0
+	game.atk_slow = 0.0
 	if bone:
 		game.rfx.rules["bone_blood"] = 1
 	else:
@@ -384,4 +393,92 @@ func test_non_boss() -> void:
 		game.enemies_sys.update_status(dt)
 		var ls: float = hp0 - game.hp
 		ok(ls > 0.0 and (ls <= 0.4 * game.max_hp + EPS) == is_boss, "冲击环扣血（放招的%s Boss）扣 %s" % ["是" if is_boss else "不是", pct(ls)])
+	reset()
+
+
+## 永不硬控（docs/38 §1.11，B0-2）：Boss 存活期间三处僵直都换成减速；没有 Boss 时照旧；僵直中也能冲刺
+func test_no_hard_cc() -> void:
+	var st: float = Bal.v("boss/stun_as_slow_t", 0.5)
+	var sm: float = Bal.v("boss/stun_as_slow_mult", 0.7)
+	for alive in [true, false]:
+		boss_e.dead = not alive
+		var tag: String = "Boss 存活" if alive else "没有 Boss"
+		# 预警僵直：Boss 放的、精英放的（钻地咬击、踏地）
+		for own_boss in [true, false]:
+			if not alive and own_boss:
+				continue   # 没有 Boss 存活时 Boss 的预警另测（见下）
+			reset()
+			game.invuln = 0.0
+			var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "path" if own_boss else "burrower", "boss": own_boss},
+				"act": "pillar", "dmg": 1.0, "corrode": 0.0}
+			game.bai._warn_damage(w, 0.4)
+			if alive:
+				ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：预警僵直（%s放的）换成减速（僵直 %.2f）" % [tag, "Boss " if own_boss else "精英", game.pstun])
+			else:
+				ok(absf(game.pstun - 0.4) < EPS and c.slows.is_empty(), "%s：精英的预警照旧僵直 0.4 秒（%.2f）" % [tag, game.pstun])
+		# 神经损伤溢出
+		reset()
+		game.invuln = 0.0
+		game.nerve = 99.0
+		c.add_nerve(5.0)
+		if alive:
+			ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：神经损伤溢出换成减速（僵直 %.2f）" % [tag, game.pstun])
+		else:
+			ok(absf(game.pstun - 0.4) < EPS, "%s：神经损伤溢出照旧僵直 0.4 秒（%.2f）" % [tag, game.pstun])
+		# 冲击环（精英的踏地震荡；Boss 存活时 Boss 的冲击环）
+		reset()
+		game.invuln = 0.0
+		game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": 1.0, "hit": false, "boss": alive})
+		game.enemies_sys.update_status(1.0 / 60.0)
+		if alive:
+			ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：冲击环换成减速（僵直 %.2f）" % [tag, game.pstun])
+		else:
+			ok(game.pstun > 0.4, "%s：精英冲击环照旧僵直（%.2f）" % [tag, game.pstun])
+	boss_e.dead = false
+	# 减速的数值与时长：0.5 秒 × 0.7，同种重复吃到只刷新不叠乘，到时自动解除
+	reset()
+	game.invuln = 0.0
+	game.nerve = 99.0
+	c.add_nerve(5.0)
+	ok(absf(c.move_mult(1.0) - sm) < EPS, "僵直换成的减速：移速 ×%.2f（应 ×%.2f）" % [c.move_mult(1.0), sm])
+	game.nerve = 99.0
+	c.add_nerve(5.0)
+	ok(absf(c.move_mult(1.0) - sm) < EPS, "同种减速重复吃到不叠乘（×%.2f）" % c.move_mult(1.0))
+	run(st + 0.05)
+	ok(c.slows.is_empty() and absf(c.move_mult(1.0) - 1.0) < EPS, "%.1f 秒后减速解除" % st)
+	# Boss 已死、还在扩散的 Boss 冲击环：Boss 来源也不僵直
+	boss_e.dead = true
+	reset()
+	game.invuln = 0.0
+	game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": 1.0, "hit": false, "boss": true})
+	game.enemies_sys.update_status(1.0 / 60.0)
+	ok(game.pstun <= 0.0 and c.slows.has("stun"), "Boss 刚死时它的冲击环也只减速（僵直 %.2f）" % game.pstun)
+	# Boss 出现前残留的僵直：Boss 一出现就换成减速，不算违规；Boss 战中有地方直接写 g.pstun：换掉并记违规
+	reset()
+	game.pstun = 0.3
+	c.ctrl_boss = false
+	boss_e.dead = false
+	var stun0: float = c.ctrl.stun_t
+	game.enemies_sys.update_status(1.0 / 60.0)
+	ok(game.pstun <= 0.0 and c.ctrl.stun_t == stun0, "Boss 出现前残留的僵直直接换成减速、不记违规")
+	game.pstun = 0.3
+	game.enemies_sys.update_status(1.0 / 60.0)
+	ok(game.pstun <= 0.0 and c.ctrl.stun_t > stun0, "Boss 战中直接写的僵直被换掉并记违规（%.3f 秒）" % (c.ctrl.stun_t - stun0))
+	c.ctrl.stun_t = stun0
+	# 冲刺不查僵直：僵直中照样能冲，方向取按住的方向
+	reset()
+	var st0: int = game.state
+	game.state = Game.S.PLAY
+	game.pstun = 0.4
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game.move_in = Vector2(0, 1)
+	game._try_dash()
+	ok(game.dash_t > 0.0 and game.dash_dir.is_equal_approx(Vector2(0, 1)), "僵直中能冲刺，方向取按住的方向（dash_t %.2f，方向 %s）" % [game.dash_t, str(game.dash_dir)])
+	game.dash_t = 0.0
+	game._try_dash()
+	ok(game.dash_t <= 0.0, "冷却中不能冲刺")
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game.state = st0
 	reset()

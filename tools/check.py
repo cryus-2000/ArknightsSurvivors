@@ -69,11 +69,21 @@ def smoke_cases():
     return cases
 
 
+def ctrl_errors(d):
+    """主控保护的自动检查（docs/38 §1.11，BALANCE 的 ctrl，run/combat.gd）：Boss 存活期间主控僵直恒为 0"""
+    c = (d or {}).get("ctrl") or {}
+    errs = []
+    if c.get("stun_t", 0) > 0:
+        errs.append("主控保护：Boss 存活期间主控僵直 %.2f 秒（应为 0）" % c["stun_t"])
+    return errs
+
+
 def run_case(godot, name, extra, timeout=300):
     t0 = time.time()
     out, err, to = GR.run_godot(godot_args(godot, extra), timeout)
     errs = GR.script_errors(out, err)
     d = parse_balance(out)
+    errs += ctrl_errors(d)
     ok = d is not None and not errs and not to
     detail = ("超时" if to else ("没有 BALANCE 行" if d is None else "t=%d %s" % (d["t"], "胜" if d.get("win") else "")))
     return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d}
@@ -140,6 +150,11 @@ def _fmt(t):
     return "%d:%02d" % (int(t) // 60, int(t) % 60)
 
 
+def _same(p, q):
+    """两局结果相同：只比两边都有的字段（不含 prof），基准提交之后新加的统计字段（如 ctrl）不算差异"""
+    return all(p[k] == q[k] for k in (set(p) & set(q)) - {"prof"})
+
+
 def compare(base, head):
     """按 机器人 × 开局 对比胜率 / 存活 / 终局等级；配对 seed 算出变化的局数"""
     def group(recs):
@@ -156,7 +171,7 @@ def compare(base, head):
         seeds = sorted(set(x) & set(y))
         if not seeds:
             continue
-        same = sum(1 for s in seeds if {k: v for k, v in x[s].items() if k != "prof"} == {k: v for k, v in y[s].items() if k != "prof"})
+        same = sum(1 for s in seeds if _same(x[s], y[s]))
         row = []
         for d in (x, y):
             ds = [d[s] for s in seeds]

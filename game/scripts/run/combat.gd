@@ -96,13 +96,73 @@ func add_nerve(v: float) -> void:
 	g.nerve += v
 	if g.nerve >= 100.0:
 		g.nerve = 0.0
-		g.pstun = 0.4
+		if not stun_as_slow():
+			g.pstun = 0.4
 		g.atk_slow = maxf(g.atk_slow, 2.5)
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
 		hurt(g.max_hp * 0.08, true)
 		g.vfx.add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
 		Sfx.play("skill", -4.0, 1.6)
+
+
+## ---- 主控保护「永不硬控」（docs/38 §1.11，B0-2）
+## Boss 存活期间（或这一下本身是 Boss 来源），会让主控僵直的地方（预警僵直、冲击环、神经损伤溢出）改成移速减速：
+## boss/stun_as_slow_t（0.5）秒 × boss/stun_as_slow_mult（0.7）。没有 Boss 时照旧僵直。冲刺不查僵直（game._try_dash）。
+## 同一种减速重复吃到只刷新时长、不叠乘；不同种之间相乘（move_mult）。
+var slows: Dictionary = {}   # 主控移速减速：种类 -> [剩余秒数, 倍率]
+var ctrl_boss := false       # 上一帧有没有 Boss 存活：Boss 刚出现时残留的僵直直接换掉，不算违规
+## 验收计数（BALANCE 的 "ctrl"，快检冒烟会查）：Boss 存活总秒数；其间主控仍处于僵直的秒数（应恒为 0）；僵直换成减速的次数
+var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "stun_slow": 0}
+
+
+## Boss 战里把一次僵直换成减速。返回 true = 已换成减速，调用处不再写 g.pstun
+func stun_as_slow(boss_src := false) -> bool:
+	if not boss_src and not g.spawner.boss_alive():
+		return false
+	slow_leader("stun", Bal.v("boss/stun_as_slow_t", 0.5), Bal.v("boss/stun_as_slow_mult", 0.7))
+	ctrl.stun_slow += 1
+	return true
+
+
+## 给主控挂一种移速减速：t 秒、倍率 mult；同种只刷新（取较长的时长、用这次的倍率）
+func slow_leader(kind: String, t: float, mult: float) -> void:
+	if not slows.has(kind):
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "减速", Color(0.6, 0.8, 1.0), 14)
+	var old: float = slows[kind][0] if slows.has(kind) else 0.0
+	slows[kind] = [maxf(old, t), mult]
+
+
+## 主控移速倍率：raw = 溟痕 / 排异幻境 / 冰霜等原有减速的乘积，再乘上 slows 里的减速（game._update 每帧调一次）
+func move_mult(raw: float) -> float:
+	for k in slows:
+		raw *= float(slows[k][1])
+	return raw
+
+
+## 每帧（enemies.update_status，在僵直计时递减之前）：推进减速计时；Boss 存活期间残留的僵直换成减速并记账
+func update_ctrl(dt: float) -> void:
+	var on: bool = g.spawner.boss_alive()
+	if on:
+		ctrl.boss_t += dt
+		if g.pstun > 0.0:
+			if ctrl_boss:
+				ctrl.stun_t += dt   # Boss 战中还有地方直接写了 g.pstun：违规，记下来（快检会报）
+			g.pstun = 0.0
+			stun_as_slow(true)
+	ctrl_boss = on
+	for k in slows.keys():
+		slows[k][0] -= dt
+		if slows[k][0] <= 0.0:
+			slows.erase(k)
+
+
+## BALANCE 输出用：ctrl 里的秒数取两位小数
+func ctrl_report() -> Dictionary:
+	var r := {}
+	for k in ctrl:
+		r[k] = snappedf(ctrl[k], 0.01) if ctrl[k] is float else ctrl[k]
+	return r
 
 
 ## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
