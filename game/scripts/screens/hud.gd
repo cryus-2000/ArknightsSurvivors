@@ -99,6 +99,12 @@ func draw() -> void:
 			edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * g.in_mire), 130.0)
 		if g.in_mire > 0.5 and g.state == Game.S.PLAY:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, g.in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+	# Boss 换幕 / 倒下的全屏闪（world.watch_bosses）
+	if g.world.scr_flash > 0.0:
+		var fk: float = g.world.scr_flash / g.world.scr_flash_max
+		var fc: Color = g.world.scr_flash_col
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fc.r, fc.g, fc.b, 0.28 * fk * fk))
+		edge_glow(vs, Color(fc.r, fc.g, fc.b, 0.8 * fk), 120.0)
 	# 受击时屏幕边缘泛红
 	if g.red_flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, g.red_flash * 0.16))
@@ -223,6 +229,7 @@ func draw() -> void:
 			var sd2 := dd.orthogonal() * 10.0
 			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
 			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+	draw_boss_pointers(vs, ct)
 	if not overlay_left():
 		draw_minimap(vs)
 	var st_txt := ""
@@ -340,10 +347,10 @@ func draw() -> void:
 		var sub_col := UI.SUB
 		var mv_name: String = shown.get("move_name", "")
 		if brk > 0.0:
-			sub = "破绽 %.1f 秒 · 受到伤害提高" % brk
+			sub = "破绽 %.1f 秒 · 受到的伤害 +%d%%" % [brk, roundi((Game.Bal.v("boss/break_mult", 1.4) - 1.0) * 100.0)]
 			sub_col = UI.GOLD
 		elif hold:
-			sub = "阶段护盾 · 撑过这一幕"
+			sub = "阶段护盾 · 本幕时限到后破碎"
 			sub_col = UI.GOLD
 		elif mv_name != "" and g.t - float(shown.get("move_t", -99.0)) < MOVE_NAME_T:
 			sub = mv_name   # 招式名进副标题行，不再头顶浮字（§1.15）
@@ -904,6 +911,41 @@ const MOVE_NAME_T := 1.6
 ## 顶部 Boss 大血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
 ## 只算活着、且 enemies.json 里 role == "boss" 的；两体 Boss（接潮双体等）正好 2 条，所以上限 2
 const BOSS_BARS_MAX := 2
+
+## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人和祭坛都有指示，Boss 没有）：
+## 屏幕边缘一个洋红红圈（比商人 / 祭坛大一号、双圈、脉动），里面是 Boss 常态帧头像，外侧箭头指向 Boss，旁边写名字和距离
+const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
+
+func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	for b in boss_bars():
+		var sp: Vector2 = ct * b.pos
+		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			continue
+		var c := vs / 2.0
+		var d := (sp - c).normalized()
+		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 72) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 72) / maxf(absf(d.y), 0.01)))
+		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
+		g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.14))
+		g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
+		g.hud.draw_arc(edge, 28.0, 0.0, TAU, 32, BOSS_PTR_COL, 2.0)
+		g.hud.draw_arc(edge, 32.0, 0.0, TAU, 32, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.35 + 0.4 * pulse), 1.0)
+		var bt: Texture2D = g.tex.get(b.tex)
+		if bt != null:
+			var fw: int = bt.get_width() / 2   # 敌人常态帧条固定 2 帧（同 world 画敌人）
+			var k: float = minf(44.0 / float(fw), 44.0 / float(bt.get_height()))
+			k = floorf(k) if k >= 1.0 else k
+			var sz := Vector2(fw, bt.get_height()) * k
+			g.hud.draw_texture_rect_region(bt, Rect2((edge - sz * 0.5).round(), sz), Rect2(0, 0, fw, bt.get_height()))
+		var tip: Vector2 = edge + d * (46.0 + 6.0 * pulse)
+		var base: Vector2 = edge + d * 33.0
+		var sd := d.orthogonal() * 12.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), BOSS_PTR_COL)
+		var nm: String = D.ENEMIES.get(b.type, {}).get("name", "Boss")
+		var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
+		UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), "%s  %dm" % [nm, int(b.pos.distance_to(g.ppos) / 32.0)], 13, BOSS_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+
 
 func boss_bars() -> Array:
 	var out: Array = []

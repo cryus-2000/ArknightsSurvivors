@@ -22,6 +22,10 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
+var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
+var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
+var scr_flash_max := 1.0
+var scr_flash_col := Color.WHITE
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
@@ -107,7 +111,52 @@ func update_visuals(dt: float) -> void:
 		g.post.crowd = crowd
 
 
+## Boss 换幕 / 倒下演出（docs/48 P1：换幕只有横幅，死亡特效和精英同一套、比本体还小）。
+## 只在画面里观察 g.bosses 的 phase / dead 变化来放特效，不改战斗逻辑；平衡模式不绘制，不影响对局随机数（特效只用 vrng）
+func watch_bosses() -> void:
+	boss_seen = boss_seen.filter(func(s): return g.bosses.any(func(b): return is_same(b, s[0])))
+	for b in g.bosses:
+		var s: Array = []
+		for s2 in boss_seen:
+			if is_same(s2[0], b):
+				s = s2
+				break
+		if s.is_empty():
+			boss_seen.append([b, b.get("phase", 1), b.dead])
+			continue
+		if b.get("phase", 1) != s[1] and not b.dead:
+			s[1] = b.get("phase", 1)
+			boss_phase_fx(b)
+		if b.dead and not s[2]:
+			s[2] = true
+			if not b.get("retreated", false):
+				boss_down_fx(b)
+
+
+func _flash(col: Color, t: float) -> void:
+	scr_flash = t
+	scr_flash_max = t
+	scr_flash_col = col
+
+
+## 换幕：洋红冲击波两圈 + 放射光刺 + 全屏洋红一闪
+func boss_phase_fx(b: Dictionary) -> void:
+	g.fx.append({"kind": "boss_phase", "pos": b.pos, "r": b.r, "life": 0.9, "max": 0.9})
+	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.4, 0.4, 1.1), 20, 300.0)
+	_flash(Color(1.0, 0.3, 0.8), 0.35)
+
+
+## Boss 倒下：白色核心爆闪 + 三道错开的冲击环（最大到本体 8 倍）+ 竖直光柱 + 大量碎光，全屏白闪
+func boss_down_fx(b: Dictionary) -> void:
+	g.fx.append({"kind": "boss_down", "pos": b.pos, "r": maxf(b.r, 24.0), "life": 1.6, "max": 1.6})
+	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.6, 1.4, 1.8), 30, 420.0)
+	g.vfx.sparks(b.pos, Vector2.UP, Color(1.4, 0.5, 1.2), 16, 360.0)
+	_flash(Color(1.0, 0.97, 0.95), 0.4)
+
+
 func draw_world() -> void:
+	watch_bosses()
+	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
 	for m in g.mires:
 		g.map.draw_mire(m)
@@ -454,6 +503,41 @@ func draw_world() -> void:
 				for q in n:
 					var p0: Vector2 = f.a.lerp(f.b, float(q) / n)
 					UI.diamond(g, p0 + Vector2(0, -8), 4.0, Color(0.02, 0.05, 0.08, a), Color(0.7, 1.4, 2.0, a))
+			"boss_phase":
+				# Boss 换幕：两圈洋红冲击波 + 12 道放射光刺
+				var k := 1.0 - a
+				var mc := Color(1.6, 0.45, 1.3)
+				for q in 2:
+					var kq: float = clampf(k * 1.3 - q * 0.25, 0.0, 1.0)
+					if kq > 0.0 and kq < 1.0:
+						var rq: float = f.r * (1.2 + 6.0 * (1.0 - pow(1.0 - kq, 2.0)))
+						g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+						g.draw_arc(Vector2.ZERO, rq, 0.0, TAU, 64, Color(mc.r, mc.g, mc.b, (1.0 - kq) * 0.9), 6.0 - q * 2.0)
+						g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				for q in 12:
+					var dv := Vector2.from_angle(q * TAU / 12.0 + 0.26)
+					var r0: float = f.r * (0.8 + 3.0 * k)
+					g.draw_line(f.pos + dv * r0, f.pos + dv * (r0 + f.r * 1.6 * a + 10.0), Color(mc.r, mc.g, mc.b, a), 3.0)
+			"boss_down":
+				# Boss 倒下：核心爆闪 → 三道冲击环 → 光柱收细
+				var k := 1.0 - a
+				var el: float = f.max - f.life
+				if el < 0.3:
+					var ck: float = el / 0.3
+					g.draw_circle(f.pos, f.r * (1.0 + 1.5 * ck), Color(2.0, 1.9, 2.0, 1.0 - ck))
+				var cols := [Color(2.0, 1.9, 2.0), Color(1.6, 0.45, 1.3), Color(0.5, 1.5, 1.6)]
+				for q in 3:
+					var kq: float = clampf((el - q * 0.14) / 1.1, 0.0, 1.0)
+					if kq > 0.0 and kq < 1.0:
+						var rq: float = f.r * (1.0 + 7.0 * (1.0 - pow(1.0 - kq, 3.0)))
+						var cq: Color = cols[q]
+						g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+						g.draw_arc(Vector2.ZERO, rq, 0.0, TAU, 72, Color(cq.r, cq.g, cq.b, (1.0 - kq) * 0.85), 7.0 - q * 2.0)
+						g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				var pw: float = f.r * 1.4 * (1.0 - k * k)
+				if pw > 0.5:
+					g.draw_rect(Rect2(f.pos.x - pw / 2.0, f.pos.y - 520.0, pw, 520.0 + f.r * 0.4), Color(1.8, 1.6, 2.0, 0.55 * a))
+					g.draw_rect(Rect2(f.pos.x - pw / 6.0, f.pos.y - 520.0, pw / 3.0, 520.0 + f.r * 0.4), Color(2.0, 2.0, 2.0, 0.8 * a))
 			"rays":
 				# 技能发动：放射光束
 				var k := 1.0 - a
