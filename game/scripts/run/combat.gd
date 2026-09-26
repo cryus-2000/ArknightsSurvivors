@@ -463,6 +463,7 @@ func gate_init(e: Dictionary, type: String) -> void:
 	e.gate_inv = 0.0
 	e.gate_final = fin
 	e.shield_t = 0.0   # 阶段护盾累计秒数（报表用）
+	e.last_done = e.gates.is_empty()   # 关掉卡点时最后一幕也不守
 	e.gates_passed = 0
 	# 破绽与韧性（§1.5，B1 ③）
 	e.break_t = 0.0
@@ -477,7 +478,17 @@ func gate_init(e: Dictionary, type: String) -> void:
 
 func gate_clamp(e: Dictionary, dmg: float) -> float:
 	var gates: Array = e.get("gates", [])
-	if gates.is_empty() or dmg <= 0.0:
+	if dmg <= 0.0:
+		return dmg
+	if gates.is_empty():
+		# 最后一幕也有最短时长（§1.3）：没满时停在这一幕血池剩 boss/last_hold（3%）处升护盾，满了护盾碎、剩下的照常打；只守一次
+		if e.get("last_done", true):
+			return dmg
+		var lh: float = e.maxhp * Bal.v("boss/last_hold", 0.03)
+		if e.hp > lh and e.hp - dmg <= lh and e.act_t < e.act_min:
+			dmg = e.hp - lh
+			e.gate_hold = true
+			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 		return dmg
 	var line: float = e.maxhp * float(gates[0])
 	if e.hp > line and e.hp - dmg <= line:
@@ -503,7 +514,11 @@ func gate_update(e: Dictionary, dt: float) -> void:
 	if e.get("gate_hold", false):
 		e.shield_t += dt
 		if e.act_t >= e.act_min:
-			gate_pass(e)
+			if e.gates.is_empty():
+				e.gate_hold = false   # 最后一幕的护盾：到时碎掉，不给过卡点的无敌和掉落
+				e.last_done = true
+			else:
+				gate_pass(e)
 
 
 ## ---- 破绽与韧性（docs/38 §1.5，B1 ③）。破绽只有一种状态：e.break_t > 0 时受伤 ×boss/break_mult（1.4）；

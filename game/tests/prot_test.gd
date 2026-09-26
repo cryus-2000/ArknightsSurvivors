@@ -674,10 +674,17 @@ func test_gates() -> void:
 	ok(m.hp == h0, "过卡点后 0.8 秒内不受伤")
 	c.gate_update(m, 1.0)
 	k = 0
+	while not m.dead and not m.gate_hold and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(not m.dead and m.gate_hold and absf(m.hp - m.maxhp * Bal.v("boss/last_hold", 0.03)) < 0.01, "最后一幕没满最短时长：停在剩 3%% 处升护盾")
+	c.gate_update(m, m.act_min)
+	ok(not m.gate_hold and m.last_done, "最后一幕满时长后护盾碎掉")
+	k = 0
 	while not m.dead and k < 200:
 		c.damage(m, m.maxhp)
 		k += 1
-	ok(m.dead, "第二幕打完正常死亡（%d 击）" % k)
+	ok(m.dead, "最后一幕打完正常死亡（%d 击）" % k)
 	# 最终 Boss：两道刻度；这一幕已满时长则越过刻度立刻过卡点、不升护盾
 	var f: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1700, 0))
 	ok(f.gates == [0.66, 0.33] and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 0.66 / 0.33、每幕 %.0f 秒" % f.act_min)
