@@ -163,6 +163,16 @@ func _ready() -> void:
 		get_tree().create_timer(1.2).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
 			get_tree().quit())
+	for a in Cfg.dev_args():
+		if a.begins_with("--diffshot="):
+			# 选难度页截图：--diffshot=<选中档>,<已解锁到第几档>（只改内存，测试模式不写存档）
+			var dp := a.substr(11).split(",")
+			Cfg.diff_unlocked = clampi(int(dp[1]) if dp.size() > 1 else 0, 0, D.DIFFICULTY_TIERS.size() - 1)
+			diff_pick = true
+			diff_sel = clampi(int(dp[0]), 0, Cfg.diff_unlocked)
+			get_tree().create_timer(1.2).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
+				get_tree().quit())
 	if OS.get_cmdline_user_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
@@ -199,7 +209,7 @@ func _diff_input(event: InputEvent) -> void:
 
 
 func _diff_step(d: int) -> void:
-	var n := clampi(diff_sel + d, 0, D.DIFFICULTY.size() - 1)
+	var n := clampi(diff_sel + d, 0, D.DIFFICULTY_TIERS.size() - 1)
 	if n > Cfg.diff_unlocked:
 		Sfx.play("ui_move", -4.0, 0.6)
 		return
@@ -216,11 +226,11 @@ func _diff_go() -> void:
 	leaving = 0.0
 
 
-## 难度选择：左右切换，列出所有逐级叠加的效果
+## 难度选择：3 档（D.DIFFICULTY_TIERS）左右切换；下方按档列出各自新增的效果（逐档叠加）
 func _draw_diff(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
 	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120)
-	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY.size() - 1))
+	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY_TIERS.size() - 1))
 	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
 	UI.en(self, font, r.position + Vector2(36, 42), "DIFFICULTY", 13, col, 4.0)
 	UI.text(self, font, r.position + Vector2(36, 80), "选择难度", 26, UI.TEXT)
@@ -233,18 +243,24 @@ func _draw_diff(vs: Vector2) -> void:
 	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < Cfg.diff_unlocked else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
 	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
 	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
-	UI.text(self, font, c + Vector2(-40, 14), str(diff_sel), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
-	UI.text(self, font, c + Vector2(-150, 68), D.DIFFICULTY[diff_sel].name, 20, col, HORIZONTAL_ALIGNMENT_CENTER, 300)
-	# 效果列表
-	var y := r.position.y + 262
-	for i in range(1, D.DIFFICULTY.size()):
-		var on := i <= diff_sel
-		var locked := i > Cfg.diff_unlocked
-		var x := r.position.x + 60 + ((i - 1) / 5) * 340
-		var yy := y + ((i - 1) % 5) * 34
+	var tdef: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
+	UI.text(self, font, c + Vector2(-40, 12), tdef.name, 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x / 2.0 - 12, 66), tdef.en, 12, col, 4.0)
+	# 效果列表：标准无额外效果；困难 / 极难各一列，列出该档新增的效果（选中更高档时，低档的效果同样生效）
+	var y := r.position.y + 292
+	UI.text(self, font, Vector2(r.position.x, y - 42), "深海原本的样子" if diff_sel == 0 else "包含下列已点亮的全部效果", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	for ti in range(1, D.DIFFICULTY_TIERS.size()):
+		var on := ti <= diff_sel
+		var locked := ti > Cfg.diff_unlocked
+		var x := r.position.x + 60 + (ti - 1) * 340
 		var ic := col if on else (Color(0.3, 0.36, 0.4) if locked else UI.SUB)
-		UI.diamond(self, Vector2(x, yy - 6), 5.0, ic if on else Color(0, 0, 0, 0), ic)
-		UI.text(self, font, Vector2(x + 16, yy), "%d  %s" % [i, D.DIFFICULTY[i].desc] if not locked else "%d  通关难度 %d 后解锁" % [i, i - 1], 14, UI.TEXT if on else ic)
+		var head: String = D.DIFFICULTY_TIERS[ti].name + ("（通关「%s」后解锁）" % D.DIFFICULTY_TIERS[ti - 1].name if locked else "")
+		UI.text(self, font, Vector2(x, y), head, 16, UI.TEXT if on else ic)
+		var effs: Array = D.tier_new_effects(ti)
+		for k in effs.size():
+			var yy := y + 34 + k * 30
+			UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic if on else Color(0, 0, 0, 0), ic)
+			UI.text(self, font, Vector2(x + 20, yy), effs[k], 14, UI.TEXT if on else ic)
 	# 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)

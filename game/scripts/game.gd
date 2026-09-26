@@ -193,7 +193,8 @@ var texts: Array = []
 var grid := {}
 var orbit_a := 0.0
 var threat := 0                  # 威胁等级（D.THREAT 下标）
-var diff := 0                # 本局难度
+var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
+var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「标准 / 困难 / 极难」）
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var next_horde := Bal.v("enemy/first_horde", 75.0)   # 第一次大群（balance.json，docs/46 §1.2）
@@ -541,14 +542,19 @@ func _ready() -> void:
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
 		vfx.show_banner("深海的潮水正在涌来……")
-	diff = clampi(Cfg.difficulty, 0, D.DIFFICULTY.size() - 1)
+	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
+	diff = D.DIFFICULTY_TIERS[tier].level
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--diff="):
 			diff = int(a.substr(7))
+			tier = D.tier_of_level(diff)
+		elif a.begins_with("--tier="):
+			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
+			diff = D.DIFFICULTY_TIERS[tier].level
 	if diff >= 3:
 		stats.add(&"light_decay", "mult", 1.25, "difficulty")
 	if diff >= 9:
-		stats.add(&"max_hp", "mult", 0.67, "difficulty")   # 原为定值 80（= 120 的 2/3）；主控生命因人而异后改成倍率
+		stats.add(&"max_hp", "mult", 0.8, "difficulty")   # 「负伤」：初始最大生命 -20%（1.1 数值定：原 ×0.67 与说明不符）
 	_sync_stats()
 	hp = max_hp
 	hp_trail = hp
@@ -1016,8 +1022,9 @@ func _update(dt: float) -> void:
 	if final_boss != null and final_boss.dead:
 		state = S.WIN
 		endg.on_win()
-		if not balance and diff >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY.size() - 1:
-			Cfg.diff_unlocked = diff + 1
+		# 通关当前最高已解锁的档 → 解锁下一档
+		if not balance and tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
+			Cfg.diff_unlocked = tier + 1
 			Cfg.save()
 			diff_new = true
 		return
