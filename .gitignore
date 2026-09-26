@@ -32,6 +32,9 @@ build/*.bat
 # EdgeOne deploy token (local only)
 .edgeone_token
 
+# 云端批跑生成的本地环境变量（含本机绝对路径，由 tools/cloud/setup_linux.sh 生成）
+tools/cloud/env.sh
+
 # 第三方开放许可素材：只入库 README（各包许可不允许再分发）
 art/third_party/*
 !art/third_party/README.md
