@@ -55,6 +55,14 @@ func pick_elite() -> String:
 	return pool[g.rng.randi() % pool.size()]
 
 
+## 最终 Boss 登场：冻结场地（半径 enemies.json 的 arena_r，缺省 boss/arena_r 520），已有的自然溟痕在 20 秒内退潮（docs/38 §1.7）
+func enter_arena(type: String) -> void:
+	g.combat.freeze_zone(float(D.ENEMIES.get(type, {}).get("arena_r", Bal.v("boss/arena_r", 520.0))))
+	for m in g.mires:
+		if not m.get("boss", false):
+			m.life = minf(m.life, 20.0)
+
+
 func boss_alive() -> bool:
 	for b in g.bosses:
 		if not b.dead:
@@ -87,6 +95,9 @@ func update(dt: float) -> void:
 			if g.knight.alive:
 				base = g.knight.take_over()
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
+		if boss_idx == D.BOSS_TIMES.size():
+			enter_arena(group[0])
+			base = g.combat.arena_clamp(base, 80.0)   # 场地内、离圈边 ≥80 登场
 		var spawned: Array = []
 		for k in group.size():
 			var b := spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
@@ -201,8 +212,8 @@ func update(dt: float) -> void:
 				nch += 1
 		if nch < 3:
 			spawn_chest(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(260.0, 420.0))
-	# 溟痕
-	if g.t >= g.next_mire:
+	# 溟痕（最终 Boss 场地冻结后停刷自然溟痕，docs/38 §1.7）
+	if g.t >= g.next_mire and not g.zone_frozen:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
 		g.next_mire = g.t + g.map.mire_next_interval(g.t)
 		var mp := g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160.0, 380.0)
