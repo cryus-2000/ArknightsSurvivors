@@ -856,7 +856,8 @@ func follow(dt: float, target: Vector2) -> void:
 	if attack_t <= 0.0:
 		if absf(vel.x) > 25.0 and mv > 30.0:
 			# 主控跟着玩家移动即时转身；队友明显横向移动（> 90）时也即时转，不再倒着跑
-			_set_face(signf(vel.x), is_leader)   # 队友走 FACE_MIN 防抖（强制转身会在 0.35 秒内反复翻，runretest P1）
+			# 主控即时；队友明显横向移动（> 90）且距上次翻身满 0.15 秒也转（倒着跑），否则走 FACE_MIN 防抖（runretest2）
+			_set_face(signf(vel.x), is_leader or (absf(vel.x) > 90.0 and g.t - face_flip_t >= 0.15))
 		elif mv < 20.0 and g.t - face_flip_t > FACE_IDLE:
 			_set_face(g.facing)   # 站定回正：离上次翻身满 FACE_IDLE 秒才回，免得出手转向后立刻翻回来
 	attack_t = maxf(0.0, attack_t - dt)

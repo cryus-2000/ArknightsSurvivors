@@ -188,6 +188,10 @@ func _m_route(want: Vector2) -> Vector2:
 		if m.pos.distance_to(m.via) > 16.0 and g.t - float(m.get("via_t", g.t)) < 1.2:
 			return m.via
 		m["via"] = Vector2.INF
+		m["via_off"] = g.t
+	# 退出绕行后 0.4 秒内不再进入（进 / 出同一阈值会在同一两帧来回切，之字形回到基准水平；runretest2 P1）
+	if g.t - float(m.get("via_off", -99.0)) < 0.4:
+		return want
 	for c in [pos, g.ppos]:
 		if c == Vector2.INF or m.pos.distance_to(c) < 12.0 or want.distance_to(c) < 12.0:
 			continue
@@ -196,7 +200,7 @@ func _m_route(want: Vector2) -> Vector2:
 			var via: Vector2 = c + Vector2(0, 56)
 			if g.tex.get("prop_pillar") != null:
 				via = g.map.push_out(via, 14.0)   # 绕行点先推出柱子再存
-			if m.pos.distance_to(via) > 16.0:
+			if m.pos.distance_to(via) > 32.0:   # 进入阈值 32、退出 16：滞回
 				m["via"] = via
 				m["via_t"] = g.t
 				return via
