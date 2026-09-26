@@ -58,6 +58,11 @@ PRESETS = {
     # 输出占比（2026-09-26）：被测干员 + 推进之王 + 水月，配 --extra=--nodeath 跑满。队友固定且不在本轮改动里，前后占比才可比
     # （opcmp 的「每分钟伤害」在怪被清空时封顶，而且队友一改动所有人的数字都跟着变，只适合看同一版本内的排名）
     "share": [[o, "siege", "mizuki"] for o in OPS if o not in ("siege", "mizuki")],
+    # 近战 / 远程差距快检（2026-09-26）：近战主控 + 一名远程主输出 + 一名辅助，配 --extra="--nodeath --maxt=480"，看近战与远程各拿多少伤害
+    "gap": [["skadi", "wisadel", "suzuran"], ["irene", "logos", "saria"], ["ulpianus", "eyjafjalla", "kaltsit"],
+            ["specter_unchained", "wisadel", "lumen"], ["mizuki", "logos", "siege"]],
+    # 快检主控可玩性：近战 / 远程各三名开局主控，自然招募
+    "gapleaders": [["skadi"], ["ulpianus"], ["irene"], ["wisadel"], ["logos"], ["eyjafjalla"]],
 }
 
 

@@ -37,7 +37,7 @@ func block_radius() -> float:
 
 
 func _reach() -> float:
-	return base("reach", 92.0) * stat(&"op_range")
+	return base("reach", 115.0) * stat(&"op_range")
 
 
 ## 站位：主控面前一侧（贴身护卫），不前压
