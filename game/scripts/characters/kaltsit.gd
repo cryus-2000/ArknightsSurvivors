@@ -64,7 +64,9 @@ func update(dt: float) -> void:
 	if melt > 0.0:
 		melt -= dt
 		if melt <= 0.0:
+			melt_out = MELT_OUT
 			_meltdown()
+	melt_out = maxf(0.0, melt_out - dt)
 	for me in melt_echo:
 		me.t -= dt
 		if me.t <= 0.0:
@@ -434,7 +436,32 @@ func extra_bodies() -> Array:
 	return [{"y": m.pos.y + 4.0}]
 
 
+## 熔毁帧条 op_mon3tr_skill（6 帧 12fps，docs/32 验收 §2）：f0–f2 起手、f2–f4 循环（8 秒不当一整条放）、结束补 f5 收尾；
+## 熔毁期间不论移动 / 爪击都用它（爪击的判定与刀光照旧）；缺图退回原来的三态帧条
+const MELT_OUT := 0.12
+var melt_out := 0.0
+
+func _melt_frame() -> Array:
+	var tx: Texture2D = anim_tex("m_skill")
+	if tx == null:
+		return []
+	var n: int = anim_hframes(tx, "m_skill")
+	var fps: float = float(sprite_spec("m_skill").get("fps", 12))
+	var fr: int
+	if melt <= 0.0:
+		fr = n - 1
+	else:
+		var el: float = S3_DUR - melt
+		var intro: float = 3.0 / fps
+		fr = int(el * fps) if el < intro else 2 + int((el - intro) * fps) % 3
+	return [tx, clampi(fr, 0, n - 1), n]
+
+
 func _m_frame(kind: String, at: float) -> Array:
+	if melt > 0.0 or melt_out > 0.0:
+		var mf := _melt_frame()
+		if not mf.is_empty():
+			return mf
 	var tx: Texture2D = anim_tex("m_" + kind)
 	if tx == null:
 		return []
@@ -457,20 +484,19 @@ func draw_extra(_it: Dictionary) -> void:
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
-				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
-		var ac: Color = CRIMSON if melt > 0.0 else GREEN
+				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
+		var ac: Color = GREEN
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
-			# 熔毁：身后一团红光晕
-			# 熔毁：身后几团错开、缓慢翻动的半透明红雾（不是一整块红盘）
+			# 熔毁：身后几团错开、缓慢翻动的半透明绿雾（2026-09-26 起不再染红，配合新帧条的绿色裂隙）
 			for q in 5:
 				var ph: float = g.t * 1.7 + q * 1.3
 				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 - 26.0)
-				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(1.0, 0.06, 0.1, 0.13))
+				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.15, 1.0, 0.35, 0.11))
 		# 光环套在悬浮本体中心（返修稿本体中心在脚底上方约 53；docs/32 验收 §5）
 		g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
-	# 熔毁：整体染猩红（原作截图）；协同：略偏绿
-	var col := Color(1.7, 0.45, 0.45) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
+	# 熔毁：不再整体染猩红（用户定 2026-09-26，靠新帧条的绿色裂隙表现）；协同：略偏绿
+	var col := Color.WHITE if melt > 0.0 or melt_out > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
 	draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
 	_draw_claw_blades()
@@ -483,13 +509,13 @@ func _draw_claw_blades() -> void:
 		return
 	var n: int = 2 if twin_claw else 1
 	var sides: Array = [m.face, -m.face]
-	var c: Color = CRIMSON if melt > 0.0 else GREEN
+	var c: Color = GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
 	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，
 	# 身前 / 身后两组都让刃背朝外——朝右的一侧由程序水平镜像；熔毁时整体染猩红。缺图退回下面的程序弧
 	var btx: Texture2D = A.tex("fx_mon3tr_blade")
 	if btx != null:
-		var bc: Color = Color(1.8, 0.35, 0.35) if melt > 0.0 else Color.WHITE
+		var bc: Color = Color(1.25, 1.6, 1.25) if melt > 0.0 else Color.WHITE   # 熔毁时更亮的绿，不再染红
 		var bf: int = int(g.t * 4.0) % 2
 		for s in sides:
 			for j in n:

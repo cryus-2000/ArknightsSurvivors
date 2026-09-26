@@ -84,8 +84,21 @@
   "foot": [
    24,
    46
-  ]
+  ],
+  "skill_heal": {
+   "tex": "op_saria_skill_heal",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  }
  },
+ "extra_sprites": [
+  "skill_heal"
+ ],
  "attack": {
   "mode": "auto",
   "name": "拳击",
@@ -97,14 +110,16 @@
    "en": "FIRST AID",
    "sp": 7,
    "desc": "为主控回复 8% 最大生命；主控生命低于一半时翻倍",
-   "icon": "skill_saria_s1"
+   "icon": "skill_saria_s1",
+   "anim": "skill_heal"
   },
   {
    "name": "药剂散布",
    "en": "MEDICINE DISPENSING",
    "sp": 12,
    "desc": "立即为主控回复 10% 最大生命，之后 5 秒内每秒再回复 1%",
-   "icon": "skill_saria_s2"
+   "icon": "skill_saria_s2",
+   "anim": "skill_heal"
   },
   {
    "name": "钙质化",

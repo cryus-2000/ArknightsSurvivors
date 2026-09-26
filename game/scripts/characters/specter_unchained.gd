@@ -100,13 +100,17 @@ func update(dt: float) -> void:
 	if s2_t > 0.0:
 		s2_t -= dt
 		if s2_t <= 0.0:
+			_start_fall()
+	if fall_t > 0.0:
+		fall_t -= dt
+		if fall_t <= 0.0:
 			_fall()
 	_update_doll(dt)
 	_update_rings(dt)
 	if s1_t > 0.0 and not away() and g.rng.randf() < dt * 14.0:
 		fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-16, 16), g.rng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_update_spins(dt)
-	if away() or acting():
+	if away() or acting() or fall_t > 0.0:
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
@@ -267,7 +271,33 @@ func prevent_death() -> bool:
 	return s2_t > 0.0
 
 
-## S2 结束：倒下，留下替身（替身跟随主控干员，_update_doll）
+## S2 结束：先播倒下帧条 op_specter_unchained_fall（5 帧 10fps，不循环、停在末帧；docs/32 验收 §2），播完再切替身。
+## 倒下期间不出手；缺图时直接切替身（和以前一样）
+var fall_t := 0.0
+
+func _fall_dur() -> float:
+	var sp := sprite_spec("fall")
+	return float(sp.get("frames", 5)) / float(sp.get("fps", 10)) if anim_tex("fall") != null else 0.0
+
+
+func _start_fall() -> void:
+	melee_tgt = null
+	fall_t = _fall_dur()
+	if fall_t <= 0.0:
+		_fall()
+
+
+func anim_state() -> Dictionary:
+	if fall_t > 0.0:
+		var tx: Texture2D = anim_tex("fall")
+		if tx != null:
+			var n: int = anim_hframes(tx, "fall")
+			var fr: int = clampi(int((_fall_dur() - fall_t) * float(sprite_spec("fall").get("fps", 10))), 0, n - 1)
+			return {"tex": tx, "frame": fr, "hf": n, "flip": face < 0.0, "kind": "fall"}
+	return super()
+
+
+## 倒下播完：留下替身（替身跟随主控干员，_update_doll）
 func _fall() -> void:
 	doll_pos = pos
 	doll_t = base("doll_dur", 12.0)

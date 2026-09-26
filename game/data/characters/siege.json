@@ -87,8 +87,21 @@
   "foot": [
    24,
    46
-  ]
+  ],
+  "command": {
+   "tex": "op_siege_command",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  }
  },
+ "extra_sprites": [
+  "command"
+ ],
  "attack": {
   "mode": "auto",
   "name": "锤击",
@@ -100,7 +113,8 @@
    "en": "CHARGE",
    "sp": 6,
    "desc": "全队技力 +15%；下一次锤击伤害 ×1.5",
-   "icon": "skill_siege_s1"
+   "icon": "skill_siege_s1",
+   "anim": "command"
   },
   {
    "name": "跃空锤",
@@ -115,7 +129,8 @@
    "sp": 18,
    "desc": "8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%",
    "dur": 8.0,
-   "icon": "skill_siege_s3"
+   "icon": "skill_siege_s3",
+   "anim": "command"
   }
  ],
  "talent": {

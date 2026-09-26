@@ -101,10 +101,21 @@
     24,
     46
    ]
+  },
+  "fall": {
+   "tex": "op_specter_unchained_fall",
+   "frames": 5,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
   }
  },
  "extra_sprites": [
-  "doll"
+  "doll",
+  "fall"
  ],
  "attack": {
   "mode": "auto",

@@ -85,7 +85,11 @@ func update(dt: float) -> void:
 			cd = 0.1
 		else:
 			cd = base("cd", 0.7) / stat(&"op_aspd")
-			start_attack(ts[0].pos)
+			# 潮汐 8 秒内每一斩播绕身回旋（op_skadi_attack_spin，docs/32 验收 §2）；缺图退回 attack 条
+			if tide > 0.0:
+				start_attack(ts[0].pos, 0.5, 0.25, "attack_spin")
+			else:
+				start_attack(ts[0].pos)
 
 
 func _aim() -> float:

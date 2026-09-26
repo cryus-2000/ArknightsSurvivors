@@ -108,12 +108,34 @@
     60
    ],
    "fire": 2
+  },
+  "command": {
+   "tex": "op_kaltsit_command",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "m_skill": {
+   "tex": "op_mon3tr_skill",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 2
   }
  },
  "extra_sprites": [
   "m_idle",
   "m_run",
-  "m_attack"
+  "m_attack",
+  "command",
+  "m_skill"
  ],
  "attack": {
   "mode": "auto",
@@ -134,7 +156,8 @@
    "sp": 15,
    "desc": "充能一次后永久生效：Mon3tr 攻速 +40%、爪击范围 +30%，凯尔希的治疗频率 +30%",
    "permanent": true,
-   "icon": "skill_kaltsit_s2"
+   "icon": "skill_kaltsit_s2",
+   "anim": "command"
   },
   {
    "name": "熔毁",
@@ -142,7 +165,8 @@
    "sp": 24,
    "desc": "Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害",
    "dur": 8.0,
-   "icon": "skill_kaltsit_s3"
+   "icon": "skill_kaltsit_s3",
+   "anim": "command"
   }
  ],
  "talent": {

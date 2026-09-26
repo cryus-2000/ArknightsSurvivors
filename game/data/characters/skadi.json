@@ -86,8 +86,21 @@
   "foot": [
    24,
    46
-  ]
+  ],
+  "attack_spin": {
+   "tex": "op_skadi_attack_spin",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  }
  },
+ "extra_sprites": [
+  "attack_spin"
+ ],
  "attack": {
   "mode": "auto",
   "name": "大剑",
@@ -115,7 +128,8 @@
    "sp": 20,
    "desc": "8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5",
    "dur": 8.0,
-   "icon": "skill_skadi_s3"
+   "icon": "skill_skadi_s3",
+   "anim": "attack_spin"
   }
  ],
  "talent": {
