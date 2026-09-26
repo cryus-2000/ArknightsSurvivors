@@ -488,7 +488,7 @@ func on_overheal(v: float) -> void:
 func _scavenge() -> void:
 	var amt := overheal
 	overheal = 0.0
-	var dmg: float = amt * Bal.v("relic/scavenge_mult", 4.0) * g.combat.enemy_hp_time_mult()
+	var dmg: float = amt * Bal.v("relic/scavenge_mult", 8.0) * g.combat.enemy_hp_time_mult()
 	if dmg < 1.0:
 		return
 	_area("食腐", g.ppos, 150.0, dmg)

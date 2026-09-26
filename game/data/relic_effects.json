@@ -656,9 +656,15 @@
      "stat": "nerve_taken",
      "op": "add",
      "value": -0.3
+    },
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.08
     }
    ],
-   "desc": "主控受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%",
+   "desc": "主控受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%；全队伤害 +8%",
    "rarity": "稀有",
    "tags": [
     "survival",
@@ -989,7 +995,7 @@
     }
    ],
    "desc": "溢出的治疗量会转化为对主控周围敌人的法术伤害（随时间成长）",
-   "rarity": "核心",
+   "rarity": "稀有",
    "tags": [
     "survival",
     "heal",
