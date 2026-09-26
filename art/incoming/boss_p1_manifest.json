@@ -56,19 +56,19 @@
         80,
         80
       ],
-      "source_sha256": "26228f00e6dd459210a0b1bd73d69fc8a04af57cfaa32ec0e9948c5c6143f375",
+      "source_sha256": "1c963e2bde0ea7fdb37120cd4d6a839133d577df0bf86cf5af99be0485b51420",
       "outputs": [
         {
           "file": "e_ishar_transform.png",
           "width": 480,
           "height": 80,
-          "sha256": "d30a8f9d2fac4588a1a90e4885c56a172b2de66d433b94662f8e1ec4a8dbeb82"
+          "sha256": "8080a04fc97c6aeda566c9caf938ab8527e7a94b113ebc550fe107139bc38f8a"
         },
         {
           "file": "e_ishar_transform@2x.png",
           "width": 960,
           "height": 160,
-          "sha256": "7f5e3a1eb3f091a5ac10cb5244a2f52b937b1e0f3e8199a30430821250d67c63"
+          "sha256": "6ad900d555813e08fa18b35bf3635cb75379191ae1ad7a9ed0f04c0196b92742"
         }
       ]
     },
@@ -79,19 +79,19 @@
         80,
         80
       ],
-      "source_sha256": "918dffc9d0bcd2997b50ddf0d74424d08c0785251b12d42a152f1b2d6589526e",
+      "source_sha256": "e95bb293e84d1b7002e453884ed933dc93a6e0c1ce74bc23c968c53852f91897",
       "outputs": [
         {
           "file": "e_ishar_t.png",
           "width": 160,
           "height": 80,
-          "sha256": "f8e7cb4979a9f1ef2b9319d98ded49273d839f45cc3ee6ffd1f89fa26fe31847"
+          "sha256": "021a93a2163afc6f17138b7aa906cc177f9d5739015f143e4797e6194fa85f22"
         },
         {
           "file": "e_ishar_t@2x.png",
           "width": 320,
           "height": 160,
-          "sha256": "86826476cacdcfce2c92a0b4b0f41e5753cfaf53dcc1ca053e52a983a72de7e9"
+          "sha256": "0d360fabc90a9a37251fd73dfbca06afb6cd4f660553da1622b3e5aeda34d008"
         }
       ]
     },
@@ -102,19 +102,19 @@
         80,
         80
       ],
-      "source_sha256": "b4ac7e36af171a5a0d7bf72902042a0f88360782a88012ea873a8a18c2800769",
+      "source_sha256": "a4adae2eb4b4dc6d567f19658abeefac7ae21932ef04fe381fb843c9e618ef48",
       "outputs": [
         {
           "file": "e_ishar_t_move.png",
           "width": 320,
           "height": 80,
-          "sha256": "57eefd1695ff830bed35216f73cec92c413b36f34e3986f84099867f0186d7f6"
+          "sha256": "a93feb7078b4b0c358bff57eac96630d5e2b5386d4a9c9a4ce05fe7473321b93"
         },
         {
           "file": "e_ishar_t_move@2x.png",
           "width": 640,
           "height": 160,
-          "sha256": "9df59daf01b77c538e64b4d84bcd74ca88a66c3479000e042324220fdb77f04b"
+          "sha256": "56be14d7eea84cf1ddb1e7d2d88be3140547bc5f49ee82cf8ccf808f00512a7e"
         }
       ]
     },
@@ -125,19 +125,19 @@
         80,
         80
       ],
-      "source_sha256": "7c78f948ea3dfb83cd33bc1e04ea58fca3702fa328fc599c4e9ff5f0497350d2",
+      "source_sha256": "fba1ac94ac2a4fff931151789cf2159188eb246e6ae5b3ee51878aa055ed6c28",
       "outputs": [
         {
           "file": "e_ishar_t_attack.png",
           "width": 320,
           "height": 80,
-          "sha256": "b13a812d15096e2fb0a61a35ea2792b3a073cc5af20c84420caf3e1ab5f1fd6d"
+          "sha256": "c432f9a4f1f2f27973321fd280a6b55d0c9963124e7c432459734c4058dc951d"
         },
         {
           "file": "e_ishar_t_attack@2x.png",
           "width": 640,
           "height": 160,
-          "sha256": "ebcd9f3879e4538b3fc0609d8c4f57c9f35f8b8ac818e8bcfb2d700602ad05d9"
+          "sha256": "ef1a28e77d2218d07adb594dcaec741c4b692c5555b191a8c1fbbb754cb3cfa9"
         }
       ]
     }
