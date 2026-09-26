@@ -79,6 +79,13 @@
 - 不自动生效：干员自己推进的弹体、持续伤害、直接调 `deal_damage` 的伤害——要在生成弹体或结算时自己乘 `vs_elite()`（铃兰狐火是这么做的）。
   给新干员加这个键之前，先查清它的主要伤害走哪条路。现有：铃兰 2.5、塞雷娅 2.2（数值 b1-cal，开局主控打中期 Boss 太慢）。
 
+**跑步动画与脚底对齐（2026-09-27，run-anim，5ab3a9a）**：
+- `foot_dx(st, flip = null)`（character.gd）：帧条按帧宽居中画；该动作 `sprites.<kind>.foot[0]`（缺省用 `sprites.foot`）偏离帧中心时，把画的位置横向挪回，让各动作的脚都落在 `pos` 上。`draw_body`、残影、`draw_body_at` 都走它；新增画本体的路径也要用它，否则跑停、转身会横跳。
+- 跑步相位 `run_ph`：帧率 = 帧条 fps × clamp(实际移速 / `RUN_REF` 150, 0.6, 2.0)，帧条按主控基础移速画。跑 / 停带滞回：起跑 `RUN_ENTER` 40，停下 `RUN_EXIT` 20。
+- `_start_action` 直接设 `anim_kind = act_anim`（原来置空，每次起手会闪一帧待机）。
+- `squad.side`（-1..1）：编队站位的左右，`_slot_offset` 按它镜像；主控转身时约 0.8 秒平滑换边（原来瞬间镜像，队友会横穿）。要取队友站位就调 `_slot_offset`，不要自己按 `g.facing` 镜像。
+- 博士（render/world.gd）不再叠代码起伏，只靠跑步帧条自带步频（04b141c）。
+
 ## 5. 搬运工具 `tools/split_module.py`
 
 按函数名把 `game.gd` 里的一组函数整段搬到新模块（或追加到已有模块）：自动给主场景成员加 `g.` / `Game.`、
