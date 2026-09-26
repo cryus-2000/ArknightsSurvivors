@@ -40,8 +40,9 @@ func _init(game: Game) -> void:
 
 func update_visuals(dt: float) -> void:
 	g._update_doc_follow(dt)
-	var bob: float = -abs(sin(g.walk_t)) * 2.0 if g.doc_moving else 0.0
-	g.sprite.position = (g.doc_pos + Vector2(0, bob + 6)).round()
+	# 不再叠代码起伏：博士跑步帧条自带步频；旧 2 帧待机条兜底时由 update_doctor_anim 按 anim_t 自己颠
+	# （原来按主控的 walk_t 起伏：步频对不上帧条，主控停下后博士还在追时 walk_t 不走，会卡在半空）
+	g.sprite.position = (g.doc_pos + Vector2(0, 6)).round()
 	g.sprite.flip_h = g.doc_face < 0.0
 	update_player_anim(g.get_process_delta_time())
 	update_player_feel(g.get_process_delta_time())
