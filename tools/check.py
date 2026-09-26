@@ -5,13 +5,14 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / repro）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro）
 
 退出码 0 = 全部通过；1 = 有失败。任何 SCRIPT ERROR / Parse Error 都算失败。
 
 冒烟：每名干员各当一次主控，带两名队友（按名单轮换，每人也都当过队友），开局拿全部藏品、直接推到成长线末端、
 技力常满，Boss 提前到 0:30 / 1:00 / 1:30（中期 Boss 按局轮换），跑 2 分钟游戏时间；另有两局不作弊的自然流程
 （高手 / 普通机器人，跑过第一个商人）。看的是「有没有报错、能不能跑完」，不看数值。
+主控保护：Boss 来源的扣血截断（单发 / 2 秒合计 / 满血保护 / 持续伤害上限，docs/38 §1.11）的脚本测试。
 复现：同一组参数跑两次，BALANCE 结果必须逐字段相同（docs/36 §3）。
 """
 import argparse, datetime, glob, json, os, re, shutil, statistics, subprocess, sys, tempfile, time
@@ -95,6 +96,18 @@ def check_nodes(godot):
         if to or errs or len(lines) != 6 or empty:
             bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else ("节点行数 %d" % len(lines) if len(lines) != 6 else "选下当场没变化的节点 " + "、".join(empty)))))
     return {"name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
+
+
+def check_prot(godot):
+    """主控保护（tests/prot_test.tscn，docs/38 §1.11）：Boss 来源单发 ≤40%、2 秒合计 ≤50%、满血保护、Boss 持续伤害每秒 ≤4%"""
+    ids = op_ids()
+    out, err, to = GR.run_godot([godot, "--headless", "--path", GAME, "res://tests/prot_test.tscn", "--", "--balance", "--seed=1",
+                                 "--op=" + ("wisadel" if "wisadel" in ids else ids[0])], 300)
+    errs = GR.script_errors(out, err)
+    m = re.search(r"(\d+) checks, (\d+) failed", out)
+    fails = re.findall(r"^FAIL: .*$", out + "\n" + err, re.M)
+    ok = "PROT TESTS PASSED" in out and not errs and not to
+    return {"name": "主控保护", "ok": ok, "detail": "超时" if to else (m.group(0) if m else "没有输出结果"), "errors": (errs + fails)[:5]}
 
 
 def check_repro(godot):
@@ -198,7 +211,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "repro"], help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro"], help="只跑快检里的某一项")
     a = ap.parse_args()
     godot = GR.find_godot()
     if a.ab:
@@ -213,6 +226,8 @@ def main():
         jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
     if a.only in (None, "nodes"):
         jobs.append(lambda: check_nodes(godot))
+    if a.only in (None, "prot"):
+        jobs.append(lambda: check_prot(godot))
     if a.only in (None, "repro"):
         jobs.append(lambda: check_repro(godot))
     with ThreadPoolExecutor(max(1, GR.MAX_PROCS)) as ex:
