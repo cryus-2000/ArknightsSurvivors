@@ -2,6 +2,9 @@ extends Node
 ## 全局设置（自动加载为 Cfg），保存在 user://settings.cfg
 
 const PATH := "user://settings.cfg"
+const D = preload("res://scripts/data.gd")
+## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
+const DIFF_VER := 2
 
 var master := 1.0
 var music := 0.8
@@ -20,10 +23,10 @@ var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
 var pad_rumble := true   # 手柄震动
-var difficulty := 0      # 本局难度
+var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
-var diff_unlocked := 0   # 已解锁的最高难度
+var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
 var seen_shows: Array = []   # 已看过的解锁演出
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
@@ -65,6 +68,8 @@ func _ready() -> void:
 		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
+		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
+			_migrate_diff()
 	apply.call_deferred()
 
 
@@ -93,6 +98,19 @@ func _bus(name: String, v: float) -> void:
 	var b := AudioServer.get_bus_index(name)
 	if b != -1:
 		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)))
+
+
+## 旧存档（11 级累计难度）→ 3 档：通关过某档对应的累计档位（旧 diff_unlocked = 通关的最高档 + 1）就解锁下一档，
+## 只多不少——例如旧存档解锁到 5（通关过 4 = 困难的档位）→ 解锁「极难」；只解锁到 1–4（通关过标准）→ 解锁「困难」。
+## 上次选的难度落到它所在的档，且不超过已解锁的档
+func _migrate_diff() -> void:
+	var old_unlocked := diff_unlocked
+	var old_diff := difficulty
+	diff_unlocked = 0
+	for i in range(1, D.DIFFICULTY_TIERS.size()):
+		if old_unlocked >= int(D.DIFFICULTY_TIERS[i - 1].level) + 1:
+			diff_unlocked = i
+	difficulty = mini(D.tier_of_level(old_diff), diff_unlocked)
 
 
 ## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；
@@ -126,6 +144,7 @@ func save() -> void:
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", diff_unlocked)
+	c.set_value("progress", "diff_ver", DIFF_VER)
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", seen_relics)
 	c.set_value("progress", "seen_intro", seen_intro)
