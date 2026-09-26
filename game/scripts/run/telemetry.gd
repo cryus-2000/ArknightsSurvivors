@@ -10,6 +10,7 @@ extends RefCounted
 ## 分析：python tools/runs_report.py 读本地记录，套用 balance_run 的汇总表。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const D = preload("res://scripts/data.gd")
 const SCHEMA := 1                  # 记录格式版本：字段有不兼容改动时 +1，分析脚本按它区分
 const SAMPLE_EVERY := 30.0         # 曲线采样间隔（局内秒）
 const RUNS_PATH := "user://runs/runs.jsonl"
@@ -152,15 +153,17 @@ func _boss_alive() -> bool:
 	return false
 
 
+## 来源是不是真 Boss：boss_<类型>（预警招式，普通怪如引痕者 / 收割者也用这个前缀）和 contact_<类型> 都按类型判，
+## 类型在 enemies.json 里 role 为 boss 才算（2026-09-27 数值指出 boss_tracer 被误算成 Boss）
 func _is_boss_src(k: String) -> bool:
+	var ty := ""
 	if k.begins_with("boss_"):
-		return true
-	if k.begins_with("contact_"):
-		var ty := k.substr(8)
-		for b in g.bosses:
-			if b.type == ty:
-				return true
-	return false
+		ty = k.substr(5)
+	elif k.begins_with("contact_"):
+		ty = k.substr(8)
+	else:
+		return false
+	return str(D.ENEMIES.get(ty, {}).get("role", "")) == "boss"
 
 
 ## 最近 15 秒的掉血明细与环境峰值（结束时写进 end.last15，不死模式每次托底写进 floors）
