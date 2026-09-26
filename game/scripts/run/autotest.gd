@@ -77,7 +77,10 @@ func step() -> void:
 		g.demo_sys.gallery_step()
 		return
 	if g.state == g.S.SHOP:
-		for i in g.shop_items.size():
+		var lane_i: int = g.bot.shop_pick() if g.bot != null else -1
+		if lane_i >= 0:
+			g.shop_sys.buy(lane_i)
+		for i in (g.shop_items.size() if lane_i < 0 else 0):
 			if not g.shop_items[i].sold and g.ingots >= g.shop_items[i].price:
 				g.shop_sys.buy(i)
 				break

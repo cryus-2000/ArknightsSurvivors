@@ -29,11 +29,19 @@ const MELEE := ["近卫", "重装", "先锋", "特种"]
 
 # 整局指标（受击 / 低血 / 死因 / 曲线……）2026-09-26 挪到 run/telemetry.gd，所有对局共用
 
+# ---- 流派专精（--lane=A…H，docs/35 流派平衡）：藏品三选一与商店优先拿该流派，测「认准一条流派」的体验；
+# 该流派拿了几件由 tools/balance_run.py 从记录的 relic_take 推算
+var lane := ""
+const RARITY_RANK := {"升华": 4, "核心": 3, "稀有": 2, "基础": 1}
+
 
 func _init(game, p: String, seed_v: int) -> void:
 	g = game
 	profile = p if p in PROFILES else "normal"
 	rng.seed = hash("bot:%s:%d" % [profile, seed_v])
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--lane="):
+			lane = a.substr(7)
 
 
 # =====================================================================
@@ -267,12 +275,43 @@ func _in_danger(q: Vector2, pad: float) -> bool:
 func pick(choices: Array) -> int:
 	if choices.is_empty():
 		return 0
+	if lane != "":
+		var li := _lane_best(choices)
+		if li >= 0:
+			return li
 	match profile:
 		"afk", "bad":
 			return rng.randi() % choices.size()
 		"expert":
 			return _pick_expert(choices)
 	return -1
+
+
+## 流派专精：候选里属于该流派的藏品，取稀有度最高的一张（同稀有度取靠前的，确定性）；没有则返回 -1（交给原有选法）
+func _lane_best(items: Array, ingots := -1) -> int:
+	var best := -1
+	var best_r := -1
+	for i in items.size():
+		var c: Dictionary = items[i]
+		if c.get("kind", "") != "relic" or c.get("sold", false):
+			continue
+		if ingots >= 0 and ingots < int(c.get("price", 0)):
+			continue
+		var r: Dictionary = g.RL.get(c.get("id", ""), {})
+		if not r.get("lanes", []).has(lane):
+			continue
+		var rk: int = RARITY_RANK.get(r.get("rarity", ""), 0)
+		if rk > best_r:
+			best_r = rk
+			best = i
+	return best
+
+
+## 商店：流派专精时先买买得起的该流派藏品；返回 -1 交给原有买法（从上往下买第一件买得起的）
+func shop_pick() -> int:
+	if lane == "":
+		return -1
+	return _lane_best(g.shop_items, g.ingots)
 
 
 ## 高手选卡：精英化 > 补齐编队（缺治疗 / 保护优先）> 技能 / 成长 > 全队被动（按局势）> 藏品稀有度
