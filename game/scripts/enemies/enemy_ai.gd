@@ -158,6 +158,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 		e.dash_cd = g.rng.randf_range(3.0, 4.5)
 		e["dash_w"] = float(d.get("dash_wind", 0.5))
 		e["dash_dir"] = dir
+		e["dash_len"] = spd * float(d.get("dash_speed", 3.8)) * 0.35   # 实际冲出距离（冲刺 0.35 秒），画冲刺预警线用
 		return Vector2.ZERO
 	return Vector2.INF
 
