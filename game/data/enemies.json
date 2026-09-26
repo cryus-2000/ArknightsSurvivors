@@ -95,7 +95,8 @@
    "dash_range": 150,
    "dash_wind": 0.4,
    "dash_speed": 4.5,
-   "draw_scale": 1.7
+   "draw_scale": 1.7,
+   "atk_anim": true
   },
   "burrower": {
    "name": "潜海裂魔",
