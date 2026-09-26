@@ -463,6 +463,7 @@ func gate_init(e: Dictionary, type: String) -> void:
 	e.gate_inv = 0.0
 	e.gate_final = fin
 	e.shield_t = 0.0   # 阶段护盾累计秒数（报表用）
+	e.gates_passed = 0
 
 
 func gate_clamp(e: Dictionary, dmg: float) -> float:
@@ -496,6 +497,7 @@ func gate_pass(e: Dictionary) -> void:
 	if e.dead or e.get("gates", []).is_empty():
 		return
 	e.gates.pop_front()
+	e.gates_passed += 1
 	e.gate_hold = false
 	e.act_t = 0.0
 	e.gate_inv = Bal.v("boss/gate_inv", 0.8)

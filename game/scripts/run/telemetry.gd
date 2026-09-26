@@ -84,13 +84,19 @@ func tick(dt: float) -> void:
 		hits += 1
 		taken_window += tot - taken_last
 	taken_last = tot
-	# Boss 出现 / 击杀时间
+	# Boss 出现 / 击杀时间；tv = 第一次可受伤的时刻（「可受伤起算」的击杀用时 = t1 − tv），shield = 阶段护盾累计秒数，
+	# gates = 已过的卡点数（docs/38 B1 ⑤）。最终 Boss 死的同一帧就判胜利，t1 记不到，用整局 t 代替
 	for b in g.bosses:
 		var key := str(b.get("id", b.type))
 		if not boss_seen.has(key):
-			boss_seen[key] = {"type": b.type, "t0": int(t), "t1": -1}
-		elif b.dead and boss_seen[key].t1 < 0:
-			boss_seen[key].t1 = int(t)
+			boss_seen[key] = {"type": b.type, "t0": int(t), "t1": -1, "tv": -1, "shield": 0.0, "gates": 0}
+		var bs: Dictionary = boss_seen[key]
+		if b.dead and bs.t1 < 0:
+			bs.t1 = int(t)
+		if bs.tv < 0 and not b.invuln and not b.dead:
+			bs.tv = int(t)
+		bs.shield = snappedf(b.get("shield_t", 0.0), 0.1)
+		bs.gates = b.get("gates_passed", 0)
 	# 精英化 / 入队时间
 	for o in g.squad.ops:
 		var ek := "%s:%d" % [o.id, o.elite]
