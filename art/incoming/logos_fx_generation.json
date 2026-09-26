@@ -1,0 +1,102 @@
+[
+  {
+    "name": "fx_logos_s3_orbit",
+    "w": 48,
+    "h": 56,
+    "n": 6,
+    "fps": 10,
+    "ref": "b9e7dfa6-1e3f-4241-a267-b945e7829e57",
+    "desc": "ONLY the swirling spell ribbons around character, remove character and stage. Two thin interlocking inclined elliptical bands of floating blocky white pale-lavender abstract runes on black ink ribbons. One waist-high orbit and one tall diagonal orbit. Hollow transparent center big enough for a chibi character, do not fill center. Black-blue ink wisps, restrained icy blue glints. SIX consecutive rotation phases, flowing clockwise, consistent silhouette.",
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4cb4034a-a6a8-4b2f-95fc-39085a8c35ba.png",
+    "prompt": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY the swirling spell ribbons around character, remove character and stage. Two thin interlocking inclined elliptical bands of floating blocky white pale-lavender abstract runes on black ink ribbons. One waist-high orbit and one tall diagonal orbit. Hollow transparent center big enough for a chibi character, do not fill center. Black-blue ink wisps, restrained icy blue glints. SIX consecutive rotation phases, flowing clockwise, consistent silhouette. EXACT 6 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 64x64 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red.",
+    "align": "center",
+    "event": null,
+    "loop": true,
+    "palette": [
+      "080E18",
+      "10152B",
+      "1C2648",
+      "303F6B",
+      "4D5A9A",
+      "767AB7",
+      "A8AFE0",
+      "DAE5FA",
+      "F3F7FF"
+    ],
+    "cuts": null
+  },
+  {
+    "name": "fx_logos_script",
+    "w": 64,
+    "h": 12,
+    "n": 4,
+    "fps": 12,
+    "ref": "3c29b462-64c4-44b6-95d8-bb4a344edfab",
+    "desc": "ONLY the horizontal high-speed stream of luminous abstract blocky runes between caster and target. Thin violet blue filament carrying bright white lavender glyphs racing LEFT TO RIGHT, not a laser solid bar. FOUR scrolling phases, continuous horizontal writing band, no impact explosion. Each frame same overall length, connected thin central line, visible separated angular glyphs.",
+    "source": "E:/水月/logos_fx_20260926/script_row.png",
+    "prompt": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY the horizontal high-speed stream of luminous abstract blocky runes between caster and target. Thin violet blue filament carrying bright white lavender glyphs racing LEFT TO RIGHT, not a laser solid bar. FOUR scrolling phases, continuous horizontal writing band, no impact explosion. Each frame same overall length, connected thin central line, visible separated angular glyphs. EXACT 4 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 64x12 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red.",
+    "align": "left",
+    "event": null,
+    "loop": true,
+    "palette": [
+      "080E18",
+      "10152B",
+      "1C2648",
+      "303F6B",
+      "4D5A9A",
+      "767AB7",
+      "A8AFE0",
+      "DAE5FA",
+      "F3F7FF"
+    ],
+    "cuts": null
+  },
+  {
+    "name": "fx_logos_s1_link",
+    "w": 64,
+    "h": 16,
+    "n": 4,
+    "fps": 12,
+    "ref": "f88302e0-d728-40d1-876e-03bcf1241b2a",
+    "desc": "ONLY a single horizontal strip of BLACK abstract blocky curse letters that links two enemies. FOUR flowing phases left to right. Broken ink-black angular glyph strokes, faint desaturated blue-grey edge to read over dark seabed, no white core no bright beam, no monsters no starburst. Long thin inscription link of separated letters, faint thread.",
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-496c1e58-b0a9-458b-8431-1703cd84ac59.png",
+    "prompt": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY a single horizontal strip of BLACK abstract blocky curse letters that links two enemies. FOUR flowing phases left to right. Broken ink-black angular glyph strokes, faint desaturated blue-grey edge to read over dark seabed, no white core no bright beam, no monsters no starburst. Long thin inscription link of separated letters, faint thread. EXACT 4 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 64x16 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red.",
+    "align": "center",
+    "event": null,
+    "loop": true,
+    "palette": [
+      "080E18",
+      "101122",
+      "171B30",
+      "272B43",
+      "394158"
+    ],
+    "cuts": null
+  },
+  {
+    "name": "proj_logos_ink",
+    "w": 32,
+    "h": 12,
+    "n": 4,
+    "fps": 12,
+    "ref": "f566ca75-11e7-4a77-95dd-5c5d2e825ce7",
+    "desc": "ONLY a thin pointed spell projectile heading RIGHT: sharp smoky black-navy feather/quill-like dart, tiny icy violet-blue tip, long twisting black ink trail stretching LEFT, a few small runic fragments embedded in trail. FOUR flight flicker frames. Not a fireball not a round orb not a physical weapon. Match thin dark dart in reference.",
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b51ca91f-4878-4e6d-800a-d11399157304.png",
+    "prompt": "Create pixel-art game VFX animation spritesheet derived from the effect design in reference. ONLY a thin pointed spell projectile heading RIGHT: sharp smoky black-navy feather/quill-like dart, tiny icy violet-blue tip, long twisting black ink trail stretching LEFT, a few small runic fragments embedded in trail. FOUR flight flicker frames. Not a fireball not a round orb not a physical weapon. Match thin dark dart in reference. EXACT 4 distinct frames in ONE horizontal row of equal-width cells with clear transparent gaps. Final cell 32x12 pixels and double-density version; crisp pixel clusters no antialiasing no soft halo. TRUE transparent background, no checkerboard no text labels no characters no floors no UI no shadows. Reference is effect inspiration only. Consistent origin and scale across frames. Cool ink blue violet and cold white, no gold or red.",
+    "align": "center",
+    "event": null,
+    "loop": true,
+    "palette": [
+      "080E18",
+      "10152B",
+      "1C2648",
+      "303F6B",
+      "4D5A9A",
+      "767AB7",
+      "A8AFE0",
+      "DAE5FA",
+      "F3F7FF"
+    ],
+    "cuts": null
+  }
+]
