@@ -169,7 +169,7 @@ func _ready() -> void:
 			var dp := a.substr(11).split(",")
 			Cfg.diff_unlocked = clampi(int(dp[1]) if dp.size() > 1 else 0, 0, D.DIFFICULTY_TIERS.size() - 1)
 			diff_pick = true
-			diff_sel = clampi(int(dp[0]), 0, Cfg.diff_unlocked)
+			diff_sel = clampi(int(dp[0]), 0, D.DIFFICULTY_TIERS.size() - 1)
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
@@ -209,16 +209,17 @@ func _diff_input(event: InputEvent) -> void:
 
 
 func _diff_step(d: int) -> void:
+	# 未解锁的档也能翻过去看效果，只是不能出发（_diff_go）
 	var n := clampi(diff_sel + d, 0, D.DIFFICULTY_TIERS.size() - 1)
-	if n > Cfg.diff_unlocked:
-		Sfx.play("ui_move", -4.0, 0.6)
-		return
 	if n != diff_sel:
 		diff_sel = n
 		Sfx.play("ui_move")
 
 
 func _diff_go() -> void:
+	if diff_sel > Cfg.diff_unlocked:
+		Sfx.play("ui_move", -4.0, 0.6)
+		return
 	Cfg.difficulty = diff_sel
 	Cfg.save()
 	diff_pick = false
@@ -240,34 +241,37 @@ func _draw_diff(vs: Vector2) -> void:
 	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
 	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
 	UI.text(self, font, c + Vector2(-200, 12), "◀", 30, UI.TEXT if diff_sel > 0 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
-	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < Cfg.diff_unlocked else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
+	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < D.DIFFICULTY_TIERS.size() - 1 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
 	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
 	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
 	var tdef: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
 	UI.text(self, font, c + Vector2(-40, 12), tdef.name, 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x / 2.0 - 12, 66), tdef.en, 12, col, 4.0)
-	# 效果列表：标准无额外效果；困难 / 极难各一列，列出该档新增的效果（选中更高档时，低档的效果同样生效）
+	# 效果列表：选中档的全部修正（各档独立，不再逐级叠加）；未解锁的档写解锁条件
 	var y := r.position.y + 292
-	UI.text(self, font, Vector2(r.position.x, y - 42), "深海原本的样子" if diff_sel == 0 else "包含下列已点亮的全部效果", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	for ti in range(1, D.DIFFICULTY_TIERS.size()):
-		var on := ti <= diff_sel
-		var locked := ti > Cfg.diff_unlocked
-		var x := r.position.x + 60 + (ti - 1) * 340
-		var ic := col if on else (Color(0.3, 0.36, 0.4) if locked else UI.SUB)
-		var head: String = D.DIFFICULTY_TIERS[ti].name + ("（通关「%s」后解锁）" % D.DIFFICULTY_TIERS[ti - 1].name if locked else "")
-		UI.text(self, font, Vector2(x, y), head, 16, UI.TEXT if on else ic)
-		var effs: Array = D.tier_new_effects(ti)
-		for k in effs.size():
-			var yy := y + 34 + k * 30
-			UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic if on else Color(0, 0, 0, 0), ic)
-			UI.text(self, font, Vector2(x + 20, yy), effs[k], 14, UI.TEXT if on else ic)
+	var locked := diff_sel > Cfg.diff_unlocked
+	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
+	var sub_txt := "深海原本的样子" if lines.is_empty() else "本难度的全部效果"
+	if diff_sel > 0 and diff_sel > Cfg.diff_unlocked:
+		sub_txt = "通关「%s」后解锁" % D.DIFFICULTY_TIERS[diff_sel - 1].name
+	UI.text(self, font, Vector2(r.position.x, y - 42), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var ic := Color(0.3, 0.36, 0.4) if locked else col
+	for k in lines.size():
+		var x := r.position.x + 60 + (k / 7) * 340
+		var yy := y + (k % 7) * 30
+		UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic, ic)
+		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14, UI.SUB if locked else UI.TEXT)
 	# 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
 	diff_rects["go"] = go
 	diff_rects["back"] = back
-	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	if locked:
+		UI.panel(self, go, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
+		UI.text(self, font, go.position + Vector2(0, 29), "未解锁", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	else:
+		UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
+		UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
 	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 

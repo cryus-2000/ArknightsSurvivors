@@ -3,6 +3,7 @@ extends RefCounted
 ## 敌人与刷怪导演表已迁到 JSON（data/enemies.json、data/waves.json），这里只做加载，调用方仍用 D.ENEMIES / D.THREAT 等。
 
 const Loader = preload("res://scripts/enemies/enemy_db.gd")
+const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json（难度修正表 difficulty 段）
 static var ENEMIES: Dictionary = Loader.load_enemies()
 static var THREAT: Array = Loader.load_waves().threat
 static var BOSS_TIMES: Array = Loader.load_waves().boss_times
@@ -30,14 +31,76 @@ const DIFFICULTY := [
 	{"name": "负伤", "desc": "初始最大生命 -20%"},
 	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
 ]
-## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度）。level = 上表的累计档位：
-## 局内判断（g.diff >= N）和批跑参数 --diff=N 仍按累计档位；存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
-## 各档对应哪一级由「数值」按基线数据定
+## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度）。存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
+## 每档一张修正表（g.dmod，键见 DMOD_DEFAULT），数值在 data/balance.json 的 difficulty/<key> 段填；
+## 段里没写的键按 level（上表的累计档位）拼出来，所以不填 = 与旧累计难度逐局相同。批跑 --diff=N 也按累计档位拼表。
 const DIFFICULTY_TIERS := [
-	{"name": "标准", "en": "STANDARD", "level": 0},
-	{"name": "困难", "en": "HARD", "level": 4},
-	{"name": "极难", "en": "EXTREME", "level": 8},
+	{"name": "标准", "en": "STANDARD", "key": "standard", "level": 0},
+	{"name": "困难", "en": "HARD", "key": "hard", "level": 4},
+	{"name": "极难", "en": "EXTREME", "key": "extreme", "level": 8},
 ]
+## 难度修正表：倍率（1.0 = 不变）与开关（0 / 1）
+const DMOD_DEFAULT := {
+	"enemy_hp": 1.0, "enemy_dmg": 1.0, "boss_hp": 1.0, "boss_dmg": 1.0,   # 小怪与 Boss 生命 / 攻击（Boss 攻击另乘 enemy_dmg）
+	"lamp_hit": 1.0, "oil_drop": 1.0, "ingot": 1.0,                      # 受击灯火损失、小怪灯油掉落率、源石锭掉落
+	"elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.0,               # 精英出现间隔、Boss 招式预警时间、大群规模
+	"horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、溟痕不消散、主控初始最大生命
+}
+## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关
+const DMOD_TEXT := [
+	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人攻击 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 攻击再 +%d%%", "up"],
+	["max_hp", "初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
+	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 招式预警时间 -%d%%", "down"], ["horde", "大群规模 +%d%%", "up"],
+	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "溟痕不再消散", "flag"],
+]
+
+
+## 旧累计难度（0–10，上面 DIFFICULTY 逐级叠加）拼出的修正表
+static func dmod_for_level(L: int) -> Dictionary:
+	var m := DMOD_DEFAULT.duplicate()
+	m.enemy_hp = 1.0 + (0.15 if L >= 1 else 0.0) + (0.2 if L >= 10 else 0.0)
+	m.boss_hp = 1.15 if L >= 1 else 1.0
+	m.enemy_dmg = 1.0 + (0.15 if L >= 2 else 0.0) + (0.2 if L >= 10 else 0.0)
+	m.lamp_hit = 1.25 if L >= 3 else 1.0
+	m.oil_drop = 0.5 if L >= 3 else 1.0
+	m.elite_interval = 0.75 if L >= 4 else 1.0
+	m.ingot = 0.7 if L >= 5 else 1.0
+	m.boss_warn = 0.75 if L >= 6 else 1.0
+	m.horde = 1.4 if L >= 7 else 1.0
+	m.horde_in_boss = 1 if L >= 7 else 0
+	m.mire_permanent = 1 if L >= 8 else 0
+	m.max_hp = 0.8 if L >= 9 else 1.0
+	m.boss_dmg = 1.25 if L >= 10 else 1.0
+	return m
+
+
+## 某一档的修正表：balance.json difficulty/<key> 覆盖按 level 拼出的表
+static func dmod_for_tier(tier: int) -> Dictionary:
+	var t: Dictionary = DIFFICULTY_TIERS[tier]
+	var m := dmod_for_level(int(t.level))
+	var over: Dictionary = Bal.sec("difficulty/" + str(t.key))
+	for k in over:
+		if m.has(k):
+			m[k] = over[k]
+	return m
+
+
+## 修正表 → 选难度页的说明行
+static func dmod_lines(m: Dictionary) -> Array:
+	var out: Array = []
+	for row in DMOD_TEXT:
+		var v := float(m.get(row[0], DMOD_DEFAULT[row[0]]))
+		match row[2]:
+			"up":
+				if v > 1.0001:
+					out.append(row[1] % int(round((v - 1.0) * 100.0)))
+			"down":
+				if v < 0.9999:
+					out.append(row[1] % int(round((1.0 - v) * 100.0)))
+			"flag":
+				if v > 0.5:
+					out.append(row[1])
+	return out
 
 
 ## 累计档位落在哪一档（取 level 不超过它的最高档）
@@ -49,13 +112,6 @@ static func tier_of_level(level: int) -> int:
 	return t
 
 
-## 这一档相对上一档新增的效果（DIFFICULTY 的 desc）
-static func tier_new_effects(tier: int) -> Array:
-	var lo: int = DIFFICULTY_TIERS[tier - 1].level if tier > 0 else 0
-	var out: Array = []
-	for i in range(lo + 1, DIFFICULTY_TIERS[tier].level + 1):
-		out.append(DIFFICULTY[i].desc)
-	return out
 
 ## 支援：医疗无人机（保底治疗，开局自带 Lv.1，不占编队位），最高 Lv.5
 ## tags 供 Build Profile 使用
