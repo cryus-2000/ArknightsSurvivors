@@ -925,19 +925,7 @@ func draw_enemy_tells() -> void:
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
 			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
 			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
-		# 伊祖米克解读阶段每 7 秒一圈冲击波（扩到 420）：最后 1.2 秒画出将要扩到的范围，提前知道要躲（读 boss_ai 的 bt 计时）
-		if e.type == "izumik" and e.get("phase", 1) == 2:
-			var pre: float = e.get("bt", 0.0) - 5.8
-			if pre > 0.0:
-				var pk: float = clampf(pre / 1.2, 0.0, 1.0)
-				var pa: float = 0.35 + 0.5 * pk
-				for q in 36:
-					if q % 2 == 1:
-						continue
-					var a0: float = TAU * q / 36.0 + g.t * 0.3
-					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(0, 0, 0, 0.5 * pa), 5.0)
-					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, pa), 2.5)
-				g.draw_arc(e.pos, e.r + 20.0 + 40.0 * pk, 0.0, TAU, 32, Color(1, 1, 1, 0.6 * pk), 2.0)
+		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 
 
 ## 地面形状的纵向压缩：和判定一致（combat.gd 的 GROUND_Y，Boss与怪物「画即判」；还没有这个常量时按正圆 1.0）
