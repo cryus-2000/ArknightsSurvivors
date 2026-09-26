@@ -11,7 +11,7 @@
  "script": "res://scripts/characters/specter_unchained.gd",
  "base": {
   "_doc": "基础数值",
-  "atk": 34,
+  "atk": 46,
   "cd": 1.2,
   "reach": 80,
   "s1_dur": 8,
@@ -46,7 +46,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 125,
   "armor": 2.0,
-  "arts_res": 0.0
+  "arts_res": 0.0,
+  "regen": 1.5
  },
  "sprites": {
   "idle": {

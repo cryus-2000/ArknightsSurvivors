@@ -11,9 +11,9 @@
  "script": "res://scripts/characters/saria.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 28,
-  "cd": 1.1,
-  "reach": 70,
+  "atk": 40,
+  "cd": 0.9,
+  "reach": 92,
   "block_r": 62,
   "s1_heal": 0.08,
   "s2_heal": 0.1,
@@ -24,11 +24,11 @@
   "orb_mult": 0.18,
   "orb_cd": 0.5,
   "syringe_n": 3,
-  "syringe_mult": 0.6,
+  "syringe_mult": 0.8,
   "syringe_slow": 2.0,
   "shatter_every": 1.2,
   "shatter_n": 4,
-  "shatter_mult": 0.5,
+  "shatter_mult": 0.6,
   "suit_seg_t": 5.0,
   "suit_r": 110,
   "suit_mult": 1.8,
@@ -38,7 +38,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3150 / 防御 595 / 法抗 10%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 120,
   "armor": 3.0,
-  "arts_res": 0.1
+  "arts_res": 0.1,
+  "regen": 1.0
  },
  "sprites": {
   "idle": {
@@ -194,14 +195,14 @@
    "id": "syringe",
    "name": "急救针剂",
    "icon": "skill_s1",
-   "desc": "「急救」同时朝附近 3 名敌人掷出注射器：拳击 60% 伤害并减速 2 秒"
+   "desc": "「急救」同时朝附近 3 名敌人掷出注射器：拳击 80% 伤害并减速 2 秒"
   },
   {
    "type": "custom",
    "id": "shatter",
    "name": "碎晶",
    "icon": "skill_s3",
-   "desc": "每 3 秒击碎一枚环绕钙晶，碎片飞向附近至多 3 名敌人（各拳击 40% 伤害），1 秒后重新长出；精二后「钙质化」期间改为每 1.2 秒击碎一根琥珀晶柱，碎片飞向区域内至多 4 名敌人（各拳击 50%）"
+   "desc": "每 3 秒击碎一枚环绕钙晶，碎片飞向附近至多 3 名敌人（各拳击 40% 伤害），1 秒后重新长出；精二后「钙质化」期间改为每 1.2 秒击碎一根琥珀晶柱，碎片飞向区域内至多 4 名敌人（各拳击 60%）"
   },
   {
    "type": "elite",

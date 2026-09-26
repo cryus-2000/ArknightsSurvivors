@@ -59,6 +59,10 @@ python tools/balance_run.py --preset squads --bot expert --seeds 3              
 2026-09-26 起（docs/36）：同 seed 可复现，相同源文件 + 参数的局读缓存（`--nocache` 关掉）；全机并发上限由 `tools/godot_runner.py` 管；
 前后对比用 `python tools/check.py --ab <提交>`（临时工作树跑基准、同 seed 配对），不要拿不同时间跑的两份报告直接比。
 
+干员输出（2026-09-26）：`opcmp` 满 10 分钟时怪会被清空，「每分钟伤害」封顶在刷怪总血量附近，削弱强者、加强弱者都几乎看不出来；
+队友（推进之王 + 流明）一改动，所有干员的数字都跟着变。看输出强弱用 `--preset share --extra=--nodeath`（被测干员 + 推进之王 + 水月，
+看被测干员拿到的伤害占比），且前后两轮的队友数值必须相同。主控强弱用 `--preset solo`，至少 12 seed：6 seed 时单个主控的胜率会上下跳 30 个百分点。
+
 ## 5. 基线（2026-09-25，`build/balance/bots_baseline_0925_2022`，难度 0，112 局）
 
 | 档 | 胜率 | 平均存活 | 3:30 存活 | 终局等级 | 判定 |

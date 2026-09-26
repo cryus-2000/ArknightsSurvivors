@@ -37,7 +37,7 @@ func block_radius() -> float:
 
 
 func _reach() -> float:
-	return base("reach", 70.0) * stat(&"op_range")
+	return base("reach", 92.0) * stat(&"op_range")
 
 
 ## 站位：主控面前一侧（贴身护卫），不前压
@@ -47,7 +47,7 @@ func follow_target(_slot_pos: Vector2) -> Vector2:
 
 ## 拳击基础伤害（成长节点的额外命中都按它折算）
 func _bash_dmg() -> float:
-	return base("atk", 28.0) * _dmg_bonus()
+	return base("atk", 40.0) * _dmg_bonus()
 
 
 ## 成长节点（data/characters/saria.json 的 custom 节点）
@@ -131,7 +131,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = base("cd", 1.1) / stat(&"op_aspd")
+			cd = base("cd", 0.9) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
@@ -309,7 +309,7 @@ func _shatter() -> bool:
 	for q in 8:
 		fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 170), "life": 0.35, "col": AMBER,
 			"sz": g.rng.randf_range(3.0, 5.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-14, 14), "grav": 260.0})
-	var dmg: float = _bash_dmg() * base("shatter_mult", 0.5) * skill_power()
+	var dmg: float = _bash_dmg() * base("shatter_mult", 0.6) * skill_power()
 	for k in mini(int(base("shatter_n", 4.0)), ts.size()):
 		_shoot("shard", p + Vector2(0, -16), ts[k].pos + Vector2(0, -16), 560.0, dmg)
 	Sfx.op(id, "hit", -2.0, 1.3)
@@ -364,7 +364,7 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 拳击伤害并减速 2 秒
 			if syringe_on:
-				var dmg: float = _bash_dmg() * base("syringe_mult", 0.6) * skill_power()
+				var dmg: float = _bash_dmg() * base("syringe_mult", 0.8) * skill_power()
 				for e in nearest_enemies(int(base("syringe_n", 3.0)), 260.0, pos):
 					_shoot("syringe", pos + Vector2(8.0 * face, -24), e.pos + Vector2(0, -16), 460.0, dmg)
 		1:

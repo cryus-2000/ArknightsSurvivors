@@ -11,8 +11,8 @@
  "script": "res://scripts/characters/skadi.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 26,
-  "cd": 0.75,
+  "atk": 40,
+  "cd": 0.7,
   "reach": 88,
   "s1_mult": 2.0,
   "s2_mult": 3.0,
@@ -40,7 +40,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3866 / 防御 263 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 130,
   "armor": 2.0,
-  "arts_res": 0.0
+  "arts_res": 0.0,
+  "regen": 1.6
  },
  "sprites": {
   "idle": {

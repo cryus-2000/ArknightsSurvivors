@@ -735,6 +735,7 @@ func _op_numbers(cid: String, cd: Dictionary) -> Array:
 		out.append(["生命", "%d" % int(ld.get("max_hp", 120))])
 		out.append(["物理减伤", "%s" % str(snappedf(float(ld.get("armor", 0.0)), 0.5))])
 		out.append(["法术抗性", "%d%%" % int(round(float(ld.get("arts_res", 0.0)) * 100.0))])
+		out.append(["生命回复", "%.1f / 秒" % float(ld.get("regen", 1.0))])
 	if atk > 0.0:
 		out.append(["攻击", "%d%s" % [int(atk), "（Mon3tr）" if b.has("m_atk") else ""]])
 	if cdv > 0.0:

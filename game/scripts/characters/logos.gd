@@ -43,7 +43,7 @@ func _range() -> float:
 
 
 func _atk() -> float:
-	return base("atk", 30.0) * _dmg_bonus() * (1.0 + base("s2_atk", 0.5) if perish else 1.0) * (1.0 + base("s3_atk", 1.5) * skill_power() if acuity_t > 0.0 else 1.0)
+	return base("atk", 29.0) * _dmg_bonus() * (1.0 + base("s2_atk", 0.5) if perish else 1.0) * (1.0 + base("s3_atk", 1.5) * skill_power() if acuity_t > 0.0 else 1.0)
 
 
 func update(dt: float) -> void:

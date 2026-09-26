@@ -97,7 +97,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		var d: Vector2 = (ts[0].pos - lamp_hand).normalized()
 		if bolts.size() < BOLT_MAX:
-			bolts.append({"pos": lamp_hand, "vel": d * 380.0, "dmg": base("bolt_atk", 8.0) * _dmg_bonus(), "life": 1.4, "src": "光弹"})
+			bolts.append({"pos": lamp_hand, "vel": d * 380.0, "dmg": base("bolt_atk", 22.0) * _dmg_bonus(), "life": 1.4, "src": "光弹"})
 		Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
 
@@ -246,7 +246,7 @@ func _update_tower(dt: float) -> void:
 ## 灯塔结束：范围内法伤 ×3 并眩晕 0.6 秒
 func _light_burst() -> void:
 	var r: float = base("s3_r", 220.0)
-	area_hit("光爆", tower_pos, r, base("bolt_atk", 8.0) * base("s3_burst_mult", 3.0) * _dmg_bonus() * skill_power(), 160.0, 0.6)
+	area_hit("光爆", tower_pos, r, base("bolt_atk", 22.0) * base("s3_burst_mult", 3.0) * _dmg_bonus() * skill_power(), 160.0, 0.6)
 	spawn_fx_sprite("fx_sunburst", tower_pos + Vector2(0, -40), g.PX * 2.4)
 	for i in 3:
 		fx({"kind": "ring", "pos": tower_pos, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": WARM, "floor": true, "w": 4.0 - i})
@@ -297,7 +297,7 @@ func _update_units(dt: float) -> void:
 		unit_cd[k] = base("unit_cd", 1.4) / stat(&"op_aspd")
 		var up: Vector2 = _unit_pos(k)
 		var d: Vector2 = (ts[0].pos + Vector2(0, -ts[0].r * 0.5) - up).normalized()
-		var dmg: float = base("bolt_atk", 8.0) * _dmg_bonus() * base("unit_mult", 0.6)
+		var dmg: float = base("bolt_atk", 22.0) * _dmg_bonus() * base("unit_mult", 0.6)
 		var big := false
 		if charge_on:
 			if empowered > 0:
@@ -334,7 +334,7 @@ func _update_rain(dt: float) -> void:
 			continue
 		e["lit"] = maxf(e.get("lit", 0.0), 1.0)
 		log_hit("沐雨")
-		deal_damage(e, base("bolt_atk", 8.0) * _dmg_bonus() * base("rain_mult", 0.15) * skill_power())
+		deal_damage(e, base("bolt_atk", 22.0) * _dmg_bonus() * base("rain_mult", 0.15) * skill_power())
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 7.0, "life": 0.2, "col": WARM, "alpha": 0.5})
 
 
@@ -380,7 +380,7 @@ func _update_beam(dt: float) -> void:
 		beam_hit[e.id] = base("beam_cd", 0.4)
 		e["lit"] = 3.0
 		log_hit("灯塔光束")
-		deal_damage(e, base("bolt_atk", 8.0) * _dmg_bonus() * base("beam_mult", 0.4) * skill_power())
+		deal_damage(e, base("bolt_atk", 22.0) * _dmg_bonus() * base("beam_mult", 0.4) * skill_power())
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": WARM, "alpha": 0.6})
 
 
