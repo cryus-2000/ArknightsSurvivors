@@ -283,9 +283,9 @@ func _build() -> void:
 				var seen: bool = Cfg.seen_relics.has(r.id)
 				var stt: Array = [["等级", r.rarity], ["类别", r.get("cat", "")]]
 				if r.has("lanes") and not r.lanes.is_empty():
-					stt.append(["流派", " / ".join(r.lanes)])
+					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
-					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen, "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not OS.get_cmdline_user_args().has("--allrelics"), "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火过低时敌人更快、更凶，熄灭后持续受到伤害。"})
