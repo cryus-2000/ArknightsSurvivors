@@ -217,6 +217,10 @@ func _release_skill() -> void:
 	match cur_skill:
 		0, 2:
 			var to := _skill_target(cur_skill)
+			if cur_skill == 2 and manual_dir != Vector2.ZERO:
+				to = _aim_target(manual_dir)   # 当主控手动、玩家给了方向（契约 v2.4）
+			if cur_skill == 2:
+				manual_dir = Vector2.ZERO
 			if to == Vector2.INF:
 				sp[cur_skill] = sp_need(cur_skill) * 0.6   # 没目标：退回大半充能
 				return
@@ -240,16 +244,64 @@ func skill_active_dur(i: int) -> float:
 	return base("s3_haste", 8.0) if i == 2 else 1.0
 
 
-## 三技能「必须开辟」当主控时手动释放（JSON mode manual，契约 v2.3）：锚还没收回时不放（按键先记下，收回就放），
-## 400 内没有敌人时不放（否则起手后找不到目标，白扣 40% 充能）
-func manual_ready(i: int) -> bool:
-	return super(i) and anchor.is_empty() and not nearest_enemies(1, 400.0, pos).is_empty()
+## 三技能「必须开辟」当主控时手动释放（JSON mode manual，契约 v2.3）、可带方向（JSON aim，契约 v2.4）：
+## 锚还没收回时不放（按键先记下，收回就放）；自动瞄准时 400 内没有敌人不放（否则起手后找不到目标，白扣 40% 充能）；
+## 给了方向时不要求有敌人（aim_free = 1）：前方没敌人就掷向空地，当位移用
+func manual_ready(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+	if not (super(i, dir) and anchor.is_empty()):
+		return false
+	if dir != Vector2.ZERO and base("aim_free", 1.0) > 0.0:
+		return true
+	return not nearest_enemies(1, 400.0, pos).is_empty()
 
 
-func manual_block_reason(_i: int) -> String:
+func manual_block_reason(_i: int, dir: Vector2 = Vector2.ZERO) -> String:
+	if dir != Vector2.ZERO and base("aim_free", 1.0) > 0.0:
+		return ""
 	if anchor.is_empty() and pos != Vector2.INF and nearest_enemies(1, 400.0, pos).is_empty():
 		return "附近没有敌人"
 	return ""
+
+
+## 预计落点（界面画瞄准线与 r140 落点圈）：没方向 = 自动瞄准的落点，有方向 = _aim_target
+func manual_aim_point(i: int, dir: Vector2 = Vector2.ZERO) -> Vector2:
+	if i != 2 or pos == Vector2.INF:
+		return Vector2.INF
+	return _aim_target(dir.normalized()) if dir != Vector2.ZERO else _skill_target(2)
+
+
+## 带方向的落点（用户定 2026-09-26）：方向 ±aim_cone° 扇形、aim_range 内敌人最密处（以候选敌人为中心数 s3_r 内的敌人，
+## 候选多时均匀抽 24 个）；扇形里没有敌人时落在该方向 aim_empty 远的空地（人照样顺锁链弹过去）；aim_empty = 0 时退回自动瞄准
+func _aim_target(dir: Vector2) -> Vector2:
+	var cone: float = deg_to_rad(base("aim_cone", 30.0))
+	var reach: float = base("aim_range", 400.0)
+	var cands: Array = []
+	for j in query_ids(pos, reach):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var off: Vector2 = e.pos - pos
+		var d: float = off.length()
+		if d > reach or d < 1.0 or absf(dir.angle_to(off)) > cone:
+			continue
+		cands.append(e)
+	if cands.is_empty():
+		var far: float = base("aim_empty", 300.0)
+		return pos + dir * far if far > 0.0 else _skill_target(2)
+	var r: float = base("s3_r", 140.0) * stat(&"op_range")
+	var step: int = maxi(1, int(cands.size() / 24.0))
+	var best: Vector2 = cands[0].pos
+	var bn := -1
+	for a in range(0, cands.size(), step):
+		var c: Vector2 = cands[a].pos
+		var n := 0
+		for e in cands:
+			if e.pos.distance_squared_to(c) <= r * r:
+				n += 1
+		if n > bn:
+			bn = n
+			best = c
+	return best
 
 
 ## 机器人：就绪（锚已收回、400 内有敌人）即放，等同改手动前的自动释放，批跑数值与之前可比

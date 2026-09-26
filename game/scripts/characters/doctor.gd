@@ -41,17 +41,35 @@ func name() -> String:
 ## 唯一的手动技能入口（Q / J，手柄 Ⓐ / Ⓧ，手机技能键）：路由到主控的手动技能（契约 v2.3：手动只对主控生效，队友一律自动）。
 ## 就绪就放；只是正在出手时先记下、出手完立即放（character.press_manual）；放不了时提示原因并吞掉按键；
 ## 主控没有已解锁的手动技能返回 false
-func try_manual_skill() -> bool:
+## dir（契约 v2.4，带方向的手动技能）：Vector2.INF = 读键鼠 / 手柄当前方向（manual_input_dir，Q / J / Ⓐ 走这里）；
+## Vector2.ZERO = 自动瞄准；其余 = 指定方向（手机技能键拖动）
+func try_manual_skill(dir: Vector2 = Vector2.INF) -> bool:
+	if dir == Vector2.INF:
+		dir = manual_input_dir()
 	for o in g.squad.ops:
 		var i: int = o.manual_index()
 		if i < 0 or not o.skill_unlocked(i):
 			continue
-		var why: String = o.press_manual(i)
+		var why: String = o.press_manual(i, dir)
 		if why != "":
 			g.vfx.add_text(g.ppos + Vector2(0, -96), "%s %s" % [o.skill_def(i).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
 			Sfx.play("ui_move", -8.0, 0.7)
 		return true
 	return false
+
+
+## 键鼠 / 手柄此刻的瞄准方向（用户定 2026-09-26）：手柄右摇杆推着就用右摇杆；否则用当前移动方向（WASD / 左摇杆 / 十字键，
+## 和冲刺同一套）；站着不动 = Vector2.ZERO（自动瞄准）。界面画键鼠 / 手柄的瞄准指示也用它
+const AIM_STICK := 0.5
+
+func manual_input_dir() -> Vector2:
+	for dev in Input.get_connected_joypads():
+		var r := Vector2(Input.get_joy_axis(dev, JOY_AXIS_RIGHT_X), Input.get_joy_axis(dev, JOY_AXIS_RIGHT_Y))
+		if r.length() >= AIM_STICK:
+			return r.normalized()
+	if g.move_in != Vector2.ZERO:
+		return g.move_in.normalized()
+	return Vector2.ZERO
 
 
 ## 排异反应：博士承受，效果落在编队里随机一名能被海嗣化的干员身上（干员实现 apply_rejection）；

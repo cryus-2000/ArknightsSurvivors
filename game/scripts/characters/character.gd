@@ -233,28 +233,48 @@ func manual_index() -> int:
 	return -1
 
 
-## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）。
-## 干员可重写追加自己的条件（乌尔比安：锚已收回、400 内有敌人）：return super(i) and ……
-func manual_ready(i: int) -> bool:
+## 手动技能此刻能否释放（已解锁、已充满、不在生效中、本体在场且没在出手）。dir：玩家给的方向（单位向量），
+## Vector2.ZERO = 自动瞄准。干员可重写追加自己的条件（乌尔比安：锚已收回、自动瞄准时 400 内有敌人）：return super(i, dir) and ……
+func manual_ready(i: int, _dir: Vector2 = Vector2.ZERO) -> bool:
 	return i >= 0 and skill_unlocked(i) and not perm[i] and sp_need(i) > 0.0 and sp[i] >= sp_need(i) 		and skill_active_left(i) <= 0.0 and not acting() and pos != Vector2.INF and not (has_method("away") and call("away"))
 
 
-func cast_manual(i: int) -> bool:
-	if not manual_ready(i):
+## 带方向的手动技能（契约 v2.4，2026-09-26 用户定）：技能 JSON 带 "aim": true 时，按键会把方向传进来——键鼠 = 当前移动方向，
+## 手柄 = 右摇杆（没推取左摇杆移动方向），手机 = 按住技能键拖出的方向；站着不动 / 直接点 = Vector2.ZERO（自动瞄准）。
+## 干员在出手帧读 manual_dir（读完清零），并重写 manual_aim_point 给出预计落点（界面画瞄准线与落点圈）。机器人一律自动瞄准
+func manual_aims(i: int) -> bool:
+	return i >= 0 and bool(skill_def(i).get("aim", false))
+
+
+var manual_dir := Vector2.ZERO
+
+func cast_manual(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+	if not manual_aims(i):
+		dir = Vector2.ZERO
+	if not manual_ready(i, dir):
 		return false
 	manual_buf = 0.0
-	start_skill(Vector2.INF, i)
+	manual_dir = dir.normalized() if dir != Vector2.ZERO else Vector2.ZERO
+	start_skill(pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF, i)
 	return true
 
 
+## 预计落点（瞄准指示用）：dir 同上；干员没实现或此刻没有落点返回 Vector2.INF
+func manual_aim_point(_i: int, _dir: Vector2 = Vector2.ZERO) -> Vector2:
+	return Vector2.INF
+
+
 ## 玩家按下手动技能键（doctor.try_manual_skill 调用）：就绪就放；充能已满、只是正在出手（或干员自己的「稍等」条件，
-## manual_block_reason 返回空串）时先记下这次按键，MANUAL_BUF 秒内一满足就放，免得按键撞上出手被吞。
+## manual_block_reason 返回空串）时先记下这次按键（连同方向），MANUAL_BUF 秒内一满足就放，免得按键撞上出手被吞。
 ## 返回 "" = 已放出或已记下；否则返回提示原因
 const MANUAL_BUF := 1.0
 var manual_buf := 0.0
+var manual_buf_dir := Vector2.ZERO
 
-func press_manual(i: int) -> String:
-	if cast_manual(i):
+func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
+	if not manual_aims(i):
+		dir = Vector2.ZERO
+	if cast_manual(i, dir):
 		return ""
 	if skill_active_left(i) > 0.0:
 		return "生效中"
@@ -262,9 +282,10 @@ func press_manual(i: int) -> String:
 		return "暂时离场"
 	if sp[i] < sp_need(i):
 		return "充能中"
-	var why := manual_block_reason(i)
+	var why := manual_block_reason(i, dir)
 	if why == "":
 		manual_buf = MANUAL_BUF
+		manual_buf_dir = dir
 	return why
 
 
@@ -275,12 +296,12 @@ func _tick_manual_buf(dt: float) -> void:
 	var i := manual_index()
 	if i < 0:
 		manual_buf = 0.0
-	elif manual_ready(i):
-		cast_manual(i)
+	elif manual_ready(i, manual_buf_dir):
+		cast_manual(i, manual_buf_dir)
 
 
 ## 充能已满但干员自己的条件不满足、等也没用时，按键提示的原因（如「附近没有敌人」）；空串 = 只是稍等，按键先记下
-func manual_block_reason(_i: int) -> String:
+func manual_block_reason(_i: int, _dir: Vector2 = Vector2.ZERO) -> String:
 	return ""
 
 
