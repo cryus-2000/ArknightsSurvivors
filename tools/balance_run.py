@@ -453,6 +453,36 @@ def final_boss_summary(records):
     return "\n".join(lines)
 
 
+def horde_summary(records):
+    """大群（第 k 次）按机器人分行：出现局数、平均出现时间 / 数量、清掉 80% 的用时（t80，清完的局数）、
+    开始后 20 秒内的最大掉血（hp0 − minhp）、开始后 30 秒内死亡的局数、编成（comp）出现次数"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if not d:
+            continue
+        end_t = d["t"] if not d.get("win") else None
+        for k, h in enumerate(d.get("hordes", [])):
+            e = by.setdefault((r.get("bot", "normal"), k), {"t": [], "n": [], "t80": [], "drop": [], "dead": 0, "comp": {}})
+            e["t"].append(h["t"]); e["n"].append(h["n"])
+            if h.get("t80", -1) >= 0:
+                e["t80"].append(h["t80"])
+            e["drop"].append(h.get("hp0", 0) - h.get("minhp", 0))
+            if end_t is not None and h["t"] <= end_t <= h["t"] + 30:
+                e["dead"] += 1
+            c = "/".join(h.get("comp", []))
+            e["comp"][c] = e["comp"].get(c, 0) + 1
+    if not by:
+        return ""
+    lines = ["| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |", "|---|---|---|---|---|---|---|---|---|"]
+    for (bot, k), e in sorted(by.items()):
+        lines.append("| %s | %d | %d | %s | %.0f | %s（%d/%d） | %.0f / %.0f | %d | %s |" % (
+            bot, k + 1, len(e["t"]), fmt_t(statistics.mean(e["t"])), statistics.mean(e["n"]),
+            ("%.0fs / %.0fs" % (statistics.mean(e["t80"]), statistics.median(e["t80"]))) if e["t80"] else "-", len(e["t80"]), len(e["t"]),
+            statistics.mean(e["drop"]), max(e["drop"]), e["dead"], "；".join("%s ×%d" % kv for kv in sorted(e["comp"].items(), key=lambda kv: -kv[1])[:3])))
+    return "\n".join(lines)
+
+
 ZONE_STATE_NAMES = {0: "未缩圈", 1: "预告", 2: "收缩", 3: "稳定"}
 
 
@@ -577,6 +607,9 @@ def main():
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
+    hs = horde_summary(records)
+    if hs:
+        md = "### 大群（按第几次）\n\n" + hs + "\n\n" + md
     ds = difficulty_summary(records)
     if ds:
         md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
