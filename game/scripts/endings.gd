@@ -84,12 +84,25 @@ func open(ev_id: String) -> void:
 		for i in ev.options.size():
 			var op: Dictionary = ev.options[i]
 			var icon: String = "e_event"
+			# 选项条上的效果小牌（C 版式）：概率 / 灯火 / 得到藏品 / 改为三选一 / 源石锭
+			var chips: Array = []
 			for o in op.get("ops", []):
+				if o.has("chance"):
+					chips.append(["%d%%" % int(round(float(o.chance) * 100.0)), Color(0.18, 0.72, 1.0)])
+				if o.has("light"):
+					chips.append(["灯火 %+d" % int(o.light), Color(0.95, 0.89, 0.76)])
 				if o.has("relic"):
 					icon = "relic_" + str(o.relic)
-			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon,
+					chips.append(["得到藏品", Color(0.18, 0.72, 1.0)])
+				if o.has("relic_choice"):
+					if icon == "e_event":
+						icon = "exit"
+					chips.append(["藏品三选一", Color(0.62, 0.6, 0.57)])
+				if o.has("ingots"):
+					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
+			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
-		g._show_choices(ev.name, opts, "event")
+		g._show_choices(ev.name, opts, "event", str(ev.get("text", "")))
 		return
 
 

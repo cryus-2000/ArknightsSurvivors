@@ -287,6 +287,11 @@ var merchant_light: PointLight2D
 var hud: Control
 var panel: Control
 var panel_box: HBoxContainer
+var panel_col: VBoxContainer   # 事件选项条（C 版式）的竖排容器
+var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
+var panel_fg: Control          # 标题、商人立绘、事件插画画在这层（压暗带之上、卡片之下）
+var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
+var serif: Font                # 事件标题用的衬线粗体（fonts/serif.ttf，缺失时退回 UI 字体）
 var font: Font
 var tex := {}
 var panel_title_text := ""
@@ -309,6 +314,7 @@ var fx_add: Node2D
 var anim_name := ""
 var settings: Control
 var result_btns: Array = []   # [Rect2, action]
+var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 # ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
 var nav_sel := 0               # 当前焦点卡片（选卡 / 商店共用 panel_box 的下标）
 var res_sel := 0               # 暂停 / 结算按钮焦点
@@ -1425,6 +1431,10 @@ func _unhandled_input(event: InputEvent) -> void:
 					Sfx.play("ui_ok")
 					_do_action(b[1])
 					return
+		if state == S.PLAY and pause_btn.has_area() and pause_btn.has_point(event.position):
+			Sfx.play("ui_ok", -4.0)
+			state = S.PAUSE
+			return
 	if event is InputEventKey and event.device == Pad.SYNTH_DEVICE and state_age < 0.35 and state != S.PLAY:
 		return
 	if state == S.SHOW:
@@ -3078,22 +3088,25 @@ func _build_shop_ui() -> void:
 	nav_sel = clampi(nav_sel, 0, maxi(0, shop_items.size() - 1))
 	for c in panel_box.get_children():
 		c.queue_free()
-	panel_box.add_theme_constant_override("separation", 28 if shop_items.size() <= 5 else 14)
-	panel_title_text = "商人  ·  持有源石锭 %d" % ingots
 	choice_kind = "shop"
+	_layout_panel("shop")
+	var n := shop_items.size()
+	var sep: float = 14.0 if n <= 5 else 10.0
+	panel_box.add_theme_constant_override("separation", int(sep))
+	var cw: float = minf(160.0, (868.0 - sep * (n - 1)) / maxf(1.0, n))
+	panel_title_text = "流浪商人"
 	for c in panel.get_children():
 		if c.has_meta("shopbtn"):
 			c.queue_free()
 	var vs0: Vector2 = get_viewport_rect().size
-	_panel_button("刷新一次  %d" % _shop_price("refresh") if not shop_refreshed else "已刷新过", Vector2(vs0.x / 2 - 250, vs0.y - 100), _refresh_shop, not shop_refreshed and ingots >= _shop_price("refresh"))
-	_panel_button("离开  Esc", Vector2(vs0.x / 2 + 70, vs0.y - 100), _close_shop, true)
-	for i in shop_items.size():
+	var cx := vs0.x / 2.0
+	_panel_button("刷新货架", Rect2(cx - 280, 546, 214, 40), _refresh_shop, not shop_refreshed and ingots >= _shop_price("refresh"), "refresh", "仅一次" if not shop_refreshed else "已刷新过", -1 if shop_refreshed else _shop_price("refresh"))
+	_panel_button("离开", Rect2(cx - 52, 546, 150, 40), _close_shop, true, "", "", -1, "ESC")
+	for i in n:
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
-		var sep: float = 28.0 if shop_items.size() <= 5 else 14.0
-		var cw: float = minf(204.0 if shop_items.size() <= 5 else 180.0, (get_viewport_rect().size.x - 60.0 - sep * (shop_items.size() - 1)) / shop_items.size())
-		card.custom_minimum_size = Vector2(cw, 276)
-		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		card.custom_minimum_size = Vector2(cw, 296)
+		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -3101,7 +3114,7 @@ func _build_shop_ui() -> void:
 		card.set_meta("born", Time.get_ticks_msec() + i * 50)
 		card.set_meta("oy", 60.0)
 		card.set_meta("lift", 0.0)
-		card.set_meta("dy", 178.0)
+		card.set_meta("dy", 174.0)
 		card.set_meta("item", it)
 		card.modulate.a = 0.0
 		card.draw.connect(_draw_shop_card.bind(card, it, i))
@@ -3111,27 +3124,28 @@ func _build_shop_ui() -> void:
 		var desc := Label.new()
 		desc.text = UI.soft(it.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(14, 178)
-		desc.size = Vector2(cw - 28, 80)
+		desc.position = Vector2(10, 174)
+		desc.size = Vector2(cw - 20, 56)
 		desc.clip_text = true
-		desc.max_lines_visible = 4
+		desc.max_lines_visible = 3
+		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		desc.add_theme_constant_override("line_spacing", 0)
-		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
+		desc.add_theme_font_size_override("font_size", 12)
+		desc.add_theme_color_override("font_color", Color(0.655, 0.69, 0.725))
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(desc)
 		card.set_meta("desc", desc)
 		panel_box.add_child(card)
 	panel.visible = true
-	panel.queue_redraw()
+	panel_fg.queue_redraw()
 
 
-## 面板底部的文字按钮（商店：刷新 / 离开），鼠标与触屏都能点
-func _panel_button(text: String, pos: Vector2, cb: Callable, enabled: bool) -> void:
+## 面板底部的按钮（商店：刷新 / 离开）：A 风格暗底细边；可带线性图标、源石锭价格、备注、按键牌。鼠标与触屏都能点
+func _panel_button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", note := "", price := -1, key := "") -> void:
 	var b := Button.new()
 	b.set_meta("shopbtn", true)
-	b.position = pos
-	b.size = Vector2(180, 40)
+	b.position = r.position
+	b.size = r.size
 	b.focus_mode = Control.FOCUS_NONE
 	b.disabled = not enabled
 	var empty := StyleBoxEmpty.new()
@@ -3139,50 +3153,100 @@ func _panel_button(text: String, pos: Vector2, cb: Callable, enabled: bool) -> v
 		b.add_theme_stylebox_override(st, empty)
 	b.draw.connect(func():
 		var hov: bool = b.is_hovered() and enabled
-		var col: Color = UI.GOLD if enabled else Color(0.4, 0.45, 0.5)
-		UI.frame(b, Rect2(Vector2.ZERO, b.size), col, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov else 0.0, "alpha": 1.0 if hov else 0.7})
-		UI.text(b, font, Vector2(0, 26), text, 15, UI.TEXT if enabled else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, b.size.x))
+		var br := Rect2(Vector2.ZERO, b.size)
+		var fg: Color = UI.TEXT if enabled else UI.SUB
+		b.draw_rect(br, Color(0.03, 0.035, 0.045, 0.82))
+		b.draw_rect(br, Color(1, 1, 1, 0.6 if hov else (0.3 if enabled else 0.12)), false, 1.0)
+		if hov:
+			b.draw_rect(br.grow(2.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), false, 1.0)
+		var x := 16.0
+		if icon != "":
+			UI.icon(b, icon, Vector2(x + 9, b.size.y / 2.0), 18.0, fg)
+			x += 26.0
+		UI.text(b, font, Vector2(x, b.size.y / 2.0 + 5), text, 14, fg)
+		x += font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 10.0
+		if price >= 0:
+			b.draw_texture_rect(tex.ingot, Rect2(Vector2(x, b.size.y / 2.0 - 7), Vector2(18, 14)), false, Color(1, 1, 1, 1.0 if enabled else 0.5))
+			UI.ctext(b, font, Vector2(x + 22, b.size.y / 2.0 + 7), str(price), 18, fg)
+			x += 22.0 + UI.cwidth(font, str(price), 18) + 8.0
+		if note != "":
+			UI.text(b, font, Vector2(x, b.size.y / 2.0 + 5), note, 11, UI.SUB)
+		if key != "":
+			UI.keycap(b, font, Vector2(b.size.x - UI.cwidth(font, key, 11) - 28, b.size.y / 2.0 - 9), key, fg, 11))
 	b.mouse_entered.connect(b.queue_redraw)
 	b.mouse_exited.connect(b.queue_redraw)
 	b.pressed.connect(cb)
 	panel.add_child(b)
 
 
+## 货品卡（A4）：炭灰卡 + 节点标签条 + 序号 + 图标光环 + 名称 + 说明 + 底部价格条
+## （可买：钢蓝，悬停青底；买不起：洋红细边 +「不足」；已售出：整卡变暗、图标去色）
 func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	var hov: bool = _card_hot(card, i) and not it.sold
-	var col: Color = UI.GOLD
-	if it.kind == "relic":
-		col = UI.CAT_COL.get(RL[it.id].cat, UI.GOLD)
-	elif it.kind == "heal":
-		col = Color(0.5, 1.0, 0.6)
 	var afford: bool = ingots >= it.price
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 40 + i, "vine_k": 0.9 if hov else 0.6, "glow": 1.0 if hov else 0.2, "cut": 10.0, "bracket": 10.0, "alpha": 0.5 if it.sold else 1.0})
-	UI.text(card, font, r.position + Vector2(14, 28), str(i + 1), 14, Color(col.r, col.g, col.b, 0.7))
+	var a := 0.55 if it.sold else 1.0
+	if hov:
+		for k in 3:
+			card.draw_rect(r.grow(2.0 + k * 3.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 - k * 0.035), false, 3.0)
+	var top := Color(0.118, 0.129, 0.153, 0.95 * a)
+	var bot := Color(0.059, 0.067, 0.082, 0.95 * a)
+	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
+	card.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Color(1, 1, 1, 0.14 * a))
+	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11 * a), false, 1.0)
+	var en_s := "SUPPLY"
+	var cn_s := "补给"
+	if it.kind == "relic":
+		var rd: Dictionary = RL[it.id]
+		en_s = UI.CAT_EN.get(rd.cat, "RELIC")
+		cn_s = rd.cat
+	elif it.kind == "oil":
+		en_s = "LIGHT"
+		cn_s = "灯火"
+	var sc: Color = UI.CYAN if hov else Color(1, 1, 1, 0.88 * a)
+	# 序号在底部价格条里（[ 1 ]）；标签条放不下就只留英文
+	if UI.strip_width(font, en_s, cn_s, 11) > r.size.x - 20.0:
+		cn_s = ""
+	UI.strip(card, font, r.position + Vector2(10, 10), en_s, cn_s, sc, UI.TEXT, 11)
 	if it.get("deep", false):
-		UI.chip(card, font, r.position + Vector2(r.size.x - 66, 12), "深海馈赠", Color(0.6, 0.5, 1.0), 10)
-	var c := r.position + Vector2(r.size.x / 2, 92)
-	UI.pedestal(card, c, 38.0, col, t + i, hov)
+		UI.chip(card, font, r.position + Vector2(10, 36), "深海馈赠", Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
+	var c := r.position + Vector2(r.size.x / 2.0, 94)
+	UI.halo(card, c, 32.0, UI.CYAN, hov, a)
+	var mod := Color(1, 1, 1, a) if not it.sold else Color(0.45, 0.45, 0.45, a)
 	var ic: Texture2D = tex.get("relic_" + it.id) if it.kind == "relic" else null
 	if ic != null:
-		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32), Vector2(64, 64)), false)
-	elif it.kind == "oil":
-		card.draw_texture_rect(tex.oil, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
+		_draw_icon_fit(card, ic, c, 64.0, mod)
+	elif it.kind == "oil" and tex.get("oil") != null:
+		_draw_icon_fit(card, tex.oil, c, 52.0, mod)
 	elif it.kind == "heal" and tex.get("pickup_heal") != null:
-		card.draw_texture_rect(tex.pickup_heal, Rect2(c - Vector2(20, 20), Vector2(40, 40)), false)
+		_draw_icon_fit(card, tex.pickup_heal, c, 56.0, mod)
 	else:
-		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, col, HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
-	UI.text(card, font, r.position + Vector2(0, 158), it.name, 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
-	UI.rule(card, r.position + Vector2(30, 166), r.position + Vector2(r.size.x - 30, 166), Color(col.r, col.g, col.b, 0.4))
+		UI.text(card, font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
+	var fs := 15 if font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x <= r.size.x - 14.0 else 12
+	UI.text(card, font, r.position + Vector2(0, 164), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	var pb := Rect2(r.position + Vector2(10, r.size.y - 44), Vector2(r.size.x - 20, 32))
 	if it.sold:
-		UI.chip(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 34), "已售出", UI.SUB, 12)
+		card.draw_rect(pb, Color(1, 1, 1, 0.06))
+		UI.text(card, font, Vector2(pb.position.x, pb.position.y + 21), "已售出", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, pb.size.x)
+		return
+	var pc := Color.WHITE
+	var kc := Color(1, 1, 1, 0.7)
+	if hov and afford:
+		card.draw_rect(pb, UI.CYAN)
+		pc = Color(0.04, 0.07, 0.09)
+		kc = pc
+	elif not afford:
+		card.draw_rect(pb, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.12))
+		card.draw_rect(pb, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.55), false, 1.0)
+		pc = Color(1.0, 0.48, 0.66)
+		kc = Color(1.0, 0.48, 0.66, 0.8)
 	else:
-		var price_col := Color(1.0, 0.65, 0.35) if afford else Color(0.6, 0.35, 0.35)
-		var pr := Rect2(r.position + Vector2(r.size.x / 2 - 34, r.size.y - 36), Vector2(68, 24))
-		card.draw_rect(pr, Color(price_col.r, price_col.g, price_col.b, 0.12))
-		card.draw_rect(pr, Color(price_col.r, price_col.g, price_col.b, 0.6), false, 1.0)
-		card.draw_texture_rect(tex.ingot, Rect2(pr.position + Vector2(8, 5), Vector2(18, 14)), false)
-		UI.text(card, font, pr.position + Vector2(32, 18), str(it.price), 15, price_col)
+		card.draw_rect(pb, Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
+	card.draw_texture_rect(tex.ingot, Rect2(pb.position + Vector2(10, 9), Vector2(18, 14)), false)
+	UI.ctext(card, font, pb.position + Vector2(34, 24), str(it.price), 21, pc)
+	if not afford:
+		UI.text(card, font, pb.position + Vector2(40 + UI.cwidth(font, str(it.price), 21), 21), "不足", 11, pc)
+	UI.ctext(card, font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
 
 
 func _buy(i: int) -> void:
@@ -3642,59 +3706,295 @@ func _build_panel(parent: Node) -> void:
 	panel.theme = theme
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	panel.visible = false
-	panel.draw.connect(_draw_panel_bg)
 	parent.add_child(panel)
+	# 灰阶压暗带（方案 A，仿原作局内弹窗）：读屏幕纹理，把背后的战场变灰变暗；位置按界面类型在 _layout_panel 里设
+	panel_band = ColorRect.new()
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://shaders/ui_band.gdshader")
+	panel_band.material = sm
+	panel_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(panel_band)
+	# 标题 / 商人立绘 / 事件插画画在这一层：在压暗带之上、卡片之下
+	panel_fg = Control.new()
+	panel_fg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel_fg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel_fg.draw.connect(_draw_panel_bg)
+	panel.add_child(panel_fg)
 	panel_box = HBoxContainer.new()
-	panel_box.add_theme_constant_override("separation", 28)
+	panel_box.add_theme_constant_override("separation", 36)
 	panel_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	panel_box.offset_top = 175
-	panel_box.offset_bottom = -120
+	panel_box.offset_top = 184
+	panel_box.offset_bottom = -100
 	panel.add_child(panel_box)
+	# 事件选项（C 版式）：右半屏竖排的选项条
+	panel_col = VBoxContainer.new()
+	panel_col.add_theme_constant_override("separation", 14)
+	panel_col.anchor_left = 0.5
+	panel_col.anchor_right = 0.5
+	panel_col.offset_left = 12
+	panel_col.offset_right = 608
+	panel_col.offset_top = 196
+	panel_col.offset_bottom = 560
+	panel_col.visible = false
+	panel.add_child(panel_col)
+	# 事件标题的衬线字；没导入（别的工作区的 .godot 缓存里还没有）就用 UI 字体
+	var sf: Font = load("res://fonts/serif.ttf") if ResourceLoader.exists("res://fonts/serif.ttf") else null
+	if sf != null:
+		sf.fallbacks = [font]
+		serif = sf
+	else:
+		serif = font
+
+
+## 压暗带与卡片容器的布局：选卡在顶栏与底栏之间；商人压暗到底部；事件整屏灰阶（C 版式）
+func _layout_panel(kind: String) -> void:
+	var vs: Vector2 = get_viewport_rect().size
+	var sm: ShaderMaterial = panel_band.material
+	var top := 64.0
+	var bot := vs.y - 108.0
+	var fade := 34.0
+	var desat := 0.85
+	var dim := 0.5
+	if kind == "shop":
+		bot = vs.y - 56.0
+	elif kind == "event":
+		top = 0.0
+		bot = vs.y
+		fade = 0.0
+		desat = 1.0
+		dim = 0.46
+	panel_band.position = Vector2(0, top)
+	panel_band.size = Vector2(vs.x, bot - top)
+	sm.set_shader_parameter("rect_size", panel_band.size)
+	sm.set_shader_parameter("fade_px", fade)
+	sm.set_shader_parameter("desat", desat)
+	sm.set_shader_parameter("dim", dim)
+	if kind == "shop":
+		panel_box.anchor_left = 0.5
+		panel_box.anchor_right = 0.5
+		panel_box.offset_left = -280.0
+		panel_box.offset_right = 588.0
+		panel_box.offset_top = 234.0
+	else:
+		panel_box.anchor_left = 0.0
+		panel_box.anchor_right = 1.0
+		panel_box.offset_left = 0.0
+		panel_box.offset_right = 0.0
+		panel_box.offset_top = 196.0
+	panel_box.visible = kind != "event"
+	panel_col.visible = kind == "event"
 
 
 func _draw_panel_bg() -> void:
-	var vs := panel.size
-	panel.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.05, 0.8))
-	var title_col := UI.GOLD if choice_kind in ["relic", "shop"] else UI.GLOW
-	# 从上方斜射的光束
-	for i in 4:
-		var x := vs.x * 0.2 + i * vs.x * 0.2 + sin(t * 0.25 + i) * 30.0
-		var w := 50.0 + 24.0 * sin(t * 0.4 + i * 1.7)
-		panel.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + w, 0), Vector2(x + w * 2.4 - 160, vs.y), Vector2(x - 160, vs.y)]),
-			Color(title_col.r, title_col.g, title_col.b, 0.025 + 0.012 * sin(t * 0.7 + i)))
-	# 标题栏
-	var band := Rect2(vs.x / 2 - 360, 56, 720, 72)
-	UI.frame(panel, band, title_col, {"t": t, "vines": true, "seed": 11, "vine_k": 0.6, "cut": 10.0})
-	UI.caustic(panel, Rect2(band.position + Vector2(20, 8), Vector2(band.size.x - 40, 18)), t, title_col)
-	var en_label := "RELIC" if choice_kind == "relic" else ("EVENT" if choice_kind == "event" else "LEVEL UP")
-	if choice_kind == "shop":
-		en_label = "MERCHANT"
-	if choices.size() > 0 and choices[0].kind == "recruit":
-		en_label = "RECRUIT"
-	var w := font.get_string_size(en_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + en_label.length() * 4.0
-	UI.en(panel, font, Vector2(vs.x / 2 - w / 2, 80), en_label, 12, title_col, 4.0)
-	UI.heading(panel, font, Vector2(vs.x / 2, 106), panel_title_text, 26, title_col, 300.0)
-	var hint := ("点击或按 1–5 购买 · " + ("已刷新过" if shop_refreshed else "F 刷新一次（%d 源石锭）" % _shop_price("refresh")) + " · Esc 离开") if choice_kind == "shop" else "点击卡片，或按 1 / 2 / 3 选择"
-	if Pad.using:
-		hint = ("←→ 选择 · Ⓐ 购买 · " + ("已刷新过" if shop_refreshed else "Ⓨ 刷新一次（%d 源石锭）" % _shop_price("refresh")) + " · Ⓑ 离开") if choice_kind == "shop" else "←→ 选择 · Ⓐ 确认"
-	UI.text(panel, font, Vector2(0, vs.y - 46), hint, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	var vs := panel_fg.size
+	match choice_kind:
+		"shop":
+			_draw_shop_bg(vs)
+		"event":
+			_draw_event_bg(vs)
+		_:
+			var en_label := "RELIC" if choice_kind == "relic" else "LEVEL UP"
+			if choices.size() > 0 and choices[0].kind == "recruit":
+				en_label = "RECRUIT"
+			_panel_header(vs, en_label + "  ·  CHOOSE ONE", panel_title_text, panel_sub_text)
+			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击卡片，或按 1–%d 选择" % choices.size()
+			UI.text(panel_fg, font, Vector2(0, 196 + CARD_H + 30), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
-func _show_choices(title: String, opts: Array, kind: String) -> void:
+## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
+func _panel_header(vs: Vector2, micro: String, title: String, sub: String, y0 := 104.0) -> void:
+	var c := vs.x / 2.0
+	var mw := UI.en_width(font, micro, 12, 4.0)
+	UI.en(panel_fg, font, Vector2(c - mw / 2.0, y0 + 12), micro, 12, UI.SUB, 4.0)
+	UI.heading(panel_fg, font, Vector2(c, y0 + 36), title, 30, UI.TEXT, 290.0)
+	if sub != "":
+		UI.text(panel_fg, font, Vector2(0, y0 + 70), sub, 13, Color(0.67, 0.7, 0.74), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+
+
+## 商人（A4）：左侧商人立绘框（暖色提灯光）+ 右上「货架」与持有源石锭 + 底部提示；五张货品卡在 panel_box
+const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
+
+func _draw_shop_bg(vs: Vector2) -> void:
+	var cx := vs.x / 2.0
+	_panel_header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", "在灯火熄灭之前，用源石锭换些能活下去的东西")
+	var mr := Rect2(Vector2(cx - 580, 192), Vector2(280, 388))
+	var mt := Color(0.125, 0.11, 0.094, 0.95)
+	var mb := Color(0.055, 0.051, 0.047, 0.95)
+	panel_fg.draw_polygon(PackedVector2Array([mr.position, Vector2(mr.end.x, mr.position.y), mr.end, Vector2(mr.position.x, mr.end.y)]), PackedColorArray([mt, mt, mb, mb]))
+	var gc := mr.position + Vector2(mr.size.x / 2.0, 236)
+	for k in 6:
+		panel_fg.draw_circle(gc, 150.0 - k * 22.0, Color(1.0, 0.66, 0.31, 0.035))
+	panel_fg.draw_set_transform(mr.position + Vector2(mr.size.x / 2.0, 330), 0.0, Vector2(1.0, 0.16))
+	panel_fg.draw_circle(Vector2.ZERO, 76.0, Color(0, 0, 0, 0.5))
+	panel_fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var mtx: Texture2D = tex.get("merchant")
+	if mtx != null:
+		var fw := mtx.get_width() / 2
+		var fh := mtx.get_height()
+		var ks: float = 5.0 / A.hires_of(mtx)
+		var sz := Vector2(fw, fh) * ks
+		var fr := int(t * 2.0) % 2
+		panel_fg.draw_texture_rect_region(mtx, Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 - sz.y)).round(), sz), Rect2(fw * fr, 0, fw, fh))
+	panel_fg.draw_rect(mr, Color(1, 1, 1, 0.11), false, 1.0)
+	panel_fg.draw_rect(Rect2(mr.position, Vector2(14, 2)), UI.GOLD)
+	UI.strip(panel_fg, font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))
+	UI.tab(panel_fg, font, mr.position + Vector2(16, 340), "流浪商人", UI.TAB_LAMP)
+	UI.en(panel_fg, font, mr.position + Vector2(90, 353), "WANDERING TRADER", 10, UI.SUB, 2.0)
+	UI.text(panel_fg, font, mr.position + Vector2(16, 378), "「%s」" % MERCHANT_LINES[maxi(0, merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89))
+	# 右上：货架 + 持有源石锭（明日方舟费用框）
+	UI.text(panel_fg, font, Vector2(cx - 280, 216), "货架", 20, UI.TEXT)
+	UI.en(panel_fg, font, Vector2(cx - 232, 214), "GOODS  ·  %d" % shop_items.size(), 12, UI.SUB, 3.0)
+	var dp := Rect2(Vector2(cx + 460, 188), Vector2(128, 34))
+	panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
+	panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
+	panel_fg.draw_texture_rect(tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
+	UI.ctext(panel_fg, font, dp.position + Vector2(38, 27), str(ingots), 26, UI.TEXT)
+	UI.text(panel_fg, font, dp.position + Vector2(84, 22), "源石锭", 10, UI.SUB)
+	UI.text(panel_fg, font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
+	var hint := ("←→ 选择 · Ⓐ 购买 · Ⓨ 刷新 · Ⓑ 离开" if Pad.using else "点击或按 1–%d 购买  ·  F 刷新  ·  Esc 离开" % shop_items.size())
+	UI.text(panel_fg, font, Vector2(cx + 116, 571), hint, 12, UI.SUB)
+
+
+## 事件（C 版式，原作「不期而遇」）：左边撕纸边灰阶墨色插画——画面里唯一的彩色物件是海嗣祭坛；
+## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
+var ev_art := {}
+var ink_tex: GradientTexture2D
+
+func _event_art(key: String) -> Dictionary:
+	if ev_art.get("key", "") == key:
+		return ev_art
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(key)
+	var a := {"key": key, "blobs": [], "streaks": [], "dots": [], "bars": [], "ensos": []}
+	a.panel = UI.jag_rect(Rect2(0, 0, 560, 500), 8.0, 12.0, rng)
+	for k in 9:
+		var y: float = rng.randf_range(-30.0, 60.0) if rng.randf() < 0.5 else rng.randf_range(430.0, 530.0)
+		a.blobs.append(UI.blob(Vector2(rng.randf_range(-20.0, 580.0), y), rng.randf_range(40.0, 110.0), rng))
+	for k in 5:
+		var bp := UI.brush_poly(Vector2(rng.randf_range(-80.0, 200.0), rng.randf_range(60.0, 380.0)), rng.randf_range(260.0, 460.0), rng.randf_range(6.0, 16.0), rng)
+		var rot := Transform2D(deg_to_rad(rng.randf_range(-30.0, -18.0)), Vector2.ZERO)
+		var out := PackedVector2Array()
+		for q in bp:
+			out.append(Vector2(280, 250) + rot * (q - Vector2(280, 250)))
+		a.streaks.append(out)
+	for k in 18:
+		a.dots.append([Vector2(rng.randf_range(20.0, 540.0), rng.randf_range(20.0, 480.0)), rng.randf_range(0.8, 3.2)])
+	for k in 4:
+		var bar := UI.jag_rect(Rect2(0, 0, 596, 100), 1.5, 9.0, rng, "tbl")
+		for j in bar.size():
+			if bar[j].x < 20.0:
+				bar[j].x += rng.randf_range(-4.0, 10.0)
+		a.bars.append(bar)
+		a.ensos.append(UI.enso(Vector2(56, 50), 36.0, 3.0, rng))
+	a.emblem = UI.curly_lines(Vector2.ZERO, 24.0 * 0.38, 24.0, 16, 24.0 * 0.14, rng)
+	a.emblem_small = UI.curly_lines(Vector2.ZERO, 9.0 * 0.38, 9.0, 12, 9.0 * 0.16, rng)
+	ev_art = a
+	return a
+
+
+func _ink_grad() -> GradientTexture2D:
+	if ink_tex == null:
+		var gr := Gradient.new()
+		gr.offsets = PackedFloat32Array([0.0, 0.3, 0.6, 0.88, 1.0])
+		gr.colors = PackedColorArray([Color("dcd7ce"), Color("aca79e"), Color("5f5c57"), Color("1c1c1d"), Color("1c1c1d")])
+		ink_tex = GradientTexture2D.new()
+		ink_tex.gradient = gr
+		ink_tex.fill = GradientTexture2D.FILL_RADIAL
+		ink_tex.fill_from = Vector2(0.5, 0.42)
+		ink_tex.fill_to = Vector2(1.08, 0.42)
+		ink_tex.width = 256
+		ink_tex.height = 256
+	return ink_tex
+
+
+func _draw_event_bg(vs: Vector2) -> void:
+	var art := _event_art(panel_title_text)
+	var cx := vs.x / 2.0
+	var p0 := Vector2(cx - 576.0, 120.0)
+	var pts: PackedVector2Array = art.panel
+	var tp := PackedVector2Array()
+	var uv := PackedVector2Array()
+	for q in pts:
+		tp.append(p0 + q)
+		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
+	panel_fg.draw_colored_polygon(tp, Color.WHITE, uv, _ink_grad())
+	for b in art.blobs:
+		panel_fg.draw_colored_polygon(_offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
+	for s in art.streaks:
+		panel_fg.draw_colored_polygon(_offset_poly(s, p0, tp), Color(0.08, 0.08, 0.085, 0.35))
+	for d in art.dots:
+		panel_fg.draw_circle(p0 + d[0], d[1], Color(0.047, 0.047, 0.05, 0.55))
+	# 蓝色微光 + 海嗣祭坛（彩色）
+	var ac := p0 + Vector2(280, 158)
+	for k in 5:
+		panel_fg.draw_circle(ac, 120.0 - k * 20.0, Color(0.18, 0.72, 1.0, 0.05))
+	var etx: Texture2D = tex.get("e_event")
+	if etx != null:
+		var fw := etx.get_width() / 2
+		var fh := etx.get_height()
+		var ks: float = 8.0 / A.hires_of(etx)
+		var sz := Vector2(fw, fh) * ks
+		var fr := int(t * 2.0) % 2
+		panel_fg.draw_texture_rect_region(etx, Rect2((ac - sz / 2.0).round(), sz), Rect2(fw * fr, 0, fw, fh))
+	# 底部压暗，放事件名与剧情
+	var g0 := Color(0.04, 0.04, 0.043, 0.0)
+	var g1 := Color(0.04, 0.04, 0.043, 0.95)
+	panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
+	UI.en(panel_fg, font, p0 + Vector2(92, 366), "EVENT", 12, Color(0.6, 0.59, 0.56), 3.0)
+	UI.text(panel_fg, font, p0 + Vector2(140, 366), "·  海嗣祭坛", 12, Color(0.6, 0.59, 0.56))
+	var em := p0 + Vector2(54, 400)
+	var emb: Array = []
+	for pl in art.emblem:
+		var o2 := PackedVector2Array()
+		for q in pl:
+			o2.append(em + q)
+		emb.append(o2)
+	UI.curly_emblem(panel_fg, emb, em, 24.0, Color(0.18, 0.72, 1.0))
+	panel_fg.draw_string(serif, p0 + Vector2(92, 408), panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
+	if panel_sub_text != "":
+		panel_fg.draw_multiline_string(font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
+	# 右侧标题
+	UI.en(panel_fg, font, Vector2(cx + 20, 142), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
+	panel_fg.draw_string(serif, Vector2(cx + 20, 178), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
+	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击选项，或按 1–%d" % choices.size()
+	UI.text(panel_fg, font, Vector2(cx + 20, 196 + choices.size() * 114 + 20), hint, 12, Color(0.55, 0.54, 0.52))
+
+
+## 墨点 / 笔触多边形平移到插画框里；超出框的部分交给撕纸边外的暗底盖住（这里只做平移）
+func _offset_poly(p: PackedVector2Array, o: Vector2, _clip: PackedVector2Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for q in p:
+		out.append(o + Vector2(clampf(q.x, 2.0, 558.0), clampf(q.y, 2.0, 498.0)))
+	return out
+
+
+func _show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	choices = opts
 	choice_kind = kind
 	nav_sel = 0
 	state = S.CHOICE
 	panel_title_text = title
+	panel_sub_text = sub
+	if sub == "":
+		if kind == "relic":
+			panel_sub_text = "精英倒下后留下一只宝箱 —— 挑选一件带走"
+		elif opts.size() > 0 and opts[0].kind == "recruit":
+			panel_sub_text = "挑选一名干员加入编队"
+		elif kind != "event":
+			panel_sub_text = "选择一项强化"
 	Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in panel_box.get_children():
 		c.queue_free()
+	for c in panel_col.get_children():
+		c.queue_free()
+	_layout_panel(kind)
+	var ev := kind == "event"
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(280, 304)
-		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		card.custom_minimum_size = Vector2(596, 100) if ev else Vector2(CARD_W, CARD_H)
+		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -3702,36 +4002,47 @@ func _show_choices(title: String, opts: Array, kind: String) -> void:
 		card.set_meta("born", Time.get_ticks_msec() + i * 70)
 		card.set_meta("oy", 60.0)
 		card.set_meta("lift", 0.0)
+		if ev:
+			card.set_meta("bar", true)
 		card.modulate.a = 0.0
-		card.draw.connect(_draw_card.bind(card, o, i))
+		card.draw.connect((_draw_event_bar if ev else _draw_card).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(_pick.bind(i))
 		var desc := Label.new()
 		desc.text = UI.soft(o.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc.position = Vector2(28, 212)
-		desc.size = Vector2(224, 84)
 		desc.clip_text = true
-		desc.max_lines_visible = 4
 		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.88))
 		desc.add_theme_constant_override("line_spacing", 0)
 		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if ev:
+			desc.position = Vector2(112, 50)
+			desc.size = Vector2(420, 44)
+			desc.max_lines_visible = 2
+			desc.add_theme_color_override("font_color", Color(0.81, 0.79, 0.76))
+			card.set_meta("dx", 112.0)
+		else:
+			desc.position = Vector2(20, 258)
+			desc.size = Vector2(CARD_W - 40, 58)
+			desc.max_lines_visible = 3
+			desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			desc.add_theme_color_override("font_color", Color(0.655, 0.69, 0.725))
 		card.add_child(desc)
 		card.set_meta("desc", desc)
-		card.set_meta("dy", 212.0)
-		panel_box.add_child(card)
+		card.set_meta("dy", 50.0 if ev else 258.0)
+		(panel_col if ev else panel_box).add_child(card)
 	panel.visible = true
-	panel.queue_redraw()
+	panel_fg.queue_redraw()
 
 
-## 卡片动画：入场（依次上浮淡入，轻微回弹）+ 悬停抬起；描述文字跟随卡框移动
 func _animate_cards(dt: float) -> void:
 	if not panel.visible:
 		return
+	panel_fg.queue_redraw()
 	var now := Time.get_ticks_msec()
-	for card in panel_box.get_children():
+	var box: BoxContainer = panel_col if (choice_kind == "event" and state == S.CHOICE) else panel_box
+	for card in box.get_children():
 		if not card.has_meta("born"):
 			continue
 		var age := (now - int(card.get_meta("born"))) / 1000.0
@@ -3740,15 +4051,24 @@ func _animate_cards(dt: float) -> void:
 		var c1 := 1.7
 		var e := 1.0 + (c1 + 1.0) * pow(k - 1.0, 3) + c1 * pow(k - 1.0, 2)
 		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
-		var target := -10.0 if (_card_hot(card as Button, card.get_index()) and not sold) else 0.0
-		var lift: float = lerpf(card.get_meta("lift"), target, clampf(dt * 18.0, 0.0, 1.0))
-		card.set_meta("lift", lift)
-		var oy := (1.0 - e) * 60.0 + lift
-		card.set_meta("oy", oy)
-		card.modulate.a = clampf(age / 0.2, 0.0, 1.0)
+		var hot := _card_hot(card as Button, card.get_index()) and not sold
 		var desc: Label = card.get_meta("desc", null)
-		if desc != null:
-			desc.position.y = float(card.get_meta("dy", 230.0)) + oy
+		card.modulate.a = clampf(age / 0.2, 0.0, 1.0)
+		if card.has_meta("bar"):
+			# 事件选项条：从右侧滑入，悬停时向左探出一点
+			var lift: float = lerpf(card.get_meta("lift"), -8.0 if hot else 0.0, clampf(dt * 18.0, 0.0, 1.0))
+			card.set_meta("lift", lift)
+			var ox := (1.0 - e) * 80.0 + lift
+			card.set_meta("ox", ox)
+			if desc != null:
+				desc.position.x = float(card.get_meta("dx", 112.0)) + ox
+		else:
+			var lift2: float = lerpf(card.get_meta("lift"), -10.0 if hot else 0.0, clampf(dt * 18.0, 0.0, 1.0))
+			card.set_meta("lift", lift2)
+			var oy := (1.0 - e) * 60.0 + lift2
+			card.set_meta("oy", oy)
+			if desc != null:
+				desc.position.y = float(card.get_meta("dy", 230.0)) + oy
 		card.queue_redraw()
 
 
@@ -3932,28 +4252,32 @@ func _card_color(o: Dictionary) -> Color:
 	return UI.CYAN
 
 
+## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 + 底部操作条。
+## 悬停 / 焦点：青色细边与外晕，标签条与操作条变青
+const CARD_W := 272.0
+const CARD_H := 368.0
+
 func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var hov := _card_hot(card, i)
-	var col := _card_color(o)
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	UI.frame(card, r, col, {"t": t, "vines": true, "seed": 20 + i, "vine_k": 1.0 if hov else 0.75, "glow": 1.0 if hov else 0.25, "cut": 12.0, "bracket": 12.0})
-	# 顶部分类标签
-	var cat := "成长  GROWTH"
-	if o.has("cat"):
-		cat = o.cat
-	elif o.kind == "relic":
-		cat = RL[o.id].cat + "  ·  " + RL[o.id].rarity
-	elif o.kind == "recruit":
-		cat = "招募  " + o.get("cls", "")
-	elif o.kind == "prog":
-		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
-	elif o.kind == "weapon":
-		cat = "支援  " + D.WEAPONS[o.id].en
-	UI.chip(card, font, r.position + Vector2(16, 16), cat, col, 11)
-	UI.text(card, font, r.position + Vector2(r.size.x - 40, 34), str(i + 1), 16, Color(col.r, col.g, col.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, 24)
-	# 图标底座
-	var c := r.position + Vector2(r.size.x / 2, 118)
-	UI.pedestal(card, c, 44.0, col, t + i, hov)
+	if hov:
+		for k in 3:
+			card.draw_rect(r.grow(2.0 + k * 3.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 - k * 0.035), false, 3.0)
+	var top := Color(0.118, 0.129, 0.153, 0.95)
+	var bot := Color(0.059, 0.067, 0.082, 0.95)
+	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
+	card.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Color(1, 1, 1, 0.14))
+	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11), false, 1.0)
+	var tag := _card_tag(o)
+	UI.strip(card, font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
+	UI.ctext(card, font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
+	if tag[2] != "":
+		var rw := UI.cwidth(font, tag[2], 10) + 10.0
+		card.draw_rect(Rect2(r.position + Vector2(14, 40), Vector2(rw, 15)), tag[3])
+		UI.ctext(card, font, r.position + Vector2(19, 52), tag[2], 10, Color(0.08, 0.06, 0.02))
+	# 图标 + 光环
+	var c := r.position + Vector2(r.size.x / 2.0, 128)
+	UI.halo(card, c, 58.0, UI.CYAN, hov)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
 	if o.kind == "relic":
@@ -3966,23 +4290,101 @@ func _draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
 	var idle: Dictionary = _op_idle(opid) if ic == null and opid != "" else {}
 	if not idle.is_empty():
-		var ks: float = 2.0 if idle.fh <= 48 else 72.0 / idle.fh
+		var ks: float = 2.0 if idle.fh <= 48 else 96.0 / idle.fh
 		var asz := Vector2(idle.fw, idle.fh) * ks
 		card.draw_texture_rect_region(idle.tex, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, idle.fw, idle.fh))
 	elif ic != null:
-		card.draw_texture_rect(ic, Rect2(c - Vector2(32, 32) + Vector2(0, bob), Vector2(64, 64)), false)
+		_draw_icon_fit(card, ic, c + Vector2(0, bob), 96.0)
 	else:
-		UI.text(card, font, c + Vector2(-40, 13 + bob), glyph, 34, col, HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
-	# 名称 + 分隔
+		UI.text(card, font, c + Vector2(-40, 13 + bob), glyph, 34, _card_color(o), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	var nm := name
 	if o.kind == "relic":
 		nm = RL[o.id].name
-	UI.text(card, font, r.position + Vector2(0, 196), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
-	UI.rule(card, r.position + Vector2(36, 206), r.position + Vector2(r.size.x - 36, 206), Color(col.r, col.g, col.b, 0.45))
-	# 底部：暗色水印字 + 选择提示
-	card.draw_string(font, r.position + Vector2(r.size.x - 70, r.size.y - 14), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 54, Color(col.r, col.g, col.b, 0.06))
+	UI.text(card, font, r.position + Vector2(0, 244), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	# 底部操作条：普通钢蓝；悬停青底深字
+	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
+	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
+	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
+	var kl := "[ %d ]" % (i + 1)
+	var w1 := font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var w2 := UI.cwidth(font, kl, 12)
+	var sx := ab.get_center().x - (w1 + 8.0 + w2) / 2.0
+	UI.text(card, font, Vector2(sx, ab.position.y + 20), "选择", 14, ink)
+	UI.ctext(card, font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
+
+
+## 卡片左上角标签：[英文, 中文, 稀有度小牌, 小牌底色]
+func _card_tag(o: Dictionary) -> Array:
+	if o.kind == "relic" and not o.has("cat"):
+		var rd: Dictionary = RL[o.id]
+		var rar: String = rd.rarity
+		var chip: Array = {"稀有": ["RARE", Color(0.62, 0.72, 0.85)], "核心": ["CORE", UI.GOLD], "升华": ["ASCEND", Color(0.72, 0.64, 1.0)], "遭诅古物": ["CURSED", UI.RED]}.get(rar, ["", Color.WHITE])
+		return [UI.CAT_EN.get(rd.cat, "RELIC"), "%s · %s" % [rd.cat, rar], chip[0], chip[1]]
+	var cat := "成长  GROWTH"
+	if o.has("cat"):
+		cat = o.cat
+	elif o.kind == "recruit":
+		cat = "招募 · " + o.get("cls", "") + "  RECRUIT"
+	elif o.kind == "prog":
+		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
+	elif o.kind == "weapon":
+		cat = "支援  " + D.WEAPONS[o.id].en
+	# 「中文  ENGLISH」拆成两段；没有英文的整段当中文
+	var parts := cat.split("  ", false)
+	if parts.size() >= 2 and parts[parts.size() - 1].to_upper() == parts[parts.size() - 1]:
+		var cn_s := "  ".join(parts.slice(0, parts.size() - 1))
+		return [parts[parts.size() - 1], cn_s, "", Color.WHITE]
+	return ["", cat, "", Color.WHITE]
+
+
+## 按整数倍把像素图标放大到不超过 target 像素，居中画在 c
+func _draw_icon_fit(ci: CanvasItem, tx: Texture2D, c: Vector2, target: float, mod := Color.WHITE) -> void:
+	var w := float(tx.get_width())
+	var h := float(tx.get_height())
+	var k: float = maxf(1.0, floorf(target / maxf(w, h)))
+	if maxf(w, h) > target:
+		k = target / maxf(w, h)
+	var sz := Vector2(w, h) * k
+	ci.draw_texture_rect(tx, Rect2((c - sz / 2.0).round(), sz), false, mod)
+
+
+## 事件选项条（C 版式）：左端撕边的暗条 + 墨圈里的图标 + 衬线标题 + 效果小牌 + 说明（Label）+ 右侧序号；
+## 选中：浅色底 + 左侧蓝色竖条 + 蓝色序号
+func _draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
+	var hov := _card_hot(card, i)
+	var art := _event_art(panel_title_text)
+	var ox: float = card.get_meta("ox", 0.0)
+	var w := card.size.x
+	var base := Vector2(ox, 0)
+	var shape: PackedVector2Array = art.bars[i % art.bars.size()]
+	var sp := PackedVector2Array()
+	for q in shape:
+		sp.append(base + Vector2(q.x * w / 596.0, q.y))
+	card.draw_colored_polygon(sp, Color(0.925, 0.91, 0.882, 0.14) if hov else Color(0.07, 0.07, 0.075, 0.9))
+	var en_ring: PackedVector2Array = art.ensos[i % art.ensos.size()]
+	var er := PackedVector2Array()
+	for q in en_ring:
+		er.append(base + q)
+	card.draw_colored_polygon(er, Color(0.925, 0.91, 0.882, 0.55 if hov else 0.22))
+	var ink := Color(0.925, 0.91, 0.882)
+	var icn: String = o.get("icon", "")
+	var itx: Texture2D = tex.get(icn) if icn != "" and icn != "exit" else null
+	if itx != null:
+		_draw_icon_fit(card, itx, base + Vector2(56, 50), 64.0)
+	else:
+		UI.icon(card, "exit", base + Vector2(56, 50), 32.0, ink)
+	card.draw_string(serif, base + Vector2(112, 38), o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
+	var x := 112.0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
+	for chp in o.get("chips", []):
+		var cw := font.get_string_size(chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
+		var cr := Rect2(base + Vector2(x, 20), Vector2(cw, 18))
+		card.draw_rect(cr, Color(chp[1].r, chp[1].g, chp[1].b, 0.9), false, 1.0)
+		card.draw_string(font, cr.position + Vector2(6, 13), chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])
+		x += cw + 6.0
+	UI.ctext(card, font, base + Vector2(w - 46, 60), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
-		UI.en(card, font, r.position + Vector2(r.size.x / 2 - 30, r.size.y - 16), "SELECT", 11, col, 3.0)
+		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, 60)), Color(0.18, 0.72, 1.0, 0.25))
+		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, 56)), Color(0.18, 0.72, 1.0))
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
@@ -5456,51 +5858,47 @@ func _draw_hud() -> void:
 	if lamp < 30.0 and state == S.PLAY:
 		_edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(t * 3.0)), 140.0)
 
-	# 左上：干员卡（深海面板 + 藤蔓；等级环即经验环）
-	var o := Vector2(16, 16)
+	# 左上（方案 A · 原作顶栏）：等级圆（外圈 = 经验）+「生命值」「灯火」彩色小标签头 + 数值 + 细条；
+	# 名字与编队人数移到右下编队卡；下面一条灯火状态标签条在后面画（和状态效果一起）
+	var o := Vector2(16, 12)
 	var lf := hud_lv_flash
-	var bc := UI.GLOW.lerp(UI.GOLD, lf).lerp(Color(0.8, 1.6, 1.8), xp_flash * 0.7)
-	UI.frame(hud, Rect2(o, Vector2(344, 100)), bc, {"t": t, "vines": true, "seed": 7, "glow": 0.5 + lf})
-	# 等级环：环上进度 = 经验
-	var lc0 := o + Vector2(44, 50)
-	UI.ring(hud, lc0, 27.0 + 4.0 * lf, xp / xp_need, bc, lf > 0.2)
-	var lvs := 24 if level < 10 else 20
-	UI.text(hud, font, lc0 + Vector2(-30, 8 + (1 if level >= 10 else 0)), str(level), int(lvs * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 60, 4)
-	# 名字、精英阶段
-	# 主控干员的名字（生命 / 灯火是她的）
-	var lname: String = ch.display_name()
-	UI.text(hud, font, o + Vector2(84, 32), lname, 19, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, o + Vector2(90 + lname.length() * 20, 31), String(ch.def.get("en", "LEADER")), 10, UI.CYAN_DIM, 3.0)
-	UI.chip(hud, font, o + Vector2(264, 18), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 11)
-	# 生命
+	var bc := UI.CYAN.lerp(UI.GOLD, lf).lerp(Color(0.8, 1.6, 1.8), xp_flash * 0.7)
+	var lc0 := o + Vector2(26, 30)
+	UI.ring(hud, lc0, 22.0 + 3.0 * lf, xp / xp_need, bc, lf > 0.2)
+	UI.ctext(hud, font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
+	UI.ctext(hud, font, lc0 + Vector2(-26, 13), str(level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
+	# 生命值
 	var hs := Vector2(sin(t * 90.0), cos(t * 70.0)) * 3.0 * hp_shake / 0.35
-	var hbr := Rect2(o + Vector2(84, 44) + hs, Vector2(196, 12))
 	var low := hp / max_hp < 0.3
-	var hpc: Color = UI.RED.lerp(Color(1, 0.8, 0.8), 0.5 + 0.5 * sin(t * 10.0)) if low else Color(0.35, 0.9, 0.75)
-	UI.gbar(hud, hbr, hp / max_hp, hpc, 10, hp_trail / max_hp)
-	UI.text(hud, font, o + Vector2(288, 55) + hs, "%d" % int(hp), 14, UI.RED if low else UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
-	# 护盾层：血条上方一排小菱形
+	var hx := o.x + 64.0
+	var tw0 := UI.tab(hud, font, Vector2(hx, o.y), "生命值", UI.RED if low else UI.TAB_HP)
+	# 护盾层：小标签头右边一排小菱形
 	for q in shield_max:
-		var sp := o + Vector2(90 + q * 12, 37)
-		UI.diamond(hud, sp, 4.0, Color(0.5, 0.85, 1.0) if q < shield else Color(0.08, 0.14, 0.18), Color(0.6, 0.9, 1.0, 0.8))
-	# 灯火：暖色分段条 + 30 / 70 刻度
-	var lc := UI.GOLD if lamp >= 30.0 else UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(t * 8.0))
-	var lbr := Rect2(o + Vector2(84, 64), Vector2(196, 9))
-	UI.gbar(hud, lbr, lamp / 100.0, lc, 10)
+		UI.diamond(hud, Vector2(hx + tw0 + 10 + q * 11, o.y + 8.5), 4.0, Color(0.5, 0.85, 1.0) if q < shield else Color(1, 1, 1, 0.12), Color(0.6, 0.9, 1.0, 0.8))
+	var hpc: Color = UI.RED.lerp(Color(1, 0.8, 0.85), 0.5 + 0.5 * sin(t * 10.0)) if low else UI.CYAN
+	var hps := "%d" % int(hp)
+	UI.ctext(hud, font, Vector2(hx, o.y + 40) + hs, hps, 21, UI.RED if low else UI.TEXT)
+	UI.ctext(hud, font, Vector2(hx + UI.cwidth(font, hps, 21) + 4, o.y + 40) + hs, "/ %d" % int(max_hp), 13, UI.SUB)
+	UI.gbar(hud, Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), hp / max_hp, hpc, 0, hp_trail / max_hp)
+	# 灯火：30 / 70 两道刻度
+	var lx := hx + 172.0
+	var lamp_low := lamp < 30.0
+	var lc := UI.GOLD if not lamp_low else UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(t * 8.0))
+	UI.tab(hud, font, Vector2(lx, o.y), "灯火", UI.TAB_LAMP if not lamp_low else UI.RED)
+	var lps := "%d" % int(lamp)
+	UI.ctext(hud, font, Vector2(lx, o.y + 40), lps, 21, lc if lamp_low else UI.TEXT)
+	UI.ctext(hud, font, Vector2(lx + UI.cwidth(font, lps, 21) + 4, o.y + 40), "/ %d" % int(lamp_cap), 13, UI.SUB)
+	var lbr := Rect2(Vector2(lx, o.y + 47), Vector2(120, 4))
+	UI.gbar(hud, lbr, lamp / 100.0, lc)
 	for tv in [30.0, 70.0]:
 		var tx: float = lbr.position.x + lbr.size.x * tv / 100.0
-		hud.draw_rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.8))
-	# 灯火火苗小图标
-	var fl := 0.5 + 0.5 * sin(t * 12.0)
-	hud.draw_colored_polygon(PackedVector2Array([o + Vector2(74, 73), o + Vector2(70, 67), o + Vector2(74, 60 - 2 * fl), o + Vector2(78, 67)]), lc)
-	hud.draw_colored_polygon(PackedVector2Array([o + Vector2(74, 72), o + Vector2(72, 68), o + Vector2(74, 65), o + Vector2(76, 68)]), Color(1, 1, 0.85))
-	UI.text(hud, font, o + Vector2(288, 73), "%d" % int(lamp), 13, lc, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
-	# 神经损伤 / 侵蚀
+		hud.draw_rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
+	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if nerve > 1.0:
-		UI.gbar(hud, Rect2(o + Vector2(84, 80), Vector2(196, 4)), nerve / 100.0, Color(1.0, 0.45, 0.85))
-		UI.en(hud, font, o + Vector2(288, 86), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
+		UI.gbar(hud, Rect2(Vector2(hx, o.y + 54), Vector2(150, 2)), nerve / 100.0, Color(1.0, 0.45, 0.85))
+		UI.en(hud, font, Vector2(hx + 156, o.y + 58), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if corrode_pool > 0.5:
-		UI.text(hud, font, o + Vector2(330, 86), "蚀", 11, Color(0.8, 0.5, 1.0))
+		UI.text(hud, font, Vector2(hx + 190, o.y + 60), "蚀", 11, Color(0.8, 0.5, 1.0))
 	if pstun > 0.0:
 		UI.text(hud, font, ct * ppos + Vector2(-40, -110), "僵直", 16, Color(1.0, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	# 商人方向指示
@@ -5562,21 +5960,26 @@ func _draw_hud() -> void:
 			var sd2 := dd.orthogonal() * 10.0
 			hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
 			UI.text(hud, font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
-	_draw_minimap(vs)
+	if not _overlay_left():
+		_draw_minimap(vs)
 	var st_txt := ""
+	var st_en := "LIGHT"
 	var st_col := UI.GOLD
 	if lamp <= 0.0:
 		st_txt = "灯火熄灭 · 持续受伤"
+		st_en = "OUT"
 		st_col = UI.RED
 	elif lamp < 30.0:
 		st_txt = "暗潮涌动 · 敌人更快更凶更多 · 拾取 -30%"
-		st_col = Color(1, 0.55, 0.45)
+		st_en = "DARK"
+		st_col = Color(1, 0.5, 0.5)
 	elif lamp >= 70.0:
 		st_txt = "灯火充盈 · 技力 +30% · 拾取 +20%"
 	else:
 		st_txt = "灯火照亮 · 光中敌人受伤 +25%"
+		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
-	UI.chip(hud, font, o + Vector2(0, 108), st_txt, st_col, 12)
+	UI.strip(hud, font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
 	# 黑潮：圈外警告 + 指向安全区
 	if zone_state != 0 and state == S.PLAY:
 		var out := ppos.distance_to(zone_c) - zone_r
@@ -5588,36 +5991,62 @@ func _draw_hud() -> void:
 			var sd := dirz.orthogonal() * 12.0
 			hud.draw_colored_polygon(PackedVector2Array([cp + dirz * 22.0, cp + sd, cp - sd]), Color(1.0, 0.8, 1.0, 0.7 + 0.3 * pz))
 			UI.text(hud, font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
-		elif zone_state == 1:
-			UI.text(hud, font, Vector2(0, 92), "黑潮将至  %d" % int(ceil(20.0 - zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-		elif zone_state == 2:
-			UI.text(hud, font, Vector2(0, 92), "安全区收缩中", 15, Color(0.9, 0.6, 1.0, 0.6 + 0.4 * sin(t * 6.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		else:
+			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
+			var zy := 116.0 + 54.0 * bosses.filter(func(b): return not b.dead).size()
+			if zone_state == 1:
+				UI.text(hud, font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			elif zone_state == 2:
+				UI.text(hud, font, Vector2(0, zy), "安全区收缩中", 15, Color(0.9, 0.6, 1.0, 0.6 + 0.4 * sin(t * 6.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 
-	# 顶部中央：计时框（水波光带 + 源石锭）
+	# 顶部中央（方案 A · 明日方舟战斗顶栏）：[敌人] 击杀 | [时钟] 时间；
+	# 下面一行「◆ 楼层 + 英文」（背后淡金四叶环，原作地图顶部楼层名的样子）、威胁进度细线、威胁 / 难度
 	var mm := int(t) / 60
 	var ss := int(t) % 60
-	var tf := Rect2(vs.x / 2 - 110, 10, 220, 66)
-	UI.frame(hud, tf, UI.GLOW, {"t": t, "cut": 8.0, "bracket": 8.0})
-	UI.caustic(hud, Rect2(tf.position + Vector2(8, 6), Vector2(tf.size.x - 16, 20)), t, UI.GLOW)
-	UI.text(hud, font, Vector2(tf.position.x, 42), "%02d:%02d" % [mm, ss], 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, tf.size.x, 3)
-	# 威胁等级：文字 + 进度条（到下一级的时间）
+	var cx0 := vs.x / 2.0
+	UI.fade_band(hud, Rect2(cx0 - 160, 8, 320, 40), Color(0.03, 0.035, 0.045, 0.8), 56.0)
+	var ks := str(kills)
+	var kw := UI.cwidth(font, ks, 23)
+	var lx0 := cx0 - 16.0 - (20.0 + 6.0 + kw + 4.0 + 24.0)
+	UI.icon(hud, "enemy", Vector2(lx0 + 10, 28), 20.0, Color.WHITE)
+	UI.ctext(hud, font, Vector2(lx0 + 26, 37), ks, 23, UI.TEXT)
+	UI.text(hud, font, Vector2(lx0 + 30 + kw, 36), "击杀", 11, UI.SUB)
+	hud.draw_rect(Rect2(cx0 - 0.5, 18, 1, 20), Color(1, 1, 1, 0.28))
+	UI.icon(hud, "clock", Vector2(cx0 + 25, 28), 18.0, Color.WHITE)
+	UI.ctext(hud, font, Vector2(cx0 + 38, 38), "%02d:%02d" % [mm, ss], 25, UI.TEXT)
 	var tr: Dictionary = D.THREAT[threat]
 	var tfrac: float = 1.0
 	if threat < D.THREAT.size() - 1:
 		tfrac = clampf((t - tr.t) / (D.THREAT[threat + 1].t - tr.t), 0.0, 1.0)
-	var tcol := Color(0.9, 0.45, 1.0).lerp(Color(1.0, 0.3, 0.4), float(threat) / (D.THREAT.size() - 1))
-	UI.text(hud, font, Vector2(tf.position.x, 62), ("击杀 %d  ·  威胁 %s %s" % [kills, ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][threat], tr.name]) + (("  ·  难度 %d" % diff) if diff > 0 else ""), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tf.size.x, 2)
-	UI.gbar(hud, Rect2(tf.position.x + 16, tf.position.y + 57, tf.size.x - 32, 4), tfrac, tcol, 6)
-	# 源石锭标签
-	var ir := Rect2(tf.end.x + 10, 18, 74, 26)
-	UI.frame(hud, ir, Color(1.0, 0.65, 0.35), {"cut": 4.0, "bracket": 5.0})
-	hud.draw_texture_rect(tex.ingot, Rect2(ir.position + Vector2(8, 6), Vector2(18, 14)), false)
-	UI.text(hud, font, ir.position + Vector2(32, 19), str(ingots), 15, Color(1.0, 0.7, 0.4))
+	var tcol := Color(0.9, 0.45, 1.0).lerp(UI.RED, float(threat) / (D.THREAT.size() - 1))
+	UI.quatrefoil(hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
+	var fname: String = tr.name
+	var fen: String = String(tr.get("en", ""))
+	var fw0 := font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var few := UI.en_width(font, fen, 10, 3.0)
+	var fx0 := cx0 - (14.0 + fw0 + 10.0 + few) / 2.0
+	UI.diamond(hud, Vector2(fx0 + 4, 61), 3.5, UI.GOLD)
+	UI.text(hud, font, Vector2(fx0 + 14, 66), fname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+	UI.en(hud, font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
+	UI.gbar(hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
+	UI.text(hud, font, Vector2(cx0 - 150, 90), ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][threat]) + (("  ·  难度 %d" % diff) if diff > 0 else ""), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
-	# 右上：藏品 + 当前结局
-	_draw_relic_tray(Vector2(vs.x - 16, 16))
+	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
+	var tray_x := vs.x - 16.0
+	pause_btn = Rect2()
+	if not touch.active:
+		var pr := Rect2(vs.x - 56, 12, 40, 40)
+		var ph: bool = state == S.PLAY and pr.has_point(hud.get_local_mouse_position())
+		hud.draw_rect(pr, Color(0.03, 0.035, 0.045, 0.78))
+		hud.draw_rect(pr, UI.CYAN if state == S.PAUSE else Color(1, 1, 1, 0.55 if ph else 0.22), false, 1.0)
+		UI.icon(hud, "pause", pr.get_center(), 20.0, UI.TEXT)
+		UI.ctext(hud, font, pr.position + Vector2(0, 52), "ESC", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		if state == S.PLAY:
+			pause_btn = pr
+		tray_x -= 50.0
+	_draw_relic_tray(Vector2(tray_x, 12))
 	if ending != "standard" or Cfg.endings_cleared.size() > 0:
-		UI.text(hud, font, Vector2(vs.x - 236, 92 + 38 * maxi(1, int(ceil(relics.size() / 8.0)))), endg.cur_name(), 12, endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
+		UI.text(hud, font, Vector2(tray_x - 220, 60 + 38 * maxi(1, int(ceil(relics.size() / 8.0)))), endg.cur_name(), 12, endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
 	# Boss 血条
 	var bby := 0.0
@@ -5628,8 +6057,11 @@ func _draw_hud() -> void:
 		var bx := vs.x / 2 - bw / 2
 		hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
 		bby += 54.0
-		UI.frame(hud, Rect2(bx - 12, 80, bw + 24, 48), Color(1.0, 0.35, 0.5), {"cut": 8.0, "bracket": 8.0})
-		UI.text(hud, font, Vector2(bx, 100), shown.name, 16, Color(1, 0.6, 0.7))
+		# 洋红 = 危险（原作「险路恶敌」）：暗底 + 顶部洋红细线 + BOSS 节点标签条
+		var bbr := Rect2(bx - 12, 100, bw + 24, 46)
+		hud.draw_rect(bbr, Color(0.03, 0.035, 0.045, 0.8))
+		hud.draw_rect(Rect2(bbr.position, Vector2(bbr.size.x, 1)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.7))
+		UI.strip(hud, font, Vector2(bx, 106), "BOSS", shown.name, UI.RED, Color(1, 0.82, 0.88), 12)
 		var sub := ""
 		if shown.type == "izumik":
 			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
@@ -5643,10 +6075,10 @@ func _draw_hud() -> void:
 			sub = "两体需同时击倒"
 		elif shown.type == "paranoia":
 			sub = "悬浮形态（控制它以击落）" if shown.phase == 1 else "第二形态"
-		UI.text(hud, font, Vector2(bx + bw - 400, 100), sub, 13, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 400)
-		UI.bar(hud, Rect2(bx, 108, bw, 10), shown.hp / shown.maxhp, Color(0.45, 0.6, 0.7) if shown.invuln else Color(0.85, 0.2, 0.4), 20)
+		UI.text(hud, font, Vector2(bx + bw - 400, 122), sub, 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 400)
+		UI.gbar(hud, Rect2(bx, 131, bw, 6), shown.hp / shown.maxhp, Color(0.45, 0.6, 0.7) if shown.invuln else UI.RED, 20)
 		if shown.type == "ishar" and shown.phase == 1:
-			hud.draw_rect(Rect2(bx, 120, bw * shown.charge / 100.0, 3), UI.PURPLE)
+			hud.draw_rect(Rect2(bx, 139, bw * shown.charge / 100.0, 2), UI.PURPLE)
 		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# 右下：技能与援护干员
@@ -5656,10 +6088,12 @@ func _draw_hud() -> void:
 	if banner_t > 0.0:
 		var a: float = clamp(banner_t, 0.0, 1.0)
 		var by := vs.y * 0.24
-		hud.draw_rect(Rect2(0, by - 30, vs.x, 46), Color(0.01, 0.04, 0.06, 0.8 * a))
-		hud.draw_line(Vector2(vs.x * 0.2, by - 30), Vector2(vs.x * 0.8, by - 30), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.6 * a), 1.0)
-		hud.draw_line(Vector2(vs.x * 0.2, by + 16), Vector2(vs.x * 0.8, by + 16), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.6 * a), 1.0)
-		UI.text(hud, font, Vector2(0, by), banner, 22, Color(1, 0.93, 0.8, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+		# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）
+		UI.fade_band(hud, Rect2(vs.x * 0.12, by - 30, vs.x * 0.76, 46), Color(0.03, 0.035, 0.045, 0.84 * a), 160.0)
+		for yy in [by - 30.0, by + 16.0]:
+			UI.hairline(hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.16, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+			UI.hairline(hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.84, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+		UI.text(hud, font, Vector2(0, by), banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if state == S.PLAY:
 		if t < 6.0:
@@ -5670,16 +6104,15 @@ func _draw_hud() -> void:
 			var cx := vs.x / 2.0
 			var y := vs.y - 78.0
 			var box := Rect2(cx - 150, y - 22, 300, 40)
-			UI.panel(hud, box, Color(0.02, 0.07, 0.1, 0.85 * ha), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.4 + 0.5 * pulse) * ha), 8.0)
-			var kc := Rect2(cx - 132, y - 14, 50, 24)
-			hud.draw_rect(kc, Color(0.1, 0.25, 0.3, ha))
-			hud.draw_rect(kc, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ha), false, 1.5)
-			UI.text(hud, font, kc.position + Vector2(0, 18), Pad.hint("Tab", "SELECT"), 14 if not Pad.using else 11, Color(1, 1, 1, ha), HORIZONTAL_ALIGNMENT_CENTER, kc.size.x)
+			hud.draw_rect(box, Color(0.03, 0.035, 0.045, 0.82 * ha))
+			hud.draw_rect(box, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.3 + 0.5 * pulse) * ha), false, 1.0)
+			UI.keycap(hud, font, Vector2(cx - 134, y - 12), Pad.hint("TAB", "SELECT"), Color(1, 1, 1, ha), 12)
 			UI.text(hud, font, Vector2(cx - 72, y + 4), "查看博士与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 	_draw_relic_tooltip(vs)
 	touch.draw_hud(vs)
-	_draw_status_bar(vs)
+	if not _overlay_left():
+		_draw_status_bar(vs)
 	_draw_dash_hint(vs)
 	match state:
 		S.SHOW:
@@ -5955,8 +6388,9 @@ func _draw_stats(vs: Vector2) -> void:
 		var fr := int(t * 2.0) % maxi(1, pt.get_width() / fh)
 		hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5 / A.hires_of(pt)), Rect2(fr * fh, 0, fh, fh))
 	UI.text(hud, font, r.position + Vector2(108, 50), doctor.name(), 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	UI.en(hud, font, r.position + Vector2(176, 48), doctor.def.get("en", "DOCTOR") + "  ·  STATUS", 12, UI.CYAN, 3.0)
-	var cx0 := r.position.x + 350
+	var dn_w := font.get_string_size(doctor.name(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
+	var en_w := UI.en(hud, font, r.position + Vector2(118 + dn_w, 48), doctor.def.get("en", "DOCTOR") + "  ·  STATUS", 12, UI.CYAN, 3.0)
+	var cx0 := maxf(r.position.x + 350, r.position.x + 118 + dn_w + en_w + 18)
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "Lv.%d" % level, UI.GLOW, 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [squad.size(), squad.cap()], UI.CYAN_DIM, 12) + 8
 	cx0 += UI.chip(hud, font, Vector2(cx0, r.position.y + 32), "难度 %d「%s」" % [diff, D.DIFFICULTY[diff].name], UI.CYAN_DIM, 12) + 14
@@ -5978,7 +6412,7 @@ func _draw_stats(vs: Vector2) -> void:
 	UI.en(hud, font, b0.position + Vector2(60, 25), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
 	var y: float = b0.position.y + 48
 	UI.text(hud, font, b0.position + Vector2(16, y - b0.position.y + 12), "生命", 13, UI.SUB)
-	UI.gbar(hud, Rect2(b0.position.x + 70, y, 180, 10), hp / max_hp, Color(0.35, 0.9, 0.75), 10)
+	UI.gbar(hud, Rect2(b0.position.x + 70, y, 180, 10), hp / max_hp, UI.CYAN, 10)
 	UI.text(hud, font, Vector2(b0.position.x + 258, y + 11), "%d / %d" % [int(hp), int(max_hp)], 13, UI.TEXT)
 	y += 26
 	UI.text(hud, font, Vector2(b0.position.x + 16, y + 12), "灯火", 13, UI.SUB)
@@ -6136,7 +6570,9 @@ func _draw_minimap(vs: Vector2) -> void:
 	var rad := 78.0
 	var c := Vector2(16 + rad + 8, vs.y - rad - 24)
 	UI.porthole(hud, c, rad, UI.GLOW)
-	UI.en(hud, font, c + Vector2(-rad + 6, rad + 18), "SONAR", 9, UI.CYAN_DIM, 2.0)
+	var slr := Rect2(Vector2(c.x - rad + 2, c.y - rad - 8), Vector2(UI.en_width(font, "SONAR", 9, 2.0) + 10.0, 14))
+	hud.draw_rect(slr, Color(1, 1, 1, 0.14))
+	UI.en(hud, font, slr.position + Vector2(5, 11), "SONAR", 9, Color(0.81, 0.84, 0.86), 2.0)
 	var world := 1100.0
 	var k := (rad - 8.0) / world
 	var lim := rad - 6.0
@@ -6149,7 +6585,7 @@ func _draw_minimap(vs: Vector2) -> void:
 	hud.draw_arc(c, lim * 0.5, 0.0, TAU, 40, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 1.0)
 	# 视野框
 	var view := get_viewport_rect().size
-	hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(0.4, 0.8, 0.9, 0.25), false, 1.0)
+	hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), false, 1.0)
 	for e in enemies:
 		if e.dead:
 			continue
@@ -6167,7 +6603,7 @@ func _draw_minimap(vs: Vector2) -> void:
 		elif e.elite:
 			hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
 		else:
-			hud.draw_rect(Rect2(c + p - Vector2(1, 1), Vector2(2, 2)), Color(0.95, 0.35, 0.4, 0.8))
+			hud.draw_rect(Rect2(c + p - Vector2(1, 1), Vector2(2, 2)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85))
 	for g in gems:
 		if g.dead or not (g.kind == "magnet" or g.kind == "heal" or g.kind == "chest"):
 			continue
@@ -6211,24 +6647,30 @@ func _draw_relic_tray(tr: Vector2) -> void:
 	var n := relics.size()
 	var per_row := 8
 	var cell := 38.0
-	var w: float = max(min(n, per_row) * cell + 16.0, 120.0)
+	var w: float = max(min(n, per_row) * cell + 12.0, 132.0)
 	var rows: int = max(1, int(ceil(n / float(per_row))))
 	var o := tr + Vector2(-w, 0)
-	var r := Rect2(o, Vector2(w, rows * cell + 32))
-	UI.frame(hud, r, UI.GOLD, {"t": t, "vines": true, "seed": 3, "vine_k": 0.7, "cut": 6.0, "bracket": 8.0})
-	UI.en(hud, font, o + Vector2(10, 20), "RELICS", 10, UI.SUB, 3.0)
-	UI.text(hud, font, o + Vector2(w - 30, 21), "%d" % n, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 20)
+	var r := Rect2(o, Vector2(w, rows * cell + 30))
+	# 原作底栏「收藏品 N」：暗底 + 图标 + 数量，下面一排藏品格（左上角一小段分类色）
+	hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
+	hud.draw_rect(Rect2(o, Vector2(w, 1)), Color(1, 1, 1, 0.14))
+	UI.icon(hud, "box", o + Vector2(15, 14), 14.0, Color(0.81, 0.84, 0.86))
+	UI.text(hud, font, o + Vector2(28, 19), "收藏品", 12, Color(0.81, 0.84, 0.86))
+	if w >= 180.0:
+		UI.en(hud, font, o + Vector2(70, 18), "RELICS", 9, UI.SUB, 2.0)
+	UI.ctext(hud, font, o + Vector2(w - 34, 20), "%d" % n, 17, UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 24)
 	tray_cells.clear()
 	var mouse := hud.get_local_mouse_position()
 	for i in n:
 		var rd: Dictionary = RL[relics[i]]
 		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
-		var c := o + Vector2(8 + (i % per_row) * cell + cell / 2, 28 + (i / per_row) * cell + cell / 2)
+		var c := o + Vector2(6 + (i % per_row) * cell + cell / 2, 26 + (i / per_row) * cell + cell / 2)
 		var cellr := Rect2(c - Vector2(17, 17), Vector2(34, 34))
 		tray_cells.append([cellr, relics[i]])
 		var hov: bool = cellr.has_point(mouse)
-		hud.draw_rect(cellr, Color(0.01, 0.04, 0.08, 0.9) if not hov else Color(col.r * 0.25, col.g * 0.25, col.b * 0.25, 0.95))
-		hud.draw_rect(cellr, Color(col.r, col.g, col.b, 0.7 if not hov else 1.0), false, 1.0 if not hov else 2.0)
+		hud.draw_rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
+		hud.draw_rect(cellr, Color(1, 1, 1, 0.13) if not hov else col, false, 1.0)
+		hud.draw_rect(Rect2(cellr.position, Vector2(8, 2)), Color(col.r, col.g, col.b, 0.85))
 		var ic: Texture2D = tex.get("relic_" + relics[i])
 		if ic != null:
 			hud.draw_texture_rect(ic, Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
@@ -6296,21 +6738,25 @@ func _draw_dash_hint(vs: Vector2) -> void:
 		return
 	var key: String = Pad.hint("空格", "Ⓑ")
 	var ready: bool = dash_cd <= 0.0
-	var w := 132.0
-	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 50), Vector2(w, 30))
-	hud.draw_rect(r, Color(0.02, 0.06, 0.09, 0.75))
+	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
+	var cap_s: String = Pad.hint("SPACE", "Ⓑ")
+	var kw := UI.cwidth(font, cap_s, 11) + 12.0
+	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
+	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 44), Vector2(w, 28))
+	hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
 	var k: float = 1.0 - dash_cd / DASH_CD
-	hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 if ready else 0.1))
-	hud.draw_rect(r, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.35), false, 1.5)
-	var kr := Rect2(r.position + Vector2(6, 5), Vector2(48, 20))
-	hud.draw_rect(kr, Color(0.1, 0.25, 0.3, 0.9))
-	hud.draw_rect(kr, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.8), false, 1.0)
-	UI.text(hud, font, kr.position + Vector2(0, 15), key, 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
-	UI.text(hud, font, r.position + Vector2(60, 21), "冲刺", 15, UI.TEXT if ready else UI.SUB)
+	UI.keycap(hud, font, r.position + Vector2(8, 5), cap_s, UI.CYAN if ready else UI.SUB, 11)
+	UI.text(hud, font, r.position + Vector2(16 + kw, 19), "冲刺", 13, UI.TEXT if ready else UI.SUB)
+	hud.draw_rect(Rect2(r.position + Vector2(0, r.size.y - 2), Vector2(r.size.x * k, 2)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5))
 	if not dash_used and t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(t * 4.0)
 		var sp: Vector2 = get_viewport().get_canvas_transform() * (ppos + Vector2(0, -92))
 		UI.text(hud, font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
+
+
+## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来
+func _overlay_left() -> bool:
+	return state == S.SHOP or (state == S.CHOICE and choice_kind == "event")
 
 
 func _draw_status_bar(vs: Vector2) -> void:
@@ -6346,93 +6792,135 @@ func _draw_status_bar(vs: Vector2) -> void:
 		items.append(["灯火低微", Color(1.0, 0.55, 0.45), -1.0])
 	if items.is_empty():
 		return
-	var x := 16.0
-	var y := 150.0
+	var x := 18.0
+	var y := 104.0
 	for it in items:
 		var w: float = UI.chip(hud, font, Vector2(x, y), it[0], it[1], 12)
 		if it[2] >= 0.0:
 			hud.draw_rect(Rect2(x, y + 20, w * it[2], 2), it[1])
 		x += w + 6.0
 		if x > 360.0:
-			x = 16.0
+			x = 18.0
 			y += 26.0
 
 
-## 右下编队栏（2026-09-25 改版）：每名干员一列——底部头像（静态职业色框，技能生效时外圈发光；不画充能进度，
-## 以免被当成干员经验条——干员没有等级，只有博士等级），上方三枚小技能图标
-## （环 = 各自充能 / 生效倒计时；未解锁灰显；永久型打勾；海嗣化紫点）。开局干员在最左，第 4 位在最右。
-const SQ_COL_W := 122.0
-const SQ_ICON_R := 14.0
+## 右下编队栏（2026-09-26 方案 A）：明日方舟部署卡——每名干员一张立绘卡（左上职业、右上精英阶段、底部名字），
+## 卡上方三枚方形技能格（底部充能条 / 生效时白框 + 倒计时；未解锁灰显；永久型小菱形；海嗣化紫点；手动技能标 Q）。
+## 队长卡顶上紫色「队长」标签（紫 = 当前）；技能生效中的干员卡加青色外晕。卡组上方右侧是源石锭费用框 + 编队人数。
+## 干员没有等级，卡上不画经验类进度（只有博士等级）。开局干员在最左，第 4 位在最右。
+const SQ_COL_W := 94.0
+const SQ_CARD := Vector2(84, 96)
+const SQ_SK := 24.0
 
 func _draw_squad_hud(br: Vector2) -> void:
-	if knight.alive:
-		knight.draw_hud(hud, br + Vector2(-squad.size() * SQ_COL_W - 120, -30))
 	var n: int = squad.size()
-	UI.en(hud, font, br + Vector2(-n * SQ_COL_W + 4, -118), "SQUAD", 10, UI.SUB, 3.0)
+	var x_left: float = br.x - n * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
+	if knight.alive:
+		knight.draw_hud(hud, Vector2(x_left - 130, br.y - 30))
+	var card_y: float = br.y - SQ_CARD.y
+	var sk_y: float = card_y - SQ_SK - 14.0
+	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
+	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))
+	hud.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.82))
+	hud.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
+	hud.draw_texture_rect(tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
+	UI.ctext(hud, font, dp.position + Vector2(38, 27), str(ingots), 26, UI.TEXT)
+	UI.text(hud, font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
+	UI.text(hud, font, Vector2(dp.position.x - 160, dp.position.y + 22), "编队 %d / %d" % [n, squad.cap()], 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150)
+	var mp := hud.get_local_mouse_position()
 	for i in n:
 		var o = squad.ops[i]
-		var cx: float = br.x - (n - i) * SQ_COL_W + SQ_COL_W / 2.0
-		var c := Vector2(cx, br.y - 34)
+		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
+		var cr := Rect2(Vector2(x, card_y), SQ_CARD)
 		var ocol: Color = o.col()
-		# ---- 头像
-		UI.ring(hud, c, 24.0, 0.0, ocol, o.skill_active())
+		var act: bool = o.skill_active()
+		# ---- 立绘卡：上亮下暗的底 + 待机帧上半身（48 帧放大 2 倍、96 高清帧原样，都画成 96 像素）
+		var ctop := Color(0.17, 0.2, 0.23, 0.95)
+		var cbot := Color(0.07, 0.08, 0.1, 0.95)
+		hud.draw_polygon(PackedVector2Array([cr.position, Vector2(cr.end.x, cr.position.y), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([ctop, ctop, cbot, cbot]))
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = tex.get(pt.tex)
 		if at != null:
-			var fw := at.get_width() / int(pt.frames)
-			var ks: float = 34.0 / at.get_height()
-			hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-		UI.text(hud, font, c + Vector2(-SQ_COL_W / 2.0, 41), o.display_name().substr(0, 4), 11, UI.TEXT if o == ch else Color(0.75, 0.85, 0.9), HORIZONTAL_ALIGNMENT_CENTER, SQ_COL_W, 2)
-		UI.text(hud, font, c + Vector2(14, -14), ["零", "一", "二"][o.elite], 11, ocol, HORIZONTAL_ALIGNMENT_CENTER, 20, 2)
+			var fw := float(at.get_width()) / int(pt.frames)
+			var fh := float(at.get_height())
+			var ks: float = 2.0 / A.hires_of(at)
+			var dst_h := minf(fh * ks - 8.0, cr.size.y - 8.0)
+			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, 8.0 / ks, minf(cr.size.x / ks, fw), dst_h / ks)
+			hud.draw_texture_rect_region(at, Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h)), src)
+		var clear := Color(0, 0, 0, 0)
+		var shade := Color(0, 0, 0, 0.88)
+		hud.draw_polygon(PackedVector2Array([Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.end.x, cr.end.y - 28), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([clear, clear, shade, shade]))
+		UI.text(hud, font, Vector2(cr.position.x, cr.end.y - 8), o.display_name().substr(0, 5), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2)
+		var cls: String = String(o.cls).substr(0, 1)
+		if cls != "":
+			hud.draw_rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
+			UI.text(hud, font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18)
+		var el: String = ["精零", "精一", "精二"][o.elite]
+		var ew := font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 8.0
+		hud.draw_rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
+		UI.text(hud, font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4))
+		if act:
+			for k in 3:
+				hud.draw_rect(cr.grow(2.0 + k * 2.5), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 - k * 0.045), false, 2.0)
+			hud.draw_rect(cr, UI.CYAN, false, 1.0)
+		else:
+			hud.draw_rect(cr, Color(1, 1, 1, 0.16), false, 1.0)
+		hud.draw_rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
 		if o == ch:
-			UI.diamond(hud, c + Vector2(-26, -20), 3.5, ocol)
-		# ---- 三枚技能图标：横排在头像上方
+			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
+			hud.draw_rect(lt, UI.VIOLET)
+			UI.text(hud, font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x)
+		# ---- 三枚技能格
 		var items: Array = o.skill_hud()
 		for k in 3:
 			var it: Array = items[k]
-			var sc := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
+			var sr := Rect2(Vector2(x + k * (SQ_SK + 6.0), sk_y), Vector2(SQ_SK, SQ_SK))
 			var col: Color = it[6]
 			var unlocked: bool = it[2]
 			var active: float = it[3]
 			var frac: float = clamp(it[5], 0.0, 1.0)
 			if active > 0.0:
 				frac = active / it[4]
-			UI.ring(hud, sc, SQ_ICON_R, frac if unlocked else 0.0, col, active > 0.0, not unlocked)
+			hud.draw_rect(sr, Color(0.04, 0.047, 0.059, 0.9))
+			if unlocked and frac > 0.0:
+				hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
 			var icon: Texture2D = tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
+			var c := sr.get_center()
 			if icon != null:
-				hud.draw_texture_rect(icon, Rect2(sc - Vector2(11, 11), Vector2(22, 22)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+				hud.draw_texture_rect(icon, Rect2(c - Vector2(10, 10), Vector2(20, 20)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
 			else:
-				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.38, 0.42)
-				UI.text(hud, font, sc + Vector2(-SQ_ICON_R, 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, SQ_ICON_R * 2.0, 2)
+				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.35, 0.4)
+				UI.text(hud, font, Vector2(sr.position.x, c.y + 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2)
+			if unlocked:
+				hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
+			hud.draw_rect(sr, Color.WHITE if active > 0.0 else Color(1, 1, 1, 0.14 if unlocked else 0.06), false, 1.0)
 			if active > 0.0:
-				UI.text(hud, font, sc + Vector2(SQ_ICON_R - 8, -SQ_ICON_R + 2), "%d" % int(ceil(active)), 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 16, 2)
+				UI.ctext(hud, font, Vector2(sr.end.x - 12, sr.position.y + 10), "%d" % int(ceil(active)), 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12)
 			if o.perm[k]:
-				UI.diamond(hud, sc + Vector2(SQ_ICON_R - 3, SQ_ICON_R - 3), 3.0, col, Color(1, 1, 1, 0.6))
+				UI.diamond(hud, sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
 			if o.rej.has(k):
-				UI.diamond(hud, sc + Vector2(0, -SQ_ICON_R - 3), 3.0, Color(0.85, 0.55, 1.0))
-			# 手动技能（契约 v2.2）：图标上方标出按键；充满可放时外圈呼吸发光、标签变亮
+				UI.diamond(hud, Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
+			# 手动技能（契约 v2.2）：格子上方标按键；充满可放时青色呼吸框
 			if o.is_manual(k) and unlocked:
 				var rdy: bool = o.manual_ready(k)
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(t * 6.0)
-					hud.draw_arc(sc, SQ_ICON_R + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(col.r * 1.5, col.g * 1.5, col.b * 1.5, 0.45 + 0.4 * pulse), 2.5)
-				UI.text(hud, font, sc + Vector2(-24, -SQ_ICON_R - 6), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 48, 2)
-		# 悬停某枚图标：技能名 + 说明
-		var mp := hud.get_local_mouse_position()
-		for k in 3:
-			var sc2 := Vector2(cx + (k - 1) * (SQ_ICON_R * 2.0 + 6.0), br.y - 88)
-			if mp.distance_to(sc2) < SQ_ICON_R + 2.0:
+					hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
+				UI.ctext(hud, font, Vector2(sr.position.x - 8, sr.position.y - 4), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 16)
+			# 悬停：技能名 + 解锁阶段
+			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
 				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英化一", "精英化二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
 				var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
-				var tr := Rect2(Vector2(minf(sc2.x - tw / 2.0, hud.size.x - tw - 8.0), br.y - 150), Vector2(tw, 28))
-				UI.panel(hud, tr, UI.BG2, o.col(), 6.0)
-				UI.text(hud, font, tr.position + Vector2(12, 19), tip, 12, UI.TEXT)
+				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
+				UI.panel(hud, tipr, UI.BG2, o.col(), 6.0)
+				UI.text(hud, font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT)
 
 
 func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
 	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72))
-	var r := Rect2(vs.x / 2 - 300, vs.y / 2 - 190, 600, 380)
+	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
+	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
 	if ending_panel:
 		# 结局结算：面板右侧浮现最终 Boss 剪影 + 结局色光晕 + 一句尾声
 		var en: Dictionary = D.ENDINGS.get(ending, {})
@@ -6454,7 +6942,8 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		var idx: int = ["standard", "knight", "resolve", "deep"].find(ending)
 		UI.text(hud, font, Vector2(gc.x - 90, gc.y + 150), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
 		UI.text(hud, font, Vector2(gc.x - 110, gc.y + 172), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
-	UI.frame(hud, r, col, {"t": t, "vines": true, "seed": 61, "cut": 16.0, "bracket": 16.0, "glow": 0.8})
+	UI.frame(hud, r, col, {"t": t})
+	hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
 	UI.caustic(hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), t, col)
 	var ew := font.get_string_size(en_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_title.length() * 4.0
 	UI.en(hud, font, Vector2(r.get_center().x - ew / 2.0, r.position.y + 50), en_title, 13, col, 4.0)
@@ -6484,9 +6973,12 @@ func _draw_result(vs: Vector2, title: String, en_title: String, col: Color, opts
 		var bi: int = result_btns.size()
 		result_btns.append([br, op[2]])
 		var hov: bool = (bi == res_sel) if (Pad.using or kb_nav) else br.has_point(mouse)
-		UI.frame(hud, br, col, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov else 0.0, "alpha": 1.0 if hov else 0.7})
-		UI.text(hud, font, br.position + Vector2(14, 27), op[0], 16, UI.TEXT)
-		UI.text(hud, font, br.position + Vector2(br.size.x - 34, 27), ("Ⓐ" if hov else "") if Pad.using else op[1], 13, col)
+		hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
+		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
+		UI.text(hud, font, br.position + Vector2(14, 26), op[0], 15, bink)
+		var kst: String = ("Ⓐ" if hov else "") if Pad.using else op[1]
+		if kst != "":
+			UI.keycap(hud, font, Vector2(br.end.x - UI.cwidth(font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)
 		bx += bw + 12
 
 
