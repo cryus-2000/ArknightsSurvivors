@@ -106,6 +106,8 @@ func reset(bone := false, lamp := 100.0) -> void:
 	c.slows.clear()
 	game.pstun = 0.0
 	game.atk_slow = 0.0
+	# 骑士骨血的主控受伤 ×1.8 只在骑士在队时生效（事件验收 P1-4，relic_fx.taken_mult），测骨血时让骑士在队
+	game.knight_alive = bone
 	if bone:
 		game.rfx.rules["bone_blood"] = 1
 	else:
