@@ -54,7 +54,12 @@ var op_scroll_f := 0.0
 var op_seen_sel := -1          # 上一帧绘制时的选中项：变化时把它滚进可视区（键盘 / 手柄 / --opsel 都走这里）
 var op_lore: Dictionary = {}
 ## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
-const INTRO_LEN := 3.4
+## 标题开场（2026-09-27 用户选方案 A「潮声点灯」，要求节奏快一点，约 5 秒）：
+## 0–1.2 黑场里沙滩上一粒蓝眼泪亮起、荡开涟漪；0.5 起黑幕退去、上下黑边收起，镜头从高处整像素下摇到海滩（不再非整数放大）；
+## 1.6–2.5 发光脚印一枚枚亮到博士脚边，2.4 远方海嗣齐齐睁眼一瞬；2.6–3.2 青色扫光从左往右「刷」出 Logo；3.0 起副标题、菜单、页脚依次滑入。
+## 第一次完整播放；看过以后（Cfg.opening_seen 写入存档）从 INTRO_SHORT 起播简短版；对局返回标题不播；任意键 / 点击 / 触屏跳过
+const INTRO_LEN := 4.8
+const INTRO_SHORT := 2.5
 var intro := 0.0
 var title_bg: Control
 var map_title := ""        # 地图副标题（data/maps/<id>.json 的 title / title_en）
@@ -132,15 +137,20 @@ func _ready() -> void:
 	Sfx.play_music("title")
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := OS.get_cmdline_user_args()
-	if (not args.is_empty() and not args.has("--introshot")) or Cfg.title_seen:
+	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort")) or Cfg.title_seen:
 		intro = INTRO_LEN
+	elif Cfg.opening_seen or args.has("--introshort"):
+		intro = INTRO_SHORT   # 看过完整版：只播 Logo 扫光和菜单滑入
 	Cfg.title_seen = true
+	if not Cfg.opening_seen and intro < INTRO_LEN:
+		Cfg.opening_seen = true
+		Cfg.save()
 	if args.has("--introshot"):
 		# 开场动画分镜截图：/tmp/claude-0/shot_intro_<n>.png
-		for i in [0.5, 1.2, 1.8, 2.3, 2.8, 3.6]:
+		for i in [0.4, 1.0, 1.6, 2.2, 2.45, 2.9, 3.3, 4.2]:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
-		get_tree().create_timer(4.0).timeout.connect(func(): get_tree().quit())
+		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
 		for a in OS.get_cmdline_user_args():
@@ -313,9 +323,11 @@ func _process(delta: float) -> void:
 		op_scroll_f = float(op_scroll)
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
-	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
+	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
 	if title_bg != null:
-		title_bg.zoom = 1.0 + 0.12 * (1.0 - _ease(intro / 2.2))
+		title_bg.pan = 40.0 * (1.0 - _ease((intro - 0.4) / 1.8))
+		title_bg.reveal = clampf((intro - 1.6) / 0.9, 0.0, 1.0)
+		title_bg.eye_flash = maxf(0.0, 1.0 - absf(intro - 2.45) / 0.3) if intro < INTRO_LEN else 0.0
 	for m in motes:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
@@ -420,32 +432,42 @@ func _draw() -> void:
 		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
 		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
 	# 顶部小标（方案 A）：本作徽记 + 英文
-	var hf0 := _seg(0.9, 0.5)
+	var hf0 := _seg(2.9, 0.4)
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
 	if Cfg.unlock_all:
 		UI.text(self, font, Vector2(vs.x - 330, 30), "测试版 · 已全部解锁（不写入存档）", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
-	# 标题（像素 Logo）：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
-	var lg := _seg(1.0, 0.8)
-	var ly := 24.0 * (1.0 - lg)
+	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
+	var lg := _seg(2.6, 0.6)
+	var ly := 6.0 * (1.0 - lg)
 	if tex_logo != null:
 		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
-		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 84 + ly), ls * k), false, Color(1, 1, 1, lg))
+		if lg > 0.0:
+			draw_texture_rect_region(tex_logo, Rect2(Vector2(tx, 84 + ly), Vector2(ls.x * k * lg, ls.y * k)), Rect2(0, 0, ls.x * lg, ls.y))
+		if lg > 0.0 and lg < 1.0:
+			var sx := tx + ls.x * k * lg
+			draw_rect(Rect2(sx - 10, 80, 10, ls.y * k + 8), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
+			draw_rect(Rect2(sx - 2, 78, 3, ls.y * k + 12), Color(0.85, 1.0, 1.0, 0.9))
+		var sp: float = maxf(0.0, 1.0 - absf(intro - 3.25) / 0.2)
+		if sp > 0.0 and intro < INTRO_LEN:
+			var dp := Vector2(tx + 262 * k * ls.x / 520.0, 84 + 14)
+			draw_line(dp + Vector2(-9, 0) * sp, dp + Vector2(9, 0) * sp, Color(1, 1, 1, sp), 2.0)
+			draw_line(dp + Vector2(0, -9) * sp, dp + Vector2(0, 9) * sp, Color(1, 1, 1, sp), 2.0)
 	else:
 		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
 		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(1.5, 0.5)), 5.0)
+	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(3.0, 0.4)), 5.0)
 	# 地图副标题：随地图变化，英文副标题下一行（菱形 + 中文名 + 英文名），和 Logo 组成一块
 	if map_title != "":
-		var mf2 := _seg(1.7, 0.5)
+		var mf2 := _seg(3.1, 0.4)
 		UI.diamond(self, Vector2(tx + 11, 257 + ly), 4.0, _fa(UI.CYAN, mf2))
 		UI.text(self, font, Vector2(tx + 22, 263 + ly), map_title, 15, _fa(UI.TEXT, mf2))
 		if map_title_en != "":
 			var mw: float = font.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 			UI.en(self, font, Vector2(tx + 34 + mw, 262 + ly), map_title_en, 10, _fa(Color(0.5, 0.54, 0.58), mf2), 2.5)
 	# 分隔线：1.6s 起从左向右划出，右端一个小方块
-	var rl := _seg(1.6, 0.6)
+	var rl := _seg(3.1, 0.5)
 	var ry := 282.0
 	if rl > 0.0:
 		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
@@ -457,7 +479,7 @@ func _draw() -> void:
 	var my := 300.0 if compact else 318.0
 	var step := 52.0 if compact else 58.0
 	var lx := tx + 4.0
-	var mf0 := _seg(1.9, 0.5)
+	var mf0 := _seg(3.3, 0.4)
 	if mf0 > 0.0:
 		var y0 := my - 8.0
 		var y1 := my + (ITEMS.size() - 1) * step + 46.0
@@ -468,7 +490,7 @@ func _draw() -> void:
 	for i in ITEMS.size():
 		var r := Rect2(tx - 10, my + i * step, 330, 48)
 		item_rects.append(r)
-		var f := _seg(2.0 + i * 0.12, 0.35)
+		var f := _seg(3.4 + i * 0.08, 0.3)
 		if f <= 0.0:
 			continue
 		var dx := -30.0 * (1.0 - f)
@@ -493,12 +515,12 @@ func _draw() -> void:
 		if on:
 			UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
 	# 操作提示
-	var hf := _seg(2.7, 0.5)
+	var hf := _seg(4.0, 0.4)
 	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + ITEMS.size() * step + 12
 		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
 	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
-	var df := _seg(2.6, 0.5)
+	var df := _seg(3.9, 0.4)
 	deploy_rect = Rect2()
 	if df > 0.0 and not diff_pick and not op_pick:
 		var bx := vs.x - 240.0
@@ -513,7 +535,7 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2(bx, by + 55), Vector2(28.0 + (44.0 if dh else 0.0), 3)), _fa(UI.CYAN, df))
 
 	# 页脚：最后淡入
-	var ff := _seg(2.8, 0.5)
+	var ff := _seg(4.1, 0.4)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
@@ -521,13 +543,25 @@ func _draw() -> void:
 
 	# 开场：黑幕淡出 + 上下黑边收起
 	if intro < INTRO_LEN:
-		var dark := 1.0 - _ease(intro / 1.6)
+		var dark := 1.0 - _ease((intro - 0.5) / 0.9)
 		if dark > 0.0:
 			draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.005, 0.015, dark))
-		var bar := 90.0 * (1.0 - _seg(0.3, 1.5))
+		var bar := 90.0 * (1.0 - _seg(0.5, 1.2))
 		if bar > 0.5:
 			draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0.005, 0.015))
 			draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0.005, 0.015))
+		# 黑场里的一粒蓝眼泪：沙滩上亮起，荡开三圈涟漪（黑幕退去时一起淡掉）
+		if intro < 1.6 and title_bg != null:
+			var tp: Vector2 = Vector2(vs.x * 0.58, vs.y * 0.66).round()   # 固定在画面中下（不跟下摇的背景走，免得被下方黑边盖住）
+			var ta: float = clampf(intro / 0.25, 0.0, 1.0) * clampf((1.6 - intro) / 0.5, 0.0, 1.0)
+			draw_circle(tp, 3.0, Color(0.7, 1.0, 1.0, ta))
+			draw_circle(tp, 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25 * ta))
+			for q in 3:
+				var rk: float = clampf((intro - 0.15 - q * 0.22) / 0.9, 0.0, 1.0)
+				if rk > 0.0:
+					draw_set_transform(tp, 0.0, Vector2(1.0, 0.4))
+					draw_arc(Vector2.ZERO, 12.0 + 90.0 * rk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (1.0 - rk) * 0.7 * ta), 1.5)
+					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	if guide:
 		_draw_guide(vs)

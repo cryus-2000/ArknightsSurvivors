@@ -33,7 +33,8 @@ var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
 var unlock_all := false      # 开发测试：本次运行全部解锁（只在内存里，见 _apply_unlock_all；发布版恒为 false）
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
-var title_seen := false      # 本次运行已播过标题开场动画（仅内存，不存档；对局返回标题不重播）
+var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
+var opening_seen := false    # 看过完整的标题开场（写入存档）：之后启动只播简短版（2026-09-27 用户定，开场方案 A）
 
 
 func _ready() -> void:
@@ -69,6 +70,7 @@ func _ready() -> void:
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
 		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
+		opening_seen = c.get_value("progress", "opening_seen", opening_seen)
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
@@ -169,5 +171,6 @@ func save() -> void:
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
+	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.save(PATH)
