@@ -1,4 +1,4 @@
-## 水月（特种，契约 v2.1）：伞击 + 天赋「创伤性癔症」触手追击；三个自动技能：S1 唤醒 / S2 囚徒困境 / S3 镜花水月。
+## 水月（特种，契约 v2.1）：伞击 + 触手追击（普攻的一部分，不用解锁）；三个自动技能：S1 唤醒 / S2 囚徒困境 / S3 镜花水月。
 ## 精一解锁 S2 与天赋二「反移情」，精二解锁 S3。与其他干员同构；旧的潮刃 / 群触路线与技能进阶已下线（docs/23 §17）。
 extends "res://scripts/characters/character.gd"
 
@@ -35,7 +35,7 @@ var s3_active := 0.0
 var mirror_pos := Vector2.ZERO   # S3 镜像分身位置
 var mirror_face := 1.0
 var heal_budget := 0.0           # 反移情击杀回复：每秒上限
-# ---- 可见成长（docs/25 §5：只长触手，原作依据「创伤性癔症」触手追击 / S3 苍白触手铺开）
+# ---- 可见成长（docs/25 §5：只长触手，原作依据触手追击 / S3 苍白触手铺开）
 var awaken_burst := false        # N4「唤醒 · 涌」：唤醒一击额外钻出 2 根触手
 var bind_drag := false           # N5「囚徒 · 缚」：囚徒困境期间触手把目标拖向水月
 var stake_on := false            # 精二：触手命中后留在原地继续抽打（触手桩）
@@ -225,7 +225,7 @@ func _umbrella(target: Dictionary) -> void:
 			var he: Dictionary = hit[k]
 			sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
 
-	# 天赋「创伤性癔症」：触手追击命中目标中生命最低的敌人
+	# 触手追击（普攻的一部分）：追击命中目标中生命最低的敌人
 	var alive := hit.filter(func(e): return not e.dead)
 	alive.sort_custom(func(a, b): return a.hp < b.hp)
 	var n: int = 1 + extra_targets   # 藏品重做（docs/35）后不再有「触手目标数」藏品
