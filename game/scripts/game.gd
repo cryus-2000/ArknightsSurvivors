@@ -3941,8 +3941,8 @@ func _draw_event_bg(vs: Vector2) -> void:
 	var g0 := Color(0.04, 0.04, 0.043, 0.0)
 	var g1 := Color(0.04, 0.04, 0.043, 0.95)
 	panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
-	UI.en(panel_fg, font, p0 + Vector2(92, 366), "EVENT", 12, Color(0.6, 0.59, 0.56), 3.0)
-	UI.text(panel_fg, font, p0 + Vector2(140, 366), "·  海嗣祭坛", 12, Color(0.6, 0.59, 0.56))
+	var ew0 := UI.en(panel_fg, font, p0 + Vector2(92, 366), "EVENT", 12, Color(0.6, 0.59, 0.56), 3.0)
+	UI.text(panel_fg, font, p0 + Vector2(92 + ew0 + 6, 366), "·  海嗣祭坛", 12, Color(0.6, 0.59, 0.56))
 	var em := p0 + Vector2(54, 400)
 	var emb: Array = []
 	for pl in art.emblem:
