@@ -492,7 +492,8 @@
    "cd": 1.5,
    "role": "boss",
    "corrode": 0.5,
-   "hover": true
+   "hover": true,
+   "arena_r": 580.0
   },
   "ishar": {
    "name": "伊莎玛拉，腐化之心",
@@ -505,7 +506,8 @@
    "ai": "ranged",
    "range": 340.0,
    "cd": 1.5,
-   "role": "boss"
+   "role": "boss",
+   "arena_r": 600.0
   },
   "knight": {
    "name": "最后的骑士",

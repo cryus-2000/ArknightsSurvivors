@@ -14,6 +14,8 @@ func _init(game) -> void:
 func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	e.bt += dt
 	g.combat.gate_update(e, dt)   # 阶段卡点：每幕计时、护盾到时过卡点（docs/38 §1.3）
+	if g.zone_frozen and is_same(e, g.final_boss):
+		e.pos = g.combat.arena_clamp(e.pos, 80.0)   # 最终 Boss 场地：本体离圈边 ≥80（docs/38 §1.7）
 	# 冲锋 / 突刺计时（_warn_resolve 的 "dash" / "stab" 写入）：Boss 不走 enemy_ai 的冲刺递减，必须在这里递减，
 	# 否则骑士二阶段「再冲锋」（等 dash_t 归零）永远不会触发，冲锋帧条也会一直停在冲刺姿势（docs/38 B0 第 1 项）
 	if e.get("dash_t", 0.0) > 0.0:
@@ -163,7 +165,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.bt > 4.0:
 					e.bt = 0.0
 					for k in 2:
-						var o: Dictionary = g.spawner.spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
+						var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0))
 						o.feed = true
 						o.feed_to = e
 						o.spd = 45.0
@@ -476,6 +478,6 @@ func _spawn_tears(e: Dictionary, n: int) -> void:
 				cnt += 1
 		if cnt >= 6:
 			return
-		g.spawner.spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
+		g.spawner.spawn_enemy("tear", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0)))
 
 
