@@ -50,7 +50,7 @@ func update(dt: float) -> void:
 					return
 				state = 1
 				g.vfx.show_banner("围猎 —— 海嗣合拢了包围，撕开一道缺口！")
-				Sfx.play("roar", 0.0, 0.6, 0.0)
+				Sfx.play("hunt_warn", -2.0, 1.0, 0.0)
 		1:
 			if g.t >= start_at:
 				_begin()
@@ -84,6 +84,7 @@ func _begin() -> void:
 	_spawn_inner()
 	g.fx.append({"kind": "ring", "pos": c, "r": r, "life": 0.8, "max": 0.8, "col": Color(0.75, 0.5, 1.0)})
 	g.vfx.shake_screen(0.5)
+	Sfx.play("hunt_close", -2.0, 1.0, 0.0)
 	_log("begin")
 
 
@@ -126,17 +127,17 @@ func _tick(dt: float) -> void:
 			broke = true
 			g.combat.heal(g.max_hp * 0.2, "事件")
 			g.lamp = minf(g.lamp_cap, g.lamp + 20.0)
-			g.vfx.show_banner("突围成功 —— 获得补给")
+			g.vfx.show_banner("突围成功 —— 主控回复 20% 生命，灯火 +20")
 			_log("broke")
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
-			Sfx.play("relic", -4.0, 1.4, 0.0)
+			Sfx.play("hunt_break", -6.0, 1.0, 0.0)
 	elif not inside and d < radius() - 40.0:
 		inside = true
 	# 肃清：圈上与圈内的海嗣全部倒下（第二波刷出之后才算）
 	if not cleared and el >= 10.0 and ring.all(func(e): return e.dead) and inner.all(func(e): return e.dead):
 		cleared = true
 		_xp_burst()
-		g.vfx.show_banner("围猎者尽数肃清 —— 获得经验")
+		g.vfx.show_banner("围猎者尽数肃清 —— 获得半级经验")
 		_log("cleared")
 	if el >= Bal.v("hunt/dur", 20.0):
 		_end()
