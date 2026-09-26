@@ -1,5 +1,5 @@
 ## 触屏操作（移动端 / 网页版）：左半屏浮动虚拟摇杆（手指按下处即摇杆中心），右侧两个按钮（暂停 / 属性）。
-## 技能基本全自动；主控有手动技能时冲刺键上方多一个技能键（干员契约 v2.3）。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
+## 技能基本全自动；主控有手动技能时冲刺键上方多一个技能键（干员契约 v2.3 / v2.4：点一下 = 自动瞄准，按住拖动 = 朝拖动方向放）。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
 ## 开启条件：设备有触屏（DisplayServer.is_touchscreen_available）或命令行 --touch。
 extends RefCounted
 
@@ -18,7 +18,8 @@ var vec := Vector2.ZERO
 var btn_rects: Array = []   # [Rect2, action]
 var flash := {}             # action -> 剩余高亮时间
 ## 手动技能键（主控有已解锁的手动技能时，冲刺键上方）：按下记触点，松手释放。
-## 按住时记下拖动方向 skill_aim（留给以后的「拖动瞄准、松手释放」，现在释放时还不读它）
+## 带方向的技能（JSON "aim": true）按住时拖出方向 skill_aim，场上画落点圈（hud.draw_manual_aim）；拖动不到 AIM_DEAD = 点一下 = 自动瞄准
+const AIM_DEAD := 22.0
 var skill_id := -1          # 正在按技能键的触点（-1 = 没按）
 var skill_origin := Vector2.ZERO
 var skill_aim := Vector2.ZERO
@@ -69,7 +70,8 @@ func handle(event: InputEvent) -> bool:
 				skill_id = -1
 				flash["skill"] = 0.2
 				if g.state == g.S.PLAY:
-					g.doctor.try_manual_skill()   # 没就绪时它自己飘字说原因；正在出手时会记下、1 秒内放出
+					# 一定要传方向：不传会读摇杆移动方向，边走边点就朝走的方向放了。没就绪时它自己飘字说原因；正在出手时记下、1 秒内放出
+					g.doctor.try_manual_skill(aim_dir())
 				return true
 			if event.index == stick_id:
 				stick_id = -1
@@ -95,6 +97,11 @@ func handle(event: InputEvent) -> bool:
 					vec = vec.normalized()
 			return true
 	return false
+
+
+## 技能键此刻的瞄准方向：拖动超过死区 = 拖动方向（不用归一化），否则 Vector2.ZERO = 自动瞄准
+func aim_dir() -> Vector2:
+	return skill_aim if skill_aim.length() >= AIM_DEAD else Vector2.ZERO
 
 
 func _do(action: String) -> void:
@@ -185,7 +192,7 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 	skill_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var need: float = ld.sp_need(i)
 	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0
-	var ready: bool = ld.manual_ready(i)
+	var ready: bool = g.hud_view.manual_castable(ld, i)
 	var held: bool = skill_id >= 0 or flash.get("skill", 0.0) > 0.0
 	hud.draw_circle(c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
 	var tx: Texture2D = g.tex.get(ld.skill_def(i).get("icon", ""))
@@ -199,3 +206,11 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 		hud.draw_arc(c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
 	UI.text(hud, font, c + Vector2(-40, r + 16), ld.skill_def(i).get("name", ""), 11, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	# 按住拖动：按钮上画小摇杆（外圈 = 拖动示意范围，内圈 = 死区，拖回内圈 = 自动瞄准）
+	if skill_id >= 0 and ld.manual_aims(i):
+		var reach := r + 30.0
+		hud.draw_arc(c, reach, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 1.5)
+		hud.draw_arc(c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
+		var k: Vector2 = skill_aim.limit_length(reach)
+		hud.draw_circle(c + k, 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 if aim_dir() != Vector2.ZERO else 0.25))
+		hud.draw_arc(c + k, 14.0, 0.0, TAU, 20, Color(0.85, 1.0, 1.0, 0.9), 2.0)

@@ -362,6 +362,7 @@ func draw() -> void:
 	if not overlay_left():
 		draw_status_bar(vs)
 	draw_dash_hint(vs)
+	draw_manual_aim()
 	draw_manual_hint()
 	match g.state:
 		Game.S.SHOW:
@@ -571,7 +572,7 @@ func draw_manual_hint() -> void:
 	if not manual_hinted:
 		var ld = g.squad.leader()
 		var i: int = ld.manual_index() if ld != null else -1
-		if i >= 0 and ld.manual_ready(i):
+		if i >= 0 and manual_castable(ld, i):
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
@@ -582,6 +583,67 @@ func draw_manual_hint() -> void:
 	var a: float = clampf(manual_hint_t / 0.5, 0.0, 1.0) * (0.65 + 0.35 * sin(g.t * 5.0))
 	var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -118))
 	UI.text(g.hud, g.font, sp - Vector2(140, 0), manual_hint_text, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), HORIZONTAL_ALIGNMENT_CENTER, 280, 4)
+
+
+## 手动技能此刻「能放」（技能格呼吸框、触屏技能键、首次提示共用）：带方向的技能（JSON "aim": true）只要朝某个方向能放就算，
+## 这样附近没敌人时乌尔比安 S3 也亮——给方向就能掷向空地当位移；键鼠站着不动按 Q 仍是自动瞄准，没目标时角色自己飘字说原因
+func manual_castable(o, k: int) -> bool:
+	return o.manual_ready(k, Vector2.RIGHT if o.manual_aims(k) else Vector2.ZERO)
+
+
+## 手动技能瞄准指示（契约 v2.4）：主控带方向的手动技能能放时，在预计落点画圈（半径 = 技能作用半径），从主控拉一条引导线。
+## 触屏：按住技能键拖动时画拖出的方向（拖回中心 = 自动瞄准，圈落在自动目标上）；没按住不画。
+## 键鼠 / 手柄：跟 g.doctor.manual_input_dir()（移动方向 / 右摇杆），站着不动时画自动目标，淡一些。
+## 瞄准圈是按技能半径精确画的几何指示，不是特效，所以不走素材库（docs/37 §7）
+const AIM_COL := Color(0.45, 0.95, 1.0)
+
+func draw_manual_aim() -> void:
+	if g.state != Game.S.PLAY or g.demo_op != "" or g.autotest:
+		return
+	var ld = g.squad.leader()
+	var i: int = ld.manual_index() if ld != null else -1
+	if i < 0 or not ld.manual_aims(i):
+		return
+	var dir := Vector2.ZERO
+	var strong := false
+	if g.touch.active:
+		if g.touch.skill_id < 0:
+			return
+		dir = g.touch.aim_dir()
+		strong = true
+	else:
+		dir = g.doctor.manual_input_dir()
+		strong = dir != Vector2.ZERO
+	var xf: Transform2D = g.get_viewport().get_canvas_transform()
+	var pt: Vector2 = ld.manual_aim_point(i, dir) if ld.manual_ready(i, dir) else Vector2.INF
+	if pt == Vector2.INF:
+		# 触屏按住没拖、自动瞄准又没目标（乌尔比安：400 内没敌人）：提示拖出方向，免得松手只飘一句「附近没有敌人」
+		if g.touch.active and dir == Vector2.ZERO and manual_castable(ld, i):
+			UI.text(g.hud, g.font, xf * (ld.pos + Vector2(0, -90)) - Vector2(100, 0), "附近没有敌人 · 拖动选方向", 13, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.85), HORIZONTAL_ALIGNMENT_CENTER, 200)
+		return
+	var sc: float = xf.get_scale().x
+	var a: float = (0.85 if strong else 0.4) * (0.8 + 0.2 * sin(g.t * 6.0))
+	var from: Vector2 = xf * ld.pos
+	var to: Vector2 = xf * pt
+	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
+	# 引导线：虚线，到圈边为止
+	var seg: Vector2 = to - from
+	var ln: float = seg.length()
+	if ln > rad + 8.0:
+		var u: Vector2 = seg / ln
+		var t := 18.0
+		while t < ln - rad:
+			g.hud.draw_line(from + u * t, from + u * minf(t + 10.0, ln - rad), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.7), 2.0)
+			t += 18.0
+	g.hud.draw_circle(to, rad, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.1))
+	g.hud.draw_arc(to, rad, 0.0, TAU, 48, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	# 圈内四个刻度 + 中心点：一眼看出落点
+	for q in 4:
+		var d: Vector2 = Vector2.from_angle(q * PI / 2.0 + g.t * 0.8)
+		g.hud.draw_line(to + d * (rad - 10.0), to + d * (rad - 2.0), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
+	if g.touch.active and dir == Vector2.ZERO:
+		UI.text(g.hud, g.font, to + Vector2(-40, -rad - 8.0), "自动瞄准", 12, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来
@@ -729,7 +791,7 @@ func draw_squad_hud(br: Vector2) -> void:
 				UI.diamond(g.hud, Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
 			# 手动技能（契约 v2.2）：格子上方标按键；充满可放时青色呼吸框
 			if o.is_manual(k) and unlocked:
-				var rdy: bool = o.manual_ready(k)
+				var rdy: bool = manual_castable(o, k)
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 					g.hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
