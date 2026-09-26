@@ -68,6 +68,13 @@ def main():
     data = subprocess.run(["git", "archive", "--format=tar", a.ref], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     print("源码：%s @ %s" % (a.ref, commit))
+
+    # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
+    chk = os.path.join(src, "tools", "check_release.py")
+    p = subprocess.run([sys.executable, chk], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    print(p.stdout.strip())
+    if p.returncode != 0:
+        sys.exit("发布检查未通过，已中止导出")
     # 构建信息：写进包里的 data/build.json，局内数据记录（run/telemetry.gd）按它标版本（docs/40）
     bj = os.path.join(src, "game", "data", "build.json")
     binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}

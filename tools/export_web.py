@@ -55,7 +55,7 @@ def main():
     shutil.rmtree(WORK, ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
-    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
+    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/incoming", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
@@ -67,6 +67,13 @@ def main():
         if f.lower().endswith(".png"):
             shutil.copy2(os.path.join(art_src, f), art_dst)
     print("源码：%s @ %s" % (a.ref, commit))
+
+    # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
+    chk = os.path.join(src, "tools", "check_release.py")
+    p = subprocess.run([sys.executable, chk], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    print(p.stdout.strip())
+    if p.returncode != 0:
+        sys.exit("发布检查未通过，已中止导出")
 
     gpath = os.path.join(src, "game")
     tmp = os.path.join(WORK, "out")
