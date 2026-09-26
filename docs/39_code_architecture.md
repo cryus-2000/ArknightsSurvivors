@@ -59,6 +59,7 @@
 **技能期间播哪套动作（2026-09-26，`characters/character.gd`）**：技能缺省播 `skill` 帧条；想借用别的帧条（例如放技能时播普攻动作）：
 - 数据（推荐）：干员 JSON 的 `skills[i]` 加 `"anim": "attack"`（值必须是该干员 `sprites` 里有的帧条名，校验不过会报错）。
 - 代码：干员脚本重写 `skill_anim(i) -> String` 按状态决定；或者 `start_skill(aim, idx, dur, fire_at, "attack")` 临时指定。
+- 普攻同理：`start_attack(aim, dur, fire_at, "attack_spin")` 让这一击改播别的帧条（出手仍调 `_release`），缺图退回 attack 条（2026-09-26，斯卡蒂潮汐回旋斩）。
 - 出手时机按实际播放那套帧条的 `fps / fire` 算；那套帧条缺图时退回 `skill` 条。`act_kind` 仍是逻辑类型（`"skill"` = 出手调 `_release_skill`），
   `act_anim` 才是正在播的帧条——判断「是不是在放技能」继续用 `act_kind == "skill"`。
 

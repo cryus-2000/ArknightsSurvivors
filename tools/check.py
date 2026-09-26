@@ -6,6 +6,10 @@
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
     python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro）
+    python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
+
+每次快检把每局的完整输出写到 build/check/quick_<时间>/，失败时报告末尾列出失败项、原因和日志路径。
+新工作树没有导入缓存时会先自动导入（docs/36 §2.1）。
 
 退出码 0 = 全部通过；1 = 有失败。任何 SCRIPT ERROR / Parse Error 都算失败。
 
@@ -30,6 +34,28 @@ def op_ids(game=GAME):
     return sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(game, "data", "characters", "*.json")))
 
 
+JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
+LOG_DIR = None   # 本次快检的日志目录（main 里设置）；每次启动 Godot 的完整输出都写进去，失败时报告里给路径
+
+
+def _run(args, timeout, tag):
+    """启动一次 Godot（经 godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
+    t0 = time.time()
+    out, err, to = GR.run_godot(args, timeout)
+    path = None
+    if LOG_DIR:
+        safe = re.sub(r"[^\w.-]+", "_", tag).strip("_") or "run"
+        path = os.path.join(LOG_DIR, safe + ".log")
+        n = 2
+        while os.path.exists(path):
+            path = os.path.join(LOG_DIR, "%s_%d.log" % (safe, n))
+            n += 1
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("# %s\n# 参数：%s\n# 用时 %.0f 秒%s；结束时全机 Godot %d 个\n\n## stdout\n%s\n\n## stderr\n%s\n" % (
+                tag, " ".join(args[1:]), time.time() - t0, "（超时）" if to else "", GR.count_godot(), out, err))
+    return out, err, to, path
+
+
 def godot_args(godot, extra, game=GAME):
     return [godot, "--headless", "--path", game, "--"] + extra
 
@@ -47,13 +73,13 @@ def parse_balance(out):
 # ---------------------------------------------------------------- 各项检查
 
 def check_core(godot):
-    out, err, to = GR.run_godot([godot, "--headless", "--path", GAME, "-s", "res://tests/test_core.gd"], 300)
+    out, err, to, log = _run([godot, "--headless", "--path", GAME, "-s", "res://tests/test_core.gd"], 300, "core")
     errs = GR.script_errors(out, err)
     m = re.search(r"(\d+) checks, (\d+) failed", out)
     ok = "CORE TESTS PASSED" in out and not errs and not to
     detail = (m.group(0) if m else "没有输出结果")
     fails = re.findall(r"^FAIL: .*$", out + "\n" + err, re.M)
-    return {"name": "核心契约测试", "ok": ok, "detail": detail, "errors": (errs + fails)[:5]}
+    return {"name": "核心契约测试", "ok": ok, "detail": ("超时 · " if to else "") + detail, "errors": (errs + fails)[:5], "log": log}
 
 
 def smoke_cases():
@@ -85,13 +111,13 @@ def ctrl_errors(d):
 
 def run_case(godot, name, extra, timeout=300):
     t0 = time.time()
-    out, err, to = GR.run_godot(godot_args(godot, extra), timeout)
+    out, err, to, log = _run(godot_args(godot, extra), timeout, name)
     errs = GR.script_errors(out, err)
     d = parse_balance(out)
     errs += ctrl_errors(d)
     ok = d is not None and not errs and not to
     detail = ("超时" if to else ("没有 BALANCE 行" if d is None else "t=%d %s" % (d["t"], "胜" if d.get("win") else "")))
-    return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d}
+    return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d, "log": log}
 
 
 def check_nodes(godot):
@@ -99,43 +125,46 @@ def check_nodes(godot):
     ids = op_ids()
 
     def one(op):
-        out, err, to = GR.run_godot([godot, "--headless", "--path", GAME, "res://tests/node_test.tscn", "--", "--balance", "--seed=1", "--op=" + op], 300)
+        out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/node_test.tscn", "--", "--balance", "--seed=1", "--op=" + op], 300, "nodes_" + op)
         lines = re.findall(r"^NODE (\S+) (\d+) (\S+) (\S+) \| imm: (.*?) \| sync: (.*)$", out, re.M)
         empty = [l[3] for l in lines if not l[4].strip() and not l[5].strip()]
         return op, lines, empty, GR.script_errors(out, err), to
 
-    with ThreadPoolExecutor(len(ids)) as ex:
+    with ThreadPoolExecutor(max(1, min(len(ids), JOBS))) as ex:
         res = list(ex.map(one, ids))
     bad = []
     for op, lines, empty, errs, to in res:
         if to or errs or len(lines) != 6 or empty:
             bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else ("节点行数 %d" % len(lines) if len(lines) != 6 else "选下当场没变化的节点 " + "、".join(empty)))))
-    return {"name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
+    bad_logs = [LOG_DIR and os.path.join(LOG_DIR, "nodes_" + op + ".log") for op, lines, empty, errs, to in res if to or errs or len(lines) != 6 or empty]
+    return {"log": "、".join(p for p in bad_logs if p), "name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
 
 
 def check_prot(godot):
     """主控保护（tests/prot_test.tscn，docs/38 §1.11）：Boss 来源单发 ≤40%、2 秒合计 ≤50%、满血保护、Boss 持续伤害每秒 ≤4%"""
     ids = op_ids()
-    out, err, to = GR.run_godot([godot, "--headless", "--path", GAME, "res://tests/prot_test.tscn", "--", "--balance", "--seed=1",
-                                 "--op=" + ("wisadel" if "wisadel" in ids else ids[0])], 300)
+    out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/prot_test.tscn", "--", "--balance", "--seed=1",
+                              "--op=" + ("wisadel" if "wisadel" in ids else ids[0])], 300, "prot")
     errs = GR.script_errors(out, err)
     m = re.search(r"(\d+) checks, (\d+) failed", out)
     fails = re.findall(r"^FAIL: .*$", out + "\n" + err, re.M)
     ok = "PROT TESTS PASSED" in out and not errs and not to
-    return {"name": "主控保护", "ok": ok, "detail": "超时" if to else (m.group(0) if m else "没有输出结果"), "errors": (errs + fails)[:5]}
+    return {"name": "主控保护", "ok": ok, "detail": "超时" if to else (m.group(0) if m else "没有输出结果"), "errors": (errs + fails)[:5], "log": log}
 
 
 def check_repro(godot):
     extra = ["--balance", "--seed=7", "--op=wisadel", "--squad=suzuran", "--bot=expert", "--maxt=240"]
     with ThreadPoolExecutor(2) as ex:
-        a, b = list(ex.map(lambda _: run_case(godot, "复现", extra), [0, 1]))
+        a, b = list(ex.map(lambda k: run_case(godot, "复现_%d" % k, extra), [1, 2]))
+    logs = "、".join(x["log"] for x in (a, b) if x.get("log"))
     if not (a["ok"] and b["ok"]):
-        return {"name": "同 seed 复现", "ok": False, "detail": "有一局没跑完", "errors": a["errors"] + b["errors"]}
+        why = "；".join("第 %d 局 %s" % (k + 1, x["detail"]) for k, x in enumerate((a, b)) if not x["ok"])
+        return {"name": "同 seed 复现", "ok": False, "detail": "有一局没跑完（%s）" % why, "errors": a["errors"] + b["errors"], "log": logs}
     da, db = dict(a["data"]), dict(b["data"])
     da.pop("prof", None)
     db.pop("prof", None)
     diff = [k for k in sorted(set(da) | set(db)) if da.get(k) != db.get(k)]
-    return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": []}
+    return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
 
 # ---------------------------------------------------------------- 机器人矩阵 / A/B
@@ -232,13 +261,21 @@ def main():
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
     ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro"], help="只跑快检里的某一项")
+    ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
+                    help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     a = ap.parse_args()
+    global JOBS, LOG_DIR
+    JOBS = max(1, a.jobs)
     godot = GR.find_godot()
+    GR.ensure_imported(GAME)
     if a.ab:
         ab(a.ab, a.seeds, a.keep)
         return 0
     t0 = time.time()
-    print("快检：全机并发上限 %d 个 Godot" % GR.MAX_PROCS, flush=True)
+    LOG_DIR = os.path.join(OUT_DIR, "quick_" + datetime.datetime.now().strftime("%m%d_%H%M%S"))
+    os.makedirs(LOG_DIR, exist_ok=True)
+    load0 = GR.count_godot()
+    print("快检：本次最多 %d 个 Godot 并行（全机上限 %d，开始时全机已有 %d 个）；日志 %s" % (JOBS, GR.MAX_PROCS, load0, LOG_DIR), flush=True)
     jobs = []
     if a.only in (None, "core"):
         jobs.append(lambda: check_core(godot))
@@ -250,7 +287,7 @@ def main():
         jobs.append(lambda: check_prot(godot))
     if a.only in (None, "repro"):
         jobs.append(lambda: check_repro(godot))
-    with ThreadPoolExecutor(max(1, GR.MAX_PROCS)) as ex:
+    with ThreadPoolExecutor(JOBS) as ex:
         results = list(ex.map(lambda f: f(), jobs))
     bad = [r for r in results if not r["ok"]]
     lines = []
@@ -258,7 +295,11 @@ def main():
         lines.append("%s %s  %s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"]))
         for e in r.get("errors", []):
             lines.append("      " + e[:220])
-    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒" % ("快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0)
+    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）" % (
+        "快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0, load0, GR.count_godot())
+    if bad:
+        # 失败项单独再列一遍：名字、原因、完整日志路径（负载高时偶发失败，事后要能查到是哪项、为什么）
+        summary += "\n\n失败项：\n" + "\n".join("  · %s — %s\n    日志：%s" % (r["name"], r["detail"], r.get("log") or "（无）") for r in bad)
     print(summary)
     os.makedirs(OUT_DIR, exist_ok=True)
     open(os.path.join(OUT_DIR, "last_quick.txt"), "w", encoding="utf-8").write(summary + "\n")
@@ -269,4 +310,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # 统一 UTF-8 输出：Windows 下缺省是 GBK，别的会话读到的是乱码，看不出哪项失败
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     sys.exit(main())

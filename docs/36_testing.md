@@ -34,7 +34,7 @@
 
 ### 2.1 新工作树的两件事（2026-09-26）
 
-1. **先导入再测**：新工作树没有 `game/.godot/`，直接测贴图全是空的（快检会大面积失败）。先 `godot --headless --path game --import`（约 20 秒），或把主仓库的 `game/.godot` 整个拷过去。
+1. **先导入再测**：新工作树没有 `game/.godot/`，直接测贴图全是空的（快检会大面积失败）。`check.py` 和 `balance_run.py` 启动时会自动检查：导入缓存不到 50 个文件就先跑 `--import`，直到缓存文件数不再增加（第一遍有时只导入一部分），每遍约 20 秒（`godot_runner.ensure_imported`）。手动跑 Godot 的截图 / 自测仍要自己先导入。
 2. **换行**：`.gitattributes` 已让 `*.import / *.uid / *.cfg / *.gdshader` 检出为 LF，和 Godot 写的一致，导入后工作树是干净的。**2026-09-26 之前检出的工作树**导入后若一堆 `.import` 显示「已修改」（`git diff` 却是空的）：运行一次 `git add --renormalize -- '*.import' '*.uid'`，内容不变、只刷新索引记录，之后就干净了。
 
 ## 3. 同 seed 可复现
@@ -119,7 +119,8 @@
 
 | 内容 | 位置 |
 | --- | --- |
-| 最近一次快检 | `build/check/last_quick.txt` |
+| 最近一次快检 | `build/check/last_quick.txt`（失败时末尾单独列出失败项、原因和日志路径） |
+| 快检每局的完整输出 | `build/check/quick_<时间>/<项名>.log`（参数、用时、是否超时、stdout / stderr） |
 | 机器人矩阵 | `build/check/bots_<时间>/`、`build/balance/<tag>_<时间>.md/.json` |
 | A/B 对比 | `build/check/ab_<时间>/compare.md` |
 | 结果缓存 | 主仓库 `build/balance/cache/<源文件摘要>/` |

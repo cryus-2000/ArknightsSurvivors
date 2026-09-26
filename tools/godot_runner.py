@@ -111,6 +111,27 @@ def run_godot(args, timeout):
     return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), timed_out
 
 
+def ensure_imported(game_dir, timeout=900):
+    """新工作树没有 game/.godot 导入缓存时先导入，否则贴图全是空的、快检大面积报错（2026-09-26 实测 18/19 项失败）。
+    第一遍导入有时只导入一部分（缓存里只有几个文件），所以导入到缓存文件数不再增加为止，最多 3 遍。返回导入的遍数（0 = 本来就有）"""
+    imp = os.path.join(game_dir, ".godot", "imported")
+
+    def count():
+        return len(os.listdir(imp)) if os.path.isdir(imp) else 0
+
+    if count() >= 50:
+        return 0
+    passes = 0
+    last = -1
+    while passes < 3 and count() != last:
+        last = count()
+        print("导入资源（%s 没有完整的导入缓存）：第 %d 遍" % (game_dir, passes + 1), flush=True)
+        run_godot([find_godot(), "--headless", "--path", game_dir, "--import"], timeout)
+        passes += 1
+    print("导入完成：缓存 %d 个文件" % count(), flush=True)
+    return passes
+
+
 ERR_RE = re.compile(r"^(SCRIPT ERROR: .*|Parse Error: .*|ERROR: Failed to load script.*)$", re.M)
 
 

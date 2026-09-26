@@ -874,8 +874,9 @@ func follow(dt: float, target: Vector2) -> void:
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手
 ## 贴图槽带 fps + fire（出手帧，零基）时，时长与出手时刻按帧条算，dur / fire_at 参数被忽略（docs/24 §1）
-func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25) -> void:
-	_start_action("attack", aim, dur, fire_at)
+## anim：这一击改播别的帧条（例如斯卡蒂潮汐期间播 "attack_spin"）；缺图时退回 attack 条。出手仍调 _release（逻辑类型不变）
+func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim := "") -> void:
+	_start_action("attack", aim, dur, fire_at, anim)
 
 
 ## 起手技能动作；idx 为技能序号（默认沿用 cur_skill）。播哪套帧条由 skill_anim() 决定（缺省 skill 条），

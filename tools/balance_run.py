@@ -462,6 +462,7 @@ def main():
     godot = find_godot()
     bots = a.bots.split(",") if a.bots else [a.bot]
     game = os.path.abspath(a.game) if a.game else GAME
+    GR.ensure_imported(game)   # 新工作树没有导入缓存时先导入（docs/36 §2.1）
     tkey = None if a.nocache else GR.tree_key(game)
     lanes = a.lanes.split(",") if a.lanes else ["none"]
     jobs = [(s, a.seed0 + i, b, ln) for ln in lanes for b in bots for s in squads for i in range(a.seeds)]
