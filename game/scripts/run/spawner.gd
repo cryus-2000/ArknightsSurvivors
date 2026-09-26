@@ -153,7 +153,10 @@ func update(dt: float) -> void:
 				g.enemies_sys.evolve(ne)
 			if g.ending == "resolve" and g.t >= 520.0:
 				ne.weak = ""
-	# 精英计时在 Boss 在场时照常走（用户 9/27 撤回 B0 第 8 项的冻结：按时间刷，快慢玩家精英数相同）
+	# 精英计时在 Boss 在场时照常走（用户 9/27 撤回 B0 第 8 项的冻结：按时间刷，快慢玩家精英数相同）；
+	# 数值留的旋钮 enemy/elite_during_boss：Boss 在场时精英计时的速度（1 = 照常、0 = 冻结、0.5 = 减半）
+	if boss_alive():
+		next_elite += dt * (1.0 - Bal.v("enemy/elite_during_boss", 1.0))
 	if g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()
