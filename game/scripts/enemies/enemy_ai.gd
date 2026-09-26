@@ -44,13 +44,13 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 			e.def = 1.0
 			e.up_t = float(d.get("up_time", 3.2))
 			g.bai._warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
-			g._sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
+			g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
 			return Vector2.ZERO
 		return dir * spd
 	e.up_t = e.get("up_t", 3.0) - dt
 	if e.up_t <= 0.0 and dist > 120.0:
 		e.under = true
-		g._sparks(e.pos, Vector2.DOWN, Color(0.5, 0.4, 0.7), 8, 160.0)
+		g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.4, 0.7), 8, 160.0)
 	return Vector2.INF
 
 
@@ -129,7 +129,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		e.ammo -= 1
 		if e.ammo <= 0:
 			e.ai = "melee"
-			g._add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
+			g.vfx.add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
 	for k in n:
 		var dk := dir.rotated((k - (n - 1) / 2.0) * 0.22)
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),

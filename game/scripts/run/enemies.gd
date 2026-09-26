@@ -152,7 +152,7 @@ func update(dt: float) -> void:
 						e.set_done = true
 						e.set_t = 20.0
 						e.weak = "法术"
-						g._add_text(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
+						g.vfx.add_text(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
 					if e.set_t > 0.0:
 						pass
 					elif dist > e.range * 0.85:
@@ -183,7 +183,7 @@ func update(dt: float) -> void:
 						e.r = min(e.r + 1.5, 32.0)
 						e.xp += o.xp
 						o.dead = true
-						g._add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
+						g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
 						if seed_heal:
 							g.combat.heal(g.max_hp * 0.05, "藏品")
 						continue
@@ -191,7 +191,7 @@ func update(dt: float) -> void:
 					if e.feed and o.type == "izumik" and o.phase == 1:
 						e.dead = true
 						o.hp = min(o.maxhp, o.hp + o.maxhp * 0.08)
-						g._add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
+						g.vfx.add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
 						break
 					if not e.boss:
 						e.pos += diff / d * (min_d - d) * 0.3
@@ -228,10 +228,10 @@ func update(dt: float) -> void:
 				# 底海滑动者冲刺撞击：熄灭灯火
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
 					g.lamp = maxf(0.0, g.lamp - 8.0)
-					g._add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
+					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
 					g.frost = maxf(g.frost, 2.0)
-					g._add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
+					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害
 		if e.type == "tear" and dist < e.r + 14.0:
@@ -247,7 +247,7 @@ func final_target_valid(e: Dictionary) -> bool:
 func morph(e: Dictionary) -> void:
 	e.dead = true
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
-	g._add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
+	g.vfx.add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
 		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng.randi() % 3], e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 20.0)
 
@@ -259,7 +259,7 @@ func update_lobs(dt: float) -> void:
 			g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 			if l.get("mire", false) and g.mires.size() < 32:
 				g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
-			g._sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
+			g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 			Sfx.play("boom", -14.0, 1.6, 0.1)
 			if l.to.distance_to(g.ppos) < l.r + 8.0 and g.invuln <= 0.0:
 				g.dmg_src = "bullet"
@@ -322,7 +322,7 @@ func update_status(dt: float) -> void:
 			g.red_flash = maxf(g.red_flash, 0.08)
 			g.hp_shake = 0.2
 			g.hurt_flash = maxf(g.hurt_flash, 0.06)
-			g._add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
+			g.vfx.add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
 		g.head_bar_t = maxf(g.head_bar_t, 0.6)
 	else:
 		mire_tick = 0.0

@@ -170,7 +170,7 @@ func open_relic_choice() -> void:
 	if pool.is_empty():
 		g.pending_chests = 0
 		g.ingots += 12
-		g._add_text(g.ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +12", UI.GOLD, 16)
+		g.vfx.add_text(g.ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +12", UI.GOLD, 16)
 		return
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
 	if g.balance:
@@ -200,18 +200,18 @@ func pick(i: int) -> void:
 				pop.advance(o.get("choice", ""))
 				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
 				if o.get("elite", 0) > 0:
-					g._show_banner("%s 精英化%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
+					g.vfx.show_banner("%s 精英化%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
 		"recruit":
 			var nop = g.squad.add(o.id)
 			if nop != null:
-				g._show_banner("「%s」加入编队" % nop.display_name())
+				g.vfx.show_banner("「%s」加入编队" % nop.display_name())
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
 		"relic":
 			gain_relic(o.id)
 		"weapon":
 			g.weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
-			g._show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
+			g.vfx.show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 	if g.choice_kind == "relic":
 		g.pending_chests -= 1

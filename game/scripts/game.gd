@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
@@ -68,6 +69,7 @@ var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
+var vfx = Vfx.new(self)   # 特效与提示
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -483,7 +485,7 @@ func _ready() -> void:
 	var am := CanvasItemMaterial.new()
 	am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	fx_add.material = am
-	fx_add.draw.connect(_draw_fx_add)
+	fx_add.draw.connect(vfx.draw_add_layer)
 	add_child(fx_add)
 
 	# 2.5D 前景视差层（镜头前的虚化海草剪影）
@@ -537,7 +539,7 @@ func _ready() -> void:
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
-		_show_banner("深海的潮水正在涌来……")
+		vfx.show_banner("深海的潮水正在涌来……")
 	diff = clampi(Cfg.difficulty, 0, D.DIFFICULTY.size() - 1)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--diff="):
@@ -812,7 +814,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif k == KEY_G and state == S.PAUSE:
 		_open_intro(S.PAUSE)
 	elif k == KEY_M:
-		_show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
+		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
 		get_tree().change_scene_to_file("res://main.tscn")
 	elif k == KEY_R and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
@@ -994,7 +996,7 @@ func _update(dt: float) -> void:
 		shop_sys.update(dt)
 	pickups.update(dt)
 	_pm("misc")
-	_update_fx(dt)
+	vfx.update(dt)
 	_pm("fx")
 	_cleanup()
 	_pm("cleanup")
@@ -1124,85 +1126,11 @@ func _dmg_mix_text() -> String:
 	return " · ".join(parts)
 
 
-## 播放美术交付的帧动画特效；素材不存在时返回 false，由调用方使用程序效果
-func _anim(name: String, pos: Vector2, dur: float, scale := PX, follow := false) -> bool:
-	if tex.get(name) == null:
-		return false
-	fx.append({"kind": "anim", "name": name, "pos": pos, "life": dur, "max": dur, "scale": scale, "follow": follow})
-	return true
-
-
-## 镜头震动已整体移除（看着头疼）：保留入口以免各处调用改动，一律不震
-func _shake(_a: float) -> void:
-	pass
-
-
-func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
-	if fx.size() > 400:
-		return
-	for i in n:
-		var a := vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + vrng.randf_range(-0.7, 0.7)
-		fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * vrng.randf_range(0.4, 1.0),
-			"life": vrng.randf_range(0.18, 0.32), "max": 0.3, "col": col, "sz": 2.0 if vrng.randf() < 0.6 else 4.0})
-
-
 # =====================================================================
 # 水月的攻击：伞击 + 天赋「创伤性癔症」+ 三个自动技能
 # =====================================================================
 func facing_angle() -> float:
 	return 0.0 if facing >= 0.0 else PI
-
-
-## 斩击 / 爪痕帧的统一缩放（2026-09-25）：帧条本身只有 28–56 像素，各干员按「命中半径 ÷ 帧宽」放大后
-## 常到 4–6 倍，像素颗粒比人物（PX = 2 倍）粗一倍多，又大又糙。统一 ×0.7 再封顶 3 倍：弧光比判定略小，
-## 判定范围由地面环 / 裂纹表达。_fx_sprite（fx_slash_* / fx_claw_*）与 _slash_fx 都走这里
-const BLADE_SCALE_K := 0.7
-const BLADE_SCALE_MAX := 3.0
-const FX_SCALE_MAX := 3.2        # 所有帧条特效（碎石 / 水花 / 法阵…）的放大上限，避免颗粒比人物粗太多
-
-func _blade_scale(sc: float) -> float:
-	return minf(sc * BLADE_SCALE_K, BLADE_SCALE_MAX)
-
-
-## 斩击贴图（覆盖约 126°，更宽的角度用多段拼接）
-func _slash_fx(origin: Vector2, ang: float, half: float, radius: float, col: Color, tex_name := "slash", life := 0.22) -> void:
-	var span := 2.2
-	var segs := int(ceil(half * 2.0 / span))
-	var sc := radius / 22.0
-	var frames := 4
-	var anchor := Vector2(0.5, 0.5)
-	if tex_name.begins_with("fx_umbrella_slash"):
-		# V7 伞击帧条：6 帧，锚点 (4, h/2) 在伞柄，弧半径 = 帧宽 × 0.80，弧展开约 150°
-		frames = 6
-		var tx: Texture2D = tex[tex_name]
-		var fw := float(tx.get_width()) / 6.0
-		sc = radius / (fw * 0.80)
-		anchor = Vector2(4.0 / fw, 0.5)
-		span = 2.5
-		segs = int(ceil(half * 2.0 / span))
-	sc = _blade_scale(sc)
-	for k in segs:
-		var a := ang
-		if segs > 1:
-			a = ang - half + span * 0.5 + (half * 2.0 - span) * float(k) / float(segs - 1)
-		fx.append({"kind": "slash", "tex": tex_name, "pos": origin, "ang": a, "scale": sc, "life": life, "max": life, "col": col,
-			"frames": frames, "anchor": anchor})
-
-
-## 伞击贴图选择：有 V7 帧条就用，没有就退回旧 slash
-func _slash_tex(kind := "base") -> String:
-	var n := "fx_umbrella_slash"
-	if kind == "awaken":
-		n += "_awaken"
-	elif kind == "mirage":
-		n += "_mirage"
-	if tex.get(n) != null:
-		return n
-	if kind == "awaken" and tex.get("fx_s1_slash") != null:
-		return "fx_s1_slash"
-	if kind == "mirage" and tex.get("fx_s3_slash") != null:
-		return "fx_s3_slash"
-	return "slash"
 
 
 # =====================================================================
@@ -1383,29 +1311,6 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 # =====================================================================
 
 
-func _add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
-	texts.append({"pos": pos, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
-
-
-func _update_fx(dt: float) -> void:
-	flash = maxf(0.0, flash - dt * 2.0)
-	horde_warn = maxf(0.0, horde_warn - dt)
-	tab_hint = maxf(0.0, tab_hint - dt)
-	horde_hit = maxf(0.0, horde_hit - dt)
-	lvup_delay -= dt
-	lvup_show -= dt
-	hud_lv_flash = max(0.0, hud_lv_flash - dt * 1.5)
-	xp_flash = maxf(0.0, xp_flash - dt * 3.0)
-	for f in fx:
-		f.life -= dt
-		if f.kind == "spark" or f.kind == "shard":
-			f.pos += f.vel * dt
-			f.vel *= 0.9
-	for f in texts:
-		f.life -= dt
-		f.pos.y -= 30.0 * dt
-
-
 func _cleanup() -> void:
 	enemies = enemies.filter(func(e): return not e.dead)
 	gems = gems.filter(func(g): return not g.dead)
@@ -1413,11 +1318,6 @@ func _cleanup() -> void:
 	ebullets = ebullets.filter(func(b): return b.life > 0.0)
 	fx = fx.filter(func(f): return f.life > 0.0)
 	texts = texts.filter(func(f): return f.life > 0.0)
-
-
-func _show_banner(text: String) -> void:
-	banner = text
-	banner_t = 3.0
 
 
 # =====================================================================
@@ -1829,7 +1729,7 @@ func _open_show(sc: Dictionary) -> void:
 		var names: Array = []
 		for it in sc["items"]:
 			names.append(it.name)
-		_show_banner("%s：%s" % [key, "、".join(names)])
+		vfx.show_banner("%s：%s" % [key, "、".join(names)])
 		fx.append({"kind": "rays", "pos": ppos, "life": 0.6, "max": 0.6, "col": sc.col})
 		Sfx.play("relic", -4.0, 0.9, 0.0)
 		_check_pending.call_deferred()
@@ -2285,73 +2185,9 @@ const V6_FRAMES := {
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 }
-## 受击材质：甲壳 / 灵体，其余为血肉
-const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
-const HIT_SPIRIT := ["skimmer", "paranoia", "tear", "brood", "bishop", "ishar"]
 
 
-## 按敌人材质播放命中效果（V7 缺图时退回 fx_hit）
-func _hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
-	var n := "fx_hit_flesh"
-	if HIT_SHELL.has(e.type):
-		n = "fx_hit_shell"
-	elif HIT_SPIRIT.has(e.type) or e.get("hover", false):
-		n = "fx_hit_spirit"
-	var sc: float = PX * clampf(e.r / 12.0, 0.9, 2.2)
-	if not _fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else rng.randf() * TAU):
-		_anim("fx_hit", e.pos, 0.16)
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
-
-
-## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
-func _spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := PX, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
-	var tx: Texture2D = tex.get(name)
-	if tx == null:
-		return
-	var frames: int = V6_FRAMES.get(name, [1, 0.0])[0]
-	var fw: int = tx.get_width() / frames
-	var fh: int = tx.get_height()
-	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
-	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
-	draw_set_transform(pos + draw_off, ang, Vector2(-scale if flip else scale, scale))
-	draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
-## 一次性帧动画特效（命中 / 爆炸）；素材不存在时返回 false，调用方回退到程序特效
-## 播放一条帧条特效：flip 镜像；bottom=true 时 pos 为脚底（帧条底部对齐）
-func _fx_sprite(name: String, pos: Vector2, scale := PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
-	if tex.get(name) == null:
-		return false
-	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
-		scale = _blade_scale(scale)
-	scale = minf(scale, FX_SCALE_MAX)
-	var spec: Array = V6_FRAMES[name]
-	var dur: float = spec[0] / spec[1]
-	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
-	if bottom:
-		var tx: Texture2D = tex[name]
-		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
-	fx.append(f)
-	return true
-
-
-func _spr(name: String, frames: int, frame: int, pos: Vector2, scale := PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
-	var tx: Texture2D = tex.get(name)
-	if tx == null:
-		return
-	pos += draw_off
-	var fw: int = tx.get_width() / frames
-	var fh: int = tx.get_height()
-	var src := Rect2(fw * (frame % frames), 0, fw, fh)
-	var size := Vector2(fw, fh) * scale * sq
-	if flip:
-		# 以锚点为中心水平镜像
-		draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-		draw_texture_rect_region(tx, Rect2(-size * anchor, size), src, col)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	else:
-		draw_texture_rect_region(tx, Rect2((pos - size * anchor).round(), size), src, col)
 
 
 func _draw() -> void:
@@ -2363,11 +2199,11 @@ func _draw() -> void:
 	if not merchant.is_empty():
 		var mtx: Texture2D = tex.merchant
 		var big_m: bool = mtx != null and mtx.get_height() >= 40
-		_spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * (1.6 if big_m else 1.2))
+		vfx.spr("shadow", 1, 0, merchant.pos + Vector2(0, 18), PX * (1.6 if big_m else 1.2))
 		if big_m:
-			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos + Vector2(0, 18), PX, ppos.x < merchant.pos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
+			vfx.spr("merchant", 2, int(t * 2.0) % 2, merchant.pos + Vector2(0, 18), PX, ppos.x < merchant.pos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
 		else:
-			_spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
+			vfx.spr("merchant", 2, int(t * 2.0) % 2, merchant.pos, PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
 	for g in gems:
 		var gz: float = g.get("z", 0.0)
@@ -2403,28 +2239,28 @@ func _draw() -> void:
 				draw_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
 				draw_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
 				draw_off = Vector2.ZERO
-				_spr("gem_big" if big else "gem_small", 1, 0, gp, PX * (1.9 if big else 1.45), false, Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5))
+				vfx.spr("gem_big" if big else "gem_small", 1, 0, gp, PX * (1.9 if big else 1.45), false, Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5))
 				var sp2: float = 2.0 + 1.5 * tw
 				draw_line(gp + Vector2(-sp2, -8), gp + Vector2(sp2, -8), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
 				draw_line(gp + Vector2(0, -8 - sp2), gp + Vector2(0, -8 + sp2), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
 			"oil":
-				_spr("oil", 1, 0, g.pos)
+				vfx.spr("oil", 1, 0, g.pos)
 			"chest":
-				_spr("chest", 1, 0, g.pos)
+				vfx.spr("chest", 1, 0, g.pos)
 			"ingot":
-				_spr("ingot", 1, 0, g.pos + Vector2(0, sin(t * 3.0 + g.pos.y) * 1.5 if gz <= 1.0 else 0.0))
+				vfx.spr("ingot", 1, 0, g.pos + Vector2(0, sin(t * 3.0 + g.pos.y) * 1.5 if gz <= 1.0 else 0.0))
 			"magnet", "heal":
-				_spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+				vfx.spr("pickup_" + g.kind, 1, 0, g.pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		draw_off = Vector2.ZERO
-	_spr("shadow", 1, 0, doc_pos + Vector2(0, 6), PX * 1.3)
+	vfx.spr("shadow", 1, 0, doc_pos + Vector2(0, 6), PX * 1.3)
 	squad.draw_auras()
 	for e in enemies:
 		var sc: float = PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
-		_spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
+		vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
 	squad.draw_shadows()
 	if knight.alive:
-		_spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
+		vfx.spr("shadow", 1, 0, knight.pos + Vector2(0, 18), PX * 1.6)
 	squad.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
@@ -2469,9 +2305,9 @@ func _draw() -> void:
 		elif dr.get("beam", 0.0) > 0.0:
 			dfr = 3
 		if tex.get("drone_laser") != null:
-			_spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
+			vfx.spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
 		elif tex.get("drone") != null:
-			_spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.2, 1.7, 1.4))
+			vfx.spr("drone", 2, int(t * 20.0) % 2, dr.pos, PX, false, Color(1.2, 1.7, 1.4))
 		draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(t * 8.0)))
 	var jf := int(t * 6.0) % 2
 	for b in bullets:
@@ -2492,7 +2328,7 @@ func _draw() -> void:
 					draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
 				"tide":
 					draw_circle(b.pos, 11.0, Color(0.5, 1.2, 2.0, 0.2))
-			_spr_rot(ptex, pfr, b.pos, b.vel.angle(), PX)
+			vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), PX)
 			continue
 		match b.kind:
 			"arrow":
@@ -2512,7 +2348,7 @@ func _draw() -> void:
 				draw_circle(b.pos, 6.0, Color(0.7, 1.5, 2.2, 0.9))
 				draw_circle(b.pos + Vector2(-2, -2), 2.0, Color(2.5, 2.5, 2.5))
 			_:
-				_spr("orb", 1, 0, b.pos, PX)
+				vfx.spr("orb", 1, 0, b.pos, PX)
 	for f in fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		match f.kind:
@@ -2555,7 +2391,7 @@ func _draw() -> void:
 				if age >= f.get("delay", 0.0):
 					var p: Vector2 = f.pos + Vector2(0, -40.0 * (age - f.delay))
 					if tex.get("fx_heal_cross") != null:
-						_spr_rot("fx_heal_cross", mini(3, int((age - f.delay) * 10.0)), p, 0.0, PX * f.sz / 4.5, Color(1, 1, 1, a))
+						vfx.spr_rot("fx_heal_cross", mini(3, int((age - f.delay) * 10.0)), p, 0.0, PX * f.sz / 4.5, Color(1, 1, 1, a))
 					else:
 						var sz: float = f.sz
 						var ca := Color(0.7, 2.2, 1.0, a)
@@ -2589,13 +2425,13 @@ func _draw() -> void:
 				var k := 1.0 - a
 				var fr := clampi(int(k * 6.0), 0, 4)
 				var tc: Color = ch.tentacle_col(1.15) if ch.has_method("tentacle_col") else Color(1.3, 1.1, 1.6)
-				_spr("tentacle", 5, fr, f.pos + Vector2(0, 16), PX * 4.2, false, tc, Vector2(0.5, 1.0))
-				_spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), PX * 2.6, true, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
-				_spr("tentacle", 5, fr, f.pos + Vector2(48, 22), PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
+				vfx.spr("tentacle", 5, fr, f.pos + Vector2(0, 16), PX * 4.2, false, tc, Vector2(0.5, 1.0))
+				vfx.spr("tentacle", 5, fr, f.pos + Vector2(-50, 20), PX * 2.6, true, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
+				vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
-				_spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+				vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
 			"impact":
@@ -2707,7 +2543,7 @@ func _draw() -> void:
 				var tn: String = f.get("tex", "slash")
 				draw_set_transform(f.pos, f.ang, Vector2.ONE)
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
-				_spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
+				vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for b in ebullets:
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置
@@ -2725,7 +2561,7 @@ func _draw() -> void:
 				draw_circle(bp, b.r, Color(1.5, 0.6, 2.0))
 			_:
 				draw_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
-				_spr("ebullet", 1, 0, bp, PX * b.r / 5.0)
+				vfx.spr("ebullet", 1, 0, bp, PX * b.r / 5.0)
 	# 抛射碎石：落点预警 + 空中石块
 	for l in lobs:
 		var k: float = l.t / l.dur
@@ -2747,29 +2583,6 @@ func _draw() -> void:
 		draw_arc(sh.pos, sh.r - 10.0, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a * 0.3), 3.0)
 	_draw_zone()
 	map.draw_snow()
-
-
-func _draw_fx_add() -> void:
-	draw_off = Vector2.ZERO
-	map.draw_god_rays(fx_add, get_viewport_rect().size, cam.position)
-	var loop := int(t * 10.0)
-	squad.draw_fx_add(fx_add, loop)
-	for f in fx:
-		if f.kind != "anim":
-			continue
-		var n: int = FXF.get(f.name, 1)
-		var fr := clampi(int((1.0 - f.life / f.max) * n), 0, n - 1)
-		var p: Vector2 = ppos if f.follow else f.pos
-		_spr_on(fx_add, f.name, n, fr, p, f.scale)
-
-
-## 同 _spr，但画在指定节点上（用于叠加发光层）
-func _spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2, scale := PX) -> void:
-	var tx: Texture2D = tex[name]
-	var fw: int = tx.get_width() / frames
-	var fh: int = tx.get_height()
-	var size := Vector2(fw, fh) * scale
-	ci.draw_texture_rect_region(tx, Rect2((pos - size / 2.0).round(), size), Rect2(fw * (frame % frames), 0, fw, fh))
 
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
@@ -2961,9 +2774,9 @@ func _draw_enemy(e: Dictionary) -> void:
 			draw_set_transform(e.pos + Vector2(0, 14), 0.0, Vector2(1.0, 0.45))
 			draw_circle(Vector2.ZERO, 34.0 + 4.0 * sin(t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		_spr(name, 2, frame, e.pos + Vector2(wob, 0), PX, false, col)
+		vfx.spr(name, 2, frame, e.pos + Vector2(wob, 0), PX, false, col)
 		if e.flash > 0.0:
-			_spr(name + "_white", 2, 0, e.pos, PX, false, Color(1, 1, 1, 0.9))
+			vfx.spr(name + "_white", 2, 0, e.pos, PX, false, Color(1, 1, 1, 0.9))
 		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
@@ -2974,7 +2787,7 @@ func _draw_enemy(e: Dictionary) -> void:
 		draw_line(e.pos, e.pos + dd * 230.0, Color(1.4, 0.25, 0.2, 0.25 + 0.4 * wk), 10.0 * wk + 2.0)
 		draw_line(e.pos, e.pos + dd * 230.0 * wk, Color(2.0, 0.5, 0.4, 0.8), 2.0)
 	if e.get("dash_t", 0.0) > 0.0:
-		_sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
+		vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
 	if e.get("nova_w", 0.0) > 0.0:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))
@@ -3019,10 +2832,10 @@ func _draw_enemy(e: Dictionary) -> void:
 	if Cfg.outline and tex.has(name + "_white"):
 		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
 		for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
-			_spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
-	_spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
+			vfx.spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
+	vfx.spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		_spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+		vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
 	var wk: String = e.get("weak", "")
 	if wk != "" and not e.get("under", false):
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
@@ -3230,7 +3043,7 @@ func _update_opening(dt: float) -> void:
 		p_sq = Vector2(1.3, 0.72)
 		_feet_dust(14, 150.0)
 		fx.append({"kind": "ring", "pos": ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
-		_shake(0.7)
+		vfx.shake_screen(0.7)
 		Sfx.play("boom", -14.0, 1.4, 0.0)
 	if opening_t >= 1.7:
 		p_sq = p_sq.lerp(Vector2.ONE, 1.0 - exp(-dt * 10.0))
@@ -3243,7 +3056,7 @@ func _update_opening(dt: float) -> void:
 		if opening_t - dt < 2.1:
 			Sfx.play("oil", -8.0, 1.2, 0.0)
 			fx.append({"kind": "rays", "pos": ppos + Vector2(0, -20), "life": 0.8, "max": 0.8, "col": Color(1.0, 0.85, 0.5)})
-	_update_fx(dt)
+	vfx.update(dt)
 	if opening_t >= OPENING_DUR:
 		_end_opening()
 

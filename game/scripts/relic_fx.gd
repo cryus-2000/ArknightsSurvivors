@@ -149,7 +149,7 @@ func apply(id: String) -> void:
 		for ef in r.effects:
 			if ef.get("type", "stat") == "stat":
 				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value) * sc if ef.get("op", "add") != "mult" else 1.0 - (1.0 - float(ef.value)) * sc, "relic:" + id, ef.get("scope", ""))
-		g._add_text(g.ppos + Vector2(0, -96), "%s Lv.%d" % [r.name, cur + 1], Color(1.0, 0.9, 0.5), 16)
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "%s Lv.%d" % [r.name, cur + 1], Color(1.0, 0.9, 0.5), 16)
 		return
 	if r.tags.has("king"):
 		king_n += 1
@@ -187,42 +187,42 @@ func _on_gain(what: String, args: Dictionary) -> void:
 		"light":
 			# 扣灯火最低降到 10，不清零
 			g.lamp = clampf(g.lamp + amt, 10.0 if amt < 0.0 else 0.0, g.lamp_cap)
-			g._add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(amt), Color(1.0, 0.8, 0.45), 16)
 		"rejection":
 			var what2: String = g.doctor.apply_rejection()
-			g._show_banner("排异反应：%s" % what2)
+			g.vfx.show_banner("排异反应：%s" % what2)
 			g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(0.7, 0.4, 1.0)})
 			Sfx.play("roar", -6.0, 1.4, 0.0)
 		"recruit_knight":
 			g.knight_alive = true
-			g._show_banner("猎潮的骑士 加入了你的旅程")
+			g.vfx.show_banner("猎潮的骑士 加入了你的旅程")
 		"ingots":
 			g.ingots += int(amt)
-			g._add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
 		"heal":
 			# amount = 最大生命的比例
 			g.combat.heal(g.max_hp * amt, "藏品")
-			g._add_text(g.ppos + Vector2(0, -90), "生命 +%d%%" % int(amt * 100.0), Color(0.55, 1.0, 0.6), 16)
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "生命 +%d%%" % int(amt * 100.0), Color(0.55, 1.0, 0.6), 16)
 		"shield_fill":
 			if g.shield_max > 0:
 				g.shield = g.shield_max
 		"growth_pick":
 			g.pending_levelups += 1
-			g._show_banner("获得一次成长三选一")
+			g.vfx.show_banner("获得一次成长三选一")
 		"advance_class":
 			var cls: String = str(args.get("class", ""))
 			var o = _advance_target(cls)
 			if o == null:
 				g.pending_levelups += 1
-				g._show_banner("典训：没有可推进的%s干员，改为一次成长三选一" % cls)
+				g.vfx.show_banner("典训：没有可推进的%s干员，改为一次成长三选一" % cls)
 			else:
 				o.advance("")
-				g._show_banner("典训：%s 推进一个成长节点" % o.display_name())
+				g.vfx.show_banner("典训：%s 推进一个成长节点" % o.display_name())
 		"silver_seal":
 			_silver_seal()
 		"extra_slot":
 			g.squad.extra_slot = true
-			g._show_banner("编队上限 +1")
+			g.vfx.show_banner("编队上限 +1")
 		"contract":
 			_contract_start()
 
@@ -252,13 +252,13 @@ func _silver_seal() -> void:
 			while o.elite < 1 and not o.next_node().is_empty() and guard < 8:
 				o.advance("")
 				guard += 1
-			g._show_banner("博士银印：「%s」以精英一阶段加入编队" % o.display_name())
+			g.vfx.show_banner("博士银印：「%s」以精英一阶段加入编队" % o.display_name())
 			return
 	for o in g.squad.ops:
 		var n: Dictionary = o.next_node()
 		if not n.is_empty() and o.node_available(n):
 			o.advance("")
-	g._show_banner("博士银印：全队各推进一个成长节点")
+	g.vfx.show_banner("博士银印：全队各推进一个成长节点")
 
 
 ## 生还者合约：随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%
@@ -269,7 +269,7 @@ func _contract_start() -> void:
 	contract_op = o.id
 	g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + o.id)
 	g._sync_stats()
-	g._show_banner("生还者合约：%s 伤害 +20%%" % o.display_name())
+	g.vfx.show_banner("生还者合约：%s 伤害 +20%%" % o.display_name())
 
 
 ## stat 名 -> 属性块（core/stat_defs.gd）。add = 百分比加算；mult = 直接乘；flat = 直接加
@@ -357,7 +357,7 @@ func tick(dt: float) -> void:
 		if no_hurt_t >= 60.0:
 			no_hurt_t = 0.0
 			g.lamp = minf(100.0, g.lamp + 15.0)
-			g._add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +15", Color(0.5, 0.8, 1.0), 15)
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +15", Color(0.5, 0.8, 1.0), 15)
 	stun_all_cd -= dt
 	hurt_sp_cd -= dt
 	wrath_cd -= dt
@@ -441,8 +441,8 @@ func _explode_mine(mn: Dictionary) -> void:
 			if not e.boss:
 				e.kb += (e.pos - mn.pos).normalized() * 360.0
 	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
-	g._sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
-	g._shake(0.5)
+	g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+	g.vfx.shake_screen(0.5)
 	Sfx.play("boom", -6.0, 1.0, 0.05)
 
 
@@ -462,7 +462,7 @@ func _wrath_blast(p: Vector2) -> void:
 	var r := 130.0
 	_area("岁怒", p, r, Bal.v("relic/wrath_dmg", 30.0) * g.combat.enemy_hp_time_mult())
 	g.fx.append({"kind": "explode", "pos": p, "r": r, "life": 0.45, "max": 0.45, "col": Color(1.0, 0.45, 0.3)})
-	g._sparks(p, Vector2.ZERO, Color(1.0, 0.6, 0.35), 16, 280.0)
+	g.vfx.sparks(p, Vector2.ZERO, Color(1.0, 0.6, 0.35), 16, 280.0)
 	Sfx.play("boom", -8.0, 0.8, 0.05)
 
 
@@ -630,7 +630,7 @@ func on_hurt(src_corrode: bool) -> void:
 			if not e.dead and not e.chest and not e.boss:
 				e.stun = maxf(e.stun, 5.0)
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.7, "max": 0.7, "col": Color(1.0, 0.9, 0.6)})
-		g._show_banner("小格兰法洛：全场晕眩")
+		g.vfx.show_banner("小格兰法洛：全场晕眩")
 		Sfx.play("skill", -2.0, 0.7)
 
 
@@ -641,7 +641,7 @@ func on_death() -> bool:
 		g.hp = g.max_hp * 0.5
 		g.invuln = 2.0
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(1.0, 0.85, 0.5)})
-		g._show_banner("时光之末 —— 主控干员重新站了起来")
+		g.vfx.show_banner("时光之末 —— 主控干员重新站了起来")
 		Sfx.play("levelup", 0.0, 0.7)
 		return true
 	return false
@@ -654,7 +654,7 @@ func on_kill(e: Dictionary) -> void:
 	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and g.relics.has("261"):
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
 		g._sync_stats()
-		g._show_banner("生还者合约：伤害再 +20%")
+		g.vfx.show_banner("生还者合约：伤害再 +20%")
 
 
 ## 旧接口（水月伞击调用）：荣耀绶带已改为按描述符生效（hit_mult），这里恒为 1，避免重复加成

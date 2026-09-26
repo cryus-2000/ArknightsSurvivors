@@ -38,7 +38,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
 		Sfx.play("dodge", -4.0)
-		g._add_text(g.ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
+		g.vfx.add_text(g.ppos + Vector2(0, -80), "闪避", Color(0.6, 0.85, 1.0), 16)
 		on_dodge()
 		return
 	if g.shield > 0:
@@ -52,10 +52,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
 	if lamp_loss >= 6.0:
-		g._add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
+		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
 		g.corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
-		g._add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
+		g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
 		add_nerve(src.nerve * g.nerve_taken_mult)
 
@@ -73,7 +73,7 @@ func add_nerve(v: float) -> void:
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
 		hurt(g.max_hp * 0.08, true)
-		g._add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
+		g.vfx.add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
 		Sfx.play("skill", -4.0, 1.6)
 
 
@@ -95,18 +95,18 @@ func hurt(amount: float, ignore_armor := false) -> void:
 	g.red_flash = maxf(g.red_flash, 0.12 + 0.25 * sev)
 	g.hp_shake = 0.35
 	g.head_bar_t = 2.5
-	g._shake(0.55 + 0.8 * sev)
+	g.vfx.shake_screen(0.55 + 0.8 * sev)
 	g.hitstop = max(g.hitstop, 0.045 + 0.06 * sev)
 	Sfx.play("hurt", -1.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
-	g._sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
+	g.vfx.sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
 	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
-	g._add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
+	g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
 	# 首次跌破 30%：时间短暂变慢 + 警告
 	if g.hp > 0.0 and g.hp < g.max_hp * 0.3 and not low_warned:
 		low_warned = true
 		g.hitstop = max(g.hitstop, 0.35)
-		g._show_banner("生命垂危！")
+		g.vfx.show_banner("生命垂危！")
 	elif g.hp > g.max_hp * 0.45:
 		low_warned = false
 
@@ -131,7 +131,7 @@ func update_zone(dt: float) -> void:
 				g.zone_next_c = g.zone_c + off
 				g.zone_state = 1
 				g.zone_t = 0.0
-				g._show_banner("黑潮将至：%d 秒后安全区缩小" % 20)
+				g.vfx.show_banner("黑潮将至：%d 秒后安全区缩小" % 20)
 				Sfx.play("roar", -6.0, 0.5, 0.0)
 		1:
 			if g.zone_t >= 20.0:
@@ -139,7 +139,7 @@ func update_zone(dt: float) -> void:
 				g.zone_t = 0.0
 				zone_from_c = g.zone_c
 				zone_from_r = g.zone_r
-				g._show_banner("黑潮正在逼近！")
+				g.vfx.show_banner("黑潮正在逼近！")
 		2:
 			var k := clampf(g.zone_t / 25.0, 0.0, 1.0)
 			g.zone_c = zone_from_c.lerp(g.zone_next_c, k)
@@ -159,7 +159,7 @@ func update_zone(dt: float) -> void:
 			zone_hurt_t = 0.8
 			g.hurt_flash = maxf(g.hurt_flash, 0.08)
 			g.head_bar_t = 2.0
-			g._add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
+			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
 
 
 func in_zone(p: Vector2, margin := 0.0) -> bool:
@@ -174,7 +174,7 @@ func shield_block() -> void:
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
 		g.shield_cd = g.shield_every
 	Sfx.play("dodge", -2.0, 1.4, 0.0)
-	g._add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(0.6, 0.9, 1.0), 16)
+	g.vfx.add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(0.6, 0.9, 1.0), 16)
 	# 碎片
 	for k in 14:
 		g.fx.append({"kind": "shard", "pos": g.ppos + Vector2(0, -24), "vel": Vector2.from_angle(randf() * TAU) * randf_range(120, 260),
@@ -190,7 +190,7 @@ func shield_block() -> void:
 				if not e.boss:
 					e.kb += (e.pos - g.ppos).normalized() * 420.0
 		g.fx.append({"kind": "explode", "pos": g.ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
-		g._shake(0.6)
+		g.vfx.shake_screen(0.6)
 
 
 ## 这次伤害是否算「追击」（docs/35）
@@ -222,7 +222,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg *= 1.25
 	if e.invuln:
 		if g.texts.size() < 80 and g.vrng.randf() < 0.2:
-			g._add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
+			g.vfx.add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
 		return
 	if e.chest and e.hidden:
 		e.hidden = false
@@ -265,33 +265,33 @@ func damage(e: Dictionary, dmg: float) -> void:
 	e.squash = 0.14
 	if g.texts.size() < 80 and Cfg.dmg_numbers:
 		if g.crit_hit:
-			g._add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
+			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		elif weak_hit:
-			g._add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
+			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 		else:
-			g._add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+			g.vfx.add_text(e.pos + Vector2(g.rng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
 	# 圣徒装填时被打断
 	if e.get("channel", 0.0) > 0.0:
 		e.channel = 0.0
 		e.stun = 6.0
 		e.ammo = 0
 		e.ai = "melee"
-		g._add_text(e.pos + Vector2(0, -50), "装填被打断！", UI.GOLD, 20)
-		g._shake(0.5)
+		g.vfx.add_text(e.pos + Vector2(0, -50), "装填被打断！", UI.GOLD, 20)
+		g.vfx.shake_screen(0.5)
 	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
 	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
 		e.phase = 2
 		e.range = 400.0
 		e.weak = "物理"
 		e.dmg *= 1.2
-		g._show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
+		g.vfx.show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
 		Sfx.play("roar", 0.0, 1.2, 0.0)
 	# 掠海漂移体被控制后落地，改为近战
 	if e.get("hover_lost", false) == false and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
 		e.hover_lost = true
 		e.ai = "melee"
 		e.spd = 70.0
-		g._add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
+		g.vfx.add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
 		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
 		if e.type == "knight_boss" and e.phase == 1:
@@ -302,18 +302,18 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.channel = 1.5
 			e.stun = 0.0
 			e.kb = Vector2.ZERO
-			if not g._fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
+			if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-			g._show_banner("寒冰重生 —— 最后的骑士 第二阶段")
+			g.vfx.show_banner("寒冰重生 —— 最后的骑士 第二阶段")
 			Sfx.play("roar", 0.0, 0.9, 0.0)
-			g._shake(1.2)
+			g.vfx.shake_screen(1.2)
 			return
 		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead:
 			e.hp = 1.0
 			e.coma = true
 			e.invuln = true
 			e.stun = 0.0
-			g._add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
+			g.vfx.add_text(e.pos + Vector2(0, -50), "昏迷（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
 			return
 		kill(e)
 
@@ -335,14 +335,14 @@ func kill(e: Dictionary) -> void:
 	# 海嗣祭坛：打开事件选项
 	if e.chest and e.get("event", "") != "":
 		Sfx.play("relic", -2.0, 0.8)
-		g._sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
+		g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
 		g.fx.append({"kind": "rays", "pos": e.pos, "life": 0.7, "max": 0.7, "col": Color(0.5, 0.8, 1.0)})
 		g.endg.open(e.event)
 		return
 	# 补给箱被打碎
 	if e.chest:
 		Sfx.play("relic", -6.0, 1.3)
-		g._sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
+		g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
 		for k in g.rng.randi_range(3, 6):
 			g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(4.0, 18.0), "ingot", 1.0)
 		if g.rng.randf() < 0.3:
@@ -356,22 +356,22 @@ func kill(e: Dictionary) -> void:
 		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
 			hl.t80 = int(g.t) - hl.t
 	var col: Color = ECOL.get(e.type, Color(0.6, 0.9, 0.9))
-	g._sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
+	g.vfx.sparks(e.pos, Vector2.ZERO, col, 7, 160.0)
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.2, "life": 0.18, "max": 0.18, "col": col})
 	Sfx.play("kill", -8.0)
 	if e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
 		var dtx: Texture2D = g.tex[e.tex + "_death"]
 		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX)
-		g._fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * g.PX * 0.5), g.PX, 0.0)
-	elif not g._fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
-		g._anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
+		g.vfx.fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * g.PX * 0.5), g.PX, 0.0)
+	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
+		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
 	if e.elite:
 		g.elites_killed += 1
 	if e.elite or e.boss:
 		Sfx.play("boom", 0.0, 1.0, 0.0)
 		g.hitstop = max(g.hitstop, 0.12)
-		g._shake(1.0)
-		g._sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
+		g.vfx.shake_screen(1.0)
+		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)
 	if flesh_heal and e.evo:
 		heal(g.max_hp * 0.03, "藏品")

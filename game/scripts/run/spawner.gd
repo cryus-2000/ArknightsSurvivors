@@ -84,7 +84,7 @@ func update(dt: float) -> void:
 			# 结局二：骑士在原地重生为最终 Boss；若骑士已不在，则从边缘出现
 			if g.knight.alive:
 				base = g.knight.take_over()
-			g._show_banner("寒冰重生 —— 最后的骑士")
+			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
 		var spawned: Array = []
 		for k in group.size():
 			var b := spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
@@ -99,17 +99,17 @@ func update(dt: float) -> void:
 		var names: Array = []
 		for g_item in group:
 			names.append(D.ENEMIES[g_item].name)
-		g._show_banner("%s 出现了" % " 与 ".join(names))
+		g.vfx.show_banner("%s 出现了" % " 与 ".join(names))
 		Sfx.play("roar", 2.0, 0.7, 0.0)
 		Sfx.play_overlay("boss_in")
-		g._shake(1.2)
+		g.vfx.shake_screen(1.2)
 	# 威胁等级上升：横幅 + 刷一小波新种类
 	if g.threat < D.THREAT.size() - 1 and g.t >= D.THREAT[g.threat + 1].t:
 		g.threat += 1
 		var tr: Dictionary = D.THREAT[g.threat]
-		g._show_banner("威胁上升 · %s —— 新的海嗣浮现" % tr.name)
+		g.vfx.show_banner("威胁上升 · %s —— 新的海嗣浮现" % tr.name)
 		Sfx.play("roar", -1.0, 0.75, 0.0)
-		g._shake(0.8)
+		g.vfx.shake_screen(0.8)
 		var fresh: Array = tr.pool.filter(func(x): return not D.THREAT[g.threat - 1].pool.has(x))
 		if not fresh.is_empty():
 			for k in 6:
@@ -138,9 +138,9 @@ func update(dt: float) -> void:
 		if g.threat >= 4:
 			var et2 := pick_elite()
 			spawn_enemy(et2, edge_pos())
-			g._show_banner("精英「%s」与「%s」同时出现！" % [D.ENEMIES[et].name, D.ENEMIES[et2].name])
+			g.vfx.show_banner("精英「%s」与「%s」同时出现！" % [D.ENEMIES[et].name, D.ENEMIES[et2].name])
 		else:
-			g._show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
+			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
 	# 大群：Boss 在场时顺延（难度 7+ 不顺延）；9:30 之后不再刷（给最终 Boss 留空间）
 	var horde_ok: bool = (not boss_alive() or g.diff >= 7) and g.t < 570.0
@@ -153,7 +153,7 @@ func update(dt: float) -> void:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
-		g._shake(1.4)
+		g.vfx.shake_screen(1.4)
 		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
@@ -200,7 +200,7 @@ func update(dt: float) -> void:
 		g.merchant = {"pos": g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * 260.0, "life": 60.0, "near": false}
 		g.shop_items.clear()
 		g.shop_refreshed = false
-		g._show_banner("商人出现了 —— 去找他交易源石锭")
+		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭")
 		Sfx.play("relic", -4.0)
 
 
@@ -283,8 +283,8 @@ func reveal_mimic(e: Dictionary) -> void:
 		if k != "id":
 			e[k] = m[k]
 	e.flash = 0.2
-	g._show_banner("箱形恐鱼！")
-	g._add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
+	g.vfx.show_banner("箱形恐鱼！")
+	g.vfx.add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
 	Sfx.play("roar", -2.0, 1.3)
-	g._shake(0.6)
-	g._sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 14, 260.0)
+	g.vfx.shake_screen(0.6)
+	g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 14, 260.0)

@@ -57,7 +57,7 @@ func try_manual_skill() -> bool:
 		why = "生效中"
 	elif owner.has_method("away") and owner.away():
 		why = "暂时离场"
-	g._add_text(g.ppos + Vector2(0, -96), "%s %s" % [owner.skill_def(mi).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
+	g.vfx.add_text(g.ppos + Vector2(0, -96), "%s %s" % [owner.skill_def(mi).get("name", ""), why], Color(0.7, 0.75, 0.85), 14)
 	Sfx.play("ui_move", -8.0, 0.7)
 	return true
 

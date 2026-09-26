@@ -64,8 +64,8 @@ func leave() -> void:
 		return
 	alive = false
 	g.knight_alive = false
-	g._show_banner("骑士无法接受海嗣的气息 —— 他离开了")
-	g._sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
+	g.vfx.show_banner("骑士无法接受海嗣的气息 —— 他离开了")
+	g.vfx.sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
 	if not g.relics.has("223"):
 		g.progression.gain_relic("223")
 
@@ -79,11 +79,11 @@ func die() -> void:
 	g.knight_alive = false
 	var foot: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * g.PX)
 	if g.tex.get("e_knight_death") != null:
-		g._fx_sprite("e_knight_death", foot + Vector2(0, -(80.0 - 3.0) * g.PX * 0.5), g.PX, 0.0)
-	g._sparks(pos, Vector2.ZERO, Color(0.7, 0.85, 1.0), 16, 220.0)
-	g._show_banner("骑士倒下了 —— 罗辛南特退行，黑潮中出现了敌对的骑士")
+		g.vfx.fx_sprite("e_knight_death", foot + Vector2(0, -(80.0 - 3.0) * g.PX * 0.5), g.PX, 0.0)
+	g.vfx.sparks(pos, Vector2.ZERO, Color(0.7, 0.85, 1.0), 16, 220.0)
+	g.vfx.show_banner("骑士倒下了 —— 罗辛南特退行，黑潮中出现了敌对的骑士")
 	Sfx.play("boom", -2.0, 0.8, 0.0)
-	g._shake(0.8)
+	g.vfx.shake_screen(0.8)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = false
 	if not g.relics.has("223"):
@@ -95,7 +95,7 @@ func walk_to_center(target: Vector2) -> void:
 	if alive and state != "walk":
 		state = "walk"
 		walk_to = target
-		g._show_banner("骑士走向了黑潮中心……")
+		g.vfx.show_banner("骑士走向了黑潮中心……")
 
 
 ## 10:00：在骑士所在处重生为 Boss；返回生成位置
@@ -103,10 +103,10 @@ func take_over() -> Vector2:
 	var p: Vector2 = pos
 	alive = false
 	# knight_alive 保持 true：结局判定（requires flag）在 Boss 战期间不能回退
-	if not g._fx_sprite("fx_knight_rebirth", pos + Vector2(0, -20), g.PX * 1.4, 0.0):
+	if not g.vfx.fx_sprite("fx_knight_rebirth", pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 		g.fx.append({"kind": "ring", "pos": pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-	g._sparks(pos, Vector2.ZERO, Color(0.7, 0.9, 1.4), 24, 260.0)
-	g._shake(1.2)
+	g.vfx.sparks(pos, Vector2.ZERO, Color(0.7, 0.9, 1.4), 24, 260.0)
+	g.vfx.shake_screen(1.2)
 	return p
 
 
@@ -171,7 +171,7 @@ func update(dt: float) -> void:
 				g.combat.damage(e, 45.0 * lvm * g.dmg_mult)
 				if not e.dead:
 					e.kb += dash_dir * 260.0
-				g._sparks(e.pos, dash_dir, Color(0.7, 0.9, 1.4), 5, 160.0)
+				g.vfx.sparks(e.pos, dash_dir, Color(0.7, 0.9, 1.4), 5, 160.0)
 			if st >= CHARGE_T:
 				state = "stab"
 				st = 0.0
@@ -192,7 +192,7 @@ func update(dt: float) -> void:
 						ang = (ne.pos - pos).angle()
 				face = signf(cos(ang)) if absf(cos(ang)) > 0.05 else face
 				var tip: Vector2 = pos + Vector2.from_angle(ang) * 46.0
-				if not g._fx_sprite("fx_knight_impact", tip, g.PX, 0.0):
+				if not g.vfx.fx_sprite("fx_knight_impact", tip, g.PX, 0.0):
 					g.fx.append({"kind": "ring", "pos": tip, "r": 30.0, "life": 0.25, "max": 0.25, "col": Color(0.7, 0.9, 1.4)})
 				for e in g.enemies_sys.arc_hit(pos, ang, 0.9, 92.0):
 					if e.chest:
@@ -247,13 +247,13 @@ func update(dt: float) -> void:
 	if state in ["idle", "wind"] and hp < maxhp * 0.3 and low_armed:
 		state = "retreat"
 		retreat_t = 6.0
-		g._add_text(pos + Vector2(0, -60), "骑士退到了你身后", Color(0.7, 0.85, 1.0), 14)
+		g.vfx.add_text(pos + Vector2(0, -60), "骑士退到了你身后", Color(0.7, 0.85, 1.0), 14)
 
 
 func _hurt(v: float) -> void:
 	hp -= v
 	flash = 0.1
-	g._sparks(pos + Vector2(0, -24), Vector2.UP, Color(0.7, 0.85, 1.0), 3, 160.0)
+	g.vfx.sparks(pos + Vector2(0, -24), Vector2.UP, Color(0.7, 0.85, 1.0), 3, 160.0)
 
 
 func heal(v: float) -> void:
@@ -308,16 +308,16 @@ func draw() -> void:
 		g.draw_line(pos, pos + dash_dir * CHARGE_SPD * CHARGE_T, Color(0.8, 0.5, 1.4, 0.2 + 0.3 * k), 10.0 * k + 2.0)
 		g.draw_line(pos, pos + dash_dir * CHARGE_SPD * CHARGE_T * k, Color(1.2, 0.8, 2.0, 0.8), 2.0)
 	if state == "charge":
-		g._sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 1, 90.0)
+		g.vfx.sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 1, 90.0)
 	if Cfg.outline and g.tex.has(name + "_white"):
 		for d in [Vector2(g.PX, 0), Vector2(-g.PX, 0), Vector2(0, g.PX), Vector2(0, -g.PX)]:
-			g._spr(name + "_white", frames, frame, bpos + d, g.PX, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
+			g.vfx.spr(name + "_white", frames, frame, bpos + d, g.PX, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
 	var col := Color.WHITE
 	if state == "retreat":
 		col = Color(0.8, 0.85, 0.95, 0.85)
-	g._spr(name, frames, frame, bpos, g.PX, flip, col, anc)
+	g.vfx.spr(name, frames, frame, bpos, g.PX, flip, col, anc)
 	if flash > 0.0 and g.tex.has(name + "_white"):
-		g._spr(name + "_white", frames, frame, bpos, g.PX, flip, Color(1, 1, 1, 0.9), anc)
+		g.vfx.spr(name + "_white", frames, frame, bpos, g.PX, flip, Color(1, 1, 1, 0.9), anc)
 	# 血条
 	var w := 56.0
 	var top: Vector2 = pos + Vector2(-w / 2.0, -R - 46.0)

@@ -113,8 +113,22 @@ def _balance(s):
 def locals_of(src):
     """函数（含 lambda）里的局部名：参数、var、const、for 变量"""
     loc = set()
-    for m in re.finditer(r'\bfunc\b\s*[A-Za-z_]*\s*\(([^)]*)\)', src):
-        for p in m.group(1).split(","):
+    for m in re.finditer(r'\bfunc\b\s*[A-Za-z_]*\s*\(', src):
+        # 按括号配对取参数表（默认值里可能有 Vector2(0.5, 0.5) 之类）
+        i, depth, cur, params = m.end(), 1, "", []
+        while i < len(src) and depth > 0:
+            c = src[i]
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth -= 1
+            if depth == 1 and c == ",":
+                params.append(cur); cur = ""
+            elif depth > 0:
+                cur += c
+            i += 1
+        params.append(cur)
+        for p in params:
             mm = re.match(r'\s*([A-Za-z_]\w*)\s*(?::|=|$)', p)
             if mm:
                 loc.add(mm.group(1))
@@ -123,6 +137,9 @@ def locals_of(src):
     for m in re.finditer(r'\bfor\s+([A-Za-z_]\w*)\s*(?::\s*\w+\s*)?in\b', src):
         loc.add(m.group(1))
     return loc
+
+
+GAME_CONSTS = set()
 
 
 def rewrite(src, members, local, moved_names, rename, unknown, allow_self=True):
@@ -147,6 +164,8 @@ def rewrite(src, members, local, moved_names, rename, unknown, allow_self=True):
                 out.append(t)
             elif t in moved_names:
                 out.append(rename.get(t, t))
+            elif t in GAME_CONSTS and t in members:
+                out.append("Game." + t)   # 常量 / 枚举走脚本类：参数默认值里也合法
             elif t in members or t in INHERITED:
                 out.append("g." + t)
             elif t in BUILTIN or t[0].isupper():
@@ -171,6 +190,7 @@ def main():
     lines = raw.replace("\r\n", "\n").split("\n")
     blocks = top_blocks(lines)
     members = {b[1] for b in blocks if b[0] in ("var", "const", "func", "enum", "signal")}
+    GAME_CONSTS.update(b[1] for b in blocks if b[0] in ("const", "enum"))
     preload_consts = {}
     for b in blocks:
         if b[0] == "const":

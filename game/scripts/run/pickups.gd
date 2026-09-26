@@ -48,9 +48,9 @@ func update(dt: float) -> void:
 					g_item.landed = true
 					var lc := item_col(g_item.kind)
 					g.fx.append({"kind": "ring", "pos": g_item.pos, "r": 34.0, "life": 0.4, "max": 0.4, "col": lc})
-					g._sparks(g_item.pos, Vector2.ZERO, lc, 10, 160.0)
+					g.vfx.sparks(g_item.pos, Vector2.ZERO, lc, 10, 160.0)
 					if g_item.kind != "chest":
-						g._add_text(g_item.pos + Vector2(0, -34), item_name(g_item.kind), lc, 15)
+						g.vfx.add_text(g_item.pos + Vector2(0, -34), item_name(g_item.kind), lc, 15)
 					Sfx.play("pickup", -8.0, 0.7, 0.0)
 				g_item.vz = -g_item.vz * 0.35 if g_item.vz < -60.0 else 0.0
 				if g_item.vz == 0.0:
@@ -73,13 +73,13 @@ func update(dt: float) -> void:
 				"xp":
 					gain_xp(g_item.val)
 					g.xp_flash = 0.3
-					g._sparks(g.ppos + Vector2(0, -22), Vector2.ZERO, UI.CYAN if g_item.val < 5.0 else Color(0.85, 0.6, 1.0), 3 if g_item.val < 5.0 else 7, 150.0)
+					g.vfx.sparks(g.ppos + Vector2(0, -22), Vector2.ZERO, UI.CYAN if g_item.val < 5.0 else Color(0.85, 0.6, 1.0), 3 if g_item.val < 5.0 else 7, 150.0)
 					Sfx.play("pickup", -14.0, 1.0 + min(g.xp / g.xp_need, 1.0) * 0.4, 0.03)
 				"oil":
 					var add: float = g_item.val * g.oil_mult
 					g.lamp = min(g.lamp_cap, g.lamp + add)
 					Sfx.play("oil", -4.0)
-					g._add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
+					g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
 				"chest":
 					g.pending_chests += 1
 				"ingot":
@@ -91,14 +91,14 @@ func update(dt: float) -> void:
 						if not o.dead and (o.kind == "xp" or o.kind == "oil" or o.kind == "ingot"):
 							o.mag = true
 					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 420.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.45, 0.5)})
-					g._add_text(g.ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
+					g.vfx.add_text(g.ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
 					Sfx.play("relic", -4.0, 1.2, 0.0)
 				"heal":
 					var hv := g.max_hp * 0.3
 					g.combat.heal(hv, "事件")
 					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
-					g._sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
-					g._add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
+					g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
+					g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
 					Sfx.play("relic", -4.0, 1.5, 0.0)
 
 
@@ -139,7 +139,7 @@ func levelup_fx() -> void:
 	g.invuln = max(g.invuln, 0.9)
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
-	g._sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
+	g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
 	for e in g.enemies_sys.query(g.ppos, 170.0):
 		var en: Dictionary = g.enemies[e]
 		if en.boss or en.chest:

@@ -20,7 +20,7 @@ func update(dt: float) -> void:
 	# 离开前 15 秒提醒一次（横幅 + 音效），之后倒计时变红闪烁
 	if g.merchant.life <= 15.0 and not g.merchant.get("warned", false):
 		g.merchant.warned = true
-		g._show_banner("商人 15 秒后离开 —— 还没交易就快去")
+		g.vfx.show_banner("商人 15 秒后离开 —— 还没交易就快去")
 		Sfx.play("ui_move", -2.0, 0.8)
 	g.merchant_light.visible = true
 	g.merchant_light.position = g.merchant.pos + Vector2(10, -10)
@@ -32,7 +32,7 @@ func update(dt: float) -> void:
 		g.merchant.near = false
 	if g.merchant.life <= 0.0 and g.state == g.S.PLAY:
 		g.merchant = {}
-		g._show_banner("商人离开了")
+		g.vfx.show_banner("商人离开了")
 
 
 ## 商人倒计时颜色：最后 15 秒红色闪烁
@@ -124,7 +124,7 @@ func close() -> void:
 	Sfx.play("ui_ok", -4.0)
 	# 交易过就离开，避免走回去反复触发；等下一次出现
 	if not g.merchant.is_empty() and g.merchant.get("bought", false):
-		g._sparks(g.merchant.pos, Vector2.UP, UI.GOLD, 12, 160.0)
+		g.vfx.sparks(g.merchant.pos, Vector2.UP, UI.GOLD, 12, 160.0)
 		g.merchant = {}
 		g.shop_items.clear()
-		g._show_banner("商人收好源石锭，离开了")
+		g.vfx.show_banner("商人收好源石锭，离开了")

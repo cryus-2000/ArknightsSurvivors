@@ -40,7 +40,7 @@ func update(dt: float) -> void:
 		if dl >= 3 and drone_rescue_cd <= 0.0 and g.hp < g.max_hp * 0.4 and i == 0:
 			drone_rescue_cd = 25.0
 			drone_heal(dr, g.max_hp * 0.06, dl >= 5)
-			g._add_text(g.ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
+			g.vfx.add_text(g.ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
 
 
 func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
@@ -48,9 +48,9 @@ func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
 	if cure:
 		g.nerve = 0.0
 	dr.beam = 0.35
-	g._add_text(g.ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
+	g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
 	g.fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})
-	if not g._fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.1, 0.0, false, true):
+	if not g.vfx.fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.1, 0.0, false, true):
 		for k in 4:
 			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-18, 18), randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": randf_range(3.0, 4.5)})
 	Sfx.play("pickup", -14.0, 1.4, 0.05)
@@ -136,7 +136,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			# 狙击：命中流血；扼喉之手处决
 			g.combat.damage(e, b.dmg)
 			if g.rfx.sniper_execute(e, g.hit):
-				g._add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
+				g.vfx.add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
 				g.combat.hit("真实")
 				g.combat.damage(e, e.hp + 1.0)
 			if not e.dead:
@@ -146,7 +146,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				g.fx.append({"kind": "spark", "pos": e.pos, "vel": b.vel.normalized().rotated(randf_range(-0.7, 0.7)) * randf_range(80, 220),
 					"sz": 3.0, "life": 0.4, "max": 0.4, "col": Color(0.85, 0.08, 0.12)})
 			g.fx.append({"kind": "blood", "pos": e.pos + Vector2(0, e.r * 0.6), "life": 2.5, "max": 2.5, "seed": randf() * 10.0})
-			g._fx_sprite("fx_arrow_hit", e.pos, g.PX, b.vel.angle())
+			g.vfx.fx_sprite("fx_arrow_hit", e.pos, g.PX, b.vel.angle())
 			if b.get("pierce", false):
 				if not b.has("hit_ids"):
 					b["hit_ids"] = {}
@@ -165,7 +165,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
 			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈；干员配色（fx_col）走程序爆炸
 			var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
-			if not b.has("fx_col") and g._fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
+			if not b.has("fx_col") and g.vfx.fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
 				g.fx[-1]["ring"] = b.aoe
 			else:
 				g.fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc})
@@ -190,9 +190,9 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 						g.combat.damage(o, b.dmg)
-			if b.has("fx_col") or not g._fx_sprite("fx_arcane_hit", e.pos):
+			if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
-			g._sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
+			g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
 			if b.has("op"):
 				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
@@ -201,9 +201,9 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			g.combat.damage(e, b.dmg)
 			if b.get("push", false) and not e.boss and not e.dead:
 				e.kb += b.vel.normalized() * 220.0
-			if not g._fx_sprite("fx_tide_hit", e.pos):
+			if not g.vfx.fx_sprite("fx_tide_hit", e.pos):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 20.0, "life": 0.25, "max": 0.25, "col": Color(0.45, 0.8, 1.0)})
-			g._sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 2, 160.0)
+			g.vfx.sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 2, 160.0)
 			b.hit[e.id] = true
 			b.bounces -= 1
 			if b.bounces < 0:
@@ -227,6 +227,6 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			Sfx.play("pickup", -16.0, 1.8, 0.1)
 		_:
 			g.combat.damage(e, b.dmg)
-			if not g._fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
-				g._sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
+			if not g.vfx.fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
+				g.vfx.sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
 			b.life = 0.0
