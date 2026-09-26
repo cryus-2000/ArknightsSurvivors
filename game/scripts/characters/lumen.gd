@@ -17,6 +17,7 @@ var immune_t := 0.0            # S1：免疫神经损伤剩余
 var guiding := false           # S2 领航灯（永久）
 var tower_t := 0.0             # S3 灯塔剩余
 var tower_pos := Vector2.INF
+var tower_side := 1.0          # 灯塔贴图在主控哪一侧（-1..1，平滑跟随 g.facing）
 var tower_tick := 0.0
 var bolts: Array = []          # 光弹：{pos, vel, dmg, life, src, big, heal}
 var mote_t := 0.0
@@ -221,8 +222,9 @@ func _update_tower(dt: float) -> void:
 	if tower_t <= 0.0:
 		return
 	tower_t -= dt
-	# 随行：光域中心平滑跟到主控干员脚下
+	# 随行：光域中心平滑跟到主控干员脚下；灯塔贴图在主控身后一侧，转身时约 0.4 秒平滑换边（docs/45 #9）
 	tower_pos = tower_pos.lerp(g.ppos, clampf(dt * 10.0, 0.0, 1.0))
+	tower_side = move_toward(tower_side, g.facing, dt * 5.0)
 	var r: float = base("s3_r", 220.0)
 	if _in_tower(g.ppos):
 		g.corrode_pool = 0.0
@@ -347,7 +349,7 @@ func _beam_on() -> bool:
 
 ## 光束的中心：有灯塔用灯塔，否则主控
 func _beam_origin() -> Vector2:
-	return tower_pos if tower_t > 0.0 and tower_pos != Vector2.INF else g.ppos
+	return _tower_sprite_pos() if tower_t > 0.0 and tower_pos != Vector2.INF else g.ppos   # 灯塔在场时光束从灯塔下方发出
 
 
 ## 灯塔光束的方向（地面透视：y × 0.55）
@@ -510,7 +512,7 @@ func _lamp_hand() -> Vector2:
 
 ## 悬浮灯塔贴图的脚底位置（光域中心 tower_pos 在主控脚下，贴图画在身后一侧）
 func _tower_sprite_pos() -> Vector2:
-	return tower_pos + Vector2(-40.0 * g.facing, -8.0 + 3.0 * sin(g.t * 2.4))
+	return tower_pos + Vector2(-40.0 * tower_side, -8.0 + 3.0 * sin(g.t * 2.4))
 
 
 ## 灯室中心（prop_lighthouse@2x 第 1 帧量得：脚底正上方 83）

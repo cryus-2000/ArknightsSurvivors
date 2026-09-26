@@ -109,7 +109,8 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 	var sc: float = r * 1.15 / 40.0
 	if half >= PI - 0.01:
 		name = "fx_slash_circle_deep"
-		sc = r * 2.0 / 66.0
+		sc = r * 2.0 / 66.0 * 0.8
+		tint.a = 0.45   # 潮汐 8 秒几乎每刀都是整圈，原来近乎不透明的大圆盘一直盖住人（docs/45 #4）
 	elif half > 1.6:
 		name = "fx_slash_heavy_deep"
 		sc = r * 1.2 / 28.0

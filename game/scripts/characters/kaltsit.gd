@@ -6,7 +6,7 @@
 extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
-const CRIMSON := Color(1.0, 0.12, 0.16)   # 熔毁（照原作：Mon3tr 整体变猩红）
+const MELT := Color(0.45, 1.5, 0.6)   # 熔毁的特效色（2026-09-26 用户定：不再猩红，配合新帧条的绿色裂隙）
 const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
 const M_REACH := 93.0         # 爪击半径（基础）
 const S3_DUR := 8.0
@@ -137,7 +137,7 @@ func _release_skill() -> void:
 		2:
 			melt = S3_DUR
 			_mon3tr_burst()
-			float_text(m.pos + Vector2(0, -70), "熔毁", CRIMSON, 16)
+			float_text(m.pos + Vector2(0, -70), "熔毁", MELT, 16)
 
 
 func _mon3tr_burst() -> void:
@@ -175,9 +175,9 @@ func _update_mon3tr(dt: float) -> void:
 		if glow_t <= 0.0:
 			glow_t = 0.07
 			if melt > 0.0:
-				# 熔毁：周身红雾团 + 红色飞线
-				fx({"kind": "glow", "pos": m.pos + Vector2(g.rng.randf_range(-26, 26), g.rng.randf_range(-46, -4)), "r": g.rng.randf_range(10.0, 18.0), "life": 0.5, "col": CRIMSON, "alpha": 0.3})
-				fx({"kind": "line", "pos": m.pos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-44, 0)), "to": m.pos + Vector2(g.rng.randf_range(-50, 50), g.rng.randf_range(-70, -10)), "life": 0.15, "col": CRIMSON, "w": 1.5})
+				# 熔毁：周身绿雾团 + 飞线
+				fx({"kind": "glow", "pos": m.pos + Vector2(g.rng.randf_range(-26, 26), g.rng.randf_range(-46, -4)), "r": g.rng.randf_range(10.0, 18.0), "life": 0.5, "col": MELT, "alpha": 0.3})
+				fx({"kind": "line", "pos": m.pos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-44, 0)), "to": m.pos + Vector2(g.rng.randf_range(-50, 50), g.rng.randf_range(-70, -10)), "life": 0.15, "col": MELT, "w": 1.5})
 			else:
 				fx({"kind": "mote", "pos": m.pos + Vector2(g.rng.randf_range(-22, 22), g.rng.randf_range(-40, 0)), "vel": Vector2(0, -50), "life": 0.5, "col": GREEN, "sz": 2.0})
 		if ghost.is_empty() or ghost.t <= 0.0:
@@ -263,16 +263,18 @@ func _m_claw(mult: float, second: bool) -> void:
 		var dmg: float = _m_dmg() * mult * (1.0 if i == 0 else base("m_back_mult", 0.7))
 		var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, half, _m_reach() + 16.0, dmg, 120.0)
 		any = any or not hits.is_empty()
+		if i > 0 and hits.is_empty():
+			continue   # 背后一爪没打到敌人时不画（刀光会正好盖在凯尔希和博士身上，docs/45 #6）
 		if melt > 0.0:
-			# 照原作：熔毁期间一整道巨大的猩红月牙斩；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
+			# 熔毁期间一整道巨大的月牙斩（原作猩红，本作按用户定改熔毁绿）；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
 			var sw: float = -m_swing if second else m_swing
 			var R: float = _m_reach() * 1.25
 			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
-				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": CRIMSON})
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(1.0, 0.45, 0.4)})
+				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
+			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(0.75, 1.5, 0.8)})
 			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
-			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": CRIMSON})
-			fx_sparks(hp, Color(1.6, 0.4, 0.4), 7, 240.0, 0.28, 2.5)
+			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": MELT})
+			fx_sparks(hp, Color(0.8, 1.7, 0.9), 7, 240.0, 0.28, 2.5)
 		else:
 			# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
 			# 第二爪：爪痕旋转约 60°，与第一爪交叉
@@ -290,7 +292,7 @@ func _m_claw(mult: float, second: bool) -> void:
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
-	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": CRIMSON if melt > 0.0 else GREEN, "alpha": 0.55})
+	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": MELT if melt > 0.0 else GREEN, "alpha": 0.55})
 
 
 func _meltdown() -> void:
@@ -582,7 +584,7 @@ func _draw_skill_over() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if melt > 0.0:
-		out.append(["熔毁", CRIMSON])
+		out.append(["熔毁", MELT])
 	if guard_t > 0.0:
 		out.append(["庇护", GREEN])
 	if shell_t > 0.0:

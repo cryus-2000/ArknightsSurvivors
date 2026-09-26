@@ -255,6 +255,8 @@ func _update_lock(dt: float) -> void:
 		lock_n += 1
 		var ramp: float = lerpf(1.0, base("s1_max", 3.0), clampf(lock_n / 12.0, 0.0, 1.0))
 		log_hit("提喻")
+		if not acting():
+			face_to((lock_e.pos - pos).angle())   # 射线从笔尖出发，先转向锁定目标（docs/45 #10）
 		deal_damage(lock_e, _atk() * base("s1_tick_mult", 0.5) * ramp * skill_power())
 		lock_e.slow = maxf(lock_e.slow, 0.6 * ramp)
 		fx({"kind": "line", "pos": _pen_tip(), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})

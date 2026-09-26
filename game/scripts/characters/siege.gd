@@ -84,18 +84,8 @@ func update(dt: float) -> void:
 	if acting():
 		return
 	var ready := charge_skills(dt)
-	if ready == 0:
-		spend_sp(0)
-		charge_next = true
-		g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
-		_sp_motes(2)
-		fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
-		float_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
-		if king_on:
-			_command_wave()
-		return
-	if ready > 0:
-		start_skill(Vector2.INF, ready)
+	if ready >= 0:
+		start_skill(Vector2.INF, ready)   # S1 也走 start_skill：播 command 帧条（docs/45 #1），效果在出手帧结算
 		return
 	if cd <= 0.0:
 		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
@@ -161,6 +151,15 @@ func _release_skill() -> void:
 		_release()
 		return
 	match cur_skill:
+		0:
+			# 冲锋号令：下一锤强化 + 全队技力
+			charge_next = true
+			g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
+			_sp_motes(2)
+			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
+			float_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
+			if king_on:
+				_command_wave()
 		1:
 			# 跃空锤（照原作）：跃起、空中抡锤转一圈，落地砸击（_slam）；再跃：落地后还有一跳
 			leap_n = 1 if leap2_on else 0
