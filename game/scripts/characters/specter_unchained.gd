@@ -316,7 +316,7 @@ func _update_doll(dt: float) -> void:
 	doll_t -= dt
 	doll_at += dt
 	# 替身跟随主控干员（用户定：不原地停留），站在主控身后一侧
-	var want: Vector2 = g.ppos + Vector2(-46.0 * g.facing, 8.0)
+	var want: Vector2 = g.ppos + Vector2(-46.0 * g.squad.side, 8.0)   # 随编队平滑换边，不再随主控转身瞬间横穿
 	doll_pos = doll_pos.lerp(want, clampf(dt * 4.0, 0.0, 1.0))
 	# N5 阿戈尔挽歌：替身唱挽歌，每 0.8 秒一圈水纹从脚下外扩到减速范围边缘
 	if elegy:

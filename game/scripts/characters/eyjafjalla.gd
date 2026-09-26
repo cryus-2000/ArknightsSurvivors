@@ -170,7 +170,8 @@ func skill_pending(i: int) -> bool:
 ## sz：弹体大小倍率（三重咏唱的后两发 1.5 倍，复咏的第二发 0.85 倍）
 func _cast(from: Vector2, target: Vector2, base_dmg: float, aoe: float, src: String, burn: bool, weak: float, sz := 1.0) -> void:
 	var d: Vector2 = (target - from).normalized()
-	face = signf(d.x) if absf(d.x) > 0.01 else face
+	if absf(d.x) > 0.01:
+		_set_face(signf(d.x))   # 走转向防抖（原来直接写 face，绕过了防抽搐）
 	g.bullets.append({"kind": "fire", "pos": from, "vel": d * 360.0, "dmg": base_dmg * _dmg_bonus(), "life": 1.3, "r": 8.0 * sz,
 		"aoe": aoe, "src": src, "op": id, "on_hit": self, "burn": burn, "weak": weak, "fx_col": ORANGE, "hidden": true, "etrail": 0.0, "sz": sz})
 	Sfx.op(id, "atk")

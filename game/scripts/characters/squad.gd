@@ -14,6 +14,7 @@ const DEMO_SLOT := Vector2(44, -6)
 var g
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
+var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
 
 
 func _init(game) -> void:
@@ -120,7 +121,7 @@ func _slot_offset(i: int) -> Vector2:
 	if g.demo_op != "":
 		return DEMO_SLOT   # 图鉴演示：站在主控前方（朝右侧怪海），重置后不用先走回身后
 	var o: Vector2 = SLOTS[mini(i, SLOTS.size() - 1)]
-	return Vector2(o.x * g.facing, o.y)
+	return Vector2(o.x * side, o.y)
 
 
 ## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；每名干员至多 1 个手动技能（契约 v2.2，按 Q / J 由 doctor.try_manual_skill 路由）
@@ -143,6 +144,7 @@ func validate_squad() -> bool:
 # ---------------------------------------------------------------- 每帧
 
 func update(dt: float) -> void:
+	side = move_toward(side, g.facing, dt * 2.5)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	for o in ops:

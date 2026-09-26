@@ -851,10 +851,12 @@ func follow(dt: float, target: Vector2) -> void:
 			pos = g.map.push_out(pos, 10.0)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
-	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
+	var sp_now: float = vel.length()
+	mv = lerpf(mv, sp_now, clampf(dt * (10.0 if sp_now > mv else 20.0), 0.0, 1.0))   # 停下衰减快一倍，不再停住后多跑 0.15–0.27 秒
 	if attack_t <= 0.0:
 		if absf(vel.x) > 25.0 and mv > 30.0:
-			_set_face(signf(vel.x), is_leader)   # 主控跟着玩家移动即时转身
+			# 主控跟着玩家移动即时转身；队友明显横向移动（> 90）时也即时转，不再倒着跑
+			_set_face(signf(vel.x), is_leader or absf(vel.x) > 90.0)
 		elif mv < 20.0 and g.t - face_flip_t > FACE_IDLE:
 			_set_face(g.facing)   # 站定回正：离上次翻身满 FACE_IDLE 秒才回，免得出手转向后立刻翻回来
 	attack_t = maxf(0.0, attack_t - dt)
@@ -871,12 +873,17 @@ func follow(dt: float, target: Vector2) -> void:
 	var want := "idle"
 	if attack_t > 0.0 and anim_tex(act_anim) != null:
 		want = act_anim
-	elif mv > 30.0 and anim_tex("run") != null:
-		want = "run"
+	elif mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER) and anim_tex("run") != null:
+		want = "run"   # 跑 / 停加滞回：起跑 RUN_ENTER、停下 RUN_EXIT，不在两者间来回闪
 	if want != anim_kind:
+		if want == "run" and anim_kind == "idle":
+			run_ph = 0.0   # 只有从站立起跑才从第 0 帧开始；出手结束接着原来的跑步相位（原来每次从头，6 帧循环播不完）
 		anim_kind = want
 		anim_t = 0.0
 	anim_t += dt
+	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
+	if anim_kind == "run":
+		run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手
@@ -922,7 +929,8 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	attack_dur = dur
 	attack_t = dur
 	fire_t = fire_at
-	anim_kind = ""
+	anim_kind = act_anim   # 直接切到出手帧条（原来置空，同帧 anim_state 退回待机，每次起手闪一帧）
+	anim_t = 0.0
 
 
 ## 出手（到出手帧时调用；重新找目标，动作期间原目标可能已死）
@@ -1086,9 +1094,38 @@ func anim_state() -> Dictionary:
 	match kind:
 		"attack", "skill":
 			fr = clampi(int(anim_t / attack_dur * n), 0, n - 1)
+		"run":
+			fr = int(run_ph) % n
 		_:
 			fr = int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n
 	return {"tex": tx, "frame": fr, "hf": n, "flip": face < 0.0, "kind": kind}
+
+
+## 跑步帧率缩放（2026-09-27）：帧条按 RUN_REF 移速画，实际速度按比例加快 / 放慢
+const RUN_REF := 150.0
+const RUN_K_MIN := 0.6
+const RUN_K_MAX := 3.0
+const RUN_ENTER := 40.0
+const RUN_EXIT := 20.0
+var run_ph := 0.0
+
+
+## 横向脚底锚点（2026-09-27）：帧条渲染按帧宽居中；foot[0]（1x 像素，该贴图槽的 foot，否则 def.sprites.foot）偏离帧中心时
+## 把画的位置反向挪回去，让各动作的脚都落在 pos 上（run / idle 重心不同造成的跑停、转身横跳）。foot[0] = 帧宽 / 2 时为 0
+func foot_dx(st: Dictionary, flip = null) -> float:
+	var tx: Texture2D = st.get("tex")
+	if tx == null:
+		return 0.0
+	var kind: String = st.get("kind", "")
+	var spec := sprite_spec(kind) if kind != "" else {}
+	var ft = spec.get("foot", def.get("sprites", {}).get("foot", null))
+	if not (ft is Array) or ft.size() < 1:
+		return 0.0
+	var hires: float = A.hires_of(tx)
+	var fw: float = float(tx.get_width()) / float(maxi(1, int(st.get("hf", 1))))
+	var off: float = float(ft[0]) * hires - fw / 2.0   # 脚在帧内相对中心的偏移（贴图像素）
+	var fl: bool = st.get("flip", false) if flip == null else bool(flip)
+	return -off * (g.PX / hires) * (-1.0 if fl else 1.0)
 
 
 ## 脚底锚点在帧内的位置（该贴图槽的 foot，否则 def.sprites.foot，默认帧底部上方 2px）
@@ -1113,10 +1150,10 @@ func draw_body() -> void:
 	var c: Color = col().lerp(Color.WHITE, 0.35)
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
-		draw_sprite_at(gh.p, gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
-	draw_sprite_at(pos, st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(pos + Vector2(foot_dx(st), 0), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。
@@ -1146,4 +1183,4 @@ func draw_body_at(p: Vector2, flip: bool, col: Color, st: Dictionary = {}) -> vo
 		st = anim_state()
 	if st.is_empty():
 		return
-	draw_sprite_at(p, flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(p + Vector2(foot_dx(st, flip), 0), flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))

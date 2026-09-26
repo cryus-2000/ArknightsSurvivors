@@ -167,6 +167,14 @@ func _m_reach() -> float:
 	return base("m_reach", M_REACH) * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
 
 
+## Mon3tr 转向防抖：距上次翻身至少 FACE_MIN 秒（同干员本体）
+func _m_set_face(want: float) -> void:
+	if want == 0.0 or want == m.face or g.t - float(m.get("flip_t", -99.0)) < FACE_MIN:
+		return
+	m.face = want
+	m["flip_t"] = g.t
+
+
 ## Mon3tr 闲时站位（相对凯尔希脚底，x 乘朝向）
 const M_REST := Vector2(44.0, 18.0)
 
@@ -174,6 +182,11 @@ const M_REST := Vector2(44.0, 18.0)
 ## 回位 / 追击路径绕开凯尔希与博士：直线会从两人身上穿过时，先走到那人脚下前方 56 的绕行点（Mon3tr 身高约 60，
 ## 从这里经过画在人前面也不盖住躯干；docs/45 §5：原来回位 / 凯尔希转身换边时直线穿过她约 0.4 秒）
 func _m_route(want: Vector2) -> Vector2:
+	# 滞回：进了绕行就一直走到绕行点再回到直线（原来每帧重判，在绕行点和目标之间来回切，之字形走位、每帧翻身）
+	if m.get("via", Vector2.INF) != Vector2.INF:
+		if m.pos.distance_to(m.via) > 10.0:
+			return m.via
+		m["via"] = Vector2.INF
 	for c in [pos, g.ppos]:
 		if c == Vector2.INF or m.pos.distance_to(c) < 12.0 or want.distance_to(c) < 12.0:
 			continue
@@ -181,6 +194,7 @@ func _m_route(want: Vector2) -> Vector2:
 		if q.distance_to(c) < 40.0 and absf(m.pos.y - c.y) < 50.0:
 			var via: Vector2 = c + Vector2(0, 56)
 			if m.pos.distance_to(via) > 8.0:
+				m["via"] = via
 				return via
 	return want
 
@@ -224,7 +238,7 @@ func _update_mon3tr(dt: float) -> void:
 	var vel: Vector2 = (m.pos - prev) / maxf(dt, 0.0001)
 	m.mv = lerpf(m.mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
 	if absf(vel.x) > 20.0 and m.act <= 0.0:
-		m.face = signf(vel.x)
+		_m_set_face(signf(vel.x))
 	# 爪击
 	m.cd -= dt * (1.4 if coord else 1.0)
 	for pc in m_pend:
@@ -241,7 +255,8 @@ func _update_mon3tr(dt: float) -> void:
 				_m_strike()
 	elif tg != null and m.cd <= 0.0 and m.pos.distance_to(tg.pos) < tg.r + _m_reach():
 		m.cd = base("m_cd", 0.9) / stat(&"op_aspd")
-		m.face = signf(tg.pos.x - m.pos.x) if absf(tg.pos.x - m.pos.x) > 2.0 else m.face
+		if absf(tg.pos.x - m.pos.x) > 2.0:
+			_m_set_face(signf(tg.pos.x - m.pos.x))
 		var spec := sprite_spec("m_attack")
 		var fps: float = float(spec.get("fps", 14))
 		m.act = float(spec.get("frames", 4)) / fps
