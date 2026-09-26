@@ -1,7 +1,7 @@
 {
-  "spec": "docs/38_boss_redesign.md §6.2 with user-approved 112x96 transformed Ishar-mla cell override",
+  "spec": "docs/38_boss_p1_art_acceptance.md §2 and docs/38_boss_redesign.md §6.2",
   "format": "horizontal RGBA PNG",
-  "outline": "#080E18; 2px base / 4px @2x",
+  "outline": "#080E18; 1px base / 2px @2x",
   "sheets": [
     {
       "name": "e_knight_plant",
@@ -10,19 +10,19 @@
         96,
         80
       ],
-      "source_sha256": "f235c0650e9fa4e14c3abb55b25c1c39f4c6c3e79088a2ac7ef52194c61f9595",
+      "source_sha256": "5672df3d30b12180feeb3f690e0f992054423d98fb8bbee6dba00c6a47dfd6e7",
       "outputs": [
         {
           "file": "e_knight_plant.png",
           "width": 384,
           "height": 80,
-          "sha256": "98c8e2f96ea7629614263f5c5033b69b76233d97f495636ebcbc44f3fdd024b0"
+          "sha256": "262f3fea4367d3e4caceeaa38fa2e4717040aa73b83efca246988f0f4cf7fcbb"
         },
         {
           "file": "e_knight_plant@2x.png",
           "width": 768,
           "height": 160,
-          "sha256": "568ddbaed7565a50a4b6a181780fbacfe057e25d2afab7e5817d7449afeaf621"
+          "sha256": "f29265cfb9e740743c3d5193132a1485a8da170156a7c4da29e116528cb79e28"
         }
       ]
     },
@@ -39,13 +39,13 @@
           "file": "e_knight_charge_form.png",
           "width": 384,
           "height": 80,
-          "sha256": "56a9498055a1c4c47015f12bec81a8b67719d80fa7983bcfda51a14457bcaf74"
+          "sha256": "597b6545167b9fc195fcf50e47497ec019d4ca8940d7d9be6297ef171e044098"
         },
         {
           "file": "e_knight_charge_form@2x.png",
           "width": 768,
           "height": 160,
-          "sha256": "bcbcb5f931c1ef9f6af5c81b16917561f554f771259f48ac3fac4f9feb52ba25"
+          "sha256": "1489e244cac3a31c52bc655b0a9ba24af8c84f6be159dc368e9f50908a788f3b"
         }
       ]
     },
@@ -56,19 +56,19 @@
         112,
         96
       ],
-      "source_sha256": "1c963e2bde0ea7fdb37120cd4d6a839133d577df0bf86cf5af99be0485b51420",
+      "source_sha256": "8fea82b85ea24ece34a0ade2bcda3161ca545cef66f6ef8c0da42ff10a06b691",
       "outputs": [
         {
           "file": "e_ishar_transform.png",
           "width": 672,
           "height": 96,
-          "sha256": "95140619821e6e131199ee4958064935fdfa4e21d2ae1ba8cfe13de31b47a83c"
+          "sha256": "be4dd2e3e9a8ae33eabdc979ddc3c3ef14f9c92819b2c5656155aadf30c7ff19"
         },
         {
           "file": "e_ishar_transform@2x.png",
           "width": 1344,
           "height": 192,
-          "sha256": "f5bd9050b22128b9f6b7eec739119ce4457e7c83fe3c47b65110e1d27daeed63"
+          "sha256": "43393d93aee7c36c2fabfbe3f5f0a8ef30ea4601ea5662714d7691b832a02f92"
         }
       ]
     },
@@ -85,13 +85,13 @@
           "file": "e_ishar_t.png",
           "width": 224,
           "height": 96,
-          "sha256": "17b9f1cff8775ac3485acf7dd2dfcd032ceef81f82305151f99aca34f1a60892"
+          "sha256": "96b04ceeaac66415f2486a66adffcfc3afdd2e9dd596e453ff813eedcf664e14"
         },
         {
           "file": "e_ishar_t@2x.png",
           "width": 448,
           "height": 192,
-          "sha256": "cc6059d94aa88bb5734afdc327a23be67bbb64c8991ec5138b661b0c62a1c660"
+          "sha256": "9e3de30d8cd4167ebce102bc55a07a26c87df4a4b135bd9b98542579ab777346"
         }
       ]
     },
@@ -108,13 +108,13 @@
           "file": "e_ishar_t_move.png",
           "width": 448,
           "height": 96,
-          "sha256": "7bb9f74080f3a7f860b2e6876ea472948855f93a100345071f725b4d8618c922"
+          "sha256": "667dce957a6d7bc95b20a0e61a4958f7769f9417a62fc917be7cd83ff0b76016"
         },
         {
           "file": "e_ishar_t_move@2x.png",
           "width": 896,
           "height": 192,
-          "sha256": "28e956a67124af3038933a3430939f753d2d40a9ff70f20afb185348109ff47f"
+          "sha256": "a22a8878d7fe0f0cbe203fbde58b6b7852a88a1e102f21c53ade8fc6d975ac9b"
         }
       ]
     },
@@ -125,19 +125,19 @@
         112,
         96
       ],
-      "source_sha256": "fba1ac94ac2a4fff931151789cf2159188eb246e6ae5b3ee51878aa055ed6c28",
+      "source_sha256": "ecab9e66eea60b02b40d2c94e6b83f8eec68b48da0570aae93bcbd7629cf8f6d",
       "outputs": [
         {
           "file": "e_ishar_t_attack.png",
           "width": 448,
           "height": 96,
-          "sha256": "1d95e48e4cd4206e48d7bc5527b12a68d94ba6f060bbd896fed1c72528577270"
+          "sha256": "fa946fd1ade27f83fdb508c49ed12875d507723b6e174cf3c9477c49b25a2861"
         },
         {
           "file": "e_ishar_t_attack@2x.png",
           "width": 896,
           "height": 192,
-          "sha256": "2ff3629a838100f228e7237caba52a66dad0e31d1e8bd7854508ccf0cdd24e58"
+          "sha256": "8785d1fb271f4d15769a7b2023d5b8cb7cfaa6b195d5ee01b5c2d2c9e2dbcc04"
         }
       ]
     }
