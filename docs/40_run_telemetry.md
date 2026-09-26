@@ -1,7 +1,7 @@
 # 40 · 局内数据记录
 
 > 2026-09-26：为以后分析玩家数据打底。本次只做本地部分（统一格式 + 正常游玩也记 + 版本号 + 分析脚本）；
-> 上报通道、服务器与玩家同意流程等上线、定下发布平台后再做（§4）。代码结构见 docs/39，测试规范见 docs/36。
+> 上报通道、服务器与玩家同意流程暂缓（docs/43，用户 2026-09-26 决定暂不收集）。代码结构见 docs/39，测试规范见 docs/36。
 
 ## 1. 做了什么
 
@@ -19,11 +19,12 @@
   ```
   - 局内不足 20 秒就退出的不记；文件超过约 8 MB 丢掉较早的一半。
   - **测试运行不写**（带任何 `--xxx` 参数，docs/36「测试不写玩家存档」）；图鉴演示不写。自测写记录用 `--runslog=<路径>`，写到指定文件、不碰玩家目录。
+  - **发布版不写**（用户 2026-09-26 决定暂不收集任何数据）：只有开发试玩（编辑器 / 调试版）会写；`tools/export_build.py` 打的 release 包里 `OS.is_debug_build()` 为假，完全不记。上报与导出的方案见 docs/43（暂缓）。
   - `seed` 是本局对局随机数的种子：同 seed 可复现（docs/36 §3），配合以后的操作录制就能在本地原样重放玩家那一局。
 - **版本号**：`game/data/build.json`（`version`、`commit`）。开发时 `commit` 为 `dev`；`tools/export_build.py` 打包时把真实提交号写进包里的这个文件，玩家记录因此能按版本区分（改平衡前后的数据不会混在一起）。
 - **分析脚本 `tools/runs_report.py`**：读本地记录，转成 `balance_run.py` 的记录形状，复用它的汇总表（总览、按开局干员的胜率 / 存活 / 伤害构成 / 治疗 / 死因、行为指标、藏品流派拿取）。
   ```
-  python tools/runs_report.py                      # 本机全部记录（%APPDATA%\Godot\app_userdata\水月 · 深海幸存者\runs\runs.jsonl）
+  python tools/runs_report.py                      # 本机全部记录（%APPDATA%\Godot\app_userdata\<项目名>\runs\runs.jsonl；项目名 = game/project.godot 的 config/name，脚本自动读取）
   python tools/runs_report.py --since 2026-09-26 --commit abc1234 --out build/runs_report.md
   ```
 

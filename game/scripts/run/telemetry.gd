@@ -5,6 +5,7 @@ extends RefCounted
 ## - record() 拼出整局记录：平衡测试照旧打印成 `BALANCE {...}`（字段与之前完全相同，批跑 / A/B 工具不用改）；
 ##   真实玩家局结束（胜 / 负 / 中途退出）时 save_local() 追加一行到 user://runs/runs.jsonl，外面再包一层 meta（版本、时间、种子……）。
 ## - 测试运行（带任何 --xxx 参数）与图鉴演示不写本地文件（docs/36：测试不写玩家存档）。
+## - 发布版（导出的 release 包）不写：用户 2026-09-26 决定暂不收集任何数据（EA 版先发朋友试玩）；只在开发试玩时写。
 ## - 只在本地，不联网上传；上报通道与玩家同意流程等上线时再做（docs/40 §4）。
 ## 分析：python tools/runs_report.py 读本地记录，套用 balance_run 的汇总表。
 
@@ -159,6 +160,8 @@ func save_local(result: String) -> void:
 		path = test_path
 	elif not OS.get_cmdline_user_args().is_empty():
 		return
+	elif not OS.is_debug_build():
+		return   # 发布版（export-release）不记任何玩家数据：用户 2026-09-26 决定暂不收集（docs/43）；只在开发试玩（编辑器 / 调试版）时记
 	if saved or g.demo_op != "" or g.t < MIN_SAVE_T:
 		return
 	saved = true

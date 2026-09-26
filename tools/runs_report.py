@@ -1,7 +1,7 @@
 """玩家局内数据汇总（docs/40）：读 game/scripts/run/telemetry.gd 写下的本地记录，套用 balance_run 的汇总表。
 
 记录在哪：Godot 的用户目录下 runs/runs.jsonl，每局一行 {"schema", "meta": {版本, 提交, 平台, 时间, 种子, 难度, 地图, 开局干员, 结果}, "run": 整局记录}。
-  Windows：%APPDATA%\\Godot\\app_userdata\\水月 · 深海幸存者\\runs\\runs.jsonl
+  Windows：%APPDATA%\\ArknightsSurvivors\\runs\\runs.jsonl（project.godot 固定了 custom_user_dir_name；没固定时是 %APPDATA%\\Godot\\app_userdata\\<项目名>）
 「run」和平衡测试打印的 BALANCE 同一格式，所以胜率 / 存活 / 伤害构成 / 死因 / 藏品拿取这些表可以直接复用。
 
 用法：
@@ -15,12 +15,24 @@ import argparse, collections, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import balance_run as BR   # noqa: E402  复用汇总表
 
-PROJECT = "水月 · 深海幸存者"   # game/project.godot config/name
+def user_dir():
+    """Godot 的 user:// 目录（按 game/project.godot 推算，和游戏里一致）：
+    - 开了 application/config/use_custom_user_dir：%APPDATA%\\<custom_user_dir_name>（2026-09-26 用户定为 ArknightsSurvivors，改显示名不再影响存档位置）
+    - 没开：%APPDATA%\\Godot\\app_userdata\\<config/name>"""
+    pg = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "game", "project.godot")
+    kv = {}
+    for line in open(pg, encoding="utf-8"):
+        if "=" in line and not line.startswith(("[", ";")):
+            k, v = line.split("=", 1)
+            kv[k.strip()] = v.strip().strip('"')
+    base = os.environ.get("APPDATA") or os.path.expanduser("~/.local/share")
+    if kv.get("config/use_custom_user_dir") == "true" and kv.get("config/custom_user_dir_name"):
+        return os.path.join(base, kv["config/custom_user_dir_name"])
+    return os.path.join(base, "Godot", "app_userdata", kv.get("config/name", "方舟幸存者"))
 
 
 def default_file():
-    base = os.environ.get("APPDATA") or os.path.expanduser("~/.local/share")
-    return os.path.join(base, "Godot", "app_userdata", PROJECT, "runs", "runs.jsonl")
+    return os.path.join(user_dir(), "runs", "runs.jsonl")
 
 
 def load(path, a):
