@@ -636,12 +636,18 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 			var per_desc: float = maxf(font.get_height(fs - 1), (avail - page.size() * (fs + 15)) / maxf(1.0, page.size()))
 			var yy := top
 			for row in page:
-				var tag_w: float = UI.chip(self, font, Vector2(x, yy + 2), row[0], row[3], 11) + 8
-				UI.text_fit(self, font, Vector2(x + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT, width - tag_w, 10)
+				# 技能行左边画技能图标（32px 原尺寸），标题与说明整体右移
+				var itx: Texture2D = A.tex(row[4]) if row.size() > 4 and row[4] != "" else null
+				var ix: float = SKILL_ICON_W if itx != null else 0.0
+				if itx != null:
+					draw_texture_rect(itx, Rect2(Vector2(x, yy + 1), Vector2(32, 32)), false)
+				var tag_w: float = UI.chip(self, font, Vector2(x + ix, yy + 2), row[0], row[3], 11) + 8
+				UI.text_fit(self, font, Vector2(x + ix + tag_w, yy + fs + 1), row[1], fs + 1, UI.TEXT, width - ix - tag_w, 10)
+				var y0 := yy
 				yy += fs + 8
-				var fd := UI.fit(font, row[2], width - 8, 9999.0 if fits else per_desc, [fs - 1])
-				UI.draw_fit(self, font, Vector2(x + 8, yy + fs - 2 - font.get_ascent(fs - 1)), fd, Color(0.78, 0.88, 0.9))
-				yy += float(fd.h) + 7
+				var fd := UI.fit(font, row[2], width - ix - 8, 9999.0 if fits else per_desc, [fs - 1])
+				UI.draw_fit(self, font, Vector2(x + ix + 8, yy + fs - 2 - font.get_ascent(fs - 1)), fd, Color(0.78, 0.88, 0.9))
+				yy = maxf(yy + float(fd.h) + 7, y0 + (40.0 if itx != null else 0.0))
 		2:
 			# 数值页：两列表格
 			# 行距按剩余高度收缩（演示时下方空间小）；脚注紧跟表格，放不下就不画
@@ -660,10 +666,16 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 				UI.text(self, font, Vector2(x, yy2 + 24), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
 
 
+const SKILL_ICON_W := 40.0   # 技能页：图标 32px + 间距
+
+
 func _skill_rows_h(rows: Array, width: float, fs: int) -> float:
 	var h := 0.0
 	for row in rows:
-		h += fs + 8 + font.get_multiline_string_size(UI.soft(row[2]), HORIZONTAL_ALIGNMENT_LEFT, width - 8, fs - 1, -1, UI.BRK).y + 7
+		var has_icon: bool = row.size() > 4 and row[4] != "" and A.tex(row[4]) != null
+		var ix: float = SKILL_ICON_W if has_icon else 0.0
+		var rh: float = fs + 8 + font.get_multiline_string_size(UI.soft(row[2]), HORIZONTAL_ALIGNMENT_LEFT, width - ix - 8, fs - 1, -1, UI.BRK).y + 7
+		h += maxf(rh, 40.0 if has_icon else 0.0)
 	return h
 
 
@@ -706,7 +718,7 @@ func _op_skill_rows(cd: Dictionary) -> Array:
 			meta.append("永久")
 		if sk.get("mode", "auto") == "manual":
 			meta.append("手动")
-		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD])
+		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD, sk.get("icon", "")])
 	if cd.has("talent"):
 		rows.append(["天赋", cd.talent.get("name", "") + "　（精一解锁）", cd.talent.get("desc", ""), UI.PURPLE])
 	return rows

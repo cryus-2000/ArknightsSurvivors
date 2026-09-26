@@ -834,14 +834,22 @@ func _draw_op_pick(vs: Vector2) -> void:
 		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
 	var sks: Array = d.get("skills", [])
 	for si in sks.size():
-		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精一", "精二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", "")])
+		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精一", "精二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
 	if d.has("talent"):
 		lines.append(["天赋", d.talent.get("name", ""), d.talent.get("desc", "")])
 	for ln in lines:
-		UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
-		UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
+		# 技能行：左边画技能图标（32px 原尺寸），名字与说明右移；普攻 / 天赋仍是小标签
+		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null
+		var ix := 0.0
+		if itx != null:
+			draw_texture_rect(itx, Rect2(Vector2(px, py - 3), Vector2(32, 32)), false)
+			ix = 44.0
+			UI.text(self, font, Vector2(px + ix, py + 15), ln[1], 15, UI.TEXT)
+		else:
+			UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
+			UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
 		py += 22
-		py += _wrap_text(Vector2(px, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48, 2) + 8
+		py += maxf(_wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, 2), 12.0 if itx != null else 0.0) + 8
 	# 精二条件
 	for n in d.get("progression", []):
 		if n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):

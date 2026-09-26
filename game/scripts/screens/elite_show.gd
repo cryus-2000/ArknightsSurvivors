@@ -51,7 +51,7 @@ func open(sc: Dictionary) -> void:
 		show_game = load("res://game.tscn").instantiate()
 		show_game.demo_op = sc.op.id
 		show_game.demo_elite = int(sc.elite)
-		show_game.demo_skill = int(sc.elite)   # 精一 → S2（序号 1），精二 → S3（序号 2）
+		show_game.demo_sys.demo_skill = int(sc.elite)   # 精一 → S2（序号 1），精二 → S3（序号 2）；demo_skill 在 run/demo.gd
 		show_vp.add_child(show_game)
 	Sfx.play("relic", 0.0, 0.8, 0.0)
 	Sfx.play("levelup", -4.0, 0.7, 0.0)

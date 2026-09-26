@@ -259,8 +259,8 @@ func skill_rows_data() -> Array:
 			extra = "（充能 %d · %d%%）" % [int(need), int(100.0 * g.ch.sp[i] / need)]
 		elif not on:
 			extra = "（%s解锁）" % ["招募", "精英化一", "精英化二"][i]
-		rows.append(["%d" % (i + 1), sd.get("name", "技能 %d" % (i + 1)) + extra, sd.get("desc", ""), on, g.ch.rej.has(i)])
+		rows.append(["%d" % (i + 1), sd.get("name", "技能 %d" % (i + 1)) + extra, sd.get("desc", ""), on, g.ch.rej.has(i), sd.get("icon", "")])
 	var td: Dictionary = g.ch.talent_def()
 	if not td.is_empty():
-		rows.append(["赋", td.get("name", "天赋") + ("" if g.ch.elite >= 1 else "（精英化一解锁）"), td.get("desc", ""), g.ch.elite >= 1, false])
+		rows.append(["赋", td.get("name", "天赋") + ("" if g.ch.elite >= 1 else "（精英化一解锁）"), td.get("desc", ""), g.ch.elite >= 1, false, ""])
 	return rows

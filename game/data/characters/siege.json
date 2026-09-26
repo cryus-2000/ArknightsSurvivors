@@ -99,20 +99,23 @@
    "name": "冲锋号令",
    "en": "CHARGE",
    "sp": 6,
-   "desc": "全队技力 +15%；下一次锤击伤害 ×1.5"
+   "desc": "全队技力 +15%；下一次锤击伤害 ×1.5",
+   "icon": "skill_siege_s1"
   },
   {
    "name": "跃空锤",
    "en": "AERIAL HAMMER",
    "sp": 10,
-   "desc": "原地跃起、空中抡锤转一圈后砸地：周围 110 内 2.2 倍伤害并眩晕 0.6 秒，全队技力 +20%"
+   "desc": "原地跃起、空中抡锤转一圈后砸地：周围 110 内 2.2 倍伤害并眩晕 0.6 秒，全队技力 +20%",
+   "icon": "skill_siege_s2"
   },
   {
    "name": "碎颅",
    "en": "SKULL BREAKER",
    "sp": 18,
    "desc": "8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%",
-   "dur": 8.0
+   "dur": 8.0,
+   "icon": "skill_siege_s3"
   }
  ],
  "talent": {
@@ -200,14 +203,14 @@
    "type": "custom",
    "id": "leap_again",
    "name": "再跃",
-   "icon": "skill_s2",
+   "icon": "skill_siege_s2",
    "desc": "「跃空锤」落地后立刻再跃向下一群敌人砸第二下（60% 伤害）"
   },
   {
    "type": "custom",
    "id": "beast_king",
    "name": "万兽之王",
-   "icon": "skill_s1",
+   "icon": "skill_siege_s1",
    "desc": "「冲锋号令」放出一圈向外扩张的金色号令波（半径 180，锤击 60% 伤害），推开小怪"
   },
   {

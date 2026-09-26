@@ -125,21 +125,24 @@
    "name": "医疗单元",
    "en": "MEDICAL UNIT",
    "sp": 7,
-   "desc": "立即为主控回复 8% 最大生命并清除神经损伤"
+   "desc": "立即为主控回复 8% 最大生命并清除神经损伤",
+   "icon": "skill_kaltsit_s1"
   },
   {
    "name": "战术协同",
    "en": "TACTICAL COORDINATION",
    "sp": 15,
    "desc": "充能一次后永久生效：Mon3tr 攻速 +40%、爪击范围 +30%，凯尔希的治疗频率 +30%",
-   "permanent": true
+   "permanent": true,
+   "icon": "skill_kaltsit_s2"
   },
   {
    "name": "熔毁",
    "en": "MELTDOWN",
    "sp": 24,
    "desc": "Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害",
-   "dur": 8.0
+   "dur": 8.0,
+   "icon": "skill_kaltsit_s3"
   }
  ],
  "talent": {
@@ -204,14 +207,14 @@
    "type": "custom",
    "id": "s1_shell",
    "name": "结构加固",
-   "icon": "skill_s1",
+   "icon": "skill_kaltsit_s1",
    "desc": "「医疗单元」同时给主控罩上 3 秒绿色护壳：受到的伤害 -35%"
   },
   {
    "type": "custom",
    "id": "melt_triple",
    "name": "不毁重构",
-   "icon": "skill_s3",
+   "icon": "skill_kaltsit_s3",
    "desc": "「医疗单元」施放时 Mon3tr 就地重构外壳：三连爆（半径逐次扩大，Mon3tr 攻击 120% / 60% / 60% 真实伤害）并眩晕 0.8 秒；精二后「熔毁」收尾同样三连爆（间隔 0.2 秒、后两次 50% 伤害）并眩晕 1.5 秒（精英减半，Boss 免疫）"
   },
   {

@@ -96,20 +96,23 @@
    "name": "急救",
    "en": "FIRST AID",
    "sp": 7,
-   "desc": "为主控回复 8% 最大生命；主控生命低于一半时翻倍"
+   "desc": "为主控回复 8% 最大生命；主控生命低于一半时翻倍",
+   "icon": "skill_saria_s1"
   },
   {
    "name": "药剂散布",
    "en": "MEDICINE DISPENSING",
    "sp": 12,
-   "desc": "立即为主控回复 10% 最大生命，之后 5 秒内每秒再回复 1%"
+   "desc": "立即为主控回复 10% 最大生命，之后 5 秒内每秒再回复 1%",
+   "icon": "skill_saria_s2"
   },
   {
    "name": "钙质化",
    "en": "CALCIFICATION",
    "sp": 22,
    "desc": "主控周围升起琥珀晶柱并展开 8 秒钙质化区域（半径 180）：敌人移速 -50%、受到的伤害 +20%，主控每秒回复 1.5% 生命",
-   "dur": 8.0
+   "dur": 8.0,
+   "icon": "skill_saria_s3"
   }
  ],
  "talent": {
@@ -194,14 +197,14 @@
    "type": "custom",
    "id": "syringe",
    "name": "急救针剂",
-   "icon": "skill_s1",
+   "icon": "skill_saria_s1",
    "desc": "「急救」同时朝附近 3 名敌人掷出注射器：拳击 80% 伤害并减速 2 秒"
   },
   {
    "type": "custom",
    "id": "shatter",
    "name": "碎晶",
-   "icon": "skill_s3",
+   "icon": "skill_saria_s3",
    "desc": "每 3 秒击碎一枚环绕钙晶，碎片飞向附近至多 3 名敌人（各拳击 40% 伤害），1 秒后重新长出；精二后「钙质化」期间改为每 1.2 秒击碎一根琥珀晶柱，碎片飞向区域内至多 4 名敌人（各拳击 60%）"
   },
   {

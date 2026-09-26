@@ -425,9 +425,9 @@ func _ready() -> void:
 				tex[sp[kind]] = A.tex(sp[kind])
 		if sp.has("base"):
 			tex["player"] = A.tex(sp.base)
-	# 干员技能图标（skills[i].icon，可选）
-	for o in squad.ops:
-		for sd in o.skills_def():
+	# 干员技能图标（skills[i].icon，可选）：所有干员都加载——中途招募的干员 HUD 技能格、技能强化卡也要用
+	for cid in Character.list_ids():
+		for sd in Character.load_def(cid).get("skills", []):
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
 	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到

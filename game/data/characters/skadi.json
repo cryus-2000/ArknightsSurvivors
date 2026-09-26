@@ -98,20 +98,23 @@
    "name": "潮涌斩",
    "en": "WAVE STRIKE",
    "sp": 6,
-   "desc": "立即一次 ×2 伤害的宽幅横扫（前方 200°）"
+   "desc": "立即一次 ×2 伤害的宽幅横扫（前方 200°）",
+   "icon": "skill_skadi_s1"
   },
   {
    "name": "重斩",
    "en": "HEAVY CLEAVE",
    "sp": 10,
-   "desc": "高举大剑下劈：前方 220° 半径 150 内 3 倍伤害并击退"
+   "desc": "高举大剑下劈：前方 220° 半径 150 内 3 倍伤害并击退",
+   "icon": "skill_skadi_s2"
   },
   {
    "name": "潮汐",
    "en": "TIDAL SURGE",
    "sp": 20,
    "desc": "8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5",
-   "dur": 8.0
+   "dur": 8.0,
+   "icon": "skill_skadi_s3"
   }
  ],
  "talent": {
@@ -218,14 +221,14 @@
    "type": "custom",
    "id": "leap_wave",
    "name": "跃浪",
-   "icon": "skill_s2",
+   "icon": "skill_skadi_s2",
    "desc": "「重斩」落点掀起一道向前推进约 200 的海浪墙，击退并伤害沿途敌人（重斩 80% 伤害，每名敌人一次）"
   },
   {
    "type": "custom",
    "id": "surge",
    "name": "涌潮",
-   "icon": "skill_s3",
+   "icon": "skill_skadi_s3",
    "desc": "「潮涌斩」挥出时脚下涌出一圈水环（半径 120，40% 伤害，击退）；精二后「潮汐」期间每秒涌出一圈"
   },
   {

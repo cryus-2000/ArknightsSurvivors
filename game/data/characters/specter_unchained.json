@@ -117,21 +117,24 @@
    "en": "THE SKILL TO SURVIVE",
    "sp": 7,
    "dur": 8.0,
-   "desc": "8 秒内攻击 +（40% + 主控已损失生命的百分比）：主控越危险她越狠"
+   "desc": "8 秒内攻击 +（40% + 主控已损失生命的百分比）：主控越危险她越狠",
+   "icon": "skill_specter_unchained_s1"
   },
   {
    "name": "求生之渴",
    "en": "THE THIRST TO SURVIVE",
    "sp": 15,
    "dur": 10.0,
-   "desc": "10 秒内攻速 +60%、攻击 +40%，期间主控干员生命不会低于 1；结束时本体倒下，替身跟随主控干员 12 秒后归队"
+   "desc": "10 秒内攻速 +60%、攻击 +40%，期间主控干员生命不会低于 1；结束时本体倒下，替身跟随主控干员 12 秒后归队",
+   "icon": "skill_specter_unchained_s2"
   },
   {
    "name": "求生之压",
    "en": "THE PRESSURE TO SURVIVE",
    "sp": 22,
    "dur": 12.0,
-   "desc": "12 秒内环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命低于 50% 的敌人再 ×1.5"
+   "desc": "12 秒内环斩间隔 ×1.6，但每斩 ×3.2、范围 +50%，对生命低于 50% 的敌人再 ×1.5",
+   "icon": "skill_specter_unchained_s3"
   }
  ],
  "talent": {
@@ -197,14 +200,14 @@
    "type": "custom",
    "id": "beast",
    "name": "困兽",
-   "icon": "skill_s1",
+   "icon": "skill_specter_unchained_s1",
    "desc": "「求生之技」期间锯刃变红、环斩半径 +50%"
   },
   {
    "type": "custom",
    "id": "elegy",
    "name": "阿戈尔挽歌",
-   "icon": "skill_s2",
+   "icon": "skill_specter_unchained_s2",
    "desc": "替身唱起阿戈尔挽歌：每 0.8 秒一圈水纹外扩，减速范围翻倍（240）"
   },
   {

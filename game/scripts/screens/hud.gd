@@ -677,18 +677,23 @@ func draw_squad_hud(br: Vector2) -> void:
 			if active > 0.0:
 				frac = active / it[4]
 			g.hud.draw_rect(sr, Color(0.04, 0.047, 0.059, 0.9))
-			if unlocked and frac > 0.0:
-				g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
 			var icon: Texture2D = g.tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
 			var c := sr.get_center()
 			if icon != null:
-				g.hud.draw_texture_rect(icon, Rect2(c - Vector2(10, 10), Vector2(20, 20)), false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+				# 方形技能图标（仿原作）铺满格子；充能中没充满的上半截压暗，充满后整块亮起
+				g.hud.draw_texture_rect(icon, sr, false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+				if unlocked and active <= 0.0 and frac < 1.0:
+					g.hud.draw_rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
 			else:
+				if unlocked and frac > 0.0:
+					g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
 				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.35, 0.4)
 				UI.text(g.hud, g.font, Vector2(sr.position.x, c.y + 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2)
 			if unlocked:
 				g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
-			g.hud.draw_rect(sr, Color.WHITE if active > 0.0 else Color(1, 1, 1, 0.14 if unlocked else 0.06), false, 1.0)
+			# 边框：生效中白；充满待放用干员色（有图标时格子本身亮起，边框再提示一下）；其余淡白
+			var ready: bool = icon != null and unlocked and active <= 0.0 and frac >= 1.0 and not o.perm[k]
+			g.hud.draw_rect(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), false, 1.0)
 			if active > 0.0:
 				UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), "%d" % int(ceil(active)), 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12)
 			if o.perm[k]:

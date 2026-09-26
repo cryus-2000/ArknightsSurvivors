@@ -95,21 +95,24 @@
    "name": "狐火连珠",
    "en": "FOXFIRE VOLLEY",
    "sp": 7,
-   "desc": "下一次普攻改为射出 5 发狐火（伤害 ×1.2）"
+   "desc": "下一次普攻改为射出 5 发狐火（伤害 ×1.2）",
+   "icon": "skill_suzuran_s1"
   },
   {
    "name": "暖光",
    "en": "WARM LIGHT",
    "sp": 15,
    "desc": "充能一次后永久生效：光域范围 +60%、减速加深，其他干员攻击 +15%，主控每秒回复 0.5% 生命",
-   "permanent": true
+   "permanent": true,
+   "icon": "skill_suzuran_s2"
   },
   {
    "name": "狐火迷雾",
    "en": "FOXFIRE HAZE",
    "sp": 20,
    "desc": "10 秒大光域（范围 ×2.2）：敌人移速 -60%、受到的伤害 +25%，主控每秒回复 1% 生命；期间铃兰不再普攻",
-   "dur": 10.0
+   "dur": 10.0,
+   "icon": "skill_suzuran_s3"
   }
  ],
  "talent": {
@@ -165,14 +168,14 @@
    "type": "custom",
    "id": "fox_seal",
    "name": "画地为牢",
-   "icon": "skill_s1",
+   "icon": "skill_suzuran_s1",
    "desc": "「狐火连珠」命中的敌人被定身 0.5 秒（精英 0.25 秒，首领无效），脚下浮现金色封印"
   },
   {
    "type": "custom",
    "id": "fox_hearth",
    "name": "围炉",
-   "icon": "skill_s2",
+   "icon": "skill_suzuran_s2",
    "desc": "「暖光」生效后，光域边缘的六团狐火会灼伤碰到的敌人（狐火 30% 伤害，每名敌人 0.5 秒一次）"
   },
   {

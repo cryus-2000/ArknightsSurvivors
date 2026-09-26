@@ -96,19 +96,22 @@
    "name": "炽热",
    "en": "HEAT",
    "sp": 7,
-   "desc": "接下来 3 发火山弹爆炸范围 ×1.4 并点燃命中的敌人（3 秒内 30% 法术伤害）"
+   "desc": "接下来 3 发火山弹爆炸范围 ×1.4 并点燃命中的敌人（3 秒内 30% 法术伤害）",
+   "icon": "skill_eyjafjalla_s1"
   },
   {
    "name": "点燃",
    "en": "IGNITION",
    "sp": 12,
-   "desc": "向最近的敌人投出一发 ×2.5 的熔岩弹；命中目标 6 秒内受到的伤害 +10%，并向周围溅射"
+   "desc": "向最近的敌人投出一发 ×2.5 的熔岩弹；命中目标 6 秒内受到的伤害 +10%，并向周围溅射",
+   "icon": "skill_eyjafjalla_s2"
   },
   {
    "name": "火山",
    "en": "VOLCANO",
    "sp": 22,
-   "desc": "在敌群最密处连续喷发 10 次（伤害 ×1.8），每处留下 3 秒熔岩"
+   "desc": "在敌群最密处连续喷发 10 次（伤害 ×1.8），每处留下 3 秒熔岩",
+   "icon": "skill_eyjafjalla_s3"
   }
  ],
  "talent": {
@@ -224,14 +227,14 @@
    "type": "custom",
    "id": "ignite_blobs",
    "name": "星火燎原",
-   "icon": "skill_s2",
+   "icon": "skill_eyjafjalla_s2",
    "desc": "「点燃」的重弹炸开后向四周溅出 4 团熔岩，落地各自爆炸（普攻熔岩弹的 50% 伤害）"
   },
   {
    "type": "custom",
    "id": "meteor",
    "name": "熔岩天降",
-   "icon": "skill_s3",
+   "icon": "skill_eyjafjalla_s3",
    "desc": "「炽热」强化的火山弹炸开时，向附近 2 名随机敌人高抛一颗熔岩弹（这发伤害的 30%）；精二后「火山」每次喷发同样如此"
   },
   {
