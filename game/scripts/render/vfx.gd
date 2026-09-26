@@ -142,6 +142,13 @@ func _flush_boss_sum(dt: float) -> void:
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
 
 
+## 敌方特效标记（docs/48 全局 ③）：game.gd 在敌人 AI、敌弹与预警结算前后调用，给这两段里新加进 g.fx 的特效打上 enemy，
+## render/world.gd 的后期降噪（fx_dim）跳过它们——敌人的爆炸、斩击、踏地、冲击环不该跟着友方特效一起变淡
+func mark_enemy_fx(from: int) -> void:
+	for i in range(from, g.fx.size()):
+		g.fx[i]["enemy"] = true
+
+
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	if text.is_valid_int():
 		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):

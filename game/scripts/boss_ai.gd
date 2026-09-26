@@ -437,8 +437,9 @@ func _draw_warns() -> void:
 			fa = 0.45 * f
 			oa = 0.9 * f
 			k = 1.0
-		var fill := Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa)
-		var line := Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, oa)
+		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）
+		var fill := Color(c.r, c.g, c.b, fa * 1.3)
+		var line := Color(c.r, c.g, c.b, oa)
 		match w.shape:
 			"circle":
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))

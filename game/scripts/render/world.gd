@@ -272,8 +272,9 @@ func draw_world() -> void:
 				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
-		if fx_dim < 1.0 and DIM_KINDS.has(f.kind):
-			a *= fx_dim
+		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
+		if fdim < 1.0 and DIM_KINDS.has(f.kind):
+			a *= fdim
 		match f.kind:
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹
@@ -355,7 +356,7 @@ func draw_world() -> void:
 				var spec: Array = Game.V6_FRAMES[f.name]
 				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
 				var scol: Color = f.get("col", Color.WHITE)
-				scol.a *= fx_dim
+				scol.a *= fdim
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
@@ -512,10 +513,15 @@ func draw_world() -> void:
 		var rp := gp + Vector2(0, -hgt - 8.0)
 		g.draw_circle(rp, 7.0, Color(0.45, 0.42, 0.4))
 		g.draw_circle(rp + Vector2(-2, -2), 3.0, Color(0.7, 0.66, 0.6))
+	# 冲击环（docs/48 全局 ④⑤、P0 伊祖米克）：原来写死成治疗同款的绿色、越扩越淡，到主控这里几乎看不见。
+	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
-		var a: float = 1.0 - sh.r / sh.maxr
-		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a), 6.0)
-		g.draw_arc(sh.pos, sh.r - 10.0, 0.0, TAU, 48, Color(0.6, 1.0, 0.7, a * 0.3), 3.0)
+		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
+		g.draw_arc(sh.pos, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a), 10.0)
+		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
+		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
+		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+	draw_enemy_tells()
 	draw_warn_outlines()
 	draw_zone()
 	g.map.draw_snow()
@@ -763,16 +769,13 @@ func draw_enemy(e: Dictionary) -> void:
 		# 壳海狂奔者自爆鼓胀：爆炸范围预警圈从小到大，本体胀大变亮
 		var xd: Dictionary = D.ENEMIES.get(e.type, {})
 		var xk: float = 1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55))
-		var xr: float = float(xd.get("blast_r", 62))
-		g.draw_circle(e.pos, xr * xk, Color(1.4, 0.4, 0.2, 0.12))
-		g.draw_arc(e.pos, xr, 0.0, TAU, 32, Color(1.8, 0.6, 0.3, 0.35 + 0.45 * xk), 2.0)
-		col = col.lerp(Color(2.4, 1.3, 0.8), xk * 0.7)
+		# 范围圈改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②），这里只留本体胀大变亮
+		col = col.lerp(Color(2.4, 1.1, 1.6), xk * 0.7)
 		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
 	if e.get("burst_w", 0.0) > 0.0:
 		# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
 		var bk: float = 1.0 - e.burst_w / 0.4
-		g.draw_arc(e.pos, 80.0 * bk, 0.0, TAU, 32, Color(1.6, 0.6, 2.2, 0.35 + 0.4 * bk), 2.0)
-		g.draw_circle(e.pos, 80.0 * bk, Color(0.8, 0.4, 1.2, 0.08))
+		# 范围圈改在覆盖层画（draw_enemy_tells），这里只留本体变亮
 		col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
 	g.draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
 	var flip: bool = e.fx < 0.0
@@ -859,6 +862,44 @@ func draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 
 
 ## 黑潮：圈外暗紫雾 + 圈边脉动溟痕 + 下一圈预告
+## 敌方自带的危险提示（docs/48 全局 ②，P0 狂奔者 / 囊海爬行者 / 伊祖米克）：原来画在实体层，会被光照压暗、被友方特效盖住。
+## 统一画在特效之上：主题色半透明填充（从小到大表示倒计时）+ 深色外描边 + 主题色线 + 白芯；颜色不乘亮度，保住色相（全局 ④）
+const ENEMY_TELL := Color(1.0, 0.3, 0.72)       # 敌方危险主色：洋红（和友方的金、青、绿、艾雅法拉的橙红都分得开）
+const TELL_BURST := Color(0.78, 0.42, 1.0)      # 囊海爬行者爆裂：紫
+
+func draw_enemy_tells() -> void:
+	for e in g.enemies:
+		if e.dead:
+			continue
+		if e.get("blast_w", 0.0) > 0.0:
+			var xd: Dictionary = D.ENEMIES.get(e.type, {})
+			var xk: float = clampf(1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55)), 0.0, 1.0)
+			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
+		if e.get("burst_w", 0.0) > 0.0:
+			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / 0.4, 0.0, 1.0), TELL_BURST)
+		# 伊祖米克解读阶段每 7 秒一圈冲击波（扩到 420）：最后 1.2 秒画出将要扩到的范围，提前知道要躲（读 boss_ai 的 bt 计时）
+		if e.type == "izumik" and e.get("phase", 1) == 2:
+			var pre: float = e.get("bt", 0.0) - 5.8
+			if pre > 0.0:
+				var pk: float = clampf(pre / 1.2, 0.0, 1.0)
+				var pa: float = 0.35 + 0.5 * pk
+				for q in 36:
+					if q % 2 == 1:
+						continue
+					var a0: float = TAU * q / 36.0 + g.t * 0.3
+					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(0, 0, 0, 0.5 * pa), 5.0)
+					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, pa), 2.5)
+				g.draw_arc(e.pos, e.r + 20.0 + 40.0 * pk, 0.0, TAU, 32, Color(1, 1, 1, 0.6 * pk), 2.0)
+
+
+func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
+	var pulse: float = 0.5 + 0.5 * sin(g.t * 18.0)
+	g.draw_circle(p, r * k, Color(c.r, c.g, c.b, 0.18 + 0.1 * k))
+	g.draw_arc(p, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0)
+	g.draw_arc(p, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0)
+	g.draw_arc(p, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0)
+
+
 ## Boss 招式预警的轮廓再描一遍（填色仍在地面层，boss_ai._draw_warns）：地面层会被友方特效盖住，
 ## 轮廓画在特效之上，后期满屏特效时也看得到往哪躲
 func draw_warn_outlines() -> void:
@@ -867,8 +908,8 @@ func draw_warn_outlines() -> void:
 			continue
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
-		var line := Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.45 + 0.4 * k)
-		var dark := Color(0.0, 0.0, 0.0, 0.5)
+		var line := Color(c.r, c.g, c.b, 0.6 + 0.35 * k)   # 不乘亮度：乘完在灯光里会褪成白 / 粉彩（docs/48 ④）
+		var dark := Color(0.0, 0.0, 0.0, 0.55)
 		match w.shape:
 			"circle":
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))

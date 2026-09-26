@@ -49,8 +49,9 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		e.blast_w -= dt
 		if e.blast_w <= 0.0:
 			var r := float(d.get("blast_r", 62))
-			g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.45, 0.3)})
-			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.6, 0.7, 0.4), 12, 260.0)
+			# 敌方洋红爆炸（docs/48 P0-8：原来和艾雅法拉的火焰爆炸同色同形，大群里认不出）
+			g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.3, 0.72)})
+			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
 			Sfx.play("boom", -8.0, 1.3, 0.0)
 			if dist < r + 10.0 and g.invuln <= 0.0:
 				g.dmg_src = "blast_" + e.type
@@ -226,7 +227,11 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			if o.type == so and not o.dead:
 				nb += 1
 		if nb < int(d.get("spawn_max", 12)):
-			g.spawner.spawn_enemy(so, g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0))
+			var sp_pos: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0)
+			g.spawner.spawn_enemy(so, sp_pos)
+			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」（出生前的预告延时归 Boss与怪物）
+			g.fx.append({"kind": "rift", "pos": sp_pos, "r": 22.0, "life": 0.5, "max": 0.5})
+			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
 
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
