@@ -47,7 +47,7 @@ const STAKE_MAX := 6
 
 
 func _swing_radius() -> float:
-	var r: float = base("swing_radius", 95.0) * u_area_mult
+	var r: float = base("swing_radius", 142.0) * u_area_mult
 	if s3_active > 0.0:
 		r *= S3_RADIUS
 	return r
@@ -588,7 +588,7 @@ func stats_rows() -> Array:
 	var half: float = minf(180.0, 75.0 + rib_bonus)
 	return [
 		["伞击伤害", "%d" % int(base("umbrella_dmg", 18.0) * u_dmg_mult * g.dmg_mult)], ["全局伤害", "×%.2f" % g.dmg_mult], ["挥伞间隔", "%.2f 秒" % max(0.18, interval)],
-		["挥砍半径", "%d" % int(base("swing_radius", 95.0) * u_area_mult)], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % t_mult],
+		["挥砍半径", "%d" % int(base("swing_radius", 142.0) * u_area_mult)], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % t_mult],
 		["追击目标", "%d" % (1 + extra_targets)], ["技力回复", "×%.2f" % g.sp_mult],
 	]
 

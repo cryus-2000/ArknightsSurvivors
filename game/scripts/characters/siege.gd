@@ -32,7 +32,7 @@ const FISSURE_MAX := 6
 
 ## 基础数值全部可由 data/characters/siege.json 的 base 段覆盖（docs/27 §3）
 func _reach() -> float:
-	return base("reach", 72.0) * stat(&"op_range")
+	return base("reach", 108.0) * stat(&"op_range")
 
 
 func follow_target(slot_pos: Vector2) -> Vector2:

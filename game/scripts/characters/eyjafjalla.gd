@@ -68,9 +68,9 @@ func update(dt: float) -> void:
 		if erupt_t <= 0.0:
 			erupt_t = 0.2
 			erupt -= 1
-			var c: Vector2 = densest_point(440.0 * stat(&"op_range"), pos)
+			var c: Vector2 = densest_point((base("range", 340.0) + 60.0) * stat(&"op_range"), pos)
 			if c == Vector2.INF:
-				var ts: Array = nearest_enemies(1, 440.0 * stat(&"op_range"), pos)
+				var ts: Array = nearest_enemies(1, (base("range", 340.0) + 60.0) * stat(&"op_range"), pos)
 				if ts.is_empty():
 					erupt = 0
 					return
@@ -89,11 +89,11 @@ func update(dt: float) -> void:
 		float_text(pos + Vector2(0, -80), "炽热", ORANGE, 14)
 		return
 	if ready > 0:
-		var ts: Array = nearest_enemies(1, 440.0, pos)
+		var ts: Array = nearest_enemies(1, (base("range", 340.0) + 60.0) * stat(&"op_range"), pos)
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, base("range", 380.0) * stat(&"op_range"), pos)
+		var ts: Array = nearest_enemies(1, base("range", 340.0) * stat(&"op_range"), pos)
 		if ts.is_empty():
 			cd = 0.2
 		else:
@@ -102,7 +102,7 @@ func update(dt: float) -> void:
 
 
 func _release() -> void:
-	var ts: Array = nearest_enemies(1, 420.0 * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(1, (base("range", 340.0) + 40.0) * stat(&"op_range"), pos)
 	if ts.is_empty():
 		return
 	var hot := heat > 0
@@ -127,7 +127,7 @@ func _release() -> void:
 ## 后续熔岩弹的落点：首发目标之外最近的敌人；不够就在首发目标两侧垂直偏开 40px
 func _extra_targets(first: Dictionary, n: int) -> Array:
 	var out: Array = []
-	for e in nearest_enemies(n + 3, 420.0 * stat(&"op_range"), pos):
+	for e in nearest_enemies(n + 3, (base("range", 340.0) + 40.0) * stat(&"op_range"), pos):
 		if e.id != first.id and out.size() < n:
 			out.append(e.pos)
 	var side: Vector2 = (first.pos - pos).normalized().orthogonal() * 40.0
@@ -142,7 +142,7 @@ func _release_skill() -> void:
 	match cur_skill:
 		1:
 			# 点燃：一发重弹 + 易伤
-			var ts: Array = nearest_enemies(1, 440.0 * stat(&"op_range"), pos)
+			var ts: Array = nearest_enemies(1, (base("range", 340.0) + 60.0) * stat(&"op_range"), pos)
 			if ts.is_empty():
 				return
 			_cast(pos + Vector2(10.0 * face, -30), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)

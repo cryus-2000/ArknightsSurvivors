@@ -45,7 +45,7 @@ var hooked: Array = []
 
 
 func _reach() -> float:
-	return base("reach", 70.0) * stat(&"op_range") * (1.3 if kept else 1.0)
+	return base("reach", 105.0) * stat(&"op_range") * (1.3 if kept else 1.0)
 
 
 func _stack_cap() -> int:
