@@ -1374,6 +1374,7 @@ func _try_dash() -> void:
 	dash_dir = (last_mv if moving and last_mv != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
+	dash_used = true
 	invuln = maxf(invuln, DASH_TIME + 0.05)
 	fx.append({"kind": "ring", "pos": ppos, "r": 36.0, "life": 0.25, "max": 0.25, "col": ch.col() if ch != null else UI.CYAN})
 	Sfx.play("dodge", -6.0, 1.2, 0.05)
@@ -5420,6 +5421,7 @@ func _draw_hud() -> void:
 	_draw_relic_tooltip(vs)
 	touch.draw_hud(vs)
 	_draw_status_bar(vs)
+	_draw_dash_hint(vs)
 	match state:
 		S.SHOW:
 			_draw_show(vs)
@@ -6024,6 +6026,34 @@ func _draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: Str
 
 
 ## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
+## 冲刺提示（用户要求：不提示就不知道有冲刺）：
+## ① 屏幕底部中间常驻一枚按键牌「空格 冲刺」，冷却时底色按进度走满，可冲时描边亮起；
+## ② 开局前 25 秒（直到第一次冲刺为止）主控头顶浮一行「按 空格 冲刺」。触屏有自己的冲刺按钮，不画这两样
+var dash_used := false
+
+
+func _draw_dash_hint(vs: Vector2) -> void:
+	if state != S.PLAY or touch.active or demo_op != "":
+		return
+	var key: String = Pad.hint("空格", "Ⓑ")
+	var ready: bool = dash_cd <= 0.0
+	var w := 132.0
+	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 50), Vector2(w, 30))
+	hud.draw_rect(r, Color(0.02, 0.06, 0.09, 0.75))
+	var k: float = 1.0 - dash_cd / DASH_CD
+	hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 if ready else 0.1))
+	hud.draw_rect(r, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.35), false, 1.5)
+	var kr := Rect2(r.position + Vector2(6, 5), Vector2(48, 20))
+	hud.draw_rect(kr, Color(0.1, 0.25, 0.3, 0.9))
+	hud.draw_rect(kr, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.8), false, 1.0)
+	UI.text(hud, font, kr.position + Vector2(0, 15), key, 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+	UI.text(hud, font, r.position + Vector2(60, 21), "冲刺", 15, UI.TEXT if ready else UI.SUB)
+	if not dash_used and t < 25.0:
+		var a: float = 0.6 + 0.4 * sin(t * 4.0)
+		var sp: Vector2 = get_viewport().get_canvas_transform() * (ppos + Vector2(0, -92))
+		UI.text(hud, font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
+
+
 func _draw_status_bar(vs: Vector2) -> void:
 	if state == S.OPENING or state == S.INTRO or state == S.SHOW:
 		return

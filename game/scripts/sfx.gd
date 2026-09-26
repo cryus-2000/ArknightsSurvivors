@@ -229,17 +229,20 @@ var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
 
 
 # ---------------------------------------------------------------- 干员语音（Codex 交付 game/audio/voice，README 事件映射）
-## 用户定（2026-09-26）：只用 3 秒以内的短语音，更长的一律不播。同一时刻只有一条；技能语音优先级最高；
-## 部署语音排队；同一干员同一句有冷却，战斗台词每人至少 30 秒一次。缺文件静默跳过，不退回战斗音效。
-const VOICE_MAX_LEN := 3.0
-const VOICE_GAP := 1.0                 # 两条语音之间至少间隔
-const VOICE_CD := {"entry": 0.0, "skill_1": 8.0, "skill_2": 8.0, "skill_3": 8.0, "battle": 30.0, "w_laugh": 45.0}
+## 用户定（2026-09-26 第二版）：语音要全（不再按时长筛掉），但**绝不打断正在播的语音**、整体频率要低。
+## 规则：同一时刻只有一条，占线时新语音直接放弃（部署语音排队）；两条之间至少隔 VOICE_GAP 秒；
+## 每名干员自己的任意语音之间至少隔 VOICE_OP_GAP 秒；同一句另有冷却（一技能最长，因为它放得最频繁）。缺文件静默跳过。
+const VOICE_MAX_LEN := 8.0             # 只防意外的超长文件；Codex 交付最长 6.4 秒，全部可用
+const VOICE_GAP := 3.0                 # 两条语音之间至少间隔（全队）
+const VOICE_OP_GAP := 15.0             # 同一名干员两条语音之间至少间隔
+const VOICE_CD := {"entry": 0.0, "skill_1": 45.0, "skill_2": 30.0, "skill_3": 20.0, "battle": 60.0, "w_laugh": 75.0}
 const VOICE_PRIO := {"skill_3": 4, "skill_2": 3, "skill_1": 3, "entry": 2, "battle": 1, "w_laugh": 1}
 ## 响度归一（Codex 交付的各段 RMS 相差约 7 dB）：按各干员实测平均 RMS 拉到 -17 dB 附近（2026-09-26 测量）
 const VOICE_TRIM := {"eyjafjalla": -4.0, "saria": 1.0, "wisadel": 1.0, "logos": 0.5}
 var voice_player: AudioStreamPlayer
 var voice_streams := {}                # 路径 -> AudioStream（null = 缺文件或超长）
 var voice_last := {}                   # "cid:key" -> 上次播放时间
+var voice_op_last := {}                # cid -> 该干员上次开口时间
 var voice_prio := 0
 var voice_end := 0.0
 var voice_queue: Array = []            # [cid, key]
@@ -264,13 +267,17 @@ func voice(cid: String, key: String, queue := false) -> void:
 	var lk := cid + ":" + key
 	if now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
 		return
+	if key != "entry" and now - float(voice_op_last.get(cid, -999.0)) < VOICE_OP_GAP:
+		return
 	var prio: int = VOICE_PRIO.get(key, 1)
+	# 占线：一律不打断（用户要求）；部署语音排队，其余放弃
 	var busy: bool = voice_player.playing or now < voice_end
-	if busy and prio <= voice_prio:
+	if busy:
 		if queue and voice_queue.size() < 4:
 			voice_queue.append([cid, key])
 		return
 	voice_last[lk] = now
+	voice_op_last[cid] = now
 	voice_prio = prio
 	voice_player.stream = st
 	voice_player.volume_db = float(VOICE_TRIM.get(cid, 0.0))
