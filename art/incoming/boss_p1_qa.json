@@ -66,12 +66,12 @@
       80
     ],
     "frame_opaque_pixels": [
-      1500,
-      1719,
-      1916,
-      2030,
-      2585,
-      3206
+      1899,
+      2238,
+      2218,
+      2280,
+      2387,
+      3882
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -83,12 +83,12 @@
       160
     ],
     "frame_opaque_pixels": [
-      6025,
-      6828,
-      7714,
-      8074,
-      10232,
-      12910
+      7509,
+      9023,
+      8794,
+      9246,
+      9554,
+      15440
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -100,8 +100,8 @@
       80
     ],
     "frame_opaque_pixels": [
-      3398,
-      3453
+      3320,
+      3331
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -113,8 +113,8 @@
       160
     ],
     "frame_opaque_pixels": [
-      13866,
-      14021
+      13300,
+      13214
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -126,10 +126,10 @@
       80
     ],
     "frame_opaque_pixels": [
-      3374,
-      3388,
-      3360,
-      3513
+      2337,
+      2888,
+      2629,
+      2406
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -141,10 +141,10 @@
       160
     ],
     "frame_opaque_pixels": [
-      13356,
-      13484,
-      13291,
-      14243
+      9475,
+      11556,
+      10512,
+      9808
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -156,10 +156,10 @@
       80
     ],
     "frame_opaque_pixels": [
-      2875,
-      3071,
-      3461,
-      3304
+      1630,
+      1815,
+      2662,
+      1721
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
@@ -171,10 +171,10 @@
       160
     ],
     "frame_opaque_pixels": [
-      11574,
-      12434,
-      13932,
-      13258
+      6587,
+      7267,
+      10797,
+      6960
     ],
     "binary_alpha": true,
     "clear_sheet_border": true
