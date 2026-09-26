@@ -274,7 +274,7 @@ func update_lobs(dt: float) -> void:
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {"hit_cap": l.get("hit_cap", 0.0)})
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 

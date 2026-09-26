@@ -65,7 +65,9 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		if o.has_method("dmg_taken_mult"):
 			dmg *= o.dmg_taken_mult()
 	var boss: bool = src.get("boss", false)
+	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
+	one_cap = 0.0
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
@@ -198,7 +200,12 @@ func ctrl_report() -> Dictionary:
 ## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
 ## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。boss = Boss 来源，按主控保护截断（_boss_clamp）。
 ## 返回实际扣掉的生命。
+var one_cap := 0.0   # enemy_hit 这一次的单次上限（最大生命比例，0 = 无）；只在 enemy_hit 调 hurt 期间有效
+
+
 func lose_hp(amount: float, src: String, boss := false) -> float:
+	if one_cap > 0.0:
+		amount = minf(amount, one_cap * g.max_hp)
 	if g.hp >= Bal.v("boss/fullhp_guard_at", 0.9) * g.max_hp:
 		high_t = g.t   # 满血保护的「受击前生命」：只记账，不改非 Boss 来源的扣血
 	if boss:
