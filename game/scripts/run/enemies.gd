@@ -57,6 +57,10 @@ func update(dt: float) -> void:
 		e.flash -= dt
 		e.jhit -= dt
 		e.stun -= dt / g.control_mult
+		# 韧性钩子（docs/38 §1.5）：白名单 Boss 身上的眩晕一定来自玩家一方（Boss 自己的硬直写 break_t），换成韧性后清零，不会被锁死
+		if e.boss and e.stun > 0.0 and g.combat.tough_on(e):
+			g.combat.add_tough(e, e.stun * Bal.v("boss/tough_per_stun", 5.0))
+			e.stun = 0.0
 		e.squash -= dt
 		e.slow -= dt / g.control_mult
 		if e.get("wind", 0.0) > 0.0:

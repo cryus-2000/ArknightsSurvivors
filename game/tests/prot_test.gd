@@ -12,6 +12,7 @@ extends Node
 ## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
 ## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
 ## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
+## 破绽 ×1.4、韧性与眩晕钩子（白名单 Boss）、伤害预算（默认关）（B1 ③④）。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -53,6 +54,7 @@ func _process(_d: float) -> void:
 	test_horde_mix()
 	test_v8()
 	test_gates()
+	test_break_budget()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -687,4 +689,47 @@ func test_gates() -> void:
 	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1800, 0))
 	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
 	iz.dead = true
+	game.warns.clear()
+
+
+## B1 ③ 破绽与韧性（§1.5，临时把塑路者放进白名单）、④ 伤害预算（§1.4，临时打开）
+func test_break_budget() -> void:
+	var D = preload("res://scripts/data.gd")
+	var sp = game.spawner
+	c.hit("test")
+	D.ENEMIES["path"]["tough"] = true
+	var m: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1600, 0))
+	var k := 0
+	while m.break_t <= 0.0 and k < 100:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.break_t > 0.0 and absf(m.tough_need - Bal.v("boss/tough_first", 25.0) * 1.5) < EPS, "韧性满（打掉约 25%%）进破绽，下次需求 ×1.5（%d 击）" % k)
+	var h0: float = m.hp
+	c.damage(m, m.maxhp * 0.005)
+	var l1: float = h0 - m.hp
+	m.break_t = 0.0
+	h0 = m.hp
+	c.damage(m, m.maxhp * 0.005)
+	var l2: float = h0 - m.hp
+	ok(absf(l1 / l2 - Bal.v("boss/break_mult", 1.4)) < 0.01, "破绽期间受伤 ×%.2f" % (l1 / l2))
+	var t0: float = m.tough
+	m.stun = 1.0
+	game.enemies_sys.update(0.001)
+	ok(m.stun <= 0.0 and m.tough > t0, "白名单 Boss 的眩晕换成韧性后清零（%.1f → %.1f）" % [t0, m.tough])
+	m.dead = true
+	D.ENEMIES["path"].erase("tough")
+	var n: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1650, 0))
+	n.stun = 1.0
+	game.enemies_sys.update(0.001)
+	ok(n.stun > 0.0, "不在白名单的 Boss 眩晕照旧")
+	# 伤害预算：默认关（原样返回）；打开后额度内全额、超出部分 ×0.35
+	ok(c.budget_clamp(n, 30.0) == 30.0, "伤害预算默认关闭")
+	var bak: Dictionary = Bal._data.get("boss", {}).duplicate()
+	if not Bal._data.has("boss"):
+		Bal._data["boss"] = {}
+	Bal._data["boss"]["budget_on"] = 1.0
+	n.budget = 10.0
+	ok(absf(c.budget_clamp(n, 30.0) - (10.0 + 20.0 * Bal.v("boss/budget_over", 0.35))) < EPS and n.budget == 0.0, "预算用完后超出部分 ×0.35")
+	Bal._data["boss"] = bak
+	n.dead = true
 	game.warns.clear()

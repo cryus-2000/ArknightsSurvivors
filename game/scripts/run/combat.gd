@@ -464,6 +464,15 @@ func gate_init(e: Dictionary, type: String) -> void:
 	e.gate_final = fin
 	e.shield_t = 0.0   # 阶段护盾累计秒数（报表用）
 	e.gates_passed = 0
+	# 破绽与韧性（§1.5，B1 ③）
+	e.break_t = 0.0
+	e.tough = 0.0
+	e.tough_need = Bal.v("boss/tough_first", 25.0)
+	# 伤害预算（§1.4，B1 ④）：按结构最短用时算补充速度，开局存满 4 秒
+	var ng: int = e.gates.size()
+	var tmin: float = e.act_min * (ng + 1) + Bal.v("boss/gate_inv", 0.8) * ng
+	e.budget_rate = e.maxhp / maxf(1.0, tmin * 0.8)
+	e.budget = e.budget_rate * Bal.v("boss/budget_store", 4.0)
 
 
 func gate_clamp(e: Dictionary, dmg: float) -> float:
@@ -485,12 +494,53 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 func gate_update(e: Dictionary, dt: float) -> void:
 	if e.get("gate_inv", 0.0) > 0.0:
 		e.gate_inv = maxf(0.0, e.gate_inv - dt)
+	if e.get("break_t", 0.0) > 0.0:
+		e.break_t = maxf(0.0, e.break_t - dt)   # 破绽时长固定，不受 control_mult 影响
+	if e.has("budget_rate"):
+		e.budget = minf(e.budget + e.budget_rate * dt, e.budget_rate * Bal.v("boss/budget_store", 4.0))
 	if not e.invuln and not e.get("coma", false):
 		e.act_t = e.get("act_t", 0.0) + dt
 	if e.get("gate_hold", false):
 		e.shield_t += dt
 		if e.act_t >= e.act_min:
 			gate_pass(e)
+
+
+## ---- 破绽与韧性（docs/38 §1.5，B1 ③）。破绽只有一种状态：e.break_t > 0 时受伤 ×boss/break_mult（1.4）；
+## Boss 自己的硬直一律写 e.break_t（不写 e.stun），boss_ai.gd 判断能否出招时同时看它。
+## 韧性只对白名单 Boss（enemies.json 写 "tough": true；B1 时名单为空，纵切重做时逐只加入）：每打掉 1% 最大生命积 1 点，
+## 满 tough_need（首次 25，之后 ×1.5）进 boss/break_t 秒破绽；玩家的眩晕由 enemies.gd 的钩子换成韧性（1 秒 ≈ 5 点）后清零。
+## 击退免疫要等白名单 Boss 的冲锋改用脚本位移 e.move（§1.14）后再加，现在骑士等 Boss 的冲锋还写 e.kb。
+func tough_on(e: Dictionary) -> bool:
+	return e.boss and bool(D.ENEMIES.get(e.type, {}).get("tough", false))
+
+
+func add_tough(e: Dictionary, pts: float) -> void:
+	if e.break_t > 0.0 or pts <= 0.0:
+		return
+	e.tough += pts
+	if e.tough >= e.tough_need:
+		e.tough = 0.0
+		e.tough_need *= 1.5
+		start_break(e, Bal.v("boss/break_t", 3.0))
+
+
+func start_break(e: Dictionary, t: float) -> void:
+	e.break_t = maxf(e.break_t, t)
+	g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
+
+
+## ---- 伤害预算（docs/38 §1.4，B1 ④；保险丝，默认关 boss/budget_on 0）：隐形令牌桶，额度用完后超出部分只算 boss/budget_over（35%）；
+## 破绽期间不计。玩家看不到。只有批跑发现阶段护盾出现得太频繁时才打开
+func budget_clamp(e: Dictionary, dmg: float) -> float:
+	if Bal.v("boss/budget_on", 0.0) <= 0.0 or e.break_t > 0.0 or not e.has("budget"):
+		return dmg
+	if dmg <= e.budget:
+		e.budget -= dmg
+		return dmg
+	var over: float = dmg - e.budget
+	e.budget = 0.0
+	return dmg - over + over * Bal.v("boss/budget_over", 0.35)
 
 
 func gate_pass(e: Dictionary) -> void:
@@ -554,6 +604,11 @@ func damage(e: Dictionary, dmg: float) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
+	if e.boss:
+		if e.get("break_t", 0.0) > 0.0:
+			dmg *= Bal.v("boss/break_mult", 1.4)
+		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
 	if e.boss:
 		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
@@ -563,6 +618,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg = gate_clamp(e, dmg)
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
+	if e.boss and tough_on(e):
+		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
 	if g.hit.origin == "relic":
