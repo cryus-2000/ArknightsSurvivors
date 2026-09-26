@@ -242,6 +242,9 @@ func gain_relic(id: String) -> void:
 	if not g.relics.has(id):
 		g.relics.append(id)
 	apply_relic(id)
+	# 先记下这件藏品触发的结局时刻，再做骑士登场 / 离队：离队会再拿 223 并重算结局，
+	# 若那时深蓝（221）的时刻还没记，会先按结局一重算一次、弹出「结局一」的横幅（2026-09-27 用户报的 bug）
+	g.endg.note_relic(id)
 	if id == "222" and not g.knight.alive and not g.knight.fallen:
 		g.knight.spawn()
 	elif id == "221" and g.knight.alive:

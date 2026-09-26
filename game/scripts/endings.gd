@@ -132,6 +132,14 @@ func pick(o: Dictionary) -> void:
 
 
 ## ---------- 结局 ----------
+## 记下这件藏品触发结局的时刻（不重算）：gain_relic 在骑士登场 / 离队之前调用，保证中途的重算已经知道新结局
+func note_relic(id: String) -> void:
+	for eid in endings:
+		var req: Dictionary = endings[eid].get("requires", {})
+		if (req.has("relic") and str(req.relic) == id) or (req.has("relic_lv") and str(req.relic_lv[0]) == id):
+			ending_at[eid] = g.t
+
+
 ## 获得藏品后重算：满足条件的结局里，取最近一次触发的
 func on_relic(id: String) -> void:
 	for eid in endings:
