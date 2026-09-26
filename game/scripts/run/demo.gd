@@ -18,6 +18,10 @@ const DEMO_MAX := 14.0
 const DEMO_MAX_LINGER := 27.0    # 留场表现中的上限（幽灵鲨：S2 10 秒 + 替身 12 秒 + 起手）
 var demo_ph_t := 0.0
 var demo_cast_t := -1.0          # 本段技能放出后经过的秒数（-1 = 还没放）
+var demo_filled := false         # 本段已经替它充满过一次（只充一次：放完后不会再被补满、放第二遍）
+var demo_after_t := 0.0          # 技能效果 / 出手 / 留场都结束后又过了多久（收尾爆炸等演完再切段）
+var demo_hurt_t := 0.0
+const DEMO_HURT_EVERY := 3.0     # 每 3 秒把主控生命压到 70%：治疗干员（凯尔希、铃兰…）才有东西可治（演示里怪不伤人）
 ## 走位（见 wander）：是否正在走向怪
 var charging := false
 var charge_t := 0.0              # 这次起步后走了多久：至少走 WALK_MIN_T 才允许停（不走一帧就停）
@@ -25,6 +29,7 @@ const WALK_MIN_T := 0.3
 const WALK_MV := 0.7             # 摇杆量（匀速）
 const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
 const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
+const DEMO_DY := 30.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr 别钻到下面
 
 
 func _init(game: Game) -> void:
@@ -33,7 +38,11 @@ func _init(game: Game) -> void:
 
 func step(dt: float) -> void:
 	g.lamp = 100.0
-	g.hp = g.max_hp
+	demo_hurt_t += dt
+	if demo_hurt_t >= DEMO_HURT_EVERY:
+		demo_hurt_t = 0.0
+		g.hp = g.max_hp * 0.7
+	g.hp = clampf(g.hp, g.max_hp * 0.5, g.max_hp)
 	g.xp = 0.0
 	g.gems.clear()
 	if g.demo_origin == Vector2.INF:
@@ -60,7 +69,8 @@ func step(dt: float) -> void:
 			g.ch.sp[i] = 0.0
 	if demo_cast_t < 0.0:
 		if demo_ph_t >= DEMO_FILL_AT and g.ch.skill_unlocked(si):
-			if g.ch.sp[si] < g.ch.sp_need(si) and demo_ph_t < DEMO_FILL_AT + dt * 1.5:
+			if not demo_filled:
+				demo_filled = true
 				g.ch.sp[si] = g.ch.sp_need(si)
 			if g.ch.is_manual(si) and g.ch.sp[si] >= g.ch.sp_need(si):
 				g.ch.cast_manual(si)   # 手动技能（幽灵鲨 S2）没人按键：替玩家放
@@ -72,8 +82,11 @@ func step(dt: float) -> void:
 	# 技能结束后还有留场表现（幽灵鲨 S2 结束本体倒下、替身跟随 12 秒，away()）：等它演完再切下一段，
 	# 否则一切段就重建干员，替身只出现一帧（docs/32 §3，测试与验收发现）
 	var lingering: bool = g.ch.has_method("away") and g.ch.away()
-	var done: bool = demo_cast_t >= DEMO_HOLD and g.ch.skill_active_left(si) <= 0.0 and not g.ch.acting() and not lingering
-	if done or demo_ph_t >= (DEMO_MAX_LINGER if lingering else DEMO_MAX):
+	var busy: bool = g.ch.skill_active_left(si) > 0.0 or lingering
+	# 从效果结束起再停 DEMO_HOLD 秒（以前从放出时算：凯尔希熔毁 8 秒一结束就切段，收尾大爆演不到）；普攻出手不算忙，只是不在出手中途切
+	demo_after_t = 0.0 if busy or demo_cast_t < 0.0 else demo_after_t + dt
+	var done: bool = demo_cast_t >= 0.0 and demo_after_t >= DEMO_HOLD and not g.ch.acting()
+	if done or demo_ph_t >= (DEMO_MAX_LINGER if busy else DEMO_MAX):
 		next_phase()
 		return
 	# 怪海清空了：右边补一波
@@ -162,8 +175,15 @@ func next_phase() -> void:
 	g.hitstop = 0.0
 	g.dash_t = 0.0
 	g.doc_pos = Vector2.INF
-	g.ppos = g.demo_origin + Vector2(-150, 10)
+	g.ppos = g.demo_origin + Vector2(-150, 10 + DEMO_DY)
 	new_op()
+	# 推成长节点到精英化时，新解锁的技能会被充满（character.gd 解锁即满）：重建后同一帧就会放出最高的技能，
+	# 每段开头都先来一发三技能。这里全部清零，本段的技能由 step 在 DEMO_FILL_AT 时替它充满
+	for i in 3:
+		if not g.ch.perm[i]:
+			g.ch.sp[i] = 0.0
+	demo_filled = false
+	demo_after_t = 0.0
 	horde(DEMO_HORDE)
 	var si: int = g.demo_phases[g.demo_pi]
 	g.demo_label = "普攻「%s」" % g.ch.attack_def().get("name", "") if g.demo_basic else "%s技能「%s」" % [["一", "二", "三"][si], g.ch.skill_def(si).get("name", "")]
@@ -210,7 +230,7 @@ func horde(n: int) -> void:
 		var a: float = g.rng.randf() * TAU
 		var r: float = sqrt(g.rng.randf())
 		# 前排离主控约 140（近战干员的前压范围 150 以内），一开场就能接敌
-		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, sin(a) * r * 72.0)
+		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, DEMO_DY + sin(a) * r * 72.0)
 		var ne := g.spawner.spawn_enemy("bone", p)
 		ne.spd = 16.0
 		ne.dmg = 0.0
