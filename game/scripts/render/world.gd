@@ -902,22 +902,7 @@ func draw_zone() -> void:
 		var q0 := g.zone_c + Vector2.from_angle(a0) * outer
 		var q1 := g.zone_c + Vector2.from_angle(a1) * outer
 		g.draw_colored_polygon(PackedVector2Array([p0, p1, q1, q0]), Color(0.16, 0.03, 0.22, 0.55))
-		var m0 := g.zone_c + Vector2.from_angle(a0) * (g.zone_r + 40.0)
-		var m1 := g.zone_c + Vector2.from_angle(a1) * (g.zone_r + 40.0)
-		g.draw_colored_polygon(PackedVector2Array([p0, p1, m1, m0]), Color(0.5, 0.15, 0.7, 0.25 + 0.15 * pulse))
-		g.draw_line(p0, p1, Color(1.6, 0.6, 2.2, 0.7 + 0.3 * pulse), 3.0)
-	# 圈边溟痕
-	var mt: Texture2D = g.tex.get("terrain_mire")
-	if mt != null:
-		var fw := mt.get_width() / 2
-		var n := int(TAU * g.zone_r / 90.0)
-		for i in n:
-			var an := TAU * i / n
-			var p := g.zone_c + Vector2.from_angle(an) * (g.zone_r + 14.0)
-			if p.distance_to(g.ppos) > vs.length() * 0.6:
-				continue
-			var sz := Vector2(70, 70) * (0.8 + 0.25 * sin(g.t * 2.0 + i))
-			g.draw_texture_rect_region(mt, Rect2(p - sz / 2.0, sz), Rect2(fw * ((i + int(g.t * 2.0)) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, 0.8))
+	draw_zone_band(pulse)
 	# 下一圈预告（虚线）
 	if g.zone_state == 1:
 		var n2 := 72
@@ -927,6 +912,72 @@ func draw_zone() -> void:
 			var a0 := TAU * i / n2
 			var a1 := TAU * (i + 1) / n2
 			g.draw_line(g.zone_next_c + Vector2.from_angle(a0) * g.zone_next_r, g.zone_next_c + Vector2.from_angle(a1) * g.zone_next_r, Color(2.2, 2.2, 2.4, 0.6), 2.0)
+
+
+## 黑潮边缘的溟痕带（2026-09-27 用户要求：原来是沿圈摆一个个分开的溟痕贴图，改成连成一圈的潮线）：
+## 沿圆周连续的一条带，内沿（安全区一侧）是起伏的亮紫潮头线，往外由溟痕紫渐隐到圈外暗色；带上有缓慢漂移的暗色溟痕团，
+## 表现流动。只画视野附近的弧段（段长约 22 像素，封顶 420 段），手机 / 网页每帧几十到一两百个四边形。只改画面，判定仍是 zone_r
+const ZB_SEG := 22.0
+func draw_zone_band(pulse: float) -> void:
+	var r: float = g.zone_r
+	var c: Vector2 = g.zone_c
+	var vc: Vector2 = g.cam.position
+	var view: float = g.get_viewport_rect().size.length() * 0.6 + 80.0
+	var n: int = clampi(int(TAU * r / ZB_SEG), 64, 420)
+	var t: float = g.t
+	var crest := PackedVector2Array()
+	var prev_in := Vector2.ZERO
+	var prev_mid := Vector2.ZERO
+	var prev_out := Vector2.ZERO
+	var prev_vis := false
+	var c_in := Color(1.1, 0.35, 1.6, 0.55 + 0.2 * pulse)
+	var c_mid := Color(0.42, 0.1, 0.62, 0.62)
+	var c_out := Color(0.16, 0.03, 0.22, 0.0)
+	for i in n + 1:
+		var a: float = TAU * i / n
+		var d := Vector2.from_angle(a)
+		# 内沿潮头：两层正弦叠加并随时间流动；外沿更慢、更宽
+		var rin: float = r - 6.0 + 5.0 * sin(a * 23.0 + t * 1.3) + 1.5 * sin(a * 57.0 - t * 2.1)
+		var rmid: float = r + 12.0 + 4.0 * sin(a * 31.0 - t * 0.9)
+		var rout: float = r + 44.0 + 10.0 * sin(a * 13.0 + t * 0.6) + 5.0 * sin(a * 41.0 - t * 1.4)
+		var pin: Vector2 = c + d * rin
+		var pmid: Vector2 = c + d * rmid
+		var pout: Vector2 = c + d * rout
+		var vis: bool = pin.distance_to(vc) < view
+		if i > 0 and (vis or prev_vis):
+			g.draw_polygon(PackedVector2Array([prev_in, pin, pmid, prev_mid]), PackedColorArray([c_in, c_in, c_mid, c_mid]))
+			g.draw_polygon(PackedVector2Array([prev_mid, pmid, pout, prev_out]), PackedColorArray([c_mid, c_mid, c_out, c_out]))
+			if crest.is_empty():
+				crest.append(prev_in)
+			crest.append(pin)
+		elif crest.size() > 1:
+			_zone_crest(crest, pulse)
+			crest = PackedVector2Array()
+		prev_in = pin
+		prev_mid = pmid
+		prev_out = pout
+		prev_vis = vis
+	if crest.size() > 1:
+		_zone_crest(crest, pulse)
+	# 漂移的溟痕团：每 120 像素弧长一团，沿圈缓慢流动，大小呼吸
+	var nb: int = clampi(int(TAU * r / 120.0), 12, 120)
+	for j in nb:
+		var a2: float = TAU * (j + fmod(t * 0.04, 1.0)) / nb
+		var d2 := Vector2.from_angle(a2)
+		var bp: Vector2 = c + d2 * (r + 16.0 + 8.0 * sin(j * 1.7 + t * 0.8))
+		if bp.distance_to(vc) > view:
+			continue
+		var br: float = 5.0 + 3.0 * sin(j * 2.3 + t * 1.5)
+		g.draw_set_transform(bp, a2 + PI / 2.0, Vector2(1.6, 0.8))
+		g.draw_circle(Vector2.ZERO, br + 2.0, Color(0.08, 0.0, 0.12, 0.55))
+		g.draw_circle(Vector2(-1, -1), br * 0.5, Color(0.9, 0.3, 1.3, 0.35))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 潮头线：暗色描边垫底 + 亮紫细线（安全区边界一眼看清）
+func _zone_crest(pts: PackedVector2Array, pulse: float) -> void:
+	g.draw_polyline(pts, Color(0.05, 0.0, 0.08, 0.6), 5.0)
+	g.draw_polyline(pts, Color(1.6, 0.6, 2.2, 0.75 + 0.25 * pulse), 2.0)
 
 
 ## 护盾：淡蓝色六边形能量泡，层数越多越厚
