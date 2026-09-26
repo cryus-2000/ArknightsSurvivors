@@ -32,7 +32,7 @@ const NO_LOG := ["tear", "dark"]
 const BOSS_DOT := ["corrode", "mire"]   # 算「持续伤害」的来源：Boss 在场时合计每秒封顶
 var boss_log: Array = []     # [时刻, 实际扣血]：Boss 来源的扣血（含 Boss 侵蚀结算），查「任意 2 秒合计」
 var dot_log: Array = []      # [时刻, 实际扣血]：Boss 来源的持续伤害，查「每秒上限」
-var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分
+var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分；用之前先 _boss_pool() 截到池子以内
 var burst_hp := 0.0          # 这一轮 Boss 连击开始前的生命（2 秒窗口里第一次 Boss 扣血之前），满血保护用
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
 
@@ -67,10 +67,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
 		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
+		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
 		if boss:
 			# 侵蚀算进单发上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血。
 			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
-			corrode_boss = minf(corrode_boss, g.corrode_pool)
 			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * g.max_hp - lost, Bal.v("boss/corrode_pool_cap", 0.40) * g.max_hp - corrode_boss)
 			add = maxf(0.0, minf(add, room))
 			corrode_boss += add
@@ -138,6 +138,12 @@ func _boss_clamp(amount: float, src: String) -> float:
 	return amount
 
 
+## 侵蚀池里的 Boss 部分：池子被别处清空或减少（流明净化）时跟着截到池子以内，返回截过的值
+func _boss_pool() -> float:
+	corrode_boss = maxf(0.0, minf(corrode_boss, g.corrode_pool))
+	return corrode_boss
+
+
 ## Boss 在场时，Boss 来源的持续伤害这一秒还能扣多少；没有 Boss 在场时不限
 func dot_room() -> float:
 	if not g.spawner.boss_alive():
@@ -158,8 +164,8 @@ func _window_sum(rows: Array, span: float) -> float:
 ## 侵蚀结算（enemies.update_status 每帧调用，tick = 本帧流出量）：按池子里的比例拆成普通部分和 Boss 部分；
 ## Boss 部分受持续伤害上限，流不出去的留在池里下一帧再流
 func drain_corrode(tick: float) -> void:
-	corrode_boss = clampf(corrode_boss, 0.0, g.corrode_pool)   # 池子被别处清空（流明净化）时跟着截
-	var bt: float = tick * corrode_boss / g.corrode_pool if corrode_boss > 0.0 else 0.0
+	var cb := _boss_pool()
+	var bt: float = tick * cb / g.corrode_pool if cb > 0.0 else 0.0
 	var nt: float = tick - bt
 	if bt > 0.0:
 		bt = minf(bt, dot_room())
@@ -194,7 +200,8 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
 	g.vfx.sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
 	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
-	g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
+	if amount >= 1.0 or not boss:   # Boss 这一击被主控保护截到不足 1 点（2 秒合计已满、满血保护）时不飘「-0」
+		g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
 	# 首次跌破 30%：时间短暂变慢 + 警告
 	if g.hp > 0.0 and g.hp < g.max_hp * 0.3 and not low_warned:
 		low_warned = true

@@ -2,7 +2,7 @@ extends Node
 ## 主控保护脚本测试（docs/38 §1.11、B0 验收）：godot --headless --path game res://tests/prot_test.tscn -- --balance --seed=1 --op=wisadel
 ## 把 game.tscn 当子节点跑起来，第 5 帧直接调用 combat 的扣血入口，逐条检查 Boss 来源的扣血截断：
 ##   骨血 + 灯火 20 下 Boss 单发 ≤40%；带侵蚀的招式「扣血 + 追加侵蚀」≤40%；连发 2 秒合计 ≤50%；满血吃连击不死；
-##   Boss 在场时 Boss 侵蚀 / Boss 溟痕每秒 ≤4%；非 Boss 来源（小怪、自然溟痕、普通侵蚀）不受影响。
+##   Boss 在场时 Boss 侵蚀 / Boss 溟痕每秒 ≤4%；非 Boss 来源（小怪、自然溟痕、普通侵蚀，含流明净化之后的）不受影响。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -258,6 +258,20 @@ func test_non_boss() -> void:
 	game.enemies_sys.update_status(dt)
 	var tick: float = minf(pool0, (pool0 * 0.5 + 1.0) * dt)
 	ok(absf((hp0 - game.hp) - tick) < EPS, "普通侵蚀照原公式流出")
+	# 流明净化直接把侵蚀池清零（lumen.gd），之后小怪追加的侵蚀不能被当成 Boss 侵蚀（不受每秒上限、不进 2 秒合计）
+	reset()
+	game.corrode_pool = 0.06 * game.max_hp
+	c.corrode_boss = game.corrode_pool
+	game.corrode_pool = 0.0
+	game.dmg_src = "contact_test"
+	game.in_type = ["近战", "真实"]
+	c.enemy_hit(game.max_hp * 0.05, {"corrode": 0.5}, false, true)
+	ok(c.corrode_boss < EPS and game.corrode_pool > 0.0, "净化后小怪追加的侵蚀不算 Boss 的（Boss 部分 %s）" % pct(c.corrode_boss))
+	pool0 = game.corrode_pool
+	hp0 = game.hp
+	game.enemies_sys.update_status(dt)
+	tick = minf(pool0, (pool0 * 0.5 + 1.0) * dt)
+	ok(absf((hp0 - game.hp) - tick) < EPS and c.boss_log.is_empty(), "净化后普通侵蚀照原公式流出、不进 Boss 的 2 秒合计")
 	reset()
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
 	game.enemies_sys.mire_tick = 0.0

@@ -319,10 +319,11 @@ func update_status(dt: float) -> void:
 			mire_tick = 0.5
 			var md: float = 3.0 + g.max_hp * 0.015
 			md = g.combat.lose_hp(md, "mire", not mire_nat)
-			g.red_flash = maxf(g.red_flash, 0.08)
-			g.hp_shake = 0.2
-			g.hurt_flash = maxf(g.hurt_flash, 0.06)
-			g.vfx.add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
+			if md >= 1.0:   # Boss 溟痕这一跳被持续伤害上限截到不足 1 点时不闪、不飘「-0」（自然溟痕每跳 ≥3，照旧）
+				g.red_flash = maxf(g.red_flash, 0.08)
+				g.hp_shake = 0.2
+				g.hurt_flash = maxf(g.hurt_flash, 0.06)
+				g.vfx.add_text(g.ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
 		g.head_bar_t = maxf(g.head_bar_t, 0.6)
 	else:
 		mire_tick = 0.0
