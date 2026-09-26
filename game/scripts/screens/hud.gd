@@ -362,6 +362,7 @@ func draw() -> void:
 	if not overlay_left():
 		draw_status_bar(vs)
 	draw_dash_hint(vs)
+	draw_manual_hint()
 	match g.state:
 		Game.S.SHOW:
 			g.show_screen.draw(vs)
@@ -555,6 +556,32 @@ func draw_dash_hint(vs: Vector2) -> void:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
 		var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -92))
 		UI.text(g.hud, g.font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
+
+
+## 手动技能首次就绪提示：每局主控的手动技能第一次充满时，在主控头顶显示 3.5 秒「按 Q 释放「技能名」」
+## （手柄写 Ⓐ，触屏写「点技能键释放」），之后只留技能格的呼吸框。位置在冲刺提示上方，两者不重叠
+var manual_hinted := false
+var manual_hint_t := 0.0
+var manual_hint_text := ""
+
+
+func draw_manual_hint() -> void:
+	if g.state != Game.S.PLAY or g.demo_op != "":
+		return
+	if not manual_hinted:
+		var ld = g.squad.leader()
+		var i: int = ld.manual_index() if ld != null else -1
+		if i >= 0 and ld.manual_ready(i):
+			manual_hinted = true
+			manual_hint_t = 3.5
+			var nm: String = ld.skill_def(i).get("name", "技能")
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q", "Ⓐ"), nm])
+	if manual_hint_t <= 0.0:
+		return
+	manual_hint_t -= g.get_process_delta_time()
+	var a: float = clampf(manual_hint_t / 0.5, 0.0, 1.0) * (0.65 + 0.35 * sin(g.t * 5.0))
+	var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -118))
+	UI.text(g.hud, g.font, sp - Vector2(140, 0), manual_hint_text, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), HORIZONTAL_ALIGNMENT_CENTER, 280, 4)
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来

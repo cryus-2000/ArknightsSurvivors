@@ -1,5 +1,5 @@
 ## 触屏操作（移动端 / 网页版）：左半屏浮动虚拟摇杆（手指按下处即摇杆中心），右侧两个按钮（暂停 / 属性）。
-## 技能全自动，所以只需要移动。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
+## 技能基本全自动；主控有手动技能时冲刺键上方多一个技能键（干员契约 v2.3）。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
 ## 开启条件：设备有触屏（DisplayServer.is_touchscreen_available）或命令行 --touch。
 extends RefCounted
 
@@ -17,6 +17,12 @@ var stick_pos := Vector2.ZERO
 var vec := Vector2.ZERO
 var btn_rects: Array = []   # [Rect2, action]
 var flash := {}             # action -> 剩余高亮时间
+## 手动技能键（主控有已解锁的手动技能时，冲刺键上方）：按下记触点，松手释放。
+## 按住时记下拖动方向 skill_aim（留给以后的「拖动瞄准、松手释放」，现在释放时还不读它）
+var skill_id := -1          # 正在按技能键的触点（-1 = 没按）
+var skill_origin := Vector2.ZERO
+var skill_aim := Vector2.ZERO
+var skill_rect := Rect2()
 
 
 func _init(game) -> void:
@@ -36,6 +42,12 @@ func handle(event: InputEvent) -> bool:
 	if event is InputEventScreenTouch:
 		var vs: Vector2 = g.hud.size
 		if event.pressed:
+			# 技能键：按下只记触点，松手才释放（以后可以改成拖动瞄准）
+			if skill_rect.size.x > 0.0 and skill_id < 0 and skill_rect.grow(8.0).has_point(event.position):
+				skill_id = event.index
+				skill_origin = event.position
+				skill_aim = Vector2.ZERO
+				return true
 			# 按钮优先
 			for b in btn_rects:
 				if b[0].grow(8.0).has_point(event.position):
@@ -53,11 +65,20 @@ func handle(event: InputEvent) -> bool:
 				vec = Vector2.ZERO
 				return true
 		else:
+			if event.index == skill_id:
+				skill_id = -1
+				flash["skill"] = 0.2
+				if g.state == g.S.PLAY:
+					g.doctor.try_manual_skill()   # 没就绪时它自己飘字说原因；正在出手时会记下、1 秒内放出
+				return true
 			if event.index == stick_id:
 				stick_id = -1
 				vec = Vector2.ZERO
 				return true
 	elif event is InputEventScreenDrag:
+		if event.index == skill_id:
+			skill_aim = event.position - skill_origin
+			return true
 		if event.index == stick_id:
 			stick_pos = event.position
 			var d: Vector2 = stick_pos - stick_origin
@@ -103,6 +124,8 @@ func update(dt: float) -> void:
 	if stick_id >= 0 and g.state != g.S.PLAY:
 		stick_id = -1
 		vec = Vector2.ZERO
+	if skill_id >= 0 and g.state != g.S.PLAY:
+		skill_id = -1
 
 
 func draw_hud(vs: Vector2) -> void:
@@ -132,6 +155,9 @@ func draw_hud(vs: Vector2) -> void:
 		hud.draw_circle(dc, BTN * 0.7, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
 		hud.draw_arc(dc, BTN * 0.7, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
 		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
+		_draw_skill_button(hud, font, dc + Vector2(0, -BTN * 1.4 - 26.0))
+	else:
+		skill_rect = Rect2()
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]
@@ -144,3 +170,32 @@ func draw_hud(vs: Vector2) -> void:
 			hud.draw_arc(c, BTN / 2.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
 			UI.text(hud, font, c + Vector2(-20, 7), items[i][0], 20, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
 			UI.text(hud, font, c + Vector2(-30, BTN / 2.0 + 14), items[i][2], 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
+
+
+## 手动技能键：圆底 + 技能图标 + 外圈充能；就绪时青色呼吸外圈。只在主控有已解锁的手动技能时画（干员契约 v2.3：手动只对主控）
+func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
+	skill_rect = Rect2()
+	var ld = g.squad.leader()
+	if ld == null:
+		return
+	var i: int = ld.manual_index()
+	if i < 0 or not ld.skill_unlocked(i):
+		return
+	var r := BTN * 0.7
+	skill_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
+	var need: float = ld.sp_need(i)
+	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0
+	var ready: bool = ld.manual_ready(i)
+	var held: bool = skill_id >= 0 or flash.get("skill", 0.0) > 0.0
+	hud.draw_circle(c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
+	var tx: Texture2D = g.tex.get(ld.skill_def(i).get("icon", ""))
+	if tx != null:
+		var s := r * 1.2
+		hud.draw_texture_rect(tx, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color.WHITE if ready else Color(0.55, 0.58, 0.62))
+	else:
+		UI.text(hud, font, c + Vector2(-40, 7), ld.skill_def(i).get("name", "技能").substr(0, 2), 16, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
+	hud.draw_arc(c, r, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5), 3.0)
+	if ready:
+		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
+		hud.draw_arc(c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
+	UI.text(hud, font, c + Vector2(-40, r + 16), ld.skill_def(i).get("name", ""), 11, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
