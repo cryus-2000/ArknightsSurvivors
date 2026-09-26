@@ -659,8 +659,8 @@ func _process(delta: float) -> void:
 				_pm("autotest")
 				if state == S.PLAY:
 					_update(dt)
-	if not panel.visible:
-		banner_t -= delta   # 选卡 / 商人面板开着时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
+	if not panel.visible and state != S.SHOW:
+		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	world.update_visuals(dt if state == S.PLAY else 0.0)
 	_pm("visuals")

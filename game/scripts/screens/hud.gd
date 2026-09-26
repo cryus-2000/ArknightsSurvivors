@@ -31,6 +31,9 @@ func draw() -> void:
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	for f in (g.texts if g.state != Game.S.SHOW or g.demo_op != "" else []):
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
+		# 图鉴演示：主控身上的飘字压淡（斯卡蒂潮汐时成串数字会整块盖住她）
+		if g.demo_op != "" and g.ch != null and absf(f.pos.x - g.ch.pos.x) < 36.0 and f.pos.y > g.ch.pos.y - 80.0 and f.pos.y < g.ch.pos.y + 10.0:
+			a *= 0.3
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		var sz := int(f.size * pop)
@@ -333,7 +336,7 @@ func draw() -> void:
 	draw_squad_hud(Vector2(vs.x - 16, vs.y - 16))
 
 	# 横幅通知
-	if g.banner_t > 0.0 and not g.panel.visible:
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW:   # 精英化演出的遮罩只有 86%，横幅会透出来
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := vs.y * 0.24
 		# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）

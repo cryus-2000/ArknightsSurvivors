@@ -862,9 +862,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
 	var sks: Array = d.get("skills", [])
 	for si in sks.size():
-		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精一", "精二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
+		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精英一", "精英二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
 	if d.has("talent"):
-		lines.append(["天赋", d.talent.get("name", ""), d.talent.get("desc", "")])
+		lines.append(["天赋", d.talent.get("name", "") + "　（精英一解锁）", d.talent.get("desc", "")])
 	for ln in lines:
 		# 技能行：左边画技能图标（32px 原尺寸），名字与说明右移；普攻 / 天赋仍是小标签
 		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null
