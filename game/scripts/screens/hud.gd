@@ -710,7 +710,7 @@ func draw_squad_hud(br: Vector2) -> void:
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
-				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英化一", "精英化二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
+				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英一", "精英二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
 				var tw: float = g.font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
 				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, g.hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
 				UI.panel(g.hud, tipr, UI.BG2, o.col(), 6.0)
