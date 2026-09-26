@@ -372,6 +372,9 @@ func draw_auras() -> void:
 func _draw_tails() -> void:
 	# 以腰后为根、朝上略向身后张开的一把大扇形，尾尖露出在头顶与身体两侧
 	var root: Vector2 = pos + Vector2(-4.0 * face, -28)
+	# Codex 帧条 fx_suzuran_ninetails（64×48 × 4 帧，4fps 循环，底部根点 (32,46) 放在腰后；整体 alpha 0.45）
+	if _fx_strip("fx_suzuran_ninetails", 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, 0.45), face < 0.0):
+		return
 	var center: float = -PI / 2.0 - 0.25 * face
 	for k in 9:
 		var t: float = (k - 4) / 4.0
@@ -421,6 +424,9 @@ func _draw_foxfires() -> void:
 			p = p.lerp(c, conv * conv)
 		# 狐火：金色光晕 + 白热火芯，与铃兰本身的黄色尾巴区分开
 		g.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
+		# Codex 帧条 fx_suzuran_wisp（8×12 × 4 帧，8fps 循环，中心锚点；火苗底部对齐原火舌根部）
+		if _fx_strip("fx_suzuran_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
+			continue
 		_flame(p, 13.0, 1.0)
 		g.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
 	if conv > 0.5:
@@ -429,13 +435,37 @@ func _draw_foxfires() -> void:
 		_flame(c, hh, conv)
 
 
+## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
+func _fx_tex(name: String) -> Texture2D:
+	if not g.tex.has(name):
+		g.tex[name] = A.tex(name)
+	return g.tex[name]
+
+
+## 帧条贴图（有图画图、缺图返回 false 走程序版）；1 美术像素 = PX 世界像素，@2x 高清帧条按 A.hires_of 半倍画；anchor 为帧内比例锚点
+func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vector2(0.5, 0.5), ang := 0.0, col := Color.WHITE, flip := false) -> bool:
+	var tx: Texture2D = _fx_tex(name)
+	if tx == null:
+		return false
+	var fw: float = float(tx.get_width() / frames)
+	var fh: float = float(tx.get_height())
+	var k: float = g.PX / A.hires_of(tx)
+	g.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	g.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
+
+
 func _draw_skill_over() -> void:
 	_draw_foxfires()
 	# 三火归一的大狐火：大一圈的狐火弹 + 热光
 	for f in bigfox:
 		g.draw_circle(f.pos, 24.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
 		g.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
-		if g.tex.get("proj_foxfire") != null:
+		# Codex 帧条 proj_suzuran_bigfox（24×16 × 4 帧，10fps 循环，朝右 → 按速度方向旋转）
+		if _fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
+			pass
+		elif g.tex.get("proj_foxfire") != null:
 			g._spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
 		else:
 			g.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
