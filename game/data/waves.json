@@ -7,7 +7,7 @@
    "t": 0.0,
    "elite": 45.0,
    "evo": 0.0,
-   "spd": 1.0,
+   "spd": 1.15,
    "horde_every": 90.0,
    "pool": [
     "bone",
@@ -49,7 +49,7 @@
    "t": 75.0,
    "elite": 55.0,
    "evo": 0.0,
-   "spd": 1.0,
+   "spd": 1.15,
    "horde_every": 90.0,
    "pool": [
     "bone",
@@ -57,7 +57,9 @@
     "bone",
     "slider",
     "slider",
-    "stone"
+    "stone",
+    "skimmer",
+    "runner"
    ],
    "horde": [
     "bone",
