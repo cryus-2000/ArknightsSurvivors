@@ -52,7 +52,7 @@ const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"],
 	["max_hp", "主控初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
-	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "溟痕不再消散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"],
+	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然生成的溟痕不再消散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"],
 ]
 
 
