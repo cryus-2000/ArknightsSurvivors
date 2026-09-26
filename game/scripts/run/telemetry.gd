@@ -91,7 +91,10 @@ func tick(dt: float) -> void:
 		if not boss_seen.has(key):
 			boss_seen[key] = {"type": b.type, "t0": int(t), "t1": -1, "tv": -1, "shield": 0.0, "gates": 0}
 		var bs: Dictionary = boss_seen[key]
-		if b.dead and bs.t1 < 0:
+		if b.get("retreated", false):
+			if not bs.has("retreat"):
+				bs["retreat"] = int(t)   # 最终 Boss 登场时撤场：不算击杀，t1 保持 −1
+		elif b.dead and bs.t1 < 0:
 			bs.t1 = int(t)
 		if bs.tv < 0 and not b.invuln and not b.dead:
 			bs.tv = int(t)

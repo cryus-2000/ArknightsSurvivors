@@ -13,6 +13,7 @@ extends Node
 ## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
 ## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
 ## 破绽 ×1.4、韧性与眩晕钩子（白名单 Boss）、伤害预算（默认关）（B1 ③④）。
+## 最终 Boss 登场时残留中期 Boss 撤场不给奖励（B1 ②）。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -55,6 +56,7 @@ func _process(_d: float) -> void:
 	test_v8()
 	test_gates()
 	test_break_budget()
+	test_retreat()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -733,3 +735,17 @@ func test_break_budget() -> void:
 	Bal._data["boss"] = bak
 	n.dead = true
 	game.warns.clear()
+
+
+## B1 ②（用户 9/27）：最终 Boss 登场时残留的中期 Boss 撤场——直接移除、不走 kill（不计击杀、不掉落）
+func test_retreat() -> void:
+	var sp = game.spawner
+	var keep: Array = game.bosses.duplicate()
+	var m: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
+	game.bosses = [m]
+	var k0: int = game.kills
+	var pk0: int = game.pickups.count_items()
+	sp.retreat_mid_bosses()
+	ok(m.dead and m.get("retreated", false), "残留中期 Boss 撤场")
+	ok(game.kills == k0 and game.pickups.count_items() == pk0, "撤场不计击杀、不掉道具")
+	game.bosses = keep
