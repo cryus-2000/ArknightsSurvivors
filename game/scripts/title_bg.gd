@@ -1,7 +1,7 @@
 extends Control
 ## 标题背景：蓝眼泪银河沙滩（全部程序生成，像素风）
 ## 画布 640×360，按 ×2 最近邻放大到 1280×720，与游戏内像素密度一致。
-## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 博士与编队（含倒影）→ 发光叠加层
+## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 海中水母 → 沙滩（湿沙 → 过渡 → 月光干沙）→ 涌浪与蓝眼泪 → 博士与编队（倒影只落在湿沙上）→ 发光叠加层
 ## 人物：博士站在浪边 C 位，身旁是本地图的固定人物（data/maps/<id>.json 的 title_guest，深海 = 水月），
 ## 身后是上一局的编队（Cfg.last_squad，没有记录时用默认三人；与固定人物重复的不再站后排）；开场时后排干员依次跑进来站定。
 
@@ -39,6 +39,11 @@ var stars: Array = []       # [pos, size, phase, speed, col]
 var crests: Array = []      # 远处发光浪尖 {y, x0, x1, life, max}
 var tears: Array = []       # 沙滩上的蓝眼泪光点 {pos, life, max, ph}
 var motes: Array = []       # 上升的荧光颗粒 {pos, v, ph}
+var jellies: Array = []     # 海里的发光水母 {pos, r, ph, spd, col}
+## 沙滩分带（按离岸线的距离 d，画布像素）：d < WET_END 湿沙（能反光），到 DRY_START 过渡完，之后是干沙
+const WET_END := 40.0
+const DRY_START := 78.0
+const JELLY_COLS := [Color(0.35, 0.9, 1.0), Color(0.55, 0.6, 1.0), Color(1.0, 0.55, 0.85)]
 var meteor := {}
 var next_meteor := 3.0
 var next_crest := 0.0
@@ -68,6 +73,8 @@ func _ready() -> void:
 		stars.append([p, 2 if big else 1, rng.randf() * TAU, rng.randf_range(0.6, 2.4), col])
 	for i in 40:
 		motes.append({"pos": Vector2(rng.randf_range(200, W), rng.randf_range(170, H)), "v": rng.randf_range(3, 9), "ph": rng.randf() * TAU})
+	for i in 9:
+		jellies.append(_new_jelly(rng.randf_range(HZ + 8, SHORE - 14)))
 	tree = TitleTree.new()
 	tree.build(W, H, TREE_BASE, 205.0, 7)
 	tex_tree = ImageTexture.create_from_image(tree.img)
@@ -133,6 +140,16 @@ func _step(dt: float) -> void:
 	tears = tears.filter(func(tr): return tr.life > 0.0)
 	if tears.size() > 900:
 		tears = tears.slice(tears.size() - 900)
+	# 水母：伞盖一收一放地往上游（收缩时推进最快），左右轻摆；游到海平线附近从近岸处换一只
+	for j in jellies:
+		j.ph += dt * j.spd
+		var push: float = maxf(0.0, sin(j.ph)) * 1.6 + 0.25
+		j.pos.y -= push * 2.2 * dt
+		j.pos.x += sin(j.ph * 0.37) * 1.5 * dt
+		if j.pos.y < HZ + 6:
+			var nj := _new_jelly(SHORE - 12.0)
+			for k in nj:
+				j[k] = nj[k]
 	for m in motes:
 		m.pos.y -= m.v * dt
 		m.pos.x += sin(t * 0.8 + m.ph) * 4.0 * dt
@@ -184,6 +201,9 @@ func _draw() -> void:
 	draw_set_transform(off + Vector2(sin(t * 0.9) * 1.2 * ks, (HZ + 2) * ks), 0.0, Vector2(ks, -ks * 0.45))
 	draw_texture_rect_region(tex_tree, Rect2(Vector2(0, -(HZ + 2)), Vector2(W, HZ + 2)), Rect2(0, 0, W, HZ + 2), Color(0.5, 0.65, 0.85, 0.32))
 	draw_set_transform(off, 0.0, Vector2(ks, ks))
+	# 海里的水母（本体半透明，发光部分在加法层）
+	for j in jellies:
+		_draw_jelly(j, false)
 	# 沙滩（岸线以下）
 	draw_texture(tex_sand, Vector2(0, SHORE - 30))
 	# 发光脚印
@@ -313,7 +333,11 @@ func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: 
 		var src := Rect2(f * fw, fh - 1 - row, fw, 1)
 		var off := sin(t * 2.2 + row * 0.5 + phase) * (0.6 + row * 0.03)
 		var dst := Rect2(Vector2(pos.x + off, feet.y - foot_up * sc + row * sc), Vector2(fw * sc, sc))
-		draw_texture_rect_region(tx, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55 * alpha))
+		var wy: float = feet.y - foot_up * sc + row * sc
+		var damp: float = _wetness(feet.x, wy)
+		if damp <= 0.02:
+			continue
+		draw_texture_rect_region(tx, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55 * alpha * damp))
 	draw_texture_rect_region(tx, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh), Color(tint.r, tint.g, tint.b, alpha))
 
 
@@ -337,6 +361,9 @@ func _draw_glow() -> void:
 		for k in 6:
 			var j: int = clampi(idx - k, 0, path.size() - 1)
 			glow.draw_rect(Rect2(path[j].round() - Vector2(1, 1), Vector2(2, 2)), Color(0.5, 0.85, 1.0, 0.45 * (1.0 - k / 6.0)))
+	# 水母的发光：伞缘亮边 + 触须
+	for j in jellies:
+		_draw_jelly(j, true)
 	# 远处浪尖
 	for c in crests:
 		var k: float = c.life / c.max
@@ -404,6 +431,60 @@ func _draw_glow() -> void:
 		glow.draw_texture_rect(tex_light, Rect2(c + Vector2(-60, 10), Vector2(120, 120)), false, Color(0.5, 0.35, 0.15, 0.35 + 0.05 * sin(t * 9.0)))
 
 
+func _new_jelly(y: float) -> Dictionary:
+	return {"pos": Vector2(rng.randf_range(150, W - 10), y), "r": rng.randf_range(4.5, 7.5), "ph": rng.randf() * TAU,
+		"spd": rng.randf_range(1.6, 2.6), "col": JELLY_COLS[rng.randi() % JELLY_COLS.size()]}
+
+
+## 水母（像素画）：越靠海平线越小越淡；伞盖随 ph 收放，触须波动。glow=true 画加法层的亮边与触须
+func _draw_jelly(j: Dictionary, glow_layer: bool) -> void:
+	var depth: float = clampf((j.pos.y - HZ) / float(SHORE - HZ), 0.0, 1.0)
+	var sc: float = 0.45 + 0.55 * depth
+	var r: float = j.r * sc
+	var pulse: float = sin(j.ph)
+	var rw: float = r * (1.0 + 0.18 * pulse)          # 放开时宽而扁
+	var rh: float = r * (0.85 - 0.15 * pulse)          # 收缩时窄而高
+	var c: Color = j.col
+	var a0: float = 0.35 + 0.65 * depth
+	var ci: CanvasItem = glow if glow_layer else self
+	var base: Vector2 = j.pos.round()
+	var rows := int(ceil(rh))
+	for dy in rows + 1:
+		var k: float = 1.0 - float(dy) / maxf(rh, 1.0)
+		var hw := int(round(rw * sqrt(maxf(0.0, 1.0 - k * k))))
+		var y: float = base.y - rows + dy
+		if glow_layer:
+			# 伞缘：每行两端亮点 + 顶部一行亮
+			ci.draw_rect(Rect2(Vector2(base.x - hw, y), Vector2(1, 1)), Color(c.r, c.g, c.b, 0.95 * a0))
+			ci.draw_rect(Rect2(Vector2(base.x + hw, y), Vector2(1, 1)), Color(c.r, c.g, c.b, 0.95 * a0))
+			if dy == 0 or dy == rows:
+				ci.draw_rect(Rect2(Vector2(base.x - hw, y), Vector2(hw * 2 + 1, 1)), Color(c.r, c.g, c.b, 0.45 * a0))
+		else:
+			ci.draw_rect(Rect2(Vector2(base.x - hw, y), Vector2(hw * 2 + 1, 1)), Color(c.r * 0.55, c.g * 0.6, c.b * 0.75, 0.42 * a0))
+	if glow_layer:
+		# 柔光：伞盖周围一团
+		if tex_light != null:
+			var gr: float = r * 3.2
+			ci.draw_texture_rect(tex_light, Rect2(base - Vector2(gr, gr + rows * 0.5), Vector2(gr, gr) * 2.0), false, Color(c.r * 0.5, c.g * 0.5, c.b * 0.5, 0.5 * a0))
+		# 伞内一点亮核
+		ci.draw_rect(Rect2(base + Vector2(0, -rows * 0.5).round(), Vector2(1, 1)), Color(1, 1, 1, 0.5 * a0))
+		# 触须：3–4 根，向下飘，越往下越淡
+		var n := 3 if r < 3.0 else 4
+		var tl: float = r * (2.2 + 0.5 * pulse)
+		for q in n:
+			var x0: float = base.x + (q - (n - 1) * 0.5) * rw * 0.55
+			for s in int(tl):
+				var sway: float = sin(j.ph * 1.3 + s * 0.45 + q) * (0.4 + s * 0.12)
+				var al: float = (1.0 - float(s) / tl) * 0.55 * a0
+				ci.draw_rect(Rect2(Vector2(round(x0 + sway), base.y + 1 + s), Vector2(1, 1)), Color(c.r, c.g, c.b, al))
+
+
+## 沙滩湿度：1 = 湿沙（浪能冲到、会反光），0 = 干沙
+func _wetness(x: float, y: float) -> float:
+	var d := y - (SHORE - (x - 320.0) * 0.07 + 2.0 * sin(x * 0.05))
+	return 1.0 - smoothstep(WET_END, DRY_START, d)
+
+
 # ------------------------------------------------------------------ 预渲染
 func _build_sky() -> void:
 	var img := Image.create(W, H, false, Image.FORMAT_RGBA8)
@@ -468,6 +549,9 @@ func _build_sand() -> void:
 	var n := FastNoiseLite.new()
 	n.seed = 5
 	n.frequency = 0.06
+	var n2 := FastNoiseLite.new()
+	n2.seed = 17
+	n2.frequency = 0.012
 	for y in sh:
 		for x in W:
 			var wy := SHORE - 30 + y
@@ -476,15 +560,50 @@ func _build_sand() -> void:
 			if wy < edge - 4:
 				img.set_pixel(x, y, Color(0, 0, 0, 0))
 				continue
-			var k: float = clampf((wy - edge) / 110.0, 0.0, 1.0)
-			var c := Color(0.05, 0.07, 0.14).lerp(Color(0.1, 0.11, 0.18), k)
-			c = c.lerp(Color(0.13, 0.13, 0.2), clampf(n.get_noise_2d(x, wy * 2.0) * 0.5 + 0.2, 0.0, 1.0) * 0.5)
-			if rng.randf() < 0.03:
-				c = c.lightened(0.12)
+			var d: float = wy - edge
+			var dry: float = smoothstep(WET_END, DRY_START, d)
+			# 湿沙：深、偏蓝，带天光反射的横向亮纹（像一层薄水膜）
+			var wet_c := Color(0.025, 0.045, 0.1).lerp(Color(0.05, 0.075, 0.15), clampf(d / WET_END, 0.0, 1.0))
+			var sheen: float = clampf(n.get_noise_2d(x * 0.25, wy * 2.4) * 1.4 - 0.35, 0.0, 1.0)
+			wet_c = wet_c.lerp(Color(0.16, 0.2, 0.36), sheen * 0.45 * (1.0 - clampf(d / WET_END, 0.0, 1.0) * 0.5))
+			# 干沙：月光下偏冷的灰沙，越往前越亮一点；风吹的沙纹
+			var far: float = clampf((d - DRY_START) / 60.0, 0.0, 1.0)
+			var dry_c := Color(0.16, 0.155, 0.21).lerp(Color(0.25, 0.23, 0.28), far)
+			var rip: float = sin(x * 0.11 + wy * 0.9 + n2.get_noise_2d(x, wy) * 9.0)
+			if rip > 0.72:
+				dry_c = dry_c.lightened(0.07)
+			elif rip < -0.85:
+				dry_c = dry_c.darkened(0.12)
+			dry_c = dry_c.lerp(Color(0.2, 0.19, 0.25), clampf(n.get_noise_2d(x, wy * 2.0) * 0.5 + 0.2, 0.0, 1.0) * 0.35)
+			var c := wet_c.lerp(dry_c, dry)
+			# 高潮线：一道断续的海藻碎屑（深色），靠近湿干交界
+			var tide: float = absf(d - (WET_END + 6.0) - 4.0 * sin(x * 0.07))
+			if tide < 1.0 and n.get_noise_2d(x * 0.8, 3.0) > 0.05:
+				c = Color(0.03, 0.04, 0.06)
+			# 沙粒：干沙多、湿沙少
+			var r := rng.randf()
+			if r < 0.012 + 0.04 * dry:
+				c = c.lightened(0.1 + 0.08 * dry)
+			elif r > 0.985:
+				c = c.darkened(0.2)
+			# 最下方压暗，给菜单和画面收边
+			c = c.lerp(Color(0.01, 0.012, 0.03), smoothstep(float(H - 46), float(H), float(wy)) * 0.55)
 			var a := clampf((wy - edge + 4.0) / 4.0, 0.0, 1.0)
-			var d := _dither(c, x, y)
-			d.a = a
-			img.set_pixel(x, y, d)
+			var dd := _dither(c, x, y)
+			dd.a = a
+			img.set_pixel(x, y, dd)
+	# 零星小贝壳 / 卵石（干沙上）：亮点 + 下方一像素阴影
+	for i in 26:
+		var sx := rng.randi_range(170, W - 4)
+		var sy := rng.randi_range(4, sh - 6)
+		var wy2 := SHORE - 30 + sy
+		if _wetness(sx, wy2) > 0.4:
+			continue
+		var shell := Color(0.34, 0.31, 0.36) if rng.randf() < 0.6 else Color(0.42, 0.33, 0.38)
+		img.set_pixel(sx, sy, shell)
+		if rng.randf() < 0.5:
+			img.set_pixel(sx + 1, sy, shell.darkened(0.15))
+		img.set_pixel(sx, sy + 1, Color(0.05, 0.05, 0.08))
 	tex_sand = ImageTexture.create_from_image(img)
 
 
