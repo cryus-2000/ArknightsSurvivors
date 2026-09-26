@@ -78,6 +78,8 @@ func handle(event: InputEvent) -> bool:
 
 func _do(action: String) -> void:
 	match action:
+		"dash":
+			g._try_dash()
 		"pause":
 			if g.state == g.S.PLAY:
 				g.state = g.S.PAUSE
@@ -121,6 +123,15 @@ func draw_hud(vs: Vector2) -> void:
 		var c := Vector2(150, vs.y - 150)
 		hud.draw_arc(c, 40.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12), 1.5)
 		hud.draw_circle(c, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12))
+	# 冲刺按钮：右下角大圆（冷却中显示进度环）
+	if g.state == g.S.PLAY:
+		var dc := Vector2(vs.x - 110, vs.y - 170)
+		var dr0 := Rect2(dc - Vector2(BTN * 0.7, BTN * 0.7), Vector2(BTN * 1.4, BTN * 1.4))
+		btn_rects.append([dr0, "dash"])
+		var ready: bool = g.dash_cd <= 0.0
+		hud.draw_circle(dc, BTN * 0.7, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
+		hud.draw_arc(dc, BTN * 0.7, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
+		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]

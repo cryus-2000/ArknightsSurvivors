@@ -216,6 +216,12 @@ func draw_shadows() -> void:
 				var c: Color = o.col()
 				g.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
 				g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
+				# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
+				var dk: float = 1.0 - g.dash_cd / g.DASH_CD
+				if dk < 1.0:
+					g.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
+				else:
+					g.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
 				g.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
