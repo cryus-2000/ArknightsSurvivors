@@ -277,9 +277,9 @@ func draw_world() -> void:
 			a *= fdim
 		match f.kind:
 			"frost":
-				# 寒冰领域：淡蓝地面 + 旋转冰纹
+				# 寒冰领域：淡蓝地面 + 旋转冰纹（地面椭圆与判定一致，ground_y，docs/48 ①）
 				var fa: float = minf(1.0, f.life / 0.6) * 0.9
-				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, ground_y()))
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.5, 0.8, 1.2, 0.14 * fa))
 				g.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 48, Color(0.8, 1.2, 1.8, 0.6 * fa), 2.0)
 				for q in 6:
@@ -501,9 +501,11 @@ func draw_world() -> void:
 	# 抛射碎石：落点预警 + 空中石块
 	for l in g.lobs:
 		var k: float = l.t / l.dur
-		g.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
-		g.draw_circle(Vector2.ZERO, l.r * k, Color(1.0, 0.2, 0.15, 0.22))
-		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(1.4, 0.3, 0.25, 0.5 + 0.4 * sin(g.t * 20.0)), 2.0)
+		# 抛石落点：地面椭圆（与判定一致）+ 深色描边 + 敌方洋红，不再乘亮度（docs/48 ①④）
+		g.draw_set_transform(l.to, 0.0, Vector2(1.0, ground_y()))
+		g.draw_circle(Vector2.ZERO, l.r * k, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.22))
+		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(0, 0, 0, 0.55), 4.0)
+		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.6 + 0.35 * sin(g.t * 20.0)), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var gp: Vector2 = l.from.lerp(l.to, k)
 		var hgt := sin(k * PI) * 120.0
@@ -517,10 +519,12 @@ func draw_world() -> void:
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
 		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
-		g.draw_arc(sh.pos, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a), 10.0)
-		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
-		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
-		g.draw_arc(sh.pos, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+		g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
+		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a), 10.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_enemy_tells()
 	draw_warn_outlines()
 	draw_zone()
@@ -689,7 +693,7 @@ func draw_enemy(e: Dictionary) -> void:
 	# 美术 V8 小怪帧条：攻击（atk_anim：蓄力 / 鼓胀时第 1、2 帧，出手后 0.2 秒第 3、4 帧）、休眠 / 唤醒、狂暴待机
 	var ed: Dictionary = D.ENEMIES.get(e.type, {})
 	if ed.get("atk_anim", false) and e.tex_attack:
-		var ww: float = maxf(e.get("wind", 0.0), e.get("blast_w", 0.0))
+		var ww: float = maxf(maxf(e.get("wind", 0.0), e.get("blast_w", 0.0)), maxf(maxf(e.get("burst_w", 0.0), e.get("dash_w", 0.0)), e.get("nova_w", 0.0)))   # 各种蓄力都播攻击帧条前两帧（docs/48 ⑥）
 		if ww > 0.0:
 			e.atk_until = g.t + 0.2
 			name = e.tex + "_attack"
@@ -865,13 +869,13 @@ func draw_enemy_tells() -> void:
 			var xk: float = clampf(1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55)), 0.0, 1.0)
 			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
 		if e.get("burst_w", 0.0) > 0.0:
-			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / 0.4, 0.0, 1.0), TELL_BURST)
+			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
 		# 冲刺预警线（滑动者 / 撕裂者 / 骑士精英）：长度按实际冲刺距离算（速度 × dash_speed × 0.35 秒），
 		# 不再写死 230（docs/48 P1：实际只冲 80–135）；只朝前画
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir"):
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			var L: float = clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)
+			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
 			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
 		# 伊祖米克解读阶段每 7 秒一圈冲击波（扩到 420）：最后 1.2 秒画出将要扩到的范围，提前知道要躲（读 boss_ai 的 bt 计时）
 		if e.type == "izumik" and e.get("phase", 1) == 2:
@@ -888,10 +892,46 @@ func draw_enemy_tells() -> void:
 				g.draw_arc(e.pos, e.r + 20.0 + 40.0 * pk, 0.0, TAU, 32, Color(1, 1, 1, 0.6 * pk), 2.0)
 
 
+## 地面形状的纵向压缩：和判定一致（combat.gd 的 GROUND_Y，Boss与怪物「画即判」；还没有这个常量时按正圆 1.0）
+var _gy := -1.0
+func ground_y() -> float:
+	if _gy < 0.0:
+		_gy = float(load("res://scripts/run/combat.gd").get_script_constant_map().get("GROUND_Y", 1.0))
+	return _gy
+
+
+## V7 预警帧条（docs/13 §V7，docs/48 ⑥ 接入闲置素材）：圆形涟漪 64px（radius_px 30）/ 直线流动水纹 16px 平铺 / 终点漩涡 32px
+var _warn_tex := {}
+func _wtex(n: String) -> Texture2D:
+	if not _warn_tex.has(n):
+		_warn_tex[n] = A.tex(n)
+	return _warn_tex[n]
+
+
 func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color) -> void:
 	var d: Vector2 = b - a
 	var n: Vector2 = d.normalized().orthogonal() * half
 	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, 0.22 + 0.12 * k))
+	var lt: Texture2D = _wtex("fx_warn_line")
+	if lt != null:
+		# 沿线平铺流动水纹（16px 一段，按线宽缩放），终点放漩涡
+		var fr: int = int(g.t * 12.0) % 4
+		var seg: float = 16.0 * (half * 2.0 / 16.0)
+		var L: float = d.length()
+		var ang: float = d.angle()
+		var x := 0.0
+		while x < L - 1.0:
+			var w: float = minf(seg, L - x)
+			g.draw_set_transform(a + d.normalized() * x, ang, Vector2(half * 2.0 / 16.0, half * 2.0 / 16.0))
+			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55))
+			x += seg
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var et: Texture2D = _wtex("fx_warn_end")
+		if et != null:
+			var es: float = half * 2.4 / 32.0 * 2.0
+			g.draw_set_transform(b, 0.0, Vector2(es, es * ground_y()))
+			g.draw_texture_rect_region(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8))
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0)
 	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
@@ -899,10 +939,19 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color) -> void
 
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(g.t * 18.0)
-	g.draw_circle(p, r * k, Color(c.r, c.g, c.b, 0.18 + 0.1 * k))
-	g.draw_arc(p, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0)
-	g.draw_arc(p, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0)
-	g.draw_arc(p, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0)
+	g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致
+	g.draw_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, 0.18 + 0.1 * k))
+	var rt: Texture2D = _wtex("fx_warn_ring")
+	if rt != null:
+		# V7 涟漪：从外向内收缩的水纹，按半径缩放（radius_px 30）
+		var rs: float = r / 30.0
+		g.draw_set_transform(p, 0.0, Vector2(rs, rs * ground_y()))
+		g.draw_texture_rect_region(rt, Rect2(-32, -32, 64, 64), Rect2(64 * (int(g.t * 12.0) % 4), 0, 64, 64), Color(c.r, c.g, c.b, 0.5))
+		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## Boss 招式预警的轮廓再描一遍（填色仍在地面层，boss_ai._draw_warns）：地面层会被友方特效盖住，
@@ -920,7 +969,18 @@ func draw_warn_outlines() -> void:
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
 				g.draw_arc(Vector2.ZERO, w.r + 2.0, 0.0, TAU, 40, dark, 2.0)
 				g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.0)
+				if w.get("must_dash", false):
+					# 必须冲刺躲的招式（docs/38 §1.9）：白色双描边 + 圈上方冲刺图标（三道向外的斜杠）
+					var pk: float = 0.5 + 0.5 * sin(g.t * 12.0)
+					g.draw_arc(Vector2.ZERO, w.r + 7.0, 0.0, TAU, 48, Color(1, 1, 1, 0.55 + 0.35 * pk), 2.0)
+					g.draw_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 48, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				if w.get("must_dash", false):
+					var ic: Vector2 = w.pos + Vector2(0, -w.r * 0.72 - 22.0)
+					for q in 3:
+						var ox: float = -9.0 + q * 7.0
+						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
+						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
 			"line":
 				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
 				g.draw_rect(Rect2(0.0, -w.wid - 2.0, w.len, w.wid * 2.0 + 4.0), dark, false, 2.0)
