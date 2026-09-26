@@ -465,11 +465,13 @@ func draw_extra(_it: Dictionary) -> void:
 	_draw_claw_blades()
 
 
-## 常驻爪刃（可见成长）：Mon3tr 身侧发光的月牙爪刃，数量 = 每次爪击的爪数（骨爪增生后 2 道）；
-## 精二「八面展开」后身后镜像再展开一组，一眼看出前后都会出爪。熔毁期间染猩红
+## 常驻爪刃（可见成长）：只在精二出现（用户定，2026-09-26：精零 / 精一不显示），身体两侧对称各一组绿色月牙爪刃，
+## 数量 = 每次爪击的爪数（骨爪增生后 2 道）。熔毁期间染猩红
 func _draw_claw_blades() -> void:
+	if elite < 2:
+		return
 	var n: int = 2 if twin_claw else 1
-	var sides: Array = [m.face, -m.face] if dual_side else [m.face]
+	var sides: Array = [m.face, -m.face]
 	var c: Color = CRIMSON if melt > 0.0 else GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
 	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，

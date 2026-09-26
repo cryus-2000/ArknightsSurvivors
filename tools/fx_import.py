@@ -188,6 +188,9 @@ JOBS = {
     'fx_star_hit_rose':     (os.path.join(AM, '12_warped_vfx_pack_1', 'Sprites', 'Hit-G'), 'dir', 1, 28, 'rose', 'center', 20),
     'fx_cannon_burst':      (os.path.join(AM, '16_warped_explosions_pack_7', 'Sprites', 'explosion-h'), 'dir', 1, 32, None, 'bottom', 20),
     'fx_muzzle_flash':      (os.path.join(AM, '05_gothicvania_magic_pack_5', 'sprites', 'flash', 'sprites'), 'dir', 2, 32, None, 'center', 28),
+    # 艾雅法拉 S2 点燃（2026-09-26 用户要求更大的熔岩弹）：彗星火球弹体 + 大团熔岩爆炸
+    'proj_eyja_ignite':     (os.path.join(AM, '05_gothicvania_magic_pack_5', 'sprites', 'fire-missile', 'sprites'), 'dir', 1, 22, 'lava', 'center', 14),
+    'fx_eyja_ignite_boom':  (os.path.join(AM, '09_warped_explosion_pack_5', 'Sprites', 'Explosion A'), 'dir', 1, 64, 'lava', 'center', 18),
 }
 
 

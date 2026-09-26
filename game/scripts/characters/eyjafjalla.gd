@@ -187,8 +187,11 @@ func bullet_exploded(b: Dictionary) -> void:
 	for k in 6:
 		fx({"kind": "mote", "pos": b.pos, "vel": Vector2(g.rng.randf_range(-90, 90), g.rng.randf_range(-160, -60)), "life": 0.45, "col": LAVA, "sz": 2.5, "grav": 320.0})
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
-	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放
-	g._fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
+	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放；点燃弹换成大团熔岩爆炸（ansimuz Explosion A）
+	if b.get("src", "") == "点燃弹" and g._fx_sprite("fx_eyja_ignite_boom", b.pos + Vector2(0, -10), b.aoe * 2.3 / 68.0):
+		g.hitstop = maxf(g.hitstop, 0.05)
+	else:
+		g._fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
 	# N2「火星迸溅」：普攻熔岩弹炸开迸出 2 颗火星，弹跳向附近的敌人（优先爆炸圈外的）
 	if embers_on and b.get("src", "") == "火山弹":
 		var near: Array = []
@@ -339,7 +342,11 @@ func _draw_skill_over() -> void:
 		var sz: float = float(b.get("sz", 1.0))
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + b.pos.x)
 		g.draw_circle(b.pos, (17.0 if big else 13.0) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
-		if g.tex.get("proj_lavaball") != null:
+		if big and g.tex.get("proj_eyja_ignite") != null:
+			# 点燃弹（2026-09-26 用户要求更大）：拖着火焰尾的大彗星火球，头朝飞行方向
+			g.draw_circle(b.pos, 26.0 * fl, Color(1.6, 0.5, 0.1, 0.25))
+			g._spr_rot("proj_eyja_ignite", int(g.t * 14.0) % 5, b.pos - b.vel.normalized() * 14.0, b.vel.angle(), g.PX * 1.5)
+		elif g.tex.get("proj_lavaball") != null:
 			# 熔岩球（OGA Fireball 调橙红），按速度方向旋转
 			g._spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1) * sz)
 		else:
