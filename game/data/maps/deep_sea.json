@@ -1,6 +1,8 @@
 {
   "id": "deep_sea",
   "name": "深海",
+  "title": "水月与深蓝之树",
+  "title_en": "MIZUKI  &  CAERULA  ARBOR",
   "tiles": {
     "tex": "tiles",
     "size": 32,

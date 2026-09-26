@@ -66,6 +66,12 @@ func add(cid: String):
 	if sfx0 != null and g.demo_op == "":
 		sfx0.voice(cid, "entry", true)
 	ops.append(op)
+	# 记下本局编队给标题页用（图鉴演示 / 自动测试不记，免得覆盖玩家的存档）
+	var args := OS.get_cmdline_user_args()
+	if g.demo_op == "" and sfx0 != null and not (args.has("--autotest") or args.has("--balance")):
+		var cfg: Node = g.get_node("/root/Cfg")
+		cfg.last_squad = ids()
+		cfg.save()
 	g.stats.define_all(op.stat_defs())
 	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
 	var bal: Dictionary = Bal.op(cid)

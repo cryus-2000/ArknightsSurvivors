@@ -1,7 +1,8 @@
 extends Control
 ## 标题背景：蓝眼泪银河沙滩（全部程序生成，像素风）
 ## 画布 640×360，按 ×2 最近邻放大到 1280×720，与游戏内像素密度一致。
-## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 水月与倒影 → 发光叠加层
+## 分层：天空与银河（预渲染）→ 远景（礁石、深蓝之树剪影）→ 海面倒影与发光浪尖 → 沙滩 → 涌浪与蓝眼泪 → 博士与编队（含倒影）→ 发光叠加层
+## 人物：博士站在浪边 C 位，身后是上一局的编队（Cfg.last_squad，没有记录时用默认三人）；开场时干员依次跑进来站定。
 
 const A = preload("res://scripts/art.gd")
 const TitleTree = preload("res://scripts/title_tree.gd")
@@ -13,17 +14,24 @@ const SHORE := 238         # 静水时的岸线
 const K := 2.0             # 基准放大倍率（1280×720 时）
 var ks := 2.0              # 实际倍率：按视口「覆盖」缩放，宽屏 / 高屏都不留边
 const WAVE_PERIOD := 7.5
-const FEET := Vector2(452, 298)
+const FEET := Vector2(446, 314)          # 博士脚底（最前、最低）
+## 编队站位（博士身后，按脚底 y 从后往前画）与默认编队
+const SQUAD_FEET := [Vector2(506, 287), Vector2(388, 289), Vector2(560, 279)]
+const DEFAULT_SQUAD := ["wisadel", "siege", "skadi"]
+const BACK_TINT := Color(0.66, 0.74, 0.9)   # 后排干员压暗、偏冷，拉开前后层次
+const DOCTOR_TINT := Color(1.18, 1.22, 1.3)  # 博士衣服偏深，稍微提亮让 C 位站得出来
+const ENTER_AT := 1.1        # 第一名干员入场时刻（秒，开场动画时间轴）
+const ENTER_GAP := 0.22
+const ENTER_DUR := 0.5
 
 var t := 0.0
 var rng := RandomNumberGenerator.new()
 var tex_sky: ImageTexture
 var tex_sand: ImageTexture
-var tex_player: Texture2D
-var tex_doctor: Texture2D   # 博士：站在水月身旁（仅标题页）
-const DOCTOR_FEET := Vector2(404, 300)
+var doctor := {}            # {idle: Texture2D, fi: 帧数, fps}
+var squad: Array = []       # [{idle, fi, ifps, run, fr, rfps, feet, i}]
+var intro := 99.0           # 开场动画时间（title.gd 写入；99 = 已播完）
 var tex_light: Texture2D
-var pframes := 1
 var stars: Array = []       # [pos, size, phase, speed, col]
 var crests: Array = []      # 远处发光浪尖 {y, x0, x1, life, max}
 var tears: Array = []       # 沙滩上的蓝眼泪光点 {pos, life, max, ph}
@@ -46,12 +54,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	rng.seed = 20260924
-	tex_player = A.tex("player_idle")
-	if tex_player == null:
-		tex_player = A.tex("player")
-	pframes = maxi(1, tex_player.get_width() / tex_player.get_height())
 	tex_light = A.tex("light")
-	tex_doctor = A.tex("doctor")
+	_load_figures()
 	_build_sky()
 	_build_sand()
 	for i in 170:
@@ -188,8 +192,8 @@ func _draw() -> void:
 	order.sort_custom(func(a, b): return _wave_front(a) < _wave_front(b))
 	for i in order:
 		_draw_wave(i)
-	# 水月与倒影
-	_draw_mizuki()
+	# 博士与编队（含倒影）
+	_draw_squad()
 	# 左侧压暗，保证菜单文字清晰
 	var scrim := PackedColorArray([Color(0.0, 0.01, 0.03, 0.72), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.0), Color(0.0, 0.01, 0.03, 0.72)])
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(300, 0), Vector2(300, H), Vector2(0, H)]), scrim)
@@ -224,15 +228,68 @@ func _draw_wave(i: int) -> void:
 			x2 += 4.0
 
 
-func _draw_mizuki() -> void:
-	# 博士站在水月左侧稍后一点（先画，被水月遮挡一点）
-	if tex_doctor != null:
-		_draw_figure(tex_doctor, 2, 2.0, DOCTOR_FEET, 0.45, 3)
-	_draw_figure(tex_player, pframes, 4.0, FEET, 0.0, 2)
+func _load_figures() -> void:
+	var dd: Dictionary = _json("res://data/doctor.json").get("sprites", {})
+	var dt: Texture2D = A.tex(str(dd.get("idle", "doctor_idle")))
+	if dt == null:
+		dt = A.tex("doctor")
+	if dt != null:
+		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0}
+	var ids: Array = Cfg.last_squad.duplicate() if not Cfg.last_squad.is_empty() else DEFAULT_SQUAD.duplicate()
+	for cid in ids:
+		if squad.size() >= SQUAD_FEET.size():
+			break
+		var sp: Dictionary = _json("res://data/characters/%s.json" % cid).get("sprites", {})
+		var idle := _slot(sp.get("idle"))
+		if idle.is_empty():
+			continue
+		var run := _slot(sp.get("run"))
+		squad.append({"idle": idle.tex, "fi": idle.n, "ifps": idle.fps, "run": run.get("tex", idle.tex), "fr": run.get("n", idle.n),
+			"rfps": run.get("fps", 10.0), "feet": SQUAD_FEET[squad.size()], "i": squad.size()})
+
+
+## 贴图槽：字符串或 {tex, frames, fps}
+func _slot(v) -> Dictionary:
+	if v == null:
+		return {}
+	var tn: String = v if v is String else str(v.get("tex", ""))
+	var tx: Texture2D = A.tex(tn) if tn != "" else null
+	if tx == null:
+		return {}
+	var n: int = int(v.frames) if v is Dictionary and v.has("frames") else maxi(1, tx.get_width() / tx.get_height())
+	var fps: float = float(v.get("fps", 4.0)) if v is Dictionary else 4.0
+	return {"tex": tx, "n": n, "fps": fps}
+
+
+func _json(path: String) -> Dictionary:
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var d = JSON.parse_string(f.get_as_text())
+	return d if d is Dictionary else {}
+
+
+func _draw_squad() -> void:
+	# 按脚底 y 从后往前：编队在后、博士在最前
+	var order: Array = squad.duplicate()
+	order.sort_custom(func(a, b): return a.feet.y < b.feet.y)
+	for m in order:
+		var t0: float = ENTER_AT + m.i * ENTER_GAP
+		var k: float = clampf((intro - t0) / ENTER_DUR, 0.0, 1.0)
+		if k <= 0.0:
+			continue
+		if k < 1.0:
+			# 入场：从画面左侧方向跑到站位，边跑边显形
+			var e: float = 1.0 - pow(1.0 - k, 2.0)
+			_draw_figure(m.run, m.fr, m.rfps, m.feet + Vector2(-46.0 * (1.0 - e), 0), m.i * 0.3, 2, e, BACK_TINT)
+		else:
+			_draw_figure(m.idle, m.fi, m.ifps, m.feet, m.i * 0.37, 2, 1.0, BACK_TINT)
+	if not doctor.is_empty():
+		_draw_figure(doctor.idle, doctor.fi, doctor.fps, FEET, 0.0, 2, 1.0, DOCTOR_TINT)
 
 
 ## 站在浅水里的人物：逐行错位的水波倒影 + 本体（帧条横向等宽，脚底在帧底部上方 foot_up 像素）
-func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: float, foot_up: int) -> void:
+func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: float, foot_up: int, alpha := 1.0, tint := Color.WHITE) -> void:
 	var fh := tx.get_height()
 	var fw := tx.get_width() / frames
 	var f := int(t * fps + phase * 10.0) % frames
@@ -244,8 +301,8 @@ func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: 
 		var src := Rect2(f * fw, fh - 1 - row, fw, 1)
 		var off := sin(t * 2.2 + row * 0.5 + phase) * (0.6 + row * 0.03)
 		var dst := Rect2(Vector2(pos.x + off, feet.y - foot_up * sc + row * sc), Vector2(fw * sc, sc))
-		draw_texture_rect_region(tx, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55))
-	draw_texture_rect_region(tx, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh))
+		draw_texture_rect_region(tx, dst, src, Color(0.35, 0.55, 0.95, wet * (1.0 - float(row) / fh) * 0.55 * alpha))
+	draw_texture_rect_region(tx, Rect2(pos.round(), Vector2(fw, fh) * sc), Rect2(f * fw, 0, fw, fh), Color(tint.r, tint.g, tint.b, alpha))
 
 
 ## 加法发光层：银河亮核、蓝眼泪、浪尖、荧光颗粒、流星
@@ -316,7 +373,7 @@ func _draw_glow() -> void:
 		var dir: Vector2 = meteor.v.normalized()
 		for k in 18:
 			glow.draw_rect(Rect2((meteor.p - dir * k * 1.5).round(), Vector2(1, 1)), Color(0.7, 0.85, 1.0, a * (1.0 - k / 18.0)))
-	# 水月身边的柔光（冷色）与一点暖色灯火；沿浪线的泛光
+	# 博士身边的柔光（冷色）与一点暖色灯火；沿浪线的泛光
 	glow.draw_set_transform(off, 0.0, Vector2.ONE)
 	if tex_light != null:
 		for i in 3:

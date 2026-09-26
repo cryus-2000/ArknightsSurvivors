@@ -1,5 +1,5 @@
 extends Control
-## 标题界面：蓝眼泪银河沙滩背景（title_bg.gd）+ 菜单
+## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与上一局编队站在浪边）
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -9,7 +9,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
 const ITEMS := [
-	{"cn": "开始探索", "en": "START"},
+	{"cn": "集结出发", "en": "DEPLOY"},
 	{"cn": "图鉴", "en": "GALLERY"},
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
@@ -52,6 +52,8 @@ var op_lore: Dictionary = {}
 const INTRO_LEN := 3.4
 var intro := 0.0
 var title_bg: Control
+var map_title := ""        # 地图副标题（data/maps/<id>.json 的 title / title_en）
+var map_title_en := ""
 
 
 func _ready() -> void:
@@ -65,6 +67,12 @@ func _ready() -> void:
 	tex_tiles = A.tex("tiles")
 	tex_bg = A.tex("title_bg")
 	tex_logo = A.tex("logo")
+	var mf := FileAccess.open("res://data/maps/%s.json" % Cfg.map_id, FileAccess.READ)
+	if mf != null:
+		var md = JSON.parse_string(mf.get_as_text())
+		if md is Dictionary:
+			map_title = str(md.get("title", md.get("name", "")))
+			map_title_en = str(md.get("title_en", ""))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20260923
 	_grow(rng, Vector2(900, 700), -PI / 2, 150.0, 14.0, 0)
@@ -264,6 +272,7 @@ func _process(delta: float) -> void:
 	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
 	if title_bg != null:
 		title_bg.zoom = 1.0 + 0.12 * (1.0 - _ease(intro / 2.2))
+		title_bg.intro = intro if intro < INTRO_LEN else 99.0
 	for m in motes:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
@@ -372,9 +381,17 @@ func _draw() -> void:
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
 		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 84 + ly), ls * k), false, Color(1, 1, 1, lg))
 	else:
-		UI.text(self, font, Vector2(tx, 182 + ly), "水月", 96, _fa(UI.TEXT, lg))
-		UI.text(self, font, Vector2(tx + 210, 180 + ly), "深海幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 242 + ly), "MIZUKI  :  ABYSSAL  SURVIVORS", 14, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
+		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
+		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
+	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 14, _fa(UI.SUB, _seg(1.5, 0.5)), 3.0)
+	# 地图副标题：随地图变化（菱形 + 中文名 + 英文名），在英文副标题右侧
+	if map_title != "":
+		var mf2 := _seg(1.7, 0.5)
+		var mx := tx + 300.0
+		UI.diamond(self, Vector2(mx, 236 + ly), 5.0, _fa(UI.CYAN, mf2))
+		UI.text(self, font, Vector2(mx + 14, 243 + ly), map_title, 17, _fa(UI.TEXT, mf2))
+		if map_title_en != "":
+			UI.en(self, font, Vector2(mx + 14, 259 + ly), map_title_en, 9, _fa(Color(0.4, 0.6, 0.66), mf2), 2.0)
 	# 分隔线：1.6s 起从左向右划出，线头带一点亮光
 	var rl := _seg(1.6, 0.6)
 	if rl > 0.0:
@@ -416,7 +433,7 @@ func _draw() -> void:
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.4, 0.55, 0.6), ff))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v1.8", 13, _fa(Color(0.4, 0.55, 0.6), ff))
+	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.4, 0.55, 0.6), ff))
 
 	# 开场：黑幕淡出 + 上下黑边收起
 	if intro < INTRO_LEN:
