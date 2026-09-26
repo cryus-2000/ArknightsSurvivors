@@ -98,7 +98,7 @@ func buy(i: int) -> void:
 		"relic":
 			g.progression.gain_relic(it.id)
 		"heal":
-			g.combat.heal(g.max_hp * 0.4, "拾取")
+			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
 			g.lamp = min(g.lamp_cap, g.lamp + 50.0)
 	Sfx.play("ui_ok")
