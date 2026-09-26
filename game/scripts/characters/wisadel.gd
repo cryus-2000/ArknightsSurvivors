@@ -298,7 +298,7 @@ func _update_marks(dt: float) -> void:
 			marks.erase(k)
 
 
-## 击杀钩子：带残影标记的敌人殉爆（沿用天赋残影的 0.25 秒前摇 → 殉爆，伤害 = 普攻炮击的 60%）
+## 击杀钩子：带残影标记的敌人殉爆（沿用天赋残影的 0.25 秒前摇 → 殉爆，伤害 = 攻击的 45%，mark_mult）
 func on_kill(e: Dictionary) -> void:
 	if not marks.has(e.id):
 		return

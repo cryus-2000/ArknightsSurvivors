@@ -317,8 +317,16 @@ func _hand() -> Vector2:
 ## 锚还在飞 / 收链时停在空手帧（f3–f5），不提前回到 f6 的持锚姿势，免得人物手里和程序画的锚同时出现两把
 func anim_state() -> Dictionary:
 	var st := super()
-	if not st.is_empty() and st.kind == "skill" and not anchor.is_empty() and int(st.frame) >= 6:
-		st.frame = 5
+	if st.is_empty() or anchor.is_empty():
+		return st
+	if st.kind == "skill":
+		if int(st.frame) >= 6:
+			st.frame = 5
+	else:
+		# 技能动作已播完但锚还在锚点（远距离弹射）：继续停在技能条的空手帧 f5（docs/45 #12）
+		var tx: Texture2D = anim_tex("skill")
+		if tx != null:
+			st = {"tex": tx, "frame": 5, "hf": anim_hframes(tx, "skill"), "flip": face < 0.0, "kind": "skill"}
 	return st
 
 

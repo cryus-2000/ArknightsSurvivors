@@ -94,7 +94,7 @@ func _release() -> void:
 		heal_t = 0.0
 		_talent_lamp()
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
-	hand_glow = 0.3
+	hand_glow = 0.18   # 与出手动作等长，提灯放下后不再悬着光点（docs/45 #15）
 	# 光弹
 	var ts: Array = nearest_enemies(1, base("bolt_range", 360.0) * stat(&"op_range"), pos)
 	if not ts.is_empty():
@@ -183,7 +183,8 @@ func _release_skill() -> void:
 			g.stats.add(&"light_decay", "mult", 0.7, "lumen_guiding")
 			refresh_stats()
 			show_banner("领航灯：主控光照永久扩大")
-			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -20), g.PX * 1.4)
+			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -64), g.PX * 0.7, 0.0, false, false, Color(1, 1, 1, 0.75))   # 头顶小光，不再盖住全身
+			fx({"kind": "ring", "pos": g.ppos, "r": 160.0, "r0": 40.0, "life": 0.9, "col": WARM, "floor": true, "w": 3.0})   # 光照范围扩大（docs/45 #15）
 		2:
 			tower_pos = g.ppos
 			tower_t = base("s3_dur", 10.0)

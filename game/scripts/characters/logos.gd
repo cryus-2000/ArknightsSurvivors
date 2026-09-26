@@ -3,7 +3,7 @@
 ## S1 提喻：5 秒锁定一名敌人（优先精英 / Boss），每 0.25 秒法伤，对同一目标逐步升到 ×3、减速加深；
 ## S2 湮灭（永久）：射程 +30%、攻击 +50%；普攻处决生命低于攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人；
 ## S3 延展敏锐：12 秒射程 +60%、攻击 +150%、同时 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失。
-## 天赋 词法演化：40% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒。
+## 天赋 词法演化：50% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒（logos.json talent_chance）。
 ## 可见成长（docs/25 §5）：N1 铭文 / N2 复指 / N4 转喻 / N5 墓志铭 / 精二质变 众声喧哗。
 extends "res://scripts/characters/character.gd"
 
@@ -78,7 +78,7 @@ func _release() -> void:
 	for k in ts.size():
 		_word(ts[k], _atk() * (base("second_mult", 0.7) if k >= n else 1.0), "言")
 	# 天赋：50% 额外攻击随机一名敌人（60% 伤害）并减速；精二「众声喧哗」同时打 2 名
-	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.4):
+	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.5):
 		var pool: Array = nearest_enemies(8, _range(), pos)
 		for q in (2 if chorus else 1):
 			if pool.is_empty():

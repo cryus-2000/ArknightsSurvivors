@@ -153,7 +153,7 @@ func _release() -> void:
 		_elegy(dmg)
 
 
-## 连斩后续段：第二下镜像回挥（70%），第三下旋身斩一整圈（80%）；最后一段收尾时触发悲歌
+## 连斩后续段：第二下镜像回挥（55%，combo2_mult），第三下旋身斩一整圈（60%，combo3_mult）；最后一段收尾时触发悲歌
 func _combo_step(pd: Dictionary) -> void:
 	var ang := _aim()
 	var dmg: float = pd.dmg
@@ -270,6 +270,9 @@ func _release_skill() -> void:
 			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 40.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
 				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
+			# 和普攻区分（docs/45 #11）：再叠一道反向的泡沫斩 + 身前一道贴地浪痕
+			_slash(ang, 1.75, _reach() * 1.25, FOAM, Color(1.2, 1.5, 1.7), 0.3, true, Color(0.85, 0.95, 1.1, 0.6))
+			fx({"kind": "crescent", "pos": pos + Vector2(0, 2), "ang": ang, "r": _reach() * 1.1, "w": 8.0, "sweep": 2.4, "dir": face, "life": 0.35, "col": FOAM})
 			Sfx.op(id, "atk", 5.0, 0.8)
 			# N5 涌潮：潮涌斩挥出时脚下涌出一圈水环（精二后「潮汐」期间每秒一圈）
 			if surge_on:
@@ -279,6 +282,7 @@ func _release_skill() -> void:
 		2:
 			tide = S3_DUR
 			pulse_t = base("pulse_every", 1.0)
+			_slash(0.0, PI, _reach() * 1.1, Color(0.25, 0.4, 0.85), FOAM, 0.3)   # 放出那一下的整圈旋斩（docs/45 #11）
 			fx({"kind": "ring", "pos": pos, "r": 120.0, "r0": 10.0, "life": 0.5, "col": BLUE, "floor": true})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE})
 			for k in 16:

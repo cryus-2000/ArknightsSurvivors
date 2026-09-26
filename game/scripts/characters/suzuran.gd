@@ -151,7 +151,7 @@ func update(dt: float) -> void:
 			start_attack(ts[0].pos)
 			# Codex 三团狐火汇聚（原作：三团狐火合而为一再射出）：三火归一的那一次在身前播一遍
 			if merging:
-				spawn_fx_sprite("fx_suzuran_foxfire_gather", pos + Vector2(20.0 * face, -34), g.PX * 0.9)
+				spawn_fx_sprite("fx_suzuran_foxfire_gather", _staff_head(), g.PX * 0.9)
 
 
 func _release() -> void:
@@ -419,7 +419,7 @@ func _draw_foxfires() -> void:
 		conv = 1.0
 	elif haze_t <= 0.0 and _next_merge():
 		conv = clampf(1.0 - cd / 0.45, 0.0, 1.0)
-	var c: Vector2 = pos + Vector2(20.0 * face, -34)
+	var c: Vector2 = _staff_head()
 	for k in n:
 		var a: float = g.t * 1.6 + k * TAU / n
 		var p: Vector2 = pos + Vector2(cos(a) * 40.0, -22.0 + sin(a) * 13.0 + sin(g.t * 3.0 + k) * 2.0)

@@ -282,6 +282,7 @@ func _fall_dur() -> float:
 
 func _start_fall() -> void:
 	melee_tgt = null
+	fire_t = -1.0   # 取消已起手、还没到出手帧的那一刀（docs/45 #13）
 	fall_t = _fall_dur()
 	if fall_t <= 0.0:
 		_fall()

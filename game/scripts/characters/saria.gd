@@ -227,7 +227,7 @@ func _orb_ground(k: int) -> Vector2:
 	return pos + Vector2(cos(a) * R, sin(a) * R + 2.0)
 
 
-## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成拳击 30% 伤害，同一敌人 0.5 秒冷却
+## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成拳击 18% 伤害（orb_mult），同一敌人 0.5 秒冷却
 func _update_orbs(dt: float) -> void:
 	if orb_n <= 0 or pos == Vector2.INF:
 		return
