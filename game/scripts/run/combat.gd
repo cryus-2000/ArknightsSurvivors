@@ -27,13 +27,22 @@ const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
 ## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
 const NO_LOG := ["tear", "dark"]
+## 主控保护（docs/38 §1.11）：只管 Boss 来源的扣血（Boss 本体接触、Boss 预警 / 冲击环 / 子弹、Boss 子弹留下的溟痕、
+## Boss 招式追加的侵蚀、伊莎玛拉之泪）；自然溟痕、黑潮、小怪都不算。数值旋钮 boss/*（Bal.v，默认值即现值）
+const BOSS_DOT := ["corrode", "mire"]   # 算「持续伤害」的来源：Boss 在场时合计每秒封顶
+var boss_log: Array = []     # [时刻, 实际扣血]：Boss 来源的扣血（含 Boss 侵蚀结算），查「任意 2 秒合计」
+var dot_log: Array = []      # [时刻, 实际扣血]：Boss 来源的持续伤害，查「每秒上限」
+var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分
+var burst_hp := 0.0          # 这一轮 Boss 连击开始前的生命（2 秒窗口里第一次 Boss 扣血之前），满血保护用
+var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
 
 
 func _init(game: Game) -> void:
 	g = game
 
 
-## 敌人命中水月：闪避判定、侵蚀、神经损伤
+## 敌人命中水月：闪避判定、侵蚀、神经损伤。src.boss 为真 = Boss 来源（src 是 Boss 本体，或带 boss 标记的预警 / 冲击环 / 子弹），
+## 扣血和追加的侵蚀受主控保护（docs/38 §1.11）
 func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false) -> void:
 	if g.demo_op != "":
 		return
@@ -49,15 +58,25 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	for o in g.squad.ops:
 		if o.has_method("dmg_taken_mult"):
 			dmg *= o.dmg_taken_mult()
-	hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor)
+	var boss: bool = src.get("boss", false)
+	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
-		g.corrode_pool += dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
-		g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
+		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
+		if boss:
+			# 侵蚀算进单发上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血。
+			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
+			corrode_boss = minf(corrode_boss, g.corrode_pool)
+			var room: float = minf(Bal.v("boss/leader_hit_cap", 0.40) * g.max_hp - lost, Bal.v("boss/corrode_pool_cap", 0.40) * g.max_hp - corrode_boss)
+			add = maxf(0.0, minf(add, room))
+			corrode_boss += add
+		g.corrode_pool += add
+		if not boss or add > 0.0:
+			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
 		add_nerve(src.nerve * g.nerve_taken_mult)
 
@@ -80,22 +99,86 @@ func add_nerve(v: float) -> void:
 
 
 ## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
-## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。返回实际扣掉的生命。
-func lose_hp(amount: float, src: String) -> float:
+## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。boss = Boss 来源，按主控保护截断（_boss_clamp）。
+## 返回实际扣掉的生命。
+func lose_hp(amount: float, src: String, boss := false) -> float:
+	if boss:
+		amount = _boss_clamp(amount, src)
 	g.hp -= amount
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
 	return amount
 
 
-func hurt(amount: float, ignore_armor := false) -> void:
+## 主控保护（docs/38 §1.11）：Boss 来源的一次扣血依次截断，并记账。调用时所有倍率（骨血、灯火 <30、护甲、法抗）都已算完。
+##   单发上限：≤ boss/leader_hit_cap（40%）最大生命；
+##   持续伤害：Boss 在场时，Boss 带来的侵蚀结算 + Boss 溟痕任意 1 秒合计 ≤ boss/dot_cap_per_s（4%）；
+##   2 秒合计：任意 2 秒内 Boss 来源合计 ≤ boss/leader_2s_cap（50%），超出作废；
+##   满血保护：受击前生命 ≥ boss/fullhp_guard_at（90%）——或这一轮 Boss 连击开始前 ≥90%（连击 = 2 秒窗口里接连不断的 Boss 扣血）——
+##   时，最多打到剩 boss/fullhp_guard_left（10%）；每 boss/fullhp_guard_cd（30）秒一次，飘「险些倒下」。
+func _boss_clamp(amount: float, src: String) -> float:
+	var mh: float = g.max_hp
+	var dot: bool = src in BOSS_DOT
+	amount = clampf(amount, 0.0, Bal.v("boss/leader_hit_cap", 0.40) * mh)
+	if dot:
+		amount = minf(amount, dot_room())
+	var used := _window_sum(boss_log, 2.0)
+	if boss_log.is_empty():
+		burst_hp = g.hp
+	amount = minf(amount, maxf(0.0, Bal.v("boss/leader_2s_cap", 0.50) * mh - used))
+	var floor_hp: float = Bal.v("boss/fullhp_guard_left", 0.10) * mh
+	if amount > 0.0 and g.hp - amount < floor_hp and g.t >= guard_ready and maxf(g.hp, burst_hp) >= Bal.v("boss/fullhp_guard_at", 0.9) * mh:
+		amount = maxf(0.0, g.hp - floor_hp)
+		guard_ready = g.t + Bal.v("boss/fullhp_guard_cd", 30.0)
+		g.vfx.add_text(g.ppos + Vector2(0, -112), "险些倒下", UI.GOLD, 20)
+	if amount > 0.0:
+		boss_log.append([g.t, amount])
+		if dot:
+			dot_log.append([g.t, amount])
+	return amount
+
+
+## Boss 在场时，Boss 来源的持续伤害这一秒还能扣多少；没有 Boss 在场时不限
+func dot_room() -> float:
+	if not g.spawner.boss_alive():
+		return INF
+	return maxf(0.0, Bal.v("boss/dot_cap_per_s", 0.04) * g.max_hp - _window_sum(dot_log, 1.0))
+
+
+## 丢掉 span 秒之前的记录（[时刻, 数值]，按时间排好），返回剩下的合计
+func _window_sum(rows: Array, span: float) -> float:
+	while not rows.is_empty() and float(rows[0][0]) <= g.t - span:
+		rows.pop_front()
+	var s := 0.0
+	for it in rows:
+		s += float(it[1])
+	return s
+
+
+## 侵蚀结算（enemies.update_status 每帧调用，tick = 本帧流出量）：按池子里的比例拆成普通部分和 Boss 部分；
+## Boss 部分受持续伤害上限，流不出去的留在池里下一帧再流
+func drain_corrode(tick: float) -> void:
+	corrode_boss = clampf(corrode_boss, 0.0, g.corrode_pool)   # 池子被别处清空（流明净化）时跟着截
+	var bt: float = tick * corrode_boss / g.corrode_pool if corrode_boss > 0.0 else 0.0
+	var nt: float = tick - bt
+	if bt > 0.0:
+		bt = minf(bt, dot_room())
+	g.corrode_pool -= nt + bt
+	corrode_boss -= bt
+	lose_hp(nt, "corrode")
+	if bt > 0.0:
+		lose_hp(bt, "corrode", true)
+
+
+## 受击扣血（伤害类型见 g.in_type、来源见 g.dmg_src）：藏品承伤、护甲、法抗算完后走 lose_hp。返回实际扣掉的生命
+func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	if g.in_type[1] != "真实":
 		amount *= g.rfx.taken_mult()
 	if not ignore_armor and g.in_type[1] == "物理":
 		amount = max(1.0, amount - g.armor)
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
-	amount = lose_hp(amount, g.dmg_src)
+	amount = lose_hp(amount, g.dmg_src, boss)
 	g.rfx.on_hurt(g.dmg_src == "nerve")
 	g.invuln = 0.45
 	g.hurt_flash = 0.2
@@ -119,6 +202,7 @@ func hurt(amount: float, ignore_armor := false) -> void:
 		g.vfx.show_banner("生命垂危！")
 	elif g.hp > g.max_hp * 0.45:
 		low_warned = false
+	return amount
 
 
 ## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」

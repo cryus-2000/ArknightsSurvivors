@@ -135,7 +135,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "nerve": 0.0, "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2})
+			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss})
 	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
 	var so: String = d.get("spawn_on_shot", "")
 	if so != "":

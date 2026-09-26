@@ -233,9 +233,9 @@ func update(dt: float) -> void:
 					g.frost = maxf(g.frost, 2.0)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
-		# 伊莎玛拉之泪：站在上面持续受到真实伤害
+		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
 		if e.type == "tear" and dist < e.r + 14.0:
-			g.combat.lose_hp(6.0 * dt, "tear")
+			g.combat.lose_hp(6.0 * dt, "tear", true)
 			g.hurt_flash = max(g.hurt_flash, 0.05)
 
 
@@ -280,7 +280,7 @@ func update_ebullets(dt: float) -> void:
 		b.life -= dt
 		var hitp: bool = b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32:
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": g.rng.randf() * 100.0})
+			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": g.rng.randf() * 100.0, "boss": b.get("boss", false)})
 		if hitp:
 			b.life = 0.0
 			if b.get("slow", false):
@@ -299,15 +299,17 @@ func update_status(dt: float) -> void:
 	g.nerve = max(0.0, g.nerve - 6.0 * dt)
 	if g.corrode_pool > 0.0:
 		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
-		g.corrode_pool -= tick
-		g.combat.lose_hp(tick, "corrode")
+		g.combat.drain_corrode(tick)
 	var mired := false
+	var mire_nat := false   # 站在自然溟痕里（不是 Boss 子弹留下的）：这一跳不算 Boss 来源
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
 	for m in g.mires:
 		m.life -= dt
 		m.r = min(m.maxr, m.r + 5.0 * dt)
 		if m.pos.distance_to(g.ppos) < m.r and not sanct:
 			mired = true
+			if not m.get("boss", false):
+				mire_nat = true
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	if mired:
@@ -316,7 +318,7 @@ func update_status(dt: float) -> void:
 		if mire_tick <= 0.0:
 			mire_tick = 0.5
 			var md: float = 3.0 + g.max_hp * 0.015
-			g.combat.lose_hp(md, "mire")
+			md = g.combat.lose_hp(md, "mire", not mire_nat)
 			g.red_flash = maxf(g.red_flash, 0.08)
 			g.hp_shake = 0.2
 			g.hurt_flash = maxf(g.hurt_flash, 0.06)
@@ -333,7 +335,7 @@ func update_status(dt: float) -> void:
 				g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock"
 				g.in_type = ["近战", "物理"]
-				g.combat.enemy_hit(s.dmg, {}, true, true)
+				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", true)}, true, true)   # 冲击环目前只有 Boss 会放（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 
 

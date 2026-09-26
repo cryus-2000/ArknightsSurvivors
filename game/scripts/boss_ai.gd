@@ -308,7 +308,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	g.dmg_src = "boss_" + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
-		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode}, false, true)
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": true}, false, true)
 		if stun_t > 0.0:
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow:
@@ -402,7 +402,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			for k in 14:
 				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
 				g.ebullets.append({"pos": w.pos, "vel": d2 * 210.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
-					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false})
+					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": true})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			Sfx.play("tentacle", -8.0, 1.3)
 
