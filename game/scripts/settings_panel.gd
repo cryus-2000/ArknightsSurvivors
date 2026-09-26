@@ -1,5 +1,7 @@
 extends Control
 ## 设置面板：标题界面与暂停菜单共用。键盘 ↑↓ 选择、←→ 调整、Esc 返回；也可用鼠标点击；手柄经 Pad 翻译成同样的按键。
+## 分类页（2026-09-27 用户要求）：声音 / 画面 / 游戏，Q / E（手柄 LB / RB → PageUp / PageDown）或点标签切换；
+## 每页末尾一行「返回」。选项本身（ROWS 的键名、类型、存档键）不变，TABS 只按键名分组
 
 signal closed
 
@@ -24,8 +26,17 @@ const ROWS := [
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
+## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
+const TABS := [
+	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
+	["画面", "DISPLAY", ["fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
+	["游戏", "GAMEPLAY", ["dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
+]
 
 var font: Font
+var tab := 0
+var cur: Array = []          # 当前页的 ROWS 下标（最后一个是返回）
+var tab_rects: Array = []
 var sel := 0
 var st := 0.0
 var row_rects: Array = []
@@ -44,9 +55,21 @@ func open() -> void:
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
 	sel = 0
+	_set_tab(0)
 	pending_res = Cfg.res_index
 	visible = true
 	queue_redraw()
+
+
+func _set_tab(t: int) -> void:
+	tab = (t + TABS.size()) % TABS.size()
+	cur.clear()
+	for key in TABS[tab][2]:
+		for i in ROWS.size():
+			if ROWS[i].key == key:
+				cur.append(i)
+	cur.append(ROWS.size() - 1)   # 返回
+	sel = clampi(sel, 0, cur.size() - 1)
 
 
 func close() -> void:
@@ -62,20 +85,28 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_UP, KEY_W:
-				sel = (sel + ROWS.size() - 1) % ROWS.size()
+				sel = (sel + cur.size() - 1) % cur.size()
 				Sfx.play("ui_move")
 			KEY_DOWN, KEY_S:
-				sel = (sel + 1) % ROWS.size()
+				sel = (sel + 1) % cur.size()
 				Sfx.play("ui_move")
 			KEY_LEFT, KEY_A:
-				_adjust(sel, -1)
+				_adjust(cur[sel], -1)
 			KEY_RIGHT, KEY_D:
-				_adjust(sel, 1)
+				_adjust(cur[sel], 1)
+			KEY_Q, KEY_PAGEUP:
+				_set_tab(tab - 1)
+				sel = 0
+				Sfx.play("ui_move")
+			KEY_E, KEY_PAGEDOWN, KEY_TAB:
+				_set_tab(tab + 1)
+				sel = 0
+				Sfx.play("ui_move")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-				if ROWS[sel].type == "res":
+				if ROWS[cur[sel]].type == "res":
 					_apply_res()
 				else:
-					_adjust(sel, 1)
+					_adjust(cur[sel], 1)
 			KEY_ESCAPE:
 				close()
 		get_viewport().set_input_as_handled()
@@ -84,8 +115,15 @@ func _input(event: InputEvent) -> void:
 			if row_rects[i].has_point(event.position):
 				sel = i
 	elif event is InputEventMouseButton and event.pressed:
-		for i in row_rects.size():
-			var r: Rect2 = row_rects[i]
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			for t in tab_rects.size():
+				if tab_rects[t].has_point(event.position) and t != tab:
+					_set_tab(t)
+					sel = 0
+					Sfx.play("ui_move")
+		for si in row_rects.size():
+			var r: Rect2 = row_rects[si]
+			var i: int = cur[si]
 			if r.has_point(event.position):
 				var arrows: bool = ROWS[i].type in ["vol", "bright", "res"]
 				var fx: float = (event.position.x - r.position.x) / r.size.x
@@ -149,19 +187,44 @@ func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
 	var compact: bool = vs.y < 680.0
-	var rh: float = minf(680.0, vs.y - 8.0)
+	# 面板高度按最长的一页定（各页高度一致，切页不跳）：标题 + 标签 146 + 行 46 × (n - 1) + 返回行 + 底部提示
+	var most := 0
+	for tb in TABS:
+		most = maxi(most, tb[2].size())
+	var rh: float = minf(146.0 + most * 46.0 + 44.0 + 56.0, vs.y - 8.0)
 	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - rh / 2.0, 640, rh)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
+	# 分类标签：中文 + 英文小字，当前页青色底线；两侧写切换键
+	tab_rects.clear()
+	var tx := r.position.x + 40.0
+	var ty := r.position.y + 84.0
+	var mp := get_local_mouse_position()
+	for t in TABS.size():
+		var tw: float = 112.0
+		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40)
+		tab_rects.append(tbr)
+		var ton := t == tab
+		var hov := tbr.has_point(mp)
+		draw_rect(tbr, Color(0.05, 0.2, 0.24, 0.8) if ton else Color(1, 1, 1, 0.06 if hov else 0.03))
+		draw_rect(Rect2(tbr.position.x, tbr.end.y - 3, tbr.size.x, 3), UI.CYAN if ton else Color(1, 1, 1, 0.12))
+		UI.text(self, font, tbr.position + Vector2(0, 25), TABS[t][0], 17, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
+		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24), TABS[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
+	UI.keycap(self, font, Vector2(r.end.x - 118, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
+	UI.keycap(self, font, Vector2(r.end.x - 70, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
+	UI.rule(self, Vector2(r.position.x + 30, ty + 50), Vector2(r.end.x - 30, ty + 50), UI.EDGE_DIM)
 	row_rects.clear()
-	# 行距按面板高度自适应：标题 76 + 行 + 底部提示 40 都要放得下
-	var step: float = minf(34.0 if compact else 38.0, (rh - 76.0 - 40.0 - 34.0) / float(ROWS.size() - 1))
-	for i in ROWS.size():
+	# 行距按面板高度自适应：标题 + 标签 140 + 行 + 底部提示 40 都要放得下
+	var top := r.position.y + 146.0
+	var step: float = minf(40.0 if compact else 46.0, (r.end.y - 46.0 - top - 34.0) / float(maxi(1, cur.size() - 1)))
+	for si in cur.size():
+		var i: int = cur[si]
 		var row: Dictionary = ROWS[i]
-		var rr := Rect2(r.position.x + 30, r.position.y + 76 + i * step, r.size.x - 60, minf(34.0, step))
+		var back: bool = row.type == "back"
+		var rr := Rect2(r.position.x + 30, top + si * step + (10.0 if back else 0.0), r.size.x - 60, minf(34.0, step))
 		row_rects.append(rr)
-		var on := i == sel
+		var on := si == sel
 		if on:
 			draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
 			draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
@@ -203,4 +266,4 @@ func _draw() -> void:
 					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 					UI.text(self, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 				UI.text(self, font, Vector2(vx + 190, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("↑↓ 选择 · ←→ 调整 · Esc 返回", "摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 切换 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 切换 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

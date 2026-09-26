@@ -143,6 +143,9 @@ func _ready() -> void:
 		get_tree().create_timer(4.0).timeout.connect(func(): get_tree().quit())
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--settingstab="):
+				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
 			get_tree().quit())
