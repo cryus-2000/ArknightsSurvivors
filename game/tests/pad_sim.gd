@@ -84,7 +84,7 @@ func _process(dt: float) -> void:
 			elif step == 206 and stage_t > 1.5:
 				step = 2061
 				var sc = get_tree().current_scene
-				sc._gain_xp(sc.xp_need + 0.1)   # 强制升级，测选卡
+				sc.pickups.gain_xp(sc.xp_need + 0.1)   # 强制升级，测选卡
 		"game:PAUSE":
 			if step == 201 and stage_t > 0.6:
 				step = 202

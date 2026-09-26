@@ -159,7 +159,7 @@ func update(dt: float) -> void:
 		# 数量：32 → 88（10 分钟），难度 7+ ×1.4；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * (1.4 if g.diff >= 7 else 1.0))
 		if horde_chest:
-			g._drop(g.ppos + Vector2(70, 0), "chest", 1.0)
+			g.pickups.drop(g.ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
 		var span: float = TAU - gap_half * 2.0
 		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "comp": D.THREAT[g.threat].horde.duplicate()}

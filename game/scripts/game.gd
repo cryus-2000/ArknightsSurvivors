@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
@@ -67,6 +68,7 @@ var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gall
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
+var pickups = Pickups.new(self)   # 掉落与拾取
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -1132,7 +1134,7 @@ func _update(dt: float) -> void:
 		knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
 	if demo_op == "":
 		shop_sys.update(dt)
-	_update_gems(dt)
+	pickups.update(dt)
 	_pm("misc")
 	_update_fx(dt)
 	_pm("fx")
@@ -1929,9 +1931,9 @@ func _kill(e: Dictionary) -> void:
 		Sfx.play("relic", -6.0, 1.3)
 		_sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
 		for k in rng.randi_range(3, 6):
-			_drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(4.0, 18.0), "ingot", 1.0)
+			pickups.drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(4.0, 18.0), "ingot", 1.0)
 		if rng.randf() < 0.3:
-			_drop(e.pos + Vector2(10, 6), "oil", 15.0)
+			pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
 		return
 	if e.type != "tear":
 		kills += 1
@@ -1963,30 +1965,30 @@ func _kill(e: Dictionary) -> void:
 	if ember and e.elite:
 		lamp = min(lamp_cap, lamp + 20.0)
 	if e.xp > 0.0:
-		_drop(e.pos, "xp", e.xp * xp_mult)
+		pickups.drop(e.pos, "xp", e.xp * xp_mult)
 	if rng.randf() < 0.012 * (0.5 if diff >= 3 else 1.0):
-		_drop(e.pos + Vector2(8, 0), "oil", 15.0)
+		pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
 	if e.elite or e.boss:
-		_drop(e.pos + Vector2(-16, 8), "magnet" if rng.randf() < 0.5 else "heal", 1.0)
-	elif _count_items() < 3:
+		pickups.drop(e.pos + Vector2(-16, 8), "magnet" if rng.randf() < 0.5 else "heal", 1.0)
+	elif pickups.count_items() < 3:
 		var r := rng.randf()
 		if r < 0.0025:
-			_drop(e.pos, "magnet", 1.0)
+			pickups.drop(e.pos, "magnet", 1.0)
 		elif r < 0.006:
-			_drop(e.pos, "heal", 1.0)
+			pickups.drop(e.pos, "heal", 1.0)
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
 		ing = max(ing, rng.randi_range(3, 5))
-		_drop(e.pos, "chest", 1.0)
-		_drop(e.pos + Vector2(20, 10), "oil", 25.0)
+		pickups.drop(e.pos, "chest", 1.0)
+		pickups.drop(e.pos + Vector2(20, 10), "oil", 25.0)
 	if e.boss:
 		ing = 20
 		if not is_same(e, final_boss) and not spawner.boss_alive():
 			Sfx.play_overlay("boss_down")   # 最终 Boss 走结算乐句；双 Boss 需全部倒下
-		_drop(e.pos + Vector2(-20, 0), "chest", 1.0)
+		pickups.drop(e.pos + Vector2(-20, 0), "chest", 1.0)
 		for j in 12:
-			_drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
+			pickups.drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
 		# Boss 倒下时清除它召唤的东西
 		for o in enemies:
 			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
@@ -1994,27 +1996,7 @@ func _kill(e: Dictionary) -> void:
 	if diff >= 5 and ing > 0:
 		ing = int(floor(ing * 0.7 + rng.randf()))
 	for k in ing:
-		_drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(6.0, 26.0), "ingot", 1.0)
-
-
-func _count_items() -> int:
-	var n := 0
-	for g in gems:
-		if g.kind == "magnet" or g.kind == "heal":
-			n += 1
-	return n
-
-
-func _drop(pos: Vector2, kind: String, val: float) -> void:
-	if kind == "xp" and gems.size() > 350:
-		_gain_xp(val)
-		return
-	# 2.5D：掉落物带高度，从敌人位置弹出并落地回弹
-	var sp := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(20.0, 70.0)
-	var special := kind == "magnet" or kind == "heal" or kind == "chest"
-	gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
-		"z": 6.0, "vz": rng.randf_range(260.0, 300.0) if special else rng.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
-		"special": special, "landed": false, "age": 0.0, "seed": rng.randf() * TAU})
+		pickups.drop(e.pos + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(6.0, 26.0), "ingot", 1.0)
 
 
 # =====================================================================
@@ -2306,120 +2288,6 @@ func _densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 # =====================================================================
 # 掉落物、特效
 # =====================================================================
-func _update_gems(dt: float) -> void:
-	for g in gems:
-		if g.dead:
-			continue
-		if g.has("vz") and (g.z > 0.0 or g.vz != 0.0):
-			g.vz -= 700.0 * dt
-			g.z += g.vz * dt
-			g.pos += g.vel * dt
-			if g.z <= 0.0:
-				g.z = 0.0
-				g.vel *= 0.4
-				if g.special and not g.landed:
-					g.landed = true
-					var lc := _item_col(g.kind)
-					fx.append({"kind": "ring", "pos": g.pos, "r": 34.0, "life": 0.4, "max": 0.4, "col": lc})
-					_sparks(g.pos, Vector2.ZERO, lc, 10, 160.0)
-					if g.kind != "chest":
-						_add_text(g.pos + Vector2(0, -34), _item_name(g.kind), lc, 15)
-					Sfx.play("pickup", -8.0, 0.7, 0.0)
-				g.vz = -g.vz * 0.35 if g.vz < -60.0 else 0.0
-				if g.vz == 0.0:
-					g.vel = Vector2.ZERO
-		g.age = g.get("age", 0.0) + dt
-		var d: float = g.pos.distance_to(ppos)
-		if g.get("special", false) and g.kind != "chest" and d > 40.0 and not g.mag:
-			continue
-		# 掉落先弹出落地、停留一瞬（让玩家看见），再被吸向水月：越吸越快
-		var settled: bool = g.get("z", 0.0) <= 0.0 and g.age > 0.4
-		if g.mag or (settled and d < pickup * (1.2 if lamp >= 70.0 else (0.7 if lamp < 30.0 else 1.0))):
-			g.mag = true
-			g["mag_t"] = g.get("mag_t", 0.0) + dt
-			g.z = 0.0
-			g.pos = g.pos.move_toward(ppos + Vector2(0, -12), (240.0 + 1300.0 * g.mag_t) * dt)
-			d = g.pos.distance_to(ppos + Vector2(0, -12))
-		if d < 20.0:
-			g.dead = true
-			match g.kind:
-				"xp":
-					_gain_xp(g.val)
-					xp_flash = 0.3
-					_sparks(ppos + Vector2(0, -22), Vector2.ZERO, UI.CYAN if g.val < 5.0 else Color(0.85, 0.6, 1.0), 3 if g.val < 5.0 else 7, 150.0)
-					Sfx.play("pickup", -14.0, 1.0 + min(xp / xp_need, 1.0) * 0.4, 0.03)
-				"oil":
-					var add: float = g.val * oil_mult
-					lamp = min(lamp_cap, lamp + add)
-					Sfx.play("oil", -4.0)
-					_add_text(ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
-				"chest":
-					pending_chests += 1
-				"ingot":
-					ingots += int(g.val)
-					Sfx.play("pickup", -10.0, 1.6, 0.05)
-				"magnet":
-					# 磁铁：吸取全场的经验、灯油和源石锭
-					for o in gems:
-						if not o.dead and (o.kind == "xp" or o.kind == "oil" or o.kind == "ingot"):
-							o.mag = true
-					fx.append({"kind": "ring", "pos": ppos, "r": 420.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.45, 0.5)})
-					_add_text(ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
-					Sfx.play("relic", -4.0, 1.2, 0.0)
-				"heal":
-					var hv := max_hp * 0.3
-					_heal(hv, "事件")
-					fx.append({"kind": "ring", "pos": ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
-					_sparks(ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
-					_add_text(ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
-					Sfx.play("relic", -4.0, 1.5, 0.0)
-
-
-func _item_col(kind: String) -> Color:
-	match kind:
-		"magnet":
-			return Color(1.0, 0.5, 0.55)
-		"heal":
-			return Color(0.5, 1.0, 0.65)
-		"chest":
-			return UI.GOLD
-	return UI.CYAN
-
-
-func _item_name(kind: String) -> String:
-	return {"magnet": "磁铁", "heal": "回复药剂"}.get(kind, "")
-
-
-func _gain_xp(v: float) -> void:
-	if demo_op != "":
-		return
-	xp += v
-	while xp >= xp_need:
-		xp -= xp_need
-		level += 1
-		xp_need = Bal.v("xp/a", 24.0) + level * Bal.v("xp/b", 8.0) + floor(level * level * Bal.v("xp/c", 0.8))
-		pending_levelups += 1
-		lv_times.append(int(t))
-		_levelup_fx()
-
-
-## 升级演出：金色光环 + 冲击波推开周围敌人 + 头顶字样，0.5 秒后再弹出选项
-func _levelup_fx() -> void:
-	lvup_show = 1.3
-	hud_lv_flash = 1.0
-	if lvup_delay <= 0.0:
-		lvup_delay = 0.5
-	invuln = max(invuln, 0.9)
-	fx.append({"kind": "ring", "pos": ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
-	fx.append({"kind": "ring", "pos": ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
-	_sparks(ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
-	for e in _query(ppos, 170.0):
-		var en: Dictionary = enemies[e]
-		if en.boss or en.chest:
-			continue
-		var d: Vector2 = en.pos - ppos
-		en.kb = d.normalized() * 480.0 if d.length() > 0.1 else Vector2.RIGHT * 480.0
-	Sfx.play("levelup", -6.0, 1.3, 0.0)
 
 
 func _add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
@@ -3619,7 +3487,7 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6)), Color(0, 0, 0, 0.35))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if g.get("special", false):
-			var ic := _item_col(g.kind)
+			var ic := pickups.item_col(g.kind)
 			var age: float = g.get("age", 0.0)
 			# 掉落光柱（0.9 秒淡出）+ 常驻脉动光圈
 			if age < 0.9:
@@ -5371,7 +5239,7 @@ func _draw_minimap(vs: Vector2) -> void:
 		if g.dead or not (g.kind == "magnet" or g.kind == "heal" or g.kind == "chest"):
 			continue
 		var p: Vector2 = ((g.pos - ppos) * k).limit_length(lim)
-		hud.draw_circle(c + p, 3.0, _item_col(g.kind))
+		hud.draw_circle(c + p, 3.0, pickups.item_col(g.kind))
 	if not merchant.is_empty():
 		var mp: Vector2 = ((merchant.pos - ppos) * k)
 		var clipped := mp.length() > lim

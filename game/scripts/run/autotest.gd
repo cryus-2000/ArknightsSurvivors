@@ -132,8 +132,8 @@ func step() -> void:
 		if g.at_frames == 150 and not g.tray_cells.is_empty():
 			Input.warp_mouse(g.tray_cells[0][0].get_center())
 		if g.at_frames == 60:
-			g._drop(g.ppos + Vector2(120, 40), "magnet", 1.0)
-			g._drop(g.ppos + Vector2(-120, 40), "heal", 1.0)
+			g.pickups.drop(g.ppos + Vector2(120, 40), "magnet", 1.0)
+			g.pickups.drop(g.ppos + Vector2(-120, 40), "heal", 1.0)
 		for f in [64, 72, 100, 125, 160, 200]:
 			if g.at_frames == f and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fx_%d.png" % f)
@@ -161,7 +161,7 @@ func step() -> void:
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), g.at_frames])
 	if OS.get_cmdline_user_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
-		g._gain_xp(g.xp_need + 0.1)
+		g.pickups.gain_xp(g.xp_need + 0.1)
 	if g.state == g.S.SHOW:
 		if g.balance:
 			g.show_t = 2.0
@@ -281,8 +281,8 @@ func step() -> void:
 	if OS.get_cmdline_user_args().has("--gemshot"):
 		if g.at_frames == 60:
 			for k in 14:
-				g._drop(g.ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
-			g._drop(g.ppos + Vector2(60, -40), "xp", 1.0)
+				g.pickups.drop(g.ppos + Vector2.from_angle(TAU * k / 14.0) * 150.0, "xp", 8.0 if k % 4 == 0 else 1.0)
+			g.pickups.drop(g.ppos + Vector2(60, -40), "xp", 1.0)
 		if g.at_frames in [72, 100] and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_gem_%d.png" % g.at_frames)
 			if g.at_frames == 100:
