@@ -95,6 +95,12 @@ func _bus(name: String, v: float) -> void:
 		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)))
 
 
+## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；
+## 发布版（--export-release）一律返回空，玩家首次打开一定是未解锁的初始状态（tools/check_release.py 检查）
+func dev_args() -> PackedStringArray:
+	return OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
+
+
 func save() -> void:
 	# 自动测试（任何 --xxx 启动参数，与 sfx.gd 静音同一判定）不写玩家的存档：
 	# 否则批跑 / 冒烟里机器人拿到的藏品、解锁的难度都会记进玩家的图鉴与进度（docs/36）

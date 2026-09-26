@@ -279,7 +279,7 @@ func _build() -> void:
 				var c = en.get("col", [0.8, 0.6, 1.0])
 				entries.append({"id": eid, "name": en.name, "en": en.get("en", eid.to_upper()), "tag": "结局 · %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][i],
 					"forms": forms, "stats": [["Boss", bd.get("name", "")]], "chips": [], "col": Color(c[0], c[1], c[2]),
-					"desc": gal.get("lore", "") + "\n\n触发：" + gal.get("hint", ""), "locked": not Cfg.endings_cleared.has(eid) and not OS.get_cmdline_user_args().has("--allend"), "locked_text": "尚未达成。\n\n线索：" + gal.get("hint", "")})
+					"desc": gal.get("lore", "") + "\n\n触发：" + gal.get("hint", ""), "locked": not Cfg.endings_cleared.has(eid) and not Cfg.dev_args().has("--allend"), "locked_text": "尚未达成。\n\n线索：" + gal.get("hint", "")})
 		5:
 			# 藏品：已实装的全部列出；没获得过的显示为 ???
 			var lst: Array = relic_db.implemented()
@@ -291,7 +291,7 @@ func _build() -> void:
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
-					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not OS.get_cmdline_user_args().has("--allrelics"), "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not Cfg.dev_args().has("--allrelics"), "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火过低时敌人更快、更凶，熄灭后持续受到伤害。"})

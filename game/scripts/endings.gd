@@ -22,7 +22,7 @@ func _init(game) -> void:
 	var w: Dictionary = D.Loader.load_waves()
 	events = w.get("events", [])
 	endings = w.get("endings", {})
-	all_unlocked = OS.get_cmdline_user_args().has("--allend")
+	all_unlocked = Cfg.dev_args().has("--allend")
 
 
 ## ---------- 事件箱刷新 ----------
