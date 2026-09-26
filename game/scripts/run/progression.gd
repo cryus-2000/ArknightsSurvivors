@@ -75,7 +75,7 @@ func open_levelup() -> void:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
 	# ---- 博士被动 / 全队被动：种类各上限 4
 	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("squad")
-	# 医疗无人机升级（保底治疗）：和被动卡同池的常规选项，没满级就一直在池里（用户决定，2026-09-25）
+	# 医疗无人机：和被动卡同池的常规选项，没满级就一直在池里（2026-09-25）；2026-09-26 起开局不带，第一张卡是 Lv.1「加入」
 	var wl: int = g.weapons.get("drone", 0)
 	if wl < 5:
 		var W: Dictionary = D.WEAPONS.drone
@@ -211,7 +211,7 @@ func pick(i: int) -> void:
 		"weapon":
 			g.weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
-			g.vfx.show_banner("「%s」升至 Lv.%d" % [W.name, o.wlv])
+			g.vfx.show_banner(("「%s」加入支援" % W.name) if o.wlv == 1 else ("「%s」升至 Lv.%d" % [W.name, o.wlv]))
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
 	if g.choice_kind == "relic":
 		g.pending_chests -= 1

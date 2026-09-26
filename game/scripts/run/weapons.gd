@@ -1,5 +1,5 @@
 extends RefCounted
-## 子弹与支援装置：医疗无人机（保底治疗，docs/23 §17）、玩家侧子弹的飞行与命中结算、狙击选目标。
+## 子弹与支援装置：医疗无人机（可选支援，升级时选到才有，docs/23 §17）、玩家侧子弹的飞行与命中结算、狙击选目标。
 ## 干员自己的投射物在各干员脚本里；敌方子弹在 game.gd _update_ebullets。2026-09-26 从 game.gd 拆出。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
