@@ -116,7 +116,10 @@ func update(dt: float) -> void:
 		if not fresh.is_empty():
 			for k in 6:
 				spawn_enemy(fresh[k % fresh.size()], edge_pos())
-	var rate := Bal.v("enemy/spawn_base", 1.6) + g.t / Bal.v("enemy/spawn_div", 30.0)
+	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
+	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
+	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
+	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
 	if boss_alive():
 		rate *= 0.8
 	if g.lamp < 30.0:
