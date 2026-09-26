@@ -48,6 +48,8 @@ var home_t := 0.0             # 距下次换位置
 var contract_op := ""      # 生还者合约：被选中的干员
 var hurt_sp_cd := 0.0      # 铁卫-无锋：受击回技力冷却
 const HOME_R := 95.0
+const KING_LOW := 0.5     # 国王套装「低血」门槛：原来 30%，实测主控生命低于 35% 的时间占比只有 0–0.7%，几乎不触发（2026-09-27）
+const MINE_N := 3          # 支援地雷组：每次朝敌群抛出几枚
 const DEEP_LAMP := 50.0   # 深蓝·低灯火的门槛（火油与药膏 / 无字珊瑚 / 佣兵保单）：原来 30，自然流程里灯火低于 30 的时间只有 4–5%，收益几乎触发不了
 const CLASSES := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
@@ -407,15 +409,14 @@ func tick(dt: float) -> void:
 		if tm.left <= 0.0:
 			tm.left = tm.every
 			if tm.what == "mine":
-				mines.append({"pos": g.ppos + Vector2(0, 6), "life": 40.0})
-				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 24.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.7, 0.3)})
+				_throw_mines()
 	for mn in mines:
 		mn.life -= dt
 		if mn.life <= 0.0:
 			continue
-		for j in g.enemies_sys.query(mn.pos, 40.0):
+		for j in g.enemies_sys.query(mn.pos, 50.0):
 			var e: Dictionary = g.enemies[j]
-			if not e.dead and not e.chest and e.pos.distance_to(mn.pos) < e.r + 14.0:
+			if not e.dead and not e.chest and e.pos.distance_to(mn.pos) < e.r + 26.0:
 				_explode_mine(mn)
 				break
 	mines = mines.filter(func(x): return x.life > 0.0)
@@ -432,9 +433,39 @@ func tick(dt: float) -> void:
 					g.combat.damage(e, per)
 
 
+## 支援地雷组：朝主控身边最密的敌群抛出 MINE_N 枚，落在前方 150–250（原来放在脚下，主控一直在跑，地雷留在身后，
+## 实测只占全队伤害 0.75%）。敌群取 400 内至多 24 只里「110 内邻居最多」的那只；没有敌人就朝面向抛。落点散布用 g.rng
+func _throw_mines() -> void:
+	var near: Array = []
+	for j in g.enemies_sys.query(g.ppos, 400.0):
+		var e: Dictionary = g.enemies[j]
+		if not e.dead and not e.chest:
+			near.append(e.pos)
+			if near.size() >= 24:
+				break
+	var dir := Vector2.RIGHT if g.facing >= 0.0 else Vector2.LEFT
+	var dist := 180.0
+	var best := -1
+	for a in near:
+		var n := 0
+		for b in near:
+			if a.distance_squared_to(b) < 110.0 * 110.0:
+				n += 1
+		if n > best:
+			best = n
+			dir = (a - g.ppos).normalized() if a.distance_to(g.ppos) > 1.0 else dir
+			dist = clampf(a.distance_to(g.ppos), 150.0, 250.0)
+	var c: Vector2 = g.ppos + dir * dist
+	for k in MINE_N:
+		var p: Vector2 = c + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(0.0, 45.0)
+		mines.append({"pos": p, "life": 25.0})
+		g.fx.append({"kind": "ring", "pos": p, "r": 22.0, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.7, 0.3)})
+	g.vfx.sparks(g.ppos + Vector2(0, -20), dir, Color(1.0, 0.7, 0.4), 6, 220.0)
+
+
 func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
-	var r := 95.0
+	var r := 110.0
 	g.combat.hit("地雷")
 	for j in g.enemies_sys.query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
@@ -534,14 +565,19 @@ func draw() -> void:
 
 
 ## ---------- 动态倍率（每次伤害查询）----------
+## 国王套装的「低血」状态（主控生命 < KING_LOW）
+func king_low() -> bool:
+	return g.hp < g.max_hp * KING_LOW
+
+
 ## 额外伤害倍率：限时修正 + 国王的冠冕 + 黑色郁金香 + 刻勋之手
 func dmg_extra() -> float:
 	var m := 1.0 + perm_dmg
 	for x in temps:
 		if x.stat == "dmg":
 			m *= 1.0 + x.value
-	if rule("king_crown") > 0 and g.hp < g.max_hp * 0.3:
-		m *= 2.5 if king_n >= 3 else 1.5
+	if rule("king_crown") > 0:
+		m *= (2.5 if king_n >= 3 else 1.5) if king_low() else 1.1
 	if rule("black_tulip") > 0 and tulip_t > 0.0:
 		m *= 1.0 + 0.8 * tulip_t / 60.0
 	# 火油与药膏：低灯火时全队伤害 +50%（深蓝·低灯火不挑编队的收益）
@@ -568,11 +604,12 @@ func hit_mult(h: Dictionary) -> float:
 ## 攻击间隔倍率（<1 更快）：国王的新枪、投币玩具 / 骑士戒律（极速之手改为按编队人数生效，见 refresh_squad）
 func umbrella_interval_mult() -> float:
 	var m := 1.0
-	if rule("king_gun") > 0 and g.hp < g.max_hp * 0.3:
-		m *= 0.667
+	if rule("king_gun") > 0:
+		m *= 0.667 if king_low() else 1.0 / 1.1
+	# 投币玩具（rule 3）/ 骑士戒律（5）：终局源石锭中位 144–214，实际一直顶格，上限 30% / 50% → 20% / 30%（2026-09-27）
 	var coin: int = rule("coin_toy")
 	if coin > 0:
-		var cap: float = 0.3 if coin == 3 else 0.5
+		var cap: float = 0.2 if coin == 3 else 0.3
 		m /= 1.0 + minf(cap, float(g.ingots / 5) * coin * 0.01)
 	return m
 
@@ -582,8 +619,8 @@ func taken_mult() -> float:
 	var m: float = g.dmg_taken_mult
 	if g.relics.has("255") and g.lamp < DEEP_LAMP:
 		m *= 0.7
-	if rule("king_cake") > 0 and g.hp < g.max_hp * 0.3:
-		m *= 0.7
+	if rule("king_cake") > 0:
+		m *= 0.7 if king_low() else 0.95
 	if rule("bone_blood") > 0:
 		m *= 1.8
 	return m
@@ -594,8 +631,8 @@ func sp_extra() -> float:
 	var m := 1.0
 	if rule("low_light_sp") > 0 and g.lamp < DEEP_LAMP:
 		m *= 1.5
-	if rule("king_branch") > 0 and g.hp < g.max_hp * 0.3:
-		m *= 1.5
+	if rule("king_branch") > 0:
+		m *= 1.5 if king_low() else 1.1
 	if g.relics.has("116") and in_home():
 		m *= 1.3
 	return m

@@ -157,6 +157,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 		# 已拥有的藏品升级：出现率减半
 		if g.relics.has(r.id):
 			w *= 0.5
+		# 后期降权（relic_effects.json 的 late_weight）：一次性源石锭 / 灯火 / 回血、商品打折，6:00 后几乎没价值，少占三选一的位置
+		if g.t > 360.0:
+			w *= float(r.get("late_weight", 1.0))
 		weighted.append([-log(g.rng.randf() + 0.0001) / w, r.id])
 	weighted.sort_custom(func(a, b): return a[0] < b[0])
 	return weighted.map(func(x): return x[1])
