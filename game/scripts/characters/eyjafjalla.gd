@@ -225,7 +225,7 @@ func _erupt(c: Vector2) -> void:
 	# N5「熔岩天降」：每次喷发再向附近 2 名随机敌人高抛一颗熔岩弹（喷发伤害的 50%）
 	if meteor_on:
 		var cands: Array = g._nearest(10, base("meteor_reach", 320.0), c)
-		cands.shuffle()
+		g._shuffle(cands)   # 对局随机数（同 seed 可复现，docs/36）
 		for k in mini(2, cands.size()):
 			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})

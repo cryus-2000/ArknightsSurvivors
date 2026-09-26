@@ -56,6 +56,9 @@ python tools/balance_run.py --preset squads --bot expert --seeds 3              
 
 冒烟测试某几件藏品：`--extra=--relics=138,143,81`（只在 `--balance` 下生效，开局第 20 帧直接获得）。
 
+2026-09-26 起（docs/36）：同 seed 可复现，相同源文件 + 参数的局读缓存（`--nocache` 关掉）；全机并发上限由 `tools/godot_runner.py` 管；
+前后对比用 `python tools/check.py --ab <提交>`（临时工作树跑基准、同 seed 配对），不要拿不同时间跑的两份报告直接比。
+
 ## 5. 基线（2026-09-25，`build/balance/bots_baseline_0925_2022`，难度 0，112 局）
 
 | 档 | 胜率 | 平均存活 | 3:30 存活 | 终局等级 | 判定 |

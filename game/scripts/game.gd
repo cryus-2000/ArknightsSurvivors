@@ -349,6 +349,16 @@ var dbg_pick := {}
 var dbg_relic_offer: Array = []  # 平衡输出：藏品三选一 / 商店的候选（[t, 来源, [id...]]）
 var dbg_relic_take: Array = []   # 平衡输出：获得的藏品（[t, id, 当时编队职业]）
 var relic_out := 0.0             # 平衡输出：藏品直接造成的伤害（描述符 origin == relic）
+var bal_maxt := 780.0            # --maxt=<秒>：平衡 / 冒烟测试提前结束（默认 780 = 终局 Boss 登场后再给 3 分钟）
+var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
+var prof := {}                   # 段名 -> 累计微秒
+var _prof_t := 0
+var trace_every := 0.0           # --trace=<秒>：每隔几秒打印一行状态摘要（排查同 seed 能否复现，docs/36）
+var trace_last := -1
+## 视觉随机数：火花、飘字抖动等纯表现用它。对局随机数 rng 只给玩法用——表现层按真实帧率运行，
+## 如果它们共用 rng，同一个 seed 在机器忙闲不同时就会跑出不同的局（2026-09-26 查明）
+var vrng := RandomNumberGenerator.new()
+var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
@@ -358,6 +368,18 @@ var show_game: Node = null
 
 
 func _ready() -> void:
+	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
+	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
+	var seeded := false
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--seed="):
+			rng.seed = int(a.substr(7))
+			vrng.seed = int(a.substr(7)) + 7919
+			seed(int(a.substr(7)))
+			seeded = true
+	if not seeded:
+		rng.randomize()
+		vrng.randomize()
 	if demo_op == "":
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
@@ -393,7 +415,8 @@ func _ready() -> void:
 		if dn is String and dn != "":
 			tex[dn] = A.tex(dn)
 	next_mire = float(map.mire_cfg().get("first_at", 100))
-	A.normal_maps = Cfg.normal_maps
+	# 无界面运行（批跑 / 冒烟）不画任何东西，法线图纯属浪费：一局启动要多花十几秒
+	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
 	knight = Knight.new(self)
@@ -401,7 +424,6 @@ func _ready() -> void:
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
-	rng.randomize()
 	font = load("res://fonts/ui.ttf")
 	for n in ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
@@ -592,14 +614,22 @@ func _ready() -> void:
 	if balance:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		Engine.max_fps = 0
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--maxt="):
+				bal_maxt = float(a.substr(7))
+		prof_on = OS.get_cmdline_user_args().has("--prof")
+		headless_batch = DisplayServer.get_name() == "headless" and not OS.get_cmdline_user_args().has("--drawtest")
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--trace="):
+				trace_every = float(a.substr(8))
+			# --bosstimes=30,60,90：冒烟测试把 Boss 提前（中期 Boss × 2 + 最终 Boss），一局两分钟内跑完所有 Boss 代码
+			if a.begins_with("--bosstimes="):
+				D.BOSS_TIMES = Array(a.substr(12).split(",")).map(func(x): return float(x))
 		OS.low_processor_usage_mode = false
 		OS.low_processor_usage_mode_sleep_usec = 0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--forceboss="):
 			force_boss = int(a.substr(12))
-		if a.begins_with("--seed="):
-			rng.seed = int(a.substr(7))
-			seed(int(a.substr(7)))
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
 		if a.begins_with("--squad="):
 			for cid in a.substr(8).split(","):
@@ -1102,17 +1132,32 @@ func _autotest_step() -> void:
 			if o.manual_ready(o.manual_index()):
 				o.cast_manual(o.manual_index())
 				break
-	# --relics=id,id…（仅 --balance）：开局第 20 帧直接获得这些藏品，用来冒烟测试藏品效果（docs/35）
+	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
+	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
 	if balance and at_frames == 20:
 		for a in OS.get_cmdline_user_args():
 			if a.begins_with("--relics="):
-				for rid in a.substr(9).split(","):
+				var want: String = a.substr(9)
+				var ids: Array = RL.keys() if want == "all" else Array(want.split(","))
+				for rid in ids:
 					if RL.has(rid):
 						_gain_relic(rid)
+		if OS.get_cmdline_user_args().has("--maxprog"):
+			for o in squad.ops:
+				var guard := 0
+				while not o.next_node().is_empty() and guard < 12:
+					o.advance("")
+					guard += 1
 	if balance and OS.get_cmdline_user_args().has("--sptest") and at_frames % 45 == 0:
 		for o in squad.ops:
 			o.fill_sp()
 	if balance:
+		if trace_every > 0.0 and state == S.PLAY and int(t / trace_every) != trace_last:
+			trace_last = int(t / trace_every)
+			var hsum := 0.0
+			for e in enemies:
+				hsum += e.pos.x * 0.37 + e.pos.y * 0.11 + e.hp * 0.01
+			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d pos=%.2f,%.2f h=%.3f" % [t, level, kills, hp, enemies.size(), rng.state, ppos.x, ppos.y, hsum])
 		if bot != null and state == S.PLAY:
 			bot.tick(0.066)
 		if false:
@@ -1133,9 +1178,9 @@ func _autotest_step() -> void:
 								pi = mini(int(kv[1]), choices.size() - 1)
 			_pick(pi)
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
-		if (state == S.DEAD or state == S.WIN or t > 780.0) and not bal_done:
+		if (state == S.DEAD or state == S.WIN or t > bal_maxt) and not bal_done:
 			bal_done = true
-			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "relic_offer": dbg_relic_offer, "relic_take": dbg_relic_take, "relic_out": relic_out, "kills": kills,
+			print("BALANCE ", JSON.stringify({"win": state == S.WIN, "t": int(t), "lv": level, "marks": lv_marks, "lv_times": lv_times, "ops": squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": dbg_offer, "prog_pick": dbg_pick, "relic_offer": dbg_relic_offer, "relic_take": dbg_relic_take, "relic_out": relic_out, "prof": prof, "kills": kills,
 				"elites": elites_killed, "relics": relics.size(), "ingots": ingots, "maxhp": max_hp, "bosses": bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]), "allies": squad.size() - 1, "squad": squad.ids(), "elite_stage": ch.elite,
 				"boss_hp": (boss.hp / boss.maxhp) if boss != null else -1.0, "dmg": dmg_log, "out": dmg_out, "out_type": dmg_type_out, "out_tag": dmg_tag_out, "ending": ending, "lamp": int(lamp), "rej": doctor.rej(), "heal": heal_log, "drone": weapons.get("drone", 0), "floor_hits": floor_hits, "floor_times": floor_times, "hordes": horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "comp": h.comp}), "final_out": dmg_out, "bot": bot.report() if bot != null else {}}))
 			get_tree().quit()
@@ -1248,6 +1293,7 @@ func _autotest_step() -> void:
 # 主循环
 # =====================================================================
 func _process(delta: float) -> void:
+	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	var dt: float = min(delta, 0.05)
 	if state != _last_state:
 		_last_state = state
@@ -1257,7 +1303,9 @@ func _process(delta: float) -> void:
 		state_age += delta
 	Pad.context = "play" if state == S.PLAY else "game_menu"
 	if autotest:
+		_pm("")
 		_autotest_step()
+		_pm("autotest")
 		dt = 0.066 if balance else 0.05
 	if hitstop > 0.0 and not autotest and Cfg.hitstop:
 		hitstop -= delta
@@ -1268,22 +1316,29 @@ func _process(delta: float) -> void:
 			for i in 7:
 				if state != S.PLAY:
 					break
+				_pm("")
 				_autotest_step()
+				_pm("autotest")
 				if state == S.PLAY:
 					_update(dt)
 	banner_t -= delta
+	_pm("")
 	_update_visuals(dt if state == S.PLAY else 0.0)
+	_pm("visuals")
 	_update_music(delta)
 	_animate_cards(delta)
 	if state == S.SHOW:
 		show_t += delta
 	if state == S.INTRO:
 		intro_t += delta
-	queue_redraw()
-	fx_add.queue_redraw()
-	fg.queue_redraw()
-	dof_layer.visible = Cfg.dof
-	hud.queue_redraw()
+	# 无界面批跑什么都不显示：不重绘世界 / 特效 / 前景 / HUD（一局省三成多耗时；docs/36 验证过结果逐字节不变）
+	if not headless_batch:
+		queue_redraw()
+		fx_add.queue_redraw()
+		fg.queue_redraw()
+		dof_layer.visible = Cfg.dof
+		hud.queue_redraw()
+	_pm("tail")
 
 
 func _do_action(act: String) -> void:
@@ -1505,6 +1560,7 @@ func _try_dash() -> void:
 
 
 func _update(dt: float) -> void:
+	_pm("")
 	t += dt
 	_sync_stats()
 	var mv := Vector2(
@@ -1566,21 +1622,29 @@ func _update(dt: float) -> void:
 	hurt_flash -= dt
 
 	frame_n += 1
+	_pm("pre")
 	if demo_op != "":
 		_demo_step(dt)
 	else:
 		_spawn(dt)
+	_pm("spawn")
 	_build_grid()
+	_pm("grid")
 	_update_enemies(dt)
+	_pm("enemies")
 	squad.update(dt)
+	_pm("squad")
 	_update_weapons(dt)   # 支援无人机：跟随博士，与编队里有谁无关
 	knight.update(dt)
 	touch.update(dt)
 	_update_bullets(dt)
+	_pm("bullets")
 	_update_ebullets(dt)
 	bai._update_warns(dt)
+	_pm("ebullets")
 	_update_status(dt)
 	rfx.tick(dt)
+	_pm("relic")
 	endg.update(dt)
 	endg.tick_final_warning()
 	if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
@@ -1588,8 +1652,11 @@ func _update(dt: float) -> void:
 	if demo_op == "":
 		_update_merchant(dt)
 	_update_gems(dt)
+	_pm("misc")
 	_update_fx(dt)
+	_pm("fx")
 	_cleanup()
+	_pm("cleanup")
 
 	if not horde_log.is_empty():
 		var hl0: Dictionary = horde_log[horde_log.size() - 1]
@@ -2545,6 +2612,25 @@ func _lamp_sp() -> float:
 	return (1.3 if lamp >= 70.0 else 1.0) * rfx.sp_extra()
 
 
+## 用对局随机数洗牌。Array.shuffle() 走全局随机流，全局流也被纯视觉效果按真实帧率消耗，会让同 seed 的局跑出不同结果
+func _shuffle(a: Array) -> void:
+	for i in range(a.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = a[i]
+		a[i] = a[j]
+		a[j] = tmp
+
+
+## --prof：把上一次打点到现在的耗时记到 k 名下（k 为空只重置起点）
+func _pm(k: String) -> void:
+	if not prof_on:
+		return
+	var now := Time.get_ticks_usec()
+	if k != "":
+		prof[k] = int(prof.get(k, 0)) + (now - _prof_t)
+	_prof_t = now
+
+
 ## 这次伤害是否算「追击」（docs/35）
 func is_followup(h: Dictionary) -> bool:
 	for tg in h.tags:
@@ -2588,7 +2674,7 @@ func _damage(e: Dictionary, dmg: float) -> void:
 	if e.pos.distance_squared_to(ppos) < _lamp_r() * _lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
 	if e.invuln:
-		if texts.size() < 80 and rng.randf() < 0.2:
+		if texts.size() < 80 and vrng.randf() < 0.2:
 			_add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
 		return
 	if e.chest and e.hidden:
@@ -2702,9 +2788,9 @@ func _sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void
 	if fx.size() > 400:
 		return
 	for i in n:
-		var a := rng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + rng.randf_range(-0.7, 0.7)
-		fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * rng.randf_range(0.4, 1.0),
-			"life": rng.randf_range(0.18, 0.32), "max": 0.3, "col": col, "sz": 2.0 if rng.randf() < 0.6 else 4.0})
+		var a := vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + vrng.randf_range(-0.7, 0.7)
+		fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * vrng.randf_range(0.4, 1.0),
+			"life": vrng.randf_range(0.18, 0.32), "max": 0.3, "col": col, "sz": 2.0 if vrng.randf() < 0.6 else 4.0})
 
 
 func _heal(v: float, src: String = "其他") -> void:
@@ -3950,7 +4036,7 @@ func _open_recruit() -> bool:
 	var opts := _recruit_cards()
 	if opts.is_empty():
 		return false
-	opts.shuffle()
+	_shuffle(opts)
 	_show_choices("招募干员", opts.slice(0, 3), "level")
 	return true
 
@@ -3962,7 +4048,7 @@ func _open_levelup() -> void:
 	var recruit: Array = _recruit_cards()
 	var must_recruit: bool = not recruit.is_empty() and ((level >= Bal.vi("levelup/force_recruit_level_1", 6) and squad.size() <= 1) or (level >= Bal.vi("levelup/force_recruit_level_3", 12) and squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
-		recruit.shuffle()
+		_shuffle(recruit)
 		_show_choices("招募干员", recruit.slice(0, want), "level")
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
@@ -3974,7 +4060,7 @@ func _open_levelup() -> void:
 			if c.kind == "prog" and not c.get("avail", true):
 				continue
 			deep.append(c)
-	deep.shuffle()
+	_shuffle(deep)
 	if not deep.is_empty():
 		picks.append(deep[0])
 		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
@@ -3993,7 +4079,7 @@ func _open_levelup() -> void:
 	if wl < 5:
 		var W: Dictionary = D.WEAPONS.drone
 		passives.append({"kind": "weapon", "id": "drone", "name": "%s  Lv.%d" % [W.name, wl + 1], "desc": W.lv[wl], "wlv": wl + 1})
-	passives.shuffle()
+	_shuffle(passives)
 	for c in passives:
 		if picks.size() >= want:
 			break
@@ -4005,12 +4091,12 @@ func _open_levelup() -> void:
 			picks.append(deep[di])
 		di += 1
 	var fillers: Array = doctor.filler_cards()
-	fillers.shuffle()
+	_shuffle(fillers)
 	var fi := 0
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
 		fi += 1
-	picks.shuffle()
+	_shuffle(picks)
 	for c in picks.slice(0, want):
 		if c.kind == "prog":
 			dbg_offer[c.op] = dbg_offer.get(c.op, 0) + 1

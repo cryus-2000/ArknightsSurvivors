@@ -102,6 +102,7 @@ func _move_expert() -> Vector2:
 		if e.dead or e.get("chest", false) or float(e.get("dmg", 1.0)) <= 0.0:
 			continue
 		near.append(e)
+	_prep_near(near)
 	var bullets: Array = []
 	for bl in g.ebullets:
 		if bl.life > 0.0 and bl.pos.distance_to(p) < 320.0:
@@ -144,17 +145,41 @@ func _bullet_risk(p: Vector2, d: Vector2, spd: float, bullets: Array) -> float:
 	return s
 
 
-## 一个位置的安全分（越高越安全）：敌人距离、预警、溟痕、弹幕、缩圈
-func _score_point(q: Vector2, near: Array) -> float:
+## 每步把附近敌人的打分参数先算好（位置、半径、权重、速度余量、远程射程），33 个候选点共用，
+## 不再每个点都去字典里取一遍（机器人原来占一局耗时的四分之一；算式与原来逐项相同，行为不变）
+var _np := PackedVector2Array()
+var _nr := PackedFloat64Array()
+var _nw := PackedFloat64Array()
+var _nf := PackedFloat64Array()
+var _nrg := PackedFloat64Array()   # 远程怪（非 Boss）的「射程 + 10」；不是远程为 -1
+
+
+func _prep_near(near: Array) -> void:
+	var n := near.size()
+	_np.resize(n)
+	_nr.resize(n)
+	_nw.resize(n)
+	_nf.resize(n)
+	_nrg.resize(n)
+	for i in n:
+		var e: Dictionary = near[i]
+		_np[i] = e.pos
+		_nr[i] = float(e.r)
+		_nw[i] = 3.0 if (e.elite or e.boss) else 1.0
+		_nf[i] = 1.0 + clampf((float(e.get("spd", 50.0)) - 50.0) / 60.0, 0.0, 1.0)   # 快的怪要留更大余量
+		_nrg[i] = float(e.get("range", 200.0)) + 10.0 if (e.get("ai", "") == "ranged" and not e.boss) else -1.0
+
+
+## 一个位置的安全分（越高越安全）：敌人距离、预警、溟痕、弹幕、缩圈。敌人部分读 _prep_near 的缓存
+func _score_point(q: Vector2, _near: Array) -> float:
 	var s := 0.0
-	for e in near:
-		var dd: float = q.distance_to(e.pos) - float(e.r)
-		var w: float = 3.0 if (e.elite or e.boss) else 1.0
-		if e.get("ai", "") == "ranged" and not e.boss:
-			# 远程怪：待在射程外沿
-			if dd < float(e.get("range", 200.0)) + 10.0:
-				s -= 0.6
-		var fast: float = 1.0 + clampf((float(e.get("spd", 50.0)) - 50.0) / 60.0, 0.0, 1.0)   # 快的怪要留更大余量
+	for i in _np.size():
+		var dd: float = q.distance_to(_np[i]) - _nr[i]
+		var w: float = _nw[i]
+		# 远程怪：待在射程外沿
+		if _nrg[i] >= 0.0 and dd < _nrg[i]:
+			s -= 0.6
+		var fast: float = _nf[i]
 		if dd < 30.0 * fast:
 			s -= 12.0 * w
 		elif dd < keep * fast:
