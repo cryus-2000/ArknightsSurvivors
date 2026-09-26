@@ -424,7 +424,7 @@
    "xp": 60.0,
    "tex": "e_iberia",
    "ai": "ranged",
-   "range": 280.0,
+   "range": 220.0,
    "cd": 1.5,
    "role": "boss",
    "ammo": 3,
