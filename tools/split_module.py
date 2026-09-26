@@ -34,7 +34,7 @@ move_toward nearest_po2 pingpong posmod pow print print_rich printerr prints pri
 randf_range randfn randi randi_range randomize remap rid_allocate_id rid_from_int64 rotate_toward round roundf roundi seed sign signf signi
 sin sinh smoothstep snapped snappedf snappedi sqrt step_decimals str str_to_var tan tanh type_convert type_string typeof var_to_bytes
 var_to_str weakref wrap wrapf wrapi char convert len load range print_debug print_stack get_stack inst_to_dict dict_to_inst
-int float bool String Array Dictionary Callable""".split())
+int float bool String Array Dictionary Callable angle_difference""".split())
 # Node2D / CanvasItem / Node 继承来的成员：在模块里要写成 g.xxx
 INHERITED = set("""draw_arc draw_char draw_circle draw_colored_polygon draw_dashed_line draw_lcd_texture_rect_region draw_line draw_mesh
 draw_msdf_texture_rect_region draw_multiline draw_multiline_colors draw_multiline_string draw_multiline_string_outline draw_multimesh

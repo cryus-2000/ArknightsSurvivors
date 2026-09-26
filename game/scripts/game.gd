@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const EnemiesSys = preload("res://scripts/run/enemies.gd")
 const MusicDirector = preload("res://scripts/run/music_director.gd")
 const Progression = preload("res://scripts/run/progression.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
@@ -62,7 +63,6 @@ enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
-const CELL := 48.0
 
 var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
@@ -73,6 +73,7 @@ var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
+var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -149,10 +150,7 @@ var sp_mult := 1.0
 var flash := 0.0                 # 全屏闪光
 # ---------- 藏品带来的附加能力 ----------
 var grip := false
-var evo_age := 35.0
-var evo_xp := 2.0
 var horde_log: Array = []          # 平衡测试：每次大群的统计
-var seed_heal := false
 var flesh_heal := false
 var backlight := false
 var ember := false
@@ -221,7 +219,6 @@ var shocks: Array = []
 var warns: Array = []
 var bai: RefCounted = null      # Boss AI / 招式预警（scripts/boss_ai.gd）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
-var mire_tick := 0.0
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
 var next_mire := 100.0           # 首次溟痕时间；开局由 map 主题覆盖
 # 缩圈（黑潮）
@@ -984,9 +981,9 @@ func _update(dt: float) -> void:
 	else:
 		spawner.update(dt)
 	_pm("spawn")
-	_build_grid()
+	enemies_sys.build_grid()
 	_pm("grid")
-	_update_enemies(dt)
+	enemies_sys.update(dt)
 	_pm("enemies")
 	squad.update(dt)
 	_pm("squad")
@@ -995,10 +992,10 @@ func _update(dt: float) -> void:
 	touch.update(dt)
 	weapons_sys.update_bullets(dt)
 	_pm("bullets")
-	_update_ebullets(dt)
+	enemies_sys.update_ebullets(dt)
 	bai._update_warns(dt)
 	_pm("ebullets")
-	_update_status(dt)
+	enemies_sys.update_status(dt)
 	rfx.tick(dt)
 	_pm("relic")
 	endg.update(dt)
@@ -1061,277 +1058,6 @@ func _check_pending() -> void:
 # =====================================================================
 # 敌人
 # =====================================================================
-func _build_grid() -> void:
-	grid.clear()
-	for i in enemies.size():
-		var e: Dictionary = enemies[i]
-		if e.dead:
-			continue
-		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
-		if grid.has(k):
-			grid[k].append(i)
-		else:
-			grid[k] = [i]
-
-
-func _query(pos: Vector2, radius: float) -> Array:
-	var out: Array = []
-	var x0 := floori((pos.x - radius) / CELL)
-	var x1 := floori((pos.x + radius) / CELL)
-	var y0 := floori((pos.y - radius) / CELL)
-	var y1 := floori((pos.y + radius) / CELL)
-	for cx in range(x0, x1 + 1):
-		for cy in range(y0, y1 + 1):
-			var k := Vector2i(cx, cy)
-			if grid.has(k):
-				out.append_array(grid[k])
-	if out.size() > 0 and out.max() >= enemies.size():
-		out = out.filter(func(j): return j < enemies.size())
-	return out
-
-
-func _update_enemies(dt: float) -> void:
-	var dark_mod := 1.2 if lamp < 30.0 else 1.0
-	for i in enemies.size():
-		var e: Dictionary = enemies[i]
-		if e.dead:
-			continue
-		e.age += dt
-		e.flash -= dt
-		e.jhit -= dt
-		e.stun -= dt / control_mult
-		e.squash -= dt
-		e.slow -= dt / control_mult
-		if e.get("wind", 0.0) > 0.0:
-			e.wind -= dt
-		if e.get("pose", 0.0) > 0.0:
-			e.pose -= dt
-		if e.get("haste", 0.0) > 0.0:
-			e.haste -= dt
-		if e.get("aura_weak", 0.0) > 0.0:
-			e.aura_weak -= dt
-		if e.get("lit", 0.0) > 0.0:
-			e.lit -= dt
-		if e.get("requiem", 0.0) > 0.0:
-			e.requiem -= dt
-		# 流血（狙击干员）：每 0.5 秒结算一次
-		if e.get("bleed", 0.0) > 0.0:
-			e.bleed -= dt
-			e["bleed_t"] = e.get("bleed_t", 0.0) + dt
-			if e.bleed_t >= 0.5:
-				e.bleed_t = 0.0
-				_hit("援护")
-				_damage(e, e.bleed_dps * 0.5)
-				fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
-				if e.dead:
-					continue
-		# 侵蚀（排异·无解困境）：受控敌人每 0.5 秒受一次触手法术伤害
-		if e.get("corr_t", 0.0) > 0.0:
-			e.corr_t -= dt
-			e["corr_tick"] = e.get("corr_tick", 0.0) + dt
-			if e.corr_tick >= 0.5:
-				e.corr_tick = 0.0
-				_hit("触手", ["corrode"])
-				_damage(e, e.corr_dmg)
-				fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-8, 8), -6), "vel": Vector2(0, -40), "sz": 2.5, "life": 0.45, "max": 0.45, "col": Color(1.2, 0.6, 1.6)})
-				if e.dead:
-					continue
-		var to: Vector2 = ppos - e.pos
-		var dist := to.length()
-		var dir: Vector2 = to / max(dist, 0.001)
-		if abs(dir.x) > 0.1 and e.ai != "static":
-			e.fx = sign(dir.x)
-
-		if e.chest:
-			if dist > 1500.0:
-				e.dead = true
-			continue
-		if dist > 1300.0 and not e.boss:
-			if e.ai == "static":
-				e.dead = true
-			else:
-				e.pos = spawner.edge_pos()
-			continue
-
-		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > evo_age * maxf(0.55, 1.0 - t / 900.0):
-			_evolve(e)
-
-		# 注亡拟嗣：生命持续流失
-		if e.type == "brood":
-			e.hp -= e.maxhp * 0.08 * dt
-			if e.hp <= 0.0:
-				e.dead = true
-				continue
-		if e.boss:
-			bai._boss_ai(e, dt, dir, dist)
-		if e.dead:
-			continue
-
-		# ---- 移动
-		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) else 1.0)
-		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
-		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0:
-			spd = 0.0
-		if e.get("haste", 0.0) > 0.0:
-			spd *= 1.4
-		var move_dir := dir
-		if e.feed and final_target_valid(e):
-			move_dir = (e.feed_to.pos - e.pos).normalized()
-		elif e.get("aggro", Vector2.INF) != Vector2.INF:
-			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
-			move_dir = (e.aggro - e.pos).normalized()
-			e.aggro = Vector2.INF
-		var ov: Vector2 = eai.pattern(e, dir, dist, dt, spd) if e.stun <= 0.0 else Vector2.INF
-		if ov != Vector2.INF:
-			v += ov
-		elif e.stun <= 0.0:
-			match e.ai:
-				"melee":
-					v += move_dir * spd
-				"ranged":
-					e.set_t -= dt
-					if e.get("hover", false) == false and D.ENEMIES[e.type].get("entrench", false) and not e.set_done and dist < e.range:
-						# 固海凿石者：首次接敌时原地架起，大幅提高防御
-						e.set_done = true
-						e.set_t = 20.0
-						e.weak = "法术"
-						_add_text(e.pos + Vector2(0, -24), "架起 · 法术弱点", Color(0.75, 0.8, 0.9), 14)
-					if e.set_t > 0.0:
-						pass
-					elif dist > e.range * 0.85:
-						v += dir * spd
-					if e.set_t <= 0.0 and e.set_done:
-						e.weak = D.ENEMIES[e.type].get("weak", "")
-					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
-						e.cdt = e.cd
-						eai.shoot(e, dir)
-		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
-
-		# ---- 分离 + 吞噬
-		if e.ai != "static":
-			for j in _query(e.pos, e.r + 20.0):
-				if j == i:
-					continue
-				var o: Dictionary = enemies[j]
-				if o.dead:
-					continue
-				var diff: Vector2 = e.pos - o.pos
-				var d := diff.length()
-				var min_d: float = e.r + o.r
-				if d < min_d and d > 0.01:
-					if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and rng.randf() < 0.015:
-						e.hp += o.hp
-						e.maxhp += o.maxhp
-						e.r = min(e.r + 1.5, 32.0)
-						e.xp += o.xp
-						o.dead = true
-						_add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
-						if seed_heal:
-							_heal(max_hp * 0.05, "藏品")
-						continue
-					# 伊祖米克的子代被 Boss 吸收
-					if e.feed and o.type == "izumik" and o.phase == 1:
-						e.dead = true
-						o.hp = min(o.maxhp, o.hp + o.maxhp * 0.08)
-						_add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
-						break
-					if not e.boss:
-						e.pos += diff / d * (min_d - d) * 0.3
-			if e.dead:
-				continue
-		e.pos += v * dt
-		if not e.boss and e.ai != "static" and (i + frame_n) % 2 == 0:
-			e.pos = map.push_out(e.pos, e.r * 0.8)
-
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.4 秒鼓胀预警，爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
-		if e.has("burst_at"):
-			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
-			if e.get("burst_w", 0.0) > 0.0:
-				e.burst_w -= dt
-				if e.burst_w <= 0.0:
-					fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
-					Sfx.play("tentacle", -2.0, 0.7)
-					if dist < 80.0:
-						in_type = ["近战", "法术"]
-						_enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
-			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
-				e.burst_at -= e.maxhp * 0.15
-				e.burst_w = 0.4
-				e.burst_cd = 1.2
-
-		# ---- 接触伤害
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
-			if D.ENEMIES[e.type].get("morph", false):
-				_morph(e)
-				continue
-			if invuln <= 0.0:
-				dmg_src = "contact_" + e.type
-				in_type = ["近战", "物理"]
-				# 底海滑动者冲刺撞击：熄灭灯火
-				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
-					lamp = maxf(0.0, lamp - 8.0)
-					_add_text(ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
-				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
-					frost = maxf(frost, 2.0)
-					_add_text(ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
-				_enemy_hit(e.dmg * dark_mod, e)
-		# 伊莎玛拉之泪：站在上面持续受到真实伤害
-		if e.type == "tear" and dist < e.r + 14.0:
-			hp -= 6.0 * dt
-			hurt_flash = max(hurt_flash, 0.05)
-
-
-func final_target_valid(e: Dictionary) -> bool:
-	return e.has("feed_to") and e.feed_to != null and not e.feed_to.dead
-
-
-## 伊祖米克的子代：碰到水月就蜕变成其他敌人
-func _morph(e: Dictionary) -> void:
-	e.dead = true
-	fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
-	_add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
-	for k in 2:
-		spawner.spawn_enemy(["bone", "slider", "stone"][rng.randi() % 3], e.pos + Vector2.from_angle(rng.randf() * TAU) * 20.0)
-
-
-func _update_lobs(dt: float) -> void:
-	for l in lobs:
-		l.t += dt
-		if l.t >= l.dur:
-			fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
-			if l.get("mire", false) and mires.size() < 32:
-				mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": rng.randf() * 100.0})
-			_sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
-			Sfx.play("boom", -14.0, 1.6, 0.1)
-			if l.to.distance_to(ppos) < l.r + 8.0 and invuln <= 0.0:
-				dmg_src = "bullet"
-				in_type = ["远程", "法术"]
-				_enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
-	lobs = lobs.filter(func(l): return l.t < l.dur)
-
-
-func _update_ebullets(dt: float) -> void:
-	_update_lobs(dt)
-	for b in ebullets:
-		if b.life <= 0.0:
-			continue
-		if b.get("home", false):
-			var want: Vector2 = (ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
-			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
-		b.pos += b.vel * dt
-		b.life -= dt
-		var hitp: bool = b.pos.distance_to(ppos + Vector2(0, -14)) < b.r + 12.0
-		if b.get("mire", false) and (hitp or b.life <= 0.0) and mires.size() < 32:
-			mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": rng.randf() * 100.0})
-		if hitp:
-			b.life = 0.0
-			if b.get("slow", false):
-				atk_slow = 3.0
-			dmg_src = "bullet"
-			in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
-			if invuln <= 0.0:
-				_enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
 
 
 ## 敌人命中水月：闪避判定、侵蚀、神经损伤
@@ -1378,65 +1104,6 @@ func _add_nerve(v: float) -> void:
 		_hurt(max_hp * 0.08, true)
 		_add_text(ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
 		Sfx.play("skill", -4.0, 1.6)
-
-
-## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
-func _update_status(dt: float) -> void:
-	pstun -= dt
-	atk_slow -= dt
-	frost = maxf(0.0, frost - dt)
-	nerve = max(0.0, nerve - 6.0 * dt)
-	if corrode_pool > 0.0:
-		var tick: float = min(corrode_pool, (corrode_pool * 0.5 + 1.0) * dt)
-		corrode_pool -= tick
-		hp -= tick
-		dmg_log["corrode"] = dmg_log.get("corrode", 0.0) + tick
-	var mired := false
-	var sanct: bool = squad.in_sanctuary(ppos)   # 流明灯塔：区内溟痕失效
-	for m in mires:
-		m.life -= dt
-		m.r = min(m.maxr, m.r + 5.0 * dt)
-		if m.pos.distance_to(ppos) < m.r and not sanct:
-			mired = true
-	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
-	in_mire = move_toward(in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
-	if mired:
-		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
-		mire_tick -= dt
-		if mire_tick <= 0.0:
-			mire_tick = 0.5
-			var md: float = 3.0 + max_hp * 0.015
-			hp -= md
-			dmg_log["mire"] = dmg_log.get("mire", 0.0) + md
-			red_flash = maxf(red_flash, 0.08)
-			hp_shake = 0.2
-			hurt_flash = maxf(hurt_flash, 0.06)
-			_add_text(ppos + Vector2(randf_range(-10, 10), -80), "-%d 溟痕" % int(md), Color(0.85, 0.45, 1.0), 15)
-		head_bar_t = maxf(head_bar_t, 0.6)
-	else:
-		mire_tick = 0.0
-	mires = mires.filter(func(m): return m.life > 0.0)
-	for s in shocks:
-		s.r += 320.0 * dt
-		if not s.hit and abs(s.pos.distance_to(ppos) - s.r) < 22.0:
-			s.hit = true
-			if invuln <= 0.0:
-				pstun = max(pstun, 0.5)
-				dmg_src = "shock"
-				in_type = ["近战", "物理"]
-				_enemy_hit(s.dmg, {}, true, true)
-	shocks = shocks.filter(func(s): return s.r < s.maxr)
-
-
-func _evolve(e: Dictionary) -> void:
-	e.evo = true
-	e.maxhp *= 1.8
-	e.hp = e.maxhp
-	e.r *= 1.3
-	e.spd *= 1.15
-	e.dmg *= 1.5
-	e.xp *= evo_xp
-	fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.4)})
 
 
 func _hurt(amount: float, ignore_armor := false) -> void:
@@ -1545,7 +1212,7 @@ func _shield_block() -> void:
 	if shield_heal:
 		_heal(max_hp * 0.03, "藏品")
 	if shield_burst:
-		for j in _query(ppos, 140.0):
+		for j in enemies_sys.query(ppos, 140.0):
 			var e: Dictionary = enemies[j]
 			if not e.dead and e.pos.distance_to(ppos) < 140.0:
 				_damage(e, 30.0 * dmg_mult)
@@ -1879,40 +1546,6 @@ func facing_angle() -> float:
 	return 0.0 if facing >= 0.0 else PI
 
 
-func _nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
-	if origin == Vector2.INF:
-		origin = ppos
-	var c: Array = []
-	for j in _query(origin, max_dist):
-		var e: Dictionary = enemies[j]
-		if e.dead:
-			continue
-		var d: float = e.pos.distance_squared_to(origin)
-		if d < max_dist * max_dist:
-			c.append([d, e])
-	c.sort_custom(func(a, b): return a[0] < b[0])
-	var out: Array = []
-	for i in min(n, c.size()):
-		out.append(c[i][1])
-	return out
-
-
-## 扇形判定：返回 origin 周围 radius 内、与 ang 夹角不超过 half 的敌人
-func _arc_hit(origin: Vector2, ang: float, half: float, radius: float) -> Array:
-	var out: Array = []
-	for j in _query(origin, radius + 40.0):
-		var e: Dictionary = enemies[j]
-		if e.dead:
-			continue
-		var off: Vector2 = e.pos - origin
-		if off.length() > radius + e.r:
-			continue
-		if half < PI and abs(angle_difference(ang, off.angle())) > half + 0.15:
-			continue
-		out.append(e)
-	return out
-
-
 ## 斩击 / 爪痕帧的统一缩放（2026-09-25）：帧条本身只有 28–56 像素，各干员按「命中半径 ÷ 帧宽」放大后
 ## 常到 4–6 倍，像素颗粒比人物（PX = 2 倍）粗一倍多，又大又糙。统一 ×0.7 再封顶 3 倍：弧光比判定略小，
 ## 判定范围由地面环 / 裂纹表达。_fx_sprite（fx_slash_* / fx_claw_*）与 _slash_fx 都走这里
@@ -2140,22 +1773,6 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 # Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
 # 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）
-
-
-## 敌人最密集的位置（在 radius 内采样）
-func _densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
-	var best := Vector2.INF
-	var bn := 0
-	var cand := _nearest(12, radius, origin)
-	for c in cand:
-		var n := 0
-		for j in _query(c.pos, 90.0):
-			if not enemies[j].dead and enemies[j].pos.distance_to(c.pos) < 90.0:
-				n += 1
-		if n > bn:
-			bn = n
-			best = c.pos
-	return best
 
 
 # =====================================================================
@@ -3936,7 +3553,7 @@ func _update_player_feel(dt: float) -> void:
 	# 受击：向后坐一下，微微后仰
 	if hurt_flash > 0.12 and p_hurt_prev <= 0.12:
 		var away := Vector2(-facing, 0.0)
-		var nn := _nearest(1, 160.0)
+		var nn := enemies_sys.nearest(1, 160.0)
 		if not nn.is_empty():
 			away = (ppos - nn[0].pos).normalized()
 		p_off = away * 9.0

@@ -228,7 +228,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if e.heal_t > 4.0:
 				e.heal_t = 0.0
 				var n := 0
-				for j in g._query(e.pos, 260.0):
+				for j in g.enemies_sys.query(e.pos, 260.0):
 					var o: Dictionary = g.enemies[j]
 					if o.dead or o.boss or o.chest or n >= 3:
 						continue

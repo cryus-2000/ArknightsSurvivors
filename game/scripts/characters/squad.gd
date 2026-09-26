@@ -148,7 +148,7 @@ func _battle_voice(o, dt: float) -> void:
 	if o.voice_t > 0.0:
 		return
 	o.voice_t = g.rng.randf_range(30.0, 55.0)
-	if g.demo_op != "" or g._nearest(1, 300.0, o.pos).is_empty():
+	if g.demo_op != "" or g.enemies_sys.nearest(1, 300.0, o.pos).is_empty():
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:

@@ -126,7 +126,7 @@ func update(dt: float) -> void:
 			var ne := spawn_enemy(pick_type(), edge_pos())
 			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
 			if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
-				g._evolve(ne)
+				g.enemies_sys.evolve(ne)
 			if g.ending == "resolve" and g.t >= 520.0:
 				ne.weak = ""
 	if g.t >= next_elite:

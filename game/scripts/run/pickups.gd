@@ -140,7 +140,7 @@ func levelup_fx() -> void:
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
 	g._sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
-	for e in g._query(g.ppos, 170.0):
+	for e in g.enemies_sys.query(g.ppos, 170.0):
 		var en: Dictionary = g.enemies[e]
 		if en.boss or en.chest:
 			continue

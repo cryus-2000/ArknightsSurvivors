@@ -12,22 +12,22 @@ var g                      # Game (Node2D)
 
 ## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
-	return g._nearest(n, max_dist, origin)
+	return g.enemies_sys.nearest(n, max_dist, origin)
 
 
 ## 空间网格查询：pos 周围 radius 内的敌人下标（g.enemies[i]，可能包含已死亡的，调用方自己判断 e.dead）
 func query_ids(pos: Vector2, radius: float) -> Array:
-	return g._query(pos, radius)
+	return g.enemies_sys.query(pos, radius)
 
 
 ## 扇形内的敌人（origin 为圆心，ang 朝向，half 半角）
 func arc_targets(origin: Vector2, ang: float, half: float, radius: float) -> Array:
-	return g._arc_hit(origin, ang, half, radius)
+	return g.enemies_sys.arc_hit(origin, ang, half, radius)
 
 
 ## origin 周围 radius 内敌人最密处（没有敌人返回 Vector2.INF）
 func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
-	return g._densest_point(radius, origin)
+	return g.enemies_sys.densest_point(radius, origin)
 
 
 # ---------------------------------------------------------------- 伤害 / 治疗

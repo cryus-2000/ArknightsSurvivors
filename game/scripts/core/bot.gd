@@ -97,7 +97,7 @@ func _move_bad(dt: float) -> Vector2:
 func _move_expert() -> Vector2:
 	var p: Vector2 = g.ppos
 	var near: Array = []
-	for j in g._query(p, 380.0):
+	for j in g.enemies_sys.query(p, 380.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.get("chest", false) or float(e.get("dmg", 1.0)) <= 0.0:
 			continue
@@ -268,7 +268,7 @@ func _in_danger(q: Vector2, pad: float) -> bool:
 	for m in g.mires:
 		if q.distance_to(m.pos) < float(m.r) + pad:
 			return true
-	for j in g._query(q, 60.0):
+	for j in g.enemies_sys.query(q, 60.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.get("chest", false) and q.distance_to(e.pos) < float(e.r) + 30.0:
 			return true

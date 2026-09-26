@@ -162,7 +162,7 @@ func update(dt: float) -> void:
 			pos += dash_dir * CHARGE_SPD * dt
 			if g.zone_state != 0 and pos.distance_to(g.zone_c) > g.zone_r - 20.0:
 				st = CHARGE_T
-			for j in g._query(pos, 60.0):
+			for j in g.enemies_sys.query(pos, 60.0):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or e.chest or dash_hit.has(e.id) or e.pos.distance_to(pos) > e.r + R + 6.0:
 					continue
@@ -182,7 +182,7 @@ func update(dt: float) -> void:
 				dash_hit[-1] = true
 				var ang: float = dash_dir.angle()
 				var nd: float = 110.0
-				for j in g._query(pos, 110.0):
+				for j in g.enemies_sys.query(pos, 110.0):
 					var ne: Dictionary = g.enemies[j]
 					if ne.dead or ne.chest:
 						continue
@@ -194,7 +194,7 @@ func update(dt: float) -> void:
 				var tip: Vector2 = pos + Vector2.from_angle(ang) * 46.0
 				if not g._fx_sprite("fx_knight_impact", tip, g.PX, 0.0):
 					g.fx.append({"kind": "ring", "pos": tip, "r": 30.0, "life": 0.25, "max": 0.25, "col": Color(0.7, 0.9, 1.4)})
-				for e in g._arc_hit(pos, ang, 0.9, 92.0):
+				for e in g.enemies_sys.arc_hit(pos, ang, 0.9, 92.0):
 					if e.chest:
 						continue
 					g._hit("骑士", ["ally", "stab"])
@@ -212,13 +212,13 @@ func update(dt: float) -> void:
 	if state == "walk":
 		return
 	# 仇恨：30% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆）
-	for j in g._query(pos, 420.0):
+	for j in g.enemies_sys.query(pos, 420.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.chest or e.boss or e.ai != "melee" or e.id % 10 >= 3:
 			continue
 		e.aggro = pos
 	# 接触伤害（每个敌人 1 秒一次）
-	for j in g._query(pos, 80.0):
+	for j in g.enemies_sys.query(pos, 80.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.chest or e.dmg <= 0.0 or e.ai != "melee" or e.get("coma", false) or e.get("under", false):
 			continue
@@ -264,7 +264,7 @@ func heal(v: float) -> void:
 func _target() -> Dictionary:
 	var best: Dictionary = {}
 	var bd: float = CHARGE_RANGE
-	for j in g._query(pos, CHARGE_RANGE):
+	for j in g.enemies_sys.query(pos, CHARGE_RANGE):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.chest or e.get("under", false) or e.get("coma", false):
 			continue

@@ -59,7 +59,7 @@ func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
 func sniper_target(from: Vector2, reach: float) -> Dictionary:
 	var best: Dictionary = {}
 	var score := -1.0
-	for j in g._query(from, reach):
+	for j in g.enemies_sys.query(from, reach):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(from) > reach:
 			continue
@@ -82,7 +82,7 @@ func update_bullets(dt: float) -> void:
 					# 导弹：目标没了就改追导弹附近最近的敌人
 					var best = null
 					var bd := 460.0
-					for j in g._query(b.pos, 460.0):
+					for j in g.enemies_sys.query(b.pos, 460.0):
 						var q: Dictionary = g.enemies[j]
 						if not q.dead and not q.chest and q.pos.distance_to(b.pos) < bd:
 							bd = q.pos.distance_to(b.pos)
@@ -90,7 +90,7 @@ func update_bullets(dt: float) -> void:
 					b.home = best
 				else:
 					# 法术追踪弹：从弹体附近重新找目标（原来从博士身边找，常常找不到就直线飞走）
-					var nt := g._nearest(1, 360.0, b.pos)
+					var nt := g.enemies_sys.nearest(1, 360.0, b.pos)
 					b.home = nt[0] if nt.size() > 0 else null
 			else:
 				# 匀速转向（2026-09-25）：原来 vel.lerp(want) 转弯时向量变短 → 越绕越慢、显得疲软。
@@ -115,7 +115,7 @@ func update_bullets(dt: float) -> void:
 				b.trail = 0.03
 				g.fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
 					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
-		for j in g._query(b.pos, 40.0):
+		for j in g.enemies_sys.query(b.pos, 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
 				continue
@@ -155,7 +155,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				b.life = 0.0
 		"fire":
 			# 法术团：爆炸
-			for k in g._query(b.pos, b.aoe + 20.0):
+			for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = g.enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					g._damage(o, b.dmg)
@@ -186,7 +186,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				e.slow = maxf(e.slow, 1.0)
 			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
 			if b.get("aoe", 0.0) > 0.0:
-				for k in g._query(b.pos, b.aoe + 20.0):
+				for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 						g._damage(o, b.dmg)
@@ -211,7 +211,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				return
 			var nxt: Dictionary = {}
 			var bd := 260.0
-			for k in g._query(e.pos, 260.0):
+			for k in g.enemies_sys.query(e.pos, 260.0):
 				var o: Dictionary = g.enemies[k]
 				if o.dead or b.hit.has(o.id):
 					continue

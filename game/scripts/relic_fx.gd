@@ -412,7 +412,7 @@ func tick(dt: float) -> void:
 		mn.life -= dt
 		if mn.life <= 0.0:
 			continue
-		for j in g._query(mn.pos, 40.0):
+		for j in g.enemies_sys.query(mn.pos, 40.0):
 			var e: Dictionary = g.enemies[j]
 			if not e.dead and not e.chest and e.pos.distance_to(mn.pos) < e.r + 14.0:
 				_explode_mine(mn)
@@ -434,7 +434,7 @@ func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
 	var r := 95.0
 	g._hit("地雷")
-	for j in g._query(mn.pos, r + 20.0):
+	for j in g.enemies_sys.query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
 			g._damage(e, 60.0 * g.dmg_mult)
@@ -450,7 +450,7 @@ func _explode_mine(mn: Dictionary) -> void:
 func _area(src: String, p: Vector2, r: float, dmg: float) -> void:
 	var keep: Dictionary = g.hit
 	g._hit(src)
-	for j in g._query(p, r + 24.0):
+	for j in g.enemies_sys.query(p, r + 24.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.chest and e.pos.distance_to(p) < r + e.r:
 			g._damage(e, dmg)

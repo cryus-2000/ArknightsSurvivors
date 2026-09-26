@@ -349,7 +349,7 @@ func bot_move() -> Vector2:
 	var push := Vector2.ZERO
 	var nearest_d := 99999.0
 	var nearest_p := g.ppos
-	for j in g._query(g.ppos, 220.0):
+	for j in g.enemies_sys.query(g.ppos, 220.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
@@ -368,7 +368,7 @@ func bot_move() -> Vector2:
 	if g.hp < g.max_hp * 0.5:
 		var cen := Vector2.ZERO
 		var cn := 0
-		for j in g._query(g.ppos, 320.0):
+		for j in g.enemies_sys.query(g.ppos, 320.0):
 			var e2: Dictionary = g.enemies[j]
 			if not e2.dead:
 				cen += e2.pos
