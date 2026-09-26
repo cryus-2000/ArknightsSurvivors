@@ -25,7 +25,7 @@ GAME = os.path.join(ROOT, "game", "scripts", "game.gd")
 SCRIPTS = os.path.join(ROOT, "game")
 
 KEYWORDS = set("""if elif else for while match break continue pass return class class_name extends is in as self signal func static const
-enum var await yield super preload true false null not and or void PI TAU INF NAN breakpoint assert when tool onready export""".split())
+enum var await yield super preload true false null not and or void PI TAU INF NAN breakpoint assert when tool onready export _""".split())
 # GDScript 全局函数 / 常用内置（不加 g.）
 BUILTIN = set("""abs absf absi acos asin atan atan2 bezier_interpolate bytes_to_var ceil ceilf ceili clamp clampf clampi cos cosh cubic_interpolate
 db_to_linear deg_to_rad ease exp floor floorf floori fmod fposmod hash instance_from_id inverse_lerp is_equal_approx is_finite is_inf

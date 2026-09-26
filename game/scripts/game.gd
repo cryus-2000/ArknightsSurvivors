@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
@@ -65,6 +66,7 @@ var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -173,7 +175,6 @@ var pvel := Vector2.ZERO
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
 var drones: Array = []           # 医疗无人机 {pos, cd, ang, beam, face}
-var drone_rescue_cd := 0.0       # Lv.3 急救冷却
 var bullets: Array = []
 
 # ---------- 世界 ----------
@@ -1114,10 +1115,10 @@ func _update(dt: float) -> void:
 	_pm("enemies")
 	squad.update(dt)
 	_pm("squad")
-	_update_weapons(dt)   # 支援无人机：跟随博士，与编队里有谁无关
+	weapons_sys.update(dt)   # 支援无人机：跟随博士，与编队里有谁无关
 	knight.update(dt)
 	touch.update(dt)
-	_update_bullets(dt)
+	weapons_sys.update_bullets(dt)
 	_pm("bullets")
 	_update_ebullets(dt)
 	bai._update_warns(dt)
@@ -2284,50 +2285,6 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 # Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
 # 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）
-const DRONE_HEAL := [0.0, 0.02, 0.03, 0.03, 0.02, 0.025]
-const DRONE_EVERY := [0.0, 6.0, 6.0, 6.0, 6.0, 5.0]
-
-
-func _update_weapons(dt: float) -> void:
-	var dl: int = weapons.get("drone", 0)
-	if dl <= 0:
-		return
-	var want := 2 if dl >= 4 else 1
-	while drones.size() < want:
-		drones.append({"pos": ppos + Vector2(0, -60), "cd": 2.0 + drones.size() * 2.5, "ang": drones.size() * PI, "beam": 0.0, "face": 1.0})
-	drone_rescue_cd = maxf(0.0, drone_rescue_cd - dt)
-	for i in drones.size():
-		var dr: Dictionary = drones[i]
-		dr.ang += dt * 1.2
-		var want_pos: Vector2 = ppos + Vector2(cos(dr.ang) * 46.0, -66.0 + sin(dr.ang * 2.0) * 6.0)
-		var prev: Vector2 = dr.pos
-		dr.pos = dr.pos.lerp(want_pos, clampf(dt * 4.0, 0.0, 1.0))
-		if absf(dr.pos.x - prev.x) > 0.3:
-			dr.face = signf(dr.pos.x - prev.x)
-		dr.beam = maxf(0.0, dr.beam - dt)
-		dr.cd -= dt * sp_mult
-		if dr.cd <= 0.0:
-			dr.cd = DRONE_EVERY[dl]
-			if hp < max_hp:
-				_drone_heal(dr, max_hp * DRONE_HEAL[dl], dl >= 5)
-		# Lv.3：低血急救
-		if dl >= 3 and drone_rescue_cd <= 0.0 and hp < max_hp * 0.4 and i == 0:
-			drone_rescue_cd = 25.0
-			_drone_heal(dr, max_hp * 0.06, dl >= 5)
-			_add_text(ppos + Vector2(0, -110), "急救", Color(0.5, 1.0, 0.6), 16)
-
-
-func _drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
-	_heal(amount, "无人机")
-	if cure:
-		nerve = 0.0
-	dr.beam = 0.35
-	_add_text(ppos + Vector2(0, -90), "+%d" % int(amount), Color(0.5, 1.0, 0.6), 14)
-	fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})
-	if not _fx_sprite("fx_heal_aura_green", ppos + Vector2(0, 6), PX * 1.1, 0.0, false, true):
-		for k in 4:
-			fx.append({"kind": "cross", "pos": ppos + Vector2(randf_range(-18, 18), randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": randf_range(3.0, 4.5)})
-	Sfx.play("pickup", -14.0, 1.4, 0.05)
 
 
 ## 敌人最密集的位置（在 radius 内采样）
@@ -2344,182 +2301,6 @@ func _densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 			bn = n
 			best = c.pos
 	return best
-
-
-func _sniper_target(from: Vector2, reach: float) -> Dictionary:
-	var best: Dictionary = {}
-	var score := -1.0
-	for j in _query(from, reach):
-		var e: Dictionary = enemies[j]
-		if e.dead or e.pos.distance_to(from) > reach:
-			continue
-		var sc: float = e.hp + (100000.0 if (e.elite or e.boss) else 0.0)
-		if sc > score:
-			score = sc
-			best = e
-	return best
-
-
-func _update_bullets(dt: float) -> void:
-	for b in bullets:
-		if b.life <= 0.0:
-			continue
-		# 追踪：导弹 / 紫色法术
-		var hm = b.get("home")
-		if hm != null:
-			if hm.dead:
-				if b.has("accel"):
-					# 导弹：目标没了就改追导弹附近最近的敌人
-					var best = null
-					var bd := 460.0
-					for j in _query(b.pos, 460.0):
-						var q: Dictionary = enemies[j]
-						if not q.dead and not q.chest and q.pos.distance_to(b.pos) < bd:
-							bd = q.pos.distance_to(b.pos)
-							best = q
-					b.home = best
-				else:
-					# 法术追踪弹：从弹体附近重新找目标（原来从博士身边找，常常找不到就直线飞走）
-					var nt := _nearest(1, 360.0, b.pos)
-					b.home = nt[0] if nt.size() > 0 else null
-			else:
-				# 匀速转向（2026-09-25）：原来 vel.lerp(want) 转弯时向量变短 → 越绕越慢、显得疲软。
-				# 现在速度大小恒定、只转方向；转向角速度随飞行时间增大，保证一定追上、不会绕圈；目标还在就不会中途消失
-				var spd: float = b.vel.length() if b.has("accel") else b.get("spd", b.vel.length())
-				b["spd"] = spd
-				b["age"] = b.get("age", 0.0) + dt
-				var turn: float = b.get("turn", 6.0) * (1.0 + b.age * 2.5)
-				var a0: float = b.vel.angle()
-				var a1: float = rotate_toward(a0, (hm.pos - b.pos).angle(), turn * dt)
-				b.vel = Vector2.from_angle(a1) * spd
-				b.life = maxf(b.life, 0.2)
-		# 导弹：持续加速到最高速并保持（没有目标时直线飞行，不会减速）
-		if b.has("accel"):
-			var sp: float = minf(b.vel.length() + b.accel * dt, b.vmax)
-			b.vel = b.vel.normalized() * sp
-		b.pos += b.vel * dt
-		b.life -= dt
-		if b.kind == "fire" and not b.get("hidden", false):
-			b.trail = b.get("trail", 0.0) - dt
-			if b.trail <= 0.0:
-				b.trail = 0.03
-				fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
-					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
-		for j in _query(b.pos, 40.0):
-			var e: Dictionary = enemies[j]
-			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
-				continue
-			if b.get("hit", {}).has(e.id):
-				continue
-			_bullet_hit(b, e)
-			break
-
-
-## 子弹命中：按种类结算伤害与特效
-func _bullet_hit(b: Dictionary, e: Dictionary) -> void:
-	if b.has("src"):
-		_hit(b.src, b.get("tags", []))
-	else:
-		_hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
-	match b.kind:
-		"arrow":
-			# 狙击：命中流血；扼喉之手处决
-			_damage(e, b.dmg)
-			if rfx.sniper_execute(e, hit):
-				_add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
-				_hit("真实")
-				_damage(e, e.hp + 1.0)
-			if not e.dead:
-				e["bleed"] = 3.0
-				e["bleed_dps"] = b.dmg * 0.2
-			for k in 7:
-				fx.append({"kind": "spark", "pos": e.pos, "vel": b.vel.normalized().rotated(randf_range(-0.7, 0.7)) * randf_range(80, 220),
-					"sz": 3.0, "life": 0.4, "max": 0.4, "col": Color(0.85, 0.08, 0.12)})
-			fx.append({"kind": "blood", "pos": e.pos + Vector2(0, e.r * 0.6), "life": 2.5, "max": 2.5, "seed": randf() * 10.0})
-			_fx_sprite("fx_arrow_hit", e.pos, PX, b.vel.angle())
-			if b.get("pierce", false):
-				if not b.has("hit_ids"):
-					b["hit_ids"] = {}
-				b.hit_ids[e.id] = true
-			else:
-				b.life = 0.0
-		"fire":
-			# 法术团：爆炸
-			for k in _query(b.pos, b.aoe + 20.0):
-				var o: Dictionary = enemies[k]
-				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-					_damage(o, b.dmg)
-					if b.get("slow", false):
-						o.slow = maxf(o.slow, 1.2)
-			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
-			var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
-			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈；干员配色（fx_col）走程序爆炸
-			var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
-			if not b.has("fx_col") and _fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
-				fx[-1]["ring"] = b.aoe
-			else:
-				fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc})
-			for k in 6:
-				fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
-					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
-			if b.has("op"):
-				Sfx.op(b.op, "hit", 0.0, 1.0, 0.1)   # 干员法术弹（艾雅法拉熔岩弹）
-			else:
-				Sfx.play("boom", -14.0 if b.kind == "fire" else -11.0, 1.5, 0.1)
-			b.life = 0.0
-			# 干员自带的命中后效果（点燃 / 分裂等）
-			if b.get("on_hit") != null:
-				b.on_hit.bullet_exploded(b)
-		"arcane":
-			_damage(e, b.dmg)
-			if not e.dead:
-				e.slow = maxf(e.slow, 1.0)
-			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
-			if b.get("aoe", 0.0) > 0.0:
-				for k in _query(b.pos, b.aoe + 20.0):
-					var o: Dictionary = enemies[k]
-					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-						_damage(o, b.dmg)
-			if b.has("fx_col") or not _fx_sprite("fx_arcane_hit", e.pos):
-				fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
-			_sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
-			if b.has("op"):
-				Sfx.op(b.op, "hit")   # 铃兰狐火
-			b.life = 0.0
-		"tide":
-			# 潮汐弹：在敌人之间反弹
-			_damage(e, b.dmg)
-			if b.get("push", false) and not e.boss and not e.dead:
-				e.kb += b.vel.normalized() * 220.0
-			if not _fx_sprite("fx_tide_hit", e.pos):
-				fx.append({"kind": "ring", "pos": e.pos, "r": 20.0, "life": 0.25, "max": 0.25, "col": Color(0.45, 0.8, 1.0)})
-			_sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 2, 160.0)
-			b.hit[e.id] = true
-			b.bounces -= 1
-			if b.bounces < 0:
-				b.life = 0.0
-				return
-			var nxt: Dictionary = {}
-			var bd := 260.0
-			for k in _query(e.pos, 260.0):
-				var o: Dictionary = enemies[k]
-				if o.dead or b.hit.has(o.id):
-					continue
-				var dd: float = o.pos.distance_to(e.pos)
-				if dd < bd:
-					bd = dd
-					nxt = o
-			if nxt.is_empty():
-				b.life = 0.0
-				return
-			b.vel = (nxt.pos - b.pos).normalized() * b.vel.length()
-			b.life = 1.0
-			Sfx.play("pickup", -16.0, 1.8, 0.1)
-		_:
-			_damage(e, b.dmg)
-			if not _fx_sprite("fx_bullet_hit", b.pos, PX, b.vel.angle()):
-				_sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
-			b.life = 0.0
 
 
 # =====================================================================
@@ -3763,7 +3544,6 @@ func _hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 	if not _fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else rng.randf() * TAU):
 		_anim("fx_hit", e.pos, 0.16)
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
-const EXPLODE_R_PX := 26.0
 
 
 ## 激光三段：起点（枪口）+ 平铺中段（末段按长度裁切，不拉伸）+ 末端光斑
