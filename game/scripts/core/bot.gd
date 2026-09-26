@@ -182,7 +182,7 @@ func _score_point(q: Vector2, _near: Array) -> float:
 		if _in_warn(wv, q, 36.0):
 			s -= 25.0
 	for m in g.mires:
-		if q.distance_to(m.pos) < float(m.r) + 26.0:
+		if g.combat.ground_d(q, m.pos) < float(m.r) + 26.0:
 			s -= 18.0
 	if g.zone_state != 0:
 		var tc: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
@@ -248,7 +248,7 @@ func _in_warn(w: Dictionary, q: Vector2, pad: float) -> bool:
 			if dv.length() > float(w.r) + pad:
 				return false
 			return absf(angle_difference(dv.angle(), float(w.ang))) < float(w.get("half", 0.8)) + 0.15
-	return q.distance_to(w.pos) < float(w.get("r", 60.0)) + pad
+	return g.combat.ground_d(q, w.pos) < float(w.get("r", 60.0)) + pad   # 与游戏判定共用地面椭圆（§1.9）
 
 
 func _in_danger(q: Vector2, pad: float) -> bool:
@@ -256,7 +256,7 @@ func _in_danger(q: Vector2, pad: float) -> bool:
 		if not wv.done and _in_warn(wv, q, pad):
 			return true
 	for m in g.mires:
-		if q.distance_to(m.pos) < float(m.r) + pad:
+		if g.combat.ground_d(q, m.pos) < float(m.r) + pad:
 			return true
 	for j in g.enemies_sys.query(q, 60.0):
 		var e: Dictionary = g.enemies[j]

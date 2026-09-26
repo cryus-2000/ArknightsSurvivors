@@ -91,7 +91,8 @@
    "pattern": "dash",
    "dash_range": 150,
    "dash_wind": 0.4,
-   "dash_speed": 4.5
+   "dash_speed": 4.5,
+   "draw_scale": 1.7
   },
   "burrower": {
    "name": "潜海裂魔",
@@ -112,7 +113,8 @@
    "nerve": 10.0,
    "pattern": "burrow",
    "burrow_range": 84,
-   "up_time": 3.2
+   "up_time": 3.2,
+   "draw_scale": 1.2
   },
   "spitter": {
    "name": "溟海喷吐者",
@@ -132,7 +134,8 @@
    "range": 320.0,
    "cd": 3.2,
    "spit": true,
-   "corrode": 0.4
+   "corrode": 0.4,
+   "draw_scale": 1.17
   },
   "hulk": {
    "name": "巨骸漂流体",
@@ -155,7 +158,8 @@
    "pattern": "stomp",
    "stomp_range": 170,
    "stomp_r": 135,
-   "stomp_cd": 6.0
+   "stomp_cd": 6.0,
+   "draw_scale": 2.6
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -169,7 +173,7 @@
    "move_fps": 10.0,
    "pattern": "blast",
    "blast_range": 60,
-   "blast_fuse": 0.55,
+   "blast_fuse": 0.8,
    "blast_r": 62,
    "no_contact": true,
    "atk_anim": true,
@@ -177,7 +181,7 @@
    "chips": [
     "自爆"
    ],
-   "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.55 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
+   "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.8 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
    "name": "浮海飘航者",

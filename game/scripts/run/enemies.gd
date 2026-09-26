@@ -205,7 +205,7 @@ func update(dt: float) -> void:
 		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
 			e.pos = g.map.push_out(e.pos, e.r * 0.8)
 
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.4 秒鼓胀预警，爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
+		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
 			if e.get("burst_w", 0.0) > 0.0:
@@ -213,12 +213,12 @@ func update(dt: float) -> void:
 				if e.burst_w <= 0.0:
 					g.fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
 					Sfx.play("tentacle", -2.0, 0.7)
-					if dist < 80.0:
+					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
 						g.in_type = ["近战", "法术"]
 						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
-				e.burst_w = 0.4
+				e.burst_w = 0.8
 				e.burst_cd = 1.2
 
 		# ---- 接触伤害
@@ -266,7 +266,7 @@ func update_lobs(dt: float) -> void:
 				g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
 			g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 			Sfx.play("boom", -14.0, 1.6, 0.1)
-			if l.to.distance_to(g.ppos) < l.r + 8.0 and g.invuln <= 0.0:
+			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
 				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
@@ -312,7 +312,7 @@ func update_status(dt: float) -> void:
 	for m in g.mires:
 		m.life -= dt
 		m.r = min(m.maxr, m.r + 5.0 * dt)
-		if m.pos.distance_to(g.ppos) < m.r and not sanct:
+		if g.combat.ground_d(g.ppos, m.pos) < m.r and not sanct:
 			mired = true
 			if not m.get("boss", false):
 				mire_nat = true
@@ -337,7 +337,9 @@ func update_status(dt: float) -> void:
 	g.mires = g.mires.filter(func(m): return m.life > 0.0)
 	for s in g.shocks:
 		s.r += 320.0 * dt
-		if not s.hit and abs(s.pos.distance_to(g.ppos) - s.r) < 22.0:
+		# 冲击环：环带宽 22，按地面椭圆算，且不超过最大半径（= 预警圈，docs/38 B0 第 5 项、docs/48 P0-1）
+		var sd: float = g.combat.ground_d(g.ppos, s.pos)
+		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr:
 			s.hit = true
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）

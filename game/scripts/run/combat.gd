@@ -446,6 +446,16 @@ func hit(src: String, extra_tags: Array = []) -> void:
 		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
+## ---- 地面形状统一判定（docs/38 §1.9「画即判」、docs/48 §1 第 1 项）：预警圈、冲击环、寒冰领域、抛石落点、溟痕都画成
+## 纵向 ×GROUND_Y 的椭圆；判定点统一用主控脚底，纵向距离先除以 GROUND_Y 再和半径比。游戏判定与机器人走位共用
+const GROUND_Y := 0.72
+
+
+func ground_d(p: Vector2, c: Vector2) -> float:
+	var v: Vector2 = p - c
+	return Vector2(v.x, v.y / GROUND_Y).length()
+
+
 ## ---- Boss 阶段卡点与每幕最短时长（docs/38 §1.3，B1 ①；2026-09-27 用户确认，不做力竭）
 ## 刻度在 enemies.json 的 gates（最大生命比例，从高到低）；没写时中期 [0.5]、最终 [0.66, 0.33]。
 ## 只在「这一击前高于刻度、这一击后不高于刻度」时触发，伤害截在刻度上：
