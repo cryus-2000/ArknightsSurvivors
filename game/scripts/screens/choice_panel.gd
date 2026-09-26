@@ -118,7 +118,7 @@ func build(parent: Node) -> void:
 	g.panel_tip.set_anchors_preset(Control.PRESET_FULL_RECT)
 	g.panel_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g.panel_tip.z_index = 10
-	g.panel_tip.draw.connect(g._draw_panel_tip)
+	g.panel_tip.draw.connect(draw_panel_tip)
 	g.panel.add_child(g.panel_tip)
 	# 事件标题的衬线字；没导入（别的工作区的 .godot 缓存里还没有）就用 UI 字体
 	var sf: Font = load("res://fonts/serif.ttf") if ResourceLoader.exists("res://fonts/serif.ttf") else null
@@ -601,3 +601,21 @@ func load_op_tex(cid: String) -> void:
 			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 			if g.tex.get(tn) == null:
 				g.tex[tn] = A.tex(tn)
+
+
+## 选卡 / 商店 / 事件：焦点卡片的说明被截断时，在面板最上层画完整说明（卡片下方，放不下放上方）
+func draw_panel_tip() -> void:
+	var box: BoxContainer = g.panel_col if (g.choice_kind == "event" and g.state == Game.S.CHOICE) else g.panel_box
+	var vs := g.panel_tip.size
+	for card in box.get_children():
+		if not (card is Button) or card.is_queued_for_deletion():
+			continue
+		var fd: Dictionary = card.get_meta("fit", {})
+		if fd.is_empty() or fd.get("fit", true) or not g.panel_ui.card_hot(card, card.get_index()):
+			continue
+		var gr: Rect2 = card.get_global_rect()
+		var it: Dictionary = card.get_meta("item", {})
+		var title: String = it.get("name", "") if not it.is_empty() else (g.choices[card.get_index()].get("name", "") if card.get_index() < g.choices.size() else "")
+		var desc: String = it.get("desc", "") if not it.is_empty() else (g.choices[card.get_index()].get("desc", "") if card.get_index() < g.choices.size() else "")
+		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, g.panel_tip)
+		return

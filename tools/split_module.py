@@ -113,7 +113,7 @@ def _balance(s):
 def locals_of(src):
     """函数（含 lambda）里的局部名：参数、var、const、for 变量"""
     loc = set()
-    for m in re.finditer(r'\bfunc\b\s*[A-Za-z_]*\s*\(', src):
+    for m in re.finditer(r'\bfunc\b\s*\w*\s*\(', src):   # 函数名可以带数字（_p48_tex）
         # 按括号配对取参数表（默认值里可能有 Vector2(0.5, 0.5) 之类）
         i, depth, cur, params = m.end(), 1, "", []
         while i < len(src) and depth > 0:
@@ -315,19 +315,27 @@ def main():
         new_game, n = _sub_code(pat, lambda m: field + "." + rename.get(name, name), new_game)
         if n:
             fixed.append((name, n))
-    # 声明
-    const_line = 'const %s = preload("%s")' % (spec["const"], spec["module"])
-    anchor = new_game.index("\nconst Bot = preload")
-    anchor = new_game.index("\n", anchor + 1)
-    new_game = new_game[:anchor] + "\n" + const_line + new_game[anchor:]
-    var_anchor = new_game.index("\nvar rng := RandomNumberGenerator.new()")
-    new_game = new_game[:var_anchor] + "\nvar %s = %s.new(self)   # %s" % (field, spec["const"], spec["doc"].split("\n")[0].split("：")[0]) + new_game[var_anchor:]
+    # 声明（追加模式：模块已存在、game.gd 已有字段声明时跳过）
+    mod_path = os.path.join(ROOT, "game", spec["module"][len("res://"):].replace("/", os.sep))
+    append = os.path.exists(mod_path)
+    if not append:
+        const_line = 'const %s = preload("%s")' % (spec["const"], spec["module"])
+        anchor = new_game.index("\nconst Bot = preload")
+        anchor = new_game.index("\n", anchor + 1)
+        new_game = new_game[:anchor] + "\n" + const_line + new_game[anchor:]
+        var_anchor = new_game.index("\nvar rng := RandomNumberGenerator.new()")
+        new_game = new_game[:var_anchor] + "\nvar %s = %s.new(self)   # %s" % (field, spec["const"], spec["doc"].split("\n")[0].split("：")[0]) + new_game[var_anchor:]
 
     # 其他脚本
     other_hits = []
     for p, s in others.items():
         s2 = s
+        own = append and os.path.samefile(p, mod_path)
         for name in moved:
+            if own:
+                # 目标模块自己调用被搬来的函数：g.name → 直接调用
+                s2, n = _sub_code(re.compile(r'\bg\.' + re.escape(name) + r'\b'), lambda m: rename.get(name, name), s2)
+                continue
             pat = re.compile(r'\b(g|game|_g|G)\.' + re.escape(name) + r'\b')
             s2, n = _sub_code(pat, lambda m: m.group(1) + "." + field + "." + rename.get(name, name), s2)
             if n:
@@ -346,10 +354,16 @@ def main():
     print("其他脚本调用改写：", other_hits)
     if unknown:
         print("不认识的标识符（需人工确认）：", sorted(unknown))
-    mod_path = os.path.join(ROOT, "game", spec["module"][len("res://"):].replace("/", os.sep))
     if dry:
         print("--dry：未写文件；模块 %d 行" % body.count("\n"))
         return
+    if append:
+        # 追加到已有模块：缺的 preload 常量插在 extends 下一行，变量与函数接在文件末尾
+        cur = others[mod_path].replace("\r\n", "\n")
+        for c in need_pre:
+            if not re.search(r'^const ' + c + r'\b', cur, re.M):
+                cur = cur.replace("extends RefCounted\n", "extends RefCounted\n" + preload_consts[c] + "\n", 1)
+        body = cur.rstrip("\n") + "\n\n\n" + ("\n".join(out_vars) + "\n\n\n" if out_vars else "") + "\n\n\n".join(f.strip("\n") for f in out_funcs) + "\n"
     os.makedirs(os.path.dirname(mod_path), exist_ok=True)
     open(mod_path, "wb").write((body.replace("\n", "\r\n") if crlf else body).encode("utf-8"))
     open(GAME, "wb").write((new_game.replace("\n", "\r\n") if crlf else new_game).encode("utf-8"))

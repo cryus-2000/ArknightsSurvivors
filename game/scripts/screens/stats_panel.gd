@@ -95,7 +95,7 @@ func draw(vs: Vector2) -> void:
 	])
 	y = b1.position.y + 48
 	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
-	var skill_rows: Array = g._skill_rows_data()
+	var skill_rows: Array = skill_rows_data()
 	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(11) + 1.0) + 18.0
 	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 19.0, 25.0)
 	var rfs := 14 if rh1 >= 23.0 else 13
@@ -237,3 +237,24 @@ func draw(vs: Vector2) -> void:
 			var gd: Dictionary = g.progression.growth_def(cellinfo[2])
 			g.hud_view.draw_tooltip(vs, cr2, "%s  ×%d" % [gd.name, g.growth[cellinfo[2]]], "成长 · 上限 %d" % gd.max, gd.desc, "growth_" + cellinfo[2], UI.GLOW)
 		break
+
+
+## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋
+func skill_rows_data() -> Array:
+	var rows: Array = []
+	for i in 3:
+		var sd: Dictionary = g.ch.skill_def(i)
+		var on: bool = g.ch.skill_unlocked(i)
+		var need: float = g.ch.sp_need(i)
+		var extra: String = ""
+		if on and g.ch.perm[i]:
+			extra = "（已永久生效）"
+		elif on and need > 0.0:
+			extra = "（充能 %d · %d%%）" % [int(need), int(100.0 * g.ch.sp[i] / need)]
+		elif not on:
+			extra = "（%s解锁）" % ["招募", "精英化一", "精英化二"][i]
+		rows.append(["%d" % (i + 1), sd.get("name", "技能 %d" % (i + 1)) + extra, sd.get("desc", ""), on, g.ch.rej.has(i)])
+	var td: Dictionary = g.ch.talent_def()
+	if not td.is_empty():
+		rows.append(["赋", td.get("name", "天赋") + ("" if g.ch.elite >= 1 else "（精英化一解锁）"), td.get("desc", ""), g.ch.elite >= 1, false])
+	return rows

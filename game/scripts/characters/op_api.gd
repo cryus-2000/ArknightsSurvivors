@@ -138,4 +138,4 @@ func draw_spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vec
 
 ## 按脚底锚点画角色帧（剪影、残影用）
 func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
-	g._draw_sprite_at(pos, flip, col, frame, tx, hf, foot_off)
+	g.world.draw_sprite_at(pos, flip, col, frame, tx, hf, foot_off)

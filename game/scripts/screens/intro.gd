@@ -46,7 +46,7 @@ func update_opening(dt: float) -> void:
 	# 落地
 	if opening_t >= 1.7 and opening_t - dt < 1.7:
 		g.p_sq = Vector2(1.3, 0.72)
-		g._feet_dust(14, 150.0)
+		g.world.feet_dust(14, 150.0)
 		g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
 		g.vfx.shake_screen(0.7)
 		Sfx.play("boom", -14.0, 1.4, 0.0)
