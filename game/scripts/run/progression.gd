@@ -11,6 +11,7 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var tab_hinted := false
+var probe_applied := 0   # 测试探针：--relicmax 已生效的拿取次数
 
 
 func _init(game: Game) -> void:
@@ -239,6 +240,15 @@ func apply_relic(id: String) -> void:
 ## 获得藏品的唯一入口：登记、生效、重算结局
 func gain_relic(id: String) -> void:
 	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])   # 玩家局也记（docs/40）
+	# 测试探针（不合入 main）：--norelics 藏品只登记不生效；--relicmax=N 只有前 N 次拿取生效（结局类照常）
+	if g.balance and g.RL.get(id, {}).get("rarity", "") != "结局":
+		if OS.get_cmdline_user_args().has("--norelics"):
+			return
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--relicmax="):
+				if probe_applied >= int(a.substr(11)):
+					return
+				probe_applied += 1
 	if not g.relics.has(id):
 		g.relics.append(id)
 	apply_relic(id)
