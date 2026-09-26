@@ -129,7 +129,8 @@ func update(dt: float) -> void:
 			continue
 
 		# ---- 移动
-		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) else 1.0)
+		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
+		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
 		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
@@ -168,6 +169,8 @@ func update(dt: float) -> void:
 						e.cdt = e.cd
 						g.eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
+		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
+			e.kb_self = false
 
 		# ---- 分离 + 吞噬
 		if e.ai != "static":
