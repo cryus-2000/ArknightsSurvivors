@@ -235,7 +235,7 @@ func update(dt: float) -> void:
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害
 		if e.type == "tear" and dist < e.r + 14.0:
-			g.hp -= 6.0 * dt
+			g.combat.lose_hp(6.0 * dt, "tear")
 			g.hurt_flash = max(g.hurt_flash, 0.05)
 
 
@@ -300,8 +300,7 @@ func update_status(dt: float) -> void:
 	if g.corrode_pool > 0.0:
 		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
 		g.corrode_pool -= tick
-		g.hp -= tick
-		g.dmg_log["corrode"] = g.dmg_log.get("corrode", 0.0) + tick
+		g.combat.lose_hp(tick, "corrode")
 	var mired := false
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
 	for m in g.mires:
@@ -317,8 +316,7 @@ func update_status(dt: float) -> void:
 		if mire_tick <= 0.0:
 			mire_tick = 0.5
 			var md: float = 3.0 + g.max_hp * 0.015
-			g.hp -= md
-			g.dmg_log["mire"] = g.dmg_log.get("mire", 0.0) + md
+			g.combat.lose_hp(md, "mire")
 			g.red_flash = maxf(g.red_flash, 0.08)
 			g.hp_shake = 0.2
 			g.hurt_flash = maxf(g.hurt_flash, 0.06)

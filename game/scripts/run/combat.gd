@@ -25,6 +25,8 @@ var zone_hurt_t := 0.0
 const ZONE_START := 150.0
 const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
+## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
+const NO_LOG := ["tear", "dark"]
 
 
 func _init(game: Game) -> void:
@@ -77,6 +79,15 @@ func add_nerve(v: float) -> void:
 		Sfx.play("skill", -4.0, 1.6)
 
 
+## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
+## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。返回实际扣掉的生命。
+func lose_hp(amount: float, src: String) -> float:
+	g.hp -= amount
+	if not src in NO_LOG:
+		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
+	return amount
+
+
 func hurt(amount: float, ignore_armor := false) -> void:
 	if g.in_type[1] != "真实":
 		amount *= g.rfx.taken_mult()
@@ -84,9 +95,8 @@ func hurt(amount: float, ignore_armor := false) -> void:
 		amount = max(1.0, amount - g.armor)
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
-	g.hp -= amount
+	amount = lose_hp(amount, g.dmg_src)
 	g.rfx.on_hurt(g.dmg_src == "nerve")
-	g.dmg_log[g.dmg_src] = g.dmg_log.get(g.dmg_src, 0.0) + amount
 	g.invuln = 0.45
 	g.hurt_flash = 0.2
 	# 受击反馈按伤害占最大生命的比例分级
@@ -151,8 +161,7 @@ func update_zone(dt: float) -> void:
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		g.hp -= dps * dt
-		g.dmg_log["zone"] = g.dmg_log.get("zone", 0.0) + dps * dt
+		lose_hp(dps * dt, "zone")
 		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
 		zone_hurt_t -= dt
 		if zone_hurt_t <= 0.0:

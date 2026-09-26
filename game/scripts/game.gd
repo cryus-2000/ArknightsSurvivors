@@ -931,7 +931,7 @@ func _update(dt: float) -> void:
 		rfx.on_overheal(hp + rg - maxf(hp, max_hp))
 	hp = min(max_hp, hp + rg)
 	if lamp <= 0.0:
-		hp -= 3.0 * dt
+		combat.lose_hp(3.0 * dt, "dark")
 		hurt_flash = max(hurt_flash, 0.05)
 	combat.update_zone(dt)
 	if shield_max > 0 and shield < shield_max:
