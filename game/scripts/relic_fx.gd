@@ -198,7 +198,7 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			Sfx.play("roar", -6.0, 1.4, 0.0)
 		"recruit_knight":
 			g.knight_alive = true
-			g.vfx.show_banner("猎潮的骑士 加入了你的旅程")
+			g.vfx.show_banner("猎潮的骑士加入了你的旅程")
 		"ingots":
 			g.ingots += int(amt)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
