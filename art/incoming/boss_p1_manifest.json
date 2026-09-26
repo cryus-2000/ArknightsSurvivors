@@ -1,5 +1,5 @@
 {
-  "spec": "docs/38_boss_redesign.md §6",
+  "spec": "docs/38_boss_redesign.md §6.2 with user-approved 112x96 transformed Ishar-mla cell override",
   "format": "horizontal RGBA PNG",
   "outline": "#080E18; 2px base / 4px @2x",
   "sheets": [
@@ -53,22 +53,22 @@
       "name": "e_ishar_transform",
       "frames": 6,
       "cell": [
-        80,
-        80
+        112,
+        96
       ],
       "source_sha256": "1c963e2bde0ea7fdb37120cd4d6a839133d577df0bf86cf5af99be0485b51420",
       "outputs": [
         {
           "file": "e_ishar_transform.png",
-          "width": 480,
-          "height": 80,
-          "sha256": "8080a04fc97c6aeda566c9caf938ab8527e7a94b113ebc550fe107139bc38f8a"
+          "width": 672,
+          "height": 96,
+          "sha256": "95140619821e6e131199ee4958064935fdfa4e21d2ae1ba8cfe13de31b47a83c"
         },
         {
           "file": "e_ishar_transform@2x.png",
-          "width": 960,
-          "height": 160,
-          "sha256": "6ad900d555813e08fa18b35bf3635cb75379191ae1ad7a9ed0f04c0196b92742"
+          "width": 1344,
+          "height": 192,
+          "sha256": "f5bd9050b22128b9f6b7eec739119ce4457e7c83fe3c47b65110e1d27daeed63"
         }
       ]
     },
@@ -76,22 +76,22 @@
       "name": "e_ishar_t",
       "frames": 2,
       "cell": [
-        80,
-        80
+        112,
+        96
       ],
       "source_sha256": "e95bb293e84d1b7002e453884ed933dc93a6e0c1ce74bc23c968c53852f91897",
       "outputs": [
         {
           "file": "e_ishar_t.png",
-          "width": 160,
-          "height": 80,
-          "sha256": "021a93a2163afc6f17138b7aa906cc177f9d5739015f143e4797e6194fa85f22"
+          "width": 224,
+          "height": 96,
+          "sha256": "17b9f1cff8775ac3485acf7dd2dfcd032ceef81f82305151f99aca34f1a60892"
         },
         {
           "file": "e_ishar_t@2x.png",
-          "width": 320,
-          "height": 160,
-          "sha256": "0d360fabc90a9a37251fd73dfbca06afb6cd4f660553da1622b3e5aeda34d008"
+          "width": 448,
+          "height": 192,
+          "sha256": "cc6059d94aa88bb5734afdc327a23be67bbb64c8991ec5138b661b0c62a1c660"
         }
       ]
     },
@@ -99,22 +99,22 @@
       "name": "e_ishar_t_move",
       "frames": 4,
       "cell": [
-        80,
-        80
+        112,
+        96
       ],
       "source_sha256": "a4adae2eb4b4dc6d567f19658abeefac7ae21932ef04fe381fb843c9e618ef48",
       "outputs": [
         {
           "file": "e_ishar_t_move.png",
-          "width": 320,
-          "height": 80,
-          "sha256": "a93feb7078b4b0c358bff57eac96630d5e2b5386d4a9c9a4ce05fe7473321b93"
+          "width": 448,
+          "height": 96,
+          "sha256": "7bb9f74080f3a7f860b2e6876ea472948855f93a100345071f725b4d8618c922"
         },
         {
           "file": "e_ishar_t_move@2x.png",
-          "width": 640,
-          "height": 160,
-          "sha256": "56be14d7eea84cf1ddb1e7d2d88be3140547bc5f49ee82cf8ccf808f00512a7e"
+          "width": 896,
+          "height": 192,
+          "sha256": "28e956a67124af3038933a3430939f753d2d40a9ff70f20afb185348109ff47f"
         }
       ]
     },
@@ -122,22 +122,22 @@
       "name": "e_ishar_t_attack",
       "frames": 4,
       "cell": [
-        80,
-        80
+        112,
+        96
       ],
       "source_sha256": "fba1ac94ac2a4fff931151789cf2159188eb246e6ae5b3ee51878aa055ed6c28",
       "outputs": [
         {
           "file": "e_ishar_t_attack.png",
-          "width": 320,
-          "height": 80,
-          "sha256": "c432f9a4f1f2f27973321fd280a6b55d0c9963124e7c432459734c4058dc951d"
+          "width": 448,
+          "height": 96,
+          "sha256": "1d95e48e4cd4206e48d7bc5527b12a68d94ba6f060bbd896fed1c72528577270"
         },
         {
           "file": "e_ishar_t_attack@2x.png",
-          "width": 640,
-          "height": 160,
-          "sha256": "ef1a28e77d2218d07adb594dcaec741c4b692c5555b191a8c1fbbb754cb3cfa9"
+          "width": 896,
+          "height": 192,
+          "sha256": "2ff3629a838100f228e7237caba52a66dad0e31d1e8bd7854508ccf0cdd24e58"
         }
       ]
     }
