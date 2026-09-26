@@ -463,6 +463,11 @@ func damage(e: Dictionary, dmg: float) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
+	if e.boss:
+		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
+		if hcap > 0.0:
+			dmg = minf(dmg, e.maxhp * hcap)
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
