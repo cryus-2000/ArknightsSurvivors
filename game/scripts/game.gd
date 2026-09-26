@@ -771,6 +771,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			state_age = HudView.DEATH_T
 			get_viewport().set_input_as_handled()
 		return
+	# 跳过 / 播完过渡后 0.35 秒（结算面板淡入期间）再挡一下输入：倒下时习惯连按，第二下别落到还在淡入的结算按钮上（架构建议）
+	if state == S.DEAD and state_age < HudView.DEATH_T + 0.35:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
