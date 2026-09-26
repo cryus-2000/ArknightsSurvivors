@@ -423,6 +423,8 @@ func _draw() -> void:
 	var hf0 := _seg(0.9, 0.5)
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
+	if Cfg.unlock_all:
+		UI.text(self, font, Vector2(vs.x - 330, 30), "测试版 · 已全部解锁（不写入存档）", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
 	# 标题（像素 Logo）：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
 	var lg := _seg(1.0, 0.8)
 	var ly := 24.0 * (1.0 - lg)

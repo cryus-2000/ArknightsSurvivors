@@ -31,6 +31,8 @@ var seen_shows: Array = []   # 已看过的解锁演出
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
+var unlock_all := false      # 开发测试：本次运行全部解锁（只在内存里，见 _apply_unlock_all；发布版恒为 false）
+var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存，不存档；对局返回标题不重播）
 
 
@@ -70,6 +72,7 @@ func _ready() -> void:
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
+	_apply_unlock_all()
 	apply.call_deferred()
 
 
@@ -113,6 +116,24 @@ func _migrate_diff() -> void:
 	difficulty = mini(D.tier_of_level(old_diff), diff_unlocked)
 
 
+## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
+## 只在 debug 构建（编辑器运行、debug 导出）里生效：不带启动参数直接运行时自动打开，带测试参数时要显式加 --unlockall
+## （自动测试不受影响），--nounlock 可关掉。发布版（--export-release）里 OS.is_debug_build() 为 false，永远不会打开。
+## 只改内存：存档里的真实进度先存进 _real_progress，save() 写回它们，本次运行的解锁与进度不会写进存档。
+func _apply_unlock_all() -> void:
+	if not OS.is_debug_build():
+		return
+	if dev_args().has("--nounlock") or not (dev_args().is_empty() or dev_args().has("--unlockall")):
+		return
+	unlock_all = true
+	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
+	diff_unlocked = D.DIFFICULTY_TIERS.size() - 1
+	endings_cleared = D.ENDINGS.keys()
+	var db = preload("res://scripts/core/relic_db.gd").new()
+	db.load_files()
+	seen_relics = db.implemented().map(func(r): return r.id)
+
+
 ## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；
 ## 发布版（--export-release）一律返回空，玩家首次打开一定是未解锁的初始状态（tools/check_release.py 检查）
 func dev_args() -> PackedStringArray:
@@ -143,10 +164,10 @@ func save() -> void:
 	c.set_value("video", "brightness", brightness)
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("progress", "difficulty", difficulty)
-	c.set_value("progress", "diff_unlocked", diff_unlocked)
+	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)
 	c.set_value("progress", "seen_shows", seen_shows)
-	c.set_value("progress", "seen_relics", seen_relics)
+	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
-	c.set_value("progress", "endings_cleared", endings_cleared)
+	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.save(PATH)
