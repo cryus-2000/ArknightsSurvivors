@@ -765,6 +765,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
 			intro_screen.end_opening()
 		return
+	# 倒下过渡中（hud.DEATH_T 秒）：任意键 / 点击直接跳到结算，这次输入不传给结算按钮
+	if state == S.DEAD and state_age < HudView.DEATH_T:
+		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
+			state_age = HudView.DEATH_T
+			get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
