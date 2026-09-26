@@ -1,0 +1,822 @@
+{
+  "spec": "docs/34_growth_art_requests.md",
+  "assets": [
+    {
+      "character": "fx_mizuki_jelly",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_mizuki_jelly. front view moon jellyfish, pale cyan blue lavender bell contracts and expands, thin flowing tentacles sway. floating loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 12:16; entire sheet ratio 48:16. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 12x16 pixels with detailed 24x32 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-07aa623d-725f-4330-ab1b-e91148d0dedb.png",
+      "fps": 6,
+      "file": "fx_mizuki_jelly.png",
+      "frame_width": 12,
+      "frame_height": 16,
+      "frame_count": 4,
+      "anchor": [
+        6,
+        8
+      ],
+      "source_sha256": "cf5ba8032d6181c600d54d4ef6b6fd644d73d45159611009b6dcfeb123c1444a",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "ddcbeda14069dadcc04faf114ac0bdeaa0f7646e7e6eb9597c03c5b3cba792cd",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 6,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_mizuki_jelly",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_mizuki_jelly. front view moon jellyfish, pale cyan blue lavender bell contracts and expands, thin flowing tentacles sway. floating loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 12:16; entire sheet ratio 48:16. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 12x16 pixels with detailed 24x32 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-07aa623d-725f-4330-ab1b-e91148d0dedb.png",
+      "fps": 6,
+      "file": "fx_mizuki_jelly@2x.png",
+      "frame_width": 24,
+      "frame_height": 32,
+      "frame_count": 4,
+      "anchor": [
+        12,
+        16
+      ],
+      "source_sha256": "cf5ba8032d6181c600d54d4ef6b6fd644d73d45159611009b6dcfeb123c1444a",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "5f4f7a5c78d879109a1024625825a4024db3df90df040d8f1ae93b0df5ddc6d7",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 6,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_wisadel_soul",
+      "source_x_cuts": [
+        0,
+        320,
+        650,
+        990,
+        1320,
+        1705,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_soul. black smoky ghost silhouette with two scarlet eyes and crimson edge accents. frames 1-4 frontal levitating breathing loop, frames 5-6 lean and dive toward RIGHT with smoky trailing wisps. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 20:28; entire sheet ratio 120:28. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 20x28 pixels with detailed 40x56 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-53e572ef-4973-4b53-b5ff-477fa04d3d47.png",
+      "fps": 8,
+      "file": "fx_wisadel_soul.png",
+      "frame_width": 20,
+      "frame_height": 28,
+      "frame_count": 6,
+      "anchor": [
+        10,
+        14
+      ],
+      "source_sha256": "75c3ab4ad1c4796c3ce73c669f0869b25771795ce615c861dcee41f80e20dd03",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "8b0b635abefe7b53e45b2665c472a052e00829abfdf967442d6b4eb9269c1905",
+      "recommended_modulate_alpha": 1.0,
+      "clips": [
+        {
+          "name": "hover",
+          "loop": true,
+          "fps": 8,
+          "count": 4,
+          "start": 0
+        },
+        {
+          "name": "dive",
+          "loop": false,
+          "fps": 12,
+          "count": 2,
+          "start": 4
+        }
+      ]
+    },
+    {
+      "character": "fx_wisadel_soul",
+      "source_x_cuts": [
+        0,
+        320,
+        650,
+        990,
+        1320,
+        1705,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_soul. black smoky ghost silhouette with two scarlet eyes and crimson edge accents. frames 1-4 frontal levitating breathing loop, frames 5-6 lean and dive toward RIGHT with smoky trailing wisps. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 20:28; entire sheet ratio 120:28. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 20x28 pixels with detailed 40x56 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-53e572ef-4973-4b53-b5ff-477fa04d3d47.png",
+      "fps": 8,
+      "file": "fx_wisadel_soul@2x.png",
+      "frame_width": 40,
+      "frame_height": 56,
+      "frame_count": 6,
+      "anchor": [
+        20,
+        28
+      ],
+      "source_sha256": "75c3ab4ad1c4796c3ce73c669f0869b25771795ce615c861dcee41f80e20dd03",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "200099b62d56984369f0da22517e8e7e8503bcae99ff154c2d7bdce2fc240976",
+      "recommended_modulate_alpha": 1.0,
+      "clips": [
+        {
+          "name": "hover",
+          "loop": true,
+          "fps": 8,
+          "count": 4,
+          "start": 0
+        },
+        {
+          "name": "dive",
+          "loop": false,
+          "fps": 12,
+          "count": 2,
+          "start": 4
+        }
+      ]
+    },
+    {
+      "character": "fx_wisadel_mark",
+      "source_x_cuts": [
+        0,
+        724,
+        1448
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_mark. tiny black ghost-shaped enemy overhead mark, two red eyes, scarlet contour. two clearly different flicker brightness frames. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 16:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9de8dcfa-9aae-4bc6-bdfd-7d161809a274.png",
+      "fps": 4,
+      "file": "fx_wisadel_mark.png",
+      "frame_width": 8,
+      "frame_height": 12,
+      "frame_count": 2,
+      "anchor": [
+        4,
+        6
+      ],
+      "source_sha256": "33ca8abd22a609639c0f2bd814a2ae76cb6a7f3303c7c261d6ab338951d13287",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "1465556e41decf298d2037f20fe4e8e67763bdc620a0d1f64af473c1c94ad54e",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 2,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_wisadel_mark",
+      "source_x_cuts": [
+        0,
+        724,
+        1448
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_mark. tiny black ghost-shaped enemy overhead mark, two red eyes, scarlet contour. two clearly different flicker brightness frames. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 16:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9de8dcfa-9aae-4bc6-bdfd-7d161809a274.png",
+      "fps": 4,
+      "file": "fx_wisadel_mark@2x.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 2,
+      "anchor": [
+        8,
+        12
+      ],
+      "source_sha256": "33ca8abd22a609639c0f2bd814a2ae76cb6a7f3303c7c261d6ab338951d13287",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "bcf40a7975250dedc964efd7274cd197081ac9b71c0ed8e8c29d93365d7e91ee",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 2,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_suzuran_wisp",
+      "source_x_cuts": [
+        0,
+        512,
+        1024,
+        1536,
+        2048
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_suzuran_wisp. small elegant golden foxfire flame with white core, frontal upright flame curls alternately, loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 32:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-932a315b-bccc-4815-a5df-5bc0d456faaf.png",
+      "fps": 8,
+      "file": "fx_suzuran_wisp.png",
+      "frame_width": 8,
+      "frame_height": 12,
+      "frame_count": 4,
+      "anchor": [
+        4,
+        6
+      ],
+      "source_sha256": "5e83256a73ea795b9b19cabaad29b58ac15d5dc801eca9c6ab463dacb0bafadf",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "90242bc1a09f228e8918a41b8196fb084edba077236be84cb5fc6f05c6e21aad",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 8,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_suzuran_wisp",
+      "source_x_cuts": [
+        0,
+        512,
+        1024,
+        1536,
+        2048
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_suzuran_wisp. small elegant golden foxfire flame with white core, frontal upright flame curls alternately, loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 32:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-932a315b-bccc-4815-a5df-5bc0d456faaf.png",
+      "fps": 8,
+      "file": "fx_suzuran_wisp@2x.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 4,
+      "anchor": [
+        8,
+        12
+      ],
+      "source_sha256": "5e83256a73ea795b9b19cabaad29b58ac15d5dc801eca9c6ab463dacb0bafadf",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "bda43c2a42805191a767f32fcad519280875103899707b2223882cc2184c6369",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 8,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "proj_suzuran_bigfox",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for proj_suzuran_bigfox. large united foxfire projectile, golden-white bright fox shaped flame head pointing RIGHT and three elegant comet wisps trailing LEFT, flickering flight loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 24:16; entire sheet ratio 96:16. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 24x16 pixels with detailed 48x32 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a565678a-b478-4fba-95d2-55a4ff81141f.png",
+      "fps": 10,
+      "file": "proj_suzuran_bigfox.png",
+      "frame_width": 24,
+      "frame_height": 16,
+      "frame_count": 4,
+      "anchor": [
+        12,
+        8
+      ],
+      "source_sha256": "20b05375f1b3eb244dd11e7886c3606cd636a079646255e39c482a071be9b84e",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "1a38e5346720943784f60a00befad7b65f5dca0c59a60c586f152ec7865ac8da",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 10,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "proj_suzuran_bigfox",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for proj_suzuran_bigfox. large united foxfire projectile, golden-white bright fox shaped flame head pointing RIGHT and three elegant comet wisps trailing LEFT, flickering flight loop. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 24:16; entire sheet ratio 96:16. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 24x16 pixels with detailed 48x32 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a565678a-b478-4fba-95d2-55a4ff81141f.png",
+      "fps": 10,
+      "file": "proj_suzuran_bigfox@2x.png",
+      "frame_width": 48,
+      "frame_height": 32,
+      "frame_count": 4,
+      "anchor": [
+        24,
+        16
+      ],
+      "source_sha256": "20b05375f1b3eb244dd11e7886c3606cd636a079646255e39c482a071be9b84e",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "463717d4c79a2a25b51b70cf08edee1c30f81d9b91eebddb1bccf395893f6893",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 10,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_suzuran_ninetails",
+      "source_x_cuts": [
+        0,
+        512,
+        1024,
+        1536,
+        2048
+      ],
+      "prompt_subject": "Correct this sprite sheet: it currently has SEVEN tails in every frame. ADD TWO NEW FULL-SIZE TAILS to EVERY frame: a lowermost tail extending horizontally LEFT from the shared root, and a lowermost tail extending horizontally RIGHT. Keep the seven existing upper tails intact, so total is NINE: central tail plus four each side. Four animation frames stay in same row. Remove all soft halo. True transparent background with zero alpha, no checkerboard. Pale gold and white pixel art. New lower tails must have separate visible pointed tips and contour gaps from the existing lowest pair.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:/Users/colafax/.codex/generated_images/01a08159-bde5-7d50-b7e0-571e2eeb3a31/exec-8e95de54-ff9e-4741-8e5a-3bd6c1aea993.png",
+      "fps": 4,
+      "file": "fx_suzuran_ninetails.png",
+      "frame_width": 64,
+      "frame_height": 48,
+      "frame_count": 4,
+      "anchor": [
+        32,
+        46
+      ],
+      "source_sha256": "ae0ce275ce5e477845ad69033fd8f59284d6c8b9f71551d2594fc1fdf4f1b338",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "2c82b8528194384da22dbbbfa406a6873b1dd946b4e75346caf055deb39eccc1",
+      "recommended_modulate_alpha": 0.45,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_suzuran_ninetails",
+      "source_x_cuts": [
+        0,
+        512,
+        1024,
+        1536,
+        2048
+      ],
+      "prompt_subject": "Correct this sprite sheet: it currently has SEVEN tails in every frame. ADD TWO NEW FULL-SIZE TAILS to EVERY frame: a lowermost tail extending horizontally LEFT from the shared root, and a lowermost tail extending horizontally RIGHT. Keep the seven existing upper tails intact, so total is NINE: central tail plus four each side. Four animation frames stay in same row. Remove all soft halo. True transparent background with zero alpha, no checkerboard. Pale gold and white pixel art. New lower tails must have separate visible pointed tips and contour gaps from the existing lowest pair.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:/Users/colafax/.codex/generated_images/01a08159-bde5-7d50-b7e0-571e2eeb3a31/exec-8e95de54-ff9e-4741-8e5a-3bd6c1aea993.png",
+      "fps": 4,
+      "file": "fx_suzuran_ninetails@2x.png",
+      "frame_width": 128,
+      "frame_height": 96,
+      "frame_count": 4,
+      "anchor": [
+        64,
+        92
+      ],
+      "source_sha256": "ae0ce275ce5e477845ad69033fd8f59284d6c8b9f71551d2594fc1fdf4f1b338",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "5980170a2f845de5c05bfb873525dc6b764b9dec4a8a950068154f5953b653b5",
+      "recommended_modulate_alpha": 0.45,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_mon3tr_blade",
+      "source_x_cuts": [
+        0,
+        724,
+        1448
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_mon3tr_blade. front view single crescent bone claw blade formed of black faceted crystal plates and fluorescent green cutting edge, floating upright, two subtle glint frames. no handle no sword. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 16:24; entire sheet ratio 32:24. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 16x24 pixels with detailed 32x48 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4abdc718-f807-46cb-bdf9-52efdb5a0bb5.png",
+      "fps": 4,
+      "file": "fx_mon3tr_blade.png",
+      "frame_width": 16,
+      "frame_height": 24,
+      "frame_count": 2,
+      "anchor": [
+        8,
+        12
+      ],
+      "source_sha256": "1fb49cbe34f016d32cc4edbed037ea5df0895d85917a9cb01528b3742174abb5",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "27194367ede34db644ed9881ac08bfc9e32379bf97cfa3ba305f169f2515b2d2",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 2,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_mon3tr_blade",
+      "source_x_cuts": [
+        0,
+        724,
+        1448
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_mon3tr_blade. front view single crescent bone claw blade formed of black faceted crystal plates and fluorescent green cutting edge, floating upright, two subtle glint frames. no handle no sword. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 16:24; entire sheet ratio 32:24. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 16x24 pixels with detailed 32x48 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4abdc718-f807-46cb-bdf9-52efdb5a0bb5.png",
+      "fps": 4,
+      "file": "fx_mon3tr_blade@2x.png",
+      "frame_width": 32,
+      "frame_height": 48,
+      "frame_count": 2,
+      "anchor": [
+        16,
+        24
+      ],
+      "source_sha256": "1fb49cbe34f016d32cc4edbed037ea5df0895d85917a9cb01528b3742174abb5",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "f857c6e07dad5d4698319f8d444ca287288324655acde7bef261463eeed750d5",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 4,
+        "count": 2,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_kaltsit_shell",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_kaltsit_shell. flattened isometric protective crystalline shell, hollow hexagonal faceted barrier green translucent planes bright lime ridges, four subtly rotating loop frames, no character. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 48:40; entire sheet ratio 192:40. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 48x40 pixels with detailed 96x80 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-e4dd1d55-e746-4400-ab4a-be922905aa3e.png",
+      "fps": 6,
+      "file": "fx_kaltsit_shell.png",
+      "frame_width": 48,
+      "frame_height": 40,
+      "frame_count": 4,
+      "anchor": [
+        24,
+        20
+      ],
+      "source_sha256": "bfa8572bce65b625c3ffee0eda0e8f872e62408d6a8c2e2d1aabc88e291b43ee",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "d8ed7acf83810c4569e7a856a2401e3083c283fb6a919bd30e56da3bae96b634",
+      "recommended_modulate_alpha": 0.5,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 6,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_kaltsit_shell",
+      "source_x_cuts": [
+        0,
+        543,
+        1086,
+        1629,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_kaltsit_shell. flattened isometric protective crystalline shell, hollow hexagonal faceted barrier green translucent planes bright lime ridges, four subtly rotating loop frames, no character. EXACTLY 4 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 48:40; entire sheet ratio 192:40. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 48x40 pixels with detailed 96x80 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": true,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-e4dd1d55-e746-4400-ab4a-be922905aa3e.png",
+      "fps": 6,
+      "file": "fx_kaltsit_shell@2x.png",
+      "frame_width": 96,
+      "frame_height": 80,
+      "frame_count": 4,
+      "anchor": [
+        48,
+        40
+      ],
+      "source_sha256": "bfa8572bce65b625c3ffee0eda0e8f872e62408d6a8c2e2d1aabc88e291b43ee",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "a2bd44098355de022939c52e39ed5c8ffe537fa0472013d4e21c20f750deb1b8",
+      "recommended_modulate_alpha": 0.5,
+      "clips": {
+        "name": "default",
+        "loop": true,
+        "fps": 6,
+        "count": 4,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_lumen_unit",
+      "source_x_cuts": [
+        0,
+        434,
+        869,
+        1303,
+        1738,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_lumen_unit. front view tiny floating homemade brass light unit with small lantern hood and warm white light core. frames1-4 pulsing light loop, frame5 firing a small brilliant flash to right. no shadow. EXACTLY 5 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 12:14; entire sheet ratio 60:14. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 12x14 pixels with detailed 24x28 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3fcdb259-7d3f-49d9-9245-a7340da3b9aa.png",
+      "fps": 6,
+      "file": "fx_lumen_unit.png",
+      "frame_width": 12,
+      "frame_height": 14,
+      "frame_count": 5,
+      "anchor": [
+        6,
+        7
+      ],
+      "source_sha256": "a1091b87c4f5d135b368108c844bc43d41a2f0b4f11ae9ad10cc666321689640",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "37d6f2d87a73f502767516779d6cd41426ed5710d07d80ca2c1f21a96f93d274",
+      "recommended_modulate_alpha": 1.0,
+      "clips": [
+        {
+          "name": "idle",
+          "loop": true,
+          "fps": 6,
+          "count": 4,
+          "start": 0
+        },
+        {
+          "name": "fire",
+          "duration_ms": 83,
+          "count": 1,
+          "start": 4,
+          "loop": false,
+          "fps": 12
+        }
+      ]
+    },
+    {
+      "character": "fx_lumen_unit",
+      "source_x_cuts": [
+        0,
+        434,
+        869,
+        1303,
+        1738,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_lumen_unit. front view tiny floating homemade brass light unit with small lantern hood and warm white light core. frames1-4 pulsing light loop, frame5 firing a small brilliant flash to right. no shadow. EXACTLY 5 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 12:14; entire sheet ratio 60:14. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 12x14 pixels with detailed 24x28 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3fcdb259-7d3f-49d9-9245-a7340da3b9aa.png",
+      "fps": 6,
+      "file": "fx_lumen_unit@2x.png",
+      "frame_width": 24,
+      "frame_height": 28,
+      "frame_count": 5,
+      "anchor": [
+        12,
+        14
+      ],
+      "source_sha256": "a1091b87c4f5d135b368108c844bc43d41a2f0b4f11ae9ad10cc666321689640",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "12bb381e6fb67489bb643fee1322d6f109f60eca634402a502dd42301a7f2ec0",
+      "recommended_modulate_alpha": 1.0,
+      "clips": [
+        {
+          "name": "idle",
+          "loop": true,
+          "fps": 6,
+          "count": 4,
+          "start": 0
+        },
+        {
+          "name": "fire",
+          "duration_ms": 83,
+          "count": 1,
+          "start": 4,
+          "loop": false,
+          "fps": 12
+        }
+      ]
+    },
+    {
+      "character": "fx_skadi_wave",
+      "source_x_cuts": [
+        0,
+        362,
+        724,
+        1086,
+        1448,
+        1810,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_skadi_wave. ocean wave WALL travels RIGHT, deep ocean blue turquoise cold white foam, sequence rises small, grows curling crest, pushes right, breaks crest, fragments, final sparse water spray. no sand no yellow. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 64:32; entire sheet ratio 384:32. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 64x32 pixels with detailed 128x64 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-199a7b15-c653-4526-b95d-5d88a5ff6a08.png",
+      "fps": 14,
+      "file": "fx_skadi_wave.png",
+      "frame_width": 64,
+      "frame_height": 32,
+      "frame_count": 6,
+      "anchor": [
+        32,
+        30
+      ],
+      "source_sha256": "45c47b24cc18a1cdca635e6c9a68ac205dfb9e0d89e65ec00795952ac59c8958",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "a186610f62c6730a3bbe0008cdcf9795fa97ee28dab760f7e31c9387625b5d06",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": false,
+        "fps": 14,
+        "count": 6,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_skadi_wave",
+      "source_x_cuts": [
+        0,
+        362,
+        724,
+        1086,
+        1448,
+        1810,
+        2172
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_skadi_wave. ocean wave WALL travels RIGHT, deep ocean blue turquoise cold white foam, sequence rises small, grows curling crest, pushes right, breaks crest, fragments, final sparse water spray. no sand no yellow. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 64:32; entire sheet ratio 384:32. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 64x32 pixels with detailed 128x64 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-199a7b15-c653-4526-b95d-5d88a5ff6a08.png",
+      "fps": 14,
+      "file": "fx_skadi_wave@2x.png",
+      "frame_width": 128,
+      "frame_height": 64,
+      "frame_count": 6,
+      "anchor": [
+        64,
+        60
+      ],
+      "source_sha256": "45c47b24cc18a1cdca635e6c9a68ac205dfb9e0d89e65ec00795952ac59c8958",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "0ab26a0a4e12a93ef3e51bed64e152a0d61845f4654c0985b21e46cbfb2fb89f",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": false,
+        "fps": 14,
+        "count": 6,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_skadi_surge",
+      "source_x_cuts": [
+        0,
+        250,
+        545,
+        885,
+        1230,
+        1570,
+        1855
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_skadi_surge. topdown isometric flattened elliptical ocean water ring EMPTY center, deep blue and cold white foam. sequence small rising ring expands, reaches broad ring, surges, breaks into splashes, sparse last droplets. no ground. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 80:44; entire sheet ratio 480:44. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 80x44 pixels with detailed 160x88 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7d10b35f-b4fe-4829-8006-b313a1d03c1a.png",
+      "fps": 14,
+      "file": "fx_skadi_surge.png",
+      "frame_width": 80,
+      "frame_height": 44,
+      "frame_count": 6,
+      "anchor": [
+        40,
+        22
+      ],
+      "source_sha256": "dfc2bd0eaf4100ee2079faf2bb122ab593b0512332c8528f61ab222ab9c48ae3",
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "c4a6178d6c9a58e8a6c92a952e2598fc7d67fb48ff27e2dbcec54ffeb6aee63d",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": false,
+        "fps": 14,
+        "count": 6,
+        "start": 0
+      }
+    },
+    {
+      "character": "fx_skadi_surge",
+      "source_x_cuts": [
+        0,
+        250,
+        545,
+        885,
+        1230,
+        1570,
+        1855
+      ],
+      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_skadi_surge. topdown isometric flattened elliptical ocean water ring EMPTY center, deep blue and cold white foam. sequence small rising ring expands, reaches broad ring, surges, breaks into splashes, sparse last droplets. no ground. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 80:44; entire sheet ratio 480:44. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 80x44 pixels with detailed 160x88 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "loop": false,
+      "event_frame_zero_based": null,
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7d10b35f-b4fe-4829-8006-b313a1d03c1a.png",
+      "fps": 14,
+      "file": "fx_skadi_surge@2x.png",
+      "frame_width": 160,
+      "frame_height": 88,
+      "frame_count": 6,
+      "anchor": [
+        80,
+        44
+      ],
+      "source_sha256": "dfc2bd0eaf4100ee2079faf2bb122ab593b0512332c8528f61ab222ab9c48ae3",
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "9e022a770b769fdca50fbd035c8e01375b3e7f7880066bab03d1ea45de0c948b",
+      "recommended_modulate_alpha": 1.0,
+      "clips": {
+        "name": "default",
+        "loop": false,
+        "fps": 14,
+        "count": 6,
+        "start": 0
+      }
+    }
+  ],
+  "generator": "built-in imagegen",
+  "export": "Nearest sampling from generated masters at independent 1x/2x densities; alpha threshold 210; shared fixed palette; 1px exterior outline",
+  "engine_tested": false
+}
