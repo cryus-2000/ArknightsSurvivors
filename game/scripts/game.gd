@@ -444,6 +444,9 @@ func _ready() -> void:
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
+		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
+		if n.begins_with("e_") and tex[n] != null:
+			tex[n + "_white"] = A.white_of(tex[n])
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
 	var etex: Array = ["e_paranoia2"]
 	for k in D.ENEMIES:
@@ -1197,6 +1200,8 @@ const V6_FRAMES := {
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
+	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
+	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }
 
 

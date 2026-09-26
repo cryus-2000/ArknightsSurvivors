@@ -592,6 +592,10 @@ func kill(e: Dictionary) -> void:
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)
+	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
+	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
+	if dmire > 0.0 and g.mires.size() < 32:
+		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	if flesh_heal and e.evo:
 		heal(g.max_hp * 0.03, "藏品")
 	if ember and e.elite:

@@ -486,6 +486,13 @@ func draw_world() -> void:
 			"nova":
 				g.draw_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
 				g.draw_circle(bp, b.r, Color(1.5, 0.6, 2.0))
+			"nerve":
+				# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
+				g.draw_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))
+				if g.tex.get("proj_floater_nerve") != null:
+					g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+				else:
+					g.draw_circle(bp, b.r, Color(1.8, 1.6, 0.5))
 			_:
 				g.draw_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
 				g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
@@ -673,6 +680,36 @@ func draw_enemy(e: Dictionary) -> void:
 			frame = 0 if e.dash_w > 0.25 else 1
 		else:
 			frame = 2 if e.dash_t > 0.12 else 3
+	# 美术 V8 小怪帧条：攻击（atk_anim：蓄力 / 鼓胀时第 1、2 帧，出手后 0.2 秒第 3、4 帧）、休眠 / 唤醒、狂暴待机
+	var ed: Dictionary = D.ENEMIES.get(e.type, {})
+	if ed.get("atk_anim", false) and e.tex_attack:
+		var ww: float = maxf(e.get("wind", 0.0), e.get("blast_w", 0.0))
+		if ww > 0.0:
+			e.atk_until = g.t + 0.2
+			name = e.tex + "_attack"
+			frames = 4
+			frame = 0 if ww > 0.2 else 1
+		elif g.t < e.get("atk_until", 0.0):
+			name = e.tex + "_attack"
+			frames = 4
+			frame = 2 if e.atk_until - g.t > 0.1 else 3
+	if e.get("dormant", false) and g.tex.get(e.tex + "_dormant") != null:
+		name = e.tex + "_dormant"
+		frames = 2
+		frame = int(g.t * 3.0 + e.id * 0.37) % 2
+	elif e.get("wake_t", 0.0) > 0.0 and g.tex.get(e.tex + "_awaken") != null:
+		name = e.tex + "_awaken"
+		frames = 4
+		frame = clampi(int((0.4 - e.wake_t) * 10.0), 0, 3)
+	elif e.get("enraged", false) and name == e.tex and g.tex.get(e.tex + "_enraged") != null:
+		name = e.tex + "_enraged"
+		frames = 2
+		frame = int(g.t * 5.0 + e.id * 0.37) % 2
+	if ed.has("aura_r") and g.tex.get("fx_nest_aura") != null:
+		# 巢涌者神经光环：脚下的光环帧条按光环半径放大，外圈描出实际判定范围
+		var ar: float = ed.aura_r
+		g.vfx.spr("fx_nest_aura", 4, int(g.t * 10.0 + e.id) % 4, e.pos, ar / 24.0, false, Color(1, 1, 1, 0.45))
+		g.draw_arc(e.pos, ar, 0.0, TAU, 40, Color(0.9, 0.5, 1.6, 0.35), 2.0)
 	var sc: float = Game.PX * e.r / e.r0
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
@@ -716,6 +753,15 @@ func draw_enemy(e: Dictionary) -> void:
 		var nk: float = 1.0 - e.nova_w / 0.6
 		g.draw_circle(e.pos, e.r + 6.0 + 10.0 * nk, Color(1.4, 0.5, 2.0, 0.2 + 0.3 * nk))
 		col = col.lerp(Color(2.0, 1.2, 2.4), nk * 0.6)
+	if e.get("blast_w", 0.0) > 0.0:
+		# 壳海狂奔者自爆鼓胀：爆炸范围预警圈从小到大，本体胀大变亮
+		var xd: Dictionary = D.ENEMIES.get(e.type, {})
+		var xk: float = 1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55))
+		var xr: float = float(xd.get("blast_r", 62))
+		g.draw_circle(e.pos, xr * xk, Color(1.4, 0.4, 0.2, 0.12))
+		g.draw_arc(e.pos, xr, 0.0, TAU, 32, Color(1.8, 0.6, 0.3, 0.35 + 0.45 * xk), 2.0)
+		col = col.lerp(Color(2.4, 1.3, 0.8), xk * 0.7)
+		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
 	if e.get("burst_w", 0.0) > 0.0:
 		# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
 		var bk: float = 1.0 - e.burst_w / 0.4

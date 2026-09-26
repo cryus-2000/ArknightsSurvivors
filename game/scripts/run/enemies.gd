@@ -104,7 +104,7 @@ func update(dt: float) -> void:
 				e.dead = true
 			continue
 		if dist > 1300.0 and not e.boss:
-			if e.ai == "static":
+			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
 				e.pos = g.spawner.edge_pos()
@@ -127,7 +127,7 @@ func update(dt: float) -> void:
 		# ---- 移动
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
-		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0:
+		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
@@ -218,7 +218,8 @@ func update(dt: float) -> void:
 				e.burst_cd = 1.2
 
 		# ---- 接触伤害
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
+		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not D.ENEMIES[e.type].get("no_contact", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue

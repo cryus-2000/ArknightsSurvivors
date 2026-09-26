@@ -32,6 +32,8 @@ func pick_type() -> String:
 	var pool: Array = D.THREAT[g.threat].pool
 	var pick: String = pool[g.rng.randi() % pool.size()]
 	var caps := {"stone": (6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)), "brood": 6, "offspring": 6 if g.t < 420.0 else 10, "spitter": 6, "burrower": 8, "hulk": 2, "ripper": 14}
+	if D.ENEMIES[pick].has("cap"):
+		caps[pick] = int(D.ENEMIES[pick].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
 	if caps.has(pick):
 		var ns := 0
 		for e in g.enemies:
@@ -176,6 +178,7 @@ func update(dt: float) -> void:
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng.randf_range(560.0, 640.0) + float(s.dr))
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
+			he.dormant = false
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= 0.7
 			hl.hp += he.maxhp
@@ -233,7 +236,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * g.enemy_cd_mult, "cdt": g.rng.randf() * d.get("cd", 1.0),
-		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": 1.0, "set_t": 0.0, "set_done": false,
+		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": float(d.get("armor", 1.0)), "set_t": 0.0, "set_done": false,
 		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
@@ -243,6 +246,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"tex_charge": g.tex.get(d.tex + "_charge") != null, "tex_death": g.tex.get(d.tex + "_death") != null,
 		"weak": d.get("weak", ""),
 		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
+		# V8 新敌人（enemy_ai.gd）：自爆鼓胀 / 休眠与唤醒 / 狂暴与铺痕 / 光环计时 / 小怪攻击帧条
+		"blast_w": 0.0, "dormant": bool(d.get("dormant", false)), "wake_t": 0.0, "enraged": false, "trail_t": 0.0, "aura_t": 0.0, "atk_until": 0.0,
 	}
 	if tmpl_keys.is_empty():
 		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段
@@ -319,6 +324,9 @@ func horde_plan(mix: Dictionary, n: int) -> Array:
 
 func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	var e := new_enemy(type, pos)
+	# 休眠的敌人（钵海收割者）从屏幕外刷出来就看不到了：改放到主控周围 330–480 的海床上当伏兵；大群里的会在刷出后唤醒
+	if e.dormant and pos.distance_to(g.ppos) > 700.0:
+		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(330.0, 480.0), e.r)
 	g.enemies.append(e)
 	check_enemy(e, type)
 	return e
@@ -351,6 +359,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
 		"weak": "", "aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,   # 与 new_enemy 对齐（check_enemy 查出来的缺口）
+		"blast_w": 0.0, "dormant": false, "wake_t": 0.0, "enraged": false, "trail_t": 0.0, "aura_t": 0.0, "atk_until": 0.0,
 	})
 	check_enemy(g.enemies[-1], "chest")
 

@@ -248,6 +248,11 @@ func _build() -> void:
 					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
 				if A.tex(e.tex + "_feign") != null:
 					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
+				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
+				if e.get("atk_anim", false):
+					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
+						if A.tex(e.tex + fm[1]) != null:
+							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
@@ -255,7 +260,7 @@ func _build() -> void:
 				var tags: Array = []
 				if e.get("corrode", 0.0) > 0.0:
 					tags.append("侵蚀")
-				if e.get("nerve", 0.0) > 0.0:
+				if e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0:
 					tags.append("神经损伤")
 				if e.get("hover", false):
 					tags.append("悬浮")
@@ -263,8 +268,9 @@ func _build() -> void:
 					tags.append("成对")
 				if e.has("ammo"):
 					tags.append("装填")
+				tags.append_array(e.get("chips", []))
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, "")),
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, e.get("desc", ""))),
 					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]), "locked_text": "尚未遭遇。达成对应结局后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话

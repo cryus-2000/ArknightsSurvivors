@@ -10,6 +10,7 @@ extends Node
 ## 攻速 / 移速下限（B0-3）：Boss 来源和 Boss 存活期间不写 atk_slow（预警、带 slow 的子弹、神经损伤溢出），改成等量移速减速；
 ##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
 ## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
+## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -49,6 +50,7 @@ func _process(_d: float) -> void:
 	test_no_hard_cc()
 	test_atk_slow_floor()
 	test_horde_mix()
+	test_v8()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -597,3 +599,49 @@ func test_horde_mix() -> void:
 	ok(rep == 0, "大群编成不连续重复（40 次里重复 %d 次）" % rep)
 	game.horde_log = hl0
 	game.threat = th0
+
+
+## V8 新敌人（enemy_ai.gd）：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟
+func test_v8() -> void:
+	var sp = game.spawner
+	var ai = game.eai
+	var dt := 0.1
+	# 壳海狂奔者：进入 blast_range 后鼓胀，blast_fuse 后自爆消失
+	var ru: Dictionary = sp.spawn_enemy("runner", game.ppos + Vector2(30, 0))
+	ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
+	ok(ru.blast_w > 0.0 and not ru.dead, "狂奔者进入范围开始鼓胀（%.2f 秒）" % ru.blast_w)
+	for k in 8:
+		if not ru.dead:
+			ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
+	ok(ru.dead, "狂奔者鼓胀结束后自爆消失")
+	# 钵海收割者：屏幕外刷出改放到主控附近休眠；主控不靠近不醒，受伤就醒
+	var re: Dictionary = sp.spawn_enemy("reaper", game.ppos + Vector2(1500, 0))
+	var rd: float = re.pos.distance_to(game.ppos)
+	ok(re.dormant and rd >= 300.0 and rd <= 520.0, "收割者休眠伏在主控附近（%.0f）" % rd)
+	ai.pattern(re, Vector2.LEFT, rd, dt, re.spd)
+	ok(re.dormant, "主控在唤醒半径外：继续休眠")
+	re.hp -= 1.0
+	ai.pattern(re, Vector2.LEFT, rd, dt, re.spd)
+	ok(not re.dormant and re.wake_t > 0.0, "受到伤害后唤醒")
+	re.dead = true
+	# 深溟奠基者：厚甲（def = armor）
+	var fo: Dictionary = sp.spawn_enemy("founder", game.ppos + Vector2(900, 0))
+	ok(absf(fo.def - 0.7) < EPS, "奠基者厚甲 def 0.7（%.2f）" % fo.def)
+	fo.dead = true
+	# 浮海飘航者：神经弹带神经损伤
+	var fl: Dictionary = sp.spawn_enemy("floater", game.ppos + Vector2(200, 0))
+	ai.shoot(fl, Vector2.LEFT)
+	var lb: Dictionary = game.ebullets[game.ebullets.size() - 1]
+	ok(lb.kind == "nerve" and lb.nerve > 0.0, "飘航者神经弹（nerve %.0f）" % lb.nerve)
+	lb.life = 0.0
+	fl.dead = true
+	# 深溟巢涌者：主控在光环内累积神经损伤
+	var ne: Dictionary = sp.spawn_enemy("nest", game.ppos + Vector2(60, 0))
+	game.invuln = 0.0   # 狂奔者自爆打中后有无敌帧
+	var n0: float = game.nerve
+	for k in 6:
+		ai.pattern(ne, Vector2.LEFT, 60.0, dt, ne.spd)
+	ok(game.nerve > n0, "巢涌者光环累积神经损伤（%.1f → %.1f）" % [n0, game.nerve])
+	ne.dead = true
+	game.nerve = 0.0
+	game.warns.clear()

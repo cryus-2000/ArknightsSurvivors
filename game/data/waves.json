@@ -119,7 +119,9 @@
     "stone",
     "stone",
     "brood",
-    "ripper"
+    "ripper",
+    "runner",
+    "floater"
    ],
    "horde": [
     "bone",
@@ -177,6 +179,31 @@
        "at": "back"
       }
      ]
+    },
+    {
+     "name": "狂奔潮",
+     "body": [
+      "bone",
+      "bone",
+      "slider",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "runner",
+       "pct": 0.1,
+       "min": 3,
+       "max": 5,
+       "at": "ring"
+      },
+      {
+       "id": "floater",
+       "pct": 0.06,
+       "min": 2,
+       "max": 3,
+       "at": "back"
+      }
+     ]
     }
    ]
   },
@@ -197,7 +224,11 @@
     "brood",
     "offspring",
     "burrower",
-    "spitter"
+    "spitter",
+    "runner",
+    "floater",
+    "reaper",
+    "tracer"
    ],
    "horde": [
     "slider",
@@ -255,6 +286,38 @@
        "at": "front"
       }
      ]
+    },
+    {
+     "name": "引痕突击",
+     "body": [
+      "slider",
+      "slider",
+      "ripper",
+      "bone"
+     ],
+     "extra": [
+      {
+       "id": "tracer",
+       "pct": 0.05,
+       "min": 2,
+       "max": 3,
+       "at": "pack"
+      },
+      {
+       "id": "runner",
+       "pct": 0.08,
+       "min": 3,
+       "max": 5,
+       "at": "ring"
+      },
+      {
+       "id": "floater",
+       "pct": 0.06,
+       "min": 2,
+       "max": 4,
+       "at": "back"
+      }
+     ]
     }
    ]
   },
@@ -276,7 +339,12 @@
     "burrower",
     "spitter",
     "spitter",
-    "slider"
+    "slider",
+    "runner",
+    "floater",
+    "tracer",
+    "founder",
+    "nest"
    ],
    "horde": [
     "ripper",
@@ -334,6 +402,45 @@
        "at": "ring"
       }
      ]
+    },
+    {
+     "name": "深溟重甲",
+     "body": [
+      "slider",
+      "ripper",
+      "bone",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "founder",
+       "pct": 0.04,
+       "min": 2,
+       "max": 3,
+       "at": "front"
+      },
+      {
+       "id": "nest",
+       "pct": 0.02,
+       "min": 1,
+       "max": 2,
+       "at": "front"
+      },
+      {
+       "id": "floater",
+       "pct": 0.06,
+       "min": 3,
+       "max": 4,
+       "at": "back"
+      },
+      {
+       "id": "runner",
+       "pct": 0.06,
+       "min": 3,
+       "max": 5,
+       "at": "ring"
+      }
+     ]
     }
    ]
   },
@@ -354,7 +461,13 @@
     "spitter",
     "spitter",
     "hulk",
-    "stone"
+    "stone",
+    "runner",
+    "floater",
+    "reaper",
+    "tracer",
+    "founder",
+    "nest"
    ],
    "horde": [
     "ripper",
@@ -415,6 +528,59 @@
        "id": "stone",
        "pct": 0.06,
        "min": 2,
+       "max": 4,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "巢涌合围",
+     "body": [
+      "burrower",
+      "slider",
+      "ripper",
+      "ripper"
+     ],
+     "extra": [
+      {
+       "id": "nest",
+       "pct": 0.02,
+       "min": 1,
+       "max": 2,
+       "at": "front"
+      },
+      {
+       "id": "founder",
+       "pct": 0.04,
+       "min": 2,
+       "max": 3,
+       "at": "front"
+      },
+      {
+       "id": "tracer",
+       "pct": 0.04,
+       "min": 2,
+       "max": 3,
+       "at": "pack"
+      },
+      {
+       "id": "reaper",
+       "pct": 0.03,
+       "min": 2,
+       "max": 3,
+       "at": "ring"
+      },
+      {
+       "id": "runner",
+       "pct": 0.08,
+       "min": 4,
+       "max": 6,
+       "at": "ring"
+      },
+      {
+       "id": "floater",
+       "pct": 0.05,
+       "min": 3,
        "max": 4,
        "at": "back"
       }
