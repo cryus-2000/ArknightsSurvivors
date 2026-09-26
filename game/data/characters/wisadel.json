@@ -11,7 +11,7 @@
  "script": "res://scripts/characters/wisadel.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 34,
+  "atk": 30,
   "cd": 1.4,
   "range": 480,
   "aoe": 52,
@@ -40,7 +40,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1888 / 防御 256 / 法抗 15%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 110,
   "armor": 1.5,
-  "arts_res": 0.15
+  "arts_res": 0.15,
+  "regen": 1.1
  },
  "sprites": {
   "idle": {

@@ -223,7 +223,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 			continue
 		hits.append([along, e])
 	hits.sort_custom(func(a, b): return a[0] < b[0])
-	var dmg: float = base("atk", 16.0) * _dmg_bonus() * mult
+	var dmg: float = base("atk", 24.0) * _dmg_bonus() * mult
 	var first: Dictionary = {}
 	for h in hits:
 		var e: Dictionary = h[1]
@@ -233,7 +233,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		deal_damage(e, dmg * _talent_mult(e))
 		if pursue:
 			pursue_cd = base("pursue_cd", 0.4)
-			_cannon(e.pos, base("atk", 18.0) * base("s3_strike_mult", 1.55) * base("pursue_mult", 0.6) * _dmg_bonus(), "追诉")
+			_cannon(e.pos, base("atk", 24.0) * base("s3_strike_mult", 1.55) * base("pursue_mult", 0.6) * _dmg_bonus(), "追诉")
 		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
@@ -324,7 +324,7 @@ func _release_skill() -> void:
 		2:
 			# 审判（照原作）：以她为中心的冲击波掀起周身全部敌人、浮空 4 秒；随后转身手炮连射 12 发
 			var r3: float = base("s3_r", 160.0) * stat(&"op_range")
-			var dmg3: float = base("atk", 16.0) * base("s3_mult", 1.9) * _dmg_bonus() * skill_power()
+			var dmg3: float = base("atk", 24.0) * base("s3_mult", 1.9) * _dmg_bonus() * skill_power()
 			for e in arc_targets(pos + Vector2(0, -10), 0.0, PI, r3):
 				log_hit("审判")
 				deal_damage(e, dmg3 * _talent_mult(e))
@@ -353,7 +353,7 @@ func _shattertide(mult: float) -> void:
 	var r: float = _reach() * 1.3
 	var hits: Array = arc_targets(pos + Vector2(0, -10), ang, 0.8, r)
 	hits.sort_custom(func(a, b): return a.pos.distance_squared_to(pos) < b.pos.distance_squared_to(pos))
-	var dmg: float = base("atk", 16.0) * base("s2_mult", 2.8) * _dmg_bonus() * skill_power() * mult
+	var dmg: float = base("atk", 24.0) * base("s2_mult", 2.8) * _dmg_bonus() * skill_power() * mult
 	var n: int = mini(int(base("s2_n", 8.0)), hits.size())
 	for i in n:
 		var e: Dictionary = hits[i]
@@ -401,7 +401,7 @@ func _update_strikes(dt: float) -> void:
 			face_to((c - pos).angle())
 			if face != prev_face:
 				draw_spin_t = 0.12
-			_cannon(c, base("atk", 16.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), "手炮轰击")
+			_cannon(c, base("atk", 24.0) * base("s3_strike_mult", 1.8) * _dmg_bonus() * skill_power(), "手炮轰击")
 	strikes = strikes.filter(func(s): return s.t > 0.0)
 
 

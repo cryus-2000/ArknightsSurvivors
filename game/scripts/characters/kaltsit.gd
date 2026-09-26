@@ -118,7 +118,7 @@ func _release_skill() -> void:
 			# 精二后「熔毁」收尾同样三连爆（伤害更高、眩晕 1.5 秒）
 			if melt_triple and m.pos != Vector2.INF:
 				var rr: float = base("rebuild_r", 70.0) * stat(&"op_range")
-				var rd: float = base("m_atk", 22.0) * base("rebuild_mult", 1.2) * _dmg_bonus() * skill_power()
+				var rd: float = base("m_atk", 25.0) * base("rebuild_mult", 1.2) * _dmg_bonus() * skill_power()
 				_melt_burst(m.pos, rr, rd, false, base("rebuild_stun", 0.8))
 				for k in 2:
 					melt_echo.append({"t": base("melt_echo_gap", 0.2) * (k + 1), "pos": m.pos, "r": rr * (1.25 + 0.25 * k), "dmg": rd * 0.5, "stun": base("rebuild_stun", 0.8)})
@@ -156,7 +156,7 @@ func skill_active_dur(i: int) -> float:
 
 ## 基础数值全部可由 data/characters/kaltsit.json 的 base 段覆盖（docs/27 §3）
 func _m_dmg() -> float:
-	return base("m_atk", 22.0) * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (base("s3_mult", 1.6) * skill_power() if melt > 0.0 else 1.0)
+	return base("m_atk", 25.0) * _dmg_bonus() * (1.3 if elite >= 1 else 1.0) * (base("s3_mult", 1.6) * skill_power() if melt > 0.0 else 1.0)
 
 
 func _m_reach() -> float:
@@ -291,7 +291,7 @@ func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 
 func _meltdown() -> void:
 	var r := 130.0
-	var dmg: float = base("m_atk", 22.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power()
+	var dmg: float = base("m_atk", 25.0) * base("melt_mult", 5.0) * _dmg_bonus() * skill_power()
 	_melt_burst(m.pos, r, dmg, true)
 	# N5「不毁重构」：再接两次更大的爆炸（间隔 0.2 秒，半径 ×1.25 / ×1.5，伤害 50%）
 	if melt_triple:

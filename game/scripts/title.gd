@@ -825,7 +825,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 	# 当主控时的受击属性（JSON leader 段，按原作精二满级换算）：标签下面一行
 	var ld: Dictionary = d.get("leader", {})
 	if not ld.is_empty():
-		UI.text(self, font, Vector2(px + 150, py + 58), "主控　生命 %d · 物理减伤 %s · 法术抗性 %d%%" % [int(ld.get("max_hp", 120)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95))
+		UI.text_fit(self, font, Vector2(px + 150, py + 58), "主控　生命 %d · 回复 %.1f/秒 · 减伤 %s · 法抗 %d%%" % [int(ld.get("max_hp", 120)), float(ld.get("regen", 1.0)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95), dr.end.x - 24.0 - (px + 150))
 	py += 74
 	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 	py += 18

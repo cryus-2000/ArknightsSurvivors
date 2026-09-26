@@ -76,7 +76,7 @@ func on_elite(stage: int, _choice: String = "") -> void:
 
 
 func _slam_dmg() -> float:
-	return base("atk", 42.0) * _dmg_bonus()
+	return base("atk", 52.0) * _dmg_bonus()
 
 
 func update(dt: float) -> void:
@@ -103,7 +103,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = base("cd", 1.5) / stat(&"op_aspd") * (0.7 if haste_t > 0.0 else 1.0)
+			cd = base("cd", 1.4) / stat(&"op_aspd") * (0.7 if haste_t > 0.0 else 1.0)
 			start_attack(ts[0].pos)
 
 
@@ -381,7 +381,7 @@ func _reel_slam() -> void:
 	var dir: Vector2 = ((anchor.front as Vector2) - pos).normalized()
 	var c: Vector2 = pos + dir * _reach() * 0.55
 	var r: float = base("s1_r", 90.0) * stat(&"op_range")
-	var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+	var dmg: float = base("atk", 52.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
 	var first: Dictionary = hooked[0].e if not hooked.is_empty() else {}
 	for j in query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
@@ -405,7 +405,7 @@ func _zip_land() -> void:
 	var c: Vector2 = anchor.land
 	if anchor.kind == 0:
 		var r: float = base("s1_r", 90.0) * stat(&"op_range")
-		var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+		var dmg: float = base("atk", 52.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
 		for j in query_ids(c, r + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r + e.r:
@@ -428,7 +428,7 @@ func _zip_land() -> void:
 	else:
 		# 必须开辟：落点 r140 ×3 + 眩晕
 		var r3: float = base("s3_r", 140.0) * stat(&"op_range")
-		var dmg3: float = base("atk", 42.0) * base("s3_mult", 3.0) * _dmg_bonus() * skill_power()
+		var dmg3: float = base("atk", 52.0) * base("s3_mult", 3.0) * _dmg_bonus() * skill_power()
 		for j in query_ids(c, r3 + 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r3 + e.r:

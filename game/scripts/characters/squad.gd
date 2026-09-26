@@ -59,6 +59,8 @@ func add(cid: String):
 		return null
 	op.slot = ops.size()
 	op.is_leader = ops.is_empty()   # 开局干员 = 主控
+	if op.is_leader:
+		_apply_leader_regen(op)
 	op.voice_t = g.rng.randf_range(20.0, 40.0)
 	# 部署语音：排队播，多名干员不会同帧抢话（图鉴演示不播）
 	var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -98,8 +100,20 @@ func remove(cid: String) -> void:
 		ops[i].slot = i
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
+		_apply_leader_regen(ops[0])
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+
+
+## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
+## 生命 / 物理减伤 / 法抗在 game.gd 开局处按同一个 leader 段覆盖；回复放这里，是因为主控换人（事件替换）时也要跟着换。
+## --noleader：平衡对照用，全部退回博士的统一值
+func _apply_leader_regen(op) -> void:
+	if g.stats == null or not g.stats.has_stat(&"regen") or OS.get_cmdline_user_args().has("--noleader"):
+		return
+	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
+	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
+	g._sync_stats()
 
 
 func _slot_offset(i: int) -> Vector2:

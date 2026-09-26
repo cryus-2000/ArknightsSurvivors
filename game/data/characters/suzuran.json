@@ -11,7 +11,7 @@
  "script": "res://scripts/characters/suzuran.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 20,
+  "atk": 26,
   "cd": 1.0,
   "range": 380,
   "shots": 2,
@@ -37,7 +37,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 105,
   "armor": 1.0,
-  "arts_res": 0.25
+  "arts_res": 0.25,
+  "regen": 1.1
  },
  "sprites": {
   "idle": {

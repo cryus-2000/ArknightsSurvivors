@@ -11,7 +11,7 @@
  "script": "res://scripts/characters/irene.gd",
  "base": {
   "_doc": "基础数值",
-  "atk": 18,
+  "atk": 24,
   "cd": 0.8,
   "len": 120,
   "width": 26,
@@ -38,7 +38,8 @@
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2935 / 防御 349 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
   "max_hp": 125,
   "armor": 2.5,
-  "arts_res": 0.0
+  "arts_res": 0.0,
+  "regen": 1.5
  },
  "sprites": {
   "idle": {

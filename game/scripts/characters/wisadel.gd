@@ -139,12 +139,12 @@ func _release() -> void:
 		_fire_giant(tgt.pos)
 	elif ash > 0:
 		ash -= 1
-		var d1: float = base("atk", 34.0) * base("s1_mult", 1.5) * skill_power()
+		var d1: float = base("atk", 30.0) * base("s1_mult", 1.5) * skill_power()
 		_fire(tgt.pos, d1, "炮击", 1.1, true, 0.0, false, ash_rings)
 		_twin(tgt, d1, ash_rings)
 	else:
-		_fire(tgt.pos, base("atk", 34.0), "炮击", 1.0, true, 0.0)
-		_twin(tgt, base("atk", 34.0), false)
+		_fire(tgt.pos, base("atk", 30.0), "炮击", 1.0, true, 0.0)
+		_twin(tgt, base("atk", 30.0), false)
 
 
 ## N2「礼尚往来」：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 60%
@@ -173,7 +173,7 @@ func _release_skill() -> void:
 			var tgt: Dictionary = _execute_target(_reach(540.0))
 			if tgt.is_empty():
 				return
-			_fire(tgt.pos, base("atk", 34.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
+			_fire(tgt.pos, base("atk", 30.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
 			fx_sparks(_muzzle(), EMBER, 10, 200.0, 0.3)
 			Sfx.op(id, "atk", 5.0, 0.75)
@@ -201,7 +201,7 @@ func skill_active_dur(i: int) -> float:
 
 ## 巨型炮弹：伤害 ×1.6、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
 func _fire_giant(to: Vector2) -> void:
-	_fire(to, base("atk", 34.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
+	_fire(to, base("atk", 30.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
 	var dir: Vector2 = (to - _muzzle()).normalized()
 	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
 	for k in 8:
@@ -305,7 +305,7 @@ func on_kill(e: Dictionary) -> void:
 	e["wis_det"] = true
 	if shades.size() >= SHADE_MAX:
 		return
-	shades.append({"pos": e.pos, "t": 0.25, "dmg": base("atk", 34.0) * base("mark_mult", 0.45) * _dmg_bonus(), "r": _aoe() * 0.9, "depth": 1})
+	shades.append({"pos": e.pos, "t": 0.25, "dmg": base("atk", 30.0) * base("mark_mult", 0.45) * _dmg_bonus(), "r": _aoe() * 0.9, "depth": 1})
 	fx({"kind": "shade", "pos": e.pos, "life": 0.3, "col": DARK})
 
 

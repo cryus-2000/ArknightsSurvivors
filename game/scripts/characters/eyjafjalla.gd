@@ -207,7 +207,7 @@ func bullet_exploded(b: Dictionary) -> void:
 		var mc: Array = nearest_enemies(10, base("meteor_reach", 320.0), b.pos)
 		shuffle_rng(mc)
 		for k in mini(2, mc.size()):
-			_lob(b.pos + Vector2(0, -20), mc[k].pos, b.dmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
+			_lob(b.pos + Vector2(0, -20), mc[k].pos, b.dmg * base("meteor_mult", 0.3), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	# N4「星火燎原」：点燃的重弹炸开后向四周溅出 4 团熔岩，各自落地再炸
 	if ignite_blobs and b.get("src", "") == "点燃弹":
 		var a0: float = g.rng.randf() * TAU
@@ -233,7 +233,7 @@ func _erupt(c: Vector2) -> void:
 		var cands: Array = nearest_enemies(10, base("meteor_reach", 320.0), c)
 		shuffle_rng(cands)   # 对局随机数（同 seed 可复现，docs/36）
 		for k in mini(2, cands.size()):
-			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
+			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.3), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
 	spawn_fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})

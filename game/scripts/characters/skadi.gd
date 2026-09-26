@@ -84,7 +84,7 @@ func update(dt: float) -> void:
 		if ts.is_empty():
 			cd = 0.1
 		else:
-			cd = base("cd", 0.75) / stat(&"op_aspd")
+			cd = base("cd", 0.7) / stat(&"op_aspd")
 			start_attack(ts[0].pos)
 
 
@@ -128,7 +128,7 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 
 func _release() -> void:
 	var ang := _aim()
-	var dmg: float = base("atk", 26.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
+	var dmg: float = base("atk", 40.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
 	var half: float = PI if tide > 0.0 else 1.4
 	var hits := melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)
 	_slash(ang, half, _reach(), BLUE if tide <= 0.0 else Color(0.25, 0.4, 0.85), FOAM, 0.22)
@@ -188,7 +188,7 @@ func _elegy(dmg: float) -> void:
 ## 涌潮（N5）：潮汐期间每秒从脚下涌出一圈水环（潮汐普攻 40% 伤害，击退）
 func _surge_pulse() -> void:
 	var r: float = base("pulse_r", 120.0)
-	var dmg: float = base("atk", 26.0) * _dmg_bonus() * base("s3_mult", 1.5) * skill_power() * base("pulse_mult", 0.4)
+	var dmg: float = base("atk", 40.0) * _dmg_bonus() * base("s3_mult", 1.5) * skill_power() * base("pulse_mult", 0.4)
 	area_hit("涌潮", pos, r, dmg, base("pulse_kb", 200.0))
 	if not _surge_fx(pos + Vector2(0, 4), r):
 		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 12.0, "life": 0.5, "col": Color(0.3, 0.55, 1.0), "floor": true, "w": 6.0, "alpha": 0.7})
@@ -261,7 +261,7 @@ func _release_skill() -> void:
 		0:
 			# 潮涌斩：一次 ×2 宽幅横扫
 			var ang := _aim()
-			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 26.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
+			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 40.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
 				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
 			Sfx.op(id, "atk", 5.0, 0.8)
@@ -290,7 +290,7 @@ func skill_active_dur(i: int) -> float:
 
 func _heavy(ang: float) -> void:
 	var r: float = base("s2_r", 150.0) * stat(&"op_range")
-	var hdmg: float = base("atk", 26.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power()
+	var hdmg: float = base("atk", 40.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power()
 	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, hdmg, 240.0)
 	_slash(ang, 1.92, r, Color(0.25, 0.4, 0.85), FOAM, 0.32)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * r * 0.45

@@ -55,6 +55,9 @@ PRESETS = {
     # 干员横向对比（docs/29 §5）：被测干员 + 两名低输出的固定队友（推进之王 + 流明；测他们自己时换成塞雷娅 / 凯尔希），
     # 开局即满编，被测干员的伤害占比 / 每分钟伤害就是她自己的水平
     "opcmp": [[o] + {"siege": ["saria", "lumen"], "lumen": ["siege", "saria"]}.get(o, ["siege", "lumen"]) for o in OPS],
+    # 输出占比（2026-09-26）：被测干员 + 推进之王 + 水月，配 --extra=--nodeath 跑满。队友固定且不在本轮改动里，前后占比才可比
+    # （opcmp 的「每分钟伤害」在怪被清空时封顶，而且队友一改动所有人的数字都跟着变，只适合看同一版本内的排名）
+    "share": [[o, "siege", "mizuki"] for o in OPS if o not in ("siege", "mizuki")],
 }
 
 

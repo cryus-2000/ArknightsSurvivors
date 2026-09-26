@@ -184,7 +184,7 @@ func _release() -> void:
 		var tg: Dictionary = ts[k % ts.size()]
 		var d: Vector2 = (tg.pos - pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
 		# aoe：狐火命中时的小范围溅射（P5.1：纯单体的辅助单人开局清不动 1:15 的骨潮，永远到不了招募等级）
-		var b := {"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 20.0) * mult * _dmg_bonus(),
+		var b := {"kind": "arcane", "pos": from, "vel": d * 330.0, "dmg": base("atk", 26.0) * mult * _dmg_bonus(),
 			"life": 1.6, "r": 7.0, "aoe": base("aoe", 26.0), "home": tg, "turn": 7.0, "src": "狐火", "op": id, "fx_col": GOLD, "hidden": true, "etrail": 0.0}
 		g.bullets.append(b)
 		# 画地为牢：狐火连珠的狐火命中后定身（命中由 game.gd 结算，这里记住弹体，下一帧看它是否撞上了敌人）
@@ -197,7 +197,7 @@ func _release() -> void:
 ## 三火归一：大狐火（伤害 = 一团狐火 × merge_mult，贯穿，每名敌人只伤一次）
 func _fire_big(from: Vector2, tg: Dictionary) -> void:
 	var d: Vector2 = (tg.pos + Vector2(0, -8) - from).normalized()
-	bigfox.append({"pos": from, "vel": d * base("merge_spd", 340.0), "dmg": base("atk", 20.0) * base("merge_mult", 2.2) * _dmg_bonus(),
+	bigfox.append({"pos": from, "vel": d * base("merge_spd", 340.0), "dmg": base("atk", 26.0) * base("merge_mult", 2.2) * _dmg_bonus(),
 		"life": base("merge_life", 1.3), "r": base("merge_r", 14.0), "hit": {}, "trail": 0.0})
 	fx({"kind": "glow", "pos": from, "r": 24.0, "life": 0.22, "col": GOLD, "alpha": 0.7})
 	fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": GOLD, "w": 2.0})
@@ -266,7 +266,7 @@ func _update_seals(dt: float) -> void:
 func _update_hearth() -> void:
 	var r := aura_radius()
 	var n: int = int(base("hearth_n", 6.0))
-	var dmg: float = base("atk", 20.0) * base("hearth_mult", 0.3) * _dmg_bonus()
+	var dmg: float = base("atk", 26.0) * base("hearth_mult", 0.3) * _dmg_bonus()
 	var every: float = base("hearth_cd", 0.5)
 	for k in n:
 		var a: float = g.t * 0.8 + k * TAU / n

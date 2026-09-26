@@ -136,7 +136,7 @@ func _atk_mult() -> float:
 
 ## 环斩：贴身 360°（第一圈）；成长后追加第二圈 / 血色水痕 / 持续旋转
 func _release() -> void:
-	var dmg: float = base("atk", 30.0) * _dmg_bonus() * _atk_mult() * (skill_power() if (s1_t > 0.0 or s2_t > 0.0 or s3_t > 0.0) else 1.0)
+	var dmg: float = base("atk", 46.0) * _dmg_bonus() * _atk_mult() * (skill_power() if (s1_t > 0.0 or s2_t > 0.0 or s3_t > 0.0) else 1.0)
 	_spin(dmg, 0)
 	# N1 双重回转：0.15 秒后反向再转一圈（70%）
 	if double_spin:
