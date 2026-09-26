@@ -1,5 +1,7 @@
 ## 乌尔比安（近卫·撼地者，契约 v2.1，docs/26 第二批）：精英猎手。锚击砸身前一片（全部命中）；掷出带锁链的锚，自己顺着锁链弹射过去砸下。
-## S1 必须接触：向最近精英（无则敌群最密处）掷锚，锚咬住后顺锁链弹射到锚点，落地砸击半径 90 内 ×1.7 并眩晕；
+## S1 必须接触（2026-09-26 重做，照原作「把敌人拖到面前」）：向最近精英（无则敌群最密处）掷锚，锚钩住落点附近至多 2 名敌人，
+##    收链把它们拽到自己面前、眩晕，停一拍后一记重砸（身前 r90 ×1.7；钩中的精英额外 +50%，精英猎手）。人不动——敌人过来；
+##    钩住的是 Boss（拖不动）时退回旧做法：顺锁链弹射过去砸下。S3 则永远是人飞过去，两者一眼能分开；
 ## S2 必须坚守（永久）：攻击 +40%、锚击范围 +30%、天赋层数上限 10 → 15；
 ## S3 必须开辟：掷锚到敌群最密处，弹射过去落地 r140 ×3 并眩晕 3 秒（精英 1.5、Boss 0.8），之后 8 秒锚击间隔 -30%。
 ## 天赋 血脉滋养：击杀精英 +1 层、Boss +3 层，每层攻击 +4%；编队里其他深海猎人（斯卡蒂、幽灵鲨）获得一半。
@@ -7,7 +9,7 @@
 ## 表现（2026-09-25 重做）：锚画成他手里那把深色钩锚（黑蓝锚身 + 一只大弯钩 + 蓝色刃光），锁链绷直；
 ## 掷出 → 咬地（顿帧、蓝色水花）→ 人沿锁链弹射（残影 + 速度线）→ 落地砸击。
 ## 可见成长（docs/25 §5.2）：N1 定点爆破：锚击 0.2 秒后第二道冲击环；N2 锁链回旋：每第 3 击锁链甩一整圈；
-## N4 不容挣脱：必须接触落地时用锁链拽来 3 名敌人；N5 通路洞开：必须开辟从起点到锚点裂开一道通路，掀飞沿途敌人；
+## N4 不容挣脱：必须接触一次钩回的敌人 2 → 5、钩取半径 50 → 90（弹射落地时仍拽来 3 名）；N5 通路洞开：必须开辟从起点到锚点裂开一道通路，掀飞沿途敌人；
 ## 精二「血脉沸腾」：身上一圈淡红轮廓发光（2026-09-26 用户定，替换原来的血脉红纹），击杀精英后下一次锚击变为大爆破（发光加亮、加快脉动提示）。
 extends "res://scripts/characters/character.gd"
 
@@ -38,6 +40,8 @@ var sil := {}                 # 贴图 → 白色剪影（血脉轮廓发光用�
 var slam_n := 0               # 锚击计数（每第 3 击锁链回旋）
 var delayed: Array = []       # 延时冲击 {t, c}
 var launched: Array = []      # 通路洞开掀飞的敌人 {e, t, dur, h}
+## S1 收链：[{e, from, to}]——anchor.phase "reel"（锚带着敌人收回）→ "hold"（眩晕停一拍）→ 重砸
+var hooked: Array = []
 
 
 func _reach() -> float:
@@ -251,6 +255,26 @@ func _update_anchor(dt: float) -> void:
 			anchor.trail.pop_back()
 		if k >= 1.0:
 			_anchor_bite()
+	elif anchor.phase == "reel":
+		# 收链：先快后慢（1-(1-k)²），锚头带着钩住的敌人从锚点回到身前
+		var kr: float = 1.0 - (1.0 - k) * (1.0 - k)
+		anchor.head = (anchor.to as Vector2).lerp(anchor.front, kr)
+		for h in hooked:
+			var e: Dictionary = h.e
+			if e.dead:
+				continue
+			e.pos = (h.from as Vector2).lerp(h.to, kr)
+			e.kb = Vector2.ZERO
+			e.stun = maxf(e.stun, 0.2)
+		anchor.trail.push_front(anchor.head)
+		if anchor.trail.size() > 5:
+			anchor.trail.pop_back()
+		if k >= 1.0:
+			_reel_arrive()
+	elif anchor.phase == "hold":
+		if k >= 1.0:
+			_reel_slam()
+			anchor = {}
 	else:
 		# 弹射：先慢后快（k²），人沿锁链飞向锚点；途中留残影
 		var kk: float = k * k
@@ -281,6 +305,9 @@ func _anchor_bite() -> void:
 	for i in 6:
 		var a: float = dir.angle() + g.rng.randf_range(-0.9, 0.9)
 		fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.rng.randf_range(160, 300), "life": 0.22, "col": CHAIN, "sz": 2.5})
+	# S1：钩住落点附近的敌人收链拽回（钩住 Boss 拖不动 → 下面退回弹射）
+	if anchor.kind == 0 and _start_reel(to, dir):
+		return
 	# 落点停在锚前一点（锚咬在敌人身上，人砸在它面前）
 	var land: Vector2 = to - dir * 18.0
 	anchor.phase = "zip"
@@ -290,6 +317,84 @@ func _anchor_bite() -> void:
 	anchor.land = land
 	anchor.trail = []
 	melee_tgt = null
+
+
+## 必须接触：钩取锚点附近至多 2 名（不容挣脱 5 名）非 Boss 敌人，排在身前一列；锚点最近的是 Boss 或一个都没有 → false
+func _start_reel(to: Vector2, dir: Vector2) -> bool:
+	var hr: float = base("s1_hook_r", 50.0) * (1.8 if drag_on else 1.0)
+	var near: Array = g._nearest(12, hr, to)
+	if near.is_empty() or near[0].boss:
+		return false
+	var n: int = int(base("s1_pull_n", 2.0)) + (int(base("drag_n", 3.0)) if drag_on else 0)
+	var front: Vector2 = pos + dir * 34.0
+	hooked.clear()
+	for e in near:
+		if hooked.size() >= n:
+			break
+		if e.dead or e.boss:
+			continue
+		# 身前排开：第一只正对，其余左右交替错开
+		var i: int = hooked.size()
+		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
+		var spot: Vector2 = front + dir * (e.r * 0.5) + dir.orthogonal() * side * 16.0 + dir * absf(side) * 6.0
+		hooked.append({"e": e, "from": e.pos, "to": spot})
+		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.18, "col": EDGE, "alpha": 0.7})
+	if hooked.is_empty():
+		return false
+	anchor.phase = "reel"
+	anchor.t = 0.0
+	anchor.dur = clampf(pos.distance_to(to) / 900.0, 0.16, 0.34)
+	anchor.front = front
+	anchor.head = to
+	anchor.trail = []
+	anchor.elite = hooked[0].e.elite
+	g._add_text(to + Vector2(0, -40), "钩住！", STEEL, 14)
+	Sfx.play("tentacle", -6.0, 0.7)
+	return true
+
+
+## 拽到面前：撞成一团、眩晕，停一拍再砸（原作：拖到身前后重击）
+func _reel_arrive() -> void:
+	var c: Vector2 = anchor.front
+	for h in hooked:
+		var e: Dictionary = h.e
+		if e.dead:
+			continue
+		e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite else 1.0) + 0.25)
+		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
+	g.hitstop = maxf(g.hitstop, 0.05)
+	fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": CHAIN, "floor": true, "w": 2.0})
+	# 眩晕星：头顶一圈小亮点
+	for i in 5:
+		fx({"kind": "spark", "pos": c + Vector2(0, -30), "vel": Vector2.from_angle(i * TAU / 5.0) * 60.0, "life": 0.3, "col": Color(1.4, 1.4, 0.8), "sz": 2.0})
+	anchor.phase = "hold"
+	anchor.t = 0.0
+	anchor.dur = base("s1_hold", 0.14)
+	face_to((c - pos).angle())
+
+
+## 重砸：身前 r90 ×1.7（钩中的首个目标若是精英，对它再 +50%），砸完击退
+func _reel_slam() -> void:
+	var dir: Vector2 = ((anchor.front as Vector2) - pos).normalized()
+	var c: Vector2 = pos + dir * _reach() * 0.55
+	var r: float = base("s1_r", 90.0) * stat(&"op_range")
+	var dmg: float = base("atk", 42.0) * base("s1_mult", 1.7) * _dmg_bonus() * skill_power()
+	var first: Dictionary = hooked[0].e if not hooked.is_empty() else {}
+	for j in g._query(c, r + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(c) > r + e.r:
+			continue
+		g._hit("掷锚")
+		g._damage(e, dmg * (base("s1_elite_mult", 1.5) if is_same(e, first) and e.elite else 1.0))
+		if not e.dead:
+			e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite or e.boss else 1.0))
+			if not e.boss:
+				e.kb += (e.pos - pos).normalized() * 70.0
+	g._fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + dir * _reach() * 0.45, _reach() * 1.5 / 28.0, dir.angle())
+	_slam_fx(c, r, 1.2)
+	g.hitstop = maxf(g.hitstop, 0.07)
+	Sfx.op(id, "atk", 2.0, 0.85)
+	hooked.clear()
 
 
 ## 弹射落地：砸击
@@ -547,10 +652,24 @@ func _draw_skill_over() -> void:
 	var k: float = clampf(anchor.t / anchor.dur, 0.0, 1.0)
 	var hand: Vector2 = _hand()
 	var throwing: bool = anchor.phase == "throw"
+	var reeling: bool = anchor.phase == "reel" or anchor.phase == "hold"
 	var p: Vector2 = _anchor_pos(k) if throwing else (anchor.to as Vector2) + Vector2(0, -6)
 	var d: Vector2 = ((anchor.to as Vector2) - (anchor.from as Vector2)).normalized()
+	if reeling:
+		# 收链：锚头带着敌人回来，锚头后一串残影；钩住的敌人各连一截短链到锚头；hold 时锚停在身前
+		p = (anchor.head as Vector2) + Vector2(0, -6) if anchor.phase == "reel" else (anchor.front as Vector2) + Vector2(0, -6)
+		var tr3: Array = anchor.trail
+		for i in range(tr3.size() - 1, 0, -1):
+			_draw_anchor((tr3[i] as Vector2) + Vector2(0, -6), -d, 0.3 * (1.0 - float(i) / tr3.size()))
+		for h in hooked:
+			if not h.e.dead:
+				_draw_chain(p, h.e.pos + Vector2(0, -h.e.r * 0.5), 0.8)
+		for s in 3:
+			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
+			if anchor.phase == "reel":
+				g.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
 	# 弹射中：人身后的残影与速度线
-	if not throwing:
+	elif not throwing:
 		var tr: Array = anchor.trail
 		var mv_d: Vector2 = ((anchor.land as Vector2) - (anchor.start as Vector2)).normalized()
 		for i in range(tr.size() - 1, 0, -1):
@@ -576,7 +695,7 @@ func _draw_skill_over() -> void:
 		for s in 3:
 			var off2: Vector2 = d.orthogonal() * (s - 1) * 9.0
 			g.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.35), 1.5)
-	_draw_anchor(p, d, 1.0)
+	_draw_anchor(p, -d if reeling else d, 1.0)
 
 
 ## 他手里那把钩锚：黑蓝锚身（长杆）+ 一只大弯钩向后弯 + 一根短倒刺；刃口一道深海蓝光
