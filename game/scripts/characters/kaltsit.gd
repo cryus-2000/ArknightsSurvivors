@@ -68,7 +68,7 @@ func update(dt: float) -> void:
 	for me in melt_echo:
 		me.t -= dt
 		if me.t <= 0.0:
-			_melt_burst(me.pos, me.r, me.dmg, false)
+			_melt_burst(me.pos, me.r, me.dmg, false, float(me.get("stun", -1.0)))
 	melt_echo = melt_echo.filter(func(me): return me.t > 0.0)
 	_update_mon3tr(dt)
 	if acting():
@@ -114,6 +114,14 @@ func _release_skill() -> void:
 			_heal(g.max_hp * base("s1_heal", 0.08) * _heal_mult() * skill_power(), 18)
 			g.nerve = 0.0
 			fx({"kind": "ring", "pos": pos, "r": 44.0, "r0": 6.0, "life": 0.45, "col": GREEN, "floor": true})
+			# N5「不毁重构」：Mon3tr 就地重构外壳，三连爆（半径逐次扩大，Mon3tr 攻击 120% / 60% / 60% 真实伤害）并眩晕 0.8 秒；
+			# 精二后「熔毁」收尾同样三连爆（伤害更高、眩晕 1.5 秒）
+			if melt_triple and m.pos != Vector2.INF:
+				var rr: float = base("rebuild_r", 70.0) * stat(&"op_range")
+				var rd: float = base("m_atk", 22.0) * base("rebuild_mult", 1.2) * _dmg_bonus() * skill_power()
+				_melt_burst(m.pos, rr, rd, false, base("rebuild_stun", 0.8))
+				for k in 2:
+					melt_echo.append({"t": base("melt_echo_gap", 0.2) * (k + 1), "pos": m.pos, "r": rr * (1.25 + 0.25 * k), "dmg": rd * 0.5, "stun": base("rebuild_stun", 0.8)})
 			# N4「结构加固」：主控身上罩一层绿色六边形护壳，受到的伤害 -35%
 			if s1_shell:
 				shell_t = base("shell_dur", 3.0)
@@ -293,8 +301,8 @@ func _meltdown() -> void:
 
 ## 熔毁爆炸（main：第一次，带晶核碎裂全套特效；后续爆炸只有光束 + 晶片 + 地面环）。
 ## 不毁重构后每次都眩晕 1.5 秒（精英减半、Boss 免疫，由 melee_hit 处理）
-func _melt_burst(at: Vector2, r: float, dmg: float, main: bool) -> void:
-	var stun: float = base("melt_stun", 1.5) if melt_triple else 0.5
+func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override := -1.0) -> void:
+	var stun: float = stun_override if stun_override >= 0.0 else (base("melt_stun", 1.5) if melt_triple else 0.5)
 	area_hit("Mon3tr · 熔毁", at, r, dmg, 260.0 if main else 160.0, stun)
 	if not main:
 		var c2: Vector2 = at + Vector2(0, -24)

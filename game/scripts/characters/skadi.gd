@@ -265,6 +265,9 @@ func _release_skill() -> void:
 				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
 			Sfx.op(id, "atk", 5.0, 0.8)
+			# N5 涌潮：潮涌斩挥出时脚下涌出一圈水环（精二后「潮汐」期间每秒一圈）
+			if surge_on:
+				_surge_pulse()
 		1:
 			_heavy(_aim())
 		2:

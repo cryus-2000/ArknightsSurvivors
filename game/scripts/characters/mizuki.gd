@@ -236,6 +236,11 @@ func _umbrella(target: Dictionary) -> void:
 		stun = S2_BIND
 	for i in min(n, alive.size()):
 		_spawn_tentacle(alive[i], tdmg, stun)
+	# 挥伞打中的敌人不够（多半被这一击打死了）：多出来的触手追向附近的其他敌人，N1 / N2 的触手数当场看得见
+	if hit.size() > 0 and alive.size() < n:
+		var more: Array = nearest_enemies(n + 4, radius * 1.6, pos).filter(func(e): return not e.dead and not alive.has(e))
+		for i in mini(n - alive.size(), more.size()):
+			_spawn_tentacle(more[i], tdmg, stun)
 	# 「唤醒 · 涌」：强化一击时，身边再钻出 2 根触手打附近的敌人
 	if empowered and awaken_burst:
 		var near: Array = nearest_enemies(2, radius * 1.6, pos)

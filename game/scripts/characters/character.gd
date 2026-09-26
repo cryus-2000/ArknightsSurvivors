@@ -615,6 +615,9 @@ func advance(choice: String = "") -> void:
 		"elite":
 			elite = int(n.level)
 			on_elite(elite, choice)
+			# 新解锁的技能立即充满：选下精英化卡的当下就能看到新技能（原来从 0 充能，要等 15–30 秒）
+			if elite < 3 and skill_unlocked(elite) and not perm[elite]:
+				sp[elite] = sp_need(elite)
 			_elite_show(elite)
 		"custom":
 			on_custom_node(n.get("id", ""), choice)

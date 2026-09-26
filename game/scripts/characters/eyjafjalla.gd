@@ -202,6 +202,12 @@ func bullet_exploded(b: Dictionary) -> void:
 			near.append(b.pos + Vector2.from_angle(g.rng.randf() * TAU) * b.aoe * 1.5)
 		for p in near:
 			_lob(b.pos, p, b.dmg * base("ember_mult", 0.3), base("ember_r", 30.0), "火星", 30.0, 0.7)
+	# N5「熔岩天降」：「炽热」强化的火山弹炸开时向附近 2 名随机敌人高抛熔岩弹（这发伤害的 50%）；精二后火山喷发同样如此
+	if meteor_on and b.get("src", "") == "火山弹" and b.get("burn", false):
+		var mc: Array = nearest_enemies(10, base("meteor_reach", 320.0), b.pos)
+		shuffle_rng(mc)
+		for k in mini(2, mc.size()):
+			_lob(b.pos + Vector2(0, -20), mc[k].pos, b.dmg * base("meteor_mult", 0.5), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	# N4「星火燎原」：点燃的重弹炸开后向四周溅出 4 团熔岩，各自落地再炸
 	if ignite_blobs and b.get("src", "") == "点燃弹":
 		var a0: float = g.rng.randf() * TAU

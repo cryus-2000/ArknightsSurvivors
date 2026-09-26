@@ -162,14 +162,14 @@
    "id": "tentacle_a",
    "name": "强迫性重复",
    "icon": "growth_t_count",
-   "desc": "创伤性癔症追击的触手 +1"
+   "desc": "创伤性癔症追击的触手 +1（挥伞打中的敌人不够时，追向附近的敌人）"
   },
   {
    "type": "custom",
    "id": "tentacle_b",
    "name": "群体性癔症",
    "icon": "growth_t_count",
-   "desc": "追击的触手再 +1"
+   "desc": "追击的触手再 +1（同样会追向附近的敌人）"
   },
   {
    "type": "elite",
