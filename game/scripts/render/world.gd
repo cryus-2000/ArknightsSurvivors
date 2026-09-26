@@ -729,8 +729,6 @@ func draw_enemy(e: Dictionary) -> void:
 		return
 	if e.invuln:
 		col = Color(0.7, 0.85, 1.0, 0.75)
-	if e.elite:
-		g.draw_circle(e.pos + Vector2(0, 2), e.r + 6.0, Color(1.0, 0.75, 0.3, 0.12 + 0.06 * sin(g.t * 4.0)))
 	if e.chest:
 		frame = 0
 		var wob := 0.0
@@ -747,12 +745,7 @@ func draw_enemy(e: Dictionary) -> void:
 		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
-	# 攻击预警：滑动者冲刺线 / 子代蓄力光
-	if e.get("dash_w", 0.0) > 0.0:
-		var dd: Vector2 = e.dash_dir
-		var wk: float = 1.0 - e.dash_w / 0.5
-		g.draw_line(e.pos, e.pos + dd * 230.0, Color(1.4, 0.25, 0.2, 0.25 + 0.4 * wk), 10.0 * wk + 2.0)
-		g.draw_line(e.pos, e.pos + dd * 230.0 * wk, Color(2.0, 0.5, 0.4, 0.8), 2.0)
+	# 冲刺预警线改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②）
 	if e.get("dash_t", 0.0) > 0.0:
 		g.vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
 	if e.get("nova_w", 0.0) > 0.0:
@@ -809,7 +802,7 @@ func draw_enemy(e: Dictionary) -> void:
 		g.draw_off.y -= e.air
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and g.tex.has(name + "_white"):
-		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 2.2, 1.0, 0.7)
+		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
 		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
@@ -824,11 +817,7 @@ func draw_enemy(e: Dictionary) -> void:
 		UI.diamond(g, wp, 4.5, Color(0.02, 0.04, 0.08), wc)
 		if e.boss:
 			UI.text(g, g.font, wp + Vector2(-20, 16), ("弱" + wk.substr(0, 1)) if wk != "双" else "双弱", 10, wc, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	if e.elite:
-		# 精英血条：窄一些（1.3 倍半径、3 px），少占画面
-		var w: float = maxf(22.0, e.r * 1.3)
-		g.draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 12), Vector2(w, 3)), Color(0, 0, 0, 0.55))
-		g.draw_rect(Rect2(e.pos + Vector2(-w / 2, -e.r - 12), Vector2(w * e.hp / e.maxhp, 3)), Color(1.0, 0.7, 0.3, 0.9))
+	# 精英血条与标识改到 HUD 层（hud.draw_elite_marks）：不受灯光压暗，也不受「怪物轮廓光」开关影响（docs/48 P1）
 	g.draw_off = Vector2.ZERO
 
 
@@ -877,6 +866,13 @@ func draw_enemy_tells() -> void:
 			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
 		if e.get("burst_w", 0.0) > 0.0:
 			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / 0.4, 0.0, 1.0), TELL_BURST)
+		# 冲刺预警线（滑动者 / 撕裂者 / 骑士精英）：长度按实际冲刺距离算（速度 × dash_speed × 0.35 秒），
+		# 不再写死 230（docs/48 P1：实际只冲 80–135）；只朝前画
+		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir"):
+			var dd: Dictionary = D.ENEMIES.get(e.type, {})
+			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
+			var L: float = clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)
+			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
 		# 伊祖米克解读阶段每 7 秒一圈冲击波（扩到 420）：最后 1.2 秒画出将要扩到的范围，提前知道要躲（读 boss_ai 的 bt 计时）
 		if e.type == "izumik" and e.get("phase", 1) == 2:
 			var pre: float = e.get("bt", 0.0) - 5.8
@@ -890,6 +886,15 @@ func draw_enemy_tells() -> void:
 					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(0, 0, 0, 0.5 * pa), 5.0)
 					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, pa), 2.5)
 				g.draw_arc(e.pos, e.r + 20.0 + 40.0 * pk, 0.0, TAU, 32, Color(1, 1, 1, 0.6 * pk), 2.0)
+
+
+func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color) -> void:
+	var d: Vector2 = b - a
+	var n: Vector2 = d.normalized().orthogonal() * half
+	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, 0.22 + 0.12 * k))
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0)
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0)
+	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
 
 
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:

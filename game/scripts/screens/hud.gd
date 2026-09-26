@@ -28,6 +28,7 @@ func draw() -> void:
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
 		return
+	draw_elite_marks(ct)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	for f in (g.texts if g.state != Game.S.SHOW or g.demo_op != "" else []):
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
@@ -784,6 +785,30 @@ var boss_bottom := 0.0
 
 func banner_y(vs: Vector2) -> float:
 	return maxf(vs.y * 0.24, boss_bottom + 16.0 + 30.0) if boss_bottom > 0.0 else vs.y * 0.24
+
+
+## 精英标识（docs/48 P1 / 全局 ⑤）：原来只靠金色描边和脚下 alpha 0.12 的光晕，被灯光压暗、和友方金色撞色，
+## 关掉「怪物轮廓光」就完全认不出。改在 HUD 层（不受光照）画：头顶一个橙红下箭头 + 3px 血条，不受轮廓光开关影响
+const ELITE_COL := Color(1.0, 0.42, 0.25)
+
+func draw_elite_marks(ct: Transform2D) -> void:
+	if g.demo_op != "" or g.state == Game.S.SHOW:
+		return
+	var vs := g.hud.size
+	for e in g.enemies:
+		if e.dead or not e.elite or e.boss or e.get("under", false):
+			continue
+		var sp: Vector2 = ct * (e.pos + Vector2(0, -e.r - 14.0))
+		if sp.x < -40 or sp.y < -40 or sp.x > vs.x + 40 or sp.y > vs.y + 40:
+			continue
+		var w: float = maxf(24.0, e.r * 1.4)
+		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
+		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
+		var tip: Vector2 = sp + Vector2(0, -4)
+		var bob: float = 2.0 * sin(g.t * 5.0 + e.id)
+		var tri := PackedVector2Array([tip + Vector2(-6, -10 + bob), tip + Vector2(6, -10 + bob), tip + Vector2(0, -3 + bob)])
+		g.hud.draw_colored_polygon(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
+		g.hud.draw_colored_polygon(tri, ELITE_COL)
 
 
 ## 招式名在副标题行停留的秒数（boss_ai 出招时写 e.move_name / e.move_t）
