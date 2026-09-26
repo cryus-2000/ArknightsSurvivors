@@ -213,6 +213,9 @@ func _ensure_bus(name: String) -> int:
 	return b
 
 
+var WEB := OS.has_feature("web")
+
+
 func _now() -> float:
 	return Time.get_ticks_usec() / 1000000.0
 
@@ -311,6 +314,10 @@ func _seq_stop(tname: String) -> void:
 ## 拿不到时（刚开播、网页版采样播放）退回墙钟
 func _seq_pos(tname: String) -> float:
 	var q: Dictionary = seq[tname]
+	# 网页版（样本播放）：get_playback_position() 比实际声音滞后约 1 秒，按它排下一句会在每句之间空出约 1 秒（2026-09-27 浏览器实测）。
+	# 网页的样本在 play() 当帧就开始出声，墙钟和音频时钟在一句 15 秒里几乎不漂，所以网页一律按墙钟算
+	if WEB:
+		return _now() - float(q.t0) + SEG_PRE
 	var pl: AudioStreamPlayer = q.decks[q.cur][0]
 	var p := pl.get_playback_position()
 	if p <= 0.0:
@@ -324,7 +331,7 @@ func _seq_tick(tname: String) -> void:
 	var pos := _seq_pos(tname)
 	# 现在调 play() 会从下一次混音开播，那时本句在 pos + 距下次混音；一旦够到句长就开播下一句，
 	# 从「那一刻 - 句长」秒开始——前面是 0.1 秒预留，正文正好接在本句末尾
-	var at_mix := pos + AudioServer.get_time_to_next_mix()
+	var at_mix := pos + (0.0 if WEB else AudioServer.get_time_to_next_mix())   # 网页的样本 play() 当帧就开播，不用等下次混音
 	if at_mix >= float(q.len):
 		var from := at_mix - float(q.len)
 		if pending.get("boundary", false) and seq.has(pending.track):
