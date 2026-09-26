@@ -214,9 +214,9 @@ func _release_skill() -> void:
 			float_text(best.pos + Vector2(0, -best.r - 16), "提喻", INK, 15)
 		1:
 			perish = true
-			show_banner("湮灭：射程与攻击永久提升，处决残血")
+			show_banner("湮灭：攻击范围与攻击永久提升，处决残血")
 			fx({"kind": "ring", "pos": pos, "r": 80.0, "r0": 8.0, "life": 0.5, "col": INK, "floor": true})
-			spawn_fx_sprite("fx_felspell", pos + Vector2(0, -16), g.PX * 1.2, 0.0, false, false, Color(0.8, 0.85, 1.4))
+			spawn_fx_sprite("fx_logos_s2", pos + Vector2(0, -16), g.PX * 1.2)   # 已购 CodeManu felspell 按 ink 色板重上色（tools/fx_import.py）
 		2:
 			acuity_t = base("s3_dur", 12.0)
 			show_banner("延展敏锐")

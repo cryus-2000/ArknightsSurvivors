@@ -28,6 +28,7 @@ RAMPS = {
     'lion':  ['#2B1A0A', '#8A5A22', '#E0A54A', '#FFF0C0'],   # 推进之王
     'rose':  ['#3A0F24', '#B2336F', '#FF8FC4', '#FFF0F7'],   # 艾丽妮（同 fx_recolor.py）
     'steel': ['#0A1A2C', '#2F5F8A', '#8FC4EE', '#EAF6FF'],   # 乌尔比安（同 fx_recolor.py）
+    'ink':   ['#0D0B33', '#3A3DA8', '#8C9BFF', '#F0F2FF'],   # 逻各斯（冷靛蓝，对应 logos.gd INK；避开流明的暖黄 / 淡青）
 }
 
 
@@ -170,6 +171,7 @@ JOBS = {
     'fx_claw_green':        (na('Attack/Claw/SpriteSheet.png'), 'gaps', None, 32, 'green', 'center', 16),
     'fx_claw_double_green': (na('Attack/ClawDouble/SpriteSheet.png'), 'gaps', None, 32, 'green', 'center', 16),
     'fx_felspell':          (os.path.join(CM, '17_felspell_spritesheet.png'), 'grid', (100, 100, 6), 64, 'green', 'center', 16),
+    'fx_logos_s2':          (os.path.join(CM, '17_felspell_spritesheet.png'), 'grid', (100, 100, 6), 64, 'ink', 'center', 16),   # 逻各斯 S2 湮灭（原用 fx_felspell 绿，用户要求改蓝）
     # ---- 深海（斯卡蒂）
     'fx_slash_arc_deep':    (na('Slash/SpriteSheetArc.png'), 'even', 6, 40, 'deep', 'center', 18),
     'fx_slash_heavy_deep':  (na('Slash/SpriteSheetSlash01.png'), 'even', 5, 40, 'deep', 'center', 16),
