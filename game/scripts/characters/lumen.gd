@@ -183,7 +183,7 @@ func _release_skill() -> void:
 			g.stats.add(&"light_decay", "mult", 0.7, "lumen_guiding")
 			refresh_stats()
 			show_banner("领航灯：主控光照永久扩大")
-			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -64), g.PX * 0.7, 0.0, false, false, Color(1, 1, 1, 0.75))   # 头顶小光，不再盖住全身
+			spawn_fx_sprite("fx_sunburst", g.ppos + Vector2(0, -84), g.PX * 0.6, 0.0, false, false, Color(1, 1, 1, 0.75))   # 头顶小光，不再盖住全身
 			fx({"kind": "ring", "pos": g.ppos, "r": 160.0, "r0": 40.0, "life": 0.9, "col": WARM, "floor": true, "w": 3.0})   # 光照范围扩大（docs/45 #15）
 		2:
 			tower_pos = g.ppos

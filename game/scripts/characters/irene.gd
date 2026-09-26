@@ -374,7 +374,7 @@ func _shattertide(mult: float) -> void:
 	# 第二斩：镜像翻转 + 偏银白，与第一斩区分
 	var second: bool = mult < 1.0
 	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
-	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.32, r * 1.0 / 28.0, ang, second, false, tint):   # 贴近剑（docs/45 #8）
+	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):   # 贴近剑（docs/45 #8；第二斩再近）
 		slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
 	fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 	if second:

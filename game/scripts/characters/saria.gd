@@ -353,7 +353,8 @@ func _heal_fx(h: float) -> void:
 	# 治疗光环（Ninja Adventure Aura 调琥珀）+ 星光命中（Pimen）
 	# 她自己是主控时特效会盖住注射动作（docs/45 #3）：光环缩小变淡，星光挪到头顶
 	var me: bool = is_leader
-	spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * (1.0 if me else 1.4), 0.0, false, true, Color(1, 1, 1, 0.5 if me else 1.0))
+	if not me:
+		spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
 	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.7 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
 
 
@@ -379,7 +380,8 @@ func _release_skill() -> void:
 			hot_acc = 0.0
 			fx({"kind": "ring", "pos": g.ppos, "r": 60.0, "r0": 10.0, "life": 0.5, "col": AMBER, "floor": true})
 			if is_leader:
-				spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -70), g.PX * 0.9, 0.0, false, false, Color(1, 1, 1, 0.6))
+				# 她自己是主控：护盾贴图会罩住全身盖住注射动作（docs/45 §4 #3），改头顶一点金光
+				fx({"kind": "glow", "pos": g.ppos + Vector2(0, -74), "r": 12.0, "life": 0.35, "col": AMBER, "alpha": 0.6})
 			else:
 				spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
 		2:

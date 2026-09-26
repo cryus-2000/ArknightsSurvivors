@@ -192,7 +192,7 @@ func _update_mon3tr(dt: float) -> void:
 		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg
-	var want: Vector2 = pos + Vector2(-34.0 * face, 14)
+	var want: Vector2 = pos + Vector2(44.0 * face, 18)   # 闲时站凯尔希身前偏下，不压在凯尔希 / 博士身上（docs/45 §4 #6）
 	if tg != null:
 		var off: Vector2 = m.pos - tg.pos
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-m.face, 0)) * (tg.r + 26.0)

@@ -156,7 +156,7 @@ func _release_skill() -> void:
 			charge_next = true
 			g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
 			_sp_motes(2)
-			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 20.0, "life": 0.3, "col": GOLD, "alpha": 0.5})
+			fx({"kind": "glow", "pos": pos + Vector2(0, -62), "r": 12.0, "life": 0.3, "col": GOLD, "alpha": 0.5})   # 头顶，不再把躯干染金（docs/45 §4）
 			float_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
 			if king_on:
 				_command_wave()
