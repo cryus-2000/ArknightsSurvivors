@@ -469,7 +469,7 @@ func _explode_mine(mn: Dictionary) -> void:
 	for j in g.enemies_sys.query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
-			g.combat.damage(e, 60.0 * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult())
 			if not e.boss:
 				e.kb += (e.pos - mn.pos).normalized() * 360.0
 	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
