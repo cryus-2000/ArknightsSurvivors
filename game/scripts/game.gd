@@ -244,7 +244,7 @@ var choice_kind := ""
 var pending_levelups := 0
 var stats: RefCounted          # 属性块（core/stat_block.gd）：藏品 / 成长 / 难度的所有数值修正都加在这里，下面的旧变量只是同步出来的缓存
 var _stats_ver := -1
-var squad: RefCounted          # 编队（scripts/characters/squad.gd）：博士身边的干员们
+var squad: RefCounted          # 编队（scripts/characters/squad.gd）：主控与跟随的干员们
 var doctor: RefCounted         # 博士层专属逻辑（scripts/characters/doctor.gd）
 var ch: RefCounted             # 开局干员（squad.ops[0]）：成长 / 精英化 / HUD 在 P2 之前仍绑定在它身上
 var eai: RefCounted            # 小怪行为（scripts/enemies/enemy_ai.gd），按 data/enemies.json 的 pattern 字段分派
@@ -618,7 +618,7 @@ var demo_pi := -1
 var demo_label := ""
 
 
-## 镜头看着的位置：平时跟博士；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
+## 镜头看着的位置：平时跟主控；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
 func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
@@ -959,7 +959,7 @@ func _update(dt: float) -> void:
 	_pm("enemies")
 	squad.update(dt)
 	_pm("squad")
-	weapons_sys.update(dt)   # 支援无人机：跟随博士，与编队里有谁无关
+	weapons_sys.update(dt)   # 支援无人机：跟随主控，与编队里有谁无关
 	knight.update(dt)
 	touch.update(dt)
 	weapons_sys.update_bullets(dt)
@@ -993,7 +993,7 @@ func _update(dt: float) -> void:
 			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
 	if hp <= 0.0 and squad.prevent_death():
-		hp = 1.0   # 幽灵鲨「求生之渴」：博士生命不会低于 1
+		hp = 1.0   # 幽灵鲨「求生之渴」：主控生命不会低于 1
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
 		state = S.DEAD
@@ -1106,7 +1106,7 @@ func facing_angle() -> float:
 
 
 # =====================================================================
-# 医疗无人机（保底治疗，2026-09-25）：开局 Lv.1，不占编队位；跟在博士头顶两侧，周期性治疗博士
+# 医疗无人机（保底治疗，2026-09-25）：开局 Lv.1，不占编队位；跟在主控头顶两侧，周期性治疗主控
 # Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
 # =====================================================================
 # 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）

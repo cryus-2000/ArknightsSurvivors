@@ -1,7 +1,7 @@
 extends RefCounted
 ## 界面 · 局内 HUD（hud 画布节点的 draw 信号）：生命 / 灯火 / 等级、计时与击杀、状态条、编队栏与技能充能、藏品栏与悬停说明、
 ## 声呐小地图、屏幕边缘提示、冲刺提示；并按 state 分派到各界面（intro / elite_show / stats_panel / result）。
-## 界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -12,7 +12,7 @@ var g: Game
 ## 右下编队栏（2026-09-26 方案 A）：明日方舟部署卡——每名干员一张立绘卡（左上职业、右上精英阶段、底部名字），
 ## 卡上方三枚方形技能格（底部充能条 / 生效时白框 + 倒计时；未解锁灰显；永久型小菱形；海嗣化紫点；手动技能标 Q）。
 ## 队长卡顶上紫色「队长」标签（紫 = 当前）；技能生效中的干员卡加青色外晕。卡组上方右侧是源石锭费用框 + 编队人数。
-## 干员没有等级，卡上不画经验类进度（只有博士等级）。开局干员在最左，第 4 位在最右。
+## 干员没有等级，卡上不画经验类进度（等级是整局共享的，画在左上角）。开局干员在最左，第 4 位在最右。
 const SQ_COL_W := 94.0
 const SQ_CARD := Vector2(84, 96)
 const SQ_SK := 24.0
@@ -355,7 +355,7 @@ func draw() -> void:
 			g.hud.draw_rect(box, Color(0.03, 0.035, 0.045, 0.82 * ha))
 			g.hud.draw_rect(box, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.3 + 0.5 * pulse) * ha), false, 1.0)
 			UI.keycap(g.hud, g.font, Vector2(cx - 134, y - 12), Pad.hint("TAB", "SELECT"), Color(1, 1, 1, ha), 12)
-			UI.text(g.hud, g.font, Vector2(cx - 72, y + 4), "查看博士与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
+			UI.text(g.hud, g.font, Vector2(cx - 72, y + 4), "查看主控与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 	draw_relic_tooltip(vs)
 	g.touch.draw_hud(vs)

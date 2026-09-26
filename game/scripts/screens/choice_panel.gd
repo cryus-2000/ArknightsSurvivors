@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 弹窗面板与选卡（state CHOICE）：弹窗框架（面板节点、布局、背景、标题、按钮）、升级 / 藏品 / 招募 / 事件的卡片绘制与入场动画、
-## 事件插画与底栏。商店界面（screens/shop_screen.gd）也用这里的面板框架与按钮。界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 事件插画与底栏。商店界面（screens/shop_screen.gd）也用这里的面板框架与按钮。界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")

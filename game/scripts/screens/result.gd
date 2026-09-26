@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 结算（state DEAD / WIN）：存活时间、击杀、结局、伤害与编队总结。
-## 界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")

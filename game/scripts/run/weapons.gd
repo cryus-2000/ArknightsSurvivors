@@ -89,7 +89,7 @@ func update_bullets(dt: float) -> void:
 							best = q
 					b.home = best
 				else:
-					# 法术追踪弹：从弹体附近重新找目标（原来从博士身边找，常常找不到就直线飞走）
+					# 法术追踪弹：从弹体附近重新找目标（原来从主控身边找，常常找不到就直线飞走）
 					var nt := g.enemies_sys.nearest(1, 360.0, b.pos)
 					b.home = nt[0] if nt.size() > 0 else null
 			else:

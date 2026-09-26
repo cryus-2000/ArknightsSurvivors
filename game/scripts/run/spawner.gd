@@ -232,6 +232,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"weak": d.get("weak", ""),
 		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
 	}
+	if tmpl_keys.is_empty():
+		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段
 	if e.elite:
 		e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
 		e.maxhp = e.hp
@@ -257,7 +259,21 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	var e := new_enemy(type, pos)
 	g.enemies.append(e)
+	check_enemy(e, type)
 	return e
+
+
+## 敌人字典字段校验（2026-09-26，docs/39）：以 new_enemy 的字段为模板，测试运行（带 --xxx 参数）时检查每个加入 g.enemies 的字典；
+## 缺字段直接 assert 失败（快检记为 SCRIPT ERROR）。另起炉灶拼敌人字典的地方（如补给箱）最容易漏字段，读到时才报「key 不存在」。
+## 导出的正式版不执行 assert。模板在第一次正常刷怪时记下，不为此额外生成敌人（会消耗对局随机数）。
+var tmpl_keys: Array = []
+
+
+func check_enemy(e: Dictionary, where: String) -> void:
+	if tmpl_keys.is_empty() or OS.get_cmdline_user_args().is_empty():
+		return
+	var miss: Array = tmpl_keys.filter(func(k): return not e.has(k))
+	assert(miss.is_empty(), "敌人字典缺字段（%s）：%s" % [where, ", ".join(miss)])
 
 
 ## 补给箱；约 15% 是伪装的箱形恐鱼
@@ -273,7 +289,9 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
+		"weak": "", "aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,   # 与 new_enemy 对齐（check_enemy 查出来的缺口）
 	})
+	check_enemy(g.enemies[-1], "chest")
 
 
 ## 箱形恐鱼现形

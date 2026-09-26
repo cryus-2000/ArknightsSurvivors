@@ -181,7 +181,7 @@ func step() -> void:
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.balance and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	# 机器人的手动技能（幽灵鲨 S2 保命）：博士生命低于阈值时替玩家按下
+	# 机器人的手动技能（幽灵鲨 S2 保命）：主控生命低于阈值时替玩家按下
 	if g.state == g.S.PLAY and g.hp < g.max_hp * Bal.v("bot/manual_hp", 0.3):
 		for o in g.squad.ops:
 			if o.manual_ready(o.manual_index()):

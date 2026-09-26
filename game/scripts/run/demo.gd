@@ -5,10 +5,10 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var demo_skill := -1           # 演示时只循环施放这个技能（-1 = 一 / 二 / 三技能分段轮流）
-## 图鉴演示每帧：博士满状态站定；三个位置各维持一只不动、不伤人的假人海嗣，被打死 1.5 秒后原地重生。
+## 图鉴演示每帧：主控满状态；三个位置各维持一只不动、不伤人的假人海嗣，被打死 1.5 秒后原地重生。
 ## 假人会慢慢挪向开局干员并停在 70 以外，让近战干员也够得着；击退后自然回位
 ## 图鉴 / 精英化演出（2026-09-25 改版，用户要求）：按「一技能 → 二技能 → 三技能」分段循环，每段单独展示一招。
-## 每段开始时重置：干员重新生成（永久型 / 叠层等状态不带到下一段）、博士与干员站左边、右边刷一片怪海慢慢推过来；
+## 每段开始时重置：干员重新生成（永久型 / 叠层等状态不带到下一段）、主控站左边、右边刷一片怪海慢慢推过来；
 ## 先普攻约 1 秒再充满这一段的技能（其余技能压住不充），技能放完、效果结束再停 1.5 秒进入下一段；怪清空了就在右边补一波。
 ## 精英化演出（demo_skill ≥ 0）只循环刚解锁的那一招。gallery.gd 读 demo_label 显示当前是哪一段。
 const DEMO_HORDE := 16
@@ -153,16 +153,16 @@ func new_op() -> void:
 	if g.ch.elite < want:
 		g.ch.elite = want
 	g.show_queue.clear()
-	g.facing = 1.0   # 博士面朝右侧怪海
+	g.facing = 1.0   # 主控面朝右侧怪海
 	g.ch.pos = g.ppos + g.squad._slot_offset(0)   # 直接站在跟随位上，开场不再先走一步
 
 
-## 右边刷一片怪海：椭圆区域里随机撒开，慢慢向博士推进（演示里敌人不造成伤害）
+## 右边刷一片怪海：椭圆区域里随机撒开，慢慢向主控推进（演示里敌人不造成伤害）
 func horde(n: int) -> void:
 	for k in n:
 		var a: float = g.rng.randf() * TAU
 		var r: float = sqrt(g.rng.randf())
-		# 前排离博士约 140（近战干员的前压范围 150 以内），一开场就能接敌
+		# 前排离主控约 140（近战干员的前压范围 150 以内），一开场就能接敌
 		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, sin(a) * r * 72.0)
 		var ne := g.spawner.spawn_enemy("bone", p)
 		ne.spd = 16.0

@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 精英化 / 解锁演出（state SHOW）：精英化后的技能解锁展示，内嵌一段实机演示（run/demo.gd）与技能卡。
-## 界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")

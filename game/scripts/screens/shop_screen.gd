@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 商店（state SHOP）：商人货架的卡片、按钮与背景。货架内容、定价与购买结算在 run/shop.gd；面板框架与按钮在 screens/choice_panel.gd。
-## 界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")

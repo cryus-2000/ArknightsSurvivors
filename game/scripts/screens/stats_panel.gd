@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 属性面板（Tab，state STATS）：主控属性、编队干员、伤害构成与藏品。
-## 界面层约定（docs/37）。2026-09-26 从 game.gd 拆出。
+## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -36,14 +36,20 @@ func draw(vs: Vector2) -> void:
 	UI.frame(g.hud, r, UI.GLOW, {"t": g.t, "vines": true, "seed": 31, "cut": 14.0, "bracket": 14.0, "glow": 0.3})
 	UI.caustic(g.hud, Rect2(r.position + Vector2(20, 8), Vector2(r.size.x - 40, 22)), g.t, UI.GLOW)
 	# 标题行
-	var pt: Texture2D = g.tex.get("doctor", g.tex.get("player_idle"))
-	if pt != null:
-		var fh := pt.get_height()
-		var fr := int(g.t * 2.0) % maxi(1, pt.get_width() / fh)
-		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 14), Vector2(fh, fh) * 1.5 / A.hires_of(pt)), Rect2(fr * fh, 0, fh, fh))
-	UI.text(g.hud, g.font, r.position + Vector2(108, 50), g.doctor.name(), 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
-	var dn_w := g.font.get_string_size(g.doctor.name(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
-	var en_w := UI.en(g.hud, g.font, r.position + Vector2(118 + dn_w, 48), g.doctor.def.get("en", "DOCTOR") + "  ·  STATUS", 12, UI.CYAN, 3.0)
+	# 标题是主控干员（v0.7：受击、属性都在主控身上），头像取其待机帧
+	var ld = g.squad.leader() if g.squad.leader() != null else g.ch
+	var idle: Dictionary = g.panel_ui.op_idle(ld.id)
+	if not idle.is_empty():
+		var pt: Texture2D = idle.tex
+		var fw: int = idle.fw
+		var fh: int = idle.fh
+		var fr := int(g.t * 2.0) % maxi(1, pt.get_width() / fw)
+		var k: float = 72.0 / float(fh) if fh > 0 else 1.0
+		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 6), Vector2(fw, fh) * k), Rect2(fr * fw, 0, fw, fh))
+	var ln: String = ld.display_name()
+	UI.text(g.hud, g.font, r.position + Vector2(108, 50), ln, 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	var dn_w := g.font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
+	var en_w := UI.en(g.hud, g.font, r.position + Vector2(118 + dn_w, 48), str(ld.def.get("en", ld.id.to_upper())) + "  ·  LEADER  ·  STATUS", 12, UI.CYAN, 3.0)
 	var cx0 := maxf(r.position.x + 350, r.position.x + 118 + dn_w + en_w + 18)
 	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), "Lv.%d" % g.level, UI.GLOW, 12) + 8
 	cx0 += UI.chip(g.hud, g.font, Vector2(cx0, r.position.y + 32), "编队 %d/%d" % [g.squad.size(), g.squad.cap()], UI.CYAN_DIM, 12) + 8
