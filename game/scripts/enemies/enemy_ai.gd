@@ -53,14 +53,14 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.3, 0.72)})
 			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
 			Sfx.play("boom", -8.0, 1.3, 0.0)
-			if dist < r + 10.0 and g.invuln <= 0.0:
+			if g.combat.ground_d(g.ppos, e.pos) < r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "blast_" + e.type
 				g.in_type = ["近战", "法术"]
 				g.combat.enemy_hit(e.dmg, {"corrode": 0.0, "nerve": 0.0}, false)
 			e.dead = true
 		return Vector2.ZERO
 	if dist < float(d.get("blast_range", 60)):
-		e.blast_w = float(d.get("blast_fuse", 0.55))
+		e.blast_w = float(d.get("blast_fuse", 0.8))
 		return Vector2.ZERO
 	return Vector2.INF
 
@@ -79,7 +79,7 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		return Vector2.ZERO
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
-		g.bai._warn(e, "cone", 0.45, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * 1.2})
+		g.bai._warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * 1.2})
 	return Vector2.INF
 
 
@@ -228,8 +228,9 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 				nb += 1
 		if nb < int(d.get("spawn_max", 12)):
 			var sp_pos: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0)
-			g.spawner.spawn_enemy(so, sp_pos)
-			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」（出生前的预告延时归 Boss与怪物）
+			# 先在落点画 0.6 秒预告圈，结算时才刷出（docs/48 P0-7；boss_ai._warn_resolve 的 "spawn"），育母被打死也照常刷出
+			g.bai._warn(e, "circle", 0.6, {"pos": sp_pos, "r": 22.0, "act": "spawn", "spawn": so, "lock": false, "col": Color(1.0, 0.3, 0.72), "dmg": 0.0})
+			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」
 			g.fx.append({"kind": "rift", "pos": sp_pos, "r": 22.0, "life": 0.5, "max": 0.5})
 			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
 

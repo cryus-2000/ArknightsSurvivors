@@ -59,6 +59,7 @@ func _process(_d: float) -> void:
 	test_break_budget()
 	test_retreat()
 	test_arena()
+	test_ground()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -618,7 +619,7 @@ func test_v8() -> void:
 	var ru: Dictionary = sp.spawn_enemy("runner", game.ppos + Vector2(30, 0))
 	ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
 	ok(ru.blast_w > 0.0 and not ru.dead, "狂奔者进入范围开始鼓胀（%.2f 秒）" % ru.blast_w)
-	for k in 8:
+	for k in 12:
 		if not ru.dead:
 			ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
 	ok(ru.dead, "狂奔者鼓胀结束后自爆消失")
@@ -780,3 +781,22 @@ func test_arena() -> void:
 	game.zone_r = zs[2]
 	game.zone_next_c = zs[3]
 	game.zone_next_r = zs[4]
+
+
+## 画即判（docs/38 §1.9、docs/48 P0-1）：圆形预警画成纵向 ×0.72 的椭圆；8 个方向上画面边缘外 4px 的点不中、内 4px 的点中
+func test_ground() -> void:
+	var p0: Vector2 = game.ppos
+	var w := {"shape": "circle", "pos": p0 + Vector2(300, 0), "r": 90.0}
+	var bad := 0
+	for k in 8:
+		var d := Vector2.from_angle(TAU * k / 8.0)
+		var edge: Vector2 = Vector2(d.x * 90.0, d.y * 90.0 * c.GROUND_Y)   # 画面上的椭圆边
+		var n: Vector2 = Vector2(d.x * c.GROUND_Y, d.y).normalized()       # 椭圆法线方向（近似）
+		game.ppos = w.pos + edge + n * 4.0
+		if game.bai._warn_hit(w):
+			bad += 1
+		game.ppos = w.pos + edge - n * 4.0
+		if not game.bai._warn_hit(w):
+			bad += 1
+	ok(bad == 0, "圆形预警：8 个方向边缘外 4px 不中、内 4px 中（错 %d 处）" % bad)
+	game.ppos = p0
