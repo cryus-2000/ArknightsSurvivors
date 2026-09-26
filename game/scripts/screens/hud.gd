@@ -41,6 +41,10 @@ func draw() -> void:
 
 	if g.demo_op != "":
 		return   # 图鉴演示：只要伤害数字，不画其余 HUD
+	if g.state == Game.S.SHOW:
+		# 精英化演出：不画其余 HUD（遮罩只有 86% 不透明，顶栏、编队卡的文字会隐约透出来），只画演出本身
+		g.show_screen.draw(vs)
+		return
 	# 升级字样：弹出放大 -> 轻微上浮 -> 淡出
 	if g.lvup_show > 0.0 and g.state == Game.S.PLAY:
 		var age := 1.3 - g.lvup_show

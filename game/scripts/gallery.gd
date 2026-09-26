@@ -560,12 +560,24 @@ func _draw_detail(vs: Vector2) -> void:
 	# 动作 / 形态切换
 	form_rects.clear()
 	if e.forms.size() > 1 and not locked and not wide:
+		# 按钮宽度按文字算（至少 44）：「Mon3tr 跑步」这类长标签不再被截成「Mon3tr」；一行放不下时按比例压窄
+		var ws: Array = []
+		var total := 0.0
 		for i in e.forms.size():
-			var br := Rect2(box.position.x + i * 52, box.end.y + 8, 48, 28)
+			var w: float = maxf(44.0, font.get_string_size(e.forms[i].label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 14.0)
+			ws.append(w)
+			total += w + 4.0
+		var avail: float = pr.end.x - 20.0 - box.position.x
+		var squeeze: float = minf(1.0, avail / maxf(total, 1.0))
+		var bx: float = box.position.x
+		for i in e.forms.size():
+			var br := Rect2(bx, box.end.y + 8, ws[i] * squeeze, 28)
+			bx += (ws[i] + 4.0) * squeeze
 			form_rects.append(br)
 			var on: bool = i == form
 			UI.panel(self, br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.06, 0.09, 0.7), UI.CYAN if on else Color(0.2, 0.4, 0.45, 0.5), 5.0)
-			UI.text(self, font, br.position + Vector2(0, 19), e.forms[i].label, 12, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+			var fl: Array = UI.fit_line(font, e.forms[i].label, 12, br.size.x - 6.0, 10)
+			UI.text(self, font, br.position + Vector2(0, 19), fl[0], fl[1], UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	# 文字
 	var tx := pr.position.x + 300
 	var tw := pr.end.x - tx - 20
