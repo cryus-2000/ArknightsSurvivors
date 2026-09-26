@@ -194,10 +194,10 @@ func _build() -> void:
 				if dj is Dictionary:
 					dd = dj
 			var ds: Dictionary = dd.get("stats", {})
-			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 唯一受击体", "forms": _doctor_forms(dd),
-				"stats": [["生命", str(int(ds.get("max_hp", 100)))], ["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
+			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": _doctor_forms(dd),
+				"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
 					["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
-				"chips": ["移动", "受击", "拾取", "指挥"], "desc": _lore_text("doctor", "博士是场上唯一会受伤的人：用 WASD 走位、拉怪、躲弹幕、抢掉落；干员们跟在身边自动输出，不会倒下。")})
+				"chips": ["随行", "指挥", "排异"], "desc": _lore_text("doctor", "博士跟在主控干员身后，不受击、不攻击，负责指挥技能与排异反应。回复、移速、闪避、拾取这几项基础属性由博士提供；生命、物理减伤、法术抗性按主控干员的原作属性来定。")})
 			# 干员：data/characters/*.json（职业、普攻 / 技能 / 天赋、成长线）
 			for cid in Character.list_ids():
 				var cd: Dictionary = Character.load_def(cid)
@@ -740,6 +740,12 @@ func _op_numbers(cid: String, cd: Dictionary) -> Array:
 	out.append(["职业", "%s · %s" % [cd.get("class", ""), "远程" if rng_v > 0.0 else "近战"]])
 	var tier: String = str(Bal.op(cid).get("tier", "—"))
 	out.append(["档位", tier])
+	# 当主控时的受击属性（JSON leader 段，按原作精二满级换算）
+	var ld: Dictionary = cd.get("leader", {})
+	if not ld.is_empty():
+		out.append(["生命", "%d" % int(ld.get("max_hp", 120))])
+		out.append(["物理减伤", "%s" % str(snappedf(float(ld.get("armor", 0.0)), 0.5))])
+		out.append(["法术抗性", "%d%%" % int(round(float(ld.get("arts_res", 0.0)) * 100.0))])
 	if atk > 0.0:
 		out.append(["攻击", "%d%s" % [int(atk), "（Mon3tr）" if b.has("m_atk") else ""]])
 	if cdv > 0.0:

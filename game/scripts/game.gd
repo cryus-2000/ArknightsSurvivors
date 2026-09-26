@@ -380,6 +380,13 @@ func _ready() -> void:
 	if not Character.list_ids().has(Cfg.character_id):
 		Cfg.character_id = "mizuki"
 	ch = squad.add(demo_op if demo_op != "" else Cfg.character_id)
+	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
+	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
+	# --noleader：平衡对照用，退回改动前「所有主控同一条血、无减伤」
+	var lead: Dictionary = {} if OS.get_cmdline_user_args().has("--noleader") else ch.def.get("leader", {})
+	for k in ["max_hp", "armor", "arts_res"]:
+		if lead.has(k) and stats.has_stat(k):
+			stats.set_base(k, float(lead[k]))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
@@ -545,7 +552,7 @@ func _ready() -> void:
 	if diff >= 3:
 		stats.add(&"light_decay", "mult", 1.25, "difficulty")
 	if diff >= 9:
-		stats.add(&"max_hp", "override", 80.0, "difficulty")
+		stats.add(&"max_hp", "mult", 0.67, "difficulty")   # 原为定值 80（= 120 的 2/3）；主控生命因人而异后改成倍率
 	_sync_stats()
 	hp = max_hp
 	hp_trail = hp
