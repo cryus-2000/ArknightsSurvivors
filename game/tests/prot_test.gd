@@ -1,8 +1,10 @@
 extends Node
 ## 主控保护脚本测试（docs/38 §1.11、B0 验收）：godot --headless --path game res://tests/prot_test.tscn -- --balance --seed=1 --op=wisadel
 ## 把 game.tscn 当子节点跑起来，第 5 帧直接调用 combat 的扣血入口，逐条检查 Boss 来源的扣血截断：
-##   骨血 + 灯火 20 下 Boss 单发 ≤40%；带侵蚀的招式「扣血 + 追加侵蚀」≤40%；连发 2 秒合计 ≤50%；满血吃连击不死；
-##   Boss 在场时 Boss 侵蚀 / Boss 溟痕每秒 ≤4%；非 Boss 来源（小怪、自然溟痕、普通侵蚀，含流明净化之后的）不受影响。
+##   骨血 + 灯火 20 下 Boss 单发 ≤40%；带侵蚀的招式「扣血 + 追加侵蚀」≤40%；连发 2 秒合计 ≤50%（「扣血 + 追加的侵蚀」和
+##   「实际扣血，含 Boss 侵蚀结算」两种口径都成立，窗口满时追加的侵蚀也作废）；满血吃连击（含带侵蚀的、夹小怪伤害的）不死，
+##   满血保护只兜这一轮连击（2 秒），不会整场都在；Boss 在场时 Boss 侵蚀 / Boss 溟痕每秒 ≤4%；
+##   非 Boss 来源（小怪、自然溟痕、普通侵蚀，含流明净化之后的）不受影响。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -13,6 +15,7 @@ var c   # game.combat
 var frames := 0
 var n := 0
 var fails := 0
+var last_add := 0.0   # boss_hit 这一发追加进侵蚀池的量
 
 
 func _ready() -> void:
@@ -65,21 +68,57 @@ func reset(bone := false, lamp := 100.0) -> void:
 	game.shocks.clear()
 	c.corrode_boss = 0.0
 	c.boss_log.clear()
+	c.loss_log.clear()
 	c.dot_log.clear()
 	c.guard_ready = 0.0
+	c.guard_end = -INF
+	c.high_t = -INF
 	if bone:
 		game.rfx.rules["bone_blood"] = 1
 	else:
 		game.rfx.rules.erase("bone_blood")
 
 
-## 一发 Boss 预警（和 boss_ai._warn_damage 同样的参数）；返回这一发扣掉的生命
+## 一发 Boss 预警（和 boss_ai._warn_damage 同样的参数）；返回这一发扣掉的生命，追加进侵蚀池的量记在 last_add
 func boss_hit(dmg: float, kind := "物理", corrode := 0.0) -> float:
 	var hp0: float = game.hp
+	var pool0: float = game.corrode_pool
 	game.dmg_src = "boss_test"
 	game.in_type = ["近战", kind]
 	c.enemy_hit(dmg, {"corrode": corrode, "boss": true}, false, true)
+	last_add = game.corrode_pool - pool0
 	return hp0 - game.hp
+
+
+## 小怪一击（不受主控保护）
+func minion_hit(frac: float) -> void:
+	c.lose_hp(game.max_hp * frac, "contact_test")
+
+
+## 逐帧推进 sec 秒的持续状态（侵蚀结算、溟痕）
+func run(sec: float) -> void:
+	var dt := 1.0 / 60.0
+	for k in int(round(sec * 60.0)):
+		game.t += dt
+		game.enemies_sys.update_status(dt)
+
+
+## 临时改 boss/* 旋钮（Bal.v 读的 _data），返回旧值给 restore_knobs
+func set_knobs(kv: Dictionary) -> Array:
+	Bal.v("boss/leader_hit_cap", 0.4)   # 确保 balance.json 已读入
+	var had: bool = Bal._data.has("boss")
+	var old = Bal._data.get("boss")
+	var sec: Dictionary = (old as Dictionary).duplicate() if old is Dictionary else {}
+	sec.merge(kv, true)
+	Bal._data["boss"] = sec
+	return [had, old]
+
+
+func restore_knobs(saved: Array) -> void:
+	if saved[0]:
+		Bal._data["boss"] = saved[1]
+	else:
+		Bal._data.erase("boss")
 
 
 ## 骨血（受到伤害 ×1.8）+ 灯火 20（×1.15）下，Boss 单发扣血仍 ≤40%
@@ -149,6 +188,32 @@ func test_2s_cap() -> void:
 		game.t += 1.0 / 60.0
 		game.enemies_sys.update_status(1.0 / 60.0)
 	ok(absf(game.hp - hp0) < EPS, "2 秒窗口已满时 Boss 侵蚀结算作废（扣 %s）" % pct(hp0 - game.hp))
+	# 追加的侵蚀也计入 2 秒合计（docs/38「含追加的侵蚀，超出作废」）：窗口满了，这一发带侵蚀的招式扣血和侵蚀都作废
+	reset()
+	boss_hit(game.max_hp)
+	game.t += 0.1
+	boss_hit(game.max_hp)
+	game.t += 0.5
+	var l3 := boss_hit(game.max_hp * 0.1, "真实", 0.5)
+	ok(l3 < EPS and last_add < EPS, "2 秒窗口已满：Boss 招式扣血 %s、追加侵蚀 %s，都应作废" % [pct(l3), pct(last_add)])
+	# 带侵蚀的连发，中间逐帧结算侵蚀：「扣血 + 追加的侵蚀」2 秒合计 ≤50%
+	reset()
+	var hits := 0.0
+	var adds := 0.0
+	for k in 4:
+		hits += boss_hit(game.max_hp * 0.12, "真实", 0.5)
+		adds += last_add
+		run(0.6)
+	ok(adds > 0.0 and hits + adds <= 0.5 * game.max_hp + EPS, "带侵蚀的四连发：扣血 %s + 追加侵蚀 %s，2 秒合计应 ≤50%%" % [pct(hits), pct(adds)])
+	# 实际扣血口径：池里已有 40% 的旧 Boss 侵蚀（2 秒窗口外追加的），2 秒内四连发 + 逐帧侵蚀结算，实际掉血 ≤50%
+	reset()
+	game.corrode_pool = 0.4 * game.max_hp
+	c.corrode_boss = game.corrode_pool
+	hp0 = game.hp
+	for k in 4:
+		boss_hit(game.max_hp, "真实")
+		run(0.45)   # 4 发共 1.8 秒，都在同一个 2 秒窗口里
+	ok(hp0 - game.hp <= 0.5 * game.max_hp + EPS, "Boss 连发 + Boss 侵蚀结算，2 秒实际掉血 %s，应 ≤50%%" % pct(hp0 - game.hp))
 	reset()
 
 
@@ -161,16 +226,18 @@ func test_combo() -> void:
 		game.t += 0.4
 	ok(game.hp >= 0.5 * game.max_hp - EPS, "满血吃 5 连击后生命 %s，应 ≥50%%" % pct(game.hp))
 	ok(c.corrode_boss <= 0.4 * game.max_hp + EPS, "连击追加的 Boss 侵蚀 ≤40%%（%s）" % pct(c.corrode_boss))
-	# 接着让侵蚀在 Boss 在场时流 3 秒：任意 2 秒 Boss 来源合计仍 ≤50%，人还活着
-	var hp_a: float = game.hp
-	for k in 180:
-		game.t += 1.0 / 60.0
-		game.enemies_sys.update_status(1.0 / 60.0)
-	ok(game.hp > 0.0 and hp_a - game.hp <= 0.04 * 3.0 * game.max_hp + EPS, "连击后的 Boss 侵蚀按每秒 4%% 流出（3 秒扣 %s）" % pct(hp_a - game.hp))
+	# 带侵蚀的连击（corrode 0.5，每发都追加侵蚀），之后 Boss 不再出手、侵蚀在 Boss 在场时流完：生命仍 ≥50%
+	reset()
+	for k in 4:
+		boss_hit(game.max_hp * 0.12, "真实", 0.5)
+		run(0.6)
+	ok(c.corrode_boss > 0.0, "连击追加了 Boss 侵蚀（%s）" % pct(c.corrode_boss))
+	run(20.0)
+	ok(game.hp >= 0.5 * game.max_hp - EPS, "满血吃带侵蚀的连击，侵蚀流完后生命 %s，应 ≥50%%" % pct(game.hp))
 	# 混合连击：Boss 一击 → 小怪补 45%（不受保护）→ Boss 再打，满血保护兜底到 10%
 	reset(true, 20.0)
 	boss_hit(game.max_hp * 2.0)
-	c.lose_hp(game.max_hp * 0.45, "contact_test")
+	minion_hit(0.45)
 	game.t += 0.6
 	boss_hit(game.max_hp * 2.0)
 	ok(absf(game.hp - 0.1 * game.max_hp) < EPS, "满血保护：连击开始前满血，Boss 伤害最多打到剩 10%%（现在 %s）" % pct(game.hp))
@@ -179,18 +246,33 @@ func test_combo() -> void:
 		game.t += 0.6
 		boss_hit(game.max_hp * 2.0)
 	ok(game.hp > 0.0, "满血吃混合连击不死（剩 %s）" % pct(game.hp))
+	# 混合连击 + 侵蚀：保护兜底时把池里待流出的 Boss 侵蚀算进去，侵蚀流完仍 ≥10%
+	reset()
+	boss_hit(game.max_hp * 0.12, "真实", 0.5)
+	minion_hit(0.45)
+	for k in 2:
+		game.t += 0.6
+		boss_hit(game.max_hp * 0.12, "真实", 0.5)
+	ok(c.guard_ready > game.t, "带侵蚀的混合连击触发了满血保护")
+	ok(game.hp - c.corrode_boss >= 0.1 * game.max_hp - EPS, "满血保护算上池里的 Boss 侵蚀：生命 %s − Boss 侵蚀 %s 应 ≥10%%" % [pct(game.hp), pct(c.corrode_boss)])
+	run(20.0)
+	ok(game.hp >= 0.1 * game.max_hp - EPS, "带侵蚀的混合连击，侵蚀流完后生命 %s，应 ≥10%%" % pct(game.hp))
+	# 满血保护只兜「生命 ≥90% 之后 2 秒」这一轮连击：满血开打后 Boss 每 1.5 秒打一发 5%，21 秒后生命 30%，
+	# 这时 Boss 一击 40% 不再被兜底（按字面规则：受击前生命 30%，不触发）
+	reset()
+	for k in 14:
+		game.lamp = 100.0   # 灯火保持 ≥30，不吃 ×1.15
+		boss_hit(game.max_hp * 0.05, "真实")
+		game.t += 1.5
+	ok(absf(game.hp - 0.3 * game.max_hp) < EPS, "14 发 5%% 后生命 %s（应 30%%）" % pct(game.hp))
+	boss_hit(game.max_hp * 0.4, "真实")
+	ok(game.hp <= 0.0 and c.guard_ready == 0.0, "开打时满血不等于整场免死：21 秒后这一击不触发满血保护（剩 %s）" % pct(game.hp))
 	reset()
 
 
 ## 满血保护按字面也成立：把单发 / 2 秒上限临时调到 100%（Bal.v 旋钮），生命 ≥90% 时一击最多打到剩 10%，30 秒一次
 func test_guard_knobs() -> void:
-	Bal.v("boss/leader_hit_cap", 0.4)   # 确保 balance.json 已读入
-	var had: bool = Bal._data.has("boss")
-	var old = Bal._data.get("boss")
-	var sec: Dictionary = (old as Dictionary).duplicate() if old is Dictionary else {}
-	sec["leader_hit_cap"] = 1.0
-	sec["leader_2s_cap"] = 1.0
-	Bal._data["boss"] = sec
+	var saved := set_knobs({"leader_hit_cap": 1.0, "leader_2s_cap": 1.0})
 	reset()
 	game.hp = game.max_hp * 0.95
 	boss_hit(game.max_hp * 5.0, "真实")
@@ -202,16 +284,23 @@ func test_guard_knobs() -> void:
 	game.t += 30.0
 	game.hp = game.max_hp
 	c.boss_log.clear()
+	c.loss_log.clear()
 	boss_hit(game.max_hp * 5.0, "真实")
 	ok(absf(game.hp - 0.1 * game.max_hp) < EPS, "冷却结束后再次保护")
 	reset()
 	game.hp = game.max_hp * 0.85
 	boss_hit(game.max_hp * 5.0, "真实")
 	ok(game.hp <= 0.0, "受击前生命 <90% 时不触发满血保护")
-	if had:
-		Bal._data["boss"] = old
-	else:
-		Bal._data.erase("boss")
+	restore_knobs(saved)
+	# boss/fullhp_guard_combo = 0 即字面规则「受击前生命 ≥90%」：混合连击的第二发（受击前 15%）不兜底
+	saved = set_knobs({"fullhp_guard_combo": 0.0})
+	reset(true, 20.0)
+	boss_hit(game.max_hp * 2.0)
+	minion_hit(0.45)
+	game.t += 0.6
+	boss_hit(game.max_hp * 2.0)
+	ok(game.hp < 0.1 * game.max_hp - EPS and c.guard_ready == 0.0, "fullhp_guard_combo = 0：按字面规则不触发（剩 %s）" % pct(game.hp))
+	restore_knobs(saved)
 	reset()
 
 
@@ -271,7 +360,7 @@ func test_non_boss() -> void:
 	hp0 = game.hp
 	game.enemies_sys.update_status(dt)
 	tick = minf(pool0, (pool0 * 0.5 + 1.0) * dt)
-	ok(absf((hp0 - game.hp) - tick) < EPS and c.boss_log.is_empty(), "净化后普通侵蚀照原公式流出、不进 Boss 的 2 秒合计")
+	ok(absf((hp0 - game.hp) - tick) < EPS and c.loss_log.is_empty(), "净化后普通侵蚀照原公式流出、不进 Boss 的 2 秒合计")
 	reset()
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
 	game.enemies_sys.mire_tick = 0.0
