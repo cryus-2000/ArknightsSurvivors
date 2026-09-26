@@ -845,10 +845,10 @@ func draw_status_bar(vs: Vector2) -> void:
 		if x.stat == "dmg":
 			items.append(["增伤 +%d%%" % int(x.value * 100.0), Color(1.0, 0.75, 0.4), clampf((x.until - g.t) / 6.0, 0.0, 1.0)])
 	if g.rfx.rule("black_tulip") > 0 and g.rfx.tulip_t > 1.0:
-		items.append(["郁金香 +%d%%" % int(60.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
+		items.append(["郁金香 +%d%%" % int(80.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
 	if g.rfx.perm_dmg > 0.0:
 		items.append(["刻勋 +%.1f%%" % (g.rfx.perm_dmg * 100.0), Color(1.0, 0.85, 0.5), -1.0])
-	if g.hp < g.max_hp * 0.3 and (g.rfx.rule("king_crown") + g.rfx.rule("king_gun") + g.rfx.rule("king_cake") + g.rfx.rule("king_branch")) > 0:
+	if g.rfx.king_low() and (g.rfx.rule("king_crown") + g.rfx.rule("king_gun") + g.rfx.rule("king_cake") + g.rfx.rule("king_branch")) > 0:
 		items.append(["国王之势", Color(1.0, 0.8, 0.3), -1.0])
 	if g.corrode_pool > 0.5:
 		items.append(["侵蚀 %d" % int(g.corrode_pool), Color(0.8, 0.5, 1.0), -1.0])

@@ -35,6 +35,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			"requires_class": e.get("requires_class", []),
 			"price_class": e.get("price_class", r.rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
+			"late_weight": float(e.get("late_weight", 1.0)),
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),
 		}
 	return items.size()
