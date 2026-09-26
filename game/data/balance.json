@@ -116,6 +116,7 @@
   "first_elite": 60,
   "bullet_dmg_mult": 0.75,
   "spawn_boss_mult": 0.8,
+  "spawn_boss_mult_mid": 1.0,
   "spawn_dark_mult": 1.15,
   "spawn_cap": 450
  },
