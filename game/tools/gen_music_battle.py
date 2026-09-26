@@ -1,21 +1,19 @@
-"""战斗配乐 v2.0（方向 B：电子 + 管弦混合，2026-09-26 用户选定，demo 见 Claude outputs/bgm_demo_0926）。
+"""战斗配乐 v3（2026-09-26 用户选定 demo C：哥特暗黑摇滚 + 电子，参考 mudeth《Machine in the Walls》的风格参数；
+旋律与 riff 全部原创：标题主旋律 / 灯火动机 / B 主题 / Boss 主题都是本作自己的）。
 
+肉鸽音乐要无限循环：战斗与 Boss 曲不再是固定长度的循环，而是 8 小节一句的「乐句」，sfx.gd 在每句结束时
+按局势挑下一句（不紧挨着重复），所以永远不会按固定顺序重来。每句文件 = 0.1 秒静音预留 + 8 小节正文 + 1.6 秒余音。
 输出到 audio/music/：
-  battle{1,2,3}_{base,drive,danger}.ogg   战斗三段：《潮起》D 小调 /《逆流》E 小调 /《灯火长明》升 F 小调（标题曲的调），
-                                          126 BPM；base / drive 32 小节循环，danger 8 小节循环
-  perc_{half,full,epic}.ogg               打击乐 8 小节循环（无音高，三段各用一种律动，即各段的 pulse 层）
-  boss.ogg                                中期 Boss《海嗣之主》D 弗里吉亚 140 BPM，32 小节（含半速间奏）
-  final.ogg / final_p2.ogg                最终 Boss《深蓝之树》140 BPM，32 小节；p2 是二阶段加强层（与 final 同步叠加）
-  cue_rise.ogg / cue_hit.ogg              换段提示：一小节上行扫频（结尾对齐小节线）/ 落点冲击
-每段四层同速同步（sfx.gd 按小节线开关）：
-  base   跳弓固定音型 + 低音弦乐 + 低音铜管 + 合唱「呜」+ 主旋律（圆号 / 轻弦乐）+ 轻太鼓   —— 平静
-  pulse  打击乐（perc_*）                                                                 —— 交战
-  drive  弦乐全奏旋律 + 合成低音（侧链）+ 铜管短奏 + 中提琴琶音 + 合唱「啊」+ 门限合成器 + 镲 / 过门 —— 激战
-  danger 高音颤弓小二度 + 滴答脉冲 + 低音嗡鸣（不再用心跳，心跳交给音效）                    —— 危险
-32 小节 = 4 个 8 小节乐段：灯火动机（gen_music.THEME）→ 标题主旋律 → B 主题（新写）→ 标题主旋律高潮。
-响度目标（BS.1770 积分）：平静 -20.5 / 交战 ≈ -17.5 / 激战 -15.5 LUFS；Boss -15；最终 -15（二阶段 ≈ -13.5）。
-所有循环都是整小节的精确采样数（126 BPM 一小节 84000 采样，140 BPM 75600），尾巴回卷到开头。
-依赖 numpy / scipy / soundfile（不需要 ffmpeg）。重新生成：cd game/tools && python gen_music_battle.py [perc battle boss final cues]
+  battle{1,2,3}_{A,B,C,D,E}_{base,pulse,drive}.ogg   战斗三段 × 五句 × 三层
+      段：battle1 D 小调 144 BPM / battle2 E 小调 144 BPM / battle3 升 F 小调 150 BPM（越来越重）
+      句：A 和弦墙 + 主奏对位 / B 标题主旋律副歌 / C 灯火动机（适合平静）/ D 半速间奏 / E B 主题 + 三度和声
+      层：base 平静（低音、管风琴、合唱「呜」、羽管键琴、管风琴旋律）/ pulse 交战（双轨节奏吉他墙、低音八分、鼓）/
+          drive 激战（高八度吉他、主奏吉他、管风琴全音栓、合唱「啊」、镲、双踩）
+  battle{1,2,3}_danger.ogg                          危险层（8 小节，每句重新对齐开播）：高音管风琴小二度快颤 + 滴答 + 低音失真渐强
+  boss_{A,B,D,C}_full.ogg                            中期 Boss《海嗣之主》D 弗里吉亚 150 BPM：riff / 主题 / 半速间奏 / 高潮
+  final_{A,B,C,D}_{p1,p2}.ogg                        最终 Boss《深蓝之树》150 BPM：灯火动机 / 标题主旋律 / Boss 主题对峙 / 主旋律高潮；p2 二阶段叠加
+响度目标（BS.1770，五句拼起来测）：平静 -20.5 / 交战 -17.5 / 激战 -15.5 LUFS；Boss -15；最终 -15（二阶段 -13.5）。
+依赖 numpy / scipy / soundfile（不需要 ffmpeg）。重新生成：cd game/tools && python gen_music_battle.py [battle boss final]
 """
 import os
 import sys
@@ -30,7 +28,7 @@ import gen_music as G   # 复用人声合唱 voice() 与主题（THEME / TITLE_M
 SR = 44100
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(HERE, "..", "audio", "music")
-rng = np.random.default_rng(126)
+rng = np.random.default_rng(144)
 
 
 # ============================================================ DSP 基础
@@ -108,43 +106,6 @@ def square_from(ph, dt, pw=0.5):
 
 def saw_bl(freq):
     return saw_from(*phase_of(freq))
-
-
-def ensemble(freq, voices=5, spread=0.12, width=1.4):
-    """多声部失谐合奏（弦乐 / 铜管 / 超级锯齿），各声部左右铺开"""
-    freq = np.asarray(freq, dtype=float)
-    n = len(freq)
-    L = np.zeros(n)
-    R = np.zeros(n)
-    for k in range(voices):
-        u = k / (voices - 1) - 0.5 if voices > 1 else 0.0
-        drift = 1 + 0.0015 * np.sin(2 * np.pi * (0.15 + 0.35 * rng.random()) * tt(n) + rng.random() * 6.28)
-        s = saw_bl(freq * 2 ** (u * spread / 12) * drift)
-        p = u * width
-        L += s * np.sqrt(0.5 * (1 - p))
-        R += s * np.sqrt(0.5 * (1 + p))
-    return np.stack([L, R], 1) / np.sqrt(voices)
-
-
-SWEEP_CUTS = np.array([180, 300, 500, 800, 1300, 2100, 3400, 5500, 9000], float)
-
-
-def lp_sweep(x, cut):
-    """时变低通：几条固定截止频率的低通按对数频率插值（向量化近似）"""
-    cut = np.clip(np.asarray(cut, dtype=float), SWEEP_CUTS[0], SWEEP_CUTS[-1])
-    lc = np.log(cut)
-    lcs = np.log(SWEEP_CUTS)
-    lo_i = max(0, int(np.searchsorted(lcs, lc.min())) - 1)
-    hi_i = max(lo_i + 1, min(len(lcs) - 1, int(np.searchsorted(lcs, lc.max()))))
-    cuts = SWEEP_CUTS[lo_i:hi_i + 1]
-    lcs = lcs[lo_i:hi_i + 1]
-    ys = np.stack([lp(x, c) for c in cuts])
-    idx = np.clip(np.searchsorted(lcs, lc) - 1, 0, len(lcs) - 2)
-    fr = np.clip((lc - lcs[idx]) / (lcs[idx + 1] - lcs[idx]), 0, 1)
-    ar = np.arange(len(x))
-    if x.ndim == 2:
-        fr = fr[:, None]
-    return ys[idx, ar] * (1 - fr) + ys[idx + 1, ar] * fr
 
 
 # ============================================================ 响度（BS.1770 K 加权，门限积分）
@@ -228,20 +189,6 @@ def delay_wet(x, secs, fb=0.3, taps=5, tone=3800):
     return y
 
 
-def duck_env(n, times, depth=0.45, rel=0.15, att=0.006):
-    """侧链：按底鼓时间点做音量凹陷（打击乐在另一层，时间点照它的节奏型算）"""
-    g = np.ones(n)
-    a = int(att * SR)
-    L = int(rel * SR * 4)
-    shape = np.concatenate([1 - depth * np.linspace(0, 1, a), 1 - depth * np.exp(-np.arange(L) / (rel * SR))])
-    for t in times:
-        i = int(t * SR)
-        if 0 <= i < n:
-            j = min(n, i + len(shape))
-            g[i:j] = np.minimum(g[i:j], shape[: j - i])
-    return g
-
-
 def limiter(x, ceiling=0.93, look=0.003, rel=0.07):
     """前视峰值限制器（单文件曲目防削顶）：峰值附近平滑压低，释放按块指数恢复"""
     from scipy.ndimage import maximum_filter1d, minimum_filter1d
@@ -261,7 +208,7 @@ def limiter(x, ceiling=0.93, look=0.003, rel=0.07):
     return x * gs[:, None]
 
 
-# ============================================================ 乐器：打击
+# ============================================================ 乐器：鼓、合唱、滴答
 def kick(v=1.0, dur=0.42, f0=165, f1=47, click=0.35, drive=1.8):
     n = int(dur * SR)
     t = tt(n)
@@ -270,28 +217,6 @@ def kick(v=1.0, dur=0.42, f0=165, f1=47, click=0.35, drive=1.8):
     y = np.tanh((body + knock) * drive) / np.tanh(drive)
     clk = hp(rng.standard_normal(n), 2800) * np.exp(-t * 380) * click
     return (y + clk) * env(n, 0.0005, 0.02) * v
-
-
-def snare(v=1.0, dur=0.38, tone=182):
-    n = int(dur * SR)
-    t = tt(n)
-    body = np.sin(2 * np.pi * tone * t) * np.exp(-t * 28) + 0.5 * np.sin(2 * np.pi * tone * 1.68 * t) * np.exp(-t * 38)
-    nz = rng.standard_normal(n)
-    noise = bp(nz, 1800, 9500) * np.exp(-t * 15) + bp(nz, 450, 1800) * np.exp(-t * 26) * 0.45
-    return (body * 0.6 + noise) * env(n, 0.0005, 0.03) * v
-
-
-def clap(v=1.0):
-    n = int(0.4 * SR)
-    t = tt(n)
-    nz = bp(rng.standard_normal(n), 950, 6500)
-    e = np.zeros(n)
-    for k, off in enumerate((0.0, 0.010, 0.021)):
-        i = int(off * SR)
-        e[i:] += np.exp(-t[: n - i] * 190) * (0.75 if k < 2 else 1.0)
-    i = int(0.021 * SR)
-    e[i:] += np.exp(-t[: n - i] * 16) * 0.3
-    return nz * e * v
 
 
 def hat(v=1.0, open_=False):
@@ -304,28 +229,12 @@ def hat(v=1.0, open_=False):
     return lp(x, 14500) * e * v
 
 
-def shaker(v=1.0):
-    n = int(0.1 * SR)
-    t = tt(n)
-    return bp(rng.standard_normal(n), 4200, 11000) * np.minimum(1, t / 0.009) * np.exp(-t * 42) * v
-
-
 def tom(pitch=140, v=1.0, dur=0.55):
     n = int(dur * SR)
     t = tt(n)
     body = np.sin(2 * np.pi * np.cumsum(pitch * (1 + 0.38 * np.exp(-t * 16))) / SR) * np.exp(-t * 6.5)
     nz = bp(rng.standard_normal(n), 300, 3200) * np.exp(-t * 38) * 0.3
     return np.tanh((body + nz) * 1.4) * env(n, 0.0005, 0.05) * v
-
-
-def taiko(v=1.0, pitch=58, dur=1.1):
-    n = int(dur * SR)
-    t = tt(n)
-    f = pitch * (1 + 0.5 * np.exp(-t * 24))
-    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 4.2)
-    over = np.sin(2 * np.pi * np.cumsum(f * 2.27) / SR) * np.exp(-t * 9) * 0.35
-    slap = bp(rng.standard_normal(n), 350, 3500) * np.exp(-t * 34) * 0.55
-    return (np.tanh((body + over) * 1.6) * 0.85 + slap) * env(n, 0.0008, 0.05) * v
 
 
 def crash(v=1.0, dur=3.2):
@@ -336,114 +245,10 @@ def crash(v=1.0, dur=3.2):
     return np.stack(ch, 1) * v
 
 
-def rev_crash(v=1.0, dur=2.0):
-    return crash(v, dur)[::-1].copy()
-
-
-def impact(v=1.0):
-    n = int(2.8 * SR)
-    t = tt(n)
-    boom = np.sin(2 * np.pi * np.cumsum(30 + 75 * np.exp(-t * 2.8)) / SR) * np.exp(-t * 1.5)
-    body = np.sin(2 * np.pi * np.cumsum(95 + 70 * np.exp(-t * 18)) / SR) * np.exp(-t * 6) * 0.55
-    crack = lp(hp(rng.standard_normal(n), 250), 6000) * np.exp(-t * 8) * 0.55
-    return (np.tanh((boom + body) * 1.5) * 0.8 + crack) * env(n, 0.0008, 0.3) * v
-
-
-def noise_riser(dur, v=1.0):
-    n = int(dur * SR)
-    x = tt(n) / dur
-    s = np.stack([rng.standard_normal(n), rng.standard_normal(n)], 1)
-    y = lp_sweep(s, 400 + 7500 * x ** 2)
-    return hp(y, 300) * (x ** 2)[:, None] * v
-
-
-def sweep(dur, n0=50, n1=86, v=1.0):
-    n = int(dur * SR)
-    x = tt(n) / dur
-    s = ensemble(midi(n0) * (midi(n1) / midi(n0)) ** (x ** 2), voices=5, spread=0.35)
-    return hp(lp_sweep(s, 350 + 7000 * x ** 2), 200) * (x ** 2)[:, None] * v
-
-
-# ============================================================ 乐器：音高
-def spic(nt, vel=1.0, dur=0.17, bright=1.0):
-    """跳弓：短促、带弓噪的合奏锯齿"""
-    n = int(dur * SR)
-    t = tt(n)
-    x = ensemble(np.full(n, midi(nt)), voices=4, spread=0.16, width=0.8)
-    y = lp_sweep(x, 1300 * bright + 2800 * np.exp(-t * 22) * vel)
-    bow = bp(rng.standard_normal(n), 2000, 6000) * np.exp(-t * 90) * 0.05
-    e = np.minimum(1, t / 0.003) * np.exp(-t * 15)
-    return hp(y + bow[:, None], 85) * e[:, None] * vel
-
-
-def low_strings(nt, dur, a=0.25, r=0.8):
-    """低音提琴 + 正弦垫底：长音根音"""
-    n = int(dur * SR)
-    x = ensemble(np.full(n, midi(nt)), voices=4, spread=0.12, width=0.6)
-    ph, _ = phase_of(np.full(n, midi(nt)))
-    y = lp(x, 1100) + st(np.sin(2 * np.pi * ph)) * 0.55
-    return hp(y, 32) * env(n, a, r)[:, None]
-
-
-def bass_synth(nt, dur, cut_lo=420, cut_hi=2000, decay=10.0, drive=2.3, sub=0.55):
-    """合成低音：锯齿 + 同相正弦，滤波包络 + 饱和（小喇叭靠泛音「听见」低音）"""
-    n = int(dur * SR)
-    t = tt(n)
-    ph, dt = phase_of(np.full(n, midi(nt)))
-    s = saw_from(ph, dt) - sub * np.sin(2 * np.pi * ph)
-    y = lp_sweep(s, cut_lo + (cut_hi - cut_lo) * np.exp(-t * decay))
-    y = np.tanh(y * drive) / np.tanh(drive)
-    return lp(y, 3200) * env(n, 0.004, 0.035)
-
-
-def brass(notes, dur, a=0.02, r=0.3, swell=False, bright=1.0):
-    n = int(dur * SR)
-    t = tt(n)
-    x = np.zeros((n, 2))
-    for nt in notes:
-        f = midi(nt) * (1 - 0.012 * np.exp(-t * 40))   # 起音略低、迅速爬到正音
-        x += ensemble(f, voices=3, spread=0.09, width=0.9)
-    if swell:
-        cut = 350 + 2200 * bright * (t / dur) ** 1.6
-        e = env(n, dur * 0.7, r) * (0.35 + 0.65 * (t / dur) ** 1.2)
-    else:
-        cut = 700 + 2800 * bright * np.exp(-t * 3.2) + 500 * bright
-        e = env(n, a, r)
-    y = np.tanh(lp_sweep(x, cut) * 1.3)
-    return hp(y, 90) * e[:, None] / np.sqrt(len(notes))
-
-
 def choir(notes, dur, a=0.8, r=1.2, morph=True):
     L = G.voice(notes, dur, amp=1.0, a=a, r=r, morph=morph)
     R = G.voice(notes, dur, amp=1.0, a=a, r=r, morph=morph)
     return hp(np.stack([L, R], 1), 170)
-
-
-def gated(notes, dur, beat, pat):
-    """16 分门限和弦（电子律动铺底）"""
-    n = int(dur * SR)
-    x = np.zeros((n, 2))
-    for nt in notes:
-        x += ensemble(np.full(n, midi(nt)), voices=3, spread=0.25, width=1.3)
-    x = hp(lp(x, 3300), 260) / np.sqrt(len(notes))
-    g = np.zeros(n)
-    step = beat / 4
-    for k in range(int(dur / step) + 1):
-        if pat[k % len(pat)]:
-            g[int(k * step * SR): min(n, int((k + 0.7) * step * SR))] = 1.0
-    return x * uniform_filter1d(g, int(0.004 * SR))[:, None]
-
-
-def tremolo(notes, dur, rate, a=0.6, r=0.6):
-    """颤弓（按 16 分音符速度起伏），偏亮的桥边音色"""
-    n = int(dur * SR)
-    t = tt(n)
-    x = np.zeros((n, 2))
-    for nt in notes:
-        x += ensemble(np.full(n, midi(nt)), voices=4, spread=0.1, width=1.0)
-    x = peq(hp(lp(x, 7000), 400), 2600, 4.0)
-    am = 0.45 + 0.55 * np.abs(np.sin(np.pi * rate * t))
-    return x * (am * env(n, a, r))[:, None] / np.sqrt(len(notes))
 
 
 def tick(nt, v=1.0):
@@ -454,29 +259,140 @@ def tick(nt, v=1.0):
     return hp(y, 300) * np.minimum(1, t / 0.002) * np.exp(-t * 38) * v
 
 
-# ---- 单音旋律合成器（给 phrase 用）：输入逐采样频率与「距本音起音的时间」
-def syn_strings(freq, age):
-    return peq(hp(lp(ensemble(freq, voices=6, spread=0.17, width=1.2), 6000), 210), 1900, 2.5)
+# ============================================================ 乐器：乐队（v3 哥特暗黑摇滚）
+def string_src(nt, dur, mute=False, pick=0.17):
+    """加法合成的拨弦：拨弦位置梳状 + 高次谐波衰减更快 + 轻微非谐性 + 拨片噪声（音高精确，不用 Karplus-Strong）"""
+    n = int(dur * SR)
+    t = tt(n)
+    f = midi(nt)
+    s = np.zeros(n)
+    for k in range(1, max(1, min(26, int((SR / 2 - 800) / f))) + 1):
+        a = abs(np.sin(np.pi * k * pick)) / k
+        dec = (1.2 + 0.75 * k) * (5.0 if mute else 1.0)
+        s += a * np.sin(2 * np.pi * f * k * np.sqrt(1 + 0.00012 * k * k) * t + rng.random() * 6.28) * np.exp(-t * dec)
+    s += hp(rng.standard_normal(n), 2500) * np.exp(-t * 320) * 0.25
+    return s
 
 
-def syn_strings_soft(freq, age):
-    return peq(hp(lp(ensemble(freq, voices=6, spread=0.15, width=1.0), 3600), 200), 1200, 1.5)
+def amp_sim(x, gain=26.0, bias=0.15, cab=4500.0):
+    """吉他音箱：中频推 → 非对称削波两级 → 箱体（低频共振、220 Hz 厚度、1 kHz 去鼻音、临场感、高频陡降）"""
+    y = hp(x, 90)
+    y = peq(y, 700, 4.0, 0.8)
+    y = np.tanh(gain * y + bias) - np.tanh(bias)
+    y = lp(y, 7000)
+    y = np.tanh(2.5 * y)
+    y = hp(y, 75, 2)
+    y = peq(y, 110, 3.0, 0.7)
+    y = peq(y, 220, 6.0, 0.8)
+    y = peq(y, 400, 3.0, 1.2)
+    y = peq(y, 1000, -3.0, 1.4)
+    y = peq(y, 1800, 2.0, 1.2)
+    return lp(lp(y, cab, 2), cab * 1.1, 2)
 
 
-def syn_horn(freq, age, bright=1.0):
-    x = ensemble(freq, voices=3, spread=0.07, width=0.7)
-    cut = 450 + 2300 * bright * (1 - np.exp(-age / 0.07)) * (0.75 + 0.25 * np.exp(-age / 0.6))
-    return lp(hp(np.tanh(lp_sweep(x, cut) * 1.3), 100), 4200)
+def power_chord(root, dur, mute=False, vel=1.0, detune=0.0, pick=0.17):
+    """强力和弦（根音 + 五度 + 八度；闷音只弹根音 + 五度），扫弦错开几毫秒，一起进音箱"""
+    n = int(dur * SR)
+    x = np.zeros(n + int(0.02 * SR))
+    for i, nt in enumerate([root, root + 7] if mute else [root, root + 7, root + 12]):
+        s = string_src(nt + detune, dur, mute=mute, pick=pick)
+        o = int((0.004 + 0.003 * rng.random()) * i * SR)
+        x[o:o + len(s)] += s[: len(x) - o]
+    y = amp_sim(x[:n] * vel * (0.55 if mute else 0.45))
+    return y * env(n, 0.001, 0.012 if mute else 0.03)
 
 
-def syn_supersaw(freq, age):
-    return hp(lp(ensemble(freq, voices=7, spread=0.32, width=1.5), 7000), 320)
+def gtr(S, bus, events):
+    """双轨节奏吉他：同一段弹两遍（音高 ±4 音分、拨弦位置不同、时间 ±8 毫秒），硬左右。events: (时刻, 根音, 时长, 闷音, 力度)"""
+    for side, pan in ((0, -1.0), (1, 1.0)):
+        for t0, root, dur, mute, vel in events:
+            S.add(bus, power_chord(root, dur, mute, vel * rng.uniform(0.92, 1.0), detune=(0.04 if side else -0.04),
+                                   pick=(0.21 if side else 0.15)), t0 + rng.uniform(-0.008, 0.008) + (0.005 if side else 0.0), pan=pan)
 
 
-def syn_trombone(freq, age):
-    return syn_horn(freq, age, 0.7)
+def bass_gtr(nt, dur, mute=False, vel=1.0, drive=2.2):
+    n = int(dur * SR)
+    t = tt(n)
+    f = midi(nt)
+    s = np.zeros(n)
+    for k in range(1, 13):
+        if f * k > 6000:
+            break
+        s += abs(np.sin(np.pi * k * 0.25)) / k ** 0.9 * np.sin(2 * np.pi * f * k * t) * np.exp(-t * (0.8 + 0.5 * k) * (4.0 if mute else 1.0))
+    s = np.tanh(drive * s) / np.tanh(drive)
+    return lp(s, 2800) * env(n, 0.003, 0.03) * vel
 
 
+REG_SOFT = (0.3, 1.0, 0.45, 0.0, 0.2, 0.0, 0.0)     # 管风琴音栓：16' 8' 4' 2⅔' 2' 1⅓' 1'
+REG_FULL = (0.6, 1.0, 0.7, 0.35, 0.4, 0.2, 0.15)
+REG_PEDAL = (1.0, 0.8, 0.3, 0.1, 0.1, 0.0, 0.0)
+REG_HIGH = (0.0, 0.6, 1.0, 0.5, 0.6, 0.3, 0.3)
+
+
+def organ(notes, dur, a=0.04, r=0.35, reg=REG_FULL, trem=5.8, depth=0.035):
+    """管风琴（加法音栓），左右声道各一套轻微失谐 + 颤音做空间感，起音带一点键噪"""
+    n = int(dur * SR)
+    t = tt(n)
+    ch = []
+    for side in (-1, 1):
+        s = np.zeros(n)
+        for nt in notes:
+            f = midi(nt) * (1 + side * 0.0009)
+            for rr, g in zip((0.5, 1, 2, 3, 4, 6, 8), reg):
+                if g > 0 and f * rr < SR / 2 - 1000:
+                    s += g * np.sin(2 * np.pi * f * rr * t + rng.random() * 6.28)
+        ch.append(s * (1 + depth * np.sin(2 * np.pi * trem * t + (0 if side < 0 else 1.6))))
+    x = np.stack(ch, 1) / np.sqrt(len(notes) * 3) + st(hp(rng.standard_normal(n), 3000) * np.exp(-t * 400) * 0.08)
+    return lp(x, 7000) * env(n, a, r)[:, None]
+
+
+def syn_organ(freq, age):
+    """管风琴单音旋律（phrase 用）"""
+    out = []
+    for side in (-1, 1):
+        s = np.zeros(len(freq))
+        for rr, g in zip((0.5, 1, 2, 3, 4), (0.4, 1.0, 0.6, 0.25, 0.3)):
+            ph, _ = phase_of(freq * rr * (1 + side * 0.0009))
+            s += g * np.sin(2 * np.pi * ph)
+        out.append(s)
+    return lp(np.stack(out, 1), 6500) * 0.5
+
+
+def harpsi(nt, dur=1.0, vel=1.0):
+    """羽管键琴：拨弦点靠近端点、衰减快，叠一组高八度 4' 弦"""
+    s = string_src(nt, dur, pick=0.08) + 0.45 * string_src(nt + 12, dur, pick=0.08)
+    return hp(lp(s, 9000), 150) * env(len(s), 0.001, 0.08) * np.exp(-tt(len(s)) * 1.2) * vel
+
+
+def kick_rock(v=1.0):
+    return kick(v, dur=0.55, f0=135, f1=40, click=0.55, drive=2.2)
+
+
+def snare_rock(v=1.0):
+    n = int(0.45 * SR)
+    t = tt(n)
+    body = np.sin(2 * np.pi * 185 * t) * np.exp(-t * 22) + 0.6 * np.sin(2 * np.pi * 330 * t) * np.exp(-t * 30)
+    nz = rng.standard_normal(n)
+    wires = bp(nz, 1500, 9000) * np.exp(-t * 11) + bp(nz, 300, 1500) * np.exp(-t * 20) * 0.5
+    return np.tanh((body * 0.8 + wires) * 1.4) * env(n, 0.0005, 0.04) * v
+
+
+def ride(v=1.0, dur=1.4):
+    n = int(dur * SR)
+    t = tt(n)
+    s = sum(np.sin(2 * np.pi * f * t + rng.random() * 6.28) * np.exp(-t * d) for f, d in
+            ((3120, 3.0), (4470, 3.5), (5390, 4.0), (6710, 5.0), (8210, 6.0))) * 0.18
+    s = s + hp(rng.standard_normal(n), 5000) * np.exp(-t * 6) * 0.3 + np.sin(2 * np.pi * 2600 * t) * np.exp(-t * 40) * 0.3
+    return lp(s, 9500) * env(n, 0.0005, 0.1) * v
+
+
+def syn_lead(freq, age):
+    """主奏吉他：锯齿 + 方波进音箱（揉弦、滑音由 phrase 给）"""
+    ph, dt = phase_of(freq)
+    return st(amp_sim((saw_from(ph, dt) * 0.6 + square_from(ph, dt) * 0.3) * 0.35, gain=16.0, cab=5200))
+
+
+# ============================================================ 旋律
 def phrase(notes, beat, synth, glide=0.035, attack=0.012, release=0.2, legato_dip=0.82,
            vib_rate=5.3, vib_depth=0.006, vib_delay=0.22, transpose=0):
     """单音旋律：相邻音连奏时滑音、不重新起音；返回立体声信号"""
@@ -519,36 +435,14 @@ def phrase(notes, beat, synth, glide=0.035, attack=0.012, release=0.2, legato_di
     return synth(freq * vib, age) * amp[:, None]
 
 
-# ============================================================ 乐曲素材（D 小调原型，各段整体移调）
-TITLE_PROG = [[("Dm", 4)], [("Bb", 4)], [("F", 4)], [("Gm", 2), ("A", 2)],
-              [("Dm", 4)], [("F", 4)], [("Bb", 4)], [("Asus", 2), ("A", 2)]]
-B_PROG = [[("Bb", 4)], [("C", 4)], [("Am", 4)], [("Dm", 4)], [("Bb", 4)], [("C", 4)], [("Dm", 4)], [("Asus", 2), ("A", 2)]]
-TITLE_BASS = [[(38, 4)], [(34, 4)], [(41, 4)], [(43, 2), (45, 2)], [(38, 4)], [(41, 4)], [(34, 4)], [(33, 4)]]
-B_BASS = [[(34, 4)], [(36, 4)], [(33, 4)], [(38, 4)], [(34, 4)], [(36, 4)], [(38, 4)], [(33, 4)]]
-LOOP_PROG = TITLE_PROG * 2 + B_PROG + TITLE_PROG
-LOOP_BASS = TITLE_BASS * 2 + B_BASS + TITLE_BASS
-VOI = {"Dm": [57, 62, 65, 69], "Bb": [58, 62, 65, 70], "F": [57, 60, 65, 69], "Gm": [58, 62, 67, 70],
-       "A": [57, 61, 64, 69], "Asus": [57, 62, 64, 69], "C": [60, 64, 67, 72], "Am": [57, 60, 64, 69]}
 MEL = list(G.TITLE_MEL)                          # 标题主旋律，8 小节
 THEME = list(G.THEME[:12]) + [(70, 2), (69, 2)]  # 灯火动机，4 小节
 THEME2 = list(G.THEME[:12]) + [(62, 2), (61, 2)]  # 第二遍末小节 D → C#，落在 A 和弦上
-# B 主题（新写）：沿用灯火动机的「1 1 1.5 0.5」节奏，在 VI–VII 上逐级爬升，第 7 小节到 A5 高点
+# B 主题：沿用灯火动机的「1 1 1.5 0.5」节奏，在 VI–VII 上逐级爬升，第 7 小节到 A5 高点
 B_MEL = [(65, 1), (70, 1), (74, 1.5), (72, 0.5), (67, 1), (72, 1), (76, 1.5), (74, 0.5),
          (76, 1.5), (74, 0.5), (72, 1), (69, 1), (74, 2), (76, 1), (77, 1),
          (77, 1), (74, 1), (77, 1.5), (79, 0.5), (76, 1), (72, 1), (76, 1.5), (79, 0.5),
          (81, 2), (77, 1), (74, 1), (76, 2), (73, 2)]
-TROMBONE_B = [(50, 4), (52, 4), (48, 4), (53, 4), (50, 4), (52, 4), (53, 4), (49, 4)]   # B 段长号：和弦三音一小节一个
-SPIC_ACC = {0: 0, 3: 12, 6: 7, 8: 0, 11: 12, 14: 7}   # 16 分跳弓：3+3+2 重音，重音处跳八度 / 五度
-GATE = [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1]
-
-
-def at_beat(bars_list, bar, beat):
-    pos = 0.0
-    for item, b in bars_list[bar]:
-        if beat < pos + b:
-            return item
-        pos += b
-    return bars_list[bar][-1][0]
 
 
 # ============================================================ 编排容器
@@ -588,35 +482,6 @@ class Song:
         B[i:j] += sig[: j - i] * gain
 
 
-def mixdown(S, stems, targets, sends, rev, rev_level, duck=None, kicks=(), delays=None):
-    """各轨按响度目标定增益 → 按层分组（每层自带自己的混响）→ 尾巴回卷到开头，返回 {层: 立体声}"""
-    irs = make_ir(**rev)
-    out = {}
-    for stem, names in stems.items():
-        bus = {}
-        for k in names:
-            if k not in S.bus:
-                continue
-            x = S.bus[k]
-            if duck and k in duck:
-                x = x * duck_env(len(x), kicks, duck[k])[:, None]
-            bus[k] = x * 10 ** ((targets[k] - lufs(x)) / 20)
-        if not bus:
-            continue
-        mix = sum(bus.values())
-        rev_in = sum(bus[k] * s for k, s in sends.items() if k in bus)
-        if not isinstance(rev_in, int):
-            mix = mix + reverb_wet(hp(rev_in, 190), irs) * rev_level
-        for k, (beats, fb, wet) in (delays or {}).items():
-            if k in bus:
-                mix = mix + delay_wet(bus[k], beats * S.beat, fb) * wet
-        mix = hp(mix, 28)
-        data = mix[: S.len].copy()
-        data[: S.n - S.len] += mix[S.len:]
-        out[stem] = data
-    return out
-
-
 def write_ogg(name, data, q=0.62):
     """Vorbis（libsndfile；compression_level 0.62 ≈ 质量 3.8）。一次写整段会崩，分块写"""
     path = os.path.join(OUTDIR, name + ".ogg")
@@ -633,498 +498,330 @@ def gain_to(x, target):
     return 10 ** ((target - lufs(x)) / 20)
 
 
-# ============================================================ 打击乐循环（pulse 层，8 小节，三段共用一种律动）
-PERC_LUFS = {"perc_half": -21.2, "perc_full": -20.3, "perc_epic": -19.8}
+# ============================================================ v3 乐句：8 小节一句，拼接成无限循环（sfx.gd 按局势挑下一句）
+PRE = 0.1      # 每个乐句文件开头的静音预留（秒）：sfx.gd 靠它把下一句精确接到上一句末尾
+TAIL = 1.6     # 乐句结束后的余音（秒）：下一句开始后它在另一组播放器里响完
+CHORD = {"Dm": (38, [62, 65, 69]), "Bb": (46, [58, 62, 65]), "F": (41, [57, 60, 65]), "Gm": (43, [55, 58, 62]),
+         "A": (45, [57, 61, 64]), "C": (48, [55, 60, 64]), "Eb": (39, [55, 58, 63]), "Am": (45, [57, 60, 64])}
+TITLE8 = ["Dm", "Bb", "F", ("Gm", "A"), "Dm", "F", "Bb", "A"]
+WALL8 = ["Dm", "Dm", "Bb", "C", "Dm", "F", "Eb", "A"]
+BREAK8 = ["Dm", "Dm", "Eb", "Dm", "Dm", "Bb", "C", "A"]
+BTHEME8 = ["Bb", "C", "Am", "Dm", "Bb", "C", "Dm", "A"]
+# A 句主奏：和弦墙上的长音对位（原创），每小节两个二分音符
+WALL_LEAD = [(74, 2), (72, 2), (74, 2), (77, 2), (77, 2), (74, 2), (76, 2), (79, 2),
+             (81, 2), (77, 2), (81, 4), (79, 2), (75, 2), (76, 2), (73, 2)]
+BOSS_MEL = [(62, 0.5), (63, 0.5), (62, 1), (70, 1), (69, 1), (67, 1.5), (65, 0.5), (63, 1), (62, 1),
+            (62, 0.5), (63, 0.5), (65, 1), (67, 1), (69, 1), (70, 2), (69, 2)]   # Boss 主题（v1 起沿用），4 小节
+BOSS_A8 = ["Dm", "Eb", "Dm", "C", "Dm", "Eb", "Bb", "A"]
+BOSS_D8 = ["Dm", "Eb", "Dm", "Eb", "Bb", "C", "Bb", "A"]
+BOSS_C8 = ["Gm", "Eb", "Dm", "Dm", "Gm", "Eb", "Bb", "A"]
+LEAD_KW = dict(glide=0.06, attack=0.006, release=0.3, vib_rate=5.6, vib_depth=0.011, vib_delay=0.18)
 
 
-def perc_pattern(name):
-    """返回 [(小节, 拍, 乐器, 力度, 参数)]；底鼓时间也给同段的合成低音做侧链"""
-    ev = []
+def chords_of(prog, bar):
+    c = prog[bar % len(prog)]
+    return c if isinstance(c, tuple) else (c,)
+
+
+def harmonize(mel, prog):
+    """按和弦给旋律配下方三度 / 六度（长音才换，短音保持）"""
+    rank = {3: 0, 4: 0, 8: 1, 9: 1, 5: 2, 7: 3}
+    raw, pos = [], 0.0
+    for nt, b in mel:
+        if nt is None:
+            raw.append([None, b])
+        else:
+            cs = chords_of(prog, int(pos // 4))
+            ch = cs[min(len(cs) - 1, int((pos % 4) / (4 / len(cs))))]
+            tones = sorted({v + 12 * k for v in CHORD[ch][1] for k in (-2, -1, 0, 1)})
+            cands = [t for t in tones if (nt - t) in rank]
+            if (b >= 1 or not raw or raw[-1][0] is None) and cands:
+                h = min(cands, key=lambda t: (rank[nt - t], nt - t))
+            else:
+                h = raw[-1][0] if raw else None
+            raw.append([h, b])
+        pos += b
+    out = []
+    for h, b in raw:
+        if out and out[-1][0] == h:
+            out[-1][1] += b
+        else:
+            out.append([h, b])
+    return [tuple(x) for x in out]
+
+
+def drums(S, groove, energy):
+    """交战层鼓组。wall / chorus / verse / half / riff；最后一小节第 4 拍嗵鼓过门（下一句是哪句都接得上）"""
+    for bar in range(S.bars):
+        last = bar == S.bars - 1
+        if groove == "half":
+            kicks, snares = [(0, 1.0), (1.5, 0.8)], [(2, 1.0)]
+            cym = [(0, "ride", 0.85), (2, "ride", 0.75)]
+        elif groove == "verse":
+            kicks, snares = [(0, 0.85), (2.5, 0.65)], [(1, 0.65), (3, 0.65)]
+            cym = [(e * 0.5, "hat", (0.5 if e % 2 else 0.3) * (1.2 if energy else 1.0)) for e in range(8)]
+        elif groove == "chorus":
+            kicks = [(0, 1.0), (1.5, 0.8), (2, 0.9)] + ([(3.5, 0.6)] if energy >= 1 else [])
+            snares = [(1, 1.0), (3, 1.0)]
+            cym = [(b_, "ride", 0.9 if b_ % 2 == 0 else 0.7) for b_ in range(4)]
+        else:   # wall / riff
+            kicks = [(0, 1.0), (2, 0.9)] + ([(2.5, 0.7)] if bar % 2 else []) + ([(0.5, 0.6), (2.5, 0.7)] if energy >= 2 else [])
+            if groove == "riff":
+                kicks = [(0, 1.0), (1.5, 0.8), (2.5, 0.85), (3.5, 0.6)]
+            snares = [(1, 1.0), (3, 1.0)]
+            cym = [(b_, "ride", 0.9 if b_ % 2 == 0 else 0.7) for b_ in range(4)]
+            if energy >= 1:
+                cym += [(b_ + 0.5, "hat", 0.45) for b_ in range(4)]
+        for b_, v in kicks:
+            if not (last and b_ >= 3):
+                S.add("p_kick", kick_rock(v), S.at(bar, b_))
+        for b_, v in snares:
+            if not (last and b_ >= 3):
+                S.add("p_snare", snare_rock(v), S.at(bar, b_))
+        for b_, kind, v in cym:
+            if not (last and b_ >= 3):
+                S.add("p_hats", ride(v * 0.8) if kind == "ride" else hat(v), S.at(bar, b_) + hum(0.002), pan=0.25)
+        if last:
+            for k in range(4):
+                S.add("p_toms", tom(150 - 14 * k, 0.8 if groove != "verse" else 0.55), S.at(bar, 3 + k * 0.25), pan=0.4 - 0.25 * k)
+
+
+def band_song(prog, groove, bpm, tr=0, energy=0, harpsi_arp=False, base_mel=None, lead=None, lead_tr=0,
+              lead_bus="d_lead", harm=None, organ_calls=()):
+    """一句 8 小节乐队编排。轨名前缀即层：b_ 平静 / p_ 交战 / d_ 激战"""
+    S = Song(bpm, 8, tail=TAIL)
+    bt = S.beat
     for bar in range(8):
-        fill = 2.5 if bar == 7 else (3.0 if (bar == 3 and name == "perc_epic") else 99.0)
-        if name == "perc_half":        # 半速：底鼓 1 / 3 拍后半，大军鼓在第 3 拍
-            for b_, v in ((0, 1.0), (2.5, 0.8)):
-                ev.append((bar, b_, "kick", v))
-            if bar % 4 == 3:
-                ev.append((bar, 3.75, "kick", 0.55))
-            ev.append((bar, 2, "snare", 1.0))
-            ev.append((bar, 0, "taiko", 0.8))
-            if bar % 2 == 1:
-                ev += [(bar, 3.5, "taiko_hi", 0.5), (bar, 3.75, "taiko_hi", 0.6)]
-            for e in range(8):
-                ev.append((bar, e * 0.5, "hat", 0.8 if e % 2 else 0.45))
-        elif name == "perc_full":      # 全速：底鼓 1 / 3 / 3 后半，军鼓 2 / 4，16 分镲
-            for b_, v in ((0, 1.0), (2, 0.9), (2.75, 0.6)):
-                ev.append((bar, b_, "kick", v))
-            if bar % 2 == 1:
-                ev.append((bar, 1.5, "kick", 0.5))
-            for b_ in (1, 3):
-                ev.append((bar, b_, "snare", 1.0))
-            for b_ in (0, 2):
-                ev.append((bar, b_, "taiko", 0.7))
-            if bar % 2 == 1:
-                ev += [(bar, 3.5, "taiko_hi", 0.5), (bar, 3.75, "taiko_hi", 0.6)]
-            for s in range(16):
-                ev.append((bar, s * 0.25, "hat_open" if (s == 14 and bar % 2 == 1) else "hat", 0.85 if s % 2 else 0.5))
-            for s in range(16):
-                ev.append((bar, s * 0.25, "shaker", 0.6 if s % 2 == 0 else 0.4))
-        else:                          # 史诗：切分底鼓 + 太鼓八分合奏 + 16 分镲
-            for b_, v in ((0, 1.0), (1.5, 0.7), (2, 0.9), (3.5, 0.65)):
-                ev.append((bar, b_, "kick", v))
-            for b_ in (1, 3):
-                ev.append((bar, b_, "snare", 1.0))
-            ev += [(bar, 2.75, "snare", 0.3), (bar, 3.25, "snare", 0.25)]
-            for e, (kind, v) in enumerate((("taiko", 0.8), ("taiko_hi", 0.4), ("taiko_hi", 0.55), ("taiko_hi", 0.4),
-                                           ("taiko", 0.7), ("taiko_hi", 0.4), ("taiko_hi", 0.55), ("taiko_hi", 0.5))):
-                ev.append((bar, e * 0.5, kind, v))
-            for s in range(16):
-                ev.append((bar, s * 0.25, "hat", 0.9 if s % 2 else 0.55))
-        ev = [e for e in ev if e[1] < fill]
-        if fill < 4:                   # 过门：16 分嗵鼓下行 + 太鼓
-            k = 0
-            b_ = fill
-            while b_ < 4:
-                ev.append((bar, b_, "tom", 150 - 9 * k))
-                if k % 2 == 0:
-                    ev.append((bar, b_, "taiko_hi", 0.6))
-                k += 1
-                b_ += 0.25
-    return ev
+        cs = chords_of(prog, bar)
+        for ci, ch in enumerate(cs):
+            root, tri = CHORD[ch]
+            root += tr
+            tri = [x + tr for x in tri]
+            b0 = ci * 4 / len(cs)
+            beats = 4 / len(cs)
+            t0 = S.at(bar, b0)
+            dur = beats * bt
+            # ---- 平静层：低音长音 + 管风琴（间奏是踏板低音）+ 合唱「呜」+ 羽管键琴八分琶音
+            S.add("b_bass", bass_gtr(root - 12, dur + 0.05, vel=0.8, drive=1.4), t0)
+            if groove == "half":
+                S.add("b_organ", organ([root - 12, root], dur + 0.25, a=0.08, r=0.3, reg=REG_PEDAL), t0)
+                S.add("b_choir", choir(tri, dur + 0.7, a=0.45, r=0.7, morph=False), t0)
+            else:
+                S.add("b_organ", organ(tri, dur + 0.25, a=0.05, r=0.3, reg=REG_SOFT), t0)
+                S.add("b_choir", choir([x + 12 for x in tri], dur + 0.7, a=0.45, r=0.7, morph=False), t0)
+            if harpsi_arp:
+                arp = [tri[0], tri[1], tri[2], tri[0] + 12, tri[2], tri[1], tri[2], tri[0] + 12]
+                for k in range(int(beats * 2)):
+                    S.add("b_harpsi", harpsi(arp[k % 8] + 12, 0.9, 0.9 if k % 2 == 0 else 0.7), t0 + k * 0.5 * bt, pan=0.4)
+            # ---- 交战层：双轨节奏吉他（长音和弦墙）+ 低音八分
+            if groove in ("wall",):
+                ev = [(t0, root, 2.5 * bt, False, 1.0), (S.at(bar, b0 + 2.5), root, 1.5 * bt, False, 0.9)] if beats == 4 else [(t0, root, dur, False, 1.0)]
+            elif groove == "riff":
+                ev = [(S.at(bar, b0 + a_), root, l_ * bt, m_, v_) for a_, l_, m_, v_ in
+                      ((0, 1.5, False, 1.0), (1.5, 0.5, True, 0.9), (2, 0.5, True, 0.9), (2.5, 1.5, False, 0.95))]
+            elif groove == "chorus":
+                ev = [(S.at(bar, b0 + k * 2), root, 2 * bt, False, 1.0 if k == 0 else 0.92) for k in range(max(1, int(beats // 2)))]
+            elif groove == "verse":
+                ev = [(t0, root, dur, False, 0.5)]
+            else:   # half
+                ev = ([(t0, root, 1.5 * bt, False, 1.0), (S.at(bar, b0 + 1.5), root, 0.5 * bt, True, 0.9), (S.at(bar, b0 + 2), root, 2 * bt, False, 0.95)]
+                      if ch == "Dm" else [(t0, root, dur, False, 1.0)])
+            gtr(S, "p_gtr", ev)
+            step = 1.0 if groove == "half" else 0.5
+            pat = [0, 0, 12, 0, 0, 0, 12, 0] if (energy >= 1 and groove != "half") else [0] * 8
+            for e in range(int(beats / step)):
+                S.add("p_bass", bass_gtr(root - 12 + pat[e % 8], step * bt * 0.92, vel=1.0 if e % 2 == 0 else 0.85), S.at(bar, b0 + e * step))
+            # ---- 激战层：高八度吉他（同节奏）+ 管风琴全音栓 + 合唱「啊」
+            gtr(S, "d_gtr", [(t, r + 12, d, m, v * 0.85) for t, r, d, m, v in ev if not m])
+            S.add("d_organ", organ(tri + [tri[0] - 12], dur + 0.2, a=0.02, r=0.25, reg=REG_FULL), t0)
+            S.add("d_choir", choir([x + 12 for x in tri], dur + 0.6, a=0.25, r=0.6, morph=True), t0)
+    drums(S, groove, energy)
+    # 激战层：句首 / 第 5 小节镲；间奏四分镲；重段落的双踩
+    S.add("d_fx", crash(0.85), S.at(0))
+    S.add("d_fx", crash(0.6), S.at(4))
+    if groove == "half":
+        for bar in range(8):
+            for b_ in range(4):
+                S.add("d_fx", crash(0.22, 1.0), S.at(bar, b_), pan=0.2)
+    if energy >= 2 or groove == "half":
+        for bar in (3, 7):
+            for k in range(8):
+                if not (bar == 7 and k >= 4):
+                    S.add("d_kick", kick_rock(0.65 if k % 2 == 0 else 0.5), S.at(bar, 2 + k * 0.25))
+    # 旋律：平静层管风琴（轻）、激战层主奏吉他（+ 下方三度和声）、管风琴呼应
+    if base_mel:
+        S.add("b_mel", phrase(base_mel, bt, syn_organ, attack=0.03, release=0.3, transpose=tr), 0.0)
+    if lead:
+        S.add(lead_bus, phrase(lead, bt, syn_lead, transpose=tr + lead_tr, **LEAD_KW), 0.0)
+    if harm:
+        S.add("d_lead", phrase(harm, bt, syn_lead, transpose=tr + lead_tr, **LEAD_KW), 0.0, gain=0.55)
+    for bar, notes in organ_calls:
+        S.add("b_mel", phrase(notes, bt, syn_organ, attack=0.03, release=0.5, transpose=tr), S.at(bar))
+    return S
 
 
-def perc_kicks(name, bars, bpm=126):
-    beat = 60 / bpm
-    ks = [(b * 4 + bt) * beat for b, bt, kind, _ in perc_pattern(name) if kind == "kick"]
-    return [t + rep * 8 * 4 * beat for rep in range(bars // 8 + 1) for t in ks]
+def danger_song(tr, bpm):
+    """危险层（8 小节，和声中性）：高音管风琴小二度快颤 + 16 分滴答 + 低音失真小二度渐强"""
+    S = Song(bpm, 8, tail=TAIL)
+    tonic = 62 + tr
+    for b in range(0, 8, 2):
+        d = S.bar * 2 + 0.2
+        S.add("z_org", organ([tonic + 12, tonic + 13], d, a=S.bar * 1.2, r=0.3, reg=REG_HIGH, trem=7.5, depth=0.35), S.at(b))
+        n = int(d * SR)
+        x = saw_bl(np.full(n, midi(tonic - 24))) + saw_bl(np.full(n, midi(tonic - 23)))
+        S.add("z_gtr", st(amp_sim(x * 0.3) * (tt(n) / d) ** 1.5 * env(n, 0.01, 0.2)), S.at(b))
+    for s in range(8 * 16):
+        S.add("z_tick", tick(tonic + 12, 1.0 if s % 4 == 0 else 0.45), S.at(0, s * 0.25), pan=0.25 if s % 2 else -0.25)
+    return S
 
 
-def make_perc():
-    for name in PERC_LUFS:
-        S = Song(126, 8, tail=3.0)
-        for bar, b_, kind, v in perc_pattern(name):
-            t = S.at(bar, b_) + (hum(0.002) if kind in ("hat", "shaker") else 0.0)
-            if kind == "kick":
-                S.add("kick", kick(v), t)
-            elif kind == "snare":
-                S.add("snare", snare(v, tone=176), t)
-                if v > 0.5:
-                    S.add("snare", clap(0.6 * v), t + 0.004, pan=0.1)
-            elif kind == "taiko":
-                S.add("taiko", taiko(v, 56), t)
-            elif kind == "taiko_hi":
-                S.add("taiko", taiko(v, 80 + rng.uniform(-3, 3), 0.5), t, pan=rng.uniform(-0.3, 0.3))
-            elif kind == "hat":
-                S.add("hats", hat(v), t, pan=0.35)
-            elif kind == "hat_open":
-                S.add("hats", hat(v, open_=True), t, pan=0.35)
-            elif kind == "shaker":
-                S.add("hats", shaker(v), t + (0.012 if (b_ * 4) % 2 else 0.0), pan=-0.35)
-            elif kind == "tom":
-                S.add("taiko", tom(v, 1.0), t, pan=0.4 - 0.005 * (150 - v))
-        stems = mixdown(S, {"all": ["kick", "snare", "taiko", "hats"]},
-                        targets={"kick": -18.5, "snare": -19.5, "taiko": -20.0, "hats": -28.0},
-                        sends={"snare": 0.14, "taiko": 0.25, "hats": 0.06, "kick": 0.03},
-                        rev=dict(secs=3.0, decay=2.6, tone=6500), rev_level=0.5)
-        x = stems["all"]
-        x *= gain_to(x, PERC_LUFS[name])
-        write_ogg(name, x)
+# ============================================================ 混音
+TARGETS = {
+    "b_bass": -20.0, "b_organ": -24.0, "b_choir": -26.5, "b_harpsi": -26.5, "b_mel": -21.5,
+    "p_gtr": -17.5, "p_bass": -19.5, "p_kick": -18.5, "p_snare": -19.5, "p_hats": -29.0, "p_toms": -24.0, "p_lead": -18.5,
+    "d_gtr": -19.5, "d_lead": -18.5, "d_organ": -25.0, "d_choir": -24.5, "d_fx": -25.5, "d_kick": -22.0,
+    "z_org": -24.0, "z_tick": -28.0, "z_gtr": -27.0,
+}
+SENDS = {"b_organ": 0.45, "b_choir": 0.45, "b_harpsi": 0.3, "b_mel": 0.4, "p_gtr": 0.08, "p_snare": 0.22, "p_toms": 0.25,
+         "p_hats": 0.08, "p_kick": 0.04, "p_lead": 0.25, "d_gtr": 0.1, "d_lead": 0.25, "d_organ": 0.45, "d_choir": 0.45,
+         "d_fx": 0.3, "z_org": 0.45, "z_tick": 0.2, "z_gtr": 0.2}
+
+
+def bus_gains(songs):
+    """同名轨在所有乐句里拼起来测响度，同一个增益用到每一句（句与句之间音量一致）"""
+    names = sorted({k for S in songs for k in S.bus})
+    return {k: gain_to(np.concatenate([S.bus[k] for S in songs if k in S.bus]), TARGETS[k]) for k in names}
+
+
+def layer_mix(S, prefixes, gains, irs):
+    bus = {k: S.bus[k] * gains[k] for k in S.bus if k.startswith(prefixes)}
+    if not bus:
+        return np.zeros((S.n, 2))
+    mix = sum(bus.values())
+    rev_in = sum(bus[k] * SENDS.get(k, 0.0) for k in bus)
+    mix = mix + reverb_wet(hp(rev_in, 190), irs) * 0.5
+    for k in ("p_lead", "d_lead"):
+        if k in bus:
+            mix = mix + delay_wet(bus[k], 0.75 * S.beat, 0.3) * 0.16
+    return hp(mix, 28)
+
+
+def solve_gain(fn, target, lo=0.02, hi=20.0):
+    """二分找增益 g，使 fn(g)（响度，随 g 单调增）= target"""
+    for _ in range(40):
+        g = np.sqrt(lo * hi)
+        if fn(g) > target:
+            hi = g
+        else:
+            lo = g
+    return np.sqrt(lo * hi)
+
+
+def write_seg(name, data):
+    """乐句文件 = 0.1 秒静音预留 + 8 小节正文 + 余音（尾端 0.6 秒淡出）"""
+    x = np.concatenate([np.zeros((int(round(PRE * SR)), 2)), data])
+    k = int(0.6 * SR)
+    x[-k:] *= np.linspace(1, 0, k)[:, None] ** 2
+    pk = np.max(np.abs(x))
+    if pk > 0.97:
+        x = limiter(x, 0.95)
+    write_ogg(name, x, q=0.66)
+
+
+def body(x, S):
+    return x[: S.len]
 
 
 # ============================================================ 战斗三段
-SECTIONS = {
-    "battle1": dict(tr=0, perc="perc_half", energy=0),
-    "battle2": dict(tr=2, perc="perc_full", energy=1),
-    "battle3": dict(tr=4, perc="perc_epic", energy=2),
+SECTIONS = {   # 三段升调、越来越重；第三段提速
+    "battle1": dict(tr=0, bpm=144.0, energy=0),
+    "battle2": dict(tr=2, bpm=144.0, energy=1),
+    "battle3": dict(tr=4, bpm=150.0, energy=2),
 }
-SEC_TARGETS = {
-    # base
-    "celli": -21.0, "lowstr": -23.0, "lowbrass": -26.0, "choir_oo": -27.0, "melody_b": -21.5, "horn8vb": -27.0, "taiko_b": -26.0,
-    # drive
-    "strings": -19.5, "lead": -24.5, "bass": -20.5, "stabs": -23.5, "violas": -24.5, "violins": -24.0, "choir_ah": -24.0,
-    "gate": -27.0, "trombone": -24.0, "fx": -23.0,
-    # danger
-    "trem": -24.0, "ticks": -27.0, "drone": -28.0,
-}
-SEC_STEMS = {
-    "base": ["celli", "lowstr", "lowbrass", "choir_oo", "melody_b", "horn8vb", "taiko_b"],
-    "drive": ["strings", "lead", "bass", "stabs", "violas", "violins", "choir_ah", "gate", "trombone", "fx"],
-}
-SEC_SENDS = {"celli": 0.14, "lowbrass": 0.25, "choir_oo": 0.4, "melody_b": 0.32, "horn8vb": 0.3, "taiko_b": 0.25,
-             "strings": 0.3, "lead": 0.25, "stabs": 0.25, "violas": 0.2, "violins": 0.22, "choir_ah": 0.4, "gate": 0.15,
-             "trombone": 0.3, "fx": 0.3, "trem": 0.35, "ticks": 0.2, "drone": 0.3}
 
 
-def make_section(name, tr, perc, energy):
-    S = Song(126, 32)
-    bt = S.beat
-    kicks = perc_kicks(perc, 32)
-    ev = 0.8 + 0.1 * energy   # 跳弓力度随段落提高
-    for bar in range(32):
-        cyc = bar // 8
-        pos = 0.0
-        for chord, beats in LOOP_PROG[bar]:
-            t0 = S.at(bar, pos)
-            dur = beats * bt
-            v = [n_ + tr for n_ in VOI[chord]]
-            root = at_beat(LOOP_BASS, bar, pos) + tr
-            # ---- base：低音弦乐根音 + 低音铜管（每段首两小节渐强）+ 合唱「呜」
-            S.add("lowstr", low_strings(root, dur + 0.3), t0)
-            S.add("lowbrass", brass([root + 12, root + 19], dur + 0.25, swell=(bar % 8 == 0 and pos == 0), bright=0.8, r=0.25), t0)
-            S.add("choir_oo", choir(v, dur + 0.9, a=0.5, r=0.9, morph=False), t0)
-            # ---- drive：铜管短奏（第 1 / 3 乐段每小节两下，第 2 / 4 乐段每和弦一下）
-            if cyc in (0, 2):
-                for b_ in (0, 2.5):
-                    if b_ < beats:
-                        S.add("stabs", brass(v, 0.32, a=0.008, r=0.14, bright=1.2), S.at(bar, pos + b_))
-            else:
-                S.add("stabs", brass(v, 0.45, a=0.008, r=0.2, bright=1.1), t0)
-            # ---- drive：中提琴 16 分琶音（第 2–4 乐段）、门限合成器（第 2 / 4 乐段）、合唱「啊」（第 3 / 4 乐段）
-            if cyc >= 1:
-                idx = [0, 1, 2, 3, 2, 1, 2, 3]
-                for k in range(int(beats * 4)):
-                    S.add("violas", spic(v[idx[k % 8]], 0.95 if k % 4 == 0 else 0.6, dur=0.14), t0 + k * 0.25 * bt, pan=0.3)
-            if cyc in (1, 3):
-                S.add("gate", gated([n_ + 12 for n_ in v[:3]], dur, bt, GATE), t0)
-            if cyc >= 2:
-                S.add("choir_ah", choir(v, dur + 0.9, a=0.25, r=0.9, morph=True), t0)
-            # ---- drive：第 1 乐段小提琴 16 分音型（高八度，和弦音上下行）
-            if cyc == 0:
-                pat = [0, 1, 2, 3, 2, 3, 1, 2]
-                for k in range(int(beats * 4)):
-                    S.add("violins", spic(v[pat[k % 8]] + 12, 0.9 if k % 4 == 0 else 0.55, dur=0.12, bright=1.2), t0 + k * 0.25 * bt, pan=0.35)
-            pos += beats
-        # ---- base：大提琴跳弓 16 分固定音型（全程）
-        for s in range(16):
-            b_ = s * 0.25
-            r = at_beat(LOOP_BASS, bar, b_) + tr + 12
-            vel = (1.0 if s in SPIC_ACC else 0.55) * ev
-            S.add("celli", spic(r + SPIC_ACC.get(s, 0), vel), S.at(bar, b_) + hum(), pan=-0.15)
-        # ---- base：轻太鼓（每两小节一下）
-        if bar % 2 == 0:
-            S.add("taiko_b", taiko(0.8, 55), S.at(bar))
-        # ---- drive：合成低音八分（侧链跟打击乐层的底鼓）
-        pat = [0, 0, 0, 12, 0, 0, 12, 0] if energy == 0 else [0, 0, 12, 0, 0, 12, 0, 12]
-        for e in range(8):
-            nt = at_beat(LOOP_BASS, bar, e * 0.5) + tr + pat[e]
-            S.add("bass", bass_synth(nt, 0.5 * bt * 0.88, cut_hi=1900 + 350 * energy), S.at(bar, e * 0.5))
-    # ---- 旋律
-    top = max(n_ for n_, _ in MEL if n_ is not None) + tr
-    s_oct = 12 if top + 12 <= 89 else 0      # 第 4 乐段高八度（太高就不翻，靠配器加厚）
-    # base：第 1 乐段圆号灯火动机；第 2 / 4 乐段轻弦乐主旋律 + 圆号低八度；第 3 乐段轻弦乐 B 主题
-    S.add("melody_b", phrase(THEME + THEME2, bt, lambda f, a: syn_horn(f, a, 0.8), attack=0.05, release=0.35, transpose=tr), S.at(0))
-    for c0 in (8, 24):
-        S.add("melody_b", phrase(MEL, bt, syn_strings_soft, attack=0.06, release=0.35, transpose=tr), S.at(c0))
-        S.add("horn8vb", phrase(MEL, bt, syn_horn, attack=0.03, release=0.3, transpose=tr - 12), S.at(c0))
-    S.add("melody_b", phrase(B_MEL, bt, syn_strings_soft, attack=0.06, release=0.35, transpose=tr), S.at(16))
-    # drive：第 2 乐段弦乐同度加强；第 3 乐段弦乐 B 主题 + 长号；第 4 乐段弦乐（高八度）+ 超级锯齿
-    S.add("strings", phrase(MEL, bt, syn_strings, attack=0.05, release=0.3, transpose=tr), S.at(8))
-    S.add("strings", phrase(B_MEL, bt, syn_strings, attack=0.05, release=0.3, transpose=tr), S.at(16))
-    S.add("trombone", phrase(TROMBONE_B, bt, syn_trombone, attack=0.08, release=0.4, transpose=tr), S.at(16))
-    S.add("strings", phrase(MEL, bt, syn_strings, attack=0.04, release=0.4, transpose=tr + s_oct), S.at(24))
-    S.add("lead", phrase(MEL, bt, syn_supersaw, attack=0.01, release=0.3, transpose=tr + s_oct), S.at(24))
-    # ---- drive：段落衔接（每个乐段开头镲，结尾一小节渐强 + 倒放镲；第 4 乐段开头冲击）
-    for c in range(4):
-        S.add("fx", crash(0.9), S.at(c * 8))
-        S.add("fx", noise_riser(S.bar, 0.8), S.at(c * 8 + 7))
-        S.add("fx", rev_crash(0.7, S.bar), S.at(c * 8) - S.bar)
-    S.add("fx", impact(0.9), S.at(24))
-    stems = mixdown(S, SEC_STEMS, SEC_TARGETS, SEC_SENDS, rev=dict(secs=3.2, decay=2.5, tone=6500), rev_level=0.5,
-                    duck={"bass": 0.4, "gate": 0.45}, kicks=kicks, delays={"lead": (0.5, 0.25, 0.14)})
-    stems["danger"] = make_danger(tr)
-    return stems
-
-
-def make_danger(tr):
-    """危险层（8 小节，主音持续音上的高音颤弓小二度 + 滴答 + 低音嗡鸣；和声中性，任何和弦上都「不安」）"""
-    S = Song(126, 8, tail=3.0)
-    bt = S.beat
-    tonic = 62 + tr
-    for b in range(0, 8, 2):
-        S.add("trem", tremolo([tonic + 12, tonic + 13], S.bar * 2 + 0.3, rate=126 / 60 * 4 / 2, a=S.bar * 1.2, r=0.4), S.at(b))
-        S.add("drone", brass([tonic - 12, tonic - 11], S.bar * 2 + 0.2, swell=True, bright=0.6, r=0.3), S.at(b))
-    for s in range(8 * 16):
-        S.add("ticks", tick(tonic, 1.0 if s % 4 == 0 else 0.45), S.at(0, s * 0.25), pan=0.25 if s % 2 else -0.25)
-    out = mixdown(S, {"danger": ["trem", "ticks", "drone"]}, SEC_TARGETS, SEC_SENDS,
-                  rev=dict(secs=3.2, decay=2.5, tone=6500), rev_level=0.5)
-    return out["danger"]
-
-
-def fit_section(stems, perc_x):
-    """定整体增益：平静（base）-20.5、激战（base + pulse + drive）-15.5 LUFS；danger 比交战叠加后高约 1 LU"""
-    n = len(stems["base"])
-    p = np.tile(perc_x, (n // len(perc_x) + 1, 1))[:n]
-    stems["base"] = stems["base"] * gain_to(stems["base"], -20.5)
-    lo, hi = 0.05, 8.0
-    for _ in range(40):
-        g = np.sqrt(lo * hi)
-        if lufs(stems["base"] + p + stems["drive"] * g) > -15.5:
-            hi = g
-        else:
-            lo = g
-    stems["drive"] = stems["drive"] * np.sqrt(lo * hi)
-    combat = stems["base"] + p
-    d = stems["danger"]
-    dd = np.tile(d, (n // len(d) + 1, 1))[:n]
-    lo, hi = 0.02, 8.0
-    target = lufs(combat) + 1.0
-    for _ in range(40):
-        g = np.sqrt(lo * hi)
-        if lufs(combat + dd * g) > target:
-            hi = g
-        else:
-            lo = g
-    stems["danger"] = d * np.sqrt(lo * hi)
-    return p
-
-
-def report(name, stems, p):
-    n = len(stems["base"])
-    d = np.tile(stems["danger"], (n // len(stems["danger"]) + 1, 1))[:n]
-    states = {"平静": stems["base"], "交战": stems["base"] + p, "激战": stems["base"] + p + stems["drive"],
-              "激战+危险": stems["base"] + p + stems["drive"] + d}
-    full = states["激战+危险"]
-    print(f"[{name}] " + " / ".join(f"{k} {lufs(x):.1f}" for k, x in states.items())
-          + f" LUFS | 激战频段 {bands(states['激战'])} | 外放掉 {speaker_drop(states['激战']):.1f} LU"
-          + f" | 全叠峰值 {20 * np.log10(np.max(np.abs(full))):.1f} dBFS")
+def battle_segments(tr, bpm, energy):
+    hi = 12 if tr <= 2 else 0
+    return {
+        "A": band_song(WALL8, "wall", bpm, tr, energy, harpsi_arp=True, lead=WALL_LEAD),
+        "B": band_song(TITLE8, "chorus", bpm, tr, energy, harpsi_arp=True, base_mel=MEL, lead=MEL),
+        "C": band_song(TITLE8, "verse", bpm, tr, energy, base_mel=THEME + THEME2, lead=THEME + THEME2, lead_tr=hi),
+        "D": band_song(BREAK8, "half", bpm, tr, energy),
+        "E": band_song(BTHEME8, "wall", bpm, tr, energy, harpsi_arp=True, base_mel=B_MEL, lead=B_MEL, harm=harmonize(B_MEL, BTHEME8)),
+    }
 
 
 def make_battle(which=None):
-    percs = {}
-    for k in PERC_LUFS:
-        percs[k] = sf.read(os.path.join(OUTDIR, k + ".ogg"), always_2d=True)[0]
     for name, cfg in SECTIONS.items():
         if which and name not in which:
             continue
-        stems = make_section(name, **cfg)
-        p = fit_section(stems, percs[cfg["perc"]])
-        report(name, stems, p)
-        for k in ("base", "drive", "danger"):
-            write_ogg(f"{name}_{k}", stems[k])
+        songs = battle_segments(cfg["tr"], cfg["bpm"], cfg["energy"])
+        dz = danger_song(cfg["tr"], cfg["bpm"])
+        gains = bus_gains(list(songs.values()) + [dz])
+        irs = make_ir(3.4, 2.2, 6000)
+        lay = {s: {L: layer_mix(S, P, gains, irs) for L, P in (("base", "b_"), ("pulse", "p_"), ("drive", "d_"))} for s, S in songs.items()}
+        dang = layer_mix(dz, "z_", gains, irs)
+        cat = {L: np.concatenate([body(lay[s][L], songs[s]) for s in songs]) for L in ("base", "pulse", "drive")}
+        gb = gain_to(cat["base"], -20.5)
+        gp = solve_gain(lambda g: lufs(cat["base"] * gb + cat["pulse"] * g), -17.5)
+        gd = solve_gain(lambda g: lufs(cat["base"] * gb + cat["pulse"] * gp + cat["drive"] * g), -15.5)
+        combat = cat["base"] * gb + cat["pulse"] * gp
+        dd = np.tile(body(dang, dz), (len(combat) // dz.len + 1, 1))[: len(combat)]
+        gz = solve_gain(lambda g: lufs(combat + dd * g), lufs(combat) + 1.0)
+        full = combat + cat["drive"] * gd
+        print(f"[{name}] 平静 {lufs(cat['base'] * gb):.1f} / 交战 {lufs(combat):.1f} / 激战 {lufs(full):.1f} / +危险 {lufs(full + dd * gz):.1f} LUFS"
+              f" | 激战频段 {bands(full)} | 外放掉 {speaker_drop(full):.1f} LU | 全叠峰值 {20 * np.log10(np.max(np.abs(full + dd * gz))):.1f} dBFS")
+        for s in songs:
+            for L, g in (("base", gb), ("pulse", gp), ("drive", gd)):
+                write_seg(f"{name}_{s}_{L}", lay[s][L] * g)
+        write_seg(f"{name}_danger", dang * gz)
 
 
-# ============================================================ 中期 Boss《海嗣之主》D 弗里吉亚 140 BPM 32 小节
-# A 固定音型 → B 主题两遍 → D 半速间奏（圆号呼应主题头、铜管渐强蓄力）→ C 高潮（主题高八度）。Boss 战可能拖得很长，循环做长一点
-BOSS_MEL = [(62, 0.5), (63, 0.5), (62, 1), (70, 1), (69, 1), (67, 1.5), (65, 0.5), (63, 1), (62, 1),
-            (62, 0.5), (63, 0.5), (65, 1), (67, 1), (69, 1), (70, 2), (69, 2)]   # 旧版 Boss 主题，4 小节
-BOSS_PROG = ([["Dm"], ["Eb"], ["Dm"], ["C"], ["Dm"], ["Eb"], ["Bb"], ["A"]] * 2
-             + [["Dm"], ["Eb"], ["Dm"], ["Eb"], ["Bb"], ["C"], ["Bb"], ["A"]]
-             + [["Gm"], ["Eb"], ["Dm"], ["Dm"], ["Gm"], ["Eb"], ["Bb"], ["A"]])
-BOSS_ROOT = {"Dm": 38, "Eb": 39, "C": 36, "Bb": 34, "A": 33, "Gm": 43}
-BOSS_VOI = {"Dm": [57, 62, 65, 69], "Eb": [58, 63, 67, 70], "C": [55, 60, 64, 67], "Bb": [58, 62, 65, 70],
-            "A": [57, 61, 64, 69], "Gm": [58, 62, 67, 70]}
-
-
-def epic_drums(S, bar, fill_from=99.0, v=1.0, half=False):
-    """史诗鼓组；half=True 为半速（底鼓 1 / 3 拍后半、军鼓第 3 拍、八分镲）"""
-    if half:
-        ev = [(0, "kick", 1.0), (2.5, "kick", 0.8), (2, "snare", 1.0), (0, "taiko", 0.8)]
-        ev += [(e * 0.5, "hat", 0.7 if e % 2 else 0.4) for e in range(8)]
-    else:
-        ev = [(0, "kick", 1.0), (1.5, "kick", 0.7), (2, "kick", 0.9), (3.5, "kick", 0.65), (1, "snare", 1.0), (3, "snare", 1.0)]
-        for e in range(8):
-            ev.append((e * 0.5, "taiko" if e % 4 == 0 else "taiko_hi", 0.75 if e % 4 == 0 else 0.45))
-        for s in range(16):
-            ev.append((s * 0.25, "hat", 0.9 if s % 2 else 0.55))
-    for b_, kind, vv in ev:
-        if b_ >= fill_from:
-            continue
-        t = S.at(bar, b_)
-        if kind == "kick":
-            S.add("kick", kick(vv * v), t)
-        elif kind == "snare":
-            S.add("snare", snare(vv * v), t)
-            S.add("snare", clap(0.55 * vv * v), t + 0.004, pan=0.1)
-        elif kind == "taiko":
-            S.add("taiko", taiko(vv * v, 56), t)
-        elif kind == "taiko_hi":
-            S.add("taiko", taiko(vv * v, 82 + rng.uniform(-3, 3), 0.5), t, pan=rng.uniform(-0.3, 0.3))
-        else:
-            S.add("hats", hat(vv * v), t + hum(0.002), pan=0.35)
-    k = 0
-    b_ = fill_from
-    while b_ < 4:
-        S.add("taiko", tom(150 - 9 * k, v), S.at(bar, b_), pan=0.4 - 0.1 * k)
-        if k % 2 == 0:
-            S.add("taiko", taiko(0.6 * v, 70, 0.5), S.at(bar, b_), pan=-0.2)
-        k += 1
-        b_ += 0.25
-
-
-def epic_kicks(S, bars, half_bars=()):
-    return [S.at(b, x) for b in range(bars) for x in ((0, 2.5) if b in half_bars else (0, 1.5, 2, 3.5))]
-
-
+# ============================================================ 中期 Boss《海嗣之主》D 弗里吉亚 150 BPM：四句（riff / 主题 / 半速间奏 / 高潮）
 def make_boss():
-    S = Song(140, 32)
-    bt = S.beat
-    for bar in range(32):
-        ch = BOSS_PROG[bar][0]
-        v = BOSS_VOI[ch]
-        root = BOSS_ROOT[ch]
-        sec = bar // 8          # 0 A / 1 B / 2 D 间奏 / 3 C 高潮
-        brk = sec == 2
-        # 跳弓固定音型：弗里吉亚色彩（Dm 上第 2 个重音落在降二级）
-        for s in range(16):
-            off = SPIC_ACC.get(s, 0)
-            if s == 11 and ch == "Dm":
-                off = 1
-            S.add("celli", spic(root + 12 + off, (1.0 if s in SPIC_ACC else 0.55) * (0.7 if brk else 1.0)), S.at(bar, s * 0.25) + hum(), pan=-0.15)
-        S.add("lowstr", low_strings(root, S.bar + 0.3), S.at(bar))
-        S.add("lowbrass", brass([root + 12, root + 19], S.bar + 0.2, swell=brk, bright=0.9, r=0.2), S.at(bar))
-        if not brk:
-            for b_ in (0, 1.5, 3):
-                S.add("stabs", brass(v, 0.3, a=0.008, r=0.14, bright=1.25), S.at(bar, b_))
-            for e in range(8):
-                pat = [0, 0, 12, 0, 1 if ch == "Dm" else 0, 0, 12, 0]
-                S.add("bass", bass_synth(root + pat[e], 0.5 * bt * 0.88, cut_hi=2300), S.at(bar, e * 0.5))
-        S.add("choir", choir([n_ + 12 for n_ in v[1:]] if sec == 3 else v, S.bar + 0.8, a=0.6 if brk else 0.3, r=0.8, morph=(sec == 3)), S.at(bar))
-        if sec == 3:
-            idx = [0, 1, 2, 3, 2, 1, 2, 3]
-            for k in range(16):
-                S.add("violas", spic(v[idx[k % 8]] + 12, 0.9 if k % 4 == 0 else 0.55, dur=0.12, bright=1.2), S.at(bar, k * 0.25), pan=0.3)
-        epic_drums(S, bar, fill_from=2.0 if bar % 8 == 7 else 99.0, v=0.85 if sec == 0 else 1.0, half=brk)
-    # 主题：B 段弦乐 + 圆号低八度（两遍）；D 段圆号每两小节呼应一次主题头；C 段弦乐高八度 + 超级锯齿 + 圆号原位
-    for c0 in (8, 12):
-        S.add("melody", phrase(BOSS_MEL, bt, syn_strings, attack=0.03, release=0.25), S.at(c0))
-        S.add("horns", phrase(BOSS_MEL, bt, syn_horn, attack=0.02, release=0.25, transpose=-12), S.at(c0))
-    for c0 in (16, 18, 20, 22):
-        S.add("horns", phrase(BOSS_MEL[:5], bt, syn_horn, attack=0.03, release=0.5), S.at(c0))
-    for c0 in (24, 28):
-        S.add("melody", phrase(BOSS_MEL, bt, syn_strings, attack=0.03, release=0.3, transpose=12), S.at(c0))
-        S.add("lead", phrase(BOSS_MEL, bt, syn_supersaw, attack=0.01, release=0.25, transpose=12), S.at(c0))
-        S.add("horns", phrase(BOSS_MEL, bt, syn_horn, attack=0.02, release=0.25), S.at(c0))
-    for c in (0, 8, 24):
-        S.add("fx", crash(0.9), S.at(c))
-    S.add("fx", crash(0.5), S.at(16))
-    for c in (7, 15, 23, 31):
-        S.add("fx", noise_riser(S.bar, 0.8 if c != 23 else 1.0), S.at(c))
-    S.add("fx", rev_crash(0.8, S.bar), S.at(24) - S.bar)
-    S.add("fx", impact(0.9), S.at(24))
-    kicks = epic_kicks(S, 32, half_bars=range(16, 24))
-    stems = mixdown(S, {"all": list(S.bus.keys())},
-                    targets={"celli": -21.0, "lowstr": -24.0, "lowbrass": -24.5, "stabs": -22.5, "choir": -24.5, "bass": -20.5,
-                             "violas": -25.0, "melody": -19.0, "horns": -22.5, "lead": -24.5, "kick": -19.0, "snare": -20.0,
-                             "taiko": -20.5, "hats": -28.5, "fx": -23.0},
-                    sends={"celli": 0.14, "lowbrass": 0.25, "stabs": 0.25, "choir": 0.4, "violas": 0.2, "melody": 0.3,
-                           "horns": 0.3, "lead": 0.25, "snare": 0.14, "taiko": 0.25, "fx": 0.3},
-                    rev=dict(secs=3.0, decay=2.6, tone=6500), rev_level=0.5, duck={"bass": 0.4}, kicks=kicks,
-                    delays={"lead": (0.5, 0.25, 0.14)})
-    x = stems["all"]
-    x = limiter(x * gain_to(x, -15.0))
-    print(f"[boss] {lufs(x):.1f} LUFS | 频段 {bands(x)} | 外放掉 {speaker_drop(x):.1f} LU | 峰值 {20 * np.log10(np.max(np.abs(x))):.1f} dBFS")
-    write_ogg("boss", x)
+    bpm = 150.0
+    songs = {
+        "A": band_song(BOSS_A8, "riff", bpm, energy=1),
+        "B": band_song(BOSS_A8, "chorus", bpm, energy=1, lead=BOSS_MEL + BOSS_MEL, base_mel=[(n - 12, b) for n, b in BOSS_MEL + BOSS_MEL]),
+        "D": band_song(BOSS_D8, "half", bpm, energy=1, organ_calls=[(b, BOSS_MEL[:5]) for b in (0, 2, 4, 6)]),
+        "C": band_song(BOSS_C8, "wall", bpm, energy=2, lead=BOSS_MEL + BOSS_MEL, lead_tr=12,
+                       harm=harmonize(BOSS_MEL + BOSS_MEL, BOSS_C8)),
+    }
+    gains = bus_gains(list(songs.values()))
+    irs = make_ir(3.2, 2.4, 6000)
+    lay = {s: layer_mix(S, ("b_", "p_", "d_"), gains, irs) for s, S in songs.items()}
+    cat = np.concatenate([body(lay[s], songs[s]) for s in songs])
+    g = gain_to(cat, -15.0)
+    print(f"[boss] {lufs(cat * g):.1f} LUFS | 频段 {bands(cat * g)} | 外放掉 {speaker_drop(cat * g):.1f} LU")
+    for s in songs:
+        write_seg(f"boss_{s}_full", lay[s] * g)
 
 
-# ============================================================ 最终 Boss《深蓝之树》140 BPM 32 小节（一阶段 + 二阶段加强层）
-FINAL_PROG = TITLE_PROG + TITLE_PROG + [[("Dm", 4)], [("Eb", 4)], [("Dm", 4)], [("C", 4)],
-                                        [("Dm", 4)], [("Eb", 4)], [("Bb", 4)], [("A", 4)]] + TITLE_PROG
-FINAL_BASS = TITLE_BASS * 2 + [[(38, 4)], [(39, 4)], [(38, 4)], [(36, 4)], [(38, 4)], [(39, 4)], [(34, 4)], [(33, 4)]] + TITLE_BASS
-VOI_F = dict(VOI, Eb=[58, 63, 67, 70])
-
-
+# ============================================================ 最终 Boss《深蓝之树》D 小调 150 BPM：四句 × 两层（二阶段叠加）
 def make_final():
-    S = Song(140, 32)
-    bt = S.beat
-    for bar in range(32):
-        cyc = bar // 8
-        pos = 0.0
-        for chord, beats in FINAL_PROG[bar]:
-            t0 = S.at(bar, pos)
-            dur = beats * bt
-            v = VOI_F[chord]
-            root = at_beat(FINAL_BASS, bar, pos)
-            S.add("lowstr", low_strings(root, dur + 0.3), t0)
-            S.add("lowbrass", brass([root + 12, root + 19], dur + 0.2, bright=0.9, r=0.2), t0)
-            S.add("choir", choir(v, dur + 0.8, a=0.3, r=0.8, morph=(cyc >= 2)), t0)
-            for b_ in (0, 2.5):
-                if b_ < beats:
-                    S.add("stabs", brass(v, 0.3, a=0.008, r=0.14, bright=1.2), S.at(bar, pos + b_))
-            # 二阶段：高音合唱、小提琴 16 分、门限合成器、每拍铜管
-            S.add("p2_choir", choir([n_ + 12 for n_ in v[1:]], dur + 0.8, a=0.2, r=0.8, morph=True), t0)
-            pat = [0, 1, 2, 3, 2, 3, 1, 2]
-            for k in range(int(beats * 4)):
-                S.add("p2_violins", spic(v[pat[k % 8]] + 12, 0.9 if k % 4 == 0 else 0.55, dur=0.12, bright=1.2), t0 + k * 0.25 * bt, pan=0.35)
-            S.add("p2_gate", gated([n_ + 12 for n_ in v[:3]], dur, bt, GATE), t0)
-            for b_ in range(int(beats)):
-                S.add("p2_stabs", brass(v, 0.25, a=0.006, r=0.12, bright=1.3), S.at(bar, pos + b_))
-            pos += beats
-        for s in range(16):
-            r = at_beat(FINAL_BASS, bar, s * 0.25) + 12
-            S.add("celli", spic(r + SPIC_ACC.get(s, 0), 1.0 if s in SPIC_ACC else 0.55), S.at(bar, s * 0.25) + hum(), pan=-0.15)
-        for e in range(8):
-            nt = at_beat(FINAL_BASS, bar, e * 0.5) + [0, 0, 12, 0, 0, 12, 0, 12][e]
-            S.add("bass", bass_synth(nt, 0.5 * bt * 0.88, cut_hi=2400), S.at(bar, e * 0.5))
-        epic_drums(S, bar, fill_from=2.0 if bar % 8 == 7 else 99.0)
-        for e in range(8):   # 二阶段：太鼓八分加倍
-            S.add("p2_taiko", taiko(0.55 if e % 2 else 0.8, 64 if e % 2 else 52, 0.6), S.at(bar, e * 0.5 + 0.25), pan=0.2 if e % 2 else -0.2)
-    # 旋律：灯火动机（圆号）→ 标题主旋律（弦乐 + 圆号低八度）→ Boss 主题（铜管，与我方旋律对峙）→ 标题主旋律高潮
-    S.add("horns", phrase(THEME + THEME2, bt, syn_horn, attack=0.03, release=0.3), S.at(0))
-    S.add("melody", phrase(MEL, bt, syn_strings, attack=0.04, release=0.3), S.at(8))
-    S.add("horns", phrase(MEL, bt, syn_horn, attack=0.03, release=0.3, transpose=-12), S.at(8))
-    for c0 in (16, 20):
-        S.add("horns", phrase(BOSS_MEL, bt, syn_horn, attack=0.02, release=0.25), S.at(c0))
-        S.add("melody", phrase(BOSS_MEL, bt, syn_strings, attack=0.03, release=0.25, transpose=12), S.at(c0))
-    S.add("melody", phrase(MEL, bt, syn_strings, attack=0.04, release=0.4, transpose=12), S.at(24))
-    S.add("p2_lead", phrase(MEL, bt, syn_supersaw, attack=0.01, release=0.3, transpose=12), S.at(24))
-    S.add("horns", phrase(MEL, bt, syn_horn, attack=0.03, release=0.3), S.at(24))
-    for c in range(4):
-        S.add("fx", crash(0.9), S.at(c * 8))
-        S.add("fx", noise_riser(S.bar, 0.8), S.at(c * 8 + 7))
-    S.add("fx", impact(0.9), S.at(24))
-    kicks = epic_kicks(S, 32)
-    base_names = [k for k in S.bus if not k.startswith("p2_")]
-    p2_names = [k for k in S.bus if k.startswith("p2_")]
-    targets = {"celli": -21.0, "lowstr": -24.0, "lowbrass": -24.5, "stabs": -23.0, "choir": -24.0, "bass": -20.5, "melody": -19.0,
-               "horns": -22.0, "kick": -19.0, "snare": -20.0, "taiko": -20.5, "hats": -28.5, "fx": -23.0,
-               "p2_choir": -23.5, "p2_violins": -24.5, "p2_gate": -26.5, "p2_stabs": -24.0, "p2_taiko": -22.5, "p2_lead": -23.5}
-    sends = {"celli": 0.14, "lowbrass": 0.25, "stabs": 0.25, "choir": 0.4, "melody": 0.3, "horns": 0.3, "snare": 0.14, "taiko": 0.25,
-             "fx": 0.3, "p2_choir": 0.4, "p2_violins": 0.2, "p2_gate": 0.15, "p2_stabs": 0.25, "p2_taiko": 0.25, "p2_lead": 0.25}
-    stems = mixdown(S, {"final": base_names, "final_p2": p2_names}, targets, sends, rev=dict(secs=3.0, decay=2.6, tone=6500),
-                    rev_level=0.5, duck={"bass": 0.4, "p2_gate": 0.45}, kicks=kicks, delays={"p2_lead": (0.5, 0.25, 0.14)})
-    a = stems["final"]
-    g = gain_to(a, -15.0)
-    a = a * g
-    b = stems["final_p2"] * g
-    lo, hi = 0.05, 8.0     # 二阶段叠上去约 -13.5
-    for _ in range(40):
-        m = np.sqrt(lo * hi)
-        if lufs(a + b * m) > -13.5:
-            hi = m
-        else:
-            lo = m
-    b = b * np.sqrt(lo * hi)
-    print(f"[final] 一阶段 {lufs(a):.1f} / 二阶段 {lufs(a + b):.1f} LUFS | 频段 {bands(a + b)} | 外放掉 {speaker_drop(a + b):.1f} LU"
-          f" | 峰值 {20 * np.log10(np.max(np.abs(a + b))):.1f} dBFS")
-    write_ogg("final", a)
-    write_ogg("final_p2", b)
-
-
-# ============================================================ 换段提示（叠加短乐句，不循环）
-def make_cues():
-    bar = 240 / 126
-    n = int(SR * bar)
-    x = np.zeros((n, 2))
-    x += sweep(bar, 50, 86, 1.0)
-    x += noise_riser(bar, 0.9)
-    x += rev_crash(0.8, bar)
-    k = int(0.004 * SR)
-    x[-k:] *= np.linspace(1, 0, k)[:, None]
-    x *= gain_to(x, -19.0)
-    write_ogg("cue_rise", x)
-    n = int(SR * 3.2)
-    y = np.zeros((n, 2))
-    imp = st(impact(1.0))
-    y[: len(imp)] += imp
-    y += crash(0.9, 3.2)
-    irs = make_ir(2.8, 2.6, 6500)
-    y = y + reverb_wet(hp(y, 190), irs) * 0.3
-    y *= env(n, 0.001, 0.8)[:, None]
-    y *= gain_to(y, -18.0)
-    write_ogg("cue_hit", y)
+    bpm = 150.0
+    songs = {
+        "A": band_song(TITLE8, "chorus", bpm, energy=1, harpsi_arp=True, lead=THEME + THEME2, lead_tr=12, lead_bus="p_lead"),
+        "B": band_song(TITLE8, "chorus", bpm, energy=1, harpsi_arp=True, lead=MEL, lead_bus="p_lead"),
+        "C": band_song(BOSS_A8, "wall", bpm, energy=2, lead=BOSS_MEL + BOSS_MEL, lead_tr=12, lead_bus="p_lead"),
+        "D": band_song(TITLE8, "wall", bpm, energy=2, lead=MEL, lead_tr=12, lead_bus="p_lead", harm=harmonize(MEL, TITLE8)),
+    }
+    gains = bus_gains(list(songs.values()))
+    irs = make_ir(3.2, 2.4, 6000)
+    lay = {s: {"p1": layer_mix(S, ("b_", "p_"), gains, irs), "p2": layer_mix(S, "d_", gains, irs)} for s, S in songs.items()}
+    c1 = np.concatenate([body(lay[s]["p1"], songs[s]) for s in songs])
+    c2 = np.concatenate([body(lay[s]["p2"], songs[s]) for s in songs])
+    g1 = gain_to(c1, -15.0)
+    g2 = solve_gain(lambda g: lufs(c1 * g1 + c2 * g), -13.5)
+    print(f"[final] 一阶段 {lufs(c1 * g1):.1f} / 二阶段 {lufs(c1 * g1 + c2 * g2):.1f} LUFS | 频段 {bands(c1 * g1 + c2 * g2)}"
+          f" | 外放掉 {speaker_drop(c1 * g1 + c2 * g2):.1f} LU")
+    for s in songs:
+        write_seg(f"final_{s}_p1", lay[s]["p1"] * g1)
+        write_seg(f"final_{s}_p2", lay[s]["p2"] * g2)
 
 
 if __name__ == "__main__":
-    which = sys.argv[1:] or ["perc", "battle", "boss", "final", "cues"]
+    which = sys.argv[1:] or ["battle", "boss", "final"]
     for w in which:
         if w.startswith("battle") and w != "battle":
             make_battle([w])

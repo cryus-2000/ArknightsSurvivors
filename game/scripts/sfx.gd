@@ -37,47 +37,63 @@ var next := 0
 var last := {}
 var op_limit := {}         # op_<干员>_<类别> -> 最短间隔（由 OP_LIMIT 展开）
 var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟时间，不能碰全局随机流（否则 --seed 不可复现）
-## 音乐（docs/21 v2.0）：多曲目。战斗曲三段各四层——base 平静 / pulse 交战（打击乐，三段各用一种律动）/
-## drive 激战（全奏）/ danger 危险——同速同步开播；层的进出与换段都落在小节线上。最终 Boss 两层（二阶段叠加）
+## 音乐（docs/21 v3）。两种曲目：
+## - 整首循环（MUSIC）：标题 / 开场 / 商人 / 结算循环，一首一个文件
+## - 乐句式（SEQ）：战斗三段 / 中期 Boss / 最终 Boss。8 小节一句，每句结束时按局势挑下一句（不紧挨着重复），无限不重样；
+##   每句若干层同步开播（战斗：base 平静 / pulse 交战 / drive 激战 + danger 危险；最终 Boss：p1 / p2 二阶段）。
+##   两组播放器轮流：下一句在另一组里开播，正文按音频时钟精确接在上一句末尾，上一句的余音在原来那组里响完
 const MUSIC := {
 	"title": ["title"],
 	"opening": ["opening"],
-	"battle1": ["battle1_base", "perc_half", "battle1_drive", "battle1_danger"],
-	"battle2": ["battle2_base", "perc_full", "battle2_drive", "battle2_danger"],
-	"battle3": ["battle3_base", "perc_epic", "battle3_drive", "battle3_danger"],
-	"boss": ["boss"],
-	"final": ["final", "final_p2"],
 	"shop": ["shop"],
 	"win_loop": ["win_loop"],
 	"lose_loop": ["lose_loop"],
 }
-## 拍速：这些曲目的每个文件都是整小节的精确采样数（tools/gen_music_battle.py），按第一层的播放位置算小节线即可对拍
-const TEMPO := {"battle1": 126.0, "battle2": 126.0, "battle3": 126.0, "boss": 140.0, "final": 140.0}
+const SEQ := {
+	"battle1": {"bpm": 144.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
+	"battle2": {"bpm": 144.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
+	"battle3": {"bpm": 150.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
+	"boss": {"bpm": 150.0, "layers": ["full"], "danger": false, "kind": "boss"},
+	"final": {"bpm": 150.0, "layers": ["p1", "p2"], "danger": false, "kind": "final"},
+}
+## 句与句的衔接权重（没写的不接，自己不接自己）。战斗：A 和弦墙 / B 标题主旋律 / C 灯火动机 / D 半速间奏 / E B 主题；
+## Boss：A riff / B 主题 / D 半速间奏 / C 高潮；最终 Boss：A 灯火动机 / B 标题主旋律 / C Boss 主题对峙 / D 主旋律高潮
+const SEQ_NEXT := {
+	"battle": {"A": {"B": 3.0, "C": 2.0, "D": 1.0, "E": 2.0}, "B": {"A": 3.0, "C": 1.0, "D": 2.0, "E": 2.0},
+		"C": {"A": 2.0, "B": 3.0, "E": 1.0}, "D": {"A": 2.0, "B": 1.0, "E": 3.0}, "E": {"A": 3.0, "C": 2.0, "D": 1.0}},
+	"boss": {"A": {"B": 3.0, "C": 1.0}, "B": {"D": 2.0, "C": 2.0, "A": 1.0}, "D": {"C": 3.0, "B": 1.0},
+		"C": {"A": 2.0, "B": 2.0, "D": 1.0}},
+	"final": {"A": {"B": 3.0, "C": 1.0}, "B": {"C": 2.0, "D": 2.0}, "C": {"D": 3.0, "A": 1.0},
+		"D": {"A": 2.0, "B": 1.0, "C": 1.0}},
+}
+## 战斗强度再乘一遍：平静多给灯火动机，激战多给副歌 / 间奏 / B 主题
+const SEQ_BIAS := [{"C": 3.0, "A": 1.5, "D": 0.3, "E": 0.6}, {}, {"B": 1.5, "D": 1.5, "E": 1.8, "C": 0.4}]
+const SEG_PRE := 0.1         # 乐句文件开头的静音预留（与 tools/gen_music_battle.py 的 PRE 一致）
+const SEG_BARS := 8
 ## 不循环的曲目（播完即停，之后由游戏选下一首）
 const ONESHOT := ["opening"]
-## 叠加短乐句，叠在当前音乐之上、不打断曲目：Boss 登场 / 击破，战斗换段的上行扫频 / 落点冲击
-const OVERLAYS := ["boss_in", "boss_down", "cue_rise", "cue_hit"]
+## 叠加短乐句，叠在当前音乐之上、不打断曲目：Boss 登场 / 击破
+const OVERLAYS := ["boss_in", "boss_down"]
 const BOSS_HIT := 0.75       # boss_in 里太鼓重击的时刻：Boss 曲从这里进
 const BAR_AHEAD := 0.1       # 分层提前这么多秒开始淡入，保证小节线上的重拍是满音量
 const STEM_IN := 10.0        # 分层淡入 / 淡出速度（每秒）：进层干脆，退层用两秒慢慢收
 const STEM_OUT := 0.5
-var groups := {}          # 曲目 -> Array[AudioStreamPlayer]
+var groups := {}          # 整首曲目 -> Array[AudioStreamPlayer]
+var seq := {}             # 乐句式曲目 -> {segs 句 -> [各层流], danger, decks [两组播放器], cur 当前组, seg 当前句, hist 最近两句, t0, len 句长, bpm, kind}
 var group_vol := {}       # 曲目 -> 当前整体音量（0~1）
 var group_rate := {}      # 曲目 -> [淡入, 淡出] 速度（每秒）
-var stem_on := {}         # 曲目 -> 各层当前开关（小节线上才从游戏请求同步过来）
-var stem_vol := {}        # 曲目 -> 各层实际音量
+var stem_on := {}         # 乐句式曲目 -> 各层当前开关（小节线上才从游戏请求同步过来；战斗最后一层是危险层）
+var stem_vol := {}        # 乐句式曲目 -> 各层实际音量
 var cur_track := ""
 var battle_lv := 0        # 游戏请求：0 平静 / 1 交战 / 2 激战
 var battle_danger := false
 var final_p2 := false     # 游戏请求：最终 Boss 二阶段
-var clock_t0 := 0.0       # 当前曲目第 0 拍的时刻（秒，墙钟；拿不到播放位置时用）
-var clock_beat := -1      # 已处理到的拍号
-var clock_loops := 0      # 当前曲目第一层已经循环的圈数（算不取模的音乐位置）
-var clock_last := 0.0
-var pending := {}         # 等着开播的曲目：{track, fade_in, out} + 战斗换段 {target 音乐位置, cue, rise} / 其余 {at 墙钟时刻}
+var clock_beat := -1      # 当前句已处理到的拍号
+var pending := {}         # 等着开播的曲目：{track, boundary}（战斗换段：当前句结束时接新段第一句）/ {track, at, fade_in, out}（Boss 进出，墙钟）
+var music_rng := RandomNumberGenerator.new()   # 挑下一句用，不碰全局随机流
 var stinger: AudioStreamPlayer
 var after_stinger := ""      # 结算短乐句播完后接续的循环曲目
-var overlay_pl: Array = []   # 叠加短乐句播放器（两个，换段扫频与 Boss 登场可以同时响）
+var overlay_pl: Array = []   # 叠加短乐句播放器（两个，Boss 登场与击破可以同时响）
 var overlays := {}
 var overlay_t := {}          # 叠加短乐句 -> 本次开播时它第 0 秒对应的时刻
 var music: AudioStreamPlayer               # 兼容旧引用：指向当前曲目的第一层
@@ -143,11 +159,9 @@ func _ready() -> void:
 		groups[tname] = arr
 		group_vol[tname] = 0.0
 		group_rate[tname] = [0.8, 0.6]
-		stem_on[tname] = []
-		stem_vol[tname] = []
-		for i in arr.size():
-			stem_on[tname].append(1.0)
-			stem_vol[tname].append(1.0)
+	for tname in SEQ:
+		_seq_init(tname)
+	music_rng.randomize()
 	stinger = AudioStreamPlayer.new()
 	stinger.bus = "Music"
 	add_child(stinger)
@@ -200,29 +214,153 @@ func _now() -> float:
 	return Time.get_ticks_usec() / 1000000.0
 
 
-## 当前曲目从第 0 拍算起的音乐位置（秒，不取模）：取第一层的播放位置（音频时钟，掉帧 / 音频欠载也不会错拍），
-## 循环绕回时累加圈数；拿不到播放位置时（刚开播、网页版采样播放）退回墙钟
-func _music_pos() -> float:
-	var pl: AudioStreamPlayer = groups[cur_track][0]
-	var pos := pl.get_playback_position()
-	if pos <= 0.0:
-		return _now() - clock_t0
-	pos += AudioServer.get_time_since_last_mix()
-	if pos < clock_last - 1.0:
-		clock_loops += 1
-	clock_last = pos
-	return clock_loops * (pl.stream as AudioStream).get_length() + pos
+## 乐句式曲目：载入每句每层的流（不循环），建两组播放器（各层 + 危险层）
+func _seq_init(tname: String) -> void:
+	var cfg: Dictionary = SEQ[tname]
+	var q := {"segs": {}, "danger": null, "decks": [], "cur": 0, "seg": "", "hist": [], "t0": 0.0,
+		"bpm": float(cfg.bpm), "len": SEG_BARS * 240.0 / float(cfg.bpm), "kind": cfg.kind}
+	for sname in SEQ_NEXT[cfg.kind]:
+		var arr: Array = []
+		for layer in cfg.layers:
+			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s_%s_%s.ogg" % [tname, sname, layer])
+			if st != null:
+				st.loop = false
+			arr.append(st)
+		q.segs[sname] = arr
+	if cfg.danger:
+		var dz: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s_danger.ogg" % tname)
+		if dz != null:
+			dz.loop = false
+		q.danger = dz
+	var n: int = cfg.layers.size() + (1 if cfg.danger else 0)
+	for d in 2:
+		var deck: Array = []
+		for i in n:
+			var pl := AudioStreamPlayer.new()
+			pl.bus = "Music"
+			pl.volume_db = -80.0
+			add_child(pl)
+			deck.append(pl)
+		q.decks.append(deck)
+	seq[tname] = q
+	group_vol[tname] = 0.0
+	group_rate[tname] = [0.8, 0.6]
+	stem_on[tname] = []
+	stem_vol[tname] = []
+	for i in n:
+		stem_on[tname].append(0.0)
+		stem_vol[tname].append(0.0)
+
+
+## 在第 deck 组播放器里从 from 秒开播第 s 句（各层 + 危险层同一时刻开，保证同步）
+func _seq_play(tname: String, s: String, deck: int, from: float) -> void:
+	var q: Dictionary = seq[tname]
+	var pls: Array = q.decks[deck]
+	var sts: Array = q.segs[s]
+	for i in pls.size():
+		var pl: AudioStreamPlayer = pls[i]
+		pl.stream = sts[i] if i < sts.size() else q.danger
+		if pl.stream != null:
+			pl.volume_db = linear_to_db(maxf(float(group_vol[tname]) * float(stem_vol[tname][i]), 0.0001)) + vol_target
+			pl.play(from)
+	q.cur = deck
+	q.seg = s
+	q.hist.push_front(s)
+	if q.hist.size() > 2:
+		q.hist.pop_back()
+	q.t0 = _now() - (from - SEG_PRE)
+	music = pls[0]
+
+
+## 挑下一句：衔接权重 × 战斗强度偏好，上上句再打个折（避免 A B A B 来回）
+func _seq_next(tname: String) -> String:
+	var q: Dictionary = seq[tname]
+	var table: Dictionary = SEQ_NEXT[q.kind].get(q.seg, {})
+	var bias: Dictionary = SEQ_BIAS[clampi(battle_lv, 0, 2)] if q.kind == "battle" else {}
+	var w := {}
+	var total := 0.0
+	for sname in table:
+		var v: float = float(table[sname]) * float(bias.get(sname, 1.0))
+		if q.hist.size() > 1 and q.hist[1] == sname:
+			v *= 0.4
+		w[sname] = v
+		total += v
+	var r := music_rng.randf() * total
+	for sname in w:
+		r -= float(w[sname])
+		if r <= 0.0:
+			return sname
+	return q.seg if w.is_empty() else w.keys()[-1]
+
+
+## 一段的第一句：平静时从灯火动机进，其余从 A 进
+func _seq_first(tname: String) -> String:
+	return "C" if (SEQ[tname].kind == "battle" and battle_lv == 0) else "A"
+
+
+func _seq_stop(tname: String) -> void:
+	for deck in seq[tname].decks:
+		for pl in deck:
+			pl.stop()
+
+
+## 当前句的播放位置（秒，含开头预留）：取第一层的播放位置（音频时钟，掉帧也不会错拍）；
+## 拿不到时（刚开播、网页版采样播放）退回墙钟
+func _seq_pos(tname: String) -> float:
+	var q: Dictionary = seq[tname]
+	var pl: AudioStreamPlayer = q.decks[q.cur][0]
+	var p := pl.get_playback_position()
+	if p <= 0.0:
+		return _now() - float(q.t0) + SEG_PRE
+	return p + AudioServer.get_time_since_last_mix()
+
+
+## 乐句式曲目每帧：句尾接下一句（或换段），小节线上同步分层
+func _seq_tick(tname: String) -> void:
+	var q: Dictionary = seq[tname]
+	var pos := _seq_pos(tname)
+	# 现在调 play() 会从下一次混音开播，那时本句在 pos + 距下次混音；一旦够到句长就开播下一句，
+	# 从「那一刻 - 句长」秒开始——前面是 0.1 秒预留，正文正好接在本句末尾
+	var at_mix := pos + AudioServer.get_time_to_next_mix()
+	if at_mix >= float(q.len):
+		var from := at_mix - float(q.len)
+		if pending.get("boundary", false) and seq.has(pending.track):
+			var nt: String = pending.track
+			pending = {}
+			group_rate[tname][1] = 0.6
+			cur_track = nt
+			group_rate[nt] = [0.8, 0.6]
+			group_vol[nt] = 1.0
+			for i in stem_on[nt].size():
+				stem_on[nt][i] = _stem_want(nt, i)
+				stem_vol[nt][i] = stem_on[nt][i]
+			seq[nt].hist = []
+			_seq_stop(nt)
+			_seq_play(nt, _seq_first(nt), 0, from)
+		else:
+			_seq_play(tname, _seq_next(tname), 1 - int(q.cur), from)
+		clock_beat = -1
+		return
+	# 小节线：把游戏请求的分层同步过来（进层落在小节线上、危险层可以按拍进；退层也等小节线）
+	var beat := int(floor((pos - SEG_PRE + BAR_AHEAD) * float(q.bpm) / 60.0))
+	if beat != clock_beat:
+		clock_beat = beat
+		var on: Array = stem_on[tname]
+		for i in on.size():
+			var w := _stem_want(tname, i)
+			if w != on[i] and (beat % 4 == 0 or (i == 3 and w > on[i])):
+				on[i] = w
 
 
 ## 切换曲目（游戏每帧都会调用，同一曲目重复调用没有副作用）：
-## - 战斗换段：等下一个小节线（至少 0.6 秒后），上行扫频正好收在小节线上，落点冲击的同时新段从第 0 小节进，旧段 0.3 秒收掉
+## - 战斗换段：当前句唱完、下一句的位置直接接新段的第一句（新段句首的镲就是段落感，不另加提示音）
 ## - Boss 登场：旧曲马上淡出，Boss 曲落在 boss_in 的太鼓重击上
 ## - Boss 倒下回到战斗：先让击破乐句响 1.2 秒，战斗曲再从头缓缓回来
 ## - 其余：新曲从头淡入，旧曲淡出后停止
 func play_music(tname: String) -> void:
 	if tname != "title":
 		driven_t = 0.0
-	if not groups.has(tname) or groups[tname].is_empty():
+	if not seq.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
 		return
 	if tname == cur_track:
 		pending = {}
@@ -233,14 +371,8 @@ func play_music(tname: String) -> void:
 	stinger.stop()
 	var now := _now()
 	var old := cur_track
-	if old.begins_with("battle") and tname.begins_with("battle") and groups[old][0].playing:
-		# 目标定在音乐位置上（音频时钟），掉帧 / 音频欠载时也落在真正的小节线上
-		var bar := 240.0 / float(TEMPO[old])
-		var pos := _music_pos()
-		var wait := bar - fposmod(pos, bar)
-		if wait < 0.6:
-			wait += bar
-		pending = {"track": tname, "target": pos + wait, "fade_in": 60.0, "out": 3.0, "cue": "cue_hit", "rise": true}
+	if seq.has(old) and old.begins_with("battle") and tname.begins_with("battle"):
+		pending = {"track": tname, "boundary": true}
 	elif (tname == "boss" or tname == "final") and now - float(overlay_t.get("boss_in", -99.0)) < BOSS_HIT:
 		pending = {"track": tname, "at": float(overlay_t["boss_in"]) + BOSS_HIT, "fade_in": 8.0, "out": 1.5}
 		_release(1.5)
@@ -252,22 +384,24 @@ func play_music(tname: String) -> void:
 		_start(tname, 0.8, 0.6)
 
 
-## 开播一首（各层同一时刻从 from 秒开始，保证同步）；旧曲按 old_out 淡出
+## 开播一首（乐句式从第一句开始；各层同一时刻开，保证同步）；旧曲按 old_out 淡出
 func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 	if cur_track != "" and cur_track != tname:
 		group_rate[cur_track][1] = old_out
 	cur_track = tname
-	clock_t0 = _now() - from
 	clock_beat = -1
-	clock_loops = 0
-	clock_last = from
 	group_rate[tname] = [fade_in, 0.6]
-	for i in groups[tname].size():
-		stem_on[tname][i] = _stem_want(tname, i)
-		stem_vol[tname][i] = stem_on[tname][i]
-	for pl in groups[tname]:
-		pl.play(from)
-	music = groups[tname][0]
+	if seq.has(tname):
+		for i in stem_on[tname].size():
+			stem_on[tname][i] = _stem_want(tname, i)
+			stem_vol[tname][i] = stem_on[tname][i]
+		seq[tname].hist = []
+		_seq_stop(tname)
+		_seq_play(tname, _seq_first(tname), 0, SEG_PRE + from)
+	else:
+		for pl in groups[tname]:
+			pl.play(from)
+		music = groups[tname][0]
 
 
 ## 当前曲目提前放手（淡出），等 pending 里的下一首
@@ -312,7 +446,7 @@ func play_stinger(sname: String) -> void:
 	stinger.play()
 
 
-## 叠加短乐句：不改变当前曲目，直接叠在音乐之上（Boss 登场 / 击破、换段提示）；from 为从第几秒开始
+## 叠加短乐句：不改变当前曲目，直接叠在音乐之上（Boss 登场 / 击破）；from 为从第几秒开始
 func play_overlay(oname: String, gain_db := 2.0, from := 0.0) -> void:
 	if not overlays.has(oname):
 		return
@@ -329,9 +463,11 @@ func play_overlay(oname: String, gain_db := 2.0, from := 0.0) -> void:
 
 ## 某曲目是否正是当前曲目且仍在播放（用于等待不循环曲目播完）
 func track_playing(tname: String) -> bool:
-	if cur_track != tname or not groups.has(tname) or groups[tname].is_empty():
+	if cur_track != tname:
 		return false
-	return (groups[tname][0] as AudioStreamPlayer).playing
+	if seq.has(tname):
+		return true
+	return not groups[tname].is_empty() and (groups[tname][0] as AudioStreamPlayer).playing
 
 
 var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
@@ -421,48 +557,38 @@ func _process(delta: float) -> void:
 		battle_lv = 1
 		play_music("battle1")
 	var now := _now()
-	# 等着开播的曲目。战斗换段按当前曲目的音频位置倒数：扫频正好收在小节线上，到点落点冲击 + 新段开播，
-	# 迟到的那几毫秒从新段曲中补上保持对拍；其余（Boss 进出）按墙钟
-	if pending.has("target") and TEMPO.has(cur_track):
-		var left := float(pending.target) - _music_pos()
-		if pending.has("rise") and overlays.has("cue_rise"):
-			var rl: float = (overlays["cue_rise"] as AudioStream).get_length()
-			if left <= rl:
-				play_overlay("cue_rise", 0.0, rl - maxf(left, 0.0))
-				pending.erase("rise")
-		if left <= 0.0:
-			var p := pending
-			pending = {}
-			play_overlay(p.cue)
-			_start(p.track, float(p.fade_in), float(p.out), -left)
-	elif pending.has("at") and now >= float(pending.at):
+	# 等着开播的曲目（Boss 进出，按墙钟）；迟到的那几毫秒从曲中补上
+	if pending.has("at") and now >= float(pending.at):
 		var p := pending
 		pending = {}
 		_start(p.track, float(p.fade_in), float(p.out), now - float(p.at))
-	# 小节线：把游戏请求的分层同步到当前曲目（进层落在小节线上、危险层可以按拍进；退层也等小节线）
-	if TEMPO.has(cur_track):
-		var beat := int(floor((_music_pos() + BAR_AHEAD) * float(TEMPO[cur_track]) / 60.0))
-		if beat != clock_beat:
-			clock_beat = beat
-			var on: Array = stem_on[cur_track]
-			for i in on.size():
-				var w := _stem_want(cur_track, i)
-				if w != on[i] and (beat % 4 == 0 or (i == 3 and w > on[i])):
-					on[i] = w
+	if seq.has(cur_track):
+		_seq_tick(cur_track)
 	for tname in groups:
 		var want := 1.0 if tname == cur_track else 0.0
 		var rate: Array = group_rate[tname]
 		var gv: float = move_toward(group_vol[tname], want, delta * (rate[0] if want > group_vol[tname] else rate[1]))
 		group_vol[tname] = gv
-		var arr: Array = groups[tname]
-		var on: Array = stem_on[tname]
-		var sv: Array = stem_vol[tname]
-		for i in arr.size():
-			var pl: AudioStreamPlayer = arr[i]
-			sv[i] = move_toward(sv[i], on[i], delta * (STEM_IN if on[i] > sv[i] else STEM_OUT))
-			pl.volume_db = linear_to_db(maxf(gv * sv[i], 0.0001)) + vol_target
+		for pl in groups[tname]:
+			pl.volume_db = linear_to_db(maxf(gv, 0.0001)) + vol_target
 			if gv <= 0.0 and pl.playing:
 				pl.stop()
+	for tname in seq:
+		var want := 1.0 if tname == cur_track else 0.0
+		var rate: Array = group_rate[tname]
+		var gv: float = move_toward(group_vol[tname], want, delta * (rate[0] if want > group_vol[tname] else rate[1]))
+		group_vol[tname] = gv
+		var on: Array = stem_on[tname]
+		var sv: Array = stem_vol[tname]
+		for i in sv.size():
+			sv[i] = move_toward(sv[i], on[i], delta * (STEM_IN if on[i] > sv[i] else STEM_OUT))
+		for deck in seq[tname].decks:
+			for i in deck.size():
+				var pl: AudioStreamPlayer = deck[i]
+				if pl.playing:
+					pl.volume_db = linear_to_db(maxf(gv * sv[i], 0.0001)) + vol_target
+					if gv <= 0.0:
+						pl.stop()
 	if stinger.playing:
 		stinger.volume_db = vol_target + 4.0
 	elif after_stinger != "":
