@@ -57,6 +57,10 @@ func update(dt: float) -> void:
 		e.flash -= dt
 		e.jhit -= dt
 		e.stun -= dt / g.control_mult
+		# 韧性钩子（docs/38 §1.5）：白名单 Boss 身上的眩晕一定来自玩家一方（Boss 自己的硬直写 break_t），换成韧性后清零，不会被锁死
+		if e.boss and e.stun > 0.0 and g.combat.tough_on(e):
+			g.combat.add_tough(e, e.stun * Bal.v("boss/tough_per_stun", 5.0))
+			e.stun = 0.0
 		e.squash -= dt
 		e.slow -= dt / g.control_mult
 		if e.get("wind", 0.0) > 0.0:
@@ -104,7 +108,7 @@ func update(dt: float) -> void:
 				e.dead = true
 			continue
 		if dist > 1300.0 and not e.boss:
-			if e.ai == "static":
+			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
 				e.pos = g.spawner.edge_pos()
@@ -127,7 +131,7 @@ func update(dt: float) -> void:
 		# ---- 移动
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
-		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0:
+		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
@@ -218,7 +222,8 @@ func update(dt: float) -> void:
 				e.burst_cd = 1.2
 
 		# ---- 接触伤害
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
+		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue
@@ -279,8 +284,10 @@ func update_ebullets(dt: float) -> void:
 		b.pos += b.vel * dt
 		b.life -= dt
 		var hitp: bool = b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
-		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32:
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 10.0, "seed": g.rng.randf() * 100.0, "boss": b.get("boss", false)})
+		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
+			var bm: bool = b.get("boss", false)
+			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
+			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 6.0 if bm else 10.0, "seed": g.rng.randf() * 100.0, "boss": bm})
 		if hitp:
 			b.life = 0.0
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
@@ -289,6 +296,19 @@ func update_ebullets(dt: float) -> void:
 			g.in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
 			if g.invuln <= 0.0:
 				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
+
+
+## Boss 溟痕上限（docs/38 §1.7）：同时最多 12 块；场地冻结后不生成在离圈边 120 以内
+func _boss_mire_ok(b: Dictionary) -> bool:
+	if not b.get("boss", false):
+		return true
+	var n := 0
+	for m in g.mires:
+		if m.get("boss", false):
+			n += 1
+	if n >= int(Bal.v("boss/mire_max", 12.0)):
+		return false
+	return not g.zone_frozen or b.pos.distance_to(g.zone_next_c) < g.zone_next_r - 120.0
 
 
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
@@ -318,7 +338,9 @@ func update_status(dt: float) -> void:
 		mire_tick -= dt
 		if mire_tick <= 0.0:
 			mire_tick = 0.5
-			var md: float = 3.0 + g.max_hp * 0.015
+			# 自然溟痕每跳（0.5 秒）：enemy/mire_flat + 最大生命 × enemy/mire_pct，再乘难度修正 mire_dmg（缺省 3 + 1.5%）；
+			# 只踩在 Boss 溟痕里时每跳 boss/mire_pct 1%（每秒 2%，不再有固定 +3，docs/38 §1.7）
+			var md: float = ((Bal.v("enemy/mire_flat", 3.0) + g.max_hp * Bal.v("enemy/mire_pct", 0.015)) * float(g.dmod.get("mire_dmg", 1.0))) if mire_nat else g.max_hp * Bal.v("boss/mire_pct", 0.01)
 			md = g.combat.lose_hp(md, "mire", not mire_nat)
 			if md >= 1.0:   # Boss 溟痕这一跳被持续伤害上限截到不足 1 点时不闪、不飘「-0」（自然溟痕每跳 ≥3，照旧）
 				g.red_flash = maxf(g.red_flash, 0.08)

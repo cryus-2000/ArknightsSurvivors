@@ -253,11 +253,11 @@ func draw_event_bg(vs: Vector2) -> void:
 	for q in pts:
 		tp.append(p0 + q)
 		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
-	g.panel_fg.draw_colored_polygon(tp, Color.WHITE, uv, ink_grad())
+	UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, ink_grad())
 	for b in art.blobs:
-		g.panel_fg.draw_colored_polygon(offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
+		UI.fill_poly(g.panel_fg, offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
 	for s in art.streaks:
-		g.panel_fg.draw_colored_polygon(offset_poly(s, p0, tp), Color(0.08, 0.08, 0.085, 0.35))
+		UI.fill_poly(g.panel_fg, offset_poly(s, p0, tp), Color(0.08, 0.08, 0.085, 0.35))
 	for d in art.dots:
 		g.panel_fg.draw_circle(p0 + d[0], d[1], Color(0.047, 0.047, 0.05, 0.55))
 	# 蓝色微光 + 海嗣祭坛（彩色）
@@ -552,12 +552,12 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var sp := PackedVector2Array()
 	for q in shape:
 		sp.append(base + Vector2(q.x * w / 596.0, q.y * card.size.y / 100.0))
-	card.draw_colored_polygon(sp, Color(0.925, 0.91, 0.882, 0.14) if hov else Color(0.07, 0.07, 0.075, 0.9))
+	UI.fill_poly(card, sp, Color(0.925, 0.91, 0.882, 0.14) if hov else Color(0.07, 0.07, 0.075, 0.9))
 	var en_ring: PackedVector2Array = art.ensos[i % art.ensos.size()]
 	var er := PackedVector2Array()
 	for q in en_ring:
 		er.append(base + q + Vector2(0, card.size.y / 2.0 - 50.0))
-	card.draw_colored_polygon(er, Color(0.925, 0.91, 0.882, 0.55 if hov else 0.22))
+	UI.fill_poly(card, er, Color(0.925, 0.91, 0.882, 0.55 if hov else 0.22))
 	var ink := Color(0.925, 0.91, 0.882)
 	var icn: String = o.get("icon", "")
 	var itx: Texture2D = g.tex.get(icn) if icn != "" and icn != "exit" else null

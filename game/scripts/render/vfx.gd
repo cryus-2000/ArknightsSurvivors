@@ -3,6 +3,8 @@ extends RefCounted
 ## 加色混合层（fx_add 节点）的绘制；特效与各种提示计时的逐帧衰减。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
 const A = preload("res://scripts/art.gd")
+const UI = preload("res://scripts/ui.gd")
+const D = preload("res://scripts/data.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -88,8 +90,81 @@ func slash_tex(kind := "base") -> String:
 	return "slash"
 
 
+## 飘字合并 / 限量（EA 1.1 后期降噪）：刚冒出（0.25 秒内）、同色同字号、离得近（28 以内）的纯数字飘字合成一个，
+## 数字相加、重新计时、字号略放大；总数超过 TEXT_CAP 时丢掉最早的
+const TEXT_CAP := 48
+const TEXT_MERGE_R := 28.0
+const TEXT_MERGE_T := 0.25
+
+## 伤害数字（combat.damage 调用，docs/38 §1.15）：
+## - 对 Boss：每 0.3 秒合并成一个数字（BOSS_SUM_T），暴击 / 弱点单独照常飘；
+## - Boss 战期间，普通怪只飘暴击数字，普通伤害和弱点不飘（满屏数字会淹没招式名和预警）
+const BOSS_SUM_T := 0.3
+var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内容会变，不能当键）
+
+func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
+	if not Cfg.dmg_numbers or g.texts.size() >= 80:
+		return
+	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
+	if crit:
+		add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
+		return
+	if e.boss:
+		for s in _boss_sum:
+			if is_same(s.e, e):
+				s.dmg += dmg
+				s.weak = s.weak or weak
+				return
+		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak})
+		return
+	if _boss_fight():
+		return
+	if weak:
+		add_text(e.pos + jit + Vector2(0, -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
+	else:
+		add_text(e.pos + jit + Vector2(0, -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+
+
+## 无敌时的提示（combat.damage 的 invuln 分支）：伊祖米克学习期飘「学习中」，其余无敌不飘（§1.15 删掉「无效」）
+func immune_text(e: Dictionary) -> void:
+	if e.get("type", "") == "izumik" and e.get("phase", 0) == 1 and g.texts.size() < 80 and g.vrng.randf() < 0.15:
+		add_text(e.pos + Vector2(0, -e.r - 10), "学习中", Color(0.6, 0.85, 0.9), 13)
+
+
+func _flush_boss_sum(dt: float) -> void:
+	for s in _boss_sum:
+		s.t -= dt
+		if s.t > 0.0:
+			continue
+		var e: Dictionary = s.e
+		if s.dmg >= 1.0:
+			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
+	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
+
+
+## 敌方特效标记（docs/48 全局 ③）：game.gd 在敌人 AI、敌弹与预警结算前后调用，给这两段里新加进 g.fx 的特效打上 enemy，
+## render/world.gd 的后期降噪（fx_dim）跳过它们——敌人的爆炸、斩击、踏地、冲击环不该跟着友方特效一起变淡
+func mark_enemy_fx(from: int) -> void:
+	for i in range(from, g.fx.size()):
+		g.fx[i]["enemy"] = true
+
+
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
+	if text.is_valid_int():
+		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
+			var t: Dictionary = g.texts[i]
+			if t.max - t.life > TEXT_MERGE_T or t.col != col or not str(t.text).is_valid_int() or t.pos.distance_to(pos) > TEXT_MERGE_R:
+				continue
+			if t.get("base", t.size) != size:
+				continue
+			t["base"] = t.get("base", t.size)
+			t.text = str(int(t.text) + int(text))
+			t.size = mini(t.base + 6, t.size + 1)
+			t.life = t.max
+			return
 	g.texts.append({"pos": pos, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
+	if g.texts.size() > TEXT_CAP:
+		g.texts.pop_front()
 
 
 func update(dt: float) -> void:
@@ -109,11 +184,113 @@ func update(dt: float) -> void:
 	for f in g.texts:
 		f.life -= dt
 		f.pos.y -= 30.0 * dt
+	_update_banner_queue(dt)
+	_flush_boss_sum(dt)
 
 
-func show_banner(text: String) -> void:
+## 横幅队列（EA 1.1，docs/38 B0 第 8 条的横幅部分，Boss与怪物同意由界面接手）：
+## - 优先级 prio：3 Boss 登场 / 换阶段 > 2 黑潮、生命垂危 > 1 普通（精英、商人、威胁等局内事件）> 0 提示（干员技能名、入队、精英化、音乐开关）。
+##   调用方可以传 show_banner(text, prio)；不传时按文字猜（Boss 名、「黑潮」「生命垂危」、提示类关键词）；干员脚本经 op_api 一律传 0
+## - prio 0 的提示只在空闲时显示，有横幅在播就直接丢掉、不排队（干员技能名反复触发，排队会把精英出现这类事件挤掉）
+## - 同时只显示一条；优先级更高的立即顶掉当前这条，否则排队，队列最多 3 条（满了丢优先级最低里最旧的）
+## - 去重：和正在显示的、队列里的都比，同一句不重复排
+## - 选卡 / 商人面板打开时 game.gd 暂停 banner_t，队列也跟着停（本函数只在 PLAY 里跑），关掉后一条播完才轮到下一条
+## - 大群来袭的大横幅在场时，普通横幅先停住（计时冻结、不画），Boss 横幅照常画在大群横幅下方
+## - Boss 战期间，prio ≤ 1 的改成左侧小字通知（notices），不占屏幕中间
+## - 同一局第二次起的同一句（反复放的技能名「潮汐」「审判」…）改成小横幅、1.5 秒
+const BANNER_Q_MAX := 3
+const NOTICE_MAX := 4
+const NOTICE_LIFE := 4.0
+const HINT_WORDS := ["加入编队", "加入支援", "升至 Lv", "精英化", "音乐："]
+var banner_seen := {}
+var banner_small := false
+var banner_prio := 0
+var banner_q: Array = []          # [{text, prio}]
+var notices: Array = []           # [{text, t}]
+var _boss_words: Array = []
+
+func show_banner(text: String, prio := -1) -> void:
+	if prio < 0:
+		prio = _guess_prio(text)
+	if prio <= 1 and _boss_fight():
+		_notice(text)
+		return
+	if g.banner_t > 0.0 and g.banner == text:
+		return
+	if prio == 0 and g.banner_t > 0.0:
+		return
+	for q in banner_q:
+		if q.text == text:
+			return
+	if g.banner_t <= 0.0 or prio > banner_prio:
+		_banner_now(text, prio)
+		return
+	banner_q.append({"text": text, "prio": prio})
+	banner_q.sort_custom(func(a, b): return a.prio > b.prio)   # sort_custom 不稳定也无妨：同级顺序只影响先后
+	while banner_q.size() > BANNER_Q_MAX:
+		banner_q.pop_back()
+
+
+func _banner_now(text: String, prio: int) -> void:
 	g.banner = text
-	g.banner_t = 3.0
+	banner_prio = prio
+	banner_small = banner_seen.has(text)
+	banner_seen[text] = true
+	g.banner_t = 1.5 if banner_small else 3.0
+
+
+func horde_band_on() -> bool:
+	return g.horde_warn > 0.0 or g.horde_hit > 0.0
+
+
+func _update_banner_queue(dt: float) -> void:
+	if g.balance:
+		g.banner_t -= dt   # 平衡 / 自测模式每渲染帧跑多步模拟：横幅按游戏时间计时，截图里的停留和排队延迟才像真人（game.gd 按真实时间再减一次，影响很小）
+	if g.banner_t > 0.0 and horde_band_on() and banner_prio < 3:
+		g.banner_t += dt   # 大群横幅在场：普通横幅冻结，等大群横幅退场再播完
+	if g.banner_t <= 0.0 and not banner_q.is_empty():
+		var q: Dictionary = banner_q.pop_front()
+		_banner_now(q.text, q.prio)
+	for n in notices:
+		n.t -= dt
+	notices = notices.filter(func(n): return n.t > 0.0)
+
+
+func _notice(text: String) -> void:
+	for n in notices:
+		if n.text == text:
+			n.t = NOTICE_LIFE
+			return
+	notices.append({"text": text, "t": NOTICE_LIFE})
+	while notices.size() > NOTICE_MAX:
+		notices.pop_front()
+
+
+func _boss_fight() -> bool:
+	for b in g.bosses:
+		if not b.dead and D.ENEMIES.get(b.type, {}).get("role", "") == "boss":   # 召唤物 / 分身不算 Boss 战
+			return true
+	return false
+
+
+func _guess_prio(text: String) -> int:
+	if _boss_words.is_empty():
+		for k in D.ENEMIES:
+			var e: Dictionary = D.ENEMIES[k]
+			if e.get("role", "") == "boss":
+				_boss_words.append(str(e.get("name", k)).split("，")[0].replace("\"", ""))
+		_boss_words.append("骑士")
+	for w in _boss_words:
+		if w != "" and w in text:
+			return 3
+	if "阶段" in text or "形态" in text:
+		return 3
+	if "黑潮" in text or "生命垂危" in text:
+		return 2
+	for w in HINT_WORDS:
+		if w in text:
+			return 0
+	return 1
 
 
 ## 按敌人材质播放命中效果（V7 缺图时退回 fx_hit）
@@ -161,6 +338,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	return true
 
 
+## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
 func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:

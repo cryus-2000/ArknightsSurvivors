@@ -6,7 +6,7 @@
 extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
-const CRIMSON := Color(1.0, 0.12, 0.16)   # 熔毁（照原作：Mon3tr 整体变猩红）
+const MELT := Color(0.45, 1.5, 0.6)   # 熔毁的特效色（2026-09-26 用户定：不再猩红，配合新帧条的绿色裂隙）
 const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
 const M_REACH := 93.0         # 爪击半径（基础）
 const S3_DUR := 8.0
@@ -64,7 +64,9 @@ func update(dt: float) -> void:
 	if melt > 0.0:
 		melt -= dt
 		if melt <= 0.0:
+			melt_out = MELT_OUT
 			_meltdown()
+	melt_out = maxf(0.0, melt_out - dt)
 	for me in melt_echo:
 		me.t -= dt
 		if me.t <= 0.0:
@@ -105,7 +107,7 @@ func _heal(h: float, size: int) -> void:
 				"delay": k * 0.08, "sz": randf_range(3.0, 5.0)})
 	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX * 0.9, 0.0, false, false, Color(0.75, 1.3, 0.8))
 	# 治疗光束从持药剂的手发出（op_kaltsit_attack@2x 第 2 帧量得：脚底前 25、上 36；docs/32 §3）
-	var potion: Vector2 = pos + Vector2(25.0 * face, -36)
+	var potion: Vector2 = pos + Vector2(27.0 * face, -39)
 	g.fx.append({"kind": "beam", "a": potion, "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": GREEN, "w": 3.0})
 	fx({"kind": "glow", "pos": potion, "r": 10.0, "life": 0.25, "col": GREEN, "alpha": 0.5})
 
@@ -135,7 +137,7 @@ func _release_skill() -> void:
 		2:
 			melt = S3_DUR
 			_mon3tr_burst()
-			float_text(m.pos + Vector2(0, -70), "熔毁", CRIMSON, 16)
+			float_text(m.pos + Vector2(0, -70), "熔毁", MELT, 16)
 
 
 func _mon3tr_burst() -> void:
@@ -165,17 +167,35 @@ func _m_reach() -> float:
 	return base("m_reach", M_REACH) * stat(&"op_range") * (1.2 if elite >= 1 else 1.0) * (1.3 if coord else 1.0)
 
 
+## Mon3tr 闲时站位（相对凯尔希脚底，x 乘朝向）
+const M_REST := Vector2(44.0, 18.0)
+
+
+## 回位 / 追击路径绕开凯尔希与博士：直线会从两人身上穿过时，先走到那人脚下前方 56 的绕行点（Mon3tr 身高约 60，
+## 从这里经过画在人前面也不盖住躯干；docs/45 §5：原来回位 / 凯尔希转身换边时直线穿过她约 0.4 秒）
+func _m_route(want: Vector2) -> Vector2:
+	for c in [pos, g.ppos]:
+		if c == Vector2.INF or m.pos.distance_to(c) < 12.0 or want.distance_to(c) < 12.0:
+			continue
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(c, m.pos, want)
+		if q.distance_to(c) < 40.0 and absf(m.pos.y - c.y) < 50.0:
+			var via: Vector2 = c + Vector2(0, 56)
+			if m.pos.distance_to(via) > 8.0:
+				return via
+	return want
+
+
 func _update_mon3tr(dt: float) -> void:
 	if m.pos == Vector2.INF or m.pos.distance_to(g.ppos) > 700.0:
-		m.pos = pos + Vector2(-30.0 * face, 10)
+		m.pos = pos + M_REST * Vector2(face, 1.0)   # 出生点与回位点一致：凯尔希身前偏下（docs/45 §5）
 	if _boosted():
 		glow_t -= dt
 		if glow_t <= 0.0:
 			glow_t = 0.07
 			if melt > 0.0:
-				# 熔毁：周身红雾团 + 红色飞线
-				fx({"kind": "glow", "pos": m.pos + Vector2(g.rng.randf_range(-26, 26), g.rng.randf_range(-46, -4)), "r": g.rng.randf_range(10.0, 18.0), "life": 0.5, "col": CRIMSON, "alpha": 0.3})
-				fx({"kind": "line", "pos": m.pos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-44, 0)), "to": m.pos + Vector2(g.rng.randf_range(-50, 50), g.rng.randf_range(-70, -10)), "life": 0.15, "col": CRIMSON, "w": 1.5})
+				# 熔毁：周身绿雾团 + 飞线
+				fx({"kind": "glow", "pos": m.pos + Vector2(g.rng.randf_range(-26, 26), g.rng.randf_range(-46, -4)), "r": g.rng.randf_range(10.0, 18.0), "life": 0.5, "col": MELT, "alpha": 0.3})
+				fx({"kind": "line", "pos": m.pos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-44, 0)), "to": m.pos + Vector2(g.rng.randf_range(-50, 50), g.rng.randf_range(-70, -10)), "life": 0.15, "col": MELT, "w": 1.5})
 			else:
 				fx({"kind": "mote", "pos": m.pos + Vector2(g.rng.randf_range(-22, 22), g.rng.randf_range(-40, 0)), "vel": Vector2(0, -50), "life": 0.5, "col": GREEN, "sz": 2.0})
 		if ghost.is_empty() or ghost.t <= 0.0:
@@ -190,14 +210,14 @@ func _update_mon3tr(dt: float) -> void:
 		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg
-	var want: Vector2 = pos + Vector2(-34.0 * face, 14)
+	var want: Vector2 = pos + M_REST * Vector2(face, 1.0)   # 闲时站凯尔希身前偏下，不压在凯尔希 / 博士身上（docs/45 §4 #6）
 	if tg != null:
 		var off: Vector2 = m.pos - tg.pos
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-m.face, 0)) * (tg.r + 26.0)
 	var prev: Vector2 = m.pos
 	if m.act <= 0.0:
 		var spd: float = 260.0 * (1.3 if _boosted() else 1.0)
-		var d: Vector2 = want - m.pos
+		var d: Vector2 = _m_route(want) - m.pos
 		m.pos += d.normalized() * minf(d.length(), spd * dt)
 		if g.tex.get("prop_pillar") != null:
 			m.pos = g.map.push_out(m.pos, 14.0)
@@ -261,16 +281,18 @@ func _m_claw(mult: float, second: bool) -> void:
 		var dmg: float = _m_dmg() * mult * (1.0 if i == 0 else base("m_back_mult", 0.7))
 		var hits := melee_hit("Mon3tr · 真伤" if melt > 0.0 else "Mon3tr", m.pos + Vector2(0, -10), ang, half, _m_reach() + 16.0, dmg, 120.0)
 		any = any or not hits.is_empty()
+		if i > 0 and hits.is_empty():
+			continue   # 背后一爪没打到敌人时不画（刀光会正好盖在凯尔希和博士身上，docs/45 #6）
 		if melt > 0.0:
-			# 照原作：熔毁期间一整道巨大的猩红月牙斩；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
+			# 熔毁期间一整道巨大的月牙斩（原作猩红，本作按用户定改熔毁绿）；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
 			var sw: float = -m_swing if second else m_swing
 			var R: float = _m_reach() * 1.25
 			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
-				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": CRIMSON})
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(1.0, 0.45, 0.4)})
+				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
+			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(0.75, 1.5, 0.8)})
 			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
-			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": CRIMSON})
-			fx_sparks(hp, Color(1.6, 0.4, 0.4), 7, 240.0, 0.28, 2.5)
+			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": MELT})
+			fx_sparks(hp, Color(0.8, 1.7, 0.9), 7, 240.0, 0.28, 2.5)
 		else:
 			# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
 			# 第二爪：爪痕旋转约 60°，与第一爪交叉
@@ -288,7 +310,7 @@ func _m_claw(mult: float, second: bool) -> void:
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
-	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": CRIMSON if melt > 0.0 else GREEN, "alpha": 0.55})
+	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": MELT if melt > 0.0 else GREEN, "alpha": 0.55})
 
 
 func _meltdown() -> void:
@@ -434,7 +456,32 @@ func extra_bodies() -> Array:
 	return [{"y": m.pos.y + 4.0}]
 
 
+## 熔毁帧条 op_mon3tr_skill（6 帧 12fps，docs/32 验收 §2）：f0–f2 起手、f2–f4 循环（8 秒不当一整条放）、结束补 f5 收尾；
+## 熔毁期间不论移动 / 爪击都用它（爪击的判定与刀光照旧）；缺图退回原来的三态帧条
+const MELT_OUT := 0.12
+var melt_out := 0.0
+
+func _melt_frame() -> Array:
+	var tx: Texture2D = anim_tex("m_skill")
+	if tx == null:
+		return []
+	var n: int = anim_hframes(tx, "m_skill")
+	var fps: float = float(sprite_spec("m_skill").get("fps", 12))
+	var fr: int
+	if melt <= 0.0:
+		fr = n - 1
+	else:
+		var el: float = S3_DUR - melt
+		var intro: float = 3.0 / fps
+		fr = int(el * fps) if el < intro else 2 + int((el - intro) * fps) % 3
+	return [tx, clampi(fr, 0, n - 1), n]
+
+
 func _m_frame(kind: String, at: float) -> Array:
+	if melt > 0.0 or melt_out > 0.0:
+		var mf := _melt_frame()
+		if not mf.is_empty():
+			return mf
 	var tx: Texture2D = anim_tex("m_" + kind)
 	if tx == null:
 		return []
@@ -457,20 +504,19 @@ func draw_extra(_it: Dictionary) -> void:
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
-				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(1.4, 0.3, 0.3, 0.4) if melt > 0.0 else Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
-		var ac: Color = CRIMSON if melt > 0.0 else GREEN
+				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
+		var ac: Color = GREEN
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
-			# 熔毁：身后一团红光晕
-			# 熔毁：身后几团错开、缓慢翻动的半透明红雾（不是一整块红盘）
+			# 熔毁：身后几团错开、缓慢翻动的半透明绿雾（2026-09-26 起不再染红，配合新帧条的绿色裂隙）
 			for q in 5:
 				var ph: float = g.t * 1.7 + q * 1.3
 				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 - 26.0)
-				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(1.0, 0.06, 0.1, 0.13))
-		# 光环套在悬浮本体中心（新帧条三态本体中心都在脚底上方约 60；docs/32 §3）
-		g.draw_arc(m.pos + Vector2(0, _hover() - 58.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
-	# 熔毁：整体染猩红（原作截图）；协同：略偏绿
-	var col := Color(1.7, 0.45, 0.45) if melt > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
+				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.15, 1.0, 0.35, 0.11))
+		# 光环套在悬浮本体中心（返修稿本体中心在脚底上方约 53；docs/32 验收 §5）
+		g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
+	# 熔毁：不再整体染猩红（用户定 2026-09-26，靠新帧条的绿色裂隙表现）；协同：略偏绿
+	var col := Color.WHITE if melt > 0.0 or melt_out > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
 	draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
 	_draw_claw_blades()
@@ -483,13 +529,13 @@ func _draw_claw_blades() -> void:
 		return
 	var n: int = 2 if twin_claw else 1
 	var sides: Array = [m.face, -m.face]
-	var c: Color = CRIMSON if melt > 0.0 else GREEN
+	var c: Color = GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
 	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，
 	# 身前 / 身后两组都让刃背朝外——朝右的一侧由程序水平镜像；熔毁时整体染猩红。缺图退回下面的程序弧
 	var btx: Texture2D = A.tex("fx_mon3tr_blade")
 	if btx != null:
-		var bc: Color = Color(1.8, 0.35, 0.35) if melt > 0.0 else Color.WHITE
+		var bc: Color = Color(1.25, 1.6, 1.25) if melt > 0.0 else Color.WHITE   # 熔毁时更亮的绿，不再染红
 		var bf: int = int(g.t * 4.0) % 2
 		for s in sides:
 			for j in n:
@@ -556,7 +602,7 @@ func _draw_skill_over() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if melt > 0.0:
-		out.append(["熔毁", CRIMSON])
+		out.append(["熔毁", MELT])
 	if guard_t > 0.0:
 		out.append(["庇护", GREEN])
 	if shell_t > 0.0:

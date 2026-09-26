@@ -373,12 +373,12 @@ def _boss_phase(b):
 
 def lane_summary(records):
     """流派矩阵（--lanes）：每个 流派 × 机器人 一行，与「不偏好」对照；同 seed 同开局配对，差值只来自选藏品的偏好。
-    Boss 用时按出场分段（击杀数 / 出场数，平均秒数）；8:00 后承伤取机器人曲线里 t > 480 的 30 秒窗口"""
+    Boss 用时按出场分段（击杀数 / 出场数，平均与中位秒数；最终 Boss 在胜利的局按「出现 → 通关」计）；8:00 后承伤取机器人曲线里 t > 480 的 30 秒窗口"""
     by = {}
     for r in records:
         if "data" in r:
             by.setdefault((r.get("lane", "none"), r.get("bot", "normal")), []).append(r)
-    lines = ["| 流派 | 机器人 | 局数 | 胜率 | 平均存活 | 3:30 / 5:00 存活 | 终局等级 | 击杀 | Boss1 / Boss2 / 终局 用时（击杀/出场） | 终 Boss 剩余 | 承伤/分 全程 · 8:00 后 | 该流派藏品 5:00 / 末 | 藏品数 | 藏品直接伤害 |",
+    lines = ["| 流派 | 机器人 | 局数 | 胜率 | 平均存活 | 3:30 / 5:00 存活 | 终局等级 | 击杀 | Boss1 / Boss2 / 终局 用时 均·中（击杀/出场） | 终 Boss 剩余 | 承伤/分 全程 · 8:00 后 | 该流派藏品 5:00 / 末 | 藏品数 | 藏品直接伤害 |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     order = list(LANE_NAMES)
     for (ln, bot), rs in sorted(by.items(), key=lambda kv: (kv[0][1], order.index(kv[0][0]) if kv[0][0] in order else 99)):
@@ -394,13 +394,16 @@ def lane_summary(records):
         n300 = [lane_n(d, 300) for d in ds if d["t"] >= 300] if ln != "none" else []
         ph = [[], [], []]
         seen = [0, 0, 0]
-        for b in bs:
+        for d, b in zip(ds, bs):
             for bo in b.get("bosses", []):
                 k = _boss_phase(bo)
                 seen[k] += 1
                 if bo.get("t1", -1) >= 0:
                     ph[k].append(bo["t1"] - bo["t0"])
-        boss_s = " / ".join(("%ds（%d/%d）" % (statistics.mean(ph[k]), len(ph[k]), seen[k])) if ph[k] else ("-（0/%d）" % seen[k]) for k in range(3))
+                elif k == 2 and d.get("win"):
+                    # 最终 Boss 死的同一帧就判胜利、结束对局，机器人来不及记 t1：胜利的局按「出现 → 通关」计（数值 2026-09-26 指出）
+                    ph[k].append(d["t"] - bo["t0"])
+        boss_s = " / ".join(("%ds·中%ds（%d/%d）" % (statistics.mean(ph[k]), statistics.median(ph[k]), len(ph[k]), seen[k])) if ph[k] else ("-（0/%d）" % seen[k]) for k in range(3))
         late = []
         for b in bs:
             w = [c.get("taken", 0) for c in b.get("curve", []) if c.get("t", 0) > 480]
@@ -413,6 +416,122 @@ def lane_summary(records):
             ("%.1f" % statistics.mean(n300)) if n300 else "-", ("%.1f" % statistics.mean([lane_n(d) for d in ds])) if ln != "none" else "-",
             statistics.mean([len(d.get("relic_take", [])) for d in ds]), 100 * statistics.mean(share)))
     return "\n".join(lines)
+
+
+FINAL_BOSS_NAMES = {"paranoia": "偏执泡影", "izumik": "伊祖米克", "ishar": "伊莎玛拉", "knight_boss": "最后的骑士"}
+
+
+def final_boss_summary(records):
+    """最终 Boss 按类型分行（机器人 × 类型）：最终 Boss 由结局决定、各有自己的 boss/hp_x_<类型>，混在一起的「终局用时」不能拿来调单个 Boss。
+    用时同 lane_summary：击杀记 t1 − t0，胜利的局按「出现 → 通关」计；未击杀的局给剩余血量"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if not d:
+            continue
+        for bo in d.get("bot", {}).get("bosses", []):
+            if _boss_phase(bo) != 2:
+                continue
+            e = by.setdefault((r.get("bot", "normal"), bo.get("type", "?")), {"n": 0, "t": [], "th": [], "sh": [], "gates": [], "hp": [], "end": {}})
+            e["n"] += 1
+            e["end"][d.get("ending", "?")] = e["end"].get(d.get("ending", "?"), 0) + 1
+            t_end = bo["t1"] if bo.get("t1", -1) >= 0 else (d["t"] if d.get("win") else None)
+            if t_end is not None:
+                e["t"].append(t_end - bo["t0"])
+                if bo.get("tv", -1) >= 0:   # 可受伤起算：tv = 第一次不无敌的时刻（Boss与怪物 1db221e 起有；伊祖米克不含学习期）
+                    e["th"].append(t_end - bo["tv"])
+            elif d.get("boss_hp", -1) >= 0:
+                e["hp"].append(d["boss_hp"])
+            if "shield" in bo:
+                e["sh"].append(bo["shield"]); e["gates"].append(bo.get("gates", 0))
+    if not by:
+        return ""
+    lines = ["| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / P90 / 最短–最长（出现起算） | 中 / P90（可受伤起算） | 阶段护盾秒 / 过卡点数 均 | 未击杀时剩余血量 |", "|---|---|---|---|---|---|---|---|---|"]
+    p90 = lambda xs: sorted(xs)[min(len(xs) - 1, int(0.9 * len(xs)))]
+    for (bot, ty), e in sorted(by.items(), key=lambda kv: (kv[0][0], -kv[1]["n"])):
+        ts, th = e["t"], e["th"]
+        lines.append("| %s | %s | %s | %d | %d | %s | %s | %s | %s |" % (
+            bot, FINAL_BOSS_NAMES.get(ty, ty), " ".join("%s %d" % kv for kv in sorted(e["end"].items())), e["n"], len(ts),
+            ("%ds / %ds / %ds / %d–%ds" % (statistics.mean(ts), statistics.median(ts), p90(ts), min(ts), max(ts))) if ts else "-",
+            ("%.0fs / %.0fs" % (statistics.median(th), p90(th))) if th else "-",
+            ("%.1f / %.1f" % (statistics.mean(e["sh"]), statistics.mean(e["gates"]))) if e["sh"] else "-",
+            ("%d%%" % (100 * statistics.mean(e["hp"]))) if e["hp"] else "-"))
+    return "\n".join(lines)
+
+
+def horde_summary(records):
+    """大群（第 k 次）按机器人分行：出现局数、平均出现时间 / 数量、清掉 80% 的用时（t80，清完的局数）、
+    开始后 20 秒内的最大掉血（hp0 − minhp）、开始后 30 秒内死亡的局数、编成（comp）出现次数"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if not d:
+            continue
+        end_t = d["t"] if not d.get("win") else None
+        for k, h in enumerate(d.get("hordes", [])):
+            e = by.setdefault((r.get("bot", "normal"), k), {"t": [], "n": [], "t80": [], "drop": [], "dead": 0, "comp": {}})
+            e["t"].append(h["t"]); e["n"].append(h["n"])
+            if h.get("t80", -1) >= 0:
+                e["t80"].append(h["t80"])
+            e["drop"].append(h.get("hp0", 0) - h.get("minhp", 0))
+            if end_t is not None and h["t"] <= end_t <= h["t"] + 30:
+                e["dead"] += 1
+            c = "/".join(h.get("comp", []))
+            e["comp"][c] = e["comp"].get(c, 0) + 1
+    if not by:
+        return ""
+    lines = ["| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |", "|---|---|---|---|---|---|---|---|---|"]
+    for (bot, k), e in sorted(by.items()):
+        lines.append("| %s | %d | %d | %s | %.0f | %s（%d/%d） | %.0f / %.0f | %d | %s |" % (
+            bot, k + 1, len(e["t"]), fmt_t(statistics.mean(e["t"])), statistics.mean(e["n"]),
+            ("%.0fs / %.0fs" % (statistics.mean(e["t80"]), statistics.median(e["t80"]))) if e["t80"] else "-", len(e["t80"]), len(e["t"]),
+            statistics.mean(e["drop"]), max(e["drop"]), e["dead"], "；".join("%s ×%d" % kv for kv in sorted(e["comp"].items(), key=lambda kv: -kv[1])[:3])))
+    return "\n".join(lines)
+
+
+ZONE_STATE_NAMES = {0: "未缩圈", 1: "预告", 2: "收缩", 3: "稳定"}
+
+
+def difficulty_summary(records):
+    """难度 / 缩圈 A/B 用的三张表（2026-09-27，记录里有 bot.end / bot.peak 才输出）：
+    ① 前 3 分钟：承伤（曲线 t ≤ 180 的窗口合计）与 3:00 前死亡率；② 死因 × 缩圈阶段 × 圈外 × Boss 在场（只计失败的局）；
+    ③ 同屏数量峰值（敌人 / 敌方弹幕 / 我方子弹 / 特效 / 飘字）：全程与 8:00–10:00"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if d and "end" in d.get("bot", {}):
+            by.setdefault((r.get("bot", "normal"), r.get("diff", 0)), []).append(d)
+    if not by:
+        return ""
+    out = ["#### 前 3 分钟", "", "| 机器人 | 难度 | 局数 | 3:00 前死亡 | 前 3 分钟承伤 均 / 中 | 3:00 时生命 |", "|---|---|---|---|---|---|"]
+    for (bot, df), ds in sorted(by.items()):
+        early = [sum(c.get("taken", 0) for c in d["bot"].get("curve", []) if 0 < c.get("t", 0) <= 180) for d in ds]
+        hp3 = [c["hp"] for d in ds for c in d["bot"].get("curve", []) if c.get("t") == 180]
+        out.append("| %s | %d | %d | %d%% | %.0f / %.0f | %s |" % (bot, df, len(ds), 100 * sum(1 for d in ds if not d.get("win") and d["t"] < 180) / len(ds),
+                   statistics.mean(early), statistics.median(early), ("%.0f%%" % statistics.mean(hp3)) if hp3 else "-"))
+    out += ["", "#### 死因 × 缩圈阶段 × Boss 在场（失败的局）", "", "| 机器人 | 难度 | 死因 | 缩圈（第几轮 · 阶段） | 圈外 | Boss 在场 | 局数 | 平均死亡时间 |", "|---|---|---|---|---|---|---|---|"]
+    for (bot, df), ds in sorted(by.items()):
+        cnt = {}
+        for d in ds:
+            if d.get("win"):
+                continue
+            e = d["bot"]["end"]
+            zs = ZONE_STATE_NAMES.get(e["zone_state"], "?") if e["zone_state"] == 0 else "第 %d 轮 · %s" % (e["zone_phase"] + 1, ZONE_STATE_NAMES.get(e["zone_state"], "?"))
+            k = (e.get("src") or "?", zs, "是" if e.get("zone_out") else "否", "是" if e.get("boss") else "否")
+            cnt.setdefault(k, []).append(e["t"])
+        for k, ts in sorted(cnt.items(), key=lambda kv: -len(kv[1])):
+            out.append("| %s | %d | %s | %s | %s | %s | %d | %s |" % ((bot, df) + k + (len(ts), fmt_t(statistics.mean(ts)))))
+        if not cnt:
+            out.append("| %s | %d | （全部胜利） | | | | 0 | |" % (bot, df))
+    names = ["敌人", "敌方弹幕（含抛射）", "我方子弹", "特效", "飘字"]
+    out += ["", "#### 同屏数量峰值（每局峰值的 平均 / 最大）", "", "| 机器人 | 难度 | 局数 | 范围 | " + " | ".join(names) + " |", "|---|---|---|---|" + "---|" * len(names)]
+    for (bot, df), ds in sorted(by.items()):
+        for label, pk in (("全程", lambda d: d["bot"].get("peak")),
+                          ("8:00–10:00", lambda d: [max(m[i] for m in d["bot"]["peak_min"][8:10]) for i in range(5)] if len(d["bot"].get("peak_min", [])) > 8 else None)):
+            ps = [p for p in map(pk, ds) if p]
+            if ps:
+                out.append("| %s | %d | %d | %s | %s |" % (bot, df, len(ps), label, " | ".join("%.0f / %d" % (statistics.mean(p[i] for p in ps), max(p[i] for p in ps)) for i in range(5))))
+    return "\n".join(out)
 
 
 def table(rows):
@@ -494,6 +613,15 @@ def main():
     if len(bots) > 1:
         bs, _ = bot_summary(records)
         md = "### 按机器人汇总\n\n" + bs + "\n\n### 明细\n\n" + md
+    hs = horde_summary(records)
+    if hs:
+        md = "### 大群（按第几次）\n\n" + hs + "\n\n" + md
+    ds = difficulty_summary(records)
+    if ds:
+        md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
+    fb = final_boss_summary(records)
+    if fb:
+        md = "### 最终 Boss（按类型；上面的「终局」列是四种混算）\n\n" + fb + "\n\n" + md
     if a.lanes:
         md = "### 按流派汇总\n\n" + lane_summary(records) + "\n\n" + md
     print(md)

@@ -3,7 +3,7 @@
 ## S1 提喻：5 秒锁定一名敌人（优先精英 / Boss），每 0.25 秒法伤，对同一目标逐步升到 ×3、减速加深；
 ## S2 湮灭（永久）：射程 +30%、攻击 +50%；普攻处决生命低于攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人；
 ## S3 延展敏锐：12 秒射程 +60%、攻击 +150%、同时 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失。
-## 天赋 词法演化：40% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒。
+## 天赋 词法演化：50% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒（logos.json talent_chance）。
 ## 可见成长（docs/25 §5）：N1 铭文 / N2 复指 / N4 转喻 / N5 墓志铭 / 精二质变 众声喧哗。
 extends "res://scripts/characters/character.gd"
 
@@ -78,7 +78,7 @@ func _release() -> void:
 	for k in ts.size():
 		_word(ts[k], _atk() * (base("second_mult", 0.7) if k >= n else 1.0), "言")
 	# 天赋：50% 额外攻击随机一名敌人（60% 伤害）并减速；精二「众声喧哗」同时打 2 名
-	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.4):
+	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.5):
 		var pool: Array = nearest_enemies(8, _range(), pos)
 		for q in (2 if chorus else 1):
 			if pool.is_empty():
@@ -255,6 +255,8 @@ func _update_lock(dt: float) -> void:
 		lock_n += 1
 		var ramp: float = lerpf(1.0, base("s1_max", 3.0), clampf(lock_n / 12.0, 0.0, 1.0))
 		log_hit("提喻")
+		if not acting():
+			face_to((lock_e.pos - pos).angle())   # 射线从笔尖出发，先转向锁定目标（docs/45 #10）
 		deal_damage(lock_e, _atk() * base("s1_tick_mult", 0.5) * ramp * skill_power())
 		lock_e.slow = maxf(lock_e.slow, 0.6 * ramp)
 		fx({"kind": "line", "pos": _pen_tip(), "to": lock_e.pos + Vector2(0, -lock_e.r * 0.5), "life": 0.12, "col": INK, "w": 1.5 + ramp})
@@ -525,4 +527,4 @@ func status_items() -> Array:
 
 ## 笔尖（op_logos_attack@2x 出手帧第 2 帧量得：脚底前 33、上 35；docs/32 §3）
 func _pen_tip() -> Vector2:
-	return pos + Vector2(33.0 * face, -35.0)
+	return pos + Vector2(40.0 * face, -36.0)

@@ -200,6 +200,11 @@ func skill_active_dur(i: int) -> float:
 	return base("s3_ammo", 8.0) if i == 2 else 1.0
 
 
+## S1 灰烬弹幕的 3 发还没打完（图鉴演示等它打完再切段）
+func skill_pending(i: int) -> bool:
+	return i == 0 and ash > 0
+
+
 ## 巨型炮弹：伤害 ×1.6、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
 func _fire_giant(to: Vector2) -> void:
 	_fire(to, base("atk", 30.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
@@ -298,7 +303,7 @@ func _update_marks(dt: float) -> void:
 			marks.erase(k)
 
 
-## 击杀钩子：带残影标记的敌人殉爆（沿用天赋残影的 0.25 秒前摇 → 殉爆，伤害 = 普攻炮击的 60%）
+## 击杀钩子：带残影标记的敌人殉爆（沿用天赋残影的 0.25 秒前摇 → 殉爆，伤害 = 攻击的 45%，mark_mult）
 func on_kill(e: Dictionary) -> void:
 	if not marks.has(e.id):
 		return

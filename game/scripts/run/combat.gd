@@ -22,7 +22,10 @@ var zone_from_c := Vector2.ZERO
 var zone_from_r := 99999.0
 var zone_phase := 0
 var zone_hurt_t := 0.0
+var zone_out_t := 0.0     # 本次出圈了几秒（圈内为 0）：前 ZONE_GRACE 秒不掉血；界面据此画回圈方向提示
+var zone_paused := false  # Boss 在场，缩圈计时暂停
 const ZONE_START := 150.0
+const ZONE_GRACE := 2.0   # 1.1 用户决定：出圈后 2 秒内不掉血
 const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
 ## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
@@ -324,17 +327,50 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	return amount
 
 
-## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」
+## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
+## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
 func update_zone(dt: float) -> void:
+	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅），只把圈插值到场地；圈外判定照常走下面那段（docs/38 §1.7）
+	if g.zone_frozen:
+		_arena_step(dt)
+	elif not _zone_schedule(dt):
+		return
+	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
+	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
+	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
+		zone_out_t += dt
+		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
+		if zone_out_t < ZONE_GRACE:
+			return
+		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
+		lose_hp(dps * dt, "zone")
+		zone_hurt_t -= dt
+		if zone_hurt_t <= 0.0:
+			zone_hurt_t = 0.8
+			g.hurt_flash = maxf(g.hurt_flash, 0.08)
+			g.head_bar_t = 2.0
+			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
+	elif g.state == g.S.PLAY:
+		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
+
+
+## 缩圈日程（原 update_zone 前半段，逻辑不变）：返回 false = 黑潮还没开始，本帧不做圈外判定
+func _zone_schedule(dt: float) -> bool:
 	if g.zone_state == 0:
 		if g.t < ZONE_START:
-			return
+			return false
 		g.zone_c = g.ppos
 		g.zone_r = ZONE_RADII[0] + 400.0
 		zone_phase = -1
 		g.zone_state = 3
 		g.zone_t = 0.0
-	g.zone_t += dt
+	var paused: bool = g.spawner.boss_alive()
+	if paused != zone_paused:
+		zone_paused = paused
+		if g.zone_state != 3 or zone_phase >= 0:
+			g.vfx.show_banner("Boss 在场：黑潮停滞" if paused else "黑潮再度涌动")
+	if not paused:
+		g.zone_t += dt
 	match g.zone_state:
 		3:
 			if g.zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if g.ending == "resolve" else 1):
@@ -360,18 +396,55 @@ func update_zone(dt: float) -> void:
 			if k >= 1.0:
 				g.zone_state = 3
 				g.zone_t = 0.0
-	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
-	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
-	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
-		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		lose_hp(dps * dt, "zone")
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
-		zone_hurt_t -= dt
-		if zone_hurt_t <= 0.0:
-			zone_hurt_t = 0.8
-			g.hurt_flash = maxf(g.hurt_flash, 0.08)
-			g.head_bar_t = 2.0
-			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
+	return true
+## ---- 最终 Boss 场地（docs/38 §1.7，B1 第二批）
+## 最终 Boss 登场时 freeze_zone(arena_r)：黑潮圈 3 秒内平滑变到场地半径；主控离新圈边不足 100（或在圈外）就把圆心往主控挪；
+## 黑潮还没开始（zone_state == 0）时以主控为圆心新建。冻结后 zone_state = 3、zone_next_* 同步成场地，机器人读到的边界与实际一致。
+var arena_from_c := Vector2.ZERO
+var arena_from_r := 0.0
+var arena_t := 0.0
+
+
+func freeze_zone(r: float) -> void:
+	if g.zone_state == 0:
+		g.zone_c = g.ppos
+		g.zone_r = r + 400.0
+		zone_phase = -1
+	var c: Vector2 = g.zone_c
+	var d: float = g.ppos.distance_to(c)
+	if d > r - 100.0 and d > 0.001:
+		c = g.ppos + (c - g.ppos) / d * (r - 100.0)
+	arena_from_c = g.zone_c
+	arena_from_r = g.zone_r
+	arena_t = 0.0
+	g.zone_next_c = c
+	g.zone_next_r = r
+	g.zone_state = 3
+	g.zone_t = 0.0
+	g.zone_frozen = true
+
+
+func _arena_step(dt: float) -> void:
+	if arena_t >= 3.0:
+		return
+	arena_t = minf(arena_t + dt, 3.0)
+	var k := smoothstep(0.0, 1.0, arena_t / 3.0)
+	g.zone_c = arena_from_c.lerp(g.zone_next_c, k)
+	g.zone_r = lerpf(arena_from_r, g.zone_next_r, k)
+
+
+## 把 Boss 本体、召唤物 / 落点的生成点约束在场地内、离圈边 ≥ margin；场地没冻结时原样返回
+func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
+	if not g.zone_frozen:
+		return p
+	var lim: float = maxf(0.0, g.zone_next_r - margin)
+	var v: Vector2 = p - g.zone_next_c
+	return p if v.length() <= lim else g.zone_next_c + v.normalized() * lim
+
+
+## 主控指向安全区圆心的单位向量（圈外方向提示用）
+func zone_dir() -> Vector2:
+	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
 
 
 func in_zone(p: Vector2, margin := 0.0) -> bool:
@@ -398,7 +471,7 @@ func shield_block() -> void:
 		for j in g.enemies_sys.query(g.ppos, 140.0):
 			var e: Dictionary = g.enemies[j]
 			if not e.dead and e.pos.distance_to(g.ppos) < 140.0:
-				damage(e, 30.0 * g.dmg_mult * enemy_hp_time_mult())
+				damage(e, 60.0 * g.dmg_mult * enemy_hp_time_mult())
 				if not e.boss:
 					e.kb += (e.pos - g.ppos).normalized() * 420.0
 		g.fx.append({"kind": "explode", "pos": g.ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
@@ -426,15 +499,150 @@ func hit(src: String, extra_tags: Array = []) -> void:
 		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
+## ---- Boss 阶段卡点与每幕最短时长（docs/38 §1.3，B1 ①；2026-09-27 用户确认，不做力竭）
+## 刻度在 enemies.json 的 gates（最大生命比例，从高到低）；没写时中期 [0.5]、最终 [0.66, 0.33]。
+## 只在「这一击前高于刻度、这一击后不高于刻度」时触发，伤害截在刻度上：
+##   这一幕已满最短时长 → 立刻过卡点；没满 → 停在刻度上升起阶段护盾，满了再过。
+## 过卡点：0.8 秒不受伤、取消它瞄准主控的预警、0.8 秒内不出新招；最终 Boss 另掉回复和灯油。
+## 总开关 boss/gates_on（1 = 开）。每幕计时 e.act_t 只在 Boss 可受伤时走（boss_ai.gd 调 gate_update）。
+func gate_init(e: Dictionary, type: String) -> void:
+	var d: Dictionary = D.ENEMIES.get(type, {})
+	var fin: bool = g.spawner.is_final_boss_type(type)
+	var gl: Array = d.get("gates", [0.66, 0.33] if fin else [0.5])
+	e.gates = gl.duplicate() if Bal.v("boss/gates_on", 1.0) > 0.0 else []
+	e.act_min = float(d.get("act_min", Bal.v("boss/act_min_final", 13.0) if fin else Bal.v("boss/act_min_mid", 6.0)))
+	e.act_t = 0.0
+	e.gate_hold = false
+	e.gate_inv = 0.0
+	e.gate_final = fin
+	e.shield_t = 0.0   # 阶段护盾累计秒数（报表用）
+	e.last_done = e.gates.is_empty()   # 关掉卡点时最后一幕也不守
+	e.gates_passed = 0
+	# 破绽与韧性（§1.5，B1 ③）
+	e.break_t = 0.0
+	e.tough = 0.0
+	e.tough_need = Bal.v("boss/tough_first", 25.0)
+	# 伤害预算（§1.4，B1 ④）：按结构最短用时算补充速度，开局存满 4 秒
+	var ng: int = e.gates.size()
+	var tmin: float = e.act_min * (ng + 1) + Bal.v("boss/gate_inv", 0.8) * ng
+	e.budget_rate = e.maxhp / maxf(1.0, tmin * 0.8)
+	e.budget = e.budget_rate * Bal.v("boss/budget_store", 4.0)
+
+
+func gate_clamp(e: Dictionary, dmg: float) -> float:
+	var gates: Array = e.get("gates", [])
+	if dmg <= 0.0:
+		return dmg
+	if gates.is_empty():
+		# 最后一幕也有最短时长（§1.3）：没满时停在这一幕血池剩 boss/last_hold（3%）处升护盾，满了护盾碎、剩下的照常打；只守一次
+		if e.get("last_done", true):
+			return dmg
+		var lh: float = e.maxhp * Bal.v("boss/last_hold", 0.03)
+		if e.hp > lh and e.hp - dmg <= lh and e.act_t < e.act_min:
+			dmg = e.hp - lh
+			e.gate_hold = true
+			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+		return dmg
+	var line: float = e.maxhp * float(gates[0])
+	if e.hp > line and e.hp - dmg <= line:
+		dmg = e.hp - line
+		if e.act_t >= e.act_min:
+			gate_pass(e)   # 这一击照样结算（截在刻度上），之后 0.8 秒不受伤
+		else:
+			e.gate_hold = true
+			g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+	return dmg
+
+
+## 每帧由 boss_ai.gd 调用：可受伤时推进这一幕的计时；护盾撑满最短时长后过卡点
+func gate_update(e: Dictionary, dt: float) -> void:
+	if e.get("gate_inv", 0.0) > 0.0:
+		e.gate_inv = maxf(0.0, e.gate_inv - dt)
+	if e.get("break_t", 0.0) > 0.0:
+		e.break_t = maxf(0.0, e.break_t - dt)   # 破绽时长固定，不受 control_mult 影响
+	if e.has("budget_rate"):
+		e.budget = minf(e.budget + e.budget_rate * dt, e.budget_rate * Bal.v("boss/budget_store", 4.0))
+	if not e.invuln and not e.get("coma", false):
+		e.act_t = e.get("act_t", 0.0) + dt
+	if e.get("gate_hold", false):
+		e.shield_t += dt
+		if e.act_t >= e.act_min:
+			if e.gates.is_empty():
+				e.gate_hold = false   # 最后一幕的护盾：到时碎掉，不给过卡点的无敌和掉落
+				e.last_done = true
+			else:
+				gate_pass(e)
+
+
+## ---- 破绽与韧性（docs/38 §1.5，B1 ③）。破绽只有一种状态：e.break_t > 0 时受伤 ×boss/break_mult（1.4）；
+## Boss 自己的硬直一律写 e.break_t（不写 e.stun），boss_ai.gd 判断能否出招时同时看它。
+## 韧性只对白名单 Boss（enemies.json 写 "tough": true；B1 时名单为空，纵切重做时逐只加入）：每打掉 1% 最大生命积 1 点，
+## 满 tough_need（首次 25，之后 ×1.5）进 boss/break_t 秒破绽；玩家的眩晕由 enemies.gd 的钩子换成韧性（1 秒 ≈ 5 点）后清零。
+## 击退免疫要等白名单 Boss 的冲锋改用脚本位移 e.move（§1.14）后再加，现在骑士等 Boss 的冲锋还写 e.kb。
+func tough_on(e: Dictionary) -> bool:
+	return e.boss and bool(D.ENEMIES.get(e.type, {}).get("tough", false))
+
+
+func add_tough(e: Dictionary, pts: float) -> void:
+	if e.break_t > 0.0 or pts <= 0.0:
+		return
+	e.tough += pts
+	if e.tough >= e.tough_need:
+		e.tough = 0.0
+		e.tough_need *= 1.5
+		start_break(e, Bal.v("boss/break_t", 3.0))
+
+
+func start_break(e: Dictionary, t: float) -> void:
+	e.break_t = maxf(e.break_t, t)
+	g.vfx.add_text(e.pos + Vector2(0, -e.r - 36.0), "破绽", UI.GOLD, 20)
+
+
+## ---- 伤害预算（docs/38 §1.4，B1 ④；保险丝，默认关 boss/budget_on 0）：隐形令牌桶，额度用完后超出部分只算 boss/budget_over（35%）；
+## 破绽期间不计。玩家看不到。只有批跑发现阶段护盾出现得太频繁时才打开
+func budget_clamp(e: Dictionary, dmg: float) -> float:
+	if Bal.v("boss/budget_on", 0.0) <= 0.0 or e.break_t > 0.0 or not e.has("budget"):
+		return dmg
+	if dmg <= e.budget:
+		e.budget -= dmg
+		return dmg
+	var over: float = dmg - e.budget
+	e.budget = 0.0
+	return dmg - over + over * Bal.v("boss/budget_over", 0.35)
+
+
+func gate_pass(e: Dictionary) -> void:
+	if e.dead or e.get("gates", []).is_empty():
+		return
+	e.gates.pop_front()
+	e.gates_passed += 1
+	e.gate_hold = false
+	e.act_t = 0.0
+	e.gate_inv = Bal.v("boss/gate_inv", 0.8)
+	e.wind = maxf(e.get("wind", 0.0), e.gate_inv)   # 0.8 秒内不出新招
+	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": UI.GOLD})
+	Sfx.play("roar", -4.0, 1.1, 0.0)
+	if e.gate_final:
+		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
+		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
+			var n: float = Bal.v(kd[1], 1.0)
+			var cnt := int(n) + (1 if g.rng.randf() < n - floorf(n) else 0)
+			for k in cnt:
+				g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 40.0, kd[0], kd[2])
+
+
 func damage(e: Dictionary, dmg: float) -> void:
 	if e.dead:
 		return
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
+	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
+	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
+		return
 	if e.invuln:
-		if g.texts.size() < 80 and g.vrng.randf() < 0.2:
-			g.vfx.add_text(e.pos + Vector2(0, -e.r - 10), "无效", Color(0.6, 0.7, 0.8), 13)
+		g.vfx.immune_text(e)   # 伊祖米克学习期飘「学习中」，其余无敌不再飘「无效」（docs/38 §1.15，显示逻辑在 vfx）
 		return
 	if e.chest and e.hidden:
 		e.hidden = false
@@ -463,8 +671,22 @@ func damage(e: Dictionary, dmg: float) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
+	if e.boss:
+		if e.get("break_t", 0.0) > 0.0:
+			dmg *= Bal.v("boss/break_mult", 1.4)
+		dmg = budget_clamp(e, dmg)
+	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
+	if e.boss:
+		var hcap: float = Bal.v("boss/hit_cap_pct", 0.0)
+		if hcap > 0.0:
+			dmg = minf(dmg, e.maxhp * hcap)
+	if e.boss:
+		dmg = gate_clamp(e, dmg)
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
+	if e.boss and tough_on(e):
+		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
 	if g.hit.origin == "relic":
@@ -477,13 +699,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	e.squash = 0.14
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
-	if g.texts.size() < 80 and Cfg.dmg_numbers:
-		if g.crit_hit:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
-		elif weak_hit:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
-		else:
-			g.vfx.add_text(e.pos + Vector2(g.vrng.randf_range(-6, 6), -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# 圣徒装填时被打断
 	if e.get("channel", 0.0) > 0.0:
 		e.channel = 0.0
@@ -587,13 +803,17 @@ func kill(e: Dictionary) -> void:
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)
+	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
+	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
+	if dmire > 0.0 and g.mires.size() < 32:
+		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	if flesh_heal and e.evo:
 		heal(g.max_hp * 0.03, "藏品")
 	if ember and e.elite:
 		g.lamp = min(g.lamp_cap, g.lamp + 20.0)
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
-	if g.rng.randf() < 0.012 * (0.5 if g.diff >= 3 else 1.0):
+	if g.rng.randf() < 0.012 * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
 	if e.elite or e.boss:
@@ -620,7 +840,10 @@ func kill(e: Dictionary) -> void:
 		for o in g.enemies:
 			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
 				o.dead = true
-	if g.diff >= 5 and ing > 0:
-		ing = int(floor(ing * 0.7 + g.rng.randf()))
+		# 清掉它还没结算的预警（圆形预警在放招者死后仍会结算），下一波大群至少推迟到 12 秒后，照常给 3 秒预警（docs/38 B0 第 7 项）
+		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+		g.next_horde = maxf(g.next_horde, g.t + 12.0)
+	if float(g.dmod.ingot) != 1.0 and ing > 0:
+		ing = int(floor(ing * float(g.dmod.ingot) + g.rng.randf()))
 	for k in ing:
 		g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(6.0, 26.0), "ingot", 1.0)

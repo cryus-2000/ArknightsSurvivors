@@ -85,7 +85,11 @@ func update(dt: float) -> void:
 			cd = 0.1
 		else:
 			cd = base("cd", 0.7) / stat(&"op_aspd")
-			start_attack(ts[0].pos)
+			# 潮汐 8 秒内每一斩播绕身回旋（op_skadi_attack_spin，docs/32 验收 §2）；缺图退回 attack 条
+			if tide > 0.0:
+				start_attack(Vector2.INF, 0.5, 0.25, "attack_spin")   # 起手不转向
+			else:
+				start_attack(ts[0].pos)
 
 
 func _aim() -> float:
@@ -93,7 +97,8 @@ func _aim() -> float:
 	if ts.is_empty():
 		return facing_angle()
 	var a: float = (ts[0].pos - pos).angle()
-	face_to(a)
+	if tide <= 0.0:
+		face_to(a)   # 潮汐回旋斩是绕身一整圈，不跟目标转向（防左右抽搐）
 	return a
 
 
@@ -104,7 +109,8 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 	var sc: float = r * 1.15 / 40.0
 	if half >= PI - 0.01:
 		name = "fx_slash_circle_deep"
-		sc = r * 2.0 / 66.0
+		sc = r * 2.0 / 66.0 * 0.8
+		tint.a = 0.45   # 潮汐 8 秒几乎每刀都是整圈，原来近乎不透明的大圆盘一直盖住人（docs/45 #4）
 	elif half > 1.6:
 		name = "fx_slash_heavy_deep"
 		sc = r * 1.2 / 28.0
@@ -147,7 +153,7 @@ func _release() -> void:
 		_elegy(dmg)
 
 
-## 连斩后续段：第二下镜像回挥（70%），第三下旋身斩一整圈（80%）；最后一段收尾时触发悲歌
+## 连斩后续段：第二下镜像回挥（55%，combo2_mult），第三下旋身斩一整圈（60%，combo3_mult）；最后一段收尾时触发悲歌
 func _combo_step(pd: Dictionary) -> void:
 	var ang := _aim()
 	var dmg: float = pd.dmg
@@ -264,6 +270,9 @@ func _release_skill() -> void:
 			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 40.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
 				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
+			# 和普攻区分（docs/45 #11）：再叠一道反向的泡沫斩 + 身前一道贴地浪痕
+			_slash(ang, 1.75, _reach() * 1.25, FOAM, Color(1.2, 1.5, 1.7), 0.3, true, Color(0.85, 0.95, 1.1, 0.6))
+			fx({"kind": "crescent", "pos": pos + Vector2(0, 2), "ang": ang, "r": _reach() * 1.1, "w": 8.0, "sweep": 2.4, "dir": face, "life": 0.35, "col": FOAM})
 			Sfx.op(id, "atk", 5.0, 0.8)
 			# N5 涌潮：潮涌斩挥出时脚下涌出一圈水环（精二后「潮汐」期间每秒一圈）
 			if surge_on:
@@ -273,6 +282,7 @@ func _release_skill() -> void:
 		2:
 			tide = S3_DUR
 			pulse_t = base("pulse_every", 1.0)
+			_slash(0.0, PI, _reach() * 1.1, Color(0.25, 0.4, 0.85), FOAM, 0.3)   # 放出那一下的整圈旋斩（docs/45 #11）
 			fx({"kind": "ring", "pos": pos, "r": 120.0, "r0": 10.0, "life": 0.5, "col": BLUE, "floor": true})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE})
 			for k in 16:
@@ -358,10 +368,8 @@ func _draw_skill_over() -> void:
 	# 重斩 / 潮汐起手：眼位一点红光（精二红瞳）。只在技能起手时画在眼睛上（op_skadi_skill@2x 第 0–3 帧眼睛约在脚底前 8、上 49）；
 	# 潮汐 8 秒期间不再画——帧条本来就是红瞳，原来的光点比眼睛低约 10 像素，整段压在脸上（docs/32 §3）
 	# 一技能潮涌斩借用普攻帧条（skadi.json skills[0].anim），那时不画：光点位置是按技能帧条的眼睛量的
-	if acting() and act_kind == "skill" and act_anim == "skill" and fire_t >= 0.0:
-		var p := pos + Vector2(8.0 * face, -49)
-		g.draw_circle(p, 3.0 + sin(g.t * 30.0), Color(2.4, 0.4, 0.4, 0.9))
-		g.draw_circle(p, 7.0, Color(1.0, 0.2, 0.2, 0.25))
+	# 2026-09-26 Codex 返修稿 a9471c7：新图眼睛不再是红色，红瞳光去掉（docs/32 验收 §5）
+	pass
 
 
 func status_items() -> Array:

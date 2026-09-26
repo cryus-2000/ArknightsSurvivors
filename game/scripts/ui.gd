@@ -477,6 +477,19 @@ static func icon(ci: CanvasItem, kind: String, c: Vector2, s: float, col: Color)
 
 # ---------------------------------------------------------------- 墨痕（事件画面 · C 版式：灰阶炭笔插画 + 撕纸边）
 ## 撕纸边矩形：沿边每隔 step 左右取一个点，按 sides（t/b/l/r）决定哪几条边抖动 amp 像素
+## 填充可能自交的随机多边形（撕纸边、墨团、笔刷）：能三角化就原样画；不能（顶点重合 / 自交，引擎会报
+## 「Invalid polygon data, triangulation failed」）就先用 offset_polygon(0) 拆成干净的几块再画，拆开后不带 uv / 贴图
+static func fill_poly(ci: CanvasItem, pts: PackedVector2Array, col: Color, uvs := PackedVector2Array(), tex: Texture2D = null) -> void:
+	if pts.size() < 3:
+		return
+	if not Geometry2D.triangulate_polygon(pts).is_empty():
+		ci.draw_colored_polygon(pts, col, uvs, tex)
+		return
+	for p in Geometry2D.offset_polygon(pts, 0.0):
+		if p.size() >= 3 and not Geometry2D.triangulate_polygon(p).is_empty():
+			ci.draw_colored_polygon(p, col)
+
+
 static func jag_rect(r: Rect2, amp: float, step: float, rng: RandomNumberGenerator, sides := "tblr") -> PackedVector2Array:
 	var pts := PackedVector2Array()
 	var x0 := r.position.x

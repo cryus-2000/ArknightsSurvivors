@@ -488,7 +488,7 @@ func on_overheal(v: float) -> void:
 func _scavenge() -> void:
 	var amt := overheal
 	overheal = 0.0
-	var dmg: float = amt * Bal.v("relic/scavenge_mult", 4.0) * g.combat.enemy_hp_time_mult()
+	var dmg: float = amt * Bal.v("relic/scavenge_mult", 8.0) * g.combat.enemy_hp_time_mult()
 	if dmg < 1.0:
 		return
 	_area("食腐", g.ppos, 150.0, dmg)
@@ -606,7 +606,7 @@ func on_dodge() -> void:
 	if g.relics.has("121"):
 		_temp("dmg", 1.3, 6.0, "121")
 	elif g.relics.has("120"):
-		_temp("dmg", 0.5, 6.0, "120")
+		_temp("dmg", 0.6, 6.0, "120")
 
 
 ## 技能开始（character.spend_sp）：o 为施放的干员，i 为技能序号

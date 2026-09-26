@@ -9,6 +9,8 @@ var g: Game
 var winshot := false
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
+var zone_out_since := -1.0   # 普通机器人：本次出圈的开始时间（-1 = 在圈内）
+var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回圈用；game.gd 在记下移动方向后执行）
 var shop_visits := 0
 var lv_marks := {}
 var bosstest := false
@@ -155,8 +157,14 @@ func step() -> void:
 					if bt.ends_with("2"):
 						b.phase = 2
 						b.range = 400.0
+					# 只有 role == boss 的进 bosses（HUD 大血条、Boss 在场判定）；参数里列的小怪（碎片、之泪等）照常刷出来当靶子
+					if not b.boss:
+						continue
 					g.bosses.append(b)
 					g.boss = b
+					# 结局 Boss 也设「最终 Boss」标记，走终局音乐 / 终局藏品倍率（docs/38 B0 第 9 项）
+					if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+						g.final_boss = b
 				if g.bosses.size() == 2:
 					g.bosses[0].partner = g.bosses[1]
 					g.bosses[1].partner = g.bosses[0]
@@ -172,7 +180,10 @@ func step() -> void:
 			return
 		if g.show_t > 1.4 and not g.show_shot and DisplayServer.get_name() != "headless":
 			g.show_shot = true
-			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_show_%d.png" % g.ch.elite)
+			# 按演出的干员和阶段命名（编队里别的干员精英化时，主控的 elite 对不上）
+			var sc: Dictionary = g.show_screen.show_cur
+			var tag: String = "%s_%d" % [sc.op.id, int(sc.get("elite", 0))] if sc.has("op") and sc.op != null else str(g.ch.elite)
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_show_%s.png" % tag)
 		if g.show_t > 1.6:
 			g.show_screen.close()
 		return
@@ -436,19 +447,38 @@ func bot_move() -> Vector2:
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
-	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）
-	for m in g.mires:
-		var md: Vector2 = g.ppos - m.pos
-		var ml := md.length()
-		if ml < m.r + 50.0 and ml > 0.01:
-			mv += md / ml * (2.5 if ml < m.r else 1.2)
 	# 缩圈：靠近圈边时往圈内走
 	if g.zone_state != 0:
 		var zc: float = g.ppos.distance_to(g.zone_c)
 		var target_c: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
 		var target_r: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
-		if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
-			mv += (target_c - g.ppos).normalized() * 3.0
+		var od: float = zc - g.zone_r
+		if od > -30.0:
+			# 已贴圈边 / 出圈：真人会先回圈。敌群的「往外推」只留侧向分量（侧身绕过去；溟痕在后面单独加，照样绕开），经验 / 商人等拉力朝外的不跟，
+			# 回圈拉力随出圈距离加大；出圈超过 0.5 秒且冲刺好了就朝圈心冲（2026-09-27：v11-ab 黑潮死亡多是普通机器人被怪群推在圈外，
+			# 实测圈外 165–196 像素、怪群推力 −2.6…−4.8 压过固定的 3.0 回圈拉力）
+			var toc: Vector2 = (g.zone_c - g.ppos).normalized()
+			var rad: float = mv.dot(toc)
+			if rad < 0.0:
+				mv -= toc * rad
+			mv += toc * (3.0 + clampf(od / 50.0, 0.0, 4.0))
+			if od > 0.0:
+				if zone_out_since < 0.0:
+					zone_out_since = g.t
+				elif g.t - zone_out_since > 0.5 and g.dash_cd <= 0.0:
+					want_dash = true
+			else:
+				zone_out_since = -1.0
+		else:
+			zone_out_since = -1.0
+			if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
+				mv += (target_c - g.ppos).normalized() * 3.0
+	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）；放在回圈之后，回圈时也照样绕开（2026-09-27：放在前面时外推被回圈一起削掉，机器人直穿圈边溟痕，溟痕 / 侵蚀死亡变多）
+	for m in g.mires:
+		var md: Vector2 = g.ppos - m.pos
+		var ml := md.length()
+		if ml < m.r + 50.0 and ml > 0.01:
+			mv += md / ml * (2.5 if ml < m.r else 1.2)
 	if mv.length() < 0.15:
 		mv = Vector2.from_angle(g.t * 0.3) * 0.3
 	return mv

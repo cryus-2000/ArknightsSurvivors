@@ -227,7 +227,7 @@ func _orb_ground(k: int) -> Vector2:
 	return pos + Vector2(cos(a) * R, sin(a) * R + 2.0)
 
 
-## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成拳击 30% 伤害，同一敌人 0.5 秒冷却
+## 钙质沉积 / 晶簇：环绕的钙晶撞到敌人造成拳击 18% 伤害（orb_mult），同一敌人 0.5 秒冷却
 func _update_orbs(dt: float) -> void:
 	if orb_n <= 0 or pos == Vector2.INF:
 		return
@@ -351,8 +351,11 @@ func _heal_fx(h: float) -> void:
 	for k in 6:
 		fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": AMBER, "sz": 2.5})
 	# 治疗光环（Ninja Adventure Aura 调琥珀）+ 星光命中（Pimen）
-	spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
-	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -34), g.PX)
+	# 她自己是主控时特效会盖住注射动作（docs/45 #3）：光环缩小变淡，星光挪到头顶
+	var me: bool = is_leader
+	if not me:
+		spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.7 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
 
 
 func _release_skill() -> void:
@@ -376,7 +379,11 @@ func _release_skill() -> void:
 			hot_t = 5.0
 			hot_acc = 0.0
 			fx({"kind": "ring", "pos": g.ppos, "r": 60.0, "r0": 10.0, "life": 0.5, "col": AMBER, "floor": true})
-			spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
+			if is_leader:
+				# 她自己是主控：护盾贴图会罩住全身盖住注射动作（docs/45 §4 #3），改头顶一点金光
+				fx({"kind": "glow", "pos": g.ppos + Vector2(0, -74), "r": 12.0, "life": 0.35, "col": AMBER, "alpha": 0.6})
+			else:
+				spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
 		2:
 			# 钙质化：晶柱升起 + 区域
 			calc = S3_DUR

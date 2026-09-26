@@ -56,7 +56,7 @@ func update(dt: float) -> void:
 	for q in queued:
 		q.t -= dt
 		if q.t <= 0.0 and pos != Vector2.INF:
-			_cast(_staff_tip(), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)
+			_cast(pos + q.get("tip", _staff_tip() - pos), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)   # 排队时的杖尖：动作结束朝向还原后也不从身后出（docs/45 #7）
 	queued = queued.filter(func(q): return q.t > 0.0)
 	for p in pending:
 		p.t -= dt
@@ -119,9 +119,9 @@ func _release() -> void:
 	var tos: Array = _extra_targets(ts[0], n)
 	for k in n:
 		if triple:
-			queued.append({"t": 0.12 * (k + 1), "to": tos[k], "dmg": dmg * base("tri_mult", 1.5), "aoe": aoe * base("tri_aoe", 1.2), "sz": base("tri_size", 1.5), "hot": hot})
+			queued.append({"t": 0.12 * (k + 1), "to": tos[k], "dmg": dmg * base("tri_mult", 1.5), "aoe": aoe * base("tri_aoe", 1.2), "sz": base("tri_size", 1.5), "hot": hot, "tip": _staff_tip() - pos})
 		else:
-			queued.append({"t": 0.12, "to": tos[k], "dmg": dmg * base("twin_mult", 0.6), "aoe": aoe, "sz": 0.85, "hot": hot})
+			queued.append({"t": 0.12, "to": tos[k], "dmg": dmg * base("twin_mult", 0.6), "aoe": aoe, "sz": 0.85, "hot": hot, "tip": _staff_tip() - pos})
 
 
 ## 后续熔岩弹的落点：首发目标之外最近的敌人；不够就在首发目标两侧垂直偏开 40px
@@ -160,6 +160,11 @@ func skill_active_left(i: int) -> float:
 
 func skill_active_dur(i: int) -> float:
 	return 2.0 if i == 2 else 1.0
+
+
+## S1 炽热的 3 发强化火山弹还没打完（图鉴演示等它打完再切段）
+func skill_pending(i: int) -> bool:
+	return i == 0 and heat > 0
 
 
 ## sz：弹体大小倍率（三重咏唱的后两发 1.5 倍，复咏的第二发 0.85 倍）
@@ -384,4 +389,4 @@ func status_items() -> Array:
 
 ## 杖尖（docs/32 §3）：普攻出手帧 op_eyjafjalla_attack@2x 第 2 帧（脚底前 40、上 46），技能出手帧第 4 帧杖举高（前 42、上 68）
 func _staff_tip() -> Vector2:
-	return pos + (Vector2(42.0 * face, -68.0) if act_kind == "skill" else Vector2(40.0 * face, -46.0))
+	return pos + (Vector2(42.0 * face, -63.0) if act_kind == "skill" else Vector2(42.0 * face, -49.0))

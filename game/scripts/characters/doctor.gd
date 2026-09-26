@@ -9,17 +9,17 @@ var rej_log: Array = []        # 每次排异的说明文字
 
 ## 博士被动（cat doctor）与全队被动（cat squad），docs/23 §6：各自最多选 4 种，选满后只出已有种类
 const PASSIVES := {
-	"hp": {"name": "坚韧", "desc": "最大生命 +20", "max": 99, "cat": "doctor"},
-	"regen": {"name": "自愈", "desc": "每秒回复生命 +0.6", "max": 5, "cat": "doctor"},
-	"armor": {"name": "硬化", "desc": "物理减伤 +2（法术、真实伤害无效）", "max": 4, "cat": "doctor"},
-	"dodge": {"name": "水影", "desc": "闪避率 +5%", "max": 4, "cat": "doctor"},
-	"speed": {"name": "轻盈", "desc": "移动速度 +10%", "max": 5, "cat": "doctor"},
-	"pickup": {"name": "感知", "desc": "拾取范围 +30%", "max": 5, "cat": "doctor"},
-	"wick": {"name": "护灯", "desc": "受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
+	"hp": {"name": "坚韧", "desc": "主控最大生命 +20", "max": 99, "cat": "doctor"},
+	"regen": {"name": "自愈", "desc": "主控每秒回复生命 +0.6", "max": 5, "cat": "doctor"},
+	"armor": {"name": "硬化", "desc": "主控物理减伤 +2（对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
+	"dodge": {"name": "水影", "desc": "主控闪避率 +5%", "max": 4, "cat": "doctor"},
+	"speed": {"name": "轻盈", "desc": "主控移动速度 +10%", "max": 5, "cat": "doctor"},
+	"pickup": {"name": "感知", "desc": "主控拾取范围 +30%", "max": 5, "cat": "doctor"},
+	"wick": {"name": "护灯", "desc": "主控受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
 	"sp": {"name": "协同·技", "desc": "全队技能充能 +15%", "max": 4, "cat": "squad"},
 	"squad_atk": {"name": "协同·攻", "desc": "全队干员攻击 +8%", "max": 5, "cat": "squad"},
 	"squad_aspd": {"name": "协同·迅", "desc": "全队干员攻速 +6%", "max": 5, "cat": "squad"},
-	"squad_range": {"name": "协同·广", "desc": "全队干员射程 / 范围 +8%", "max": 4, "cat": "squad"},
+	"squad_range": {"name": "协同·广", "desc": "全队干员攻击范围 +8%", "max": 4, "cat": "squad"},
 	"squad_crit": {"name": "协同·锐", "desc": "全队干员技能强度 +10%", "max": 4, "cat": "squad"},
 }
 const PASSIVE_CAP := 4         # 每类最多几种
@@ -178,7 +178,7 @@ func passive_preview(pid: String) -> String:
 ## 填充卡：其他类别都满时
 func filler_cards() -> Array:
 	return [
-		{"kind": "filler", "id": "heal", "name": "急救补给", "desc": "立刻回复博士 30% 最大生命", "cat": "补给  SUPPLY"},
+		{"kind": "filler", "id": "heal", "name": "急救补给", "desc": "主控立刻回复 30% 最大生命", "cat": "补给  SUPPLY"},
 		{"kind": "filler", "id": "oil", "name": "灯油补给", "desc": "灯火 +30", "cat": "补给  SUPPLY"},
 		{"kind": "filler", "id": "atk", "name": "临时协同", "desc": "全队干员攻击 +4%（可叠加）", "cat": "补给  SUPPLY"},
 	]

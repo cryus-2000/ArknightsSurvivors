@@ -101,10 +101,21 @@
     24,
     46
    ]
+  },
+  "fall": {
+   "tex": "op_specter_unchained_fall",
+   "frames": 5,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
   }
  },
  "extra_sprites": [
-  "doll"
+  "doll",
+  "fall"
  ],
  "attack": {
   "mode": "auto",
@@ -139,7 +150,7 @@
  ],
  "talent": {
   "name": "拥抱自我",
-  "desc": "精英一解锁：替身每秒对周围 120 内敌人造成法伤并减速；灯火 <30「昏暗」时她的伤害 +25%"
+  "desc": "替身每秒对周围 120 内敌人造成法伤并减速；灯火 <30「昏暗」时她的伤害 +25%"
  },
  "hit_sources": {
   "锯刃": {

@@ -54,7 +54,12 @@ var op_scroll_f := 0.0
 var op_seen_sel := -1          # 上一帧绘制时的选中项：变化时把它滚进可视区（键盘 / 手柄 / --opsel 都走这里）
 var op_lore: Dictionary = {}
 ## 开场动画：从黑暗中浮出海滩 → 标题浮现 → 菜单依次滑入；任意按键 / 点击跳过
-const INTRO_LEN := 3.4
+## 标题开场（2026-09-27 用户选方案 A「潮声点灯」，要求节奏快一点，约 5 秒）：
+## 0–1.2 黑场里沙滩上一粒蓝眼泪亮起、荡开涟漪；0.5 起黑幕退去、上下黑边收起，镜头从高处整像素下摇到海滩（不再非整数放大）；
+## 1.6–2.5 发光脚印一枚枚亮到博士脚边，2.4 远方海嗣齐齐睁眼一瞬；2.6–3.2 青色扫光从左往右「刷」出 Logo；3.0 起副标题、菜单、页脚依次滑入。
+## 第一次完整播放；看过以后（Cfg.opening_seen 写入存档）从 INTRO_SHORT 起播简短版；对局返回标题不播；任意键 / 点击 / 触屏跳过
+const INTRO_LEN := 4.8
+const INTRO_SHORT := 2.5
 var intro := 0.0
 var title_bg: Control
 var map_title := ""        # 地图副标题（data/maps/<id>.json 的 title / title_en）
@@ -132,17 +137,25 @@ func _ready() -> void:
 	Sfx.play_music("title")
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := OS.get_cmdline_user_args()
-	if (not args.is_empty() and not args.has("--introshot")) or Cfg.title_seen:
+	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort")) or Cfg.title_seen:
 		intro = INTRO_LEN
+	elif Cfg.opening_seen or args.has("--introshort"):
+		intro = INTRO_SHORT   # 看过完整版：只播 Logo 扫光和菜单滑入
 	Cfg.title_seen = true
+	if not Cfg.opening_seen and intro < INTRO_LEN:
+		Cfg.opening_seen = true
+		Cfg.save()
 	if args.has("--introshot"):
 		# 开场动画分镜截图：/tmp/claude-0/shot_intro_<n>.png
-		for i in [0.5, 1.2, 1.8, 2.3, 2.8, 3.6]:
+		for i in [0.4, 1.0, 1.6, 2.2, 2.45, 2.9, 3.3, 4.2]:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
-		get_tree().create_timer(4.0).timeout.connect(func(): get_tree().quit())
+		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
 	if OS.get_cmdline_user_args().has("--settingsshot"):
 		settings.open()
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--settingstab="):
+				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
 			get_tree().quit())
@@ -160,6 +173,16 @@ func _ready() -> void:
 		get_tree().create_timer(1.2).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
 			get_tree().quit())
+	for a in Cfg.dev_args():
+		if a.begins_with("--diffshot="):
+			# 选难度页截图：--diffshot=<选中档>,<已解锁到第几档>（只改内存，测试模式不写存档）
+			var dp := a.substr(11).split(",")
+			Cfg.diff_unlocked = clampi(int(dp[1]) if dp.size() > 1 else 0, 0, D.DIFFICULTY_TIERS.size() - 1)
+			diff_pick = true
+			diff_sel = clampi(int(dp[0]), 0, D.DIFFICULTY_TIERS.size() - 1)
+			get_tree().create_timer(1.2).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
+				get_tree().quit())
 	if OS.get_cmdline_user_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
@@ -196,16 +219,17 @@ func _diff_input(event: InputEvent) -> void:
 
 
 func _diff_step(d: int) -> void:
-	var n := clampi(diff_sel + d, 0, D.DIFFICULTY.size() - 1)
-	if n > Cfg.diff_unlocked:
-		Sfx.play("ui_move", -4.0, 0.6)
-		return
+	# 未解锁的档也能翻过去看效果，只是不能出发（_diff_go）
+	var n := clampi(diff_sel + d, 0, D.DIFFICULTY_TIERS.size() - 1)
 	if n != diff_sel:
 		diff_sel = n
 		Sfx.play("ui_move")
 
 
 func _diff_go() -> void:
+	if diff_sel > Cfg.diff_unlocked:
+		Sfx.play("ui_move", -4.0, 0.6)
+		return
 	Cfg.difficulty = diff_sel
 	Cfg.save()
 	diff_pick = false
@@ -213,42 +237,59 @@ func _diff_go() -> void:
 	leaving = 0.0
 
 
-## 难度选择：左右切换，列出所有逐级叠加的效果
+## 难度选择：3 档（D.DIFFICULTY_TIERS）左右切换；下方按档列出各自新增的效果（逐档叠加）
 func _draw_diff(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
 	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120)
-	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY.size() - 1))
+	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY_TIERS.size() - 1))
 	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
 	UI.en(self, font, r.position + Vector2(36, 42), "DIFFICULTY", 13, col, 4.0)
 	UI.text(self, font, r.position + Vector2(36, 80), "选择难度", 26, UI.TEXT)
 	# 当前难度
-	var c := Vector2(r.get_center().x, r.position.y + 150)
+	var c := Vector2(r.get_center().x, r.position.y + 140)
 	diff_rects.clear()
 	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
 	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
 	UI.text(self, font, c + Vector2(-200, 12), "◀", 30, UI.TEXT if diff_sel > 0 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
-	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < Cfg.diff_unlocked else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
+	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < D.DIFFICULTY_TIERS.size() - 1 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
 	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
 	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
-	UI.text(self, font, c + Vector2(-40, 14), str(diff_sel), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
-	UI.text(self, font, c + Vector2(-150, 68), D.DIFFICULTY[diff_sel].name, 20, col, HORIZONTAL_ALIGNMENT_CENTER, 300)
-	# 效果列表
-	var y := r.position.y + 262
-	for i in range(1, D.DIFFICULTY.size()):
-		var on := i <= diff_sel
-		var locked := i > Cfg.diff_unlocked
-		var x := r.position.x + 60 + ((i - 1) / 5) * 340
-		var yy := y + ((i - 1) % 5) * 34
-		var ic := col if on else (Color(0.3, 0.36, 0.4) if locked else UI.SUB)
-		UI.diamond(self, Vector2(x, yy - 6), 5.0, ic if on else Color(0, 0, 0, 0), ic)
-		UI.text(self, font, Vector2(x + 16, yy), "%d  %s" % [i, D.DIFFICULTY[i].desc] if not locked else "%d  通关难度 %d 后解锁" % [i, i - 1], 14, UI.TEXT if on else ic)
+	var tdef: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
+	# 档名「波涛迭起·Ⅳ」（2026-09-27 用户定，贴原作）：菱形里只放「·」后的级数（Ⅳ / Ⅷ），首档没有级数画一道潮纹「≈」；
+	# 完整档名放在菱形下方一行，英文再下一行。旧的两字档名（标准 / 困难）仍直接放进菱形
+	var tname: String = str(tdef.name)
+	var parts: PackedStringArray = tname.split("·")
+	var mark: String = parts[1].strip_edges() if parts.size() > 1 else ("≈" if tname.length() > 2 else tname)
+	UI.text(self, font, c + Vector2(-40, 12), mark, 28 if mark.length() <= 1 else 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	if tname != mark:
+		UI.text(self, font, c + Vector2(-160, 68), tname, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 320)
+	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x / 2.0 - 10, 90 if tname != mark else 66), tdef.en, 11, col, 3.0)
+	# 效果列表：选中档的全部修正（各档独立，不再逐级叠加）；未解锁的档写解锁条件
+	var y := r.position.y + 292
+	var locked := diff_sel > Cfg.diff_unlocked
+	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
+	# 副标题：档位说明（DIFFICULTY_TIERS 的 desc，文案定）；没有 desc 时沿用旧写法
+	var sub_txt: String = str(tdef.get("desc", "深海原本的样子" if lines.is_empty() else "本难度的全部效果"))
+	if diff_sel > 0 and diff_sel > Cfg.diff_unlocked:
+		sub_txt = "通关「%s」后解锁" % D.DIFFICULTY_TIERS[diff_sel - 1].name
+	UI.text(self, font, Vector2(r.position.x, y - 32), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	var ic := Color(0.3, 0.36, 0.4) if locked else col
+	for k in lines.size():
+		var x := r.position.x + 60 + (k / 7) * 340
+		var yy := y + (k % 7) * 30
+		UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic, ic)
+		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14, UI.SUB if locked else UI.TEXT)
 	# 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
 	diff_rects["go"] = go
 	diff_rects["back"] = back
-	UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-	UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	if locked:
+		UI.panel(self, go, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
+		UI.text(self, font, go.position + Vector2(0, 29), "未解锁", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+	else:
+		UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
+		UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
 	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 
@@ -282,9 +323,11 @@ func _process(delta: float) -> void:
 		op_scroll_f = float(op_scroll)
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
-	# 背景：开场时从 1.12 倍缓缓拉远到 1.0
+	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
 	if title_bg != null:
-		title_bg.zoom = 1.0 + 0.12 * (1.0 - _ease(intro / 2.2))
+		title_bg.pan = 40.0 * (1.0 - _ease((intro - 0.4) / 1.8))
+		title_bg.reveal = clampf((intro - 1.6) / 0.9, 0.0, 1.0)
+		title_bg.eye_flash = maxf(0.0, 1.0 - absf(intro - 2.45) / 0.3) if intro < INTRO_LEN else 0.0
 	for m in motes:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
@@ -389,30 +432,42 @@ func _draw() -> void:
 		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
 		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
 	# 顶部小标（方案 A）：本作徽记 + 英文
-	var hf0 := _seg(0.9, 0.5)
+	var hf0 := _seg(2.9, 0.4)
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
-	# 标题（像素 Logo）：1.0s 起浮现（上浮 + 淡入），副标题稍后跟上
-	var lg := _seg(1.0, 0.8)
-	var ly := 24.0 * (1.0 - lg)
+	if Cfg.unlock_all:
+		UI.text(self, font, Vector2(vs.x - 330, 30), "测试版 · 已全部解锁（不写入存档）", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
+	var lg := _seg(2.6, 0.6)
+	var ly := 6.0 * (1.0 - lg)
 	if tex_logo != null:
 		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
 		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
-		draw_texture_rect(tex_logo, Rect2(Vector2(tx, 84 + ly), ls * k), false, Color(1, 1, 1, lg))
+		if lg > 0.0:
+			draw_texture_rect_region(tex_logo, Rect2(Vector2(tx, 84 + ly), Vector2(ls.x * k * lg, ls.y * k)), Rect2(0, 0, ls.x * lg, ls.y))
+		if lg > 0.0 and lg < 1.0:
+			var sx := tx + ls.x * k * lg
+			draw_rect(Rect2(sx - 10, 80, 10, ls.y * k + 8), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
+			draw_rect(Rect2(sx - 2, 78, 3, ls.y * k + 12), Color(0.85, 1.0, 1.0, 0.9))
+		var sp: float = maxf(0.0, 1.0 - absf(intro - 3.25) / 0.2)
+		if sp > 0.0 and intro < INTRO_LEN:
+			var dp := Vector2(tx + 262 * k * ls.x / 520.0, 84 + 14)
+			draw_line(dp + Vector2(-9, 0) * sp, dp + Vector2(9, 0) * sp, Color(1, 1, 1, sp), 2.0)
+			draw_line(dp + Vector2(0, -9) * sp, dp + Vector2(0, 9) * sp, Color(1, 1, 1, sp), 2.0)
 	else:
 		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
 		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(1.5, 0.5)), 5.0)
+	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(3.0, 0.4)), 5.0)
 	# 地图副标题：随地图变化，英文副标题下一行（菱形 + 中文名 + 英文名），和 Logo 组成一块
 	if map_title != "":
-		var mf2 := _seg(1.7, 0.5)
+		var mf2 := _seg(3.1, 0.4)
 		UI.diamond(self, Vector2(tx + 11, 257 + ly), 4.0, _fa(UI.CYAN, mf2))
 		UI.text(self, font, Vector2(tx + 22, 263 + ly), map_title, 15, _fa(UI.TEXT, mf2))
 		if map_title_en != "":
 			var mw: float = font.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 			UI.en(self, font, Vector2(tx + 34 + mw, 262 + ly), map_title_en, 10, _fa(Color(0.5, 0.54, 0.58), mf2), 2.5)
 	# 分隔线：1.6s 起从左向右划出，右端一个小方块
-	var rl := _seg(1.6, 0.6)
+	var rl := _seg(3.1, 0.5)
 	var ry := 282.0
 	if rl > 0.0:
 		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
@@ -424,7 +479,7 @@ func _draw() -> void:
 	var my := 300.0 if compact else 318.0
 	var step := 52.0 if compact else 58.0
 	var lx := tx + 4.0
-	var mf0 := _seg(1.9, 0.5)
+	var mf0 := _seg(3.3, 0.4)
 	if mf0 > 0.0:
 		var y0 := my - 8.0
 		var y1 := my + (ITEMS.size() - 1) * step + 46.0
@@ -435,7 +490,7 @@ func _draw() -> void:
 	for i in ITEMS.size():
 		var r := Rect2(tx - 10, my + i * step, 330, 48)
 		item_rects.append(r)
-		var f := _seg(2.0 + i * 0.12, 0.35)
+		var f := _seg(3.4 + i * 0.08, 0.3)
 		if f <= 0.0:
 			continue
 		var dx := -30.0 * (1.0 - f)
@@ -460,12 +515,12 @@ func _draw() -> void:
 		if on:
 			UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
 	# 操作提示
-	var hf := _seg(2.7, 0.5)
+	var hf := _seg(4.0, 0.4)
 	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + ITEMS.size() * step + 12
 		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
 	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
-	var df := _seg(2.6, 0.5)
+	var df := _seg(3.9, 0.4)
 	deploy_rect = Rect2()
 	if df > 0.0 and not diff_pick and not op_pick:
 		var bx := vs.x - 240.0
@@ -480,7 +535,7 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2(bx, by + 55), Vector2(28.0 + (44.0 if dh else 0.0), 3)), _fa(UI.CYAN, df))
 
 	# 页脚：最后淡入
-	var ff := _seg(2.8, 0.5)
+	var ff := _seg(4.1, 0.4)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
 	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 ›", 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
@@ -488,13 +543,25 @@ func _draw() -> void:
 
 	# 开场：黑幕淡出 + 上下黑边收起
 	if intro < INTRO_LEN:
-		var dark := 1.0 - _ease(intro / 1.6)
+		var dark := 1.0 - _ease((intro - 0.5) / 0.9)
 		if dark > 0.0:
 			draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.005, 0.015, dark))
-		var bar := 90.0 * (1.0 - _seg(0.3, 1.5))
+		var bar := 90.0 * (1.0 - _seg(0.5, 1.2))
 		if bar > 0.5:
 			draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0.005, 0.015))
 			draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0.005, 0.015))
+		# 黑场里的一粒蓝眼泪：沙滩上亮起，荡开三圈涟漪（黑幕退去时一起淡掉）
+		if intro < 1.6 and title_bg != null:
+			var tp: Vector2 = Vector2(vs.x * 0.58, vs.y * 0.66).round()   # 固定在画面中下（不跟下摇的背景走，免得被下方黑边盖住）
+			var ta: float = clampf(intro / 0.25, 0.0, 1.0) * clampf((1.6 - intro) / 0.5, 0.0, 1.0)
+			draw_circle(tp, 3.0, Color(0.7, 1.0, 1.0, ta))
+			draw_circle(tp, 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25 * ta))
+			for q in 3:
+				var rk: float = clampf((intro - 0.15 - q * 0.22) / 0.9, 0.0, 1.0)
+				if rk > 0.0:
+					draw_set_transform(tp, 0.0, Vector2(1.0, 0.4))
+					draw_arc(Vector2.ZERO, 12.0 + 90.0 * rk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (1.0 - rk) * 0.7 * ta), 1.5)
+					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	if guide:
 		_draw_guide(vs)
@@ -862,9 +929,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
 	var sks: Array = d.get("skills", [])
 	for si in sks.size():
-		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精一", "精二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
+		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精英一", "精英二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
 	if d.has("talent"):
-		lines.append(["天赋", d.talent.get("name", ""), d.talent.get("desc", "")])
+		lines.append(["天赋", d.talent.get("name", "") + "　（精英一解锁）", d.talent.get("desc", "")])
 	for ln in lines:
 		# 技能行：左边画技能图标（32px 原尺寸），名字与说明右移；普攻 / 天赋仍是小标签
 		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null

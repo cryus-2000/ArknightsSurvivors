@@ -13,6 +13,13 @@ func _init(game) -> void:
 ## Boss 行为
 func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	e.bt += dt
+	g.combat.gate_update(e, dt)   # 阶段卡点：每幕计时、护盾到时过卡点（docs/38 §1.3）
+	if g.zone_frozen and is_same(e, g.final_boss):
+		e.pos = g.combat.arena_clamp(e.pos, 80.0)   # 最终 Boss 场地：本体离圈边 ≥80（docs/38 §1.7）
+	# 冲锋 / 突刺计时（_warn_resolve 的 "dash" / "stab" 写入）：Boss 不走 enemy_ai 的冲刺递减，必须在这里递减，
+	# 否则骑士二阶段「再冲锋」（等 dash_t 归零）永远不会触发，冲锋帧条也会一直停在冲刺姿势（docs/38 B0 第 1 项）
+	if e.get("dash_t", 0.0) > 0.0:
+		e.dash_t = maxf(0.0, e.dash_t - dt)
 	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
 	if e.get("coma", false):
 		e.hp = min(e.maxhp, e.hp + e.maxhp * 0.1 * dt)
@@ -31,7 +38,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			e.invuln = false
 			g.vfx.add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
-	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.age > 2.0
+	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
 	match e.type:
 		"iberia", "carmen":
 			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
@@ -89,11 +96,11 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					p.haste = 5.0
 					e.pose = 0.5
 					e.pose_max = 0.5
-					g.fx.append({"kind": "ring", "pos": p.pos, "r": p.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.8)})
-					for k in 3:
-						g.fx.append({"kind": "cross", "pos": p.pos + Vector2(randf_range(-18, 18), randf_range(-40, -5)), "life": 0.9, "max": 0.9, "delay": k * 0.08, "sz": 4.0})
-					g.vfx.add_text(e.pos + Vector2(0, -50), "祝福", Color(0.5, 1.0, 0.8), 16)
-					g.vfx.add_text(p.pos + Vector2(0, -50), "加速", Color(0.5, 1.0, 0.8), 14)
+					# 敌方增益用敌方洋红（docs/48 ⑤：原来借用友方治疗十字和绿环，看着像我方在回血）
+					g.fx.append({"kind": "ring", "pos": p.pos, "r": p.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.3, 0.72)})
+					g.fx.append({"kind": "rays", "pos": p.pos, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.3, 0.72)})
+					g.vfx.add_text(e.pos + Vector2(0, -50), "祝福", Color(1.0, 0.45, 0.8), 16)
+					g.vfx.add_text(p.pos + Vector2(0, -50), "加速", Color(1.0, 0.45, 0.8), 14)
 					Sfx.play("pickup", -6.0, 0.8)
 				elif _cd(e, "summon", 14.0):
 					e.pose = 0.6
@@ -158,7 +165,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if e.bt > 4.0:
 					e.bt = 0.0
 					for k in 2:
-						var o: Dictionary = g.spawner.spawn_enemy("offspring", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0)
+						var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0))
 						o.feed = true
 						o.feed_to = e
 						o.spd = 45.0
@@ -254,16 +261,25 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
-	if g.diff >= 6:
-		w.dur *= 0.75
-		w.track *= 0.75
+	# 难度缩短预警只压缩追踪段（跟着主控转向的那段），总时长至少 0.6 秒，原本就短于 0.6 的不动（docs/38 B0 第 5 项）；
+	# 修正值大于 1（放宽）时整体拉长
+	var wm := float(g.dmod.boss_warn)
+	if wm < 1.0 and w.track > 0.0:
+		var cut: float = minf(w.track * (1.0 - wm), maxf(0.0, w.dur - 0.6))
+		w.track -= cut
+		w.dur -= cut
+	elif wm > 1.0:
+		w.dur *= wm
+		w.track *= wm
 	g.warns.append(w)
 	if w.lock:
-		e.wind = maxf(e.get("wind", 0.0), dur)
-		e.pose = dur + 0.3
-		e.pose_max = dur + 0.3
+		e.wind = maxf(e.get("wind", 0.0), w.dur)
+		e.pose = w.dur + 0.3
+		e.pose_max = w.dur + 0.3
 	if w.name != "":
-		g.vfx.add_text(e.pos + Vector2(0, -e.r - 30.0), w.name, Color(w.col.r * 1.3, w.col.g * 1.3, w.col.b * 1.3), 18)
+		# 招式名进 Boss 血条的副标题行，不再头顶浮字（docs/38 §1.15，hud.gd 读 move_name / move_t）
+		e["move_name"] = w.name
+		e["move_t"] = g.t
 		Sfx.play("skill", -12.0, 1.4)
 	return w
 
@@ -371,7 +387,8 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.pos = w.pos
 			e.air = 0.0
 			e.erase("leap")
-			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r + 40.0, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
+			# 冲击环不超过预警圆（docs/38 B0 第 5 项：原来 +40，圈外也会被打到）
+			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss})
 			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
 			Sfx.play("boom", -2.0, 0.8, 0.0)
@@ -422,8 +439,9 @@ func _draw_warns() -> void:
 			fa = 0.45 * f
 			oa = 0.9 * f
 			k = 1.0
-		var fill := Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa)
-		var line := Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, oa)
+		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）
+		var fill := Color(c.r, c.g, c.b, fa * 1.3)
+		var line := Color(c.r, c.g, c.b, oa)
 		match w.shape:
 			"circle":
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
@@ -461,6 +479,6 @@ func _spawn_tears(e: Dictionary, n: int) -> void:
 				cnt += 1
 		if cnt >= 6:
 			return
-		g.spawner.spawn_enemy("tear", e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0))
+		g.spawner.spawn_enemy("tear", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0)))
 
 

@@ -4,6 +4,7 @@ extends CanvasLayer
 var rect: ColorRect
 var mat: ShaderMaterial
 var hurt := 0.0        # 由 game.gd 写入
+var crowd := 0.0       # 特效密度 0–1（render/world.gd 写入）：后期满屏特效时辉光减半，免得整片过曝
 var t := 0.0
 
 
@@ -21,7 +22,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	mat.set_shader_parameter("time", t)
-	mat.set_shader_parameter("bloom", 0.3 if Cfg.bloom else 0.0)
+	mat.set_shader_parameter("bloom", 0.3 * (1.0 - 0.5 * crowd) if Cfg.bloom else 0.0)
 	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter else 0.0)
 	mat.set_shader_parameter("brightness", Cfg.brightness)
 	mat.set_shader_parameter("hurt", hurt)

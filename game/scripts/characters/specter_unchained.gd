@@ -100,13 +100,17 @@ func update(dt: float) -> void:
 	if s2_t > 0.0:
 		s2_t -= dt
 		if s2_t <= 0.0:
+			_start_fall()
+	if fall_t > 0.0:
+		fall_t -= dt
+		if fall_t <= 0.0:
 			_fall()
 	_update_doll(dt)
 	_update_rings(dt)
 	if s1_t > 0.0 and not away() and g.rng.randf() < dt * 14.0:
 		fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-16, 16), g.rng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_update_spins(dt)
-	if away() or acting():
+	if away() or acting() or fall_t > 0.0:
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
@@ -245,7 +249,7 @@ func _release_skill() -> void:
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED})
 	# 锯盘砸地的落点（op_specter_unchained_skill@2x 出手帧第 4 帧：锯盘中心在脚底前 34、上 13）：一小圈贴地冲击 + 火星，
 	# 原来只在脚下画光环，锯头落地处什么都没有（docs/32 §3）
-	var saw: Vector2 = pos + Vector2(34.0 * face, 0)
+	var saw: Vector2 = pos + Vector2(27.0 * face, 0)
 	fx({"kind": "ring", "pos": saw, "r": 30.0, "r0": 6.0, "life": 0.3, "col": GHOST if cur_skill < 2 else RED, "floor": true, "w": 3.0})
 	fx_sparks(saw + Vector2(0, -13), Color(0.85, 0.9, 1.0) if cur_skill < 2 else RED, 8, 200.0, 0.3, 2.5, 320.0)
 
@@ -267,7 +271,34 @@ func prevent_death() -> bool:
 	return s2_t > 0.0
 
 
-## S2 结束：倒下，留下替身（替身跟随主控干员，_update_doll）
+## S2 结束：先播倒下帧条 op_specter_unchained_fall（5 帧 10fps，不循环、停在末帧；docs/32 验收 §2），播完再切替身。
+## 倒下期间不出手；缺图时直接切替身（和以前一样）
+var fall_t := 0.0
+
+func _fall_dur() -> float:
+	var sp := sprite_spec("fall")
+	return float(sp.get("frames", 5)) / float(sp.get("fps", 10)) if anim_tex("fall") != null else 0.0
+
+
+func _start_fall() -> void:
+	melee_tgt = null
+	fire_t = -1.0   # 取消已起手、还没到出手帧的那一刀（docs/45 #13）
+	fall_t = _fall_dur()
+	if fall_t <= 0.0:
+		_fall()
+
+
+func anim_state() -> Dictionary:
+	if fall_t > 0.0:
+		var tx: Texture2D = anim_tex("fall")
+		if tx != null:
+			var n: int = anim_hframes(tx, "fall")
+			var fr: int = clampi(int((_fall_dur() - fall_t) * float(sprite_spec("fall").get("fps", 10))), 0, n - 1)
+			return {"tex": tx, "frame": fr, "hf": n, "flip": face < 0.0, "kind": "fall"}
+	return super()
+
+
+## 倒下播完：留下替身（替身跟随主控干员，_update_doll）
 func _fall() -> void:
 	doll_pos = pos
 	doll_t = base("doll_dur", 12.0)

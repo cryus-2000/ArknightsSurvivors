@@ -96,7 +96,8 @@
 
 - 生命：`base × (1 + min(t, hp_knee)/hp_div + max(t − hp_knee, 0)/hp_late_div)` → 2:00 ×2、8:00 ×5、10:00 ×5.4
 - 攻击：`base × (1 + min(t, dmg_knee)/dmg_div)` → 8:00 封顶 ×2.85
-- 刷怪率：`spawn_base + t/spawn_div` 只/秒；Boss 在场 ×0.8，灯火 < 30 ×1.15
+- 刷怪率：`spawn_base + min(t, spawn_knee)/spawn_div + max(t − spawn_knee, 0)/spawn_late_div` 只/秒（EA 1.1：拐点 8:40 后放缓，docs/46 §1.4）；Boss 在场 ×0.8，灯火 < 30 ×1.15
+- 开局节奏：`first_elite` 首只精英、`first_horde` 第一次大群（秒；EA 1.1 前期偏难，docs/46 §1.2）
 - 精英：生命 ×7、攻击 ×1.3、经验 ×10；Boss：`base × (1 + t/boss_hp_time_div)`
 - 难度 1–10：逐级叠加（data.gd），不改曲线形状
 

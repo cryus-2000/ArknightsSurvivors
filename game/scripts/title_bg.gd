@@ -44,7 +44,10 @@ var tex_terror: ImageTexture   # 远方海嗣剪影（海平线以上）
 var terror_eyes: Array = []    # [pos, phase, col]
 const TREE_BASE := Vector2(505, HZ + 2)
 var off := Vector2.ZERO     # 画面居中偏移（非 16:9 窗口时）
-var zoom := 1.0             # 开场动画用：>1 时以画面中心放大
+var zoom := 1.0             # 旧开场的放大（已不用：非整数倍会糊，保留变量以免外部引用报错）
+var pan := 0.0              # 开场镜头下摇：整幅画往下挪的原图像素数（取整，按 ks 整倍平移，不缩放）
+var reveal := 1.0           # 开场：发光脚印依次亮起的进度 0–1
+var eye_flash := 0.0        # 开场：远方海嗣睁眼一瞬的亮度加成
 var steps: Array = []       # 发光脚印
 var glow: Control
 
@@ -177,7 +180,7 @@ func _draw() -> void:
 	# 非 16:9 的窗口：按覆盖方式放大并居中裁切，不留边
 	var vs := get_viewport_rect().size
 	ks = K * maxf(vs.x / (W * K), vs.y / (H * K)) * zoom
-	off = ((vs - Vector2(W, H) * ks) / 2.0).round()
+	off = ((vs - Vector2(W, H) * ks) / 2.0).round() + Vector2(0, round(pan) * ks)
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03))
 	draw_set_transform(off, 0.0, Vector2(ks, ks))
 	draw_texture(tex_sky, Vector2.ZERO)
@@ -206,8 +209,12 @@ func _draw() -> void:
 	# 沙滩（岸线以下）
 	draw_texture(tex_sand, Vector2(0, SHORE - 30))
 	# 发光脚印
-	for st in steps:
-		var a: float = st[1] * (0.35 + 0.25 * sin(t * 1.5 + st[0].x))
+	for si in steps.size():
+		var st: Array = steps[si]
+		var sk: float = clampf(reveal * steps.size() - si, 0.0, 1.0)   # 开场：从远到近一枚枚亮起，刚亮时更亮
+		if sk <= 0.0:
+			continue
+		var a: float = st[1] * (0.35 + 0.25 * sin(t * 1.5 + st[0].x)) * sk + (1.0 - sk) * 0.9 * float(sk > 0.0)
 		draw_rect(Rect2(st[0].round(), Vector2(3, 1)), Color(0.3, 0.75, 1.0, a))
 	# 涌浪：从后到前画三道水膜
 	var order := [0, 1, 2]
@@ -326,6 +333,7 @@ func _draw_glow() -> void:
 		var ea: float = pow(0.5 + 0.5 * sin(t * 0.8 + e[1]), 2.0)
 		if sin(t * 0.21 + e[1] * 3.0) > 0.93:
 			ea *= 0.1
+		ea = minf(1.0, ea + eye_flash)   # 开场：远方海嗣齐齐睁眼一瞬
 		var ep: Vector2 = e[0] + Vector2(0, sink2)
 		if ep.y >= HZ:
 			continue

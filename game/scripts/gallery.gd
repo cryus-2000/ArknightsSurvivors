@@ -164,8 +164,8 @@ func _anim(label: String, name: String, fps: float, loop := true) -> Dictionary:
 	return {"label": label, "tex": tx, "frames": frames, "fps": fps, "loop": loop}
 
 
-func _anim_n(label: String, name: String, frames: int, fps: float) -> Dictionary:
-	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": true}
+func _anim_n(label: String, name: String, frames: int, fps: float, loop := true) -> Dictionary:
+	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": loop}
 
 
 ## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
@@ -175,7 +175,7 @@ func _doctor_forms(dd: Dictionary) -> Array:
 	for kind in [["待机", "idle", 4, 4.0], ["跑步", "run", 6, 10.0], ["受击", "hurt", 2, 10.0], ["倒下", "death", 4, 6.0]]:
 		var n = sp.get(kind[1], "")
 		if n is String and n != "" and A.tex(n) != null:
-			out.append(_anim_n(kind[0], n, kind[2], kind[3]))
+			out.append(_anim_n(kind[0], n, kind[2], kind[3], kind[1] != "death"))   # 倒下播一次停在末帧
 	if out.is_empty():
 		out.append(_anim_n("待机", "doctor", 2, 2.0))
 	return out
@@ -197,7 +197,7 @@ func _build() -> void:
 			entries.append({"name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": _doctor_forms(dd),
 				"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
 					["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
-				"chips": ["随行", "指挥", "排异"], "desc": _lore_text("doctor", "博士跟在主控干员身后，不受击、不攻击，负责指挥技能与排异反应。回复、移速、闪避、拾取这几项基础属性由博士提供；生命、物理减伤、法术抗性按主控干员的原作属性来定。")})
+				"chips": ["随行", "指挥", "排异"], "desc": _lore_text("doctor", "罗德岛的高层领导，三大创始人之一。作为矿石病治疗与天灾研究方面的顶尖学者，拥有生物学，神经工程学博士等学历。致力于清除矿石病，是罗德岛的中流砥柱之一。虽然本身没有战斗能力，但是拥有极强的指挥能力。")})
 			# 干员：data/characters/*.json（职业、普攻 / 技能 / 天赋、成长线）
 			for cid in Character.list_ids():
 				var cd: Dictionary = Character.load_def(cid)
@@ -207,19 +207,21 @@ func _build() -> void:
 					st.append(["普攻", cd.attack.get("name", "")])
 				var sks: Array = cd.get("skills", [])
 				for si in sks.size():
-					st.append(["技能 %d" % (si + 1), "%s · %s" % [sks[si].get("name", ""), ["招募", "精一", "精二"][si]]])
+					st.append(["技能 %d" % (si + 1), "%s · %s" % [sks[si].get("name", ""), ["招募", "精英一", "精英二"][si]]])
 				if cd.has("talent"):
 					st.append(["天赋", cd.talent.get("name", "")])
 				var forms: Array = []
-				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0], ["受击", "hurt", 6.0], ["倒下", "death", 5.0],
-						["Mon3tr", "m_idle", 4.0], ["爪击", "m_attack", 14.0]]:
+				# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
+				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
+						["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
+						["受击", "hurt", 6.0], ["倒下", "death", 5.0], ["Mon3tr", "m_idle", 4.0], ["Mon3tr 跑步", "m_run", 10.0], ["爪击", "m_attack", 14.0], ["熔毁", "m_skill", 12.0]]:
 					if not sp.has(kind[1]):
 						continue
 					var v = sp[kind[1]]
 					if v is String:
 						forms.append(_anim(kind[0], v, kind[2], kind[1] != "death"))
 					else:
-						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2]))))
+						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2])), kind[1] != "death" and kind[1] != "fall"))
 				# 攻击演示：实机跑一段（弹道 / 命中 / 技能都是战斗里的真实效果）
 				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 				var mech: String = cd.get("gallery", {}).get("desc", "")
@@ -228,7 +230,7 @@ func _build() -> void:
 					var sk3: Dictionary = cd.skills[si]
 					lines.append("S%d「%s」：%s" % [si + 1, sk3.get("name", ""), sk3.get("desc", "")])
 				if cd.has("talent"):
-					lines.append("天赋「%s」：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
+					lines.append("天赋「%s」（精英一解锁）：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
 				if not lines.is_empty():
 					mech += "\n" + "\n".join(lines)
 				entries.append({"name": cd.get("name", cid), "en": cd.get("en", cid.to_upper()), "tag": "%s干员" % cd.get("class", ""), "forms": forms,
@@ -246,6 +248,11 @@ func _build() -> void:
 					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
 				if A.tex(e.tex + "_feign") != null:
 					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
+				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
+				if e.get("atk_anim", false):
+					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
+						if A.tex(e.tex + fm[1]) != null:
+							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
@@ -253,7 +260,7 @@ func _build() -> void:
 				var tags: Array = []
 				if e.get("corrode", 0.0) > 0.0:
 					tags.append("侵蚀")
-				if e.get("nerve", 0.0) > 0.0:
+				if e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0:
 					tags.append("神经损伤")
 				if e.get("hover", false):
 					tags.append("悬浮")
@@ -261,8 +268,9 @@ func _build() -> void:
 					tags.append("成对")
 				if e.has("ammo"):
 					tags.append("装填")
+				tags.append_array(e.get("chips", []))
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, "")),
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, e.get("desc", ""))),
 					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]), "locked_text": "尚未遭遇。达成对应结局后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
@@ -279,7 +287,7 @@ func _build() -> void:
 				var c = en.get("col", [0.8, 0.6, 1.0])
 				entries.append({"id": eid, "name": en.name, "en": en.get("en", eid.to_upper()), "tag": "结局 · %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][i],
 					"forms": forms, "stats": [["Boss", bd.get("name", "")]], "chips": [], "col": Color(c[0], c[1], c[2]),
-					"desc": gal.get("lore", "") + "\n\n触发：" + gal.get("hint", ""), "locked": not Cfg.endings_cleared.has(eid) and not OS.get_cmdline_user_args().has("--allend"), "locked_text": "尚未达成。\n\n线索：" + gal.get("hint", "")})
+					"desc": gal.get("lore", "") + "\n\n触发：" + gal.get("hint", ""), "locked": not Cfg.endings_cleared.has(eid) and not Cfg.dev_args().has("--allend"), "locked_text": "尚未达成。\n\n线索：" + gal.get("hint", "")})
 		5:
 			# 藏品：已实装的全部列出；没获得过的显示为 ???
 			var lst: Array = relic_db.implemented()
@@ -291,7 +299,7 @@ func _build() -> void:
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
-					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not OS.get_cmdline_user_args().has("--allrelics"), "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not Cfg.dev_args().has("--allrelics"), "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火过低时敌人更快、更凶，熄灭后持续受到伤害。"})
@@ -558,12 +566,24 @@ func _draw_detail(vs: Vector2) -> void:
 	# 动作 / 形态切换
 	form_rects.clear()
 	if e.forms.size() > 1 and not locked and not wide:
+		# 按钮宽度按文字算（至少 44）：「Mon3tr 跑步」这类长标签不再被截成「Mon3tr」；一行放不下时按比例压窄
+		var ws: Array = []
+		var total := 0.0
 		for i in e.forms.size():
-			var br := Rect2(box.position.x + i * 52, box.end.y + 8, 48, 28)
+			var w: float = maxf(44.0, font.get_string_size(e.forms[i].label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 14.0)
+			ws.append(w)
+			total += w + 4.0
+		var avail: float = pr.end.x - 20.0 - box.position.x
+		var squeeze: float = minf(1.0, avail / maxf(total, 1.0))
+		var bx: float = box.position.x
+		for i in e.forms.size():
+			var br := Rect2(bx, box.end.y + 8, ws[i] * squeeze, 28)
+			bx += (ws[i] + 4.0) * squeeze
 			form_rects.append(br)
 			var on: bool = i == form
 			UI.panel(self, br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.02, 0.06, 0.09, 0.7), UI.CYAN if on else Color(0.2, 0.4, 0.45, 0.5), 5.0)
-			UI.text(self, font, br.position + Vector2(0, 19), e.forms[i].label, 12, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+			var fl: Array = UI.fit_line(font, e.forms[i].label, 12, br.size.x - 6.0, 10)
+			UI.text(self, font, br.position + Vector2(0, 19), fl[0], fl[1], UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	# 文字
 	var tx := pr.position.x + 300
 	var tw := pr.end.x - tx - 20
@@ -663,7 +683,7 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 				UI.text(self, font, Vector2(cxx, yy2), page[i][0], fs2 - 2, UI.SUB)
 				UI.text(self, font, Vector2(cxx + 92, yy2), page[i][1], fs2, UI.TEXT)
 			if yy2 + 24 <= top + avail:
-				UI.text(self, font, Vector2(x, yy2 + 24), "数值为基础值（未计成长节点、藏品与全队加成）；DPS = 单次伤害 ÷ 攻击间隔。", 11, UI.SUB)
+				UI.text(self, font, Vector2(x, yy2 + 24), "数值为基础值（未计成长节点、藏品与全队加成）；每秒伤害 = 单次伤害 × 每次出手的段数 ÷ 攻击间隔。", 11, UI.SUB)
 
 
 const SKILL_ICON_W := 40.0   # 技能页：图标 32px + 间距
@@ -711,7 +731,7 @@ func _op_skill_rows(cd: Dictionary) -> Array:
 	var sks: Array = cd.get("skills", [])
 	for si in sks.size():
 		var sk: Dictionary = sks[si]
-		var meta: Array = [["招募", "精一", "精二"][si] + "解锁"]
+		var meta: Array = [["招募", "精英一", "精英二"][si] + "解锁"]
 		if sk.has("sp"):
 			meta.append("充能 %d 秒" % int(sk.sp))
 		if sk.get("permanent", false):
@@ -720,7 +740,7 @@ func _op_skill_rows(cd: Dictionary) -> Array:
 			meta.append("手动")
 		rows.append(["S%d" % (si + 1), "%s　（%s）" % [sk.get("name", ""), " · ".join(meta)], sk.get("desc", ""), UI.GOLD, sk.get("icon", "")])
 	if cd.has("talent"):
-		rows.append(["天赋", cd.talent.get("name", "") + "　（精一解锁）", cd.talent.get("desc", ""), UI.PURPLE])
+		rows.append(["天赋", cd.talent.get("name", "") + "　（精英一解锁）", cd.talent.get("desc", ""), UI.PURPLE])
 	return rows
 
 
@@ -753,7 +773,9 @@ func _op_numbers(cid: String, cd: Dictionary) -> Array:
 	if cdv > 0.0:
 		out.append(["攻击间隔", "%.2f 秒" % cdv])
 	if atk > 0.0 and cdv > 0.0:
-		out.append(["每秒伤害", "%.1f" % (atk / cdv)])
+		# 一次出手打几下：艾丽妮剑豪每次出手刺两下（帧条带 second 帧 = 第二刺），其余一下
+		var hits: int = 2 if cd.get("sprites", {}).has("second") else 1
+		out.append(["每秒伤害", "%.1f%s" % [atk * hits / cdv, "（每次两刺）" if hits == 2 else ""]])
 	if rng_v > 0.0:
 		out.append(["射程", "%d" % int(rng_v)])
 	elif reach > 0.0:

@@ -1,5 +1,5 @@
 extends RefCounted
-## 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）：分段轮播技能、刷怪海、主控走位。
+## 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）：分段轮播技能、刷怪海、主控冲向怪群出手。
 ## 演示状态（demo_op / demo_stage / demo_label …）仍在 game.gd，图鉴直接读。2026-09-26 从 game.gd 拆出。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -18,6 +18,19 @@ const DEMO_MAX := 14.0
 const DEMO_MAX_LINGER := 27.0    # 留场表现中的上限（幽灵鲨：S2 10 秒 + 替身 12 秒 + 起手）
 var demo_ph_t := 0.0
 var demo_cast_t := -1.0          # 本段技能放出后经过的秒数（-1 = 还没放）
+var demo_filled := false         # 本段已经替它充满过一次（只充一次：放完后不会再被补满、放第二遍）
+var demo_after_t := 0.0          # 技能效果 / 出手 / 留场都结束后又过了多久（收尾爆炸等演完再切段）
+var demo_hurt_t := 0.0
+const DEMO_HURT_EVERY := 3.0     # 每 3 秒把主控生命压到 70%：治疗干员（凯尔希、铃兰…）才有东西可治（演示里怪不伤人）
+## 走位（见 wander）：是否正在走向怪
+var charging := false
+var skill_hold := 0.0            # 放技能的动作期间及之后 1 秒站着不动：施放特效（铃兰金环、光柱）画在起手点，走开就偏到身后
+var charge_t := 0.0              # 这次起步后走了多久：至少走 WALK_MIN_T 才允许停（不走一帧就停）
+const WALK_MIN_T := 0.3
+const WALK_MV := 0.7             # 摇杆量（匀速）
+const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
+const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
+const DEMO_DY := 40.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr / 跃空锤（跳高 42）别钻到下面
 
 
 func _init(game: Game) -> void:
@@ -26,7 +39,11 @@ func _init(game: Game) -> void:
 
 func step(dt: float) -> void:
 	g.lamp = 100.0
-	g.hp = g.max_hp
+	demo_hurt_t += dt
+	if demo_hurt_t >= DEMO_HURT_EVERY:
+		demo_hurt_t = 0.0
+		g.hp = g.max_hp * 0.7
+	g.hp = clampf(g.hp, g.max_hp * 0.5, g.max_hp)
 	g.xp = 0.0
 	g.gems.clear()
 	if g.demo_origin == Vector2.INF:
@@ -47,13 +64,14 @@ func step(dt: float) -> void:
 		if alive0 < 8:
 			horde(10)
 		return
-	# 只让本段的技能充能：其余压成 0
+	# 只让本段的技能充能：其余压成 0；本段的技能放出后也压住，免得短冷却的技能在长段里自然回满再放一遍（docs/45）
 	for i in 3:
-		if i != si and not g.ch.perm[i]:
+		if (i != si or demo_cast_t >= 0.0) and not g.ch.perm[i]:
 			g.ch.sp[i] = 0.0
 	if demo_cast_t < 0.0:
 		if demo_ph_t >= DEMO_FILL_AT and g.ch.skill_unlocked(si):
-			if g.ch.sp[si] < g.ch.sp_need(si) and demo_ph_t < DEMO_FILL_AT + dt * 1.5:
+			if not demo_filled:
+				demo_filled = true
 				g.ch.sp[si] = g.ch.sp_need(si)
 			if g.ch.is_manual(si) and g.ch.sp[si] >= g.ch.sp_need(si):
 				g.ch.cast_manual(si)   # 手动技能（幽灵鲨 S2）没人按键：替玩家放
@@ -65,8 +83,11 @@ func step(dt: float) -> void:
 	# 技能结束后还有留场表现（幽灵鲨 S2 结束本体倒下、替身跟随 12 秒，away()）：等它演完再切下一段，
 	# 否则一切段就重建干员，替身只出现一帧（docs/32 §3，测试与验收发现）
 	var lingering: bool = g.ch.has_method("away") and g.ch.away()
-	var done: bool = demo_cast_t >= DEMO_HOLD and g.ch.skill_active_left(si) <= 0.0 and not g.ch.acting() and not lingering
-	if done or demo_ph_t >= (DEMO_MAX_LINGER if lingering else DEMO_MAX):
+	var busy: bool = g.ch.skill_active_left(si) > 0.0 or g.ch.skill_pending(si) or lingering
+	# 从效果结束起再停 DEMO_HOLD 秒（以前从放出时算：凯尔希熔毁 8 秒一结束就切段，收尾大爆演不到）；普攻出手不算忙，只是不在出手中途切
+	demo_after_t = 0.0 if busy or demo_cast_t < 0.0 else demo_after_t + dt
+	var done: bool = demo_cast_t >= 0.0 and demo_after_t >= DEMO_HOLD and not g.ch.acting()
+	if done or demo_ph_t >= (DEMO_MAX_LINGER if busy else DEMO_MAX):
 		next_phase()
 		return
 	# 怪海清空了：右边补一波
@@ -78,17 +99,46 @@ func step(dt: float) -> void:
 		horde(10)
 
 
-## 演示里主控不再原地站桩（2026-09-26 用户要求）：绕出发点慢慢走一个 8 字（左右 ±55、上下 ±30），
-## 每段从出发点起步；返回摇杆量（≤0.55），走路动画 / 朝向与平时一致，干员照常跟随
+## 演示走位（2026-09-26 用户定的简单方案，替代「走走停停 + 后退 + 保持间距」：那几条规则互相打架，主控来回抽）：
+## 主控朝身前最近的怪直走过去，进出手距离就停下出手；那只死了 / 被打飞到 WALK_SLACK 以外再走向下一只。不后退、不绕。
+## 出手距离：近战 = 贴身（怪半径 + 40），远程 = JSON range 的 0.7（至多 230，开场多半已经够得着，站着打）。
+## 只挑身前（右边、不比主控靠左 20 以上）的怪，怪一直在主控右边，出手时就不会左右翻身；朝向照常跟移动方向
 func wander() -> Vector2:
-	if g.demo_origin == Vector2.INF:
+	if g.demo_origin == Vector2.INF or g.ch == null:
 		return Vector2.ZERO
-	var k: float = demo_ph_t
-	var tgt: Vector2 = g.demo_origin + Vector2(-150, 10) + Vector2(sin(k * 0.9) * 55.0, sin(k * 1.8) * 30.0)
-	var d: Vector2 = tgt - g.ppos
-	if d.length() < 3.0:
+	if g.ch.acting() and g.ch.act_kind == "skill":
+		skill_hold = 1.0
+	if skill_hold > 0.0:
+		skill_hold -= g.get_process_delta_time()
+		charging = false
 		return Vector2.ZERO
-	return (d / maxf(g.speed * 0.3, 1.0)).limit_length(0.55)
+	var best: Dictionary = {}
+	var bd := 99999.0
+	for e in g.enemies:
+		if e.dead or e.pos.x < g.ppos.x - 20.0:
+			continue
+		var d: float = g.ppos.distance_to(e.pos)
+		if d < bd:
+			bd = d
+			best = e
+	if best.is_empty():
+		charging = false
+		return Vector2.ZERO
+	var stop: float = best.r + 40.0 if g.ch.range_cls() == "近战" else minf(float(g.ch.def.get("range", 260.0)) * 0.7, 230.0)
+	if charging:
+		charge_t += g.get_process_delta_time()
+		charging = bd > stop or (charge_t < WALK_MIN_T and bd > best.r + 24.0)
+	elif bd > stop + WALK_SLACK:
+		charging = true
+		charge_t = 0.0
+	if not charging:
+		return Vector2.ZERO
+	var dv: Vector2 = best.pos - g.ppos
+	if g.ppos.x > g.demo_origin.x + WALK_MAX_X and dv.x > 0.0:
+		dv.x = 0.0
+	if dv.length() < 1.0:
+		return Vector2.ZERO
+	return dv.normalized() * WALK_MV
 
 
 ## 图鉴手动切换（gallery.gd 点击调用）：stage 0 精零（N1 N2 后）/ 1 精一（N5 后）/ 2 精二；
@@ -117,10 +167,31 @@ func next_phase() -> void:
 	g.demo_pi = (g.demo_pi + 1) % g.demo_phases.size()
 	demo_ph_t = 0.0
 	demo_cast_t = -1.0
+	charging = false
+	skill_hold = 0.0
+	# 每段从干净的场地开始，不继承上一段的任何东西（用户要求）：怪、弹幕、特效、飘字、预警、溟痕、掉落、博士位置、朝向
 	g.enemies.clear()
 	g.bullets.clear()
-	g.ppos = g.demo_origin + Vector2(-150, 10)
+	g.ebullets.clear()
+	g.lobs.clear()
+	g.shocks.clear()
+	g.warns.clear()
+	g.mires.clear()
+	g.gems.clear()
+	g.fx.clear()
+	g.texts.clear()
+	g.hitstop = 0.0
+	g.dash_t = 0.0
+	g.doc_pos = Vector2.INF
+	g.ppos = g.demo_origin + Vector2(-150, 10 + DEMO_DY)
 	new_op()
+	# 推成长节点到精英化时，新解锁的技能会被充满（character.gd 解锁即满）：重建后同一帧就会放出最高的技能，
+	# 每段开头都先来一发三技能。这里全部清零，本段的技能由 step 在 DEMO_FILL_AT 时替它充满
+	for i in 3:
+		if not g.ch.perm[i]:
+			g.ch.sp[i] = 0.0
+	demo_filled = false
+	demo_after_t = 0.0
 	horde(DEMO_HORDE)
 	var si: int = g.demo_phases[g.demo_pi]
 	g.demo_label = "普攻「%s」" % g.ch.attack_def().get("name", "") if g.demo_basic else "%s技能「%s」" % [["一", "二", "三"][si], g.ch.skill_def(si).get("name", "")]
@@ -167,7 +238,7 @@ func horde(n: int) -> void:
 		var a: float = g.rng.randf() * TAU
 		var r: float = sqrt(g.rng.randf())
 		# 前排离主控约 140（近战干员的前压范围 150 以内），一开场就能接敌
-		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, sin(a) * r * 72.0)
+		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, DEMO_DY + sin(a) * r * 72.0)
 		var ne := g.spawner.spawn_enemy("bone", p)
 		ne.spd = 16.0
 		ne.dmg = 0.0

@@ -193,10 +193,12 @@ var texts: Array = []
 var grid := {}
 var orbit_a := 0.0
 var threat := 0                  # 威胁等级（D.THREAT 下标）
-var diff := 0                # 本局难度
+var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
+var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「波涛迭起 / ·Ⅳ / ·Ⅷ」）
+var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
-var next_horde := 75.0
+var next_horde := Bal.v("enemy/first_horde", 75.0)   # 第一次大群（balance.json，docs/46 §1.2）
 var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
 var show_queue: Array = []   # 解锁演出队列
 var shop_refreshed := false  # 本次商人只能刷新一次
@@ -229,6 +231,7 @@ var zone_r := 99999.0
 var zone_next_c := Vector2.ZERO
 var zone_next_r := 0.0
 var zone_state := 0          # 0 未开始 / 1 预告 / 2 收缩 / 3 稳定
+var zone_frozen := false     # 最终 Boss 场地冻结（combat.freeze_zone，docs/38 §1.7）：不再缩圈，圈边画场地描边
 var zone_t := 0.0
 var merchant := {}
 var merchant_idx := 0
@@ -444,6 +447,9 @@ func _ready() -> void:
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
+		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
+		if n.begins_with("e_") and tex[n] != null:
+			tex[n + "_white"] = A.white_of(tex[n])
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
 	var etex: Array = ["e_paranoia2"]
 	for k in D.ENEMIES:
@@ -538,14 +544,23 @@ func _ready() -> void:
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
 		vfx.show_banner("深海的潮水正在涌来……")
-	diff = clampi(Cfg.difficulty, 0, D.DIFFICULTY.size() - 1)
+	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
+	diff = D.DIFFICULTY_TIERS[tier].level
+	dmod = D.dmod_for_tier(tier)
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--diff="):
+			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			diff = int(a.substr(7))
-	if diff >= 3:
-		stats.add(&"light_decay", "mult", 1.25, "difficulty")
-	if diff >= 9:
-		stats.add(&"max_hp", "mult", 0.67, "difficulty")   # 原为定值 80（= 120 的 2/3）；主控生命因人而异后改成倍率
+			tier = D.tier_of_level(diff)
+			dmod = D.dmod_for_level(diff)
+		elif a.begins_with("--tier="):
+			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
+			diff = D.DIFFICULTY_TIERS[tier].level
+			dmod = D.dmod_for_tier(tier)
+	if float(dmod.lamp_hit) != 1.0:
+		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
+	if float(dmod.max_hp) != 1.0:
+		stats.add(&"max_hp", "mult", float(dmod.max_hp), "difficulty")
 	_sync_stats()
 	hp = max_hp
 	hp_trail = hp
@@ -644,7 +659,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = 0.066 if balance else 0.05
-	if hitstop > 0.0 and not autotest and Cfg.hitstop:
+	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
+	if hitstop > 0.0 and not autotest and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:
 		_update(dt)
@@ -658,8 +674,8 @@ func _process(delta: float) -> void:
 				_pm("autotest")
 				if state == S.PLAY:
 					_update(dt)
-	if not panel.visible:
-		banner_t -= delta   # 选卡 / 商人面板开着时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
+	if not panel.visible and state != S.SHOW:
+		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	world.update_visuals(dt if state == S.PLAY else 0.0)
 	_pm("visuals")
@@ -818,7 +834,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			shop_sys.refresh()
 		elif k == KEY_ESCAPE or k == KEY_E:
 			shop_sys.close()
-	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_3:
+	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_9:
+		# 数字键 1..n 对应第 n 张卡（藏品 / Boss 奖励可能多于 3 张，docs/38 B0 第 10 项）
 		var i: int = k - KEY_1
 		if i < choices.size():
 			progression.pick(i)
@@ -909,6 +926,9 @@ func _update(dt: float) -> void:
 	elif autotest:
 		mv = Vector2.from_angle(t * 0.4)
 	move_in = mv
+	if balance and autotest_sys.want_dash:
+		autotest_sys.want_dash = false
+		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
 	if pstun > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
@@ -962,7 +982,9 @@ func _update(dt: float) -> void:
 	_pm("spawn")
 	enemies_sys.build_grid()
 	_pm("grid")
+	var nfx0: int = fx.size()
 	enemies_sys.update(dt)
+	vfx.mark_enemy_fx(nfx0)   # 这一段新加的特效都来自敌人：后期降噪不调淡它们（docs/48 全局 ③）
 	_pm("enemies")
 	squad.update(dt)
 	_pm("squad")
@@ -971,8 +993,10 @@ func _update(dt: float) -> void:
 	touch.update(dt)
 	weapons_sys.update_bullets(dt)
 	_pm("bullets")
+	var nfx1: int = fx.size()
 	enemies_sys.update_ebullets(dt)
 	bai._update_warns(dt)
+	vfx.mark_enemy_fx(nfx1)
 	_pm("ebullets")
 	enemies_sys.update_status(dt)
 	rfx.tick(dt)
@@ -1009,8 +1033,9 @@ func _update(dt: float) -> void:
 	if final_boss != null and final_boss.dead:
 		state = S.WIN
 		endg.on_win()
-		if not balance and diff >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY.size() - 1:
-			Cfg.diff_unlocked = diff + 1
+		# 通关当前最高已解锁的档 → 解锁下一档
+		if not balance and tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
+			Cfg.diff_unlocked = tier + 1
 			Cfg.save()
 			diff_new = true
 		return
@@ -1030,12 +1055,8 @@ func _check_pending() -> void:
 
 
 # =====================================================================
-# 刷怪
-# =====================================================================
-
-
-# =====================================================================
-# 敌人
+# 属性同步与对局工具：_sync_stats（stats → 缓存变量）、灯火半径 / 技力倍率、对局随机数洗牌、性能打点
+# 刷怪 / 敌人 / 战斗 / 商店 / 无人机 / 掉落 / 升级选卡已拆到 scripts/run/，界面在 screens/，绘制在 render/（docs/39 §1）
 # =====================================================================
 
 
@@ -1101,27 +1122,10 @@ func _pm(k: String) -> void:
 
 
 # =====================================================================
-# 水月的攻击：伞击 + 天赋「创伤性癔症」+ 三个自动技能
+# 主控朝向与实体清理
 # =====================================================================
 func facing_angle() -> float:
 	return 0.0 if facing >= 0.0 else PI
-
-
-# =====================================================================
-# 商人与商店
-# =====================================================================
-
-
-# =====================================================================
-# 医疗无人机（2026-09-25 加入；2026-09-26 改为可选，升级时选到才有）：不占编队位；跟在主控头顶两侧，周期性治疗主控
-# Lv.1 每 6 秒 2% → Lv.2 3% / 5 秒 → Lv.3 生命 < 40% 时急救 8%（冷却 20 秒）→ Lv.4 第二架 → Lv.5 4 秒 / 清神经损伤
-# =====================================================================
-# 上限压到一个精零凯尔希（约 1%/秒），保证带医疗仍然值得（docs/23 §17）
-
-
-# =====================================================================
-# 掉落物、特效
-# =====================================================================
 
 
 func _cleanup() -> void:
@@ -1134,18 +1138,15 @@ func _cleanup() -> void:
 
 
 # =====================================================================
-# 升级 / 藏品选择
-# =====================================================================
-
-
-# =====================================================================
-# 绘制
+# 博士挂件跟随、引擎回调（_exit_tree / _draw 转发）与数据表（V6_FRAMES 帧条登记、开局指南文本）
 # =====================================================================
 ## 博士挂件（docs/23 v0.7）：不受击、不攻击，慢慢跑着跟在主控身后；离太远（传送 / 开局）才直接归位
 const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但不会贴身
 const DOC_BEHIND := Vector2(-40, 30)
 var doc_pos := Vector2.INF
 var doc_moving := false
+var doc_still_t := 0.0           # 博士连续「几乎没动」的时间：超过 DOC_STOP_T 才切站立（走停滞后，免得跑 / 站帧条一闪一闪）
+const DOC_STOP_T := 0.15
 var doc_face := 1.0
 
 
@@ -1167,14 +1168,20 @@ func _update_doc_follow(dt: float) -> void:
 	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
 	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
 	doc_pos += mv
-	doc_moving = mv.length() > 20.0 * dt
+	# 走停滞后：起步要够快（> 30 像素 / 秒）；停下要连续慢（< 20）DOC_STOP_T 秒
+	var spd: float = mv.length() / maxf(dt, 0.0001)
+	if doc_moving:
+		doc_still_t = doc_still_t + dt if spd < 20.0 else 0.0
+		doc_moving = doc_still_t < DOC_STOP_T
+	else:
+		doc_moving = spd > 30.0
+		doc_still_t = 0.0
 	if absf(mv.x) > 6.0 * dt:
 		doc_face = signf(mv.x)
 	elif not doc_moving:
 		doc_face = facing
 
 
-## 以美术像素为单位绘制横向帧条中的一帧，anchor 为贴图内的锚点（0~1）
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
@@ -1214,15 +1221,17 @@ const V6_FRAMES := {
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
+	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
+	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }
 
 
 ## ---- 开局指南：6 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
 const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
-		"目标：在深海中存活 10 分钟，击败 10:00 登场的最终 Boss。第一次探索的终点是「偏执泡影」；之后的探索里，你的选择会把故事引向另外三个结局。",
-		"你操控的是开局干员 —— 主控是场上唯一会受伤的人，博士跟在身后指挥，招募来的干员跟随作战。所有人的普攻与三个技能全自动出手；你只需要用 WASD 移动、空格冲刺（冲刺中无敌）：走位、拉怪、躲弹幕、抢掉落。站在灯光里打，敌人受到的伤害 +25%。",
-		"3:30 与 7:00 各有一次中期 Boss（塑路者、圣徒伊比利亚、圣徒卡门、接潮主教与同伴中随机；3:30 只会是塑路者或伊比利亚），击败后获得大量经验、源石锭与一件藏品。"]},
+		"海风吹向深处。罗德岛的小分队随水月潜入海嗣的深海，灯火是唯一的光。",
+		"你是博士。带着你的小队撑过 10 分钟，直面 10:00 醒来的最终 Boss。你的抉择，会决定故事走向哪一个结局。3:30 与 7:00 各有强敌拦路。",
+		"主控走在最前面，也是唯一会受伤的人。技能都会自动释放，你只管走位（WASD）与冲刺（空格，冲刺中无敌）。灯光里的敌人更脆弱。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
 		"灯火（金条）不会自己燃尽，只在受击时熄灭一截：伤害越重熄得越多，黑潮里也会持续流失。拾取敌人掉落的灯油、或向商人购买灯油补充。灯光范围内的敌人受到的伤害 +25%，灯越亮范围越大。",
@@ -1259,7 +1268,6 @@ const INTRO_PAGES := [
 ]
 
 
-## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
 ## 冲刺提示（用户要求：不提示就不知道有冲刺）：
 ## ① 屏幕底部中间常驻一枚按键牌「空格 冲刺」，冷却时底色按进度走满，可冲时描边亮起；
 ## ② 开局前 25 秒（直到第一次冲刺为止）主控头顶浮一行「按 空格 冲刺」。触屏有自己的冲刺按钮，不画这两样

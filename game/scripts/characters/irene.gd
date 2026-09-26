@@ -35,6 +35,7 @@ var pursue_on := false        # 精二 追诉
 var pursue_cd := 0.0
 var stage_i := 0              # 当前刺击段数（1 / 2 / 3）
 var tide2_t := -1.0           # 二度裂潮倒计时
+var tide2_swing := false      # 二度裂潮那一斩的动作已起手，出手帧由 _release_skill 结算
 
 
 ## 四边形：对齐网格后宽度可能收成 0（两侧顶点重合）→ 退化时画成一条线，避免三角化报错
@@ -143,7 +144,12 @@ func update(dt: float) -> void:
 		tide2_t -= dt
 		if tide2_t < 0.0:
 			tide2_t = -1.0
-			_shattertide(base("tide2_mult", 0.8))
+			# 二度裂潮：有空就先起一个技能动作，出手帧再斩（docs/45 #8：原来待机姿势时刀光凭空出现）；正在出手就直接斩
+			if acting():
+				_shattertide(base("tide2_mult", 0.8))
+			else:
+				tide2_swing = true
+				_start_action("skill", Vector2.INF, 0.5, 0.2)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -315,6 +321,10 @@ func _airborne_enemies(c: Vector2, r: float) -> Array:
 # ---------------------------------------------------------------- 技能
 
 func _release_skill() -> void:
+	if tide2_swing:
+		tide2_swing = false
+		_shattertide(base("tide2_mult", 0.8))
+		return
 	match cur_skill:
 		1:
 			_shattertide(1.0)
@@ -364,7 +374,7 @@ func _shattertide(mult: float) -> void:
 	# 第二斩：镜像翻转 + 偏银白，与第一斩区分
 	var second: bool = mult < 1.0
 	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
-	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * 0.5, r * 1.2 / 28.0, ang, second, false, tint):
+	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):   # 贴近剑（docs/45 #8；第二斩再近）
 		slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
 	fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 	if second:
@@ -373,6 +383,11 @@ func _shattertide(mult: float) -> void:
 
 func skill_active_left(i: int) -> float:
 	return judge_left if i == 2 else 0.0
+
+
+## 一技能是「下一次」强化：放出后到这一击打出去之前算未完成（图鉴演示等它打完再切段，c820b22）
+func skill_pending(i: int) -> bool:
+	return i == 0 and gust_next
 
 
 func skill_active_dur(i: int) -> float:
@@ -460,4 +475,4 @@ func status_items() -> Array:
 
 ## 提灯位置（docs/32 §3）：平时提在身前下方（op_irene_idle@2x：脚底前 19、上 15），举灯技能帧举过头顶（skill 第 4 帧：前 21、上 60）
 func _lantern(raised: bool) -> Vector2:
-	return pos + (Vector2(21.0 * face, -60.0) if raised else Vector2(19.0 * face, -15.0))
+	return pos + (Vector2(20.0 * face, -56.0) if raised else Vector2(16.0 * face, -15.0))

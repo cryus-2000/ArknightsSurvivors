@@ -9,6 +9,12 @@ extends Node
 ##   僵直中也能冲刺（方向取按住的方向）。
 ## 攻速 / 移速下限（B0-3）：Boss 来源和 Boss 存活期间不写 atk_slow（预警、带 slow 的子弹、神经损伤溢出），改成等量移速减速；
 ##   Boss 存活期间移速倍率不低于 0.7，没有 Boss 时照旧相乘。
+## 大群混编（EA 1.1）：data/waves.json 每套 horde_mix 展开后位数、主体占比、敌人 ID 合法，编成随机抽且不连续重复。
+## V8 新敌人：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟。
+## Boss 阶段卡点（B1 ①）：截在刻度、护盾、满时长过卡点、过卡点短暂不受伤。
+## 破绽 ×1.4、韧性与眩晕钩子（白名单 Boss）、伤害预算（默认关）（B1 ③④）。
+## 最终 Boss 登场时残留中期 Boss 撤场不给奖励（B1 ②）。
+## 最终 Boss 场地（B1 第二批）：冻结、插值、主控离圈边 ≥100、位置约束。
 ## 全部通过时打印 "PROT TESTS PASSED"。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -47,6 +53,12 @@ func _process(_d: float) -> void:
 	test_non_boss()
 	test_no_hard_cc()
 	test_atk_slow_floor()
+	test_horde_mix()
+	test_v8()
+	test_gates()
+	test_break_budget()
+	test_retreat()
+	test_arena()
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -558,3 +570,213 @@ func test_atk_slow_floor() -> void:
 	ok(game.atk_slow <= 0.0 and c.ctrl.aslow_t > as0, "Boss 战中直接写的 atk_slow 被换掉并记违规")
 	c.ctrl.aslow_t = as0
 	reset()
+
+
+## 大群混编（EA 1.1，data/waves.json horde_mix）：每个威胁等级的每套编成展开后刷怪位数 = n、特种不超过一半、
+## 敌人 ID 都存在、位置在包围圈 0–1 之内；随机抽编成但不连续重复
+func test_horde_mix() -> void:
+	var D = preload("res://scripts/data.gd")
+	var sp = game.spawner
+	var th0: int = game.threat
+	for ti in D.THREAT.size():
+		game.threat = ti
+		var mixes: Array = D.THREAT[ti].get("horde_mix", [])
+		ok(not mixes.is_empty(), "威胁等级 %s 写了 horde_mix" % D.THREAT[ti].name)
+		for m in mixes:
+			for nn in [20, 44, 90]:
+				var plan: Array = sp.horde_plan(m, nn)
+				var body_n := 0
+				var bad := ""
+				for s in plan:
+					if not D.ENEMIES.has(s.id):
+						bad = s.id
+					if float(s.u) < 0.0 or float(s.u) > 1.0:
+						bad = "u=%s" % s.u
+					if m.body.has(s.id) and float(s.dr) == 0.0:
+						body_n += 1
+				ok(plan.size() == nn and body_n >= nn - nn / 2 and bad == "", "大群「%s」n=%d：%d 个位、主体 ≥ 一半（%d）、ID / 位置合法 %s" % [m.name, nn, plan.size(), body_n, bad])
+	# 随机抽编成，但不连着来两次同一套：上一次大群是某套时，这次一定换另一套
+	game.threat = 1
+	var hl0: Array = game.horde_log.duplicate()
+	var rep := 0
+	for k in 40:
+		var last: String = D.THREAT[1].horde_mix[k % 2].name
+		game.horde_log = [{"mix": last}]
+		if sp.horde_mix().name == last:
+			rep += 1
+	ok(rep == 0, "大群编成不连续重复（40 次里重复 %d 次）" % rep)
+	game.horde_log = hl0
+	game.threat = th0
+
+
+## V8 新敌人（enemy_ai.gd）：自爆、休眠伏兵、厚甲、神经弹、神经光环的行为冒烟
+func test_v8() -> void:
+	var sp = game.spawner
+	var ai = game.eai
+	var dt := 0.1
+	# 壳海狂奔者：进入 blast_range 后鼓胀，blast_fuse 后自爆消失
+	var ru: Dictionary = sp.spawn_enemy("runner", game.ppos + Vector2(30, 0))
+	ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
+	ok(ru.blast_w > 0.0 and not ru.dead, "狂奔者进入范围开始鼓胀（%.2f 秒）" % ru.blast_w)
+	for k in 8:
+		if not ru.dead:
+			ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
+	ok(ru.dead, "狂奔者鼓胀结束后自爆消失")
+	# 钵海收割者：屏幕外刷出改放到主控附近休眠；主控不靠近不醒，受伤就醒
+	var re: Dictionary = sp.spawn_enemy("reaper", game.ppos + Vector2(1500, 0))
+	var rd: float = re.pos.distance_to(game.ppos)
+	ok(re.dormant and rd >= 300.0 and rd <= 520.0, "收割者休眠伏在主控附近（%.0f）" % rd)
+	ai.pattern(re, Vector2.LEFT, rd, dt, re.spd)
+	ok(re.dormant, "主控在唤醒半径外：继续休眠")
+	re.hp -= 1.0
+	ai.pattern(re, Vector2.LEFT, rd, dt, re.spd)
+	ok(not re.dormant and re.wake_t > 0.0, "受到伤害后唤醒")
+	re.dead = true
+	# 深溟奠基者：厚甲（def = armor）
+	var fo: Dictionary = sp.spawn_enemy("founder", game.ppos + Vector2(900, 0))
+	ok(absf(fo.def - 0.7) < EPS, "奠基者厚甲 def 0.7（%.2f）" % fo.def)
+	fo.dead = true
+	# 浮海飘航者：神经弹带神经损伤
+	var fl: Dictionary = sp.spawn_enemy("floater", game.ppos + Vector2(200, 0))
+	ai.shoot(fl, Vector2.LEFT)
+	var lb: Dictionary = game.ebullets[game.ebullets.size() - 1]
+	ok(lb.kind == "nerve" and lb.nerve > 0.0, "飘航者神经弹（nerve %.0f）" % lb.nerve)
+	lb.life = 0.0
+	fl.dead = true
+	# 深溟巢涌者：主控在光环内累积神经损伤
+	var ne: Dictionary = sp.spawn_enemy("nest", game.ppos + Vector2(60, 0))
+	game.invuln = 0.0   # 狂奔者自爆打中后有无敌帧
+	var n0: float = game.nerve
+	for k in 6:
+		ai.pattern(ne, Vector2.LEFT, 60.0, dt, ne.spd)
+	ok(game.nerve > n0, "巢涌者光环累积神经损伤（%.1f → %.1f）" % [n0, game.nerve])
+	ne.dead = true
+	game.nerve = 0.0
+	game.warns.clear()
+
+
+## B1 ① 阶段卡点与每幕最短时长（docs/38 §1.3）：伤害截在刻度上；没满最短时长升护盾、护盾期间不掉血；
+## 满时长后过卡点（0.8 秒不受伤，之后能继续打）；最终 Boss 两道刻度 0.66 / 0.33、伊祖米克每幕 10 秒
+func test_gates() -> void:
+	var sp = game.spawner
+	c.hit("test")
+	var m: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1600, 0))
+	ok(m.gates == [0.5] and absf(m.act_min - Bal.v("boss/act_min_mid", 6.0)) < EPS, "中期 Boss 一道刻度 0.5（%s）、每幕 %.0f 秒" % [str(m.gates), m.act_min])
+	var k := 0
+	while not m.gate_hold and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.gate_hold and absf(m.hp - m.maxhp * 0.5) < 0.01, "打太快：停在 50%% 刻度升起护盾（%.1f%%）" % (100.0 * m.hp / m.maxhp))
+	var h0: float = m.hp
+	c.damage(m, m.maxhp)
+	ok(m.hp == h0, "护盾期间不掉血")
+	c.gate_update(m, m.act_min)
+	ok(not m.gate_hold and m.gates.is_empty() and m.gate_inv > 0.0, "满最短时长后护盾碎、过卡点、短暂不受伤")
+	c.damage(m, m.maxhp)
+	ok(m.hp == h0, "过卡点后 0.8 秒内不受伤")
+	c.gate_update(m, 1.0)
+	k = 0
+	while not m.dead and not m.gate_hold and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(not m.dead and m.gate_hold and absf(m.hp - m.maxhp * Bal.v("boss/last_hold", 0.03)) < 0.01, "最后一幕没满最短时长：停在剩 3%% 处升护盾")
+	c.gate_update(m, m.act_min)
+	ok(not m.gate_hold and m.last_done, "最后一幕满时长后护盾碎掉")
+	k = 0
+	while not m.dead and k < 200:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.dead, "最后一幕打完正常死亡（%d 击）" % k)
+	# 最终 Boss：两道刻度；这一幕已满时长则越过刻度立刻过卡点、不升护盾
+	var f: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1700, 0))
+	ok(f.gates == [0.66, 0.33] and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 0.66 / 0.33、每幕 %.0f 秒" % f.act_min)
+	f.act_t = 99.0
+	k = 0
+	while f.gates.size() == 2 and k < 200:
+		c.damage(f, f.maxhp)
+		k += 1
+	ok(not f.gate_hold and f.gates == [0.33] and absf(f.hp - f.maxhp * 0.66) < 0.01, "满时长越过刻度：直接过卡点、截在 66%")
+	f.dead = true
+	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1800, 0))
+	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
+	iz.dead = true
+	game.warns.clear()
+
+
+## B1 ③ 破绽与韧性（§1.5，临时把塑路者放进白名单）、④ 伤害预算（§1.4，临时打开）
+func test_break_budget() -> void:
+	var D = preload("res://scripts/data.gd")
+	var sp = game.spawner
+	c.hit("test")
+	D.ENEMIES["path"]["tough"] = true
+	var m: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1600, 0))
+	var k := 0
+	while m.break_t <= 0.0 and k < 100:
+		c.damage(m, m.maxhp)
+		k += 1
+	ok(m.break_t > 0.0 and absf(m.tough_need - Bal.v("boss/tough_first", 25.0) * 1.5) < EPS, "韧性满（打掉约 25%%）进破绽，下次需求 ×1.5（%d 击）" % k)
+	var h0: float = m.hp
+	c.damage(m, m.maxhp * 0.005)
+	var l1: float = h0 - m.hp
+	m.break_t = 0.0
+	h0 = m.hp
+	c.damage(m, m.maxhp * 0.005)
+	var l2: float = h0 - m.hp
+	ok(absf(l1 / l2 - Bal.v("boss/break_mult", 1.4)) < 0.01, "破绽期间受伤 ×%.2f" % (l1 / l2))
+	var t0: float = m.tough
+	m.stun = 1.0
+	game.enemies_sys.update(0.001)
+	ok(m.stun <= 0.0 and m.tough > t0, "白名单 Boss 的眩晕换成韧性后清零（%.1f → %.1f）" % [t0, m.tough])
+	m.dead = true
+	D.ENEMIES["path"].erase("tough")
+	var n: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1650, 0))
+	n.stun = 1.0
+	game.enemies_sys.update(0.001)
+	ok(n.stun > 0.0, "不在白名单的 Boss 眩晕照旧")
+	# 伤害预算：默认关（原样返回）；打开后额度内全额、超出部分 ×0.35
+	ok(c.budget_clamp(n, 30.0) == 30.0, "伤害预算默认关闭")
+	var bak: Dictionary = Bal._data.get("boss", {}).duplicate()
+	if not Bal._data.has("boss"):
+		Bal._data["boss"] = {}
+	Bal._data["boss"]["budget_on"] = 1.0
+	n.budget = 10.0
+	ok(absf(c.budget_clamp(n, 30.0) - (10.0 + 20.0 * Bal.v("boss/budget_over", 0.35))) < EPS and n.budget == 0.0, "预算用完后超出部分 ×0.35")
+	Bal._data["boss"] = bak
+	n.dead = true
+	game.warns.clear()
+
+
+## B1 ②（用户 9/27）：最终 Boss 登场时残留的中期 Boss 撤场——直接移除、不走 kill（不计击杀、不掉落）
+func test_retreat() -> void:
+	var sp = game.spawner
+	var keep: Array = game.bosses.duplicate()
+	var m: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
+	game.bosses = [m]
+	var k0: int = game.kills
+	var pk0: int = game.pickups.count_items()
+	sp.retreat_mid_bosses()
+	ok(m.dead and m.get("retreated", false), "残留中期 Boss 撤场")
+	ok(game.kills == k0 and game.pickups.count_items() == pk0, "撤场不计击杀、不掉道具")
+	game.bosses = keep
+
+
+## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
+func test_arena() -> void:
+	var zs: Array = [game.zone_state, game.zone_c, game.zone_r, game.zone_next_c, game.zone_next_r]
+	game.zone_state = 3
+	game.zone_c = game.ppos + Vector2(700, 0)
+	game.zone_r = 1000.0
+	c.freeze_zone(520.0)
+	ok(game.zone_frozen and game.zone_state == 3 and game.zone_next_r == 520.0, "场地冻结：稳定态、下一圈同步为场地")
+	ok(game.ppos.distance_to(game.zone_next_c) <= 420.0 + 0.01, "主控离场地边 ≥100（%.0f）" % game.ppos.distance_to(game.zone_next_c))
+	for k in 40:
+		c.update_zone(0.1)
+	ok(absf(game.zone_r - 520.0) < 0.01 and game.zone_c.distance_to(game.zone_next_c) < 0.01, "3 秒后圈正好是场地")
+	var p: Vector2 = c.arena_clamp(game.zone_next_c + Vector2(2000, 0), 80.0)
+	ok(p.distance_to(game.zone_next_c) <= 440.0 + 0.01, "约束点落在场地内、离圈边 ≥80")
+	game.zone_frozen = false
+	game.zone_state = zs[0]
+	game.zone_c = zs[1]
+	game.zone_r = zs[2]
+	game.zone_next_c = zs[3]
+	game.zone_next_r = zs[4]
