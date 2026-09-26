@@ -27,6 +27,7 @@ func _init() -> void:
 	test_modifiers()
 	test_db_and_profile()
 	test_squad_contract()
+	test_voice()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -210,3 +211,23 @@ func test_squad_contract() -> void:
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a", "mode": "manual"}, {"name": "b"}, {"name": "c", "mode": "manual"}]}), "干员 2 个 manual 技能不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b", "mode": "toggle"}, {"name": "c"}]}), "非法技能 mode 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c"}], "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")
+
+
+## 干员语音（audio/voice，tools/voice_ogg.py）：清单里每条都有 OGG、能加载、不循环、时长和母带一致；
+## sfx.gd 按「干员_事件.ogg」取文件；目录里不能留没转换的 WAV（游戏只读 OGG，WAV 会被静默跳过）
+func test_voice() -> void:
+	var man = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
+	ok(man is Dictionary and man.get("clips", []).size() >= 66, "语音清单可读，至少 66 条")
+	if not man is Dictionary:
+		return
+	for c in man.clips:
+		var f: String = c.file
+		ok(f == "%s_%s.ogg" % [c.operator, c.event], "语音文件名 = 干员_事件.ogg：" + f)
+		var path := "res://audio/voice/" + f
+		var st = load(path) if ResourceLoader.exists(path) else null
+		ok(st is AudioStreamOggVorbis, "语音能加载为 OGG：" + f)
+		if st is AudioStreamOggVorbis:
+			ok(not st.loop, "语音不循环：" + f)
+			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
+	for f in DirAccess.get_files_at("res://audio/voice"):
+		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
