@@ -21,6 +21,7 @@ const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
+const ShopSys = preload("res://scripts/run/shop.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
 const AutoTest = preload("res://scripts/run/autotest.gd")
@@ -63,6 +64,7 @@ var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
+var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -956,11 +958,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().reload_current_scene()
 	elif state == S.SHOP:
 		if k >= KEY_1 and k <= KEY_5:
-			_buy(k - KEY_1)
+			shop_sys.buy(k - KEY_1)
 		elif k == KEY_F:
-			_refresh_shop()
+			shop_sys.refresh()
 		elif k == KEY_ESCAPE or k == KEY_E:
-			_close_shop()
+			shop_sys.close()
 	elif state == S.CHOICE and k >= KEY_1 and k <= KEY_3:
 		var i: int = k - KEY_1
 		if i < choices.size():
@@ -989,7 +991,7 @@ func _nav_key(k: int) -> bool:
 			if state == S.CHOICE:
 				_pick(nav_sel)
 			else:
-				_buy(nav_sel)
+				shop_sys.buy(nav_sel)
 			return true
 	elif state == S.PAUSE or state == S.DEAD or state == S.WIN:
 		var m: int = result_btns.size()
@@ -1128,7 +1130,7 @@ func _update(dt: float) -> void:
 	if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
 		knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
 	if demo_op == "":
-		_update_merchant(dt)
+		shop_sys.update(dt)
 	_update_gems(dt)
 	_pm("misc")
 	_update_fx(dt)
@@ -2110,75 +2112,6 @@ func _slash_tex(kind := "base") -> String:
 # =====================================================================
 # 商人与商店
 # =====================================================================
-func _update_merchant(dt: float) -> void:
-	if merchant.is_empty():
-		merchant_light.visible = false
-		return
-	merchant.life -= dt
-	# 离开前 15 秒提醒一次（横幅 + 音效），之后倒计时变红闪烁
-	if merchant.life <= 15.0 and not merchant.get("warned", false):
-		merchant.warned = true
-		_show_banner("商人 15 秒后离开 —— 还没交易就快去")
-		Sfx.play("ui_move", -2.0, 0.8)
-	merchant_light.visible = true
-	merchant_light.position = merchant.pos + Vector2(10, -10)
-	var d: float = merchant.pos.distance_to(ppos)
-	if d < 46.0 and not merchant.near:
-		merchant.near = true
-		_open_shop()
-	elif d > 90.0:
-		merchant.near = false
-	if merchant.life <= 0.0 and state == S.PLAY:
-		merchant = {}
-		_show_banner("商人离开了")
-
-
-## 商人倒计时颜色：最后 15 秒红色闪烁
-func _merchant_col() -> Color:
-	if merchant.is_empty() or merchant.life > 15.0:
-		return UI.GOLD
-	return UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(t * 8.0))
-
-
-func _shop_price(kind: String) -> int:
-	match kind:
-		"relic":
-			return 14
-		"heal":
-			return int(ceil(6 * shop_price_mult))
-		"oil":
-			return int(ceil(5 * shop_price_mult))
-		"refresh":
-			return int(ceil(3 * shop_price_mult))
-	return 0
-
-
-func _roll_shop() -> void:
-	shop_items.clear()
-	var pool: Array = _relic_pool_ids(true)
-	for i in min(3, pool.size()):
-		var r: Dictionary = RL[pool[i]]
-		shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + rfx.display_name(pool[i]), "desc": rfx.display_desc(pool[i]), "price": rfx.db.price(pool[i], shop_price_mult), "sold": false})
-	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
-	if rfx.rule("deep_sea") > 0:
-		var cursed: Array = pool.filter(func(id): return RL[id].rarity == "遭诅古物" and not shop_items.any(func(it): return it.id == id))
-		if not cursed.is_empty():
-			var cid: String = cursed[0]
-			shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + rfx.display_name(cid), "desc": rfx.display_desc(cid), "price": rfx.db.price(cid, shop_price_mult), "sold": false, "deep": true})
-	if balance:
-		dbg_relic_offer.append([int(t), "shop", shop_items.map(func(it): return it.id)])
-	shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": _shop_price("heal"), "sold": false})
-	shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": _shop_price("oil"), "sold": false})
-
-
-func _open_shop() -> void:
-	if shop_items.is_empty():
-		_roll_shop()
-	state = S.SHOP
-	Sfx.play("relic", -4.0)
-	if autotest:
-		print("SHOP ", shop_items.map(func(it): return it.name))
-	_build_shop_ui()
 
 
 func _build_shop_ui() -> void:
@@ -2197,8 +2130,8 @@ func _build_shop_ui() -> void:
 			c.queue_free()
 	var vs0: Vector2 = get_viewport_rect().size
 	var cx := vs0.x / 2.0
-	_panel_button("刷新货架", Rect2(cx - 280, 546, 214, 40), _refresh_shop, not shop_refreshed and ingots >= _shop_price("refresh"), "refresh", "仅一次" if not shop_refreshed else "已刷新过", -1 if shop_refreshed else _shop_price("refresh"))
-	_panel_button("离开", Rect2(cx - 52, 546, 150, 40), _close_shop, true, "", "", -1, "ESC")
+	_panel_button("刷新货架", Rect2(cx - 280, 546, 214, 40), shop_sys.refresh, not shop_refreshed and ingots >= shop_sys.price("refresh"), "refresh", "仅一次" if not shop_refreshed else "已刷新过", -1 if shop_refreshed else shop_sys.price("refresh"))
+	_panel_button("离开", Rect2(cx - 52, 546, 150, 40), shop_sys.close, true, "", "", -1, "ESC")
 	for i in n:
 		var it: Dictionary = shop_items[i]
 		var card := Button.new()
@@ -2217,7 +2150,7 @@ func _build_shop_ui() -> void:
 		card.draw.connect(_draw_shop_card.bind(card, it, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		card.pressed.connect(_buy.bind(i))
+		card.pressed.connect(shop_sys.buy.bind(i))
 		var desc := Label.new()
 		desc.text = UI.soft(it.desc)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -2344,53 +2277,6 @@ func _draw_shop_card(card: Button, it: Dictionary, i: int) -> void:
 	if not afford:
 		UI.text(card, font, pb.position + Vector2(40 + UI.cwidth(font, str(it.price), 21), 21), "不足", 11, pc)
 	UI.ctext(card, font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
-
-
-func _buy(i: int) -> void:
-	if state != S.SHOP or i >= shop_items.size():
-		return
-	var it: Dictionary = shop_items[i]
-	if it.sold or ingots < it.price:
-		Sfx.play("ui_move", -2.0, 0.6)
-		return
-	ingots -= it.price
-	it.sold = true
-	if not merchant.is_empty():
-		merchant["bought"] = true
-	match it.kind:
-		"relic":
-			_gain_relic(it.id)
-		"heal":
-			_heal(max_hp * 0.4, "拾取")
-		"oil":
-			lamp = min(lamp_cap, lamp + 50.0)
-	Sfx.play("ui_ok")
-	_build_shop_ui()
-
-
-func _refresh_shop() -> void:
-	if shop_refreshed or ingots < _shop_price("refresh"):
-		return
-	shop_refreshed = true
-	ingots -= _shop_price("refresh")
-	_roll_shop()
-	Sfx.play("relic", -6.0)
-	_build_shop_ui()
-
-
-func _close_shop() -> void:
-	for c in panel.get_children():
-		if c.has_meta("shopbtn"):
-			c.queue_free()
-	panel.visible = false
-	state = S.PLAY
-	Sfx.play("ui_ok", -4.0)
-	# 交易过就离开，避免走回去反复触发；等下一次出现
-	if not merchant.is_empty() and merchant.get("bought", false):
-		_sparks(merchant.pos, Vector2.UP, UI.GOLD, 12, 160.0)
-		merchant = {}
-		shop_items.clear()
-		_show_banner("商人收好源石锭，离开了")
 
 
 # =====================================================================
@@ -5026,14 +4912,14 @@ func _draw_hud() -> void:
 			var dist := int(merchant.pos.distance_to(ppos) / 32.0)
 			# 文字放在圆圈（半径 24 + 光晕）之外：下半屏放上方，上半屏放下方
 			var lab_y := -40.0 if edge.y > vs.y / 2 else 54.0
-			UI.text(hud, font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(merchant.life)], 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			UI.text(hud, font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(merchant.life)], 13, shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 		else:
 			# 在画面内：头顶跳动的箭头
 			var big_m: bool = tex.merchant != null and tex.merchant.get_height() >= 40
 			var head: float = (84.0 if big_m else 36.0) * ct.get_scale().y
 			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
 			hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
-			UI.text(hud, font, hp2 + Vector2(-60, -8), ("商人 %ds" if merchant.life > 15.0 else "商人即将离开 %ds") % int(merchant.life), 13, _merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
+			UI.text(hud, font, hp2 + Vector2(-60, -8), ("商人 %ds" if merchant.life > 15.0 else "商人即将离开 %ds") % int(merchant.life), 13, shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
 	# 海嗣祭坛方位指示（屏幕外）
 	for e in enemies:
 		if not e.chest or e.dead or e.get("event", "") == "":

@@ -79,13 +79,13 @@ func step() -> void:
 	if g.state == g.S.SHOP:
 		for i in g.shop_items.size():
 			if not g.shop_items[i].sold and g.ingots >= g.shop_items[i].price:
-				g._buy(i)
+				g.shop_sys.buy(i)
 				break
 		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not g.balance:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 		shop_visits += 1
 		if shop_visits % 3 == 0:
-			g._close_shop()
+			g.shop_sys.close()
 	for m in [120, 300, 480]:
 		if g.t >= m and not lv_marks.has(m):
 			lv_marks[m] = g.level
@@ -293,7 +293,7 @@ func step() -> void:
 			g.ingots = 40
 		if g.at_frames == 400:
 			g.merchant = {"pos": g.ppos, "life": 60.0, "near": false}
-			g._open_shop()
+			g.shop_sys.open()
 		if g.at_frames == 440 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 			g.get_tree().quit()
