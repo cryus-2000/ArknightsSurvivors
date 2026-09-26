@@ -984,9 +984,10 @@ func draw_extra_shadows() -> void:
 ## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人
 func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
 	var hits: Array = arc_targets(origin, ang, half, radius)
+	var ve: float = vs_elite()
 	for e in hits:
 		log_hit(src, tags)
-		deal_damage(e, dmg)
+		deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
@@ -996,6 +997,12 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 	for e in hits:
 		_hit_fx(e, origin)
 	return hits
+
+
+## 对精英 / Boss 的伤害倍率（JSON base.vs_elite，缺省 1）：melee_hit / area_hit 自动乘；自己推进弹体的干员在生成时乘。
+## 2026-09-27 数值 b1-cal：铃兰 / 塞雷娅开局主控时中期 Boss 太慢，给这两人加
+func vs_elite() -> float:
+	return base("vs_elite", 1.0)
 
 
 ## 命中一名敌人时的特效钩子（默认无；各干员按 docs/25 覆盖）
