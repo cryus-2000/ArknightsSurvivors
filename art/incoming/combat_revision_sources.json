@@ -1,0 +1,86 @@
+[
+    {
+        "value":  [
+                      "op_mon3tr_attack",
+                      "exec-4c8e4aad-5b44-4e69-b112-5976127e17bc.png",
+                      4,
+                      64,
+                      64,
+                      55,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "op_mon3tr_attack_melt",
+                      "exec-0b4117a2-453b-48a6-b6d9-e44ce8ef771c.png",
+                      4,
+                      64,
+                      64,
+                      55,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "op_mon3tr_skill",
+                      "exec-9bee3196-58d3-44fc-9148-e3dcc689decf.png",
+                      6,
+                      64,
+                      64,
+                      55,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "e_reaper_attack",
+                      "exec-3f5af571-6f05-4188-ac38-a01e1ab979a7.png",
+                      4,
+                      40,
+                      38,
+                      36,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "e_tracer_attack",
+                      "exec-8d12f071-837f-41ce-b2f1-590f5d31821f.png",
+                      4,
+                      40,
+                      36,
+                      34,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "e_nest_attack",
+                      "exec-57fdc779-cec2-4620-82a7-7f2342712aee.png",
+                      4,
+                      38,
+                      34,
+                      32,
+                      true
+                  ],
+        "Count":  7
+    },
+    {
+        "value":  [
+                      "fx_mon3tr_melt_slash",
+                      "exec-8a1973a1-3855-4913-b461-87e39bb562b3.png",
+                      4,
+                      48,
+                      48,
+                      45,
+                      false
+                  ],
+        "Count":  7
+    }
+]

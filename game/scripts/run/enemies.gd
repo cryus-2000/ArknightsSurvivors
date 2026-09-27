@@ -205,6 +205,12 @@ func update(dt: float) -> void:
 			if e.dead:
 				continue
 		e.pos += v * dt
+		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
+		if e.boss and g.zone_state != 0:
+			var limit := maxf(0.0, g.zone_r - float(e.r))
+			var offset: Vector2 = e.pos - g.zone_c
+			if offset.length_squared() > limit * limit:
+				e.pos = g.zone_c + offset.normalized() * limit
 		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
 			e.pos = g.map.push_out(e.pos, e.r * 0.8)
 

@@ -18,6 +18,8 @@ func _process(_dt: float) -> void:
 		for face in [1.0, -1.0]:
 			g.fx.clear()
 			op.m.face = face
+			op.m.kind = "attack"
+			op.m.at = 2.0 / 14.0
 			op.coord = mode == 1
 			op.melt = 1.0 if mode == 2 else 0.0
 			op._m_claw(1.0, false)
@@ -37,9 +39,14 @@ func _process(_dt: float) -> void:
 				g.queue_redraw()
 				await RenderingServer.frame_post_draw
 				get_viewport().get_texture().get_image().save_png("../build/mon3tr_fx_%s_%s.png" % [mode, int(face)])
+	op.melt = 1.0
+	var attack_frame = op._m_frame("attack", 2.0 / 14.0)
+	if attack_frame.is_empty() or attack_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_attack_melt"):
+		failures += 1
+		print("MISSING meltdown attack body animation")
 	print("MON3TR FX failures=", failures)
 	op = null
 	g.queue_free()
 	g = null
 	await get_tree().process_frame
-	get_tree().quit(0 if failures == 0 else 1)
+	get_tree().quit.call_deferred(0 if failures == 0 else 1)

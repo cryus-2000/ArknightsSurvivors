@@ -1,0 +1,38 @@
+[
+  {
+    "file": "game\\audio\\sfx\\op_wisadel_atk.wav",
+    "duration": 0.48,
+    "peak": 0.8399658203125,
+    "sha256": "8548e6e1f88787bc33ba2f3f8ebdccbd5f1731ae5e1340594f2fa85a44510ad8"
+  },
+  {
+    "file": "game\\audio\\sfx\\op_wisadel_hit.wav",
+    "duration": 0.6999773242630386,
+    "peak": 0.8399658203125,
+    "sha256": "7351137e03497efa06b0c776616f61647900136db67b178b9e8f6645f23473ee"
+  },
+  {
+    "file": "game\\audio\\sfx\\op_wisadel_big.wav",
+    "duration": 1.1,
+    "peak": 0.8399658203125,
+    "sha256": "51aa8c37dc47b16721f137ee03585f8f4f855eb8f5e552f884b5e1a5bd43c8ce"
+  },
+  {
+    "file": "game\\audio\\sfx\\enemy_screech.wav",
+    "duration": 0.8,
+    "peak": 0.8399658203125,
+    "sha256": "f1290e52c5b45c7b3f225598110c8cbd7a93fd784e9b857296d4b7c586f785bb"
+  },
+  {
+    "file": "game\\audio\\sfx\\enemy_spit.wav",
+    "duration": 0.34,
+    "peak": 0.8399658203125,
+    "sha256": "9c04d00340c95d1ee651cfccf303d07174f372cd1e7c308c0c38bf2fd609d31b"
+  },
+  {
+    "file": "game\\audio\\sfx\\enemy_bite.wav",
+    "duration": 0.27,
+    "peak": 0.8399658203125,
+    "sha256": "11fc1f03e3fc1a62bb0538ec79337ef4d1c260b0b0e230b351f04dd47e0a1088"
+  }
+]

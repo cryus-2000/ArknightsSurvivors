@@ -21,6 +21,7 @@ func def_of(e: Dictionary) -> Dictionary:
 ## 小怪的攻击模式（返回额外速度；返回 INF 表示走常规 AI）
 func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
 	var d := def_of(e)
+	_prepare_pose(e, d, dist)
 	match d.get("pattern", ""):
 		"burrow":
 			return _burrow(e, d, dir, dist, dt, spd)
@@ -41,6 +42,15 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 		"nest":
 			return _nest(e, d, dist, dt)
 	return Vector2.INF
+
+
+## 感知阶段只提前展示蓄势姿态，继续接近；不创建伤害、不消耗攻击冷却。
+## 到实际攻击距离后仍由原技能提供完整预警，不能把远处的准备当成已预警。
+func _prepare_pose(e: Dictionary, d: Dictionary, dist: float) -> void:
+	var sense := float(d.get("prepare_range", 0.0))
+	e["attack_preparing"] = sense > 0.0 and dist < sense and not e.get("dormant", false) and e.get("stun", 0.0) <= 0.0
+	if e.attack_preparing and not e.has("prepare_started"):
+		e["prepare_started"] = g.t
 
 
 ## 壳海狂奔者（V8）：冲到 blast_range 内停下鼓胀 blast_fuse 秒后自爆，自身消失、不掉经验；鼓胀中被打死就不炸
@@ -72,13 +82,14 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 			e.dormant = false
 			e.wake_t = 0.4
 			g.vfx.sparks(e.pos, Vector2.UP, Color(1.2, 0.5, 0.5), 10, 200.0)
-			Sfx.play("roar", -10.0, 1.4, 0.0)
+			Sfx.enemy("screech", dist)
 		return Vector2.ZERO
 	if e.wake_t > 0.0:
 		e.wake_t -= dt
 		return Vector2.ZERO
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
+		Sfx.enemy("bite", dist)
 		g.bai._warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * 1.2})
 	return Vector2.INF
 
@@ -99,6 +110,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai._cd(e, "thrust", float(d.get("thrust_cd", 3.2))):
+		Sfx.enemy("bite", dist)
 		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2))})
 	return Vector2.INF
 
@@ -112,6 +124,7 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			if g.invuln <= 0.0:
 				g.combat.add_nerve(float(d.get("aura_nerve", 10.0)) * 0.5)
 	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai._cd(e, "lash", float(d.get("lash_cd", 5.0))):
+		Sfx.enemy("screech", dist)
 		g.bai._warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3})
 	return Vector2.INF
 
@@ -203,6 +216,8 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 	if d.get("spit", false) or d.get("lob", false):
 		lob(e)
 		return
+	if not e.boss:
+		Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 	var spd: float = float(d.get("shot_spd", 280.0 if e.boss else 200.0))
 	var n: int = int(d.get("shot_n", 1))
 	var kind: String = d.get("shot_kind", "orb")

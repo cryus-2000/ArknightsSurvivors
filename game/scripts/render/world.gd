@@ -808,6 +808,11 @@ func draw_enemy(e: Dictionary) -> void:
 			name = e.tex + "_attack"
 			frames = 4
 			frame = 2 if e.atk_until - g.t > 0.1 else 3
+		elif e.get("attack_preparing", false):
+			name = e.tex + "_attack"
+			frames = 4
+			# 远处举肢准备；实际预警和出手帧仍优先，伤害窗口不变。
+			frame = int((g.t - float(e.get("prepare_started", g.t))) * 3.0) % 2
 	if e.get("dormant", false) and g.tex.get(e.tex + "_dormant") != null:
 		name = e.tex + "_dormant"
 		frames = 2

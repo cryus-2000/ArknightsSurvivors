@@ -128,6 +128,16 @@
     60
    ],
    "fire": 2
+  },
+  "m_attack_melt": {
+   "tex": "op_mon3tr_attack_melt",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 2
   }
  },
  "extra_sprites": [
@@ -135,7 +145,8 @@
   "m_run",
   "m_attack",
   "command",
-  "m_skill"
+  "m_skill",
+  "m_attack_melt"
  ],
  "attack": {
   "mode": "auto",
