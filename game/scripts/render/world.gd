@@ -577,16 +577,16 @@ func draw_world() -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		if b.get("kind", "") == "boss_blade":
-			# 飞刃保留尖端/双翼轮廓，不套普通球弹黑底圆环。
 			g.draw_set_transform(bp, b.vel.angle(), Vector2.ONE)
-			var blade := PackedVector2Array([Vector2(17, 0), Vector2(-9, 16), Vector2(-3, 0), Vector2(-9, -16)])
-			g.draw_colored_polygon(blade, Color(1.3, 0.35, 0.85))
+			var blade := PackedVector2Array([Vector2(19, 0), Vector2(4, -5), Vector2(-7, -4), Vector2(-7, 4), Vector2(4, 5)])
+			g.draw_colored_polygon(blade, Color(0.72, 0.8, 0.86))
 			var edge := blade.duplicate()
 			edge.append(blade[0])
-			g.draw_polyline(edge, Color(0.03, 0.0, 0.05), 4.0)
-			g.draw_polyline(PackedVector2Array([Vector2(-7, 13), Vector2(14, 0), Vector2(-7, -13)]), Color(2.0, 1.0, 1.7), 2.0)
+			g.draw_polyline(edge, Color(0.04, 0.06, 0.08), 2.0)
+			g.draw_line(Vector2(-6, 3), Vector2(18, 0), Color(1.3, 1.4, 1.5), 2.0)
+			g.draw_rect(Rect2(-19, -3, 11, 6), Color(0.18, 0.14, 0.12))
+			g.draw_rect(Rect2(-10, -7, 3, 14), Color(0.55, 0.6, 0.65))
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			g.vfx.spr_rot("fx_slash_arc_rose", int(g.t * 18.0) % 6, bp, b.vel.angle(), 0.9)
 			continue
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		g.draw_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
@@ -597,7 +597,7 @@ func draw_world() -> void:
 				g.draw_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6))
 			"nova":
 				g.draw_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
-				g.draw_circle(bp, b.r, Color(1.5, 0.6, 2.0))
+				g.draw_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
 			"nerve":
 				# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
 				g.draw_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))

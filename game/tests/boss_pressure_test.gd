@@ -38,8 +38,11 @@ func _ready() -> void:
 	g.fx.clear()
 	var w: Dictionary = g.bai._warn(e, "cone", 0.6, {"act": "bite", "ang": 0.0, "half": 0.8, "r": 125.0})
 	g.bai._warn_resolve(w)
-	check(is_equal_approx(g.fx[0].ang, 0.0), "resolved slash stays at locked direction")
-	check(is_equal_approx(g.fx[0].r, 125.0), "resolved slash stays in warned radius")
+	var slashes: Array = g.fx.filter(func(f): return f.get("kind", "") == "bslash")
+	check(not slashes.is_empty(), "resolved attack has slash feedback")
+	var slash: Dictionary = slashes[0] if not slashes.is_empty() else {"ang": INF, "r": 0.0}
+	check(is_equal_approx(slash.ang, 0.0), "resolved slash stays at locked direction")
+	check(is_equal_approx(slash.r, 125.0), "resolved slash stays in warned radius")
 	check(e.pose > 0.0 and is_equal_approx(e.pose, e.pose_max), "release restarts visible attack pose")
 	print("BOSS PRESSURE failures=", failures)
 	g.warns.clear()

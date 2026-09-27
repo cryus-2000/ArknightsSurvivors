@@ -42,7 +42,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		var angle: float = dir.angle() + (0.10 if k % 2 else -0.10)
 		var data := {"pattern_id": str(e.type) + ":" + str(index), "pattern": move,
 			"wave": k, "enhanced": enhanced, "ang": angle, "cancel_dead": true,
-			"name": move.name if k == 0 else "", "col": Color(1.0, 0.3, 0.65),
+			"name": move.name if k == 0 else "", "col": g.vfx.boss_color(e.type),
 			"dmg": e.dmg * (0.65 if FINAL_TYPES.has(e.type) else 0.8),
 			"true": e.type == "ishar", "track": 0.0, "lock": true}
 		var shape := "cone"
@@ -68,7 +68,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.half = float(move.half)
 				data.ang = dir.angle() + (-0.42 if k == 0 else 0.42)
 				data.dmg = e.dmg * 1.1
-		var w: Dictionary = g.bai._warn(e, shape, 0.9 + 0.6 * k, data)
+		var w: Dictionary = g.bai._warn(e, shape, 0.9 + (0.0 if move.mode == "rain" else 0.6 * k), data)
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
 	e.pattern_next = g.t + end + (5.0 if FINAL_TYPES.has(e.type) else 6.5)
@@ -115,7 +115,7 @@ func resolve(w: Dictionary) -> void:
 			"slow": false, "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
 			"kind": "boss_blade" if blade else "nova", "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
-			"source_id": e.id})
+			"source_id": e.id, "col": w.col})
 		own += 1
 		total += 1
 	g.vfx.boss_pattern(w)

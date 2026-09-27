@@ -101,6 +101,34 @@ func _ready() -> void:
 	if not g.warns.is_empty():
 		g.bai._warn_resolve(g.warns[0])
 		check(g.ebullets.size() == 5 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
+	# Every grouped laser / column uses one common resolve time, including legacy attacks.
+	for spec in [["paranoia", "burst", 0], ["bishop", "pillar", 0], ["bishop", "pattern_rain", 1], ["izumik", "pattern_rain", 1], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:
+		var caster: Dictionary = g.spawner.new_enemy(spec[0], Vector2.ZERO)
+		caster.age = 20.0
+		if caster.type == "paranoia":
+			caster.phase = 2
+			caster.cds = {"gaze": g.t + 100.0}
+		if caster.type in ["ishar", "izumik"]:
+			g.bai.setup_preview_phase2(caster)
+			g.t += 2.0
+			caster.wind = 0.0
+		caster.pattern_next = g.t if spec[1] == "pattern_rain" else INF
+		caster.pattern_cycle = spec[2]
+		caster.ishar_cycle = spec[2]
+		caster.ishar_next_at = g.t
+		g.warns.clear()
+		g.fx.clear()
+		g.bai._boss_ai(caster, 0.01, Vector2.RIGHT, 220.0)
+		var group: Array = g.warns.filter(func(w): return w.act == spec[1])
+		check(group.size() >= 3, str(spec) + " actual grouped attack")
+		if not group.is_empty():
+			var time: float = group[0].dur
+			check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
+			g.invuln = 100.0
+			g.bai._update_warns(time - 0.01)
+			check(group.all(func(w): return not w.done), "none fire before shared warning")
+			g.bai._update_warns(0.02)
+			check(group.all(func(w): return w.done), "all fire together at shared deadline")
 	# The protected human / learning phases must never schedule new hostile patterns.
 	for kind in ["ishar", "izumik"]:
 		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)

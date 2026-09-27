@@ -437,12 +437,43 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 
 
 ## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。
+# Purely cosmetic identity; warning geometry and damage stay in BossAI.
+const BOSS_STYLE := {
+	"carmen": [Color(1.0, 0.76, 0.3), "fx_muzzle_flash"],
+	"iberia": [Color(1.0, 0.45, 0.2), "fx_muzzle_flash"],
+	"path": [Color(0.7, 0.8, 0.95), "fx_circle_steel"],
+	"bishop": [Color(0.25, 0.85, 0.9), "fx_water_splash"],
+	"archon": [Color(0.5, 0.95, 0.6), "fx_claw_double_green"],
+	"immortal": [Color(0.65, 0.75, 1.0), "fx_slash_arc_deep"],
+	"paranoia": [Color(0.8, 0.4, 1.0), "fx_circle_ghost"],
+	"knight_boss": [Color(0.55, 0.85, 1.0), "fx_knight_impact"],
+	"ishar": [Color(0.2, 1.0, 0.85), "fx_water_splash"],
+	"izumik": [Color(0.55, 1.0, 0.65), "fx_felspell"]
+}
+
+func boss_color(type: String) -> Color:
+	return BOSS_STYLE.get(type, [Color(1.0, 0.3, 0.65)])[0]
+
+func boss_signature(w: Dictionary) -> void:
+	var e: Dictionary = w.owner
+	if not BOSS_STYLE.has(e.type):
+		return
+	var start := g.fx.size()
+	var pos: Vector2 = w.pos
+	if e.type in ["carmen", "iberia"]:
+		pos = e.pos + Vector2.from_angle(w.get("ang", 0.0)) * 28.0 + Vector2(0, -18)
+	fx_sprite(BOSS_STYLE[e.type][1], pos, 2.0)
+	g.fx.append({"kind": "ring", "pos": pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": boss_color(e.type)})
+	for i in range(start, g.fx.size()):
+		g.fx[i]["enemy"] = true
+
 func boss_pattern(w: Dictionary) -> void:
+	boss_signature(w)
 	var start: int = g.fx.size()
 	var dir := Vector2.from_angle(w.ang)
 	match str(w.act):
 		"pattern_cleave":
-			slash_fx(w.pos, w.ang, w.half, w.r, Color(1.0, 0.3, 0.65), "slash", 0.32)
+			slash_fx(w.pos, w.ang, w.half, w.r, w.col, "slash", 0.32)
 			fx_sprite(w.pattern.get("texture", "fx_slash_arc_rose"), w.pos + dir * w.r * 0.5, 2.8, w.ang)
 			Sfx.play("swing", -4.0, 0.7)
 		"pattern_rain":

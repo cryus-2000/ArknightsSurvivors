@@ -99,7 +99,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				if _cd(e, "pillar", 7.0):
 					for k in 3:
 						var off: Vector2 = Vector2.ZERO if k == 0 else Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(70.0, 130.0)
-						_warn(e, "circle", 1.1 + 0.15 * k, {"pos": g.ppos + off, "r": 64.0, "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0})
+						_warn(e, "circle", 1.1, {"pos": g.ppos + off, "r": 64.0, "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0})
 				elif p != null and not p.dead and not p.get("coma", false) and p.hp < p.maxhp * 0.9 and _cd(e, "bless", 10.0):
 					p.hp = minf(p.maxhp, p.hp + p.maxhp * 0.08)
 					p.haste = 5.0
@@ -166,7 +166,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					elif _cd(e, "burst", 7.0):
 						var a0: float = g.rng.randf() * TAU
 						for k in 4:
-							_warn(e, "circle", 1.0 + 0.1 * k, {"pos": g.ppos + Vector2.from_angle(a0 + TAU * k / 4.0) * 88.0, "r": 70.0, "act": "burst", "name": "泡影爆裂" if k == 0 else "", "col": Color(0.85, 0.45, 1.0), "dmg": e.dmg * 1.2, "corrode": 0.5, "lock": k == 0})
+							_warn(e, "circle", 1.0, {"pos": g.ppos + Vector2.from_angle(a0 + TAU * k / 4.0) * 88.0, "r": 70.0, "act": "burst", "name": "泡影爆裂" if k == 0 else "", "col": Color(0.85, 0.45, 1.0), "dmg": e.dmg * 1.2, "corrode": 0.5, "lock": k == 0})
 		"izumik":
 			if e.phase == 1:
 				# 学习阶段：无敌，放出子代，子代回到本体会被吸收
@@ -234,7 +234,6 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	var move: int = int(e.get("ishar_cycle", 0)) % 4
 	e["ishar_cycle"] = (move + 1) % 4
 	var col := Color(0.35, 1.0, 0.9)
-	var step := maxf(0.6, float(d.get("sequence_step", 0.6)))
 	var end := 0.0
 	match move:
 		0:
@@ -243,15 +242,15 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 			var offsets := [0.0, -1.0, 1.0]
 			for k in 3:
 				var pos: Vector2 = g.combat.arena_clamp(g.ppos + side * offsets[k] * float(d.get("mark_spacing", 106.0)), 90.0)
-				var w := _warn(e, "circle", float(d.get("mark_warn", 0.9)) + step * k,
+				var w := _warn(e, "circle", float(d.get("mark_warn", 0.9)),
 					{"pos": pos, "r": float(d.get("mark_radius", 56.0)), "act": "ishar_strike", "true": true,
 					"name": "三点落击" if k == 0 else "", "col": col, "dmg": e.dmg * float(d.get("mark_mult", 0.65)),
 					"cancel_dead": true, "lock": k == 0})
 				end = maxf(end, w.dur)
 		1:
-			# 三条固定方向的射线依次释放，锁定后不追人；夹缝始终能避开。
+			# 三条固定方向的射线同时释放，锁定后不追人；夹缝始终能避开。
 			for k in 3:
-				var w := _warn(e, "line", float(d.get("line_warn", 1.0)) + step * k,
+				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
 					{"ang": dir.angle() + (k - 1) * float(d.get("line_spread", 0.38)),
 					"len": float(d.get("range", 660.0)), "wid": float(d.get("line_width", 14.0)),
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": col,
@@ -456,6 +455,8 @@ func _warn_resolve(w: Dictionary) -> void:
 	if str(w.act).begins_with("pattern_"):
 		patterns.resolve(w)
 		return
+	if e.get("boss", false):
+		g.vfx.boss_signature(w)
 	match w.act:
 		"ishar_strike":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})
