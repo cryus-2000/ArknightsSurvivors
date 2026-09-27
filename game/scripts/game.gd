@@ -958,8 +958,12 @@ func _try_dash() -> void:
 	Sfx.play("dodge", -6.0, 1.2, 0.05)
 
 
+const GalleryProgress = preload("res://scripts/run/gallery_progress.gd")
+
 func _update(dt: float) -> void:
 	_pm("")
+	if int(t + dt) != int(t):
+		GalleryProgress.observe(self)
 	t += dt
 	if demo_enemy != "":
 		enemy_demo.step(dt)

@@ -32,6 +32,7 @@ var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
 var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
 var seen_shows: Array = []   # 已看过的解锁演出
+var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
@@ -76,6 +77,7 @@ func _ready() -> void:
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
+		gallery_seen = c.get_value("progress", "gallery_seen", [])
 		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 		opening_seen = c.get_value("progress", "opening_seen", opening_seen)
@@ -180,6 +182,7 @@ func save() -> void:
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)
+	c.set_value("progress", "gallery_seen", gallery_seen)
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)

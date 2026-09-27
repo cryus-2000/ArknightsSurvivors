@@ -278,6 +278,7 @@ def check_repro(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "public_gallery": ("对外图鉴初始与发现解锁", "public_gallery_test", r"PUBLIC GALLERY failures=0", []),
     "boss_variety": ("Boss密集弹幕与刀刃连招", "boss_variety_test", r"BOSS VARIETY failures=0", []),
     "ea_ui": ("EA 标题与 HUD", "ea_ui_test", r"EA UI regression: 0 failures", []),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
