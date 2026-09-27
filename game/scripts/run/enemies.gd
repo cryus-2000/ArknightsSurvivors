@@ -22,7 +22,7 @@ func build_grid() -> void:
 	g.grid.clear()
 	for i in g.enemies.size():
 		var e: Dictionary = g.enemies[i]
-		if e.dead:
+		if e.dead or e.get("friendly", false):
 			continue
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
 		if g.grid.has(k):
@@ -42,9 +42,8 @@ func query(pos: Vector2, radius: float) -> Array:
 			var k := Vector2i(cx, cy)
 			if g.grid.has(k):
 				out.append_array(g.grid[k])
-	if out.size() > 0 and out.max() >= g.enemies.size():
-		out = out.filter(func(j): return j < g.enemies.size())
-	return out
+	# 查询时再判阵营，避免本帧构网之后变为友方的单位继续吸收索敌/子弹。
+	return out.filter(func(j): return j >= 0 and j < g.enemies.size() and not g.enemies[j].get("friendly", false))
 
 
 func update(dt: float) -> void:
@@ -67,6 +66,10 @@ func update(dt: float) -> void:
 			e.wind -= dt
 		if e.get("pose", 0.0) > 0.0:
 			e.pose -= dt
+		# 不可索敌的第一形态仍参与公共动画计时；移动/治疗交给遭遇模块，不走敌对 AI 和接触伤害。
+		if e.get("friendly", false):
+			g.ishar.step_ally(e, dt)
+			continue
 		if e.get("haste", 0.0) > 0.0:
 			e.haste -= dt
 		if e.get("aura_weak", 0.0) > 0.0:
@@ -165,9 +168,14 @@ func update(dt: float) -> void:
 					if e.set_t <= 0.0 and e.set_done:
 						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
-						e.cdt = e.cd
-						g.eai.shoot(e, dir)
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0):
+						if not e.boss and not e.get("shot_ready", false):
+							e["shot_ready"] = true
+							e["shot_wind_until"] = g.t + 0.35
+						elif g.t >= float(e.get("shot_wind_until", 0.0)):
+							e["shot_ready"] = false
+							e.cdt = e.cd * (0.82 if e.boss else 1.0)
+							g.eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
 			e.kb_self = false

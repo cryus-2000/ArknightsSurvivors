@@ -48,5 +48,13 @@ func _process(_dt: float) -> void:
 	check(not sleeper.dormant and sleeper.wake_t == 0.4, "earlier wake preserves awakening delay")
 	print("ENEMY PREPARE TEST: ", failures, " failures")
 	game.queue_free()
-	await get_tree().process_frame
+	game = null
+	Sfx.set_process(false)
+	await get_tree().create_timer(0.25, true, false, true).timeout
+	for player in Sfx.get_children():
+		if player is AudioStreamPlayer:
+			player.stop()
+			player.stream = null
+			player.queue_free()
+	await get_tree().create_timer(0.2, true, false, true).timeout
 	get_tree().quit.call_deferred(failures)

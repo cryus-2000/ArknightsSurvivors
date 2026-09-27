@@ -28,6 +28,32 @@ func edge_pos() -> Vector2:
 	return g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(720.0, 820.0)
 
 
+## 持续缩圈中的非战斗交互物，保留立绘与交互的安全边距。
+func safe_event_pos(p: Vector2, margin := 100.0) -> Vector2:
+	if g.zone_state == 0:
+		return p
+	var lim: float = maxf(0.0, g.zone_r - margin)
+	var d: Vector2 = p - g.zone_c
+	return p if d.length() <= lim else g.zone_c + d.normalized() * lim
+
+
+## 在有效圈内挑离玩家足够远的候选；极小圈不可能满足距离时选最远的可达点。
+func event_pos(min_distance: float, max_distance: float, margin := 100.0) -> Vector2:
+	var start: float = g.rng.randf() * TAU
+	var radius: float = g.rng.randf_range(min_distance, max_distance)
+	var best := safe_event_pos(g.ppos, margin)
+	var best_d := -1.0
+	for i in 16:
+		var p := safe_event_pos(g.ppos + Vector2.from_angle(start + i * TAU / 16.0) * radius, margin)
+		var distance := p.distance_to(g.ppos)
+		if distance > best_d:
+			best = p
+			best_d = distance
+		if distance >= min_distance:
+			return p
+	return best
+
+
 func pick_type() -> String:
 	var pool: Array = D.THREAT[g.threat].pool
 	var pick: String = pool[g.rng.randi() % pool.size()]
@@ -178,9 +204,9 @@ func update(dt: float) -> void:
 			spawn_enemy(et2, edge_pos())
 			var n1: String = D.ENEMIES[et].name
 			var n2: String = D.ENEMIES[et2].name
-			g.vfx.show_banner(("两只精英「%s」同时出现！击败它们获得藏品" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！击败它们获得藏品" % [n1, n2]))
+			g.vfx.show_banner(("两只精英「%s」同时出现！击败它们有概率获得藏品" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！击败它们有概率获得藏品" % [n1, n2]))
 		else:
-			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
+			g.vfx.show_banner("精英「%s」出现！击败它有概率获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
 	# 大群：Boss 在场时顺延，最多顺延 boss/horde_defer_max 秒（数值起点 40），到时照常带 3 秒预警出场（用户 9/27）；
 	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不顺延；9:30 之后不再刷（给最终 Boss 留空间）
@@ -246,7 +272,7 @@ func update(dt: float) -> void:
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
 		g.merchant_idx += 1
-		g.merchant = {"pos": g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * 260.0, "life": 60.0, "near": false}
+		g.merchant = {"pos": event_pos(260.0, 320.0, 100.0), "life": 60.0, "near": false, "purchases": 0}
 		g.shop_items.clear()
 		g.shop_refreshed = false
 		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭")
@@ -282,7 +308,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * g.enemy_cd_mult, "cdt": g.rng.randf() * d.get("cd", 1.0),
 		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": float(d.get("armor", 1.0)), "set_t": 0.0, "set_done": false,
-		"chest": false, "hidden": false, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": false, "hidden": false, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
@@ -312,6 +338,9 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
 		e.burst_at = e.maxhp * 0.85
+	if type == "ishar":
+		e.friendly = true
+		e.invuln = true
 	if type == "izumik":
 		e.hp = e.maxhp * 0.35
 		e.invuln = true
@@ -400,7 +429,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": event_id == "" and g.rng.randf() < 0.15, "invuln": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": true, "hidden": event_id == "" and g.rng.randf() < 0.15, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,

@@ -213,7 +213,9 @@
     "runner",
     "floater",
     "reaper",
-    "tracer"
+    "tracer",
+    "founder",
+    "nest"
    ],
    "horde": [
     "slider",

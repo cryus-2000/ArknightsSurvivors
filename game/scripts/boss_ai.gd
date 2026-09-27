@@ -4,7 +4,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 
 # 只缩短招式之间的等待；预警、锁定、连段间隔与伤害保持原约定。
-const SKILL_COOLDOWN_SCALE := 0.85
+const SKILL_COOLDOWN_SCALE := 0.70
 
 var g  # Game (Node2D)
 
@@ -41,7 +41,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			e.invuln = false
 			g.vfx.add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
-	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
+	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.get("dash_t", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
 	match e.type:
 		"iberia", "carmen":
 			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
@@ -215,39 +215,122 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					if e.phase == 2:
 						e.dash2 = true
 		"ishar":
-			# 伊莎玛拉：召唤之泪；泪未被清除时持续充能，充满后变身
-			if e.bt > 6.0 * SKILL_COOLDOWN_SCALE:
-				e.bt = 0.0
-				_spawn_tears(e, 1)
-			var ntear := 0
-			for o in g.enemies:
-				if o.type == "tear" and not o.dead:
-					ntear += 1
-			if e.phase == 1:
-				e.charge += ntear * 3.0 * dt
-				if e.charge >= 100.0:
-					e.phase = 2
-					e.dmg *= 1.6
-					g.vfx.show_banner("伊莎玛拉 完成了转化！")
-					Sfx.play("roar", 2.0, 0.6, 0.0)
-					g.vfx.shake_screen(1.2)
-			if not e.get("half", false) and e.hp < e.maxhp * 0.5:
-				e.half = true
-				e.dmg *= 1.3
-				_spawn_tears(e, 2)
-				g.vfx.show_banner("伊莎玛拉 愈发狂暴")
-			# 治疗周围的海嗣
-			e.heal_t = e.get("heal_t", 0.0) + dt
-			if e.heal_t > 4.0:
-				e.heal_t = 0.0
-				var n := 0
-				for j in g.enemies_sys.query(e.pos, 260.0):
-					var o: Dictionary = g.enemies[j]
-					if o.dead or o.boss or o.chest or n >= 3:
-						continue
-					o.hp = min(o.maxhp, o.hp + o.maxhp * 0.3)
-					g.fx.append({"kind": "ring", "pos": o.pos, "r": 18.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.7)})
-					n += 1
+			# P1 治疗海嗣和充能由 IsharEncounter 负责；这里仅调度敌对海嗣形态。
+			if e.phase == 2 and ready and g.t >= float(e.get("transform_until", 0.0)):
+				_ishar_phase2(e, dir, dist)
+
+
+## 以原作「三目标真实伤害」为基础的幸存者玩法改编。
+## 下列提示是攻击形状说明，不冒称原作技能名；固定轮转避免近身招式永久压住远程招式。
+func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
+	var d: Dictionary = D.ENEMIES.ishar.get("attack", {})
+	if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
+		return
+	var move: int = int(e.get("ishar_cycle", 0)) % 4
+	e["ishar_cycle"] = (move + 1) % 4
+	var col := Color(0.35, 1.0, 0.9)
+	var step := maxf(0.6, float(d.get("sequence_step", 0.6)))
+	var end := 0.0
+	match move:
+		0:
+			# 一人主控制：三目标改为当前脚底与两侧三个固定落点；队员仍不受伤。
+			var side := dir.orthogonal()
+			var offsets := [0.0, -1.0, 1.0]
+			for k in 3:
+				var pos: Vector2 = g.combat.arena_clamp(g.ppos + side * offsets[k] * float(d.get("mark_spacing", 106.0)), 90.0)
+				var w := _warn(e, "circle", float(d.get("mark_warn", 0.9)) + step * k,
+					{"pos": pos, "r": float(d.get("mark_radius", 56.0)), "act": "ishar_strike", "true": true,
+					"name": "三点落击" if k == 0 else "", "col": col, "dmg": e.dmg * float(d.get("mark_mult", 0.65)),
+					"cancel_dead": true, "lock": k == 0})
+				end = maxf(end, w.dur)
+		1:
+			# 三条固定方向的射线依次释放，锁定后不追人；夹缝始终能避开。
+			for k in 3:
+				var w := _warn(e, "line", float(d.get("line_warn", 1.0)) + step * k,
+					{"ang": dir.angle() + (k - 1) * float(d.get("line_spread", 0.38)),
+					"len": float(d.get("range", 660.0)), "wid": float(d.get("line_width", 14.0)),
+					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": col,
+					"dmg": e.dmg * float(d.get("line_mult", 0.7)), "cancel_dead": true, "lock": k == 0})
+				end = maxf(end, w.dur)
+		2:
+			var w := _warn(e, "cone", float(d.get("volley_warn", 0.8)),
+				{"ang": dir.angle(), "r": 672.0, "half": 0.26, "track": 0.35, "act": "ishar_volley",
+				"true": true, "name": "三重吐息", "col": col, "cancel_dead": true})
+			end = w.dur
+		3:
+			var near: bool = dist < float(d.get("bite_range", 190.0))
+			var w := _warn(e, "cone", float(d.get("maw_warn", 0.85)),
+				{"ang": dir.angle(), "half": 0.85 if near else 0.46,
+				"r": float(d.get("bite_range", 190.0)) if near else minf(dist + 40.0, float(d.get("range", 660.0))),
+				"track": 0.3, "act": "bite" if near else "sweep", "true": true,
+				"name": "近身撕咬" if near else "扇形横扫", "col": col,
+				"dmg": e.dmg * float(d.get("maw_mult", 0.9)), "cancel_dead": true})
+			end = w.dur
+	# 完整连段期间停留且不插入普通射击；按经过难度修正后的真实预警长度计时。
+	e.wind = maxf(e.wind, end)
+	e.cdt = maxf(e.cdt, end)
+	e["ishar_next_at"] = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE
+
+
+
+## 图鉴 / Boss 演练使用正式二阶段的完整状态，避免只改贴图标记、却还留着一阶段行为。
+## 正式受击触发仍由 combat.gd 结算；此入口只用于预览场景的起始条件。
+func setup_preview_phase2(e: Dictionary) -> void:
+	if e.phase == 2:
+		return
+	match e.type:
+		"ishar":
+			transform_ishar(e)
+		"paranoia":
+			e.phase = 2
+			e.range = 400.0
+			e.weak = "物理"
+			e.dmg *= 1.2
+			e.hover_lost = true
+			e.ai = "melee"
+			e.spd = 70.0
+		"knight_boss":
+			e.phase = 2
+			e.hp = e.maxhp * 0.5
+			e.spd *= 1.2
+			e.invuln = true
+			e.channel = 1.5
+			e.stun = 0.0
+			e.kb = Vector2.ZERO
+			g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0)
+		"izumik":
+			e.phase = 2
+			e.hp = e.maxhp
+			e.invuln = false
+			e.bt = 0.0
+
+
+## 真实形态切换由逻辑记录起始时间，渲染和演练均使用同一个入口。
+func transform_ishar(e: Dictionary) -> void:
+	if e.phase == 2:
+		return
+	e.phase = 2
+	e.friendly = false
+	e.invuln = false   # 0.9 秒变身免伤由 combat 的 transform_until 护栏控制，不留永久无敌。
+	e.ai = "melee"   # 接近主控，但伤害只从有预警的轮转招式结算。
+	e["ishar_cycle"] = 0
+	e["ishar_next_at"] = g.t + 0.9
+	for o in g.enemies:
+		if o.type == "tear" and is_same(o.get("owner", {}), e):
+			o.dead = true
+	e.dmg *= 1.6
+	e.spd = maxf(e.spd, 58.0)
+	e.r = 46.0
+	e.r0 = 46.0
+	e["transform_started"] = g.t
+	e["transform_until"] = g.t + 0.9
+	e.wind = maxf(e.wind, 0.9)
+	e.pose = 0.0
+	e.cdt = maxf(e.cdt, 0.9)
+	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+	g.vfx.show_banner("伊莎玛拉 完成了转化！")
+	Sfx.play("roar", 2.0, 0.6, 0.0)
+	g.vfx.shake_screen(1.2)
 
 
 
@@ -343,8 +426,11 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
 	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	var true_damage: bool = w.get("true", false)
+	if true_damage:
+		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley"] else "近战", "真实"]
 	if g.invuln <= 0.0:
-		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0))}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)), "hit_cap": e.get("hit_cap", 0.0)}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if stun_t > 0.0 and not g.combat.stun_as_slow(e.boss):   # Boss 战里僵直改成减速（docs/38 §1.11）
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow and not g.combat.atk_slow_as_slow(3.0, e.boss):   # Boss 来源不写 atk_slow，改成移速减速（docs/38 §1.11）
@@ -363,6 +449,21 @@ func _warn_resolve(w: Dictionary) -> void:
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
 	var dv := Vector2.from_angle(w.ang)
 	match w.act:
+		"ishar_strike":
+			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
+			g.vfx.sparks(w.pos, Vector2.UP, c, 10, 230.0)
+			Sfx.play("tentacle", -6.0, 1.2)
+			g.vfx.shake_screen(0.3)
+			_warn_damage(w)
+		"ishar_line":
+			g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
+			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
+			g.vfx.shake_screen(0.25)
+			_warn_damage(w)
+		"ishar_volley":
+			g.eai.shoot(e, dv)
+			e.cdt = maxf(e.cdt, e.cd * 0.82)
 		"pillar":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.55, "max": 0.55, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c})
@@ -451,7 +552,7 @@ func _warn_resolve(w: Dictionary) -> void:
 		"bring":
 			for k in 14:
 				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
-				g.ebullets.append({"pos": w.pos, "vel": d2 * 210.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
+				g.ebullets.append({"pos": w.pos, "vel": d2 * 252.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
 					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			Sfx.play("tentacle", -8.0, 1.3)
@@ -501,17 +602,3 @@ func _draw_warns() -> void:
 					g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
 				pts.append(w.pos)
 				g.draw_polyline(pts, line, 2.5)
-
-
-
-func _spawn_tears(e: Dictionary, n: int) -> void:
-	for k in n:
-		var cnt := 0
-		for o in g.enemies:
-			if o.type == "tear" and not o.dead:
-				cnt += 1
-		if cnt >= 6:
-			return
-		g.spawner.spawn_enemy("tear", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(140.0, 240.0)))
-
-

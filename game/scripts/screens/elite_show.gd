@@ -20,7 +20,10 @@ func _init(game: Game) -> void:
 ## 解锁演出的技能卡：干员 op 的第 i 个技能
 func skill_item(op, i: int) -> Dictionary:
 	var sk: Dictionary = op.skill_def(i)
-	return {"tag": "技能", "tag_en": "SKILL %d" % (i + 1), "glyph": sk.get("name", "技").substr(0, 1), "icon": sk.get("icon", ""), "name": sk.get("name", ""), "desc": sk.get("desc", ""), "col": op.col()}
+	var description: String = str(sk.get("desc", ""))
+	if sk.get("mode", "auto") == "manual":
+		description = ("主控充能后按 Q 释放。" if op.is_leader else "作为队友充能后自动释放。") + "\n" + description
+	return {"tag": "技能", "tag_en": "SKILL %d" % (i + 1), "glyph": sk.get("name", "技").substr(0, 1), "icon": sk.get("icon", ""), "name": sk.get("name", ""), "desc": description, "col": op.col()}
 
 
 func open(sc: Dictionary) -> void:

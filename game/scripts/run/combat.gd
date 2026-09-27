@@ -49,7 +49,7 @@ func _init(game: Game) -> void:
 ## 敌人命中水月：闪避判定、侵蚀、神经损伤。src.boss 为真 = Boss 来源（src 是 Boss 本体，或带 boss 标记的预警 / 冲击环 / 子弹），
 ## 扣血和追加的侵蚀受主控保护（docs/38 §1.11）
 func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false) -> void:
-	if g.demo_op != "":
+	if g.demo_op != "" and g.demo_enemy == "":
 		return
 	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):
 		g.invuln = 0.3
@@ -672,8 +672,10 @@ func gate_pass(e: Dictionary) -> void:
 
 
 func damage(e: Dictionary, dmg: float) -> void:
-	if e.dead:
+	if e.dead or e.get("friendly", false):
 		return
+	if e.type == "ishar" and g.t < float(e.get("transform_until", 0.0)):
+		return   # 变身动画保护独立计时，结束后无需清理永久无敌标记。
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
@@ -866,7 +868,8 @@ func kill(e: Dictionary) -> void:
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
 		ing = max(ing, g.rng.randi_range(3, 5))
-		g.pickups.drop(e.pos, "chest", 1.0)
+		if elite_drops_relic():
+			g.pickups.drop(e.pos, "chest", 1.0)
 		g.pickups.drop(e.pos + Vector2(20, 10), "oil", 25.0)
 	if e.boss:
 		ing = 20
@@ -886,3 +889,8 @@ func kill(e: Dictionary) -> void:
 		ing = int(floor(ing * float(g.dmod.ingot) + g.rng.randf()))
 	for k in ing:
 		g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(6.0, 26.0), "ingot", 1.0)
+
+
+## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
+func elite_drops_relic() -> bool:
+	return g.rng.randf() < Bal.v("relic/elite_drop_chance", 0.3)

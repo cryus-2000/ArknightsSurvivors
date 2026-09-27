@@ -215,7 +215,7 @@ func record(marks = null) -> Dictionary:
 	if g.bot != null:
 		prof_name = g.bot.profile
 	var bot_block: Dictionary = metrics(prof_name) if (g.bot != null or not g.autotest) else {}
-	return {"win": g.state == g.S.WIN, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
+	return {"win": g.state == g.S.WIN or g.victory.recorded, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
 		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
 		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
 		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,

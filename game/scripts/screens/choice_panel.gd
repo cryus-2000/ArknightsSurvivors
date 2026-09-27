@@ -313,7 +313,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	panel_sub_text = sub
 	if sub == "":
 		if kind == "relic":
-			panel_sub_text = "精英倒下后留下一只宝箱 —— 挑选一件带走"
+			panel_sub_text = "从发现的藏品中挑选一件带走"
 		elif opts.size() > 0 and opts[0].kind == "recruit":
 			panel_sub_text = "挑选一名干员加入编队"
 		elif kind != "event":
@@ -328,7 +328,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	ev_bars_h = 0.0
 	for i in opts.size():
 		var o: Dictionary = opts[i]
+		var display_desc := option_description(o)
 		var card := Button.new()
+		card.set_meta("full_desc", display_desc)
 		card.custom_minimum_size = Vector2(596, 100) if ev else Vector2(CARD_W, CARD_H)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
@@ -348,15 +350,15 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, o.desc, 420.0, 4.0 * g.font.get_height(13), [13, 12])
+			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), [13, 12])
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = 100.0 + maxf(0.0, fe.lines.size() - 2) * float(fe.lh)
 			ev_bars_h += card.custom_minimum_size.y + 14.0
 		else:
-			var f0 := UI.fit(g.font, o.desc, CARD_W - 40.0, 60.0, [13, 12])
+			var f0 := UI.fit(g.font, display_desc, CARD_W - 40.0, 60.0, [13, 12])
 			var compact: bool = not f0.fit
 			if compact:
-				f0 = UI.fit(g.font, o.desc, CARD_W - 40.0, 108.0, [13, 12, 11])
+				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [13, 12, 11])
 			card.set_meta("fit", f0)
 			card.set_meta("compact", compact)
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
@@ -366,6 +368,25 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		(g.panel_col if ev else g.panel_box).add_child(card)
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
+
+
+## 按技能的真实手动属性和当前身份提示；队友不会出现按 Q 的误导。
+func option_description(option: Dictionary) -> String:
+	var description: String = str(option.get("desc", ""))
+	if option.get("kind", "") not in ["prog", "growth"]:
+		return description
+	var op = g.squad.get_op(str(option.get("op", g.ch.id)))
+	if op == null:
+		return description
+	var stage: int = maxi(op.elite, int(option.get("elite", 0)))
+	for i in 3:
+		var sk: Dictionary = op.skill_def(i)
+		if i > stage or sk.get("mode", "auto") != "manual":
+			continue
+		var use: String = "主控按 Q 释放" if op.is_leader else "作为队友自动释放"
+		var timing: String = "解锁后" if not op.skill_unlocked(i) else "充能后"
+		return "%s%s「%s」。\n%s" % [timing, use, sk.get("name", "技能"), description]
+	return description
 
 
 func animate_cards(dt: float) -> void:
@@ -627,7 +648,8 @@ func draw_panel_tip() -> void:
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
 		var title: String = it.get("name", "") if not it.is_empty() else (g.choices[card.get_index()].get("name", "") if card.get_index() < g.choices.size() else "")
-		var desc: String = it.get("desc", "") if not it.is_empty() else (g.choices[card.get_index()].get("desc", "") if card.get_index() < g.choices.size() else "")
+		var fallback: String = it.get("desc", "") if not it.is_empty() else (g.choices[card.get_index()].get("desc", "") if card.get_index() < g.choices.size() else "")
+		var desc: String = card.get_meta("full_desc", fallback)
 		if cut:
 			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
 		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, g.panel_tip)

@@ -264,11 +264,24 @@ func _load_figures() -> void:
 		dt = A.tex("doctor")
 	if dt != null:
 		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0}
-	var gid: String = str(_json("res://data/maps/%s.json" % Cfg.map_id).get("title_guest", ""))
-	if gid != "":
-		var gs := _slot(_json("res://data/characters/%s.json" % gid).get("sprites", {}).get("idle"))
-		if not gs.is_empty():
-			guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps}
+	reload_guest()
+
+
+## 封面陪伴干员与开局主控分别保存；角色脚底沿用待机帧条的锚点。
+func reload_guest() -> void:
+	guest.clear()
+	var gid: String = Cfg.cover_character_id
+	var definition := _json("res://data/characters/%s.json" % gid)
+	if definition.is_empty() or not definition.get("recruitable", true):
+		gid = str(_json("res://data/maps/%s.json" % Cfg.map_id).get("title_guest", "mizuki"))
+		definition = _json("res://data/characters/%s.json" % gid)
+	var sprites: Dictionary = definition.get("sprites", {})
+	var idle = sprites.get("idle")
+	var gs := _slot(idle)
+	if not gs.is_empty():
+		var anchor: Array = idle.get("foot", sprites.get("foot", [24, 46])) if idle is Dictionary else sprites.get("foot", [24, 46])
+		guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps, "id": gid, "foot": Vector2(anchor[0], anchor[1])}
+	queue_redraw()
 
 
 ## 贴图槽：字符串或 {tex, frames, fps}
@@ -295,25 +308,26 @@ func _json(path: String) -> Dictionary:
 func _draw_figures() -> void:
 	# 水月在后（先画），博士在前
 	if not guest.is_empty():
-		_draw_figure(guest.idle, guest.fi, guest.fps, GUEST_FEET, 0.2, 2)
+		_draw_figure(guest.idle, guest.fi, guest.fps, GUEST_FEET, 0.2, 2, 1.0, Color.WHITE, guest.foot)
 	if not doctor.is_empty():
 		_draw_figure(doctor.idle, doctor.fi, doctor.fps, FEET, 0.0, 2, 1.0, DOCTOR_TINT)
 
 
 ## 站在浅水里的人物：逐行错位的水波倒影 + 本体（帧条横向等宽，脚底在帧底部上方 foot_up 像素）
-func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: float, foot_up: int, alpha := 1.0, tint := Color.WHITE) -> void:
+func _draw_figure(tx: Texture2D, frames: int, fps: float, feet: Vector2, phase: float, foot_up: int, alpha := 1.0, tint := Color.WHITE, anchor := Vector2.INF) -> void:
 	var fh := tx.get_height()
 	var fw := tx.get_width() / frames
 	var f := int(t * fps + phase * 10.0) % frames
 	var sc: float = 2.0 / A.hires_of(tx)
 	foot_up = int(foot_up * A.hires_of(tx))
-	var pos := feet - Vector2(fw * sc * 0.5, (fh - foot_up) * sc)
+	var foot_px := Vector2(fw * 0.5, fh - foot_up) if anchor == Vector2.INF else anchor * A.hires_of(tx)
+	var pos := feet - foot_px * sc
 	var wet := 0.55
 	for row in fh:
 		var src := Rect2(f * fw, fh - 1 - row, fw, 1)
 		var off := sin(t * 2.2 + row * 0.5 + phase) * (0.6 + row * 0.03)
-		var dst := Rect2(Vector2(pos.x + off, feet.y - foot_up * sc + row * sc), Vector2(fw * sc, sc))
-		var wy: float = feet.y - foot_up * sc + row * sc
+		var dst := Rect2(Vector2(pos.x + off, feet.y - (fh - foot_px.y) * sc + row * sc), Vector2(fw * sc, sc))
+		var wy: float = feet.y - (fh - foot_px.y) * sc + row * sc
 		var damp: float = _wetness(feet.x, wy)
 		if damp <= 0.02:
 			continue

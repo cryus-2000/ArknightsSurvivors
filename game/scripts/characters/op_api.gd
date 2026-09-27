@@ -15,7 +15,7 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	return g.enemies_sys.nearest(n, max_dist, origin)
 
 
-## 空间网格查询：pos 周围 radius 内的敌人下标（g.enemies[i]，可能包含已死亡的，调用方自己判断 e.dead）
+## 空间网格查询：排除友方，返回 pos 周围 radius 内的敌人下标（g.enemies[i]，可能包含已死亡的，调用方自己判断 e.dead）
 func query_ids(pos: Vector2, radius: float) -> Array:
 	return g.enemies_sys.query(pos, radius)
 

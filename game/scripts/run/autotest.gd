@@ -83,7 +83,7 @@ func step() -> void:
 		if lane_i >= 0:
 			g.shop_sys.buy(lane_i)
 		for i in (g.shop_items.size() if lane_i < 0 else 0):
-			if not g.shop_items[i].sold and g.ingots >= g.shop_items[i].price:
+			if g.shop_sys.can_buy(g.shop_items[i]):
 				g.shop_sys.buy(i)
 				break
 		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not g.balance:
@@ -155,8 +155,7 @@ func step() -> void:
 					var b := g.spawner.spawn_enemy(bt.trim_suffix("2"), g.ppos + Vector2(230, -40))
 					b.age = 5.0
 					if bt.ends_with("2"):
-						b.phase = 2
-						b.range = 400.0
+						g.bai.setup_preview_phase2(b)   # 与演练 / 图鉴使用同一阵营、形态和技能初始化。
 					# 只有 role == boss 的进 bosses（HUD 大血条、Boss 在场判定）；参数里列的小怪（碎片、之泪等）照常刷出来当靶子
 					if not b.boss:
 						continue

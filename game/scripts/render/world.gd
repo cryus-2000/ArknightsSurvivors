@@ -5,6 +5,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -23,7 +24,6 @@ var anim_t := 0.0
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
-var ishar_tf: Array = []         # 伊莎玛拉变身演出：[boss, 开始时刻]（换幕时记下，播 e_ishar_transform 一次）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
@@ -49,7 +49,7 @@ func update_visuals(dt: float) -> void:
 	# （原来按主控的 walk_t 起伏：步频对不上帧条，主控停下后博士还在追时 walk_t 不走，会卡在半空）
 	g.sprite.position = (g.doc_pos + Vector2(0, 6)).round()
 	g.sprite.flip_h = g.doc_face < 0.0
-	update_player_anim(g.get_process_delta_time())
+	update_player_anim(g.get_process_delta_time() if g.state in [Game.S.DEAD, Game.S.WIN] else dt)
 	update_player_feel(g.get_process_delta_time())
 	if g.state == Game.S.DEAD:
 		g.sprite.modulate = Color(0.5, 0.5, 0.6, 0.6)
@@ -124,6 +124,9 @@ func watch_bosses() -> void:
 				break
 		if s.is_empty():
 			boss_seen.append([b, b.get("phase", 1), b.dead])
+			# 一帧内击倒 / 首次绘制已经死亡也补播，不依赖先看见活体。
+			if b.dead and not b.get("retreated", false):
+				boss_down_fx(b)
 			continue
 		if b.get("phase", 1) != s[1] and not b.dead:
 			s[1] = b.get("phase", 1)
@@ -142,8 +145,6 @@ func _flash(col: Color, t: float) -> void:
 
 ## 换幕：洋红冲击波两圈 + 放射光刺 + 全屏洋红一闪
 func boss_phase_fx(b: Dictionary) -> void:
-	if b.type == "ishar":
-		ishar_tf = [b, g.t]
 	g.fx.append({"kind": "boss_phase", "pos": b.pos, "r": b.r, "life": 0.9, "max": 0.9})
 	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.4, 0.4, 1.1), 20, 300.0)
 	_flash(Color(1.0, 0.3, 0.8), 0.35)
@@ -757,6 +758,29 @@ func update_player_anim48(dt: float) -> void:
 		g.sprite.frame = f % n if spec[1] else mini(f, n - 1)
 
 
+## 逻辑帧选择不依赖 draw 次数，自动测试 / 演练 / 实战共用。
+func ishar_animation(e: Dictionary) -> Dictionary:
+	var base: String = "e_ishar_t" if e.phase == 2 else "e_ishar"
+	if e.phase == 2 and g.t < float(e.get("transform_until", -1.0)):
+		return {"name": "e_ishar_transform", "frames": 6, "frame": clampi(int((g.t - float(e.transform_started)) / 0.15), 0, 5)}
+	if e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0:
+		return {"name": base + "_attack", "frames": 4, "frame": clampi(int((1.0 - e.pose / e.pose_max) * 4.0), 0, 3)}
+	if g.t < float(e.get("atk_until", 0.0)):
+		return {"name": base + "_attack", "frames": 4, "frame": 2 if e.atk_until - g.t > 0.1 else 3}
+	if g.t < float(e.get("mv_until", 0.0)):
+		return {"name": base + "_move", "frames": 4, "frame": int(g.t * 5.0) % 4}
+	return {"name": base, "frames": 2, "frame": int(g.t * 2.0) % 2}
+
+
+func enemy_scale(e: Dictionary) -> float:
+	var d: Dictionary = D.ENEMIES.get(e.type, {})
+	var scale_key := "transformed_draw_scale" if e.type == "ishar" and e.phase == 2 else "draw_scale"
+	var factor := float(d.get(scale_key, 1.0))
+	if e.type == "ishar" and g.t < float(e.get("transform_until", -1.0)):
+		factor = lerpf(float(d.get("draw_scale", 0.68)), factor, clampf((g.t - float(e.transform_started)) / 0.9, 0.0, 1.0))
+	return Game.PX * e.r / e.r0 * factor
+
+
 func draw_enemy(e: Dictionary) -> void:
 	var name: String = e.tex
 	# 形态切换：偏执泡影二阶段 / 接潮三件套昏迷时的假死造型
@@ -798,7 +822,7 @@ func draw_enemy(e: Dictionary) -> void:
 	# 美术 V8 小怪帧条：攻击（atk_anim：蓄力 / 鼓胀时第 1、2 帧，出手后 0.2 秒第 3、4 帧）、休眠 / 唤醒、狂暴待机
 	var ed: Dictionary = D.ENEMIES.get(e.type, {})
 	if ed.get("atk_anim", false) and e.tex_attack:
-		var ww: float = maxf(maxf(e.get("wind", 0.0), e.get("blast_w", 0.0)), maxf(maxf(e.get("burst_w", 0.0), e.get("dash_w", 0.0)), e.get("nova_w", 0.0)))   # 各种蓄力都播攻击帧条前两帧（docs/48 ⑥）
+		var ww: float = maxf(maxf(maxf(e.get("wind", 0.0), e.get("blast_w", 0.0)), maxf(maxf(e.get("burst_w", 0.0), e.get("dash_w", 0.0)), e.get("nova_w", 0.0))), float(e.get("shot_wind_until", 0.0)) - g.t)   # 各种蓄力都播攻击帧条前两帧（docs/48 ⑥）
 		if ww > 0.0:
 			e.atk_until = g.t + 0.2
 			name = e.tex + "_attack"
@@ -828,7 +852,7 @@ func draw_enemy(e: Dictionary) -> void:
 	var rage_fx: bool = e.get("enraged", false)   # 狂暴：除了待机帧换图，移动 / 攻击帧也染红、脚下红光（docs/48 P1：原来只在待机帧生效）
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
-	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0))
+	var sc: float = enemy_scale(e)
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)
@@ -894,7 +918,7 @@ func draw_enemy(e: Dictionary) -> void:
 	var bpos: Vector2 = e.pos
 	if g.foot_anchor.has(e.tex):
 		anc = Vector2(0.5, 1.0)
-		bpos = e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX)
+		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
@@ -913,10 +937,12 @@ func draw_enemy(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
-	if tbase != e.tex and not ishar_tf.is_empty() and is_same(ishar_tf[0], e) and g.t - ishar_tf[1] < 0.9 and _lazy_tex("e_ishar_transform") != null:
-		name = "e_ishar_transform"
-		frames = 6
-		frame = clampi(int((g.t - ishar_tf[1]) / 0.15), 0, 5)
+	if e.type == "ishar":
+		var ia := ishar_animation(e)
+		if _lazy_tex(ia.name) != null:
+			name = ia.name
+			frames = ia.frames
+			frame = ia.frame
 	# @2x 高清帧条（伊莎玛拉变身形态有 @2x）：同一逻辑尺寸，按密度减半
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
@@ -1059,11 +1085,12 @@ func _ground_ring(p: Vector2, r: float, k: float, c: Color) -> void:
 
 ## 敌人贴图头顶的世界坐标（脚底锚点的贴图从脚往上长，不能按 e.r 算）
 func _enemy_top(e: Dictionary) -> Vector2:
-	var tx: Texture2D = g.tex.get(e.tex)
+	var name: String = ishar_animation(e).name if e.type == "ishar" else e.tex
+	var tx: Texture2D = _lazy_tex(name)
 	if tx == null or not g.foot_anchor.has(e.tex):
 		return e.pos + Vector2(0, -e.r - 8.0)
-	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0)) / A.hires_of(tx)
-	return e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
+	var sc: float = enemy_scale(e) / A.hires_of(tx)
+	return e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
 
 
 ## 巢涌者神经光环（docs/48 P1：帧条放大 4.6 倍后颗粒很粗，画在实体层会盖住其他东西）：
@@ -1102,23 +1129,42 @@ func _lazy_tex(n: String) -> Texture2D:
 	return g.tex[n]
 
 
-## 伊莎玛拉之泪（docs/48 P1：没有危险圈，外形像掉落物）：脚下洋红危险圈 = 灼伤范围（enemies.gd：距离 < r + 14 每秒掉 6 血），
-## 缓慢呼吸；伊莎玛拉还在转化（phase 1）时，一串光点从泪流向她，读得出「泪在给她充能，打掉它」
+## 泪滴显示与实际机制一致：中立泪是可踩入的压制区；遗留敌对泪仍显示伤害圈。
+## 连接只认该枚泪的有效 owner，不根据场上所有 Boss 猜测归属。
+func tear_zone_info(e: Dictionary) -> Dictionary:
+	var neutral: bool = e.get("friendly", false)
+	var blocked: bool = neutral and g.ishar.tear_blocked(e)
+	var owner = e.get("owner")
+	if not owner is Dictionary or owner.get("type", "") != "ishar" or owner.get("dead", true) or owner.get("phase", 0) != 1:
+		owner = {}
+	return {
+		"r": Bal.v("boss/ishar_tear_block_radius", 32.0) if neutral else e.r + 14.0,
+		"ground_scale": 1.0 if neutral else ground_y(),
+		"blocked": blocked, "owner": owner,
+		"col": (Color(0.25, 1.0, 0.85) if blocked else Color(0.55, 0.7, 1.0)) if neutral else ENEMY_TELL,
+		"label": ("充能已压制" if blocked else "靠近压制充能") if neutral else ""
+	}
+
+
 func _tear_zone(e: Dictionary) -> void:
-	var r: float = e.r + 14.0
+	var info := tear_zone_info(e)
+	var r: float = info.r
+	var c: Color = info.col
 	var pulse: float = 0.5 + 0.5 * sin(g.t * 4.0 + e.id)
-	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, ground_y()))
-	g.draw_circle(Vector2.ZERO, r, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.12 + 0.06 * pulse))
+	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, info.ground_scale))
+	g.draw_circle(Vector2.ZERO, r, Color(c, 0.12 + 0.06 * pulse))
 	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(0, 0, 0, 0.5), 4.0)
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(ENEMY_TELL.r * 1.3, ENEMY_TELL.g * 1.3, ENEMY_TELL.b * 1.3, 0.6 + 0.3 * pulse), 2.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(c, 0.6 + 0.3 * pulse), 2.0)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	for b in g.bosses:
-		if b.dead or b.type != "ishar" or b.phase != 1:
-			continue
-		var d: Vector2 = b.pos - e.pos
+	if info.label != "":
+		UI.text(g, g.font, e.pos + Vector2(-70, -e.r - 20), info.label, 11, c, HORIZONTAL_ALIGNMENT_CENTER, 140, 2)
+	var owner: Dictionary = info.owner
+	if not owner.is_empty() and not info.blocked:
+		var d: Vector2 = owner.pos - e.pos
 		for q in 5:
 			var u: float = fmod(g.t * 0.6 + q / 5.0 + e.id * 0.13, 1.0)
 			g.draw_circle(e.pos + d * u, 2.5, Color(0.6, 1.6, 1.4, 0.7 * sin(u * PI)))
+
 
 
 ## Boss 身上的状态（docs/48 P1）：

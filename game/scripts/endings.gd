@@ -39,6 +39,9 @@ func update(dt: float) -> void:
 		_sink_box("")
 		return
 	if _box_alive():
+		for e in g.enemies:
+			if e.chest and not e.dead and e.get("event", "") != "":
+				e.pos = g.spawner.safe_event_pos(e.pos, 110.0)
 		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）
 		if g.t - box_t > BOX_LIFE:
 			_sink_box("海嗣祭坛沉入了海底")
@@ -104,9 +107,7 @@ func _box_alive() -> bool:
 
 
 func _spawn_box(ev: Dictionary) -> void:
-	var p: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(300.0, 420.0)
-	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r - 80.0:
-		p = g.zone_c + (p - g.zone_c).normalized() * maxf(60.0, g.zone_r - 120.0)
+	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)
 	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
@@ -166,7 +167,7 @@ func _option_ok(op: Dictionary, still_ok: bool) -> bool:
 		var rid := str(o.relic)
 		if not still_ok:
 			return false
-		if g.relics.has(rid) and int(g.rfx.lv.get(rid, 0)) >= g.rfx.max_lv(rid):
+		if not g.progression.can_gain_relic(rid):
 			return false
 	return true
 
@@ -201,6 +202,40 @@ func pick(o: Dictionary) -> void:
 			if x.has("flag"):
 				g.set(x.flag, true)
 		return
+
+
+## 只为决定结局的信物保留槽位：其他事件加成与普通藏品共用空间。
+## 决心升级沿用同一槽，因此最多预留 4 槽；窗口结束/已得到后释放。
+const ROUTE_RELICS := ["221", "222", "223", "238"]
+
+
+func is_route_relic(id: String) -> bool:
+	return ROUTE_RELICS.has(id)
+
+
+func reserved_relic_slots() -> int:
+	if frozen:
+		return 1 if g.knight.alive and not g.relics.has("223") else 0
+	var active: Array = []
+	for e in g.enemies:
+		if e.chest and not e.dead and e.get("event", "") != "":
+			active.append(str(e.event))
+	var future: Array = []
+	for ev in events:
+		if ev.has("requires_cleared") and not all_unlocked and not g.autotest and not Cfg.endings_cleared.has(ev.requires_cleared):
+			continue
+		if g.t > float(ev.window[1]) and not active.has(ev.id) and opened_id != ev.id:
+			continue
+		if done.has(ev.id) and not active.has(ev.id) and opened_id != ev.id:
+			continue
+		for op in ev.options:
+			for effect in op.get("ops", []):
+				var rid: String = str(effect.get("relic", ""))
+				if is_route_relic(rid) and not g.relics.has(rid) and not future.has(rid):
+					future.append(rid)
+	if (g.knight.alive or future.has("222")) and not g.relics.has("223"):
+		future.append("223")
+	return future.size()
 
 
 ## ---------- 结局 ----------

@@ -25,6 +25,10 @@ var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
 var pad_rumble := true   # 手柄震动
 var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
+var cover_character_id := "mizuki"
+var play_speed := 1.0
+var boss_trial_request := {} # transient, never saved
+var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
 var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
 var seen_shows: Array = []   # 已看过的解锁演出
@@ -49,6 +53,10 @@ func _ready() -> void:
 		dof = DisplayServer.is_touchscreen_available() == false
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
+		cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
+		play_speed = float(c.get_value("game", "play_speed", 1.0))
+		if play_speed not in [1.0, 1.5, 2.0]:
+			play_speed = 1.0
 		master = c.get_value("audio", "master", master)
 		music = c.get_value("audio", "music", music)
 		sfx = c.get_value("audio", "sfx", sfx)
@@ -143,12 +151,16 @@ func dev_args() -> PackedStringArray:
 
 
 func save() -> void:
+	if practice_active:
+		return
 	# 自动测试（任何 --xxx 启动参数，与 sfx.gd 静音同一判定）不写玩家的存档：
 	# 否则批跑 / 冒烟里机器人拿到的藏品、解锁的难度都会记进玩家的图鉴与进度（docs/36）
 	for a in dev_args():
 		if a.begins_with("--"):
 			return
 	var c := ConfigFile.new()
+	c.set_value("display", "cover_character", cover_character_id)
+	c.set_value("game", "play_speed", play_speed)
 	c.set_value("audio", "master", master)
 	c.set_value("audio", "music", music)
 	c.set_value("audio", "sfx", sfx)
@@ -174,3 +186,11 @@ func save() -> void:
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.save(PATH)
+
+
+## Deliberate EA menu; normal release debug flags remain disabled.
+func can_boss_trial() -> bool:
+	if OS.is_debug_build():
+		return true
+	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+	return info is Dictionary and info.get("channel", "") == "EA"

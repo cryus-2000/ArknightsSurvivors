@@ -117,6 +117,15 @@ func item_name(kind: String) -> String:
 	return {"magnet": "磁铁", "heal": "回复药剂"}.get(kind, "")
 
 
+## 前 12 级保持原曲线，之后逐级增加费用，至 30 级达到后期倍率。
+func xp_required(level: int) -> float:
+	var base: float = Bal.v("xp/a", 24.0) + level * Bal.v("xp/b", 8.0) + floor(level * level * Bal.v("xp/c", 0.8))
+	var start: float = Bal.v("xp/late_from_level", 12.0)
+	var finish: float = Bal.v("xp/late_full_level", 30.0)
+	var ramp: float = clampf((float(level) - start) / maxf(1.0, finish - start), 0.0, 1.0)
+	return ceil(base * lerpf(1.0, Bal.v("xp/late_mult", 1.95), ramp))
+
+
 func gain_xp(v: float) -> void:
 	if g.demo_op != "":
 		return
@@ -124,7 +133,7 @@ func gain_xp(v: float) -> void:
 	while g.xp >= g.xp_need:
 		g.xp -= g.xp_need
 		g.level += 1
-		g.xp_need = Bal.v("xp/a", 24.0) + g.level * Bal.v("xp/b", 8.0) + floor(g.level * g.level * Bal.v("xp/c", 0.8))
+		g.xp_need = xp_required(g.level)
 		g.pending_levelups += 1
 		g.lv_times.append(int(g.t))
 		levelup_fx()

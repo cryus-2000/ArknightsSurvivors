@@ -5,18 +5,20 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
 const ITEMS := [
 	{"cn": "集结出发", "en": "DEPLOY"},
 	{"cn": "图鉴", "en": "GALLERY"},
+	{"cn": "Boss 演练", "en": "BOSS TRIAL"},
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
 ]
 ## 菜单当前项下方的一行说明（方案 A 纵向时间轴菜单）
-const ITEM_SUB := ["选择干员与难度，走进深海", "干员、敌人、藏品与结局档案", "键盘、手柄与触屏操作", "画面、声音与操作设置", "离开游戏"]
+const ITEM_SUB := ["选择干员与难度，走进深海", "干员、敌人、藏品与结局档案", "直接选择 Boss，检查招式与阶段", "键盘、手柄与触屏操作", "画面、声音与操作设置", "离开游戏"]
 
 var font: Font
 var tex_player: Texture2D
@@ -34,11 +36,15 @@ var motes: Array = []
 var guide := false
 var credits := false
 var credits_rect := Rect2()
-var deploy_rect := Rect2()   # 右下「选择干员 》」主按钮
+var deploy_rect := Rect2()   # 右下「更换封面干员」
 var credits_data: Dictionary = {}
 var leaving := -1.0
 var settings: Control
 var gallery: Control
+var boss_trial: Control
+var transition: Control
+var overlay_was_open := false
+var cover_pick := false
 var diff_pick := false
 var diff_sel := 0
 var diff_rects := {}
@@ -67,7 +73,7 @@ var map_title_en := ""
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	font = load("res://fonts/ui.ttf")
 	tex_player = A.tex("player")
 	if A.tex("player_idle") != null:
@@ -104,6 +110,13 @@ func _ready() -> void:
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	add_child(settings)
+	boss_trial = preload("res://scripts/screens/boss_trial_menu.gd").new()
+	add_child(boss_trial)
+	var transition_layer := CanvasLayer.new()
+	transition_layer.layer = 90
+	add_child(transition_layer)
+	transition = preload("res://scripts/screens/scene_transition.gd").new()
+	transition_layer.add_child(transition)
 	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
@@ -201,8 +214,7 @@ func _diff_input(event: InputEvent) -> void:
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_diff_go()
 			KEY_ESCAPE, KEY_BACKSPACE:
-				diff_pick = false
-				Sfx.play("ui_move")
+				_diff_back()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		for k in diff_rects:
 			if diff_rects[k].has_point(event.position):
@@ -214,8 +226,15 @@ func _diff_input(event: InputEvent) -> void:
 					"go":
 						_diff_go()
 					"back":
-						diff_pick = false
+						_diff_back()
 				return
+
+
+func _diff_back() -> void:
+	transition.switch_page(func():
+		diff_pick = false
+		op_pick = true)
+	Sfx.play("ui_move")
 
 
 func _diff_step(d: int) -> void:
@@ -227,6 +246,8 @@ func _diff_step(d: int) -> void:
 
 
 func _diff_go() -> void:
+	if transition.busy:
+		return
 	if diff_sel > Cfg.diff_unlocked:
 		Sfx.play("ui_move", -4.0, 0.6)
 		return
@@ -320,6 +341,10 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 func _process(delta: float) -> void:
 	Pad.context = "title"
+	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible
+	if overlay_was_open and not overlay_open and not transition.busy:
+		transition.reveal_page()
+	overlay_was_open = overlay_open
 	t += delta
 	op_scroll_f = lerpf(op_scroll_f, float(op_scroll), 1.0 - exp(-14.0 * delta))
 	if absf(op_scroll_f - op_scroll) < 0.002:
@@ -343,7 +368,7 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or settings.visible or gallery.visible:
+	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible:
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -359,23 +384,24 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if guide or credits:
-			guide = false
-			credits = false
+			_close_info()
 			Sfx.play("ui_ok")
 			return
 		match event.keycode:
 			KEY_UP, KEY_W:
-				sel = (sel + ITEMS.size() - 1) % ITEMS.size()
+				_menu_step(-1)
 				Sfx.play("ui_move")
 			KEY_DOWN, KEY_S:
-				sel = (sel + 1) % ITEMS.size()
+				_menu_step(1)
 				Sfx.play("ui_move")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_activate(sel)
 			KEY_C, KEY_X:
 				# 致谢与声明：键盘 C、手柄 Ⓨ（标题页 Ⓨ 映射为 X）也能打开（原来只能鼠标点页脚）
-				credits = true
+				transition.switch_page(func(): credits = true)
 				Sfx.play("ui_ok")
+			KEY_V:
+				transition.switch_page(_open_op_pick.bind(true))
 	elif event is InputEventMouseMotion:
 		for i in item_rects.size():
 			if item_rects[i].has_point(event.position) and sel != i:
@@ -383,36 +409,53 @@ func _input(event: InputEvent) -> void:
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if guide or credits:
-			guide = false
-			credits = false
+			_close_info()
 			return
 		if credits_rect.has_point(event.position):
-			credits = true
+			transition.switch_page(func(): credits = true)
 			Sfx.play("ui_ok")
 			return
 		if deploy_rect.has_point(event.position):
-			_activate(0)
+			Sfx.play("ui_ok")
+			transition.switch_page(_open_op_pick.bind(true))
 			return
 		for i in item_rects.size():
 			if item_rects[i].has_point(event.position):
 				_activate(i)
 
 
+func _close_info() -> void:
+	transition.switch_page(func():
+		guide = false
+		credits = false)
+
+
+func _menu_ids() -> Array:
+	return [0, 1, 2, 3, 4, 5] if Cfg.can_boss_trial() else [0, 1, 3, 4, 5]
+
+
+func _menu_step(direction: int) -> void:
+	var ids := _menu_ids()
+	sel = ids[posmod(ids.find(sel) + direction, ids.size())]
+
+
 func _activate(i: int) -> void:
+	if transition.busy:
+		return
+	Sfx.play("ui_ok")
 	match i:
 		0:
-			Sfx.play("ui_ok")
-			_open_op_pick()
+			transition.switch_page(_open_op_pick.bind(false))
 		1:
-			Sfx.play("ui_ok")
-			gallery.open()
+			transition.switch_page(gallery.open)
 		2:
-			Sfx.play("ui_ok")
-			guide = true
+			if Cfg.can_boss_trial():
+				transition.switch_page(boss_trial.open)
 		3:
-			Sfx.play("ui_ok")
-			settings.open()
+			transition.switch_page(func(): guide = true)
 		4:
+			transition.switch_page(settings.open)
+		5:
 			get_tree().quit()
 
 
@@ -486,21 +529,25 @@ func _draw() -> void:
 
 	# 菜单（原作「主题选择」左侧的纵向时间轴）：一条竖细线串起各项；当前项实心圆点 + 外圈、白字 + 青色英文 + 一行说明
 	item_rects.clear()
+	item_rects.resize(ITEMS.size())
+	item_rects.fill(Rect2())
+	var menu_ids := _menu_ids()
 	var compact: bool = vs.y < 680.0   # 触屏放大后的紧凑排版
 	var my := 300.0 if compact else 318.0
-	var step := 52.0 if compact else 58.0
+	var step := 44.0 if compact else 51.0
 	var lx := tx + 4.0
 	var mf0 := _seg(3.3, 0.4)
 	if mf0 > 0.0:
 		var y0 := my - 8.0
-		var y1 := my + (ITEMS.size() - 1) * step + 46.0
+		var y1 := my + (menu_ids.size() - 1) * step + 46.0
 		draw_rect(Rect2(Vector2(lx, y0), Vector2(1, (y1 - y0) * mf0)), Color(1, 1, 1, 0.22))
 		draw_rect(Rect2(Vector2(lx - 2, y0 - 4), Vector2(5, 5)), Color(1, 1, 1, 0.55 * mf0))
 		if mf0 >= 1.0:
 			draw_rect(Rect2(Vector2(lx - 2, y1), Vector2(5, 5)), Color(1, 1, 1, 0.55))
-	for i in ITEMS.size():
-		var r := Rect2(tx - 10, my + i * step, 330, 48)
-		item_rects.append(r)
+	for mi in menu_ids.size():
+		var i: int = menu_ids[mi]
+		var r := Rect2(tx - 10, my + mi * step, 330, 48)
+		item_rects[i] = r
 		var f := _seg(3.4 + i * 0.08, 0.3)
 		if f <= 0.0:
 			continue
@@ -528,7 +575,7 @@ func _draw() -> void:
 	# 操作提示
 	var hf := _seg(4.0, 0.4)
 	if hf > 0.0 and not diff_pick and not op_pick:
-		var hy := my + ITEMS.size() * step + 12
+		var hy := my + menu_ids.size() * step + 12
 		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
 	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
 	var df := _seg(3.9, 0.4)
@@ -538,10 +585,10 @@ func _draw() -> void:
 		var by := vs.y - 98.0
 		deploy_rect = Rect2(Vector2(bx - 8, by + 8), Vector2(214, 50))
 		var dh := deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-		UI.en(self, font, Vector2(bx, by), "READY TO DEPLOY", 11, _fa(UI.CYAN, df), 3.5)
+		UI.en(self, font, Vector2(bx, by), "COVER OPERATOR  ·  V", 10, _fa(UI.CYAN, df), 3.5)
 		_draw_emblem(Vector2(bx + 14, by + 33), 14.0, _fa(UI.TEXT, df))
-		UI.text(self, font, Vector2(bx + 40, by + 42), "选择干员", 22, _fa(UI.TEXT, df))
-		UI.text(self, font, Vector2(bx + 138, by + 41), "》", 22, _fa(UI.CYAN if dh else Color(0.81, 0.84, 0.85), df))
+		UI.text(self, font, Vector2(bx + 40, by + 42), "更换封面干员", 19, _fa(UI.TEXT, df))
+		UI.text(self, font, Vector2(bx + 178, by + 41), "》", 22, _fa(UI.CYAN if dh else Color(0.81, 0.84, 0.85), df))
 		draw_rect(Rect2(Vector2(bx, by + 56), Vector2(192, 1)), _fa(Color(1, 1, 1, 0.3), df))
 		draw_rect(Rect2(Vector2(bx, by + 55), Vector2(28.0 + (44.0 if dh else 0.0), 3)), _fa(UI.CYAN, df))
 
@@ -745,7 +792,8 @@ func _shot_dir() -> String:
 # =====================================================================
 # 选开局干员：data/characters/*.json 里 recruitable 的干员按职业排列；选中后进入选难度
 # =====================================================================
-func _open_op_pick() -> void:
+func _open_op_pick(for_cover := false) -> void:
+	cover_pick = for_cover
 	if op_defs.is_empty():
 		var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
 		if lf != null:
@@ -765,14 +813,14 @@ func _open_op_pick() -> void:
 				frames = int(idle.frames)
 			elif tx != null:
 				frames = max(1, tx.get_width() / tx.get_height())
-			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "lore": op_lore.get(cid, {}).get("lore", "")})
+			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "lore": op_lore.get(cid, {}).get("lore", ""), "numbers": InitialStats.rows(cid, d)})
 		op_defs.sort_custom(func(a, b):
 			var ca: int = CLASS_ORDER.find(a.def.get("class", ""))
 			var cb: int = CLASS_ORDER.find(b.def.get("class", ""))
 			return ca < cb if ca != cb else a.id < b.id)
 	op_sel = 0
 	for i in op_defs.size():
-		if op_defs[i].id == Cfg.character_id:
+		if op_defs[i].id == (Cfg.cover_character_id if cover_pick else Cfg.character_id):
 			op_sel = i
 	op_scroll = 0
 	op_scroll_f = 0.0
@@ -795,7 +843,7 @@ func _op_input(event: InputEvent) -> void:
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_op_go()
 			KEY_ESCAPE, KEY_BACKSPACE:
-				op_pick = false
+				transition.switch_page(func(): op_pick = false)
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		_op_scroll_by(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
@@ -811,7 +859,7 @@ func _op_input(event: InputEvent) -> void:
 				elif k == "go":
 					_op_go()
 				elif k == "back":
-					op_pick = false
+					transition.switch_page(func(): op_pick = false)
 					Sfx.play("ui_move")
 				return
 
@@ -841,12 +889,23 @@ func _op_scroll_by(d: int) -> void:
 
 
 func _op_go() -> void:
-	Cfg.character_id = op_defs[op_sel].id
-	Cfg.save()
+	if transition.busy or op_defs.is_empty():
+		return
+	var cid: String = op_defs[op_sel].id
 	Sfx.play("ui_ok")
-	op_pick = false
-	diff_pick = true
-	diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked)
+	if cover_pick:
+		transition.switch_page(func():
+			Cfg.cover_character_id = cid
+			Cfg.save()
+			title_bg.reload_guest()
+			op_pick = false)
+	else:
+		transition.switch_page(func():
+			Cfg.character_id = cid
+			Cfg.save()
+			op_pick = false
+			diff_pick = true
+			diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked))
 
 
 ## 选人页：左侧 4×2 干员格（待机动画 + 名字 + 职业），右侧详情（普攻 / 技能 / 天赋 / 档案）
@@ -859,8 +918,8 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var col: Color = Character.CLASS_COL.get(d.get("class", ""), UI.CYAN)
 	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
 	UI.en(self, font, r.position + Vector2(36, 42), "OPERATOR", 13, col, 4.0)
-	UI.text(self, font, r.position + Vector2(36, 80), "选择开局干员", 26, UI.TEXT)
-	UI.text(self, font, r.position + Vector2(220, 80), "其余干员在探索中通过升级招募", 13, UI.SUB)
+	UI.text(self, font, r.position + Vector2(36, 80), "更换封面干员" if cover_pick else "选择开局干员", 26, UI.TEXT)
+	UI.text(self, font, r.position + Vector2(220, 80), "与博士一起站在浪边；不改变开局编队" if cover_pick else "其余干员在探索中通过升级招募", 13, UI.SUB)
 	op_rects.clear()
 	# ---- 左：干员格
 	var cols := 4
@@ -932,11 +991,15 @@ func _draw_op_pick(vs: Vector2) -> void:
 	cx += UI.chip(self, font, Vector2(cx, py + 18), d.get("class", ""), col, 12) + 8
 	for tg in d.get("gallery", {}).get("tags", []):
 		cx += UI.chip(self, font, Vector2(cx, py + 18), tg, UI.PURPLE, 11) + 6
-	# 当主控时的受击属性（JSON leader 段，按原作精二满级换算）：标签下面一行
-	var ld: Dictionary = d.get("leader", {})
-	if not ld.is_empty():
-		UI.text_fit(self, font, Vector2(nx, py + 58), "主控　生命 %d · 回复 %.1f/秒 · 减伤 %s · 法抗 %d%%" % [int(ld.get("max_hp", 120)), float(ld.get("regen", 1.0)), str(snappedf(float(ld.get("armor", 0.0)), 0.5)), int(round(float(ld.get("arts_res", 0.0)) * 100.0))], 13, Color(col.r, col.g, col.b, 0.95), dr.end.x - 24.0 - nx)
-	py += 74
+	# 招募时的基础数值来自角色 / 博士 JSON 与当前平衡修正，不含局内成长。
+	var numbers: Array = cur.numbers
+	for ni in numbers.size():
+		var row: Array = numbers[ni]
+		var cell_w: float = (dr.size.x - 48.0) / 3.0
+		var cell := Vector2(px + (ni % 3) * cell_w, py + 65.0 + (ni / 3) * 29.0)
+		UI.text(self, font, cell, row[0], 10, UI.SUB)
+		UI.text_fit(self, font, cell + Vector2(0, 17), row[1], 13, UI.TEXT, cell_w - 8.0)
+	py += 114
 	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 	py += 18
 	var lines: Array = []
@@ -944,7 +1007,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 		lines.append(["普攻", d.attack.get("name", ""), d.attack.get("desc", "")])
 	var sks: Array = d.get("skills", [])
 	for si in sks.size():
-		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精英一", "精英二"][si]]) if sks[si].has("sp") else ""], sks[si].get("desc", ""), sks[si].get("icon", "")])
+		lines.append(["S%d" % (si + 1), "%s%s" % [sks[si].get("name", ""), ("（充能 %d · %s）" % [int(sks[si].sp), ["招募", "精英一", "精英二"][si]]) if sks[si].has("sp") else ""], ("主控按 Q 释放；作为队友自动。" if sks[si].get("mode", "auto") == "manual" else "") + sks[si].get("desc", ""), sks[si].get("icon", "")])
 	if d.has("talent"):
 		lines.append(["天赋", d.talent.get("name", "") + "　（精英一解锁）", d.talent.get("desc", "")])
 	# 高度预算（触屏紧凑版面板矮）：每条说明先给 2 行，放不下就从后往前减到 1 行、再减到只留名字
@@ -969,14 +1032,15 @@ func _draw_op_pick(vs: Vector2) -> void:
 		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null
 		var ix := 0.0
 		if itx != null:
-			draw_texture_rect(itx, Rect2(Vector2(px, py - 3), Vector2(32, 32)), false)
-			ix = 44.0
-			UI.text(self, font, Vector2(px + ix, py + 15), ln[1], 15, UI.TEXT)
+			var icon_side := 24.0 if desc_n[li] == 0 else 32.0
+			draw_texture_rect(itx, Rect2(Vector2(px, py - 3), Vector2(icon_side, icon_side)), false)
+			ix = icon_side + 12.0
+			UI.text_fit(self, font, Vector2(px + ix, py + 15), ln[1], 15, UI.TEXT, dr.size.x - 48.0 - ix)
 		else:
 			UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
-			UI.text(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT)
+			UI.text_fit(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT, dr.size.x - 100.0)
 		py += 22
-		py += maxf(_wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, desc_n[li]), 12.0 if itx != null else 0.0) + 8
+		py += _wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, desc_n[li]) + 8
 	# 精二条件
 	for n in d.get("progression", []):
 		if n.get("type", "") == "elite" and int(n.get("level", 0)) == 2 and n.has("requires"):
@@ -988,11 +1052,11 @@ func _draw_op_pick(vs: Vector2) -> void:
 				parts.append("博士被动「%s」" % preload("res://scripts/characters/doctor.gd").PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
 			for rid in req.get("relic", []):
 				parts.append("藏品 #%s" % str(rid))
-			if not parts.is_empty():
+			if not parts.is_empty() and py + 26.0 <= dr.end.y - 12.0:
 				UI.text(self, font, Vector2(px, py + 12), "精英化二条件：" + "、".join(parts), 12, Color(0.8, 0.55, 1.0))
 				py += 26
 	# 档案：只画面板剩余高度放得下的行数
-	if cur.lore != "":
+	if cur.lore != "" and py + 48.0 < dr.end.y:
 		py += 6
 		UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 		py += 10
@@ -1006,7 +1070,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 	op_rects["back"] = back
 	# 方案 A：主操作青底深字，返回为暗底细边
 	var mp := get_local_mouse_position()
-	UI.button(self, font, go, Pad.hint("下一步  Enter", "下一步  Ⓐ"), "primary", go.has_point(mp), 17)
+	UI.button(self, font, go, (Pad.hint("更换  Enter", "更换  Ⓐ") if cover_pick else Pad.hint("下一步  Enter", "下一步  Ⓐ")), "primary", go.has_point(mp), 17)
 	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ"), "outline", back.has_point(mp), 17)
 	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), Pad.hint("WASD / ARROWS  SELECT     ENTER  NEXT", "STICK  SELECT     A  NEXT     B  BACK"), 11, Color(0.45, 0.49, 0.53), 1.5)
 

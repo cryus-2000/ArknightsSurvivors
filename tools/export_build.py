@@ -39,7 +39,12 @@ README = """方舟幸存者（明日方舟同人，非商业）
 不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
 
 【操作】
-WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；Q 或 J 手动技能（目前只有乌尔比安三技能）；Tab 属性；Esc 暂停；M 开关音乐。支持手柄。
+WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；Q 或 J 已解锁的手动技能（升级说明会提示，队友自动释放）；Tab 属性；Esc 暂停；M 开关音乐。支持手柄。
+V 或右上角倍速按钮：1× / 1.5× / 2×。菜单、音乐不加速。
+
+【检查与展示】
+图鉴的敌人页面可以观看真实攻击演示，切换形态并重播。主页右下角可更换与博士并肩的封面干员，不影响开局选人。
+{ea_note}
 
 【说明】
 本作是《明日方舟》的非官方同人作品，与鹰角网络无关。部分特效改自开放许可的第三方像素素材，详见游戏内「致谢」页。
@@ -141,7 +146,7 @@ def main():
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
-        fh.write(README.format(ver=commit, date=date, channel="EA " if a.ea else "").replace("\n", "\r\n"))
+        fh.write(README.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="EA 版主页「Boss 演练」可选对手、主控、成长及形态；观察模式不会倒下，演练不记录通关进度。" if a.ea else "").replace("\n", "\r\n"))
 
     # 4. zip
     if a.no_zip:

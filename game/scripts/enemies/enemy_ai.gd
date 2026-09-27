@@ -23,6 +23,8 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 	var d := def_of(e)
 	_prepare_pose(e, d, dist)
 	match d.get("pattern", ""):
+		"bite":
+			return _bite(e, d, dir, dist)
 		"burrow":
 			return _burrow(e, d, dir, dist, dt, spd)
 		"stomp":
@@ -41,6 +43,15 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 			return _thrust(e, d, dir, dist, dt)
 		"nest":
 			return _nest(e, d, dist, dt)
+	return Vector2.INF
+
+
+## 箱形恐鱼现形后张口蓄势再啃咬，用现有预警/命中机制；不再无动作地接触扣血。
+func _bite(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> Vector2:
+	var reach := float(d.get("bite_range", 76.0))
+	if dist < reach and e.wind <= 0.0 and g.bai._cd(e, "bite", float(d.get("bite_cd", 2.6))):
+		Sfx.enemy("screech", dist)
+		g.bai._warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg})
 	return Vector2.INF
 
 
@@ -138,6 +149,7 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 			e.under = false
 			e.def = 1.0
 			e.up_t = float(d.get("up_time", 3.2))
+			Sfx.enemy("bite", dist)
 			g.bai._warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
 			g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
 			return Vector2.ZERO
@@ -152,6 +164,7 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 ## 近身时踏地震荡
 func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 	if dist < float(d.get("stomp_range", 170)) and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and g.bai._cd(e, "stomp", float(d.get("stomp_cd", 6.0))):
+		Sfx.enemy("screech", dist)
 		g.bai._warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
 	return Vector2.INF
 
@@ -162,6 +175,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 	if e.get("dash_w", 0.0) > 0.0:
 		e.dash_w -= dt
 		if e.dash_w <= 0.0:
+			Sfx.enemy("bite", dist)
 			e["dash_t"] = e.get("dash_dur", 0.35)
 			e.last_act = {"act": "charge", "shape": "line", "pos": e.pos, "ang": e.dash_dir.angle(), "len": e.get("dash_len", 0.0), "t": g.t}
 		return Vector2.ZERO
@@ -186,7 +200,9 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 	e.cdt -= dt
 	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)):
 		e.cdt = float(d.get("acid_cd", 4.2))
-		g.ebullets.append({"pos": e.pos, "vel": dir * 150.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
+		Sfx.enemy("spit", dist)
+		e.atk_until = g.t + 0.3
+		g.ebullets.append({"pos": e.pos, "vel": dir * 180.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
 			"corrode": 0.3, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
 	return Vector2.INF
 
@@ -199,7 +215,7 @@ func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		if e.nova_w <= 0.0:
 			var n: int = int(d.get("nova_n", 6)) + (2 if e.evo else 0)
 			for k in n:
-				g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 150.0, "dmg": e.dmg * 0.3, "slow": false,
+				g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 180.0, "dmg": e.dmg * 0.3, "slow": false,
 					"r": 5.0, "life": 2.6, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "nova", "home": false})
 			Sfx.play("tentacle", -12.0, 0.7, 0.05)
 		return Vector2.ZERO
@@ -212,13 +228,16 @@ func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 
 ## 远程攻击（小怪按表；Boss 的弹数 / 弹种分支保留在这里，等 Boss 表数据化时再迁）
 func shoot(e: Dictionary, dir: Vector2) -> void:
+	# 人形治疗另走 IsharEncounter；通用敌方射击绝不能把第一形态的弹打向主控。
+	if e.get("friendly", false) or (e.type == "ishar" and e.phase != 2):
+		return
 	var d := def_of(e)
 	if d.get("spit", false) or d.get("lob", false):
 		lob(e)
 		return
-	if not e.boss:
+	if e.type not in ["iberia", "carmen"]:
 		Sfx.enemy("spit", e.pos.distance_to(g.ppos))
-	var spd: float = float(d.get("shot_spd", 280.0 if e.boss else 200.0))
+	var spd: float = float(d.get("shot_spd", 280.0 if e.boss else 200.0)) * 1.2
 	var n: int = int(d.get("shot_n", 1))
 	var kind: String = d.get("shot_kind", "orb")
 	var home: bool = d.get("shot_home", false)
@@ -239,6 +258,9 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
 			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0)})
+	if e.boss:
+		e.pose = 0.4
+		e.pose_max = 0.4
 	e.atk_until = g.t + 0.2   # 小怪攻击帧条（atk_anim）：出手后播第 3、4 帧
 	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
 	var so: String = d.get("spawn_on_shot", "")
@@ -258,5 +280,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
 func lob(e: Dictionary) -> void:
+	Sfx.enemy("spit", e.pos.distance_to(g.ppos))
+	e.atk_until = g.t + 0.3
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
-	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0)})
+	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0)})

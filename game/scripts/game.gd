@@ -39,6 +39,11 @@ const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
+const PlayClock = preload("res://scripts/run/play_clock.gd")
+const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
+const BossTrial = preload("res://scripts/run/boss_trial.gd")
+const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
+const EnemyDemo = preload("res://scripts/run/enemy_demo.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
 const AutoTest = preload("res://scripts/run/autotest.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
@@ -67,6 +72,10 @@ const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const TILE := 32.0              # 地砖在世界中的尺寸
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 
+var ishar = IsharEncounter.new(self)
+var trial = BossTrial.new(self)
+var victory = VictoryFlow.new(self)
+var speed_btn := Rect2()
 var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
@@ -321,6 +330,8 @@ var floor_times: Array = []
 
 # ---------- 图鉴演示（gallery.gd 把本场景放进 SubViewport，demo_op 为要演示的干员 id）----------
 # 不刷怪、不掉落、不升级、没有 HUD 与音乐；按技能分段循环，每段重置干员与右侧怪海（见 _demo_step）
+var demo_enemy := ""
+var enemy_demo = EnemyDemo.new(self)
 var demo_op := ""
 var dbg_offer := {}              # 平衡输出：各干员深度卡被提供 / 被选中的次数
 var dbg_pick := {}
@@ -342,6 +353,7 @@ var demo_basic := false        # 只普攻、不放技能（三联对照看普�
 
 
 func _ready() -> void:
+	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
@@ -375,7 +387,7 @@ func _ready() -> void:
 			Cfg.character_id = a.substr(5)
 	if not Character.list_ids().has(Cfg.character_id):
 		Cfg.character_id = "mizuki"
-	ch = squad.add(demo_op if demo_op != "" else Cfg.character_id)
+	ch = squad.add(demo_op if demo_op != "" else (str(trial.config.operator) if trial.active else Cfg.character_id))
 	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
 	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
 	# --noleader：平衡对照用，退回改动前「所有主控同一条血、无减伤」
@@ -576,6 +588,8 @@ func _ready() -> void:
 			var n: Dictionary = ch.next_node()
 			var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
+	elif trial.active:
+		pass
 	elif Cfg.dev_args().has("--introshot"):
 		intro_screen.open.call_deferred(S.PLAY)
 	elif not autotest or Cfg.dev_args().has("--openshot"):
@@ -628,6 +642,8 @@ func _ready() -> void:
 				for k in int(a.substr(7)):
 					o.advance()
 
+	trial.setup()
+
 
 var demo_origin := Vector2.INF   # 场地中心（镜头固定在这里）
 var demo_phases: Array = []
@@ -646,9 +662,11 @@ func view_center() -> Vector2:
 func _process(delta: float) -> void:
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	var dt: float = min(delta, 0.05)
+	var simulated_dt := 0.0
 	if state != _last_state:
 		_last_state = state
-		telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
+		if not trial.active:
+			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 		state_age = 0.0
 		res_sel = 0
 	else:
@@ -660,10 +678,21 @@ func _process(delta: float) -> void:
 		_pm("autotest")
 		dt = 0.066 if balance else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
-	if hitstop > 0.0 and not autotest and Cfg.hitstop and demo_op == "":
+	if victory.active and state == S.PLAY:
+		simulated_dt = minf(delta, 0.05)
+		victory.step(simulated_dt)
+	elif hitstop > 0.0 and not autotest and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:
-		_update(dt)
+		if autotest or demo_op != "":
+			_update(dt)
+			simulated_dt += dt
+		else:
+			for step_dt in PlayClock.steps(dt):
+				if state != S.PLAY or victory.active or (hitstop > 0.0 and Cfg.hitstop):
+					break
+				_update(step_dt)
+				simulated_dt += step_dt
 		if balance:
 			# 平衡测试：每帧多跑几步模拟，绕过无界面模式的帧率上限
 			for i in 7:
@@ -674,10 +703,11 @@ func _process(delta: float) -> void:
 				_pm("autotest")
 				if state == S.PLAY:
 					_update(dt)
+					simulated_dt += dt
 	if not panel.visible and state != S.SHOW:
 		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
-	world.update_visuals(dt if state == S.PLAY else 0.0)
+	world.update_visuals(simulated_dt if state == S.PLAY else 0.0)
 	_pm("visuals")
 	music_dir.update(delta)
 	panel_ui.animate_cards(delta)
@@ -704,6 +734,8 @@ func _do_action(act: String) -> void:
 		"guide":
 			intro_screen.open(S.PAUSE)
 		"restart":
+			if trial.active:
+				trial.retry()
 			get_tree().reload_current_scene()
 		"title":
 			get_tree().change_scene_to_file("res://main.tscn")
@@ -711,6 +743,8 @@ func _do_action(act: String) -> void:
 
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
+	if victory.active:
+		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
 	if settings.visible:
@@ -759,6 +793,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if victory.active:
+		return
 	if settings.visible:
 		return
 	if state == S.OPENING:
@@ -781,6 +817,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					Sfx.play("ui_ok")
 					_do_action(b[1])
 					return
+		if state == S.PLAY and speed_btn.has_point(event.position):
+			PlayClock.cycle()
+			return
 		if state == S.PLAY and pause_btn.has_area() and pause_btn.has_point(event.position):
 			Sfx.play("ui_ok", -4.0)
 			state = S.PAUSE
@@ -809,6 +848,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
 		return
+	if k == KEY_V and state == S.PLAY:
+		PlayClock.cycle()
+		return
 	if k == KEY_TAB or k == KEY_C:
 		if state == S.PLAY:
 			state = S.STATS
@@ -834,9 +876,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif k == KEY_M:
 		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
-		get_tree().change_scene_to_file("res://main.tscn")
+		_do_action("title")
 	elif k == KEY_R and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
-		get_tree().reload_current_scene()
+		_do_action("restart")
 	elif state == S.SHOP:
 		if k >= KEY_1 and k <= KEY_5:
 			shop_sys.buy(k - KEY_1)
@@ -919,7 +961,10 @@ func _try_dash() -> void:
 func _update(dt: float) -> void:
 	_pm("")
 	t += dt
-	if not autotest:
+	if demo_enemy != "":
+		enemy_demo.step(dt)
+		return
+	if not autotest and not trial.active:
 		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	_sync_stats()
 	var mv := Vector2(
@@ -990,7 +1035,7 @@ func _update(dt: float) -> void:
 	_pm("pre")
 	if demo_op != "":
 		demo_sys.step(dt)
-	else:
+	elif not trial.active:
 		spawner.update(dt)
 	_pm("spawn")
 	enemies_sys.build_grid()
@@ -1014,13 +1059,16 @@ func _update(dt: float) -> void:
 	enemies_sys.update_status(dt)
 	rfx.tick(dt)
 	_pm("relic")
-	endg.update(dt)
-	endg.tick_final_warning()
-	if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
-		knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
-	if demo_op == "":
-		shop_sys.update(dt)
-	pickups.update(dt)
+	if not trial.active:
+		endg.update(dt)
+		endg.tick_final_warning()
+		if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
+			knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
+		if demo_op == "":
+			shop_sys.update(dt)
+		pickups.update(dt)
+	else:
+		trial.maintain()
 	_pm("misc")
 	vfx.update(dt)
 	_pm("fx")
@@ -1043,20 +1091,14 @@ func _update(dt: float) -> void:
 		state = S.DEAD
 		Pad.rumble(0.6, 1.0, 0.6)
 		return
-	if final_boss != null and final_boss.dead:
-		state = S.WIN
-		endg.on_win()
-		# 通关当前最高已解锁的档 → 解锁下一档
-		if not balance and tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
-			Cfg.diff_unlocked = tier + 1
-			Cfg.save()
-			diff_new = true
+	if trial.won() or (not trial.active and final_boss != null and final_boss.dead):
+		victory.begin()
 		return
 	_check_pending()
 
 
 func _check_pending() -> void:
-	if state != S.PLAY or demo_op != "":
+	if state != S.PLAY or demo_op != "" or trial.active:
 		return
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
@@ -1165,7 +1207,10 @@ var doc_face := 1.0
 
 ## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
 func _exit_tree() -> void:
-	telemetry.on_exit()
+	if trial.active:
+		trial.leave()
+	else:
+		telemetry.on_exit()
 
 
 ## 世界绘制（引擎回调）：转发到 render/world.gd
@@ -1255,7 +1300,7 @@ const INTRO_PAGES := [
 	{"title": "威胁等级与大群", "en": "THREAT & HORDE", "icon": "threat", "lines": [
 		"计时器下方的进度条是威胁等级 Ⅰ→Ⅵ：浅滩 → 暗流(1:15) → 深潜(2:50) → 裂隙(4:40) → 深渊(6:40) → 深蓝之树(8:40)。每升一级会出现新的海嗣种类，旧种类逐渐退场。",
 		"「大群来袭」：每隔一段时间（浅滩 90 秒一次，越深越频繁，最后 60 秒一次）会从四周涌来一整群海嗣。来袭前 3 秒有紫色预警和屏幕边缘的箭头 —— 包围圈总留有一个缺口，没有箭头的那一侧就是突围方向。",
-		"精英海嗣定期出现（带金色光环与血条），击败必掉源石锭和补给箱；进化体（红色）更强，越到后期比例越高。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
+		"精英海嗣定期出现（带金色光环与血条），击败掉落源石锭，并有概率掉落补给箱；进化体（红色）更强，越到后期比例越高。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
 	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
 		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。远程海嗣的弹幕落地也会留下溟痕。",
 		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。刚出圈的 2 秒不掉血；Boss 在场时缩圈暂停。",

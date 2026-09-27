@@ -1,0 +1,272 @@
+{
+  "batch": "EA enemy attacks 2026-09-27",
+  "generator": "Built-in image_gen",
+  "mechanical_export": "C# System.Drawing; chroma key before and after quantization; constant x/y scale per strip, bottom aligned; independently sampled @2x (not enlarged 1x). Ishar height stays 72-75px against 75-76px idle. Stone closed height matches 14px idle.",
+  "background_edit_prompt": "Preserve all four supplied sprite characters, anatomy, poses, colors, proportions, face, costume, outlines, frame order. Only replace checkerboard with flat #FF00FF including gaps between anatomy; no text, shadow or new objects. Four complete separate sprites, same baseline.",
+  "assets": [
+    {
+      "name": "e_stone_attack",
+      "frames": 4,
+      "frame_size": [
+        26,
+        24
+      ],
+      "anchor": [
+        13.0,
+        22
+      ],
+      "fps": 10,
+      "source_image": "exec-2fd81f55-4c79-44f6-ac70-8f2cd485e847.png",
+      "files": [
+        {
+          "path": "e_stone_attack.png",
+          "size": [
+            104,
+            24
+          ],
+          "density": 1,
+          "frame_alpha_bounds": [
+            [
+              3,
+              8,
+              23,
+              22
+            ],
+            [
+              2,
+              6,
+              23,
+              22
+            ],
+            [
+              1,
+              7,
+              25,
+              22
+            ],
+            [
+              3,
+              8,
+              23,
+              22
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "c0dd551a169a8afcc8a4bc1bfff6a66aeb2e827a9832cabe1afe22aa8a971d1f"
+        },
+        {
+          "path": "e_stone_attack@2x.png",
+          "size": [
+            208,
+            48
+          ],
+          "density": 2,
+          "frame_alpha_bounds": [
+            [
+              6,
+              16,
+              46,
+              44
+            ],
+            [
+              5,
+              12,
+              46,
+              44
+            ],
+            [
+              2,
+              13,
+              50,
+              44
+            ],
+            [
+              6,
+              16,
+              46,
+              44
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "119180fe301d32bef6a09718cb89b0ef325a9fe568efc39314772b11084e015d"
+        }
+      ]
+    },
+    {
+      "name": "e_mother_attack",
+      "frames": 4,
+      "frame_size": [
+        34,
+        32
+      ],
+      "anchor": [
+        17.0,
+        30
+      ],
+      "fps": 10,
+      "source_image": "exec-598d73a5-475d-46a0-94ce-ec569a26327c.png",
+      "files": [
+        {
+          "path": "e_mother_attack.png",
+          "size": [
+            136,
+            32
+          ],
+          "density": 1,
+          "frame_alpha_bounds": [
+            [
+              3,
+              3,
+              30,
+              30
+            ],
+            [
+              2,
+              2,
+              31,
+              30
+            ],
+            [
+              1,
+              2,
+              32,
+              30
+            ],
+            [
+              3,
+              3,
+              30,
+              30
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "500b1b04e097b7b9dca947043e37bc69626bb7c1b4fc490287c13cc36927509e"
+        },
+        {
+          "path": "e_mother_attack@2x.png",
+          "size": [
+            272,
+            64
+          ],
+          "density": 2,
+          "frame_alpha_bounds": [
+            [
+              7,
+              6,
+              61,
+              60
+            ],
+            [
+              5,
+              4,
+              63,
+              60
+            ],
+            [
+              3,
+              4,
+              65,
+              60
+            ],
+            [
+              7,
+              6,
+              61,
+              60
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "f2080110b9d8d21859fabb6d376b9a691129c1e220b4841f0ca66f729ecbb7ee"
+        }
+      ]
+    },
+    {
+      "name": "e_ishar_attack",
+      "frames": 4,
+      "frame_size": [
+        80,
+        80
+      ],
+      "anchor": [
+        40.0,
+        78
+      ],
+      "fps": 10,
+      "source_image": "exec-47f97a75-5de2-43a3-b1ed-fad00db26fb1.png",
+      "files": [
+        {
+          "path": "e_ishar_attack.png",
+          "size": [
+            320,
+            80
+          ],
+          "density": 1,
+          "frame_alpha_bounds": [
+            [
+              13,
+              3,
+              67,
+              78
+            ],
+            [
+              6,
+              3,
+              73,
+              78
+            ],
+            [
+              3,
+              6,
+              77,
+              78
+            ],
+            [
+              13,
+              3,
+              67,
+              78
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "44c5a817032f42fb8c3e49c2fe9c3f0c12572d869d72af33db946f571e6935cb"
+        },
+        {
+          "path": "e_ishar_attack@2x.png",
+          "size": [
+            640,
+            160
+          ],
+          "density": 2,
+          "frame_alpha_bounds": [
+            [
+              26,
+              6,
+              134,
+              156
+            ],
+            [
+              13,
+              6,
+              146,
+              156
+            ],
+            [
+              6,
+              11,
+              154,
+              156
+            ],
+            [
+              26,
+              7,
+              134,
+              156
+            ]
+          ],
+          "magenta_pixels": 0,
+          "sha256": "33f387db2b24c7443b85455c0d44165d085e8634586807a7af66b5c9c627f843"
+        }
+      ]
+    }
+  ]
+}

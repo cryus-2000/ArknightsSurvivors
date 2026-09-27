@@ -24,17 +24,40 @@ func _process(_dt: float) -> void:
 	game.pending_levelups = 0
 	game.pending_chests = 0
 	game.show_queue.clear()
-	game.progression.gain_relic("222")
-	choose("resolve1", ":1") # observation already owned
-	choose("resolve2", ":2") # hesitation already owned
+	# 路线测试显式提供结局一通关前置，不依赖本机存档或 --balance 隐式解锁。
+	game.endg.all_unlocked = true
+	game.t = 160.0
+	choose("madness", ":0")
+	check(game.knight.alive and game.relics.has("222"), "madness choice summons living knight")
+	game.t = 245.0
+	choose("resolve1", ":1")
+	check(game.relics.has("239"), "first choice grants observation")
+	game.t = 450.0
+	choose("resolve2", ":2")
+	check(game.relics.has("240"), "second choice grants hesitation")
+	game.t = 535.0
 	game.endg.open("resolve3")
 	check(game.choices.size() == 2, "third choice offers resolve and leave")
 	choose("resolve3", ":-2")
 	check(game.state == game.S.PLAY and not game.panel.visible, "leave closes event and resumes play")
 	check(not game.relics.has("238") and game.pending_chests == 0, "leave grants no resolve or chest")
 	check(game.endg.cur == "knight", "knight route remains without resolve")
+	# 独立验证另一条合法选择序列，不能在同一局重开已消耗的祭坛。
+	game.queue_free()
+	game = load("res://game.tscn").instantiate()
+	add_child(game)
+	game.set_process(false)
+	game.pending_levelups = 0
+	game.pending_chests = 0
+	game.show_queue.clear()
+	game.endg.all_unlocked = true
+	game.t = 160.0
+	choose("madness", ":0")
+	game.t = 245.0
 	choose("resolve1", ":0")
+	game.t = 450.0
 	choose("resolve2", ":0")
+	check(game.rfx.lv.get("238", 0) == 2, "two separate choices grant level-two resolve")
 	check(game.endg.cur == "knight", "living knight takes priority over resolve")
 	game.zone_state = 2
 	game.zone_c = Vector2.ZERO

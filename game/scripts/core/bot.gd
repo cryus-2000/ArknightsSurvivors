@@ -295,7 +295,7 @@ func _lane_best(items: Array, ingots := -1) -> int:
 		var c: Dictionary = items[i]
 		if c.get("kind", "") != "relic" or c.get("sold", false):
 			continue
-		if ingots >= 0 and ingots < int(c.get("price", 0)):
+		if ingots >= 0 and not g.shop_sys.can_buy(c):
 			continue
 		var r: Dictionary = g.RL.get(c.get("id", ""), {})
 		if not r.get("lanes", []).has(lane):

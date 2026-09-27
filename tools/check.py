@@ -5,7 +5,7 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / regressions，或单项回归名）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
@@ -276,6 +276,39 @@ def check_repro(godot):
     return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
 
+# 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
+SCENE_REGRESSIONS = {
+    "ea_ui": ("EA 标题与 HUD", "ea_ui_test", r"EA UI regression: 0 failures", []),
+    "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
+    "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
+    "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
+    "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
+    "play_clock": ("倍速模拟时钟", "play_clock_test", r"Play clock regression: 0 failures", []),
+    "boss_trial_ui": ("Boss 演练小窗口与入口", "boss_trial_ui_test", r"Boss trial UI regression: 0 failures", []),
+    "ishar_human_ui": ("伊莎玛拉人形治疗演练入口", "boss_trial_ui_test", r"Boss trial UI regression: 0 failures", ["--ishar-human"]),
+    "boss_trial": ("Boss 演练流程", "boss_trial_test", r"boss_trial_test: 0 failures", []),
+    "boss_pressure": ("Boss 攻击节奏", "boss_pressure_test", r"BOSS PRESSURE failures=0", []),
+    "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),
+    "route_knight": ("第三决心与骑士路线", "route_knight_regression", r"ROUTE KNIGHT REGRESSION: 0 failures", []),
+    "enemy_prepare": ("敌人攻击前摇", "enemy_prepare_test", r"ENEMY PREPARE TEST: 0 failures", []),
+    "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),
+    "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
+    "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
+}
+
+
+def check_scene(godot, key):
+    name, scene, success, extra = SCENE_REGRESSIONS[key]
+    out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/" + scene + ".tscn",
+                             "--", "--regression", "--seed=1"] + extra, 180, key)
+    errs = GR.script_errors(out, err)
+    match = re.search(r"^" + success + r"(?:\s|;|$)", out, re.M)
+    fails = re.findall(r"^(?:FAIL|MISSING).*", out + "\n" + err, re.M)
+    ok = bool(match) and not errs and not fails and not to
+    return {"name": name, "ok": ok, "detail": "超时" if to else (match.group(0).strip() if match else "没有通过标记"),
+            "errors": (errs + fails)[:5], "log": log}
+
+
 # ---------------------------------------------------------------- 机器人矩阵 / A/B
 
 def run_matrix(game, tag, outdir, seeds=4, bots="expert,normal", preset="starts", extra=None):
@@ -369,7 +402,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro"], help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "regressions"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--auto", action="store_true",
@@ -416,6 +449,9 @@ def main():
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):
             jobs.append(lambda: check_repro(godot))
+        for key in SCENE_REGRESSIONS:
+            if a.only in (None, "regressions", key):
+                jobs.append(lambda key=key: check_scene(godot, key))
     with ThreadPoolExecutor(JOBS) as ex:
         results = list(ex.map(lambda f: f(), jobs))
     bad = [r for r in results if not r["ok"]]

@@ -3,6 +3,7 @@ extends RefCounted
 ## 商店界面（卡片 / 按钮 / 背景）在 screens/ 下。2026-09-26 从 game.gd 拆出。
 
 const UI = preload("res://scripts/ui.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -16,6 +17,7 @@ func update(dt: float) -> void:
 	if g.merchant.is_empty():
 		g.merchant_light.visible = false
 		return
+	g.merchant.pos = g.spawner.safe_event_pos(g.merchant.pos, 100.0)
 	g.merchant.life -= dt
 	# 离开前 15 秒提醒一次（横幅 + 音效），之后倒计时变红闪烁
 	if g.merchant.life <= 15.0 and not g.merchant.get("warned", false):
@@ -42,16 +44,32 @@ func merchant_col() -> Color:
 	return UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(g.t * 8.0))
 
 
+## 后两拨涨价；本次每成交一件，其余货品递增。折扣仍由藏品层统一提供。
+func price_mult() -> float:
+	var visit: int = clampi(g.merchant_idx, 1, 3)
+	var wave: float = [1.0, Bal.v("shop/second_visit_mult", 1.5), Bal.v("shop/third_visit_mult", 2.0)][visit - 1]
+	var bought: int = int(g.merchant.get("purchases", 0))
+	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2))
+
+
+func relic_buys_left() -> int:
+	return maxi(0, Bal.vi("shop/relic_buy_limit", 2) - int(g.merchant.get("relic_purchases", 0)))
+
+
+func can_buy(it: Dictionary) -> bool:
+	return not it.sold and g.ingots >= it.price and (it.kind != "relic" or (relic_buys_left() > 0 and g.progression.can_gain_relic(it.id)))
+
+
 func price(kind: String) -> int:
 	match kind:
 		"relic":
-			return 14
+			return int(ceil(14 * price_mult()))
 		"heal":
-			return int(ceil(6 * g.shop_price_mult))
+			return int(ceil(6 * price_mult()))
 		"oil":
-			return int(ceil(5 * g.shop_price_mult))
+			return int(ceil(5 * price_mult()))
 		"refresh":
-			return int(ceil(3 * g.shop_price_mult))
+			return int(ceil(3 * price_mult()))
 	return 0
 
 
@@ -60,13 +78,13 @@ func roll() -> void:
 	var pool: Array = g.progression.relic_pool_ids(true)
 	for i in min(3, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
-		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], g.shop_price_mult), "sold": false})
+		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
 	if g.rfx.rule("deep_sea") > 0:
 		var cursed: Array = pool.filter(func(id): return g.RL[id].rarity == "遭诅古物" and not g.shop_items.any(func(it): return it.id == id))
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
-			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "price": g.rfx.db.price(cid, g.shop_price_mult), "sold": false, "deep": true})
+			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
 	if g.balance:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
@@ -84,23 +102,33 @@ func open() -> void:
 
 
 func buy(i: int) -> void:
-	if g.state != g.S.SHOP or i >= g.shop_items.size():
+	if g.state != g.S.SHOP or i < 0 or i >= g.shop_items.size():
 		return
 	var it: Dictionary = g.shop_items[i]
-	if it.sold or g.ingots < it.price:
+	if it.sold or g.ingots < it.price or (it.kind == "relic" and relic_buys_left() <= 0):
 		Sfx.play("ui_move", -2.0, 0.6)
+		return
+	# 库存可能在事件中变满；确认可拿到藏品再收费，避免空买。
+	if it.kind == "relic" and not g.progression.can_gain_relic(it.id):
+		Sfx.play("ui_move", -2.0, 0.6)
+		g.vfx.show_banner("藏品空间已预留给旅途事件；可以升级已有藏品")
 		return
 	g.ingots -= it.price
 	it.sold = true
 	if not g.merchant.is_empty():
 		g.merchant["bought"] = true
+		g.merchant["purchases"] = int(g.merchant.get("purchases", 0)) + 1
 	match it.kind:
 		"relic":
+			g.merchant["relic_purchases"] = int(g.merchant.get("relic_purchases", 0)) + 1
 			g.progression.gain_relic(it.id)
 		"heal":
 			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
 			g.lamp = min(g.lamp_cap, g.lamp + 50.0)
+	for item in g.shop_items:
+		if not item.sold:
+			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)
 	Sfx.play("ui_ok")
 	g.shop_ui.build()
 

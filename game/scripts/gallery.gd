@@ -29,20 +29,20 @@ const ENEMY_DESC := {
 	"brood": "由投嗣育母产下的诱饵，不会移动并逐渐衰亡，接触造成侵蚀。",
 	"fractal": "塑路者碎裂时放出的高速碎片。",
 	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
-	"tear": "伊莎玛拉渗出的泪滴，固定不动；主控站在上面时每秒受到 6 点真实伤害。泪没被清除时，伊莎玛拉持续充能。",
+	"tear": "伊莎玛拉人形阶段留下的泪滴，不会伤害主控；未被压制时会加快转化充能。主控靠近泪滴即可压制，转化后泪滴消失。",
 	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.8 秒后爆裂一次（范围 80，附带神经损伤），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。远程攻击，并不断在身边产下注亡拟嗣。",
 	"mimic": "精英。伪装成补给箱，被靠近时现形扑来；击败后掉落大量源石锭。",
 	"path": "中期 Boss（3:30 / 7:00）。高大的刃肢海嗣：直线冲撞、近身震地；生命降到 75% / 50% / 25% 时各碎裂一次，放出 4 块塑路者碎片。",
-	"iberia": "中期 Boss（3:30 / 7:00）。持剑的圣徒，携带 3 发弹药；每 20 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
+	"iberia": "中期 Boss（3:30 / 7:00）。持剑的圣徒，携带 3 发弹药；每 14 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
 	"carmen": "中期 Boss（7:00）。持火铳的圣徒，攻击范围更远；装填机制与伊比利亚相同。",
 	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。",
 	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。",
 	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。",
 	"paranoia": "结局一的最终 Boss。悬浮远程散射并减速；首次被控制后失去悬浮，进入第二形态。",
 	"izumik": "结局四「深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
-	"ishar": "结局三「抉择」的最终 Boss。渗出伊莎玛拉之泪，泪未被清除时持续充能，充满后变身。",
+	"ishar": "结局三「抉择」的最终 Boss。人形阶段治疗受伤海嗣，不攻击主控，干员也不会以她为目标；转化充能随时间增长，未被主控靠近压制的之泪会加快充能。充满后变为敌对白壳海嗣，使用弹幕、潮汐吐息与近身潮噬。",
 	"knight_boss": "结局二「最后的骑士」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；第一次生命归零后寒冰重生进入二阶段。",
 	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
@@ -72,6 +72,7 @@ var demo_game: Node
 var demo_id := ""
 ## 手动切换（2026-09-26 用户要求）：阶段 0 精零 / 1 精一 / 2 精二；动作 -1 轮播 / 0–2 只放该技能 / 3 只普攻。换干员时保留，方便横向比较
 var demo_stage := 2
+var enemy_demo_mode := 0
 var demo_mode := -1
 var demo_rects: Array = []       # [Rect2, "stage" | "mode", 值]
 ## 干员详情的信息页（2026-09-26）：档案 / 技能 / 数值 分页显示，解决「档案 + 三技能 + 天赋挤在一个文本框里放不下」
@@ -101,7 +102,6 @@ func _ready() -> void:
 
 func open() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	size = get_viewport_rect().size
 	visible = true
 	_build()
 
@@ -131,8 +131,34 @@ func _demo_start(cid: String, sz: Vector2i) -> void:
 	demo_id = cid
 
 
+## 敌人预览复用同一 game 场景，但逐帧由独立 enemy_demo 模块运行正式敌方 AI。
+func _enemy_demo_start(eid: String, sz: Vector2i) -> void:
+	if demo_id == "enemy:" + eid and demo_vp != null:
+		demo_vp.size = sz
+		return
+	_demo_stop()
+	demo_vp = SubViewport.new()
+	demo_vp.size = sz
+	demo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	demo_vp.handle_input_locally = false
+	add_child(demo_vp)
+	demo_game = load("res://game.tscn").instantiate()
+	demo_game.demo_op = "mizuki"    # 沿用演示场景的 HUD、音乐、玩家输入隔离
+	demo_game.demo_enemy = eid
+	demo_game.enemy_demo.configure(enemy_demo_mode)
+	demo_vp.add_child(demo_game)
+	demo_id = "enemy:" + eid
+
+
 ## 点击阶段 / 动作按钮：未解锁的技能（阶段不够）不响应
 func _demo_click(kind: String, v: int) -> void:
+	if kind in ["enemy_phase", "enemy_replay"]:
+		if kind == "enemy_phase":
+			enemy_demo_mode = v
+		if demo_game != null:
+			demo_game.enemy_demo.configure(enemy_demo_mode)
+		Sfx.play("ui_move")
+		return
 	if kind == "stage":
 		demo_stage = v
 		if demo_mode >= 0 and demo_mode <= 2 and demo_mode > demo_stage:
@@ -266,7 +292,7 @@ func _build() -> void:
 				if k == "ishar" and A.tex("e_ishar_t") != null:
 					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
 				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
-				if e.get("atk_anim", false):
+				if e.get("atk_anim", false) or role == "boss":
 					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
 						if A.tex(e.tex + fm[1]) != null:
 							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
@@ -279,7 +305,8 @@ func _build() -> void:
 				var dsc: float = float(e.get("draw_scale", 1.0))
 				for fm in forms:
 					fm.tint = tint
-					fm.dscale = dsc
+					fm.dscale = float(e.get("transformed_draw_scale", 1.0)) if k == "ishar" and fm.label in ["转化后", "变身", "变身移动", "变身攻击"] else dsc
+				forms.append({"label": "攻击演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
@@ -541,12 +568,16 @@ func _draw_detail(vs: Vector2) -> void:
 	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN, 71, t)
 	form = clampi(form, 0, e.forms.size() - 1)
 	var f: Dictionary = e.forms[form]
-	var demo: bool = f.has("demo") and not locked
+	var is_enemy_demo: bool = f.has("enemy_demo")
+	var demo: bool = (f.has("demo") or is_enemy_demo) and not locked
 	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）
 	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H if demo else 236))
 	if demo:
 		var dr := Rect2(box.position, Vector2(pr.size.x - 40, DEMO_H))
-		_demo_start(f.demo, Vector2i(dr.size))
+		if is_enemy_demo:
+			_enemy_demo_start(f.enemy_demo, Vector2i(dr.size))
+		else:
+			_demo_start(f.demo, Vector2i(dr.size))
 		if demo_vp != null:
 			draw_texture_rect(demo_vp.get_texture(), dr, false)
 		draw_rect(dr, Color(0.3, 0.9, 0.9, 0.5), false, 1.0)
@@ -561,6 +592,10 @@ func _draw_detail(vs: Vector2) -> void:
 			["stage", [["精零", 0], ["精一", 1], ["精二", 2]]],
 			["mode", [["普攻", 3], ["一技能", 0], ["二技能", 1], ["三技能", 2], ["轮播", -1]]],
 		]
+		if is_enemy_demo:
+			rows = [["enemy_replay", [["重播", 0]]]]
+			if f.enemy_demo in ["ishar", "paranoia", "knight_boss", "izumik"]:
+				rows.push_front(["enemy_phase", [["完整转化", 0], ["人形治疗", 1], ["敌对", 2]]] if f.enemy_demo == "ishar" else ["enemy_phase", [["轮播", 0], ["一阶段", 1], ["二阶段", 2]]])
 		for ri in rows.size():
 			var kind: String = rows[ri][0]
 			var cx := dr.end.x - 12.0
@@ -571,7 +606,7 @@ func _draw_detail(vs: Vector2) -> void:
 				var w: float = font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 				cx -= w
 				var cr := Rect2(Vector2(cx, dr.position.y + 10 + ri * 28), Vector2(w, 22))
-				var on: bool = (demo_stage == v) if kind == "stage" else (demo_mode == v)
+				var on: bool = enemy_demo_mode == v if kind == "enemy_phase" else ((demo_stage == v) if kind == "stage" else (demo_mode == v and kind == "mode"))
 				var locked_skill: bool = kind == "mode" and v >= 0 and v <= 2 and v > demo_stage
 				var playing: bool = kind == "mode" and demo_mode == -1 and v == cur and not demo_game.demo_basic
 				var edge: Color = UI.CYAN if on else (Color(0.5, 0.8, 0.9, 0.7) if playing else UI.LINE)

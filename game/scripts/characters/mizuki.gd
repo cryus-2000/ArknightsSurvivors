@@ -311,7 +311,7 @@ func _run_delayed(dl: Dictionary) -> void:
 			var ma: float = dl.ang
 			var near_d: float = dl.radius * 1.4
 			for e in g.enemies:
-				if e.dead:
+				if e.dead or e.get("friendly", false):
 					continue
 				var dd: float = mp.distance_to(e.pos)
 				if dd < near_d:

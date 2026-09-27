@@ -6,6 +6,8 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
+const PlayClock = preload("res://scripts/run/play_clock.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -24,6 +26,7 @@ func _init(game: Game) -> void:
 
 func draw() -> void:
 	var vs := g.hud.size
+	g.speed_btn = Rect2()
 	var ct := g.get_viewport().get_canvas_transform()
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
@@ -269,8 +272,9 @@ func draw() -> void:
 
 	# 顶部中央（方案 A · 明日方舟战斗顶栏）：[敌人] 击杀 | [时钟] 时间；
 	# 下面一行「◆ 楼层 + 英文」（背后淡金四叶环，原作地图顶部楼层名的样子）、威胁进度细线、威胁 / 难度
-	var mm := int(g.t) / 60
-	var ss := int(g.t) % 60
+	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
+	var mm := int(display_time) / 60
+	var ss := int(display_time) % 60
 	var cx0 := vs.x / 2.0
 	UI.fade_band(g.hud, Rect2(cx0 - 160, 8, 320, 40), Color(0.03, 0.035, 0.045, 0.8), 56.0)
 	var ks := str(g.kills)
@@ -288,8 +292,8 @@ func draw() -> void:
 		tfrac = clampf((g.t - tr.t) / (D.THREAT[g.threat + 1].t - tr.t), 0.0, 1.0)
 	var tcol := Color(0.9, 0.45, 1.0).lerp(UI.RED, float(g.threat) / (D.THREAT.size() - 1))
 	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
-	var fname: String = tr.name
-	var fen: String = String(tr.get("en", ""))
+	var fname: String = "Boss 演练" if g.trial.active else tr.name
+	var fen: String = "TRIAL" if g.trial.active else String(tr.get("en", ""))
 	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 	var few := UI.en_width(g.font, fen, 10, 3.0)
 	var fx0 := cx0 - (14.0 + fw0 + 10.0 + few) / 2.0
@@ -297,10 +301,11 @@ func draw() -> void:
 	UI.text(g.hud, g.font, Vector2(fx0 + 14, 66), fname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
 	UI.gbar(g.hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
-	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else ""), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
+	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else "")
+	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
-	var tray_x := vs.x - 16.0
+	var tray_x := vs.x - 80.0
 	g.pause_btn = Rect2()
 	if not g.touch.active:
 		var pr := Rect2(vs.x - 56, 12, 40, 40)
@@ -311,9 +316,9 @@ func draw() -> void:
 		UI.ctext(g.hud, g.font, pr.position + Vector2(0, 52), "ESC", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		if g.state == Game.S.PLAY:
 			g.pause_btn = pr
-		tray_x -= 50.0
+	draw_speed_button(vs)
 	draw_relic_tray(Vector2(tray_x, 12))
-	if g.ending != "standard" or Cfg.endings_cleared.size() > 0:
+	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 60 + 38 * maxi(1, int(ceil(g.relics.size() / 8.0)))), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
 	# Boss 血条：只给真 Boss 画（boss_bars），最多 BOSS_BARS_MAX 条，多出来的写一行「另有 N 个 Boss」
@@ -325,6 +330,10 @@ func draw() -> void:
 		var bx := vs.x / 2 - bw / 2
 		g.hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
 		bby += 54.0
+		if shown.type == "ishar" and shown.get("friendly", false):
+			draw_ishar_human(shown, bx, bw)
+			g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
 		# 洋红 = 危险（原作「险路恶敌」）：暗底 + 顶部洋红细线 + BOSS 节点标签条
 		var bbr := Rect2(bx - 12, 100, bw + 24, 46)
 		g.hud.draw_rect(bbr, Color(0.03, 0.035, 0.045, 0.8))
@@ -358,7 +367,7 @@ func draw() -> void:
 		elif shown.type == "izumik":
 			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
 		elif shown.type == "ishar":
-			sub = "转化进度 %d%%（清除伊莎玛拉之泪）" % int(shown.charge) if shown.phase == 1 else "已完成转化"
+			sub = "转化中" if shown.phase == 1 else "已完成转化 · 敌对"
 		elif shown.has("ammo"):
 			sub = "装填中 —— 攻击以打断！" if shown.channel > 0.0 else ("弹药 %d / 3" % shown.ammo if shown.ammo > 0 else "近战中")
 		elif shown.get("coma", false):
@@ -391,9 +400,6 @@ func draw() -> void:
 		if tn > 0.0 and shown.get("tough", 0.0) > 0.0 and brk <= 0.0:
 			g.hud.draw_rect(Rect2(bx, 138, bw, 3), Color(1, 1, 1, 0.1))
 			g.hud.draw_rect(Rect2(bx, 138, bw * clampf(shown.tough / tn, 0.0, 1.0), 3), Color(0.95, 0.85, 0.55))
-		if shown.type == "ishar" and shown.phase == 1:
-			var cy: float = 142.0 if shown.get("tough", 0.0) > 0.0 else 139.0   # 有韧性条时让到它下面
-			g.hud.draw_rect(Rect2(bx, cy, bw * shown.charge / 100.0, 2), UI.PURPLE)
 		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if bars.size() > BOSS_BARS_MAX:
 		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
@@ -461,13 +467,34 @@ func draw() -> void:
 			if g.state_age < DEATH_T:
 				draw_death_transition(vs)
 			else:
-				g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+				if g.trial.active:
+					draw_trial_result(vs, false)
+				else:
+					g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 				# 结算面板淡入：盖一层和过渡末尾同色的暗幕，0.35 秒退去
 				var fa: float = 1.0 - clampf((g.state_age - DEATH_T) / 0.35, 0.0, 1.0)
 				if fa > 0.0:
 					g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.85 * fa))
 		Game.S.WIN:
-			g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+			if g.trial.active:
+				draw_trial_result(vs, true)
+			else:
+				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+
+
+func draw_speed_button(vs: Vector2) -> void:
+	var rect := Rect2(vs.x - 72.0, 76.0, 56.0, 34.0)
+	var enabled: bool = g.state == Game.S.PLAY
+	var hovered: bool = enabled and rect.has_point(g.hud.get_local_mouse_position())
+	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
+	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	if enabled:
+		g.speed_btn = rect
+
+
+func draw_trial_result(vs: Vector2, won: bool) -> void:
+	g.result_screen.draw(vs, "演练完成" if won else "演练结束", "BOSS TRIAL COMPLETE" if won else "BOSS TRIAL ENDED", UI.CYAN if won else UI.RED,
+		[["重新演练", "R", "restart"], ["返回主页", "T", "title"]], false, false)
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
@@ -500,7 +527,9 @@ func draw_minimap(vs: Vector2) -> void:
 				p = p.limit_length(lim)
 			else:
 				continue
-		if e.boss:
+		if e.get("friendly", false):
+			UI.diamond(g.hud, c + p, 5.0, UI.CYAN)
+		elif e.boss:
 			var bp := 0.5 + 0.5 * sin(g.t * 6.0)
 			g.hud.draw_circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0))
 		elif e.chest:
@@ -564,10 +593,10 @@ func draw_relic_tray(tr: Vector2) -> void:
 	g.hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
 	g.hud.draw_rect(Rect2(o, Vector2(w, 1)), Color(1, 1, 1, 0.14))
 	UI.icon(g.hud, "box", o + Vector2(15, 14), 14.0, Color(0.81, 0.84, 0.86))
-	UI.text(g.hud, g.font, o + Vector2(28, 19), "收藏品", 12, Color(0.81, 0.84, 0.86))
-	if w >= 180.0:
+	UI.text(g.hud, g.font, o + Vector2(28, 19), "藏品", 12, Color(0.81, 0.84, 0.86))
+	if w >= 220.0:
 		UI.en(g.hud, g.font, o + Vector2(70, 18), "RELICS", 9, UI.SUB, 2.0)
-	UI.ctext(g.hud, g.font, o + Vector2(w - 34, 20), "%d" % n, 17, UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 24)
+	UI.ctext(g.hud, g.font, o + Vector2(w - 70, 20), "%d / %d" % [n, Bal.vi("relic/carry_cap", 15)], 15, UI.GOLD if n >= Bal.vi("relic/carry_cap", 15) else UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 60)
 	g.tray_cells.clear()
 	var mouse := g.hud.get_local_mouse_position()
 	for i in n:
@@ -919,7 +948,7 @@ const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
 func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return
-	for b in boss_bars():
+	for b in hostile_boss_bars():
 		var sp: Vector2 = ct * b.pos
 		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
 			continue
@@ -945,6 +974,20 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 		var nm: String = D.ENEMIES.get(b.type, {}).get("name", "Boss")
 		var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
 		UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), "%s  %dm" % [nm, int(b.pos.distance_to(g.ppos) / 32.0)], 13, BOSS_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+
+
+func draw_ishar_human(e: Dictionary, bx: float, bw: float) -> void:
+	var rect := Rect2(bx - 12, 100, bw + 24, 46)
+	g.hud.draw_rect(rect, Color(0.03, 0.035, 0.045, 0.8))
+	g.hud.draw_rect(Rect2(rect.position, Vector2(rect.size.x, 1)), Color(UI.CYAN, 0.7))
+	UI.strip(g.hud, g.font, Vector2(bx, 106), "NEUTRAL", e.name, UI.CYAN, UI.TEXT, 12)
+	var progress: float = clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0)
+	UI.text(g.hud, g.font, Vector2(bx + bw - 300, 122), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+	UI.gbar(g.hud, Rect2(bx, 131, bw, 6), progress, UI.CYAN, 20)
+
+
+func hostile_boss_bars() -> Array:
+	return boss_bars().filter(func(e): return not e.get("friendly", false))
 
 
 func boss_bars() -> Array:

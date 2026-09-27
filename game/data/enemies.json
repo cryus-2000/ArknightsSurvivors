@@ -42,7 +42,8 @@
    "cd": 2.4,
    "entrench": true,
    "atk": "物理",
-   "lob": true
+   "lob": true,
+   "atk_anim": true
   },
   "offspring": {
    "name": "伊祖米克的子代",
@@ -93,7 +94,8 @@
    "cd": 3.2,
    "spit": true,
    "corrode": 0.4,
-   "draw_scale": 1.17
+   "draw_scale": 1.17,
+   "atk_anim": true
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -135,11 +137,11 @@
    "shot_nerve": 18.0,
    "atk_anim": true,
    "cap": 10,
-   "desc": "悬浮在攻击范围边缘发射慢速神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。"
+   "desc": "悬浮在攻击范围边缘发射神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。"
   },
   "reaper": {
    "name": "钵海收割者",
-   "hp": 84.0,
+   "hp": 144.0,
    "spd": 94.0,
    "dmg": 15.0,
    "weak": "物理",
@@ -149,10 +151,10 @@
    "ai": "melee",
    "move_fps": 8.0,
    "dormant": true,
-   "wake_r": 300,
+   "wake_r": 380,
    "pattern": "reap",
    "prepare_range": 300,
-   "reap_range": 88,
+   "reap_range": 116,
    "reap_cd": 2.2,
    "atk_anim": true,
    "cap": 4,
@@ -163,7 +165,7 @@
   },
   "founder": {
    "name": "深溟奠基者",
-   "hp": 240.0,
+   "hp": 384.0,
    "spd": 30.0,
    "dmg": 18.0,
    "weak": "法术",
@@ -175,8 +177,8 @@
    "armor": 0.7,
    "pattern": "stomp",
    "prepare_range": 300,
-   "stomp_range": 110,
-   "stomp_r": 96,
+   "stomp_range": 156,
+   "stomp_r": 140,
    "stomp_cd": 4.5,
    "death_mire": 64,
    "atk_anim": true,
@@ -189,7 +191,7 @@
   },
   "tracer": {
    "name": "深溟引痕者",
-   "hp": 120.0,
+   "hp": 204.0,
    "spd": 50.0,
    "dmg": 11.0,
    "weak": "物理",
@@ -199,7 +201,7 @@
    "ai": "melee",
    "pattern": "thrust",
    "prepare_range": 300,
-   "thrust_range": 170,
+   "thrust_range": 250,
    "thrust_cd": 3.2,
    "enrage_at": 0.5,
    "enrage_spd": 1.2,
@@ -215,7 +217,7 @@
   },
   "nest": {
    "name": "深溟巢涌者",
-   "hp": 150.0,
+   "hp": 255.0,
    "spd": 26.0,
    "dmg": 9.0,
    "weak": "法术",
@@ -227,8 +229,8 @@
    "prepare_range": 300,
    "aura_r": 110,
    "aura_nerve": 10.0,
-   "lash_range": 120,
-   "lash_r": 105,
+   "lash_range": 170,
+   "lash_r": 156,
    "lash_cd": 5.0,
    "atk_anim": true,
    "cap": 3,
@@ -310,7 +312,8 @@
    "shot_spd": 150,
    "spawn_on_shot": "brood",
    "spawn_max": 12,
-   "elite_after": 300
+   "elite_after": 300,
+   "atk_anim": true
   },
   "mimic": {
    "name": "箱形恐鱼",
@@ -322,7 +325,11 @@
    "tex": "e_mimic",
    "ai": "melee",
    "role": "elite",
-   "ingots": 10
+   "ingots": 10,
+   "pattern": "bite",
+   "bite_range": 76,
+   "bite_cd": 2.6,
+   "no_contact": true
   },
   "path": {
    "name": "塑路者",
@@ -440,18 +447,38 @@
    "arena_r": 580.0
   },
   "ishar": {
-   "name": "伊莎玛拉，腐化之心",
-   "hp": 9000.0,
-   "spd": 34.0,
-   "dmg": 18.0,
-   "r": 46.0,
-   "xp": 0.0,
-   "tex": "e_ishar",
-   "ai": "ranged",
-   "range": 340.0,
-   "cd": 1.5,
-   "role": "boss",
-   "arena_r": 600.0
+    "name": "伊莎玛拉，腐化之心",
+    "hp": 9000.0,
+    "spd": 34.0,
+    "dmg": 18.0,
+    "r": 31.0,
+    "xp": 0.0,
+    "tex": "e_ishar",
+    "ai": "ranged",
+    "range": 340.0,
+    "cd": 1.5,
+    "role": "boss",
+    "arena_r": 600.0,
+    "draw_scale": 0.68,
+    "transformed_draw_scale": 1.0,
+    "no_contact": true,
+    "attack": {
+      "range": 660.0,
+      "sequence_step": 0.6,
+      "mark_spacing": 106.0,
+      "mark_warn": 0.9,
+      "mark_radius": 56.0,
+      "mark_mult": 0.65,
+      "line_warn": 1.0,
+      "line_spread": 0.38,
+      "line_width": 14.0,
+      "line_mult": 0.7,
+      "volley_warn": 0.8,
+      "bite_range": 190.0,
+      "maw_warn": 0.85,
+      "maw_mult": 0.9,
+      "recovery": 1.25
+    }
   },
   "knight": {
    "name": "最后的骑士",
