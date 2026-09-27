@@ -31,7 +31,7 @@ func edge_pos() -> Vector2:
 func pick_type() -> String:
 	var pool: Array = D.THREAT[g.threat].pool
 	var pick: String = pool[g.rng.randi() % pool.size()]
-	var caps := {"stone": (6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)), "brood": 6, "offspring": 6 if g.t < 420.0 else 10, "spitter": 6, "burrower": 8, "hulk": 2, "ripper": 14}
+	var caps := {"stone": (6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)), "brood": 6, "offspring": 6 if g.t < 420.0 else 10, "spitter": 6}
 	if D.ENEMIES[pick].has("cap"):
 		caps[pick] = int(D.ENEMIES[pick].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
 	if caps.has(pick):

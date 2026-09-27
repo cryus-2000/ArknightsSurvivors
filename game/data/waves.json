@@ -119,33 +119,23 @@
     "stone",
     "stone",
     "brood",
-    "ripper",
     "runner",
     "floater"
    ],
    "horde": [
     "bone",
     "bone",
-    "slider",
-    "ripper"
+    "slider"
    ],
    "horde_mix": [
     {
-     "name": "撕裂者先锋",
+     "name": "海嗣先锋",
      "body": [
       "bone",
       "bone",
-      "slider",
-      "ripper"
+      "slider"
      ],
      "extra": [
-      {
-       "id": "ripper",
-       "pct": 0.08,
-       "min": 2,
-       "max": 4,
-       "at": "pack"
-      },
       {
        "id": "stone",
        "pct": 0.08,
@@ -160,8 +150,7 @@
      "body": [
       "bone",
       "slider",
-      "bone",
-      "ripper"
+      "bone"
      ],
      "extra": [
       {
@@ -185,8 +174,7 @@
      "body": [
       "bone",
       "bone",
-      "slider",
-      "ripper"
+      "slider"
      ],
      "extra": [
       {
@@ -219,11 +207,8 @@
     "slider",
     "stone",
     "stone",
-    "ripper",
-    "ripper",
     "brood",
     "offspring",
-    "burrower",
     "spitter",
     "runner",
     "floater",
@@ -233,7 +218,6 @@
    "horde": [
     "slider",
     "slider",
-    "ripper",
     "bone"
    ],
    "horde_mix": [
@@ -242,32 +226,15 @@
      "body": [
       "slider",
       "slider",
-      "ripper",
       "bone"
      ],
-     "extra": [
-      {
-       "id": "burrower",
-       "pct": 0.12,
-       "min": 3,
-       "max": 6,
-       "at": "ring"
-      },
-      {
-       "id": "ripper",
-       "pct": 0.05,
-       "min": 1,
-       "max": 3,
-       "at": "pack"
-      }
-     ]
+     "extra": []
     },
     {
      "name": "酸雨围城",
      "body": [
       "slider",
       "bone",
-      "ripper",
       "slider"
      ],
      "extra": [
@@ -292,7 +259,6 @@
      "body": [
       "slider",
       "slider",
-      "ripper",
       "bone"
      ],
      "extra": [
@@ -331,12 +297,8 @@
    "horde_every": 70.0,
    "pool": [
     "stone",
-    "ripper",
-    "ripper",
     "offspring",
     "offspring",
-    "burrower",
-    "burrower",
     "spitter",
     "spitter",
     "slider",
@@ -347,19 +309,13 @@
     "nest"
    ],
    "horde": [
-    "ripper",
-    "slider",
-    "burrower",
-    "ripper"
+    "slider"
    ],
    "horde_mix": [
     {
-     "name": "撕裂潮",
+     "name": "深海潮",
      "body": [
-      "ripper",
-      "slider",
-      "burrower",
-      "ripper"
+      "slider"
      ],
      "extra": [
       {
@@ -375,9 +331,7 @@
      "name": "重甲推进",
      "body": [
       "slider",
-      "ripper",
-      "bone",
-      "ripper"
+      "bone"
      ],
      "extra": [
       {
@@ -393,13 +347,6 @@
        "min": 3,
        "max": 5,
        "at": "back"
-      },
-      {
-       "id": "burrower",
-       "pct": 0.06,
-       "min": 2,
-       "max": 4,
-       "at": "ring"
       }
      ]
     },
@@ -407,9 +354,7 @@
      "name": "深溟重甲",
      "body": [
       "slider",
-      "ripper",
-      "bone",
-      "ripper"
+      "bone"
      ],
      "extra": [
       {
@@ -453,14 +398,9 @@
    "spd": 1.12,
    "horde_every": 60.0,
    "pool": [
-    "ripper",
-    "ripper",
     "offspring",
-    "burrower",
-    "burrower",
     "spitter",
     "spitter",
-    "hulk",
     "stone",
     "runner",
     "floater",
@@ -470,28 +410,15 @@
     "nest"
    ],
    "horde": [
-    "ripper",
-    "burrower",
-    "slider",
-    "ripper"
+    "slider"
    ],
    "horde_mix": [
     {
-     "name": "巨骸",
+     "name": "深海集群",
      "body": [
-      "ripper",
-      "burrower",
-      "slider",
-      "ripper"
+      "slider"
      ],
      "extra": [
-      {
-       "id": "hulk",
-       "pct": 0.0,
-       "min": 1,
-       "max": 1,
-       "at": "pack"
-      },
       {
        "id": "spitter",
        "pct": 0.08,
@@ -504,10 +431,7 @@
     {
      "name": "深蓝合围",
      "body": [
-      "burrower",
-      "slider",
-      "ripper",
-      "ripper"
+      "slider"
      ],
      "extra": [
       {
@@ -536,10 +460,7 @@
     {
      "name": "巢涌合围",
      "body": [
-      "burrower",
-      "slider",
-      "ripper",
-      "ripper"
+      "slider"
      ],
      "extra": [
       {
@@ -595,7 +516,10 @@
   600.0
  ],
  "_mid_first_doc": "第一个中期 Boss（3:30）只从 mid_pool 的这些下标里抽：0 塑路者 / 1 圣徒伊比利亚。卡门（远程风筝）与接潮双 Boss 留到 7:00（docs/29 §6）",
- "mid_first": [0, 1],
+ "mid_first": [
+  0,
+  1
+ ],
  "mid_pool": [
   [
    "path"
