@@ -310,20 +310,25 @@ func _m_claw(mult: float, second: bool) -> void:
 			# 熔毁期间一整道巨大的月牙斩（原作猩红，本作按用户定改熔毁绿）；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
 			var sw: float = -m_swing if second else m_swing
 			var R: float = _m_reach() * 1.25
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
-				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(0.75, 1.5, 0.8)})
+			var slash_pos := o + Vector2(sd * R * 0.38, 0)
+			var slash_scale := R * 1.65 / 48.0
+			if not spawn_fx_sprite("fx_mon3tr_melt_slash", slash_pos, slash_scale, sw * sd * 0.18, sd < 0.0):
+				fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
+					"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
+				fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(0.75, 1.5, 0.8)})
 			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
 			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": MELT})
 			fx_sparks(hp, Color(0.8, 1.7, 0.9), 7, 240.0, 0.28, 2.5)
 		else:
-			# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
+			# 重绘本体配套爪痕：协同叠加反向爪痕，缺图退回程序三道爪痕
 			# 第二爪：爪痕旋转约 60°，与第一爪交叉
 			var rot: float = (1.05 * sd) if second else 0.0
 			var cp: Vector2 = o + Vector2.from_angle(ang) * (_m_reach() * 0.55)
-			var sc: float = g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2) * (0.9 if second else 1.0)
-			if not spawn_fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", cp, sc, rot, sd < 0.0):
+			var sc: float = g.PX * clampf(_m_reach() / 64.0, 0.9, 1.5) * (0.9 if second else 1.0)
+			if not spawn_fx_sprite("fx_mon3tr_claw", cp, sc, rot, sd < 0.0):
 				fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang + rot, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
+			if coord:
+				spawn_fx_sprite("fx_mon3tr_claw", cp + Vector2(0, -6), sc * 0.85, rot - 0.65 * sd, sd < 0.0, false, Color(0.8, 1.0, 0.8, 0.8))
 			fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 			# N2「清创」：更宽的扇面用一道淡绿细月牙画出来
 			if wide_arc and not second:

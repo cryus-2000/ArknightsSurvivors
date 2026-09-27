@@ -1194,6 +1194,7 @@ func _update_doc_follow(dt: float) -> void:
 
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
+	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
 	"proj_missile": [2, 16.0], "proj_tide": [4, 10.0],
 	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_arrow_hit": [4, 20.0], "fx_bullet_hit": [3, 24.0],

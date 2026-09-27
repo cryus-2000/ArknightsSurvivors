@@ -1,0 +1,58 @@
+﻿{
+    "source_sha256":  "71da38d59622f5d4dc76efaa0babbcd88a0b7dec415b4a97f632da7c954fdb0d",
+    "source_path":  "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-dd0c887f-2a8a-4b61-80f4-728279722c0e.png",
+    "assets":  [
+                   {
+                       "fps":  16,
+                       "file":  "fx_mon3tr_claw.png",
+                       "frame_width":  48,
+                       "frame_count":  4,
+                       "anchor":  [
+                                      24,
+                                      24
+                                  ],
+                       "loop":  false,
+                       "frame_height":  48,
+                       "sha256":  "1307e1a2c48ce3b2e1d91c61e2ca3add9b09441b2fc3e42343d6de6ead85652b"
+                   },
+                   {
+                       "fps":  16,
+                       "file":  "fx_mon3tr_claw@2x.png",
+                       "frame_width":  96,
+                       "frame_count":  4,
+                       "anchor":  [
+                                      48,
+                                      48
+                                  ],
+                       "loop":  false,
+                       "frame_height":  96,
+                       "sha256":  "84bf9b564cd1b79f142cbb6d25cd2a3f8632ab313092a7cd46800b45ad17b5f0"
+                   },
+                   {
+                       "fps":  16,
+                       "file":  "fx_mon3tr_melt_slash.png",
+                       "frame_width":  48,
+                       "frame_count":  4,
+                       "anchor":  [
+                                      24,
+                                      24
+                                  ],
+                       "loop":  false,
+                       "frame_height":  48,
+                       "sha256":  "6729fb24537c630bbf55132301035cdcff5b044a959faa5936e43129b943fb9e"
+                   },
+                   {
+                       "fps":  16,
+                       "file":  "fx_mon3tr_melt_slash@2x.png",
+                       "frame_width":  96,
+                       "frame_count":  4,
+                       "anchor":  [
+                                      48,
+                                      48
+                                  ],
+                       "loop":  false,
+                       "frame_height":  96,
+                       "sha256":  "766fe095f699cc5e57505d1abbd494ccb9c0cc1ac0f819de970e25a060a0f724"
+                   }
+               ]
+}
