@@ -74,52 +74,6 @@
    "acid_range": 300,
    "acid_cd": 4.2
   },
-  "ripper": {
-   "name": "沉海撕裂者",
-   "hp": 96.0,
-   "spd": 50.0,
-   "dmg": 12.0,
-   "weak": "法术",
-   "r": 17.0,
-   "xp": 4.0,
-   "tex": "e_bone",
-   "tint": [
-    0.95,
-    0.55,
-    0.6
-   ],
-   "ai": "melee",
-   "heavy": true,
-   "corrode": 0.2,
-   "pattern": "dash",
-   "dash_range": 150,
-   "dash_wind": 0.4,
-   "dash_speed": 4.5,
-   "draw_scale": 1.7,
-   "atk_anim": true
-  },
-  "burrower": {
-   "name": "潜海裂魔",
-   "hp": 46.0,
-   "spd": 116.0,
-   "dmg": 13.0,
-   "weak": "物理",
-   "r": 12.0,
-   "xp": 3.0,
-   "tex": "e_slider",
-   "tint": [
-    0.7,
-    0.5,
-    1.0
-   ],
-   "ai": "melee",
-   "burrow": true,
-   "nerve": 10.0,
-   "pattern": "burrow",
-   "burrow_range": 84,
-   "up_time": 3.2,
-   "draw_scale": 1.2
-  },
   "spitter": {
    "name": "溟海喷吐者",
    "hp": 56.0,
@@ -140,30 +94,6 @@
    "spit": true,
    "corrode": 0.4,
    "draw_scale": 1.17
-  },
-  "hulk": {
-   "name": "巨骸漂流体",
-   "hp": 600.0,
-   "spd": 30.0,
-   "dmg": 26.0,
-   "weak": "法术",
-   "r": 26.0,
-   "xp": 14.0,
-   "tex": "e_bone",
-   "tint": [
-    1.0,
-    0.95,
-    0.75
-   ],
-   "ai": "melee",
-   "heavy": true,
-   "stomp": true,
-   "corrode": 0.2,
-   "pattern": "stomp",
-   "stomp_range": 170,
-   "stomp_r": 135,
-   "stomp_cd": 6.0,
-   "draw_scale": 2.6
   },
   "runner": {
    "name": "壳海狂奔者",

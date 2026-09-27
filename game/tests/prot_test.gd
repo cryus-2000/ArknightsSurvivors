@@ -406,7 +406,7 @@ func test_non_boss() -> void:
 	for is_boss in [false, true]:
 		reset()
 		game.invuln = 0.0
-		var own := {"type": "burrower" if not is_boss else "path", "boss": is_boss}
+		var own := {"type": "slider" if not is_boss else "path", "boss": is_boss}
 		var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": own, "act": "bite", "dmg": game.max_hp * 0.8, "corrode": 0.0}
 		hp0 = game.hp
 		game.bai._warn_damage(w)
@@ -435,7 +435,7 @@ func test_no_hard_cc() -> void:
 				continue   # 没有 Boss 存活时 Boss 的预警另测（见下）
 			reset()
 			game.invuln = 0.0
-			var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "path" if own_boss else "burrower", "boss": own_boss},
+			var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "path" if own_boss else "slider", "boss": own_boss},
 				"act": "pillar", "dmg": 1.0, "corrode": 0.0}
 			game.bai._warn_damage(w, 0.4)
 			if alive:
@@ -532,7 +532,7 @@ func test_atk_slow_floor() -> void:
 		# 带减攻速的预警（泡影凝视等）：Boss 存活时连精英放的也不写
 		reset()
 		game.invuln = 0.0
-		var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "burrower", "boss": false},
+		var w := {"shape": "circle", "pos": game.ppos + Vector2(0, -14), "r": 60.0, "owner": {"type": "slider", "boss": false},
 			"act": "gaze", "dmg": 1.0, "corrode": 0.0}
 		game.bai._warn_damage(w, 0.0, true)
 		if alive:
