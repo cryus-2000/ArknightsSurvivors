@@ -15,7 +15,9 @@
       "loop": true,
       "density": 1,
       "alpha_exception": "semi-transparent effect; alpha 0 or 140",
-      "sha256": "2abeb562c006ccef74db78b4482973af23b8c9298fd1bc201e4d3dd647a02ae6"
+      "sha256": "2abeb562c006ccef74db78b4482973af23b8c9298fd1bc201e4d3dd647a02ae6",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b241392a-04ee-46bb-a367-ad74c64b9015.png",
+      "source_sha256": "5020c57904859adcac1737f68a693450a75b7b7ec636f2b2e4754c9998e8fea7"
     },
     {
       "file": "fx_nest_aura_big@2x.png",
@@ -31,7 +33,9 @@
       "loop": true,
       "density": 2,
       "alpha_exception": "semi-transparent effect; alpha 0 or 140",
-      "sha256": "7d0785fd708aee69a7f4b67a07f277e48a34927ed2221ef8916e700a8c689475"
+      "sha256": "7d0785fd708aee69a7f4b67a07f277e48a34927ed2221ef8916e700a8c689475",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b241392a-04ee-46bb-a367-ad74c64b9015.png",
+      "source_sha256": "5020c57904859adcac1737f68a693450a75b7b7ec636f2b2e4754c9998e8fea7"
     }
   ]
 }
