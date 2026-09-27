@@ -1071,6 +1071,11 @@ func draw_nest_auras() -> void:
 		if not ed.has("aura_r"):
 			continue
 		var ar: float = ed.aura_r
+		var aura_tex := _lazy_tex("fx_nest_aura_big")
+		if aura_tex != null:
+			var fw: float = aura_tex.get_width() / 4.0
+			var frame := int(g.t * 10.0) % 4
+			g.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.35))
 		var ac := Color(0.9, 0.5, 1.6)
 		for q in 4:
 			g.draw_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035))
