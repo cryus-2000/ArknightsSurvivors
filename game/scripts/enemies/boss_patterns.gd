@@ -115,7 +115,7 @@ func resolve(w: Dictionary) -> void:
 			"slow": false, "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
 			"kind": "boss_blade" if blade else "nova", "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
-			"source_id": e.id, "col": w.col})
+			"source_id": e.id, "col": w.col, "source_type": e.type})
 		own += 1
 		total += 1
 	g.vfx.boss_pattern(w)

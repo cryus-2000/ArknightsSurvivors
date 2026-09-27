@@ -41,3 +41,9 @@ boss_variety_test 使用实际 BossAI 驱动 10 类 Boss，检查两种新增招
 - 发布渠道约定见 docs/33_release_build.md 的“双版本发布约定”。
 
 本次验证：完整快检 36/37 通过，唯一失败为旧攻击节奏测试依赖特效数组顺序；改为按 bslash 类型查找后，定向复测通过。日志分别为 build/check/quick_0927_153707/ 和 build/check/quick_0927_153851/。实际图形运行 BOSS VARIETY failures=0，无脚本错误，已检查银色飞刃截图。本轮未生成新的双版本安装包。
+
+
+### 飞刃含义修正（2026-09-27）
+
+用户澄清飞刃是飞行的能量刃特效，取代上文银色实体刀方案。去掉刀柄和护手，使用亮色弧形刃缘、辉光和消散拖尾，颜色沿用 Boss 属性。塑路者 / 骑士轮廓更尖锐，海嗣使用流动弧刃。source_type 仅驱动外观，伤害、速度、碰撞半径和发射时序不变。
+`python tools/check.py --jobs 4`：37 项通过，0 失败；日志 build/check/quick_0927_154152/。实机图形运行无脚本错误，预览 build/ea_boss_blade_volley.png。
