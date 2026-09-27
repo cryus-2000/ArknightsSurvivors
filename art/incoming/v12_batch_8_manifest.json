@@ -1,0 +1,37 @@
+{
+  "status": "verified_image",
+  "assets": [
+    {
+      "file": "fx_nest_aura_big.png",
+      "character": "nest_aura",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        48,
+        48
+      ],
+      "loop": true,
+      "density": 1,
+      "alpha_exception": "semi-transparent effect; alpha 0 or 140",
+      "sha256": "2abeb562c006ccef74db78b4482973af23b8c9298fd1bc201e4d3dd647a02ae6"
+    },
+    {
+      "file": "fx_nest_aura_big@2x.png",
+      "character": "nest_aura",
+      "frame_width": 192,
+      "frame_height": 192,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        96,
+        96
+      ],
+      "loop": true,
+      "density": 2,
+      "alpha_exception": "semi-transparent effect; alpha 0 or 140",
+      "sha256": "7d0785fd708aee69a7f4b67a07f277e48a34927ed2221ef8916e700a8c689475"
+    }
+  ]
+}
