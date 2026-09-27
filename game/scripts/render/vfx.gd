@@ -485,3 +485,29 @@ func boss_pattern(w: Dictionary) -> void:
 			Sfx.enemy("spit", w.pos.distance_to(g.ppos))
 	for i in range(start, g.fx.size()):
 		g.fx[i]["enemy"] = true
+
+
+# 用户确认复用水月旧版深渊月牙帧条，运行时换色，原始素材保持不变。
+var blade_palettes: Dictionary = {}
+func boss_blade(b: Dictionary, pos: Vector2) -> void:
+	var type: String = b.get("source_type", "paranoia")
+	if not blade_palettes.has(type):
+		var original: Texture2D = g.tex.get("proj_tide_blade_abyss")
+		if original == null:
+			return
+		var pixels := original.get_image()
+		var tint := boss_color(type)
+		for y in pixels.get_height():
+			for x in pixels.get_width():
+				var c := pixels.get_pixel(x, y)
+				if c.a > 0.0:
+					pixels.set_pixel(x, y, Color.from_hsv(tint.h, c.s * tint.s, c.v, c.a))
+		blade_palettes[type] = ImageTexture.create_from_image(pixels)
+	var tx: Texture2D = blade_palettes[type]
+	var size := Vector2(tx.get_width() / 4.0, tx.get_height())
+	var frame := int(g.t * 12.0) % 4
+	# 刃缘与原先约 30px 高的弹幕一致，原图拖尾也一起保留。
+	var scale := 36.0 / size.y
+	g.draw_set_transform(pos + g.draw_off, b.vel.angle(), Vector2.ONE * scale)
+	g.draw_texture_rect_region(tx, Rect2(-size * 0.5, size), Rect2(Vector2(frame * size.x, 0), size))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

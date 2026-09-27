@@ -47,3 +47,6 @@ boss_variety_test 使用实际 BossAI 驱动 10 类 Boss，检查两种新增招
 
 用户澄清飞刃是飞行的能量刃特效，取代上文银色实体刀方案。去掉刀柄和护手，使用亮色弧形刃缘、辉光和消散拖尾，颜色沿用 Boss 属性。塑路者 / 骑士轮廓更尖锐，海嗣使用流动弧刃。source_type 仅驱动外观，伤害、速度、碰撞半径和发射时序不变。
 `python tools/check.py --jobs 4`：37 项通过，0 失败；日志 build/check/quick_0927_154152/。实机图形运行无脚本错误，预览 build/ea_boss_blade_volley.png。
+
+用户最终确认：采用第三套 proj_tide_blade_abyss.png 的原始 4 帧月牙动画（12fps），替换程序线条飞刃；运行时按 Boss 属性换色并缓存贴图，保留原始透明度、明暗和拖尾。
+第三套月牙交付验证：37 项回归全部通过（build/check/quick_0927_154808/），实机图形检查通过。

@@ -577,28 +577,7 @@ func draw_world() -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		if b.get("kind", "") == "boss_blade":
-			# 属性能量刃：前缘明亮、后方消散；没有实体刀身或握柄。
-			var color: Color = b.get("col", Color(0.5, 0.85, 1.0))
-			var source: String = b.get("source_type", "")
-			g.draw_set_transform(bp, b.vel.angle(), Vector2.ONE)
-			var spine := PackedVector2Array()
-			for j in 13:
-				var t: float = float(j) / 12.0
-				var y := lerpf(-15.0, 15.0, t)
-				var x := 13.0 - 22.0 * pow(absf(2.0 * t - 1.0), 2.0)
-				if source in ["path", "knight_boss"]:
-					x = 13.0 - absf(y) * 1.45
-				spine.append(Vector2(x, y))
-			# 拖尾长短错落，跟随飞行方向；仅视觉动画，不使用玩法随机数。
-			for j in 3:
-				var y := float(j - 1) * 7.0
-				var length := 25.0 + 6.0 * sin(g.t * 18.0 + float(j) * 2.0)
-				g.draw_line(Vector2(-length, y), Vector2(5, y * 0.6), Color(color, 0.12 + float(j % 2) * 0.1), 4.0)
-			g.draw_polyline(spine, Color(0.01, 0.03, 0.05, 0.8), 9.0)
-			g.draw_polyline(spine, Color(color, 0.2), 13.0)
-			g.draw_polyline(spine, color, 5.0)
-			g.draw_polyline(spine, color.lerp(Color.WHITE, 0.75), 2.0)
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			g.vfx.boss_blade(b, bp)
 			continue
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		g.draw_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
