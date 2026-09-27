@@ -39,7 +39,7 @@ var opening_seen := false    # 看过完整的标题开场（写入存档）：�
 
 func _ready() -> void:
 	# 触屏设备：整体放大 1.15（逻辑分辨率 1113×626），字和按钮在手机上更好点；各面板按 vs.y < 680 做紧凑排版
-	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios") or OS.get_cmdline_user_args().has("--touch"):
+	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios") or dev_args().has("--touch"):
 		get_tree().root.content_scale_factor = 1.15
 	# 网页版 / 移动端：默认关掉最吃性能的后期（玩家仍可在设置里打开）
 	if OS.has_feature("web"):
@@ -145,7 +145,7 @@ func dev_args() -> PackedStringArray:
 func save() -> void:
 	# 自动测试（任何 --xxx 启动参数，与 sfx.gd 静音同一判定）不写玩家的存档：
 	# 否则批跑 / 冒烟里机器人拿到的藏品、解锁的难度都会记进玩家的图鉴与进度（docs/36）
-	for a in OS.get_cmdline_user_args():
+	for a in dev_args():
 		if a.begins_with("--"):
 			return
 	var c := ConfigFile.new()

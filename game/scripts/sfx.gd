@@ -2,9 +2,12 @@ extends Node
 ## 全局音频（自动加载为 Sfx）：背景音乐 + 音效池。标题界面与游戏共用，切换场景时音乐不中断。
 
 const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
-	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start"]
+	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
+	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break"]
+## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
+const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -105,7 +108,7 @@ var music_muted := false
 
 ## 自动测试 / 截图 / 平衡批跑（任何 `--xxx` 命令行用户参数）一律静音：开发者在跑测试时还要工作
 static func is_automated() -> bool:
-	for a in OS.get_cmdline_user_args():
+	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
 		if a.begins_with("--"):
 			return true
 	return false
@@ -210,6 +213,9 @@ func _ensure_bus(name: String) -> int:
 	return b
 
 
+var WEB := OS.has_feature("web")
+
+
 func _now() -> float:
 	return Time.get_ticks_usec() / 1000000.0
 
@@ -308,6 +314,10 @@ func _seq_stop(tname: String) -> void:
 ## 拿不到时（刚开播、网页版采样播放）退回墙钟
 func _seq_pos(tname: String) -> float:
 	var q: Dictionary = seq[tname]
+	# 网页版（样本播放）：get_playback_position() 比实际声音滞后约 1 秒，按它排下一句会在每句之间空出约 1 秒（2026-09-27 浏览器实测）。
+	# 网页的样本在 play() 当帧就开始出声，墙钟和音频时钟在一句 15 秒里几乎不漂，所以网页一律按墙钟算
+	if WEB:
+		return _now() - float(q.t0) + SEG_PRE
 	var pl: AudioStreamPlayer = q.decks[q.cur][0]
 	var p := pl.get_playback_position()
 	if p <= 0.0:
@@ -321,7 +331,7 @@ func _seq_tick(tname: String) -> void:
 	var pos := _seq_pos(tname)
 	# 现在调 play() 会从下一次混音开播，那时本句在 pos + 距下次混音；一旦够到句长就开播下一句，
 	# 从「那一刻 - 句长」秒开始——前面是 0.1 秒预留，正文正好接在本句末尾
-	var at_mix := pos + AudioServer.get_time_to_next_mix()
+	var at_mix := pos + (0.0 if WEB else AudioServer.get_time_to_next_mix())   # 网页的样本 play() 当帧就开播，不用等下次混音
 	if at_mix >= float(q.len):
 		var from := at_mix - float(q.len)
 		if pending.get("boundary", false) and seq.has(pending.track):

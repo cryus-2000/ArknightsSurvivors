@@ -72,9 +72,10 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			# 塑路者：冲撞（直线预警→冲锋）、震地（近身蓄力→冲击波）、碎裂（75/50/25% 裂出分形）
 			if ready:
 				if dist < 170.0 and _cd(e, "slam", 9.0):
-					_warn(e, "circle", 1.0, {"r": 230.0, "follow": true, "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3})
+					# 震地：砸在主控当前位置（固定落点、不跟随 Boss），r 90（docs/48 P0-4；原来 r230 跟着 Boss 走）
+					_warn(e, "circle", 1.0, {"pos": g.ppos, "r": 90.0, "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3})
 				elif dist > 150.0 and _cd(e, "dash", 6.0):
-					_warn(e, "line", 0.9, {"ang": dir.angle(), "len": 440.0, "wid": 30.0, "track": 0.45, "act": "dash", "spd": 620.0, "name": "冲撞", "col": Color(1.0, 0.35, 0.3)})
+					_warn(e, "line", 0.9, {"ang": dir.angle(), "len": 440.0, "wid": 30.0, "track": 0.45, "act": "dash", "fit_len": true, "name": "冲撞", "col": Color(1.0, 0.35, 0.3)})
 			var crack: int = e.get("crack", 0)
 			if crack < 3 and e.hp < e.maxhp * (0.75 - 0.25 * crack):
 				e.crack = crack + 1
@@ -178,9 +179,10 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					g.vfx.shake_screen(1.0)
 			else:
 				# 解读阶段：周期冲击波，被波及会晕眩
+				# 周期冲击波先给 1 秒预警（docs/48 P0-5：原来没有预警；专属「必须冲刺」样式由界面与美术按 must_dash 画）
 				if e.bt > 7.0:
 					e.bt = 0.0
-					g.shocks.append({"pos": e.pos, "r": e.r, "maxr": 420.0, "dmg": e.dmg * 1.2, "hit": false, "boss": e.boss})
+					_warn(e, "circle", 1.0, {"follow": true, "r": 420.0, "act": "slam", "name": "解读冲击", "must_dash": true, "col": Color(0.5, 1.0, 0.7), "dmg": e.dmg * 1.2})
 					Sfx.play("skill", -2.0, 0.6)
 		"knight_boss":
 			# 最后的骑士（结局二）：冲锋（直线预警→突进+冰霜）/ 长枪连刺（近身三段扇形）/ 寒冰领域（20 秒一次，200 半径减速 6 秒）
@@ -192,20 +194,21 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.invuln = false
 			if e.get("frost_t", 0.0) > 0.0:
 				e.frost_t -= dt
-				if g.ppos.distance_to(e.frost_pos) < 200.0:
+				if g.combat.ground_d(g.ppos, e.frost_pos) < 200.0:
 					g.frost = maxf(g.frost, 0.15)
 			if e.get("dash2", false) and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 				e.dash2 = false
-				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "spd": 820.0, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
+				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
 			if ready and e.channel <= 0.0:
 				if e.age > 6.0 and _cd(e, "frost", 20.0):
 					_warn(e, "circle", 1.0, {"follow": true, "r": 200.0, "act": "frost", "name": "寒冰领域", "col": ice, "dmg": e.dmg * 0.5})
 				elif dist < 140.0 and _cd(e, "stab", 5.0):
+					# 三段连刺：每段间隔 0.6 秒、每段锁定 0.4 秒（§1.9 连发间隔、docs/48 P0-2）
 					for k in 3:
-						_warn(e, "cone", 0.5 + 0.3 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.3 + 0.3 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
-					e.wind = 1.2
+						_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.2 + 0.6 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
+					e.wind = 1.9
 				elif dist > 150.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
-					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "spd": 780.0, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
+					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
 					if e.phase == 2:
 						e.dash2 = true
 		"ishar":
@@ -261,6 +264,18 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
+	# 时序下限（§1.9、docs/48 P0-2）：Boss 预警总时长 ≥0.6 秒；锁定（追踪结束 → 结算）≥0.4 秒，不够时缩短追踪段
+	if e.boss:
+		w.dur = maxf(w.dur, 0.6)
+		w.track = minf(w.track, maxf(0.0, w.dur - 0.4))
+	# 冲刺 / 突刺的预警线长 = 实际冲出的距离（docs/48 P0-3：原来斥亡体画 190 冲 373、塑路者画 440 冲 214）：
+	# 按击退每秒衰减 900 算，距离 = v²/1800 + 本体半径（自冲不受重型削减）。fit_len：按设计线长反推速度（骑士冲锋、塑路者冲撞要真冲到位）
+	if w.act in ["dash", "stab"] and shape == "line":
+		if w.get("fit_len", false):
+			w.spd = sqrt(1800.0 * maxf(w.len - e.r, 40.0))
+		else:
+			var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
+			w.len = v * v / 1800.0 + e.r
 	# 难度缩短预警只压缩追踪段（跟着主控转向的那段），总时长至少 0.6 秒，原本就短于 0.6 的不动（docs/38 B0 第 5 项）；
 	# 修正值大于 1（放宽）时整体拉长
 	var wm := float(g.dmod.boss_warn)
@@ -296,7 +311,7 @@ func _update_warns(dt: float) -> void:
 			w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
 		if w.t >= w.dur and not w.done:
 			w.done = true
-			if not e.dead or w.shape == "circle":
+			if not e.dead or (w.shape == "circle" and not w.get("cancel_dead", false)):
 				_warn_resolve(w)
 	g.warns = g.warns.filter(func(w): return w.t < w.dur + 0.25)
 
@@ -306,7 +321,7 @@ func _warn_hit(w: Dictionary) -> bool:
 	var pp: Vector2 = g.ppos + Vector2(0, -14)
 	match w.shape:
 		"circle":
-			return pp.distance_to(w.pos) < w.r + 10.0
+			return g.combat.ground_d(g.ppos, w.pos) < w.r   # 画即判：主控脚底落在画出的椭圆里才算中（§1.9）
 		"line":
 			var b: Vector2 = w.pos + Vector2.from_angle(w.ang) * w.len
 			return Geometry2D.get_closest_point_to_segment(pp, w.pos, b).distance_to(pp) < w.wid + 12.0
@@ -321,10 +336,12 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	if not _warn_hit(w):
 		return
 	var e: Dictionary = w.owner
-	g.dmg_src = "boss_" + e.type
+	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
+	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
+	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
 	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if g.invuln <= 0.0:
-		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0))}, false, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if stun_t > 0.0 and not g.combat.stun_as_slow(e.boss):   # Boss 战里僵直改成减速（docs/38 §1.11）
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow and not g.combat.atk_slow_as_slow(3.0, e.boss):   # Boss 来源不写 atk_slow，改成移速减速（docs/38 §1.11）
@@ -335,6 +352,8 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 func _warn_resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
+	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
 	var dv := Vector2.from_angle(w.ang)
 	match w.act:
 		"pillar":
@@ -396,6 +415,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			_warn_damage(w, 0.3)
 		"dash":
 			e.kb = dv * w.get("spd", 600.0)
+			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.45
 			e.pose = 0.45
@@ -404,6 +424,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -4.0, 0.5)
 		"stab":
 			e.kb = dv * w.get("spd", 800.0)
+			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.2
 			e.pose = 0.25
@@ -411,6 +432,10 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.fx.append({"kind": "tracer", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.22, "max": 0.22, "col": c, "wid": w.wid})
 			Sfx.play("swing", -6.0, 0.7)
 			_warn_damage(w)
+		"spawn":
+			# 预告后生成（投嗣育母的注亡拟嗣，docs/48 P0-7）
+			g.spawner.spawn_enemy(w.spawn, w.pos)
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 		"bite":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": (g.ppos - w.pos).angle(), "half": 0.9, "r": w.r + 10.0, "life": 0.25, "max": 0.25, "col": c})
 			Sfx.play("swing", -8.0, 0.9)

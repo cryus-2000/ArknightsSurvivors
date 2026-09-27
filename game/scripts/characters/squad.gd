@@ -14,6 +14,7 @@ const DEMO_SLOT := Vector2(44, -6)
 var g
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
+var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
 
 
 func _init(game) -> void:
@@ -83,6 +84,7 @@ func add(cid: String):
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
+	_apply_size_hp()
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
 	return op
@@ -98,6 +100,7 @@ func remove(cid: String) -> void:
 			break
 	for i in ops.size():
 		ops[i].slot = i
+	_apply_size_hp()
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
 		_apply_leader_regen(ops[0])
@@ -105,11 +108,30 @@ func remove(cid: String) -> void:
 		g.rfx.refresh_squad()
 
 
+## 编队人数加主控最大生命（2026-09-27 用户定，数值规格）：每多 1 名干员 ×(1 + per)，最多算 cap 人
+## （per = balance.json squad/hp_per_member，缺省 0 = 关；cap = squad/hp_member_cap，缺省 3）。对 max_hp 加来源 "squad" 的 mult，
+## 叠在成长卡生命之上一起放大；人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
+func _apply_size_hp() -> void:
+	if g.stats == null or not g.stats.has_stat(&"max_hp"):
+		return
+	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var cap: int = Bal.vi("squad/hp_member_cap", 3)
+	var old_max: float = g.max_hp
+	g.stats.remove_source("squad")
+	var n: int = mini(maxi(ops.size() - 1, 0), cap)
+	if per != 0.0 and n > 0:
+		g.stats.add(&"max_hp", "mult", 1.0 + per * n, "squad")
+	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
+	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
+		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
+		g.max_hp = new_max   # 先同步，game._sync_stats 看到没变化，不会再按差值补一次
+
+
 ## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
 ## 生命 / 物理减伤 / 法抗在 game.gd 开局处按同一个 leader 段覆盖；回复放这里，是因为主控换人（事件替换）时也要跟着换。
 ## --noleader：平衡对照用，全部退回博士的统一值
 func _apply_leader_regen(op) -> void:
-	if g.stats == null or not g.stats.has_stat(&"regen") or OS.get_cmdline_user_args().has("--noleader"):
+	if g.stats == null or not g.stats.has_stat(&"regen") or Cfg.dev_args().has("--noleader"):
 		return
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
 	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
@@ -120,7 +142,7 @@ func _slot_offset(i: int) -> Vector2:
 	if g.demo_op != "":
 		return DEMO_SLOT   # 图鉴演示：站在主控前方（朝右侧怪海），重置后不用先走回身后
 	var o: Vector2 = SLOTS[mini(i, SLOTS.size() - 1)]
-	return Vector2(o.x * g.facing, o.y)
+	return Vector2(o.x * side, o.y)
 
 
 ## 编队契约：常规人数 ≤ 3（解锁后 ≤ 4）；每名干员至多 1 个手动技能（契约 v2.2，按 Q / J 由 doctor.try_manual_skill 路由）
@@ -143,6 +165,7 @@ func validate_squad() -> bool:
 # ---------------------------------------------------------------- 每帧
 
 func update(dt: float) -> void:
+	side = move_toward(side, g.facing, dt * 2.5)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	for o in ops:

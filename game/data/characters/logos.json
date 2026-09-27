@@ -13,7 +13,7 @@
   "_doc": "基础数值",
   "atk": 29,
   "cd": 0.9,
-  "range": 370,
+  "range": 310,
   "requiem_dur": 5,
   "requiem_bonus": 0.15,
   "s1_dur": 5,
@@ -57,7 +57,7 @@
    "frames": 4,
    "fps": 4,
    "foot": [
-    24,
+    25,
     46
    ]
   },
@@ -66,7 +66,7 @@
    "frames": 6,
    "fps": 10,
    "foot": [
-    24,
+    26,
     46
    ]
   },

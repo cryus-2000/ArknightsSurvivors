@@ -28,8 +28,12 @@ const ENEMY_DESC := {
 	"offspring": "伊祖米克的子代，行动迟缓但生命很高；碰到主控时蜕变成 2 只其他海嗣。",
 	"brood": "由投嗣育母产下的诱饵，不会移动并逐渐衰亡，接触造成侵蚀。",
 	"fractal": "塑路者碎裂时放出的高速碎片。",
-	"tear": "伊莎玛拉渗出的泪滴，停留在原地造成真实伤害。",
-	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.4 秒后爆裂一次（范围 80，附带神经损伤），看到它发亮就离开。",
+	"ripper": "沉重的撕裂者，蓄力后朝主控冲撞；命中附带侵蚀，难以击退。",
+	"burrower": "潜行接近时看不见、也不接触；贴近后破土咬击（0.6 秒圆形预警），附带神经损伤。",
+	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
+	"hulk": "体型巨大的重型漂流体，生命很高、难以击退；靠近时踏地震荡（圆形预警）。",
+	"tear": "伊莎玛拉渗出的泪滴，固定不动；主控站在上面时每秒受到 6 点真实伤害。泪没被清除时，伊莎玛拉持续充能。",
+	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.8 秒后爆裂一次（范围 80，附带神经损伤），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。远程攻击，并不断在身边产下注亡拟嗣。",
 	"mimic": "精英。伪装成补给箱，被靠近时现形扑来；击败后掉落大量源石锭。",
@@ -46,7 +50,7 @@ const ENEMY_DESC := {
 	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
 ## 结局 Boss 与敌对骑士：达成对应结局 / 遭遇后解锁
-const LOCK_BY_ENDING := {"izumik": "deep", "ishar": "resolve", "knight_boss": "knight", "tear": "resolve"}
+const LOCK_BY_ENDING := {"izumik": "deep", "ishar": "resolve", "knight_boss": "knight", "knight": "knight", "tear": "resolve"}   # docs/19：敌对骑士也随结局收录
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted
@@ -78,6 +82,11 @@ var info_tab := 0
 var info_rects: Array = []
 const INFO_TABS := ["档案", "技能", "数值"]
 const DEMO_H := 290
+## 敌人图鉴的附加形态（标签, 贴图, 帧数, 帧率, 循环）：说明里写了第二形态的 Boss（docs/48 验收 P2-6）
+const EXTRA_FORMS := {
+	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
+	"knight_boss": [["冲刺", "e_knight_charge", 4, 8.0, true], ["插枪", "e_knight_plant", 4, 8.0, false], ["冲锋形态", "e_knight_charge_form", 4, 8.0, true]],
+}
 
 
 func _ready() -> void:
@@ -168,6 +177,13 @@ func _anim_n(label: String, name: String, frames: int, fps: float, loop := true)
 	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": loop}
 
 
+## 干员 json 的 sprites 项：字符串（帧数按宽高比推算）或 {tex, frames, fps}
+func _sprite_form(label: String, v, fps: float, loop: bool) -> Dictionary:
+	if v is String:
+		return _anim(label, v, fps, loop)
+	return _anim_n(label, v.tex, int(v.get("frames", 2)), float(v.get("fps", fps)), loop)
+
+
 ## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
 func _doctor_forms(dd: Dictionary) -> Array:
 	var sp: Dictionary = dd.get("sprites", {})
@@ -214,14 +230,16 @@ func _build() -> void:
 				# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
 				for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
 						["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
-						["受击", "hurt", 6.0], ["倒下", "death", 5.0], ["Mon3tr", "m_idle", 4.0], ["Mon3tr 跑步", "m_run", 10.0], ["爪击", "m_attack", 14.0], ["熔毁", "m_skill", 12.0]]:
+						["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
 					if not sp.has(kind[1]):
 						continue
-					var v = sp[kind[1]]
-					if v is String:
-						forms.append(_anim(kind[0], v, kind[2], kind[1] != "death"))
-					else:
-						forms.append(_anim_n(kind[0], v.tex, int(v.get("frames", 2)), float(v.get("fps", kind[2])), kind[1] != "death" and kind[1] != "fall"))
+					var fm: Dictionary = _sprite_form(kind[0], sp[kind[1]], kind[2], kind[1] != "death" and kind[1] != "fall")
+					# 召唤物（凯尔希的 Mon3tr，帧条键 m_*）不单列：和本体同名动作并排站在一起（2026-09-27 用户）
+					if sp.has("m_" + kind[1]):
+						fm.pair = _sprite_form(kind[0], sp["m_" + kind[1]], kind[2], true)
+						fm.pair_label = {"attack": "Mon3tr 爪击", "skill": "Mon3tr 熔毁"}.get(kind[1], "Mon3tr")
+						fm.main_label = cd.get("name", cid)
+					forms.append(fm)
 				# 攻击演示：实机跑一段（弹道 / 命中 / 技能都是战斗里的真实效果）
 				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 				var mech: String = cd.get("gallery", {}).get("desc", "")
@@ -248,15 +266,29 @@ func _build() -> void:
 					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
 				if A.tex(e.tex + "_feign") != null:
 					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
+				if k == "ishar" and A.tex("e_ishar_t") != null:
+					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
 				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
 				if e.get("atk_anim", false):
 					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
 						if A.tex(e.tex + fm[1]) != null:
 							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
+				# 说明里写了第二形态的 Boss：把已交付的形态帧条列出来（伊莎玛拉变身 / 骑士插枪、冲锋形态）
+				for fm in EXTRA_FORMS.get(k, []):
+					if A.tex(fm[1]) != null:
+						forms.append(_anim_n(fm[0], fm[1], fm[2], fm[3], fm[4]))
+				# 换色复用贴图的怪（撕裂者 / 潜地者 / 吐酸者 / 巨骸）：展示台按 enemies.json 的 tint 染色、按 draw_scale 放大（和实战一致）
+				var tint: Color = e.get("tint", Color.WHITE)
+				var dsc: float = float(e.get("draw_scale", 1.0))
+				for fm in forms:
+					fm.tint = tint
+					fm.dscale = dsc
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
 					st.append(["射程", str(int(e.range))])
+				if float(e.get("draw_scale", 1.0)) > 1.05:
+					st.append(["体型", "×%.1f" % float(e.draw_scale)])
 				var tags: Array = []
 				if e.get("corrode", 0.0) > 0.0:
 					tags.append("侵蚀")
@@ -271,7 +303,7 @@ func _build() -> void:
 				tags.append_array(e.get("chips", []))
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
 					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, e.get("desc", ""))),
-					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]), "locked_text": "尚未遭遇。达成对应结局后收录。"})
+					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]) and not Cfg.dev_args().has("--allend"), "locked_text": "尚未遭遇。达成对应结局后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
 			for i in ENDING_ORDER.size():
@@ -456,6 +488,18 @@ func _draw() -> void:
 	UI.text(self, font, Vector2(0, vs.y - 22), Pad.hint("Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", "LB / RB 切换分页 · 摇杆选择 · Ⓧ / Ⓨ 切换动作与形态 · Ⓑ 返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
+var _white_cache := {}
+func _white_of(tx: Texture2D) -> Texture2D:
+	if not _white_cache.has(tx):
+		_white_cache[tx] = A.white_of(tx)
+	return _white_cache[tx]
+
+
+func _form_frame(f: Dictionary) -> int:
+	var fr := int(form_t * f.fps)
+	return fr % f.frames if f.loop else mini(fr, f.frames - 1)
+
+
 func _frame_rect(f: Dictionary, frame: int) -> Rect2:
 	var tx: Texture2D = f.tex
 	var fw: int = tx.get_width() / f.frames
@@ -484,10 +528,11 @@ func _draw_grid() -> void:
 				k = floorf(k)
 			var sz := src.size * k
 			var c := r.position + Vector2(r.size.x / 2, 46)
-			var col := Color(0, 0, 0, 0.9) if e.get("locked", false) else Color.WHITE
+			var col: Color = Color(0, 0, 0, 0.9) if e.get("locked", false) else f.get("tint", Color.WHITE)
 			draw_texture_rect_region(f.tex, Rect2((c - sz / 2).round(), sz), src, col)
 		var nm: String = "???" if e.get("locked", false) else e.name
-		UI.text(self, font, r.position + Vector2(2, 104), nm, 13 if nm.length() <= 6 else 11, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 4)
+		var nfl: Array = UI.fit_line(font, nm, 13, r.size.x - 6.0, 9)   # 长名字（《杜林地上环游记》）按格宽缩到 9 号
+		UI.text(self, font, r.position + Vector2(2, 104), nfl[0], nfl[1], UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 4)
 
 
 func _draw_detail(vs: Vector2) -> void:
@@ -554,19 +599,43 @@ func _draw_detail(vs: Vector2) -> void:
 		draw_circle(Vector2.ZERO, 80.0, Color(0.3, 0.8, 0.9, 0.12))
 		draw_arc(Vector2.ZERO, 80.0, 0.0, TAU, 40, Color(0.3, 0.9, 0.9, 0.5), 2.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if f.tex != null:
-		var fr := int(form_t * f.fps)
-		fr = fr % f.frames if f.loop else mini(fr, f.frames - 1)
-		var src := _frame_rect(f, fr)
-		var k: float = minf(240.0 / src.size.x, (100.0 if wide else 200.0) / src.size.y)
+	var pf: Dictionary = f.get("pair", {})
+	if f.tex != null and pf.get("tex") != null:
+		# 本体 + 召唤物并排（同一倍率，保持相对大小）：本体在左、召唤物在右，脚下各一行小字
+		var src := _frame_rect(f, _form_frame(f))
+		var src2 := _frame_rect(pf, _form_frame(pf))
+		var gap := 4.0
+		var k: float = minf(250.0 / (src.size.x + src2.size.x + gap), (100.0 if wide else 190.0) / maxf(src.size.y, src2.size.y))
 		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
 		var sz := src.size * k
+		var sz2 := src2.size * k
+		var x0: float = base.x - (sz.x + sz2.x + gap * k) / 2.0
 		var col := Color(0, 0, 0, 0.95) if locked else Color.WHITE
-		draw_texture_rect_region(f.tex, Rect2((base - Vector2(sz.x / 2, sz.y - 6)).round(), sz), src, col)
+		draw_texture_rect_region(f.tex, Rect2(Vector2(x0, base.y - sz.y + 6).round(), sz), src, col)
+		draw_texture_rect_region(pf.tex, Rect2(Vector2(x0 + sz.x + gap * k, base.y - sz2.y + 6).round(), sz2), src2, col)
+		if not wide and not locked:
+			UI.text(self, font, Vector2(x0 - 20, base.y + 28), f.get("main_label", ""), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sz.x + 40)
+			UI.text(self, font, Vector2(x0 + sz.x + gap * k - 20, base.y + 28), pf.get("pair_label", f.get("pair_label", "")), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sz2.x + 40)
+	elif f.tex != null:
+		var src := _frame_rect(f, _form_frame(f))
+		var fitk: float = minf(240.0 / src.size.x, (100.0 if wide else 200.0) / src.size.y)
+		var k: float = floorf(minf(fitk, 6.0)) if fitk >= 1.0 else fitk
+		var ds: float = float(f.get("dscale", 1.0))
+		if ds > 1.05:
+			k = floorf(minf(fitk, k * ds)) if fitk >= 1.0 else fitk   # 巨骸等放大的怪在展示台上也更大（受台面限制）
+		var sz := src.size * k
+		var col: Color = Color(0, 0, 0, 0.95) if locked else f.get("tint", Color.WHITE)
+		var rect := Rect2((base - Vector2(sz.x / 2, sz.y - 6)).round(), sz)
+		if tab in [1, 2, 3] and not locked:
+			# 敌人：一圈淡青白描边（同实战「怪物轮廓光」），深色小怪（塑路者碎片）在暗色展示台上也看得清
+			var wt: Texture2D = _white_of(f.tex)
+			for d in [Vector2(k, 0), Vector2(-k, 0), Vector2(0, k), Vector2(0, -k)]:
+				draw_texture_rect_region(wt, Rect2(rect.position + d, rect.size), src, Color(0.7, 0.85, 0.95, 0.55))
+		draw_texture_rect_region(f.tex, rect, src, col)
 	# 动作 / 形态切换
 	form_rects.clear()
 	if e.forms.size() > 1 and not locked and not wide:
-		# 按钮宽度按文字算（至少 44）：「Mon3tr 跑步」这类长标签不再被截成「Mon3tr」；一行放不下时按比例压窄
+		# 按钮宽度按文字算（至少 44）：长标签不被截断；一行放不下时按比例压窄
 		var ws: Array = []
 		var total := 0.0
 		for i in e.forms.size():
@@ -655,6 +724,16 @@ func _draw_pages(e: Dictionary, pr: Rect2, dy: float) -> void:
 			var fits := _skill_rows_h(page, width, fs) <= avail
 			var per_desc: float = maxf(font.get_height(fs - 1), (avail - page.size() * (fs + 15)) / maxf(1.0, page.size()))
 			var yy := top
+			if not fits and page.size() * (fs + 8 + font.get_height(fs - 1) + 7) > avail:
+				# 演示时信息区只剩约 110 像素：每条一行「标签 名称　说明…」，行高按剩余高度分
+				var rh: float = clampf(avail / maxf(1.0, page.size()), 16.0, 24.0)
+				for row in page:
+					var tw2: float = UI.chip(self, font, Vector2(x, yy + 1), row[0], row[3], 10) + 6
+					var nm_w: float = minf(font.get_string_size(row[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x, width * 0.4)
+					UI.text_fit(self, font, Vector2(x + tw2, yy + 14), row[1], 12, UI.TEXT, nm_w + 2, 10)
+					UI.text_fit(self, font, Vector2(x + tw2 + nm_w + 12, yy + 14), row[2], 11, Color(0.78, 0.88, 0.9), width - tw2 - nm_w - 12, 10)
+					yy += rh
+				return
 			for row in page:
 				# 技能行左边画技能图标（32px 原尺寸），标题与说明整体右移
 				var itx: Texture2D = A.tex(row[4]) if row.size() > 4 and row[4] != "" else null

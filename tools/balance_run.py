@@ -95,6 +95,9 @@ BOT_TARGETS = {
 find_godot = GR.find_godot
 
 
+KEEP = []   # --keep=HUNT,EVT：把 stdout 里以这些前缀开头的行存进记录的 lines（事件 / 机制日志，2026-09-27 围猎 A/B）
+
+
 def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=None):
     game = game or GAME
     args = [godot, "--headless", "--path", game, "--", "--balance", "--seed=%d" % seed, "--diff=%d" % diff, "--op=" + squad[0]]
@@ -104,7 +107,7 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=
         args.append("--squad=" + ",".join(squad[1:]))
     args += extra
     # 缓存：同一份源文件 + 同一组参数 = 同一局（docs/36 §3）
-    akey = json.dumps([squad, seed, diff, bot or "normal", extra])
+    akey = json.dumps([squad, seed, diff, bot or "normal", extra] + ([KEEP] if KEEP else []))
     if tkey:
         hit = GR.cache_get(tkey, akey)
         if hit is not None:
@@ -120,6 +123,8 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=
     if errs:
         rec["script_errors"] = len(errs)
         rec["first_error"] = errs[0][:200]
+    if KEEP:
+        rec["lines"] = [l.strip() for l in out.splitlines() if any(l.startswith(k + " ") for k in KEEP)][:400]
     if m:
         try:
             rec["data"] = json.loads(m.group(1))
@@ -568,9 +573,11 @@ def main():
     ap.add_argument("--bots", default=None, help="逗号分隔的多档机器人矩阵，例如 afk,bad,normal,expert")
     ap.add_argument("--lanes", default=None, help="逗号分隔的藏品流派矩阵（机器人优先拿该流派，docs/27 §5），none 表示不偏好，例如 none,A,B,C,D,E,F,G,H")
     ap.add_argument("--game", default=None, help="要测的 game/ 目录（缺省为本仓库的 game/；A/B 对比时指向临时工作树）")
+    ap.add_argument("--keep", default="", help="逗号分隔的 stdout 行前缀，匹配的行存进每局记录的 lines（例如 HUNT）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存")
     ap.add_argument("--out", default=None, help="报告输出目录（缺省 build/balance）")
     a = ap.parse_args()
+    KEEP[:] = [k for k in a.keep.split(",") if k]
     if a.squad:
         squads = [a.squad.split(",")]
     elif a.op:

@@ -38,7 +38,7 @@ func _aoe() -> float:
 
 ## 索敌距离：代码里的 480 / 520 / 540 是原射程下的值，统一按 JSON range / 480 同比例缩放（2026-09-26 远程射程略缩）
 func _reach(k: float = 480.0) -> float:
-	return k * (base("range", 420.0) / 480.0) * stat(&"op_range")
+	return k * (base("range", 340.0) / 480.0) * stat(&"op_range")
 
 
 # ---------------------------------------------------------------- 索敌

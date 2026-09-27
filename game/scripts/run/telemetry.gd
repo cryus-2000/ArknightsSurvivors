@@ -10,6 +10,7 @@ extends RefCounted
 ## 分析：python tools/runs_report.py 读本地记录，套用 balance_run 的汇总表。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const D = preload("res://scripts/data.gd")
 const SCHEMA := 1                  # 记录格式版本：字段有不兼容改动时 +1，分析脚本按它区分
 const SAMPLE_EVERY := 30.0         # 曲线采样间隔（局内秒）
 const RUNS_PATH := "user://runs/runs.jsonl"
@@ -38,6 +39,12 @@ var still_s := 0.0              # 站着不动的累计秒数
 var lv_marks := {}              # 2:00 / 5:00 / 8:00 时的等级（玩家局用；平衡局沿用 autotest 自己的）
 var peak: Array = [0, 0, 0, 0, 0]   # 同屏数量峰值：敌人 / 敌方弹幕（含抛射物）/ 我方子弹 / 特效 / 飘字（后期画面优化的量化，2026-09-27）
 var peak_min: Array = []            # 每分钟的峰值，同上 5 项；peak_min[i] 为第 i 分钟
+# ---- 死前 15 秒（2026-09-27 数值要：「后期暴毙」根因）：每次掉血进环形缓冲，结束 / 不死模式托底时写一份快照
+const RING_S := 15.0
+var ring: Array = []            # {t, src, amt, hp_after, boss, zone_out}
+var ring_ctx: Array = []        # [t, dt, corrode_pool, in_mire, 敌人数, 敌弹数, 熄灯]
+var floor_snaps: Array = []     # 不死模式每次托底的快照（最多前 5 次）
+var floor_seen := 0
 # ---- 本地保存
 var saved := false
 var build: Dictionary = {}
@@ -76,6 +83,9 @@ func tick(dt: float) -> void:
 		var v: float = g.dmg_log[k]
 		tot += v
 		var inc: float = v - float(last_log.get(k, 0.0))
+		if inc > 0.01:
+			ring.append({"t": snappedf(t, 0.1), "src": k, "amt": snappedf(inc, 0.1), "hp_after": int(g.hp), "boss": _is_boss_src(k),
+				"zone_out": g.zone_state > 0 and g.ppos.distance_to(g.zone_c) > g.zone_r})
 		if inc > inc_best:
 			inc_best = inc
 			last_src = k
@@ -84,6 +94,15 @@ func tick(dt: float) -> void:
 		hits += 1
 		taken_window += tot - taken_last
 	taken_last = tot
+	ring_ctx.append([t, dt, g.corrode_pool, g.in_mire, g.enemies.size(), g.ebullets.size() + g.lobs.size(), 1 if g.lamp <= 0.0 else 0])
+	while not ring.is_empty() and ring[0].t < t - RING_S:
+		ring.pop_front()
+	while not ring_ctx.is_empty() and ring_ctx[0][0] < t - RING_S:
+		ring_ctx.pop_front()
+	if g.floor_hits > floor_seen:
+		floor_seen = g.floor_hits
+		if floor_snaps.size() < 5:
+			floor_snaps.append(ring_snapshot())
 	# Boss 出现 / 击杀时间；tv = 第一次可受伤的时刻（「可受伤起算」的击杀用时 = t1 − tv），shield = 阶段护盾累计秒数，
 	# gates = 已过的卡点数（docs/38 B1 ⑤）。最终 Boss 死的同一帧就判胜利，t1 记不到，用整局 t 代替
 	for b in g.bosses:
@@ -134,11 +153,50 @@ func _boss_alive() -> bool:
 	return false
 
 
+## 来源是不是真 Boss：boss_<类型>（预警招式，普通怪如引痕者 / 收割者也用这个前缀）和 contact_<类型> 都按类型判，
+## 类型在 enemies.json 里 role 为 boss 才算（2026-09-27 数值指出 boss_tracer 被误算成 Boss）
+func _is_boss_src(k: String) -> bool:
+	var ty := ""
+	if k.begins_with("boss_"):
+		ty = k.substr(5)
+	elif k.begins_with("contact_"):
+		ty = k.substr(8)
+	else:
+		return false
+	return str(D.ENEMIES.get(ty, {}).get("role", "")) == "boss"
+
+
+## 最近 15 秒的掉血明细与环境峰值（结束时写进 end.last15，不死模式每次托底写进 floors）
+func ring_snapshot() -> Dictionary:
+	var cp := 0.0
+	var mire_s := 0.0
+	var en := 0
+	var eb := 0
+	var dark_s := 0.0
+	for c in ring_ctx:
+		cp = maxf(cp, c[2])
+		if c[3] > 0.3:
+			mire_s += c[1]
+		en = maxi(en, c[4])
+		eb = maxi(eb, c[5])
+		dark_s += c[1] * c[6]
+	var corrode_out := 0.0   # 这 15 秒侵蚀池流出合计（dmg_log 的 corrode 来源）
+	var nerve_bursts := 0    # 神经损伤溢出次数（每次溢出记一笔 nerve 来源的掉血）
+	for h in ring:
+		if h.src == "corrode":
+			corrode_out += h.amt
+		elif h.src == "nerve":
+			nerve_bursts += 1
+	return {"t": snappedf(g.t, 0.1), "hits": ring.duplicate(true), "corrode_peak": snappedf(cp, 0.1), "mire_s": snappedf(mire_s, 0.1),
+		"corrode_out": snappedf(corrode_out, 0.1), "nerve_bursts": nerve_bursts,
+		"enemies_peak": en, "ebullets_peak": eb, "dark_s": snappedf(dark_s, 0.1)}
+
+
 ## 结束时的局面（死因 × 缩圈阶段 × Boss 在场；A/B 缩圈规则用，2026-09-27）
 func end_ctx() -> Dictionary:
 	var out: float = g.ppos.distance_to(g.zone_c) - g.zone_r
 	return {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
-		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp)}
+		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot()}
 
 
 ## 整局指标块（记录里的 "bot" 字段：名字沿用平衡工具的历史叫法，玩家局 profile = "player"）
@@ -148,7 +206,7 @@ func metrics(profile: String) -> Dictionary:
 		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
 		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve,
-		"peak": peak, "peak_min": peak_min, "end": end_ctx()}
+		"peak": peak, "peak_min": peak_min, "end": end_ctx(), "floors": floor_snaps}
 
 
 ## 整局记录（平衡测试打印的 BALANCE 同一份；字段改名 / 删除要同步 tools/balance_run.py 与 SCHEMA）
@@ -159,6 +217,8 @@ func record(marks = null) -> Dictionary:
 	var bot_block: Dictionary = metrics(prof_name) if (g.bot != null or not g.autotest) else {}
 	return {"win": g.state == g.S.WIN, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
 		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
+		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
+		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,
 		"relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
 		"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp,
 		"bosses": g.bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]),
@@ -187,12 +247,12 @@ func save_local(result: String) -> void:
 	# 测试运行不写玩家的记录；自测写本地记录用 --runslog=<路径>（写到指定文件，不碰玩家目录）
 	var path := RUNS_PATH
 	var test_path := ""
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--runslog="):
 			test_path = a.substr(10)
 	if test_path != "":
 		path = test_path
-	elif not OS.get_cmdline_user_args().is_empty():
+	elif not Cfg.dev_args().is_empty():
 		return
 	elif not OS.is_debug_build():
 		return   # 发布版（export-release）不记任何玩家数据：用户 2026-09-26 决定暂不收集（docs/43）；只在开发试玩（编辑器 / 调试版）时记

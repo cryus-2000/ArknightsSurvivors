@@ -129,7 +129,8 @@ func update(dt: float) -> void:
 			continue
 
 		# ---- 移动
-		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) else 1.0)
+		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
+		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
 		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
@@ -168,6 +169,8 @@ func update(dt: float) -> void:
 						e.cdt = e.cd
 						g.eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
+		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
+			e.kb_self = false
 
 		# ---- 分离 + 吞噬
 		if e.ai != "static":
@@ -205,7 +208,7 @@ func update(dt: float) -> void:
 		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
 			e.pos = g.map.push_out(e.pos, e.r * 0.8)
 
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.4 秒鼓胀预警，爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
+		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
 			if e.get("burst_w", 0.0) > 0.0:
@@ -213,12 +216,13 @@ func update(dt: float) -> void:
 				if e.burst_w <= 0.0:
 					g.fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
 					Sfx.play("tentacle", -2.0, 0.7)
-					if dist < 80.0:
+					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
 						g.in_type = ["近战", "法术"]
 						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
-				e.burst_w = 0.4
+				e.burst_w = 0.8
+				e.burst_dur = 0.8   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 				e.burst_cd = 1.2
 
 		# ---- 接触伤害
@@ -238,6 +242,7 @@ func update(dt: float) -> void:
 					g.frost = maxf(g.frost, 2.0)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
+				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
 		if e.type == "tear" and dist < e.r + 14.0:
 			g.combat.lose_hp(6.0 * dt, "tear", true)
@@ -266,10 +271,10 @@ func update_lobs(dt: float) -> void:
 				g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
 			g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 			Sfx.play("boom", -14.0, 1.6, 0.1)
-			if l.to.distance_to(g.ppos) < l.r + 8.0 and g.invuln <= 0.0:
+			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {})
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {"hit_cap": l.get("hit_cap", 0.0)})
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -327,7 +332,7 @@ func update_status(dt: float) -> void:
 	for m in g.mires:
 		m.life -= dt
 		m.r = min(m.maxr, m.r + 5.0 * dt)
-		if m.pos.distance_to(g.ppos) < m.r and not sanct:
+		if g.combat.ground_d(g.ppos, m.pos) < m.r and not sanct:
 			mired = true
 			if not m.get("boss", false):
 				mire_nat = true
@@ -353,7 +358,9 @@ func update_status(dt: float) -> void:
 	g.mires = g.mires.filter(func(m): return m.life > 0.0)
 	for s in g.shocks:
 		s.r += 320.0 * dt
-		if not s.hit and abs(s.pos.distance_to(g.ppos) - s.r) < 22.0:
+		# 冲击环：环带宽 22，按地面椭圆算，且不超过最大半径（= 预警圈，docs/38 B0 第 5 项、docs/48 P0-1）
+		var sd: float = g.combat.ground_d(g.ppos, s.pos)
+		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr:
 			s.hit = true
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）

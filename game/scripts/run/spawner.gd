@@ -178,7 +178,7 @@ func update(dt: float) -> void:
 			spawn_enemy(et2, edge_pos())
 			var n1: String = D.ENEMIES[et].name
 			var n2: String = D.ENEMIES[et2].name
-			g.vfx.show_banner(("两只精英「%s」同时出现！" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！" % [n1, n2]))
+			g.vfx.show_banner(("两只精英「%s」同时出现！击败它们获得藏品" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！击败它们获得藏品" % [n1, n2]))
 		else:
 			g.vfx.show_banner("精英「%s」出现！击败它获得藏品" % D.ENEMIES[et].name)
 		Sfx.play("roar", -3.0)
@@ -269,6 +269,9 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var hpm := g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp)
 	var dmm := float(g.dmod.enemy_dmg)
 	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
+	# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
+	# 只作用于普通怪和精英（Boss 在下面另算 e.dmg，不吃 dmg_t）；敌弹、抛石、冲击环、自爆、预警招式都按 e.dmg 算，自动跟上
+	dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.0), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
@@ -382,7 +385,7 @@ var tmpl_keys: Array = []
 
 
 func check_enemy(e: Dictionary, where: String) -> void:
-	if tmpl_keys.is_empty() or OS.get_cmdline_user_args().is_empty():
+	if tmpl_keys.is_empty() or Cfg.dev_args().is_empty():
 		return
 	var miss: Array = tmpl_keys.filter(func(k): return not e.has(k))
 	assert(miss.is_empty(), "敌人字典缺字段（%s）：%s" % [where, ", ".join(miss)])

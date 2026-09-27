@@ -65,7 +65,9 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		if o.has_method("dmg_taken_mult"):
 			dmg *= o.dmg_taken_mult()
 	var boss: bool = src.get("boss", false)
+	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
+	one_cap = 0.0
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
@@ -74,6 +76,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if src.get("corrode", 0.0) > 0.0:
 		var add: float = dmg * src.corrode * Bal.v("enemy/corrode_mult", 2.0) * g.corrode_taken_mult
 		_boss_pool()   # 池子被清空过（流明净化）时先把 Boss 部分截到池子以内，免得这次追加的普通侵蚀被当成 Boss 的
+		# 非 Boss 侵蚀池上限（用户 9/27 方案 3-B，数值旋钮 enemy/corrode_pool_cap，缺省 0 = 不封顶）：池里非 Boss 部分 ≤ 最大生命 × 上限，超出的新增作废；流出速度不变
+		var ncap: float = Bal.v("enemy/corrode_pool_cap", 0.0)
+		if not boss and ncap > 0.0:
+			add = clampf(add, 0.0, maxf(0.0, ncap * g.max_hp - (g.corrode_pool - corrode_boss)))
 		if boss:
 			# 侵蚀算进上限：追加进侵蚀池的量 ≤ 单发上限 − 这一发实际扣的血，并计入 2 秒合计（窗口满了就作废）；满血保护也管追加的侵蚀。
 			# 另外池里的 Boss 侵蚀合计 ≤ boss/corrode_pool_cap：Boss 在场时它的流出被封顶，不封池子会越攒越多，Boss 一死集中流出
@@ -85,7 +91,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 				boss_log.append([g.t, add])
 				corrode_boss += add
 		g.corrode_pool += add
-		if not boss or add > 0.0:
+		if add > 0.0:
 			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	if src.get("nerve", 0.0) > 0.0:
 		add_nerve(src.nerve * g.nerve_taken_mult)
@@ -194,14 +200,38 @@ func ctrl_report() -> Dictionary:
 ## 主控扣血统一入口（docs/38 §1.11、§1.17）：主控的扣血路径全部走这里——受击 hurt、黑潮、伊莎玛拉之泪、侵蚀结算、溟痕、灯火熄灭。
 ## 以后新增扣血来源也走这里。src 记入 g.dmg_log（NO_LOG 里的不记）。boss = Boss 来源，按主控保护截断（_boss_clamp）。
 ## 返回实际扣掉的生命。
+var one_cap := 0.0   # enemy_hit 这一次的单次上限（最大生命比例，0 = 无）；只在 enemy_hit 调 hurt 期间有效
+
+
 func lose_hp(amount: float, src: String, boss := false) -> float:
+	if one_cap > 0.0:
+		amount = minf(amount, one_cap * g.max_hp)
 	if g.hp >= Bal.v("boss/fullhp_guard_at", 0.9) * g.max_hp:
 		high_t = g.t   # 满血保护的「受击前生命」：只记账，不改非 Boss 来源的扣血
 	if boss:
 		amount = _boss_clamp(amount, src)
+	amount = _any_clamp(amount)
 	g.hp -= amount
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
+	return amount
+
+
+## 通用 2 秒掉血上限（用户 9/27「后期暴毙」方案 3-A，数值旋钮，缺省关）：任何来源（含 Boss、黑潮、熄灯、侵蚀结算）
+## 在 2 秒窗口内的实际扣血合计超过 最大生命 × protect/any_2s_cap 的部分，再乘 protect/any_excess_mult。
+## Boss 来源先走上面 _boss_clamp 那套，这里按截过之后的实际扣血记账，不重复截同一口径
+var any_log: Array = []   # [时刻, 实际扣血]
+
+
+func _any_clamp(amount: float) -> float:
+	var cap: float = Bal.v("protect/any_2s_cap", 0.0)
+	if cap <= 0.0 or amount <= 0.0:
+		return amount
+	var lim: float = cap * g.max_hp
+	var used := _window_sum(any_log, 2.0)
+	var over: float = maxf(0.0, used + amount - maxf(lim, used))
+	amount = amount - over + over * Bal.v("protect/any_excess_mult", 1.0)
+	any_log.append([g.t, amount])
 	return amount
 
 
@@ -497,6 +527,16 @@ func hit(src: String, extra_tags: Array = []) -> void:
 	var base: Dictionary = g.hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
 	g.hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
 		"class": base.get("class", ""), "op": base.get("op", "")}
+
+
+## ---- 地面形状统一判定（docs/38 §1.9「画即判」、docs/48 §1 第 1 项）：预警圈、冲击环、寒冰领域、抛石落点、溟痕都画成
+## 纵向 ×GROUND_Y 的椭圆；判定点统一用主控脚底，纵向距离先除以 GROUND_Y 再和半径比。游戏判定与机器人走位共用
+const GROUND_Y := 0.72
+
+
+func ground_d(p: Vector2, c: Vector2) -> float:
+	var v: Vector2 = p - c
+	return Vector2(v.x, v.y / GROUND_Y).length()
 
 
 ## ---- Boss 阶段卡点与每幕最短时长（docs/38 §1.3，B1 ①；2026-09-27 用户确认，不做力竭）

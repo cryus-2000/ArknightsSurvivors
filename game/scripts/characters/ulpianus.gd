@@ -19,7 +19,7 @@ const ABYSS := Color(0.1, 0.12, 0.2)        # 锚身：黑蓝
 const EDGE := Color(0.4, 0.62, 1.1)         # 刃光：深海蓝
 const WATER := Color(0.45, 0.78, 1.0)
 const BLOOD := Color(1.0, 0.25, 0.3)        # 血脉红纹
-const LEASH := 170.0
+const LEASH := 200.0   # 2026-09-27 近战前压（r1 的 260 让队友离开主控、主控身边空了，改 200 + 护主换目标；原 170.0）
 const HUNTERS := ["skadi", "specter_unchained"]
 
 var cd := 0.5
@@ -734,7 +734,7 @@ func draw_body() -> void:
 				var c := Color(1.0, 0.45, 0.5, al * ring[1])
 				for i in 8:
 					var off: Vector2 = Vector2.from_angle(i * TAU / 8.0) * ring[0]
-					draw_sprite_at(pos + off, st.flip, c, st.frame, wt, st.hf, fo)
+					draw_sprite_at(pos + off + Vector2(foot_dx(st), 0), st.flip, c, st.frame, wt, st.hf, fo)
 	super()
 
 

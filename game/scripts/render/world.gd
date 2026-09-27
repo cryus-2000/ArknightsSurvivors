@@ -22,6 +22,11 @@ var anim_t := 0.0
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
 var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
+var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
+var ishar_tf: Array = []         # 伊莎玛拉变身演出：[boss, 开始时刻]（换幕时记下，播 e_ishar_transform 一次）
+var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
+var scr_flash_max := 1.0
+var scr_flash_col := Color.WHITE
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
@@ -40,8 +45,9 @@ func _init(game: Game) -> void:
 
 func update_visuals(dt: float) -> void:
 	g._update_doc_follow(dt)
-	var bob: float = -abs(sin(g.walk_t)) * 2.0 if g.doc_moving else 0.0
-	g.sprite.position = (g.doc_pos + Vector2(0, bob + 6)).round()
+	# 不再叠代码起伏：博士跑步帧条自带步频；旧 2 帧待机条兜底时由 update_doctor_anim 按 anim_t 自己颠
+	# （原来按主控的 walk_t 起伏：步频对不上帧条，主控停下后博士还在追时 walk_t 不走，会卡在半空）
+	g.sprite.position = (g.doc_pos + Vector2(0, 6)).round()
 	g.sprite.flip_h = g.doc_face < 0.0
 	update_player_anim(g.get_process_delta_time())
 	update_player_feel(g.get_process_delta_time())
@@ -77,6 +83,8 @@ func update_visuals(dt: float) -> void:
 	g.cam.offset = cam_kick.round()
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
+	if g.state == Game.S.DEAD:
+		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
 	var flicker := 1.0 + sin(g.t * 13.0) * 0.02 + sin(g.t * 7.3) * 0.03
 	if g.lamp < 30.0:
 		flicker += sin(g.t * 23.0) * 0.06
@@ -104,11 +112,59 @@ func update_visuals(dt: float) -> void:
 		g.post.crowd = crowd
 
 
+## Boss 换幕 / 倒下演出（docs/48 P1：换幕只有横幅，死亡特效和精英同一套、比本体还小）。
+## 只在画面里观察 g.bosses 的 phase / dead 变化来放特效，不改战斗逻辑；平衡模式不绘制，不影响对局随机数（特效只用 vrng）
+func watch_bosses() -> void:
+	boss_seen = boss_seen.filter(func(s): return g.bosses.any(func(b): return is_same(b, s[0])))
+	for b in g.bosses:
+		var s: Array = []
+		for s2 in boss_seen:
+			if is_same(s2[0], b):
+				s = s2
+				break
+		if s.is_empty():
+			boss_seen.append([b, b.get("phase", 1), b.dead])
+			continue
+		if b.get("phase", 1) != s[1] and not b.dead:
+			s[1] = b.get("phase", 1)
+			boss_phase_fx(b)
+		if b.dead and not s[2]:
+			s[2] = true
+			if not b.get("retreated", false):
+				boss_down_fx(b)
+
+
+func _flash(col: Color, t: float) -> void:
+	scr_flash = t
+	scr_flash_max = t
+	scr_flash_col = col
+
+
+## 换幕：洋红冲击波两圈 + 放射光刺 + 全屏洋红一闪
+func boss_phase_fx(b: Dictionary) -> void:
+	if b.type == "ishar":
+		ishar_tf = [b, g.t]
+	g.fx.append({"kind": "boss_phase", "pos": b.pos, "r": b.r, "life": 0.9, "max": 0.9})
+	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.4, 0.4, 1.1), 20, 300.0)
+	_flash(Color(1.0, 0.3, 0.8), 0.35)
+
+
+## Boss 倒下：白色核心爆闪 + 三道错开的冲击环（最大到本体 8 倍）+ 竖直光柱 + 大量碎光，全屏白闪
+func boss_down_fx(b: Dictionary) -> void:
+	g.fx.append({"kind": "boss_down", "pos": b.pos, "r": maxf(b.r, 24.0), "life": 1.6, "max": 1.6})
+	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.6, 1.4, 1.8), 30, 420.0)
+	g.vfx.sparks(b.pos, Vector2.UP, Color(1.4, 0.5, 1.2), 16, 360.0)
+	_flash(Color(1.0, 0.97, 0.95), 0.4)
+
+
 func draw_world() -> void:
+	watch_bosses()
+	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
 	for m in g.mires:
 		g.map.draw_mire(m)
 	g.bai._draw_warns()
+	draw_nest_auras()
 	g.rfx.draw()
 	if not g.merchant.is_empty():
 		var mtx: Texture2D = g.tex.merchant
@@ -451,6 +507,41 @@ func draw_world() -> void:
 				for q in n:
 					var p0: Vector2 = f.a.lerp(f.b, float(q) / n)
 					UI.diamond(g, p0 + Vector2(0, -8), 4.0, Color(0.02, 0.05, 0.08, a), Color(0.7, 1.4, 2.0, a))
+			"boss_phase":
+				# Boss 换幕：两圈洋红冲击波 + 12 道放射光刺
+				var k := 1.0 - a
+				var mc := Color(1.6, 0.45, 1.3)
+				for q in 2:
+					var kq: float = clampf(k * 1.3 - q * 0.25, 0.0, 1.0)
+					if kq > 0.0 and kq < 1.0:
+						var rq: float = f.r * (1.2 + 6.0 * (1.0 - pow(1.0 - kq, 2.0)))
+						g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+						g.draw_arc(Vector2.ZERO, rq, 0.0, TAU, 64, Color(mc.r, mc.g, mc.b, (1.0 - kq) * 0.9), 6.0 - q * 2.0)
+						g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				for q in 12:
+					var dv := Vector2.from_angle(q * TAU / 12.0 + 0.26)
+					var r0: float = f.r * (0.8 + 3.0 * k)
+					g.draw_line(f.pos + dv * r0, f.pos + dv * (r0 + f.r * 1.6 * a + 10.0), Color(mc.r, mc.g, mc.b, a), 3.0)
+			"boss_down":
+				# Boss 倒下：核心爆闪 → 三道冲击环 → 光柱收细
+				var k := 1.0 - a
+				var el: float = f.max - f.life
+				if el < 0.3:
+					var ck: float = el / 0.3
+					g.draw_circle(f.pos, f.r * (1.0 + 1.5 * ck), Color(2.0, 1.9, 2.0, 1.0 - ck))
+				var cols := [Color(2.0, 1.9, 2.0), Color(1.6, 0.45, 1.3), Color(0.5, 1.5, 1.6)]
+				for q in 3:
+					var kq: float = clampf((el - q * 0.14) / 1.1, 0.0, 1.0)
+					if kq > 0.0 and kq < 1.0:
+						var rq: float = f.r * (1.0 + 7.0 * (1.0 - pow(1.0 - kq, 3.0)))
+						var cq: Color = cols[q]
+						g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+						g.draw_arc(Vector2.ZERO, rq, 0.0, TAU, 72, Color(cq.r, cq.g, cq.b, (1.0 - kq) * 0.85), 7.0 - q * 2.0)
+						g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				var pw: float = f.r * 1.4 * (1.0 - k * k)
+				if pw > 0.5:
+					g.draw_rect(Rect2(f.pos.x - pw / 2.0, f.pos.y - 520.0, pw, 520.0 + f.r * 0.4), Color(1.8, 1.6, 2.0, 0.55 * a))
+					g.draw_rect(Rect2(f.pos.x - pw / 6.0, f.pos.y - 520.0, pw / 3.0, 520.0 + f.r * 0.4), Color(2.0, 2.0, 2.0, 0.8 * a))
 			"rays":
 				# 技能发动：放射光束
 				var k := 1.0 - a
@@ -673,6 +764,13 @@ func draw_enemy(e: Dictionary) -> void:
 		name = "e_paranoia2"
 	elif e.coma and e.tex_feign:
 		name = name + "_feign"
+	# 伊莎玛拉完成转化（phase 2）：换成白壳金棘的变身形态 e_ishar_t*（112×96，docs/38 §6.2，docs/48 P1）；刚变身时先播 e_ishar_transform 一次
+	var tbase: String = e.tex
+	if e.type == "ishar" and e.phase == 2 and _lazy_tex("e_ishar_t") != null:
+		tbase = "e_ishar_t"
+		name = tbase
+		_lazy_tex("e_ishar_t_move")
+		_lazy_tex("e_ishar_t_attack")
 	var frames := 2
 	var frame := int(g.t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
 	# 移动帧条（美术 V5 / V8 / V9）：移动中播放 4 帧循环；停下、晕眩、假死时用本体
@@ -680,7 +778,7 @@ func draw_enemy(e: Dictionary) -> void:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
 			e.mv_until = g.t + 0.2
 		e.dpos = e.pos
-		if g.t < e.mv_until and e.stun <= 0.0 and not e.coma:
+		if g.t < e.mv_until and e.stun <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = 4
 			var fps: float = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
@@ -722,12 +820,10 @@ func draw_enemy(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	if ed.has("aura_r") and g.tex.get("fx_nest_aura") != null:
-		# 巢涌者神经光环：脚下的光环帧条按光环半径放大，外圈描出实际判定范围
-		var ar: float = ed.aura_r
-		g.vfx.spr("fx_nest_aura", 4, int(g.t * 10.0 + e.id) % 4, e.pos, ar / 24.0, false, Color(1, 1, 1, 0.45))
-		g.draw_arc(e.pos, ar, 0.0, TAU, 40, Color(0.9, 0.5, 1.6, 0.35), 2.0)
-	var sc: float = Game.PX * e.r / e.r0
+	var rage_fx: bool = e.get("enraged", false)   # 狂暴：除了待机帧换图，移动 / 攻击帧也染红、脚下红光（docs/48 P1：原来只在待机帧生效）
+	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
+	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
+	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0))
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)
@@ -756,6 +852,12 @@ func draw_enemy(e: Dictionary) -> void:
 		return
 	if e.stun > 0.0:
 		col = col * Color(0.65, 0.75, 1.0)
+	if rage_fx:
+		var rp: float = 0.5 + 0.5 * sin(g.t * 10.0 + e.id)
+		col = col * Color(1.35, 0.78, 0.72).lerp(Color(1.6, 0.7, 0.6), rp)
+		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.7), 0.0, Vector2(1.0, 0.45))
+		g.draw_circle(Vector2.ZERO, e.r * 1.3, Color(1.6, 0.25, 0.2, 0.18 + 0.12 * rp))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 冲刺预警线改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②）
 	if e.get("dash_t", 0.0) > 0.0:
 		g.vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
@@ -793,8 +895,8 @@ func draw_enemy(e: Dictionary) -> void:
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
 	if e.boss and e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0:
 		var pk: float = e.pose / e.pose_max
-		if e.tex_attack and not e.coma:
-			name = e.tex + "_attack"
+		if (e.tex_attack or g.tex.get(tbase + "_attack") != null) and not e.coma:
+			name = tbase + "_attack"
 			frames = 4
 			frame = clampi(int((1.0 - pk) * 4.0), 0, 3)
 		elif e.pose > 0.3:
@@ -806,6 +908,14 @@ func draw_enemy(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
+	if tbase != e.tex and not ishar_tf.is_empty() and is_same(ishar_tf[0], e) and g.t - ishar_tf[1] < 0.9 and _lazy_tex("e_ishar_transform") != null:
+		name = "e_ishar_transform"
+		frames = 6
+		frame = clampi(int((g.t - ishar_tf[1]) / 0.15), 0, 5)
+	# @2x 高清帧条（伊莎玛拉变身形态有 @2x）：同一逻辑尺寸，按密度减半
+	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
+	if hr > 1.0:
+		sc /= hr
 	if e.get("air", 0.0) > 0.0:
 		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
 		g.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
@@ -813,7 +923,7 @@ func draw_enemy(e: Dictionary) -> void:
 		g.draw_off.y -= e.air
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if Cfg.outline and g.tex.has(name + "_white"):
-		var oc := Color(1.6, 2.4, 3.2, 0.55) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
+		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
 		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
@@ -878,6 +988,7 @@ func _enemy_act_fx() -> void:
 		var ang: float = float(la.get("ang", 0.0))
 		match str(la.get("act", "")):
 			"dash", "charge":
+				Sfx.play("knight_charge", -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
 				var L: float = float(la.get("len", 200.0))
 				var dv := Vector2.from_angle(ang)
 				var s := 0.0
@@ -887,6 +998,7 @@ func _enemy_act_fx() -> void:
 				g.vfx.fx_sprite("fx_knight_impact", p0 + dv * L, g.PX * 1.2, ang)
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			"bite":
+				Sfx.play("knight_stab", -2.0, 1.0, 0.06)   # 枪刺「锵」+ 冰光
 				g.vfx.slash_fx(p0, ang, float(la.get("half", 0.8)), float(la.get("r", 125.0)), Color(0.7, 0.9, 1.6), "slash", 0.26)
 				for q in range(g.fx.size() - 3, g.fx.size()):
 					if q >= 0:
@@ -894,6 +1006,7 @@ func _enemy_act_fx() -> void:
 				g.vfx.fx_sprite("fx_knight_impact", p0 + Vector2.from_angle(ang) * float(la.get("r", 125.0)) * 0.7, g.PX, ang)
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			"frost":
+				Sfx.play("knight_frost", -4.0, 1.0, 0.0)   # 冰晶爆开
 				var fr: float = float(la.get("r", 200.0))
 				g.fx.append({"kind": "ring", "pos": p0, "r": fr, "life": 0.6, "max": 0.6, "col": Color(0.7, 0.9, 1.4), "enemy": true})
 				for q in 10:
@@ -924,19 +1037,122 @@ func draw_enemy_tells() -> void:
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
 			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
 			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
-		# 伊祖米克解读阶段每 7 秒一圈冲击波（扩到 420）：最后 1.2 秒画出将要扩到的范围，提前知道要躲（读 boss_ai 的 bt 计时）
-		if e.type == "izumik" and e.get("phase", 1) == 2:
-			var pre: float = e.get("bt", 0.0) - 5.8
-			if pre > 0.0:
-				var pk: float = clampf(pre / 1.2, 0.0, 1.0)
-				var pa: float = 0.35 + 0.5 * pk
-				for q in 36:
-					if q % 2 == 1:
-						continue
-					var a0: float = TAU * q / 36.0 + g.t * 0.3
-					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(0, 0, 0, 0.5 * pa), 5.0)
-					g.draw_arc(e.pos, 420.0, a0, a0 + TAU / 36.0, 6, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, pa), 2.5)
-				g.draw_arc(e.pos, e.r + 20.0 + 40.0 * pk, 0.0, TAU, 32, Color(1, 1, 1, 0.6 * pk), 2.0)
+		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
+		if e.type == "tear":
+			_tear_zone(e)
+		elif e.boss:
+			_boss_state(e)
+
+
+## 地面进度环（脚下椭圆，从正上方顺时针填充）
+func _ground_ring(p: Vector2, r: float, k: float, c: Color) -> void:
+	g.draw_set_transform(p, 0.0, Vector2(1.0, 0.5))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0, 0, 0, 0.55), 7.0)
+	g.draw_arc(Vector2.ZERO, r, -PI / 2.0, -PI / 2.0 + TAU * k, 48, c, 4.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 敌人贴图头顶的世界坐标（脚底锚点的贴图从脚往上长，不能按 e.r 算）
+func _enemy_top(e: Dictionary) -> Vector2:
+	var tx: Texture2D = g.tex.get(e.tex)
+	if tx == null or not g.foot_anchor.has(e.tex):
+		return e.pos + Vector2(0, -e.r - 8.0)
+	var sc: float = Game.PX * e.r / e.r0 * float(D.ENEMIES.get(e.type, {}).get("draw_scale", 1.0)) / A.hires_of(tx)
+	return e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
+
+
+## 巢涌者神经光环（docs/48 P1：帧条放大 4.6 倍后颗粒很粗，画在实体层会盖住其他东西）：
+## 地面层程序绘制——淡紫柔光底、两道向内收的涟漪、缓慢转动的虚线外圈 = 判定范围
+func draw_nest_auras() -> void:
+	for e in g.enemies:
+		if e.dead:
+			continue
+		var ed: Dictionary = D.ENEMIES.get(e.type, {})
+		if not ed.has("aura_r"):
+			continue
+		var ar: float = ed.aura_r
+		var ac := Color(0.9, 0.5, 1.6)
+		for q in 4:
+			g.draw_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035))
+		for q in 2:
+			var u: float = fmod(g.t * 0.5 + q * 0.5 + e.id * 0.17, 1.0)
+			g.draw_arc(e.pos, ar * (1.0 - u * 0.85), 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u)), 1.5)
+		var rot: float = g.t * 0.4 + e.id
+		for q in 18:
+			var a0: float = rot + q * TAU / 18.0
+			g.draw_arc(e.pos, ar, a0, a0 + TAU / 36.0, 4, Color(ac.r, ac.g, ac.b, 0.55), 2.0)
+
+
+## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
+func _lazy_tex(n: String) -> Texture2D:
+	if not g.tex.has(n):
+		g.tex[n] = A.tex(n)
+		if g.tex[n] != null:
+			g.tex[n + "_white"] = A.white_of(g.tex[n])
+	return g.tex[n]
+
+
+## 伊莎玛拉之泪（docs/48 P1：没有危险圈，外形像掉落物）：脚下洋红危险圈 = 灼伤范围（enemies.gd：距离 < r + 14 每秒掉 6 血），
+## 缓慢呼吸；伊莎玛拉还在转化（phase 1）时，一串光点从泪流向她，读得出「泪在给她充能，打掉它」
+func _tear_zone(e: Dictionary) -> void:
+	var r: float = e.r + 14.0
+	var pulse: float = 0.5 + 0.5 * sin(g.t * 4.0 + e.id)
+	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, ground_y()))
+	g.draw_circle(Vector2.ZERO, r, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.12 + 0.06 * pulse))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(0, 0, 0, 0.5), 4.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(ENEMY_TELL.r * 1.3, ENEMY_TELL.g * 1.3, ENEMY_TELL.b * 1.3, 0.6 + 0.3 * pulse), 2.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for b in g.bosses:
+		if b.dead or b.type != "ishar" or b.phase != 1:
+			continue
+		var d: Vector2 = b.pos - e.pos
+		for q in 5:
+			var u: float = fmod(g.t * 0.6 + q / 5.0 + e.id * 0.13, 1.0)
+			g.draw_circle(e.pos + d * u, 2.5, Color(0.6, 1.6, 1.4, 0.7 * sin(u * PI)))
+
+
+## Boss 身上的状态（docs/48 P1）：
+## 接潮组假死 → 身边一圈倒计时环（假死期间每秒回 10% 血，回满苏醒：环 = 血量），连一条虚线到另一体，提示「同时击倒」；
+## 圣徒装填 → 金色装填环 + 三颗弹药格依次点亮，「装填中 · 攻击打断」；装填被打断 / 其他晕眩 → 头顶三颗转圈的星 + 剩余秒数
+func _boss_state(e: Dictionary) -> void:
+	var top: Vector2 = _enemy_top(e) + Vector2(0, -18.0)
+	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8) if g.foot_anchor.has(e.tex) else e.pos
+	if e.get("coma", false):
+		var k: float = clampf(e.hp / e.maxhp, 0.0, 1.0)
+		var rr: float = e.r + 12.0
+		var tc := Color(0.5, 1.5, 1.4)
+		_ground_ring(foot, rr, k, tc)
+		var left: float = (e.maxhp - e.hp) / maxf(e.maxhp * 0.1, 0.001)
+		UI.text(g, g.font, top + Vector2(-120, -4), "假死 %d 秒 · 同时击倒另一体" % ceili(left), 13, tc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		var p = e.get("partner")
+		if p != null and not p.dead:
+			var d: Vector2 = p.pos - e.pos
+			var L: float = d.length()
+			var dn: Vector2 = d / maxf(L, 1.0)
+			var s: float = fmod(g.t * 40.0, 16.0)
+			while s < L:
+				g.draw_line(e.pos + dn * s, e.pos + dn * minf(s + 8.0, L), Color(tc.r, tc.g, tc.b, 0.45), 2.0)
+				s += 16.0
+		return
+	if e.get("channel", 0.0) > 0.0 and e.type in ["iberia", "carmen"]:
+		var k: float = clampf(1.0 - e.channel / 2.0, 0.0, 1.0)
+		var rr: float = e.r + 10.0
+		var gc := Color(1.6, 1.2, 0.5)
+		_ground_ring(foot, rr, k, gc)
+		for q in 3:
+			var on: bool = k >= (q + 1) / 3.0
+			var pp: Vector2 = top + Vector2(-14 + q * 14, 10)
+			g.draw_rect(Rect2(pp - Vector2(3, 5), Vector2(6, 10)), gc if on else Color(0.2, 0.15, 0.1, 0.8))
+			g.draw_rect(Rect2(pp - Vector2(3, 5), Vector2(6, 10)), Color(0, 0, 0, 0.7), false, 1.0)
+		UI.text(g, g.font, top + Vector2(-120, -6), "装填中 · 攻击打断", 13, gc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		return
+	if e.stun > 0.05:
+		for q in 3:
+			var a: float = g.t * 5.0 + q * TAU / 3.0
+			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
+			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
+		if e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
+			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 晕眩 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 
 
 ## 地面形状的纵向压缩：和判定一致（combat.gd 的 GROUND_Y，Boss与怪物「画即判」；还没有这个常量时按正圆 1.0）

@@ -9,7 +9,7 @@ extends "res://scripts/characters/character.gd"
 
 const GHOST := Color(0.75, 0.85, 0.95)
 const RED := Color(0.9, 0.3, 0.4)
-const LEASH := 150.0
+const LEASH := 200.0   # 2026-09-27 近战前压（r1 的 260 让队友离开主控、主控身边空了，改 200 + 护主换目标；原 150.0）
 
 var cd := 0.4
 var s1_t := 0.0
@@ -316,7 +316,7 @@ func _update_doll(dt: float) -> void:
 	doll_t -= dt
 	doll_at += dt
 	# 替身跟随主控干员（用户定：不原地停留），站在主控身后一侧
-	var want: Vector2 = g.ppos + Vector2(-46.0 * g.facing, 8.0)
+	var want: Vector2 = g.ppos + Vector2(-46.0 * g.squad.side, 8.0)   # 随编队平滑换边，不再随主控转身瞬间横穿
 	doll_pos = doll_pos.lerp(want, clampf(dt * 4.0, 0.0, 1.0))
 	# N5 阿戈尔挽歌：替身唱挽歌，每 0.8 秒一圈水纹从脚下外扩到减速范围边缘
 	if elegy:

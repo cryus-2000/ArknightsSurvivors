@@ -149,6 +149,7 @@
   "wrath_dmg": 45.0,
   "dust_dmg": 10.0,
   "scavenge_mult": 8.0,
+  "mine_dmg": 42.0,
   "coin_sp": 0.12,
   "iron_sp": 0.05,
   "judge_cap": 0.04,

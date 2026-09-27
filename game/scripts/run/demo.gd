@@ -125,6 +125,10 @@ func wander() -> Vector2:
 		charging = false
 		return Vector2.ZERO
 	var stop: float = best.r + 40.0 if g.ch.range_cls() == "近战" else minf(float(g.ch.def.get("range", 260.0)) * 0.7, 230.0)
+	# 带召唤物的干员（凯尔希的 Mon3tr 只追主控 190 以内的敌人）：主控站远了，杀完一只下一只就出了牵引范围，
+	# Mon3tr 会跑回来发呆（2026-09-27 用户：图鉴里 Mon3tr 展示有点呆）。往前站到离怪 110，让它一直有目标可追
+	if "m" in g.ch:
+		stop = minf(stop, 110.0)
 	if charging:
 		charge_t += g.get_process_delta_time()
 		charging = bd > stop or (charge_t < WALK_MIN_T and bd > best.r + 24.0)

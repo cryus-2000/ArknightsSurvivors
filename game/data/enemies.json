@@ -10,7 +10,8 @@
    "xp": 1.0,
    "tex": "e_bone",
    "ai": "melee",
-   "corrode": 0.2
+   "corrode": 0.2,
+   "atk_anim": true
   },
   "slider": {
    "name": "底海滑动者",
@@ -25,7 +26,8 @@
    "pattern": "dash",
    "dash_range": 240,
    "dash_wind": 0.5,
-   "dash_speed": 3.8
+   "dash_speed": 3.8,
+   "atk_anim": true
   },
   "stone": {
    "name": "固海凿石者",
@@ -54,7 +56,8 @@
    "morph": true,
    "pattern": "nova",
    "nova_range": 320,
-   "nova_n": 6
+   "nova_n": 6,
+   "atk_anim": true
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -91,7 +94,9 @@
    "pattern": "dash",
    "dash_range": 150,
    "dash_wind": 0.4,
-   "dash_speed": 4.5
+   "dash_speed": 4.5,
+   "draw_scale": 1.7,
+   "atk_anim": true
   },
   "burrower": {
    "name": "潜海裂魔",
@@ -112,7 +117,8 @@
    "nerve": 10.0,
    "pattern": "burrow",
    "burrow_range": 84,
-   "up_time": 3.2
+   "up_time": 3.2,
+   "draw_scale": 1.2
   },
   "spitter": {
    "name": "溟海喷吐者",
@@ -132,7 +138,8 @@
    "range": 320.0,
    "cd": 3.2,
    "spit": true,
-   "corrode": 0.4
+   "corrode": 0.4,
+   "draw_scale": 1.17
   },
   "hulk": {
    "name": "巨骸漂流体",
@@ -155,7 +162,8 @@
    "pattern": "stomp",
    "stomp_range": 170,
    "stomp_r": 135,
-   "stomp_cd": 6.0
+   "stomp_cd": 6.0,
+   "draw_scale": 2.6
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -169,7 +177,7 @@
    "move_fps": 10.0,
    "pattern": "blast",
    "blast_range": 60,
-   "blast_fuse": 0.55,
+   "blast_fuse": 0.8,
    "blast_r": 62,
    "no_contact": true,
    "atk_anim": true,
@@ -177,7 +185,7 @@
    "chips": [
     "自爆"
    ],
-   "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.55 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
+   "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.8 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
    "name": "浮海飘航者",
@@ -197,7 +205,7 @@
    "shot_nerve": 18.0,
    "atk_anim": true,
    "cap": 10,
-   "desc": "悬浮在射程边缘发射慢速神经弹，命中造成「神经损伤」，积满后主控会短暂僵直。"
+   "desc": "悬浮在攻击范围边缘发射慢速神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。"
   },
   "reaper": {
    "name": "钵海收割者",
@@ -245,13 +253,13 @@
     "厚甲",
     "溟痕"
    ],
-   "desc": "厚甲缓行，受到的非真实伤害 -30%，几乎推不动；靠近后前肢重击地面。死亡时留下一片溟痕。"
+   "desc": "厚甲缓行，受到的非真实伤害 -30%，难以击退；靠近后前肢重击地面。死亡时留下一片溟痕。"
   },
   "tracer": {
    "name": "深溟引痕者",
    "hp": 120.0,
    "spd": 50.0,
-   "dmg": 14.0,
+   "dmg": 11.0,
    "weak": "物理",
    "r": 17.0,
    "xp": 5.0,
@@ -261,15 +269,16 @@
    "thrust_range": 170,
    "thrust_cd": 3.2,
    "enrage_at": 0.5,
-   "enrage_spd": 1.35,
+   "enrage_spd": 1.2,
    "trail_mire": true,
    "atk_anim": true,
-   "cap": 6,
+   "cap": 4,
    "chips": [
     "狂暴",
     "溟痕"
    ],
-   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。"
+   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。",
+   "thrust_mult": 0.9
   },
   "nest": {
    "name": "深溟巢涌者",
@@ -292,7 +301,7 @@
    "chips": [
     "神经光环"
    ],
-   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。优先击杀。"
+   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。"
   },
   "fractal": {
    "name": "塑路者碎片",
@@ -327,7 +336,8 @@
    "ai": "melee",
    "role": "elite",
    "burst": true,
-   "elite_after": 0
+   "elite_after": 0,
+   "atk_anim": true
   },
   "skimmer": {
    "name": "掠海漂移体",
@@ -515,7 +525,7 @@
    "spd": 74.0,
    "dmg": 22.0,
    "weak": "法术",
-   "r": 24.0,
+   "r": 18.0,
    "xp": 16.0,
    "tex": "e_knight",
    "ai": "melee",
@@ -529,7 +539,8 @@
    "dash_wind": 0.6,
    "dash_speed": 5.2,
    "ingots": 6,
-   "no_spawn": true
+   "no_spawn": true,
+   "draw_scale": 0.7
   },
   "knight_boss": {
    "name": "最后的骑士",
@@ -537,7 +548,7 @@
    "spd": 60.0,
    "dmg": 24.0,
    "weak": "法术",
-   "r": 30.0,
+   "r": 23.0,
    "xp": 90.0,
    "tex": "e_knight",
    "ai": "melee",
@@ -545,7 +556,8 @@
    "heavy": true,
    "atk": "物理",
    "move_fps": 8,
-   "phases": 2
+   "phases": 2,
+   "draw_scale": 0.7
   }
  }
 }

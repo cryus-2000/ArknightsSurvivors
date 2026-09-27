@@ -30,7 +30,7 @@ func draw() -> void:
 		return
 	draw_elite_marks(ct)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
-	for f in (g.texts if g.state != Game.S.SHOW or g.demo_op != "" else []):
+	for f in (g.texts if (g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "" else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		# 图鉴演示：主控身上的飘字压淡（斯卡蒂潮汐时成串数字会整块盖住她）
 		if g.demo_op != "" and g.ch != null and absf(f.pos.x - g.ch.pos.x) < 36.0 and f.pos.y > g.ch.pos.y - 80.0 and f.pos.y < g.ch.pos.y + 10.0:
@@ -99,6 +99,12 @@ func draw() -> void:
 			edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * g.in_mire), 130.0)
 		if g.in_mire > 0.5 and g.state == Game.S.PLAY:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, g.in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+	# Boss 换幕 / 倒下的全屏闪（world.watch_bosses）
+	if g.world.scr_flash > 0.0:
+		var fk: float = g.world.scr_flash / g.world.scr_flash_max
+		var fc: Color = g.world.scr_flash_col
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(fc.r, fc.g, fc.b, 0.28 * fk * fk))
+		edge_glow(vs, Color(fc.r, fc.g, fc.b, 0.8 * fk), 120.0)
 	# 受击时屏幕边缘泛红
 	if g.red_flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.8, 0.05, 0.1, g.red_flash * 0.16))
@@ -109,12 +115,14 @@ func draw() -> void:
 		edge_glow(vs, Color(0.85, 0.05, 0.12, 0.3 + 0.35 * beat), 110.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 110), "生命垂危", 18, Color(1.0, 0.4, 0.45, 0.5 + 0.5 * beat), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# 头顶血条：受伤后或低血量时显示
-	if g.state == Game.S.PLAY and (g.head_bar_t > 0.0 or g.hp < g.max_hp * 0.3):
+	var pool: float = g.corrode_pool
+	if g.state == Game.S.PLAY and (g.head_bar_t > 0.0 or g.hp < g.max_hp * 0.3 or pool > 0.5):
 		var hpos: Vector2 = ct * g.ppos + Vector2(-24, -104)
-		var ha := clampf(g.head_bar_t / 0.5, 0.0, 1.0) if g.hp >= g.max_hp * 0.3 else 1.0
+		var ha := clampf(g.head_bar_t / 0.5, 0.0, 1.0) if g.hp >= g.max_hp * 0.3 and pool <= 0.5 else 1.0
 		g.hud.draw_rect(Rect2(hpos - Vector2(1, 1), Vector2(50, 7)), Color(0, 0, 0, 0.7 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp_trail / g.max_hp, 0.0, 1.0), 5)), Color(1, 0.95, 0.9, 0.9 * ha))
 		g.hud.draw_rect(Rect2(hpos, Vector2(48 * clampf(g.hp / g.max_hp, 0.0, 1.0), 5)), Color(1.0, 0.3, 0.35, ha) if g.hp < g.max_hp * 0.3 else Color(0.35, 0.95, 0.75, ha))
+		corrode_seg(Rect2(hpos, Vector2(48, 5)), ha)
 	if g.lamp < 30.0 and g.state == Game.S.PLAY and not low_hp and not zone_out and g.in_mire <= 0.0:
 		edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(g.t * 3.0)), 140.0)
 
@@ -140,6 +148,7 @@ func draw() -> void:
 	UI.ctext(g.hud, g.font, Vector2(hx, o.y + 40) + hs, hps, 21, UI.RED if low else UI.TEXT)
 	UI.ctext(g.hud, g.font, Vector2(hx + UI.cwidth(g.font, hps, 21) + 4, o.y + 40) + hs, "/ %d" % int(g.max_hp), 13, UI.SUB)
 	UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), g.hp / g.max_hp, hpc, 0, g.hp_trail / g.max_hp)
+	corrode_seg(Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), 1.0)
 	# 灯火：30 / 70 两道刻度
 	var lx := hx + 172.0
 	var lamp_low := g.lamp < 30.0
@@ -220,6 +229,7 @@ func draw() -> void:
 			var sd2 := dd.orthogonal() * 10.0
 			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
 			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+	draw_boss_pointers(vs, ct)
 	if not overlay_left():
 		draw_minimap(vs)
 	var st_txt := ""
@@ -337,10 +347,10 @@ func draw() -> void:
 		var sub_col := UI.SUB
 		var mv_name: String = shown.get("move_name", "")
 		if brk > 0.0:
-			sub = "破绽 %.1f 秒 · 受到伤害提高" % brk
+			sub = "破绽 %.1f 秒 · 受到的伤害 +%d%%" % [brk, roundi((Game.Bal.v("boss/break_mult", 1.4) - 1.0) * 100.0)]
 			sub_col = UI.GOLD
 		elif hold:
-			sub = "阶段护盾 · 撑过这一幕"
+			sub = "阶段护盾 · 本幕时限到后破碎"
 			sub_col = UI.GOLD
 		elif mv_name != "" and g.t - float(shown.get("move_t", -99.0)) < MOVE_NAME_T:
 			sub = mv_name   # 招式名进副标题行，不再头顶浮字（§1.15）
@@ -398,7 +408,7 @@ func draw() -> void:
 
 	# 横幅通知
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and (not horde_band or g.vfx.banner_prio >= 3):   # 精英化演出的遮罩只有 86%，横幅会透出来
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and (not horde_band or g.vfx.banner_prio >= 3):   # 精英化演出的遮罩只有 86%，横幅会透出来
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		if g.vfx.banner_small:
@@ -448,7 +458,14 @@ func draw() -> void:
 		Game.S.PAUSE:
 			g.result_screen.draw(vs, "暂停", "PAUSED", UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
 		Game.S.DEAD:
-			g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+			if g.state_age < DEATH_T:
+				draw_death_transition(vs)
+			else:
+				g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+				# 结算面板淡入：盖一层和过渡末尾同色的暗幕，0.35 秒退去
+				var fa: float = 1.0 - clampf((g.state_age - DEATH_T) / 0.35, 0.0, 1.0)
+				if fa > 0.0:
+					g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.85 * fa))
 		Game.S.WIN:
 			g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
 
@@ -811,6 +828,82 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		g.hud.draw_colored_polygon(tri, ELITE_COL)
 
 
+## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 1.7 秒——
+## 0–1.2 秒灯火熄灭（world 里灯光半径收到 0）、画面沉进深海色（整屏压暗 + 海水青黑暗角从四周合拢）；
+## 0.7 秒起「探索终止」浮出（中文大字 + 英文 + 洋红细线从中间向两边展开）；1.7 秒后结算面板淡入。任意键 / 点击跳过（game.gd）
+const DEATH_T := 1.7
+
+func draw_death_transition(vs: Vector2) -> void:
+	var k: float = clampf(g.state_age / DEATH_LAMP_T, 0.0, 1.0)
+	var e: float = 1.0 - pow(1.0 - k, 2.0)
+	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.62 * e))
+	# 海水色暗角：四条边往里渐隐的青黑带，越来越厚
+	var band: float = lerpf(0.0, minf(vs.x, vs.y) * 0.42, e)
+	for i in 10:
+		var f: float = float(i) / 10.0
+		var w: float = band * (1.0 - f)
+		var c := Color(0.0, 0.07, 0.09, 0.09 * e)
+		g.hud.draw_rect(Rect2(0, 0, vs.x, w), c)
+		g.hud.draw_rect(Rect2(0, vs.y - w, vs.x, w), c)
+		g.hud.draw_rect(Rect2(0, 0, w, vs.y), c)
+		g.hud.draw_rect(Rect2(vs.x - w, 0, w, vs.y), c)
+	# 标题
+	var ta: float = clampf((g.state_age - 0.7) / 0.5, 0.0, 1.0)
+	if ta > 0.0:
+		var cy: float = vs.y * 0.42
+		var lw: float = 260.0 * (1.0 - pow(1.0 - ta, 3.0))
+		g.hud.draw_rect(Rect2(vs.x / 2.0 - lw, cy + 14, lw * 2.0, 1), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.8 * ta))
+		UI.text(g.hud, g.font, Vector2(0, cy - 4.0 + 8.0 * (1.0 - ta)), "探索终止", 40, Color(1, 1, 1, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
+		var en := "OPERATION  FAILED"
+		UI.en(g.hud, g.font, Vector2(vs.x / 2.0 - g.font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x / 2.0 - 20.0, cy + 40), en, 13, Color(UI.RED.r, UI.RED.g, UI.RED.b, ta), 4.0)
+	# 右下角小字：可跳过
+	if g.state_age > 0.3:
+		UI.text(g.hud, g.font, Vector2(vs.x - 240, vs.y - 24), "点击或按任意键跳过", 12, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, 220)
+
+
+## 侵蚀待扣段（2026-09-27 协调人 / 数值）：侵蚀池 g.corrode_pool 里还没流出的量，画在血条当前值的末端往左、
+## 长度 = min(侵蚀池, 当前生命)——这一截血「已经注定要掉」；暗紫底 + 洋红斜纹，斜纹缓缓右移、微微呼吸，随流出缩短，净化后消失
+const CORRODE_COL := Color(0.62, 0.16, 0.72)
+const CORRODE_HI := Color(1.0, 0.36, 0.86)
+
+func corrode_seg(r: Rect2, a: float) -> void:
+	var pool: float = minf(g.corrode_pool, g.hp)
+	if pool <= 0.0 or g.max_hp <= 0.0:
+		return
+	var x1: float = r.position.x + r.size.x * clampf(g.hp / g.max_hp, 0.0, 1.0)
+	var x0: float = maxf(r.position.x, x1 - r.size.x * pool / g.max_hp)
+	if x1 - x0 < 1.0:
+		x0 = x1 - 1.0   # 太少也留 1 像素，看得出「有」
+	var y0: float = r.position.y
+	var h: float = r.size.y
+	var br: float = 0.8 + 0.2 * sin(g.t * 6.0)
+	g.hud.draw_rect(Rect2(x0, y0, x1 - x0, h), Color(CORRODE_COL.r, CORRODE_COL.g, CORRODE_COL.b, 0.95 * a))
+	# 斜纹：每 4 像素一道，左下到右上；两端按段落裁切
+	var ph: float = fmod(g.t * 6.0, 4.0)
+	var sx: float = x0 - h - 4.0 + ph
+	var hc := Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, br * a)
+	while sx < x1:
+		var ax: float = sx
+		var ay: float = y0 + h
+		var bx: float = sx + h
+		var by: float = y0
+		if ax < x0:
+			ay -= x0 - ax
+			ax = x0
+		if bx > x1:
+			by += bx - x1
+			bx = x1
+		if bx > ax:
+			g.hud.draw_line(Vector2(ax, ay), Vector2(bx, by), hc, 1.2)
+		sx += 4.0
+	# 左端一道亮边：流失到这里为止
+	g.hud.draw_rect(Rect2(x0, y0 - 1, 1, h + 2), Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, 0.9 * a))
+
+
+## 倒下过渡里灯火熄灭的时刻（灯光半径收到 0；音频 music_director 在这一刻播「灯灭」，引用本常量）
+const DEATH_LAMP_T := 1.2
+
+
 ## 招式名在副标题行停留的秒数（boss_ai 出招时写 e.move_name / e.move_t）
 const MOVE_NAME_T := 1.6
 
@@ -818,6 +911,41 @@ const MOVE_NAME_T := 1.6
 ## 顶部 Boss 大血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
 ## 只算活着、且 enemies.json 里 role == "boss" 的；两体 Boss（接潮双体等）正好 2 条，所以上限 2
 const BOSS_BARS_MAX := 2
+
+## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人和祭坛都有指示，Boss 没有）：
+## 屏幕边缘一个洋红红圈（比商人 / 祭坛大一号、双圈、脉动），里面是 Boss 常态帧头像，外侧箭头指向 Boss，旁边写名字和距离
+const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
+
+func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	for b in boss_bars():
+		var sp: Vector2 = ct * b.pos
+		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			continue
+		var c := vs / 2.0
+		var d := (sp - c).normalized()
+		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 72) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 72) / maxf(absf(d.y), 0.01)))
+		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
+		g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.14))
+		g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
+		g.hud.draw_arc(edge, 28.0, 0.0, TAU, 32, BOSS_PTR_COL, 2.0)
+		g.hud.draw_arc(edge, 32.0, 0.0, TAU, 32, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.35 + 0.4 * pulse), 1.0)
+		var bt: Texture2D = g.tex.get(b.tex)
+		if bt != null:
+			var fw: int = bt.get_width() / 2   # 敌人常态帧条固定 2 帧（同 world 画敌人）
+			var k: float = minf(44.0 / float(fw), 44.0 / float(bt.get_height()))
+			k = floorf(k) if k >= 1.0 else k
+			var sz := Vector2(fw, bt.get_height()) * k
+			g.hud.draw_texture_rect_region(bt, Rect2((edge - sz * 0.5).round(), sz), Rect2(0, 0, fw, bt.get_height()))
+		var tip: Vector2 = edge + d * (46.0 + 6.0 * pulse)
+		var base: Vector2 = edge + d * 33.0
+		var sd := d.orthogonal() * 12.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), BOSS_PTR_COL)
+		var nm: String = D.ENEMIES.get(b.type, {}).get("name", "Boss")
+		var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
+		UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), "%s  %dm" % [nm, int(b.pos.distance_to(g.ppos) / 32.0)], 13, BOSS_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+
 
 func boss_bars() -> Array:
 	var out: Array = []
@@ -845,10 +973,10 @@ func draw_status_bar(vs: Vector2) -> void:
 		if x.stat == "dmg":
 			items.append(["增伤 +%d%%" % int(x.value * 100.0), Color(1.0, 0.75, 0.4), clampf((x.until - g.t) / 6.0, 0.0, 1.0)])
 	if g.rfx.rule("black_tulip") > 0 and g.rfx.tulip_t > 1.0:
-		items.append(["郁金香 +%d%%" % int(60.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
+		items.append(["郁金香 +%d%%" % int(80.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
 	if g.rfx.perm_dmg > 0.0:
 		items.append(["刻勋 +%.1f%%" % (g.rfx.perm_dmg * 100.0), Color(1.0, 0.85, 0.5), -1.0])
-	if g.hp < g.max_hp * 0.3 and (g.rfx.rule("king_crown") + g.rfx.rule("king_gun") + g.rfx.rule("king_cake") + g.rfx.rule("king_branch")) > 0:
+	if g.rfx.king_low() and (g.rfx.rule("king_crown") + g.rfx.rule("king_gun") + g.rfx.rule("king_cake") + g.rfx.rule("king_branch")) > 0:
 		items.append(["国王之势", Color(1.0, 0.8, 0.3), -1.0])
 	if g.corrode_pool > 0.5:
 		items.append(["侵蚀 %d" % int(g.corrode_pool), Color(0.8, 0.5, 1.0), -1.0])

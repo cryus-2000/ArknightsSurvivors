@@ -58,7 +58,7 @@ var sim := false               # 测试：--padsim 时把 device 0 当作已连�
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Input.joy_connection_changed.connect(_on_joy_changed)
-	if OS.get_cmdline_user_args().has("--padsim"):
+	if Cfg.dev_args().has("--padsim"):
 		sim = true
 		add_child(load("res://tests/pad_sim.gd").new())
 

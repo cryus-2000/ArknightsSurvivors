@@ -8,7 +8,7 @@ extends "res://scripts/characters/character.gd"
 const BLUE := Color(0.35, 0.55, 0.95)
 const FOAM := Color(0.8, 0.95, 1.0)
 const DROP := Color(0.6, 0.9, 1.0)
-const LEASH := 160.0
+const LEASH := 200.0   # 2026-09-27 近战前压（r1 的 260 让队友离开主控、主控身边空了，改 200 + 护主换目标；原 160.0）
 const S3_DUR := 8.0
 
 var cd := 0.3

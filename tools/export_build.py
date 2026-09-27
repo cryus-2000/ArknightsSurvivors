@@ -36,18 +36,18 @@ README = """方舟幸存者（明日方舟同人，非商业）
 不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
 
 【操作】
-WASD / 方向键 移动；Space 或 J 手动技能；Tab 属性；Esc 暂停。支持手柄。
+WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；Q 或 J 手动技能（目前只有乌尔比安三技能）；Tab 属性；Esc 暂停；M 开关音乐。支持手柄。
 
 【说明】
 本作是《明日方舟》的非官方同人作品，与鹰角网络无关。部分特效改自开放许可的第三方像素素材，详见游戏内「致谢」页。
 """
 
 
-def run(cmd, cwd=None):
+def run(cmd, cwd=None, check=True):
     print(">", " ".join(cmd))
     p = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
     tail = "\n".join(p.stdout.splitlines()[-15:])
-    if p.returncode != 0:
+    if check and p.returncode != 0:
         print(tail)
         sys.exit("命令失败：%s" % cmd[0])
     return p.stdout
@@ -87,7 +87,7 @@ def main():
     game_dir = os.path.join(pkg, "game")
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
-    run([GODOT, "--headless", "--path", gpath, "--import"])
+    run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃（不影响导入结果），成败以下面导出为准
     out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
     if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ArknightsSurvivors.exe")):
         print("\n".join(out.splitlines()[-15:]))

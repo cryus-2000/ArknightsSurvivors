@@ -345,7 +345,7 @@ func _ready() -> void:
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
 			vrng.seed = int(a.substr(7)) + 7919
@@ -370,7 +370,7 @@ func _ready() -> void:
 			stats.set_base(k, float(doctor.def.stats[k]))
 	squad = Squad.new(self)
 	# 开局干员：标题页选人写入 Cfg.character_id；--op=<id> 测试覆盖；不存在时退回水月
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
 	if not Character.list_ids().has(Cfg.character_id):
@@ -379,7 +379,7 @@ func _ready() -> void:
 	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
 	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
 	# --noleader：平衡对照用，退回改动前「所有主控同一条血、无减伤」
-	var lead: Dictionary = {} if OS.get_cmdline_user_args().has("--noleader") else ch.def.get("leader", {})
+	var lead: Dictionary = {} if Cfg.dev_args().has("--noleader") else ch.def.get("leader", {})
 	for k in ["max_hp", "armor", "arts_res"]:
 		if lead.has(k) and stats.has_stat(k):
 			stats.set_base(k, float(lead[k]))
@@ -547,7 +547,7 @@ func _ready() -> void:
 	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
 	diff = D.DIFFICULTY_TIERS[tier].level
 	dmod = D.dmod_for_tier(tier)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			diff = int(a.substr(7))
@@ -565,7 +565,7 @@ func _ready() -> void:
 	hp = max_hp
 	hp_trail = hp
 	xp_need = Bal.v("xp/first", 8.0)
-	autotest = OS.get_cmdline_user_args().has("--autotest") or OS.get_cmdline_user_args().has("--balance")
+	autotest = Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance")
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
 		_sync_stats()
@@ -576,21 +576,21 @@ func _ready() -> void:
 			var n: Dictionary = ch.next_node()
 			var chs: Dictionary = ch.elite_choices(n) if n.get("type", "") == "elite" else {}
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
-	elif OS.get_cmdline_user_args().has("--introshot"):
+	elif Cfg.dev_args().has("--introshot"):
 		intro_screen.open.call_deferred(S.PLAY)
-	elif not autotest or OS.get_cmdline_user_args().has("--openshot"):
+	elif not autotest or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
-	balance = OS.get_cmdline_user_args().has("--balance")
+	balance = Cfg.dev_args().has("--balance")
 	if balance:
 		var bot_p := "normal"
 		var bot_seed := 0
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--bot="):
 				bot_p = a.substr(6)
 			elif a.begins_with("--seed="):
 				bot_seed = int(a.substr(7))
 		bot = Bot.new(self, bot_p, bot_seed)
-	for arg in OS.get_cmdline_user_args():
+	for arg in Cfg.dev_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
 		if arg.begins_with("--shots="):
@@ -600,12 +600,12 @@ func _ready() -> void:
 	if balance:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		Engine.max_fps = 0
-		for a in OS.get_cmdline_user_args():
+		for a in Cfg.dev_args():
 			if a.begins_with("--maxt="):
 				bal_maxt = float(a.substr(7))
-		prof_on = OS.get_cmdline_user_args().has("--prof")
-		headless_batch = DisplayServer.get_name() == "headless" and not OS.get_cmdline_user_args().has("--drawtest")
-		for a in OS.get_cmdline_user_args():
+		prof_on = Cfg.dev_args().has("--prof")
+		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
+		for a in Cfg.dev_args():
 			if a.begins_with("--trace="):
 				trace_every = float(a.substr(8))
 			# --bosstimes=30,60,90：冒烟测试把 Boss 提前（中期 Boss × 2 + 最终 Boss），一局两分钟内跑完所有 Boss 代码
@@ -613,7 +613,7 @@ func _ready() -> void:
 				D.BOSS_TIMES = Array(a.substr(12).split(",")).map(func(x): return float(x))
 		OS.low_processor_usage_mode = false
 		OS.low_processor_usage_mode_sleep_usec = 0
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--forceboss="):
 			force_boss = int(a.substr(12))
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
@@ -622,7 +622,7 @@ func _ready() -> void:
 				if squad.add(cid) != null:
 					panel_ui.load_op_tex(cid)
 	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():
 		if a.begins_with("--prog="):
 			for o in squad.ops:
 				for k in int(a.substr(7)):
@@ -765,6 +765,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
 			intro_screen.end_opening()
 		return
+	# 倒下过渡中（hud.DEATH_T 秒）：任意键 / 点击直接跳到结算，这次输入不传给结算按钮
+	if state == S.DEAD and state_age < HudView.DEATH_T:
+		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
+			state_age = HudView.DEATH_T
+			get_viewport().set_input_as_handled()
+		return
+	# 跳过 / 播完过渡后 0.35 秒（结算面板淡入期间）再挡一下输入：倒下时习惯连按，第二下别落到还在淡入的结算按钮上（架构建议）
+	if state == S.DEAD and state_age < HudView.DEATH_T + 0.35:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
@@ -788,7 +797,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var k: int = event.keycode
 	if _nav_key(k):
-		get_viewport().set_input_as_handled()
+		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
+			get_viewport().set_input_as_handled()
 		return
 	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
 		_try_dash()
@@ -1018,7 +1028,7 @@ func _update(dt: float) -> void:
 		var hl0: Dictionary = horde_log[horde_log.size() - 1]
 		if t - hl0.t < 20.0:
 			hl0.minhp = minf(hl0.minhp, hp)
-	if balance and OS.get_cmdline_user_args().has("--nodeath"):
+	if balance and Cfg.dev_args().has("--nodeath"):
 		if hp <= 0.0:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
@@ -1231,7 +1241,7 @@ const INTRO_PAGES := [
 	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
 		"海风吹向深处。罗德岛的小分队随水月潜入海嗣的深海，灯火是唯一的光。",
 		"你是博士。带着你的小队撑过 10 分钟，直面 10:00 醒来的最终 Boss。你的抉择，会决定故事走向哪一个结局。3:30 与 7:00 各有强敌拦路。",
-		"主控走在最前面，也是唯一会受伤的人。技能都会自动释放，你只管走位（WASD）与冲刺（空格，冲刺中无敌）。灯光里的敌人更脆弱。"]},
+		"主控走在最前面，也是唯一会受伤的人。技能大多会自动释放，你只管走位（WASD）与冲刺（空格，冲刺中无敌）。灯光里的敌人更脆弱。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。医疗干员、回复药剂与部分藏品可以回血。",
 		"灯火（金条）不会自己燃尽，只在受击时熄灭一截：伤害越重熄得越多，黑潮里也会持续流失。拾取敌人掉落的灯油、或向商人购买灯油补充。灯光范围内的敌人受到的伤害 +25%，灯越亮范围越大。",
@@ -1243,11 +1253,11 @@ const INTRO_PAGES := [
 		"精英海嗣定期出现（带金色光环与血条），击败必掉源石锭和补给箱；进化体（红色）更强，越到后期比例越高。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
 	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
 		"紫黑色的溟痕会越来越多：站在里面会减速、持续掉血，并积累神经损伤（满了会僵直）。远程海嗣的弹幕落地也会留下溟痕。",
-		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。",
+		"2:30 起安全区开始收缩（小地图上的紫色圆圈）。圈外是「黑潮」，会快速掉血、流失灯火。刚出圈的 2 秒不掉血；Boss 在场时缩圈暂停。",
 		"看到「黑潮将至」提示时，提前往白色虚线圈里走。收缩共 4 轮，越到后期战场越小，大群来袭时更要注意走位。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，Lv.5 起会出现招募卡；医疗无人机也是常规选项：选到即加入，之后可继续升级（最高 Lv.5）。第一次拿到新技能或进阶时会有演示。",
-		"每名干员招募即有一技能，精英化一解锁二技能与天赋，精英化二解锁三技能。三个技能全部自动释放，先练谁、练到几精是这一局的核心取舍。",
+		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，升级途中会出现招募卡；医疗无人机也是常规选项：选到即加入，之后可继续升级（最高 Lv.5）。第一次拿到新技能或进阶时会有演示。",
+		"每名干员招募即有一技能，精英一解锁二技能与天赋，精英二解锁三技能。技能大多自动释放（乌尔比安的三技能要按 Q），先练谁、练到几精是这一局的核心取舍。",
 		"编队最多 3 名常规干员（开局 1 名 + 局内招募 2 名）。没有医疗干员时，可以在升级时选医疗无人机补回复。按 Tab 随时查看主控属性、编队与藏品效果。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
 		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。补给箱也会定期在地图上出现（屏幕边缘有指示）。",
@@ -1262,9 +1272,10 @@ const INTRO_PAGES := [
 		"结局由你做出的决定决定，后做的决定覆盖先做的；右上角藏品栏下方与 Tab 面板会一直显示当前走向，9:00 有终局预告。",
 		"四个结局各有不同的最终 Boss 与后半程规则，达成后会收录进标题页的图鉴「结局」分页。"]},
 	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
-		"WASD / 方向键：移动　　Tab 或 C：查看属性与技能　　Esc：暂停",
-		"升级 / 宝箱 / 商人 / 祭坛：按 1 2 3 或点击选择　　M：静音　　R：重来",
-		"手柄：左摇杆移动 · Ⓐ 确认 · Ⓑ 返回 · START 暂停 · SELECT 属性面板 · LB / RB 翻页。暂停菜单按 G 可随时重看本指南。祝你好运，博士。"]},
+		"WASD / 方向键：移动　　空格：冲刺　　Q：手动技能",
+		"Tab 或 C：属性与技能　　Esc：暂停　　M：开关音乐　　R：重来",
+		"升级 / 宝箱 / 商人 / 祭坛：按数字键或点击选择",
+		"手柄：左摇杆移动 · Ⓑ / RB 冲刺 · Ⓐ / Ⓧ 手动技能 · START 暂停 · SELECT 属性面板 · 菜单里 Ⓐ 确认、Ⓑ 返回 · LB / RB 翻页。暂停菜单按 G 可随时重看本指南。祝你好运，博士。"]},
 ]
 
 

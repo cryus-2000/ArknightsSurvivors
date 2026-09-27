@@ -53,14 +53,14 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.3, 0.72)})
 			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
 			Sfx.play("boom", -8.0, 1.3, 0.0)
-			if dist < r + 10.0 and g.invuln <= 0.0:
+			if g.combat.ground_d(g.ppos, e.pos) < r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "blast_" + e.type
 				g.in_type = ["近战", "法术"]
 				g.combat.enemy_hit(e.dmg, {"corrode": 0.0, "nerve": 0.0}, false)
 			e.dead = true
 		return Vector2.ZERO
 	if dist < float(d.get("blast_range", 60)):
-		e.blast_w = float(d.get("blast_fuse", 0.55))
+		e.blast_w = float(d.get("blast_fuse", 0.8))
 		return Vector2.ZERO
 	return Vector2.INF
 
@@ -79,7 +79,7 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		return Vector2.ZERO
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
-		g.bai._warn(e, "cone", 0.45, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * 1.2})
+		g.bai._warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * 1.2})
 	return Vector2.INF
 
 
@@ -99,7 +99,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai._cd(e, "thrust", float(d.get("thrust_cd", 3.2))):
-		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * 1.2})
+		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2))})
 	return Vector2.INF
 
 
@@ -149,7 +149,8 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 	if e.get("dash_w", 0.0) > 0.0:
 		e.dash_w -= dt
 		if e.dash_w <= 0.0:
-			e["dash_t"] = 0.35
+			e["dash_t"] = e.get("dash_dur", 0.35)
+			e.last_act = {"act": "charge", "shape": "line", "pos": e.pos, "ang": e.dash_dir.angle(), "len": e.get("dash_len", 0.0), "t": g.t}
 		return Vector2.ZERO
 	if e.get("dash_t", 0.0) > 0.0:
 		e.dash_t -= dt
@@ -158,6 +159,11 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 		e.dash_cd = g.rng.randf_range(3.0, 4.5)
 		e["dash_w"] = float(d.get("dash_wind", 0.5))
 		e["dash_dir"] = dir
+		# 冲刺时长按起冲时的距离算，保证能冲到主控身上再多 30（原来固定 0.35 秒，滑动者只冲 96、骑士精英 135，起冲距离却是 240 / 300，
+		# 根本碰不到人——用户实机反馈 9/27）；夹在 0.2–1.0 秒。dash_len = 实际冲出距离，画冲刺预警线用
+		var dv_spd: float = maxf(1.0, spd * float(d.get("dash_speed", 3.8)))
+		e["dash_dur"] = clampf((dist + 30.0) / dv_spd, 0.2, 1.0)
+		e["dash_len"] = dv_spd * e.dash_dur
 		return Vector2.ZERO
 	return Vector2.INF
 
@@ -217,7 +223,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss})
+			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0)})
 	e.atk_until = g.t + 0.2   # 小怪攻击帧条（atk_anim）：出手后播第 3、4 帧
 	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
 	var so: String = d.get("spawn_on_shot", "")
@@ -228,8 +234,9 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 				nb += 1
 		if nb < int(d.get("spawn_max", 12)):
 			var sp_pos: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0)
-			g.spawner.spawn_enemy(so, sp_pos)
-			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」（出生前的预告延时归 Boss与怪物）
+			# 先在落点画 0.6 秒预告圈，结算时才刷出（docs/48 P0-7；boss_ai._warn_resolve 的 "spawn"），育母被打死也照常刷出
+			g.bai._warn(e, "circle", 0.6, {"pos": sp_pos, "r": 22.0, "act": "spawn", "spawn": so, "lock": false, "col": Color(1.0, 0.3, 0.72), "dmg": 0.0})
+			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」
 			g.fx.append({"kind": "rift", "pos": sp_pos, "r": 22.0, "life": 0.5, "max": 0.5})
 			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
 
@@ -237,4 +244,4 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
 func lob(e: Dictionary) -> void:
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
-	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false)})
+	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 1.0, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0)})

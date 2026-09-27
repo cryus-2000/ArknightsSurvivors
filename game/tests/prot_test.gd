@@ -40,6 +40,12 @@ func _process(_d: float) -> void:
 	if frames != 5:
 		return
 	c = game.combat
+	# 测试期间把「全局」保护旋钮按代码缺省（关）来测：balance.json 里数值打开的通用 2 秒上限 / 非 Boss 侵蚀池上限
+	# 会改变 Boss 保护各用例的期望值；只在 test_any_cap 里临时打开。测完还原（数值 9/27 收口轮发现）
+	var bal_bak: Dictionary = Bal._data.duplicate(true)
+	Bal._data["protect"] = {}
+	if Bal._data.has("enemy"):
+		Bal._data["enemy"].erase("corrode_pool_cap")
 	# 放一只真的 Boss 在远处（「Boss 在场」），整个测试期间它不动：直接调结算函数，不推进游戏帧
 	var b: Dictionary = game.spawner.spawn_enemy("knight_boss", game.ppos + Vector2(2000, 0))
 	game.bosses.append(b)
@@ -59,6 +65,9 @@ func _process(_d: float) -> void:
 	test_break_budget()
 	test_retreat()
 	test_arena()
+	test_ground()
+	test_any_cap()
+	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -97,6 +106,8 @@ func reset(bone := false, lamp := 100.0) -> void:
 	c.slows.clear()
 	game.pstun = 0.0
 	game.atk_slow = 0.0
+	# 骑士骨血的主控受伤 ×1.8 只在骑士在队时生效（事件验收 P1-4，relic_fx.taken_mult），测骨血时让骑士在队
+	game.knight_alive = bone
 	if bone:
 		game.rfx.rules["bone_blood"] = 1
 	else:
@@ -618,7 +629,7 @@ func test_v8() -> void:
 	var ru: Dictionary = sp.spawn_enemy("runner", game.ppos + Vector2(30, 0))
 	ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
 	ok(ru.blast_w > 0.0 and not ru.dead, "狂奔者进入范围开始鼓胀（%.2f 秒）" % ru.blast_w)
-	for k in 8:
+	for k in 12:
 		if not ru.dead:
 			ai.pattern(ru, Vector2.LEFT, 30.0, dt, ru.spd)
 	ok(ru.dead, "狂奔者鼓胀结束后自爆消失")
@@ -780,3 +791,52 @@ func test_arena() -> void:
 	game.zone_r = zs[2]
 	game.zone_next_c = zs[3]
 	game.zone_next_r = zs[4]
+
+
+## 画即判（docs/38 §1.9、docs/48 P0-1）：圆形预警画成纵向 ×0.72 的椭圆；8 个方向上画面边缘外 4px 的点不中、内 4px 的点中
+func test_ground() -> void:
+	var p0: Vector2 = game.ppos
+	var w := {"shape": "circle", "pos": p0 + Vector2(300, 0), "r": 90.0}
+	var bad := 0
+	for k in 8:
+		var d := Vector2.from_angle(TAU * k / 8.0)
+		var edge: Vector2 = Vector2(d.x * 90.0, d.y * 90.0 * c.GROUND_Y)   # 画面上的椭圆边
+		var n: Vector2 = Vector2(d.x * c.GROUND_Y, d.y).normalized()       # 椭圆法线方向（近似）
+		game.ppos = w.pos + edge + n * 4.0
+		if game.bai._warn_hit(w):
+			bad += 1
+		game.ppos = w.pos + edge - n * 4.0
+		if not game.bai._warn_hit(w):
+			bad += 1
+	ok(bad == 0, "圆形预警：8 个方向边缘外 4px 不中、内 4px 中（错 %d 处）" % bad)
+	game.ppos = p0
+
+
+## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
+func test_any_cap() -> void:
+	var mh: float = game.max_hp
+	ok(is_equal_approx(c._any_clamp(mh), mh), "通用 2 秒上限：代码缺省为关（测试期间 protect 段已清空）")
+	var bak_p: Dictionary = Bal._data.get("protect", {}).duplicate()
+	var bak_e: Dictionary = Bal._data.get("enemy", {}).duplicate()
+	Bal._data["protect"] = {"any_2s_cap": 0.45, "any_excess_mult": 0.4}
+	c.any_log.clear()
+	var a1: float = c._any_clamp(mh * 0.3)
+	var a2: float = c._any_clamp(mh * 0.3)
+	ok(absf(a1 - mh * 0.3) < 0.01 and absf(a2 - (mh * 0.15 + mh * 0.15 * 0.4)) < 0.01, "2 秒内超过 45%% 的部分 ×0.4（%.1f%%、%.1f%%）" % [100.0 * a1 / mh, 100.0 * a2 / mh])
+	Bal._data["protect"] = bak_p
+	c.any_log.clear()
+	var e2: Dictionary = bak_e.duplicate()
+	e2["corrode_pool_cap"] = 0.3
+	Bal._data["enemy"] = e2
+	var hp0: float = game.hp
+	game.corrode_pool = 0.0
+	c.corrode_boss = 0.0
+	game.invuln = 0.0
+	game.shield = 0
+	game.in_type = ["近战", "物理"]
+	for k in 5:
+		c.enemy_hit(mh * 0.2, {"corrode": 1.0}, true, true)
+	ok(game.corrode_pool <= mh * 0.3 + 0.01, "非 Boss 侵蚀池 ≤ 30%% 最大生命（%.1f%%）" % (100.0 * game.corrode_pool / mh))
+	Bal._data["enemy"] = bak_e
+	game.corrode_pool = 0.0
+	game.hp = hp0
