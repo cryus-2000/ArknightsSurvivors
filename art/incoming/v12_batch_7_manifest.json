@@ -1,0 +1,141 @@
+{
+  "status": "verified_image",
+  "assets": [
+    {
+      "file": "op_skadi_idle.png",
+      "character": "op_skadi_idle",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "density": 1,
+      "sha256": "33969bf22626a7eb27af131e242e4595b4ea9fb1b91a535306fef84ed13c6ecf",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-f0bf712c-8523-43de-b202-c2a4d7d8ef89.png"
+    },
+    {
+      "file": "op_skadi_idle@2x.png",
+      "character": "op_skadi_idle",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "density": 2,
+      "sha256": "27b6771195f7b36a33ea5689f7c424a9fc670cb415ef14b0f306f269406ba229",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-f0bf712c-8523-43de-b202-c2a4d7d8ef89.png"
+    },
+    {
+      "file": "op_skadi_attack.png",
+      "character": "op_skadi_attack",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": false,
+      "event_frame_zero_based": 2,
+      "density": 1,
+      "sha256": "95eb7de33eb89838c60656ddc17994d323b819ad92d2aeb1022c9d79636495c8",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-944e9636-c489-43c4-9fcd-4779c87308c7.png"
+    },
+    {
+      "file": "op_skadi_attack@2x.png",
+      "character": "op_skadi_attack",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": false,
+      "event_frame_zero_based": 2,
+      "density": 2,
+      "sha256": "b7f61ad4072fbde41d95190aa6eb5da7d75b2596ccb0904a9fa8ada5dde14fce",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-944e9636-c489-43c4-9fcd-4779c87308c7.png"
+    },
+    {
+      "file": "op_skadi_skill.png",
+      "character": "op_skadi_skill",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "density": 1,
+      "sha256": "0d3c2aa0cc9448e29958bffbe67efc2d1d8950fb545db385b8aa7f754b163569",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c3dbbddf-d46e-4c3b-b5aa-0c8027391c27.png"
+    },
+    {
+      "file": "op_skadi_skill@2x.png",
+      "character": "op_skadi_skill",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": false,
+      "event_frame_zero_based": 4,
+      "density": 2,
+      "sha256": "f0c04ba178f153dca235e6595b04545979216742aecc04f00ebd76f85f981859",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c3dbbddf-d46e-4c3b-b5aa-0c8027391c27.png"
+    },
+    {
+      "file": "op_skadi_attack_spin.png",
+      "character": "op_skadi_attack_spin",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": false,
+      "event_frame_zero_based": 2,
+      "density": 1,
+      "sha256": "eccbe24b0d8ee5f823802c15a73cc184e94b9ea3ceb5bf20b6c9101ccc580a7a",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-46e317d7-5e15-4cdd-9892-f8867dbd0c32.png"
+    },
+    {
+      "file": "op_skadi_attack_spin@2x.png",
+      "character": "op_skadi_attack_spin",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": false,
+      "event_frame_zero_based": 2,
+      "density": 2,
+      "sha256": "e86c998d56b66d1e2c6c14694281eaf1016c1b2bdfba5c170d321ba5bebc2cfe",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-46e317d7-5e15-4cdd-9892-f8867dbd0c32.png"
+    }
+  ]
+}
