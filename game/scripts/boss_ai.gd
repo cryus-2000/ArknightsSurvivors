@@ -6,11 +6,14 @@ const D = preload("res://scripts/data.gd")
 # 只缩短招式之间的等待；预警、锁定、连段间隔与伤害保持原约定。
 const SKILL_COOLDOWN_SCALE := 0.70
 
+const Patterns = preload("res://scripts/enemies/boss_patterns.gd")
+var patterns
 var g  # Game (Node2D)
 
 
 func _init(game) -> void:
 	g = game
+	patterns = Patterns.new(game)
 
 
 ## Boss 行为
@@ -42,6 +45,8 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			g.vfx.add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
 	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.get("dash_t", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
+	if ready and patterns.try_attack(e, dir, dist):
+		ready = false
 	match e.type:
 		"iberia", "carmen":
 			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
@@ -67,7 +72,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					g.vfx.add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
 			else:
 				e.reload_t -= dt
-				if e.reload_t <= 0.0 and e.stun <= 0.0:
+				if e.reload_t <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0:
 					e.reload_t = 14.0
 					e.channel = 2.0
 					g.vfx.add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
@@ -425,7 +430,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
 	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
-	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring", "pattern_rain"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
 		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley"] else "近战", "真实"]
@@ -448,6 +453,9 @@ func _warn_resolve(w: Dictionary) -> void:
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
 	var dv := Vector2.from_angle(w.ang)
+	if str(w.act).begins_with("pattern_"):
+		patterns.resolve(w)
+		return
 	match w.act:
 		"ishar_strike":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})

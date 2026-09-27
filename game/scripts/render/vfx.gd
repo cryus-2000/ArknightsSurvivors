@@ -434,3 +434,23 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 	var fh: int = tx.get_height()
 	var size := Vector2(fw, fh) * scale
 	ci.draw_texture_rect_region(tx, Rect2((pos - size / 2.0).round(), size), Rect2(fw * (frame % frames), 0, fw, fh))
+
+
+## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。
+func boss_pattern(w: Dictionary) -> void:
+	var start: int = g.fx.size()
+	var dir := Vector2.from_angle(w.ang)
+	match str(w.act):
+		"pattern_cleave":
+			slash_fx(w.pos, w.ang, w.half, w.r, Color(1.0, 0.3, 0.65), "slash", 0.32)
+			fx_sprite(w.pattern.get("texture", "fx_slash_arc_rose"), w.pos + dir * w.r * 0.5, 2.8, w.ang)
+			Sfx.play("swing", -4.0, 0.7)
+		"pattern_rain":
+			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": w.col})
+			fx_sprite("fx_water_splash", w.pos, 2.5)
+			Sfx.play("tentacle", -7.0, 0.9)
+		_:
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": w.col})
+			Sfx.enemy("spit", w.pos.distance_to(g.ppos))
+	for i in range(start, g.fx.size()):
+		g.fx[i]["enemy"] = true

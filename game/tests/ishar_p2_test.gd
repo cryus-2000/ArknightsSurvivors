@@ -49,7 +49,7 @@ func _ready() -> void:
 		g.warns.clear()
 		var seen: Dictionary = {}
 		var names: Array = []
-		for i in 1000:
+		for i in 1500:
 			g.t += 0.04
 			e.wind = maxf(0.0, e.wind - 0.04)
 			g.bai._boss_ai(e, 0.04, Vector2.RIGHT, distance)
@@ -57,7 +57,7 @@ func _ready() -> void:
 				seen[w.act] = true
 				if w.t == 0.0:
 					check(w.dur >= 0.6 and w.dur - w.track >= 0.399, "full warning and target lock")
-					if w.name != "":
+					if w.name != "" and not w.has("pattern_id"):
 						names.append(w.name)
 			g.invuln = 100.0
 			g.bai._update_warns(0.04)

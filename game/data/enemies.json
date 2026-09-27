@@ -341,7 +341,26 @@
    "xp": 60.0,
    "tex": "e_path",
    "ai": "melee",
-   "role": "boss"
+   "role": "boss",
+   "patterns": [
+    {
+     "name": "甲刃重劈",
+     "mode": "cleave",
+     "radius": 260,
+     "half": 1.1,
+     "waves": 2,
+     "texture": "fx_slash_heavy_steel"
+    },
+    {
+     "name": "碎壳刃波",
+     "mode": "fan",
+     "count": 5,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 370,
+     "blade": true
+    }
+   ]
   },
   "izumik": {
    "name": "伊祖米克，生态泉源",
@@ -355,7 +374,23 @@
    "range": 320.0,
    "cd": 1.6,
    "role": "boss",
-   "act_min": 10.0
+   "act_min": 10.0,
+   "patterns": [
+    {
+     "name": "解读旋涡",
+     "mode": "ring",
+     "count": 36,
+     "waves": 3,
+     "speed": 345,
+     "gap": 0.38
+    },
+    {
+     "name": "潮汐坠落",
+     "mode": "rain",
+     "waves": 6,
+     "radius": 56
+    }
+   ]
   },
   "iberia": {
    "name": "圣徒伊比利亚",
@@ -370,7 +405,27 @@
    "cd": 1.5,
    "role": "boss",
    "ammo": 3,
-   "atk": "物理"
+   "atk": "物理",
+   "patterns": [
+    {
+     "name": "裁决齐射",
+     "mode": "fan",
+     "count": 9,
+     "waves": 3,
+     "spread": 1.25,
+     "speed": 440,
+     "blade": false
+    },
+    {
+     "name": "双翼弹幕",
+     "mode": "fan",
+     "count": 13,
+     "waves": 2,
+     "spread": 2,
+     "speed": 410,
+     "blade": false
+    }
+   ]
   },
   "carmen": {
    "name": "圣徒卡门",
@@ -385,7 +440,27 @@
    "cd": 1.2,
    "role": "boss",
    "ammo": 3,
-   "atk": "物理"
+   "atk": "物理",
+   "patterns": [
+    {
+     "name": "交错速射",
+     "mode": "fan",
+     "count": 7,
+     "waves": 3,
+     "spread": 0.8,
+     "speed": 460,
+     "blade": false
+    },
+    {
+     "name": "压制散射",
+     "mode": "fan",
+     "count": 11,
+     "waves": 2,
+     "spread": 1.6,
+     "speed": 430,
+     "blade": false
+    }
+   ]
   },
   "bishop": {
    "name": "接潮主教",
@@ -400,7 +475,23 @@
    "range": 300.0,
    "cd": 1.8,
    "role": "boss",
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "交错潮环",
+     "mode": "ring",
+     "count": 26,
+     "waves": 2,
+     "speed": 300,
+     "gap": 0.38
+    },
+    {
+     "name": "追潮落柱",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 56
+    }
+   ]
   },
   "archon": {
    "name": "接潮蔑死体",
@@ -414,7 +505,26 @@
    "ai": "melee",
    "role": "boss",
    "corrode": 0.5,
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "双爪交斩",
+     "mode": "cleave",
+     "radius": 245,
+     "half": 0.95,
+     "waves": 2,
+     "texture": "fx_slash_arc_rose"
+    },
+    {
+     "name": "裂潮刃波",
+     "mode": "fan",
+     "count": 5,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 400,
+     "blade": true
+    }
+   ]
   },
   "immortal": {
    "name": "接潮斥亡体",
@@ -428,7 +538,26 @@
    "ai": "melee",
    "role": "boss",
    "corrode": 0.5,
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "交错连斩",
+     "mode": "cleave",
+     "radius": 255,
+     "half": 0.8,
+     "waves": 2,
+     "texture": "fx_slash_arc_rose"
+    },
+    {
+     "name": "掠海飞刃",
+     "mode": "fan",
+     "count": 7,
+     "waves": 2,
+     "spread": 1.7,
+     "speed": 430,
+     "blade": true
+    }
+   ]
   },
   "paranoia": {
    "name": "\"偏执泡影\"",
@@ -444,41 +573,79 @@
    "role": "boss",
    "corrode": 0.5,
    "hover": true,
-   "arena_r": 580.0
+   "arena_r": 580.0,
+   "patterns": [
+    {
+     "name": "偏执涡流",
+     "mode": "ring",
+     "count": 32,
+     "waves": 3,
+     "speed": 330,
+     "gap": 0.38
+    },
+    {
+     "name": "泡影弹幕",
+     "mode": "fan",
+     "count": 13,
+     "waves": 3,
+     "spread": 1.8,
+     "speed": 410,
+     "blade": false
+    }
+   ]
   },
   "ishar": {
-    "name": "伊莎玛拉，腐化之心",
-    "hp": 9000.0,
-    "spd": 34.0,
-    "dmg": 18.0,
-    "r": 31.0,
-    "xp": 0.0,
-    "tex": "e_ishar",
-    "ai": "ranged",
-    "range": 340.0,
-    "cd": 1.5,
-    "role": "boss",
-    "arena_r": 600.0,
-    "draw_scale": 0.68,
-    "transformed_draw_scale": 1.0,
-    "no_contact": true,
-    "attack": {
-      "range": 660.0,
-      "sequence_step": 0.6,
-      "mark_spacing": 106.0,
-      "mark_warn": 0.9,
-      "mark_radius": 56.0,
-      "mark_mult": 0.65,
-      "line_warn": 1.0,
-      "line_spread": 0.38,
-      "line_width": 14.0,
-      "line_mult": 0.7,
-      "volley_warn": 0.8,
-      "bite_range": 190.0,
-      "maw_warn": 0.85,
-      "maw_mult": 0.9,
-      "recovery": 1.25
+   "name": "伊莎玛拉，腐化之心",
+   "hp": 9000.0,
+   "spd": 34.0,
+   "dmg": 18.0,
+   "r": 31.0,
+   "xp": 0.0,
+   "tex": "e_ishar",
+   "ai": "ranged",
+   "range": 340.0,
+   "cd": 1.5,
+   "role": "boss",
+   "arena_r": 600.0,
+   "draw_scale": 0.68,
+   "transformed_draw_scale": 1.0,
+   "no_contact": true,
+   "attack": {
+    "range": 660.0,
+    "sequence_step": 0.6,
+    "mark_spacing": 106.0,
+    "mark_warn": 0.9,
+    "mark_radius": 56.0,
+    "mark_mult": 0.65,
+    "line_warn": 1.0,
+    "line_spread": 0.38,
+    "line_width": 14.0,
+    "line_mult": 0.7,
+    "volley_warn": 0.8,
+    "bite_range": 190.0,
+    "maw_warn": 0.85,
+    "maw_mult": 0.9,
+    "recovery": 1.25
+   },
+   "patterns": [
+    {
+     "name": "腐潮旋流",
+     "mode": "ring",
+     "count": 36,
+     "waves": 3,
+     "speed": 360,
+     "gap": 0.38
+    },
+    {
+     "name": "棘鳍刃潮",
+     "mode": "fan",
+     "count": 9,
+     "waves": 3,
+     "spread": 1.9,
+     "speed": 450,
+     "blade": true
     }
+   ]
   },
   "knight": {
    "name": "最后的骑士",
@@ -518,7 +685,26 @@
    "atk": "物理",
    "move_fps": 8,
    "phases": 2,
-   "draw_scale": 0.7
+   "draw_scale": 0.7,
+   "patterns": [
+    {
+     "name": "寒锋刃雨",
+     "mode": "fan",
+     "count": 7,
+     "waves": 3,
+     "spread": 1.65,
+     "speed": 440,
+     "blade": true
+    },
+    {
+     "name": "长枪回旋",
+     "mode": "cleave",
+     "radius": 270,
+     "half": 1.35,
+     "waves": 2,
+     "texture": "fx_slash_heavy_steel"
+    }
+   ]
   }
  }
 }

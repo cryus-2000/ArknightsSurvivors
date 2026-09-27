@@ -576,6 +576,18 @@ func draw_world() -> void:
 		g.draw_circle(Vector2.ZERO, b.r + 1.0, Color(0, 0, 0, 0.4))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var bp: Vector2 = b.pos + Vector2(0, -16)
+		if b.get("kind", "") == "boss_blade":
+			# 飞刃保留尖端/双翼轮廓，不套普通球弹黑底圆环。
+			g.draw_set_transform(bp, b.vel.angle(), Vector2.ONE)
+			var blade := PackedVector2Array([Vector2(17, 0), Vector2(-9, 16), Vector2(-3, 0), Vector2(-9, -16)])
+			g.draw_colored_polygon(blade, Color(1.3, 0.35, 0.85))
+			var edge := blade.duplicate()
+			edge.append(blade[0])
+			g.draw_polyline(edge, Color(0.03, 0.0, 0.05), 4.0)
+			g.draw_polyline(PackedVector2Array([Vector2(-7, 13), Vector2(14, 0), Vector2(-7, -13)]), Color(2.0, 1.0, 1.7), 2.0)
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			g.vfx.spr_rot("fx_slash_arc_rose", int(g.t * 18.0) % 6, bp, b.vel.angle(), 0.9)
+			continue
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		g.draw_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		match b.get("kind", "orb"):
@@ -1279,6 +1291,13 @@ func draw_warn_outlines() -> void:
 	for w in g.warns:
 		if w.done:
 			continue
+		if w.has("gap_ang"):
+			# 缺口方向与真实弹道使用同一角度；不做地面纵向压缩。
+			var safe_col := Color(1.0, 0.85, 0.35, 0.85)
+			for side in [-1.0, 1.0]:
+				var v := Vector2.from_angle(float(w.gap_ang) + side * float(w.gap_half))
+				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
+				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		var line := Color(c.r, c.g, c.b, 0.6 + 0.35 * k)   # 不乘亮度：乘完在灯光里会褪成白 / 粉彩（docs/48 ④）
