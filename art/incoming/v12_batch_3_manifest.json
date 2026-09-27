@@ -1,0 +1,131 @@
+{
+  "status": "verified_image",
+  "assets": [
+    {
+      "file": "op_irene_run.png",
+      "character": "op_irene_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "c416d0c4bb959906c7d755a9cc80962fb5ef8d4067edaae4c104e3ed4e01ac52",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3988c254-5804-4792-aff2-92877c924c59.png",
+      "source_sha256": "e75dd08ab83c72574d6c9c119f13b75d5cb91b03dbf3f22c90a812372840ce24",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_irene_run@2x.png",
+      "character": "op_irene_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "d01d120d47e296dd2d1af21b18a51c47a526cbb3012d272fac242d3968949b05",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3988c254-5804-4792-aff2-92877c924c59.png",
+      "source_sha256": "e75dd08ab83c72574d6c9c119f13b75d5cb91b03dbf3f22c90a812372840ce24",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_saria_run.png",
+      "character": "op_saria_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "941fa3889b72286dbea63625c7dd5834ca6e48b20dc0f7c29fc3f3330e461f51",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3620ddb6-dda5-4226-9f5a-a089c20a1f11.png",
+      "source_sha256": "e0cca2ed09d3e22e2f88147d4fc669d1f0bd7588cdf21a9947690a1816b0dbef",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_saria_run@2x.png",
+      "character": "op_saria_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "8180bba6044284fe191cd6e3c16349054963bb0e7a9c0815a22f10a21cc18662",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3620ddb6-dda5-4226-9f5a-a089c20a1f11.png",
+      "source_sha256": "e0cca2ed09d3e22e2f88147d4fc669d1f0bd7588cdf21a9947690a1816b0dbef",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_ulpianus_run.png",
+      "character": "op_ulpianus_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "2bdeab2419b8a25d084afb1eea66493c2681594ad1a469e1741ecd7f027f4b92",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2345cc2f-d2a1-4770-af06-e4c731863fd7.png",
+      "source_sha256": "0c5fd1ba20b805936085a3b60936b3c7927e6627750a4230b0fe3f2627af58b6",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_ulpianus_run@2x.png",
+      "character": "op_ulpianus_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "12c5a0992b24c867475cdb52c62d4261a54ed87bfc9dee43e3d30fa307090abf",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2345cc2f-d2a1-4770-af06-e4c731863fd7.png",
+      "source_sha256": "0c5fd1ba20b805936085a3b60936b3c7927e6627750a4230b0fe3f2627af58b6",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    }
+  ]
+}
