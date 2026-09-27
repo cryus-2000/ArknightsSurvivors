@@ -383,7 +383,7 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override :=
 	for i in 24:
 		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": MELT, "sz": g.rng.randf_range(1.5, 3.0)})
 	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": MELT, "floor": true, "w": 3.0})
-	g.hitstop = maxf(g.hitstop, 0.1)
+	impact_pause(0.075)
 	float_text(at + Vector2(0, -70), "熔毁", MELT, 18)
 	Sfx.op(id, "big")
 
@@ -537,13 +537,14 @@ func draw_extra(_it: Dictionary) -> void:
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
 			# 熔毁：身后几团错开、缓慢翻动的半透明红雾，配合红色熔毁帧条
-			for q in 5:
+			for q in 3:
 				var ph: float = g.t * 1.7 + q * 1.3
-				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 - 26.0)
-				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(1.4, 0.08, 0.06, 0.16))
+				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 + _hover() - 50.0)
+				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.85, 0.025, 0.02, 0.12))
 		# 光环套在悬浮本体中心（返修稿本体中心在脚底上方约 53；docs/32 验收 §5）
-		g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
-	# 熔毁：使用专用红色裂隙帧条；协同：略偏绿
+		if melt <= 0.0:
+			g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
+	# 熔毁：黑红本体与红色轮廓光帧条；协同：略偏绿
 	var col := Color.WHITE if melt > 0.0 or melt_out > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
 	draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))

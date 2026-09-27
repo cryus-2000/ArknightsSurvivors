@@ -39,7 +39,11 @@ func log_hit(src: String, extra_tags: Array = []) -> void:
 
 ## 对敌人造成伤害（走护甲、易伤、藏品倍率、击杀结算）
 func deal_damage(e: Dictionary, dmg: float) -> void:
+	var hp_before: float = e.hp
+	var feedback_source: String = g.hit.get("src", "")
 	g.combat.damage(e, dmg)
+	if float(e.hp) < hp_before:
+		g.vfx.contact(str(get("id")), e, get("pos"), feedback_source)
 
 
 ## 治疗主控（src 进治疗统计）
@@ -68,6 +72,15 @@ func lamp_sp() -> float:
 
 
 # ---------------------------------------------------------------- 特效 / 提示
+
+
+## 统一命中顿帧与落地碎屑，节流和预算由 VFX 模块处理。
+func impact_pause(seconds: float) -> void:
+	g.vfx.impact_pause(seconds)
+
+
+func ground_dust(at: Vector2, radius := 22.0, count := 7) -> void:
+	g.vfx.ground_dust(at, radius, count)
 
 ## 播放一次性特效帧条（V6_FRAMES 注册的 fx_*）；贴图缺失返回 false，调用方可退回程序特效
 func spawn_fx_sprite(name: String, pos: Vector2, scale: float = -1.0, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:

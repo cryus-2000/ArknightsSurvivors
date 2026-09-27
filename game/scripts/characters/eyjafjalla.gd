@@ -195,7 +195,7 @@ func bullet_exploded(b: Dictionary) -> void:
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
 	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放；点燃弹换成大团熔岩爆炸（ansimuz Explosion A）
 	if b.get("src", "") == "点燃弹" and spawn_fx_sprite("fx_eyja_ignite_boom", b.pos + Vector2(0, -10), b.aoe * 2.3 / 68.0):
-		g.hitstop = maxf(g.hitstop, 0.05)
+		impact_pause(0.05)
 	else:
 		spawn_fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
 	# N2「火星迸溅」：普攻熔岩弹炸开迸出 2 颗火星，弹跳向附近的敌人（优先爆炸圈外的）

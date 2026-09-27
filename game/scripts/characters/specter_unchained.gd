@@ -219,7 +219,7 @@ func _spin(dmg: float, kind: int) -> void:
 	# 求生之压：每一斩脚下砸出地裂 + 短顿帧（慢而重）
 	if s3_t > 0.0 and kind == 0:
 		fx({"kind": "crack", "pos": pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": RED, "floor": true, "n": 7})
-		g.hitstop = maxf(g.hitstop, 0.05)
+		impact_pause(0.05)
 	# 求生之压期间：更响、更低沉；第二圈更轻，持续段不再逐段出声
 	if kind == 0:
 		Sfx.op(id, "atk", 4.0 if s3_t > 0.0 else 0.0, 0.8 if s3_t > 0.0 else 1.0, 0.06)

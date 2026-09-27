@@ -1,0 +1,276 @@
+{
+  "supersedes": "combat_revision_manifest.json entries for Mon3tr skill and attack_melt only",
+  "sequence": "Wisadel screenshot 3 -> 1 -> 4 -> 2",
+  "assets": [
+    {
+      "file": "op_mon3tr_skill.png",
+      "frames": 6,
+      "frame_width": 64,
+      "frame_height": 64,
+      "density": 1,
+      "anchor": [
+        32,
+        60
+      ],
+      "bounds": [
+        [
+          3,
+          8,
+          60,
+          55
+        ],
+        [
+          3,
+          9,
+          60,
+          55
+        ],
+        [
+          3,
+          8,
+          60,
+          55
+        ],
+        [
+          3,
+          8,
+          61,
+          55
+        ],
+        [
+          3,
+          8,
+          60,
+          55
+        ],
+        [
+          3,
+          9,
+          60,
+          55
+        ]
+      ],
+      "sha256": "d63149cbb558f820b2e767225fd13077bc854624bfb5dd4ac8c0a023fea5ae82",
+      "source_file": "exec-b2dc70ef-297c-44ae-86c5-84fc902dc65c.png",
+      "source_sha256": "e855ae2802bebe176c9ab5a61d6f0eecd9a2b280fb654ddeb06079617f14b6b3",
+      "key_residue_pixels": 0
+    },
+    {
+      "file": "op_mon3tr_skill@2x.png",
+      "frames": 6,
+      "frame_width": 128,
+      "frame_height": 128,
+      "density": 2,
+      "anchor": [
+        64,
+        120
+      ],
+      "bounds": [
+        [
+          7,
+          17,
+          120,
+          110
+        ],
+        [
+          7,
+          17,
+          121,
+          110
+        ],
+        [
+          6,
+          17,
+          121,
+          110
+        ],
+        [
+          6,
+          17,
+          122,
+          110
+        ],
+        [
+          7,
+          17,
+          121,
+          110
+        ],
+        [
+          7,
+          17,
+          121,
+          110
+        ]
+      ],
+      "sha256": "3c68b9bcebcfc5ca1d29c093ca2f2a3bad541a8d40b9625582b35f93f017bfce",
+      "source_file": "exec-b2dc70ef-297c-44ae-86c5-84fc902dc65c.png",
+      "source_sha256": "e855ae2802bebe176c9ab5a61d6f0eecd9a2b280fb654ddeb06079617f14b6b3",
+      "key_residue_pixels": 0
+    },
+    {
+      "file": "op_mon3tr_attack_melt.png",
+      "frames": 4,
+      "frame_width": 64,
+      "frame_height": 64,
+      "density": 1,
+      "anchor": [
+        32,
+        60
+      ],
+      "bounds": [
+        [
+          7,
+          15,
+          56,
+          55
+        ],
+        [
+          6,
+          16,
+          57,
+          54
+        ],
+        [
+          3,
+          14,
+          61,
+          55
+        ],
+        [
+          8,
+          17,
+          55,
+          54
+        ]
+      ],
+      "sha256": "cdcef0535b33b691124ee3173cd9d2381ef3c2d6752090cb519372c68610fb78",
+      "source_file": "exec-446d312b-1782-4f8b-b863-3fb8b0bc7ade.png",
+      "source_sha256": "a909ba6021b4bdfef267d865a882f8d8d5cee627da65cddbd2d87d32a3bc9c91",
+      "key_residue_pixels": 0
+    },
+    {
+      "file": "op_mon3tr_attack_melt@2x.png",
+      "frames": 4,
+      "frame_width": 128,
+      "frame_height": 128,
+      "density": 2,
+      "anchor": [
+        64,
+        120
+      ],
+      "bounds": [
+        [
+          15,
+          30,
+          113,
+          110
+        ],
+        [
+          13,
+          32,
+          115,
+          110
+        ],
+        [
+          6,
+          25,
+          122,
+          110
+        ],
+        [
+          17,
+          33,
+          111,
+          110
+        ]
+      ],
+      "sha256": "9999c76b85dae7d48912bfce4460360f8977af19606840438e85c4229c7e4215",
+      "source_file": "exec-446d312b-1782-4f8b-b863-3fb8b0bc7ade.png",
+      "source_sha256": "a909ba6021b4bdfef267d865a882f8d8d5cee627da65cddbd2d87d32a3bc9c91",
+      "key_residue_pixels": 0
+    },
+    {
+      "file": "fx_wisadel_cannon.png",
+      "frames": 4,
+      "frame_width": 96,
+      "frame_height": 96,
+      "density": 1,
+      "anchor": [
+        48.0,
+        48.0
+      ],
+      "bounds": [
+        [
+          32,
+          30,
+          65,
+          65
+        ],
+        [
+          17,
+          18,
+          78,
+          77
+        ],
+        [
+          4,
+          9,
+          92,
+          88
+        ],
+        [
+          19,
+          18,
+          77,
+          78
+        ]
+      ],
+      "sha256": "814cd63b26645bf06311a3224d29776a602d86af9ede097c9e4e81666e899046",
+      "source_file": "exec-e75ff2d8-49a7-45dd-b103-790659256b0e.png",
+      "source_sha256": "2ea63529f6509fc7823c5e6e618f1703c9fe2e9183d7cb5cdfbb69da24fdf696",
+      "key_residue_pixels": 0
+    },
+    {
+      "file": "fx_wisadel_cannon@2x.png",
+      "frames": 4,
+      "frame_width": 192,
+      "frame_height": 192,
+      "density": 2,
+      "anchor": [
+        96.0,
+        96.0
+      ],
+      "bounds": [
+        [
+          59,
+          60,
+          132,
+          131
+        ],
+        [
+          35,
+          37,
+          157,
+          155
+        ],
+        [
+          8,
+          16,
+          183,
+          176
+        ],
+        [
+          38,
+          36,
+          154,
+          155
+        ]
+      ],
+      "sha256": "60bda2f715730b5424f14f861eb7ca4340ce75be7167b783c5ca35dac18ed985",
+      "source_file": "exec-e75ff2d8-49a7-45dd-b103-790659256b0e.png",
+      "source_sha256": "2ea63529f6509fc7823c5e6e618f1703c9fe2e9183d7cb5cdfbb69da24fdf696",
+      "key_residue_pixels": 0
+    }
+  ]
+}

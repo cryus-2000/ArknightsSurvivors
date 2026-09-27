@@ -5,6 +5,7 @@
     python tools/export_build.py              # 导出当前已提交的 HEAD
     python tools/export_build.py --ref main   # 指定提交 / 分支
     python tools/export_build.py --no-zip     # 只生成目录，不打 zip
+    python tools/export_build.py --ea         # 标记 EA 试玩包
 
 流程：
 1. git archive 把 <ref> 解到 build/_export/src —— 只含已提交内容，其它会话的未提交改动不会混进包里；
@@ -18,6 +19,8 @@
 4. 打成 build/release/<名字>_<日期>_<提交>.zip。
 """
 import json, argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfile
+from pathlib import Path
+import godot_runner
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
@@ -29,7 +32,7 @@ PRESET = "Windows Desktop"
 SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
 
 README = """方舟幸存者（明日方舟同人，非商业）
-版本：{ver}（{date}）
+版本：{channel}{ver}（{date}）
 
 【怎么玩】
 双击「开始游戏.bat」，或进入 game 文件夹双击 ArknightsSurvivors.exe。
@@ -53,15 +56,45 @@ def run(cmd, cwd=None, check=True):
     return p.stdout
 
 
+
+def checked_build_path(path):
+    """Reject redirected build folders and output links before deletion/writing."""
+    root = Path(ROOT).resolve()
+    build = root / "build"
+    candidate = Path(path).absolute()
+    try:
+        relative = candidate.relative_to(Path(ROOT).absolute() / "build")
+    except ValueError:
+        raise ValueError("Output must stay under the repository build directory: %s" % path)
+    expected = build / relative
+    if build.resolve() != build or candidate.resolve() != expected:
+        raise ValueError("Refusing redirected build/output path: %s" % path)
+    if not relative.parts:
+        raise ValueError("Refusing to use the build root itself as an output target")
+    return str(expected)
+
+
+def run_export_godot(cmd, timeout=900, check=True):
+    print(">", " ".join(cmd))
+    out, err, timed_out = godot_runner.run_godot(cmd, timeout)
+    output = out + "\n" + err
+    if timed_out or (check and (godot_runner.script_errors(out, err) or "ERROR:" in output)):
+        print("\n".join(output.splitlines()[-20:]))
+        sys.exit("Godot export timed out" if timed_out else "Godot export reported errors")
+    return output
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ref", default="HEAD")
     ap.add_argument("--no-zip", action="store_true")
+    ap.add_argument("--ea", action="store_true", help="Label this build as Early Access")
     a = ap.parse_args()
 
     commit = run(["git", "rev-parse", "--short", a.ref], cwd=ROOT).strip()
     date = datetime.datetime.now().strftime("%Y%m%d")
-    shutil.rmtree(WORK, ignore_errors=True)
+    checked_build_path(OUT)
+    shutil.rmtree(checked_build_path(WORK), ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
     # 1. 干净副本
@@ -80,6 +113,8 @@ def main():
     binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}
     binfo["commit"] = commit
     binfo["built"] = date
+    if a.ea:
+        binfo["channel"] = "EA"
     json.dump(binfo, open(bj, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     # 2. 导入 + 导出
@@ -87,9 +122,9 @@ def main():
     game_dir = os.path.join(pkg, "game")
     os.makedirs(game_dir)
     gpath = os.path.join(src, "game")
-    run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃（不影响导入结果），成败以下面导出为准
-    out = run([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
-    if "No export template found" in out or not os.path.exists(os.path.join(game_dir, "ArknightsSurvivors.exe")):
+    run_export_godot([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃（不影响导入结果），成败以下面导出为准
+    out = run_export_godot([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
+    if "No export template found" in out or not all(os.path.isfile(os.path.join(game_dir, "ArknightsSurvivors" + ext)) for ext in (".exe", ".pck")):
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
 
@@ -106,14 +141,15 @@ def main():
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
-        fh.write(README.format(ver=commit, date=date).replace("\n", "\r\n"))
+        fh.write(README.format(ver=commit, date=date, channel="EA " if a.ea else "").replace("\n", "\r\n"))
 
     # 4. zip
     if a.no_zip:
         print("完成：", pkg)
         return
-    os.makedirs(OUT, exist_ok=True)
-    zpath = os.path.join(OUT, "%s_%s_%s.zip" % (NAME, date, commit))
+    os.makedirs(checked_build_path(OUT), exist_ok=True)
+    zpath = os.path.join(OUT, "%s_%s_%s.zip" % (NAME + ("_EA" if a.ea else ""), date, commit))
+    checked_build_path(zpath)
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for d, _, files in os.walk(pkg):
             for f in files:

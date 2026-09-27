@@ -220,7 +220,7 @@ func _umbrella(target: Dictionary) -> void:
 		Sfx.op(id, "atk", 3.0)
 	if hit.size() > 0:
 		Sfx.op(id, "hit", 8.0 if empowered else 4.0, 0.85 if empowered else 1.0)
-		g.hitstop = max(g.hitstop, 0.09 if empowered else 0.03)
+		impact_pause(0.09 if empowered else 0.03)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
 			sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)

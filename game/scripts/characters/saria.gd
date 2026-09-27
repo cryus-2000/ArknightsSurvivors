@@ -197,7 +197,7 @@ func _suit_blast() -> void:
 	fx({"kind": "glow", "pos": pos + Vector2(0, -26), "r": 26.0, "life": 0.25, "col": AMBER, "alpha": 0.6})
 	fx_sparks(pos + Vector2(0, -16), AMBER, 12, 260.0, 0.4, 2.5, 160.0)
 	if not hits.is_empty():
-		g.hitstop = maxf(g.hitstop, 0.05)
+		impact_pause(0.05)
 	Sfx.op(id, "hit", 4.0, 0.8)
 
 

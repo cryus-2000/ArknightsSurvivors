@@ -3,6 +3,9 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 
+# 只缩短招式之间的等待；预警、锁定、连段间隔与伤害保持原约定。
+const SKILL_COOLDOWN_SCALE := 0.85
+
 var g  # Game (Node2D)
 
 
@@ -65,7 +68,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			else:
 				e.reload_t -= dt
 				if e.reload_t <= 0.0 and e.stun <= 0.0:
-					e.reload_t = 20.0
+					e.reload_t = 14.0
 					e.channel = 2.0
 					g.vfx.add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
 		"path":
@@ -117,7 +120,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if ready:
 				if dist < 160.0 and _cd(e, "sweep", 5.0):
 					_warn(e, "cone", 0.8, {"follow": true, "ang": dir.angle(), "half": 1.05, "r": 165.0, "track": 0.4, "act": "sweep", "name": "横扫", "col": Color(0.6, 1.0, 0.9), "dmg": e.dmg * 1.6, "corrode": 0.5})
-				elif dist > 170.0 and dist < 520.0 and _cd(e, "leap", 9.0):
+				elif dist >= 160.0 and dist < 520.0 and _cd(e, "leap", 9.0):
 					var w := _warn(e, "circle", 1.0, {"pos": g.ppos, "r": 84.0, "act": "leap", "name": "跃击", "col": Color(0.6, 1.0, 0.9), "dmg": e.dmg * 1.5, "corrode": 0.5})
 					e.leap = w
 					e.leap_from = e.pos
@@ -163,7 +166,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if e.phase == 1:
 				# 学习阶段：无敌，放出子代，子代回到本体会被吸收
 				e.hp = min(e.maxhp, e.hp + e.maxhp * 0.012 * dt)
-				if e.bt > 4.0:
+				if e.bt > 4.0 * SKILL_COOLDOWN_SCALE:
 					e.bt = 0.0
 					for k in 2:
 						var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0))
@@ -180,7 +183,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			else:
 				# 解读阶段：周期冲击波，被波及会晕眩
 				# 周期冲击波先给 1 秒预警（docs/48 P0-5：原来没有预警；专属「必须冲刺」样式由界面与美术按 must_dash 画）
-				if e.bt > 7.0:
+				if ready and e.bt > 7.0 * SKILL_COOLDOWN_SCALE:
 					e.bt = 0.0
 					_warn(e, "circle", 1.0, {"follow": true, "r": 420.0, "act": "slam", "name": "解读冲击", "must_dash": true, "col": Color(0.5, 1.0, 0.7), "dmg": e.dmg * 1.2})
 					Sfx.play("skill", -2.0, 0.6)
@@ -199,7 +202,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if e.get("dash2", false) and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 				e.dash2 = false
 				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
-			if ready and e.channel <= 0.0:
+			if ready and e.channel <= 0.0 and e.get("wind", 0.0) <= 0.0:
 				if e.age > 6.0 and _cd(e, "frost", 20.0):
 					_warn(e, "circle", 1.0, {"follow": true, "r": 200.0, "act": "frost", "name": "寒冰领域", "col": ice, "dmg": e.dmg * 0.5})
 				elif dist < 140.0 and _cd(e, "stab", 5.0):
@@ -207,13 +210,13 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					for k in 3:
 						_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.2 + 0.6 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
 					e.wind = 1.9
-				elif dist > 150.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
+				elif dist >= 140.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
 					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
 					if e.phase == 2:
 						e.dash2 = true
 		"ishar":
 			# 伊莎玛拉：召唤之泪；泪未被清除时持续充能，充满后变身
-			if e.bt > 6.0:
+			if e.bt > 6.0 * SKILL_COOLDOWN_SCALE:
 				e.bt = 0.0
 				_spawn_tears(e, 1)
 			var ntear := 0
@@ -253,7 +256,7 @@ func _cd(e: Dictionary, key: String, dur: float) -> bool:
 	if not e.has("cds"):
 		e.cds = {}
 	if e.cds.get(key, 0.0) <= g.t:
-		e.cds[key] = g.t + dur
+		e.cds[key] = g.t + dur * (SKILL_COOLDOWN_SCALE if e.boss else 1.0)
 		return true
 	return false
 
@@ -352,6 +355,10 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 func _warn_resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	if e.boss:
+		# 预警结束后明确重新起攻击动作，而不是沿用蓄力末帧。
+		e.pose = 0.35
+		e.pose_max = 0.35
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
 	var dv := Vector2.from_angle(w.ang)
@@ -437,8 +444,9 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.spawner.spawn_enemy(w.spawn, w.pos)
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 		"bite":
-			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": (g.ppos - w.pos).angle(), "half": 0.9, "r": w.r + 10.0, "life": 0.25, "max": 0.25, "col": c})
-			Sfx.play("swing", -8.0, 0.9)
+			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.25, "max": 0.25, "col": c})
+			g.vfx.sparks(w.pos + dv * w.r * 0.65, dv, c, 6, 150.0)
+			Sfx.play("swing", -6.0, 0.9)
 			_warn_damage(w)
 		"bring":
 			for k in 14:

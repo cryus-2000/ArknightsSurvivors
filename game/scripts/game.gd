@@ -958,6 +958,9 @@ func _update(dt: float) -> void:
 		ppos += dash_dir * DASH_SPEED * dt
 		pvel = dash_dir * DASH_SPEED
 		invuln = maxf(invuln, 0.05)
+		if dash_t <= 0.0:
+			vfx.ground_dust(ppos, 20.0, 7)
+			vfx.impact_pause(0.022)
 	last_mv = mv if moving else last_mv
 	if tex.get("prop_pillar") != null:
 		ppos = map.push_out(ppos, 12.0)
@@ -1194,6 +1197,7 @@ func _update_doc_follow(dt: float) -> void:
 
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
+	"fx_wisadel_cannon": [4, 12.0],
 	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
 	"proj_missile": [2, 16.0], "proj_tide": [4, 10.0],

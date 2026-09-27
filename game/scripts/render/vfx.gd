@@ -19,6 +19,56 @@ const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "i
 const HIT_SPIRIT := ["skimmer", "paranoia", "tear", "brood", "bishop", "ishar"]
 
 
+## Local contact feedback; no camera shake and no gameplay RNG.
+var contact_at := {}
+var impact_at := -99.0
+
+
+## Shared stop budget: at most once per 0.28 simulation seconds, never cumulative.
+## An explicit heavy impact may upgrade the small contact on the same frame.
+func impact_pause(seconds: float) -> void:
+	if g.t < impact_at:
+		impact_at = -99.0
+	if g.t - impact_at < 0.28 and absf(g.t - impact_at) > 0.0001:
+		return
+	impact_at = g.t
+	g.hitstop = maxf(g.hitstop, clampf(seconds, 0.0, 0.075))
+
+
+func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
+	var prev: float = contact_at.get(oid, -99.0)
+	if g.t >= prev and g.t - prev < 0.18:
+		return
+	contact_at[oid] = g.t
+	if (e.pos as Vector2).distance_to(g.ppos) > 650.0:
+		return
+	var heavy: bool = oid in ["ulpianus", "siege", "saria", "kaltsit", "wisadel"]
+	var melee: bool = oid in ["mizuki", "skadi", "specter_unchained", "irene"]
+	var color := Color(0.72, 0.84, 0.92) if heavy or melee else Color(0.55, 0.65, 0.92)
+	var direction: Vector2 = (e.pos - origin).normalized()
+	sparks(e.pos + Vector2(0, -e.r * 0.6), direction, color, 3 if heavy else 2, 120.0 if heavy else 75.0)
+	# Continuous fields and secondary damage retain sparks without a global pause.
+	if source in ["替身", "血色潮痕", "余震", "殉爆", "钙晶", "碎晶", "急救针剂", "技能·法术", "触手"]:
+		return
+	# Continuous magic and healing never interrupt control with global hitstop.
+	if heavy:
+		impact_pause(0.032)
+	elif melee:
+		impact_pause(0.018)
+
+
+## A low ring of slate-colored grit; capped so crowds do not bury silhouettes.
+func ground_dust(p: Vector2, radius := 22.0, count := 7) -> void:
+	if g.fx.size() > 380:
+		return
+	for i in mini(count, 12):
+		var a: float = TAU * float(i) / float(maxi(count, 1))
+		var direction := Vector2(cos(a), sin(a) * 0.4)
+		g.fx.append({"kind": "spark", "pos": p + direction * radius * 0.35,
+			"vel": direction * radius * 4.0, "life": 0.27, "max": 0.27,
+			"col": Color(0.43, 0.51, 0.56, 0.75), "sz": 3.0 if i % 2 == 0 else 2.0})
+
+
 func _init(game: Game) -> void:
 	g = game
 

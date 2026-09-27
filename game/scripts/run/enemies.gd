@@ -207,7 +207,12 @@ func update(dt: float) -> void:
 		e.pos += v * dt
 		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
 		if e.boss and g.zone_state != 0:
-			var limit := maxf(0.0, g.zone_r - float(e.r))
+			# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
+			var margin := float(e.r)
+			if e.type == "knight_boss":
+				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
+				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
+			var limit := maxf(0.0, g.zone_r - margin)
 			var offset: Vector2 = e.pos - g.zone_c
 			if offset.length_squared() > limit * limit:
 				e.pos = g.zone_c + offset.normalized() * limit

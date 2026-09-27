@@ -144,6 +144,10 @@ func open(ev_id: String) -> void:
 					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
 			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
+		# 抉择是可放弃的事件；观望/犹疑满级被过滤后仍能退出，不强迫拿决心。
+		if ev_id.begins_with("resolve"):
+			opts.append({"kind": "event", "id": "%s:-2" % ev_id, "name": "离开", "desc": "不领取藏品，保持当前结局路线。", "icon": "exit",
+				"chips": [], "cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
 		if opts.is_empty():
 			# 所有选项都作废了（极少见）：给一次普通的藏品选择
 			opts.append({"kind": "event", "id": "%s:-1" % ev_id, "name": "离开", "desc": "改为普通的藏品选择", "icon": "exit",
@@ -173,6 +177,9 @@ func pick(o: Dictionary) -> void:
 	for ev in events:
 		if ev.id != parts[0]:
 			continue
+		opened_id = ""
+		if int(parts[1]) == -2:
+			return
 		if int(parts[1]) < 0:
 			g.pending_chests += 1
 			return

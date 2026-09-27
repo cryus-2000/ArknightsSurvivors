@@ -218,6 +218,14 @@ func update(dt: float) -> void:
 				state = "idle"
 				cd = CHARGE_CD
 				dash_hit.clear()
+	# 跟随、撤退、冲锋都约束位置；仅结束冲锋计时不能撤销本帧越界的位移。
+	if g.zone_state != 0:
+		# 整幅最远顶角而非半宽，圈顶也能容纳贴底立绘和描边。
+		var margin: float = (Vector2(48.0, 80.0) * g.PX * DRAW_K + Vector2(2.0, 2.0)).length()
+		var limit := maxf(0.0, g.zone_r - margin)
+		var off: Vector2 = pos - g.zone_c
+		if off.length_squared() > limit * limit:
+			pos = g.zone_c + off.normalized() * limit
 	for tr in trail:
 		tr[2] -= dt
 	trail = trail.filter(func(tr): return tr[2] > 0.0)

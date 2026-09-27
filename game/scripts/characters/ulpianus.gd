@@ -147,6 +147,7 @@ func _blast2(c: Vector2) -> void:
 
 ## 锁链回旋：以自身为中心半径 130、锚击 60% 伤害；锁链带着锚在腰高甩一整圈（whirl 粒子）
 func _whirl() -> void:
+	ground_dust(pos, 48.0, 12)
 	var r: float = base("whirl_r", 130.0) * stat(&"op_range")
 	area_hit("锁链回旋", pos, r, _slam_dmg() * base("whirl_mult", 0.6), 140.0)
 	fx({"kind": "whirl", "pos": pos, "r": r, "life": 0.32, "a0": g.rng.randf() * TAU, "dir": face})
@@ -164,12 +165,14 @@ func _blood_blast(c: Vector2) -> void:
 	fx({"kind": "glow", "pos": c + Vector2(0, -12), "r": 34.0, "life": 0.3, "col": BLOOD, "alpha": 0.7})
 	_splash(c, 10, 1.3)
 	fx_sparks(c + Vector2(0, -10), BLOOD, 12, 260.0, 0.45, 3.0, 200.0)
-	g.hitstop = maxf(g.hitstop, 0.08)
+	impact_pause(0.08)
 	Sfx.op(id, "big")
 
 
 ## 砸地：地裂 + 冲击环 + 深海蓝水珠（不用帧条水花：它前几帧是米黄色的尘团，和深海不搭）
 func _slam_fx(c: Vector2, r: float, k: float) -> void:
+	ground_dust(c, minf(r * 0.45, 42.0), 10)
+	impact_pause(0.045 * k)
 	fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": STEEL, "floor": true, "n": 7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(c, int(8 * k), 1.0 * k)
@@ -376,7 +379,8 @@ func _update_anchor(dt: float) -> void:
 
 ## 锚在飞行中的位置：近乎平直（10 像素弧度）
 func _anchor_pos(k: float) -> Vector2:
-	return (anchor.from as Vector2).lerp(anchor.to, k) + Vector2(0, -sin(k * PI) * 10.0)
+	var travel: float = k * k * (2.0 - k)
+	return (anchor.from as Vector2).lerp(anchor.to, travel) + Vector2(0, -sin(k * PI) * 10.0)
 
 
 ## 锚咬地：顿帧 + 冲击环 + 水珠，转入弹射
@@ -384,7 +388,7 @@ func _anchor_bite() -> void:
 	var to: Vector2 = anchor.to
 	var dir: Vector2 = (to - pos).normalized() if to.distance_to(pos) > 1.0 else Vector2(face, 0)
 	var big: bool = anchor.kind == 2
-	g.hitstop = maxf(g.hitstop, 0.07 if big else 0.05)
+	impact_pause(0.07 if big else 0.05)
 	fx({"kind": "glow", "pos": to + Vector2(0, -6), "r": 18.0 if big else 14.0, "life": 0.12, "col": Color(1.4, 1.7, 2.3), "alpha": 0.8})
 	fx({"kind": "ring", "pos": to, "r": 48.0 if big else 36.0, "r0": 6.0, "life": 0.22, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(to, 6, 0.8)
@@ -451,7 +455,7 @@ func _reel_arrive() -> void:
 			continue
 		e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite else 1.0) + 0.25)
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
-	g.hitstop = maxf(g.hitstop, 0.05)
+	impact_pause(0.05)
 	fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": CHAIN, "floor": true, "w": 2.0})
 	# 眩晕星：头顶一圈小亮点
 	for i in 5:
@@ -481,7 +485,7 @@ func _reel_slam() -> void:
 				e.kb += (e.pos - pos).normalized() * 70.0
 	spawn_fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + dir * _reach() * 0.45, _reach() * 1.5 / 28.0, dir.angle())
 	_slam_fx(c, r, 1.2)
-	g.hitstop = maxf(g.hitstop, 0.07)
+	impact_pause(0.07)
 	Sfx.op(id, "atk", 2.0, 0.85)
 	hooked.clear()
 
@@ -503,7 +507,7 @@ func _zip_land() -> void:
 				if not e.boss:
 					e.kb += (e.pos - c).normalized() * 50.0
 		_slam_fx(c, r, 1.0)
-		g.hitstop = maxf(g.hitstop, 0.06)
+		impact_pause(0.06)
 		Sfx.op(id, "atk", 2.0, 0.85)
 		# 不容挣脱（原作 S1 把敌人拖过来）：锁链甩出去拽来附近至多 3 名敌人，拖到落点并造成掷锚 60% 伤害
 		if drag_on:
@@ -530,7 +534,7 @@ func _zip_land() -> void:
 		haste_t = base("s3_haste", 8.0)
 		spawn_fx_sprite("fx_circle_steel", c + Vector2(0, 4), g.PX * (r3 / 40.0))
 		float_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
-		g.hitstop = maxf(g.hitstop, 0.1)
+		impact_pause(0.1)
 		Sfx.op(id, "big")
 		# 通路洞开：从起跳点到锚点裂开一道直线裂隙，沿途敌人被掀飞 0.8 秒并受到锚击 80% 伤害
 		if rift_on:
@@ -786,7 +790,7 @@ func _draw_skill_over() -> void:
 			_draw_anchor(tr2[i], d, 0.3 * (1.0 - float(i) / tr2.size()))
 		for s in 3:
 			var off2: Vector2 = d.orthogonal() * (s - 1) * 9.0
-			g.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+			g.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.6), 2.0)
 	_draw_anchor(p, -d if reeling else d, 1.0)
 
 

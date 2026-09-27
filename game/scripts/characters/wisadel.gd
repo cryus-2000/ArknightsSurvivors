@@ -407,7 +407,7 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			_impact_fx(c, r, light)
 		"饱和炮击":
 			_burst_fx(c, r)
-			g.hitstop = maxf(g.hitstop, 0.05)   # 巨炮落地：短顿帧
+			impact_pause(0.05)   # 巨炮落地：短顿帧
 		"凋零处刑":
 			_burst_fx(c, r, true)
 		_:
@@ -426,8 +426,12 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			fx({"kind": "shade", "pos": killed[k], "life": 0.3, "col": DARK})
 
 
-## 落地：橙白闪 → 两团黑烟错开鼓起 → 红色冲击环 → 带火头的黑碎片 → 地面焦痕
+## 落地：红色标靶 → 红芯 → 刃状爆发 → 黑红涡流；缺图保留程序特效
 func _impact_fx(c: Vector2, r: float, light: bool) -> void:
+	# Reference sequence: target orb -> red core -> blade burst -> dark vortex.
+	if spawn_fx_sprite("fx_wisadel_cannon", c, r * (1.8 if light else 2.2) / 96.0):
+		fx({"kind": "scorch", "pos": c, "r": r * 0.7, "life": 1.2, "floor": true})
+		return
 	fx({"kind": "flash", "pos": c, "r": r * 0.7, "life": 0.1})
 	fx({"kind": "smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": DARK})
 	if not light:
@@ -444,6 +448,9 @@ func _impact_fx(c: Vector2, r: float, light: bool) -> void:
 ## （2026-09-25：原来的「紫灰烟环」是一圈等距的淡紫圆片，用户反馈太抽象，改为冲击波 + 黑烟）
 func _burst_fx(c: Vector2, r: float, small := false) -> void:
 	var sc: float = 0.7 if small else 1.0
+	if spawn_fx_sprite("fx_wisadel_cannon", c, r * 2.8 * sc / 96.0):
+		fx({"kind": "scorch", "pos": c, "r": r * 0.9 * sc, "life": 2.0, "floor": true})
+		return
 	fx({"kind": "burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.rng.randf() * TAU, "n": 8 if small else 12})
 	fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": RED, "floor": true, "w": 2.5, "alpha": 0.75})
 	var n: int = 3 if small else 5

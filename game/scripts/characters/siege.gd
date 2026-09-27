@@ -127,7 +127,7 @@ func _release() -> void:
 		fx({"kind": "ring", "pos": hp + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": FLAME, "floor": true, "w": 3.0})
 		fx({"kind": "crack", "pos": hp + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": FLAME, "floor": true, "n": 6})
 		fx_sparks(hp, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
-		g.hitstop = maxf(g.hitstop, 0.04)
+		impact_pause(0.04)
 	var land: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
 	if quake_on:
 		_quake(land, mult)
@@ -194,7 +194,7 @@ func _slam(second := false) -> void:
 	else:
 		_blaze_ring(r)
 	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
-	g.hitstop = maxf(g.hitstop, 0.07)
+	impact_pause(0.07)
 	if not second:
 		g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
 		_sp_motes(3)
