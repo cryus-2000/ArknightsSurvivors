@@ -1,0 +1,173 @@
+{
+  "status": "verified_image",
+  "assets": [
+    {
+      "file": "op_wisadel_run.png",
+      "character": "op_wisadel_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "8e68a00d3a9c12f54836b2ea92cb05b7156f47960dd1c882602491fcaeb2fddf",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-83894c24-cb2c-43f7-ac4d-e4ff417093a3.png",
+      "source_sha256": "13865a6586018593ad0a1e0ee79e2552c9fee9cbd944839e997995e57a60a575",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_wisadel_run@2x.png",
+      "character": "op_wisadel_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "9fa2c36a4aa3fb09d9b465cdc053c1144460d0f7e9dd43bb1f53415a3b81ccbc",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-83894c24-cb2c-43f7-ac4d-e4ff417093a3.png",
+      "source_sha256": "13865a6586018593ad0a1e0ee79e2552c9fee9cbd944839e997995e57a60a575",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_run.png",
+      "character": "op_eyjafjalla_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "e0b5d00a08cc381c71500874fb0bcf8c75c8b589d8c5c5dd8b87872bfa57713e",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-673dd412-0d7e-421e-9bd9-9a551b9ef625.png",
+      "source_sha256": "2296e750cb1183602cc2086d6635af151e713c28be658dcba504a1dd6875e7fa",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_eyjafjalla_run@2x.png",
+      "character": "op_eyjafjalla_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "ed012ca6cb6370700e8ec7079fa26a16c55dd449776b55238776220a2cc9d3a3",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-673dd412-0d7e-421e-9bd9-9a551b9ef625.png",
+      "source_sha256": "2296e750cb1183602cc2086d6635af151e713c28be658dcba504a1dd6875e7fa",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_logos_run.png",
+      "character": "op_logos_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "fbcdb3f6f775bb034fdccd5d7ede382a574544d95fd91432c2b0b44e36ff2edc",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-aa3d638a-b2b8-4a35-a7d0-fbdfe8ebc898.png",
+      "source_sha256": "09e02453b0fd977bf46d6e3087156103898b6c7ed3a04df9b4543daf2cd86129",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_logos_run@2x.png",
+      "character": "op_logos_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "2e65a8ac8983c93058c1d7beb1eb572519b6ae755badf5664ebba5d20335df28",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-aa3d638a-b2b8-4a35-a7d0-fbdfe8ebc898.png",
+      "source_sha256": "09e02453b0fd977bf46d6e3087156103898b6c7ed3a04df9b4543daf2cd86129",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_specter_unchained_run.png",
+      "character": "op_specter_unchained_run",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "loop": true,
+      "density": 1,
+      "sha256": "e1b1e0f67d874ade4b6859b5b95e44021b6d529da94de206188532ce2898ce76",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-d60c4d7c-6430-41c5-9ac0-aa5ec0ce1544.png",
+      "source_sha256": "8c7d1e559ad3c58a91cce65a1cb5338dc983b26f4d3b031b41782735d37e9630",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    },
+    {
+      "file": "op_specter_unchained_run@2x.png",
+      "character": "op_specter_unchained_run",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "loop": true,
+      "density": 2,
+      "sha256": "be2b120ff9d3b1c602d27b9ea638df2ffd17bc91732c8bfa215dae48031a4162",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-d60c4d7c-6430-41c5-9ac0-aa5ec0ce1544.png",
+      "source_sha256": "8c7d1e559ad3c58a91cce65a1cb5338dc983b26f4d3b031b41782735d37e9630",
+      "airborne_passing_frames": [
+        2,
+        5
+      ]
+    }
+  ]
+}
