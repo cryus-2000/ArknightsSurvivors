@@ -8,32 +8,33 @@
 python tools/export_build.py
 ```
 
-输出 `build/release/水月深海幸存者_<日期>_<提交>.zip`，解压后双击「开始游戏.bat」即可。
+输出 `build/release/方舟幸存者_Public_Encrypted_<日期>_<提交>.zip`，解压后双击「开始游戏.bat」即可。
 
 - 只打包**已提交**的内容（`git archive HEAD`）：其他会话在工作区里没提交的改动不会混进去。要打包新改动，先提交。
-- `--ref <提交或分支>` 打指定版本；`--no-zip` 只生成目录（`build/_export/水月深海幸存者/`）。
+- `--ref <提交或分支>` 打指定版本；`--no-zip` 只生成目录（`build/_export/方舟幸存者/`）。
 
 ## 包的结构
 
-游戏 exe 从「exe 所在目录/../art/incoming」读美术（`game/scripts/art.gd incoming_dir()`，Windows 预设不把美术打进 pck），所以目录必须保持：
+默认对外包使用正式 PCK 资源与目录加密，脚本、配置、音频、美术全部封装；玩家不需要密码。默认导出缺少专用模板或密钥就中止，不回退成明文包。
 
 ```
-水月深海幸存者/
+方舟幸存者/
   开始游戏.bat
   说明.txt
-  game/ArknightsSurvivors.exe + ArknightsSurvivors.pck
-  art/incoming/*.png        （跳过交接文档、清单和 preview / overview 预览图）
+  release_manifest.json
+  game/ArknightsSurvivors.exe
+  game/ArknightsSurvivors.pck
 ```
 
-## 一次性准备：Godot 4.7.2 导出模板
+`--ea` 生成 `Internal_EA_Encrypted` 内测包；`--unencrypted` 只生成本地 `Diagnostic` 诊断包，不可作为对外发布包。构建信息显式记录 audience 和 encrypted。
 
-导出需要与编辑器同版本的官方模板。本机已装在 `%APPDATA%\Godot\export_templates\4.7.2.stable\`（只保留 Windows 发布 / 调试模板）。换电脑或升级 Godot 时：
+## 一次性准备：加密导出模板
 
-1. 从 GitHub godotengine 发布页下载 `Godot_v<版本>-stable_export_templates.tpz`（约 1.2 GB，其实是 zip）；
-2. 把里面 `templates/` 下的 `windows_release_x86_64.exe`、`windows_debug_x86_64.exe` 和 `version.txt` 放进 `%APPDATA%\Godot\export_templates\<version.txt 的内容>\`；
-3. 或在 Godot 编辑器「编辑器 → 管理导出模板」里在线安装。
+使用与编辑器一致的 Godot 4.7.2 源码和私有 AES 密钥编译 Windows release 模板。执行 `python tools/prepare_encrypted_template.py`，完成后执行 `python tools/verify_encrypted_template.py` 验证正确模板能启动、普通模板不能读取加密 PCK。操作细节见 [加密交接](encrypted_release_20260928.md)。
 
-Godot 路径默认 `E:\Godot_v4.7.2-stable_win64.exe\...console.exe`，其他位置用环境变量 `GODOT` 指定。
+源码、编译工具链、模板和密钥存放在当前用户 `.codex/private/ArknightsSurvivors`，不进入 Git 或发布包。加密增加直接提取资源的难度，不代表无法逆向。换机器时必须安全保管或重新生成密钥并重编模板，不能只复制普通导出模板。
+
+通过环境变量 `GODOT` 指定本机匹配的 Godot 编辑器路径。导出前运行项目检查，导出后检查加密标志、包内容、首次启动与实际资源读取。
 
 ## 版权与授权
 
