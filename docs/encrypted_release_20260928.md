@@ -36,7 +36,7 @@ The resulting encrypted ZIP has `_Public_Encrypted` in its filename (or `_Intern
 
 ## Verification evidence
 
-The public encrypted template compiled successfully (2,431 translation units, SCons exit 0). The independent encrypted scene/script/JSON/texture boot test passed. The ordinary template produced a decryption failure; Windows may remain in startup error handling, so negative tests terminate it after 20-30 seconds and record that fact. Timeout alone is never accepted as rejection evidence: an explicit ERR_FILE_CORRUPT or MD5/decryption failure is required. Six focused Python contract tests and syntax checks pass. Private diagnostic template compilation and the final full-game resource/ZIP checks remain pending; no final game export has been performed by this task yet.
+The public encrypted template compiled successfully (2,431 translation units, SCons exit 0). The independent encrypted scene/script/JSON/texture boot test passed. The ordinary template produced a decryption failure; Windows may remain in startup error handling, so negative tests terminate it after 20-30 seconds and record that fact. Timeout alone is never accepted as rejection evidence: an explicit ERR_FILE_CORRUPT or MD5/decryption failure is required. Six focused Python contract tests and syntax checks pass. The separate private diagnostic template also compiled successfully. The encrypted Public game export and full package verification are complete (details below).
 
 Official references:
 - https://docs.godotengine.org/en/4.7/engine_details/development/compiling/compiling_with_script_encryption_key.html
@@ -45,3 +45,14 @@ Official references:
 `data/build.json` always receives an explicit audience and encrypted flag. Public builds clear any inherited EA channel; internal EA builds set channel to EA. Diagnostic packages are labelled `_Diagnostic` and their instructions say they must not be publicly released.
 
 The public template keeps path overrides disabled. A separate private `diagnostic_verifier.exe` may enable `--main-pack` / `--script` to inspect the encrypted game PCK; it is never selected by the exporter or copied into the release. Public template and diagnostic verifier have independent stable filenames and SHA256 fields. `verify_encrypted_game.py --package <export-folder> --zip <release.zip>` uses that verifier to load every staged PNG through ResourceLoader and Art.tex, checks readable pixel data, @2x density, aliases, audio, JSON, fresh progress, Public gallery locks and release feature gates. Every game probe and title smoke runs with fresh temporary APPDATA/LOCALAPPDATA and restores the parent environment. The real distributed public exe also gets its own title boot test. Ordinary-template decryption rejection is tested using a temporary ordinary exe with a same-named copy of the encrypted PCK, because normal Godot 4.7 release templates intentionally disallow path overrides.
+
+## Final delivery
+
+- Game/package revision: `3113f2c` (includes gameplay revision `d0f523e`).
+- ZIP: `build/release/方舟幸存者_Public_Encrypted_20260928_3113f2c.zip`, 52,463,880 bytes (50.0 MiB).
+- `build/encrypted_game_verification_3113f2c.json`: zero resource failures; 646 PNGs, 235 runtime audio files, 23 JSON files and 12 aliases loaded from the encrypted pack. High-resolution density and readable pixels checked. Voice WAV masters marked `.gdignore` are intentionally omitted; compressed runtime voices are checked.
+- Fresh Public gallery: operators available, six remaining sections locked; no Boss trial or debug argument unlock. User saves are isolated during validation.
+- The actual distributed Public EXE boots successfully and matches the fixed public template SHA256. The ordinary template produces an explicit decryption error for the same PCK; its startup error state is terminated after the timeout.
+- ZIP membership, CRC and each member's content match the verified five-file distribution. No external PNGs/scripts/key files are distributed.
+- Existing shutdown cleanup warning (`2 resources still in use at exit`, alongside ObjectDB cleanup warning) remains and is logged separately. No other engine/script/resource errors were accepted.
+- Seven encryption tooling contract tests pass. Full gameplay integration check previously passed all 40 checks. The later probe-only `.gdignore` fix does not change packaged gameplay or require rebuilding this ZIP.

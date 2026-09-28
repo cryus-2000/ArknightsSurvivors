@@ -39,4 +39,18 @@ class EncryptionContracts(unittest.TestCase):
             (Path(d)/'sprite.png').write_bytes(b'not-distributable')
             with self.assertRaisesRegex(ValueError,'Unexpected loose files'): enc.check_distribution(Path(d))
 
+    def test_probe_respects_godot_ignored_asset_folders(self):
+        import verify_encrypted_game as verify
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            master=root/'audio/voice/masters/x.wav'
+            master.parent.mkdir(parents=True)
+            master.write_bytes(b'original')
+            (master.parent/'.gdignore').write_text('')
+            runtime=root/'audio/voice/x.ogg'
+            runtime.write_bytes(b'runtime')
+            self.assertFalse(verify.in_export(master,root,[]))
+            self.assertTrue(verify.in_export(runtime,root,[]))
+            self.assertFalse(verify.in_export(runtime,root,['audio/voice/*']))
+
 if __name__=='__main__': unittest.main()

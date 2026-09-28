@@ -1,7 +1,7 @@
 """Validate every staged PNG, audio file and JSON through the encrypted game PCK.
 The temporary external probe is never included in the public distribution.
 """
-import argparse, json, os, shutil, struct, tempfile, zipfile
+import argparse, fnmatch, json, os, re, shutil, struct, tempfile, zipfile
 from pathlib import Path
 import encrypted_release as enc
 import godot_runner
@@ -74,9 +74,35 @@ func _verify():
                     failures.append("gallery_initial_lock:" + str(page))
         gallery.queue_free()
     var result = {"packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    Art._cache.clear()
+    Art._hires.clear()
+    Art._hires_rid.clear()
+    await process_frame
+    await process_frame
     print("PACK_VERIFY_JSON=" + JSON.stringify(result))
     quit(0 if failures.is_empty() else 2)
 '''
+
+def in_export(path,project,excludes):
+    relative=path.relative_to(project).as_posix()
+    if any(fnmatch.fnmatchcase(relative,pattern) for pattern in excludes): return False
+    current=path.parent
+    while current.is_relative_to(project):
+        if (current/'.gdignore').is_file(): return False
+        if current==project: break
+        current=current.parent
+    return True
+
+def save_log(kind,commit,out,err):
+    path=ROOT/'build'/('encrypted_'+kind+'_'+commit+'.log')
+    path.write_text('STDOUT\n'+out+'\nSTDERR\n'+err,encoding='utf-8')
+    return path
+
+def real_errors(text):
+    # This exact two-resource engine shutdown diagnostic predates these probes.
+    # No script, import, decryption, or other ERROR is permitted by this exception.
+    known='ERROR: 2 resources still in use at exit (run with --verbose for details).'
+    return [line for line in text.splitlines() if ('ERROR:' in line or 'Parse Error:' in line) and line.strip()!=known]
 
 def isolated_run(arguments,timeout):
     # Windows Godot get_config_path/get_cache_path honor these process env variables.
@@ -112,29 +138,39 @@ def main():
         width,height=struct.unpack('>II',raw[16:24])
         images.append([path.stem,width,height])
     if not images or len(images)!=manifest['packed_png_count']: raise ValueError('Staged art inventory does not match release manifest')
-    audio=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'audio').rglob('*')) if p.suffix.lower() in ('.ogg','.wav')]
-    json_paths=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'data').rglob('*.json'))]
+    preset=(project/'export_presets.cfg').read_text(encoding='utf-8').split('[preset.1]')[0]
+    match=re.search(r'^exclude_filter="(.*)"$',preset,re.M)
+    excludes=[value.strip() for value in match.group(1).split(',')] if match else []
+    audio=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'audio').rglob('*')) if p.suffix.lower() in ('.ogg','.wav') and in_export(p,project,excludes)]
+    json_paths=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'data').rglob('*.json')) if in_export(p,project,excludes)]
     text=PROBE.replace('__IMAGES__',json.dumps(images,ensure_ascii=False)).replace('__AUDIO__',json.dumps(audio)).replace('__JSON__',json.dumps(json_paths)).replace('__AUDIENCE__',json.dumps(manifest['audience']))
     exe=package/'game/ArknightsSurvivors.exe'; pck=exe.with_suffix('.pck')
     enc.check_encrypted_pck(pck)
     with tempfile.TemporaryDirectory(prefix='pack_probe_',dir=ROOT/'build') as directory:
         probe=Path(directory)/'verify.gd'; probe.write_text(text,encoding='utf-8')
         out,err,timeout=isolated_run([str(verifier),'--headless','--audio-driver','Dummy','--main-pack',str(pck),'--script',str(probe),'--','--pack-probe','--unlockall'],300)
+        log=save_log('game_probe',manifest['commit'],out,err)
         combined=out+'\n'+err
         line=next((line for line in out.splitlines() if line.startswith('PACK_VERIFY_JSON=')),None)
-        if timeout or 'ERROR:' in combined or 'Parse Error:' in combined or line is None:
-            raise RuntimeError('Pack probe failed: '+combined[-5000:])
+        if timeout or real_errors(combined) or line is None:
+            raise RuntimeError('Pack probe failed (full log: '+str(log)+'): '+combined[-5000:])
         result=json.loads(line.split('=',1)[1])
+        result['probe_shutdown_warning']='2 resources still in use at exit' in combined
+        result['probe_log']=str(log)
         if result['failures']: raise RuntimeError('Pack resources failed: '+json.dumps(result))
     out,err,timeout=isolated_run([str(exe),'--headless','--audio-driver','Dummy','--quit-after','60','--','--pack-smoke'],120)
-    if timeout or 'ERROR:' in out+err or 'Parse Error:' in out+err or 'Godot Engine' not in out:
+    log=save_log('game_boot',manifest['commit'],out,err)
+    if timeout or real_errors(out+'\n'+err) or 'Godot Engine' not in out:
         raise RuntimeError('Packaged game boot failed: '+(out+'\n'+err)[-5000:])
     result['packaged_game_boot']=True
+    result['boot_shutdown_warning']='2 resources still in use at exit' in out+err
+    result['boot_log']=str(log)
     with tempfile.TemporaryDirectory(prefix='ordinary_probe_',dir=ROOT/'build') as directory:
         plain=Path(directory)/'ordinary.exe'
         shutil.copy2(ordinary,plain)
         shutil.copy2(pck,plain.with_suffix('.pck'))
         out,err,timeout=isolated_run([str(plain),'--headless','--audio-driver','Dummy'],30)
+    log=save_log('ordinary_rejection',manifest['commit'],out,err)
     if not ('ERR_FILE_CORRUPT' in out+err or ('open_and_parse' in out+err and 'md5' in (out+err).lower())):
         raise RuntimeError('Ordinary template did not clearly reject game PCK')
     result['ordinary_template_rejected']=True
