@@ -136,6 +136,65 @@ func _ready() -> void:
 		g.warns.clear()
 		g.bai._boss_ai(e, 0.01, Vector2.RIGHT, 200.0)
 		check(not g.warns.any(func(w): return w.has("pattern_id")), kind + " phase one stays unchanged")
+	# 原作机制转译：骑士冰线追击、接潮双体生命连接、伊莎玛拉之泪共鸣。
+	g.t = 300.0
+	g.warns.clear()
+	g.fx.clear()
+	var hunter: Dictionary = g.spawner.new_enemy("knight_boss", Vector2.ZERO)
+	hunter.age = 20.0
+	hunter.pattern_next = INF
+	g.ppos = Vector2(260, 0)
+	g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)
+	var ice_marks: Array = g.warns.filter(func(w): return w.act == "frost_track")
+	check(ice_marks.size() == 1 and ice_marks[0].dur >= 0.6, "knight announces frost-track pursuit")
+	if not ice_marks.is_empty():
+		g.bai._warn_resolve(ice_marks[0])
+		check(g.fx.any(func(f): return f.kind == "frost_track") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
+		g.t = float(hunter.get("hunt_follow_at", INF)) + 0.01
+		hunter.wind = 0.0
+		g.warns.clear()
+		g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)
+		check(g.warns.any(func(w): return w.act == "dash" and w.name == "寒冷追击"), "knight follows marked track with charge")
+	g.t = 400.0
+	g.warns.clear()
+	var priest: Dictionary = g.spawner.new_enemy("bishop", Vector2.ZERO)
+	var fallen: Dictionary = g.spawner.new_enemy("archon", Vector2(240, 0))
+	priest.age = 20.0
+	priest.pattern_next = INF
+	priest.partner = fallen
+	fallen.partner = priest
+	fallen.coma = true
+	fallen.invuln = true
+	g.ppos = Vector2(120, 0)
+	g.bai._boss_ai(priest, 0.01, Vector2.RIGHT, 120.0)
+	var links: Array = g.warns.filter(func(w): return w.act == "tide_link")
+	check(links.size() == 1 and links[0].len > 200.0, "surviving tide boss counters along life link")
+	if not links.is_empty():
+		g.fx.clear()
+		g.bai._warn_resolve(links[0])
+		check(g.fx.any(func(f): return f.kind == "tide_link"), "life-link counter has dedicated tide art")
+	g.t = 500.0
+	g.warns.clear()
+	var sea: Dictionary = g.spawner.new_enemy("ishar", Vector2.ZERO)
+	var active_tear: Dictionary = g.spawner.new_enemy("tear", Vector2(110, 45))
+	var quiet_tear: Dictionary = g.spawner.new_enemy("tear", Vector2(250, 0))
+	active_tear.owner = sea
+	quiet_tear.owner = sea
+	g.enemies = [active_tear, quiet_tear]
+	g.ppos = quiet_tear.pos
+	g.bai.transform_ishar(sea)
+	check(sea.get("tear_echoes", []).size() == 1 and active_tear.dead and quiet_tear.dead, "only unblocked tears leave a resonance trace")
+	check(g.fx.any(func(f): return f.kind == "tide_link" and f.a == active_tear.pos), "unsuppressed tear visibly links at transformation")
+	g.t += 2.0
+	sea.wind = 0.0
+	sea.ishar_next_at = g.t
+	g.bai._ishar_phase2(sea, Vector2.RIGHT, 250.0)
+	var echoes: Array = g.warns.filter(func(w): return w.act == "ishar_echo")
+	check(echoes.size() == 1 and echoes[0].get("true", false), "hostile Ishar fires true-damage tear resonance")
+	if not echoes.is_empty():
+		g.fx.clear()
+		g.bai._warn_resolve(echoes[0])
+		check(g.fx.any(func(f): return f.kind == "tide_link"), "tear resonance draws linked wave")
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await capture_patterns()
 	print("BOSS VARIETY failures=", failures)
@@ -202,3 +261,77 @@ func capture_patterns() -> void:
 	g.queue_redraw()
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://../build/ea_boss_blade_volley.png")
+	# 美术验收截图：真实 Boss 实体与新特效同屏。
+	g.warns.clear()
+	g.fx.clear()
+	g.ebullets.clear()
+	g.shocks.clear()
+	g.lobs.clear()
+	g.enemies.clear()
+	var hunter: Dictionary = g.spawner.new_enemy("knight_boss", Vector2(-130, 0))
+	hunter.age = 20.0
+	hunter.pattern_next = INF
+	g.enemies.append(hunter)
+	g.bosses = [hunter]
+	g.boss = hunter
+	g.final_boss = hunter
+	g.ppos = Vector2(230, 0)
+	g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 360.0)
+	for w in g.warns.duplicate():
+		if w.act == "frost_track":
+			g.bai._warn_resolve(w)
+	g.warns.clear()
+	g.queue_redraw()
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("res://../build/ea_knight_frost_hunt.png")
+	g.fx.clear()
+	g.ebullets.clear()
+	g.shocks.clear()
+	g.lobs.clear()
+	g.enemies.clear()
+	var priest: Dictionary = g.spawner.new_enemy("bishop", Vector2(-130, 0))
+	var fallen: Dictionary = g.spawner.new_enemy("archon", Vector2(180, 0))
+	priest.age = 20.0
+	priest.pattern_next = INF
+	priest.partner = fallen
+	fallen.partner = priest
+	fallen.coma = true
+	fallen.invuln = true
+	g.enemies.append_array([priest, fallen])
+	g.bosses = [priest, fallen]
+	g.boss = priest
+	g.final_boss = null
+	g.ppos = Vector2(100, 0)
+	g.bai._boss_ai(priest, 0.01, Vector2.RIGHT, 230.0)
+	for w in g.warns.duplicate():
+		if w.act == "tide_link":
+			g.bai._warn_resolve(w)
+	g.warns.clear()
+	g.queue_redraw()
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("res://../build/ea_bishop_life_link.png")
+	g.fx.clear()
+	g.ebullets.clear()
+	g.shocks.clear()
+	g.lobs.clear()
+	g.enemies.clear()
+	var sea: Dictionary = g.spawner.new_enemy("ishar", Vector2(-130, 0))
+	var tear: Dictionary = g.spawner.new_enemy("tear", Vector2(100, -80))
+	tear.owner = sea
+	g.enemies.append_array([sea, tear])
+	g.bosses = [sea]
+	g.boss = sea
+	g.final_boss = sea
+	g.ppos = Vector2(250, 0)
+	g.bai.transform_ishar(sea)
+	g.t += 2.0
+	sea.wind = 0.0
+	sea.ishar_next_at = g.t
+	g.bai._ishar_phase2(sea, Vector2.RIGHT, 380.0)
+	for w in g.warns.duplicate():
+		if w.act == "ishar_echo":
+			g.bai._warn_resolve(w)
+	g.warns.clear()
+	g.queue_redraw()
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("res://../build/ea_ishar_tear_echo.png")

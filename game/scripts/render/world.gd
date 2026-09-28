@@ -31,7 +31,7 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
-const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost"]
+const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
 ## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
@@ -344,6 +344,21 @@ func draw_world() -> void:
 					var qa: float = g.t * 0.6 + TAU * q / 6.0
 					g.draw_line(Vector2.from_angle(qa) * f.r * 0.2, Vector2.from_angle(qa) * f.r * 0.95, Color(0.9, 1.3, 1.9, 0.25 * fa), 2.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"frost_track":
+				# 骑士冰线：连续的碎裂冰脊与亮芯，和追击预警共用相同方向。
+				var side: Vector2 = (f.b - f.a).orthogonal().normalized()
+				var spine := PackedVector2Array()
+				for q in 12:
+					var u: float = float(q) / 11.0
+					spine.append(f.a.lerp(f.b, u) + side * sin(u * 47.0) * 5.0)
+				g.draw_polyline(spine, Color(0.06, 0.2, 0.32, 0.8 * a), 14.0)
+				g.draw_polyline(spine, Color(0.55, 1.2, 1.65, 0.85 * a), 5.0)
+				g.draw_polyline(spine, Color(2.0, 2.4, 2.6, 0.9 * a), 1.5)
+				for q in 9:
+					var u: float = (float(q) + 0.5) / 9.0
+					var at: Vector2 = f.a.lerp(f.b, u)
+					var reach: float = 10.0 + float(q % 3) * 4.0
+					g.draw_line(at, at + side * reach * (1.0 if q % 2 == 0 else -1.0), Color(0.8, 1.4, 1.9, 0.8 * a), 2.0)
 			"frost_step":
 				# 骑士冲锋脚下的冰霜拖尾：扁平冰斑 + 两道冰晶
 				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.45))
@@ -385,6 +400,23 @@ func draw_world() -> void:
 						var ca := Color(0.7, 2.2, 1.0, a)
 						g.draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
 						g.draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
+			"tide_link":
+				# 双层弯曲潮线与逆流光点：接潮生命连接、伊莎玛拉泪滴共鸣共用。
+				var c: Color = f.col
+				var normal: Vector2 = (f.b - f.a).orthogonal().normalized()
+				for side in [-1.0, 1.0]:
+					var points := PackedVector2Array()
+					for q in 13:
+						var u: float = float(q) / 12.0
+						points.append(f.a.lerp(f.b, u) + normal * side * sin(u * PI * 2.0 + g.t * 11.0) * 7.0 * sin(u * PI))
+					g.draw_polyline(points, Color(0.02, 0.08, 0.16, 0.65 * a), 9.0)
+					g.draw_polyline(points, Color(c.r * 1.4, c.g * 1.6, c.b * 1.8, 0.8 * a), 3.0)
+				for q in 5:
+					var u: float = fposmod(float(q) / 5.0 + g.t * 0.9, 1.0)
+					var bead: Vector2 = f.a.lerp(f.b, u)
+					g.draw_circle(bead, 3.5, Color(1.6, 2.4, 2.5, 0.8 * a))
+				g.draw_arc(f.a, 14.0, 0.0, TAU, 20, Color(c.r, c.g, c.b, a), 2.0)
+				g.draw_arc(f.b, 14.0, 0.0, TAU, 20, Color(c.r, c.g, c.b, a), 2.0)
 			"beam":
 				var c: Color = f.col
 				g.draw_line(f.a, f.b, Color(c.r * 2.0, c.g * 2.0, c.b * 2.0, 0.35 * a), f.w * 3.0)

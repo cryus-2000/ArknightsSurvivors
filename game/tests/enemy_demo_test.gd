@@ -125,6 +125,10 @@ func _ready() -> void:
 			if cfg.has("patterns"):
 				for move in cfg.patterns:
 					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))
+	for detail in [["knight_boss", "寒冷追击"], ["bishop", "接潮共鸣"], ["ishar", "泪滴共鸣"]]:
+		gal.tab = 3
+		gal._build()
+		check(gal.entries.any(func(entry): return entry.id == detail[0] and detail[1] in entry.desc), "gallery explains original-mechanic attack " + detail[0])
 	gal._enemy_demo_start("stone", Vector2i(520, 290))
 	var old = gal.demo_vp
 	gal.close()

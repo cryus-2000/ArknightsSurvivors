@@ -45,6 +45,27 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			g.vfx.add_text(e.pos + Vector2(0, -50), "苏醒", Color(0.6, 1.0, 0.9), 18)
 		return
 	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.get("dash_t", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
+	# 原作机制转译：冰线后的骑士冲锋、接潮双体的假死反击。均走正式预警管线。
+	if ready and e.type == "knight_boss" and g.t >= float(e.get("hunt_follow_at", INF)):
+		e.hunt_follow_at = INF
+		_warn(e, "line", 0.7, {"ang": float(e.get("hunt_angle", dir.angle())), "len": 520.0, "wid": 32.0,
+			"fit_len": true, "act": "dash", "name": "寒冷追击", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 1.35})
+		ready = false
+	if ready and e.type == "knight_boss" and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 12.0):
+		_warn(e, "line", 0.85, {"ang": dir.angle(), "len": minf(560.0, dist + 60.0), "wid": 18.0,
+			"track": 0.25, "act": "frost_track", "name": "冰线", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 0.4})
+		ready = false
+	var mate = e.get("partner")
+	if mate != null and not mate.dead and mate.get("coma", false) and e.type in ["bishop", "archon", "immortal"]:
+		if g.t >= float(e.get("link_visual_at", 0.0)):
+			e.link_visual_at = g.t + 0.28
+			g.fx.append({"kind": "tide_link", "a": e.pos, "b": mate.pos, "life": 0.36, "max": 0.36, "col": g.vfx.boss_color(e.type), "enemy": true})
+		if ready and g.t >= float(e.get("link_next_at", 0.0)):
+			e.link_next_at = g.t + 6.0
+			_warn(e, "line", 0.9, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos),
+				"wid": 17.0, "act": "tide_link", "name": "接潮共鸣", "col": g.vfx.boss_color(e.type),
+				"corrode": 0.25, "dmg": e.dmg * 0.55, "cancel_dead": true})
+			ready = false
 	if ready and patterns.try_attack(e, dir, dist):
 		ready = false
 	match e.type:
@@ -232,9 +253,24 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
 		return
 	var move: int = int(e.get("ishar_cycle", 0)) % 4
-	e["ishar_cycle"] = (move + 1) % 4
 	var col := Color(0.35, 1.0, 0.9)
 	var end := 0.0
+	var echoes: Array = e.get("tear_echoes", [])
+	if not echoes.is_empty():
+		# 只保存变身前未压制的泪滴；锁定一刻的主控位置，各束同时结算。
+		var target: Vector2 = g.combat.arena_clamp(g.ppos, 80.0)
+		for source in echoes:
+			var to_target: Vector2 = target - source
+			var w := _warn(e, "line", 1.0, {"pos": source, "ang": to_target.angle(), "len": to_target.length(),
+				"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if source == echoes[0] else "",
+				"col": col, "dmg": e.dmg * 0.48, "cancel_dead": true, "lock": source == echoes[0]})
+			end = maxf(end, w.dur)
+		e.tear_echoes = []
+		e.wind = maxf(e.wind, end)
+		e.cdt = maxf(e.cdt, end)
+		e.ishar_next_at = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE
+		return
+	e.ishar_cycle = (move + 1) % 4
 	match move:
 		0:
 			# 一人主控制：三目标改为当前脚底与两侧三个固定落点；队员仍不受伤。
@@ -319,8 +355,15 @@ func transform_ishar(e: Dictionary) -> void:
 	e.ai = "melee"   # 接近主控，但伤害只从有预警的轮转招式结算。
 	e["ishar_cycle"] = 0
 	e["ishar_next_at"] = g.t + 0.9
+	e["tear_echoes"] = []
 	for o in g.enemies:
 		if o.type == "tear" and is_same(o.get("owner", {}), e):
+			if not o.dead and not g.ishar.tear_blocked(o):
+				e.tear_echoes.append(o.pos)
+				g.fx.append({"kind": "ring", "pos": o.pos, "r": 34.0, "life": 1.4, "max": 1.4,
+					"col": Color(0.35, 1.0, 0.9), "enemy": true})
+				g.fx.append({"kind": "tide_link", "a": o.pos, "b": e.pos, "life": 1.0, "max": 1.0,
+					"col": Color(0.35, 1.0, 0.9), "enemy": true})
 			o.dead = true
 	e.dmg *= 1.6
 	e.spd = maxf(e.spd, 58.0)
@@ -429,10 +472,10 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
 	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
-	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring", "pattern_rain"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
-		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley"] else "近战", "真实"]
+		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
 	if g.invuln <= 0.0:
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)), "frost": e.get("frost", 0.0), "hit_cap": e.get("hit_cap", 0.0)}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if stun_t > 0.0 and not g.combat.stun_as_slow(e.boss):   # Boss 战里僵直改成减速（docs/38 §1.11）
@@ -457,9 +500,33 @@ func _warn_resolve(w: Dictionary) -> void:
 	if str(w.act).begins_with("pattern_"):
 		patterns.resolve(w)
 		return
+	if w.act == "tide_link" and (e.get("partner") == null or not e.partner.get("coma", false)):
+		return
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)
 	match w.act:
+		"frost_track":
+			g.fx.append({"kind": "frost_track", "a": w.pos, "b": w.pos + dv * w.len,
+				"life": 1.0, "max": 1.0, "enemy": true})
+			for i in 8:
+				var pos: Vector2 = w.pos + dv * w.len * (float(i) + 0.5) / 8.0
+				g.fx.append({"kind": "frost_step", "pos": pos, "r": 13.0, "life": 0.9, "max": 0.9, "enemy": true})
+			g.vfx.fx_sprite("fx_knight_impact", w.pos + dv * w.len, g.PX * 1.2)
+			g.vfx.sparks(w.pos + dv * w.len, dv, c, 10, 180.0)
+			e.hunt_angle = w.ang
+			e.hunt_follow_at = g.t + 0.25
+			Sfx.play("hit", -9.0, 1.4)
+			_warn_damage(w)
+		"tide_link":
+			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			g.vfx.fx_sprite("fx_water_splash", w.pos + dv * w.len, g.PX * 1.2)
+			Sfx.play("tentacle", -8.0, 1.1)
+			_warn_damage(w)
+		"ishar_echo":
+			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
+			Sfx.play("tentacle", -8.0, 1.25)
+			_warn_damage(w)
 		"extra_volley":
 			var a: Dictionary = w.extra
 			var count: int = mini(int(a.count), 5)

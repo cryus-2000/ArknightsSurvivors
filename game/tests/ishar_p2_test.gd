@@ -63,7 +63,8 @@ func _ready() -> void:
 			g.bai._update_warns(0.04)
 		check(seen.has("ishar_strike") and seen.has("ishar_line") and seen.has("ishar_volley"), "three distinct ranged patterns at distance %d" % distance)
 		check(seen.has("bite") or seen.has("sweep"), "near bite or far fan in rotation")
-		check(names.size() >= 8 and names[0] == names[4], "complete rotation repeats rather than priority starving")
+		var regular_names: Array = names.filter(func(n): return n != "泪滴共鸣")
+		check(regular_names.size() >= 8 and regular_names[0] == regular_names[4], "complete rotation repeats rather than priority starving")
 	# Warning resolution must forward true damage and the existing protection budget.
 	g.t += 20.0
 	g.invuln = 0.0
