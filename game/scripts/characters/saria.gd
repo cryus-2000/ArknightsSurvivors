@@ -87,7 +87,7 @@ func update(dt: float) -> void:
 		if hot_acc >= 1.0:
 			hot_acc -= 1.0
 			if g.hp < g.max_hp:
-				heal_leader(g.max_hp * 0.01, "塞雷娅")
+				heal_leader(g.max_hp * base("hot_heal", 0.0085), "塞雷娅")
 				fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
 	if calc > 0.0:
 		calc -= dt
@@ -95,7 +95,7 @@ func update(dt: float) -> void:
 		if calc_acc >= 1.0:
 			calc_acc -= 1.0
 			if g.hp < g.max_hp:
-				heal_leader(g.max_hp * 0.015, "塞雷娅")
+				heal_leader(g.max_hp * base("s3_heal", 0.01275), "塞雷娅")
 		# 区域内敌人：减速 + 易伤
 		for j in query_ids(g.ppos, S3_R + 20.0):
 			var e: Dictionary = g.enemies[j]

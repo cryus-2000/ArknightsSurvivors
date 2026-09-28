@@ -123,7 +123,10 @@
  "lamp": {
   "_doc": "受击灯火损失 = (hit_base + hit_scale × 伤害/最大生命) × light_decay。原值 4 / 30：一记 16 伤害就掉 8.8，十次就熄灯进入死亡螺旋",
   "hit_base": 3,
-  "hit_scale": 18
+  "hit_scale": 18,
+  "oil_kill_chance": 0.006,
+  "elite_oil_chance": 0.65,
+  "elite_oil_amount": 25.0
  },
  "xp": {
   "_doc": "升级所需经验：first 为 Lv1→2；基础 a + b·L + c·L²，Lv12前不变，Lv12→30平滑增至late_mult倍，延长后半程成长",

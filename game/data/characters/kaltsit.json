@@ -11,9 +11,9 @@
  "script": "res://scripts/characters/kaltsit.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "heal_pct": 0.035,
+  "heal_pct": 0.03,
   "heal_cd": 3.5,
-  "s1_heal": 0.08,
+  "s1_heal": 0.068,
   "m_atk": 25,
   "m_cd": 0.9,
   "m_reach": 93,
@@ -151,14 +151,14 @@
  "attack": {
   "mode": "auto",
   "name": "治疗",
-  "desc": "每 3.5 秒为主控回复 3.5% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）"
+  "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）"
  },
  "skills": [
   {
    "name": "医疗单元",
    "en": "MEDICAL UNIT",
    "sp": 7,
-   "desc": "立即为主控回复 8% 最大生命并清除神经损伤",
+   "desc": "立即为主控回复 6.8% 最大生命并清除神经损伤",
    "icon": "skill_kaltsit_s1"
   },
   {

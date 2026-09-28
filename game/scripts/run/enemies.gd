@@ -257,9 +257,6 @@ func update(dt: float) -> void:
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
 					g.lamp = maxf(0.0, g.lamp - 8.0)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
-				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
-					g.frost = maxf(g.frost, 2.0)
-					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
@@ -293,7 +290,7 @@ func update_lobs(dt: float) -> void:
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {"hit_cap": l.get("hit_cap", 0.0)})
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l)
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 

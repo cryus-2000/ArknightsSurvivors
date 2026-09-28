@@ -112,7 +112,7 @@ func resolve(w: Dictionary) -> void:
 		var blade: bool = move.get("blade", false)
 		g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * float(move.speed),
 			"dmg": w.dmg, "r": 12.0 if blade else 7.0, "life": 2.8,
-			"slow": false, "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
+			"slow": false, "frost": e.get("frost", 0.0), "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
 			"kind": "boss_blade" if blade else "nova", "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
 			"source_id": e.id, "col": w.col, "source_type": e.type})

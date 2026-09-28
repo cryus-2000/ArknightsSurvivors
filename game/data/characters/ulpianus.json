@@ -50,7 +50,7 @@
   "max_hp": 140,
   "armor": 0.0,
   "arts_res": 0.0,
-  "regen": 1.7
+  "regen": 2.0
  },
  "sprites": {
   "idle": {

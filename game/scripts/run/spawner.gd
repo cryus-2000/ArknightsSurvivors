@@ -307,7 +307,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * g.enemy_cd_mult, "cdt": g.rng.randf() * d.get("cd", 1.0),
-		"corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": float(d.get("armor", 1.0)), "set_t": 0.0, "set_done": false,
+		"frost": d.get("frost", 0.0), "corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": float(d.get("armor", 1.0)), "set_t": 0.0, "set_done": false,
 		"chest": false, "hidden": false, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
@@ -428,7 +428,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"event": event_id,
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
-		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
+		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
 		"chest": true, "hidden": event_id == "" and g.rng.randf() < 0.15, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,

@@ -58,7 +58,9 @@
    "pattern": "nova",
    "nova_range": 320,
    "nova_n": 6,
-   "atk_anim": true
+   "atk_anim": true,
+   "corrode": 0.15,
+   "desc": "缓慢接近，接触时蜕变；蓄力后释放带轻度侵蚀的环形弹幕。"
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -69,11 +71,12 @@
    "xp": 0.5,
    "tex": "e_brood",
    "ai": "static",
-   "corrode": 0.3,
+   "corrode": 0.35,
    "decay": 0.08,
    "pattern": "acid",
    "acid_range": 300,
-   "acid_cd": 4.2
+   "acid_cd": 4.2,
+   "desc": "驻留的子体，接触和酸弹命中附加侵蚀；酸弹每 4.2 秒发射一次。"
   },
   "spitter": {
    "name": "溟海喷吐者",
@@ -93,9 +96,10 @@
    "range": 320.0,
    "cd": 3.2,
    "spit": true,
-   "corrode": 0.4,
+   "corrode": 0.45,
    "draw_scale": 1.17,
-   "atk_anim": true
+   "atk_anim": true,
+   "desc": "朝主控预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。"
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -313,7 +317,9 @@
    "spawn_on_shot": "brood",
    "spawn_max": 12,
    "elite_after": 300,
-   "atk_anim": true
+   "atk_anim": true,
+   "corrode": 0.25,
+   "desc": "发射追踪酸弹，命中附加侵蚀，并在主控附近召唤注亡拟嗣。"
   },
   "mimic": {
    "name": "箱形恐鱼",
@@ -668,7 +674,9 @@
    "dash_speed": 5.2,
    "ingots": 6,
    "no_spawn": true,
-   "draw_scale": 0.7
+   "draw_scale": 0.7,
+   "frost": 1.5,
+   "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。"
   },
   "knight_boss": {
    "name": "最后的骑士",
@@ -704,7 +712,9 @@
      "waves": 2,
      "texture": "fx_slash_heavy_steel"
     }
-   ]
+   ],
+   "frost": 2.0,
+   "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
   }
  }
 }

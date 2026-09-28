@@ -67,6 +67,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
 	one_cap = 0.0
+	if lost <= 0.0:
+		return
+	if float(src.get("frost", 0.0)) > 0.0:
+		g.frost = maxf(g.frost, float(src.frost))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
@@ -854,7 +858,7 @@ func kill(e: Dictionary) -> void:
 		g.lamp = min(g.lamp_cap, g.lamp + 20.0)
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
-	if g.rng.randf() < 0.012 * float(g.dmod.oil_drop):
+	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
 	if e.elite or e.boss:
@@ -870,7 +874,8 @@ func kill(e: Dictionary) -> void:
 		ing = max(ing, g.rng.randi_range(3, 5))
 		if elite_drops_relic():
 			g.pickups.drop(e.pos, "chest", 1.0)
-		g.pickups.drop(e.pos + Vector2(20, 10), "oil", 25.0)
+		if g.rng.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
+			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
 	if e.boss:
 		ing = 20
 		if not is_same(e, g.final_boss) and not g.spawner.boss_alive():

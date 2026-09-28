@@ -1,5 +1,5 @@
 {
- "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / tags / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。",
+ "_doc": "已实装藏品的效果数据。键是藏品编号（见 docs/08）。effects 语法见 scripts/core/modifier_system.gd。desc 省略时用 relics.json 里的改编文字。可选：rarity / tags / requires / conflicts / shop_allowed / price_class / source 覆盖默认值。 effect_category 是按实装效果复核的主分类，名称见 effect_categories；不替代原 lanes/tags，也不参与抽取权重。rarity 是实效强度档，缺省价格随最终 rarity。",
  "relics": {
   "1": {
    "effects": [
@@ -19,7 +19,8 @@
    "tags": [
     "squad",
     "survival"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "15": {
    "requires": [
@@ -37,7 +38,9 @@
    "tags": [
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "shield"
   },
   "27": {
    "effects": [
@@ -52,7 +55,9 @@
    "tags": [
     "economy"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "基础",
+   "effect_category": "economy"
   },
   "28": {
    "effects": [
@@ -67,7 +72,9 @@
    "tags": [
     "economy"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "基础",
+   "effect_category": "economy"
   },
   "29": {
    "effects": [
@@ -82,7 +89,9 @@
    "tags": [
     "economy"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "稀有",
+   "effect_category": "economy"
   },
   "30": {
    "effects": [
@@ -97,7 +106,9 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "基础",
+   "effect_category": "light"
   },
   "31": {
    "effects": [
@@ -112,7 +123,9 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "基础",
+   "effect_category": "light"
   },
   "32": {
    "effects": [
@@ -127,7 +140,9 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "稀有",
+   "effect_category": "light"
   },
   "33": {
    "effects": [
@@ -147,7 +162,8 @@
    "requires_class": [
     "先锋"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "34": {
    "effects": [
@@ -167,7 +183,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "35": {
    "effects": [
@@ -187,7 +204,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "36": {
    "effects": [
@@ -207,7 +225,8 @@
    "requires_class": [
     "狙击"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "37": {
    "effects": [
@@ -227,7 +246,8 @@
    "requires_class": [
     "术师"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "38": {
    "effects": [
@@ -247,7 +267,8 @@
    "requires_class": [
     "辅助"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "39": {
    "effects": [
@@ -267,7 +288,8 @@
    "requires_class": [
     "医疗"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "40": {
    "effects": [
@@ -287,7 +309,8 @@
    "requires_class": [
     "特种"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "growth"
   },
   "41": {
    "effects": [
@@ -299,7 +322,9 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -7%",
-   "tags": []
+   "tags": [],
+   "rarity": "基础",
+   "effect_category": "defense"
   },
   "43": {
    "effects": [
@@ -311,7 +336,9 @@
     }
    ],
    "tags": [],
-   "desc": "所有敌人造成的伤害 -12%"
+   "desc": "所有敌人造成的伤害 -12%",
+   "rarity": "稀有",
+   "effect_category": "defense"
   },
   "44": {
    "effects": [
@@ -323,7 +350,9 @@
     }
    ],
    "desc": "所有敌人造成的伤害 -17%",
-   "tags": []
+   "tags": [],
+   "rarity": "核心",
+   "effect_category": "defense"
   },
   "45": {
    "effects": [
@@ -337,7 +366,9 @@
    "desc": "弱点伤害额外 +25%（弱点基础 +50%）",
    "tags": [
     "execute"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "weakness"
   },
   "46": {
    "effects": [
@@ -351,7 +382,9 @@
    "desc": "生命低于 50% 的敌人受到的伤害 +18%",
    "tags": [
     "execute"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "weakness"
   },
   "47": {
    "effects": [
@@ -363,7 +396,9 @@
    "desc": "所有敌人对物理与法术伤害都视为弱点",
    "tags": [
     "execute"
-   ]
+   ],
+   "rarity": "升华",
+   "effect_category": "weakness"
   },
   "48": {
    "effects": [
@@ -374,7 +409,9 @@
      "value": 0.85
     }
    ],
-   "tags": []
+   "tags": [],
+   "rarity": "稀有",
+   "effect_category": "weakness"
   },
   "49": {
    "effects": [
@@ -385,7 +422,9 @@
      "value": 0.9
     }
    ],
-   "tags": []
+   "tags": [],
+   "rarity": "基础",
+   "effect_category": "weakness"
   },
   "50": {
    "effects": [
@@ -396,7 +435,9 @@
      "value": 0.8
     }
    ],
-   "tags": []
+   "tags": [],
+   "rarity": "核心",
+   "effect_category": "weakness"
   },
   "51": {
    "effects": [
@@ -417,7 +458,9 @@
    "tags": [
     "survival"
    ],
-   "max_lv": 1
+   "max_lv": 1,
+   "rarity": "基础",
+   "effect_category": "defense"
   },
   "52": {
    "effects": [
@@ -438,7 +481,9 @@
    "tags": [
     "survival"
    ],
-   "max_lv": 1
+   "max_lv": 1,
+   "rarity": "稀有",
+   "effect_category": "defense"
   },
   "53": {
    "effects": [
@@ -459,7 +504,9 @@
    "tags": [
     "survival"
    ],
-   "max_lv": 1
+   "max_lv": 1,
+   "rarity": "核心",
+   "effect_category": "defense"
   },
   "54": {
    "effects": [
@@ -481,7 +528,9 @@
     "melee",
     "basic_attack",
     "physical"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "damage"
   },
   "55": {
    "effects": [
@@ -497,7 +546,9 @@
     "melee",
     "basic_attack",
     "physical"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "56": {
    "effects": [
@@ -513,7 +564,9 @@
     "melee",
     "basic_attack",
     "physical"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "57": {
    "effects": [
@@ -527,7 +580,9 @@
    "desc": "远程伤害 +10%（远程攻击与技能）",
    "tags": [
     "ranged"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "damage"
   },
   "58": {
    "effects": [
@@ -541,7 +596,9 @@
    "desc": "远程伤害 +20%（远程攻击与技能）",
    "tags": [
     "ranged"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "59": {
    "effects": [
@@ -555,7 +612,9 @@
    "desc": "远程伤害 +30%（远程攻击与技能）",
    "tags": [
     "ranged"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "60": {
    "effects": [
@@ -570,7 +629,8 @@
    "rarity": "基础",
    "tags": [
     "survival"
-   ]
+   ],
+   "effect_category": "defense"
   },
   "61": {
    "effects": [
@@ -585,7 +645,8 @@
    "rarity": "稀有",
    "tags": [
     "survival"
-   ]
+   ],
+   "effect_category": "defense"
   },
   "66": {
    "effects": [
@@ -601,7 +662,9 @@
     "follow_up",
     "arts",
     "summon"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "67": {
    "effects": [
@@ -613,7 +676,9 @@
     }
    ],
    "desc": "物理伤害 +30%",
-   "tags": []
+   "tags": [],
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "68": {
    "effects": [
@@ -625,7 +690,9 @@
     }
    ],
    "desc": "法术伤害 +30%",
-   "tags": []
+   "tags": [],
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "69": {
    "effects": [
@@ -641,7 +708,8 @@
    "tags": [
     "survival",
     "heal"
-   ]
+   ],
+   "effect_category": "healing"
   },
   "71": {
    "effects": [
@@ -671,11 +739,12 @@
     }
    ],
    "desc": "主控受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%；全队伤害 +8%",
-   "rarity": "稀有",
+   "rarity": "核心",
    "tags": [
     "survival",
     "heal"
-   ]
+   ],
+   "effect_category": "healing"
   },
   "72": {
    "effects": [
@@ -689,7 +758,9 @@
    "tags": [
     "survival"
    ],
-   "desc": "主控每秒回复 0.5% 最大生命"
+   "desc": "主控每秒回复 0.5% 最大生命",
+   "rarity": "稀有",
+   "effect_category": "healing"
   },
   "73": {
    "effects": [
@@ -703,7 +774,9 @@
    "desc": "主控物理闪避 +15%（接触、冲撞、子弹等物理攻击）",
    "tags": [
     "on_dodge"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "dodge"
   },
   "74": {
    "effects": [
@@ -717,7 +790,9 @@
    "desc": "主控法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）",
    "tags": [
     "on_dodge"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "dodge"
   },
   "75": {
    "effects": [
@@ -731,7 +806,9 @@
    "tags": [
     "on_dodge"
    ],
-   "desc": "主控闪避率 +10%"
+   "desc": "主控闪避率 +10%",
+   "rarity": "基础",
+   "effect_category": "dodge"
   },
   "79": {
    "effects": [
@@ -747,7 +824,9 @@
     "melee",
     "basic_attack",
     "physical"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "81": {
    "effects": [
@@ -776,7 +855,8 @@
     "先锋",
     "特种"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "range"
   },
   "82": {
    "effects": [
@@ -799,7 +879,8 @@
     "医疗",
     "辅助"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "range"
   },
   "84": {
    "effects": [
@@ -815,7 +896,8 @@
    "tags": [
     "follow_up",
     "summon"
-   ]
+   ],
+   "effect_category": "followup"
   },
   "85": {
    "effects": [
@@ -832,7 +914,8 @@
    "rarity": "稀有",
    "tags": [
     "skill"
-   ]
+   ],
+   "effect_category": "skill_cycle"
   },
   "89": {
    "effects": [
@@ -847,7 +930,9 @@
     "skill",
     "survival"
    ],
-   "desc": "全队技力回复速度 +30%"
+   "desc": "全队技力回复速度 +30%",
+   "rarity": "核心",
+   "effect_category": "skill_cycle"
   },
   "94": {
    "effects": [
@@ -865,7 +950,9 @@
     "skill",
     "survival"
    ],
-   "desc": "每次受到伤害回复 3% 技力，受到神经损伤时再回复 3%"
+   "desc": "每次受到伤害回复 3% 技力，受到神经损伤时再回复 3%",
+   "rarity": "稀有",
+   "effect_category": "skill_cycle"
   },
   "95": {
    "effects": [
@@ -888,7 +975,9 @@
     "arts",
     "control"
    ],
-   "desc": "主控周围被眩晕、束缚或减速的敌人每秒受到法术伤害（倍率 50%，随时间成长；与「童趣玩偶」不叠加，取较高）"
+   "desc": "主控周围被眩晕、束缚或减速的敌人每秒受到法术伤害（倍率 50%，随时间成长；与「童趣玩偶」不叠加，取较高）",
+   "rarity": "核心",
+   "effect_category": "control"
   },
   "96": {
    "effects": [
@@ -908,7 +997,9 @@
     }
    ],
    "desc": "主控周围被眩晕、束缚或减速的敌人每秒受到法术伤害（倍率 70%，随时间成长；与悬丝傀儡不叠加，取较高）",
-   "tags": []
+   "tags": [],
+   "rarity": "升华",
+   "effect_category": "control"
   },
   "97": {
    "effects": [
@@ -922,7 +1013,9 @@
    "tags": [
     "control"
    ],
-   "desc": "眩晕、束缚、减速的持续时间 +50%"
+   "desc": "眩晕、束缚、减速的持续时间 +50%",
+   "rarity": "稀有",
+   "effect_category": "control"
   },
   "98": {
    "effects": [
@@ -934,7 +1027,9 @@
     }
    ],
    "tags": [],
-   "desc": "眩晕、束缚、减速的持续时间 +80%"
+   "desc": "眩晕、束缚、减速的持续时间 +80%",
+   "rarity": "核心",
+   "effect_category": "control"
   },
   "99": {
    "effects": [
@@ -946,7 +1041,9 @@
     }
    ],
    "tags": [],
-   "desc": "眩晕、束缚、减速的持续时间 +100%"
+   "desc": "眩晕、束缚、减速的持续时间 +100%",
+   "rarity": "升华",
+   "effect_category": "control"
   },
   "100": {
    "requires": [
@@ -969,7 +1066,9 @@
     "control",
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "shield"
   },
   "101": {
    "effects": [
@@ -987,7 +1086,8 @@
    "rarity": "稀有",
    "tags": [
     "squad"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "102": {
    "effects": [
@@ -1006,7 +1106,8 @@
     "survival",
     "heal",
     "arts"
-   ]
+   ],
+   "effect_category": "healing"
   },
   "105": {
    "effects": [
@@ -1018,7 +1119,9 @@
    "tags": [
     "skill"
    ],
-   "desc": "没有技能生效时，全队伤害在 60 秒内逐渐提升至 +80%；任一技能生效时清零"
+   "desc": "没有技能生效时，全队伤害在 60 秒内逐渐提升至 +80%；任一技能生效时清零",
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "106": {
    "effects": [
@@ -1049,7 +1152,8 @@
     "先锋",
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "squad"
   },
   "107": {
    "effects": [
@@ -1078,7 +1182,8 @@
    "requires_class": [
     "重装",
     "辅助"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "108": {
    "effects": [
@@ -1108,7 +1213,8 @@
    "requires_class": [
     "医疗",
     "狙击"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "109": {
    "effects": [
@@ -1138,7 +1244,8 @@
    "requires_class": [
     "术师",
     "特种"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "110": {
    "effects": [
@@ -1157,7 +1264,9 @@
    "tags": [
     "skill"
    ],
-   "desc": "技能开启后 3 秒内全队伤害 +60%（再次开启技能刷新时长）"
+   "desc": "技能开启后 3 秒内全队伤害 +60%（再次开启技能刷新时长）",
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "111": {
    "effects": [
@@ -1174,10 +1283,11 @@
     }
    ],
    "desc": "任一干员技能开启后 1 秒内，全队伤害 +100%",
-   "rarity": "升华",
+   "rarity": "核心",
    "tags": [
     "skill"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "112": {
    "effects": [
@@ -1198,7 +1308,8 @@
    "tags": [
     "execute",
     "on_hit"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "114": {
    "effects": [
@@ -1210,7 +1321,9 @@
    "tags": [
     "king"
    ],
-   "desc": "全队攻击速度 +10%；主控生命低于 50% 时改为 +50%（国王套装）"
+   "desc": "全队攻击速度 +10%；主控生命低于 50% 时改为 +50%（国王套装）",
+   "rarity": "核心",
+   "effect_category": "attack_speed"
   },
   "115": {
    "effects": [
@@ -1230,7 +1343,9 @@
    "desc": "主控物理减伤 +3，法术抗性 +20%",
    "tags": [
     "survival"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "defense"
   },
   "116": {
    "effects": [
@@ -1244,7 +1359,8 @@
    "tags": [
     "survival",
     "skill"
-   ]
+   ],
+   "effect_category": "healing"
   },
   "118": {
    "effects": [
@@ -1259,7 +1375,9 @@
    "tags": [
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "shield"
   },
   "120": {
    "effects": [
@@ -1281,7 +1399,9 @@
     "physical",
     "on_dodge"
    ],
-   "desc": "主控闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）"
+   "desc": "主控闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）",
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "121": {
    "effects": [
@@ -1303,7 +1423,9 @@
     "physical",
     "on_dodge"
    ],
-   "desc": "主控闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）"
+   "desc": "主控闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）",
+   "rarity": "升华",
+   "effect_category": "damage"
   },
   "126": {
    "effects": [
@@ -1315,7 +1437,9 @@
    "tags": [
     "king"
    ],
-   "desc": "主控受到的伤害 -5%；主控生命低于 50% 时改为 -30%（国王套装）"
+   "desc": "主控受到的伤害 -5%；主控生命低于 50% 时改为 -30%（国王套装）",
+   "rarity": "核心",
+   "effect_category": "defense"
   },
   "127": {
    "effects": [
@@ -1327,7 +1451,9 @@
    "tags": [
     "king"
    ],
-   "desc": "全队技力回复 +10%；主控生命低于 50% 时改为 +50%（国王套装）"
+   "desc": "全队技力回复 +10%；主控生命低于 50% 时改为 +50%（国王套装）",
+   "rarity": "核心",
+   "effect_category": "skill_cycle"
   },
   "128": {
    "effects": [
@@ -1339,7 +1465,9 @@
    "tags": [
     "king"
    ],
-   "desc": "全队伤害 +10%；主控生命低于 50% 时改为 +50%，若已集齐 3 件国王套装（含本件）则为 +150%"
+   "desc": "全队伤害 +10%；主控生命低于 50% 时改为 +50%，若已集齐 3 件国王套装（含本件）则为 +150%",
+   "rarity": "升华",
+   "effect_category": "damage"
   },
   "129": {
    "effects": [
@@ -1351,12 +1479,13 @@
     }
    ],
    "desc": "追击与召唤物伤害 +35%",
-   "rarity": "基础",
+   "rarity": "稀有",
    "tags": [
     "follow_up",
     "summon"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "followup"
   },
   "136": {
    "effects": [
@@ -1384,7 +1513,8 @@
    "requires_class": [
     "先锋"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "skill_cycle"
   },
   "138": {
    "effects": [
@@ -1397,7 +1527,7 @@
     }
    ],
    "desc": "近卫干员伤害 +25%",
-   "rarity": "基础",
+   "rarity": "稀有",
    "tags": [
     "melee",
     "class"
@@ -1405,7 +1535,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "damage"
   },
   "139": {
    "effects": [
@@ -1430,7 +1561,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "skill_cycle"
   },
   "141": {
    "effects": [
@@ -1465,7 +1597,8 @@
    "requires_class": [
     "近卫"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "damage"
   },
   "143": {
    "effects": [
@@ -1478,7 +1611,7 @@
     }
    ],
    "desc": "重装干员伤害 +40%",
-   "rarity": "基础",
+   "rarity": "稀有",
    "tags": [
     "melee",
     "class"
@@ -1486,7 +1619,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "damage"
   },
   "145": {
    "effects": [
@@ -1510,7 +1644,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "skill_cycle"
   },
   "148": {
    "effects": [
@@ -1530,7 +1665,8 @@
    ],
    "requires_class": [
     "狙击"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "152": {
    "effects": [
@@ -1550,7 +1686,7 @@
     }
    ],
    "desc": "术师干员伤害 +20%、攻击速度 +10%",
-   "rarity": "基础",
+   "rarity": "稀有",
    "tags": [
     "ranged",
     "class",
@@ -1558,7 +1694,8 @@
    ],
    "requires_class": [
     "术师"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "157": {
    "effects": [
@@ -1583,7 +1720,8 @@
    ],
    "requires_class": [
     "辅助"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "158": {
    "effects": [
@@ -1607,7 +1745,9 @@
    ],
    "requires_class": [
     "辅助"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "159": {
    "effects": [
@@ -1627,7 +1767,8 @@
    ],
    "requires_class": [
     "医疗"
-   ]
+   ],
+   "effect_category": "healing"
   },
   "162": {
    "effects": [
@@ -1651,7 +1792,8 @@
    ],
    "requires_class": [
     "医疗"
-   ]
+   ],
+   "effect_category": "defense"
   },
   "165": {
    "effects": [
@@ -1664,14 +1806,15 @@
     }
    ],
    "desc": "特种干员伤害 +40%",
-   "rarity": "核心",
+   "rarity": "稀有",
    "tags": [
     "melee",
     "class"
    ],
    "requires_class": [
     "特种"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "169": {
    "effects": [
@@ -1689,7 +1832,7 @@
     }
    ],
    "desc": "狙击干员的攻击会直接击杀生命低于 20% 的敌人（Boss 除外）",
-   "rarity": "升华",
+   "rarity": "核心",
    "tags": [
     "on_kill",
     "execute",
@@ -1697,7 +1840,8 @@
    ],
    "requires_class": [
     "狙击"
-   ]
+   ],
+   "effect_category": "weakness"
   },
   "170": {
    "effects": [
@@ -1725,7 +1869,8 @@
    "tags": [
     "follow_up",
     "on_hit"
-   ]
+   ],
+   "effect_category": "followup"
   },
   "171": {
    "effects": [
@@ -1753,7 +1898,8 @@
     "follow_up",
     "skill",
     "on_hit"
-   ]
+   ],
+   "effect_category": "skill_cycle"
   },
   "172": {
    "effects": [
@@ -1770,11 +1916,12 @@
     }
    ],
    "desc": "编队每有 1 名干员，全队攻击速度 +5%（最多 +20%）",
-   "rarity": "核心",
+   "rarity": "稀有",
    "tags": [
     "attack_speed",
     "squad"
-   ]
+   ],
+   "effect_category": "attack_speed"
   },
   "174": {
    "effects": [
@@ -1797,7 +1944,8 @@
    ],
    "requires_class": [
     "医疗"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "175": {
    "effects": [
@@ -1822,7 +1970,8 @@
    ],
    "requires_class": [
     "术师"
-   ]
+   ],
+   "effect_category": "damage"
   },
   "177": {
    "effects": [
@@ -1835,7 +1984,8 @@
    "rarity": "稀有",
    "tags": [
     "squad"
-   ]
+   ],
+   "effect_category": "growth"
   },
   "188": {
    "effects": [
@@ -1849,7 +1999,9 @@
    "tags": [
     "economy"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "rarity": "核心",
+   "effect_category": "economy"
   },
   "190": {
    "effects": [
@@ -1861,7 +2013,9 @@
    "tags": [
     "economy"
    ],
-   "desc": "升级与藏品的三选一各多一个选项（与「观望」叠加）"
+   "desc": "升级与藏品的三选一各多一个选项（与「观望」叠加）",
+   "rarity": "核心",
+   "effect_category": "choice"
   },
   "191": {
    "effects": [
@@ -1884,7 +2038,8 @@
     "shield",
     "heal"
    ],
-   "late_weight": 0.3
+   "late_weight": 0.3,
+   "effect_category": "healing"
   },
   "199": {
    "requires": [
@@ -1902,7 +2057,9 @@
    "tags": [
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "基础",
+   "effect_category": "shield"
   },
   "200": {
    "effects": [
@@ -1926,7 +2083,9 @@
    "tags": [
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "稀有",
+   "effect_category": "shield"
   },
   "202": {
    "effects": [
@@ -1942,7 +2101,9 @@
    "tags": [
     "survival",
     "shield"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "shield"
   },
   "204": {
    "effects": [
@@ -1965,7 +2126,8 @@
     "survival"
    ],
    "desc": "灯火 -30；灯火低于 50 时，技力回复 +50%、全队伤害 +50%",
-   "rarity": "稀有"
+   "rarity": "核心",
+   "effect_category": "light"
   },
   "207": {
    "effects": [
@@ -1982,7 +2144,9 @@
     "attack_speed",
     "economy"
    ],
-   "desc": "每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）"
+   "desc": "每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）",
+   "rarity": "稀有",
+   "effect_category": "attack_speed"
   },
   "208": {
    "effects": [
@@ -1999,7 +2163,9 @@
     "physical",
     "attack_speed",
     "economy"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "attack_speed"
   },
   "210": {
    "effects": [
@@ -2016,7 +2182,9 @@
     "summon",
     "squad"
    ],
-   "desc": "每 15 秒朝主控身边最密的敌群抛出 3 枚地雷（伤害随时间成长）"
+   "desc": "每 15 秒朝主控身边最密的敌群抛出 3 枚地雷（伤害随时间成长）",
+   "rarity": "稀有",
+   "effect_category": "damage"
   },
   "216": {
    "effects": [
@@ -2029,7 +2197,9 @@
    ],
    "tags": [
     "curse"
-   ]
+   ],
+   "rarity": "遭诅古物",
+   "effect_category": "defense"
   },
   "218": {
    "effects": [
@@ -2045,7 +2215,9 @@
     "light",
     "curse"
    ],
-   "desc": "主控受击时灯火损失 +10%"
+   "desc": "主控受击时灯火损失 +10%",
+   "rarity": "遭诅古物",
+   "effect_category": "light"
   },
   "219": {
    "effects": [
@@ -2061,7 +2233,9 @@
     "light",
     "curse"
    ],
-   "desc": "主控受击时灯火损失 +15%"
+   "desc": "主控受击时灯火损失 +15%",
+   "rarity": "遭诅古物",
+   "effect_category": "light"
   },
   "220": {
    "effects": [
@@ -2077,7 +2251,9 @@
     "light",
     "curse"
    ],
-   "desc": "主控受击时灯火损失 +25%"
+   "desc": "主控受击时灯火损失 +25%",
+   "rarity": "遭诅古物",
+   "effect_category": "light"
   },
   "221": {
    "effects": [
@@ -2104,7 +2280,8 @@
    "tags": [
     "light",
     "ending"
-   ]
+   ],
+   "effect_category": "ending"
   },
   "222": {
    "effects": [
@@ -2120,7 +2297,8 @@
    "tags": [
     "on_kill",
     "ending"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "223": {
    "effects": [
@@ -2137,7 +2315,8 @@
    "source": "event",
    "tags": [
     "ending"
-   ]
+   ],
+   "effect_category": "ending"
   },
   "225": {
    "effects": [
@@ -2155,7 +2334,8 @@
    ],
    "tags": [
     "ending"
-   ]
+   ],
+   "effect_category": "ending"
   },
   "228": {
    "effects": [
@@ -2167,7 +2347,9 @@
    "tags": [
     "survival"
    ],
-   "desc": "仅 1 次：主控生命归零时不结束，以 50% 生命复活"
+   "desc": "仅 1 次：主控生命归零时不结束，以 50% 生命复活",
+   "rarity": "升华",
+   "effect_category": "defense"
   },
   "229": {
    "effects": [
@@ -2184,7 +2366,9 @@
     "skill",
     "on_hit",
     "survival"
-   ]
+   ],
+   "rarity": "核心",
+   "effect_category": "skill_cycle"
   },
   "231": {
    "effects": [
@@ -2202,7 +2386,9 @@
     "control",
     "on_damage"
    ],
-   "desc": "受到伤害时，全场非 Boss 敌人眩晕 3 秒（冷却 30 秒）"
+   "desc": "受到伤害时，全场非 Boss 敌人眩晕 3 秒（冷却 30 秒）",
+   "rarity": "核心",
+   "effect_category": "control"
   },
   "234": {
    "effects": [
@@ -2230,7 +2416,8 @@
     "follow_up",
     "arts"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "followup"
   },
   "238": {
    "effects": [
@@ -2270,7 +2457,8 @@
    "max_lv": 3,
    "tags": [
     "ending"
-   ]
+   ],
+   "effect_category": "ending"
   },
   "239": {
    "effects": [
@@ -2285,7 +2473,8 @@
    "source": "event",
    "tags": [
     "ending"
-   ]
+   ],
+   "effect_category": "choice"
   },
   "240": {
    "effects": [
@@ -2306,7 +2495,8 @@
    "source": "event",
    "tags": [
     "ending"
-   ]
+   ],
+   "effect_category": "choice"
   },
   "242": {
    "effects": [
@@ -2337,7 +2527,8 @@
    "tags": [
     "light",
     "ending"
-   ]
+   ],
+   "effect_category": "ending"
   },
   "243": {
    "effects": [
@@ -2358,7 +2549,9 @@
     "low_light",
     "light",
     "curse"
-   ]
+   ],
+   "rarity": "遭诅古物",
+   "effect_category": "light"
   },
   "245": {
    "effects": [
@@ -2371,7 +2564,8 @@
    "rarity": "升华",
    "tags": [
     "squad"
-   ]
+   ],
+   "effect_category": "growth"
   },
   "246": {
    "effects": [
@@ -2396,7 +2590,8 @@
     "follow_up",
     "low_light",
     "light"
-   ]
+   ],
+   "effect_category": "followup"
   },
   "252": {
    "effects": [
@@ -2415,7 +2610,9 @@
    "tags": [
     "on_kill"
    ],
-   "desc": "每次击杀，全队伤害永久 +0.1%（上限 +30%）"
+   "desc": "每次击杀，全队伤害永久 +0.1%（上限 +30%）",
+   "rarity": "核心",
+   "effect_category": "damage"
   },
   "255": {
    "effects": [
@@ -2446,7 +2643,8 @@
     "light",
     "survival"
    ],
-   "rarity": "稀有"
+   "rarity": "核心",
+   "effect_category": "defense"
   },
   "258": {
    "effects": [
@@ -2471,7 +2669,8 @@
    ],
    "requires_class": [
     "术师"
-   ]
+   ],
+   "effect_category": "squad"
   },
   "259": {
    "effects": [
@@ -2496,7 +2695,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "defense"
   },
   "260": {
    "effects": [
@@ -2522,7 +2722,8 @@
    "requires_class": [
     "重装"
    ],
-   "shop_allowed": true
+   "shop_allowed": true,
+   "effect_category": "shield"
   },
   "261": {
    "effects": [
@@ -2532,11 +2733,31 @@
     }
    ],
    "desc": "随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%",
-   "rarity": "核心",
+   "rarity": "稀有",
    "tags": [
     "squad",
     "on_kill"
-   ]
+   ],
+   "effect_category": "growth"
   }
+ },
+ "effect_categories": {
+  "damage": "直接增伤",
+  "weakness": "弱点与收割",
+  "attack_speed": "攻击速度",
+  "skill_cycle": "技力循环",
+  "control": "控制与控场",
+  "followup": "追击与召唤",
+  "defense": "减伤与生命",
+  "dodge": "闪避",
+  "shield": "护盾体系",
+  "healing": "治疗与回复",
+  "range": "攻击范围",
+  "squad": "编队协同",
+  "growth": "成长与招募",
+  "economy": "源石锭与商店",
+  "light": "灯火管理",
+  "choice": "选项与掉落",
+  "ending": "结局与代价"
  }
 }

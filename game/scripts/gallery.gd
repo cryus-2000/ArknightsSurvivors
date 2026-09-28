@@ -351,7 +351,7 @@ func _build() -> void:
 			lst.sort_custom(func(a, b): return (order.get(a.rarity, 9) * 1000 + int(a.id)) < (order.get(b.rarity, 9) * 1000 + int(b.id)))
 			for r in lst:
 				var seen: bool = Cfg.seen_relics.has(r.id)
-				var stt: Array = [["等级", r.rarity], ["类别", r.get("cat", "")]]
+				var stt: Array = [["等级", r.rarity], ["效果分类", relic_db.effect_category_names.get(r.effect_category, r.get("cat", ""))], ["原类别", r.get("cat", "")]]
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
