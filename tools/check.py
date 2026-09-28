@@ -280,6 +280,7 @@ def check_repro(godot):
 SCENE_REGRESSIONS = {
     "relic_reclassification": ("藏品效果分类与稀有度", "relic_reclassification", r"RELIC_RECLASSIFICATION_OK", []),
     "enemy_status": ("敌人寒冷与侵蚀", "enemy_status_test", r"ENEMY STATUS TEST: 0 failures", []),
+    "enemy_attack_variety": ("普通怪精英二招与Boss三招", "enemy_attack_variety_test", r"ENEMY ATTACK VARIETY failures=0", []),
     "public_gallery": ("对外图鉴初始与发现解锁", "public_gallery_test", r"PUBLIC GALLERY failures=0", []),
     "boss_variety": ("Boss密集弹幕与刀刃连招", "boss_variety_test", r"BOSS VARIETY failures=0", []),
     "ea_ui": ("EA 标题与 HUD", "ea_ui_test", r"EA UI regression: 0 failures", []),

@@ -476,6 +476,10 @@ func boss_pattern(w: Dictionary) -> void:
 			slash_fx(w.pos, w.ang, w.half, w.r, w.col, "slash", 0.32)
 			fx_sprite(w.pattern.get("texture", "fx_slash_arc_rose"), w.pos + dir * w.r * 0.5, 2.8, w.ang)
 			Sfx.play("swing", -4.0, 0.7)
+		"pattern_line":
+			g.fx.append({"kind": "tracer" if w.owner.type in ["iberia", "carmen", "knight_boss"] else "bbeam",
+				"a": w.pos, "b": w.pos + dir * w.len, "life": 0.28, "max": 0.28, "col": w.col, "wid": w.wid})
+			Sfx.play("hit", -5.0, 0.7, 0.0)
 		"pattern_rain":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": w.col})
 			fx_sprite("fx_water_splash", w.pos, 2.5)

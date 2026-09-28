@@ -43,7 +43,15 @@
    "entrench": true,
    "atk": "物理",
    "lob": true,
-   "atk_anim": true
+   "atk_anim": true,
+   "extra": {
+    "name": "凿石贯射",
+    "mode": "pierce",
+    "range": 290,
+    "cd": 13.0,
+    "damage_mult": 0.45
+   },
+   "desc": "另会使用「凿石贯射」进行预警攻击。"
   },
   "offspring": {
    "name": "伊祖米克的子代",
@@ -60,7 +68,14 @@
    "nova_n": 6,
    "atk_anim": true,
    "corrode": 0.15,
-   "desc": "缓慢接近，接触时蜕变；蓄力后释放带轻度侵蚀的环形弹幕。"
+   "desc": "缓慢接近，接触时蜕变；蓄力后释放带轻度侵蚀的环形弹幕。；另会使用「壳肢横扫」进行预警攻击。",
+   "extra": {
+    "name": "壳肢横扫",
+    "mode": "swipe",
+    "range": 110,
+    "cd": 12.0,
+    "damage_mult": 0.45
+   }
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -99,7 +114,18 @@
    "corrode": 0.45,
    "draw_scale": 1.17,
    "atk_anim": true,
-   "desc": "朝主控预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。"
+   "desc": "朝主控预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。；另会使用「酸沫扇吐」进行预警攻击。",
+   "extra": {
+    "name": "酸沫扇吐",
+    "mode": "volley",
+    "range": 300,
+    "cd": 14.0,
+    "damage_mult": 0.36,
+    "count": 3,
+    "speed": 235,
+    "spread": 0.8
+   },
+   "shot_kind": "acid"
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -141,7 +167,17 @@
    "shot_nerve": 18.0,
    "atk_anim": true,
    "cap": 10,
-   "desc": "悬浮在攻击范围边缘发射神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。"
+   "desc": "悬浮在攻击范围边缘发射神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。；另会使用「神经散射」进行预警攻击。",
+   "extra": {
+    "name": "神经散射",
+    "mode": "volley",
+    "range": 290,
+    "cd": 13.0,
+    "damage_mult": 0.36,
+    "count": 3,
+    "speed": 215,
+    "spread": 1.0
+   }
   },
   "reaper": {
    "name": "钵海收割者",
@@ -165,7 +201,14 @@
    "chips": [
     "休眠"
    ],
-   "desc": "休眠在海床上，主控靠近或受到攻击时唤醒，随后高速追击、挥舞镰肢扇形斩击。大群里的收割者一出现就是醒着的。"
+   "desc": "休眠在海床上，主控靠近或受到攻击时唤醒，随后高速追击、挥舞镰肢扇形斩击。大群里的收割者一出现就是醒着的。；另会使用「镰肢直刺」进行预警攻击。",
+   "extra": {
+    "name": "镰肢直刺",
+    "mode": "pierce",
+    "range": 190,
+    "cd": 12.0,
+    "damage_mult": 0.45
+   }
   },
   "founder": {
    "name": "深溟奠基者",
@@ -191,7 +234,14 @@
     "厚甲",
     "溟痕"
    ],
-   "desc": "厚甲缓行，受到的非真实伤害 -30%，难以击退；靠近后前肢重击地面。死亡时留下一片溟痕。"
+   "desc": "厚甲缓行，受到的非真实伤害 -30%，难以击退；靠近后前肢重击地面。死亡时留下一片溟痕。；另会使用「晶刺突起」进行预警攻击。",
+   "extra": {
+    "name": "晶刺突起",
+    "mode": "pierce",
+    "range": 250,
+    "cd": 14.0,
+    "damage_mult": 0.45
+   }
   },
   "tracer": {
    "name": "深溟引痕者",
@@ -216,8 +266,15 @@
     "狂暴",
     "溟痕"
    ],
-   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。",
-   "thrust_mult": 0.9
+   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。；另会使用「尾刃反扫」进行预警攻击。",
+   "thrust_mult": 0.9,
+   "extra": {
+    "name": "尾刃反扫",
+    "mode": "swipe",
+    "range": 125,
+    "cd": 12.0,
+    "damage_mult": 0.45
+   }
   },
   "nest": {
    "name": "深溟巢涌者",
@@ -241,7 +298,19 @@
    "chips": [
     "神经光环"
    ],
-   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。"
+   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。；另会使用「触须散射」进行预警攻击。",
+   "extra": {
+    "name": "触须散射",
+    "mode": "volley",
+    "range": 240,
+    "cd": 14.0,
+    "damage_mult": 0.34,
+    "count": 4,
+    "speed": 205,
+    "spread": 1.0
+   },
+   "shot_kind": "nerve",
+   "shot_nerve": 8.0
   },
   "fractal": {
    "name": "塑路者碎片",
@@ -277,7 +346,15 @@
    "role": "elite",
    "burst": true,
    "elite_after": 0,
-   "atk_anim": true
+   "atk_anim": true,
+   "extra": {
+    "name": "囊壳震爆",
+    "mode": "pulse",
+    "range": 135,
+    "cd": 12.0,
+    "damage_mult": 0.5
+   },
+   "desc": "另会使用「囊壳震爆」进行预警攻击。"
   },
   "skimmer": {
    "name": "掠海漂移体",
@@ -295,7 +372,15 @@
    "corrode": 0.5,
    "hover": true,
    "shot_n": 3,
-   "elite_after": 120
+   "elite_after": 120,
+   "extra": {
+    "name": "掠海贯射",
+    "mode": "pierce",
+    "range": 320,
+    "cd": 12.0,
+    "damage_mult": 0.42
+   },
+   "desc": "另会使用「掠海贯射」进行预警攻击。"
   },
   "mother": {
    "name": "投嗣育母",
@@ -319,7 +404,17 @@
    "elite_after": 300,
    "atk_anim": true,
    "corrode": 0.25,
-   "desc": "发射追踪酸弹，命中附加侵蚀，并在主控附近召唤注亡拟嗣。"
+   "desc": "发射追踪酸弹，命中附加侵蚀，并在主控附近召唤注亡拟嗣。；另会使用「育嗣酸雨」进行预警攻击。",
+   "extra": {
+    "name": "育嗣酸雨",
+    "mode": "volley",
+    "range": 270,
+    "cd": 14.0,
+    "damage_mult": 0.36,
+    "count": 3,
+    "speed": 185,
+    "spread": 0.95
+   }
   },
   "mimic": {
    "name": "箱形恐鱼",
@@ -335,7 +430,15 @@
    "pattern": "bite",
    "bite_range": 76,
    "bite_cd": 2.6,
-   "no_contact": true
+   "no_contact": true,
+   "extra": {
+    "name": "箱舌突刺",
+    "mode": "pierce",
+    "range": 185,
+    "cd": 12.0,
+    "damage_mult": 0.5
+   },
+   "desc": "另会使用「箱舌突刺」进行预警攻击。"
   },
   "path": {
    "name": "塑路者",
@@ -365,6 +468,12 @@
      "spread": 1.25,
      "speed": 370,
      "blade": true
+    },
+    {
+     "name": "碎甲落刺",
+     "mode": "rain",
+     "waves": 3,
+     "radius": 52
     }
    ]
   },
@@ -395,6 +504,15 @@
      "mode": "rain",
      "waves": 6,
      "radius": 56
+    },
+    {
+     "name": "子代扇潮",
+     "mode": "fan",
+     "count": 9,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 345,
+     "blade": false
     }
    ]
   },
@@ -430,6 +548,13 @@
      "spread": 2,
      "speed": 410,
      "blade": false
+    },
+    {
+     "name": "双线裁决",
+     "mode": "line",
+     "waves": 2,
+     "length": 680,
+     "width": 10
     }
    ]
   },
@@ -465,6 +590,13 @@
      "spread": 1.6,
      "speed": 430,
      "blade": false
+    },
+    {
+     "name": "锁定狙击",
+     "mode": "line",
+     "waves": 1,
+     "length": 850,
+     "width": 9
     }
    ]
   },
@@ -496,6 +628,15 @@
      "mode": "rain",
      "waves": 5,
      "radius": 56
+    },
+    {
+     "name": "接潮扇浪",
+     "mode": "fan",
+     "count": 7,
+     "waves": 2,
+     "spread": 1.35,
+     "speed": 320,
+     "blade": false
     }
    ]
   },
@@ -529,6 +670,12 @@
      "spread": 1.25,
      "speed": 400,
      "blade": true
+    },
+    {
+     "name": "裂潮坠击",
+     "mode": "rain",
+     "waves": 3,
+     "radius": 55
     }
    ]
   },
@@ -561,6 +708,15 @@
      "waves": 2,
      "spread": 1.7,
      "speed": 430,
+     "blade": true
+    },
+    {
+     "name": "斥亡旋刃",
+     "mode": "ring",
+     "count": 18,
+     "waves": 2,
+     "speed": 350,
+     "gap": 0.42,
      "blade": true
     }
    ]
@@ -597,6 +753,12 @@
      "spread": 1.8,
      "speed": 410,
      "blade": false
+    },
+    {
+     "name": "泡影坠落",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 54
     }
    ]
   },
@@ -650,6 +812,12 @@
      "spread": 1.9,
      "speed": 450,
      "blade": true
+    },
+    {
+     "name": "棘潮落柱",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 54
     }
    ]
   },
@@ -676,7 +844,14 @@
    "no_spawn": true,
    "draw_scale": 0.7,
    "frost": 1.5,
-   "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。"
+   "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。；另会使用「冰枪点刺」进行预警攻击。",
+   "extra": {
+    "name": "冰枪点刺",
+    "mode": "pierce",
+    "range": 225,
+    "cd": 13.0,
+    "damage_mult": 0.5
+   }
   },
   "knight_boss": {
    "name": "最后的骑士",
@@ -711,6 +886,13 @@
      "half": 1.35,
      "waves": 2,
      "texture": "fx_slash_heavy_steel"
+    },
+    {
+     "name": "冰枪双轨",
+     "mode": "line",
+     "waves": 2,
+     "length": 610,
+     "width": 14
     }
    ],
    "frost": 2.0,

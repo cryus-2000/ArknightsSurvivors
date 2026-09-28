@@ -62,13 +62,21 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.act = "pattern_rain"
 				data.r = float(move.radius)
 				data.pos = g.combat.arena_clamp(g.ppos + dir.orthogonal() * (ceili(k / 2.0) * (1 if k % 2 else -1)) * 108.0, 90.0)
+			"line":
+				shape = "line"
+				data.act = "pattern_line"
+				data.len = float(move.length)
+				data.wid = float(move.width)
+				data.track = 0.35
+				data.ang = dir.angle() + (0.16 * (2 * k - (waves - 1)) if waves > 1 else 0.0)
 			"cleave":
 				data.act = "pattern_cleave"
 				data.r = float(move.radius)
 				data.half = float(move.half)
 				data.ang = dir.angle() + (-0.42 if k == 0 else 0.42)
 				data.dmg = e.dmg * 1.1
-		var w: Dictionary = g.bai._warn(e, shape, 0.9 + (0.0 if move.mode == "rain" else 0.6 * k), data)
+		var simultaneous: bool = move.mode in ["rain", "line"]
+		var w: Dictionary = g.bai._warn(e, shape, 0.9 + (0.0 if simultaneous else 0.6 * k), data)
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
 	e.pattern_next = g.t + end + (5.0 if FINAL_TYPES.has(e.type) else 6.5)
@@ -81,7 +89,7 @@ func resolve(w: Dictionary) -> void:
 	if e.dead or e.get("coma", false) or e.get("friendly", false) or e.stun > 0.0 or e.get("break_t", 0.0) > 0.0 or e.get("channel", 0.0) > 0.0:
 		return
 	var move: Dictionary = w.pattern
-	if w.act in ["pattern_cleave", "pattern_rain"]:
+	if w.act in ["pattern_cleave", "pattern_rain", "pattern_line"]:
 		g.bai._warn_damage(w)
 		g.vfx.boss_pattern(w)
 		return

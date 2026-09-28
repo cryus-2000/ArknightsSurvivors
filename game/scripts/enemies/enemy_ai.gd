@@ -22,6 +22,8 @@ func def_of(e: Dictionary) -> Dictionary:
 func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
 	var d := def_of(e)
 	_prepare_pose(e, d, dist)
+	if _secondary(e, d, dir, dist):
+		return Vector2.ZERO
 	match d.get("pattern", ""):
 		"bite":
 			return _bite(e, d, dir, dist)
@@ -44,6 +46,42 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 		"nest":
 			return _nest(e, d, dist, dt)
 	return Vector2.INF
+
+
+## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。
+func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool:
+	var a: Dictionary = d.get("extra", {})
+	if a.is_empty() or e.age < 2.0 or dist > float(a.range) or g.t < float(e.get("extra_next", INF)):
+		return false
+	if e.wind > 0.0 or e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0:
+		return false
+	if e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0 or e.get("under", false) or e.get("coma", false) or e.get("friendly", false) or e.get("channel", 0.0) > 0.0:
+		return false
+	if g.warns.size() >= 12:
+		return false
+	var reach: float = float(a.range)
+	var data := {"secondary": true, "cancel_dead": true, "ang": dir.angle(), "name": "", "dmg": e.dmg * float(a.damage_mult),
+		"corrode": e.corrode, "nerve": float(d.get("shot_nerve", e.nerve)) * 0.6, "col": Color(0.75, 0.55, 1.0), "extra": a}
+	var shape := "cone"
+	var dur := 0.75
+	match str(a.mode):
+		"swipe":
+			data.merge({"act": "bite", "follow": true, "half": 0.72, "r": reach}, true)
+		"pulse":
+			shape = "circle"
+			data.merge({"act": "burst", "follow": true, "r": minf(reach, 110.0)}, true)
+		"pierce":
+			shape = "line"
+			dur = 0.85
+			data.merge({"act": "shot", "len": reach, "wid": 10.0, "track": 0.25}, true)
+		"volley":
+			data.merge({"act": "extra_volley", "half": float(a.spread) * 0.5, "r": reach}, true)
+		_:
+			return false
+	g.bai._warn(e, shape, dur, data)
+	e.extra_next = g.t + float(a.cd)
+	e.shot_ready = false
+	return true
 
 
 ## 箱形恐鱼现形后张口蓄势再啃咬，用现有预警/命中机制；不再无动作地接触扣血。

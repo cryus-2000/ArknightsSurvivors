@@ -451,6 +451,8 @@ func _warn_resolve(w: Dictionary) -> void:
 		e.pose_max = 0.35
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
+	if w.get("secondary", false):
+		e.atk_until = g.t + 0.35
 	var dv := Vector2.from_angle(w.ang)
 	if str(w.act).begins_with("pattern_"):
 		patterns.resolve(w)
@@ -458,6 +460,22 @@ func _warn_resolve(w: Dictionary) -> void:
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)
 	match w.act:
+		"extra_volley":
+			var a: Dictionary = w.extra
+			var count: int = mini(int(a.count), 5)
+			var kind: String = D.ENEMIES[e.type].get("shot_kind", "orb")
+			var speed: float = float(a.speed)
+			var spread: float = float(a.spread)
+			for i in count:
+				if g.ebullets.size() >= 240:
+					break
+				var angle: float = w.ang + lerpf(-spread * 0.5, spread * 0.5, float(i) / maxf(1.0, float(count - 1)))
+				g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * speed, "dmg": w.dmg,
+					"r": 5.0, "life": 2.4, "slow": false, "frost": e.get("frost", 0.0), "corrode": e.corrode,
+					"nerve": float(w.get("nerve", 0.0)), "true": false, "kind": kind, "home": false,
+					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": false, "source_id": e.id})
+			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
+			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 		"ishar_strike":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.45, "max": 0.45, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
