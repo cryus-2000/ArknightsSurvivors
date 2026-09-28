@@ -325,8 +325,16 @@ func _build() -> void:
 				if e.has("ammo"):
 					tags.append("装填")
 				tags.append_array(e.get("chips", []))
+				var mech: String = ENEMY_DESC.get(k, e.get("desc", ""))
+				if e.has("extra"):
+					mech += "\n\n第二招：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
+				if e.has("patterns"):
+					var moves: Array[String] = []
+					for move in e.patterns:
+						moves.append(str(move.name))
+					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, e.get("desc", ""))),
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
 					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇。在冒险中遭遇后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话

@@ -36,7 +36,7 @@ func _ready() -> void:
 	check(healed_target, "human Ishar actually heals injured sea monsters")
 	check(targets.all(func(x): return not x.dead), "human Ishar never kills sea monsters")
 	check(g.ebullets.is_empty(), "friendly Ishar does not shoot the player")
-	check(g.enemy_demo.cycle_period() == 40.0 and e.friendly, "automatic showcase leaves time for full transformation")
+	check(g.enemy_demo.cycle_period() == 50.0 and e.friendly, "automatic showcase leaves time for full transformation")
 	check("治疗海嗣" in g.demo_label and "充能" in g.demo_label, "demo explains human healing and charge")
 	check(g.hud_view.hostile_boss_bars().is_empty(), "neutral phase has no dangerous Boss pointer")
 	# 完整轮播通过真实充能跨入敌对，不提前跳过人形治疗。
@@ -86,7 +86,7 @@ func _ready() -> void:
 	check(g.enemy_demo.cycle == 1 and g.enemy_demo.subject.friendly, "fixed human view replays without leaving neutral phase")
 	g.enemy_demo.configure(2)
 	g.enemy_demo.reset()
-	check(g.enemy_demo.cycle_period() == 18.0 and not g.enemy_demo.subject.friendly, "fixed hostile view uses 18 second cycle")
+	check(g.enemy_demo.cycle_period() == 35.0 and not g.enemy_demo.subject.friendly, "fixed hostile view uses 18 second cycle")
 	# Real AI updates for every gallery enemy, including scripted death / summons / both boss phases.
 	for id in D.ENEMIES:
 		g.demo_enemy = id
@@ -119,6 +119,12 @@ func _ready() -> void:
 		gal._build()
 		for entry in gal.entries:
 			check(entry.forms.any(func(f): return f.has("enemy_demo")), "gallery entry offers attack demo " + entry.id)
+			var cfg: Dictionary = D.ENEMIES[entry.id]
+			if cfg.has("extra"):
+				check(str(cfg.extra.name) in entry.desc, "gallery lists secondary attack " + entry.id)
+			if cfg.has("patterns"):
+				for move in cfg.patterns:
+					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))
 	gal._enemy_demo_start("stone", Vector2i(520, 290))
 	var old = gal.demo_vp
 	gal.close()

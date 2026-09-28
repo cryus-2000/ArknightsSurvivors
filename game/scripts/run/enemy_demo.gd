@@ -94,8 +94,8 @@ func _seed_heal_targets() -> void:
 
 func cycle_period() -> float:
 	if subject.get("type", "") == "ishar":
-		return 40.0 if phase_mode == 0 else (10.0 if phase_mode == 1 else 18.0)
-	return 18.0 if subject.get("boss", false) else 10.0
+		return 50.0 if phase_mode == 0 else (10.0 if phase_mode == 1 else 35.0)
+	return 35.0 if subject.get("boss", false) else 14.0
 
 
 func step(dt: float) -> void:
@@ -123,7 +123,7 @@ func step(dt: float) -> void:
 	g.gems.clear()
 	g.texts = g.texts.filter(func(tx): return tx.life > 0.0)
 	g.enemies = g.enemies.filter(func(e): return not e.dead)
-	# 看完一整轮再重置位置。死亡型 / 蜕变型有 2 秒收尾，Boss 留 18 秒展示多招。
+	# 看完一整轮再重置位置。死亡型 / 蜕变型有 2 秒收尾，Boss 留 35 秒展示三组招式。
 	var period := cycle_period()
 	if (subject.dead and elapsed > 3.0) or elapsed >= period or (subject.type == "ishar" and phase_mode == 1 and subject.phase == 2):
 		cycle += 1
