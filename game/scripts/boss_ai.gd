@@ -477,7 +477,13 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	if true_damage:
 		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
 	if g.invuln <= 0.0:
-		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)), "frost": e.get("frost", 0.0), "hit_cap": e.get("hit_cap", 0.0)}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+		var hp_before: float = g.hp
+		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
+			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0)}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+		if not e.boss and g.hp < hp_before and float(w.get("stun", 0.0)) > 0.0 and g.t >= g.combat.enemy_stun_next:
+			g.combat.enemy_stun_next = g.t + 8.0
+			if not g.combat.stun_as_slow():
+				g.pstun = maxf(g.pstun, minf(float(w.stun), 0.25))
 		if stun_t > 0.0 and not g.combat.stun_as_slow(e.boss):   # Boss 战里僵直改成减速（docs/38 §1.11）
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow and not g.combat.atk_slow_as_slow(3.0, e.boss):   # Boss 来源不写 atk_slow，改成移速减速（docs/38 §1.11）
@@ -538,7 +544,7 @@ func _warn_resolve(w: Dictionary) -> void:
 					break
 				var angle: float = w.ang + lerpf(-spread * 0.5, spread * 0.5, float(i) / maxf(1.0, float(count - 1)))
 				g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * speed, "dmg": w.dmg,
-					"r": 5.0, "life": 2.4, "slow": false, "frost": e.get("frost", 0.0), "corrode": e.corrode,
+					"r": 5.0, "life": 2.4, "slow": false, "frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "corrode": e.corrode,
 					"nerve": float(w.get("nerve", 0.0)), "true": false, "kind": kind, "home": false,
 					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": false, "source_id": e.id})
 			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
@@ -588,7 +594,7 @@ func _warn_resolve(w: Dictionary) -> void:
 		"shot":
 			var b: Vector2 = w.pos + dv * w.len
 			g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
-			g.vfx.sparks(w.pos + dv * 24.0, dv, Color(2.0, 1.6, 0.8), 8, 320.0)
+			g.vfx.sparks(w.pos + dv * 24.0, dv, c if w.get("secondary", false) else Color(2.0, 1.6, 0.8), 8, 320.0)
 			Sfx.play("hit", 0.0, 0.5, 0.0)
 			g.vfx.shake_screen(0.4)
 			_warn_damage(w)

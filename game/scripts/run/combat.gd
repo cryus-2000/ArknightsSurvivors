@@ -40,6 +40,7 @@ var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加
 var high_t := -INF           # 最近一次「扣血前生命 ≥ fullhp_guard_at」的时刻，满血保护用
 var guard_end := -INF        # 满血保护触发后兜底到的时刻（这一轮连击结束：high_t + fullhp_guard_combo）
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
+var enemy_stun_next := 0.0   # 普通怪短僵直的全局间隔，避免多只怪连续控住主控
 
 
 func _init(game: Game) -> void:

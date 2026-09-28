@@ -328,6 +328,12 @@ func _build() -> void:
 				var mech: String = ENEMY_DESC.get(k, e.get("desc", ""))
 				if e.has("extra"):
 					mech += "\n\n第二招：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
+					if float(e.extra.get("frost", 0.0)) > 0.0:
+						mech += "命中附加短暂寒冷。"
+					if float(e.extra.get("nerve", 0.0)) > 0.0:
+						mech += "命中累积神经损伤。"
+					if float(e.extra.get("stun", 0.0)) > 0.0:
+						mech += "命中造成短暂僵直，连续命中有保护间隔。"
 				if e.has("patterns"):
 					var moves: Array[String] = []
 					for move in e.patterns:

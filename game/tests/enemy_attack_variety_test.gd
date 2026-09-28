@@ -15,6 +15,20 @@ func _ready() -> void:
 func run_checks() -> void:
 	g.set_process(false)
 	g.t = 100.0
+	var early_bone: Dictionary = g.spawner.new_enemy("bone", Vector2.ZERO)
+	early_bone.age = 8.0
+	early_bone.extra_next = 0.0
+	g.ppos = Vector2(60, 0)
+	g.eai.pattern(early_bone, Vector2.RIGHT, 60.0, 0.01, early_bone.spd)
+	check(g.warns.is_empty(), "starter bones save their secondary attack for later threat stages")
+	for kind in D.ENEMIES:
+		var row: Dictionary = D.ENEMIES[kind]
+		if row.get("role", "") != "boss" and kind != "tear":
+			check(row.has("extra") or row.has("pattern") or row.get("burst", false), kind + " has an active attack beyond contact")
+	for kind in ["reaper", "founder", "tracer", "nest"]:
+		var row: Dictionary = D.ENEMIES[kind]
+		check(float(row.extra.range) >= 140.0, kind + " late attack has useful reach")
+		check(float(row.extra.get("first_delay", 9.0)) <= 1.4, kind + " late attack starts soon after entry")
 	for kind in ["stone", "offspring", "spitter", "floater", "reaper", "founder", "tracer", "nest", "pocket", "skimmer", "mother", "mimic", "knight"]:
 		var d: Dictionary = D.ENEMIES[kind]
 		check(d.has("extra"), kind + " has secondary attack data")
@@ -35,6 +49,12 @@ func run_checks() -> void:
 			continue
 		var w: Dictionary = warnings[0]
 		check(w.owner == e and w.dur >= 0.6 and w.cancel_dead, kind + " readable cancellable warning")
+		if kind == "founder":
+			check(float(w.get("frost", 0.0)) > 0.0 and not e.has("frost_attack"), "founder crystal warning carries bounded frost")
+		if kind == "tracer":
+			check(float(w.get("nerve", 0.0)) > 0.0, "tracer tail warning carries nerve buildup")
+		if kind == "pocket":
+			check(float(w.get("stun", 0.0)) > 0.0 and float(w.stun) <= 0.25, "pocket pulse has brief capped stagger")
 		check(e.extra_next > g.t, kind + " cooldown advances")
 		var count: int = g.warns.size()
 		g.eai.pattern(e, Vector2.RIGHT, g.ppos.x, 0.01, e.spd)
@@ -44,8 +64,63 @@ func run_checks() -> void:
 			check(g.ebullets.size() == int(d.extra.count), kind + " volley emits configured bullets")
 			if not g.ebullets.is_empty():
 				check(is_equal_approx(float(g.ebullets[0].get("corrode", -1.0)), e.corrode), kind + " inherits corrosion")
-		g.warns.clear()
-		g.ebullets.clear()
+	g.warns.clear()
+	g.ebullets.clear()
+	# A new late enemy can start its special shortly after spawning, while the global warning cap still applies.
+	g.t = 350.0
+	var fresh: Dictionary = g.spawner.new_enemy("founder", Vector2.ZERO)
+	check(fresh.extra_next - g.t <= 1.5, "late enemy first special no longer waits several seconds")
+	fresh.age = 0.9
+	g.t = fresh.extra_next + 0.01
+	g.ppos = Vector2(280, 0)
+	g.eai.pattern(fresh, Vector2.RIGHT, 280.0, 0.01, fresh.spd)
+	check(g.warns.any(func(w): return w.get("secondary", false)), "fresh late enemy actually telegraphs an early attack")
+	g.warns.clear()
+	var second: Dictionary = g.spawner.new_enemy("founder", Vector2.ZERO)
+	second.age = 5.0
+	second.extra_next = 0.0
+	g.eai.pattern(second, Vector2.RIGHT, 280.0, 0.01, second.spd)
+	check(g.warns.is_empty(), "late secondary attacks are staggered across the crowd")
+	g.t += 1.0
+	g.eai.pattern(second, Vector2.RIGHT, 280.0, 0.01, second.spd)
+	check(g.warns.size() == 1, "deferred secondary still fires after crowd spacing")
+	g.warns.clear()
+	g.eai.next_secondary_at = 0.0
+	var stagger: Dictionary = g.spawner.new_enemy("pocket", Vector2.ZERO)
+	stagger.age = 5.0
+	stagger.extra_next = 0.0
+	g.ppos = Vector2(50, 0)
+	g.eai.pattern(stagger, Vector2.RIGHT, 50.0, 0.01, stagger.spd)
+	var stagger_warning: Dictionary = g.warns[0]
+	g.demo_op = ""
+	g.hp = g.max_hp
+	g.invuln = 0.0
+	g.shield = 0
+	g.bai._warn_resolve(stagger_warning)
+	check(g.pstun > 0.0 and g.pstun <= 0.25, "pocket pulse stagger is short")
+	g.pstun = 0.0
+	g.invuln = 0.0
+	g.bai._warn_resolve(stagger_warning)
+	check(g.pstun == 0.0, "repeated stagger is gated globally")
+	g.warns.clear()
+	g.eai.next_secondary_at = 0.0
+	var ice: Dictionary = g.spawner.new_enemy("founder", Vector2.ZERO)
+	ice.age = 5.0
+	ice.extra_next = 0.0
+	g.ppos = Vector2(100, 0)
+	g.invuln = 0.0
+	g.hp = g.max_hp
+	g.eai.pattern(ice, Vector2.RIGHT, 100.0, 0.01, ice.spd)
+	var ice_warning: Dictionary = g.warns[0]
+	g.bai._warn_resolve(ice_warning)
+	check(g.frost > 0.0 and g.hp < g.max_hp, "telegraphed crystal strike applies short frost only on hit")
+	g.frost = 0.0
+	g.invuln = 0.0
+	g.shield = 1
+	g.bai._warn_resolve(ice_warning)
+	check(g.frost == 0.0, "shield prevents special frost")
+	g.shield = 0
+	g.warns.clear()
 	# Large packs must not fill the arena with simultaneous secondary warnings.
 	var crowded: Dictionary = g.spawner.new_enemy("stone", Vector2.ZERO)
 	crowded.age = 5.0

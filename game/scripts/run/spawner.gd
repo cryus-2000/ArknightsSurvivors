@@ -319,7 +319,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
 		# V8 新敌人（enemy_ai.gd）：自爆鼓胀 / 休眠与唤醒 / 狂暴与铺痕 / 光环计时 / 小怪攻击帧条
 		"blast_w": 0.0, "dormant": bool(d.get("dormant", false)), "wake_t": 0.0, "enraged": false, "trail_t": 0.0, "aura_t": 0.0, "atk_until": 0.0,
-		"extra_next": g.t + 3.0 + float(next_id % 7) * 0.43,
+		"extra_next": g.t + float(d.get("extra", {}).get("first_delay", 3.0)) + (float(next_id % 5) * 0.1 if d.get("extra", {}).has("first_delay") else float(next_id % 7) * 0.43),
 	}
 	if tmpl_keys.is_empty():
 		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段

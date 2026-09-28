@@ -122,6 +122,10 @@ func _ready() -> void:
 			var cfg: Dictionary = D.ENEMIES[entry.id]
 			if cfg.has("extra"):
 				check(str(cfg.extra.name) in entry.desc, "gallery lists secondary attack " + entry.id)
+				if float(cfg.extra.get("frost", 0.0)) > 0.0:
+					check("寒冷" in entry.desc, "gallery explains freezing special " + entry.id)
+				if float(cfg.extra.get("stun", 0.0)) > 0.0:
+					check("僵直" in entry.desc, "gallery explains short stagger " + entry.id)
 			if cfg.has("patterns"):
 				for move in cfg.patterns:
 					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))

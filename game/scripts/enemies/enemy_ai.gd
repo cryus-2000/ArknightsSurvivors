@@ -8,6 +8,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 
 var g  # Game (Node2D)
+var next_secondary_at := 0.0  # 大群额外招式错峰，避免同帧连环预警
 
 
 func _init(game) -> void:
@@ -51,17 +52,20 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 ## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。
 func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool:
 	var a: Dictionary = d.get("extra", {})
-	if a.is_empty() or e.age < 2.0 or dist > float(a.range) or g.t < float(e.get("extra_next", INF)):
+	if a.is_empty() or g.t < float(a.get("min_time", 0.0)) or e.age < float(a.get("first_delay", 2.0)) or dist > float(a.range) or g.t < float(e.get("extra_next", INF)):
 		return false
 	if e.wind > 0.0 or e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0:
 		return false
 	if e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0 or e.get("under", false) or e.get("coma", false) or e.get("friendly", false) or e.get("channel", 0.0) > 0.0:
 		return false
-	if g.warns.size() >= 12:
+	if g.warns.size() >= 10 or (g.t >= 280.0 and g.t < next_secondary_at):
 		return false
 	var reach: float = float(a.range)
+	var warn_color := Color(0.64, 0.95, 1.0) if float(a.get("frost", 0.0)) > 0.0 else (Color(0.95, 0.55, 1.0) if float(a.get("nerve", 0.0)) > 0.0 else Color(0.75, 0.55, 1.0))
 	var data := {"secondary": true, "cancel_dead": true, "ang": dir.angle(), "name": "", "dmg": e.dmg * float(a.damage_mult),
-		"corrode": e.corrode, "nerve": float(d.get("shot_nerve", e.nerve)) * 0.6, "col": Color(0.75, 0.55, 1.0), "extra": a}
+		"corrode": e.corrode, "nerve": float(a.get("nerve", float(d.get("shot_nerve", e.nerve)) * 0.6)),
+		"frost": float(a.get("frost", 0.0)), "stun": float(a.get("stun", 0.0)),
+		"col": warn_color, "extra": a}
 	var shape := "cone"
 	var dur := 0.75
 	match str(a.mode):
@@ -79,6 +83,8 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 		_:
 			return false
 	g.bai._warn(e, shape, dur, data)
+	if g.t >= 280.0:
+		next_secondary_at = g.t + 0.9
 	e.extra_next = g.t + float(a.cd)
 	e.shot_ready = false
 	return true
