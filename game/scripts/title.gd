@@ -833,6 +833,11 @@ var op_tip := -1
 var op_tip_sel := -1
 
 
+## 触屏模式（同 touch.gd 的开启条件）：选人页不认悬停、底部提示换成点按
+func _touch_mode() -> bool:
+	return DisplayServer.is_touchscreen_available() or Cfg.dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
+
 func _op_input(event: InputEvent) -> void:
 	var cols := 4
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -1027,15 +1032,17 @@ func _draw_op_pick(vs: Vector2) -> void:
 	for ln in lines:
 		# 按说明实际折几行算（最多 2 行），不再一律按 2 行预算把放得下的也截掉（验收 N2）
 		var dix: float = 44.0 if (ln.size() > 3 and ln[3] != "" and A.tex(ln[3]) != null) else 0.0
-		desc_n.append(mini(4, UI.wrap_lines(font, ln[2], 12, dr.size.x - 48 - dix).size()))
+		desc_n.append(UI.wrap_lines(font, ln[2], 12, dr.size.x - 48 - dix).size())
 	var desc_full: Array = desc_n.duplicate()
+	for i in desc_n.size():
+		desc_n[i] = mini(4, desc_n[i])
 	var room: float = dr.end.y - 14.0 - py
 	var need := func() -> float:
 		var h := 0.0
 		for i in lines.size():
 			h += 30.0 + dlh * desc_n[i]
 		return h
-	for cap in [2, 1, 0]:
+	for cap in [3, 2, 1, 0]:   # 每轮只减一行，从后往前（验收：一步压到 2 会多截）
 		var i: int = lines.size() - 1
 		while need.call() > room and i >= 0:
 			desc_n[i] = mini(desc_n[i], cap)
@@ -1085,21 +1092,6 @@ func _draw_op_pick(vs: Vector2) -> void:
 		var max_lines: int = int((dr.end.y - 16 - py) / 19.0)
 		if max_lines >= 1:
 			_wrap_text(Vector2(px, py + 14), cur.lore, 13, Color(0.7, 0.8, 0.85), dr.size.x - 48, max_lines)
-	# 被截断的说明：点按（触屏）或鼠标悬停时在该行下方浮出全文
-	var tip_i := op_tip
-	if tip_i < 0:
-		for ti in op_tips.size():
-			if op_tips[ti][0].has_point(get_local_mouse_position()):
-				tip_i = ti
-	if tip_i >= 0 and tip_i < op_tips.size():
-		var tr: Rect2 = op_tips[tip_i][0]
-		var tl: PackedStringArray = UI.wrap_lines(font, op_tips[tip_i][1], 13, tr.size.x - 28)
-		var th: float = tl.size() * 19.0 + 18.0
-		var ty: float = tr.end.y + 2.0 if tr.end.y + 2.0 + th < vs.y - 8.0 else tr.position.y - th - 2.0
-		var tbox := Rect2(tr.position.x, ty, tr.size.x, th)
-		UI.panel(self, tbox, Color(0.02, 0.05, 0.08, 0.97), col, 6.0)
-		for li2 in tl.size():
-			UI.text(self, font, tbox.position + Vector2(14, 22 + li2 * 19), tl[li2], 13, UI.TEXT)
 	# ---- 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
@@ -1109,7 +1101,25 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var mp := get_local_mouse_position()
 	UI.button(self, font, go, (Pad.hint("更换  Enter", "更换  Ⓐ") if cover_pick else Pad.hint("下一步  Enter", "下一步  Ⓐ")), "primary", go.has_point(mp), 17)
 	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ"), "outline", back.has_point(mp), 17)
-	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), Pad.hint("WASD / ARROWS  SELECT     ENTER  NEXT", "STICK  SELECT     A  NEXT     B  BACK"), 11, Color(0.45, 0.49, 0.53), 1.5)
+	var hint_en: String = "TAP  SELECT     TAP  DETAILS" if _touch_mode() else Pad.hint("WASD / ARROWS  SELECT     ENTER  NEXT", "STICK  SELECT     A  NEXT     B  BACK")
+	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), hint_en, 11, Color(0.45, 0.49, 0.53), 1.5)
+	# 被截断的说明：点按（触屏）或鼠标悬停时浮出全文。画在按钮之后，且不压进按钮行（验收 P3）；触屏不认悬停（光标会停在点过的位置）
+	var tip_i := op_tip
+	if tip_i < 0 and not _touch_mode():
+		for ti in op_tips.size():
+			if op_tips[ti][0].has_point(get_local_mouse_position()):
+				tip_i = ti
+	if tip_i >= 0 and tip_i < op_tips.size():
+		var tr: Rect2 = op_tips[tip_i][0]
+		var tl: PackedStringArray = UI.wrap_lines(font, op_tips[tip_i][1], 13, tr.size.x - 28)
+		var th: float = tl.size() * 19.0 + 18.0
+		var lim: float = go.position.y - 6.0
+		var ty: float = tr.end.y + 2.0 if tr.end.y + 2.0 + th < lim else maxf(8.0, tr.position.y - th - 2.0)
+		var tbox := Rect2(tr.position.x, ty, tr.size.x, th)
+		draw_rect(tbox, Color(0.02, 0.05, 0.08, 1.0))
+		UI.panel(self, tbox, Color(0.02, 0.05, 0.08, 1.0), col, 6.0)
+		for li2 in tl.size():
+			UI.text(self, font, tbox.position + Vector2(14, 22 + li2 * 19), tl[li2], 13, UI.TEXT)
 
 
 ## 按像素宽度折行绘制，返回占用高度
