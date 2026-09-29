@@ -37,10 +37,10 @@ func update(dt: float) -> void:
 		var first: float = float(g.map.mire_cfg().get("first_at", 100.0))
 		if g.t < first:
 			return
-		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0))
+		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0))
 	# 刷新：场上最多 1 座未点燃；Boss 在场时照样刷（协调人 9/29：Boss 战正是溟痕最多、最需要安全区的时候）
 	if g.t >= next_at:
-		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0))
+		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0))
 		if not g.beacons.any(func(b): return not b.lit):
 			_spawn()
 	var r: float = _k("r", 70.0)
@@ -54,6 +54,18 @@ func update(dt: float) -> void:
 			if g.t - b.lit_t > _k("block_t", 30.0):
 				b.dead = true   # 禁刷期结束，灯标完成使命
 				Sfx.play("beacon_end", -11.7, 1.0, 0.0)   # 安全区结束（tools/gen_sfx_events.py）
+			continue
+		# 没点燃的灯标 unlit_life 秒后熄灭，放行下一座（协调人 9/30 定 A：原来没人点的那座一直占位，普通机器人整局只刷 1–3 座）
+		b.age = float(b.get("age", 0.0)) + dt
+		if b.age > _k("unlit_life", 45.0):
+			b.dead = true
+			g.vfx.sparks(b.pos, Vector2.UP, Color(0.6, 0.7, 0.8), 8, 90.0)
+			# 熄灭提示（别让玩家以为是 bug）：在屏内就在灯标上飘字，在屏外弹一句横幅
+			if b.pos.distance_to(g.ppos) < 560.0:
+				g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标熄灭了", Color(0.7, 0.78, 0.85), 15)
+			else:
+				g.vfx.show_banner("远处的引航灯标熄灭了 —— 稍后会有新的一座")
+			_log("expire")
 			continue
 		var rate := 1.0
 		if g.lamp < 30.0:
@@ -97,7 +109,7 @@ func _spawn() -> void:
 				p = q
 	p = g.spawner.safe_event_pos(p, 110.0)
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
-		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0})
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0})
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")

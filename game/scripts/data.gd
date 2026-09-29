@@ -47,6 +47,7 @@ const DMOD_DEFAULT := {
 	"horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、溟痕不消散、主控初始最大生命
 	"mire_dmg": 1.0, "nerve_rate": 1.0,                                   # 溟痕伤害（run/enemies.gd）；溟痕里神经损伤累积速度（combat.update_nerve）
 	"hunt_dur": 1.0, "hunt_ring_hp": 1.0,                                 # 围猎持续时间、圈上海嗣生命（run/hunt.gd；高难度下放宽，避免成为硬门槛）
+	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关
 const DMOD_TEXT := [
