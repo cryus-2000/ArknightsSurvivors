@@ -2,11 +2,12 @@ extends RefCounted
 ## 人形治疗海嗣、对干员不可索敌；中立泪滴加速转化，主控靠近可压制该枚充能。
 ## friendly 仅表示不进入干员索敌/伤害管线，不代表协助干员。
 ## 原作参考与改编差异见 docs/ea_ishar_20260927.md。敌对形态的攻击仍由 BossAI 管理。
+const Game = preload("res://scripts/game.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const HEAL_COLOR := Color(0.25, 1.0, 0.85)
-var g
+var g: Game
 
-func _init(game) -> void:
+func _init(game: Game) -> void:
 	g = game
 
 func step_ally(e: Dictionary, dt: float) -> void:

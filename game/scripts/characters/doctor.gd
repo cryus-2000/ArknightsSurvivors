@@ -88,7 +88,7 @@ func apply_rejection() -> String:
 			break
 	if what == "":
 		g.stats.add(&"max_hp", "flat", -20.0, "rejection")
-		g._sync_stats()
+		g.sync_stats()
 		g.hp = minf(g.hp, g.max_hp)
 		what = "生命上限 -20"
 	rej_log.append(what)
@@ -154,7 +154,7 @@ func apply_passive(pid: String) -> bool:
 		"squad_aspd": st.add(&"op_aspd", "add", 0.06, src, "squad")
 		"squad_range": st.add(&"op_range", "add", 0.08, src, "squad")
 		"squad_crit": st.add(&"op_skill_power", "add", 0.1, src, "squad")
-	g._sync_stats()
+	g.sync_stats()
 	return true
 
 
@@ -190,4 +190,4 @@ func apply_filler(fid: String) -> void:
 		"oil": g.lamp = minf(g.lamp_cap, g.lamp + 30.0)
 		"atk":
 			g.stats.add(&"op_atk", "add", 0.04, "filler", "squad")
-			g._sync_stats()
+			g.sync_stats()

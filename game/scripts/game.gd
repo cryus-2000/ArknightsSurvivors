@@ -45,6 +45,7 @@ const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
 const BossTrial = preload("res://scripts/run/boss_trial.gd")
 const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
 const EnemyDemo = preload("res://scripts/run/enemy_demo.gd")
+const GalleryProgress = preload("res://scripts/run/gallery_progress.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
 const AutoTest = preload("res://scripts/run/autotest.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
@@ -575,14 +576,14 @@ func _ready() -> void:
 		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
 	if float(dmod.max_hp) != 1.0:
 		stats.add(&"max_hp", "mult", float(dmod.max_hp), "difficulty")
-	_sync_stats()
+	sync_stats()
 	hp = max_hp
 	hp_trail = hp
 	xp_need = Bal.v("xp/first", 8.0)
 	autotest = Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance")
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
-		_sync_stats()
+		sync_stats()
 		# 精英化演出：把干员直接推进到目标阶段（精英化节点有选项时取第一个）
 		var guard := 0
 		while ch.elite < demo_elite and not ch.next_node().is_empty() and guard < 12:
@@ -960,8 +961,6 @@ func _try_dash() -> void:
 	Sfx.play("dodge", -6.0, 1.2, 0.05)
 
 
-const GalleryProgress = preload("res://scripts/run/gallery_progress.gd")
-
 func _update(dt: float) -> void:
 	_pm("")
 	if int(t + dt) != int(t):
@@ -972,7 +971,7 @@ func _update(dt: float) -> void:
 		return
 	if not autotest and not trial.active:
 		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
-	_sync_stats()
+	sync_stats()
 	var mv := Vector2(
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
@@ -1118,7 +1117,7 @@ func _check_pending() -> void:
 
 
 # =====================================================================
-# 属性同步与对局工具：_sync_stats（stats → 缓存变量）、灯火半径 / 技力倍率、对局随机数洗牌、性能打点
+# 属性同步与对局工具：sync_stats（stats → 缓存变量）、灯火半径 / 技力倍率、对局随机数洗牌、性能打点
 # 刷怪 / 敌人 / 战斗 / 商店 / 无人机 / 掉落 / 升级选卡已拆到 scripts/run/，界面在 screens/，绘制在 render/（docs/39 §1）
 # =====================================================================
 
@@ -1135,7 +1134,13 @@ const STAT_SYNC := {
 }
 
 
+## 旧名（2026-09-29 改公开为 sync_stats）：未合入的分支还在调 g._sync_stats()，各分支合完后删
 func _sync_stats() -> void:
+	sync_stats()
+
+
+## 属性同步：StatBlock（stats）有变化时，按 STAT_SYNC 回填缓存变量并调 ch.sync_stats()；模块 / 干员改了 stats 后直接调它（没变化时立即返回）
+func sync_stats() -> void:
 	if stats == null or stats.version == _stats_ver:
 		return
 	_stats_ver = stats.version

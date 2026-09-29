@@ -124,7 +124,7 @@ func _apply_size_hp() -> void:
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
-		g.max_hp = new_max   # 先同步，game._sync_stats 看到没变化，不会再按差值补一次
+		g.max_hp = new_max   # 先同步，game.sync_stats 看到没变化，不会再按差值补一次
 
 
 ## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
@@ -135,7 +135,7 @@ func _apply_leader_regen(op) -> void:
 		return
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
 	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
-	g._sync_stats()
+	g.sync_stats()
 
 
 func _slot_offset(i: int) -> Vector2:

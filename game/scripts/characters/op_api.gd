@@ -53,7 +53,7 @@ func heal_leader(v: float, src: String = "其他") -> void:
 
 ## 属性块变动后立即刷新 game.gd 的缓存变量（stats.add 之后需要当帧生效时调用）
 func refresh_stats() -> void:
-	g._sync_stats()
+	g.sync_stats()
 
 
 ## 用对局随机数打乱（同 seed 可复现，docs/36）

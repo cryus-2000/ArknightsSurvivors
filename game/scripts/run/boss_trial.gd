@@ -1,15 +1,16 @@
 extends RefCounted
 ## EA 演练沿用正式 Boss 生成、AI 和战斗；跳过波次/经济/结局，进度在退出时还原。
+const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
-var g
+var g: Game
 var active := false
 var started_at := 0.0
 var config: Dictionary = {}
 var saved_progress: Dictionary = {}
 var targets: Array = []
 
-func _init(game) -> void:
+func _init(game: Game) -> void:
 	g = game
 
 func consume() -> void:
@@ -55,7 +56,7 @@ func setup() -> void:
 		var choices: Dictionary = g.ch.elite_choices(node) if node.get("type", "") == "elite" else {}
 		g.ch.advance(choices.keys()[0] if not choices.is_empty() else "")
 	g.show_queue.clear()
-	g._sync_stats()
+	g.sync_stats()
 	g.hp = g.max_hp
 	g.hp_trail = g.hp
 	for i in config.group.size():

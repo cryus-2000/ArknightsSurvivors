@@ -1,13 +1,14 @@
 extends RefCounted
 ## 留出完整 Boss 击败演出。战斗已结束，只推进画面，不再受击/刷怪/发牌。
+const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const DURATION := 1.7
-var g
+var g: Game
 var active := false
 var elapsed := 0.0
 var recorded := false
 
-func _init(game) -> void:
+func _init(game: Game) -> void:
 	g = game
 
 func begin() -> void:

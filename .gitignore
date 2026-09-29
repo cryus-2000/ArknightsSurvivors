@@ -38,3 +38,6 @@ art/third_party/*
 
 # Python
 __pycache__/
+
+# Claude 桌面版预览服务器配置（本机网页冒烟用，不入库）
+/.claude/launch.json
