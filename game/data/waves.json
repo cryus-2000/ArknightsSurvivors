@@ -585,7 +585,7 @@
   "resolve": {
    "name": "结局三 · 抉择",
    "en": "RESOLVE",
-   "boss": "ishar",
+   "boss": "izumik",
    "col": [
     1.0,
     0.8,
@@ -608,7 +608,7 @@
    "renew": ["242"],
    "name": "结局四 · 深蓝",
    "en": "CAERULA ARBOR",
-   "boss": "izumik",
+   "boss": "ishar",
    "col": [
     0.35,
     0.6,

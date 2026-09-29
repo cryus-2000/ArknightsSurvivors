@@ -18,7 +18,7 @@ const TABS := [
 	{"cn": "藏品", "en": "RELIC"},
 	{"cn": "结局", "en": "ENDING"},
 ]
-const ENDING_ORDER := ["standard", "knight", "resolve", "deep"]
+const ENDING_ORDER := ["standard", "knight", "deep", "resolve"]   # 显示编号 Ⅰ–Ⅳ（按原作：深蓝之心线 = 结局三，抉择线 = 结局四；id 不变，存档不错位）
 
 ## 敌人图鉴说明（机制按本作实现）
 const ENEMY_DESC := {
@@ -41,13 +41,13 @@ const ENEMY_DESC := {
 	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死；搭档假死时沿生命连接反击。",
 	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死；搭档假死时沿生命连接反击。",
 	"paranoia": "结局一的最终 Boss。悬浮远程散射并减速；首次被控制后失去悬浮，进入第二形态。",
-	"izumik": "结局四「深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
-	"ishar": "结局三「抉择」的最终 Boss。人形阶段治疗受伤海嗣，不攻击主控，干员也不会以她为目标；转化充能随时间增长，未被主控靠近压制的之泪会加快充能。充满后变为敌对白壳海嗣，使用弹幕、潮汐吐息与近身潮噬；未压制的泪滴会在变身后发动「泪滴共鸣」。",
+	"izumik": "结局三「抉择」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
+	"ishar": "结局四「深蓝」的最终 Boss。人形阶段治疗受伤海嗣，不攻击主控，干员也不会以她为目标；转化充能随时间增长，未被主控靠近压制的之泪会加快充能。充满后变为敌对白壳海嗣，使用弹幕、潮汐吐息与近身潮噬；未压制的泪滴会在变身后发动「泪滴共鸣」。",
 	"knight_boss": "结局二「最后的骑士」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；「冰线」之后发动「寒冷追击」，第一次生命归零后寒冰重生进入二阶段。",
 	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
 ## 结局 Boss 与敌对骑士：达成对应结局 / 遭遇后解锁
-const LOCK_BY_ENDING := {"izumik": "deep", "ishar": "resolve", "knight_boss": "knight", "knight": "knight", "tear": "resolve"}   # docs/19：敌对骑士也随结局收录
+const LOCK_BY_ENDING := {"izumik": "resolve", "ishar": "deep", "knight_boss": "knight", "knight": "knight", "tear": "deep"}   # docs/19：敌对骑士也随结局收录
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted

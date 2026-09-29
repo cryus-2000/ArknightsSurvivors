@@ -37,7 +37,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			var bob: float = 4.0 * sin(g.t * 1.6)
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(g.t * 2.0)))
-		var idx: int = ["standard", "knight", "resolve", "deep"].find(g.ending)
+		var idx: int = ["standard", "knight", "deep", "resolve"].find(g.ending)   # 显示编号，同 gallery.ENDING_ORDER
 		UI.text(g.hud, g.font, Vector2(gc.x - 90, gc.y + 124), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
 		UI.text(g.hud, g.font, Vector2(gc.x - 110, gc.y + 144), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
 	UI.frame(g.hud, r, col, {"t": g.t})
