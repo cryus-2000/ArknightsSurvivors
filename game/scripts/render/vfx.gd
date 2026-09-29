@@ -5,6 +5,7 @@ extends RefCounted
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -55,6 +56,51 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 		impact_pause(0.032)
 	elif melee:
 		impact_pause(0.018)
+
+
+## 命中反馈分档（打击感审查，协调人 9/30）：combat.damage 每次命中调用，只改画面（白闪 e.flash、受击形变 e.squash、
+## 粒子、破绽时的短顿帧），不碰模拟随机数（粒子用 g.vrng）。参数都在 data/balance.json 的 fx 段：
+## - 持续伤害（dot 标签）：白闪 / 形变减弱，免得持续伤害让敌人一直闪白
+## - 普攻：原来的 0.08 / 0.14
+## - 技能（origin == skill）：白闪更长、形变更久
+## - 暴击：金色小火花；弱点：按弱点类型着色的小火花
+## - 破绽中的 Boss：白闪最长 + 金色火花 + 金色冲击环 + 短顿帧（每只 Boss 每 fx/break_every 秒最多一次，顿帧再受 impact_pause 的共享限频）
+const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
+var _break_fx_at := {}
+
+func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
+	var h: Dictionary = g.hit
+	var dot: bool = "dot" in h.get("tags", [])
+	var skill: bool = h.get("origin", "") == "skill" and not dot
+	var brk: bool = e.get("boss", false) and float(e.get("break_t", 0.0)) > 0.0
+	var fl: float = Bal.v("fx/flash_dot", 0.05) if dot else Bal.v("fx/flash_basic", 0.08)
+	var sq: float = Bal.v("fx/squash_dot", 0.08) if dot else Bal.v("fx/squash_basic", 0.14)
+	if skill:
+		fl = maxf(fl, Bal.v("fx/flash_skill", 0.11))
+		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
+	if crit or weak:
+		fl = maxf(fl, Bal.v("fx/flash_crit", 0.12))
+		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
+	if brk and not dot:
+		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
+	e.flash = maxf(float(e.get("flash", 0.0)), fl)
+	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
+		return
+	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
+	if crit:
+		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/crit_sparks", 4), 170.0)
+	elif weak and not dot:
+		sparks(head, Vector2.ZERO, WEAK_SPARK.get(e.get("weak", ""), Color(1.0, 0.5, 0.8)), Bal.vi("fx/weak_sparks", 3), 130.0)
+	if brk and not dot:
+		var key: int = int(e.get("id", 0))
+		var prev: float = _break_fx_at.get(key, -99.0)
+		if g.t >= prev and g.t - prev < Bal.v("fx/break_every", 0.15):
+			return
+		_break_fx_at[key] = g.t
+		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/break_sparks", 6), 240.0)
+		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45)})
+		impact_pause(Bal.v("fx/break_pause", 0.035))
 
 
 ## A low ring of slate-colored grit; capped so crowds do not bury silhouettes.
@@ -166,7 +212,7 @@ func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
 				s.dmg += dmg
 				s.weak = s.weak or weak
 				return
-		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak})
+		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak, "brk": float(e.get("break_t", 0.0)) > 0.0})
 		return
 	if _boss_fight():
 		return
@@ -188,7 +234,9 @@ func _flush_boss_sum(dt: float) -> void:
 		if s.t > 0.0:
 			continue
 		var e: Dictionary = s.e
-		if s.dmg >= 1.0:
+		if s.dmg >= 1.0 and s.get("brk", false):
+			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), "破绽 " + str(int(round(s.dmg))), UI.GOLD, 22)   # 破绽期间：金色大一号（打击感审查）
+		elif s.dmg >= 1.0:
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
 

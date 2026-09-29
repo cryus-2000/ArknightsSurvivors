@@ -909,8 +909,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	for tg in g.hit.tags:
 		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff
 	e.hits += 1
-	e.flash = 0.08
-	e.squash = 0.14
+	g.vfx.hit_react(e, g.crit_hit, weak_hit)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
