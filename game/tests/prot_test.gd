@@ -912,6 +912,15 @@ func test_enemy_knob() -> void:
 	game.dmod.erase("ctrl_start")
 	ok(is_equal_approx(c.enemy_knob("ctrl_start", 1.0e9), Bal.v("enemy/ctrl_start", 1.0e9)), "dmod 没这个键：读全局")
 	ok(float(D.DMOD_DEFAULT.affix_max) < 0.0 and float(D.dmod_for_tier(0).get("affix_start", 0.0)) < 0.0, "缺省表与标准档为 -1（现行为不变）")
+	var m: Dictionary = D.DMOD_DEFAULT.duplicate()
+	ok(D.dmod_lines(m).is_empty(), "缺省表：选难度页没有说明行")
+	m.ctrl_start = 420.0
+	m.frost_max = 2.0
+	m.affix_max = 0.5
+	var lines: Array = D.dmod_lines(m)
+	ok(lines.has("小怪控制提前到 7:00") and lines.has("寒霜 2 层即冻结") and lines.has("词条概率上限 50%"), "按档覆盖的说明行（%s）" % str(lines))
+	m.frost_max = Bal.v("enemy/frost_max", 3.0)
+	ok(not str(D.dmod_lines(m)).contains("寒霜"), "和全局相同时不显示")
 	game.dmod = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
