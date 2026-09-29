@@ -24,6 +24,12 @@ var skill_id := -1          # 正在按技能键的触点（-1 = 没按）
 var skill_origin := Vector2.ZERO
 var skill_aim := Vector2.ZERO
 var skill_rect := Rect2()
+## 攻击键（契约 v2.5「手动普攻」，只在 g.doctor.manual_attack 为真时显示，冲刺键左侧）：按住 = 攻击（doctor.touch_atk），
+## 拖出方向写 doctor.touch_atk_dir（不到 AIM_DEAD 写 ZERO = 吸附最近目标）
+var atk_id := -1
+var atk_origin := Vector2.ZERO
+var atk_drag := Vector2.ZERO
+var atk_rect := Rect2()
 
 
 func _init(game) -> void:
@@ -43,6 +49,13 @@ func handle(event: InputEvent) -> bool:
 	if event is InputEventScreenTouch:
 		var vs: Vector2 = g.hud.size
 		if event.pressed:
+			if atk_rect.size.x > 0.0 and atk_id < 0 and atk_rect.grow(8.0).has_point(event.position):
+				atk_id = event.index
+				atk_origin = event.position
+				atk_drag = Vector2.ZERO
+				g.doctor.touch_atk = true
+				g.doctor.touch_atk_dir = Vector2.ZERO
+				return true
 			# 技能键：按下只记触点，松手才释放（以后可以改成拖动瞄准）
 			if skill_rect.size.x > 0.0 and skill_id < 0 and skill_rect.grow(8.0).has_point(event.position):
 				skill_id = event.index
@@ -66,6 +79,9 @@ func handle(event: InputEvent) -> bool:
 				vec = Vector2.ZERO
 				return true
 		else:
+			if event.index == atk_id:
+				_atk_release()
+				return true
 			if event.index == skill_id:
 				skill_id = -1
 				flash["skill"] = 0.2
@@ -78,6 +94,10 @@ func handle(event: InputEvent) -> bool:
 				vec = Vector2.ZERO
 				return true
 	elif event is InputEventScreenDrag:
+		if event.index == atk_id:
+			atk_drag = event.position - atk_origin
+			g.doctor.touch_atk_dir = atk_drag if atk_drag.length() >= AIM_DEAD else Vector2.ZERO
+			return true
 		if event.index == skill_id:
 			skill_aim = event.position - skill_origin
 			return true
@@ -97,6 +117,14 @@ func handle(event: InputEvent) -> bool:
 					vec = vec.normalized()
 			return true
 	return false
+
+
+func _atk_release() -> void:
+	atk_id = -1
+	atk_drag = Vector2.ZERO
+	g.doctor.touch_atk = false
+	g.doctor.touch_atk_dir = Vector2.ZERO
+	flash["atk"] = 0.15
 
 
 ## 技能键此刻的瞄准方向：拖动超过死区 = 拖动方向（不用归一化），否则 Vector2.ZERO = 自动瞄准
@@ -133,6 +161,8 @@ func update(dt: float) -> void:
 		vec = Vector2.ZERO
 	if skill_id >= 0 and g.state != g.S.PLAY:
 		skill_id = -1
+	if atk_id >= 0 and (g.state != g.S.PLAY or not g.doctor.manual_attack):
+		_atk_release()
 
 
 func draw_hud(vs: Vector2) -> void:
@@ -162,9 +192,16 @@ func draw_hud(vs: Vector2) -> void:
 		hud.draw_circle(dc, BTN * 0.7, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
 		hud.draw_arc(dc, BTN * 0.7, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
 		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
-		_draw_skill_button(hud, font, dc + Vector2(-BTN * 2.0, -BTN * 0.65))   # 左上斜方：正上方会撞「属性」键（触屏 HUD 缩放后只有约 626 高）
+		if g.doctor.manual_attack:
+			# 手动普攻：攻击键在冲刺键左边同一行，技能键挪到攻击键正上方
+			_draw_atk_button(hud, font, dc + Vector2(-BTN * 1.55, -BTN * 0.05))
+			_draw_skill_button(hud, font, dc + Vector2(-BTN * 1.55, -BTN * 1.7))
+		else:
+			atk_rect = Rect2()
+			_draw_skill_button(hud, font, dc + Vector2(-BTN * 2.0, -BTN * 0.65))   # 左上斜方：正上方会撞「属性」键（触屏 HUD 缩放后只有约 626 高）
 	else:
 		skill_rect = Rect2()
+		atk_rect = Rect2()
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]
@@ -181,6 +218,28 @@ func draw_hud(vs: Vector2) -> void:
 			if items[i][1] == "stats" and g.state == g.S.PLAY and (((g.t >= 6.0 and g.t < 16.0) and not g.tab_used) or g.tab_hint > 0.0):
 				var pulse: float = 0.5 + 0.5 * sin(g.t * 5.0)
 				hud.draw_arc(c, BTN / 2.0 + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
+
+
+## 攻击键：圆底 + 交叉双刃图标 + 「攻击」；按住时亮、拖动时按钮上画小摇杆（同技能键）
+func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
+	var r := BTN * 0.62
+	atk_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
+	var held: bool = atk_id >= 0 or flash.get("atk", 0.0) > 0.0
+	var ac := Color(1.0, 0.72, 0.4)
+	hud.draw_circle(c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
+	hud.draw_arc(c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)
+	for sgn in [-1.0, 1.0]:
+		var a0: Vector2 = c + Vector2(-12.0 * sgn, 12.0)
+		var a1: Vector2 = c + Vector2(12.0 * sgn, -12.0)
+		hud.draw_line(a0, a1, Color(1, 1, 1, 0.95 if held else 0.75), 3.0)
+		hud.draw_line(a0 + Vector2(-4.0 * sgn, -4.0), a0 + Vector2(4.0 * sgn, 4.0), Color(ac.r, ac.g, ac.b, 0.9), 3.0)
+	if atk_id >= 0:
+		var reach := r + 30.0
+		hud.draw_arc(c, reach, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.35), 1.5)
+		hud.draw_arc(c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
+		var k: Vector2 = atk_drag.limit_length(reach)
+		hud.draw_circle(c + k, 12.0, Color(ac.r, ac.g, ac.b, 0.45 if atk_drag.length() >= AIM_DEAD else 0.25))
+		hud.draw_arc(c + k, 12.0, 0.0, TAU, 20, Color(1.0, 0.9, 0.75, 0.9), 2.0)
 
 
 ## 手动技能键：圆底 + 技能图标 + 外圈充能；就绪时青色呼吸外圈。只在主控有已解锁的手动技能时画（干员契约 v2.3：手动只对主控）

@@ -651,17 +651,18 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines := [
-		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q 放手动技能"],
-		["攻击", "全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q）"],
+		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q / E 放手动技能"],
+		["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q / E）"],
+		["手动普攻", "可在设置 · 游戏里把普攻改为手动：左键 / J 攻击，朝光标方向"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按数字键或点击选择"],
 		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 开关音乐　　R 重来　　T 回标题"],
-		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓧ 手动技能　START 暂停　SELECT 属性"],
-		["", "菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
+		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓨ 手动技能　Ⓧ / RT 手动攻击　右摇杆瞄准"],
+		["", "START 暂停　SELECT 属性　菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 106 + i * 42
+		var y := r.position.y + 100 + i * 38
 		if lines[i][0] != "":
 			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)

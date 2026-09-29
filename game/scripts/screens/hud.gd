@@ -689,6 +689,15 @@ func draw_dash_hint(vs: Vector2) -> void:
 	var key: String = Pad.hint("空格", "Ⓑ")
 	var ready: bool = g.dash_cd <= 0.0
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
+	if g.doctor.manual_attack:
+		# 手动普攻：冲刺牌左边一枚攻击牌（键鼠 左键 / J，手柄 RT / Ⓧ）
+		var acap: String = Pad.hint("左键 / J", "RT / Ⓧ")
+		var akw := UI.cwidth(g.font, acap, 11) + 12.0
+		var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
+		var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
+		g.hud.draw_rect(ar, Color(0.03, 0.035, 0.045, 0.74))
+		UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
+		UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "攻击", 13, UI.TEXT)
 	var cap_s: String = Pad.hint("SPACE", "Ⓑ")
 	var kw := UI.cwidth(g.font, cap_s, 11) + 12.0
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
@@ -721,7 +730,7 @@ func draw_manual_hint() -> void:
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
-			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q", "Ⓐ"), nm])
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q / E", "Ⓐ / Ⓨ"), nm])
 	if manual_hint_t <= 0.0:
 		return
 	manual_hint_t -= g.get_process_delta_time()
@@ -748,6 +757,9 @@ func draw_manual_aim() -> void:
 	var ld = g.squad.leader()
 	var i: int = ld.manual_index() if ld != null else -1
 	if i < 0 or not ld.manual_aims(i):
+		return
+	if ld.manual_point(i):
+		draw_point_aim(ld, i)
 		return
 	var dir := Vector2.ZERO
 	var strong := false
@@ -789,6 +801,48 @@ func draw_manual_aim() -> void:
 	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
 	if g.touch.active and dir == Vector2.ZERO:
 		UI.text(g.hud, g.font, to + Vector2(-40, -rad - 8.0), "自动瞄准", 12, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
+
+
+## 选落点的手动技能（契约 v2.5，JSON "aim": "point"，首个是乌尔比安 S3）：落点圈跟着取点走（鼠标光标 / 键盘蓄距离 /
+## 右摇杆推量 / 触屏拖动，doctor.point_preview 已夹在射程内），圈一直实线；蓄距离或触屏拖动时淡淡画出射程圆，键盘蓄距离时圈旁一段进度弧
+func draw_point_aim(ld, i: int) -> void:
+	# 充满就画（手动普攻时主控几乎一直在出手，按 manual_ready 判会一闪一闪）；此刻放不了（出手中 / 锚未收回）时淡一些
+	var charged: bool = ld.skill_unlocked(i) and not ld.perm[i] and ld.sp_need(i) > 0.0 and ld.sp[i] >= ld.sp_need(i) and ld.skill_active_left(i) <= 0.0
+	if not charged:
+		return
+	var rdy: bool = ld.manual_ready(i, Vector2.RIGHT)
+	var pt: Vector2 = ld.manual_aim_point(i)
+	if pt == Vector2.INF:
+		return
+	var xf: Transform2D = g.get_viewport().get_canvas_transform()
+	var sc: float = xf.get_scale().x
+	var from: Vector2 = xf * ld.pos
+	var to: Vector2 = xf * pt
+	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
+	var a: float = (0.85 if rdy else 0.4) * (0.8 + 0.2 * sin(g.t * 6.0))
+	var charging: bool = not g.doctor.charge.is_empty()
+	var dragging: bool = g.touch.active and g.touch.skill_id >= 0
+	if charging or dragging:
+		var rr: float = ld.aim_range(i) * sc
+		g.hud.draw_arc(from, rr, 0.0, TAU, 64, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.22), 1.5)
+	var seg: Vector2 = to - from
+	var ln: float = seg.length()
+	if ln > rad + 8.0:
+		var u: Vector2 = seg / ln
+		var t := 18.0
+		while t < ln - rad:
+			g.hud.draw_line(from + u * t, from + u * minf(t + 10.0, ln - rad), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.7), 2.0)
+			t += 18.0
+	g.hud.draw_circle(to, rad, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.1))
+	g.hud.draw_arc(to, rad, 0.0, TAU, 48, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	for q in 4:
+		var d: Vector2 = Vector2.from_angle(q * PI / 2.0 + g.t * 0.8)
+		g.hud.draw_line(to + d * (rad - 10.0), to + d * (rad - 2.0), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
+	if charging:
+		# 蓄距离进度：圈右上一段弧，蓄满（manual/point_charge 秒）= 射程最远
+		var ck: float = clampf(float(g.doctor.charge.get("t", 0.0)) / maxf(0.05, Game.Bal.v("manual/point_charge", 0.6)), 0.0, 1.0)
+		g.hud.draw_arc(to, rad + 8.0, -PI / 2.0, -PI / 2.0 + TAU * ck, 40, Color(1, 1, 1, 0.9), 3.0)
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
@@ -1261,7 +1315,7 @@ func draw_squad_hud(br: Vector2) -> void:
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 					g.hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
-				UI.ctext(g.hud, g.font, Vector2(sr.position.x - 8, sr.position.y - 4), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 16)
+				UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24)
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
