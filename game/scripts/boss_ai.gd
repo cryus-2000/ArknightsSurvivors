@@ -33,7 +33,11 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		# 冲刺落地后的破绽（伊莎玛拉潮涌迫近，boss/ishar_close_break 秒，0 = 关）
 		if e.dash_t <= 0.0 and e.get("land_break", 0.0) > 0.0:
 			g.combat.start_break(e, e.land_break)
-			Sfx.play("ishar_land_break", -0.6, 1.0, 0.0)   # 落地破绽：水花拍地 + 下沉咕噜（tools/gen_sfx_boss_events.py）
+			# 落地破绽（tools/gen_sfx_boss_events.py）：伊莎玛拉 = 水花拍地 + 下沉咕噜；偏执泡影 = 膜状「啵嗯」+ 泡沫嘶声
+			if e.type == "paranoia":
+				Sfx.play("paranoia_land_break", -8.0, 1.0, 0.0)
+			else:
+				Sfx.play("ishar_land_break", -0.6, 1.0, 0.0)
 			e.land_break = 0.0
 	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
 	if e.get("coma", false):
@@ -195,6 +199,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if panic:
 				if not e.get("panic", false):
 					g.vfx.add_text(e.pos + Vector2(0, -50), "慌乱", Color(1.0, 0.45, 0.8), 16)
+					Sfx.play("bishop_panic", -4.8, 1.0, 0.0)   # 慌乱：结巴的吸气颤音
 				e.ai = "melee"
 				e.aggro = mate.pos
 				e.haste = maxf(float(e.get("haste", 0.0)), 0.1)

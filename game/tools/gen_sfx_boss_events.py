@@ -12,6 +12,8 @@
   stake_shatter   冰枪桩到期碎裂：一串冰晶崩落
   carmen_sword    卡门换剑：长剑出鞘
   ishar_land_break  伊莎玛拉潮涌迫近落地破绽：水花拍地 + 下沉咕噜（和泡影破茧的脆裂区分）
+  paranoia_land_break  偏执泡影漂近落地破绽：膜状「啵嗯」+ 泡沫嘶声
+  bishop_panic    接潮主教慌乱（搭档假死）：结巴的吸气颤音
 用法：cd game/tools && python gen_sfx_boss_events.py [名字 ...]
 """
 import sys
@@ -131,8 +133,35 @@ def ishar_land_break():
     return slap + at(body, 0.0, n) + gurgle * 0.5 + wobble
 
 
+def paranoia_land_break():
+    """偏执泡影漂近落地破绽：有弹性的膜状「啵嗯」晃动 + 细小泡沫嘶声（和伊莎玛拉的水花、泡影破茧的晶体碎裂都区分）"""
+    r = R(12); d = 1.0; n = int(d * SR); t = T(d)
+    f = 180 * (1 + 0.35 * np.exp(-t / 0.25) * np.sin(2 * np.pi * 9 * t))   # 频率上下弹几下再稳住
+    boing = np.sin(2 * np.pi * np.cumsum(f) / SR) * env(d, 0.004, 0.3)
+    boing = lp(np.tanh(1.6 * boing), 1200)
+    fizz = hp(r.standard_normal(n), 4000) * np.exp(-t / 0.4) * (1 + np.sign(np.sin(2 * np.pi * 23 * t))) * 0.08
+    pops = np.zeros(n)
+    for _ in range(10):
+        c = r.uniform(0.05, 0.7); f0 = r.uniform(900, 2200); bd = 0.025
+        pops += at(glide(bd, f0, f0 * 1.6) * env(bd, 0.001, 0.008), c, n)
+    return boing + fizz + pops * 0.25
+
+
+def bishop_panic():
+    """接潮主教慌乱：一串快速上扬、结结巴巴的吸气颤音 + 合唱式的抖动（呼应接潮的合唱音色）"""
+    r = R(13); d = 0.7; n = int(d * SR); t = T(d)
+    x = np.zeros(n)
+    for k, tt in enumerate((0.0, 0.09, 0.16, 0.22, 0.27)):
+        f0 = 300 + 70 * k
+        g = sweep(r, 0.07, f0 * 2, f0 * 4, 0.3) * env(0.07, 0.004, 0.025)
+        v = sum(np.sin(2 * np.pi * f0 * m * T(0.09)) / m for m in (1, 2, 3)) * env(0.09, 0.005, 0.03)
+        x += at(g * 0.8, tt, n) + at(v * 0.5, tt, n)
+    trill = sum(np.sin(2 * np.pi * f * t * (1 + 0.03 * np.sin(2 * np.pi * 14 * t))) for f in (523, 554)) * np.maximum(t - 0.3, 0) ** 0.5 * np.exp(-t / 0.25) * 0.3
+    return x + trill
+
+
 SOUNDS = {k: v for k, v in globals().items() if k in ("cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count",
-                                                       "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break")}
+                                                       "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break", "paranoia_land_break", "bishop_panic")}
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or SOUNDS):
