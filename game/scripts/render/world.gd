@@ -131,6 +131,14 @@ func watch_bosses() -> void:
 		if b.get("phase", 1) != s[1] and not b.dead:
 			s[1] = b.get("phase", 1)
 			boss_phase_fx(b)
+		var bk: bool = b.type == "knight_boss" and b.get("break_t", 0.0) > 4.0
+		if s.size() < 5:
+			s.resize(5)
+			s[3] = b.get("sword_t", 0.0) > 0.0
+			s[4] = bk
+		elif bk and not s[4]:
+			spear_fly_fx(b)
+		s[4] = bk
 		var sw: bool = b.get("sword_t", 0.0) > 0.0
 		if s.size() < 4:
 			s.append(sw)
@@ -430,6 +438,17 @@ func draw_world() -> void:
 				for q in 12:
 					var dv := Vector2.from_angle(q * TAU / 12.0)
 					g.draw_line(f.pos + dv * rr * 0.3, f.pos + dv * rr * 0.6, Color(1.9, 1.6, 0.9, 0.7 * a), 3.0)
+			"spear_fly":
+				var k := 1.0 - a
+				var p: Vector2 = f.pos.lerp(f.to, k) + Vector2(0, -110.0 * sin(k * PI))
+				var ang: float = k * TAU * 1.5
+				var dv := Vector2.from_angle(ang) * 34.0
+				g.draw_line(p - dv, p + dv, Color(0.1, 0.12, 0.2, 0.9), 6.0)
+				g.draw_line(p - dv, p + dv, Color(1.4, 1.6, 1.9), 3.0)
+				g.draw_circle(p + dv, 4.0, Color(1.6, 1.9, 2.2))
+				if k > 0.9:
+					var gk: float = (k - 0.9) / 0.1
+					g.draw_arc(f.to, 10.0 + 30.0 * gk, 0.0, TAU, 20, Color(0.8, 1.2, 1.7, 1.0 - gk), 2.0)
 			"glint":
 				# 竖直闪光（换剑）：十字星从中间展开再收
 				var k := 1.0 - a
@@ -1184,6 +1203,8 @@ func draw_enemy_tells() -> void:
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
+		if e.get("stakes", []) is Array and not e.get("stakes", []).is_empty():
+			_draw_stakes(e)
 		if e.type == "tear":
 			_tear_zone(e)
 		elif e.boss:
@@ -1559,6 +1580,65 @@ func beacon_burst(b: Dictionary) -> void:
 	_flash(Color(1.0, 0.85, 0.55), 0.3)
 
 
+## 最后的骑士冰枪桩（e.stakes = [{pos, until}]，r 22）：竖立的冰晶长枪 + 脚下冰霜圈；快到期（< 2 秒）时闪烁
+func _draw_stakes(e: Dictionary) -> void:
+	for st in e.stakes:
+		var left: float = float(st.until) - g.t
+		if left <= 0.0:
+			continue
+		var a: float = 1.0 if left > 2.0 else 0.35 + 0.65 * absf(sin(g.t * 12.0))
+		var p: Vector2 = st.pos
+		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
+		g.draw_circle(Vector2.ZERO, 22.0, Color(0.6, 0.85, 1.3, 0.14 * a))
+		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.8, 1.1, 1.6, 0.6 * a), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var top: Vector2 = p + Vector2(2, -70)
+		g.draw_line(p + Vector2(0, 2), top, Color(0.1, 0.15, 0.25, 0.9 * a), 7.0)
+		g.draw_line(p + Vector2(0, 2), top, Color(0.7, 0.95, 1.4, a), 4.0)
+		g.draw_line(p + Vector2(-1, 0), top + Vector2(-1, 6), Color(1.6, 1.9, 2.2, 0.8 * a), 1.2)
+		var tip := PackedVector2Array([top + Vector2(0, -18), top + Vector2(6, 0), top + Vector2(0, 6), top + Vector2(-6, 0)])
+		g.draw_colored_polygon(tip, Color(0.85, 1.2, 1.7, a))
+		tip.append(tip[0])
+		g.draw_polyline(tip, Color(0.1, 0.15, 0.25, a), 1.5)
+		for q in 3:
+			var cp: Vector2 = p + Vector2(-10 + q * 10, -2 - (q % 2) * 5)
+			UI.diamond(g, cp, 3.0, Color(0.8, 1.1, 1.6, 0.8 * a), Color(0.1, 0.15, 0.25, 0.8 * a))
+
+
+## 冲锋预警撞桩端盖：按当前 w.ang / w.len 和 e.stakes 求交（线宽按 e.r + 22），在第一根会撞上的桩处画「破」字端盖
+func _stake_cap(w: Dictionary) -> void:
+	var e: Dictionary = w.owner
+	var a: Vector2 = w.pos
+	var d: Vector2 = Vector2.from_angle(w.ang)
+	var b: Vector2 = a + d * w.len
+	var best := -1.0
+	var hit := Vector2.ZERO
+	for st in e.get("stakes", []):
+		if float(st.until) <= g.t:
+			continue
+		var cp: Vector2 = Geometry2D.get_closest_point_to_segment(st.pos, a, b)
+		if cp.distance_to(st.pos) < e.r + 22.0:
+			var along: float = (cp - a).dot(d)
+			if best < 0.0 or along < best:
+				best = along
+				hit = st.pos
+	if best < 0.0:
+		return
+	var c: Vector2 = a + d * best
+	var pk: float = 0.5 + 0.5 * sin(g.t * 10.0)
+	g.draw_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(0, 0, 0, 0.7), 7.0)
+	g.draw_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(1.8, 1.5, 0.6, 0.8 + 0.2 * pk), 3.5)
+	g.draw_circle(c + Vector2(0, -26), 12.0, Color(0.05, 0.05, 0.08, 0.85))
+	g.draw_arc(c + Vector2(0, -26), 12.0, 0.0, TAU, 20, Color(1.8, 1.5, 0.6, 0.9), 1.5)
+	UI.text(g, g.font, c + Vector2(-12, -20), "破", 14, Color(1.0, 0.9, 0.5), HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
+
+
+## 长枪脱手（knight_boss 撞桩后的 5 秒大破绽上升沿）：一杆长枪从骑士手里旋转飞出，抛物线落到身后，落地冰屑
+func spear_fly_fx(b: Dictionary) -> void:
+	var dir: float = -1.0 if b.get("fx", 1.0) >= 0.0 else 1.0
+	g.fx.append({"kind": "spear_fly", "pos": b.pos + Vector2(0, -b.r), "to": b.pos + Vector2(dir * 150.0, 20.0), "life": 0.8, "max": 0.8, "enemy": true})
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1784,6 +1864,8 @@ func draw_warn_outlines() -> void:
 					if float(w.get("track", 0.0)) > 0.0 and lk < 0.15:
 						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * (1.0 - lk / 0.15)), true)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				if w.get("stake_hit", false) or (w.get("owner") is Dictionary and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty()):
+					_stake_cap(w)
 			"cone":
 				var pts := PackedVector2Array([w.pos])
 				for q in 17:
