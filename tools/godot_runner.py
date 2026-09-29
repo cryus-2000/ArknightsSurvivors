@@ -90,13 +90,50 @@ def _unlock(f):
         f.close()
 
 
+# 快检 / 批跑用的固定设置（2026-10-01 协调人：数值发现 prot_test 读到本机存档里的难度 Ⅳ 误报）：
+# 每次启动 Godot 都给一个临时的用户目录（Windows 的 APPDATA、Linux 的 XDG_DATA_HOME），里面只有这份 settings.cfg——
+# 难度 = 标准、画质 = 高、手动普攻 = 关、静音，其他偏好走缺省；测试改设置（例如 ea_ui 的封面干员）也不会写进玩家的真实存档。
+# 设环境变量 ARK_REAL_USERDIR=1 可退回旧行为（用真实用户目录）
+TEST_SETTINGS = """[video]
+fullscreen=false
+res_index=0
+quality="high"
+
+[audio]
+master=0.0
+music=0.0
+sfx=0.0
+voice=0.0
+
+[input]
+manual_attack=false
+
+[progress]
+difficulty=0
+"""
+
+
+def _test_userdir():
+    if os.environ.get("ARK_REAL_USERDIR") == "1":
+        return None, None
+    import tempfile
+    root = tempfile.mkdtemp(prefix="ark_test_")
+    d = os.path.join(root, "ArknightsSurvivors")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "settings.cfg"), "w", encoding="utf-8") as fh:
+        fh.write(TEST_SETTINGS)
+    env = dict(os.environ, APPDATA=root, XDG_DATA_HOME=root)
+    return root, env
+
+
 def run_godot(args, timeout):
-    """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)"""
+    """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
+    root, env = _test_userdir()
     while True:
         f = _lock()
         try:
             if count_godot() < MAX_PROCS:
-                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
                 break
         finally:
             _unlock(f)
@@ -108,6 +145,9 @@ def run_godot(args, timeout):
         p.kill()
         out, err = p.communicate()
         timed_out = True
+    if root:
+        import shutil
+        shutil.rmtree(root, ignore_errors=True)
     return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), timed_out
 
 
