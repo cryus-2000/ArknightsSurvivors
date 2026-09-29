@@ -15,6 +15,9 @@
   mire_clear     灯标点亮时清掉溟痕（叠在光爆下）
   enemy_acid     侵蚀酸弹（尖、辨识度优先）
   enemy_elite    远程精英开火
+  crit_tick / break_open / break_hit  暴击命中「叮」/ 韧性打满进入破绽 / 破绽中命中 Boss
+  lamp_empty     战斗中灯火降到 0
+  heartbeat_hi   低血心跳的高频层（和 heartbeat 同时播，外放可闻）
 每声用自己的随机数种子：单独重做某一声不影响其他；gen_sfx.py 重跑复现不了现有音效，别为这些去重跑它。
 用法：cd game/tools && python gen_sfx_events.py [名字 ...]
 """
@@ -316,12 +319,65 @@ def enemy_elite():
     return at(thoom, 0.0, n) + ring + puff
 
 
+def crit_tick():
+    """暴击命中：叠在普通命中上的清脆金属「叮」（短、亮，拥挤时也能听见）"""
+    d = 0.18
+    t = T(d)
+    return sum(np.sin(2 * np.pi * f * t) * g for f, g in ((2350, 1.0), (3525, 0.5), (5870, 0.25))) * env(d, 0.0008, 0.045)
+
+
+def break_open():
+    """韧性打满、进入破绽：玻璃似的脆裂 + 明亮的「开了」钟声（Boss 露出破绽，要打）"""
+    rng = np.random.default_rng(611)
+    d = 1.0
+    n = int(d * SR)
+    crack = bp(rng.standard_normal(n), 2000, 9000) * env(d, 0.0005, 0.03)
+    shards = tinkles(rng, n, 0.01, 0.4, 16, 2500, 7000) * np.exp(-T(d) / 0.25)
+    bell = sum(np.sin(2 * np.pi * f * T(d)) * g * np.exp(-T(d) / (0.6 / m)) for m, (f, g) in enumerate(((784, 1.0), (1176, 0.5), (1568, 0.3), (2352, 0.15)), 1))
+    return crack * 0.8 + shards * 0.4 + at(bell, 0.03, n) * 0.35
+
+
+def break_hit():
+    """破绽中命中 Boss：更重、更脆的一击，叠在普通命中上（「打在破绽上」要听得出来）"""
+    rng = np.random.default_rng(612)
+    d = 0.3
+    n = int(d * SR)
+    thud = np.tanh(2.2 * glide(0.2, 200, 90)) * env(0.2, 0.001, 0.05)
+    snap = bp(rng.standard_normal(n), 3000, 10000) * env(d, 0.0005, 0.015)
+    ring = np.sin(2 * np.pi * 1650 * T(d)) * env(d, 0.001, 0.06) * 0.3
+    return at(thud, 0.0, n) + snap * 0.8 + ring
+
+
+def lamp_empty():
+    """战斗中灯火降到 0（之后持续掉血）：火苗噗噗几下灭掉 + 低沉不祥的小调短音（和死亡「灯灭」、灯标熄灭区分）"""
+    rng = np.random.default_rng(613)
+    d = 1.3
+    n = int(d * SR)
+    x = np.zeros(n)
+    for tt, g in ((0.0, 1.0), (0.12, 0.6), (0.2, 0.35)):
+        x += at(lp(rng.standard_normal(int(0.08 * SR)), 1100) * env(0.08, 0.002, 0.02) * g, tt, n)
+    t = T(d)
+    minor = sum(np.sin(2 * np.pi * f * t) for f in (146.8, 174.6, 220.0)) * np.minimum(np.maximum(t - 0.25, 0) / 0.08, 1.0) * np.exp(-np.maximum(t - 0.25, 0) / 0.45) * (t >= 0.25)
+    return x + lp(np.tanh(1.5 * minor), 1500) * 0.35
+
+
+def heartbeat_hi():
+    """低血心跳的高频层：和 heartbeat 同样两下（0 / 0.2 秒），放在 300–900 Hz，手机 / 笔记本外放也听得见（原心跳 99% 能量在 120 Hz 以下）"""
+    d = 0.45
+    n = int(d * SR)
+    def knock(g):
+        k = np.tanh(2.5 * glide(0.09, 420, 260)) * env(0.09, 0.002, 0.022)
+        return bp(k + 0.3 * np.sin(2 * np.pi * 820 * T(0.09)) * env(0.09, 0.001, 0.012), 250, 1200) * g
+    return at(knock(1.0), 0.0, n) + at(knock(0.7), 0.2, n)
+
+
 SOUNDS = {"knight_charge": knight_charge, "knight_stab": knight_stab, "knight_frost": knight_frost,
           "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break,
           "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat,
           "ulp_charge_loop": ulp_charge_loop, "ulp_release": ulp_release, "atk_gate": atk_gate, "beacon_fizzle": beacon_fizzle,
           "enemy_nerve": enemy_nerve, "mire_clear": mire_clear,
-          "enemy_acid": enemy_acid, "enemy_elite": enemy_elite}
+          "enemy_acid": enemy_acid, "enemy_elite": enemy_elite,
+          "crit_tick": crit_tick, "break_open": break_open, "break_hit": break_hit, "lamp_empty": lamp_empty, "heartbeat_hi": heartbeat_hi}
 
 
 def save(name, x, peak=0.89):

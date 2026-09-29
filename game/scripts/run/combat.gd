@@ -380,7 +380,7 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	g.head_bar_t = 2.5
 	g.vfx.shake_screen(0.55 + 0.8 * sev)
 	g.hitstop = max(g.hitstop, 0.045 + 0.06 * sev)
-	Sfx.play("hurt", -1.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)
+	Sfx.play("hurt", 3.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)   # 打击感检查：原来实际只有 -24 左右，比命中声还轻，+4 dB
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
 	g.vfx.sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
 	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
@@ -776,6 +776,7 @@ func add_tough(e: Dictionary, pts: float) -> void:
 		e.tough = 0.0
 		e.tough_need *= 1.5
 		start_break(e, Bal.v("boss/break_t", 3.0))
+		Sfx.play("break_open", 0.0, 1.0, 0.0)   # 韧性打满、露出破绽
 
 
 func start_break(e: Dictionary, t: float) -> void:
@@ -880,6 +881,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.boss:
 		if e.get("break_t", 0.0) > 0.0:
 			dmg *= Bal.v("boss/break_mult", 1.4)
+			Sfx.play("break_hit", 0.0, 1.0, 0.05)   # 打在破绽上：更重更脆的一层（音频，打击感检查 10/1）
 		dmg = budget_clamp(e, dmg)
 	# Boss 单次伤害上限（boss/hit_cap_pct，缺省 0 = 关）：一次最多打掉最大生命的这个比例，防爆发一击秒杀；开不开、开多少由数值按实测定
 	if e.boss:
@@ -911,6 +913,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 	e.squash = 0.14
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
+	if g.crit_hit:
+		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
 	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# 圣徒装填：读条中累计伤害达到 5% 最大生命才打断（原来挨一下就打断、僵直 6 秒；docs/38 §8.2）
 	if e.get("channel", 0.0) > 0.0 and e.has("ammo"):

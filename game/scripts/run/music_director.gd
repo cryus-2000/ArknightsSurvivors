@@ -5,6 +5,7 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var stinger_done := false
+var lamp_prev := 100.0          # 上一帧灯火：战斗中降到 0 那一刻播 lamp_empty
 var lamp_out_done := false      # 倒下过渡里灯光半径收到 0（hud.DEATH_LAMP_T）时播「灯灭」（tools/gen_sfx_lamp.py）
 var music_lv := 0               # 战斗配乐强度：0 平静 / 1 交战（打击乐）/ 2 激战（全奏），docs/21 v2.0
 var music_hold := 0.0           # 降一档之前还要保持的秒数
@@ -33,6 +34,9 @@ func update(_dt: float) -> void:
 	if g.state == g.S.PAUSE or g.state == g.S.CHOICE or g.state == g.S.SHOP or g.state == g.S.SHOW or g.state == g.S.STATS or g.state == g.S.INTRO or g.state == g.S.OPENING:
 		target = 1800.0
 	Sfx.cut_target = target
+	if g.state == g.S.PLAY and lamp_prev > 0.0 and g.lamp <= 0.0:
+		Sfx.play("lamp_empty", -6.6, 1.0, 0.0)   # 灯火熄灭（之后持续掉血）：噗噗灭掉 + 低沉小调
+	lamp_prev = g.lamp
 	if g.state != g.S.PLAY:
 		Sfx.loop_stop("ulp_charge_loop")   # 暂停 / 选卡 / 倒下时蓄力循环音别一直响（doctor.tick_input 不跑）
 	Sfx.vol_target = -4.0

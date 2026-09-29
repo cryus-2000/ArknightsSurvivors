@@ -78,6 +78,7 @@ func update_visuals(dt: float) -> void:
 		if heart_cd <= 0.0:
 			heart_cd = 0.55 + 0.6 * g.hp / (g.max_hp * 0.3)
 			Sfx.play("heartbeat", -2.0, 1.0, 0.0)
+			Sfx.play("heartbeat_hi", -0.7, 1.0, 0.0)   # 高频层：原心跳 99% 在 120 Hz 以下，手机 / 笔记本外放听不到（音频 10/1）
 	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
 	g.cam.offset = cam_kick.round()
