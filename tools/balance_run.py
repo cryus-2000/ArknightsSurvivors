@@ -464,6 +464,42 @@ def final_boss_summary(records):
     return "\n".join(lines)
 
 
+MID_BOSS_NAMES = {"path": "塑路者", "iberia": "圣徒伊比利亚", "carmen": "圣徒卡门", "bishop": "接潮主教", "archon": "接潮蔑死体", "immortal": "接潮斥亡体"}
+
+
+def mid_boss_summary(records):
+    """中期 Boss 按类型分行（机器人 × 类型）：出场 / 击杀、用时中位、on_boss（打在它身上的输出占比）、周围敌人；
+    主教另给慌乱次数 panic_n 与慌乱期间掉血占最大生命 panic_hit（协调人 9/30）"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if not d:
+            continue
+        for bo in d.get("bot", {}).get("bosses", []):
+            if _boss_phase(bo) == 2:
+                continue
+            e = by.setdefault((r.get("bot", "normal"), bo.get("type", "?")), {"n": 0, "t": [], "on": [], "near": [], "pn": [], "ph": []})
+            e["n"] += 1
+            if bo.get("t1", -1) >= 0:
+                e["t"].append(bo["t1"] - bo["t0"])
+            if "on_boss" in bo:
+                e["on"].append(bo["on_boss"]); e["near"].append(bo.get("en_near", 0))
+            if "panic_n" in bo:
+                e["pn"].append(bo["panic_n"]); e["ph"].append(bo.get("panic_hit", 0.0))
+    if not by:
+        return ""
+    lines = ["| 机器人 | 中期 Boss | 出场 | 击杀 | 用时中位 | on_boss 中位 | 周围敌人 均 | 慌乱次数 均 | 慌乱期间掉血 均 |", "|---|---|---|---|---|---|---|---|---|"]
+    for (bot, ty), e in sorted(by.items(), key=lambda kv: (kv[0][0], -kv[1]["n"])):
+        lines.append("| %s | %s | %d | %d | %s | %s | %s | %s | %s |" % (
+            bot, MID_BOSS_NAMES.get(ty, ty), e["n"], len(e["t"]),
+            ("%.0fs" % statistics.median(e["t"])) if e["t"] else "-",
+            ("%.2f" % statistics.median(e["on"])) if e["on"] else "-",
+            ("%.0f" % statistics.mean(e["near"])) if e["near"] else "-",
+            ("%.1f" % statistics.mean(e["pn"])) if e["pn"] else "-",
+            ("%d%%" % round(100 * statistics.mean(e["ph"]))) if e["ph"] else "-"))
+    return "\n".join(lines)
+
+
 def horde_summary(records):
     """大群（第 k 次）按机器人分行：出现局数、平均出现时间 / 数量、清掉 80% 的用时（t80，清完的局数）、
     开始后 20 秒内的最大掉血（hp0 − minhp）、开始后 30 秒内死亡的局数、编成（comp）出现次数"""
@@ -626,6 +662,9 @@ def main():
     ds = difficulty_summary(records)
     if ds:
         md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
+    mb = mid_boss_summary(records)
+    if mb:
+        md = "### 中期 Boss（按类型）\n\n" + mb + "\n\n" + md
     fb = final_boss_summary(records)
     if fb:
         md = "### 最终 Boss（按类型；上面的「终局」列是四种混算）\n\n" + fb + "\n\n" + md

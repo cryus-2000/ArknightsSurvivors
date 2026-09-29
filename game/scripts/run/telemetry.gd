@@ -124,6 +124,10 @@ func tick(dt: float) -> void:
 			bs.tv = int(t)
 		bs.shield = snappedf(b.get("shield_t", 0.0), 0.1)
 		bs.gates = b.get("gates_passed", 0)
+		if b.has("panic_n"):
+			# 主教慌乱（协调人 9/30）：慌乱触发次数、慌乱期间掉血占最大生命的比例
+			bs["panic_n"] = int(b.panic_n)
+			bs["panic_hit"] = snappedf(float(b.get("panic_dmg", 0.0)) / maxf(1.0, float(b.maxhp)), 0.01)
 	boss_acc += dt
 	if boss_acc >= 1.0:
 		boss_acc -= 1.0

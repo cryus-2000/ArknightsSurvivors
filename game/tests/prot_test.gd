@@ -893,6 +893,9 @@ func test_close_panic() -> void:
 	a.coma = true
 	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
 	ok(b.get("panic", false) and b.ai == "melee" and b.get("aggro", Vector2.INF) == a.pos, "搭档假死：主教慌乱，改近战朝搭档走")
+	var h0: float = b.hp
+	c.damage(b, 10.0)
+	ok(int(b.get("panic_n", 0)) == 1 and float(b.get("panic_dmg", 0.0)) > 0.0 and absf(float(b.panic_dmg) - (h0 - b.hp)) < 0.01, "遥测：慌乱次数 1、慌乱期间掉血计入 panic_dmg（%.1f）" % float(b.get("panic_dmg", 0.0)))
 	a.coma = false
 	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
 	ok(not b.get("panic", false) and b.ai == "ranged", "搭档复苏：主教恢复远程")

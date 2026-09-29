@@ -895,6 +895,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg -= ab
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
+	if e.get("panic", false):
+		e.panic_dmg = float(e.get("panic_dmg", 0.0)) + minf(dmg, e.hp + dmg)   # 遥测 panic_hit：主教慌乱期间掉的血（boss_ai 主教慌乱）
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
