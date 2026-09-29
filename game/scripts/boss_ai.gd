@@ -30,6 +30,10 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	# 否则骑士二阶段「再冲锋」（等 dash_t 归零）永远不会触发，冲锋帧条也会一直停在冲刺姿势（docs/38 B0 第 1 项）
 	if e.get("dash_t", 0.0) > 0.0:
 		e.dash_t = maxf(0.0, e.dash_t - dt)
+		# 冲刺落地后的破绽（伊莎玛拉潮涌迫近，boss/ishar_close_break 秒，0 = 关）
+		if e.dash_t <= 0.0 and e.get("land_break", 0.0) > 0.0:
+			g.combat.start_break(e, e.land_break)
+			e.land_break = 0.0
 	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
 	if e.get("coma", false):
 		# 假死赛跑（docs/38 §8.4）：boss/pair_race 秒内血条涨回 pair_revive_hp（50%），期间打倒另一具 = 两具一起倒下；到时复苏
@@ -358,6 +362,14 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 ## 下列提示是攻击形状说明，不冒称原作技能名；固定轮转避免近身招式永久压住远程招式。
 func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	var d: Dictionary = D.ENEMIES.ishar.get("attack", {})
+	# 潮涌迫近（协调人 9/30 定）：离主控超过 ishar_close_min 时，带直线预警冲到主控前方约 140 处。原来她站在 660 射程边上、躲在杂兵墙后，
+	# 近战队伍打不到（Boss A/B 9/30：高手用时中位 199 秒、15/50 没打死）。冲刺本身无接触伤害，只是多一个要躲的预警；ishar_close_min 0 = 关
+	var cmin: float = Bal.v("boss/ishar_close_min", 300.0)
+	if cmin > 0.0 and dist > cmin and g.t >= float(e.get("ishar_next_at", 0.0)) and _cd(e, "ishar_close", Bal.v("boss/ishar_close_cd", 6.0)):
+		var cw := _warn(e, "line", 0.7, {"ang": dir.angle(), "len": clampf(dist - 140.0, 80.0, 700.0), "wid": 30.0, "track": 0.3, "act": "dash", "fit_len": true,
+			"name": "潮涌迫近", "col": Color(0.35, 1.0, 0.9), "dmg": e.dmg, "close_break": Bal.v("boss/ishar_close_break", 1.0)})
+		e.ishar_next_at = g.t + cw.dur + 0.6
+		return
 	if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
 		return
 	var move: int = int(e.get("ishar_cycle", 0)) % 4
@@ -1026,6 +1038,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(1.0)
 			_warn_damage(w, 0.3)
 		"dash":
+			e.land_break = float(w.get("close_break", 0.0))
 			e.kb = dv * w.get("spd", 600.0)
 			e.kb_self = true
 			e.dash_dir = dv

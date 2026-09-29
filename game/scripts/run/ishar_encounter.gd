@@ -18,7 +18,8 @@ func step_ally(e: Dictionary, dt: float) -> void:
 		return
 	if not e.has("ally_charge"):
 		e.ally_charge = 0.0
-		e.ally_charge_need = Bal.v("boss/ishar_ally_charge", 30.0)
+		# ishar_p1_scale（协调人 9/30 定，缺省 0.6 = 30 → 18 秒，1 = 关）：人形阶段打不了她，缩短这段空等
+		e.ally_charge_need = snappedf(Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 0.6), 0.1)
 		e.ally_attack_cd = 0.8
 		e.ally_tear_cd = 5.0
 		g.vfx.show_banner("伊莎玛拉治疗海嗣 · 靠近泪滴可延缓转化")

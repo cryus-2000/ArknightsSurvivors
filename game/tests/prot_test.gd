@@ -65,6 +65,7 @@ func _process(_d: float) -> void:
 	test_break_budget()
 	test_retreat()
 	test_final_mob_cap()
+	test_ishar_close()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -808,6 +809,37 @@ func test_final_mob_cap() -> void:
 	ok(sp.final_mob_room() == sp.MAX_ENEMIES, "最终 Boss 倒下后恢复不限")
 	game.enemies = keep_e
 	game.final_boss = keep_f
+
+## 伊莎玛拉提速（协调人 9/30）：离远了带预警冲近（潮涌迫近，② 直线），落地给破绽；人形阶段充能 ×ishar_p1_scale
+func test_ishar_close() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(500, 0))
+	game.bosses = [e]
+	game.bai.transform_ishar(e)
+	e.transform_until = 0.0
+	e.ishar_next_at = 0.0
+	var n0: int = game.warns.size()
+	game.bai._ishar_phase2(e, Vector2.LEFT, 500.0)
+	var w: Dictionary = game.warns.back() if game.warns.size() > n0 else {}
+	ok(w.get("name", "") == "潮涌迫近" and int(w.get("style", -1)) == 2, "离主控 500：放潮涌迫近（直线预警）")
+	ok(w.get("len", 0.0) > 300.0 and w.get("len", 0.0) < 420.0, "冲到主控前约 140（线长 %.0f）" % w.get("len", 0.0))
+	game.warns.erase(w)
+	w.done = true
+	game.bai._warn_resolve(w)
+	ok(absf(float(e.get("land_break", 0.0)) - Bal.v("boss/ishar_close_break", 1.0)) < 0.01, "冲刺记下落地破绽")
+	e.dash_t = 0.01
+	game.bai._boss_ai(e, 0.05, Vector2.LEFT, 140.0)
+	ok(e.break_t > 0.0, "落地进入破绽（%.2f 秒）" % e.break_t)
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	var t2: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(200, 0))
+	game.ishar.step_ally(t2, 0.01)
+	ok(absf(t2.ally_charge_need - Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 0.6)) < 0.01, "人形阶段充能 × ishar_p1_scale（%.1f 秒）" % t2.ally_charge_need)
+	e.dead = true
+	t2.dead = true
+	for o in game.enemies:
+		if o.type == "tear":
+			o.dead = true
+	game.bosses = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:

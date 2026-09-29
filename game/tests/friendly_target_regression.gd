@@ -181,16 +181,18 @@ func _process(_dt: float) -> void:
 	game.zone_state = 0
 	game.zone_frozen = false
 	game.ppos = Vector2.ZERO
-	# No tears: 29 seconds remains friendly, the 30th second must start transformation.
+	# No tears: need-1 seconds remains friendly, the last second must start transformation.
+	# need = ishar_ally_charge × ishar_p1_scale (30 × 0.6 = 18 since 9/30)
+	var need := int(ally.ally_charge_need)
 	ally.ally_charge = 0.0
 	ally.ally_tear_cd = 100.0
-	for second in 29:
+	for second in need - 1:
 		game.t += 1.0
 		game.ishar.step_ally(ally, 1.0)
-	check(ally.phase == 1 and is_equal_approx(ally.ally_charge, 29.0), "no-tear natural charge keeps the first 29 seconds friendly")
+	check(ally.phase == 1 and is_equal_approx(ally.ally_charge, need - 1.0), "no-tear natural charge keeps the first need-1 seconds friendly")
 	game.t += 1.0
 	game.ishar.step_ally(ally, 1.0)
-	check(ally.phase == 2 and not ally.friendly and not ally.invuln, "natural 30 charge always transitions without tears")
+	check(ally.phase == 2 and not ally.friendly and not ally.invuln, "natural charge always transitions without tears at need")
 	check(is_equal_approx(ally.transform_until - game.t, 0.9), "real transformation starts a 0.9-second protection window")
 	game.enemies_sys.build_grid()
 	var next: Array = game.enemies_sys.nearest(1, 300.0)
