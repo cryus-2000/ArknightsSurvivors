@@ -5,6 +5,9 @@
   hunt_warn      「围猎」预告横幅（合拢前 3 秒）：压下来的低吼 + 水下压迫，约 2.4 秒
   hunt_close     「围猎」合拢：四面水压收拢的「呜——嗡」，约 1.6 秒
   hunt_break     「围猎」突围：压力散开、向上释放的一口气，约 1.2 秒
+  beacon_tick / beacon_lit / beacon_end  引航灯标：点燃进度嘀嗒 / 点燃光爆 / 30 秒安全区结束
+  nerve_burst    神经损伤满格（真伤 + 眩晕）
+  mire_splat     飘航者神经弹落地留溟痕
 每声用自己的随机数种子：单独重做某一声不影响其他；gen_sfx.py 重跑复现不了现有音效，别为这些去重跑它。
 用法：cd game/tools && python gen_sfx_events.py [名字 ...]
 """
@@ -165,8 +168,64 @@ def hunt_break():
     return at(rise, 0.0, n) * 1.2 + bubbles * 0.35 + shine * 0.12
 
 
+def beacon_tick():
+    """灯标点燃进度嘀嗒：短促柔和的铃音（游戏里按进度升调播放）"""
+    d = 0.35
+    t = T(d)
+    return sum(np.sin(2 * np.pi * f * t) * g for f, g in ((1320, 1.0), (2640, 0.25), (3960, 0.1))) * env(d, 0.002, 0.08)
+
+
+def beacon_lit():
+    """点燃光爆：上扬气流 + 暖色 D 大三和弦绽开 + 低频闷响"""
+    rng = np.random.default_rng(501)
+    d = 1.3
+    n = int(d * SR)
+    t = T(d)
+    rise = sweep(rng, 0.35, 300, 3000, 0.5) * np.minimum(T(0.35) / 0.3, 1.0) ** 2
+    bloom_t = np.maximum(t - 0.3, 0)
+    chord = sum(np.sin(2 * np.pi * f * t) for f in (293.7, 440.0, 587.3, 740.0, 880.0)) * np.minimum(bloom_t / 0.02, 1.0) * np.exp(-bloom_t / 0.5) * (t >= 0.3)
+    thump = np.tanh(2 * glide(0.4, 110, 55)) * env(0.4, 0.002, 0.1)
+    sparkle = hp(tinkles(rng, n, 0.3, 1.0, 18, 3000, 7000), 2000) * 0.3
+    return at(rise, 0.0, n) * 0.9 + chord * 0.18 + at(thump, 0.3, n) * 0.9 + sparkle
+
+
+def beacon_end():
+    """30 秒安全区结束：两音下行（A → E）+ 余烬嘶声"""
+    rng = np.random.default_rng(502)
+    n = int(1.1 * SR)
+    a = sum(np.sin(2 * np.pi * f * T(0.5)) * g for f, g in ((880, 1.0), (1760, 0.2))) * env(0.5, 0.005, 0.2)
+    b = sum(np.sin(2 * np.pi * f * T(0.7)) * g for f, g in ((659.3, 1.0), (1318.5, 0.2))) * env(0.7, 0.005, 0.3)
+    hiss = hp(rng.standard_normal(n), 3000) * env(1.1, 0.05, 0.3) * 0.15
+    return at(a, 0.0, n) * 0.6 + at(b, 0.3, n) * 0.6 + hiss
+
+
+def nerve_burst():
+    """神经损伤满格（真伤 + 眩晕）：电击脆响 + 不协和的环形调制嗡鸣 + 耳鸣高音，和冰（冻结）/ 锁链（束缚）区分开"""
+    rng = np.random.default_rng(503)
+    d = 1.1
+    n = int(d * SR)
+    t = T(d)
+    crack = bp(rng.standard_normal(n), 1500, 9000) * env(d, 0.0005, 0.02)
+    buzz = np.sin(2 * np.pi * 180 * t) * np.sin(2 * np.pi * 247 * t) * (1 + 0.6 * np.sign(np.sin(2 * np.pi * 31 * t)))
+    buzz = lp(np.tanh(3 * buzz), 3500) * env(d, 0.005, 0.28)
+    tinnitus = np.sin(2 * np.pi * 5200 * t) * np.minimum(t / 0.05, 1.0) * np.exp(-t / 0.6) * 0.12
+    low = np.tanh(2 * glide(0.3, 90, 50)) * env(0.3, 0.002, 0.08)
+    return crack * 0.8 + buzz * 0.7 + tinnitus + at(low, 0.0, n) * 0.6
+
+
+def mire_splat():
+    """神经弹落地留溟痕：湿的「啪」+ 一个低沉气泡"""
+    rng = np.random.default_rng(504)
+    d = 0.45
+    n = int(d * SR)
+    splat = lp(rng.standard_normal(n), 1200) * env(d, 0.001, 0.04)
+    bubble = glide(0.2, 180, 320) * env(0.2, 0.005, 0.06)
+    return splat * 1.2 + at(bubble, 0.08, n) * 0.6
+
+
 SOUNDS = {"knight_charge": knight_charge, "knight_stab": knight_stab, "knight_frost": knight_frost,
-          "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break}
+          "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break,
+          "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat}
 
 
 def save(name, x, peak=0.89):

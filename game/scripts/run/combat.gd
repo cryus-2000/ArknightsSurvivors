@@ -139,6 +139,7 @@ func add_nerve(v: float) -> void:
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
 		hurt(g.max_hp * Bal.v("enemy/nerve_burst", 0.12), true)
+		Sfx.play("nerve_burst", 2.0, 1.0, 0.0)   # 神经电击 + 耳鸣（和冻结的冰、束缚的锁链区分）
 		g.vfx.add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
 		Sfx.play("skill", -4.0, 1.6)
 

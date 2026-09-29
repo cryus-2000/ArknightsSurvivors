@@ -53,6 +53,7 @@ func update(dt: float) -> void:
 		if b.lit:
 			if g.t - b.lit_t > _k("block_t", 30.0):
 				b.dead = true   # 禁刷期结束，灯标完成使命
+				Sfx.play("beacon_end", -11.7, 1.0, 0.0)   # 安全区结束（tools/gen_sfx_events.py）
 			continue
 		var rate := 1.0
 		if g.lamp < 30.0:
@@ -63,11 +64,17 @@ func update(dt: float) -> void:
 			b.prog = minf(b.need, b.prog + rate * dt)
 			b.count_max = b.need
 			b.count_end = g.t + (b.need - b.prog) / rate
+			# 进度嘀嗒：每 0.5 秒进度一声，音高随进度升高（回退后重新充能会再响）
+			var tk := int(b.prog / 0.5)
+			if tk > int(b.get("tick", 0)) and b.prog < b.need:
+				Sfx.play("beacon_tick", -12.0, 0.85 + 0.5 * b.prog / b.need, 0.0)
+			b["tick"] = tk
 			if b.prog >= b.need:
 				_light(b)
 		else:
 			b.prog = maxf(0.0, b.prog - _k("decay", 0.5) * dt)   # 离开时缓慢回退，不清零
 			b.count_end = 0.0
+			b["tick"] = int(b.prog / 0.5)
 	g.beacons = g.beacons.filter(func(b): return not b.dead)
 
 
@@ -102,7 +109,7 @@ func _light(b: Dictionary) -> void:
 	clear_nerve(b.pos, _k("r", 70.0))
 	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字
 	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
-	Sfx.play("relic", -4.0, 1.2, 0.0)
+	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
 	_log("lit cleared=%d" % cleared)
 
 
