@@ -29,6 +29,10 @@ var last_dir := Vector2.RIGHT
 # 引航灯标「靠近后站定」（协调人 9/30：只把灯标当目标方向时，安全打分和绕圈惯性会把机器人带出 70 的光圈，点燃率只有 17%）：
 # 150 内有未点燃的灯标时记下位置，目标权重 2 → 6；进到 55 内、脚下不危险就停下，直到点燃
 var beacon_hold := Vector2.INF
+var b_dbg: bool = Cfg.dev_args().has("--bdbg")   # 灯标诊断（仅测试）：每 60 秒一行 BDBG 帧占比；每次离开光圈一行 BDBG leave（原因 / 圈内秒数 / 进度）
+var b_stat := {"hold": 0, "in55": 0, "stand": 0, "danger": 0, "frames": 0, "next": 60.0}
+# 进出光圈事件：在未点燃灯标 70 内算「在圈里」，离开时按上一帧状态记原因——danger 脚下危险 / switch 目标换了 / pushed 其余（冲刺、击退、围猎夹回等）
+var bd := {"in": false, "pos": Vector2.INF, "t0": 0.0, "last_t": 0.0, "last_danger": false, "last_hold": Vector2.INF, "maxp": 0.0}
 var beacon_w := 2.0               # 灯标加权：150 内 6，150 到 bot/beacon_seek_r（缺省 300）之间 4
 var keep := 100.0               # 与敌人保持的距离：近战编队要贴近些让干员打得到
 const MELEE := ["近卫", "重装", "先锋", "特种"]
@@ -129,6 +133,8 @@ func _move_expert() -> Vector2:
 		if s > best:
 			best = s
 			best_dir = d
+	if b_dbg:
+		_bdbg(p, here)
 	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and _stand_ok(p, bullets):
 		return Vector2.ZERO   # 站在灯标光圈里等点燃（只躲预警 / 弹幕 / 溟痕，普通怪贴近照站）
 	# bot/beacon_walk_r（缺省 120）内直接走进光圈（诊断：机器人有 9% 的帧在追灯标，却只有 0.8% 的帧到过 55 内——被怪群的安全分挡在外面）；
@@ -503,6 +509,8 @@ func _move_master(_dt: float) -> Vector2:
 		if s > best:
 			best = s
 			best_dir = d
+	if b_dbg:
+		_bdbg(p, here)
 	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < g.Bal.v("bot/beacon_walk_r", 120.0) and p.distance_to(beacon_hold) >= 55.0:
 		var bdir2: Vector2 = (beacon_hold - p).normalized()
 		if _stand_ok(p + bdir2 * 40.0, bullets):
@@ -756,3 +764,45 @@ func _stand_ok(p: Vector2, bullets: Array) -> bool:
 		if g.combat.ground_d(p, m.pos) < float(m.r) + 10.0:
 			return false
 	return _bullet_risk(p, Vector2.ZERO, 0.0, bullets) >= 0.0
+
+func _bdbg(p: Vector2, here: float) -> void:
+	var cur = null
+	for b in g.beacons:
+		if not b.lit and b.pos.distance_to(p) < 70.0:
+			cur = b
+			break
+	if cur != null:
+		if not bd.in or bd.pos != cur.pos:
+			bd.in = true
+			bd.pos = cur.pos
+			bd.t0 = g.t
+			bd.maxp = 0.0
+		bd.maxp = maxf(bd.maxp, float(cur.get("prog", 0.0)))
+	elif bd.in:
+		bd.in = false
+		var left = null
+		for b in g.beacons:
+			if b.pos == bd.pos:
+				left = b
+		if left != null and not left.lit:
+			var why := "danger" if bd.last_danger else ("switch" if bd.last_hold != bd.pos else "pushed")
+			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t])
+	bd.last_danger = here <= -4.0
+	bd.last_hold = beacon_hold
+	b_stat.frames += 1
+	if beacon_hold != Vector2.INF:
+		b_stat.hold += 1
+		if p.distance_to(beacon_hold) < 55.0:
+			b_stat.in55 += 1
+			if here > -4.0:
+				b_stat.stand += 1
+			else:
+				b_stat.danger += 1
+	if g.t >= b_stat.next:
+		b_stat.next += 60.0
+		var unlit := 0
+		for b in g.beacons:
+			if not b.lit:
+				unlit += 1
+		print("BDBG t=%d hp=%d frames=%d hold=%d in55=%d stand=%d danger=%d unlit=%d" % [g.t, int(100.0 * g.hp / g.max_hp), b_stat.frames, b_stat.hold, b_stat.in55, b_stat.stand, b_stat.danger, unlit])
+		b_stat.frames = 0; b_stat.hold = 0; b_stat.in55 = 0; b_stat.stand = 0; b_stat.danger = 0
