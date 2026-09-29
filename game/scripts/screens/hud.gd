@@ -240,6 +240,7 @@ func draw() -> void:
 			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	draw_boss_pointers(vs, ct)
 	draw_field_wave(vs)
+	draw_beacon_pointers(vs, ct)
 	if not overlay_left():
 		draw_minimap(vs)
 	var st_txt := ""
@@ -1024,6 +1025,33 @@ func draw_field_wave(vs: Vector2) -> void:
 			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
 			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
 		break
+## 未点燃的灯标在屏幕外：边缘暖金小圈 + 箭头 +「灯标 Nm」（同商人 / 祭坛指示）
+func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
+	var bs = g.get("beacons")
+	if g.state != Game.S.PLAY or not (bs is Array):
+		return
+	for b in bs:
+		if b.get("lit", false):
+			continue
+		var sp: Vector2 = ct * b.get("pos", Vector2.ZERO)
+		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			continue
+		var c := vs / 2.0
+		var d := (sp - c).normalized()
+		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 64) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 64) / maxf(absf(d.y), 0.01)))
+		var col := Color(1.0, 0.78, 0.42)
+		g.hud.draw_circle(edge, 20.0, Color(0.06, 0.05, 0.03, 0.85))
+		g.hud.draw_arc(edge, 20.0, 0.0, TAU, 24, col, 2.0)
+		var tx: Texture2D = g.tex.get("prop_beacon")
+		if tx != null:
+			var fw: int = tx.get_width() / 2
+			var k: float = 32.0 / float(tx.get_height())
+			g.hud.draw_texture_rect_region(tx, Rect2(edge - Vector2(fw, tx.get_height()) * k / 2.0, Vector2(fw, tx.get_height()) * k), Rect2(0, 0, fw, tx.get_height()))
+		var tip: Vector2 = edge + d * 34.0
+		var base: Vector2 = edge + d * 24.0
+		var sd := d.orthogonal() * 8.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), col)
+		UI.text(g.hud, g.font, edge + Vector2(-60, -30.0 if edge.y > vs.y / 2 else 42.0), "灯标 %dm" % int(b.get("pos", Vector2.ZERO).distance_to(g.ppos) / 32.0), 13, col, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 
 
 func boss_bars() -> Array:

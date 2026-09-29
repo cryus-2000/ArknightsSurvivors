@@ -170,9 +170,9 @@ func draw_world() -> void:
 	g.map.draw_ground(g.get_viewport_rect().size)
 	for m in g.mires:
 		g.map.draw_mire(m)
-	g.beacon_sys.draw()   # 引航灯标（占位画面，正式贴图由界面与美术出）
 	g.bai._draw_warns()
 	draw_nest_auras()
+	draw_beacons()
 	g.rfx.draw()
 	if not g.merchant.is_empty():
 		var mtx: Texture2D = g.tex.merchant
@@ -419,6 +419,17 @@ func draw_world() -> void:
 					g.draw_circle(p, 3.5 - q * 0.4, Color(1.9, 1.6, 0.7, 0.9))
 				if k > 0.65:
 					g.draw_circle(f.b, 12.0 * (k - 0.65) / 0.35 + 4.0, Color(1.9, 1.6, 0.7, 0.5 * (1.0 - k) / 0.35))
+			"beacon_burst":
+				var k := 1.0 - a
+				var rr: float = f.r * (1.0 - pow(1.0 - k, 3.0))
+				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, ground_y()))
+				g.draw_circle(Vector2.ZERO, rr, Color(1.6, 1.3, 0.7, 0.18 * a))
+				g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 64, Color(1.9, 1.6, 0.9, 0.9 * a), 6.0)
+				g.draw_arc(Vector2.ZERO, rr * 0.8, 0.0, TAU, 64, Color(2.0, 2.0, 1.8, 0.6 * a), 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				for q in 12:
+					var dv := Vector2.from_angle(q * TAU / 12.0)
+					g.draw_line(f.pos + dv * rr * 0.3, f.pos + dv * rr * 0.6, Color(1.9, 1.6, 0.9, 0.7 * a), 3.0)
 			"glint":
 				# 竖直闪光（换剑）：十字星从中间展开再收
 				var k := 1.0 - a
@@ -1473,6 +1484,79 @@ func _cocoon_fx(e: Dictionary, top: Vector2, foot: Vector2) -> void:
 	g.draw_rect(Rect2(by, Vector2(bw, 5)), Color(0, 0, 0, 0.7))
 	g.draw_rect(Rect2(by, Vector2(bw * (1.0 - dmg), 5)), Color(1.2, 0.7, 1.7))
 	UI.text(g, g.font, by + Vector2(0, -4), "打破外壳", 12, Color(0.95, 0.75, 1.0), HORIZONTAL_ALIGNMENT_CENTER, bw, 3)
+## ---- 灯标（docs/49d §13.5 方案 C；逻辑在玩法系统，字段一律 get() 带缺省）：
+## g.beacons 每项 {pos, lit, r 点燃光圈, clear_r 清痕半径, count_end / count_max 点燃进度, safe_end 安全区结束}
+## 熄灭：暗灯塔 + 脚下暖色光圈呼吸（「站进来」）+ 点燃进度环；点燃瞬间：暖光爆扩到清痕半径；
+## 亮着：灯室发光 + 旋转的灯塔光束 + 安全区虚线圈（剩余秒数），安全区结束后只留灯光
+const BEACON_COL := Color(1.0, 0.78, 0.42)
+var beacon_seen: Array = []     # [beacon, 上次 lit]
+
+func draw_beacons() -> void:
+	var bs = g.get("beacons")
+	if not (bs is Array):
+		return
+	beacon_seen = beacon_seen.filter(func(s): return bs.any(func(b): return is_same(b, s[0])))
+	var tx: Texture2D = _lazy_tex("prop_beacon")
+	for b in bs:
+		var pos: Vector2 = b.get("pos", Vector2.ZERO)
+		var lit: bool = b.get("lit", false)
+		var s: Array = []
+		for s2 in beacon_seen:
+			if is_same(s2[0], b):
+				s = s2
+		if s.is_empty():
+			beacon_seen.append([b, lit])
+		elif lit and not s[1]:
+			s[1] = true
+			beacon_burst(b)
+		var r: float = float(b.get("r", 70.0))
+		var pulse: float = 0.5 + 0.5 * sin(g.t * 3.0)
+		g.draw_set_transform(pos, 0.0, Vector2(1.0, ground_y()))
+		if not lit:
+			g.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.07 + 0.05 * pulse))
+			for q in 20:
+				var a0: float = g.t * 0.3 + q * TAU / 20.0
+				g.draw_arc(Vector2.ZERO, r, a0, a0 + TAU / 40.0, 4, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 2.0)
+		else:
+			var left: float = float(b.get("safe_end", 0.0)) - g.t
+			if left > 0.0:
+				var cr: float = float(b.get("clear_r", 260.0))
+				g.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.05))
+				for q in 36:
+					var a1: float = -g.t * 0.1 + q * TAU / 36.0
+					g.draw_arc(Vector2.ZERO, cr, a1, a1 + TAU / 72.0, 4, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, 0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))), 2.0)
+			g.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.16 + 0.06 * pulse))
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 点燃进度（暖色环；读 prog / need，离开光圈时进度缓慢回退也看得到）
+		if not lit and float(b.get("prog", 0.0)) > 0.0:
+			var k: float = clampf(float(b.prog) / maxf(0.1, float(b.get("need", 2.5))), 0.0, 1.0)   # prog 离开圈会缓慢回退、不清零
+			_ground_ring(pos + Vector2(0, 4), 30.0, k, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.3))
+		if tx != null:
+			var sc: float = Game.PX / A.hires_of(tx)
+			g.vfx.spr("prop_beacon", 2, 1 if lit else 0, pos + Vector2(0, 3.0 * Game.PX), sc, false, Color.WHITE, Vector2(0.5, 41.0 / 44.0))
+		var lamp: Vector2 = pos + Vector2(0, -(41.0 - 10.0) * Game.PX)
+		if lit:
+			# 灯塔光束：从灯室往外旋转的一道扇形暖光 + 灯室光晕
+			var ang: float = g.t * 1.4
+			for side in [0.0, PI]:
+				var d0 := Vector2.from_angle(ang + side - 0.12)
+				var d1 := Vector2.from_angle(ang + side + 0.12)
+				var L: float = 220.0
+				g.draw_colored_polygon(PackedVector2Array([lamp, lamp + Vector2(d0.x, d0.y * 0.5) * L, lamp + Vector2(d1.x, d1.y * 0.5) * L]), Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.2, 0.10))
+			g.draw_circle(lamp, 16.0, Color(1.8, 1.5, 0.9, 0.25 + 0.1 * pulse))
+			var lf: float = float(b.get("safe_end", 0.0)) - g.t
+			if lf > 0.0:
+				UI.text(g, g.font, pos + Vector2(-80, 30), "安全区 %d 秒" % ceili(lf), 12, Color(1.0, 0.85, 0.55), HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+		else:
+			g.draw_circle(lamp, 6.0, Color(0.5, 0.6, 0.7, 0.2 + 0.15 * pulse))
+
+
+## 点燃瞬间：暖白爆闪 + 一道光环扩到清痕半径 + 放射光束 + 火花
+func beacon_burst(b: Dictionary) -> void:
+	var pos: Vector2 = b.get("pos", Vector2.ZERO)
+	g.fx.append({"kind": "beacon_burst", "pos": pos, "r": float(b.get("clear_r", 260.0)), "life": 0.9, "max": 0.9})
+	g.vfx.sparks(pos + Vector2(0, -60), Vector2.ZERO, Color(1.8, 1.4, 0.7), 18, 300.0)
+	_flash(Color(1.0, 0.85, 0.55), 0.3)
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
