@@ -828,6 +828,11 @@ func _open_op_pick(for_cover := false) -> void:
 	op_pick = true
 
 
+var op_tips: Array = []   # 选人页被截断的说明：[Rect2, 全文]；点按 / 悬停看全文（触屏版说明常被压成只剩名字，验收 N3）
+var op_tip := -1
+var op_tip_sel := -1
+
+
 func _op_input(event: InputEvent) -> void:
 	var cols := 4
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -848,6 +853,12 @@ func _op_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		_op_scroll_by(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		for ti in op_tips.size():
+			if op_tips[ti][0].has_point(event.position):
+				op_tip = -1 if op_tip == ti else ti
+				Sfx.play("ui_move")
+				return
+		op_tip = -1
 		for k in op_rects:
 			if op_rects[k].has_point(event.position):
 				if k is int:
@@ -1016,20 +1027,27 @@ func _draw_op_pick(vs: Vector2) -> void:
 	for ln in lines:
 		# 按说明实际折几行算（最多 2 行），不再一律按 2 行预算把放得下的也截掉（验收 N2）
 		var dix: float = 44.0 if (ln.size() > 3 and ln[3] != "" and A.tex(ln[3]) != null) else 0.0
-		desc_n.append(mini(2, UI.wrap_lines(font, ln[2], 12, dr.size.x - 48 - dix).size()))
+		desc_n.append(mini(4, UI.wrap_lines(font, ln[2], 12, dr.size.x - 48 - dix).size()))
+	var desc_full: Array = desc_n.duplicate()
 	var room: float = dr.end.y - 14.0 - py
 	var need := func() -> float:
 		var h := 0.0
 		for i in lines.size():
 			h += 30.0 + dlh * desc_n[i]
 		return h
-	for cap in [1, 0]:
+	for cap in [2, 1, 0]:
 		var i: int = lines.size() - 1
 		while need.call() > room and i >= 0:
 			desc_n[i] = mini(desc_n[i], cap)
 			i -= 1
+	if op_sel != op_tip_sel:
+		op_tip_sel = op_sel
+		op_tip = -1
+	op_tips.clear()
 	for li in lines.size():
 		var ln: Array = lines[li]
+		if desc_n[li] < desc_full[li]:
+			op_tips.append([Rect2(px - 4, py - 6, dr.size.x - 40, 30.0 + 18.0 * desc_n[li]), ln[2]])
 		# 技能行：左边画技能图标（32px 原尺寸），名字与说明右移；普攻 / 天赋仍是小标签
 		var itx: Texture2D = A.tex(ln[3]) if ln.size() > 3 and ln[3] != "" else null
 		var ix := 0.0
@@ -1041,6 +1059,8 @@ func _draw_op_pick(vs: Vector2) -> void:
 		else:
 			UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
 			UI.text_fit(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT, dr.size.x - 100.0)
+		if desc_n[li] < desc_full[li]:
+			UI.text(self, font, Vector2(dr.end.x - 60, py + 15), "详情 ›", 11, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_RIGHT, 36)
 		py += 22
 		py += _wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, desc_n[li]) + 8
 	# 精二条件
@@ -1065,6 +1085,21 @@ func _draw_op_pick(vs: Vector2) -> void:
 		var max_lines: int = int((dr.end.y - 16 - py) / 19.0)
 		if max_lines >= 1:
 			_wrap_text(Vector2(px, py + 14), cur.lore, 13, Color(0.7, 0.8, 0.85), dr.size.x - 48, max_lines)
+	# 被截断的说明：点按（触屏）或鼠标悬停时在该行下方浮出全文
+	var tip_i := op_tip
+	if tip_i < 0:
+		for ti in op_tips.size():
+			if op_tips[ti][0].has_point(get_local_mouse_position()):
+				tip_i = ti
+	if tip_i >= 0 and tip_i < op_tips.size():
+		var tr: Rect2 = op_tips[tip_i][0]
+		var tl: PackedStringArray = UI.wrap_lines(font, op_tips[tip_i][1], 13, tr.size.x - 28)
+		var th: float = tl.size() * 19.0 + 18.0
+		var ty: float = tr.end.y + 2.0 if tr.end.y + 2.0 + th < vs.y - 8.0 else tr.position.y - th - 2.0
+		var tbox := Rect2(tr.position.x, ty, tr.size.x, th)
+		UI.panel(self, tbox, Color(0.02, 0.05, 0.08, 0.97), col, 6.0)
+		for li2 in tl.size():
+			UI.text(self, font, tbox.position + Vector2(14, 22 + li2 * 19), tl[li2], 13, UI.TEXT)
 	# ---- 按钮
 	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
 	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
