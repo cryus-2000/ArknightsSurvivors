@@ -75,6 +75,7 @@ func update(dt: float) -> void:
 		if g.squad.in_sanctuary(b.pos):
 			rate *= _k("lumen_mult", 2.0)
 		if b.pos.distance_to(g.ppos) < r and g.state == g.S.PLAY:
+			b.out_t = 0.0
 			b.prog = minf(b.need, b.prog + rate * dt)
 			b.count_max = b.need
 			b.count_end = g.t + (b.need - b.prog) / rate
@@ -86,7 +87,10 @@ func update(dt: float) -> void:
 			if b.prog >= b.need:
 				_light(b)
 		else:
-			b.prog = maxf(0.0, b.prog - _k("decay", 0.5) * dt)   # 离开时缓慢回退，不清零
+			# 离开时不清零：先保持 beacon/decay_delay 秒，之后每秒回退需要量的 beacon/decay_pct（缺省 0 / 0.2 = 离开就按 0.5 秒/秒退，docs/49f ①）
+			b.out_t = float(b.get("out_t", 0.0)) + dt
+			if b.out_t >= _k("decay_delay", 0.0):
+				b.prog = maxf(0.0, b.prog - b.need * _k("decay_pct", 0.2) * dt)
 			b.count_end = 0.0
 			b["tick"] = int(b.prog / 0.5)
 	g.beacons = g.beacons.filter(func(b): return not b.dead)
@@ -111,7 +115,7 @@ func _spawn() -> void:
 				p = q
 	p = g.spawner.safe_event_pos(p, 110.0)
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
-		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0})
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0})
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")

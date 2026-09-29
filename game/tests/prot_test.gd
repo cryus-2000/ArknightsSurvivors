@@ -58,6 +58,7 @@ func _process(_d: float) -> void:
 	test_dot_cap()
 	test_non_boss()
 	test_no_hard_cc()
+	test_beacon_decay()
 	test_atk_slow_floor()
 	test_horde_mix()
 	test_v8()
@@ -1378,3 +1379,42 @@ func test_floater_mire() -> void:
 		ok_m = absf(float(m.maxr) - 30.0) < EPS and absf(float(m.life) - 5.0) < 0.1
 	ok(ok_m, "飘航者神经弹落地留下半径 30、5 秒的溟痕")
 	fl.dead = true
+
+
+## 引航灯标离开光圈后的进度回退（docs/49f ①）：缺省 = 离开就每秒退需要量的 20%；decay_delay 内不退，之后按 decay_pct 退
+func test_beacon_decay() -> void:
+	var had: bool = Bal._data.has("beacon")
+	var old = Bal._data.get("beacon")
+	var bs = game.beacon_sys
+	var nb: float = bs.next_at
+	bs.next_at = 1.0e9   # 不让测试期间刷新的灯标
+	var zs: int = game.zone_state
+	game.zone_state = 0
+	var mk := func() -> Dictionary:
+		var d := {"pos": game.ppos + Vector2(900, 0), "lit": false, "prog": 1.25, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0,
+			"dead": false, "r": 70.0, "clear_r": 340.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+		game.beacons = [d]
+		return d
+	var step := func(sec: float) -> void:
+		for k in int(round(sec * 60.0)):
+			bs.update(1.0 / 60.0)
+	# 缺省：离开 1 秒退 0.5 秒进度
+	Bal._data["beacon"] = {}
+	var b1: Dictionary = mk.call()
+	step.call(1.0)
+	ok(absf(b1.prog - 0.75) < 0.02, "灯标缺省：离开 1 秒进度 1.25 → 0.75（每秒 20%）")
+	# decay_delay 5 / decay_pct 0.1：4 秒内不退，6 秒时退了 1 秒 × 0.25
+	Bal._data["beacon"] = {"decay_delay": 5.0, "decay_pct": 0.1}
+	var b2: Dictionary = mk.call()
+	step.call(4.0)
+	ok(absf(b2.prog - 1.25) < 0.001, "灯标 decay_delay 5：离开 4 秒进度不退")
+	step.call(2.0)
+	ok(absf(b2.prog - 1.0) < 0.02, "灯标 decay_pct 0.1：延迟后 1 秒退 0.25")
+	game.beacons = []
+	bs.next_at = nb
+	game.zone_state = zs
+	if had:
+		Bal._data["beacon"] = old
+	else:
+		Bal._data.erase("beacon")
+
