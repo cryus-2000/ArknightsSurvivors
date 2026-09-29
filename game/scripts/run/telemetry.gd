@@ -30,6 +30,11 @@ var taken_window := 0.0         # 当前采样窗口内的承伤
 var last_src := ""              # 最近一次掉血的来源（死因）
 var last_log: Dictionary = {}
 var boss_seen: Dictionary = {}  # id -> {type, t0, t1}
+# Boss 在场采样（每秒一次，Boss与怪物 9/30 要：区分「杂兵墙挡输出」和「Boss 本身难打」）：
+# 全场活着的敌人数、Boss 周围 300 内的敌人数、这一秒 Boss 掉的血占全队输出的比例
+var boss_acc := 0.0
+var boss_samp: Dictionary = {}   # key -> {n, alive, alive_pk, near, near_pk, hp_last, on_boss, out}
+var out_last := 0.0
 var elite_t: Dictionary = {}    # "<op>:<elite>" -> 秒
 var recruit_t: Array = []       # 每名干员入队时间
 var squad_n := 0
@@ -119,6 +124,43 @@ func tick(dt: float) -> void:
 			bs.tv = int(t)
 		bs.shield = snappedf(b.get("shield_t", 0.0), 0.1)
 		bs.gates = b.get("gates_passed", 0)
+	boss_acc += dt
+	if boss_acc >= 1.0:
+		boss_acc -= 1.0
+		var out_now := 0.0
+		for k in g.dmg_out:
+			out_now += float(g.dmg_out[k])
+		var out_inc: float = maxf(0.0, out_now - out_last)
+		out_last = out_now
+		for b in g.bosses:
+			if b.dead or b.get("retreated", false) or b.get("friendly", false):
+				continue
+			var key := str(b.get("id", b.type))
+			if not boss_samp.has(key):
+				boss_samp[key] = {"n": 0, "alive": 0, "alive_pk": 0, "near": 0, "near_pk": 0, "hp_last": float(b.hp), "on_boss": 0.0, "out": 0.0}
+			var sp: Dictionary = boss_samp[key]
+			var near := 0
+			for j in g.enemies_sys.query(b.pos, 300.0):
+				var e: Dictionary = g.enemies[j]
+				if not e.dead and not e.get("boss", false) and not e.get("chest", false) and not e.get("friendly", false):
+					near += 1
+			var alive: int = g.enemies.size()
+			sp.n += 1
+			sp.alive += alive
+			sp.alive_pk = maxi(sp.alive_pk, alive)
+			sp.near += near
+			sp.near_pk = maxi(sp.near_pk, near)
+			if not b.get("invuln", false):
+				sp.on_boss += maxf(0.0, float(sp.hp_last) - float(b.hp))
+				sp.out += out_inc
+			sp.hp_last = float(b.hp)
+			var bs2: Dictionary = boss_seen.get(key, {})
+			if not bs2.is_empty():
+				bs2["en_alive"] = int(round(float(sp.alive) / sp.n))
+				bs2["en_alive_pk"] = sp.alive_pk
+				bs2["en_near"] = int(round(float(sp.near) / sp.n))
+				bs2["en_near_pk"] = sp.near_pk
+				bs2["on_boss"] = snappedf(sp.on_boss / maxf(1.0, sp.out), 0.01)   # 可受伤期间：Boss 掉血 ÷ 全队输出
 	# 精英化 / 入队时间
 	for o in g.squad.ops:
 		var ek := "%s:%d" % [o.id, o.elite]
