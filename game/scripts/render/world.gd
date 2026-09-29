@@ -170,6 +170,7 @@ func draw_world() -> void:
 	g.map.draw_ground(g.get_viewport_rect().size)
 	for m in g.mires:
 		g.map.draw_mire(m)
+	g.beacon_sys.draw()   # 引航灯标（占位画面，正式贴图由界面与美术出）
 	g.bai._draw_warns()
 	draw_nest_auras()
 	g.rfx.draw()

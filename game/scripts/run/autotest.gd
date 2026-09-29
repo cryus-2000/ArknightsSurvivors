@@ -342,7 +342,7 @@ func step() -> void:
 			else:
 				g.progression.pick(g.rng.randi() % g.choices.size())
 	if g.at_frames % 1200 == 0:
-		print("t=%d lv=%d E%d hp=%d enemies=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
+		print("t=%d lv=%d E%d hp=%d enemies=%d mires=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.mires.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:
 		if not bb.dead and not bb.invuln and not bosstest:
 			bb.hp -= 4.0 if bosstest else 40.0
@@ -459,6 +459,11 @@ func bot_move() -> Vector2:
 		var reach: float = 1600.0 if e.get("event", "") != "" else 400.0
 		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < reach:
 			pull = (e.pos - g.ppos).normalized() * (1.0 if e.get("event", "") != "" else 0.8)
+			break
+	# 引航灯标：没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
+	for b in g.beacons:
+		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
+			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
 			break
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5

@@ -39,6 +39,7 @@ const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
 const Hunt = preload("res://scripts/run/hunt.gd")
+const Beacon = preload("res://scripts/run/beacon.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
@@ -84,6 +85,7 @@ var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gall
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var hunt = Hunt.new(self)          # 约 1:30 的「围猎」强制交战（run/hunt.gd）
+var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
@@ -246,6 +248,7 @@ var shocks: Array = []
 var warns: Array = []
 var bai: RefCounted = null      # Boss AI / 招式预警（scripts/boss_ai.gd）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
+var beacons: Array = []          # 引航灯标（run/beacon.gd）：{pos, lit, prog, need, lit_t, count_end, count_max, dead}
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
 var next_mire := 100.0           # 首次溟痕时间；开局由 map 主题覆盖
 # 缩圈（黑潮）
@@ -1082,6 +1085,7 @@ func _update(dt: float) -> void:
 		endg.update(dt)
 		endg.tick_final_warning()
 		hunt.update(dt)
+		beacon_sys.update(dt)
 		if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
 			knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
 		if demo_op == "":

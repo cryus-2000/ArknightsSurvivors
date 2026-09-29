@@ -216,6 +216,9 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		var reach: float = 1600.0 if e.get("event", "") != "" else 450.0
 		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < reach:
 			return (e.pos - p).normalized()
+	for b in g.beacons:
+		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(p) < 700.0:
+			return (b.pos - p).normalized() if b.pos.distance_to(p) > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near:
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
