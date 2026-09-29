@@ -72,6 +72,7 @@ func _process(_d: float) -> void:
 	test_lore2()
 	test_lore3()
 	test_lore4()
+	test_lore5()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -1126,3 +1127,34 @@ func test_lore4() -> void:
 	ok(game.apop < a0, "冲刺清掉一部分凋亡（%.0f → %.0f）" % [a0, game.apop])
 	game.dash_t = 0.0
 	game.apop = 0.0
+
+
+## docs/38 §8 第五批：骑士冰枪桩（66% 后立桩、冲锋撞桩 → 5 秒破绽）、二阶段冲锋 3 次一组；伊莎玛拉过卡点后轮换加快
+func test_lore5() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	var kn: Dictionary = sp.spawn_enemy("knight_boss", game.ppos + Vector2(1500, 0))
+	kn.age = 10.0
+	kn.gates_passed = 1
+	bai._knight_stakes(kn, 0.01)
+	ok(kn.stakes.size() == int(Bal.v("boss/knight_stakes", 3.0)), "66%% 卡点后立 %d 根冰枪桩" % kn.stakes.size())
+	kn.stakes[0].pos = kn.pos
+	kn.kb = Vector2(900, 0)
+	kn.kb_self = true
+	bai._knight_stakes(kn, 0.01)
+	ok(kn.break_t > 0.0 and kn.kb == Vector2.ZERO, "冲锋撞桩：长枪脱手，破绽 %.1f 秒" % kn.break_t)
+	kn.break_t = 0.0
+	kn.phase = 2
+	kn.cds = {"frost": INF, "stab": INF, "hunt": INF, "charge": 0.0}
+	kn.pattern_next = INF
+	kn.wind = 0.0
+	kn.stun = 0.0
+	bai._boss_ai(kn, 0.01, Vector2.LEFT, 400.0)
+	ok(int(kn.get("dash2", 0)) == int(Bal.v("boss/knight_p2_chain", 2.0)), "二阶段冲锋后还要再冲 %d 次（一组 3 次）" % int(kn.get("dash2", 0)))
+	kn.dead = true
+	game.warns.clear()
+	var ish: Dictionary = sp.spawn_enemy("ishar", game.ppos + Vector2(1600, 0))
+	ok(is_equal_approx(bai._ishar_haste(ish), 1.0), "伊莎玛拉卡点前轮换不变")
+	ish.gates_passed = 1
+	ok(bai._ishar_haste(ish) < 1.0, "过卡点后轮换恢复时间 ×%.2f" % bai._ishar_haste(ish))
+	ish.dead = true

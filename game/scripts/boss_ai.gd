@@ -322,9 +322,16 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				e.frost_t -= dt
 				if g.combat.ground_d(g.ppos, e.frost_pos) < 200.0:
 					g.frost = maxf(g.frost, 0.15)
-			if e.get("dash2", false) and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
-				e.dash2 = false
-				_warn(e, "line", 0.45, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ice, "dmg": e.dmg * 1.5})
+			_knight_stakes(e, dt)
+			# 二阶段冲锋一组 1 + boss/knight_p2_chain 次（缺省 3 次一组），组后喘气 2.5 秒（普通破绽，docs/38 §8.8）
+			if int(e.get("dash2", 0)) > 0 and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
+				e.dash2 = int(e.dash2) - 1
+				var rw := _warn(e, "line", 0.6, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ice, "dmg": e.dmg * Bal.v("boss/knight_charge_mult", 1.7)})
+				if int(e.dash2) <= 0:
+					e.breath_at = g.t + rw.dur + 0.6
+			if e.has("breath_at") and g.t >= float(e.breath_at):
+				e.erase("breath_at")
+				g.combat.start_break(e, Bal.v("boss/knight_breath", 2.5))
 			if ready and e.channel <= 0.0 and e.get("wind", 0.0) <= 0.0:
 				if e.age > 6.0 and _cd(e, "frost", 20.0):
 					_warn(e, "circle", 1.0, {"follow": true, "r": 200.0, "act": "frost", "name": "寒冰领域", "col": ice, "dmg": e.dmg * 0.5})
@@ -334,9 +341,9 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 						_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.8, "r": 125.0, "track": 0.2 + 0.6 * k, "act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ice, "dmg": e.dmg * 1.1, "lock": k == 0})
 					e.wind = 1.9
 				elif dist >= 140.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
-					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ice, "dmg": e.dmg * 1.5})
+					_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ice, "dmg": e.dmg * Bal.v("boss/knight_charge_mult", 1.7)})
 					if e.phase == 2:
-						e.dash2 = true
+						e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
 		"ishar":
 			# P1 治疗海嗣和充能由 IsharEncounter 负责；这里仅调度敌对海嗣形态。
 			if e.phase == 2 and ready and g.t >= float(e.get("transform_until", 0.0)):
@@ -360,12 +367,12 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 			var to_target: Vector2 = target - source
 			var w := _warn(e, "line", 1.0, {"pos": source, "ang": to_target.angle(), "len": to_target.length(),
 				"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if source == echoes[0] else "",
-				"col": col, "dmg": e.dmg * 0.48, "cancel_dead": true, "lock": source == echoes[0]})
+				"col": col, "dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "lock": source == echoes[0]})
 			end = maxf(end, w.dur)
 		e.tear_echoes = []
 		e.wind = maxf(e.wind, end)
 		e.cdt = maxf(e.cdt, end)
-		e.ishar_next_at = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE
+		e.ishar_next_at = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE * _ishar_haste(e)
 		return
 	e.ishar_cycle = (move + 1) % 4
 	match move:
@@ -406,7 +413,7 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	# 完整连段期间停留且不插入普通射击；按经过难度修正后的真实预警长度计时。
 	e.wind = maxf(e.wind, end)
 	e.cdt = maxf(e.cdt, end)
-	e["ishar_next_at"] = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE
+	e["ishar_next_at"] = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE * _ishar_haste(e)
 
 
 
@@ -676,6 +683,49 @@ func izumik_safe(e: Dictionary) -> bool:
 	return false
 
 
+## 伊莎玛拉强度上调（docs/38 §8.6）：过了卡点后轮换恢复时间 ×boss/ishar_gate_haste（0.8）
+func _ishar_haste(e: Dictionary) -> float:
+	return Bal.v("boss/ishar_gate_haste", 0.8) if int(e.get("gates_passed", 0)) >= 1 else 1.0
+
+
+## ---- 最后的骑士：冰枪桩（docs/38 §8.8）。66% 卡点后长枪插地，场上立 boss/knight_stakes（3）根冰枪桩（r 22），离主控 ≥120、
+## 离场地边 ≥100，每根存在 12 秒，少于 2 根时补。冰枪桩只挡骑士：冲锋路径碰到桩 → 长枪脱手，5 秒大破绽，桩碎。
+## 主控和子弹都不受影响（不需要动态障碍表）。冲锋预警会标出这一冲会不会撞桩（w.stake_hit，画面画「破」字端盖）
+func _knight_stakes(e: Dictionary, dt: float) -> void:
+	if int(e.get("gates_passed", 0)) < 1:
+		return
+	if not e.has("stakes"):
+		e.stakes = []
+		g.vfx.add_text(e.pos + Vector2(0, -70), "长枪插地 · 冰枪桩", Color(0.6, 0.9, 1.4), 18)
+	e.stakes = e.stakes.filter(func(s): return g.t < float(s.until))
+	if e.stakes.size() < 2:
+		var want: int = int(Bal.v("boss/knight_stakes", 3.0))
+		var tries := 0
+		while e.stakes.size() < want and tries < 20:
+			tries += 1
+			var p: Vector2 = g.combat.arena_clamp(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160.0, 320.0), 100.0)
+			if p.distance_to(g.ppos) < 120.0:
+				continue
+			e.stakes.append({"pos": p, "until": g.t + Bal.v("boss/knight_stake_life", 12.0)})
+	# 冲锋中撞桩
+	if e.get("kb_self", false) and e.kb.length() > 100.0:
+		for s in e.stakes:
+			if e.pos.distance_to(s.pos) < e.r + 22.0:
+				e.kb = Vector2.ZERO
+				e.kb_self = false
+				e.dash_t = 0.0
+				e.dash2 = 0
+				e.erase("breath_at")
+				s.until = 0.0
+				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 5.0))
+				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
+				g.vfx.sparks(s.pos, Vector2.UP, Color(0.8, 1.2, 1.6), 16, 260.0)
+				g.vfx.add_text(e.pos + Vector2(0, -70), "长枪脱手！", Color(1.0, 0.85, 0.4), 22)
+				Sfx.play("boom", -4.0, 1.2, 0.0)
+				break
+
+
 ## Boss 招式冷却：到时返回 true 并重置
 func _cd(e: Dictionary, key: String, dur: float) -> bool:
 	if not e.has("cds"):
@@ -704,6 +754,11 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		else:
 			var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
 			w.len = v * v / 1800.0 + e.r
+		# 骑士冲锋：预先标出这一冲会不会撞上冰枪桩（画面画「破」字端盖，docs/38 §8.8）
+		for st in e.get("stakes", []):
+			var b: Vector2 = w.pos + Vector2.from_angle(w.ang) * w.len
+			if Geometry2D.get_closest_point_to_segment(st.pos, w.pos, b).distance_to(st.pos) < e.r + 22.0:
+				w.stake_hit = true
 	# 难度缩短预警只压缩追踪段（跟着主控转向的那段），总时长至少 0.6 秒，原本就短于 0.6 的不动（docs/38 B0 第 5 项）；
 	# 修正值大于 1（放宽）时整体拉长
 	var wm := float(g.dmod.boss_warn)
