@@ -48,6 +48,8 @@ const DMOD_DEFAULT := {
 	"mire_dmg": 1.0, "nerve_rate": 1.0,                                   # 溟痕伤害（run/enemies.gd）；溟痕里神经损伤累积速度（combat.update_nerve）
 	"hunt_dur": 1.0, "hunt_ring_hp": 1.0,                                 # 围猎持续时间、圈上海嗣生命（run/hunt.gd；高难度下放宽，避免成为硬门槛）
 	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
+	# 小怪控制 / 词条按档覆盖（数值 9/30：标准档不动、只收紧 Ⅳ / Ⅷ）：-1 = 用 balance.json enemy 段的全局值，读取走 combat.enemy_knob
+	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关
 const DMOD_TEXT := [

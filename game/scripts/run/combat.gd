@@ -568,6 +568,12 @@ func hit(src: String, extra_tags: Array = []) -> void:
 		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
+## 可按难度档覆盖的 enemy 段旋钮（ctrl_start / frost_max / affix_start / affix_max）：本档 dmod 里 ≥ 0 就用它，否则读 balance.json enemy/<key>
+func enemy_knob(key: String, def: float) -> float:
+	var v := float(g.dmod.get(key, -1.0))
+	return v if v >= 0.0 else Bal.v("enemy/" + key, def)
+
+
 ## ---- 小怪控制（用户 9/29「后期小怪加控制」；机制在这里，数值都是旋钮，缺省 enemy/ctrl_start = 永不 = 关）
 ## 寒霜 cold：有效命中叠层，每层移速 −frost_slow、攻速 −frost_aspd，最多 frost_max 层，frost_dur 秒整体清零；
 ##   满层时冻结 frost_root 秒（不能移动，可以攻击，冲刺挣脱），之后 frost_immune 秒不再叠层。
@@ -576,7 +582,7 @@ func hit(src: String, extra_tags: Array = []) -> void:
 ## 侵蚀创口 wound：有效命中叠层，每层受治疗 −wound_heal_cut、每秒掉 wound_dot 最大生命，最多 wound_max 层，wound_dur 秒；可被净化。
 ## 合计上限：寒霜 + 冰霜移速最多 −ctrl_move_cap（45%），寒霜攻速最多 −ctrl_aspd_cap（30%）。所有掉血走 lose_hp，受 2 秒合计上限保护。
 func ctrl_on() -> bool:
-	return g.t >= Bal.v("enemy/ctrl_start", 1.0e9)
+	return g.t >= enemy_knob("ctrl_start", 1.0e9)
 
 
 func ctrl_slow() -> float:
@@ -587,7 +593,7 @@ func ctrl_slow() -> float:
 func add_cold(n: int) -> void:
 	if n <= 0 or g.cold_immune > 0.0:
 		return
-	var mx: int = int(Bal.v("enemy/frost_max", 3.0))
+	var mx: int = int(enemy_knob("frost_max", 3.0))
 	g.cold = mini(g.cold + n, mx)
 	g.cold_t = Bal.v("enemy/frost_dur", 3.0)
 	sync_cold()

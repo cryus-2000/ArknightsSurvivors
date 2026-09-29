@@ -106,10 +106,10 @@ func enter_arena(type: String) -> void:
 ## 刷出时按概率带一条词条，概率从 affix_start 秒起线性涨到 affix_start + affix_ramp 秒时的 affix_max。两种各半：
 ##   甲壳 armor：非真实伤害 ×affix_armor（写进 e.def）；潮盾 shield：额外护盾 = 最大生命 × affix_shield，先扣盾（combat.damage）
 func roll_affix(e: Dictionary) -> void:
-	var st: float = Bal.v("enemy/affix_start", 1.0e9)
+	var st: float = g.combat.enemy_knob("affix_start", 1.0e9)
 	if g.t < st or e.elite or e.boss or e.chest or e.ai == "static":
 		return
-	var p: float = Bal.v("enemy/affix_max", 0.35) * clampf((g.t - st) / maxf(1.0, Bal.v("enemy/affix_ramp", 180.0)), 0.0, 1.0)
+	var p: float = g.combat.enemy_knob("affix_max", 0.35) * clampf((g.t - st) / maxf(1.0, Bal.v("enemy/affix_ramp", 180.0)), 0.0, 1.0)
 	if g.rng.randf() >= p:
 		return
 	if g.rng.randf() < 0.5:

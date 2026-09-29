@@ -1362,7 +1362,7 @@ var root_max := 0.0              # 本次冻结 / 束缚的总时长（root_t �
 var root_prev := 0.0
 
 func leader_frozen() -> bool:
-	return g.root_t > 0.0 and g.cold >= int(Game.Bal.v("enemy/frost_max", 3.0))
+	return g.root_t > 0.0 and g.cold >= int(g.combat.enemy_knob("frost_max", 3.0))   # 按档覆盖（combat.enemy_knob）
 
 
 ## 神经损伤满格的眩晕：同样走 g.root_t（冲刺挣脱），刚满格时 nerve_lock > 0

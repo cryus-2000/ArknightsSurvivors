@@ -68,6 +68,7 @@ func _process(_d: float) -> void:
 	test_ishar_close()
 	test_paranoia_p2_gate()
 	test_close_panic()
+	test_enemy_knob()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -899,6 +900,19 @@ func test_close_panic() -> void:
 	b.dead = true
 	a.dead = true
 	game.bosses = keep
+
+## 小怪控制 / 词条按难度档覆盖（数值 9/30）：dmod 里 ≥ 0 用 dmod，-1 / 没有这个键读 balance.json enemy 段
+func test_enemy_knob() -> void:
+	var D = preload("res://scripts/data.gd")
+	var keep: Dictionary = game.dmod.duplicate()
+	game.dmod["frost_max"] = -1.0
+	ok(is_equal_approx(c.enemy_knob("frost_max", 3.0), Bal.v("enemy/frost_max", 3.0)), "dmod -1：读全局 enemy/frost_max")
+	game.dmod["frost_max"] = 5.0
+	ok(is_equal_approx(c.enemy_knob("frost_max", 3.0), 5.0), "dmod 5：按档覆盖")
+	game.dmod.erase("ctrl_start")
+	ok(is_equal_approx(c.enemy_knob("ctrl_start", 1.0e9), Bal.v("enemy/ctrl_start", 1.0e9)), "dmod 没这个键：读全局")
+	ok(float(D.DMOD_DEFAULT.affix_max) < 0.0 and float(D.dmod_for_tier(0).get("affix_start", 0.0)) < 0.0, "缺省表与标准档为 -1（现行为不变）")
+	game.dmod = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:
