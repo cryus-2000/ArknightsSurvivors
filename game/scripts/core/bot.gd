@@ -29,6 +29,7 @@ var last_dir := Vector2.RIGHT
 # 引航灯标「靠近后站定」（协调人 9/30：只把灯标当目标方向时，安全打分和绕圈惯性会把机器人带出 70 的光圈，点燃率只有 17%）：
 # 150 内有未点燃的灯标时记下位置，目标权重 2 → 6；进到 55 内、脚下不危险就停下，直到点燃
 var beacon_hold := Vector2.INF
+var beacon_w := 2.0               # 灯标加权：150 内 6，150 到 bot/beacon_seek_r（缺省 300）之间 4
 var keep := 100.0               # 与敌人保持的距离：近战编队要贴近些让干员打得到
 const MELEE := ["近卫", "重装", "先锋", "特种"]
 
@@ -123,7 +124,7 @@ func _move_expert() -> Vector2:
 		var s1 := _score_point(p + d * 70.0, near)
 		var s := 0.55 * s1 + 0.45 * _score_point(p + d * 150.0, near) + _bullet_risk(p, d, spd, bullets)
 		if goal != Vector2.ZERO:
-			s += (6.0 if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
+			s += (beacon_w if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
 		s += 0.6 * d.dot(last_dir)
 		if s > best:
 			best = s
@@ -230,12 +231,22 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < reach:
 			return (e.pos - p).normalized()
 	beacon_hold = Vector2.INF
+	beacon_w = 2.0
+	var seek_r: float = g.Bal.v("bot/beacon_seek_r", 300.0)   # 协调人 9/30：150 → 300（真人半屏看到灯标就会走过去）
+	# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
+	var bnear := Vector2.INF
 	for b in g.beacons:
-		if not b.lit and g.hp > g.max_hp * 0.25 and b.pos.distance_to(p) < 150.0:
-			beacon_hold = b.pos
-		# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
-		if not b.lit and g.hp > g.max_hp * 0.25 and b.pos.distance_to(p) < 700.0:
-			return (b.pos - p).normalized() if b.pos.distance_to(p) > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
+		if b.lit or g.hp <= g.max_hp * 0.25:
+			continue
+		var bdist: float = b.pos.distance_to(p)
+		if bdist < 700.0 and (bnear == Vector2.INF or bdist < p.distance_to(bnear)):
+			bnear = b.pos
+	if bnear != Vector2.INF:
+		var bd2: float = bnear.distance_to(p)
+		if bd2 < seek_r:
+			beacon_hold = bnear
+			beacon_w = 6.0 if bd2 < 150.0 else 4.0
+		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near:
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
@@ -480,7 +491,7 @@ func _move_master(_dt: float) -> Vector2:
 					nq += 1
 			s += m_tune.gem * minf(float(nq), m_tune.gem_cap)
 		if goal != Vector2.ZERO:
-			s += (6.0 if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
+			s += (beacon_w if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
 		s += 0.6 * d.dot(last_dir)
 		if s > best:
 			best = s
