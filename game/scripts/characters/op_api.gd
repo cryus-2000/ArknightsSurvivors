@@ -10,9 +10,52 @@ var g                      # Game (Node2D)
 
 # ---------------------------------------------------------------- 索敌
 
-## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内
+## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内。
+## Boss 优先（2026-09-29 协调人：普通档打不动 3:30 的第一个 Boss，输出被身边小怪抢走）：balance ai/boss_focus（缺省 1 = 开）时，
+## max_dist 内有可受击的 Boss 就排到第一个；部件（e.part）优先照旧；主控 ai/boss_focus_guard（60）内有小怪贴脸时不强制
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
-	return g.enemies_sys.nearest(n, max_dist, origin)
+	var out: Array = g.enemies_sys.nearest(n, max_dist, origin)
+	if out.is_empty() or out[0].boss or out[0].get("part", false):
+		return out
+	var BalS = preload("res://scripts/core/balance.gd")
+	if BalS.v("ai/boss_focus", 1.0) <= 0.0:
+		return out
+	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
+	var best = null
+	var bd: float = max_dist * max_dist
+	for e in _focus_bosses():
+		if e.dead:
+			continue
+		var d: float = e.pos.distance_squared_to(o)
+		if d < bd:
+			bd = d
+			best = e
+	if best == null:
+		return out
+	var guard: Array = g.enemies_sys.nearest(1, BalS.v("ai/boss_focus_guard", 60.0), g.ppos)
+	if not guard.is_empty() and not guard[0].boss:
+		return out   # 小怪贴着主控：先护主，不强制打 Boss
+	out.erase(best)
+	out.push_front(best)
+	if out.size() > n:
+		out.resize(n)
+	return out
+
+
+## 场上可受击的 Boss（每帧缓存一次）：不在假死（coma）/ 无敌（invuln、gate_inv）/ 潜地（under）
+var _fb_frame := -1
+var _fb_list: Array = []
+
+func _focus_bosses() -> Array:
+	if _fb_frame == g.frame_n:
+		return _fb_list
+	_fb_frame = g.frame_n
+	_fb_list = []
+	for e in g.enemies:
+		if e.boss and not e.dead and not e.get("coma", false) and not e.get("invuln", false) \
+				and e.get("gate_inv", 0.0) <= 0.0 and not e.get("under", false):
+			_fb_list.append(e)
+	return _fb_list
 
 
 ## 空间网格查询：排除友方，返回 pos 周围 radius 内的敌人下标（g.enemies[i]，可能包含已死亡的，调用方自己判断 e.dead）
