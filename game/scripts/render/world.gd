@@ -172,12 +172,28 @@ func boss_down_fx(b: Dictionary) -> void:
 	_flash(Color(1.0, 0.97, 0.95), 0.4)
 
 
+var _pt := 0
+
+
+## --prof：世界绘制分段计时（dw_<段名>，微秒累计进 g.prof）
+func _pk(k: String) -> void:
+	if not g.prof_on:
+		return
+	var now := Time.get_ticks_usec()
+	if k != "":
+		g.prof["dw_" + k] = int(g.prof.get("dw_" + k, 0)) + now - _pt
+	_pt = now
+
+
 func draw_world() -> void:
+	_pk("")
 	watch_bosses()
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
+	_pk("ground")
 	for m in g.mires:
 		g.map.draw_mire(m)
+	_pk("mire")
 	g.bai._draw_warns()
 	draw_nest_auras()
 	draw_beacons()
@@ -193,6 +209,7 @@ func draw_world() -> void:
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
 	# 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
 	# 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）
+	_pk("warns_auras")
 	var vr: Rect2 = view_rect(40.0)
 	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
 	var cells := {}
@@ -262,6 +279,7 @@ func draw_world() -> void:
 		var n: int = cells[ck]
 		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
 		g.vfx.spr("gem_big" if n >= 3 else "gem_small", 1, 0, cp, Game.PX * (1.9 if n >= 3 else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
+	_pk("gems")
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
@@ -276,6 +294,7 @@ func draw_world() -> void:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
 	g.squad.draw_entities_floor()
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
+	_pk("shadows")
 	var dl: Array = []
 	for e in g.enemies:
 		if evr.has_point(e.pos):
@@ -305,6 +324,7 @@ func draw_world() -> void:
 				draw_player()
 			3:
 				g.map.draw_sort_prop(it[2])
+	_pk("sorted_entities")
 	g.squad.draw_skill_over()
 	draw_shield()
 	for dr in g.drones:
@@ -323,6 +343,7 @@ func draw_world() -> void:
 		elif g.tex.get("drone") != null:
 			g.vfx.spr("drone", 2, int(g.t * 20.0) % 2, dr.pos, Game.PX, false, Color(1.2, 1.7, 1.4))
 		g.draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)))
+	_pk("shield_drones")
 	var jf := int(g.t * 6.0) % 2
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
@@ -363,6 +384,7 @@ func draw_world() -> void:
 				g.draw_circle(b.pos + Vector2(-2, -2), 2.0, Color(2.5, 2.5, 2.5))
 			_:
 				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
+	_pk("bullets")
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
@@ -694,6 +716,7 @@ func draw_world() -> void:
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_pk("fx")
 	for b in g.ebullets:
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置
 		g.draw_set_transform(b.pos + Vector2(0, 2), 0.0, Vector2(1.0, 0.45))
@@ -751,11 +774,15 @@ func draw_world() -> void:
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_pk("ebullets_lobs_shocks")
 	draw_enemy_tells()
 	draw_leader_ailments()
 	draw_warn_outlines()
+	_pk("tells_outlines")
 	draw_zone()
+	_pk("zone")
 	g.map.draw_snow()
+	_pk("snow_tail")
 
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）

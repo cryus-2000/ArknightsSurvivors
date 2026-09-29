@@ -521,13 +521,13 @@ func _ready() -> void:
 	var am := CanvasItemMaterial.new()
 	am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	fx_add.material = am
-	fx_add.draw.connect(vfx.draw_add_layer)
+	fx_add.draw.connect(func(): _timed("draw_fxadd", vfx.draw_add_layer))
 	add_child(fx_add)
 
 	# 2.5D 前景视差层（镜头前的虚化海草剪影）
 	fg = Node2D.new()
 	fg.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	fg.draw.connect(func(): if Cfg.dof: map.draw_foreground(fg, get_viewport_rect().size, cam.position))
+	fg.draw.connect(func(): _timed("draw_fg", func(): if Cfg.dof: map.draw_foreground(fg, get_viewport_rect().size, cam.position)))
 	add_child(fg)
 
 	merchant_light = PointLight2D.new()
@@ -568,7 +568,7 @@ func _ready() -> void:
 	hud.set_anchors_preset(Control.PRESET_FULL_RECT)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ul.add_child(hud)
-	hud.draw.connect(hud_view.draw)
+	hud.draw.connect(func(): _timed("draw_hud", hud_view.draw))
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	ul.add_child(settings)
@@ -1246,6 +1246,16 @@ func _exit_tree() -> void:
 		trial.leave()
 	else:
 		telemetry.on_exit()
+
+
+## --prof：给某个绘制回调计时（HUD / 加色层 / 前景），不开 --prof 时直接调用
+func _timed(k: String, f: Callable) -> void:
+	if not prof_on:
+		f.call()
+		return
+	var t0 := Time.get_ticks_usec()
+	f.call()
+	prof[k] = int(prof.get(k, 0)) + Time.get_ticks_usec() - t0
 
 
 ## 世界绘制（引擎回调）：转发到 render/world.gd

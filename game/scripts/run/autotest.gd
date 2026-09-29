@@ -545,7 +545,7 @@ func _perf_sample() -> void:
 		if ft >= 33.3:
 			d.slow_n += 1
 			perf_slow.append({"t": snappedf(g.t, 0.1), "ft": snappedf(ft, 0.1), "en": g.enemies.size(), "kills": g.kills - perf_kills,
-				"ebul": g.ebullets.size(), "warns": g.warns.size(), "fx": g.fx.size(), "boss": g.bosses.size(), "stage": _top_stages(br, 4)})
+				"ebul": g.ebullets.size(), "warns": g.warns.size(), "fx": g.fx.size(), "gems": g.gems.size(), "mires": g.mires.size(), "boss": g.bosses.size(), "btypes": g.bosses.filter(func(b): return not b.dead).map(func(b): return str(b.type)), "stage": _top_stages(br, 8)})
 			if perf_slow.size() > 400:
 				perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
 				perf_slow.resize(100)
