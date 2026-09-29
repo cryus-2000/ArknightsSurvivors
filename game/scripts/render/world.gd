@@ -400,6 +400,22 @@ func draw_world() -> void:
 						var ca := Color(0.7, 2.2, 1.0, a)
 						g.draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
 						g.draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
+			"reflow":
+				# 碎片回流（塑路者核心超时）：一串碎石沿弧线从碎片位置冲回本体，尾迹变红，末端在本体上炸一圈
+				var k := 1.0 - a
+				var mid: Vector2 = (f.a + f.b) / 2.0 + (f.b - f.a).orthogonal().normalized() * 40.0
+				for q in 6:
+					var u: float = clampf(k * 1.4 - q * 0.07, 0.0, 1.0)
+					if u <= 0.0 or u >= 1.0:
+						continue
+					var p0: Vector2 = f.a.lerp(mid, u).lerp(mid.lerp(f.b, u), u)
+					var u2: float = maxf(0.0, u - 0.14)
+					var p1: Vector2 = f.a.lerp(mid, u2).lerp(mid.lerp(f.b, u2), u2)
+					g.draw_line(p1, p0, Color(1.6, 0.45, 0.35, 0.8), 6.0)
+					UI.diamond(g, p0, 8.0 - q * 0.7, Color(0.75, 0.8, 1.2, 1.0), Color(0.1, 0.1, 0.2, 0.9))
+				if k > 0.7:
+					var rk: float = (k - 0.7) / 0.3
+					g.draw_arc(f.b, 20.0 + 40.0 * rk, 0.0, TAU, 32, Color(1.6, 0.45, 0.35, 1.0 - rk), 3.0)
 			"tide_link":
 				# 双层弯曲潮线与逆流光点：接潮生命连接、伊莎玛拉泪滴共鸣共用。
 				var c: Color = f.col
@@ -995,8 +1011,18 @@ func draw_enemy(e: Dictionary) -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		g.draw_off.y -= e.air
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
+	if e.get("part", false):
+		# 部件（塑路者核心等）：心跳脉动——每拍一次放大 + 金色光晕；描边不受「怪物轮廓光」开关影响
+		var hb: float = _heartbeat(e)
+		sq *= 1.0 + 0.1 * hb
+		g.draw_circle(e.pos, e.r * (1.3 + 0.5 * hb), Color(PART_COL.r * 1.4, PART_COL.g * 1.4, PART_COL.b * 1.4, 0.22 + 0.3 * hb))
+		if not Cfg.outline and g.tex.has(name + "_white"):
+			for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
+				g.vfx.spr(name + "_white", frames, frame, bpos + d, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
 	if Cfg.outline and g.tex.has(name + "_white"):
-		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
+		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
+		if e.get("part", false):
+			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
 		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
@@ -1092,6 +1118,7 @@ func _enemy_act_fx() -> void:
 
 ## 敌方自带的危险提示（docs/48 全局 ②，P0 狂奔者 / 囊海爬行者 / 伊祖米克）：原来画在实体层，会被光照压暗、被友方特效盖住。
 ## 统一画在特效之上：主题色半透明填充（从小到大表示倒计时）+ 深色外描边 + 主题色线 + 白芯；颜色不乘亮度，保住色相（全局 ④）
+const PART_COL := Color(1.0, 0.82, 0.35)      # Boss 部件（e.part）：金色描边 + 心跳
 const ENEMY_TELL := Color(1.0, 0.3, 0.72)       # 敌方危险主色：洋红（和友方的金、青、绿、艾雅法拉的橙红都分得开）
 const TELL_BURST := Color(0.78, 0.42, 1.0)      # 囊海爬行者爆裂：紫
 
@@ -1113,10 +1140,29 @@ func draw_enemy_tells() -> void:
 			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
 			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
+		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
+			_count_ring(e)
 		if e.type == "tear":
 			_tear_zone(e)
 		elif e.boss:
 			_boss_state(e)
+
+
+## 通用倒计时环（Boss与怪物约定：凡是 e.count_end / e.count_max 的单位——部件、假死、读条——都画这一种）：
+## 脚下椭圆环按剩余时间收缩，最后 3 秒变红并加快脉动，环旁一个秒数小牌；部件金色、假死青色、其余洋红
+func _count_ring(e: Dictionary) -> void:
+	var left: float = maxf(0.0, float(e.count_end) - g.t)
+	var k: float = clampf(left / float(e.count_max), 0.0, 1.0)
+	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8) if g.foot_anchor.has(e.tex) else e.pos + Vector2(0, e.r * 0.5)
+	var c: Color = PART_COL if e.get("part", false) else (Color(0.5, 1.5, 1.4) if e.get("coma", false) else ENEMY_TELL)
+	if left < 3.0:
+		c = c.lerp(Color(1.8, 0.4, 0.35), 0.5 + 0.5 * sin(g.t * 16.0))
+	var rr: float = maxf(e.r + 14.0, 26.0)
+	_ground_ring(foot, rr, k, c)
+	var tag := "%d" % ceili(left)
+	var tp: Vector2 = foot + Vector2(rr + 6.0, -4.0)
+	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cwidth(g.font, tag, 13) + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
+	UI.ctext(g, g.font, tp + Vector2(2, 1), tag, 13, c)
 
 
 ## 地面进度环（脚下椭圆，从正上方顺时针填充）
@@ -1278,6 +1324,15 @@ func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
 		g.draw_rect(Rect2(by, Vector2(bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0), 3)), Color(0.7, 1.5, 1.6, 0.95))
 
 
+## 部件心跳：约 1.3 拍 / 秒，倒计时最后 3 秒加快到 2.6 拍；返回 0–1 的尖峰
+func _heartbeat(e: Dictionary) -> float:
+	var rate: float = 1.3
+	if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) - g.t < 3.0:
+		rate = 2.6
+	var ph: float = fmod(g.t * rate + e.id * 0.13, 1.0)
+	return maxf(pow(maxf(0.0, 1.0 - ph * 5.0), 2.0), 0.6 * pow(maxf(0.0, 1.0 - absf(ph - 0.28) * 6.0), 2.0))
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1335,8 +1390,11 @@ func _boss_state(e: Dictionary) -> void:
 		var k: float = clampf(e.hp / e.maxhp, 0.0, 1.0)
 		var rr: float = e.r + 12.0
 		var tc := Color(0.5, 1.5, 1.4)
-		_ground_ring(foot, rr, k, tc)
 		var left: float = (e.maxhp - e.hp) / maxf(e.maxhp * 0.1, 0.001)
+		if e.get("count_max", 0.0) > 0.0:
+			left = maxf(0.0, float(e.count_end) - g.t)   # 假死赛跑（combat：count_end / count_max），环由 _count_ring 画
+		else:
+			_ground_ring(foot, rr, k, tc)
 		UI.text(g, g.font, top + Vector2(-120, -4), "假死 %d 秒 · 同时击倒另一体" % ceili(left), 13, tc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		var p = e.get("partner")
 		if p != null and not p.dead:

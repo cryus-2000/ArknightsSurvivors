@@ -429,7 +429,7 @@ func _path_core(e: Dictionary) -> void:
 			for o in g.enemies:
 				if o.type == "fractal" and not o.dead and is_same(o.get("owner"), e):
 					n += 1
-					g.fx.append({"kind": "tide_link", "a": o.pos, "b": e.pos, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.7, 1.0), "enemy": true})
+					g.fx.append({"kind": "reflow", "a": o.pos, "b": e.pos, "life": 0.7, "max": 0.7, "enemy": true})   # 碎片回流（world.gd 画）
 					o.dead = true
 			e.dash_bonus = mini(3, n)
 			g.vfx.add_text(e.pos + Vector2(0, -70), "碎片回流 —— 冲撞 +%d 段" % e.dash_bonus, Color(1.0, 0.45, 0.35), 18)
