@@ -495,7 +495,7 @@ func draw_mire(m: Dictionary) -> void:
 		var fw := mt.get_width() / 2
 		var sz := Vector2(m.r * 2.3, m.r * 2.3)
 		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a))
-		g.draw_arc(m.pos, m.r, 0.0, TAU, 36, Color(0.7, 0.4, 1.2, 0.35 * a), 1.5)
+		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a), 36)   # 判定圈进 world 的无贴图合批，调用方画完所有溟痕后一次提交（性能 9/30）
 		return
 	for k in 7:
 		var off: Vector2 = Vector2.from_angle(k * 0.9 + m.seed) * m.r * 0.45

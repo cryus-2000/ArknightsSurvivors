@@ -195,6 +195,7 @@ func draw_world() -> void:
 	_pk("ground")
 	for m in g.mires:
 		g.map.draw_mire(m)
+	tb_flush()
 	_pk("mire")
 	g.bai._draw_warns()
 	draw_nest_auras()
@@ -215,6 +216,8 @@ func draw_world() -> void:
 	var vr: Rect2 = view_rect(40.0)
 	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
 	var cells := {}
+	var gem_spr: Array = []     # 结晶贴图：[名字, 位置, 缩放, 颜色]
+	var gem_spark: Array = []   # 结晶十字闪光：[位置, 长度, 闪烁]
 	for g_item in g.gems:
 		if not vr.has_point(g_item.pos):
 			continue
@@ -249,24 +252,24 @@ func draw_world() -> void:
 				var gc: Color = Color(0.85, 0.6, 1.0) if big else UI.CYAN
 				var tw: float = 0.75 + 0.25 * sin(g.t * 6.0 + g_item.get("seed", 0.0))
 				var gp: Vector2 = g_item.pos + Vector2(0, (sin(g.t * 4.0 + g_item.pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
+				# 合批（性能 9/30）：拖尾 / 辉光 / 深色底先进无贴图批，贴图和闪光留到循环后统一画（原来每颗 5–8 次绘制调用）
 				if g_item.mag:
 					var dv: Vector2 = (gp - (g.ppos + Vector2(0, -12))).normalized()
 					var tl: float = 10.0 + 24.0 * minf(1.0, g_item.get("mag_t", 0.0) * 2.0)
-					g.draw_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
-					g.draw_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
+					tb_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
+					tb_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
 				if not quiet:
-					g.draw_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
-					g.draw_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
+					tb_circle(gp, (13.0 if big else 9.0) * tw, Color(gc.r * 1.6, gc.g * 1.6, gc.b * 1.6, 0.16))
+					tb_circle(gp, (7.0 if big else 4.5) * tw, Color(gc.r * 2.0, gc.g * 2.0, gc.b * 2.0, 0.22))
 				g.draw_off = Vector2.ZERO
-				g.draw_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, Color(0.0, 0.02, 0.05, 0.55))   # 深色底：压在特效和敌人上也分得出
+				tb_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, Color(0.0, 0.02, 0.05, 0.55), 1.0, 10)   # 深色底：压在特效和敌人上也分得出
 				var gcol: Color = Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5)
 				if quiet:
 					gcol = Color(0.9, 0.95, 1.0, 0.7)   # 远处的结晶压暗一些，贴近主控或被吸时才亮
-				g.vfx.spr("gem_big" if big else "gem_small", 1, 0, gp, Game.PX * (1.9 if big else 1.45), false, gcol)
+				gem_spr.append(["gem_big" if big else "gem_small", gp, Game.PX * (1.9 if big else 1.45), gcol])
 				if not quiet:
 					var sp2: float = 2.0 + 1.5 * tw
-					g.draw_line(gp + Vector2(-sp2, -8), gp + Vector2(sp2, -8), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
-					g.draw_line(gp + Vector2(0, -8 - sp2), gp + Vector2(0, -8 + sp2), Color(2.5, 2.5, 2.5, 0.5 * tw), 1.0)
+					gem_spark.append([gp, sp2, tw])
 			"oil":
 				g.vfx.spr("oil", 1, 0, g_item.pos)
 			"chest":
@@ -276,11 +279,25 @@ func draw_world() -> void:
 			"magnet", "heal":
 				g.vfx.spr("pickup_" + g_item.kind, 1, 0, g_item.pos + Vector2(0, -2 + (sin(g.t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		g.draw_off = Vector2.ZERO
-	for ck in cells:
-		# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶
-		var n: int = cells[ck]
-		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
-		g.vfx.spr("gem_big" if n >= 3 else "gem_small", 1, 0, cp, Game.PX * (1.9 if n >= 3 else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
+	tb_flush()
+	gem_spr.sort_custom(func(x, y): return x[0] < y[0])   # 同贴图连续提交才合批（大小结晶交替会打断）
+	for gs in gem_spr:
+		g.vfx.spr(gs[0], 1, 0, gs[1], gs[2], false, gs[3])
+	for sk in gem_spark:
+		var gp2: Vector2 = sk[0]
+		var sp3: float = sk[1]
+		var wc := Color(2.5, 2.5, 2.5, 0.5 * sk[2])
+		tb_line(gp2 + Vector2(-sp3, -8), gp2 + Vector2(sp3, -8), wc, 1.0)
+		tb_line(gp2 + Vector2(0, -8 - sp3), gp2 + Vector2(0, -8 + sp3), wc, 1.0)
+	tb_flush()
+	# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶；先画完小的再画大的（同贴图连续才合批）
+	for big_pass in [false, true]:
+		for ck in cells:
+			var n: int = cells[ck]
+			if (n >= 3) != big_pass:
+				continue
+			var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
+			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
 	_pk("gems")
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
@@ -327,6 +344,15 @@ func draw_world() -> void:
 			3:
 				g.map.draw_sort_prop(it[2])
 	_pk("sorted_entities")
+	for wm in weak_marks:
+		var wpp: Vector2 = wm[0]
+		var wcc: Color = wm[1]
+		var t4 := [wpp + Vector2(0, -4.5), wpp + Vector2(4.5, 0), wpp + Vector2(0, 4.5), wpp + Vector2(-4.5, 0)]
+		tb_quad(t4[0], t4[1], t4[2], t4[3], Color(0.02, 0.04, 0.08))
+		for q in 4:
+			tb_line(t4[q], t4[(q + 1) % 4], wcc, 1.0)
+	weak_marks.clear()
+	tb_flush()
 	g.squad.draw_skill_over()
 	draw_shield()
 	for dr in g.drones:
@@ -728,36 +754,54 @@ func draw_world() -> void:
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_pk("fx")
+	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
+	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
+	var blades: Array = []
 	for b in g.ebullets:
-		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置
-		g.draw_set_transform(b.pos + Vector2(0, 2), 0.0, Vector2(1.0, 0.45))
-		g.draw_circle(Vector2.ZERO, b.r + 1.0, Color(0, 0, 0, 0.4))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		var bp: Vector2 = b.pos + Vector2(0, -16)
 		if b.get("kind", "") == "boss_blade":
-			g.vfx.boss_blade(b, bp)
+			blades.append(b)
 			continue
+		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置（椭圆直接算顶点，不切画布变换）
+		tb_circle(b.pos + Vector2(0, 2), b.r + 1.0, Color(0, 0, 0, 0.4), 0.45, 10)
+		var bp: Vector2 = b.pos + Vector2(0, -16)
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
-		g.draw_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
+		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		match b.get("kind", "orb"):
 			"acid":
-				g.draw_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
-				g.draw_circle(bp, b.r, Color(0.6, 1.8, 0.4))
-				g.draw_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6))
+				tb_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
 			"nova":
-				g.draw_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
-				g.draw_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
+				tb_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
 			"nerve":
-				# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-				g.draw_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))
-				if g.tex.get("proj_floater_nerve") != null:
-					g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
-				else:
-					g.draw_circle(bp, b.r, Color(1.8, 1.6, 0.5))
+				tb_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))
 			_:
-				g.draw_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
-				g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
-		g.draw_arc(bp, b.r + 2.0, 0.0, TAU, 16, Color(2.4, 0.8, 1.8, 0.9), 1.5)
+				tb_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
+	tb_flush()
+	for b in g.ebullets:
+		var kd: String = b.get("kind", "orb")
+		var bp: Vector2 = b.pos + Vector2(0, -16)
+		if kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
+			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
+			g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
+			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
+	for b in g.ebullets:
+		var kd: String = b.get("kind", "orb")
+		if kd == "boss_blade":
+			continue
+		var bp: Vector2 = b.pos + Vector2(0, -16)
+		match kd:
+			"acid":
+				tb_circle(bp, b.r, Color(0.6, 1.8, 0.4))
+				tb_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6), 1.0, 6)
+			"nova":
+				tb_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
+			"nerve":
+				if g.tex.get("proj_floater_nerve") == null:
+					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
+		tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
+	tb_flush()
+	for b in blades:
+		g.vfx.boss_blade(b, b.pos + Vector2(0, -16))
 	# 抛射碎石：落点预警 + 空中石块
 	for l in g.lobs:
 		var k: float = l.t / l.dur
@@ -1153,7 +1197,7 @@ func draw_enemy(e: Dictionary) -> void:
 	if wk != "" and not e.get("under", false):
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
 		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
-		UI.diamond(g, wp, 4.5, Color(0.02, 0.04, 0.08), wc)
+		weak_marks.append([wp, wc])   # 弱点菱形攒到排序实体画完后一次合批（每只一个多边形会打断敌人贴图的合批，性能 9/30）
 		if e.boss:
 			UI.text(g, g.font, wp + Vector2(-20, 16), ("弱" + wk.substr(0, 1)) if wk != "双" else "双弱", 10, wc, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	# 精英血条与标识改到 HUD 层（hud.draw_elite_marks）：不受灯光压暗，也不受「怪物轮廓光」开关影响（docs/48 P1）
@@ -1801,6 +1845,62 @@ func _tide_trail(b: Dictionary) -> void:
 	g.fx.append({"kind": "tide_trail", "pos": b.pos + Vector2(0, b.r * 0.6), "r": b.r * 0.9, "life": 0.7, "max": 0.7, "seed": g.vrng.randf() * TAU, "enemy": true})
 
 
+## ---- 无贴图图形合批（性能 9/30：Godot 4 只合批贴图矩形，draw_circle / draw_arc / draw_polygon 每次都是一次绘制调用）：
+## 先把圆、椭圆、圆环收集成三角形，最后一次 canvas_item_add_triangle_array 提交。提交前画布变换必须是单位矩阵
+var weak_marks: Array = []      # 本帧敌人弱点菱形 [位置, 颜色]
+var _tb_pts := PackedVector2Array()
+var _tb_cols := PackedColorArray()
+var _tb_idx := PackedInt32Array()
+
+func tb_circle(c: Vector2, r: float, col: Color, sy := 1.0, seg := 14) -> void:
+	var base: int = _tb_pts.size()
+	_tb_pts.append(c)
+	_tb_cols.append(col)
+	for q in seg:
+		var aq: float = q * TAU / seg
+		_tb_pts.append(c + Vector2(cos(aq) * r, sin(aq) * r * sy))
+		_tb_cols.append(col)
+	for q in seg:
+		_tb_idx.append(base)
+		_tb_idx.append(base + 1 + q)
+		_tb_idx.append(base + 1 + (q + 1) % seg)
+
+
+func tb_ring(c: Vector2, r: float, w: float, col: Color, seg := 16) -> void:
+	var base: int = _tb_pts.size()
+	for q in seg:
+		var d := Vector2.from_angle(q * TAU / seg)
+		_tb_pts.append(c + d * (r - w * 0.5))
+		_tb_pts.append(c + d * (r + w * 0.5))
+		_tb_cols.append(col)
+		_tb_cols.append(col)
+	for q in seg:
+		var a0: int = base + q * 2
+		var a1: int = base + ((q + 1) % seg) * 2
+		_tb_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
+
+
+func tb_quad(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, col: Color) -> void:
+	var base: int = _tb_pts.size()
+	_tb_pts.append_array([p0, p1, p2, p3])
+	_tb_cols.append_array([col, col, col, col])
+	_tb_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+
+
+func tb_line(a: Vector2, b: Vector2, col: Color, w := 1.0) -> void:
+	var n: Vector2 = (b - a).orthogonal().normalized() * w * 0.5
+	tb_quad(a + n, b + n, b - n, a - n, col)
+
+
+func tb_flush() -> void:
+	if _tb_idx.is_empty():
+		return
+	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), _tb_idx, _tb_pts, _tb_cols)
+	_tb_pts = PackedVector2Array()
+	_tb_cols = PackedColorArray()
+	_tb_idx = PackedInt32Array()
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -2122,7 +2222,8 @@ func draw_zone() -> void:
 			continue
 		var q0 := g.zone_c + Vector2.from_angle(a0) * outer
 		var q1 := g.zone_c + Vector2.from_angle(a1) * outer
-		g.draw_colored_polygon(PackedVector2Array([p0, p1, q1, q0]), Color(0.16, 0.03, 0.22, 0.55))
+		tb_quad(p0, p1, q1, q0, Color(0.16, 0.03, 0.22, 0.55))   # 合批（原来每段一次 draw_colored_polygon）
+	tb_flush()
 	draw_zone_band(pulse)
 	# 下一圈预告（虚线）
 	if g.zone_state == 1:

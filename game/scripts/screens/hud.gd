@@ -796,12 +796,14 @@ func draw_manual_aim() -> void:
 	# 引导线：虚线，到圈边为止
 	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
 	var vsz: Vector2 = g.hud.get_viewport_rect().size
-	var inner := Rect2(Vector2(rad * 0.5 + 8.0, rad * 0.5 + 96.0), vsz - Vector2(rad + 16.0, rad * 0.5 + 96.0 + rad * 0.5 + 8.0))
+	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
+	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
+	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
 	var real_to: Vector2 = to
 	to = to.clamp(inner.position, inner.end)
 	if real_to.distance_to(to) > 2.0:
 		var ad: Vector2 = (real_to - to).normalized()
-		var tip: Vector2 = to + ad * (rad + 14.0)
+		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
 		var sd: Vector2 = ad.orthogonal() * 7.0
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
 	var seg: Vector2 = to - from
@@ -847,12 +849,14 @@ func draw_point_aim(ld, i: int) -> void:
 		g.hud.draw_arc(from, rr, 0.0, TAU, 64, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.22), 1.5)
 	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
 	var vsz: Vector2 = g.hud.get_viewport_rect().size
-	var inner := Rect2(Vector2(rad * 0.5 + 8.0, rad * 0.5 + 96.0), vsz - Vector2(rad + 16.0, rad * 0.5 + 96.0 + rad * 0.5 + 8.0))
+	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
+	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
+	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
 	var real_to: Vector2 = to
 	to = to.clamp(inner.position, inner.end)
 	if real_to.distance_to(to) > 2.0:
 		var ad: Vector2 = (real_to - to).normalized()
-		var tip: Vector2 = to + ad * (rad + 14.0)
+		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
 		var sd: Vector2 = ad.orthogonal() * 7.0
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
 	var seg: Vector2 = to - from
