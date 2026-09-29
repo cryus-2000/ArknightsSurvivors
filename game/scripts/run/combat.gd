@@ -789,6 +789,7 @@ func budget_clamp(e: Dictionary, dmg: float) -> float:
 func gate_pass(e: Dictionary) -> void:
 	if e.dead or e.get("gates", []).is_empty():
 		return
+	Sfx.play_cue("phase", e.type, "start")   # 过卡点：阶段音（docs/38 §8.11）
 	e.gates.pop_front()
 	e.gates_passed += 1
 	e.gate_hold = false
@@ -913,6 +914,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 			return
 		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
 		if e.type == "knight_boss" and e.phase == 1:
+			Sfx.play_cue("phase", e.type, "start")
 			e.phase = 2
 			e.hp = e.maxhp * 0.5
 			e.spd *= 1.2

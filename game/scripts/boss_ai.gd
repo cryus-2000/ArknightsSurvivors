@@ -294,6 +294,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					e.count_end = 0.0
 					e.dmg *= pow(1.0 + Bal.v("boss/izumik_layer_dmg", 0.08), int(e.get("izu_layers", 0)))
 					_izumik_lamps(e)
+					Sfx.play_cue("phase", e.type, "start")
 					g.vfx.show_banner("伊祖米克进入「解读阶段」！")
 					Sfx.play("roar", 0.0, 0.8, 0.0)
 					g.vfx.shake_screen(1.0)
@@ -447,6 +448,7 @@ func setup_preview_phase2(e: Dictionary) -> void:
 func transform_ishar(e: Dictionary) -> void:
 	if e.phase == 2:
 		return
+	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
 	e.friendly = false
 	e.invuln = false   # 0.9 秒变身免伤由 combat 的 transform_until 护栏控制，不留永久无敌。
@@ -582,6 +584,7 @@ func _paranoia_aura(e: Dictionary, dist: float) -> void:
 ## 第一次血量归零：结成泡影茧 boss/paranoia_cocoon 秒。本体无敌，外壳是部件（shell_hp = 最大生命 × paranoia_shell），会吐慢速弹；
 ## 场地收到 paranoia_arena2。打破外壳 → 复活到 paranoia_revive（40%）并进入 5 秒大破绽；没打破 → 同样复活，但凝视永久 +1 道
 func paranoia_cocoon(e: Dictionary) -> void:
+	Sfx.play_cue("phase", e.type, "start")
 	e.cocoon_done = true
 	e.cocoon_t = Bal.v("boss/paranoia_cocoon", 8.0)
 	e.hp = 1.0
@@ -730,6 +733,20 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 				break
 
 
+## 预警 → 音效类别（docs/38 §8.11 对照表）：落地 land / 冲锋 charge / 光束 beam / 近身 melee / 全场 global
+func cue_cat(w: Dictionary) -> String:
+	if w.get("must_dash", false):
+		return "global"
+	match str(w.act):
+		"dash", "stab":
+			return "charge"
+		"shot", "beam", "pattern_line", "ishar_line", "frost_track", "tide_link", "ishar_echo":
+			return "beam"
+		"bite", "sweep", "pattern_fan", "pattern_cleave":
+			return "melee"
+	return "land"
+
+
 ## Boss 招式冷却：到时返回 true 并重置
 func _cd(e: Dictionary, key: String, dur: float) -> bool:
 	if not e.has("cds"):
@@ -774,6 +791,10 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		w.dur *= wm
 		w.track *= wm
 	g.warns.append(w)
+	# 大招固定音效（docs/38 §8.11）：有名字的 Boss 招式起手播「类别起手音 + Boss 专属音色」，结算时播命中音
+	if e.boss and w.name != "":
+		w.cue = cue_cat(w)
+		Sfx.play_cue(w.cue, e.type, "start")
 	if e.boss and w.name != "":
 		token_owner = e
 		token_until = maxf(token_until if is_same(token_owner, e) else 0.0, g.t + w.dur + 0.6)
@@ -851,6 +872,8 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 func _warn_resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	if w.has("cue"):
+		Sfx.play_cue(w.cue, e.type, "hit")
 	if e.boss:
 		# 预警结束后明确重新起攻击动作，而不是沿用蓄力末帧。
 		e.pose = 0.35
