@@ -134,6 +134,8 @@ func _light(b: Dictionary) -> void:
 		else:
 			m.life = 0.0
 			cleared += 1
+	if cleared > 0:
+		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
 	g.lamp = minf(g.lamp_cap, g.lamp + _k("lamp", 5.0))
 	clear_nerve(b.pos, _k("r", 70.0))
 	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字

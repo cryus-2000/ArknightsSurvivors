@@ -11,6 +11,8 @@
   ulp_charge_loop / ulp_release  乌尔比安 S3 手动蓄距离循环 / 松手释放
   atk_gate       手动普攻被闸门拦住的轻「咔」
   beacon_fizzle  灯标未点燃、45 秒熄灭
+  enemy_nerve    浮海飘航者神经弹发射
+  mire_clear     灯标点亮时清掉溟痕（叠在光爆下）
 每声用自己的随机数种子：单独重做某一声不影响其他；gen_sfx.py 重跑复现不了现有音效，别为这些去重跑它。
 用法：cd game/tools && python gen_sfx_events.py [名字 ...]
 """
@@ -267,10 +269,34 @@ def beacon_fizzle():
     return x + hiss
 
 
+def enemy_nerve():
+    """浮海飘航者神经弹发射：湿润的「嗖」+ 颤动的高音（像神经抽动），和普通吐射区分"""
+    rng = np.random.default_rng(605)
+    d = 0.35
+    n = int(d * SR)
+    t = T(d)
+    thwip = sweep(rng, 0.18, 2200, 700, 0.5) * env(0.18, 0.002, 0.05)
+    warble = np.sin(2 * np.pi * (1400 + 300 * np.sin(2 * np.pi * 38 * t)) * t) * env(d, 0.005, 0.08) * 0.35
+    wet = lp(rng.standard_normal(n), 900) * env(d, 0.001, 0.02) * 0.6
+    return at(thwip, 0.0, n) + warble + wet
+
+
+def mire_clear():
+    """灯标点亮时清掉溟痕：一层溶解的嘶声 + 渐亮的微光（叠在点亮光爆下面，只在确实清掉溟痕时播）"""
+    rng = np.random.default_rng(606)
+    d = 1.2
+    n = int(d * SR)
+    t = T(d)
+    sizzle = bp(rng.standard_normal(n), 2500, 7000) * np.sin(np.pi * np.minimum(t / d, 1.0)) * np.exp(-t / 0.6)
+    shimmer = sum(np.sin(2 * np.pi * f * t) for f in (1175, 1480, 1760)) * np.minimum(t / 0.4, 1.0) * np.exp(-t / 0.5) * 0.12
+    return sizzle * 0.8 + shimmer
+
+
 SOUNDS = {"knight_charge": knight_charge, "knight_stab": knight_stab, "knight_frost": knight_frost,
           "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break,
           "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat,
-          "ulp_charge_loop": ulp_charge_loop, "ulp_release": ulp_release, "atk_gate": atk_gate, "beacon_fizzle": beacon_fizzle}
+          "ulp_charge_loop": ulp_charge_loop, "ulp_release": ulp_release, "atk_gate": atk_gate, "beacon_fizzle": beacon_fizzle,
+          "enemy_nerve": enemy_nerve, "mire_clear": mire_clear}
 
 
 def save(name, x, peak=0.89):
