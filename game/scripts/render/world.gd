@@ -2156,8 +2156,14 @@ func draw_zone_band(pulse: float) -> void:
 	var c_in := Color(0.06, 0.03, 0.1, 0.92)
 	var c_mid := Color(0.05, 0.03, 0.08, 0.8)
 	var c_out := Color(0.05, 0.02, 0.08, 0.0)
-	for i in n + 1:
-		var a: float = TAU * i / n
+	# 性能（测试与验收 9/30：黑潮每帧 2.3 毫秒）：只遍历镜头附近那段圆弧的序号（原来整圈 420 段、贴图 900 块逐个算三角函数再判可见）
+	var rng_i: Vector2i = _arc_range(n, c, r, vc, view)
+	var run_mid := PackedVector2Array()
+	var run_out := PackedVector2Array()
+	if rng_i.y < rng_i.x:
+		return
+	for i in range(rng_i.x, rng_i.y + 1):
+		var a: float = TAU * posmod(i, n) / n
 		var d := Vector2.from_angle(a)
 		# 内沿潮头：两层正弦叠加并随时间流动；外沿更慢、更宽
 		var rin: float = r - 6.0 + 5.0 * sin(a * 23.0 + t * 1.3) + 1.5 * sin(a * 57.0 - t * 2.1)
@@ -2167,20 +2173,27 @@ func draw_zone_band(pulse: float) -> void:
 		var pmid: Vector2 = c + d * rmid
 		var pout: Vector2 = c + d * rout
 		var vis: bool = pin.distance_to(vc) < view
-		if i > 0 and (vis or prev_vis):
-			g.draw_polygon(PackedVector2Array([prev_in, pin, pmid, prev_mid]), PackedColorArray([c_in, c_in, c_mid, c_mid]))
-			g.draw_polygon(PackedVector2Array([prev_mid, pmid, pout, prev_out]), PackedColorArray([c_mid, c_mid, c_out, c_out]))
+		if i > rng_i.x and (vis or prev_vis):
+			# 连续可见的一段收集成三条边线，整段画成两个多边形（原来每小段两次 draw_polygon，一屏约 400 次）
 			if crest.is_empty():
 				crest.append(prev_in)
+				run_mid.append(prev_mid)
+				run_out.append(prev_out)
 			crest.append(pin)
+			run_mid.append(pmid)
+			run_out.append(pout)
 		elif crest.size() > 1:
+			_zone_strips(crest, run_mid, run_out, c_in, c_mid, c_out)
 			crests.append(crest)
 			crest = PackedVector2Array()
+			run_mid = PackedVector2Array()
+			run_out = PackedVector2Array()
 		prev_in = pin
 		prev_mid = pmid
 		prev_out = pout
 		prev_vis = vis
 	if crest.size() > 1:
+		_zone_strips(crest, run_mid, run_out, c_in, c_mid, c_out)
 		crests.append(crest)
 	# 溟痕贴图沿圈边密铺：每 26 像素弧长一块（贴图约 60 像素宽，互相叠一半以上，连成一整条），两帧脉动和地上的溟痕一致；
 	# 大小、左右翻转、前后位置按序号取固定的伪随机，看不出重复；只画视野内的块（后期同屏元素多，一屏约五六十块）
@@ -2188,7 +2201,11 @@ func draw_zone_band(pulse: float) -> void:
 	if mt != null:
 		var fw: int = mt.get_width() / 2
 		var nb: int = clampi(int(TAU * r / 26.0), 24, 900)
-		for j in nb:
+		var rng_j: Vector2i = _arc_range(nb, c, r, vc, view)
+		for jr in range(rng_j.x - 1, rng_j.y + 2):
+			if rng_j.y < rng_j.x:
+				break
+			var j: int = posmod(jr, nb)
 			var a2: float = TAU * (j + 0.5 * sin(j * 12.9898)) / nb
 			var d2 := Vector2.from_angle(a2)
 			var bp: Vector2 = c + d2 * (r + 12.0 + 7.0 * sin(j * 4.1))
@@ -2206,6 +2223,44 @@ func draw_zone_band(pulse: float) -> void:
 				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
 	for cr in crests:
 		_zone_crest(cr, pulse)
+
+
+## 黑潮带的一段连续弧：内沿→中线、中线→外沿两条带，各自画成一个多边形（边线正走、另一边倒走），顶点色和原来逐段画的一致
+func _zone_strips(pin: PackedVector2Array, pmid: PackedVector2Array, pout: PackedVector2Array, c_in: Color, c_mid: Color, c_out: Color) -> void:
+	var m: int = pin.size()
+	var p1 := PackedVector2Array(pin)
+	var k1 := PackedColorArray()
+	k1.resize(m * 2)
+	for q in m:
+		p1.append(pmid[m - 1 - q])
+		k1[q] = c_in
+		k1[m + q] = c_mid
+	var p2 := PackedVector2Array(pmid)
+	var k2 := PackedColorArray()
+	k2.resize(m * 2)
+	for q in m:
+		p2.append(pout[m - 1 - q])
+		k2[q] = c_mid
+		k2[m + q] = c_out
+	g.draw_polygon(p1, k1)
+	g.draw_polygon(p2, k2)
+
+
+## 圆周分成 n 段时，镜头 vc（半径 view）附近那段弧的序号范围 [x, y]（y 可以超过 n，调用方取模）；整圈都要画时返回 [0, n]，
+## 看不到任何一段时返回 y < x
+func _arc_range(n: int, c: Vector2, r: float, vc: Vector2, view: float) -> Vector2i:
+	var dc: float = vc.distance_to(c)
+	if absf(dc - r) > view + 60.0:
+		return Vector2i(0, -1)
+	if r < 1.0 or dc < 1.0 or view + 60.0 >= r:
+		return Vector2i(0, n)
+	var half: float = minf(PI, asin(clampf((view + 60.0) / r, 0.0, 1.0)) * 1.3)
+	var a0: float = fposmod((vc - c).angle(), TAU)
+	var i0: int = floori((a0 - half) / TAU * n) - 1
+	var i1: int = ceili((a0 + half) / TAU * n) + 1
+	if i1 - i0 >= n:
+		return Vector2i(0, n)
+	return Vector2i(i0, i1)
 
 
 ## 溟痕内沿：暗色描边垫底 + 溟痕裂纹的青色细线（安全区边界一眼看清，颜色取自溟痕贴图的青色裂纹）
