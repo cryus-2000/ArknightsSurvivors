@@ -956,7 +956,7 @@ func kill(e: Dictionary) -> void:
 			for o in g.enemies:
 				if o.dead or not o.get("part", false) or o.pos.distance_squared_to(e.pos) > cr * cr:
 					continue
-				g.fx.append({"kind": "tide_link", "a": e.pos, "b": o.pos, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.85, 0.4), "enemy": true})
+				g.fx.append({"kind": "drain", "a": e.pos, "b": o.pos, "life": 0.45, "max": 0.45, "enemy": true})   # 部件吸取（world.gd 画）
 				if o.get("cocoon_t", 0.0) > 0.0:
 					o.shell_hp -= o.shell_max * chip
 					if o.shell_hp <= 0.0:

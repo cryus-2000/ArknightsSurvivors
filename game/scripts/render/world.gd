@@ -406,6 +406,18 @@ func draw_world() -> void:
 						var ca := Color(0.7, 2.2, 1.0, a)
 						g.draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
 						g.draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
+			"drain":
+				# 部件吸取（周围小怪被击杀削部件血）：一串金色光点从击杀点沿弧线飞进部件，末端部件闪一下
+				var k := 1.0 - a
+				var mid: Vector2 = (f.a + f.b) / 2.0 + Vector2(0, -30)
+				for q in 5:
+					var u: float = clampf(k * 1.5 - q * 0.1, 0.0, 1.0)
+					if u <= 0.0 or u >= 1.0:
+						continue
+					var p: Vector2 = f.a.lerp(mid, u).lerp(mid.lerp(f.b, u), u)
+					g.draw_circle(p, 3.5 - q * 0.4, Color(1.9, 1.6, 0.7, 0.9))
+				if k > 0.65:
+					g.draw_circle(f.b, 12.0 * (k - 0.65) / 0.35 + 4.0, Color(1.9, 1.6, 0.7, 0.5 * (1.0 - k) / 0.35))
 			"glint":
 				# 竖直闪光（换剑）：十字星从中间展开再收
 				var k := 1.0 - a
@@ -1207,6 +1219,8 @@ func draw_nest_auras() -> void:
 	for e in g.enemies:
 		if e.dead:
 			continue
+		if float(e.get("burden_r", 0.0)) > 0.0 and e.get("cocoon_t", 0.0) <= 0.0:
+			_burden_ring(e)
 		var ed: Dictionary = D.ENEMIES.get(e.type, {})
 		if not ed.has("aura_r"):
 			continue
@@ -1370,6 +1384,59 @@ func _sword_glint(e: Dictionary, bpos: Vector2) -> void:
 	g.draw_line(hilt + Vector2(-7, 2), hilt + Vector2(7, -2), Color(1.6, 1.3, 0.6, a), 3.0)
 
 
+## 偏执泡影「认知负担」光环（e.burden_r，主控在圈里 e.burden_in）：地面紫色符文圈缓慢旋转；主控在圈里时加亮、符文逆转
+func _burden_ring(e: Dictionary) -> void:
+	var r: float = float(e.burden_r)
+	var inn: bool = e.get("burden_in", false)
+	var c := Color(0.8, 0.45, 1.4)
+	var a: float = 0.85 if inn else 0.45
+	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, ground_y()))
+	g.draw_circle(Vector2.ZERO, r, Color(c.r, c.g, c.b, 0.06 if inn else 0.03))
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 72, Color(c.r, c.g, c.b, 0.5 * a), 2.0)
+	g.draw_arc(Vector2.ZERO, r - 14.0, 0.0, TAU, 72, Color(c.r, c.g, c.b, 0.3 * a), 1.0)
+	var rot: float = g.t * (0.35 if inn else 0.15)
+	for q in 16:
+		var ang: float = rot + q * TAU / 16.0
+		var p := Vector2.from_angle(ang) * (r - 7.0)
+		var tn := Vector2.from_angle(ang + PI / 2.0)
+		var nr := Vector2.from_angle(ang)
+		# 一枚符文：竖划 + 按序号变化的横 / 斜划
+		g.draw_line(p - nr * 5.0, p + nr * 5.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+		match q % 3:
+			0:
+				g.draw_line(p - tn * 3.0, p + tn * 3.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+			1:
+				g.draw_line(p + nr * 5.0, p + nr * 1.0 + tn * 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+			_:
+				g.draw_line(p - nr * 5.0, p - nr * 1.0 - tn * 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 泡影茧（e.cocoon_t > 0；外壳 e.shell_hp / e.shell_max）：半透明紫色泡壳包住本体，按外壳损失比例出现裂纹，壳下方一条壳量条
+func _cocoon_fx(e: Dictionary, top: Vector2, foot: Vector2) -> void:
+	var c: Vector2 = (top + Vector2(0, 18) + foot) / 2.0
+	var rr: float = maxf(e.r * 1.2, (foot.y - top.y) * 0.6)
+	var dmg: float = 1.0 - clampf(float(e.get("shell_hp", 0.0)) / maxf(1.0, float(e.get("shell_max", 1.0))), 0.0, 1.0)
+	var wob: float = 1.0 + 0.03 * sin(g.t * 3.0)
+	g.draw_circle(c, rr * wob, Color(0.75, 0.4, 1.2, 0.22))
+	g.draw_arc(c, rr * wob, 0.0, TAU, 48, Color(1.2, 0.7, 1.7, 0.85), 2.5)
+	g.draw_arc(c, rr * 0.82, -2.5, -1.6, 10, Color(1.8, 1.5, 2.0, 0.8), 2.5)
+	# 裂纹：最多 6 道，从壳面往里，按外壳损失依次出现
+	var n: int = int(ceil(dmg * 6.0))
+	for q in n:
+		var ang: float = q * 2.39 + e.id * 0.7
+		var p0: Vector2 = c + Vector2.from_angle(ang) * rr
+		var p1: Vector2 = c + Vector2.from_angle(ang + 0.25) * rr * 0.72
+		var p2: Vector2 = c + Vector2.from_angle(ang - 0.1) * rr * 0.5
+		g.draw_polyline(PackedVector2Array([p0, p1, p2]), Color(0.05, 0.0, 0.1, 0.9), 3.0)
+		g.draw_polyline(PackedVector2Array([p0, p1, p2]), Color(1.8, 1.4, 2.0, 0.9), 1.2)
+	var bw: float = rr * 1.4
+	var by: Vector2 = c + Vector2(-bw / 2.0, rr + 10.0)
+	g.draw_rect(Rect2(by, Vector2(bw, 5)), Color(0, 0, 0, 0.7))
+	g.draw_rect(Rect2(by, Vector2(bw * (1.0 - dmg), 5)), Color(1.2, 0.7, 1.7))
+	UI.text(g, g.font, by + Vector2(0, -4), "打破外壳", 12, Color(0.95, 0.75, 1.0), HORIZONTAL_ALIGNMENT_CENTER, bw, 3)
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1423,6 +1490,9 @@ func _tear_zone(e: Dictionary) -> void:
 func _boss_state(e: Dictionary) -> void:
 	var top: Vector2 = _enemy_top(e) + Vector2(0, -18.0)
 	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8) if g.foot_anchor.has(e.tex) else e.pos
+	if e.get("cocoon_t", 0.0) > 0.0:
+		_cocoon_fx(e, top, foot)
+		return
 	if e.get("coma", false):
 		var k: float = clampf(e.hp / e.maxhp, 0.0, 1.0)
 		var rr: float = e.r + 12.0
@@ -1575,8 +1645,22 @@ func draw_warn_outlines() -> void:
 						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
 			"line":
 				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
-				g.draw_rect(Rect2(0.0, -w.wid - 2.0, w.len, w.wid * 2.0 + 4.0), dark, false, 2.0)
-				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+				if float(w.get("track", 0.0)) > 0.0 and w.t < float(w.track):
+					# 锁定时刻可视化（协调人）：还在跟着主控转的线画虚线，锁定（w.track）后变实线
+					var dl := Color(line.r, line.g, line.b, 0.45 + 0.3 * k)
+					var xx := 0.0
+					while xx < w.len:
+						var x2: float = minf(xx + 14.0, w.len)
+						for sy in [-w.wid, w.wid]:
+							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), dark, 4.0)
+							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), dl, 2.0)
+						xx += 24.0
+				else:
+					g.draw_rect(Rect2(0.0, -w.wid - 2.0, w.len, w.wid * 2.0 + 4.0), dark, false, 2.0)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+					var lk: float = w.t - float(w.get("track", 0.0))
+					if float(w.get("track", 0.0)) > 0.0 and lk < 0.15:
+						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * (1.0 - lk / 0.15)), true)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"cone":
 				var pts := PackedVector2Array([w.pos])

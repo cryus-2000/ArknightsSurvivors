@@ -1040,6 +1040,10 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["寒霜 ×%d" % g.cold, Color(0.6, 0.88, 1.0), clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.0, 1.0)])
 	if g.root_t > 0.0:
 		items.append(["%s · 冲刺挣脱" % ("冻结" if g.world.leader_frozen() else "束缚"), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
+	for bb in g.bosses:
+		if not bb.dead and bb.get("burden_in", false):
+			items.append(["认知负担 · 攻速 −%d%%" % roundi(Game.Bal.v("boss/paranoia_aura_aspd", 0.10) * 100.0), Color(0.85, 0.55, 1.0), -1.0])
+			break
 	if g.wound > 0:
 		items.append(["创口 ×%d" % g.wound, Color(1.0, 0.35, 0.6), clampf(g.wound_t / maxf(0.1, Game.Bal.v("enemy/wound_dur", 6.0)), 0.0, 1.0)])
 	if g.in_mire > 0.5:
