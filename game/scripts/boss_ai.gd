@@ -146,6 +146,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 						e.sword_done = true
 						e.ai = "melee"
 						g.vfx.add_text(e.pos + Vector2(0, -50), "换剑", Color(1.0, 0.5, 0.4), 18)
+						Sfx.play("carmen_sword", -2.1, 1.0, 0.0)
 					else:
 						e.sword_done = false
 						var rt: float = Bal.v("boss/iberia_reload", 4.0) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)
@@ -308,6 +309,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					var cd: float = Bal.v("boss/izumik_wave_cd2", 20.0) if gp >= 2 else Bal.v("boss/izumik_wave_cd", 25.0)
 					var wt: float = Bal.v("boss/izumik_wave_charge", 2.0)
 					e.wave_next = g.t + wt + cd
+					Sfx.play("izu_wave_count", 0.7, 2.0 / maxf(wt, 0.5), 0.0)   # 地波读秒：文件 2 秒，按蓄力时长 wt 变速，结束正好落在结算
 					_warn(e, "circle", wt, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "全场地波", "must_dash": true, "col": Color(0.5, 1.0, 0.7),
 						"dmg": minf(e.dmg * 2.0, g.max_hp * Bal.v("boss/izumik_wave_cap", 0.25))})
 					Sfx.play("skill", -2.0, 0.6)
@@ -587,6 +589,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	Sfx.play_cue("phase", e.type, "start")
 	e.cocoon_done = true
 	e.cocoon_t = Bal.v("boss/paranoia_cocoon", 8.0)
+	Sfx.play("cocoon_form", -7.3, 1.0, 0.0)   # 结茧（tools/gen_sfx_boss_events.py），垫在阶段音下面
 	e.hp = 1.0
 	e.invuln = true
 	e.part = true
@@ -636,13 +639,14 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	else:
 		e.gaze_bonus = int(e.get("gaze_bonus", 0)) + 1
 		g.vfx.add_text(e.pos + Vector2(0, -70), "蜕变 —— 凝视 +1", Color(0.9, 0.4, 1.0), 20)
-	Sfx.play("boom", -2.0, 0.9, 0.0)
+	Sfx.play("shell_break" if broken else "cocoon_revive", 2.0 if broken else -5.2, 1.0, 0.0)   # 破茧 / 超时蜕变
 
 
 ## ---- 伊祖米克（docs/38 §8.7）
 ## 吸收子代：强化层数 +1（最多 izumik_layer_max 层，每层解读阶段伤害 +izumik_layer_dmg）；借鉴项（docs/49 §5.2）：
 ## 每吸收一只学习期缩短 boss/izumik_absorb_cut 秒（缺省 0 = 不缩短）
 func izumik_absorb(e: Dictionary) -> void:
+	Sfx.play("izu_absorb", -9.5, 1.0, 0.0)   # 吸收子代
 	e.izu_layers = mini(int(e.get("izu_layers", 0)) + 1, int(Bal.v("boss/izumik_layer_max", 5.0)))
 	var cut: float = Bal.v("boss/izumik_absorb_cut", 0.0)
 	if cut > 0.0 and e.has("learn_t"):
@@ -672,6 +676,7 @@ func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
 					l.lit = true
 					g.fx.append({"kind": "ring", "pos": l.pos, "r": e.lamp_r, "life": 0.6, "max": 0.6, "col": Color(1.4, 1.1, 0.5), "enemy": true})
 					g.vfx.add_text(l.pos + Vector2(0, -40), "灯柱点亮", Color(1.0, 0.85, 0.4), 16)
+					Sfx.play("izu_lamp_lit", -4.0, 1.0, 0.0)
 			else:
 				l.prog = maxf(0.0, l.prog - dt)
 			continue
@@ -704,6 +709,8 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 	if not e.has("stakes"):
 		e.stakes = []
 		g.vfx.add_text(e.pos + Vector2(0, -70), "长枪插地 · 冰枪桩", Color(0.6, 0.9, 1.4), 18)
+	if e.stakes.any(func(s): return float(s.until) > 0.0 and g.t >= float(s.until)):   # 冰枪桩到期碎裂（撞桩的 until 置 0，不算）
+		Sfx.play("stake_shatter", -6.4, 1.0, 0.0)
 	e.stakes = e.stakes.filter(func(s): return g.t < float(s.until))
 	if e.stakes.size() < 2:
 		var want: int = int(Bal.v("boss/knight_stakes", 3.0))
@@ -726,6 +733,7 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 				s.until = 0.0
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 5.0))
+				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
 				g.vfx.sparks(s.pos, Vector2.UP, Color(0.8, 1.2, 1.6), 16, 260.0)
 				g.vfx.add_text(e.pos + Vector2(0, -70), "长枪脱手！", Color(1.0, 0.85, 0.4), 22)

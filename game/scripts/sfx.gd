@@ -4,6 +4,7 @@ extends Node
 const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
 	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
+	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword",
 	"boss_archon", "boss_bishop", "boss_carmen", "boss_iberia", "boss_immortal", "boss_ishar", "boss_izumik", "boss_knight_boss", "boss_paranoia", "boss_path", "cue_beam_hit", "cue_beam_start", "cue_charge_hit", "cue_charge_start", "cue_global_hit", "cue_global_start", "cue_land_hit", "cue_land_start", "cue_melee_hit", "cue_melee_start", "cue_phase_start"]
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0

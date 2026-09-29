@@ -634,11 +634,15 @@ func add_apop(v: float) -> void:
 		g.apop = 0.0
 		g.apop_t = minf(Bal.v("enemy/apop_pause", 4.0), 4.0)
 		g.vfx.add_text(g.ppos + Vector2(0, -104), "凋亡 · 技力暂停", Color(0.6, 1.0, 0.6), 18)
+		Sfx.play("apop_pause", -6.5, 1.0, 0.0)
 
 
 ## 每帧（enemies.update_status）：控制计时递减、创口掉血
 func update_ailments(dt: float) -> void:
+	var apop_was := g.apop_t > 0.0
 	g.apop_t = maxf(0.0, g.apop_t - dt)
+	if apop_was and g.apop_t <= 0.0:
+		Sfx.play("apop_resume", -8.4, 1.0, 0.0)   # 技力恢复
 	g.apop_hold += dt
 	if g.apop > 0.0 and g.apop_hold > 1.0:
 		g.apop = maxf(0.0, g.apop - Bal.v("enemy/apop_decay", 15.0) * dt)
