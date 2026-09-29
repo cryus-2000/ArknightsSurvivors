@@ -526,12 +526,15 @@ func _perf_sample() -> void:
 	if perf_last > 0 and g.state == g.S.PLAY:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if not perf.has(w):
-			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0}
+			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
+				"sfx0": _sfx_snap(), "fps40": 0}
 		var d: Dictionary = perf[w]
 		d.ft.append((now - perf_last) / 1000.0)
 		d.rcpu.append(RenderingServer.viewport_get_measured_render_time_cpu(rid))
 		d.gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
 		d.en.append(g.enemies.size())
+		if (now - perf_last) > 25000:
+			d.fps40 += 1   # 帧时间 > 25 毫秒（低于 40 fps）
 		var ft: float = (now - perf_last) / 1000.0
 		var br := {}
 		if g.prof_on:
@@ -563,10 +566,20 @@ func _perf_summary() -> Dictionary:
 		out[w] = {"n": d.ft.size(), "ft_med": _pct(d.ft, 0.5), "ft_p99": _pct(d.ft, 0.99), "ft_max": _pct(d.ft, 1.0),
 			"rcpu_med": _pct(d.rcpu, 0.5), "rcpu_p99": _pct(d.rcpu, 0.99), "gpu_med": _pct(d.gpu, 0.5), "gpu_p99": _pct(d.gpu, 0.99),
 			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0), "slow_n": d.slow_n,
-			"stage_ms": _per_frame(d.stage, d.ft.size()), "slow_stage_ms": _per_frame(d.slow_stage, d.slow_n)}
+			"stage_ms": _per_frame(d.stage, d.ft.size()), "slow_stage_ms": _per_frame(d.slow_stage, d.slow_n),
+			"below40_pct": snappedf(100.0 * d.fps40 / maxf(1.0, d.ft.size()), 0.1), "sfx": _sfx_delta(d.sfx0)}
 	perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
 	out["slow_top"] = perf_slow.slice(0, 25)
 	out["realtime"] = g.realtime
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null and "sfx_by" in sfx and not sfx.sfx_by.is_empty():
+		out["sfx_by_cat"] = _sfx_cats(sfx.sfx_by)
+		var names: Array = sfx.sfx_by.keys()
+		names.sort_custom(func(x, y): return sfx.sfx_by[x][0] > sfx.sfx_by[y][0])
+		var top := {}
+		for n in names.slice(0, 20):
+			top[n] = sfx.sfx_by[n]
+		out["sfx_by_top"] = top   # 音名 -> [请求, 实播, 合并, 丢弃, 降音量]
 	out["video"] = {"bloom": Cfg.bloom, "dof": Cfg.dof, "normal_maps": Cfg.normal_maps, "water_filter": Cfg.water_filter,
 		"size": str(g.get_viewport().get_visible_rect().size), "window": str(DisplayServer.window_get_size())}
 	return out
@@ -596,4 +609,51 @@ func _top_stages(br: Dictionary, n: int) -> Dictionary:
 	var out := {}
 	for k in ks.slice(0, n):
 		out[k] = snappedf(br[k], 0.1)
+	return out
+
+
+## 音效计数（sfx.gd 的 sfx_stat：实际播放 / 同名合并 / 满槽丢弃 / 抢占 / 降音量 / 同时发声峰值）；--perf 按段给增量
+func _sfx_snap() -> Dictionary:
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx == null or not ("sfx_stat" in sfx):
+		return {}
+	return sfx.sfx_stat.duplicate()
+
+
+func _sfx_delta(s0: Dictionary) -> Dictionary:
+	var s1 := _sfx_snap()
+	var out := {}
+	for k in s1:
+		if k == "voices_max":
+			out[k] = s1[k]
+		else:
+			out[k] = int(s1[k]) - int(s0.get(k, 0))
+	return out
+
+
+## 音效按类别汇总：命中 / 击杀 / 拾取 / 受击 / 干员普攻 / 干员技能 / 敌人 / Boss 与演出 / 其他；每类 [请求, 实播, 合并, 丢弃, 降音量]
+func _sfx_cats(by: Dictionary) -> Dictionary:
+	var out := {}
+	for n in by:
+		var c := "其他"
+		if n == "hit" or n.ends_with("_hit"):
+			c = "命中"
+		elif n == "kill":
+			c = "击杀"
+		elif n == "pickup":
+			c = "拾取"
+		elif n == "hurt" or n == "heartbeat":
+			c = "受击"
+		elif n.begins_with("op_") and (n.ends_with("_s1") or n.ends_with("_s2") or n.ends_with("_s3") or n.ends_with("_big")):
+			c = "干员技能"
+		elif n.begins_with("op_") or n == "swing":
+			c = "干员普攻"
+		elif n.begins_with("enemy_"):
+			c = "敌人"
+		elif n.begins_with("boss_") or n.begins_with("cue_") or n.ends_with("_break") or n == "roar":
+			c = "Boss 与演出"
+		if not out.has(c):
+			out[c] = [0, 0, 0, 0, 0]
+		for i in 5:
+			out[c][i] += int(by[n][i])
 	return out

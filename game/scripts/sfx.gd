@@ -697,6 +697,20 @@ const PRIO_NAME := {
 	"pickup": 1, "kill": 1, "hit": 1,
 }
 var sfx_stat := {"plays": 0, "merged": 0, "dropped": 0, "stolen": 0, "ducked": 0, "voices_max": 0, "us": 0}
+## --sfxstat（仅测试，Cfg.dev_args）：按音名计数 [请求, 实播, 同名合并, 满槽丢弃, 降音量]；--perf 结束时按类别汇总打印（run/autotest.gd）
+var sfx_by := {}
+var sfx_by_on := -1   # -1 = 还没读开关
+
+
+func _by(name: String, idx: int) -> void:
+	if sfx_by_on < 0:
+		var cfg: Node = get_node_or_null("/root/Cfg")
+		sfx_by_on = 1 if (cfg != null and cfg.dev_args().has("--sfxstat")) else 0
+	if sfx_by_on == 0:
+		return
+	if not sfx_by.has(name):
+		sfx_by[name] = [0, 0, 0, 0, 0]
+	sfx_by[name][idx] += 1
 
 
 func sfx_prio(name: String) -> int:
@@ -714,9 +728,11 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	var now := t0 / 1000000.0
+	_by(name, 0)
 	var lim: float = maxf(MERGE_T, float(LIMIT.get(name, op_limit.get(name, 0.0))))
 	if now - float(last.get(name, -1.0)) < lim:
 		sfx_stat.merged += 1
+		_by(name, 2)
 		return
 	var prio := sfx_prio(name)
 	var cfg: Node = get_node_or_null("/root/Cfg")
@@ -741,10 +757,12 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		p = null   # 低画质：按 16 个算满槽
 	if low and busy >= DUCK_AT and prio <= 2:
 		sfx_stat.dropped += 1
+		_by(name, 3)
 		return
 	if p == null:
 		if lowest == null or low_prio >= prio:   # 满槽且没有比自己低的：丢弃
 			sfx_stat.dropped += 1
+			_by(name, 3)
 			return
 		p = lowest
 		p.stop()
@@ -754,12 +772,14 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	if busy >= DUCK_AT and prio <= 2:
 		vol -= 6.0
 		sfx_stat.ducked += 1
+		_by(name, 4)
 	p.stream = streams[name]
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p.set_meta("prio", prio)
 	p.play()
 	sfx_stat.plays += 1
+	_by(name, 1)
 	sfx_stat.voices_max = maxi(int(sfx_stat.voices_max), busy + 1)
 	sfx_stat.us += Time.get_ticks_usec() - t0
 
