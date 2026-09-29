@@ -64,9 +64,9 @@ func update(dt: float) -> void:
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts2: Array = nearest_enemies(1, _range(), pos)
+		var ts2: Array = attack_targets(1, _range(), pos)   # 手动普攻 B 类（契约 v2.5）
 		if ts2.is_empty():
-			cd = 0.15
+			cd = idle_cd(0.15)
 		else:
 			cd = base("cd", 1.1) / stat(&"op_aspd")
 			start_attack(ts2[0].pos)
@@ -76,7 +76,7 @@ func update(dt: float) -> void:
 func _release() -> void:
 	var n: int = 1
 	# N2 复指：多打 1 个目标，多出的这一道 70%；S3 咒域期间只打扇形内的敌人
-	var ts: Array = nearest_enemies(n + (1 if anaphora else 0) + (6 if acuity_t > 0.0 else 0), _range(), pos)
+	var ts: Array = aim_targets(n + (1 if anaphora else 0) + (6 if acuity_t > 0.0 else 0), _range(), pos)
 	if acuity_t > 0.0:
 		ts = ts.filter(func(e): return _in_fan(e.pos)).slice(0, n + (1 if anaphora else 0))
 	if ts.is_empty():

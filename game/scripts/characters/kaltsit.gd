@@ -207,6 +207,8 @@ func _m_route(want: Vector2) -> Vector2:
 	return want
 
 
+var m_cmd_t := 0.0   # 手动普攻：Mon3tr 受命剩余秒数
+
 func _update_mon3tr(dt: float) -> void:
 	if m.pos == Vector2.INF or m.pos.distance_to(g.ppos) > 700.0:
 		m.pos = pos + M_REST * Vector2(face, 1.0)   # 出生点与回位点一致：凯尔希身前偏下（docs/45 §5）
@@ -228,7 +230,22 @@ func _update_mon3tr(dt: float) -> void:
 		ghost = {}
 	# 目标：主控 leash 范围内离 Mon3tr 最近的敌人；没有就回到凯尔希身边
 	var tg = m.tgt
-	if tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
+	if manual_attack():
+		# 手动普攻 B 类（契约 v2.5）：按攻击键才命令 Mon3tr 扑向瞄准方向的目标（±45°，退到前半面）；按下时换目标，
+		# 松手后 manual/m_linger 秒内打完手上这个，之后回凯尔希身边。凯尔希的治疗照旧自动
+		if g.doctor.attack_want():
+			m_cmd_t = preload("res://scripts/core/balance.gd").v("manual/m_linger", 1.2)
+			if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
+				var tsm: Array = aim_targets(1, M_LEASH, g.ppos)
+				if not tsm.is_empty():
+					tg = tsm[0]
+					g.doctor.atk_buf = 0.0
+		else:
+			m_cmd_t = maxf(0.0, m_cmd_t - dt)
+		if m_cmd_t <= 0.0 or (tg != null and (tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0)):
+			tg = null
+		m.tgt = tg
+	elif tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
 		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg

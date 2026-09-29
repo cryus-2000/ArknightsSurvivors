@@ -99,12 +99,12 @@ func update(dt: float) -> void:
 		start_skill(aim if aim != Vector2.INF else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 40.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 1.4) / stat(&"op_aspd") * (0.7 if haste_t > 0.0 else 1.0)
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 ## 锚击：身前半径内全部敌人
@@ -114,6 +114,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * _reach() * 0.55
 	# 精二 血脉沸腾：击杀精英后的这一击变为大爆破（半径 160、×2.5）
 	if blood_ready:
@@ -220,10 +221,13 @@ func _release_skill() -> void:
 	match cur_skill:
 		0, 2:
 			var to := _skill_target(cur_skill)
-			if cur_skill == 2 and manual_dir != Vector2.ZERO:
-				to = _aim_target(manual_dir)   # 当主控手动、玩家给了方向（契约 v2.4）
+			if cur_skill == 2 and manual_pt != Vector2.INF:
+				to = _snap_point(manual_pt)   # 当主控手动、玩家选了落点（契约 v2.5，JSON aim "point"）
+			elif cur_skill == 2 and manual_dir != Vector2.ZERO:
+				to = _aim_target(manual_dir)   # 只给了方向（契约 v2.4）
 			if cur_skill == 2:
 				manual_dir = Vector2.ZERO
+				manual_pt = Vector2.INF
 			if to == Vector2.INF:
 				sp[cur_skill] = sp_need(cur_skill) * 0.6   # 没目标：退回大半充能
 				return
@@ -266,10 +270,14 @@ func manual_block_reason(_i: int, dir: Vector2 = Vector2.ZERO) -> String:
 	return ""
 
 
-## 预计落点（界面画瞄准线与 r140 落点圈）：没方向 = 自动瞄准的落点，有方向 = _aim_target
+## 预计落点（界面画瞄准线与 r140 落点圈）：选落点模式（契约 v2.5）= 玩家此刻给的点（doctor.point_preview：光标 / 蓄距离 / 右摇杆 / 触屏拖动），
+## 触屏没拖 = 自动瞄准的落点；只给方向的旧模式：没方向 = 自动瞄准的落点，有方向 = _aim_target
 func manual_aim_point(i: int, dir: Vector2 = Vector2.ZERO) -> Vector2:
 	if i != 2 or pos == Vector2.INF:
 		return Vector2.INF
+	if manual_point(i) and is_leader:
+		var p: Vector2 = g.doctor.point_preview(self, i)
+		return _snap_point(clamp_point(i, p)) if p != Vector2.INF else _skill_target(2)
 	return _aim_target(dir.normalized()) if dir != Vector2.ZERO else _skill_target(2)
 
 
@@ -305,6 +313,15 @@ func _aim_target(dir: Vector2) -> Vector2:
 			bn = n
 			best = c
 	return best
+
+
+## 选落点的吸附（base aim_snap，缺省 0 = 不吸附，落点就是玩家给的点）：> 0 时吸到落点 aim_snap 内最近的敌人
+func _snap_point(pt: Vector2) -> Vector2:
+	var sn: float = base("aim_snap", 0.0)
+	if sn <= 0.0:
+		return pt
+	var ts: Array = nearest_enemies(1, sn, pt)
+	return ts[0].pos if not ts.is_empty() else pt
 
 
 ## 机器人：就绪（锚已收回、400 内有敌人）即放，等同改手动前的自动释放，批跑数值与之前可比

@@ -165,6 +165,7 @@ func validate_squad() -> bool:
 # ---------------------------------------------------------------- 每帧
 
 func update(dt: float) -> void:
+	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))

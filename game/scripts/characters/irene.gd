@@ -163,12 +163,12 @@ func update(dt: float) -> void:
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts2: Array = nearest_enemies(1, _reach() + 20.0, pos)
-		if ts2.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 20.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 0.8) / stat(&"op_aspd")
-			start_attack(ts2[0].pos)
+			start_attack(at)
 
 
 ## 出手帧（第一刺）；第二刺按帧条的 second 帧延后
@@ -178,6 +178,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	var mult := 1.0
 	var gust := gust_next
 	gust_next = false

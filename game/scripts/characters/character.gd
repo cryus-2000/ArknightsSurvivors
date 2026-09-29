@@ -243,19 +243,47 @@ func manual_ready(i: int, _dir: Vector2 = Vector2.ZERO) -> bool:
 ## 手柄 = 右摇杆（没推取左摇杆移动方向），手机 = 按住技能键拖出的方向；站着不动 / 直接点 = Vector2.ZERO（自动瞄准）。
 ## 干员在出手帧读 manual_dir（读完清零），并重写 manual_aim_point 给出预计落点（界面画瞄准线与落点圈）。机器人一律自动瞄准
 func manual_aims(i: int) -> bool:
-	return i >= 0 and bool(skill_def(i).get("aim", false))
+	if i < 0:
+		return false
+	var a = skill_def(i).get("aim", false)
+	return a is String or (a is bool and a)
+
+
+## 选落点（契约 v2.5）：技能 JSON "aim": "point" —— 玩家直接给落点（鼠标光标 / 键盘按住蓄距离 / 右摇杆推量 / 触屏拖动距离，
+## 见 doctor.point_now），落点夹在 aim_range 内，不吸附、不看密度（干员 base aim_snap > 0 时才吸附）。
+## 给点时 dir 取主控指向落点的方向，照走「带方向」那一套判定（manual_ready / manual_block_reason）
+func manual_point(i: int) -> bool:
+	return i >= 0 and str(skill_def(i).get("aim", "")) == "point"
+
+
+## 选落点技能的最远距离（干员 base aim_range，缺省 400，吃射程加成）
+func aim_range(_i: int) -> float:
+	return base("aim_range", 400.0) * stat(&"op_range")
+
+
+## 把玩家给的点夹进 aim_range
+func clamp_point(i: int, pt: Vector2) -> Vector2:
+	var off: Vector2 = pt - pos
+	return pos + off.limit_length(aim_range(i))
 
 
 var manual_dir := Vector2.ZERO
+var manual_pt := Vector2.INF   # 选落点技能：玩家给的落点（已夹进 aim_range；出手帧读，读完置 INF）
 
-func cast_manual(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+func cast_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF) -> bool:
 	if not manual_aims(i):
 		dir = Vector2.ZERO
+	if manual_point(i) and pt != Vector2.INF and pos != Vector2.INF:
+		pt = clamp_point(i, pt)
+		dir = (pt - pos).normalized() if pt.distance_to(pos) > 1.0 else Vector2(face, 0.0)
+	else:
+		pt = Vector2.INF
 	if not manual_ready(i, dir):
 		return false
 	manual_buf = 0.0
 	manual_dir = dir.normalized() if dir != Vector2.ZERO else Vector2.ZERO
-	start_skill(pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF, i)
+	manual_pt = pt
+	start_skill(pt if pt != Vector2.INF else (pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF), i)
 	return true
 
 
@@ -276,12 +304,15 @@ func manual_aim_point(_i: int, _dir: Vector2 = Vector2.ZERO) -> Vector2:
 const MANUAL_BUF := 1.0
 var manual_buf := 0.0
 var manual_buf_dir := Vector2.ZERO
+var manual_buf_pt := Vector2.INF
 
-func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
+func press_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF) -> String:
 	if not manual_aims(i):
 		dir = Vector2.ZERO
-	if cast_manual(i, dir):
+	if cast_manual(i, dir, pt):
 		return ""
+	if manual_point(i) and pt != Vector2.INF and pos != Vector2.INF and pt.distance_to(pos) > 1.0:
+		dir = (pt - pos).normalized()
 	if skill_active_left(i) > 0.0:
 		return "生效中"
 	if has_method("away") and call("away"):
@@ -292,6 +323,7 @@ func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
 	if why == "":
 		manual_buf = MANUAL_BUF
 		manual_buf_dir = dir
+		manual_buf_pt = pt
 	return why
 
 
@@ -303,7 +335,7 @@ func _tick_manual_buf(dt: float) -> void:
 	if i < 0:
 		manual_buf = 0.0
 	elif manual_ready(i, manual_buf_dir):
-		cast_manual(i, manual_buf_dir)
+		cast_manual(i, manual_buf_dir, manual_buf_pt)
 
 
 ## 充能已满但干员自己的条件不满足、等也没用时，按键提示的原因（如「附近没有敌人」）；空串 = 只是稍等，按键先记下
@@ -315,6 +347,107 @@ func manual_block_reason(_i: int, _dir: Vector2 = Vector2.ZERO) -> String:
 ## balance.json bot/manual_hp（0.3）才按；进攻型手动技能重写成自己的时机（乌尔比安 S3：就绪即放）
 func bot_wants_manual(_i: int) -> bool:
 	return g.hp < g.max_hp * preload("res://scripts/core/balance.gd").v("bot/manual_hp", 0.3)
+
+
+# ---------------------------------------------------------------- 手动普攻（契约 v2.5，docs/26 §v2.5）
+
+## 设置「普通攻击：手动」时只管主控（g.doctor.manual_attack 已排除机器人 / 自动测试 / 图鉴演示）：没按攻击键不起手，冷却照走，
+## 一按就出；轻点先记下 manual/atk_buf 秒（冷却没转好时不白按），按住连发。瞄准方向见 doctor.attack_dir。干员分两类接：
+## A 方向类（atk_point / atk_angle）：严格沿瞄准方向打，前方没人照样出手；B 需要目标类（attack_targets / aim_targets）：
+## 瞄准方向 ±manual/aim_cone_deg（45°）内最近的，没有退到 ±manual/aim_fallback_deg（90°，前半面），都没有才不出手、保留冷却
+func manual_attack() -> bool:
+	return is_leader and g.doctor.manual_attack
+
+
+## 这一帧允许普攻起手（自动模式恒为真）
+func attack_gate() -> bool:
+	return not manual_attack() or g.doctor.attack_want()
+
+
+## 没起手时的重试间隔：手动且没按攻击键时为 0（按下当帧就出），否则原值
+func idle_cd(v: float) -> float:
+	return 0.0 if manual_attack() and not g.doctor.attack_want() else v
+
+
+var atk_aim := Vector2.ZERO    # A 类：这一击手动给的方向（起手时记下，出手帧 atk_angle 用）；ZERO = 自动
+
+## A 类起手点：ts 为自动选出的目标（nearest_enemies 结果），reach 为这一击的距离。返回起手朝向点，Vector2.INF = 这一帧不出手。
+## 自动：有目标打目标；手动：没按不出，按了沿瞄准方向（触屏不拖 = 退回自动目标）
+func atk_point(ts: Array, reach: float) -> Vector2:
+	atk_aim = Vector2.ZERO
+	if manual_attack():
+		if not g.doctor.attack_want():
+			return Vector2.INF
+		var d: Vector2 = g.doctor.attack_dir()
+		if d != Vector2.ZERO:
+			atk_aim = d
+			g.doctor.atk_buf = 0.0
+			return pos + d * reach
+		if not ts.is_empty():
+			g.doctor.atk_buf = 0.0
+	return ts[0].pos if not ts.is_empty() else Vector2.INF
+
+
+## A 类出手帧的方向角：这一击手动给了方向就用它（并转身），否则用 fallback（干员原来按目标算的角）
+func atk_angle(fallback: float) -> float:
+	if atk_aim == Vector2.ZERO:
+		return fallback
+	var a: float = atk_aim.angle()
+	face_to(a)
+	return a
+
+
+## A 类里的远程落点（维什戴尔炮弹、艾雅法拉熔岩弹）：这一击手动给了方向时，落点在瞄准方向上、距离 = 方向 ±aim_cone_deg 内
+## 最近敌人的距离；锥内没人取 reach × manual/land_empty（0.8）。返回伪目标 {id: -1, pos}（只有 pos / id 可用）；自动时返回空字典
+func aim_land(reach: float) -> Dictionary:
+	if atk_aim == Vector2.ZERO:
+		return {}
+	var BalS = preload("res://scripts/core/balance.gd")
+	var c: float = cos(deg_to_rad(BalS.v("manual/aim_cone_deg", 45.0))) - 0.0001
+	var dist: float = reach * BalS.v("manual/land_empty", 0.8)
+	for e in g.enemies_sys.nearest(48, reach, pos):
+		var off: Vector2 = e.pos - pos
+		if off.length() >= 1.0 and off.normalized().dot(atk_aim) >= c:
+			dist = off.length()
+			break
+	return {"id": -1, "pos": pos + atk_aim * dist, "dead": false, "elite": false, "boss": false, "r": 0.0}
+
+
+## B 类起手选目标：自动 = nearest_enemies；手动没按 = 空；按了 = aim_targets
+func attack_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if not manual_attack():
+		return nearest_enemies(n, max_dist, origin)
+	if not g.doctor.attack_want():
+		return []
+	var out := aim_targets(n, max_dist, origin)
+	if not out.is_empty():
+		g.doctor.atk_buf = 0.0
+	return out
+
+
+## B 类按瞄准方向选目标（出手帧重新找目标也用它；不看按键，起手后松手照样打完）：
+## ±aim_cone_deg 内由近到远，没有退到 ±aim_fallback_deg；触屏不拖（方向为 ZERO）= 最近的
+func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if not manual_attack():
+		return nearest_enemies(n, max_dist, origin)
+	var d: Vector2 = g.doctor.attack_dir()
+	if d == Vector2.ZERO:
+		return nearest_enemies(n, max_dist, origin)
+	var BalS = preload("res://scripts/core/balance.gd")
+	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
+	var pool: Array = g.enemies_sys.nearest(maxi(n * 4, 48), max_dist, origin)
+	for deg in [BalS.v("manual/aim_cone_deg", 45.0), BalS.v("manual/aim_fallback_deg", 90.0)]:
+		var c: float = cos(deg_to_rad(deg)) - 0.0001
+		var out: Array = []
+		for e in pool:
+			var off: Vector2 = e.pos - o
+			if off.length() < 1.0 or off.normalized().dot(d) >= c:
+				out.append(e)
+				if out.size() >= n:
+					break
+		if not out.is_empty():
+			return out
+	return []
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）

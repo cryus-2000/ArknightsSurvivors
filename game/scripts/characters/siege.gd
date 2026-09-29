@@ -88,17 +88,17 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)   # S1 也走 start_skill：播 command 帧条（docs/45 #1），效果在出手帧结算
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 30.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 1.0) / stat(&"op_aspd") * (1.33 if skull > 0.0 else 1.0)
 			if skull > 0.0:
 				# 碎颅：每一锤都是强化版砸地（播技能动作帧），出手时仍走 _release 结算
 				heavy_swing = true
-				_start_action("skill", ts[0].pos, 0.6, 0.3)
+				_start_action("skill", at, 0.6, 0.3)
 			else:
-				start_attack(ts[0].pos)
+				start_attack(at)
 
 
 func _release() -> void:
@@ -107,6 +107,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	var mult := 1.0
 	if charge_next:
 		charge_next = false

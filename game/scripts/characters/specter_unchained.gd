@@ -117,12 +117,12 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 30.0, pos), _reach())   # 手动普攻（契约 v2.5）：360° 环斩不分方向，只受闸门
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 1.2) / stat(&"op_aspd") / (1.0 + base("s2_aspd", 0.6) if s2_t > 0.0 else 1.0) * (base("s3_cd_mult", 1.6) if s3_t > 0.0 else 1.0)
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 func _atk_mult() -> float:

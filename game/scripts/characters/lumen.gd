@@ -46,6 +46,8 @@ func _heal_mult() -> float:
 
 # ---------------------------------------------------------------- 每帧
 
+var bolt_armed := false   # 手动普攻：这次起手是按攻击键起的（出手帧才射光弹）
+
 func update(dt: float) -> void:
 	cd -= dt
 	hand_glow = maxf(0.0, hand_glow - dt)
@@ -70,10 +72,14 @@ func update(dt: float) -> void:
 		return
 	heal_t += dt
 	if cd <= 0.0:
-		cd = base("bolt_cd", 1.0) / stat(&"op_aspd")
-		var ts: Array = nearest_enemies(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
+		# 手动普攻 B 类（契约 v2.5）：光弹要按攻击键；治疗 / 驱散照旧自动（到点照样起手，只是不射光弹）
+		var ts: Array = attack_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
+		bolt_armed = not ts.is_empty()
 		if not ts.is_empty() or heal_t >= base("heal_cd", 3.0):
+			cd = base("bolt_cd", 1.0) / stat(&"op_aspd")
 			start_attack(ts[0].pos if not ts.is_empty() else g.ppos)
+		else:
+			cd = idle_cd(base("bolt_cd", 1.0) / stat(&"op_aspd"))
 
 
 ## 荧光出手帧（灯最亮）：到点则驱散优先、其次治疗；同时向最近敌人射光弹
@@ -95,8 +101,8 @@ func _release() -> void:
 		_talent_lamp()
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
 	hand_glow = 0.18   # 与出手动作等长，提灯放下后不再悬着光点（docs/45 #15）
-	# 光弹
-	var ts: Array = nearest_enemies(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
+	# 光弹（手动普攻时只有按了攻击键的这一下才射）
+	var ts: Array = aim_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos) if bolt_armed or not manual_attack() else []
 	if not ts.is_empty():
 		var d: Vector2 = (ts[0].pos - lamp_hand).normalized()
 		if bolts.size() < BOLT_MAX:

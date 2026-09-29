@@ -142,9 +142,9 @@ func update(dt: float) -> void:
 	if haze_t > 0.0:
 		return   # 狐火迷雾：期间不普攻
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(2, base("range", 350.0) * stat(&"op_range"), pos)
+		var ts: Array = attack_targets(2, base("range", 350.0) * stat(&"op_range"), pos)   # 手动普攻 B 类（契约 v2.5）
 		if ts.is_empty():
-			cd = 0.2
+			cd = idle_cd(0.2)
 		else:
 			cd = base("cd", 1.2) / stat(&"op_aspd")
 			merging = _next_merge() and not volley_next
@@ -165,7 +165,7 @@ func _release() -> void:
 		mult = base("s1_mult", 1.2) * skill_power()
 	var big := merging and not volley
 	merging = false
-	var ts: Array = nearest_enemies(n, (base("range", 350.0) + 20.0) * stat(&"op_range"), pos)   # 狐火索敌跟着射程走（原写死 400）
+	var ts: Array = aim_targets(n, (base("range", 350.0) + 20.0) * stat(&"op_range"), pos)   # 狐火索敌跟着射程走（原写死 400）
 	var from := _staff_head()
 	if ts.is_empty():
 		return

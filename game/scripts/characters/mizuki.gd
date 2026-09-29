@@ -149,16 +149,16 @@ func update(dt: float) -> void:
 	swing_cd -= dt
 	if swing_cd <= 0.0:
 		var radius := _swing_radius()
-		var targets = nearest_enemies(1, radius + 60.0, pos)
-		if targets.size() > 0:
+		var at := atk_point(nearest_enemies(1, radius + 60.0, pos), radius)   # 手动普攻 A 类（契约 v2.5）
+		if at != Vector2.INF:
 			# 藏品加速（极速之手 / 国王的新枪 / 投币玩具）已由 relic_fx 写进全队的 op_aspd，不再单独乘
 			var interval: float = base("swing_interval", 0.9) * u_spd_mult / stat(&"op_aspd") * (1.5 if g.atk_slow > 0.0 else 1.0)
 			if s2_active > 0.0:
 				interval *= S2_INTERVAL
 			swing_cd = max(0.18, interval)
-			_umbrella(targets[0])
+			_umbrella({"id": -1, "pos": at})
 		else:
-			swing_cd = 0.1
+			swing_cd = idle_cd(0.1)
 
 
 func skill_active_left(i: int) -> float:

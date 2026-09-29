@@ -93,16 +93,16 @@ func update(dt: float) -> void:
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, base("range", 290.0) * stat(&"op_range"), pos)
-		if ts.is_empty():
-			cd = 0.2
+		var at := atk_point(nearest_enemies(1, base("range", 290.0) * stat(&"op_range"), pos), base("range", 290.0) * stat(&"op_range"))   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.2)
 		else:
 			cd = base("cd", 1.2) / stat(&"op_aspd")
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 func _release() -> void:
-	var ts: Array = nearest_enemies(1, (base("range", 290.0) + 40.0) * stat(&"op_range"), pos)
+	var ts: Array = nearest_enemies(1, (base("range", 290.0) + 40.0) * stat(&"op_range"), pos) if atk_aim == Vector2.ZERO else [aim_land(base("range", 290.0) * stat(&"op_range"))]
 	if ts.is_empty():
 		return
 	var hot := heat > 0

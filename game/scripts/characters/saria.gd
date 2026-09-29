@@ -128,12 +128,12 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 40.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 0.9) / stat(&"op_aspd")
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 ## 阻挡圈：每 0.25 秒把主控周围 block_radius 内的非 Boss 敌人推到圈外、减速
@@ -164,6 +164,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	# 精二 莱茵充能护服满格：这一击变成全方位冲击（半径 110、×1.8、强击退），之后清零重新充能
 	if suit_seg >= 4:
 		suit_seg = 0

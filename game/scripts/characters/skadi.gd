@@ -80,16 +80,16 @@ func update(dt: float) -> void:
 			fx({"kind": "glow", "pos": pos + Vector2(0, -20), "r": 26.0, "life": 0.3, "col": BLUE, "alpha": 0.35})
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 30.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 0.7) / stat(&"op_aspd")
 			# 潮汐 8 秒内每一斩播绕身回旋（op_skadi_attack_spin，docs/32 验收 §2）；缺图退回 attack 条
 			if tide > 0.0:
 				start_attack(Vector2.INF, 0.5, 0.25, "attack_spin")   # 起手不转向
 			else:
-				start_attack(ts[0].pos)
+				start_attack(at)
 
 
 func _aim() -> float:
@@ -133,7 +133,7 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 
 
 func _release() -> void:
-	var ang := _aim()
+	var ang := atk_angle(_aim())
 	var dmg: float = base("atk", 40.0) * _dmg_bonus() * (base("s3_mult", 1.5) * skill_power() if tide > 0.0 else 1.0)
 	var half: float = PI if tide > 0.0 else 1.4
 	var hits := melee_hit("大剑", pos + Vector2(0, -10), ang, half, _reach(), dmg, 60.0)

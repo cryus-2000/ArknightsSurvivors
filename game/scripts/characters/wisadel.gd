@@ -124,15 +124,16 @@ func update(dt: float) -> void:
 		return
 	if cd <= 0.0:
 		var tgt: Dictionary = _target(_reach())
-		if tgt.is_empty():
-			cd = 0.2
+		var at := atk_point([tgt] if not tgt.is_empty() else [], _reach())   # 手动普攻 A 类（契约 v2.5）：落点见 aim_land
+		if at == Vector2.INF:
+			cd = idle_cd(0.2)
 		else:
 			cd = base("cd", 1.4) / stat(&"op_aspd") * (base("s3_cd", 0.6) if ammo > 0 else 1.0)
-			start_attack(tgt.pos)
+			start_attack(at)
 
 
 func _release() -> void:
-	var tgt: Dictionary = _target(_reach(520.0))
+	var tgt: Dictionary = _target(_reach(520.0)) if atk_aim == Vector2.ZERO else aim_land(_reach())
 	if tgt.is_empty():
 		return
 	if ammo > 0:
