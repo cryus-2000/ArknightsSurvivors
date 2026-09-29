@@ -150,6 +150,10 @@ func update(dt: float) -> void:
 		boss_idx += 1
 		var group: Array = []
 		if boss_idx == D.BOSS_TIMES.size():
+			# 测试探针（仅 A/B 分支）：--forceending=<结局> 指定最终 Boss（standard 泡影 / deep 伊莎玛拉 / knight 骑士 / resolve 伊祖米克）
+			for a in Cfg.dev_args():
+				if a.begins_with("--forceending=") and D.ENDINGS.has(a.substr(14)):
+					g.ending = a.substr(14)
 			group = [D.ENDINGS[g.ending].boss]
 		else:
 			var pool: Array = []
@@ -159,6 +163,10 @@ func update(dt: float) -> void:
 			var pick: int = pool[g.rng.randi() % pool.size()]
 			if g.force_boss >= 0 and not mid_used.has(g.force_boss):
 				pick = g.force_boss
+			# 测试探针（仅 A/B 分支）：--forceboss2=<MID_POOL 下标> 指定第二个（7:00）中期 Boss，例如 3 = 主教 + 蔑视体、4 = 主教 + 斥亡者
+			for a in Cfg.dev_args():
+				if a.begins_with("--forceboss2=") and boss_idx == 2 and not mid_used.has(int(a.substr(13))):
+					pick = int(a.substr(13))
 			mid_used.append(pick)
 			group = D.MID_POOL[pick]
 		var base := edge_pos()
