@@ -5,6 +5,7 @@ extends RefCounted
 ## 点燃：清除半径 260 内的自然 / 小怪溟痕（Boss 溟痕只把剩余寿命缩到 ≤ 2 秒，不删），这片区域 30 秒内不再生成自然溟痕
 ## （map.mire_new 落点检查 blocks()），灯标亮着当安全区标记，+5 灯火；同时清空主控与光圈内队友的神经损伤。
 ## 联动：灯火 < 30 时点燃时间 ×1.5；流明灯塔区覆盖灯标时点燃速度 ×2；缩圈把灯标卷到圈外即熄灭消失。
+## 定位（协调人 9/30）：灯标给的是「局部安全区」，不是清图——Ⅷ 常驻溟痕下存量 25–30 属预期；加强用的旋钮 clear_all_r / block_r 缺省关闭。
 ## 状态存在 g.beacons（world / hud 画面读）：{pos, lit, prog, need, lit_t, count_end, count_max, r, clear_r, safe_end, dead}；
 ## count_end / count_max 为点燃读条（界面与美术的通用倒计时环可直接吃）。旋钮 balance.json beacon 段，beacon/enabled = 0 关闭。
 
@@ -122,7 +123,8 @@ func _light(b: Dictionary) -> void:
 	b.safe_end = g.t + _k("block_t", 30.0)
 	b.count_end = 0.0
 	lit_n += 1
-	var cr: float = _k("clear_r", 260.0)
+	# beacon/clear_all_r（缺省 0 = 关）：> 0 时点燃清痕半径改用它（取两者较大者），留给真人反馈后加强用（协调人 9/30 ①）
+	var cr: float = maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0))
 	var cleared := 0
 	for m in g.mires:
 		if m.pos.distance_to(b.pos) > cr:
@@ -150,7 +152,8 @@ func clear_nerve(at: Vector2, r: float) -> void:
 
 ## map.mire_new 落点检查：点燃的灯标周围禁刷期内不生成自然溟痕
 func blocks(p: Vector2) -> bool:
-	var cr: float = _k("clear_r", 260.0)
+	# beacon/block_r（缺省 0 = 关）：> 0 时禁刷半径改用它（取与清痕半径的较大者），同上留作旋钮
+	var cr: float = maxf(maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0)), _k("block_r", 0.0))
 	for b in g.beacons:
 		if b.lit and g.t - b.lit_t <= _k("block_t", 30.0) and b.pos.distance_to(p) < cr:
 			return true

@@ -302,4 +302,10 @@
 
 **推荐 C（灯标）**，理由：只靠走位、符合原作「设施 / 装置对付溟痕」的思路、和黑潮缩圈与 Ⅷ 常驻溟痕都能配合、不抢流明的位置。实现成本低于 B：新增 `g.beacons` 数组（刷新沿用 spawner 的 `next_mire` 写法），点燃时按距离过滤 `g.mires` 并跳过 `boss` 为真的溟痕，禁刷期在 `map.mire_new` 的落点处检查。若想先快速验证，可以先上 A 作为临时版本（一处改动），再上 C。
 
+**实装备注（玩法系统，2026-09-30，协调人定）**：C 已实装为「引航灯标」（run/beacon.gd，3c431d7 / a5dc791 / 61bf676），与上文的差异：
+- 选址改为主控 250–400 环上**溟痕最密的点**（灯标兼作「溟痕在哪」的指路标）；Boss 在场也刷；清痕半径 260 → 340。
+- 没点燃的灯标 45 秒后熄灭、放行下一座（原来没人点的一座一直占位），熄灭时屏内飘字 / 屏外横幅；难度表 beacon_every 控制刷新间隔（数值按档填）。
+- **定位是「局部安全区」，不是清图**：Ⅷ 常驻溟痕下，本地 12 局 8–10 分钟溟痕存量 27–30 块，属预期（原定 < 20 的目标撤回）；档位说明保持「自然溟痕常驻，只有引航灯标能驱散」。
+- 留作真人反馈后加强的旋钮（缺省关）：beacon/clear_all_r（点燃清痕半径）、beacon/block_r（禁刷半径）。
+
 来源（类幸存者部分）：[VS 念珠](https://vampire.survivors.wiki/w/Rosary)、[VS Orologion](https://vampire.survivors.wiki/w/Orologion)、[VS Nduja](https://vampire.survivors.wiki/w/Nduja_Fritta_Tanto)、[VS Vacuum](https://vampire.survivors.wiki/w/Vacuum)、[Brotato 消耗品](https://brotato.wiki.spellsandguns.com/Consumables)、[Brotato 地雷](https://brotato.wiki.spellsandguns.com/Landmines)、[HoT 拾取物](https://hot.fandom.com/wiki/Pickup)、[HoT 秘密 / 神龛](https://hot.fandom.com/wiki/Secret)、[DRG:S 挖掘讨论](https://steamcommunity.com/app/2321470/discussions/0/4342103705852468095/)、[Soulstone 主动技能](https://soulstone-survivors.fandom.com/wiki/Active_Skill)、[Soulstone 冲刺改动](https://steamdb.info/patchnotes/13884795/)、[HoloCure 必杀技](https://holocure.wiki.gg/wiki/Special_Attack)。Gungeon、RoR2、星际争霸、Splatoon 为通识转述（待核细节数值）。
