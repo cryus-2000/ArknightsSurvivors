@@ -311,7 +311,8 @@ func update_ebullets(dt: float) -> void:
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 6.0 if bm else 10.0, "seed": g.rng.randf() * 100.0, "boss": bm})
+			# 小怪子弹留的溟痕按来源定大小 / 时长（浮海飘航者的神经弹：半径 30、5 秒，协调人 9/29 定 A；站进去累积神经损伤）
+			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.rng.randf() * 100.0, "boss": bm})
 		if hitp:
 			b.life = 0.0
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）

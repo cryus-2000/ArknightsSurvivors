@@ -74,6 +74,7 @@ func _process(_d: float) -> void:
 	test_lore4()
 	test_lore5()
 	test_nerve()
+	test_floater_mire()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -1199,3 +1200,19 @@ func test_nerve() -> void:
 	game.root_t = 0.0
 	game.hp = game.max_hp
 	boss_e.dead = false
+
+
+## 浮海飘航者神经弹（协调人 9/29 定 A）：命中 / 落地留下一小片溟痕（半径 30、5 秒）
+func test_floater_mire() -> void:
+	var fl: Dictionary = game.spawner.spawn_enemy("floater", game.ppos + Vector2(200, 0))
+	var nm: int = game.mires.size()
+	game.eai.shoot(fl, Vector2.LEFT)
+	var b: Dictionary = game.ebullets[game.ebullets.size() - 1]
+	b.life = 0.0001
+	game.enemies_sys.update_ebullets(0.01)
+	var ok_m := false
+	if game.mires.size() > nm:
+		var m: Dictionary = game.mires[game.mires.size() - 1]
+		ok_m = absf(float(m.maxr) - 30.0) < EPS and absf(float(m.life) - 5.0) < 0.1
+	ok(ok_m, "飘航者神经弹落地留下半径 30、5 秒的溟痕")
+	fl.dead = true

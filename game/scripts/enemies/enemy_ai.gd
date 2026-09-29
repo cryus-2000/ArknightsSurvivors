@@ -304,7 +304,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "frost": e.get("frost", 0.0), "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type})
+			"mire": (e.type == "paranoia" and e.phase == 2) or d.get("shot_mire", false), "mire_r": float(d.get("shot_mire_r", 52.0)), "mire_life": float(d.get("shot_mire_life", 10.0)), "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type})
 	if e.boss:
 		e.pose = 0.4
 		e.pose_max = 0.4
