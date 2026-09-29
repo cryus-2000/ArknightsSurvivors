@@ -395,7 +395,7 @@ func draw() -> void:
 		elif D.ENEMIES[shown.type].get("pair", false):
 			sub = "两体需同时击倒"
 		elif shown.type == "paranoia":
-			sub = "悬浮形态（控制它以击落）" if shown.phase == 1 else "第二形态"
+			sub = ("悬浮形态（打到 1/3 血坠落）" if Game.Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0 else "悬浮形态（结茧后坠落）") if shown.phase == 1 else "第二形态"
 		UI.text(g.hud, g.font, Vector2(bx + bw - 400, 122), sub, 12, sub_col, HORIZONTAL_ALIGNMENT_RIGHT, 400)
 		# 血条颜色：破绽中金色；阶段护盾时金色闪；无敌灰蓝；平时洋红
 		var bcol: Color = UI.RED
