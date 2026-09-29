@@ -1308,6 +1308,15 @@ func leader_frozen() -> bool:
 	return g.root_t > 0.0 and g.cold >= int(Game.Bal.v("enemy/frost_max", 3.0))
 
 
+## 神经损伤满格的眩晕：同样走 g.root_t（冲刺挣脱），刚满格时 nerve_lock > 0
+func leader_nerve_stun() -> bool:
+	return g.root_t > 0.0 and not leader_frozen() and g.get("nerve_lock") != null and float(g.nerve_lock) > 0.0
+
+
+func root_label() -> String:
+	return "冻结" if leader_frozen() else ("眩晕" if leader_nerve_stun() else "束缚")
+
+
 func draw_leader_ailments() -> void:
 	if g.root_t > root_prev + 0.01:
 		root_max = g.root_t
@@ -1328,7 +1337,17 @@ func draw_leader_ailments() -> void:
 			UI.diamond(g, cp, 4.0, Color(0.85, 1.2, 1.6, 0.9 * ca), Color(0.2, 0.4, 0.7, 0.9))
 	if g.root_t > 0.0:
 		var k: float = clampf(g.root_t / maxf(0.05, root_max), 0.0, 1.0)
-		if leader_frozen():
+		if leader_nerve_stun():
+			# 神经损伤眩晕：头顶三颗洋红星转圈 + 脑后一圈抖动的神经纹
+			for q in 3:
+				var a3: float = g.t * 6.0 + q * TAU / 3.0
+				UI.diamond(g, body + Vector2(cos(a3) * 18.0, -40.0 + sin(a3) * 5.0), 4.0, Color(1.8, 0.7, 1.6), Color(0.2, 0.0, 0.2, 0.9))
+			var zz := PackedVector2Array()
+			for i in 13:
+				var a4: float = i * TAU / 12.0
+				zz.append(body + Vector2(cos(a4), sin(a4) * 0.5) * (26.0 + 3.0 * sin(g.t * 30.0 + i * 2.0)) + Vector2(0, -30))
+			g.draw_polyline(zz, Color(1.6, 0.6, 1.5, 0.7), 1.5)
+		elif leader_frozen():
 			# 冰壳：六边形晶体罩住全身，剩余越少越透明、出裂纹
 			var pts := PackedVector2Array()
 			for i in 6:
@@ -1352,10 +1371,20 @@ func draw_leader_ailments() -> void:
 				g.draw_polyline(pts2, BIND_COL, 2.0)
 		# 倒计时环（脚下）
 		g.draw_set_transform(foot, 0.0, Vector2(1.0, 0.42))
-		var rc: Color = COLD_COL if leader_frozen() else BIND_COL
+		var rc: Color = COLD_COL if leader_frozen() else (Color(1.6, 0.6, 1.5) if leader_nerve_stun() else BIND_COL)
 		g.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 40, Color(0, 0, 0, 0.5), 6.0)
 		g.draw_arc(Vector2.ZERO, 36.0, -PI / 2.0, -PI / 2.0 + TAU * k, 40, rc, 4.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
+	var nk: float = clampf(g.nerve / nmax, 0.0, 1.0)
+	if nk > 0.05 and g.root_t <= 0.0:
+		# 神经损伤累积：头部周围一圈洋红细电弧，量越高越多越快
+		var n2: int = 1 + int(nk * 5.0)
+		for q in n2:
+			var a5: float = g.t * (3.0 + 5.0 * nk) + q * TAU / n2
+			var p5: Vector2 = body + Vector2(cos(a5) * 20.0, -30.0 + sin(a5) * 7.0)
+			var j: Vector2 = Vector2(sin(g.t * 40.0 + q) * 3.0, cos(g.t * 37.0 + q) * 3.0)
+			g.draw_line(p5, p5 + Vector2(6, -4) + j, Color(1.8, 0.6, 1.6, 0.4 + 0.5 * nk), 1.5)
 	if g.wound > 0:
 		for q in g.wound:
 			var wp: Vector2 = body + Vector2(-12 + (q % 2) * 20, -10 + q * 9)
@@ -1491,6 +1520,10 @@ func _cocoon_fx(e: Dictionary, top: Vector2, foot: Vector2) -> void:
 	g.draw_circle(c, rr * wob, Color(0.75, 0.4, 1.2, 0.22))
 	g.draw_arc(c, rr * wob, 0.0, TAU, 48, Color(1.2, 0.7, 1.7, 0.85), 2.5)
 	g.draw_arc(c, rr * 0.82, -2.5, -1.6, 10, Color(1.8, 1.5, 2.0, 0.8), 2.5)
+	if e.flash > 0.0:
+		# 外壳受伤速度有上限（每秒最多 1/4）：挨打时壳面白闪 +「抵抗」，提示打得再快也要等
+		g.draw_arc(c, rr * wob, 0.0, TAU, 48, Color(2.0, 2.0, 2.0, 0.8), 4.0)
+		UI.text(g, g.font, c + Vector2(-40, -rr - 8.0), "抵抗", 13, Color(1.0, 0.9, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	# 裂纹：最多 6 道，从壳面往里，按外壳损失依次出现
 	var n: int = int(ceil(dmg * 6.0))
 	for q in n:

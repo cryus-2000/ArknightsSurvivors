@@ -320,7 +320,8 @@ func _build() -> void:
 				var tags: Array = []
 				if e.get("corrode", 0.0) > 0.0:
 					tags.append("侵蚀")
-				if e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0:
+				# 命中附带神经损伤缺省不生效（enemy/nerve_hit_mult = 0，神经只由溟痕 / 巢涌者光环累积）：倍率打开了才标
+				if (e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0) and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
 					tags.append("神经损伤")
 				if e.get("hover", false):
 					tags.append("悬浮")
@@ -334,7 +335,7 @@ func _build() -> void:
 					mech += "\n\n第二招：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
 					if float(e.extra.get("frost", 0.0)) > 0.0:
 						mech += "命中附加短暂寒冷。"
-					if float(e.extra.get("nerve", 0.0)) > 0.0:
+					if float(e.extra.get("nerve", 0.0)) > 0.0 and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
 						mech += "命中累积神经损伤。"
 					if float(e.extra.get("stun", 0.0)) > 0.0:
 						mech += "命中造成短暂僵直，连续命中有保护间隔。"

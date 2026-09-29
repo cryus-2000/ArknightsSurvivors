@@ -178,7 +178,7 @@ func draw() -> void:
 		var fz: bool = g.world.leader_frozen()
 		var bp: float = absf(sin(g.t * 8.0)) * 4.0
 		var key: String = "冲刺键" if g.touch.active else Pad.hint("空格", "Ⓑ")
-		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按 %s 冲刺挣脱" % ["冻结" if fz else "束缚", key], 15, Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
+		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按 %s 冲刺挣脱" % [g.world.root_label(), key], 15, Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
 	# 商人方向指示
 	if not g.merchant.is_empty():
 		var sp: Vector2 = ct * g.merchant.pos
@@ -1099,8 +1099,13 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["国王之势", Color(1.0, 0.8, 0.3), -1.0])
 	if g.corrode_pool > 0.5:
 		items.append(["侵蚀 %d" % int(g.corrode_pool), Color(0.8, 0.5, 1.0), -1.0])
-	if g.nerve > 5.0:
-		items.append(["神经损伤", Color(1.0, 0.5, 0.9), g.nerve / 100.0])
+	# 神经损伤（Boss与怪物 419c84d：0–nerve_max，站在溟痕 / 巢涌者光环里上涨；满格后 nerve_lock 秒锁定）
+	var nlock: float = float(g.get("nerve_lock")) if g.get("nerve_lock") != null else 0.0
+	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
+	if nlock > 0.0:
+		items.append(["神经 · 锁定 %.1f" % nlock, Color(0.62, 0.6, 0.66), clampf(nlock / 5.0, 0.0, 1.0)])
+	elif g.nerve > 1.0:
+		items.append(["神经损伤 %d" % int(g.nerve / nmax * 100.0), Color(1.0, 0.5, 0.9), clampf(g.nerve / nmax, 0.0, 1.0)])
 	if g.atk_slow > 0.0:
 		items.append(["攻速减缓", Color(0.6, 0.7, 0.9), clampf(g.atk_slow / 3.0, 0.0, 1.0)])
 	if g.pstun > 0.0:
@@ -1109,7 +1114,7 @@ func draw_status_bar(vs: Vector2) -> void:
 	if g.cold > 0:
 		items.append(["寒霜 ×%d" % g.cold, Color(0.6, 0.88, 1.0), clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.0, 1.0)])
 	if g.root_t > 0.0:
-		items.append(["%s · 冲刺挣脱" % ("冻结" if g.world.leader_frozen() else "束缚"), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
+		items.append(["%s · 冲刺挣脱" % g.world.root_label(), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
 	for bb in g.bosses:
 		if not bb.dead and bb.get("burden_in", false):
 			items.append(["认知负担 · 攻速 −%d%%" % roundi(Game.Bal.v("boss/paranoia_aura_aspd", 0.10) * 100.0), Color(0.85, 0.55, 1.0), -1.0])
