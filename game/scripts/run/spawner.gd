@@ -129,12 +129,20 @@ func mob_count() -> int:
 	return n
 
 
+## 同屏敌人上限：enemy/max_alive（缺省 450）；真人选低画质时 enemy/max_alive_low（300）。
+## 机器人 / 自动测试一律用 450——上限会改玩法，批跑数据不能受玩家设置影响
+func max_alive() -> int:
+	if Cfg.quality == "low" and not g.autotest:
+		return int(Bal.v("enemy/max_alive_low", 300.0))
+	return int(Bal.v("enemy/max_alive", float(MAX_ENEMIES)))
+
+
 ## 最终 Boss 在场时还能刷几只普通怪（boss/final_mob_cap；不在最终 Boss 战或上限为 0 时不限）
 func final_mob_room() -> int:
 	if g.final_boss == null or g.final_boss.dead:
-		return MAX_ENEMIES
+		return max_alive()
 	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
-	return cap - mob_count() if cap > 0 else MAX_ENEMIES
+	return cap - mob_count() if cap > 0 else max_alive()
 
 
 func boss_alive() -> bool:
@@ -231,7 +239,7 @@ func update(dt: float) -> void:
 		if mob_room <= 0:
 			continue
 		mob_room -= 1
-		if g.enemies.size() < MAX_ENEMIES:
+		if g.enemies.size() < max_alive():
 			var ne := spawn_enemy(pick_type(), edge_pos())
 			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
 			if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
@@ -289,7 +297,7 @@ func update(dt: float) -> void:
 		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "mix": str(mix.get("name", "")), "comp": comp}
 		g.horde_log.append(hl)
 		for s in plan:
-			if g.enemies.size() >= MAX_ENEMIES + 60:
+			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng.randf_range(560.0, 640.0) + float(s.dr))

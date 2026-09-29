@@ -12,6 +12,7 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
+	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality", "note": "低配机选低"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
@@ -30,7 +31,7 @@ const ROWS := [
 ## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
+	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
 	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
 ]
 
@@ -151,6 +152,8 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.set(row.key, clamp(snappedf(Cfg.get(row.key) + dir * 0.1, 0.1), 0.0, 1.0))
 		"bool":
 			Cfg.set(row.key, not Cfg.get(row.key))
+		"quality":
+			Cfg.set_quality("low" if Cfg.quality == "high" else "high")
 		"shake":
 			var v: float = Cfg.shake
 			v = [0.0, 0.5, 1.0][(int(round(v * 2.0)) + (1 if dir > 0 else 2)) % 3]
@@ -246,6 +249,9 @@ func _draw() -> void:
 			"bool":
 				var b: bool = Cfg.get(row.key)
 				UI.text(self, font, Vector2(vx, rr.position.y + 24), str(row.get("on", "开")) if b else str(row.get("off", "关")), 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			"quality":
+				var hq: bool = Cfg.quality != "low"
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), "高" if hq else "低", 18, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"shake":
 				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
 				UI.text(self, font, Vector2(vx, rr.position.y + 24), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)

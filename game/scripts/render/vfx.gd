@@ -89,6 +89,7 @@ func shake_screen(_a: float) -> void:
 func sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
 	if g.fx.size() > 400:
 		return
+	n = maxi(1, int(round(n * Cfg.fx_density()))) if n > 0 else 0   # 低画质粒子减半（视觉，不影响模拟）
 	for i in n:
 		var a := g.vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + g.vrng.randf_range(-0.7, 0.7)
 		g.fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * g.vrng.randf_range(0.4, 1.0),
