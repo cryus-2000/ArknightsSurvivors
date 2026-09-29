@@ -178,7 +178,7 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		if e.aura_t >= 0.5:
 			e.aura_t = 0.0
 			if g.invuln <= 0.0:
-				g.combat.add_nerve(float(d.get("aura_nerve", 10.0)) * 0.5)
+				g.nerve_aura_t = 0.6   # 神经光环按「站在溟痕里」累积神经损伤（combat.update_nerve）
 	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai._cd(e, "lash", float(d.get("lash_cd", 5.0))):
 		Sfx.enemy("screech", dist)
 		g.bai._warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3})

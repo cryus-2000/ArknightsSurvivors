@@ -73,6 +73,7 @@ func _process(_d: float) -> void:
 	test_lore3()
 	test_lore4()
 	test_lore5()
+	test_nerve()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -452,11 +453,15 @@ func test_no_hard_cc() -> void:
 		reset()
 		game.invuln = 0.0
 		game.nerve = 99.0
+		game.nerve_lock = 0.0
+		game.root_t = 0.0
+		game.root_immune = 0.0
 		c.add_nerve(5.0)
 		if alive:
-			ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：神经损伤溢出换成减速（僵直 %.2f）" % [tag, game.pstun])
+			ok(game.pstun <= 0.0 and game.root_t <= 0.0 and c.slows.has("stun"), "%s：神经损伤满格换成减速（僵直 %.2f）" % [tag, game.pstun])
 		else:
-			ok(absf(game.pstun - 0.4) < EPS, "%s：神经损伤溢出照旧僵直 0.4 秒（%.2f）" % [tag, game.pstun])
+			ok(game.root_t > 0.0 and game.pstun <= 0.0, "%s：神经损伤满格眩晕 %.1f 秒（按硬控规则，冲刺可挣脱）" % [tag, game.root_t])
+		game.root_t = 0.0
 		# 冲击环（精英的踏地震荡；Boss 存活时 Boss 的冲击环）
 		reset()
 		game.invuln = 0.0
@@ -472,10 +477,12 @@ func test_no_hard_cc() -> void:
 	reset()
 	game.invuln = 0.0
 	game.nerve = 99.0
+	game.nerve_lock = 0.0
 	c.add_nerve(5.0)
 	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "僵直换成的减速：移速 ×%.2f（应 ×%.2f）" % [c.move_mult(1.0), sm])
 	game.nerve = 99.0
+	game.nerve_lock = 0.0
 	c.add_nerve(5.0)
 	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "同种减速重复吃到不叠乘（×%.2f）" % c.move_mult(1.0))
@@ -549,11 +556,11 @@ func test_atk_slow_floor() -> void:
 		reset()
 		game.invuln = 0.0
 		game.nerve = 99.0
+		game.nerve_lock = 0.0
+		game.root_immune = 0.0
 		c.add_nerve(5.0)
-		if alive:
-			ok(game.atk_slow <= 0.0 and c.slows.has("atk") and absf(float(c.slows["atk"][0]) - 2.5) < EPS, "%s：神经损伤溢出不写 atk_slow，换成 2.5 秒减速" % tag)
-		else:
-			ok(absf(game.atk_slow - 2.5) < EPS, "%s：神经损伤溢出照旧 atk_slow 2.5（%.2f）" % [tag, game.atk_slow])
+		ok(game.atk_slow <= 0.0 and not c.slows.has("atk"), "%s：神经损伤满格不再减攻速（用户 9/29 按原作改为真伤 + 眩晕）" % tag)
+		game.root_t = 0.0
 		# 带 slow 的子弹：Boss 的（任何时候都不写）和不是 Boss 的
 		for bb in [true, false]:
 			reset()
@@ -663,9 +670,11 @@ func test_v8() -> void:
 	# 深溟巢涌者：主控在光环内累积神经损伤
 	var ne: Dictionary = sp.spawn_enemy("nest", game.ppos + Vector2(60, 0))
 	game.invuln = 0.0   # 狂奔者自爆打中后有无敌帧
+	game.nerve_lock = 0.0   # 前面的用例打满过神经损伤，锁定期还没过
 	var n0: float = game.nerve
 	for k in 6:
 		ai.pattern(ne, Vector2.LEFT, 60.0, dt, ne.spd)
+		c.update_nerve(dt, false, false)   # 光环按「站在溟痕里」由每帧的 update_nerve 累积
 	ok(game.nerve > n0, "巢涌者光环累积神经损伤（%.1f → %.1f）" % [n0, game.nerve])
 	ne.dead = true
 	game.nerve = 0.0
@@ -1160,3 +1169,33 @@ func test_lore5() -> void:
 	ish.gates_passed = 1
 	ok(bai._ishar_haste(ish) < 1.0, "过卡点后轮换恢复时间 ×%.2f" % bai._ishar_haste(ish))
 	ish.dead = true
+
+
+## 神经损伤（用户 9/29 按原作）：只在溟痕里累积，满格一次真伤 + 眩晕，之后清零并锁 5 秒；离开溟痕回落；流明光域不累积
+func test_nerve() -> void:
+	boss_e.dead = true
+	game.nerve = 0.0
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.root_immune = 0.0
+	game.invuln = 0.0
+	c.update_nerve(1.0, true, false)
+	var n1: float = game.nerve
+	ok(n1 > 0.0, "站在溟痕里神经损伤累积（1 秒 %.0f）" % n1)
+	c.update_nerve(1.0, false, false)
+	ok(game.nerve < n1, "离开溟痕回落")
+	var nb: float = game.nerve
+	c.update_nerve(1.0, true, true)
+	ok(game.nerve < nb or game.nerve == 0.0, "流明光域里不累积")
+	var h0: float = game.hp
+	game.nerve = c.nerve_max() - 1.0
+	c.update_nerve(1.0, true, false)
+	ok(game.nerve == 0.0 and game.nerve_lock > 0.0 and game.root_t > 0.0 and game.hp < h0, "满格：真伤 + 眩晕，清零并锁定")
+	c.update_nerve(1.0, true, false)
+	ok(game.nerve == 0.0, "锁定期间不再累积")
+	c.enemy_hit(1.0, {"nerve": 50.0}, true, true)
+	ok(game.nerve == 0.0, "命中附带的神经损伤缺省不累积（只有溟痕）")
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.hp = game.max_hp
+	boss_e.dead = false

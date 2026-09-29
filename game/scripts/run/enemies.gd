@@ -342,7 +342,6 @@ func update_status(dt: float) -> void:
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
-	g.nerve = max(0.0, g.nerve - 6.0 * dt)
 	if g.corrode_pool > 0.0:
 		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
 		g.combat.drain_corrode(tick)
@@ -358,6 +357,7 @@ func update_status(dt: float) -> void:
 				mire_nat = true
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血（不叠神经损伤）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
+	g.combat.update_nerve(dt, mired, sanct)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
 		mire_tick -= dt

@@ -109,27 +109,49 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.corrode_pool += add
 		if add > 0.0:
 			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
+	# 命中附带的神经损伤：用户 9/29 按原作改成只有溟痕累积，命中来源乘 enemy/nerve_hit_mult（缺省 0 = 不累积）
 	if src.get("nerve", 0.0) > 0.0:
-		add_nerve(src.nerve * g.nerve_taken_mult)
+		add_nerve(src.nerve * g.nerve_taken_mult * Bal.v("enemy/nerve_hit_mult", 0.0))
 
 
 func on_dodge() -> void:
 	g.rfx.on_dodge()
 
 
+## ---- 神经损伤（用户 9/29，按原作 PRTS：溟痕每秒累积，满格一次真伤 + 眩晕）
+## 站在溟痕里（自然 / 小怪 / Boss 溟痕、巢涌者的神经光环都算）每秒 +enemy/nerve_mire × 难度修正 nerve_rate，离开后每秒 −nerve_decay，
+## 流明光域里不累积且回落加倍。满 nerve_max：一次真伤 nerve_burst（最大生命 12%，走 lose_hp，受 2 秒合计上限）+ 眩晕 nerve_stun 秒
+## （按硬控规则：冲刺挣脱、之后免疫、Boss 在场换成减速），然后清零并 nerve_lock 秒不再累积——满格惩罚是一次性的，不是持续的。
+## 字段 g.nerve（0–nerve_max）、g.nerve_lock；净化清 g.nerve
+func nerve_max() -> float:
+	return Bal.v("enemy/nerve_max", 100.0)
+
+
 func add_nerve(v: float) -> void:
+	if v <= 0.0 or g.nerve_lock > 0.0:
+		return
 	g.nerve += v
-	if g.nerve >= 100.0:
+	if g.nerve >= nerve_max():
 		g.nerve = 0.0
+		g.nerve_lock = Bal.v("enemy/nerve_lock", 5.0)
 		if not stun_as_slow():
-			g.pstun = 0.4
-		if not atk_slow_as_slow(2.5):
-			g.atk_slow = maxf(g.atk_slow, 2.5)
+			add_root(Bal.v("enemy/nerve_stun", 1.2), "眩晕")
 		g.dmg_src = "nerve"
 		g.in_type = ["近战", "真实"]
-		hurt(g.max_hp * 0.08, true)
+		hurt(g.max_hp * Bal.v("enemy/nerve_burst", 0.12), true)
 		g.vfx.add_text(g.ppos + Vector2(0, -100), "神经损伤！", Color(1.0, 0.5, 0.9), 20)
 		Sfx.play("skill", -4.0, 1.6)
+
+
+## 每帧（enemies.update_status）：in_src = 站在溟痕里（不含流明光域）；sanct = 在流明光域里
+func update_nerve(dt: float, in_src: bool, sanct: bool) -> void:
+	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
+	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
+	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
+	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
+		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * dt)
+	else:
+		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
 
 
 ## ---- 主控保护「永不硬控」「移速下限」「攻速」（docs/38 §1.11，B0-2 / B0-3）
