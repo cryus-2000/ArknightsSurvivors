@@ -61,7 +61,7 @@ func update(dt: float) -> void:
 	if elite >= 1 and g.lamp >= 70.0:
 		for i in 3:
 			if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i] and skill_active_left(i) <= 0.0:
-				sp[i] = minf(sp_need(i), sp[i] + dt * 0.2 * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
+				sp[i] = minf(sp_need(i), sp[i] + dt * 0.2 * g.sp_mult * stat(&"op_skill_sp") * lamp_sp() * (0.0 if g.apop_t > 0.0 else 1.0))   # 凋亡满条时与自然充能一起暂停（Boss与怪物 09e4945）
 	if acting():
 		return
 	var ready := charge_skills(dt)
