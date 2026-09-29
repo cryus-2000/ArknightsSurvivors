@@ -17,6 +17,11 @@ var bosstest := false
 var choice_wait := 0
 var choice_shot := false
 var trace_last := -1
+# --perf（仅测试，开窗口跑 --balance 时用）：按游戏时间分段记真实帧时间、渲染 CPU / GPU 时间与同屏敌人数，
+# 结束时打印一行 PERF {...}。注意 --balance 每帧推进 0.066 秒（正常游戏约 0.017 秒），每帧的模拟量偏大，帧时间是偏保守的上界
+var perf_on := false
+var perf_last := 0
+var perf := {}
 
 
 func _init(game: Game) -> void:
@@ -60,6 +65,8 @@ func bot_pick() -> int:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
+	if g.balance and Cfg.dev_args().has("--perf"):
+		_perf_sample()
 	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_open_%03d.png" % g.at_frames)
@@ -265,6 +272,8 @@ func step() -> void:
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (g.state == g.S.DEAD or g.state == g.S.WIN or g.t > g.bal_maxt) and not bal_done:
 			bal_done = true
+			if perf_on:
+				print("PERF ", JSON.stringify(_perf_summary()))
 			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			g.get_tree().quit()
 		return
@@ -503,3 +512,42 @@ func bot_move() -> Vector2:
 	if mv.length() < 0.15:
 		mv = Vector2.from_angle(g.t * 0.3) * 0.3
 	return mv
+
+
+func _perf_sample() -> void:
+	var rid: RID = g.get_viewport().get_viewport_rid()
+	if not perf_on:
+		perf_on = true
+		RenderingServer.viewport_set_measure_render_time(rid, true)
+	var now := Time.get_ticks_usec()
+	if perf_last > 0 and g.state == g.S.PLAY:
+		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
+		if not perf.has(w):
+			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array()}
+		var d: Dictionary = perf[w]
+		d.ft.append((now - perf_last) / 1000.0)
+		d.rcpu.append(RenderingServer.viewport_get_measured_render_time_cpu(rid))
+		d.gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
+		d.en.append(g.enemies.size())
+	perf_last = now
+
+
+## 各段：帧数、帧时间中位 / 最差 1%（P99）/ 最大、渲染 CPU 中位 / P99、GPU 中位 / P99（毫秒）、敌人数中位 / 峰值
+func _perf_summary() -> Dictionary:
+	var out := {}
+	for w in perf:
+		var d: Dictionary = perf[w]
+		out[w] = {"n": d.ft.size(), "ft_med": _pct(d.ft, 0.5), "ft_p99": _pct(d.ft, 0.99), "ft_max": _pct(d.ft, 1.0),
+			"rcpu_med": _pct(d.rcpu, 0.5), "rcpu_p99": _pct(d.rcpu, 0.99), "gpu_med": _pct(d.gpu, 0.5), "gpu_p99": _pct(d.gpu, 0.99),
+			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0)}
+	out["video"] = {"bloom": Cfg.bloom, "dof": Cfg.dof, "normal_maps": Cfg.normal_maps, "water_filter": Cfg.water_filter,
+		"size": str(g.get_viewport().get_visible_rect().size), "window": str(DisplayServer.window_get_size())}
+	return out
+
+
+func _pct(a, q: float) -> float:
+	if a.size() == 0:
+		return 0.0
+	var b: Array = Array(a)
+	b.sort()
+	return snappedf(float(b[mini(b.size() - 1, int(q * (b.size() - 1) + 0.5))]), 0.01)
