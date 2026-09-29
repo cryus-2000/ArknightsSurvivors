@@ -131,6 +131,12 @@ func watch_bosses() -> void:
 		if b.get("phase", 1) != s[1] and not b.dead:
 			s[1] = b.get("phase", 1)
 			boss_phase_fx(b)
+		var sw: bool = b.get("sword_t", 0.0) > 0.0
+		if s.size() < 4:
+			s.append(sw)
+		elif sw and not s[3]:
+			sword_swap_fx(b)
+		s[3] = sw
 		if b.dead and not s[2]:
 			s[2] = true
 			if not b.get("retreated", false):
@@ -400,6 +406,13 @@ func draw_world() -> void:
 						var ca := Color(0.7, 2.2, 1.0, a)
 						g.draw_rect(Rect2(p - Vector2(sz * 0.35, sz), Vector2(sz * 0.7, sz * 2.0)), ca)
 						g.draw_rect(Rect2(p - Vector2(sz, sz * 0.35), Vector2(sz * 2.0, sz * 0.7)), ca)
+			"glint":
+				# 竖直闪光（换剑）：十字星从中间展开再收
+				var k := 1.0 - a
+				var L: float = 60.0 * sin(k * PI)
+				g.draw_line(f.pos + Vector2(0, -L), f.pos + Vector2(0, L), Color(2.0, 2.0, 2.0, a), 3.0)
+				g.draw_line(f.pos + Vector2(-L * 0.4, 0), f.pos + Vector2(L * 0.4, 0), Color(2.0, 2.0, 2.0, a), 2.0)
+				g.draw_circle(f.pos, 6.0 * a, Color(2.0, 2.0, 2.0, a))
 			"reflow":
 				# 碎片回流（塑路者核心超时）：一串碎石沿弧线从碎片位置冲回本体，尾迹变红，末端在本体上炸一圈
 				var k := 1.0 - a
@@ -1005,6 +1018,11 @@ func draw_enemy(e: Dictionary) -> void:
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
+	if e.has("ammo") and e.get("break_t", 0.0) > 0.0:
+		sq *= Vector2(1.1, 0.78)   # 装填被打断：跪地（没有跪地帧条，压低代替）
+		col = col * Color(0.8, 0.8, 0.9)
+	if e.get("sword_t", 0.0) > 0.0:
+		_sword_glint(e, bpos)
 	if e.get("air", 0.0) > 0.0:
 		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
 		g.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
@@ -1154,7 +1172,7 @@ func _count_ring(e: Dictionary) -> void:
 	var left: float = maxf(0.0, float(e.count_end) - g.t)
 	var k: float = clampf(left / float(e.count_max), 0.0, 1.0)
 	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8) if g.foot_anchor.has(e.tex) else e.pos + Vector2(0, e.r * 0.5)
-	var c: Color = PART_COL if e.get("part", false) else (Color(0.5, 1.5, 1.4) if e.get("coma", false) else ENEMY_TELL)
+	var c: Color = PART_COL if e.get("part", false) else (Color(0.5, 1.5, 1.4) if e.get("coma", false) else (Color(1.6, 1.2, 0.5) if e.get("channel", 0.0) > 0.0 else ENEMY_TELL))   # 读条（圣徒装填）金色
 	if left < 3.0:
 		c = c.lerp(Color(1.8, 0.4, 0.35), 0.5 + 0.5 * sin(g.t * 16.0))
 	var rr: float = maxf(e.r + 14.0, 26.0)
@@ -1333,6 +1351,25 @@ func _heartbeat(e: Dictionary) -> float:
 	return maxf(pow(maxf(0.0, 1.0 - ph * 5.0), 2.0), 0.6 * pow(maxf(0.0, 1.0 - absf(ph - 0.28) * 6.0), 2.0))
 
 
+## 卡门换剑（sword_t 上升沿）：枪收剑出——白色竖闪 + 一圈银环 + 火花
+func sword_swap_fx(b: Dictionary) -> void:
+	g.fx.append({"kind": "ring", "pos": b.pos, "r": b.r * 2.2, "life": 0.4, "max": 0.4, "col": Color(1.6, 1.6, 1.8), "enemy": true})
+	g.fx.append({"kind": "glint", "pos": b.pos + Vector2(b.fx * b.r * 0.9, -b.r * 0.6), "life": 0.35, "max": 0.35, "enemy": true})
+	g.vfx.sparks(b.pos + Vector2(0, -b.r * 0.5), Vector2.UP, Color(1.8, 1.7, 1.4), 12, 260.0)
+
+
+## 剑形态期间：身侧一把竖着的银色剑光（剩最后 1 秒闪烁提示要换回枪）
+func _sword_glint(e: Dictionary, bpos: Vector2) -> void:
+	var st: float = e.sword_t
+	var a: float = 0.85 if st > 1.0 else 0.4 + 0.45 * absf(sin(g.t * 14.0))
+	var side: float = 1.0 if e.fx >= 0.0 else -1.0
+	var hilt: Vector2 = bpos + Vector2(side * e.r * 0.9, -e.r * 0.9)
+	var tip: Vector2 = hilt + Vector2(side * 10.0, -e.r * 1.6)
+	g.draw_line(hilt, tip, Color(0.1, 0.1, 0.15, a), 6.0)
+	g.draw_line(hilt, tip, Color(1.7, 1.7, 1.9, a), 3.0)
+	g.draw_line(hilt + Vector2(-7, 2), hilt + Vector2(7, -2), Color(1.6, 1.3, 0.6, a), 3.0)
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1406,11 +1443,21 @@ func _boss_state(e: Dictionary) -> void:
 				g.draw_line(e.pos + dn * s, e.pos + dn * minf(s + 8.0, L), Color(tc.r, tc.g, tc.b, 0.45), 2.0)
 				s += 16.0
 		return
-	if e.get("channel", 0.0) > 0.0 and e.type in ["iberia", "carmen"]:
-		var k: float = clampf(1.0 - e.channel / 2.0, 0.0, 1.0)
-		var rr: float = e.r + 10.0
+	if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
 		var gc := Color(1.6, 1.2, 0.5)
-		_ground_ring(foot, rr, k, gc)
+		var k: float = clampf(1.0 - e.channel / 2.0, 0.0, 1.0)
+		if e.get("count_max", 0.0) > 0.0:
+			k = clampf(1.0 - (float(e.count_end) - g.t) / float(e.count_max), 0.0, 1.0)   # 通用倒计时环已画在脚下
+		else:
+			_ground_ring(foot, e.r + 10.0, k, gc)
+		# 读条光圈：「快打它」——身周金色光圈呼吸 + 向内收的细环
+		var cc: Vector2 = (top + Vector2(0, 18) + foot) / 2.0
+		var hh: float = maxf(e.r, (foot.y - top.y - 18.0) / 2.0) * 1.15
+		var br: float = 0.5 + 0.5 * sin(g.t * 9.0)
+		g.draw_circle(cc, hh, Color(1.6, 1.2, 0.4, 0.07 + 0.06 * br))
+		g.draw_arc(cc, hh, 0.0, TAU, 40, Color(1.8, 1.4, 0.5, 0.55 + 0.35 * br), 2.5)
+		var u: float = fmod(g.t * 1.6, 1.0)
+		g.draw_arc(cc, hh * (1.6 - 0.6 * u), 0.0, TAU, 40, Color(1.8, 1.4, 0.5, 0.5 * u), 1.5)
 		for q in 3:
 			var on: bool = k >= (q + 1) / 3.0
 			var pp: Vector2 = top + Vector2(-14 + q * 14, 10)
@@ -1418,12 +1465,15 @@ func _boss_state(e: Dictionary) -> void:
 			g.draw_rect(Rect2(pp - Vector2(3, 5), Vector2(6, 10)), Color(0, 0, 0, 0.7), false, 1.0)
 		UI.text(g, g.font, top + Vector2(-120, -6), "装填中 · 攻击打断", 13, gc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		return
-	if e.stun > 0.05:
+	var brk: float = e.get("break_t", 0.0)
+	if e.stun > 0.05 or (brk > 0.0 and e.has("ammo")):
 		for q in 3:
 			var a: float = g.t * 5.0 + q * TAU / 3.0
 			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
 			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
-		if e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
+		if e.has("ammo") and brk > 0.0:
+			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 晕眩 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 
 
