@@ -17,6 +17,17 @@ static func _load() -> void:
 	var d = JSON.parse_string(f.get_as_text())
 	if d is Dictionary:
 		_data = d
+	# 测试探针（numbers-probe，不合入 main）：--bal=段/键=值 覆盖旋钮，一个分支跑多组数值
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--bal=") and a.count("=") == 2:
+			var kv: PackedStringArray = a.substr(6).split("=")
+			var keys: PackedStringArray = kv[0].split("/")
+			var cur: Dictionary = _data
+			for i in keys.size() - 1:
+				if not (cur.get(keys[i]) is Dictionary):
+					cur[keys[i]] = {}
+				cur = cur[keys[i]]
+			cur[keys[keys.size() - 1]] = float(kv[1])
 
 
 ## 按「段/键」路径取数值
