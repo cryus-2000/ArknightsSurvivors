@@ -129,8 +129,15 @@ func _move_expert() -> Vector2:
 		if s > best:
 			best = s
 			best_dir = d
-	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and here > -4.0:
-		return Vector2.ZERO   # 站在灯标光圈里等点燃（脚下危险时照常躲）
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and _stand_ok(p, bullets):
+		return Vector2.ZERO   # 站在灯标光圈里等点燃（只躲预警 / 弹幕 / 溟痕，普通怪贴近照站）
+	# bot/beacon_walk_r（缺省 120）内直接走进光圈（诊断：机器人有 9% 的帧在追灯标，却只有 0.8% 的帧到过 55 内——被怪群的安全分挡在外面）；
+	# 走的方向上没有预警 / 弹幕 / 溟痕、血量 ≥40% 才走，否则照常按打分躲
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < g.Bal.v("bot/beacon_walk_r", 120.0):
+		var bdir: Vector2 = (beacon_hold - p).normalized()
+		if _stand_ok(p + bdir * 40.0, bullets):
+			last_dir = bdir
+			return bdir
 	if best_dir != Vector2.ZERO:
 		last_dir = best_dir
 	return best_dir
@@ -496,7 +503,11 @@ func _move_master(_dt: float) -> Vector2:
 		if s > best:
 			best = s
 			best_dir = d
-	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and here > -4.0:
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < g.Bal.v("bot/beacon_walk_r", 120.0) and p.distance_to(beacon_hold) >= 55.0:
+		var bdir2: Vector2 = (beacon_hold - p).normalized()
+		if _stand_ok(p + bdir2 * 40.0, bullets):
+			best_dir = bdir2   # 120 内直接走进光圈（同高手）
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and _stand_ok(p, bullets):
 		best_dir = Vector2.ZERO   # 站在灯标光圈里等点燃（脚下危险时照常躲；冲刺判定照常）
 	if best_dir != Vector2.ZERO:
 		last_dir = best_dir
@@ -731,3 +742,17 @@ func _master_boss_goal(p: Vector2) -> Vector2:
 			return (p - bb.pos).normalized() * 0.8
 		return Vector2.ZERO
 	return Vector2.INF
+
+
+## 灯标光圈里能不能站定（协调人 9/30 定，诊断：Ⅷ 离圈 88% 是「脚下危险」，而危险多半只是普通怪贴近）：
+## 只躲预警、弹幕、溟痕，普通怪贴近照样站（真人会硬扛着点灯）；血量低于 40% 立刻不站，免得硬扛送死把 Ⅷ 的校准带偏
+func _stand_ok(p: Vector2, bullets: Array) -> bool:
+	if g.hp < g.max_hp * 0.4:
+		return false
+	for wv in g.warns:
+		if not wv.done and _in_warn(wv, p, 12.0):
+			return false
+	for m in g.mires:
+		if g.combat.ground_d(p, m.pos) < float(m.r) + 10.0:
+			return false
+	return _bullet_risk(p, Vector2.ZERO, 0.0, bullets) >= 0.0
