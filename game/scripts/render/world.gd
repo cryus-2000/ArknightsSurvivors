@@ -1222,6 +1222,8 @@ func draw_nest_auras() -> void:
 			continue
 		if float(e.get("burden_r", 0.0)) > 0.0 and e.get("cocoon_t", 0.0) <= 0.0:
 			_burden_ring(e)
+		if e.get("lamps", []) is Array and not e.get("lamps", []).is_empty():
+			_izu_lamps(e)
 		var ed: Dictionary = D.ENEMIES.get(e.type, {})
 		if not ed.has("aura_r"):
 			continue
@@ -1411,6 +1413,41 @@ func _burden_ring(e: Dictionary) -> void:
 			_:
 				g.draw_line(p - nr * 5.0, p - nr * 1.0 - tn * 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 伊祖米克灯柱（e.lamps = [{pos, lit, prog}]，e.lamp_r）：未点亮 = 暗色石灯 + 脚下 40 半径的点亮进度环；
+## 点亮 = 暖黄光圈（半径 lamp_r）+ 圈内「安全」标记（全场地波躲在这里），地波蓄力时光圈加亮脉动
+func _izu_lamps(e: Dictionary) -> void:
+	var lr: float = float(e.get("lamp_r", 120.0))
+	var waving := false
+	for w in g.warns:
+		if not w.done and w.get("act", "") == "izu_wave":
+			waving = true
+	for lp in e.lamps:
+		var p: Vector2 = lp.get("pos", Vector2.ZERO)
+		var lit: bool = lp.get("lit", false)
+		var pulse: float = 0.5 + 0.5 * sin(g.t * (10.0 if waving else 3.0))
+		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
+		if lit:
+			g.draw_circle(Vector2.ZERO, lr, Color(1.0, 0.8, 0.4, (0.12 + 0.08 * pulse) if waving else 0.08))
+			g.draw_arc(Vector2.ZERO, lr, 0.0, TAU, 56, Color(1.8, 1.4, 0.6, 0.6 + 0.35 * pulse if waving else 0.55), 3.0 if waving else 2.0)
+		else:
+			g.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 32, Color(1.0, 0.8, 0.45, 0.35), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if not lit and float(lp.get("prog", 0.0)) > 0.0:
+			_ground_ring(p + Vector2(0, 2), 40.0, clampf(float(lp.prog), 0.0, 1.0), Color(1.6, 1.3, 0.6))
+		# 石灯本体：方座 + 灯柱 + 灯龛（程序画）
+		var base := Color(0.32, 0.36, 0.42) if not lit else Color(0.5, 0.48, 0.44)
+		g.draw_rect(Rect2(p + Vector2(-11, -8), Vector2(22, 8)), Color(0.1, 0.11, 0.14))
+		g.draw_rect(Rect2(p + Vector2(-10, -7), Vector2(20, 6)), base)
+		g.draw_rect(Rect2(p + Vector2(-5, -34), Vector2(10, 27)), Color(0.1, 0.11, 0.14))
+		g.draw_rect(Rect2(p + Vector2(-4, -33), Vector2(8, 25)), base)
+		g.draw_rect(Rect2(p + Vector2(-9, -48), Vector2(18, 15)), Color(0.1, 0.11, 0.14))
+		g.draw_rect(Rect2(p + Vector2(-8, -47), Vector2(16, 13)), Color(1.9, 1.5, 0.7) if lit else Color(0.18, 0.24, 0.3))
+		g.draw_rect(Rect2(p + Vector2(-10, -51), Vector2(20, 4)), Color(0.1, 0.11, 0.14))
+		if lit:
+			g.draw_circle(p + Vector2(0, -40), 14.0 + 3.0 * pulse, Color(1.8, 1.4, 0.7, 0.25))
+			UI.text(g, g.font, p + Vector2(-40, 26), "安全", 13 if not waving else 16, Color(1.0, 0.9, 0.55), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 
 
 ## 泡影茧（e.cocoon_t > 0；外壳 e.shell_hp / e.shell_max）：半透明紫色泡壳包住本体，按外壳损失比例出现裂纹，壳下方一条壳量条

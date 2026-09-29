@@ -239,6 +239,7 @@ func draw() -> void:
 			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
 			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	draw_boss_pointers(vs, ct)
+	draw_field_wave(vs)
 	if not overlay_left():
 		draw_minimap(vs)
 	var st_txt := ""
@@ -356,6 +357,13 @@ func draw() -> void:
 					g.hud.draw_circle(dc, 3.5, UI.RED)
 				else:
 					g.hud.draw_arc(dc, 3.5, 0.0, TAU, 12, Color(1, 1, 1, 0.3), 1.0)
+		# 伊祖米克学习期吸收层数（e.izu_layers 0–5）：名字旁五枚小菱形，亮的是已吸收层
+		if shown.has("izu_layers"):
+			var izx: float = bx + sw + 14.0 + (acts * 11.0 if acts > 1 else 0.0)
+			UI.text(g.hud, g.font, Vector2(izx, 121), "吸收", 10, UI.SUB)
+			for q in 5:
+				var lit_l: bool = q < int(shown.izu_layers)
+				UI.diamond(g.hud, Vector2(izx + 30 + q * 11.0, 116.0), 4.0, Color(0.55, 1.0, 0.95) if lit_l else Color(1, 1, 1, 0.08), Color(0.6, 1.0, 1.0, 0.8 if lit_l else 0.3))
 		var brk: float = shown.get("break_t", 0.0)
 		var hold: bool = shown.get("gate_hold", false)
 		var sub := ""
@@ -996,6 +1004,28 @@ func hostile_boss_bars() -> Array:
 	return boss_bars().filter(func(e): return not e.get("friendly", false))
 
 
+## 伊祖米克全场地波（act izu_wave，r 2400 圈在屏幕外看不到）：屏幕边缘白 / 洋红光脉动收紧 + 中央提示和倒计时 + 冲刺图标
+func draw_field_wave(vs: Vector2) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	for w in g.warns:
+		if w.done or w.get("act", "") != "izu_wave":
+			continue
+		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
+		var pk: float = 0.5 + 0.5 * sin(g.t * (8.0 + 10.0 * k))
+		edge_glow(vs, Color(1.0, 0.35, 0.75, 0.35 + 0.45 * k * pk), 90.0 + 90.0 * k)
+		var left: float = maxf(0.0, w.dur - w.t)
+		var y: float = vs.y * 0.3
+		UI.text(g.hud, g.font, Vector2(0, y), "全场地波  %.1f" % left, 22, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
+		UI.text(g.hud, g.font, Vector2(0, y + 26), "躲进点亮的灯柱光圈，或者冲刺", 15, Color(1.0, 0.85, 0.55), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+		var ic := Vector2(vs.x / 2.0, y - 34)
+		for q in 3:
+			var ox: float = -9.0 + q * 7.0
+			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
+			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
+		break
+
+
 func boss_bars() -> Array:
 	var out: Array = []
 	for b in g.bosses:
@@ -1044,6 +1074,12 @@ func draw_status_bar(vs: Vector2) -> void:
 		if not bb.dead and bb.get("burden_in", false):
 			items.append(["认知负担 · 攻速 −%d%%" % roundi(Game.Bal.v("boss/paranoia_aura_aspd", 0.10) * 100.0), Color(0.85, 0.55, 1.0), -1.0])
 			break
+	var apop_t: float = float(g.get("apop_t")) if g.get("apop_t") != null else 0.0
+	var apop: float = float(g.get("apop")) if g.get("apop") != null else 0.0
+	if apop_t > 0.0:
+		items.append(["技力暂停 %.1f" % apop_t, Color(0.7, 0.85, 0.65), clampf(apop_t / 4.0, 0.0, 1.0)])
+	elif apop > 1.0:
+		items.append(["凋亡 %d" % int(apop), Color(0.62, 0.72, 0.6), apop / 100.0])
 	if g.wound > 0:
 		items.append(["创口 ×%d" % g.wound, Color(1.0, 0.35, 0.6), clampf(g.wound_t / maxf(0.1, Game.Bal.v("enemy/wound_dur", 6.0)), 0.0, 1.0)])
 	if g.in_mire > 0.5:
@@ -1165,6 +1201,11 @@ func draw_squad_hud(br: Vector2) -> void:
 			g.hud.draw_rect(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), false, 1.0)
 			if active > 0.0:
 				UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), "%d" % int(ceil(active)), 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12)
+			if unlocked and g.get("apop_t") != null and float(g.apop_t) > 0.0:
+				# 凋亡损伤满条：技能充能暂停——灰绿遮罩 + 暂停符号
+				g.hud.draw_rect(sr, Color(0.1, 0.14, 0.1, 0.62))
+				g.hud.draw_rect(Rect2(c + Vector2(-6, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
+				g.hud.draw_rect(Rect2(c + Vector2(2, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
 			if o.perm[k]:
 				UI.diamond(g.hud, sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
 			if o.rej.has(k):
