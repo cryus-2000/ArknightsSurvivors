@@ -54,6 +54,7 @@ func _ready() -> void:
 		water_filter = false
 		normal_maps = false
 		dof = DisplayServer.is_touchscreen_available() == false
+	_migrate_internal_save()
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
@@ -234,10 +235,36 @@ func save() -> void:
 	c.save(PATH)
 
 
+## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""
+func build_audience() -> String:
+	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+	return str(info.get("audience", "")) if info is Dictionary else ""
+
+
 ## Boss 演练入口：开发（调试版）一律开；发布版只有对内包（build.json audience = internal）开。
 ## 按 audience 判断而不是 EA 标记——EA 只是开发阶段标记，对外包也可能带 EA，不能因此开放演练（docs/33 §双版本）
 func can_boss_trial() -> bool:
 	if OS.is_debug_build():
 		return true
-	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
-	return info is Dictionary and info.get("audience", "") == "internal"
+	return build_audience() == "internal"
+
+
+## 对内包存档一次性迁移（2026-09-30，docs/33 §双版本）：对内包的存档目录从 ArknightsSurvivors 改成
+## ArknightsSurvivors_Internal（tools/export_build.py 打包时改）后，已经在玩旧内测包的人进度会「消失」。
+## 对内包启动时：新目录还没有存档、旧目录（同级的 ArknightsSurvivors）有，就把 settings.cfg 复制过来——
+## 只复制，不移动、不删旧的；新目录已有存档就不动。对外包 / 调试版不迁移。
+const LEGACY_USER_DIR := "ArknightsSurvivors"
+const INTERNAL_USER_DIR := "ArknightsSurvivors_Internal"
+
+func _migrate_internal_save() -> void:
+	if OS.is_debug_build() or build_audience() != "internal":
+		return
+	var cur := OS.get_user_data_dir()
+	if cur.get_file() != INTERNAL_USER_DIR or FileAccess.file_exists(PATH):
+		return
+	var old := cur.get_base_dir().path_join(LEGACY_USER_DIR).path_join(PATH.get_file())
+	if not FileAccess.file_exists(old):
+		return
+	DirAccess.make_dir_recursive_absolute(cur)
+	var err := DirAccess.copy_absolute(old, cur.path_join(PATH.get_file()))
+	print("[Cfg] 对内包存档迁移：%s -> %s（%s）" % [old, cur.path_join(PATH.get_file()), error_string(err)])

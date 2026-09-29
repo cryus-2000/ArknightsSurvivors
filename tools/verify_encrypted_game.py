@@ -108,8 +108,9 @@ def real_errors(text):
     known='ERROR: 2 resources still in use at exit (run with --verbose for details).'
     return [line for line in text.splitlines() if ('ERROR:' in line or 'Parse Error:' in line) and line.strip()!=known]
 
-def isolated_run(arguments,timeout):
+def isolated_run(arguments,timeout,seed=None,inspect=None):
     # Windows Godot get_config_path/get_cache_path honor these process env variables.
+    # seed: {APPDATA 下相对路径: 文本}，启动前写入；inspect(appdata_path) 在临时目录删除前读取结果。
     saved={name:os.environ.get(name) for name in ('APPDATA','LOCALAPPDATA')}
     with tempfile.TemporaryDirectory(prefix='pack_profile_',dir=ROOT/'build') as directory:
         try:
@@ -117,11 +118,43 @@ def isolated_run(arguments,timeout):
                 path=Path(directory)/name
                 path.mkdir()
                 os.environ[name]=str(path)
-            return godot_runner.run_godot(arguments,timeout)
+            for relative,text in (seed or {}).items():
+                target=Path(directory)/'APPDATA'/relative
+                target.parent.mkdir(parents=True,exist_ok=True)
+                target.write_text(text,encoding='utf-8')
+            ran=godot_runner.run_godot(arguments,timeout)
+            return ran+((inspect(Path(directory)/'APPDATA'),) if inspect else ())
         finally:
             for name,value in saved.items():
                 if value is None: os.environ.pop(name,None)
                 else: os.environ[name]=value
+
+# 对内包存档一次性迁移（settings.gd _migrate_internal_save，docs/33 §双版本）：在隔离的 APPDATA 里放一份「旧目录存档」启动打包游戏，
+# 对内包应复制到 _Internal（旧的原样保留）、_Internal 已有存档时不覆盖；对外包不建 _Internal 目录。
+LEGACY_SAVE='[progress]\n\ndiff_ver=2\nendings_cleared=["migrate_probe"]\n\n[video]\n\nquality="low"\n'
+KEEP_SAVE='[progress]\n\ndiff_ver=2\nendings_cleared=["keep_probe"]\n\n[video]\n\nquality="low"\n'
+
+def check_migration(exe,audience):
+    def read(appdata,relative):
+        path=appdata/relative
+        return path.read_text(encoding='utf-8') if path.is_file() else None
+    boot=[str(exe),'--headless','--audio-driver','Dummy','--quit-after','30','--','--pack-smoke']
+    out,err,timeout,first=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE},
+        lambda a:{'legacy':read(a,'ArknightsSurvivors/settings.cfg'),'internal':read(a,'ArknightsSurvivors_Internal/settings.cfg'),'internal_dir':(a/'ArknightsSurvivors_Internal').exists()})
+    if timeout: raise RuntimeError('Migration boot timed out')
+    failures=[]
+    if audience=='internal':
+        if first['legacy']!=LEGACY_SAVE: failures.append('migration_legacy_changed')
+        if not first['internal'] or 'migrate_probe' not in first['internal']: failures.append('migration_not_copied')
+        if '对内包存档迁移' not in out+err: failures.append('migration_not_logged')
+        out,err,timeout,second=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE,'ArknightsSurvivors_Internal/settings.cfg':KEEP_SAVE},
+            lambda a:{'legacy':read(a,'ArknightsSurvivors/settings.cfg'),'internal':read(a,'ArknightsSurvivors_Internal/settings.cfg')})
+        if timeout: raise RuntimeError('Migration boot timed out')
+        if not second['internal'] or 'keep_probe' not in second['internal'] or 'migrate_probe' in second['internal']: failures.append('migration_overwrote_existing')
+        if second['legacy']!=LEGACY_SAVE: failures.append('migration_legacy_changed_2')
+    else:
+        if first['internal_dir']: failures.append('public_created_internal_dir')
+    return failures
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
@@ -169,6 +202,9 @@ def main():
     result['packaged_game_boot']=True
     result['boot_shutdown_warning']='2 resources still in use at exit' in out+err
     result['boot_log']=str(log)
+    migration=check_migration(exe,manifest['audience'])
+    if migration: raise RuntimeError('Save migration check failed: '+', '.join(migration))
+    result['save_migration_checked']=True
     with tempfile.TemporaryDirectory(prefix='ordinary_probe_',dir=ROOT/'build') as directory:
         plain=Path(directory)/'ordinary.exe'
         shutil.copy2(ordinary,plain)
