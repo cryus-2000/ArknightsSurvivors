@@ -689,6 +689,11 @@ func gate_update(e: Dictionary, dt: float) -> void:
 		e.budget = minf(e.budget + e.budget_rate * dt, e.budget_rate * Bal.v("boss/budget_store", 4.0))
 	if not e.invuln and not e.get("coma", false):
 		e.act_t = e.get("act_t", 0.0) + dt
+	# 「血量或秒数先到先换幕」（docs/49d，缺省关）：这一幕打满 boss/act_max_mid / act_max_final 秒还没到刻度，就直接换幕
+	var amax: float = Bal.v("boss/act_max_final" if e.get("gate_final", false) else "boss/act_max_mid", 0.0)
+	if amax > 0.0 and not e.get("gates", []).is_empty() and not e.get("gate_hold", false) and e.act_t >= amax and not e.invuln:
+		e.hp = minf(e.hp, e.maxhp * float(e.gates[0]))
+		gate_pass(e)
 	if e.get("gate_hold", false):
 		e.shield_t += dt
 		if e.act_t >= e.act_min:
@@ -765,6 +770,13 @@ func damage(e: Dictionary, dmg: float) -> void:
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
 		dmg *= 1.25
+	# 偏执泡影的茧：本体无敌，伤害打在外壳上（docs/38 §8.5）
+	if e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0:
+		e.shell_hp -= dmg
+		e.flash = 0.08
+		if e.shell_hp <= 0.0:
+			g.bai.paranoia_hatch(e, true)
+		return
 	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
 	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
 		return
@@ -838,20 +850,17 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if e.reload_dmg >= e.maxhp * Bal.v("boss/saint_break_dmg", 0.05):
 			g.bai.saint_interrupt(e)
 	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
-	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
-		e.phase = 2
-		e.range = 400.0
-		e.weak = "物理"
-		e.dmg *= 1.2
-		g.vfx.show_banner("\"偏执泡影\" 失去悬浮 —— 第二形态")
-		Sfx.play("roar", 0.0, 1.2, 0.0)
 	# 掠海漂移体被控制后落地，改为近战
-	if e.get("hover_lost", false) == false and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
+	if e.get("hover_lost", false) == false and not e.boss and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
 		e.hover_lost = true
 		e.ai = "melee"
 		e.spd = 70.0
 		g.vfx.add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
+		# 偏执泡影：第一次归零结茧（docs/38 §8.5，取代原来「被控 0.3 秒进二阶段」）
+		if e.type == "paranoia" and not e.get("cocoon_done", false):
+			g.bai.paranoia_cocoon(e)
+			return
 		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
 		if e.type == "knight_boss" and e.phase == 1:
 			e.phase = 2
@@ -936,6 +945,26 @@ func kill(e: Dictionary) -> void:
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)
+	if e.type == "paranoia":
+		g.stats.remove_source("paranoia_aura")
+		g.sync_stats()
+	# 部件可以靠击杀周围小怪间接削（docs/49d）：普通敌人死在部件 boss/part_chip_r 内，部件掉 part_chip 比例的血（茧掉壳）
+	if not e.boss and not e.get("part", false):
+		var chip: float = Bal.v("boss/part_chip", 0.05)
+		if chip > 0.0:
+			var cr: float = Bal.v("boss/part_chip_r", 160.0)
+			for o in g.enemies:
+				if o.dead or not o.get("part", false) or o.pos.distance_squared_to(e.pos) > cr * cr:
+					continue
+				g.fx.append({"kind": "tide_link", "a": e.pos, "b": o.pos, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.85, 0.4), "enemy": true})
+				if o.get("cocoon_t", 0.0) > 0.0:
+					o.shell_hp -= o.shell_max * chip
+					if o.shell_hp <= 0.0:
+						g.bai.paranoia_hatch(o, true)
+				else:
+					o.hp -= o.maxhp * chip
+					if o.hp <= 0.0:
+						kill(o)
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
 	if dmire > 0.0 and g.mires.size() < 32:

@@ -70,6 +70,7 @@ func _process(_d: float) -> void:
 	test_ailments()
 	test_lore1()
 	test_lore2()
+	test_lore3()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -1026,4 +1027,48 @@ func test_lore2() -> void:
 	go.call(cm, 0.01)
 	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05, "剑形态结束后装填 %.1f 秒" % cm.channel)
 	cm.dead = true
+	game.warns.clear()
+
+
+## docs/38 §8 第三批：偏执泡影结茧（打破外壳 → 破绽；超时 → 凝视 +1）、认知负担光环、部件被周围击杀间接削
+func test_lore3() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var pa: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1500, 0))
+	pa.gates = []
+	pa.last_done = true
+	var k := 0
+	while pa.get("cocoon_t", 0.0) <= 0.0 and not pa.dead and k < 300:
+		c.damage(pa, pa.maxhp)
+		k += 1
+	ok(pa.cocoon_t > 0.0 and pa.invuln and pa.part and pa.shell_hp > 0.0, "偏执泡影第一次归零结茧（外壳 %.0f）" % pa.shell_hp)
+	var h0: float = pa.hp
+	c.damage(pa, pa.shell_max * 0.5)
+	ok(pa.hp == h0 and pa.shell_hp < pa.shell_max, "茧期间伤害打在外壳上")
+	k = 0
+	while pa.get("cocoon_t", 0.0) > 0.0 and k < 50:
+		c.damage(pa, pa.shell_max)
+		k += 1
+	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.4) < 1.0, "打破外壳：复活到 40%% 并破绽 %.1f 秒" % pa.break_t)
+	pa.dead = true
+	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
+	bai.paranoia_cocoon(pb)
+	bai._paranoia_cocoon_step(pb, Bal.v("boss/paranoia_cocoon", 8.0) + 0.1)
+	ok(pb.phase == 2 and int(pb.get("gaze_bonus", 0)) == 1 and pb.get("break_t", 0.0) <= 0.0, "茧没打破：同样复活，但凝视永久 +1")
+	# 光环
+	var a0: float = game.stats.value(&"op_aspd")
+	bai._paranoia_aura(pb, 100.0)
+	var a1: float = game.stats.value(&"op_aspd")
+	bai._paranoia_aura(pb, 500.0)
+	ok(a1 < a0 and absf(game.stats.value(&"op_aspd") - a0) < EPS, "认知负担光环：站在里面全队攻速降低，离开恢复")
+	pb.dead = true
+	# 部件被周围击杀间接削
+	var part: Dictionary = sp.spawn_enemy("fractal", game.ppos + Vector2(1700, 0))
+	part.part = true
+	var ph: float = part.hp
+	var mob: Dictionary = sp.spawn_enemy("bone", part.pos + Vector2(30, 0))
+	c.kill(mob)
+	ok(part.hp < ph, "部件附近的小怪被击杀：部件掉 %.0f%% 血" % (100.0 * (ph - part.hp) / part.maxhp))
+	part.dead = true
 	game.warns.clear()
