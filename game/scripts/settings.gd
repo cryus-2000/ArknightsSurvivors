@@ -23,6 +23,7 @@ var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
 var pad_rumble := true   # 手柄震动
+var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
 var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var cover_character_id := "mizuki"
@@ -74,6 +75,7 @@ func _ready() -> void:
 		normal_maps = c.get_value("video", "normal_maps", normal_maps)
 		brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
 		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
+		manual_attack = c.get_value("input", "manual_attack", manual_attack)
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
@@ -179,6 +181,7 @@ func save() -> void:
 	c.set_value("video", "normal_maps", normal_maps)
 	c.set_value("video", "brightness", brightness)
 	c.set_value("input", "pad_rumble", pad_rumble)
+	c.set_value("input", "manual_attack", manual_attack)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)

@@ -24,13 +24,14 @@ const ROWS := [
 	{"cn": "法线光照", "en": "NORMAL LIGHTING", "key": "normal_maps", "type": "bool", "note": "下局生效"},
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
+	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 ## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
+	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
 ]
 
 var font: Font
@@ -244,7 +245,7 @@ func _draw() -> void:
 				UI.text(self, font, Vector2(vx + 200, rr.position.y + 24), "%d" % int(round(v * 100.0)), 14, UI.TEXT)
 			"bool":
 				var b: bool = Cfg.get(row.key)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), "开" if b else "关", 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + 24), str(row.get("on", "开")) if b else str(row.get("off", "关")), 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"shake":
 				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
 				UI.text(self, font, Vector2(vx, rr.position.y + 24), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
