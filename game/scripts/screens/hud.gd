@@ -24,6 +24,91 @@ func _init(game: Game) -> void:
 	g = game
 
 
+## 无贴图图元批（性能，协调人 9/30：Godot 画布只合批贴图矩形，draw_rect / draw_circle / draw_line 各算一次绘制调用）：
+## 矩形 / 边框 / 渐变 / 多边形 / 圆 / 线攒成三角形，flush 时一次 canvas_item_add_triangle_array 提交。
+## 提交时画布变换须为单位矩阵
+class Tris:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+
+	func quad4(p: Array, c: Array) -> void:
+		var b: int = pts.size()
+		for q in 4:
+			pts.append(p[q])
+			cols.append(c[q])
+		idx.append_array([b, b + 1, b + 2, b, b + 2, b + 3])
+
+	func rect(r: Rect2, col: Color) -> void:
+		quad4([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)], [col, col, col, col])
+
+	## 上下渐变（顶色 / 底色）
+	func grad(r: Rect2, ct: Color, cb: Color) -> void:
+		quad4([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)], [ct, ct, cb, cb])
+
+	## 边框：同 draw_rect(filled = false, w)，线宽骑在边上
+	func frame(r: Rect2, col: Color, w := 1.0) -> void:
+		var o := r.grow(w * 0.5)
+		rect(Rect2(o.position, Vector2(o.size.x, w)), col)
+		rect(Rect2(Vector2(o.position.x, o.end.y - w), Vector2(o.size.x, w)), col)
+		rect(Rect2(Vector2(o.position.x, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+		rect(Rect2(Vector2(o.end.x - w, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+
+	## 凸多边形（扇形三角化）
+	func poly(p: PackedVector2Array, col: Color) -> void:
+		var b: int = pts.size()
+		for v in p:
+			pts.append(v)
+			cols.append(col)
+		for q in range(1, p.size() - 1):
+			idx.append_array([b, b + q, b + q + 1])
+
+	func line(a: Vector2, b: Vector2, col: Color, w := 1.0) -> void:
+		var d := b - a
+		if d.length_squared() < 0.0001:
+			return
+		var n := d.normalized().orthogonal() * (w * 0.5)
+		quad4([a + n, b + n, b - n, a - n], [col, col, col, col])
+
+	func circle(c: Vector2, r: float, col: Color, seg := 12) -> void:
+		var b: int = pts.size()
+		pts.append(c)
+		cols.append(col)
+		for q in seg:
+			pts.append(c + Vector2.from_angle(TAU * q / seg) * r)
+			cols.append(col)
+		for q in seg:
+			idx.append_array([b, b + 1 + q, b + 1 + (q + 1) % seg])
+
+	func arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, seg := 24) -> void:
+		var b: int = pts.size()
+		for q in seg + 1:
+			var d := Vector2.from_angle(lerpf(a0, a1, float(q) / seg))
+			pts.append(c + d * (r - w * 0.5))
+			pts.append(c + d * (r + w * 0.5))
+			cols.append(col)
+			cols.append(col)
+		for q in seg:
+			var i0: int = b + q * 2
+			idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+
+	## 同 UI.diamond：实心菱形 + 可选 1px 描边
+	func diamond(c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 0)) -> void:
+		var p := PackedVector2Array([c + Vector2(0, -rad), c + Vector2(rad, 0), c + Vector2(0, rad), c + Vector2(-rad, 0)])
+		poly(p, fill)
+		if border.a > 0.0:
+			for q in 4:
+				line(p[q], p[(q + 1) % 4], border, 1.0)
+
+	func flush(ci: CanvasItem) -> void:
+		if idx.is_empty():
+			return
+		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), idx, pts, cols)
+		pts = PackedVector2Array()
+		cols = PackedColorArray()
+		idx = PackedInt32Array()
+
+
 func draw() -> void:
 	var vs := g.hud.size
 	g.speed_btn = Rect2()
@@ -533,16 +618,18 @@ func draw_minimap(vs: Vector2) -> void:
 	var world := 1100.0
 	var k := (rad - 8.0) / world
 	var lim := rad - 6.0
+	# 扫描线、视野框、各色点、安全区圈都进一个无贴图批，末尾一次提交（原来约 30 次绘制调用）
+	var tb := Tris.new()
 	# 声呐扫描线
 	var sweep := fmod(g.t * 0.9, TAU)
-	g.hud.draw_line(c, c + Vector2.from_angle(sweep) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.35), 1.0)
+	tb.line(c, c + Vector2.from_angle(sweep) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.35), 1.0)
 	for q in 6:
 		var a := sweep - q * 0.06
-		g.hud.draw_line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
-	g.hud.draw_arc(c, lim * 0.5, 0.0, TAU, 40, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 1.0)
+		tb.line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
+	tb.arc(c, lim * 0.5, 0.0, TAU, 1.0, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 40)
 	# 视野框
 	var view := g.get_viewport_rect().size
-	g.hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), false, 1.0)
+	tb.frame(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), 1.0)
 	# 普通敌人的 2×2 红点收集起来一次 draw_multiline 画完（性能，协调人 9/30：后期 300 个敌人逐个 draw_rect）
 	var dots := PackedVector2Array()
 	for e in g.enemies:
@@ -555,14 +642,14 @@ func draw_minimap(vs: Vector2) -> void:
 			else:
 				continue
 		if e.get("friendly", false):
-			UI.diamond(g.hud, c + p, 5.0, UI.CYAN)
+			tb.diamond(c + p, 5.0, UI.CYAN)
 		elif e.boss:
 			var bp := 0.5 + 0.5 * sin(g.t * 6.0)
-			g.hud.draw_circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0))
+			tb.circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0), 14)
 		elif e.chest:
-			g.hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(0.55, 0.8, 1.0) if e.get("event", "") != "" else UI.GOLD)
+			tb.rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(0.55, 0.8, 1.0) if e.get("event", "") != "" else UI.GOLD)
 		elif e.elite:
-			g.hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
+			tb.rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
 		else:
 			dots.append(c + p - Vector2(1, 0))
 			dots.append(c + p + Vector2(1, 0))
@@ -572,30 +659,31 @@ func draw_minimap(vs: Vector2) -> void:
 		if g_item.dead or not (g_item.kind == "magnet" or g_item.kind == "heal" or g_item.kind == "chest"):
 			continue
 		var p: Vector2 = ((g_item.pos - g.ppos) * k).limit_length(lim)
-		g.hud.draw_circle(c + p, 3.0, g.pickups.item_col(g_item.kind))
+		tb.circle(c + p, 3.0, g.pickups.item_col(g_item.kind), 8)
 	if not g.merchant.is_empty():
 		var mp: Vector2 = ((g.merchant.pos - g.ppos) * k)
 		var clipped := mp.length() > lim
 		mp = mp.limit_length(lim)
-		UI.diamond(g.hud, c + mp, 5.0 + (1.5 * sin(g.t * 6.0) if clipped else 0.0), UI.GOLD)
+		tb.diamond(c + mp, 5.0 + (1.5 * sin(g.t * 6.0) if clipped else 0.0), UI.GOLD)
 	for o in g.squad.ops:
 		if o.pos != Vector2.INF:
-			g.hud.draw_circle(c + (o.pos - g.ppos) * k, 2.0, Color(0.5, 0.9, 1.0))
+			tb.circle(c + (o.pos - g.ppos) * k, 2.0, Color(0.5, 0.9, 1.0), 6)
 	if g.zone_state != 0:
-		mini_circle(c + (g.zone_c - g.ppos) * k, g.zone_r * k, lim, Color(0.85, 0.4, 1.0, 0.9), c)
+		mini_circle(tb, c + (g.zone_c - g.ppos) * k, g.zone_r * k, lim, Color(0.85, 0.4, 1.0, 0.9), c)
 		if g.zone_state == 1:
-			mini_circle(c + (g.zone_next_c - g.ppos) * k, g.zone_next_r * k, lim, Color(1, 1, 1, 0.6), c)
-	UI.diamond(g.hud, c, 4.0, Color(1, 1, 1))
+			mini_circle(tb, c + (g.zone_next_c - g.ppos) * k, g.zone_next_r * k, lim, Color(1, 1, 1, 0.6), c)
+	tb.diamond(c, 4.0, Color(1, 1, 1))
+	tb.flush(g.hud)
 
 
-func mini_circle(cc: Vector2, r: float, lim: float, col: Color, c: Vector2) -> void:
+func mini_circle(tb: Tris, cc: Vector2, r: float, lim: float, col: Color, c: Vector2) -> void:
 	var n := 48
 	for i in n:
 		var p0 := cc + Vector2.from_angle(TAU * i / n) * r
 		var p1 := cc + Vector2.from_angle(TAU * (i + 1) / n) * r
 		if (p0 - c).length() > lim or (p1 - c).length() > lim:
 			continue
-		g.hud.draw_line(p0, p1, col, 1.5)
+		tb.line(p0, p1, col, 1.5)
 
 
 func edge_glow(vs: Vector2, col: Color, w: float) -> void:
@@ -629,6 +717,10 @@ func draw_relic_tray(tr: Vector2) -> void:
 	UI.ctext(g.hud, g.font, o + Vector2(w - 70, 20), "%d / %d" % [n, Bal.vi("relic/carry_cap", 15)], 15, UI.GOLD if n >= Bal.vi("relic/carry_cap", 15) else UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 60)
 	g.tray_cells.clear()
 	var mouse := g.hud.get_local_mouse_position()
+	# 格底 / 边框 / 分类色攒成一批画在图标下，等级点一批画在图标上（原来每格 4–6 次绘制调用）
+	var under := Tris.new()
+	var over := Tris.new()
+	var late: Array[Callable] = []
 	for i in n:
 		var rd: Dictionary = g.RL[g.relics[i]]
 		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
@@ -636,20 +728,25 @@ func draw_relic_tray(tr: Vector2) -> void:
 		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
 		g.tray_cells.append([cellr, g.relics[i]])
 		var hov: bool = cellr.has_point(mouse)
-		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
-		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.13) if not hov else col, false, 1.0)
-		g.hud.draw_rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
+		under.rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
+		under.frame(cellr, Color(1, 1, 1, 0.13) if not hov else col, 1.0)
+		under.rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
 		var ic: Texture2D = g.tex.get("relic_" + g.relics[i])
 		if ic != null:
-			g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false)
+			late.append(func(): g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false))
 		else:
-			UI.diamond(g.hud, c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
-			UI.text(g.hud, g.font, c + Vector2(-15, 5), rd.name.substr(0, 1), 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
+			under.diamond(c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
+			var ch: String = rd.name.substr(0, 1)
+			late.append(func(): UI.text(g.hud, g.font, c + Vector2(-15, 5), ch, 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30))
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
 			var pip: float = 6.0 if not compact else 3.0
 			for q in rl:
-				g.hud.draw_rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+				over.rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+	under.flush(g.hud)
+	for f in late:
+		f.call()
+	over.flush(g.hud)
 	var cy := r.end.y + 16
 
 
@@ -801,7 +898,8 @@ func draw_manual_aim() -> void:
 	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
 	var real_to: Vector2 = to
 	to = to.clamp(inner.position, inner.end)
-	if real_to.distance_to(to) > 2.0:
+	# 三角只在真实落点出屏时画（验收 P3：落点在屏内、只是离边近被推进来时，三角会指到落点外很远）
+	if real_to.distance_to(to) > 2.0 and not Rect2(Vector2.ZERO, vsz).has_point(real_to):
 		var ad: Vector2 = (real_to - to).normalized()
 		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
 		var sd: Vector2 = ad.orthogonal() * 7.0
@@ -951,6 +1049,7 @@ func draw_elite_marks(ct: Transform2D) -> void:
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
 	var vs := g.hud.size
+	var tb := Tris.new()   # 血条 + 三角一批提交（原来每只 4 次绘制调用）
 	for e in g.enemies:
 		if e.dead or not e.elite or e.boss or e.get("under", false):
 			continue
@@ -958,13 +1057,14 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		if sp.x < -40 or sp.y < -40 or sp.x > vs.x + 40 or sp.y > vs.y + 40:
 			continue
 		var w: float = maxf(24.0, e.r * 1.4)
-		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
-		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
+		tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
+		tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
 		var tip: Vector2 = sp + Vector2(0, -4)
 		var bob: float = 2.0 * sin(g.t * 5.0 + e.id)
 		var tri := PackedVector2Array([tip + Vector2(-6, -10 + bob), tip + Vector2(6, -10 + bob), tip + Vector2(0, -3 + bob)])
-		g.hud.draw_colored_polygon(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
-		g.hud.draw_colored_polygon(tri, ELITE_COL)
+		tb.poly(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
+		tb.poly(tri, ELITE_COL)
+	tb.flush(g.hud)
 
 
 ## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 1.7 秒——
@@ -1252,16 +1352,24 @@ func draw_squad_hud(br: Vector2) -> void:
 	var x_left: float = br.x - n * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
 	if g.knight.alive:
 		g.knight.draw_hud(g.hud, Vector2(x_left - 130, br.y - 30))
+	# 分四层画（性能，协调人 9/30：原来每张卡 + 三枚技能格约 15 次绘制调用，字 / 色块 / 贴图交替打断合批）：
+	# bg 底色批 → 贴图（立绘 / 技能图标 / 源石锭）→ fg 遮罩边框批 → 文字与悬停提示。同层内顺序不变
+	var bg := Tris.new()
+	var fg := Tris.new()
+	var texq: Array[Callable] = []
+	var txt: Array[Callable] = []
 	var card_y: float = br.y - SQ_CARD.y
 	var sk_y: float = card_y - SQ_SK - 14.0
 	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
 	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))   # 顶 = squad_top()
-	g.hud.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.82))
-	g.hud.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
-	g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
-	UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
-	UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
-	UI.text(g.hud, g.font, Vector2(dp.position.x - 160, dp.position.y + 22), "编队 %d / %d" % [n, g.squad.cap()], 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150)
+	bg.rect(dp, Color(0.03, 0.035, 0.045, 0.82))
+	bg.rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
+	texq.append(func(): g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false))
+	var cnt := "编队 %d / %d" % [n, g.squad.cap()]
+	txt.append(func():
+		UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
+		UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
+		UI.text(g.hud, g.font, Vector2(dp.position.x - 160, dp.position.y + 22), cnt, 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150))
 	var mp := g.hud.get_local_mouse_position()
 	for i in n:
 		var o = g.squad.ops[i]
@@ -1272,7 +1380,7 @@ func draw_squad_hud(br: Vector2) -> void:
 		# ---- 立绘卡：上亮下暗的底 + 待机帧上半身（48 帧放大 2 倍、96 高清帧原样，都画成 96 像素）
 		var ctop := Color(0.17, 0.2, 0.23, 0.95)
 		var cbot := Color(0.07, 0.08, 0.1, 0.95)
-		g.hud.draw_polygon(PackedVector2Array([cr.position, Vector2(cr.end.x, cr.position.y), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([ctop, ctop, cbot, cbot]))
+		bg.grad(cr, ctop, cbot)
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = g.tex.get(pt.tex)
 		if at != null:
@@ -1281,30 +1389,32 @@ func draw_squad_hud(br: Vector2) -> void:
 			var ks: float = 2.0 / A.hires_of(at)
 			var dst_h := minf(fh * ks - 8.0, cr.size.y - 8.0)
 			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, 8.0 / ks, minf(cr.size.x / ks, fw), dst_h / ks)
-			g.hud.draw_texture_rect_region(at, Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h)), src)
+			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
+			texq.append(func(): g.hud.draw_texture_rect_region(at, dst, src))
 		var clear := Color(0, 0, 0, 0)
 		var shade := Color(0, 0, 0, 0.88)
-		g.hud.draw_polygon(PackedVector2Array([Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.end.x, cr.end.y - 28), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([clear, clear, shade, shade]))
-		UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), o.display_name().substr(0, 5), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2)
+		fg.grad(Rect2(Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.size.x, 28)), clear, shade)
+		var nm: String = o.display_name().substr(0, 5)
+		txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), nm, 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2))
 		var cls: String = String(o.cls).substr(0, 1)
 		if cls != "":
-			g.hud.draw_rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
-			UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18)
+			fg.rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
+			txt.append(func(): UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18))
 		var el: String = ["精零", "精一", "精二"][o.elite]
 		var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 8.0
-		g.hud.draw_rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
-		UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4))
+		fg.rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
+		txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4)))
 		if act:
 			for k in 3:
-				g.hud.draw_rect(cr.grow(2.0 + k * 2.5), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 - k * 0.045), false, 2.0)
-			g.hud.draw_rect(cr, UI.CYAN, false, 1.0)
+				fg.frame(cr.grow(2.0 + k * 2.5), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 - k * 0.045), 2.0)
+			fg.frame(cr, UI.CYAN, 1.0)
 		else:
-			g.hud.draw_rect(cr, Color(1, 1, 1, 0.16), false, 1.0)
-		g.hud.draw_rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
+			fg.frame(cr, Color(1, 1, 1, 0.16), 1.0)
+		fg.rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
 		if o == g.ch:
 			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
-			g.hud.draw_rect(lt, UI.VIOLET)
-			UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x)
+			fg.rect(lt, UI.VIOLET)
+			txt.append(func(): UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x))
 		# ---- 三枚技能格
 		var items: Array = o.skill_hud()
 		for k in 3:
@@ -1316,49 +1426,58 @@ func draw_squad_hud(br: Vector2) -> void:
 			var frac: float = clamp(it[5], 0.0, 1.0)
 			if active > 0.0:
 				frac = active / it[4]
-			g.hud.draw_rect(sr, Color(0.04, 0.047, 0.059, 0.9))
+			bg.rect(sr, Color(0.04, 0.047, 0.059, 0.9))
 			var icon: Texture2D = g.tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
 			var c := sr.get_center()
 			if icon != null:
 				# 方形技能图标（仿原作）铺满格子；充能中没充满的上半截压暗，充满后整块亮起
-				g.hud.draw_texture_rect(icon, sr, false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+				var tint: Color = Color.WHITE if unlocked else Color(0.3, 0.3, 0.35)
+				texq.append(func(): g.hud.draw_texture_rect(icon, sr, false, tint))
 				if unlocked and active <= 0.0 and frac < 1.0:
-					g.hud.draw_rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
+					fg.rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
 			else:
 				if unlocked and frac > 0.0:
-					g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
+					bg.rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
 				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.35, 0.4)
-				UI.text(g.hud, g.font, Vector2(sr.position.x, c.y + 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2)
+				var glyph: String = it[0]
+				txt.append(func(): UI.text(g.hud, g.font, Vector2(sr.position.x, c.y + 5), glyph, 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2))
 			if unlocked:
-				g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
+				fg.rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
 			# 边框：生效中白；充满待放用干员色（有图标时格子本身亮起，边框再提示一下）；其余淡白
 			var ready: bool = icon != null and unlocked and active <= 0.0 and frac >= 1.0 and not o.perm[k]
-			g.hud.draw_rect(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), false, 1.0)
+			fg.frame(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), 1.0)
 			if active > 0.0:
-				UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), "%d" % int(ceil(active)), 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12)
+				var left := "%d" % int(ceil(active))
+				txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), left, 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12))
 			if unlocked and g.get("apop_t") != null and float(g.apop_t) > 0.0:
 				# 凋亡损伤满条：技能充能暂停——灰绿遮罩 + 暂停符号
-				g.hud.draw_rect(sr, Color(0.1, 0.14, 0.1, 0.62))
-				g.hud.draw_rect(Rect2(c + Vector2(-6, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
-				g.hud.draw_rect(Rect2(c + Vector2(2, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
+				fg.rect(sr, Color(0.1, 0.14, 0.1, 0.62))
+				fg.rect(Rect2(c + Vector2(-6, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
+				fg.rect(Rect2(c + Vector2(2, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
 			if o.perm[k]:
-				UI.diamond(g.hud, sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
+				fg.diamond(sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
 			if o.rej.has(k):
-				UI.diamond(g.hud, Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
+				fg.diamond(Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
 			# 手动技能（契约 v2.2）：格子上方标按键；充满可放时青色呼吸框
 			if o.is_manual(k) and unlocked:
 				var rdy: bool = manual_castable(o, k)
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
-					g.hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
+					fg.frame(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), 2.0)
 				if not g.touch.active:
-					UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24)
+					txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24))
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
 				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英一", "精英二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
 				var tw: float = g.font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
 				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, g.hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
-				UI.panel(g.hud, tipr, UI.BG2, o.col(), 6.0)
-				UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT)
-
+				txt.append(func():
+					UI.panel(g.hud, tipr, UI.BG2, ocol, 6.0)
+					UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT))
+	bg.flush(g.hud)
+	for f in texq:
+		f.call()
+	fg.flush(g.hud)
+	for f in txt:
+		f.call()

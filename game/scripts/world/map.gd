@@ -122,6 +122,8 @@ func draw_ground(vs: Vector2) -> void:
 		_draw_patches(vs)
 	sort_props.clear()
 	collect_big_props(vs)
+	# 平铺在地上的小道具互不遮挡：按贴图（再按翻转）排序后连续画，同贴图才能合批（性能 9/30：原来按格子顺序画，贴图几乎每次都换）
+	props.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else (x[2] % 2) < (y[2] % 2))
 	for pr in props:
 		var d := _prop_def(pr[0])
 		if d.get("sort", false):

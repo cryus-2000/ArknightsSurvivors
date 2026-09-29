@@ -1361,21 +1361,26 @@ func draw_nest_auras() -> void:
 		if not ed.has("aura_r"):
 			continue
 		var ar: float = ed.aura_r
+		if not view_rect(ar + 20.0).has_point(e.pos):
+			continue   # 屏外不画（性能 9/30：原来全场每只都画）
 		var aura_tex := _lazy_tex("fx_nest_aura_big")
 		if aura_tex != null:
 			var fw: float = aura_tex.get_width() / 4.0
 			var frame := int(g.t * 10.0) % 4
 			g.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.35))
+		# 柔光底 / 内收涟漪 / 转动虚线外圈都进无贴图批，函数末尾一次提交（原来每只约 24 次绘制调用）
 		var ac := Color(0.9, 0.5, 1.6)
 		for q in 4:
-			g.draw_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035))
+			tb_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035), 1.0, 32)
 		for q in 2:
 			var u: float = fmod(g.t * 0.5 + q * 0.5 + e.id * 0.17, 1.0)
-			g.draw_arc(e.pos, ar * (1.0 - u * 0.85), 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u)), 1.5)
+			tb_ring(e.pos, ar * (1.0 - u * 0.85), 1.5, Color(ac.r, ac.g, ac.b, 0.28 * (1.0 - u)), 40)
 		var rot: float = g.t * 0.4 + e.id
 		for q in 18:
 			var a0: float = rot + q * TAU / 18.0
-			g.draw_arc(e.pos, ar, a0, a0 + TAU / 36.0, 4, Color(ac.r, ac.g, ac.b, 0.55), 2.0)
+			tb_arc(e.pos, ar, a0, a0 + TAU / 36.0, 2.0, Color(ac.r, ac.g, ac.b, 0.55), 3)
+
+	tb_flush()
 
 
 const PARANOIA2_TINT := Color(1.35, 0.72, 1.25)
@@ -1555,26 +1560,28 @@ func _burden_ring(e: Dictionary) -> void:
 	var inn: bool = e.get("burden_in", false)
 	var c := Color(0.8, 0.45, 1.4)
 	var a: float = 0.85 if inn else 0.45
-	g.draw_set_transform(e.pos, 0.0, Vector2(1.0, ground_y()))
-	g.draw_circle(Vector2.ZERO, r, Color(c.r, c.g, c.b, 0.06 if inn else 0.03))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 72, Color(c.r, c.g, c.b, 0.5 * a), 2.0)
-	g.draw_arc(Vector2.ZERO, r - 14.0, 0.0, TAU, 72, Color(c.r, c.g, c.b, 0.3 * a), 1.0)
+	var gy: float = ground_y()
+	var o: Vector2 = e.pos
+	var sq := func(v: Vector2) -> Vector2: return o + Vector2(v.x, v.y * gy)   # 地面椭圆：纵向按 GROUND_Y 压（原来用画布变换，改算顶点好进批）
+	tb_circle(o, r, Color(c.r, c.g, c.b, 0.06 if inn else 0.03), gy, 48)
+	tb_arc(o, r, 0.0, TAU, 2.0, Color(c.r, c.g, c.b, 0.5 * a), 72, gy)
+	tb_arc(o, r - 14.0, 0.0, TAU, 1.0, Color(c.r, c.g, c.b, 0.3 * a), 72, gy)
 	var rot: float = g.t * (0.35 if inn else 0.15)
+	var rc := Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a)
 	for q in 16:
 		var ang: float = rot + q * TAU / 16.0
 		var p := Vector2.from_angle(ang) * (r - 7.0)
 		var tn := Vector2.from_angle(ang + PI / 2.0)
 		var nr := Vector2.from_angle(ang)
 		# 一枚符文：竖划 + 按序号变化的横 / 斜划
-		g.draw_line(p - nr * 5.0, p + nr * 5.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+		tb_line(sq.call(p - nr * 5.0), sq.call(p + nr * 5.0), rc, 1.5)
 		match q % 3:
 			0:
-				g.draw_line(p - tn * 3.0, p + tn * 3.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+				tb_line(sq.call(p - tn * 3.0), sq.call(p + tn * 3.0), rc, 1.5)
 			1:
-				g.draw_line(p + nr * 5.0, p + nr * 1.0 + tn * 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
+				tb_line(sq.call(p + nr * 5.0), sq.call(p + nr * 1.0 + tn * 4.0), rc, 1.5)
 			_:
-				g.draw_line(p - nr * 5.0, p - nr * 1.0 - tn * 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a), 1.5)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				tb_line(sq.call(p - nr * 5.0), sq.call(p - nr * 1.0 - tn * 4.0), rc, 1.5)
 
 
 ## 伊祖米克灯柱（e.lamps = [{pos, lit, prog}]，e.lamp_r）：未点亮 = 暗色石灯 + 脚下 40 半径的点亮进度环；
@@ -1671,7 +1678,7 @@ func draw_beacons() -> void:
 			g.draw_circle(Vector2.ZERO, r, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.07 + 0.05 * pulse))
 			for q in 20:
 				var a0: float = g.t * 0.3 + q * TAU / 20.0
-				g.draw_arc(Vector2.ZERO, r, a0, a0 + TAU / 40.0, 4, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 2.0)
+				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:
@@ -1679,9 +1686,10 @@ func draw_beacons() -> void:
 				g.draw_circle(Vector2.ZERO, cr, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, 0.05))
 				for q in 36:
 					var a1: float = -g.t * 0.1 + q * TAU / 36.0
-					g.draw_arc(Vector2.ZERO, cr, a1, a1 + TAU / 72.0, 4, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, 0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))), 2.0)
+					tb_arc(pos, cr, a1, a1 + TAU / 72.0, 2.0, Color(BEACON_COL.r * 1.4, BEACON_COL.g * 1.4, BEACON_COL.b * 1.4, 0.45 if left > 5.0 else 0.45 * absf(sin(g.t * 8.0))), 3, ground_y())
 			g.draw_circle(Vector2.ZERO, 46.0, Color(BEACON_COL.r * 1.6, BEACON_COL.g * 1.6, BEACON_COL.b * 1.4, 0.16 + 0.06 * pulse))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		tb_flush()
 		# 点燃进度（暖色环；读 prog / need，离开光圈时进度缓慢回退也看得到）
 		if not lit and float(b.get("prog", 0.0)) > 0.0:
 			var k: float = clampf(float(b.prog) / maxf(0.1, float(b.get("need", 2.5))), 0.0, 1.0)   # prog 离开圈会缓慢回退、不清零
@@ -1892,10 +1900,24 @@ func tb_line(a: Vector2, b: Vector2, col: Color, w := 1.0) -> void:
 	tb_quad(a + n, b + n, b - n, a - n, col)
 
 
-func tb_flush() -> void:
+func tb_arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, seg := 8, sy := 1.0) -> void:
+	var base: int = _tb_pts.size()
+	for q in seg + 1:
+		var aq: float = lerpf(a0, a1, float(q) / seg)
+		var d := Vector2(cos(aq), sin(aq))
+		_tb_pts.append(c + Vector2(d.x * (r - w * 0.5), d.y * (r - w * 0.5) * sy))
+		_tb_pts.append(c + Vector2(d.x * (r + w * 0.5), d.y * (r + w * 0.5) * sy))
+		_tb_cols.append(col)
+		_tb_cols.append(col)
+	for q in seg:
+		var i0: int = base + q * 2
+		_tb_idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+
+
+func tb_flush(ci: CanvasItem = null) -> void:   # ci：提交到哪个画布（缺省世界；HUD 传 g.hud）
 	if _tb_idx.is_empty():
 		return
-	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), _tb_idx, _tb_pts, _tb_cols)
+	RenderingServer.canvas_item_add_triangle_array((ci if ci != null else g).get_canvas_item(), _tb_idx, _tb_pts, _tb_cols)
 	_tb_pts = PackedVector2Array()
 	_tb_cols = PackedColorArray()
 	_tb_idx = PackedInt32Array()
