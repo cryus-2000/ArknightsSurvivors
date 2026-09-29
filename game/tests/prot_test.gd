@@ -64,6 +64,7 @@ func _process(_d: float) -> void:
 	test_gates()
 	test_break_budget()
 	test_retreat()
+	test_final_mob_cap()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -787,6 +788,26 @@ func test_retreat() -> void:
 	ok(game.kills == k0 and game.pickups.count_items() == pk0, "撤场不计击杀、不掉道具")
 	game.bosses = keep
 
+
+## 最终 Boss 在场时的存活杂兵上限（boss/final_mob_cap，协调人 9/30）：只在最终 Boss 活着时生效；泪滴等友方、宝箱、Boss 不计数
+func test_final_mob_cap() -> void:
+	var sp = game.spawner
+	var keep_e: Array = game.enemies
+	var keep_f = game.final_boss
+	var fb := {"dead": false, "boss": true}
+	game.enemies = [fb, {"dead": false, "boss": false, "friendly": true}, {"dead": false, "boss": false, "chest": true}, {"dead": true, "boss": false}]
+	for k in 5:
+		game.enemies.append({"dead": false, "boss": false})
+	ok(sp.mob_count() == 5, "杂兵计数不含 Boss / 友方 / 宝箱 / 死亡（%d）" % sp.mob_count())
+	game.final_boss = null
+	ok(sp.final_mob_room() == sp.MAX_ENEMIES, "没有最终 Boss：不限")
+	game.final_boss = fb
+	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
+	ok(sp.final_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.final_mob_room())
+	fb.dead = true
+	ok(sp.final_mob_room() == sp.MAX_ENEMIES, "最终 Boss 倒下后恢复不限")
+	game.enemies = keep_e
+	game.final_boss = keep_f
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:

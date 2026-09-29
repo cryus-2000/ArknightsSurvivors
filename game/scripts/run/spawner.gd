@@ -120,6 +120,23 @@ func roll_affix(e: Dictionary) -> void:
 		e.shield_hp = e.maxhp * Bal.v("enemy/affix_shield", 0.30)
 
 
+## 活着的非 Boss 敌人数（不算宝箱 / 友方单位，如伊莎玛拉的泪滴）
+func mob_count() -> int:
+	var n := 0
+	for e in g.enemies:
+		if not e.dead and not e.boss and not e.get("chest", false) and not e.get("friendly", false):
+			n += 1
+	return n
+
+
+## 最终 Boss 在场时还能刷几只普通怪（boss/final_mob_cap；不在最终 Boss 战或上限为 0 时不限）
+func final_mob_room() -> int:
+	if g.final_boss == null or g.final_boss.dead:
+		return MAX_ENEMIES
+	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
+	return cap - mob_count() if cap > 0 else MAX_ENEMIES
+
+
 func boss_alive() -> bool:
 	for b in g.bosses:
 		if not b.dead:
@@ -198,8 +215,14 @@ func update(dt: float) -> void:
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	spawn_acc += rate * dt
+	# 最终 Boss 在场时的存活杂兵上限（协调人 9/30 定，boss/final_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
+	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
+	var mob_room: int = final_mob_room()
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
+		if mob_room <= 0:
+			continue
+		mob_room -= 1
 		if g.enemies.size() < MAX_ENEMIES:
 			var ne := spawn_enemy(pick_type(), edge_pos())
 			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
