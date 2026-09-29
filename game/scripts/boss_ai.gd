@@ -33,6 +33,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		# 冲刺落地后的破绽（伊莎玛拉潮涌迫近，boss/ishar_close_break 秒，0 = 关）
 		if e.dash_t <= 0.0 and e.get("land_break", 0.0) > 0.0:
 			g.combat.start_break(e, e.land_break)
+			Sfx.play("ishar_land_break", -0.6, 1.0, 0.0)   # 落地破绽：水花拍地 + 下沉咕噜（tools/gen_sfx_boss_events.py）
 			e.land_break = 0.0
 	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
 	if e.get("coma", false):

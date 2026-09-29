@@ -11,6 +11,7 @@
   stake_hit       骑士冲锋撞桩、长枪脱手：金属重撞 + 冰裂 + 长枪落地弹跳
   stake_shatter   冰枪桩到期碎裂：一串冰晶崩落
   carmen_sword    卡门换剑：长剑出鞘
+  ishar_land_break  伊莎玛拉潮涌迫近落地破绽：水花拍地 + 下沉咕噜（和泡影破茧的脆裂区分）
 用法：cd game/tools && python gen_sfx_boss_events.py [名字 ...]
 """
 import sys
@@ -116,8 +117,22 @@ def carmen_sword():
     return slide * 0.6 + ring * 0.6
 
 
+def ishar_land_break():
+    """伊莎玛拉潮涌迫近落地破绽：沉重的水花拍地 + 下沉的咕噜 + 颤抖余音（全是水声，和泡影破茧的晶体脆裂区分）"""
+    r = R(11); d = 1.2; n = int(d * SR); t = T(d)
+    slap = lp(r.standard_normal(n), 2500) * env(d, 0.001, 0.05) * 1.3
+    body = np.tanh(2 * glide(0.4, 100, 45)) * env(0.4, 0.003, 0.12)
+    gurgle = np.zeros(n)
+    for k in range(9):
+        c = 0.12 + k * 0.07 + r.uniform(0, 0.03)
+        f0 = 420 - k * 30
+        gurgle += at(glide(0.07, f0, f0 * 0.6) * env(0.07, 0.003, 0.025) * (1 - k * 0.08), c, n)
+    wobble = bp(r.standard_normal(n), 200, 700) * (1 + np.sin(2 * np.pi * 7 * t)) * np.exp(-np.maximum(t - 0.2, 0) / 0.35) * (t >= 0.2) * 0.8
+    return slap + at(body, 0.0, n) + gurgle * 0.5 + wobble
+
+
 SOUNDS = {k: v for k, v in globals().items() if k in ("cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count",
-                                                       "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword")}
+                                                       "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break")}
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or SOUNDS):
