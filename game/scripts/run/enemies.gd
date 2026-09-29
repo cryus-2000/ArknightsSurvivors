@@ -357,7 +357,7 @@ func update_status(dt: float) -> void:
 			mired = true
 			if not m.get("boss", false):
 				mire_nat = true
-	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
+	# 溟痕：减速 + 屏幕变暗 + 持续掉血（不叠神经损伤）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
