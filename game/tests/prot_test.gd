@@ -67,6 +67,7 @@ func _process(_d: float) -> void:
 	test_final_mob_cap()
 	test_ishar_close()
 	test_paranoia_p2_gate()
+	test_close_panic()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -796,18 +797,30 @@ func test_final_mob_cap() -> void:
 	var sp = game.spawner
 	var keep_e: Array = game.enemies
 	var keep_f = game.final_boss
+	var keep_b: Array = game.bosses.duplicate()
+	game.bosses = []   # 前面测试留下的 Boss 会让中期上限生效
 	var fb := {"dead": false, "boss": true}
 	game.enemies = [fb, {"dead": false, "boss": false, "friendly": true}, {"dead": false, "boss": false, "chest": true}, {"dead": true, "boss": false}]
 	for k in 5:
 		game.enemies.append({"dead": false, "boss": false})
 	ok(sp.mob_count() == 5, "杂兵计数不含 Boss / 友方 / 宝箱 / 死亡（%d）" % sp.mob_count())
 	game.final_boss = null
-	ok(sp.final_mob_room() == sp.MAX_ENEMIES, "没有最终 Boss：不限")
+	ok(sp.boss_mob_room() == sp.max_alive(), "没有最终 Boss：不限")
 	game.final_boss = fb
 	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
-	ok(sp.final_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.final_mob_room())
+	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.boss_mob_room())
 	fb.dead = true
-	ok(sp.final_mob_room() == sp.MAX_ENEMIES, "最终 Boss 倒下后恢复不限")
+	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
+	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：读 boss/mid_mob_cap
+	var mb := {"dead": false, "boss": true}
+	game.enemies.append(mb)
+	game.bosses = [mb]
+	game.final_boss = null
+	var mcap := int(Bal.v("boss/mid_mob_cap", 160.0))
+	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap − 存活杂兵（%d）" % sp.boss_mob_room())
+	mb.dead = true
+	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
+	game.bosses = keep_b
 	game.enemies = keep_e
 	game.final_boss = keep_f
 
@@ -855,6 +868,36 @@ func test_paranoia_p2_gate() -> void:
 	ok(not e.get("cocoon_done", false), "茧还没结（归零时才结）")
 	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
 	e.dead = true
+	game.bosses = keep
+
+## 远程 Boss 迫近通用函数（泡影一阶段复用伊莎玛拉那套）+ 主教慌乱（协调人 9/30）
+func test_close_panic() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("paranoia", game.ppos + Vector2(500, 0))
+	game.bosses = [e]
+	var d1: float = game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE)
+	var w: Dictionary = game.warns.back() if not game.warns.is_empty() else {}
+	ok(d1 >= 0.0 and w.get("name", "") == "泡影漂近" and w.get("act", "") == "dash" and int(w.get("style", -1)) == 2, "泡影离主控 500：放泡影漂近（直线预警、冲刺）")
+	ok(game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "冷却内不再放")
+	e.cds = {}
+	ok(game.bai._close_in(e, Vector2.LEFT, 250.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "离主控 250（< close_min）不放")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	e.dead = true
+	# 主教慌乱：搭档假死时改近战、朝搭档走、停召潮；搭档复苏后恢复远程
+	var b: Dictionary = game.spawner.spawn_enemy("bishop", game.ppos + Vector2(400, 0))
+	var a: Dictionary = game.spawner.spawn_enemy("archon", game.ppos + Vector2(-200, 0))
+	b.partner = a
+	a.partner = b
+	game.bosses = [b, a]
+	a.coma = true
+	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
+	ok(b.get("panic", false) and b.ai == "melee" and b.get("aggro", Vector2.INF) == a.pos, "搭档假死：主教慌乱，改近战朝搭档走")
+	a.coma = false
+	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
+	ok(not b.get("panic", false) and b.ai == "ranged", "搭档复苏：主教恢复远程")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, b) and not is_same(x.owner, a))
+	b.dead = true
+	a.dead = true
 	game.bosses = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内

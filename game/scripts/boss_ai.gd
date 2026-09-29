@@ -189,6 +189,18 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				_path_core(e)
 		"bishop":
 			# 接潮主教：潮汐柱（脚下三圈）、召潮（4 只海嗣）、祝福（治疗并加速搭档）
+			# 慌乱（协调人 9/30 定 C，boss/bishop_panic，0 = 关）：搭档假死时停召潮、加速朝搭档靠拢，假死赛跑的 8 秒里能打到它
+			# （原来它远程 300 站在自己召的杂兵后面，Ⅷ on_boss 0%）
+			var panic: bool = Bal.v("boss/bishop_panic", 1.0) > 0.0 and mate != null and not mate.dead and mate.get("coma", false)
+			if panic:
+				if not e.get("panic", false):
+					g.vfx.add_text(e.pos + Vector2(0, -50), "慌乱", Color(1.0, 0.45, 0.8), 16)
+				e.ai = "melee"
+				e.aggro = mate.pos
+				e.haste = maxf(float(e.get("haste", 0.0)), 0.1)
+			elif e.get("panic", false):
+				e.ai = "ranged"
+			e.panic = panic
 			if ready:
 				var p = e.get("partner")
 				if _cd(e, "pillar", 7.0):
@@ -206,7 +218,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 					g.vfx.add_text(e.pos + Vector2(0, -50), "祝福", Color(1.0, 0.45, 0.8), 16)
 					g.vfx.add_text(p.pos + Vector2(0, -50), "加速", Color(1.0, 0.45, 0.8), 14)
 					Sfx.play("pickup", -6.0, 0.8)
-				elif _cd(e, "summon", 14.0):
+				elif not panic and _cd(e, "summon", 14.0):
 					e.pose = 0.6
 					e.pose_max = 0.6
 					for k in 4:
@@ -261,7 +273,10 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				return
 			_paranoia_aura(e, dist)
 			if ready:
-				if _cd(e, "gaze", 11.0):
+				# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
+				if e.phase == 1 and _close_in(e, dir, dist, "paranoia", "泡影漂近", Color(0.85, 0.45, 1.0)) >= 0.0:
+					pass
+				elif _cd(e, "gaze", 11.0):
 					# 多重凝视：只打主控，依次高亮、间隔 0.6 秒，都可以走开躲；一阶段 2 道、二阶段 3 道，茧没打破再 +1
 					var ng: int = (2 if e.phase == 1 else 3) + int(e.get("gaze_bonus", 0))
 					for k in ng:
@@ -359,18 +374,27 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				_ishar_phase2(e, dir, dist)
 
 
+## 远程 Boss 的迫近（协调人 9/30）：离主控超过 boss/<key>_close_min（300，0 = 关）时，每 <key>_close_cd（6）秒带直线预警（②）冲到主控前约 140 处，
+## 穿过杂兵墙进干员射程；冲刺本身无接触伤害，落地给 <key>_close_break（1）秒破绽。放了返回预警时长，没放返回 -1。伊莎玛拉二阶段、偏执泡影一阶段共用
+func _close_in(e: Dictionary, dir: Vector2, dist: float, key: String, title: String, col: Color) -> float:
+	var cmin: float = Bal.v("boss/%s_close_min" % key, 300.0)
+	if cmin <= 0.0 or dist <= cmin or not _cd(e, key + "_close", Bal.v("boss/%s_close_cd" % key, 6.0)):
+		return -1.0
+	var cw := _warn(e, "line", 0.7, {"ang": dir.angle(), "len": clampf(dist - 140.0, 80.0, 700.0), "wid": 30.0, "track": 0.3, "act": "dash", "fit_len": true,
+		"name": title, "col": col, "dmg": e.dmg, "close_break": Bal.v("boss/%s_close_break" % key, 1.0)})
+	return cw.dur
+
+
 ## 以原作「三目标真实伤害」为基础的幸存者玩法改编。
 ## 下列提示是攻击形状说明，不冒称原作技能名；固定轮转避免近身招式永久压住远程招式。
 func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	var d: Dictionary = D.ENEMIES.ishar.get("attack", {})
-	# 潮涌迫近（协调人 9/30 定）：离主控超过 ishar_close_min 时，带直线预警冲到主控前方约 140 处。原来她站在 660 射程边上、躲在杂兵墙后，
-	# 近战队伍打不到（Boss A/B 9/30：高手用时中位 199 秒、15/50 没打死）。冲刺本身无接触伤害，只是多一个要躲的预警；ishar_close_min 0 = 关
-	var cmin: float = Bal.v("boss/ishar_close_min", 300.0)
-	if cmin > 0.0 and dist > cmin and g.t >= float(e.get("ishar_next_at", 0.0)) and _cd(e, "ishar_close", Bal.v("boss/ishar_close_cd", 6.0)):
-		var cw := _warn(e, "line", 0.7, {"ang": dir.angle(), "len": clampf(dist - 140.0, 80.0, 700.0), "wid": 30.0, "track": 0.3, "act": "dash", "fit_len": true,
-			"name": "潮涌迫近", "col": Color(0.35, 1.0, 0.9), "dmg": e.dmg, "close_break": Bal.v("boss/ishar_close_break", 1.0)})
-		e.ishar_next_at = g.t + cw.dur + 0.6
-		return
+	# 潮涌迫近（协调人 9/30 定，见 _close_in）：原来她站在 660 射程边上、躲在杂兵墙后，近战队伍打不到（Boss A/B 9/30：高手用时中位 199 秒、15/50 没打死）
+	if g.t >= float(e.get("ishar_next_at", 0.0)):
+		var cdur := _close_in(e, dir, dist, "ishar", "潮涌迫近", Color(0.35, 1.0, 0.9))
+		if cdur >= 0.0:
+			e.ishar_next_at = g.t + cdur + 0.6
+			return
 	if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
 		return
 	var move: int = int(e.get("ishar_cycle", 0)) % 4

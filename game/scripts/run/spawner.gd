@@ -137,11 +137,14 @@ func max_alive() -> int:
 	return int(Bal.v("enemy/max_alive", float(MAX_ENEMIES)))
 
 
-## 最终 Boss 在场时还能刷几只普通怪（boss/final_mob_cap；不在最终 Boss 战或上限为 0 时不限）
-func final_mob_room() -> int:
-	if g.final_boss == null or g.final_boss.dead:
-		return max_alive()
-	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
+## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120），中期 Boss 读 boss/mid_mob_cap（160，协调人 9/30 定：
+## Ⅷ 7:00 双体战全场 230 只、主教 on_boss 0%）；没有 Boss 或上限为 0 时按同屏上限 max_alive()
+func boss_mob_room() -> int:
+	var cap := 0
+	if g.final_boss != null and not g.final_boss.dead:
+		cap = int(Bal.v("boss/final_mob_cap", 120.0))
+	elif boss_alive():
+		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
 	return cap - mob_count() if cap > 0 else max_alive()
 
 
@@ -231,9 +234,9 @@ func update(dt: float) -> void:
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	spawn_acc += rate * dt
-	# 最终 Boss 在场时的存活杂兵上限（协调人 9/30 定，boss/final_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
+	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
-	var mob_room: int = final_mob_room()
+	var mob_room: int = boss_mob_room()
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
 		if mob_room <= 0:
@@ -285,6 +288,8 @@ func update(dt: float) -> void:
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * float(g.dmod.horde))
+		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
+		n = mini(n, maxi(0, boss_mob_room()))
 		if horde_chest:
 			g.pickups.drop(g.ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
