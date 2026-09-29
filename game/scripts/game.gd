@@ -234,6 +234,9 @@ var root_t := 0.0                  # 冻结 / 束缚：不能移动（可以攻�
 var root_immune := 0.0             # 硬控后免疫秒数
 var wound := 0                     # 侵蚀创口层数：减受治疗 + 每秒掉血
 var wound_t := 0.0
+var apop := 0.0                    # 凋亡损伤量表 0–100：满了技能充能暂停 apop_t 秒（combat.add_apop）
+var apop_t := 0.0                  # 技能充能暂停剩余秒数
+var apop_hold := 0.0               # 距上一次累积的秒数（离开来源后回落用）
 var lamp_cap := 100.0              # 灯火上限（深蓝之心后 70）
 var knight_alive := false          # 猎潮的骑士在队中（结局二）
 var force_boss := -1
@@ -965,6 +968,7 @@ func _try_dash() -> void:
 	dash_cd = DASH_CD
 	dash_used = true
 	root_t = 0.0   # 冲刺挣脱冻结 / 束缚
+	apop = maxf(0.0, apop - Bal.v("enemy/apop_dash", 40.0))   # 冲刺清掉一部分凋亡损伤
 	invuln = maxf(invuln, DASH_TIME + 0.05)
 	fx.append({"kind": "ring", "pos": ppos, "r": 36.0, "life": 0.25, "max": 0.25, "col": ch.col() if ch != null else UI.CYAN})
 	Sfx.play("dodge", -6.0, 1.2, 0.05)

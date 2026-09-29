@@ -209,8 +209,7 @@ func update(dt: float) -> void:
 					# 伊祖米克的子代被 Boss 吸收
 					if e.feed and o.type == "izumik" and o.phase == 1:
 						e.dead = true
-						o.hp = min(o.maxhp, o.hp + o.maxhp * 0.08)
-						g.vfx.add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
+						g.bai.izumik_absorb(o)   # 吸收子代：强化层数（不再回血，docs/38 §8.7）
 						break
 					if not e.boss:
 						e.pos += diff / d * (min_d - d) * 0.3

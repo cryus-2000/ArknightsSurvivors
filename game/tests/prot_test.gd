@@ -71,6 +71,7 @@ func _process(_d: float) -> void:
 	test_lore1()
 	test_lore2()
 	test_lore3()
+	test_lore4()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -891,7 +892,8 @@ func test_ailments() -> void:
 	game.hp = mh * 0.5
 	var h0: float = game.hp
 	c.heal(10.0)
-	ok(absf((game.hp - h0) - 10.0 * game.heal_mult * 0.8) < 0.01, "2 层创口受治疗 ×0.8")
+	var hc: float = 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * 2
+	ok(absf((game.hp - h0) - 10.0 * game.heal_mult * hc) < 0.01, "2 层创口受治疗 ×%.2f" % hc)
 	game.wound = 0
 	game.cold = 0
 	c.sync_cold()
@@ -1072,3 +1074,55 @@ func test_lore3() -> void:
 	ok(part.hp < ph, "部件附近的小怪被击杀：部件掉 %.0f%% 血" % (100.0 * (ph - part.hp) / part.maxhp))
 	part.dead = true
 	game.warns.clear()
+
+
+## docs/38 §8 第四批：伊祖米克（固定学习期、吸收强化、灯柱、全场地波）与凋亡损伤（满条暂停技力、回落、冲刺清一部分）
+func test_lore4() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1500, 0))
+	iz.age = 5.0
+	bai._boss_ai(iz, 0.01, Vector2.LEFT, 500.0)
+	ok(iz.phase == 1 and iz.invuln and absf(iz.count_max - Bal.v("boss/izumik_learn", 20.0)) < EPS, "伊祖米克学习期固定 %.0f 秒" % iz.count_max)
+	bai.izumik_absorb(iz)
+	bai.izumik_absorb(iz)
+	ok(int(iz.izu_layers) == 2, "吸收子代叠强化层（%d 层）" % int(iz.izu_layers))
+	var d0: float = iz.dmg
+	bai._boss_ai(iz, Bal.v("boss/izumik_learn", 20.0) + 0.1, Vector2.LEFT, 500.0)
+	ok(iz.phase == 2 and not iz.invuln and absf(iz.hp - iz.maxhp) < 1.0 and iz.dmg > d0 and iz.lamps.size() == 3, "学习结束：满血、强化生效、立起 3 根灯柱")
+	var l0: Dictionary = iz.lamps[0]
+	var p0: Vector2 = game.ppos
+	game.ppos = l0.pos
+	bai._izumik_lamp_step(iz, 1.1)
+	ok(l0.lit and bai.izumik_safe(iz), "主控在灯柱旁待 1 秒点亮，光圈里算安全")
+	var w: Dictionary = bai._warn(iz, "circle", 2.0, {"follow": true, "r": 2400.0, "act": "izu_wave", "dmg": game.max_hp * 0.2})
+	game.invuln = 0.0
+	var h0: float = game.hp
+	bai._warn_resolve(w)
+	ok(game.hp == h0, "站在点亮的灯柱光圈里：全场地波打不到")
+	game.ppos = p0 + Vector2(0, 900)
+	game.invuln = 0.0
+	bai._warn_resolve(w)
+	ok(game.hp < h0, "光圈外吃到全场地波")
+	game.ppos = p0
+	game.hp = game.max_hp
+	iz.dead = true
+	game.warns.clear()
+	# 凋亡损伤
+	game.apop = 0.0
+	game.apop_t = 0.0
+	c.add_apop(60.0)
+	c.add_apop(60.0)
+	ok(game.apop_t > 0.0 and game.apop_t <= 4.0 and game.apop == 0.0, "凋亡满条：技力暂停 %.1f 秒（上限 4）" % game.apop_t)
+	game.apop_t = 0.0
+	c.add_apop(50.0)
+	game.apop_hold = 2.0
+	c.update_ailments(1.0)
+	ok(game.apop < 50.0, "离开来源后凋亡回落（%.0f）" % game.apop)
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	var a0: float = game.apop
+	game._try_dash()
+	ok(game.apop < a0, "冲刺清掉一部分凋亡（%.0f → %.0f）" % [a0, game.apop])
+	game.dash_t = 0.0
+	game.apop = 0.0

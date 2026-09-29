@@ -215,7 +215,7 @@ func tick_sp(dt: float) -> void:
 		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
 		if sp[i] < need:
-			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
+			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp() * (0.0 if g.apop_t > 0.0 else 1.0))   # 凋亡损伤满条：自然充能暂停（combat.add_apop）
 	_tick_manual_buf(dt)
 
 

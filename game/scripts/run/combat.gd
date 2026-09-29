@@ -80,6 +80,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 			add_wound(int(sd.get("wound_hit", 0)))
 			if src.get("warn", false):
 				add_root(float(sd.get("root_hit", 0.0)), "束缚")
+	# 凋亡损伤：小怪来源按 ctrl_start 生效，Boss 来源（伊祖米克）一直生效
+	var ad: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
+	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
+		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
@@ -595,8 +599,26 @@ func add_wound(n: int) -> void:
 	g.wound_t = Bal.v("enemy/wound_dur", 6.0)
 
 
+## 凋亡损伤（docs/49b §4.4，用户 9/29）：有效命中累积量表，满 100 时全队技能充能暂停 enemy/apop_pause 秒（上限 4 秒）后清零；
+## 离开来源 1 秒后每秒回落 apop_decay；冲刺清 apop_dash；来源死了就不再累积；净化清 g.apop / g.apop_t。
+## 只来自 enemies.json 写了 apop_hit 的敌人（伊祖米克的子代、伊祖米克），小怪按 ctrl_start 生效，Boss 来源不受 ctrl_start 限制
+func add_apop(v: float) -> void:
+	if v <= 0.0 or g.apop_t > 0.0:
+		return
+	g.apop += v
+	g.apop_hold = 0.0
+	if g.apop >= 100.0:
+		g.apop = 0.0
+		g.apop_t = minf(Bal.v("enemy/apop_pause", 4.0), 4.0)
+		g.vfx.add_text(g.ppos + Vector2(0, -104), "凋亡 · 技力暂停", Color(0.6, 1.0, 0.6), 18)
+
+
 ## 每帧（enemies.update_status）：控制计时递减、创口掉血
 func update_ailments(dt: float) -> void:
+	g.apop_t = maxf(0.0, g.apop_t - dt)
+	g.apop_hold += dt
+	if g.apop > 0.0 and g.apop_hold > 1.0:
+		g.apop = maxf(0.0, g.apop - Bal.v("enemy/apop_decay", 15.0) * dt)
 	g.root_t = maxf(0.0, g.root_t - dt)
 	g.root_immune = maxf(0.0, g.root_immune - dt)
 	g.cold_immune = maxf(0.0, g.cold_immune - dt)
