@@ -413,7 +413,8 @@ func nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 			continue
 		var d: float = e.pos.distance_squared_to(origin)
 		if d < max_dist * max_dist:
-			c.append([d, e])
+			# 部件（e.part：塑路者核心、偏执泡影茧壳等，docs/38 §8）在射程内时排在普通敌人前面；只影响标了部件的单位，不是全局 Boss 加权
+			c.append([d - (1.0e12 if e.get("part", false) else 0.0), e])
 	c.sort_custom(func(a, b): return a[0] < b[0])
 	var out: Array = []
 	for i in min(n, c.size()):

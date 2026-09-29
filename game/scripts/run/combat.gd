@@ -870,12 +870,16 @@ func damage(e: Dictionary, dmg: float) -> void:
 			Sfx.play("roar", 0.0, 0.9, 0.0)
 			g.vfx.shake_screen(1.2)
 			return
-		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead:
+		# 接潮假死：每具最多复苏 boss/pair_revives（2）次，之后直接倒下（docs/38 §8.4）
+		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead and int(e.get("revives", 0)) < int(Bal.v("boss/pair_revives", 2.0)):
 			e.hp = 1.0
 			e.coma = true
 			e.invuln = true
 			e.stun = 0.0
-			g.vfx.add_text(e.pos + Vector2(0, -50), "假死（同时击倒另一体）", Color(0.6, 1.0, 0.9), 16)
+			e.coma_t = 0.0
+			e.count_end = g.t + Bal.v("boss/pair_race", 8.0)   # 倒计时环（界面与美术读 count_end / count_max）
+			e.count_max = Bal.v("boss/pair_race", 8.0)
+			g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
 			return
 		kill(e)
 

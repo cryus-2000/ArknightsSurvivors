@@ -68,6 +68,7 @@ func _process(_d: float) -> void:
 	test_ground()
 	test_any_cap()
 	test_ailments()
+	test_lore1()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -911,3 +912,60 @@ func test_ailments() -> void:
 	ok(got.has("armor") and got.has("shield") and got.get("shield_ok", false), "词条：甲壳 / 潮盾都会出现，潮盾先扣盾")
 	Bal._data["enemy"] = bak
 	game.hp = mh
+
+
+## docs/38 §8 第一批：塑路者猎核（核心部件、优先索敌、打碎破绽 / 超时回流加冲撞）与接潮假死赛跑（8 秒复苏到 50%、最多 2 次）
+func test_lore1() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var pa: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1500, 0))
+	pa.gates_passed = 1
+	bai._path_core(pa)
+	var core = pa.get("core")
+	var owned := 0
+	for o in game.enemies:
+		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
+			owned += 1
+	ok(core != null and core.part and core.spd == 0.0 and owned >= 3, "塑路者第二幕出核心部件（场上碎片 %d）" % owned)
+	var near: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(20, 0))
+	game.enemies_sys.build_grid()   # 空间网格每帧重建；刚刷出的单位要先进网格
+	var first: Array = game.enemies_sys.nearest(1, 5000.0)
+	ok(not first.is_empty() and is_same(first[0], core), "部件在射程内优先被索敌")
+	near.dead = true
+	core.dead = true
+	bai._path_core(pa)
+	var left := 0
+	for o in game.enemies:
+		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
+			left += 1
+	ok(pa.break_t > 0.0 and left == 0 and pa.get("core") == null, "打碎核心：碎片崩解、Boss 破绽 %.1f 秒" % pa.break_t)
+	pa.core_next = 0.0
+	bai._path_core(pa)
+	pa.core_until = game.t - 1.0
+	bai._path_core(pa)
+	ok(int(pa.get("dash_bonus", 0)) >= 3, "核心超时：碎片回流，下次冲撞 +%d 段" % int(pa.get("dash_bonus", 0)))
+	pa.dead = true
+	# 接潮假死赛跑
+	var bi: Dictionary = sp.spawn_enemy("bishop", game.ppos + Vector2(1600, 0))
+	var ar: Dictionary = sp.spawn_enemy("archon", game.ppos + Vector2(1690, 0))
+	bi.partner = ar
+	ar.partner = bi
+	ar.gates = []
+	ar.last_done = true
+	var k2 := 0
+	while not ar.coma and not ar.dead and k2 < 200:   # 单次伤害上限（hit_cap_pct）下要多打几下
+		c.damage(ar, ar.maxhp)
+		k2 += 1
+	ok(ar.coma and ar.get("count_max", 0.0) > 0.0, "蔑死体归零假死，挂 %.0f 秒倒计时" % ar.get("count_max", 0.0))
+	bai._boss_ai(ar, Bal.v("boss/pair_race", 8.0) + 0.1, Vector2.LEFT, 500.0)
+	ok(not ar.coma and ar.revives == 1 and absf(ar.hp - ar.maxhp * 0.5) < 1.0, "8 秒没打倒另一具：复苏到 50%%（第 %d 次）" % ar.revives)
+	ar.revives = 2
+	ar.invuln = false
+	k2 = 0
+	while not ar.dead and not ar.coma and k2 < 200:
+		c.damage(ar, ar.maxhp)
+		k2 += 1
+	ok(ar.dead, "复苏满 2 次后直接倒下")
+	bi.dead = true
+	game.warns.clear()
