@@ -1047,13 +1047,15 @@ func test_lore3() -> void:
 		k += 1
 	ok(pa.cocoon_t > 0.0 and pa.invuln and pa.part and pa.shell_hp > 0.0, "偏执泡影第一次归零结茧（外壳 %.0f）" % pa.shell_hp)
 	var h0: float = pa.hp
-	c.damage(pa, pa.shell_max * 0.5)
-	ok(pa.hp == h0 and pa.shell_hp < pa.shell_max, "茧期间伤害打在外壳上")
-	k = 0
-	while pa.get("cocoon_t", 0.0) > 0.0 and k < 50:
-		c.damage(pa, pa.shell_max)
-		k += 1
-	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.4) < 1.0, "打破外壳：复活到 40%% 并破绽 %.1f 秒" % pa.break_t)
+	bai._paranoia_cocoon_step(pa, 0.25)
+	c.damage(pa, pa.shell_max * 10.0)
+	ok(pa.hp == h0 and pa.shell_hp < pa.shell_max and pa.shell_hp > 0.0, "茧期间伤害打在外壳上，而且一下打不破（受伤速度有上限）")
+	var tt := 0.0
+	while pa.get("cocoon_t", 0.0) > 0.0 and tt < 10.0:
+		bai._paranoia_cocoon_step(pa, 0.1)
+		tt += 0.1
+		c.damage(pa, pa.shell_max * 10.0)
+	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.4) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 40%% 并破绽" % tt)
 	pa.dead = true
 	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
 	bai.paranoia_cocoon(pb)

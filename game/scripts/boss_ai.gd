@@ -589,6 +589,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	e.part = true
 	e.shell_max = e.maxhp * Bal.v("boss/paranoia_shell", 0.08)
 	e.shell_hp = e.shell_max
+	e.shell_room = 0.0
 	e.count_end = g.t + e.cocoon_t
 	e.count_max = e.cocoon_t
 	e.shell_shot = 0.0
@@ -604,6 +605,9 @@ func paranoia_cocoon(e: Dictionary) -> void:
 
 func _paranoia_cocoon_step(e: Dictionary, dt: float) -> void:
 	e.cocoon_t -= dt
+	# 外壳受伤额度按秒补充（combat.damage 里截），最多攒 0.5 秒的量
+	var rate: float = e.shell_max / maxf(0.5, Bal.v("boss/paranoia_shell_min", 4.0))
+	e.shell_room = minf(e.get("shell_room", 0.0) + rate * dt, rate * 0.5)
 	e.shell_shot -= dt
 	if e.shell_shot <= 0.0:
 		e.shell_shot = 2.0

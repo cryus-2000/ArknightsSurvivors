@@ -794,6 +794,11 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg *= 1.25
 	# 偏执泡影的茧：本体无敌，伤害打在外壳上（docs/38 §8.5）
 	if e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0:
+		# 外壳受伤有速度上限（协调人 9/29：外壳要成为真分支）：每秒最多掉 shell_max / boss/paranoia_shell_min 秒，
+		# 再强的编队也要约 4 秒才能打破（换 5 秒破绽），输出低的可能 8 秒内打不破（凝视永久 +1）
+		var room: float = e.get("shell_room", 0.0)
+		dmg = minf(dmg, room)
+		e.shell_room = room - dmg
 		e.shell_hp -= dmg
 		e.flash = 0.08
 		if e.shell_hp <= 0.0:
