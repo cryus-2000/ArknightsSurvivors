@@ -3,14 +3,14 @@ extends Node
 
 const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
-	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
+	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "enemy_acid", "enemy_elite", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
 	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break", "paranoia_land_break", "bishop_panic",
 	"ulp_charge_loop", "ulp_release", "atk_gate", "beacon_fizzle",
 	"boss_archon", "boss_bishop", "boss_carmen", "boss_iberia", "boss_immortal", "boss_ishar", "boss_izumik", "boss_knight_boss", "boss_paranoia", "boss_path", "cue_beam_hit", "cue_beam_start", "cue_charge_hit", "cue_charge_start", "cue_global_hit", "cue_global_start", "cue_land_hit", "cue_land_start", "cue_melee_hit", "cue_melee_start", "cue_phase_start"]
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"enemy_nerve": 0.2, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -777,7 +777,7 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 ## Enemy attack cues: distance attenuation and shared per-kind throttling.
 ## Called once when the attack begins, never per animation frame.
 func enemy(kind: String, distance := 0.0) -> void:
-	if kind not in ["screech", "spit", "bite", "nerve"] or distance > 800.0:
+	if kind not in ["screech", "spit", "bite", "nerve", "acid", "elite"] or distance > 800.0:
 		return
 	var attenuation := clampf(distance / 800.0, 0.0, 1.0) * 18.0
 	play("enemy_" + kind, -13.0 - attenuation, 1.0, 0.07)

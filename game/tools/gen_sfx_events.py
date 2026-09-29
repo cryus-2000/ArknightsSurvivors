@@ -13,6 +13,8 @@
   beacon_fizzle  灯标未点燃、45 秒熄灭
   enemy_nerve    浮海飘航者神经弹发射
   mire_clear     灯标点亮时清掉溟痕（叠在光爆下）
+  enemy_acid     侵蚀酸弹（尖、辨识度优先）
+  enemy_elite    远程精英开火
 每声用自己的随机数种子：单独重做某一声不影响其他；gen_sfx.py 重跑复现不了现有音效，别为这些去重跑它。
 用法：cd game/tools && python gen_sfx_events.py [名字 ...]
 """
@@ -292,11 +294,34 @@ def mire_clear():
     return sizzle * 0.8 + shimmer
 
 
+def enemy_acid():
+    """侵蚀酸弹（喷吐者抛射 / 投嗣育母追踪弹 / 站桩吐酸）：尖、辨识度优先——短促上扬的「噗咻」+ 高频酸液嘶嘶声"""
+    rng = np.random.default_rng(607)
+    d = 0.4
+    n = int(d * SR)
+    pwik = glide(0.09, 900, 2600) * env(0.09, 0.001, 0.035)
+    sizzle = bp(rng.standard_normal(n), 4500, 11000) * np.exp(-T(d) / 0.12) * (1 + 0.5 * np.sin(2 * np.pi * 60 * T(d)))
+    wet = lp(rng.standard_normal(int(0.05 * SR)), 1500) * env(0.05, 0.001, 0.01)
+    return at(pwik, 0.0, n) * 0.9 + sizzle * 0.6 + at(wet, 0.0, n) * 0.7
+
+
+def enemy_elite():
+    """远程精英开火：有分量的「咚」+ 金属共鸣（比普通吐射低、厚）"""
+    rng = np.random.default_rng(608)
+    d = 0.45
+    n = int(d * SR)
+    thoom = np.tanh(2.2 * glide(0.25, 160, 70)) * env(0.25, 0.002, 0.07)
+    ring = sum(np.sin(2 * np.pi * f * T(d)) * np.exp(-T(d) / tau) for f, tau in ((620, 0.12), (1370, 0.07))) * 0.3
+    puff = bp(rng.standard_normal(n), 800, 3000) * env(d, 0.002, 0.04) * 0.6
+    return at(thoom, 0.0, n) + ring + puff
+
+
 SOUNDS = {"knight_charge": knight_charge, "knight_stab": knight_stab, "knight_frost": knight_frost,
           "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break,
           "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat,
           "ulp_charge_loop": ulp_charge_loop, "ulp_release": ulp_release, "atk_gate": atk_gate, "beacon_fizzle": beacon_fizzle,
-          "enemy_nerve": enemy_nerve, "mire_clear": mire_clear}
+          "enemy_nerve": enemy_nerve, "mire_clear": mire_clear,
+          "enemy_acid": enemy_acid, "enemy_elite": enemy_elite}
 
 
 def save(name, x, peak=0.89):

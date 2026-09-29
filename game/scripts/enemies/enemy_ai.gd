@@ -248,7 +248,7 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 	e.cdt -= dt
 	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)):
 		e.cdt = float(d.get("acid_cd", 4.2))
-		Sfx.enemy("spit", dist)
+		Sfx.enemy("acid", dist)   # 站桩吐酸：酸弹声（尖，要躲）
 		e.atk_until = g.t + 0.3
 		g.ebullets.append({"pos": e.pos, "vel": dir * 180.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
 			"corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "acid", "home": false, "src_type": e.type})
@@ -284,7 +284,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		lob(e)
 		return
 	if e.type not in ["iberia", "carmen"]:
-		Sfx.enemy("spit", e.pos.distance_to(g.ppos))
+		Sfx.enemy(shot_sfx(e, d), e.pos.distance_to(g.ppos))
 	var spd: float = float(d.get("shot_spd", 280.0 if e.boss else 200.0)) * 1.2
 	var n: int = int(d.get("shot_n", 1))
 	var kind: String = d.get("shot_kind", "orb")
@@ -308,8 +308,6 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "frost": e.get("frost", 0.0), "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
 			"mire": (e.type == "paranoia" and e.phase == 2) or d.get("shot_mire", false), "mire_r": float(d.get("shot_mire_r", 52.0)), "mire_life": float(d.get("shot_mire_life", 10.0)), "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type})
-	if not e.boss and str(d.get("shot_kind", "")) == "nerve":
-		Sfx.enemy("nerve", e.pos.distance_to(g.ppos))   # 浮海飘航者神经弹发射（音频）；其他远程小怪开火目前无声
 	if e.boss:
 		e.pose = 0.4
 		e.pose_max = 0.4
@@ -330,9 +328,23 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
 
 
+## 远程开火音（音频，协调人 9/30 定）：要躲的弹用专属声、替换通用吐射声（不叠加）——
+## 侵蚀酸弹 acid（尖，辨识度优先）> 远程精英 elite > 神经弹 nerve > 其余照旧 spit。Boss 的开火也走这里，Boss 一律用通用声
+func shot_sfx(e: Dictionary, d: Dictionary) -> String:
+	if e.boss:
+		return "spit"
+	if str(d.get("shot_kind", "")) == "acid":
+		return "acid"
+	if e.get("elite", false) or str(d.get("role", "")) == "elite":
+		return "elite"
+	if str(d.get("shot_kind", "")) == "nerve":
+		return "nerve"
+	return "spit"
+
+
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
 func lob(e: Dictionary) -> void:
-	Sfx.enemy("spit", e.pos.distance_to(g.ppos))
+	Sfx.enemy(shot_sfx(e, def_of(e)), e.pos.distance_to(g.ppos))
 	e.atk_until = g.t + 0.3
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
