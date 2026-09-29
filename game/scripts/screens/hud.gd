@@ -215,29 +215,34 @@ func draw() -> void:
 			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
 			g.hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(g.hud, g.font, hp2 + Vector2(-60, -8), ("商人 %ds" if g.merchant.life > 15.0 else "商人即将离开 %ds") % int(g.merchant.life), 13, g.shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
-	# 海嗣祭坛方位指示（屏幕外）
+	# 海嗣祭坛方位指示（屏幕外）；最终 Boss 登场前 10 秒还有没开的祭坛（g.endg.urgent）：指示变金红快闪、写「即将沉没」
+	var urgent: bool = g.endg != null and g.endg.get("urgent") == true
+	var uk: float = absf(sin(g.t * 9.0)) if urgent else 0.0
+	var acol: Color = Color(0.55, 0.8, 1.0).lerp(Color(1.0, 0.45, 0.3), uk) if urgent else Color(0.55, 0.8, 1.0)
 	for e in g.enemies:
 		if not e.chest or e.dead or e.get("event", "") == "":
 			continue
 		var spb: Vector2 = ct * e.pos
 		if Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(spb):
 			var hb := spb + Vector2(0, -60 - absf(sin(g.t * 5.0)) * 8.0)
-			g.hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), Color(0.55, 0.8, 1.0))
-			UI.text(g.hud, g.font, hb + Vector2(-60, -8), "海嗣祭坛", 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			g.hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), acol)
+			UI.text(g.hud, g.font, hb + Vector2(-90, -8), "海嗣祭坛" if not urgent else "海嗣祭坛 · 即将沉没", 13, acol, HORIZONTAL_ALIGNMENT_CENTER, 180, 3)
 		else:
 			var cc := vs / 2.0
 			var dd := (spb - cc).normalized()
 			var edge2: Vector2 = cc + dd * min(abs((vs.x / 2 - 64) / max(abs(dd.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(dd.y), 0.01)))
 			var pl := 0.5 + 0.5 * sin(g.t * 6.0)
+			if urgent:
+				g.hud.draw_circle(edge2, 32.0 + 8.0 * uk, Color(1.0, 0.45, 0.3, 0.25 * uk))
 			g.hud.draw_circle(edge2, 24.0, Color(0.03, 0.05, 0.1, 0.85))
-			g.hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, Color(0.55, 0.8, 1.0), 2.0)
+			g.hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, acol, 2.0)
 			var et2: Texture2D = g.tex.e_event
 			g.hud.draw_texture_rect_region(et2, Rect2(edge2 - Vector2(13, 15), Vector2(26, 30)), Rect2(0, 0, 26, 30))
 			var tip2: Vector2 = edge2 + dd * (40.0 + 5.0 * pl)
 			var base2: Vector2 = edge2 + dd * 28.0
 			var sd2 := dd.orthogonal() * 10.0
-			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
-			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), acol)
+			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), ("海嗣祭坛 %dm" if not urgent else "即将沉没 %dm") % int(e.pos.distance_to(g.ppos) / 32.0), 13, acol, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	draw_boss_pointers(vs, ct)
 	draw_field_wave(vs)
 	draw_beacon_pointers(vs, ct)
@@ -963,6 +968,7 @@ const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
 func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return
+	var placed: Array = []   # 同一方向的两只 Boss（接潮双体）：后画的沿屏幕边挪开，不叠在一起
 	for b in hostile_boss_bars():
 		var sp: Vector2 = ct * b.pos
 		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
@@ -970,6 +976,12 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 		var c := vs / 2.0
 		var d := (sp - c).normalized()
 		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 72) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 72) / maxf(absf(d.y), 0.01)))
+		var tries := 0
+		while tries < 4 and placed.any(func(p): return p.distance_to(edge) < 76.0):
+			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
+			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72))
+			tries += 1
+		placed.append(edge)
 		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
 		g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.14))
 		g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
