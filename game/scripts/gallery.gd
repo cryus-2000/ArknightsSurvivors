@@ -384,10 +384,10 @@ func _build() -> void:
 			entries.append({"name": "回复药剂", "en": "HEAL", "tag": "道具", "forms": [_anim_n("回复药剂", "pickup_heal", 1, 1.0)], "stats": [], "desc": "拾取后立即回复 30% 最大生命。"})
 			entries.append({"name": "补给箱", "en": "CHEST", "tag": "宝箱", "forms": [_anim_n("补给箱", "e_chest", 2, 1.0)], "stats": [], "desc": "地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。"})
 			for sp in [["遗迹残柱", "PILLAR", "prop_pillar", 1], ["断墙", "RUINED WALL", "prop_wall", 1], ["沉船碎片", "WRECK", "prop_wreck", 1],
-					["海底岩脊", "RIDGE", "terrain_ridge", 1], ["海底山峰", "PEAK", "terrain_peak", 1], ["溟痕", "MIRE", "terrain_mire", 2]]:
+					["海底岩脊", "RIDGE", "terrain_ridge", 1], ["海底山峰", "PEAK", "terrain_peak", 1], ["溟痕", "MIRE", "terrain_mire", 2], ["引航灯标", "BEACON", "prop_beacon", 2]]:
 				if A.tex(sp[2]) != null:
 					entries.append({"name": sp[0], "en": sp[1], "tag": "场景", "forms": [_anim_n(sp[0], sp[2], sp[3], 2.0)], "stats": [],
-						"desc": "地面上周期性出现并逐渐扩大的溟痕，站在上面会持续受到伤害并积累神经损伤。" if sp[2] == "terrain_mire" else "深海遗迹中的场景物件，会与角色前后遮挡。"})
+						"desc": {"terrain_mire": "地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。", "prop_beacon": "仿照伊比利亚灯塔做的小型信标，熄灭着立在海床上。站进光圈点燃它，灯光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。"}.get(sp[2], "深海遗迹中的场景物件，会与角色前后遮挡。")})
 			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "局内会出现 3 次，停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
 	if tab == 4:
 		for entry in entries:
