@@ -681,30 +681,79 @@ func loop_stop(name: String) -> void:
 		p.stop()
 
 
+## ---- 混音优先级（协调人 9/30：后期 200+ 敌人时同时发声会糊）
+## 一次性音效共 32 个播放器。同名音 MERGE_T 秒内合并（取 LIMIT 与它的较大者）；满槽时抢占正在播的最低优先级音，
+## 自己优先级不高于它就丢弃；已有 DUCK_AT 个在响时，优先级 ≤2 的音降 6 dB。统计计数给 --perf 测量用（sfx_stat）
+const MERGE_T := 0.05
+const DUCK_AT := 12   # 标准局 99% 的帧 ≤15 个同时发声：只在最密的几成帧里压低优先级 ≤2 的音
+## 5 Boss 大招 / 阶段 / Boss 事件；4 主控状态与操作反馈；3 灯标、技能发动；2 一般攻击 / 敌人（缺省）；1 拾取、击杀、命中
+const PRIO_NAME := {
+	"lamp_out": 5, "roar": 5, "hunt_warn": 5, "hunt_close": 5, "hunt_break": 4, "izu_wave_count": 5, "cocoon_form": 5, "shell_break": 5,
+	"cocoon_revive": 5, "izu_lamp_lit": 5, "izu_absorb": 5, "stake_hit": 5, "stake_shatter": 4, "carmen_sword": 5, "knight_frost": 4,
+	"nerve_burst": 4, "apop_pause": 4, "apop_resume": 4, "hurt": 4, "dodge": 4, "levelup": 4, "relic": 4, "heartbeat": 4, "ulp_release": 4,
+	"atk_gate": 4, "ui_move": 4, "ui_ok": 4, "start": 4, "skill": 3,
+	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3,
+	"pickup": 1, "kill": 1, "hit": 1,
+}
+var sfx_stat := {"plays": 0, "merged": 0, "dropped": 0, "stolen": 0, "ducked": 0, "voices_max": 0, "us": 0}
+
+
+func sfx_prio(name: String) -> int:
+	if PRIO_NAME.has(name):
+		return PRIO_NAME[name]
+	if name.begins_with("cue_") or name.begins_with("boss_"):
+		return 5
+	if name.begins_with("op_"):
+		return 3 if (name.ends_with("_s1") or name.ends_with("_s2") or name.ends_with("_s3") or name.ends_with("_big")) else 2
+	return 2
+
+
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
-	if not streams.has(name):
+	if not streams.has(name) or streams[name] == null:
 		return
-	var now := Time.get_ticks_msec() / 1000.0
-	var lim: float = LIMIT.get(name, op_limit.get(name, 0.0))
-	if lim > 0.0 and now - float(last.get(name, -1.0)) < lim:
+	var t0 := Time.get_ticks_usec()
+	var now := t0 / 1000000.0
+	var lim: float = maxf(MERGE_T, float(LIMIT.get(name, op_limit.get(name, 0.0))))
+	if now - float(last.get(name, -1.0)) < lim:
+		sfx_stat.merged += 1
 		return
-	last[name] = now
+	var prio := sfx_prio(name)
+	var busy := 0
 	var p: AudioStreamPlayer = null
+	var low: AudioStreamPlayer = null
+	var low_prio := 99
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
 		if not c.playing:
-			p = c
-			next = (next + i + 1) % players.size()
-			break
+			if p == null:
+				p = c
+				next = (next + i + 1) % players.size()
+			continue
+		busy += 1
+		var cp: int = c.get_meta("prio", 2)
+		if cp < low_prio:
+			low_prio = cp
+			low = c
 	if p == null:
-		p = players[next]
-		next = (next + 1) % players.size()
-	if streams[name] == null:
-		return
+		if low == null or low_prio >= prio:   # 满槽且没有比自己低的：丢弃
+			sfx_stat.dropped += 1
+			return
+		p = low
+		p.stop()
+		sfx_stat.stolen += 1
+		busy -= 1
+	last[name] = now
+	if busy >= DUCK_AT and prio <= 2:
+		vol -= 6.0
+		sfx_stat.ducked += 1
 	p.stream = streams[name]
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
+	p.set_meta("prio", prio)
 	p.play()
+	sfx_stat.plays += 1
+	sfx_stat.voices_max = maxi(int(sfx_stat.voices_max), busy + 1)
+	sfx_stat.us += Time.get_ticks_usec() - t0
 
 
 ## 干员音效：op("skadi", "atk")；vol 为相对该类别默认音量的偏移。没有专属文件时退回通用音效

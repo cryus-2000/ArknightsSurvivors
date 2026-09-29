@@ -118,10 +118,16 @@ func apply() -> void:
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
 
 
+const WEB_MASTER_TRIM := -7.0
+
+
 func _bus(name: String, v: float) -> void:
 	var b := AudioServer.get_bus_index(name)
 	if b != -1:
-		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)))
+		# 网页版没有总线效果（样本播放），Master 的限幅器不起作用：整体让出 WEB_MASTER_TRIM 的余量防削波（音频 9/30 实测：
+		# 标准 · 水月 · 高手一局不截断录音，Master 输入峰值 +6.6 dBFS，400ms 最响 -2.8）。桌面版靠限幅器，不降
+		var trim: float = WEB_MASTER_TRIM if name == "Master" and OS.has_feature("web") else 0.0
+		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)) + trim)
 
 
 ## 旧存档（11 级累计难度）→ 3 档：通关过某档对应的累计档位（旧 diff_unlocked = 通关的最高档 + 1）就解锁下一档，
