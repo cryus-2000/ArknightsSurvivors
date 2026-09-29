@@ -355,7 +355,7 @@ func update_status(dt: float) -> void:
 			mired = true
 			if not m.get("boss", false):
 				mire_nat = true
-	# 溟痕：减速 + 屏幕变暗 + 持续掉血（不叠神经损伤）
+	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	g.combat.update_nerve(dt, mired, sanct)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
