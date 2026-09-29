@@ -148,7 +148,7 @@ func attack_held() -> bool:
 		return true
 	if _touching():
 		return false   # 触屏会模拟鼠标左键，不能当攻击
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_key_pressed(KEY_J):
+	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Input.is_key_pressed(KEY_J):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.get_joy_axis(dev, JOY_AXIS_TRIGGER_RIGHT) > 0.5 or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
@@ -225,6 +225,16 @@ func point_preview(ld, i: int) -> Vector2:
 	if p == Vector2.INF and not _touching():
 		return charge_point(ld, i)   # 键盘站着：轻点的落点（朝向 150）
 	return p
+
+
+## 光标在对局右上角的倍速 / 暂停按钮上：左键是点按钮，不算攻击（game.gd 处理那次点击）
+func _over_hud_btn() -> bool:
+	var mp: Vector2 = g.get_viewport().get_mouse_position()
+	for k in ["speed_btn", "pause_btn"]:
+		var r = g.get(k)
+		if r is Rect2 and r.has_area() and r.has_point(mp):
+			return true
+	return false
 
 
 func _touching() -> bool:
