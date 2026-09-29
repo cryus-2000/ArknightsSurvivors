@@ -2,7 +2,7 @@
 ## 普攻「言」（2026-09-26 用户改：高速法术弹，不再是瞬发光线）：骨笔写下的咒文化作墨蓝法术弹高速飞向目标，命中后法伤并附「安魂」5 秒（受到的法术伤害 +15%，全队法伤受益，game.gd _damage 读 e.requiem）；
 ## S1 提喻：5 秒锁定一名敌人（优先精英 / Boss），每 0.25 秒法伤，对同一目标逐步升到 ×3、减速加深；
 ## S2 湮灭（永久）：射程 +30%、攻击 +50%；普攻处决生命低于攻击 ×1.5 的非精英敌人，溢出伤害转给随机另一名敌人；
-## S3 延展敏锐：12 秒射程 +60%、攻击 +150%、同时 4 个目标；范围内敌方弹幕速度 -80%，结束时范围内弹幕全部消失。
+## S3 延展敏锐（2026-09-27 改）：展开 100° 扇形咒域 12 秒，自动朝敌人最多方向慢转；域内每 0.5 秒法伤 + 安魂，敌方弹幕 -80%，结束清除；期间普攻只打域内。
 ## 天赋 词法演化：50% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒（logos.json talent_chance）。
 ## 可见成长（docs/25 §5）：N1 铭文 / N2 复指 / N4 转喻 / N5 墓志铭 / 精二质变 众声喧哗。
 extends "res://scripts/characters/character.gd"
@@ -17,6 +17,10 @@ var lock_e = null
 var lock_tick := 0.0
 var lock_n := 0
 var acuity_t := 0.0           # S3 剩余
+var fan_ang := 0.0            # S3 扇形咒域朝向（弧度）
+var fan_want := 0.0           # S3 当前想转向的方向（每 0.5 秒重算）
+var fan_eval := 0.0
+var fan_tick := 0.0
 # ---- 可见成长（docs/25 §5：只长咒文；原作依据 档案「用骨笔书写咒文」/ 天赋词法演化；命名用语言学术语）
 var inscription := false      # N1「铭文」：命中处留下一枚发光咒文 1 秒，持续灼烧周围
 var anaphora := false         # N2「复指」：每次「言」多打 1 个目标（70%）
@@ -39,11 +43,11 @@ const RUNES := [
 
 
 func _range() -> float:
-	return base("range", 310.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0) * (1.0 + base("s3_range", 0.6) if acuity_t > 0.0 else 1.0)
+	return base("range", 280.0) * stat(&"op_range") * (1.0 + base("s2_range", 0.3) if perish else 1.0)
 
 
 func _atk() -> float:
-	return base("atk", 29.0) * _dmg_bonus() * (1.0 + base("s2_atk", 0.5) if perish else 1.0) * (1.0 + base("s3_atk", 1.5) * skill_power() if acuity_t > 0.0 else 1.0)
+	return base("atk", 29.0) * _dmg_bonus() * (1.0 + base("s2_atk", 0.5) if perish else 1.0)
 
 
 func update(dt: float) -> void:
@@ -70,13 +74,16 @@ func update(dt: float) -> void:
 
 ## 「言」：单体法伤 + 安魂；精一天赋概率追加；湮灭处决
 func _release() -> void:
-	var n: int = int(base("s3_targets", 4.0)) if acuity_t > 0.0 else 1
-	# N2 复指：多打 1 个目标，多出的这一道 70%
-	var ts: Array = nearest_enemies(n + (1 if anaphora else 0), _range(), pos)
+	var n: int = 1
+	# N2 复指：多打 1 个目标，多出的这一道 70%；S3 咒域期间只打扇形内的敌人
+	var ts: Array = nearest_enemies(n + (1 if anaphora else 0) + (6 if acuity_t > 0.0 else 0), _range(), pos)
+	if acuity_t > 0.0:
+		ts = ts.filter(func(e): return _in_fan(e.pos)).slice(0, n + (1 if anaphora else 0))
 	if ts.is_empty():
 		return
+	var wm: float = base("word_mult", 1.0)
 	for k in ts.size():
-		_word(ts[k], _atk() * (base("second_mult", 0.7) if k >= n else 1.0), "言")
+		_queue_word(ts[k], _atk() * wm * (base("second_mult", 0.7) if k >= n else 1.0), "言")
 	# 天赋：50% 额外攻击随机一名敌人（60% 伤害）并减速；精二「众声喧哗」同时打 2 名
 	if elite >= 1 and g.rng.randf() < base("talent_chance", 0.5):
 		var pool: Array = nearest_enemies(8, _range(), pos)
@@ -84,12 +91,32 @@ func _release() -> void:
 			if pool.is_empty():
 				break
 			var e2: Dictionary = pool.pop_at(g.rng.randi() % pool.size())
-			_word(e2, _atk() * base("talent_mult", 0.6), "词法演化")
+			_queue_word(e2, _atk() * wm * base("talent_mult", 0.6), "词法演化")
 			e2.slow = maxf(e2.slow, 0.8)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
 
-## 「言」出手：从手中射出一发高速法术弹（伤害结算在命中时，见 _word_hit）；弹数到上限时直接结算
+## 一轮里的多发（复指 / 天赋 / 众声喧哗 / S3 多目标）排队，每隔 word_gap 秒飘出一枚，不再同一帧齐射（用户反馈「像机关枪」）
+var word_q: Array = []          # {t, e, dmg, src}
+
+func _queue_word(e: Dictionary, dmg: float, src: String) -> void:
+	word_q.append({"t": base("word_gap", 0.12) * word_q.size(), "e": e, "dmg": dmg, "src": src})
+
+
+func _update_word_q(dt: float) -> void:
+	for q in word_q:
+		q.t -= dt
+		if q.t <= 0.0:
+			var e: Dictionary = q.e
+			if e.dead:
+				var near: Array = nearest_enemies(1, _range(), pos)
+				e = near[0] if not near.is_empty() else {}
+			if not e.is_empty():
+				_word(e, q.dmg, q.src)
+	word_q = word_q.filter(func(q): return q.t > 0.0)
+
+
+## 「言」出手：从笔尖飘出一枚咒文（伤害结算在命中时，见 _word_hit）；弹数到上限时直接结算
 func _word(e: Dictionary, dmg: float, src: String) -> void:
 	if e.dead:
 		return
@@ -97,15 +124,22 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 	if bolts.size() >= BOLT_MAX:
 		_word_hit(e, dmg, src)
 		return
-	bolts.append({"pos": hand, "e": e, "dmg": dmg, "src": src, "hist": [hand], "life": 1.2, "to": e.pos + Vector2(0, -e.r * 0.5)})
+	bolts.append({"pos": hand, "e": e, "dmg": dmg, "src": src, "hist": [hand], "life": base("word_life", 1.3), "age": 0.0,
+		"ph": g.rng.randf() * TAU, "rune": g.rng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
 	fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": PALE, "alpha": 0.7})
 
 
-## 法术弹飞行：base.bolt_speed（高速），追踪目标当前位置；目标半路死了就飞向它最后的位置、落地后找 60 内最近的敌人结算
+## 咒文飞行：base.bolt_speed（缓慢，260），追踪目标当前位置，行进方向左右摆动（有飘动感）；目标半路死了就飞向它最后的位置、
+## 落地后找 60 内最近的敌人结算；word_life 秒内没飞到就消散（飞行距离有限）
 func _update_bolts(dt: float) -> void:
-	var spd: float = base("bolt_speed", 800.0)
+	_update_word_q(dt)
+	var spd: float = base("bolt_speed", 260.0)
 	for b in bolts:
 		b.life -= dt
+		b.age += dt
+		if b.life <= 0.0:
+			fx({"kind": "glow", "pos": b.pos, "r": 8.0, "life": 0.25, "col": INK, "alpha": 0.4})   # 飞不到就消散
+			continue
 		var e: Dictionary = b.e
 		if not e.dead:
 			b.to = e.pos + Vector2(0, -e.r * 0.5)
@@ -121,7 +155,7 @@ func _update_bolts(dt: float) -> void:
 			if not tgt.is_empty():
 				_word_hit(tgt, b.dmg, b.src)
 			continue
-		b.pos += d.normalized() * step
+		b.pos += d.normalized().rotated(sin(b.age * 7.0 + b.ph) * 0.45) * step   # 左右摆动的飘动轨迹
 		b.hist.append(b.pos)
 		if b.hist.size() > 6:
 			b.hist.pop_front()
@@ -219,11 +253,14 @@ func _release_skill() -> void:
 			spawn_fx_sprite("fx_logos_s2", pos + Vector2(0, -16), g.PX * 0.7)   # 已购 CodeManu felspell 按 ink 色板重上色（tools/fx_import.py）
 		2:
 			acuity_t = base("s3_dur", 12.0)
+			fan_ang = _best_fan_dir()
+			fan_want = fan_ang
+			fan_eval = 0.5
+			fan_tick = 0.0
+			face_to(fan_ang)
 			show_banner("延展敏锐")
 			spawn_fx_sprite("fx_holy_pillar_ink", pos + Vector2(0, 4), g.PX * 1.3, 0.0, false, true)
-			spawn_fx_sprite("fx_circle_ink", pos + Vector2(0, 4), g.PX * 2.4)
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -26), "life": 0.6, "max": 0.6, "col": INK})
-			fx({"kind": "ring", "pos": pos, "r": _range(), "r0": 30.0, "life": 0.8, "col": INK, "floor": true, "w": 2.0})
 	# 技能发动音 op_logos_s1/s2/s3 由 spend_sp 播放
 
 
@@ -335,10 +372,34 @@ func _update_acuity(dt: float) -> void:
 	if acuity_t <= 0.0:
 		return
 	acuity_t -= dt
-	var r := _range()
+	var r := _fan_r()
+	# 朝向：每 0.5 秒重算敌人最多的方向，以 s3_turn 度 / 秒慢慢转过去（不瞬间跳）
+	fan_eval -= dt
+	if fan_eval <= 0.0:
+		fan_eval = 0.5
+		fan_want = _best_fan_dir()
+	var turn: float = deg_to_rad(base("s3_turn", 60.0)) * dt
+	fan_ang += clampf(wrapf(fan_want - fan_ang, -PI, PI), -turn, turn)
+	# 咒域内每 s3_tick 秒一次法伤 + 安魂
+	fan_tick -= dt
+	if fan_tick <= 0.0:
+		fan_tick += base("s3_tick", 0.5)
+		var dmg: float = _atk() * base("s3_tick_mult", 0.6) * skill_power()
+		var shown := 0
+		for j in query_ids(pos, r + 30.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or not _in_fan(e.pos):
+				continue
+			log_hit("延展敏锐")
+			deal_damage(e, dmg)
+			if not e.dead:
+				e["requiem"] = base("requiem_dur", 5.0)
+			if shown < 3:
+				shown += 1
+				spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.rng.randf() < 0.5)
 	var f: float = base("s3_bullet_slow", 0.2)
 	for b in g.ebullets:
-		if b.life <= 0.0 or b.pos.distance_to(pos) > r:
+		if b.life <= 0.0 or not _in_fan(b.pos):
 			continue
 		if not b.get("acuity", false):
 			b["acuity"] = true
@@ -348,13 +409,50 @@ func _update_acuity(dt: float) -> void:
 		# 结束：范围内弹幕全部消失
 		var n := 0
 		for b in g.ebullets:
-			if b.life > 0.0 and b.pos.distance_to(pos) <= r:
+			if b.life > 0.0 and _in_fan(b.pos):
 				b.life = 0.0
 				n += 1
 				fx({"kind": "glow", "pos": b.pos, "r": 8.0, "life": 0.25, "col": INK, "alpha": 0.6})
 		if n > 0:
 			float_text(pos + Vector2(0, -70), "消除弹幕 ×%d" % n, INK, 15)
-		fx({"kind": "ring", "pos": pos, "r": r, "r0": r * 0.5, "life": 0.5, "col": INK, "floor": true})
+		fx({"kind": "glow", "pos": pos + Vector2.from_angle(fan_ang) * r * 0.5, "r": 40.0, "life": 0.4, "col": INK, "alpha": 0.4})
+
+
+## S3 扇形咒域（2026-09-27 用户定）：以逻各斯为顶点，角度 s3_fan_deg、半径 = 攻击范围 × s3_fan_r
+func _fan_r() -> float:
+	return _range() * base("s3_fan_r", 1.25)
+
+
+func _in_fan(p: Vector2) -> bool:
+	var d: Vector2 = p - pos
+	if d.length() > _fan_r():
+		return false
+	return d.length() < 8.0 or absf(wrapf(d.angle() - fan_ang, -PI, PI)) <= deg_to_rad(base("s3_fan_deg", 100.0)) * 0.5
+
+
+## 敌人最多的扇形方向：每 30° 取一个候选方向数扇形内的敌人，并列取离当前朝向最近的
+func _best_fan_dir() -> float:
+	var r: float = _fan_r()
+	var half: float = deg_to_rad(base("s3_fan_deg", 100.0)) * 0.5
+	var angs: Array = []
+	for j in query_ids(pos, r):
+		var e: Dictionary = g.enemies[j]
+		if not e.dead and e.pos.distance_to(pos) <= r:
+			angs.append((e.pos - pos).angle())
+	if angs.is_empty():
+		return fan_ang if acuity_t > 0.0 else facing_angle()
+	var best: float = facing_angle()
+	var bn := -1
+	for k in 12:
+		var a: float = k * TAU / 12.0
+		var n := 0
+		for ea in angs:
+			if absf(wrapf(ea - a, -PI, PI)) <= half:
+				n += 1
+		if n > bn or (n == bn and absf(wrapf(a - fan_ang, -PI, PI)) < absf(wrapf(best - fan_ang, -PI, PI))):
+			bn = n
+			best = a
+	return best
 
 
 # ---------------------------------------------------------------- 成长节点（data/characters/logos.json 的 custom 节点）
@@ -413,9 +511,21 @@ func draw_entities_floor() -> void:
 
 func draw_auras() -> void:
 	if acuity_t > 0.0 and pos != Vector2.INF:
-		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_arc(Vector2.ZERO, _range(), 0.0, TAU, 60, Color(INK.r, INK.g, INK.b, 0.18 + 0.06 * sin(g.t * 3.0)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 扇形咒域：半透明墨蓝底 + 两条边 + 外弧，外弧上一圈缓慢流动的亮点（程序画，美术贴花到位后替换）
+		var r: float = _fan_r()
+		var half: float = deg_to_rad(base("s3_fan_deg", 100.0)) * 0.5
+		var fade: float = clampf(acuity_t / 0.5, 0.0, 1.0)
+		var pts := PackedVector2Array([pos])
+		for k in 25:
+			pts.append(pos + Vector2.from_angle(fan_ang - half + half * 2.0 * k / 24.0) * r)
+		g.draw_colored_polygon(pts, Color(INK.r, INK.g, INK.b, (0.10 + 0.03 * sin(g.t * 3.0)) * fade))
+		var ec := Color(INK.r * 1.3, INK.g * 1.3, INK.b * 1.4, 0.55 * fade)
+		g.draw_line(pos, pos + Vector2.from_angle(fan_ang - half) * r, ec, 2.0)
+		g.draw_line(pos, pos + Vector2.from_angle(fan_ang + half) * r, ec, 2.0)
+		g.draw_arc(pos, r, fan_ang - half, fan_ang + half, 32, ec, 2.0)
+		for q in 6:
+			var t: float = fmod(g.t * 0.35 + q / 6.0, 1.0)
+			g.draw_circle(pos + Vector2.from_angle(fan_ang - half + half * 2.0 * t) * r, 2.5, Color(PALE.r, PALE.g, PALE.b, 0.7 * fade))
 
 
 func _draw_skill_over() -> void:
@@ -424,8 +534,18 @@ func _draw_skill_over() -> void:
 		var h: Array = b.hist
 		for i in range(1, h.size()):
 			var k: float = float(i) / float(h.size())
-			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.25 + 0.55 * k), 1.5 + 6.0 * k)
-		if g.tex.get("proj_logos_ink") != null and h.size() >= 2:
+			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
+		# 咒文字符：优先 fx_logos_runes（原作字母表，每帧一个字符，每发随机一个；界面与美术出图，有就读），
+		# 否则 fx_logos_glyph 写完的末帧；轻微摇摆旋转；都缺图退回墨蓝弹头
+		var rtx: Texture2D = g.tex.get("fx_logos_runes")
+		var rn: int = int(rtx.get_width() / maxi(1, rtx.get_height())) if rtx != null else 0   # 正方形帧横排，帧数 = 宽 / 高
+		if g.tex.get("fx_logos_runes") != null and rn > 0:
+			var fa2: float = clampf(b.life / 0.25, 0.0, 1.0)
+			draw_spr_rot("fx_logos_runes", int(b.rune) % rn, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa2))
+		elif g.tex.get("fx_logos_glyph") != null:
+			var fa: float = clampf(b.life / 0.25, 0.0, 1.0)
+			draw_spr_rot("fx_logos_glyph", 5, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa))
+		elif g.tex.get("proj_logos_ink") != null and h.size() >= 2:
 			# Codex 墨蓝尖头法术弹（朝右），按飞行方向旋转；保留拖尾、去掉圆亮芯
 			draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
 		else:
