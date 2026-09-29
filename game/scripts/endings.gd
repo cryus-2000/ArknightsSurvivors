@@ -16,7 +16,9 @@ var opened_id := ""             # 正在弹选项的事件
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结，不再刷事件箱、不再改写结局（EA 验收 P0-1）
-var box_t := 0.0                # 当前事件箱已存在的秒数（超时消散，P1-2）
+var urgent := false             # 最终 Boss 登场前 10 秒场上还有没开的祭坛（hud 方位指示闪烁用）
+var urgent_warned := false
+const MAX_BOXES := 2            # 同时存在的祭坛上限（各自计时 e.ev_age）
 const BOX_LIFE := 90.0          # 事件箱多久没打开就沉入海底（60 → 90：祭坛刷在 520–650 外，普通机器人 60 秒常走不到，协调人 9/29 定）
 
 
@@ -38,21 +40,31 @@ func update(dt: float) -> void:
 		_log("frozen")
 		_sink_box("")
 		return
-	if _box_alive():
-		for e in g.enemies:
-			if e.chest and not e.dead and e.get("event", "") != "":
-				e.pos = g.spawner.safe_event_pos(e.pos, 110.0)
-				# 祭坛只在主控本人走近时打开（事件验收 P2-10：原来 22 点血，范围攻击 / 子弹扫到就弹面板）
-				if e.pos.distance_to(g.ppos) < float(e.r) + 34.0 and g.state == g.S.PLAY:
-					e.invuln = false
-					g.combat.kill(e)
-					return
-		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）。
-		# 试过 Boss 在场时暂停计时：沉底变少，但祭坛占位更久，后面的事件过窗口没刷出来，打开总数反而更少（49 → 46 / 12 局），不采用
-		box_t += dt
-		if box_t > BOX_LIFE:
-			_sink_box("海嗣祭坛沉入了海底")
-			next_allowed = g.t + 5.0
+	# 场上的祭坛（最多 MAX_BOXES 个同时存在，各自计时）：钉在圈内、主控走近打开、BOX_LIFE 秒没开就沉入海底
+	var alive := 0
+	var final_t: float = float(D.BOSS_TIMES[D.BOSS_TIMES.size() - 1])
+	for e in g.enemies:
+		if not (e.chest and not e.dead and e.get("event", "") != ""):
+			continue
+		e.pos = g.spawner.safe_event_pos(e.pos, 110.0)
+		# 祭坛只在主控本人走近时打开（事件验收 P2-10：原来 22 点血，范围攻击 / 子弹扫到就弹面板）
+		if e.pos.distance_to(g.ppos) < float(e.r) + 34.0 and g.state == g.S.PLAY:
+			e.invuln = false
+			g.combat.kill(e)
+			return
+		e.ev_age = float(e.get("ev_age", 0.0)) + dt
+		if e.ev_age > BOX_LIFE:
+			_sink_one(e, "海嗣祭坛沉入了海底")
+			continue
+		alive += 1
+	# 最终 Boss 登场前 10 秒还有祭坛没开：强提示一次（登场即冻结，没开的会沉没；hud 读 urgent 让方位指示闪烁）
+	urgent = alive > 0 and g.t >= final_t - 10.0
+	if urgent and not urgent_warned:
+		urgent_warned = true
+		g.vfx.show_banner("海嗣祭坛即将沉没 —— 最后 10 秒")
+		Sfx.play("ui_move", -2.0, 0.8)
+	# 多个祭坛可以同时存在（主控走近才打开，不会同时弹两个面板）：一个没开不再挡住后面的事件
+	if alive >= MAX_BOXES:
 		return
 	if g.t < next_allowed:
 		return
@@ -70,8 +82,7 @@ func update(dt: float) -> void:
 			continue
 		_spawn_box(ev)
 		done.append(ev.id)
-		box_t = 0.0
-		_log("spawn " + str(ev.id))
+		_log("spawn %s boss=%d" % [str(ev.id), 1 if g.spawner.boss_alive() else 0])
 		next_allowed = g.t + 20.0
 		return
 
@@ -89,12 +100,20 @@ func _log(what: String) -> void:
 		print("ENDEV %s t=%.1f cur=%s relics=%s" % [what, g.t, cur, str(g.relics.filter(func(r): return int(r) >= 221))])
 
 
+## 单个祭坛沉没（超时）
+func _sink_one(e: Dictionary, msg: String) -> void:
+	e.dead = true
+	_log("sink %s age=%.0f dist=%.0f" % [str(e.event), float(e.get("ev_age", 0.0)), e.pos.distance_to(g.ppos)])
+	g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
+	g.vfx.show_banner(msg)
+
+
 ## 场上的事件箱消散（不打开、不掉落）；msg 为空时不弹横幅
 func _sink_box(msg: String) -> void:
 	for e in g.enemies:
 		if e.chest and not e.dead and e.get("event", "") != "":
 			e.dead = true
-			_log("sink %s age=%.0f dist=%.0f" % [str(e.event), box_t, e.pos.distance_to(g.ppos)])
+			_log("sink %s age=%.0f dist=%.0f" % [str(e.event), float(e.get("ev_age", 0.0)), e.pos.distance_to(g.ppos)])
 			g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
 			if msg != "":
 				g.vfx.show_banner(msg)

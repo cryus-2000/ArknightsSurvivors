@@ -68,7 +68,6 @@ func _process(_dt: float) -> void:
 	game.shop_sys.update(0.01)
 	check(game.merchant.pos.distance_to(game.zone_c) <= 200.01, "merchant follows shrinking tide")
 	game.endg._spawn_box(game.endg.events[0])
-	game.endg.box_t = game.t
 	game.zone_r = 220.0
 	game.endg.update(0.01)
 	for e in game.enemies:

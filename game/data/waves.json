@@ -843,8 +843,8 @@
    "name": "抉择 · 其三",
    "text": "最后一次。祭坛的刻痕里，开始渗出海水。",
    "window": [
-    530,
-    560
+    480,
+    510
    ],
    "requires_cleared": "standard",
    "options": [
