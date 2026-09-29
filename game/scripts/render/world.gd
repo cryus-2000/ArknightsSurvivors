@@ -891,6 +891,12 @@ func draw_enemy(e: Dictionary) -> void:
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)
+	if e.type == "paranoia" and e.phase == 2:
+		# 偏执泡影二阶段：e_paranoia2 和一阶段几乎一样（新图已下单 v12），过渡期在画面层区分——
+		# 整体偏洋红、体量 ×1.1、身周一圈扭动的洋红光晕
+		col = col * PARANOIA2_TINT
+		sc *= 1.1
+		_paranoia2_halo(e)
 	if e.get("under", false):
 		# 潜行中：只画地面波纹与影子
 		g.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
@@ -1153,6 +1159,24 @@ func draw_nest_auras() -> void:
 		for q in 18:
 			var a0: float = rot + q * TAU / 18.0
 			g.draw_arc(e.pos, ar, a0, a0 + TAU / 36.0, 4, Color(ac.r, ac.g, ac.b, 0.55), 2.0)
+
+
+const PARANOIA2_TINT := Color(1.35, 0.72, 1.25)
+
+func _paranoia2_halo(e: Dictionary) -> void:
+	# 以贴图中心为圆心（脚底锚点的贴图从脚往上长），半径按贴图半高
+	var top: Vector2 = _enemy_top(e)
+	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8)
+	var c: Vector2 = (top + foot) / 2.0
+	var hh: float = maxf(e.r, (foot.y - top.y) / 2.0)
+	for q in 3:
+		var pts := PackedVector2Array()
+		var rr: float = hh * (1.2 + 0.14 * q)
+		for i in 33:
+			var a: float = i * TAU / 32.0
+			var w: float = 1.0 + 0.08 * sin(a * 5.0 + g.t * (3.0 + q) + q * 1.7)
+			pts.append(c + Vector2(cos(a), sin(a) * 0.8) * rr * w)
+		g.draw_polyline(pts, Color(1.7, 0.45, 1.5, 0.7 - 0.18 * q), 2.5 - 0.5 * q)
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
