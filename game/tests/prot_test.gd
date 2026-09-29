@@ -1023,6 +1023,9 @@ func test_any_cap() -> void:
 
 ## 小怪控制与词条（用户 9/29）：寒霜叠层 → 冻结、Boss 在场转减速、冲刺挣脱、侵蚀创口减治疗 + 掉血、合计上限、甲壳 / 潮盾
 func test_ailments() -> void:
+	# 断言按全局 enemy 段写（寒霜 3 层等）；本机存档的难度档可能是 Ⅳ / Ⅷ，其难度表会覆盖 frost_max / ctrl_start，这里固定用标准档
+	var keep_dmod: Dictionary = game.dmod
+	game.dmod = preload("res://scripts/data.gd").dmod_for_tier(0)
 	var bak: Dictionary = Bal._data.get("enemy", {}).duplicate()
 	var e2: Dictionary = bak.duplicate()
 	e2["ctrl_start"] = 0.0
@@ -1090,6 +1093,7 @@ func test_ailments() -> void:
 	ok(got.has("armor") and got.has("shield") and got.get("shield_ok", false), "词条：甲壳 / 潮盾都会出现，潮盾先扣盾")
 	Bal._data["enemy"] = bak
 	game.hp = mh
+	game.dmod = keep_dmod
 
 
 ## docs/38 §8 第一批：塑路者猎核（核心部件、优先索敌、打碎破绽 / 超时回流加冲撞）与接潮假死赛跑（8 秒复苏到 50%、最多 2 次）
