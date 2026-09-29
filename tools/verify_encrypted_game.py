@@ -60,6 +60,10 @@ func _verify():
             failures.append("fresh_progress")
         if cfg.can_boss_trial() != (audience == "internal"):
             failures.append("boss_trial_audience")
+    # 对内包存档目录与对外包隔离（docs/33 §双版本）
+    var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
+    if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
+        failures.append("user_dir_isolation:" + user_dir)
     if audience == "public" and cfg != null:
         var gallery = load("res://scripts/gallery.gd").new()
         root.add_child(gallery)
@@ -73,7 +77,7 @@ func _verify():
                 if bool(entry.get("locked", false)) != (page != 0):
                     failures.append("gallery_initial_lock:" + str(page))
         gallery.queue_free()
-    var result = {"packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
     Art._hires.clear()
     Art._hires_rid.clear()
@@ -94,7 +98,7 @@ def in_export(path,project,excludes):
     return True
 
 def save_log(kind,commit,out,err):
-    path=ROOT/'build'/('encrypted_'+kind+'_'+commit+'.log')
+    path=ROOT/'build'/('encrypted_'+kind+'_'+commit+'.log')  # kind 已带 audience 前缀
     path.write_text('STDOUT\n'+out+'\nSTDERR\n'+err,encoding='utf-8')
     return path
 
@@ -149,7 +153,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='pack_probe_',dir=ROOT/'build') as directory:
         probe=Path(directory)/'verify.gd'; probe.write_text(text,encoding='utf-8')
         out,err,timeout=isolated_run([str(verifier),'--headless','--audio-driver','Dummy','--main-pack',str(pck),'--script',str(probe),'--','--pack-probe','--unlockall'],300)
-        log=save_log('game_probe',manifest['commit'],out,err)
+        log=save_log(manifest['audience']+'_game_probe',manifest['commit'],out,err)
         combined=out+'\n'+err
         line=next((line for line in out.splitlines() if line.startswith('PACK_VERIFY_JSON=')),None)
         if timeout or real_errors(combined) or line is None:
@@ -159,7 +163,7 @@ def main():
         result['probe_log']=str(log)
         if result['failures']: raise RuntimeError('Pack resources failed: '+json.dumps(result))
     out,err,timeout=isolated_run([str(exe),'--headless','--audio-driver','Dummy','--quit-after','60','--','--pack-smoke'],120)
-    log=save_log('game_boot',manifest['commit'],out,err)
+    log=save_log(manifest['audience']+'_game_boot',manifest['commit'],out,err)
     if timeout or real_errors(out+'\n'+err) or 'Godot Engine' not in out:
         raise RuntimeError('Packaged game boot failed: '+(out+'\n'+err)[-5000:])
     result['packaged_game_boot']=True
@@ -170,7 +174,7 @@ def main():
         shutil.copy2(ordinary,plain)
         shutil.copy2(pck,plain.with_suffix('.pck'))
         out,err,timeout=isolated_run([str(plain),'--headless','--audio-driver','Dummy'],30)
-    log=save_log('ordinary_rejection',manifest['commit'],out,err)
+    log=save_log(manifest['audience']+'_ordinary_rejection',manifest['commit'],out,err)
     if not ('ERR_FILE_CORRUPT' in out+err or ('open_and_parse' in out+err and 'md5' in (out+err).lower())):
         raise RuntimeError('Ordinary template did not clearly reject game PCK')
     result['ordinary_template_rejected']=True
@@ -190,7 +194,7 @@ def main():
             result['zip_verified']=True
             result['zip_members']=len(names)
     result['commit']=manifest['commit']
-    report=ROOT/'build'/('encrypted_game_verification_'+manifest['commit']+'.json')
+    report=ROOT/'build'/('encrypted_game_verification_'+manifest['audience']+'_'+manifest['commit']+'.json')
     report.write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps(result,indent=2))
     print('Report:',report)

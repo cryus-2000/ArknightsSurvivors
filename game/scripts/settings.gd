@@ -234,9 +234,10 @@ func save() -> void:
 	c.save(PATH)
 
 
-## Deliberate EA menu; normal release debug flags remain disabled.
+## Boss 演练入口：开发（调试版）一律开；发布版只有对内包（build.json audience = internal）开。
+## 按 audience 判断而不是 EA 标记——EA 只是开发阶段标记，对外包也可能带 EA，不能因此开放演练（docs/33 §双版本）
 func can_boss_trial() -> bool:
 	if OS.is_debug_build():
 		return true
 	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
-	return info is Dictionary and info.get("channel", "") == "EA"
+	return info is Dictionary and info.get("audience", "") == "internal"

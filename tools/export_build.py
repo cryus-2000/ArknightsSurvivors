@@ -31,6 +31,7 @@ WORK = os.path.join(ROOT, "build", "_export")
 OUT = os.path.join(ROOT, "build", "release")
 NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
+INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录：%APPDATA%\ArknightsSurvivors_Internal
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、预览图不带
 SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
 
@@ -138,6 +139,15 @@ def main():
     else:
         binfo.pop("channel", None)
     json.dump(binfo, open(bj, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # 对内包的存档目录与对外包分开（docs/33 §双版本：内测进度不得影响对外存档）：同一台机器两个包都装时，
+    # 对内包的正常游玩不会解锁对外包的图鉴 / 难度。只改打包副本的 project.godot，仓库里不动
+    if audience == "internal":
+        pg = os.path.join(src, "game", "project.godot")
+        text = open(pg, "rb").read().decode("utf-8")   # 按字节读写，保留原换行
+        key = 'config/custom_user_dir_name="ArknightsSurvivors"'
+        if text.count(key) != 1:
+            sys.exit("project.godot 的 custom_user_dir_name 不是预期值，无法给对内包隔离存档目录")
+        open(pg, "wb").write(text.replace(key, 'config/custom_user_dir_name="%s"' % INTERNAL_USER_DIR).encode("utf-8"))
 
     # 2. 导入 + 导出
     pkg = os.path.join(WORK, NAME)
@@ -192,7 +202,7 @@ def main():
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
         readme = README
-        readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
+        readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。存档与对外版分开（%APPDATA%\\" + INTERNAL_USER_DIR + "），内测进度不会带到对外版。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
         if a.encrypted:
             readme = readme.replace("不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。", "美术、音频与脚本已打包加密。请保留 game 文件夹中的 exe 与 pck 文件。")
         fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="EA 版主页「Boss 演练」可选对手、主控、成长及形态；观察模式不会倒下，演练不记录通关进度。" if a.ea else "").replace("\n", "\r\n"))

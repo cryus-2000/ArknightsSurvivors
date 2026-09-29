@@ -4,6 +4,19 @@
 
 ## 一条命令
 
+发布（对外 + 对内 + 网页，同一提交，逐个验证）：
+
+```bash
+python tools/release_all.py --ref <冻结提交>
+```
+
+`tools/release_all.py`（2026-09-30）串行做：出对外包 → `verify_encrypted_game.py` 验证 → 出对内包（`--ea`）→ 验证 → 出网页版（`export_web.py`），
+任一步失败就中止；最后写 `build/release/release_<提交>.json`（两个 zip 的路径 / 大小 / sha256、验证报告、存档目录、网页最大单文件）。
+两个 Windows 包必须串行：导出与验证共用 `build/_export/`，验证读的是刚导出的那份打包源码。验证报告与日志按 audience 分开命名
+（`build/encrypted_game_verification_<public|internal>_<提交>.json`），同一提交的两份不会互相覆盖。
+
+只出一个包：
+
 ```bash
 python tools/export_build.py
 ```
@@ -70,6 +83,11 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 
 当前章节记录发布要求；现有 --ea 参数本身不能证明已经生成上述两个版本。落实构建区分后，应在交接中列出两个包的路径与验证结果。
 
+**落实情况（2026-09-30，架构 / 部署）**：
+- 演练入口按 `build.json` 的 `audience == "internal"` 放开（`settings.gd` `Cfg.can_boss_trial()`；主页入口、演练设置窗、`run/boss_trial.gd` 开局都走它）。原来按 `channel == "EA"` 判断，与本节「EA 标记不等于内测权限」不符。调试版（编辑器 / 源码运行）仍一律开放。
+- 对内包存档目录改为 `%APPDATA%\ArknightsSurvivors_Internal`（`export_build.py` 只改打包副本的 `project.godot`），对外包仍是 `%APPDATA%\ArknightsSurvivors`。同一台机器两个包都装时，对内包的正常游玩不会解锁对外包的图鉴 / 难度；对内包说明.txt 写明。
+- `verify_encrypted_game.py` 在加密包里实测：全新存档（图鉴 / 藏品 / 结局为空、难度 0）、发布版屏蔽开发参数、`can_boss_trial()` 与 audience 一致、存档目录与 audience 一致、对外包图鉴只有干员页开放、普通模板读不了加密 PCK、zip 与验证过的目录逐文件一致。
+
 
 ### 对外版范围澄清（2026-09-27）
 
@@ -80,3 +98,11 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 ### 图鉴最终标准
 
 对外新存档：干员图鉴全部开放（包括动作与技能演示）；敌人、精英、Boss、道具、藏品、结局图鉴全部初始未解锁。敌人和场景 / 掉落物在正式冒险中发现后收录，藏品获得、结局达成后收录。演练与图鉴演示不写入遭遇进度。其他游戏内容与最新提交一致；Boss 演练关闭，非一结局路线遵循正常解锁条件。
+
+
+## 发布待办（非阻塞，2026-09-30 预演记录）
+
+1. 网页版 `export_web.py` 不写 `build.json` 的 commit / audience（局内记录的版本号是 dev）；网页版按对外版处理（无 audience → 演练关闭）。以后要出对内网页版需补。
+2. Web 预设 `exclude_filter` 没排除 `tests/*`（加密 Windows 预设已排除）：测试脚本会打进网页包。发布版读不到命令行参数，测试入口不可达，只是多占体积。
+3. 打包游戏退出时有引擎自带的「2 resources still in use / ObjectDB leaked」提示，验证脚本已按已知项放行；不影响运行。
+4. 加密导出只能在存有密钥与自编译模板的机器上做（`~/.codex/private/ArknightsSurvivors`）：换机器按「一次性准备」重来。
