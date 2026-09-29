@@ -226,6 +226,14 @@ var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var frost := 0.0                   # 冰霜：移速 -40%
+# 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
+var cold := 0                      # 寒霜层数：每层移速 / 攻速减益，满层冻结
+var cold_t := 0.0                  # 寒霜剩余秒数（层数整体到时清零）
+var cold_immune := 0.0             # 满层冻结后免疫再叠的秒数
+var root_t := 0.0                  # 冻结 / 束缚：不能移动（可以攻击，冲刺挣脱）
+var root_immune := 0.0             # 硬控后免疫秒数
+var wound := 0                     # 侵蚀创口层数：减受治疗 + 每秒掉血
+var wound_t := 0.0
 var lamp_cap := 100.0              # 灯火上限（深蓝之心后 70）
 var knight_alive := false          # 猎潮的骑士在队中（结局二）
 var force_boss := -1
@@ -956,6 +964,7 @@ func _try_dash() -> void:
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
 	dash_used = true
+	root_t = 0.0   # 冲刺挣脱冻结 / 束缚
 	invuln = maxf(invuln, DASH_TIME + 0.05)
 	fx.append({"kind": "ring", "pos": ppos, "r": 36.0, "life": 0.25, "max": 0.25, "col": ch.col() if ch != null else UI.CYAN})
 	Sfx.play("dodge", -6.0, 1.2, 0.05)
@@ -989,7 +998,7 @@ func _update(dt: float) -> void:
 	if balance and autotest_sys.want_dash:
 		autotest_sys.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
-	if pstun > 0.0:
+	if pstun > 0.0 or root_t > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
 	if moving:
@@ -998,7 +1007,7 @@ func _update(dt: float) -> void:
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
 	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直 / 攻速减缓换成的减速也乘在这里，Boss 存活期间合计不低于 0.7（combat.move_mult）
-	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * (0.6 if frost > 0.0 else 1.0))
+	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * combat.ctrl_slow())
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
 	# 冲刺：主控沿冲刺方向高速位移，期间无敌；僵直时也能冲，冲刺距离不受减速影响

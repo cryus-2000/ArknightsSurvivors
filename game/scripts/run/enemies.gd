@@ -339,6 +339,7 @@ func _boss_mire_ok(b: Dictionary) -> bool:
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
 func update_status(dt: float) -> void:
 	g.combat.update_ctrl(dt)   # 主控减速计时；Boss 战中僵直恒为 0（docs/38 §1.11）
+	g.combat.update_ailments(dt)   # 小怪控制：寒霜 / 冻结 / 束缚 / 侵蚀创口
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)

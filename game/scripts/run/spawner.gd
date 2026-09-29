@@ -102,6 +102,24 @@ func enter_arena(type: String) -> void:
 			m.life = minf(m.life, 20.0)
 
 
+## 后期词条（用户 9/29「后期小怪太容易被秒」，数值旋钮，缺省 enemy/affix_start = 永不 = 关）：普通怪（非精英 / Boss / 固定 / 箱子）
+## 刷出时按概率带一条词条，概率从 affix_start 秒起线性涨到 affix_start + affix_ramp 秒时的 affix_max。两种各半：
+##   甲壳 armor：非真实伤害 ×affix_armor（写进 e.def）；潮盾 shield：额外护盾 = 最大生命 × affix_shield，先扣盾（combat.damage）
+func roll_affix(e: Dictionary) -> void:
+	var st: float = Bal.v("enemy/affix_start", 1.0e9)
+	if g.t < st or e.elite or e.boss or e.chest or e.ai == "static":
+		return
+	var p: float = Bal.v("enemy/affix_max", 0.35) * clampf((g.t - st) / maxf(1.0, Bal.v("enemy/affix_ramp", 180.0)), 0.0, 1.0)
+	if g.rng.randf() >= p:
+		return
+	if g.rng.randf() < 0.5:
+		e.affix = "armor"
+		e.def *= Bal.v("enemy/affix_armor", 0.75)
+	else:
+		e.affix = "shield"
+		e.shield_hp = e.maxhp * Bal.v("enemy/affix_shield", 0.30)
+
+
 func boss_alive() -> bool:
 	for b in g.bosses:
 		if not b.dead:
@@ -319,8 +337,10 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		"aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,
 		# V8 新敌人（enemy_ai.gd）：自爆鼓胀 / 休眠与唤醒 / 狂暴与铺痕 / 光环计时 / 小怪攻击帧条
 		"blast_w": 0.0, "dormant": bool(d.get("dormant", false)), "wake_t": 0.0, "enraged": false, "trail_t": 0.0, "aura_t": 0.0, "atk_until": 0.0,
+		"affix": "", "shield_hp": 0.0,   # 后期词条（甲壳 / 潮盾，roll_affix）
 		"extra_next": g.t + float(d.get("extra", {}).get("first_delay", 3.0)) + (float(next_id % 5) * 0.1 if d.get("extra", {}).has("first_delay") else float(next_id % 7) * 0.43),
 	}
+	roll_affix(e)
 	if tmpl_keys.is_empty():
 		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段
 	if e.elite:
@@ -436,6 +456,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
 		"weak": "", "aggro": Vector2.INF, "corr_t": 0.0, "corr_dmg": 0.0,   # 与 new_enemy 对齐（check_enemy 查出来的缺口）
 		"blast_w": 0.0, "dormant": false, "wake_t": 0.0, "enraged": false, "trail_t": 0.0, "aura_t": 0.0, "atk_until": 0.0,
+		"affix": "", "shield_hp": 0.0,
 		"extra_next": INF,
 	})
 	check_enemy(g.enemies[-1], "chest")

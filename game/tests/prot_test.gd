@@ -67,6 +67,7 @@ func _process(_d: float) -> void:
 	test_arena()
 	test_ground()
 	test_any_cap()
+	test_ailments()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -840,3 +841,73 @@ func test_any_cap() -> void:
 	Bal._data["enemy"] = bak_e
 	game.corrode_pool = 0.0
 	game.hp = hp0
+
+
+## 小怪控制与词条（用户 9/29）：寒霜叠层 → 冻结、Boss 在场转减速、冲刺挣脱、侵蚀创口减治疗 + 掉血、合计上限、甲壳 / 潮盾
+func test_ailments() -> void:
+	var bak: Dictionary = Bal._data.get("enemy", {}).duplicate()
+	var e2: Dictionary = bak.duplicate()
+	e2["ctrl_start"] = 0.0
+	Bal._data["enemy"] = e2
+	var mh: float = game.max_hp
+	game.invuln = 0.0
+	game.shield = 0
+	game.in_type = ["近战", "物理"]
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_t = 0.0
+	game.root_immune = 0.0
+	# Boss 在场：满层冻结换成减速
+	for k in 3:
+		game.invuln = 0.0
+		c.enemy_hit(1.0, {"type": "founder"}, true, true)
+	ok(game.cold == 3 and game.root_t == 0.0 and c.slows.has("root"), "Boss 在场：寒霜满层不冻结，换成减速")
+	ok(absf(c.ctrl_slow() - maxf(1.0 - 0.12 * 3, 0.55)) < EPS, "寒霜 3 层移速 ×%.2f（合计下限 0.55）" % c.ctrl_slow())
+	c.slows.erase("root")
+	# 没有 Boss：冻结，冲刺挣脱，之后免疫
+	boss_e.dead = true
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_immune = 0.0
+	for k in 3:
+		game.invuln = 0.0
+		c.enemy_hit(1.0, {"type": "founder"}, true, true)
+	ok(game.root_t > 0.0 and game.root_immune > game.root_t, "寒霜满层冻结 %.1f 秒，之后免疫硬控" % game.root_t)
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game._try_dash()
+	ok(game.root_t == 0.0, "冲刺挣脱冻结")
+	game.dash_t = 0.0
+	boss_e.dead = false
+	# 侵蚀创口：减受治疗、每秒掉血
+	game.wound = 0
+	game.invuln = 0.0
+	c.enemy_hit(1.0, {"type": "reaper"}, true, true)
+	c.enemy_hit(1.0, {"type": "reaper"}, true, true)
+	ok(game.wound == 2, "收割者命中叠侵蚀创口（%d 层）" % game.wound)
+	game.hp = mh * 0.5
+	var h0: float = game.hp
+	c.heal(10.0)
+	ok(absf((game.hp - h0) - 10.0 * game.heal_mult * 0.8) < 0.01, "2 层创口受治疗 ×0.8")
+	game.wound = 0
+	game.cold = 0
+	c.sync_cold()
+	game.root_t = 0.0
+	# 词条：打开后普通怪按概率带甲壳 / 潮盾，潮盾先扣
+	e2["affix_start"] = 0.0
+	e2["affix_max"] = 1.0
+	e2["affix_ramp"] = 1.0
+	var sp = game.spawner
+	var got := {}
+	for k in 20:
+		var m: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(1500 + k * 3, 0))
+		got[m.affix] = true
+		if m.affix == "shield" and not got.has("shield_ok"):
+			var hp0: float = m.hp
+			c.hit("test")
+			c.damage(m, m.shield_hp * 0.5)
+			got["shield_ok"] = m.hp == hp0
+		m.dead = true
+	ok(got.has("armor") and got.has("shield") and got.get("shield_ok", false), "词条：甲壳 / 潮盾都会出现，潮盾先扣盾")
+	Bal._data["enemy"] = bak
+	game.hp = mh

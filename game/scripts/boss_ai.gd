@@ -484,7 +484,7 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	if g.invuln <= 0.0:
 		var hp_before: float = g.hp
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
-			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0)}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type, "warn": true}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if not e.boss and g.hp < hp_before and float(w.get("stun", 0.0)) > 0.0 and g.t >= g.combat.enemy_stun_next:
 			g.combat.enemy_stun_next = g.t + 8.0
 			if not g.combat.stun_as_slow():

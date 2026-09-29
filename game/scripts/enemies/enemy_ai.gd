@@ -247,7 +247,7 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		Sfx.enemy("spit", dist)
 		e.atk_until = g.t + 0.3
 		g.ebullets.append({"pos": e.pos, "vel": dir * 180.0, "dmg": 5.0 * (1.0 + minf(g.t, 480.0) / 300.0), "slow": false, "r": 5.0, "life": 2.6,
-			"corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "acid", "home": false})
+			"corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "acid", "home": false, "src_type": e.type})
 	return Vector2.INF
 
 
@@ -260,7 +260,7 @@ func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			var n: int = int(d.get("nova_n", 6)) + (2 if e.evo else 0)
 			for k in n:
 				g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 180.0, "dmg": e.dmg * 0.3, "slow": false,
-					"r": 5.0, "life": 2.6, "corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "nova", "home": false})
+					"r": 5.0, "life": 2.6, "corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "nova", "home": false, "src_type": e.type})
 			Sfx.play("tentacle", -12.0, 0.7, 0.05)
 		return Vector2.ZERO
 	if e.nova_cd <= 0.0 and dist < float(d.get("nova_range", 320)):
@@ -301,7 +301,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "frost": e.get("frost", 0.0), "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0)})
+			"mire": e.type == "paranoia" and e.phase == 2, "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type})
 	if e.boss:
 		e.pose = 0.4
 		e.pose_max = 0.4
@@ -328,4 +328,4 @@ func lob(e: Dictionary) -> void:
 	e.atk_until = g.t + 0.3
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
-		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss})
+		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type})

@@ -72,6 +72,14 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		return
 	if float(src.get("frost", 0.0)) > 0.0:
 		g.frost = maxf(g.frost, float(src.frost))
+	# 小怪控制：按来源敌人的 enemies.json 字段（cold_hit 寒霜层 / wound_hit 侵蚀创口 / root_hit 束缚秒数，束缚只认预警招式）
+	if ctrl_on():
+		var sd: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
+		if not sd.is_empty():
+			add_cold(int(sd.get("cold_hit", 0)))
+			add_wound(int(sd.get("wound_hit", 0)))
+			if src.get("warn", false):
+				add_root(float(sd.get("root_hit", 0.0)), "束缚")
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
@@ -533,6 +541,79 @@ func hit(src: String, extra_tags: Array = []) -> void:
 		"class": base.get("class", ""), "op": base.get("op", "")}
 
 
+## ---- 小怪控制（用户 9/29「后期小怪加控制」；机制在这里，数值都是旋钮，缺省 enemy/ctrl_start = 永不 = 关）
+## 寒霜 cold：有效命中叠层，每层移速 −frost_slow、攻速 −frost_aspd，最多 frost_max 层，frost_dur 秒整体清零；
+##   满层时冻结 frost_root 秒（不能移动，可以攻击，冲刺挣脱），之后 frost_immune 秒不再叠层。
+## 束缚 root：巢涌者触须 / 巨骸踏地等预警招式命中后 root_hit 秒不能移动（同样冲刺挣脱）。冻结 / 束缚之后 root_immune 秒不再被硬控；
+##   任何 Boss 在场时一律换成减速（延续「Boss 战不硬控主控」）。
+## 侵蚀创口 wound：有效命中叠层，每层受治疗 −wound_heal_cut、每秒掉 wound_dot 最大生命，最多 wound_max 层，wound_dur 秒；可被净化。
+## 合计上限：寒霜 + 冰霜移速最多 −ctrl_move_cap（45%），寒霜攻速最多 −ctrl_aspd_cap（30%）。所有掉血走 lose_hp，受 2 秒合计上限保护。
+func ctrl_on() -> bool:
+	return g.t >= Bal.v("enemy/ctrl_start", 1.0e9)
+
+
+func ctrl_slow() -> float:
+	var m: float = (0.6 if g.frost > 0.0 else 1.0) * (1.0 - Bal.v("enemy/frost_slow", 0.12) * g.cold)
+	return maxf(m, 1.0 - Bal.v("enemy/ctrl_move_cap", 0.45))
+
+
+func add_cold(n: int) -> void:
+	if n <= 0 or g.cold_immune > 0.0:
+		return
+	var mx: int = int(Bal.v("enemy/frost_max", 3.0))
+	g.cold = mini(g.cold + n, mx)
+	g.cold_t = Bal.v("enemy/frost_dur", 3.0)
+	sync_cold()
+	if g.cold >= mx:
+		g.cold_immune = Bal.v("enemy/frost_immune", 4.0)
+		add_root(Bal.v("enemy/frost_root", 0.6), "冻结")
+
+
+## 寒霜的攻速减益走 stats 的 "cold" 来源（全队 op_aspd）；层数变了就调一次，净化清层后也要调
+func sync_cold() -> void:
+	g.stats.remove_source("cold")
+	if g.cold > 0:
+		g.stats.add(&"op_aspd", "mult", maxf(1.0 - Bal.v("enemy/frost_aspd", 0.08) * g.cold, 1.0 - Bal.v("enemy/ctrl_aspd_cap", 0.30)), "cold")
+	g.sync_stats()
+
+
+func add_root(t: float, label: String) -> void:
+	if t <= 0.0 or g.root_immune > 0.0 or g.root_t > 0.0:
+		return
+	if g.spawner.boss_alive():
+		slow_leader("root", t, Bal.v("boss/stun_as_slow_mult", 0.7))
+		return
+	g.root_t = t
+	g.root_immune = t + Bal.v("enemy/root_immune", 3.0)
+	g.vfx.add_text(g.ppos + Vector2(0, -96), label, Color(0.6, 0.9, 1.4) if label == "冻结" else Color(0.8, 0.5, 1.2), 18)
+
+
+func add_wound(n: int) -> void:
+	if n <= 0:
+		return
+	g.wound = mini(g.wound + n, int(Bal.v("enemy/wound_max", 4.0)))
+	g.wound_t = Bal.v("enemy/wound_dur", 6.0)
+
+
+## 每帧（enemies.update_status）：控制计时递减、创口掉血
+func update_ailments(dt: float) -> void:
+	g.root_t = maxf(0.0, g.root_t - dt)
+	g.root_immune = maxf(0.0, g.root_immune - dt)
+	g.cold_immune = maxf(0.0, g.cold_immune - dt)
+	if g.cold > 0:
+		g.cold_t -= dt
+		if g.cold_t <= 0.0:
+			g.cold = 0
+			g.cold_t = 0.0
+			sync_cold()
+	if g.wound > 0:
+		lose_hp(g.max_hp * Bal.v("enemy/wound_dot", 0.005) * g.wound * dt, "wound")
+		g.wound_t -= dt
+		if g.wound_t <= 0.0:
+			g.wound = 0
+			g.wound_t = 0.0
+
+
 ## ---- 地面形状统一判定（docs/38 §1.9「画即判」、docs/48 §1 第 1 项）：预警圈、冲击环、寒冰领域、抛石落点、溟痕都画成
 ## 纵向 ×GROUND_Y 的椭圆；判定点统一用主控脚底，纵向距离先除以 GROUND_Y 再和半径比。游戏判定与机器人走位共用
 const GROUND_Y := 0.72
@@ -729,6 +810,11 @@ func damage(e: Dictionary, dmg: float) -> void:
 			dmg = minf(dmg, e.maxhp * hcap)
 	if e.boss:
 		dmg = gate_clamp(e, dmg)
+	# 潮盾词条：先扣护盾（spawner.roll_affix）
+	if e.get("shield_hp", 0.0) > 0.0 and dmg > 0.0:
+		var ab: float = minf(e.shield_hp, dmg)
+		e.shield_hp -= ab
+		dmg -= ab
 	g.rfx.on_hit(e, g.hit)
 	e.hp -= dmg
 	if e.boss and tough_on(e):
@@ -795,7 +881,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 
 
 func heal(v: float, src: String = "其他") -> void:
-	v *= g.heal_mult
+	v *= g.heal_mult * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound)   # 侵蚀创口减受治疗
 	var got: float = minf(v, maxf(0.0, g.max_hp - g.hp))
 	g.heal_log[src] = float(g.heal_log.get(src, 0.0)) + got
 	if v > got:
