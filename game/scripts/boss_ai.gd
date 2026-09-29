@@ -771,6 +771,21 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
+	# 预警样式（docs/38 §8.11）：界面按 style 画，不再从 follow / gap_ang 猜。0 预告（无伤害，低亮度）；① 落点圈 ② 直线 ③ 扇形 ④ 缺口环 ⑤ 必须冲刺。
+	# follow 只表示「圈跟着施法者走」，钻地咬击、踏地、触须爆发、寒冰领域都是 ① —— 走出圈即可
+	if not w.has("style"):
+		if w.get("must_dash", false):
+			w.style = 5
+		elif float(w.dmg) <= 0.0:
+			w.style = 0
+		elif shape == "line":
+			w.style = 2
+		elif shape == "cone":
+			w.style = 3
+		elif w.has("gap_ang") or w.act == "bring":
+			w.style = 4
+		else:
+			w.style = 1
 	# 时序下限（§1.9、docs/48 P0-2）：Boss 预警总时长 ≥0.6 秒；锁定（追踪结束 → 结算）≥0.4 秒，不够时缩短追踪段
 	if e.boss:
 		w.dur = maxf(w.dur, 0.6)
@@ -1071,11 +1086,15 @@ func _draw_warns() -> void:
 			oa = 0.9 * f
 			k = 1.0
 		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）
+		if w.get("style", 1) == 0:
+			# 预告（如注亡拟嗣生成点）：没有伤害，压低亮度，别和伤害圈抢眼
+			fa *= 0.4
+			oa *= 0.45
 		var fill := Color(c.r, c.g, c.b, fa * 1.3)
 		var line := Color(c.r, c.g, c.b, oa)
 		match w.shape:
 			"circle":
-				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
+				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
 				g.draw_circle(Vector2.ZERO, w.r, fill)
 				g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
 				g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)

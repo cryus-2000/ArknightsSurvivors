@@ -66,6 +66,7 @@ func _process(_d: float) -> void:
 	test_retreat()
 	test_arena()
 	test_ground()
+	test_warn_style()
 	test_any_cap()
 	test_ailments()
 	test_lore1()
@@ -827,6 +828,29 @@ func test_ground() -> void:
 	ok(bad == 0, "圆形预警：8 个方向边缘外 4px 不中、内 4px 中（错 %d 处）" % bad)
 	game.ppos = p0
 
+
+## 预警样式（docs/38 §8.11）：_warn 按形状和标记填 style，界面照 style 画；跟随施法者的伤害圈仍是 ① 落点圈
+func test_warn_style() -> void:
+	var e := {"boss": false, "type": "test", "pos": game.ppos, "dmg": 10.0, "r": 20.0}
+	var cases := [
+		["circle", {"follow": true, "act": "bite"}, 1],
+		["circle", {"follow": true, "act": "frost"}, 1],
+		["circle", {"act": "slam"}, 1],
+		["circle", {"follow": true, "act": "bring"}, 4],
+		["circle", {"gap_ang": 0.0, "act": "pattern_ring"}, 4],
+		["circle", {"follow": true, "must_dash": true, "act": "izu_wave"}, 5],
+		["circle", {"act": "spawn", "dmg": 0.0, "lock": false}, 0],
+		["line", {"act": "beam"}, 2],
+		["cone", {"act": "reap"}, 3],
+		["circle", {"act": "slam", "style": 4}, 4],
+	]
+	var bad := PackedStringArray()
+	for cs in cases:
+		var w: Dictionary = game.bai._warn(e, cs[0], 0.6, cs[1])
+		game.warns.erase(w)
+		if int(w.style) != int(cs[2]):
+			bad.append("%s/%s=%d" % [cs[0], cs[1].act, int(w.style)])
+	ok(bad.is_empty(), "预警样式按形状和标记分类（错：%s）" % [", ".join(bad)])
 
 ## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
 func test_any_cap() -> void:
