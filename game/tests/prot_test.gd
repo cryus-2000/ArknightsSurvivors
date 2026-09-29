@@ -69,6 +69,7 @@ func _process(_d: float) -> void:
 	test_any_cap()
 	test_ailments()
 	test_lore1()
+	test_lore2()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -968,4 +969,61 @@ func test_lore1() -> void:
 		k2 += 1
 	ok(ar.dead, "复苏满 2 次后直接倒下")
 	bi.dead = true
+	game.warns.clear()
+
+
+## docs/38 §8 第二批：圣徒装填打断（伤害 5% / 冲刺穿身 → 5 秒破绽；没打断 → 三连瞄准）与卡门第二幕换剑
+func test_lore2() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var ib: Dictionary = sp.spawn_enemy("iberia", game.ppos + Vector2(1500, 0))
+	ib.age = 5.0
+	var go := func(e: Dictionary, dt: float) -> void:
+		e.wind = 0.0
+		e.stun = 0.0
+		e.cds = {"judge": INF, "snipe": INF, "hop": INF, "sword": INF}   # 其他招式冷却中：出招后的站定窗口会顺延装填（这是设计），测试里只看装填本身
+		e.pattern_next = INF
+		bai._boss_ai(e, dt, Vector2.LEFT, 500.0)
+	ib.ammo = 0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 4.0)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
+	var k := 0
+	while ib.channel > 0.0 and k < 100:
+		c.damage(ib, ib.maxhp * 0.01)
+		k += 1
+	ok(ib.channel <= 0.0 and ib.break_t > 0.0 and ib.ammo == 0, "读条中打掉约 5%% 被打断：破绽 %.1f 秒" % ib.break_t)
+	# 冲刺穿身打断
+	ib.break_t = 0.0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	var p0: Vector2 = game.ppos
+	game.ppos = ib.pos
+	game.dash_t = 0.2
+	go.call(ib, 0.01)
+	ok(ib.channel <= 0.0 and ib.break_t > 0.0, "主控冲刺穿过身体也能打断")
+	game.dash_t = 0.0
+	game.ppos = p0
+	# 没打断：三连瞄准
+	ib.break_t = 0.0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	var nw: int = game.warns.size()
+	go.call(ib, Bal.v("boss/iberia_reload", 4.0) + 0.1)
+	ok(ib.ammo == 3 and game.warns.size() >= nw + 3, "读条完成：弹药补满并连发三条瞄准线")
+	ib.dead = true
+	game.warns.clear()
+	# 卡门第二幕：先换剑，再装填
+	var cm: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
+	cm.age = 5.0
+	cm.gates_passed = 1
+	cm.ammo = 0
+	cm.reload_t = 0.0
+	go.call(cm, 0.01)
+	ok(cm.get("sword_t", 0.0) > 0.0 and cm.ai == "melee" and cm.channel <= 0.0, "卡门第二幕弹药打空先换剑")
+	go.call(cm, Bal.v("boss/carmen_sword", 8.0) + 0.1)
+	go.call(cm, 0.01)
+	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05, "剑形态结束后装填 %.1f 秒" % cm.channel)
+	cm.dead = true
 	game.warns.clear()

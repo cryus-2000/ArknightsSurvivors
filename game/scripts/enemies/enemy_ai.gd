@@ -6,6 +6,7 @@
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 var g  # Game (Node2D)
 var next_secondary_at := 0.0  # 大群额外招式错峰，避免同帧连环预警
@@ -295,6 +296,8 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		e.ammo -= 1
 		if e.ammo <= 0:
 			e.ai = "melee"
+			# 打空后先近战追击一段再装填（docs/38 §8.2）：不然她一直保持射程，低射程编队打不到（9/29 实测伊比利亚 >120 秒）
+			e.reload_t = maxf(e.get("reload_t", 0.0), float(Bal.v("boss/saint_melee", 8.0)))
 			g.vfx.add_text(e.pos + Vector2(0, -40), "弹药耗尽", Color(1.0, 0.8, 0.5), 14)
 	for k in n:
 		var dk := dir.rotated((k - (n - 1) / 2.0) * 0.22)

@@ -832,14 +832,11 @@ func damage(e: Dictionary, dmg: float) -> void:
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
-	# 圣徒装填时被打断
-	if e.get("channel", 0.0) > 0.0:
-		e.channel = 0.0
-		e.stun = 6.0
-		e.ammo = 0
-		e.ai = "melee"
-		g.vfx.add_text(e.pos + Vector2(0, -50), "装填被打断！", UI.GOLD, 20)
-		g.vfx.shake_screen(0.5)
+	# 圣徒装填：读条中累计伤害达到 5% 最大生命才打断（原来挨一下就打断、僵直 6 秒；docs/38 §8.2）
+	if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
+		e.reload_dmg = e.get("reload_dmg", 0.0) + dmg
+		if e.reload_dmg >= e.maxhp * Bal.v("boss/saint_break_dmg", 0.05):
+			g.bai.saint_interrupt(e)
 	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
 	if e.type == "paranoia" and e.phase == 1 and e.stun > 0.3:
 		e.phase = 2
