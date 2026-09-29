@@ -388,7 +388,7 @@ func update_status(dt: float) -> void:
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
 					g.pstun = max(g.pstun, 0.5)
-				g.dmg_src = "shock"
+				g.dmg_src = "shock_" + str(s.src_type) if s.has("src_type") else "shock"   # 遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
 				g.in_type = ["近战", "物理"]
 				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
