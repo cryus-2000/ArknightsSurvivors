@@ -654,6 +654,7 @@ func _draw_guide(vs: Vector2) -> void:
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q / E 放手动技能"],
 		["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q / E）"],
 		["手动普攻", "可在设置 · 游戏里把普攻改为手动：左键 / J 攻击，朝光标方向"],
+		["选落点", "乌尔比安三技能：鼠标指哪落哪；或按住 Q / E 蓄距离、松手掷出；手柄右摇杆推多远落多远"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
 		["升级 / 藏品", "按数字键或点击选择"],
@@ -662,7 +663,7 @@ func _draw_guide(vs: Vector2) -> void:
 		["", "START 暂停　SELECT 属性　菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 100 + i * 38
+		var y := r.position.y + 98 + i * 35
 		if lines[i][0] != "":
 			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)

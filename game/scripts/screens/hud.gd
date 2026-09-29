@@ -452,7 +452,12 @@ func draw() -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
-			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ("按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")), 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			var ohint: String
+			if g.doctor.manual_attack:
+				ohint = "按住左半屏拖动移动 · 按攻击键出手（拖动选方向）" if g.touch.active else Pad.hint("WASD 移动 · 按住左键 / J 攻击，朝光标（或移动）方向", "左摇杆移动 · Ⓧ / RT 攻击 · 右摇杆瞄准")
+			else:
+				ohint = "按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")
+			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0:
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(g.t * 5.0)
@@ -789,6 +794,16 @@ func draw_manual_aim() -> void:
 	var to: Vector2 = xf * pt
 	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
 	# 引导线：虚线，到圈边为止
+	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
+	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	var inner := Rect2(Vector2(rad * 0.5 + 8.0, rad * 0.5 + 96.0), vsz - Vector2(rad + 16.0, rad * 0.5 + 96.0 + rad * 0.5 + 8.0))
+	var real_to: Vector2 = to
+	to = to.clamp(inner.position, inner.end)
+	if real_to.distance_to(to) > 2.0:
+		var ad: Vector2 = (real_to - to).normalized()
+		var tip: Vector2 = to + ad * (rad + 14.0)
+		var sd: Vector2 = ad.orthogonal() * 7.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
 	var seg: Vector2 = to - from
 	var ln: float = seg.length()
 	if ln > rad + 8.0:
@@ -830,6 +845,16 @@ func draw_point_aim(ld, i: int) -> void:
 	if charging or dragging:
 		var rr: float = ld.aim_range(i) * sc
 		g.hud.draw_arc(from, rr, 0.0, TAU, 64, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.22), 1.5)
+	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
+	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	var inner := Rect2(Vector2(rad * 0.5 + 8.0, rad * 0.5 + 96.0), vsz - Vector2(rad + 16.0, rad * 0.5 + 96.0 + rad * 0.5 + 8.0))
+	var real_to: Vector2 = to
+	to = to.clamp(inner.position, inner.end)
+	if real_to.distance_to(to) > 2.0:
+		var ad: Vector2 = (real_to - to).normalized()
+		var tip: Vector2 = to + ad * (rad + 14.0)
+		var sd: Vector2 = ad.orthogonal() * 7.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
 	var seg: Vector2 = to - from
 	var ln: float = seg.length()
 	if ln > rad + 8.0:
@@ -847,7 +872,9 @@ func draw_point_aim(ld, i: int) -> void:
 	if charging:
 		# 蓄距离进度：圈右上一段弧，蓄满（manual/point_charge 秒）= 射程最远
 		var ck: float = clampf(float(g.doctor.charge.get("t", 0.0)) / maxf(0.05, Game.Bal.v("manual/point_charge", 0.6)), 0.0, 1.0)
-		g.hud.draw_arc(to, rad + 8.0, -PI / 2.0, -PI / 2.0 + TAU * ck, 40, Color(1, 1, 1, 0.9), 3.0)
+		var full: bool = ck >= 1.0
+		var cc: Color = UI.GOLD.lerp(Color(1, 1, 1), 0.5 + 0.5 * sin(g.t * 14.0)) if full else Color(1, 1, 1, 0.9)
+		g.hud.draw_arc(to, rad + 8.0, -PI / 2.0, -PI / 2.0 + TAU * ck, 40, cc, 4.0 if full else 3.0)   # 蓄满：金白闪
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
@@ -1320,7 +1347,8 @@ func draw_squad_hud(br: Vector2) -> void:
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 					g.hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
-				UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24)
+				if not g.touch.active:
+					UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24)
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)

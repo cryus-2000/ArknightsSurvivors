@@ -88,6 +88,7 @@ func handle(event: InputEvent) -> bool:
 				if g.state == g.S.PLAY:
 					# 一定要传方向：不传会读摇杆移动方向，边走边点就朝走的方向放了。没就绪时它自己飘字说原因；正在出手时记下、1 秒内放出
 					g.doctor.try_manual_skill(aim_dir())
+				skill_aim = Vector2.ZERO   # 松手清掉拖动量：选落点圈读它（验收 P2：松手后圈停在旧位置）
 				return true
 			if event.index == stick_id:
 				stick_id = -1
@@ -161,6 +162,8 @@ func update(dt: float) -> void:
 		vec = Vector2.ZERO
 	if skill_id >= 0 and g.state != g.S.PLAY:
 		skill_id = -1
+	if skill_id < 0:
+		skill_aim = Vector2.ZERO
 	if atk_id >= 0 and (g.state != g.S.PLAY or not g.doctor.manual_attack):
 		_atk_release()
 
