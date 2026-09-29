@@ -139,6 +139,8 @@ func watch_bosses() -> void:
 		elif bk and not s[4]:
 			spear_fly_fx(b)
 		s[4] = bk
+		if b.type == "ishar" and b.get("dash_t", 0.0) > 0.0 and not b.dead:
+			_tide_trail(b)
 		var sw: bool = b.get("sword_t", 0.0) > 0.0
 		if s.size() < 4:
 			s.append(sw)
@@ -491,6 +493,15 @@ func draw_world() -> void:
 				if k > 0.9:
 					var gk: float = (k - 0.9) / 0.1
 					g.draw_arc(f.to, 10.0 + 30.0 * gk, 0.0, TAU, 20, Color(0.8, 1.2, 1.7, 1.0 - gk), 2.0)
+			"tide_trail":
+				var k := 1.0 - a
+				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.45))
+				g.draw_circle(Vector2.ZERO, f.r * (0.7 + 0.5 * k), Color(0.3, 0.9, 1.0, 0.28 * a))
+				g.draw_arc(Vector2.ZERO, f.r * (0.8 + 0.6 * k), 0.0, TAU, 24, Color(0.9, 1.6, 1.8, 0.6 * a), 2.0)
+				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				for q in 4:
+					var ang: float = f.seed + q * 1.7
+					g.draw_circle(f.pos + Vector2(cos(ang) * f.r * (0.6 + k), sin(ang) * f.r * 0.3 - 6.0 * k), 2.5 * a, Color(1.8, 2.0, 2.0, 0.8 * a))
 			"glint":
 				# 竖直闪光（换剑）：十字星从中间展开再收
 				var k := 1.0 - a
@@ -1779,6 +1790,17 @@ func _spr_outline(name: String, frames: int, frame: int, pos: Vector2, scale: fl
 		g.draw_texture_rect_region(t, Rect2((pos - size * anchor).round() - pad, size + pad * 2.0), src, col)
 
 
+## 伊莎玛拉潮涌迫近（2373cc8）：冲刺中每走约 20 像素在身后留一片水潮（地面椭圆泡沫 + 浪尖白点，0.7 秒退去）
+var _trail_last := {}   # boss 的 id -> 上次留痕位置
+
+func _tide_trail(b: Dictionary) -> void:
+	var lp: Vector2 = _trail_last.get(b.id, Vector2.INF)
+	if lp != Vector2.INF and lp.distance_to(b.pos) < 20.0:
+		return
+	_trail_last[b.id] = b.pos
+	g.fx.append({"kind": "tide_trail", "pos": b.pos + Vector2(0, b.r * 0.6), "r": b.r * 0.9, "life": 0.7, "max": 0.7, "seed": g.vrng.randf() * TAU, "enemy": true})
+
+
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1878,13 +1900,16 @@ func _boss_state(e: Dictionary) -> void:
 		UI.text(g, g.font, top + Vector2(-120, -6), "装填中 · 攻击打断", 13, gc, HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		return
 	var brk: float = e.get("break_t", 0.0)
-	if e.stun > 0.05 or (brk > 0.0 and e.has("ammo")):
+	if e.stun > 0.05 or brk > 0.0:
 		for q in 3:
 			var a: float = g.t * 5.0 + q * TAU / 3.0
 			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
 			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
 		if e.has("ammo") and brk > 0.0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif brk > 0.0:
+			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
+			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 晕眩 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 
