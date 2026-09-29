@@ -1014,7 +1014,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var dlh := 18.0
 	var desc_n: Array = []
 	for ln in lines:
-		desc_n.append(2)
+		# 按说明实际折几行算（最多 2 行），不再一律按 2 行预算把放得下的也截掉（验收 N2）
+		var dix: float = 44.0 if (ln.size() > 3 and ln[3] != "" and A.tex(ln[3]) != null) else 0.0
+		desc_n.append(mini(2, UI.wrap_lines(font, ln[2], 12, dr.size.x - 48 - dix).size()))
 	var room: float = dr.end.y - 14.0 - py
 	var need := func() -> float:
 		var h := 0.0

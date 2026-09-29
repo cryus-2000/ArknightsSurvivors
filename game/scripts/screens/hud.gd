@@ -173,6 +173,12 @@ func draw() -> void:
 		UI.text(g.hud, g.font, Vector2(hx + 190, o.y + 60), "蚀", 11, Color(0.8, 0.5, 1.0))
 	if g.pstun > 0.0:
 		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-40, -110), "僵直", 16, Color(1.0, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+	if g.root_t > 0.0 and g.state == Game.S.PLAY:
+		# 冻结 / 束缚：脚下提示「冲刺挣脱」（键位随输入设备），跳动吸引注意
+		var fz: bool = g.world.leader_frozen()
+		var bp: float = absf(sin(g.t * 8.0)) * 4.0
+		var key: String = "冲刺键" if g.touch.active else Pad.hint("空格", "Ⓑ")
+		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按 %s 冲刺挣脱" % ["冻结" if fz else "束缚", key], 15, Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
 	# 商人方向指示
 	if not g.merchant.is_empty():
 		var sp: Vector2 = ct * g.merchant.pos
@@ -239,17 +245,17 @@ func draw() -> void:
 	var st_en := "LIGHT"
 	var st_col := UI.GOLD
 	if g.lamp <= 0.0:
-		st_txt = "灯火熄灭 · 持续受伤"
+		st_txt = "灯火寂灭 · 持续受伤"
 		st_en = "OUT"
 		st_col = UI.RED
 	elif g.lamp < 30.0:
-		st_txt = "暗潮涌动 · 敌人更快更凶更多 · 拾取 -30%"
+		st_txt = "灯火暗淡 · 敌人更快更凶更多 · 拾取 -30%"
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:
-		st_txt = "灯火充盈 · 技力 +30% · 拾取 +20%"
+		st_txt = "灯火通明 · 技力 +30% · 拾取 +20%"
 	else:
-		st_txt = "灯火照亮 · 光中敌人受伤 +25%"
+		st_txt = "灯火摇曳 · 光中敌人受伤 +25%"
 		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
@@ -1029,12 +1035,19 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["攻速减缓", Color(0.6, 0.7, 0.9), clampf(g.atk_slow / 3.0, 0.0, 1.0)])
 	if g.pstun > 0.0:
 		items.append(["定身", UI.RED, -1.0])
+	# 小怪控制（combat.gd「小怪控制」段）
+	if g.cold > 0:
+		items.append(["寒霜 ×%d" % g.cold, Color(0.6, 0.88, 1.0), clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.0, 1.0)])
+	if g.root_t > 0.0:
+		items.append(["%s · 冲刺挣脱" % ("冻结" if g.world.leader_frozen() else "束缚"), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
+	if g.wound > 0:
+		items.append(["创口 ×%d" % g.wound, Color(1.0, 0.35, 0.6), clampf(g.wound_t / maxf(0.1, Game.Bal.v("enemy/wound_dur", 6.0)), 0.0, 1.0)])
 	if g.in_mire > 0.5:
 		items.append(["溟痕 · 减速", Color(0.85, 0.45, 1.0), -1.0])
 	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r:
 		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
 	if g.lamp < 30.0:
-		items.append(["灯火低微", Color(1.0, 0.55, 0.45), -1.0])
+		items.append(["灯火暗淡", Color(1.0, 0.55, 0.45), -1.0])
 	if items.is_empty():
 		return
 	var x := 18.0

@@ -64,7 +64,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
 		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
-		var ulp := Vector2(r.end.x - 30.0 - ulw, r.position.y + 30) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
+		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32

@@ -660,6 +660,7 @@ func draw_world() -> void:
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_enemy_tells()
+	draw_leader_ailments()
 	draw_warn_outlines()
 	draw_zone()
 	g.map.draw_snow()
@@ -1003,6 +1004,8 @@ func draw_enemy(e: Dictionary) -> void:
 	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		g.vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+	if e.get("affix", "") != "":
+		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.get("weak", "")
 	if wk != "" and not e.get("under", false):
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
@@ -1177,6 +1180,102 @@ func _paranoia2_halo(e: Dictionary) -> void:
 			var w: float = 1.0 + 0.08 * sin(a * 5.0 + g.t * (3.0 + q) + q * 1.7)
 			pts.append(c + Vector2(cos(a), sin(a) * 0.8) * rr * w)
 		g.draw_polyline(pts, Color(1.7, 0.45, 1.5, 0.7 - 0.18 * q), 2.5 - 0.5 * q)
+
+
+## ---- 主控身上的小怪控制（combat.gd「小怪控制」段，用户 9/29）：画在实体之上、预警轮廓之下
+## 寒霜 g.cold：脚下冰霜圈 + 每层一枚绕身冰晶；冻结（寒霜满层时的 root）：半透明冰壳，快化时出裂纹；
+## 束缚（其他 root）：三条暗紫触须从地面缠上来；侵蚀创口 g.wound：身上每层一道暗洋红伤口，缓慢滴落
+const COLD_COL := Color(0.62, 0.9, 1.4)
+const BIND_COL := Color(0.8, 0.45, 1.3)
+const WOUND_COL := Color(1.1, 0.25, 0.55)
+var root_max := 0.0              # 本次冻结 / 束缚的总时长（root_t 刚变大时记下，画倒计时用）
+var root_prev := 0.0
+
+func leader_frozen() -> bool:
+	return g.root_t > 0.0 and g.cold >= int(Game.Bal.v("enemy/frost_max", 3.0))
+
+
+func draw_leader_ailments() -> void:
+	if g.root_t > root_prev + 0.01:
+		root_max = g.root_t
+	root_prev = g.root_t
+	if g.state != Game.S.PLAY and g.state != Game.S.CHOICE:
+		return
+	var foot: Vector2 = g.ppos + Vector2(0, 16)
+	var body: Vector2 = g.ppos + Vector2(0, -26)
+	if g.cold > 0:
+		var ca: float = clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.3, 1.0)
+		g.draw_set_transform(foot, 0.0, Vector2(1.0, 0.42))
+		g.draw_circle(Vector2.ZERO, 22.0 + 4.0 * g.cold, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.10 * ca))
+		g.draw_arc(Vector2.ZERO, 22.0 + 4.0 * g.cold, 0.0, TAU, 32, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.5 * ca), 1.5)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		for q in g.cold:
+			var a: float = g.t * 2.2 + q * TAU / maxf(1.0, g.cold)
+			var cp: Vector2 = body + Vector2(cos(a) * 26.0, sin(a) * 9.0 + 8.0)
+			UI.diamond(g, cp, 4.0, Color(0.85, 1.2, 1.6, 0.9 * ca), Color(0.2, 0.4, 0.7, 0.9))
+	if g.root_t > 0.0:
+		var k: float = clampf(g.root_t / maxf(0.05, root_max), 0.0, 1.0)
+		if leader_frozen():
+			# 冰壳：六边形晶体罩住全身，剩余越少越透明、出裂纹
+			var pts := PackedVector2Array()
+			for i in 6:
+				var a2: float = -PI / 2.0 + i * TAU / 6.0
+				pts.append(body + Vector2(cos(a2) * 28.0, sin(a2) * 44.0))
+			g.draw_colored_polygon(pts, Color(0.55, 0.85, 1.3, 0.22 + 0.18 * k))
+			pts.append(pts[0])
+			g.draw_polyline(pts, Color(0.9, 1.3, 1.8, 0.85), 2.0)
+			g.draw_line(body + Vector2(-14, -30), body + Vector2(-4, -4), Color(1.6, 1.8, 2.0, 0.7), 2.0)
+			if k < 0.6:
+				g.draw_polyline(PackedVector2Array([body + Vector2(8, -34), body + Vector2(2, -12), body + Vector2(12, 4), body + Vector2(4, 22)]), Color(1.6, 1.8, 2.0, 0.9), 1.5)
+		else:
+			# 束缚：三条暗紫触须从脚下缠到腰
+			for q in 3:
+				var sx: float = -24.0 + q * 24.0
+				var pts2 := PackedVector2Array()
+				for i in 9:
+					var u: float = i / 8.0
+					pts2.append(foot + Vector2(sx * (1.0 - u) + sin(u * 7.0 + q * 2.0 + g.t * 3.0) * 7.0, -u * 46.0 * (0.4 + 0.6 * k)))
+				g.draw_polyline(pts2, Color(0.25, 0.1, 0.35, 0.9), 5.0)
+				g.draw_polyline(pts2, BIND_COL, 2.0)
+		# 倒计时环（脚下）
+		g.draw_set_transform(foot, 0.0, Vector2(1.0, 0.42))
+		var rc: Color = COLD_COL if leader_frozen() else BIND_COL
+		g.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 40, Color(0, 0, 0, 0.5), 6.0)
+		g.draw_arc(Vector2.ZERO, 36.0, -PI / 2.0, -PI / 2.0 + TAU * k, 40, rc, 4.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if g.wound > 0:
+		for q in g.wound:
+			var wp: Vector2 = body + Vector2(-12 + (q % 2) * 20, -10 + q * 9)
+			g.draw_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), Color(0.2, 0.0, 0.1, 0.9), 4.0)
+			g.draw_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), WOUND_COL, 2.0)
+			var dk: float = fmod(g.t * 0.9 + q * 0.37, 1.0)
+			g.draw_circle(wp + Vector2(2, 4 + dk * 22.0), 1.8, Color(WOUND_COL.r, WOUND_COL.g, WOUND_COL.b, 1.0 - dk))
+
+
+## 小怪词条外观（spawner.roll_affix）：甲壳 armor = 身前三块灰钢甲片；潮盾 shield = 青白泡壳 + 脚下细条（剩余护盾）
+func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
+	var af: String = e.get("affix", "")
+	if af == "armor":
+		var c: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
+		for q in 3:
+			var p: Vector2 = c + Vector2(-8 + q * 8, -4 + absf(q - 1) * 4)
+			var pl := PackedVector2Array([p + Vector2(-4, -5), p + Vector2(4, -5), p + Vector2(5, 3), p + Vector2(0, 7), p + Vector2(-5, 3)])
+			g.draw_colored_polygon(pl, Color(0.62, 0.66, 0.72, 0.95))
+			pl.append(pl[0])
+			g.draw_polyline(pl, Color(0.15, 0.17, 0.2, 1.0), 1.0)
+			g.draw_line(p + Vector2(-3, -4), p + Vector2(3, -4), Color(1.4, 1.45, 1.5, 0.9), 1.0)
+	elif af == "shield" and e.get("shield_hp", 0.0) > 0.0:
+		var c2: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
+		var rr: float = maxf(e.r + 6.0, (bpos.y - top.y) * 0.55)
+		var wob: float = 1.0 + 0.04 * sin(g.t * 5.0 + e.id)
+		g.draw_circle(c2, rr * wob, Color(0.5, 1.2, 1.4, 0.13))
+		g.draw_arc(c2, rr * wob, 0.0, TAU, 32, Color(0.7, 1.5, 1.6, 0.7), 1.5)
+		g.draw_arc(c2, rr * wob * 0.8, -2.4, -1.5, 8, Color(1.6, 2.0, 2.0, 0.8), 2.0)
+		var mx: float = e.maxhp * Game.Bal.v("enemy/affix_shield", 0.30)
+		var bw: float = maxf(20.0, e.r * 1.6)
+		var by: Vector2 = bpos + Vector2(-bw / 2.0, 6)
+		g.draw_rect(Rect2(by, Vector2(bw, 3)), Color(0, 0, 0, 0.6))
+		g.draw_rect(Rect2(by, Vector2(bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0), 3)), Color(0.7, 1.5, 1.6, 0.95))
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
