@@ -29,7 +29,7 @@ func run() -> void:
 	title._op_go()
 	check(title.transition.busy, "confirm locks input")
 	title._activate(0)
-	await get_tree().create_timer(0.4).timeout
+	await wait_for(func(): return not title.transition.busy and not title.op_pick and not title.diff_pick)
 	check(Cfg.cover_character_id == "siege", "cover selection persisted in config")
 	check(Cfg.character_id == "mizuki", "cover does not change opening operator")
 	check(title.title_bg.guest.get("id", "") == "siege", "cover refreshes correct idle strip")
@@ -37,18 +37,18 @@ func run() -> void:
 	check(not title.transition.busy, "transition unlocks")
 	await capture("ea_cover_siege")
 	title._activate(0)
-	await get_tree().create_timer(0.4).timeout
+	await wait_for(func(): return title.op_pick and not title.transition.busy)
 	check(title.op_pick and not title.cover_pick, "deploy opens run selection")
 	await capture("ea_operator_stats")
 	title._op_go()
-	await get_tree().create_timer(0.4).timeout
+	await wait_for(func(): return title.diff_pick and not title.transition.busy)
 	check(title.diff_pick and not title.op_pick, "run selection opens difficulty")
 	title._diff_back()
-	await get_tree().create_timer(0.4).timeout
+	await wait_for(func(): return title.op_pick and not title.transition.busy)
 	check(title.op_pick, "difficulty returns to operator selection")
 	title.op_pick = false
 	title._activate(2)
-	await get_tree().create_timer(0.4).timeout
+	await wait_for(func(): return title.boss_trial.visible and not title.transition.busy)
 	check(title.boss_trial.visible, "Boss trial entry opens")
 	title.boss_trial.close()
 	for cid in Character.list_ids():
@@ -104,6 +104,13 @@ func run() -> void:
 	await get_tree().process_frame
 	print("EA UI regression: %d failures" % failures)
 	get_tree().quit.call_deferred(1 if failures else 0)
+
+## 等到画面切换完成（条件成立）再断言；最多等 max_s 秒。原来固定等 0.4 秒，本机同时跑 6–7 个 Godot 时帧率低、转场没走完就断言，偶发失败（2026-09-29 Boss与怪物报告）
+func wait_for(cond: Callable, max_s := 4.0) -> void:
+	var t0 := Time.get_ticks_msec()
+	while not cond.call() and Time.get_ticks_msec() - t0 < max_s * 1000.0:
+		await get_tree().process_frame
+
 
 func capture(name: String) -> void:
 	if DisplayServer.get_name() == "headless" or not Cfg.dev_args().has("--capture-ui"):

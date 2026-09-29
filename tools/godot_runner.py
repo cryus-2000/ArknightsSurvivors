@@ -111,6 +111,31 @@ def run_godot(args, timeout):
     return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), timed_out
 
 
+_IMPORT_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf")
+_IMPORTED_RE = re.compile(r'"res://\.godot/imported/([^"]+)"')
+
+
+def stale_imports(game_dir):
+    """导入缓存缺了哪些：.import 里登记的缓存文件不存在，或素材还没有 .import（新拉来的）。跳过带 .gdignore 的目录"""
+    imp = os.path.join(game_dir, ".godot", "imported")
+    miss = []
+    for root, dirs, files in os.walk(game_dir):
+        if ".gdignore" in files:
+            dirs[:] = []
+            continue
+        dirs[:] = [d for d in dirs if not d.startswith(".") and not d.startswith("_probe")]
+        for f in files:
+            p = os.path.join(root, f)
+            if f.endswith(".import"):
+                with open(p, encoding="utf-8", errors="replace") as fh:
+                    for m in _IMPORTED_RE.finditer(fh.read()):
+                        if not os.path.exists(os.path.join(imp, m.group(1))):
+                            miss.append(m.group(1))
+            elif f.lower().endswith(_IMPORT_EXT) and not os.path.exists(p + ".import"):
+                miss.append(os.path.relpath(p, game_dir))
+    return miss
+
+
 def ensure_imported(game_dir, timeout=900):
     """新工作树没有 game/.godot 导入缓存时先导入，否则贴图全是空的、快检大面积报错（2026-09-26 实测 18/19 项失败）。
     第一遍导入有时只导入一部分（缓存里只有几个文件），所以导入到缓存文件数不再增加为止，最多 3 遍。返回导入的遍数（0 = 本来就有）"""
@@ -120,7 +145,13 @@ def ensure_imported(game_dir, timeout=900):
         return len(os.listdir(imp)) if os.path.isdir(imp) else 0
 
     if count() >= 50:
-        return 0
+        miss = stale_imports(game_dir)
+        if not miss:
+            return 0
+        # 缓存在但不全：从 main 拉来新图 / 新音频后没导入过，引用它们的测试会失败（2026-09-29 Boss与怪物报告 ea_ui 失败）
+        print("导入资源（%s 缺 %d 个导入文件，例如 %s）" % (game_dir, len(miss), miss[0]), flush=True)
+        run_godot([find_godot(), "--headless", "--path", game_dir, "--import"], timeout)
+        return 1
     passes = 0
     last = -1
     while passes < 3 and count() != last:
