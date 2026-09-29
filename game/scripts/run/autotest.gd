@@ -455,8 +455,10 @@ func bot_move() -> Vector2:
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(g.ppos) < 500.0 and not g.merchant.near:
 		pull = (g.merchant.pos - g.ppos).normalized() * 0.9
 	for e in g.enemies:
-		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < 400.0:
-			pull = (e.pos - g.ppos).normalized() * 0.8
+		# 海嗣祭坛只有走近才打开、又刷在 520–650 外：像真人看方位指示那样走过去（同 bot.gd 高手的 1600）
+		var reach: float = 1600.0 if e.get("event", "") != "" else 400.0
+		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < reach:
+			pull = (e.pos - g.ppos).normalized() * (1.0 if e.get("event", "") != "" else 0.8)
 			break
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5

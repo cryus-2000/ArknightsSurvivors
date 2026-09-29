@@ -16,8 +16,8 @@ var opened_id := ""             # 正在弹选项的事件
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结，不再刷事件箱、不再改写结局（EA 验收 P0-1）
-var box_t := 0.0                # 当前事件箱刷出的时刻（超时消散，P1-2）
-const BOX_LIFE := 60.0          # 事件箱多久没打开就沉入海底
+var box_t := 0.0                # 当前事件箱已存在的秒数（超时消散，P1-2）
+const BOX_LIFE := 90.0          # 事件箱多久没打开就沉入海底（60 → 90：祭坛刷在 520–650 外，普通机器人 60 秒常走不到，协调人 9/29 定）
 
 
 func _init(game) -> void:
@@ -47,8 +47,10 @@ func update(dt: float) -> void:
 					e.invuln = false
 					g.combat.kill(e)
 					return
-		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）
-		if g.t - box_t > BOX_LIFE:
+		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）。
+		# 试过 Boss 在场时暂停计时：沉底变少，但祭坛占位更久，后面的事件过窗口没刷出来，打开总数反而更少（49 → 46 / 12 局），不采用
+		box_t += dt
+		if box_t > BOX_LIFE:
 			_sink_box("海嗣祭坛沉入了海底")
 			next_allowed = g.t + 5.0
 		return
@@ -68,7 +70,7 @@ func update(dt: float) -> void:
 			continue
 		_spawn_box(ev)
 		done.append(ev.id)
-		box_t = g.t
+		box_t = 0.0
 		_log("spawn " + str(ev.id))
 		next_allowed = g.t + 20.0
 		return
@@ -92,7 +94,7 @@ func _sink_box(msg: String) -> void:
 	for e in g.enemies:
 		if e.chest and not e.dead and e.get("event", "") != "":
 			e.dead = true
-			_log("sink " + str(e.event))
+			_log("sink %s age=%.0f dist=%.0f" % [str(e.event), box_t, e.pos.distance_to(g.ppos)])
 			g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
 			if msg != "":
 				g.vfx.show_banner(msg)
