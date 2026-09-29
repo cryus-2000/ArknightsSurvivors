@@ -982,7 +982,8 @@ func draw_point_aim(ld, i: int) -> void:
 	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
 	var real_to: Vector2 = to
 	to = to.clamp(inner.position, inner.end)
-	if real_to.distance_to(to) > 2.0:
+	# 三角只在真实落点出屏时画（验收 P3：落点在屏内、只是离边近被推进来时，三角会指到落点外很远）
+	if real_to.distance_to(to) > 2.0 and not Rect2(Vector2.ZERO, vsz).has_point(real_to):
 		var ad: Vector2 = (real_to - to).normalized()
 		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
 		var sd: Vector2 = ad.orthogonal() * 7.0
