@@ -77,7 +77,7 @@ func _begin() -> void:
 		e.hit_cap = Bal.v("hunt/hit_cap", 0.12)   # 单次掉血上限（最大生命比例，combat.enemy_hit 读）
 		e.fx = -1.0 if cos(ang) > 0.0 else 1.0   # 面朝圆心
 		# 生命统一按凿石者算再乘 hunt/ring_hp：全队集火约 3–5 秒打穿一个
-		e.hp = 26.0 * g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult * Bal.v("hunt/ring_hp", 5.0)
+		e.hp = 26.0 * g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult * Bal.v("hunt/ring_hp", 5.0) * float(g.dmod.get("hunt_ring_hp", 1.0))
 		e.maxhp = e.hp
 		ring.append(e)
 		anchors.append(p)
@@ -139,7 +139,7 @@ func _tick(dt: float) -> void:
 		_xp_burst()
 		g.vfx.show_banner("围猎者尽数肃清 —— 获得半级经验")
 		_log("cleared")
-	if el >= Bal.v("hunt/dur", 20.0):
+	if el >= Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0)):
 		_end()
 
 

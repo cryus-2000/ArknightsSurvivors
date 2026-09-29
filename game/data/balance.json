@@ -217,6 +217,8 @@
   "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准",
   "standard": {},
   "hard": {
+   "hunt_dur": 0.85,
+   "hunt_ring_hp": 0.85,
    "enemy_hp": 1.15,
    "boss_hp": 1.15,
    "enemy_dmg": 1.15,
@@ -232,6 +234,8 @@
    "max_hp": 1.0
   },
   "extreme": {
+   "hunt_dur": 0.7,
+   "hunt_ring_hp": 0.7,
    "enemy_hp": 1.15,
    "boss_hp": 1.15,
    "enemy_dmg": 1.15,
