@@ -1,6 +1,6 @@
 extends RefCounted
 ## 引航灯标（名字文案暂定；docs/49d §13.5 方案 C，用户 9/29 定）：溟痕的主动清理手段，只靠走位。
-## 自然溟痕出现后，每 60–75 秒在主控 250–400 外（缩圈后只刷在圈内）立一座熄灭的灯标，场上最多 1 座未点燃；
+## 自然溟痕出现后，每 60–75 秒在主控 250–400 外、溟痕最密的点（缩圈后只刷在圈内）立一座熄灭的灯标，场上最多 1 座未点燃（Boss 在场也刷）；
 ## 主控站进半径 70 的光圈累计 2.5 秒点燃（离开时进度缓慢回退，不清零）。
 ## 点燃：清除半径 260 内的自然 / 小怪溟痕（Boss 溟痕只把剩余寿命缩到 ≤ 2 秒，不删），这片区域 30 秒内不再生成自然溟痕
 ## （map.mire_new 落点检查 blocks()），灯标亮着当安全区标记，+5 灯火；同时清空主控与光圈内队友的神经损伤。
@@ -38,10 +38,10 @@ func update(dt: float) -> void:
 		if g.t < first:
 			return
 		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0))
-	# 刷新：场上最多 1 座未点燃；Boss 在场时不刷（和围猎、祭坛一样不叠在 Boss 战里）
+	# 刷新：场上最多 1 座未点燃；Boss 在场时照样刷（协调人 9/29：Boss 战正是溟痕最多、最需要安全区的时候）
 	if g.t >= next_at:
 		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0))
-		if not g.beacons.any(func(b): return not b.lit) and not g.spawner.boss_alive():
+		if not g.beacons.any(func(b): return not b.lit):
 			_spawn()
 	var r: float = _k("r", 70.0)
 	for b in g.beacons:
@@ -78,9 +78,23 @@ func update(dt: float) -> void:
 	g.beacons = g.beacons.filter(func(b): return not b.dead)
 
 
+## 选址：主控 250–400 的环上取 16 方向 × 3 半径的候选点（圈内），挑 clear_r 内非 Boss 溟痕最多的那个
+## （协调人 9/29：灯标同时是「溟痕在哪」的指路标）；一块都罩不到时退回随机方向。随机数先取、次数固定，保证同 seed 可复现
 func _spawn() -> void:
 	var ang := g.rng.randf() * TAU
 	var p: Vector2 = g.ppos + Vector2.from_angle(ang) * g.rng.randf_range(_k("dist_min", 250.0), _k("dist_max", 400.0))
+	var cr: float = _k("clear_r", 260.0)
+	var best_n := 0
+	for k in 16:
+		for rr in [_k("dist_min", 250.0), (_k("dist_min", 250.0) + _k("dist_max", 400.0)) * 0.5, _k("dist_max", 400.0)]:
+			var q: Vector2 = g.spawner.safe_event_pos(g.ppos + Vector2.from_angle(ang + TAU * k / 16.0) * rr, 110.0)
+			var n := 0
+			for m in g.mires:
+				if not m.get("boss", false) and m.life > 0.0 and m.pos.distance_to(q) < cr:
+					n += 1
+			if n > best_n:
+				best_n = n
+				p = q
 	p = g.spawner.safe_event_pos(p, 110.0)
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
 		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0})

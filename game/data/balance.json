@@ -250,5 +250,9 @@
    "mire_permanent": 1,
    "max_hp": 1.0
   }
+ },
+ "beacon": {
+  "_doc": "引航灯标（run/beacon.gd，docs/49d §13.5 C）：没写的键用代码缺省（every 60–75、dist 250–400、r 70、need 2.5、decay 0.5、block_t 30、lamp 5、low_lamp_mult 1.5、lumen_mult 2、boss_life 2）",
+  "clear_r": 340
  }
 }
