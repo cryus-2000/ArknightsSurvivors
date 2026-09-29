@@ -26,6 +26,9 @@ var react_t := 0.0
 
 # ---- expert：动量（让它绕圈而不是原地抖）
 var last_dir := Vector2.RIGHT
+# 引航灯标「靠近后站定」（协调人 9/30：只把灯标当目标方向时，安全打分和绕圈惯性会把机器人带出 70 的光圈，点燃率只有 17%）：
+# 150 内有未点燃的灯标时记下位置，目标权重 2 → 6；进到 55 内、脚下不危险就停下，直到点燃
+var beacon_hold := Vector2.INF
 var keep := 100.0               # 与敌人保持的距离：近战编队要贴近些让干员打得到
 const MELEE := ["近卫", "重装", "先锋", "特种"]
 
@@ -120,11 +123,13 @@ func _move_expert() -> Vector2:
 		var s1 := _score_point(p + d * 70.0, near)
 		var s := 0.55 * s1 + 0.45 * _score_point(p + d * 150.0, near) + _bullet_risk(p, d, spd, bullets)
 		if goal != Vector2.ZERO:
-			s += 2.0 * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
+			s += (6.0 if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
 		s += 0.6 * d.dot(last_dir)
 		if s > best:
 			best = s
 			best_dir = d
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and here > -4.0:
+		return Vector2.ZERO   # 站在灯标光圈里等点燃（脚下危险时照常躲）
 	if best_dir != Vector2.ZERO:
 		last_dir = best_dir
 	return best_dir
@@ -224,7 +229,10 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		var reach: float = 1600.0 if e.get("event", "") != "" else 450.0
 		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < reach:
 			return (e.pos - p).normalized()
+	beacon_hold = Vector2.INF
 	for b in g.beacons:
+		if not b.lit and g.hp > g.max_hp * 0.25 and b.pos.distance_to(p) < 150.0:
+			beacon_hold = b.pos
 		# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
 		if not b.lit and g.hp > g.max_hp * 0.25 and b.pos.distance_to(p) < 700.0:
 			return (b.pos - p).normalized() if b.pos.distance_to(p) > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
@@ -437,12 +445,15 @@ func _move_master(_dt: float) -> Vector2:
 	var bg := _master_boss_goal(p)
 	if bg != Vector2.INF:
 		goal = bg
+		beacon_hold = Vector2.INF   # 目标换成 Boss 站位，灯标不再加权
 	var in_hunt: bool = g.hunt.active() and g.hunt.inside
 	var gap_dir := Vector2.ZERO if in_hunt else _master_gap(p, near)
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()
+		beacon_hold = Vector2.INF
 	if in_hunt and m_tune.hunt_goal > 0.0:
 		goal = _master_hunt_goal(p)
+		beacon_hold = Vector2.INF
 	# 经验 / 灯油 / 回复：候选点附近的掉落物加分（真人会顺路吸经验，不会只追最近的一颗）
 	var gems := PackedVector2Array()
 	for gm in g.gems:
@@ -469,11 +480,13 @@ func _move_master(_dt: float) -> Vector2:
 					nq += 1
 			s += m_tune.gem * minf(float(nq), m_tune.gem_cap)
 		if goal != Vector2.ZERO:
-			s += 2.0 * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
+			s += (6.0 if beacon_hold != Vector2.INF else 2.0) * d.dot(goal) * (1.0 if s1 > -1.5 else 0.35)
 		s += 0.6 * d.dot(last_dir)
 		if s > best:
 			best = s
 			best_dir = d
+	if beacon_hold != Vector2.INF and p.distance_to(beacon_hold) < 55.0 and here > -4.0:
+		best_dir = Vector2.ZERO   # 站在灯标光圈里等点燃（脚下危险时照常躲；冲刺判定照常）
 	if best_dir != Vector2.ZERO:
 		last_dir = best_dir
 	if m_dbg:
