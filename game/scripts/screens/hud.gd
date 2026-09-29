@@ -538,6 +538,8 @@ func draw_minimap(vs: Vector2) -> void:
 	# 视野框
 	var view := g.get_viewport_rect().size
 	g.hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), false, 1.0)
+	# 普通敌人的 2×2 红点收集起来一次 draw_multiline 画完（性能，协调人 9/30：后期 300 个敌人逐个 draw_rect）
+	var dots := PackedVector2Array()
 	for e in g.enemies:
 		if e.dead:
 			continue
@@ -557,7 +559,10 @@ func draw_minimap(vs: Vector2) -> void:
 		elif e.elite:
 			g.hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
 		else:
-			g.hud.draw_rect(Rect2(c + p - Vector2(1, 1), Vector2(2, 2)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85))
+			dots.append(c + p - Vector2(1, 0))
+			dots.append(c + p + Vector2(1, 0))
+	if not dots.is_empty():
+		g.hud.draw_multiline(dots, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85), 2.0)
 	for g_item in g.gems:
 		if g_item.dead or not (g_item.kind == "magnet" or g_item.kind == "heal" or g_item.kind == "chest"):
 			continue
@@ -1324,3 +1329,4 @@ func draw_squad_hud(br: Vector2) -> void:
 				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, g.hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
 				UI.panel(g.hud, tipr, UI.BG2, o.col(), 6.0)
 				UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT)
+

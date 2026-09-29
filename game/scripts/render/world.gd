@@ -1098,16 +1098,14 @@ func draw_enemy(e: Dictionary) -> void:
 		sq *= 1.0 + 0.1 * hb
 		g.draw_circle(e.pos, e.r * (1.3 + 0.5 * hb), Color(PART_COL.r * 1.4, PART_COL.g * 1.4, PART_COL.b * 1.4, 0.22 + 0.3 * hb))
 		if not Cfg.outline and g.tex.has(name + "_white"):
-			for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
-				g.vfx.spr(name + "_white", frames, frame, bpos + d, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
+			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
 	if Cfg.outline and g.tex.has(name + "_white"):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
-		for d in [Vector2(Game.PX, 0), Vector2(-Game.PX, 0), Vector2(0, Game.PX), Vector2(0, -Game.PX)]:
-			g.vfx.spr(name + "_white", frames, frame, bpos + d, sc, flip, oc, anc, sq)
+		_spr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
 	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		g.vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
@@ -1704,6 +1702,54 @@ func view_rect(margin: float) -> Rect2:
 	var inv: Transform2D = g.get_viewport().get_canvas_transform().affine_inverse()
 	var vs: Vector2 = g.get_viewport_rect().size
 	return (inv * Rect2(Vector2.ZERO, vs)).grow(margin)
+
+
+## 敌人描边合成一次绘制（性能，协调人 9/30「排序实体每实体提交降到 ≤2」）：原来白剪影上下左右各偏 1 像素画 4 次，
+## 现在把白剪影逐帧在贴图上下左右各扩 1 像素（blend_rect 叠 4 次，原生操作）合成一张带 1 像素边距的描边贴图，缓存后每只只画 1 次
+var _ol_cache := {}
+
+func _outline_tex(name: String, frames: int) -> Texture2D:
+	var key: String = "%s#%d" % [name, frames]
+	if _ol_cache.has(key):
+		return _ol_cache[key]
+	var wt: Texture2D = g.tex.get(name + "_white")
+	var out_t: Texture2D = null
+	if wt != null:
+		var img: Image = wt.get_image()
+		if img.is_compressed():
+			img.decompress()
+		if img.get_format() != Image.FORMAT_RGBA8:
+			img.convert(Image.FORMAT_RGBA8)
+		var fw: int = img.get_width() / frames
+		var fh: int = img.get_height()
+		var out := Image.create((fw + 2) * frames, fh + 2, false, Image.FORMAT_RGBA8)
+		for f in frames:
+			var reg: Image = img.get_region(Rect2i(f * fw, 0, fw, fh))
+			var o := Vector2i(f * (fw + 2) + 1, 1)
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				out.blend_rect(reg, Rect2i(0, 0, fw, fh), o + d)
+		out_t = ImageTexture.create_from_image(out)
+	_ol_cache[key] = out_t
+	return out_t
+
+
+## 画一帧描边：定位 / 翻转 / 压扁与 vfx.spr 相同，只是贴图每帧四周多 1 像素边距
+func _spr_outline(name: String, frames: int, frame: int, pos: Vector2, scale: float, flip: bool, col: Color, anchor: Vector2, sq: Vector2) -> void:
+	var t: Texture2D = _outline_tex(name, frames)
+	if t == null:
+		return
+	pos += g.draw_off
+	var fw: int = t.get_width() / frames - 2
+	var fh: int = t.get_height() - 2
+	var src := Rect2((fw + 2) * (frame % frames), 0, fw + 2, fh + 2)
+	var size := Vector2(fw, fh) * scale * sq
+	var pad := Vector2(scale, scale) * sq
+	if flip:
+		g.draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
+		g.draw_texture_rect_region(t, Rect2(-size * anchor - pad, size + pad * 2.0), src, col)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		g.draw_texture_rect_region(t, Rect2((pos - size * anchor).round() - pad, size + pad * 2.0), src, col)
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
