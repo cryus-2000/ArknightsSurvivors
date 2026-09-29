@@ -108,7 +108,11 @@ func update(dt: float) -> void:
 
 		if e.chest:
 			if dist > 1500.0:
-				e.dead = true
+				if e.get("event", "") != "":
+					# 海嗣祭坛不静默删除（事件验收 P2-8）：挪到主控前方约 600 处，保留剩余窗口；屏外方位指示在 hud.gd
+					g.endg.reposition_box(e)
+				else:
+					e.dead = true
 			continue
 		if dist > 1300.0 and not e.boss:
 			if e.ai == "static" or e.get("dormant", false):

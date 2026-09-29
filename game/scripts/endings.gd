@@ -42,6 +42,11 @@ func update(dt: float) -> void:
 		for e in g.enemies:
 			if e.chest and not e.dead and e.get("event", "") != "":
 				e.pos = g.spawner.safe_event_pos(e.pos, 110.0)
+				# 祭坛只在主控本人走近时打开（事件验收 P2-10：原来 22 点血，范围攻击 / 子弹扫到就弹面板）
+				if e.pos.distance_to(g.ppos) < float(e.r) + 34.0 and g.state == g.S.PLAY:
+					e.invuln = false
+					g.combat.kill(e)
+					return
 		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）
 		if g.t - box_t > BOX_LIFE:
 			_sink_box("海嗣祭坛沉入了海底")
@@ -67,6 +72,13 @@ func update(dt: float) -> void:
 		_log("spawn " + str(ev.id))
 		next_allowed = g.t + 20.0
 		return
+
+
+## 祭坛离主控太远（enemies.gd 1500 外）：挪到主控前方约 600 处，保留剩余窗口
+func reposition_box(e: Dictionary) -> void:
+	var dir: Vector2 = g.last_mv if g.last_mv.length() > 0.1 else (e.pos - g.ppos)
+	e.pos = g.spawner.safe_event_pos(g.ppos + dir.normalized() * 600.0, 110.0)
+	_log("move " + str(e.event))
 
 
 ## 自动测试日志：ENDEV <动作> ...
@@ -109,6 +121,7 @@ func _box_alive() -> bool:
 func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)
+	g.enemies[g.enemies.size() - 1].invuln = true   # 不吃伤害：只在主控走近时打开（update 里）
 	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 
@@ -243,7 +256,8 @@ func reserved_relic_slots() -> int:
 func note_relic(id: String) -> void:
 	for eid in endings:
 		var req: Dictionary = endings[eid].get("requires", {})
-		if (req.has("relic") and str(req.relic) == id) or (req.has("relic_lv") and str(req.relic_lv[0]) == id):
+		# renew：拿到这些藏品也算「又一次选择了这个结局」（再次倾听 242 → 深蓝，事件验收 P2-12：付了代价就切回深蓝）
+		if (req.has("relic") and str(req.relic) == id) or (req.has("relic_lv") and str(req.relic_lv[0]) == id) or endings[eid].get("renew", []).has(id):
 			ending_at[eid] = g.t
 
 

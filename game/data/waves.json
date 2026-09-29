@@ -605,6 +605,7 @@
    }
   },
   "deep": {
+   "renew": ["242"],
    "name": "结局四 · 深蓝",
    "en": "CAERULA ARBOR",
    "boss": "izumik",
