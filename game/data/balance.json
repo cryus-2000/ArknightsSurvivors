@@ -1,4 +1,5 @@
 {
+  "ai": {"boss_focus": 0},
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
  "operators": {
