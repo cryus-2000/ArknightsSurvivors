@@ -667,15 +667,15 @@ func _apply_stacks() -> void:
 
 ## 锁链：暗描边 + 链节交替（掷锚、回旋、拽敌共用）
 func _draw_chain(a: Vector2, b: Vector2, al: float) -> void:
-	g.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
-	g.draw_line(a, b, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95 * al), 2.5)
+	cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
+	cv.draw_line(a, b, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95 * al), 2.5)
 	var links: int = clampi(int(a.distance_to(b) / 10.0), 1, 50)
 	for i in links:
 		var q: Vector2 = a.lerp(b, float(i) / links)
 		if i % 2 == 0:
-			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75, al))
+			cv.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75, al))
 		else:
-			g.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
+			cv.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
 
 
 ## 自定义粒子：whirl 锁链回旋 / chain 拽敌锁链 / rift 通路裂隙
@@ -693,7 +693,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				trail.append(c + Vector2(cos(an) * R, sin(an) * R * 0.55))
 			for i in 15:
 				var al: float = (1.0 - float(i) / 15.0) * minf(1.0, a * 2.0)
-				g.draw_line(trail[i], trail[i + 1], Color(EDGE.r * 1.4, EDGE.g * 1.4, EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
+				cv.draw_line(trail[i], trail[i + 1], Color(EDGE.r * 1.4, EDGE.g * 1.4, EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
 			var hp: Vector2 = trail[0]
 			_draw_chain(f.pos + Vector2(0, -22), hp, minf(1.0, a * 2.0))
 			_draw_anchor(hp, Vector2.from_angle(head + f.dir * PI * 0.5), minf(1.0, a * 2.0))
@@ -703,7 +703,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var u2: float = 1.0 - a
 			var tip: Vector2 = (f.pos as Vector2).lerp(f.to, minf(1.0, u2 / 0.4)) if u2 < 0.4 else (f.to as Vector2).lerp(f.pos, (u2 - 0.4) / 0.6)
 			_draw_chain(f.pos, tip, 1.0)
-			g.draw_circle(tip, 4.0, Color(EDGE.r * 1.5, EDGE.g * 1.5, EDGE.b * 1.5, 0.9))
+			cv.draw_circle(tip, 4.0, Color(EDGE.r * 1.5, EDGE.g * 1.5, EDGE.b * 1.5, 0.9))
 			return true
 		"rift":
 			# 通路裂隙：锯齿状深色裂缝（两头细、中间宽），裂缝芯一道深海蓝光，后半程淡出
@@ -719,8 +719,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				var t: float = float(i) / m
 				var p: Vector2 = A + d * L * t + n * (sin(f.seed + i * 1.7) * 5.0 if i < m else 0.0)
 				var w: float = 2.0 + 5.0 * sin(t * PI)
-				g.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
-				g.draw_line(prev, p, Color(EDGE.r * 1.6, EDGE.g * 1.6, EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
+				cv.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
+				cv.draw_line(prev, p, Color(EDGE.r * 1.6, EDGE.g * 1.6, EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
 				prev = p
 			return true
 	return false
@@ -731,10 +731,10 @@ func draw_auras() -> void:
 	if not blood_on or pos == Vector2.INF:
 		return
 	var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if blood_ready else 2.5))
-	g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	g.draw_circle(Vector2.ZERO, 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, (0.12 if blood_ready else 0.06) + 0.05 * pul))
-	g.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(BLOOD.r * 1.5, BLOOD.g, BLOOD.b, (0.6 if blood_ready else 0.3) * (0.6 + 0.4 * pul)), 2.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	cv.draw_circle(Vector2.ZERO, 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, (0.12 if blood_ready else 0.06) + 0.05 * pul))
+	cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(BLOOD.r * 1.5, BLOOD.g, BLOOD.b, (0.6 if blood_ready else 0.3) * (0.6 + 0.4 * pul)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 精二 血脉沸腾：淡红轮廓发光——当前帧贴图向 8 个方向各偏移 2 像素、染淡红先画一圈，本体盖在上面只露出外缘一圈红光；
@@ -780,7 +780,7 @@ func _draw_skill_over() -> void:
 		for s in 3:
 			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
 			if anchor.phase == "reel":
-				g.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+				cv.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
 	# 弹射中：人身后的残影与速度线
 	elif not throwing:
 		var tr: Array = anchor.trail
@@ -789,17 +789,17 @@ func _draw_skill_over() -> void:
 			draw_body_at(tr[i], face < 0.0, Color(EDGE.r, EDGE.g, EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
 		for s in 3:
 			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
-			g.draw_line(pos - mv_d * 16.0 + off, pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
+			cv.draw_line(pos - mv_d * 16.0 + off, pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	# 锁链：绷直，暗描边 + 链节交替
-	g.draw_line(hand, p, Color(0.04, 0.05, 0.08, 0.75), 5.0)
-	g.draw_line(hand, p, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95), 2.5)
+	cv.draw_line(hand, p, Color(0.04, 0.05, 0.08, 0.75), 5.0)
+	cv.draw_line(hand, p, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95), 2.5)
 	var links: int = clampi(int(hand.distance_to(p) / 10.0), 1, 50)
 	for i in links:
 		var q: Vector2 = hand.lerp(p, float(i) / links)
 		if i % 2 == 0:
-			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75))
+			cv.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75))
 		else:
-			g.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35))
+			cv.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35))
 	# 飞行中：锚的残影 + 速度线
 	if throwing:
 		var tr2: Array = anchor.trail
@@ -807,7 +807,7 @@ func _draw_skill_over() -> void:
 			_draw_anchor(tr2[i], d, 0.3 * (1.0 - float(i) / tr2.size()))
 		for s in 3:
 			var off2: Vector2 = d.orthogonal() * (s - 1) * 9.0
-			g.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.6), 2.0)
+			cv.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.6), 2.0)
 	_draw_anchor(p, -d if reeling else d, 1.0)
 
 
@@ -825,25 +825,25 @@ func _draw_anchor(p: Vector2, d: Vector2, a: float) -> void:
 	var head: Vector2 = p + d * 12.0
 	var tail: Vector2 = p - d * 18.0
 	# 锚杆
-	g.draw_line(tail, head, outline, 8.0)
-	g.draw_line(tail, head, body, 5.0)
+	cv.draw_line(tail, head, outline, 8.0)
+	cv.draw_line(tail, head, body, 5.0)
 	# 大弯钩：从锚头朝一侧向后弯出
 	var hook := PackedVector2Array()
 	for i in 8:
 		var u: float = float(i) / 7.0
 		var ang: float = lerpf(0.0, 2.4, u)
 		hook.append(head + n * sin(ang) * 15.0 - d * (1.0 - cos(ang)) * 11.0)
-	g.draw_polyline(hook, outline, 9.0)
-	g.draw_polyline(hook, body, 5.5)
-	g.draw_polyline(hook.slice(0, 7), edge, 1.5)
-	g.draw_circle(hook[hook.size() - 1], 2.5, edge)
+	cv.draw_polyline(hook, outline, 9.0)
+	cv.draw_polyline(hook, body, 5.5)
+	cv.draw_polyline(hook.slice(0, 7), edge, 1.5)
+	cv.draw_circle(hook[hook.size() - 1], 2.5, edge)
 	# 另一侧的短倒刺
-	g.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, outline, 6.0)
-	g.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, body, 3.0)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, outline, 6.0)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, body, 3.0)
 	# 锚头尖 + 尾环
-	g.draw_colored_polygon(PackedVector2Array([head + d * 7.0, head + n * 3.0, head - n * 3.0]), body)
-	g.draw_line(head, head + d * 6.0, edge, 1.5)
-	g.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(CHAIN.r, CHAIN.g, CHAIN.b, a), 2.0)
+	cv.draw_colored_polygon(PackedVector2Array([head + d * 7.0, head + n * 3.0, head - n * 3.0]), body)
+	cv.draw_line(head, head + d * 6.0, edge, 1.5)
+	cv.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(CHAIN.r, CHAIN.g, CHAIN.b, a), 2.0)
 
 
 func status_items() -> Array:

@@ -433,20 +433,20 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				for i in n:
 					var q := PackedVector2Array([outer[i], outer[i + 1], inner[i + 1], inner[i]])
 					if absf((q[1] - q[0]).cross(q[3] - q[0])) + absf((q[2] - q[1]).cross(q[3] - q[1])) > 2.0:
-						g.draw_colored_polygon(q, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.75 * a))
-				g.draw_polyline(edge, Color(2.0, 2.0, 1.9, 0.9 * a), 2.0)
+						cv.draw_colored_polygon(q, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.75 * a))
+				cv.draw_polyline(edge, Color(2.0, 2.0, 1.9, 0.9 * a), 2.0)
 			return true
 		"impact":
 			# 命中闪光：白亮核心 + 光晕 + 四道星芒
 			var k: float = 1.0 - a
 			var L: float = f.r * (0.6 + 0.8 * k)
 			var c2: Color = f.col
-			g.draw_circle(f.pos, f.r * (0.9 + 0.4 * k), Color(c2.r * 1.5, c2.g * 1.5, c2.b * 1.5, 0.35 * a))
-			g.draw_circle(f.pos, f.r * 0.7 * a + 2.0, Color(2.4, 2.4, 2.2, a))
+			cv.draw_circle(f.pos, f.r * (0.9 + 0.4 * k), Color(c2.r * 1.5, c2.g * 1.5, c2.b * 1.5, 0.35 * a))
+			cv.draw_circle(f.pos, f.r * 0.7 * a + 2.0, Color(2.4, 2.4, 2.2, a))
 			for q in 4:
 				var dv2 := Vector2.from_angle(q * PI / 4.0)
 				var ll: float = L * (1.0 if q % 2 == 0 else 0.6)
-				g.draw_line(f.pos - dv2 * ll, f.pos + dv2 * ll, Color(2.2, 2.2, 2.0, a), 2.0)
+				cv.draw_line(f.pos - dv2 * ll, f.pos + dv2 * ll, Color(2.2, 2.2, 2.0, a), 2.0)
 			return true
 		"core":
 			# 熔毁晶核：绿色八面体（菱形 + 亮面），先胀大变亮，后半程碎掉消失
@@ -459,10 +459,10 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var lft: Vector2 = f.pos + Vector2(-R, 0)
 			var rgt: Vector2 = f.pos + Vector2(R, 0)
 			var mid: Vector2 = f.pos + Vector2(R * 0.25, -R * 0.1)
-			g.draw_circle(f.pos, R * 1.8, Color(2.0, 0.3, 0.15, 0.25 * al))
-			g.draw_colored_polygon(PackedVector2Array([top, rgt, bot, lft]), Color(1.6, 0.16, 0.12, 0.85 * al))
-			g.draw_colored_polygon(PackedVector2Array([top, mid, bot, lft]), Color(2.2, 0.5, 0.3, 0.9 * al))
-			g.draw_polyline(PackedVector2Array([top, rgt, bot, lft, top]), Color(2.4, 1.0, 0.7, al), 2.0)
+			cv.draw_circle(f.pos, R * 1.8, Color(2.0, 0.3, 0.15, 0.25 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, rgt, bot, lft]), Color(1.6, 0.16, 0.12, 0.85 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, mid, bot, lft]), Color(2.2, 0.5, 0.3, 0.9 * al))
+			cv.draw_polyline(PackedVector2Array([top, rgt, bot, lft, top]), Color(2.4, 1.0, 0.7, al), 2.0)
 			return true
 		"qshard":
 			# 空心方形晶片：旋转的绿色方框，亮边 + 淡填充
@@ -470,15 +470,15 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var r0: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * hs * 1.414
 			var r1: Vector2 = r0.orthogonal()
 			var pts := PackedVector2Array([f.pos + r0, f.pos + r1, f.pos - r0, f.pos - r1, f.pos + r0])
-			g.draw_colored_polygon(pts.slice(0, 4), Color(1.6, 0.2, 0.1, 0.25 * a))
-			g.draw_polyline(pts, Color(2.2, 0.4, 0.2, a), 2.0)
+			cv.draw_colored_polygon(pts.slice(0, 4), Color(1.6, 0.2, 0.1, 0.25 * a))
+			cv.draw_polyline(pts, Color(2.2, 0.4, 0.2, a), 2.0)
 			return true
 		"beamray":
 			# 放射光束：从核心向外迅速伸出、变细消失
 			var k4: float = 1.0 - a
 			var dv3: Vector2 = Vector2.from_angle(f.ang)
 			var L2: float = f.len * minf(1.0, k4 * 3.0)
-			g.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
+			cv.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
 			return true
 	if f.kind == "claw":
 		# 三道平行爪痕：略弧，随时间拉长、变细、淡出
@@ -490,7 +490,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var p0: Vector2 = f.pos + off - d * 4.0 * float(i)
 			var mid: Vector2 = p0 + d * l * 0.5 + nrm * 3.0 * (1.0 if i != 1 else -1.0)
 			var p1: Vector2 = p0 + d * l
-			g.draw_polyline(PackedVector2Array([p0, mid, p1]), Color(GREEN.r * 1.8, GREEN.g * 1.8, GREEN.b * 1.6, a), 3.0 * a + 1.0)
+			cv.draw_polyline(PackedVector2Array([p0, mid, p1]), Color(GREEN.r * 1.8, GREEN.g * 1.8, GREEN.b * 1.6, a), 3.0 * a + 1.0)
 		return true
 	return false
 
@@ -542,7 +542,7 @@ func _m_frame(kind: String, at: float) -> Array:
 func draw_extra(_it: Dictionary) -> void:
 	var fr := _m_frame(m.kind, m.at)
 	if fr.is_empty():
-		g.draw_circle(m.pos + Vector2(0, -14), 14.0, Color(0.3, 0.4, 0.3))
+		cv.draw_circle(m.pos + Vector2(0, -14), 14.0, Color(0.3, 0.4, 0.3))
 		return
 	if _boosted():
 		# 残影 + 周身脉冲环（熔毁期间更亮）
@@ -557,10 +557,10 @@ func draw_extra(_it: Dictionary) -> void:
 			for q in 3:
 				var ph: float = g.t * 1.7 + q * 1.3
 				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 + _hover() - 50.0)
-				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.85, 0.025, 0.02, 0.12))
+				cv.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.85, 0.025, 0.02, 0.12))
 		# 光环套在悬浮本体中心（返修稿本体中心在脚底上方约 53；docs/32 验收 §5）
 		if melt <= 0.0:
-			g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
+			cv.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
 	# 熔毁：黑红本体与红色轮廓光帧条；协同：略偏绿
 	var col := Color.WHITE if melt > 0.0 or melt_out > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
@@ -596,8 +596,8 @@ func _draw_claw_blades() -> void:
 			var cp: Vector2 = body + Vector2(s * (27.0 + 5.0 * j), -10.0 + j * 15.0)
 			var a0: float = base_a - 0.95 + sway
 			var a1: float = base_a + 0.95 + sway
-			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
-			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
+			cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
+			cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
 
 
 ## 悬浮起伏（像素）：越高影子越小
@@ -638,11 +638,11 @@ func _draw_skill_over() -> void:
 	for i in 7:
 		var an: float = g.t * 0.6 + i * TAU / 6.0
 		hexp.append(c + Vector2(cos(an) * R, sin(an) * R * 1.12))
-	g.draw_colored_polygon(hexp.slice(0, 6), Color(0.4, 1.3, 0.5, 0.13 * al))
-	g.draw_polyline(hexp, Color(0.9, 2.0, 0.9, 0.7 * al), 2.0)
+	cv.draw_colored_polygon(hexp.slice(0, 6), Color(0.4, 1.3, 0.5, 0.13 * al))
+	cv.draw_polyline(hexp, Color(0.9, 2.0, 0.9, 0.7 * al), 2.0)
 	# 内侧淡淡的蜂窝线：三条对角线
 	for i in 3:
-		g.draw_line(hexp[i], hexp[i + 3], Color(0.7, 1.7, 0.7, 0.18 * al), 1.0)
+		cv.draw_line(hexp[i], hexp[i + 3], Color(0.7, 1.7, 0.7, 0.18 * al), 1.0)
 
 
 func status_items() -> Array:
@@ -663,6 +663,6 @@ func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_p
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var k: float = sc / hi
-	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

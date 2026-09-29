@@ -3,6 +3,7 @@
 extends RefCounted
 
 const Character = preload("res://scripts/characters/character.gd")
+const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
@@ -12,6 +13,7 @@ const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -7
 const DEMO_SLOT := Vector2(44, -6)
 
 var g
+var cv                           # 干员绘制合批画布（batch_canvas.gd，性能 9/30）
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
 var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
@@ -19,6 +21,7 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 
 func _init(game) -> void:
 	g = game
+	cv = BatchCanvas.new(game)
 
 
 func size() -> int:
@@ -257,35 +260,42 @@ func on_kill(e: Dictionary) -> void:
 # ---------------------------------------------------------------- 绘制分发（world 坐标）
 
 func draw_auras() -> void:
+	cv.begin()
 	for o in ops:
 		o.draw_auras()
+	cv.end()
 
 
 func draw_entities_floor() -> void:
+	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
 	for o in ops:
 		o.draw_entities_floor()
 		o.draw_pfx(true)
+	cv.end()
 
 
 func draw_shadows() -> void:
+	cv.begin()
 	for o in ops:
 		if o.pos != Vector2.INF:
+			cv.sync()
 			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
 			if o.is_leader:
 				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
 				var c: Color = o.col()
-				g.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-				g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
+				cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+				cv.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
 				# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
 				var dk: float = 1.0 - g.dash_cd / g.DASH_CD
 				if dk < 1.0:
-					g.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
+					cv.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
 				else:
-					g.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					cv.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+				cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
-				g.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
+				cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
 		o.draw_extra_shadows()
+	cv.end()
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
@@ -294,11 +304,15 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 
 
 func draw_skill_floor() -> void:
+	cv.begin()
 	for o in ops:
 		o._draw_skill_floor()
+	cv.end()
 
 
 func draw_skill_over() -> void:
+	cv.begin()
 	for o in ops:
 		o._draw_skill_over()
 		o.draw_pfx(false)
+	cv.end()

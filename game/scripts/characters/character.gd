@@ -567,33 +567,33 @@ func draw_pfx(floor_layer: bool) -> void:
 				var k := 1.0 - a
 				var rr: float = lerpf(f.get("r0", f.r * 0.3), f.r, 1.0 - (1.0 - k) * (1.0 - k))
 				if f.get("floor", false):
-					g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
-					g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+					cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
+					cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				else:
-					g.draw_arc(f.pos, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
+					cv.draw_arc(f.pos, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
 			"spark":
-				g.draw_rect(Rect2(f.pos.round(), Vector2(f.get("sz", 3.0), f.get("sz", 3.0))), Color(c.r, c.g, c.b, a))
+				cv.draw_rect(Rect2(f.pos.round(), Vector2(f.get("sz", 3.0), f.get("sz", 3.0))), Color(c.r, c.g, c.b, a))
 			"glow":
 				# 发光团：先胀后缩
 				var k2: float = sin(a * PI)
-				g.draw_circle(f.pos, f.r * (0.4 + 0.6 * k2), Color(c.r, c.g, c.b, f.get("alpha", 0.35) * a))
-				g.draw_circle(f.pos, f.r * 0.35 * k2, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7 * a))
+				cv.draw_circle(f.pos, f.r * (0.4 + 0.6 * k2), Color(c.r, c.g, c.b, f.get("alpha", 0.35) * a))
+				cv.draw_circle(f.pos, f.r * 0.35 * k2, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7 * a))
 			"shard":
 				# 碎片：旋转的细三角
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
-				g.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
+				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				g.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
+				cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
 				var h: float = f.get("sz", 10.0) * (0.6 + 0.4 * a)
 				var wob: float = sin(g.t * 24.0 + f.pos.x) * 2.0
 				var bp: Vector2 = f.pos
-				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.35, 0), bp + Vector2(wob, -h), bp + Vector2(h * 0.35, 0)]), Color(c.r, c.g, c.b, 0.8 * a))
-				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
+				cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.35, 0), bp + Vector2(wob, -h), bp + Vector2(h * 0.35, 0)]), Color(c.r, c.g, c.b, 0.8 * a))
+				cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
 			"mote":
-				g.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
+				cv.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
 			"crack":
 				_draw_crack(f, a, c)
 
@@ -625,11 +625,11 @@ func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
 			var nrm: Vector2 = d.normalized().orthogonal()
 			var q := PackedVector2Array([p0 + nrm * ws[i], p1 + nrm * ws[i + 1], p1 - nrm * ws[i + 1], p0 - nrm * ws[i]])
 			if ws[i] + ws[i + 1] < 1.2:
-				g.draw_line(p0, p1, dark, 1.0)
+				cv.draw_line(p0, p1, dark, 1.0)
 			else:
-				g.draw_colored_polygon(q, dark)
+				cv.draw_colored_polygon(q, dark)
 			if glow > 0.0 and ws[i] > 1.4:
-				g.draw_line(p0, p1, Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.75 * glow), maxf(1.0, ws[i] * 0.6))
+				cv.draw_line(p0, p1, Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.75 * glow), maxf(1.0, ws[i] * 0.6))
 	# 中心碎坑：实心深色 + 略亮的边 + 几道坑内裂纹
 	var ring: PackedVector2Array = cd.ring
 	var sc: float = 0.35 + 0.65 * grow
@@ -637,14 +637,14 @@ func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
 	var rp := PackedVector2Array()
 	for v in ring:
 		rp.append(ctr + (v - ctr) * sc)
-	g.draw_colored_polygon(rp, Color(0.06, 0.05, 0.05, al))
+	cv.draw_colored_polygon(rp, Color(0.06, 0.05, 0.05, al))
 	# 坑心再压一层更深的（凹陷感），不画亮边——亮边会让中心看起来是空的
 	var core := PackedVector2Array()
 	for v in rp:
 		core.append(ctr + (v - ctr) * 0.55)
-	g.draw_colored_polygon(core, Color(0.02, 0.015, 0.02, al))
+	cv.draw_colored_polygon(core, Color(0.02, 0.015, 0.02, al))
 	for ln in cd.inner:
-		g.draw_line(ctr + (ln[0] - ctr) * sc, ctr + (ln[1] - ctr) * sc, Color(0.16, 0.13, 0.13, 0.8 * al), 1.0)
+		cv.draw_line(ctr + (ln[0] - ctr) * sc, ctr + (ln[1] - ctr) * sc, Color(0.16, 0.13, 0.13, 0.8 * al), 1.0)
 
 
 func _crack_build(f: Dictionary) -> Dictionary:
@@ -1297,7 +1297,7 @@ func foot_off(tx: Texture2D, kind: String = "") -> float:
 func draw_body() -> void:
 	var st := anim_state()
 	if st.is_empty():
-		g.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
+		cv.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
 		return
 	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
 	var c: Color = col().lerp(Color.WHITE, 0.35)

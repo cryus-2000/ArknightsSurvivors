@@ -317,9 +317,9 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 		var h: float = (60.0 + f.r * 0.5) * k
 		var w: float = f.r * 0.45
 		var p: Vector2 = f.pos
-		g.draw_colored_polygon(PackedVector2Array([p + Vector2(-w, 0), p + Vector2(-w * 0.35, -h), p + Vector2(w * 0.35, -h), p + Vector2(w, 0)]), Color(LAVA.r, LAVA.g, LAVA.b, 0.8 * a))
-		g.draw_colored_polygon(PackedVector2Array([p + Vector2(-w * 0.45, 0), p + Vector2(-w * 0.12, -h * 0.9), p + Vector2(w * 0.12, -h * 0.9), p + Vector2(w * 0.45, 0)]), Color(2.2, 1.6, 0.8, 0.85 * a))
-		g.draw_circle(p + Vector2(0, -h), w * 0.35, Color(2.4, 1.9, 1.2, 0.8 * a))
+		cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-w, 0), p + Vector2(-w * 0.35, -h), p + Vector2(w * 0.35, -h), p + Vector2(w, 0)]), Color(LAVA.r, LAVA.g, LAVA.b, 0.8 * a))
+		cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-w * 0.45, 0), p + Vector2(-w * 0.12, -h * 0.9), p + Vector2(w * 0.12, -h * 0.9), p + Vector2(w * 0.45, 0)]), Color(2.2, 1.6, 0.8, 0.85 * a))
+		cv.draw_circle(p + Vector2(0, -h), w * 0.35, Color(2.4, 1.9, 1.2, 0.8 * a))
 		return true
 	return false
 
@@ -327,11 +327,11 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 func draw_entities_floor() -> void:
 	for l in lava:
 		var a: float = clampf(l.t / 0.6, 0.0, 1.0)
-		g.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, l.r, Color(0.7, 0.15, 0.03, 0.3 * a))
-		g.draw_circle(Vector2.ZERO, l.r * 0.6, Color(1.5, 0.55, 0.1, 0.22 * a + 0.06 * sin(g.t * 9.0 + l.pos.x)))
-		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(1.8, 0.7, 0.2, 0.5 * a), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, l.r, Color(0.7, 0.15, 0.03, 0.3 * a))
+		cv.draw_circle(Vector2.ZERO, l.r * 0.6, Color(1.5, 0.55, 0.1, 0.22 * a + 0.06 * sin(g.t * 9.0 + l.pos.x)))
+		cv.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(1.8, 0.7, 0.2, 0.5 * a), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		# 熔岩池中心的翻滚熔岩（CodeManu sunburn 调橙红，循环）
 		if g.tex.get("fx_sunburst") != null:
 			draw_spr_rot("fx_sunburst", int(g.t * 16.0 + l.pos.x * 0.1) % 16, l.pos + Vector2(0, -4), 0.0, l.r * 1.3 / 62.0, Color(1.0, 1.0, 1.0, 0.75 * a))
@@ -340,9 +340,9 @@ func draw_entities_floor() -> void:
 func draw_auras() -> void:
 	# 火山生效期间：脚下热浪环呼吸
 	if erupt > 0 and pos != Vector2.INF:
-		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_arc(Vector2.ZERO, 56.0 + 6.0 * sin(g.t * 6.0), 0.0, TAU, 32, Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.35), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, 56.0 + 6.0 * sin(g.t * 6.0), 0.0, TAU, 32, Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.35), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_skill_over() -> void:
@@ -353,30 +353,30 @@ func _draw_skill_over() -> void:
 		var big: bool = b.get("src", "") == "点燃弹"
 		var sz: float = float(b.get("sz", 1.0))
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + b.pos.x)
-		g.draw_circle(b.pos, (17.0 if big else 13.0) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
+		cv.draw_circle(b.pos, (17.0 if big else 13.0) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
 		if big and g.tex.get("proj_eyja_ignite") != null:
 			# 点燃弹（2026-09-26 用户要求更大）：拖着火焰尾的大彗星火球，头朝飞行方向
-			g.draw_circle(b.pos, 26.0 * fl, Color(1.6, 0.5, 0.1, 0.25))
+			cv.draw_circle(b.pos, 26.0 * fl, Color(1.6, 0.5, 0.1, 0.25))
 			draw_spr_rot("proj_eyja_ignite", int(g.t * 14.0) % 5, b.pos - b.vel.normalized() * 14.0, b.vel.angle(), g.PX * 1.5)
 		elif g.tex.get("proj_lavaball") != null:
 			# 熔岩球（OGA Fireball 调橙红），按速度方向旋转
 			draw_spr_rot("proj_lavaball", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.1) * sz)
 		else:
-			g.draw_circle(b.pos, (10.0 if big else 7.5) * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
-			g.draw_circle(b.pos, (4.5 if big else 3.5) * sz, Color(2.8, 2.4, 1.6))
+			cv.draw_circle(b.pos, (10.0 if big else 7.5) * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
+			cv.draw_circle(b.pos, (4.5 if big else 3.5) * sz, Color(2.8, 2.4, 1.6))
 	# 抛射小火团：橙色光晕 + 白黄芯；熔岩天降带一圈暗红外壳；地面有落点影子
 	for l in lobs:
 		var p: Vector2 = _lob_pos(l)
 		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
-		g.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
-		g.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rr: float = 5.5 * l.sz
-		g.draw_circle(p, rr * 1.9, Color(1.6, 0.55, 0.12, 0.25))
+		cv.draw_circle(p, rr * 1.9, Color(1.6, 0.55, 0.12, 0.25))
 		if l.src == "熔岩天降":
-			g.draw_circle(p, rr * 1.2, Color(0.45, 0.08, 0.03, 0.95))
-		g.draw_circle(p, rr, Color(2.2, 0.8, 0.2, 0.95))
-		g.draw_circle(p, rr * 0.45, Color(2.8, 2.3, 1.4))
+			cv.draw_circle(p, rr * 1.2, Color(0.45, 0.08, 0.03, 0.95))
+		cv.draw_circle(p, rr, Color(2.2, 0.8, 0.2, 0.95))
+		cv.draw_circle(p, rr * 0.45, Color(2.8, 2.3, 1.4))
 
 
 func status_items() -> Array:

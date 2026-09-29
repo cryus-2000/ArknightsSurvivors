@@ -400,10 +400,10 @@ func _update_beam(dt: float) -> void:
 func draw_auras() -> void:
 	if tower_t > 0.0 and tower_pos != Vector2.INF:
 		var r: float = base("s3_r", 220.0)
-		g.draw_set_transform(tower_pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, r, Color(WARM.r, WARM.g, WARM.b, 0.05))
-		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(WARM.r, WARM.g, WARM.b, 0.35 + 0.1 * sin(g.t * 4.0)), 2.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(tower_pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, r, Color(WARM.r, WARM.g, WARM.b, 0.05))
+		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(WARM.r, WARM.g, WARM.b, 0.35 + 0.1 * sin(g.t * 4.0)), 2.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 光弹与发光单元画在覆盖层（squad.gd 不调 draw_entities_over，之前光弹帧条一直没画出来，只剩加法层的光晕）
@@ -413,12 +413,12 @@ func _draw_skill_over() -> void:
 		if g.tex.get("proj_lumen_bolt") != null:
 			if big:
 				# 强化光弹：外圈亮晕 + 拖尾，更大更亮
-				g.draw_line(b.pos - b.vel.normalized() * 22.0, b.pos, Color(2.0, 1.6, 0.9, 0.55), 6.0)
-				g.draw_circle(b.pos, 8.0, Color(1.6, 1.3, 0.7, 0.5))
+				cv.draw_line(b.pos - b.vel.normalized() * 22.0, b.pos, Color(2.0, 1.6, 0.9, 0.55), 6.0)
+				cv.draw_circle(b.pos, 8.0, Color(1.6, 1.3, 0.7, 0.5))
 			draw_spr_rot("proj_lumen_bolt", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX * (1.5 if big else 1.0), Color(1.5, 1.35, 1.1) if big else Color.WHITE)
 		else:
-			g.draw_line(b.pos - b.vel.normalized() * 14.0, b.pos, Color(WARM.r * 1.4, WARM.g * 1.3, WARM.b, 0.5), 5.0 if big else 3.0)
-			g.draw_circle(b.pos, 6.0 if big else 4.0, Color(2.0, 1.8, 1.2))
+			cv.draw_line(b.pos - b.vel.normalized() * 14.0, b.pos, Color(WARM.r * 1.4, WARM.g * 1.3, WARM.b, 0.5), 5.0 if big else 3.0)
+			cv.draw_circle(b.pos, 6.0 if big else 4.0, Color(2.0, 1.8, 1.2))
 	_draw_units()
 	_draw_rain()
 
@@ -434,18 +434,18 @@ func _draw_units() -> void:
 		var p: Vector2 = _unit_pos(k)
 		var hot: bool = empowered > 0
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0 + k * 2.0)
-		g.draw_circle(p, 9.0 + 2.0 * pulse, Color(1.0, 0.8, 0.4, 0.16 if not hot else 0.3))
+		cv.draw_circle(p, 9.0 + 2.0 * pulse, Color(1.0, 0.8, 0.4, 0.16 if not hot else 0.3))
 		if utx != null:
 			var firing: bool = g.t - float(unit_fire[k]) < 0.083
 			var uf: int = 4 if firing else (int(g.t * 6.0) + k * 2) % 4
 			_strip(utx, 5, uf, p, g.PX, Vector2(6, 7), firing and float(unit_fdir[k]) < 0.0, Color(1.35, 1.25, 1.05) if hot else Color.WHITE)
 			continue
 		# 灯罩（上下两片暗色黄铜）+ 灯芯
-		g.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, -4), p + Vector2(5, -4), p + Vector2(3, -7), p + Vector2(-3, -7)]), Color(0.35, 0.27, 0.18))
-		g.draw_rect(Rect2(p + Vector2(-4, -4), Vector2(8, 7)), Color(1.0, 0.85, 0.5, 0.55))
-		g.draw_rect(Rect2(p + Vector2(-2, -2), Vector2(4, 4)), Color(2.2, 1.9, 1.2) if hot else Color(1.8, 1.5, 0.9))
-		g.draw_rect(Rect2(p + Vector2(-4, 3), Vector2(8, 2)), Color(0.35, 0.27, 0.18))
-		g.draw_line(p + Vector2(0, 5), p + Vector2(0, 9 + 2.0 * pulse), Color(1.4, 1.1, 0.6, 0.6), 1.0)
+		cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, -4), p + Vector2(5, -4), p + Vector2(3, -7), p + Vector2(-3, -7)]), Color(0.35, 0.27, 0.18))
+		cv.draw_rect(Rect2(p + Vector2(-4, -4), Vector2(8, 7)), Color(1.0, 0.85, 0.5, 0.55))
+		cv.draw_rect(Rect2(p + Vector2(-2, -2), Vector2(4, 4)), Color(2.2, 1.9, 1.2) if hot else Color(1.8, 1.5, 0.9))
+		cv.draw_rect(Rect2(p + Vector2(-4, 3), Vector2(8, 2)), Color(0.35, 0.27, 0.18))
+		cv.draw_line(p + Vector2(0, 5), p + Vector2(0, 9 + 2.0 * pulse), Color(1.4, 1.1, 0.6, 0.6), 1.0)
 	# 灯火不灭：8 格计数（空格暗、已攒亮；强化连射时金色，显示剩余发数）
 	if charge_on:
 		var need: int = int(base("charge_need", 8.0))
@@ -454,7 +454,7 @@ func _draw_units() -> void:
 			var pp: Vector2 = c0 + Vector2(q * 6.0, 0)
 			var on: bool = (q < empowered) if empowered > 0 else (q < charge_n)
 			var col: Color = Color(2.0, 1.6, 0.7) if (on and empowered > 0) else (Color(1.2, 1.05, 0.8) if on else Color(0.25, 0.22, 0.2, 0.8))
-			g.draw_rect(Rect2(pp - Vector2(2, 2), Vector2(4, 4)), col)
+			cv.draw_rect(Rect2(pp - Vector2(2, 2), Vector2(4, 4)), col)
 
 
 ## 沐雨：发光单元洒下的光雨（程序生成的落雨线，落点在主控周围 140 的椭圆内）
@@ -463,10 +463,10 @@ func _draw_rain() -> void:
 		return
 	var r: float = base("rain_r", 140.0)
 	var fade: float = clampf(rain_t / 0.4, 0.0, 1.0) * clampf((base("rain_dur", 3.0) - rain_t) / 0.3, 0.0, 1.0)
-	g.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	g.draw_circle(Vector2.ZERO, r, Color(1.0, 0.85, 0.5, 0.06 * fade))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade), 1.5)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+	cv.draw_circle(Vector2.ZERO, r, Color(1.0, 0.85, 0.5, 0.06 * fade))
+	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade), 1.5)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for q in 28:
 		var ph: float = fmod(g.t * 1.8 + q * 0.379, 1.0)
 		var cyc: int = int(g.t * 1.8 + q * 0.379)
@@ -475,11 +475,11 @@ func _draw_rain() -> void:
 		var rr: float = r * sqrt(float((h >> 10) % 100) / 100.0)
 		var ground: Vector2 = g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55)
 		var top: Vector2 = ground + Vector2(0, -70.0 * (1.0 - ph))
-		g.draw_line(top + Vector2(0, -8), top, Color(1.6, 1.35, 0.8, 0.7 * fade), 1.5)
+		cv.draw_line(top + Vector2(0, -8), top, Color(1.6, 1.35, 0.8, 0.7 * fade), 1.5)
 		if ph > 0.85:
-			g.draw_set_transform(ground, 0.0, Vector2(1.0, 0.5))
-			g.draw_arc(Vector2.ZERO, 3.0 + (ph - 0.85) * 40.0, 0.0, TAU, 10, Color(1.4, 1.2, 0.7, 0.5 * fade), 1.0)
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_set_transform(ground, 0.0, Vector2(1.0, 0.5))
+			cv.draw_arc(Vector2.ZERO, 3.0 + (ph - 0.85) * 40.0, 0.0, TAU, 10, Color(1.4, 1.2, 0.7, 0.5 * fade), 1.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_fx_add(ci: CanvasItem, _loop: int) -> void:
@@ -536,7 +536,7 @@ func extra_bodies() -> Array:
 func draw_extra(_it: Dictionary) -> void:
 	var tx: Texture2D = anim_tex("lighthouse")
 	if tx == null:
-		g.draw_rect(Rect2(tower_pos + Vector2(-8, -60), Vector2(16, 60)), Color(0.5, 0.6, 0.7))
+		cv.draw_rect(Rect2(tower_pos + Vector2(-8, -60), Vector2(16, 60)), Color(0.5, 0.6, 0.7))
 		return
 	var n: int = anim_hframes(tx, "lighthouse")
 	# 灯塔悬在主控身后一侧随行、轻微上下浮动；灯室常亮（帧 1），不再 4Hz 亮灭频闪（docs/32 §3）
@@ -566,6 +566,6 @@ func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_p
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var k: float = sc / hi
-	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

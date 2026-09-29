@@ -7,6 +7,16 @@ extends RefCounted
 
 var g                      # Game (Node2D)
 
+## 绘制入口（性能 9/30）：干员脚本画东西一律 cv.draw_*（同 CanvasItem 接口）。编队的合批画布（squad.cv，batch_canvas.gd）：
+## 平时直接转给 g；在编队「地面实体」「技能上层」两个阶段里把几何图形合成一批提交。没有编队（图鉴等）时就是 g
+var _cv = null
+var cv:
+	get:
+		if _cv == null:
+			var s = g.get("squad") if g != null else null
+			_cv = s.cv if s != null and "cv" in s else g
+		return _cv
+
 
 # ---------------------------------------------------------------- 索敌
 
@@ -179,12 +189,29 @@ func skill_item(i: int) -> Dictionary:
 
 ## 帧条绘制（按中心 / anchor 定位）
 func draw_spr(name: String, frames: int, frame: int, pos: Vector2, scale: float = -1.0, flip := false, col := Color.WHITE, anchor := Vector2(0.5, 0.5), sq := Vector2.ONE) -> void:
+	_cv_flush()
 	g.vfx.spr(name, frames, frame, pos, g.PX if scale < 0.0 else scale, flip, col, anchor, sq)
 
 
 ## 旋转帧条绘制（支持 @2x 贴图）
 func draw_spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale: float = -1.0, col := Color.WHITE, anchor_px := Vector2(-1, -1), flip := false) -> void:
+	_cv_flush()
 	g.vfx.spr_rot(name, frame, pos, ang, g.PX if scale < 0.0 else scale, col, anchor_px, flip)
+
+
+## 合批中直接往 g 上画（贴图包装、UI.diamond 等）之前：先把攒下的几何提交（保持层序），并把当前变换下发给 g
+func _cv_flush() -> void:
+	if cv != g and cv.active:
+		cv.sync()
+
+
+## 菱形（同 UI.diamond，走 cv 合批）
+func draw_diamond(c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 0)) -> void:
+	var p := PackedVector2Array([c + Vector2(0, -rad), c + Vector2(rad, 0), c + Vector2(0, rad), c + Vector2(-rad, 0)])
+	cv.draw_colored_polygon(p, fill)
+	if border.a > 0.0:
+		p.append(p[0])
+		cv.draw_polyline(p, border, 1.0)
 
 
 ## 画到另一个 CanvasItem 上（HUD 图标等）
@@ -194,4 +221,5 @@ func draw_spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vec
 
 ## 按脚底锚点画角色帧（剪影、残影用）
 func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
+	_cv_flush()
 	g.world.draw_sprite_at(pos, flip, col, frame, tx, hf, foot_off)

@@ -486,27 +486,27 @@ func _draw_rune(c: Vector2, sz: float, pat: int, write: float, al: float) -> voi
 			break
 		var a: Vector2 = ((c + strokes[i][0] * sz) / 2.0).round() * 2.0
 		var b: Vector2 = ((c + (strokes[i][0].lerp(strokes[i][1], k)) * sz) / 2.0).round() * 2.0
-		g.draw_line(a, b, Color(0.03, 0.03, 0.08, 0.7 * al), 4.0)
-		g.draw_line(a, b, Color(INK.r * 1.5, INK.g * 1.5, INK.b * 1.8, 0.95 * al), 2.0)
-		g.draw_line(a, b, Color(1.8, 1.9, 2.4, 0.6 * al), 1.0)
+		cv.draw_line(a, b, Color(0.03, 0.03, 0.08, 0.7 * al), 4.0)
+		cv.draw_line(a, b, Color(INK.r * 1.5, INK.g * 1.5, INK.b * 1.8, 0.95 * al), 2.0)
+		cv.draw_line(a, b, Color(1.8, 1.9, 2.4, 0.6 * al), 1.0)
 
 
 ## 地面层：铭文 / 墓志铭脚下的书写圈
 func draw_entities_floor() -> void:
 	for gl in glyphs:
 		var al: float = clampf(gl.t / 0.3, 0.0, 1.0)
-		g.draw_set_transform(gl.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		g.draw_circle(Vector2.ZERO, base("glyph_r", 30.0), Color(INK.r, INK.g, INK.b, 0.1 * al))
-		g.draw_arc(Vector2.ZERO, base("glyph_r", 30.0), 0.0, TAU, 24, Color(INK.r * 1.3, INK.g * 1.3, INK.b * 1.5, 0.45 * al), 1.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(gl.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, base("glyph_r", 30.0), Color(INK.r, INK.g, INK.b, 0.1 * al))
+		cv.draw_arc(Vector2.ZERO, base("glyph_r", 30.0), 0.0, TAU, 24, Color(INK.r * 1.3, INK.g * 1.3, INK.b * 1.5, 0.45 * al), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for ep in epitaphs:
 		var k: float = 1.0 - ep.t / base("epitaph_delay", 1.0)
 		var r: float = base("epitaph_r", 70.0)
-		g.draw_set_transform(ep.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		g.draw_circle(Vector2.ZERO, r, Color(INK.r, INK.g, INK.b, 0.08 + 0.12 * k))
-		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.7, 0.4 + 0.4 * k), 2.0)
-		g.draw_arc(Vector2.ZERO, r * k, 0.0, TAU, 40, Color(PALE.r, PALE.g, PALE.b, 0.5), 1.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(ep.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, r, Color(INK.r, INK.g, INK.b, 0.08 + 0.12 * k))
+		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.7, 0.4 + 0.4 * k), 2.0)
+		cv.draw_arc(Vector2.ZERO, r * k, 0.0, TAU, 40, Color(PALE.r, PALE.g, PALE.b, 0.5), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_auras() -> void:
@@ -518,14 +518,14 @@ func draw_auras() -> void:
 		var pts := PackedVector2Array([pos])
 		for k in 25:
 			pts.append(pos + Vector2.from_angle(fan_ang - half + half * 2.0 * k / 24.0) * r)
-		g.draw_colored_polygon(pts, Color(INK.r, INK.g, INK.b, (0.10 + 0.03 * sin(g.t * 3.0)) * fade))
+		cv.draw_colored_polygon(pts, Color(INK.r, INK.g, INK.b, (0.10 + 0.03 * sin(g.t * 3.0)) * fade))
 		var ec := Color(INK.r * 1.3, INK.g * 1.3, INK.b * 1.4, 0.55 * fade)
-		g.draw_line(pos, pos + Vector2.from_angle(fan_ang - half) * r, ec, 2.0)
-		g.draw_line(pos, pos + Vector2.from_angle(fan_ang + half) * r, ec, 2.0)
-		g.draw_arc(pos, r, fan_ang - half, fan_ang + half, 32, ec, 2.0)
+		cv.draw_line(pos, pos + Vector2.from_angle(fan_ang - half) * r, ec, 2.0)
+		cv.draw_line(pos, pos + Vector2.from_angle(fan_ang + half) * r, ec, 2.0)
+		cv.draw_arc(pos, r, fan_ang - half, fan_ang + half, 32, ec, 2.0)
 		for q in 6:
 			var t: float = fmod(g.t * 0.35 + q / 6.0, 1.0)
-			g.draw_circle(pos + Vector2.from_angle(fan_ang - half + half * 2.0 * t) * r, 2.5, Color(PALE.r, PALE.g, PALE.b, 0.7 * fade))
+			cv.draw_circle(pos + Vector2.from_angle(fan_ang - half + half * 2.0 * t) * r, 2.5, Color(PALE.r, PALE.g, PALE.b, 0.7 * fade))
 
 
 func _draw_skill_over() -> void:
@@ -534,7 +534,7 @@ func _draw_skill_over() -> void:
 		var h: Array = b.hist
 		for i in range(1, h.size()):
 			var k: float = float(i) / float(h.size())
-			g.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
+			cv.draw_line(h[i - 1], h[i], Color(INK.r, INK.g, INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
 		# 咒文字符：优先 fx_logos_glyphs（原作字母表，每帧一个字符，每发随机一个；界面与美术出图，有就读），
 		# 否则 fx_logos_glyph 写完的末帧；轻微摇摆旋转；都缺图退回墨蓝弹头
 		# fx_logos_glyphs 不登记 V6_FRAMES（静态字符表），g.tex / spr_rot 取不到：直接用 A.tex 读 art/incoming，正方形帧横排自己画
@@ -543,9 +543,9 @@ func _draw_skill_over() -> void:
 			var fh: int = rtx.get_height()
 			var rn: int = maxi(1, rtx.get_width() / maxi(1, fh))
 			var sc: float = g.PX * 0.75 / A.hires_of(rtx)
-			g.draw_set_transform(b.pos + g.draw_off, sin(b.age * 5.0 + b.ph) * 0.35, Vector2(sc, sc))
-			g.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(b.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(b.life / 0.25, 0.0, 1.0)))
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_set_transform(b.pos + g.draw_off, sin(b.age * 5.0 + b.ph) * 0.35, Vector2(sc, sc))
+			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(b.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(b.life / 0.25, 0.0, 1.0)))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif g.tex.get("fx_logos_glyph") != null:
 			var fa: float = clampf(b.life / 0.25, 0.0, 1.0)
 			draw_spr_rot("fx_logos_glyph", 5, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa))
@@ -553,21 +553,21 @@ func _draw_skill_over() -> void:
 			# Codex 墨蓝尖头法术弹（朝右），按飞行方向旋转；保留拖尾、去掉圆亮芯
 			draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
 		else:
-			g.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
-			g.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
-			g.draw_circle(b.pos, 2.5, Color(1.8, 1.9, 2.2))
+			cv.draw_circle(b.pos, 10.0, Color(INK.r, INK.g, INK.b, 0.35))
+			cv.draw_circle(b.pos, 5.5, Color(INK.r * 1.4, INK.g * 1.4, INK.b * 1.6))
+			cv.draw_circle(b.pos, 2.5, Color(1.8, 1.9, 2.2))
 	# 铭文：命中处浮着一枚发光咒文（0.15 秒内逐笔写出，最后 0.3 秒淡出）
 	for gl in glyphs:
 		var life: float = base("glyph_dur", 1.0)
 		var al: float = clampf(gl.t / 0.3, 0.0, 1.0)
 		var bob: float = sin(g.t * 5.0 + gl.pat) * 1.5
-		g.draw_circle(gl.pos + Vector2(0, -16 + bob), 13.0, Color(INK.r, INK.g, INK.b, 0.18 * al))
+		cv.draw_circle(gl.pos + Vector2(0, -16 + bob), 13.0, Color(INK.r, INK.g, INK.b, 0.18 * al))
 		_draw_rune(gl.pos + Vector2(0, -16 + bob), 9.0, gl.pat, (life - gl.t) / 0.15, al)
 	# 墓志铭：大咒文在 1 秒内一笔一笔写完，越写越亮，写完即爆
 	for ep in epitaphs:
 		var k: float = 1.0 - ep.t / base("epitaph_delay", 1.0)
 		var c: Vector2 = ep.pos + Vector2(0, -26)
-		g.draw_circle(c, 18.0 + 6.0 * k, Color(INK.r, INK.g, INK.b, 0.12 + 0.2 * k))
+		cv.draw_circle(c, 18.0 + 6.0 * k, Color(INK.r, INK.g, INK.b, 0.12 + 0.2 * k))
 		_draw_rune(c, 16.0, ep.pat, k * 1.25, 0.7 + 0.3 * k)
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead and g.tex.get("fx_logos_script") != null:
 		# 提喻：一行骨笔符文从手边流向目标（64×12 书写带平铺，4 帧循环）
@@ -577,13 +577,13 @@ func _draw_skill_over() -> void:
 	if lock_t > 0.0 and lock_e != null and not lock_e.dead:
 		var p: Vector2 = lock_e.pos + Vector2(0, -lock_e.r - 14)
 		var k: float = 0.5 + 0.5 * sin(g.t * 8.0)
-		g.draw_arc(p, 6.0 + 2.0 * k, 0.0, TAU, 12, Color(INK.r, INK.g, INK.b, 0.9), 1.5)
-		g.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), PALE, 1.5)
-		g.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), PALE, 1.5)
+		cv.draw_arc(p, 6.0 + 2.0 * k, 0.0, TAU, 12, Color(INK.r, INK.g, INK.b, 0.9), 1.5)
+		cv.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), PALE, 1.5)
+		cv.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), PALE, 1.5)
 	if acuity_t > 0.0:
 		# 延展敏锐标记点画在头顶上方，不再压在脸上（docs/32 §3）
 		var q := pos + Vector2(0, -80)
-		g.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(INK.r * 1.6, INK.g * 1.6, INK.b * 1.4, 0.8))
+		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(INK.r * 1.6, INK.g * 1.6, INK.b * 1.4, 0.8))
 
 
 ## 沿 a→b 平铺一张横向帧条（每段 64px 宽的帧），offset 为沿方向的滚动位移（屏幕像素）；最后一段按端点裁剪，不越过目标
@@ -600,7 +600,7 @@ func _draw_tiled(tn: String, a: Vector2, b: Vector2, sc: float, offset: float, f
 	if L < 2.0:
 		return
 	var fr: int = (int(g.t * 12.0) + frame_off) % frames
-	g.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
+	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
 	var x: float = -fmod(offset, seg)
 	while x < L:
 		var x0: float = maxf(x, 0.0)
@@ -608,9 +608,9 @@ func _draw_tiled(tn: String, a: Vector2, b: Vector2, sc: float, offset: float, f
 		if x1 > x0:
 			var u0: float = (x0 - x) / k
 			var u1: float = (x1 - x) / k
-			g.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
+			cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
 		x += seg
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## S3 延异视阈：绕身旋转的符咒，拆成人物后 / 前两层（同一相位、同一中心锚点）

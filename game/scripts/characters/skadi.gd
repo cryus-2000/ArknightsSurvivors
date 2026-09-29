@@ -321,9 +321,9 @@ func _heavy(ang: float) -> void:
 
 func draw_auras() -> void:
 	if tide > 0.0 and pos != Vector2.INF:
-		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(BLUE.r, BLUE.g, BLUE.b, 0.3 + 0.1 * sin(g.t * 5.0)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(BLUE.r, BLUE.g, BLUE.b, 0.3 + 0.1 * sin(g.t * 5.0)), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 地面层：跃浪海浪墙——贴地的弧形水墙（中间高两头低），深蓝水体 + 白色浪尖，推进到尽头时淡出
@@ -359,9 +359,9 @@ func draw_entities_floor() -> void:
 		var rt: PackedVector2Array = top.duplicate()
 		rt.reverse()
 		poly.append_array(rt)
-		g.draw_colored_polygon(poly, Color(0.25, 0.45, 0.95, 0.45 * a))
-		g.draw_polyline(top, Color(1.4, 1.8, 2.2, 0.9 * a), 3.0)
-		g.draw_polyline(basel, Color(0.5, 0.8, 1.4, 0.5 * a), 2.0)
+		cv.draw_colored_polygon(poly, Color(0.25, 0.45, 0.95, 0.45 * a))
+		cv.draw_polyline(top, Color(1.4, 1.8, 2.2, 0.9 * a), 3.0)
+		cv.draw_polyline(basel, Color(0.5, 0.8, 1.4, 0.5 * a), 2.0)
 
 
 func _draw_skill_over() -> void:
@@ -385,6 +385,6 @@ func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_p
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var k: float = sc / hi
-	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

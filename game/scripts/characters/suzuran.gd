@@ -347,8 +347,8 @@ func skill_active_dur(i: int) -> float:
 
 func _flame(p: Vector2, h: float, a: float) -> void:
 	var wob: float = sin(g.t * 20.0 + p.x * 0.3) * 2.0
-	g.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.35, 0), p + Vector2(wob, -h), p + Vector2(h * 0.35, 0)]), Color(GOLD.r, GOLD.g, GOLD.b, 0.75 * a))
-	g.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.15, 0), p + Vector2(wob * 0.6, -h * 0.55), p + Vector2(h * 0.15, 0)]), Color(2.2, 2.0, 1.4, 0.8 * a))
+	cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.35, 0), p + Vector2(wob, -h), p + Vector2(h * 0.35, 0)]), Color(GOLD.r, GOLD.g, GOLD.b, 0.75 * a))
+	cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.15, 0), p + Vector2(wob * 0.6, -h * 0.55), p + Vector2(h * 0.15, 0)]), Color(2.2, 2.0, 1.4, 0.8 * a))
 
 
 func draw_auras() -> void:
@@ -358,17 +358,17 @@ func draw_auras() -> void:
 		_draw_tails()
 	var r := aura_radius()
 	var on := warm or haze_t > 0.0
-	g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	g.draw_circle(Vector2.ZERO, r, Color(GOLD.r, GOLD.g, GOLD.b, 0.09 if on else 0.05))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(GOLD.r, GOLD.g, GOLD.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+	cv.draw_circle(Vector2.ZERO, r, Color(GOLD.r, GOLD.g, GOLD.b, 0.09 if on else 0.05))
+	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(GOLD.r, GOLD.g, GOLD.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if _hearth_live():
 		# 围炉：六团狐火变大、带热光，碰到的敌人会被灼伤
 		var hn: int = int(base("hearth_n", 6.0))
 		for k in hn:
 			var a: float = g.t * 0.8 + k * TAU / hn
 			var hp: Vector2 = pos + Vector2(4, 4) + Vector2(cos(a) * r, sin(a) * r * 0.55)
-			g.draw_circle(hp + Vector2(0, -6), 12.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
+			cv.draw_circle(hp + Vector2(0, -6), 12.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
 			_flame(hp, 15.0, 1.0)
 		return
 	# 边缘六团狐火绕行（迷雾时九团）
@@ -408,9 +408,9 @@ func _draw_tails() -> void:
 			var pts: PackedVector2Array = left
 			pts.append_array(right)
 			var al: float = (0.2 if layer == 0 else 0.22) + 0.04 * sin(g.t * 3.0 + k)
-			g.draw_colored_polygon(pts, Color(GOLD.r * 1.3, GOLD.g * 1.2, GOLD.b, al) if layer == 0 else Color(2.0, 1.7, 1.0, al))
+			cv.draw_colored_polygon(pts, Color(GOLD.r * 1.3, GOLD.g * 1.2, GOLD.b, al) if layer == 0 else Color(2.0, 1.7, 1.0, al))
 		var tip_an: float = a0 + sway * 2.0 + 0.4 * signf(t + 0.001) * face
-		g.draw_circle(root + Vector2.from_angle(tip_an) * L * 0.9, 3.5, Color(2.4, 2.2, 1.8, 0.3))
+		cv.draw_circle(root + Vector2.from_angle(tip_an) * L * 0.9, 3.5, Color(2.4, 2.2, 1.8, 0.3))
 
 
 ## 身边常驻的小狐火：数量 = 每次普攻的狐火数（一眼看出狐火长到了几团）。
@@ -433,15 +433,15 @@ func _draw_foxfires() -> void:
 				continue
 			p = p.lerp(c, conv * conv)
 		# 狐火：金色光晕 + 白热火芯，与铃兰本身的黄色尾巴区分开
-		g.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
+		cv.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
 		# Codex 帧条 fx_suzuran_wisp（8×12 × 4 帧，8fps 循环，中心锚点；火苗底部对齐原火舌根部）
 		if _fx_strip("fx_suzuran_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
 			continue
 		_flame(p, 13.0, 1.0)
-		g.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
+		cv.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
 	if conv > 0.5:
 		var hh: float = lerpf(10.0, 22.0, (conv - 0.5) * 2.0)
-		g.draw_circle(c + Vector2(0, -hh * 0.4), hh * 0.7, Color(GOLD.r, GOLD.g, GOLD.b, 0.3 * conv))
+		cv.draw_circle(c + Vector2(0, -hh * 0.4), hh * 0.7, Color(GOLD.r, GOLD.g, GOLD.b, 0.3 * conv))
 		_flame(c, hh, conv)
 
 
@@ -460,9 +460,9 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	var fw: float = float(tx.get_width() / frames)
 	var fh: float = float(tx.get_height())
 	var k: float = g.PX / A.hires_of(tx)
-	g.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	return true
 
 
@@ -470,24 +470,24 @@ func _draw_skill_over() -> void:
 	_draw_foxfires()
 	# 三火归一的大狐火：大一圈的狐火弹 + 热光
 	for f in bigfox:
-		g.draw_circle(f.pos, 24.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
-		g.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
+		cv.draw_circle(f.pos, 24.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
+		cv.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
 		# Codex 帧条 proj_suzuran_bigfox（24×16 × 4 帧，10fps 循环，朝右 → 按速度方向旋转）
 		if _fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
 			pass
 		elif g.tex.get("proj_foxfire") != null:
 			draw_spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
 		else:
-			g.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
+			cv.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
 	# 狐火弹：OGA Light Bolt 调金（proj_foxfire），按速度方向旋转 + 外圈热光
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != id or b.kind != "arcane":
 			continue
-		g.draw_circle(b.pos, 10.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
+		cv.draw_circle(b.pos, 10.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22))
 		if g.tex.get("proj_foxfire") != null:
 			draw_spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
 		else:
-			g.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
+			cv.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
 
 
 ## 地面层：画地为牢的金色封印（跟着被定身的敌人）
@@ -496,14 +496,14 @@ func draw_entities_floor() -> void:
 		var e: Dictionary = s2.e
 		var a: float = clampf(s2.t / 0.15, 0.0, 1.0)
 		var rr: float = e.r + 10.0
-		g.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		g.draw_circle(Vector2.ZERO, rr, Color(GOLD.r, GOLD.g, GOLD.b, 0.12 * a))
-		g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(2.0, 1.6, 0.8, 0.85 * a), 2.0)
-		g.draw_arc(Vector2.ZERO, rr * 0.68, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.5 * a), 1.0)
+		cv.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, rr, Color(GOLD.r, GOLD.g, GOLD.b, 0.12 * a))
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(2.0, 1.6, 0.8, 0.85 * a), 2.0)
+		cv.draw_arc(Vector2.ZERO, rr * 0.68, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.5 * a), 1.0)
 		for q in 4:
 			var qa: float = g.t * 2.0 + q * TAU / 4.0
-			g.draw_line(Vector2.from_angle(qa) * rr * 0.68, Vector2.from_angle(qa) * rr, Color(2.2, 1.8, 1.0, 0.8 * a), 1.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_line(Vector2.from_angle(qa) * rr * 0.68, Vector2.from_angle(qa) * rr, Color(2.2, 1.8, 1.0, 0.8 * a), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func status_items() -> Array:

@@ -421,9 +421,9 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 		var h: float = f.h * (1.0 - (1.0 - grow) * (1.0 - grow))
 		var p: Vector2 = f.pos
 		var top: Vector2 = p + Vector2(f.lean * h, -h)
-		g.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, 0), top + Vector2(-2, 2), top, top + Vector2(2, 3), p + Vector2(5, 0), p + Vector2(0, 3)]), Color(AMBER.r, AMBER.g, AMBER.b, 0.85 * fade))
-		g.draw_line(p + Vector2(-3, -1), top + Vector2(-1, 2), Color(1.9, 1.6, 1.0, 0.9 * fade), 1.5)
-		g.draw_circle(top, 2.0, Color(2.2, 2.0, 1.4, fade))
+		cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, 0), top + Vector2(-2, 2), top, top + Vector2(2, 3), p + Vector2(5, 0), p + Vector2(0, 3)]), Color(AMBER.r, AMBER.g, AMBER.b, 0.85 * fade))
+		cv.draw_line(p + Vector2(-3, -1), top + Vector2(-1, 2), Color(1.9, 1.6, 1.0, 0.9 * fade), 1.5)
+		cv.draw_circle(top, 2.0, Color(2.2, 2.0, 1.4, fade))
 		return true
 	return false
 
@@ -439,19 +439,19 @@ func draw_auras() -> void:
 	if calc > 0.0:
 		# 钙质化区域：琥珀地面 + 缓慢旋转的晶格
 		var fade: float = clampf(calc / 0.6, 0.0, 1.0)
-		g.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, S3_R, Color(AMBER.r, AMBER.g, AMBER.b, 0.08 * fade))
-		g.draw_arc(Vector2.ZERO, S3_R, 0.0, TAU, 48, Color(AMBER.r, AMBER.g, AMBER.b, 0.45 * fade), 2.5)
+		cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, S3_R, Color(AMBER.r, AMBER.g, AMBER.b, 0.08 * fade))
+		cv.draw_arc(Vector2.ZERO, S3_R, 0.0, TAU, 48, Color(AMBER.r, AMBER.g, AMBER.b, 0.45 * fade), 2.5)
 		for k in 6:
 			var dv := Vector2.from_angle(k * TAU / 6.0 + g.t * 0.3)
-			g.draw_line(dv * S3_R * 0.85, dv * S3_R, Color(1.6, 1.3, 0.8, 0.6 * fade), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	g.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
+			cv.draw_line(dv * S3_R * 0.85, dv * S3_R, Color(1.6, 1.3, 0.8, 0.6 * fade), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
 	# 分段虚线环缓慢旋转
 	for k in 8:
 		var a0: float = g.t * 0.6 + k * TAU / 8.0
-		g.draw_arc(Vector2.ZERO, r, a0, a0 + TAU / 8.0 * 0.55, 6, Color(AMBER.r, AMBER.g, AMBER.b, 0.35 + 0.06 * sin(g.t * 4.0)), 2.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_arc(Vector2.ZERO, r, a0, a0 + TAU / 8.0 * 0.55, 6, Color(AMBER.r, AMBER.g, AMBER.b, 0.35 + 0.06 * sin(g.t * 4.0)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# （阻挡圈上原来的三枚装饰小晶体已去掉：环绕的晶体改由 N1 / N2 的钙晶表示，数量 = 节点成长，一眼可数）
 
 
@@ -467,14 +467,14 @@ func _draw_bash(f: Dictionary, a: float) -> void:
 	var c: Vector2 = f.pos + d * (10.0 + f.reach * 0.45 * ek)
 	var o: Vector2 = c - d * R
 	var w: float = (9.0 if big else 7.0) * (0.55 + 0.45 * a)
-	g.draw_arc(o, R, f.ang - half, f.ang + half, 14, Color(0.25, 0.14, 0.05, 0.75 * a), w + 3.0)
-	g.draw_arc(o, R, f.ang - half, f.ang + half, 14, Color(AMBER.r * 1.3, AMBER.g * 1.2, AMBER.b, 0.95 * a), w)
-	g.draw_arc(o, R + w * 0.4, f.ang - half * 0.85, f.ang + half * 0.85, 12, Color(2.2, 1.9, 1.3, a), 1.5)
+	cv.draw_arc(o, R, f.ang - half, f.ang + half, 14, Color(0.25, 0.14, 0.05, 0.75 * a), w + 3.0)
+	cv.draw_arc(o, R, f.ang - half, f.ang + half, 14, Color(AMBER.r * 1.3, AMBER.g * 1.2, AMBER.b, 0.95 * a), w)
+	cv.draw_arc(o, R + w * 0.4, f.ang - half * 0.85, f.ang + half * 0.85, 12, Color(2.2, 1.9, 1.3, a), 1.5)
 	# 盾面上的纹章竖线（盾即法杖）
-	g.draw_line(c - d * 2.0, c - d * (w + 2.0), Color(2.0, 1.7, 1.1, 0.8 * a), 2.0)
+	cv.draw_line(c - d * 2.0, c - d * (w + 2.0), Color(2.0, 1.7, 1.1, 0.8 * a), 2.0)
 	for s in [-1.0, 0.0, 1.0]:
 		var off: Vector2 = d.orthogonal() * s * R * 0.55
-		g.draw_line(c - d * 10.0 + off, c - d * (22.0 + 6.0 * absf(s)) + off, Color(AMBER.r * 1.4, AMBER.g * 1.3, AMBER.b, 0.5 * a), 1.5)
+		cv.draw_line(c - d * 10.0 + off, c - d * (22.0 + 6.0 * absf(s)) + off, Color(AMBER.r * 1.4, AMBER.g * 1.3, AMBER.b, 0.5 * a), 1.5)
 
 
 ## 角色之上：环绕钙晶、注射器 / 碎晶片、护服充能格
@@ -489,41 +489,41 @@ func _draw_skill_over() -> void:
 		var back: bool = gp.y < pos.y + 2.0
 		var p: Vector2 = gp + Vector2(0, -16 + sin(g.t * 3.0 + k) * 2.0)
 		var al: float = 0.6 if back else 1.0
-		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.45))
-		g.draw_circle(Vector2.ZERO, 5.0, Color(0.0, 0.0, 0.0, 0.25 * al))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		g.draw_circle(p, 8.0, Color(AMBER.r, AMBER.g, AMBER.b, 0.18 * al))
+		cv.draw_set_transform(gp, 0.0, Vector2(1.0, 0.45))
+		cv.draw_circle(Vector2.ZERO, 5.0, Color(0.0, 0.0, 0.0, 0.25 * al))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_circle(p, 8.0, Color(AMBER.r, AMBER.g, AMBER.b, 0.18 * al))
 		var dia := PackedVector2Array([p + Vector2(0, -9), p + Vector2(4.5, -1), p + Vector2(0, 6), p + Vector2(-4.5, -1)])
-		g.draw_colored_polygon(dia, Color(1.35, 1.3, 1.15, 0.9 * al))
-		g.draw_polyline(PackedVector2Array([dia[0], dia[1], dia[2], dia[3], dia[0]]), Color(AMBER.r * 1.5, AMBER.g * 1.3, AMBER.b, al), 1.5)
-		g.draw_line(p + Vector2(0, -7), p + Vector2(0, 4), Color(2.2, 2.0, 1.6, 0.8 * al), 1.0)
+		cv.draw_colored_polygon(dia, Color(1.35, 1.3, 1.15, 0.9 * al))
+		cv.draw_polyline(PackedVector2Array([dia[0], dia[1], dia[2], dia[3], dia[0]]), Color(AMBER.r * 1.5, AMBER.g * 1.3, AMBER.b, al), 1.5)
+		cv.draw_line(p + Vector2(0, -7), p + Vector2(0, 4), Color(2.2, 2.0, 1.6, 0.8 * al), 1.0)
 	# 投射物：注射器（白筒 + 绿药液 + 针尖）/ 碎晶片（旋转的琥珀三角）
 	for s in shots:
 		var d: Vector2 = Vector2.from_angle(s.ang)
 		if s.kind == "syringe":
-			g.draw_line(s.pos - d * 7.0, s.pos + d * 4.0, Color(0.1, 0.1, 0.12, 0.8), 5.0)
-			g.draw_line(s.pos - d * 6.0, s.pos + d * 3.0, Color(1.6, 1.6, 1.6), 3.0)
-			g.draw_line(s.pos - d * 2.0, s.pos + d * 3.0, Color(0.6, 1.5, 0.9), 2.0)
-			g.draw_line(s.pos + d * 4.0, s.pos + d * 9.0, Color(2.0, 2.0, 2.0), 1.0)
-			g.draw_line(s.pos - d * 8.0 + d.orthogonal() * 3.0, s.pos - d * 8.0 - d.orthogonal() * 3.0, Color(1.4, 1.4, 1.4), 1.5)
+			cv.draw_line(s.pos - d * 7.0, s.pos + d * 4.0, Color(0.1, 0.1, 0.12, 0.8), 5.0)
+			cv.draw_line(s.pos - d * 6.0, s.pos + d * 3.0, Color(1.6, 1.6, 1.6), 3.0)
+			cv.draw_line(s.pos - d * 2.0, s.pos + d * 3.0, Color(0.6, 1.5, 0.9), 2.0)
+			cv.draw_line(s.pos + d * 4.0, s.pos + d * 9.0, Color(2.0, 2.0, 2.0), 1.0)
+			cv.draw_line(s.pos - d * 8.0 + d.orthogonal() * 3.0, s.pos - d * 8.0 - d.orthogonal() * 3.0, Color(1.4, 1.4, 1.4), 1.5)
 		else:
 			var sv: Vector2 = Vector2.from_angle(s.ang + g.t * 16.0) * 5.0
-			g.draw_line(s.pos - d * 14.0, s.pos, Color(AMBER.r, AMBER.g, AMBER.b, 0.35), 2.0)
-			g.draw_colored_polygon(PackedVector2Array([s.pos - sv, s.pos + sv.orthogonal() * 0.5, s.pos + sv]), Color(1.9, 1.5, 0.9))
+			cv.draw_line(s.pos - d * 14.0, s.pos, Color(AMBER.r, AMBER.g, AMBER.b, 0.35), 2.0)
+			cv.draw_colored_polygon(PackedVector2Array([s.pos - sv, s.pos + sv.orthogonal() * 0.5, s.pos + sv]), Color(1.9, 1.5, 0.9))
 	# 精二 护服充能：脚下 4 格琥珀，满格时一起脉动
 	if suit_on:
 		var full: bool = suit_seg >= 4
 		var pul: float = 0.75 + 0.25 * sin(g.t * 10.0) if full else 1.0
 		for k in 4:
 			var r := Rect2(pos + Vector2(-25.0 + k * 13.0, 12.0), Vector2(11.0, 5.0))
-			g.draw_rect(r.grow(1.0), Color(0.12, 0.07, 0.03, 0.85))
+			cv.draw_rect(r.grow(1.0), Color(0.12, 0.07, 0.03, 0.85))
 			if k < suit_seg:
-				g.draw_rect(r, Color(AMBER.r * 1.6 * pul, AMBER.g * 1.4 * pul, AMBER.b * pul))
+				cv.draw_rect(r, Color(AMBER.r * 1.6 * pul, AMBER.g * 1.4 * pul, AMBER.b * pul))
 			elif k == suit_seg:
 				var fr: float = clampf(suit_t / base("suit_seg_t", 5.0), 0.0, 1.0)
-				g.draw_rect(Rect2(r.position, Vector2(11.0 * fr, 5.0)), Color(AMBER.r, AMBER.g, AMBER.b, 0.45))
+				cv.draw_rect(Rect2(r.position, Vector2(11.0 * fr, 5.0)), Color(AMBER.r, AMBER.g, AMBER.b, 0.45))
 		if full:
-			g.draw_arc(pos + Vector2(0, -30), 26.0 + 2.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(AMBER.r * 1.5, AMBER.g * 1.3, AMBER.b, 0.35), 2.0)
+			cv.draw_arc(pos + Vector2(0, -30), 26.0 + 2.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(AMBER.r * 1.5, AMBER.g * 1.3, AMBER.b, 0.35), 2.0)
 
 
 func status_items() -> Array:

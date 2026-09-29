@@ -348,11 +348,11 @@ func _draw_spin_disc(c: Vector2, u: float) -> void:
 		var a1: float = head - sgn * sweep * t1
 		var k: float = pow(1.0 - t0, 1.7)
 		var col := Color(1.9, 1.9, 2.0, 0.7 * k)
-		g.draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a0) * R, c + Vector2.from_angle(a1) * R]), col)
+		cv.draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a0) * R, c + Vector2.from_angle(a1) * R]), col)
 	# 前端：一条橙色的扫描边 + 外沿一段更亮的弧
-	g.draw_line(c, c + Vector2.from_angle(head) * R, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.9), 3.0)
+	cv.draw_line(c, c + Vector2.from_angle(head) * R, Color(FLAME.r * 1.6, FLAME.g * 1.4, FLAME.b, 0.9), 3.0)
 	var o0: float = head - sgn * 0.5
-	g.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(2.2, 2.2, 2.3, 0.9), 3.0)
+	cv.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(2.2, 2.2, 2.3, 0.9), 3.0)
 
 
 ## 空中时的身体中心：脚底上方半个身高（按当前帧贴图的脚底锚点算），翻转与拖影圆环都以它为圆心
@@ -386,9 +386,9 @@ func draw_body() -> void:
 	var cy: float = (-fh + fo) / 2.0                 # 身体中心相对脚底（贴图像素）
 	var center: Vector2 = _air_center(h)
 	_draw_spin_disc(center, u)
-	g.draw_set_transform(center.round(), ang, Vector2(-pk if st.flip else pk, pk))
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + fo - cy), Vector2(fw, fh)), Rect2(fw * (st.frame % hf), 0, fw, fh))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(center.round(), ang, Vector2(-pk if st.flip else pk, pk))
+	cv.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + fo - cy), Vector2(fw, fh)), Rect2(fw * (st.frame % hf), 0, fw, fh))
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func skill_active_left(i: int) -> float:
@@ -419,10 +419,10 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			# 尘土：贴地的一团灰黄烟，边扩散边淡出（没有亮芯，不像光点）
 			var k0: float = 1.0 - a
 			var dc: Color = f.col
-			g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.6))
-			g.draw_circle(Vector2.ZERO, f.r * (0.7 + 0.8 * k0), Color(dc.r, dc.g, dc.b, 0.35 * a))
-			g.draw_circle(Vector2(f.r * 0.3, -f.r * 0.2), f.r * (0.45 + 0.6 * k0), Color(dc.r * 1.1, dc.g * 1.1, dc.b * 1.1, 0.3 * a))
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.6))
+			cv.draw_circle(Vector2.ZERO, f.r * (0.7 + 0.8 * k0), Color(dc.r, dc.g, dc.b, 0.35 * a))
+			cv.draw_circle(Vector2(f.r * 0.3, -f.r * 0.2), f.r * (0.45 + 0.6 * k0), Color(dc.r * 1.1, dc.g * 1.1, dc.b * 1.1, 0.3 * a))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return true
 		"blaze":
 			# 火焰（照原作截图）：下宽上尖的水滴形，边缘抖动的火苗；外层橙、内层黄白（高亮触发辉光），底部一团光晕；先窜高再缩小熄灭
@@ -430,7 +430,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var h: float = f.sz * (0.55 + 0.9 * minf(1.0, k * 3.0)) * (0.4 + 0.6 * a)
 			var w: float = f.sz * 0.36 * (0.5 + 0.5 * a)
 			var b: Vector2 = f.pos
-			g.draw_circle(b + Vector2(0, -h * 0.15), w * 1.4, Color(2.0, 0.9, 0.25, 0.22 * a))
+			cv.draw_circle(b + Vector2(0, -h * 0.15), w * 1.4, Color(2.0, 0.9, 0.25, 0.22 * a))
 			for layer in 2:
 				var s2: float = 1.0 if layer == 0 else 0.55
 				var hh: float = h * s2
@@ -447,7 +447,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				var pts: PackedVector2Array = left
 				pts.append_array(right.slice(1))
 				var col: Color = Color(2.0, 0.85, 0.22, 0.8 * a) if layer == 0 else Color(2.6, 2.1, 1.1, 0.9 * a)
-				g.draw_colored_polygon(pts, col)
+				cv.draw_colored_polygon(pts, col)
 			return true
 		"pillar":
 			# 落地光柱：底宽上窄的黄色光束迅速升起再变细消失，外加几条向上张开的放射光线
@@ -456,26 +456,26 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var w: float = 30.0 * (1.0 - k * 0.8)
 			var b: Vector2 = f.pos
 			var c: Color = f.col
-			g.draw_colored_polygon(PackedVector2Array([b + Vector2(-w, 0), b + Vector2(-w * 0.25, -H), b + Vector2(w * 0.25, -H), b + Vector2(w, 0)]), Color(c.r, c.g, c.b, 0.35 * a))
-			g.draw_colored_polygon(PackedVector2Array([b + Vector2(-w * 0.35, 0), b + Vector2(-2, -H * 0.9), b + Vector2(2, -H * 0.9), b + Vector2(w * 0.35, 0)]), Color(2.2, 2.1, 1.6, 0.6 * a))
+			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w, 0), b + Vector2(-w * 0.25, -H), b + Vector2(w * 0.25, -H), b + Vector2(w, 0)]), Color(c.r, c.g, c.b, 0.35 * a))
+			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w * 0.35, 0), b + Vector2(-2, -H * 0.9), b + Vector2(2, -H * 0.9), b + Vector2(w * 0.35, 0)]), Color(2.2, 2.1, 1.6, 0.6 * a))
 			for q in 6:
 				var ang: float = -PI / 2.0 + (q - 2.5) * 0.28
-				g.draw_line(b + Vector2(0, -8), b + Vector2(0, -8) + Vector2.from_angle(ang) * H * (0.6 + 0.08 * (q % 3)), Color(c.r, c.g, c.b, 0.5 * a), 2.0)
+				cv.draw_line(b + Vector2(0, -8), b + Vector2(0, -8) + Vector2.from_angle(ang) * H * (0.6 + 0.08 * (q % 3)), Color(c.r, c.g, c.b, 0.5 * a), 2.0)
 			return true
 		"sp_mote":
 			var k := 1.0 - a
 			var to: Vector2 = f.tgt.pos + Vector2(0, -24)
 			var p: Vector2 = f.start.lerp(to, k) + Vector2(0, -sin(k * PI) * 30.0) + f.start.direction_to(to).orthogonal() * sin(k * PI) * f.bend
 			var tail: Vector2 = f.start.lerp(to, maxf(0.0, k - 0.12)) + Vector2(0, -sin(maxf(0.0, k - 0.12) * PI) * 30.0)
-			g.draw_line(tail, p, Color(GOLD.r, GOLD.g, GOLD.b, 0.5), 2.0)
-			g.draw_circle(p, 3.0, Color(2.2, 1.8, 0.9))
+			cv.draw_line(tail, p, Color(GOLD.r, GOLD.g, GOLD.b, 0.5), 2.0)
+			cv.draw_circle(p, 3.0, Color(2.2, 1.8, 0.9))
 			return true
 		"impact":
 			var L := 10.0 + 14.0 * (1.0 - a)
 			for q in 2:
 				var dv := Vector2.from_angle(f.ang + q * PI / 2.0)
-				g.draw_line(f.pos - dv * L, f.pos + dv * L, Color(2.0, 1.7, 1.0, a), 2.5)
-			g.draw_circle(f.pos, 5.0 * a + 2.0, Color(2.4, 2.2, 1.6, a))
+				cv.draw_line(f.pos - dv * L, f.pos + dv * L, Color(2.0, 1.7, 1.0, a), 2.5)
+			cv.draw_circle(f.pos, 5.0 * a + 2.0, Color(2.4, 2.2, 1.6, a))
 			return true
 	return false
 
@@ -488,27 +488,27 @@ func draw_entities_floor() -> void:
 		var pts: PackedVector2Array = fs.pts
 		var m: int = maxi(2, int(ceil(pts.size() * grow)))
 		var sub: PackedVector2Array = pts.slice(0, m)
-		g.draw_polyline(sub, Color(1.0, 0.7, 0.3, 0.2 * a), fs.w)
-		g.draw_polyline(sub, Color(1.6, 1.1, 0.4, 0.35 * a), fs.w * 0.4)
-		g.draw_polyline(sub, Color(0.06, 0.04, 0.03, 0.85 * minf(1.0, a * 2.0)), 5.0)
-		g.draw_polyline(sub, Color(2.4, 1.8, 0.8, a), 2.0)
+		cv.draw_polyline(sub, Color(1.0, 0.7, 0.3, 0.2 * a), fs.w)
+		cv.draw_polyline(sub, Color(1.6, 1.1, 0.4, 0.35 * a), fs.w * 0.4)
+		cv.draw_polyline(sub, Color(0.06, 0.04, 0.03, 0.85 * minf(1.0, a * 2.0)), 5.0)
+		cv.draw_polyline(sub, Color(2.4, 1.8, 0.8, a), 2.0)
 	for w in cmd_waves:
 		var dur: float = base("cmd_dur", 0.4)
 		var fade: float = clampf(1.0 - (w.t - dur) / 0.25, 0.0, 1.0) if w.t > dur else 1.0
-		g.draw_set_transform(w.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, w.r, Color(GOLD.r, GOLD.g, GOLD.b, 0.08 * fade))
-		g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
-		g.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.45 * fade), 2.0)
+		cv.draw_set_transform(w.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, w.r, Color(GOLD.r, GOLD.g, GOLD.b, 0.08 * fade))
+		cv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
+		cv.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.45 * fade), 2.0)
 		# 号令波上的放射纹（狮鬃）
 		for q in 16:
 			var dv := Vector2.from_angle(q * TAU / 16.0)
-			g.draw_line(dv * w.r * 0.75, dv * w.r, Color(2.0, 1.6, 0.7, 0.6 * fade), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_line(dv * w.r * 0.75, dv * w.r, Color(2.0, 1.6, 0.7, 0.6 * fade), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_auras() -> void:
 	if skull > 0.0 and pos != Vector2.INF:
-		g.draw_arc(pos + Vector2(0, -22), 26.0 + 3.0 * sin(g.t * 9.0), 0.0, TAU, 24, Color(1.0, 0.6, 0.3, 0.4 + 0.15 * sin(g.t * 9.0)), 2.0)
+		cv.draw_arc(pos + Vector2(0, -22), 26.0 + 3.0 * sin(g.t * 9.0), 0.0, TAU, 24, Color(1.0, 0.6, 0.3, 0.4 + 0.15 * sin(g.t * 9.0)), 2.0)
 
 
 ## 全队（不含自己）技力 + 秒数
