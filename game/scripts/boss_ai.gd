@@ -76,8 +76,9 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				"wid": 17.0, "act": "tide_link", "name": "接潮共鸣", "col": g.vfx.boss_color(e.type),
 				"corrode": 0.25, "dmg": e.dmg * 0.55, "cancel_dead": true})
 			ready = false
-	# 招式令牌只在「另一只在场的 Boss」之间生效：接潮组两具是一个整体，不互相占用；不在 g.bosses 里的（演练 / 图鉴）不算
-	if ready and token_owner != null and not is_same(token_owner, e) and not token_owner.dead and g.t < token_until 			and g.bosses.has(token_owner) and not is_same(token_owner, e.get("partner")):
+	# 招式令牌（docs/38 §1.10）：同一时刻只允许一个有名字的大招，接潮组两具也共用这一个名额（9/30 前误把搭档排除在外，7:00 双体大招会叠）；
+	# 不在 g.bosses 里的（演练 / 图鉴）不算
+	if ready and token_owner != null and not is_same(token_owner, e) and not token_owner.dead and g.t < token_until 			and g.bosses.has(token_owner):
 		ready = false
 	if ready and patterns.try_attack(e, dir, dist):
 		ready = false
