@@ -1876,8 +1876,17 @@ func draw_warn_outlines() -> void:
 		var gy: float = ground_y()
 		match w.shape:
 			"circle":
-				var ring: bool = w.get("follow", false) or w.has("gap_ang")
-				var must: bool = w.get("must_dash", false)
+				# 样式按 Boss与怪物 在 _warn 里填的 w.style（c46c668）：0 预告 / 1 落点圈 / 4 缺口环 / 5 必须冲刺；
+				# follow 只表示圈跟着施法者走，不等于环（钻地咬击、踏地、触须爆发、寒冰领域都是 follow 的落点圈）
+				var st: int = int(w.get("style", 1))
+				var ring: bool = st == 4
+				var must: bool = st == 5 or w.get("must_dash", false)
+				if st == 0:
+					# 预告（不伤人，如投嗣育母生成点）：很淡的虚线细圈，不填内圈、不白闪
+					g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
+					_warn_dash_arc(w.r, 0.0, TAU, Color(1, 1, 1, 0.3), 1.0)
+					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					continue
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
 				if tracking:
 					_warn_dash_arc(w.r, 0.0, TAU, edge, 5.0)
