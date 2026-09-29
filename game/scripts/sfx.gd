@@ -685,6 +685,7 @@ func loop_stop(name: String) -> void:
 ## 一次性音效共 32 个播放器。同名音 MERGE_T 秒内合并（取 LIMIT 与它的较大者）；满槽时抢占正在播的最低优先级音，
 ## 自己优先级不高于它就丢弃；已有 DUCK_AT 个在响时，优先级 ≤2 的音降 6 dB。统计计数给 --perf 测量用（sfx_stat）
 const MERGE_T := 0.05
+const LOW_CAP := 16   # 低画质档（Cfg.quality == "low"）：同时发声上限 16，拥挤时优先级 ≤2 直接丢弃而不是降音量
 const DUCK_AT := 12   # 标准局 99% 的帧 ≤15 个同时发声：只在最密的几成帧里压低优先级 ≤2 的音
 ## 5 Boss 大招 / 阶段 / Boss 事件；4 主控状态与操作反馈；3 灯标、技能发动；2 一般攻击 / 敌人（缺省）；1 拾取、击杀、命中
 const PRIO_NAME := {
@@ -718,9 +719,11 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		sfx_stat.merged += 1
 		return
 	var prio := sfx_prio(name)
+	var cfg: Node = get_node_or_null("/root/Cfg")
+	var low: bool = cfg != null and str(cfg.get("quality")) == "low"
 	var busy := 0
 	var p: AudioStreamPlayer = null
-	var low: AudioStreamPlayer = null
+	var lowest: AudioStreamPlayer = null
 	var low_prio := 99
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
@@ -733,12 +736,17 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		var cp: int = c.get_meta("prio", 2)
 		if cp < low_prio:
 			low_prio = cp
-			low = c
+			lowest = c
+	if low and busy >= LOW_CAP:
+		p = null   # 低画质：按 16 个算满槽
+	if low and busy >= DUCK_AT and prio <= 2:
+		sfx_stat.dropped += 1
+		return
 	if p == null:
-		if low == null or low_prio >= prio:   # 满槽且没有比自己低的：丢弃
+		if lowest == null or low_prio >= prio:   # 满槽且没有比自己低的：丢弃
 			sfx_stat.dropped += 1
 			return
-		p = low
+		p = lowest
 		p.stop()
 		sfx_stat.stolen += 1
 		busy -= 1
