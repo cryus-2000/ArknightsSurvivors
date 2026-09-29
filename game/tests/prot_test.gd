@@ -66,6 +66,7 @@ func _process(_d: float) -> void:
 	test_retreat()
 	test_final_mob_cap()
 	test_ishar_close()
+	test_paranoia_p2_gate()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -839,6 +840,21 @@ func test_ishar_close() -> void:
 	for o in game.enemies:
 		if o.type == "tear":
 			o.dead = true
+	game.bosses = keep
+
+## 偏执泡影过最后一道卡点落地进二阶段（boss/paranoia_p2_at_gate，数值 9/30）；第一道卡点不变；茧仍在归零时结
+func test_paranoia_p2_gate() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("paranoia", game.ppos + Vector2(400, 0))
+	game.bosses = [e]
+	e.gates = [0.66, 0.33]
+	c.gate_pass(e)
+	ok(e.phase == 1 and e.ai == "ranged", "过第一道卡点：仍是一阶段悬浮远程")
+	c.gate_pass(e)
+	ok(e.phase == 2 and e.ai == "melee" and is_equal_approx(e.spd, 70.0), "过最后一道卡点：落地二阶段（近战、移速 70）")
+	ok(not e.get("cocoon_done", false), "茧还没结（归零时才结）")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	e.dead = true
 	game.bosses = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
