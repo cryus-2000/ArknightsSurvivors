@@ -358,6 +358,7 @@ var dbg_relic_offer: Array = []  # 平衡输出：藏品三选一 / 商店的候
 var dbg_relic_take: Array = []   # 平衡输出：获得的藏品（[t, id, 当时编队职业]）
 var relic_out := 0.0             # 平衡输出：藏品直接造成的伤害（描述符 origin == relic）
 var bal_maxt := 780.0            # --maxt=<秒>：平衡 / 冒烟测试提前结束（默认 780 = 终局 Boss 登场后再给 3 分钟）
+var realtime := false            # --realtime（仅测试，配合 --balance --perf）：按真实帧间隔推进、不多跑模拟步，测真实游戏的帧时间
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
 var _prof_t := 0
@@ -637,6 +638,7 @@ func _ready() -> void:
 			if a.begins_with("--maxt="):
 				bal_maxt = float(a.substr(7))
 		prof_on = Cfg.dev_args().has("--prof")
+		realtime = Cfg.dev_args().has("--realtime")
 		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
 		for a in Cfg.dev_args():
 			if a.begins_with("--trace="):
@@ -695,7 +697,7 @@ func _process(delta: float) -> void:
 		_pm("")
 		autotest_sys.step()
 		_pm("autotest")
-		dt = 0.066 if balance else 0.05
+		dt = (minf(delta, 0.05) if realtime else 0.066) if balance else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	if victory.active and state == S.PLAY:
 		simulated_dt = minf(delta, 0.05)
@@ -712,7 +714,7 @@ func _process(delta: float) -> void:
 					break
 				_update(step_dt)
 				simulated_dt += step_dt
-		if balance:
+		if balance and not realtime:
 			# 平衡测试：每帧多跑几步模拟，绕过无界面模式的帧率上限
 			for i in 7:
 				if state != S.PLAY:
@@ -1247,7 +1249,12 @@ func _exit_tree() -> void:
 
 ## 世界绘制（引擎回调）：转发到 render/world.gd
 func _draw() -> void:
+	if not prof_on:
+		world.draw_world()
+		return
+	var t0 := Time.get_ticks_usec()
 	world.draw_world()
+	prof["draw_world"] = int(prof.get("draw_world", 0)) + Time.get_ticks_usec() - t0   # --prof：世界绘制单独计（它也算在下一帧的 engine 里）
 
 
 func _update_doc_follow(dt: float) -> void:

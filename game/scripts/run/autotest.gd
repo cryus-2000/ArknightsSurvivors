@@ -22,6 +22,9 @@ var trace_last := -1
 var perf_on := false
 var perf_last := 0
 var perf := {}
+var perf_prev := {}            # 上一帧的 g.prof 累计（配合 --prof：逐帧分段）
+var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取最慢 25 帧
+var perf_kills := 0
 
 
 func _init(game: Game) -> void:
@@ -523,12 +526,32 @@ func _perf_sample() -> void:
 	if perf_last > 0 and g.state == g.S.PLAY:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if not perf.has(w):
-			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array()}
+			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0}
 		var d: Dictionary = perf[w]
 		d.ft.append((now - perf_last) / 1000.0)
 		d.rcpu.append(RenderingServer.viewport_get_measured_render_time_cpu(rid))
 		d.gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
 		d.en.append(g.enemies.size())
+		var ft: float = (now - perf_last) / 1000.0
+		var br := {}
+		if g.prof_on:
+			for k in g.prof:
+				var v: int = int(g.prof[k]) - int(perf_prev.get(k, 0))
+				if v > 0:
+					br[k] = v / 1000.0
+					d.stage[k] = float(d.stage.get(k, 0.0)) + v / 1000.0
+					if ft >= 33.3:
+						d.slow_stage[k] = float(d.slow_stage.get(k, 0.0)) + v / 1000.0
+		if ft >= 33.3:
+			d.slow_n += 1
+			perf_slow.append({"t": snappedf(g.t, 0.1), "ft": snappedf(ft, 0.1), "en": g.enemies.size(), "kills": g.kills - perf_kills,
+				"ebul": g.ebullets.size(), "warns": g.warns.size(), "fx": g.fx.size(), "boss": g.bosses.size(), "stage": _top_stages(br, 4)})
+			if perf_slow.size() > 400:
+				perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
+				perf_slow.resize(100)
+	if g.prof_on:
+		perf_prev = g.prof.duplicate()
+	perf_kills = g.kills
 	perf_last = now
 
 
@@ -539,7 +562,11 @@ func _perf_summary() -> Dictionary:
 		var d: Dictionary = perf[w]
 		out[w] = {"n": d.ft.size(), "ft_med": _pct(d.ft, 0.5), "ft_p99": _pct(d.ft, 0.99), "ft_max": _pct(d.ft, 1.0),
 			"rcpu_med": _pct(d.rcpu, 0.5), "rcpu_p99": _pct(d.rcpu, 0.99), "gpu_med": _pct(d.gpu, 0.5), "gpu_p99": _pct(d.gpu, 0.99),
-			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0)}
+			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0), "slow_n": d.slow_n,
+			"stage_ms": _per_frame(d.stage, d.ft.size()), "slow_stage_ms": _per_frame(d.slow_stage, d.slow_n)}
+	perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
+	out["slow_top"] = perf_slow.slice(0, 25)
+	out["realtime"] = g.realtime
 	out["video"] = {"bloom": Cfg.bloom, "dof": Cfg.dof, "normal_maps": Cfg.normal_maps, "water_filter": Cfg.water_filter,
 		"size": str(g.get_viewport().get_visible_rect().size), "window": str(DisplayServer.window_get_size())}
 	return out
@@ -551,3 +578,22 @@ func _pct(a, q: float) -> float:
 	var b: Array = Array(a)
 	b.sort()
 	return snappedf(float(b[mini(b.size() - 1, int(q * (b.size() - 1) + 0.5))]), 0.01)
+
+
+## 分段耗时按帧平均（毫秒 / 帧），从大到小
+func _per_frame(tot: Dictionary, n: int) -> Dictionary:
+	var out := {}
+	var ks: Array = tot.keys()
+	ks.sort_custom(func(a, b): return tot[a] > tot[b])
+	for k in ks:
+		out[k] = snappedf(float(tot[k]) / maxf(1.0, float(n)), 0.01)
+	return out
+
+
+func _top_stages(br: Dictionary, n: int) -> Dictionary:
+	var ks: Array = br.keys()
+	ks.sort_custom(func(a, b): return br[a] > br[b])
+	var out := {}
+	for k in ks.slice(0, n):
+		out[k] = snappedf(br[k], 0.1)
+	return out
