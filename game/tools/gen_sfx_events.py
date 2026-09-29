@@ -8,6 +8,9 @@
   beacon_tick / beacon_lit / beacon_end  引航灯标：点燃进度嘀嗒 / 点燃光爆 / 30 秒安全区结束
   nerve_burst    神经损伤满格（真伤 + 眩晕）
   mire_splat     飘航者神经弹落地留溟痕
+  ulp_charge_loop / ulp_release  乌尔比安 S3 手动蓄距离循环 / 松手释放
+  atk_gate       手动普攻被闸门拦住的轻「咔」
+  beacon_fizzle  灯标未点燃、45 秒熄灭
 每声用自己的随机数种子：单独重做某一声不影响其他；gen_sfx.py 重跑复现不了现有音效，别为这些去重跑它。
 用法：cd game/tools && python gen_sfx_events.py [名字 ...]
 """
@@ -223,9 +226,51 @@ def mire_splat():
     return splat * 1.2 + at(bubble, 0.08, n) * 0.6
 
 
+def ulp_charge_loop():
+    """乌尔比安 S3 蓄距离：1 秒无缝循环的低鸣 + 颤动（游戏里按距离升 pitch_scale）。整数周期，首尾相接不爆音"""
+    d = 1.0
+    t = T(d)
+    x = sum(np.sin(2 * np.pi * f * t) * g for f, g in ((110, 1.0), (220, 0.5), (330, 0.3), (440, 0.15)))
+    x *= 1 + 0.25 * np.sin(2 * np.pi * 8 * t)
+    return np.tanh(1.4 * x)
+
+
+def ulp_release():
+    """S3 松手释放：蓄力弹出的上扬气流 + 沉重的出手"""
+    rng = np.random.default_rng(601)
+    d = 0.8
+    n = int(d * SR)
+    whoosh = sweep(rng, 0.5, 300, 3000, 0.5) * env(0.5, 0.01, 0.15)
+    thump = np.tanh(2 * glide(0.35, 140, 60)) * env(0.35, 0.002, 0.09)
+    return at(whoosh, 0.0, n) * 1.2 + at(thump, 0.02, n)
+
+
+def atk_gate():
+    """手动普攻被闸门拦住（未解锁 / 锥内没人）：极短的木质「咔」，只提示按到了、不刺耳"""
+    rng = np.random.default_rng(602)
+    d = 0.08
+    click = bp(rng.standard_normal(int(d * SR)), 900, 2500) * env(d, 0.0005, 0.008)
+    knock = np.sin(2 * np.pi * 520 * T(d)) * env(d, 0.001, 0.012)
+    return click + knock * 0.6
+
+
+def beacon_fizzle():
+    """灯标未点燃、45 秒熄灭：火苗噗噗几下灭掉 + 一缕嘶声，没有音调（和安全区结束的两音下行区分）"""
+    rng = np.random.default_rng(603)
+    d = 1.0
+    n = int(d * SR)
+    x = np.zeros(n)
+    for k, (tt, g) in enumerate(((0.0, 1.0), (0.18, 0.7), (0.32, 0.45), (0.42, 0.3))):
+        puff = lp(rng.standard_normal(int(0.1 * SR)), 900) * env(0.1, 0.003, 0.03) * g
+        x += at(puff, tt, n)
+    hiss = hp(rng.standard_normal(n), 3500) * np.maximum(T(d) - 0.35, 0) ** 0.5 * np.exp(-T(d) / 0.4) * 0.3
+    return x + hiss
+
+
 SOUNDS = {"knight_charge": knight_charge, "knight_stab": knight_stab, "knight_frost": knight_frost,
           "hunt_warn": hunt_warn, "hunt_close": hunt_close, "hunt_break": hunt_break,
-          "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat}
+          "beacon_tick": beacon_tick, "beacon_lit": beacon_lit, "beacon_end": beacon_end, "nerve_burst": nerve_burst, "mire_splat": mire_splat,
+          "ulp_charge_loop": ulp_charge_loop, "ulp_release": ulp_release, "atk_gate": atk_gate, "beacon_fizzle": beacon_fizzle}
 
 
 def save(name, x, peak=0.89):

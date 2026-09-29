@@ -270,6 +270,14 @@ func clamp_point(i: int, pt: Vector2) -> Vector2:
 var manual_dir := Vector2.ZERO
 var manual_pt := Vector2.INF   # 选落点技能：玩家给的落点（已夹进 aim_range；出手帧读，读完置 INF）
 
+## 播一次性音效（音量取 sfx.gd 里的常量名）。本文件也被 -s 测试脚本直接加载，那时没有 Sfx 自动加载，按节点路径取
+func _sfx_play(name: String, vol_const: String, pitch_var: float) -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		var vol: float = sfx.ULP_RELEASE_DB if vol_const == "ULP_RELEASE_DB" else sfx.ATK_GATE_DB
+		sfx.play(name, vol, 1.0, pitch_var)
+
+
 func cast_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF) -> bool:
 	if not manual_aims(i):
 		dir = Vector2.ZERO
@@ -284,6 +292,8 @@ func cast_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF)
 	manual_dir = dir.normalized() if dir != Vector2.ZERO else Vector2.ZERO
 	manual_pt = pt
 	start_skill(pt if pt != Vector2.INF else (pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF), i)
+	if pt != Vector2.INF:
+		_sfx_play("ulp_release", "ULP_RELEASE_DB", 0.0)   # 选落点技能放出（键盘蓄力 / 鼠标 / 摇杆 / 触屏都响）
 	return true
 
 
@@ -422,6 +432,8 @@ func attack_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> A
 	var out := aim_targets(n, max_dist, origin)
 	if not out.is_empty():
 		g.doctor.atk_buf = 0.0
+	elif g.doctor.atk_edge:
+		_sfx_play("atk_gate", "ATK_GATE_DB", 0.05)   # 按了但前方没敌人、不出手：轻「咔」（只在按下那一帧）
 	return out
 
 

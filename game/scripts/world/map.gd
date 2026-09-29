@@ -15,13 +15,6 @@ var snow: Array = []
 var ambient := Color(0.16, 0.22, 0.32)
 var tile_size := 32.0
 var px := 2.0
-## 地面区块缓存（性能，协调人 9/30：地面每帧逐格 draw 约 2000 次 + 逐格 hash，约 2 毫秒）：
-## 按 CHUNK 世界像素一块，把地砖 + 地形区域块（patches）在贴图原分辨率上合成一张 Image 缓存成贴图，每帧只画可见的几块；
-## 道具列表也按块缓存，逐格结果与原来逐格画完全一致（同一 hash、同一变体 / 翻转 / 叠放顺序）
-const CHUNK := 512.0
-var ground_cache := {}             # Vector2i -> [Texture2D, props]
-var _tile_img: Image = null
-var _patch_img: Image = null
 
 
 func _init(game, theme_id := "deep_sea") -> void:
@@ -50,9 +43,6 @@ func load_theme(theme_id: String) -> void:
 		push_error("map theme missing: " + path)
 		theme = {"tiles": {"tex": "tiles", "size": 32, "variants": 4, "src_px": 16}, "props": [], "big_props": {"list": []}}
 	tile_size = float(theme.tiles.get("size", 32))
-	ground_cache.clear()
-	_tile_img = null
-	_patch_img = null
 	var amb: Array = theme.get("ambient", [0.16, 0.22, 0.32])
 	ambient = Color(amb[0], amb[1], amb[2])
 	tex.clear()
@@ -101,117 +91,39 @@ func _prop_def(n: String) -> Dictionary:
 ## 地砖 + 地纹 + 小道具；需要 2.5D 排序的道具进 sort_props，其余直接画在地上
 func draw_ground(vs: Vector2) -> void:
 	var T := tile_size
+	var tt: Dictionary = theme.tiles
+	var tx: Texture2D = tex[tt.tex]
+	var src: float = float(tt.get("src_px", 16))
+	var nvar: int = int(tt.get("variants", 4))
 	var ppos: Vector2 = g.view_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士）
 	var x0 := floori((ppos.x - vs.x / 2.0) / T) - 1
 	var y0 := floori((ppos.y - vs.y / 2.0) / T) - 1
 	var nx := int(vs.x / T) + 3
 	var ny := int(vs.y / T) + 3
-	var tpc: int = int(CHUNK / T)   # 每块的格数
 	var props: Array = []
-	for kx in range(floori(float(x0) / tpc), floori(float(x0 + nx - 1) / tpc) + 1):
-		for ky in range(floori(float(y0) / tpc), floori(float(y0 + ny - 1) / tpc) + 1):
-			var ch: Array = _ground_chunk(Vector2i(kx, ky))
-			if ch[0] != null:
-				g.draw_texture_rect(ch[0], Rect2(Vector2(kx, ky) * CHUNK, Vector2(CHUNK, CHUNK)), false)
-			for pr in ch[1]:
-				# 只收原来逐格范围内的道具（和原来画出的集合一样）
-				if pr[3] >= x0 and pr[3] < x0 + nx and pr[4] >= y0 and pr[4] < y0 + ny:
-					props.append(pr)
-	# 地形区域块已合成进区块贴图；区块贴图缺失（没有地砖图）时退回逐块画
-	if tex.get(theme.tiles.tex) == null:
-		_draw_patches(vs)
+	var defs: Array = theme.get("props", [])
+	for cx in range(x0, x0 + nx):
+		for cy in range(y0, y0 + ny):
+			var h: int = abs(hash(Vector2i(cx, cy)))
+			var v := h % nvar
+			var p := Vector2(cx * T, cy * T)
+			if tx != null:
+				g.draw_texture_rect_region(tx, Rect2(p, Vector2(T, T)), Rect2(v * src, 0, src, src))
+			var hh := h / 7
+			for pr in defs:
+				if hh % int(pr.every) == 0:
+					var off: Array = pr.get("offset", [16, 20])
+					props.append([pr.tex, p + Vector2(off[0], off[1]), h])
+					break
+	_draw_patches(vs)
 	sort_props.clear()
 	collect_big_props(vs)
 	for pr in props:
 		var d := _prop_def(pr[0])
 		if d.get("sort", false):
-			sort_props.append([pr[0], pr[1], pr[2]])
+			sort_props.append(pr)
 		else:
 			_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, Color.WHITE)
-
-
-## 生成 / 取一块地面缓存：[贴图, 道具列表 [tex, pos, hash, cx, cy]]
-func _ground_chunk(k: Vector2i) -> Array:
-	if ground_cache.has(k):
-		return ground_cache[k]
-	if ground_cache.size() > 96:
-		ground_cache.clear()
-	var T := tile_size
-	var tt: Dictionary = theme.tiles
-	var src: int = int(tt.get("src_px", 16))
-	var nvar: int = int(tt.get("variants", 4))
-	var tpc: int = int(CHUNK / T)
-	var sc: float = float(src) / T            # 世界像素 → 贴图像素
-	var defs: Array = theme.get("props", [])
-	var props: Array = []
-	var img: Image = null
-	var tx: Texture2D = tex.get(tt.tex)
-	if tx != null:
-		if _tile_img == null:
-			_tile_img = _rgba(tx)
-		img = Image.create(int(CHUNK * sc), int(CHUNK * sc), false, Image.FORMAT_RGBA8)
-	for ix in tpc:
-		for iy in tpc:
-			var cx: int = k.x * tpc + ix
-			var cy: int = k.y * tpc + iy
-			var h: int = abs(hash(Vector2i(cx, cy)))
-			var v := h % nvar
-			if img != null:
-				img.blit_rect(_tile_img, Rect2i(v * src, 0, src, src), Vector2i(ix * src, iy * src))
-			var hh := h / 7
-			for pr in defs:
-				if hh % int(pr.every) == 0:
-					var off: Array = pr.get("offset", [16, 20])
-					props.append([pr.tex, Vector2(cx * T, cy * T) + Vector2(off[0], off[1]), h, cx, cy])
-					break
-	if img != null and theme.has("patches"):
-		_bake_patches(img, k, sc)
-	var t2: Texture2D = ImageTexture.create_from_image(img) if img != null else null
-	ground_cache[k] = [t2, props]
-	return ground_cache[k]
-
-
-## 地形区域块合成进区块：规则同 _draw_patches（聚簇、跳簇、密度、种类、随机镜像），在贴图分辨率上 alpha 叠放
-func _bake_patches(img: Image, k: Vector2i, sc: float) -> void:
-	var pd: Dictionary = theme.patches
-	var pt: Texture2D = tex.get(pd.tex)
-	if pt == null:
-		return
-	if _patch_img == null:
-		_patch_img = _rgba(pt)
-	var PATCH: float = float(pd.get("size", 256))
-	var src: int = int(pd.get("src_px", 128))
-	var kinds: int = int(pd.get("kinds", 4))
-	var cl_n: float = float(pd.get("cluster", 3))
-	var skip_mod: int = int(pd.get("skip_cluster_mod", 3))
-	var density: int = int(pd.get("density", 78))
-	var ppc: int = int(CHUNK / PATCH)
-	for ix in ppc:
-		for iy in ppc:
-			var cx: int = k.x * ppc + ix
-			var cy: int = k.y * ppc + iy
-			var cl: int = abs(hash(Vector2i(floori(cx / cl_n), floori(cy / cl_n)) + Vector2i(77, 13)))
-			if cl % skip_mod == skip_mod - 1:
-				continue
-			var h: int = abs(hash(Vector2i(cx, cy) + Vector2i(5, 91)))
-			if h % 100 > density:
-				continue
-			var kind: int = (cl / 3) % kinds
-			var reg: Image = _patch_img.get_region(Rect2i(kind * src, 0, src, src))
-			if h % 2 == 0:
-				reg.flip_x()
-			if (h / 2) % 2 == 0:
-				reg.flip_y()
-			img.blend_rect(reg, Rect2i(0, 0, src, src), Vector2i(int(ix * PATCH * sc), int(iy * PATCH * sc)))
-
-
-func _rgba(t: Texture2D) -> Image:
-	var im: Image = t.get_image()
-	if im.is_compressed():
-		im.decompress()
-	if im.get_format() != Image.FORMAT_RGBA8:
-		im.convert(Image.FORMAT_RGBA8)
-	return im
 
 
 ## 地形区域块：聚簇的同类区域，随机镜像

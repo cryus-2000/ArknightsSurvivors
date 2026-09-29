@@ -82,7 +82,7 @@ def src_to_op():
                 m[k] = f[:-5]
     return m
 
-BOTS = ["afk", "bad", "normal", "expert", "master"]
+BOTS = ["afk", "bad", "normal", "expert"]
 ## 各档机器人的难度目标（docs/29 §3）：win 胜率区间、t 平均存活秒数区间、s330 3:30 存活率下限
 BOT_TARGETS = {
     "afk":    {"win": (0.0, 0.0),   "t": (90, 300),  "s330": None, "desc": "挂机：3:30 前死；活过 5:00 说明太简单"},

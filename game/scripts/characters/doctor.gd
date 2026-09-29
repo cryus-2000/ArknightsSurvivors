@@ -58,9 +58,8 @@ func try_manual_skill(dir: Vector2 = Vector2.INF) -> bool:
 				return true
 			var pt: Vector2 = point_now(o, i)
 			if pt == Vector2.INF and from_keys and not _touching():
-				# 键盘：按住蓄距离，松手放。充能已满、只是正在出手（或锚还没收回）也先蓄，松手时 press_manual 会记下、一空出来就放
-				if o.sp[i] >= o.sp_need(i) and o.skill_active_left(i) <= 0.0 and not o.perm[i] and o.manual_block_reason(i, Vector2.RIGHT) == "":
-					charge = {"i": i, "t": 0.0}
+				if o.manual_ready(i, Vector2.RIGHT):
+					charge = {"i": i, "t": 0.0}   # 键盘：按住蓄距离，松手放
 					return true
 				pt = charge_point(o, i)   # 放不了：照常提示原因（正在出手时按最短距离记下）
 			_press_point(o, i, pt)
@@ -133,13 +132,15 @@ func tick_input(dt: float) -> void:
 			_mouse_last = mp
 	if not charge.is_empty():
 		charge.t += dt
+		# 蓄距离循环音（音频）：每帧 loop_start（已在播只改音高），暂停时 music_director 停掉、回来自动续上
+		Sfx.loop_start("ulp_charge_loop", Sfx.ULP_LOOP_DB, 0.8 + 0.8 * clampf(charge.t / Bal.v("manual/point_charge", 0.6), 0.0, 1.0))
 		if not _skill_key_held():
 			var i: int = charge.i
-			var ld = g.squad.leader()
-			var pt: Vector2 = charge_point(ld, i) if ld != null else Vector2.INF   # 先按蓄到的时长算落点，再清蓄力
+			Sfx.loop_stop("ulp_charge_loop")
 			charge = {}
+			var ld = g.squad.leader()
 			if ld != null and ld.manual_index() == i:
-				_press_point(ld, i, pt)
+				_press_point(ld, i, charge_point(ld, i, true))
 
 
 ## 攻击键此刻是否按着：键鼠左键 / J，手柄 RT / Ⓧ，触屏攻击键
@@ -209,7 +210,7 @@ func point_now(ld, i: int) -> Vector2:
 
 ## 键盘 / 左摇杆蓄距离的落点：manual/point_charge 秒内从 manual/point_min 涨到 aim_range，沿移动方向（站着取朝向）。
 ## 没在蓄（轻点预览）时按最短距离
-func charge_point(ld, i: int) -> Vector2:
+func charge_point(ld, i: int, _final := false) -> Vector2:
 	var t: float = float(charge.get("t", 0.0)) if not charge.is_empty() else 0.0
 	var k: float = clampf(t / Bal.v("manual/point_charge", 0.6), 0.0, 1.0)
 	var lo: float = Bal.v("manual/point_min", 150.0)

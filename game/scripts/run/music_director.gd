@@ -33,6 +33,8 @@ func update(_dt: float) -> void:
 	if g.state == g.S.PAUSE or g.state == g.S.CHOICE or g.state == g.S.SHOP or g.state == g.S.SHOW or g.state == g.S.STATS or g.state == g.S.INTRO or g.state == g.S.OPENING:
 		target = 1800.0
 	Sfx.cut_target = target
+	if g.state != g.S.PLAY:
+		Sfx.loop_stop("ulp_charge_loop")   # 暂停 / 选卡 / 倒下时蓄力循环音别一直响（doctor.tick_input 不跑）
 	Sfx.vol_target = -4.0
 	# ---- 选曲与战斗分层（v2.0 配乐，docs/21）
 	if g.state == g.S.DEAD or g.state == g.S.WIN:

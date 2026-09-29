@@ -191,19 +191,8 @@ func draw_world() -> void:
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
-	# 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
-	# 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）
-	var vr: Rect2 = view_rect(40.0)
-	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
-	var cells := {}
 	for g_item in g.gems:
-		if not vr.has_point(g_item.pos):
-			continue
 		var gz: float = g_item.get("z", 0.0)
-		if crowd_gems and g_item.kind == "xp" and not g_item.mag and gz <= 1.0 and g_item.val < 5.0 and g_item.pos.distance_to(g.ppos) > 170.0:
-			var ck := Vector2i(floori(g_item.pos.x / GEM_CELL), floori(g_item.pos.y / GEM_CELL))
-			cells[ck] = int(cells.get(ck, 0)) + 1
-			continue
 		if gz > 1.0:
 			g.draw_set_transform(g_item.pos + Vector2(0, 8), 0.0, Vector2(1.0, 0.45))
 			g.draw_circle(Vector2.ZERO, 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6)), Color(0, 0, 0, 0.35))
@@ -257,17 +246,9 @@ func draw_world() -> void:
 			"magnet", "heal":
 				g.vfx.spr("pickup_" + g_item.kind, 1, 0, g_item.pos + Vector2(0, -2 + (sin(g.t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		g.draw_off = Vector2.ZERO
-	for ck in cells:
-		# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶
-		var n: int = cells[ck]
-		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
-		g.vfx.spr("gem_big" if n >= 3 else "gem_small", 1, 0, cp, Game.PX * (1.9 if n >= 3 else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
-	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	for e in g.enemies:
-		if not evr.has_point(e.pos):
-			continue
 		var sc: float = Game.PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
 		g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
@@ -278,8 +259,7 @@ func draw_world() -> void:
 	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
 	var dl: Array = []
 	for e in g.enemies:
-		if evr.has_point(e.pos):
-			dl.append([e.pos.y + e.r * 0.8, 0, e])
+		dl.append([e.pos.y + e.r * 0.8, 0, e])
 	dl.append([g.doc_pos.y + 6.0, 2, null])
 	for o in g.squad.ops:
 		if o.pos != Vector2.INF:
@@ -1204,9 +1184,8 @@ const ENEMY_TELL := Color(1.0, 0.3, 0.72)       # 敌方危险主色：洋红（
 const TELL_BURST := Color(0.78, 0.42, 1.0)      # 囊海爬行者爆裂：紫
 
 func draw_enemy_tells() -> void:
-	var tvr: Rect2 = view_rect(TELL_MARGIN)   # 冲刺线 / 危险圈能伸进屏幕，外扩大一些
 	for e in g.enemies:
-		if e.dead or (not e.boss and not tvr.has_point(e.pos)):
+		if e.dead:
 			continue
 		if e.get("blast_w", 0.0) > 0.0:
 			var xd: Dictionary = D.ENEMIES.get(e.type, {})
@@ -1693,19 +1672,6 @@ func spear_fly_fx(b: Dictionary) -> void:
 	g.fx.append({"kind": "spear_fly", "pos": b.pos + Vector2(0, -b.r), "to": b.pos + Vector2(dir * 150.0, 20.0), "life": 0.8, "max": 0.8, "enemy": true})
 
 
-const ENTITY_MARGIN := 180.0   # 大体型 Boss / 精英贴图从脚底往上长，外扩够画出半身
-const TELL_MARGIN := 420.0
-const GEM_MERGE_N := 120        # 场上结晶超过这个数才合并远处的小结晶
-const GEM_CELL := 26.0
-
-
-## 当前镜头看到的世界矩形（外扩 margin）：屏幕外剔除用
-func view_rect(margin: float) -> Rect2:
-	var inv: Transform2D = g.get_viewport().get_canvas_transform().affine_inverse()
-	var vs: Vector2 = g.get_viewport_rect().size
-	return (inv * Rect2(Vector2.ZERO, vs)).grow(margin)
-
-
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
 func _lazy_tex(n: String) -> Texture2D:
 	if not g.tex.has(n):
@@ -1910,17 +1876,8 @@ func draw_warn_outlines() -> void:
 		var gy: float = ground_y()
 		match w.shape:
 			"circle":
-				# 样式按 Boss与怪物 在 _warn 里填的 w.style（c46c668）：0 预告 / 1 落点圈 / 4 缺口环 / 5 必须冲刺；
-				# follow 只表示圈跟着施法者走，不等于环（钻地咬击、踏地、触须爆发、寒冰领域都是 follow 的落点圈）
-				var st: int = int(w.get("style", 1))
-				var ring: bool = st == 4
-				var must: bool = st == 5 or w.get("must_dash", false)
-				if st == 0:
-					# 预告（不伤人，如投嗣育母生成点）：很淡的虚线细圈，不填内圈、不白闪
-					g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
-					_warn_dash_arc(w.r, 0.0, TAU, Color(1, 1, 1, 0.3), 1.0)
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-					continue
+				var ring: bool = w.get("follow", false) or w.has("gap_ang")
+				var must: bool = w.get("must_dash", false)
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
 				if tracking:
 					_warn_dash_arc(w.r, 0.0, TAU, edge, 5.0)

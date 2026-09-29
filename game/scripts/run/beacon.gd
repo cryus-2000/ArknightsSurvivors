@@ -60,6 +60,7 @@ func update(dt: float) -> void:
 		if b.age > _k("unlit_life", 45.0):
 			b.dead = true
 			g.vfx.sparks(b.pos, Vector2.UP, Color(0.6, 0.7, 0.8), 8, 90.0)
+			Sfx.play("beacon_fizzle", -4.3 if b.pos.distance_to(g.ppos) < 560.0 else -10.3, 1.0, 0.0)   # 没点燃熄灭：噗噗几下 + 嘶声，无音调（和安全区结束的两音下行区分）
 			# 熄灭提示（别让玩家以为是 bug）：在屏内就在灯标上飘字，在屏外弹一句横幅
 			if b.pos.distance_to(g.ppos) < 560.0:
 				g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标熄灭了", Color(0.7, 0.78, 0.85), 15)

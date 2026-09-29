@@ -5,11 +5,12 @@ const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", 
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
 	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
 	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword",
+	"ulp_charge_loop", "ulp_release", "atk_gate", "beacon_fizzle",
 	"boss_archon", "boss_bishop", "boss_carmen", "boss_iberia", "boss_immortal", "boss_ishar", "boss_izumik", "boss_knight_boss", "boss_paranoia", "boss_path", "cue_beam_hit", "cue_beam_start", "cue_charge_hit", "cue_charge_start", "cue_global_hit", "cue_global_start", "cue_land_hit", "cue_land_start", "cue_melee_hit", "cue_melee_start", "cue_phase_start"]
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -556,6 +557,8 @@ func _voice_tick() -> void:
 
 ## 场景切换 / 回标题时清空（避免上一局的部署语音串到下一局）
 func voice_reset() -> void:
+	for lp in loops.values():
+		lp.stop()
 	voice_queue.clear()
 	voice_player.stop()
 	voice_prio = 0
@@ -632,6 +635,50 @@ func play_cue(cat: String, boss: String, stage := "start") -> void:
 	if stage == "start":
 		var b := "boss_" + boss
 		play(b, float(CUE_VOL.get(b, -22.0)), 1.0, 0.0)
+
+
+## 手动操作的音量（tools/gen_sfx_events.py；外放口径）：蓄距离循环 -24、释放 -17、被闸门拦住的「咔」-28
+const ULP_LOOP_DB := -18.0
+const ULP_RELEASE_DB := -2.1
+const ATK_GATE_DB := -10.6
+
+## 循环音效（乌尔比安 S3 手动蓄距离等）：loop_start 开始（已在播只改音量 / 音高），loop_pitch 每帧改音高，loop_stop 停。
+## 各名字一个独立播放器，不占一次性音效的 32 个；新一局（voice_reset）时全部停掉
+var loops := {}
+
+
+func loop_start(name: String, vol := 0.0, pitch := 1.0) -> void:
+	if streams.get(name) == null:
+		return
+	var p: AudioStreamPlayer = loops.get(name)
+	if p == null:
+		p = AudioStreamPlayer.new()
+		p.bus = "SFX"
+		add_child(p)
+		var st: AudioStream = streams[name]
+		if st is AudioStreamWAV:
+			st = st.duplicate()
+			st.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			st.loop_begin = 0
+			st.loop_end = int(st.get_length() * st.mix_rate)
+		p.stream = st
+		loops[name] = p
+	p.volume_db = vol
+	p.pitch_scale = clampf(pitch, 0.25, 4.0)
+	if not p.playing:
+		p.play()
+
+
+func loop_pitch(name: String, pitch: float) -> void:
+	var p: AudioStreamPlayer = loops.get(name)
+	if p != null:
+		p.pitch_scale = clampf(pitch, 0.25, 4.0)
+
+
+func loop_stop(name: String) -> void:
+	var p: AudioStreamPlayer = loops.get(name)
+	if p != null:
+		p.stop()
 
 
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
