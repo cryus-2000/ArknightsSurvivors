@@ -1844,58 +1844,93 @@ func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## Boss 招式预警的轮廓再描一遍（填色仍在地面层，boss_ai._draw_warns）：地面层会被友方特效盖住，
-## 轮廓画在特效之上，后期满屏特效时也看得到往哪躲
+## Boss 招式预警的轮廓（填色仍在地面层，boss_ai._draw_warns）：按 docs/38 §8.11 收敛成五种样式，
+## 轮廓一律「白芯 + 深色描边」（颜色只在填充里区分 Boss 主题）；追踪中虚线，锁定（w.track）后实线并白闪。
+## ① 落点圈：固定落点 circle —— 地面椭圆外圈 + 内圈随结算时间长满，落地前一瞬白闪
+## ② 直线：line —— 边框 + 终点端盖；冲锋 / 突刺沿线画方向箭头；骑士撞桩端盖写「破」
+## ③ 扇形：cone —— 两条边 + 弧，扇面内一道随时间扫过的弧
+## ④ 缺口环：follow 的 circle 或带 gap_ang 的环 —— 环 + 缺口处金色「出口」标记
+## ⑤ 全场·必须冲刺：must_dash —— 白色双描边 + 冲刺图标（屏幕级提示在 hud.draw_field_wave）
+const WARN_CORE := Color(1, 1, 1)
+const WARN_EDGE := Color(0.02, 0.02, 0.05)
+
+func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> void:
+	var seg: float = 0.22
+	var a: float = a0
+	while a < a1:
+		g.draw_arc(Vector2.ZERO, r, a, minf(a + seg * 0.55, a1), 4, col, wdt)
+		a += seg
+
+
 func draw_warn_outlines() -> void:
 	for w in g.warns:
 		if w.done:
 			continue
-		if w.has("gap_ang"):
-			# 缺口方向与真实弹道使用同一角度；不做地面纵向压缩。
-			var safe_col := Color(1.0, 0.85, 0.35, 0.85)
-			for side in [-1.0, 1.0]:
-				var v := Vector2.from_angle(float(w.gap_ang) + side * float(w.gap_half))
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
-		var c: Color = w.col
-		var line := Color(c.r, c.g, c.b, 0.6 + 0.35 * k)   # 不乘亮度：乘完在灯光里会褪成白 / 粉彩（docs/48 ④）
-		var dark := Color(0.0, 0.0, 0.0, 0.55)
+		var tr: float = float(w.get("track", 0.0))
+		var tracking: bool = tr > 0.0 and w.t < tr
+		var lk: float = w.t - tr
+		var lock_flash: float = (1.0 - lk / 0.15) if tr > 0.0 and lk >= 0.0 and lk < 0.15 else 0.0
+		var core := Color(WARN_CORE.r, WARN_CORE.g, WARN_CORE.b, 0.7 + 0.3 * k)
+		var edge := Color(WARN_EDGE.r, WARN_EDGE.g, WARN_EDGE.b, 0.7)
+		var gy: float = ground_y()
 		match w.shape:
 			"circle":
-				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, 0.72))
-				g.draw_arc(Vector2.ZERO, w.r + 2.0, 0.0, TAU, 40, dark, 2.0)
-				g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.0)
-				if w.get("must_dash", false):
-					# 必须冲刺躲的招式（docs/38 §1.9）：白色双描边 + 圈上方冲刺图标（三道向外的斜杠）
+				var ring: bool = w.get("follow", false) or w.has("gap_ang")
+				var must: bool = w.get("must_dash", false)
+				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
+				if tracking:
+					_warn_dash_arc(w.r, 0.0, TAU, edge, 5.0)
+					_warn_dash_arc(w.r, 0.0, TAU, core, 2.0)
+				else:
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, edge, 5.0)
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, core, 2.0)
+				if must:
+					# ⑤ 必须冲刺：白色双描边
 					var pk: float = 0.5 + 0.5 * sin(g.t * 12.0)
-					g.draw_arc(Vector2.ZERO, w.r + 7.0, 0.0, TAU, 48, Color(1, 1, 1, 0.55 + 0.35 * pk), 2.0)
-					g.draw_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 48, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
+					g.draw_arc(Vector2.ZERO, w.r + 7.0, 0.0, TAU, 56, Color(1, 1, 1, 0.55 + 0.35 * pk), 2.0)
+					g.draw_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 56, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
+				elif not ring:
+					# ① 落点圈：内圈随结算时间长满，最后 0.12 秒整圈白闪
+					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 48, Color(1, 1, 1, 0.35 + 0.35 * k), 1.5)
+					if w.dur - w.t < 0.12:
+						g.draw_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.35))
+				if lock_flash > 0.0:
+					g.draw_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.4 * lock_flash))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				if w.get("must_dash", false):
-					var ic: Vector2 = w.pos + Vector2(0, -w.r * 0.72 - 22.0)
+				if must:
+					var ic: Vector2 = w.pos + Vector2(0, -w.r * gy - 22.0)
 					for q in 3:
 						var ox: float = -9.0 + q * 7.0
 						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
 						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
 			"line":
 				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
-				if float(w.get("track", 0.0)) > 0.0 and w.t < float(w.track):
-					# 锁定时刻可视化（协调人）：还在跟着主控转的线画虚线，锁定（w.track）后变实线
-					var dl := Color(line.r, line.g, line.b, 0.45 + 0.3 * k)
+				if tracking:
 					var xx := 0.0
 					while xx < w.len:
 						var x2: float = minf(xx + 14.0, w.len)
 						for sy in [-w.wid, w.wid]:
-							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), dark, 4.0)
-							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), dl, 2.0)
+							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), edge, 5.0)
+							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), core, 2.0)
 						xx += 24.0
 				else:
-					g.draw_rect(Rect2(0.0, -w.wid - 2.0, w.len, w.wid * 2.0 + 4.0), dark, false, 2.0)
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
-					var lk: float = w.t - float(w.get("track", 0.0))
-					if float(w.get("track", 0.0)) > 0.0 and lk < 0.15:
-						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * (1.0 - lk / 0.15)), true)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), edge, false, 5.0)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), core, false, 2.0)
+					if lock_flash > 0.0:
+						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * lock_flash), true)
+				# 终点端盖
+				g.draw_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), edge, 7.0)
+				g.draw_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), core, 3.0)
+				# 冲锋 / 突刺：沿线的方向箭头，随时间向前流动
+				if w.get("act", "") in ["dash", "stab"]:
+					var hw: float = minf(w.wid * 0.6, 14.0)
+					var off: float = fmod(g.t * 160.0, 70.0)
+					var ax: float = 30.0 + off
+					while ax < w.len - 20.0:
+						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), edge, 5.0)
+						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), Color(1, 1, 1, 0.55 + 0.35 * k), 2.0)
+						ax += 70.0
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				if w.get("stake_hit", false) or (w.get("owner") is Dictionary and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty()):
 					_stake_cap(w)
@@ -1904,8 +1939,28 @@ func draw_warn_outlines() -> void:
 				for q in 17:
 					pts.append(w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * q / 16.0) * w.r)
 				pts.append(w.pos)
-				g.draw_polyline(pts, dark, 4.0)
-				g.draw_polyline(pts, line, 2.0)
+				if tracking:
+					for q in pts.size() - 1:
+						if q % 2 == 0:
+							g.draw_line(pts[q], pts[q + 1], edge, 5.0)
+							g.draw_line(pts[q], pts[q + 1], core, 2.0)
+				else:
+					g.draw_polyline(pts, edge, 5.0)
+					g.draw_polyline(pts, core, 2.0)
+				# 扇面内一道随时间向外推的弧
+				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, 0.3 + 0.4 * k), 1.5)
+				if lock_flash > 0.0:
+					g.draw_colored_polygon(pts, Color(1, 1, 1, 0.3 * lock_flash))
+		# ④ 缺口环的出口：缺口两侧金色短线 + 中间「出口」小牌（缺口方向与真实弹道同一角度，不做地面压缩）
+		if w.has("gap_ang"):
+			var safe_col := Color(1.0, 0.85, 0.35, 0.9)
+			for side in [-1.0, 1.0]:
+				var v := Vector2.from_angle(float(w.gap_ang) + side * float(w.gap_half))
+				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
+				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
+			var mp: Vector2 = w.pos + Vector2.from_angle(float(w.gap_ang)) * 150.0
+			g.draw_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
+			UI.text(g, g.font, mp + Vector2(-20, 3), "出口", 12, safe_col, HORIZONTAL_ALIGNMENT_CENTER, 40)
 
 
 func draw_zone() -> void:
