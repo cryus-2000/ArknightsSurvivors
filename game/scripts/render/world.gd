@@ -987,6 +987,19 @@ func ishar_animation(e: Dictionary) -> Dictionary:
 	return {"name": base, "frames": 2, "frame": int(g.t * 2.0) % 2}
 
 
+## 骑士冲锋形态 / 插枪帧（逻辑帧选择不依赖 draw 次数）；不适用时返回空字典，沿用原帧条
+func knight_animation(e: Dictionary) -> Dictionary:
+	if e.get("dash_t", 0.0) > 0.0:
+		return {"name": "e_knight_charge_form", "frames": 4, "frame": int(g.t * 10.0 + e.id * 0.37) % 4}
+	for w in g.warns:
+		if w.act == "frost" and not w.done and is_same(w.owner, e):
+			return {"name": "e_knight_plant", "frames": 4, "frame": clampi(int(float(w.t) / maxf(0.01, float(w.dur)) * 3.0), 0, 2)}
+	var la = e.get("last_act")
+	if la is Dictionary and str(la.get("act", "")) == "frost" and g.t - float(la.get("t", -1.0)) < 0.45:
+		return {"name": "e_knight_plant", "frames": 4, "frame": 3}
+	return {}
+
+
 func enemy_scale(e: Dictionary) -> float:
 	var d: Dictionary = D.ENEMIES.get(e.type, {})
 	var scale_key := "transformed_draw_scale" if e.type == "ishar" and e.phase == 2 else "draw_scale"
@@ -1158,6 +1171,14 @@ func draw_enemy(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
+	# 最后的骑士 / 敌对骑士的专用帧条（Codex boss_p1，docs/38_boss_p1_art_handoff）：冲锋途中换 e_knight_charge_form 循环（原来被出招姿态盖成攻击帧），
+	# 寒冰领域插枪换 e_knight_plant（预警期间举枪 → 落枪，结算后枪尖触地一拍；原来用攻击帧定格）。只换画面，判定和时序不动
+	if e.tex == "e_knight":
+		var ka := knight_animation(e)
+		if not ka.is_empty() and _lazy_tex(ka.name) != null:
+			name = ka.name
+			frames = ka.frames
+			frame = ka.frame
 	if e.type == "ishar":
 		var ia := ishar_animation(e)
 		if _lazy_tex(ia.name) != null:
