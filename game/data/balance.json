@@ -263,7 +263,8 @@
    "horde_in_boss": 1,
    "mire_permanent": 1,
    "max_hp": 0.9,
-   "beacon_every": 0.6
+   "beacon_every": 0.6,
+   "boss_fight_enemy_hp": 1.0
   }
  },
  "beacon": {
