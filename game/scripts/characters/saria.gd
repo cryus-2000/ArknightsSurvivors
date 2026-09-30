@@ -92,6 +92,7 @@ func update(dt: float) -> void:
 	if calc > 0.0:
 		calc -= dt
 		calc_acc += dt
+		cleanse_ctrl(false)   # 钙质化区域（跟着主控）里持续清除寒冷、束缚
 		if calc_acc >= 1.0:
 			calc_acc -= 1.0
 			if g.hp < g.max_hp:
@@ -366,6 +367,7 @@ func _release_skill() -> void:
 			var h: float = g.max_hp * base("s1_heal", 0.08) * skill_power() * (2.0 if g.hp < g.max_hp * 0.5 else 1.0)
 			heal_leader(h, "塞雷娅")
 			_heal_fx(h)
+			cleanse_ctrl(true)
 			fx({"kind": "ring", "pos": g.ppos, "r": 40.0, "r0": 8.0, "life": 0.4, "col": AMBER, "floor": true})
 			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 拳击伤害并减速 2 秒
 			if syringe_on:
@@ -403,6 +405,23 @@ func _release_skill() -> void:
 
 func skill_active_left(i: int) -> float:
 	return calc if i == 2 else 0.0
+
+
+## 净化（docs/49e，用户 9/30 定：贴原作守护者「保护前排」）：清除主控的寒冷（寒霜层数，满层冻结也一起解开）与束缚。
+## 一技能「急救」释放时清一次，三技能「钙质化」生效期间每帧清。balance.json operators/saria/cleanse = 0 关掉。
+## 清掉了东西时 show = true 在主控头顶飘「净化」。返回是否清掉了东西
+func cleanse_ctrl(show: bool) -> bool:
+	if preload("res://scripts/core/balance.gd").v("operators/saria/cleanse", 1.0) <= 0.0:
+		return false
+	if g.cold <= 0 and g.root_t <= 0.0:
+		return false
+	g.cold = 0
+	g.cold_t = 0.0
+	g.root_t = 0.0
+	g.combat.sync_cold()
+	if show:
+		float_text(g.ppos + Vector2(0, -96), "净化", AMBER, 14)
+	return true
 
 
 func skill_active_dur(i: int) -> float:

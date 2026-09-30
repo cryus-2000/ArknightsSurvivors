@@ -285,7 +285,7 @@ static func _chip(g, s: String, col: Color, bad: bool) -> Array:
 	return [s, col, false]
 
 
-## 招募卡：列出这名干员的常驻伤害特征（近战 / 远程、物理 / 法术、追击、控制），灰色，方便对照已有藏品。
+## 招募卡：列出这名干员的常驻伤害特征（近战 / 远程、物理 / 法术、追击、控制）和奶位标签（净化 / 回复），灰色，方便对照已有藏品。
 ## 近战远程两样都有时（如艾丽妮的远程追诉）只写职业对应的那个，免得标签太多
 static func trait_chips(g, cid: String) -> Array:
 	var def: Dictionary = Character.load_def(cid)
@@ -296,4 +296,30 @@ static func trait_chips(g, cid: String) -> Array:
 	for k in ["近战", "远程", "物理", "法术", "追击", "控制"]:
 		if t.get(k, false):
 			out.append([k, Color(0.62, 0.66, 0.7), false])
+	for k in care_labels(def):
+		out.append([k, Color(0.62, 0.66, 0.7), false])
+	return out
+
+
+## 奶位标签（docs/49e C 口径，用户 9/30 定）：普攻 / 技能 / 天赋 JSON 里写的 cleanse（能清的状态）与 heal（回复主控），
+## 汇总成「净化：侵蚀 · 神经损伤」「回复」。状态名与排序按 docs/37 §6。选人页（title.gd）和招募卡（上面的特性）共用
+const CLEANSE_ORDER := ["侵蚀", "神经损伤", "凋亡损伤", "寒冷", "束缚", "创口"]
+
+static func care_labels(def: Dictionary) -> Array:
+	var parts: Array = [def.get("attack", {}), def.get("talent", {})]
+	parts.append_array(def.get("skills", []))
+	var got := {}
+	var heal := false
+	for p in parts:
+		if not (p is Dictionary):
+			continue
+		heal = heal or bool(p.get("heal", false))
+		for st in p.get("cleanse", []):
+			got[st] = true
+	var out: Array = []
+	var cl: Array = CLEANSE_ORDER.filter(func(k): return got.has(k))
+	if not cl.is_empty():
+		out.append("净化：" + " · ".join(PackedStringArray(cl)))
+	if heal:
+		out.append("回复")
 	return out

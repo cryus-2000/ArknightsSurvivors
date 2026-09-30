@@ -2,6 +2,7 @@ extends Control
 ## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与水月站在浪边）
 
 const UI = preload("res://scripts/ui.gd")
+const Affects = preload("res://scripts/run/affects.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
@@ -1009,6 +1010,13 @@ func _draw_op_pick(vs: Vector2) -> void:
 	cx += UI.chip(self, font, Vector2(cx, py + 18), d.get("class", ""), col, 12) + 8
 	for tg in d.get("gallery", {}).get("tags", []):
 		cx += UI.chip(self, font, Vector2(cx, py + 18), tg, UI.PURPLE, 11) + 6
+	# 奶位标签（docs/49e：净化 X · Y / 回复，按技能数据生成）：名字那行放不下，放在英文名这一行、靠右对齐
+	var care: Array = Affects.care_labels(d)
+	var rx: float = dr.end.x - 24.0
+	for ci in range(care.size() - 1, -1, -1):
+		rx -= font.get_string_size(care[ci], HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 16.0
+		UI.chip(self, font, Vector2(rx, py - 16), care[ci], UI.PURPLE, 11)
+		rx -= 6.0
 	# 招募时的基础数值来自角色 / 博士 JSON 与当前平衡修正，不含局内成长。
 	var numbers: Array = cur.numbers
 	for ni in numbers.size():

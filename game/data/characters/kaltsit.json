@@ -151,7 +151,8 @@
  "attack": {
   "mode": "auto",
   "name": "治疗",
-  "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）"
+  "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）",
+  "heal": true
  },
  "skills": [
   {
@@ -159,6 +160,10 @@
    "en": "MEDICAL UNIT",
    "sp": 7,
    "desc": "立即为主控回复 6.8% 最大生命并清除神经损伤",
+   "heal": true,
+   "cleanse": [
+    "神经损伤"
+   ],
    "icon": "skill_kaltsit_s1"
   },
   {

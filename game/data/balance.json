@@ -29,7 +29,8 @@
    "atk": 0.0,
    "aspd": 0.0,
    "range": 0.0,
-   "skill_power": 0.02
+   "skill_power": 0.02,
+   "cleanse": 1
   },
   "suzuran": {
    "tier": "A+",

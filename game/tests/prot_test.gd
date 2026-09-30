@@ -75,6 +75,7 @@ func _process(_d: float) -> void:
 	test_warn_style()
 	test_any_cap()
 	test_ailments()
+	test_saria_cleanse()
 	test_lore1()
 	test_lore2()
 	test_lore3()
@@ -1022,6 +1023,37 @@ func test_any_cap() -> void:
 
 
 ## 小怪控制与词条（用户 9/29）：寒霜叠层 → 冻结、Boss 在场转减速、冲刺挣脱、侵蚀创口减治疗 + 掉血、合计上限、甲壳 / 潮盾
+## 塞雷娅净化（docs/49e，用户 9/30）：cleanse_ctrl 清寒冷（层数与攻速减益）与冻结 / 束缚；operators/saria/cleanse = 0 时不清；
+## 选人页 / 招募卡的奶位标签按技能数据生成
+func test_saria_cleanse() -> void:
+	var sa = load("res://scripts/characters/character.gd").create(game, "saria")
+	game.cold = 3
+	game.cold_t = 2.0
+	game.root_t = 0.8
+	c.sync_cold()
+	var did: bool = sa.cleanse_ctrl(false)
+	ok(did and game.cold == 0 and game.cold_t == 0.0 and game.root_t == 0.0, "塞雷娅净化：清除寒冷与冻结 / 束缚")
+	var ops: Dictionary = Bal._data.get("operators", {})
+	var sbak = ops.get("saria", {}).duplicate()
+	var s2: Dictionary = sbak.duplicate()
+	s2["cleanse"] = 0
+	ops["saria"] = s2
+	Bal._data["operators"] = ops
+	game.cold = 2
+	game.root_t = 0.5
+	ok(not sa.cleanse_ctrl(false) and game.cold == 2 and game.root_t == 0.5, "operators/saria/cleanse = 0：不净化")
+	ops["saria"] = sbak
+	game.cold = 0
+	game.root_t = 0.0
+	c.sync_cold()
+	var Aff = load("res://scripts/run/affects.gd")
+	var Ch = load("res://scripts/characters/character.gd")
+	ok(Aff.care_labels(Ch.load_def("saria")) == ["净化：寒冷 · 束缚", "回复"], "奶位标签：塞雷娅 %s" % str(Aff.care_labels(Ch.load_def("saria"))))
+	ok(Aff.care_labels(Ch.load_def("lumen")) == ["净化：侵蚀 · 神经损伤", "回复"], "奶位标签：流明 %s" % str(Aff.care_labels(Ch.load_def("lumen"))))
+	ok(Aff.care_labels(Ch.load_def("kaltsit")) == ["净化：神经损伤", "回复"], "奶位标签：凯尔希")
+	ok(Aff.care_labels(Ch.load_def("skadi")).is_empty(), "奶位标签：斯卡蒂没有")
+
+
 func test_ailments() -> void:
 	# 断言按全局 enemy 段写（寒霜 3 层等）；本机存档的难度档可能是 Ⅳ / Ⅷ，其难度表会覆盖 frost_max / ctrl_start，这里固定用标准档
 	var keep_dmod: Dictionary = game.dmod
