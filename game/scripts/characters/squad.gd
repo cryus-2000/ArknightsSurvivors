@@ -294,17 +294,24 @@ func draw_leader_mark() -> void:
 	cv.begin()
 	# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
 	var c: Color = o.col()
+	# 可见度（界面与美术 9/30：几十条冲刺预警线交叉压在主控身上时细环认不出）：按预警轮廓的「深边 + 色 + 白芯」画法，任何底色上都跳出来
+	var dark := Color(0.02, 0.02, 0.05, 0.75)
 	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	cv.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, dark, 5.0)
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.9), 2.5)
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(1, 1, 1, 0.6), 1.0)
 	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
 	var dk: float = 1.0 - g.dash_cd / g.DASH_CD
 	if dk < 1.0:
-		cv.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
+		cv.draw_arc(Vector2.ZERO, 30.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
 	else:
-		cv.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
-	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
+	var fc: float = g.facing
+	var tip: Vector2 = o.pos + Vector2(30.0 * fc, 4)
+	# 朝向小三角：先垫一个每边大 2 像素的深色三角
+	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
+	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
 	cv.end()
 
 
