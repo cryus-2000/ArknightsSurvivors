@@ -111,10 +111,13 @@ def real_errors(text):
 def isolated_run(arguments,timeout,seed=None,inspect=None):
     # Windows Godot get_config_path/get_cache_path honor these process env variables.
     # seed: {APPDATA 下相对路径: 文本}，启动前写入；inspect(appdata_path) 在临时目录删除前读取结果。
-    saved={name:os.environ.get(name) for name in ('APPDATA','LOCALAPPDATA')}
+    # ARK_REAL_USERDIR=1：godot_runner 缺省会给每次启动换成它自己的测试用户目录（带固定测试设置，c2c1528），
+    # 这里要用下面自己建的空目录（全新存档 / 迁移种子），所以关掉那层替换
+    saved={name:os.environ.get(name) for name in ('APPDATA','LOCALAPPDATA','ARK_REAL_USERDIR')}
     with tempfile.TemporaryDirectory(prefix='pack_profile_',dir=ROOT/'build') as directory:
         try:
-            for name in saved:
+            os.environ['ARK_REAL_USERDIR']='1'
+            for name in ('APPDATA','LOCALAPPDATA'):
                 path=Path(directory)/name
                 path.mkdir()
                 os.environ[name]=str(path)
