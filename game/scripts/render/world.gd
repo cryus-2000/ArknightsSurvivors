@@ -194,9 +194,14 @@ func draw_world() -> void:
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
 	_pk("ground")
+	var mvr: Rect2 = view_rect(40.0)
+	var bubbles: Array = []
 	for m in g.mires:
 		g.map.draw_mire(m)
+		if bubbles.size() < MIRE_BUBBLE_MAX and mvr.has_point(m.pos):
+			_mire_bubbles(m, bubbles)
 	tb_flush()
+	_draw_mire_bubbles(bubbles)
 	_pk("mire")
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	g.bai._draw_warns()
@@ -1857,6 +1862,51 @@ const GEM_CELL := 26.0
 
 
 ## 当前镜头看到的世界矩形（外扩 margin）：屏幕外剔除用
+## 溟痕冒泡（V7 fx_mire_bubble，16×16 × 4 帧 8 fps；docs/13 §8、docs/48 §1-6「已交付但闲置」）：纯画面。
+## 每片溟痕按半径 1–4 个冒泡位，每位 1.6–2.6 秒冒一次（0.5 秒播完 4 帧），位置由溟痕 seed 和第几次冒泡算出，不用对局随机数；
+## 主控踩在溟痕里时脚边另有 2 个更快的冒泡位（V7 原意）。只画屏幕内的，全场最多 MIRE_BUBBLE_MAX 个；
+## 在溟痕循环里只收集，循环后同一张贴图连续画，贴图矩形自成一批，不打断溟痕本身的合批
+const MIRE_BUBBLE_MAX := 48
+
+func _mire_bubbles(m: Dictionary, out: Array) -> void:
+	var a: float = clampf(float(m.life) / 3.0, 0.0, 1.0)
+	var r: float = float(m.r)
+	var sd: float = float(m.get("seed", 0.0))
+	var slots: int = clampi(int(r / 18.0), 1, 4)
+	var feet: bool = g.combat.ground_d(g.ppos, m.pos) < r
+	for k in slots + (2 if feet else 0):
+		var near: bool = k >= slots
+		var period: float = (0.9 if near else 1.6) + fmod(sd * 0.37 + k * 0.61, 1.0) * (0.5 if near else 1.0)
+		var tt: float = g.t + sd * 0.53 + k * 0.29
+		var cyc: float = floorf(tt / period)
+		var ph: float = (tt - cyc * period) / 0.5
+		if ph >= 1.0:
+			continue
+		var h: float = fmod(sin(cyc * 12.9898 + k * 78.233 + sd) * 43758.5453, 1.0)
+		var h2: float = fmod(sin(cyc * 39.346 + k * 11.135 + sd * 2.0) * 24634.6345, 1.0)
+		var c: Vector2 = g.ppos + Vector2(0, 6) if near else m.pos
+		var rr: float = (22.0 if near else r * 0.75) * sqrt(absf(h2))
+		var off := Vector2.from_angle(absf(h) * TAU) * rr
+		out.append([c + Vector2(off.x, off.y * 0.55), int(ph * 4.0), a])
+		if out.size() >= MIRE_BUBBLE_MAX:
+			return
+
+
+func _draw_mire_bubbles(bubbles: Array) -> void:
+	if bubbles.is_empty():
+		return
+	var bt: Texture2D = _lazy_tex("fx_mire_bubble")
+	if bt == null:
+		return
+	var hr: float = A.hires_of(bt)
+	var fw: float = bt.get_width() / 4.0
+	var fh: float = float(bt.get_height())
+	var sz := Vector2(fw, fh) * Game.PX / hr
+	for b in bubbles:
+		var p: Vector2 = b[0]
+		g.draw_texture_rect_region(bt, Rect2(p - Vector2(sz.x / 2.0, sz.y), sz), Rect2(fw * int(b[1]), 0, fw, fh), Color(1, 1, 1, 0.85 * float(b[2])))
+
+
 func view_rect(margin: float) -> Rect2:
 	var inv: Transform2D = g.get_viewport().get_canvas_transform().affine_inverse()
 	var vs: Vector2 = g.get_viewport_rect().size
