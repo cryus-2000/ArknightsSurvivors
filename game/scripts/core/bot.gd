@@ -204,14 +204,22 @@ func _score_point(q: Vector2, _near: Array) -> float:
 		elif dd < 220.0:
 			s -= (220.0 - dd) / 220.0 * 0.35 * w
 	# master：追踪中（w.t < w.track，朝向还在跟人）的预警只轻扣，锁定后才全额——真人等它锁定再侧移，不会一直横移躲还没瞄准的招（协调人 10/01，docs/38 §8.5 泡影超时根因）
+	# warn_track_boss_only = 1：只对 Boss 的预警轻扣（普通怪的咬 / 刺照旧全额）；warn_track_lead：离锁定不到这么多秒就恢复全额（留出走开的时间）
 	var track_pen: float = -25.0
+	var boss_only := false
+	var lead := 0.0
 	if profile == "master":
 		track_pen = g.Bal.v("bot/warn_track_pen", -6.0)
+		boss_only = g.Bal.v("bot/warn_track_boss_only", 0.0) > 0.0
+		lead = g.Bal.v("bot/warn_track_lead", 0.0)
 	for wv in g.warns:
 		if wv.done:
 			continue
 		if _in_warn(wv, q, 36.0):
-			s += track_pen if wv.track > 0.0 and wv.t < wv.track and wv.shape != "circle" else -25.0
+			var light: bool = wv.track > 0.0 and wv.t < wv.track - lead and wv.shape != "circle"
+			if light and boss_only:
+				light = wv.owner is Dictionary and wv.owner.get("boss", false)
+			s += track_pen if light else -25.0
 	for m in g.mires:
 		if g.combat.ground_d(q, m.pos) < float(m.r) + 26.0:
 			s -= 18.0
