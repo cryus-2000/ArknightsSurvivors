@@ -203,11 +203,15 @@ func _score_point(q: Vector2, _near: Array) -> float:
 			s -= (keep * fast - dd) / (keep * fast) * 3.0 * w
 		elif dd < 220.0:
 			s -= (220.0 - dd) / 220.0 * 0.35 * w
+	# master：追踪中（w.t < w.track，朝向还在跟人）的预警只轻扣，锁定后才全额——真人等它锁定再侧移，不会一直横移躲还没瞄准的招（协调人 10/01，docs/38 §8.5 泡影超时根因）
+	var track_pen: float = -25.0
+	if profile == "master":
+		track_pen = g.Bal.v("bot/warn_track_pen", -6.0)
 	for wv in g.warns:
 		if wv.done:
 			continue
 		if _in_warn(wv, q, 36.0):
-			s -= 25.0
+			s += track_pen if wv.track > 0.0 and wv.t < wv.track and wv.shape != "circle" else -25.0
 	for m in g.mires:
 		if g.combat.ground_d(q, m.pos) < float(m.r) + 26.0:
 			s -= 18.0
