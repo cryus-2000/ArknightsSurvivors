@@ -927,6 +927,20 @@ func test_enemy_knob() -> void:
 	m.frost_max = Bal.v("enemy/frost_max", 3.0)
 	ok(not str(D.dmod_lines(m)).contains("寒霜"), "和全局相同时不显示")
 	game.dmod = keep
+	# 最终 Boss 在场时新刷杂兵的生命倍率（boss_fight_enemy_hp，-1 = 跟 enemy_hp）
+	var keep_f = game.final_boss
+	game.dmod["enemy_hp"] = 1.7
+	game.dmod["boss_fight_enemy_hp"] = 1.0
+	game.final_boss = null
+	var s0: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	game.final_boss = {"dead": false, "boss": true}
+	var s1: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	ok(absf(s1.maxhp / s0.maxhp - 1.0 / 1.7) < 0.01, "最终 Boss 在场：新刷杂兵生命按 boss_fight_enemy_hp（%.2f）" % (s1.maxhp / s0.maxhp))
+	game.dmod["boss_fight_enemy_hp"] = -1.0
+	var s2: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	ok(absf(s2.maxhp / s0.maxhp - 1.0) < 0.01, "-1：跟 enemy_hp 走")
+	game.final_boss = keep_f
+	game.dmod = keep
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:

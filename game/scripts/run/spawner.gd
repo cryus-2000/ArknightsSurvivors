@@ -355,6 +355,11 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
 	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
 	var hpm := g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp)
+	# 最终 Boss 在场时新刷的杂兵（含大群、Boss 召唤物）改用 dmod.boss_fight_enemy_hp（-1 = 跟 enemy_hp 走）；已在场的不回溯改血
+	# （docs/38 §8.5：Ⅷ 杂兵血 ×1.7 把干员输出吸走，泡影 on_boss 只有标准档的 1/3）
+	var bf: float = g.combat.enemy_knob("boss_fight_enemy_hp", -1.0)   # difficulty/<档>/ 优先，其次 enemy/boss_fight_enemy_hp
+	if bf >= 0.0 and role != "boss" and g.final_boss != null and not g.final_boss.dead:
+		hpm = g.combat.enemy_hp_time_mult() * bf
 	var dmm := float(g.dmod.enemy_dmg)
 	var dmg_t := 1.0 + minf(g.t, Bal.v("enemy/dmg_knee", 480.0)) / Bal.v("enemy/dmg_div", 260.0)
 	# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
