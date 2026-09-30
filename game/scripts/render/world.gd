@@ -837,7 +837,7 @@ func draw_world() -> void:
 	draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
 	if g.squad.has_method("draw_leader_mark"):
-		g.squad.draw_leader_mark()
+		g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
 	_pk("tells_outlines")
 	draw_zone()
 	_pk("zone")
@@ -2087,6 +2087,32 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0)
 	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
+
+
+## 手动普攻方向指示（1.1.1，用户 9/30：手动攻击时看不出要打向哪里）：只在手动普攻开启时画；从主控脚下沿 doctor.attack_dir()
+## （攻击真正打出去的方向）画一段职业色半透明短线 + 末端小箭头，深色描边垫底（同预警轮廓写法，任何底色都看得见）。
+## 触屏没拖（attack_dir 为零 = 吸附最近目标）时不画。长度 fx/atk_dir_len
+func draw_attack_dir(cv) -> void:   # cv：干员的合批画布（squad.draw_leader_mark 的同一批里调用，不新增绘制调用）
+	if g.state != Game.S.PLAY or not g.doctor.manual_attack:
+		return
+	var ld = g.squad.leader()
+	if ld == null or ld.pos == Vector2.INF:
+		return
+	var dir: Vector2 = g.doctor.attack_dir()
+	if dir == Vector2.ZERO:
+		return
+	var c: Color = ld.col()
+	var L: float = Bal.v("fx/atk_dir_len", 80.0)
+	var a: float = Bal.v("fx/atk_dir_alpha", 0.8)
+	var p0: Vector2 = ld.pos + Vector2(0, 4) + dir * 32.0   # 从脚下环（半径 24、冲刺弧 30）外面起
+	var p1: Vector2 = p0 + dir * L
+	var n: Vector2 = dir.orthogonal()
+	var dark := Color(0.02, 0.02, 0.05, 0.75)
+	cv.draw_line(p0, p1 - dir * 8.0, dark, 6.5)
+	cv.draw_colored_polygon(PackedVector2Array([p1 + dir * 3.5, p1 - dir * 14.0 + n * 11.0, p1 - dir * 14.0 - n * 11.0]), dark)
+	cv.draw_line(p0, p1 - dir * 8.0, Color(c.r, c.g, c.b, a), 3.0)
+	cv.draw_colored_polygon(PackedVector2Array([p1, p1 - dir * 12.0 + n * 8.0, p1 - dir * 12.0 - n * 8.0]), Color(c.r, c.g, c.b, minf(1.0, a + 0.15)))
+	cv.draw_line(p0 + dir * 4.0, p1 - dir * 10.0, Color(1, 1, 1, 0.35 * a), 1.0)   # 白芯，同预警轮廓写法
 
 
 ## 冲刺预警线长度：按实际冲刺距离（速度 × dash_speed × 0.35 秒）；Boss与怪物 给了 dash_len 就用它

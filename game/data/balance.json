@@ -308,6 +308,8 @@
   "tell_lead_r": 16,
   "tell_margin": 24,
   "tell_full_max": 4,
-  "tell_dim_alpha": 0.2
+  "tell_dim_alpha": 0.2,
+  "atk_dir_len": 80,
+  "atk_dir_alpha": 0.8
  }
 }

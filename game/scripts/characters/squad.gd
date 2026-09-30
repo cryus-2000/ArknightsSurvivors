@@ -312,6 +312,7 @@ func draw_leader_mark() -> void:
 	# 朝向小三角：先垫一个每边大 2 像素的深色三角
 	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
+	g.world.draw_attack_dir(cv)   # 手动普攻方向指示（界面与美术 1.1.1，协调人定并进这一批）
 	cv.end()
 
 
