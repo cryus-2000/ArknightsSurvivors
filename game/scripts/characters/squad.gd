@@ -281,21 +281,30 @@ func draw_shadows() -> void:
 			cv.sync()
 			cv.touch()
 			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
-			if o.is_leader:
-				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
-				var c: Color = o.col()
-				cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-				cv.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
-				# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
-				var dk: float = 1.0 - g.dash_cd / g.DASH_CD
-				if dk < 1.0:
-					cv.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
-				else:
-					cv.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
-				cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
-				cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
 		o.draw_extra_shadows()
+	cv.end()
+
+
+## 主控标记：脚下一圈职业色细环 + 冲刺冷却白弧，前方一枚小三角指示朝向。原来在 draw_shadows 里、会被敌方预警盖住（真机验收 9:04），
+## 改成单独函数由 world.gd 在敌方预警（draw_enemy_tells）之后调用一次（界面与美术 9/30）
+func draw_leader_mark() -> void:
+	var o = leader()
+	if o == null or not o.is_leader or o.pos == Vector2.INF:
+		return
+	cv.begin()
+	# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
+	var c: Color = o.col()
+	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	cv.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
+	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
+	var dk: float = 1.0 - g.dash_cd / g.DASH_CD
+	if dk < 1.0:
+		cv.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
+	else:
+		cv.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
+	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
 	cv.end()
 
 
