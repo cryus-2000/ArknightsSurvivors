@@ -1049,15 +1049,23 @@ func kill(e: Dictionary) -> void:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
-	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）
+	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）；旋钮在 balance.json pickup 段
 	if e.elite or e.boss:
-		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if g.rng.randf() < 0.5 else "heal", 1.0)
-	elif g.pickups.count_items() < 3:
+		var mag: bool = g.rng.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
+		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if mag else "heal", 1.0)
+		g.pickups.item_log["magnet_elite" if mag else "heal_elite"] += 1
+	elif g.pickups.count_items() >= int(Bal.v("pickup/item_cap", 3.0)):
+		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（不耗随机数，行为同原来）
+	else:
+		g.pickups.item_log.mob_rolled += 1
 		var r := g.rng.randf()
-		if r < 0.0025:
+		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025)
+		if r < pm:
 			g.pickups.drop(e.pos, "magnet", 1.0)
-		elif r < 0.006:
+			g.pickups.item_log.magnet_mob += 1
+		elif r < pm + Bal.v("pickup/heal_kill_chance", 0.0035):   # 回复区间宽度独立，调磁铁不挤占回复
 			g.pickups.drop(e.pos, "heal", 1.0)
+			g.pickups.item_log.heal_mob += 1
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
 		ing = max(ing, g.rng.randi_range(3, 5))

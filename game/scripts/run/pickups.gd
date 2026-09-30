@@ -93,6 +93,7 @@ func update(dt: float) -> void:
 					Sfx.play("pickup", -10.0, 1.6, 0.05)
 				"magnet":
 					# 磁铁：吸取全场的经验、灯油和源石锭
+					item_log.magnet_pick += 1
 					for o in g.gems:
 						if not o.dead and (o.kind == "xp" or o.kind == "oil" or o.kind == "ingot"):
 							o.mag = true
@@ -100,6 +101,7 @@ func update(dt: float) -> void:
 					g.vfx.add_text(g.ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
 					Sfx.play("relic", -4.0, 1.2, 0.0)
 				"heal":
+					item_log.heal_pick += 1
 					var hv := g.max_hp * 0.3
 					g.combat.heal(hv, "拾取")
 					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
@@ -134,6 +136,7 @@ func xp_required(level: int) -> float:
 
 ## 平衡输出（telemetry）：一局经验总量、其中溢出直接入账的量、按分钟分段的溢出量
 var xp_total := 0.0
+var item_log := {"magnet_mob": 0, "magnet_elite": 0, "heal_mob": 0, "heal_elite": 0, "magnet_pick": 0, "heal_pick": 0, "mob_rolled": 0, "mob_capped": 0}   # 磁铁 / 回复药剂的掉落（按小怪 / 精英 Boss）与拾取次数（平衡输出）
 var xp_overflow := 0.0
 var xp_overflow_min: Array = []
 var xp_total_min: Array = []   # 按分钟分段的总经验（和 xp_overflow_min 对齐，下标 = 游戏分钟）

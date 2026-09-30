@@ -267,6 +267,7 @@ func record(marks = null) -> Dictionary:
 		"xp_total": snappedf(g.pickups.xp_total, 0.1), "xp_overflow": snappedf(g.pickups.xp_overflow, 0.1),
 		"xp_overflow_min": g.pickups.xp_overflow_min.map(func(x): return snappedf(x, 0.1)),
 		"xp_total_min": g.pickups.xp_total_min.map(func(x): return snappedf(x, 0.1)),
+		"items": g.pickups.item_log.duplicate(),
 		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,
 		"relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
 		"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp,
