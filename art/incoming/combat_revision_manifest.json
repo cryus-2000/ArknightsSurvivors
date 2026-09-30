@@ -1,0 +1,548 @@
+{
+  "assets": [
+    {
+      "file": "op_mon3tr_attack.png",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          8,
+          13,
+          56,
+          55
+        ],
+        [
+          6,
+          14,
+          57,
+          55
+        ],
+        [
+          3,
+          12,
+          61,
+          55
+        ],
+        [
+          8,
+          15,
+          55,
+          55
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "458063cafe8eda0b572813f9fb3715a6c480f12be10c0b29755a0e789eb56606",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4c8e4aad-5b44-4e69-b112-5976127e17bc.png",
+      "source_sha256": "a5f2c9376676fe7a947c0f2e9bf98c751387db1d61d2da16f70055aef06c5606"
+    },
+    {
+      "file": "op_mon3tr_attack@2x.png",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          15,
+          26,
+          112,
+          110
+        ],
+        [
+          13,
+          28,
+          115,
+          110
+        ],
+        [
+          6,
+          23,
+          122,
+          110
+        ],
+        [
+          17,
+          30,
+          111,
+          110
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "8d99781717aa8ef24e5d2fe5ddab0da0323be5c923fb1413e3ff5984bde2c0ce",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4c8e4aad-5b44-4e69-b112-5976127e17bc.png",
+      "source_sha256": "a5f2c9376676fe7a947c0f2e9bf98c751387db1d61d2da16f70055aef06c5606"
+    },
+    {
+      "file": "op_mon3tr_attack_melt.png",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          8,
+          13,
+          56,
+          55
+        ],
+        [
+          6,
+          14,
+          57,
+          55
+        ],
+        [
+          3,
+          11,
+          61,
+          55
+        ],
+        [
+          8,
+          15,
+          55,
+          55
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "e4029bfe676a265dc84a7461f31f58d8a3e4502ffafb78bcad2f906079fa074c",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0b4117a2-453b-48a6-b6d9-e44ce8ef771c.png",
+      "source_sha256": "8cdd2ca7200150156fe0f6806cfdd65e56478bae2b6c43029487b272bc843073"
+    },
+    {
+      "file": "op_mon3tr_attack_melt@2x.png",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          15,
+          26,
+          112,
+          110
+        ],
+        [
+          13,
+          28,
+          115,
+          110
+        ],
+        [
+          6,
+          23,
+          122,
+          110
+        ],
+        [
+          17,
+          31,
+          111,
+          110
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "5123954ae24f1acb19fafcd11b2775729f2663e095ea71e2b5694ea13160bf6f",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0b4117a2-453b-48a6-b6d9-e44ce8ef771c.png",
+      "source_sha256": "8cdd2ca7200150156fe0f6806cfdd65e56478bae2b6c43029487b272bc843073"
+    },
+    {
+      "file": "op_mon3tr_skill.png",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 6,
+      "density": 1,
+      "frame_bounds": [
+        [
+          6,
+          12,
+          58,
+          55
+        ],
+        [
+          5,
+          13,
+          58,
+          55
+        ],
+        [
+          4,
+          11,
+          59,
+          55
+        ],
+        [
+          3,
+          10,
+          61,
+          55
+        ],
+        [
+          5,
+          11,
+          58,
+          55
+        ],
+        [
+          5,
+          12,
+          58,
+          55
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "05c6aaf8ada6db69a60e1f3465235c0c240a2a2a12f33c030cdaf8f6e995d826",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9bee3196-58d3-44fc-9148-e3dcc689decf.png",
+      "source_sha256": "7e52fbaa5df7dcede997d571c3367d0f737ccc7ab2079204446d6b883cf4ea64"
+    },
+    {
+      "file": "op_mon3tr_skill@2x.png",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 6,
+      "density": 2,
+      "frame_bounds": [
+        [
+          12,
+          23,
+          115,
+          110
+        ],
+        [
+          11,
+          26,
+          116,
+          109
+        ],
+        [
+          9,
+          22,
+          119,
+          110
+        ],
+        [
+          6,
+          20,
+          122,
+          110
+        ],
+        [
+          11,
+          22,
+          117,
+          110
+        ],
+        [
+          11,
+          23,
+          116,
+          110
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "e13d5f0c3ab72b950f9f9266fd545b8b2920c3b791b862abade71f19a5098a04",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9bee3196-58d3-44fc-9148-e3dcc689decf.png",
+      "source_sha256": "7e52fbaa5df7dcede997d571c3367d0f737ccc7ab2079204446d6b883cf4ea64"
+    },
+    {
+      "file": "e_reaper_attack.png",
+      "frame_width": 40,
+      "frame_height": 38,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          9,
+          12,
+          31,
+          36
+        ],
+        [
+          9,
+          14,
+          30,
+          36
+        ],
+        [
+          3,
+          16,
+          37,
+          36
+        ],
+        [
+          9,
+          16,
+          31,
+          36
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "572b5203ed288c209cea4fe8a4a2d8c21d6b5b665e0cb38dd84af7af6ae0162c",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3f5af571-6f05-4188-ac38-a01e1ab979a7.png",
+      "source_sha256": "79e3f0c6fe0ae184f640581c8d5f973052466810aa1656cf90566bcc0f2b45ad"
+    },
+    {
+      "file": "e_reaper_attack@2x.png",
+      "frame_width": 80,
+      "frame_height": 76,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          18,
+          24,
+          62,
+          72
+        ],
+        [
+          19,
+          28,
+          61,
+          72
+        ],
+        [
+          6,
+          31,
+          74,
+          72
+        ],
+        [
+          18,
+          32,
+          62,
+          72
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "4747d34398998489b8cc75f2421946679342fb66b7b1f8217a1884367469be02",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-3f5af571-6f05-4188-ac38-a01e1ab979a7.png",
+      "source_sha256": "79e3f0c6fe0ae184f640581c8d5f973052466810aa1656cf90566bcc0f2b45ad"
+    },
+    {
+      "file": "e_tracer_attack.png",
+      "frame_width": 40,
+      "frame_height": 36,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          11,
+          13,
+          29,
+          34
+        ],
+        [
+          11,
+          18,
+          29,
+          34
+        ],
+        [
+          3,
+          21,
+          37,
+          34
+        ],
+        [
+          12,
+          17,
+          28,
+          34
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "e28cb4ba39c0a3bea97c98d17a004b762995dd49f6a5b026834d96640ecdd34a",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8d12f071-837f-41ce-b2f1-590f5d31821f.png",
+      "source_sha256": "25c28e822f45d90f70d8a2df0c86b5339f6bee36539cff4a55c19f1be938d086"
+    },
+    {
+      "file": "e_tracer_attack@2x.png",
+      "frame_width": 80,
+      "frame_height": 72,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          22,
+          25,
+          58,
+          68
+        ],
+        [
+          22,
+          35,
+          57,
+          68
+        ],
+        [
+          6,
+          41,
+          73,
+          68
+        ],
+        [
+          23,
+          34,
+          56,
+          68
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "fea278fc1648dfbbede17985b58fcecf866d1ad00b061c4fd0d8d668afef9485",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8d12f071-837f-41ce-b2f1-590f5d31821f.png",
+      "source_sha256": "25c28e822f45d90f70d8a2df0c86b5339f6bee36539cff4a55c19f1be938d086"
+    },
+    {
+      "file": "e_nest_attack.png",
+      "frame_width": 38,
+      "frame_height": 34,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          7,
+          9,
+          30,
+          32
+        ],
+        [
+          7,
+          13,
+          30,
+          32
+        ],
+        [
+          3,
+          8,
+          35,
+          32
+        ],
+        [
+          7,
+          11,
+          31,
+          32
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "ab99a8abfd7e06ec4a414a847428a4653f9798f0310099730207a9c2239f6567",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-57fdc779-cec2-4620-82a7-7f2342712aee.png",
+      "source_sha256": "3fd69f28567f75894a762ea1cf24c55f2848fac0bb03c2abce10cee37ce2505c"
+    },
+    {
+      "file": "e_nest_attack@2x.png",
+      "frame_width": 76,
+      "frame_height": 68,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          15,
+          19,
+          61,
+          64
+        ],
+        [
+          15,
+          25,
+          61,
+          64
+        ],
+        [
+          6,
+          15,
+          70,
+          64
+        ],
+        [
+          13,
+          21,
+          62,
+          64
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "1e1969c0a477395cbcd7467606084fd5ae22a904d9b385c459b0c220e58928cf",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-57fdc779-cec2-4620-82a7-7f2342712aee.png",
+      "source_sha256": "3fd69f28567f75894a762ea1cf24c55f2848fac0bb03c2abce10cee37ce2505c"
+    },
+    {
+      "file": "fx_mon3tr_melt_slash.png",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "density": 1,
+      "frame_bounds": [
+        [
+          11,
+          19,
+          36,
+          45
+        ],
+        [
+          6,
+          9,
+          41,
+          45
+        ],
+        [
+          3,
+          5,
+          45,
+          45
+        ],
+        [
+          9,
+          9,
+          39,
+          45
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "64e2978c1859d731208a3743caff730d6bd103f7e5fda7c003fae872d7f10458",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8a1973a1-3855-4913-b461-87e39bb562b3.png",
+      "source_sha256": "9e4f63a58de2df1434fcaf8f18bb50b535dd64cf46bb8986b35234275c606d6c"
+    },
+    {
+      "file": "fx_mon3tr_melt_slash@2x.png",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "density": 2,
+      "frame_bounds": [
+        [
+          23,
+          39,
+          72,
+          90
+        ],
+        [
+          13,
+          18,
+          83,
+          90
+        ],
+        [
+          6,
+          10,
+          90,
+          90
+        ],
+        [
+          18,
+          19,
+          78,
+          90
+        ]
+      ],
+      "alpha": "binary",
+      "sha256": "63ecc95d7ce36cc7c0e2b0e09eb8217a7b65b362bb0d7914c1af1183e0767367",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8a1973a1-3855-4913-b461-87e39bb562b3.png",
+      "source_sha256": "9e4f63a58de2df1434fcaf8f18bb50b535dd64cf46bb8986b35234275c606d6c"
+    }
+  ],
+  "verified_frames": 60,
+  "notes": "Mon3tr anchor(32,60), attacks14fps event2; skill12fps; enemy4 frames driven by warning duration."
+}

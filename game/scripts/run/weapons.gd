@@ -77,7 +77,7 @@ func update_bullets(dt: float) -> void:
 		# 追踪：导弹 / 紫色法术
 		var hm = b.get("home")
 		if hm != null:
-			if hm.dead:
+			if hm.dead or hm.get("friendly", false):
 				if b.has("accel"):
 					# 导弹：目标没了就改追导弹附近最近的敌人
 					var best = null
@@ -127,6 +127,8 @@ func update_bullets(dt: float) -> void:
 
 ## 子弹命中：按种类结算伤害与特效
 func bullet_hit(b: Dictionary, e: Dictionary) -> void:
+	if e.get("friendly", false):
+		return   # 友方不拦弹、不消耗穿透/弹跳，也不触发附带控制。
 	if b.has("src"):
 		g.combat.hit(b.src, b.get("tags", []))
 	else:

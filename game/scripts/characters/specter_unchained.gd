@@ -49,13 +49,13 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	var P := func(v: Vector2) -> Vector2: return (v / 2.0).round() * 2.0
 	var flat := func(v: Vector2) -> Vector2: return f.pos + Vector2(v.x, v.y * 0.55)
 	# 残影：上一瞬的锯环，淡、略小
-	g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
-	g.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18 * a), T * 1.6)
+	cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+	cv.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18 * a), T * 1.6)
 	# 锯身：暗描边 + 本色环 + 内侧亮边
-	g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(0.05, 0.06, 0.09, 0.8 * a), 7.0)
-	g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r * 0.8, c.g * 0.8, c.b * 0.85, 0.95 * a), 4.0)
-	g.draw_arc(Vector2.ZERO, rr - 3.0, 0.0, TAU, 56, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.7 * a), 1.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(0.05, 0.06, 0.09, 0.8 * a), 7.0)
+	cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r * 0.8, c.g * 0.8, c.b * 0.85, 0.95 * a), 4.0)
+	cv.draw_arc(Vector2.ZERO, rr - 3.0, 0.0, TAU, 56, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.7 * a), 1.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 锯齿：外缘一圈斜三角（齿尖朝旋转方向）
 	var sgn: float = signf(f.spin)
 	for i in n:
@@ -69,7 +69,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			continue   # 对齐网格后退化成线的齿不画（否则三角化报错）
 		# 前半圈（屏幕下方，y > 0）更亮：像锯盘朝镜头这一侧反光
 		var lit: float = 0.75 + 0.35 * clampf(sin(t0), 0.0, 1.0)
-		g.draw_colored_polygon(pts, Color(c.r * lit * 1.3, c.g * lit * 1.3, c.b * lit * 1.35, a))
+		cv.draw_colored_polygon(pts, Color(c.r * lit * 1.3, c.g * lit * 1.3, c.b * lit * 1.35, a))
 	return true
 
 
@@ -117,12 +117,12 @@ func update(dt: float) -> void:
 		start_skill(Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 30.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 30.0, pos), _reach())   # 手动普攻（契约 v2.5）：360° 环斩不分方向，只受闸门
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 1.2) / stat(&"op_aspd") / (1.0 + base("s2_aspd", 0.6) if s2_t > 0.0 else 1.0) * (base("s3_cd_mult", 1.6) if s3_t > 0.0 else 1.0)
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 func _atk_mult() -> float:
@@ -219,7 +219,7 @@ func _spin(dmg: float, kind: int) -> void:
 	# 求生之压：每一斩脚下砸出地裂 + 短顿帧（慢而重）
 	if s3_t > 0.0 and kind == 0:
 		fx({"kind": "crack", "pos": pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": RED, "floor": true, "n": 7})
-		g.hitstop = maxf(g.hitstop, 0.05)
+		impact_pause(0.05)
 	# 求生之压期间：更响、更低沉；第二圈更轻，持续段不再逐段出声
 	if kind == 0:
 		Sfx.op(id, "atk", 4.0 if s3_t > 0.0 else 0.0, 0.8 if s3_t > 0.0 else 1.0, 0.06)
@@ -413,35 +413,35 @@ func draw_entities_floor() -> void:
 	for rg in rings:
 		var a: float = clampf(rg.t / 0.5, 0.0, 1.0)
 		var age: float = base("ring_dur", 1.5) - rg.t
-		g.draw_set_transform(rg.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_circle(Vector2.ZERO, rg.r, Color(0.55, 0.05, 0.12, 0.16 * a))
-		g.draw_arc(Vector2.ZERO, rg.r, 0.0, TAU, 40, Color(1.0, 0.22, 0.3, 0.65 * a), 2.5)
-		g.draw_arc(Vector2.ZERO, rg.r * (0.5 + 0.4 * fmod(age * 1.2, 1.0)), 0.0, TAU, 32, Color(1.2, 0.4, 0.45, 0.35 * a), 1.5)
+		cv.draw_set_transform(rg.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, rg.r, Color(0.55, 0.05, 0.12, 0.16 * a))
+		cv.draw_arc(Vector2.ZERO, rg.r, 0.0, TAU, 40, Color(1.0, 0.22, 0.3, 0.65 * a), 2.5)
+		cv.draw_arc(Vector2.ZERO, rg.r * (0.5 + 0.4 * fmod(age * 1.2, 1.0)), 0.0, TAU, 32, Color(1.2, 0.4, 0.45, 0.35 * a), 1.5)
 		for q in 6:
 			var an: float = q * TAU / 6.0 + rg.pos.x * 0.01
-			g.draw_circle(Vector2.from_angle(an) * rg.r, 3.0, Color(1.1, 0.25, 0.32, 0.55 * a))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_circle(Vector2.from_angle(an) * rg.r, 3.0, Color(1.1, 0.25, 0.32, 0.55 * a))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_auras() -> void:
 	if pos != Vector2.INF and not away() and s1_t > 0.0:
 		# 求生之技：周身红色兽性气焰（一圈跳动的红色火舌）+ 身体红光，锯环仍是银蓝
 		var hk: float = 0.5 + 0.5 * sin(g.t * 9.0)
-		g.draw_circle(pos + Vector2(0, -22), 22.0 + 3.0 * hk, Color(1.0, 0.1, 0.15, 0.16))
+		cv.draw_circle(pos + Vector2(0, -22), 22.0 + 3.0 * hk, Color(1.0, 0.1, 0.15, 0.16))
 		for q in 7:
 			var an: float = q * TAU / 7.0 + g.t * 2.0
 			var bp: Vector2 = pos + Vector2(cos(an) * 16.0, -6.0 + sin(an) * 7.0)
 			var h: float = 14.0 + 6.0 * sin(g.t * 13.0 + q * 2.1)
-			g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-4, 0), bp + Vector2(sin(g.t * 20.0 + q) * 2.0, -h), bp + Vector2(4, 0)]), Color(1.5, 0.2, 0.25, 0.55))
+			cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-4, 0), bp + Vector2(sin(g.t * 20.0 + q) * 2.0, -h), bp + Vector2(4, 0)]), Color(1.5, 0.2, 0.25, 0.55))
 	if pos != Vector2.INF and not away() and (s1_t > 0.0 or s2_t > 0.0 or s3_t > 0.0):
 		var c: Color = RED if s3_t > 0.0 else GHOST
-		g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(c.r, c.g, c.b, 0.25 + 0.1 * sin(g.t * 6.0)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, _reach(), 0.0, TAU, 36, Color(c.r, c.g, c.b, 0.25 + 0.1 * sin(g.t * 6.0)), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if doll_t > 0.0 and doll_pos != Vector2.INF and elite >= 1:
-		g.draw_set_transform(doll_pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		g.draw_arc(Vector2.ZERO, base("doll_r", 120.0), 0.0, TAU, 36, Color(GHOST.r, GHOST.g, GHOST.b, 0.2 + 0.08 * sin(g.t * 3.0)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(doll_pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, base("doll_r", 120.0), 0.0, TAU, 36, Color(GHOST.r, GHOST.g, GHOST.b, 0.2 + 0.08 * sin(g.t * 3.0)), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_skill_over() -> void:
@@ -453,17 +453,17 @@ func _draw_skill_over() -> void:
 		var fade: float = clampf(whirl_t / 0.2, 0.0, 1.0)
 		var heavy: bool = s3_t > 0.0 or g.lamp < 30.0
 		var c: Color = Color(1.5, 0.45, 0.5) if heavy else Color(1.2, 1.35, 1.6)
-		g.draw_set_transform(pos + Vector2(0, -8), 0.0, Vector2(1.0, 0.55))
+		cv.draw_set_transform(pos + Vector2(0, -8), 0.0, Vector2(1.0, 0.55))
 		for q in 2:
 			var a0: float = whirl_ang + q * PI
 			for k in 4:
-				g.draw_arc(Vector2.ZERO, r - k * 2.0, a0 - k * 0.22, a0 - k * 0.22 + 1.1, 16, Color(c.r, c.g, c.b, (0.85 - k * 0.2) * fade), 4.0 - k * 0.7)
-			g.draw_circle(Vector2.from_angle(a0 + 1.1) * r, 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.9 * fade))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				cv.draw_arc(Vector2.ZERO, r - k * 2.0, a0 - k * 0.22, a0 - k * 0.22 + 1.1, 16, Color(c.r, c.g, c.b, (0.85 - k * 0.2) * fade), 4.0 - k * 0.7)
+			cv.draw_circle(Vector2.from_angle(a0 + 1.1) * r, 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.9 * fade))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if s2_t > 0.0 or s3_t > 0.0:
 		var p := pos + Vector2(4.0 * face, -38)
 		var c: Color = RED if s3_t > 0.0 else GHOST
-		g.draw_circle(p, 2.5 + sin(g.t * 24.0), Color(c.r * 2.0, c.g * 1.6, c.b * 1.6, 0.9))
+		cv.draw_circle(p, 2.5 + sin(g.t * 24.0), Color(c.r * 2.0, c.g * 1.6, c.b * 1.6, 0.9))
 
 
 func extra_bodies() -> Array:
@@ -475,7 +475,7 @@ func extra_bodies() -> Array:
 func draw_extra(_it: Dictionary) -> void:
 	var tx: Texture2D = anim_tex("doll")
 	if tx == null:
-		g.draw_circle(doll_pos + Vector2(0, -20), 12.0, GHOST)
+		cv.draw_circle(doll_pos + Vector2(0, -20), 12.0, GHOST)
 		return
 	var n: int = anim_hframes(tx, "doll")
 	var fr: int = int(doll_at * 4.0) % n

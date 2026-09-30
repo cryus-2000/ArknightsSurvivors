@@ -54,6 +54,10 @@ const KELP_LIGHT := Color(0.45, 0.95, 0.85)
 ## 英文压缩字：原作英文小标签是窄体粗字（Bender / Novecento 一类）。本作不额外带字体文件，
 ## 用 FontVariation 把 UI 字体横向压到 0.82 倍、略加粗；italic 再斜一点（节点标签条用）。
 static var _cond := {}
+## HUD 合批段（性能，协调人 9/30；hud.gd batch_begin / batch_end）：sink 非空时下面这些助手的色块 / 圆 / 弧 / 线写进
+## 三角形批（hud.gd 的 Tris），tq 非空时文字延后（追加成 Callable，批提交后再画，保证字压在色块上）。平时都是 null，行为不变
+static var sink = null
+static var tq = null
 
 
 static func cond(base: Font, italic := false) -> Font:
@@ -71,6 +75,9 @@ static func cond(base: Font, italic := false) -> Font:
 
 ## 压缩字文字（数字、英文）
 static func ctext(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, italic := false) -> void:
+	if tq != null:
+		tq.append(func(): ctext(ci, font, pos, s, size, col, align, width, italic))
+		return
 	ci.draw_string(cond(font, italic), pos, s, align, width, size, col)
 
 
@@ -80,6 +87,9 @@ static func cwidth(font: Font, s: String, size: int, italic := false) -> float:
 
 ## 英文小标签（压缩字 + 字距）
 static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing := 2.0) -> float:
+	if tq != null:
+		tq.append(func(): en(ci, font, pos, text, size, col, spacing))
+		return en_width(font, text, size, spacing)
 	var f := cond(font)
 	var x := pos.x
 	for ch in text:
@@ -97,6 +107,9 @@ static func en_width(font: Font, text: String, size: int, spacing := 2.0) -> flo
 
 
 static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, outline := 0) -> void:
+	if tq != null:
+		tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))
+		return
 	if outline > 0:
 		ci.draw_string_outline(font, pos, s, align, width, size, outline, Color(0, 0, 0, col.a * 0.8))
 	ci.draw_string(font, pos, s, align, width, size, col)
@@ -166,8 +179,14 @@ static func vines(_ci: CanvasItem, _r: Rect2, _seed: int, _t: float, _k := 1.0) 
 ## 小标签头（原作「目标生命值 / 指挥等级」）：彩色底 + 白字，放在数值上方；返回宽度
 static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, size := 11) -> float:
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0
-	ci.draw_rect(Rect2(pos, Vector2(w, size + 6)), bg)
-	ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a))
+	if sink != null:
+		sink.rect(Rect2(pos, Vector2(w, size + 6)), bg)
+	else:
+		ci.draw_rect(Rect2(pos, Vector2(w, size + 6)), bg)
+	if tq != null:
+		tq.append(func(): ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a)))
+	else:
+		ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a))
 	return w
 
 
@@ -177,14 +196,25 @@ static func strip(ci: CanvasItem, font: Font, pos: Vector2, en_s: String, cn: St
 	var h := size + 8.0
 	var ew := cf.get_string_size(en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1).x + 13.0 if en_s != "" else 0.0
 	var cw := font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 15.0 if cn != "" else 0.0
+	if sink != null and tq != null:
+		sink.rect(Rect2(pos, Vector2(ew + cw, h)), Color(bg.r, bg.g, bg.b, bg.a * col.a))
+		if en_s != "":
+			sink.rect(Rect2(pos, Vector2(ew, h)), col)
+		tq.append(func(): _strip_text(ci, font, cf, pos, h, ew, en_s, cn, col, cn_col, size))
+		return ew + cw
 	ci.draw_rect(Rect2(pos, Vector2(ew + cw, h)), Color(bg.r, bg.g, bg.b, bg.a * col.a))
 	if en_s != "":
 		ci.draw_rect(Rect2(pos, Vector2(ew, h)), col)
+	_strip_text(ci, font, cf, pos, h, ew, en_s, cn, col, cn_col, size)
+	return ew + cw
+
+
+static func _strip_text(ci: CanvasItem, font: Font, cf: Font, pos: Vector2, h: float, ew: float, en_s: String, cn: String, col: Color, cn_col: Color, size: int) -> void:
+	if en_s != "":
 		var ink := Color(0.04, 0.07, 0.08, col.a) if col.get_luminance() > 0.45 else Color(1, 1, 1, col.a)
 		ci.draw_string(cf, pos + Vector2(6, h - 5), en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1, ink)
 	if cn != "":
 		ci.draw_string(font, pos + Vector2(ew + 7, h - 5), cn, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(cn_col.r, cn_col.g, cn_col.b, cn_col.a * col.a))
-	return ew + cw
 
 
 ## 标签片：暗底 + 左侧色条 + 文字，返回宽度
@@ -279,6 +309,10 @@ static func _pack_chips(items: Array, max_w: float, rows: int, lw: float) -> Arr
 ## 按键牌：细边框里的按键名（SPACE / Esc / 1）；返回宽度
 static func keycap(ci: CanvasItem, font: Font, pos: Vector2, key: String, col := TEXT, size := 11) -> float:
 	var w := cwidth(font, key, size) + 12.0
+	if sink != null and tq != null:
+		sink.frame(Rect2(pos, Vector2(w, size + 7)), Color(col.r, col.g, col.b, 0.55 * col.a), 1.0)
+		tq.append(func(): ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col))
+		return w
 	ci.draw_rect(Rect2(pos, Vector2(w, size + 7)), Color(col.r, col.g, col.b, 0.55 * col.a), false, 1.0)
 	ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return w
@@ -313,6 +347,19 @@ static func bar(ci: CanvasItem, r: Rect2, frac: float, col: Color, segments := 0
 ## 进度条：暗槽 + 实色填充 + 顶部高光 + 淡外晕；trail 为残影比例（掉血用）
 static func gbar(ci: CanvasItem, r: Rect2, frac: float, col: Color, segments := 0, trail := -1.0) -> void:
 	frac = clampf(frac, 0.0, 1.0)
+	if sink != null:
+		sink.rect(r, Color(1, 1, 1, 0.12 * col.a))
+		if trail > frac:
+			sink.rect(Rect2(r.position, Vector2(r.size.x * clampf(trail, 0.0, 1.0), r.size.y)), Color(1, 1, 1, 0.6 * col.a))
+		var sfw := r.size.x * frac
+		if sfw > 0.0:
+			sink.rect(Rect2(r.position - Vector2(0, 1), Vector2(sfw, r.size.y + 2)), Color(col.r, col.g, col.b, 0.2 * col.a))
+			sink.rect(Rect2(r.position, Vector2(sfw, r.size.y)), col)
+			sink.rect(Rect2(r.position, Vector2(sfw, 1)), Color(col.lightened(0.45).r, col.lightened(0.45).g, col.lightened(0.45).b, col.a))
+		if segments > 1:
+			for i in range(1, segments):
+				sink.rect(Rect2(Vector2(r.position.x + r.size.x * i / segments, r.position.y), Vector2(1, r.size.y)), Color(0, 0, 0, 0.45 * col.a))
+		return
 	ci.draw_rect(r, Color(1, 1, 1, 0.12 * col.a))
 	if trail > frac:
 		ci.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(trail, 0.0, 1.0), r.size.y)), Color(1, 1, 1, 0.6 * col.a))
@@ -329,6 +376,16 @@ static func gbar(ci: CanvasItem, r: Rect2, frac: float, col: Color, segments := 
 
 ## 圆形进度环：暗底 + 外圈细轨 + 进度弧；active 时整环发光
 static func ring(ci: CanvasItem, c: Vector2, rad: float, frac: float, col: Color, active := false, dim := false) -> void:
+	if sink != null:
+		sink.circle(c, rad, Color(0.04, 0.047, 0.059, 0.9), 32)
+		sink.arc(c, rad, 0.0, TAU, 1.0, Color(1, 1, 1, 0.08 if dim else 0.2), 48)
+		sink.arc(c, rad + 2.5, 0.0, TAU, 2.0, Color(1, 1, 1, 0.05 if dim else 0.12), 48)
+		if not dim and frac > 0.0:
+			sink.arc(c, rad + 2.5, -PI / 2.0, -PI / 2.0 + TAU * clampf(frac, 0.0, 1.0), 2.0, col, 48)
+		if active:
+			sink.arc(c, rad + 5.0, 0.0, TAU, 3.0, Color(col.r, col.g, col.b, 0.35), 48)
+			sink.circle(c, rad - 2.0, Color(col.r, col.g, col.b, 0.14), 32)
+		return
 	ci.draw_circle(c, rad, Color(0.04, 0.047, 0.059, 0.9))
 	ci.draw_arc(c, rad, 0.0, TAU, 48, Color(1, 1, 1, 0.08 if dim else 0.2), 1.0)
 	ci.draw_arc(c, rad + 2.5, 0.0, TAU, 48, Color(1, 1, 1, 0.05 if dim else 0.12), 2.0)
@@ -378,6 +435,9 @@ static func pedestal(ci: CanvasItem, c: Vector2, rad: float, col: Color, _t: flo
 
 # ---------------------------------------------------------------- 装饰
 static func diamond(ci: CanvasItem, c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 0)) -> void:
+	if sink != null:
+		sink.diamond(c, rad, fill, border)
+		return
 	var p := PackedVector2Array([c + Vector2(0, -rad), c + Vector2(rad, 0), c + Vector2(0, rad), c + Vector2(-rad, 0)])
 	ci.draw_colored_polygon(p, fill)
 	if border.a > 0.0:
@@ -407,6 +467,11 @@ static func fade_band(ci: CanvasItem, r: Rect2, col: Color, edge := 50.0) -> voi
 	var y0 := r.position.y
 	var y1 := r.end.y
 	var e := minf(edge, r.size.x / 2.0)
+	if sink != null:
+		sink.quad4([Vector2(x0, y0), Vector2(x0 + e, y0), Vector2(x0 + e, y1), Vector2(x0, y1)], [c0, col, col, c0])
+		sink.rect(Rect2(Vector2(x0 + e, y0), Vector2(r.size.x - 2.0 * e, r.size.y)), col)
+		sink.quad4([Vector2(x1 - e, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x1 - e, y1)], [col, c0, c0, col])
+		return
 	ci.draw_polygon(PackedVector2Array([Vector2(x0, y0), Vector2(x0 + e, y0), Vector2(x0 + e, y1), Vector2(x0, y1)]), PackedColorArray([c0, col, col, c0]))
 	ci.draw_rect(Rect2(Vector2(x0 + e, y0), Vector2(r.size.x - 2.0 * e, r.size.y)), col)
 	ci.draw_polygon(PackedVector2Array([Vector2(x1 - e, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x1 - e, y1)]), PackedColorArray([col, c0, c0, col]))
@@ -437,12 +502,31 @@ static func quatrefoil(ci: CanvasItem, c: Vector2, s: float, col: Color, w := 1.
 	for k in 4:
 		var th := k * PI / 2.0 - PI / 4.0
 		var pc := c + Vector2.from_angle(th) * d
-		ci.draw_arc(pc, rp, th - deg_to_rad(140.0), th + deg_to_rad(140.0), 20, col, w)
+		if sink != null:
+			sink.arc(pc, rp, th - deg_to_rad(140.0), th + deg_to_rad(140.0), w, col, 20)
+		else:
+			ci.draw_arc(pc, rp, th - deg_to_rad(140.0), th + deg_to_rad(140.0), 20, col, w)
 
 
 ## 线性图标（白色细线）：enemy / clock / box / ingot / pause / refresh / exit
 static func icon(ci: CanvasItem, kind: String, c: Vector2, s: float, col: Color) -> void:
 	var h := s / 2.0
+	if sink != null and kind in ["enemy", "clock", "pause"]:
+		match kind:
+			"enemy":
+				sink.circle(c, h, Color(1.0, 0.54, 0.24, col.a), 20)
+				sink.arc(c, h * 0.36, 0.0, TAU, 1.6, Color(0.1, 0.07, 0.03, col.a), 16)
+				for k in 4:
+					var d := Vector2.from_angle(k * PI / 2.0)
+					sink.line(c + d * h * 0.55, c + d * h * 0.82, Color(0.1, 0.07, 0.03, col.a), 1.6)
+			"clock":
+				sink.arc(c, h - 1.0, 0.0, TAU, 1.5, col, 24)
+				sink.line(c, c + Vector2(0, -h * 0.55), col, 1.5)
+				sink.line(c, c + Vector2(h * 0.4, h * 0.2), col, 1.5)
+			"pause":
+				sink.rect(Rect2(c + Vector2(-h * 0.45, -h * 0.5), Vector2(h * 0.28, h)), col)
+				sink.rect(Rect2(c + Vector2(h * 0.17, -h * 0.5), Vector2(h * 0.28, h)), col)
+		return
 	match kind:
 		"enemy":
 			ci.draw_circle(c, h, Color(1.0, 0.54, 0.24, col.a))

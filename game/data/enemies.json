@@ -11,7 +11,8 @@
    "tex": "e_bone",
    "ai": "melee",
    "corrode": 0.2,
-   "atk_anim": true
+   "atk_anim": true,
+   "extra": {"name": "骨刺扫击", "mode": "swipe", "range": 78, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "slider": {
    "name": "底海滑动者",
@@ -27,7 +28,8 @@
    "dash_range": 240,
    "dash_wind": 0.5,
    "dash_speed": 3.8,
-   "atk_anim": true
+   "atk_anim": true,
+   "extra": {"name": "滑行侧撞", "mode": "swipe", "range": 115, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "stone": {
    "name": "固海凿石者",
@@ -42,9 +44,19 @@
    "cd": 2.4,
    "entrench": true,
    "atk": "物理",
-   "lob": true
+   "lob": true,
+   "atk_anim": true,
+   "extra": {
+    "name": "凿石贯射",
+    "mode": "pierce",
+    "range": 290,
+    "cd": 13.0,
+    "damage_mult": 0.45
+   },
+   "desc": "另会使用「凿石贯射」进行预警攻击。"
   },
   "offspring": {
+   "apop_hit": 20.0,
    "name": "伊祖米克的子代",
    "hp": 70.0,
    "spd": 28.0,
@@ -57,7 +69,16 @@
    "pattern": "nova",
    "nova_range": 320,
    "nova_n": 6,
-   "atk_anim": true
+   "atk_anim": true,
+   "corrode": 0.15,
+   "desc": "缓慢接近，接触时蜕变；蓄力后释放带轻度侵蚀的环形弹幕。另会使用「壳肢横扫」进行预警攻击。",
+   "extra": {
+    "name": "壳肢横扫",
+    "mode": "swipe",
+    "range": 110,
+    "cd": 12.0,
+    "damage_mult": 0.45
+   }
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -68,13 +89,16 @@
    "xp": 0.5,
    "tex": "e_brood",
    "ai": "static",
-   "corrode": 0.3,
+   "corrode": 0.35,
    "decay": 0.08,
    "pattern": "acid",
    "acid_range": 300,
-   "acid_cd": 4.2
+   "acid_cd": 4.2,
+   "extra": {"name": "酸蚀脉冲", "mode": "pulse", "range": 100, "cd": 15.0, "damage_mult": 0.25, "min_time": 400.0},
+   "desc": "驻留的子体，接触和酸弹命中附加侵蚀；酸弹每 4.2 秒发射一次。"
   },
   "spitter": {
+   "wound_hit": 1,
    "name": "溟海喷吐者",
    "hp": 56.0,
    "spd": 40.0,
@@ -92,8 +116,21 @@
    "range": 320.0,
    "cd": 3.2,
    "spit": true,
-   "corrode": 0.4,
-   "draw_scale": 1.17
+   "corrode": 0.45,
+   "draw_scale": 1.17,
+   "atk_anim": true,
+   "desc": "朝主控预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。另会使用「酸沫扇吐」进行预警攻击。",
+   "extra": {
+    "name": "酸沫扇吐",
+    "mode": "volley",
+    "range": 300,
+    "cd": 14.0,
+    "damage_mult": 0.36,
+    "count": 3,
+    "speed": 235,
+    "spread": 0.8
+   },
+   "shot_kind": "acid"
   },
   "runner": {
    "name": "壳海狂奔者",
@@ -109,6 +146,7 @@
    "blast_range": 60,
    "blast_fuse": 0.8,
    "blast_r": 62,
+   "extra": {"name": "壳肢撞击", "mode": "swipe", "range": 105, "cd": 14.0, "damage_mult": 0.2, "min_time": 400.0},
    "no_contact": true,
    "atk_anim": true,
    "cap": 14,
@@ -118,6 +156,9 @@
    "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.8 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
+   "shot_mire": true,
+   "shot_mire_r": 30.0,
+   "shot_mire_life": 5.0,
    "name": "浮海飘航者",
    "hp": 24.0,
    "spd": 58.0,
@@ -135,13 +176,25 @@
    "shot_nerve": 18.0,
    "atk_anim": true,
    "cap": 10,
-   "desc": "悬浮在攻击范围边缘发射慢速神经弹，命中累积「神经损伤」；积满后主控短暂僵直、攻击变慢，并损失 8% 最大生命。"
+   "desc": "悬浮在攻击范围边缘发射神经弹；神经弹命中或落地会留下一小片溟痕（约 5 秒），站在里面会累积神经损伤。另会使用「神经散射」进行预警攻击。",
+   "extra": {
+    "name": "神经散射",
+    "mode": "volley",
+    "range": 290,
+    "cd": 13.0,
+    "damage_mult": 0.36,
+    "count": 3,
+    "speed": 215,
+    "spread": 1.0
+   }
   },
   "reaper": {
+   "reap_mult": 1.0,
+   "wound_hit": 1,
    "name": "钵海收割者",
-   "hp": 84.0,
+   "hp": 144.0,
    "spd": 94.0,
-   "dmg": 15.0,
+   "dmg": 13.0,
    "weak": "物理",
    "r": 16.0,
    "xp": 4.0,
@@ -149,20 +202,31 @@
    "ai": "melee",
    "move_fps": 8.0,
    "dormant": true,
-   "wake_r": 160,
+   "wake_r": 380,
    "pattern": "reap",
-   "reap_range": 88,
+   "prepare_range": 300,
+   "reap_range": 135,
    "reap_cd": 2.2,
    "atk_anim": true,
    "cap": 4,
    "chips": [
     "休眠"
    ],
-   "desc": "休眠在海床上，主控靠近或受到攻击时唤醒，随后高速追击、挥舞镰肢扇形斩击。大群里的收割者一出现就是醒着的。"
+   "desc": "休眠在海床上，主控靠近或受到攻击时唤醒，随后高速追击、挥舞镰肢扇形斩击。大群里的收割者一出现就是醒着的。另会使用「镰肢直刺」进行预警攻击。",
+   "extra": {
+    "name": "镰肢直刺",
+    "mode": "pierce",
+    "range": 220,
+    "cd": 10.0,
+    "damage_mult": 0.3,
+    "first_delay": 0.85,
+    "nerve": 10.0
+   }
   },
   "founder": {
+   "cold_hit": 1,
    "name": "深溟奠基者",
-   "hp": 240.0,
+   "hp": 384.0,
    "spd": 30.0,
    "dmg": 18.0,
    "weak": "法术",
@@ -173,8 +237,9 @@
    "heavy": true,
    "armor": 0.7,
    "pattern": "stomp",
-   "stomp_range": 110,
-   "stomp_r": 96,
+   "prepare_range": 300,
+   "stomp_range": 180,
+   "stomp_r": 140,
    "stomp_cd": 4.5,
    "death_mire": 64,
    "atk_anim": true,
@@ -183,20 +248,31 @@
     "厚甲",
     "溟痕"
    ],
-   "desc": "厚甲缓行，受到的非真实伤害 -30%，难以击退；靠近后前肢重击地面。死亡时留下一片溟痕。"
+   "desc": "厚甲缓行，受到的非真实伤害 -30%，难以击退；靠近后前肢重击地面。死亡时留下一片溟痕。另会使用「晶刺突起」进行预警攻击。",
+   "extra": {
+    "name": "晶刺突起",
+    "mode": "pierce",
+    "range": 285,
+    "cd": 11.0,
+    "damage_mult": 0.3,
+    "first_delay": 0.9,
+    "frost": 0.55
+   }
   },
   "tracer": {
+   "wound_hit": 1,
    "name": "深溟引痕者",
-   "hp": 120.0,
+   "hp": 204.0,
    "spd": 50.0,
-   "dmg": 11.0,
+   "dmg": 10.0,
    "weak": "物理",
    "r": 17.0,
    "xp": 5.0,
    "tex": "e_tracer",
    "ai": "melee",
    "pattern": "thrust",
-   "thrust_range": 170,
+   "prepare_range": 300,
+   "thrust_range": 270,
    "thrust_cd": 3.2,
    "enrage_at": 0.5,
    "enrage_spd": 1.2,
@@ -207,12 +283,22 @@
     "狂暴",
     "溟痕"
    ],
-   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。",
-   "thrust_mult": 0.9
+   "desc": "拖着尾迹前进，蓄力后直线前刺。生命降到一半以下时狂暴：移速提高，并沿路留下溟痕。另会使用「尾刃反扫」进行预警攻击。",
+   "thrust_mult": 0.9,
+   "extra": {
+    "name": "尾刃反扫",
+    "mode": "swipe",
+    "range": 150,
+    "cd": 10.0,
+    "damage_mult": 0.3,
+    "first_delay": 0.85,
+    "nerve": 10.0
+   }
   },
   "nest": {
+   "root_hit": 0.8,
    "name": "深溟巢涌者",
-   "hp": 150.0,
+   "hp": 255.0,
    "spd": 26.0,
    "dmg": 9.0,
    "weak": "法术",
@@ -221,27 +307,42 @@
    "tex": "e_nest",
    "ai": "melee",
    "pattern": "nest",
+   "prepare_range": 300,
    "aura_r": 110,
    "aura_nerve": 10.0,
-   "lash_range": 120,
-   "lash_r": 105,
+   "lash_range": 195,
+   "lash_r": 156,
    "lash_cd": 5.0,
    "atk_anim": true,
    "cap": 3,
    "chips": [
     "神经光环"
    ],
-   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。"
+   "desc": "触须缓行，身边带着神经光环：主控在光环内每秒累积「神经损伤」。靠近时触须爆发，造成范围伤害。另会使用「触须散射」进行预警攻击。",
+   "extra": {
+    "name": "触须散射",
+    "mode": "volley",
+    "range": 275,
+    "cd": 11.0,
+    "damage_mult": 0.23,
+    "first_delay": 0.9,
+    "count": 4,
+    "speed": 205,
+    "spread": 1.0
+   },
+   "shot_kind": "nerve",
+   "shot_nerve": 8.0
   },
   "fractal": {
    "name": "塑路者碎片",
    "hp": 18.0,
    "spd": 95.0,
-   "dmg": 6.0,
+   "dmg": 8.0,
    "r": 8.0,
    "xp": 1.0,
    "tex": "e_fractal",
-   "ai": "melee"
+   "ai": "melee",
+   "extra": {"name": "分形前刺", "mode": "pierce", "range": 105, "cd": 14.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "tear": {
    "name": "伊莎玛拉之泪",
@@ -267,9 +368,19 @@
    "role": "elite",
    "burst": true,
    "elite_after": 0,
-   "atk_anim": true
+   "atk_anim": true,
+   "extra": {
+    "name": "囊壳震爆",
+    "mode": "pulse",
+    "range": 135,
+    "cd": 12.0,
+    "damage_mult": 0.42,
+    "stun": 0.2
+   },
+   "desc": "另会使用「囊壳震爆」进行预警攻击。"
   },
   "skimmer": {
+   "cold_hit": 1,
    "name": "掠海漂移体",
    "hp": 30.0,
    "weak": "物理",
@@ -279,15 +390,26 @@
    "xp": 2.0,
    "tex": "e_skimmer",
    "ai": "ranged",
-   "range": 200.0,
+   "range": 250.0,
    "cd": 1.8,
    "role": "elite",
    "corrode": 0.5,
    "hover": true,
    "shot_n": 3,
-   "elite_after": 120
+   "elite_after": 120,
+   "extra": {
+    "name": "掠海贯射",
+    "mode": "pierce",
+    "range": 355,
+    "cd": 11.0,
+    "damage_mult": 0.36,
+    "first_delay": 1.1,
+    "frost": 0.45
+   },
+   "desc": "另会使用「掠海贯射」进行预警攻击。"
   },
   "mother": {
+   "wound_hit": 1,
    "name": "投嗣育母",
    "hp": 36.0,
    "weak": "物理",
@@ -297,7 +419,7 @@
    "xp": 2.0,
    "tex": "e_mother",
    "ai": "ranged",
-   "range": 260.0,
+   "range": 300.0,
    "cd": 2.2,
    "role": "elite",
    "brood": true,
@@ -306,7 +428,21 @@
    "shot_spd": 150,
    "spawn_on_shot": "brood",
    "spawn_max": 12,
-   "elite_after": 300
+   "elite_after": 300,
+   "atk_anim": true,
+   "corrode": 0.25,
+   "desc": "发射追踪酸弹，命中附加侵蚀，并在主控附近召唤注亡拟嗣。另会使用「育嗣酸雨」进行预警攻击。",
+   "extra": {
+    "name": "育嗣酸雨",
+    "mode": "volley",
+    "range": 325,
+    "cd": 12.0,
+    "damage_mult": 0.3,
+    "first_delay": 1.0,
+    "count": 3,
+    "speed": 185,
+    "spread": 0.95
+   }
   },
   "mimic": {
    "name": "箱形恐鱼",
@@ -318,7 +454,20 @@
    "tex": "e_mimic",
    "ai": "melee",
    "role": "elite",
-   "ingots": 10
+   "ingots": 10,
+   "pattern": "bite",
+   "bite_range": 76,
+   "bite_cd": 2.6,
+   "no_contact": true,
+   "extra": {
+    "name": "箱舌突刺",
+    "mode": "pierce",
+    "range": 220,
+    "cd": 12.0,
+    "damage_mult": 0.42,
+    "first_delay": 1.0
+   },
+   "desc": "另会使用「箱舌突刺」进行预警攻击。"
   },
   "path": {
    "name": "塑路者",
@@ -330,9 +479,35 @@
    "xp": 60.0,
    "tex": "e_path",
    "ai": "melee",
-   "role": "boss"
+   "role": "boss",
+   "patterns": [
+    {
+     "name": "甲刃重劈",
+     "mode": "cleave",
+     "radius": 260,
+     "half": 1.1,
+     "waves": 2,
+     "texture": "fx_slash_heavy_steel"
+    },
+    {
+     "name": "碎壳刃波",
+     "mode": "fan",
+     "count": 5,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 370,
+     "blade": true
+    },
+    {
+     "name": "碎甲落刺",
+     "mode": "rain",
+     "waves": 3,
+     "radius": 52
+    }
+   ]
   },
   "izumik": {
+   "apop_hit": 15.0,
    "name": "伊祖米克，生态泉源",
    "hp": 5200.0,
    "spd": 30.0,
@@ -344,7 +519,32 @@
    "range": 320.0,
    "cd": 1.6,
    "role": "boss",
-   "act_min": 10.0
+   "act_min": 10.0,
+   "patterns": [
+    {
+     "name": "解读旋涡",
+     "mode": "ring",
+     "count": 36,
+     "waves": 3,
+     "speed": 345,
+     "gap": 0.38
+    },
+    {
+     "name": "潮汐坠落",
+     "mode": "rain",
+     "waves": 6,
+     "radius": 56
+    },
+    {
+     "name": "子代扇潮",
+     "mode": "fan",
+     "count": 9,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 345,
+     "blade": false
+    }
+   ]
   },
   "iberia": {
    "name": "圣徒伊比利亚",
@@ -355,11 +555,38 @@
    "xp": 60.0,
    "tex": "e_iberia",
    "ai": "ranged",
-   "range": 280.0,
+   "range": 220.0,
    "cd": 1.5,
    "role": "boss",
    "ammo": 3,
-   "atk": "物理"
+   "atk": "物理",
+   "patterns": [
+    {
+     "name": "裁决齐射",
+     "mode": "fan",
+     "count": 9,
+     "waves": 3,
+     "spread": 1.25,
+     "speed": 440,
+     "blade": false
+    },
+    {
+     "name": "双翼弹幕",
+     "mode": "fan",
+     "count": 13,
+     "waves": 2,
+     "spread": 2,
+     "speed": 410,
+     "blade": false
+    },
+    {
+     "name": "双线裁决",
+     "mode": "line",
+     "waves": 2,
+     "length": 680,
+     "width": 10
+    }
+   ]
   },
   "carmen": {
    "name": "圣徒卡门",
@@ -374,7 +601,34 @@
    "cd": 1.2,
    "role": "boss",
    "ammo": 3,
-   "atk": "物理"
+   "atk": "物理",
+   "patterns": [
+    {
+     "name": "交错速射",
+     "mode": "fan",
+     "count": 7,
+     "waves": 3,
+     "spread": 0.8,
+     "speed": 460,
+     "blade": false
+    },
+    {
+     "name": "压制散射",
+     "mode": "fan",
+     "count": 11,
+     "waves": 2,
+     "spread": 1.6,
+     "speed": 430,
+     "blade": false
+    },
+    {
+     "name": "锁定狙击",
+     "mode": "line",
+     "waves": 1,
+     "length": 850,
+     "width": 9
+    }
+   ]
   },
   "bishop": {
    "name": "接潮主教",
@@ -389,7 +643,32 @@
    "range": 300.0,
    "cd": 1.8,
    "role": "boss",
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "交错潮环",
+     "mode": "ring",
+     "count": 26,
+     "waves": 2,
+     "speed": 300,
+     "gap": 0.38
+    },
+    {
+     "name": "追潮落柱",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 56
+    },
+    {
+     "name": "接潮扇浪",
+     "mode": "fan",
+     "count": 7,
+     "waves": 2,
+     "spread": 1.35,
+     "speed": 320,
+     "blade": false
+    }
+   ]
   },
   "archon": {
    "name": "接潮蔑死体",
@@ -403,7 +682,32 @@
    "ai": "melee",
    "role": "boss",
    "corrode": 0.5,
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "双爪交斩",
+     "mode": "cleave",
+     "radius": 245,
+     "half": 0.95,
+     "waves": 2,
+     "texture": "fx_slash_arc_rose"
+    },
+    {
+     "name": "裂潮刃波",
+     "mode": "fan",
+     "count": 5,
+     "waves": 2,
+     "spread": 1.25,
+     "speed": 400,
+     "blade": true
+    },
+    {
+     "name": "裂潮坠击",
+     "mode": "rain",
+     "waves": 3,
+     "radius": 55
+    }
+   ]
   },
   "immortal": {
    "name": "接潮斥亡体",
@@ -417,7 +721,35 @@
    "ai": "melee",
    "role": "boss",
    "corrode": 0.5,
-   "pair": true
+   "pair": true,
+   "patterns": [
+    {
+     "name": "交错连斩",
+     "mode": "cleave",
+     "radius": 255,
+     "half": 0.8,
+     "waves": 2,
+     "texture": "fx_slash_arc_rose"
+    },
+    {
+     "name": "掠海飞刃",
+     "mode": "fan",
+     "count": 7,
+     "waves": 2,
+     "spread": 1.7,
+     "speed": 430,
+     "blade": true
+    },
+    {
+     "name": "斥亡旋刃",
+     "mode": "ring",
+     "count": 18,
+     "waves": 2,
+     "speed": 350,
+     "gap": 0.42,
+     "blade": true
+    }
+   ]
   },
   "paranoia": {
    "name": "\"偏执泡影\"",
@@ -433,23 +765,94 @@
    "role": "boss",
    "corrode": 0.5,
    "hover": true,
-   "arena_r": 580.0
+   "arena_r": 580.0,
+   "patterns": [
+    {
+     "name": "偏执涡流",
+     "mode": "ring",
+     "count": 32,
+     "waves": 3,
+     "speed": 330,
+     "gap": 0.38
+    },
+    {
+     "name": "泡影弹幕",
+     "mode": "fan",
+     "count": 13,
+     "waves": 3,
+     "spread": 1.8,
+     "speed": 410,
+     "blade": false
+    },
+    {
+     "name": "泡影坠落",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 54
+    }
+   ]
   },
   "ishar": {
    "name": "伊莎玛拉，腐化之心",
    "hp": 9000.0,
    "spd": 34.0,
    "dmg": 18.0,
-   "r": 46.0,
+   "r": 31.0,
    "xp": 0.0,
    "tex": "e_ishar",
    "ai": "ranged",
    "range": 340.0,
    "cd": 1.5,
    "role": "boss",
-   "arena_r": 600.0
+   "arena_r": 600.0,
+   "draw_scale": 0.68,
+   "transformed_draw_scale": 1.0,
+   "no_contact": true,
+   "attack": {
+    "range": 660.0,
+    "sequence_step": 0.6,
+    "mark_spacing": 106.0,
+    "mark_warn": 0.9,
+    "mark_radius": 56.0,
+    "mark_mult": 0.65,
+    "line_warn": 1.0,
+    "line_spread": 0.38,
+    "line_width": 14.0,
+    "line_mult": 0.7,
+    "volley_warn": 0.8,
+    "bite_range": 190.0,
+    "maw_warn": 0.85,
+    "maw_mult": 0.9,
+    "recovery": 1.25
+   },
+   "patterns": [
+    {
+     "name": "腐潮旋流",
+     "mode": "ring",
+     "count": 36,
+     "waves": 3,
+     "speed": 360,
+     "gap": 0.38
+    },
+    {
+     "name": "棘鳍刃潮",
+     "mode": "fan",
+     "count": 9,
+     "waves": 3,
+     "spread": 1.9,
+     "speed": 450,
+     "blade": true
+    },
+    {
+     "name": "棘潮落柱",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 54
+    }
+   ]
   },
   "knight": {
+   "cold_hit": 1,
    "name": "最后的骑士",
    "hp": 110.0,
    "spd": 74.0,
@@ -470,7 +873,16 @@
    "dash_speed": 5.2,
    "ingots": 6,
    "no_spawn": true,
-   "draw_scale": 0.7
+   "draw_scale": 0.7,
+   "frost": 1.5,
+   "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。另会使用「冰枪点刺」进行预警攻击。",
+   "extra": {
+    "name": "冰枪点刺",
+    "mode": "pierce",
+    "range": 225,
+    "cd": 13.0,
+    "damage_mult": 0.5
+   }
   },
   "knight_boss": {
    "name": "最后的骑士",
@@ -487,7 +899,35 @@
    "atk": "物理",
    "move_fps": 8,
    "phases": 2,
-   "draw_scale": 0.7
+   "draw_scale": 0.7,
+   "patterns": [
+    {
+     "name": "寒锋刃雨",
+     "mode": "fan",
+     "count": 7,
+     "waves": 3,
+     "spread": 1.65,
+     "speed": 440,
+     "blade": true
+    },
+    {
+     "name": "长枪回旋",
+     "mode": "cleave",
+     "radius": 270,
+     "half": 1.35,
+     "waves": 2,
+     "texture": "fx_slash_heavy_steel"
+    },
+    {
+     "name": "冰枪双轨",
+     "mode": "line",
+     "waves": 2,
+     "length": 610,
+     "width": 14
+    }
+   ],
+   "frost": 2.0,
+   "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
   }
  }
 }

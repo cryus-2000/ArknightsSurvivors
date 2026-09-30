@@ -5,6 +5,7 @@ extends RefCounted
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -17,6 +18,101 @@ const FX_SCALE_MAX := 3.2        # 所有帧条特效（碎石 / 水花 / 法阵
 ## 受击材质：甲壳 / 灵体，其余为血肉
 const HIT_SHELL := ["stone", "spitter", "pocket", "mimic", "path", "fractal", "iberia", "carmen"]
 const HIT_SPIRIT := ["skimmer", "paranoia", "tear", "brood", "bishop", "ishar"]
+
+
+## Local contact feedback; no camera shake and no gameplay RNG.
+var contact_at := {}
+var impact_at := -99.0
+
+
+## Shared stop budget: at most once per 0.28 simulation seconds, never cumulative.
+## An explicit heavy impact may upgrade the small contact on the same frame.
+func impact_pause(seconds: float) -> void:
+	if g.t < impact_at:
+		impact_at = -99.0
+	if g.t - impact_at < 0.28 and absf(g.t - impact_at) > 0.0001:
+		return
+	impact_at = g.t
+	g.hitstop = maxf(g.hitstop, clampf(seconds, 0.0, 0.075))
+
+
+func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
+	var prev: float = contact_at.get(oid, -99.0)
+	if g.t >= prev and g.t - prev < 0.18:
+		return
+	contact_at[oid] = g.t
+	if (e.pos as Vector2).distance_to(g.ppos) > 650.0:
+		return
+	var heavy: bool = oid in ["ulpianus", "siege", "saria", "kaltsit", "wisadel"]
+	var melee: bool = oid in ["mizuki", "skadi", "specter_unchained", "irene"]
+	var color := Color(0.72, 0.84, 0.92) if heavy or melee else Color(0.55, 0.65, 0.92)
+	var direction: Vector2 = (e.pos - origin).normalized()
+	sparks(e.pos + Vector2(0, -e.r * 0.6), direction, color, 3 if heavy else 2, 120.0 if heavy else 75.0)
+	# Continuous fields and secondary damage retain sparks without a global pause.
+	if source in ["替身", "血色潮痕", "余震", "殉爆", "钙晶", "碎晶", "急救针剂", "技能·法术", "触手"]:
+		return
+	# Continuous magic and healing never interrupt control with global hitstop.
+	if heavy:
+		impact_pause(0.032)
+	elif melee:
+		impact_pause(0.018)
+
+
+## 命中反馈分档（打击感审查，协调人 9/30）：combat.damage 每次命中调用，只改画面（白闪 e.flash、受击形变 e.squash、
+## 粒子、破绽时的短顿帧），不碰模拟随机数（粒子用 g.vrng）。参数都在 data/balance.json 的 fx 段：
+## - 持续伤害（dot 标签）：白闪 / 形变减弱，免得持续伤害让敌人一直闪白
+## - 普攻：原来的 0.08 / 0.14
+## - 技能（origin == skill）：白闪更长、形变更久
+## - 暴击：金色小火花；弱点：按弱点类型着色的小火花
+## - 破绽中的 Boss：白闪最长 + 金色火花 + 金色冲击环 + 短顿帧（每只 Boss 每 fx/break_every 秒最多一次，顿帧再受 impact_pause 的共享限频）
+const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
+var _break_fx_at := {}
+
+func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
+	var h: Dictionary = g.hit
+	var dot: bool = "dot" in h.get("tags", [])
+	var skill: bool = h.get("origin", "") == "skill" and not dot
+	var brk: bool = e.get("boss", false) and float(e.get("break_t", 0.0)) > 0.0
+	var fl: float = Bal.v("fx/flash_dot", 0.05) if dot else Bal.v("fx/flash_basic", 0.08)
+	var sq: float = Bal.v("fx/squash_dot", 0.08) if dot else Bal.v("fx/squash_basic", 0.14)
+	if skill:
+		fl = maxf(fl, Bal.v("fx/flash_skill", 0.11))
+		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
+	if crit or weak:
+		fl = maxf(fl, Bal.v("fx/flash_crit", 0.12))
+		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
+	if brk and not dot:
+		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
+	e.flash = maxf(float(e.get("flash", 0.0)), fl)
+	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
+		return
+	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
+	if crit:
+		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/crit_sparks", 4), 170.0)
+	elif weak and not dot:
+		sparks(head, Vector2.ZERO, WEAK_SPARK.get(e.get("weak", ""), Color(1.0, 0.5, 0.8)), Bal.vi("fx/weak_sparks", 3), 130.0)
+	if brk and not dot:
+		var key: int = int(e.get("id", 0))
+		var prev: float = _break_fx_at.get(key, -99.0)
+		if g.t >= prev and g.t - prev < Bal.v("fx/break_every", 0.15):
+			return
+		_break_fx_at[key] = g.t
+		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/break_sparks", 6), 240.0)
+		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45)})
+		impact_pause(Bal.v("fx/break_pause", 0.035))
+
+
+## A low ring of slate-colored grit; capped so crowds do not bury silhouettes.
+func ground_dust(p: Vector2, radius := 22.0, count := 7) -> void:
+	if g.fx.size() > 380:
+		return
+	for i in mini(count, 12):
+		var a: float = TAU * float(i) / float(maxi(count, 1))
+		var direction := Vector2(cos(a), sin(a) * 0.4)
+		g.fx.append({"kind": "spark", "pos": p + direction * radius * 0.35,
+			"vel": direction * radius * 4.0, "life": 0.27, "max": 0.27,
+			"col": Color(0.43, 0.51, 0.56, 0.75), "sz": 3.0 if i % 2 == 0 else 2.0})
 
 
 func _init(game: Game) -> void:
@@ -39,6 +135,7 @@ func shake_screen(_a: float) -> void:
 func sparks(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float) -> void:
 	if g.fx.size() > 400:
 		return
+	n = maxi(1, int(round(n * Cfg.fx_density()))) if n > 0 else 0   # 低画质粒子减半（视觉，不影响模拟）
 	for i in n:
 		var a := g.vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + g.vrng.randf_range(-0.7, 0.7)
 		g.fx.append({"kind": "spark", "pos": pos, "vel": Vector2.from_angle(a) * spd * g.vrng.randf_range(0.4, 1.0),
@@ -115,10 +212,12 @@ func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
 				s.dmg += dmg
 				s.weak = s.weak or weak
 				return
-		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak})
+		_boss_sum.append({"e": e, "dmg": dmg, "t": BOSS_SUM_T, "weak": weak, "brk": float(e.get("break_t", 0.0)) > 0.0})
 		return
 	if _boss_fight():
 		return
+	if not weak and g.texts.size() > Bal.vi("fx/text_crowd", 30):
+		return   # 飘字多时普通白字不飘，只留暴击 / 弱点 / 破绽（可读性，1.1.1）
 	if weak:
 		add_text(e.pos + jit + Vector2(0, -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 	else:
@@ -137,7 +236,9 @@ func _flush_boss_sum(dt: float) -> void:
 		if s.t > 0.0:
 			continue
 		var e: Dictionary = s.e
-		if s.dmg >= 1.0:
+		if s.dmg >= 1.0 and s.get("brk", false):
+			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), "破绽 " + str(int(round(s.dmg))), UI.GOLD, 22)   # 破绽期间：金色大一号（打击感审查）
+		elif s.dmg >= 1.0 and (s.weak or g.texts.size() <= Bal.vi("fx/text_crowd", 30)):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
 
@@ -150,21 +251,63 @@ func mark_enemy_fx(from: int) -> void:
 
 
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
-	if text.is_valid_int():
+	var pn: Array = _num_parts(text)
+	if not pn.is_empty():
+		var mt: float = Bal.v("fx/text_merge_t", TEXT_MERGE_T)
+		var mr: float = Bal.v("fx/text_merge_r", TEXT_MERGE_R)
 		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
 			var t: Dictionary = g.texts[i]
-			if t.max - t.life > TEXT_MERGE_T or t.col != col or not str(t.text).is_valid_int() or t.pos.distance_to(pos) > TEXT_MERGE_R:
+			if t.max - t.life > mt or t.col != col or t.get("base", t.size) != size:
 				continue
-			if t.get("base", t.size) != size:
+			if t.get("pos0", t.pos).distance_to(pos) > mr:
+				continue
+			var tp: Array = _num_parts(str(t.text))
+			if tp.is_empty() or tp[0] != pn[0]:
 				continue
 			t["base"] = t.get("base", t.size)
-			t.text = str(int(t.text) + int(text))
+			t.text = pn[0] + str(int(tp[1]) + int(pn[1]))
 			t.size = mini(t.base + 6, t.size + 1)
 			t.life = t.max
 			return
-	g.texts.append({"pos": pos, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
+	# 避让（可读性，1.1.1）：和刚冒出（text_nudge_t 秒内）的飘字框重叠就往上错一行，最多错 text_nudge_max 行
+	var p0: Vector2 = pos
+	var tries: int = Bal.vi("fx/text_nudge_max", 3)
+	var nt: float = Bal.v("fx/text_nudge_t", 0.3)
+	var w: float = _text_w(text, size)
+	var moved := true
+	while moved and tries > 0:
+		moved = false
+		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 30), -1):
+			var t: Dictionary = g.texts[i]
+			if t.max - t.life > nt:
+				continue
+			var tw: float = _text_w(str(t.text), int(t.size))
+			if absf(t.pos.x - pos.x) < (tw + w) * 0.5 and absf(t.pos.y - pos.y) < (float(t.size) + size) * 0.5 + 1.0:
+				pos.y = t.pos.y - (float(t.size) + size) * 0.5 - 2.0
+				moved = true
+				tries -= 1
+				break
+	g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
 	if g.texts.size() > TEXT_CAP:
 		g.texts.pop_front()
+
+
+## 可合并的数字飘字：["前缀", "数字"]（纯数字前缀为空；「弱点 94」「破绽 382」按前缀分开合并），其余返回 []
+func _num_parts(text: String) -> Array:
+	if text.is_valid_int():
+		return ["", text]
+	for pre in ["弱点 ", "破绽 "]:
+		if text.begins_with(pre) and text.substr(pre.length()).is_valid_int():
+			return [pre, text.substr(pre.length())]
+	return []
+
+
+## 飘字宽度估算（世界坐标；中文按 1 个字号、数字 / 空格按 0.66 个字号，外加描边 8）
+func _text_w(text: String, size: int) -> float:
+	var w := 8.0
+	for ch in text:
+		w += size * (0.66 if ch.unicode_at(0) < 256 else 1.0)
+	return w
 
 
 func update(dt: float) -> void:
@@ -384,3 +527,84 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 	var fh: int = tx.get_height()
 	var size := Vector2(fw, fh) * scale
 	ci.draw_texture_rect_region(tx, Rect2((pos - size / 2.0).round(), size), Rect2(fw * (frame % frames), 0, fw, fh))
+
+
+## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。
+# Purely cosmetic identity; warning geometry and damage stay in BossAI.
+const BOSS_STYLE := {
+	"carmen": [Color(1.0, 0.76, 0.3), "fx_muzzle_flash"],
+	"iberia": [Color(1.0, 0.45, 0.2), "fx_muzzle_flash"],
+	"path": [Color(0.7, 0.8, 0.95), "fx_circle_steel"],
+	"bishop": [Color(0.25, 0.85, 0.9), "fx_water_splash"],
+	"archon": [Color(0.5, 0.95, 0.6), "fx_claw_double_green"],
+	"immortal": [Color(0.65, 0.75, 1.0), "fx_slash_arc_deep"],
+	"paranoia": [Color(0.8, 0.4, 1.0), "fx_circle_ghost"],
+	"knight_boss": [Color(0.55, 0.85, 1.0), "fx_knight_impact"],
+	"ishar": [Color(0.2, 1.0, 0.85), "fx_water_splash"],
+	"izumik": [Color(0.55, 1.0, 0.65), "fx_felspell"]
+}
+
+func boss_color(type: String) -> Color:
+	return BOSS_STYLE.get(type, [Color(1.0, 0.3, 0.65)])[0]
+
+func boss_signature(w: Dictionary) -> void:
+	var e: Dictionary = w.owner
+	if not BOSS_STYLE.has(e.type):
+		return
+	var start := g.fx.size()
+	var pos: Vector2 = w.pos
+	if e.type in ["carmen", "iberia"]:
+		pos = e.pos + Vector2.from_angle(w.get("ang", 0.0)) * 28.0 + Vector2(0, -18)
+	fx_sprite(BOSS_STYLE[e.type][1], pos, 2.0)
+	g.fx.append({"kind": "ring", "pos": pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": boss_color(e.type)})
+	for i in range(start, g.fx.size()):
+		g.fx[i]["enemy"] = true
+
+func boss_pattern(w: Dictionary) -> void:
+	boss_signature(w)
+	var start: int = g.fx.size()
+	var dir := Vector2.from_angle(w.ang)
+	match str(w.act):
+		"pattern_cleave":
+			slash_fx(w.pos, w.ang, w.half, w.r, w.col, "slash", 0.32)
+			fx_sprite(w.pattern.get("texture", "fx_slash_arc_rose"), w.pos + dir * w.r * 0.5, 2.8, w.ang)
+			Sfx.play("swing", -4.0, 0.7)
+		"pattern_line":
+			g.fx.append({"kind": "tracer" if w.owner.type in ["iberia", "carmen", "knight_boss"] else "bbeam",
+				"a": w.pos, "b": w.pos + dir * w.len, "life": 0.28, "max": 0.28, "col": w.col, "wid": w.wid})
+			Sfx.play("hit", -5.0, 0.7, 0.0)
+		"pattern_rain":
+			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": w.col})
+			fx_sprite("fx_water_splash", w.pos, 2.5)
+			Sfx.play("tentacle", -7.0, 0.9)
+		_:
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": w.col})
+			Sfx.enemy("spit", w.pos.distance_to(g.ppos))
+	for i in range(start, g.fx.size()):
+		g.fx[i]["enemy"] = true
+
+
+# 用户确认复用水月旧版深渊月牙帧条，运行时换色，原始素材保持不变。
+var blade_palettes: Dictionary = {}
+func boss_blade(b: Dictionary, pos: Vector2) -> void:
+	var type: String = b.get("source_type", "paranoia")
+	if not blade_palettes.has(type):
+		var original: Texture2D = g.tex.get("proj_tide_blade_abyss")
+		if original == null:
+			return
+		var pixels := original.get_image()
+		var tint := boss_color(type)
+		for y in pixels.get_height():
+			for x in pixels.get_width():
+				var c := pixels.get_pixel(x, y)
+				if c.a > 0.0:
+					pixels.set_pixel(x, y, Color.from_hsv(tint.h, c.s * tint.s, c.v, c.a))
+		blade_palettes[type] = ImageTexture.create_from_image(pixels)
+	var tx: Texture2D = blade_palettes[type]
+	var size := Vector2(tx.get_width() / 4.0, tx.get_height())
+	var frame := int(g.t * 12.0) % 4
+	# 刃缘与原先约 30px 高的弹幕一致，原图拖尾也一起保留。
+	var scale := 36.0 / size.y
+	g.draw_set_transform(pos + g.draw_off, b.vel.angle(), Vector2.ONE * scale)
+	g.draw_texture_rect_region(tx, Rect2(-size * 0.5, size), Rect2(Vector2(frame * size.x, 0), size))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

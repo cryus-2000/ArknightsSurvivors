@@ -6,6 +6,8 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
+const PlayClock = preload("res://scripts/run/play_clock.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -22,8 +24,116 @@ func _init(game: Game) -> void:
 	g = game
 
 
+## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
+var _hb: Tris = null
+
+func batch_begin() -> void:
+	_hb = Tris.new()
+	UI.sink = _hb
+	UI.tq = []
+
+
+## mid：色块之后、文字之前要画的贴图（同贴图连续画才合批）
+func batch_end(mid: Array = []) -> void:
+	var q: Array = UI.tq
+	UI.sink = null
+	UI.tq = null
+	_hb.flush(g.hud)
+	_hb = null
+	for f in mid:
+		f.call()
+	for f in q:
+		f.call()
+
+
+## 无贴图图元批（性能，协调人 9/30：Godot 画布只合批贴图矩形，draw_rect / draw_circle / draw_line 各算一次绘制调用）：
+## 矩形 / 边框 / 渐变 / 多边形 / 圆 / 线攒成三角形，flush 时一次 canvas_item_add_triangle_array 提交。
+## 提交时画布变换须为单位矩阵
+class Tris:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+
+	func quad4(p: Array, c: Array) -> void:
+		var b: int = pts.size()
+		for q in 4:
+			pts.append(p[q])
+			cols.append(c[q])
+		idx.append_array([b, b + 1, b + 2, b, b + 2, b + 3])
+
+	func rect(r: Rect2, col: Color) -> void:
+		quad4([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)], [col, col, col, col])
+
+	## 上下渐变（顶色 / 底色）
+	func grad(r: Rect2, ct: Color, cb: Color) -> void:
+		quad4([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)], [ct, ct, cb, cb])
+
+	## 边框：同 draw_rect(filled = false, w)，线宽骑在边上
+	func frame(r: Rect2, col: Color, w := 1.0) -> void:
+		var o := r.grow(w * 0.5)
+		rect(Rect2(o.position, Vector2(o.size.x, w)), col)
+		rect(Rect2(Vector2(o.position.x, o.end.y - w), Vector2(o.size.x, w)), col)
+		rect(Rect2(Vector2(o.position.x, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+		rect(Rect2(Vector2(o.end.x - w, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+
+	## 凸多边形（扇形三角化）
+	func poly(p: PackedVector2Array, col: Color) -> void:
+		var b: int = pts.size()
+		for v in p:
+			pts.append(v)
+			cols.append(col)
+		for q in range(1, p.size() - 1):
+			idx.append_array([b, b + q, b + q + 1])
+
+	func line(a: Vector2, b: Vector2, col: Color, w := 1.0) -> void:
+		var d := b - a
+		if d.length_squared() < 0.0001:
+			return
+		var n := d.normalized().orthogonal() * (w * 0.5)
+		quad4([a + n, b + n, b - n, a - n], [col, col, col, col])
+
+	func circle(c: Vector2, r: float, col: Color, seg := 12) -> void:
+		var b: int = pts.size()
+		pts.append(c)
+		cols.append(col)
+		for q in seg:
+			pts.append(c + Vector2.from_angle(TAU * q / seg) * r)
+			cols.append(col)
+		for q in seg:
+			idx.append_array([b, b + 1 + q, b + 1 + (q + 1) % seg])
+
+	func arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, seg := 24) -> void:
+		var b: int = pts.size()
+		for q in seg + 1:
+			var d := Vector2.from_angle(lerpf(a0, a1, float(q) / seg))
+			pts.append(c + d * (r - w * 0.5))
+			pts.append(c + d * (r + w * 0.5))
+			cols.append(col)
+			cols.append(col)
+		for q in seg:
+			var i0: int = b + q * 2
+			idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+
+	## 同 UI.diamond：实心菱形 + 可选 1px 描边
+	func diamond(c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 0)) -> void:
+		var p := PackedVector2Array([c + Vector2(0, -rad), c + Vector2(rad, 0), c + Vector2(0, rad), c + Vector2(-rad, 0)])
+		poly(p, fill)
+		if border.a > 0.0:
+			for q in 4:
+				line(p[q], p[(q + 1) % 4], border, 1.0)
+
+	func flush(ci: CanvasItem) -> void:
+		if idx.is_empty():
+			return
+		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), idx, pts, cols)
+		pts = PackedVector2Array()
+		cols = PackedColorArray()
+		idx = PackedInt32Array()
+
+
 func draw() -> void:
 	var vs := g.hud.size
+	g.speed_btn = Rect2()
 	var ct := g.get_viewport().get_canvas_transform()
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
@@ -132,6 +242,7 @@ func draw() -> void:
 	var lf := g.hud_lv_flash
 	var bc := UI.CYAN.lerp(UI.GOLD, lf).lerp(Color(0.8, 1.6, 1.8), g.xp_flash * 0.7)
 	var lc0 := o + Vector2(26, 30)
+	batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
 	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, g.xp / g.xp_need, bc, lf > 0.2)
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
@@ -161,15 +272,22 @@ func draw() -> void:
 	UI.gbar(g.hud, lbr, g.lamp / 100.0, lc)
 	for tv in [30.0, 70.0]:
 		var tx: float = lbr.position.x + lbr.size.x * tv / 100.0
-		g.hud.draw_rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
+		_hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
 	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if g.nerve > 1.0:
 		UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 54), Vector2(150, 2)), g.nerve / 100.0, Color(1.0, 0.45, 0.85))
 		UI.en(g.hud, g.font, Vector2(hx + 156, o.y + 58), "NERVE", 8, Color(1.0, 0.5, 0.9), 1.0)
 	if g.corrode_pool > 0.5:
 		UI.text(g.hud, g.font, Vector2(hx + 190, o.y + 60), "蚀", 11, Color(0.8, 0.5, 1.0))
+	batch_end()
 	if g.pstun > 0.0:
 		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-40, -110), "僵直", 16, Color(1.0, 0.5, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+	if g.root_t > 0.0 and g.state == Game.S.PLAY:
+		# 冻结 / 束缚：脚下提示「冲刺挣脱」（键位随输入设备），跳动吸引注意
+		var fz: bool = g.world.leader_frozen()
+		var bp: float = absf(sin(g.t * 8.0)) * 4.0
+		var key: String = "冲刺键" if g.touch.active else Pad.hint("空格", "Ⓑ")
+		UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按 %s 冲刺挣脱" % [g.world.root_label(), key], 15, Color(0.7, 0.92, 1.0) if fz else Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
 	# 商人方向指示
 	if not g.merchant.is_empty():
 		var sp: Vector2 = ct * g.merchant.pos
@@ -206,50 +324,59 @@ func draw() -> void:
 			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
 			g.hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(g.hud, g.font, hp2 + Vector2(-60, -8), ("商人 %ds" if g.merchant.life > 15.0 else "商人即将离开 %ds") % int(g.merchant.life), 13, g.shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
-	# 海嗣祭坛方位指示（屏幕外）
+	# 海嗣祭坛方位指示（屏幕外）；最终 Boss 登场前 10 秒还有没开的祭坛（g.endg.urgent）：指示变金红快闪、写「即将沉没」
+	var urgent: bool = g.endg != null and g.endg.get("urgent") == true
+	var uk: float = absf(sin(g.t * 9.0)) if urgent else 0.0
+	var acol: Color = Color(0.55, 0.8, 1.0).lerp(Color(1.0, 0.45, 0.3), uk) if urgent else Color(0.55, 0.8, 1.0)
 	for e in g.enemies:
 		if not e.chest or e.dead or e.get("event", "") == "":
 			continue
 		var spb: Vector2 = ct * e.pos
 		if Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(spb):
 			var hb := spb + Vector2(0, -60 - absf(sin(g.t * 5.0)) * 8.0)
-			g.hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), Color(0.55, 0.8, 1.0))
-			UI.text(g.hud, g.font, hb + Vector2(-60, -8), "海嗣祭坛", 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			g.hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), acol)
+			UI.text(g.hud, g.font, hb + Vector2(-90, -8), "海嗣祭坛" if not urgent else "海嗣祭坛 · 即将沉没", 13, acol, HORIZONTAL_ALIGNMENT_CENTER, 180, 3)
 		else:
 			var cc := vs / 2.0
 			var dd := (spb - cc).normalized()
 			var edge2: Vector2 = cc + dd * min(abs((vs.x / 2 - 64) / max(abs(dd.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(dd.y), 0.01)))
 			var pl := 0.5 + 0.5 * sin(g.t * 6.0)
+			if urgent:
+				g.hud.draw_circle(edge2, 32.0 + 8.0 * uk, Color(1.0, 0.45, 0.3, 0.25 * uk))
 			g.hud.draw_circle(edge2, 24.0, Color(0.03, 0.05, 0.1, 0.85))
-			g.hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, Color(0.55, 0.8, 1.0), 2.0)
+			g.hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, acol, 2.0)
 			var et2: Texture2D = g.tex.e_event
 			g.hud.draw_texture_rect_region(et2, Rect2(edge2 - Vector2(13, 15), Vector2(26, 30)), Rect2(0, 0, 26, 30))
 			var tip2: Vector2 = edge2 + dd * (40.0 + 5.0 * pl)
 			var base2: Vector2 = edge2 + dd * 28.0
 			var sd2 := dd.orthogonal() * 10.0
-			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), Color(0.55, 0.8, 1.0))
-			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), "海嗣祭坛 %dm" % int(e.pos.distance_to(g.ppos) / 32.0), 13, Color(0.55, 0.8, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), acol)
+			UI.text(g.hud, g.font, edge2 + Vector2(-60, -34.0 if edge2.y > vs.y / 2 else 44.0), ("海嗣祭坛 %dm" if not urgent else "即将沉没 %dm") % int(e.pos.distance_to(g.ppos) / 32.0), 13, acol, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	draw_boss_pointers(vs, ct)
+	draw_field_wave(vs)
+	draw_beacon_pointers(vs, ct)
 	if not overlay_left():
 		draw_minimap(vs)
 	var st_txt := ""
 	var st_en := "LIGHT"
 	var st_col := UI.GOLD
 	if g.lamp <= 0.0:
-		st_txt = "灯火熄灭 · 持续受伤"
+		st_txt = "灯火寂灭 · 持续受伤"
 		st_en = "OUT"
 		st_col = UI.RED
 	elif g.lamp < 30.0:
-		st_txt = "暗潮涌动 · 敌人更快更凶更多 · 拾取 -30%"
+		st_txt = "灯火暗淡 · 敌人更快更凶更多 · 拾取 -30%"
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:
-		st_txt = "灯火充盈 · 技力 +30% · 拾取 +20%"
+		st_txt = "灯火通明 · 技力 +30% · 拾取 +20%"
 	else:
-		st_txt = "灯火照亮 · 光中敌人受伤 +25%"
+		st_txt = "灯火摇曳 · 光中敌人受伤 +25%"
 		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
+	batch_begin()
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
+	batch_end()
 	# 黑潮：圈外警告 + 指向安全区
 	if g.zone_state != 0 and g.state == Game.S.PLAY:
 		var out := g.ppos.distance_to(g.zone_c) - g.zone_r
@@ -269,9 +396,11 @@ func draw() -> void:
 
 	# 顶部中央（方案 A · 明日方舟战斗顶栏）：[敌人] 击杀 | [时钟] 时间；
 	# 下面一行「◆ 楼层 + 英文」（背后淡金四叶环，原作地图顶部楼层名的样子）、威胁进度细线、威胁 / 难度
-	var mm := int(g.t) / 60
-	var ss := int(g.t) % 60
+	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
+	var mm := int(display_time) / 60
+	var ss := int(display_time) % 60
 	var cx0 := vs.x / 2.0
+	batch_begin()   # 顶部中央 + 右上暂停键：色块一批、字最后（性能 9/30）
 	UI.fade_band(g.hud, Rect2(cx0 - 160, 8, 320, 40), Color(0.03, 0.035, 0.045, 0.8), 56.0)
 	var ks := str(g.kills)
 	var kw := UI.cwidth(g.font, ks, 23)
@@ -279,7 +408,7 @@ func draw() -> void:
 	UI.icon(g.hud, "enemy", Vector2(lx0 + 10, 28), 20.0, Color.WHITE)
 	UI.ctext(g.hud, g.font, Vector2(lx0 + 26, 37), ks, 23, UI.TEXT)
 	UI.text(g.hud, g.font, Vector2(lx0 + 30 + kw, 36), "击杀", 11, UI.SUB)
-	g.hud.draw_rect(Rect2(cx0 - 0.5, 18, 1, 20), Color(1, 1, 1, 0.28))
+	_hb.rect(Rect2(cx0 - 0.5, 18, 1, 20), Color(1, 1, 1, 0.28))
 	UI.icon(g.hud, "clock", Vector2(cx0 + 25, 28), 18.0, Color.WHITE)
 	UI.ctext(g.hud, g.font, Vector2(cx0 + 38, 38), "%02d:%02d" % [mm, ss], 25, UI.TEXT)
 	var tr: Dictionary = D.THREAT[g.threat]
@@ -288,8 +417,8 @@ func draw() -> void:
 		tfrac = clampf((g.t - tr.t) / (D.THREAT[g.threat + 1].t - tr.t), 0.0, 1.0)
 	var tcol := Color(0.9, 0.45, 1.0).lerp(UI.RED, float(g.threat) / (D.THREAT.size() - 1))
 	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
-	var fname: String = tr.name
-	var fen: String = String(tr.get("en", ""))
+	var fname: String = "Boss 演练" if g.trial.active else tr.name
+	var fen: String = "TRIAL" if g.trial.active else String(tr.get("en", ""))
 	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 	var few := UI.en_width(g.font, fen, 10, 3.0)
 	var fx0 := cx0 - (14.0 + fw0 + 10.0 + few) / 2.0
@@ -297,23 +426,25 @@ func draw() -> void:
 	UI.text(g.hud, g.font, Vector2(fx0 + 14, 66), fname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
 	UI.gbar(g.hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
-	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else ""), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
+	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else "")
+	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
-	var tray_x := vs.x - 16.0
+	var tray_x := vs.x - 80.0
 	g.pause_btn = Rect2()
 	if not g.touch.active:
 		var pr := Rect2(vs.x - 56, 12, 40, 40)
 		var ph: bool = g.state == Game.S.PLAY and pr.has_point(g.hud.get_local_mouse_position())
-		g.hud.draw_rect(pr, Color(0.03, 0.035, 0.045, 0.78))
-		g.hud.draw_rect(pr, UI.CYAN if g.state == Game.S.PAUSE else Color(1, 1, 1, 0.55 if ph else 0.22), false, 1.0)
+		_hb.rect(pr, Color(0.03, 0.035, 0.045, 0.78))
+		_hb.frame(pr, UI.CYAN if g.state == Game.S.PAUSE else Color(1, 1, 1, 0.55 if ph else 0.22), 1.0)
 		UI.icon(g.hud, "pause", pr.get_center(), 20.0, UI.TEXT)
 		UI.ctext(g.hud, g.font, pr.position + Vector2(0, 52), "ESC", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		if g.state == Game.S.PLAY:
 			g.pause_btn = pr
-		tray_x -= 50.0
+	batch_end()
+	draw_speed_button(vs)
 	draw_relic_tray(Vector2(tray_x, 12))
-	if g.ending != "standard" or Cfg.endings_cleared.size() > 0:
+	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 60 + 38 * maxi(1, int(ceil(g.relics.size() / 8.0)))), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
 	# Boss 血条：只给真 Boss 画（boss_bars），最多 BOSS_BARS_MAX 条，多出来的写一行「另有 N 个 Boss」
@@ -325,6 +456,10 @@ func draw() -> void:
 		var bx := vs.x / 2 - bw / 2
 		g.hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
 		bby += 54.0
+		if shown.type == "ishar" and shown.get("friendly", false):
+			draw_ishar_human(shown, bx, bw)
+			g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
 		# 洋红 = 危险（原作「险路恶敌」）：暗底 + 顶部洋红细线 + BOSS 节点标签条
 		var bbr := Rect2(bx - 12, 100, bw + 24, 46)
 		g.hud.draw_rect(bbr, Color(0.03, 0.035, 0.045, 0.8))
@@ -341,6 +476,13 @@ func draw() -> void:
 					g.hud.draw_circle(dc, 3.5, UI.RED)
 				else:
 					g.hud.draw_arc(dc, 3.5, 0.0, TAU, 12, Color(1, 1, 1, 0.3), 1.0)
+		# 伊祖米克学习期吸收层数（e.izu_layers 0–5）：名字旁五枚小菱形，亮的是已吸收层
+		if shown.has("izu_layers"):
+			var izx: float = bx + sw + 14.0 + (acts * 11.0 if acts > 1 else 0.0)
+			UI.text(g.hud, g.font, Vector2(izx, 121), "吸收", 10, UI.SUB)
+			for q in 5:
+				var lit_l: bool = q < int(shown.izu_layers)
+				UI.diamond(g.hud, Vector2(izx + 30 + q * 11.0, 116.0), 4.0, Color(0.55, 1.0, 0.95) if lit_l else Color(1, 1, 1, 0.08), Color(0.6, 1.0, 1.0, 0.8 if lit_l else 0.3))
 		var brk: float = shown.get("break_t", 0.0)
 		var hold: bool = shown.get("gate_hold", false)
 		var sub := ""
@@ -358,7 +500,7 @@ func draw() -> void:
 		elif shown.type == "izumik":
 			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
 		elif shown.type == "ishar":
-			sub = "转化进度 %d%%（清除伊莎玛拉之泪）" % int(shown.charge) if shown.phase == 1 else "已完成转化"
+			sub = "转化中" if shown.phase == 1 else "已完成转化 · 敌对"
 		elif shown.has("ammo"):
 			sub = "装填中 —— 攻击以打断！" if shown.channel > 0.0 else ("弹药 %d / 3" % shown.ammo if shown.ammo > 0 else "近战中")
 		elif shown.get("coma", false):
@@ -366,7 +508,7 @@ func draw() -> void:
 		elif D.ENEMIES[shown.type].get("pair", false):
 			sub = "两体需同时击倒"
 		elif shown.type == "paranoia":
-			sub = "悬浮形态（控制它以击落）" if shown.phase == 1 else "第二形态"
+			sub = ("悬浮形态（打到 1/3 血坠落）" if Game.Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0 else "悬浮形态（结茧后坠落）") if shown.phase == 1 else "第二形态"
 		UI.text(g.hud, g.font, Vector2(bx + bw - 400, 122), sub, 12, sub_col, HORIZONTAL_ALIGNMENT_RIGHT, 400)
 		# 血条颜色：破绽中金色；阶段护盾时金色闪；无敌灰蓝；平时洋红
 		var bcol: Color = UI.RED
@@ -391,9 +533,6 @@ func draw() -> void:
 		if tn > 0.0 and shown.get("tough", 0.0) > 0.0 and brk <= 0.0:
 			g.hud.draw_rect(Rect2(bx, 138, bw, 3), Color(1, 1, 1, 0.1))
 			g.hud.draw_rect(Rect2(bx, 138, bw * clampf(shown.tough / tn, 0.0, 1.0), 3), Color(0.95, 0.85, 0.55))
-		if shown.type == "ishar" and shown.phase == 1:
-			var cy: float = 142.0 if shown.get("tough", 0.0) > 0.0 else 139.0   # 有韧性条时让到它下面
-			g.hud.draw_rect(Rect2(bx, cy, bw * shown.charge / 100.0, 2), UI.PURPLE)
 		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if bars.size() > BOSS_BARS_MAX:
 		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
@@ -426,7 +565,12 @@ func draw() -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
-			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ("按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")), 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			var ohint: String
+			if g.doctor.manual_attack:
+				ohint = "按住左半屏拖动移动 · 按攻击键出手（拖动选方向）" if g.touch.active else Pad.hint("WASD 移动 · 按住左键 / J 攻击，朝光标（或移动）方向", "左摇杆移动 · Ⓧ / RT 攻击 · 右摇杆瞄准")
+			else:
+				ohint = "按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")
+			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0:
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(g.t * 5.0)
@@ -461,13 +605,34 @@ func draw() -> void:
 			if g.state_age < DEATH_T:
 				draw_death_transition(vs)
 			else:
-				g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+				if g.trial.active:
+					draw_trial_result(vs, false)
+				else:
+					g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
 				# 结算面板淡入：盖一层和过渡末尾同色的暗幕，0.35 秒退去
 				var fa: float = 1.0 - clampf((g.state_age - DEATH_T) / 0.35, 0.0, 1.0)
 				if fa > 0.0:
 					g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.85 * fa))
 		Game.S.WIN:
-			g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+			if g.trial.active:
+				draw_trial_result(vs, true)
+			else:
+				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+
+
+func draw_speed_button(vs: Vector2) -> void:
+	var rect := Rect2(vs.x - 72.0, 76.0, 56.0, 34.0)
+	var enabled: bool = g.state == Game.S.PLAY
+	var hovered: bool = enabled and rect.has_point(g.hud.get_local_mouse_position())
+	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
+	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	if enabled:
+		g.speed_btn = rect
+
+
+func draw_trial_result(vs: Vector2, won: bool) -> void:
+	g.result_screen.draw(vs, "演练完成" if won else "演练结束", "BOSS TRIAL COMPLETE" if won else "BOSS TRIAL ENDED", UI.CYAN if won else UI.RED,
+		[["重新演练", "R", "restart"], ["返回主页", "T", "title"]], false, false)
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
@@ -481,16 +646,20 @@ func draw_minimap(vs: Vector2) -> void:
 	var world := 1100.0
 	var k := (rad - 8.0) / world
 	var lim := rad - 6.0
+	# 扫描线、视野框、各色点、安全区圈都进一个无贴图批，末尾一次提交（原来约 30 次绘制调用）
+	var tb := Tris.new()
 	# 声呐扫描线
 	var sweep := fmod(g.t * 0.9, TAU)
-	g.hud.draw_line(c, c + Vector2.from_angle(sweep) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.35), 1.0)
+	tb.line(c, c + Vector2.from_angle(sweep) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.35), 1.0)
 	for q in 6:
 		var a := sweep - q * 0.06
-		g.hud.draw_line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
-	g.hud.draw_arc(c, lim * 0.5, 0.0, TAU, 40, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 1.0)
+		tb.line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
+	tb.arc(c, lim * 0.5, 0.0, TAU, 1.0, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 40)
 	# 视野框
 	var view := g.get_viewport_rect().size
-	g.hud.draw_rect(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), false, 1.0)
+	tb.frame(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), 1.0)
+	# 普通敌人的 2×2 红点收集起来一次 draw_multiline 画完（性能，协调人 9/30：后期 300 个敌人逐个 draw_rect）
+	var dots := PackedVector2Array()
 	for e in g.enemies:
 		if e.dead:
 			continue
@@ -500,43 +669,49 @@ func draw_minimap(vs: Vector2) -> void:
 				p = p.limit_length(lim)
 			else:
 				continue
-		if e.boss:
+		if e.get("friendly", false):
+			tb.diamond(c + p, 5.0, UI.CYAN)
+		elif e.boss:
 			var bp := 0.5 + 0.5 * sin(g.t * 6.0)
-			g.hud.draw_circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0))
+			tb.circle(c + p, 5.0 + bp, Color(0.8, 0.3, 1.0), 14)
 		elif e.chest:
-			g.hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(0.55, 0.8, 1.0) if e.get("event", "") != "" else UI.GOLD)
+			tb.rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(0.55, 0.8, 1.0) if e.get("event", "") != "" else UI.GOLD)
 		elif e.elite:
-			g.hud.draw_rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
+			tb.rect(Rect2(c + p - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.6, 0.25))
 		else:
-			g.hud.draw_rect(Rect2(c + p - Vector2(1, 1), Vector2(2, 2)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85))
+			dots.append(c + p - Vector2(1, 0))
+			dots.append(c + p + Vector2(1, 0))
+	if not dots.is_empty():
+		g.hud.draw_multiline(dots, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85), 2.0)
 	for g_item in g.gems:
 		if g_item.dead or not (g_item.kind == "magnet" or g_item.kind == "heal" or g_item.kind == "chest"):
 			continue
 		var p: Vector2 = ((g_item.pos - g.ppos) * k).limit_length(lim)
-		g.hud.draw_circle(c + p, 3.0, g.pickups.item_col(g_item.kind))
+		tb.circle(c + p, 3.0, g.pickups.item_col(g_item.kind), 8)
 	if not g.merchant.is_empty():
 		var mp: Vector2 = ((g.merchant.pos - g.ppos) * k)
 		var clipped := mp.length() > lim
 		mp = mp.limit_length(lim)
-		UI.diamond(g.hud, c + mp, 5.0 + (1.5 * sin(g.t * 6.0) if clipped else 0.0), UI.GOLD)
+		tb.diamond(c + mp, 5.0 + (1.5 * sin(g.t * 6.0) if clipped else 0.0), UI.GOLD)
 	for o in g.squad.ops:
 		if o.pos != Vector2.INF:
-			g.hud.draw_circle(c + (o.pos - g.ppos) * k, 2.0, Color(0.5, 0.9, 1.0))
+			tb.circle(c + (o.pos - g.ppos) * k, 2.0, Color(0.5, 0.9, 1.0), 6)
 	if g.zone_state != 0:
-		mini_circle(c + (g.zone_c - g.ppos) * k, g.zone_r * k, lim, Color(0.85, 0.4, 1.0, 0.9), c)
+		mini_circle(tb, c + (g.zone_c - g.ppos) * k, g.zone_r * k, lim, Color(0.85, 0.4, 1.0, 0.9), c)
 		if g.zone_state == 1:
-			mini_circle(c + (g.zone_next_c - g.ppos) * k, g.zone_next_r * k, lim, Color(1, 1, 1, 0.6), c)
-	UI.diamond(g.hud, c, 4.0, Color(1, 1, 1))
+			mini_circle(tb, c + (g.zone_next_c - g.ppos) * k, g.zone_next_r * k, lim, Color(1, 1, 1, 0.6), c)
+	tb.diamond(c, 4.0, Color(1, 1, 1))
+	tb.flush(g.hud)
 
 
-func mini_circle(cc: Vector2, r: float, lim: float, col: Color, c: Vector2) -> void:
+func mini_circle(tb: Tris, cc: Vector2, r: float, lim: float, col: Color, c: Vector2) -> void:
 	var n := 48
 	for i in n:
 		var p0 := cc + Vector2.from_angle(TAU * i / n) * r
 		var p1 := cc + Vector2.from_angle(TAU * (i + 1) / n) * r
 		if (p0 - c).length() > lim or (p1 - c).length() > lim:
 			continue
-		g.hud.draw_line(p0, p1, col, 1.5)
+		tb.line(p0, p1, col, 1.5)
 
 
 func edge_glow(vs: Vector2, col: Color, w: float) -> void:
@@ -564,12 +739,16 @@ func draw_relic_tray(tr: Vector2) -> void:
 	g.hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
 	g.hud.draw_rect(Rect2(o, Vector2(w, 1)), Color(1, 1, 1, 0.14))
 	UI.icon(g.hud, "box", o + Vector2(15, 14), 14.0, Color(0.81, 0.84, 0.86))
-	UI.text(g.hud, g.font, o + Vector2(28, 19), "收藏品", 12, Color(0.81, 0.84, 0.86))
-	if w >= 180.0:
+	UI.text(g.hud, g.font, o + Vector2(28, 19), "藏品", 12, Color(0.81, 0.84, 0.86))
+	if w >= 220.0:
 		UI.en(g.hud, g.font, o + Vector2(70, 18), "RELICS", 9, UI.SUB, 2.0)
-	UI.ctext(g.hud, g.font, o + Vector2(w - 34, 20), "%d" % n, 17, UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 24)
+	UI.ctext(g.hud, g.font, o + Vector2(w - 70, 20), "%d / %d" % [n, Bal.vi("relic/carry_cap", 15)], 15, UI.GOLD if n >= Bal.vi("relic/carry_cap", 15) else UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 60)
 	g.tray_cells.clear()
 	var mouse := g.hud.get_local_mouse_position()
+	# 格底 / 边框 / 分类色攒成一批画在图标下，等级点一批画在图标上（原来每格 4–6 次绘制调用）
+	var under := Tris.new()
+	var over := Tris.new()
+	var late: Array[Callable] = []
 	for i in n:
 		var rd: Dictionary = g.RL[g.relics[i]]
 		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
@@ -577,20 +756,25 @@ func draw_relic_tray(tr: Vector2) -> void:
 		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
 		g.tray_cells.append([cellr, g.relics[i]])
 		var hov: bool = cellr.has_point(mouse)
-		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
-		g.hud.draw_rect(cellr, Color(1, 1, 1, 0.13) if not hov else col, false, 1.0)
-		g.hud.draw_rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
+		under.rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
+		under.frame(cellr, Color(1, 1, 1, 0.13) if not hov else col, 1.0)
+		under.rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
 		var ic: Texture2D = g.tex.get("relic_" + g.relics[i])
 		if ic != null:
-			g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false)
+			late.append(func(): g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false))
 		else:
-			UI.diamond(g.hud, c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
-			UI.text(g.hud, g.font, c + Vector2(-15, 5), rd.name.substr(0, 1), 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30)
+			under.diamond(c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
+			var ch: String = rd.name.substr(0, 1)
+			late.append(func(): UI.text(g.hud, g.font, c + Vector2(-15, 5), ch, 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30))
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
 			var pip: float = 6.0 if not compact else 3.0
 			for q in rl:
-				g.hud.draw_rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+				over.rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+	under.flush(g.hud)
+	for f in late:
+		f.call()
+	over.flush(g.hud)
 	var cy := r.end.y + 16
 
 
@@ -639,16 +823,27 @@ func draw_dash_hint(vs: Vector2) -> void:
 		return
 	var key: String = Pad.hint("空格", "Ⓑ")
 	var ready: bool = g.dash_cd <= 0.0
+	batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
+	if g.doctor.manual_attack:
+		# 手动普攻：冲刺牌左边一枚攻击牌（键鼠 左键 / J，手柄 RT / Ⓧ）
+		var acap: String = Pad.hint("左键 / J", "RT / Ⓧ")
+		var akw := UI.cwidth(g.font, acap, 11) + 12.0
+		var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
+		var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
+		_hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
+		UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
+		UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "攻击", 13, UI.TEXT)
 	var cap_s: String = Pad.hint("SPACE", "Ⓑ")
 	var kw := UI.cwidth(g.font, cap_s, 11) + 12.0
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
 	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 44), Vector2(w, 28))
-	g.hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
+	_hb.rect(r, Color(0.03, 0.035, 0.045, 0.74))
 	var k: float = 1.0 - g.dash_cd / Game.DASH_CD
 	UI.keycap(g.hud, g.font, r.position + Vector2(8, 5), cap_s, UI.CYAN if ready else UI.SUB, 11)
 	UI.text(g.hud, g.font, r.position + Vector2(16 + kw, 19), "冲刺", 13, UI.TEXT if ready else UI.SUB)
-	g.hud.draw_rect(Rect2(r.position + Vector2(0, r.size.y - 2), Vector2(r.size.x * k, 2)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5))
+	_hb.rect(Rect2(r.position + Vector2(0, r.size.y - 2), Vector2(r.size.x * k, 2)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5))
+	batch_end()
 	if not g.dash_used and g.t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
 		var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -92))
@@ -672,7 +867,7 @@ func draw_manual_hint() -> void:
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
-			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q", "Ⓐ"), nm])
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q / E", "Ⓐ / Ⓨ"), nm])
 	if manual_hint_t <= 0.0:
 		return
 	manual_hint_t -= g.get_process_delta_time()
@@ -700,6 +895,9 @@ func draw_manual_aim() -> void:
 	var i: int = ld.manual_index() if ld != null else -1
 	if i < 0 or not ld.manual_aims(i):
 		return
+	if ld.manual_point(i):
+		draw_point_aim(ld, i)
+		return
 	var dir := Vector2.ZERO
 	var strong := false
 	if g.touch.active:
@@ -723,6 +921,19 @@ func draw_manual_aim() -> void:
 	var to: Vector2 = xf * pt
 	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
 	# 引导线：虚线，到圈边为止
+	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
+	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
+	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
+	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
+	var real_to: Vector2 = to
+	to = to.clamp(inner.position, inner.end)
+	# 三角只在真实落点出屏时画（验收 P3：落点在屏内、只是离边近被推进来时，三角会指到落点外很远）
+	if real_to.distance_to(to) > 2.0 and not Rect2(Vector2.ZERO, vsz).has_point(real_to):
+		var ad: Vector2 = (real_to - to).normalized()
+		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
+		var sd: Vector2 = ad.orthogonal() * 7.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
 	var seg: Vector2 = to - from
 	var ln: float = seg.length()
 	if ln > rad + 8.0:
@@ -740,6 +951,63 @@ func draw_manual_aim() -> void:
 	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
 	if g.touch.active and dir == Vector2.ZERO:
 		UI.text(g.hud, g.font, to + Vector2(-40, -rad - 8.0), "自动瞄准", 12, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
+
+
+## 选落点的手动技能（契约 v2.5，JSON "aim": "point"，首个是乌尔比安 S3）：落点圈跟着取点走（鼠标光标 / 键盘蓄距离 /
+## 右摇杆推量 / 触屏拖动，doctor.point_preview 已夹在射程内），圈一直实线；蓄距离或触屏拖动时淡淡画出射程圆，键盘蓄距离时圈旁一段进度弧
+func draw_point_aim(ld, i: int) -> void:
+	# 充满就画（手动普攻时主控几乎一直在出手，按 manual_ready 判会一闪一闪）；此刻放不了（出手中 / 锚未收回）时淡一些
+	var charged: bool = ld.skill_unlocked(i) and not ld.perm[i] and ld.sp_need(i) > 0.0 and ld.sp[i] >= ld.sp_need(i) and ld.skill_active_left(i) <= 0.0
+	if not charged:
+		return
+	var rdy: bool = ld.manual_ready(i, Vector2.RIGHT)
+	var pt: Vector2 = ld.manual_aim_point(i)
+	if pt == Vector2.INF:
+		return
+	var xf: Transform2D = g.get_viewport().get_canvas_transform()
+	var sc: float = xf.get_scale().x
+	var from: Vector2 = xf * ld.pos
+	var to: Vector2 = xf * pt
+	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
+	var a: float = (0.85 if rdy else 0.4) * (0.8 + 0.2 * sin(g.t * 6.0))
+	var charging: bool = not g.doctor.charge.is_empty()
+	var dragging: bool = g.touch.active and g.touch.skill_id >= 0
+	if charging or dragging:
+		var rr: float = ld.aim_range(i) * sc
+		g.hud.draw_arc(from, rr, 0.0, TAU, 64, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.22), 1.5)
+	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
+	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
+	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
+	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
+	var real_to: Vector2 = to
+	to = to.clamp(inner.position, inner.end)
+	# 三角只在真实落点出屏时画（验收 P3：落点在屏内、只是离边近被推进来时，三角会指到落点外很远）
+	if real_to.distance_to(to) > 2.0 and not Rect2(Vector2.ZERO, vsz).has_point(real_to):
+		var ad: Vector2 = (real_to - to).normalized()
+		var tip: Vector2 = to + ad * (rad - 4.0)   # 三角画在圈内贴边（画在圈外会跟着出屏）
+		var sd: Vector2 = ad.orthogonal() * 7.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, tip - ad * 12.0 + sd, tip - ad * 12.0 - sd]), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a))
+	var seg: Vector2 = to - from
+	var ln: float = seg.length()
+	if ln > rad + 8.0:
+		var u: Vector2 = seg / ln
+		var t := 18.0
+		while t < ln - rad:
+			g.hud.draw_line(from + u * t, from + u * minf(t + 10.0, ln - rad), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.7), 2.0)
+			t += 18.0
+	g.hud.draw_circle(to, rad, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a * 0.1))
+	g.hud.draw_arc(to, rad, 0.0, TAU, 48, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	for q in 4:
+		var d: Vector2 = Vector2.from_angle(q * PI / 2.0 + g.t * 0.8)
+		g.hud.draw_line(to + d * (rad - 10.0), to + d * (rad - 2.0), Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, a), 2.0)
+	g.hud.draw_circle(to, 3.0, Color(1, 1, 1, a))
+	if charging:
+		# 蓄距离进度：圈右上一段弧，蓄满（manual/point_charge 秒）= 射程最远
+		var ck: float = clampf(float(g.doctor.charge.get("t", 0.0)) / maxf(0.05, Game.Bal.v("manual/point_charge", 0.6)), 0.0, 1.0)
+		var full: bool = ck >= 1.0
+		var cc: Color = UI.GOLD.lerp(Color(1, 1, 1), 0.5 + 0.5 * sin(g.t * 14.0)) if full else Color(1, 1, 1, 0.9)
+		g.hud.draw_arc(to, rad + 8.0, -PI / 2.0, -PI / 2.0 + TAU * ck, 40, cc, 4.0 if full else 3.0)   # 蓄满：金白闪
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
@@ -812,6 +1080,7 @@ func draw_elite_marks(ct: Transform2D) -> void:
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
 	var vs := g.hud.size
+	var tb := Tris.new()   # 血条 + 三角一批提交（原来每只 4 次绘制调用）
 	for e in g.enemies:
 		if e.dead or not e.elite or e.boss or e.get("under", false):
 			continue
@@ -819,13 +1088,14 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		if sp.x < -40 or sp.y < -40 or sp.x > vs.x + 40 or sp.y > vs.y + 40:
 			continue
 		var w: float = maxf(24.0, e.r * 1.4)
-		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
-		g.hud.draw_rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
+		tb.rect(Rect2(sp + Vector2(-w / 2.0 - 1.0, -1.0), Vector2(w + 2.0, 5)), Color(0, 0, 0, 0.7))
+		tb.rect(Rect2(sp + Vector2(-w / 2.0, 0), Vector2(w * clampf(e.hp / e.maxhp, 0.0, 1.0), 3)), ELITE_COL)
 		var tip: Vector2 = sp + Vector2(0, -4)
 		var bob: float = 2.0 * sin(g.t * 5.0 + e.id)
 		var tri := PackedVector2Array([tip + Vector2(-6, -10 + bob), tip + Vector2(6, -10 + bob), tip + Vector2(0, -3 + bob)])
-		g.hud.draw_colored_polygon(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
-		g.hud.draw_colored_polygon(tri, ELITE_COL)
+		tb.poly(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
+		tb.poly(tri, ELITE_COL)
+	tb.flush(g.hud)
 
 
 ## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 1.7 秒——
@@ -877,7 +1147,8 @@ func corrode_seg(r: Rect2, a: float) -> void:
 	var y0: float = r.position.y
 	var h: float = r.size.y
 	var br: float = 0.8 + 0.2 * sin(g.t * 6.0)
-	g.hud.draw_rect(Rect2(x0, y0, x1 - x0, h), Color(CORRODE_COL.r, CORRODE_COL.g, CORRODE_COL.b, 0.95 * a))
+	var tb: Tris = _hb if _hb != null else Tris.new()   # 左上面板里画时并进面板的批；头顶小条自己一批
+	tb.rect(Rect2(x0, y0, x1 - x0, h), Color(CORRODE_COL.r, CORRODE_COL.g, CORRODE_COL.b, 0.95 * a))
 	# 斜纹：每 4 像素一道，左下到右上；两端按段落裁切
 	var ph: float = fmod(g.t * 6.0, 4.0)
 	var sx: float = x0 - h - 4.0 + ph
@@ -894,10 +1165,12 @@ func corrode_seg(r: Rect2, a: float) -> void:
 			by += bx - x1
 			bx = x1
 		if bx > ax:
-			g.hud.draw_line(Vector2(ax, ay), Vector2(bx, by), hc, 1.2)
+			tb.line(Vector2(ax, ay), Vector2(bx, by), hc, 1.2)
 		sx += 4.0
 	# 左端一道亮边：流失到这里为止
-	g.hud.draw_rect(Rect2(x0, y0 - 1, 1, h + 2), Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, 0.9 * a))
+	tb.rect(Rect2(x0, y0 - 1, 1, h + 2), Color(CORRODE_HI.r, CORRODE_HI.g, CORRODE_HI.b, 0.9 * a))
+	if tb != _hb:
+		tb.flush(g.hud)
 
 
 ## 倒下过渡里灯火熄灭的时刻（灯光半径收到 0；音频 music_director 在这一刻播「灯灭」，引用本常量）
@@ -919,13 +1192,20 @@ const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
 func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return
-	for b in boss_bars():
+	var placed: Array = []   # 同一方向的两只 Boss（接潮双体）：后画的沿屏幕边挪开，不叠在一起
+	for b in hostile_boss_bars():
 		var sp: Vector2 = ct * b.pos
 		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
 			continue
 		var c := vs / 2.0
 		var d := (sp - c).normalized()
 		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 72) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 72) / maxf(absf(d.y), 0.01)))
+		var tries := 0
+		while tries < 4 and placed.any(func(p): return p.distance_to(edge) < 76.0):
+			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
+			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72))
+			tries += 1
+		placed.append(edge)
 		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
 		g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.14))
 		g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
@@ -945,6 +1225,73 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 		var nm: String = D.ENEMIES.get(b.type, {}).get("name", "Boss")
 		var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
 		UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), "%s  %dm" % [nm, int(b.pos.distance_to(g.ppos) / 32.0)], 13, BOSS_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+
+
+func draw_ishar_human(e: Dictionary, bx: float, bw: float) -> void:
+	var rect := Rect2(bx - 12, 100, bw + 24, 46)
+	g.hud.draw_rect(rect, Color(0.03, 0.035, 0.045, 0.8))
+	g.hud.draw_rect(Rect2(rect.position, Vector2(rect.size.x, 1)), Color(UI.CYAN, 0.7))
+	UI.strip(g.hud, g.font, Vector2(bx, 106), "NEUTRAL", e.name, UI.CYAN, UI.TEXT, 12)
+	var progress: float = clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0)
+	UI.text(g.hud, g.font, Vector2(bx + bw - 300, 122), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+	UI.gbar(g.hud, Rect2(bx, 131, bw, 6), progress, UI.CYAN, 20)
+
+
+func hostile_boss_bars() -> Array:
+	return boss_bars().filter(func(e): return not e.get("friendly", false))
+
+
+## 伊祖米克全场地波（act izu_wave，r 2400 圈在屏幕外看不到）：屏幕边缘白 / 洋红光脉动收紧 + 中央提示和倒计时 + 冲刺图标
+func draw_field_wave(vs: Vector2) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	for w in g.warns:
+		if w.done or w.get("act", "") != "izu_wave":
+			continue
+		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
+		var pk: float = 0.5 + 0.5 * sin(g.t * (8.0 + 10.0 * k))
+		edge_glow(vs, Color(1.0, 0.35, 0.75, 0.35 + 0.45 * k * pk), 90.0 + 90.0 * k)
+		var left: float = maxf(0.0, w.dur - w.t)
+		var y: float = vs.y * 0.3
+		UI.text(g.hud, g.font, Vector2(0, y), "全场地波  %.1f" % left, 22, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
+		UI.text(g.hud, g.font, Vector2(0, y + 26), "躲进点亮的灯柱光圈，或者冲刺", 15, Color(1.0, 0.85, 0.55), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+		var ic := Vector2(vs.x / 2.0, y - 34)
+		for q in 3:
+			var ox: float = -9.0 + q * 7.0
+			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
+			g.hud.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
+		break
+## 未点燃的灯标在屏幕外：边缘暖金小圈 + 箭头 +「灯标 Nm」（同商人 / 祭坛指示）
+func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
+	var bs = g.get("beacons")
+	if g.state != Game.S.PLAY or not (bs is Array):
+		return
+	batch_begin()   # 圆底 / 圈 / 箭头一批 → 灯标小图 → 字（性能 9/30：原来每个指示 6 次绘制调用）
+	var mid: Array = []
+	for b in bs:
+		if b.get("lit", false):
+			continue
+		var sp: Vector2 = ct * b.get("pos", Vector2.ZERO)
+		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			continue
+		var c := vs / 2.0
+		var d := (sp - c).normalized()
+		var edge: Vector2 = c + d * minf(absf((vs.x / 2 - 64) / maxf(absf(d.x), 0.01)), absf((vs.y / 2 - 64) / maxf(absf(d.y), 0.01)))
+		var col := Color(1.0, 0.78, 0.42)
+		_hb.circle(edge, 20.0, Color(0.06, 0.05, 0.03, 0.85), 24)
+		_hb.arc(edge, 20.0, 0.0, TAU, 2.0, col, 24)
+		var tx: Texture2D = g.tex.get("prop_beacon")
+		if tx != null:
+			var fw: int = tx.get_width() / 2
+			var k: float = 32.0 / float(tx.get_height())
+			var dst := Rect2(edge - Vector2(fw, tx.get_height()) * k / 2.0, Vector2(fw, tx.get_height()) * k)
+			mid.append(func(): g.hud.draw_texture_rect_region(tx, dst, Rect2(0, 0, fw, tx.get_height())))
+		var tip: Vector2 = edge + d * 34.0
+		var base: Vector2 = edge + d * 24.0
+		var sd := d.orthogonal() * 8.0
+		_hb.poly(PackedVector2Array([tip, base + sd, base - sd]), col)
+		UI.text(g.hud, g.font, edge + Vector2(-60, -30.0 if edge.y > vs.y / 2 else 42.0), "灯标 %dm" % int(b.get("pos", Vector2.ZERO).distance_to(g.ppos) / 32.0), 13, col, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+	batch_end(mid)
 
 
 func boss_bars() -> Array:
@@ -980,18 +1327,40 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["国王之势", Color(1.0, 0.8, 0.3), -1.0])
 	if g.corrode_pool > 0.5:
 		items.append(["侵蚀 %d" % int(g.corrode_pool), Color(0.8, 0.5, 1.0), -1.0])
-	if g.nerve > 5.0:
-		items.append(["神经损伤", Color(1.0, 0.5, 0.9), g.nerve / 100.0])
+	# 神经损伤（Boss与怪物 419c84d：0–nerve_max，站在溟痕 / 巢涌者光环里上涨；满格后 nerve_lock 秒锁定）
+	var nlock: float = float(g.get("nerve_lock")) if g.get("nerve_lock") != null else 0.0
+	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
+	if nlock > 0.0:
+		items.append(["神经 · 锁定 %.1f" % nlock, Color(0.62, 0.6, 0.66), clampf(nlock / 5.0, 0.0, 1.0)])
+	elif g.nerve > 1.0:
+		items.append(["神经损伤 %d" % int(g.nerve / nmax * 100.0), Color(1.0, 0.5, 0.9), clampf(g.nerve / nmax, 0.0, 1.0)])
 	if g.atk_slow > 0.0:
 		items.append(["攻速减缓", Color(0.6, 0.7, 0.9), clampf(g.atk_slow / 3.0, 0.0, 1.0)])
 	if g.pstun > 0.0:
 		items.append(["定身", UI.RED, -1.0])
+	# 小怪控制（combat.gd「小怪控制」段）
+	if g.cold > 0:
+		items.append(["寒霜 ×%d" % g.cold, Color(0.6, 0.88, 1.0), clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.0, 1.0)])
+	if g.root_t > 0.0:
+		items.append(["%s · 冲刺挣脱" % g.world.root_label(), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
+	for bb in g.bosses:
+		if not bb.dead and bb.get("burden_in", false):
+			items.append(["认知负担 · 攻速 −%d%%" % roundi(Game.Bal.v("boss/paranoia_aura_aspd", 0.10) * 100.0), Color(0.85, 0.55, 1.0), -1.0])
+			break
+	var apop_t: float = float(g.get("apop_t")) if g.get("apop_t") != null else 0.0
+	var apop: float = float(g.get("apop")) if g.get("apop") != null else 0.0
+	if apop_t > 0.0:
+		items.append(["技力暂停 %.1f" % apop_t, Color(0.7, 0.85, 0.65), clampf(apop_t / 4.0, 0.0, 1.0)])
+	elif apop > 1.0:
+		items.append(["凋亡 %d" % int(apop), Color(0.62, 0.72, 0.6), apop / 100.0])
+	if g.wound > 0:
+		items.append(["创口 ×%d" % g.wound, Color(1.0, 0.35, 0.6), clampf(g.wound_t / maxf(0.1, Game.Bal.v("enemy/wound_dur", 6.0)), 0.0, 1.0)])
 	if g.in_mire > 0.5:
 		items.append(["溟痕 · 减速", Color(0.85, 0.45, 1.0), -1.0])
 	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r:
 		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
 	if g.lamp < 30.0:
-		items.append(["灯火低微", Color(1.0, 0.55, 0.45), -1.0])
+		items.append(["灯火暗淡", Color(1.0, 0.55, 0.45), -1.0])
 	if items.is_empty():
 		return
 	var x := 18.0
@@ -1021,16 +1390,24 @@ func draw_squad_hud(br: Vector2) -> void:
 	var x_left: float = br.x - n * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
 	if g.knight.alive:
 		g.knight.draw_hud(g.hud, Vector2(x_left - 130, br.y - 30))
+	# 分四层画（性能，协调人 9/30：原来每张卡 + 三枚技能格约 15 次绘制调用，字 / 色块 / 贴图交替打断合批）：
+	# bg 底色批 → 贴图（立绘 / 技能图标 / 源石锭）→ fg 遮罩边框批 → 文字与悬停提示。同层内顺序不变
+	var bg := Tris.new()
+	var fg := Tris.new()
+	var texq: Array[Callable] = []
+	var txt: Array[Callable] = []
 	var card_y: float = br.y - SQ_CARD.y
 	var sk_y: float = card_y - SQ_SK - 14.0
 	# 源石锭费用框（明日方舟部署费用的位置与样子）+ 编队人数
 	var dp := Rect2(Vector2(br.x - 116, sk_y - 46), Vector2(116, 34))   # 顶 = squad_top()
-	g.hud.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.82))
-	g.hud.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
-	g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
-	UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
-	UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
-	UI.text(g.hud, g.font, Vector2(dp.position.x - 160, dp.position.y + 22), "编队 %d / %d" % [n, g.squad.cap()], 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150)
+	bg.rect(dp, Color(0.03, 0.035, 0.045, 0.82))
+	bg.rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
+	texq.append(func(): g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false))
+	var cnt := "编队 %d / %d" % [n, g.squad.cap()]
+	txt.append(func():
+		UI.ctext(g.hud, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
+		UI.text(g.hud, g.font, dp.position + Vector2(76, 22), "源石锭", 10, UI.SUB)
+		UI.text(g.hud, g.font, Vector2(dp.position.x - 160, dp.position.y + 22), cnt, 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 150))
 	var mp := g.hud.get_local_mouse_position()
 	for i in n:
 		var o = g.squad.ops[i]
@@ -1041,7 +1418,7 @@ func draw_squad_hud(br: Vector2) -> void:
 		# ---- 立绘卡：上亮下暗的底 + 待机帧上半身（48 帧放大 2 倍、96 高清帧原样，都画成 96 像素）
 		var ctop := Color(0.17, 0.2, 0.23, 0.95)
 		var cbot := Color(0.07, 0.08, 0.1, 0.95)
-		g.hud.draw_polygon(PackedVector2Array([cr.position, Vector2(cr.end.x, cr.position.y), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([ctop, ctop, cbot, cbot]))
+		bg.grad(cr, ctop, cbot)
 		var pt: Dictionary = o.portrait()
 		var at: Texture2D = g.tex.get(pt.tex)
 		if at != null:
@@ -1050,30 +1427,32 @@ func draw_squad_hud(br: Vector2) -> void:
 			var ks: float = 2.0 / A.hires_of(at)
 			var dst_h := minf(fh * ks - 8.0, cr.size.y - 8.0)
 			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, 8.0 / ks, minf(cr.size.x / ks, fw), dst_h / ks)
-			g.hud.draw_texture_rect_region(at, Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h)), src)
+			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
+			texq.append(func(): g.hud.draw_texture_rect_region(at, dst, src))
 		var clear := Color(0, 0, 0, 0)
 		var shade := Color(0, 0, 0, 0.88)
-		g.hud.draw_polygon(PackedVector2Array([Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.end.x, cr.end.y - 28), cr.end, Vector2(cr.position.x, cr.end.y)]), PackedColorArray([clear, clear, shade, shade]))
-		UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), o.display_name().substr(0, 5), 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2)
+		fg.grad(Rect2(Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.size.x, 28)), clear, shade)
+		var nm: String = o.display_name().substr(0, 5)
+		txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), nm, 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2))
 		var cls: String = String(o.cls).substr(0, 1)
 		if cls != "":
-			g.hud.draw_rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
-			UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18)
+			fg.rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
+			txt.append(func(): UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18))
 		var el: String = ["精零", "精一", "精二"][o.elite]
 		var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 8.0
-		g.hud.draw_rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
-		UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4))
+		fg.rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
+		txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4)))
 		if act:
 			for k in 3:
-				g.hud.draw_rect(cr.grow(2.0 + k * 2.5), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 - k * 0.045), false, 2.0)
-			g.hud.draw_rect(cr, UI.CYAN, false, 1.0)
+				fg.frame(cr.grow(2.0 + k * 2.5), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 - k * 0.045), 2.0)
+			fg.frame(cr, UI.CYAN, 1.0)
 		else:
-			g.hud.draw_rect(cr, Color(1, 1, 1, 0.16), false, 1.0)
-		g.hud.draw_rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
+			fg.frame(cr, Color(1, 1, 1, 0.16), 1.0)
+		fg.rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
 		if o == g.ch:
 			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
-			g.hud.draw_rect(lt, UI.VIOLET)
-			UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x)
+			fg.rect(lt, UI.VIOLET)
+			txt.append(func(): UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x))
 		# ---- 三枚技能格
 		var items: Array = o.skill_hud()
 		for k in 3:
@@ -1085,42 +1464,58 @@ func draw_squad_hud(br: Vector2) -> void:
 			var frac: float = clamp(it[5], 0.0, 1.0)
 			if active > 0.0:
 				frac = active / it[4]
-			g.hud.draw_rect(sr, Color(0.04, 0.047, 0.059, 0.9))
+			bg.rect(sr, Color(0.04, 0.047, 0.059, 0.9))
 			var icon: Texture2D = g.tex.get(it[9]) if it.size() > 9 and it[9] != "" else null
 			var c := sr.get_center()
 			if icon != null:
 				# 方形技能图标（仿原作）铺满格子；充能中没充满的上半截压暗，充满后整块亮起
-				g.hud.draw_texture_rect(icon, sr, false, Color.WHITE if unlocked else Color(0.3, 0.3, 0.35))
+				var tint: Color = Color.WHITE if unlocked else Color(0.3, 0.3, 0.35)
+				texq.append(func(): g.hud.draw_texture_rect(icon, sr, false, tint))
 				if unlocked and active <= 0.0 and frac < 1.0:
-					g.hud.draw_rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
+					fg.rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
 			else:
 				if unlocked and frac > 0.0:
-					g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
+					bg.rect(Rect2(Vector2(sr.position.x, sr.end.y - sr.size.y * frac), Vector2(sr.size.x, sr.size.y * frac)), Color(col.r, col.g, col.b, 0.22 if active <= 0.0 else 0.35))
 				var gcol: Color = (Color(1, 1, 1) if active > 0.0 else col) if unlocked else Color(0.3, 0.35, 0.4)
-				UI.text(g.hud, g.font, Vector2(sr.position.x, c.y + 5), it[0], 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2)
+				var glyph: String = it[0]
+				txt.append(func(): UI.text(g.hud, g.font, Vector2(sr.position.x, c.y + 5), glyph, 12, gcol, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 2))
 			if unlocked:
-				g.hud.draw_rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
+				fg.rect(Rect2(Vector2(sr.position.x, sr.end.y - 2), Vector2(sr.size.x * frac, 2)), col if active <= 0.0 else Color.WHITE)
 			# 边框：生效中白；充满待放用干员色（有图标时格子本身亮起，边框再提示一下）；其余淡白
 			var ready: bool = icon != null and unlocked and active <= 0.0 and frac >= 1.0 and not o.perm[k]
-			g.hud.draw_rect(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), false, 1.0)
+			fg.frame(sr, Color.WHITE if active > 0.0 else (Color(col.r, col.g, col.b, 0.95) if ready else Color(1, 1, 1, 0.14 if unlocked else 0.06)), 1.0)
 			if active > 0.0:
-				UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), "%d" % int(ceil(active)), 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12)
+				var left := "%d" % int(ceil(active))
+				txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.end.x - 12, sr.position.y + 10), left, 10, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 12))
+			if unlocked and g.get("apop_t") != null and float(g.apop_t) > 0.0:
+				# 凋亡损伤满条：技能充能暂停——灰绿遮罩 + 暂停符号
+				fg.rect(sr, Color(0.1, 0.14, 0.1, 0.62))
+				fg.rect(Rect2(c + Vector2(-6, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
+				fg.rect(Rect2(c + Vector2(2, -7), Vector2(4, 14)), Color(0.8, 0.92, 0.75))
 			if o.perm[k]:
-				UI.diamond(g.hud, sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
+				fg.diamond(sr.end - Vector2(3, 3), 3.0, col, Color(1, 1, 1, 0.6))
 			if o.rej.has(k):
-				UI.diamond(g.hud, Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
+				fg.diamond(Vector2(c.x, sr.position.y - 2), 3.0, Color(0.85, 0.55, 1.0))
 			# 手动技能（契约 v2.2）：格子上方标按键；充满可放时青色呼吸框
 			if o.is_manual(k) and unlocked:
 				var rdy: bool = manual_castable(o, k)
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
-					g.hud.draw_rect(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), false, 2.0)
-				UI.ctext(g.hud, g.font, Vector2(sr.position.x - 8, sr.position.y - 4), Pad.hint("Q", "Ⓐ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 16)
+					fg.frame(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), 2.0)
+				if not g.touch.active:
+					txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24))
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
 				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英一", "精英二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
 				var tw: float = g.font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
 				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, g.hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
-				UI.panel(g.hud, tipr, UI.BG2, o.col(), 6.0)
-				UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT)
+				txt.append(func():
+					UI.panel(g.hud, tipr, UI.BG2, ocol, 6.0)
+					UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT))
+	bg.flush(g.hud)
+	for f in texq:
+		f.call()
+	fg.flush(g.hud)
+	for f in txt:
+		f.call()

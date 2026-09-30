@@ -3,11 +3,14 @@ extends Node
 
 const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
-	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break"]
+	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "enemy_acid", "enemy_elite", "crit_tick", "break_open", "break_hit", "lamp_empty", "heartbeat_hi", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
+	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break", "paranoia_land_break", "bishop_panic",
+	"ulp_charge_loop", "ulp_release", "atk_gate", "beacon_fizzle",
+	"boss_archon", "boss_bishop", "boss_carmen", "boss_iberia", "boss_immortal", "boss_ishar", "boss_izumik", "boss_knight_boss", "boss_paranoia", "boss_path", "cue_beam_hit", "cue_beam_start", "cue_charge_hit", "cue_charge_start", "cue_global_hit", "cue_global_start", "cue_land_hit", "cue_land_start", "cue_melee_hit", "cue_melee_start", "cue_phase_start"]
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"crit_tick": 0.08, "break_hit": 0.12, "enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -19,7 +22,7 @@ const OP_SFX := {
 	"suzuran": ["atk", "hit", "s1", "s2", "s3"],
 	"eyjafjalla": ["atk", "hit", "s1", "s2", "s3", "big"],
 	"kaltsit": ["atk", "s1", "s2", "s3", "big", "heal"],
-	"wisadel": ["atk", "hit", "s1", "s2", "s3", "quake"],
+	"wisadel": ["atk", "hit", "s1", "s2", "s3", "quake", "big"],
 	# 第二批（docs/28 §第二批）
 	"irene": ["atk", "hit", "s1", "s2", "s3", "big"],
 	"logos": ["atk", "s1", "s2", "s3", "big"],
@@ -554,6 +557,8 @@ func _voice_tick() -> void:
 
 ## 场景切换 / 回标题时清空（避免上一局的部署语音串到下一局）
 func voice_reset() -> void:
+	for lp in loops.values():
+		lp.stop()
 	voice_queue.clear()
 	voice_player.stop()
 	voice_prio = 0
@@ -616,30 +621,167 @@ func toggle_music() -> bool:
 	return music_muted
 
 
+## Boss 大招固定音效（docs/38 §8.11，tools/gen_sfx_cues.py）：同一类招式同一组音，听音就知道怎么躲；
+## 起手音上再叠这只 Boss 的专属音色。CUE_VOL 把各文件拉到同一实际电平（外放口径）：起手 / 命中约 -18、专属层 -22、
+## 全场警报最响（-11）。类别可用中文或英文键；缺文件时 play() 本来就静默
+const CUE_CAT := {"落地": "land", "冲锋": "charge", "光束": "beam", "近身": "melee", "全场": "global", "阶段": "phase"}
+const CUE_VOL := {"boss_archon": -10.2, "boss_bishop": -11.0, "boss_carmen": -11.5, "boss_iberia": -11.5, "boss_immortal": -11.2, "boss_ishar": -5.1, "boss_izumik": -6.1, "boss_knight_boss": -7.9, "boss_paranoia": -7.5, "boss_path": -7.1, "cue_beam_hit": -1.1, "cue_beam_start": -8.6, "cue_charge_hit": -0.6, "cue_charge_start": -3.6, "cue_global_hit": -1.8, "cue_global_start": -6.5, "cue_land_hit": -2.0, "cue_land_start": -1.3, "cue_melee_hit": 0.9, "cue_melee_start": -2.6, "cue_phase_start": -3.1}
+
+
+func play_cue(cat: String, boss: String, stage := "start") -> void:
+	var c: String = CUE_CAT.get(cat, cat)
+	var n := "cue_%s_%s" % [c, stage]
+	play(n, float(CUE_VOL.get(n, -18.0)), 1.0, 0.03)
+	if stage == "start":
+		var b := "boss_" + boss
+		play(b, float(CUE_VOL.get(b, -22.0)), 1.0, 0.0)
+
+
+## 手动操作的音量（tools/gen_sfx_events.py；外放口径）：蓄距离循环 -24、释放 -17、被闸门拦住的「咔」-28
+const ULP_LOOP_DB := -18.0
+const ULP_RELEASE_DB := -2.1
+const ATK_GATE_DB := -10.6
+
+## 循环音效（乌尔比安 S3 手动蓄距离等）：loop_start 开始（已在播只改音量 / 音高），loop_pitch 每帧改音高，loop_stop 停。
+## 各名字一个独立播放器，不占一次性音效的 32 个；新一局（voice_reset）时全部停掉
+var loops := {}
+
+
+func loop_start(name: String, vol := 0.0, pitch := 1.0) -> void:
+	if streams.get(name) == null:
+		return
+	var p: AudioStreamPlayer = loops.get(name)
+	if p == null:
+		p = AudioStreamPlayer.new()
+		p.bus = "SFX"
+		add_child(p)
+		var st: AudioStream = streams[name]
+		if st is AudioStreamWAV:
+			st = st.duplicate()
+			st.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			st.loop_begin = 0
+			st.loop_end = int(st.get_length() * st.mix_rate)
+		p.stream = st
+		loops[name] = p
+	p.volume_db = vol
+	p.pitch_scale = clampf(pitch, 0.25, 4.0)
+	if not p.playing:
+		p.play()
+
+
+func loop_pitch(name: String, pitch: float) -> void:
+	var p: AudioStreamPlayer = loops.get(name)
+	if p != null:
+		p.pitch_scale = clampf(pitch, 0.25, 4.0)
+
+
+func loop_stop(name: String) -> void:
+	var p: AudioStreamPlayer = loops.get(name)
+	if p != null:
+		p.stop()
+
+
+## ---- 混音优先级（协调人 9/30：后期 200+ 敌人时同时发声会糊）
+## 一次性音效共 32 个播放器。同名音 MERGE_T 秒内合并（取 LIMIT 与它的较大者）；满槽时抢占正在播的最低优先级音，
+## 自己优先级不高于它就丢弃；已有 DUCK_AT 个在响时，优先级 ≤2 的音降 6 dB。统计计数给 --perf 测量用（sfx_stat）
+const MERGE_T := 0.05
+const LOW_CAP := 16   # 低画质档（Cfg.quality == "low"）：同时发声上限 16，拥挤时优先级 ≤2 直接丢弃而不是降音量
+const DUCK_AT := 12   # 标准局 99% 的帧 ≤15 个同时发声：只在最密的几成帧里压低优先级 ≤2 的音
+## 5 Boss 大招 / 阶段 / Boss 事件；4 主控状态与操作反馈；3 灯标、技能发动；2 一般攻击 / 敌人（缺省）；1 拾取、击杀、命中
+const PRIO_NAME := {
+	"lamp_out": 5, "roar": 5, "hunt_warn": 5, "hunt_close": 5, "hunt_break": 4, "izu_wave_count": 5, "cocoon_form": 5, "shell_break": 5,
+	"cocoon_revive": 5, "izu_lamp_lit": 5, "izu_absorb": 5, "stake_hit": 5, "stake_shatter": 4, "carmen_sword": 5, "ishar_land_break": 5, "paranoia_land_break": 5, "bishop_panic": 5, "knight_frost": 4,
+	"nerve_burst": 4, "apop_pause": 4, "apop_resume": 4, "hurt": 4, "dodge": 4, "levelup": 4, "relic": 4, "heartbeat": 4, "ulp_release": 4,
+	"atk_gate": 4, "ui_move": 4, "ui_ok": 4, "start": 4, "skill": 3,
+	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4,
+	"pickup": 1, "kill": 1, "hit": 1,
+}
+var sfx_stat := {"plays": 0, "merged": 0, "dropped": 0, "stolen": 0, "ducked": 0, "voices_max": 0, "us": 0}
+## --sfxstat（仅测试，Cfg.dev_args）：按音名计数 [请求, 实播, 同名合并, 满槽丢弃, 降音量]；--perf 结束时按类别汇总打印（run/autotest.gd）
+var sfx_by := {}
+var sfx_by_on := -1   # -1 = 还没读开关
+
+
+func _by(name: String, idx: int) -> void:
+	if sfx_by_on < 0:
+		var cfg: Node = get_node_or_null("/root/Cfg")
+		sfx_by_on = 1 if (cfg != null and cfg.dev_args().has("--sfxstat")) else 0
+	if sfx_by_on == 0:
+		return
+	if not sfx_by.has(name):
+		sfx_by[name] = [0, 0, 0, 0, 0]
+	sfx_by[name][idx] += 1
+
+
+func sfx_prio(name: String) -> int:
+	if PRIO_NAME.has(name):
+		return PRIO_NAME[name]
+	if name.begins_with("cue_") or name.begins_with("boss_"):
+		return 5
+	if name.begins_with("op_"):
+		return 3 if (name.ends_with("_s1") or name.ends_with("_s2") or name.ends_with("_s3") or name.ends_with("_big")) else 2
+	return 2
+
+
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
-	if not streams.has(name):
+	if not streams.has(name) or streams[name] == null:
 		return
-	var now := Time.get_ticks_msec() / 1000.0
-	var lim: float = LIMIT.get(name, op_limit.get(name, 0.0))
-	if lim > 0.0 and now - float(last.get(name, -1.0)) < lim:
+	var t0 := Time.get_ticks_usec()
+	var now := t0 / 1000000.0
+	_by(name, 0)
+	var lim: float = maxf(MERGE_T, float(LIMIT.get(name, op_limit.get(name, 0.0))))
+	if now - float(last.get(name, -1.0)) < lim:
+		sfx_stat.merged += 1
+		_by(name, 2)
 		return
-	last[name] = now
+	var prio := sfx_prio(name)
+	var cfg: Node = get_node_or_null("/root/Cfg")
+	var low: bool = cfg != null and str(cfg.get("quality")) == "low"
+	var busy := 0
 	var p: AudioStreamPlayer = null
+	var lowest: AudioStreamPlayer = null
+	var low_prio := 99
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
 		if not c.playing:
-			p = c
-			next = (next + i + 1) % players.size()
-			break
-	if p == null:
-		p = players[next]
-		next = (next + 1) % players.size()
-	if streams[name] == null:
+			if p == null:
+				p = c
+				next = (next + i + 1) % players.size()
+			continue
+		busy += 1
+		var cp: int = c.get_meta("prio", 2)
+		if cp < low_prio:
+			low_prio = cp
+			lowest = c
+	if low and busy >= LOW_CAP:
+		p = null   # 低画质：按 16 个算满槽
+	if low and busy >= DUCK_AT and prio <= 2:
+		sfx_stat.dropped += 1
+		_by(name, 3)
 		return
+	if p == null:
+		if lowest == null or low_prio >= prio:   # 满槽且没有比自己低的：丢弃
+			sfx_stat.dropped += 1
+			_by(name, 3)
+			return
+		p = lowest
+		p.stop()
+		sfx_stat.stolen += 1
+		busy -= 1
+	last[name] = now
+	if busy >= DUCK_AT and prio <= 2:
+		vol -= 6.0
+		sfx_stat.ducked += 1
+		_by(name, 4)
 	p.stream = streams[name]
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
+	p.set_meta("prio", prio)
 	p.play()
+	sfx_stat.plays += 1
+	_by(name, 1)
+	sfx_stat.voices_max = maxi(int(sfx_stat.voices_max), busy + 1)
+	sfx_stat.us += Time.get_ticks_usec() - t0
 
 
 ## 干员音效：op("skadi", "atk")；vol 为相对该类别默认音量的偏移。没有专属文件时退回通用音效
@@ -650,3 +792,12 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 		play(sn, v, pitch, pitch_var)
 	elif OP_FALLBACK.has(kind):
 		play(OP_FALLBACK[kind], v, pitch, pitch_var)
+
+
+## Enemy attack cues: distance attenuation and shared per-kind throttling.
+## Called once when the attack begins, never per animation frame.
+func enemy(kind: String, distance := 0.0) -> void:
+	if kind not in ["screech", "spit", "bite", "nerve", "acid", "elite"] or distance > 800.0:
+		return
+	var attenuation := clampf(distance / 800.0, 0.0, 1.0) * 18.0
+	play("enemy_" + kind, -13.0 - attenuation, 1.0, 0.07)

@@ -3,6 +3,7 @@
 extends RefCounted
 
 const Character = preload("res://scripts/characters/character.gd")
+const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
@@ -12,6 +13,7 @@ const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -7
 const DEMO_SLOT := Vector2(44, -6)
 
 var g
+var cv                           # 干员绘制合批画布（batch_canvas.gd，性能 9/30）
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
 var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
@@ -19,6 +21,7 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 
 func _init(game) -> void:
 	g = game
+	cv = BatchCanvas.new(game)
 
 
 func size() -> int:
@@ -124,7 +127,7 @@ func _apply_size_hp() -> void:
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
-		g.max_hp = new_max   # 先同步，game._sync_stats 看到没变化，不会再按差值补一次
+		g.max_hp = new_max   # 先同步，game.sync_stats 看到没变化，不会再按差值补一次
 
 
 ## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
@@ -135,7 +138,7 @@ func _apply_leader_regen(op) -> void:
 		return
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
 	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
-	g._sync_stats()
+	g.sync_stats()
 
 
 func _slot_offset(i: int) -> Vector2:
@@ -165,6 +168,7 @@ func validate_squad() -> bool:
 # ---------------------------------------------------------------- 每帧
 
 func update(dt: float) -> void:
+	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
@@ -256,35 +260,60 @@ func on_kill(e: Dictionary) -> void:
 # ---------------------------------------------------------------- 绘制分发（world 坐标）
 
 func draw_auras() -> void:
+	cv.begin()
 	for o in ops:
 		o.draw_auras()
+	cv.end()
 
 
 func draw_entities_floor() -> void:
+	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
 	for o in ops:
 		o.draw_entities_floor()
 		o.draw_pfx(true)
+	cv.end()
 
 
 func draw_shadows() -> void:
+	cv.begin()
 	for o in ops:
 		if o.pos != Vector2.INF:
+			cv.sync()
+			cv.touch()
 			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
-			if o.is_leader:
-				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
-				var c: Color = o.col()
-				g.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-				g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 32, Color(c.r, c.g, c.b, 0.55), 2.0)
-				# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
-				var dk: float = 1.0 - g.dash_cd / g.DASH_CD
-				if dk < 1.0:
-					g.draw_arc(Vector2.ZERO, 27.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
-				else:
-					g.draw_arc(Vector2.ZERO, 27.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				var tip: Vector2 = o.pos + Vector2(27.0 * g.facing, 4)
-				g.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * g.facing, -4), tip + Vector2(-6.0 * g.facing, 4)]), Color(c.r, c.g, c.b, 0.7))
 		o.draw_extra_shadows()
+	cv.end()
+
+
+## 主控标记：脚下一圈职业色细环 + 冲刺冷却白弧，前方一枚小三角指示朝向。原来在 draw_shadows 里、会被敌方预警盖住（真机验收 9:04），
+## 改成单独函数由 world.gd 在敌方预警（draw_enemy_tells）之后调用一次（界面与美术 9/30）
+func draw_leader_mark() -> void:
+	var o = leader()
+	if o == null or not o.is_leader or o.pos == Vector2.INF:
+		return
+	cv.begin()
+	# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
+	var c: Color = o.col()
+	# 可见度（界面与美术 9/30：几十条冲刺预警线交叉压在主控身上时细环认不出）：按预警轮廓的「深边 + 色 + 白芯」画法，任何底色上都跳出来
+	var dark := Color(0.02, 0.02, 0.05, 0.75)
+	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, dark, 5.0)
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.9), 2.5)
+	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(1, 1, 1, 0.6), 1.0)
+	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
+	var dk: float = 1.0 - g.dash_cd / g.DASH_CD
+	if dk < 1.0:
+		cv.draw_arc(Vector2.ZERO, 30.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
+	else:
+		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var fc: float = g.facing
+	var tip: Vector2 = o.pos + Vector2(30.0 * fc, 4)
+	# 朝向小三角：先垫一个每边大 2 像素的深色三角
+	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
+	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
+	g.world.draw_attack_dir(cv)   # 手动普攻方向指示（界面与美术 1.1.1，协调人定并进这一批）
+	cv.end()
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
@@ -293,11 +322,15 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 
 
 func draw_skill_floor() -> void:
+	cv.begin()
 	for o in ops:
 		o._draw_skill_floor()
+	cv.end()
 
 
 func draw_skill_over() -> void:
+	cv.begin()
 	for o in ops:
 		o._draw_skill_over()
 		o.draw_pfx(false)
+	cv.end()

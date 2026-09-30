@@ -1,0 +1,142 @@
+[
+  {
+    "file": "fx_mon3tr_claw.png",
+    "size": [
+      192,
+      48
+    ],
+    "alpha": "binary",
+    "frame_bounds": [
+      [
+        10,
+        14,
+        41,
+        35
+      ],
+      [
+        4,
+        11,
+        45,
+        41
+      ],
+      [
+        2,
+        7,
+        45,
+        45
+      ],
+      [
+        6,
+        9,
+        43,
+        41
+      ]
+    ],
+    "sha256_verified": true
+  },
+  {
+    "file": "fx_mon3tr_claw@2x.png",
+    "size": [
+      384,
+      96
+    ],
+    "alpha": "binary",
+    "frame_bounds": [
+      [
+        18,
+        27,
+        82,
+        69
+      ],
+      [
+        7,
+        21,
+        90,
+        82
+      ],
+      [
+        4,
+        14,
+        90,
+        90
+      ],
+      [
+        10,
+        17,
+        86,
+        85
+      ]
+    ],
+    "sha256_verified": true
+  },
+  {
+    "file": "fx_mon3tr_melt_slash.png",
+    "size": [
+      192,
+      48
+    ],
+    "alpha": "binary",
+    "frame_bounds": [
+      [
+        11,
+        9,
+        38,
+        36
+      ],
+      [
+        6,
+        4,
+        42,
+        42
+      ],
+      [
+        1,
+        2,
+        47,
+        45
+      ],
+      [
+        7,
+        4,
+        41,
+        42
+      ]
+    ],
+    "sha256_verified": true
+  },
+  {
+    "file": "fx_mon3tr_melt_slash@2x.png",
+    "size": [
+      384,
+      96
+    ],
+    "alpha": "binary",
+    "frame_bounds": [
+      [
+        22,
+        15,
+        77,
+        72
+      ],
+      [
+        9,
+        9,
+        85,
+        85
+      ],
+      [
+        2,
+        4,
+        93,
+        90
+      ],
+      [
+        13,
+        8,
+        81,
+        85
+      ]
+    ],
+    "sha256_verified": true
+  }
+]

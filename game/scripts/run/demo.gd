@@ -207,7 +207,7 @@ func new_op() -> void:
 	if g.ch != null and g.squad.has(id):
 		g.squad.remove(id)
 	g.stats.remove_scope("op:" + id)
-	g._sync_stats()
+	g.sync_stats()
 	g.ch = g.squad.add(id)
 	if g.demo_stage >= 0:
 		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）

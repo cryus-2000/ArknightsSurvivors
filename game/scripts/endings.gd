@@ -16,8 +16,10 @@ var opened_id := ""             # 正在弹选项的事件
 var warned_final := false
 var all_unlocked := false       # --allend：无视通关进度
 var frozen := false             # 最终 Boss 已刷出：结局冻结，不再刷事件箱、不再改写结局（EA 验收 P0-1）
-var box_t := 0.0                # 当前事件箱刷出的时刻（超时消散，P1-2）
-const BOX_LIFE := 60.0          # 事件箱多久没打开就沉入海底
+var urgent := false             # 最终 Boss 登场前 10 秒场上还有没开的祭坛（hud 方位指示闪烁用）
+var urgent_warned := false
+const MAX_BOXES := 2            # 同时存在的祭坛上限（各自计时 e.ev_age）
+const BOX_LIFE := 90.0          # 事件箱多久没打开就沉入海底（60 → 90：祭坛刷在 520–650 外，普通机器人 60 秒常走不到，协调人 9/29 定）
 
 
 func _init(game) -> void:
@@ -38,11 +40,31 @@ func update(dt: float) -> void:
 		_log("frozen")
 		_sink_box("")
 		return
-	if _box_alive():
-		# 事件箱 BOX_LIFE 秒没打开就消散，不再堵住后面的事件（原来一个不开，后面全停）
-		if g.t - box_t > BOX_LIFE:
-			_sink_box("海嗣祭坛沉入了海底")
-			next_allowed = g.t + 5.0
+	# 场上的祭坛（最多 MAX_BOXES 个同时存在，各自计时）：钉在圈内、主控走近打开、BOX_LIFE 秒没开就沉入海底
+	var alive := 0
+	var final_t: float = float(D.BOSS_TIMES[D.BOSS_TIMES.size() - 1])
+	for e in g.enemies:
+		if not (e.chest and not e.dead and e.get("event", "") != ""):
+			continue
+		e.pos = g.spawner.safe_event_pos(e.pos, 110.0)
+		# 祭坛只在主控本人走近时打开（事件验收 P2-10：原来 22 点血，范围攻击 / 子弹扫到就弹面板）
+		if e.pos.distance_to(g.ppos) < float(e.r) + 34.0 and g.state == g.S.PLAY:
+			e.invuln = false
+			g.combat.kill(e)
+			return
+		e.ev_age = float(e.get("ev_age", 0.0)) + dt
+		if e.ev_age > BOX_LIFE:
+			_sink_one(e, "海嗣祭坛沉入了海底")
+			continue
+		alive += 1
+	# 最终 Boss 登场前 10 秒还有祭坛没开：强提示一次（登场即冻结，没开的会沉没；hud 读 urgent 让方位指示闪烁）
+	urgent = alive > 0 and g.t >= final_t - 10.0
+	if urgent and not urgent_warned:
+		urgent_warned = true
+		g.vfx.show_banner("海嗣祭坛即将沉没 —— 最后 10 秒")
+		Sfx.play("ui_move", -2.0, 0.8)
+	# 多个祭坛可以同时存在（主控走近才打开，不会同时弹两个面板）：一个没开不再挡住后面的事件
+	if alive >= MAX_BOXES:
 		return
 	if g.t < next_allowed:
 		return
@@ -60,10 +82,16 @@ func update(dt: float) -> void:
 			continue
 		_spawn_box(ev)
 		done.append(ev.id)
-		box_t = g.t
-		_log("spawn " + str(ev.id))
+		_log("spawn %s boss=%d" % [str(ev.id), 1 if g.spawner.boss_alive() else 0])
 		next_allowed = g.t + 20.0
 		return
+
+
+## 祭坛离主控太远（enemies.gd 1500 外）：挪到主控前方约 600 处，保留剩余窗口
+func reposition_box(e: Dictionary) -> void:
+	var dir: Vector2 = g.last_mv if g.last_mv.length() > 0.1 else (e.pos - g.ppos)
+	e.pos = g.spawner.safe_event_pos(g.ppos + dir.normalized() * 600.0, 110.0)
+	_log("move " + str(e.event))
 
 
 ## 自动测试日志：ENDEV <动作> ...
@@ -72,12 +100,20 @@ func _log(what: String) -> void:
 		print("ENDEV %s t=%.1f cur=%s relics=%s" % [what, g.t, cur, str(g.relics.filter(func(r): return int(r) >= 221))])
 
 
+## 单个祭坛沉没（超时）
+func _sink_one(e: Dictionary, msg: String) -> void:
+	e.dead = true
+	_log("sink %s age=%.0f dist=%.0f" % [str(e.event), float(e.get("ev_age", 0.0)), e.pos.distance_to(g.ppos)])
+	g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
+	g.vfx.show_banner(msg)
+
+
 ## 场上的事件箱消散（不打开、不掉落）；msg 为空时不弹横幅
 func _sink_box(msg: String) -> void:
 	for e in g.enemies:
 		if e.chest and not e.dead and e.get("event", "") != "":
 			e.dead = true
-			_log("sink " + str(e.event))
+			_log("sink %s age=%.0f dist=%.0f" % [str(e.event), float(e.get("ev_age", 0.0)), e.pos.distance_to(g.ppos)])
 			g.vfx.sparks(e.pos, Vector2.DOWN, Color(0.5, 0.8, 1.0), 10, 120.0)
 			if msg != "":
 				g.vfx.show_banner(msg)
@@ -104,10 +140,9 @@ func _box_alive() -> bool:
 
 
 func _spawn_box(ev: Dictionary) -> void:
-	var p: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(300.0, 420.0)
-	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r - 80.0:
-		p = g.zone_c + (p - g.zone_c).normalized() * maxf(60.0, g.zone_r - 120.0)
+	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)
+	g.enemies[g.enemies.size() - 1].invuln = true   # 不吃伤害：只在主控走近时打开（update 里）
 	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 
@@ -144,6 +179,10 @@ func open(ev_id: String) -> void:
 					chips.append(["源石锭 %+d" % int(o.ingots), Color(0.18, 0.83, 0.63)])
 			opts.append({"kind": "event", "id": "%s:%d" % [ev_id, i], "name": op.label, "desc": op.desc, "icon": icon, "chips": chips,
 				"cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
+		# 抉择是可放弃的事件；观望/犹疑满级被过滤后仍能退出，不强迫拿决心。
+		if ev_id.begins_with("resolve"):
+			opts.append({"kind": "event", "id": "%s:-2" % ev_id, "name": "离开", "desc": "不领取藏品，保持当前结局路线。", "icon": "exit",
+				"chips": [], "cat": "事件  " + ev.name, "col": Color(0.55, 0.75, 1.0)})
 		if opts.is_empty():
 			# 所有选项都作废了（极少见）：给一次普通的藏品选择
 			opts.append({"kind": "event", "id": "%s:-1" % ev_id, "name": "离开", "desc": "改为普通的藏品选择", "icon": "exit",
@@ -162,7 +201,7 @@ func _option_ok(op: Dictionary, still_ok: bool) -> bool:
 		var rid := str(o.relic)
 		if not still_ok:
 			return false
-		if g.relics.has(rid) and int(g.rfx.lv.get(rid, 0)) >= g.rfx.max_lv(rid):
+		if not g.progression.can_gain_relic(rid):
 			return false
 	return true
 
@@ -173,6 +212,9 @@ func pick(o: Dictionary) -> void:
 	for ev in events:
 		if ev.id != parts[0]:
 			continue
+		opened_id = ""
+		if int(parts[1]) == -2:
+			return
 		if int(parts[1]) < 0:
 			g.pending_chests += 1
 			return
@@ -196,12 +238,47 @@ func pick(o: Dictionary) -> void:
 		return
 
 
+## 只为决定结局的信物保留槽位：其他事件加成与普通藏品共用空间。
+## 决心升级沿用同一槽，因此最多预留 4 槽；窗口结束/已得到后释放。
+const ROUTE_RELICS := ["221", "222", "223", "238"]
+
+
+func is_route_relic(id: String) -> bool:
+	return ROUTE_RELICS.has(id)
+
+
+func reserved_relic_slots() -> int:
+	if frozen:
+		return 1 if g.knight.alive and not g.relics.has("223") else 0
+	var active: Array = []
+	for e in g.enemies:
+		if e.chest and not e.dead and e.get("event", "") != "":
+			active.append(str(e.event))
+	var future: Array = []
+	for ev in events:
+		if ev.has("requires_cleared") and not all_unlocked and not g.autotest and not Cfg.endings_cleared.has(ev.requires_cleared):
+			continue
+		if g.t > float(ev.window[1]) and not active.has(ev.id) and opened_id != ev.id:
+			continue
+		if done.has(ev.id) and not active.has(ev.id) and opened_id != ev.id:
+			continue
+		for op in ev.options:
+			for effect in op.get("ops", []):
+				var rid: String = str(effect.get("relic", ""))
+				if is_route_relic(rid) and not g.relics.has(rid) and not future.has(rid):
+					future.append(rid)
+	if (g.knight.alive or future.has("222")) and not g.relics.has("223"):
+		future.append("223")
+	return future.size()
+
+
 ## ---------- 结局 ----------
 ## 记下这件藏品触发结局的时刻（不重算）：gain_relic 在骑士登场 / 离队之前调用，保证中途的重算已经知道新结局
 func note_relic(id: String) -> void:
 	for eid in endings:
 		var req: Dictionary = endings[eid].get("requires", {})
-		if (req.has("relic") and str(req.relic) == id) or (req.has("relic_lv") and str(req.relic_lv[0]) == id):
+		# renew：拿到这些藏品也算「又一次选择了这个结局」（再次倾听 242 → 深蓝，事件验收 P2-12：付了代价就切回深蓝）
+		if (req.has("relic") and str(req.relic) == id) or (req.has("relic_lv") and str(req.relic_lv[0]) == id) or endings[eid].get("renew", []).has(id):
 			ending_at[eid] = g.t
 
 

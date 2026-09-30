@@ -6,7 +6,7 @@
 extends "res://scripts/characters/character.gd"
 
 const GREEN := Color(0.55, 1.0, 0.5)
-const MELT := Color(0.45, 1.5, 0.6)   # 熔毁的特效色（2026-09-26 用户定：不再猩红，配合新帧条的绿色裂隙）
+const MELT := Color(1.6, 0.15, 0.12)   # 2026-09-27：熔毁恢复红光，普通爪击仍为绿色
 const M_LEASH := 190.0        # Mon3tr 离主控的最远距离
 const M_REACH := 93.0         # 爪击半径（基础）
 const S3_DUR := 8.0
@@ -207,6 +207,8 @@ func _m_route(want: Vector2) -> Vector2:
 	return want
 
 
+var m_cmd_t := 0.0   # 手动普攻：Mon3tr 受命剩余秒数
+
 func _update_mon3tr(dt: float) -> void:
 	if m.pos == Vector2.INF or m.pos.distance_to(g.ppos) > 700.0:
 		m.pos = pos + M_REST * Vector2(face, 1.0)   # 出生点与回位点一致：凯尔希身前偏下（docs/45 §5）
@@ -228,7 +230,22 @@ func _update_mon3tr(dt: float) -> void:
 		ghost = {}
 	# 目标：主控 leash 范围内离 Mon3tr 最近的敌人；没有就回到凯尔希身边
 	var tg = m.tgt
-	if tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
+	if manual_attack():
+		# 手动普攻 B 类（契约 v2.5）：按攻击键才命令 Mon3tr 扑向瞄准方向的目标（±45°，退到前半面）；按下时换目标，
+		# 松手后 manual/m_linger 秒内打完手上这个，之后回凯尔希身边。凯尔希的治疗照旧自动
+		if g.doctor.attack_want():
+			m_cmd_t = preload("res://scripts/core/balance.gd").v("manual/m_linger", 1.2)
+			if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
+				var tsm: Array = aim_targets(1, M_LEASH, g.ppos)
+				if not tsm.is_empty():
+					tg = tsm[0]
+					g.doctor.atk_buf = 0.0
+		else:
+			m_cmd_t = maxf(0.0, m_cmd_t - dt)
+		if m_cmd_t <= 0.0 or (tg != null and (tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0)):
+			tg = null
+		m.tgt = tg
+	elif tg == null or tg.dead or tg.pos.distance_to(g.ppos) > M_LEASH + 40.0:
 		var ts: Array = nearest_enemies(1, M_LEASH, g.ppos)
 		tg = ts[0] if not ts.is_empty() else null
 		m.tgt = tg
@@ -307,23 +324,28 @@ func _m_claw(mult: float, second: bool) -> void:
 		if i > 0 and hits.is_empty():
 			continue   # 背后一爪没打到敌人时不画（刀光会正好盖在凯尔希和博士身上，docs/45 #6）
 		if melt > 0.0:
-			# 熔毁期间一整道巨大的月牙斩（原作猩红，本作按用户定改熔毁绿）；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
+			# 熔毁期间一整道巨大的月牙斩（猩红熔毁）；方向上下交替，像两只爪轮流挥（第二爪反向扫，交叉成 X）
 			var sw: float = -m_swing if second else m_swing
 			var R: float = _m_reach() * 1.25
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
-				"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
-			fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(0.75, 1.5, 0.8)})
+			var slash_pos := o + Vector2(sd * R * 0.38, 0)
+			var slash_scale := R * 1.65 / 48.0
+			if not spawn_fx_sprite("fx_mon3tr_melt_slash", slash_pos, slash_scale, sw * sd * 0.18, sd < 0.0):
+				fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R, "w": 22.0 * (0.8 if second else 1.0),
+					"sweep": 2.3, "dir": sw * sd, "life": 0.26, "col": MELT})
+				fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(1.6, 0.3, 0.2)})
 			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
 			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": MELT})
-			fx_sparks(hp, Color(0.8, 1.7, 0.9), 7, 240.0, 0.28, 2.5)
+			fx_sparks(hp, Color(1.7, 0.25, 0.15), 7, 240.0, 0.28, 2.5)
 		else:
-			# 平行爪痕帧条（Ninja Adventure Claw 调绿；协同后用双爪，用户确认保留爪痕）；没有帧条时退回程序画的三道爪痕
+			# 重绘本体配套爪痕：协同叠加反向爪痕，缺图退回程序三道爪痕
 			# 第二爪：爪痕旋转约 60°，与第一爪交叉
 			var rot: float = (1.05 * sd) if second else 0.0
 			var cp: Vector2 = o + Vector2.from_angle(ang) * (_m_reach() * 0.55)
-			var sc: float = g.PX * clampf(_m_reach() / 40.0, 1.2, 2.2) * (0.9 if second else 1.0)
-			if not spawn_fx_sprite("fx_claw_double_green" if coord else "fx_claw_green", cp, sc, rot, sd < 0.0):
+			var sc: float = g.PX * clampf(_m_reach() / 64.0, 0.9, 1.5) * (0.9 if second else 1.0)
+			if not spawn_fx_sprite("fx_mon3tr_claw", cp, sc, rot, sd < 0.0):
 				fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang + rot, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
+			if coord:
+				spawn_fx_sprite("fx_mon3tr_claw", cp + Vector2(0, -6), sc * 0.85, rot - 0.65 * sd, sd < 0.0, false, Color(0.8, 1.0, 0.8, 0.8))
 			fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 			# N2「清创」：更宽的扇面用一道淡绿细月牙画出来
 			if wide_arc and not second:
@@ -353,22 +375,22 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override :=
 	area_hit("Mon3tr · 熔毁", at, r, dmg, 260.0 if main else 160.0, stun)
 	if not main:
 		var c2: Vector2 = at + Vector2(0, -24)
-		fx({"kind": "glow", "pos": c2, "r": 40.0, "life": 0.25, "col": Color(1.2, 2.2, 1.0), "alpha": 0.5})
+		fx({"kind": "glow", "pos": c2, "r": 40.0, "life": 0.25, "col": Color(2.0, 0.3, 0.15), "alpha": 0.5})
 		for i in 8:
-			fx({"kind": "beamray", "pos": c2, "ang": TAU * i / 8.0 + g.rng.randf_range(-0.3, 0.3), "len": r * g.rng.randf_range(0.8, 1.1), "life": 0.3, "col": GREEN})
+			fx({"kind": "beamray", "pos": c2, "ang": TAU * i / 8.0 + g.rng.randf_range(-0.3, 0.3), "len": r * g.rng.randf_range(0.8, 1.1), "life": 0.3, "col": MELT})
 		for i in 6:
 			var v3: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160, 340)
 			fx({"kind": "qshard", "pos": c2, "vel": v3, "drag": 2.2, "life": 0.5, "sz": g.rng.randf_range(5.0, 9.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-9, 9)})
-		fx({"kind": "ring", "pos": at, "r": r, "r0": r * 0.5, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
+		fx({"kind": "ring", "pos": at, "r": r, "r0": r * 0.5, "life": 0.4, "col": MELT, "floor": true, "w": 3.0})
 		Sfx.op(id, "big", -4.0, 1.15)
 		return
-	# 照原作：绿色八面体晶核亮起胀大后碎裂 → 空心方形晶片 + 黑色碎片四散、放射光束、大量绿色光点
+	# 照原作：红色八面体晶核亮起胀大后碎裂 → 空心方形晶片 + 黑色碎片四散、放射光束、大量红色光点
 	var c: Vector2 = at + Vector2(0, -24)
-	fx({"kind": "glow", "pos": c, "r": 60.0, "life": 0.3, "col": Color(1.2, 2.2, 1.0), "alpha": 0.7})
+	fx({"kind": "glow", "pos": c, "r": 60.0, "life": 0.3, "col": Color(2.0, 0.3, 0.15), "alpha": 0.7})
 	fx({"kind": "core", "pos": c, "r": 26.0, "life": 0.4})
 	for i in 10:
 		var ba: float = TAU * i / 10.0 + g.rng.randf_range(-0.2, 0.2)
-		fx({"kind": "beamray", "pos": c, "ang": ba, "len": r * g.rng.randf_range(0.8, 1.3), "life": 0.35, "col": GREEN})
+		fx({"kind": "beamray", "pos": c, "ang": ba, "len": r * g.rng.randf_range(0.8, 1.3), "life": 0.35, "col": MELT})
 	for i in 14:
 		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 320)
 		fx({"kind": "qshard", "pos": c, "vel": v, "drag": 2.2, "life": g.rng.randf_range(0.5, 0.8), "sz": g.rng.randf_range(5.0, 11.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-9, 9)})
@@ -376,10 +398,10 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override :=
 		var v2: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(100, 260)
 		fx({"kind": "shard", "pos": c, "vel": v2, "drag": 2.0, "life": 0.5, "col": Color(0.03, 0.05, 0.04), "sz": g.rng.randf_range(4.0, 7.0), "ang": v2.angle(), "spin": 10.0})
 	for i in 24:
-		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": GREEN, "sz": g.rng.randf_range(1.5, 3.0)})
-	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": GREEN, "floor": true, "w": 3.0})
-	g.hitstop = maxf(g.hitstop, 0.1)
-	float_text(at + Vector2(0, -70), "熔毁", GREEN, 18)
+		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": MELT, "sz": g.rng.randf_range(1.5, 3.0)})
+	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": MELT, "floor": true, "w": 3.0})
+	impact_pause(0.075)
+	float_text(at + Vector2(0, -70), "熔毁", MELT, 18)
 	Sfx.op(id, "big")
 
 
@@ -411,20 +433,20 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				for i in n:
 					var q := PackedVector2Array([outer[i], outer[i + 1], inner[i + 1], inner[i]])
 					if absf((q[1] - q[0]).cross(q[3] - q[0])) + absf((q[2] - q[1]).cross(q[3] - q[1])) > 2.0:
-						g.draw_colored_polygon(q, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.75 * a))
-				g.draw_polyline(edge, Color(2.0, 2.0, 1.9, 0.9 * a), 2.0)
+						cv.draw_colored_polygon(q, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.75 * a))
+				cv.draw_polyline(edge, Color(2.0, 2.0, 1.9, 0.9 * a), 2.0)
 			return true
 		"impact":
 			# 命中闪光：白亮核心 + 光晕 + 四道星芒
 			var k: float = 1.0 - a
 			var L: float = f.r * (0.6 + 0.8 * k)
 			var c2: Color = f.col
-			g.draw_circle(f.pos, f.r * (0.9 + 0.4 * k), Color(c2.r * 1.5, c2.g * 1.5, c2.b * 1.5, 0.35 * a))
-			g.draw_circle(f.pos, f.r * 0.7 * a + 2.0, Color(2.4, 2.4, 2.2, a))
+			cv.draw_circle(f.pos, f.r * (0.9 + 0.4 * k), Color(c2.r * 1.5, c2.g * 1.5, c2.b * 1.5, 0.35 * a))
+			cv.draw_circle(f.pos, f.r * 0.7 * a + 2.0, Color(2.4, 2.4, 2.2, a))
 			for q in 4:
 				var dv2 := Vector2.from_angle(q * PI / 4.0)
 				var ll: float = L * (1.0 if q % 2 == 0 else 0.6)
-				g.draw_line(f.pos - dv2 * ll, f.pos + dv2 * ll, Color(2.2, 2.2, 2.0, a), 2.0)
+				cv.draw_line(f.pos - dv2 * ll, f.pos + dv2 * ll, Color(2.2, 2.2, 2.0, a), 2.0)
 			return true
 		"core":
 			# 熔毁晶核：绿色八面体（菱形 + 亮面），先胀大变亮，后半程碎掉消失
@@ -437,10 +459,10 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var lft: Vector2 = f.pos + Vector2(-R, 0)
 			var rgt: Vector2 = f.pos + Vector2(R, 0)
 			var mid: Vector2 = f.pos + Vector2(R * 0.25, -R * 0.1)
-			g.draw_circle(f.pos, R * 1.8, Color(0.8, 2.0, 0.7, 0.25 * al))
-			g.draw_colored_polygon(PackedVector2Array([top, rgt, bot, lft]), Color(0.5, 1.6, 0.45, 0.85 * al))
-			g.draw_colored_polygon(PackedVector2Array([top, mid, bot, lft]), Color(1.0, 2.2, 0.9, 0.9 * al))
-			g.draw_polyline(PackedVector2Array([top, rgt, bot, lft, top]), Color(2.0, 2.4, 1.8, al), 2.0)
+			cv.draw_circle(f.pos, R * 1.8, Color(2.0, 0.3, 0.15, 0.25 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, rgt, bot, lft]), Color(1.6, 0.16, 0.12, 0.85 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, mid, bot, lft]), Color(2.2, 0.5, 0.3, 0.9 * al))
+			cv.draw_polyline(PackedVector2Array([top, rgt, bot, lft, top]), Color(2.4, 1.0, 0.7, al), 2.0)
 			return true
 		"qshard":
 			# 空心方形晶片：旋转的绿色方框，亮边 + 淡填充
@@ -448,15 +470,15 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var r0: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * hs * 1.414
 			var r1: Vector2 = r0.orthogonal()
 			var pts := PackedVector2Array([f.pos + r0, f.pos + r1, f.pos - r0, f.pos - r1, f.pos + r0])
-			g.draw_colored_polygon(pts.slice(0, 4), Color(0.6, 1.6, 0.5, 0.25 * a))
-			g.draw_polyline(pts, Color(1.0, 2.2, 0.7, a), 2.0)
+			cv.draw_colored_polygon(pts.slice(0, 4), Color(1.6, 0.2, 0.1, 0.25 * a))
+			cv.draw_polyline(pts, Color(2.2, 0.4, 0.2, a), 2.0)
 			return true
 		"beamray":
 			# 放射光束：从核心向外迅速伸出、变细消失
 			var k4: float = 1.0 - a
 			var dv3: Vector2 = Vector2.from_angle(f.ang)
 			var L2: float = f.len * minf(1.0, k4 * 3.0)
-			g.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
+			cv.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
 			return true
 	if f.kind == "claw":
 		# 三道平行爪痕：略弧，随时间拉长、变细、淡出
@@ -468,7 +490,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var p0: Vector2 = f.pos + off - d * 4.0 * float(i)
 			var mid: Vector2 = p0 + d * l * 0.5 + nrm * 3.0 * (1.0 if i != 1 else -1.0)
 			var p1: Vector2 = p0 + d * l
-			g.draw_polyline(PackedVector2Array([p0, mid, p1]), Color(GREEN.r * 1.8, GREEN.g * 1.8, GREEN.b * 1.6, a), 3.0 * a + 1.0)
+			cv.draw_polyline(PackedVector2Array([p0, mid, p1]), Color(GREEN.r * 1.8, GREEN.g * 1.8, GREEN.b * 1.6, a), 3.0 * a + 1.0)
 		return true
 	return false
 
@@ -480,7 +502,7 @@ func extra_bodies() -> Array:
 
 
 ## 熔毁帧条 op_mon3tr_skill（6 帧 12fps，docs/32 验收 §2）：f0–f2 起手、f2–f4 循环（8 秒不当一整条放）、结束补 f5 收尾；
-## 熔毁期间不论移动 / 爪击都用它（爪击的判定与刀光照旧）；缺图退回原来的三态帧条
+## 熔毁待机与移动使用脉冲帧条，爪击使用红色专用攻击动作；缺图退回原来的三态帧条
 const MELT_OUT := 0.12
 var melt_out := 0.0
 
@@ -501,11 +523,11 @@ func _melt_frame() -> Array:
 
 
 func _m_frame(kind: String, at: float) -> Array:
-	if melt > 0.0 or melt_out > 0.0:
+	if (melt > 0.0 or melt_out > 0.0) and kind != "attack":
 		var mf := _melt_frame()
 		if not mf.is_empty():
 			return mf
-	var tx: Texture2D = anim_tex("m_" + kind)
+	var tx: Texture2D = anim_tex("m_attack_melt" if melt > 0.0 and kind == "attack" else "m_" + kind)
 	if tx == null:
 		return []
 	var n: int = anim_hframes(tx, "m_" + kind)
@@ -520,25 +542,26 @@ func _m_frame(kind: String, at: float) -> Array:
 func draw_extra(_it: Dictionary) -> void:
 	var fr := _m_frame(m.kind, m.at)
 	if fr.is_empty():
-		g.draw_circle(m.pos + Vector2(0, -14), 14.0, Color(0.3, 0.4, 0.3))
+		cv.draw_circle(m.pos + Vector2(0, -14), 14.0, Color(0.3, 0.4, 0.3))
 		return
 	if _boosted():
 		# 残影 + 周身脉冲环（熔毁期间更亮）
 		if not ghost.is_empty() and ghost.pos.distance_to(m.pos) > 3.0:
 			var gf := _m_frame(ghost.kind, ghost.at)
 			if not gf.is_empty():
-				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(0.5, 1.3, 0.6, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
-		var ac: Color = GREEN
+				draw_sprite_at(ghost.pos + Vector2(0, _hover()), ghost.face < 0.0, Color(1.5, 0.2, 0.15, 0.35), gf[1], gf[0], gf[2], foot_off(gf[0], "m_" + ghost.kind))
+		var ac: Color = MELT
 		var k: float = 0.35 + 0.15 * sin(g.t * 10.0) + (0.2 if melt > 0.0 else 0.0)
 		if melt > 0.0:
-			# 熔毁：身后几团错开、缓慢翻动的半透明绿雾（2026-09-26 起不再染红，配合新帧条的绿色裂隙）
-			for q in 5:
+			# 熔毁：身后几团错开、缓慢翻动的半透明红雾，配合红色熔毁帧条
+			for q in 3:
 				var ph: float = g.t * 1.7 + q * 1.3
-				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 - 26.0)
-				g.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.15, 1.0, 0.35, 0.11))
+				var off := Vector2(cos(ph) * 16.0, sin(ph * 1.3) * 10.0 + _hover() - 50.0)
+				cv.draw_circle(m.pos + off, 14.0 + 5.0 * sin(ph * 2.0), Color(0.85, 0.025, 0.02, 0.12))
 		# 光环套在悬浮本体中心（返修稿本体中心在脚底上方约 53；docs/32 验收 §5）
-		g.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
-	# 熔毁：不再整体染猩红（用户定 2026-09-26，靠新帧条的绿色裂隙表现）；协同：略偏绿
+		if melt <= 0.0:
+			cv.draw_arc(m.pos + Vector2(0, _hover() - 53.0), 44.0 + 4.0 * sin(g.t * 10.0), 0.0, TAU, 32, Color(ac.r, ac.g, ac.b, k), 2.0)
+	# 熔毁：黑红本体与红色轮廓光帧条；协同：略偏绿
 	var col := Color.WHITE if melt > 0.0 or melt_out > 0.0 else (Color(1.08, 1.18, 1.05) if coord else Color.WHITE)
 	# 悬浮体（2026-09-25 美术改为无腿浮游）：轻微上下起伏
 	draw_sprite_at(m.pos + Vector2(0, _hover()), m.face < 0.0, col, fr[1], fr[0], fr[2], foot_off(fr[0], "m_" + m.kind))
@@ -552,13 +575,13 @@ func _draw_claw_blades() -> void:
 		return
 	var n: int = 2 if twin_claw else 1
 	var sides: Array = [m.face, -m.face]
-	var c: Color = GREEN
+	var c: Color = MELT if melt > 0.0 else GREEN
 	var body: Vector2 = m.pos + Vector2(0, _hover() - 26.0)
 	# Codex 成长线帧条 fx_mon3tr_blade（16×24、2 帧 4fps 循环、中心锚点）：原图是「(」形朝左凸，
 	# 身前 / 身后两组都让刃背朝外——朝右的一侧由程序水平镜像；熔毁时整体染猩红。缺图退回下面的程序弧
 	var btx: Texture2D = A.tex("fx_mon3tr_blade")
-	if btx != null:
-		var bc: Color = Color(1.25, 1.6, 1.25) if melt > 0.0 else Color.WHITE   # 熔毁时更亮的绿，不再染红
+	if btx != null and melt <= 0.0:
+		var bc: Color = Color.WHITE
 		var bf: int = int(g.t * 4.0) % 2
 		for s in sides:
 			for j in n:
@@ -573,8 +596,8 @@ func _draw_claw_blades() -> void:
 			var cp: Vector2 = body + Vector2(s * (27.0 + 5.0 * j), -10.0 + j * 15.0)
 			var a0: float = base_a - 0.95 + sway
 			var a1: float = base_a + 0.95 + sway
-			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
-			g.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
+			cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
+			cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
 
 
 ## 悬浮起伏（像素）：越高影子越小
@@ -615,11 +638,11 @@ func _draw_skill_over() -> void:
 	for i in 7:
 		var an: float = g.t * 0.6 + i * TAU / 6.0
 		hexp.append(c + Vector2(cos(an) * R, sin(an) * R * 1.12))
-	g.draw_colored_polygon(hexp.slice(0, 6), Color(0.4, 1.3, 0.5, 0.13 * al))
-	g.draw_polyline(hexp, Color(0.9, 2.0, 0.9, 0.7 * al), 2.0)
+	cv.draw_colored_polygon(hexp.slice(0, 6), Color(0.4, 1.3, 0.5, 0.13 * al))
+	cv.draw_polyline(hexp, Color(0.9, 2.0, 0.9, 0.7 * al), 2.0)
 	# 内侧淡淡的蜂窝线：三条对角线
 	for i in 3:
-		g.draw_line(hexp[i], hexp[i + 3], Color(0.7, 1.7, 0.7, 0.18 * al), 1.0)
+		cv.draw_line(hexp[i], hexp[i + 3], Color(0.7, 1.7, 0.7, 0.18 * al), 1.0)
 
 
 func status_items() -> Array:
@@ -640,6 +663,6 @@ func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_p
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var k: float = sc / hi
-	g.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

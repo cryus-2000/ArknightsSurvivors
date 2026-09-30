@@ -13,7 +13,7 @@ func _init(game: Game) -> void:
 	g = game
 
 
-func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false) -> void:
+func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false, allow_unlocks := true) -> void:
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72))
 	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
@@ -37,7 +37,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			var bob: float = 4.0 * sin(g.t * 1.6)
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(g.t * 2.0)))
-		var idx: int = ["standard", "knight", "resolve", "deep"].find(g.ending)
+		var idx: int = ["standard", "knight", "deep", "resolve"].find(g.ending)   # 显示编号，同 gallery.ENDING_ORDER
 		UI.text(g.hud, g.font, Vector2(gc.x - 90, gc.y + 124), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
 		UI.text(g.hud, g.font, Vector2(gc.x - 110, gc.y + 144), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
 	UI.frame(g.hud, r, col, {"t": g.t})
@@ -50,20 +50,21 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	while tsz > 22 and g.font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x > pw - 124.0:
 		tsz -= 2
 	UI.heading(g.hud, g.font, Vector2(r.get_center().x, r.position.y + 90), title, tsz, col, minf(250.0, pw / 2.0 - 24.0))
-	var mm := int(g.t) / 60
-	var ss := int(g.t) % 60
-	var stats := [["探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
+	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
+	var mm := int(display_time) / 60
+	var ss := int(display_time) % 60
+	var stats := [["演练用时" if g.trial.active else "探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
 		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
-		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 124), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
-	if g.diff_new and g.state == Game.S.WIN:
+	if allow_unlocks and g.diff_new and g.state == Game.S.WIN:
 		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
 		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
-		var ulp := Vector2(r.end.x - 30.0 - ulw, r.position.y + 30) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
+		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32

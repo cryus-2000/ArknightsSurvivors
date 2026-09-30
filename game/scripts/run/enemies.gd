@@ -22,7 +22,7 @@ func build_grid() -> void:
 	g.grid.clear()
 	for i in g.enemies.size():
 		var e: Dictionary = g.enemies[i]
-		if e.dead:
+		if e.dead or e.get("friendly", false):
 			continue
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
 		if g.grid.has(k):
@@ -42,9 +42,8 @@ func query(pos: Vector2, radius: float) -> Array:
 			var k := Vector2i(cx, cy)
 			if g.grid.has(k):
 				out.append_array(g.grid[k])
-	if out.size() > 0 and out.max() >= g.enemies.size():
-		out = out.filter(func(j): return j < g.enemies.size())
-	return out
+	# 查询时再判阵营，避免本帧构网之后变为友方的单位继续吸收索敌/子弹。
+	return out.filter(func(j): return j >= 0 and j < g.enemies.size() and not g.enemies[j].get("friendly", false))
 
 
 func update(dt: float) -> void:
@@ -67,6 +66,10 @@ func update(dt: float) -> void:
 			e.wind -= dt
 		if e.get("pose", 0.0) > 0.0:
 			e.pose -= dt
+		# 不可索敌的第一形态仍参与公共动画计时；移动/治疗交给遭遇模块，不走敌对 AI 和接触伤害。
+		if e.get("friendly", false):
+			g.ishar.step_ally(e, dt)
+			continue
 		if e.get("haste", 0.0) > 0.0:
 			e.haste -= dt
 		if e.get("aura_weak", 0.0) > 0.0:
@@ -105,7 +108,11 @@ func update(dt: float) -> void:
 
 		if e.chest:
 			if dist > 1500.0:
-				e.dead = true
+				if e.get("event", "") != "":
+					# 海嗣祭坛不静默删除（事件验收 P2-8）：挪到主控前方约 600 处，保留剩余窗口；屏外方位指示在 hud.gd
+					g.endg.reposition_box(e)
+				else:
+					e.dead = true
 			continue
 		if dist > 1300.0 and not e.boss:
 			if e.ai == "static" or e.get("dormant", false):
@@ -165,9 +172,14 @@ func update(dt: float) -> void:
 					if e.set_t <= 0.0 and e.set_done:
 						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0:
-						e.cdt = e.cd
-						g.eai.shoot(e, dir)
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0):
+						if not e.boss and not e.get("shot_ready", false):
+							e["shot_ready"] = true
+							e["shot_wind_until"] = g.t + 0.35
+						elif g.t >= float(e.get("shot_wind_until", 0.0)):
+							e["shot_ready"] = false
+							e.cdt = e.cd * (0.82 if e.boss else 1.0)
+							g.eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
 			e.kb_self = false
@@ -197,14 +209,24 @@ func update(dt: float) -> void:
 					# 伊祖米克的子代被 Boss 吸收
 					if e.feed and o.type == "izumik" and o.phase == 1:
 						e.dead = true
-						o.hp = min(o.maxhp, o.hp + o.maxhp * 0.08)
-						g.vfx.add_text(o.pos + Vector2(0, -50), "吸收", Color(0.5, 1.0, 0.6), 16)
+						g.bai.izumik_absorb(o)   # 吸收子代：强化层数（不再回血，docs/38 §8.7）
 						break
 					if not e.boss:
 						e.pos += diff / d * (min_d - d) * 0.3
 			if e.dead:
 				continue
 		e.pos += v * dt
+		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
+		if e.boss and g.zone_state != 0:
+			# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
+			var margin := float(e.r)
+			if e.type == "knight_boss":
+				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
+				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
+			var limit := maxf(0.0, g.zone_r - margin)
+			var offset: Vector2 = e.pos - g.zone_c
+			if offset.length_squared() > limit * limit:
+				e.pos = g.zone_c + offset.normalized() * limit
 		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
 			e.pos = g.map.push_out(e.pos, e.r * 0.8)
 
@@ -238,9 +260,6 @@ func update(dt: float) -> void:
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
 					g.lamp = maxf(0.0, g.lamp - 8.0)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
-				if e.type in ["knight", "knight_boss"] and e.get("dash_t", 0.0) > 0.0:
-					g.frost = maxf(g.frost, 2.0)
-					g.vfx.add_text(g.ppos + Vector2(20, -60), "冰霜", Color(0.7, 0.9, 1.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
@@ -274,7 +293,7 @@ func update_lobs(dt: float) -> void:
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), {"hit_cap": l.get("hit_cap", 0.0)})
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l)
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -292,7 +311,10 @@ func update_ebullets(dt: float) -> void:
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": 52.0, "life": 6.0 if bm else 10.0, "seed": g.rng.randf() * 100.0, "boss": bm})
+			# 小怪子弹留的溟痕按来源定大小 / 时长（浮海飘航者的神经弹：半径 30、5 秒，协调人 9/29 定 A；站进去累积神经损伤）
+			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.rng.randf() * 100.0, "boss": bm})
+			if not bm and b.has("mire_r"):
+				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:
 			b.life = 0.0
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
@@ -319,10 +341,10 @@ func _boss_mire_ok(b: Dictionary) -> bool:
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
 func update_status(dt: float) -> void:
 	g.combat.update_ctrl(dt)   # 主控减速计时；Boss 战中僵直恒为 0（docs/38 §1.11）
+	g.combat.update_ailments(dt)   # 小怪控制：寒霜 / 冻结 / 束缚 / 侵蚀创口
 	g.pstun -= dt
 	g.atk_slow -= dt
 	g.frost = maxf(0.0, g.frost - dt)
-	g.nerve = max(0.0, g.nerve - 6.0 * dt)
 	if g.corrode_pool > 0.0:
 		var tick: float = min(g.corrode_pool, (g.corrode_pool * 0.5 + 1.0) * dt)
 		g.combat.drain_corrode(tick)
@@ -336,8 +358,9 @@ func update_status(dt: float) -> void:
 			mired = true
 			if not m.get("boss", false):
 				mire_nat = true
-	# 溟痕：减速 + 屏幕变暗 + 持续掉血（2.5/秒）+ 神经损伤
+	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
+	g.combat.update_nerve(dt, mired, sanct)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
 		mire_tick -= dt
@@ -365,7 +388,7 @@ func update_status(dt: float) -> void:
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
 					g.pstun = max(g.pstun, 0.5)
-				g.dmg_src = "shock"
+				g.dmg_src = "shock_" + str(s.src_type) if s.has("src_type") else "shock"   # 遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
 				g.in_type = ["近战", "物理"]
 				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
@@ -392,7 +415,8 @@ func nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 			continue
 		var d: float = e.pos.distance_squared_to(origin)
 		if d < max_dist * max_dist:
-			c.append([d, e])
+			# 部件（e.part：塑路者核心、偏执泡影茧壳等，docs/38 §8）在射程内时排在普通敌人前面；只影响标了部件的单位，不是全局 Boss 加权
+			c.append([d - (1.0e12 if e.get("part", false) else 0.0), e])
 	c.sort_custom(func(a, b): return a[0] < b[0])
 	var out: Array = []
 	for i in min(n, c.size()):

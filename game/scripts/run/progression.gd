@@ -163,7 +163,7 @@ func deep_cards() -> Array:
 ## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
 ## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
 func relic_pool_ids(for_shop := false) -> Array:
-	var cands: Array = g.rfx.db.implemented().filter(func(r): return g.rfx.can_offer(r, for_shop))
+	var cands: Array = g.rfx.db.implemented().filter(func(r): return g.rfx.can_offer(r, for_shop) and can_gain_relic(r.id))
 	var lane_n := {}
 	for rid in g.relics:
 		for ln in g.RL.get(rid, {}).get("lanes", []):
@@ -212,7 +212,7 @@ func open_relic_choice() -> void:
 		var n: int = maxi(1, g.pending_chests)
 		g.pending_chests = 0
 		g.ingots += 12 * n
-		g.vfx.add_text(g.ppos + Vector2(0, -90), "藏品已集齐 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
+		g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可升级藏品 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
 		return
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
 	if g.balance:
@@ -278,8 +278,26 @@ func apply_relic(id: String) -> void:
 		Cfg.save()
 
 
-## 获得藏品的唯一入口：登记、生效、重算结局
-func gain_relic(id: String) -> void:
+## 容量按不同藏品计数；升级不增加槽。全藏品测试开关只由 Cfg.dev_args 暴露。
+func can_gain_relic(id: String) -> bool:
+	if not g.RL.has(id):
+		return false
+	if g.relics.has(id):
+		return int(g.rfx.lv.get(id, 0)) < g.rfx.max_lv(id)
+	if g.balance and Cfg.dev_args().has("--relics=all"):
+		return true
+	var cap: int = Bal.vi("relic/carry_cap", 15)
+	if g.relics.size() >= cap:
+		return false
+	if g.endg.is_route_relic(id):
+		return true
+	return g.relics.size() + g.endg.reserved_relic_slots() < cap
+
+
+## 获得藏品的唯一入口：登记、生效、重算结局。拒绝时不产生任何效果。
+func gain_relic(id: String) -> bool:
+	if not can_gain_relic(id):
+		return false
 	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])   # 玩家局也记（docs/40）
 	if not g.relics.has(id):
 		g.relics.append(id)
@@ -292,3 +310,4 @@ func gain_relic(id: String) -> void:
 	elif id == "221" and g.knight.alive:
 		g.knight.leave()
 	g.endg.on_relic(id)
+	return true

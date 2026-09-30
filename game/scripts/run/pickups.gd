@@ -22,7 +22,13 @@ func count_items() -> int:
 
 
 func drop(pos: Vector2, kind: String, val: float) -> void:
-	if kind == "xp" and g.gems.size() > 350:
+	# 溢出自动拾取：场上宝石 > pickup/gem_overflow（缺省 350）时新掉的经验直接入账（docs/50 §5、docs/35：对经验曲线影响不小，数值 close7 评估 350 / 150）
+	if kind == "xp" and g.gems.size() > int(Bal.v("pickup/gem_overflow", 350.0)):
+		xp_overflow += val
+		var mi: int = int(g.t / 60.0)
+		while xp_overflow_min.size() <= mi:
+			xp_overflow_min.append(0.0)
+		xp_overflow_min[mi] += val
 		gain_xp(val)
 		return
 	# 2.5D：掉落物带高度，从敌人位置弹出并落地回弹
@@ -117,14 +123,35 @@ func item_name(kind: String) -> String:
 	return {"magnet": "磁铁", "heal": "回复药剂"}.get(kind, "")
 
 
+## 前 12 级保持原曲线，之后逐级增加费用，至 30 级达到后期倍率。
+func xp_required(level: int) -> float:
+	var base: float = Bal.v("xp/a", 24.0) + level * Bal.v("xp/b", 8.0) + floor(level * level * Bal.v("xp/c", 0.8))
+	var start: float = Bal.v("xp/late_from_level", 12.0)
+	var finish: float = Bal.v("xp/late_full_level", 30.0)
+	var ramp: float = clampf((float(level) - start) / maxf(1.0, finish - start), 0.0, 1.0)
+	return ceil(base * lerpf(1.0, Bal.v("xp/late_mult", 1.95), ramp))
+
+
+## 平衡输出（telemetry）：一局经验总量、其中溢出直接入账的量、按分钟分段的溢出量
+var xp_total := 0.0
+var xp_overflow := 0.0
+var xp_overflow_min: Array = []
+var xp_total_min: Array = []   # 按分钟分段的总经验（和 xp_overflow_min 对齐，下标 = 游戏分钟）
+
+
 func gain_xp(v: float) -> void:
 	if g.demo_op != "":
 		return
+	xp_total += v
+	var tm: int = int(g.t / 60.0)
+	while xp_total_min.size() <= tm:
+		xp_total_min.append(0.0)
+	xp_total_min[tm] += v
 	g.xp += v
 	while g.xp >= g.xp_need:
 		g.xp -= g.xp_need
 		g.level += 1
-		g.xp_need = Bal.v("xp/a", 24.0) + g.level * Bal.v("xp/b", 8.0) + floor(g.level * g.level * Bal.v("xp/c", 0.8))
+		g.xp_need = xp_required(g.level)
 		g.pending_levelups += 1
 		g.lv_times.append(int(g.t))
 		levelup_fx()

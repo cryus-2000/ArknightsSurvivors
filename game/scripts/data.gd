@@ -45,15 +45,25 @@ const DMOD_DEFAULT := {
 	"lamp_hit": 1.0, "oil_drop": 1.0, "ingot": 1.0,                      # 受击灯火损失、小怪灯油掉落率、源石锭掉落
 	"elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.0,               # 精英出现间隔、Boss 招式预警时间、大群规模
 	"horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、溟痕不消散、主控初始最大生命
-	"mire_dmg": 1.0,                                                      # 溟痕伤害（run/enemies.gd，数值要求可按档单独加重）
+	"mire_dmg": 1.0, "nerve_rate": 1.0,                                   # 溟痕伤害（run/enemies.gd）；溟痕里神经损伤累积速度（combat.update_nerve）
+	"hunt_dur": 1.0, "hunt_ring_hp": 1.0,                                 # 围猎持续时间、圈上海嗣生命（run/hunt.gd；高难度下放宽，避免成为硬门槛）
+	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
+	# 小怪控制 / 词条按档覆盖（数值 9/30：标准档不动、只收紧 Ⅳ / Ⅷ）：-1 = 用 balance.json enemy 段的全局值，读取走 combat.enemy_knob
+	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
+	"boss_fight_enemy_hp": -1.0,                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
 }
-## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关
+## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关；
+## time / count / pct = 按档覆盖的 enemy 段绝对值（-1 = 用全局），只在本档值和 balance.json enemy/<键> 不同时显示：time 写成 分:秒，pct ×100
 const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"],
 	["max_hp", "主控初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
-	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然生成的溟痕不再消散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"],
+	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然溟痕常驻，只有引航灯标能驱散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
+	["ctrl_start", "小怪控制提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
+	["affix_start", "词条提前到 %d:%02d", "time"], ["affix_max", "词条概率上限 %d%%", "pct"],
 ]
+## time / count / pct 的全局缺省（与 combat.enemy_knob 调用处一致）
+const DMOD_ABS_DEFAULT := {"ctrl_start": 1.0e9, "frost_max": 3.0, "affix_start": 1.0e9, "affix_max": 0.35}
 
 
 ## 旧累计难度（0–10，上面 DIFFICULTY 逐级叠加）拼出的修正表
@@ -101,6 +111,16 @@ static func dmod_lines(m: Dictionary) -> Array:
 			"flag":
 				if v > 0.5:
 					out.append(row[1])
+			"time", "count", "pct":
+				var base: float = Bal.v("enemy/" + str(row[0]), float(DMOD_ABS_DEFAULT[row[0]]))
+				if v < 0.0 or absf(v - base) < 0.001:
+					continue
+				if row[2] == "time":
+					out.append(row[1] % [int(v) / 60, int(v) % 60])
+				elif row[2] == "pct":
+					out.append(row[1] % int(round(v * 100.0)))
+				else:
+					out.append(row[1] % int(v))
 	return out
 
 

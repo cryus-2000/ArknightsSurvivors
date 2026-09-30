@@ -18,36 +18,36 @@ const TABS := [
 	{"cn": "藏品", "en": "RELIC"},
 	{"cn": "结局", "en": "ENDING"},
 ]
-const ENDING_ORDER := ["standard", "knight", "resolve", "deep"]
+const ENDING_ORDER := ["standard", "knight", "deep", "resolve"]   # 显示编号 Ⅰ–Ⅳ（按原作：深蓝之心线 = 结局三，抉择线 = 结局四；id 不变，存档不错位）
 
 ## 敌人图鉴说明（机制按本作实现）
 const ENEMY_DESC := {
 	"bone": "最常见的海嗣个体，成群漂流而来。近战，命中附带「侵蚀」。",
-	"slider": "贴着海床高速滑行。近战，命中造成「神经损伤」，积满后主控会短暂僵直。",
+	"slider": "贴着海床高速滑行。近战；冲刺撞上主控时额外熄灭 8 点灯火。",
 	"stone": "远程投掷碎石；停下射击时会掘入海床，变得更难击退。",
 	"offspring": "伊祖米克的子代，行动迟缓但生命很高；碰到主控时蜕变成 2 只其他海嗣。",
 	"brood": "由投嗣育母产下的诱饵，不会移动并逐渐衰亡，接触造成侵蚀。",
 	"fractal": "塑路者碎裂时放出的高速碎片。",
 	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
-	"tear": "伊莎玛拉渗出的泪滴，固定不动；主控站在上面时每秒受到 6 点真实伤害。泪没被清除时，伊莎玛拉持续充能。",
-	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.8 秒后爆裂一次（范围 80，附带神经损伤），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
+	"tear": "伊莎玛拉人形阶段留下的泪滴，不会伤害主控；未被压制时会加快转化充能。主控靠近泪滴即可压制，转化后泪滴消失。",
+	"pocket": "精英。背负气囊的爬行者，每失去 15% 生命就鼓胀 0.8 秒后爆裂一次（范围 80），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。远程攻击，并不断在身边产下注亡拟嗣。",
 	"mimic": "精英。伪装成补给箱，被靠近时现形扑来；击败后掉落大量源石锭。",
 	"path": "中期 Boss（3:30 / 7:00）。高大的刃肢海嗣：直线冲撞、近身震地；生命降到 75% / 50% / 25% 时各碎裂一次，放出 4 块塑路者碎片。",
-	"iberia": "中期 Boss（3:30 / 7:00）。持剑的圣徒，携带 3 发弹药；每 20 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
+	"iberia": "中期 Boss（3:30 / 7:00）。持剑的圣徒，携带 3 发弹药；每 14 秒原地装填 2 秒，装填时被打断会僵直 6 秒。",
 	"carmen": "中期 Boss（7:00）。持火铳的圣徒，攻击范围更远；装填机制与伊比利亚相同。",
-	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。",
-	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。",
-	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。",
-	"paranoia": "结局一的最终 Boss。悬浮远程散射并减速；首次被控制后失去悬浮，进入第二形态。",
-	"izumik": "结局四「深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
-	"ishar": "结局三「抉择」的最终 Boss。渗出伊莎玛拉之泪，泪未被清除时持续充能，充满后变身。",
-	"knight_boss": "结局二「最后的骑士」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；第一次生命归零后寒冰重生进入二阶段。",
+	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下；一方假死时，存活者沿生命连接发起「接潮共鸣」。",
+	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死；搭档假死时沿生命连接反击。",
+	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死；搭档假死时沿生命连接反击。",
+	"paranoia": "结局一「平凡即是喜乐」的最终 Boss。悬浮远程散射并减速；打到 1/3 血时坠落，进入近战的第二形态；归零时结茧，打破外壳可抢到破绽。",
+	"izumik": "结局四「如星空般深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
+	"ishar": "结局三「息潮的代价」的最终 Boss。人形阶段治疗受伤海嗣，不攻击主控，干员也不会以她为目标；转化充能随时间增长，未被主控靠近压制的之泪会加快充能。充满后变为敌对白壳海嗣，使用弹幕、潮汐吐息与近身潮噬；未压制的泪滴会在变身后发动「泪滴共鸣」。",
+	"knight_boss": "结局二「静谧时代」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；「冰线」之后发动「寒冷追击」，第一次生命归零后寒冰重生进入二阶段。",
 	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
 ## 结局 Boss 与敌对骑士：达成对应结局 / 遭遇后解锁
-const LOCK_BY_ENDING := {"izumik": "deep", "ishar": "resolve", "knight_boss": "knight", "knight": "knight", "tear": "resolve"}   # docs/19：敌对骑士也随结局收录
+const LOCK_BY_ENDING := {"izumik": "resolve", "ishar": "deep", "knight_boss": "knight", "knight": "knight", "tear": "deep"}   # docs/19：敌对骑士也随结局收录
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted
@@ -72,6 +72,7 @@ var demo_game: Node
 var demo_id := ""
 ## 手动切换（2026-09-26 用户要求）：阶段 0 精零 / 1 精一 / 2 精二；动作 -1 轮播 / 0–2 只放该技能 / 3 只普攻。换干员时保留，方便横向比较
 var demo_stage := 2
+var enemy_demo_mode := 0
 var demo_mode := -1
 var demo_rects: Array = []       # [Rect2, "stage" | "mode", 值]
 ## 干员详情的信息页（2026-09-26）：档案 / 技能 / 数值 分页显示，解决「档案 + 三技能 + 天赋挤在一个文本框里放不下」
@@ -79,6 +80,7 @@ var info_tab := 0
 var info_rects: Array = []
 const INFO_TABS := ["档案", "技能", "数值"]
 const DEMO_H := 290
+const PARANOIA2_TINT := Color(1.35, 0.72, 1.25)   # 同 world.gd：偏执泡影二阶段过渡期染色
 ## 敌人图鉴的附加形态（标签, 贴图, 帧数, 帧率, 循环）：说明里写了第二形态的 Boss（docs/48 验收 P2-6）
 const EXTRA_FORMS := {
 	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
@@ -101,7 +103,6 @@ func _ready() -> void:
 
 func open() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	size = get_viewport_rect().size
 	visible = true
 	_build()
 
@@ -131,8 +132,34 @@ func _demo_start(cid: String, sz: Vector2i) -> void:
 	demo_id = cid
 
 
+## 敌人预览复用同一 game 场景，但逐帧由独立 enemy_demo 模块运行正式敌方 AI。
+func _enemy_demo_start(eid: String, sz: Vector2i) -> void:
+	if demo_id == "enemy:" + eid and demo_vp != null:
+		demo_vp.size = sz
+		return
+	_demo_stop()
+	demo_vp = SubViewport.new()
+	demo_vp.size = sz
+	demo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	demo_vp.handle_input_locally = false
+	add_child(demo_vp)
+	demo_game = load("res://game.tscn").instantiate()
+	demo_game.demo_op = "mizuki"    # 沿用演示场景的 HUD、音乐、玩家输入隔离
+	demo_game.demo_enemy = eid
+	demo_game.enemy_demo.configure(enemy_demo_mode)
+	demo_vp.add_child(demo_game)
+	demo_id = "enemy:" + eid
+
+
 ## 点击阶段 / 动作按钮：未解锁的技能（阶段不够）不响应
 func _demo_click(kind: String, v: int) -> void:
+	if kind in ["enemy_phase", "enemy_replay"]:
+		if kind == "enemy_phase":
+			enemy_demo_mode = v
+		if demo_game != null:
+			demo_game.enemy_demo.configure(enemy_demo_mode)
+		Sfx.play("ui_move")
+		return
 	if kind == "stage":
 		demo_stage = v
 		if demo_mode >= 0 and demo_mode <= 2 and demo_mode > demo_stage:
@@ -266,7 +293,7 @@ func _build() -> void:
 				if k == "ishar" and A.tex("e_ishar_t") != null:
 					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
 				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
-				if e.get("atk_anim", false):
+				if e.get("atk_anim", false) or role == "boss":
 					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
 						if A.tex(e.tex + fm[1]) != null:
 							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
@@ -279,7 +306,11 @@ func _build() -> void:
 				var dsc: float = float(e.get("draw_scale", 1.0))
 				for fm in forms:
 					fm.tint = tint
-					fm.dscale = dsc
+					fm.dscale = float(e.get("transformed_draw_scale", 1.0)) if k == "ishar" and fm.label in ["转化后", "变身", "变身移动", "变身攻击"] else dsc
+					if fm.label == "二阶段" and k == "paranoia":
+						fm.tint = PARANOIA2_TINT   # 同实战过渡期的区分（新图到之前）
+						fm.dscale = 1.1
+				forms.append({"label": "攻击演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
@@ -289,7 +320,8 @@ func _build() -> void:
 				var tags: Array = []
 				if e.get("corrode", 0.0) > 0.0:
 					tags.append("侵蚀")
-				if e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0:
+				# 命中附带神经损伤缺省不生效（enemy/nerve_hit_mult = 0，神经只由溟痕 / 巢涌者光环累积）：倍率打开了才标
+				if (e.get("nerve", 0.0) > 0.0 or e.get("shot_nerve", 0.0) > 0.0) and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
 					tags.append("神经损伤")
 				if e.get("hover", false):
 					tags.append("悬浮")
@@ -298,9 +330,23 @@ func _build() -> void:
 				if e.has("ammo"):
 					tags.append("装填")
 				tags.append_array(e.get("chips", []))
+				var mech: String = ENEMY_DESC.get(k, e.get("desc", ""))
+				if e.has("extra"):
+					mech += "\n\n第二招：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
+					if float(e.extra.get("frost", 0.0)) > 0.0:
+						mech += "命中附加短暂寒冷。"
+					if float(e.extra.get("nerve", 0.0)) > 0.0 and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
+						mech += "命中累积神经损伤。"
+					if float(e.extra.get("stun", 0.0)) > 0.0:
+						mech += "命中造成短暂僵直，连续命中有保护间隔。"
+				if e.has("patterns"):
+					var moves: Array[String] = []
+					for move in e.patterns:
+						moves.append(str(move.name))
+					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
-					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, ENEMY_DESC.get(k, e.get("desc", ""))),
-					"locked": LOCK_BY_ENDING.has(k) and not Cfg.endings_cleared.has(LOCK_BY_ENDING[k]) and not Cfg.dev_args().has("--allend"), "locked_text": "尚未遭遇。达成对应结局后收录。"})
+					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
+					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇。在冒险中遭遇后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
 			for i in ENDING_ORDER.size():
@@ -313,6 +359,8 @@ func _build() -> void:
 				var forms: Array = [_anim_n("最终 Boss", bd.get("tex", "boss"), 2, 2.0)]
 				if en.boss == "paranoia" and A.tex("e_paranoia2") != null:
 					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
+					forms[forms.size() - 1].tint = PARANOIA2_TINT
+					forms[forms.size() - 1].dscale = 1.1
 				var c = en.get("col", [0.8, 0.6, 1.0])
 				entries.append({"id": eid, "name": en.name, "en": en.get("en", eid.to_upper()), "tag": "结局 · %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][i],
 					"forms": forms, "stats": [["Boss", bd.get("name", "")]], "chips": [], "col": Color(c[0], c[1], c[2]),
@@ -324,7 +372,7 @@ func _build() -> void:
 			lst.sort_custom(func(a, b): return (order.get(a.rarity, 9) * 1000 + int(a.id)) < (order.get(b.rarity, 9) * 1000 + int(b.id)))
 			for r in lst:
 				var seen: bool = Cfg.seen_relics.has(r.id)
-				var stt: Array = [["等级", r.rarity], ["类别", r.get("cat", "")]]
+				var stt: Array = [["等级", r.rarity], ["效果分类", relic_db.effect_category_names.get(r.effect_category, r.get("cat", ""))], ["原类别", r.get("cat", "")]]
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity, "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
@@ -337,11 +385,15 @@ func _build() -> void:
 			entries.append({"name": "回复药剂", "en": "HEAL", "tag": "道具", "forms": [_anim_n("回复药剂", "pickup_heal", 1, 1.0)], "stats": [], "desc": "拾取后立即回复 30% 最大生命。"})
 			entries.append({"name": "补给箱", "en": "CHEST", "tag": "宝箱", "forms": [_anim_n("补给箱", "e_chest", 2, 1.0)], "stats": [], "desc": "地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。"})
 			for sp in [["遗迹残柱", "PILLAR", "prop_pillar", 1], ["断墙", "RUINED WALL", "prop_wall", 1], ["沉船碎片", "WRECK", "prop_wreck", 1],
-					["海底岩脊", "RIDGE", "terrain_ridge", 1], ["海底山峰", "PEAK", "terrain_peak", 1], ["溟痕", "MIRE", "terrain_mire", 2]]:
+					["海底岩脊", "RIDGE", "terrain_ridge", 1], ["海底山峰", "PEAK", "terrain_peak", 1], ["溟痕", "MIRE", "terrain_mire", 2], ["引航灯标", "BEACON", "prop_beacon", 2]]:
 				if A.tex(sp[2]) != null:
 					entries.append({"name": sp[0], "en": sp[1], "tag": "场景", "forms": [_anim_n(sp[0], sp[2], sp[3], 2.0)], "stats": [],
-						"desc": "地面上周期性出现并逐渐扩大的溟痕，站在上面会持续受到伤害并积累神经损伤。" if sp[2] == "terrain_mire" else "深海遗迹中的场景物件，会与角色前后遮挡。"})
+						"desc": {"terrain_mire": "地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。", "prop_beacon": "仿照伊比利亚灯塔做的小型信标，熄灭着立在海床上。站进光圈点燃它，灯光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。"}.get(sp[2], "深海遗迹中的场景物件，会与角色前后遮挡。")})
 			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "局内会出现 3 次，停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
+	if tab == 4:
+		for entry in entries:
+			entry["locked"] = not Cfg.unlock_all and not Cfg.gallery_seen.has("item:" + str(entry.en))
+			entry["locked_text"] = "尚未发现。在冒险中发现后收录。"
 	sel = clampi(sel, 0, max(0, entries.size() - 1))
 	form = 0
 	form_t = 0.0
@@ -541,12 +593,16 @@ func _draw_detail(vs: Vector2) -> void:
 	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN, 71, t)
 	form = clampi(form, 0, e.forms.size() - 1)
 	var f: Dictionary = e.forms[form]
-	var demo: bool = f.has("demo") and not locked
+	var is_enemy_demo: bool = f.has("enemy_demo")
+	var demo: bool = (f.has("demo") or is_enemy_demo) and not locked
 	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）
 	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H if demo else 236))
 	if demo:
 		var dr := Rect2(box.position, Vector2(pr.size.x - 40, DEMO_H))
-		_demo_start(f.demo, Vector2i(dr.size))
+		if is_enemy_demo:
+			_enemy_demo_start(f.enemy_demo, Vector2i(dr.size))
+		else:
+			_demo_start(f.demo, Vector2i(dr.size))
 		if demo_vp != null:
 			draw_texture_rect(demo_vp.get_texture(), dr, false)
 		draw_rect(dr, Color(0.3, 0.9, 0.9, 0.5), false, 1.0)
@@ -561,6 +617,10 @@ func _draw_detail(vs: Vector2) -> void:
 			["stage", [["精零", 0], ["精一", 1], ["精二", 2]]],
 			["mode", [["普攻", 3], ["一技能", 0], ["二技能", 1], ["三技能", 2], ["轮播", -1]]],
 		]
+		if is_enemy_demo:
+			rows = [["enemy_replay", [["重播", 0]]]]
+			if f.enemy_demo in ["ishar", "paranoia", "knight_boss", "izumik"]:
+				rows.push_front(["enemy_phase", [["完整转化", 0], ["人形治疗", 1], ["敌对", 2]]] if f.enemy_demo == "ishar" else ["enemy_phase", [["轮播", 0], ["一阶段", 1], ["二阶段", 2]]])
 		for ri in rows.size():
 			var kind: String = rows[ri][0]
 			var cx := dr.end.x - 12.0
@@ -571,7 +631,7 @@ func _draw_detail(vs: Vector2) -> void:
 				var w: float = font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 18.0
 				cx -= w
 				var cr := Rect2(Vector2(cx, dr.position.y + 10 + ri * 28), Vector2(w, 22))
-				var on: bool = (demo_stage == v) if kind == "stage" else (demo_mode == v)
+				var on: bool = enemy_demo_mode == v if kind == "enemy_phase" else ((demo_stage == v) if kind == "stage" else (demo_mode == v and kind == "mode"))
 				var locked_skill: bool = kind == "mode" and v >= 0 and v <= 2 and v > demo_stage
 				var playing: bool = kind == "mode" and demo_mode == -1 and v == cur and not demo_game.demo_basic
 				var edge: Color = UI.CYAN if on else (Color(0.5, 0.8, 0.9, 0.7) if playing else UI.LINE)

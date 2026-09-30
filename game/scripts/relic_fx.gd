@@ -271,7 +271,7 @@ func _contract_start() -> void:
 	var o = g.squad.ops[g.rng.randi() % g.squad.size()]
 	contract_op = o.id
 	g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + o.id)
-	g._sync_stats()
+	g.sync_stats()
 	g.vfx.show_banner("生还者合约：%s 伤害 +20%%" % o.display_name())
 
 
@@ -288,7 +288,7 @@ func _apply_stat(stat: String, op: String, v: float, source := "relic", scope :=
 		push_warning("未知藏品属性: " + stat)
 		return
 	g.stats.add(name, op, v, source, scope)
-	g._sync_stats()
+	g.sync_stats()
 
 
 ## 按编队构成生效的藏品（协议 / 老蒲扇 / 断杖-破解 / 支柱-援护 / 极速之手）：编队变化与获得时重算
@@ -331,7 +331,7 @@ func refresh_squad() -> void:
 					else:
 						for c in scs:
 							g.stats.add(StringName(a.stat), "add", v, "relic_squad", "class:" + str(c))
-	g._sync_stats()
+	g.sync_stats()
 
 
 ## ---------- 每帧 ----------
@@ -346,7 +346,7 @@ func tick(dt: float) -> void:
 		g.stats.remove_source("relic_haste")
 		if absf(hm - 1.0) > 0.001:
 			g.stats.add(&"op_aspd", "mult", 1.0 / hm, "relic_haste")
-		g._sync_stats()
+		g.sync_stats()
 	# 黑色郁金香：技能未生效时累计，最多 60 秒
 	if rule("black_tulip") > 0:
 		if g.squad.any_skill_active():
@@ -694,7 +694,7 @@ func on_kill(e: Dictionary) -> void:
 	# 生还者合约：每击败一个 Boss，被选中的干员再 +20%
 	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and g.relics.has("261"):
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
-		g._sync_stats()
+		g.sync_stats()
 		g.vfx.show_banner("生还者合约：伤害再 +20%")
 
 

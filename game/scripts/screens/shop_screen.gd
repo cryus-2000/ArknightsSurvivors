@@ -74,6 +74,7 @@ func build() -> void:
 func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	var hov: bool = g.panel_ui.card_hot(card, i) and not it.sold
 	var afford: bool = g.ingots >= it.price
+	var blocked: bool = it.kind == "relic" and (g.shop_sys.relic_buys_left() <= 0 or not g.progression.can_gain_relic(it.id))
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	var a := 0.55 if it.sold else 1.0
 	if hov:
@@ -123,6 +124,10 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	if not chips.is_empty():
 		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 52.0), chips, r.size.x - 16.0, 2, "", 10, a)
 	var pb := Rect2(r.position + Vector2(10, r.size.y - 44), Vector2(r.size.x - 20, 32))
+	if blocked and not it.sold:
+		card.draw_rect(pb, Color(1, 1, 1, 0.06))
+		UI.text(card, g.font, Vector2(pb.position.x, pb.position.y + 21), "本次限购已满" if g.shop_sys.relic_buys_left() <= 0 else "空间已预留", 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, pb.size.x)
+		return
 	if it.sold:
 		card.draw_rect(pb, Color(1, 1, 1, 0.06))
 		UI.text(card, g.font, Vector2(pb.position.x, pb.position.y + 21), "已售出", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, pb.size.x)
@@ -151,7 +156,9 @@ func draw_bg(vs: Vector2) -> void:
 	var cx := vs.x / 2.0
 	# 纵向：标题 92 起；货架卡片顶边 = panel_box.offset_top（222），下面是按钮；商人框与卡片 + 按钮等高
 	var top: float = g.panel_box.offset_top
-	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", "在灯火熄灭之前，用源石锭换些能活下去的东西", top - 130.0)
+	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件（刷新不重置）" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
+	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
+	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 52.0), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)

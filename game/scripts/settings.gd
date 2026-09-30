@@ -23,15 +23,22 @@ var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
 var pad_rumble := true   # 手柄震动
+var quality := ""        # 画质档位 "high" / "low"（空 = 首次启动，按设备猜）：低档关后期、粒子减半、真人局同屏敌人上限 300
+var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
 var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
+var cover_character_id := "mizuki"
+var play_speed := 1.0
+var boss_trial_request := {} # transient, never saved
+var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
 var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
 var seen_shows: Array = []   # 已看过的解锁演出
+var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
-var unlock_all := false      # 开发测试：本次运行全部解锁（只在内存里，见 _apply_unlock_all；发布版恒为 false）
+var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
 var opening_seen := false    # 看过完整的标题开场（写入存档）：之后启动只播简短版（2026-09-27 用户定，开场方案 A）
@@ -47,8 +54,13 @@ func _ready() -> void:
 		water_filter = false
 		normal_maps = false
 		dof = DisplayServer.is_touchscreen_available() == false
+	_migrate_internal_save()
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
+		cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
+		play_speed = float(c.get_value("game", "play_speed", 1.0))
+		if play_speed not in [1.0, 1.5, 2.0]:
+			play_speed = 1.0
 		master = c.get_value("audio", "master", master)
 		music = c.get_value("audio", "music", music)
 		sfx = c.get_value("audio", "sfx", sfx)
@@ -65,9 +77,12 @@ func _ready() -> void:
 		normal_maps = c.get_value("video", "normal_maps", normal_maps)
 		brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
 		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
+		manual_attack = c.get_value("input", "manual_attack", manual_attack)
+		quality = str(c.get_value("video", "quality", ""))
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
+		gallery_seen = c.get_value("progress", "gallery_seen", [])
 		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 		opening_seen = c.get_value("progress", "opening_seen", opening_seen)
@@ -75,6 +90,11 @@ func _ready() -> void:
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
 	_apply_unlock_all()
+	if quality == "":
+		set_quality(_guess_quality())   # 首次启动：按设备猜一个缺省档（存档后玩家可改）
+	for a in dev_args():
+		if a.begins_with("--quality="):
+			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
 	apply.call_deferred()
 
 
@@ -99,10 +119,16 @@ func apply() -> void:
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
 
 
+const WEB_MASTER_TRIM := -7.0
+
+
 func _bus(name: String, v: float) -> void:
 	var b := AudioServer.get_bus_index(name)
 	if b != -1:
-		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)))
+		# 网页版没有总线效果（样本播放），Master 的限幅器不起作用：整体让出 WEB_MASTER_TRIM 的余量防削波（音频 9/30 实测：
+		# 标准 · 水月 · 高手一局不截断录音，Master 输入峰值 +6.6 dBFS，400ms 最响 -2.8）。桌面版靠限幅器，不降
+		var trim: float = WEB_MASTER_TRIM if name == "Master" and OS.has_feature("web") else 0.0
+		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)) + trim)
 
 
 ## 旧存档（11 级累计难度）→ 3 档：通关过某档对应的累计档位（旧 diff_unlocked = 通关的最高档 + 1）就解锁下一档，
@@ -119,14 +145,16 @@ func _migrate_diff() -> void:
 
 
 ## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
-## 只在 debug 构建（编辑器运行、debug 导出）里生效：不带启动参数直接运行时自动打开，带测试参数时要显式加 --unlockall
-## （自动测试不受影响），--nounlock 可关掉。发布版（--export-release）里 OS.is_debug_build() 为 false，永远不会打开。
+## debug 构建（编辑器运行、debug 导出）：不带启动参数直接运行时自动打开，带测试参数时要显式加 --unlockall
+## （自动测试不受影响），--nounlock 可关掉。发布版（--export-release）只有对内包（build.json audience = internal）
+## 启动即打开（1.1.1，用户 09-30）；对外包恒不打开（tools/check_release.py 与 verify_encrypted_game.py 都断言）。
 ## 只改内存：存档里的真实进度先存进 _real_progress，save() 写回它们，本次运行的解锁与进度不会写进存档。
 func _apply_unlock_all() -> void:
-	if not OS.is_debug_build():
-		return
-	if dev_args().has("--nounlock") or not (dev_args().is_empty() or dev_args().has("--unlockall")):
-		return
+	if OS.is_debug_build():
+		if dev_args().has("--nounlock") or not (dev_args().is_empty() or dev_args().has("--unlockall")):
+			return
+	elif build_audience() != "internal":
+		return   # 对外包（public / diagnostic）恒不解锁；对内包（1.1.1，用户 09-30）启动即全部解锁，同样只在内存
 	unlock_all = true
 	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
 	diff_unlocked = D.DIFFICULTY_TIERS.size() - 1
@@ -136,6 +164,32 @@ func _apply_unlock_all() -> void:
 	seen_relics = db.implemented().map(func(r): return r.id)
 
 
+## 画质一键档位（协调人 9/30：低配机）：低 = 关辉光 / 景深 / 法线光照 / 水下滤镜 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300
+## （spawner.max_alive；机器人 / 自动测试一律 450）。切到高档时把这四项打开；之后玩家仍可在「画面」页单独开关
+func set_quality(q: String) -> void:
+	quality = q
+	var hi := q == "high"
+	bloom = hi
+	dof = hi
+	normal_maps = hi
+	water_filter = hi
+
+
+func fx_density() -> float:
+	return 0.5 if quality == "low" else 1.0
+
+
+## 首次启动的缺省档：触屏 / 网页移动端 / 核显与软件渲染 → 低，其余 → 高
+func _guess_quality() -> String:
+	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
+		return "low"
+	var gpu := RenderingServer.get_video_adapter_name().to_lower()
+	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris", "mali", "adreno", "powervr", "llvmpipe", "swiftshader", "microsoft basic"]:
+		if gpu.contains(k):
+			return "low"
+	return "high"
+
+
 ## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；
 ## 发布版（--export-release）一律返回空，玩家首次打开一定是未解锁的初始状态（tools/check_release.py 检查）
 func dev_args() -> PackedStringArray:
@@ -143,12 +197,16 @@ func dev_args() -> PackedStringArray:
 
 
 func save() -> void:
+	if practice_active:
+		return
 	# 自动测试（任何 --xxx 启动参数，与 sfx.gd 静音同一判定）不写玩家的存档：
 	# 否则批跑 / 冒烟里机器人拿到的藏品、解锁的难度都会记进玩家的图鉴与进度（docs/36）
 	for a in dev_args():
 		if a.begins_with("--"):
 			return
 	var c := ConfigFile.new()
+	c.set_value("display", "cover_character", cover_character_id)
+	c.set_value("game", "play_speed", play_speed)
 	c.set_value("audio", "master", master)
 	c.set_value("audio", "music", music)
 	c.set_value("audio", "sfx", sfx)
@@ -165,12 +223,50 @@ func save() -> void:
 	c.set_value("video", "normal_maps", normal_maps)
 	c.set_value("video", "brightness", brightness)
 	c.set_value("input", "pad_rumble", pad_rumble)
+	c.set_value("input", "manual_attack", manual_attack)
+	c.set_value("video", "quality", quality)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)
+	c.set_value("progress", "gallery_seen", gallery_seen)
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.save(PATH)
+
+
+## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""
+func build_audience() -> String:
+	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+	return str(info.get("audience", "")) if info is Dictionary else ""
+
+
+## Boss 演练入口：开发（调试版）一律开；发布版只有对内包（build.json audience = internal）开。
+## 按 audience 判断而不是 EA 标记——EA 只是开发阶段标记，对外包也可能带 EA，不能因此开放演练（docs/33 §双版本）
+func can_boss_trial() -> bool:
+	if OS.is_debug_build():
+		return true
+	return build_audience() == "internal"
+
+
+## 对内包存档一次性迁移（2026-09-30，docs/33 §双版本）：对内包的存档目录从 ArknightsSurvivors 改成
+## ArknightsSurvivors_Internal（tools/export_build.py 打包时改）后，已经在玩旧内测包的人进度会「消失」。
+## 对内包启动时：新目录还没有存档、旧目录（同级的 ArknightsSurvivors）有，就把 settings.cfg 复制过来——
+## 只复制，不移动、不删旧的；新目录已有存档就不动。对外包 / 调试版不迁移。
+const LEGACY_USER_DIR := "ArknightsSurvivors"
+const INTERNAL_USER_DIR := "ArknightsSurvivors_Internal"
+
+func _migrate_internal_save() -> void:
+	if OS.is_debug_build() or build_audience() != "internal":
+		return
+	var cur := OS.get_user_data_dir()
+	if cur.get_file() != INTERNAL_USER_DIR or FileAccess.file_exists(PATH):
+		return
+	var old := cur.get_base_dir().path_join(LEGACY_USER_DIR).path_join(PATH.get_file())
+	if not FileAccess.file_exists(old):
+		return
+	DirAccess.make_dir_recursive_absolute(cur)
+	var err := DirAccess.copy_absolute(old, cur.path_join(PATH.get_file()))
+	print("[Cfg] 对内包存档迁移：%s -> %s（%s）" % [old, cur.path_join(PATH.get_file()), error_string(err)])

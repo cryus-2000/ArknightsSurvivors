@@ -90,13 +90,50 @@ def _unlock(f):
         f.close()
 
 
+# 快检 / 批跑用的固定设置（2026-10-01 协调人：数值发现 prot_test 读到本机存档里的难度 Ⅳ 误报）：
+# 每次启动 Godot 都给一个临时的用户目录（Windows 的 APPDATA、Linux 的 XDG_DATA_HOME），里面只有这份 settings.cfg——
+# 难度 = 标准、画质 = 高、手动普攻 = 关、静音，其他偏好走缺省；测试改设置（例如 ea_ui 的封面干员）也不会写进玩家的真实存档。
+# 设环境变量 ARK_REAL_USERDIR=1 可退回旧行为（用真实用户目录）
+TEST_SETTINGS = """[video]
+fullscreen=false
+res_index=0
+quality="high"
+
+[audio]
+master=0.0
+music=0.0
+sfx=0.0
+voice=0.0
+
+[input]
+manual_attack=false
+
+[progress]
+difficulty=0
+"""
+
+
+def _test_userdir():
+    if os.environ.get("ARK_REAL_USERDIR") == "1":
+        return None, None
+    import tempfile
+    root = tempfile.mkdtemp(prefix="ark_test_")
+    d = os.path.join(root, "ArknightsSurvivors")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "settings.cfg"), "w", encoding="utf-8") as fh:
+        fh.write(TEST_SETTINGS)
+    env = dict(os.environ, APPDATA=root, XDG_DATA_HOME=root)
+    return root, env
+
+
 def run_godot(args, timeout):
-    """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)"""
+    """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
+    root, env = _test_userdir()
     while True:
         f = _lock()
         try:
             if count_godot() < MAX_PROCS:
-                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
                 break
         finally:
             _unlock(f)
@@ -108,7 +145,35 @@ def run_godot(args, timeout):
         p.kill()
         out, err = p.communicate()
         timed_out = True
+    if root:
+        import shutil
+        shutil.rmtree(root, ignore_errors=True)
     return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), timed_out
+
+
+_IMPORT_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf")
+_IMPORTED_RE = re.compile(r'"res://\.godot/imported/([^"]+)"')
+
+
+def stale_imports(game_dir):
+    """导入缓存缺了哪些：.import 里登记的缓存文件不存在，或素材还没有 .import（新拉来的）。跳过带 .gdignore 的目录"""
+    imp = os.path.join(game_dir, ".godot", "imported")
+    miss = []
+    for root, dirs, files in os.walk(game_dir):
+        if ".gdignore" in files:
+            dirs[:] = []
+            continue
+        dirs[:] = [d for d in dirs if not d.startswith(".") and not d.startswith("_probe")]
+        for f in files:
+            p = os.path.join(root, f)
+            if f.endswith(".import"):
+                with open(p, encoding="utf-8", errors="replace") as fh:
+                    for m in _IMPORTED_RE.finditer(fh.read()):
+                        if not os.path.exists(os.path.join(imp, m.group(1))):
+                            miss.append(m.group(1))
+            elif f.lower().endswith(_IMPORT_EXT) and not os.path.exists(p + ".import"):
+                miss.append(os.path.relpath(p, game_dir))
+    return miss
 
 
 def ensure_imported(game_dir, timeout=900):
@@ -120,7 +185,13 @@ def ensure_imported(game_dir, timeout=900):
         return len(os.listdir(imp)) if os.path.isdir(imp) else 0
 
     if count() >= 50:
-        return 0
+        miss = stale_imports(game_dir)
+        if not miss:
+            return 0
+        # 缓存在但不全：从 main 拉来新图 / 新音频后没导入过，引用它们的测试会失败（2026-09-29 Boss与怪物报告 ea_ui 失败）
+        print("导入资源（%s 缺 %d 个导入文件，例如 %s）" % (game_dir, len(miss), miss[0]), flush=True)
+        run_godot([find_godot(), "--headless", "--path", game_dir, "--import"], timeout)
+        return 1
     passes = 0
     last = -1
     while passes < 3 and count() != last:

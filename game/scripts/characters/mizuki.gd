@@ -149,16 +149,16 @@ func update(dt: float) -> void:
 	swing_cd -= dt
 	if swing_cd <= 0.0:
 		var radius := _swing_radius()
-		var targets = nearest_enemies(1, radius + 60.0, pos)
-		if targets.size() > 0:
+		var at := atk_point(nearest_enemies(1, radius + 60.0, pos), radius)   # 手动普攻 A 类（契约 v2.5）
+		if at != Vector2.INF:
 			# 藏品加速（极速之手 / 国王的新枪 / 投币玩具）已由 relic_fx 写进全队的 op_aspd，不再单独乘
 			var interval: float = base("swing_interval", 0.9) * u_spd_mult / stat(&"op_aspd") * (1.5 if g.atk_slow > 0.0 else 1.0)
 			if s2_active > 0.0:
 				interval *= S2_INTERVAL
 			swing_cd = max(0.18, interval)
-			_umbrella(targets[0])
+			_umbrella({"id": -1, "pos": at})
 		else:
-			swing_cd = 0.1
+			swing_cd = idle_cd(0.1)
 
 
 func skill_active_left(i: int) -> float:
@@ -220,7 +220,7 @@ func _umbrella(target: Dictionary) -> void:
 		Sfx.op(id, "atk", 3.0)
 	if hit.size() > 0:
 		Sfx.op(id, "hit", 8.0 if empowered else 4.0, 0.85 if empowered else 1.0)
-		g.hitstop = max(g.hitstop, 0.09 if empowered else 0.03)
+		impact_pause(0.09 if empowered else 0.03)
 		for k in min(hit.size(), 6):
 			var he: Dictionary = hit[k]
 			sparks(he.pos, he.pos - pos, UI.GOLD if empowered else Color(0.85, 0.97, 1.0), 4 if empowered else 3, 260.0)
@@ -311,7 +311,7 @@ func _run_delayed(dl: Dictionary) -> void:
 			var ma: float = dl.ang
 			var near_d: float = dl.radius * 1.4
 			for e in g.enemies:
-				if e.dead:
+				if e.dead or e.get("friendly", false):
 					continue
 				var dd: float = mp.distance_to(e.pos)
 				if dd < near_d:
@@ -384,36 +384,36 @@ func _draw_skill_floor() -> void:
 	var base_p = pos + Vector2(0, 6)
 	# 灯火照亮范围（光中敌人受伤 +25%）
 	var lr = lamp_radius()
-	g.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.5))
+	cv.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.5))
 	for q in 32:
 		if q % 2 == 0:
-			g.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if s3_active > 0.0:
 		# 镜花水月：脚下的镜面水域 + 涟漪
 		var r: float = 110.0
 		var fade := clampf(s3_active / 1.0, 0.0, 1.0) * clampf((S3_DUR - s3_active) / 0.4, 0.0, 1.0)
-		g.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
-		g.draw_circle(Vector2.ZERO, r, Color(0.5, 0.35, 1.0, 0.13 * fade))
+		cv.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
+		cv.draw_circle(Vector2.ZERO, r, Color(0.5, 0.35, 1.0, 0.13 * fade))
 		for q in 3:
 			var rp := fmod(g.t * 0.6 + q / 3.0, 1.0)
-			g.draw_arc(Vector2.ZERO, r * rp, 0.0, TAU, 48, Color(1.4, 1.0, 2.2, (1.0 - rp) * 0.55 * fade), 2.0)
-		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 64, Color(1.2, 0.9, 2.0, 0.7 * fade), 2.5)
+			cv.draw_arc(Vector2.ZERO, r * rp, 0.0, TAU, 48, Color(1.4, 1.0, 2.2, (1.0 - rp) * 0.55 * fade), 2.0)
+		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 64, Color(1.2, 0.9, 2.0, 0.7 * fade), 2.5)
 		for q in 12:
 			var dv := Vector2.from_angle(q * TAU / 12.0 - g.t * 0.4)
-			g.draw_line(dv * (r - 10.0), dv * r, Color(1.4, 1.1, 2.2, 0.8 * fade), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_line(dv * (r - 10.0), dv * r, Color(1.4, 1.1, 2.2, 0.8 * fade), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if s2_active > 0.0:
 		var fade2 := clampf(s2_active / 1.0, 0.0, 1.0)
-		g.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
-		g.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
-		g.draw_arc(Vector2.ZERO, 66.0, g.t * 3.0, g.t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 40, Color(0.6, 1.1, 1.8, 0.6 * fade2), 2.0)
+		cv.draw_arc(Vector2.ZERO, 66.0, g.t * 3.0, g.t * 3.0 + PI, 24, Color(0.6, 1.1, 1.8, 0.4 * fade2), 3.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if s1_charges > 0:
 		# 唤醒蓄满：脚下金色光环
-		g.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
-		g.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(base_p, 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 技能的覆盖层表现（在角色之上）
@@ -428,22 +428,22 @@ func _draw_jellies() -> void:
 		var ph: float = g.t * 1.3 + k * 2.1
 		var p: Vector2 = pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
 		if stake_on:
-			g.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
+			cv.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
 		# Codex 帧条 fx_mizuki_jelly（12×16 × 4 帧，6fps 循环，中心锚点）；每只错开相位
 		if _fx_strip("fx_mizuki_jelly", 4, int(g.t * 6.0) + k * 3, p + Vector2(0, 6)):
 			continue
 		# 伞盖
-		g.draw_set_transform(p, 0.0, Vector2(1.0, 0.62))
-		g.draw_circle(Vector2.ZERO, 8.5, Color(c.r, c.g, c.b, 0.6))
-		g.draw_arc(Vector2.ZERO, 8.5, PI, TAU, 14, Color(1.7, 1.9, 2.3, 0.9), 1.6)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(p, 0.0, Vector2(1.0, 0.62))
+		cv.draw_circle(Vector2.ZERO, 8.5, Color(c.r, c.g, c.b, 0.6))
+		cv.draw_arc(Vector2.ZERO, 8.5, PI, TAU, 14, Color(1.7, 1.9, 2.3, 0.9), 1.6)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		# 触须
 		for q in 3:
 			var x0: float = (q - 1) * 4.0
 			var pts := PackedVector2Array()
 			for s in 5:
 				pts.append(p + Vector2(x0 + sin(ph * 2.0 + s * 0.9 + q) * (1.0 + s * 0.9), 3.0 + s * 4.5))
-			g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.65 - q * 0.08), 1.5)
+			cv.draw_polyline(pts, Color(c.r, c.g, c.b, 0.65 - q * 0.08), 1.5)
 
 
 ## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
@@ -461,9 +461,9 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	var fw: float = float(tx.get_width() / frames)
 	var fh: float = float(tx.get_height())
 	var k: float = g.PX / A.hires_of(tx)
-	g.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
-	g.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	return true
 
 
@@ -476,7 +476,7 @@ func _draw_skill_over() -> void:
 			var an = g.t * 2.6 + q * TAU / 10.0
 			var p = pos + Vector2(cos(an) * 46.0, sin(an) * 20.0 - 26.0)
 			var front := sin(an) > 0.0
-			UI.diamond(g, p, 4.5 if front else 3.5, Color(0.02, 0.05, 0.08, fade2), Color(0.7, 1.3, 2.0, fade2 * (1.0 if front else 0.5)))
+			draw_diamond(p, 4.5 if front else 3.5, Color(0.02, 0.05, 0.08, fade2), Color(0.7, 1.3, 2.0, fade2 * (1.0 if front else 0.5)))
 		# 被束缚的敌人：锁环
 		for j in query_ids(pos, 320.0):
 			var e: Dictionary = g.enemies[j]
@@ -484,16 +484,16 @@ func _draw_skill_over() -> void:
 				continue
 			for q in 3:
 				var an2: float = g.t * 4.0 + q * TAU / 3.0 + e.id
-				UI.diamond(g, e.pos + Vector2(cos(an2) * (e.r + 6.0), sin(an2) * (e.r + 6.0) * 0.4 - 4.0), 3.0, Color(0.02, 0.05, 0.08, 0.9), Color(0.6, 1.2, 2.0, 0.9))
+				draw_diamond(e.pos + Vector2(cos(an2) * (e.r + 6.0), sin(an2) * (e.r + 6.0) * 0.4 - 4.0), 3.0, Color(0.02, 0.05, 0.08, 0.9), Color(0.6, 1.2, 2.0, 0.9))
 	if s3_active > 0.0:
 		# 镜花水月：环绕的镜片
 		for q in 6:
 			var an = -g.t * 1.4 + q * TAU / 6.0
 			var p = pos + Vector2(cos(an) * 64.0, sin(an) * 26.0 - 30.0 + sin(g.t * 3.0 + q) * 4.0)
 			var w := 5.0 + 3.0 * absf(cos(g.t * 2.0 + q))
-			g.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -12), p + Vector2(w, 0), p + Vector2(0, 12), p + Vector2(-w, 0)]),
+			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -12), p + Vector2(w, 0), p + Vector2(0, 12), p + Vector2(-w, 0)]),
 				Color(1.3, 1.0, 2.2, 0.75))
-			g.draw_line(p + Vector2(0, -12), p + Vector2(0, 12), Color(2.5, 2.2, 3.0, 0.9), 1.0)
+			cv.draw_line(p + Vector2(0, -12), p + Vector2(0, 12), Color(2.5, 2.2, 3.0, 0.9), 1.0)
 
 
 ## 水月专属属性（带 mizuki_ 前缀）
@@ -516,10 +516,10 @@ func sync_stats(st) -> void:
 func _draw_tentacle(f: Dictionary) -> void:
 	var a: float = 1.0 - f.life / f.max
 	# 底部紫色辉光，让触手在暗处也能看清
-	g.draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
+	cv.draw_set_transform(f.pos + Vector2(0, 10), 0.0, Vector2(1.0, 0.45))
 	var gc: Color = deep_col(1.4)
-	g.draw_circle(Vector2.ZERO, 22.0, Color(gc.r, gc.g, gc.b, 0.35 * (1.0 - a)))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_circle(Vector2.ZERO, 22.0, Color(gc.r, gc.g, gc.b, 0.35 * (1.0 - a)))
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if g.tex.get("fx_tentacle_strike") != null:
 		# V7：32×48 × 6 帧，脚底锚点 (16,46)；第 3 帧（命中）略提亮
 		var fr := clampi(int(a * 6.0), 0, 5)
@@ -534,10 +534,10 @@ func _draw_tentacle(f: Dictionary) -> void:
 ## 角色脚下的光环（缺帧条时的程序版）
 func draw_auras() -> void:
 	if s2_active > 0.0 and g.tex.get("fx_s2_aura") == null:
-		g.draw_arc(pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
+		cv.draw_arc(pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
 	if s3_active > 0.0 and g.tex.get("fx_s3_aura") == null:
-		g.draw_arc(pos + Vector2(0, -10), 40.0 + sin(g.t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
-		g.draw_circle(pos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
+		cv.draw_arc(pos + Vector2(0, -10), 40.0 + sin(g.t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
+		cv.draw_circle(pos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
 
 
 ## 地面层专属实体：触手追击、技能地面表现、残影与镜像分身
@@ -548,10 +548,10 @@ func draw_entities_floor() -> void:
 	# 触手桩：地面一圈淡紫水痕 + 裂隙，随剩余时间淡出
 	for s in stakes:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
-		g.draw_set_transform(s.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.45))
-		g.draw_circle(Vector2.ZERO, STAKE_R * 0.8, Color(0.55, 0.4, 0.85, 0.12 * a))
-		g.draw_arc(Vector2.ZERO, STAKE_R * 0.8, 0.0, TAU, 24, Color(0.85, 0.7, 1.2, 0.45 * a), 1.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_set_transform(s.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.45))
+		cv.draw_circle(Vector2.ZERO, STAKE_R * 0.8, Color(0.55, 0.4, 0.85, 0.12 * a))
+		cv.draw_arc(Vector2.ZERO, STAKE_R * 0.8, 0.0, TAU, 24, Color(0.85, 0.7, 1.2, 0.45 * a), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_skill_floor()
 	for i in range(afterimg.size() - 1, -1, -1):
 		var ai: Dictionary = afterimg[i]

@@ -7,7 +7,7 @@
 
 | 目录 / 文件 | 职责 | 在 game.gd 里的字段 |
 | --- | --- | --- |
-| `game.gd` | **状态与调度**：对局状态变量（生命、灯火、敌人列表、编队……）、`_ready` 初始化、主循环 `_update` 调度各模块、输入分发、属性同步 `_sync_stats`、对局随机数 `_shuffle` | — |
+| `game.gd` | **状态与调度**：对局状态变量（生命、灯火、敌人列表、编队……）、`_ready` 初始化、主循环 `_update` 调度各模块、输入分发、属性同步 `sync_stats`（2026-09-29 由 `_sync_stats` 改为公开；旧名暂留转发）、对局随机数 `_shuffle` | — |
 | `run/spawner.gd` | 刷怪：波次、精英、宝箱、拟态箱 | `spawner` |
 | `run/enemies.gd` | 敌人逐帧更新、状态、敌方弹幕；空间网格与索敌（query / nearest / arc_hit / densest_point） | `enemies_sys` |
 | `run/combat.gd` | 战斗结算：对敌伤害、击杀、主控受击、治疗、神经损伤、缩圈 | `combat` |
@@ -18,6 +18,13 @@
 | `run/music_director.gd` | 局内配乐调度 | `music_dir` |
 | `run/demo.gd` | 图鉴攻击演示 / 精英化演出里的实机演示 | `demo_sys` |
 | `run/autotest.gd` | 自动测试与平衡机器人（只在带测试参数时运行） | `autotest_sys` |
+| `run/boss_trial.gd` | Boss 演练（EA）：读标题页的演练请求，跳过波次 / 经济 / 结局，按正式 Boss 生成与 AI 打；进入时 `Cfg.practice_active`、退出时还原进度 | `trial` |
+| `run/victory_flow.gd` | 击败最终 Boss 后约 1.7 秒的胜利演出（只推进画面），并记一次通关、解锁下一档 | `victory` |
+| `run/play_clock.gd` | 倍速（1× / 1.5× / 2×，V 键或 HUD 按钮）：把本帧模拟时间拆成 ≤ 1/60 秒的小步；自动测试与平衡跑不走它 | 常量 `PlayClock`（静态） |
+| `run/ishar_encounter.gd` | 伊莎玛拉一阶段（人形治疗海嗣、泪滴、转化计时）；敌对二阶段的攻击仍在 `boss_ai.gd` | `ishar` |
+| `run/gallery_progress.gd` | 对外图鉴的「遭遇即收录」：正式游玩每秒记一次附近的敌人 / 道具；演练、演示、测试、全解锁都不记 | 常量 `GalleryProgress`（静态） |
+| `run/enemy_demo.gd` | 图鉴敌人页的实机演示（SubViewport 里的受击靶 + 正式敌方 AI） | `enemy_demo` |
+| `enemies/boss_patterns.gd` | Boss 空闲窗口里的招式轮换（数据在 `enemies.json` 的 `patterns`） | `boss_ai.gd` 持有 |
 | `render/world.gd` | 世界绘制（2.5D 纵深排序）、主控 / 博士动画与手感；`game.gd._draw` 只转发到这里 | `world` |
 | `render/vfx.gd` | 特效帧条、刀光、火花、飘字、横幅、屏幕震动、加色层 | `vfx` |
 | `screens/hud.gd` | 局内 HUD，并按 `state` 分派到下列界面 | `hud_view` |
@@ -27,6 +34,8 @@
 | `screens/intro.gd` | 开场演出与新手教程 | `intro_screen` |
 | `screens/stats_panel.gd` | 属性面板（Tab） | `stats_screen` |
 | `screens/result.gd` | 结算 | `result_screen` |
+| `screens/boss_trial_menu.gd` | 标题页的 Boss 演练设置小窗（选 Boss / 干员 / 成长 / 形态 / 观察模式）；只写请求，开打在 `run/boss_trial.gd` | `title.gd` 持有 |
+| `screens/scene_transition.gd` | 页面切换的短遮罩（只管展示与输入锁） | `title.gd` 持有 |
 | `ui.gd` | 界面主题与控件（语义色、字体、面板、按钮、进度条……），docs/37 | 常量 `UI` |
 | `characters/op_api.gd` | 干员 → 主场景的接口层（索敌、伤害、治疗、特效、飘字、绘制） | 干员基类的父类 |
 | 已有的独立模块 | `boss_ai.gd`、`enemies/enemy_ai.gd`、`relic_fx.gd`、`endings.gd`、`world/map.gd`、`allies/knight.gd`、`characters/*`、`core/*` | — |
@@ -38,6 +47,7 @@
 - 读写对局状态一律 `g.xxx`；访问 `game.gd` 的常量 / 枚举用 `Game.PX`、`Game.S.PLAY`（常量表达式，参数默认值里也合法）。
 - 模块之间互相调用走 `g.<字段>.<函数>`，例如 `g.combat.damage(e, dmg)`、`g.vfx.show_banner("…")`。
 - 只被本模块使用的状态可以放在模块里（如 `run/music_director.gd` 的配乐状态）；**被多个模块或其他脚本读的状态留在 `game.gd`**。
+- 模块之间 / 干员需要的 `game.gd` 函数要公开命名（不带下划线），例如 `g.sync_stats()`；下划线开头的是 `game.gd` 内部用。
 - 被 `set(name, …)` / `get("name")` 按字符串访问的变量（如 `STAT_SYNC` 表里的 `enemy_hp_mult`）必须留在 `game.gd`。
 
 ## 3. 界面层约定（screens/）

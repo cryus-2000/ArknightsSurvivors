@@ -11,11 +11,13 @@ const PRICE := {"基础": 10, "稀有": 14, "核心": 20, "升华": 30, "遭诅�
 const STEER := 0.6
 
 var items := {}       # id(String) -> RelicData Dictionary
+var effect_category_names := {}  # 实装效果主分类；独立于构筑流派和抽取 Tag
 var lane_names := {}  # 流派代号 -> 名称（relics.json 顶层 lanes，docs/35）
 
 
 func load_files(meta_path: String = "res://data/relics.json", fx_path: String = "res://data/relic_effects.json") -> int:
 	items.clear()
+	effect_category_names.clear()
 	var meta = _read_json(meta_path)
 	var fx = _read_json(fx_path)
 	if meta == null:
@@ -23,17 +25,20 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		return 0
 	var effects: Dictionary = fx.get("relics", {}) if fx is Dictionary else {}
 	lane_names = meta.get("lanes", {})
+	effect_category_names = fx.get("effect_categories", {}) if fx is Dictionary else {}
 	for r in meta.items:
 		var id := str(int(r.id))
 		var e: Dictionary = effects.get(id, {})
+		var rarity: String = str(e.get("rarity", r.rarity))
 		items[id] = {
-			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": e.get("rarity", r.rarity),
+			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": rarity,
+			"effect_category": e.get("effect_category", ""),
 			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),
 			"requirements": e.get("requires", []), "conflicts": e.get("conflicts", []),
 			"requires_class": e.get("requires_class", []),
-			"price_class": e.get("price_class", r.rarity), "effects": e.get("effects", []),
+			"price_class": e.get("price_class", rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
 			"late_weight": float(e.get("late_weight", 1.0)),
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),

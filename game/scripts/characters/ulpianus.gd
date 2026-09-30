@@ -99,12 +99,12 @@ func update(dt: float) -> void:
 		start_skill(aim if aim != Vector2.INF else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts: Array = nearest_enemies(1, _reach() + 40.0, pos)
-		if ts.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 40.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 1.4) / stat(&"op_aspd") * (0.7 if haste_t > 0.0 else 1.0)
-			start_attack(ts[0].pos)
+			start_attack(at)
 
 
 ## 锚击：身前半径内全部敌人
@@ -114,6 +114,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * _reach() * 0.55
 	# 精二 血脉沸腾：击杀精英后的这一击变为大爆破（半径 160、×2.5）
 	if blood_ready:
@@ -147,6 +148,7 @@ func _blast2(c: Vector2) -> void:
 
 ## 锁链回旋：以自身为中心半径 130、锚击 60% 伤害；锁链带着锚在腰高甩一整圈（whirl 粒子）
 func _whirl() -> void:
+	ground_dust(pos, 48.0, 12)
 	var r: float = base("whirl_r", 130.0) * stat(&"op_range")
 	area_hit("锁链回旋", pos, r, _slam_dmg() * base("whirl_mult", 0.6), 140.0)
 	fx({"kind": "whirl", "pos": pos, "r": r, "life": 0.32, "a0": g.rng.randf() * TAU, "dir": face})
@@ -164,12 +166,14 @@ func _blood_blast(c: Vector2) -> void:
 	fx({"kind": "glow", "pos": c + Vector2(0, -12), "r": 34.0, "life": 0.3, "col": BLOOD, "alpha": 0.7})
 	_splash(c, 10, 1.3)
 	fx_sparks(c + Vector2(0, -10), BLOOD, 12, 260.0, 0.45, 3.0, 200.0)
-	g.hitstop = maxf(g.hitstop, 0.08)
+	impact_pause(0.08)
 	Sfx.op(id, "big")
 
 
 ## 砸地：地裂 + 冲击环 + 深海蓝水珠（不用帧条水花：它前几帧是米黄色的尘团，和深海不搭）
 func _slam_fx(c: Vector2, r: float, k: float) -> void:
+	ground_dust(c, minf(r * 0.45, 42.0), 10)
+	impact_pause(0.045 * k)
 	fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": STEEL, "floor": true, "n": 7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(c, int(8 * k), 1.0 * k)
@@ -217,10 +221,13 @@ func _release_skill() -> void:
 	match cur_skill:
 		0, 2:
 			var to := _skill_target(cur_skill)
-			if cur_skill == 2 and manual_dir != Vector2.ZERO:
-				to = _aim_target(manual_dir)   # 当主控手动、玩家给了方向（契约 v2.4）
+			if cur_skill == 2 and manual_pt != Vector2.INF:
+				to = _snap_point(manual_pt)   # 当主控手动、玩家选了落点（契约 v2.5，JSON aim "point"）
+			elif cur_skill == 2 and manual_dir != Vector2.ZERO:
+				to = _aim_target(manual_dir)   # 只给了方向（契约 v2.4）
 			if cur_skill == 2:
 				manual_dir = Vector2.ZERO
+				manual_pt = Vector2.INF
 			if to == Vector2.INF:
 				sp[cur_skill] = sp_need(cur_skill) * 0.6   # 没目标：退回大半充能
 				return
@@ -263,10 +270,14 @@ func manual_block_reason(_i: int, dir: Vector2 = Vector2.ZERO) -> String:
 	return ""
 
 
-## 预计落点（界面画瞄准线与 r140 落点圈）：没方向 = 自动瞄准的落点，有方向 = _aim_target
+## 预计落点（界面画瞄准线与 r140 落点圈）：选落点模式（契约 v2.5）= 玩家此刻给的点（doctor.point_preview：光标 / 蓄距离 / 右摇杆 / 触屏拖动），
+## 触屏没拖 = 自动瞄准的落点；只给方向的旧模式：没方向 = 自动瞄准的落点，有方向 = _aim_target
 func manual_aim_point(i: int, dir: Vector2 = Vector2.ZERO) -> Vector2:
 	if i != 2 or pos == Vector2.INF:
 		return Vector2.INF
+	if manual_point(i) and is_leader:
+		var p: Vector2 = g.doctor.point_preview(self, i)
+		return _snap_point(clamp_point(i, p)) if p != Vector2.INF else _skill_target(2)
 	return _aim_target(dir.normalized()) if dir != Vector2.ZERO else _skill_target(2)
 
 
@@ -302,6 +313,15 @@ func _aim_target(dir: Vector2) -> Vector2:
 			bn = n
 			best = c
 	return best
+
+
+## 选落点的吸附（base aim_snap，缺省 0 = 不吸附，落点就是玩家给的点）：> 0 时吸到落点 aim_snap 内最近的敌人
+func _snap_point(pt: Vector2) -> Vector2:
+	var sn: float = base("aim_snap", 0.0)
+	if sn <= 0.0:
+		return pt
+	var ts: Array = nearest_enemies(1, sn, pt)
+	return ts[0].pos if not ts.is_empty() else pt
 
 
 ## 机器人：就绪（锚已收回、400 内有敌人）即放，等同改手动前的自动释放，批跑数值与之前可比
@@ -376,7 +396,8 @@ func _update_anchor(dt: float) -> void:
 
 ## 锚在飞行中的位置：近乎平直（10 像素弧度）
 func _anchor_pos(k: float) -> Vector2:
-	return (anchor.from as Vector2).lerp(anchor.to, k) + Vector2(0, -sin(k * PI) * 10.0)
+	var travel: float = k * k * (2.0 - k)
+	return (anchor.from as Vector2).lerp(anchor.to, travel) + Vector2(0, -sin(k * PI) * 10.0)
 
 
 ## 锚咬地：顿帧 + 冲击环 + 水珠，转入弹射
@@ -384,7 +405,7 @@ func _anchor_bite() -> void:
 	var to: Vector2 = anchor.to
 	var dir: Vector2 = (to - pos).normalized() if to.distance_to(pos) > 1.0 else Vector2(face, 0)
 	var big: bool = anchor.kind == 2
-	g.hitstop = maxf(g.hitstop, 0.07 if big else 0.05)
+	impact_pause(0.07 if big else 0.05)
 	fx({"kind": "glow", "pos": to + Vector2(0, -6), "r": 18.0 if big else 14.0, "life": 0.12, "col": Color(1.4, 1.7, 2.3), "alpha": 0.8})
 	fx({"kind": "ring", "pos": to, "r": 48.0 if big else 36.0, "r0": 6.0, "life": 0.22, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(to, 6, 0.8)
@@ -451,7 +472,7 @@ func _reel_arrive() -> void:
 			continue
 		e.stun = maxf(e.stun, base("s1_stun", 0.6) * (0.5 if e.elite else 1.0) + 0.25)
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
-	g.hitstop = maxf(g.hitstop, 0.05)
+	impact_pause(0.05)
 	fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": CHAIN, "floor": true, "w": 2.0})
 	# 眩晕星：头顶一圈小亮点
 	for i in 5:
@@ -481,7 +502,7 @@ func _reel_slam() -> void:
 				e.kb += (e.pos - pos).normalized() * 70.0
 	spawn_fx_sprite("fx_slash_heavy_steel", pos + Vector2(0, -16) + dir * _reach() * 0.45, _reach() * 1.5 / 28.0, dir.angle())
 	_slam_fx(c, r, 1.2)
-	g.hitstop = maxf(g.hitstop, 0.07)
+	impact_pause(0.07)
 	Sfx.op(id, "atk", 2.0, 0.85)
 	hooked.clear()
 
@@ -503,7 +524,7 @@ func _zip_land() -> void:
 				if not e.boss:
 					e.kb += (e.pos - c).normalized() * 50.0
 		_slam_fx(c, r, 1.0)
-		g.hitstop = maxf(g.hitstop, 0.06)
+		impact_pause(0.06)
 		Sfx.op(id, "atk", 2.0, 0.85)
 		# 不容挣脱（原作 S1 把敌人拖过来）：锁链甩出去拽来附近至多 3 名敌人，拖到落点并造成掷锚 60% 伤害
 		if drag_on:
@@ -530,7 +551,7 @@ func _zip_land() -> void:
 		haste_t = base("s3_haste", 8.0)
 		spawn_fx_sprite("fx_circle_steel", c + Vector2(0, 4), g.PX * (r3 / 40.0))
 		float_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
-		g.hitstop = maxf(g.hitstop, 0.1)
+		impact_pause(0.1)
 		Sfx.op(id, "big")
 		# 通路洞开：从起跳点到锚点裂开一道直线裂隙，沿途敌人被掀飞 0.8 秒并受到锚击 80% 伤害
 		if rift_on:
@@ -646,15 +667,15 @@ func _apply_stacks() -> void:
 
 ## 锁链：暗描边 + 链节交替（掷锚、回旋、拽敌共用）
 func _draw_chain(a: Vector2, b: Vector2, al: float) -> void:
-	g.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
-	g.draw_line(a, b, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95 * al), 2.5)
+	cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
+	cv.draw_line(a, b, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95 * al), 2.5)
 	var links: int = clampi(int(a.distance_to(b) / 10.0), 1, 50)
 	for i in links:
 		var q: Vector2 = a.lerp(b, float(i) / links)
 		if i % 2 == 0:
-			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75, al))
+			cv.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75, al))
 		else:
-			g.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
+			cv.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
 
 
 ## 自定义粒子：whirl 锁链回旋 / chain 拽敌锁链 / rift 通路裂隙
@@ -672,7 +693,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				trail.append(c + Vector2(cos(an) * R, sin(an) * R * 0.55))
 			for i in 15:
 				var al: float = (1.0 - float(i) / 15.0) * minf(1.0, a * 2.0)
-				g.draw_line(trail[i], trail[i + 1], Color(EDGE.r * 1.4, EDGE.g * 1.4, EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
+				cv.draw_line(trail[i], trail[i + 1], Color(EDGE.r * 1.4, EDGE.g * 1.4, EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
 			var hp: Vector2 = trail[0]
 			_draw_chain(f.pos + Vector2(0, -22), hp, minf(1.0, a * 2.0))
 			_draw_anchor(hp, Vector2.from_angle(head + f.dir * PI * 0.5), minf(1.0, a * 2.0))
@@ -682,7 +703,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			var u2: float = 1.0 - a
 			var tip: Vector2 = (f.pos as Vector2).lerp(f.to, minf(1.0, u2 / 0.4)) if u2 < 0.4 else (f.to as Vector2).lerp(f.pos, (u2 - 0.4) / 0.6)
 			_draw_chain(f.pos, tip, 1.0)
-			g.draw_circle(tip, 4.0, Color(EDGE.r * 1.5, EDGE.g * 1.5, EDGE.b * 1.5, 0.9))
+			cv.draw_circle(tip, 4.0, Color(EDGE.r * 1.5, EDGE.g * 1.5, EDGE.b * 1.5, 0.9))
 			return true
 		"rift":
 			# 通路裂隙：锯齿状深色裂缝（两头细、中间宽），裂缝芯一道深海蓝光，后半程淡出
@@ -698,8 +719,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 				var t: float = float(i) / m
 				var p: Vector2 = A + d * L * t + n * (sin(f.seed + i * 1.7) * 5.0 if i < m else 0.0)
 				var w: float = 2.0 + 5.0 * sin(t * PI)
-				g.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
-				g.draw_line(prev, p, Color(EDGE.r * 1.6, EDGE.g * 1.6, EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
+				cv.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
+				cv.draw_line(prev, p, Color(EDGE.r * 1.6, EDGE.g * 1.6, EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
 				prev = p
 			return true
 	return false
@@ -710,10 +731,10 @@ func draw_auras() -> void:
 	if not blood_on or pos == Vector2.INF:
 		return
 	var pul: float = 0.5 + 0.5 * sin(g.t * (9.0 if blood_ready else 2.5))
-	g.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
-	g.draw_circle(Vector2.ZERO, 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, (0.12 if blood_ready else 0.06) + 0.05 * pul))
-	g.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(BLOOD.r * 1.5, BLOOD.g, BLOOD.b, (0.6 if blood_ready else 0.3) * (0.6 + 0.4 * pul)), 2.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	cv.draw_circle(Vector2.ZERO, 30.0, Color(BLOOD.r, BLOOD.g, BLOOD.b, (0.12 if blood_ready else 0.06) + 0.05 * pul))
+	cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(BLOOD.r * 1.5, BLOOD.g, BLOOD.b, (0.6 if blood_ready else 0.3) * (0.6 + 0.4 * pul)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 精二 血脉沸腾：淡红轮廓发光——当前帧贴图向 8 个方向各偏移 2 像素、染淡红先画一圈，本体盖在上面只露出外缘一圈红光；
@@ -759,7 +780,7 @@ func _draw_skill_over() -> void:
 		for s in 3:
 			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
 			if anchor.phase == "reel":
-				g.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+				cv.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
 	# 弹射中：人身后的残影与速度线
 	elif not throwing:
 		var tr: Array = anchor.trail
@@ -768,17 +789,17 @@ func _draw_skill_over() -> void:
 			draw_body_at(tr[i], face < 0.0, Color(EDGE.r, EDGE.g, EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
 		for s in 3:
 			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
-			g.draw_line(pos - mv_d * 16.0 + off, pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
+			cv.draw_line(pos - mv_d * 16.0 + off, pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	# 锁链：绷直，暗描边 + 链节交替
-	g.draw_line(hand, p, Color(0.04, 0.05, 0.08, 0.75), 5.0)
-	g.draw_line(hand, p, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95), 2.5)
+	cv.draw_line(hand, p, Color(0.04, 0.05, 0.08, 0.75), 5.0)
+	cv.draw_line(hand, p, Color(CHAIN.r, CHAIN.g, CHAIN.b, 0.95), 2.5)
 	var links: int = clampi(int(hand.distance_to(p) / 10.0), 1, 50)
 	for i in links:
 		var q: Vector2 = hand.lerp(p, float(i) / links)
 		if i % 2 == 0:
-			g.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75))
+			cv.draw_circle(q, 2.6, Color(CHAIN.r * 0.7, CHAIN.g * 0.7, CHAIN.b * 0.75))
 		else:
-			g.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35))
+			cv.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35))
 	# 飞行中：锚的残影 + 速度线
 	if throwing:
 		var tr2: Array = anchor.trail
@@ -786,7 +807,7 @@ func _draw_skill_over() -> void:
 			_draw_anchor(tr2[i], d, 0.3 * (1.0 - float(i) / tr2.size()))
 		for s in 3:
 			var off2: Vector2 = d.orthogonal() * (s - 1) * 9.0
-			g.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+			cv.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.6), 2.0)
 	_draw_anchor(p, -d if reeling else d, 1.0)
 
 
@@ -804,25 +825,25 @@ func _draw_anchor(p: Vector2, d: Vector2, a: float) -> void:
 	var head: Vector2 = p + d * 12.0
 	var tail: Vector2 = p - d * 18.0
 	# 锚杆
-	g.draw_line(tail, head, outline, 8.0)
-	g.draw_line(tail, head, body, 5.0)
+	cv.draw_line(tail, head, outline, 8.0)
+	cv.draw_line(tail, head, body, 5.0)
 	# 大弯钩：从锚头朝一侧向后弯出
 	var hook := PackedVector2Array()
 	for i in 8:
 		var u: float = float(i) / 7.0
 		var ang: float = lerpf(0.0, 2.4, u)
 		hook.append(head + n * sin(ang) * 15.0 - d * (1.0 - cos(ang)) * 11.0)
-	g.draw_polyline(hook, outline, 9.0)
-	g.draw_polyline(hook, body, 5.5)
-	g.draw_polyline(hook.slice(0, 7), edge, 1.5)
-	g.draw_circle(hook[hook.size() - 1], 2.5, edge)
+	cv.draw_polyline(hook, outline, 9.0)
+	cv.draw_polyline(hook, body, 5.5)
+	cv.draw_polyline(hook.slice(0, 7), edge, 1.5)
+	cv.draw_circle(hook[hook.size() - 1], 2.5, edge)
 	# 另一侧的短倒刺
-	g.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, outline, 6.0)
-	g.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, body, 3.0)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, outline, 6.0)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, body, 3.0)
 	# 锚头尖 + 尾环
-	g.draw_colored_polygon(PackedVector2Array([head + d * 7.0, head + n * 3.0, head - n * 3.0]), body)
-	g.draw_line(head, head + d * 6.0, edge, 1.5)
-	g.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(CHAIN.r, CHAIN.g, CHAIN.b, a), 2.0)
+	cv.draw_colored_polygon(PackedVector2Array([head + d * 7.0, head + n * 3.0, head - n * 3.0]), body)
+	cv.draw_line(head, head + d * 6.0, edge, 1.5)
+	cv.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(CHAIN.r, CHAIN.g, CHAIN.b, a), 2.0)
 
 
 func status_items() -> Array:

@@ -215,7 +215,7 @@ func tick_sp(dt: float) -> void:
 		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
 		if sp[i] < need:
-			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp())
+			sp[i] = minf(need, sp[i] + dt * g.sp_mult * stat(&"op_skill_sp") * lamp_sp() * (0.0 if g.apop_t > 0.0 else 1.0))   # 凋亡损伤满条：自然充能暂停（combat.add_apop）
 	_tick_manual_buf(dt)
 
 
@@ -243,19 +243,57 @@ func manual_ready(i: int, _dir: Vector2 = Vector2.ZERO) -> bool:
 ## 手柄 = 右摇杆（没推取左摇杆移动方向），手机 = 按住技能键拖出的方向；站着不动 / 直接点 = Vector2.ZERO（自动瞄准）。
 ## 干员在出手帧读 manual_dir（读完清零），并重写 manual_aim_point 给出预计落点（界面画瞄准线与落点圈）。机器人一律自动瞄准
 func manual_aims(i: int) -> bool:
-	return i >= 0 and bool(skill_def(i).get("aim", false))
+	if i < 0:
+		return false
+	var a = skill_def(i).get("aim", false)
+	return a is String or (a is bool and a)
+
+
+## 选落点（契约 v2.5）：技能 JSON "aim": "point" —— 玩家直接给落点（鼠标光标 / 键盘按住蓄距离 / 右摇杆推量 / 触屏拖动距离，
+## 见 doctor.point_now），落点夹在 aim_range 内，不吸附、不看密度（干员 base aim_snap > 0 时才吸附）。
+## 给点时 dir 取主控指向落点的方向，照走「带方向」那一套判定（manual_ready / manual_block_reason）
+func manual_point(i: int) -> bool:
+	return i >= 0 and str(skill_def(i).get("aim", "")) == "point"
+
+
+## 选落点技能的最远距离（干员 base aim_range，缺省 400，吃射程加成）
+func aim_range(_i: int) -> float:
+	return base("aim_range", 400.0) * stat(&"op_range")
+
+
+## 把玩家给的点夹进 aim_range
+func clamp_point(i: int, pt: Vector2) -> Vector2:
+	var off: Vector2 = pt - pos
+	return pos + off.limit_length(aim_range(i))
 
 
 var manual_dir := Vector2.ZERO
+var manual_pt := Vector2.INF   # 选落点技能：玩家给的落点（已夹进 aim_range；出手帧读，读完置 INF）
 
-func cast_manual(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+## 播一次性音效（音量取 sfx.gd 里的常量名）。本文件也被 -s 测试脚本直接加载，那时没有 Sfx 自动加载，按节点路径取
+func _sfx_play(name: String, vol_const: String, pitch_var: float) -> void:
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		var vol: float = sfx.ULP_RELEASE_DB if vol_const == "ULP_RELEASE_DB" else sfx.ATK_GATE_DB
+		sfx.play(name, vol, 1.0, pitch_var)
+
+
+func cast_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF) -> bool:
 	if not manual_aims(i):
 		dir = Vector2.ZERO
+	if manual_point(i) and pt != Vector2.INF and pos != Vector2.INF:
+		pt = clamp_point(i, pt)
+		dir = (pt - pos).normalized() if pt.distance_to(pos) > 1.0 else Vector2(face, 0.0)
+	else:
+		pt = Vector2.INF
 	if not manual_ready(i, dir):
 		return false
 	manual_buf = 0.0
 	manual_dir = dir.normalized() if dir != Vector2.ZERO else Vector2.ZERO
-	start_skill(pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF, i)
+	manual_pt = pt
+	start_skill(pt if pt != Vector2.INF else (pos + manual_dir * 60.0 if manual_dir != Vector2.ZERO else Vector2.INF), i)
+	if pt != Vector2.INF:
+		_sfx_play("ulp_release", "ULP_RELEASE_DB", 0.0)   # 选落点技能放出（键盘蓄力 / 鼠标 / 摇杆 / 触屏都响）
 	return true
 
 
@@ -276,12 +314,15 @@ func manual_aim_point(_i: int, _dir: Vector2 = Vector2.ZERO) -> Vector2:
 const MANUAL_BUF := 1.0
 var manual_buf := 0.0
 var manual_buf_dir := Vector2.ZERO
+var manual_buf_pt := Vector2.INF
 
-func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
+func press_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF) -> String:
 	if not manual_aims(i):
 		dir = Vector2.ZERO
-	if cast_manual(i, dir):
+	if cast_manual(i, dir, pt):
 		return ""
+	if manual_point(i) and pt != Vector2.INF and pos != Vector2.INF and pt.distance_to(pos) > 1.0:
+		dir = (pt - pos).normalized()
 	if skill_active_left(i) > 0.0:
 		return "生效中"
 	if has_method("away") and call("away"):
@@ -292,6 +333,7 @@ func press_manual(i: int, dir: Vector2 = Vector2.ZERO) -> String:
 	if why == "":
 		manual_buf = MANUAL_BUF
 		manual_buf_dir = dir
+		manual_buf_pt = pt
 	return why
 
 
@@ -303,7 +345,7 @@ func _tick_manual_buf(dt: float) -> void:
 	if i < 0:
 		manual_buf = 0.0
 	elif manual_ready(i, manual_buf_dir):
-		cast_manual(i, manual_buf_dir)
+		cast_manual(i, manual_buf_dir, manual_buf_pt)
 
 
 ## 充能已满但干员自己的条件不满足、等也没用时，按键提示的原因（如「附近没有敌人」）；空串 = 只是稍等，按键先记下
@@ -315,6 +357,109 @@ func manual_block_reason(_i: int, _dir: Vector2 = Vector2.ZERO) -> String:
 ## balance.json bot/manual_hp（0.3）才按；进攻型手动技能重写成自己的时机（乌尔比安 S3：就绪即放）
 func bot_wants_manual(_i: int) -> bool:
 	return g.hp < g.max_hp * preload("res://scripts/core/balance.gd").v("bot/manual_hp", 0.3)
+
+
+# ---------------------------------------------------------------- 手动普攻（契约 v2.5，docs/26 §v2.5）
+
+## 设置「普通攻击：手动」时只管主控（g.doctor.manual_attack 已排除机器人 / 自动测试 / 图鉴演示）：没按攻击键不起手，冷却照走，
+## 一按就出；轻点先记下 manual/atk_buf 秒（冷却没转好时不白按），按住连发。瞄准方向见 doctor.attack_dir。干员分两类接：
+## A 方向类（atk_point / atk_angle）：严格沿瞄准方向打，前方没人照样出手；B 需要目标类（attack_targets / aim_targets）：
+## 瞄准方向 ±manual/aim_cone_deg（45°）内最近的，没有退到 ±manual/aim_fallback_deg（90°，前半面），都没有才不出手、保留冷却
+func manual_attack() -> bool:
+	return is_leader and g.doctor.manual_attack
+
+
+## 这一帧允许普攻起手（自动模式恒为真）
+func attack_gate() -> bool:
+	return not manual_attack() or g.doctor.attack_want()
+
+
+## 没起手时的重试间隔：手动且没按攻击键时为 0（按下当帧就出），否则原值
+func idle_cd(v: float) -> float:
+	return 0.0 if manual_attack() and not g.doctor.attack_want() else v
+
+
+var atk_aim := Vector2.ZERO    # A 类：这一击手动给的方向（起手时记下，出手帧 atk_angle 用）；ZERO = 自动
+
+## A 类起手点：ts 为自动选出的目标（nearest_enemies 结果），reach 为这一击的距离。返回起手朝向点，Vector2.INF = 这一帧不出手。
+## 自动：有目标打目标；手动：没按不出，按了沿瞄准方向（触屏不拖 = 退回自动目标）
+func atk_point(ts: Array, reach: float) -> Vector2:
+	atk_aim = Vector2.ZERO
+	if manual_attack():
+		if not g.doctor.attack_want():
+			return Vector2.INF
+		var d: Vector2 = g.doctor.attack_dir()
+		if d != Vector2.ZERO:
+			atk_aim = d
+			g.doctor.atk_buf = 0.0
+			return pos + d * reach
+		if not ts.is_empty():
+			g.doctor.atk_buf = 0.0
+	return ts[0].pos if not ts.is_empty() else Vector2.INF
+
+
+## A 类出手帧的方向角：这一击手动给了方向就用它（并转身），否则用 fallback（干员原来按目标算的角）
+func atk_angle(fallback: float) -> float:
+	if atk_aim == Vector2.ZERO:
+		return fallback
+	var a: float = atk_aim.angle()
+	face_to(a)
+	return a
+
+
+## A 类里的远程落点（维什戴尔炮弹、艾雅法拉熔岩弹）：这一击手动给了方向时，落点在瞄准方向上、距离 = 方向 ±aim_cone_deg 内
+## 最近敌人的距离；锥内没人取 reach × manual/land_empty（0.8）。返回伪目标 {id: -1, pos}（只有 pos / id 可用）；自动时返回空字典
+func aim_land(reach: float) -> Dictionary:
+	if atk_aim == Vector2.ZERO:
+		return {}
+	var BalS = preload("res://scripts/core/balance.gd")
+	var c: float = cos(deg_to_rad(BalS.v("manual/aim_cone_deg", 45.0))) - 0.0001
+	var dist: float = reach * BalS.v("manual/land_empty", 0.8)
+	for e in g.enemies_sys.nearest(48, reach, pos):
+		var off: Vector2 = e.pos - pos
+		if off.length() >= 1.0 and off.normalized().dot(atk_aim) >= c:
+			dist = off.length()
+			break
+	return {"id": -1, "pos": pos + atk_aim * dist, "dead": false, "elite": false, "boss": false, "r": 0.0}
+
+
+## B 类起手选目标：自动 = nearest_enemies；手动没按 = 空；按了 = aim_targets
+func attack_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if not manual_attack():
+		return nearest_enemies(n, max_dist, origin)
+	if not g.doctor.attack_want():
+		return []
+	var out := aim_targets(n, max_dist, origin)
+	if not out.is_empty():
+		g.doctor.atk_buf = 0.0
+	elif g.doctor.atk_edge:
+		_sfx_play("atk_gate", "ATK_GATE_DB", 0.05)   # 按了但前方没敌人、不出手：轻「咔」（只在按下那一帧）
+	return out
+
+
+## B 类按瞄准方向选目标（出手帧重新找目标也用它；不看按键，起手后松手照样打完）：
+## ±aim_cone_deg 内由近到远，没有退到 ±aim_fallback_deg；触屏不拖（方向为 ZERO）= 最近的
+func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if not manual_attack():
+		return nearest_enemies(n, max_dist, origin)
+	var d: Vector2 = g.doctor.attack_dir()
+	if d == Vector2.ZERO:
+		return nearest_enemies(n, max_dist, origin)
+	var BalS = preload("res://scripts/core/balance.gd")
+	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
+	var pool: Array = g.enemies_sys.nearest(maxi(n * 4, 48), max_dist, origin)
+	for deg in [BalS.v("manual/aim_cone_deg", 45.0), BalS.v("manual/aim_fallback_deg", 90.0)]:
+		var c: float = cos(deg_to_rad(deg)) - 0.0001
+		var out: Array = []
+		for e in pool:
+			var off: Vector2 = e.pos - o
+			if off.length() < 1.0 or off.normalized().dot(d) >= c:
+				out.append(e)
+				if out.size() >= n:
+					break
+		if not out.is_empty():
+			return out
+	return []
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）
@@ -346,7 +491,7 @@ func fill_sp() -> void:
 			sp[i] = sp_need(i)
 
 
-## 排异反应（结局四）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，主控最大生命 -10
+## 排异反应（深蓝之心线）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，主控最大生命 -10
 func apply_rejection() -> String:
 	var cands: Array = []
 	for i in 3:
@@ -422,33 +567,33 @@ func draw_pfx(floor_layer: bool) -> void:
 				var k := 1.0 - a
 				var rr: float = lerpf(f.get("r0", f.r * 0.3), f.r, 1.0 - (1.0 - k) * (1.0 - k))
 				if f.get("floor", false):
-					g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
-					g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.55))
+					cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
+					cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				else:
-					g.draw_arc(f.pos, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
+					cv.draw_arc(f.pos, rr, 0.0, TAU, 40, Color(c.r, c.g, c.b, a * f.get("alpha", 0.9)), f.get("w", 3.0))
 			"spark":
-				g.draw_rect(Rect2(f.pos.round(), Vector2(f.get("sz", 3.0), f.get("sz", 3.0))), Color(c.r, c.g, c.b, a))
+				cv.draw_rect(Rect2(f.pos.round(), Vector2(f.get("sz", 3.0), f.get("sz", 3.0))), Color(c.r, c.g, c.b, a))
 			"glow":
 				# 发光团：先胀后缩
 				var k2: float = sin(a * PI)
-				g.draw_circle(f.pos, f.r * (0.4 + 0.6 * k2), Color(c.r, c.g, c.b, f.get("alpha", 0.35) * a))
-				g.draw_circle(f.pos, f.r * 0.35 * k2, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7 * a))
+				cv.draw_circle(f.pos, f.r * (0.4 + 0.6 * k2), Color(c.r, c.g, c.b, f.get("alpha", 0.35) * a))
+				cv.draw_circle(f.pos, f.r * 0.35 * k2, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7 * a))
 			"shard":
 				# 碎片：旋转的细三角
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
-				g.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
+				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				g.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
+				cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
 				var h: float = f.get("sz", 10.0) * (0.6 + 0.4 * a)
 				var wob: float = sin(g.t * 24.0 + f.pos.x) * 2.0
 				var bp: Vector2 = f.pos
-				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.35, 0), bp + Vector2(wob, -h), bp + Vector2(h * 0.35, 0)]), Color(c.r, c.g, c.b, 0.8 * a))
-				g.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
+				cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.35, 0), bp + Vector2(wob, -h), bp + Vector2(h * 0.35, 0)]), Color(c.r, c.g, c.b, 0.8 * a))
+				cv.draw_colored_polygon(PackedVector2Array([bp + Vector2(-h * 0.16, 0), bp + Vector2(wob * 0.6, -h * 0.55), bp + Vector2(h * 0.16, 0)]), Color(2.2, 1.9, 1.2, 0.8 * a))
 			"mote":
-				g.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
+				cv.draw_circle(f.pos, f.get("sz", 2.0), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a))
 			"crack":
 				_draw_crack(f, a, c)
 
@@ -480,11 +625,11 @@ func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
 			var nrm: Vector2 = d.normalized().orthogonal()
 			var q := PackedVector2Array([p0 + nrm * ws[i], p1 + nrm * ws[i + 1], p1 - nrm * ws[i + 1], p0 - nrm * ws[i]])
 			if ws[i] + ws[i + 1] < 1.2:
-				g.draw_line(p0, p1, dark, 1.0)
+				cv.draw_line(p0, p1, dark, 1.0)
 			else:
-				g.draw_colored_polygon(q, dark)
+				cv.draw_colored_polygon(q, dark)
 			if glow > 0.0 and ws[i] > 1.4:
-				g.draw_line(p0, p1, Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.75 * glow), maxf(1.0, ws[i] * 0.6))
+				cv.draw_line(p0, p1, Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.75 * glow), maxf(1.0, ws[i] * 0.6))
 	# 中心碎坑：实心深色 + 略亮的边 + 几道坑内裂纹
 	var ring: PackedVector2Array = cd.ring
 	var sc: float = 0.35 + 0.65 * grow
@@ -492,14 +637,14 @@ func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
 	var rp := PackedVector2Array()
 	for v in ring:
 		rp.append(ctr + (v - ctr) * sc)
-	g.draw_colored_polygon(rp, Color(0.06, 0.05, 0.05, al))
+	cv.draw_colored_polygon(rp, Color(0.06, 0.05, 0.05, al))
 	# 坑心再压一层更深的（凹陷感），不画亮边——亮边会让中心看起来是空的
 	var core := PackedVector2Array()
 	for v in rp:
 		core.append(ctr + (v - ctr) * 0.55)
-	g.draw_colored_polygon(core, Color(0.02, 0.015, 0.02, al))
+	cv.draw_colored_polygon(core, Color(0.02, 0.015, 0.02, al))
 	for ln in cd.inner:
-		g.draw_line(ctr + (ln[0] - ctr) * sc, ctr + (ln[1] - ctr) * sc, Color(0.16, 0.13, 0.13, 0.8 * al), 1.0)
+		cv.draw_line(ctr + (ln[0] - ctr) * sc, ctr + (ln[1] - ctr) * sc, Color(0.16, 0.13, 0.13, 0.8 * al), 1.0)
 
 
 func _crack_build(f: Dictionary) -> Dictionary:
@@ -1152,7 +1297,7 @@ func foot_off(tx: Texture2D, kind: String = "") -> float:
 func draw_body() -> void:
 	var st := anim_state()
 	if st.is_empty():
-		g.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
+		cv.draw_circle(pos, 10.0, Color(0.6, 0.9, 1.0))
 		return
 	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
 	var c: Color = col().lerp(Color.WHITE, 0.35)

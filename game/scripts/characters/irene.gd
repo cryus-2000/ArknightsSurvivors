@@ -41,9 +41,9 @@ var tide2_swing := false      # 二度裂潮那一斩的动作已起手，出手
 ## 四边形：对齐网格后宽度可能收成 0（两侧顶点重合）→ 退化时画成一条线，避免三角化报错
 func _quad(q: PackedVector2Array, c: Color) -> void:
 	if q[1].distance_to(q[3]) < 2.0:
-		g.draw_line(q[0], q[2], c, 2.0)
+		cv.draw_line(q[0], q[2], c, 2.0)
 	else:
-		g.draw_colored_polygon(q, c)
+		cv.draw_colored_polygon(q, c)
 
 
 ## 刺击光束：u = 进度 0→1；前 30% 伸到最长（缓出），之后宽度收细、淡出；顶点对齐 2 像素网格保持像素感
@@ -51,13 +51,13 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if f.kind == "gale":
 		# 卷风：贴地三道玫瑰色旋风弧由外向内收拢，外圈一道淡环标出卷起范围
 		var u0: float = 1.0 - a
-		g.draw_set_transform(f.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		g.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(PINK.r, PINK.g, PINK.b, 0.35 * a), 1.5)
+		cv.draw_set_transform(f.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(PINK.r, PINK.g, PINK.b, 0.35 * a), 1.5)
 		for q in 3:
 			var rr: float = f.r * (1.0 - 0.6 * u0) * (1.0 - q * 0.22)
 			var a0: float = u0 * 9.0 + q * TAU / 3.0
-			g.draw_arc(Vector2.ZERO, rr, a0, a0 + 2.0, 12, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.5, 0.8 * a), 3.0 - q * 0.6)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_arc(Vector2.ZERO, rr, a0, a0 + 2.0, 12, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.5, 0.8 * a), 3.0 - q * 0.6)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return true
 	if f.kind != "thrust":
 		return false
@@ -82,13 +82,13 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 	# 两侧速度线
 	for s in [-1.0, 1.0]:
 		var off: Vector2 = n * s * (wide * 0.5 + 5.0)
-		g.draw_line(P.call(o + d * L * 0.35 + off), P.call(o + d * L * 0.85 + off), Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.45 * a), 1.0)
+		cv.draw_line(P.call(o + d * L * 0.35 + off), P.call(o + d * L * 0.85 + off), Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.45 * a), 1.0)
 	# 剑尖星形闪光（伸到最长那一刻最亮）；有 fx_star_hit_rose 帧条时由帧条画
 	if u > 0.2 and u < 0.75 and g.tex.get("fx_star_hit_rose") == null:
 		var k: float = 1.0 - absf(u - 0.35) / 0.4
 		var sz: float = 7.0 * k
-		g.draw_line(P.call(tip - d * sz), P.call(tip + d * sz), Color(2.4, 2.2, 2.4, k), 2.0)
-		g.draw_line(P.call(tip - n * sz * 0.6), P.call(tip + n * sz * 0.6), Color(2.4, 2.2, 2.4, k), 2.0)
+		cv.draw_line(P.call(tip - d * sz), P.call(tip + d * sz), Color(2.4, 2.2, 2.4, k), 2.0)
+		cv.draw_line(P.call(tip - n * sz * 0.6), P.call(tip + n * sz * 0.6), Color(2.4, 2.2, 2.4, k), 2.0)
 	return true
 
 
@@ -163,12 +163,12 @@ func update(dt: float) -> void:
 		start_skill(ts[0].pos if not ts.is_empty() else Vector2.INF, ready)
 		return
 	if cd <= 0.0:
-		var ts2: Array = nearest_enemies(1, _reach() + 20.0, pos)
-		if ts2.is_empty():
-			cd = 0.1
+		var at := atk_point(nearest_enemies(1, _reach() + 20.0, pos), _reach())   # 手动普攻 A 类（契约 v2.5）
+		if at == Vector2.INF:
+			cd = idle_cd(0.1)
 		else:
 			cd = base("cd", 0.8) / stat(&"op_aspd")
-			start_attack(ts2[0].pos)
+			start_attack(at)
 
 
 ## 出手帧（第一刺）；第二刺按帧条的 second 帧延后
@@ -178,6 +178,7 @@ func _release() -> void:
 	if not ts.is_empty():
 		ang = (ts[0].pos - pos).angle()
 		face_to(ang)
+	ang = atk_angle(ang)
 	var mult := 1.0
 	var gust := gust_next
 	gust_next = false
@@ -350,7 +351,7 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 16.0, "life": 0.4, "col": LAMP, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
-			g.hitstop = maxf(g.hitstop, 0.08)
+			impact_pause(0.08)
 			show_banner("审判")
 
 
@@ -447,21 +448,21 @@ func _draw_skill_over() -> void:
 	# 举灯 / 审判期间：提灯亮
 	if judge_left > 0.0 or (acting() and act_kind == "skill"):
 		var p := _lantern(acting() and act_kind == "skill")
-		g.draw_circle(p, 5.0 + sin(g.t * 20.0), Color(1.6, 1.3, 0.7, 0.8))
-		g.draw_circle(p, 12.0, Color(1.0, 0.85, 0.5, 0.2))
+		cv.draw_circle(p, 5.0 + sin(g.t * 20.0), Color(1.6, 1.3, 0.7, 0.8))
+		cv.draw_circle(p, 12.0, Color(1.0, 0.85, 0.5, 0.2))
 	# 转身开火：身后一道半圆的玫瑰色转身弧 + 反向的淡残影
 	if draw_spin_t > 0.0:
 		var k: float = draw_spin_t / 0.12
 		var c: Vector2 = pos + Vector2(0, -24)
 		var a0: float = PI * 0.5 if face > 0.0 else -PI * 0.5   # 身后半圆（原来的三元表达式对 void 取值会报错）
-		g.draw_arc(c, 22.0, a0, a0 + PI, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0)
+		cv.draw_arc(c, 22.0, a0, a0 + PI, 16, Color(PINK.r * 1.5, PINK.g * 1.4, PINK.b * 1.4, 0.7 * k), 4.0)
 		draw_body_at(pos, face > 0.0, Color(PINK.r * 1.3, PINK.g * 1.2, PINK.b * 1.3, 0.45 * k))
 	# 浮空敌人脚下的小影环
 	for a in airborne:
 		if not a.e.dead:
-			g.draw_set_transform(a.e.pos + Vector2(0, a.e.r * 0.8), 0.0, Vector2(1.0, 0.5))
-			g.draw_arc(Vector2.ZERO, a.e.r * 0.9, 0.0, TAU, 20, Color(PINK.r, PINK.g, PINK.b, 0.5), 1.5)
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_set_transform(a.e.pos + Vector2(0, a.e.r * 0.8), 0.0, Vector2(1.0, 0.5))
+			cv.draw_arc(Vector2.ZERO, a.e.r * 0.9, 0.0, TAU, 20, Color(PINK.r, PINK.g, PINK.b, 0.5), 1.5)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func status_items() -> Array:

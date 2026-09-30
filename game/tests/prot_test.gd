@@ -58,15 +58,31 @@ func _process(_d: float) -> void:
 	test_dot_cap()
 	test_non_boss()
 	test_no_hard_cc()
+	test_beacon_decay()
 	test_atk_slow_floor()
 	test_horde_mix()
 	test_v8()
 	test_gates()
 	test_break_budget()
 	test_retreat()
+	test_final_mob_cap()
+	test_ishar_close()
+	test_paranoia_p2_gate()
+	test_close_panic()
+	test_enemy_knob()
 	test_arena()
 	test_ground()
+	test_warn_style()
 	test_any_cap()
+	test_ailments()
+	test_saria_cleanse()
+	test_lore1()
+	test_lore2()
+	test_lore3()
+	test_lore4()
+	test_lore5()
+	test_nerve()
+	test_floater_mire()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -446,11 +462,15 @@ func test_no_hard_cc() -> void:
 		reset()
 		game.invuln = 0.0
 		game.nerve = 99.0
+		game.nerve_lock = 0.0
+		game.root_t = 0.0
+		game.root_immune = 0.0
 		c.add_nerve(5.0)
 		if alive:
-			ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：神经损伤溢出换成减速（僵直 %.2f）" % [tag, game.pstun])
+			ok(game.pstun <= 0.0 and game.root_t <= 0.0 and c.slows.has("stun"), "%s：神经损伤满格换成减速（僵直 %.2f）" % [tag, game.pstun])
 		else:
-			ok(absf(game.pstun - 0.4) < EPS, "%s：神经损伤溢出照旧僵直 0.4 秒（%.2f）" % [tag, game.pstun])
+			ok(game.root_t > 0.0 and game.pstun <= 0.0, "%s：神经损伤满格眩晕 %.1f 秒（按硬控规则，冲刺可挣脱）" % [tag, game.root_t])
+		game.root_t = 0.0
 		# 冲击环（精英的踏地震荡；Boss 存活时 Boss 的冲击环）
 		reset()
 		game.invuln = 0.0
@@ -466,10 +486,12 @@ func test_no_hard_cc() -> void:
 	reset()
 	game.invuln = 0.0
 	game.nerve = 99.0
+	game.nerve_lock = 0.0
 	c.add_nerve(5.0)
 	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "僵直换成的减速：移速 ×%.2f（应 ×%.2f）" % [c.move_mult(1.0), sm])
 	game.nerve = 99.0
+	game.nerve_lock = 0.0
 	c.add_nerve(5.0)
 	c.slows.erase("atk")
 	ok(absf(c.move_mult(1.0) - sm) < EPS, "同种减速重复吃到不叠乘（×%.2f）" % c.move_mult(1.0))
@@ -543,11 +565,11 @@ func test_atk_slow_floor() -> void:
 		reset()
 		game.invuln = 0.0
 		game.nerve = 99.0
+		game.nerve_lock = 0.0
+		game.root_immune = 0.0
 		c.add_nerve(5.0)
-		if alive:
-			ok(game.atk_slow <= 0.0 and c.slows.has("atk") and absf(float(c.slows["atk"][0]) - 2.5) < EPS, "%s：神经损伤溢出不写 atk_slow，换成 2.5 秒减速" % tag)
-		else:
-			ok(absf(game.atk_slow - 2.5) < EPS, "%s：神经损伤溢出照旧 atk_slow 2.5（%.2f）" % [tag, game.atk_slow])
+		ok(game.atk_slow <= 0.0 and not c.slows.has("atk"), "%s：神经损伤满格不再减攻速（用户 9/29 按原作改为真伤 + 眩晕）" % tag)
+		game.root_t = 0.0
 		# 带 slow 的子弹：Boss 的（任何时候都不写）和不是 Boss 的
 		for bb in [true, false]:
 			reset()
@@ -657,9 +679,11 @@ func test_v8() -> void:
 	# 深溟巢涌者：主控在光环内累积神经损伤
 	var ne: Dictionary = sp.spawn_enemy("nest", game.ppos + Vector2(60, 0))
 	game.invuln = 0.0   # 狂奔者自爆打中后有无敌帧
+	game.nerve_lock = 0.0   # 前面的用例打满过神经损伤，锁定期还没过
 	var n0: float = game.nerve
 	for k in 6:
 		ai.pattern(ne, Vector2.LEFT, 60.0, dt, ne.spd)
+		c.update_nerve(dt, false, false)   # 光环按「站在溟痕里」由每帧的 update_nerve 累积
 	ok(game.nerve > n0, "巢涌者光环累积神经损伤（%.1f → %.1f）" % [n0, game.nerve])
 	ne.dead = true
 	game.nerve = 0.0
@@ -771,6 +795,153 @@ func test_retreat() -> void:
 	game.bosses = keep
 
 
+## 最终 Boss 在场时的存活杂兵上限（boss/final_mob_cap，协调人 9/30）：只在最终 Boss 活着时生效；泪滴等友方、宝箱、Boss 不计数
+func test_final_mob_cap() -> void:
+	var sp = game.spawner
+	var keep_e: Array = game.enemies
+	var keep_f = game.final_boss
+	var keep_b: Array = game.bosses.duplicate()
+	game.bosses = []   # 前面测试留下的 Boss 会让中期上限生效
+	var fb := {"dead": false, "boss": true}
+	game.enemies = [fb, {"dead": false, "boss": false, "friendly": true}, {"dead": false, "boss": false, "chest": true}, {"dead": true, "boss": false}]
+	for k in 5:
+		game.enemies.append({"dead": false, "boss": false})
+	ok(sp.mob_count() == 5, "杂兵计数不含 Boss / 友方 / 宝箱 / 死亡（%d）" % sp.mob_count())
+	game.final_boss = null
+	ok(sp.boss_mob_room() == sp.max_alive(), "没有最终 Boss：不限")
+	game.final_boss = fb
+	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
+	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.boss_mob_room())
+	fb.dead = true
+	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
+	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：读 boss/mid_mob_cap
+	var mb := {"dead": false, "boss": true}
+	game.enemies.append(mb)
+	game.bosses = [mb]
+	game.final_boss = null
+	var mcap := int(Bal.v("boss/mid_mob_cap", 160.0))
+	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap − 存活杂兵（%d）" % sp.boss_mob_room())
+	mb.dead = true
+	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
+	game.bosses = keep_b
+	game.enemies = keep_e
+	game.final_boss = keep_f
+
+## 伊莎玛拉提速（协调人 9/30）：离远了带预警冲近（潮涌迫近，② 直线），落地给破绽；人形阶段充能 ×ishar_p1_scale
+func test_ishar_close() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(500, 0))
+	game.bosses = [e]
+	game.bai.transform_ishar(e)
+	e.transform_until = 0.0
+	e.ishar_next_at = 0.0
+	var n0: int = game.warns.size()
+	game.bai._ishar_phase2(e, Vector2.LEFT, 500.0)
+	var w: Dictionary = game.warns.back() if game.warns.size() > n0 else {}
+	ok(w.get("name", "") == "潮涌迫近" and int(w.get("style", -1)) == 2, "离主控 500：放潮涌迫近（直线预警）")
+	ok(w.get("len", 0.0) > 300.0 and w.get("len", 0.0) < 420.0, "冲到主控前约 140（线长 %.0f）" % w.get("len", 0.0))
+	game.warns.erase(w)
+	w.done = true
+	game.bai._warn_resolve(w)
+	ok(absf(float(e.get("land_break", 0.0)) - Bal.v("boss/ishar_close_break", 1.0)) < 0.01, "冲刺记下落地破绽")
+	e.dash_t = 0.01
+	game.bai._boss_ai(e, 0.05, Vector2.LEFT, 140.0)
+	ok(e.break_t > 0.0, "落地进入破绽（%.2f 秒）" % e.break_t)
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	var t2: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(200, 0))
+	game.ishar.step_ally(t2, 0.01)
+	ok(absf(t2.ally_charge_need - Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 0.6)) < 0.01, "人形阶段充能 × ishar_p1_scale（%.1f 秒）" % t2.ally_charge_need)
+	e.dead = true
+	t2.dead = true
+	for o in game.enemies:
+		if o.type == "tear":
+			o.dead = true
+	game.bosses = keep
+
+## 偏执泡影过最后一道卡点落地进二阶段（boss/paranoia_p2_at_gate，数值 9/30）；第一道卡点不变；茧仍在归零时结
+func test_paranoia_p2_gate() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("paranoia", game.ppos + Vector2(400, 0))
+	game.bosses = [e]
+	e.gates = [0.66, 0.33]
+	c.gate_pass(e)
+	ok(e.phase == 1 and e.ai == "ranged", "过第一道卡点：仍是一阶段悬浮远程")
+	c.gate_pass(e)
+	ok(e.phase == 2 and e.ai == "melee" and is_equal_approx(e.spd, 70.0), "过最后一道卡点：落地二阶段（近战、移速 70）")
+	ok(not e.get("cocoon_done", false), "茧还没结（归零时才结）")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	e.dead = true
+	game.bosses = keep
+
+## 远程 Boss 迫近通用函数（泡影一阶段复用伊莎玛拉那套）+ 主教慌乱（协调人 9/30）
+func test_close_panic() -> void:
+	var keep: Array = game.bosses.duplicate()
+	var e: Dictionary = game.spawner.spawn_enemy("paranoia", game.ppos + Vector2(500, 0))
+	game.bosses = [e]
+	var d1: float = game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE)
+	var w: Dictionary = game.warns.back() if not game.warns.is_empty() else {}
+	ok(d1 >= 0.0 and w.get("name", "") == "泡影漂近" and w.get("act", "") == "dash" and int(w.get("style", -1)) == 2, "泡影离主控 500：放泡影漂近（直线预警、冲刺）")
+	ok(game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "冷却内不再放")
+	e.cds = {}
+	ok(game.bai._close_in(e, Vector2.LEFT, 250.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "离主控 250（< close_min）不放")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, e))
+	e.dead = true
+	# 主教慌乱：搭档假死时改近战、朝搭档走、停召潮；搭档复苏后恢复远程
+	var b: Dictionary = game.spawner.spawn_enemy("bishop", game.ppos + Vector2(400, 0))
+	var a: Dictionary = game.spawner.spawn_enemy("archon", game.ppos + Vector2(-200, 0))
+	b.partner = a
+	a.partner = b
+	game.bosses = [b, a]
+	a.coma = true
+	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
+	ok(b.get("panic", false) and b.ai == "melee" and b.get("aggro", Vector2.INF) == a.pos, "搭档假死：主教慌乱，改近战朝搭档走")
+	var h0: float = b.hp
+	c.damage(b, 10.0)
+	ok(int(b.get("panic_n", 0)) == 1 and float(b.get("panic_dmg", 0.0)) > 0.0 and absf(float(b.panic_dmg) - (h0 - b.hp)) < 0.01, "遥测：慌乱次数 1、慌乱期间掉血计入 panic_dmg（%.1f）" % float(b.get("panic_dmg", 0.0)))
+	a.coma = false
+	game.bai._boss_ai(b, 0.01, Vector2.LEFT, 400.0)
+	ok(not b.get("panic", false) and b.ai == "ranged", "搭档复苏：主教恢复远程")
+	game.warns = game.warns.filter(func(x): return not is_same(x.owner, b) and not is_same(x.owner, a))
+	b.dead = true
+	a.dead = true
+	game.bosses = keep
+
+## 小怪控制 / 词条按难度档覆盖（数值 9/30）：dmod 里 ≥ 0 用 dmod，-1 / 没有这个键读 balance.json enemy 段
+func test_enemy_knob() -> void:
+	var D = preload("res://scripts/data.gd")
+	var keep: Dictionary = game.dmod.duplicate()
+	game.dmod["frost_max"] = -1.0
+	ok(is_equal_approx(c.enemy_knob("frost_max", 3.0), Bal.v("enemy/frost_max", 3.0)), "dmod -1：读全局 enemy/frost_max")
+	game.dmod["frost_max"] = 5.0
+	ok(is_equal_approx(c.enemy_knob("frost_max", 3.0), 5.0), "dmod 5：按档覆盖")
+	game.dmod.erase("ctrl_start")
+	ok(is_equal_approx(c.enemy_knob("ctrl_start", 1.0e9), Bal.v("enemy/ctrl_start", 1.0e9)), "dmod 没这个键：读全局")
+	ok(float(D.DMOD_DEFAULT.affix_max) < 0.0 and float(D.dmod_for_tier(0).get("affix_start", 0.0)) < 0.0, "缺省表与标准档为 -1（现行为不变）")
+	var m: Dictionary = D.DMOD_DEFAULT.duplicate()
+	ok(D.dmod_lines(m).is_empty(), "缺省表：选难度页没有说明行")
+	m.ctrl_start = 420.0
+	m.frost_max = 2.0
+	m.affix_max = 0.5
+	var lines: Array = D.dmod_lines(m)
+	ok(lines.has("小怪控制提前到 7:00") and lines.has("寒霜 2 层即冻结") and lines.has("词条概率上限 50%"), "按档覆盖的说明行（%s）" % str(lines))
+	m.frost_max = Bal.v("enemy/frost_max", 3.0)
+	ok(not str(D.dmod_lines(m)).contains("寒霜"), "和全局相同时不显示")
+	game.dmod = keep
+	# 最终 Boss 在场时新刷杂兵的生命倍率（boss_fight_enemy_hp，-1 = 跟 enemy_hp）
+	var keep_f = game.final_boss
+	game.dmod["enemy_hp"] = 1.7
+	game.dmod["boss_fight_enemy_hp"] = 1.0
+	game.final_boss = null
+	var s0: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	game.final_boss = {"dead": false, "boss": true}
+	var s1: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	ok(absf(s1.maxhp / s0.maxhp - 1.0 / 1.7) < 0.01, "最终 Boss 在场：新刷杂兵生命按 boss_fight_enemy_hp（%.2f）" % (s1.maxhp / s0.maxhp))
+	game.dmod["boss_fight_enemy_hp"] = -1.0
+	var s2: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
+	ok(absf(s2.maxhp / s0.maxhp - 1.0) < 0.01, "-1：跟 enemy_hp 走")
+	game.final_boss = keep_f
+	game.dmod = keep
+
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:
 	var zs: Array = [game.zone_state, game.zone_c, game.zone_r, game.zone_next_c, game.zone_next_r]
@@ -812,6 +983,29 @@ func test_ground() -> void:
 	game.ppos = p0
 
 
+## 预警样式（docs/38 §8.11）：_warn 按形状和标记填 style，界面照 style 画；跟随施法者的伤害圈仍是 ① 落点圈
+func test_warn_style() -> void:
+	var e := {"boss": false, "type": "test", "pos": game.ppos, "dmg": 10.0, "r": 20.0}
+	var cases := [
+		["circle", {"follow": true, "act": "bite"}, 1],
+		["circle", {"follow": true, "act": "frost"}, 1],
+		["circle", {"act": "slam"}, 1],
+		["circle", {"follow": true, "act": "bring"}, 4],
+		["circle", {"gap_ang": 0.0, "act": "pattern_ring"}, 4],
+		["circle", {"follow": true, "must_dash": true, "act": "izu_wave"}, 5],
+		["circle", {"act": "spawn", "dmg": 0.0, "lock": false}, 0],
+		["line", {"act": "beam"}, 2],
+		["cone", {"act": "reap"}, 3],
+		["circle", {"act": "slam", "style": 4}, 4],
+	]
+	var bad := PackedStringArray()
+	for cs in cases:
+		var w: Dictionary = game.bai._warn(e, cs[0], 0.6, cs[1])
+		game.warns.erase(w)
+		if int(w.style) != int(cs[2]):
+			bad.append("%s/%s=%d" % [cs[0], cs[1].act, int(w.style)])
+	ok(bad.is_empty(), "预警样式按形状和标记分类（错：%s）" % [", ".join(bad)])
+
 ## 后期暴毙方案 3（用户 9/27）：通用 2 秒掉血上限（protect/any_2s_cap，缺省关）与非 Boss 侵蚀池上限（enemy/corrode_pool_cap，缺省不封顶）
 func test_any_cap() -> void:
 	var mh: float = game.max_hp
@@ -840,3 +1034,437 @@ func test_any_cap() -> void:
 	Bal._data["enemy"] = bak_e
 	game.corrode_pool = 0.0
 	game.hp = hp0
+
+
+## 小怪控制与词条（用户 9/29）：寒霜叠层 → 冻结、Boss 在场转减速、冲刺挣脱、侵蚀创口减治疗 + 掉血、合计上限、甲壳 / 潮盾
+## 塞雷娅净化（docs/49e，用户 9/30）：cleanse_ctrl 清寒冷（层数与攻速减益）与冻结 / 束缚；operators/saria/cleanse = 0 时不清；
+## 选人页 / 招募卡的奶位标签按技能数据生成
+func test_saria_cleanse() -> void:
+	var sa = load("res://scripts/characters/character.gd").create(game, "saria")
+	game.cold = 3
+	game.cold_t = 2.0
+	game.root_t = 0.8
+	c.sync_cold()
+	var did: bool = sa.cleanse_ctrl(false)
+	ok(did and game.cold == 0 and game.cold_t == 0.0 and game.root_t == 0.0, "塞雷娅净化：清除寒冷与冻结 / 束缚")
+	var ops: Dictionary = Bal._data.get("operators", {})
+	var sbak = ops.get("saria", {}).duplicate()
+	var s2: Dictionary = sbak.duplicate()
+	s2["cleanse"] = 0
+	ops["saria"] = s2
+	Bal._data["operators"] = ops
+	game.cold = 2
+	game.root_t = 0.5
+	ok(not sa.cleanse_ctrl(false) and game.cold == 2 and game.root_t == 0.5, "operators/saria/cleanse = 0：不净化")
+	ops["saria"] = sbak
+	game.cold = 0
+	game.root_t = 0.0
+	c.sync_cold()
+	var Aff = load("res://scripts/run/affects.gd")
+	var Ch = load("res://scripts/characters/character.gd")
+	ok(Aff.care_labels(Ch.load_def("saria")) == ["净化：寒冷 · 束缚", "回复"], "奶位标签：塞雷娅 %s" % str(Aff.care_labels(Ch.load_def("saria"))))
+	ok(Aff.care_labels(Ch.load_def("lumen")) == ["净化：侵蚀 · 神经损伤", "回复"], "奶位标签：流明 %s" % str(Aff.care_labels(Ch.load_def("lumen"))))
+	ok(Aff.care_labels(Ch.load_def("kaltsit")) == ["净化：神经损伤", "回复"], "奶位标签：凯尔希")
+	ok(Aff.care_labels(Ch.load_def("skadi")).is_empty(), "奶位标签：斯卡蒂没有")
+
+
+func test_ailments() -> void:
+	# 断言按全局 enemy 段写（寒霜 3 层等）；本机存档的难度档可能是 Ⅳ / Ⅷ，其难度表会覆盖 frost_max / ctrl_start，这里固定用标准档
+	var keep_dmod: Dictionary = game.dmod
+	game.dmod = preload("res://scripts/data.gd").dmod_for_tier(0)
+	var bak: Dictionary = Bal._data.get("enemy", {}).duplicate()
+	var e2: Dictionary = bak.duplicate()
+	e2["ctrl_start"] = 0.0
+	Bal._data["enemy"] = e2
+	var mh: float = game.max_hp
+	game.invuln = 0.0
+	game.shield = 0
+	game.in_type = ["近战", "物理"]
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_t = 0.0
+	game.root_immune = 0.0
+	# Boss 在场：满层冻结换成减速
+	for k in 3:
+		game.invuln = 0.0
+		c.enemy_hit(1.0, {"type": "founder"}, true, true)
+	ok(game.cold == 3 and game.root_t == 0.0 and c.slows.has("root"), "Boss 在场：寒霜满层不冻结，换成减速")
+	ok(absf(c.ctrl_slow() - maxf(1.0 - 0.12 * 3, 0.55)) < EPS, "寒霜 3 层移速 ×%.2f（合计下限 0.55）" % c.ctrl_slow())
+	c.slows.erase("root")
+	# 没有 Boss：冻结，冲刺挣脱，之后免疫
+	boss_e.dead = true
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_immune = 0.0
+	for k in 3:
+		game.invuln = 0.0
+		c.enemy_hit(1.0, {"type": "founder"}, true, true)
+	ok(game.root_t > 0.0 and game.root_immune > game.root_t, "寒霜满层冻结 %.1f 秒，之后免疫硬控" % game.root_t)
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game._try_dash()
+	ok(game.root_t == 0.0, "冲刺挣脱冻结")
+	game.dash_t = 0.0
+	boss_e.dead = false
+	# 侵蚀创口：减受治疗、每秒掉血
+	game.wound = 0
+	game.invuln = 0.0
+	c.enemy_hit(1.0, {"type": "reaper"}, true, true)
+	c.enemy_hit(1.0, {"type": "reaper"}, true, true)
+	ok(game.wound == 2, "收割者命中叠侵蚀创口（%d 层）" % game.wound)
+	game.hp = mh * 0.5
+	var h0: float = game.hp
+	c.heal(10.0)
+	var hc: float = 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * 2
+	ok(absf((game.hp - h0) - 10.0 * game.heal_mult * hc) < 0.01, "2 层创口受治疗 ×%.2f" % hc)
+	game.wound = 0
+	game.cold = 0
+	c.sync_cold()
+	game.root_t = 0.0
+	# 词条：打开后普通怪按概率带甲壳 / 潮盾，潮盾先扣
+	e2["affix_start"] = 0.0
+	e2["affix_max"] = 1.0
+	e2["affix_ramp"] = 1.0
+	var sp = game.spawner
+	var got := {}
+	for k in 20:
+		var m: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(1500 + k * 3, 0))
+		got[m.affix] = true
+		if m.affix == "shield" and not got.has("shield_ok"):
+			var hp0: float = m.hp
+			c.hit("test")
+			c.damage(m, m.shield_hp * 0.5)
+			got["shield_ok"] = m.hp == hp0
+		m.dead = true
+	ok(got.has("armor") and got.has("shield") and got.get("shield_ok", false), "词条：甲壳 / 潮盾都会出现，潮盾先扣盾")
+	Bal._data["enemy"] = bak
+	game.hp = mh
+	game.dmod = keep_dmod
+
+
+## docs/38 §8 第一批：塑路者猎核（核心部件、优先索敌、打碎破绽 / 超时回流加冲撞）与接潮假死赛跑（8 秒复苏到 50%、最多 2 次）
+func test_lore1() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var pa: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1500, 0))
+	pa.gates_passed = 1
+	bai._path_core(pa)
+	var core = pa.get("core")
+	var owned := 0
+	for o in game.enemies:
+		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
+			owned += 1
+	ok(core != null and core.part and core.spd == 0.0 and owned >= 3, "塑路者第二幕出核心部件（场上碎片 %d）" % owned)
+	var near: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(20, 0))
+	game.enemies_sys.build_grid()   # 空间网格每帧重建；刚刷出的单位要先进网格
+	var first: Array = game.enemies_sys.nearest(1, 5000.0)
+	ok(not first.is_empty() and is_same(first[0], core), "部件在射程内优先被索敌")
+	near.dead = true
+	core.dead = true
+	bai._path_core(pa)
+	var left := 0
+	for o in game.enemies:
+		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
+			left += 1
+	ok(pa.break_t > 0.0 and left == 0 and pa.get("core") == null, "打碎核心：碎片崩解、Boss 破绽 %.1f 秒" % pa.break_t)
+	pa.core_next = 0.0
+	bai._path_core(pa)
+	pa.core_until = game.t - 1.0
+	bai._path_core(pa)
+	ok(int(pa.get("dash_bonus", 0)) >= 3, "核心超时：碎片回流，下次冲撞 +%d 段" % int(pa.get("dash_bonus", 0)))
+	pa.dead = true
+	# 接潮假死赛跑
+	var bi: Dictionary = sp.spawn_enemy("bishop", game.ppos + Vector2(1600, 0))
+	var ar: Dictionary = sp.spawn_enemy("archon", game.ppos + Vector2(1690, 0))
+	bi.partner = ar
+	ar.partner = bi
+	ar.gates = []
+	ar.last_done = true
+	var k2 := 0
+	while not ar.coma and not ar.dead and k2 < 200:   # 单次伤害上限（hit_cap_pct）下要多打几下
+		c.damage(ar, ar.maxhp)
+		k2 += 1
+	ok(ar.coma and ar.get("count_max", 0.0) > 0.0, "蔑死体归零假死，挂 %.0f 秒倒计时" % ar.get("count_max", 0.0))
+	bai._boss_ai(ar, Bal.v("boss/pair_race", 8.0) + 0.1, Vector2.LEFT, 500.0)
+	ok(not ar.coma and ar.revives == 1 and absf(ar.hp - ar.maxhp * 0.5) < 1.0, "8 秒没打倒另一具：复苏到 50%%（第 %d 次）" % ar.revives)
+	ar.revives = 2
+	ar.invuln = false
+	k2 = 0
+	while not ar.dead and not ar.coma and k2 < 200:
+		c.damage(ar, ar.maxhp)
+		k2 += 1
+	ok(ar.dead, "复苏满 2 次后直接倒下")
+	bi.dead = true
+	game.warns.clear()
+
+
+## docs/38 §8 第二批：圣徒装填打断（伤害 5% / 冲刺穿身 → 5 秒破绽；没打断 → 三连瞄准）与卡门第二幕换剑
+func test_lore2() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var ib: Dictionary = sp.spawn_enemy("iberia", game.ppos + Vector2(1500, 0))
+	ib.age = 5.0
+	var go := func(e: Dictionary, dt: float) -> void:
+		e.wind = 0.0
+		e.stun = 0.0
+		e.cds = {"judge": INF, "snipe": INF, "hop": INF, "sword": INF}   # 其他招式冷却中：出招后的站定窗口会顺延装填（这是设计），测试里只看装填本身
+		e.pattern_next = INF
+		bai._boss_ai(e, dt, Vector2.LEFT, 500.0)
+	ib.ammo = 0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 4.0)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
+	var k := 0
+	while ib.channel > 0.0 and k < 100:
+		c.damage(ib, ib.maxhp * 0.01)
+		k += 1
+	ok(ib.channel <= 0.0 and ib.break_t > 0.0 and ib.ammo == 0, "读条中打掉约 5%% 被打断：破绽 %.1f 秒" % ib.break_t)
+	# 冲刺穿身打断
+	ib.break_t = 0.0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	var p0: Vector2 = game.ppos
+	game.ppos = ib.pos
+	game.dash_t = 0.2
+	go.call(ib, 0.01)
+	ok(ib.channel <= 0.0 and ib.break_t > 0.0, "主控冲刺穿过身体也能打断")
+	game.dash_t = 0.0
+	game.ppos = p0
+	# 没打断：三连瞄准
+	ib.break_t = 0.0
+	ib.reload_t = 0.0
+	go.call(ib, 0.01)
+	var nw: int = game.warns.size()
+	go.call(ib, Bal.v("boss/iberia_reload", 4.0) + 0.1)
+	ok(ib.ammo == 3 and game.warns.size() >= nw + 3, "读条完成：弹药补满并连发三条瞄准线")
+	ib.dead = true
+	game.warns.clear()
+	# 卡门第二幕：先换剑，再装填
+	var cm: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
+	cm.age = 5.0
+	cm.gates_passed = 1
+	cm.ammo = 0
+	cm.reload_t = 0.0
+	go.call(cm, 0.01)
+	ok(cm.get("sword_t", 0.0) > 0.0 and cm.ai == "melee" and cm.channel <= 0.0, "卡门第二幕弹药打空先换剑")
+	go.call(cm, Bal.v("boss/carmen_sword", 8.0) + 0.1)
+	go.call(cm, 0.01)
+	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05, "剑形态结束后装填 %.1f 秒" % cm.channel)
+	cm.dead = true
+	game.warns.clear()
+
+
+## docs/38 §8 第三批：偏执泡影结茧（打破外壳 → 破绽；超时 → 凝视 +1）、认知负担光环、部件被周围击杀间接削
+func test_lore3() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	c.hit("test")
+	var pa: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1500, 0))
+	pa.gates = []
+	pa.last_done = true
+	var k := 0
+	while pa.get("cocoon_t", 0.0) <= 0.0 and not pa.dead and k < 300:
+		c.damage(pa, pa.maxhp)
+		k += 1
+	ok(pa.cocoon_t > 0.0 and pa.invuln and pa.part and pa.shell_hp > 0.0, "偏执泡影第一次归零结茧（外壳 %.0f）" % pa.shell_hp)
+	var h0: float = pa.hp
+	bai._paranoia_cocoon_step(pa, 0.25)
+	c.damage(pa, pa.shell_max * 10.0)
+	ok(pa.hp == h0 and pa.shell_hp < pa.shell_max and pa.shell_hp > 0.0, "茧期间伤害打在外壳上，而且一下打不破（受伤速度有上限）")
+	var tt := 0.0
+	while pa.get("cocoon_t", 0.0) > 0.0 and tt < 10.0:
+		bai._paranoia_cocoon_step(pa, 0.1)
+		tt += 0.1
+		c.damage(pa, pa.shell_max * 10.0)
+	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.4) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 40%% 并破绽" % tt)
+	pa.dead = true
+	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
+	bai.paranoia_cocoon(pb)
+	bai._paranoia_cocoon_step(pb, Bal.v("boss/paranoia_cocoon", 8.0) + 0.1)
+	ok(pb.phase == 2 and int(pb.get("gaze_bonus", 0)) == 1 and pb.get("break_t", 0.0) <= 0.0, "茧没打破：同样复活，但凝视永久 +1")
+	# 光环
+	var a0: float = game.stats.value(&"op_aspd")
+	bai._paranoia_aura(pb, 100.0)
+	var a1: float = game.stats.value(&"op_aspd")
+	bai._paranoia_aura(pb, 500.0)
+	ok(a1 < a0 and absf(game.stats.value(&"op_aspd") - a0) < EPS, "认知负担光环：站在里面全队攻速降低，离开恢复")
+	pb.dead = true
+	# 部件被周围击杀间接削
+	var part: Dictionary = sp.spawn_enemy("fractal", game.ppos + Vector2(1700, 0))
+	part.part = true
+	var ph: float = part.hp
+	var mob: Dictionary = sp.spawn_enemy("bone", part.pos + Vector2(30, 0))
+	c.kill(mob)
+	ok(part.hp < ph, "部件附近的小怪被击杀：部件掉 %.0f%% 血" % (100.0 * (ph - part.hp) / part.maxhp))
+	part.dead = true
+	game.warns.clear()
+
+
+## docs/38 §8 第四批：伊祖米克（固定学习期、吸收强化、灯柱、全场地波）与凋亡损伤（满条暂停技力、回落、冲刺清一部分）
+func test_lore4() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1500, 0))
+	iz.age = 5.0
+	bai._boss_ai(iz, 0.01, Vector2.LEFT, 500.0)
+	ok(iz.phase == 1 and iz.invuln and absf(iz.count_max - Bal.v("boss/izumik_learn", 20.0)) < EPS, "伊祖米克学习期固定 %.0f 秒" % iz.count_max)
+	bai.izumik_absorb(iz)
+	bai.izumik_absorb(iz)
+	ok(int(iz.izu_layers) == 2, "吸收子代叠强化层（%d 层）" % int(iz.izu_layers))
+	var d0: float = iz.dmg
+	bai._boss_ai(iz, Bal.v("boss/izumik_learn", 20.0) + 0.1, Vector2.LEFT, 500.0)
+	ok(iz.phase == 2 and not iz.invuln and absf(iz.hp - iz.maxhp) < 1.0 and iz.dmg > d0 and iz.lamps.size() == 3, "学习结束：满血、强化生效、立起 3 根灯柱")
+	var l0: Dictionary = iz.lamps[0]
+	var p0: Vector2 = game.ppos
+	game.ppos = l0.pos
+	bai._izumik_lamp_step(iz, 1.1)
+	ok(l0.lit and bai.izumik_safe(iz), "主控在灯柱旁待 1 秒点亮，光圈里算安全")
+	var w: Dictionary = bai._warn(iz, "circle", 2.0, {"follow": true, "r": 2400.0, "act": "izu_wave", "dmg": game.max_hp * 0.2})
+	game.invuln = 0.0
+	var h0: float = game.hp
+	bai._warn_resolve(w)
+	ok(game.hp == h0, "站在点亮的灯柱光圈里：全场地波打不到")
+	game.ppos = p0 + Vector2(0, 900)
+	game.invuln = 0.0
+	bai._warn_resolve(w)
+	ok(game.hp < h0, "光圈外吃到全场地波")
+	game.ppos = p0
+	game.hp = game.max_hp
+	iz.dead = true
+	game.warns.clear()
+	# 凋亡损伤
+	game.apop = 0.0
+	game.apop_t = 0.0
+	c.add_apop(60.0)
+	c.add_apop(60.0)
+	ok(game.apop_t > 0.0 and game.apop_t <= 4.0 and game.apop == 0.0, "凋亡满条：技力暂停 %.1f 秒（上限 4）" % game.apop_t)
+	game.apop_t = 0.0
+	c.add_apop(50.0)
+	game.apop_hold = 2.0
+	c.update_ailments(1.0)
+	ok(game.apop < 50.0, "离开来源后凋亡回落（%.0f）" % game.apop)
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	var a0: float = game.apop
+	game._try_dash()
+	ok(game.apop < a0, "冲刺清掉一部分凋亡（%.0f → %.0f）" % [a0, game.apop])
+	game.dash_t = 0.0
+	game.apop = 0.0
+
+
+## docs/38 §8 第五批：骑士冰枪桩（66% 后立桩、冲锋撞桩 → 5 秒破绽）、二阶段冲锋 3 次一组；伊莎玛拉过卡点后轮换加快
+func test_lore5() -> void:
+	var sp = game.spawner
+	var bai = game.bai
+	var kn: Dictionary = sp.spawn_enemy("knight_boss", game.ppos + Vector2(1500, 0))
+	kn.age = 10.0
+	kn.gates_passed = 1
+	bai._knight_stakes(kn, 0.01)
+	ok(kn.stakes.size() == int(Bal.v("boss/knight_stakes", 3.0)), "66%% 卡点后立 %d 根冰枪桩" % kn.stakes.size())
+	kn.stakes[0].pos = kn.pos
+	kn.kb = Vector2(900, 0)
+	kn.kb_self = true
+	bai._knight_stakes(kn, 0.01)
+	ok(kn.break_t > 0.0 and kn.kb == Vector2.ZERO, "冲锋撞桩：长枪脱手，破绽 %.1f 秒" % kn.break_t)
+	kn.break_t = 0.0
+	kn.phase = 2
+	kn.cds = {"frost": INF, "stab": INF, "hunt": INF, "charge": 0.0}
+	kn.pattern_next = INF
+	kn.wind = 0.0
+	kn.stun = 0.0
+	bai._boss_ai(kn, 0.01, Vector2.LEFT, 400.0)
+	ok(int(kn.get("dash2", 0)) == int(Bal.v("boss/knight_p2_chain", 2.0)), "二阶段冲锋后还要再冲 %d 次（一组 3 次）" % int(kn.get("dash2", 0)))
+	kn.dead = true
+	game.warns.clear()
+	var ish: Dictionary = sp.spawn_enemy("ishar", game.ppos + Vector2(1600, 0))
+	ok(is_equal_approx(bai._ishar_haste(ish), 1.0), "伊莎玛拉卡点前轮换不变")
+	ish.gates_passed = 1
+	ok(bai._ishar_haste(ish) < 1.0, "过卡点后轮换恢复时间 ×%.2f" % bai._ishar_haste(ish))
+	ish.dead = true
+
+
+## 神经损伤（用户 9/29 按原作）：只在溟痕里累积，满格一次真伤 + 眩晕，之后清零并锁 5 秒；离开溟痕回落；流明光域不累积
+func test_nerve() -> void:
+	boss_e.dead = true
+	game.nerve = 0.0
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.root_immune = 0.0
+	game.invuln = 0.0
+	c.update_nerve(1.0, true, false)
+	var n1: float = game.nerve
+	ok(n1 > 0.0, "站在溟痕里神经损伤累积（1 秒 %.0f）" % n1)
+	c.update_nerve(1.0, false, false)
+	ok(game.nerve < n1, "离开溟痕回落")
+	var nb: float = game.nerve
+	c.update_nerve(1.0, true, true)
+	ok(game.nerve < nb or game.nerve == 0.0, "流明光域里不累积")
+	var h0: float = game.hp
+	game.nerve = c.nerve_max() - 1.0
+	c.update_nerve(1.0, true, false)
+	ok(game.nerve == 0.0 and game.nerve_lock > 0.0 and game.root_t > 0.0 and game.hp < h0, "满格：真伤 + 眩晕，清零并锁定")
+	c.update_nerve(1.0, true, false)
+	ok(game.nerve == 0.0, "锁定期间不再累积")
+	c.enemy_hit(1.0, {"nerve": 50.0}, true, true)
+	ok(game.nerve == 0.0, "命中附带的神经损伤缺省不累积（只有溟痕）")
+	game.nerve_lock = 0.0
+	game.root_t = 0.0
+	game.hp = game.max_hp
+	boss_e.dead = false
+
+
+## 浮海飘航者神经弹（协调人 9/29 定 A）：命中 / 落地留下一小片溟痕（半径 30、5 秒）
+func test_floater_mire() -> void:
+	var fl: Dictionary = game.spawner.spawn_enemy("floater", game.ppos + Vector2(200, 0))
+	var nm: int = game.mires.size()
+	game.eai.shoot(fl, Vector2.LEFT)
+	var b: Dictionary = game.ebullets[game.ebullets.size() - 1]
+	b.life = 0.0001
+	game.enemies_sys.update_ebullets(0.01)
+	var ok_m := false
+	if game.mires.size() > nm:
+		var m: Dictionary = game.mires[game.mires.size() - 1]
+		ok_m = absf(float(m.maxr) - 30.0) < EPS and absf(float(m.life) - 5.0) < 0.1
+	ok(ok_m, "飘航者神经弹落地留下半径 30、5 秒的溟痕")
+	fl.dead = true
+
+
+## 引航灯标离开光圈后的进度回退（docs/49f ①）：缺省 = 离开就每秒退需要量的 20%；decay_delay 内不退，之后按 decay_pct 退
+func test_beacon_decay() -> void:
+	var had: bool = Bal._data.has("beacon")
+	var old = Bal._data.get("beacon")
+	var bs = game.beacon_sys
+	var nb: float = bs.next_at
+	bs.next_at = 1.0e9   # 不让测试期间刷新的灯标
+	var zs: int = game.zone_state
+	game.zone_state = 0
+	var mk := func() -> Dictionary:
+		var d := {"pos": game.ppos + Vector2(900, 0), "lit": false, "prog": 1.25, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0,
+			"dead": false, "r": 70.0, "clear_r": 340.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+		game.beacons = [d]
+		return d
+	var step := func(sec: float) -> void:
+		for k in int(round(sec * 60.0)):
+			bs.update(1.0 / 60.0)
+	# 缺省：离开 1 秒退 0.5 秒进度
+	Bal._data["beacon"] = {}
+	var b1: Dictionary = mk.call()
+	step.call(1.0)
+	ok(absf(b1.prog - 0.75) < 0.02, "灯标缺省：离开 1 秒进度 1.25 → 0.75（每秒 20%）")
+	# decay_delay 5 / decay_pct 0.1：4 秒内不退，6 秒时退了 1 秒 × 0.25
+	Bal._data["beacon"] = {"decay_delay": 5.0, "decay_pct": 0.1}
+	var b2: Dictionary = mk.call()
+	step.call(4.0)
+	ok(absf(b2.prog - 1.25) < 0.001, "灯标 decay_delay 5：离开 4 秒进度不退")
+	step.call(2.0)
+	ok(absf(b2.prog - 1.0) < 0.02, "灯标 decay_pct 0.1：延迟后 1 秒退 0.25")
+	game.beacons = []
+	bs.next_at = nb
+	game.zone_state = zs
+	if had:
+		Bal._data["beacon"] = old
+	else:
+		Bal._data.erase("beacon")
+

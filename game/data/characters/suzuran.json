@@ -104,6 +104,7 @@
    "en": "WARM LIGHT",
    "sp": 15,
    "desc": "充能一次后永久生效：光域范围 +60%、减速加深，其他干员攻击 +15%，主控每秒回复 0.5% 生命",
+   "heal": true,
    "permanent": true,
    "icon": "skill_suzuran_s2"
   },
@@ -112,6 +113,7 @@
    "en": "FOXFIRE HAZE",
    "sp": 20,
    "desc": "展开 10 秒大光域（范围 ×2.2），光域内敌人移速 -60%、受到的伤害 +25%，主控每秒回复 1% 生命；期间铃兰不再普攻",
+   "heal": true,
    "dur": 10.0,
    "icon": "skill_suzuran_s3"
   }
