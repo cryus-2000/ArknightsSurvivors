@@ -495,7 +495,7 @@ func _ready() -> void:
 				tex[n + "_white"] = A.white_of(tex[n])
 		if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
 			foot_anchor[n] = true
-		for suffix in ["_move", "_attack", "_charge", "_death"]:
+		for suffix in ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting"]:   # _slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克）
 			var mn: String = n + suffix
 			if tex.get(mn) == null:
 				tex[mn] = A.tex(mn)

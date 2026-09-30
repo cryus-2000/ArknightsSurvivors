@@ -987,6 +987,44 @@ func ishar_animation(e: Dictionary) -> Dictionary:
 	return {"name": base, "frames": 2, "frame": int(g.t * 2.0) % 2}
 
 
+## V13 Boss 帧条的逻辑帧（播放时机见 art/requests/v13_codex_boss_p2.md）；不适用时返回空字典，沿用原帧条。只换画面
+func boss_strip_animation(e: Dictionary) -> Dictionary:
+	var pk: float = float(e.get("pose", 0.0)) / maxf(0.01, float(e.get("pose_max", 1.0)))
+	var winding: bool = e.get("wind", 0.0) > 0.0
+	var posing: bool = e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0
+	match e.type:
+		"carmen":
+			# 剑形态（sword_t）出招：蓄力 f0 → f1，结算后斩出 f2、收剑 f3
+			if e.get("sword_t", 0.0) > 0.0 and posing:
+				var f: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
+				return {"name": "e_carmen_slash", "frames": 4, "frame": f}
+		"iberia":
+			# 装填读条（channel）循环；射击：蓄力 f0 → f1，结算开火 f2、收枪 f3
+			if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
+				return {"name": "e_iberia_reload", "frames": 4, "frame": int(g.t * 6.0) % 4}
+			if posing:
+				var f2: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
+				return {"name": "e_iberia_attack", "frames": 4, "frame": f2}
+		"izumik":
+			# 学习期（phase 1）扎根：进学习期先播 f0–f1 一次，之后 f2–f3 循环；地波蓄力按进度 f0 → f2，结算释放 f3
+			if e.phase == 1 and e.has("learn_t"):
+				var el: float = float(e.get("count_max", 20.0)) - float(e.learn_t)
+				var f3: int = mini(int(el * 6.0), 1) if el < 0.34 else 2 + int(g.t * 3.0) % 2
+				return {"name": "e_izumik_rooting", "frames": 4, "frame": f3}
+			for w in g.warns:
+				if w.act == "izu_wave" and not w.done and is_same(w.owner, e):
+					return {"name": "e_izumik_attack", "frames": 4, "frame": clampi(int(float(w.t) / maxf(0.01, float(w.dur)) * 3.0), 0, 2)}
+			if posing and not winding:
+				return {"name": "e_izumik_attack", "frames": 4, "frame": 3}
+		"path":
+			# 冲撞预警段播 f0 → f1（冲出后的 f2 / f3 走现成的 _charge 挂点）
+			if e.get("dash_t", 0.0) <= 0.0:
+				for w in g.warns:
+					if w.act == "dash" and not w.done and is_same(w.owner, e):
+						return {"name": "e_path_charge", "frames": 4, "frame": 0 if float(w.t) < float(w.dur) * 0.5 else 1}
+	return {}
+
+
 ## 骑士冲锋形态 / 插枪帧（逻辑帧选择不依赖 draw 次数）；不适用时返回空字典，沿用原帧条
 func knight_animation(e: Dictionary) -> Dictionary:
 	if e.get("dash_t", 0.0) > 0.0:
@@ -1087,7 +1125,7 @@ func draw_enemy(e: Dictionary) -> void:
 	if e.type == "paranoia" and e.phase == 2:
 		# 偏执泡影二阶段：e_paranoia2 和一阶段几乎一样（新图已下单 v12），过渡期在画面层区分——
 		# 整体偏洋红、体量 ×1.1、身周一圈扭动的洋红光晕
-		col = col * PARANOIA2_TINT
+		# V13 返修图已是洋红配色，不再程序染色（原 col *= PARANOIA2_TINT）；体量 ×1.1 与光晕保留，等轮廓返修（art/incoming/v13_acceptance.md）
 		sc *= 1.1
 		_paranoia2_halo(e)
 	if e.get("under", false):
@@ -1179,6 +1217,12 @@ func draw_enemy(e: Dictionary) -> void:
 			name = ka.name
 			frames = ka.frames
 			frame = ka.frame
+	# Codex V13 Boss 帧条（art/requests/v13_codex_boss_p2.md）：卡门斩击 / 伊比利亚射击与装填 / 伊祖米克地波蓄力与扎根 / 塑路者冲撞预警段
+	var ba := boss_strip_animation(e)
+	if not ba.is_empty() and g.tex.get(ba.name) != null:
+		name = ba.name
+		frames = ba.frames
+		frame = ba.frame
 	if e.type == "ishar":
 		var ia := ishar_animation(e)
 		if _lazy_tex(ia.name) != null:
