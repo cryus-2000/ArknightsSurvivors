@@ -203,6 +203,7 @@ func draw_spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale: flo
 func _cv_flush() -> void:
 	if cv != g and cv.active:
 		cv.sync()
+		cv.touch()   # 接下来的贴图画法可能改掉 g 的变换（画完置单位矩阵），下次按「未知」重新下发
 
 
 ## 菱形（同 UI.diamond，走 cv 合批）

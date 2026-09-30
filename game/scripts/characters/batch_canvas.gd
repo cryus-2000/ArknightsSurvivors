@@ -57,6 +57,13 @@ func sync() -> void:
 		_gxf = xf
 
 
+## 批外的画法（vfx.spr 等）可能自己改了 g 的变换（画完重置为单位矩阵）：记成「未知」，下次 flush / sync 一定重新下发
+const _UNKNOWN := Transform2D(0.0, Vector2.ZERO, 0.0, Vector2(-1.0e9, -1.0e9))
+
+func touch() -> void:
+	_gxf = _UNKNOWN
+
+
 # ---------------------------------------------------------------- CanvasItem 同名接口
 
 func draw_set_transform(p: Vector2, rot := 0.0, sc := Vector2.ONE) -> void:
@@ -107,8 +114,12 @@ func draw_polyline(points: PackedVector2Array, col: Color, width := -1.0, aa := 
 	if not active:
 		g.draw_polyline(points, col, width, aa)
 		return
-	for q in points.size() - 1:
-		_seg_quad(points[q], points[q + 1], col, width)
+	if width > 2.0 or col.a < 1.0:
+		# 粗线 / 半透明折线不进批，交 Godot 画（折点的衔接与原来完全一样；测试与验收 9/30 查出推进之王破阵地裂变成方块链）
+		sync()
+		g.draw_polyline(points, col, width, aa)
+		return
+	_strip(points, col, width)
 
 
 func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedVector2Array(), tex: Texture2D = null) -> void:
@@ -142,9 +153,11 @@ func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := fal
 		_add(p2, col)
 		_add(p3, col)
 		_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	elif width > 2.0 or col.a < 1.0:
+		sync()
+		g.draw_rect(rect, col, false, width, aa)
 	else:
-		for s in [[p0, p1], [p1, p2], [p2, p3], [p3, p0]]:
-			_seg_quad(s[0], s[1], col, width)
+		_strip(PackedVector2Array([p0, p1, p2, p3, p0]), col, width)   # 闭合带斜接：四个角是满的
 
 
 # ---------------------------------------------------------------- 内部
@@ -173,6 +186,49 @@ func _seg_quad(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 	_add(b - n, col)
 	_add(a - n, col)
 	_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+
+
+## 折线：连续三角带，折点处斜接（原来逐段一个矩形：折点内侧重叠、半透明叠两次变亮，外侧缺楔形，测试与验收 9/30 查出）。
+## 首尾重合时按闭合处理（首尾也斜接）；斜接过尖（超过 4 倍半宽）时截到 4 倍
+func _strip(points: PackedVector2Array, col: Color, width: float) -> void:
+	var pts := PackedVector2Array()
+	for p in points:
+		if pts.is_empty() or p.distance_squared_to(pts[pts.size() - 1]) > 0.000001:
+			pts.append(p)
+	var n: int = pts.size()
+	if n < 2:
+		return
+	var closed: bool = n > 2 and pts[0].distance_squared_to(pts[n - 1]) < 0.000001
+	if closed:
+		pts.remove_at(n - 1)
+		n -= 1
+	var hw: float = (width if width > 0.0 else 1.0) * 0.5
+	var base: int = _pts.size()
+	for i in n:
+		var has_prev: bool = closed or i > 0
+		var has_next: bool = closed or i < n - 1
+		var d_in: Vector2 = (pts[i] - pts[(i - 1 + n) % n]).normalized() if has_prev else Vector2.ZERO
+		var d_out: Vector2 = (pts[(i + 1) % n] - pts[i]).normalized() if has_next else Vector2.ZERO
+		var nrm: Vector2
+		var ml: float = hw
+		if has_prev and has_next:
+			var n1: Vector2 = d_in.orthogonal()
+			var n2: Vector2 = d_out.orthogonal()
+			nrm = (n1 + n2)
+			if nrm.length_squared() < 0.000001:
+				nrm = n1
+			else:
+				nrm = nrm.normalized()
+				ml = minf(hw / maxf(nrm.dot(n1), 0.0001), hw * 4.0)
+		else:
+			nrm = (d_out if has_next else d_in).orthogonal()
+		_add(pts[i] + nrm * ml, col)
+		_add(pts[i] - nrm * ml, col)
+	var segs: int = n if closed else n - 1
+	for q in segs:
+		var a0: int = base + q * 2
+		var a1: int = base + ((q + 1) % n) * 2
+		_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
 
 
 ## 弧：n 个点（n - 1 段），宽度 width（≤ 0 = 1 像素）

@@ -279,6 +279,7 @@ func draw_shadows() -> void:
 	for o in ops:
 		if o.pos != Vector2.INF:
 			cv.sync()
+			cv.touch()
 			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
 			if o.is_leader:
 				# 主控标记：脚下一圈职业色细环，前方一枚小三角指示朝向
