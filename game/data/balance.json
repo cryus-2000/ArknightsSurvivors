@@ -283,12 +283,13 @@
   "any_excess_mult": 0.6
  },
  "pickup": {
-  "_doc": "掉落拾取（run/pickups.gd）：场上宝石超过 gem_overflow 颗时，新掉的经验直接入账（数值 9/30 协调人定 350 → 150：高手无感、扫图差的玩家中后期不再被饿着，场上宝石上限减半利于性能）；磁铁 / 回复药剂（run/combat.gd kill）：精英与 Boss 必掉其一，磁铁占 elite_magnet_share；小怪在场上道具 < item_cap 时按 magnet_kill_chance / heal_kill_chance 掉（两个区间独立）",
+  "_doc": "掉落拾取（run/pickups.gd）：场上宝石超过 gem_overflow 颗时，新掉的经验直接入账（数值 9/30 协调人定 350 → 150：高手无感、扫图差的玩家中后期不再被饿着，场上宝石上限减半利于性能）；磁铁 / 回复药剂（run/combat.gd kill）：精英与 Boss 必掉其一，磁铁占 elite_magnet_share；小怪在场上道具 < item_cap 时按 magnet_kill_chance / heal_kill_chance 掉（两个区间独立）；magnet_cap 2（协调人 9/30 定：小怪掉磁铁只看场上磁铁数，不再被满血不捡的回复药剂占位；magnet_kill_chance 0.0025 → 0.00375）",
   "gem_overflow": 150,
-  "magnet_kill_chance": 0.0025,
+  "magnet_kill_chance": 0.00375,
   "heal_kill_chance": 0.0035,
   "elite_magnet_share": 0.5,
-  "item_cap": 3
+  "item_cap": 3,
+  "magnet_cap": 2
  },
  "fx": {
   "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘；敌方预警密度（1.1.1）：杂兵预警与主控（半径 tell_lead_r + 余量 tell_margin）相交才全强度，打不到的只画 tell_dim_alpha 淡边框，会打到的冲刺线最多 tell_full_max 条全强度（按离主控由近到远），Boss 预警不受影响",
