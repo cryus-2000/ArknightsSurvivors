@@ -1119,6 +1119,8 @@ func _warn_resolve(w: Dictionary) -> void:
 ## 预警绘制：外框 + 随时间填满的内圈；结算瞬间闪白
 func _draw_warns() -> void:
 	for w in g.warns:
+		if w.get("dim", false):
+			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 14.0)

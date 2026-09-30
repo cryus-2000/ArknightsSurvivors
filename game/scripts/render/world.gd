@@ -198,6 +198,7 @@ func draw_world() -> void:
 		g.map.draw_mire(m)
 	tb_flush()
 	_pk("mire")
+	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	g.bai._draw_warns()
 	draw_nest_auras()
 	draw_beacons()
@@ -834,6 +835,9 @@ func draw_world() -> void:
 	draw_enemy_tells()
 	draw_leader_ailments()
 	draw_warn_outlines()
+	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
+	if g.squad.has_method("draw_leader_mark"):
+		g.squad.draw_leader_mark()
 	_pk("tells_outlines")
 	draw_zone()
 	_pk("zone")
@@ -1300,8 +1304,7 @@ func draw_enemy_tells() -> void:
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir"):
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			var L: float = float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))   # Boss与怪物 给了 dash_len 就用它
-			_tell_line(e.pos, e.pos + e.dash_dir * L, 10.0, wk, ENEMY_TELL)
+			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), 10.0, wk, ENEMY_TELL, e.get("tell_dim", false))
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
@@ -2053,9 +2056,13 @@ func _wtex(n: String) -> Texture2D:
 	return _warn_tex[n]
 
 
-func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color) -> void:
+func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := false) -> void:
 	var d: Vector2 = b - a
 	var n: Vector2 = d.normalized().orthogonal() * half
+	if dim:
+		# 打不到主控的冲刺线：只画淡边框（预警不藏，但不再整片盖住主控）
+		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35)), 1.5)
+		return
 	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, 0.22 + 0.12 * k))
 	var lt: Texture2D = _wtex("fx_warn_line")
 	if lt != null:
@@ -2080,6 +2087,60 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color) -> void
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0)
 	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0)
 	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
+
+
+## 冲刺预警线长度：按实际冲刺距离（速度 × dash_speed × 0.35 秒）；Boss与怪物 给了 dash_len 就用它
+func _dash_len(e: Dictionary) -> float:
+	var dd: Dictionary = D.ENEMIES.get(e.type, {})
+	return float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))
+
+
+## 预警密度（可读性 1.1.1，协调人：9:04 截图 59 条滑动者冲刺线 + 近战扇形叠满主控）：预警不能藏（是躲招信号），
+## 所以按「会不会打到主控」分强度——线段 / 扇形 / 圈与主控（半径 fx/tell_lead_r + 余量 fx/tell_margin）相交的全强度，
+## 打不到的只画淡边框（fx/tell_dim_alpha）；会打到的冲刺线超过 fx/tell_full_max 条时按离主控由近到远保留全强度。
+## Boss 的冲刺线与招式预警、预告（style 0）、已结算的不参与。结果写在 e.tell_dim / w.dim（纯画面）
+func classify_tells() -> void:
+	var lr: float = Bal.v("fx/tell_lead_r", 16.0) + Bal.v("fx/tell_margin", 24.0)
+	var p: Vector2 = g.ppos
+	var hits: Array = []
+	for e in g.enemies:
+		if e.dead or e.boss or not (e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir")):
+			if e.has("tell_dim"):
+				e.tell_dim = false
+			continue
+		var a: Vector2 = e.pos
+		var b: Vector2 = a + e.dash_dir * _dash_len(e)
+		var hit: bool = p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) < 10.0 + lr
+		e.tell_dim = not hit
+		if hit:
+			hits.append([a.distance_squared_to(p), e])
+	var nmax: int = Bal.vi("fx/tell_full_max", 8)
+	if hits.size() > nmax:
+		hits.sort_custom(func(x, y): return x[0] < y[0])
+		for i in range(nmax, hits.size()):
+			hits[i][1].tell_dim = true
+	var gy: float = ground_y()
+	for w in g.warns:
+		var ow = w.get("owner")
+		if w.done or int(w.get("style", 1)) == 0 or (ow is Dictionary and ow.get("boss", false)) or not (ow is Dictionary):
+			w["dim"] = false
+			continue
+		var hit := true
+		match w.shape:
+			"cone":
+				var d: Vector2 = p - w.pos
+				var dist: float = d.length()
+				if dist > float(w.r) + lr:
+					hit = false
+				elif dist > lr:
+					hit = absf(angle_difference(d.angle(), float(w.ang))) <= float(w.half) + asin(minf(1.0, lr / dist))
+			"line":
+				var b2: Vector2 = w.pos + Vector2.from_angle(float(w.ang)) * float(w.len)
+				hit = p.distance_to(Geometry2D.get_closest_point_to_segment(p, w.pos, b2)) < float(w.wid) + lr
+			"circle":
+				var dc: Vector2 = p - w.pos
+				hit = Vector2(dc.x, dc.y / maxf(gy, 0.01)).length() < float(w.r) + lr
+		w["dim"] = not hit
 
 
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
@@ -2128,6 +2189,13 @@ func draw_warn_outlines() -> void:
 		var lock_flash: float = (1.0 - lk / 0.15) if tr > 0.0 and lk >= 0.0 and lk < 0.15 else 0.0
 		var core := Color(WARN_CORE.r, WARN_CORE.g, WARN_CORE.b, 0.7 + 0.3 * k)
 		var edge := Color(WARN_EDGE.r, WARN_EDGE.g, WARN_EDGE.b, 0.7)
+		var da: float = 1.0
+		if w.get("dim", false):
+			# 打不到主控的杂兵预警（classify_tells）：轮廓整体降到 fx/tell_dim_alpha，不白闪；地面填充在 boss_ai._draw_warns 里跳过
+			da = Bal.v("fx/tell_dim_alpha", 0.35)
+			core.a *= da
+			edge.a *= da
+			lock_flash = 0.0
 		var gy: float = ground_y()
 		match w.shape:
 			"circle":
@@ -2156,7 +2224,7 @@ func draw_warn_outlines() -> void:
 					g.draw_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 56, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
 				elif not ring:
 					# ① 落点圈：内圈随结算时间长满，最后 0.12 秒整圈白闪
-					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 48, Color(1, 1, 1, 0.35 + 0.35 * k), 1.5)
+					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 48, Color(1, 1, 1, (0.35 + 0.35 * k) * da), 1.5)
 					if w.dur - w.t < 0.12:
 						g.draw_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.35))
 				if lock_flash > 0.0:
@@ -2193,7 +2261,7 @@ func draw_warn_outlines() -> void:
 					var ax: float = 30.0 + off
 					while ax < w.len - 20.0:
 						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), edge, 5.0)
-						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), Color(1, 1, 1, 0.55 + 0.35 * k), 2.0)
+						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), Color(1, 1, 1, (0.55 + 0.35 * k) * da), 2.0)
 						ax += 70.0
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				if w.get("stake_hit", false) or (w.get("owner") is Dictionary and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty()):
@@ -2212,7 +2280,7 @@ func draw_warn_outlines() -> void:
 					g.draw_polyline(pts, edge, 5.0)
 					g.draw_polyline(pts, core, 2.0)
 				# 扇面内一道随时间向外推的弧
-				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, 0.3 + 0.4 * k), 1.5)
+				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, (0.3 + 0.4 * k) * da), 1.5)
 				if lock_flash > 0.0:
 					g.draw_colored_polygon(pts, Color(1, 1, 1, 0.3 * lock_flash))
 		# ④ 缺口环的出口：缺口两侧金色短线 + 中间「出口」小牌（缺口方向与真实弹道同一角度，不做地面压缩）

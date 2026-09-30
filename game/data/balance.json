@@ -285,7 +285,7 @@
   "gem_overflow": 150
  },
  "fx": {
-  "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘",
+  "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘；敌方预警密度（1.1.1）：杂兵预警与主控（半径 tell_lead_r + 余量 tell_margin）相交才全强度，打不到的只画 tell_dim_alpha 淡边框，会打到的冲刺线最多 tell_full_max 条全强度（按离主控由近到远），Boss 预警不受影响",
   "flash_basic": 0.08,
   "flash_dot": 0.05,
   "flash_skill": 0.11,
@@ -303,6 +303,10 @@
   "text_merge_r": 28,
   "text_nudge_t": 0.3,
   "text_nudge_max": 3,
-  "text_crowd": 30
+  "text_crowd": 30,
+  "tell_lead_r": 16,
+  "tell_margin": 24,
+  "tell_full_max": 8,
+  "tell_dim_alpha": 0.35
  }
 }
