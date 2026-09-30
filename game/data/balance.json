@@ -306,7 +306,7 @@
   "text_crowd": 30,
   "tell_lead_r": 16,
   "tell_margin": 24,
-  "tell_full_max": 8,
-  "tell_dim_alpha": 0.35
+  "tell_full_max": 4,
+  "tell_dim_alpha": 0.2
  }
 }
