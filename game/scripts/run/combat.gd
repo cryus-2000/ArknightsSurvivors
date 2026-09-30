@@ -1054,8 +1054,20 @@ func kill(e: Dictionary) -> void:
 		var mag: bool = g.rng.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
 		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if mag else "heal", 1.0)
 		g.pickups.item_log["magnet_elite" if mag else "heal_elite"] += 1
+	elif int(Bal.v("pickup/magnet_cap", 0.0)) > 0:
+		# 磁铁单独上限（协调人 9/30）：小怪掉磁铁只看场上磁铁数 < magnet_cap，不再被回复药剂占位；回复药剂仍按「道具合计 < item_cap」
+		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 0.0)):
+			g.pickups.item_log.mob_rolled += 1
+			if g.rng.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025):
+				g.pickups.drop(e.pos, "magnet", 1.0)
+				g.pickups.item_log.magnet_mob += 1
+		else:
+			g.pickups.item_log.mob_capped += 1
+		if g.pickups.count_items() < int(Bal.v("pickup/item_cap", 3.0)) and g.rng.randf() < Bal.v("pickup/heal_kill_chance", 0.0035):
+			g.pickups.drop(e.pos, "heal", 1.0)
+			g.pickups.item_log.heal_mob += 1
 	elif g.pickups.count_items() >= int(Bal.v("pickup/item_cap", 3.0)):
-		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（不耗随机数，行为同原来）
+		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（magnet_cap = 0 时的原行为，不耗随机数）
 	else:
 		g.pickups.item_log.mob_rolled += 1
 		var r := g.rng.randf()

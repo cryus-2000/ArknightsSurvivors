@@ -13,10 +13,14 @@ func _init(game: Game) -> void:
 	g = game
 
 
-func count_items() -> int:
+## 场上的磁铁 + 回复药剂数；传 kind 时只数这一种（磁铁单独上限用）
+func count_items(kind := "") -> int:
 	var n := 0
 	for g_item in g.gems:
-		if g_item.kind == "magnet" or g_item.kind == "heal":
+		if kind != "":
+			if g_item.kind == kind and not g_item.dead:
+				n += 1
+		elif g_item.kind == "magnet" or g_item.kind == "heal":
 			n += 1
 	return n
 
