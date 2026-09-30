@@ -9,6 +9,9 @@
 *.wav binary
 *.ttf binary
 *.sh text eol=lf
+# Windows 批处理一律 CRLF（cmd 对 LF 行尾的 goto / 标签解析不可靠）
+*.bat text eol=crlf
+*.cmd text eol=crlf
 # Godot 自己写的文件一律 LF（2026-09-26）：Git for Windows 默认 core.autocrlf=true，text=auto 的文件检出成 CRLF，
 # Godot 导入时按 LF 重写，git 就一直报「已修改」（内容其实没变），rebase 被拒。检出也用 LF，两边字节一致。
 *.import text eol=lf

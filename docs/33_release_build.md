@@ -11,9 +11,14 @@ python tools/release_all.py --ref <冻结提交>
 ```
 
 `tools/release_all.py`（2026-09-30）串行做：出对外包 → `verify_encrypted_game.py` 验证 → 出对内包（`--ea`）→ 验证 → 出网页版（`export_web.py`），
-任一步失败就中止；最后写 `build/release/release_<提交>.json`（两个 zip 的路径 / 大小 / sha256、验证报告、存档目录、网页最大单文件）。
+任一步失败就中止。产物统一收进 `build/release/final_<提交>/`：两个 zip、`web/`、汇总 `release_<提交>.json`（zip 的路径 / 大小 / sha256、
+验证报告、存档目录、是否全部解锁、网页最大单文件）、两份验证报告与各次启动日志，以及对内包验证过的解压目录 `internal/`。
 两个 Windows 包必须串行：导出与验证共用 `build/_export/`，验证读的是刚导出的那份打包源码。验证报告与日志按 audience 分开命名
-（`build/encrypted_game_verification_<public|internal>_<提交>.json`），同一提交的两份不会互相覆盖。
+（`encrypted_game_verification_<public|internal>_<提交>.json`），同一提交的两份不会互相覆盖。
+`--only public|internal|web` 只出其中一份（其余不动，汇总并进同一个 `release_<提交>.json`）；`--no-web` 不出网页版。
+
+**一键启动对内测试版**（1.1.1）：仓库根目录 `启动对内测试版.bat`（进 git），双击即运行 `build/release/final_*/internal/` 里最新的一份
+（按目录修改时间）；找不到就提示先跑 `python tools/release_all.py --ref main --only internal`。解压目录在 `build/` 下，不进 git。
 
 只出一个包：
 
@@ -75,7 +80,7 @@ python tools/export_build.py
 | 包名 | 包含 Public / 对外版 | 包含 Internal / 内测版 |
 | 存档 | 正常玩家存档 | 与对外版隔离，演练不得污染正式进度 |
 
-“未解锁”指首次启动的默认进度，不是每次启动清空玩家已有存档。对内版不要求自动全解锁正常游戏；测试所需配置由演练界面提供。
+“未解锁”指首次启动的默认进度，不是每次启动清空玩家已有存档。对内版启动即「全部解锁」（1.1.1，用户 09-30 改）：难度三档、图鉴、结局线全开，与调试版同一套 `Cfg._apply_unlock_all`，只在内存、不写入存档（存档里仍是真实进度），标题右上角显示「测试版 · 已全部解锁（不写入存档）」；对外版恒不解锁。`check_release.py` 静态断言对外分支、`verify_encrypted_game.py` 在打包后实测（对内：`unlock_all` 为真、图鉴全开、写一次存档后文件里进度仍为空；对外：`unlock_all` 为假、图鉴只开干员页）。
 
 EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对外包开放 Boss 演练。构建信息应显式区分 Public / Internal；导出器、主页可见性和演练入口校验统一使用该标记。
 

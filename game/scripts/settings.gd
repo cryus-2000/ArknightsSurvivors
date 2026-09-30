@@ -38,7 +38,7 @@ var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
-var unlock_all := false      # 开发测试：本次运行全部解锁（只在内存里，见 _apply_unlock_all；发布版恒为 false）
+var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
 var opening_seen := false    # 看过完整的标题开场（写入存档）：之后启动只播简短版（2026-09-27 用户定，开场方案 A）
@@ -145,14 +145,16 @@ func _migrate_diff() -> void:
 
 
 ## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
-## 只在 debug 构建（编辑器运行、debug 导出）里生效：不带启动参数直接运行时自动打开，带测试参数时要显式加 --unlockall
-## （自动测试不受影响），--nounlock 可关掉。发布版（--export-release）里 OS.is_debug_build() 为 false，永远不会打开。
+## debug 构建（编辑器运行、debug 导出）：不带启动参数直接运行时自动打开，带测试参数时要显式加 --unlockall
+## （自动测试不受影响），--nounlock 可关掉。发布版（--export-release）只有对内包（build.json audience = internal）
+## 启动即打开（1.1.1，用户 09-30）；对外包恒不打开（tools/check_release.py 与 verify_encrypted_game.py 都断言）。
 ## 只改内存：存档里的真实进度先存进 _real_progress，save() 写回它们，本次运行的解锁与进度不会写进存档。
 func _apply_unlock_all() -> void:
-	if not OS.is_debug_build():
-		return
-	if dev_args().has("--nounlock") or not (dev_args().is_empty() or dev_args().has("--unlockall")):
-		return
+	if OS.is_debug_build():
+		if dev_args().has("--nounlock") or not (dev_args().is_empty() or dev_args().has("--unlockall")):
+			return
+	elif build_audience() != "internal":
+		return   # 对外包（public / diagnostic）恒不解锁；对内包（1.1.1，用户 09-30）启动即全部解锁，同样只在内存
 	unlock_all = true
 	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
 	diff_unlocked = D.DIFFICULTY_TIERS.size() - 1

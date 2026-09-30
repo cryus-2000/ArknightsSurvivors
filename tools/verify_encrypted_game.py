@@ -54,9 +54,25 @@ func _verify():
     if cfg == null:
         failures.append("cfg_missing")
     else:
-        if cfg.unlock_all or not cfg.dev_args().is_empty() or OS.is_debug_build():
+        if not cfg.dev_args().is_empty() or OS.is_debug_build():
             failures.append("release_debug_gate")
-        if not cfg.gallery_seen.is_empty() or not cfg.seen_relics.is_empty() or not cfg.endings_cleared.is_empty() or cfg.diff_unlocked != 0:
+        # 全部解锁（1.1.1）：对内包启动即打开、只在内存；对外包恒为 false
+        if cfg.unlock_all != (audience == "internal"):
+            failures.append("unlock_all_audience")
+        if audience == "internal":
+            if cfg.diff_unlocked == 0 or cfg.seen_relics.is_empty() or cfg.endings_cleared.is_empty():
+                failures.append("internal_unlock_incomplete")
+            var real: Dictionary = cfg._real_progress
+            if int(real.get("diff_unlocked", -1)) != 0 or not real.get("seen_relics", [0]).is_empty() or not real.get("endings_cleared", [0]).is_empty() or not cfg.gallery_seen.is_empty():
+                failures.append("fresh_progress")
+            # 写一次存档再读回：解锁不得写进存档文件
+            cfg.save()
+            var saved = ConfigFile.new()
+            if saved.load("user://settings.cfg") != OK:
+                failures.append("internal_save_missing")
+            elif int(saved.get_value("progress", "diff_unlocked", 0)) != 0 or not saved.get_value("progress", "seen_relics", []).is_empty() or not saved.get_value("progress", "endings_cleared", []).is_empty() or not saved.get_value("progress", "gallery_seen", []).is_empty():
+                failures.append("unlock_written_to_save")
+        elif not cfg.gallery_seen.is_empty() or not cfg.seen_relics.is_empty() or not cfg.endings_cleared.is_empty() or cfg.diff_unlocked != 0:
             failures.append("fresh_progress")
         if cfg.can_boss_trial() != (audience == "internal"):
             failures.append("boss_trial_audience")
@@ -64,7 +80,8 @@ func _verify():
     var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
     if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
         failures.append("user_dir_isolation:" + user_dir)
-    if audience == "public" and cfg != null:
+    # 图鉴：对外包新存档只开放干员页；对内包全部解锁
+    if cfg != null:
         var gallery = load("res://scripts/gallery.gd").new()
         root.add_child(gallery)
         gallery.set_process(false)
@@ -74,10 +91,11 @@ func _verify():
             if gallery.entries.is_empty():
                 failures.append("gallery_empty:" + str(page))
             for entry in gallery.entries:
-                if bool(entry.get("locked", false)) != (page != 0):
+                if bool(entry.get("locked", false)) != (audience != "internal" and page != 0):
                     failures.append("gallery_initial_lock:" + str(page))
+                    break
         gallery.queue_free()
-    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
     Art._hires.clear()
     Art._hires_rid.clear()
