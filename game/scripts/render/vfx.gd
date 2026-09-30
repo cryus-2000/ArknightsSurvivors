@@ -216,6 +216,8 @@ func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
 		return
 	if _boss_fight():
 		return
+	if not weak and g.texts.size() > Bal.vi("fx/text_crowd", 30):
+		return   # 飘字多时普通白字不飘，只留暴击 / 弱点 / 破绽（可读性，1.1.1）
 	if weak:
 		add_text(e.pos + jit + Vector2(0, -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 	else:
@@ -236,7 +238,7 @@ func _flush_boss_sum(dt: float) -> void:
 		var e: Dictionary = s.e
 		if s.dmg >= 1.0 and s.get("brk", false):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), "破绽 " + str(int(round(s.dmg))), UI.GOLD, 22)   # 破绽期间：金色大一号（打击感审查）
-		elif s.dmg >= 1.0:
+		elif s.dmg >= 1.0 and (s.weak or g.texts.size() <= Bal.vi("fx/text_crowd", 30)):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
 
@@ -249,21 +251,63 @@ func mark_enemy_fx(from: int) -> void:
 
 
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
-	if text.is_valid_int():
+	var pn: Array = _num_parts(text)
+	if not pn.is_empty():
+		var mt: float = Bal.v("fx/text_merge_t", TEXT_MERGE_T)
+		var mr: float = Bal.v("fx/text_merge_r", TEXT_MERGE_R)
 		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
 			var t: Dictionary = g.texts[i]
-			if t.max - t.life > TEXT_MERGE_T or t.col != col or not str(t.text).is_valid_int() or t.pos.distance_to(pos) > TEXT_MERGE_R:
+			if t.max - t.life > mt or t.col != col or t.get("base", t.size) != size:
 				continue
-			if t.get("base", t.size) != size:
+			if t.get("pos0", t.pos).distance_to(pos) > mr:
+				continue
+			var tp: Array = _num_parts(str(t.text))
+			if tp.is_empty() or tp[0] != pn[0]:
 				continue
 			t["base"] = t.get("base", t.size)
-			t.text = str(int(t.text) + int(text))
+			t.text = pn[0] + str(int(tp[1]) + int(pn[1]))
 			t.size = mini(t.base + 6, t.size + 1)
 			t.life = t.max
 			return
-	g.texts.append({"pos": pos, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
+	# 避让（可读性，1.1.1）：和刚冒出（text_nudge_t 秒内）的飘字框重叠就往上错一行，最多错 text_nudge_max 行
+	var p0: Vector2 = pos
+	var tries: int = Bal.vi("fx/text_nudge_max", 3)
+	var nt: float = Bal.v("fx/text_nudge_t", 0.3)
+	var w: float = _text_w(text, size)
+	var moved := true
+	while moved and tries > 0:
+		moved = false
+		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 30), -1):
+			var t: Dictionary = g.texts[i]
+			if t.max - t.life > nt:
+				continue
+			var tw: float = _text_w(str(t.text), int(t.size))
+			if absf(t.pos.x - pos.x) < (tw + w) * 0.5 and absf(t.pos.y - pos.y) < (float(t.size) + size) * 0.5 + 1.0:
+				pos.y = t.pos.y - (float(t.size) + size) * 0.5 - 2.0
+				moved = true
+				tries -= 1
+				break
+	g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
 	if g.texts.size() > TEXT_CAP:
 		g.texts.pop_front()
+
+
+## 可合并的数字飘字：["前缀", "数字"]（纯数字前缀为空；「弱点 94」「破绽 382」按前缀分开合并），其余返回 []
+func _num_parts(text: String) -> Array:
+	if text.is_valid_int():
+		return ["", text]
+	for pre in ["弱点 ", "破绽 "]:
+		if text.begins_with(pre) and text.substr(pre.length()).is_valid_int():
+			return [pre, text.substr(pre.length())]
+	return []
+
+
+## 飘字宽度估算（世界坐标；中文按 1 个字号、数字 / 空格按 0.66 个字号，外加描边 8）
+func _text_w(text: String, size: int) -> float:
+	var w := 8.0
+	for ch in text:
+		w += size * (0.66 if ch.unicode_at(0) < 256 else 1.0)
+	return w
 
 
 func update(dt: float) -> void:
