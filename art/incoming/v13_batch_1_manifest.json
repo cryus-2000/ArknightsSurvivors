@@ -1,0 +1,112 @@
+{
+  "assets": [
+    {
+      "file": "e_carmen_slash.png",
+      "character": "carmen",
+      "frame_width": 40,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        20,
+        45
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "1e1beae4703df6fee635622a93371191b848e2872dd24258e6ef4aa0427e1c37",
+      "source": "e_carmen.png",
+      "source_sha256": "3010115c7149dc2d40353d1117d45b38b9929b3c047b3b29d566348317e6a4e9"
+    },
+    {
+      "file": "e_carmen_slash@2x.png",
+      "character": "carmen",
+      "frame_width": 80,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        40,
+        90
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "47a7807e6c8aa494a53b77bf66f519fe65b82818192932700990c0cd839c0324",
+      "source": "e_carmen.png",
+      "source_sha256": "3010115c7149dc2d40353d1117d45b38b9929b3c047b3b29d566348317e6a4e9"
+    },
+    {
+      "file": "e_iberia_attack.png",
+      "character": "iberia",
+      "frame_width": 40,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        20,
+        45
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "7e5dec2cb2ddc4b5a9af630578726ebfb29a959c6025bdb97696597b8367df14",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    },
+    {
+      "file": "e_iberia_attack@2x.png",
+      "character": "iberia",
+      "frame_width": 80,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        40,
+        90
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "c32030fcec77a68d8c4e628abf158468e93acac78455d60ada44d8553e0bcd50",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    },
+    {
+      "file": "e_iberia_reload.png",
+      "character": "iberia",
+      "frame_width": 40,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        20,
+        45
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "544435a3c941c875985bff67ea08cb67e6d5e38a2b00da9028b4ba6ba04adf9e",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    },
+    {
+      "file": "e_iberia_reload@2x.png",
+      "character": "iberia",
+      "frame_width": 80,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        40,
+        90
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "829e4cf3ba883c8396c529e64c7738d0b0565ed65495b96e6250d90b1668a44f",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    }
+  ]
+}
