@@ -70,8 +70,9 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	one_cap = 0.0
 	if lost <= 0.0:
 		return
+	ctrl_hit_cat = ctrl_cat(src)   # 控制遥测：这一下吃到的冰霜 / 寒霜 / 束缚记到这个来源
 	if float(src.get("frost", 0.0)) > 0.0:
-		g.frost = maxf(g.frost, float(src.frost))
+		frost_leader(float(src.frost), ctrl_hit_cat)
 	# 小怪控制：按来源敌人的 enemies.json 字段（cold_hit 寒霜层 / wound_hit 侵蚀创口 / root_hit 束缚秒数，束缚只认预警招式）
 	if ctrl_on():
 		var sd: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
@@ -80,6 +81,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 			add_wound(int(sd.get("wound_hit", 0)))
 			if src.get("warn", false):
 				add_root(float(sd.get("root_hit", 0.0)), "束缚")
+	ctrl_hit_cat = "other"
 	# 凋亡损伤：小怪来源按 ctrl_start 生效，Boss 来源（伊祖米克）一直生效
 	var ad: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
@@ -166,6 +168,72 @@ var ctrl_boss := false       # 上一帧有没有 Boss 存活：Boss 刚出现�
 ## 其间移速倍率的最小值 move_min（含下限，应 ≥ floor）和不含下限的减速乘积最小值 slow_min；僵直 / 攻速减缓换成减速的次数
 var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "aslow_t": 0.0, "move_min": 1.0, "slow_min": 1.0, "stun_slow": 0, "aslow_slow": 0}
 
+## 控制遥测（用户 10-01，docs/41「EA 后待派」：设计 Ⅳ / Ⅷ「改操作」机制的前置数据）：只记账，不改玩法。
+## 按来源分四类（CTRL_CATS + Boss，其余记 other），每类记：被冻结次数 freeze_n、冻结总秒数 freeze_t（冲刺提前挣脱按实际算）、
+## 冲刺挣脱冻结次数 dash_break_n、被减速总秒数 slow_t（冰霜 g.frost、寒霜层 g.cold、slows 里的减速；同一类同一时刻只算一次）。
+## slow_any_t = 有任何一种减速在身上的总秒数（不同来源同时生效只算一次）。BALANCE / 本地记录的 "ctrl_src"（telemetry.record）
+const CTRL_CATS := {"founder": "founder", "skimmer": "skimmer"}   # 敌人 type -> 分类：奠基者、漂移体
+var ctrl_src := {}             # 分类 -> {freeze_n, freeze_t, dash_break_n, slow_t}（ctrl_src_report 输出）
+var ctrl_slow_any := 0.0
+var ctrl_hit_cat := "other"    # enemy_hit 这一下的来源分类：add_cold / add_root 在这一下里读，结束后回到 other
+var cold_cat := "other"        # 当前寒霜层最后一次叠层的来源
+var frost_cat := "other"       # 当前冰霜减速（g.frost）的来源
+var root_cat := "other"        # 当前冻结 / 束缚的来源
+var root_kind := ""            # 当前 g.root_t 的种类：冻结 / 束缚 / 眩晕
+var slow_cat := {}             # slows 的种类 -> 来源分类
+
+
+## 敌人来源 → 控制遥测分类：Boss 本体 / 带 boss 标记的预警、子弹 → boss；奠基者 / 漂移体按 type；其余 other
+func ctrl_cat(src: Dictionary) -> String:
+	var t := str(src.get("type", src.get("src_type", "")))
+	if src.get("boss", false) or str(D.ENEMIES.get(t, {}).get("role", "")) == "boss":
+		return "boss"
+	return CTRL_CATS.get(t, "other")
+
+
+func _ctrl_entry(cat: String) -> Dictionary:
+	if not ctrl_src.has(cat):
+		ctrl_src[cat] = {"freeze_n": 0, "freeze_t": 0.0, "dash_break_n": 0, "slow_t": 0.0}
+	return ctrl_src[cat]
+
+
+## 每帧（update_ctrl 开头，减速计时递减之前）：按来源累计冻结秒数与减速秒数
+func _ctrl_tally(dt: float) -> void:
+	if g.root_t > 0.0 and root_kind == "冻结":
+		_ctrl_entry(root_cat).freeze_t += minf(dt, g.root_t)
+	var cats := {}
+	if g.frost > 0.0:
+		cats[frost_cat] = true
+	if g.cold > 0:
+		cats[cold_cat] = true
+	for k in slows:
+		cats[slow_cat.get(k, "boss")] = true
+	for c in cats:
+		_ctrl_entry(c).slow_t += dt
+	if not cats.is_empty():
+		ctrl_slow_any += dt
+
+
+## 冲刺时（game._try_dash 清 root_t 之前）：正在冻结就记一次挣脱
+func on_dash_break() -> void:
+	if g.root_t > 0.0 and root_kind == "冻结":
+		_ctrl_entry(root_cat).dash_break_n += 1
+
+
+## 冰霜减速（g.frost 秒）：取较长的时长，记下来源
+func frost_leader(t: float, cat: String) -> void:
+	g.frost = maxf(g.frost, t)
+	frost_cat = cat
+
+
+## BALANCE / 本地记录用：四类都输出（没吃到的为 0），秒数取两位小数
+func ctrl_src_report() -> Dictionary:
+	var r := {"slow_any_t": snappedf(ctrl_slow_any, 0.01)}
+	for c in ["founder", "skimmer", "boss", "other"]:
+		var e: Dictionary = _ctrl_entry(c)
+		r[c] = {"freeze_n": e.freeze_n, "freeze_t": snappedf(e.freeze_t, 0.01), "dash_break_n": e.dash_break_n, "slow_t": snappedf(e.slow_t, 0.01)}
+	return r
+
 
 ## Boss 战里把一次僵直换成减速。返回 true = 已换成减速，调用处不再写 g.pstun
 func stun_as_slow(boss_src := false) -> bool:
@@ -185,12 +253,13 @@ func atk_slow_as_slow(t: float, boss_src := false) -> bool:
 	return true
 
 
-## 给主控挂一种移速减速：t 秒、倍率 mult；同种只刷新（取较长的时长、用这次的倍率）
-func slow_leader(kind: String, t: float, mult: float) -> void:
+## 给主控挂一种移速减速：t 秒、倍率 mult；同种只刷新（取较长的时长、用这次的倍率）。cat = 控制遥测的来源分类
+func slow_leader(kind: String, t: float, mult: float, cat := "boss") -> void:
 	if not slows.has(kind):
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "减速", Color(0.6, 0.8, 1.0), 14)
 	var old: float = slows[kind][0] if slows.has(kind) else 0.0
 	slows[kind] = [maxf(old, t), mult]
+	slow_cat[kind] = cat
 
 
 ## 主控移速倍率：raw = 溟痕 / 排异幻境 / 冰霜等原有减速的乘积，再乘上 slows 里的减速（game._update 每帧调一次）。
@@ -208,6 +277,7 @@ func move_mult(raw: float) -> float:
 
 ## 每帧（enemies.update_status，在僵直 / 攻速减缓计时递减之前）：推进减速计时；Boss 存活期间残留的僵直 / 攻速减缓换成减速并记账
 func update_ctrl(dt: float) -> void:
+	_ctrl_tally(dt)
 	var on: bool = g.spawner.boss_alive()
 	if on:
 		ctrl.boss_t += dt
@@ -226,6 +296,7 @@ func update_ctrl(dt: float) -> void:
 		slows[k][0] -= dt
 		if slows[k][0] <= 0.0:
 			slows.erase(k)
+			slow_cat.erase(k)
 
 
 ## BALANCE 输出用：ctrl 里的秒数 / 倍率取两位小数，附上移速下限 floor
@@ -595,6 +666,7 @@ func add_cold(n: int) -> void:
 		return
 	var mx: int = int(enemy_knob("frost_max", 3.0))
 	g.cold = mini(g.cold + n, mx)
+	cold_cat = ctrl_hit_cat
 	g.cold_t = Bal.v("enemy/frost_dur", 3.0)
 	sync_cold()
 	if g.cold >= mx:
@@ -614,9 +686,13 @@ func add_root(t: float, label: String) -> void:
 	if t <= 0.0 or g.root_immune > 0.0 or g.root_t > 0.0:
 		return
 	if g.spawner.boss_alive():
-		slow_leader("root", t, Bal.v("boss/stun_as_slow_mult", 0.7))
+		slow_leader("root", t, Bal.v("boss/stun_as_slow_mult", 0.7), ctrl_hit_cat)
 		return
 	g.root_t = t
+	root_cat = ctrl_hit_cat
+	root_kind = label
+	if label == "冻结":
+		_ctrl_entry(root_cat).freeze_n += 1
 	g.root_immune = t + Bal.v("enemy/root_immune", 3.0)
 	g.vfx.add_text(g.ppos + Vector2(0, -96), label, Color(0.6, 0.9, 1.4) if label == "冻结" else Color(0.8, 0.5, 1.2), 18)
 

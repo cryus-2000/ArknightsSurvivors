@@ -975,6 +975,7 @@ func _try_dash() -> void:
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
 	dash_used = true
+	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
 	root_t = 0.0   # 冲刺挣脱冻结 / 束缚
 	apop = maxf(0.0, apop - Bal.v("enemy/apop_dash", 40.0))   # 冲刺清掉一部分凋亡损伤
 	invuln = maxf(invuln, DASH_TIME + 0.05)

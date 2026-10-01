@@ -277,7 +277,7 @@ func record(marks = null) -> Dictionary:
 		"out_tag": g.dmg_tag_out, "ending": g.ending, "lamp": int(g.lamp), "rej": g.doctor.rej(), "heal": g.heal_log, "drone": g.weapons.get("drone", 0),
 		"floor_hits": g.floor_hits, "floor_times": g.floor_times,
 		"hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "mix": h.get("mix", ""), "comp": h.comp}),
-		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "bot": bot_block}
+		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 
 
 ## 状态切换时调用（game.gd _process）：进入胜 / 负就把这一局写进本地记录

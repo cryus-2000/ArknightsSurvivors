@@ -530,6 +530,29 @@ def horde_summary(records):
     return "\n".join(lines)
 
 
+CTRL_CAT_NAMES = (("founder", "奠基者"), ("skimmer", "漂移体"), ("boss", "Boss"), ("other", "其他"))
+
+
+def ctrl_summary(records):
+    """控制遥测（用户 10-01，BALANCE 的 ctrl_src，run/combat.gd）：按 机器人 × 难度，每局平均的
+    被冻结次数 / 冻结秒数 / 冲刺挣脱冻结次数 / 被减速秒数，按来源（奠基者 / 漂移体 / Boss / 其他）分列；末列为任何减速在身的秒数"""
+    by = {}
+    for r in records:
+        d = r.get("data")
+        if d and isinstance(d.get("ctrl_src"), dict):
+            by.setdefault((r.get("bot", "normal"), r.get("diff", 0)), []).append(d["ctrl_src"])
+    if not by:
+        return ""
+    head = "| 机器人 | 难度 | 局数 | " + " | ".join("%s 冻结次 / 秒 / 挣脱 / 减速秒" % n for _, n in CTRL_CAT_NAMES) + " | 任何减速秒 |"
+    lines = [head, "|---|---|---|" + "---|" * (len(CTRL_CAT_NAMES) + 1)]
+    for (bot, df), cs in sorted(by.items()):
+        def m(cat, k):
+            return statistics.mean(float(c.get(cat, {}).get(k, 0)) for c in cs)
+        cells = ["%.1f / %.1f / %.1f / %.0f" % (m(cat, "freeze_n"), m(cat, "freeze_t"), m(cat, "dash_break_n"), m(cat, "slow_t")) for cat, _ in CTRL_CAT_NAMES]
+        lines.append("| %s | %d | %d | %s | %.0f |" % (bot, df, len(cs), " | ".join(cells), statistics.mean(float(c.get("slow_any_t", 0)) for c in cs)))
+    return "\n".join(lines)
+
+
 ZONE_STATE_NAMES = {0: "未缩圈", 1: "预告", 2: "收缩", 3: "稳定"}
 
 
@@ -662,6 +685,9 @@ def main():
     ds = difficulty_summary(records)
     if ds:
         md = "### 难度 / 缩圈 / 同屏峰值\n\n" + ds + "\n\n" + md
+    cs = ctrl_summary(records)
+    if cs:
+        md = "### 控制（按来源，每局平均）\n\n" + cs + "\n\n" + md
     mb = mid_boss_summary(records)
     if mb:
         md = "### 中期 Boss（按类型）\n\n" + mb + "\n\n" + md

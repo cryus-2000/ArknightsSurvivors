@@ -351,7 +351,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			if e.get("frost_t", 0.0) > 0.0:
 				e.frost_t -= dt
 				if g.combat.ground_d(g.ppos, e.frost_pos) < 200.0:
-					g.frost = maxf(g.frost, 0.15)
+					g.combat.frost_leader(0.15, "boss")   # 寒冰领域：控制遥测记为 Boss 来源
 			_knight_stakes(e, dt)
 			# 二阶段冲锋一组 1 + boss/knight_p2_chain 次（缺省 3 次一组），组后喘气 2.5 秒（普通破绽，docs/38 §8.8）
 			if int(e.get("dash2", 0)) > 0 and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:

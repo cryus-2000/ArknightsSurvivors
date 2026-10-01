@@ -210,6 +210,16 @@ def ctrl_errors(d):
         errs.append("主控保护：Boss 存活期间 atk_slow %.2f 秒（应为 0）" % c["aslow_t"])
     if c.get("move_min", 1) < c.get("floor", 0) - 1e-6:
         errs.append("主控保护：Boss 存活期间移速倍率最低 %.2f（应 ≥%.2f）" % (c["move_min"], c["floor"]))
+    # 控制遥测（用户 10-01，run/combat.gd ctrl_src_report）：BALANCE 必须带 ctrl_src，四类来源各有四个字段，数值非负
+    cs = (d or {}).get("ctrl_src")
+    if d is not None:
+        if not isinstance(cs, dict) or "slow_any_t" not in cs:
+            errs.append("控制遥测：BALANCE 缺 ctrl_src / slow_any_t")
+        else:
+            for cat in ("founder", "skimmer", "boss", "other"):
+                e = cs.get(cat)
+                if not isinstance(e, dict) or any(not isinstance(e.get(k), (int, float)) or e.get(k) < 0 for k in ("freeze_n", "freeze_t", "dash_break_n", "slow_t")):
+                    errs.append("控制遥测：ctrl_src.%s 缺字段或为负：%s" % (cat, e))
     return errs
 
 

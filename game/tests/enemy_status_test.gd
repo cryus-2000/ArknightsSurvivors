@@ -96,6 +96,37 @@ func _process(_dt: float) -> void:
 		game.corrode_pool = game.max_hp * cap
 		lob_hit(acid)
 		check(game.corrode_pool <= game.max_hp * cap + 0.0001, "acid obeys existing nonboss corrosion pool cap")
+	# 控制遥测（用户 10-01，combat.ctrl_src）：奠基者叠满寒霜 → 冻结次数 +1、冻结秒数按帧累计、寒霜减速记到奠基者；冲刺挣脱 +1
+	reset()
+	var dmod_old: Dictionary = game.dmod.duplicate()
+	var state_old = game.state
+	game.state = game.S.PLAY
+	game.dmod["ctrl_start"] = 0.0
+	game.dmod["frost_max"] = 2.0
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_t = 0.0
+	game.root_immune = 0.0
+	var founder: Dictionary = game.spawner.spawn_enemy("founder", game.ppos + Vector2(500, 0))
+	game.combat.enemy_hit(10.0, founder, false, true)
+	game.invuln = 0.0
+	game.combat.enemy_hit(10.0, founder, false, true)
+	var fs: Dictionary = game.combat.ctrl_src_report()
+	check(game.root_t > 0.0 and fs.founder.freeze_n == 1 and fs.skimmer.freeze_n == 0, "founder full frost counts one freeze for founder")
+	game.combat.update_ctrl(0.1)
+	fs = game.combat.ctrl_src_report()
+	check(is_equal_approx(fs.founder.freeze_t, 0.1) and is_equal_approx(fs.founder.slow_t, 0.1) and is_equal_approx(fs.slow_any_t, 0.1), "freeze and frost slow seconds tallied to founder")
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game._try_dash()
+	fs = game.combat.ctrl_src_report()
+	check(game.root_t == 0.0 and fs.founder.dash_break_n == 1, "dash out of freeze counts one break")
+	game.cold = 0
+	game.cold_immune = 0.0
+	game.root_immune = 0.0
+	game.dash_t = 0.0
+	game.dmod = dmod_old
+	game.state = state_old
 	reset()
 	var bone: Dictionary = game.spawner.spawn_enemy("bone", game.ppos + Vector2(500, 0))
 	game.combat.enemy_hit(10.0, bone, false, true)
