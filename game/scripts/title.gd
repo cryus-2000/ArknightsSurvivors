@@ -436,7 +436,11 @@ func _close_info() -> void:
 
 
 func _menu_ids() -> Array:
-	return [0, 1, 2, 3, 4, 5] if Cfg.can_boss_trial() else [0, 1, 3, 4, 5]
+	var ids: Array = [0, 1, 2, 3, 4, 5] if Cfg.can_boss_trial() else [0, 1, 3, 4, 5]
+	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）
+	if OS.has_feature("web"):
+		ids.erase(5)
+	return ids
 
 
 func _menu_step(direction: int) -> void:
@@ -579,9 +583,10 @@ func _draw() -> void:
 			UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
 	# 操作提示
 	var hf := _seg(4.0, 0.4)
-	if hf > 0.0 and not diff_pick and not op_pick:
+	# 触屏不画（点按菜单不用提示；740×360 下还会压到时间轴竖线和最后一项的圆点）
+	if hf > 0.0 and not diff_pick and not op_pick and not Pad.touch_ui():
 		var hy := my + menu_ids.size() * step + 12
-		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM", "TAP   SELECT"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
+		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM", ""), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
 	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
 	var df := _seg(3.9, 0.4)
 	deploy_rect = Rect2()
@@ -710,8 +715,9 @@ func _draw_credits(vs: Vector2) -> void:
 	var tx: float = CREDITS_LX + CREDITS_LW + 16.0
 	var tw: float = pw - tx - 36.0
 	var lay: Dictionary = {}
-	for fs in [14, 13, 12]:
-		lay = _credits_layout(secs, fs, tw)
+	# 放不下就逐级缩字号，最后再收紧条目间距（触屏逻辑高 626 时 10 条放不下 12 号）
+	for fs in [14, 13, 12, 11, -11]:
+		lay = _credits_layout(secs, absi(fs), tw, 3.0 if fs < 0 else -1.0)
 		if CREDITS_HEAD + lay.h + CREDITS_FOOT <= vs.y - 32.0:
 			break
 	var h: float = CREDITS_HEAD + lay.h + CREDITS_FOOT
@@ -735,10 +741,10 @@ func _draw_credits(vs: Vector2) -> void:
 
 
 ## 致谢页排版：每条 {label: 条目名 fit, text: 说明 fit, link, h}；返回 {rows, h}
-func _credits_layout(secs: Array, fs: int, tw: float) -> Dictionary:
+func _credits_layout(secs: Array, fs: int, tw: float, gap_override := -1.0) -> Dictionary:
 	var rows: Array = []
 	var total := 0.0
-	var gap: float = fs - 1.0
+	var gap: float = fs - 1.0 if gap_override < 0.0 else gap_override
 	for sec in secs:
 		# 条目名：先试一行（最小 13 号），放不下再折成两行，按半长折开（「第三方开放许可 / 特效素材」）
 		var lab := UI.fit(font, sec[0], CREDITS_LW, font.get_height(15), [15, 14, 13])

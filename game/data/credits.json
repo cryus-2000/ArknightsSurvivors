@@ -29,6 +29,11 @@
    "https://godotengine.org"
   ],
   [
+   "字体",
+   "界面字体 Noto Sans CJK SC / Noto Sans SC，事件标题字体 Noto Serif SC（© 2014–2023 Adobe，Google Noto 项目），按 SIL Open Font License 1.1 子集化后随游戏分发。",
+   "https://openfontlicense.org"
+  ],
+  [
    "开发协作",
    "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT / Codex（OpenAI）共同完成。",
    "https://claude.ai  ·  https://chatgpt.com"
