@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """itch 封面过渡版 F（界面与美术 2026-10-01）：自有 6 色限定调色板（同 art/requests/v16_codex_cover.md），Codex 肖像到货前先用。
 构图（与参考图区分开）：主角（缺省水月，--op skadi 为斯卡蒂版）半身在左、面朝右侧点亮的引航灯标，暖光从灯标打到她脸上；灯标脚下一圈溟痕触须和海嗣轮廓沿海浪线错落；
-标题一行横排在右上（右对齐），英文与声明在其下。整幅最后按 4×4 有序抖动量化到 6 色——硬边、无抗锯齿、无半透明。
+标题一行横排在右上（右对齐），英文与声明在其下。背景（海、灯标、海嗣、触须、标题）按 4×4 有序抖动量化到 6 色；人物保持干员原本配色叠在上面（用户 10-01）。
 Codex 肖像到货后把 bust 层换成 art/incoming/cover_v16/cover_skadi.png（头像沿灯光弧线排开），其余不变。
 用法：python tools/promo_cover_pal.py [输出目录，缺省 build/promo] [--size 630x500|960x400] [--op mizuki|skadi]
 """
 import os, sys, random
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import promo_keyart as K
 import promo_cover as C
@@ -16,10 +16,9 @@ import promo_cover_bust as B
 ROOT = K.ROOT
 # 主角（--op）：帧条、半身裁切比例、放大倍数、眼睛像素坐标（同 promo_cover_bust）
 OPS = {
-    # gold_off：衣领金链量化后会变成脸下一团暖橙（像张着嘴），先压成灰蓝，暖橙只留给眼睛和受光边
-    # glow：眼睛发光强度（水月眼睛比斯卡蒂小，加强一些，315×250 下才读得出）
-    "mizuki": {"tex": "player_idle@2x", "crop": 0.62, "k": 8, "cx": 0.31, "eyes": B.VARIANTS["D"]["eyes"], "gold_off": True, "glow": 0.8},
-    "skadi": {"tex": "op_skadi_idle@2x", "crop": 0.62, "k": 8, "cx": 0.30, "eyes": B.VARIANTS["E"]["eyes"], "gold_off": False, "glow": 0.55},
+    # eye：眼睛发光用角色自己的瞳色；glow：发光强度（水月眼睛比斯卡蒂小，加强一些，315×250 下才读得出）
+    "mizuki": {"tex": "player_idle@2x", "crop": 0.62, "k": 8, "cx": 0.31, "eyes": B.VARIANTS["D"]["eyes"], "eye": (214, 120, 240), "glow": 0.8},
+    "skadi": {"tex": "op_skadi_idle@2x", "crop": 0.62, "k": 8, "cx": 0.30, "eyes": B.VARIANTS["E"]["eyes"], "eye": (236, 70, 70), "glow": 0.55},
 }
 # v16 调色板：深海蓝黑 / 灯火暖橙 / 米白灰蓝，各两阶
 PAL = [(11, 20, 32), (28, 46, 64), (184, 90, 34), (242, 154, 58), (138, 154, 168), (232, 226, 208)]
@@ -91,23 +90,6 @@ def compose(W=630, H=500, op="mizuki"):
         img.alpha_composite(col, (x, H - t.height + int(10 * s)))
         x += t.width - int(36 * s)
         i += 1
-    # 主角半身：左侧，面朝灯标（@2x 待机帧本来朝右）；受光边暖橙
-    f = K.frame(o["tex"], 4, 0, trim=True)
-    bust = f.crop((0, 0, f.width, int(f.height * o["crop"])))
-    if o["gold_off"]:
-        px = bust.load()
-        for yy in range(bust.height):
-            for xx in range(bust.width):
-                r, g_, b_, a_ = px[xx, yy]
-                if a_ and r > 160 and g_ > 120 and b_ < 110 and r - b_ > 90:
-                    px[xx, yy] = GREY + (a_,)
-    k = max(1, int(round(o["k"] * s)))
-    bu = K.up(bust, k)
-    ox = int(W * (o["cx"] if not wide else 0.27)) - bu.width // 2
-    oy = H - bu.height + int(4 * s)
-    B.rim(img, bu, ORANGE1, 1.6 * s, 6.0, (ox + int(3 * s), oy))
-    img.alpha_composite(bu, (ox, oy))
-    img = B.eye_glow(img, ox, oy, k, o["eyes"], ORANGE1, s * o["glow"])
     # 暗角
     vig = Image.new("L", (W, H), 0)
     ImageDraw.Draw(vig).ellipse((-W * 0.15, -H * 0.2, W * 1.15, H * 1.15), fill=255)
@@ -116,6 +98,18 @@ def compose(W=630, H=500, op="mizuki"):
     dark.putalpha(vig.point(lambda v: int((255 - v) * 0.8)))
     img.alpha_composite(dark)
     out = quantize(img).convert("RGBA")
+    # 主角半身（用户 10-01：人物保持干员原本配色，不进六色量化）：左侧、面朝右侧灯标；
+    # 只轻微降饱和 / 压暗贴合暗底（色相不变），灯标暖光只作环境光打在朝灯一侧的受光边
+    f = K.frame(o["tex"], 4, 0, trim=True)
+    bust = f.crop((0, 0, f.width, int(f.height * o["crop"])))
+    bust = ImageEnhance.Brightness(ImageEnhance.Color(bust).enhance(0.88)).enhance(0.95)
+    k = max(1, int(round(o["k"] * s)))
+    bu = K.up(bust, k)
+    ox = int(W * (o["cx"] if not wide else 0.27)) - bu.width // 2
+    oy = H - bu.height + int(4 * s)
+    B.rim(out, bu, ORANGE1, 1.6 * s, 6.0, (ox + int(3 * s), oy))
+    out.alpha_composite(bu, (ox, oy))
+    out = B.eye_glow(out, ox, oy, k, o["eyes"], o["eye"], s * o["glow"])
     # 标题：一行横排、右上、右对齐（字直接用调色板色，不参与抖动）
     m = int(26 * s)
     t1 = C.pixel_text(C.TITLE, 17, max(1, int(round(3 * s))), CREAM, GREY, outline=NAVY0)
