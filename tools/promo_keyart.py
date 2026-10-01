@@ -2,7 +2,7 @@
 """宣传主视觉合成（界面与美术，2026-09-30 协调人派）：只用本项目自己的像素资产（art/incoming 帧条 + logo + game/fonts）。
 版式参照「深色底、高对比、像素角色放大居中、技能光效点睛、字少而大」的气质，不用任何外部素材。
 
-用法：python tools/promo_keyart.py [输出目录，缺省 build/promo] [--size 1920x1080] [--name keyart] [--boss paranoia|knight]
+用法：python tools/promo_keyart.py [输出目录，缺省 build/promo] [--size 1920x1080] [--name keyart] [--boss paranoia|knight|saints] [--squad a,b,c,d,e]（干员 id，mizuki = 水月）
 像素一律整数倍最近邻放大，保持颗粒清楚。
 """
 import os, sys, random
@@ -18,8 +18,9 @@ NOTICE = "《明日方舟》同人作品 · 非官方 · 非商业  |  Arknights
 
 # 编队：[贴图名, 帧数]；中间是主控（放大一档）
 SQUAD = [("op_saria_idle@2x", 4), ("op_skadi_idle@2x", 4), ("player_idle@2x", 4), ("op_suzuran_idle@2x", 4), ("op_wisadel_idle@2x", 4)]
+SQUAD_OVERRIDE = None   # --squad a,b,c,d,e（干员 id，mizuki = 水月；中间那位放大一档）
 BOSS_DX, BOSS_DY = 0.10, 0.06   # 泡影相对画面中心右移 / 顶部下沉（协调人：别压标题「幸存者」）
-BOSSES = {"paranoia": ("e_paranoia_phase2@2x", 2), "knight": ("e_knight", 2)}
+BOSSES = {"saints": None, "paranoia": ("e_paranoia_phase2@2x", 2), "knight": ("e_knight", 2)}
 
 
 def load(name):
@@ -88,6 +89,24 @@ def radial(size, center, r, col, alpha):
 
 
 def boss_layer(img, kind, W, H, s, dx=None):
+    if kind == "saints":
+        # 圣徒双子：卡门（左，红边光）与伊比利亚（右，橙金边光）并立的剪影，各保留一点原色（帧条按亮度提亮的高光加色叠加）
+        for i, (name, rim, hi) in enumerate([("e_carmen_slash@2x", (230, 60, 55), (255, 120, 90)), ("e_iberia_attack@2x", (235, 150, 60), (255, 200, 120))]):
+            bf = frame(name, 4, 0, trim=True)   # @2x 出招帧条第 0 帧（蓄势），比 1× 待机帧细节多一倍
+            kb = max(1, int(round(4 * s)))
+            boss = up(bf, kb)
+            if i == 0:
+                boss = boss.transpose(Image.FLIP_LEFT_RIGHT)   # 两人相对而立
+            bx = int(W * (0.40 if i == 0 else 0.62)) - boss.width // 2 + int((dx or 0.0) * W)
+            by = int(H * 0.60) - boss.height
+            put_glow(img, boss, rim, 9 * s, 7.0, (bx, by))
+            img.alpha_composite(tint(boss, (20, 12, 16), keep=0.85), (bx, by))   # 人形剪影压太暗会糊成一团：保留八成五原色
+            lum = boss.convert("L").point(lambda v: 0 if v < 140 else int((v - 140) * 2.2))
+            lum = ImageChops.multiply(lum, boss.split()[3])
+            hl = Image.new("RGBA", boss.size, hi + (0,))
+            hl.putalpha(lum.point(lambda v: int(v * 0.6)))
+            img = add(img, hl, (bx, by))
+        return img
     if kind == "knight":
         # 骑士：骑马持枪的剪影一眼可读；放大后压成深蓝黑剪影 + 冷青边光，枪尖一点寒光
         bf = frame("e_knight", 2, 0, trim=True)
@@ -120,7 +139,8 @@ def boss_layer(img, kind, W, H, s, dx=None):
 def compose(W=1920, H=1080, boss_kind="paranoia", capsule=False):
     """capsule：商店胶囊版式——logo 放大占左半、编队三人（斯卡蒂 / 水月 / 铃兰）靠右、不写 slogan 与声明（小图上读不出）"""
     s = H / 1080.0
-    squad = [SQUAD[1], SQUAD[2], SQUAD[3]] if capsule else SQUAD
+    full = SQUAD_OVERRIDE or SQUAD
+    squad = [full[1], full[2], full[3]] if capsule else full
     img = Image.new("RGBA", (W, H))
     top, bot = (4, 7, 14), (10, 24, 40)
     d0 = ImageDraw.Draw(img)
@@ -240,11 +260,13 @@ def compose(W=1920, H=1080, boss_kind="paranoia", capsule=False):
 if __name__ == "__main__":
     args = sys.argv[1:]
     out = args[0] if args and not args[0].startswith("--") else os.path.join(ROOT, "build", "promo")
-    opt = {"--size": "1920x1080", "--name": "keyart", "--boss": "paranoia"}
+    opt = {"--size": "1920x1080", "--name": "keyart", "--boss": "paranoia", "--squad": ""}
     for i, a in enumerate(args):
         if a in opt and i + 1 < len(args):
             opt[a] = args[i + 1]
     W, H = (int(v) for v in opt["--size"].split("x"))
+    if opt["--squad"]:
+        SQUAD_OVERRIDE = [("player_idle@2x" if sid == "mizuki" else "op_%s_idle@2x" % sid, 4) for sid in opt["--squad"].split(",")]
     os.makedirs(out, exist_ok=True)
     if W < 1000:
         # 胶囊：按 1080 高的比例在 1080 高画布上排版（像素整数倍清楚），再整体缩到目标尺寸

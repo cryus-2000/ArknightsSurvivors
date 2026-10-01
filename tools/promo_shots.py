@@ -18,6 +18,7 @@ os.makedirs(os.path.join(app, "ArknightsSurvivors"))
 open(os.path.join(app, "ArknightsSurvivors", "settings.cfg"), "w").write(
     '[video]\nfullscreen=false\nres_index=1\nquality="high"\n\n[audio]\nmaster=0.0\nmusic=0.0\nsfx=0.0\nvoice=0.0\n')
 os.environ["APPDATA"] = app
+os.environ["ARK_REAL_USERDIR"] = "1"   # 否则 c2c1528 后的 godot_runner 会换成它自己的 1280×720 设置，盖掉上面的 1920×1080
 args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60",
         "-s", os.path.join(ROOT, "tools", "promo_shots.gd"), "--",
         "--balance", "--realtime", "--nodeath", "--seed=1", "--op=mizuki", "--squad=skadi,saria", "--bot=master", "--diff=4",
