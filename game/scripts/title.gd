@@ -658,13 +658,14 @@ func _draw_guide(vs: Vector2) -> void:
 		["选落点", "乌尔比安三技能：鼠标指哪落哪；或按住 Q / E 蓄距离、松手掷出；手柄右摇杆推多远落多远"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
 		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
+		["经验", "离开视野 6 秒的经验结晶会自动回收。"],
 		["升级 / 藏品", "按数字键或点击选择"],
 		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 开关音乐　　R 重来　　T 回标题"],
 		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓨ 手动技能　Ⓧ / RT 手动攻击　右摇杆瞄准"],
 		["", "START 暂停　SELECT 属性　菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
 	]
 	for i in lines.size():
-		var y := r.position.y + 98 + i * 35
+		var y := r.position.y + 98 + i * 32   # 11 行：行距 35 → 32，最后一行仍在底部提示之上
 		if lines[i][0] != "":
 			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)

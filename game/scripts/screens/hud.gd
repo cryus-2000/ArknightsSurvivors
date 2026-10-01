@@ -246,6 +246,7 @@ func draw() -> void:
 	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, g.xp / g.xp_need, bc, lf > 0.2)
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
+	draw_recall(lc0)
 	# 生命值
 	var hs := Vector2(sin(g.t * 90.0), cos(g.t * 70.0)) * 3.0 * g.hp_shake / 0.35
 	var low := g.hp / g.max_hp < 0.3
@@ -618,6 +619,31 @@ func draw() -> void:
 				draw_trial_result(vs, true)
 			else:
 				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+
+
+## 经验回收提示（经验来源方案 A，架构 00dccbb）：等级圆正下方一行青色小字「回收 +N」。
+## 读 g.pickups.recall_hud_n / recall_hud_t；离上一笔不到 1 秒的回收累加成一个数，最后一笔之后显示 1.5 秒（末 0.5 秒淡出）。
+## 在左上面板的合批段里画（字延后），不加绘制调用
+var _rc_sum := 0.0
+var _rc_first := -INF
+var _rc_last := -INF
+
+func draw_recall(lc0: Vector2) -> void:
+	var p = g.get("pickups")
+	if p == null or not ("recall_hud_t" in p):
+		return
+	var t: float = float(p.recall_hud_t)
+	if t > _rc_last:
+		if t - _rc_first > 1.0:
+			_rc_sum = 0.0
+			_rc_first = t
+		_rc_sum += float(p.recall_hud_n)
+		_rc_last = t
+	var age: float = g.t - _rc_last
+	if age < 0.0 or age > 1.5 or _rc_sum < 1.0:
+		return
+	var a: float = clampf((1.5 - age) / 0.5, 0.0, 1.0)
+	UI.ctext(g.hud, g.font, lc0 + Vector2(-40, 35), "回收 +%d" % int(round(_rc_sum)), 11, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
 
 
 func draw_speed_button(vs: Vector2) -> void:
