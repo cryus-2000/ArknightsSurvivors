@@ -44,9 +44,31 @@ var title_seen := false      # 本次运行已播过标题开场动画（仅内�
 var opening_seen := false    # 看过完整的标题开场（写入存档）：之后启动只播简短版（2026-09-27 用户定，开场方案 A）
 
 
+## ui.ttf（Noto Sans CJK SC 子集）缺的几十个字（娅 / 鲨 / 砥 / 琥珀 / Ⓐ 等）：桌面版靠系统字体补，网页版没有系统字体会显示方块。
+## 给 ui.ttf 挂上 ui_fallback.otf（Noto Sans SC Bold 只取缺的字，tools/make_ui_fallback.py 生成）；load 有缓存，主题字体与各处 load 的是同一份
+var _ui_font: FontFile = null
+
+
+## 触屏设备（全项目唯一判定：touch.gd / Pad / 标题页都问这里）：有触屏、网页 Android / iOS、或 --touch。
+## iPad Safari 默认报桌面 UA（Macintosh），web_ios 认不出：网页版再看 navigator.maxTouchPoints（触屏验收 10-01，架构报）
+var _touch := -1
+
+
+func touch_device() -> bool:
+	if _touch < 0:
+		var t: bool = DisplayServer.is_touchscreen_available() or dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+		if not t and OS.has_feature("web"):
+			t = bool(JavaScriptBridge.eval("navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)", true))
+		_touch = 1 if t else 0
+	return _touch == 1
+
+
 func _ready() -> void:
+	_ui_font = load("res://fonts/ui.ttf")
+	if _ui_font != null and _ui_font.fallbacks.is_empty():
+		_ui_font.fallbacks = [load("res://fonts/ui_fallback.otf")]
 	# 触屏设备：整体放大 1.15（逻辑分辨率 1113×626），字和按钮在手机上更好点；各面板按 vs.y < 680 做紧凑排版
-	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios") or dev_args().has("--touch"):
+	if touch_device():
 		get_tree().root.content_scale_factor = 1.15
 	# 网页版 / 移动端：默认关掉最吃性能的后期（玩家仍可在设置里打开）
 	if OS.has_feature("web"):

@@ -1,6 +1,6 @@
 ## 触屏操作（移动端 / 网页版）：左半屏浮动虚拟摇杆（手指按下处即摇杆中心），右侧两个按钮（暂停 / 属性）。
 ## 技能基本全自动；主控有手动技能时冲刺键上方多一个技能键（干员契约 v2.3 / v2.4：点一下 = 自动瞄准，按住拖动 = 朝拖动方向放）。面板 / 商店 / 结算里的按钮走 Godot 的"触摸模拟鼠标"，不在这里处理。
-## 开启条件：设备有触屏（DisplayServer.is_touchscreen_available）或命令行 --touch。
+## 开启条件：Cfg.touch_device()（设备有触屏、网页 Android / iOS / iPad、或命令行 --touch）。
 extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
@@ -8,6 +8,10 @@ const UI = preload("res://scripts/ui.gd")
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
 const BTN := 46.0           # 按钮直径
+## 点击区最小边长（逻辑像素）：触屏缩放 1.15 后逻辑高 626，19.5:9 手机（342 pt 高）上 1 逻辑像素 ≈ 0.55 pt，84 ≈ 46 pt（触屏验收 10-01，iOS 44 pt）
+const HIT := 84.0
+## 摇杆起手离左边缘的死区（逻辑像素，≈ 20 pt）：iOS Safari 从左边缘右滑是「返回上一页」，贴边起手会把页面滑走（架构 10-01）
+const EDGE := 36.0
 
 var g
 var active := false
@@ -34,8 +38,7 @@ var atk_rect := Rect2()
 
 func _init(game) -> void:
 	g = game
-	active = DisplayServer.is_touchscreen_available() or Cfg.dev_args().has("--touch") \
-		or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	active = Cfg.touch_device()
 
 
 func move_vec() -> Vector2:
@@ -49,7 +52,7 @@ func handle(event: InputEvent) -> bool:
 	if event is InputEventScreenTouch:
 		var vs: Vector2 = g.hud.size
 		if event.pressed:
-			if atk_rect.size.x > 0.0 and atk_id < 0 and atk_rect.grow(8.0).has_point(event.position):
+			if atk_rect.size.x > 0.0 and atk_id < 0 and _hit(atk_rect).has_point(event.position):
 				atk_id = event.index
 				atk_origin = event.position
 				atk_drag = Vector2.ZERO
@@ -57,14 +60,14 @@ func handle(event: InputEvent) -> bool:
 				g.doctor.touch_atk_dir = Vector2.ZERO
 				return true
 			# 技能键：按下只记触点，松手才释放（以后可以改成拖动瞄准）
-			if skill_rect.size.x > 0.0 and skill_id < 0 and skill_rect.grow(8.0).has_point(event.position):
+			if skill_rect.size.x > 0.0 and skill_id < 0 and _hit(skill_rect).has_point(event.position):
 				skill_id = event.index
 				skill_origin = event.position
 				skill_aim = Vector2.ZERO
 				return true
 			# 按钮优先
 			for b in btn_rects:
-				if b[0].grow(8.0).has_point(event.position):
+				if _hit(b[0]).has_point(event.position):
 					_do(b[1])
 					flash[b[1]] = 0.2
 					return true
@@ -72,7 +75,7 @@ func handle(event: InputEvent) -> bool:
 			if g.state == g.S.STATS:
 				g.state = g.S.PLAY
 				return true
-			if g.state == g.S.PLAY and stick_id < 0 and event.position.x < vs.x * 0.55:
+			if g.state == g.S.PLAY and stick_id < 0 and event.position.x > EDGE and event.position.x < vs.x * 0.55:
 				stick_id = event.index
 				stick_origin = event.position
 				stick_pos = event.position
@@ -118,6 +121,12 @@ func handle(event: InputEvent) -> bool:
 					vec = vec.normalized()
 			return true
 	return false
+
+
+## 点击区：按钮图形外扩到至少 HIT 见方（图形本身更大时外扩 8）
+static func _hit(r: Rect2) -> Rect2:
+	var s := Vector2(maxf(r.size.x + 16.0, HIT), maxf(r.size.y + 16.0, HIT))
+	return Rect2(r.get_center() - s / 2.0, s)
 
 
 func _atk_release() -> void:
@@ -183,7 +192,7 @@ func draw_hud(vs: Vector2) -> void:
 		hud.draw_arc(knob, 24.0, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
 	elif g.state == g.S.PLAY:
 		# 提示：左下角淡淡的摇杆位置
-		var c := Vector2(150, vs.y - 150)
+		var c := Vector2(maxf(250.0, vs.x * 0.2), vs.y - 150)
 		hud.draw_arc(c, 40.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12), 1.5)
 		hud.draw_circle(c, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12))
 	# 冲刺按钮：右下角大圆（冷却中显示进度环），摆在编队区（源石锭框 + 「编队 n / m」）正上方；技能键再往上
@@ -197,8 +206,8 @@ func draw_hud(vs: Vector2) -> void:
 		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		if g.doctor.manual_attack:
 			# 手动普攻：攻击键在冲刺键左边同一行，技能键挪到攻击键正上方
-			_draw_atk_button(hud, font, dc + Vector2(-BTN * 1.55, -BTN * 0.05))
-			_draw_skill_button(hud, font, dc + Vector2(-BTN * 1.55, -BTN * 1.7))
+			_draw_atk_button(hud, font, dc + Vector2(-BTN * 1.85, -BTN * 0.05))
+			_draw_skill_button(hud, font, dc + Vector2(-BTN * 1.85, -BTN * 1.85))
 		else:
 			atk_rect = Rect2()
 			_draw_skill_button(hud, font, dc + Vector2(-BTN * 2.0, -BTN * 0.65))   # 左上斜方：正上方会撞「属性」键（触屏 HUD 缩放后只有约 626 高）
@@ -209,7 +218,7 @@ func draw_hud(vs: Vector2) -> void:
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]
 		for i in items.size():
-			var c := Vector2(vs.x - 44, 200 + i * 70)
+			var c := Vector2(vs.x - 46, 186 + i * 86)
 			var r := Rect2(c - Vector2(BTN / 2.0, BTN / 2.0), Vector2(BTN, BTN))
 			btn_rects.append([r, items[i][1]])
 			var lit: bool = flash.get(items[i][1], 0.0) > 0.0 or (items[i][1] == "pause" and g.state == g.S.PAUSE) or (items[i][1] == "stats" and g.state == g.S.STATS)

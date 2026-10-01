@@ -67,7 +67,7 @@ func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", not
 			x += 22.0 + UI.cwidth(g.font, str(price), 18) + 8.0
 		if note != "":
 			UI.text(b, g.font, Vector2(x, b.size.y / 2.0 + 5), note, 11, UI.SUB)
-		if key != "":
+		if key != "" and not Pad.touch_ui():
 			UI.keycap(b, g.font, Vector2(b.size.x - UI.cwidth(g.font, key, 11) - 28, b.size.y / 2.0 - 9), key, fg, 11))
 	b.mouse_entered.connect(b.queue_redraw)
 	b.mouse_exited.connect(b.queue_redraw)
@@ -182,7 +182,7 @@ func draw_bg() -> void:
 			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
 				en_label = "RECRUIT"
 			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, CARDS_TOP - 92.0)
-			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击卡片，或按 1–%d 选择" % g.choices.size()
+			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 			UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
@@ -292,7 +292,7 @@ func draw_event_bg(vs: Vector2) -> void:
 	# 右侧标题
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, 142), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, 178), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
-	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else "点击选项，或按 1–%d" % g.choices.size()
+	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	UI.text(g.panel_fg, g.font, Vector2(cx + 20, 196 + ev_bars_h + 6), hint, 12, Color(0.55, 0.54, 0.52))
 
 
@@ -518,10 +518,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
-	var kl := "[ %d ]" % (i + 1)
+	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
 	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
-	var w2 := UI.cwidth(g.font, kl, 12)
-	var sx := ab.get_center().x - (w1 + 8.0 + w2) / 2.0
+	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
+	var sx := ab.get_center().x - (w1 + w2) / 2.0
 	UI.text(card, g.font, Vector2(sx, ab.position.y + 20), "选择", 14, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 

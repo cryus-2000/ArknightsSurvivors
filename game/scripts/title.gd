@@ -56,6 +56,10 @@ var op_rects := {}
 var op_defs: Array = []        # [{id, def, tex, frames, lore}]
 var op_scroll := 0             # 干员格滚动到第几行（干员多于可视行数时）
 var op_rows_vis := 2           # 可视行数（_draw_op_pick 按面板高度算）
+## 触屏没有滚轮：上下滑动干员格翻行，或点「▲ / ▼ 还有 n 名干员」（触屏验收 10-01：第 13 名干员原来滚不出来）
+var op_more_up := Rect2()
+var op_more_dn := Rect2()
+var op_drag := 0.0
 ## 平滑滚动（2026-09-26 用户要求）：op_scroll 是目标行，op_scroll_f 每帧指数逼近它，格子按小数行偏移绘制，出入边缘时淡出
 var op_scroll_f := 0.0
 var op_seen_sel := -1          # 上一帧绘制时的选中项：变化时把它滚进可视区（键盘 / 手柄 / --opsel 都走这里）
@@ -314,9 +318,9 @@ func _draw_diff(vs: Vector2) -> void:
 		UI.text(self, font, go.position + Vector2(0, 29), "未解锁", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	else:
 		UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-		UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+		UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ", "出发"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
 	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
 
 
 ## 递归生成巨树（像海嗣一样弯曲的枝干）
@@ -577,7 +581,7 @@ func _draw() -> void:
 	var hf := _seg(4.0, 0.4)
 	if hf > 0.0 and not diff_pick and not op_pick:
 		var hy := my + menu_ids.size() * step + 12
-		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
+		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM", "TAP   SELECT"), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
 	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
 	var df := _seg(3.9, 0.4)
 	deploy_rect = Rect2()
@@ -586,7 +590,7 @@ func _draw() -> void:
 		var by := vs.y - 98.0
 		deploy_rect = Rect2(Vector2(bx - 8, by + 8), Vector2(214, 50))
 		var dh := deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-		UI.en(self, font, Vector2(bx, by), "COVER OPERATOR  ·  V", 10, _fa(UI.CYAN, df), 3.5)
+		UI.en(self, font, Vector2(bx, by), "COVER OPERATOR" if Pad.touch_ui() else "COVER OPERATOR  ·  V", 10, _fa(UI.CYAN, df), 3.5)
 		_draw_emblem(Vector2(bx + 14, by + 33), 14.0, _fa(UI.TEXT, df))
 		UI.text(self, font, Vector2(bx + 40, by + 42), "更换封面干员", 19, _fa(UI.TEXT, df))
 		UI.text(self, font, Vector2(bx + 178, by + 41), "》", 22, _fa(UI.CYAN if dh else Color(0.81, 0.84, 0.85), df))
@@ -597,7 +601,7 @@ func _draw() -> void:
 	var ff := _seg(4.1, 0.4)
 	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(tx, vs.y - 20), "明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ"), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
+	UI.text(self, font, Vector2(tx, vs.y - 20), ("明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges(), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
 	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
 
 	# 开场：黑幕淡出 + 上下黑边收起
@@ -644,6 +648,22 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 	draw_polyline(w, col, 1.4)
 
 
+## 操作说明页的触屏版（触屏验收 10-01）
+const TOUCH_GUIDE := [
+	["移动", "按住屏幕左半边任意处拖动：手指落下的地方就是摇杆中心"],
+	["冲刺", "右下「冲刺」键（无敌，冷却 1.2 秒），在编队栏正上方"],
+	["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放"],
+	["手动技能", "主控有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点"],
+	["手动普攻", "可在设置 · 游戏里把普攻改为手动：冲刺键左侧出现攻击键，按住攻击，拖动选方向"],
+	["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
+	["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
+	["经验", "离开视野 6 秒的经验结晶会自动回收。"],
+	["升级 / 藏品", "点击卡片选择"],
+	["属性 / 暂停", "右侧「暂停」「属性」键；属性面板点任意处关闭"],
+	["", "暂停菜单里的「指南」可随时重看开局指南"],
+]
+
+
 func _draw_guide(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.75))
 	# 面板 880 宽：说明列 654px，最长一行（手柄）也放得下；再长就按宽度缩字号（text_fit），不会伸出面板
@@ -651,7 +671,7 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
-	var lines := [
+	var lines: Array = TOUCH_GUIDE if Pad.touch_ui() else [
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q / E 放手动技能"],
 		["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q / E）"],
 		["手动普攻", "可在设置 · 游戏里把普攻改为手动：左键 / J 攻击，朝光标方向"],
@@ -670,7 +690,7 @@ func _draw_guide(vs: Vector2) -> void:
 			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
 		UI.text_fit(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT, r.size.x - 190 - 36, 13)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）", "点击任意处返回"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行，不再压到右列）、右列说明 + 链接；
@@ -711,7 +731,7 @@ func _draw_credits(vs: Vector2) -> void:
 		y += row.h
 	var ft := UI.fit_line(font, credits_data.get("footer", ""), 13, pw - 72, 11)
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 34), ft[0], ft[1], UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 14), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）"), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 14), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）", "点击任意处返回"), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 致谢页排版：每条 {label: 条目名 fit, text: 说明 fit, link, h}；返回 {rows, h}
@@ -839,7 +859,7 @@ var op_tip_sel := -1
 
 ## 触屏模式（同 touch.gd 的开启条件）：选人页不认悬停、底部提示换成点按
 func _touch_mode() -> bool:
-	return DisplayServer.is_touchscreen_available() or Cfg.dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	return Cfg.touch_device()
 
 
 func _op_input(event: InputEvent) -> void:
@@ -861,7 +881,16 @@ func _op_input(event: InputEvent) -> void:
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		_op_scroll_by(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
+	elif event is InputEventMouseMotion and Pad.touch and (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
+		op_drag += event.relative.y
+		if absf(op_drag) > 60.0:
+			_op_scroll_by(-1 if op_drag > 0.0 else 1)
+			op_drag = 0.0
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		op_drag = 0.0
+		if op_more_up.has_point(event.position) or op_more_dn.has_point(event.position):
+			_op_scroll_by(-1 if op_more_up.has_point(event.position) else 1)
+			return
 		for ti in op_tips.size():
 			if op_tips[ti][0].has_point(event.position):
 				op_tip = -1 if op_tip == ti else ti
@@ -930,6 +959,8 @@ func _op_go() -> void:
 
 ## 选人页：左侧 4×2 干员格（待机动画 + 名字 + 职业），右侧详情（普攻 / 技能 / 天赋 / 档案）
 func _draw_op_pick(vs: Vector2) -> void:
+	# 触屏：小字整体 +2（手机上 1 逻辑像素 ≈ 0.55 pt，10–13 号字只有 6–7 pt；触屏验收 10-01）
+	var tb := 2 if _touch_mode() else 0
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
 	var pw: float = minf(1120.0, vs.x - 24.0)   # 触屏紧凑版逻辑宽 1113：面板别伸出屏幕
 	var r := Rect2(vs.x / 2 - pw / 2.0, 40, pw, vs.y - 80)
@@ -939,7 +970,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
 	UI.en(self, font, r.position + Vector2(36, 42), "OPERATOR", 13, col, 4.0)
 	UI.text(self, font, r.position + Vector2(36, 80), "更换封面干员" if cover_pick else "选择开局干员", 26, UI.TEXT)
-	UI.text(self, font, r.position + Vector2(220, 80), "与博士一起站在浪边；不改变开局编队" if cover_pick else "其余干员在探索中通过升级招募", 13, UI.SUB)
+	UI.text(self, font, r.position + Vector2(220, 80), "与博士一起站在浪边；不改变开局编队" if cover_pick else "其余干员在探索中通过升级招募", 13 + tb, UI.SUB)
 	op_rects.clear()
 	# ---- 左：干员格
 	var cols := 4
@@ -955,6 +986,8 @@ func _draw_op_pick(vs: Vector2) -> void:
 		op_seen_sel = op_sel
 		_op_follow()
 	op_scroll = clampi(op_scroll, 0, maxi(0, rows - op_rows_vis))
+	op_more_up = Rect2()
+	op_more_dn = Rect2()
 	if rows > op_rows_vis:
 		# 滚动条：格区右侧细条
 		var sx := gx + cols * (cw + 10) - 4
@@ -963,8 +996,10 @@ func _draw_op_pick(vs: Vector2) -> void:
 		var th: float = track.size.y * op_rows_vis / rows
 		draw_rect(Rect2(sx, gy + (track.size.y - th) * clampf(op_scroll_f / float(rows - op_rows_vis), 0.0, 1.0), 4, th), Color(col.r, col.g, col.b, 0.7))
 		if op_scroll > 0:
-			UI.text(self, font, Vector2(gx, gy - 8), "▲ 滚轮查看更多", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
+			op_more_up = Rect2(gx, gy - 30, cols * (cw + 10) - 10, 30)
+			UI.text(self, font, Vector2(gx, gy - 8), "▲ 上滑查看更多" if Pad.touch_ui() else "▲ 滚轮查看更多", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
 		if op_scroll < rows - op_rows_vis:
+			op_more_dn = Rect2(gx, gy + op_rows_vis * (chh + 10) - 10, cols * (cw + 10) - 10, 30)
 			UI.text(self, font, Vector2(gx, gy + op_rows_vis * (chh + 10) + 6), "▼ 还有 %d 名干员" % (op_defs.size() - (op_scroll + op_rows_vis) * cols), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, cols * (cw + 10) - 10)
 	for i in op_defs.size():
 		var od: Dictionary = op_defs[i]
@@ -996,8 +1031,8 @@ func _draw_op_pick(vs: Vector2) -> void:
 				draw_circle(Vector2.ZERO, 26.0, Color(oc.r, oc.g, oc.b, 0.18 * fa))
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			draw_texture_rect_region(tx, Rect2(pos, Vector2(fw, fh) * sc), Rect2(fw * fr, 0, fw, fh), _fa(Color.WHITE if on or hov else Color(0.75, 0.8, 0.85), fa))
-		UI.text(self, font, cr.position + Vector2(0, 104), od.def.get("name", od.id), 15, _fa(UI.TEXT if on else Color(0.7, 0.8, 0.85), fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
-		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12, _fa(oc if on else UI.SUB, fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 104), od.def.get("name", od.id), 15 + tb, _fa(UI.TEXT if on else Color(0.7, 0.8, 0.85), fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
+		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12 + tb, _fa(oc if on else UI.SUB, fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
 	# ---- 右：详情
 	var dx := r.position.x + 36 + cols * (cw + 10) + 24
 	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy)
@@ -1023,10 +1058,10 @@ func _draw_op_pick(vs: Vector2) -> void:
 	for ni in numbers.size():
 		var row: Array = numbers[ni]
 		var cell_w: float = (dr.size.x - 48.0) / 3.0
-		var cell := Vector2(px + (ni % 3) * cell_w, py + 65.0 + (ni / 3) * 29.0)
-		UI.text(self, font, cell, row[0], 10, UI.SUB)
-		UI.text_fit(self, font, cell + Vector2(0, 17), row[1], 13, UI.TEXT, cell_w - 8.0)
-	py += 114
+		var cell := Vector2(px + (ni % 3) * cell_w, py + 65.0 + (ni / 3) * (29.0 + tb * 2))
+		UI.text(self, font, cell, row[0], 10 + tb, UI.SUB)
+		UI.text_fit(self, font, cell + Vector2(0, 17 + tb), row[1], 13 + tb, UI.TEXT, cell_w - 8.0)
+	py += 114 + tb * 4
 	UI.rule(self, Vector2(px, py), Vector2(dr.end.x - 24, py), UI.EDGE_DIM)
 	py += 18
 	var lines: Array = []
@@ -1078,7 +1113,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 			UI.chip(self, font, Vector2(px, py), ln[0], col, 11)
 			UI.text_fit(self, font, Vector2(px + 52, py + 15), ln[1], 15, UI.TEXT, dr.size.x - 100.0)
 		if desc_n[li] < desc_full[li]:
-			UI.text(self, font, Vector2(dr.end.x - 60, py + 15), "详情 ›", 11, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_RIGHT, 36)
+			UI.text(self, font, Vector2(dr.end.x - 60, py + 15), "详情 ›", 11 + tb, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_RIGHT, 36)
 		py += 22
 		py += _wrap_text(Vector2(px + ix, py + 12), ln[2], 12, UI.SUB, dr.size.x - 48 - ix, desc_n[li]) + 8
 	# 精二条件
@@ -1110,8 +1145,8 @@ func _draw_op_pick(vs: Vector2) -> void:
 	op_rects["back"] = back
 	# 方案 A：主操作青底深字，返回为暗底细边
 	var mp := get_local_mouse_position()
-	UI.button(self, font, go, (Pad.hint("更换  Enter", "更换  Ⓐ") if cover_pick else Pad.hint("下一步  Enter", "下一步  Ⓐ")), "primary", go.has_point(mp), 17)
-	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ"), "outline", back.has_point(mp), 17)
+	UI.button(self, font, go, (Pad.hint("更换  Enter", "更换  Ⓐ", "更换") if cover_pick else Pad.hint("下一步  Enter", "下一步  Ⓐ", "下一步")), "primary", go.has_point(mp), 17)
+	UI.button(self, font, back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), "outline", back.has_point(mp), 17)
 	var hint_en: String = "TAP  SELECT     TAP  DETAILS" if _touch_mode() else Pad.hint("WASD / ARROWS  SELECT     ENTER  NEXT", "STICK  SELECT     A  NEXT     B  BACK")
 	UI.en(self, font, Vector2(r.position.x + 36, r.end.y - 43), hint_en, 11, Color(0.45, 0.49, 0.53), 1.5)
 	# 被截断的说明：点按（触屏）或鼠标悬停时浮出全文。画在按钮之后，且不压进按钮行（验收 P3）；触屏不认悬停（光标会停在点过的位置）

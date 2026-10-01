@@ -83,7 +83,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		g.hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
 		UI.text(g.hud, g.font, br.position + Vector2(14, 26), op[0], 15, bink)
-		var kst: String = ("Ⓐ" if hov else "") if Pad.using else op[1]
+		var kst: String = ("Ⓐ" if hov else "") if Pad.using else ("" if Pad.touch else op[1])
 		if kst != "":
 			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)
 		bx += bw + 12

@@ -149,7 +149,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.ctext(card, g.font, pb.position + Vector2(34, 24), str(it.price), 21, pc)
 	if not afford:
 		UI.text(card, g.font, pb.position + Vector2(40 + UI.cwidth(g.font, str(it.price), 21), 21), "不足", 11, pc)
-	UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
+	if not Pad.touch_ui():
+		UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
 
 
 func draw_bg(vs: Vector2) -> void:
@@ -196,6 +197,6 @@ func draw_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, dp.position + Vector2(84, 22), "源石锭", 10, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
-	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  Esc 离开"]
+	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  Esc 离开"])
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], 12, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 47.0), hints[1], 12, UI.SUB)

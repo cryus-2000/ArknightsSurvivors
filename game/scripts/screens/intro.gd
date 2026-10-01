@@ -74,7 +74,9 @@ func end_opening() -> void:
 	g.p_lean = 0.0
 	g.lamp_light.energy = 1.15
 	g.state = Game.S.PLAY
-	open(Game.S.PLAY)
+	# 指南只在第一次自动打开（协调人 10-01 定）；看过以后直接进局，暂停菜单「指南」可随时重看
+	if not Cfg.seen_intro:
+		open(Game.S.PLAY)
 
 
 func draw_opening_hud(vs: Vector2) -> void:
@@ -96,7 +98,32 @@ func draw_opening_hud(vs: Vector2) -> void:
 		UI.en(g.hud, g.font, Vector2(vs.x / 2 - enw / 2.0, vs.y * 0.22), ens, 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 44), "%s  ·  深海探索" % g.ch.display_name(), 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 74), "灯火未熄，便还能走下去", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
+	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
+
+
+## 触屏版指南（触屏验收 10-01）：键鼠说法逐句替换；最后一页「操作」整页换成触屏操作
+const TOUCH_SUBS := [
+	["你只管走位（WASD）与冲刺（空格，冲刺中无敌）", "你只管走位（按住左半屏拖动）与冲刺（右下「冲刺」键，冲刺中无敌）"],
+	["乌尔比安的三技能要按 Q / E，并自己选落点", "乌尔比安的三技能要点技能键，按住拖动选落点"],
+	["按 Tab 随时查看", "点右侧「属性」键随时查看"],
+	["Tab 面板", "属性面板"],
+	["刷新一次货架（按 F）", "刷新一次货架"],
+]
+const TOUCH_CONTROLS := [
+	"按住屏幕左半边任意处拖动：移动（手指落下处就是摇杆中心）　　右下「冲刺」键：冲刺",
+	"主控有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向",
+	"普通攻击设为手动时（设置 · 游戏）：冲刺键左侧出现攻击键，按住攻击，拖动选方向",
+	"右侧「暂停」「属性」键：暂停菜单与属性面板（属性面板点任意处关闭）",
+	"升级 / 宝箱 / 商人 / 祭坛：点击卡片选择。暂停菜单里的「指南」可随时重看本指南。祝你好运，博士。",
+]
+
+
+static func touch_line(ln: String) -> String:
+	if not Pad.touch_ui():
+		return ln
+	for p in TOUCH_SUBS:
+		ln = ln.replace(p[0], p[1])
+	return ln
 
 
 func open(back: int) -> void:
@@ -147,7 +174,8 @@ func draw(vs: Vector2) -> void:
 	while true:
 		paras.clear()
 		var tot := 0.0
-		for ln in pg.lines:
+		for ln in (TOUCH_CONTROLS if Pad.touch_ui() and g.intro_page == Game.INTRO_PAGES.size() - 1 else pg.lines):
+			ln = touch_line(ln)
 			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
 			paras.append(ls)
 			tot += ls.size() * (g.font.get_height(fsz) + 1.0) + 14.0
@@ -176,7 +204,7 @@ func draw(vs: Vector2) -> void:
 		var hov: bool = dr.has_point(mp)
 		UI.diamond(g.hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == g.intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
 	# 上一页 / 跳过 / 下一页 按钮
-	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ"), "skip"], ["下一页 ›", "next"]]
+	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ", "跳过"), "skip"], ["下一页 ›", "next"]]
 	for k in 3:
 		var bw := 118.0
 		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
@@ -189,12 +217,16 @@ func draw(vs: Vector2) -> void:
 		var dim: bool = k == 0 and g.intro_page == 0
 		if k == 1:
 			br.position.y = r.end.y + 16
+			if br.end.y > vs.y - 4:
+				# 紧凑排版（手机逻辑高 626）：面板下方放不下，「跳过」挪进面板右上角（触屏验收 10-01）
+				br.position = Vector2(r.end.x - 40 - bw, r.position.y + 22)
 			g.intro_btn_skip = br
 			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			continue
 		UI.frame(g.hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
 		UI.text(g.hud, g.font, br.position + Vector2(0, 23), btns[k][0] if k != 2 or g.intro_page < Game.INTRO_PAGES.size() - 1 else "开始探索 ›", 14, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	if r.end.y + 66 < vs.y:
+		UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过", "点击：下一页　　点面板左侧：上一页"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 func draw_icon(kind: String, c: Vector2) -> void:

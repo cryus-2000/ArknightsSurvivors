@@ -108,7 +108,7 @@ func draw(vs: Vector2) -> void:
 		draw_cards(items0, st)
 		if st > 1.0:
 			var ba0 := 0.5 + 0.5 * sin(st * 4.0)
-			UI.text(g.hud, g.font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba0), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+			UI.text(g.hud, g.font, Vector2(0, vs.y - 40), "点击继续" if Pad.touch_ui() else "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba0), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 		return
 	for k in 3:
 		var rp := fmod(st * 0.8 + k / 3.0, 1.0)
@@ -139,7 +139,7 @@ func draw(vs: Vector2) -> void:
 	draw_cards(sc["items"], st)
 	if st > 1.0:
 		var ba := 0.5 + 0.5 * sin(st * 4.0)
-		UI.text(g.hud, g.font, Vector2(0, vs.y - 40), "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+		UI.text(g.hud, g.font, Vector2(0, vs.y - 40), "点击继续" if Pad.touch_ui() else "点击或按任意键继续", 15, Color(0.75, 0.88, 0.92, 0.5 + 0.5 * ba), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 func draw_cards(items: Array, st: float) -> void:

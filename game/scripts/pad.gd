@@ -53,11 +53,14 @@ const GLYPH := {"A": "Ⓐ", "B": "Ⓑ", "X": "Ⓧ", "Y": "Ⓨ", "START": "START"
 
 
 var sim := false               # 测试：--padsim 时把 device 0 当作已连接（tests/pad_sim.gd 注入事件）
+## 触屏设备（开启条件同 touch.gd）：提示文字换成点按版、不画键位牌；接上手柄后（using）仍以手柄提示为准
+var touch := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Input.joy_connection_changed.connect(_on_joy_changed)
+	touch = Cfg.touch_device()
 	if Cfg.dev_args().has("--padsim"):
 		sim = true
 		add_child(load("res://tests/pad_sim.gd").new())
@@ -215,6 +218,13 @@ func rumble(weak: float, strong: float, dur: float) -> void:
 	Input.start_joy_vibration(device, clampf(weak, 0.0, 1.0), clampf(strong, 0.0, 1.0), dur)
 
 
-## 提示文字：用手柄时返回 pad_text，否则 key_text
-func hint(key_text: String, pad_text: String) -> String:
-	return pad_text if using else key_text
+## 提示文字：用手柄时返回 pad_text；触屏（没在用手柄）且给了 touch_text 时返回它；否则 key_text
+func hint(key_text: String, pad_text: String, touch_text: Variant = null) -> String:
+	if using:
+		return pad_text
+	return str(touch_text) if touch and touch_text != null else key_text
+
+
+## 触屏界面：不显示键盘键位（键位牌、「[ 1 ]」、「Enter」之类）
+func touch_ui() -> bool:
+	return touch and not using

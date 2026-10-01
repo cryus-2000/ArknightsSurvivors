@@ -714,7 +714,7 @@ func draw_speed_button(vs: Vector2) -> void:
 	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
 	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
 	if enabled:
-		g.speed_btn = rect
+		g.speed_btn = g.touch._hit(rect) if g.touch.active else rect   # 触屏：点击区 84 见方
 
 
 func draw_trial_result(vs: Vector2, won: bool) -> void:
@@ -1215,7 +1215,7 @@ func draw_death_transition(vs: Vector2) -> void:
 		UI.en(g.hud, g.font, Vector2(vs.x / 2.0 - g.font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x / 2.0 - 20.0, cy + 40), en, 13, Color(UI.RED.r, UI.RED.g, UI.RED.b, ta), 4.0)
 	# 右下角小字：可跳过
 	if g.state_age > 0.3:
-		UI.text(g.hud, g.font, Vector2(vs.x - 240, vs.y - 24), "点击或按任意键跳过", 12, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, 220)
+		UI.text(g.hud, g.font, Vector2(vs.x - 240, vs.y - 24), "点击跳过" if Pad.touch_ui() else "点击或按任意键跳过", 12, Color(1, 1, 1, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, 220)
 
 
 ## 侵蚀待扣段（2026-09-27 协调人 / 数值）：侵蚀池 g.corrode_pool 里还没流出的量，画在血条当前值的末端往左、
