@@ -1,0 +1,49 @@
+{
+  "engine_tested": false,
+  "checks": [
+    {
+      "opaque_pixels": [
+        3218,
+        3209
+      ],
+      "batch": 3,
+      "file": "e_paranoia_phase2.png",
+      "outline_median": 1.0,
+      "expected_outline": 1
+    },
+    {
+      "opaque_pixels": [
+        12804,
+        12753
+      ],
+      "batch": 3,
+      "file": "e_paranoia_phase2@2x.png",
+      "outline_median": 2.0,
+      "expected_outline": 2
+    },
+    {
+      "opaque_pixels": [
+        3274,
+        3148,
+        3263,
+        3226
+      ],
+      "batch": 3,
+      "file": "e_paranoia_phase2_move.png",
+      "outline_median": 1.0,
+      "expected_outline": 1
+    },
+    {
+      "opaque_pixels": [
+        12880,
+        12412,
+        12886,
+        12714
+      ],
+      "batch": 3,
+      "file": "e_paranoia_phase2_move@2x.png",
+      "outline_median": 2.0,
+      "expected_outline": 2
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "assets": [
+    {
+      "hold_last_frame": false,
+      "frame_height": 72,
+      "density": 1,
+      "character": "paranoia",
+      "loop": true,
+      "file": "e_paranoia_phase2.png",
+      "source_master": "exec-cd25ca6d-30f2-41a0-ae50-0d9a73f56563.png",
+      "source_sha256": "ec1372b75fb3e53a28a7a040662e31f129a6e1cfe8bb5ad10579a30aa6d09dcf",
+      "frame_count": 2,
+      "sha256": "ef166f6f15398306109a77f1c9469d3a8d550054cc78d7484941b29bb2d9f353",
+      "batch": 3,
+      "fps": 2,
+      "anchor": [
+        36,
+        69
+      ],
+      "grounded": true,
+      "frame_width": 72
+    },
+    {
+      "hold_last_frame": false,
+      "frame_height": 144,
+      "density": 2,
+      "character": "paranoia",
+      "loop": true,
+      "file": "e_paranoia_phase2@2x.png",
+      "source_master": "exec-cd25ca6d-30f2-41a0-ae50-0d9a73f56563.png",
+      "source_sha256": "ec1372b75fb3e53a28a7a040662e31f129a6e1cfe8bb5ad10579a30aa6d09dcf",
+      "frame_count": 2,
+      "sha256": "05352a025fa0c4d6c3ea8c23d34dae6e218f76dd3fc8ac16cfa93b878ac7f43c",
+      "batch": 3,
+      "fps": 2,
+      "anchor": [
+        72,
+        138
+      ],
+      "grounded": true,
+      "frame_width": 144
+    },
+    {
+      "hold_last_frame": false,
+      "frame_height": 72,
+      "density": 1,
+      "character": "paranoia",
+      "loop": true,
+      "file": "e_paranoia_phase2_move.png",
+      "source_master": "exec-8bb7435e-139f-42d4-8b52-7f44410eae37.png",
+      "source_sha256": "7583d9409f0218d1e0536ef26355a9d3931ddd9174f34f0ba3dd2a9d3b10c61d",
+      "frame_count": 4,
+      "sha256": "a5227593196beea08e751042f10c09df58a56cc102b51951422ae1af9452c4f7",
+      "batch": 3,
+      "fps": 5,
+      "anchor": [
+        36,
+        69
+      ],
+      "grounded": true,
+      "frame_width": 72
+    },
+    {
+      "hold_last_frame": false,
+      "frame_height": 144,
+      "density": 2,
+      "character": "paranoia",
+      "loop": true,
+      "file": "e_paranoia_phase2_move@2x.png",
+      "source_master": "exec-8bb7435e-139f-42d4-8b52-7f44410eae37.png",
+      "source_sha256": "7583d9409f0218d1e0536ef26355a9d3931ddd9174f34f0ba3dd2a9d3b10c61d",
+      "frame_count": 4,
+      "sha256": "7adf59e1b548d37b8cb8fdbb5d7d5ce2a326c2e732cb84b50503078b3180b343",
+      "batch": 3,
+      "fps": 5,
+      "anchor": [
+        72,
+        138
+      ],
+      "grounded": true,
+      "frame_width": 144
+    }
+  ]
+}
