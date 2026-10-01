@@ -365,6 +365,11 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	# 前期敌人伤害加成（用户 9/27 前 3 分钟方案 A，数值旋钮，缺省 1.0 = 不变）：开局 ×enemy/dmg_early，到 enemy/dmg_early_until 秒线性回到 ×1。
 	# 只作用于普通怪和精英（Boss 在下面另算 e.dmg，不吃 dmg_t）；敌弹、抛石、冲击环、自爆、预警招式都按 e.dmg 算，自动跟上
 	dmg_t *= lerpf(Bal.v("enemy/dmg_early", 1.0), 1.0, clampf(g.t / maxf(1.0, Bal.v("enemy/dmg_early_until", 240.0)), 0.0, 1.0))
+	# 后期敌人伤害（用户 10-01「后期怪物攻击力轻微上调」，数值方案 a）：dmg_late_start 秒起，按 dmg_late_div 秒涨 1.0 的斜率叠加，最多 +dmg_late_cap。
+	# dmg_late_cap 可按难度档覆盖（difficulty/<档>/dmg_late_cap，-1 = 跟 enemy 段）；代码缺省 0 = 现行为
+	var late_cap: float = g.combat.enemy_knob("dmg_late_cap", 0.0)
+	if late_cap > 0.0:
+		dmg_t += minf(maxf(g.t - Bal.v("enemy/dmg_late_start", 420.0), 0.0) / maxf(1.0, Bal.v("enemy/dmg_late_div", 900.0)), late_cap)
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
