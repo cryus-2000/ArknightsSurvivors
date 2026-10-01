@@ -114,6 +114,34 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 对外新存档：干员图鉴全部开放（包括动作与技能演示）；敌人、精英、Boss、道具、藏品、结局图鉴全部初始未解锁。敌人和场景 / 掉落物在正式冒险中发现后收录，藏品获得、结局达成后收录。演练与图鉴演示不写入遭遇进度。其他游戏内容与最新提交一致；Boss 演练关闭，非一结局路线遵循正常解锁条件。
 
 
+## 网页部署：阿里云 OSS + CDN（2026-10-01 骨架，未接通）
+
+`tools/deploy_web.py`：把 `build/release/final_<提交>/web/`（对外）和 `web_internal/`（对内）传到阿里云 OSS，再刷新 CDN。
+**缺省只做 dry-run**（列出对象、响应头、要刷新的地址，不连阿里云）；地域、域名由用户定了之后再接通，真上传要用户确认发布。
+
+```bash
+python tools/deploy_web.py --ref <提交>                               # dry-run
+python tools/deploy_web.py --ref <提交> --apply --confirm <提交>        # 真上传（用户确认后）
+```
+
+- **工具选型：官方 Python SDK**（`alibabacloud-oss-v2` + `alibabacloud-cdn20180510`，`--apply` 时才导入）。不选 ossutil：要逐个对象设 `Content-Type` / `Cache-Control`、上传后逐个 HEAD 核对大小，SDK 一个脚本就能做完，也不用另装 exe；OSS 走 V4 签名。
+- **两个源隔离存档**：网页存档在浏览器 IndexedDB，按网站源（协议 + 域名 + 端口）隔离。所以对外、对内必须是**两个不同的 CDN 域名**（可以是同一主域名下的两个子域名）；Bucket 可以共用，前缀要不同，也可以分两个 Bucket。脚本检查两边域名相同就拒绝。
+- **对内包不会传错地方**：每个目标只接受 `release_all.py` 出的、`web_verification_<audience>_<提交>.json` 验证通过且 audience 与目标一致的那份。`--apply` 时缺报告或对不上直接拒绝，dry-run 只警告。
+- **缓存与布局**（网页包文件名不带内容哈希，所以按提交号分目录）：
+
+  | 对象 | Cache-Control | 说明 |
+  | --- | --- | --- |
+  | `<前缀>/index.html` | `no-cache` | 部署时在 `<head>` 后插入 `<base href="v/<提交>/">`，页面里的相对地址（index.js、引擎取的 index.pck / index.wasm、加载器的分片）都落到版本目录 |
+  | `<前缀>/version.json` | `no-cache` | 提交号、audience、部署时间 |
+  | `<前缀>/v/<提交>/*` | `public, max-age=31536000, immutable` | 其余文件；新版本是新路径，旧版本留着可以回滚（只要把 index.html 换回去） |
+
+- **压缩**：分片 `index.pck.NN.gz` / `index.wasm.NN.gz` 本身已经是 gzip，按 `application/octet-stream` 原样存，不设 `Content-Encoding`；加载器按 1f8b 魔数自己解压，CDN 若再压缩或解压也兼容。html / js / json / txt 在 CDN 控制台开「智能压缩」（gzip + brotli），按类型生效。
+- **CDN 刷新**：上传后刷新 `<域名>/<前缀>/`（目录）、`index.html`、`version.json`；版本目录是新路径，不用刷新。
+- **配置**：全部走环境变量，或者写进仓库根目录的 `.deploy.env`（已在 `.gitignore`，模板是 `.deploy.env.example`）。包括 `OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET`、`DEPLOY_REGION`，以及 `DEPLOY_PUBLIC_*` / `DEPLOY_INTERNAL_*` 各自的 `BUCKET / PREFIX / DOMAIN`。AccessKey 用 RAM 子账号，只给这两个 Bucket 写权限和 CDN 刷新权限；脚本不打印、不写日志。
+- **待用户决定**：地域；两个域名（是否备案、HTTPS 证书）；对内网页版要不要加访问限制（CDN URL 鉴权或 Referer 白名单，否则拿到地址就能玩全解锁版）；旧版本目录保留多久（以后可以加 OSS 生命周期规则自动清理）。
+- **本地布局实测（2026-10-01，5844334）**：`--stage build/deploy_stage` 按 OSS 布局落到本地，用静态服务在内置浏览器打开 `/public/index.html` 与 `/internal/index.html`：所有请求（index.js、wasm / pck 分片、图片）都落到 `v/5844334/` 下，两版都进到标题画面；对外版菜单没有「Boss 演练」，对内版有，右上角显示「测试版 · 已全部解锁（不写入存档）」。
+- **还没实测**：`--apply` 这条路径（SDK 调用写好了，没连过阿里云）；接通后先对一个测试 Bucket 跑一遍，再确认 304 / 缓存头是否符合预期。加载器取分片时带 `cache: 'no-cache'`，版本目录长缓存后每片仍会发一次条件请求，CDN 回 304，开销很小，后续可以去掉。
+
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
 1. ~~网页版 `export_web.py` 不写 `build.json` 的 commit / audience~~：2026-10-01 已补，并有 `--ea` 对内网页版与 `verify_web_build.py`（见「一条命令」）。
