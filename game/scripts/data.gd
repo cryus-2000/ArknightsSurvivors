@@ -50,7 +50,8 @@ const DMOD_DEFAULT := {
 	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
 	# 小怪控制 / 词条按档覆盖（数值 9/30：标准档不动、只收紧 Ⅳ / Ⅷ）：-1 = 用 balance.json enemy 段的全局值，读取走 combat.enemy_knob
 	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
-	"boss_fight_enemy_hp": -1.0,                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
+	"boss_fight_enemy_hp": -1.0,
+	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 灯标圈内安全按档开（-1 = 跟 balance.json beacon 段，缺省关；docs/49g）                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关；
 ## time / count / pct = 按档覆盖的 enemy 段绝对值（-1 = 用全局），只在本档值和 balance.json enemy/<键> 不同时显示：time 写成 分:秒，pct ×100

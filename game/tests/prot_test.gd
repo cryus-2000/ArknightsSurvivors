@@ -70,6 +70,7 @@ func _process(_d: float) -> void:
 	test_paranoia_p2_gate()
 	test_close_panic()
 	test_enemy_knob()
+	test_beacon_safe()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -941,6 +942,29 @@ func test_enemy_knob() -> void:
 	ok(absf(s2.maxhp / s0.maxhp - 1.0) < 0.01, "-1：跟 enemy_hp 走")
 	game.final_boss = keep_f
 	game.dmod = keep
+
+## 灯标圈内安全（docs/49g）：缺省全关；开了以后只在读条期间、只对非 Boss 生效
+func test_beacon_safe() -> void:
+	var bs = game.beacon_sys
+	var keep_c = bs.charging
+	var bc := {"pos": game.ppos + Vector2(300, 0), "r": 70.0}
+	var mob := {"boss": false, "pos": bc.pos, "r": 10.0}
+	var boss := {"boss": true, "pos": bc.pos, "r": 30.0}
+	bs.charging = bc
+	ok(not bs.bullet_eaten(bc.pos) and not bs.ranged_held(mob) and is_equal_approx(bs.slow_mult(mob), 1.0), "缺省三个旋钮全关：现行为不变")
+	var keep_b: Dictionary = Bal._data.get("beacon", {}).duplicate()
+	var nb: Dictionary = keep_b.duplicate()
+	nb["safe_bullet"] = 1.0
+	nb["safe_ranged"] = 1.0
+	nb["safe_slow"] = 0.4
+	Bal._data["beacon"] = nb
+	ok(bs.bullet_eaten(bc.pos + Vector2(40, 0)) and not bs.bullet_eaten(bc.pos + Vector2(120, 0)), "开 safe_bullet：光圈内的子弹被吞，圈外不吞")
+	ok(bs.ranged_held(mob) and not bs.ranged_held(boss), "开 safe_ranged：杂兵不起远程出招，Boss 照常")
+	ok(is_equal_approx(bs.slow_mult(mob), 0.6) and is_equal_approx(bs.slow_mult(boss), 1.0), "开 safe_slow 0.4：光圈附近杂兵 ×0.6，Boss 不减速")
+	bs.charging = null
+	ok(not bs.bullet_eaten(bc.pos) and not bs.ranged_held(mob), "不在读条（charging 为空）时全部失效")
+	Bal._data["beacon"] = keep_b
+	bs.charging = keep_c
 
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:

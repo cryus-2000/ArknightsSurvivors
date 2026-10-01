@@ -16,6 +16,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 
 var next_at := -1.0      # 下一座灯标的刷新时刻（< 0：自然溟痕还没开始）
+var charging = null      # 本帧主控正在读条的那座灯标（未点燃、主控在光圈内、进度在涨）；圈内安全读它（docs/49g）
 var lit_n := 0           # 本局点燃数（平衡输出）
 var spawned_n := 0
 
@@ -29,6 +30,7 @@ func _k(key: String, d: float) -> float:
 
 
 func update(dt: float) -> void:
+	charging = null
 	if _k("enabled", 1.0) <= 0.0 or g.demo_op != "" or g.trial.active:
 		return
 	# 自动测试：每 60 秒记一次场上溟痕数（溟痕存量）
@@ -75,6 +77,7 @@ func update(dt: float) -> void:
 		if g.squad.in_sanctuary(b.pos):
 			rate *= _k("lumen_mult", 2.0)
 		if b.pos.distance_to(g.ppos) < r and g.state == g.S.PLAY:
+			charging = b
 			b.out_t = 0.0
 			b.prog = minf(b.need, b.prog + rate * dt)
 			b.count_max = b.need
@@ -146,6 +149,37 @@ func _light(b: Dictionary) -> void:
 	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
 	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
 	_log("lit cleared=%d" % cleared)
+
+
+## ---- 圈内安全（docs/49g，协调人 10-01 定候选 e；三个旋钮缺省 0 = 关，可按档开：difficulty/<档>/beacon_safe_* ≥ 0 时优先）
+## 只在读条期间（charging）生效，只作用于非 Boss 的敌人与子弹；Boss 的预警、子弹、冲锋照常
+func _sk(key: String) -> float:
+	var v := float(g.dmod.get("beacon_" + key, -1.0))
+	return v if v >= 0.0 else _k(key, 0.0)
+
+
+## 非 Boss 子弹 / 抛石进入正在读条的光圈：被灯光吞掉（beacon/safe_bullet）
+func bullet_eaten(pos: Vector2) -> bool:
+	return charging != null and _sk("safe_bullet") > 0.0 and g.combat.ground_d(pos, charging.pos) < float(charging.r)
+
+
+## 远程杂兵不对正在读条的主控发起新的远程出招（beacon/safe_ranged）；调用方不推进冷却，出圈即恢复
+func ranged_held(e: Dictionary) -> bool:
+	return charging != null and not e.get("boss", false) and _sk("safe_ranged") > 0.0
+
+
+## 读条期间光圈附近的杂兵减速（beacon/safe_slow = 减少量，如 0.4 = −40%）并且不起冲刺；对照组用
+func slow_mult(e: Dictionary) -> float:
+	var k: float = _sk("safe_slow")
+	if charging == null or k <= 0.0 or e.get("boss", false):
+		return 1.0
+	return 1.0 - k if g.combat.ground_d(e.pos, charging.pos) < float(charging.r) + float(e.r) + 30.0 else 1.0
+
+
+## 子弹被吞的画面：暖色小光环 + 几点光屑（走 g.fx / sparks 现有合批，标 enemy 不被降噪），真人才看得出「圈里没中弹」是灯的作用
+func eat_fx(pos: Vector2) -> void:
+	g.fx.append({"kind": "ring", "pos": pos, "r": 9.0, "life": 0.22, "max": 0.22, "col": Color(1.8, 1.45, 0.7), "enemy": true})
+	g.vfx.sparks(pos, Vector2.UP, Color(1.9, 1.5, 0.8), 3, 70.0)
 
 
 ## 点燃时清空神经损伤：主控，以及站在光圈内、自己带神经损伤字段的队友（Boss与怪物 加回神经损伤后按它的字段接）

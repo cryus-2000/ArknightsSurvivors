@@ -61,6 +61,8 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 		return false
 	if g.warns.size() >= 10 or (g.t >= 280.0 and g.t < next_secondary_at):
 		return false
+	if str(a.mode) in ["pierce", "volley"] and g.beacon_sys.ranged_held(e):
+		return false   # 圈内安全：读条期间远程额外招式（凿石贯射、齐射）不起手，冷却不推进（docs/49g）
 	var reach: float = float(a.range)
 	var warn_color := Color(0.64, 0.95, 1.0) if float(a.get("frost", 0.0)) > 0.0 else (Color(0.95, 0.55, 1.0) if float(a.get("nerve", 0.0)) > 0.0 else Color(0.75, 0.55, 1.0))
 	var data := {"secondary": true, "cancel_dead": true, "ang": dir.angle(), "name": "", "dmg": e.dmg * float(a.damage_mult),
@@ -230,7 +232,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 	if e.get("dash_t", 0.0) > 0.0:
 		e.dash_t -= dt
 		return e.dash_dir * spd * float(d.get("dash_speed", 3.8))
-	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0:
+	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0 and g.beacon_sys.slow_mult(e) >= 1.0:   # safe_slow 对照组：读条光圈附近不起冲刺
 		e.dash_cd = g.rng.randf_range(3.0, 4.5)
 		e["dash_w"] = float(d.get("dash_wind", 0.5))
 		e["dash_dir"] = dir
@@ -246,7 +248,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 ## 站桩吐酸
 func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -> Vector2:
 	e.cdt -= dt
-	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)):
+	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)) and not g.beacon_sys.ranged_held(e):   # 圈内安全（docs/49g）
 		e.cdt = float(d.get("acid_cd", 4.2))
 		Sfx.enemy("acid", dist)   # 站桩吐酸：酸弹声（尖，要躲）
 		e.atk_until = g.t + 0.3

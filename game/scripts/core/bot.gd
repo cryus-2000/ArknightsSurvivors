@@ -787,8 +787,45 @@ func _bdbg(p: Vector2, here: float) -> void:
 		if left != null and not left.lit:
 			var why := "danger" if bd.last_danger else ("switch" if bd.last_hold != bd.pos else "pushed")
 			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t])
+			print("BDBGC why=%s %s" % [why, JSON.stringify(bd.get("comp", {}))])
 	bd.last_danger = here <= -4.0
 	bd.last_hold = beacon_hold
+	# --bdbg 离圈拆分（docs/49g §0，只在诊断开关下算）：最后一帧在圈内时的打分拆成 敌人贴近 / 预警 / 溟痕 / 子弹弹幕，
+	# 并记预警与子弹的出手者（B = Boss、m = 杂兵）；离圈时打一行 BDBGC 给 A/B 汇总
+	if cur != null:
+		var es := 0.0
+		var n60 := 0
+		var near_types := {}
+		for i in _np.size():
+			var dd: float = p.distance_to(_np[i]) - _nr[i]
+			var w: float = _nw[i]
+			var fast: float = _nf[i]
+			if dd < 30.0 * fast:
+				es -= 12.0 * w
+			elif dd < keep * fast:
+				es -= (keep * fast - dd) / (keep * fast) * 3.0 * w
+			elif dd < 220.0:
+				es -= (220.0 - dd) / 220.0 * 0.35 * w
+		for e in g.enemies:
+			if not e.dead and not e.boss and e.pos.distance_to(p) < 60.0 + float(e.r):
+				n60 += 1
+				near_types[e.type] = int(near_types.get(e.type, 0)) + 1
+		var wh := false
+		var wsrc := []
+		for wv in g.warns:
+			if not wv.done and _in_warn(wv, p, 36.0):
+				wh = true
+				var ow = wv.get("owner")
+				wsrc.append("%s:%s:%s" % [("B" if ow is Dictionary and ow.get("boss", false) else "m"), (ow.type if ow is Dictionary else "?"), str(wv.get("act", ""))])
+		var bsrc := []
+		for bl in g.ebullets:
+			if bl.pos.distance_to(p) < 90.0:
+				bsrc.append("B" if bl.get("boss", false) else str(bl.get("src_type", "m")))
+		var mh := false
+		for m in g.mires:
+			if g.combat.ground_d(p, m.pos) < float(m.r) + 26.0:
+				mh = true
+		bd.comp = {"here": here, "enemy": es, "warn": wh, "mire": mh, "other": here - es - (-25.0 if wh else 0.0) - (-18.0 if mh else 0.0), "n60": n60, "types": near_types, "hp": int(100.0 * g.hp / g.max_hp), "dash": g.dash_t > 0.0, "boss": g.spawner.boss_alive(), "wsrc": wsrc, "bsrc": bsrc}
 	b_stat.frames += 1
 	if beacon_hold != Vector2.INF:
 		b_stat.hold += 1

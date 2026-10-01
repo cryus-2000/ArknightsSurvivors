@@ -138,7 +138,7 @@ func update(dt: float) -> void:
 		# ---- 移动
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
-		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
+		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
 		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
@@ -172,7 +172,7 @@ func update(dt: float) -> void:
 					if e.set_t <= 0.0 and e.set_done:
 						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0):
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0) and not g.beacon_sys.ranged_held(e):   # 圈内安全：读条期间远程杂兵不开火，冷却留着出圈即打（docs/49g）
 						if not e.boss and not e.get("shot_ready", false):
 							e["shot_ready"] = true
 							e["shot_wind_until"] = g.t + 0.35
@@ -284,6 +284,9 @@ func morph(e: Dictionary) -> void:
 func update_lobs(dt: float) -> void:
 	for l in g.lobs:
 		l.t += dt
+		if l.t >= l.dur and g.beacon_sys.bullet_eaten(l.to):
+			g.beacon_sys.eat_fx(l.to)   # 圈内安全：落进读条光圈的抛石被灯光吞掉，不伤人、不留溟痕（docs/49g）
+			continue
 		if l.t >= l.dur:
 			g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 			if l.get("mire", false) and g.mires.size() < 32:
@@ -307,6 +310,10 @@ func update_ebullets(dt: float) -> void:
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
 		b.pos += b.vel * dt
 		b.life -= dt
+		if not b.get("boss", false) and g.beacon_sys.bullet_eaten(b.pos):
+			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
+			g.beacon_sys.eat_fx(b.pos)
+			continue
 		var hitp: bool = b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
 			var bm: bool = b.get("boss", false)
