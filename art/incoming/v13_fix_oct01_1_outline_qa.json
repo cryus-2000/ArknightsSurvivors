@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "outline_median": 1.0,
+      "source_sha256": "1e1beae4703df6fee635622a93371191b848e2872dd24258e6ef4aa0427e1c37",
+      "file": "e_carmen_slash.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 2.0,
+      "source_sha256": "47a7807e6c8aa494a53b77bf66f519fe65b82818192932700990c0cd839c0324",
+      "file": "e_carmen_slash@2x.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 1.0,
+      "source_sha256": "7e5dec2cb2ddc4b5a9af630578726ebfb29a959c6025bdb97696597b8367df14",
+      "file": "e_iberia_attack.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 2.0,
+      "source_sha256": "c32030fcec77a68d8c4e628abf158468e93acac78455d60ada44d8553e0bcd50",
+      "file": "e_iberia_attack@2x.png",
+      "alpha_mask_changed_pixels": 0
+    }
+  ],
+  "passed": true,
+  "engine_tested": false
+}
