@@ -248,7 +248,10 @@
    "max_hp": 1.0,
    "beacon_every": 0.8,
    "ctrl_start": 300,
-   "frost_max": 2
+   "frost_max": 2,
+   "beacon_safe_bullet": 1,
+   "beacon_safe_ranged": 1,
+   "beacon_safe_slow": 0
   },
   "extreme": {
    "hunt_dur": 0.7,
@@ -267,7 +270,10 @@
    "mire_permanent": 1,
    "max_hp": 0.9,
    "beacon_every": 0.6,
-   "boss_fight_enemy_hp": 1.0
+   "boss_fight_enemy_hp": 1.0,
+   "beacon_safe_bullet": 1,
+   "beacon_safe_ranged": 1,
+   "beacon_safe_slow": 0
   }
  },
  "beacon": {
