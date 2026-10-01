@@ -28,6 +28,7 @@ var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕�
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
+var outline_skip := false         # 活着的敌人 ≥ fx/outline_max：普通怪不画描边（Boss / 精英 / 部件照画），docs/50 §9.8
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
@@ -108,6 +109,12 @@ func update_visuals(dt: float) -> void:
 			ne += 1
 	var ewant: float = 0.0 if g.demo_op != "" else clampf((ne - 90.0) / 120.0, 0.0, 1.0)
 	ecrowd = move_toward(ecrowd, ewant, rd * 0.8)
+	# 满屏降级（性能 docs/50 §9.8：普通怪的描边贴图和本体贴图交替，每只多一次绘制调用）；回差 10 只，免得在阈值上来回闪
+	var omax: float = Bal.v("fx/outline_max", 150.0)
+	if ne >= omax:
+		outline_skip = true
+	elif ne < omax - 10.0:
+		outline_skip = false
 	g.fx_add.modulate.a = lerpf(1.0, 0.6, crowd)
 	if g.post != null and "crowd" in g.post:
 		g.post.crowd = crowd
@@ -1264,7 +1271,7 @@ func draw_enemy(e: Dictionary) -> void:
 		g.draw_circle(e.pos, e.r * (1.3 + 0.5 * hb), Color(PART_COL.r * 1.4, PART_COL.g * 1.4, PART_COL.b * 1.4, 0.22 + 0.3 * hb))
 		if not Cfg.outline and g.tex.has(name + "_white"):
 			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
-	if Cfg.outline and g.tex.has(name + "_white"):
+	if Cfg.outline and g.tex.has(name + "_white") and (e.elite or e.boss or e.get("part", false) or not outline_skip):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
