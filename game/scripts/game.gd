@@ -1333,7 +1333,7 @@ const V6_FRAMES := {
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
-	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "fx_nest_aura": [4, 10.0],
+	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "fx_nest_aura": [4, 10.0],
 }
 
 

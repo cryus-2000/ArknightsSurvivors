@@ -519,10 +519,15 @@ func draw_world() -> void:
 				var k := 1.0 - a
 				var p: Vector2 = f.pos.lerp(f.to, k) + Vector2(0, -110.0 * sin(k * PI))
 				var ang: float = k * TAU * 1.5
-				var dv := Vector2.from_angle(ang) * 34.0
-				g.draw_line(p - dv, p + dv, Color(0.1, 0.12, 0.2, 0.9), 6.0)
-				g.draw_line(p - dv, p + dv, Color(1.4, 1.6, 1.9), 3.0)
-				g.draw_circle(p + dv, 4.0, Color(1.6, 1.9, 2.2))
+				if g.tex.get("proj_knight_spear") != null:
+					# Codex v14 脱手长枪（40×8 × 2 帧，水平枪尖朝右）：旋转由程序做，落地冰环照旧程序画
+					# 贴图是深色钢枪，世界被灯光压暗后几乎看不见：按敌方特效惯例用 >1 的冰蓝调色提亮（同原来程序线段的颜色）
+					g.vfx.spr_rot("proj_knight_spear", int(g.t * 12.0) % 2, p, ang, Game.PX, Color(1.7, 1.9, 2.3))
+				else:
+					var dv := Vector2.from_angle(ang) * 34.0
+					g.draw_line(p - dv, p + dv, Color(0.1, 0.12, 0.2, 0.9), 6.0)
+					g.draw_line(p - dv, p + dv, Color(1.4, 1.6, 1.9), 3.0)
+					g.draw_circle(p + dv, 4.0, Color(1.6, 1.9, 2.2))
 				if k > 0.9:
 					var gk: float = (k - 0.9) / 0.1
 					g.draw_arc(f.to, 10.0 + 30.0 * gk, 0.0, TAU, 20, Color(0.8, 1.2, 1.7, 1.0 - gk), 2.0)
