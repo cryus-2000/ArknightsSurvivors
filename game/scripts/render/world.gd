@@ -362,11 +362,12 @@ func draw_world() -> void:
 	tb_flush()
 	g.squad.draw_skill_over()
 	draw_shield()
+	# 无人机：影子 + 光晕一批 → 机体贴图（同贴图连续，自动合批）→ 核心亮点一批（性能 docs/50 §9 ②：原来每架 4 次绘制调用）
 	for dr in g.drones:
-		g.draw_set_transform(dr.pos + Vector2(0, 96), 0.0, Vector2(1.0, 0.4))
-		g.draw_circle(Vector2.ZERO, 9.0, Color(0, 0, 0, 0.35))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		g.draw_circle(dr.pos, 20.0, Color(0.5, 1.4, 0.8, 0.16))
+		tb_circle(dr.pos + Vector2(0, 96), 9.0, Color(0, 0, 0, 0.35), 0.4, 14)
+		tb_circle(dr.pos, 20.0, Color(0.5, 1.4, 0.8, 0.16), 1.0, 20)
+	tb_flush()
+	for dr in g.drones:
 		# Codex 美术 V5 的激光型机体（4 帧：0-1 悬浮，2-3 发射）染成医疗绿；治疗瞬间用发射帧
 		var dfr := int(g.t * 6.0) % 2
 		if dr.get("beam", 0.0) > 0.2:
@@ -377,7 +378,9 @@ func draw_world() -> void:
 			g.vfx.spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
 		elif g.tex.get("drone") != null:
 			g.vfx.spr("drone", 2, int(g.t * 20.0) % 2, dr.pos, Game.PX, false, Color(1.2, 1.7, 1.4))
-		g.draw_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)))
+	for dr in g.drones:
+		tb_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)), 1.0, 8)
+	tb_flush()
 	_pk("shield_drones")
 	var jf := int(g.t * 6.0) % 2
 	for b in g.bullets:
@@ -2615,21 +2618,23 @@ func draw_shield() -> void:
 	var pop := 1.0 + 0.3 * (g.shield_pop / 0.4)
 	var r := (38.0 + 2.0 * sin(g.t * 3.0)) * pop
 	var fl := g.shield_flash / 0.3
-	g.draw_circle(c, r, Color(0.35, 0.7, 1.0, 0.10 + 0.05 * g.shield + 0.3 * fl))
+	# 整个护盾进一批（性能 docs/50 §9 ②：原来 1 + 层数 + 12 + 2 次绘制调用）
+	tb_circle(c, r, Color(0.35, 0.7, 1.0, 0.10 + 0.05 * g.shield + 0.3 * fl), 1.0, 40)
 	# 外圈 + 内圈（多层时叠加）
 	for q in g.shield:
-		g.draw_arc(c, r - q * 4.0, 0.0, TAU, 48, Color(0.8, 1.6, 2.4, 0.55 - q * 0.1 + 0.4 * fl), 2.0)
+		tb_arc(c, r - q * 4.0, 0.0, TAU, 2.0, Color(0.8, 1.6, 2.4, 0.55 - q * 0.1 + 0.4 * fl), 48)
 	# 六边形网格高光
 	for q in 6:
 		var an := TAU * q / 6.0 + g.t * 0.4
 		var p0 := c + Vector2.from_angle(an) * r * 0.62
 		var p1 := c + Vector2.from_angle(an + TAU / 6.0) * r * 0.62
-		g.draw_line(p0, p1, Color(0.9, 1.6, 2.2, 0.22), 1.0)
-		g.draw_line(p0, c + Vector2.from_angle(an) * r, Color(0.9, 1.6, 2.2, 0.15), 1.0)
+		tb_line(p0, p1, Color(0.9, 1.6, 2.2, 0.22), 1.0)
+		tb_line(p0, c + Vector2.from_angle(an) * r, Color(0.9, 1.6, 2.2, 0.15), 1.0)
 	# 流光
 	var sw := fmod(g.t * 1.2, 1.0)
-	g.draw_arc(c, r, -PI * 0.9 + sw * TAU, -PI * 0.6 + sw * TAU, 12, Color(2.4, 2.8, 3.0, 0.8), 3.0)
-	g.draw_circle(c + Vector2(-r * 0.4, -r * 0.45), 4.0, Color(2.4, 2.6, 3.0, 0.5))
+	tb_arc(c, r, -PI * 0.9 + sw * TAU, -PI * 0.6 + sw * TAU, 3.0, Color(2.4, 2.8, 3.0, 0.8), 12)
+	tb_circle(c + Vector2(-r * 0.4, -r * 0.45), 4.0, Color(2.4, 2.6, 3.0, 0.5), 1.0, 10)
+	tb_flush()
 
 
 ## 用 Sprite2D 的动画状态手动绘制水月，以便和怪物、海草按前后排序
