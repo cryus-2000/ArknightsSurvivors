@@ -1,0 +1,80 @@
+{
+  "assets": [
+    {
+      "file": "e_izumik_rooting.png",
+      "character": "izumik",
+      "frame_width": 72,
+      "frame_height": 72,
+      "frame_count": 4,
+      "fps": 3,
+      "anchor": [
+        36,
+        69
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 1,
+      "loop_start_frame_zero_based": 2,
+      "intro_frames_once": 2,
+      "sha256": "031c456479b2d5328f4e577acfc9779524e9314cc5ab0930986a1c4027c4c20c",
+      "source": "e_izumik.png",
+      "source_sha256": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5"
+    },
+    {
+      "file": "e_izumik_rooting@2x.png",
+      "character": "izumik",
+      "frame_width": 144,
+      "frame_height": 144,
+      "frame_count": 4,
+      "fps": 3,
+      "anchor": [
+        72,
+        138
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 2,
+      "loop_start_frame_zero_based": 2,
+      "intro_frames_once": 2,
+      "sha256": "0675002aa9e2dd6d49bfee03174580ee4f4303ed63a3edfe18f949ca3b65f1fd",
+      "source": "e_izumik.png",
+      "source_sha256": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5"
+    },
+    {
+      "file": "e_path_charge.png",
+      "character": "path",
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        28,
+        53
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "41da7e3588eff3a953791e36196d1a9579080ac231947dee42f1d2d40ef02df5",
+      "source": "e_path.png",
+      "source_sha256": "f2d1260e2b8acf11210318cf65c4ca85b6f927afe5ef588bf0b71afeb44ca15e"
+    },
+    {
+      "file": "e_path_charge@2x.png",
+      "character": "path",
+      "frame_width": 112,
+      "frame_height": 112,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        56,
+        106
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "dd680a281cbc1f652f2c901fe9491f4a796183d4456cb5556e71712f985f5133",
+      "source": "e_path.png",
+      "source_sha256": "f2d1260e2b8acf11210318cf65c4ca85b6f927afe5ef588bf0b71afeb44ca15e"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "checks": [
+    {
+      "file": "proj_knight_spear.png",
+      "outline_median": 1.0
+    },
+    {
+      "file": "proj_knight_spear@2x.png",
+      "outline_median": 2.0
+    }
+  ],
+  "passed": true,
+  "engine_tested": false
+}
