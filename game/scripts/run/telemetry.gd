@@ -264,8 +264,15 @@ func record(marks = null) -> Dictionary:
 	return {"win": g.state == g.S.WIN or g.victory.recorded, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
 		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
 		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
-		"xp_total": snappedf(g.pickups.xp_total, 0.1), "xp_overflow": snappedf(g.pickups.xp_overflow, 0.1),
-		"xp_overflow_min": g.pickups.xp_overflow_min.map(func(x): return snappedf(x, 0.1)),
+		"xp_total": snappedf(g.pickups.xp_total, 0.1),
+		# 经验分来源（docs/38 §8.13 方案 A，替代旧的 xp_overflow）：走近捡 / 磁铁吸回 / 视野外回收（含兜底），各带按分钟分段；
+		# 守恒 xp_dropped = xp_walk + xp_magnet + xp_recall + xp_ground（tools/check.py 逐局断言）
+		"xp_walk": snappedf(g.pickups.xp_src.walk, 0.1), "xp_magnet": snappedf(g.pickups.xp_src.magnet, 0.1), "xp_recall": snappedf(g.pickups.xp_src.recall, 0.1),
+		"xp_walk_min": g.pickups.xp_src_min.walk.map(func(x): return snappedf(x, 0.1)),
+		"xp_magnet_min": g.pickups.xp_src_min.magnet.map(func(x): return snappedf(x, 0.1)),
+		"xp_recall_min": g.pickups.xp_src_min.recall.map(func(x): return snappedf(x, 0.1)),
+		"xp_dropped": snappedf(g.pickups.xp_dropped, 0.1), "xp_ground": snappedf(g.pickups.xp_on_ground(), 0.1),
+		"xp_backstop": snappedf(g.pickups.xp_backstop, 0.1), "recall_backstop": g.pickups.recall_backstop, "recall_n": g.pickups.recall_n,
 		"xp_total_min": g.pickups.xp_total_min.map(func(x): return snappedf(x, 0.1)),
 		"items": g.pickups.item_log.duplicate(),
 		"low_levelups": g.progression.low_levelups, "heal_offer_low": g.progression.heal_offer_low,

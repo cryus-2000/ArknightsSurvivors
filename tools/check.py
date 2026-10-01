@@ -223,12 +223,27 @@ def ctrl_errors(d):
     return errs
 
 
+def xp_errors(d):
+    """经验守恒（docs/38 §8.13 方案 A，数值 10-01 定的恒等式）：每局 掉落总经验 = 走近捡 + 磁铁 + 回收（含兜底）+ 地上剩余"""
+    if d is None:
+        return []
+    keys = ("xp_dropped", "xp_walk", "xp_magnet", "xp_recall", "xp_ground")
+    if any(not isinstance(d.get(k), (int, float)) for k in keys):
+        return ["经验守恒：BALANCE 缺 %s" % "/".join(k for k in keys if not isinstance(d.get(k), (int, float)))]
+    got = d["xp_walk"] + d["xp_magnet"] + d["xp_recall"] + d["xp_ground"]
+    if abs(d["xp_dropped"] - got) > 0.5 + 1e-6 * d["xp_dropped"]:
+        return ["经验守恒：掉落 %.1f ≠ 捡 %.1f + 磁铁 %.1f + 回收 %.1f + 地上 %.1f（差 %.1f）" % (
+            d["xp_dropped"], d["xp_walk"], d["xp_magnet"], d["xp_recall"], d["xp_ground"], d["xp_dropped"] - got)]
+    return []
+
+
 def run_case(godot, name, extra, timeout=300):
     t0 = time.time()
     out, err, to, log = _run(godot_args(godot, extra), timeout, name)
     errs = GR.script_errors(out, err)
     d = parse_balance(out)
     errs += ctrl_errors(d)
+    errs += xp_errors(d)
     ok = d is not None and not errs and not to
     detail = ("超时" if to else ("没有 BALANCE 行" if d is None else "t=%d %s" % (d["t"], "胜" if d.get("win") else "")))
     return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d, "log": log}

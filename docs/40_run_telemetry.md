@@ -49,6 +49,10 @@
   `dash_break_n` 冲刺挣脱冻结次数、`slow_t` 被减速总秒数（冰霜、寒霜层、Boss 战减速；同一来源同一时刻只算一次）；
   另有 `slow_any_t`：身上有任何减速的总秒数（不同来源重叠只算一次）。溟痕、排异幻境等地形减速不算在内。
   只记账、不改玩法、不用随机数。`tools/balance_run.py` 输出「控制（按来源，每局平均）」表；快检冒烟断言字段齐全且非负（`tools/check.py ctrl_errors`）。
+- **经验分来源**（2026-10-01，docs/38 §8.13 方案 A，替代旧的 `xp_overflow / xp_overflow_min`；`run/pickups.gd`）：
+  `xp_walk` 走近捡、`xp_magnet` 磁铁吸回、`xp_recall` 视野外回收（含兜底直接入账），各自带按分钟分段 `xp_*_min`；
+  `xp_dropped` 掉落总经验、`xp_ground` 终局地上剩余、`xp_backstop` 兜底直接入账的量（已算进 `xp_recall`）、`recall_backstop` 兜底次数、`recall_n` 有回收的判定次数。
+  守恒恒等式 `xp_dropped = xp_walk + xp_magnet + xp_recall + xp_ground`，快检每局断言（`tools/check.py xp_errors`）。
 
 ## 4. 上线前还要做的（本次不做）
 
