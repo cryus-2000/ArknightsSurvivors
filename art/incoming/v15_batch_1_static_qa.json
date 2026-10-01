@@ -1,0 +1,341 @@
+{
+  "engine_tested": false,
+  "assets": [
+    {
+      "sha256": "e17b95636045562d296ab7068b042627217143482943ac0e6a97ca536d716aff",
+      "file": "e_saint.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            8,
+            3,
+            30,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 741,
+          "pixel_sha256": "df99d3ae6d4935ae151818cca2275871258452cab3b4e7f9e0c364110d306efe"
+        },
+        {
+          "bbox": [
+            8,
+            3,
+            30,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 744,
+          "pixel_sha256": "d2e9bfdd58054f1ec55f778fd9a9728daf21ade6235119e93c77c8df267d8ef4"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "f80fd9d4a7f530d293047535dcdd9165a007dd8d6c375611cb7222d9e0e7db99",
+      "file": "e_saint@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            16,
+            5,
+            60,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 2899,
+          "pixel_sha256": "fd765954c7e193fa7a35f081f5ae64cd99bab3bbb06fea1bf56eb35c48ebdcfa"
+        },
+        {
+          "bbox": [
+            16,
+            5,
+            60,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 2926,
+          "pixel_sha256": "4a0ba6c0f664e620fd843646b4366423994a8aef5e8a29b51c19891c5ee412b5"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "8f35d27da9154fbab37b44577d2e36ce875e88f06bc96b54e726eab51ea9eb17",
+      "file": "e_saint_dark.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            4,
+            3,
+            31,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 823,
+          "pixel_sha256": "fce3bd7a15a69ed4f367834347be84d92db00e1c5e06e5170bb177ed7dcb05e9"
+        },
+        {
+          "bbox": [
+            4,
+            3,
+            31,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 817,
+          "pixel_sha256": "6dc8fc74263c0605f444b7e5cf18799f5c2c150d8806858d7f3c4ca6e06b0fa0"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "1185be3e85aa3e137f0e9a2e54a48859e86d6eddce098aab51285296aeeb0dc2",
+      "file": "e_saint_dark@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            8,
+            5,
+            63,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3255,
+          "pixel_sha256": "4a1e21f9580088fc39d87ee935c98e3fbdf8b393fa5dc4780b9034f797757ade"
+        },
+        {
+          "bbox": [
+            9,
+            5,
+            63,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3201,
+          "pixel_sha256": "8ef6614ca199be182516cf62fb78559b976a859b8bde93973463f68b7c153ac6"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "6085d84674b5732dcfc31d1e015a77b692ee09d583b33e1c4037cedcbe159f26",
+      "file": "e_saint_move.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            7,
+            3,
+            31,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 687,
+          "pixel_sha256": "4c090d316ca6e24b2e988079831f1bebb70ea995781b12f3012d58d72d09fd4d"
+        },
+        {
+          "bbox": [
+            9,
+            3,
+            30,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 659,
+          "pixel_sha256": "30f5efceb4585034cc874e1b8e382841eec98ba6929516c5c746243747ab3aee"
+        },
+        {
+          "bbox": [
+            7,
+            3,
+            31,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 692,
+          "pixel_sha256": "372c05942389dc793ce16f73f278d266c91b7d95ffd550085e1631d3aec988e6"
+        },
+        {
+          "bbox": [
+            8,
+            3,
+            29,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 656,
+          "pixel_sha256": "f2b8e95eba5974ffd6cde85b5c36d9fbdea4950c296c5c1b2c5ee32a874fe004"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "4057896e57446263e4efd0a8ffbbcefdacb0d3d06f75e34b3d38439e74f1cef3",
+      "file": "e_saint_move@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            15,
+            5,
+            62,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 2707,
+          "pixel_sha256": "477ba94c0f9271fc04b0da74534b63a4c6cc932b88862d49c00275d264d04b6c"
+        },
+        {
+          "bbox": [
+            18,
+            5,
+            61,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 2585,
+          "pixel_sha256": "7d71090b8028f143cbfa3544c6e4c17bd03778750cc74769cf7387253bb8f675"
+        },
+        {
+          "bbox": [
+            14,
+            5,
+            63,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 2691,
+          "pixel_sha256": "3344b86a2762883572ae36b2afa483919aa7fcb2b72a7ec7fc2276bfeb2e2220"
+        },
+        {
+          "bbox": [
+            16,
+            5,
+            59,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 2574,
+          "pixel_sha256": "2b86af6e822325345984d798f190b255d6b262ff055cf4de313696d7d646cefe"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "81c16c8cb0a1ae75f8b87ed6b04f483e0b7539797b2788b5aa2932479b4c94b0",
+      "file": "e_saint_dark_move.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            5,
+            3,
+            31,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 763,
+          "pixel_sha256": "f3354d15171a136b99acf7ed33cc29831c6537d99f58e9ab2dd1e8eab58eac83"
+        },
+        {
+          "bbox": [
+            7,
+            4,
+            31,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 737,
+          "pixel_sha256": "9db7ac951f39cf3dcfd70f6bcfbfed1ea246c7c1f7898272a10e8a3a51a64b73"
+        },
+        {
+          "bbox": [
+            5,
+            3,
+            32,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 768,
+          "pixel_sha256": "c36575716e84ea9d6518f5e670f386d782a9f68972fd7931ac4794943718d07a"
+        },
+        {
+          "bbox": [
+            5,
+            4,
+            30,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 730,
+          "pixel_sha256": "8b48276443880ae6c2d4b62e14f8bf91ca2c3bab610ad21f48773b9e2b3b60e4"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "cc253181c4a1496972e5ee9e572073c46ff0b5c45dd6932f6368a573f37e9dd0",
+      "file": "e_saint_dark_move@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            10,
+            6,
+            64,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 2990,
+          "pixel_sha256": "05fa87b08a42c17c92fb01bdd6d9043d0d72cc636dca0f70583f055748156530"
+        },
+        {
+          "bbox": [
+            15,
+            6,
+            63,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 2890,
+          "pixel_sha256": "68cdad3881ab6d4d0fac654db6158a6e67dbf9122f91267ac98c207f54111ef6"
+        },
+        {
+          "bbox": [
+            10,
+            5,
+            65,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3000,
+          "pixel_sha256": "d6f34edb388b21d6f1566730302b077e34a80c3bee4085f460d8cdb3e048ba3e"
+        },
+        {
+          "bbox": [
+            11,
+            6,
+            61,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 2868,
+          "pixel_sha256": "001b2062da70fb7de825c1d4623c0abc557630484add47db04cd53bb41132929"
+        }
+      ],
+      "outline": "080E18"
+    }
+  ],
+  "baseline_checked": true,
+  "palette_counts": [
+    {
+      "colors": 43,
+      "character": "saint"
+    }
+  ],
+  "passed": true
+}
