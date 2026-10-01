@@ -248,10 +248,7 @@
    "max_hp": 1.0,
    "beacon_every": 0.8,
    "ctrl_start": 300,
-   "frost_max": 2,
-   "beacon_safe_bullet": 1,
-   "beacon_safe_ranged": 1,
-   "beacon_safe_slow": 0
+   "frost_max": 2
   },
   "extreme": {
    "hunt_dur": 0.7,
@@ -270,16 +267,16 @@
    "mire_permanent": 1,
    "max_hp": 0.9,
    "beacon_every": 0.6,
-   "boss_fight_enemy_hp": 1.0,
-   "beacon_safe_bullet": 1,
-   "beacon_safe_ranged": 1,
-   "beacon_safe_slow": 0
+   "boss_fight_enemy_hp": 1.0
   }
  },
  "beacon": {
   "_doc": "引航灯标（run/beacon.gd，docs/49d §13.5 C）：没写的键用代码缺省（every 60–75、dist 250–400、r 70、need 2.5、decay 0.5、block_t 30、low_lamp_mult 1.5、lumen_mult 2、boss_life 2）；lamp 20（点亮时灯火 +20，原代码缺省 5；数值 9/30：比普通灯油 +15 多、比精英灯油 +25 少，Ⅷ 低灯秒数 −12%、熄灯秒数 −16%，胜率噪声内）",
   "clear_r": 340,
-  "lamp": 20
+  "lamp": 20,
+  "safe_bullet": 1,
+  "safe_ranged": 1,
+  "safe_slow": 0
  },
  "squad": {
   "_doc": "编队人数加主控最大生命（docs/46 §6，用户定每人 +15%）",

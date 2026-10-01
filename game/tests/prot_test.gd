@@ -952,8 +952,15 @@ func test_beacon_safe() -> void:
 	var mob := {"boss": false, "pos": bc.pos, "r": 10.0}
 	var boss := {"boss": true, "pos": bc.pos, "r": 30.0}
 	bs.charging = bc
-	ok(not bs.bullet_eaten(bc.pos) and not bs.ranged_held(mob) and is_equal_approx(bs.slow_mult(mob), 1.0), "缺省三个旋钮全关：现行为不变")
+	# 发布缺省（制作人 10-01 三档全开）：吞子弹、远程暂停开，减速关
+	ok(bs.bullet_eaten(bc.pos) and bs.ranged_held(mob) and is_equal_approx(bs.slow_mult(mob), 1.0), "发布缺省：safe_bullet / safe_ranged 开，safe_slow 关")
 	var keep_b: Dictionary = Bal._data.get("beacon", {}).duplicate()
+	var off: Dictionary = keep_b.duplicate()
+	off["safe_bullet"] = 0.0
+	off["safe_ranged"] = 0.0
+	off["safe_slow"] = 0.0
+	Bal._data["beacon"] = off
+	ok(not bs.bullet_eaten(bc.pos) and not bs.ranged_held(mob) and is_equal_approx(bs.slow_mult(mob), 1.0), "三个旋钮全关：旧行为")
 	var nb: Dictionary = keep_b.duplicate()
 	nb["safe_bullet"] = 1.0
 	nb["safe_ranged"] = 1.0
