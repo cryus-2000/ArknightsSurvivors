@@ -10,12 +10,19 @@
 python tools/release_all.py --ref <冻结提交>
 ```
 
-`tools/release_all.py`（2026-09-30）串行做：出对外包 → `verify_encrypted_game.py` 验证 → 出对内包（`--ea`）→ 验证 → 出网页版（`export_web.py`），
-任一步失败就中止。产物统一收进 `build/release/final_<提交>/`：两个 zip、`web/`、汇总 `release_<提交>.json`（zip 的路径 / 大小 / sha256、
-验证报告、存档目录、是否全部解锁、网页最大单文件）、两份验证报告与各次启动日志，以及对内包验证过的解压目录 `internal/`。
+`tools/release_all.py`（2026-09-30）串行做：出对外包 → `verify_encrypted_game.py` 验证 → 出对内包（`--ea`）→ 验证 →
+出对外网页版 → `verify_web_build.py` 验证 → 出对内网页版（`export_web.py --ea`）→ 验证，
+任一步失败就中止。产物统一收进 `build/release/final_<提交>/`：两个 zip、`web/`、`web_internal/`、汇总 `release_<提交>.json`（zip 的路径 / 大小 / sha256、
+验证报告、存档目录、是否全部解锁、网页最大单文件）、各份验证报告与各次启动日志，以及对内包验证过的解压目录 `internal/`。
 两个 Windows 包必须串行：导出与验证共用 `build/_export/`，验证读的是刚导出的那份打包源码。验证报告与日志按 audience 分开命名
-（`encrypted_game_verification_<public|internal>_<提交>.json`），同一提交的两份不会互相覆盖。
-`--only public|internal|web` 只出其中一份（其余不动，汇总并进同一个 `release_<提交>.json`）；`--no-web` 不出网页版。
+（`encrypted_game_verification_<public|internal>_<提交>.json`、`web_verification_<public|internal>_<提交>.json`），同一提交的各份不会互相覆盖。
+`--only public|internal|web|web_internal` 只出其中一份（其余不动，汇总并进同一个 `release_<提交>.json`）；`--no-web` 两个网页版都不出。
+
+**网页版的 audience**（2026-10-01）：`export_web.py` 和 Windows 包一样往打包副本的 `data/build.json` 写 `commit / built / audience / encrypted=false / platform=web`；
+`--ea` 出对内网页版（`audience = internal`、`channel = EA`）：Boss 演练开、启动即全部解锁（只在内存），与对内 Windows 包同一套 `settings.gd` 判断；不带 `--ea` 为对外网页版。
+网页存档在浏览器 IndexedDB，按网站源（协议 + 域名 + 端口）隔离——**对内网页版必须放在与对外版不同的域名 / 端口下**，否则两版共用一份存档。
+`tools/verify_web_build.py` 把分片拼回 `index.pck`，用 4.7.2 release 诊断模板（`encrypted_release.diagnostic_verifier`；普通 release 模板关了 `--main-pack`）在临时用户目录里加载跑探针：
+`build.json` 的 audience / commit / platform、发布版开发参数屏蔽、全部解锁与演练入口和 audience 一致；对外包新存档进度为空，对内包写一次存档后文件里进度仍为空；单文件 ≤ 25 MB。
 
 **一键启动对内测试版**（1.1.1）：仓库根目录 `启动对内测试版.bat`（进 git），双击即运行 `build/release/final_*/internal/` 里最新的一份
 （按目录修改时间）；找不到就提示先跑 `python tools/release_all.py --ref main --only internal`。解压目录在 `build/` 下，不进 git。
@@ -109,7 +116,7 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
-1. 网页版 `export_web.py` 不写 `build.json` 的 commit / audience（局内记录的版本号是 dev）；网页版按对外版处理（无 audience → 演练关闭）。以后要出对内网页版需补。
+1. ~~网页版 `export_web.py` 不写 `build.json` 的 commit / audience~~：2026-10-01 已补，并有 `--ea` 对内网页版与 `verify_web_build.py`（见「一条命令」）。
 2. Web 预设 `exclude_filter` 没排除 `tests/*`（加密 Windows 预设已排除）：测试脚本会打进网页包。发布版读不到命令行参数，测试入口不可达，只是多占体积。
 3. 打包游戏退出时有引擎自带的「2 resources still in use / ObjectDB leaked」提示，验证脚本已按已知项放行；不影响运行。
 4. 加密导出只能在存有密钥与自编译模板的机器上做（`~/.codex/private/ArknightsSurvivors`）：换机器按「一次性准备」重来。

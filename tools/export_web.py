@@ -1,14 +1,20 @@
 """一步导出网页版（docs/22）：干净副本 → 复制美术 → Godot 导出 Web → 分片 + gzip → 内联加载器。
 
-  python tools/export_web.py            # 导出 HEAD 到 build/web/
+  python tools/export_web.py            # 导出 HEAD 到 build/web/（对外网页版）
   python tools/export_web.py --ref xxx  # 导出指定提交
+  python tools/export_web.py --ea --out build/release/final_<提交>/web_internal   # 对内网页版（演练开、全部解锁，同对内 Windows 包）
+
+构建信息：和 Windows 包一样往打包副本的 data/build.json 写 commit / built / audience（public 或 --ea 时 internal）/ encrypted=false，
+--ea 另写 channel=EA。游戏里 Boss 演练入口与「全部解锁」都按 audience 判断（settings.gd，docs/33 §双版本）。
+网页存档在浏览器 IndexedDB、按网站源（协议 + 域名 + 端口）隔离：对内网页版要放在和对外版不同的域名 / 端口下，否则两版共用存档。
+导出后用 tools/verify_web_build.py 实测（release_all.py 会自动跑）。
 
 分片：index.pck / index.wasm 按 --part-mib（默认 10 MiB，原始字节）切片，每片 gzip -9，
 命名 index.pck.00.gz …，原文件删掉。tools/web/loader.js 拦截引擎对这两个文件的 fetch，并行下载分片、
 解压拼回（见该文件注释）。托管平台单文件上限 25 MB（EdgeOne / Cloudflare Pages），导出后逐个检查。
 不发布、不上传：部署命令见 docs/22。
 """
-import argparse, gzip, io, json, os, shutil, subprocess, sys, tarfile
+import argparse, datetime, gzip, io, json, os, shutil, subprocess, sys, tarfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
@@ -49,6 +55,7 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "web"))
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
+    ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     a = ap.parse_args()
 
     commit = run(["git", "-C", ROOT, "rev-parse", "--short", a.ref]).strip()
@@ -67,6 +74,17 @@ def main():
         if f.lower().endswith(".png"):
             shutil.copy2(os.path.join(art_src, f), art_dst)
     print("源码：%s @ %s" % (a.ref, commit))
+    # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
+    bj = os.path.join(src, "game", "data", "build.json")
+    binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}
+    binfo.update({"commit": commit, "built": datetime.datetime.now().strftime("%Y%m%d"), "audience": "internal" if a.ea else "public", "encrypted": False, "platform": "web"})
+    if a.ea:
+        binfo["channel"] = "EA"
+    else:
+        binfo.pop("channel", None)
+    with open(bj, "w", encoding="utf-8") as fh:
+        json.dump(binfo, fh, ensure_ascii=False, indent=1)
+    print("构建信息：audience=%s" % binfo["audience"])
 
     # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
     chk = os.path.join(src, "tools", "check_release.py")
