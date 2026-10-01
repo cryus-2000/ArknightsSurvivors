@@ -1,0 +1,394 @@
+{
+  "passed": true,
+  "baseline_checked": true,
+  "allow_repeated_frames": false,
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            5,
+            3,
+            67,
+            69
+          ],
+          "index": 0,
+          "opaque_pixels": 2749,
+          "pixel_sha256": "d6c2122ad8861b35e22d3a748d01df2c1ba5614e40d8d03b7526568559968723"
+        },
+        {
+          "bbox": [
+            3,
+            1,
+            69,
+            69
+          ],
+          "index": 1,
+          "opaque_pixels": 2957,
+          "pixel_sha256": "ecb3cabb47c63b02d901c10492ba78eb2d12e252cdcd57287ceaf6ef02ddee87"
+        },
+        {
+          "bbox": [
+            1,
+            1,
+            70,
+            69
+          ],
+          "index": 2,
+          "opaque_pixels": 3196,
+          "pixel_sha256": "83ccf844867c9af815c48cbd2bc0d7db4b56a0db34d1a843a620f3d141389fed"
+        },
+        {
+          "bbox": [
+            3,
+            1,
+            68,
+            69
+          ],
+          "index": 3,
+          "opaque_pixels": 2929,
+          "pixel_sha256": "c92489ff7c5be5e97e244dfac4fd1a21eb2897ad90139c1177e20884dcc7f8e6"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "b7118a6203427c331592e60bdde4bd884fc422b1f91d7460f7f8f0d4b9b154c5",
+      "file": "e_izumik_attack.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            10,
+            5,
+            135,
+            138
+          ],
+          "index": 0,
+          "opaque_pixels": 10996,
+          "pixel_sha256": "8a7ba1c1d6dd40fca8a5efaa0d8f128bb5728a6fce856e5f264c61f24667577e"
+        },
+        {
+          "bbox": [
+            6,
+            1,
+            139,
+            138
+          ],
+          "index": 1,
+          "opaque_pixels": 11828,
+          "pixel_sha256": "3cdfd0315a8719a2bdb8861ffe6c0ae7979da9050168fd5feb756c97eff77434"
+        },
+        {
+          "bbox": [
+            2,
+            1,
+            141,
+            138
+          ],
+          "index": 2,
+          "opaque_pixels": 12784,
+          "pixel_sha256": "58af7d295225a049b329a76b8c53cd1af3de83a2676ee81e59ca6626a3c1c9f7"
+        },
+        {
+          "bbox": [
+            6,
+            1,
+            137,
+            138
+          ],
+          "index": 3,
+          "opaque_pixels": 11716,
+          "pixel_sha256": "36b7b7fdbb2699c2dd308d2327413025d1e2fe964df70e510ea0b2415161ea24"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "7d7091f6a153343c297de312569a84a4d866a8ce7bc4e9425022a55db1283943",
+      "file": "e_izumik_attack@2x.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            5,
+            1,
+            34,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 949,
+          "pixel_sha256": "b1a426e20015e4e0562ff7d1c562535873e3a7d3a91db46e621c4450b5c83a46"
+        },
+        {
+          "bbox": [
+            5,
+            1,
+            34,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 949,
+          "pixel_sha256": "2bb5212a2fea93d10070cc86809e2d14ebefefc3975acd74534503440d64aa3a"
+        },
+        {
+          "bbox": [
+            5,
+            1,
+            34,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 949,
+          "pixel_sha256": "29490d21673cfd762a4a0a69316f874a5410b37fe708c6e11c3b55bb6f6c7d1d"
+        },
+        {
+          "bbox": [
+            5,
+            1,
+            34,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 949,
+          "pixel_sha256": "7b65490b639262038775d858a59d6d2fb3429f6c6c0e49f78742db52154d0f39"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "0fc4bbf892d70c58593a77314cdc79a940e6c4bb7e0c85a165a3382667693b70",
+      "file": "e_iberia_reload.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            10,
+            1,
+            69,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3796,
+          "pixel_sha256": "d579ef104d967e7a0fd5f4b54319d68b5cb35940049f0a7dce2e79d51e149039"
+        },
+        {
+          "bbox": [
+            10,
+            1,
+            69,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3796,
+          "pixel_sha256": "e4c81163d80ee8ac757ef0b19b815cb787f2e08f607298970d3a05af4fb4dc54"
+        },
+        {
+          "bbox": [
+            10,
+            1,
+            69,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3796,
+          "pixel_sha256": "0d5ebcfd939ce47941d045a2df322460d4a4dcb05c0d048b9eb4470e2e301370"
+        },
+        {
+          "bbox": [
+            10,
+            1,
+            69,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 3796,
+          "pixel_sha256": "1c2ab69aaa3cf1de02358801d289fbd455c4a815ad0716c850580929133123c7"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "484bef90a00c5d1502f89334bf21f8e0ec09fcef0e32e348a1856d3baaebc387",
+      "file": "e_iberia_reload@2x.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            1,
+            8,
+            70,
+            69
+          ],
+          "index": 0,
+          "opaque_pixels": 3007,
+          "pixel_sha256": "4b6323fe9ac24b58245cc5da939c2afae69ab8b91b7f7d26bd0968c01d0033f1"
+        },
+        {
+          "bbox": [
+            2,
+            7,
+            69,
+            69
+          ],
+          "index": 1,
+          "opaque_pixels": 2890,
+          "pixel_sha256": "d37e2133d9f6afc95f832b68e3405c22301ddec0db4746b0ecb2d34f18f2835a"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "fe1c1039b6389b7db894f928d588fb7469d6d007202ba32c33f14cab4fc00cd9",
+      "file": "e_paranoia_phase2.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            2,
+            15,
+            141,
+            138
+          ],
+          "index": 0,
+          "opaque_pixels": 12028,
+          "pixel_sha256": "30ecf9c26658b2105c5c767f3ba8daf9751efa0e0f0494efa70cac6d1f5e76e2"
+        },
+        {
+          "bbox": [
+            4,
+            13,
+            139,
+            138
+          ],
+          "index": 1,
+          "opaque_pixels": 11560,
+          "pixel_sha256": "fc541ec4c1bd9e28003928afe69fda3e72fbbf7aff5eb87f5a5ff10b2bbef97b"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "a2072ac3aac4dbecb7d02b330380eed2fdccdeb2157b89f386e0f11b9f06c2c2",
+      "file": "e_paranoia_phase2@2x.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            1,
+            8,
+            70,
+            69
+          ],
+          "index": 0,
+          "opaque_pixels": 3007,
+          "pixel_sha256": "4b6323fe9ac24b58245cc5da939c2afae69ab8b91b7f7d26bd0968c01d0033f1"
+        },
+        {
+          "bbox": [
+            2,
+            6,
+            70,
+            69
+          ],
+          "index": 1,
+          "opaque_pixels": 2954,
+          "pixel_sha256": "1ecefecad111e4c1f99a09698d983d5a686739e9181357354e6ee42d3263dec5"
+        },
+        {
+          "bbox": [
+            1,
+            9,
+            70,
+            69
+          ],
+          "index": 2,
+          "opaque_pixels": 2952,
+          "pixel_sha256": "e088a4019a5c2b2938a6e7ac92b2cf5e7bbfd4bf1fe01e48c543d9f8a0da55cb"
+        },
+        {
+          "bbox": [
+            2,
+            7,
+            68,
+            69
+          ],
+          "index": 3,
+          "opaque_pixels": 2925,
+          "pixel_sha256": "c6921beeaf4045d6ead624c2da27c3e35c46e72528d3359d6e0fccc441825a21"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "0eede3e00132b33e1b9bc8ba62d5b9b7f603ae25dc8e7ba97cac4937fd73d3df",
+      "file": "e_paranoia_phase2_move.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            2,
+            15,
+            141,
+            138
+          ],
+          "index": 0,
+          "opaque_pixels": 12028,
+          "pixel_sha256": "30ecf9c26658b2105c5c767f3ba8daf9751efa0e0f0494efa70cac6d1f5e76e2"
+        },
+        {
+          "bbox": [
+            4,
+            11,
+            141,
+            138
+          ],
+          "index": 1,
+          "opaque_pixels": 11816,
+          "pixel_sha256": "f79059dbca11917c7db46f83105802f592b786e75990f5c5ae4a4861c1c95951"
+        },
+        {
+          "bbox": [
+            2,
+            17,
+            141,
+            138
+          ],
+          "index": 2,
+          "opaque_pixels": 11808,
+          "pixel_sha256": "d0da566781b78ae58807a68d332bf5e15c2b6f480b63eee628caf50a66c3a0b0"
+        },
+        {
+          "bbox": [
+            4,
+            13,
+            137,
+            138
+          ],
+          "index": 3,
+          "opaque_pixels": 11700,
+          "pixel_sha256": "ed487756baefabee5db17c241d8af94106db40803e4e7b861776abcfa37699f0"
+        }
+      ],
+      "binary_alpha": true,
+      "sha256": "700d894c85a515c42effede83053b9fee57d8a069808543aad4feae65cb0be13",
+      "file": "e_paranoia_phase2_move@2x.png"
+    }
+  ],
+  "palette_counts": [
+    {
+      "colors": 47,
+      "character": "iberia"
+    },
+    {
+      "colors": 47,
+      "character": "izumik"
+    },
+    {
+      "colors": 47,
+      "character": "paranoia_phase2"
+    }
+  ]
+}

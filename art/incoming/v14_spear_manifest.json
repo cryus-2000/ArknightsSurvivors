@@ -1,0 +1,40 @@
+{
+  "generated_master": "C:/Users/colafax/.codex/generated_images/01a08159-bde5-7d50-b7e0-571e2eeb3a31/exec-ca8e7709-5b94-4af7-a6a1-eca01363129a.png",
+  "assets": [
+    {
+      "sha256": "b869a173e8e1049f63ead99ca1a5aea182305ee9600b0355c683c863999a06f4",
+      "frame_count": 2,
+      "character": "knight_spear",
+      "hold_last_frame": false,
+      "density": 1,
+      "file": "proj_knight_spear.png",
+      "loop": true,
+      "anchor": [
+        20,
+        4
+      ],
+      "frame_width": 40,
+      "frame_height": 8,
+      "fps": 12
+    },
+    {
+      "sha256": "0015b8f84102d753bffd404304940deb8710c7b621fc9521add5713fb677a883",
+      "frame_count": 2,
+      "character": "knight_spear",
+      "hold_last_frame": false,
+      "density": 2,
+      "file": "proj_knight_spear@2x.png",
+      "loop": true,
+      "anchor": [
+        40,
+        8
+      ],
+      "frame_width": 80,
+      "frame_height": 16,
+      "fps": 12
+    }
+  ],
+  "reference": "E:/水月/boss_refs/knight_atlas.png",
+  "reference_sha256": "9f6e5af685246b79b880c37c6e57b7fe95b9ce2900d2a64d708692286e91eb6f",
+  "generated_master_sha256": "da92e81bda20de5c1a966c5f9e6cb95af4bbe739c5b12092094597eff470b5de"
+}

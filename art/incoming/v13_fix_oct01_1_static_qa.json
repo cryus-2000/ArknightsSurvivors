@@ -1,0 +1,226 @@
+{
+  "engine_tested": false,
+  "palette_counts": [
+    {
+      "colors": 47,
+      "character": "carmen"
+    },
+    {
+      "colors": 47,
+      "character": "iberia"
+    }
+  ],
+  "allow_repeated_frames": false,
+  "baseline_checked": true,
+  "passed": true,
+  "assets": [
+    {
+      "file": "e_carmen_slash.png",
+      "sha256": "727cf160d3e4d0beb49e24c81a152530db634622ab10c8feec7983250d2af45a",
+      "frames": [
+        {
+          "pixel_sha256": "11df89ab9c2c25ea86f238f1f1c055a41ba3402e207174519072a652b42db43d",
+          "opaque_pixels": 1012,
+          "index": 0,
+          "bbox": [
+            5,
+            1,
+            34,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "908d892182557e66c8938efa828d96cb360bd79d4bd8f2243b9be45e488e1391",
+          "opaque_pixels": 1048,
+          "index": 1,
+          "bbox": [
+            5,
+            1,
+            38,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "ce5eaf4221dec8ffcab2dec3983d3c8f8851810821fde02c6c99960bac9dc009",
+          "opaque_pixels": 1039,
+          "index": 2,
+          "bbox": [
+            5,
+            1,
+            38,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "ecb48d73c9b57bdf1c8b5e163c581ed56437c14ac58269cf619edd4937671a1e",
+          "opaque_pixels": 1034,
+          "index": 3,
+          "bbox": [
+            5,
+            1,
+            38,
+            45
+          ]
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18"
+    },
+    {
+      "file": "e_carmen_slash@2x.png",
+      "sha256": "a1024c2d9669ace9544a3a65e1ee7547b91ebd4b9bf885a9f0470b2836dd549a",
+      "frames": [
+        {
+          "pixel_sha256": "a3d89663ac98511fd84a5c6632ad02902094f35bbe288acee65aa0f862db32f5",
+          "opaque_pixels": 4048,
+          "index": 0,
+          "bbox": [
+            10,
+            1,
+            69,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "3bf321ed8db2554af84fa520ee76b9d2f8b9c19e0cdf1e38446cc9f9cf39bd41",
+          "opaque_pixels": 4192,
+          "index": 1,
+          "bbox": [
+            10,
+            1,
+            77,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "a519456b07db0f23739c8f9f1f36099797f2dcf524f3983ade8c8e27f353a172",
+          "opaque_pixels": 4156,
+          "index": 2,
+          "bbox": [
+            10,
+            1,
+            77,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "09cb946242dfa134731ba3b13a8cb32ec912b839c942eac19ccddcd8247acc34",
+          "opaque_pixels": 4136,
+          "index": 3,
+          "bbox": [
+            10,
+            1,
+            77,
+            90
+          ]
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18"
+    },
+    {
+      "file": "e_iberia_attack.png",
+      "sha256": "57062852febb9061670572d9ea11385ca11941583b8441eb38cc8fbaa5339644",
+      "frames": [
+        {
+          "pixel_sha256": "ea97075b17e46253ac67f52ccccd65dfdbadbed3556ca3342a6009fb9f1b254e",
+          "opaque_pixels": 976,
+          "index": 0,
+          "bbox": [
+            5,
+            1,
+            36,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "b8f2e783881657288451c6826bf079bc108e5350dd64ba9d946826395f3fec57",
+          "opaque_pixels": 976,
+          "index": 1,
+          "bbox": [
+            5,
+            1,
+            37,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "cf31d9f47da150e36cfa927dc4d7f2be083ce6508b1713a0c26fb6ce427af5e5",
+          "opaque_pixels": 982,
+          "index": 2,
+          "bbox": [
+            5,
+            1,
+            36,
+            45
+          ]
+        },
+        {
+          "pixel_sha256": "dde405d06d604c139014549bc22447ad0ab8980bb0630ac33871c6fa180c3fb8",
+          "opaque_pixels": 965,
+          "index": 3,
+          "bbox": [
+            5,
+            1,
+            36,
+            45
+          ]
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18"
+    },
+    {
+      "file": "e_iberia_attack@2x.png",
+      "sha256": "e6d06a1bd5af4f3b76a1d2c9387f2d1b081da573a99747baf86cf5ef1815da28",
+      "frames": [
+        {
+          "pixel_sha256": "f7fa200d3a004202a5a7b4f45e3d07a607a81604a0fecf2c0b3ebd5d50b18a86",
+          "opaque_pixels": 3904,
+          "index": 0,
+          "bbox": [
+            10,
+            1,
+            73,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "ae75414c66c6585d89e8953ce6ef31c2232fcdd649b65f15c042dbb998de5766",
+          "opaque_pixels": 3904,
+          "index": 1,
+          "bbox": [
+            10,
+            1,
+            75,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "2e65dd82442996c7a423f7392549ff3694443516247eaf18bc7136a608db8985",
+          "opaque_pixels": 3928,
+          "index": 2,
+          "bbox": [
+            10,
+            1,
+            73,
+            90
+          ]
+        },
+        {
+          "pixel_sha256": "fe4dd50ab49f4bb4d602619a69a5aa4b6514385ca5aa591b0c011caccb19bd10",
+          "opaque_pixels": 3860,
+          "index": 3,
+          "bbox": [
+            10,
+            1,
+            73,
+            90
+          ]
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18"
+    }
+  ]
+}

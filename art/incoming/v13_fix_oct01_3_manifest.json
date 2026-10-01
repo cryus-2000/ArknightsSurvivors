@@ -1,0 +1,148 @@
+{
+  "assets": [
+    {
+      "file": "e_izumik_attack.png",
+      "character": "izumik",
+      "frame_width": 72,
+      "frame_height": 72,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        36,
+        69
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "b7118a6203427c331592e60bdde4bd884fc422b1f91d7460f7f8f0d4b9b154c5",
+      "source": "e_izumik.png",
+      "source_sha256": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5"
+    },
+    {
+      "file": "e_izumik_attack@2x.png",
+      "character": "izumik",
+      "frame_width": 144,
+      "frame_height": 144,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        72,
+        138
+      ],
+      "loop": false,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "7d7091f6a153343c297de312569a84a4d866a8ce7bc4e9425022a55db1283943",
+      "source": "e_izumik.png",
+      "source_sha256": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5"
+    },
+    {
+      "file": "e_iberia_reload.png",
+      "character": "iberia",
+      "frame_width": 40,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        20,
+        45
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "0fc4bbf892d70c58593a77314cdc79a940e6c4bb7e0c85a165a3382667693b70",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    },
+    {
+      "file": "e_iberia_reload@2x.png",
+      "character": "iberia",
+      "frame_width": 80,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        40,
+        90
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "484bef90a00c5d1502f89334bf21f8e0ec09fcef0e32e348a1856d3baaebc387",
+      "source": "e_iberia.png",
+      "source_sha256": "beabc36ebbfa3978e59fb3428de89fc59433239ef9ebd43005b2e6dd8e7141c9"
+    },
+    {
+      "file": "e_paranoia_phase2.png",
+      "character": "paranoia_phase2",
+      "frame_width": 72,
+      "frame_height": 72,
+      "frame_count": 2,
+      "fps": 2,
+      "anchor": [
+        36,
+        69
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "fe1c1039b6389b7db894f928d588fb7469d6d007202ba32c33f14cab4fc00cd9",
+      "source": "e_paranoia.png",
+      "source_sha256": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226"
+    },
+    {
+      "file": "e_paranoia_phase2@2x.png",
+      "character": "paranoia_phase2",
+      "frame_width": 144,
+      "frame_height": 144,
+      "frame_count": 2,
+      "fps": 2,
+      "anchor": [
+        72,
+        138
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "a2072ac3aac4dbecb7d02b330380eed2fdccdeb2157b89f386e0f11b9f06c2c2",
+      "source": "e_paranoia.png",
+      "source_sha256": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226"
+    },
+    {
+      "file": "e_paranoia_phase2_move.png",
+      "character": "paranoia_phase2",
+      "frame_width": 72,
+      "frame_height": 72,
+      "frame_count": 4,
+      "fps": 5,
+      "anchor": [
+        36,
+        69
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 1,
+      "sha256": "0eede3e00132b33e1b9bc8ba62d5b9b7f603ae25dc8e7ba97cac4937fd73d3df",
+      "source": "e_paranoia.png",
+      "source_sha256": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226"
+    },
+    {
+      "file": "e_paranoia_phase2_move@2x.png",
+      "character": "paranoia_phase2",
+      "frame_width": 144,
+      "frame_height": 144,
+      "frame_count": 4,
+      "fps": 5,
+      "anchor": [
+        72,
+        138
+      ],
+      "loop": true,
+      "hold_last_frame": false,
+      "density": 2,
+      "sha256": "700d894c85a515c42effede83053b9fee57d8a069808543aad4feae65cb0be13",
+      "source": "e_paranoia.png",
+      "source_sha256": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226"
+    }
+  ]
+}

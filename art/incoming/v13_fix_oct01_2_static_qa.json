@@ -1,0 +1,226 @@
+{
+  "baseline_checked": true,
+  "allow_repeated_frames": false,
+  "passed": true,
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "pixel_sha256": "eb0df183971f34fef80b3af9c5b45240201e9a9348b03792910ea3d555de2026",
+          "opaque_pixels": 3203,
+          "bbox": [
+            1,
+            2,
+            70,
+            69
+          ],
+          "index": 0
+        },
+        {
+          "pixel_sha256": "0aba48017c586c33e31207ef535e1c08cd92f62f1c62193b180f2bc56ce3007d",
+          "opaque_pixels": 3083,
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 1
+        },
+        {
+          "pixel_sha256": "944e44cb56d84696d167c0779f1d5b58c4306691198f3d61beaa827c223ef0c4",
+          "opaque_pixels": 3123,
+          "bbox": [
+            1,
+            4,
+            70,
+            69
+          ],
+          "index": 2
+        },
+        {
+          "pixel_sha256": "9ee47463ec099aeba178d75741342671bd9c931b6b44dd13cb1827266f01294a",
+          "opaque_pixels": 3184,
+          "bbox": [
+            1,
+            3,
+            70,
+            69
+          ],
+          "index": 3
+        }
+      ],
+      "sha256": "031c456479b2d5328f4e577acfc9779524e9314cc5ab0930986a1c4027c4c20c",
+      "binary_alpha": true,
+      "file": "e_izumik_rooting.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "pixel_sha256": "eb015fe551bfd109cb4418fe90b99ce7663a7235414ba28c688657d248a5b5d2",
+          "opaque_pixels": 12812,
+          "bbox": [
+            2,
+            3,
+            141,
+            138
+          ],
+          "index": 0
+        },
+        {
+          "pixel_sha256": "a2590d15ac2758b9c2979e3f556a5d2c26db9c196038a1553594b7dc8773fce2",
+          "opaque_pixels": 12332,
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 1
+        },
+        {
+          "pixel_sha256": "cb67f27e3f0c8bd8315b64d282309c135658bb2130abe8b511cb63f2eb40dabf",
+          "opaque_pixels": 12492,
+          "bbox": [
+            2,
+            7,
+            141,
+            138
+          ],
+          "index": 2
+        },
+        {
+          "pixel_sha256": "8f3e505149ebe91ba1b7f5afd954e2be3a8273e1fbb48c1f1e1db96e052515a6",
+          "opaque_pixels": 12736,
+          "bbox": [
+            2,
+            5,
+            141,
+            138
+          ],
+          "index": 3
+        }
+      ],
+      "sha256": "0675002aa9e2dd6d49bfee03174580ee4f4303ed63a3edfe18f949ca3b65f1fd",
+      "binary_alpha": true,
+      "file": "e_izumik_rooting@2x.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "pixel_sha256": "669ce7f63a501dc8a135448f7c65a9b36e489730e624fd2485a862bd89a969f1",
+          "opaque_pixels": 1168,
+          "bbox": [
+            4,
+            17,
+            49,
+            53
+          ],
+          "index": 0
+        },
+        {
+          "pixel_sha256": "76db49c835758ac043fd0545d44efd387add3cd6112adee976342a8e05db9baf",
+          "opaque_pixels": 1218,
+          "bbox": [
+            1,
+            18,
+            49,
+            53
+          ],
+          "index": 1
+        },
+        {
+          "pixel_sha256": "04ac36c5d49ced012176ef533d0eeffd5800b1328aa385341a8686ec4ef70d20",
+          "opaque_pixels": 1412,
+          "bbox": [
+            1,
+            16,
+            54,
+            53
+          ],
+          "index": 2
+        },
+        {
+          "pixel_sha256": "30858ed8efa958ab679e5d81cbf952cb03ed65052b00a650a7b9c5b600a6d75d",
+          "opaque_pixels": 1265,
+          "bbox": [
+            3,
+            17,
+            52,
+            53
+          ],
+          "index": 3
+        }
+      ],
+      "sha256": "41da7e3588eff3a953791e36196d1a9579080ac231947dee42f1d2d40ef02df5",
+      "binary_alpha": true,
+      "file": "e_path_charge.png"
+    },
+    {
+      "outline": "080E18",
+      "frames": [
+        {
+          "pixel_sha256": "d46202655a03cc5362e65061f40e8fe5ea3a5f91da1ed4ac5a98a036fe4e235d",
+          "opaque_pixels": 4672,
+          "bbox": [
+            8,
+            33,
+            99,
+            106
+          ],
+          "index": 0
+        },
+        {
+          "pixel_sha256": "49c6c01edd3f11756fc179ac7f685fc946586d48409d650cc9d7d1e59eeb299e",
+          "opaque_pixels": 4872,
+          "bbox": [
+            2,
+            35,
+            99,
+            106
+          ],
+          "index": 1
+        },
+        {
+          "pixel_sha256": "1b871d49354163aa487c6a8628c1099c1b767cdd35ed9f63e58892d316b128c2",
+          "opaque_pixels": 5648,
+          "bbox": [
+            2,
+            31,
+            109,
+            106
+          ],
+          "index": 2
+        },
+        {
+          "pixel_sha256": "787d69a89de2689f1a2195b3018fc0b0d6c27f35b6e2649658d3d3c2f12dae58",
+          "opaque_pixels": 5060,
+          "bbox": [
+            6,
+            33,
+            105,
+            106
+          ],
+          "index": 3
+        }
+      ],
+      "sha256": "dd680a281cbc1f652f2c901fe9491f4a796183d4456cb5556e71712f985f5133",
+      "binary_alpha": true,
+      "file": "e_path_charge@2x.png"
+    }
+  ],
+  "palette_counts": [
+    {
+      "colors": 47,
+      "character": "path"
+    },
+    {
+      "colors": 47,
+      "character": "izumik"
+    }
+  ]
+}

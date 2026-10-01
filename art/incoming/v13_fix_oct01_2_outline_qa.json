@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "outline_median": 1.0,
+      "source_sha256": "30f2551d8571b9ce5e6da6f3c2f9c4c00a6ea36ced1f952e20ddbaea75fb98a3",
+      "file": "e_izumik_rooting.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 2.0,
+      "source_sha256": "ddebdceadfce14fd5fda2b43136aaecc67a6610b0bb2022fbbf9e71f0f234834",
+      "file": "e_izumik_rooting@2x.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 1.0,
+      "source_sha256": "15466145bf29c9064d5a6d9b1e1c3fdf5cc57d47261bbb0e62d5c9eef82bcdea",
+      "file": "e_path_charge.png",
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "outline_median": 2.0,
+      "source_sha256": "48fd415fd035316207aebacf0f257589b422417ae1bd704f6b7a6881efe56232",
+      "file": "e_path_charge@2x.png",
+      "alpha_mask_changed_pixels": 0
+    }
+  ],
+  "passed": true,
+  "engine_tested": false
+}

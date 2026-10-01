@@ -1,0 +1,74 @@
+{
+  "palette_counts": [
+    {
+      "character": "knight_spear",
+      "colors": 9
+    }
+  ],
+  "allow_repeated_frames": false,
+  "engine_tested": false,
+  "passed": true,
+  "assets": [
+    {
+      "binary_alpha": true,
+      "sha256": "b869a173e8e1049f63ead99ca1a5aea182305ee9600b0355c683c863999a06f4",
+      "frames": [
+        {
+          "pixel_sha256": "e2d93746b55f4402a0d17da9bd941b75c8e4861c261aee42e60083b73b89f2b5",
+          "opaque_pixels": 144,
+          "index": 0,
+          "bbox": [
+            2,
+            1,
+            37,
+            6
+          ]
+        },
+        {
+          "pixel_sha256": "512b3472a001abcba67e3412ab3358efe6975254cb5f18298be160e1e0af1dd7",
+          "opaque_pixels": 144,
+          "index": 1,
+          "bbox": [
+            2,
+            1,
+            37,
+            6
+          ]
+        }
+      ],
+      "outline": "080E18",
+      "file": "proj_knight_spear.png"
+    },
+    {
+      "binary_alpha": true,
+      "sha256": "0015b8f84102d753bffd404304940deb8710c7b621fc9521add5713fb677a883",
+      "frames": [
+        {
+          "pixel_sha256": "5e067bd548cb2327607ab009d2c2007c8ec29deb2825dd6faae028a40d9617d3",
+          "opaque_pixels": 482,
+          "index": 0,
+          "bbox": [
+            4,
+            2,
+            75,
+            13
+          ]
+        },
+        {
+          "pixel_sha256": "4980b4a9a823251d0eadbba94a2d8251d9dd9e5070ca9c26d6e4d77242cb9dbf",
+          "opaque_pixels": 478,
+          "index": 1,
+          "bbox": [
+            4,
+            2,
+            75,
+            13
+          ]
+        }
+      ],
+      "outline": "080E18",
+      "file": "proj_knight_spear@2x.png"
+    }
+  ],
+  "baseline_checked": false
+}
