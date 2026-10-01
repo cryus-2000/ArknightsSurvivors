@@ -315,6 +315,8 @@ func update_ebullets(dt: float) -> void:
 			g.beacon_sys.eat_fx(b.pos)
 			continue
 		var hitp: bool = b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
+		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
+			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）

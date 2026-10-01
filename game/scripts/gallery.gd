@@ -85,8 +85,8 @@ const EXTRA_FORMS := {
 	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
 	"knight_boss": [["冲刺", "e_knight_charge", 4, 8.0, true], ["插枪", "e_knight_plant", 4, 8.0, false], ["冲锋形态", "e_knight_charge_form", 4, 8.0, true]],
 	# Codex V13（art/requests/v13_codex_boss_p2.md）；伊比利亚射击、伊祖米克地波蓄力是 _attack，已由上面的通用「攻击」行展示
-	"carmen": [["炮身近战", "e_carmen_slash", 4, 12.0, true]],   # v15 到货后换 e_saint_melee
-	"iberia": [["装填", "e_iberia_reload", 4, 6.0, true]],
+	"carmen": [["炮身近战", "e_saint_melee", 4, 12.0, true], ["装弹", "e_saint_reload", 4, 6.0, true]],   # V15 圣徒统一造型
+	"iberia": [["炮身近战", "e_saint_dark_melee", 4, 12.0, true], ["装弹", "e_saint_dark_reload", 4, 6.0, true]],
 	"izumik": [["扎根", "e_izumik_rooting", 4, 3.0, true]],
 	"path": [["冲撞", "e_path_charge", 4, 10.0, true]],
 }
@@ -312,7 +312,7 @@ func _build() -> void:
 					fm.tint = tint
 					fm.dscale = float(e.get("transformed_draw_scale", 1.0)) if k == "ishar" and fm.label in ["转化后", "变身", "变身移动", "变身攻击"] else dsc
 					if fm.label == "二阶段" and k == "paranoia":
-						fm.dscale = 1.1   # 同实战：V13 新图已是洋红配色，不再染色；体量 ×1.1 保留到轮廓返修
+						pass   # 同实战：V13 终稿自带洋红配色和 ×1.10 体量，不再染色、不放大
 				forms.append({"label": "攻击演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
@@ -362,7 +362,6 @@ func _build() -> void:
 				var forms: Array = [_anim_n("最终 Boss", bd.get("tex", "boss"), 2, 2.0)]
 				if en.boss == "paranoia" and A.tex("e_paranoia2") != null:
 					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
-					forms[forms.size() - 1].dscale = 1.1
 				var c = en.get("col", [0.8, 0.6, 1.0])
 				entries.append({"id": eid, "name": en.name, "en": en.get("en", eid.to_upper()), "tag": "结局 · %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][i],
 					"forms": forms, "stats": [["Boss", bd.get("name", "")]], "chips": [], "col": Color(c[0], c[1], c[2]),

@@ -495,7 +495,7 @@ func _ready() -> void:
 				tex[n + "_white"] = A.white_of(tex[n])
 		if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
 			foot_anchor[n] = true
-		for suffix in ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting"]:   # _slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克）
+		for suffix in ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]:   # _slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克）
 			var mn: String = n + suffix
 			if tex.get(mn) == null:
 				tex[mn] = A.tex(mn)
@@ -1333,7 +1333,7 @@ const V6_FRAMES := {
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
-	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "fx_nest_aura": [4, 10.0],
+	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }
 
 

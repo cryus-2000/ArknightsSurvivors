@@ -755,6 +755,9 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 		g.vfx.add_text(e.pos + Vector2(0, -70), "长枪插地 · 冰枪桩", Color(0.6, 0.9, 1.4), 18)
 	if e.stakes.any(func(s): return float(s.until) > 0.0 and g.t >= float(s.until)):   # 冰枪桩到期碎裂（撞桩的 until 置 0，不算）
 		Sfx.play("stake_shatter", -6.4, 1.0, 0.0)
+		for s in e.stakes:
+			if float(s.until) > 0.0 and g.t >= float(s.until):
+				g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true, Color(1, 1, 1, 0.5))   # 自然到期：碎裂帧条半透明（v14）
 	e.stakes = e.stakes.filter(func(s): return g.t < float(s.until))
 	if e.stakes.size() < 2:
 		var want: int = int(Bal.v("boss/knight_stakes", 3.0))
@@ -776,6 +779,7 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 				e.dash2 = 0
 				e.erase("breath_at")
 				s.until = 0.0
+				g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true)   # 撞桩碎裂（Codex v14 prop_ice_stake_break）
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 5.0))
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手

@@ -814,6 +814,10 @@ func draw_world() -> void:
 		if kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
 			g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+		elif kd == "acid" and g.tex.get("proj_acid") != null:
+			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
+		elif kd == "nova" and g.tex.get("proj_nova") != null:
+			g.vfx.spr("proj_nova", 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
 			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
 	for b in g.ebullets:
@@ -823,10 +827,12 @@ func draw_world() -> void:
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		match kd:
 			"acid":
-				tb_circle(bp, b.r, Color(0.6, 1.8, 0.4))
-				tb_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6), 1.0, 6)
+				if g.tex.get("proj_acid") == null:
+					tb_circle(bp, b.r, Color(0.6, 1.8, 0.4))
+					tb_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6), 1.0, 6)
 			"nova":
-				tb_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
+				if g.tex.get("proj_nova") == null:
+					tb_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
 			"nerve":
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
@@ -849,8 +855,11 @@ func draw_world() -> void:
 		g.draw_circle(Vector2.ZERO, 6.0, Color(0, 0, 0, 0.35))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rp := gp + Vector2(0, -hgt - 8.0)
-		g.draw_circle(rp, 7.0, Color(0.45, 0.42, 0.4))
-		g.draw_circle(rp + Vector2(-2, -2), 3.0, Color(0.7, 0.66, 0.6))
+		if g.tex.get("proj_rock_shard") != null:
+			g.vfx.spr("proj_rock_shard", 4, int(g.t * 12.0) % 4, rp, _hpx("proj_rock_shard"))   # Codex v14 碎石（翻滚画在帧里）
+		else:
+			g.draw_circle(rp, 7.0, Color(0.45, 0.42, 0.4))
+			g.draw_circle(rp + Vector2(-2, -2), 3.0, Color(0.7, 0.66, 0.6))
 	# 冲击环（docs/48 全局 ④⑤、P0 伊祖米克）：原来写死成治疗同款的绿色、越扩越淡，到主控这里几乎看不见。
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
@@ -1018,23 +1027,26 @@ func ishar_animation(e: Dictionary) -> Dictionary:
 
 
 ## V13 Boss 帧条的逻辑帧（播放时机见 art/requests/v13_codex_boss_p2.md）；不适用时返回空字典，沿用原帧条。只换画面
+## vfx.spr 不处理 @2x（调用方自己除密度）；Codex v14 道具 / 弹体都带 @2x，按同一逻辑尺寸画
+func _hpx(name: String) -> float:
+	return Game.PX / A.hires_of(g.tex.get(name))
+
+
 func boss_strip_animation(e: Dictionary) -> Dictionary:
 	var pk: float = float(e.get("pose", 0.0)) / maxf(0.01, float(e.get("pose_max", 1.0)))
 	var winding: bool = e.get("wind", 0.0) > 0.0
 	var posing: bool = e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0
 	match e.type:
-		"carmen":
-			# 剑形态（sword_t）出招：蓄力 f0 → f1，结算后斩出 f2、收剑 f3
+		"carmen", "iberia":
+			# 圣徒两档共用一套挂点（V15：卡门 e_saint*、伊比利亚 e_saint_dark*，按 e.tex 取）：
+			# 炮身近战（sword_t）出招：蓄力 f0 → f1，挥击 f2、收回 f3；装弹读条（channel）循环；射击：蓄力 f0 → f1，开火 f2、复位 f3
+			var seg: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
 			if e.get("sword_t", 0.0) > 0.0 and posing:
-				var f: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
-				return {"name": "e_carmen_slash", "frames": 4, "frame": f}
-		"iberia":
-			# 装填读条（channel）循环；射击：蓄力 f0 → f1，结算开火 f2、收枪 f3
+				return {"name": e.tex + "_melee", "frames": 4, "frame": seg}
 			if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
-				return {"name": "e_iberia_reload", "frames": 4, "frame": int(g.t * 6.0) % 4}
+				return {"name": e.tex + "_reload", "frames": 4, "frame": int(g.t * 6.0) % 4}
 			if posing:
-				var f2: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
-				return {"name": "e_iberia_attack", "frames": 4, "frame": f2}
+				return {"name": e.tex + "_attack", "frames": 4, "frame": seg}
 		"izumik":
 			# 学习期（phase 1）扎根：进学习期先播 f0–f1 一次，之后 f2–f3 循环；地波蓄力按进度 f0 → f2，结算释放 f3
 			if e.phase == 1 and e.has("learn_t"):
@@ -1155,9 +1167,8 @@ func draw_enemy(e: Dictionary) -> void:
 	if e.type == "paranoia" and e.phase == 2:
 		# 偏执泡影二阶段：e_paranoia2 和一阶段几乎一样（新图已下单 v12），过渡期在画面层区分——
 		# 整体偏洋红、体量 ×1.1、身周一圈扭动的洋红光晕
-		# V13 返修图已是洋红配色，不再程序染色（原 col *= PARANOIA2_TINT）；体量 ×1.1 与光晕保留，等轮廓返修（art/incoming/v13_acceptance.md）
-		sc *= 1.1
-		_paranoia2_halo(e)
+		# V13 终稿已是洋红配色、落地破壳、体量 ×1.10（自带），不再程序染色、放大或加光晕（10-01）
+		pass
 	if e.get("under", false):
 		# 潜行中：只画地面波纹与影子
 		g.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
@@ -1707,7 +1718,13 @@ func _izu_lamps(e: Dictionary) -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		if not lit and float(lp.get("prog", 0.0)) > 0.0:
 			_ground_ring(p + Vector2(0, 2), 40.0, clampf(float(lp.prog), 0.0, 1.0), Color(1.6, 1.3, 0.6))
-		# 石灯本体：方座 + 灯柱 + 灯龛（程序画）
+		# 石灯本体：Codex v14 prop_lamp_post（20×32，f0 熄灭、f1–f2 点亮循环，脚底第 29 行）；缺图时退回程序拼图
+		if g.tex.get("prop_lamp_post") != null:
+			g.vfx.spr("prop_lamp_post", 3, (1 + int(g.t * 4.0) % 2) if lit else 0, p, _hpx("prop_lamp_post"), false, Color.WHITE, Vector2(0.5, 30.0 / 32.0))
+			if lit:
+				g.draw_circle(p + Vector2(0, -40), 14.0 + 3.0 * pulse, Color(1.8, 1.4, 0.7, 0.25))
+				UI.text(g, g.font, p + Vector2(-40, 26), "安全", 13 if not waving else 16, Color(1.0, 0.9, 0.55), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
+			continue
 		var base := Color(0.32, 0.36, 0.42) if not lit else Color(0.5, 0.48, 0.44)
 		g.draw_rect(Rect2(p + Vector2(-11, -8), Vector2(22, 8)), Color(0.1, 0.11, 0.14))
 		g.draw_rect(Rect2(p + Vector2(-10, -7), Vector2(20, 6)), base)
@@ -1836,6 +1853,10 @@ func _draw_stakes(e: Dictionary) -> void:
 		g.draw_circle(Vector2.ZERO, 22.0, Color(0.6, 0.85, 1.3, 0.14 * a))
 		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.8, 1.1, 1.6, 0.6 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if g.tex.get("prop_ice_stake") != null:
+			# Codex v14 prop_ice_stake（24×56 × 2 帧，脚底第 53 行）；冰蓝过曝调色同骑士长矛（暗环境光下原色太暗）；到期前闪烁仍是程序改透明度，判定圈程序画
+			g.vfx.spr("prop_ice_stake", 2, int(g.t * 4.0) % 2, p, _hpx("prop_ice_stake"), false, Color(1.6, 1.8, 2.1, a), Vector2(0.5, 54.0 / 56.0))
+			continue
 		var top: Vector2 = p + Vector2(2, -70)
 		g.draw_line(p + Vector2(0, 2), top, Color(0.1, 0.15, 0.25, 0.9 * a), 7.0)
 		g.draw_line(p + Vector2(0, 2), top, Color(0.7, 0.95, 1.4, a), 4.0)
