@@ -127,7 +127,10 @@
   "wound_max": 3,
   "affix_start": 420,
   "ctrl_start": 400,
-  "dmg_early": 1.3
+  "dmg_early": 1.3,
+  "dmg_late_start": 420,
+  "dmg_late_div": 900,
+  "dmg_late_cap": 0.25
  },
  "lamp": {
   "_doc": "受击灯火损失 = (hit_base + hit_scale × 伤害/最大生命) × light_decay。原值 4 / 30：一记 16 伤害就掉 8.8，十次就熄灯进入死亡螺旋",
