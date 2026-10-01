@@ -368,6 +368,7 @@ func draw_world() -> void:
 			3:
 				g.map.draw_sort_prop(it[2])
 	_pk("sorted_entities")
+	_afx_flush()
 	for wm in weak_marks:
 		var wpp: Vector2 = wm[0]
 		var wcc: Color = wm[1]
@@ -1769,30 +1770,113 @@ func draw_leader_ailments() -> void:
 ## 小怪词条外观（spawner.roll_affix）：甲壳 armor = 身前三块灰钢甲片；潮盾 shield = 青白泡壳 + 脚下细条（剩余护盾）
 ## 全部进无贴图批（性能 docs/50 §9.7：原来甲壳每只 9 次、潮盾 5 次绘制调用，夹在敌人贴图之间还打断贴图合批）；
 ## 排序循环画完后和弱点菱形一起提交，所以词条画在所有敌人之上（和弱点菱形一样）
+## 词条特效（docs/50 §9.12，2026-10-01 模板化）：甲壳 / 潮盾的三角形进单独的「无索引」批（_afx_pts / _afx_cols，按排序循环里敌人的先后追加，
+## 排序段画完后、弱点菱形之前一次提交，和原来在通用批里的前后顺序相同）。开销大头原来是每只每帧几十个临时数组：
+## - 甲壳：3 块甲片（多边形 + 5 条边 + 1 条高光）的三角形在局部坐标里开局算一次成模板（_afx_armor，135 个顶点），每帧 Transform2D 平移整组（引擎原生）；
+## - 潮盾：底圆用单位扇形模板按半径缩放 + 平移（原生）；两段弧每段算一次内外顶点再按三角形追加；血条 4 个三角形。
+## 顶点算式与旧写法相同，只是甲壳先在局部坐标算、再整体平移（浮点结合顺序不同，个别边缘像素可能差最低位；协调人同意的口径见 docs/50 §9.12）
+var _afx_pts := PackedVector2Array()
+var _afx_cols := PackedColorArray()
+var _afx_tab_ready := false
+var _afx_armor := PackedVector2Array()
+var _afx_armor_cols := PackedColorArray()
+var _afx_fan24 := PackedVector2Array()
+var _afx_d32 := PackedVector2Array()
+var _afx_d8 := PackedVector2Array()
+
+func _afx_tables() -> void:
+	_afx_tab_ready = true
+	var c1 := Color(0.62, 0.66, 0.72, 0.95)
+	var c2 := Color(0.15, 0.17, 0.2, 1.0)
+	var c3 := Color(1.4, 1.45, 1.5, 0.9)
+	for q in 3:
+		var p := Vector2(-8 + q * 8, -4 + absf(q - 1) * 4)
+		var pl := [p + Vector2(-4, -5), p + Vector2(4, -5), p + Vector2(5, 3), p + Vector2(0, 7), p + Vector2(-5, 3)]
+		for k in range(1, 4):   # tb_poly 的扇形三角形
+			_afx_armor.append_array([pl[0], pl[k], pl[k + 1]])
+			_afx_armor_cols.append_array([c1, c1, c1])
+		for v in 6:   # tb_line：5 条边 + 高光；tb_quad 的两个三角形 (0,1,2)(0,2,3)
+			var a: Vector2 = pl[v] if v < 5 else p + Vector2(-3, -4)
+			var b: Vector2 = pl[(v + 1) % 5] if v < 5 else p + Vector2(3, -4)
+			var n: Vector2 = (b - a).orthogonal().normalized() * 1.0 * 0.5
+			var lc: Color = c2 if v < 5 else c3
+			_afx_armor.append_array([a + n, b + n, b - n, a + n, b - n, a - n])
+			_afx_armor_cols.append_array([lc, lc, lc, lc, lc, lc])
+	for q in 24:   # tb_circle(seg 24) 的扇形：(中心, 第 q 个, 第 q+1 个)，单位半径
+		var aq: float = q * TAU / 24
+		var aq2: float = ((q + 1) % 24) * TAU / 24
+		_afx_fan24.append_array([Vector2.ZERO, Vector2(cos(aq), sin(aq)), Vector2(cos(aq2), sin(aq2))])
+	for q in 33:
+		var aq3: float = lerpf(0.0, TAU, float(q) / 32)
+		_afx_d32.append(Vector2(cos(aq3), sin(aq3)))
+	for q in 9:
+		var aq4: float = lerpf(-2.4, -1.5, float(q) / 8)
+		_afx_d8.append(Vector2(cos(aq4), sin(aq4)))
+
+
 func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
-	var af: String = e.get("affix", "")
+	var af: String = e.affix
+	if af != "armor" and not (af == "shield" and e.shield_hp > 0.0):
+		return
+	if not _afx_tab_ready:
+		_afx_tables()
 	if af == "armor":
 		var c: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
-		for q in 3:
-			var p: Vector2 = c + Vector2(-8 + q * 8, -4 + absf(q - 1) * 4)
-			var pl := PackedVector2Array([p + Vector2(-4, -5), p + Vector2(4, -5), p + Vector2(5, 3), p + Vector2(0, 7), p + Vector2(-5, 3)])
-			tb_poly(pl, Color(0.62, 0.66, 0.72, 0.95))
-			for v in 5:
-				tb_line(pl[v], pl[(v + 1) % 5], Color(0.15, 0.17, 0.2, 1.0), 1.0)
-			tb_line(p + Vector2(-3, -4), p + Vector2(3, -4), Color(1.4, 1.45, 1.5, 0.9), 1.0)
-	elif af == "shield" and e.get("shield_hp", 0.0) > 0.0:
-		var c2: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
-		var rr: float = maxf(e.r + 6.0, (bpos.y - top.y) * 0.55)
-		var wob: float = 1.0 + 0.04 * sin(g.t * 5.0 + e.id)
-		tb_circle(c2, rr * wob, Color(0.5, 1.2, 1.4, 0.13), 1.0, 24)
-		tb_arc(c2, rr * wob, 0.0, TAU, 1.5, Color(0.7, 1.5, 1.6, 0.7), 32)
-		tb_arc(c2, rr * wob * 0.8, -2.4, -1.5, 2.0, Color(1.6, 2.0, 2.0, 0.8), 8)
-		var mx: float = e.maxhp * Game.Bal.v("enemy/affix_shield", 0.30)
-		var bw: float = maxf(20.0, e.r * 1.6)
-		var by: Vector2 = bpos + Vector2(-bw / 2.0, 6)
-		var fw2: float = bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0)
-		tb_quad(by, by + Vector2(bw, 0), by + Vector2(bw, 3), by + Vector2(0, 3), Color(0, 0, 0, 0.6))
-		tb_quad(by, by + Vector2(fw2, 0), by + Vector2(fw2, 3), by + Vector2(0, 3), Color(0.7, 1.5, 1.6, 0.95))
+		_afx_pts.append_array(Transform2D(0.0, c) * _afx_armor)
+		_afx_cols.append_array(_afx_armor_cols)
+		return
+	var c2: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
+	var rr: float = maxf(e.r + 6.0, (bpos.y - top.y) * 0.55)
+	var wob: float = 1.0 + 0.04 * sin(g.t * 5.0 + e.id)
+	var r: float = rr * wob
+	# 底圆（tb_circle 24 段）：单位扇形按半径缩放 + 平移
+	_afx_pts.append_array(Transform2D(0.0, Vector2(r, r), 0.0, c2) * _afx_fan24)
+	var fc := Color(0.5, 1.2, 1.4, 0.13)
+	for q in 72:
+		_afx_cols.append(fc)
+	_afx_arc(c2, r, 1.5, Color(0.7, 1.5, 1.6, 0.7), _afx_d32)
+	_afx_arc(c2, r * 0.8, 2.0, Color(1.6, 2.0, 2.0, 0.8), _afx_d8)
+	var mx: float = e.maxhp * Game.Bal.v("enemy/affix_shield", 0.30)
+	var bw: float = maxf(20.0, e.r * 1.6)
+	var by: Vector2 = bpos + Vector2(-bw / 2.0, 6)
+	var fw2: float = bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0)
+	var b1: Vector2 = by + Vector2(bw, 0)
+	var b2: Vector2 = by + Vector2(bw, 3)
+	var b3: Vector2 = by + Vector2(0, 3)
+	var f1: Vector2 = by + Vector2(fw2, 0)
+	var f2: Vector2 = by + Vector2(fw2, 3)
+	_afx_pts.append_array([by, b1, b2, by, b2, b3, by, f1, f2, by, f2, b3])
+	var k0 := Color(0, 0, 0, 0.6)
+	var k1 := Color(0.7, 1.5, 1.6, 0.95)
+	_afx_cols.append_array([k0, k0, k0, k0, k0, k0, k1, k1, k1, k1, k1, k1])
+
+
+## tb_arc 的三角形展开（sy = 1）：每段 (内 q, 外 q, 外 q+1)、(内 q, 外 q+1, 内 q+1)，和 tb_arc 的索引顺序一致
+func _afx_arc(c: Vector2, r: float, w: float, col: Color, dirs: PackedVector2Array) -> void:
+	var seg: int = dirs.size() - 1
+	var ri: float = r - w * 0.5
+	var ro: float = r + w * 0.5
+	var d0: Vector2 = dirs[0]
+	var pi := c + Vector2(d0.x * ri, d0.y * ri * 1.0)
+	var po := c + Vector2(d0.x * ro, d0.y * ro * 1.0)
+	for q in seg:
+		var d: Vector2 = dirs[q + 1]
+		var ni := c + Vector2(d.x * ri, d.y * ri * 1.0)
+		var no := c + Vector2(d.x * ro, d.y * ro * 1.0)
+		_afx_pts.append_array([pi, po, no, pi, no, ni])
+		pi = ni
+		po = no
+	for q in seg * 6:
+		_afx_cols.append(col)
+
+
+## 词条批提交（排序段画完、弱点菱形之前；无索引：每 3 个顶点一个三角形）
+func _afx_flush() -> void:
+	if _afx_pts.is_empty():
+		return
+	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _afx_pts, _afx_cols)
+	_afx_pts = PackedVector2Array()
+	_afx_cols = PackedColorArray()
 
 
 ## 部件心跳：约 1.3 拍 / 秒，倒计时最后 3 秒加快到 2.6 拍；返回 0–1 的尖峰
