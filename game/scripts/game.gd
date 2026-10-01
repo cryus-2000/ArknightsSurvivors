@@ -737,6 +737,8 @@ func _process(delta: float) -> void:
 	if state == S.INTRO:
 		intro_t += delta
 	# 无界面批跑什么都不显示：不重绘世界 / 特效 / 前景 / HUD（一局省三成多耗时；docs/36 验证过结果逐字节不变）
+	if headless_batch and world.dc_check:
+		queue_redraw()   # --dccheck（快检冒烟）：无头也画世界层，敌人画法缓存自检才跑得到（docs/50 §9.9）
 	if not headless_batch:
 		queue_redraw()
 		fx_add.queue_redraw()

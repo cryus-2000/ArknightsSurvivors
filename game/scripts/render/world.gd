@@ -31,6 +31,10 @@ var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
 var outline_skip := false         # 活着的敌人 ≥ fx/outline_max：普通怪不画描边（Boss / 精英 / 部件照画），docs/50 §9.8
+var dc_on := true                 # 敌人画法缓存（docs/50 §9.9）：balance.json fx/enemy_draw_cache（缺省 1），0 = 全走原路径（对照用）
+var dc_check := false             # --dccheck：抽查缓存路径与原路径发出的贴图绘制参数，不一致报 SCRIPT ERROR（快检冒烟开着）
+var dc_checked := 0               # --dccheck 实际比对的次数（BALANCE prof.dc_checked）
+var _rec = null                   # --dccheck 比对时：贴图绘制只记参数、不画
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
@@ -45,6 +49,8 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 func _init(game: Game) -> void:
 	g = game
 	_gc_sink = GroundCrack.TbSink.new(self)
+	dc_check = Cfg.dev_args().has("--dccheck")
+	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
 
 
 func update_visuals(dt: float) -> void:
@@ -334,7 +340,7 @@ func draw_world() -> void:
 	_pk("shadows")
 	var dl: Array = []
 	for e in g.enemies:
-		if evr.has_point(e.pos):
+		if evr.has_point(e.pos) or dc_check:   # --dccheck：不按视野剔除（快检是无头模式，视口太小，敌人全被剔掉，自检就跑不到）
 			dl.append([e.pos.y + e.r * 0.8, 0, e])
 	dl.append([g.doc_pos.y + 6.0, 2, null])
 	for o in g.squad.ops:
@@ -1089,7 +1095,157 @@ func enemy_scale(e: Dictionary) -> float:
 	return Game.PX * e.r / e.r0 * factor
 
 
+## 敌人画法缓存（docs/50 §9.9，2026-10-01，第 0 步实测稳态普通怪「选帧 + 算色」每帧约 2.2 毫秒、参数变化率 11.8%）：
+## 能缓存的敌人把「贴图名 / 帧数 / 帧率 / 颜色 / 缩放 / 锚点偏移 / 描边开关」存在 e.dc，签名变了才重算（_dc_compute）；
+## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
+## 不进缓存、走 _draw_enemy_full 原路径（_dc_ok）：Boss、宝箱、部件、潜地、骑士（专用帧条）、DC_SKIP_TYPES，
+## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口里的敌人。
+## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、outline_skip、Cfg.outline。
+## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
+const DC_SKIP_TYPES := ["carmen", "iberia", "izumik", "path", "ishar", "paranoia"]
+
 func draw_enemy(e: Dictionary) -> void:
+	if not dc_on or not _dc_ok(e):
+		_draw_enemy_full(e)
+		return
+	# 移动判定写回（和 _draw_enemy_full 同一段，每帧都要做）
+	if e.tex_move:
+		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
+			e.mv_until = g.t + 0.2
+		e.dpos = e.pos
+	var moving: bool = e.tex_move and g.t < e.mv_until and e.stun <= 0.0 and not e.coma
+	var c = e.get("dc")
+	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != outline_skip or c[7] != Cfg.outline:
+		c = _dc_compute(e, moving)
+		e["dc"] = c
+	if dc_check and (e.id + Engine.get_process_frames()) % 8 == 0:
+		_dc_verify(e, c)
+	_dc_emit(e, c)
+
+
+func _dc_ok(e: Dictionary) -> bool:
+	if e.boss or e.chest or e.squash > 0.0 or e.wind > 0.0 or e.dash_w > 0.0 or e.dash_t > 0.0 or e.enraged or e.wake_t > 0.0:
+		return false
+	if e.nova_w > 0.0 or e.blast_w > 0.0 or e.burst_w > 0.0 or e.air > 0.0 or e.pose > 0.0:
+		return false
+	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
+		return false
+	if e.tex == "e_knight" or e.type in DC_SKIP_TYPES:
+		return false
+	# 攻击帧条（atk_anim）：出手后窗口、远处举肢、射击蓄力时帧号跟着计时器走，交给原路径
+	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
+		return false
+	return true
+
+
+## 缓存内容：[0..7] 签名，[8] 贴图名，[9] 帧数，[10] 帧率，[11] 颜色，[12] 缩放（已除高清倍率），[13] 锚点，[14] 相对 e.pos 的偏移，
+## [15] 画不画描边，[16] 白剪影名。每一项都按 _draw_enemy_full 里的同一段代码算（只保留能缓存的敌人会走到的分支）
+func _dc_compute(e: Dictionary, moving: bool) -> Array:
+	var name: String = e.tex
+	if e.coma and e.tex_feign:
+		name = name + "_feign"
+	var frames := 2
+	var fps := 5.0
+	if moving and g.tex.get(name + "_move") != null:
+		name += "_move"
+		frames = 4
+		fps = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
+		if e.type == "immortal":
+			fps = 8.0
+	if e.dormant and g.tex.get(e.tex + "_dormant") != null:
+		name = e.tex + "_dormant"
+		frames = 2
+		fps = 3.0
+	var sc: float = enemy_scale(e)
+	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
+	if e.evo:
+		col = col * Color(1.0, 0.62, 0.68)
+	if e.invuln:
+		col = Color(0.7, 0.85, 1.0, 0.75)
+	if e.stun > 0.0:
+		col = col * Color(0.65, 0.75, 1.0)
+	var anc := Vector2(0.5, 0.5)
+	var off := Vector2.ZERO
+	if g.foot_anchor.has(e.tex):
+		anc = Vector2(0.5, 1.0)
+		off = Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
+	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
+	if hr > 1.0:
+		sc /= hr
+	var ol: bool = Cfg.outline and g.tex.has(name + "_white") and (e.elite or not outline_skip)
+	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, outline_skip, Cfg.outline,
+		name, frames, fps, col, sc, anc, off, ol, name + "_white"]
+
+
+## 按缓存发绘制：和 _draw_enemy_full 末段同序（描边 → 本体 → 白闪 → 词条 → 弱点）
+func _dc_emit(e: Dictionary, c: Array) -> void:
+	var frames: int = c[9]
+	var frame: int = int(g.t * float(c[10]) + e.id * 0.37) % frames
+	g.draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
+	var flip: bool = e.fx < 0.0
+	var bpos: Vector2 = e.pos + c[14]
+	var sc: float = c[12]
+	var anc: Vector2 = c[13]
+	if c[15]:
+		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
+		if not e.elite:
+			oc.a *= lerpf(1.0, 0.4, ecrowd)
+		_espr_outline(c[8], frames, frame, bpos, sc, flip, oc, anc, Vector2.ONE)
+	_espr(c[8], frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
+	if e.flash > 0.0:
+		_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, Vector2.ONE)
+	if _rec == null and e.affix != "":
+		_affix_fx(e, bpos, _enemy_top(e))
+	var wk: String = e.weak
+	if _rec == null and wk != "":
+		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
+		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
+		weak_marks.append([wp, wc])
+	g.draw_off = Vector2.ZERO
+
+
+## 贴图绘制的包装：--dccheck 比对时只记参数（含 draw_off，vfx.spr / _spr_outline 会加上它），平时直接画
+func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
+	if _rec != null:
+		_rec.append(["b", name, frames, frame, pos + g.draw_off, sc, flip, col, anc, sq])
+		return
+	g.vfx.spr(name, frames, frame, pos, sc, flip, col, anc, sq)
+
+
+func _espr_outline(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
+	if _rec != null:
+		_rec.append(["o", name, frames, frame, pos + g.draw_off, sc, flip, col, anc, sq])
+		return
+	_spr_outline(name, frames, frame, pos, sc, flip, col, anc, sq)
+
+
+## --dccheck：同一只敌人分别走原路径和缓存路径（只记参数、不画），两边的贴图绘制序列必须完全一致；
+## 另外用当前状态重算一遍缓存，和存着的比（抓「签名漏了某个字段、缓存过期」）。不一致报 SCRIPT ERROR
+func _dc_verify(e: Dictionary, c: Array) -> void:
+	dc_checked += 1
+	var off0: Vector2 = g.draw_off
+	_rec = []
+	_draw_enemy_full(e)
+	var full: Array = _rec
+	_rec = []
+	_dc_emit(e, c)
+	var cached: Array = _rec
+	_rec = null
+	g.draw_off = off0
+	var bad := 0
+	if full != cached:
+		bad += 1
+		push_error("敌人画法缓存与原路径不一致（docs/50 §9.9）：%s id=%d 原=%s 缓存=%s" % [e.type, e.id, str(full), str(cached)])
+	var fresh := _dc_compute(e, c[0])
+	if fresh != c:
+		bad += 1
+		push_error("敌人画法缓存过期（签名漏了会影响画面的字段，docs/50 §9.9）：%s id=%d 存=%s 现=%s" % [e.type, e.id, str(c), str(fresh)])
+	# 计数进 BALANCE（prof 段，不开 --prof 也写）：快检冒烟断言 dc_checked > 0、dc_bad == 0（tools/check.py dc_errors）
+	g.prof["dc_checked"] = dc_checked
+	g.prof["dc_bad"] = int(g.prof.get("dc_bad", 0)) + bad
+
+
+func _draw_enemy_full(e: Dictionary) -> void:
 	var name: String = e.tex
 	# 形态切换：偏执泡影二阶段 / 接潮三件套昏迷时的假死造型
 	if e.type == "paranoia" and e.phase == 2 and g.tex.get("e_paranoia2") != null:
@@ -1298,14 +1454,14 @@ func draw_enemy(e: Dictionary) -> void:
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
 			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
-		_spr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
-	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc, sq)
+		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
+	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		g.vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
-	if e.get("affix", "") != "":
+		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+	if _rec == null and e.get("affix", "") != "":
 		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.get("weak", "")
-	if wk != "" and not e.get("under", false):
+	if _rec == null and wk != "" and not e.get("under", false):
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
 		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
 		weak_marks.append([wp, wc])   # 弱点菱形攒到排序实体画完后一次合批（每只一个多边形会打断敌人贴图的合批，性能 9/30）

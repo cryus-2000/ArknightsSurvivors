@@ -193,9 +193,9 @@ def smoke_cases():
     for k, op in enumerate(ids):
         mates = [ids[(k + 1) % n], ids[(k + 5) % n]]
         cases.append(("冒烟 · " + op, ["--balance", "--seed=1", "--op=" + op, "--squad=" + ",".join(mates), "--bot=expert",
-                                      "--maxt=120", "--relics=all", "--maxprog", "--sptest", "--bosstimes=30,60,90", "--forceboss=%d" % (k % 5)]))
-    cases.append(("自然流程 · 高手", ["--balance", "--seed=2", "--op=" + ids[0], "--bot=expert", "--maxt=150"]))
-    cases.append(("自然流程 · 普通", ["--balance", "--seed=3", "--op=" + ids[-1], "--bot=normal", "--maxt=150"]))
+                                      "--maxt=120", "--relics=all", "--maxprog", "--sptest", "--bosstimes=30,60,90", "--forceboss=%d" % (k % 5), "--dccheck"]))
+    cases.append(("自然流程 · 高手", ["--balance", "--seed=2", "--op=" + ids[0], "--bot=expert", "--maxt=150", "--dccheck"]))
+    cases.append(("自然流程 · 普通", ["--balance", "--seed=3", "--op=" + ids[-1], "--bot=normal", "--maxt=150", "--dccheck"]))
     return cases
 
 
@@ -237,6 +237,19 @@ def xp_errors(d):
     return []
 
 
+def dc_errors(d):
+    """敌人画法缓存自检（docs/50 §9.9，render/world.gd _dc_verify，冒烟带 --dccheck）：真的比对过（dc_checked > 0），且缓存路径与原路径的
+    贴图绘制参数逐项一致、缓存没有过期（dc_bad == 0）。无头模式下 _draw 照常调用，所以快检能跑到"""
+    if d is None:
+        return []
+    p = d.get("prof") or {}
+    if int(p.get("dc_checked", 0)) <= 0:
+        return ["画法缓存自检：没有比对到任何敌人（dc_checked = 0），--dccheck 没生效？"]
+    if int(p.get("dc_bad", 0)) > 0:
+        return ["画法缓存自检：%d 次不一致（缓存路径 ≠ 原路径或缓存过期，见日志 ERROR 行）" % int(p["dc_bad"])]
+    return []
+
+
 def run_case(godot, name, extra, timeout=300):
     t0 = time.time()
     out, err, to, log = _run(godot_args(godot, extra), timeout, name)
@@ -244,6 +257,8 @@ def run_case(godot, name, extra, timeout=300):
     d = parse_balance(out)
     errs += ctrl_errors(d)
     errs += xp_errors(d)
+    if "--dccheck" in extra:
+        errs += dc_errors(d)
     ok = d is not None and not errs and not to
     detail = ("超时" if to else ("没有 BALANCE 行" if d is None else "t=%d %s" % (d["t"], "胜" if d.get("win") else "")))
     return {"name": name, "ok": ok, "detail": "%s · %.0fs" % (detail, time.time() - t0), "errors": errs[:3], "data": d, "log": log}

@@ -330,7 +330,9 @@
   "tell_dim_alpha": 0.2,
   "atk_dir_len": 80,
   "atk_dir_alpha": 0.8,
-  "outline_max": 150
+  "outline_max": 150,
+  "_doc_enemy_draw_cache": "敌人画法缓存（render/world.gd，docs/50 §9.9）：1 开、0 全走原路径（对照用，画面应逐像素一致）",
+  "enemy_draw_cache": 1
  },
  "render": {
   "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
