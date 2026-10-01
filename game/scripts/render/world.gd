@@ -6,6 +6,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -27,6 +28,7 @@ var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[bos
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
+var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
 var outline_skip := false         # 活着的敌人 ≥ fx/outline_max：普通怪不画描边（Boss / 精英 / 部件照画），docs/50 §9.8
 const CROWD_FROM := 80.0          # 特效总数超过这个开始降
@@ -42,6 +44,7 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 
 func _init(game: Game) -> void:
 	g = game
+	_gc_sink = GroundCrack.TbSink.new(self)
 
 
 func update_visuals(dt: float) -> void:
@@ -661,6 +664,11 @@ func draw_world() -> void:
 				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
 				g.draw_arc(Vector2.ZERO, f.r * (0.6 + 0.6 * k), 0.0, TAU, 32, Color(c.r * 1.6, c.g * 1.6, c.b * 1.8, a), 3.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			"gcrack":
+				# 共用地裂（render/ground_crack.gd，和干员的 crack 同款）：第一次画时按落点生成并缓存；写进 tb 批，循环后统一提交
+				if not f.has("cd"):
+					f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
+				GroundCrack.draw(f.cd, f.max - f.life, a, f.col, _gc_sink, float(f.get("grow_t", 0.06)), float(f.get("hot", 1.0)))
 			"quake":
 				# 震地 / 跳砸：地面裂纹放射
 				var k := 1.0 - a
@@ -775,6 +783,7 @@ func draw_world() -> void:
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
 	_pk("fx")
 	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边

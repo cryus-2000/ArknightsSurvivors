@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 
 var def: Dictionary = {}   # 角色定义（JSON）
@@ -602,101 +603,15 @@ func draw_pfx(floor_layer: bool) -> void:
 ## 中心是实心的不规则碎坑（深色填充 + 更深的坑心）；主裂缝 n 条（方向 / 长短随机）是实心楔形，从坑边最宽（8–12px）
 ## 不规则地收细到 1px，途中随机分出支裂（从主裂缝当前宽度的六成开始收细）。贴地透视（y × 0.55），中心线对齐 2 像素网格；
 ## 前 0.06 秒从中心裂开，暗色裂缝停留到后半程再淡出，干员色亮芯先消失。
+var _gc_sink = null
+
 func _draw_crack(f: Dictionary, a: float, c: Color) -> void:
+	# 画法抽到 render/ground_crack.gd 共用（界面与美术 2026-10-01，敌人 / Boss 的地裂也用它）；缺省参数和随机数顺序不变，画面逐像素一致
 	if not f.has("crack"):
-		f["crack"] = _crack_build(f)
-	var cd: Dictionary = f.crack
-	var age: float = f.max - f.life
-	var grow: float = clampf(age / 0.06, 0.0, 1.0)
-	var al: float = minf(1.0, a * 2.0)             # 前半程保持不透明，后半程淡出
-	var glow: float = clampf((a - 0.5) * 2.0, 0.0, 1.0)
-	var dark := Color(0.045, 0.035, 0.04, 0.9 * al)
-	# 裂缝：逐段画实心梯形（中心线两侧按该点半宽展开）
-	for sg in cd.segs:
-		var pts: PackedVector2Array = sg.pts
-		var ws: PackedFloat32Array = sg.ws
-		var m: int = mini(pts.size(), maxi(2, int(ceil(pts.size() * grow))))
-		for i in m - 1:
-			var p0: Vector2 = pts[i]
-			var p1: Vector2 = pts[i + 1]
-			var d: Vector2 = p1 - p0
-			if d.length() < 1.0:
-				continue
-			var nrm: Vector2 = d.normalized().orthogonal()
-			var q := PackedVector2Array([p0 + nrm * ws[i], p1 + nrm * ws[i + 1], p1 - nrm * ws[i + 1], p0 - nrm * ws[i]])
-			if ws[i] + ws[i + 1] < 1.2:
-				cv.draw_line(p0, p1, dark, 1.0)
-			else:
-				cv.draw_colored_polygon(q, dark)
-			if glow > 0.0 and ws[i] > 1.4:
-				cv.draw_line(p0, p1, Color(c.r * 1.6, c.g * 1.4, c.b * 1.2, 0.75 * glow), maxf(1.0, ws[i] * 0.6))
-	# 中心碎坑：实心深色 + 略亮的边 + 几道坑内裂纹
-	var ring: PackedVector2Array = cd.ring
-	var sc: float = 0.35 + 0.65 * grow
-	var ctr: Vector2 = cd.center
-	var rp := PackedVector2Array()
-	for v in ring:
-		rp.append(ctr + (v - ctr) * sc)
-	cv.draw_colored_polygon(rp, Color(0.06, 0.05, 0.05, al))
-	# 坑心再压一层更深的（凹陷感），不画亮边——亮边会让中心看起来是空的
-	var core := PackedVector2Array()
-	for v in rp:
-		core.append(ctr + (v - ctr) * 0.55)
-	cv.draw_colored_polygon(core, Color(0.02, 0.015, 0.02, al))
-	for ln in cd.inner:
-		cv.draw_line(ctr + (ln[0] - ctr) * sc, ctr + (ln[1] - ctr) * sc, Color(0.16, 0.13, 0.13, 0.8 * al), 1.0)
-
-
-func _crack_build(f: Dictionary) -> Dictionary:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(Vector2i(int(f.pos.x), int(f.pos.y))) + int(f.get("ang", 0.0) * 1000.0)
-	var R: float = f.r
-	var o: Vector2 = f.pos
-	var snap := func(v: Vector2) -> Vector2: return ((o + Vector2(v.x, v.y * 0.55)) / 2.0).round() * 2.0   # 贴地透视 + 对齐 2 像素网格
-	# 中心碎坑（不规则多边形，凸的，保证能三角化）
-	var ring := PackedVector2Array()
-	var nv: int = rng.randi_range(8, 11)
-	var cr: float = R * rng.randf_range(0.22, 0.3)
-	for i in nv:
-		var an: float = TAU * float(i) / nv + rng.randf_range(-0.12, 0.12)
-		ring.append(o + Vector2.from_angle(an) * cr * rng.randf_range(0.8, 1.15) * Vector2(1.0, 0.55))
-	var inner: Array = []
-	for i in 3:
-		var an2: float = rng.randf() * TAU
-		inner.append([o + Vector2.from_angle(an2) * cr * 0.15 * Vector2(1.0, 0.55), o + Vector2.from_angle(an2 + rng.randf_range(-0.4, 0.4)) * cr * 0.85 * Vector2(1.0, 0.55)])
-	var segs: Array = []
-	var n: int = f.get("n", 8)
-	var base_ang: float = f.get("ang", rng.randf() * TAU)
-	for q in n:
-		var ang: float = base_ang + TAU * q / n + rng.randf_range(-0.35, 0.35)
-		var L: float = R * rng.randf_range(0.5, 1.0)
-		var steps: int = rng.randi_range(5, 7)
-		var w0: float = rng.randf_range(4.0, 6.0)          # 半宽：坑边最宽处 8–12px
-		var p: Vector2 = Vector2.from_angle(ang) * cr * 0.8
-		var pts := PackedVector2Array([snap.call(p)])
-		var ws := PackedFloat32Array([w0])
-		for st in steps:
-			ang += rng.randf_range(-0.55, 0.55)
-			p += Vector2.from_angle(ang) * (L - cr) / steps * rng.randf_range(0.7, 1.3)
-			pts.append(snap.call(p))
-			var t: float = float(st + 1) / steps
-			# 不规则收细：整体按 (1-t)^0.9 由宽到细，每个点再乘 0.65–1.25 的起伏，末端 0.5px
-			ws.append(maxf(0.5, w0 * pow(1.0 - t, 0.9) * rng.randf_range(0.65, 1.25)))
-			if st >= 1 and st < steps - 1 and rng.randf() < 0.4:
-				var ba: float = ang + rng.randf_range(0.6, 1.1) * (1.0 if rng.randf() < 0.5 else -1.0)
-				var bp: Vector2 = p
-				var bw: float = ws[ws.size() - 1] * 0.6
-				var bpts := PackedVector2Array([snap.call(bp)])
-				var bws := PackedFloat32Array([bw])
-				var bn: int = rng.randi_range(2, 3)
-				for bs in bn:
-					ba += rng.randf_range(-0.4, 0.4)
-					bp += Vector2.from_angle(ba) * (L - cr) / steps * rng.randf_range(0.5, 0.9)
-					bpts.append(snap.call(bp))
-					bws.append(maxf(0.5, bw * (1.0 - float(bs + 1) / bn) * rng.randf_range(0.7, 1.2)))
-				segs.append({"pts": bpts, "ws": bws})
-		segs.append({"pts": pts, "ws": ws})
-	return {"ring": ring, "inner": inner, "segs": segs, "center": o}
+		f["crack"] = GroundCrack.build(f.pos, f.r, f.get("ang"), {"n": f.get("n", 8)})
+	if _gc_sink == null:
+		_gc_sink = GroundCrack.CvSink.new(self)
+	GroundCrack.draw(f.crack, f.max - f.life, a, c, _gc_sink)
 
 
 ## 子类的自定义粒子；返回 true 表示已绘制

@@ -765,6 +765,7 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 			if p.distance_to(g.ppos) < 120.0:
 				continue
 			e.stakes.append({"pos": p, "until": g.t + Bal.v("boss/knight_stake_life", 12.0)})
+			g.fx.append({"kind": "gcrack", "pos": p, "r": 66.0, "life": 0.9, "max": 0.9, "col": Color(0.55, 0.85, 1.3), "enemy": true, "opts": {"n": 6, "w0": Vector2(3.0, 4.5)}})   # 冰枪桩落地：小冰裂（纯画面，界面与美术 10-01）
 	# 冲锋中撞桩
 	if e.get("kb_self", false) and e.kb.length() > 100.0:
 		for s in e.stakes:
@@ -1028,7 +1029,13 @@ func _warn_resolve(w: Dictionary) -> void:
 			_warn_damage(w)
 		"slam":
 			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false, "boss": e.boss, "src_type": e.type})
-			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})
+			# 地裂（界面与美术 10-01，协调人定）：塑路者锈红、奠基者土黄暗色（起宽加粗），同干员的共用地裂画法（render/ground_crack.gd）；其他仍走旧放射线
+			var gc_col = {"path": Color(0.95, 0.38, 0.22), "founder": Color(0.62, 0.46, 0.22)}.get(e.type)
+			if gc_col != null:
+				g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.7, "max": 0.7, "col": gc_col, "enemy": true,
+					"opts": {"n": 10} if e.type == "path" else {"n": 11, "w0": Vector2(5.0, 7.0)}})
+			else:
+				g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})
 			g.vfx.sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
 			Sfx.play("boom", 0.0, 0.6, 0.0)
 			g.vfx.shake_screen(1.2)
@@ -1063,7 +1070,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			e.erase("leap")
 			# 冲击环不超过预警圆（docs/38 B0 第 5 项：原来 +40，圈外也会被打到）
 			g.shocks.append({"pos": w.pos, "r": 10.0, "maxr": w.r, "dmg": w.dmg * 0.5, "hit": false, "boss": e.boss, "src_type": e.type})
-			g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": c})
+			g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": Color(0.85, 0.35, 0.95), "enemy": true, "opts": {"n": 9}})   # 地裂洋红紫（原青绿和友方撞色，界面与美术 10-01）
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r * 0.8, "life": 0.3, "max": 0.3, "col": Color(0.5, 0.9, 0.9)})
 			Sfx.play("boom", -2.0, 0.8, 0.0)
 			g.vfx.shake_screen(1.0)
@@ -1091,6 +1098,7 @@ func _warn_resolve(w: Dictionary) -> void:
 		"izu_wave":
 			# 全场地波：没有缺口、覆盖全场；冲刺无敌或站在点亮的灯柱光圈里才躲得开。伤害 ≤ 最大生命 25%，减速 1.5 秒，不僵直
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": 900.0, "life": 0.7, "max": 0.7, "col": c, "enemy": true})
+			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
 			if g.invuln <= 0.0 and not izumik_safe(e):
 				g.dmg_src = "boss_" + e.type
