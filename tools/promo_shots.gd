@@ -18,6 +18,9 @@ var lv_wait := -1
 var lv_ms := 0
 var lv_cat := "levelup"
 var only := []
+var bait := false   # --promo_stake_bait：骑士冲锋时在它前方摆一根冰枪桩（协调人允许「摆桩」），让游戏自己的撞桩逻辑触发长枪脱手
+var bait_at := -99.0
+var nohud := false   # --promo_nohud：整局隐藏 HUD（宣传图不露等级 / 血量等穿帮数值）
 var rt_win: Array = []   # --promo_rt=起-止,起-止（游戏秒）：只在这些窗口里按真实步长跑、截图，窗口外批跑快进
 var manual_t := 140.0
 var lit_seen := {}
@@ -46,6 +49,10 @@ func _initialize() -> void:
 			for w in a.substr(11).split(","):
 				var ab: PackedStringArray = w.split("-")
 				rt_win.append([float(ab[0]), float(ab[1])])
+		if a == "--promo_stake_bait":
+			bait = true
+		if a == "--promo_nohud":
+			nohud = true
 		if a.begins_with("--promo_only="):
 			only = Array(a.substr(13).split(","))
 	DirAccess.make_dir_recursive_absolute(out)
@@ -91,6 +98,8 @@ func _process(_dt: float) -> bool:
 		if g.t >= float(r.t0) and g.t < float(r.t0) + float(r.dur) and Engine.get_process_frames() % int(r.every) == 0:
 			g.get_viewport().get_texture().get_image().save_png("%s/rec_%s/f%04d.png" % [out, r.name, int(r.n)])
 			r.n = int(r.n) + 1
+	if nohud and g.hud.visible:
+		g.hud.visible = false
 	if not rt_win.is_empty():
 		var inside := false
 		for w in rt_win:
@@ -164,6 +173,9 @@ func _process(_dt: float) -> bool:
 			if float(b.get("cocoon_t", 0.0)) > 0.0:
 				_shot("hatch", 0)
 		# 骑士：冰枪桩在场时；长枪脱手（破绽开始）后 0.2–1.0 秒
+		if b.type == "knight_boss" and bait and b.get("kb_self", false) and (b.kb as Vector2).length() > 100.0 and g.t - bait_at > 6.0 and b.has("stakes"):
+			b.stakes.append({"pos": b.pos + (b.kb as Vector2).normalized() * 70.0, "until": g.t + 12.0})
+			bait_at = g.t
 		if b.type == "knight_boss":
 			if float(b.get("break_t", 0.0)) > 0.0 and not brk_at.has(b.id):
 				brk_at[b.id] = g.t

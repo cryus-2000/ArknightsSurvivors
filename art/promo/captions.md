@@ -16,7 +16,7 @@ In-game screenshots (1920×1080, HUD on), captured automatically with `tools/pro
 
 | 文件 · File | 中文（≤ 12 字） | English | 场面 · Scene |
 |---|---|---|---|
-| shot_07_saints.png | 双圣徒同时登场 | Two saints take the field. | 圣徒卡门与伊比利亚（Boss 演练式同场，seed=1）· Saints Carmen and Iberia together |
+| shot_07_saints.png | 双圣徒同时登场 | Two saints take the field. | 圣徒卡门与伊比利亚同场（游戏自带的 --bosstest，HUD 隐藏）· Saints Carmen and Iberia together, HUD hidden |
 | shot_08_paranoia_hatch.png | 泡影破壳，深海觉醒 | Paranoia breaks free. | 10:39 偏执泡影二阶段落地破壳，脚下洋红地裂 · Paranoia's phase-2 hatch with the new ground crack |
 | shot_09_knight_charge.png | 最后的骑士，冰枪冲锋 | The Last Knight charges. | 10:23 骑士冲锋预警与冰枪 · the Knight's lance charge |
 | shot_10_beacon_glow.png | 灯标点亮，暖光护身 | A lit beacon warms the dark. | 9:49 点亮的灯塔照亮周围，水月大招中 · a lit beacon's warm light pool |
@@ -24,6 +24,7 @@ In-game screenshots (1920×1080, HUD on), captured automatically with `tools/pro
 | shot_12_relic.png | 三选一，拿走你的藏品 | Pick your relic. | 1:18 获得藏品三选一 · relic pick |
 | shot_13_altar.png | 祭坛抉择，改写命运 | Altar choices change your fate. | 2:33 海嗣祭坛事件抉择 · altar event choice |
 | shot_14_gallery.png | 图鉴收录每一位强敌 | Every foe, catalogued. | 图鉴 · Boss 页（偏执泡影）· the gallery's boss page |
+| shot_15_knight_lance.png | 撞上冰桩，长枪脱手 | Lance lost on the ice stake. | 10:16 骑士冲锋撞上冰枪桩、长枪脱手进入破绽（HUD 隐藏；冲锋前方摆了一根桩，撞桩与破绽由游戏自己结算）· the Knight hits an ice stake, drops its lance and opens a break window |
 
 主视觉变体：keyart_saints_1920x1080 / capsule_saints_616x353（圣徒卡门与伊比利亚，编队维什戴尔 / 逻各斯 / 水月 / 艾雅法拉 / 推进之王）；keyart_paranoia_b_1920x1080 / capsule_paranoia_b_616x353（泡影，编队乌尔比安 / 凯尔希 / 水月 / 艾丽妮 / 归溟幽灵鲨）。干员阵容：roster_1920x1080（13 名可选主控）。
 工具：`tools/promo_keyart.py --boss saints --squad a,b,c,d,e`、`tools/promo_roster.py`；截图 `tools/promo_shots.py` 新增类别 saint / hatch / stake / glow / mire / late / relic 与 `--promo_rt=起-止,…`（窗口外快进）。
