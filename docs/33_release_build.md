@@ -142,6 +142,23 @@ python tools/deploy_web.py --ref <提交> --apply --confirm <提交>        # �
 - **本地布局实测（2026-10-01，5844334）**：`--stage build/deploy_stage` 按 OSS 布局落到本地，用静态服务在内置浏览器打开 `/public/index.html` 与 `/internal/index.html`：所有请求（index.js、wasm / pck 分片、图片）都落到 `v/5844334/` 下，两版都进到标题画面；对外版菜单没有「Boss 演练」，对内版有，右上角显示「测试版 · 已全部解锁（不写入存档）」。
 - **还没实测**：`--apply` 这条路径（SDK 调用写好了，没连过阿里云）；接通后先对一个测试 Bucket 跑一遍，再确认 304 / 缓存头是否符合预期。加载器取分片时带 `cache: 'no-cache'`，版本目录长缓存后每片仍会发一次条件请求，CDN 回 304，开销很小，后续可以去掉。
 
+## itch.io（2026-10-01 预备，未上传）
+
+**只发对外版**：Windows 加密包推到 `<ITCH_TARGET>:windows`，网页版推到 `<ITCH_TARGET>:html5`。对内版（全部解锁、演练开）不上 itch，脚本只认 audience = public 且验证通过的产物。
+
+```bash
+python tools/release_all.py --ref <提交> --only public          # 对外 Windows 包（加密）
+python tools/release_all.py --ref <提交> --only web             # 对外网页版（含 verify_web_build）
+python tools/deploy_itch.py --ref <提交>                        # dry-run：生成 itch 网页 zip，打印 butler 命令（不上传）
+python tools/deploy_itch.py --ref <提交> --apply --confirm <提交>  # 真推（用户确认发布后）
+```
+
+- **itch 网页 zip**：`final_<提交>/方舟幸存者_itch_html5_<提交>.zip`，把 `web/` 的内容直接放在 zip 根目录（`index.html` 在根、没有外层文件夹）。脚本会检查 itch 的限制：最多 1000 个文件、单文件 ≤ 200 MB。gz 分片按「存储」放进 zip，不再二次压缩。
+- **不需要 SharedArrayBuffer**：Web 导出预设是单线程模板（`variant/thread_support=false`、`ensure_cross_origin_isolation_headers=false`），不依赖 SharedArrayBuffer，也不需要 COOP / COEP 头。所以 itch 页面的「SharedArrayBuffer support」**不用勾**；勾了也能运行。2026-10-01 用 48ce675c 实测：把 itch zip 解压后，用 `tools/serve_web.py` 在内置浏览器里打开，普通托管和 `--coi`（带 COOP / COEP，`crossOriginIsolated = true`）两种都能进到主菜单（对外版：没有 Boss 演练，没有测试版角标），控制台无错误。
+- **itch 页面设置建议**：Kind of project 选 HTML；视口 1280×720，勾「Fullscreen button」「Mobile friendly」（看需要）；Windows 包另作为可下载文件（`:windows` 频道）。
+- **配置**：`BUTLER_API_KEY`（itch → Settings → API keys）和 `ITCH_TARGET`（`<用户名>/<游戏名>`）只放环境变量或仓库根目录的 `.deploy.env`（不进 git，模板见 `.deploy.env.example`）。密钥只传给 butler 进程，不打印。缺 butler / 密钥 / 目标时只能 dry-run；`--apply` 必须带 `--confirm <提交>`，并且要先经用户确认发布。
+- **本地验证网页包**：`python tools/serve_web.py --dir <网页包目录> [--port 8794] [--coi]`，只监听 127.0.0.1。
+
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
 1. ~~网页版 `export_web.py` 不写 `build.json` 的 commit / audience~~：2026-10-01 已补，并有 `--ea` 对内网页版与 `verify_web_build.py`（见「一条命令」）。
