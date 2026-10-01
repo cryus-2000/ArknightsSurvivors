@@ -273,6 +273,7 @@
  "beacon": {
   "_doc": "引航灯标（run/beacon.gd，docs/49d §13.5 C）：没写的键用代码缺省（every 60–75、dist 250–400、r 70、need 2.5、decay 0.5、block_t 30、low_lamp_mult 1.5、lumen_mult 2、boss_life 2）；lamp 20（点亮时灯火 +20，原代码缺省 5；数值 9/30：比普通灯油 +15 多、比精英灯油 +25 少，Ⅷ 低灯秒数 −12%、熄灯秒数 −16%，胜率噪声内）",
   "clear_r": 340,
+  "lit_glow_gain": 1.1,
   "lamp": 20,
   "safe_bullet": 1,
   "safe_ranged": 1,
@@ -330,5 +331,9 @@
   "atk_dir_len": 80,
   "atk_dir_alpha": 0.8,
   "outline_max": 150
+ },
+ "render": {
+  "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
+  "ambient_gain": 1.05
  }
 }

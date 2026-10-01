@@ -96,6 +96,7 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	update_beacon_lights()
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.get_viewport_rect().size)
 	_enemy_act_fx()
@@ -2265,6 +2266,40 @@ func draw_attack_dir(cv) -> void:   # cv：干员的合批画布（squad.draw_le
 	cv.draw_line(p0, p1 - dir * 8.0, Color(c.r, c.g, c.b, a), 3.0)
 	cv.draw_colored_polygon(PackedVector2Array([p1, p1 - dir * 12.0 + n * 8.0, p1 - dir * 12.0 - n * 8.0]), Color(c.r, c.g, c.b, minf(1.0, a + 0.15)))
 	cv.draw_line(p0 + dir * 4.0, p1 - dir * 10.0, Color(1, 1, 1, 0.35 * a), 1.0)   # 白芯，同预警轮廓写法
+
+
+## 点亮的灯标照亮周围（界面与美术 10-01，协调人派）：每座点亮中的灯标一盏暖色点光（和灯火同一套 PointLight2D 光照，
+## 法线光照下地面 / 敌人 / 干员一起提亮，不新增绘制调用），半径 = 灯标的清溟痕半径 clear_r（balance beacon/clear_r，340，
+## 和点亮后的虚线光圈同一个圈），光贴图自带由中心向外衰减，边缘柔和。点亮后 0.5 秒亮起，灯标寿命最后 5 秒淡出；
+## 强度 beacon/lit_glow_gain（0 = 关）
+var _beacon_lights: Array = []
+
+func update_beacon_lights() -> void:
+	var gain: float = Bal.v("beacon/lit_glow_gain", 1.1)
+	var lit: Array = []
+	var bs = g.get("beacons")
+	if gain > 0.0 and bs is Array:
+		for b in bs:
+			if b.get("lit", false) and not b.get("dead", false) and g.t < float(b.get("safe_end", 0.0)):
+				lit.append(b)
+	for i in maxi(lit.size(), _beacon_lights.size()):
+		if i >= lit.size():
+			_beacon_lights[i].visible = false
+			continue
+		if i >= _beacon_lights.size():
+			var l := PointLight2D.new()
+			l.texture = g.tex.light
+			l.color = Color(1.0, 0.84, 0.58)
+			l.height = 90.0
+			g.add_child(l)
+			_beacon_lights.append(l)
+		var b: Dictionary = lit[i]
+		var fade: float = clampf((g.t - float(b.lit_t)) / 0.5, 0.0, 1.0) * clampf((float(b.safe_end) - g.t) / 5.0, 0.0, 1.0)
+		var bl: PointLight2D = _beacon_lights[i]
+		bl.visible = fade > 0.0
+		bl.position = b.pos + Vector2(0, -20)
+		bl.texture_scale = float(b.get("clear_r", 340.0)) / 64.0
+		bl.energy = gain * fade
 
 
 ## 冲刺预警线长度：按实际冲刺距离（速度 × dash_speed × 0.35 秒）；Boss与怪物 给了 dash_len 就用它
