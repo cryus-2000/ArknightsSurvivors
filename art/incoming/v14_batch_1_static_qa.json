@@ -1,0 +1,268 @@
+{
+  "palette_counts": [
+    {
+      "colors": 37,
+      "character": "prop_ice_stake"
+    },
+    {
+      "colors": 38,
+      "character": "prop_ice_stake_break"
+    },
+    {
+      "colors": 38,
+      "character": "prop_lamp_post"
+    }
+  ],
+  "assets": [
+    {
+      "file": "prop_lamp_post.png",
+      "frames": [
+        {
+          "bbox": [
+            3,
+            2,
+            16,
+            29
+          ],
+          "opaque_pixels": 231,
+          "pixel_sha256": "bb2e43e6aec352af88e92a98041f75faeea7307d72474d3115186908fc30c2d7",
+          "index": 0
+        },
+        {
+          "bbox": [
+            3,
+            2,
+            16,
+            29
+          ],
+          "opaque_pixels": 234,
+          "pixel_sha256": "2393d14943ca4dcc8d366d36a09c358fbecadf8514ee5e46553b212bcc3ca988",
+          "index": 1
+        },
+        {
+          "bbox": [
+            3,
+            2,
+            16,
+            29
+          ],
+          "opaque_pixels": 235,
+          "pixel_sha256": "3e6a77d14f159af7e56c3a0bc1edc347afd47d453f46971c1390c5da9495a1de",
+          "index": 2
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "703b5335f93809a35f864f0d22dc3223cc9581f7eb77816bb423adc09f1a934a"
+    },
+    {
+      "file": "prop_lamp_post@2x.png",
+      "frames": [
+        {
+          "bbox": [
+            6,
+            3,
+            33,
+            58
+          ],
+          "opaque_pixels": 927,
+          "pixel_sha256": "aca7506e7d8341c3f4b08a92ac7fad813c03ee90d9fd83cc9ec3f9790cc2bc1a",
+          "index": 0
+        },
+        {
+          "bbox": [
+            6,
+            3,
+            33,
+            58
+          ],
+          "opaque_pixels": 937,
+          "pixel_sha256": "fe0b1699ed3e266e78aaece39412cd833faef6906303701c6537d7f0072a2459",
+          "index": 1
+        },
+        {
+          "bbox": [
+            6,
+            3,
+            33,
+            58
+          ],
+          "opaque_pixels": 938,
+          "pixel_sha256": "86226f993f6170e66f08cfcb5cb86c344901a030b1e3f80c0bfa3caf0ff983fb",
+          "index": 2
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "9cf95dfc58c565ce993d770c21ecc96d578a19515935b0fddb4ae964e26809a4"
+    },
+    {
+      "file": "prop_ice_stake.png",
+      "frames": [
+        {
+          "bbox": [
+            7,
+            3,
+            16,
+            53
+          ],
+          "opaque_pixels": 190,
+          "pixel_sha256": "b19dd092506ecd6578c37c056801230748b22e0595795886e05158e064f03483",
+          "index": 0
+        },
+        {
+          "bbox": [
+            7,
+            3,
+            16,
+            53
+          ],
+          "opaque_pixels": 188,
+          "pixel_sha256": "184f1a85969affbe808130568ff3fe72034afacf4e0faa32340ab261d662aded",
+          "index": 1
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "af6852ab3a8d9a48485e19456f942ca7865151c9a78ebc216fa22145443c46f8"
+    },
+    {
+      "file": "prop_ice_stake@2x.png",
+      "frames": [
+        {
+          "bbox": [
+            14,
+            5,
+            33,
+            106
+          ],
+          "opaque_pixels": 708,
+          "pixel_sha256": "873e5bf515b462c9dece20df21a2637ee41edfd274d50cee5df51eb50ec98687",
+          "index": 0
+        },
+        {
+          "bbox": [
+            14,
+            5,
+            33,
+            106
+          ],
+          "opaque_pixels": 708,
+          "pixel_sha256": "6729b2b1909cea9929ea69ba99358235e0e468749900a7d531bdba84a0a3d745",
+          "index": 1
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "3169a1177108f9834d6ae9755398d10c34f6e3ffe588276af7ce40f9558d4ffb"
+    },
+    {
+      "file": "prop_ice_stake_break.png",
+      "frames": [
+        {
+          "bbox": [
+            6,
+            3,
+            17,
+            53
+          ],
+          "opaque_pixels": 238,
+          "pixel_sha256": "46815ed4ebc6bde609756d63aedc52006996e498235a10f3796ed116fbe04fbc",
+          "index": 0
+        },
+        {
+          "bbox": [
+            5,
+            3,
+            18,
+            53
+          ],
+          "opaque_pixels": 254,
+          "pixel_sha256": "f3d56f7ee343ce92c6b67a5870b8556b6fb242f0e267a01d4cb7f1f208da4495",
+          "index": 1
+        },
+        {
+          "bbox": [
+            4,
+            13,
+            19,
+            53
+          ],
+          "opaque_pixels": 203,
+          "pixel_sha256": "192b4538065991aaf862cec8410c92904884142011834f72aba7c28dd77689dd",
+          "index": 2
+        },
+        {
+          "bbox": [
+            5,
+            50,
+            18,
+            53
+          ],
+          "opaque_pixels": 32,
+          "pixel_sha256": "8473b56bcd0b1e39afbf844bc31066255e460ecc2184c1ec0fc1f20b74db8d7d",
+          "index": 3
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "b29d8900312b3ce8f12ccbdbdd200725112aadca0b943e62a2dcd1edd67210ea"
+    },
+    {
+      "file": "prop_ice_stake_break@2x.png",
+      "frames": [
+        {
+          "bbox": [
+            13,
+            5,
+            34,
+            106
+          ],
+          "opaque_pixels": 882,
+          "pixel_sha256": "ad07193edbba2589089c19d1969caae58eb07eafd3f9dbe8bba3946618e7bc50",
+          "index": 0
+        },
+        {
+          "bbox": [
+            10,
+            5,
+            37,
+            106
+          ],
+          "opaque_pixels": 890,
+          "pixel_sha256": "fe7afa5e8817ffb46ee91e5179ae834a8f0afe5f100bc9b3741fc052858a4674",
+          "index": 1
+        },
+        {
+          "bbox": [
+            8,
+            26,
+            39,
+            106
+          ],
+          "opaque_pixels": 746,
+          "pixel_sha256": "3c2a28cfa647ae69dacb95c5c85436c8058da9b34bcf774f17a28b2fae0f80bb",
+          "index": 2
+        },
+        {
+          "bbox": [
+            10,
+            99,
+            37,
+            106
+          ],
+          "opaque_pixels": 119,
+          "pixel_sha256": "d23784b8bf29ba035fa0c3f54b3dfd82e252721b71c7c49e24c407a53076f458",
+          "index": 3
+        }
+      ],
+      "binary_alpha": true,
+      "outline": "080E18",
+      "sha256": "593f7f4fb94b4ebbc23c57d38816263c1b4f3516184d239ad1b58231182493da"
+    }
+  ],
+  "allow_repeated_frames": false,
+  "engine_tested": false,
+  "baseline_checked": true,
+  "passed": true
+}

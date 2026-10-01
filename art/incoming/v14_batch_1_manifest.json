@@ -1,0 +1,124 @@
+{
+  "assets": [
+    {
+      "loop": false,
+      "source_sha256": "460aadf816ba86ac69a487ebeb2a36e0f57edadf2924c4623a012b880f1e532a",
+      "frame_count": 3,
+      "source_master": "exec-195db865-164c-4f45-b407-6468ffa3ac5f.png",
+      "grounded": true,
+      "frame_width": 20,
+      "fps": 4,
+      "file": "prop_lamp_post.png",
+      "anchor": [
+        10,
+        29
+      ],
+      "character": "prop_lamp_post",
+      "density": 1,
+      "frame_height": 32,
+      "sha256": "703b5335f93809a35f864f0d22dc3223cc9581f7eb77816bb423adc09f1a934a",
+      "batch": 1,
+      "hold_last_frame": false
+    },
+    {
+      "loop": false,
+      "source_sha256": "460aadf816ba86ac69a487ebeb2a36e0f57edadf2924c4623a012b880f1e532a",
+      "frame_count": 3,
+      "source_master": "exec-195db865-164c-4f45-b407-6468ffa3ac5f.png",
+      "grounded": true,
+      "frame_width": 40,
+      "fps": 4,
+      "file": "prop_lamp_post@2x.png",
+      "anchor": [
+        20,
+        58
+      ],
+      "character": "prop_lamp_post",
+      "density": 2,
+      "frame_height": 64,
+      "sha256": "9cf95dfc58c565ce993d770c21ecc96d578a19515935b0fddb4ae964e26809a4",
+      "batch": 1,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "c7258d5795e56c25deb238eb1ac91fd84997263c6d92e160e8bc135c58194c45",
+      "frame_count": 2,
+      "source_master": "exec-3ac70408-2397-4d02-a1d6-24f2e2573661.png",
+      "grounded": true,
+      "frame_width": 24,
+      "fps": 4,
+      "file": "prop_ice_stake.png",
+      "anchor": [
+        12,
+        53
+      ],
+      "character": "prop_ice_stake",
+      "density": 1,
+      "frame_height": 56,
+      "sha256": "af6852ab3a8d9a48485e19456f942ca7865151c9a78ebc216fa22145443c46f8",
+      "batch": 1,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "c7258d5795e56c25deb238eb1ac91fd84997263c6d92e160e8bc135c58194c45",
+      "frame_count": 2,
+      "source_master": "exec-3ac70408-2397-4d02-a1d6-24f2e2573661.png",
+      "grounded": true,
+      "frame_width": 48,
+      "fps": 4,
+      "file": "prop_ice_stake@2x.png",
+      "anchor": [
+        24,
+        106
+      ],
+      "character": "prop_ice_stake",
+      "density": 2,
+      "frame_height": 112,
+      "sha256": "3169a1177108f9834d6ae9755398d10c34f6e3ffe588276af7ce40f9558d4ffb",
+      "batch": 1,
+      "hold_last_frame": false
+    },
+    {
+      "loop": false,
+      "source_sha256": "235ccbca04f58b25b9ff550158350e7d7ed5751e118cc336a4cb394f8a2eb549",
+      "frame_count": 4,
+      "source_master": "exec-76633448-28c1-4028-a0d7-b55527cf2349.png",
+      "grounded": true,
+      "frame_width": 24,
+      "fps": 12,
+      "file": "prop_ice_stake_break.png",
+      "anchor": [
+        12,
+        53
+      ],
+      "character": "prop_ice_stake_break",
+      "density": 1,
+      "frame_height": 56,
+      "sha256": "b29d8900312b3ce8f12ccbdbdd200725112aadca0b943e62a2dcd1edd67210ea",
+      "batch": 1,
+      "hold_last_frame": false
+    },
+    {
+      "loop": false,
+      "source_sha256": "235ccbca04f58b25b9ff550158350e7d7ed5751e118cc336a4cb394f8a2eb549",
+      "frame_count": 4,
+      "source_master": "exec-76633448-28c1-4028-a0d7-b55527cf2349.png",
+      "grounded": true,
+      "frame_width": 48,
+      "fps": 12,
+      "file": "prop_ice_stake_break@2x.png",
+      "anchor": [
+        24,
+        106
+      ],
+      "character": "prop_ice_stake_break",
+      "density": 2,
+      "frame_height": 112,
+      "sha256": "593f7f4fb94b4ebbc23c57d38816263c1b4f3516184d239ad1b58231182493da",
+      "batch": 1,
+      "hold_last_frame": false
+    }
+  ]
+}

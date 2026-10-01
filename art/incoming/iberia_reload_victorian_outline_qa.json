@@ -1,0 +1,13 @@
+{
+  "checks": [
+    {
+      "file": "e_iberia_reload.png",
+      "outline_median": 1.0
+    },
+    {
+      "file": "e_iberia_reload@2x.png",
+      "outline_median": 2.0
+    }
+  ],
+  "engine_tested": false
+}

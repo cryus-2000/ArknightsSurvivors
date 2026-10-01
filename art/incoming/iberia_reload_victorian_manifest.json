@@ -1,0 +1,39 @@
+{
+  "assets": [
+    {
+      "anchor": [
+        20,
+        45
+      ],
+      "hold_last_frame": false,
+      "character": "iberia",
+      "loop": true,
+      "frame_width": 40,
+      "density": 1,
+      "frame_height": 48,
+      "fps": 6,
+      "frame_count": 4,
+      "sha256": "1d6a32f5d7b718f8082d4952420c984486fa86fe032769a99991e48c7633cad8",
+      "file": "e_iberia_reload.png"
+    },
+    {
+      "anchor": [
+        40,
+        90
+      ],
+      "hold_last_frame": false,
+      "character": "iberia",
+      "loop": true,
+      "frame_width": 80,
+      "density": 2,
+      "frame_height": 96,
+      "fps": 6,
+      "frame_count": 4,
+      "sha256": "ba61ef7f30f669b03f36163dd667e3bab7bb94a620985a56d4a71272f637c87b",
+      "file": "e_iberia_reload@2x.png"
+    }
+  ],
+  "source_sha256": "85f35f6a2fdf17922b0186eb6271d426791f27929e8c48f75493ddb803e2bbf3",
+  "generated_master": "C:/Users/colafax/.codex/generated_images/01a08159-bde5-7d50-b7e0-571e2eeb3a31/exec-f1b648ed-9825-4749-948f-f11666745e6b.png",
+  "design_authorization": "User explicitly approved Victorian-style hand cannon on 2026-10-01"
+}

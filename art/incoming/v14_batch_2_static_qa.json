@@ -1,0 +1,398 @@
+{
+  "palette_counts": [
+    {
+      "colors": 14,
+      "character": "proj_rock_shard"
+    },
+    {
+      "colors": 27,
+      "character": "fx_acid_splash"
+    },
+    {
+      "colors": 33,
+      "character": "proj_nova"
+    },
+    {
+      "colors": 16,
+      "character": "proj_acid"
+    }
+  ],
+  "allow_repeated_frames": false,
+  "assets": [
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            1,
+            2,
+            8,
+            7
+          ],
+          "pixel_sha256": "9f0b6749d726d049a98c63cfad1d10b93e982b859919ff18c2886cacb3599673",
+          "index": 0,
+          "opaque_pixels": 28
+        },
+        {
+          "bbox": [
+            2,
+            1,
+            7,
+            8
+          ],
+          "pixel_sha256": "0cd76279e9834174de734de731169b5b6d815bb7cbe290d2aac43923bd254a02",
+          "index": 1,
+          "opaque_pixels": 28
+        },
+        {
+          "bbox": [
+            1,
+            2,
+            8,
+            7
+          ],
+          "pixel_sha256": "91bde1cf6bd5253b6fd3eaf0c1060273de4e996f53e8fbf992f6e672a193823f",
+          "index": 2,
+          "opaque_pixels": 28
+        },
+        {
+          "bbox": [
+            2,
+            1,
+            7,
+            8
+          ],
+          "pixel_sha256": "48d65e9764c6f7e6b0992ea11a073440b4e5e4d6538a88bf0607b9c9802b270a",
+          "index": 3,
+          "opaque_pixels": 28
+        }
+      ],
+      "sha256": "476de5b07a85a0f90ca9bb97579974c3b542b90156b262e9b13378a1c1295c67",
+      "file": "proj_rock_shard.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            3,
+            3,
+            16,
+            16
+          ],
+          "pixel_sha256": "d14145539bb9ee6a4691d5e14ee3738cfc56696b1ac83d20dd38eea6e0fa6381",
+          "index": 0,
+          "opaque_pixels": 114
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            16,
+            16
+          ],
+          "pixel_sha256": "c09431eb5bc4a4ad5cfaebb22d7280a1ba62c7671c3351ffff4672446833dcab",
+          "index": 1,
+          "opaque_pixels": 114
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            16,
+            16
+          ],
+          "pixel_sha256": "841c13d004ad20187589b1643a42108ee47caf2fb6e713b7ad481786157eb5fd",
+          "index": 2,
+          "opaque_pixels": 114
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            16,
+            16
+          ],
+          "pixel_sha256": "8320298cd943f49fa2141575e62ead245526fdbb01a4d6d6ac656c166858a603",
+          "index": 3,
+          "opaque_pixels": 114
+        }
+      ],
+      "sha256": "ec416b71f33a4d84f0993af1743675bf31d1186e1aec90eb4203b07984d25ebd",
+      "file": "proj_rock_shard@2x.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            1,
+            2,
+            8,
+            7
+          ],
+          "pixel_sha256": "e54251b39775911c8d16b9956d40a2ca6f915b6069b0f4ece3c2a16c2221c72c",
+          "index": 0,
+          "opaque_pixels": 38
+        },
+        {
+          "bbox": [
+            1,
+            2,
+            8,
+            7
+          ],
+          "pixel_sha256": "bdc46f79232b015db24bcbda0ec41e70de88407847529ba68a848661892eb8ed",
+          "index": 1,
+          "opaque_pixels": 35
+        }
+      ],
+      "sha256": "035b1965b4dc505c794bf53c7567a77e18ad4c11a8e40fb00bdba49660181f4c",
+      "file": "proj_acid.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            2,
+            3,
+            17,
+            16
+          ],
+          "pixel_sha256": "cdbfcf2a18448fc2cbd502a7fcb92f374b8585b54171594f3d39caeb200c1e85",
+          "index": 0,
+          "opaque_pixels": 141
+        },
+        {
+          "bbox": [
+            2,
+            4,
+            17,
+            15
+          ],
+          "pixel_sha256": "d92db8a5f991a5285141b3a66849fd26270f1fb4fbb37d2001cfd03c8b08d35e",
+          "index": 1,
+          "opaque_pixels": 134
+        }
+      ],
+      "sha256": "334724fe0153d484652330df4b996ed79e6946551cb9a231fc8488c4ab87f1db",
+      "file": "proj_acid@2x.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            4,
+            5,
+            19,
+            9
+          ],
+          "pixel_sha256": "29efaf4d97df5bff0948e403bf8bcbbc5fc37ba96e175641423271264617827e",
+          "index": 0,
+          "opaque_pixels": 39
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            16,
+            9
+          ],
+          "pixel_sha256": "3b50c8c1fcf2de36ad4cab392249a32f34f12e42e2a966d9378c74aad40fc464",
+          "index": 1,
+          "opaque_pixels": 62
+        },
+        {
+          "bbox": [
+            3,
+            2,
+            18,
+            9
+          ],
+          "pixel_sha256": "8962f182cd38753c5213412597c20ced837974f7ba2eaa5155d13d741062cff0",
+          "index": 2,
+          "opaque_pixels": 83
+        },
+        {
+          "bbox": [
+            3,
+            2,
+            20,
+            9
+          ],
+          "pixel_sha256": "abbf09892ad891ce7063dd083666cf06265e899e2b8debf272120b3bff92e091",
+          "index": 3,
+          "opaque_pixels": 89
+        }
+      ],
+      "sha256": "2f40189347405084b7d2c27846aa3863e8df5a3547e76e7794a39cf756be4e2b",
+      "file": "fx_acid_splash.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            9,
+            9,
+            38,
+            18
+          ],
+          "pixel_sha256": "f45a7d9a0f4a026a46312b9277291abdc21aa373160b52107d59f27cc0550869",
+          "index": 0,
+          "opaque_pixels": 134
+        },
+        {
+          "bbox": [
+            5,
+            6,
+            42,
+            18
+          ],
+          "pixel_sha256": "f4251eb5ea327a74019065d09179afa16046a67e0aa54750e18342eeada9fae9",
+          "index": 1,
+          "opaque_pixels": 251
+        },
+        {
+          "bbox": [
+            5,
+            3,
+            42,
+            18
+          ],
+          "pixel_sha256": "7c40d66c668669b83ee79a5e8659e42b72c1e70e9b8d987b2c359fd395bc2c65",
+          "index": 2,
+          "opaque_pixels": 309
+        },
+        {
+          "bbox": [
+            6,
+            3,
+            41,
+            18
+          ],
+          "pixel_sha256": "75fedeb5356146d8f8f0c6b5dcf8e31a2b780201339e2f840ff9bc4eee67cc52",
+          "index": 3,
+          "opaque_pixels": 325
+        }
+      ],
+      "sha256": "1c72bcd8db154f02121d740095d7a7e113dbb3e538b5166e1461846e1f57b24c",
+      "file": "fx_acid_splash@2x.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            1,
+            1,
+            10,
+            10
+          ],
+          "pixel_sha256": "178550007fddd6581c083ed1e7ad2a9e99666a70f915fb0218b015369a13025f",
+          "index": 0,
+          "opaque_pixels": 53
+        },
+        {
+          "bbox": [
+            1,
+            1,
+            10,
+            10
+          ],
+          "pixel_sha256": "7e68ad7ccbf295eb4b4bce3cb4e3af2a48639a4446261c15c9ff6e894369a040",
+          "index": 1,
+          "opaque_pixels": 54
+        },
+        {
+          "bbox": [
+            1,
+            2,
+            10,
+            10
+          ],
+          "pixel_sha256": "e0aed0daaf871bf057fd306f518c52a44d7c8a882a7cb1a6e021df6c7ca8e38a",
+          "index": 2,
+          "opaque_pixels": 55
+        },
+        {
+          "bbox": [
+            1,
+            1,
+            10,
+            10
+          ],
+          "pixel_sha256": "f4a3dc2607026224842aff1bb7ac1c84a0fd13c0b9e9ed0da9817817981b1647",
+          "index": 3,
+          "opaque_pixels": 56
+        }
+      ],
+      "sha256": "53a90d405f84c243f90f4d2f8c2814ec84050866382464053e1d04ac53c58833",
+      "file": "proj_nova.png"
+    },
+    {
+      "binary_alpha": true,
+      "outline": "080E18",
+      "frames": [
+        {
+          "bbox": [
+            2,
+            2,
+            21,
+            21
+          ],
+          "pixel_sha256": "a88d9bb643abc7137b31f25f0e50a64ec9ede4890e5ef93dd1f1b9f3b4ce2f72",
+          "index": 0,
+          "opaque_pixels": 211
+        },
+        {
+          "bbox": [
+            2,
+            2,
+            21,
+            21
+          ],
+          "pixel_sha256": "879f2045c210ea424bce11ff339ed3432153cf50d99401a917f19b620bfa443f",
+          "index": 1,
+          "opaque_pixels": 211
+        },
+        {
+          "bbox": [
+            2,
+            2,
+            21,
+            21
+          ],
+          "pixel_sha256": "d01897fd21706b2bb05a845add29f8f7352d92519506234a8e267d809943799a",
+          "index": 2,
+          "opaque_pixels": 215
+        },
+        {
+          "bbox": [
+            2,
+            2,
+            21,
+            21
+          ],
+          "pixel_sha256": "9daa855266f75754c765f4275a20c0608376927efd473de9d7d47e1a587dab3c",
+          "index": 3,
+          "opaque_pixels": 213
+        }
+      ],
+      "sha256": "b5e5081c5a14b59e85723ca3bfc785523b5820341b1e2af3f55109c01ee969f0",
+      "file": "proj_nova@2x.png"
+    }
+  ],
+  "baseline_checked": false,
+  "engine_tested": false,
+  "passed": true
+}

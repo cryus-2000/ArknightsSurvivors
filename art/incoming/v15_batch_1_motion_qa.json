@@ -1,0 +1,174 @@
+{
+  "engine_tested": false,
+  "passed": true,
+  "checks": [
+    {
+      "minimum_area_vs_idle": 0.997979797979798,
+      "changed_silhouette_pixels": [
+        15,
+        15
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        741,
+        744
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint.png",
+      "changed_pixels": [
+        246,
+        246
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.9953648068669528,
+      "changed_silhouette_pixels": [
+        61,
+        61
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        2899,
+        2926
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint@2x.png",
+      "changed_pixels": [
+        992,
+        992
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.9963414634146341,
+      "changed_silhouette_pixels": [
+        34,
+        34
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        823,
+        817
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint_dark.png",
+      "changed_pixels": [
+        330,
+        330
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.991635687732342,
+      "changed_silhouette_pixels": [
+        134,
+        134
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        3255,
+        3201
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint_dark@2x.png",
+      "changed_pixels": [
+        1352,
+        1352
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.8835016835016835,
+      "changed_silhouette_pixels": [
+        106,
+        109,
+        150,
+        155
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        687,
+        659,
+        692,
+        656
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint_move.png",
+      "changed_pixels": [
+        418,
+        485,
+        595,
+        563
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.8837768240343348,
+      "changed_silhouette_pixels": [
+        450,
+        448,
+        583,
+        613
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        2707,
+        2585,
+        2691,
+        2574
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint_move@2x.png",
+      "changed_pixels": [
+        1778,
+        1946,
+        2311,
+        2290
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.8902439024390244,
+      "changed_silhouette_pixels": [
+        134,
+        133,
+        106,
+        97
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        763,
+        737,
+        768,
+        730
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint_dark_move.png",
+      "changed_pixels": [
+        554,
+        582,
+        521,
+        470
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.8884758364312267,
+      "changed_silhouette_pixels": [
+        516,
+        540,
+        460,
+        454
+      ],
+      "batch": 1,
+      "opaque_pixels": [
+        2990,
+        2890,
+        3000,
+        2868
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint_dark_move@2x.png",
+      "changed_pixels": [
+        2126,
+        2272,
+        2015,
+        1945
+      ]
+    }
+  ]
+}

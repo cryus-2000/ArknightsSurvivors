@@ -1,0 +1,97 @@
+{
+  "checks": [
+    {
+      "batch": 2,
+      "outline_median": 1.0,
+      "expected_outline": 1,
+      "file": "proj_rock_shard.png",
+      "opaque_pixels": [
+        28,
+        28,
+        28,
+        28
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 2.0,
+      "expected_outline": 2,
+      "file": "proj_rock_shard@2x.png",
+      "opaque_pixels": [
+        114,
+        114,
+        114,
+        114
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 1.0,
+      "expected_outline": 1,
+      "file": "proj_acid.png",
+      "opaque_pixels": [
+        38,
+        35
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 2.0,
+      "expected_outline": 2,
+      "file": "proj_acid@2x.png",
+      "opaque_pixels": [
+        141,
+        134
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 1.0,
+      "expected_outline": 1,
+      "file": "fx_acid_splash.png",
+      "opaque_pixels": [
+        39,
+        62,
+        83,
+        89
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 2.0,
+      "expected_outline": 2,
+      "file": "fx_acid_splash@2x.png",
+      "opaque_pixels": [
+        134,
+        251,
+        309,
+        325
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 1.0,
+      "expected_outline": 1,
+      "file": "proj_nova.png",
+      "opaque_pixels": [
+        53,
+        54,
+        55,
+        56
+      ]
+    },
+    {
+      "batch": 2,
+      "outline_median": 2.0,
+      "expected_outline": 2,
+      "file": "proj_nova@2x.png",
+      "opaque_pixels": [
+        211,
+        211,
+        215,
+        213
+      ]
+    }
+  ],
+  "engine_tested": false
+}

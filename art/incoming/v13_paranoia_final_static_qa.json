@@ -1,0 +1,178 @@
+{
+  "allow_repeated_frames": false,
+  "engine_tested": false,
+  "passed": true,
+  "baseline_checked": true,
+  "assets": [
+    {
+      "file": "e_paranoia_phase2.png",
+      "sha256": "ef166f6f15398306109a77f1c9469d3a8d550054cc78d7484941b29bb2d9f353",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 0,
+          "opaque_pixels": 3218,
+          "pixel_sha256": "08f719bcd854e8addea65a8a8acfa9126b3c187933d2b89c89e6504b34e84a64"
+        },
+        {
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 1,
+          "opaque_pixels": 3209,
+          "pixel_sha256": "aca75e8e7770d89662feab61b7a3dafdfc9a57d74c3a66587b115558e6a5157c"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "file": "e_paranoia_phase2@2x.png",
+      "sha256": "05352a025fa0c4d6c3ea8c23d34dae6e218f76dd3fc8ac16cfa93b878ac7f43c",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 0,
+          "opaque_pixels": 12804,
+          "pixel_sha256": "53c0dc9b3f2bed697e9e21be3edaf284fa27f3703c067fb94a7452e2c917eb31"
+        },
+        {
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 1,
+          "opaque_pixels": 12753,
+          "pixel_sha256": "226a65a278d30ed5790cac33fefc7451076b86d557a96b736fe1faa778110b48"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "file": "e_paranoia_phase2_move.png",
+      "sha256": "a5227593196beea08e751042f10c09df58a56cc102b51951422ae1af9452c4f7",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 0,
+          "opaque_pixels": 3274,
+          "pixel_sha256": "5ddb4b02b4cedaee6b0a898e725dad48a03b6a3a66289aca7abef1e3d4d0c80a"
+        },
+        {
+          "bbox": [
+            3,
+            5,
+            70,
+            69
+          ],
+          "index": 1,
+          "opaque_pixels": 3148,
+          "pixel_sha256": "abde18796f17553136ab1bbe1551d6e72be06320e92f0203cae8883023dbffc6"
+        },
+        {
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 2,
+          "opaque_pixels": 3263,
+          "pixel_sha256": "1c83201ae5145bc13d476907d16468fab1803d8a17baf3f41516051647ffcb23"
+        },
+        {
+          "bbox": [
+            1,
+            5,
+            70,
+            69
+          ],
+          "index": 3,
+          "opaque_pixels": 3226,
+          "pixel_sha256": "cb00030b26a8c5588f38383573056bc40d4ca096a7493299d8ebe0ae8d14c953"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "file": "e_paranoia_phase2_move@2x.png",
+      "sha256": "7adf59e1b548d37b8cb8fdbb5d7d5ce2a326c2e732cb84b50503078b3180b343",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 0,
+          "opaque_pixels": 12880,
+          "pixel_sha256": "6010b9fe0e8b0e090ae9e4183c17bb5084db22d0716f3f932cf3af42991e0ba7"
+        },
+        {
+          "bbox": [
+            6,
+            9,
+            141,
+            138
+          ],
+          "index": 1,
+          "opaque_pixels": 12412,
+          "pixel_sha256": "3d1bb98db580667f03a0f8d5be24959c91f1f3aea327136ef21cd807c057afc2"
+        },
+        {
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 2,
+          "opaque_pixels": 12886,
+          "pixel_sha256": "6075f29d899385b1fa184bbe176727ecb09e853322c1805658b48b648526af3b"
+        },
+        {
+          "bbox": [
+            2,
+            9,
+            141,
+            138
+          ],
+          "index": 3,
+          "opaque_pixels": 12714,
+          "pixel_sha256": "a52e11d34cfadd85d56a45298086412c826c47514bfecbad57f288d05271d9f6"
+        }
+      ],
+      "outline": "080E18"
+    }
+  ],
+  "palette_counts": [
+    {
+      "character": "paranoia",
+      "colors": 43
+    }
+  ]
+}

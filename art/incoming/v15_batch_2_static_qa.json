@@ -1,0 +1,429 @@
+{
+  "engine_tested": false,
+  "assets": [
+    {
+      "sha256": "77dce79a2426f0cf3adcbf00c7cb7b9eee2fd3ffba24eea8b7da44282d987501",
+      "file": "e_saint_attack.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            6,
+            3,
+            38,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 794,
+          "pixel_sha256": "23a5e300a2e05928c9fd01e02903ae673bb87a0d618880d753bf1a826059abdb"
+        },
+        {
+          "bbox": [
+            7,
+            3,
+            35,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 775,
+          "pixel_sha256": "18debb587494d18ba7b1f46c24a089ee15686efaf600608bf2bbe0808ce7a763"
+        },
+        {
+          "bbox": [
+            2,
+            3,
+            34,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 817,
+          "pixel_sha256": "f3ba38f054a5e4de7d903164017ee8949be3018026fef68428fa71fae6fa333f"
+        },
+        {
+          "bbox": [
+            8,
+            3,
+            30,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 762,
+          "pixel_sha256": "73a41799b4160271f1852e4970f0fd709fffcce958f886bb5aff5924fde54bc4"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "92bc3d95dfa2f42af9645c2a180e89ed7e2a68e1adda6c233229d05c75a71c28",
+      "file": "e_saint_attack@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            12,
+            5,
+            76,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3119,
+          "pixel_sha256": "6b5defded0094176066ef8f0d157fdb4ad0003383bdc2a55e228d537461af176"
+        },
+        {
+          "bbox": [
+            13,
+            5,
+            70,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3036,
+          "pixel_sha256": "3771ce44c9493407cbf76963056958b0f09c5e53fc4e481ca223f8fb699d6dfb"
+        },
+        {
+          "bbox": [
+            3,
+            5,
+            68,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3201,
+          "pixel_sha256": "cfc65a4d118bd0447c80cbb6471378a54c9d5dbd73647034f93cdf377feae25a"
+        },
+        {
+          "bbox": [
+            17,
+            5,
+            61,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 2981,
+          "pixel_sha256": "7a34a11164d68d1b7f4687e187036bc65b39439fbf88158ac0b8441549f6c68c"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "c4b7b747991e3f8521dd820512cdd8b4f3f0dc5f868514f1b3fa4d0049a4cfd1",
+      "file": "e_saint_dark_attack.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            4,
+            4,
+            37,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 825,
+          "pixel_sha256": "e4c6eb875dcfa09fa26fca7406f9794e632986e22ff88fa9fc40da074c82c548"
+        },
+        {
+          "bbox": [
+            6,
+            4,
+            34,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 791,
+          "pixel_sha256": "40317b44d52641e01e0e373b2edeff230adb504b0f6332baf967dbf19c667aa9"
+        },
+        {
+          "bbox": [
+            1,
+            3,
+            34,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 863,
+          "pixel_sha256": "1409749f14224e9c78f0c0c4b1894be6ec409e90157cd98f0d06f9f124c0d7ed"
+        },
+        {
+          "bbox": [
+            5,
+            4,
+            31,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 776,
+          "pixel_sha256": "92f9326ffcd12789b83a8db5600f65e8b9f94c32e18d652bea43d5944c732504"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "9271209beb1979a35420c07620003c10809ec28a839e63f9ed74e884e63e285c",
+      "file": "e_saint_dark_attack@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            8,
+            6,
+            76,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3239,
+          "pixel_sha256": "5eff89950f637aae396aa8ece859c53127793f42f0c7d71da53912d95de04c57"
+        },
+        {
+          "bbox": [
+            11,
+            6,
+            69,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3110,
+          "pixel_sha256": "691d088e1aa12f4d35ebba5481a9e2be8beaab120d1381cc90ccb6f98aeee521"
+        },
+        {
+          "bbox": [
+            3,
+            5,
+            69,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3360,
+          "pixel_sha256": "9f8a4182374707a20689b0cc99d88829240bb1024d7ab432b2ea61dd31dc5be7"
+        },
+        {
+          "bbox": [
+            11,
+            6,
+            63,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 3077,
+          "pixel_sha256": "df500cbc0e5434fd0a504c97aa3c87d97bbdf33a316292723d8dd5ed776a734a"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "20ab5ac5bed1c023ed767baa352017373feafac9336d8995b22216c7f696b7a4",
+      "file": "e_saint_reload.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            8,
+            3,
+            30,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 758,
+          "pixel_sha256": "9f48716e016ac789fd501f57a5ee517d619d4f3860f2790c2b7484a5df9cc2a3"
+        },
+        {
+          "bbox": [
+            8,
+            3,
+            32,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 783,
+          "pixel_sha256": "6e34dacf1f4080e826c650769298f0f82138ad93096ec7853fc2c45314129ba1"
+        },
+        {
+          "bbox": [
+            8,
+            3,
+            31,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 778,
+          "pixel_sha256": "0a5e6a0483b5f3a651caaf12cc3c1296b3ff3f93c8ce6a0f6467cef437fd1714"
+        },
+        {
+          "bbox": [
+            7,
+            3,
+            34,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 757,
+          "pixel_sha256": "ca145b684f5da0b03723c01fe4a4bf47d406db906e9e38bf33bdb6315e9da227"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "122fb8a6cff574c2a4bd0566323d4ca95e6e3877d59dbc34da47b406e2c06016",
+      "file": "e_saint_reload@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            16,
+            5,
+            62,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 2979,
+          "pixel_sha256": "c4e0dcfba68f38dc223467dc89cab192bf49aaa9b86f7720ae64dcb7200a9e02"
+        },
+        {
+          "bbox": [
+            15,
+            5,
+            64,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3075,
+          "pixel_sha256": "0d03afafbb50b5c339dca247cbf50a9d607dee001a95bd3eda59a023211f87c0"
+        },
+        {
+          "bbox": [
+            15,
+            5,
+            62,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3067,
+          "pixel_sha256": "e841ef41e33d71bb155e696886f59ef0061e352329c1ff6cbba043093a686116"
+        },
+        {
+          "bbox": [
+            13,
+            5,
+            68,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 2969,
+          "pixel_sha256": "015039366b7aa9f6282da6a8d02090478cf7ea0a39ee448be395ab8685fa6518"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "de091b01a53cb81a4acc0323862bb0f0cc8a7ad63cd04ddcfcc186c96713f802",
+      "file": "e_saint_dark_reload.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            5,
+            3,
+            31,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 832,
+          "pixel_sha256": "e891ab2368390621cd57bcb0673f97459bbead573a0f805a024847673637c723"
+        },
+        {
+          "bbox": [
+            5,
+            3,
+            32,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 863,
+          "pixel_sha256": "d44fce0d89a4819eb38a086e8cde69cddd42485b192fd0ed68878063f1a61d20"
+        },
+        {
+          "bbox": [
+            5,
+            3,
+            32,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 849,
+          "pixel_sha256": "5ef2bb5667e0d7dd406804eafd665e84776e225059b33bf668489c013e02f9c8"
+        },
+        {
+          "bbox": [
+            4,
+            3,
+            35,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 851,
+          "pixel_sha256": "703cb9b3f797e7a9f2c002c45d7fcd5de6522bc9942cc973509b074ad3f0edb4"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "64831b86fe6ce6fdc462385b69fb95882756bd9666d403331167ecd36b7c0403",
+      "file": "e_saint_dark_reload@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            10,
+            5,
+            64,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3285,
+          "pixel_sha256": "4a8cafe92a2867f0c5f886c98588781b5639815675ba108292802a40429f09de"
+        },
+        {
+          "bbox": [
+            10,
+            5,
+            66,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3382,
+          "pixel_sha256": "21906f04a1722af0f22b7aae3edbfe849d3cf9cbfd19026a58497c3bb51cd0cb"
+        },
+        {
+          "bbox": [
+            11,
+            5,
+            64,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 3364,
+          "pixel_sha256": "253eee30d1c4e3b96ce35e9fee0bccbc683446ce7c81186fe571c59de9466c81"
+        },
+        {
+          "bbox": [
+            9,
+            5,
+            70,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 3339,
+          "pixel_sha256": "3256485ff2fad716f2b543fae3b2d03c2ebecf4d57bddedac48f65d00e39655c"
+        }
+      ],
+      "outline": "080E18"
+    }
+  ],
+  "baseline_checked": true,
+  "palette_counts": [
+    {
+      "colors": 43,
+      "character": "saint"
+    }
+  ],
+  "passed": true
+}

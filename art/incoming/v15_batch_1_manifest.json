@@ -1,0 +1,164 @@
+{
+  "assets": [
+    {
+      "loop": true,
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 40,
+      "batch": 1,
+      "frame_count": 2,
+      "anchor": [
+        20,
+        45
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 48,
+      "file": "e_saint.png",
+      "fps": 2,
+      "source_sha256": "772e28b2ff6fa1a2a076e225985ce2cae9bd89f4fc1d74f1745f0e98c00e32cc",
+      "sha256": "e17b95636045562d296ab7068b042627217143482943ac0e6a97ca536d716aff",
+      "source_master": "exec-2aee8ab8-1c3b-47e6-984b-5a73523a955d.png"
+    },
+    {
+      "loop": true,
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 80,
+      "batch": 1,
+      "frame_count": 2,
+      "anchor": [
+        40,
+        90
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 96,
+      "file": "e_saint@2x.png",
+      "fps": 2,
+      "source_sha256": "772e28b2ff6fa1a2a076e225985ce2cae9bd89f4fc1d74f1745f0e98c00e32cc",
+      "sha256": "f80fd9d4a7f530d293047535dcdd9165a007dd8d6c375611cb7222d9e0e7db99",
+      "source_master": "exec-2aee8ab8-1c3b-47e6-984b-5a73523a955d.png"
+    },
+    {
+      "loop": true,
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 40,
+      "batch": 1,
+      "frame_count": 2,
+      "anchor": [
+        20,
+        45
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 48,
+      "file": "e_saint_dark.png",
+      "fps": 2,
+      "source_sha256": "6b2a6ce5db0e290deeb60cb96fef7f8fe40014d52b076742fe528433a6714af3",
+      "sha256": "8f35d27da9154fbab37b44577d2e36ce875e88f06bc96b54e726eab51ea9eb17",
+      "source_master": "exec-84d2086f-ca14-4464-a718-e76cd856c2e5.png"
+    },
+    {
+      "loop": true,
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 80,
+      "batch": 1,
+      "frame_count": 2,
+      "anchor": [
+        40,
+        90
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 96,
+      "file": "e_saint_dark@2x.png",
+      "fps": 2,
+      "source_sha256": "6b2a6ce5db0e290deeb60cb96fef7f8fe40014d52b076742fe528433a6714af3",
+      "sha256": "1185be3e85aa3e137f0e9a2e54a48859e86d6eddce098aab51285296aeeb0dc2",
+      "source_master": "exec-84d2086f-ca14-4464-a718-e76cd856c2e5.png"
+    },
+    {
+      "loop": true,
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 40,
+      "batch": 1,
+      "frame_count": 4,
+      "anchor": [
+        20,
+        45
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 48,
+      "file": "e_saint_move.png",
+      "fps": 6,
+      "source_sha256": "bc7f15a499bfeda26bcfaaeb112edc1f6f2d9416eb26368922d25691cd983922",
+      "sha256": "6085d84674b5732dcfc31d1e015a77b692ee09d583b33e1c4037cedcbe159f26",
+      "source_master": "exec-485e4e59-94a4-4245-a6a8-1b1fb44523c6.png"
+    },
+    {
+      "loop": true,
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 80,
+      "batch": 1,
+      "frame_count": 4,
+      "anchor": [
+        40,
+        90
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 96,
+      "file": "e_saint_move@2x.png",
+      "fps": 6,
+      "source_sha256": "bc7f15a499bfeda26bcfaaeb112edc1f6f2d9416eb26368922d25691cd983922",
+      "sha256": "4057896e57446263e4efd0a8ffbbcefdacb0d3d06f75e34b3d38439e74f1cef3",
+      "source_master": "exec-485e4e59-94a4-4245-a6a8-1b1fb44523c6.png"
+    },
+    {
+      "loop": true,
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 40,
+      "batch": 1,
+      "frame_count": 4,
+      "anchor": [
+        20,
+        45
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 48,
+      "file": "e_saint_dark_move.png",
+      "fps": 6,
+      "source_sha256": "b28b7e4891adeae0d0613a579865ec1e9f7470ea6c743b4457ee7c1d256d4a13",
+      "sha256": "81c16c8cb0a1ae75f8b87ed6b04f483e0b7539797b2788b5aa2932479b4c94b0",
+      "source_master": "exec-b4375ccf-13a5-4085-9389-c96577bcbd01.png"
+    },
+    {
+      "loop": true,
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 80,
+      "batch": 1,
+      "frame_count": 4,
+      "anchor": [
+        40,
+        90
+      ],
+      "event_frame_zero_based": null,
+      "character": "saint",
+      "frame_height": 96,
+      "file": "e_saint_dark_move@2x.png",
+      "fps": 6,
+      "source_sha256": "b28b7e4891adeae0d0613a579865ec1e9f7470ea6c743b4457ee7c1d256d4a13",
+      "sha256": "cc253181c4a1496972e5ee9e572073c46ff0b5c45dd6932f6368a573f37e9dd0",
+      "source_master": "exec-b4375ccf-13a5-4085-9389-c96577bcbd01.png"
+    }
+  ]
+}

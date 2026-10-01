@@ -1,0 +1,221 @@
+{
+  "engine_tested": false,
+  "assets": [
+    {
+      "sha256": "f30d7f32ec9a68e18a10b1dd4ddf6848548a4afd1020617bd17e1a43f55123e7",
+      "file": "e_saint_melee.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            7,
+            3,
+            30,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 685,
+          "pixel_sha256": "9290d79de6550e6f7275879cbca5276636463fda8d9f0cbe06ccdcd7c3dc1d4e"
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            31,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 708,
+          "pixel_sha256": "c6c0783cb19ded2cad7c5dfc3541a786ec18b34cd7f3946d3b4b79cab69c54d7"
+        },
+        {
+          "bbox": [
+            6,
+            5,
+            38,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 705,
+          "pixel_sha256": "366f6ce83de81daa38d2beba39f8354ca0c468e43a410a7288179bbd9ec2df20"
+        },
+        {
+          "bbox": [
+            9,
+            3,
+            29,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 698,
+          "pixel_sha256": "d988577195dd632a5f0e9dfb0361ff8f4750d119c6afbd124ff6a3a1cd0febd6"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "bb3fef8ef6158492a39da3e4101d519a12c378d326030893aa9faf9fec2211d9",
+      "file": "e_saint_melee@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            14,
+            5,
+            60,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 2705,
+          "pixel_sha256": "c0cfed0fc92d4137e796fe0fd7cd84cf5d6d2813cb41cc848ce417a8c8b86ac0"
+        },
+        {
+          "bbox": [
+            6,
+            5,
+            63,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 2761,
+          "pixel_sha256": "34ac65e33333dbaeaea01c5f226a6469ab28969ef04bcb490a97343ecf07542e"
+        },
+        {
+          "bbox": [
+            11,
+            9,
+            76,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 2748,
+          "pixel_sha256": "2e1fb3de72c333870f55ef16759b0f17678c2a47e8538b83434da02d83fe251a"
+        },
+        {
+          "bbox": [
+            18,
+            5,
+            59,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 2735,
+          "pixel_sha256": "016de155c90113f24664fd182370ca9889a6f5ec122fdd30e2dd8cd9329d1557"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "33e6caf6ddea8b527be8ef684784067877fff5a227206f2c976301a76bf61a80",
+      "file": "e_saint_dark_melee.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            6,
+            3,
+            32,
+            45
+          ],
+          "index": 0,
+          "opaque_pixels": 804,
+          "pixel_sha256": "703c3c636ec98e2cd50b852f71d9c32147cb634aa7550d94f9e2b7cec2e935b9"
+        },
+        {
+          "bbox": [
+            3,
+            3,
+            32,
+            45
+          ],
+          "index": 1,
+          "opaque_pixels": 822,
+          "pixel_sha256": "c50eea83c35203961759a6fe0f5a257f83a40449d0df44370d6fffd8b22d8422"
+        },
+        {
+          "bbox": [
+            5,
+            5,
+            38,
+            45
+          ],
+          "index": 2,
+          "opaque_pixels": 754,
+          "pixel_sha256": "eae06f81d13422cf1dfd0f06a7485e4a2966f384f7652f4f35cdc86a226d6532"
+        },
+        {
+          "bbox": [
+            6,
+            3,
+            31,
+            45
+          ],
+          "index": 3,
+          "opaque_pixels": 786,
+          "pixel_sha256": "a33f6b19bccffc3b8e4b367092cde3c75ffa259d6e8cddea2d134da314383f06"
+        }
+      ],
+      "outline": "080E18"
+    },
+    {
+      "sha256": "08bfea7424cf6d9e4a93cffaae745af04a823a73cdc9d5713390e52e692b4d2e",
+      "file": "e_saint_dark_melee@2x.png",
+      "binary_alpha": true,
+      "frames": [
+        {
+          "bbox": [
+            12,
+            5,
+            64,
+            90
+          ],
+          "index": 0,
+          "opaque_pixels": 3132,
+          "pixel_sha256": "4ba90e79952101fa8fd5d5ed06a2e0140a165f33e66a637894bb0aeb6be7bb5c"
+        },
+        {
+          "bbox": [
+            6,
+            5,
+            65,
+            90
+          ],
+          "index": 1,
+          "opaque_pixels": 3221,
+          "pixel_sha256": "9628a732729549c62cbf8a9e0761e9c17488c43ec03ee71a4aa37c62d06ed7f8"
+        },
+        {
+          "bbox": [
+            11,
+            10,
+            76,
+            90
+          ],
+          "index": 2,
+          "opaque_pixels": 2956,
+          "pixel_sha256": "d34a0132589fe8d0e031918b984a3b98d49f1b219b37cf5e94f42b9049f2a6b0"
+        },
+        {
+          "bbox": [
+            12,
+            5,
+            63,
+            90
+          ],
+          "index": 3,
+          "opaque_pixels": 3068,
+          "pixel_sha256": "501e7643a41839cb652eb0260f0cae22e8b107907b6689988f6fe9654bede5eb"
+        }
+      ],
+      "outline": "080E18"
+    }
+  ],
+  "baseline_checked": true,
+  "palette_counts": [
+    {
+      "colors": 43,
+      "character": "saint"
+    }
+  ],
+  "passed": true
+}

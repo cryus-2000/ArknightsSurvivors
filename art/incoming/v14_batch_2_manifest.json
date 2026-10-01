@@ -1,0 +1,164 @@
+{
+  "assets": [
+    {
+      "loop": true,
+      "source_sha256": "745776ee7ddea7aac0d7abccdd4f7d0d64a6eecf26304f4d1a585d9ef141c259",
+      "frame_count": 4,
+      "source_master": "exec-e52d4c59-6f72-4b0e-b82a-62b48c396b8b.png",
+      "grounded": false,
+      "frame_width": 10,
+      "fps": 12,
+      "file": "proj_rock_shard.png",
+      "anchor": [
+        5,
+        5
+      ],
+      "character": "proj_rock_shard",
+      "density": 1,
+      "frame_height": 10,
+      "sha256": "476de5b07a85a0f90ca9bb97579974c3b542b90156b262e9b13378a1c1295c67",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "745776ee7ddea7aac0d7abccdd4f7d0d64a6eecf26304f4d1a585d9ef141c259",
+      "frame_count": 4,
+      "source_master": "exec-e52d4c59-6f72-4b0e-b82a-62b48c396b8b.png",
+      "grounded": false,
+      "frame_width": 20,
+      "fps": 12,
+      "file": "proj_rock_shard@2x.png",
+      "anchor": [
+        10,
+        10
+      ],
+      "character": "proj_rock_shard",
+      "density": 2,
+      "frame_height": 20,
+      "sha256": "ec416b71f33a4d84f0993af1743675bf31d1186e1aec90eb4203b07984d25ebd",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "97c73d07539fc06d76161b5c04f4e608858937a7abde36d918412eb8032b23c7",
+      "frame_count": 2,
+      "source_master": "exec-bd2eaab8-ee6f-441c-a350-99d2c600a568.png",
+      "grounded": false,
+      "frame_width": 10,
+      "fps": 8,
+      "file": "proj_acid.png",
+      "anchor": [
+        5,
+        5
+      ],
+      "character": "proj_acid",
+      "density": 1,
+      "frame_height": 10,
+      "sha256": "035b1965b4dc505c794bf53c7567a77e18ad4c11a8e40fb00bdba49660181f4c",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "97c73d07539fc06d76161b5c04f4e608858937a7abde36d918412eb8032b23c7",
+      "frame_count": 2,
+      "source_master": "exec-bd2eaab8-ee6f-441c-a350-99d2c600a568.png",
+      "grounded": false,
+      "frame_width": 20,
+      "fps": 8,
+      "file": "proj_acid@2x.png",
+      "anchor": [
+        10,
+        10
+      ],
+      "character": "proj_acid",
+      "density": 2,
+      "frame_height": 20,
+      "sha256": "334724fe0153d484652330df4b996ed79e6946551cb9a231fc8488c4ab87f1db",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": false,
+      "source_sha256": "777fa01012a0a98cbdeb9775696a0857bcd4088e1f859b097d01fbcb527a8551",
+      "frame_count": 4,
+      "source_master": "exec-170b649c-46ce-4089-821c-0a1ae34673d9.png",
+      "grounded": true,
+      "frame_width": 24,
+      "fps": 12,
+      "file": "fx_acid_splash.png",
+      "anchor": [
+        12,
+        9
+      ],
+      "character": "fx_acid_splash",
+      "density": 1,
+      "frame_height": 12,
+      "sha256": "2f40189347405084b7d2c27846aa3863e8df5a3547e76e7794a39cf756be4e2b",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": false,
+      "source_sha256": "777fa01012a0a98cbdeb9775696a0857bcd4088e1f859b097d01fbcb527a8551",
+      "frame_count": 4,
+      "source_master": "exec-170b649c-46ce-4089-821c-0a1ae34673d9.png",
+      "grounded": true,
+      "frame_width": 48,
+      "fps": 12,
+      "file": "fx_acid_splash@2x.png",
+      "anchor": [
+        24,
+        18
+      ],
+      "character": "fx_acid_splash",
+      "density": 2,
+      "frame_height": 24,
+      "sha256": "1c72bcd8db154f02121d740095d7a7e113dbb3e538b5166e1461846e1f57b24c",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "2c7ade0b114b80a5ddb0054cd32079bd0958b39ba59204e6a61fc897eea50c96",
+      "frame_count": 4,
+      "source_master": "exec-96ea5703-541b-4bc2-962d-47cbaf3574ab.png",
+      "grounded": false,
+      "frame_width": 12,
+      "fps": 10,
+      "file": "proj_nova.png",
+      "anchor": [
+        6,
+        6
+      ],
+      "character": "proj_nova",
+      "density": 1,
+      "frame_height": 12,
+      "sha256": "53a90d405f84c243f90f4d2f8c2814ec84050866382464053e1d04ac53c58833",
+      "batch": 2,
+      "hold_last_frame": false
+    },
+    {
+      "loop": true,
+      "source_sha256": "2c7ade0b114b80a5ddb0054cd32079bd0958b39ba59204e6a61fc897eea50c96",
+      "frame_count": 4,
+      "source_master": "exec-96ea5703-541b-4bc2-962d-47cbaf3574ab.png",
+      "grounded": false,
+      "frame_width": 24,
+      "fps": 10,
+      "file": "proj_nova@2x.png",
+      "anchor": [
+        12,
+        12
+      ],
+      "character": "proj_nova",
+      "density": 2,
+      "frame_height": 24,
+      "sha256": "b5e5081c5a14b59e85723ca3bfc785523b5820341b1e2af3f55109c01ee969f0",
+      "batch": 2,
+      "hold_last_frame": false
+    }
+  ]
+}

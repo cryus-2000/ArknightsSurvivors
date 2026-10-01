@@ -1,0 +1,102 @@
+{
+  "engine_tested": false,
+  "passed": true,
+  "checks": [
+    {
+      "minimum_area_vs_idle": 0.9225589225589226,
+      "changed_silhouette_pixels": [
+        229,
+        559,
+        307,
+        135
+      ],
+      "batch": 3,
+      "opaque_pixels": [
+        685,
+        708,
+        705,
+        698
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint_melee.png",
+      "changed_pixels": [
+        667,
+        925,
+        751,
+        521
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.9287553648068669,
+      "changed_silhouette_pixels": [
+        908,
+        2209,
+        1239,
+        550
+      ],
+      "batch": 3,
+      "opaque_pixels": [
+        2705,
+        2761,
+        2748,
+        2735
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint_melee@2x.png",
+      "changed_pixels": [
+        2608,
+        3620,
+        2994,
+        2055
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.9195121951219513,
+      "changed_silhouette_pixels": [
+        194,
+        444,
+        282,
+        132
+      ],
+      "batch": 3,
+      "opaque_pixels": [
+        804,
+        822,
+        754,
+        786
+      ],
+      "outline_median": 1.0,
+      "file": "e_saint_dark_melee.png",
+      "changed_pixels": [
+        757,
+        933,
+        805,
+        603
+      ]
+    },
+    {
+      "minimum_area_vs_idle": 0.9157372986369269,
+      "changed_silhouette_pixels": [
+        787,
+        1747,
+        1110,
+        562
+      ],
+      "batch": 3,
+      "opaque_pixels": [
+        3132,
+        3221,
+        2956,
+        3068
+      ],
+      "outline_median": 2.0,
+      "file": "e_saint_dark_melee@2x.png",
+      "changed_pixels": [
+        2887,
+        3664,
+        3121,
+        2447
+      ]
+    }
+  ]
+}
