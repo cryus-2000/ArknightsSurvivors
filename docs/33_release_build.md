@@ -209,6 +209,11 @@ itch 的上传限制：zip 内最多 1000 个文件、单文件 ≤ 200 MB、解
 
 **真机还要补的**（技术侧在内置浏览器里做不到的）：首次触摸出声；iPhone Safari 能否加载完成、加载时的内存；Android Chrome 首次触摸后全屏 + 锁横屏；长时间（10 分钟以上）帧率与发热。
 
+**真机怎么连（2026-10-01 协调人定）**：Godot 网页版启动前要求「安全上下文」（`index.js` 的 `getMissingFeatures`），只认 HTTPS 或 localhost。手机用 `http://<电脑局域网 IP>` 打开会直接报「Secure Context」缺失，进不了游戏；而且 `serve_web.py` 只监听 127.0.0.1，手机本来也连不上。所以：
+- **Android**：手机开 USB 调试并连上电脑，电脑装好 Android platform-tools，先跑 `adb reverse tcp:8794 tcp:8794`，再跑 `python tools/serve_web.py --dir <网页包目录>`，然后手机 Chrome 打开 `http://localhost:8794`。走 localhost 算安全上下文，脚本不用改。
+- **iPhone**：上传到 itch 的草稿页（Draft，只有自己能看），itch 自带 HTTPS，顺便把 itch 的 iframe / 全屏 / Mobile friendly 一起测了。上传要经用户确认。
+- 不走的路：给 `serve_web.py` 加局域网监听加 Chrome 的「把不安全来源当安全」开关；自签证书（iPhone 要装根证书并完全信任）；内网穿透（等于临时公网发布）。
+
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
 1. ~~网页版 `export_web.py` 不写 `build.json` 的 commit / audience~~：2026-10-01 已补，并有 `--ea` 对内网页版与 `verify_web_build.py`（见「一条命令」）。
