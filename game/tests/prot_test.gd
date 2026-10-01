@@ -59,6 +59,7 @@ func _process(_d: float) -> void:
 	test_non_boss()
 	test_no_hard_cc()
 	test_beacon_decay()
+	test_xp_recall()
 	test_atk_slow_floor()
 	test_horde_mix()
 	test_v8()
@@ -1492,3 +1493,75 @@ func test_beacon_decay() -> void:
 	else:
 		Bal._data.erase("beacon")
 
+
+## 经验视野外回收（docs/38 §8.13 方案 A，数值 10-01）：视野外满 recall_after 秒入账且只计一次、回到视野内重新计时、
+## 只回收经验结晶、兜底上限直接入账、recall_after = 0 关闭
+func test_xp_recall() -> void:
+	var pk = game.pickups
+	var had: bool = Bal._data.has("pickup")
+	var old = Bal._data.get("pickup")
+	var keep_gems: Array = game.gems
+	var p2: Dictionary = (old as Dictionary).duplicate() if had else {}
+	p2["recall_after"] = 6.0
+	p2["recall_tick"] = 1.0
+	p2["recall_margin"] = 96.0
+	p2["gem_overflow"] = 400.0
+	Bal._data["pickup"] = p2
+	var far: Vector2 = game.ppos + Vector2(2200, 0)     # 逻辑视野外
+	var near: Vector2 = game.ppos + Vector2(500, 0)     # 视野内、拾取范围外
+	var mk := func(kind: String, pos: Vector2, val: float) -> Dictionary:
+		return {"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0, "z": 0.0, "vz": 0.0,
+			"vel": Vector2.ZERO, "special": kind == "magnet" or kind == "heal" or kind == "chest", "landed": true, "age": 10.0, "seed": 0.0, "out_t": 0.0}
+	var step := func(sec: float) -> void:
+		for k in int(round(sec * 60.0)):
+			pk.update(1.0 / 60.0)
+	pk.recall_acc = 0.0
+	# 1）视野外 3 颗共 30 经验：5 秒不回收，满 6 秒回收，正好 +30，只计一次
+	var xs: Array = [mk.call("xp", far, 10.0), mk.call("xp", far + Vector2(0, 50), 10.0), mk.call("xp", far + Vector2(0, -50), 10.0)]
+	game.gems = xs.duplicate()
+	var r0: float = pk.xp_src.recall
+	step.call(5.0)
+	ok(pk.xp_src.recall - r0 < 0.01 and not xs[0].dead, "回收：视野外 5 秒还不回收")
+	step.call(2.0)
+	ok(absf(pk.xp_src.recall - r0 - 30.0) < 0.01 and xs.all(func(o): return o.dead), "回收：视野外满 6 秒入账 30（%.1f）" % (pk.xp_src.recall - r0))
+	step.call(8.0)
+	ok(absf(pk.xp_src.recall - r0 - 30.0) < 0.01, "回收：已回收的结晶不重复计")
+	# 2）只回收经验：灯油 / 源石锭 / 磁铁 / 回复药剂在视野外 10 秒也不动
+	var others: Array = [mk.call("oil", far, 15.0), mk.call("ingot", far, 1.0), mk.call("magnet", far, 1.0), mk.call("heal", far, 1.0)]
+	game.gems = others.duplicate()
+	step.call(10.0)
+	ok(others.all(func(o): return not o.dead), "回收：灯油 / 源石锭 / 磁铁 / 回复药剂不回收")
+	# 3）回到视野内重新计时：外 4 秒 → 内 1.5 秒 → 外 4 秒不回收；再外 3 秒才回收
+	var g1: Dictionary = mk.call("xp", far, 7.0)
+	game.gems = [g1]
+	pk.recall_acc = 0.0
+	r0 = pk.xp_src.recall
+	step.call(4.0)
+	g1.pos = near
+	step.call(1.5)
+	ok(float(g1.get("out_t", 0.0)) == 0.0, "回收：回到视野内计时清零")
+	g1.pos = far
+	step.call(4.0)
+	ok(not g1.dead, "回收：清零后视野外 4 秒不回收")
+	step.call(3.0)
+	ok(g1.dead and absf(pk.xp_src.recall - r0 - 7.0) < 0.01, "回收：重新累计满 6 秒后入账")
+	# 4）兜底：掉落物数超过 gem_overflow 时新掉的经验直接入账、计入回收与 recall_backstop
+	game.gems = [mk.call("oil", far, 1.0), mk.call("oil", far, 1.0), mk.call("oil", far, 1.0)]
+	p2["gem_overflow"] = 2.0
+	r0 = pk.xp_src.recall
+	var nb: int = pk.recall_backstop
+	pk.drop(far, "xp", 5.0)
+	ok(game.gems.size() == 3 and absf(pk.xp_src.recall - r0 - 5.0) < 0.01 and pk.recall_backstop == nb + 1, "回收：超过兜底上限，新掉的经验直接入账")
+	p2["gem_overflow"] = 400.0
+	# 5）recall_after = 0 关闭回收
+	p2["recall_after"] = 0.0
+	var g2: Dictionary = mk.call("xp", far, 4.0)
+	game.gems = [g2]
+	step.call(10.0)
+	ok(not g2.dead, "回收：recall_after = 0 时关闭")
+	game.gems = keep_gems
+	pk.recall_acc = 0.0
+	if had:
+		Bal._data["pickup"] = old
+	else:
+		Bal._data.erase("pickup")
