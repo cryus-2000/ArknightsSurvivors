@@ -155,9 +155,59 @@ python tools/deploy_itch.py --ref <提交> --apply --confirm <提交>  # 真推�
 
 - **itch 网页 zip**：`final_<提交>/方舟幸存者_itch_html5_<提交>.zip`，把 `web/` 的内容直接放在 zip 根目录（`index.html` 在根、没有外层文件夹）。脚本会检查 itch 的限制：最多 1000 个文件、单文件 ≤ 200 MB。gz 分片按「存储」放进 zip，不再二次压缩。
 - **不需要 SharedArrayBuffer**：Web 导出预设是单线程模板（`variant/thread_support=false`、`ensure_cross_origin_isolation_headers=false`），不依赖 SharedArrayBuffer，也不需要 COOP / COEP 头。所以 itch 页面的「SharedArrayBuffer support」**不用勾**；勾了也能运行。2026-10-01 用 48ce675c 实测：把 itch zip 解压后，用 `tools/serve_web.py` 在内置浏览器里打开，普通托管和 `--coi`（带 COOP / COEP，`crossOriginIsolated = true`）两种都能进到主菜单（对外版：没有 Boss 演练，没有测试版角标），控制台无错误。
-- **itch 页面设置建议**：Kind of project 选 HTML；视口 1280×720，勾「Fullscreen button」「Mobile friendly」（看需要）；Windows 包另作为可下载文件（`:windows` 频道）。
+- **itch 页面设置**：见下面「itch 页面设置清单」（2026-10-01 用户定：itch 版必须支持移动端，「Mobile friendly」要勾）。
 - **配置**：`BUTLER_API_KEY`（itch → Settings → API keys）和 `ITCH_TARGET`（`<用户名>/<游戏名>`）只放环境变量或仓库根目录的 `.deploy.env`（不进 git，模板见 `.deploy.env.example`）。密钥只传给 butler 进程，不打印。缺 butler / 密钥 / 目标时只能 dry-run；`--apply` 必须带 `--confirm <提交>`，并且要先经用户确认发布。
 - **本地验证网页包**：`python tools/serve_web.py --dir <网页包目录> [--port 8794] [--coi]`，只监听 127.0.0.1。
+
+### itch 页面设置清单（上传前逐项勾）
+
+| 设置 | 选什么 | 说明 |
+|---|---|---|
+| Kind of project | HTML | 网页 zip 标「This file will be played in the browser」；Windows 包另作为可下载文件（`:windows` 频道） |
+| Embed options → Viewport dimensions | 1280 × 720 | 桌面页面里嵌入的大小；游戏是 `canvas_items` + `expand`，别的尺寸也能铺满，不会出滚动条 |
+| Mobile friendly | **勾** | 用户要求；itch 在手机上会改成全屏启动 |
+| Orientation（Mobile friendly 下面） | Landscape | 游戏只按横屏设计；竖屏时页面自己会盖「请将手机横过来」提示 |
+| Fullscreen button | 勾 | 桌面嵌入时给玩家一个全屏按钮 |
+| Automatically start on page load | **不勾** | 保持「点一下再开始」：这一下同时算用户手势，浏览器才放出声音；自动开始时有的浏览器会静音（itch 文档也这么提醒），而且会让只是路过页面的人白下 35 MB |
+| Enable scrollbars | 不勾 | 画面按窗口缩放，不需要滚动 |
+| SharedArrayBuffer support | 不勾 | 单线程导出，不需要（见上） |
+| 嵌入方式 | 「Embed in page」 | 也可以选「Click to launch in fullscreen」；手机上勾了 Mobile friendly 都是全屏启动 |
+
+itch 的上传限制：zip 内最多 1000 个文件、单文件 ≤ 200 MB、解压后总共 ≤ 500 MB。48ce675c 的网页 zip 远低于这些（`deploy_itch.py` 会检查前两项）。
+
+### 移动端（2026-10-01 用 final_48ce675c 的 itch 网页 zip 实测）
+
+**怎么测的**：把 itch zip 解压后用 `tools/serve_web.py` 托管，在内置浏览器里用移动端模拟（Android Chrome UA + 触摸点）。模拟只在宽度 < 768 时生效，所以横屏用 740×360（812×375 不算手机）。内置浏览器面板被挡住时没有动画帧，测试时给页面注入了一个 `requestAnimationFrame` 替身；测试页面只放在本地，不进包。
+
+| 检查项 | 结果 |
+|---|---|
+| 竖屏 375×812 | 盖住全屏的「请将手机横过来」提示，没有滚动条 |
+| 横屏 740×360 进主菜单 | 能进，控制台无错误；画布铺满，没有滚动条 |
+| 开场可以跳过 | 点一下屏幕就跳过 |
+| 触屏操作 | 左半屏浮动摇杆能走、冲刺按钮能用（能看到冷却）、暂停 / 属性按钮在；升级卡片点了能选；底部提示换成了触屏版 |
+| 技能按钮 | 只有带手动技能的干员才出现（测的是水月，没有手动技能，所以没有这个按钮，符合设计） |
+| 首次触摸解锁声音 | **内置浏览器不拦自动播放，测不出来，要真机验证**（Android Chrome 与 iPhone Safari 各一台）。Godot 在第一次用户输入时恢复 AudioContext；itch 那边保持「点一下再开始」就多一道保险 |
+
+**画质默认值（任务第 4 项）**：已经满足，不用改。`settings.gd` 的 `_guess_quality()` 在触摸屏、`web_android`、`web_ios` 时返回 low；网页版默认关掉泛光、水面滤镜、法线贴图，触屏再关景深；触屏设备界面整体放大 1.15。只是默认值，玩家仍可在设置里改。
+
+**导出预设（Web）检查**：`html/canvas_resize_policy=2`（画布跟着窗口走，手机旋转、itch 全屏都对）；`html/focus_canvas_on_start=true`（键盘玩家不用先点一下画布）；`variant/thread_support=false`（单线程，不需要 SharedArrayBuffer，iOS 也能跑）；`html/experimental_virtual_keyboard=false`（游戏里没有文字输入）；`progressive_web_app/enabled=false`；`vram_texture_compression/for_mobile=false` 不影响：项目里 82 张导入贴图都是无损（`compress/mode=0`），没有用到 VRAM 压缩格式。`head_include` 里的手机脚本：竖屏盖提示；首次触摸时尝试全屏 + 锁定横屏（Android Chrome 能成，iPhone 没有元素全屏，失败会被吞掉，只靠提示）。
+
+**内存与加载（估算，没上真机量）**：
+- 下载量约 35 MiB：pck 的 gz 分片 25.7 MiB（解开 27.5 MiB）+ wasm 的 gz 分片 9.6 MiB（解开 37.7 MiB）。
+- 加载器（`tools/web/loader.js`）逐片下载、逐片解 gzip，再拼成一整块交给引擎。拼接时解开的分片和整块同时在内存里，所以 JS 这一侧短时间要 2–3 倍原始大小，pck + wasm 合计**峰值约 170 MiB**；交给引擎后这些缓冲由垃圾回收释放。
+- 引擎这一侧：wasm 编译后的机器码；pck 在引擎的虚拟文件系统里再存一份（27.5 MiB）；711 张 PNG 全部解码成 RGBA 约 109 MiB（再上传到 GPU）。桌面浏览器里看到稳定后的 JS 堆约 107 MB。
+- 合起来，标签页峰值大约在几百 MB 量级。新款手机的浏览器标签页一般能用到 1 GB 以上，问题不大；2–3 GB 内存的老 iPhone / 低端安卓可能在加载时被系统杀掉标签页（表现是页面自己刷新或白屏），要真机看。
+- **结论：现在不开渐进加载，也不改压缩方式**。分片已经 gzip 过，itch 静态托管就能用（解压在加载器里做，不依赖服务器的 Content-Encoding）。Godot 网页版不支持一边下载 pck 一边进游戏；真要渐进，得把资源拆成多个资源包、进游戏后再按需下载并 `load_resource_pack`，改动大，35 MB 不值得。如果真机上加载时内存不够，先做两件小事：加载器把分片直接写进预先分配好的整块（省掉一份拷贝，JS 峰值降到约 1.5 倍）；贴图按需加载而不是开局全解码。
+
+**iOS Safari 的坑**（上线前用真机过一遍）：
+- **声音**：AudioContext 必须在用户手势里启动；Godot 在第一次触摸时恢复，开场前那一下点击就够。手机侧边的**静音开关打开时网页声音全没**（Web Audio 走「铃声」通道），这是系统行为，不是 bug；客服口径要准备。切到后台再回来，声音偶尔不恢复，再点一下屏幕即可。
+- **全屏**：iPhone 上的 Safari 不支持对页面元素全屏（只有视频能全屏），`requestFullscreen` 不存在；也不能锁定方向。所以 iPhone 只能靠 itch 的全屏启动 + 我们的「请横屏」提示；地址栏和底部工具栏会占一点高度，横屏时 Safari 一般会自动收起。iPad 支持元素全屏。「添加到主屏幕」能去掉浏览器边框，但不是必须。
+- **内存**：iOS 对单个标签页的内存限制比安卓严，超了直接重载页面，没有报错。上面的估算在新机上够用，老机型（iPhone 8 / X 这一代，2–3 GB 内存）是风险点。
+- **WebGL 2**：Godot 4 网页版（兼容渲染器）需要 WebGL 2，iOS 15 及以上才有；更老的系统进不去。
+- **帧率**：低电量模式下 Safari 把动画帧限制在 30 帧；部分 iPhone 的高刷屏在 Safari 里也只给 60 帧。游戏逻辑按帧时间走，30 帧能玩，只是不流畅。
+- **触摸手势**：网页模板给画布设了 `touch-action: none`，视口是 `user-scalable=no`，双击缩放、双指缩放、长按选字在画布上都不会触发（iOS 会无视 `user-scalable=no`，靠的是 `touch-action`）。从屏幕左边缘右滑「返回上一页」在 Safari 里拦不住，玩家贴着左边缘拖摇杆可能退出页面（itch 全屏启动时影响小一些）。
+
+**真机还要补的**（技术侧在内置浏览器里做不到的）：首次触摸出声；iPhone Safari 能否加载完成、加载时的内存；Android Chrome 首次触摸后全屏 + 锁横屏；长时间（10 分钟以上）帧率与发热。
 
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
