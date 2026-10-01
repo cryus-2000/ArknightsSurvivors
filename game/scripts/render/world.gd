@@ -1583,6 +1583,8 @@ func draw_leader_ailments() -> void:
 
 
 ## 小怪词条外观（spawner.roll_affix）：甲壳 armor = 身前三块灰钢甲片；潮盾 shield = 青白泡壳 + 脚下细条（剩余护盾）
+## 全部进无贴图批（性能 docs/50 §9.7：原来甲壳每只 9 次、潮盾 5 次绘制调用，夹在敌人贴图之间还打断贴图合批）；
+## 排序循环画完后和弱点菱形一起提交，所以词条画在所有敌人之上（和弱点菱形一样）
 func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
 	var af: String = e.get("affix", "")
 	if af == "armor":
@@ -1590,22 +1592,23 @@ func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
 		for q in 3:
 			var p: Vector2 = c + Vector2(-8 + q * 8, -4 + absf(q - 1) * 4)
 			var pl := PackedVector2Array([p + Vector2(-4, -5), p + Vector2(4, -5), p + Vector2(5, 3), p + Vector2(0, 7), p + Vector2(-5, 3)])
-			g.draw_colored_polygon(pl, Color(0.62, 0.66, 0.72, 0.95))
-			pl.append(pl[0])
-			g.draw_polyline(pl, Color(0.15, 0.17, 0.2, 1.0), 1.0)
-			g.draw_line(p + Vector2(-3, -4), p + Vector2(3, -4), Color(1.4, 1.45, 1.5, 0.9), 1.0)
+			tb_poly(pl, Color(0.62, 0.66, 0.72, 0.95))
+			for v in 5:
+				tb_line(pl[v], pl[(v + 1) % 5], Color(0.15, 0.17, 0.2, 1.0), 1.0)
+			tb_line(p + Vector2(-3, -4), p + Vector2(3, -4), Color(1.4, 1.45, 1.5, 0.9), 1.0)
 	elif af == "shield" and e.get("shield_hp", 0.0) > 0.0:
 		var c2: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
 		var rr: float = maxf(e.r + 6.0, (bpos.y - top.y) * 0.55)
 		var wob: float = 1.0 + 0.04 * sin(g.t * 5.0 + e.id)
-		g.draw_circle(c2, rr * wob, Color(0.5, 1.2, 1.4, 0.13))
-		g.draw_arc(c2, rr * wob, 0.0, TAU, 32, Color(0.7, 1.5, 1.6, 0.7), 1.5)
-		g.draw_arc(c2, rr * wob * 0.8, -2.4, -1.5, 8, Color(1.6, 2.0, 2.0, 0.8), 2.0)
+		tb_circle(c2, rr * wob, Color(0.5, 1.2, 1.4, 0.13), 1.0, 24)
+		tb_arc(c2, rr * wob, 0.0, TAU, 1.5, Color(0.7, 1.5, 1.6, 0.7), 32)
+		tb_arc(c2, rr * wob * 0.8, -2.4, -1.5, 2.0, Color(1.6, 2.0, 2.0, 0.8), 8)
 		var mx: float = e.maxhp * Game.Bal.v("enemy/affix_shield", 0.30)
 		var bw: float = maxf(20.0, e.r * 1.6)
 		var by: Vector2 = bpos + Vector2(-bw / 2.0, 6)
-		g.draw_rect(Rect2(by, Vector2(bw, 3)), Color(0, 0, 0, 0.6))
-		g.draw_rect(Rect2(by, Vector2(bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0), 3)), Color(0.7, 1.5, 1.6, 0.95))
+		var fw2: float = bw * clampf(e.shield_hp / maxf(mx, 1.0), 0.0, 1.0)
+		tb_quad(by, by + Vector2(bw, 0), by + Vector2(bw, 3), by + Vector2(0, 3), Color(0, 0, 0, 0.6))
+		tb_quad(by, by + Vector2(fw2, 0), by + Vector2(fw2, 3), by + Vector2(0, 3), Color(0.7, 1.5, 1.6, 0.95))
 
 
 ## 部件心跳：约 1.3 拍 / 秒，倒计时最后 3 秒加快到 2.6 拍；返回 0–1 的尖峰
@@ -2039,6 +2042,16 @@ func tb_arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, se
 	for q in seg:
 		var i0: int = base + q * 2
 		_tb_idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+
+
+## 凸多边形（扇形三角化）
+func tb_poly(pts: PackedVector2Array, col: Color) -> void:
+	var base: int = _tb_pts.size()
+	for v in pts:
+		_tb_pts.append(v)
+		_tb_cols.append(col)
+	for q in range(1, pts.size() - 1):
+		_tb_idx.append_array([base, base + q, base + q + 1])
 
 
 func tb_flush(ci: CanvasItem = null) -> void:   # ci：提交到哪个画布（缺省世界；HUD 传 g.hud）
