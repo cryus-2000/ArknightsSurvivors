@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """itch 封面过渡版 F（界面与美术 2026-10-01）：自有 6 色限定调色板（同 art/requests/v16_codex_cover.md），Codex 肖像到货前先用。
-构图（与参考图区分开）：斯卡蒂半身在左、面朝右侧点亮的引航灯标，暖光从灯标打到她脸上；灯标脚下一圈溟痕触须和海嗣轮廓沿海浪线错落；
+构图（与参考图区分开）：主角（缺省水月，--op skadi 为斯卡蒂版）半身在左、面朝右侧点亮的引航灯标，暖光从灯标打到她脸上；灯标脚下一圈溟痕触须和海嗣轮廓沿海浪线错落；
 标题一行横排在右上（右对齐），英文与声明在其下。整幅最后按 4×4 有序抖动量化到 6 色——硬边、无抗锯齿、无半透明。
 Codex 肖像到货后把 bust 层换成 art/incoming/cover_v16/cover_skadi.png（头像沿灯光弧线排开），其余不变。
-用法：python tools/promo_cover_pal.py [输出目录，缺省 build/promo] [--size 630x500|960x400]
+用法：python tools/promo_cover_pal.py [输出目录，缺省 build/promo] [--size 630x500|960x400] [--op mizuki|skadi]
 """
 import os, sys, random
 import numpy as np
@@ -14,6 +14,13 @@ import promo_cover as C
 import promo_cover_bust as B
 
 ROOT = K.ROOT
+# 主角（--op）：帧条、半身裁切比例、放大倍数、眼睛像素坐标（同 promo_cover_bust）
+OPS = {
+    # gold_off：衣领金链量化后会变成脸下一团暖橙（像张着嘴），先压成灰蓝，暖橙只留给眼睛和受光边
+    # glow：眼睛发光强度（水月眼睛比斯卡蒂小，加强一些，315×250 下才读得出）
+    "mizuki": {"tex": "player_idle@2x", "crop": 0.62, "k": 8, "cx": 0.31, "eyes": B.VARIANTS["D"]["eyes"], "gold_off": True, "glow": 0.8},
+    "skadi": {"tex": "op_skadi_idle@2x", "crop": 0.62, "k": 8, "cx": 0.30, "eyes": B.VARIANTS["E"]["eyes"], "gold_off": False, "glow": 0.55},
+}
 # v16 调色板：深海蓝黑 / 灯火暖橙 / 米白灰蓝，各两阶
 PAL = [(11, 20, 32), (28, 46, 64), (184, 90, 34), (242, 154, 58), (138, 154, 168), (232, 226, 208)]
 NAVY0, NAVY1, ORANGE0, ORANGE1, GREY, CREAM = PAL
@@ -34,7 +41,8 @@ def quantize(img, spread=34.0):
     return Image.fromarray(pal[idx].astype(np.uint8), "RGB")
 
 
-def compose(W=630, H=500):
+def compose(W=630, H=500, op="mizuki"):
+    o = OPS[op]
     s = H / 500.0
     wide = W / H > 1.6
     img = Image.new("RGBA", (W, H))
@@ -83,16 +91,23 @@ def compose(W=630, H=500):
         img.alpha_composite(col, (x, H - t.height + int(10 * s)))
         x += t.width - int(36 * s)
         i += 1
-    # 斯卡蒂半身：左侧，面朝灯标（@2x 待机帧本来朝右）；受光边暖橙
-    f = K.frame("op_skadi_idle@2x", 4, 0, trim=True)
-    bust = f.crop((0, 0, f.width, int(f.height * 0.62)))
-    k = max(1, int(round(8 * s)))
+    # 主角半身：左侧，面朝灯标（@2x 待机帧本来朝右）；受光边暖橙
+    f = K.frame(o["tex"], 4, 0, trim=True)
+    bust = f.crop((0, 0, f.width, int(f.height * o["crop"])))
+    if o["gold_off"]:
+        px = bust.load()
+        for yy in range(bust.height):
+            for xx in range(bust.width):
+                r, g_, b_, a_ = px[xx, yy]
+                if a_ and r > 160 and g_ > 120 and b_ < 110 and r - b_ > 90:
+                    px[xx, yy] = GREY + (a_,)
+    k = max(1, int(round(o["k"] * s)))
     bu = K.up(bust, k)
-    ox = int(W * (0.30 if not wide else 0.27)) - bu.width // 2
+    ox = int(W * (o["cx"] if not wide else 0.27)) - bu.width // 2
     oy = H - bu.height + int(4 * s)
     B.rim(img, bu, ORANGE1, 1.6 * s, 6.0, (ox + int(3 * s), oy))
     img.alpha_composite(bu, (ox, oy))
-    img = B.eye_glow(img, ox, oy, k, B.VARIANTS["E"]["eyes"], ORANGE1, s * 0.55)
+    img = B.eye_glow(img, ox, oy, k, o["eyes"], ORANGE1, s * o["glow"])
     # 暗角
     vig = Image.new("L", (W, H), 0)
     ImageDraw.Draw(vig).ellipse((-W * 0.15, -H * 0.2, W * 1.15, H * 1.15), fill=255)
@@ -121,10 +136,12 @@ if __name__ == "__main__":
     os.makedirs(out, exist_ok=True)
     size = args[args.index("--size") + 1] if "--size" in args else "630x500"
     W, H = (int(x) for x in size.split("x"))
-    im = compose(W, H)
-    p = os.path.join(out, "cover_F_%dx%d.png" % (W, H))
+    op = args[args.index("--op") + 1] if "--op" in args else "mizuki"
+    tag = "cover_F" if op == "mizuki" else "cover_F_" + op   # 水月是现行版；斯卡蒂版另存 cover_F_skadi_*
+    im = compose(W, H, op)
+    p = os.path.join(out, "%s_%dx%d.png" % (tag, W, H))
     im.save(p, optimize=True)
     cols = len(set(im.get_flattened_data()))
     print(p, "colors", cols)
     small = im.resize((W // 2, H // 2), Image.LANCZOS)
-    small.save(os.path.join(out, "cover_F_%dx%d_thumb.png" % (W, H)))
+    small.save(os.path.join(out, "%s_%dx%d_thumb.png" % (tag, W, H)))
