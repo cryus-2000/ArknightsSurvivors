@@ -170,8 +170,10 @@ func ranged_held(e: Dictionary) -> bool:
 
 ## 读条期间光圈附近的杂兵减速（beacon/safe_slow = 减少量，如 0.4 = −40%）并且不起冲刺；对照组用
 func slow_mult(e: Dictionary) -> float:
+	if charging == null or e.get("boss", false):
+		return 1.0   # 每只敌人每帧都调：没有灯标在读条就不查旋钮（docs/50 §9.11 ①）
 	var k: float = _sk("safe_slow")
-	if charging == null or k <= 0.0 or e.get("boss", false):
+	if k <= 0.0:
 		return 1.0
 	return 1.0 - k if g.combat.ground_d(e.pos, charging.pos) < float(charging.r) + float(e.r) + 30.0 else 1.0
 

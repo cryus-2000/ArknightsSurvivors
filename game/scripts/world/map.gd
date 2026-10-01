@@ -75,6 +75,7 @@ func load_theme(theme_id: String) -> void:
 	for i in int(sn.get("count", 0)):
 		snow.append({"p": Vector2(g.rng.randf_range(-700, 700), g.rng.randf_range(-400, 400)), "v": g.rng.randf_range(4, 14), "s": g.rng.randf_range(0.0, TAU)})
 	big_cache.clear()
+	_po_reach = -1.0
 
 
 func _load(n: String) -> void:
@@ -329,16 +330,50 @@ func collect_big_props(vs: Vector2) -> void:
 				sort_props.append([bp[0], bp[1], bp[2]])
 
 
+## push_out 的粗筛（docs/50 §9.11 ③）：景物中心落在本格 [90, 469] 像素内（_big_prop），最大底座半宽 _po_rx；
+## 某个邻格的景物再大也够不着当前位置，就不查这一格（不建 Vector2i、不查字典）。结果与逐格全查相同
+var _po_reach := -1.0       # < 0 = 未算；开局 / 换主题时重算
+var _po_cell := 560.0
+var _po_rx := 0.0           # 底座椭圆最大横半径
+var _po_ry := 0.0           # 最大纵半径
+
+
+func _po_setup() -> void:
+	var bd := _big()
+	var lst: Array = bd.get("list", [])
+	_po_cell = float(bd.get("cell", 560))
+	var rxk: Dictionary = bd.get("base_rx", {"default": 0.3, "terrain": 0.36})
+	_po_rx = 0.0
+	for name in lst:
+		var tx: Texture2D = tex.get(name)
+		if tx != null:
+			_po_rx = maxf(_po_rx, tx.get_width() * px * float(rxk.get("terrain", 0.36) if String(name).begins_with("terrain") else rxk.get("default", 0.3)))
+	_po_ry = _po_rx * float(bd.get("base_ry", 0.38))
+	_po_reach = 0.0 if lst.is_empty() else 1.0
+
+
 ## 把圆形实体推出景物底座（椭圆）
 func push_out(pos: Vector2, r: float) -> Vector2:
-	var bd := _big()
-	if bd.get("list", []).is_empty():
+	if _po_reach < 0.0:
+		_po_setup()
+	if _po_reach == 0.0:
 		return pos
-	var cell: float = float(bd.get("cell", 560))
+	var cell: float = _po_cell
 	var cx := floori(pos.x / cell)
 	var cy := floori(pos.y / cell)
+	var mx: float = _po_rx + r + 1.0
+	var my: float = _po_ry + r * 0.6 + _po_ry * 0.6 + 1.0
 	for dx in range(-1, 2):
 		for dy in range(-1, 2):
+			# 邻格景物中心 x ∈ [(cx+dx)·cell + 90, + 469]，y 再上移至多 0.6·ry；推挤会改 pos，所以每格用当前 pos 判
+			if dx == -1 and pos.x - ((cx - 1) * cell + 469.0) >= mx:
+				continue
+			if dx == 1 and ((cx + 1) * cell + 90.0) - pos.x >= mx:
+				continue
+			if dy == -1 and pos.y - ((cy - 1) * cell + 469.0) >= my:
+				continue
+			if dy == 1 and ((cy + 1) * cell + 90.0) - pos.y >= my:
+				continue
 			var bp := _big_prop(cx + dx, cy + dy)
 			if bp.is_empty():
 				continue

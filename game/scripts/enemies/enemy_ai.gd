@@ -16,8 +16,11 @@ func _init(game) -> void:
 	g = game
 
 
+const _NONE := {}   # 只读默认值：.get(k, {}) 每次调用都会新建一个空字典（docs/50 §9.11 ④）
+
+
 func def_of(e: Dictionary) -> Dictionary:
-	return D.ENEMIES.get(e.type, {})
+	return D.ENEMIES.get(e.type, _NONE)
 
 
 ## 小怪的攻击模式（返回额外速度；返回 INF 表示走常规 AI）
@@ -52,7 +55,7 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 
 ## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。
 func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool:
-	var a: Dictionary = d.get("extra", {})
+	var a: Dictionary = d.get("extra", _NONE)
 	if a.is_empty() or g.t < float(a.get("min_time", 0.0)) or e.age < float(a.get("first_delay", 2.0)) or dist > float(a.range) or g.t < float(e.get("extra_next", INF)):
 		return false
 	if e.wind > 0.0 or e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0:

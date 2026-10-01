@@ -37,13 +37,18 @@ func query(pos: Vector2, radius: float) -> Array:
 	var x1 := floori((pos.x + radius) / CELL)
 	var y0 := floori((pos.y - radius) / CELL)
 	var y1 := floori((pos.y + radius) / CELL)
+	var n: int = g.enemies.size()
 	for cx in range(x0, x1 + 1):
 		for cy in range(y0, y1 + 1):
-			var k := Vector2i(cx, cy)
-			if g.grid.has(k):
-				out.append_array(g.grid[k])
-	# 查询时再判阵营，避免本帧构网之后变为友方的单位继续吸收索敌/子弹。
-	return out.filter(func(j): return j >= 0 and j < g.enemies.size() and not g.enemies[j].get("friendly", false))
+			var cell = g.grid.get(Vector2i(cx, cy))
+			if cell == null:
+				continue
+			# 查询时再判阵营，避免本帧构网之后变为友方的单位继续吸收索敌/子弹。
+			# 不用 filter 闭包、不建中间数组（每只敌人每帧都查一次，docs/50 §9.11 ②）
+			for j in cell:
+				if j >= 0 and j < n and not g.enemies[j].get("friendly", false):
+					out.append(j)
+	return out
 
 
 func update(dt: float) -> void:
