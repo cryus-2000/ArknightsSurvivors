@@ -40,8 +40,10 @@ func card_hot(card: Button, i: int) -> bool:
 func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", note := "", price := -1, key := "") -> void:
 	var b := Button.new()
 	b.set_meta("shopbtn", true)
-	b.position = r.position
-	b.size = r.size
+	# 触屏：控件上下各扩 20、左右各扩 6 当点击区（40 高 → 80），图形仍画在原来的 r 里
+	var pad := Vector2(6, 20) if Pad.touch_ui() else Vector2.ZERO
+	b.position = r.position - pad
+	b.size = r.size + pad * 2.0
 	b.focus_mode = Control.FOCUS_NONE
 	b.disabled = not enabled
 	var empty := StyleBoxEmpty.new()
@@ -49,13 +51,13 @@ func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", not
 		b.add_theme_stylebox_override(st, empty)
 	b.draw.connect(func():
 		var hov: bool = b.is_hovered() and enabled
-		var br := Rect2(Vector2.ZERO, b.size)
+		var br := Rect2(pad, r.size)
 		var fg: Color = UI.TEXT if enabled else UI.SUB
 		b.draw_rect(br, Color(0.03, 0.035, 0.045, 0.82))
 		b.draw_rect(br, Color(1, 1, 1, 0.6 if hov else (0.3 if enabled else 0.12)), false, 1.0)
 		if hov:
 			b.draw_rect(br.grow(2.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), false, 1.0)
-		var x := 16.0
+		var x := pad.x + 16.0
 		if icon != "":
 			UI.icon(b, icon, Vector2(x + 9, b.size.y / 2.0), 18.0, fg)
 			x += 26.0
@@ -350,15 +352,16 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), [13, 12])
+			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = 100.0 + maxf(0.0, fe.lines.size() - 2) * float(fe.lh)
 			ev_bars_h += card.custom_minimum_size.y + 14.0
 		else:
-			var f0 := UI.fit(g.font, display_desc, CARD_W - 40.0, 60.0, [13, 12])
+			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
+			var f0 := UI.fit(g.font, display_desc, CARD_W - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
 			var compact: bool = not f0.fit
 			if compact:
-				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [13, 12, 11])
+				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
 			card.set_meta("fit", f0)
 			card.set_meta("compact", compact)
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全

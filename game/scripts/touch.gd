@@ -71,8 +71,11 @@ func handle(event: InputEvent) -> bool:
 					_do(b[1])
 					flash[b[1]] = 0.2
 					return true
-			# 属性面板：点任意处关闭
+			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:
+				for c in g.stats_cells:
+					if c[0].has_point(event.position):
+						return false
 				g.state = g.S.PLAY
 				return true
 			if g.state == g.S.PLAY and stick_id < 0 and event.position.x > EDGE and event.position.x < vs.x * 0.55:

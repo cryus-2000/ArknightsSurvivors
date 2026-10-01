@@ -55,10 +55,12 @@ func build() -> void:
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(g.shop_sys.buy.bind(i))
-		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, 64.0, [12, 11])
+		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号
+		var szs: Array = [14, 13, 12, 11] if Pad.touch_ui() else [12, 11]
+		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
-			fs0 = UI.fit(g.font, it.desc, cw - 20.0, 80.0, [12, 11])
+			fs0 = UI.fit(g.font, it.desc, cw - 20.0, 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		var chips := Affects.chips(g, it)

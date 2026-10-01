@@ -78,7 +78,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	for op in opts:
 		var br := Rect2(bx, r.end.y - 70, bw, 40)
 		var bi: int = g.result_btns.size()
-		g.result_btns.append([br, op[2]])
+		g.result_btns.append([br.grow_individual(6, 20, 6, 20) if Pad.touch_ui() else br, op[2]])   # 触屏点击区 80 高
 		var hov: bool = (bi == g.res_sel) if (Pad.using or g.kb_nav) else br.has_point(mouse)
 		g.hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT

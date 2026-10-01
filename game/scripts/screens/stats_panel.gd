@@ -32,7 +32,9 @@ func dmg_mix_text() -> String:
 ## 属性面板（Tab / C 打开，游戏暂停）
 func draw(vs: Vector2) -> void:
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.05, 0.82))
-	var r := Rect2(60, 44, vs.x - 120, vs.y - 88)
+	# 紧凑（逻辑高 < 680，手机触屏 626）：边距收窄、标题行压低，攻击栏下半的技能列表才放得下（原来挤出面板压到底栏）
+	var compact: bool = vs.y < 680.0
+	var r := Rect2(36, 14, vs.x - 72, vs.y - 28) if compact else Rect2(60, 44, vs.x - 120, vs.y - 88)
 	UI.frame(g.hud, r, UI.GLOW, {"t": g.t, "vines": true, "seed": 31, "cut": 14.0, "bracket": 14.0, "glow": 0.3})
 	UI.caustic(g.hud, Rect2(r.position + Vector2(20, 8), Vector2(r.size.x - 40, 22)), g.t, UI.GLOW)
 	# 标题行
@@ -61,7 +63,7 @@ func draw(vs: Vector2) -> void:
 	UI.rule(g.hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
 	# 三个子面板
 	g.stats_cells.clear()
-	var top := r.position.y + 98
+	var top := r.position.y + (90.0 if compact else 98.0)
 	var h := r.end.y - 44 - top
 	var boxes: Array = [Rect2(r.position.x + 22, top, 330, h), Rect2(r.position.x + 366, top, 330, h), Rect2(r.position.x + 710, top, r.size.x - 732, h)]
 	for b in boxes:
@@ -103,7 +105,7 @@ func draw(vs: Vector2) -> void:
 	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
 	var skill_rows: Array = skill_rows_data()
 	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(11) + 1.0) + 18.0
-	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 19.0, 25.0)
+	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 17.0 if compact else 19.0, 25.0)
 	var rfs := 14 if rh1 >= 23.0 else 13
 	for row in rows1:
 		UI.text(g.hud, g.font, Vector2(b1.position.x + 16, y + 12), row[0], rfs, UI.SUB)
@@ -204,7 +206,7 @@ func draw(vs: Vector2) -> void:
 	UI.rule(g.hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
 	y += 8
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "藏品  %d 件" % g.relics.size(), 13, UI.SUB)
-	UI.text(g.hud, g.font, Vector2(b2.position.x + 120, y + 12), "鼠标移到图标上查看效果", 11, UI.CYAN_DIM)
+	UI.text(g.hud, g.font, Vector2(b2.position.x + 120, y + 12), "点图标查看效果" if Pad.touch_ui() else "鼠标移到图标上查看效果", 11, UI.CYAN_DIM)
 	y += 22
 	var mouse2 := g.hud.get_local_mouse_position()
 	for i in nr:
@@ -227,7 +229,7 @@ func draw(vs: Vector2) -> void:
 		if rl > 1:
 			UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		g.stats_cells.append([cr, "relic", g.relics[i]])
-	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回", "点任意处返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 Tab / C / Esc 返回", "按 SELECT / Ⓑ 返回", "点空白处返回"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	# 悬停提示（藏品 / 成长）
 	for cellinfo in g.stats_cells:
 		var cr2: Rect2 = cellinfo[0]

@@ -209,10 +209,12 @@ func draw(vs: Vector2) -> void:
 		var bw := 118.0
 		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
 		var br := Rect2(bx, r.end.y - 52, bw, 34)
+		# 触屏：点击区上下各扩 22、左右各扩 12（34 高 → 78，≈ 43 pt），图形不变
+		var hit: Rect2 = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
 		match k:
-			0: g.intro_btn_prev = br
-			1: g.intro_btn_skip = br
-			2: g.intro_btn_next = br
+			0: g.intro_btn_prev = hit
+			1: g.intro_btn_skip = hit
+			2: g.intro_btn_next = hit
 		var hov2: bool = br.has_point(mp)
 		var dim: bool = k == 0 and g.intro_page == 0
 		if k == 1:
@@ -220,7 +222,7 @@ func draw(vs: Vector2) -> void:
 			if br.end.y > vs.y - 4:
 				# 紧凑排版（手机逻辑高 626）：面板下方放不下，「跳过」挪进面板右上角（触屏验收 10-01）
 				br.position = Vector2(r.end.x - 40 - bw, r.position.y + 22)
-			g.intro_btn_skip = br
+			g.intro_btn_skip = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
 			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			continue
 		UI.frame(g.hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
