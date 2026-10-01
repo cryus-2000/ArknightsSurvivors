@@ -72,6 +72,7 @@ func _process(_d: float) -> void:
 	test_close_panic()
 	test_enemy_knob()
 	test_beacon_safe()
+	test_saint_tiers()
 	test_arena()
 	test_ground()
 	test_warn_style()
@@ -974,6 +975,30 @@ func test_beacon_safe() -> void:
 	Bal._data["beacon"] = keep_b
 	bs.charging = keep_c
 
+## 圣徒两档（用户 10-01 按原作核对：卡门 / 伊比利亚是同一人物）：中期抽取按人物互斥；弹药按数据（卡门 3、伊比利亚 1）
+func test_saint_tiers() -> void:
+	var D = preload("res://scripts/data.gd")
+	var sp = game.spawner
+	var keep: Array = sp.mid_used.duplicate()
+	var ic := -1
+	var ii := -1
+	for i in D.MID_POOL.size():
+		if D.MID_POOL[i].has("carmen"):
+			ic = i
+		if D.MID_POOL[i].has("iberia"):
+			ii = i
+	sp.mid_used = [ic]
+	ok(sp.person_used(ii) and not sp.person_used(0), "3:30 出了卡门：7:00 不再抽伊比利亚，其他照常")
+	sp.mid_used = [ii]
+	ok(sp.person_used(ic), "反过来也互斥")
+	sp.mid_used = keep
+	ok(D.MID_FIRST.has(ic) and not D.MID_FIRST.has(ii), "3:30 池是卡门（常规档），伊比利亚（强化档）只在 7:00")
+	var c: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(900, 0))
+	var b: Dictionary = sp.spawn_enemy("iberia", game.ppos + Vector2(900, 60))
+	ok(int(c.ammo) == 3 and int(b.ammo) == 1, "弹药按数据：卡门 3、伊比利亚 1（%d / %d）" % [int(c.ammo), int(b.ammo)])
+	c.dead = true
+	b.dead = true
+
 ## B1 第二批：最终 Boss 场地（§1.7）——冻结后 3 秒插值到场地半径、主控离新圈边 ≥100、zone_next_* 同步、约束点落在圈内
 func test_arena() -> void:
 	var zs: Array = [game.zone_state, game.zone_c, game.zone_r, game.zone_next_c, game.zone_next_r]
@@ -1231,7 +1256,7 @@ func test_lore1() -> void:
 	game.warns.clear()
 
 
-## docs/38 §8 第二批：圣徒装填打断（伤害 5% / 冲刺穿身 → 5 秒破绽；没打断 → 三连瞄准）与卡门第二幕换剑
+## docs/38 §8 第二批：圣徒装填打断（伤害 5% / 冲刺穿身 → 5 秒破绽；没打断 → 三连瞄准）与卡门第二幕炮身近战（原换剑）
 func test_lore2() -> void:
 	var sp = game.spawner
 	var bai = game.bai
@@ -1247,7 +1272,7 @@ func test_lore2() -> void:
 	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
-	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 4.0)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
+	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 2.2)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
 	var k := 0
 	while ib.channel > 0.0 and k < 100:
 		c.damage(ib, ib.maxhp * 0.01)
@@ -1270,17 +1295,17 @@ func test_lore2() -> void:
 	go.call(ib, 0.01)
 	var nw: int = game.warns.size()
 	go.call(ib, Bal.v("boss/iberia_reload", 4.0) + 0.1)
-	ok(ib.ammo == 3 and game.warns.size() >= nw + 3, "读条完成：弹药补满并连发三条瞄准线")
+	ok(ib.ammo == 1 and game.warns.size() >= nw + 3, "读条完成：弹药补满（伊比利亚强化档 1 发）并连发三条瞄准线")
 	ib.dead = true
 	game.warns.clear()
-	# 卡门第二幕：先换剑，再装填
+	# 卡门第二幕：先炮身近战，再装填
 	var cm: Dictionary = sp.spawn_enemy("carmen", game.ppos + Vector2(1600, 0))
 	cm.age = 5.0
 	cm.gates_passed = 1
 	cm.ammo = 0
 	cm.reload_t = 0.0
 	go.call(cm, 0.01)
-	ok(cm.get("sword_t", 0.0) > 0.0 and cm.ai == "melee" and cm.channel <= 0.0, "卡门第二幕弹药打空先换剑")
+	ok(cm.get("sword_t", 0.0) > 0.0 and cm.ai == "melee" and cm.channel <= 0.0, "卡门第二幕弹药打空先炮身近战")
 	go.call(cm, Bal.v("boss/carmen_sword", 8.0) + 0.1)
 	go.call(cm, 0.01)
 	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05, "剑形态结束后装填 %.1f 秒" % cm.channel)

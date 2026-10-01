@@ -130,7 +130,7 @@ func _ready() -> void:
 				for move in cfg.patterns:
 					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))
 			# Codex V13 帧条在图鉴里逐帧演示（art/requests/v13_codex_boss_p2.md）；泡影二阶段不再程序染色
-			var want: Dictionary = {"carmen": ["剑斩"], "iberia": ["攻击", "装填"], "izumik": ["攻击", "扎根"], "path": ["冲撞"]}
+			var want: Dictionary = {"carmen": ["炮身近战"], "iberia": ["攻击", "装填"], "izumik": ["攻击", "扎根"], "path": ["冲撞"]}
 			for lab in want.get(entry.id, []):
 				check(entry.forms.any(func(f): return f.get("label", "") == lab and f.get("tex") != null), "gallery shows V13 strip " + entry.id + ":" + lab)
 			if entry.id == "paranoia":

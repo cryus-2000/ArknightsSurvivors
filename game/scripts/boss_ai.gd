@@ -93,8 +93,8 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		ready = false
 	match e.type:
 		"iberia", "carmen":
-			# 圣徒：3 发弹药，打空后近战；定期装填，装填中被攻击会被打断并晕眩
-			# 伊比利亚：裁决射线（贯穿全屏）；卡门：狙击（锁定线）、退避跳
+			# 圣徒（本项目设定：同一人物两档，原作依据 PRTS 圣徒卡门 / 圣徒伊比利亚；docs/38 §2.2）：弹药（enemies.json ammo：卡门 3、伊比利亚 1）打空后近战；
+			# 打空才装填，装填中被打断会跪地破绽。伊比利亚（强化档）：裁决射线（贯穿全屏）；卡门（常规档）：狙击（锁定线）、退避跳
 			# 远程段最长 boss/saint_ranged_max 秒：到时弹药作废转近战追击。不然她剩一发子弹、站在射程外被签名招式拖着，
 			# 永远打不空也不近身（9/29 实测伊比利亚卡在 50% 190 秒）
 			if e.ai == "ranged" and e.channel <= 0.0:
@@ -111,14 +111,14 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			# 装填打断（docs/38 §8.2）：读条中主控冲刺穿过她的身体也算打断
 			if e.channel > 0.0 and g.dash_t > 0.0 and g.ppos.distance_to(e.pos) < e.r + 24.0:
 				saint_interrupt(e)
-			# 卡门第二幕：弹药打空先换剑 boss/carmen_sword 秒（贴身冲刺 + 扇形斩），再装填（§8.3）
+			# 卡门第二幕：弹药打空先「炮身近战」boss/carmen_sword 秒（贴身冲撞 + 炮身横扫），再装填（§8.3；10-01 起不再是剑，判定不变）
 			if e.get("sword_t", 0.0) > 0.0:
 				e.sword_t -= dt
 				if ready and dist < 240.0 and _cd(e, "sword", 1.6):
 					if dist > 100.0:
-						_warn(e, "line", 0.6, {"ang": dir.angle(), "wid": 20.0, "track": 0.2, "act": "stab", "spd": 600.0, "name": "圣徒之剑", "col": Color(1.0, 0.35, 0.3), "dmg": e.dmg * 1.3})
+						_warn(e, "line", 0.6, {"ang": dir.angle(), "wid": 20.0, "track": 0.2, "act": "stab", "spd": 600.0, "name": "炮身突进", "col": Color(1.0, 0.35, 0.3), "dmg": e.dmg * 1.3})
 					else:
-						_warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": 110.0, "track": 0.2, "act": "bite", "name": "剑斩", "col": Color(1.0, 0.35, 0.3), "dmg": e.dmg * 1.4})
+						_warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": 110.0, "track": 0.2, "act": "bite", "name": "炮身横扫", "col": Color(1.0, 0.35, 0.3), "dmg": e.dmg * 1.4})
 			elif ready and e.channel <= 0.0:
 				if e.type == "iberia" and _cd(e, "judge", 11.0):
 					_warn(e, "line", 1.1, {"ang": dir.angle(), "len": 980.0, "wid": 16.0, "track": 0.55, "act": "shot", "name": "裁决", "col": Color(1.0, 0.75, 0.3), "dmg": e.dmg * Bal.v("boss/iberia_judge_mult", 2.6)})
@@ -140,7 +140,7 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 				e.channel -= dt
 				if e.channel <= 0.0:
 					# 没被打断：装填完毕，立刻连发三条瞄准线（间隔 0.6 秒，都可以走开躲）
-					e.ammo = 3
+					e.ammo = int(D.ENEMIES[e.type].get("ammo", 3))   # 卡门 3 发、伊比利亚 1 发（数值 10-01）
 					e.ai = "ranged"
 					e.count_end = 0.0
 					g.vfx.add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
@@ -149,17 +149,17 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 							"name": "三连瞄准" if k == 0 else "", "col": Color(1.0, 0.8, 0.4), "dmg": e.dmg * Bal.v("boss/saint_volley_mult", 1.2), "lock": k == 0})
 			else:
 				e.reload_t -= dt
-				# 弹药打空才装填（原来每 14 秒一次）；卡门第二幕先换剑
+				# 弹药打空才装填（原来每 14 秒一次）；卡门第二幕先炮身近战
 				if e.ammo <= 0 and e.reload_t <= 0.0 and e.get("sword_t", 0.0) <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0 and e.get("break_t", 0.0) <= 0.0:
 					if e.type == "carmen" and e.get("gates_passed", 0) >= 1 and not e.get("sword_done", false):
 						e.sword_t = Bal.v("boss/carmen_sword", 8.0)
 						e.sword_done = true
 						e.ai = "melee"
-						g.vfx.add_text(e.pos + Vector2(0, -50), "换剑", Color(1.0, 0.5, 0.4), 18)
+						g.vfx.add_text(e.pos + Vector2(0, -50), "炮身近战", Color(1.0, 0.5, 0.4), 18)
 						Sfx.play("carmen_sword", -2.1, 1.0, 0.0)
 					else:
 						e.sword_done = false
-						var rt: float = Bal.v("boss/iberia_reload", 4.0) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)
+						var rt: float = Bal.v("boss/iberia_reload", 2.2) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)   # 伊比利亚强化档装填 4 → 2.2 秒（数值 10-01）
 						e.channel = rt
 						e.reload_dmg = 0.0
 						e.count_end = g.t + rt   # 读条环（界面与美术读 count_end / count_max）

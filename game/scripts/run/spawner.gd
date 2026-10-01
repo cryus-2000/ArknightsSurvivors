@@ -17,6 +17,8 @@ var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现�
 var horde_warned := -1.0
 var boss_idx := 0
 var mid_used: Array = []
+## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
+const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
 var next_chest := 20.0
 
 
@@ -83,6 +85,19 @@ func pick_elite() -> String:
 
 ## 最终 Boss 登场时，还没打死的中期 Boss 撤场、不给奖励（用户 9/27，docs/38 B1 ②）：直接移除，不走 kill()（不掉落、不计击杀），
 ## 顺带取消它的预警；7:00 时两只中期 Boss 共存，不撤
+## 中期池第 i 组里有没有和已出场的 Boss 是同一人物（SAME_PERSON）
+func person_used(i: int) -> bool:
+	var used := {}
+	for u in mid_used:
+		for t in D.MID_POOL[u]:
+			if SAME_PERSON.has(t):
+				used[SAME_PERSON[t]] = true
+	for t in D.MID_POOL[i]:
+		if SAME_PERSON.has(t) and used.has(SAME_PERSON[t]):
+			return true
+	return false
+
+
 func retreat_mid_bosses() -> void:
 	for b in g.bosses:
 		if b.dead:
@@ -169,7 +184,7 @@ func update(dt: float) -> void:
 		else:
 			var pool: Array = []
 			for i in D.MID_POOL.size():
-				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)):
+				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
 					pool.append(i)
 			var pick: int = pool[g.rng.randi() % pool.size()]
 			if g.force_boss >= 0 and not mid_used.has(g.force_boss):

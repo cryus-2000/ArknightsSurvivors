@@ -548,9 +548,9 @@
   },
   "iberia": {
    "name": "圣徒伊比利亚",
-   "hp": 3200.0,
+   "hp": 3800.0,
    "spd": 58.0,
-   "dmg": 18.0,
+   "dmg": 20.0,
    "r": 22.0,
    "xp": 60.0,
    "tex": "e_iberia",
@@ -558,7 +558,7 @@
    "range": 220.0,
    "cd": 1.5,
    "role": "boss",
-   "ammo": 3,
+   "ammo": 1,
    "atk": "物理",
    "patterns": [
     {
@@ -597,7 +597,7 @@
    "xp": 60.0,
    "tex": "e_carmen",
    "ai": "ranged",
-   "range": 380.0,
+   "range": 300.0,
    "cd": 1.2,
    "role": "boss",
    "ammo": 3,
