@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "source_sha256": "5b5d62fb08416b1fe50765dae3c741f3d6b0338d5f57686f246dcf7b8c294789",
+      "outline_median": 1.0,
+      "file": "e_izumik_attack.png",
+      "seam_repaired_pixels": 44,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "80a3082129c55c6e8dcf0d1ff604deb70e0407599ec5bd126cf90b069b43624c",
+      "outline_median": 2.0,
+      "file": "e_izumik_attack@2x.png",
+      "seam_repaired_pixels": 176,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "544435a3c941c875985bff67ea08cb67e6d5e38a2b00da9028b4ba6ba04adf9e",
+      "outline_median": 1.0,
+      "file": "e_iberia_reload.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "829e4cf3ba883c8396c529e64c7738d0b0565ed65495b96e6250d90b1668a44f",
+      "outline_median": 2.0,
+      "file": "e_iberia_reload@2x.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "7a1a709c4fd7640a7c4f348a55dbc9f327600611f7b8f6f94257590757321e4d",
+      "outline_median": 1.0,
+      "file": "e_paranoia_phase2.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "914c90453e88e909aade4a149f122f52fc6dcbac0347f1eeca38a04832a3bf2a",
+      "outline_median": 2.0,
+      "file": "e_paranoia_phase2@2x.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "ef8e5f8bd2c65477517ebaa8904c107b8cf83696e0026ca3060a8ffd01ebb39d",
+      "outline_median": 1.0,
+      "file": "e_paranoia_phase2_move.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    },
+    {
+      "source_sha256": "03d4499d6c0979d4c071ba120b8666303f5d0e19efc2a504d8ce2817d61106db",
+      "outline_median": 2.0,
+      "file": "e_paranoia_phase2_move@2x.png",
+      "seam_repaired_pixels": 0,
+      "alpha_mask_changed_pixels": 0
+    }
+  ],
+  "engine_tested": false,
+  "remaining": "Iberia reload action and Paranoia phase2 original-reference redesign are NOT completed."
+}
