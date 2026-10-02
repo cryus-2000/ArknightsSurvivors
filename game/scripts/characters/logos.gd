@@ -30,6 +30,11 @@ var chorus := false           # 精二质变「众声喧哗」：词法演化的
 var glyphs: Array = []        # 铭文 {pos, t, tick, dmg, pat}
 var bolts: Array = []         # 「言」法术弹 {pos, e, dmg, src, hist, life}（同时 ≤ 12）
 const BOLT_MAX := 12
+## 「言」弹体与命中咒文的目标高度（美术像素；2026-10-02 用户反馈符文偏大：原来弹体按 32 格 ×0.75 ≈ 24 px、命中按 24 格 ×1.0 = 24 px，
+## 比墨蓝弹头（约 8–10 px）大一倍多）。贴图帧是正方形，缩放 = g.PX × 目标高度 ÷ 帧高（美术像素），@2x 再除密度
+const BOLT_GLYPH_PX := 13.0   # 飞行中的咒文字符（fx_logos_glyphs 32 格 → 内容约 12 px；缺图回退 fx_logos_glyph 末帧同口径）
+const HIT_GLYPH_PX := 16.0    # 命中处单次播放的 fx_logos_glyph（24 格）
+const GLYPH_FRAME_PX := 24.0  # fx_logos_glyph 帧高（美术像素）
 var epitaphs: Array = []      # 墓志铭 {pos, t, dmg, pat}
 const RESIDUE_MAX := 6        # 铭文 + 墓志铭 同时存在的地面残留上限
 ## 咒文笔画（单位坐标 -1..1，每条 = 起点 → 终点）：几种像字又像符文的写法，随机取一种
@@ -214,7 +219,7 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 			o["requiem"] = base("requiem_dur", 5.0)
 	# 命中处墨蓝爆点（弹体自己画在 _draw_skill_over；这里不再拉瞬发光线）
 	# Codex 骨笔符文（命中单次播放）；缺图退回墨蓝爆点 / 光点
-	if not spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX, 0.0, g.rng.randf() < 0.5) \
+	if not spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * HIT_GLYPH_PX / GLYPH_FRAME_PX, 0.0, g.rng.randf() < 0.5) \
 			and not spawn_fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.22, "col": PALE, "alpha": 0.6})
 	for k in 3:
@@ -542,13 +547,13 @@ func _draw_skill_over() -> void:
 		if rtx != null:
 			var fh: int = rtx.get_height()
 			var rn: int = maxi(1, rtx.get_width() / maxi(1, fh))
-			var sc: float = g.PX * 0.75 / A.hires_of(rtx)
+			var sc: float = g.PX * BOLT_GLYPH_PX / float(fh)   # 目标高度（世界像素）÷ 帧高（贴图像素）；@2x 的帧高本身翻倍，不再另除密度
 			cv.draw_set_transform(b.pos + g.draw_off, sin(b.age * 5.0 + b.ph) * 0.35, Vector2(sc, sc))
 			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(b.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(b.life / 0.25, 0.0, 1.0)))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif g.tex.get("fx_logos_glyph") != null:
 			var fa: float = clampf(b.life / 0.25, 0.0, 1.0)
-			draw_spr_rot("fx_logos_glyph", 5, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * 0.75, Color(1, 1, 1, fa))
+			draw_spr_rot("fx_logos_glyph", 5, b.pos, sin(b.age * 5.0 + b.ph) * 0.35, g.PX * BOLT_GLYPH_PX / GLYPH_FRAME_PX, Color(1, 1, 1, fa))
 		elif g.tex.get("proj_logos_ink") != null and h.size() >= 2:
 			# Codex 墨蓝尖头法术弹（朝右），按飞行方向旋转；保留拖尾、去掉圆亮芯
 			draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, b.pos, (b.pos - h[h.size() - 2]).angle(), g.PX)
