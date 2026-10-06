@@ -65,6 +65,15 @@ const HIT_BASE := {
 	"净尘": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area", "dot"]},
 	"食腐": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
 }
+## 开局固定预载的贴图（_ready；标题页预热法线图也按这份名单 + preload_tex_names）
+const BASE_TEX := ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
+			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
+			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
+			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
+			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
+			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]
+## 敌人贴图的附加帧条后缀（_ready 按 data/enemies.json 逐个尝试；_slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克））
+const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
 	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
@@ -372,7 +381,48 @@ var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 
 
+## 一局开始（_ready）会固定加载的贴图名单，只看静态数据，标题页用它预热法线图（art.gd prewarm_start）。
+## 覆盖 _ready 里的固定表、博士与全部干员的帧条、V6 帧、data/enemies.json 的敌人及附加帧条、地图主题的道具与前景。
+## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
+static func preload_tex_names() -> Array:
+	var names: Array = []
+	names.append_array(BASE_TEX)
+	names.append_array(["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death"])
+	var dj = JSON.parse_string(FileAccess.get_file_as_string("res://data/doctor.json"))
+	if dj is Dictionary:
+		for kind in ["idle", "run", "hurt", "death"]:
+			var dn = dj.get("sprites", {}).get(kind, "")
+			if dn is String and dn != "":
+				names.append(dn)
+	for cid in Character.list_ids():
+		var cdef: Dictionary = Character.load_def(cid)
+		var csp: Dictionary = cdef.get("sprites", {})
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+			if csp.has(kind):
+				names.append(csp[kind] if csp[kind] is String else csp[kind].tex)
+		if csp.has("base"):
+			names.append(csp.base)
+	names.append_array(V6_FRAMES.keys())
+	var etex: Array = ["e_paranoia2"]
+	for k in D.ENEMIES:
+		var tn: String = D.ENEMIES[k].tex
+		if not etex.has(tn):
+			etex.append(tn)
+	for n in etex:
+		names.append(n)
+		for suffix in ENEMY_SUFFIXES:
+			names.append(n + suffix)
+	var mj = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % Cfg.map_id))
+	if mj is Dictionary:
+		for pr in mj.get("props", []):
+			names.append(pr.tex)
+		names.append_array(mj.get("big_props", {}).get("list", []))
+		names.append_array(mj.get("foreground", {}).get("tex", []))
+	return names
+
+
 func _ready() -> void:
+	A.mark("ready_begin")
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -407,6 +457,7 @@ func _ready() -> void:
 			Cfg.character_id = a.substr(5)
 	if not Character.list_ids().has(Cfg.character_id):
 		Cfg.character_id = "mizuki"
+	A.mark("map+doctor")
 	ch = squad.add(demo_op if demo_op != "" else (str(trial.config.operator) if trial.active else Cfg.character_id))
 	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
 	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
@@ -420,6 +471,7 @@ func _ready() -> void:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
 		if dn is String and dn != "":
 			tex[dn] = A.tex(dn)
+	A.mark("squad_add")
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	# 无界面运行（批跑 / 冒烟）不画任何东西，法线图纯属浪费：一局启动要多花十几秒
 	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
@@ -430,18 +482,15 @@ func _ready() -> void:
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
+	A.mark("subsystems")
 	font = load("res://fonts/ui.ttf")
-	for n in ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
-			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
-			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
-			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
-			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]:
+	for n in BASE_TEX:
 		tex[n] = A.tex(n)
 		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
 			foot_anchor[n] = true
 		if n.begins_with("e_") and tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
+	A.mark("tex_base")
 	# 可选素材：有图就用，没有就用程序效果
 	var optional := ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
 	optional.append_array(FXF.keys())
@@ -454,6 +503,7 @@ func _ready() -> void:
 		optional.append("weapon_" + wid)
 	for n in optional:
 		tex[n] = A.tex(n)
+	A.mark("tex_optional")
 	# 角色贴图集：按 data/characters/<id>.json 的 sprites / icons 覆盖 player_* / skill_s* 槽位
 	for o in squad.ops:
 		var sp: Dictionary = o.def.get("sprites", {})
@@ -476,12 +526,14 @@ func _ready() -> void:
 				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 				if not tex.has(tn):
 					tex[tn] = A.tex(tn)
+	A.mark("tex_chars")
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
 		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
 		if n.begins_with("e_") and tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n])
+	A.mark("tex_v6")
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
 	var etex: Array = ["e_paranoia2"]
 	for k in D.ENEMIES:
@@ -495,13 +547,14 @@ func _ready() -> void:
 				tex[n + "_white"] = A.white_of(tex[n])
 		if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
 			foot_anchor[n] = true
-		for suffix in ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]:   # _slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克）
+		for suffix in ENEMY_SUFFIXES:
 			var mn: String = n + suffix
 			if tex.get(mn) == null:
 				tex[mn] = A.tex(mn)
 				if tex[mn] != null and suffix != "_death":
 					tex[mn + "_white"] = A.white_of(tex[mn])
 
+	A.mark("tex_enemies")
 	var cm := CanvasModulate.new()
 	cm.color = map.ambient
 	add_child(cm)
@@ -569,6 +622,7 @@ func _ready() -> void:
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ul.add_child(hud)
 	hud.draw.connect(func(): _timed("draw_hud", hud_view.draw))
+	A.mark("nodes")
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	ul.add_child(settings)
@@ -614,6 +668,19 @@ func _ready() -> void:
 		intro_screen.open.call_deferred(S.PLAY)
 	elif not autotest or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
+	A.mark("ready_end")
+	if Cfg.dev_args().has("--loadprof"):
+		RenderingServer.frame_pre_draw.connect(func(): A.mark("first_frame_pre_draw"), CONNECT_ONE_SHOT)
+		RenderingServer.frame_post_draw.connect(func():
+			A.mark("first_frame_drawn")
+			var s := "LOADPROF"
+			var prev: int = A.marks[0][1]
+			for m in A.marks:
+				s += " %s=+%d" % [m[0], m[1] - prev]
+				prev = m[1]
+			s += " total=%d %s" % [A.marks[-1][1] - A.marks[0][1], A.normal_stats()]
+			print(s)
+			, CONNECT_ONE_SHOT)
 	balance = Cfg.dev_args().has("--balance")
 	if balance:
 		var bot_p := "normal"

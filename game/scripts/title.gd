@@ -6,6 +6,7 @@ const Affects = preload("res://scripts/run/affects.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Game = preload("res://scripts/game.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
@@ -40,6 +41,8 @@ var credits_rect := Rect2()
 var deploy_rect := Rect2()   # 右下「更换封面干员」
 var credits_data: Dictionary = {}
 var leaving := -1.0
+var auto_go := false        # --autotest 开窗口：等法线预热完再进局
+var wait_t := 0.0           # 出发后等预热的时间（载入中…）
 var settings: Control
 var gallery: Control
 var boss_trial: Control
@@ -88,6 +91,7 @@ func _ready() -> void:
 	tex_tiles = A.tex("tiles")
 	tex_bg = A.tex("title_bg")
 	tex_logo = A.tex("logo")
+	_prewarm()   # 标题页自己的几张图先取，预热名单里就不用再算
 	var mf := FileAccess.open("res://data/maps/%s.json" % Cfg.map_id, FileAccess.READ)
 	if mf != null:
 		var md = JSON.parse_string(mf.get_as_text())
@@ -201,12 +205,32 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
+	if Cfg.dev_args().has("--loadingshot"):
+		# 出发后「载入中…」面板的截图（预热通常不到 1 秒就完成，截图时强制画出来）
+		leaving = 0.0
+		get_tree().create_timer(1.3).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_loading.png")
+			get_tree().quit())
 	if Cfg.dev_args().has("--titleshot"):
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
-		get_tree().change_scene_to_file.call_deferred("res://game.tscn")
+		if A.prewarm_busy():
+			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性
+		else:
+			A.mark("title_leave")
+			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
+
+
+## 法线图预热（art.gd）：标题页一打开就在后台线程把本局要用的法线图算好 / 读缓存；出发时再调一次（设置里刚打开法线光照的情况）
+func _prewarm() -> void:
+	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
+	A.prewarm_start(Game.preload_tex_names())
+
+
+func _exit_tree() -> void:
+	A.prewarm_join()
 
 
 func _diff_input(event: InputEvent) -> void:
@@ -259,6 +283,7 @@ func _diff_go() -> void:
 	Cfg.difficulty = diff_sel
 	Cfg.save()
 	diff_pick = false
+	_prewarm()
 	Sfx.play("start", -8.0)   # 音量巡检（2026-09-27）：原 0 dB 比标题曲响 18 dB，且开场一开始还会再播一次
 	leaving = 0.0
 
@@ -365,10 +390,20 @@ func _process(delta: float) -> void:
 		m[0].y -= m[1] * delta
 		if m[0].y < -10:
 			m[0].y = size.y + 10
+	A.prewarm_tick()
 	if leaving >= 0.0:
 		leaving += delta
 		if leaving > 0.7:
-			get_tree().change_scene_to_file("res://game.tscn")
+			# 法线图预热没完就画「载入中…」等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 30 秒
+			if (A.prewarm_busy() or Cfg.dev_args().has("--loadingshot")) and wait_t < 30.0:
+				wait_t += delta
+			else:
+				A.mark("title_leave")
+				get_tree().change_scene_to_file("res://game.tscn")
+	elif auto_go and not A.prewarm_busy():
+		auto_go = false
+		A.mark("title_leave")
+		get_tree().change_scene_to_file("res://game.tscn")
 	queue_redraw()
 
 
@@ -641,6 +676,18 @@ func _draw() -> void:
 		_draw_diff(vs)
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
+		if wait_t > 0.0:
+			_draw_loading(vs)
+
+
+## 出发后等法线图预热：潮汐航线风格的小面板 + 进度条（docs/37）
+func _draw_loading(vs: Vector2) -> void:
+	var pr := A.prewarm_progress()
+	var r := Rect2(vs.x / 2 - 170, vs.y / 2 - 44, 340, 88)
+	UI.frame(self, r, UI.CYAN)
+	UI.en(self, font, Vector2(r.position.x + 18, r.position.y + 24), "LOADING", 11, Color(0.55, 0.59, 0.63), 2.5)
+	UI.text(self, font, Vector2(r.position.x + 18, r.position.y + 46), "载入中…  准备光照贴图 %d / %d" % [pr.x, pr.y], 15, UI.TEXT)
+	UI.gbar(self, Rect2(r.position.x + 18, r.position.y + 62, r.size.x - 36, 6), float(pr.x) / maxf(1.0, float(pr.y)), UI.CYAN)
 
 
 ## 本作徽记（菱形 + 一道浪）：标题页小标与主按钮用（不用原作的集成战略标志）
