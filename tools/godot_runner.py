@@ -126,6 +126,17 @@ def _test_userdir():
     return root, env
 
 
+def _no_focus_kwargs(args):
+    """开窗口的测试局不抢前台（用户 10-06：别让弹窗打扰）：Windows 下以「最小化且不激活」启动，截图仍从画布取帧不受影响；
+    设 ARK_SHOW_WINDOW=1 可恢复正常弹窗（肉眼看局时用）。--headless 不受影响"""
+    if os.name != "nt" or "--headless" in args or os.environ.get("ARK_SHOW_WINDOW") == "1":
+        return {}
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 7   # SW_SHOWMINNOACTIVE
+    return {"startupinfo": si}
+
+
 def run_godot(args, timeout):
     """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
     root, env = _test_userdir()
@@ -133,7 +144,7 @@ def run_godot(args, timeout):
         f = _lock()
         try:
             if count_godot() < MAX_PROCS:
-                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+                p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **_no_focus_kwargs(args))
                 break
         finally:
             _unlock(f)
