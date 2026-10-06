@@ -10,6 +10,12 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 商人（A4）：左侧商人立绘框（暖色提灯光）+ 右上「货架」与持有源石锭 + 底部提示；五张货品卡在 panel_box
 const CARD_H := 330.0          # 货品卡高度（含两行作用对象标签）；卡片顶边见 choice_panel.layout("shop")
+const TOP_PHONE := 96.0        # 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边；不画商人立绘框，卡片横跨整屏
+
+
+## 货品卡高度：手机按剩余高度（顶 96、底下留按钮 72）
+func card_h(vs: Vector2) -> float:
+	return clampf(vs.y - TOP_PHONE - 72.0, 240.0, CARD_H) if Cfg.touch_device() else CARD_H
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
 
 
@@ -31,15 +37,27 @@ func build() -> void:
 	for c in g.panel.get_children():
 		if c.has_meta("shopbtn"):
 			c.queue_free()
-	var vs0: Vector2 = g.get_viewport_rect().size
+	var vs0: Vector2 = g.panel.size   # 触屏界面层放大后 = UI 逻辑尺寸
 	var cx := vs0.x / 2.0
-	var by: float = g.panel_box.offset_top + CARD_H + 14.0
-	g.panel_ui.button("刷新货架", Rect2(cx - 280, by, 214, 40), g.shop_sys.refresh, not g.shop_refreshed and g.ingots >= g.shop_sys.price("refresh"), "refresh", "仅一次" if not g.shop_refreshed else "已刷新过", -1 if g.shop_refreshed else g.shop_sys.price("refresh"))
-	g.panel_ui.button("离开", Rect2(cx - 52, by, 150, 40), g.shop_sys.close, true, "", "", -1, "ESC")
+	var touch: bool = Cfg.touch_device()
+	var ch: float = card_h(vs0)
+	var bl: float = cx - 280.0   # 按钮行左边
+	if touch:
+		# 手机：卡片加宽到 ≤ 190、横跨整屏居中（左右各留 20），顶边 96；按钮本体 44 高跟在卡片下
+		cw = minf(190.0, (vs0.x - 40.0 - sep * (n - 1)) / maxf(1.0, n))
+		var tot: float = cw * n + sep * (n - 1)
+		g.panel_box.offset_left = -tot / 2.0
+		g.panel_box.offset_right = tot / 2.0
+		g.panel_box.offset_top = TOP_PHONE
+		bl = cx - tot / 2.0
+	var by: float = g.panel_box.offset_top + ch + 14.0
+	var bh: float = 44.0 if touch else 40.0
+	g.panel_ui.button("刷新货架", Rect2(bl, by, 214, bh), g.shop_sys.refresh, not g.shop_refreshed and g.ingots >= g.shop_sys.price("refresh"), "refresh", "仅一次" if not g.shop_refreshed else "已刷新过", -1 if g.shop_refreshed else g.shop_sys.price("refresh"))
+	g.panel_ui.button("离开", Rect2(bl + 228, by, 150, bh), g.shop_sys.close, true, "", "", -1, "ESC")
 	for i in n:
 		var it: Dictionary = g.shop_items[i]
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(cw, CARD_H)
+		card.custom_minimum_size = Vector2(cw, ch)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
@@ -55,13 +73,12 @@ func build() -> void:
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(g.shop_sys.buy.bind(i))
-		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号
-		var touch: bool = Cfg.touch_device()
-		var szs: Array = ([15, 14, 13, 12] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
-		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, 72.0 if touch else 64.0, szs)
+		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机 18 起（说明区按卡高算）
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
+		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, (ch - 164.0 - 60.0) if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
-			fs0 = UI.fit(g.font, it.desc, cw - 20.0, 88.0 if touch else 80.0, szs)
+			fs0 = UI.fit(g.font, it.desc, cw - 20.0, (ch - 152.0 - 60.0) if touch else 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		var chips := Affects.chips(g, it)
@@ -118,6 +135,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	else:
 		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x <= r.size.x - 14.0 else 12
+	if Cfg.touch_device() and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x <= r.size.x - 14.0:
+		fs = 18   # 手机：名字 18
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
@@ -156,7 +175,33 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
 
 
+## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n/15 · 商人还会停留」一行，
+## 右上持有源石锭；商人立绘框放不下不画
+func _draw_bg_phone(vs: Vector2) -> void:
+	var cx := vs.x / 2.0
+	var top: float = g.panel_box.offset_top
+	var note: String = "第 %d 次交易 · 价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
+	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
+	var left: float = cx + g.panel_box.offset_left
+	var right: float = cx + g.panel_box.offset_right
+	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), "藏品 %d/15 · 为结局保留 %d 格 · 商人还会停留 %d 秒" % [g.relics.size(), g.endg.reserved_relic_slots(), int(g.merchant.get("life", 0.0))], 14, UI.SUB)
+	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
+	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
+	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
+	g.panel_fg.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
+	UI.ctext(g.panel_fg, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
+	UI.text(g.panel_fg, g.font, Vector2(dp.position.x + 84, dp.position.y + 22), "源石锭", 10, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 60, dp.position.y + 22), "持有", 13, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 50)
+	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else ["点卡片购买", "点「刷新货架」/「离开」"]
+	var hy: float = top + card_h(vs) + 14.0
+	UI.text(g.panel_fg, g.font, Vector2(left + 400.0, hy + 18.0), hints[0], 14, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(left + 400.0, hy + 38.0), hints[1], 14, UI.SUB)
+
+
 func draw_bg(vs: Vector2) -> void:
+	if Cfg.touch_device():
+		_draw_bg_phone(vs)
+		return
 	var cx := vs.x / 2.0
 	# 纵向：标题 92 起；货架卡片顶边 = panel_box.offset_top（222），下面是按钮；商人框与卡片 + 按钮等高
 	var top: float = g.panel_box.offset_top

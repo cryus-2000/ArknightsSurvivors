@@ -618,6 +618,10 @@ func _ready() -> void:
 	var ul := CanvasLayer.new()
 	ul.layer = 10
 	add_child(ul)
+	# 触屏：整个界面层（HUD / 面板 / 设置）再放大 Cfg.ui_k（手机 1.3），世界层不动；根控件尺寸见 _ui_fit
+	Cfg.ui_k = Cfg.ui_scale()
+	if Cfg.ui_k != 1.0:
+		ul.scale = Vector2(Cfg.ui_k, Cfg.ui_k)
 	hud = Control.new()
 	hud.set_anchors_preset(Control.PRESET_FULL_RECT)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -627,6 +631,9 @@ func _ready() -> void:
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
 	ul.add_child(settings)
+	if Cfg.ui_k != 1.0:
+		_ui_fit()
+		get_viewport().size_changed.connect(_ui_fit)
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
@@ -741,6 +748,18 @@ var demo_label := ""
 
 
 ## 镜头看着的位置：平时跟主控；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
+## 触屏界面层放大（Cfg.ui_k）：三个根控件撑满 UI 逻辑区（视口 / ui_k）
+func _ui_fit() -> void:
+	for c in [hud, panel, settings]:
+		Cfg.ui_fill(c)
+
+
+## 世界坐标 → HUD 坐标（界面层放大后 = 画布变换再除以 ui_k；桌面就是画布变换本身）
+func hud_ct() -> Transform2D:
+	var ct := get_viewport().get_canvas_transform()
+	return ct if Cfg.ui_k == 1.0 else ct.scaled(Vector2(1.0 / Cfg.ui_k, 1.0 / Cfg.ui_k))
+
+
 func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
@@ -902,16 +921,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == S.DEAD and state_age < HudView.DEATH_T + 0.35:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
-				if b[0].has_point(event.position):
+				if b[0].has_point(mp0):
 					Sfx.play("ui_ok")
 					_do_action(b[1])
 					return
-		if state == S.PLAY and speed_btn.has_point(event.position):
+		if state == S.PLAY and speed_btn.has_point(mp0):
 			PlayClock.cycle()
 			return
-		if state == S.PLAY and pause_btn.has_area() and pause_btn.has_point(event.position):
+		if state == S.PLAY and pause_btn.has_area() and pause_btn.has_point(mp0):
 			Sfx.play("ui_ok", -4.0)
 			state = S.PAUSE
 			return

@@ -56,6 +56,8 @@ func open() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
+	if Cfg.ui_k != 1.0:
+		Cfg.ui_fill(self)   # 触屏界面层放大：撑满 UI 逻辑区而不是视口
 	sel = 0
 	_set_tab(0)
 	pending_res = Cfg.res_index
@@ -113,22 +115,24 @@ func _input(event: InputEvent) -> void:
 				close()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:
+		var mp: Vector2 = make_input_local(event).position   # 标题页 / 界面层放大后：视口坐标 → 本控件坐标（桌面不变）
 		for i in row_rects.size():
-			if row_rects[i].has_point(event.position):
+			if row_rects[i].has_point(mp):
 				sel = i
 	elif event is InputEventMouseButton and event.pressed:
+		var mp: Vector2 = make_input_local(event).position
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			for t in tab_rects.size():
-				if tab_rects[t].has_point(event.position) and t != tab:
+				if tab_rects[t].has_point(mp) and t != tab:
 					_set_tab(t)
 					sel = 0
 					Sfx.play("ui_move")
 		for si in row_rects.size():
 			var r: Rect2 = row_rects[si]
 			var i: int = cur[si]
-			if r.has_point(event.position):
+			if r.has_point(mp):
 				var arrows: bool = ROWS[i].type in ["vol", "bright", "res"]
-				var fx: float = (event.position.x - r.position.x) / r.size.x
+				var fx: float = (mp.x - r.position.x) / r.size.x
 				var dir := 1
 				if arrows:
 					dir = -1 if fx < 0.62 else 1
@@ -199,42 +203,50 @@ func _draw() -> void:
 		most = maxi(most, tb[2].size())
 	var rh: float = minf(146.0 + most * 46.0 + 44.0 + 56.0, vs.y - 8.0)
 	var pw: float = 760.0 if touch else 640.0
+	if touch:
+		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占满（左右各留 24），标题与分类页签同一行，
+		# 行距按剩余高度放到 ≤ 52（九行约 42），不画底部提示
+		pw = vs.x - 48.0
+		rh = vs.y - 8.0
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - rh / 2.0, pw, rh)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
-	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
+	UI.text(self, font, r.position + Vector2(40, 58 if not touch else 50), "设置", 28, UI.TEXT)
+	UI.en(self, font, r.position + Vector2(112, 56 if not touch else 48), "SETTINGS", 13, UI.CYAN, 3.0)
 	# 分类标签：中文 + 英文小字，当前页青色底线；两侧写切换键
 	tab_rects.clear()
-	var tx := r.position.x + 40.0
-	var ty := r.position.y + 84.0
+	var tx := r.position.x + (40.0 if not touch else 250.0)
+	var ty := r.position.y + (84.0 if not touch else 18.0)
 	var mp := get_local_mouse_position()
 	for t in TABS.size():
-		var tw: float = 112.0
-		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40)
+		var tw: float = 112.0 if not touch else 150.0
+		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40 if not touch else 44)
 		tab_rects.append(tbr)
 		var ton := t == tab
 		var hov := tbr.has_point(mp)
 		draw_rect(tbr, Color(0.05, 0.2, 0.24, 0.8) if ton else Color(1, 1, 1, 0.06 if hov else 0.03))
 		draw_rect(Rect2(tbr.position.x, tbr.end.y - 3, tbr.size.x, 3), UI.CYAN if ton else Color(1, 1, 1, 0.12))
-		UI.text(self, font, tbr.position + Vector2(0, 25), TABS[t][0], 17, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
-		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24), TABS[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
+		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), TABS[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
+		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), TABS[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
 	if not Pad.touch_ui():
 		UI.keycap(self, font, Vector2(r.end.x - 118, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
 		UI.keycap(self, font, Vector2(r.end.x - 70, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
-	UI.rule(self, Vector2(r.position.x + 30, ty + 50), Vector2(r.end.x - 30, ty + 50), UI.EDGE_DIM)
+	UI.rule(self, Vector2(r.position.x + 30, ty + (50 if not touch else 58)), Vector2(r.end.x - 30, ty + (50 if not touch else 58)), UI.EDGE_DIM)
 	row_rects.clear()
 	# 行距按面板高度自适应：标题 + 标签 140 + 行 + 底部提示 40 都要放得下
-	var top := r.position.y + 146.0
+	var top := r.position.y + (146.0 if not touch else 90.0)
 	var step: float = minf((56.0 if touch else 40.0) if compact else 46.0, (r.end.y - (60.0 if touch else 46.0) - top - 34.0) / float(maxi(1, cur.size() - 1)))
+	if touch:
+		step = minf(52.0, (r.end.y - 14.0 - top) / float(maxi(1, cur.size())))
 	var fs_cn := 19 if touch else 17   # 选项名
 	var fs_v := 20 if touch else 18    # 数值 / 开关
 	var fs_a := 18 if touch else 14    # ◀ ▶ 与音量数字
-	var ty0: float = 31.0 if touch else 24.0   # 行内文字基线（行本体 48 / 34）
+	var row_hh: float = minf(48.0 if touch else 34.0, step)
+	var ty0: float = (row_hh / 2.0 + 7.0) if touch else 24.0   # 行内文字基线（行本体 48 / 34；手机按行高居中）
 	for si in cur.size():
 		var i: int = cur[si]
 		var row: Dictionary = ROWS[i]
 		var back: bool = row.type == "back"
-		var rr := Rect2(r.position.x + 30, top + si * step + (10.0 if back else 0.0), r.size.x - 60, minf(48.0 if touch else 34.0, step))
+		var rr := Rect2(r.position.x + 30, top + si * step + ((10.0 if not touch else 0.0) if back else 0.0), r.size.x - 60, row_hh)
 		row_rects.append(rr)
 		var on := si == sel
 		if on:
@@ -282,4 +294,5 @@ func _draw() -> void:
 					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 					UI.text(self, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 				UI.text(self, font, Vector2(vx + 190, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 15 if touch else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	if not touch:
+		UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

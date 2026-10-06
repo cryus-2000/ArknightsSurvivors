@@ -63,6 +63,30 @@ func touch_device() -> bool:
 	return _touch == 1
 
 
+## 触屏界面层放大倍数（手机端 UI 优化 r2，10-06）：在 1.15 全局缩放之上只放大 HUD / 面板 / 标题页，世界（相机）不动。
+## 按逻辑宽度算：手机 19.5:9（逻辑 1357 宽）→ 1.3（UI 逻辑约 1044×481）、16:9（1113）→ 1.11、平板 4:3 → 1。
+## game.gd / title.gd 启动时算好存进 ui_k；各界面的 vs（g.hud.size / 标题页 size）就是 UI 逻辑尺寸。桌面恒为 1，排版不变
+var ui_k := 1.0
+
+
+func ui_scale() -> float:
+	if not touch_device():
+		return 1.0
+	var vs: Vector2 = get_viewport().get_visible_rect().size
+	return clampf(vs.x / 1000.0, 1.0, 1.3)
+
+
+func ui_size() -> Vector2:
+	return get_viewport().get_visible_rect().size / ui_k
+
+
+## 界面根控件撑满 UI 逻辑区：放大层里 FULL_RECT 锚点按视口算会溢出 ui_k 倍，改成固定尺寸（桌面 ui_k = 1 时调用方不走这里）
+func ui_fill(c: Control) -> void:
+	c.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	c.position = Vector2.ZERO
+	c.size = ui_size()
+
+
 func _ready() -> void:
 	if OS.get_environment("ARK_NO_FOCUS") == "1" and DisplayServer.get_name() != "headless":
 		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口不抢焦点；位置由 runner 用 Win32 挪到屏幕外

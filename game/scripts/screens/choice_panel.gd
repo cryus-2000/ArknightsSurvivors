@@ -24,6 +24,18 @@ var ink_tex: GradientTexture2D
 const CARD_W := 272.0
 const CARD_H := 382.0
 const CARDS_TOP := 190.0       # 卡片顶边；标题从它上方 92 处开始，底边（572）不压到底栏的技能图标
+## 手机（触屏，界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边 80（标题压在顶栏上，压暗带遮住），
+## 卡片高按剩余高度算（≤ 382），不画底部提示；事件选项列顶边 70、左右各留 24
+const CARDS_TOP_PHONE := 80.0
+const EV_COL_TOP_PHONE := 70.0
+
+
+func cards_top() -> float:
+	return CARDS_TOP_PHONE if Cfg.touch_device() else CARDS_TOP
+
+
+func card_h() -> float:
+	return minf(CARD_H, g.panel.size.y - CARDS_TOP_PHONE - 12.0) if Cfg.touch_device() else CARD_H
 
 
 func _init(game: Game) -> void:
@@ -114,8 +126,15 @@ func build(parent: Node) -> void:
 	g.panel_col.anchor_right = 0.5
 	g.panel_col.offset_left = 12
 	g.panel_col.offset_right = 608
-	g.panel_col.offset_top = 196 if not Cfg.touch_device() else EV_COL_TOP_TOUCH   # 触屏（626 高）：选项列上移，四个选项才放得下
+	g.panel_col.offset_top = 196 if not Cfg.touch_device() else EV_COL_TOP_PHONE   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
 	g.panel_col.offset_bottom = 560
+	if Cfg.touch_device():
+		# 手机：选项条横跨整屏（左右各留 24），条间距 10
+		g.panel_col.anchor_left = 0.0
+		g.panel_col.anchor_right = 1.0
+		g.panel_col.offset_left = 24
+		g.panel_col.offset_right = -24
+		g.panel_col.add_theme_constant_override("separation", 10)
 	g.panel_col.visible = false
 	g.panel.add_child(g.panel_col)
 	# 最上层：说明被截断（排不下末行带「…」）的卡片，悬停 / 焦点时在这里画完整说明
@@ -136,7 +155,7 @@ func build(parent: Node) -> void:
 
 ## 压暗带与卡片容器的布局：选卡在顶栏与底栏之间；商人压暗到底部；事件整屏灰阶（C 版式）
 func layout(kind: String) -> void:
-	var vs: Vector2 = g.get_viewport_rect().size
+	var vs: Vector2 = g.panel.size   # 触屏界面层放大后 = UI 逻辑尺寸（桌面就是视口尺寸）
 	var sm: ShaderMaterial = panel_band.material
 	var top := 64.0
 	var bot := vs.y - 108.0
@@ -151,6 +170,11 @@ func layout(kind: String) -> void:
 		fade = 0.0
 		desat = 1.0
 		dim = 0.46
+	if Cfg.touch_device():
+		# 手机：面板标题压在顶栏上（逻辑高只有约 481），压暗带从顶到底，顶栏一起变灰变暗
+		top = 0.0
+		bot = vs.y
+		fade = 0.0
 	panel_band.position = Vector2(0, top)
 	panel_band.size = Vector2(vs.x, bot - top)
 	sm.set_shader_parameter("rect_size", panel_band.size)
@@ -168,7 +192,7 @@ func layout(kind: String) -> void:
 		g.panel_box.anchor_right = 1.0
 		g.panel_box.offset_left = 0.0
 		g.panel_box.offset_right = 0.0
-		g.panel_box.offset_top = CARDS_TOP
+		g.panel_box.offset_top = cards_top()
 	g.panel_box.visible = kind != "event"
 	g.panel_col.visible = kind == "event"
 
@@ -184,9 +208,11 @@ func draw_bg() -> void:
 			var en_label := "RELIC" if g.choice_kind == "relic" else "LEVEL UP"
 			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
 				en_label = "RECRUIT"
-			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, CARDS_TOP - 92.0)
-			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
-			UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 14 if Cfg.touch_device() else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+			var ph: bool = Cfg.touch_device()
+			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - (80.0 if ph else 92.0))
+			if not ph:   # 手机：卡片顶到底，没有提示行的位置（点卡片本身就是操作）
+				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
+				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -247,6 +273,9 @@ func ink_grad() -> GradientTexture2D:
 
 
 func draw_event_bg(vs: Vector2) -> void:
+	if Cfg.touch_device():
+		_draw_event_bg_phone(vs)
+		return
 	var art := event_art(g.panel_title_text)
 	var cx := vs.x / 2.0
 	var p0 := Vector2(cx - 576.0, 120.0)
@@ -301,6 +330,31 @@ func draw_event_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, 14 if Cfg.touch_device() else 12, Color(0.55, 0.54, 0.52))
 
 
+## 手机版事件背景（手机端 UI 优化 r2）：逻辑高只有约 481，左侧 560×500 的插画放不下——顶部一行放祭坛小图 + 事件名（衬线）+
+## 剧情一句（限宽缩字），选项条横跨整屏（panel_col 见 build）；底部提示在选项列下方
+func _draw_event_bg_phone(vs: Vector2) -> void:
+	var x0 := 28.0
+	var etx: Texture2D = g.tex.get("e_event")
+	if etx != null:
+		var fw := etx.get_width() / 2
+		var fh := etx.get_height()
+		var ks: float = 2.0 / A.hires_of(etx)
+		var sz := Vector2(fw, fh) * ks
+		var fr := int(g.t * 2.0) % 2
+		for k in 3:
+			g.panel_fg.draw_circle(Vector2(x0 + sz.x / 2.0, 8.0 + sz.y / 2.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
+		g.panel_fg.draw_texture_rect_region(etx, Rect2(Vector2(x0, 8.0).round(), sz), Rect2(fw * fr, 0, fw, fh))
+		x0 += sz.x + 14.0
+	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
+	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  海嗣祭坛  ·  做出你的选择", 11, Color(0.6, 0.59, 0.56))
+	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+	var tw := serif.get_string_size(g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+	if panel_sub_text != "":
+		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
+	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
+	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_col.offset_top + ev_bars_h + 6), hint, 14, Color(0.55, 0.54, 0.52))
+
+
 ## 墨点 / 笔触多边形平移到插画框里；超出框的部分交给撕纸边外的暗底盖住（这里只做平移）
 func offset_poly(p: PackedVector2Array, o: Vector2, _clip: PackedVector2Array) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -333,14 +387,19 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	ev_bars_h = 0.0
 	# 触屏事件条：说明字号在 17 → 13 里取「全部选项条加起来放得进屏幕」的最大一档（桌面 13 → 12 不变）
 	var ev_sizes: Array = [13, 12]
-	if ev and Cfg.touch_device():
-		var vs_e: Vector2 = g.get_viewport_rect().size
-		var avail: float = vs_e.y - float(g.panel_col.offset_top) - 24.0
-		for s in [17, 16, 15, 14, 13]:
-			var tot := -14.0
+	# 手机事件条：横跨整屏（宽 = 面板宽 − 48），本体 74 高、说明一行起；说明字号在 19 → 14 里取全部选项条放得下的最大档
+	var ph: bool = ev and Cfg.touch_device()
+	var ev_w: float = (g.panel.size.x - 48.0) if ph else 596.0
+	var ev_dw: float = (ev_w - 100.0 - 70.0) if ph else 420.0
+	var ev_h0: float = 74.0 if ph else 100.0
+	var ev_base_lines: int = 1 if ph else 2
+	if ph:
+		var avail: float = g.panel.size.y - float(g.panel_col.offset_top) - 24.0
+		for s in [19, 18, 17, 16, 15, 14]:
+			var tot := -10.0
 			for o in opts:
-				var fe0 := UI.fit(g.font, option_description(o), 420.0, 4.0 * g.font.get_height(13), [s])
-				tot += 100.0 + maxf(0.0, fe0.lines.size() - 2) * float(fe0.lh) + 14.0
+				var fe0 := UI.fit(g.font, option_description(o), ev_dw, 4.0 * g.font.get_height(s), [s])
+				tot += ev_h0 + maxf(0.0, fe0.lines.size() - 1) * float(fe0.lh) + 10.0
 			ev_sizes = [s]
 			if tot <= avail:
 				break
@@ -349,7 +408,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
-		card.custom_minimum_size = Vector2(596, 100) if ev else Vector2(CARD_W, CARD_H)
+		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(CARD_W, card_h())
+		if Cfg.touch_device():
+			card.set_meta("phone", true)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
 		var empty := StyleBoxEmpty.new()
@@ -368,18 +429,18 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), ev_sizes)
+			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(13 if not ph else int(ev_sizes[0])), ev_sizes)
 			card.set_meta("fit", fe)
-			card.custom_minimum_size.y = 100.0 + maxf(0.0, fe.lines.size() - 2) * float(fe.lh)
-			ev_bars_h += card.custom_minimum_size.y + 14.0
+			card.custom_minimum_size.y = ev_h0 + maxf(0.0, fe.lines.size() - ev_base_lines) * float(fe.lh)
+			ev_bars_h += card.custom_minimum_size.y + (10.0 if ph else 14.0)
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, CARD_W - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
 			var compact: bool = not f0.fit
 			if Cfg.touch_device():
-				# 手机：说明字比图标要紧——一律紧凑布局（图标 64、说明区 108 高），字 17 起、最小 13
+				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
-				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [17, 16, 15, 14, 13])
+				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
 				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
 			card.set_meta("fit", f0)
@@ -505,7 +566,8 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		UI.ctext(card, g.font, r.position + Vector2(19, 52), tag[2], 10, Color(0.08, 0.06, 0.02))
 	# 图标 + 光环
 	var compact: bool = card.get_meta("compact", false)
-	var c := r.position + Vector2(r.size.x / 2.0, 100.0 if compact else 124.0)
+	var ph: bool = card.get_meta("phone", false)   # 手机：图标 / 名字上移，说明区更高、字更大
+	var c := r.position + Vector2(r.size.x / 2.0, (84.0 if ph else 100.0) if compact else 124.0)
 	UI.halo(card, c, 40.0 if compact else 58.0, UI.CYAN, hov)
 	var name: String = o.name
 	var glyph := name.substr(0, 1)
@@ -529,10 +591,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var nm := name
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
-	UI.text(card, g.font, r.position + Vector2(0, 184.0 if compact else 230.0), nm, 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	UI.text(card, g.font, r.position + Vector2(0, (160.0 if ph else 184.0) if compact else 230.0), nm, 22 if ph else 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(20, 198.0 if compact else 244.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+		UI.draw_fit(card, g.font, r.position + Vector2(20, (176.0 if ph else 198.0) if compact else 244.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
@@ -542,10 +604,11 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
-	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var sfs := 17 if ph else 14
+	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
 	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
-	UI.text(card, g.font, Vector2(sx, ab.position.y + 20), "选择", 14, ink)
+	UI.text(card, g.font, Vector2(sx, ab.position.y + (21 if ph else 20)), "选择", sfs, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 
 
@@ -592,6 +655,8 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var ox: float = card.get_meta("ox", 0.0)
 	var w := card.size.x
 	var base := Vector2(ox, 0)
+	var ph: bool = card.get_meta("phone", false)   # 手机：条本体 74 高，图标 48、标题 30、说明 40 起
+	var tx0: float = 100.0 if ph else 112.0
 	var shape: PackedVector2Array = art.bars[i % art.bars.size()]
 	var sp := PackedVector2Array()
 	for q in shape:
@@ -600,26 +665,26 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var en_ring: PackedVector2Array = art.ensos[i % art.ensos.size()]
 	var er := PackedVector2Array()
 	for q in en_ring:
-		er.append(base + q + Vector2(0, card.size.y / 2.0 - 50.0))
+		er.append(base + q + Vector2(-6.0 if ph else 0.0, card.size.y / 2.0 - 50.0))
 	UI.fill_poly(card, er, Color(0.925, 0.91, 0.882, 0.55 if hov else 0.22))
 	var ink := Color(0.925, 0.91, 0.882)
 	var icn: String = o.get("icon", "")
 	var itx: Texture2D = g.tex.get(icn) if icn != "" and icn != "exit" else null
 	if itx != null:
-		draw_icon_fit(card, itx, base + Vector2(56, card.size.y / 2.0), 64.0)
+		draw_icon_fit(card, itx, base + Vector2(50.0 if ph else 56.0, card.size.y / 2.0), 48.0 if ph else 64.0)
 	else:
-		UI.icon(card, "exit", base + Vector2(56, card.size.y / 2.0), 32.0, ink)
-	card.draw_string(serif, base + Vector2(112, 38), o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
-	var x := 112.0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
+		UI.icon(card, "exit", base + Vector2(50.0 if ph else 56.0, card.size.y / 2.0), 28.0 if ph else 32.0, ink)
+	card.draw_string(serif, base + Vector2(tx0, 30.0 if ph else 38.0), o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
+	var x := tx0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
 	for chp in o.get("chips", []):
 		var cw := g.font.get_string_size(chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
-		var cr := Rect2(base + Vector2(x, 20), Vector2(cw, 18))
+		var cr := Rect2(base + Vector2(x, 12.0 if ph else 20.0), Vector2(cw, 18))
 		card.draw_rect(cr, Color(chp[1].r, chp[1].g, chp[1].b, 0.9), false, 1.0)
 		card.draw_string(g.font, cr.position + Vector2(6, 13), chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])
 		x += cw + 6.0
 	var fb: Dictionary = card.get_meta("fit", {})
 	if not fb.is_empty():
-		UI.draw_fit(card, g.font, base + Vector2(112, 50), fb, Color(0.81, 0.79, 0.76))
+		UI.draw_fit(card, g.font, base + Vector2(tx0, 40.0 if ph else 50.0), fb, Color(0.81, 0.79, 0.76))
 	UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
 		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, card.size.y - 40.0)), Color(0.18, 0.72, 1.0, 0.25))
