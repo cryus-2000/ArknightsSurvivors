@@ -139,11 +139,77 @@ def _no_focus_kwargs(args):
 
 NO_FOCUS_OVERRIDE = """; 由 tools/godot_runner.py 为测试局临时写入（不入库，跑完即删）：窗口不抢焦点、创建时就在屏幕外
 [display]
-window/size/mode=1
 window/size/no_focus=true
 window/size/initial_position_type=0
 window/size/initial_position=Vector2i(5000, 100)
 """
+
+
+def _hide_offscreen(p):
+    """开窗口测试局：用 Win32 把该进程的窗口挪到屏幕外并压到 Z 序最底（Godot 自己会把 --position 夹回屏幕内，所以从外面挪）。
+    窗口不最小化（最小化后画布不渲染、截图全黑）。后台线程跟到进程结束，前 10 秒每 50 ms、之后每 0.5 秒补一次"""
+    if os.name != "nt":
+        return
+    import ctypes, ctypes.wintypes as W, threading
+    u = ctypes.windll.user32
+    HWND_BOTTOM = 1
+
+    def family():
+        # console 版 Godot exe 会再起一个真正的 GUI 进程，窗口挂在子进程上：按父子关系收集整个进程树
+        k = ctypes.windll.kernel32
+        class PE(ctypes.Structure):
+            _fields_ = [("dwSize", W.DWORD), ("cntUsage", W.DWORD), ("th32ProcessID", W.DWORD), ("th32DefaultHeapID", ctypes.c_void_p),
+                        ("th32ModuleID", W.DWORD), ("cntThreads", W.DWORD), ("th32ParentProcessID", W.DWORD), ("pcPriClassBase", ctypes.c_long),
+                        ("dwFlags", W.DWORD), ("szExeFile", ctypes.c_char * 260)]
+        snap = k.CreateToolhelp32Snapshot(0x2, 0)
+        pairs = []
+        e = PE(); e.dwSize = ctypes.sizeof(PE)
+        if k.Process32First(snap, ctypes.byref(e)):
+            while True:
+                pairs.append((e.th32ProcessID, e.th32ParentProcessID))
+                if not k.Process32Next(snap, ctypes.byref(e)):
+                    break
+        k.CloseHandle(snap)
+        fam = {p.pid}
+        changed = True
+        while changed:
+            changed = False
+            for pid, ppid in pairs:
+                if ppid in fam and pid not in fam:
+                    fam.add(pid); changed = True
+        return fam
+
+    def tick():
+        hs = []
+        fam = family()
+        def cb(h, _):
+            pid = W.DWORD()
+            u.GetWindowThreadProcessId(h, ctypes.byref(pid))
+            if pid.value in fam and u.IsWindowVisible(h):
+                hs.append(h)
+            return True
+        u.EnumWindows(ctypes.WINFUNCTYPE(ctypes.c_bool, W.HWND, W.LPARAM)(cb), 0)
+        if os.environ.get("ARK_NOFOCUS_DEBUG"):
+            sys.stderr.write("[nofocus] fam=%s windows=%s\n" % (sorted(fam), hs))
+        for h in hs:
+            r = W.RECT()
+            u.GetWindowRect(h, ctypes.byref(r))
+            if r.left > -3000:
+                ok = u.SetWindowPos(h, HWND_BOTTOM, -4000, -4000, 0, 0, 0x0001 | 0x0010)   # NOSIZE | NOACTIVATE
+                if os.environ.get("ARK_NOFOCUS_DEBUG"):
+                    r2 = W.RECT(); u.GetWindowRect(h, ctypes.byref(r2))
+                    sys.stderr.write("[nofocus] move %s: %s -> ok=%s now %s\n" % (h, (r.left, r.top), ok, (r2.left, r2.top)))
+
+    def loop():
+        t0 = time.time()
+        while p.poll() is None:
+            try:
+                tick()
+            except Exception as e:   # 只影响窗口位置，不影响测试结果
+                if os.environ.get("ARK_NOFOCUS_DEBUG"):
+                    import traceback; traceback.print_exc()
+            time.sleep(0.05 if time.time() - t0 < 10 else 0.5)
+    threading.Thread(target=loop, daemon=True).start()
 
 
 def _write_override(args):
@@ -179,6 +245,8 @@ def run_godot(args, timeout):
         try:
             if count_godot() < MAX_PROCS:
                 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **_no_focus_kwargs(args))
+                if override is not None or env.get("ARK_NO_FOCUS") == "1":
+                    _hide_offscreen(p)
                 break
         finally:
             _unlock(f)

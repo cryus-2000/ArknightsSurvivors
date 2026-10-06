@@ -80,7 +80,7 @@
 - 测试改设置不再写进玩家的真实存档。以前 ea_ui_test 断言「封面干员已写进配置」，本机跑快检会真的改掉存档里的封面干员。
 - **云端批跑同样适用**：从 19ec187 起，云端镜像里残留的存档也不再影响结果，close8 之后的批跑都以此为准。
 - 需要真实用户目录时，设环境变量 `ARK_REAL_USERDIR=1`。
-- 经 `godot_runner` 起的开窗口测试局在 Windows 上**创建即最小化、不抢焦点**（用户 10-06：别让弹窗打扰）：runner 临时写 `game/override.cfg`（`window/size/mode=1` + `no_focus` + 初始位置屏幕外，跑完无其他 Godot 时删，不入库）并设环境变量 `ARK_NO_FOCUS=1`，游戏内 settings.gd 不居中窗口、`unfocusable`、前 6 秒持续补最小化。截图从画布取帧不受影响（已验 `--titleshot` 最小化下出图正常）。要肉眼看局时设 `ARK_SHOW_WINDOW=1`。自己起 Godot 的驱动脚本要照同一套做（非 console exe、`-w --position`、override.cfg）。
+- 经 `godot_runner` 起的开窗口测试局在 Windows 上**不抢焦点、不出现在屏幕上**（用户 10-06：别让弹窗打扰）：runner 临时写 `game/override.cfg`（`window/size/no_focus=true`，跑完无其他 Godot 时删，不入库）、设环境变量 `ARK_NO_FOCUS=1`（settings.gd 不居中窗口、`unfocusable`），并用 Win32 把整个进程树的窗口挪到屏幕外、压到 Z 序最底（Godot 会把 `--position` 夹回屏幕内，所以从外面挪）。**不能最小化**：最小化后画布不渲染、截图全黑。要肉眼看局时设 `ARK_SHOW_WINDOW=1`。自己起 Godot 的驱动脚本要照同一套做。
 - 开窗口的实时测量脚本（docs/50）自己指定 APPDATA，不受影响。
 
 ## 4. 速度

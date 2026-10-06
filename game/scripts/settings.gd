@@ -65,19 +65,9 @@ func touch_device() -> bool:
 
 func _ready() -> void:
 	if OS.get_environment("ARK_NO_FOCUS") == "1" and DisplayServer.get_name() != "headless":
-		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口一露头就最小化、不抢焦点，截图仍从画布取帧
-		# （用户 10-06：别让弹窗打扰）。Godot 首帧画完才 ShowWindow，之前下的最小化会被覆盖，所以前 6 秒每 50 毫秒补一次
+		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口不抢焦点；位置由 runner 用 Win32 挪到屏幕外
+		# （用户 10-06：别让弹窗打扰）。不能最小化——最小化后画布不渲染，截图全黑
 		get_window().unfocusable = true
-		var t := Timer.new()
-		t.wait_time = 0.05
-		t.autostart = true
-		var n := [0]
-		t.timeout.connect(func() -> void:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
-			n[0] += 1
-			if n[0] > 120:
-				t.stop())
-		add_child(t)
 	_ui_font = load("res://fonts/ui.ttf")
 	if _ui_font != null and _ui_font.fallbacks.is_empty():
 		_ui_font.fallbacks = [load("res://fonts/ui_fallback.otf")]
