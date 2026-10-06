@@ -16,6 +16,9 @@ func _init(game: Game) -> void:
 func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false, allow_unlocks := true) -> void:
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.72))
 	var pw := 600.0 if opts.size() <= 3 else 700.0   # 暂停菜单五个按钮：加宽，按键牌才放得下
+	if Cfg.touch_device():
+		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占到约 90% 宽（结局结算给右侧剪影留 300）
+		pw = minf(vs.x - 300.0 - 32.0, 700.0) if ending_panel else minf(vs.x - 80.0, 960.0)
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - 190, pw, 380)
 	if ending_panel:
 		# 面板 + 右侧剪影（约 260 宽）整体居中，剪影和「结局 Ⅱ / 已达成」不再贴屏幕右边、压到编队 HUD（触屏紧凑版 1113 宽）
@@ -50,6 +53,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	while tsz > 22 and g.font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x > pw - 124.0:
 		tsz -= 2
 	UI.heading(g.hud, g.font, Vector2(r.get_center().x, r.position.y + 90), title, tsz, col, minf(250.0, pw / 2.0 - 24.0))
+	var touch: bool = Cfg.touch_device()   # 触屏（手机）：统计行字 +4、按钮本体 60 高、字 19；桌面不变
 	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
 	var mm := int(display_time) / 60
 	var ss := int(display_time) % 60
@@ -57,7 +61,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
-		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 15 if touch else 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if allow_unlocks and g.diff_new and g.state == Game.S.WIN:
@@ -66,25 +70,23 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
 		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
-	# 触屏（手机）：统计行字 +2、按钮本体 40 → 56 高（≈ 31 pt）、字 17；桌面不变
-	var touch: bool = Cfg.touch_device()
 	for i in stats.size():
-		var y := r.position.y + (166 if ending_panel else 156) + i * 32
+		var y := r.position.y + (166 if ending_panel else 156) + i * (34 if touch else 32)
 		UI.diamond(g.hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))
-		UI.text(g.hud, g.font, Vector2(r.position.x + 62, y), stats[i][0], 18 if touch else 16, UI.SUB)
-		UI.text(g.hud, g.font, Vector2(r.position.x + 200, y), stats[i][1], 20 if touch else 18, UI.TEXT)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 62, y), stats[i][0], 20 if touch else 16, UI.SUB)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 200, y), stats[i][1], 22 if touch else 18, UI.TEXT)
 	var bx := r.position.x + 40
 	var bw := (r.size.x - 80 - 12 * (opts.size() - 1)) / opts.size()
 	g.result_btns.clear()
 	var mouse := g.hud.get_local_mouse_position()
 	for op in opts:
-		var br := Rect2(bx, r.end.y - 82, bw, 56) if touch else Rect2(bx, r.end.y - 70, bw, 40)
+		var br := Rect2(bx, r.end.y - 84, bw, 60) if touch else Rect2(bx, r.end.y - 70, bw, 40)
 		var bi: int = g.result_btns.size()
 		g.result_btns.append([br.grow_individual(6, 12, 6, 12) if Pad.touch_ui() else br, op[2]])   # 触屏点击区 80 高
 		var hov: bool = (bi == g.res_sel) if (Pad.using or g.kb_nav) else br.has_point(mouse)
 		g.hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
-		UI.text(g.hud, g.font, br.position + Vector2(14, 35 if touch else 26), op[0], 17 if touch else 15, bink)
+		UI.text(g.hud, g.font, br.position + Vector2(14, 38 if touch else 26), op[0], 19 if touch else 15, bink)
 		var kst: String = ("Ⓐ" if hov else "") if Pad.using else ("" if Pad.touch else op[1])
 		if kst != "":
 			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)

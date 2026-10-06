@@ -82,6 +82,12 @@ var map_title_en := ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
+	Cfg.ui_k = Cfg.ui_scale()
+	if Cfg.ui_k != 1.0:
+		scale = Vector2(Cfg.ui_k, Cfg.ui_k)
+		Cfg.ui_fill(self)
+		get_viewport().size_changed.connect(func(): Cfg.ui_fill(self))
 	font = load("res://fonts/ui.ttf")
 	tex_player = A.tex("player")
 	if A.tex("player_idle") != null:
@@ -246,7 +252,7 @@ func _diff_input(event: InputEvent) -> void:
 				_diff_back()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		for k in diff_rects:
-			if diff_rects[k].has_point(event.position):
+			if diff_rects[k].has_point(make_input_local(event).position):
 				match k:
 					"left":
 						_diff_step(-1)
@@ -291,13 +297,15 @@ func _diff_go() -> void:
 ## 难度选择：3 档（D.DIFFICULTY_TIERS）左右切换；下方按档列出各自新增的效果（逐档叠加）
 func _draw_diff(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
-	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120)
+	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：面板占满（四边留 8 / 24），菱形与列表上移、列表两列拉开
+	var ph: bool = Pad.touch_ui() and vs.y < 520.0
+	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120) if not ph else Rect2(24, 8, vs.x - 48, vs.y - 16)
 	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY_TIERS.size() - 1))
 	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
-	UI.en(self, font, r.position + Vector2(36, 42), "DIFFICULTY", 13, col, 4.0)
-	UI.text(self, font, r.position + Vector2(36, 80), "选择难度", 26, UI.TEXT)
+	UI.en(self, font, r.position + Vector2(36, 42 if not ph else 30), "DIFFICULTY", 13, col, 4.0)
+	UI.text(self, font, r.position + Vector2(36, 80 if not ph else 62), "选择难度", 26, UI.TEXT)
 	# 当前难度
-	var c := Vector2(r.get_center().x, r.position.y + 140)
+	var c := Vector2(r.get_center().x, r.position.y + (140 if not ph else 96))
 	diff_rects.clear()
 	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
 	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
@@ -316,7 +324,7 @@ func _draw_diff(vs: Vector2) -> void:
 		UI.text(self, font, c + Vector2(-160, 68), tname, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 320)
 	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x / 2.0 - 10, 90 if tname != mark else 66), tdef.en, 11, col, 3.0)
 	# 效果列表：选中档的全部修正（各档独立，不再逐级叠加）；未解锁的档写解锁条件
-	var y := r.position.y + 292
+	var y := r.position.y + (292 if not ph else 238)
 	var locked := diff_sel > Cfg.diff_unlocked
 	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
 	# 副标题：档位说明（DIFFICULTY_TIERS 的 desc，文案定）；没有 desc 时沿用旧写法
@@ -327,15 +335,15 @@ func _draw_diff(vs: Vector2) -> void:
 	var ic := Color(0.3, 0.36, 0.4) if locked else col
 	# 两列均分（原来左列固定 7 行）；行距按按钮上沿以上的空间压缩（触屏紧凑版面板矮，Ⅷ 有 11 条）
 	var per: int = maxi(1, ceili(lines.size() / 2.0))
-	var step: float = clampf((r.end.y - 70.0 - 14.0 - y) / float(per), 22.0, 30.0)
+	var step: float = clampf((r.end.y - (70.0 if not ph else 64.0) - 14.0 - y) / float(per), 22.0, 30.0)
 	for k in lines.size():
-		var x := r.position.x + 60 + (k / per) * 340
+		var x := r.position.x + 60 + (k / per) * (340.0 if not ph else (r.size.x - 120.0) / 2.0)
 		var yy := y + (k % per) * step
 		UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic, ic)
-		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14, UI.SUB if locked else UI.TEXT)
-	# 按钮
-	var go := Rect2(r.get_center().x - 170, r.end.y - 70, 160, 44)
-	var back := Rect2(r.get_center().x + 10, r.end.y - 70, 160, 44)
+		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14 if not ph else 16, UI.SUB if locked else UI.TEXT)
+	# 按钮（手机：贴面板底边，44 高）
+	var go := Rect2(r.get_center().x - 170, r.end.y - (70 if not ph else 56), 160, 44)
+	var back := Rect2(r.get_center().x + 10, r.end.y - (70 if not ph else 56), 160, 44)
 	diff_rects["go"] = go
 	diff_rects["back"] = back
 	if locked:
@@ -444,23 +452,23 @@ func _input(event: InputEvent) -> void:
 				transition.switch_page(_open_op_pick.bind(true))
 	elif event is InputEventMouseMotion:
 		for i in item_rects.size():
-			if item_rects[i].has_point(event.position) and sel != i:
+			if item_rects[i].has_point(make_input_local(event).position) and sel != i:
 				sel = i
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if guide or credits:
 			_close_info()
 			return
-		if credits_rect.has_point(event.position):
+		if credits_rect.has_point(make_input_local(event).position):
 			transition.switch_page(func(): credits = true)
 			Sfx.play("ui_ok")
 			return
-		if deploy_rect.has_point(event.position):
+		if deploy_rect.has_point(make_input_local(event).position):
 			Sfx.play("ui_ok")
 			transition.switch_page(_open_op_pick.bind(true))
 			return
 		for i in item_rects.size():
-			if item_rects[i].has_point(event.position):
+			if item_rects[i].has_point(make_input_local(event).position):
 				_activate(i)
 
 
@@ -538,9 +546,13 @@ func _draw() -> void:
 	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
 	var lg := _seg(2.6, 0.6)
 	var ly := 6.0 * (1.0 - lg)
+	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：Logo 缩到 420×104，副标题 / 分隔线上移 28，菜单行距 40
+	var ph: bool = Pad.touch_ui() and size.y < 520.0
+	if ph:
+		ly -= 50.0
 	if tex_logo != null:
 		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
-		var k: float = min(520.0 / ls.x, 130.0 / ls.y)
+		var k: float = min((360.0 if ph else 520.0) / ls.x, (90.0 if ph else 130.0) / ls.y)
 		if lg > 0.0:
 			draw_texture_rect_region(tex_logo, Rect2(Vector2(tx, 84 + ly), Vector2(ls.x * k * lg, ls.y * k)), Rect2(0, 0, ls.x * lg, ls.y))
 		if lg > 0.0 and lg < 1.0:
@@ -566,7 +578,7 @@ func _draw() -> void:
 			UI.en(self, font, Vector2(tx + 34 + mw, 262 + ly), map_title_en, 10, _fa(Color(0.5, 0.54, 0.58), mf2), 2.5)
 	# 分隔线：1.6s 起从左向右划出，右端一个小方块
 	var rl := _seg(3.1, 0.5)
-	var ry := 282.0
+	var ry := 282.0 + (ly if ph else 0.0)
 	if rl > 0.0:
 		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
 		draw_rect(Rect2(Vector2(tx + 420 * rl - 2, ry - 2), Vector2(5, 5)), Color(1, 1, 1, 0.55 * rl))
@@ -577,8 +589,8 @@ func _draw() -> void:
 	item_rects.fill(Rect2())
 	var menu_ids := _menu_ids()
 	var compact: bool = vs.y < 680.0   # 触屏放大后的紧凑排版
-	var my := 300.0 if compact else 318.0
-	var step := 44.0 if compact else 51.0
+	var my := (242.0 if ph else 300.0) if compact else 318.0
+	var step := (38.0 if ph else 44.0) if compact else 51.0
 	var lx := tx + 4.0
 	var mf0 := _seg(3.3, 0.4)
 	if mf0 > 0.0:
@@ -643,9 +655,10 @@ func _draw() -> void:
 
 	# 页脚：最后淡入
 	var ff := _seg(4.1, 0.4)
-	credits_rect = Rect2(tx - 6, vs.y - 38, 300, 26)
+	var fx: float = (vs.x - 560.0) if ph else tx   # 手机：页脚挪到右下（左下是菜单最后一项）
+	credits_rect = Rect2(fx - 6, vs.y - 38, 300, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(tx, vs.y - 20), ("明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges(), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
+	UI.text(self, font, Vector2(fx, vs.y - 20), ("明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges(), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
 	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
 
 	# 开场：黑幕淡出 + 上下黑边收起
@@ -945,17 +958,17 @@ func _op_input(event: InputEvent) -> void:
 			op_drag = 0.0
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		op_drag = 0.0
-		if op_more_up.has_point(event.position) or op_more_dn.has_point(event.position):
-			_op_scroll_by(-1 if op_more_up.has_point(event.position) else 1)
+		if op_more_up.has_point(make_input_local(event).position) or op_more_dn.has_point(make_input_local(event).position):
+			_op_scroll_by(-1 if op_more_up.has_point(make_input_local(event).position) else 1)
 			return
 		for ti in op_tips.size():
-			if op_tips[ti][0].has_point(event.position):
+			if op_tips[ti][0].has_point(make_input_local(event).position):
 				op_tip = -1 if op_tip == ti else ti
 				Sfx.play("ui_move")
 				return
 		op_tip = -1
 		for k in op_rects:
-			if op_rects[k].has_point(event.position):
+			if op_rects[k].has_point(make_input_local(event).position):
 				if k is int:
 					if op_sel == k:
 						_op_go()
@@ -1020,7 +1033,9 @@ func _draw_op_pick(vs: Vector2) -> void:
 	var tb := 2 if _touch_mode() else 0
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
 	var pw: float = minf(1120.0, vs.x - 24.0)   # 触屏紧凑版逻辑宽 1113：面板别伸出屏幕
-	var r := Rect2(vs.x / 2 - pw / 2.0, 40, pw, vs.y - 80)
+	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：面板上下只留 8，右侧详情从标题行就开始（多出约 110 高给技能行）
+	var ph: bool = _touch_mode() and vs.y < 520.0
+	var r := Rect2(vs.x / 2 - pw / 2.0, 40, pw, vs.y - 80) if not ph else Rect2(vs.x / 2 - pw / 2.0, 8, pw, vs.y - 16)
 	var cur: Dictionary = op_defs[op_sel]
 	var d: Dictionary = cur.def
 	var col: Color = Character.CLASS_COL.get(d.get("class", ""), UI.CYAN)
@@ -1092,7 +1107,7 @@ func _draw_op_pick(vs: Vector2) -> void:
 		UI.text(self, font, cr.position + Vector2(0, 122), od.def.get("class", ""), 12 + tb, _fa(oc if on else UI.SUB, fa), HORIZONTAL_ALIGNMENT_CENTER, cw)
 	# ---- 右：详情
 	var dx := r.position.x + 36 + cols * (cw + 10) + 24
-	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy)
+	var dr := Rect2(dx, gy, r.end.x - 36 - dx, r.end.y - 96 - gy) if not ph else Rect2(dx, r.position.y + 26, r.end.x - 36 - dx, r.end.y - 96 - (r.position.y + 26))
 	UI.panel(self, dr, Color(0.02, 0.05, 0.08, 0.7), Color(col.r, col.g, col.b, 0.35), 12.0)
 	var px := dr.position.x + 24
 	var py := dr.position.y + 34

@@ -55,6 +55,19 @@ var scroll := 0                 # 网格滚动的行数
 const COLS := 5
 const ROWS := 4
 
+
+## 手机（触屏，界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：格子 4 列、可视行数按高度算（约 2 行），详情面板相应变窄
+func phone() -> bool:
+	return Cfg.touch_device() and size.y < 520.0
+
+
+func cols() -> int:
+	return 4 if phone() else COLS
+
+
+func rows_vis() -> int:
+	return maxi(1, int((size.y - 150.0 - 46.0 + 10.0) / 124.0)) if phone() else ROWS
+
 var font: Font
 var t := 0.0
 var tab := 0
@@ -423,13 +436,13 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Pad.touch and (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
 		drag_acc += event.relative.y
 		if absf(drag_acc) > 60.0:
-			var ms: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+			var ms: int = maxi(0, ceili(entries.size() / float(cols())) - rows_vis())
 			scroll = clampi(scroll + (-1 if drag_acc > 0.0 else 1), 0, ms)
 			drag_acc = 0.0
 			queue_redraw()
 		return
 	if event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_WHEEL_DOWN or event.button_index == MOUSE_BUTTON_WHEEL_UP):
-		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+		var max_scroll: int = maxi(0, ceili(entries.size() / float(cols())) - rows_vis())
 		scroll = clampi(scroll + (1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), 0, max_scroll)
 		accept_event()
 		return
@@ -511,11 +524,11 @@ func _set_sel(i: int) -> void:
 		form = 0
 		form_t = 0.0
 		Sfx.play("ui_move")
-	var row: int = sel / COLS
+	var row: int = sel / cols()
 	if row < scroll:
 		scroll = row
-	elif row >= scroll + ROWS:
-		scroll = row - ROWS + 1
+	elif row >= scroll + rows_vis():
+		scroll = row - rows_vis() + 1
 
 
 # ---------------------------------------------------------------- 绘制
@@ -543,8 +556,8 @@ func _draw() -> void:
 		UI.en(self, font, r.position + Vector2(r.size.x - 8 - TABS[i].en.length() * 6.5, 25), TABS[i].en, 8, UI.CYAN if on else Color(0.3, 0.45, 0.5), 0.5)
 	_draw_grid()
 	_draw_detail(vs)
-	if entries.size() > COLS * ROWS:
-		var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+	if entries.size() > cols() * rows_vis():
+		var max_scroll: int = maxi(0, ceili(entries.size() / float(cols())) - rows_vis())
 		UI.text(self, font, Vector2(60, vs.y - 34), ("上下滑动翻页  %d / %d" if Pad.touch_ui() else "滚轮翻页  %d / %d") % [scroll + 1, max_scroll + 1], 12, UI.SUB)
 	UI.text(self, font, Vector2(0, vs.y - 22), Pad.hint("Q / E 切换分页 · 方向键选择 · Z / X 切换动作与形态 · Esc 返回", "LB / RB 切换分页 · 摇杆选择 · Ⓧ / Ⓨ 切换动作与形态 · Ⓑ 返回", "点上方分页切换 · 点格子查看 · 点动作 / 形态按钮切换"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
@@ -569,14 +582,14 @@ func _frame_rect(f: Dictionary, frame: int) -> Rect2:
 
 func _draw_grid() -> void:
 	tile_rects.clear()
-	var max_scroll: int = maxi(0, ceili(entries.size() / float(COLS)) - ROWS)
+	var max_scroll: int = maxi(0, ceili(entries.size() / float(cols())) - rows_vis())
 	scroll = clampi(scroll, 0, max_scroll)
 	for i in entries.size():
 		var e: Dictionary = entries[i]
-		var row: int = i / COLS - scroll
-		var r := Rect2(60 + (i % COLS) * 110, 150 + row * 124, 100, 114)
+		var row: int = i / cols() - scroll
+		var r := Rect2(60 + (i % cols()) * 110, 150 + row * 124, 100, 114)
 		tile_rects.append(r)
-		if row < 0 or row >= ROWS:
+		if row < 0 or row >= rows_vis():
 			tile_rects[i] = Rect2()
 			continue
 		var on := i == sel
@@ -601,16 +614,18 @@ func _draw_detail(vs: Vector2) -> void:
 		return
 	var e: Dictionary = entries[sel]
 	var locked: bool = e.get("locked", false)
-	var pr := Rect2(640, 150, vs.x - 700, vs.y - 200)
+	var ph: bool = phone()
+	var pr := Rect2(640, 150, vs.x - 700, vs.y - 200) if not ph else Rect2(60 + cols() * 110 + 10, 150, vs.x - (60 + cols() * 110 + 10) - 40, vs.y - 190)
 	UI.panel(self, pr, Color(0.02, 0.06, 0.09, 0.9), UI.LINE, 14.0, UI.CYAN, 71, t)
 	form = clampi(form, 0, e.forms.size() - 1)
 	var f: Dictionary = e.forms[form]
 	var is_enemy_demo: bool = f.has("enemy_demo")
 	var demo: bool = (f.has("demo") or is_enemy_demo) and not locked
-	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）
-	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, DEMO_H if demo else 236))
+	# 展示台（演示时换成横贯面板的实机画面，名称 / 属性文字让位）；手机：展示台 200×120、演示画面占到面板底
+	var demo_h: float = DEMO_H if not ph else pr.size.y - 40.0
+	var box := Rect2(pr.position + Vector2(20, 20), Vector2(260, demo_h if demo else 236) if not ph else Vector2(200, demo_h if demo else 120))
 	if demo:
-		var dr := Rect2(box.position, Vector2(pr.size.x - 40, DEMO_H))
+		var dr := Rect2(box.position, Vector2(pr.size.x - 40, demo_h))
 		if is_enemy_demo:
 			_enemy_demo_start(f.enemy_demo, Vector2i(dr.size))
 		else:
@@ -674,7 +689,7 @@ func _draw_detail(vs: Vector2) -> void:
 		var src := _frame_rect(f, _form_frame(f))
 		var src2 := _frame_rect(pf, _form_frame(pf))
 		var gap := 4.0
-		var k: float = minf(250.0 / (src.size.x + src2.size.x + gap), (100.0 if wide else 190.0) / maxf(src.size.y, src2.size.y))
+		var k: float = minf((250.0 if not ph else 190.0) / (src.size.x + src2.size.x + gap), (100.0 if (wide or ph) else 190.0) / maxf(src.size.y, src2.size.y))
 		k = floorf(minf(k, 6.0)) if k >= 1.0 else k
 		var sz := src.size * k
 		var sz2 := src2.size * k
@@ -687,7 +702,7 @@ func _draw_detail(vs: Vector2) -> void:
 			UI.text(self, font, Vector2(x0 + sz.x + gap * k - 20, base.y + 28), pf.get("pair_label", f.get("pair_label", "")), 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sz2.x + 40)
 	elif f.tex != null:
 		var src := _frame_rect(f, _form_frame(f))
-		var fitk: float = minf(240.0 / src.size.x, (100.0 if wide else 200.0) / src.size.y)
+		var fitk: float = minf((240.0 if not ph else 180.0) / src.size.x, (100.0 if (wide or ph) else 200.0) / src.size.y)
 		var k: float = floorf(minf(fitk, 6.0)) if fitk >= 1.0 else fitk
 		var ds: float = float(f.get("dscale", 1.0))
 		if ds > 1.05:
@@ -723,23 +738,23 @@ func _draw_detail(vs: Vector2) -> void:
 			var fl: Array = UI.fit_line(font, e.forms[i].label, 12, br.size.x - 6.0, 10)
 			UI.text(self, font, br.position + Vector2(0, 19), fl[0], fl[1], UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	# 文字
-	var tx := pr.position.x + 300
+	var tx := pr.position.x + (300 if not ph else 240)
 	var tw := pr.end.x - tx - 20
-	var y := pr.position.y + 140
+	var y := pr.position.y + (140 if not ph else 100)
 	if wide:
-		y = pr.position.y + 134   # 技能 / 数值页：标签紧跟在职业行下，分隔线让到标签下方
+		y = pr.position.y + (134 if not ph else 100)   # 技能 / 数值页：标签紧跟在职业行下，分隔线让到标签下方
 	if not demo:
-		UI.en(self, font, Vector2(tx, pr.position.y + 40), e.en if not locked else "UNKNOWN", 11, UI.CYAN_DIM, 3.0)
-		UI.text(self, font, Vector2(tx, pr.position.y + 76), e.name if not locked else "???", 26, UI.TEXT)
-		draw_rect(Rect2(Vector2(tx, pr.position.y + 92), Vector2(4, 16)), UI.CYAN)
-		UI.text(self, font, Vector2(tx + 12, pr.position.y + 106), e.tag, 14, UI.CYAN)
+		UI.en(self, font, Vector2(tx, pr.position.y + (40 if not ph else 28)), e.en if not locked else "UNKNOWN", 11, UI.CYAN_DIM, 3.0)
+		UI.text(self, font, Vector2(tx, pr.position.y + (76 if not ph else 56)), e.name if not locked else "???", 26 if not ph else 22, UI.TEXT)
+		draw_rect(Rect2(Vector2(tx, pr.position.y + (92 if not ph else 68)), Vector2(4, 16)), UI.CYAN)
+		UI.text(self, font, Vector2(tx + 12, pr.position.y + (106 if not ph else 82)), e.tag, 14, UI.CYAN)
 	if not locked and not demo:
 		# 干员有「档案 / 技能 / 数值」分页，右侧不再重复列技能名：标签放在名字下面，下方信息区更高
 		if not e.has("pages"):
 			for s in e.stats:
 				UI.text(self, font, Vector2(tx, y), s[0], 14, UI.SUB)
 				UI.text(self, font, Vector2(tx + 60, y), s[1], 15, UI.TEXT)
-				y += 26
+				y += 26 if not ph else 22
 		# 标签行放在动作按钮行之下，避免与按钮重叠（干员页标签在名字下方，不受此限）
 		if e.forms.size() > 1 and not e.has("pages"):
 			y = maxf(y, box.end.y + 52)
@@ -750,8 +765,12 @@ func _draw_detail(vs: Vector2) -> void:
 			UI.text(self, font, Vector2(cx, y + 13), c, 12, UI.PURPLE, HORIZONTAL_ALIGNMENT_CENTER, w)
 			cx += w + 8
 	var dy := maxf(y + 42, box.end.y + 60) if not (e.has("pages") and not locked and not demo) else box.end.y + 64
+	if ph:
+		dy = maxf(y + 36, box.end.y + 46) if not (e.has("pages") and not locked and not demo) else box.end.y + 50
 	if wide:
 		dy = y + 50
+	if ph and demo:
+		return   # 手机：演示画面占满面板，下面没有信息区
 	UI.rule(self, Vector2(pr.position.x + 20, dy - 18), Vector2(pr.end.x - 20, dy - 18), UI.CYAN_DIM)
 	info_rects.clear()
 	if e.has("pages") and not locked:

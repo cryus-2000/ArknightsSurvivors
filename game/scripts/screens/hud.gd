@@ -173,7 +173,7 @@ func draw() -> void:
 func _draw_body() -> void:
 	var vs := g.hud.size
 	g.speed_btn = Rect2()
-	var ct := g.get_viewport().get_canvas_transform()
+	var ct := g.hud_ct()
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
 		return
@@ -378,7 +378,7 @@ func _draw_body() -> void:
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
 	UI.gbar(g.hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
 	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else "")
-	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 13 if g.touch.active else 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
+	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 14 if g.touch.active else 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
 	var tray_x := vs.x - 80.0
@@ -712,7 +712,7 @@ func draw_speed_button(vs: Vector2) -> void:
 	var enabled: bool = g.state == Game.S.PLAY
 	var hovered: bool = enabled and rect.has_point(g.hud.get_local_mouse_position())
 	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
-	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 12 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
 	if enabled:
 		g.speed_btn = g.touch._hit(rect) if g.touch.active else rect   # 触屏：点击区 84 见方
 
@@ -933,7 +933,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	batch_end()
 	if not g.dash_used and g.t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
-		var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -92))
+		var sp: Vector2 = g.hud_ct() * (g.ppos + Vector2(0, -92))
 		UI.text(g.hud, g.font, sp - Vector2(100, 0), "按 %s 冲刺（无敌）" % key, 15, Color(0.85, 1.0, 1.0, a), HORIZONTAL_ALIGNMENT_CENTER, 200, 4)
 
 
@@ -959,7 +959,7 @@ func draw_manual_hint() -> void:
 		return
 	manual_hint_t -= g.get_process_delta_time()
 	var a: float = clampf(manual_hint_t / 0.5, 0.0, 1.0) * (0.65 + 0.35 * sin(g.t * 5.0))
-	var sp: Vector2 = g.get_viewport().get_canvas_transform() * (g.ppos + Vector2(0, -118))
+	var sp: Vector2 = g.hud_ct() * (g.ppos + Vector2(0, -118))
 	UI.text(g.hud, g.font, sp - Vector2(140, 0), manual_hint_text, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), HORIZONTAL_ALIGNMENT_CENTER, 280, 4)
 
 
@@ -995,7 +995,7 @@ func draw_manual_aim() -> void:
 	else:
 		dir = g.doctor.manual_input_dir()
 		strong = dir != Vector2.ZERO
-	var xf: Transform2D = g.get_viewport().get_canvas_transform()
+	var xf: Transform2D = g.hud_ct()
 	var pt: Vector2 = ld.manual_aim_point(i, dir) if ld.manual_ready(i, dir) else Vector2.INF
 	if pt == Vector2.INF:
 		# 触屏按住没拖、自动瞄准又没目标（乌尔比安：400 内没敌人）：提示拖出方向，免得松手只飘一句「附近没有敌人」
@@ -1009,7 +1009,7 @@ func draw_manual_aim() -> void:
 	var rad: float = ld.base("s3_r", 140.0) * ld.stat(&"op_range") * sc
 	# 引导线：虚线，到圈边为止
 	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
-	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	var vsz: Vector2 = g.hud.size
 	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
 	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
 	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
@@ -1051,7 +1051,7 @@ func draw_point_aim(ld, i: int) -> void:
 	var pt: Vector2 = ld.manual_aim_point(i)
 	if pt == Vector2.INF:
 		return
-	var xf: Transform2D = g.get_viewport().get_canvas_transform()
+	var xf: Transform2D = g.hud_ct()
 	var sc: float = xf.get_scale().x
 	var from: Vector2 = xf * ld.pos
 	var to: Vector2 = xf * pt
@@ -1063,7 +1063,7 @@ func draw_point_aim(ld, i: int) -> void:
 		var rr: float = ld.aim_range(i) * sc
 		g.hud.draw_arc(from, rr, 0.0, TAU, 64, Color(AIM_COL.r, AIM_COL.g, AIM_COL.b, 0.22), 1.5)
 	# 落点可能在屏幕外（射程 400 大于屏幕半高，验收 P2）：圈心夹进屏内，真实落点方向画一个小三角
-	var vsz: Vector2 = g.hud.get_viewport_rect().size
+	var vsz: Vector2 = g.hud.size
 	# 四边余量至少 rad + 26（验收：原来左右下只有 rad*0.5+8，圈总出屏 62 像素），上边再让开计时面板
 	var mtop: float = maxf(rad + 26.0, rad * 0.5 + 96.0)
 	var inner := Rect2(Vector2(rad + 26.0, mtop), vsz - Vector2(rad * 2.0 + 52.0, mtop + rad + 26.0))
@@ -1115,7 +1115,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 	var hurting: bool = out_t >= Combat.ZONE_GRACE
 	var col: Color = UI.RED if hurting else UI.GOLD
 	var pulse: float = 0.5 + 0.5 * sin(g.t * (9.0 if hurting else 5.0))
-	var ct := g.get_viewport().get_canvas_transform()
+	var ct := g.hud_ct()
 	var sp: Vector2 = ct * (g.ppos + Vector2(0, -24))
 	# 人字纹：从主控往外三道，依次点亮
 	var side: Vector2 = dir.orthogonal()
