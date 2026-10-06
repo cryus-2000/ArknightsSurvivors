@@ -467,7 +467,7 @@ func option_description(option: Dictionary) -> String:
 		var sk: Dictionary = op.skill_def(i)
 		if i > stage or sk.get("mode", "auto") != "manual":
 			continue
-		var use: String = "主控按 Q 释放" if op.is_leader else "作为队友自动释放"
+		var use: String = (("主控点技能键释放" if Pad.touch_ui() else "主控按 Q 释放") if op.is_leader else "作为队友自动释放")
 		var timing: String = "解锁后" if not op.skill_unlocked(i) else "充能后"
 		return "%s%s「%s」。\n%s" % [timing, use, sk.get("name", "技能"), description]
 	return description

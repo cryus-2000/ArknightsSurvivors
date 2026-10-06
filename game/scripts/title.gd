@@ -187,6 +187,12 @@ func _ready() -> void:
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--guideshot"):
+		# 操作说明页截图（手机设置页改版 10-06 验收用）
+		guide = true
+		get_tree().create_timer(1.0).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_guide.png")
+			get_tree().quit())
 	if Cfg.dev_args().has("--opshot"):
 		# 选人页截图（可选 --opsel=<n>）
 		_open_op_pick()
@@ -753,8 +759,10 @@ func _draw_guide(vs: Vector2) -> void:
 		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓨ 手动技能　Ⓧ / RT 手动攻击　右摇杆瞄准"],
 		["", "START 暂停　SELECT 属性　菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
 	]
+	# 触屏（手机，逻辑高约 481，面板 460）：行距 32 → 30，最后一行不再压到「点击任意处返回」；桌面不变
+	var lstep: float = 30.0 if Pad.touch_ui() else 32.0
 	for i in lines.size():
-		var y := r.position.y + 98 + i * 32   # 11 行：行距 35 → 32，最后一行仍在底部提示之上
+		var y := r.position.y + 98 + i * lstep   # 11 行：行距 35 → 32，最后一行仍在底部提示之上
 		if lines[i][0] != "":
 			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
 		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)

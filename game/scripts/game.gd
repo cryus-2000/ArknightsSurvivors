@@ -672,7 +672,8 @@ func _ready() -> void:
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif trial.active:
 		pass
-	elif Cfg.dev_args().has("--introshot"):
+	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
+		# --guidepages：只截局内指南各页（不带标题页 --introshot 的开场分镜截图与 5 秒退出）
 		intro_screen.open.call_deferred(S.PLAY)
 	elif not autotest or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()

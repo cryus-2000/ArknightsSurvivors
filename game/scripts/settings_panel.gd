@@ -2,6 +2,7 @@ extends Control
 ## 设置面板：标题界面与暂停菜单共用。键盘 ↑↓ 选择、←→ 调整、Esc 返回；也可用鼠标点击；手柄经 Pad 翻译成同样的按键。
 ## 分类页（2026-09-27 用户要求）：声音 / 画面 / 游戏，Q / E（手柄 LB / RB → PageUp / PageDown）或点标签切换；
 ## 每页末尾一行「返回」。选项本身（ROWS 的键名、类型、存档键）不变，TABS 只按键名分组
+## 触屏（手机）不列 TOUCH_HIDE 里的桌面专用项（全屏 / 窗口分辨率：手机永远全屏、分辨率由系统定）；页签 / 底部提示不画键位
 
 signal closed
 
@@ -34,6 +35,9 @@ const TABS := [
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
 	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
 ]
+
+## 触屏不显示的选项键名（手机设置页改版 10-06）
+const TOUCH_HIDE := ["fullscreen", "res_index"]
 
 var font: Font
 var tab := 0
@@ -68,7 +72,10 @@ func open() -> void:
 func _set_tab(t: int) -> void:
 	tab = (t + TABS.size()) % TABS.size()
 	cur.clear()
+	var touch: bool = Cfg.touch_device()
 	for key in TABS[tab][2]:
+		if touch and key in TOUCH_HIDE:
+			continue
 		for i in ROWS.size():
 			if ROWS[i].key == key:
 				cur.append(i)
@@ -205,7 +212,7 @@ func _draw() -> void:
 	var pw: float = 760.0 if touch else 640.0
 	if touch:
 		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占满（左右各留 24），标题与分类页签同一行，
-		# 行距按剩余高度放到 ≤ 52（九行约 42），不画底部提示
+		# 不画底部提示；去掉全屏 / 分辨率后最多七行（10-06），行距按剩余高度放到 ≤ 56、行本体 ≤ 52（七行约 52 / 52）
 		pw = vs.x - 48.0
 		rh = vs.y - 8.0
 	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - rh / 2.0, pw, rh)
@@ -236,11 +243,11 @@ func _draw() -> void:
 	var top := r.position.y + (146.0 if not touch else 90.0)
 	var step: float = minf((56.0 if touch else 40.0) if compact else 46.0, (r.end.y - (60.0 if touch else 46.0) - top - 34.0) / float(maxi(1, cur.size() - 1)))
 	if touch:
-		step = minf(52.0, (r.end.y - 14.0 - top) / float(maxi(1, cur.size())))
+		step = minf(56.0, (r.end.y - 14.0 - top) / float(maxi(1, cur.size())))
 	var fs_cn := 19 if touch else 17   # 选项名
 	var fs_v := 20 if touch else 18    # 数值 / 开关
 	var fs_a := 18 if touch else 14    # ◀ ▶ 与音量数字
-	var row_hh: float = minf(48.0 if touch else 34.0, step)
+	var row_hh: float = minf(52.0 if touch else 34.0, step)
 	var ty0: float = (row_hh / 2.0 + 7.0) if touch else 24.0   # 行内文字基线（行本体 48 / 34；手机按行高居中）
 	for si in cur.size():
 		var i: int = cur[si]

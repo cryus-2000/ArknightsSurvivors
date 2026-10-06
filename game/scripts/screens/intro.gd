@@ -233,6 +233,35 @@ func draw(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过", "点击：下一页　　点面板左侧：上一页"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
+## 触屏版「操作」页插图（手机设置页改版 10-06）：小手机框，左半屏虚拟摇杆（圆环 + 来回摆的旋钮）+ 右下冲刺键 / 技能键，
+## 和局内 touch.gd 的画法同一套（圆底 + 青色环 + 字）
+func _draw_touch_keys(c: Vector2) -> void:
+	var fr := Rect2(c + Vector2(-150, -84), Vector2(300, 168))
+	g.hud.draw_rect(fr, Color(0.03, 0.08, 0.11, 0.9))
+	g.hud.draw_rect(fr, UI.CYAN_DIM, false, 1.5)
+	g.hud.draw_line(Vector2(c.x, fr.position.y + 6), Vector2(c.x, fr.end.y - 6), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.15), 1.0)
+	# 左半屏：摇杆（旋钮绕中心慢转，示意拖动）
+	var so := c + Vector2(-78, 4)
+	g.hud.draw_circle(so, 40.0, Color(0.05, 0.12, 0.16, 0.5))
+	g.hud.draw_arc(so, 40.0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55), 2.0)
+	var knob := so + Vector2(cos(g.intro_t * 1.6), sin(g.intro_t * 1.6)) * 22.0
+	g.hud.draw_circle(knob, 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
+	g.hud.draw_arc(knob, 14.0, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.85), 2.0)
+	UI.text(g.hud, g.font, so + Vector2(-60, 64), "左半屏拖动", 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 120)
+	# 右下：冲刺键；左上斜方技能键
+	var dc := c + Vector2(96, 36)
+	g.hud.draw_circle(dc, 26.0, Color(0.05, 0.12, 0.16, 0.7))
+	g.hud.draw_arc(dc, 26.0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), 3.0)
+	UI.text(g.hud, g.font, dc + Vector2(-30, 6), "冲刺", 14, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 60)
+	var sc := dc + Vector2(-58, -56)
+	var pulse: float = 0.5 + 0.5 * sin(g.intro_t * 4.0)
+	g.hud.draw_circle(sc, 22.0, Color(0.05, 0.12, 0.16, 0.75))
+	g.hud.draw_arc(sc, 22.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), 2.0)
+	g.hud.draw_arc(sc, 26.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
+	UI.text(g.hud, g.font, sc + Vector2(-30, 5), "技能", 13, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 60)
+	UI.text(g.hud, g.font, c + Vector2(10, fr.end.y - c.y - 8), "轻点自动瞄准 · 按住拖方向", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+
+
 func draw_icon(kind: String, c: Vector2) -> void:
 	match kind:
 		"mizuki":
@@ -354,6 +383,9 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
 				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		"keys":
+			if Pad.touch_ui():
+				_draw_touch_keys(c)
+				return
 			var keys := [["W", Vector2(0, -60)], ["A", Vector2(-48, -12)], ["S", Vector2(0, -12)], ["D", Vector2(48, -12)], ["Tab", Vector2(-40, 60)], ["Esc", Vector2(40, 60)]]
 			for kk in keys:
 				var kr := Rect2(c + kk[1] - Vector2(20, 20), Vector2(40 if kk[0].length() == 1 else 56, 40))
