@@ -13,6 +13,7 @@ var g: Game
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
 var ev_bars_h := 0.0           # 事件选项条的总高度（选项条按说明行数加高，提示文字跟在后面）
+const EV_COL_TOP_TOUCH := 150.0   # 触屏事件选项列顶边（桌面 196）：手机逻辑高 626，四选项（抉择）原来最后一条出界
 var serif: Font                # 事件标题用的衬线粗体（fonts/serif.ttf，缺失时退回 UI 字体）
 ## 事件（C 版式，原作「不期而遇」）：左边撕纸边灰阶墨色插画——画面里唯一的彩色物件是海嗣祭坛；
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
@@ -113,7 +114,7 @@ func build(parent: Node) -> void:
 	g.panel_col.anchor_right = 0.5
 	g.panel_col.offset_left = 12
 	g.panel_col.offset_right = 608
-	g.panel_col.offset_top = 196
+	g.panel_col.offset_top = 196 if not Cfg.touch_device() else EV_COL_TOP_TOUCH   # 触屏（626 高）：选项列上移，四个选项才放得下
 	g.panel_col.offset_bottom = 560
 	g.panel_col.visible = false
 	g.panel.add_child(g.panel_col)
@@ -185,7 +186,7 @@ func draw_bg() -> void:
 				en_label = "RECRUIT"
 			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, CARDS_TOP - 92.0)
 			var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
-			UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+			UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 14 if Cfg.touch_device() else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -292,10 +293,12 @@ func draw_event_bg(vs: Vector2) -> void:
 	if panel_sub_text != "":
 		g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
-	UI.en(g.panel_fg, g.font, Vector2(cx + 20, 142), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
-	g.panel_fg.draw_string(serif, Vector2(cx + 20, 178), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
+	var col_top: float = g.panel_col.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
+	var tt: float = 12.0 if Cfg.touch_device() else 0.0   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
+	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
+	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(cx + 20, 196 + ev_bars_h + 6), hint, 12, Color(0.55, 0.54, 0.52))
+	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, 14 if Cfg.touch_device() else 12, Color(0.55, 0.54, 0.52))
 
 
 ## 墨点 / 笔触多边形平移到插画框里；超出框的部分交给撕纸边外的暗底盖住（这里只做平移）
@@ -328,6 +331,19 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	layout(kind)
 	var ev := kind == "event"
 	ev_bars_h = 0.0
+	# 触屏事件条：说明字号在 17 → 13 里取「全部选项条加起来放得进屏幕」的最大一档（桌面 13 → 12 不变）
+	var ev_sizes: Array = [13, 12]
+	if ev and Cfg.touch_device():
+		var vs_e: Vector2 = g.get_viewport_rect().size
+		var avail: float = vs_e.y - float(g.panel_col.offset_top) - 24.0
+		for s in [17, 16, 15, 14, 13]:
+			var tot := -14.0
+			for o in opts:
+				var fe0 := UI.fit(g.font, option_description(o), 420.0, 4.0 * g.font.get_height(13), [s])
+				tot += 100.0 + maxf(0.0, fe0.lines.size() - 2) * float(fe0.lh) + 14.0
+			ev_sizes = [s]
+			if tot <= avail:
+				break
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var display_desc := option_description(o)
@@ -352,7 +368,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
+			var fe := UI.fit(g.font, display_desc, 420.0, 4.0 * g.font.get_height(13), ev_sizes)
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = 100.0 + maxf(0.0, fe.lines.size() - 2) * float(fe.lh)
 			ev_bars_h += card.custom_minimum_size.y + 14.0
@@ -360,7 +376,11 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, CARD_W - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
 			var compact: bool = not f0.fit
-			if compact:
+			if Cfg.touch_device():
+				# 手机：说明字比图标要紧——一律紧凑布局（图标 64、说明区 108 高），字 17 起、最小 13
+				compact = true
+				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [17, 16, 15, 14, 13])
+			elif compact:
 				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
 			card.set_meta("fit", f0)
 			card.set_meta("compact", compact)

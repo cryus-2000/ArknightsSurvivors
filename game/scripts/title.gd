@@ -613,9 +613,13 @@ func _draw() -> void:
 		var fs := 24 if on else 20
 		UI.text(self, font, Vector2(tx2, cy + (9 if on else 7)), cn, fs, _fa(UI.TEXT if on else Color(0.76, 0.79, 0.81), f))
 		var cw: float = font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		UI.en(self, font, Vector2(tx2 + cw + 14, cy + 6), ITEMS[i].en, 12, _fa(UI.CYAN if on else Color(0.41, 0.45, 0.49), f), 3.5)
+		var enw: float = UI.en(self, font, Vector2(tx2 + cw + 14, cy + 6), ITEMS[i].en, 12, _fa(UI.CYAN if on else Color(0.41, 0.45, 0.49), f), 3.5)
 		if on:
-			UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
+			if compact:
+				# 紧凑排版（手机）：行距 44，说明放在条目下面会压到下一项，改放在英文标签右边
+				UI.text(self, font, Vector2(tx2 + cw + 14 + enw + 18, cy + 7), ITEM_SUB[i], 13, _fa(UI.SUB, f))
+			else:
+				UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
 	# 操作提示
 	var hf := _seg(4.0, 0.4)
 	# 触屏不画（点按菜单不用提示；740×360 下还会压到时间轴竖线和最后一项的圆点）

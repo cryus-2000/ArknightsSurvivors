@@ -74,6 +74,13 @@ func handle(event: InputEvent) -> bool:
 			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:
 				for c in g.stats_cells:
+					if c[1] == "tab" and _hit(c[0]).has_point(event.position):
+						# 触屏版属性面板的页签（属性 / 技能 / 编队）
+						if g.stats_page != c[2]:
+							g.stats_page = c[2]
+							Sfx.play("ui_move")
+						return true
+				for c in g.stats_cells:
 					if c[0].has_point(event.position):
 						return false
 				g.state = g.S.PLAY
@@ -228,7 +235,7 @@ func draw_hud(vs: Vector2) -> void:
 			hud.draw_circle(c, BTN / 2.0, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
 			hud.draw_arc(c, BTN / 2.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
 			UI.text(hud, font, c + Vector2(-20, 7), items[i][0], 20, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
-			UI.text(hud, font, c + Vector2(-30, BTN / 2.0 + 14), items[i][2], 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			UI.text(hud, font, c + Vector2(-30, BTN / 2.0 + 15), items[i][2], 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
 			# 开局「点「属性」查看……」提示期间，属性键跟着呼吸（提示条件同 hud.gd）
 			if items[i][1] == "stats" and g.state == g.S.PLAY and (((g.t >= 6.0 and g.t < 16.0) and not g.tab_used) or g.tab_hint > 0.0):
 				var pulse: float = 0.5 + 0.5 * sin(g.t * 5.0)
@@ -283,7 +290,7 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 	if ready:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 		hud.draw_arc(c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
-	UI.text(hud, font, c + Vector2(-40, r + 16), ld.skill_def(i).get("name", ""), 11, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	UI.text(hud, font, c + Vector2(-40, r + 17), ld.skill_def(i).get("name", ""), 12, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	# 按住拖动：按钮上画小摇杆（外圈 = 拖动示意范围，内圈 = 死区，拖回内圈 = 自动瞄准）
 	if skill_id >= 0 and ld.manual_aims(i):
 		var reach := r + 30.0

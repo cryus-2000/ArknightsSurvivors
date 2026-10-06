@@ -191,12 +191,15 @@ func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
 	var compact: bool = vs.y < 680.0
+	# 触屏（手机）：面板加宽 640 → 760，行距 40 → 56、行本体 34 → 48（≈ 26 pt）、字 +2；桌面不变
+	var touch: bool = Cfg.touch_device()
 	# 面板高度按最长的一页定（各页高度一致，切页不跳）：标题 + 标签 146 + 行 46 × (n - 1) + 返回行 + 底部提示
 	var most := 0
 	for tb in TABS:
 		most = maxi(most, tb[2].size())
 	var rh: float = minf(146.0 + most * 46.0 + 44.0 + 56.0, vs.y - 8.0)
-	var r := Rect2(vs.x / 2 - 320, vs.y / 2 - rh / 2.0, 640, rh)
+	var pw: float = 760.0 if touch else 640.0
+	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - rh / 2.0, pw, rh)
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
 	UI.text(self, font, r.position + Vector2(40, 58), "设置", 28, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(112, 56), "SETTINGS", 13, UI.CYAN, 3.0)
@@ -222,44 +225,48 @@ func _draw() -> void:
 	row_rects.clear()
 	# 行距按面板高度自适应：标题 + 标签 140 + 行 + 底部提示 40 都要放得下
 	var top := r.position.y + 146.0
-	var step: float = minf(40.0 if compact else 46.0, (r.end.y - 46.0 - top - 34.0) / float(maxi(1, cur.size() - 1)))
+	var step: float = minf((56.0 if touch else 40.0) if compact else 46.0, (r.end.y - (60.0 if touch else 46.0) - top - 34.0) / float(maxi(1, cur.size() - 1)))
+	var fs_cn := 19 if touch else 17   # 选项名
+	var fs_v := 20 if touch else 18    # 数值 / 开关
+	var fs_a := 18 if touch else 14    # ◀ ▶ 与音量数字
+	var ty0: float = 31.0 if touch else 24.0   # 行内文字基线（行本体 48 / 34）
 	for si in cur.size():
 		var i: int = cur[si]
 		var row: Dictionary = ROWS[i]
 		var back: bool = row.type == "back"
-		var rr := Rect2(r.position.x + 30, top + si * step + (10.0 if back else 0.0), r.size.x - 60, minf(34.0, step))
+		var rr := Rect2(r.position.x + 30, top + si * step + (10.0 if back else 0.0), r.size.x - 60, minf(48.0 if touch else 34.0, step))
 		row_rects.append(rr)
 		var on := si == sel
 		if on:
 			draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
 			draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
-		UI.text(self, font, rr.position + Vector2(18, 24), row.cn, 17, UI.TEXT if on else UI.SUB)
-		UI.en(self, font, rr.position + Vector2(130, 23), row.en, 9, UI.CYAN_DIM, 2.0)
+		UI.text(self, font, rr.position + Vector2(18, ty0), row.cn, fs_cn, UI.TEXT if on else UI.SUB)
+		UI.en(self, font, rr.position + Vector2(130, ty0 - 1.0), row.en, 9, UI.CYAN_DIM, 2.0)
 		if row.has("note"):
-			UI.text(self, font, rr.position + Vector2(rr.size.x - 70, 24), row.note, 11, UI.SUB)
+			UI.text(self, font, rr.position + Vector2(rr.size.x - 70, ty0), row.note, 11, UI.SUB)
 		var vx := rr.position.x + rr.size.x - 230
 		match row.type:
 			"vol":
 				var v: float = Cfg.get(row.key)
-				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 				for k in 10:
 					var c := UI.CYAN if k < int(round(v * 10.0)) else Color(0.15, 0.22, 0.26)
-					draw_rect(Rect2(vx + 16 + k * 16, rr.position.y + 11, 12, 13), c)
-				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx + 200, rr.position.y + 24), "%d" % int(round(v * 100.0)), 14, UI.TEXT)
+					draw_rect(Rect2(vx + 16 + k * 16, rr.position.y + ty0 - 13.0, 12, 13), c)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx + 200, rr.position.y + ty0), "%d" % int(round(v * 100.0)), fs_a, UI.TEXT)
 			"bool":
 				var b: bool = Cfg.get(row.key)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), str(row.get("on", "开")) if b else str(row.get("off", "关")), 18, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + ty0), str(row.get("on", "开")) if b else str(row.get("off", "关")), fs_v, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"quality":
 				var hq: bool = Cfg.quality != "low"
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), "高" if hq else "低", 18, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + ty0), "高" if hq else "低", fs_v, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"shake":
 				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), names.get(Cfg.shake, "标准"), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx, rr.position.y + ty0), names.get(Cfg.shake, "标准"), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"bright":
-				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), "%d%%" % int(round(Cfg.brightness * 100.0)), 18, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
-				UI.text(self, font, Vector2(vx + 180, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + ty0), "%d%%" % int(round(Cfg.brightness * 100.0)), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+				UI.text(self, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
 			"res":
 				var pi: int = clampi(pending_res, 0, Cfg.RESOLUTIONS.size() - 1)
 				var sz: Vector2i = Cfg.RESOLUTIONS[pi]
@@ -267,12 +274,12 @@ func _draw() -> void:
 				var label := "%d × %d" % [sz.x, sz.y]
 				if Cfg.fullscreen:
 					# 全屏说明放在 ◀ 左边的小字（原来接在数值后面，140 宽放不下、压到 ◀）
-					UI.text(self, font, Vector2(vx - 196, rr.position.y + 23), "全屏时按屏幕分辨率", 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 176)
-				UI.text(self, font, Vector2(vx - 10, rr.position.y + 24), "◀", 14, UI.CYAN if on else UI.SUB)
-				UI.text(self, font, Vector2(vx, rr.position.y + 24), label, 17, (UI.GOLD if changed else UI.CYAN) if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+					UI.text(self, font, Vector2(vx - 196, rr.position.y + ty0 - 1.0), "全屏时按屏幕分辨率", 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 176)
+				UI.text(self, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
+				UI.text(self, font, Vector2(vx, rr.position.y + ty0), label, fs_cn, (UI.GOLD if changed else UI.CYAN) if not Cfg.fullscreen else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
 				if changed:
-					var br := Rect2(vx + 142, rr.position.y + 6, 42, 22)
+					var br := Rect2(vx + 142, rr.position.y + ty0 - 18.0, 42, 22)
 					UI.panel(self, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 					UI.text(self, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-				UI.text(self, font, Vector2(vx + 190, rr.position.y + 24), "▶", 14, UI.CYAN if on else UI.SUB)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+				UI.text(self, font, Vector2(vx + 190, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+	UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 15 if touch else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)

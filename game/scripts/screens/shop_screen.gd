@@ -56,11 +56,12 @@ func build() -> void:
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号
-		var szs: Array = [14, 13, 12, 11] if Pad.touch_ui() else [12, 11]
-		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, 64.0, szs)
+		var touch: bool = Cfg.touch_device()
+		var szs: Array = ([15, 14, 13, 12] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
+		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, 72.0 if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
-			fs0 = UI.fit(g.font, it.desc, cw - 20.0, 80.0, szs)
+			fs0 = UI.fit(g.font, it.desc, cw - 20.0, 88.0 if touch else 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		var chips := Affects.chips(g, it)
@@ -161,7 +162,9 @@ func draw_bg(vs: Vector2) -> void:
 	var top: float = g.panel_box.offset_top
 	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件（刷新不重置）" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
-	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 52.0), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 12, UI.SUB)
+	# 触屏：这行下移 8、字 13，不和标题下的说明行挤在一起（手机上两行 12 号字贴着看不清）
+	var tch: bool = Cfg.touch_device()
+	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 52.0 + (8.0 if tch else 0.0)), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 13 if tch else 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)
@@ -200,5 +203,6 @@ func draw_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
 	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  Esc 离开"])
-	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], 12, UI.SUB)
-	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 47.0), hints[1], 12, UI.SUB)
+	var hfs := 14 if Cfg.touch_device() else 12
+	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], hfs, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 49.0 if hfs > 12 else top + CARD_H + 47.0), hints[1], hfs, UI.SUB)
