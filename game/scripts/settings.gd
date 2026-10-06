@@ -64,6 +64,20 @@ func touch_device() -> bool:
 
 
 func _ready() -> void:
+	if OS.get_environment("ARK_NO_FOCUS") == "1" and DisplayServer.get_name() != "headless":
+		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口一露头就最小化、不抢焦点，截图仍从画布取帧
+		# （用户 10-06：别让弹窗打扰）。Godot 首帧画完才 ShowWindow，之前下的最小化会被覆盖，所以前 6 秒每 50 毫秒补一次
+		get_window().unfocusable = true
+		var t := Timer.new()
+		t.wait_time = 0.05
+		t.autostart = true
+		var n := [0]
+		t.timeout.connect(func() -> void:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+			n[0] += 1
+			if n[0] > 120:
+				t.stop())
+		add_child(t)
 	_ui_font = load("res://fonts/ui.ttf")
 	if _ui_font != null and _ui_font.fallbacks.is_empty():
 		_ui_font.fallbacks = [load("res://fonts/ui_fallback.otf")]
@@ -126,6 +140,8 @@ func apply() -> void:
 	_bus("SFX", sfx)
 	_bus("Voice", voice)
 	if DisplayServer.get_name() != "headless":
+		if OS.get_environment("ARK_NO_FOCUS") == "1":
+			return   # 测试局：窗口由 _ready 里的最小化循环管，不居中、不改模式
 		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != want:
 			DisplayServer.window_set_mode(want)

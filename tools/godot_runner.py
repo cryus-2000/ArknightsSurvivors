@@ -137,9 +137,43 @@ def _no_focus_kwargs(args):
     return {"startupinfo": si}
 
 
+NO_FOCUS_OVERRIDE = """; 由 tools/godot_runner.py 为测试局临时写入（不入库，跑完即删）：窗口不抢焦点、创建时就在屏幕外
+[display]
+window/size/mode=1
+window/size/no_focus=true
+window/size/initial_position_type=0
+window/size/initial_position=Vector2i(5000, 100)
+"""
+
+
+def _write_override(args):
+    """在 --path 指向的项目目录写 override.cfg（已存在且内容相同就复用，不动别人的）。返回要删除的路径或 None"""
+    if "--path" not in args:
+        return None
+    d = args[args.index("--path") + 1]
+    p = os.path.join(d, "override.cfg")
+    if os.path.exists(p):
+        return None
+    try:
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(NO_FOCUS_OVERRIDE)
+        return p
+    except OSError:
+        return None
+
+
 def run_godot(args, timeout):
     """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
     root, env = _test_userdir()
+    override = None
+    if os.name == "nt" and "--headless" not in args and os.environ.get("ARK_SHOW_WINDOW") != "1":
+        env = dict(env or os.environ)
+        env["ARK_NO_FOCUS"] = "1"   # 游戏内 settings.gd：不居中、unfocusable、前 6 秒持续最小化
+        override = _write_override(args)   # 项目级 no_focus + 初始位置屏幕外：窗口创建那一瞬间就不抢前台、不可见
+        if "--position" not in args:
+            args = list(args)
+            i = args.index("--") if "--" in args else len(args)
+            args[i:i] = ["-w", "--position", "5000,100"]
     while True:
         f = _lock()
         try:
@@ -159,6 +193,11 @@ def run_godot(args, timeout):
     if root:
         import shutil
         shutil.rmtree(root, ignore_errors=True)
+    if override and count_godot() == 0:
+        try:
+            os.remove(override)
+        except OSError:
+            pass
     return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), timed_out
 
 
