@@ -76,6 +76,11 @@ def one_package(kind, label, extra, commit, final):
 
 
 def main():
+    for st in (sys.stdout, sys.stderr):   # 自己的输出重定向到文件时别被 gbk 卡住（docs/33 日志用法）
+        try:
+            st.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     ap = argparse.ArgumentParser()
     ap.add_argument("--ref", required=True, help="冻结提交（两个包与网页版都从它出）")
     ap.add_argument("--no-web", action="store_true")

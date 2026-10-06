@@ -8,7 +8,7 @@ static var _cache := {}
 ## 这里不能用 Cfg：核心契约测试与 --script 工具不带自动加载
 static var marks: Array = []
 static func mark(n: String) -> void:
-	if OS.get_cmdline_user_args().has("--loadprof"):
+	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
@@ -249,7 +249,7 @@ static func prewarm_busy() -> bool:
 			if th.is_alive():
 				return true
 		prewarm_join()
-		if OS.get_cmdline_user_args().has("--loadprof"):
+		if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 			print("PRELOAD normals=%d ms=%d" % [_nm_total, Time.get_ticks_msec() - _nm_t0])
 	return false
 
