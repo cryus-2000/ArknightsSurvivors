@@ -99,7 +99,7 @@ def main():
     n = make_html5_zip(web, html5)
     cfg = load_config()
     target = cfg.get("ITCH_TARGET", "")
-    butler = shutil.which("butler")
+    butler = shutil.which("butler") or shutil.which("butler", path=str(ROOT / "tools" / "butler"))   # 本机解压在 tools/butler/（不入库）也认
     cmds = [["butler", "push", str(win), "%s:windows" % (target or "<ITCH_TARGET>"), "--userversion", commit],
             ["butler", "push", str(html5), "%s:html5" % (target or "<ITCH_TARGET>"), "--userversion", commit]]
     print("%s：提交 %s" % ("推送" if a.apply else "dry-run（不上传）", commit))
