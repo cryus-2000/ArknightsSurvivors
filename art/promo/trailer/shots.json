@@ -1,0 +1,41 @@
+{
+  "_doc": "宣传片镜头表（tools/promo_trailer.py）。runs 的 t0 来自 scout 探路的 PROMO 行；所有局 --fixed-fps 30 + --realtime，1 帧 = 1/30 秒游戏时间。",
+  "runs": {
+    "m1":  {"args": ["--seed=1", "--op=mizuki", "--squad=skadi,saria", "--forceending=knight"], "only": "beacon,levelup,horde,boss_warn,late,glow,ult,stake,relic", "maxt": 660},
+    "m1n": {"args": ["--seed=1", "--op=mizuki", "--squad=skadi,saria", "--forceending=knight"], "only": "beacon,levelup,horde,boss_warn,late,glow,ult,stake,relic", "maxt": 660, "nohud": true},
+    "l2":  {"args": ["--seed=2", "--op=logos"], "only": "levelup,beacon,horde,relic,glow", "maxt": 330},
+    "s3":  {"args": ["--seed=3", "--op=skadi", "--forceending=standard"], "only": "ult,horde,late,boss_warn,beacon", "maxt": 660},
+    "t1":  {"args": ["--seed=1", "--op=mizuki", "--squad=skadi,saria", "--touch"], "only": "none", "res": "2340x1080", "maxt": 80}
+  },
+  "beats": [
+    {"id": "cold",  "kind": "clip",  "run": "m1n", "t0": 174.3, "dur": 3.0, "fade_in": 0.4,
+     "_": "冷开场：无 HUD，2:55 灯标点亮的一刻，暗海里一盏灯"},
+    {"id": "title", "kind": "title", "dur": 2.0, "trans": "xfade",
+     "_": "片头：art/promo/keyart_1920x1080.png"},
+    {"id": "squad", "kind": "clip",  "run": "l2",  "t0": 164.6, "dur": 6.0, "trans": "xfade", "label": "编队", "caption": "13 名干员，自由编队",
+     "_": "逻各斯主控 + 两名队友，铭文弹幕；结尾 2:50 灯标点亮，切在光爆上"},
+    {"id": "beacon","kind": "clip",  "run": "m1",  "t0": 476.5, "dur": 6.0, "label": "灯火与灯标", "caption": "点亮灯标，驱散深海",
+     "_": "8:00 灯标点亮（第 3.4 秒），73 个敌人在屏内，暖光区亮起"},
+    {"id": "boss",  "kind": "clip",  "run": "m1",  "t0": 623.3, "dur": 8.0, "label": "Boss 预警与破绽", "caption": "读懂预警，躲开杀招",
+     "_": "10:25 最后的骑士：冲锋扇形预警、冰枪桩，躲开后出破绽"},
+    {"id": "pick",  "kind": "still", "run": "l2",  "src": "levelup_*_t0055.png", "dur": 3.0, "zoom": 0.04, "label": "藏品流派", "caption": "三选一，组出你的流派",
+     "_": "0:55 Lv.3 升级三选一（逻各斯·复指 / 医疗无人机 / 硬化）：批跑里机器人当帧选卡，面板只有 promo_shots.gd 暂停截下的一帧，静帧缓慢推近 4%"},
+    {"id": "tide",  "kind": "clip",  "run": "s3",  "t0": 371.4, "dur": 5.0, "label": "藏品流派", "caption": "斯卡蒂大招，浪墙压境",
+     "_": "斯卡蒂主控 6:13 潮汐浪墙推过 216 个敌人"},
+    {"id": "late",  "kind": "clip",  "run": "m1",  "t0": 560.0, "dur": 8.0, "label": "终局大群", "caption": "终局决战，满屏怪潮",
+     "_": "9:20–9:28 屏内 150+ 敌人，水月触手群"},
+    {"id": "phone", "kind": "phone", "run": "t1",  "t0": 70.6,  "dur": 3.0, "trans": "xfade", "label": "手机", "caption": "手机横屏，网页打开即玩",
+     "_": "触屏 HUD（--touch，2340×1080 = 19.5:9），1:12 大群来袭横幅"},
+    {"id": "end",   "kind": "end",   "dur": 4.0, "trans": "xfade", "fade_out": 0.5,
+     "lines": [["itch 搜  Arknights Survivors", 44, "text"], ["免费 · 网页 / 手机 / PC", 40, "cyan"], ["《明日方舟》同人 · 非商业", 30, "sub"]]}
+  ],
+  "vertical": {
+    "_doc": "竖版 1080×1920（小红书）：同一批帧居中裁 1080 宽，字幕挪到上方安全区；id 可带覆盖字段",
+    "beats": [{"id": "cold", "dur": 2.0}, "title", {"id": "beacon", "dur": 4.0, "trans": "xfade"}, {"id": "boss", "dur": 5.0}, {"id": "tide", "dur": 4.0},
+              {"id": "late", "dur": 4.0}, "phone", {"id": "end", "dur": 3.0}]
+  },
+  "gif": {"beat": "beacon", "dur": 7.0, "fps": 10, "colors": 96, "_": "itch 页循环 GIF：灯标点亮 7 秒，1280×720"},
+  "music": {"track": "battle2", "bpm": 144, "gain": 1.0,
+            "segments": [["A", ["base"]], ["B", ["base", "pulse"]], ["C", ["base", "pulse", "drive"]], ["E", ["base", "pulse", "drive"]]],
+            "_": "游戏自带配乐（credits.json：AI 程序化合成，本作自有）；乐句 8 小节 = 13.33 秒，层按强度递进"}
+}
