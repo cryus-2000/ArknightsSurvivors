@@ -169,7 +169,9 @@ func draw(vs: Vector2) -> void:
 	var tw := r.size.x - 392
 	var top := r.position.y + 142
 	var avail := r.end.y - 62.0 - top
-	var fsz := 15
+	var touch: bool = Cfg.touch_device()
+	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变
+	var fsz_min := 13 if touch else 12
 	var paras: Array = []
 	while true:
 		paras.clear()
@@ -179,7 +181,7 @@ func draw(vs: Vector2) -> void:
 			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
 			paras.append(ls)
 			tot += ls.size() * (g.font.get_height(fsz) + 1.0) + 14.0
-		if tot - 14.0 <= avail or fsz <= 12:
+		if tot - 14.0 <= avail or fsz <= fsz_min:
 			break
 		fsz -= 1
 	var lhh: float = g.font.get_height(fsz) + 1.0
@@ -206,9 +208,9 @@ func draw(vs: Vector2) -> void:
 	# 上一页 / 跳过 / 下一页 按钮
 	var btns: Array = [["‹ 上一页", "prev"], [Pad.hint("跳过  Esc", "跳过  Ⓑ", "跳过"), "skip"], ["下一页 ›", "next"]]
 	for k in 3:
-		var bw := 118.0
+		var bw := 118.0 if not touch else 140.0
 		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
-		var br := Rect2(bx, r.end.y - 52, bw, 34)
+		var br := Rect2(bx, r.end.y - 52, bw, 34) if not touch else Rect2(bx, r.end.y - 60, bw, 44)   # 触屏按钮本体 44 高、字 16
 		# 触屏：点击区上下各扩 22、左右各扩 12（34 高 → 78，≈ 43 pt），图形不变
 		var hit: Rect2 = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
 		match k:
@@ -223,10 +225,10 @@ func draw(vs: Vector2) -> void:
 				# 紧凑排版（手机逻辑高 626）：面板下方放不下，「跳过」挪进面板右上角（触屏验收 10-01）
 				br.position = Vector2(r.end.x - 40 - bw, r.position.y + 22)
 			g.intro_btn_skip = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
-			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13 if not touch else 15, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			continue
 		UI.frame(g.hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
-		UI.text(g.hud, g.font, br.position + Vector2(0, 23), btns[k][0] if k != 2 or g.intro_page < Game.INTRO_PAGES.size() - 1 else "开始探索 ›", 14, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		UI.text(g.hud, g.font, br.position + Vector2(0, 23 if not touch else 29), btns[k][0] if k != 2 or g.intro_page < Game.INTRO_PAGES.size() - 1 else "开始探索 ›", 14 if not touch else 16, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	if r.end.y + 66 < vs.y:
 		UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过", "点击：下一页　　点面板左侧：上一页"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 

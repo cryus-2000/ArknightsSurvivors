@@ -165,6 +165,7 @@ var dmg_type_out: Dictionary = {}     # 造成伤害按类型统计
 var RL: Dictionary = {}          # 藏品表 id -> {name, cat, desc, rarity, ...}（由 relic_fx 从 data/ 读取）
 var tray_cells: Array = []       # 藏品栏格子 [Rect2, id]，用于鼠标悬停提示
 var stats_cells: Array = []      # Tab 面板里可悬停的格子 [Rect2, kind, id]
+var stats_page := 0              # 触屏版属性面板当前页（属性 / 技能 / 编队，stats_panel.gd；桌面三栏不用）
 var rfx: RefCounted = null       # 藏品效果解释器
 var sp_mult := 1.0
 var flash := 0.0                 # 全屏闪光

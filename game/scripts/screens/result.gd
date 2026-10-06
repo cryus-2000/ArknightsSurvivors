@@ -66,23 +66,25 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
 		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
+	# 触屏（手机）：统计行字 +2、按钮本体 40 → 56 高（≈ 31 pt）、字 17；桌面不变
+	var touch: bool = Cfg.touch_device()
 	for i in stats.size():
 		var y := r.position.y + (166 if ending_panel else 156) + i * 32
 		UI.diamond(g.hud, Vector2(r.position.x + 48, y - 6), 3.5, Color(col.r, col.g, col.b, 0.8))
-		UI.text(g.hud, g.font, Vector2(r.position.x + 62, y), stats[i][0], 16, UI.SUB)
-		UI.text(g.hud, g.font, Vector2(r.position.x + 200, y), stats[i][1], 18, UI.TEXT)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 62, y), stats[i][0], 18 if touch else 16, UI.SUB)
+		UI.text(g.hud, g.font, Vector2(r.position.x + 200, y), stats[i][1], 20 if touch else 18, UI.TEXT)
 	var bx := r.position.x + 40
 	var bw := (r.size.x - 80 - 12 * (opts.size() - 1)) / opts.size()
 	g.result_btns.clear()
 	var mouse := g.hud.get_local_mouse_position()
 	for op in opts:
-		var br := Rect2(bx, r.end.y - 70, bw, 40)
+		var br := Rect2(bx, r.end.y - 82, bw, 56) if touch else Rect2(bx, r.end.y - 70, bw, 40)
 		var bi: int = g.result_btns.size()
-		g.result_btns.append([br.grow_individual(6, 20, 6, 20) if Pad.touch_ui() else br, op[2]])   # 触屏点击区 80 高
+		g.result_btns.append([br.grow_individual(6, 12, 6, 12) if Pad.touch_ui() else br, op[2]])   # 触屏点击区 80 高
 		var hov: bool = (bi == g.res_sel) if (Pad.using or g.kb_nav) else br.has_point(mouse)
 		g.hud.draw_rect(br, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 		var bink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
-		UI.text(g.hud, g.font, br.position + Vector2(14, 26), op[0], 15, bink)
+		UI.text(g.hud, g.font, br.position + Vector2(14, 35 if touch else 26), op[0], 17 if touch else 15, bink)
 		var kst: String = ("Ⓐ" if hov else "") if Pad.using else ("" if Pad.touch else op[1])
 		if kst != "":
 			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)
@@ -91,11 +93,10 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 
 ## Tab 面板攻击栏下半：开局干员的三个技能 + 天赋。说明按栏宽折行；先每条给 1 行，再轮流给还没排完的加行，
 ## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
-func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array) -> float:
+func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14) -> float:
 	var c: Color = g.ch.col()
 	var x0 := b1.position.x + 62.0
 	var dw := b1.end.x - 14.0 - x0
-	var dfs := 11
 	var lh: float = g.font.get_height(dfs) + 1.0
 	var avail: float = b1.end.y - 6.0 - y
 	var rh := func(n: int) -> float: return maxf(42.0, 30.0 + n * lh)
@@ -131,7 +132,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array) -> float:
 		else:
 			UI.ring(g.hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
 			UI.text(g.hud, g.font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
-		UI.text_fit(g.hud, g.font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), 14, UI.TEXT if on else UI.SUB, dw, 11)
+		UI.text_fit(g.hud, g.font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), nfs, UI.TEXT if on else UI.SUB, dw, 11)
 		var lines: PackedStringArray = wrapped[k]
 		var dcol: Color = col if on else Color(0.42, 0.48, 0.52)
 		for j in give[k]:

@@ -378,7 +378,7 @@ func _draw_body() -> void:
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
 	UI.gbar(g.hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
 	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else "")
-	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
+	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 13 if g.touch.active else 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
 	var tray_x := vs.x - 80.0
@@ -712,7 +712,7 @@ func draw_speed_button(vs: Vector2) -> void:
 	var enabled: bool = g.state == Game.S.PLAY
 	var hovered: bool = enabled and rect.has_point(g.hud.get_local_mouse_position())
 	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
-	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 12 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
 	if enabled:
 		g.speed_btn = g.touch._hit(rect) if g.touch.active else rect   # 触屏：点击区 84 见方
 
