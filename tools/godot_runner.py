@@ -245,7 +245,7 @@ def run_godot(args, timeout):
         try:
             if count_godot() < MAX_PROCS:
                 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **_no_focus_kwargs(args))
-                if override is not None or env.get("ARK_NO_FOCUS") == "1":
+                if override is not None or (env or {}).get("ARK_NO_FOCUS") == "1":
                     _hide_offscreen(p)
                 break
         finally:
