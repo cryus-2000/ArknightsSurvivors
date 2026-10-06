@@ -88,6 +88,7 @@
 
 | 项目 | 改动 | 效果 |
 | --- | --- | --- |
+| 进局黑屏 | 选完干员到战斗首帧：法线图改为标题页后台线程预热 + 磁盘缓存（user://normal_cache）+ 分离卷积生成（2026-10-06，art.gd） | 10.4 秒 → 0.3–0.7 秒（开法线光照，本机 `--loadprof`）；预热未完时标题页画「载入中…」 |
 | 启动 | 无界面运行不生成法线图（原来在 GDScript 里逐像素算，玩家设置开着法线光照时每局都算） | 只启动的一局：约 22 秒 → 约 4 秒 |
 | 画面 | 无界面批跑不重绘世界、特效、前景、HUD（原来占一局耗时的三成多） | 已验证结果逐字节不变 |
 | 机器人 | 高手机器人每步把附近敌人的打分参数先算好，33 个候选点共用 | 机器人耗时约减半，决策逐字节不变 |
@@ -140,7 +141,7 @@
 
 **截图**（需要窗口，仍静音；`--shotdir=` 指定目录）
 
-`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--settingsshot`、`--opshot`、`--opsel=`、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
+`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--opshot`、`--opsel=`、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
 
 ## 6. 报告在哪
 
