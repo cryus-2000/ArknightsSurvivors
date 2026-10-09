@@ -100,6 +100,7 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 - 对内包存档目录改为 `%APPDATA%\ArknightsSurvivors_Internal`（`export_build.py` 只改打包副本的 `project.godot`），对外包仍是 `%APPDATA%\ArknightsSurvivors`。同一台机器两个包都装时，对内包的正常游玩不会解锁对外包的图鉴 / 难度；对内包说明.txt 写明。
 - 对内包一次性迁移（`settings.gd` `_migrate_internal_save`）：对内包启动时，`_Internal` 目录还没有 `settings.cfg`、旧目录 `ArknightsSurvivors` 有，就复制过来（不移动、不删旧的，`_Internal` 已有存档不覆盖），标准输出记一行「[Cfg] 对内包存档迁移」。已经在玩 1.0 内测包的人换新包后进度不丢。对外包 / 调试版不迁移。
 - `verify_encrypted_game.py` 另起隔离的 APPDATA 放一份旧目录存档启动打包游戏：对内包必须复制成功、旧存档原样、日志有那一行，`_Internal` 已有存档时不被覆盖；对外包不得建 `_Internal` 目录。
+- 本地对局记录（docs/40，2026-10-10）：对内包写 `%APPDATA%\ArknightsSurvivors_Internal\runs\runs.jsonl`（`Cfg.runs_log_enabled()`），标题页脚与设置页有「测试版：本地记录对局摘要（不上传）」提示和「打开记录文件夹」按钮，`说明.txt` 写明；对外包恒不写。`check_release.py` 第 6 项静态断言，`verify_encrypted_game.py` 实测 `runs_log_audience`。
 - `verify_encrypted_game.py` 在加密包里实测：全新存档（图鉴 / 藏品 / 结局为空、难度 0）、发布版屏蔽开发参数、`can_boss_trial()` 与 audience 一致、存档目录与 audience 一致、对外包图鉴只有干员页开放、普通模板读不了加密 PCK、zip 与验证过的目录逐文件一致。
 
 

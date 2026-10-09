@@ -205,7 +205,7 @@ def main():
         readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。存档与对外版分开（%APPDATA%\\" + INTERNAL_USER_DIR + "），内测进度不会带到对外版。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
         if a.encrypted:
             readme = readme.replace("不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。", "美术、音频与脚本已打包加密。请保留 game 文件夹中的 exe 与 pck 文件。")
-        fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="对内测试版启动即全部解锁：难度三档、图鉴、结局线全开，只在本次运行生效、不写入存档。\nEA 版主页「Boss 演练」可选对手、主控、成长及形态；观察模式不会倒下，演练不记录通关进度。" if a.ea else "").replace("\n", "\r\n"))
+        fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="对内测试版启动即全部解锁：难度三档、图鉴、结局线全开，只在本次运行生效、不写入存档。\nEA 版主页「Boss 演练」可选对手、主控、成长及形态；观察模式不会倒下，演练不记录通关进度。\n对内测试版会在本机记录每局的对局摘要（胜负、用时、等级、死因等，不含任何个人信息，不上传）：\n设置 → 游戏 → 对局记录「打开记录文件夹」，把 runs.jsonl 发给我就能帮忙校准难度。" if a.ea else "").replace("\n", "\r\n"))
 
     if a.encrypted:
         pck_info = encrypted_release.check_encrypted_pck(Path(game_dir) / "ArknightsSurvivors.pck")

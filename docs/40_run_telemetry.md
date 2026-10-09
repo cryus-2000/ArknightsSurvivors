@@ -19,12 +19,23 @@
   ```
   - 局内不足 20 秒就退出的不记；文件超过约 8 MB 丢掉较早的一半。
   - **测试运行不写**（带任何 `--xxx` 参数，docs/36「测试不写玩家存档」）；图鉴演示不写。自测写记录用 `--runslog=<路径>`，写到指定文件、不碰玩家目录。
-  - **发布版不写**（用户 2026-09-26 决定暂不收集任何数据）：只有开发试玩（编辑器 / 调试版）会写；`tools/export_build.py` 打的 release 包里 `OS.is_debug_build()` 为假，完全不记。上报与导出的方案见 docs/43（暂缓）。
+  - **发布版按 audience 决定**（2026-10-10 改，用户要用真实对局判断难度）：判断集中在 `settings.gd` `Cfg.runs_log_enabled()`——
+    调试版（编辑器 / 源码运行）写；**对内包（`build.json` audience = internal）写**，与开发试玩相同，文件在
+    `%APPDATA%\ArknightsSurvivors_Internal\runs\runs.jsonl`；**对外包（public）恒不写**（用户 2026-09-26「暂不收集任何数据」的决定不变）。
+    仍只在本地，不联网上传；上报与导出的方案见 docs/43（暂缓）。
+  - 对内包的提示与入口（触屏同样可用）：标题页脚（版本号左边）显示「测试版：本地记录对局摘要（不上传）」（手机页脚放不下，只在设置页提示）；
+    设置 → 游戏 → 「对局记录」一行：左边同一句说明，右边按钮「打开记录文件夹」（`OS.shell_show_in_file_manager`，选中 runs.jsonl；
+    还没有记录时建好文件夹打开它）。暂停菜单里的设置是同一个面板，局内也能打开。对外包没有这一行。对内包 `说明.txt` 也写了这段。
+  - 守门：`tools/check_release.py` 第 6 项静态断言 `save_local` 只经 `Cfg.runs_log_enabled()` 判断、该函数非调试版只对 internal 返回 true；
+    `tools/verify_encrypted_game.py` 在打包后的加密包里实测 `runs_log_enabled()` 与 audience 一致（失败项 `runs_log_audience`，报告字段 `runs_log`）。
   - `seed` 是本局对局随机数的种子：同 seed 可复现（docs/36 §3），配合以后的操作录制就能在本地原样重放玩家那一局。
 - **版本号**：`game/data/build.json`（`version`、`commit`）。开发时 `commit` 为 `dev`；`tools/export_build.py` 打包时把真实提交号写进包里的这个文件，玩家记录因此能按版本区分（改平衡前后的数据不会混在一起）。
-- **分析脚本 `tools/runs_report.py`**：读本地记录，转成 `balance_run.py` 的记录形状，复用它的汇总表（总览、按开局干员的胜率 / 存活 / 伤害构成 / 治疗 / 死因、行为指标、藏品流派拿取）。
+- **分析脚本 `tools/runs_report.py`**：读本地记录（可以一次读几位测试者发来的多份 runs.jsonl），转成 `balance_run.py` 的记录形状，
+  复用它的汇总表（总览、按开局干员的胜率 / 存活 / 伤害构成 / 治疗 / 死因、行为指标、藏品流派拿取、最终 / 中期 Boss），再加
+  按难度 × 开局干员的胜率表、死因表、Boss 用时表、等级曲线（每分钟平均等级）和逐局一行的清单（时间、开局干员、难度、结果、用时、等级、击杀、死因 / 结局）。
   ```
-  python tools/runs_report.py                      # 本机全部记录（%APPDATA%\Godot\app_userdata\<项目名>\runs\runs.jsonl；项目名 = game/project.godot 的 config/name，脚本自动读取）
+  python tools/runs_report.py                                      # 本机全部记录：开发目录 %APPDATA%\ArknightsSurvivors 与对内包目录 %APPDATA%\ArknightsSurvivors_Internal 下的 runs\runs.jsonl，有哪个读哪个
+  python tools/runs_report.py 张三.jsonl 李四.jsonl --by-file     # 几位测试者的文件合在一起；--by-file 汇总表按文件分行、清单加文件列
   python tools/runs_report.py --since 2026-09-26 --commit abc1234 --out build/runs_report.md
   ```
 
