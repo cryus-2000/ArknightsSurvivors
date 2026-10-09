@@ -51,6 +51,23 @@ func _init(game: Game) -> void:
 	_gc_sink = GroundCrack.TbSink.new(self)
 	dc_check = Cfg.dev_args().has("--dccheck")
 	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
+	rc_px = Bal.v("fx/recoil_px", 3.0)
+	rc_t = maxf(0.01, Bal.v("fx/recoil_t", 0.1))
+
+
+## 敌人本体的逐帧位移（docs/53）：击退抬跳（原有）+ 受击后坐（vfx.hit_react 写 rc_at / rc_dir / rc_k，这里按 g.t 线性回位）。
+## 缓存路径（_dc_emit）和原路径（_draw_enemy_full）都用这一个表达式；draw_off 本来就每帧照算、不进缓存签名（docs/50 §9.9）
+var rc_px := 3.0
+var rc_t := 0.1
+
+func _eoff(e: Dictionary) -> Vector2:
+	var off := Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
+	if rc_px > 0.0:
+		var ra: float = e.get("rc_at", -99.0)
+		var k: float = (g.t - ra) / rc_t
+		if k >= 0.0 and k < 1.0:
+			off += (e.rc_dir as Vector2) * (rc_px * float(e.rc_k) * (1.0 - k))
+	return off
 
 
 func update_visuals(dt: float) -> void:
@@ -76,6 +93,7 @@ func update_visuals(dt: float) -> void:
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
 	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
+	g.hurt_duck = move_toward(g.hurt_duck, 0.0, rd)
 	g.red_flash = move_toward(g.red_flash, 0.0, rd * 2.0)
 	g.hp_shake = move_toward(g.hp_shake, 0.0, rd)
 	g.head_bar_t = move_toward(g.head_bar_t, 0.0, rd)
@@ -1182,7 +1200,7 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 func _dc_emit(e: Dictionary, c: Array) -> void:
 	var frames: int = c[9]
 	var frame: int = int(g.t * float(c[10]) + e.id * 0.37) % frames
-	g.draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
+	g.draw_off = _eoff(e)
 	var flip: bool = e.fx < 0.0
 	var bpos: Vector2 = e.pos + c[14]
 	var sc: float = c[12]
@@ -1382,7 +1400,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		var bk: float = 1.0 - e.burst_w / 0.4
 		# 范围圈改在覆盖层画（draw_enemy_tells），这里只留本体变亮
 		col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
-	g.draw_off = Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
+	g.draw_off = _eoff(e)
 	var flip: bool = e.fx < 0.0
 	var anc := Vector2(0.5, 0.5)
 	var bpos: Vector2 = e.pos

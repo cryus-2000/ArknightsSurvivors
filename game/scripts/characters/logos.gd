@@ -202,6 +202,7 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	log_hit(src)
 	deal_damage(e, dmg)
 	e["requiem"] = base("requiem_dur", 5.0)
+	Sfx.op(id, "hit", -2.0, 1.0, 0.08)   # 「言」命中原来无声（docs/53）；没有 op_logos_hit 文件时 sfx.OP_ALT 借水月命中音降调
 	# N1 铭文：命中处留下一枚发光咒文（与墓志铭合计最多 6 枚，旧的先消失）
 	if inscription:
 		_make_room()

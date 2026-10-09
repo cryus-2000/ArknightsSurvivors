@@ -36,6 +36,8 @@ const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0,
 const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 0.3}
 ## 缺文件时退回的通用音效（新干员还没配音时也有声音）
 const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill", "s3": "skill", "big": "boom", "heal": "oil", "quake": "boom"}
+## 缺专属文件时优先借用的近似音（docs/53，比通用 hit 更贴角色；[音名, 音高倍率, 音量偏移 dB]）。正式音色见 docs/53 §5 的制作清单
+const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0]}
 
 var streams := {}
 var players: Array = []
@@ -790,8 +792,17 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 	var v: float = float(OP_VOL.get(kind, -8.0)) + vol
 	if streams.get(sn) != null:
 		play(sn, v, pitch, pitch_var)
+	elif OP_ALT.has(sn) and streams.get(OP_ALT[sn][0]) != null:
+		var alt: Array = OP_ALT[sn]
+		play(alt[0], v + float(alt[2]), pitch * float(alt[1]), pitch_var)
 	elif OP_FALLBACK.has(kind):
 		play(OP_FALLBACK[kind], v, pitch, pitch_var)
+
+
+## 重击闷音（combat.hurt，docs/53）：配乐低通立刻压到 hz，之后由 cut_target（music_director 每帧设）按 _process 的速率回升
+func duck_music(hz: float) -> void:
+	if music_lp != null:
+		music_lp.cutoff_hz = minf(music_lp.cutoff_hz, hz)
 
 
 ## Enemy attack cues: distance attenuation and shared per-kind throttling.

@@ -321,6 +321,7 @@ var panel_title_text := ""
 var hitstop := 0.0
 var shake := 0.0
 var hurt_vignette := 0.0
+var hurt_duck := 0.0         # 重击后配乐低通保持的剩余秒数（combat.hurt 写，music_director 读，world.update_player_feel 衰减；docs/53）
 var tab_hint := 0.0          # 首次升级后再提醒一次 Tab
 var tab_used := false
 var hp_trail := 100.0        # 血条上的「被扣掉」残影

@@ -85,6 +85,14 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
 	e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
+	# 只写 rc_at / rc_dir / rc_k 三个字段，位移在 render/world.gd 的 _eoff 里按 g.t 算（缓存路径和原路径同一个表达式，不进签名）。
+	# 持续伤害不顶；Boss 不顶（韧性的观感，Boss 的受击反馈走破绽）
+	if not dot and not e.get("boss", false):
+		var d: Vector2 = (e.pos as Vector2) - g.ppos
+		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)
+		e.rc_at = g.t
+		e.rc_k = Bal.v("fx/recoil_skill_k", 1.6) if (skill or crit or weak) else 1.0
 	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
 		return
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
@@ -101,6 +109,31 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/break_sparks", 6), 240.0)
 		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45)})
 		impact_pause(Bal.v("fx/break_pause", 0.035))
+
+
+## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：
+## - 火花数 = fx/kill_sparks + e.r × fx/kill_sparks_per_r，速度随体型略增；冲击环照旧 e.r × 1.2
+## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx，其余 fx/kill_big_sfx）
+## - 击杀音 kill 的音高按体型降（fx/kill_pitch_r：r 越大越低），同屏一片小怪倒下时也听得出大小
+## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
+func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
+	var r: float = float(e.get("r", 12.0))
+	var big: bool = r >= Bal.v("fx/kill_big_r", 20.0)
+	var n: int = Bal.vi("fx/kill_sparks", 7) + int(r * Bal.v("fx/kill_sparks_per_r", 0.3))
+	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col})
+	var pitch: float = clampf(1.15 - r / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
+	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
+	if big:
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6)})
+		ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
+		var shell: bool = HIT_SHELL.has(e.get("type", ""))
+		var fxs: Dictionary = Bal.sec("fx")
+		var layer: String = str(fxs.get("kill_shell_sfx", "hit")) if shell else str(fxs.get("kill_big_sfx", "mire_splat"))
+		if layer != "":
+			Sfx.play(layer, -6.0 if shell else -9.0, 0.6 if shell else 0.85, 0.05)
+	if big or crit:
+		impact_pause(Bal.v("fx/kill_pause", 0.033))
 
 
 ## A low ring of slate-colored grit; capped so crowds do not bury silhouettes.

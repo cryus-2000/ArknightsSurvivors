@@ -3,6 +3,7 @@ extends RefCounted
 ## 2026-09-26 从 game.gd 拆出。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const Bal = preload("res://scripts/core/balance.gd")
 var g: Game
 var stinger_done := false
 var lamp_prev := 100.0          # 上一帧灯火：战斗中降到 0 那一刻播 lamp_empty
@@ -33,6 +34,8 @@ func update(_dt: float) -> void:
 		target = lerp(700.0, 4000.0, g.lamp / 30.0)
 	if g.state == g.S.PAUSE or g.state == g.S.CHOICE or g.state == g.S.SHOP or g.state == g.S.SHOW or g.state == g.S.STATS or g.state == g.S.INTRO or g.state == g.S.OPENING:
 		target = 1800.0
+	if g.hurt_duck > 0.0:
+		target = minf(target, Bal.v("fx/hurt_duck_hz", 900.0))   # 重击闷音（combat.hurt 写，docs/53）
 	Sfx.cut_target = target
 	if g.state == g.S.PLAY and lamp_prev > 0.0 and g.lamp <= 0.0:
 		Sfx.play("lamp_empty", -6.6, 1.0, 0.0)   # 灯火熄灭（之后持续掉血）：噗噗灭掉 + 低沉小调
