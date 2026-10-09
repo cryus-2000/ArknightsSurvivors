@@ -295,6 +295,29 @@ func build_audience() -> String:
 	return str(info.get("audience", "")) if info is Dictionary else ""
 
 
+## 本地对局记录（docs/40，run/telemetry.gd 的 save_local）：调试版（编辑器 / 源码运行）写；发布版只有对内包
+## （build.json audience = internal）写（用户 2026-10-10：对内包给自己和几位测试者玩，用真实对局判断难度）；
+## 对外包恒不写（用户 2026-09-26 的「暂不收集任何数据」不变）。只写本地 user://runs/runs.jsonl，不联网上传。
+## tools/check_release.py 静态断言对外分支，verify_encrypted_game.py 在打包后实测与 audience 一致。
+func runs_log_enabled() -> bool:
+	if OS.is_debug_build():
+		return true
+	return build_audience() == "internal"
+
+
+## 对局记录所在文件夹的绝对路径（Windows 对内包：%APPDATA% 下 ArknightsSurvivors_Internal 的 runs 子目录）
+func runs_dir() -> String:
+	return ProjectSettings.globalize_path("user://runs")
+
+
+## 设置页「打开记录文件夹」：在系统文件管理器里选中 runs.jsonl（还没有记录时建好文件夹并打开它），方便测试者把文件发过来
+func show_runs_folder() -> void:
+	var dir := runs_dir()
+	DirAccess.make_dir_recursive_absolute(dir)
+	var file := dir.path_join("runs.jsonl")
+	OS.shell_show_in_file_manager(file if FileAccess.file_exists(file) else dir, true)
+
+
 ## Boss 演练入口：开发（调试版）一律开；发布版只有对内包（build.json audience = internal）开。
 ## 按 audience 判断而不是 EA 标记——EA 只是开发阶段标记，对外包也可能带 EA，不能因此开放演练（docs/33 §双版本）
 func can_boss_trial() -> bool:

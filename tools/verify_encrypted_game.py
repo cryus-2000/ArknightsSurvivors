@@ -76,6 +76,9 @@ func _verify():
             failures.append("fresh_progress")
         if cfg.can_boss_trial() != (audience == "internal"):
             failures.append("boss_trial_audience")
+        # 本地对局记录（docs/40，用户 10-10）：对内包写 user://runs/runs.jsonl，对外包恒不写
+        if cfg.runs_log_enabled() != (audience == "internal"):
+            failures.append("runs_log_audience")
     # 对内包存档目录与对外包隔离（docs/33 §双版本）
     var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
     if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
@@ -95,7 +98,7 @@ func _verify():
                     failures.append("gallery_initial_lock:" + str(page))
                     break
         gallery.queue_free()
-    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
     Art._hires.clear()
     Art._hires_rid.clear()

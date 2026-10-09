@@ -10,6 +10,8 @@
 3. 存档不会被打进包：game/ 下没有 settings.cfg / *.save，导出预设的 include_filter 不含 *.cfg。
 4. tools/export_build.py 用 --export-release（非 debug 导出，OS.is_debug_build() 为 false）。
 5. 全部解锁（Cfg.unlock_all）默认 false，发布版只对对内包（audience == internal）打开，对外包恒不打开。
+6. 本地对局记录（docs/40，用户 10-10）：telemetry.gd save_local 只经 Cfg.runs_log_enabled() 决定写不写；该函数发布版分支只对
+   对内包返回 true，对外包恒不写（用户 09-26 的「暂不收集」不变）。打包后的实测在 verify_encrypted_game.py（runs_log_audience）。
 
 说明：存档在 user://settings.cfg（Windows：%APPDATA%/Godot/app_userdata/<项目名>/；网页版：浏览器 IndexedDB，按网址隔离），
 都不在导出包里，所以开发机的进度不会被带出去。但在开发机上直接运行导出的 exe 会读到本机的开发存档——
@@ -85,12 +87,23 @@ def main():
             if re.search(r"\bunlock_all\s*=\s*true", code) and not (os.path.basename(p) == "settings.gd" and first <= i <= last):
                 errs.append("%s:%d：只有 settings.gd 的 _apply_unlock_all 可以打开 unlock_all：%s" % (os.path.relpath(p, ROOT), i, line.strip()[:100]))
 
+    # 6. 本地对局记录：save_local 的发布版分支必须走 Cfg.runs_log_enabled()，且该函数在非调试版只对 audience == internal 返回 true
+    tel = read(os.path.join(GAME, "scripts", "run", "telemetry.gd"))
+    sv = re.search(r"^func save_local\(.*?(?=^\S)", tel, re.M | re.S)
+    sv_code = "\n".join(l.split("#")[0] for l in sv.group(0).splitlines()) if sv else ""
+    if not sv or "Cfg.runs_log_enabled()" not in sv_code or "is_debug_build" in sv_code:
+        errs.append("telemetry.gd：save_local 写不写必须只经 Cfg.runs_log_enabled() 判断")
+    rl = re.search(r"^func runs_log_enabled\(\) -> bool:.*?(?=^\S)", st, re.M | re.S)
+    code = "\n".join(l.split("#")[0] for l in rl.group(0).splitlines()) if rl else ""
+    if not rl or "OS.is_debug_build()" not in code or 'return build_audience() == "internal"' not in code or code.count("return") != 2:
+        errs.append('settings.gd：runs_log_enabled 必须是「调试版 true；否则 return build_audience() == \"internal\"」（对外包不得记录）')
+
     if errs:
         print("发布检查：%d 项问题" % len(errs))
         for e in errs:
             print("  ✗ " + e)
         return 1
-    print("发布检查：通过（初始存档默认值、解锁开关、存档不入包、release 导出、对外包不全解锁）")
+    print("发布检查：通过（初始存档默认值、解锁开关、存档不入包、release 导出、对外包不全解锁、对外包不记对局）")
     return 0
 
 

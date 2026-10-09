@@ -666,6 +666,9 @@ func _draw() -> void:
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
 	UI.text(self, font, Vector2(fx, vs.y - 20), ("明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges(), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
 	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
+	# 对内包页脚提示（docs/40，用户 10-10）：版本号左边；手机页脚已被致谢占满，手机只在设置页提示
+	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
+		UI.text(self, font, Vector2(vs.x - 440, vs.y - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
 
 	# 开场：黑幕淡出 + 上下黑边收起
 	if intro < INTRO_LEN:

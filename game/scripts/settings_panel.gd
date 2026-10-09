@@ -27,13 +27,17 @@ const ROWS := [
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
+	# 测试版对局记录（docs/40，用户 10-10）：只在 Cfg.runs_log_enabled() 时列出（调试版 / 对内包），对外包没有这一行；
+	# 点一下在系统文件管理器里选中 runs.jsonl，测试者把文件发回来
+	{"cn": "对局记录", "en": "RUN LOG", "key": "runs", "type": "runs"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
+const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
+	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble", "runs"]],
 ]
 
 ## 触屏不显示的选项键名（手机设置页改版 10-06）
@@ -76,6 +80,8 @@ func _set_tab(t: int) -> void:
 	for key in TABS[tab][2]:
 		if touch and key in TOUCH_HIDE:
 			continue
+		if key == "runs" and not Cfg.runs_log_enabled():
+			continue   # 对外包不记录，也不显示这一行
 		for i in ROWS.size():
 			if ROWS[i].key == key:
 				cur.append(i)
@@ -176,6 +182,10 @@ func _adjust(i: int, dir: int) -> void:
 			pending_res = (pending_res + (1 if dir > 0 else n - 1)) % n
 			Sfx.play("ui_move")
 			return
+		"runs":
+			Cfg.show_runs_folder()
+			Sfx.play("ui_ok")
+			return
 		"back":
 			close()
 			return
@@ -265,6 +275,13 @@ func _draw() -> void:
 			UI.text(self, font, rr.position + Vector2(rr.size.x - 70, ty0), row.note, 11, UI.SUB)
 		var vx := rr.position.x + rr.size.x - 230
 		match row.type:
+			"runs":
+				# 右侧「打开记录文件夹」当按钮；说明文字放在它左边（手机行高 52，放得下）
+				UI.text(self, font, Vector2(vx - 14, rr.position.y + ty0), RUNS_HINT, 12 if touch else 11, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
+				var br := Rect2(vx + 10, rr.position.y + (ty0 - 15.0), 180, 26)
+				draw_rect(br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
+				draw_rect(br, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
+				UI.text(self, font, br.position + Vector2(0, 18), "打开记录文件夹", 14, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			"vol":
 				var v: float = Cfg.get(row.key)
 				UI.text(self, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
