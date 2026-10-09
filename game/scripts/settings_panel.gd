@@ -17,7 +17,6 @@ const ROWS := [
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
-	{"cn": "震屏强度", "en": "SCREEN SHAKE", "key": "shake", "type": "shake"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
 	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
 	{"cn": "景深与前景", "en": "DEPTH OF FIELD", "key": "dof", "type": "bool"},
@@ -33,7 +32,7 @@ const ROWS := [
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "shake", "pad_rumble"]],
+	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "pad_rumble"]],
 ]
 
 ## 触屏不显示的选项键名（手机设置页改版 10-06）
@@ -165,10 +164,6 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.set(row.key, not Cfg.get(row.key))
 		"quality":
 			Cfg.set_quality("low" if Cfg.quality == "high" else "high")
-		"shake":
-			var v: float = Cfg.shake
-			v = [0.0, 0.5, 1.0][(int(round(v * 2.0)) + (1 if dir > 0 else 2)) % 3]
-			Cfg.shake = v
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"res":
@@ -279,9 +274,6 @@ func _draw() -> void:
 			"quality":
 				var hq: bool = Cfg.quality != "low"
 				UI.text(self, font, Vector2(vx, rr.position.y + ty0), "高" if hq else "低", fs_v, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
-			"shake":
-				var names := {0.0: "关", 0.5: "弱", 1.0: "标准"}
-				UI.text(self, font, Vector2(vx, rr.position.y + ty0), names.get(Cfg.shake, "标准"), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			"bright":
 				UI.text(self, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 				UI.text(self, font, Vector2(vx, rr.position.y + ty0), "%d%%" % int(round(Cfg.brightness * 100.0)), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)

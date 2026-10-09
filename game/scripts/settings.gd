@@ -14,7 +14,6 @@ var fullscreen := false
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
-var shake := 1.0          # 0 / 0.5 / 1
 var hitstop := true
 var outline := true      # 怪物轮廓光
 var dof := true          # 2.5D 景深与前景
@@ -118,7 +117,6 @@ func _ready() -> void:
 		fullscreen = c.get_value("video", "fullscreen", fullscreen)
 		res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
-		shake = c.get_value("game", "shake", shake)
 		hitstop = c.get_value("game", "hitstop", hitstop)
 		outline = c.get_value("game", "outline", outline)
 		dof = c.get_value("video", "dof", dof)
@@ -266,7 +264,6 @@ func save() -> void:
 	c.set_value("video", "fullscreen", fullscreen)
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
-	c.set_value("game", "shake", shake)
 	c.set_value("game", "hitstop", hitstop)
 	c.set_value("game", "outline", outline)
 	c.set_value("video", "dof", dof)
