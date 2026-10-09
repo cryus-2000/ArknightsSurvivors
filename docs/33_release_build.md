@@ -221,3 +221,7 @@ itch 的上传限制：zip 内最多 1000 个文件、单文件 ≤ 200 MB、解
 2. Web 预设 `exclude_filter` 没排除 `tests/*`（加密 Windows 预设已排除）：测试脚本会打进网页包。发布版读不到命令行参数，测试入口不可达，只是多占体积。
 3. 打包游戏退出时有引擎自带的「2 resources still in use / ObjectDB leaked」提示，验证脚本已按已知项放行；不影响运行。
 4. 加密导出只能在存有密钥与自编译模板的机器上做（`~/.codex/private/ArknightsSurvivors`）：换机器按「一次性准备」重来。
+
+## 一键发版（2026-10-10 起）
+
+用户定方案 A：改动合入 main、快检与发布检查通过后，协调人直接 `python tools/ship.py`——推 origin/main → release_all 出 public / web / internal 三包 → deploy_itch --apply 推 itch，不再逐次申请。任一步失败即停。`--skip-check` 跳过快检、`--no-itch` 只推代码与出包、`--dry-run` 只打印。对内包永不上 itch（deploy_itch 把关）。日志在 build/ship/<提交>/。
