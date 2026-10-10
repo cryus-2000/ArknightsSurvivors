@@ -7,7 +7,6 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 
 const R := 17.0            # 2026-09-27 画面缩到 0.7 后判定跟着缩一点（22 → 17，Boss与怪物建议 0.75–0.8）；冲锋命中半径按 R 算，同比变小
-const SPEED := 240.0
 const FOLLOW_SPD := 6.0
 const CHARGE_RANGE := 320.0
 const CHARGE_CD := 4.0

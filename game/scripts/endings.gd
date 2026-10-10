@@ -132,13 +132,6 @@ func _event_ok(ev: Dictionary) -> bool:
 	return true
 
 
-func _box_alive() -> bool:
-	for e in g.enemies:
-		if e.chest and not e.dead and e.get("event", "") != "":
-			return true
-	return false
-
-
 func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)

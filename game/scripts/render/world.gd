@@ -39,7 +39,7 @@ const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
-const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane", "tide": "proj_tide"}
+const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
 ## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
 ## 若只有攻击条而没有 48px 的其他动作，则用攻击第 1 帧 + 代码起伏兜底。
@@ -428,7 +428,6 @@ func draw_world() -> void:
 		tb_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)), 1.0, 8)
 	tb_flush()
 	_pk("shield_drones")
-	var jf := int(g.t * 6.0) % 2
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
@@ -445,8 +444,6 @@ func draw_world() -> void:
 					g.draw_circle(b.pos, 14.0, Color(1.4, 0.6, 2.2, 0.2))
 				"arcane":
 					g.draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
-				"tide":
-					g.draw_circle(b.pos, 11.0, Color(0.5, 1.2, 2.0, 0.2))
 			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX)
 			continue
 		match b.kind:
@@ -462,10 +459,6 @@ func draw_world() -> void:
 				g.draw_line(b.pos - n * 18.0, b.pos, Color(1.4, 0.6, 2.2, 0.4), 4.0)
 				g.draw_circle(b.pos, 8.0, Color(1.2, 0.5, 2.0, 0.35))
 				UI.diamond(g, b.pos, 5.0, Color(1.8, 1.0, 2.6), Color(2.2, 1.6, 2.8))
-			"tide":
-				g.draw_circle(b.pos, 10.0, Color(0.5, 1.2, 2.0, 0.25))
-				g.draw_circle(b.pos, 6.0, Color(0.7, 1.5, 2.2, 0.9))
-				g.draw_circle(b.pos + Vector2(-2, -2), 2.0, Color(2.5, 2.5, 2.5))
 			_:
 				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
 	_pk("bullets")
@@ -1682,23 +1675,6 @@ func draw_nest_auras() -> void:
 
 	tb_flush()
 
-
-const PARANOIA2_TINT := Color(1.35, 0.72, 1.25)
-
-func _paranoia2_halo(e: Dictionary) -> void:
-	# 以贴图中心为圆心（脚底锚点的贴图从脚往上长），半径按贴图半高
-	var top: Vector2 = _enemy_top(e)
-	var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8)
-	var c: Vector2 = (top + foot) / 2.0
-	var hh: float = maxf(e.r, (foot.y - top.y) / 2.0)
-	for q in 3:
-		var pts := PackedVector2Array()
-		var rr: float = hh * (1.2 + 0.14 * q)
-		for i in 33:
-			var a: float = i * TAU / 32.0
-			var w: float = 1.0 + 0.08 * sin(a * 5.0 + g.t * (3.0 + q) + q * 1.7)
-			pts.append(c + Vector2(cos(a), sin(a) * 0.8) * rr * w)
-		g.draw_polyline(pts, Color(1.7, 0.45, 1.5, 0.7 - 0.18 * q), 2.5 - 0.5 * q)
 
 
 ## ---- 主控身上的小怪控制（combat.gd「小怪控制」段，用户 9/29）：画在实体之上、预警轮廓之下

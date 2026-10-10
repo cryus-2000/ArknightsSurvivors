@@ -64,15 +64,6 @@ func recruit_cards() -> Array:
 	return opts
 
 
-func open_recruit() -> bool:
-	var opts := recruit_cards()
-	if opts.is_empty():
-		return false
-	g._shuffle(opts)
-	g.panel_ui.show_choices("招募干员", opts.slice(0, 3), "level")
-	return true
-
-
 func open_levelup() -> void:
 	var want: int = 3 + g.rfx.rule("four_choices")
 	var picks: Array = []

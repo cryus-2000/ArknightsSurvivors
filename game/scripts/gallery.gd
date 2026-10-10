@@ -46,8 +46,6 @@ const ENEMY_DESC := {
 	"knight_boss": "结局二「静谧时代」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；「冰线」之后发动「寒冷追击」，第一次生命归零后寒冰重生进入二阶段。",
 	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
 }
-## 结局 Boss 与敌对骑士：达成对应结局 / 遭遇后解锁
-const LOCK_BY_ENDING := {"izumik": "resolve", "ishar": "deep", "knight_boss": "knight", "knight": "knight", "tear": "deep"}   # docs/19：敌对骑士也随结局收录
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted

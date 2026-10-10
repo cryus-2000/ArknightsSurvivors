@@ -60,10 +60,6 @@ func remove_source(id: String) -> void:
 		relics.erase(id.substr(6))
 
 
-func tag_weight(tag: String) -> float:
-	return tag_w.get(tag, 0.0)
-
-
 func top_tags(n: int = 5) -> Array:
 	var ks: Array = tag_w.keys()
 	ks.sort_custom(func(a, b): return tag_w[a] > tag_w[b])

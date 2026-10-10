@@ -217,7 +217,6 @@ var gems: Array = []
 var fx: Array = []
 var texts: Array = []
 var grid := {}
-var orbit_a := 0.0
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
 var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「波涛迭起 / ·Ⅳ / ·Ⅷ」）
@@ -1391,9 +1390,9 @@ const V6_FRAMES := {
 	"fx_wisadel_cannon": [4, 12.0],
 	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
-	"proj_missile": [2, 16.0], "proj_tide": [4, 10.0],
+	"proj_missile": [2, 16.0],
 	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_arrow_hit": [4, 20.0], "fx_bullet_hit": [3, 24.0],
-	"fx_arcane_hit": [4, 20.0], "fx_tide_hit": [4, 20.0], "fx_heal_cross": [4, 10.0],
+	"fx_arcane_hit": [4, 20.0], "fx_heal_cross": [4, 10.0],
 	"fx_laser_start": [4, 20.0], "fx_laser_mid": [4, 20.0], "fx_laser_end": [4, 20.0],
 	# 美术 V7（docs/13_art_v7_spec.md）：触手 / 水刃 / 触手桩 / 巨触 / 受击 / 击杀
 	"fx_tentacle_strike": [6, 16.0], "fx_tentacle_grab": [4, 20.0],

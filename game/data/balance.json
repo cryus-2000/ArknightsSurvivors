@@ -119,7 +119,6 @@
   "spawn_boss_mult": 0.8,
   "spawn_boss_mult_mid": 1.0,
   "spawn_dark_mult": 1.15,
-  "spawn_cap": 450,
   "corrode_pool_cap": 0.3,
   "dmg_early_until": 240,
   "wound_dot": 0.0025,

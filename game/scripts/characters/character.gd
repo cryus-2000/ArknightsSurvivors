@@ -183,14 +183,6 @@ func skill_hud() -> Array:
 	return out
 
 
-## 编队栏头像环：已解锁的最高技能的充能比例
-func hud_sp_frac() -> float:
-	for i in [2, 1, 0]:
-		if skill_unlocked(i) and sp_need(i) > 0.0 and not perm[i]:
-			return clampf(sp[i] / sp_need(i), 0.0, 1.0)
-	return 1.0
-
-
 ## 三个技能同时充能（生效中的不充）；返回本帧该释放的技能序号（S3 > S2 > S1，一次只放一个），没有返回 -1
 ## 充能改由 squad.update 每帧调 tick_sp()（2026-09-26 修：以前充能写在各干员「出手中就 return」之后，
 ## 攻速快的干员几乎一直在出手，技能实际要等 2–3 倍时间）。这里只判断谁充满了；dt 参数保留兼容
@@ -810,11 +802,6 @@ func elite_choices(n: Dictionary) -> Dictionary:
 ## 子类追加的深度卡（默认无）
 func extra_cards() -> Array:
 	return []
-
-
-## 子类处理自己追加的卡；返回 true 表示已处理
-func apply_extra_card(_card: Dictionary) -> bool:
-	return false
 
 
 ## 精英化钩子（stage 1 / 2，choice 为精英化二的路线选择）
