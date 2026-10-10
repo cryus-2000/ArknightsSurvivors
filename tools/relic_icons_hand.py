@@ -5,9 +5,13 @@
 配一张调色表。物件按藏品名字和含义设计（八音盒是带摇柄的小盒、玻璃小鸟是半透明玻璃鸟、狙击镜是有镜片反光的瞄准镜……），
 流派色只做点缀，物件保持本来的颜色。
 
-用法：python tools/relic_icons_hand.py            渲染全部到 art/incoming/_hand_icons/relic_<id>.png
-      python tools/relic_icons_hand.py --contact  另出三方联系表 build/icons_hand/contact.png（手绘参考 / 模板试做 / 手摆，各 1x 与 4x）
-      python tools/relic_icons_hand.py --view 8   另出 build/icons_hand/_hand8x.png（自检用放大图）
+本文件是入口，含最早的 10 张试做；其余按批放在 tools/relic_icons_hand_<a-h>.py（每个模块一个 register(icon)）。
+
+用法：python tools/relic_icons_hand.py            渲染全部到 build/icons_hand/png/relic_<id>.png（工作输出）
+      python tools/relic_icons_hand.py --view 8   另出 build/icons_hand/_hand8x.png（自检用放大图；--only 3,4,5 只看这些）
+      python tools/relic_icons_hand.py --contact  另出三方联系表 build/icons_hand/contact.png（最早 10 张：手绘参考 / 模板试做 / 手摆）
+      python tools/relic_icons_hand.py --all      全部手摆图标按流派分组的 1x / 3x 联系表 build/icons_all/contact.png
+      python tools/relic_icons_hand.py --live     接入到 art/incoming/relic_<id>.png（清单 relic_icons_hand_manifest.json 记本脚本接入的 id；清单外已有的手绘图标一律不覆盖）
 自检：每行 32 字符、字符都在调色表里、四周 2 px 内无像素、alpha 只有 0/255。
 """
 import os, sys
@@ -15,9 +19,13 @@ from PIL import Image, ImageDraw
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 INC = os.path.join(ROOT, "art", "incoming")
-OUT = os.path.join(INC, "_hand_icons")
+OUT = os.path.join(ROOT, "build", "icons_hand", "png")   # 工作输出（build 不入库）；接入用 --live
 TRIAL = os.path.join(INC, "_trial_icons")
 BUILD = os.path.join(ROOT, "build", "icons_hand")
+ALL = os.path.join(ROOT, "build", "icons_all")
+DATA = os.path.join(ROOT, "game", "data", "relics.json")
+PARTS = "abcdefgh"
+MANIFEST = os.path.join(INC, "relic_icons_hand_manifest.json")
 
 O = (0x08, 0x0E, 0x18)      # 轮廓
 H = (0xE6, 0xFA, 0xFF)      # 冰白高光
@@ -451,6 +459,16 @@ icon(13, "玻璃小鸟", {
 ])
 
 
+# ---------------------------------------------------------------- 分批模块
+import importlib
+for _part in PARTS:
+    try:
+        _mod = importlib.import_module("relic_icons_hand_" + _part)
+    except ImportError:
+        continue
+    _mod.register(icon)
+
+
 # ---------------------------------------------------------------- 渲染 / 自检
 def render(rid):
     name, pal, rows = ICONS[rid]
@@ -482,7 +500,6 @@ def contact(hand):
         dr.text((72 + colw * c + pad, 8), t, fill=(220, 225, 232, 255))
     for r, rid in enumerate(order):
         y0 = 28 + rowh * r
-        name = ICONS[rid][0]
         dr.text((6, y0 + 4), "%d" % rid, fill=(220, 225, 232, 255))
         refid = REF[rid]
         srcs = [os.path.join(INC, "relic_%d.png" % refid) if refid else None,
@@ -503,6 +520,43 @@ def contact(hand):
     return sheet
 
 
+def lanes_of():
+    """id → 流派串（relics.json；没有流派记 '-'）"""
+    import json
+    out = {}
+    for it in json.load(open(DATA, encoding="utf-8"))["items"]:
+        out[it["id"]] = "".join(it.get("lanes", [])) or "-"
+    return out
+
+
+def contact_all(hand):
+    """全部手摆图标，按流派分组，每张 1x + 3x 并排，下面写编号。"""
+    lanes = lanes_of()
+    groups = {}
+    for rid in hand:
+        groups.setdefault(lanes.get(rid, "-")[0], []).append(rid)
+    order = [k for k in "ABCDEFGH-" if k in groups]
+    cols = 8
+    cw, ch = 36 + 100, 112
+    rows_total = sum((len(groups[k]) + cols - 1) // cols for k in order)
+    sheet = Image.new("RGBA", (cols * cw + 16, rows_total * ch + 22 * len(order) + 16), (40, 44, 54, 255))
+    dr = ImageDraw.Draw(sheet)
+    y = 8
+    for k in order:
+        dr.text((8, y), "lane %s  (%d)" % (k, len(groups[k])), fill=(220, 225, 232, 255))
+        y += 22
+        ids = sorted(groups[k])
+        for i, rid in enumerate(ids):
+            x = 8 + (i % cols) * cw
+            yy = y + (i // cols) * ch
+            im = hand[rid]
+            sheet.alpha_composite(im, (x, yy))
+            sheet.alpha_composite(im.resize((96, 96), Image.NEAREST), (x + 36, yy))
+            dr.text((x, yy + 40), "%d" % rid, fill=(220, 225, 232, 255))
+        y += ((len(ids) + cols - 1) // cols) * ch
+    return sheet
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(BUILD, exist_ok=True)
@@ -513,18 +567,49 @@ def main():
         im.save(os.path.join(OUT, "relic_%d.png" % rid))
         cols = len(set(im.getdata()) - {(0, 0, 0, 0)})
         print("relic_%d.png  %s  %d 色" % (rid, ICONS[rid][0], cols))
+    print("共 %d 张" % len(hand))
     if "--view" in sys.argv:
         s = int(sys.argv[sys.argv.index("--view") + 1])
         ids = list(ICONS)
-        sheet = Image.new("RGBA", (5 * (32 * s + 8), 2 * (32 * s + 8)), (60, 60, 70, 255))
+        if "--only" in sys.argv:
+            only = [int(v) for v in sys.argv[sys.argv.index("--only") + 1].split(",")]
+            ids = [r for r in only if r in ICONS]
+        n = 5
+        rows = (len(ids) + n - 1) // n
+        sheet = Image.new("RGBA", (n * (32 * s + 8), rows * (32 * s + 8)), (60, 60, 70, 255))
+        dr = ImageDraw.Draw(sheet)
         for k, rid in enumerate(ids):
-            sheet.alpha_composite(hand[rid].resize((32 * s, 32 * s), Image.NEAREST),
-                                  ((k % 5) * (32 * s + 8) + 4, (k // 5) * (32 * s + 8) + 4))
+            x, y = (k % n) * (32 * s + 8) + 4, (k // n) * (32 * s + 8) + 4
+            sheet.alpha_composite(hand[rid].resize((32 * s, 32 * s), Image.NEAREST), (x, y))
+            dr.text((x + 2, y + 2), "%d" % rid, fill=(255, 255, 255, 255))
         sheet.save(os.path.join(BUILD, "_hand%dx.png" % s))
     if "--contact" in sys.argv:
         p = os.path.join(BUILD, "contact.png")
         contact(hand).save(p)
         print("联系表", p)
+    if "--all" in sys.argv:
+        os.makedirs(ALL, exist_ok=True)
+        p = os.path.join(ALL, "contact.png")
+        contact_all(hand).save(p)
+        print("全表", p)
+    if "--live" in sys.argv:
+        # 接入：art/incoming/relic_<id>.png。清单 MANIFEST 记着哪些 id 是本脚本接入的；清单外已有的文件（手绘图标）一律不碰。
+        import json
+        owned = set()
+        if os.path.exists(MANIFEST):
+            owned = set(json.load(open(MANIFEST, encoding="utf-8")).get("ids", []))
+        n, skipped = 0, []
+        for rid, im in hand.items():
+            dst = os.path.join(INC, "relic_%d.png" % rid)
+            if os.path.exists(dst) and rid not in owned:
+                skipped.append(rid)
+                continue
+            im.save(dst)
+            owned.add(rid)
+            n += 1
+        json.dump({"_doc": "tools/relic_icons_hand.py --live 接入的藏品图标 id；清单外的 relic_<id>.png 是手绘图标，脚本不覆盖",
+                   "ids": sorted(owned)}, open(MANIFEST, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        print("接入 %d 张到 %s" % (n, INC) + ("；已有手绘、跳过：%s" % skipped if skipped else ""))
 
 
 if __name__ == "__main__":
