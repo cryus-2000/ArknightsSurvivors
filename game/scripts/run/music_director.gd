@@ -54,6 +54,12 @@ func update(_dt: float) -> void:
 			stinger_done = true
 			Sfx.play_stinger("win" if g.state == g.S.WIN else "lose")
 		return
+	if g.victory.active and g.victory.finale:
+		# 最终 Boss 击破演出（victory_flow / boss_intro）：结算乐句在慢动作一开始就落下，不等结算面板；进 WIN 后上面的分支看 stinger_done 不会再放
+		if not stinger_done:
+			stinger_done = true
+			Sfx.play_stinger("win")
+		return
 	if g.state == g.S.SHOP:
 		Sfx.play_music("shop")
 		return

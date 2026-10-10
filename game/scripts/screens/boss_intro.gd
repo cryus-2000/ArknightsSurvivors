@@ -33,8 +33,15 @@ const CARDS := {
 	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今成为海潮的一部分。"},
 }
 
+## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：
+##   白闪褪去 → 黑边滑入（内缘结局色细线）→ 结局色洗色 + 暗角 + 后期去色（低画质不洗色、不去色）→ 「名字 · 击破 / DEFEATED」名片 → 末 0.3 秒收黑边
+##   配乐：music_director 在演出开始就放结算乐句。同样不震屏、不碰模拟；无头 / 设置关 / 演练不演，平衡批跑只在 --bossdeath 下演（录片用）。
+const FIN_DUR := 2.0       # 和 victory_flow.FIN_DUR 一致（真实秒）
+const FIN_DESAT := 0.55    # 去色强度峰值（post.gdshader desat）
+
 var cur := {}      # 进行中的登场：{bosses: [敌人字典…], card: Dictionary, t: 秒}
 var outro := {}    # 进行中的击破一拍：{name, col, t}
+var finale := {}   # 进行中的最终 Boss 击破演出：{name, en, col 结局色, bcol Boss 强调色, t 真实秒}
 var _test_shots: Array = []   # --bossintro 的截图时刻（autotest 用）
 var _top: Control = null      # 自己的顶层画布：HUD 的合批 / 缓存层都是 g.hud 的子节点（画在父节点之上），黑边要盖住它们就得是最后一个子节点
 
@@ -56,6 +63,26 @@ func active() -> bool:
 	return not cur.is_empty()
 
 
+## 最终 Boss 击破演出要不要跑：登场演出的同一开关，再加只在正式游玩（或 --bossdeath 测试 / 录片）下演；平衡批跑 / 自测照旧立即结算
+func finale_ok() -> bool:
+	if not enabled():
+		return false
+	if g.mode == Game.Mode.PLAY:
+		return true
+	for a in Cfg.dev_args():
+		if str(a).begins_with("--bossdeath="):
+			return true
+	return false
+
+
+## 最终 Boss 倒下（victory_flow.begin）：开始击破演出；替代普通的击破一拍
+func on_finale(b: Dictionary) -> void:
+	var c := card_for([b])
+	finale = {"name": str(c.cn), "en": str(c.en), "col": g.endg.cur_col(), "bcol": c.col, "t": 0.0}
+	outro = {}
+	cur = {}
+
+
 ## 一组 Boss（同时登场的接潮双体算一组）刚被 spawner 刷出来：登场演出 + 专属音色。只有 role == boss 的算
 ## 友方阶段的 Boss（伊莎玛拉人形）不在刷出时演，等 world.watch_bosses 看到它转为敌对再演（force：测试开关直接演）
 func on_spawn(group: Array, force := false) -> void:
@@ -74,8 +101,8 @@ func on_spawn(group: Array, force := false) -> void:
 func on_down(b: Dictionary) -> void:
 	if not enabled() or b.get("friendly", false) or b.get("retreated", false):
 		return
-	if D.ENEMIES.get(b.type, {}).get("role", "") != "boss":
-		return
+	if D.ENEMIES.get(b.type, {}).get("role", "") != "boss" or not finale.is_empty():
+		return   # 最终 Boss 走 on_finale 的整段演出，不再叠普通一拍
 	var c := card_for([b])
 	outro = {"name": str(c.cn), "col": c.col, "t": 0.0}
 	cur = {}   # 登场还没播完就被秒了：直接切到击破
@@ -100,7 +127,11 @@ func card_for(bosses: Array) -> Dictionary:
 
 ## 每渲染帧（game._process 的 delta，真实时间）：面板 / 非战斗状态时停表，关掉后接着播
 func update(delta: float) -> void:
-	if g.state != Game.S.PLAY or g.panel.visible:
+	if g.state != Game.S.PLAY:
+		finale = {}   # 结算面板 / 暂停接管：击破演出到此为止（后期去色也随之归零）
+		_set_desat(0.0)
+		return
+	if g.panel.visible:
 		return
 	if not cur.is_empty():
 		cur.t += delta
@@ -110,8 +141,23 @@ func update(delta: float) -> void:
 		outro.t += delta
 		if outro.t >= OUT_DUR:
 			outro = {}
+	if not finale.is_empty():
+		finale.t += delta
+		if finale.t >= FIN_DUR or not g.victory.active:
+			finale = {}
+		_set_desat(0.0 if finale.is_empty() or Cfg.quality == "low" else FIN_DESAT * _fin_env(float(finale.t)))
 	if _top != null and _top.visible:
 		_top.queue_redraw()
+
+
+## 洗色 / 去色的包络：0.1–0.5 秒进、末 0.5 秒退
+static func _fin_env(t: float) -> float:
+	return _ss(0.1, 0.5, t) * (1.0 - _ss(FIN_DUR - 0.5, FIN_DUR, t))
+
+
+func _set_desat(k: float) -> void:
+	if g.post != null and g.post.desat != k:
+		g.post.desat = k
 
 
 ## 顶层画布：第一次用到时建在 g.hud 下、移到最后（最上面）；没有演出时隐藏，不占绘制
@@ -185,7 +231,7 @@ func draw_world() -> void:
 
 ## HUD 层（hud._draw_body 每帧调）：有演出时让顶层画布显示并重画，没有就藏起来
 func draw_hud(_vs: Vector2) -> void:
-	var on: bool = not cur.is_empty() or not outro.is_empty()
+	var on: bool = not cur.is_empty() or not outro.is_empty() or not finale.is_empty()
 	if not on:
 		if _top != null:
 			_top.visible = false
@@ -200,6 +246,9 @@ func draw_hud(_vs: Vector2) -> void:
 func _draw_top() -> void:
 	var vs: Vector2 = g.hud.size
 	var ci: CanvasItem = _top
+	if not finale.is_empty():
+		_draw_finale(vs, ci)
+		return
 	if not outro.is_empty():
 		_draw_outro(vs, ci)
 	if cur.is_empty():
@@ -298,3 +347,53 @@ func _draw_outro(vs: Vector2, ci: CanvasItem) -> void:
 	UI.hairline(ci, Vector2(vs.x * 0.5, y0 + 20.0), Vector2(vs.x * 0.5 + w * 0.5 + 60.0, y0 + 20.0), col, 0.9 * a, 0.0)
 	UI.text(ci, g.font, Vector2(0, y0 + 10.0), s, size, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	UI.en(ci, g.font, Vector2(vs.x * 0.5 - 34.0, y0 + 38.0), "DEFEATED", 12, Color(col.r, col.g, col.b, a), 3.0)
+
+
+## 最终 Boss 击破演出（真实时间 t，0–FIN_DUR）：白闪褪去、黑边、结局色洗色 + 暗角、名片「名字 · 击破 / DEFEATED」+ 结局名
+func _draw_finale(vs: Vector2, ci: CanvasItem) -> void:
+	var t: float = float(finale.t)
+	var col: Color = finale.col      # 结局色（洗色、黑边细线、结局名）
+	var bcol: Color = finale.bcol    # Boss 强调色（名片细线）
+	var low: bool = Cfg.quality == "low"
+	var touch: bool = g.touch.active
+	# 白闪：0.6 秒缓慢褪去（和普通击破一拍相同的一记）
+	var kf: float = clampf(1.0 - t / 0.6, 0.0, 1.0)
+	if kf > 0.0:
+		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.98, 0.96, 0.32 * kf * kf))
+	# 结局色洗色 + 暗角（低画质不画；去色在 post.gdshader，update 里按同一包络写）
+	var env: float = _fin_env(t)
+	if not low and env > 0.01:
+		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(col.r, col.g, col.b, 0.16 * env))
+		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.02, 0.22 * env))
+		_edge_glow(ci, vs, Color(col.r * 0.6, col.g * 0.6, col.b * 0.6, 0.5 * env), 170.0)
+	# 黑边：0–0.25 滑入，末 0.3 滑出（触屏薄一点）；内缘结局色细线
+	var kb: float = _ss(0.0, BAR_T, t) * (1.0 - _ss(FIN_DUR - 0.3, FIN_DUR, t))
+	var bh: float = vs.y * (0.085 if touch else 0.12) * kb
+	if bh > 0.5:
+		ci.draw_rect(Rect2(0, 0, vs.x, bh), Color(0.01, 0.012, 0.02, 1.0))
+		ci.draw_rect(Rect2(0, vs.y - bh, vs.x, bh), Color(0.01, 0.012, 0.02, 1.0))
+		var lk: float = _ss(0.1, 0.5, t)
+		for yy in [bh, vs.y - bh]:
+			UI.hairline(ci, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 - vs.x * 0.5 * lk, yy), col, 0.9 * kb, 0.0)
+			UI.hairline(ci, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 + vs.x * 0.5 * lk, yy), col, 0.9 * kb, 0.0)
+	# 名片：0.25 起淡入，末 0.35 淡出
+	var a: float = _ss(0.25, 0.5, t) * (1.0 - _ss(FIN_DUR - 0.35, FIN_DUR - 0.1, t))
+	if a <= 0.01:
+		return
+	var slide: float = (1.0 - _ss(0.25, 0.6, t)) * 10.0
+	var y0: float = maxf(vs.y * 0.36, g.hud_view.bars.boss_bottom + 60.0) - slide
+	var s := "%s · 击破" % str(finale.name)
+	var size: int = 30 if touch or vs.y < 680 else 36
+	var font: Font = g.font
+	var w: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	UI.fade_band(ci, Rect2(vs.x * 0.5 - w * 0.5 - 110.0, y0 - 34.0, w + 220.0, 96.0), Color(0.03, 0.035, 0.045, 0.72 * a), 120.0)
+	UI.hairline(ci, Vector2(vs.x * 0.5, y0 + 24.0), Vector2(vs.x * 0.5 - w * 0.5 - 80.0, y0 + 24.0), bcol, 0.9 * a, 0.0)
+	UI.hairline(ci, Vector2(vs.x * 0.5, y0 + 24.0), Vector2(vs.x * 0.5 + w * 0.5 + 80.0, y0 + 24.0), bcol, 0.9 * a, 0.0)
+	UI.text(ci, font, Vector2(0, y0 + 12.0), s, size, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+	var en := "DEFEATED  ·  " + str(finale.en)
+	var ew: float = UI.en_width(font, en, 12, 3.0)
+	UI.en(ci, font, Vector2(vs.x * 0.5 - ew * 0.5, y0 + 44.0), en, 12, Color(bcol.r, bcol.g, bcol.b, a), 3.0)
+	# 结局名（0.6 起，结局色小字）：这局走向哪个结局
+	var la: float = a * _ss(0.6, 0.9, t)
+	if la > 0.01:
+		UI.text(ci, font, Vector2(0, y0 + 70.0), g.endg.cur_name(), 14, Color(col.r * 1.1, col.g * 1.1, col.b * 1.1, la), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)

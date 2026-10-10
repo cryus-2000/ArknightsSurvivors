@@ -142,7 +142,7 @@
 
 **截图**（需要窗口，仍静音；`--shotdir=` 指定目录）
 
-`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--bossintro=<Boss>[,<Boss>]`（第 20 帧在主控旁刷出该 Boss（逗号 = 同组登场）走一遍登场演出，0.35 / 0.6 / 0.85 / 1.1 秒各截一张 `shot_bossintro_*`，演完击杀再截两张击破 `shot_bossout_*`；`--nobossintro` 关掉演出，同 seed 开窗口对照用；`screens/boss_intro.gd`）、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--opshot`、`--opsel=`、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
+`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--bossintro=<Boss>[,<Boss>]`（第 20 帧在主控旁刷出该 Boss（逗号 = 同组登场）走一遍登场演出，0.35 / 0.6 / 0.85 / 1.1 秒各截一张 `shot_bossintro_*`，演完击杀再截两张击破 `shot_bossout_*`；`--nobossintro` 关掉演出，同 seed 开窗口对照用；`screens/boss_intro.gd`）、`--bossdeath=<结局>`（最终 Boss 击破演出，docs/38 §1.8：第 20 帧在主控旁刷出该结局的最终 Boss（standard / deep / knight / resolve）并登记为 `final_boss`，登场演完 30 帧后击杀 → `victory_flow` 慢动作 + 击破名片，演出 0.2 / 0.5 / 0.9 / 1.4 / 1.8 秒各截一张 `shot_bossdeath_<结局>_*`，进结算 1.5 秒后退出；带 `--autotest`，开窗口；录片用 `--fixed-fps 30` 每帧存图）、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--opshot`、`--opsel=`、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
 
 ## 6. 报告在哪
 

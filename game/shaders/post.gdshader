@@ -9,6 +9,7 @@ uniform float vignette = 0.14;
 uniform float caustics = 0.07;
 uniform float brightness = 1.0;
 uniform float hurt = 0.0;           // 0..1 受伤红边
+uniform float desat = 0.0;          // 0..1 去色（最终 Boss 击破演出）
 uniform float time = 0.0;
 
 vec3 sample_rgb(vec2 uv) {
@@ -51,6 +52,9 @@ void fragment() {
 		col *= 1.0 - r2 * vignette * 2.0;
 	}
 	col *= brightness;
+	if (desat > 0.001) {
+		col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), desat);
+	}
 	if (hurt > 0.001) {
 		float edge = smoothstep(0.12, 0.5, r2);
 		col = mix(col, vec3(0.9, 0.08, 0.12), edge * hurt * 0.75);
