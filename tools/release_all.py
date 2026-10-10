@@ -7,7 +7,7 @@
     python tools/release_all.py --ref <提交> --only internal     # 只出一份：public / internal / web / web_internal
 
 顺序固定、串行：export_build.py 与 verify_encrypted_game.py 共用 build/_export/（验证要读刚导出的那份打包源码），
-所以每出一个包立刻验证，再出下一个。任何一步失败就中止，不会留下「只有一个包」却报成功的结果。
+所以每出一个包立刻验证，再出下一个；导出 + 验证期间持有 build/_export.lock，另一个会话同时出包会排队而不是互相清目录。任何一步失败就中止，不会留下「只有一个包」却报成功的结果。
 不推送、不上传：产物都在本地 build/ 下，发布前由用户确认（docs/33 清单第 6 条）。
 
 产物统一收进 build/release/final_<提交>/：
@@ -26,7 +26,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
 STAGED_PKG = os.path.join(ROOT, "build", "_export", "方舟幸存者")
 OUT = os.path.join(ROOT, "build", "release")
-ENV = dict(os.environ, PYTHONIOENCODING="utf-8")
+ENV = dict(os.environ, PYTHONIOENCODING="utf-8", ARK_EXPORT_LOCK_HELD="1")   # 导出 + 验证期间整段持有 build/_export.lock（见 one_package）
+sys.path.insert(0, TOOLS)
+import godot_runner
+EXPORT_LOCK = os.path.join(ROOT, "build", "_export.lock")
 
 
 def step(title, cmd):
@@ -54,9 +57,10 @@ def sha256(path):
 
 
 def one_package(kind, label, extra, commit, final):
-    step("导出%s包" % kind, [sys.executable, os.path.join(TOOLS, "export_build.py"), "--ref", commit] + extra)
-    zpath = newest_zip(label, commit)
-    step("验证%s包" % kind, [sys.executable, os.path.join(TOOLS, "verify_encrypted_game.py"), "--package", STAGED_PKG, "--zip", zpath])
+    with godot_runner.file_lock(EXPORT_LOCK):   # 别的会话同时出包时排队，不会在验证读 build/_export 的时候被清掉
+        step("导出%s包" % kind, [sys.executable, os.path.join(TOOLS, "export_build.py"), "--ref", commit] + extra)
+        zpath = newest_zip(label, commit)
+        step("验证%s包" % kind, [sys.executable, os.path.join(TOOLS, "verify_encrypted_game.py"), "--package", STAGED_PKG, "--zip", zpath])
     audience = "internal" if "--ea" in extra else "public"
     report = os.path.join(ROOT, "build", "encrypted_game_verification_%s_%s.json" % (audience, commit))
     result = json.load(open(report, encoding="utf-8"))

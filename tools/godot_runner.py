@@ -60,9 +60,11 @@ def count_godot():
         return 0
 
 
-def _lock():
-    os.makedirs(os.path.dirname(_LOCK), exist_ok=True)
-    f = open(_LOCK, "a+b")
+def _lock(path=None):
+    """在 path（缺省：启动锁）上加独占文件锁，拿到才返回；用 _unlock 释放"""
+    path = path or _LOCK
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    f = open(path, "a+b")
     while True:
         try:
             if os.name == "nt":
@@ -75,6 +77,20 @@ def _lock():
             return f
         except OSError:
             time.sleep(0.1)
+
+
+class file_lock:
+    """with file_lock(path): ... —— 跨进程独占锁（出包用：build/_export 一次只能有一个 export_build / 验证在用）"""
+    def __init__(self, path):
+        self.path = path
+        self.f = None
+
+    def __enter__(self):
+        self.f = _lock(self.path)
+        return self
+
+    def __exit__(self, *_):
+        _unlock(self.f)
 
 
 def _unlock(f):
