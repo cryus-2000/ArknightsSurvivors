@@ -452,10 +452,10 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	g.vfx.shake_screen(0.55 + 0.8 * sev)
 	g.hitstop = max(g.hitstop, 0.045 + 0.06 * sev)
 	Sfx.play("hurt", 3.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)   # 打击感检查：原来实际只有 -24 左右，比命中声还轻，+4 dB
-	# 重击（单发 ≥ 最大生命 12% × fx/hurt_heavy_sev，Boss 招式基本都到）：再叠一层低沉的 boom，并把配乐低通压到 fx/hurt_duck_hz、
+	# 重击（单发 ≥ 最大生命 12% × fx/hurt_heavy_sev，Boss 招式基本都到）：再叠一层次低频 hurt_heavy，并把配乐低通压到 fx/hurt_duck_hz、
 	# 保持 fx/hurt_duck_t 秒（music_director 读 g.hurt_duck，world.update_player_feel 按真实时间衰减）。docs/53
 	if sev >= Bal.v("fx/hurt_heavy_sev", 0.5):
-		Sfx.play("boom", Bal.v("fx/hurt_heavy_db", -10.0), 0.7, 0.05)
+		Sfx.play("hurt_heavy", Bal.v("fx/hurt_heavy_db", -8.0), 1.0, 0.05)   # 正式次低频层（gen_sfx_hitfeel.py）；缺文件时 sfx.ALT 借 boom ×0.7 −2 dB
 		g.hurt_duck = Bal.v("fx/hurt_duck_t", 0.4)
 		Sfx.duck_music(Bal.v("fx/hurt_duck_hz", 900.0))
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)

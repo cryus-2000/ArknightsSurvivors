@@ -103,13 +103,15 @@
 
 ## 5. 待制作音效（本轮用近似音顶替，交音频 / Codex）
 
-| 音名 | 用途 | 现在顶替的 | 要求 |
-|---|---|---|---|
-| `op_logos_hit` | 逻各斯「言」命中 | `op_mizuki_hit` 0.8 音高 −4 dB | 墨滴落纸 + 低语余音，短（≤0.15 秒），和出手音同一音色族 |
-| `kill_big` | 大体型 / 精英倒下的血肉层 | `mire_splat` −9 dB 0.85 | 比 `kill` 更湿更沉，带一点体积感；最短间隔可和 `kill` 一样 0.045 |
-| `kill_shell` | 甲壳类（石怪、喷吐者、口袋、拟态…）倒下 | `hit` 0.6 音高 −6 dB | 壳裂 + 碎块落地 |
-| `hurt_heavy` | 主控挨重击（Boss 招式）的低频层 | `boom` −10 dB 0.7 | 次低频「咚」+ 短暂耳鸣感，配 900 Hz 低通 |
-| `op_kaltsit_hit` / `op_ulpianus_hit` / `op_specter_unchained_hit` | 三人目前靠出手音兼任命中 | 不播 | 可选；做了之后在各自脚本的命中处加 `Sfx.op(id, "hit")` 即可 |
+> **10-11 已做**（前四个）：`game/tools/gen_sfx_hitfeel.py` 程序合成（每音固定种子、44.1 kHz 16-bit 单声道），音量对齐邻近音（峰值 0.80–0.90，RMS −16 ～ −19 dBFS 对 `op_mizuki_hit` −15.8 / `kill` −19 / `mire_splat` −16 / `boom` −15）。接入：`sfx.gd` NAMES + `logos` 的 `hit`；`fx/kill_big_sfx` = `kill_big`、`fx/kill_shell_sfx` = `kill_shell`（vfx.kill_burst 原速播放）；`combat.hurt` 改播 `hurt_heavy`（`fx/hurt_heavy_db` −8，优先级 4 不再被拥挤丢弃）；`kill_big` / `kill_shell` 优先级 3（一局只有几次，无头 320 秒机器人局里优先级 2 时全部被满槽丢弃）。文件缺失时仍退回下表的顶替音（`sfx.OP_ALT` / `sfx.ALT`，按原来的音高与音量）。A/B 试听：`build/sfx_out/ab.wav`。
+
+| 音名 | 用途 | 原顶替的（缺文件时仍用） | 要求 | 状态 |
+|---|---|---|---|---|
+| `op_logos_hit` | 逻各斯「言」命中 | `op_mizuki_hit` 0.8 音高 −4 dB | 墨滴落纸 + 低语余音，短（≤0.15 秒），和出手音同一音色族 | ✅ 0.15 s：湿「嗒」+ 520→170 Hz 水珠 + 160→80 Hz 落点 + 1.4 / 2.7 kHz 双共振峰低语（同 logos_atk 的 whisper） |
+| `kill_big` | 大体型 / 精英倒下的血肉层 | `mire_splat` −9 dB 0.85 | 比 `kill` 更湿更沉，带一点体积感；最短间隔可和 `kill` 一样 0.045 | ✅ 0.42 s：110→42 Hz 饱和体积「咚」+ 900 Hz 低通湿裂 + 0.07 s 后翻涌气泡 + 7 粒湿碎点；LIMIT 0.045 |
+| `kill_shell` | 甲壳类（石怪、喷吐者、口袋、拟态…）倒下 | `hit` 0.6 音高 −6 dB | 壳裂 + 碎块落地 | ✅ 0.48 s：2–7 kHz 碎裂瞬态 + 880 Hz 非谐短泛音 + 220→90 Hz 小闷响 + 0.06–0.42 s 11 粒 1.5–5 kHz 碎块落地（渐稀渐轻）；LIMIT 0.045 |
+| `hurt_heavy` | 主控挨重击（Boss 招式）的低频层 | `boom` −10 dB 0.7 | 次低频「咚」+ 短暂耳鸣感，配 900 Hz 低通 | ✅ 0.85 s：52→36 Hz 饱和次低频（放 0.2 s）+ 160→60 Hz 中频撞击 + 250 Hz 以下噪声冲击 + 4.6 kHz 轻耳鸣（0.3 s 衰减）；优先级 4 |
+| `op_kaltsit_hit` / `op_ulpianus_hit` / `op_specter_unchained_hit` | 三人目前靠出手音兼任命中 | 不播 | 可选；做了之后在各自脚本的命中处加 `Sfx.op(id, "hit")` 即可 | 待定 |
 
 ## 6. 遗留与建议（不在本轮）
 
@@ -117,4 +119,4 @@
 - `vfx.hit_fx`、推进之王 `_hit_fx` 的角度用 `g.rng`，应改 `g.vrng`；改动会让所有 seed 的结果整体换一套，宜和下一次数值基线一起换。
 - 弹体 `tide` 分支没有任何生成者，可删。
 - 援护骑士的劈砍没有命中音（只有 `swing`）。
-- 低画质在 12 路同时发声时直接丢弃优先级 ≤2 的音（docs/36 §9）：本轮新增的大体型材质层和重击 `boom` 都是优先级 2，拥挤时可能被丢；重击层若要保证必响，把 `boom` 提到 `PRIO_NAME` 4 或单独做 `hurt_heavy` 音。
+- 低画质在 12 路同时发声时直接丢弃优先级 ≤2 的音（docs/36 §9）：本轮新增的大体型材质层和重击 `boom` 都是优先级 2，拥挤时可能被丢；重击层若要保证必响，把 `boom` 提到 `PRIO_NAME` 4 或单独做 `hurt_heavy` 音。→ 10-11 已做 `hurt_heavy`（优先级 4）。
