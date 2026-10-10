@@ -113,7 +113,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 
 ## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：
 ## - 火花数 = fx/kill_sparks + e.r × fx/kill_sparks_per_r，速度随体型略增；冲击环照旧 e.r × 1.2
-## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx，其余 fx/kill_big_sfx）
+## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx = kill_shell，其余 fx/kill_big_sfx = kill_big）
 ## - 击杀音 kill 的音高按体型降（fx/kill_pitch_r：r 越大越低），同屏一片小怪倒下时也听得出大小
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
 func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
@@ -131,7 +131,7 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 		var fxs: Dictionary = Bal.sec("fx")
 		var layer: String = str(fxs.get("kill_shell_sfx", "hit")) if shell else str(fxs.get("kill_big_sfx", "mire_splat"))
 		if layer != "":
-			Sfx.play(layer, -6.0 if shell else -9.0, 0.6 if shell else 0.85, 0.05)
+			Sfx.play(layer, -6.0 if shell else -8.0, 1.0, 0.05)   # 正式音 kill_shell / kill_big（gen_sfx_hitfeel.py）；缺文件时 sfx.ALT 借 hit ×0.6 / mire_splat ×0.85
 	if big or crit:
 		impact_pause(Bal.v("fx/kill_pause", 0.033))
 
