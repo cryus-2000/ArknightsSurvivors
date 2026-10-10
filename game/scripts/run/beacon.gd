@@ -17,6 +17,7 @@ var g: Game
 
 var next_at := -1.0      # 下一座灯标的刷新时刻（< 0：自然溟痕还没开始）
 var charging = null      # 本帧主控正在读条的那座灯标（未点燃、主控在光圈内、进度在涨）；圈内安全读它（docs/49g）
+var guide = null         # 本帧「引路」生效的那座灯标（未点燃、寿命 < beacon/guide_life、beacon/guide_r > 0）；圈内安全外扩读它（docs/56 候选 a）
 var lit_n := 0           # 本局点燃数（平衡输出）
 var spawned_n := 0
 
@@ -31,6 +32,7 @@ func _k(key: String, d: float) -> float:
 
 func update(dt: float) -> void:
 	charging = null
+	guide = null
 	if _k("enabled", 1.0) <= 0.0 or g.demo_op != "" or g.trial.active:
 		return
 	# 自动测试：每 60 秒记一次场上溟痕数（溟痕存量）
@@ -60,17 +62,28 @@ func update(dt: float) -> void:
 			continue
 		# 没点燃的灯标 unlit_life 秒后熄灭，放行下一座（协调人 9/30 定 A：原来没人点的那座一直占位，普通机器人整局只刷 1–3 座）
 		b.age = float(b.get("age", 0.0)) + dt
+		# 「去不去」遥测（docs/56 §4）：寿命内主控离它最近多远、在 2×r 内待了多久；熄灭时写进 BEACON expire 行
+		var pd: float = b.pos.distance_to(g.ppos)
+		b.min_d = minf(float(b.get("min_d", INF)), pd)
+		if pd < 2.0 * r:
+			b.hold_s = float(b.get("hold_s", 0.0)) + dt
 		if b.age > _k("unlit_life", 45.0):
 			b.dead = true
 			g.vfx.sparks(b.pos, Vector2.UP, Color(0.6, 0.7, 0.8), 8, 90.0)
-			Sfx.play("beacon_fizzle", -4.3 if b.pos.distance_to(g.ppos) < 560.0 else -10.3, 1.0, 0.0)   # 没点燃熄灭：噗噗几下 + 嘶声，无音调（和安全区结束的两音下行区分）
+			Sfx.play("beacon_fizzle", -4.3 if pd < 560.0 else -10.3, 1.0, 0.0)   # 没点燃熄灭：噗噗几下 + 嘶声，无音调（和安全区结束的两音下行区分）
 			# 熄灭提示（别让玩家以为是 bug）：在屏内就在灯标上飘字，在屏外弹一句横幅
-			if b.pos.distance_to(g.ppos) < 560.0:
+			if pd < 560.0:
 				g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标熄灭了", Color(0.7, 0.78, 0.85), 15)
 			else:
 				g.vfx.show_banner("远处的引航灯标熄灭了 —— 稍后会有新的一座")
-			_log("expire")
+			# quit：none = 从没走到寻灯半径（bot/beacon_seek_r 300）内；approach = 进过寻灯半径但没到 2×r（半路放弃）；edge = 到过 2×r（圈边 / 进过圈）没点
+			var md: float = float(b.get("min_d", INF))
+			var quit := "none" if md >= Bal.v("bot/beacon_seek_r", 300.0) else ("approach" if md >= 2.0 * r else "edge")
+			_log("expire min_d=%.0f hold_s=%.1f quit=%s" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit])
 			continue
+		# 引路（docs/56 候选 a，beacon/guide_r > 0 开）：未点燃且寿命 < guide_life 的灯标，guide_r 内吞非 Boss 子弹、远程杂兵不对圈内主控起手
+		if _sk("guide_r") > 0.0 and b.age <= _k("guide_life", 45.0):
+			guide = b
 		var rate := 1.0
 		if g.lamp < 30.0:
 			rate /= _k("low_lamp_mult", 1.5)
@@ -118,7 +131,8 @@ func _spawn() -> void:
 				p = q
 	p = g.spawner.safe_event_pos(p, 110.0)
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
-		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0})
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
+		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0)})   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")
@@ -162,13 +176,35 @@ func _sk(key: String) -> float:
 
 
 ## 非 Boss 子弹 / 抛石进入正在读条的光圈：被灯光吞掉（beacon/safe_bullet）
+## 引路（docs/56 a，beacon/guide_r > 0）：未点燃灯标 guide_r 内的非 Boss 子弹也吞，不要求主控在读条——光圈 r 70 的规则只是它的内圈
 func bullet_eaten(pos: Vector2) -> bool:
-	return charging != null and _sk("safe_bullet") > 0.0 and g.combat.ground_d(pos, charging.pos) < float(charging.r)
+	if charging != null and _sk("safe_bullet") > 0.0 and g.combat.ground_d(pos, charging.pos) < float(charging.r):
+		return true
+	return guide != null and g.combat.ground_d(pos, guide.pos) < _sk("guide_r")
 
 
 ## 远程杂兵不对正在读条的主控发起新的远程出招（beacon/safe_ranged）；调用方不推进冷却，出圈即恢复
+## 引路：主控在未点燃灯标 guide_r 内时同样不起手（docs/56 a ②）
 func ranged_held(e: Dictionary) -> bool:
-	return charging != null and not e.get("boss", false) and _sk("safe_ranged") > 0.0
+	if e.get("boss", false):
+		return false
+	if charging != null and _sk("safe_ranged") > 0.0:
+		return true
+	return guide != null and g.combat.ground_d(g.ppos, guide.pos) < _sk("guide_r")
+
+
+## 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：有未点燃灯标且在主控 beacon/shade_dist（600）内时，
+## 返回 [主控→灯标 的角度, 半张角（弧度）] 给 spawner.edge_pos() 避开；没有要避的扇区返回空数组。
+## 不看 guide_life：点燃或熄灭即恢复。Boss / 事件刷新不经 edge_pos，不受影响
+func shade_sector() -> Array:
+	var deg: float = _sk("shade_deg")
+	if deg <= 0.0:
+		return []
+	var dist: float = _k("shade_dist", 600.0)
+	for b in g.beacons:
+		if not b.lit and not b.dead and b.pos.distance_to(g.ppos) < dist:
+			return [(b.pos - g.ppos).angle(), deg_to_rad(minf(deg, 170.0))]
+	return []
 
 
 ## 读条期间光圈附近的杂兵减速（beacon/safe_slow = 减少量，如 0.4 = −40%）并且不起冲刺；对照组用

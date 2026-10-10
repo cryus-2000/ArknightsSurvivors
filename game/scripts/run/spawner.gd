@@ -27,7 +27,16 @@ func _init(game: Game) -> void:
 
 
 func edge_pos() -> Vector2:
-	return g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(720.0, 820.0)
+	var ang: float = g.rng.randf() * TAU
+	var dist: float = g.rng.randf_range(720.0, 820.0)
+	# 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：朝向未点燃灯标 ±shade_deg 的扇区不刷杂兵。
+	# 不重掷：把 [0, TAU) 的随机角均匀映射到扇区以外的那段弧上，随机数调用次数与旋钮无关，同 seed 同旋钮可复现
+	var sh: Array = g.beacon_sys.shade_sector()
+	if not sh.is_empty():
+		var half: float = sh[1]
+		var u: float = fposmod(ang - (sh[0] + half), TAU)   # 从扇区末端起量的角度 [0, TAU)
+		ang = sh[0] + half + u * (TAU - 2.0 * half) / TAU
+	return g.ppos + Vector2.from_angle(ang) * dist
 
 
 ## 持续缩圈中的非战斗交互物，保留立绘与交互的安全边距。

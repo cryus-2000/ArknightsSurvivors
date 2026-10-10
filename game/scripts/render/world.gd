@@ -2136,6 +2136,12 @@ func draw_beacons() -> void:
 			for q in 20:
 				var a0: float = g.t * 0.3 + q * TAU / 20.0
 				tb_arc(pos, r, a0, a0 + TAU / 40.0, 2.0, Color(BEACON_COL.r * 1.5, BEACON_COL.g * 1.5, BEACON_COL.b * 1.5, 0.55), 3, ground_y())   # 虚线进批（原来 20 段各一次调用）
+			# 引路圈（docs/56 a，beacon/guide_r > 0 才有）：guide_r 处一圈很淡的同款虚线，寿命过 guide_life 即消失
+			var gr: float = float(b.get("guide_r", 0.0))
+			if gr > 0.0 and float(b.get("age", 0.0)) <= float(b.get("guide_life", 45.0)):
+				for q in 28:
+					var a2: float = -g.t * 0.2 + q * TAU / 28.0
+					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, 0.16 + 0.04 * pulse), 3, ground_y())
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:
