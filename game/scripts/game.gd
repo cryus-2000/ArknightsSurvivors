@@ -802,8 +802,7 @@ func _process(delta: float) -> void:
 		dt = (minf(delta, 0.05) if realtime else 0.066) if mode == Mode.BALANCE else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	if victory.active and state == S.PLAY:
-		simulated_dt = minf(delta, 0.05)
-		victory.step(simulated_dt)
+		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and mode == Mode.PLAY and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:

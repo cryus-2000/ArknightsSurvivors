@@ -5,6 +5,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const D = preload("res://scripts/data.gd")
 var g: Game
 var winshot := false
 var touchtest_p0 := Vector2.ZERO
@@ -265,6 +266,35 @@ func step() -> void:
 					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossout_%s_%03d.png" % [tag, int(bi.outro.t * 100.0)])
 					bi._test_shots.pop_front()
 				if bossintro_kill_at >= 0 and g.at_frames > bossintro_kill_at + 90:
+					g.get_tree().quit()
+		if a.begins_with("--bossdeath=") and D.ENDINGS.has(a.substr(12)):
+			# 最终 Boss 击破演出测试（docs/36 §5，docs/38 §1.8）：第 20 帧把该结局的最终 Boss 刷在主控旁、走登场演出，
+			# 登场演完再过 30 帧击杀它 → victory_flow 慢动作 + boss_intro 击破演出；演出 0.2 / 0.5 / 0.9 / 1.4 / 1.8 秒各截一张
+			# shot_bossdeath_<结局>_<百分秒>.png，进结算面板 45 帧后退出。开着窗口的 --balance 也演（录片用），无头不演
+			bosstest = true
+			var eid: String = a.substr(12)
+			if g.at_frames == 20:
+				g.ppos = Vector2(1500, 900)
+				g.t = 600.0
+				g.ending = eid
+				g.endg.cur = eid
+				var b := g.spawner.spawn_enemy(str(D.ENDINGS[eid].boss), g.ppos + Vector2(230, -40))
+				b.age = 5.0
+				g.bosses.append(b)
+				g.boss = b
+				g.final_boss = b
+				g.boss_intro.on_spawn([b], true)
+				g.boss_intro._test_shots = [0.2, 0.5, 0.9, 1.4, 1.8]
+			if g.at_frames > 20:
+				var bi = g.boss_intro
+				if not bi.active() and g.at_frames > 40 and bossintro_kill_at < 0 and g.final_boss != null and not g.final_boss.dead:
+					bossintro_kill_at = g.at_frames   # 登场演完的帧号：再过 30 帧击杀
+				if bossintro_kill_at > 0 and g.at_frames == bossintro_kill_at + 30 and g.final_boss != null and not g.final_boss.dead:
+					g.combat.kill(g.final_boss)
+				if DisplayServer.get_name() != "headless" and not bi.finale.is_empty() and not bi._test_shots.is_empty() and float(bi.finale.t) >= float(bi._test_shots[0]):
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossdeath_%s_%03d.png" % [eid, int(float(bi.finale.t) * 100.0)])
+					bi._test_shots.pop_front()
+				if g.state == g.S.WIN and g.state_age > 1.5:
 					g.get_tree().quit()
 	if Cfg.dev_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
