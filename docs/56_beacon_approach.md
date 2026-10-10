@@ -1,4 +1,4 @@
-# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿，未改代码）
+# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关）
 
 > 背景：圈内安全（docs/49g 候选 e）已三档全开（7dd0af7），把「进了圈被杂兵远程逼出来」修掉了，但整体点燃率只到 22–28%。
 > 刷新距离 A/B（docs/38 §8.12 灯标段）112 局不显著，距离这条已到头。瓶颈记为「灯标附近、走过去这段路上的危险」，本稿给机制级候选。
@@ -87,3 +87,20 @@
 - `BDBG t= hold= in55= stand= danger=`（每 60 秒）：追灯帧占比 vs 到圈帧占比。
 
 **要加的一个字段**：现在没有任何一行说「这座灯标没人进圈时主控离它最近多远、追了多久、为什么放弃」。建议在 `BEACON expire` 行加 `min_d=`（寿命内主控最近距离）、`hold_s=`（机器人 `beacon_hold` 指向它的累计秒数）、`quit=`（最后一次放弃 hold 的原因：danger / boss / hp / none），由 `beacon.gd` 记 min_d、`bot.gd` 在 hold 切走时回写。有了它才能把 63% 的未进圈灯标分成「没追」「追了半路放弃」「到了圈边没进」三类，分别对应 d、e、a 三个候选的作用区；`balance_run.py --keep=BEACON,BDBG,BDBGC` 原样接收。真人侧 `_log` 不在 PLAY 模式打，EA 问卷（docs/52）补「灯标常常来不及点 / 走过去太危险」两问。
+
+## 5. 原型实装（2026-10-11，制作人定 a + e + 遥测缺口；缺省全关 = 现行为）
+
+| 旋钮（balance.json beacon 段） | 含义 | 缺省 | 对照用 |
+|---|---|---|---|
+| `beacon/guide_r` | 引路半径：未点燃且寿命 ≤ `guide_life` 的灯标，以它为心 guide_r 内 ① 非 Boss 子弹 / 抛石进入即消散（走现有 `bullet_eaten` / `eat_fx`，不要求主控在读条）② 主控在 guide_r 内时远程杂兵不起新远程招（`ranged_held`，冷却照走）。光圈 r 70 的圈内安全只是它的内圈；不依赖 `safe_*`。0 = 关 | **0** | 160 |
+| `beacon/guide_life` | 引路只在灯标出现后这么多秒内生效（与 unlit_life 45 同长 = 整个未点燃期） | 45 | — |
+| `beacon/shade_deg` | 背光刷怪半张角：有未点燃灯标且在主控 `shade_dist` 内时，`spawner.edge_pos()` 不朝灯标 ±shade_deg 刷杂兵；点燃 / 熄灭即恢复。Boss / 事件刷新不经 edge_pos。0 = 关 | **0** | 50 |
+| `beacon/shade_dist` | 背光生效的灯标—主控距离 | 600 | — |
+
+- 难度表可按档覆盖：`difficulty/<档>/beacon_guide_r`、`beacon_shade_deg`（≥ 0 时优先，同 `beacon_safe_*`）。
+- 推开（a ③ `guide_push`）这次没做，等 B / C 组结果。
+- **随机数**：背光不重掷。`edge_pos()` 仍只取 1 个角 + 1 个距离，把 [0, TAU) 的随机角均匀映射到扇区以外的弧上（`u = fposmod(ang − (θ + half), TAU)`，`ang' = θ + half + u·(TAU − 2·half)/TAU`）。所以随机数调用次数与旋钮无关：旋钮缺省时同 seed 与 main 逐帧一致；旋钮开着时同 seed 同旋钮也可复现，但与关着的局从第一次刷怪起分叉（角度不同），属预期。
+- **画面**：引路生效期间 guide_r 处多一圈很淡的同款虚线（world.draw_beacons，alpha 0.16–0.20），子弹被吞用现有的暖色光屑（`eat_fx`）。
+- **遥测**（§4 的缺口，`beacon.gd` 记，不改机器人）：`BEACON expire min_d=<寿命内主控最近距离> hold_s=<主控在 2×r 内的累计秒> quit=<none|approach|edge> t= mires=`。`quit`：none = 从没进过寻灯半径（读 `bot/beacon_seek_r` 300）；approach = 进过寻灯半径但没到 2×r（半路放弃）；edge = 到过 2×r（圈边或进过圈）没点。BDBG / BDBGC 格式不变。
+- 机器人不改（`bot/beacon_seek_r` 300 照旧）：机制对机器人和真人一样生效。
+- 验证：旋钮缺省时同 seed TRACE / BALANCE 与 main 一致（3 干员）；prot_test 加 9 条（引路开 / 关、Boss 不受影响、背光扇区与随机数调用次数）。

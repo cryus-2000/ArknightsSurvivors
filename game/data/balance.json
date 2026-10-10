@@ -276,7 +276,12 @@
   "lamp": 20,
   "safe_bullet": 1,
   "safe_ranged": 1,
-  "safe_slow": 0
+  "safe_slow": 0,
+  "_doc2": "docs/56「去不去」原型（10-11，缺省全关 = 现行为）：guide_r 引路半径（0 关；对照用 160）——未点燃且寿命 ≤ guide_life（45 秒）的灯标 guide_r 内非 Boss 子弹消散、主控在内时远程杂兵不起手，不依赖 safe_*；shade_deg 背光刷怪半张角（0 关；对照用 50）——未点燃灯标在主控 shade_dist（600）内时 edge_pos 不朝灯标方向刷杂兵（角度均匀重映射，不额外掷随机数）。难度表可用 beacon_guide_r / beacon_shade_deg 按档覆盖",
+  "guide_r": 0,
+  "guide_life": 45,
+  "shade_deg": 0,
+  "shade_dist": 600
  },
  "squad": {
   "_doc": "编队人数加主控最大生命（docs/46 §6，用户定每人 +15%）",

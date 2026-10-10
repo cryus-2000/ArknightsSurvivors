@@ -72,6 +72,7 @@ func _process(_d: float) -> void:
 	test_close_panic()
 	test_enemy_knob()
 	test_beacon_safe()
+	test_beacon_guide()
 	test_saint_tiers()
 	test_arena()
 	test_ground()
@@ -974,6 +975,55 @@ func test_beacon_safe() -> void:
 	ok(not bs.bullet_eaten(bc.pos) and not bs.ranged_held(mob), "不在读条（charging 为空）时全部失效")
 	Bal._data["beacon"] = keep_b
 	bs.charging = keep_c
+
+## 灯标「去不去」原型（docs/56 a 引路 + e 背光刷怪）：缺省全关 = 旧行为；开了只对未点燃灯标、只对非 Boss；背光不多掷随机数
+func test_beacon_guide() -> void:
+	var bs = game.beacon_sys
+	var keep_c = bs.charging
+	var keep_g = bs.guide
+	var keep_beacons: Array = game.beacons
+	var keep_b: Dictionary = Bal._data.get("beacon", {}).duplicate()
+	var bc := {"pos": game.ppos + Vector2(120, 0), "r": 70.0, "lit": false, "dead": false, "age": 1.0}
+	var mob := {"boss": false, "pos": bc.pos, "r": 10.0}
+	var boss := {"boss": true, "pos": bc.pos, "r": 30.0}
+	bs.charging = null
+	# 缺省（guide_r 0）：引路不生效，update 也不会把 guide 指上
+	bs.guide = bc
+	ok(not bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.ranged_held(mob), "缺省 guide_r 0：灯标附近子弹不吞、远程照打（旧行为）")
+	var nb: Dictionary = keep_b.duplicate()
+	nb["guide_r"] = 160.0
+	Bal._data["beacon"] = nb
+	ok(bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.bullet_eaten(bc.pos + Vector2(200, 0)), "guide_r 160：灯标 160 内的子弹被吞，外面不吞（不要求读条）")
+	ok(bs.ranged_held(mob) and not bs.ranged_held(boss), "guide_r 160：主控在 160 内时杂兵不起远程招，Boss 照常")
+	bs.guide = null
+	ok(not bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.ranged_held(mob), "guide 为空（点燃 / 寿命过 guide_life）：引路立刻结束")
+	# 背光刷怪：缺省 shade_deg 0 不改 edge_pos；开 50 时 edge_pos 的角度不落在朝灯标 ±50° 内，且随机数调用次数一样
+	game.beacons = [bc]
+	ok(bs.shade_sector().is_empty(), "缺省 shade_deg 0：没有要避的扇区")
+	var s0: int = game.rng.state
+	game.spawner.edge_pos()
+	var s1: int = game.rng.state
+	game.rng.state = s0
+	nb["shade_deg"] = 50.0
+	var bad := 0
+	for i in 40:
+		var p: Vector2 = game.spawner.edge_pos()
+		if i == 0 and game.rng.state != s1:
+			bad += 100   # 随机数调用次数变了
+		var a: float = absf(angle_difference((p - game.ppos).angle(), (bc.pos - game.ppos).angle()))
+		if a < deg_to_rad(50.0) - 0.001:
+			bad += 1
+	ok(bad == 0, "shade_deg 50：40 次 edge_pos 都不朝灯标 ±50°，且随机数调用次数不变（bad=%d）" % bad)
+	bc.lit = true
+	ok(bs.shade_sector().is_empty(), "灯标点燃后背光扇区立刻恢复")
+	bc.lit = false
+	bc.pos = game.ppos + Vector2(900, 0)
+	ok(bs.shade_sector().is_empty(), "灯标在 shade_dist 600 外不避")
+	Bal._data["beacon"] = keep_b
+	game.beacons = keep_beacons
+	bs.charging = keep_c
+	bs.guide = keep_g
+
 
 ## 圣徒两档（用户 10-01 按原作核对：卡门 / 伊比利亚是同一人物）：中期抽取按人物互斥；弹药按数据（卡门 3、伊比利亚 1）
 func test_saint_tiers() -> void:
