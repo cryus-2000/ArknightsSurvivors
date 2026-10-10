@@ -133,6 +133,7 @@ func _light(b: Dictionary) -> void:
 	# beacon/clear_all_r（缺省 0 = 关）：> 0 时点燃清痕半径改用它（取两者较大者），留给真人反馈后加强用（协调人 9/30 ①）
 	var cr: float = maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0))
 	var cleared := 0
+	var cleared_pts: Array = []   # 被清掉的溟痕 [pos, r]：只给画面用（world.beacon_burst 的退散动画，docs/54），不影响模拟
 	for m in g.mires:
 		if m.pos.distance_to(b.pos) > cr:
 			continue
@@ -141,6 +142,8 @@ func _light(b: Dictionary) -> void:
 		else:
 			m.life = 0.0
 			cleared += 1
+			cleared_pts.append([m.pos, float(m.r)])
+	b["cleared"] = cleared_pts
 	if cleared > 0:
 		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
 	g.lamp = minf(g.lamp_cap, g.lamp + _k("lamp", 5.0))

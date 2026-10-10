@@ -243,6 +243,7 @@ func pick(i: int) -> void:
 			if pop != null:
 				pop.advance(o.get("choice", ""))
 				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
+				g.vfx.promote_burst(pop.pos, o.get("elite", 0) > 0)   # docs/54 ⑥（fx/promote_burst）
 				if o.get("elite", 0) > 0:
 					g.vfx.show_banner("%s 晋升至精英%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
 		"recruit":
@@ -250,6 +251,7 @@ func pick(i: int) -> void:
 			if nop != null:
 				g.vfx.show_banner("「%s」加入编队" % nop.display_name())
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
+				g.vfx.promote_burst(nop.pos, false)   # docs/54 ⑥ 入队：青色柔光 + 光尘
 		"relic":
 			gain_relic(o.id)
 		"weapon":

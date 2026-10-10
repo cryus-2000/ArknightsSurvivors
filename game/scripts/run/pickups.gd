@@ -161,6 +161,8 @@ func update(dt: float) -> void:
 			d = g_item.pos.distance_to(g.ppos + Vector2(0, -12))
 		if d < 20.0:
 			g_item.dead = true
+			if g_item.kind != "xp":
+				g.vfx.pickup_burst(g_item.kind, UI.GOLD if g_item.kind == "oil" else item_col(g_item.kind))   # docs/54 ⑦（fx/pickup_burst）
 			match g_item.kind:
 				"xp":
 					_count_xp("magnet" if g_item.get("by_magnet", false) else "walk", g_item.val)
@@ -268,6 +270,7 @@ func levelup_fx() -> void:
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 150.0, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4)})
 	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 80.0, "life": 0.35, "max": 0.35, "col": Color(0.6, 1.0, 0.95)})
 	g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(1.0, 0.85, 0.45), 18, 320.0)
+	g.vfx.levelup_burst(g.ppos)   # docs/54 ②：柔光 + 光柱 + 光尘 + 轻闪（fx/levelup_burst）
 	for e in g.enemies_sys.query(g.ppos, 170.0):
 		var en: Dictionary = g.enemies[e]
 		if en.boss or en.chest:

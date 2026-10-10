@@ -25,6 +25,44 @@ var perf := {}
 var perf_prev := {}            # 上一帧的 g.prof 累计（配合 --prof：逐帧分段）
 var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取最慢 25 帧
 var perf_kills := 0
+var vfxab := -1                # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
+var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
+var _vd_step := 0
+var _vd_beacon = null
+
+
+## --vfxdemo（docs/54 录像用，只在 --balance 下）：t≥18 在主控旁放 3 片溟痕 + 1 座灯标，20 秒点燃；26 秒升级；
+## 31 秒灯火降到 29 + 右侧刷一只精英 + 脚边掉灯油；34 秒商人出现。模拟随机数照常消耗（对照的两边同一套参数，仍逐帧相同）
+func _vfx_demo() -> void:
+	if not g.balance or g.state != g.S.PLAY:
+		return
+	if _vd_step == 0 and g.t >= 18.0:
+		_vd_step = 1
+		var bp: Vector2 = g.ppos + Vector2(90, 0)
+		for k in 3:
+			var m: Dictionary = g.map.mire_new(bp + Vector2.from_angle(k * 2.1) * 150.0, g.t, false)
+			m.r = m.maxr
+			m.life = 60.0
+			g.mires.append(m)
+		_vd_beacon = {"pos": bp, "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+			"r": 70.0, "clear_r": 260.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+		g.beacons.append(_vd_beacon)
+	elif _vd_step == 1 and g.t >= 20.0:
+		_vd_step = 2
+		if _vd_beacon != null and not _vd_beacon.lit:
+			g.beacon_sys._light(_vd_beacon)
+	elif _vd_step == 2 and g.t >= 26.0:
+		_vd_step = 3
+		g.pickups.gain_xp(g.xp_need - g.xp + 0.5)
+	elif _vd_step == 3 and g.t >= 31.0:
+		_vd_step = 4
+		g.lamp = 29.0
+		g.spawner.spawn_enemy("pocket", g.ppos + Vector2(230, -30))
+		g.pickups.drop(g.ppos + Vector2(50, 10), "oil", 10.0)
+	elif _vd_step == 4 and g.t >= 34.0:
+		_vd_step = 5
+		if g.merchant.is_empty():
+			g.merchant = {"pos": g.ppos + Vector2(-220, -70), "life": 60.0, "near": false, "purchases": 0}
 
 
 func _init(game: Game) -> void:
@@ -68,8 +106,18 @@ func bot_pick() -> int:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
+	if vfxab < 0:
+		vfxab = 0
+		for a in Cfg.dev_args():
+			if a.begins_with("--vfxab="):
+				vfxab = int(a.substr(8))
+		vfxdemo = Cfg.dev_args().has("--vfxdemo")
 	if g.balance and Cfg.dev_args().has("--perf"):
 		_perf_sample()
+	if vfxab > 0 and g.at_frames % vfxab == 0:
+		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
+	if vfxdemo:
+		_vfx_demo()
 	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_open_%03d.png" % g.at_frames)
@@ -525,6 +573,8 @@ func _perf_sample() -> void:
 	var now := Time.get_ticks_usec()
 	if perf_last > 0 and g.state == g.S.PLAY:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
+		if vfxab > 0:
+			w += "/on" if g.vfx.p2 else "/off"   # --vfxab：上一帧是在哪个模式下画的（轮换在采样之后）
 		if not perf.has(w):
 			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
 				"sfx0": _sfx_snap(), "fps40": 0}

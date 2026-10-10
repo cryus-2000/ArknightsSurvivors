@@ -121,6 +121,8 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
 	update_beacon_lights()
+	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
+	g.vfx.watch_merchant(rd)    # docs/54 ⑧ 商人出现 + 灯笼暖尘
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.get_viewport_rect().size)
 	_enemy_act_fx()
@@ -231,10 +233,14 @@ func draw_world() -> void:
 	_pk("ground")
 	var mvr: Rect2 = view_rect(40.0)
 	var bubbles: Array = []
+	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx.on("mire_motes") else 0   # docs/54 溟痕光尘（高画质、非触屏）
 	for m in g.mires:
 		g.map.draw_mire(m)
-		if bubbles.size() < MIRE_BUBBLE_MAX and mvr.has_point(m.pos):
-			_mire_bubbles(m, bubbles)
+		if mvr.has_point(m.pos):
+			if bubbles.size() < MIRE_BUBBLE_MAX:
+				_mire_bubbles(m, bubbles)
+			if mote_budget > 0:
+				mote_budget -= g.vfx.mire_motes(m, mote_budget)
 	tb_flush()
 	_draw_mire_bubbles(bubbles)
 	_pk("mire")
@@ -502,6 +508,24 @@ func draw_world() -> void:
 				g.draw_arc(f.pos, rr - 6.0, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.35), 2.0)
 			"spark":
 				g.draw_rect(Rect2(f.pos.round(), Vector2(f.sz, f.sz)), Color(f.col.r, f.col.g, f.col.b, a))
+			"mote":
+				# 光尘（docs/54）：进无贴图批，循环后随 tb_flush 一次提交；末段缩小淡出
+				if g.vfx.p2:
+					var mp: Vector2 = f.pos.round()
+					var ms: float = f.sz * (0.5 + 0.5 * minf(1.0, a * 2.0))
+					tb_quad(mp, mp + Vector2(ms, 0), mp + Vector2(ms, ms), mp + Vector2(0, ms), Color(f.col.r, f.col.g, f.col.b, f.col.a * minf(1.0, a * 1.5)))
+			"mire_recoil":
+				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧
+				if g.vfx.p2:
+					var k := 1.0 - a
+					var gy: float = ground_y()
+					for c in f.pts:
+						var rr: float = float(c[1]) * (1.0 - pow(k, 0.7))
+						if rr < 2.0:
+							continue
+						tb_circle(c[0], rr * 0.85, Color(0.1, 0.03, 0.14, 0.45 * a), gy, 12)
+						tb_ring(c[0], rr, 2.5, Color(1.0, 0.6, 1.6, 0.8 * a), 20)
+						tb_ring(c[0], rr * 0.55, 1.5, Color(1.6, 1.2, 2.0, 0.5 * a), 14)
 			"shard":
 				var sv: Vector2 = Vector2.from_angle(f.rot + g.t * 8.0) * 5.0
 				g.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.5, f.pos + sv]), Color(1.2, 1.9, 2.4, a))
@@ -897,6 +921,13 @@ func draw_world() -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_pk("ebullets_lobs_shocks")
 	draw_enemy_tells()
+	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；无贴图批，一次提交）
+	if g.vfx.on("elite_entrance"):
+		var elr: Rect2 = view_rect(120.0)
+		for e in g.enemies:
+			if e.elite and not e.boss and e.age < 0.9 and elr.has_point(e.pos):
+				g.vfx.elite_entrance(e)
+		tb_flush()
 	draw_leader_ailments()
 	draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
@@ -2097,6 +2128,7 @@ func beacon_burst(b: Dictionary) -> void:
 	g.fx.append({"kind": "beacon_burst", "pos": pos, "r": float(b.get("clear_r", 260.0)), "life": 0.9, "max": 0.9})
 	g.vfx.sparks(pos + Vector2(0, -60), Vector2.ZERO, Color(1.8, 1.4, 0.7), 18, 300.0)
 	_flash(Color(1.0, 0.85, 0.55), 0.3)
+	g.vfx.beacon_ignite(b)   # docs/54：柔光 + 余烬 + 溟痕退散（fx/beacon_burst2）
 
 
 ## 最后的骑士冰枪桩（e.stakes = [{pos, until}]，r 22）：竖立的冰晶长枪 + 脚下冰霜圈；快到期（< 2 秒）时闪烁
@@ -2174,6 +2206,7 @@ const GEM_CELL := 26.0
 ## 主控踩在溟痕里时脚边另有 2 个更快的冒泡位（V7 原意）。只画屏幕内的，全场最多 MIRE_BUBBLE_MAX 个；
 ## 在溟痕循环里只收集，循环后同一张贴图连续画，贴图矩形自成一批，不打断溟痕本身的合批
 const MIRE_BUBBLE_MAX := 48
+const MIRE_MOTE_MAX := 48      # docs/54 溟痕光尘：全场每帧最多这么多粒（tb 批 4 顶点一粒）
 
 func _mire_bubbles(m: Dictionary, out: Array) -> void:
 	var a: float = clampf(float(m.life) / 3.0, 0.0, 1.0)
