@@ -426,12 +426,12 @@
 
 ### 1.17 实现约定（写给实现会话；2026-09-26 与「架构」会话商定）
 
-**结构**
-- Boss 实例 = 敌人字典 `e` 上挂一个对象 `e.brain`（`scripts/bosses/<id>.gd`，继承 `scripts/bosses/boss_base.gd`，`extends RefCounted`，持有类型化 `g: Game`，照 docs/39 §2）。不用按 type 查表的无状态模块：Boss 状态多，无状态最后还得塞回字典。
-- `brain` 持有 `e`、`e` 又持有 `brain`，是循环引用：Boss 死亡或移除时必须 `e.brain = null`。
-- 「把 `new_enemy` 的键整体复制进旧字典」这类代码（如 `reveal_mimic`）会连带复制或覆盖 `brain`，写时留心。
-- 不单独建 `boss_api.gd`：包装方法（`hurt_leader`、`warn`、`spawn_minion`、`fx`、`banner`）放在 `boss_base.gd`；各 Boss 脚本只调基类。
-- `run/enemies.gd` 里调用 Boss AI 的那一行：`e.brain` 存在就调它，否则走旧 `boss_ai.gd`（新版开关关着的 Boss）。
+**结构（2026-10-10 实际落地，取代原「`e.brain` 实例对象」方案：状态留在敌人字典、脚本无状态，同 seed 逐字节不变）**
+- 每只 Boss 一个脚本 `scripts/enemies/bosses/<type>.gd`，继承 `bosses/boss_base.gd`（`extends RefCounted`，只持有 `g`），覆写 `step(e, dt, dir, dist, ready, mate)`（每帧，公共段之后）和可选的 `setup_preview_phase2(e)`（图鉴 / 演练直接进二阶段）。Boss 自己的阶段入口（如 `transform_ishar`、`paranoia_cocoon`、`izumik_absorb`）也写在这个文件里。
+- `boss_ai.gd` 是分派器：公共段（卡点、冲刺计时、接潮假死、骑士追击、接潮共鸣、招式令牌、`boss_patterns` 轮换）→ `boss(e.type).step(...)`；预警管线 `_warn / _update_warns / _warn_resolve`、冷却 `_cd`、远程迫近 `_close_in` 留在它那里，基类只转发。旧调用点（`combat / enemies / ishar_encounter / tests` 的 `g.bai.xxx`）由 `boss_ai.gd` 末尾的一行转发保持不变。
+- **加一只 Boss 的步骤**：① `data/enemies.json` 加条目（`role: boss`，数值旋钮走 `Bal.v("boss/...")`）并按 docs/38 §1 配 `waves.json` 的池 / 结局；② 新建 `scripts/enemies/bosses/<type>.gd`，`extends "res://scripts/enemies/bosses/boss_base.gd"`，在 `step()` 里用 `_cd(e, "招式", 冷却)` + `_warn(e, 形状, 时长, {...})` 出招（`act` 的结算在 `boss_ai._warn_resolve`，新动作在那里加分支）；③ 在 `boss_ai.gd` 的 `SCRIPTS` 注册表加一行 `"<type>": "<文件名>"`（多个 type 共用一份脚本就指向同一个文件，如圣徒 `iberia / carmen → saint`）；④ 画面 / 血条 / 登场演出按 type 读（`vfx.boss_color`、`boss_intro.gd` 的 CARDS）各补一条；⑤ 验收：`--bosstest=<type>` 招式序列、`--forceboss= / --forceending=` 同 seed TRACE、`python tools/check.py --jobs 4`。
+- 「把 `new_enemy` 的键整体复制进旧字典」这类代码（如 `reveal_mimic`）不涉及脚本对象，照旧。
+- 不单独建 `boss_api.gd`：需要的包装方法加在 `boss_base.gd`；各 Boss 脚本只调基类。
 - Boss 必须经 `spawner.spawn_enemy()` 生成（自动做 `check_enemy` 字段校验，docs/39 §7）；Boss 专属字段只加在 Boss 身上，所有敌人都读的字段加进 `new_enemy` 模板。
 - 数值旋钮一律 `Bal.v("boss/...", 默认值)`。
 - 随机数：抽招式、预警位置等玩法随机只用 `g.rng`；粒子、抖动等纯画面只用 `g.vrng`（05329b2 的教训）。

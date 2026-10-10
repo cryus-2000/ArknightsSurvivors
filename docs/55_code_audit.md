@@ -181,6 +181,7 @@
 | `screens/hud.gd` 1634 行 | `_draw_body` **423 行**（HUD 主体一笔画完），`draw_squad_hud` 148；同时是 `state` 分派器（docs/39 §3-4）又是 HUD 本体 | 分派留 `hud.gd`（约 200 行），HUD 本体拆 `screens/hud_bars.gd`（生命 / 灯火 / 技力）、`screens/hud_squad.gd`、`screens/hud_relics.gd` | 半天，截图对照（docs/36 §5） |
 | `game.gd` 1482 行 | docs/39 拆到 1250 后又长回来：`_ready` **328 行**（初始化 + 贴图名单 + 命令行解析）、`_update` 144、`_update_doc_follow` 120、`V6_FRAMES` 表 42 行、开局指南文本 50 行 | ① 贴图名单 + `V6_FRAMES` 挪到 `art.gd`（纯数据，80 行）；② 开局指南文本挪到 `data/lore.json`（文案会话）；③ `_update_doc_follow` 是博士挂件逻辑，归 `characters/doctor.gd` | 各 20–40 分钟，快检 full |
 | `boss_ai.gd` 1179 行 | `_boss_ai` **361 行**一个 `match`，`_warn_resolve` 188 | 已有 `enemies/boss_patterns.gd` 承接招式轮换；把每个 Boss 的分支拆成 `enemies/bosses/<type>.gd`（docs/38 多次提议） | 1 天，`bosstest` 招式序列对照 |
+| ↳ **已做（10-10）** | `boss_ai.gd` 1179 → 583 行；`enemies/bosses/` 9 个 Boss 脚本 + `boss_base.gd`，`SCRIPTS` 注册表按 type 分派，旧 `g.bai.xxx` 调用点经一行转发不变 | 配方见 docs/38 §1.17 | 4 局同 seed 覆盖全部 10 只 Boss TRACE 逐字节相同，快检 41 项 |
 | `title.gd` 1266 行 | `_draw_op_pick` 213、`_draw` 176、`_ready` 156 | 干员选择页拆 `screens/op_pick.gd` | 2 小时 |
 | `core/combat_core.gd` | docs/09 §1 自述「未落地」，只给 `test_core.gd` 组装 + 校验 | 要么接进 `game.gd`（docs/09 §6，大活），要么改名 `core/core_validate.gd` 只留校验，别再叫「core」 | 改名 15 分钟 |
 | `characters/*` 9896 行 | 14 名干员平均 600 行，`ulpianus.gd` 861；§2.1 的三份抄写 | 基类补 `_strip / _fx_strip`；其余是各干员表现，不建议抽象 | 见 §2.1 |
