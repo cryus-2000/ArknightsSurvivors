@@ -357,6 +357,11 @@ func update(dt: float) -> void:
 		if f.kind == "spark" or f.kind == "shard":
 			f.pos += f.vel * dt
 			f.vel *= 0.9
+		elif f.kind == "mote":
+			# 光尘（docs/54）：带重力 / 阻力的小方块，按游戏时间推进；drag 按秒算（0.9^dt 近似）
+			f.vel.y += f.grav * dt
+			f.vel *= maxf(0.0, 1.0 - f.drag * dt)
+			f.pos += f.vel * dt
 	for f in g.texts:
 		f.life -= dt
 		f.pos.y -= 30.0 * dt
@@ -544,6 +549,7 @@ func draw_add_layer() -> void:
 	g.map.draw_god_rays(g.fx_add, g.get_viewport_rect().size, g.cam.position)
 	var loop := int(g.t * 10.0)
 	g.squad.draw_fx_add(g.fx_add, loop)
+	draw_glows(g.fx_add)   # docs/54 柔光（灯标点燃 / 升级 / 晋升 / 拾取 / 精英登场 / 商人）
 	for f in g.fx:
 		if f.kind != "anim":
 			continue
@@ -641,3 +647,232 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 	g.draw_set_transform(pos + g.draw_off, b.vel.angle(), Vector2.ONE * scale)
 	g.draw_texture_rect_region(tx, Rect2(-size * 0.5, size), Rect2(Vector2(frame * size.x, 0), size))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# =====================================================================
+# 画面特效二轮（docs/54，界面与美术 2026-10-10）：环境与事件特效，不含打击反馈（docs/53）与 Boss 登场。
+# 全部纯画面：只往 g.fx 追加、只用 g.vrng；旋钮在 data/balance.json 的 fx 段，fx/vfx2 = 0 一键全关，
+# 各项各有开关；低画质 / 触屏不画常驻环境粒子（ambient_ok），一次性事件粒子按 Cfg.fx_density 减半。
+# 新增的 fx 种类：mote（光尘，tb 批）、glow（加色层的柔光，light 贴图）、mire_recoil（溟痕退散的收缩环）
+# =====================================================================
+var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测量用；缺省开）
+var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）
+var _lamp_prev := -1.0         # 灯火观察（update_visuals 调 watch_lamp）
+var _lamp_ember_acc := 0.0
+var _merchant_on := false
+var _merchant_acc := 0.0
+var _elite_seen := {}
+
+## world 视图（game.gd 的 world 成员与本文件互相 preload，带类型访问会解析失败，取动态引用）
+func _wv():
+	return g.get("world")
+
+func _kv(name: String, d: float) -> float:
+	if _k2.is_empty():
+		_k2 = Bal.sec("fx")
+		if _k2.is_empty():
+			_k2 = {"_": 0}
+	var v = _k2.get(name)
+	return float(v) if (v is float or v is int) else d
+
+
+## 本项是否开着（总开关 × 单项旋钮）
+func on(name: String) -> bool:
+	return p2 and _kv("vfx2", 1.0) > 0.0 and _kv(name, 1.0) > 0.0
+
+
+## 常驻环境粒子（溟痕光尘、低灯火余烬、商人灯笼）：低画质和触屏设备不画
+func ambient_ok() -> bool:
+	return p2 and _kv("vfx2", 1.0) > 0.0 and Cfg.quality != "low" and not Cfg.touch_device()
+
+
+## 光尘：n 粒从 pos 出发，基础方向 dir（ZERO = 全向）× spd，带重力 grav（负 = 上浮）与阻力 drag（1/秒）
+func motes(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float, life: float, grav := 0.0, drag := 1.5, sz := 2.0, spread := 0.6, scatter := 0.0) -> void:
+	if g.fx.size() > 420 or n <= 0:
+		return
+	n = maxi(1, int(round(n * Cfg.fx_density())))
+	for i in n:
+		var a: float = g.vrng.randf() * TAU if dir == Vector2.ZERO else dir.angle() + g.vrng.randf_range(-spread, spread)
+		var p: Vector2 = pos
+		if scatter > 0.0:
+			p += Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(0.0, scatter)
+		g.fx.append({"kind": "mote", "pos": p, "vel": Vector2.from_angle(a) * spd * g.vrng.randf_range(0.35, 1.0),
+			"life": life * g.vrng.randf_range(0.6, 1.0), "max": life, "col": col, "grav": grav, "drag": drag,
+			"sz": sz if g.vrng.randf() < 0.7 else sz * 1.6})
+
+
+## 加色层柔光：半径 r，life 秒内先胀后淡（grow：起始半径比例）
+func glow(pos: Vector2, r: float, col: Color, life: float, grow := 0.6) -> void:
+	if g.fx.size() > 440:
+		return
+	g.fx.append({"kind": "glow", "pos": pos, "r": r, "col": col, "life": life, "max": life, "grow": grow})
+
+
+## ① 灯标点燃（world.beacon_burst 调用；原有的爆闪 / 扩环 / 放射线 / 火花照旧）：
+## 灯室柔光一片、余烬上升、被清掉的溟痕收缩退散（beacon._light 记在 b.cleared 里的 [pos, r]）
+func beacon_ignite(b: Dictionary) -> void:
+	if not on("beacon_burst2"):
+		return
+	var pos: Vector2 = b.get("pos", Vector2.ZERO)
+	var lamp: Vector2 = pos + Vector2(0, -62.0)
+	var cr: float = float(b.get("clear_r", 260.0))
+	glow(lamp, cr * 0.9, Color(1.0, 0.86, 0.6, 0.55), 1.1, 0.25)
+	glow(lamp, 70.0, Color(1.0, 0.95, 0.8, 0.9), 0.45, 0.5)
+	motes(lamp, Vector2.UP, Color(1.9, 1.5, 0.8), Bal.vi("fx/beacon_embers", 28), 150.0, 1.6, -40.0, 1.2, 2.0, 0.9)
+	motes(pos, Vector2.ZERO, Color(1.7, 1.3, 0.7, 0.9), int(Bal.vi("fx/beacon_embers", 28) / 2), 220.0, 1.0, -120.0, 2.5, 2.0, 0.0, 40.0)
+	var cleared: Array = b.get("cleared", [])
+	if not cleared.is_empty():
+		g.fx.append({"kind": "mire_recoil", "pts": cleared.slice(0, 24), "from": pos, "life": 0.75, "max": 0.75})
+		for c in cleared.slice(0, 8):
+			motes(c[0], Vector2.UP, Color(0.9, 0.55, 1.4, 0.8), 4, 60.0, 0.9, -30.0, 1.0, 2.0, 1.2, float(c[1]) * 0.5)
+
+
+## ② 升级（pickups.levelup_fx 调用；原有的双环 + 18 火花 + 头顶字样照旧）：主控柔光 + 金色光柱 + 上升光尘 + 轻微全屏白闪
+func levelup_burst(pos: Vector2) -> void:
+	if not on("levelup_burst"):
+		return
+	glow(pos + Vector2(0, -24), 170.0, Color(1.0, 0.85, 0.45, 0.6), 0.55, 0.5)
+	g.fx.append({"kind": "pillar", "pos": pos + Vector2(0, 8), "life": 0.55, "max": 0.55, "col": Color(1.0, 0.85, 0.4)})
+	motes(pos + Vector2(0, -10), Vector2.UP, Color(2.0, 1.7, 0.9), Bal.vi("fx/levelup_motes", 24), 140.0, 1.3, -60.0, 1.0, 2.0, 1.1, 22.0)
+	g.flash = maxf(g.flash, Bal.v("fx/levelup_flash", 0.25))
+
+
+## ③ 灯火：render/world.update_visuals 每帧调；跌破 30（暗淡）或归零（寂灭）那一刻暗红一压 + 灯里掉余烬；
+## 灯火 < 30 时常驻每秒 fx/lamp_low_embers 粒余烬从灯里飘出（ambient_ok 才画）
+func watch_lamp(rd: float) -> void:
+	if g.state != g.S.PLAY or g.demo_op != "":
+		_lamp_prev = g.lamp
+		return
+	if _lamp_prev >= 0.0 and on("lamp_dim"):
+		var stage := 0
+		if _lamp_prev > 0.0 and g.lamp <= 0.0:
+			stage = 2
+		elif _lamp_prev >= 30.0 and g.lamp < 30.0:
+			stage = 1
+		if stage > 0:
+			_wv()._flash(Color(0.5, 0.04, 0.14) if stage == 2 else Color(0.45, 0.1, 0.2), 0.55 if stage == 2 else 0.4)
+			var lp: Vector2 = g.ppos + Vector2(0, -26)
+			motes(lp, Vector2.DOWN, Color(1.8, 0.8, 0.3), Bal.vi("fx/lamp_embers", 10) * (2 if stage == 2 else 1), 70.0, 1.1, 90.0, 0.8, 2.0, 1.3, 6.0)
+			motes(lp, Vector2.UP, Color(0.35, 0.3, 0.32, 0.7), 6, 40.0, 1.4, -25.0, 0.6, 3.0, 0.5, 4.0)
+	_lamp_prev = g.lamp
+	if g.lamp < 30.0 and g.lamp > 0.0 and ambient_ok() and on("lamp_dim"):
+		_lamp_ember_acc += rd * _kv("lamp_low_embers", 2.0)
+		if _lamp_ember_acc >= 1.0:
+			_lamp_ember_acc -= 1.0
+			motes(g.ppos + Vector2(0, -26), Vector2.UP, Color(1.6, 0.7, 0.3, 0.8), 1, 35.0, 1.2, -20.0, 0.5, 2.0, 1.0, 5.0)
+	else:
+		_lamp_ember_acc = 0.0
+
+
+## ④ 精英登场（world 每帧调；按 e.age 画，第一次看到时放一次光尘）：洋红地环扩开 + 8 道竖光 + 柔光
+func elite_entrance(e: Dictionary) -> void:
+	var age: float = float(e.get("age", 9.0))
+	if age > 0.9 or e.get("dead", false):
+		return
+	var pos: Vector2 = e.pos
+	var r: float = float(e.get("r", 16.0))
+	var key: int = int(e.get("id", 0))
+	if not _elite_seen.has(key):
+		if _elite_seen.size() > 64:
+			_elite_seen.clear()
+		_elite_seen[key] = true
+		glow(pos + Vector2(0, -r), 120.0, Color(1.0, 0.35, 0.8, 0.7), 0.6, 0.4)
+		motes(pos, Vector2.UP, Color(1.8, 0.6, 1.4), 12, 120.0, 1.0, -50.0, 1.0, 2.0, 1.0, r)
+	var k: float = age / 0.9
+	var a: float = 1.0 - k
+	var c := Color(1.0, 0.3, 0.72)
+	var gy: float = _wv().ground_y()
+	_wv().tb_ring(pos + Vector2(0, 2), r * 1.1 + 70.0 * k, 3.0, Color(c.r * 1.6, c.g * 1.2, c.b * 1.6, 0.8 * a), 24)
+	_wv().tb_ring(pos + Vector2(0, 2), (r * 1.1 + 70.0 * k) * 0.6, 1.5, Color(1.8, 1.4, 1.8, 0.5 * a), 18)
+	for q in 8:
+		var dv := Vector2.from_angle(q * TAU / 8.0 + 0.4)
+		var base: Vector2 = pos + Vector2(dv.x, dv.y * gy) * (r * 1.1 + 70.0 * k)
+		_wv().tb_line(base, base + Vector2(0, -(30.0 + 40.0 * a) * a), Color(c.r * 1.8, c.g * 1.4, c.b * 1.8, 0.7 * a), 2.0)
+
+
+## ⑤ 溟痕光尘（world 溟痕循环里调，无状态：位置 / 相位由 seed 与时间算，不消耗随机数）：每片 1–fx/mire_motes 粒上浮的淡紫光点
+func mire_motes(m: Dictionary, budget: int) -> int:
+	var n: int = mini(budget, clampi(int(float(m.r) / 22.0), 1, int(_kv("mire_motes", 3.0))))
+	if n <= 0:
+		return 0
+	var a: float = clampf(float(m.life) / 3.0, 0.0, 1.0)
+	var sd: float = float(m.get("seed", 0.0))
+	var r: float = float(m.r)
+	for k in n:
+		var period: float = 2.2 + fmod(sd * 0.41 + k * 0.73, 1.0) * 1.4
+		var tt: float = g.t + sd * 0.31 + k * 0.57
+		var cyc: float = floorf(tt / period)
+		var ph: float = (tt - cyc * period) / period
+		var h: float = fmod(absf(sin(cyc * 7.3 + k * 3.1 + sd)) * 437.5, 1.0)
+		var h2: float = fmod(absf(sin(cyc * 5.9 + k * 1.7 + sd * 1.3)) * 263.7, 1.0)
+		var off := Vector2.from_angle(h * TAU) * r * 0.7 * sqrt(h2)
+		var p: Vector2 = m.pos + Vector2(off.x, off.y * 0.55 - ph * 34.0 + sin(tt * 2.1) * 3.0)
+		var al: float = sin(ph * PI) * 0.55 * a
+		var sz: float = 2.0 if k % 2 == 0 else 3.0
+		_wv().tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(1.1, 0.75, 1.6, al))
+	return n
+
+
+## ⑥ 干员晋升 / 入队（progression.pick 调用；原有的蓝环 / 绿环 + 横幅照旧）：金色放射光 + 光柱 + 柔光 + 光尘
+func promote_burst(pos: Vector2, elite: bool) -> void:
+	if not on("promote_burst"):
+		return
+	var c := Color(1.0, 0.85, 0.45) if elite else Color(0.6, 0.95, 1.0)
+	glow(pos + Vector2(0, -24), 150.0 if elite else 100.0, Color(c.r, c.g, c.b, 0.6), 0.6, 0.4)
+	motes(pos + Vector2(0, -10), Vector2.UP, Color(c.r * 2.0, c.g * 1.8, c.b * 1.3), 18 if elite else 10, 130.0, 1.2, -60.0, 1.0, 2.0, 1.2, 18.0)
+	if elite:
+		g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": c})
+		g.fx.append({"kind": "pillar", "pos": pos + Vector2(0, 8), "life": 0.6, "max": 0.6, "col": c})
+
+
+## ⑦ 拾取（pickups 调用）：油 / 治疗 / 磁铁 / 源石锭 / 宝箱各一小段，颜色跟物品色
+func pickup_burst(kind: String, col: Color) -> void:
+	if not on("pickup_burst"):
+		return
+	var p: Vector2 = g.ppos + Vector2(0, -22)
+	match kind:
+		"chest":
+			glow(p, 130.0, Color(1.0, 0.85, 0.45, 0.7), 0.6, 0.4)
+			g.fx.append({"kind": "rays", "pos": p, "life": 0.4, "max": 0.4, "col": UI.GOLD})
+			motes(p, Vector2.UP, Color(2.0, 1.7, 0.9), 16, 150.0, 1.2, -50.0, 1.0, 2.0, 1.2, 14.0)
+		"ingot":
+			motes(p, Vector2.UP, Color(2.0, 1.8, 1.0), 4, 90.0, 0.7, -40.0, 1.0, 2.0, 0.8, 6.0)
+		_:
+			glow(p, 90.0, Color(col.r, col.g, col.b, 0.6), 0.5, 0.5)
+			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 46.0, "life": 0.3, "max": 0.3, "col": col})
+			motes(p, Vector2.UP, Color(col.r * 1.8, col.g * 1.8, col.b * 1.8), 10, 110.0, 1.0, -50.0, 1.0, 2.0, 1.1, 10.0)
+
+
+## ⑧ 商人（world.update_visuals 每帧调）：出现那一刻一圈暖光 + 光尘；在场时灯笼每秒 fx/merchant_motes 粒暖尘飘起（ambient_ok）
+func watch_merchant(rd: float) -> void:
+	var here: bool = not g.merchant.is_empty()
+	if here and not _merchant_on and on("merchant_fx"):
+		var mp: Vector2 = g.merchant.pos
+		glow(mp + Vector2(0, -30), 150.0, Color(1.0, 0.75, 0.45, 0.6), 0.9, 0.3)
+		g.fx.append({"kind": "ring", "pos": mp + Vector2(0, 10), "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.5)})
+		motes(mp + Vector2(0, -20), Vector2.UP, Color(1.9, 1.5, 0.9), 14, 110.0, 1.3, -40.0, 1.0, 2.0, 1.2, 16.0)
+	_merchant_on = here
+	if here and ambient_ok() and on("merchant_fx") and g.merchant.pos.distance_to(g.ppos) < 900.0:
+		_merchant_acc += rd * _kv("merchant_motes", 1.5)
+		if _merchant_acc >= 1.0:
+			_merchant_acc -= 1.0
+			motes(g.merchant.pos + Vector2(-10, -34), Vector2.UP, Color(1.8, 1.3, 0.7, 0.8), 1, 25.0, 1.6, -12.0, 0.4, 2.0, 0.8, 6.0)
+	else:
+		_merchant_acc = 0.0
+
+
+## 加色层：柔光（glow，light 贴图）。draw_add_layer 调用
+func draw_glows(ci: CanvasItem) -> void:
+	if not p2:
+		return
+	var lt: Texture2D = g.tex.get("light")
+	if lt == null:
+		return
+	for f in g.fx:
+		if f.kind != "glow":
+			continue
+		var a: float = clampf(f.life / f.max, 0.0, 1.0)
+		var k: float = 1.0 - a
+		var rr: float = f.r * lerpf(f.grow, 1.0, 1.0 - pow(1.0 - k, 2.0))
+		var c: Color = f.col
+		ci.draw_texture_rect(lt, Rect2(f.pos - Vector2(rr, rr), Vector2(rr * 2.0, rr * 2.0)), false, Color(c.r, c.g, c.b, c.a * a * a))
