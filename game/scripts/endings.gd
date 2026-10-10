@@ -96,7 +96,7 @@ func reposition_box(e: Dictionary) -> void:
 
 ## 自动测试日志：ENDEV <动作> ...
 func _log(what: String) -> void:
-	if g.autotest:
+	if g.mode != g.Mode.PLAY:
 		print("ENDEV %s t=%.1f cur=%s relics=%s" % [what, g.t, cur, str(g.relics.filter(func(r): return int(r) >= 221))])
 
 
@@ -120,7 +120,7 @@ func _sink_box(msg: String) -> void:
 
 
 func _event_ok(ev: Dictionary) -> bool:
-	if ev.has("requires_cleared") and not all_unlocked and not g.autotest:
+	if ev.has("requires_cleared") and not all_unlocked and g.mode == g.Mode.PLAY:
 		if not Cfg.endings_cleared.has(ev.requires_cleared):
 			return false
 	if ev.has("requires_relic") and not g.relics.has(str(ev.requires_relic)):
@@ -249,7 +249,7 @@ func reserved_relic_slots() -> int:
 			active.append(str(e.event))
 	var future: Array = []
 	for ev in events:
-		if ev.has("requires_cleared") and not all_unlocked and not g.autotest and not Cfg.endings_cleared.has(ev.requires_cleared):
+		if ev.has("requires_cleared") and not all_unlocked and g.mode == g.Mode.PLAY and not Cfg.endings_cleared.has(ev.requires_cleared):
 			continue
 		if g.t > float(ev.window[1]) and not active.has(ev.id) and opened_id != ev.id:
 			continue
@@ -347,7 +347,7 @@ func cur_col() -> Color:
 
 ## 通关：记录已达成结局（解锁其它结局的事件）
 func on_win() -> void:
-	if g.autotest:
+	if g.mode != g.Mode.PLAY:
 		return
 	if not Cfg.endings_cleared.has(cur):
 		Cfg.endings_cleared.append(cur)

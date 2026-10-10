@@ -2,7 +2,7 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")
 ## 仅正式游玩的可见遭遇写入图鉴；演练、演示和自动测试不推进进度。
 static func observe(g: Game) -> void:
-	if g.demo_op != "" or g.trial.active or g.autotest or Cfg.practice_active or Cfg.unlock_all:
+	if g.demo_op != "" or g.trial.active or g.mode != g.Mode.PLAY or Cfg.practice_active or Cfg.unlock_all:
 		return
 	var found: Array = []
 	for e in g.enemies:

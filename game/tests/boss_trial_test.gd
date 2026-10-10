@@ -102,8 +102,7 @@ func run() -> void:
 	g = load("res://game.tscn").instantiate()
 	add_child(g)
 	g.set_process(false)
-	g.autotest = false
-	g.balance = false
+	g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
 	Cfg.endings_cleared = []
 	Cfg.diff_unlocked = 0
 	g.tier = 0

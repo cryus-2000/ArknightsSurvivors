@@ -75,7 +75,7 @@ func leave() -> void:
 
 ## 道中阵亡：退行为罗辛南特
 func die() -> void:
-	if g.balance:
+	if g.mode == g.Mode.BALANCE:
 		print("KNIGHT died t=%d hp_max=%d" % [int(g.t), int(maxhp)])
 	alive = false
 	fallen = true

@@ -69,7 +69,7 @@ func bot_pick() -> int:
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
-	if g.balance and Cfg.dev_args().has("--perf"):
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
 	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
@@ -97,7 +97,7 @@ func step() -> void:
 			if g.shop_sys.can_buy(g.shop_items[i]):
 				g.shop_sys.buy(i)
 				break
-		if shop_visits == 1 and DisplayServer.get_name() != "headless" and not g.balance:
+		if shop_visits == 1 and DisplayServer.get_name() != "headless" and g.mode != g.Mode.BALANCE:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 		shop_visits += 1
 		if shop_visits % 3 == 0:
@@ -222,7 +222,7 @@ func step() -> void:
 		g.level = 9 if g.at_frames == 30 else 19
 		g.pickups.gain_xp(g.xp_need + 0.1)
 	if g.state == g.S.SHOW:
-		if g.balance:
+		if g.mode == g.Mode.BALANCE:
 			g.show_t = 2.0
 			g.show_screen.close()
 			return
@@ -241,7 +241,7 @@ func step() -> void:
 				for rid in a.substr(8).split(","):
 					g.progression.gain_relic(rid)
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
-	if g.balance and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
+	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
 	# 机器人的手动技能（契约 v2.3：只有主控有手动技能）：就绪且干员自己想放时替玩家按下。
 	# 时机由干员的 bot_wants_manual 决定：缺省保命型（主控生命 < bot/manual_hp），乌尔比安 S3 就绪即放
@@ -268,7 +268,7 @@ func step() -> void:
 						e.maxhp = 22.0
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
-	if g.balance and g.at_frames == 20:
+	if g.mode == g.Mode.BALANCE and g.at_frames == 20:
 		for a in Cfg.dev_args():
 			if a.begins_with("--relics="):
 				var want: String = a.substr(9)
@@ -282,10 +282,10 @@ func step() -> void:
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
-	if g.balance and Cfg.dev_args().has("--sptest") and g.at_frames % 45 == 0:
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--sptest") and g.at_frames % 45 == 0:
 		for o in g.squad.ops:
 			o.fill_sp()
-	if g.balance:
+	if g.mode == g.Mode.BALANCE:
 		if g.trace_every > 0.0 and g.state == g.S.PLAY and int(g.t / g.trace_every) != trace_last:
 			trace_last = int(g.t / g.trace_every)
 			var hsum := 0.0

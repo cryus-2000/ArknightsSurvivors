@@ -115,6 +115,7 @@
 
 - 命令行开关只经 `Cfg.dev_args()`（发布版返回空）、`Bal._load` / `Sfx` / `art.gd --loadprof` 各自 `OS.is_debug_build()` 判断；`check_release.py` 第 2 条逐个核对。
 - `g.autotest` / `g.balance` 运行时标志在 `autotest.gd` 之外有 **27 处**分支（`knight / doctor / endings / vfx / beacon / boss_trial / gallery_progress / hunt / progression / shop / spawner / telemetry / victory_flow / elite_show / hud`）。正式游玩恒为 false，不算泄漏；但 `boss_trial.gd:42` 直接把两个标志置 false 这种写法说明它们在当「模式」用。建议长期把「演练 / 演示 / 测试」合成一个 `g.mode` 枚举（1 小时，纯整理）。
+  **已做（10-10）**：`game.gd` 新增 `enum Mode { PLAY, AUTOTEST, BALANCE }` + `var mode`；`game.gd` 内 12 处、其他 13 个文件 27 处（含 `autotest.gd` 7 处）改为比较 `mode`；`boss_trial.gd` 与两个测试的「两个布尔置 false」改成 `g.mode = g.Mode.PLAY`。旧 `g.autotest / g.balance` 保留为只读派生属性（`hud.gd` / `vfx.gd` / `world.gd` 本轮不动，仍读布尔；赋值走 setter 拨模式）。演示 `demo_op` 与演练 `trial.active` 不并入：前者带干员 id、后者是局内状态，不是启动模式。同 seed TRACE 逐字节同、快检 41 项、check_release 通过。
 
 ---
 

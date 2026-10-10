@@ -23,7 +23,7 @@ func begin() -> void:
 	g.ebullets.clear()
 	g.vfx.show_banner("演练目标击破" if g.trial.active else "深海中的威胁已消散")
 	record_win()
-	if g.balance:
+	if g.mode == g.Mode.BALANCE:
 		finish()
 
 func step(dt: float) -> void:
@@ -42,7 +42,7 @@ func record_win() -> void:
 		return
 	recorded = true
 	g.endg.on_win()
-	if not g.balance and g.tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
+	if g.mode != g.Mode.BALANCE and g.tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
 		Cfg.diff_unlocked = g.tier + 1
 		Cfg.save()
 		g.diff_new = true

@@ -342,8 +342,20 @@ var state_age := 0.0           # 进入当前状态的秒数（防止手柄连�
 var _last_state := -1
 
 # ---------- 自测 ----------
-var autotest := false
-var balance := false
+## 运行模式（docs/55 §2.6，10-10）：PLAY 正式游玩 / AUTOTEST `--autotest` 自测 / BALANCE `--balance` 批跑（含自测的一切）。
+## 各处分支一律比较 mode；下面两个布尔是过渡期的只读派生（hud / vfx / world 与 tools 仍读），赋值只给演练 / 测试把模式拨回 PLAY 用
+enum Mode { PLAY, AUTOTEST, BALANCE }
+var mode := Mode.PLAY
+var autotest: bool:
+	get:
+		return mode != Mode.PLAY
+	set(v):
+		mode = (mode if mode != Mode.PLAY else Mode.AUTOTEST) if v else Mode.PLAY
+var balance: bool:
+	get:
+		return mode == Mode.BALANCE
+	set(v):
+		mode = Mode.BALANCE if v else (Mode.AUTOTEST if mode == Mode.BALANCE else mode)
 var bot = null                   # --balance 机器人（docs/29）；--bot=afk|bad|normal|expert
 var elites_killed := 0
 var dmg_log := {}
@@ -661,7 +673,7 @@ func _ready() -> void:
 	hp = max_hp
 	hp_trail = hp
 	xp_need = Bal.v("xp/first", 8.0)
-	autotest = Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance")
+	mode = Mode.BALANCE if Cfg.dev_args().has("--balance") else (Mode.AUTOTEST if Cfg.dev_args().has("--autotest") else Mode.PLAY)
 	if demo_op != "":
 		stats.add(&"sp_gain", "mult", 3.0, "demo")   # 演示：技能充能加快，几秒就能看到一次技能
 		sync_stats()
@@ -677,7 +689,7 @@ func _ready() -> void:
 	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
 		# --guidepages：只截局内指南各页（不带标题页 --introshot 的开场分镜截图与 5 秒退出）
 		intro_screen.open.call_deferred(S.PLAY)
-	elif not autotest or Cfg.dev_args().has("--openshot"):
+	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
 	if Cfg.dev_args().has("--loadprof"):
@@ -692,8 +704,7 @@ func _ready() -> void:
 			s += " total=%d %s" % [A.marks[-1][1] - A.marks[0][1], A.normal_stats()]
 			print(s)
 			, CONNECT_ONE_SHOT)
-	balance = Cfg.dev_args().has("--balance")
-	if balance:
+	if mode == Mode.BALANCE:
 		var bot_p := "normal"
 		var bot_seed := 0
 		for a in Cfg.dev_args():
@@ -709,7 +720,7 @@ func _ready() -> void:
 			shot_at = []
 			for v in arg.substr(8).split(","):
 				shot_at.append(int(v))
-	if balance:
+	if mode == Mode.BALANCE:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		Engine.max_fps = 0
 		for a in Cfg.dev_args():
@@ -783,19 +794,19 @@ func _process(delta: float) -> void:
 	else:
 		state_age += delta
 	Pad.context = "play" if state == S.PLAY else "game_menu"
-	if autotest:
+	if mode != Mode.PLAY:
 		_pm("")
 		autotest_sys.step()
 		_pm("autotest")
-		dt = (minf(delta, 0.05) if realtime else 0.066) if balance else 0.05
+		dt = (minf(delta, 0.05) if realtime else 0.066) if mode == Mode.BALANCE else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	if victory.active and state == S.PLAY:
 		simulated_dt = minf(delta, 0.05)
 		victory.step(simulated_dt)
-	elif hitstop > 0.0 and not autotest and Cfg.hitstop and demo_op == "":
+	elif hitstop > 0.0 and mode == Mode.PLAY and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:
-		if autotest or demo_op != "":
+		if mode != Mode.PLAY or demo_op != "":
 			_update(dt)
 			simulated_dt += dt
 		else:
@@ -804,7 +815,7 @@ func _process(delta: float) -> void:
 					break
 				_update(step_dt)
 				simulated_dt += step_dt
-		if balance and not realtime:
+		if mode == Mode.BALANCE and not realtime:
 			# 平衡测试：每帧多跑几步模拟，绕过无界面模式的帧率上限
 			for i in 7:
 				if state != S.PLAY:
@@ -1085,7 +1096,7 @@ func _update(dt: float) -> void:
 	if demo_enemy != "":
 		enemy_demo.step(dt)
 		return
-	if not autotest and not trial.active:
+	if mode == Mode.PLAY and not trial.active:
 		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	sync_stats()
 	var mv := Vector2(
@@ -1093,16 +1104,16 @@ func _update(dt: float) -> void:
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
 	if demo_op != "":
 		mv = demo_sys.wander()
-	elif balance:
+	elif mode == Mode.BALANCE:
 		mv = bot.move(dt) if bot != null else autotest_sys.bot_move()
 	elif touch.active and touch.move_vec() != Vector2.ZERO:
 		mv = touch.move_vec()
 	elif Pad.move_vec() != Vector2.ZERO:
 		mv = Pad.move_vec()   # 手柄左摇杆（模拟量）/ 十字键
-	elif autotest:
+	elif mode != Mode.PLAY:
 		mv = Vector2.from_angle(t * 0.4)
 	move_in = mv
-	if balance and autotest_sys.want_dash:
+	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
 	if pstun > 0.0 or root_t > 0.0:
@@ -1203,7 +1214,7 @@ func _update(dt: float) -> void:
 		var hl0: Dictionary = horde_log[horde_log.size() - 1]
 		if t - hl0.t < 20.0:
 			hl0.minhp = minf(hl0.minhp, hp)
-	if balance and Cfg.dev_args().has("--nodeath"):
+	if mode == Mode.BALANCE and Cfg.dev_args().has("--nodeath"):
 		if hp <= 0.0:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
