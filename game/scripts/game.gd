@@ -30,6 +30,7 @@ const ResultScreen = preload("res://scripts/screens/result.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
 const IntroScreen = preload("res://scripts/screens/intro.gd")
+const BossIntro = preload("res://scripts/screens/boss_intro.gd")
 const Vfx = preload("res://scripts/render/vfx.gd")
 const Combat = preload("res://scripts/run/combat.gd")
 const EnemiesSys = preload("res://scripts/run/enemies.gd")
@@ -103,6 +104,7 @@ var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
@@ -820,6 +822,7 @@ func _process(delta: float) -> void:
 	world.update_visuals(simulated_dt if state == S.PLAY else 0.0)
 	_pm("visuals")
 	music_dir.update(delta)
+	boss_intro.update(delta)
 	panel_ui.animate_cards(delta)
 	if state == S.SHOW:
 		show_t += delta

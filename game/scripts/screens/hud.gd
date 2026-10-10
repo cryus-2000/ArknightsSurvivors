@@ -510,7 +510,7 @@ func _draw_body() -> void:
 
 	# 横幅通知
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and (not horde_band or g.vfx.banner_prio >= 3):   # 精英化演出的遮罩只有 86%，横幅会透出来
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active():   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		if g.vfx.banner_small:
@@ -555,6 +555,7 @@ func _draw_body() -> void:
 	draw_zone_hint(vs)
 	draw_manual_aim()
 	draw_manual_hint()
+	g.boss_intro.draw_hud(vs)   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
 	match g.state:
 		Game.S.SHOW:
 			g.show_screen.draw(vs)

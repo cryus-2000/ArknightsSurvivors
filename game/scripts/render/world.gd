@@ -167,6 +167,14 @@ func watch_bosses() -> void:
 		if b.get("phase", 1) != s[1] and not b.dead:
 			s[1] = b.get("phase", 1)
 			boss_phase_fx(b)
+		# 友方 → 敌对（伊莎玛拉转化完成）：这时才演登场（screens/boss_intro.gd；纯画面观察，不改逻辑）
+		var fr: bool = b.get("friendly", false)
+		if s.size() < 6:
+			s.resize(6)
+			s[5] = fr
+		elif not fr and s[5] and not b.dead:
+			g.boss_intro.on_spawn([b])
+		s[5] = fr
 		var bk: bool = b.type == "knight_boss" and b.get("break_t", 0.0) > 4.0
 		if s.size() < 5:
 			s.resize(5)
@@ -208,6 +216,7 @@ func boss_down_fx(b: Dictionary) -> void:
 	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.6, 1.4, 1.8), 30, 420.0)
 	g.vfx.sparks(b.pos, Vector2.UP, Color(1.4, 0.5, 1.2), 16, 360.0)
 	_flash(Color(1.0, 0.97, 0.95), 0.4)
+	g.boss_intro.on_down(b)   # 击破一拍：名字一行「击破」（screens/boss_intro.gd）
 
 
 var _pt := 0
@@ -341,6 +350,7 @@ func draw_world() -> void:
 			var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
 			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
 	_pk("gems")
+	g.boss_intro.draw_world()   # Boss 登场：脚下聚光圈 + 扩散环（合批；没有登场时直接返回）
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
@@ -1477,6 +1487,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+	elif e.boss and _rec == null and g.tex.has(name + "_white"):
+		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
+		var sk: float = g.boss_intro.silhouette_k(e)
+		if sk > 0.0:
+			_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.95 * sk), anc, sq)
 	if _rec == null and e.get("affix", "") != "":
 		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.get("weak", "")

@@ -15,6 +15,7 @@ const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
 var hitstop := true
+var boss_intro := true   # Boss 登场演出（黑边 + 名片，纯画面；screens/boss_intro.gd，用户 10-10）
 var outline := true      # 怪物轮廓光
 var dof := true          # 2.5D 景深与前景
 var bloom := true        # 辉光
@@ -118,6 +119,7 @@ func _ready() -> void:
 		res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 		hitstop = c.get_value("game", "hitstop", hitstop)
+		boss_intro = c.get_value("game", "boss_intro", boss_intro)
 		outline = c.get_value("game", "outline", outline)
 		dof = c.get_value("video", "dof", dof)
 		bloom = c.get_value("video", "bloom", bloom)
@@ -265,6 +267,7 @@ func save() -> void:
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)
+	c.set_value("game", "boss_intro", boss_intro)
 	c.set_value("game", "outline", outline)
 	c.set_value("video", "dof", dof)
 	c.set_value("video", "bloom", bloom)

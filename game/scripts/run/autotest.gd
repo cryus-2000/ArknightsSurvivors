@@ -14,6 +14,7 @@ var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回�
 var shop_visits := 0
 var lv_marks := {}
 var bosstest := false
+var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
 var choice_wait := 0
 var choice_shot := false
 var trace_last := -1
@@ -179,6 +180,44 @@ func step() -> void:
 					g.bosses[1].partner = g.bosses[0]
 			if g.at_frames > 20 and g.at_frames % 30 == 0 and g.at_frames <= 600 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), g.at_frames])
+		if a.begins_with("--bossintro="):
+			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
+			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
+			bosstest = true   # 别让自测每帧扣 Boss 血
+			var tag: String = a.substr(12).replace(",", "_")
+			if g.at_frames == 20:
+				g.ppos = Vector2(1500, 900)
+				g.t = 150.0
+				var grp: Array = []
+				for bt in a.substr(12).split(","):
+					var b := g.spawner.spawn_enemy(bt, g.ppos + Vector2(230 + 90 * grp.size(), -40))
+					b.age = 5.0
+					if not b.boss:
+						continue
+					g.bosses.append(b)
+					g.boss = b
+					grp.append(b)
+				if grp.size() == 2:
+					grp[0].partner = grp[1]
+					grp[1].partner = grp[0]
+				g.boss_intro.on_spawn(grp, true)
+				g.boss_intro._test_shots = [0.35, 0.6, 0.85, 1.1]
+			if g.at_frames > 20 and DisplayServer.get_name() != "headless":
+				var bi = g.boss_intro
+				if bi.active() and not bi._test_shots.is_empty() and bi.cur.t >= float(bi._test_shots[0]):
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossintro_%s_%03d.png" % [tag, int(bi.cur.t * 100.0)])
+					bi._test_shots.pop_front()
+				if not bi.active() and bi.outro.is_empty() and g.at_frames > 40 and bossintro_kill_at < 0 and g.bosses.any(func(b): return not b.dead):
+					for b in g.bosses:
+						if not b.dead:
+							g.combat.kill(b)
+					bossintro_kill_at = g.at_frames
+					bi._test_shots = [0.12, 0.35]
+				if not bi.outro.is_empty() and not bi._test_shots.is_empty() and bi.outro.t >= float(bi._test_shots[0]):
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossout_%s_%03d.png" % [tag, int(bi.outro.t * 100.0)])
+					bi._test_shots.pop_front()
+				if bossintro_kill_at >= 0 and g.at_frames > bossintro_kill_at + 90:
+					g.get_tree().quit()
 	if Cfg.dev_args().has("--fastlevel") and g.state == g.S.PLAY and (g.at_frames == 30 or g.at_frames == 400):
 		g.level = 9 if g.at_frames == 30 else 19
 		g.pickups.gain_xp(g.xp_need + 0.1)

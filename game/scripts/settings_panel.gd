@@ -18,6 +18,7 @@ const ROWS := [
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
+	{"cn": "Boss 登场演出", "en": "BOSS INTRO", "key": "boss_intro", "type": "bool"},
 	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
 	{"cn": "景深与前景", "en": "DEPTH OF FIELD", "key": "dof", "type": "bool"},
 	{"cn": "辉光", "en": "BLOOM", "key": "bloom", "type": "bool"},
@@ -36,7 +37,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "pad_rumble", "runs"]],
+	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "boss_intro", "pad_rumble", "runs"]],
 ]
 
 ## 触屏不显示的选项键名（手机设置页改版 10-06）

@@ -225,6 +225,7 @@ func update(dt: float) -> void:
 		g.vfx.show_banner("%s 出现了" % " 与 ".join(names))
 		Sfx.play("roar", 2.0, 0.7, 0.0)
 		Sfx.play_overlay("boss_in")
+		g.boss_intro.on_spawn(spawned)   # 登场演出（纯覆盖层；无头批跑 / 设置关时不跑，不碰 g.rng）
 		g.vfx.shake_screen(1.2)
 	# 威胁等级上升：横幅 + 刷一小波新种类
 	if g.threat < D.THREAT.size() - 1 and g.t >= D.THREAT[g.threat + 1].t:
