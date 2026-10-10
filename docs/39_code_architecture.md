@@ -25,9 +25,14 @@
 | `run/gallery_progress.gd` | 对外图鉴的「遭遇即收录」：正式游玩每秒记一次附近的敌人 / 道具；演练、演示、测试、全解锁都不记 | 常量 `GalleryProgress`（静态） |
 | `run/enemy_demo.gd` | 图鉴敌人页的实机演示（SubViewport 里的受击靶 + 正式敌方 AI） | `enemy_demo` |
 | `enemies/boss_patterns.gd` | Boss 空闲窗口里的招式轮换（数据在 `enemies.json` 的 `patterns`） | `boss_ai.gd` 持有 |
-| `render/world.gd` | 世界绘制（2.5D 纵深排序）、主控 / 博士动画与手感；`game.gd._draw` 只转发到这里 | `world` |
+| `render/world.gd` | 世界绘制（2.5D 纵深排序）、主控 / 博士动画与手感；`game.gd._draw` 只转发到这里。`draw_world()` 只是按层调度（2026-10-10，docs/55 §6）：`_draw_mires` → `_draw_warns_auras` → `_draw_pickups` → `_draw_shadows` → `_draw_sorted_entities` → `_draw_overlays_shield_drones` → `_draw_bullets` → `_draw_fx` → `_draw_ebullets_lobs_shocks` → `_draw_tells_outlines` → `draw_zone` → 雪；每层之间是 `--prof` 的 `dw_*` 分段点，tb 批 flush 点在各层末尾 | `world` |
 | `render/vfx.gd` | 特效帧条、刀光、火花、飘字、横幅、屏幕震动、加色层 | `vfx` |
-| `screens/hud.gd` | 局内 HUD，并按 `state` 分派到下列界面 | `hud_view` |
+| `screens/hud.gd` | 局内 HUD 的分派：`_draw_body` 按固定顺序调用下面四个模块，再按 `state` 分派到下列界面；本文件留合批段（`batch_begin / _hb`）、分层缓存 `_layer`、底层子画布 `_draw_under`（飘字 / 暗角）、倒下过渡、共用助手（`edge_glow / corrode_seg / draw_tooltip`） | `hud_view` |
+| `screens/hud_tris.gd` | 无贴图图元批（原 `hud.gd` 内部类 `Tris`，2026-10-10 独立），`hud.gd` 与各 HUD 模块以 `const Tris` 预载 | — |
+| `screens/hud_bars.gd` | 左上面板（等级 / 生命 / 灯火 / 侵蚀）、灯火状态条、顶部中央（击杀 / 时间 / 楼层 / 威胁）、Boss 大血条（`boss_bars / boss_bottom`）、人物状态栏、声呐小地图 | `hud_view.bars` |
+| `screens/hud_relics.gd` | 右上：暂停 / 倍速按钮、藏品栏（缓存层）与悬停说明、结局走向 | `hud_view.relics` |
+| `screens/hud_squad.gd` | 右下编队卡与技能格（静态层 + 每帧层）、`squad_top`、手动技能首次提示与瞄准指示（`manual_castable`） | `hud_view.squad` |
+| `screens/hud_banners.gd` | 主控身边提示、商人 / 祭坛 / Boss / 灯标屏外指示、全场地波、黑潮警告与方向提示、横幅与小字通知（`banner_y`）、开局提示、冲刺提示 | `hud_view.banners` |
 | `screens/choice_panel.gd` | 弹窗框架（面板、布局、标题、按钮、提示）与选卡界面 | `panel_ui` |
 | `screens/shop_screen.gd` | 商店界面 | `shop_ui` |
 | `screens/elite_show.gd` | 精英化 / 解锁演出 | `show_screen` |
