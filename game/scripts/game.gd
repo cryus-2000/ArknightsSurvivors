@@ -510,6 +510,7 @@ func _ready() -> void:
 	var optional := ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
 	optional.append_array(FXF.keys())
 	optional.append_array(["fx_umbrella_slash", "fx_umbrella_slash_awaken", "fx_umbrella_slash_mirage"])
+	optional.append_array(Vfx.STRIPS)   # docs/54 §6 事件特效帧条
 	for rid in RL:
 		optional.append("relic_" + rid)
 	for pid in doctor.PASSIVES:
@@ -1426,6 +1427,8 @@ const V6_FRAMES := {
 	"fx_ink_hit": [8, 14.0], "fx_holy_pillar_ink": [16, 14.0], "fx_circle_ink": [4, 8.0],
 	"proj_lumen_bolt": [6, 12.0], "fx_holy_impact_lantern": [7, 16.0],
 	# ansimuz 爆炸与魔法合集（tools/fx_import.py 'dir' 模式，2026-09-26）
+	# docs/54 §6 事件特效帧条（tools/gen_fx_strips.py，程序生成；有图用图、没图走原程序画法）
+	"fx_beacon_ignite": [8, 16.0], "fx_ember": [4, 8.0], "fx_mire_dissolve": [6, 8.0], "fx_levelup_pillar": [6, 12.0], "fx_elite_spawn": [6, 6.7],
 	"fx_flames": [7, 12.0], "fx_fire_aura": [13, 18.0], "fx_splash_blue": [9, 18.0],
 	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
 	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留
