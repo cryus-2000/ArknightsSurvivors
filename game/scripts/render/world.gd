@@ -240,6 +240,35 @@ func draw_world() -> void:
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
 	_pk("ground")
+	_draw_mires()
+	_pk("mire")
+	_draw_warns_auras()
+	_pk("warns_auras")
+	_draw_pickups()
+	_pk("gems")
+	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
+	_draw_shadows(evr)
+	_pk("shadows")
+	_draw_sorted_entities(evr)
+	_pk("sorted_entities")
+	_draw_overlays_shield_drones()
+	_pk("shield_drones")
+	_draw_bullets()
+	_pk("bullets")
+	_draw_fx()
+	_pk("fx")
+	_draw_ebullets_lobs_shocks()
+	_pk("ebullets_lobs_shocks")
+	_draw_tells_outlines()
+	_pk("tells_outlines")
+	draw_zone()
+	_pk("zone")
+	g.map.draw_snow()
+	_pk("snow_tail")
+
+
+## 溟痕：地面贴图 + 视野内的气泡（上限 MIRE_BUBBLE_MAX）+ 光尘（docs/54）；tb 批在气泡前提交
+func _draw_mires() -> void:
 	var mvr: Rect2 = view_rect(40.0)
 	var bubbles: Array = []
 	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx.on("mire_motes") else 0   # docs/54 溟痕光尘（高画质、非触屏）
@@ -252,7 +281,10 @@ func draw_world() -> void:
 				mote_budget -= g.vfx.mire_motes(m, mote_budget)
 	tb_flush()
 	_draw_mire_bubbles(bubbles)
-	_pk("mire")
+
+
+## 预警分类 → Boss 招式预警（boss_ai）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
+func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	g.bai._draw_warns()
 	draw_nest_auras()
@@ -267,9 +299,11 @@ func draw_world() -> void:
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
-	# 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
-	# 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）
-	_pk("warns_auras")
+
+
+## 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
+## 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）；拖尾 / 辉光 / 深色底进 tb 批，贴图与闪光循环后统一画
+func _draw_pickups() -> void:
 	var vr: Rect2 = view_rect(40.0)
 	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
 	var cells := {}
@@ -355,11 +389,13 @@ func draw_world() -> void:
 				continue
 			var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
 			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
-	_pk("gems")
+
+
+## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
+func _draw_shadows(evr: Rect2) -> void:
 	g.boss_intro.draw_world()   # Boss 登场：脚下聚光圈 + 扩散环（合批；没有登场时直接返回）
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
-	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	for e in g.enemies:
 		if not evr.has_point(e.pos):
 			continue
@@ -370,8 +406,10 @@ func draw_world() -> void:
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
 	g.squad.draw_entities_floor()
-	# ---- 2.5D 前后遮挡：按脚底 y 排序后依次绘制 ----
-	_pk("shadows")
+
+
+## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
+func _draw_sorted_entities(evr: Rect2) -> void:
 	var dl: Array = []
 	for e in g.enemies:
 		if evr.has_point(e.pos) or dc_check:   # --dccheck：不按视野剔除（快检是无头模式，视口太小，敌人全被剔掉，自检就跑不到）
@@ -401,7 +439,10 @@ func draw_world() -> void:
 				draw_player()
 			3:
 				g.map.draw_sort_prop(it[2])
-	_pk("sorted_entities")
+
+
+## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
+func _draw_overlays_shield_drones() -> void:
 	_afx_flush()
 	for wm in weak_marks:
 		var wpp: Vector2 = wm[0]
@@ -433,7 +474,10 @@ func draw_world() -> void:
 	for dr in g.drones:
 		tb_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)), 1.0, 8)
 	tb_flush()
-	_pk("shield_drones")
+
+
+## 友方投射物：V6 帧条按速度方向旋转（程序只画拖尾）；没贴图的按种类程序画
+func _draw_bullets() -> void:
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
@@ -467,7 +511,10 @@ func draw_world() -> void:
 				UI.diamond(g, b.pos, 5.0, Color(1.8, 1.0, 2.6), Color(2.2, 1.6, 2.8))
 			_:
 				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
-	_pk("bullets")
+
+
+## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
+func _draw_fx() -> void:
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
@@ -837,7 +884,10 @@ func draw_world() -> void:
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
-	_pk("fx")
+
+
+## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
+func _draw_ebullets_lobs_shocks() -> void:
 	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
 	var blades: Array = []
@@ -922,7 +972,10 @@ func draw_world() -> void:
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_pk("ebullets_lobs_shocks")
+
+
+## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
+func _draw_tells_outlines() -> void:
 	draw_enemy_tells()
 	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
@@ -936,11 +989,6 @@ func draw_world() -> void:
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
 	if g.squad.has_method("draw_leader_mark"):
 		g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
-	_pk("tells_outlines")
-	draw_zone()
-	_pk("zone")
-	g.map.draw_snow()
-	_pk("snow_tail")
 
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）

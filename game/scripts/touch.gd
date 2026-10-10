@@ -213,7 +213,7 @@ func draw_hud(vs: Vector2) -> void:
 	# 技能键在冲刺键左上，四个键的 84 点击区互不重叠、都在编队卡上方
 	var ph: bool = vs.y < 520.0
 	if g.state == g.S.PLAY:
-		var dc := Vector2(vs.x - (134.0 if ph else 80.0), g.hud_view.squad_top(vs) - 14.0 - BTN * 0.7)
+		var dc := Vector2(vs.x - (134.0 if ph else 80.0), g.hud_view.squad.squad_top(vs) - 14.0 - BTN * 0.7)
 		var dr0 := Rect2(dc - Vector2(BTN * 0.7, BTN * 0.7), Vector2(BTN * 1.4, BTN * 1.4))
 		btn_rects.append([dr0, "dash"])
 		var ready: bool = g.dash_cd <= 0.0
@@ -283,7 +283,7 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 	skill_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var need: float = ld.sp_need(i)
 	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0
-	var ready: bool = g.hud_view.manual_castable(ld, i)
+	var ready: bool = g.hud_view.squad.manual_castable(ld, i)
 	var held: bool = skill_id >= 0 or flash.get("skill", 0.0) > 0.0
 	hud.draw_circle(c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
 	var tx: Texture2D = g.tex.get(ld.skill_def(i).get("icon", ""))

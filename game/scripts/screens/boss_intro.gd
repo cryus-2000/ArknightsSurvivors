@@ -232,7 +232,7 @@ func _draw_top() -> void:
 		return
 	var slide: float = (1.0 - _ss(0.2, 0.5, t)) * 36.0
 	var cx: float = vs.x * 0.5
-	var y0: float = maxf(vs.y * 0.36, g.hud_view.boss_bottom + 60.0)   # 在横幅（vs.y*0.24）和 Boss 血条之下、主控之上
+	var y0: float = maxf(vs.y * 0.36, g.hud_view.bars.boss_bottom + 60.0)   # 在横幅（vs.y*0.24）和 Boss 血条之下、主控之上
 	var name_size: int = 34 if touch or vs.y < 680 else 40
 	var font: Font = g.font
 	var nw: float = font.get_string_size(card.cn, HORIZONTAL_ALIGNMENT_LEFT, -1, name_size).x
@@ -289,7 +289,7 @@ func _draw_outro(vs: Vector2, ci: CanvasItem) -> void:
 	var col: Color = outro.col
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.98, 0.96, 0.32 * k * k))
 	var a: float = _ss(0.0, 0.08, t) * clampf(k * 1.6, 0.0, 1.0)
-	var y0: float = maxf(vs.y * 0.36, g.hud_view.boss_bottom + 60.0)
+	var y0: float = maxf(vs.y * 0.36, g.hud_view.bars.boss_bottom + 60.0)
 	var s := "%s · 击破" % outro.name
 	var size: int = 26 if g.touch.active else 30
 	var w: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
