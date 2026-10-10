@@ -10,7 +10,10 @@
 
 流程：
 1. git archive 把 <ref> 解到 build/_export/src —— 只含已提交内容，其它会话的未提交改动不会混进包里；
-2. Godot 导入资源（--import），再用 "Windows Desktop" 预设导出发布版（需要 4.7.2 导出模板，见 docs/33）；
+   整个过程持有 build/_export.lock（release_all 在导出 + 验证期间也持有它），并行出包 / 验证不会互相清掉对方的 build/_export；
+2. Godot 导入资源（--import），再用 godot_runner.stale_imports 核对导入缓存（.import 登记的缓存文件都在），缺了就再导（最多再 2 遍）；
+   然后用 "Windows Desktop" 预设导出发布版（需要 4.7.2 导出模板，见 docs/33）。导出报错时自动清掉导入缓存重导一次再导出，第二次仍失败才算失败
+   （2026-10-10 db5f4112 出包：无头导入在退出时崩溃，fonts/ui.ttf 的 fontdata 没写出来，导出报 "Error loading custom project font"，重跑一次就过）；
 3. 默认生成加密公开版：美术导入 PCK，脚本、数据、音频与资源目录一起加密；
        方舟幸存者/
          开始游戏.bat
@@ -83,14 +86,52 @@ def checked_build_path(path):
     return str(expected)
 
 
+EXPORT_LOCK = os.path.join(ROOT, "build", "_export.lock")   # 与 release_all 共用：build/_export 一次只给一个出包 / 验证用
+
+
 def run_export_godot(cmd, timeout=900, check=True):
-    print(">", " ".join(cmd))
+    """跑一次 Godot；返回 (输出, 失败原因或 None)。check=True 时脚本错误 / ERROR: / 超时都算失败"""
+    print(">", " ".join(cmd), flush=True)
     out, err, timed_out = godot_runner.run_godot(cmd, timeout)
     output = out + "\n" + err
-    if timed_out or (check and (godot_runner.script_errors(out, err) or "ERROR:" in output)):
-        print("\n".join(output.splitlines()[-20:]))
-        sys.exit("Godot export timed out" if timed_out else "Godot export reported errors")
-    return output
+    if timed_out:
+        return output, "Godot export timed out"
+    if check and (godot_runner.script_errors(out, err) or "ERROR:" in output):
+        return output, "Godot export reported errors"
+    return output, None
+
+
+def import_verified(gpath, fresh=False, retries=2):
+    """导入资源并核对导入缓存：.import 登记的缓存文件缺一个就再导，最多再 retries 遍。fresh=True 先清掉 .godot 从头导。
+    无头导入退出时偶发崩溃（不影响已写出的部分），所以单次导入的退出码不作数，以缓存核对为准。返回核对是否通过"""
+    if fresh:
+        shutil.rmtree(os.path.join(gpath, ".godot"), ignore_errors=True)
+    for attempt in range(1 + retries):
+        run_export_godot([GODOT, "--headless", "--path", gpath, "--import"], check=False)
+        miss = godot_runner.stale_imports(gpath)
+        imp = os.path.join(gpath, ".godot", "imported")
+        total = len(os.listdir(imp)) if os.path.isdir(imp) else 0
+        if not miss:
+            print("导入缓存核对：完整（%d 个缓存文件，第 %d 遍导入）" % (total, attempt + 1), flush=True)
+            return True
+        print("导入缓存核对：缺 %d 个（例如 %s），%s" % (len(miss), miss[0], "再导一遍" if attempt < retries else "已到重试上限"), flush=True)
+    return False
+
+
+def export_with_retry(gpath, exe_path):
+    """导出；失败时清掉导入缓存重导一次再导出，第二次仍失败才退出。返回导出输出"""
+    for attempt in (1, 2):
+        out, why = run_export_godot([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, exe_path])
+        if why is None:
+            return out
+        print("\n".join(out.splitlines()[-20:]), flush=True)
+        if attempt == 2:
+            sys.exit(why)
+        print("导出第 1 次失败（%s），清掉导入缓存重导后再试一次" % why, flush=True)
+        for stale in (exe_path, os.path.splitext(exe_path)[0] + ".pck"):
+            if os.path.exists(stale):
+                os.remove(stale)
+        import_verified(gpath, fresh=True)
 
 
 def main():
@@ -113,6 +154,18 @@ def main():
     commit = run(["git", "rev-parse", "--short", a.ref], cwd=ROOT).strip()
     date = datetime.datetime.now().strftime("%Y%m%d")
     checked_build_path(OUT)
+    if a.encrypted:
+        secrets = (encrypted_template, encryption_key)
+    else:
+        secrets = (None, None)
+    if os.environ.get("ARK_EXPORT_LOCK_HELD") == "1":   # release_all 已替我们持锁（它要连着验证一起锁）
+        build(a, commit, date, audience, label, *secrets)
+        return
+    with godot_runner.file_lock(EXPORT_LOCK):
+        build(a, commit, date, audience, label, *secrets)
+
+
+def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     shutil.rmtree(checked_build_path(WORK), ignore_errors=True)
     src = os.path.join(WORK, "src")
     os.makedirs(src)
@@ -171,12 +224,14 @@ def main():
         if 'OS.has_feature("packed_release")' not in loader:
             loader = loader.replace(guard, guard + '\tif OS.has_feature("packed_release"):\n\t\treturn ""\n', 1)
             art_loader.write_text(loader, encoding="utf-8")
-    run_export_godot([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃（不影响导入结果），成败以下面导出为准
+    if not import_verified(gpath):   # 缺的缓存文件导出时会以 "Cannot open file res://.godot/imported/..." 失败，导出前再清缓存从头导一遍
+        print("导入缓存仍不完整，清掉 .godot 从头导一遍", flush=True)
+        import_verified(gpath, fresh=True)
     previous_key = os.environ.get("GODOT_SCRIPT_ENCRYPTION_KEY")
     try:
         if a.encrypted:
             os.environ["GODOT_SCRIPT_ENCRYPTION_KEY"] = encryption_key
-        out = run_export_godot([GODOT, "--headless", "--path", gpath, "--export-release", PRESET, os.path.join(game_dir, "ArknightsSurvivors.exe")])
+        out = export_with_retry(gpath, os.path.join(game_dir, "ArknightsSurvivors.exe"))
     finally:
         if previous_key is None:
             os.environ.pop("GODOT_SCRIPT_ENCRYPTION_KEY", None)
