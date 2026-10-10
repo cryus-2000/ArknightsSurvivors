@@ -137,6 +137,18 @@ func test_db_and_profile() -> void:
 			ok(cl in classes, "藏品 %s 职业门槛合法（%s）" % [r.id, cl])
 		for ln in r.lanes:
 			ok(ln in ["A", "B", "C", "D", "E", "F", "G", "H"], "藏品 %s 流派代号合法（%s）" % [r.id, ln])
+	# docs/55 §4：relic_fx.gd 从数据读的触发参数必须在 relic_effects.json 里（改名 / 删键会让效果静默退回代码默认值）
+	var need := {"94": ["pct", "corrode_extra"], "145": ["pct", "class", "icd"], "169": ["class", "not_boss"], "170": ["pct", "boss_pct", "icd"]}
+	for id in need:
+		var trig: Dictionary = {}
+		for ef in c.db.get_relic(id).get("effects", []):
+			if ef.get("type", "") == "trigger":
+				trig = ef
+				break
+		ok(not trig.is_empty(), "藏品 %s 有 trigger 效果" % id)
+		for k in need[id]:
+			ok(trig.get("args", {}).has(k), "藏品 %s 触发参数 %s 存在" % [id, k])
+	ok(c.db.get_relic("169").effects[0].get("if", {}).has("target_hp_below"), "藏品 169 处决门槛 target_hp_below 存在")
 	# Build Profile：拿近战藏品后，A 流派领先
 	for id in ["54", "56", "120", "121"]:
 		c.gain_relic(id)

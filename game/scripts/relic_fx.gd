@@ -657,13 +657,17 @@ func on_skill_start(o = null, i := -1) -> void:
 
 func on_hurt(src_corrode: bool) -> void:
 	no_hurt_t = 0.0
+	# 盘蛇之匣：受伤回技力 pct，神经损伤来源再加 corrode_extra（数据 relic_effects.json #94）
 	if g.relics.has("94"):
-		_gain_sp(0.03 + (0.03 if src_corrode else 0.0))
+		var a: Dictionary = _targs("94")
+		_gain_sp(float(a.get("pct", 0.03)) + (float(a.get("corrode_extra", 0.03)) if src_corrode else 0.0))
+	# 铁卫-无锋：主控受击时该职业回技力 pct，内置冷却 icd 秒（#145；pct 可被 balance.json relic/iron_sp 覆盖）
 	if g.relics.has("145") and hurt_sp_cd <= 0.0:
-		hurt_sp_cd = 0.5
+		var a: Dictionary = _targs("145")
+		hurt_sp_cd = float(a.get("icd", 0.5))
 		for o in g.squad.ops:
-			if o.cls == "重装":
-				o.gain_sp(Bal.v("relic/iron_sp", 0.05))
+			if o.cls == str(a.get("class", "重装")):
+				o.gain_sp(Bal.v("relic/iron_sp", float(a.get("pct", 0.05))))
 	if g.relics.has("231") and stun_all_cd <= 0.0:
 		stun_all_cd = 30.0
 		for e in g.enemies:
@@ -716,12 +720,13 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 		shatter_t = g.t
 	if not g.combat.is_followup(h):
 		return
-	# 追击命中：扣挠之手（目标当前生命 3%，Boss 0.5%，每个敌人每 0.5 秒一次）
+	# 追击命中：扣挠之手（目标当前生命 pct，Boss boss_pct，每个敌人每 icd 秒一次；数据 #170）
 	if g.relics.has("170") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
-		e["claw_t"] = g.t + 0.5
+		var a: Dictionary = _targs("170")
+		e["claw_t"] = g.t + float(a.get("icd", 0.5))
 		var keep: Dictionary = g.hit
 		g.combat.hit("真实")
-		g.combat.damage(e, e.hp * (0.005 if e.boss else 0.03))
+		g.combat.damage(e, e.hp * (float(a.get("boss_pct", 0.005)) if e.boss else float(a.get("pct", 0.03))))
 		g.hit = keep
 	# 炸裂之手：造成这次追击的干员回技力（每秒最多 2.5%）
 	if g.relics.has("171"):
@@ -732,9 +737,29 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 		wrath_q.append(e.pos)
 
 
-## 狙击命中：扼喉之手处决（狙击干员的任意命中）
+## 狙击命中：扼喉之手处决（该职业干员的任意命中；数据 #169：args.class / not_boss、if.target_hp_below）
 func sniper_execute(e: Dictionary, h: Dictionary) -> bool:
-	return g.relics.has("169") and h.get("class", "") == "狙击" and not e.boss and e.hp < e.maxhp * 0.2
+	if not g.relics.has("169"):
+		return false
+	var ef: Dictionary = _trigger("169")
+	var a: Dictionary = ef.get("args", {})
+	if h.get("class", "") != str(a.get("class", "狙击")):
+		return false
+	if bool(a.get("not_boss", true)) and e.boss:
+		return false
+	return e.hp < e.maxhp * float(ef.get("if", {}).get("target_hp_below", 0.2))
+
+
+## 某件藏品的第一条 trigger 效果（没有则空字典）；藏品的触发参数一律从 relic_effects.json 读，不在代码里写死（docs/55 §4）
+func _trigger(id: String) -> Dictionary:
+	for ef in db.get_relic(id).get("effects", []):
+		if ef.get("type", "") == "trigger":
+			return ef
+	return {}
+
+
+func _targs(id: String) -> Dictionary:
+	return _trigger(id).get("args", {})
 
 
 ## 限时修正。key 相同（同一件藏品）再次触发只刷新时长：原来每次闪避 / 施放各追加一条、在 dmg_extra 里逐条相乘，

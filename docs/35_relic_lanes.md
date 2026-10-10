@@ -328,3 +328,18 @@ H 与不偏好的剩余差距：普通档 H 局 22 次死亡里 13 次死于黑�
 玩法系统试过把宝石压在 150 以内（三版合并，详见 docs/50 §5），这条规则不再触发，同 seed 下中期升级晚 1–5 分钟、最终等级 −3～+1——说明它对曲线影响不小。
 协调人 9/30 定：暂不改；把门槛 350 → 150（超了直接入账）作为候选，close6b 收口后由数值评估是否进 close7。改的话经验会变快，需要同时回调 xp 曲线。
 
+
+## 触发参数改读数据（2026-10-10，docs/55 §4 跟进）
+
+docs/55 §4 把 `relic_effects.json` 的 `args.icd`（#145 铁卫-无锋、#170 扣挠之手）、`corrode_extra`（#94）、`not_boss`（#169 扼喉之手）、`boss_pct`（#170）列为「代码没读 → 描述不生效」。复核：**效果一直生效**，只是 `relic_fx.gd` 把同样的数值写死在代码里（`on_hurt` 的 `0.03 + 0.03` / `hurt_sp_cd = 0.5`、`sniper_execute` 的 `not e.boss` / `0.2`、`on_hit` 的 `claw_t + 0.5` / `0.005 if e.boss else 0.03`），所以是「数据键没人读」而不是「描述没实现」。
+
+处理（逐键）：
+
+| 藏品 | 键 | 原来 | 现在 |
+| --- | --- | --- | --- |
+| #94 | `pct` 0.03、`corrode_extra` 0.03 | 代码写死 | `relic_fx.on_hurt` 读 `_targs("94")` |
+| #145 | `pct` 0.05、`class` 重装、`icd` 0.5 | `pct` 走 `Bal.v("relic/iron_sp", 0.05)`，其余写死 | `icd` / `class` 读数据；`pct` 仍可被 `balance.json relic/iron_sp` 覆盖，缺省取数据值 |
+| #169 | `class` 狙击、`not_boss` true、`if.target_hp_below` 0.2 | 写死 | `sniper_execute` 读数据 |
+| #170 | `pct` 0.03、`boss_pct` 0.005、`icd` 0.5 | 写死 | `on_hit` 读数据 |
+
+数值前后相同，**玩法不变**（同 seed 水月 + 塞雷娅 + 维什戴尔带 #94/#145/#169/#170 200 秒、维什戴尔 `--bosstimes=40,90,130` 150 秒、斯卡蒂 200 秒：TRACE 201 / 151 / 201 行逐字节相同，BALANCE 除 `bot.peak_min` 外相同）。以后改这四件的数值只改 `relic_effects.json`；`tests/test_core.gd` 新增契约：这些键必须在数据里（删键 / 改名会报错，而不是静默退回代码缺省值）。
