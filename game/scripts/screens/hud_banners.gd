@@ -3,6 +3,7 @@ extends RefCounted
 ## 全场地波、黑潮警告与方向提示、横幅通知与小字通知、开局提示、冲刺提示。触屏分支原样保留。
 const Bars = preload("res://scripts/screens/hud_bars.gd")   # Bars.BOSS_BARS_MAX
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -193,6 +194,49 @@ func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
 		h._hb.poly(PackedVector2Array([tip, base + sd, base - sd]), col)
 		UI.text(g.hud, g.font, edge + Vector2(-60, -30.0 if edge.y > vs.y / 2 else 42.0), "灯标 %dm" % int(b.get("pos", Vector2.ZERO).distance_to(g.ppos) / 32.0), 13, col, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 	h.batch_end(mid)
+
+
+## 围猎（run/hunt.gd；用户 10-11「没有看到一个圈」）：顶栏下方「围猎 · 包围圈收缩  N」倒计时（预告期「围猎将至  N」）；
+## 围猎紫边缘光（圈在画面外时更亮）；包围圈离主控最近的一段不在画面里时，画面边缘圆圈 + 箭头指向它并标距离。
+## 生命垂危的红暗角优先。只读状态、只用 g.t
+const HUNT_COL := Color(0.75, 0.5, 1.0)
+func draw_hunt_pointer(vs: Vector2, ct: Transform2D) -> void:
+	var hu = g.hunt
+	if g.state != Game.S.PLAY or hu == null or (hu.state != 1 and hu.state != 2):
+		return
+	var pz := 0.5 + 0.5 * sin(g.t * 6.0)
+	var zy := (126.0 if g.touch.active else 116.0) + 54.0 * mini(h.bars.boss_bars().size(), Bars.BOSS_BARS_MAX)   # 触屏的威胁字号大一号，再往下让 10
+	if g.zone_state != 0:
+		zy += 22.0   # 黑潮提示在场时让到它下面
+	if hu.state == 1:
+		UI.text(g.hud, g.font, Vector2(0, zy), "围猎将至  %d" % int(ceil(maxf(0.0, hu.start_at - g.t))), 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		return
+	var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
+	var rem: int = int(ceil(maxf(0.0, dur - (g.t - hu.start_at))))
+	UI.text(g.hud, g.font, Vector2(0, zy), "围猎 · 包围圈收缩  %d" % rem, 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+	# 离主控最近的圈上一点
+	var v: Vector2 = g.ppos - hu.c
+	var d: Vector2 = v.normalized() if v.length() > 1.0 else Vector2.RIGHT
+	var near: Vector2 = hu.c + d * hu.radius()
+	var sp: Vector2 = ct * near
+	var seen: bool = Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp)
+	if not (g.hp < g.max_hp * 0.3 and g.hp > 0.0):
+		h.edge_glow(vs, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, (0.10 if seen else 0.28) + 0.12 * pz), 120.0)
+	if seen:
+		return
+	var cc := vs / 2.0
+	var dd := (sp - cc).normalized()
+	var edge: Vector2 = cc + dd * minf(absf((vs.x / 2 - 64) / maxf(absf(dd.x), 0.01)), absf((vs.y / 2 - 64) / maxf(absf(dd.y), 0.01)))
+	h.batch_begin()
+	h._hb.circle(edge, 20.0, Color(0.05, 0.02, 0.08, 0.85), 24)
+	h._hb.arc(edge, 20.0, 0.0, TAU, 2.0, HUNT_COL, 24)
+	h._hb.arc(edge, 11.0, 0.0, TAU, 2.0, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.6 + 0.4 * pz), 16)
+	var tip: Vector2 = edge + dd * (34.0 + 4.0 * pz)
+	var base: Vector2 = edge + dd * 24.0
+	var sd := dd.orthogonal() * 8.0
+	h._hb.poly(PackedVector2Array([tip, base + sd, base - sd]), HUNT_COL)
+	UI.text(g.hud, g.font, edge + Vector2(-60, -30.0 if edge.y > vs.y / 2 else 42.0), "包围圈 %dm" % int(near.distance_to(g.ppos) / 32.0), 13, HUNT_COL, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+	h.batch_end()
 
 
 ## 黑潮：圈外警告大字 + 紫色边缘光（生命垂危的红暗角优先）；圈内时顶栏下方倒计时 / 收缩提示

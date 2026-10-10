@@ -289,6 +289,7 @@ func _draw_warns_auras() -> void:
 	g.bai._draw_warns()
 	draw_nest_auras()
 	draw_beacons()
+	draw_hunt_ring()
 	g.rfx.draw()
 	if not g.merchant.is_empty():
 		var mtx: Texture2D = g.tex.merchant
@@ -299,6 +300,59 @@ func _draw_warns_auras() -> void:
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
+
+
+## 围猎包围圈（run/hunt.gd；用户 10-11：「一分半的围猎的包围圈不够明显，没有看到一个圈」——原来只有合拢那一瞬 0.8 秒的 ring 特效，
+## 之后全靠 18 只钉住的海嗣暗示圆圈）：地面层常驻画一圈，位置就是圈上海嗣的锚点圆。
+## 预告 3 秒（state 1）：虚线圈从 1.9 倍半径向主控收拢到半径 300；进行中（state 2）：深色底边 + 围猎紫 3 像素虚线环（缓慢转动、脉动），
+## 打死的方位（缺口）改画青绿色实弧，最后 3 秒渐隐。全进 tb 批一次提交；低画质只少外层柔光。只读状态、只用 g.t，不改对局
+const HUNT_COL := Color(0.75, 0.5, 1.0)
+const HUNT_GAP := Color(0.5, 1.0, 0.65)
+const HUNT_SEG := 72
+func draw_hunt_ring() -> void:
+	var hu = g.hunt
+	if hu == null or (hu.state != 1 and hu.state != 2):
+		return
+	var r: float = hu.radius()
+	var c: Vector2 = g.ppos
+	var alpha := 1.0
+	var closing: bool = hu.state == 1
+	if closing:
+		var k: float = clampf((g.t - (hu.start_at - 3.0)) / 3.0, 0.0, 1.0)
+		r = lerpf(r * 1.9, r, k * k)
+		alpha = 0.55 + 0.45 * k
+	else:
+		c = hu.c
+		var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
+		alpha = clampf((dur - (g.t - hu.start_at)) / 3.0, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var pulse: float = 0.85 + 0.15 * sin(g.t * 4.0)
+	var rot: int = int(g.t * 5.0)
+	var nring: int = hu.ring.size()
+	var dark := Color(0.04, 0.02, 0.08, 0.8 * alpha)
+	var glow: bool = Cfg.quality != "low"
+	for i in HUNT_SEG:
+		var a0: float = TAU * i / HUNT_SEG
+		var a1: float = TAU * (i + 1) / HUNT_SEG
+		var gap := false
+		if not closing and nring > 0:
+			var idx: int = posmod(roundi((a0 + a1) * 0.5 / (TAU / nring)), nring)
+			gap = hu.ring[idx].dead
+		if gap:
+			# 缺口：青绿实弧，提示从这里突围
+			tb_arc(c, r, a0, a1, 7.0, dark, 2)
+			tb_arc(c, r, a0, a1, 3.0, Color(HUNT_GAP.r, HUNT_GAP.g, HUNT_GAP.b, 0.95 * alpha), 2)
+			if glow:
+				tb_arc(c, r, a0, a1, 16.0, Color(HUNT_GAP.r, HUNT_GAP.g, HUNT_GAP.b, 0.14 * alpha), 2)
+			continue
+		if (i + rot) % 4 == 3:
+			continue   # 虚线：每 4 段空 1 段，随时间转动
+		tb_arc(c, r, a0, a1, 8.0, dark, 2)
+		tb_arc(c, r, a0, a1, 3.5, Color(HUNT_COL.r * 1.3, HUNT_COL.g * 1.3, HUNT_COL.b * 1.3, pulse * alpha), 2)   # 稍过曝：深海底色上 0.75 的紫会发灰
+		if glow:
+			tb_arc(c, r, a0, a1, 18.0, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.14 * pulse * alpha), 2)
+	tb_flush()
 
 
 ## 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
