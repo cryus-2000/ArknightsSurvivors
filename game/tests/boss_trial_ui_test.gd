@@ -59,7 +59,7 @@ func run() -> void:
 	check(is_zero_approx(g.t - g.trial.started_at), "trial clock starts at zero")
 	if initial_phase == 1:
 		check(g.final_boss.friendly and g.enemies.size() >= 4, "neutral practice starts with real sea monsters")
-		check(g.hud_view.hostile_boss_bars().is_empty(), "neutral practice has no hostile pointer")
+		check(g.hud_view.bars.hostile_boss_bars().is_empty(), "neutral practice has no hostile pointer")
 	menu.queue_free()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		var waited := 0

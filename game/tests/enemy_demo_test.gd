@@ -38,7 +38,7 @@ func _ready() -> void:
 	check(g.ebullets.is_empty(), "friendly Ishar does not shoot the player")
 	check(g.enemy_demo.cycle_period() == 50.0 and e.friendly, "automatic showcase leaves time for full transformation")
 	check("治疗海嗣" in g.demo_label and "充能" in g.demo_label, "demo explains human healing and charge")
-	check(g.hud_view.hostile_boss_bars().is_empty(), "neutral phase has no dangerous Boss pointer")
+	check(g.hud_view.bars.hostile_boss_bars().is_empty(), "neutral phase has no dangerous Boss pointer")
 	# 完整轮播通过真实充能跨入敌对，不提前跳过人形治疗。
 	for frame in 1100:
 		if e.phase == 2:
@@ -59,7 +59,7 @@ func _ready() -> void:
 	g.eai.shoot(e, Vector2.RIGHT)
 	check(g.world.ishar_animation(e).name == "e_ishar_t_attack", "transformed ranged shot plays body attack")
 	check(not e.friendly and g.ebullets.size() == 3 and g.ebullets[0].vel.length() >= 335.0, "transformed enemy fires actual fast triple projectiles")
-	check(g.hud_view.hostile_boss_bars().size() == 1, "hostile phase regains dangerous Boss pointer")
+	check(g.hud_view.bars.hostile_boss_bars().size() == 1, "hostile phase regains dangerous Boss pointer")
 	for name in ["e_stone_attack", "e_mother_attack", "e_ishar", "e_ishar_attack", "e_ishar_transform", "e_ishar_t", "e_ishar_t_move", "e_ishar_t_attack"]:
 		check(A.tex(name) != null, "existing sprite available: " + name)
 	for id in ["paranoia", "knight_boss", "izumik"]:
