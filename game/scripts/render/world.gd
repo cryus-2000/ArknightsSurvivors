@@ -561,12 +561,22 @@ func _draw_fx() -> void:
 			"mote":
 				# 光尘（docs/54）：进无贴图批，循环后随 tb_flush 一次提交；末段缩小淡出
 				if g.vfx.p2:
+					if f.get("em", false):
+						# 余烬帧条 fx_ember（8×8 × 4：亮 → 暗红），按剩余寿命取帧，颜色照 mote 调制（docs/54 §6）
+						var efr: int = clampi(int((1.0 - a) * 4.0), 0, 3)
+						g.vfx.spr_rot("fx_ember", efr, f.pos, 0.0, Game.PX * f.sz * 0.5, Color(f.col.r, f.col.g, f.col.b, f.col.a))
+						continue
 					var mp: Vector2 = f.pos.round()
 					var ms: float = f.sz * (0.5 + 0.5 * minf(1.0, a * 2.0))
 					tb_quad(mp, mp + Vector2(ms, 0), mp + Vector2(ms, ms), mp + Vector2(0, ms), Color(f.col.r, f.col.g, f.col.b, f.col.a * minf(1.0, a * 1.5)))
 			"mire_recoil":
 				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧
-				if g.vfx.p2:
+				if g.vfx.p2 and f.get("tex", false):
+					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6，和 terrain_mire 同尺寸：按判定半径 ×2.3 画）
+					var mfr: int = clampi(int((1.0 - a) * 6.0), 0, 5)
+					for c in f.pts:
+						g.vfx.spr_rot("fx_mire_dissolve", mfr, c[0], 0.0, float(c[1]) * 2.3 / 64.0, Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0)))
+				elif g.vfx.p2:
 					var k := 1.0 - a
 					var gy: float = ground_y()
 					for c in f.pts:

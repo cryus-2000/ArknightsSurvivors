@@ -662,6 +662,8 @@ var _lamp_ember_acc := 0.0
 var _merchant_on := false
 var _merchant_acc := 0.0
 var _elite_seen := {}
+## docs/54 §6 的五条帧条（tools/gen_fx_strips.py）：有图就用图，没图走下面各处原来的程序画法；fx/strips = 0 强制走程序画法
+const STRIPS := ["fx_beacon_ignite", "fx_ember", "fx_mire_dissolve", "fx_levelup_pillar", "fx_elite_spawn"]
 
 ## world 视图（game.gd 的 world 成员与本文件互相 preload，带类型访问会解析失败，取动态引用）
 func _wv():
@@ -681,13 +683,28 @@ func on(name: String) -> bool:
 	return p2 and _kv("vfx2", 1.0) > 0.0 and _kv(name, 1.0) > 0.0
 
 
+## 帧条贴图在且允许用（fx/strips 旋钮，缺省 1）
+func strip(name: String) -> bool:
+	return g.tex.get(name) != null and _kv("strips", 1.0) > 0.0
+
+
+## 加色层上的一次性帧条（fx_beacon_ignite / fx_levelup_pillar）：anchor 为帧内锚点（像素），draw_glows 画
+func add_strip(name: String, pos: Vector2, scale: float, col: Color, anchor: Vector2) -> void:
+	if g.fx.size() > 440:
+		return
+	var spec: Array = Game.V6_FRAMES[name]
+	var dur: float = spec[0] / spec[1]
+	g.fx.append({"kind": "aspr", "name": name, "pos": pos, "scale": scale, "col": col, "anchor": anchor, "life": dur, "max": dur})
+
+
 ## 常驻环境粒子（溟痕光尘、低灯火余烬、商人灯笼）：低画质和触屏设备不画
 func ambient_ok() -> bool:
 	return p2 and _kv("vfx2", 1.0) > 0.0 and Cfg.quality != "low" and not Cfg.touch_device()
 
 
 ## 光尘：n 粒从 pos 出发，基础方向 dir（ZERO = 全向）× spd，带重力 grav（负 = 上浮）与阻力 drag（1/秒）
-func motes(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float, life: float, grav := 0.0, drag := 1.5, sz := 2.0, spread := 0.6, scatter := 0.0) -> void:
+## em = true：余烬，有 fx_ember 帧条时按剩余寿命播 4 帧（颜色仍按 col 调制），没有照旧画方块
+func motes(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float, life: float, grav := 0.0, drag := 1.5, sz := 2.0, spread := 0.6, scatter := 0.0, em := false) -> void:
 	if g.fx.size() > 420 or n <= 0:
 		return
 	n = maxi(1, int(round(n * Cfg.fx_density())))
@@ -698,7 +715,7 @@ func motes(pos: Vector2, dir: Vector2, col: Color, n: int, spd: float, life: flo
 			p += Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(0.0, scatter)
 		g.fx.append({"kind": "mote", "pos": p, "vel": Vector2.from_angle(a) * spd * g.vrng.randf_range(0.35, 1.0),
 			"life": life * g.vrng.randf_range(0.6, 1.0), "max": life, "col": col, "grav": grav, "drag": drag,
-			"sz": sz if g.vrng.randf() < 0.7 else sz * 1.6})
+			"sz": sz if g.vrng.randf() < 0.7 else sz * 1.6, "em": em and strip("fx_ember")})
 
 
 ## 加色层柔光：半径 r，life 秒内先胀后淡（grow：起始半径比例）
@@ -717,12 +734,17 @@ func beacon_ignite(b: Dictionary) -> void:
 	var lamp: Vector2 = pos + Vector2(0, -62.0)
 	var cr: float = float(b.get("clear_r", 260.0))
 	glow(lamp, cr * 0.9, Color(1.0, 0.86, 0.6, 0.55), 1.1, 0.25)
-	glow(lamp, 70.0, Color(1.0, 0.95, 0.8, 0.9), 0.45, 0.5)
-	motes(lamp, Vector2.UP, Color(1.9, 1.5, 0.8), Bal.vi("fx/beacon_embers", 28), 150.0, 1.6, -40.0, 1.2, 2.0, 0.9)
-	motes(pos, Vector2.ZERO, Color(1.7, 1.3, 0.7, 0.9), int(Bal.vi("fx/beacon_embers", 28) / 2), 220.0, 1.0, -120.0, 2.5, 2.0, 0.0, 40.0)
+	if strip("fx_beacon_ignite"):
+		# 点燃帧条（64×64 × 8，16 fps，加色层）盖在灯室上，代替程序画的白芯柔光；大片暖光照旧
+		add_strip("fx_beacon_ignite", lamp, Game.PX, Color(1.0, 0.95, 0.85, 0.95), Vector2(32, 32))
+	else:
+		glow(lamp, 70.0, Color(1.0, 0.95, 0.8, 0.9), 0.45, 0.5)
+	motes(lamp, Vector2.UP, Color(1.9, 1.5, 0.8), Bal.vi("fx/beacon_embers", 28), 150.0, 1.6, -40.0, 1.2, 2.0, 0.9, 0.0, true)
+	motes(pos, Vector2.ZERO, Color(1.7, 1.3, 0.7, 0.9), int(Bal.vi("fx/beacon_embers", 28) / 2), 220.0, 1.0, -120.0, 2.5, 2.0, 0.0, 40.0, true)
 	var cleared: Array = b.get("cleared", [])
 	if not cleared.is_empty():
-		g.fx.append({"kind": "mire_recoil", "pts": cleared.slice(0, 24), "from": pos, "life": 0.75, "max": 0.75})
+		# tex = true：每片溟痕按 fx_mire_dissolve（64×64 × 6，8 fps = 0.75 秒）播退散，world 不再画收缩环
+		g.fx.append({"kind": "mire_recoil", "pts": cleared.slice(0, 24), "from": pos, "life": 0.75, "max": 0.75, "tex": strip("fx_mire_dissolve")})
 		for c in cleared.slice(0, 8):
 			motes(c[0], Vector2.UP, Color(0.9, 0.55, 1.4, 0.8), 4, 60.0, 0.9, -30.0, 1.0, 2.0, 1.2, float(c[1]) * 0.5)
 
@@ -732,8 +754,12 @@ func levelup_burst(pos: Vector2) -> void:
 	if not on("levelup_burst"):
 		return
 	glow(pos + Vector2(0, -24), 170.0, Color(1.0, 0.85, 0.45, 0.6), 0.55, 0.5)
-	g.fx.append({"kind": "pillar", "pos": pos + Vector2(0, 8), "life": 0.55, "max": 0.55, "col": Color(1.0, 0.85, 0.4)})
-	motes(pos + Vector2(0, -10), Vector2.UP, Color(2.0, 1.7, 0.9), Bal.vi("fx/levelup_motes", 24), 140.0, 1.3, -60.0, 1.0, 2.0, 1.1, 22.0)
+	if strip("fx_levelup_pillar"):
+		# 光柱帧条（32×160 × 6，12 fps，加色层，脚底对齐；按 0.75 倍画成 240 高，免得盖到半屏）
+		add_strip("fx_levelup_pillar", pos + Vector2(0, 8), Game.PX * 0.75, Color(1.0, 0.92, 0.7, 0.9), Vector2(16, 159))
+	else:
+		g.fx.append({"kind": "pillar", "pos": pos + Vector2(0, 8), "life": 0.55, "max": 0.55, "col": Color(1.0, 0.85, 0.4)})
+	motes(pos + Vector2(0, -10), Vector2.UP, Color(2.0, 1.7, 0.9), Bal.vi("fx/levelup_motes", 24), 140.0, 1.3, -60.0, 1.0, 2.0, 1.1, 22.0, true)
 	g.flash = maxf(g.flash, Bal.v("fx/levelup_flash", 0.25))
 
 
@@ -752,14 +778,14 @@ func watch_lamp(rd: float) -> void:
 		if stage > 0:
 			_wv()._flash(Color(0.5, 0.04, 0.14) if stage == 2 else Color(0.45, 0.1, 0.2), 0.55 if stage == 2 else 0.4)
 			var lp: Vector2 = g.ppos + Vector2(0, -26)
-			motes(lp, Vector2.DOWN, Color(1.8, 0.8, 0.3), Bal.vi("fx/lamp_embers", 10) * (2 if stage == 2 else 1), 70.0, 1.1, 90.0, 0.8, 2.0, 1.3, 6.0)
+			motes(lp, Vector2.DOWN, Color(1.8, 0.8, 0.3), Bal.vi("fx/lamp_embers", 10) * (2 if stage == 2 else 1), 70.0, 1.1, 90.0, 0.8, 2.0, 1.3, 6.0, true)
 			motes(lp, Vector2.UP, Color(0.35, 0.3, 0.32, 0.7), 6, 40.0, 1.4, -25.0, 0.6, 3.0, 0.5, 4.0)
 	_lamp_prev = g.lamp
 	if g.lamp < 30.0 and g.lamp > 0.0 and ambient_ok() and on("lamp_dim"):
 		_lamp_ember_acc += rd * _kv("lamp_low_embers", 2.0)
 		if _lamp_ember_acc >= 1.0:
 			_lamp_ember_acc -= 1.0
-			motes(g.ppos + Vector2(0, -26), Vector2.UP, Color(1.6, 0.7, 0.3, 0.8), 1, 35.0, 1.2, -20.0, 0.5, 2.0, 1.0, 5.0)
+			motes(g.ppos + Vector2(0, -26), Vector2.UP, Color(1.6, 0.7, 0.3, 0.8), 1, 35.0, 1.2, -20.0, 0.5, 2.0, 1.0, 5.0, true)
 	else:
 		_lamp_ember_acc = 0.0
 
@@ -781,6 +807,13 @@ func elite_entrance(e: Dictionary) -> void:
 	var k: float = age / 0.9
 	var a: float = 1.0 - k
 	var c := Color(1.0, 0.3, 0.72)
+	if strip("fx_elite_spawn"):
+		# 登场地纹帧条（96×48 × 6，0.9 秒播完）：画成和原程序环最大时一样宽（半径 r×1.1+70），脚下椭圆中心在帧内 (48,24)
+		var spec: Array = Game.V6_FRAMES["fx_elite_spawn"]
+		var fr: int = mini(int(k * spec[0]), spec[0] - 1)
+		var sc: float = (r * 1.1 + 70.0) * 2.0 / 96.0
+		spr_rot("fx_elite_spawn", fr, pos + Vector2(0, 2), 0.0, sc, Color(1.6, 1.3, 1.6, 0.9 * minf(1.0, a * 2.0)), Vector2(48, 24))
+		return
 	var gy: float = _wv().ground_y()
 	_wv().tb_ring(pos + Vector2(0, 2), r * 1.1 + 70.0 * k, 3.0, Color(c.r * 1.6, c.g * 1.2, c.b * 1.6, 0.8 * a), 24)
 	_wv().tb_ring(pos + Vector2(0, 2), (r * 1.1 + 70.0 * k) * 0.6, 1.5, Color(1.8, 1.4, 1.8, 0.5 * a), 18)
@@ -869,6 +902,23 @@ func draw_glows(ci: CanvasItem) -> void:
 	if lt == null:
 		return
 	for f in g.fx:
+		if f.kind == "aspr":
+			# 加色层帧条（docs/54 §6：灯标点燃 / 升级光柱）：按已播时间取帧，末 1/4 淡出
+			var tx: Texture2D = g.tex.get(f.name)
+			if tx == null:
+				continue
+			var spec: Array = Game.V6_FRAMES[f.name]
+			var fr: int = mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+			var fw: int = tx.get_width() / spec[0]
+			var fh: int = tx.get_height()
+			var sc: float = f.scale / A.hires_of(tx)
+			var an: Vector2 = f.anchor * A.hires_of(tx)
+			var fc: Color = f.col
+			fc.a *= minf(1.0, f.life / f.max * 4.0)
+			ci.draw_set_transform(f.pos.round(), 0.0, Vector2(sc, sc))
+			ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), fc)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
 		if f.kind != "glow":
 			continue
 		var a: float = clampf(f.life / f.max, 0.0, 1.0)

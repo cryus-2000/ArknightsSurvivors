@@ -90,6 +90,8 @@
 | `fx_elite_spawn` 精英登场地纹 | 精英出现 0.9 秒 | 洋红环 + 8 道竖光 | 96×48 地面椭圆纹 × 6 帧（裂开 → 光涌 → 散），洋红系 |
 | `prop_merchant_lantern` 灯笼发光帧 | 商人在场 | PointLight2D + 暖尘 | 商人帧条里灯笼单独 2 帧亮度闪烁（Codex 的人物范围，走 docs/06 交接） |
 
+2026-10-10 补：前五条已由 `tools/gen_fx_strips.py` 程序生成（固定种子、二值 alpha、@2x 严格 2 倍）放进 `art/incoming/`，`game.gd V6_FRAMES` 登记帧数 / fps，`Vfx.STRIPS` 进可选贴图。接法（贴图在就用，没有或 `fx/strips = 0` 时回到上面的程序画法）：点燃帧条走加色层 `aspr`（`vfx.add_strip`，代替灯室白芯柔光，大片暖光照旧）；余烬 = `motes(..., em = true)` 的 mote 在 world 里按剩余寿命播 `fx_ember` 4 帧（灯标 / 灯火 / 升级光尘）；溟痕退散 = `mire_recoil` 带 `tex` 时每片按判定半径 ×2.3 播 6 帧；升级光柱走加色层、脚底对齐、0.75 倍；精英地纹在 `vfx.elite_entrance` 里按 `e.age` 取帧、宽度同原程序环最大值。联系表与演示片段：`build/fxstrips/`。
+
 ## 7. 遗留
 
 - `glow` 用的是灯光贴图 `light`（径向渐变），足够柔但没有形状；有 `fx_beacon_ignite` 后灯标点燃可换成帧条。
