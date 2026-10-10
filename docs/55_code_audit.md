@@ -90,6 +90,8 @@
 | `_hit_fx(e, origin)` | 基类 + 6 个干员 | 各不同 | 正常覆写，**不是**重复 |
 | `sparks / slash_fx / show_banner / float_text` | `op_api.gd` → `vfx.gd` | 一行转发 | 接口层设计如此（docs/39 §2），不是重复 |
 
+**已做（10-10）**：`_strip` 与 `_fx_tex + _fx_strip` 合并进 `characters/character.gd`（−99 / +34 行，六名干员同 seed `--drawtest --maxprog` 200 秒 TRACE 逐字节相同）。`_log` ×3 **不合并**：三处分别在 `endings / beacon / hunt` 三个 RefCounted 系统里、打印内容各不相同，共同部分只有一行 `if g.autotest:` 守卫；抽成公共函数要先把带 `filter` 的字符串拼好再传，正式游玩每次调用都多付格式化开销，得不偿失。
+
 成本：合并前两项约 40 分钟（新建基类函数、6 个文件各删一段、快检 ops 档 + 图鉴动作页截图对照）。风险低；收益是以后改帧条口径只改一处。
 
 ### 2.2 字典取默认值的模式

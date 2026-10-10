@@ -376,15 +376,3 @@ func status_items() -> Array:
 	if tide > 0.0:
 		return [["潮汐", BLUE]]
 	return []
-
-
-## 画一帧横向帧条（Codex 成长线 growth_fx，双密度）：anchor_px 按 @1x 帧内像素给，sc 为 @1x 每像素的世界尺寸；
-## @2x 贴图自动把倍率减半、锚点加倍（同 game.gd _spr_rot 的口径）
-func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_px: Vector2, flip := false, col := Color.WHITE) -> void:
-	var hi: float = A.hires_of(tx)
-	var fw: int = tx.get_width() / frames
-	var fh: int = tx.get_height()
-	var k: float = sc / hi
-	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
-	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
-	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
