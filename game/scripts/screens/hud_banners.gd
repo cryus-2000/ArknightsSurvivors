@@ -200,6 +200,73 @@ func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
 ## 围猎紫边缘光（圈在画面外时更亮）；包围圈离主控最近的一段不在画面里时，画面边缘圆圈 + 箭头指向它并标距离。
 ## 生命垂危的红暗角优先。只读状态、只用 g.t
 const HUNT_COL := Color(0.75, 0.5, 1.0)
+const HUNT_GAP := Color(0.5, 1.0, 0.65)
+const HUNT_SEG := 96
+const HUNT_BODY := 4.0    # 圈体宽（界面逻辑像素 = 1280×720 基准；1080p 即 6 px）
+const HUNT_RIM := 1.4     # 两侧深色底边各多宽（1080p 约 2 px）
+
+## 包围圈圈体（10-11 二版，从 render/world.gd 地面层挪上来：地面层整条线跟着灯火光照走，灯足发白、远处发灰，和小怪白描边抢不过；
+## HUD 层不受 CanvasModulate / 灯光影响，画出来就是设计色）。深色底边整圈连续，围猎紫虚线每 8 段空 1 段（3.75°，空段留暗紫）
+## 随时间转动——读起来是环不是点；一道「扫描」亮斑约 7 秒绕一圈；打死的方位（缺口）画青绿实弧；预告期倒计时每跳一下
+## 圈体亮一下、粗一下（hunt.vis().tick）。只画在画面里的段；高画质多一层柔光。进 HUD 合批一次提交；只读、不改对局
+func draw_hunt_ring(vs: Vector2, ct: Transform2D) -> void:
+	var hu = g.hunt
+	if g.state != Game.S.PLAY or hu == null:
+		return
+	var v: Dictionary = hu.vis()
+	if v.is_empty() or v.alpha <= 0.0:
+		return
+	var s: float = ct.get_scale().x
+	var c: Vector2 = ct * v.c
+	var r: float = v.r * s
+	var alpha: float = v.alpha
+	var tick: float = v.tick
+	var closing: bool = v.closing
+	var pulse: float = 0.9 + 0.1 * sin(g.t * 4.0)
+	var body_a: float = minf(1.0, (pulse + 0.4 * tick) * alpha)   # 进行中 ≥ 0.85
+	var body_w: float = (HUNT_BODY + 2.0 * tick) * s
+	var rim_w: float = body_w + 2.0 * HUNT_RIM * s
+	var bright: float = 1.0 + 0.7 * tick
+	var rot: int = int(g.t * 6.0)
+	var nring: int = hu.ring.size()
+	var hi: bool = Cfg.quality != "low"
+	var dark := Color(0.04, 0.02, 0.08, 0.85 * alpha)
+	var vr := Rect2(Vector2.ZERO, vs).grow(40.0)
+	var scan: float = fposmod(g.t * 0.9, TAU)   # 扫描亮斑：约 7 秒转一圈
+	h.batch_begin()
+	var tb = h._hb
+	for i in HUNT_SEG:
+		var a0: float = TAU * i / HUNT_SEG
+		var a1: float = TAU * (i + 1) / HUNT_SEG
+		var am: float = (a0 + a1) * 0.5
+		if not vr.has_point(c + Vector2.from_angle(am) * r):
+			continue
+		var gap := false
+		if not closing and nring > 0:
+			gap = hu.ring[posmod(roundi(am / (TAU / nring)), nring)].dead
+		tb.arc(c, r, a0, a1, rim_w, dark, 1)
+		if gap:
+			# 缺口：青绿实弧，提示从这里突围
+			tb.arc(c, r, a0, a1, body_w, Color(HUNT_GAP, 0.95 * alpha), 1)
+			if hi:
+				tb.arc(c, r, a0, a1, rim_w + 12.0 * s, Color(HUNT_GAP, 0.16 * alpha), 1)
+			continue
+		var dash: bool = (i + rot) % 8 != 7   # 虚线：每 8 段空 1 段，随时间转动
+		if dash:
+			tb.arc(c, r, a0, a1, body_w, Color(minf(HUNT_COL.r * bright, 1.0), minf(HUNT_COL.g * bright, 1.0), 1.0, body_a), 1)
+		else:
+			tb.arc(c, r, a0, a1, body_w, Color(HUNT_COL * 0.6, 0.35 * alpha), 1)
+		var d: float = absf(wrapf(am - scan, -PI, PI))
+		if d < 0.55:
+			var k: float = (1.0 - d / 0.55) * (1.0 - d / 0.55)
+			tb.arc(c, r, a0, a1, body_w + 1.0 * s, Color(0.95, 0.85, 1.0, 0.95 * k * alpha), 1)
+			if hi:
+				tb.arc(c, r, a0, a1, rim_w + 14.0 * s, Color(HUNT_COL, 0.22 * k * alpha), 1)
+		elif hi and dash:
+			tb.arc(c, r, a0, a1, rim_w + 12.0 * s, Color(HUNT_COL, (0.12 + 0.1 * tick) * pulse * alpha), 1)
+	h.batch_end()
+
+
 func draw_hunt_pointer(vs: Vector2, ct: Transform2D) -> void:
 	var hu = g.hunt
 	if g.state != Game.S.PLAY or hu == null or (hu.state != 1 and hu.state != 2):

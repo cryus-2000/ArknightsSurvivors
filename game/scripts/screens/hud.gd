@@ -111,6 +111,7 @@ func _draw_body() -> void:
 	banners.draw_boss_pointers(vs, ct)
 	banners.draw_field_wave(vs)
 	banners.draw_beacon_pointers(vs, ct)
+	banners.draw_hunt_ring(vs, ct)
 	banners.draw_hunt_pointer(vs, ct)
 	if not overlay_left():
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）

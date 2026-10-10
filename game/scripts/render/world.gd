@@ -302,56 +302,30 @@ func _draw_warns_auras() -> void:
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
 
 
-## 围猎包围圈（run/hunt.gd；用户 10-11：「一分半的围猎的包围圈不够明显，没有看到一个圈」——原来只有合拢那一瞬 0.8 秒的 ring 特效，
-## 之后全靠 18 只钉住的海嗣暗示圆圈）：地面层常驻画一圈，位置就是圈上海嗣的锚点圆。
-## 预告 3 秒（state 1）：虚线圈从 1.9 倍半径向主控收拢到半径 300；进行中（state 2）：深色底边 + 围猎紫 3 像素虚线环（缓慢转动、脉动），
-## 打死的方位（缺口）改画青绿色实弧，最后 3 秒渐隐。全进 tb 批一次提交；低画质只少外层柔光。只读状态、只用 g.t，不改对局
+## 围猎包围圈（run/hunt.gd；用户 10-11：「一分半的围猎的包围圈不够明显，没有看到一个圈」）。
+## 10-11 二版：一版 696847e 把圈画在地面层，整条线跟着灯火光照走——灯火足时靠主控发白、远处只剩 ambient 的灰紫，
+## 和一百多只小怪的白描边抢不过。现在圈体（底边 + 紫色虚线 + 缺口青绿弧 + 扫描亮斑）挪到 HUD 层（screens/hud_banners.gd
+## draw_hunt_ring，不受 CanvasModulate / 灯光影响，颜色就是设计色）；地面层只留「里外一眼分开」的调子：圈外压暗 0.15
+## （径向渐变到圈边，一直铺到画面外）、圈内贴边一圈淡紫。低画质整段不画。全进 tb 批一次提交；只读 hunt.vis()，不改对局
 const HUNT_COL := Color(0.75, 0.5, 1.0)
-const HUNT_GAP := Color(0.5, 1.0, 0.65)
-const HUNT_SEG := 72
 func draw_hunt_ring() -> void:
-	var hu = g.hunt
-	if hu == null or (hu.state != 1 and hu.state != 2):
+	if g.hunt == null or Cfg.quality == "low":
 		return
-	var r: float = hu.radius()
-	var c: Vector2 = g.ppos
-	var alpha := 1.0
-	var closing: bool = hu.state == 1
-	if closing:
-		var k: float = clampf((g.t - (hu.start_at - 3.0)) / 3.0, 0.0, 1.0)
-		r = lerpf(r * 1.9, r, k * k)
-		alpha = 0.55 + 0.45 * k
-	else:
-		c = hu.c
-		var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
-		alpha = clampf((dur - (g.t - hu.start_at)) / 3.0, 0.0, 1.0)
-	if alpha <= 0.0:
+	var v: Dictionary = g.hunt.vis()
+	if v.is_empty() or v.alpha <= 0.0:
 		return
-	var pulse: float = 0.85 + 0.15 * sin(g.t * 4.0)
-	var rot: int = int(g.t * 5.0)
-	var nring: int = hu.ring.size()
-	var dark := Color(0.04, 0.02, 0.08, 0.8 * alpha)
-	var glow: bool = Cfg.quality != "low"
-	for i in HUNT_SEG:
-		var a0: float = TAU * i / HUNT_SEG
-		var a1: float = TAU * (i + 1) / HUNT_SEG
-		var gap := false
-		if not closing and nring > 0:
-			var idx: int = posmod(roundi((a0 + a1) * 0.5 / (TAU / nring)), nring)
-			gap = hu.ring[idx].dead
-		if gap:
-			# 缺口：青绿实弧，提示从这里突围
-			tb_arc(c, r, a0, a1, 7.0, dark, 2)
-			tb_arc(c, r, a0, a1, 3.0, Color(HUNT_GAP.r, HUNT_GAP.g, HUNT_GAP.b, 0.95 * alpha), 2)
-			if glow:
-				tb_arc(c, r, a0, a1, 16.0, Color(HUNT_GAP.r, HUNT_GAP.g, HUNT_GAP.b, 0.14 * alpha), 2)
-			continue
-		if (i + rot) % 4 == 3:
-			continue   # 虚线：每 4 段空 1 段，随时间转动
-		tb_arc(c, r, a0, a1, 8.0, dark, 2)
-		tb_arc(c, r, a0, a1, 3.5, Color(HUNT_COL.r * 1.3, HUNT_COL.g * 1.3, HUNT_COL.b * 1.3, pulse * alpha), 2)   # 稍过曝：深海底色上 0.75 的紫会发灰
-		if glow:
-			tb_arc(c, r, a0, a1, 18.0, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.14 * pulse * alpha), 2)
+	var c: Vector2 = v.c
+	var r: float = v.r
+	var alpha: float = v.alpha
+	var ta: float = 0.15 * alpha
+	var vr: Rect2 = view_rect(0.0)
+	var far: float = 0.0
+	for corner in [vr.position, vr.end, Vector2(vr.position.x, vr.end.y), Vector2(vr.end.x, vr.position.y)]:
+		far = maxf(far, c.distance_to(corner))
+	far = maxf(far + 40.0, r + 180.0)
+	tb_ring2(c, r, r + 90.0, Color(0.0, 0.0, 0.02, 0.0), Color(0.0, 0.0, 0.02, ta), 64)
+	tb_ring(c, (r + 90.0 + far) * 0.5, far - (r + 90.0), Color(0.0, 0.0, 0.02, ta), 64)
+	tb_ring2(c, r - 70.0, r, Color(HUNT_COL, 0.0), Color(HUNT_COL, (0.12 + 0.1 * v.tick) * alpha), 64)
 	tb_flush()
 
 
@@ -2450,6 +2424,21 @@ func tb_ring(c: Vector2, r: float, w: float, col: Color, seg := 16) -> void:
 		_tb_pts.append(c + d * (r + w * 0.5))
 		_tb_cols.append(col)
 		_tb_cols.append(col)
+	for q in seg:
+		var a0: int = base + q * 2
+		var a1: int = base + ((q + 1) % seg) * 2
+		_tb_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
+
+
+## 径向渐变圆环：内圈半径 r0 颜色 c0 → 外圈半径 r1 颜色 c1（顶点色插值；围猎圈内外的地面调子）
+func tb_ring2(c: Vector2, r0: float, r1: float, c0: Color, c1: Color, seg := 48) -> void:
+	var base: int = _tb_pts.size()
+	for q in seg:
+		var d := Vector2.from_angle(q * TAU / seg)
+		_tb_pts.append(c + d * r0)
+		_tb_pts.append(c + d * r1)
+		_tb_cols.append(c0)
+		_tb_cols.append(c1)
 	for q in seg:
 		var a0: int = base + q * 2
 		var a1: int = base + ((q + 1) % seg) * 2

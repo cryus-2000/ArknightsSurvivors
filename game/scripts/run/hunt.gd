@@ -38,6 +38,29 @@ func active() -> bool:
 	return state == 2
 
 
+## 画面用（render/world.gd 地面调子、screens/hud_banners.gd 圈体）：当前圈心 / 半径 / 不透明度 / 预告倒计时跳数脉冲。
+## 预告 3 秒：圈从 1.9 倍半径向主控收拢，倒计时每过一个整数（与顶栏「围猎将至 N」同步）tick 跳到 1、0.45 秒内衰减；
+## 进行中：圈心固定、最后 3 秒渐隐。只读、只用 g.t，不改对局；未预告 / 已结束返回空字典
+func vis() -> Dictionary:
+	if state != 1 and state != 2:
+		return {}
+	var r := radius()
+	var cc := g.ppos
+	var alpha := 1.0
+	var tick := 0.0
+	if state == 1:
+		var rem := maxf(0.0, start_at - g.t)
+		var k := clampf(1.0 - rem / 3.0, 0.0, 1.0)
+		r = lerpf(r * 1.9, r, k * k)
+		alpha = 0.7 + 0.3 * k
+		tick = clampf(1.0 - (1.0 - (rem - floorf(rem))) / 0.45, 0.0, 1.0)
+	else:
+		cc = c
+		var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
+		alpha = clampf((dur - (g.t - start_at)) / 3.0, 0.0, 1.0)
+	return {"c": cc, "r": r, "alpha": alpha, "tick": tick, "closing": state == 1}
+
+
 func update(dt: float) -> void:
 	if Bal.v("hunt/enabled", 1.0) <= 0.0 or state == 3 or g.demo_op != "":
 		return
