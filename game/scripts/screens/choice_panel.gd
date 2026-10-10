@@ -13,7 +13,6 @@ var g: Game
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
 var ev_bars_h := 0.0           # 事件选项条的总高度（选项条按说明行数加高，提示文字跟在后面）
-const EV_COL_TOP_TOUCH := 150.0   # 触屏事件选项列顶边（桌面 196）：手机逻辑高 626，四选项（抉择）原来最后一条出界
 var serif: Font                # 事件标题用的衬线粗体（fonts/serif.ttf，缺失时退回 UI 字体）
 ## 事件（C 版式，原作「不期而遇」）：左边撕纸边灰阶墨色插画——画面里唯一的彩色物件是海嗣祭坛；
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存

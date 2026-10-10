@@ -19,7 +19,6 @@ const SUB := Color(0.604, 0.639, 0.678)         # #9aa3ad
 const STEEL := Color(0.494, 0.596, 0.722)       # #7e98b8 普通按钮底
 const TAB_HP := Color(0.09, 0.56, 0.65)         # 小标签头：生命值
 const TAB_LAMP := Color(0.72, 0.53, 0.04)       # 小标签头：灯火
-const TAB_GREY := Color(0.32, 0.35, 0.39)
 ## 多行文字折行规则（文字要先过 soft()）：中文没有空格，soft() 在字与字之间插零宽空格当词界，这里只在词界断行；
 ## 一个「词」整行都放不下时才按字断（ADAPTIVE）。不能加 BREAK_GRAPHEME_BOUND：它允许在任意两个字之间断行，
 ## soft() 的「标点不放行首」就失效了（行首出现「、」「；」）
@@ -39,15 +38,10 @@ const CAT_EN := {"灯火": "LIGHT", "战斗": "COMBAT", "生存": "SURVIVAL", "�
 	"技能与技力": "SKILL", "护盾": "SHIELD", "削弱敌人": "DEBUFF", "经济": "ECONOMY", "闪避": "EVASION", "条件触发": "TRIGGER",
 	"援护干员": "SUPPORT", "支援装置": "DEVICE", "负面藏品": "CURSED", "追击与控制": "CONTROL", "编队协同": "SQUAD", "结局": "ENDING"}
 
-# 兼容旧代码的深海色名（外观已换成 A）
-const DEEP := BG
-const DEEP2 := BG2
+# 兼容旧代码的色名（外观已换成 A）
 const EDGE := Color(1.0, 1.0, 1.0, 0.24)
 const EDGE_DIM := Color(1.0, 1.0, 1.0, 0.12)
 const GLOW := CYAN
-const KELP := Color(0.10, 0.36, 0.34)
-const KELP2 := Color(0.16, 0.52, 0.46)
-const KELP_LIGHT := Color(0.45, 0.95, 0.85)
 
 
 # ---------------------------------------------------------------- 字体
@@ -137,13 +131,6 @@ static func soft(s: String) -> String:
 
 
 # ---------------------------------------------------------------- 面板
-## 切角多边形（左上、右下切角）——A 风格面板不再切角，保留给个别装饰用
-static func cut_poly(r: Rect2, cut: float) -> PackedVector2Array:
-	return PackedVector2Array([
-		r.position + Vector2(cut, 0), Vector2(r.end.x, r.position.y), r.end - Vector2(0, cut),
-		r.end - Vector2(cut, 0), Vector2(r.position.x, r.end.y), r.position + Vector2(0, cut)])
-
-
 ## 通用面板：统一走 frame。accent 给了就作为强调色并带外发光
 static func panel(ci: CanvasItem, r: Rect2, fill := BG, border := LINE, cut := 10.0, accent := Color(0, 0, 0, 0), vines_seed := 0, t := 0.0) -> void:
 	var main := accent if accent.a > 0.0 else Color(border.r, border.g, border.b, 1.0)

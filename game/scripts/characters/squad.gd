@@ -321,13 +321,6 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 		o.draw_fx_add(ci, loop)
 
 
-func draw_skill_floor() -> void:
-	cv.begin()
-	for o in ops:
-		o._draw_skill_floor()
-	cv.end()
-
-
 func draw_skill_over() -> void:
 	cv.begin()
 	for o in ops:

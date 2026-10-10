@@ -48,10 +48,6 @@ func register_action(name: String, cb: Callable) -> void:
 	_actions[name] = cb
 
 
-func has_owner(owner_id: String) -> bool:
-	return _owners.has(owner_id)
-
-
 ## 应用一组效果。owner_id 例如 "relic:54"、"branch:s1_b"、"rejection:blur"、"diff:3"
 func apply(owner_id: String, effects: Array) -> void:
 	if _owners.has(owner_id):

@@ -298,10 +298,6 @@ func rej() -> Dictionary:
 
 # ---------------------------------------------------------------- 被动
 
-func passive_cat(pid: String) -> String:
-	return PASSIVES.get(pid, {}).get("cat", "")
-
-
 ## 已选种类数（按类别）
 func passive_kinds(cat: String) -> int:
 	var n := 0

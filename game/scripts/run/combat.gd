@@ -593,10 +593,6 @@ func zone_dir() -> Vector2:
 	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
 
 
-func in_zone(p: Vector2, margin := 0.0) -> bool:
-	return g.zone_state == 0 or p.distance_to(g.zone_c) < g.zone_r - margin
-
-
 ## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复
 func shield_block() -> void:
 	g.shield -= 1

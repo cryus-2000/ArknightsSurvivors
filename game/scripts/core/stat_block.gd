@@ -41,10 +41,6 @@ func set_base(stat: StringName, v: float) -> void:
 	_dirty(stat)
 
 
-func get_base(stat: StringName) -> float:
-	return _base.get(stat, 0.0)
-
-
 ## 加一条修正。op 可以是 Op 枚举或字符串 "flat"/"add"/"mult"/"override"
 func add(stat: StringName, op: Variant, value: float, source: String = "", scope: String = "") -> void:
 	assert(_base.has(stat), "未定义的属性: %s" % stat)
@@ -76,15 +72,6 @@ func remove_scope(scope: String) -> int:
 		if _mods[stat].size() != before:
 			n += before - _mods[stat].size()
 			_dirty(stat)
-	return n
-
-
-func count_source(source: String) -> int:
-	var n := 0
-	for stat in _mods:
-		for m in _mods[stat]:
-			if m.source == source:
-				n += 1
 	return n
 
 

@@ -56,20 +56,6 @@ func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
 	Sfx.play("pickup", -14.0, 1.4, 0.05)
 
 
-func sniper_target(from: Vector2, reach: float) -> Dictionary:
-	var best: Dictionary = {}
-	var score := -1.0
-	for j in g.enemies_sys.query(from, reach):
-		var e: Dictionary = g.enemies[j]
-		if e.dead or e.pos.distance_to(from) > reach:
-			continue
-		var sc: float = e.hp + (100000.0 if (e.elite or e.boss) else 0.0)
-		if sc > score:
-			score = sc
-			best = e
-	return best
-
-
 func update_bullets(dt: float) -> void:
 	for b in g.bullets:
 		if b.life <= 0.0:
@@ -132,7 +118,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if b.has("src"):
 		g.combat.hit(b.src, b.get("tags", []))
 	else:
-		g.combat.hit("潮汐弹" if b.kind == "tide" else ("法术援护" if b.kind in ["fire", "arcane"] else "援护"))
+		g.combat.hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
 	match b.kind:
 		"arrow":
 			# 狙击：命中流血；扼喉之手处决
@@ -198,35 +184,6 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			if b.has("op"):
 				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
-		"tide":
-			# 潮汐弹：在敌人之间反弹
-			g.combat.damage(e, b.dmg)
-			if b.get("push", false) and not e.boss and not e.dead:
-				e.kb += b.vel.normalized() * 220.0
-			if not g.vfx.fx_sprite("fx_tide_hit", e.pos):
-				g.fx.append({"kind": "ring", "pos": e.pos, "r": 20.0, "life": 0.25, "max": 0.25, "col": Color(0.45, 0.8, 1.0)})
-			g.vfx.sparks(e.pos, b.vel, Color(0.6, 0.9, 1.0), 2, 160.0)
-			b.hit[e.id] = true
-			b.bounces -= 1
-			if b.bounces < 0:
-				b.life = 0.0
-				return
-			var nxt: Dictionary = {}
-			var bd := 260.0
-			for k in g.enemies_sys.query(e.pos, 260.0):
-				var o: Dictionary = g.enemies[k]
-				if o.dead or b.hit.has(o.id):
-					continue
-				var dd: float = o.pos.distance_to(e.pos)
-				if dd < bd:
-					bd = dd
-					nxt = o
-			if nxt.is_empty():
-				b.life = 0.0
-				return
-			b.vel = (nxt.pos - b.pos).normalized() * b.vel.length()
-			b.life = 1.0
-			Sfx.play("pickup", -16.0, 1.8, 0.1)
 		_:
 			g.combat.damage(e, b.dmg)
 			if not g.vfx.fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):

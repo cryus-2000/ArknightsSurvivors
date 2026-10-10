@@ -57,14 +57,6 @@ func gain_relic(id: String) -> bool:
 	return true
 
 
-func lose_relic(id: String) -> void:
-	if not relics.has(id):
-		return
-	relics.erase(id)
-	mods.remove("relic:" + id)
-	profile.remove_source("relic:" + id)
-
-
 ## 技能分支、援护、武器、排异反应、难度等其他来源也走同一条路
 func apply_source(owner_id: String, effects: Array, tags: Array = []) -> void:
 	mods.apply(owner_id, effects)
