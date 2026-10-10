@@ -34,7 +34,7 @@ func update(dt: float) -> void:
 	if _k("enabled", 1.0) <= 0.0 or g.demo_op != "" or g.trial.active:
 		return
 	# 自动测试：每 60 秒记一次场上溟痕数（溟痕存量）
-	if g.autotest and int(g.t / 60.0) != int((g.t - dt) / 60.0):
+	if g.mode != g.Mode.PLAY and int(g.t / 60.0) != int((g.t - dt) / 60.0):
 		_log("mires")
 	if next_at < 0.0:
 		var first: float = float(g.map.mire_cfg().get("first_at", 100.0))
@@ -227,5 +227,5 @@ func draw() -> void:
 
 
 func _log(what: String) -> void:
-	if g.autotest:
+	if g.mode != g.Mode.PLAY:
 		print("BEACON %s t=%.1f mires=%d" % [what, g.t, g.mires.size()])

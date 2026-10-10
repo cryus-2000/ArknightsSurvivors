@@ -1239,3 +1239,37 @@ func draw_body_at(p: Vector2, flip: bool, col: Color, st: Dictionary = {}) -> vo
 	if st.is_empty():
 		return
 	draw_sprite_at(p + Vector2(foot_dx(st, flip), 0), flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+
+
+## ---- 帧条绘制助手（docs/55 §2.1：原来卡缇 / 流明 / 斯卡蒂各抄一份 _strip，水月 / 铃兰 / 维什戴尔各抄一份 _fx_tex + _fx_strip，10-10 合并到基类）
+## 画一帧横向帧条（Codex 成长线 growth_fx，双密度）：anchor_px 按 @1x 帧内像素给，sc 为 @1x 每像素的世界尺寸；
+## @2x 贴图自动把倍率减半、锚点加倍（同 game.gd _spr_rot 的口径）
+func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_px: Vector2, flip := false, col := Color.WHITE) -> void:
+	var hi: float = A.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var k: float = sc / hi
+	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
+func _fx_tex(name: String) -> Texture2D:
+	if not g.tex.has(name):
+		g.tex[name] = A.tex(name)
+	return g.tex[name]
+
+
+## 帧条贴图（有图画图、缺图返回 false 走程序版）；1 美术像素 = PX 世界像素，@2x 高清帧条按 A.hires_of 半倍画；anchor 为帧内比例锚点
+func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vector2(0.5, 0.5), ang := 0.0, col := Color.WHITE, flip := false) -> bool:
+	var tx: Texture2D = _fx_tex(name)
+	if tx == null:
+		return false
+	var fw: float = float(tx.get_width() / frames)
+	var fh: float = float(tx.get_height())
+	var k: float = g.PX / A.hires_of(tx)
+	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
+	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true

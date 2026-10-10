@@ -108,7 +108,7 @@ var charge := {}               # 选落点技能键盘蓄距离中：{"i": 技�
 ## 开局调用：读设置；机器人 / 自动测试 / 图鉴演示不开
 func init_manual_attack() -> void:
 	var on: bool = ("manual_attack" in Cfg and bool(Cfg.get("manual_attack"))) or Cfg.dev_args().has("--manualatk")
-	manual_attack = on and g.bot == null and not g.autotest and g.demo_op == ""
+	manual_attack = on and g.bot == null and g.mode == g.Mode.PLAY and g.demo_op == ""
 
 
 ## 每帧（squad.update 开头）：攻击键边沿与缓冲、鼠标活动、键盘蓄距离

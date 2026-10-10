@@ -52,7 +52,7 @@ func _init(game: Game) -> void:
 func recruit_cards() -> Array:
 	var opts: Array = []
 	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
-	if g.squad.is_full() or (g.balance and Cfg.dev_args().has("--norecruit")):
+	if g.squad.is_full() or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
 		return opts
 	for cid in Character.list_ids():
 		if g.squad.has(cid):
@@ -206,7 +206,7 @@ func open_relic_choice() -> void:
 		g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可升级藏品 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
 		return
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
-	if g.balance:
+	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
 	g.panel_ui.show_choices("获得藏品", shown, "relic")
 
@@ -277,7 +277,7 @@ func can_gain_relic(id: String) -> bool:
 		return false
 	if g.relics.has(id):
 		return int(g.rfx.lv.get(id, 0)) < g.rfx.max_lv(id)
-	if g.balance and Cfg.dev_args().has("--relics=all"):
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--relics=all"):
 		return true
 	var cap: int = Bal.vi("relic/carry_cap", 15)
 	if g.relics.size() >= cap:

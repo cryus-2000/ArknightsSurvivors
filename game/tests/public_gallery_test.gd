@@ -29,7 +29,7 @@ func _ready() -> void:
 	preload("res://scripts/run/gallery_progress.gd").observe(g)
 	check(Cfg.gallery_seen.is_empty(), "demo cannot unlock")
 	g.demo_op = ""
-	g.autotest = false
+	g.mode = g.Mode.PLAY
 	preload("res://scripts/run/gallery_progress.gd").observe(g)
 	check(Cfg.gallery_seen.has("enemy:bone") and Cfg.gallery_seen.has("item:EXP"), "real encounter unlocks")
 	gallery.tab = 1

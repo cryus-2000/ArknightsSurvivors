@@ -39,8 +39,7 @@ func consume() -> void:
 func setup() -> void:
 	if not active:
 		return
-	g.autotest = false
-	g.balance = false
+	g.mode = g.Mode.PLAY   # 演练按正式模式跑（不记自测 / 批跑）
 	g.state = g.S.PLAY
 	# 按正式登场时间计算 Boss 血量，演练计时不触发普通波次或结局事件。
 	g.t = 600.0 if g.spawner.is_final_boss_type(config.group[0]) else 420.0

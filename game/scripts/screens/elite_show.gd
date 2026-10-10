@@ -45,7 +45,7 @@ func open(sc: Dictionary) -> void:
 	g.state = Game.S.SHOW
 	# 精英化演出：左侧放一个实机演示（demo 模式的 game.tscn），干员已在新阶段并循环施放新解锁的技能
 	demo_stop()
-	if sc.has("op") and int(sc.get("elite", 0)) > 0 and not g.balance and DisplayServer.get_name() != "headless":
+	if sc.has("op") and int(sc.get("elite", 0)) > 0 and g.mode != g.Mode.BALANCE and DisplayServer.get_name() != "headless":
 		show_vp = SubViewport.new()
 		show_vp.size = Vector2i(540, 300)
 		show_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS

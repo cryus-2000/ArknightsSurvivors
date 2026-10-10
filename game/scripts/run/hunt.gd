@@ -59,7 +59,7 @@ func update(dt: float) -> void:
 
 
 func _log(what: String) -> void:
-	if g.autotest:
+	if g.mode != g.Mode.PLAY:
 		print("HUNT %s t=%.1f ring_dead=%d/%d inner_dead=%d/%d" % [what, g.t, ring.filter(func(e): return e.dead).size(), ring.size(), inner.filter(func(e): return e.dead).size(), inner.size()])
 
 

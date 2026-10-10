@@ -445,27 +445,6 @@ func _draw_foxfires() -> void:
 		_flame(c, hh, conv)
 
 
-## 可选帧条：首次用到时 A.tex 懒加载并缓存进 g.tex（缺图缓存 null）
-func _fx_tex(name: String) -> Texture2D:
-	if not g.tex.has(name):
-		g.tex[name] = A.tex(name)
-	return g.tex[name]
-
-
-## 帧条贴图（有图画图、缺图返回 false 走程序版）；1 美术像素 = PX 世界像素，@2x 高清帧条按 A.hires_of 半倍画；anchor 为帧内比例锚点
-func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vector2(0.5, 0.5), ang := 0.0, col := Color.WHITE, flip := false) -> bool:
-	var tx: Texture2D = _fx_tex(name)
-	if tx == null:
-		return false
-	var fw: float = float(tx.get_width() / frames)
-	var fh: float = float(tx.get_height())
-	var k: float = g.PX / A.hires_of(tx)
-	cv.draw_set_transform(p.round(), ang, Vector2(-k if flip else k, k))
-	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
-	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	return true
-
-
 func _draw_skill_over() -> void:
 	_draw_foxfires()
 	# 三火归一的大狐火：大一圈的狐火弹 + 热光

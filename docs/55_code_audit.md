@@ -90,6 +90,8 @@
 | `_hit_fx(e, origin)` | 基类 + 6 个干员 | 各不同 | 正常覆写，**不是**重复 |
 | `sparks / slash_fx / show_banner / float_text` | `op_api.gd` → `vfx.gd` | 一行转发 | 接口层设计如此（docs/39 §2），不是重复 |
 
+**已做（10-10）**：`_strip` 与 `_fx_tex + _fx_strip` 合并进 `characters/character.gd`（−99 / +34 行，六名干员同 seed `--drawtest --maxprog` 200 秒 TRACE 逐字节相同）。`_log` ×3 **不合并**：三处分别在 `endings / beacon / hunt` 三个 RefCounted 系统里、打印内容各不相同，共同部分只有一行 `if g.autotest:` 守卫；抽成公共函数要先把带 `filter` 的字符串拼好再传，正式游玩每次调用都多付格式化开销，得不偿失。
+
 成本：合并前两项约 40 分钟（新建基类函数、6 个文件各删一段、快检 ops 档 + 图鉴动作页截图对照）。风险低；收益是以后改帧条口径只改一处。
 
 ### 2.2 字典取默认值的模式
@@ -113,6 +115,7 @@
 
 - 命令行开关只经 `Cfg.dev_args()`（发布版返回空）、`Bal._load` / `Sfx` / `art.gd --loadprof` 各自 `OS.is_debug_build()` 判断；`check_release.py` 第 2 条逐个核对。
 - `g.autotest` / `g.balance` 运行时标志在 `autotest.gd` 之外有 **27 处**分支（`knight / doctor / endings / vfx / beacon / boss_trial / gallery_progress / hunt / progression / shop / spawner / telemetry / victory_flow / elite_show / hud`）。正式游玩恒为 false，不算泄漏；但 `boss_trial.gd:42` 直接把两个标志置 false 这种写法说明它们在当「模式」用。建议长期把「演练 / 演示 / 测试」合成一个 `g.mode` 枚举（1 小时，纯整理）。
+  **已做（10-10）**：`game.gd` 新增 `enum Mode { PLAY, AUTOTEST, BALANCE }` + `var mode`；`game.gd` 内 12 处、其他 13 个文件 27 处（含 `autotest.gd` 7 处）改为比较 `mode`；`boss_trial.gd` 与两个测试的「两个布尔置 false」改成 `g.mode = g.Mode.PLAY`。旧 `g.autotest / g.balance` 保留为只读派生属性（`hud.gd` / `vfx.gd` / `world.gd` 本轮不动，仍读布尔；赋值走 setter 拨模式）。演示 `demo_op` 与演练 `trial.active` 不并入：前者带干员 id、后者是局内状态，不是启动模式。同 seed TRACE 逐字节同、快检 41 项、check_release 通过。
 
 ---
 
@@ -179,6 +182,7 @@
 | `screens/hud.gd` 1634 行 | `_draw_body` **423 行**（HUD 主体一笔画完），`draw_squad_hud` 148；同时是 `state` 分派器（docs/39 §3-4）又是 HUD 本体 | 分派留 `hud.gd`（约 200 行），HUD 本体拆 `screens/hud_bars.gd`（生命 / 灯火 / 技力）、`screens/hud_squad.gd`、`screens/hud_relics.gd` | 半天，截图对照（docs/36 §5） |
 | `game.gd` 1482 行 | docs/39 拆到 1250 后又长回来：`_ready` **328 行**（初始化 + 贴图名单 + 命令行解析）、`_update` 144、`_update_doc_follow` 120、`V6_FRAMES` 表 42 行、开局指南文本 50 行 | ① 贴图名单 + `V6_FRAMES` 挪到 `art.gd`（纯数据，80 行）；② 开局指南文本挪到 `data/lore.json`（文案会话）；③ `_update_doc_follow` 是博士挂件逻辑，归 `characters/doctor.gd` | 各 20–40 分钟，快检 full |
 | `boss_ai.gd` 1179 行 | `_boss_ai` **361 行**一个 `match`，`_warn_resolve` 188 | 已有 `enemies/boss_patterns.gd` 承接招式轮换；把每个 Boss 的分支拆成 `enemies/bosses/<type>.gd`（docs/38 多次提议） | 1 天，`bosstest` 招式序列对照 |
+| ↳ **已做（10-10）** | `boss_ai.gd` 1179 → 583 行；`enemies/bosses/` 9 个 Boss 脚本 + `boss_base.gd`，`SCRIPTS` 注册表按 type 分派，旧 `g.bai.xxx` 调用点经一行转发不变 | 配方见 docs/38 §1.17 | 4 局同 seed 覆盖全部 10 只 Boss TRACE 逐字节相同，快检 41 项 |
 | `title.gd` 1266 行 | `_draw_op_pick` 213、`_draw` 176、`_ready` 156 | 干员选择页拆 `screens/op_pick.gd` | 2 小时 |
 | `core/combat_core.gd` | docs/09 §1 自述「未落地」，只给 `test_core.gd` 组装 + 校验 | 要么接进 `game.gd`（docs/09 §6，大活），要么改名 `core/core_validate.gd` 只留校验，别再叫「core」 | 改名 15 分钟 |
 | `characters/*` 9896 行 | 14 名干员平均 600 行，`ulpianus.gd` 861；§2.1 的三份抄写 | 基类补 `_strip / _fx_strip`；其余是各干员表现，不建议抽象 | 见 §2.1 |

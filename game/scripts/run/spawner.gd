@@ -147,7 +147,7 @@ func mob_count() -> int:
 ## 同屏敌人上限：enemy/max_alive（缺省 450）；真人选低画质时 enemy/max_alive_low（300）。
 ## 机器人 / 自动测试一律用 450——上限会改玩法，批跑数据不能受玩家设置影响
 func max_alive() -> int:
-	if Cfg.quality == "low" and not g.autotest:
+	if Cfg.quality == "low" and g.mode == g.Mode.PLAY:
 		return int(Bal.v("enemy/max_alive_low", 300.0))
 	return int(Bal.v("enemy/max_alive", float(MAX_ENEMIES)))
 

@@ -85,7 +85,7 @@ func roll() -> void:
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
 			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
-	if g.balance:
+	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
 	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": price("oil"), "sold": false})
@@ -96,7 +96,7 @@ func open() -> void:
 		roll()
 	g.state = g.S.SHOP
 	Sfx.play("relic", -4.0)
-	if g.autotest:
+	if g.mode != g.Mode.PLAY:
 		print("SHOP ", g.shop_items.map(func(it): return it.name))
 	g.shop_ui.build()
 
