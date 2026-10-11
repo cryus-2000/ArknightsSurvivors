@@ -450,7 +450,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
 	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 44), Vector2(w, 28))
 	h._hb.rect(r, Color(0.03, 0.035, 0.045, 0.74))
-	var k: float = 1.0 - g.dash_cd / (Game.DASH_CD * g.dash_cd_mult)
+	var k: float = 1.0 - g.dash_cd / Game.DASH_CD
 	UI.keycap(g.hud, g.font, r.position + Vector2(8, 5), cap_s, UI.CYAN if ready else UI.SUB, 11)
 	UI.text(g.hud, g.font, r.position + Vector2(16 + kw, 19), "冲刺", 13, UI.TEXT if ready else UI.SUB)
 	h._hb.rect(Rect2(r.position + Vector2(0, r.size.y - 2), Vector2(r.size.x * k, 2)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5))

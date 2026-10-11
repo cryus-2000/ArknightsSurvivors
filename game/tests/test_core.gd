@@ -403,7 +403,9 @@ func test_blocks_texas() -> void:
 		"冲刺 aim 写错": func(d): d.blocks.talent[0].do[0]["aim"] = "random",
 		"普攻冲刺不朝最近敌人": func(d): d.blocks.attack["aim"] = "densest",
 		"冲刺缺宽度": func(d): d.blocks.attack.erase("w"),
-		"主控属性不在白名单": func(d): d.blocks.skills[1].do[2]["stat"] = "armor",
+		"主控冲刺冷却不再是可写的主控属性（10-12 自动冲刺改版）": func(d): d.blocks.skills[1].do.append({"verb": "buff_leader", "stat": "dash_cd", "op": "mult", "value": 0.8}),
+		"天赋自动冲刺的间隔写错": func(d): d.blocks.talent[0]["every"] = 0.01,
+		"天赋自动冲刺不是瞬时冲刺放进常驻列表": func(d): d.blocks.talent.append({"trig": "passive", "do": [d.blocks.talent[0].do[0].duplicate(true)]}),
 		"瞬时冲刺放进常驻节点": func(d): d.blocks.progression["wide"] = {"shape": "dash_line", "r": 100, "w": 40, "src": "疾行斩"},
 		"常驻 dash_mod 放进触发器": func(d): d.blocks.trait[0].do.append({"verb": "dash_mod", "len_add": 0.1}),
 		"触发积木放进技能 do": func(d): d.blocks.skills[0].do.append({"trig": "on_dash_end", "do": []}),
@@ -418,12 +420,16 @@ func test_blocks_texas() -> void:
 		ok(not Ch.validate_operator("texas", d2), "德克萨斯积木校验应拒绝：" + why)
 	# 编译：$ 表达式解析成数字、每块编号
 	var B: Dictionary = OB.compile(tx)
-	near(float(B.skills[1].do[2].value), 0.8, "可靠伙伴：主控冲刺冷却 1-$s2_dash_cd = 0.8")
+	# 战术快递（10-12 改自动冲刺）：两块 trig.tick 按「可靠伙伴」生效与否切换，间隔 2.5 / 2.5 × 0.8 = 2.0 秒，各冲一次 aim densest、来源「战术快递」
+	near(float(B.talent[0].every), 2.5, "战术快递：自动冲刺间隔 $talent_cd = 2.5")
+	near(float(B.talent[1].every), 2.0, "可靠伙伴：自动冲刺间隔 $talent_cd*$s2_cd_mult = 2.0")
+	ok(str(B.talent[0].get("_tag", "")) == "trig.tick" and str(B.talent[0].do[0].aim) == "densest" and str(B.talent[0].do[0].src) == "战术快递", "战术快递是 tick → dash_line（densest，来源战术快递），不再挂主控冲刺")
+	ok(B.talent[0].cond is Dictionary and str(B.talent[0].cond.k) == "skill_active" and bool(B.talent[0].cond.neg) and not bool(B.talent[1].cond.neg), "两块 tick 的条件互斥（!skill_active:1 / skill_active:1）")
 	ok(str(B.attack.get("_tag", "")) == "shape.dash_line" and float(B.attack.r) == 140.0, "普攻编译成 shape.dash_line、长度 140")
-	# 常驻累计：S2 冲刺长度 +40%、节点「阔剑」宽度 ×1.3；主控冲刺冷却进 want（作用域空 = 全局）
+	# 常驻累计：S2 冲刺长度 +40%、节点「阔剑」宽度 ×1.3；不写主控属性
 	var fake := {"tx": {}}
 	var want: Array = []
-	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[2], B.progression.wide], want)
+	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[1], B.progression.wide], want)
 	near(float(fake.tx.len), 1.4, "冲刺长度倍率 (1 + 0.4)")
 	near(float(fake.tx.w), 1.3, "冲刺宽度倍率 ×1.3")
 	ok(want.is_empty(), "主控属性修正不在 tx_sustain 里写（verb.buff_leader 归共用段，data_operator._sustain 统一写）：%s" % str(want))

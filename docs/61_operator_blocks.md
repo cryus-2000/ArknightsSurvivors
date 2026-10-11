@@ -784,6 +784,29 @@ TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人�
 见 `data/characters/texas.json` 的 `blocks`：**0 个 `custom`**，没有 `texas.gd`。docs/59 §10 预留的逃生口 `s3_chain`（剑雨滂沱 16 次连冲的时序）用积木拼掉了：
 `trait` 里一块 `trig.tick {every: $s3_every, cond: "skill_active:2"}`，`do` = 一次 `shape.dash_line {aim: densest}` + `verb.sp_secs`；结束的剑雨是 `trig.on_skill_end {skill: 2}`。
 
+### 13.0 10-12 改版：自动冲刺（用户「德克萨斯的技能你改成自动冲刺」）
+
+- **天赋「战术快递」**：不再跟主控的冲刺键。她在编队里时，**自己按冷却自动冲**：`talent` 里一块 `trig.tick {every: $talent_cd（2.5 秒）, cond: "!skill_active:1"}`，
+  `do` = 一次 `shape.dash_line {aim: densest, src: 战术快递}`（她本人朝 1.6 × 冲刺长度内敌群最密处冲刺穿行，沿线扫伤害，同疾行斩倍率；附近没有敌人就不冲）。
+  穿过 ≥ 1 名敌人时全队技力 +0.8 秒（`trig.on_dash_end {src: 战术快递, min_hits: 1}` → `verb.sp_secs $talent_sp`）；一次穿过 ≥ 3 名再 +0.3 秒（疾行斩、战术快递各一块 `on_dash_end`）。
+  她当主控时这次冲刺同样自动，带着主控本体冲（同普攻冲刺：不停顿、0.12 秒无敌）；**玩家自己的冲刺键与 `DASH_CD` 完全不变**。
+- **S2「可靠伙伴」**：只强化**她自己**的冲刺——冲刺距离 +40%（`verb.dash_mod`）、伤害 ×1.3、自动冲刺间隔 ×0.8（2.5 → 2.0 秒：第二块 `trig.tick {every: "$talent_cd*$s2_cd_mult", cond: "skill_active:1"}`，与上一块条件互斥）。
+  原来「主控冲刺冷却 −20%」撤掉：`game.gd` 的 `dash_cd_mult`、`stat_defs.gd` 的 `dash_cd`、HUD / 触屏 / 主控脚下冲刺环的冷却比例都恢复成 main 原样（game.gd 与 main 相同），`LEADER_STATS` 去掉 `dash_cd`。
+- **S3「剑雨滂沱」**：照原设计（8 秒内每 0.5 秒向敌群最密处冲一次 ×0.9 + 眩晕 0.3 秒 + 全队技力 +0.4 秒，结束在最后落点落剑雨 ×1.6）。
+- 新来源「战术快递」（`origin: talent`，`basic` / `pierce`）：天赋冲刺的伤害单独记账；它不触发「回马剑」（只认疾行斩），「余像」对所有冲刺生效。
+- 积木：全用已有积木（`trig.tick` / `trig.on_dash_end` / `shape.dash_line` / `verb.sp_secs` / `verb.dash_mod` / `verb.buff_self`），只改了 `dash_line aim: densest` 一处——附近没有敌人时不起冲（原来朝面向随便冲），S3 也受益。
+  `trig.on_leader_dash` 积木保留（校验与执行都在），只是德克萨斯不再用它。
+- **本机冒烟（10-12，自动冲刺版，`--maxt=1000`，含超时口径，主控单人开局 seed 1–6）**：
+
+  | 组 | 胜 | 她占全队 | 其中战术快递 | 备注 |
+  |---|---|---|---|---|
+  | 主控 · 标准 · 高手 | 3 / 6 | 20–52% | 3–9% | 输的 3 局都死在 5:09–5:35（卡门之后），承伤第一是泥沼（mire） |
+  | 主控 · Ⅷ · 熟练 | 2 / 6 | 30–57% | 4–10% | 输在 4:57 / 4:59 / 6:57 / 10:28 |
+
+  合计 5 / 12，低于改版前的 14 / 24（同口径 seed 1–12）。样本很小（±20 点），但早死集中在 5 分钟附近、泥沼承伤偏高，
+  怀疑是她当主控时天赋冲刺把主控本体拖进敌群 / 泥沼。云端整轮先按现值跑；若主控确实偏低，旋钮顺序：
+  ① 她当主控时天赋冲刺不带主控本体（只扫线，同旧 `leader_dir` 的 ride 写法）；② `talent_cd` 2.5 → 3.5；③ 再看 `hit_sp`。队友局不受影响。
+
 ### 13.1 新积木（`op_blocks.gd` 末尾「德克萨斯段」，append-only）
 
 第三批四人并行实装，约定每人的新积木在文件末尾各占一段；核心部分只加转发，冲突时按段合并即可。
@@ -793,34 +816,33 @@ TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人�
 | `shape.dash_line` | 瞬时（起冲；命中逐帧结算） | `r`（冲刺长度，× `op_range` × 冲刺长度倍率）、`w`（宽，× 冲刺宽度倍率）、`t`（用时，缺省 0.18）、`hold`（到头停顿）、`aim`、`mult / src / tags / power / on_hit`（同 `shape.circle`）、`strip`（剑光帧条，可选；合并时由 `fx` 改名，避开通用 `fx` 字段）、`sfx`（起冲音，可选） | 每帧扫「上一帧位置 → 这一帧位置」的线段，宽 w/2 + 敌人半径内、这次还没打过的敌人各吃一次（精英 / Boss 乘 `vs_elite`）。`aim`：`nearest`（普攻：最近敌人，索敌 = 长度 × 1.3；手动普攻 A 方向类）/ `densest`（长度 × 1.6 内最近 24 个敌人中 80 像素内邻居最多者）/ `leader_dir`（`g.dash_dir`）/ `reverse`（上一次冲刺的反方向）。先快后慢（ease-out）。**干员是主控时冲刺就是主控本体位移**（同乌尔比安弹射：squad.update 把 `g.ppos` 拉过去并给 0.12 秒无敌），且不停顿；`leader_dir` 且本干员是主控时不另行位移，跟着主控自己的冲刺扫。新的一次起冲先把正在冲的那次结算掉。普攻形状表加了它（`validate`），普攻只许 `aim: nearest` |
 | `verb.sp_secs` | 瞬时 | `seconds`、`exclude_self`（缺省 true） | 编队各技能 +N 秒充能（推进之王 `_squad_sp_seconds` 的写法：不吃技力回复倍率，永久型跳过） |
 | `verb.dash_mod` | 常驻 | `len_add / len_mult / w_add / w_mult` | 本干员冲刺长度 / 宽度倍率 `(1 + Σadd) × Πmult`（存在 `tx.len / tx.w`） |
-| `verb.buff_leader` | 常驻 | `stat`（白名单，合并后与安洁莉娜共用一份：`move_speed / pickup / dash_cd`）、`op: add / mult`、`value` | 主控属性修正，作用域全局，随 §5.5 的 `blk:<id>` 整组重建；她当队友也生效 |
+| `verb.buff_leader` | 常驻 | `stat`、`op: add / mult`、`value` | 合并后归「共用积木」（与安洁莉娜一份，`move_speed / pickup`）；德克萨斯 10-12 改版后不再用（原来写 `dash_cd`） |
 | `verb.trail` | 瞬时（放在 `trig.on_dash_end`） | `life`、`mult`、`src`、`tags`、`on_hit` | 沿刚结束的那次冲刺留 `life` 秒残像（宽 = 那次冲刺的宽），踩进的敌人每道残像各吃一次 |
 | `verb.fx_scatter` | 瞬时、只有画面 | `strip`、`n`、`r`、`center: self / target`、`stagger` | 半径内撒 n 个帧条（错开起播）；黄金角序列取点，不碰 `g.rng` |
 | `trig.on_dash_end` | 触发 | `src`（只认这个来源的冲刺，缺省全部）、`min_hits`、`delay` | 本干员任一次 `dash_line` 结束；`do` 里的 `verb.trail` / `aim: reverse` 读这次冲刺的起止点 |
-| `trig.on_leader_dash` | 触发 | `cd` | 主控按下冲刺（`g.dash_t` 上升沿）；图鉴演示不触发 |
+| `trig.on_leader_dash` | 触发 | `cd` | 主控按下冲刺（`g.dash_t` 上升沿）；图鉴演示不触发。10-12 起德克萨斯不再用（见 §13.0），积木保留 |
 | `trig.on_skill_start` / `trig.on_skill_end` | 触发 | `skill`（0 起）、`delay`（只 start） | 技能出手帧 / 持续型技能计时归零那一帧；`on_skill_end` 的 `center: target` 落在最后一次冲刺的终点 |
 
 核心改动（都标了「德克萨斯段」）：`op_blocks.gd` 的 `validate`（普攻形状表）、`_block`（`TX_IMPL` 命中转 `_tx_block`）、`exec_shape`（`dash_line` 分支）；
-`data_operator.gd` 加 `var tx` 与 6 处转发（`update` 冲刺中不起手、普攻起手点、`_sustain` 末尾 `tx_sustain`、`_exec_list` 缺省分支、`_release_skill` 后 `tx_skill_start`、`_draw_pfx` 画 `strip` 粒子）。
-帧条粒子 `kind: strip` 是通用的（`strip / frames / fps / anchor / ang / sx / delay`），其他数据干员也可以用。
+`data_operator.gd` 加 `var tx` 与 6 处转发（`update` 冲刺中不起手、普攻起手点、`_sustain` 末尾 `tx_sustain`、`_exec_list` 缺省分支、`_release_skill` 后 `tx_skill_start`、`_draw_pfx` 画 `tx_strip` 粒子）。
+帧条粒子 `kind: tx_strip`（合并时由 `strip` 改名，与通用 fx 的 strip 粒子分开；`strip / frames / fps / anchor / ang / sx / delay`）。
 
-**game.gd（docs/59 §6 的 1 处）**：冲刺冷却倍率走属性表——`stat_defs.gd` 加 `dash_cd`（基础 1.0，下限 0.3），`STAT_SYNC` 映射到 `g.dash_cd_mult`，`_try_dash` 里 `dash_cd = DASH_CD × dash_cd_mult`。
-没有她（没人写 `dash_cd`）时恒为 1.0，老局逐字节不变（§13.4）。HUD 冲刺键条、主控脚下冲刺环、触屏冲刺按钮的冷却比例同步改成按 `DASH_CD × dash_cd_mult` 算。
+**game.gd**：10-12 自动冲刺改版后**不改 game.gd**（原来的 `dash_cd_mult` 冲刺冷却倍率已撤，见 §13.0）。
 
 ### 13.2 与 docs/59 的差异
 
 1. **名字**：S1「剑雨」（原作名）、S2「可靠伙伴」（用户 10-11 定保留原创名）、S3「剑雨滂沱」（缄默德克萨斯三技能，用户 10-11 定）、天赋「战术快递」（原作天赋，docs/63 §6）。分支「尖兵」写进 JSON `branch`（目前没有界面读它）；`faction: 企鹅物流`。
 2. **S3 不用 custom**（见本节开头）。S3 期间普攻停（`verb.mode no_attack`），第一次连冲在出手后 0.5 秒，技能计时归零那一帧不再冲，所以 8 秒实际 15–16 次；每次 ×0.9 × 技能强度、穿过的敌人眩晕 0.3 秒（精英减半、Boss 不晕）、全队技力 +0.4 秒；结束剑雨落在**最后一次冲刺的终点**，记在「剑雨」名下。
 3. **主控时冲刺不停顿**（`hold` 只给队友）：主控每 1.1 秒被钉 0.15 秒手感太差。主控冲刺位移照乌尔比安的写法带 0.12 秒无敌。
-4. **天赋同步冲刺**：她当队友时从自己的位置沿主控冲刺方向冲一次疾行斩；她当主控时不另行位移，跟着主控的冲刺扫一条线。伤害同疾行斩（含 S2 ×1.3）。
+4. ~~天赋同步冲刺~~（10-12 改为自动冲刺，见 §13.0）：她按自己的冷却朝敌群冲，来源「战术快递」，伤害同疾行斩倍率（含 S2 ×1.3）。
 5. S2「疾行斩 ×1.3」与节点「利刃 ×1.15」写成 `verb.buff_self dmg`，乘她全部伤害（含剑雨 / 剑雨滂沱），与浊心斯卡蒂节点写法一致。
 6. 「全队技力 +N 秒」只加给**除她以外**的队友（推进之王同），不吃技力回复倍率；单人开局招到人之前疾行斩回技力没有受益者。
-7. 普攻「穿过 ≥ 1 名 +0.6 秒」与天赋「穿过 ≥ 3 名再 +0.3 秒」都只认「疾行斩」来源的冲刺（含天赋同步冲刺），不认剑雨滂沱 / 回马剑。
+7. 普攻「穿过 ≥ 1 名 +0.6 秒」只认「疾行斩」；天赋「穿过 ≥ 1 名 +0.8 秒」只认「战术快递」；「穿过 ≥ 3 名再 +0.3 秒」两者都认；都不认剑雨滂沱 / 回马剑。
 8. 回马剑：疾行斩（含天赋冲刺）结束 0.2 秒后从**当时的位置**沿反方向冲同样长度；她是主控时也带着主控反冲。
 9. 剑雨·连「重新瞄准」= 0.3 秒后以她当时脚下为中心。
 10. 精二「余像」对她所有冲刺生效（含剑雨滂沱、回马剑、天赋冲刺）。
 11. 选人页「攻击范围」读 `dash_len`（`initial_stats.gd` 的键表加一个）。
-12. **机器人**：高手（`--bot expert`）几乎不按冲刺（只在出圈时冲），所以标准档 expert 局里天赋几乎不触发；熟练（`--bot master`）会冲，Ⅳ / Ⅷ 局里天赋每 2–5 秒触发一次。docs/59 预期的「手残 vs 高手差距」在机器人口径里是 expert 与 master 的差别。
+12. **机器人**：改自动冲刺前，高手（`--bot expert`）几乎不按冲刺，标准档天赋几乎不触发；10-12 起天赋与玩家 / 机器人操作无关，各档机器人口径一致。
 
 ### 13.3 接入登记
 

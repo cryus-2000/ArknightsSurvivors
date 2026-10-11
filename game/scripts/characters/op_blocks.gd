@@ -1490,7 +1490,7 @@ static func _ext_block(b: Dictionary, p: String, kind: String, tag: String, xk: 
 
 const ANGELINA_TAGS := ["shape.point_aoe", "st.airborne", "st.weightless", "st.dot", "trig.on_impact"]   # verb.displace / verb.field / verb.buff_leader 在「共用积木」段
 const KB_DECAY := 900.0                       # enemies.gd：e.kb.move_toward(ZERO, 900 * dt)
-const LEADER_STATS := ["move_speed", "pickup", "dash_cd"]   # verb.buff_leader 可写的主控属性（全局作用域；dash_cd = 主控冲刺冷却倍率，德克萨斯 S2）
+const LEADER_STATS := ["move_speed", "pickup"]   # verb.buff_leader 可写的主控属性（全局作用域）
 const AIR_RISE := 0.15                        # 悬浮：起跳 / 落地秒数（画面高度，不影响判定）
 const AIR_FALL := 0.2
 static var _D = null
@@ -1870,17 +1870,17 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 # data_operator.gd 里对应的转发都标了「德克萨斯段」。状态存在干员的 tx 字典里（data_operator.gd 的 var tx）。
 #
 #  shape.dash_line   冲刺穿行：沿一条线段冲出 r（× op_range × 冲刺长度倍率），宽 w，用时 t、到头停 hold；
-#                    逐帧扫过的线段内敌人各吃一次（不重复）。aim：nearest（最近敌人，手动普攻 A 方向类）/ densest（敌群最密处）/
+#                    逐帧扫过的线段内敌人各吃一次（不重复）。aim：nearest（最近敌人，手动普攻 A 方向类）/ densest（敌群最密处；附近没有敌人就不冲）/
 #                    leader_dir（主控冲刺方向；本干员是主控时不另行位移，跟着主控的冲刺扫）/ reverse（上一次冲刺的反方向）。
 #                    干员是主控时冲刺就是主控本体位移（同乌尔比安弹射，squad.update 把 g.ppos 拉过去），到头不停顿。
 #                    其余参数同 shape.circle：mult、src、tags、power、on_hit（st.stun / st.slow）；strip：剑光帧条名（可选，冲刺专用画法：拉到冲刺长度、半程起播；不是通用 fx 字段）；sfx：起冲时播的音（可选）
 #  verb.sp_secs      瞬时：编队技能各 +seconds 秒充能（推进之王 _squad_sp_seconds 的写法；不吃回复倍率）；exclude_self 缺省 true
 #  verb.dash_mod     常驻：本干员冲刺长度 / 宽度倍率（len_add / len_mult / w_add / w_mult；(1 + Σadd) × Πmult）
-#  verb.buff_leader  常驻：主控属性修正，第一版只开 stat = dash_cd（主控冲刺冷却倍率，game.gd dash_cd_mult）；op: add / mult
+#  （verb.buff_leader 合并后在「共用积木」段；德克萨斯自动冲刺改版后不再改主控冲刺冷却）
 #  verb.trail        瞬时（放在 trig.on_dash_end 里）：沿刚结束的那次冲刺留下 life 秒的残像，踩进的敌人各吃一次 mult 伤害 + on_hit
 #  verb.fx_scatter   瞬时、只有画面：在 center（self / target）半径 r 内撒 n 个帧条（strip），错开 stagger 秒起播；不碰 g.rng
 #  trig.on_dash_end  本干员任一次 dash_line 结束时：src（只认这个伤害来源的冲刺，缺省全部）、min_hits（这次扫中的敌人数下限）、delay
-#  trig.on_leader_dash  主控按下冲刺（g.dash_t 上升沿）：cd（两次之间至少隔几秒）
+#  trig.on_leader_dash  主控按下冲刺（g.dash_t 上升沿）：cd（两次之间至少隔几秒）。积木保留可用；德克萨斯 10-12 改自动冲刺后不再用它
 #  trig.on_skill_start / trig.on_skill_end  本干员技能 skill（0 起）出手 / 持续结束：delay（只 on_skill_start）
 
 const TX_IMPL := {
@@ -1992,10 +1992,16 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 	var g = o.g
 	if o.pos == Vector2.INF:
 		return []
-	if o.tx.has("dash"):
-		_tx_dash_end(o)
 	var aim: String = str(b.get("aim", "nearest"))
 	var len: float = tx_len(o, b)
+	var pd := Vector2.INF
+	if aim == "densest":
+		# 朝敌群冲：附近没有敌人就不冲（德克萨斯天赋自动冲刺 / 剑雨滂沱；她当主控时不把主控带去空地）
+		pd = _tx_densest(o, len * 1.6)
+		if pd == Vector2.INF:
+			return []
+	if o.tx.has("dash"):
+		_tx_dash_end(o)
 	var dir := Vector2.ZERO
 	match aim:
 		"nearest":
@@ -2003,8 +2009,7 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 			var ang: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
 			dir = Vector2.from_angle(o.atk_angle(ang))
 		"densest":
-			var p: Vector2 = _tx_densest(o, len * 1.6)
-			dir = (p - o.pos).normalized() if p != Vector2.INF and p.distance_to(o.pos) > 1.0 else Vector2(o.face, 0.0)
+			dir = (pd - o.pos).normalized() if pd.distance_to(o.pos) > 1.0 else Vector2(o.face, 0.0)
 		"leader_dir":
 			dir = g.dash_dir if g.dash_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
 		"reverse":
