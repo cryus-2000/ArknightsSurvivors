@@ -192,12 +192,16 @@ def main():
     enc.check_distribution(package)
     manifest=json.loads((package/'release_manifest.json').read_text(encoding='utf-8'))
     images=[]
-    for path in sorted((project/'art/incoming').glob('*.png')):
-        if any(word in path.name.lower() for word in SKIP_WORDS): continue
-        raw=path.read_bytes()[:24]
-        if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+path.name)
-        width,height=struct.unpack('>II',raw[16:24])
-        images.append([path.stem,width,height])
+    art_root=project/'art/incoming'
+    # 根目录 + export_build.ART_SUBDIRS 子目录（Boss 名片头像 portraits/），与出包计数口径一致；子目录文件以 "子目录/名" 登记
+    subdirs=['']+[d for d in ('portraits',) if (art_root/d).is_dir()]
+    for sub in subdirs:
+        for path in sorted((art_root/sub if sub else art_root).glob('*.png')):
+            if any(word in path.name.lower() for word in SKIP_WORDS): continue
+            raw=path.read_bytes()[:24]
+            if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+path.name)
+            width,height=struct.unpack('>II',raw[16:24])
+            images.append([(sub+'/'+path.stem) if sub else path.stem,width,height])
     if not images or len(images)!=manifest['packed_png_count']: raise ValueError('Staged art inventory does not match release manifest')
     preset=(project/'export_presets.cfg').read_text(encoding='utf-8').split('[preset.1]')[0]
     match=re.search(r'^exclude_filter="(.*)"$',preset,re.M)
