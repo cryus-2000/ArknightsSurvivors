@@ -476,6 +476,7 @@ const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.95
 const STAT_EN := {"生命": "HP", "伤害": "DMG", "移速": "SPD", "类型": "TYPE", "射程": "RNG", "体型": "SIZE", "等级": "RANK", "效果分类": "CAT",
 	"原类别": "ORIG", "流派": "LANE", "Boss": "BOSS", "回复": "REGEN", "闪避": "DODGE", "拾取": "PICKUP"}
 const LIGHT_BLOCK := Color(0.925, 0.933, 0.941)
+const SPEC_TICKS := false          # 非干员页舞台四角的黄色小角标：10-11 去掉底框后对照过，没有框时角标像悬空的残框，关掉，只留 SPECIMEN 代码
 var dk := 1.0
 var doff := Vector2.ZERO
 var hits: Array = []               # [Rect2（设计坐标）, 种类, 值]：按绘制顺序，命中从后往前查
@@ -1067,7 +1068,8 @@ func _blit_art(tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, f
 		UI.blit_clipped(self, body, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), clip, Color(col.r, col.g, col.b, col.a * f))
 
 
-## 其他形态 / 非干员条目：同一适配规则；非干员页先亮灯箱（T2），再出精灵（T1），未解锁画暗剪影
+## 其他形态 / 非干员条目：同一适配规则，直接画在舞台斜带前（同干员页，不画底框，10-11 用户：「敌人那里为什么有个黑框」）；
+## 非干员页换条目时四角黄色小角标与 SPECIMEN 代码先亮（T2，「灯箱」只剩角标），再出精灵（T1）；未解锁画暗剪影
 func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 	var sr := _stage()
 	var locked: bool = e.get("locked", false)
@@ -1077,16 +1079,15 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 	var foot_y: float = sr.end.y - 8.0
 	if tab != 0:
 		var lb := _pa(sel_t0, 0.0, UIMo.T2)
-		box = sr.grow(-12.0)
-		draw_rect(box, UI.fa(UI.C_D_PANEL, lb))
-		draw_rect(box, UI.fa(UI.C_D_INK, 0.28 * lb), false, 1.0)
-		for cn in [box.position, Vector2(box.end.x - 14, box.position.y), Vector2(box.position.x, box.end.y - 2), box.end - Vector2(14, 2)]:
-			draw_rect(Rect2(cn, Vector2(14, 2)), UI.fa(UI.C_ACC, lb))
-		UI.code(self, font, box.position + Vector2(10, 8), "SPECIMEN  //  NO.%02d" % (vlist.find(sel) + 1), 7 if ph else 8, UI.fa(UI.C_D_SUB, lb))
+		var tk := sr.grow(-12.0)
+		if SPEC_TICKS:
+			for cn in [tk.position, Vector2(tk.end.x - 14, tk.position.y), Vector2(tk.position.x, tk.end.y - 2), tk.end - Vector2(14, 2)]:
+				draw_rect(Rect2(cn, Vector2(14, 2)), UI.fa(UI.C_ACC, lb))
+		UI.code(self, font, tk.position + Vector2(10, 8), "SPECIMEN  //  NO.%02d" % (vlist.find(sel) + 1), 7 if ph else 8, UI.fa(UI.C_D_SUB, lb))
 		a = _pa(sel_t0, UIMo.T2, UIMo.T1)
-		box = box.grow(-8.0)
-		cx = box.get_center().x
-		foot_y = box.end.y - 14.0
+		box = sr.grow(-4.0)   # 留出 SPECIMEN 代码行；其余同干员页的舞台框
+		box.position.y += 14.0
+		box.size.y -= 14.0
 	if f.get("tex") == null or a <= 0.0:
 		return
 	var tx: Texture2D = f.tex
@@ -1101,7 +1102,7 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 		bb2 = _fbb(pf)
 		w2 += (bb2.size.x + gap) * 2.0 / hi
 		h2 = maxf(h2, bb2.size.y * 2.0 / hi)
-	var kmax: float = (ART_K if tab == 0 else ART_K - 1.0) * (0.6 if ph else 1.0)
+	var kmax: float = ART_K * (0.6 if ph else 1.0) if tab == 0 else (2.0 if ph else ART_K - 1.0)   # 标本：桌面 3、手机 2
 	var fit := UI.art_fit(w2, h2, box, kmax, cx, foot_y)
 	var k2: float = fit[0]
 	var foot: Vector2 = fit[1]
@@ -1132,7 +1133,7 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 			var dst := Rect2((foot - Vector2(bb.size.x * k3 / 2.0, bb.size.y * k3)).round(), bb.size * k3)
 			for d in [Vector2(k3, 0), Vector2(-k3, 0), Vector2(0, k3), Vector2(0, -k3)]:
 				UI.blit_clipped(self, wt, Rect2(dst.position + d, dst.size), src, clip, Color(0.7, 0.85, 0.95, 0.5 * a))
-	_blit_art(tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), tab == 0 and not locked, locked, tab == 0)
+	_blit_art(tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), not locked, locked, tab in [0, 1, 2, 3, 6])
 	if locked:
 		UI.text_at(self, font, foot - Vector2(0, h2 * k2 / 2.0), "?", 40 if not ph else 28, UI.C_D_SUB, "mm", true)
 
