@@ -52,6 +52,7 @@ const DMOD_DEFAULT := {
 	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
 	"dmg_late_cap": -1.0,                                                  # 后期敌人伤害上限（run/spawner.gd；-1 = 用 enemy/dmg_late_cap，Ⅷ 跌破 50 时可单独设 0）
 	"boss_fight_enemy_hp": -1.0,
+	"final_stop_mobs": -1.0, "final_clear_mobs_s": -1.0,                 # 最终 Boss 战停刷 / 现有杂兵消散秒数按档覆盖（-1 = 跟 balance.json final 段；spawner.final_knob）
 	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 灯标圈内安全按档开（-1 = 跟 balance.json beacon 段，缺省关；docs/49g）                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关；

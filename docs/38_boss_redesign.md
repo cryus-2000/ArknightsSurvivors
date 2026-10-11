@@ -1374,6 +1374,56 @@
 - 兜底只占回收的 3–10%，基本不触发；拾取率三档都约 −3 点（视野里常年有几百点经验没捡）。「亲手捡」的份额从 12% 翻到 24–29%（拾取范围成长 + 规则可见）。
 - **结论（协调人 10-01 认可）**：方案 A 的缺省就是定稿，不回调升级曲线，拾取范围成长先维持每级 +1%；如果真人反馈「视野里的经验捡不完」，再把 `pickup/range_per_level` 调到 0.015（封顶 0.35）。普通机器人 11 → 6% 只作参考（机器人不主动捡拾取物）。
 
+### 8.14 最终 Boss 战停刷（2026-10-11，用户：「最终 boss 出现以后小怪就可以不用刷了」）
+
+**规则（旋钮 `final` 段，run/spawner.gd `mobs_stopped` / `queue_clear`）**
+- `final/stop_mobs` = 1（缺省，按用户指令）：最终 Boss（偏执泡影 / 最后的骑士 / 伊莎玛拉 / 伊祖米克，即 `g.final_boss`）在场且未倒下时，**不再刷**：普通刷怪（`spawn_acc`，累积照常扣掉，Boss 倒下后不会补刷一波）、精英（计时照走、不出精英也不出横幅）、大群（连预警也不出；原本 9:30 后就不刷，这里只是兜住改 `--bosstimes` 的情况）、威胁上升的 6 只新种类。0 = 旧行为（仍受 `boss/final_mob_cap` 120 限制）。
+- **照常**：Boss 自己的召唤物（伊祖米克子代及其蜕变、伊莎玛拉之泪、`spawn` 预警生成物）、剧本刷怪（伊莎玛拉练习靶等）、补给箱 / 拟态箱、灯标（不受影响——伊祖米克地波要靠点亮的灯柱光圈躲，灯标也是终局唯一的灯火来源）、商人。中期 Boss（3:30 / 7:00）在场时**不停**。祭坛事件本来就在最终 Boss 登场时冻结（endings.gd），不变。
+- `final/clear_mobs_s` = 0（缺省）：场上已有的杂兵留着，只是不再补。> 0：最终 Boss 登场那一刻，场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内**由远到近**逐只消散（复用击杀的 `fx_death_dissolve` 帧条，清掉它没结算的预警），不掷随机数。消散**不算击杀**：不掉经验 / 灯油 / 回复 / 磁铁 / 源石锭，不触发击杀类藏品与干员被动，不计 kills。理由：10:00 场上约 110–130 只杂兵，按击杀结算等于登场瞬间白送一大笔经验（大多走溢出 / 视野外回收直接入账，常见 1–2 级）和一串击杀触发，相当于给终局加了一个隐性奖励，会把 A/B 的「停刷让终局变易」和「白送经验让终局变易」搅在一起；不掉东西时 clear_mobs_s 只是「开场清场」，代价是玩家少了一批终局前可收的经验（多数局这批杂兵本来会在 Boss 战前 20 秒内被清掉，见下）。
+- 难度表按档覆盖：`difficulty/<档>/final_stop_mobs`、`final_clear_mobs_s`（≥ 0 时优先，DMOD_DEFAULT 缺省 −1 = 跟全局）。
+- 测试探针：`--bal=final/stop_mobs=0` 回到旧行为；`--bal=final/clear_mobs_s=8` 试清场。
+
+**依赖杂兵的系统（本地冒烟看过，无卡死）**
+- 没有任何阶段在等击杀数：泡影茧是计时的（`paranoia_cocoon` 8 秒），伊祖米克学习阶段 20 秒固定，伊莎玛拉人形阶段靠充能，骑士按血量；`boss/part_chip`（杂兵死在部件旁削部件 5%）会少触发，属于额外手段，不是必经。
+- 技力：自然充能按时间（`character.gd`），击杀回技力的藏品（积攒之手 P25 等）、击杀类干员被动（维什戴尔 / 水月 / 乌尔比安 on_kill）在终局会少触发，单 Boss 命中仍触发命中类效果。
+- 灯火：受击损灯来源变少（杂兵接触 / 子弹几乎没了），小怪灯油（0.6%）也没了；灯标照常刷，终局灯火主要靠灯标。
+- 回复：小怪掉回复（0.35%）终局基本归零，精英 / Boss 掉落不变；冒烟里每局捡回复 12.6 → 12.3（标准）、10.4 → 9.6（Ⅷ），差别很小——终局本来就很少捡。
+- 机器人：熟练 / 高手的 `_master_boss_goal` 本来就是围着 Boss 走位，杂兵少了之后 `on_boss`（贴 Boss 输出的时间占比）明显上升（见下表），没有发呆或卡位。
+
+**确定性**：旋钮关（`--bal=final/stop_mobs=0`）对改动前（984f0f8f，同一目录换文件对照）：标准高手维什戴尔 seed 1、Ⅷ 熟练水月 seed 2，`--maxt=1000 --trace=1`，TRACE 684 / 900 行逐字节相同，其余 stdout 行相同，BALANCE 除画面峰值 `bot/peak*` 外全部相同。旋钮开连跑两次同样逐字节相同。prot_test 加 `test_final_stop_mobs` 14 条（关 / 开 / 只有中期 Boss / 最终 Boss 倒下 / 难度表覆盖 / 伊祖米克子代照常 / 消散由远到近、不计击杀不掉经验 / 停刷那一帧不掷随机数）。
+
+**本地冒烟（各 14 局 = starts 7 主控 × seed 1–2，--maxt=1000，同 seed 配对；off = `--bal=final/stop_mobs=0`）**
+
+| 档 · 机器人 | 胜 off → on | 终局击杀用时 中位（均值） | 超时 | 终局 Boss 战 `on_boss` | Boss 战存活杂兵均值 | 翻转 |
+|---|---|---|---|---|---|---|
+| 标准 · 高手 | 10 → 11 / 14 | 134（146）→ 87（91）秒 | 0 → 0 | 0.17 → 0.64 | 117 → 13 | 1 负转胜（凯尔希 seed 2，终局里死 → 赢） |
+| Ⅷ · 熟练 | 10 → 10 / 14 | 217（209）→ 116（140）秒 | 0 → 0 | 0.17 → 0.57 | 119 → 14 | 0 |
+
+- 两边都赢的局里，终局击杀用时几乎全部缩短（标准 10 对中 9 对缩短，例如 329 → 121、219 → 73；Ⅷ 10 对全部缩短或持平，308 → 211、316 → 171、299 → 120）。现有杂兵约 20 秒内被清掉（10:00 时 132 只，10:20 时 5 只），之后基本是单挑 Boss。
+- 14 局看不出胜率差（95% 区间 ±25 点），但方向明确：终局变短、终局里的死亡变少。这批 seed 里没有超时局，Ⅷ 历史上的泡影超时（8 / 35）预计会明显减少——这正是停刷最可能改变胜负的地方。
+- 0 个脚本错误。
+
+**云端 A/B 命令（已备好，未发）**：每组 56 局 = starts 7 主控 × seed 1–8，同 seed 配对；off = 旧行为，on = 缺省。标准用高手（expert），Ⅳ / Ⅷ 用熟练（master），都按 §8.12 的参考机器人。
+
+```
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/fsm-t0-off --tag fsm-t0-off --extra="--maxt=1000 --tier=0 --bal=final/stop_mobs=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/fsm-t0-on --tag fsm-t0-on --extra="--maxt=1000 --tier=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/fsm-t1-off --tag fsm-t1-off --extra="--maxt=1000 --tier=1 --bal=final/stop_mobs=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/fsm-t1-on --tag fsm-t1-on --extra="--maxt=1000 --tier=1"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/fsm-t2-off --tag fsm-t2-off --extra="--maxt=1000 --tier=2 --bal=final/stop_mobs=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/fsm-t2-on --tag fsm-t2-on --extra="--maxt=1000 --tier=2"
+```
+
+可选第三组（清场，只在 on 过线后跑）：同上 `--extra` 再加 `--bal=final/clear_mobs_s=8`，tag `fsm-tX-clr`。预期比 on 再易一点（少了开场 20 秒的杂兵压力，也少了这批杂兵的经验），主要用来判断玩家是否需要「Boss 登场即清场」的仪式感，不是数值手段。
+
+**看什么**：每档胜率（含超时）、超时局数、终局击杀用时中位、终局里的死亡数、同 seed 翻转对称性；判定口径同 §8.12（56 局只作初筛，差距 > 10 点或超出 50–70 才进 112 局）。
+
+**补偿建议（只在云端数据出来后、某档超出 50–70 时才做；不动前 10 分钟）**
+- 预期：标准高手现值 70.5% 贴上沿，最可能超框；Ⅷ 熟练 50.9% 贴下沿，停刷是放宽，正好给 Ⅷ 留余量（§8.12 约束是不能跌破 50，这次只会往上走）。
+- 首选：只加最终 Boss 的血。全局有 `boss/hp_final`（2.5），但它不分档；建议新增按档覆盖的 dmod 键 `final_boss_hp`（只乘最终 Boss，不影响中期 Boss / 杂兵 / 经验，不给奖励），按「终局击杀用时回到停刷前的中位」反推：标准高手 134 → 87 秒，约 ×1.3–1.5；Ⅷ 熟练 217 → 116 秒，如果 Ⅷ 仍在 50–70 内就不补。
+- 次选：只改终局 Boss 的出招密度（`boss_warn` 已有，但对熟练 / 高手边际接近零，§8.12），不推荐。
+- 不推荐：把停刷改回「只停一部分」（例如 `final_mob_cap` 降到 40）——用户要的是「不用刷了」，半停的手感两头不讨好。
+
 ## 附录 A：风险表
 
 严重度、可能性都是 1–5，5 最高。数值取复核后的结果。
