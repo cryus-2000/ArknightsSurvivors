@@ -21,6 +21,8 @@ var _mods: Array = []                  # 已写进 g.stats 的修正 [stat, op, 
 var _acc: Dictionary = {}              # 常驻积木的累计器（_uid → 秒）
 var _state: Dictionary = {}            # 常驻积木的状态（软减速的位置记忆、绕行体角度）
 var _warned := {}
+var _fxt: Dictionary = {}              # 画面帧条（docs/61 §5.6）：常驻积木上 every 条目的计时（_uid → [秒…]），纯画面
+var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid → {b, el, fade}；fade < 0 = 生效中，≥ 0 = 退出后淡出剩余秒数
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -256,6 +258,28 @@ func _sustain(dt: float) -> void:
 	for u in _state.keys():
 		if not seen.has(u):
 			_state.erase(u)
+	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
+	var fseen := {}
+	for b in act:
+		if b.has("fx"):
+			var u: int = int(b.get("_uid", 0))
+			fseen[u] = true
+			_fxt[u] = OB.fx_tick(self, b.fx, zone_c(), zr, _fxt.get(u, []), dt)
+			if OB.fx_has_body(b.fx):
+				if not _fxb.has(u) or float(_fxb[u].fade) >= 0.0:
+					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0}
+				else:
+					_fxb[u].el += dt
+	for u in _fxt.keys():
+		if not fseen.has(u):
+			_fxt.erase(u)
+	for u in _fxb.keys():
+		if not fseen.has(u):
+			var e: Dictionary = _fxb[u]
+			e.el += dt
+			e.fade = OB.FX_BODY_FADE if float(e.fade) < 0.0 else float(e.fade) - dt
+			if e.fade <= 0.0:
+				_fxb.erase(u)
 
 
 ## 触发积木进本帧列表：passive → 它的 do（各自再看 cond）；tick → 它本身；裸效果积木（成长节点）→ 它本身
@@ -307,6 +331,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				elif not _warned.has(fn):
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
+		if b.has("fx") and not str(b.get("_tag", "")) in ["shape.circle", "shape.cone"]:   # 伤害形状的 fx 由 exec_shape 按出手位置播
+			OB.fx_play(self, b.fx, zone_c(), zr)
 
 
 # ---------------------------------------------------------------- 出手
@@ -340,6 +366,8 @@ func _release_skill() -> void:
 		s_dur[i] = float(dv)
 	_exec_list(sb.get("do", []))
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
+	if sb.has("fx"):
+		OB.fx_play(self, sb.fx, zone_c(), _zone_r_now())
 
 
 func on_kill(e: Dictionary) -> void:
@@ -378,8 +406,41 @@ func draw_auras() -> void:
 		var st = _state[u]
 		if st is Dictionary and st.has("ang"):
 			var b := _find_uid(u)
-			for p in OB.orbit_points(self, b, st.ang):
+			var pts: Array = OB.orbit_points(self, b, st.ang)
+			if b.has("fx") and OB.fx_orbit(cv, self, b, pts, g.world.fx_dim):   # 帧条代替菱形（docs/61 §5.6 at = orbit）
+				continue
+			for p in pts:
 				draw_diamond(p + Vector2(0, -6), 5.0, Color(cc.r * 1.4, cc.g * 1.4, cc.b * 1.4, 0.85), Color(0.05, 0.05, 0.1, 0.7))
+
+
+## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
+func draw_body() -> void:
+	_draw_body_fx(false)
+	super()
+	_draw_body_fx(true)
+
+
+func _draw_body_fx(front: bool) -> void:
+	for u in _fxb:
+		var e: Dictionary = _fxb[u]
+		var al: float = 1.0 if float(e.fade) < 0.0 else clampf(float(e.fade) / OB.FX_BODY_FADE, 0.0, 1.0)
+		OB.fx_body(cv, self, e.b.fx, float(e.el), al, front)
+
+
+## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
+func _draw_pfx(f: Dictionary, _a: float) -> bool:
+	if str(f.kind) != "strip":
+		return false
+	if not f.get("add", false):
+		OB.fx_draw(cv, g, f, g.world.fx_dim)
+	return true
+
+
+func draw_fx_add(ci: CanvasItem, loop: int) -> void:
+	super(ci, loop)
+	for f in pfx:
+		if str(f.kind) == "strip" and f.get("add", false):
+			OB.fx_draw(ci, g, f, g.world.fx_dim)
 
 
 func _find_uid(u: int) -> Dictionary:

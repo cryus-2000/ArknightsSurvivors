@@ -51,7 +51,8 @@
  "gallery": {"tags": ["增益", "光环", "灯火", "深海猎人"], "desc": "歌声绕着主控回荡：歌域里的干员攻击更高、出手更快；灯火充盈时是治愈的歌，昏暗时是溟海的歌；深海猎人在她身边更强"},
  "blocks": {
   "zone": {"center": "leader", "r": "$aura"},
-  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"]},
+  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
+   "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark"}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark"}]},
   "trait": [
    {"trig": "passive", "do": [
     {"verb": "heal", "pct": "$heal_pct", "every": "$heal_cd", "cond": "in_zone:leader", "src": "浊心斯卡蒂"},
@@ -60,18 +61,19 @@
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$lead_mult", "src": "声浪", "tags": ["basic"]}]}
   ],
   "skills": [
-   {"dur": "$s1_dur", "do": [
+   {"dur": "$s1_dur", "fx": [{"strip": "fx_skalter_note", "at": "zone", "n": 6, "spread": 0.6, "rise": 26, "life": 1.1, "scale": 1.2}], "do": [
     {"verb": "buff_self", "stat": "zone", "op": "mult", "value": "$s1_aura"},
     {"aura": "aspd", "value": "$s1_aspd", "scope": "in_zone", "power": true},
     {"verb": "heal", "pct": "$s1_heal", "every": 1.0, "power": true, "src": "浊心斯卡蒂"},
     {"verb": "lamp", "loss_mult": "$s1_lamp_loss"}]},
-   {"dur": "permanent", "do": [
+   {"dur": "permanent", "fx": [{"strip": "fx_skalter_note", "at": "zone", "n": 6, "spread": 0.6, "rise": 26, "life": 1.1, "scale": 1.2}], "do": [
     {"verb": "buff_self", "stat": "zone", "op": "add", "value": "$s2_aura"},
     {"aura": "aspd", "value": "$s2_aspd", "scope": "in_zone", "power": true},
     {"aura": "atk", "value": "$s2_atk", "scope": "in_zone", "power": true},
     {"aura": "atk", "value": "$s2_hunter_atk", "scope": "faction:深海猎人", "power": true}]},
-   {"dur": "$s3_dur", "do": [
-    {"verb": "mode", "zone_mult": "$s3_aura"},
+   {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", "scale": 1.1, "tint": [1.2, 1.1, 1.1, 0.8]}], "do": [
+    {"verb": "mode", "zone_mult": "$s3_aura",
+     "fx": [{"strip": "fx_skalter_s3_back", "layer": "behind", "anchor": [48, 84]}, {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84]}]},
     {"aura": "atk", "value": "$s3_atk", "scope": "squad", "power": true},
     {"verb": "heal", "pct": "$s3_heal", "every": 1.0, "power": true, "src": "浊心斯卡蒂"},
     {"verb": "lamp", "per_sec": "-$s3_lamp_drain", "cond": "lamp >= $talent_dark"},
@@ -90,10 +92,12 @@
    "zone_up": {"verb": "buff_self", "stat": "zone", "op": "mult", "value": "$n1_aura"},
    "dmg_up": {"aura": "atk", "value": "$n2_atk", "scope": "in_zone"},
    "echo": {"trig": "every_n", "n": "$echo_every", "delay": "$echo_delay", "do": [
-    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "max_n": "$wave_n", "src": "潮汐和声", "tags": ["follow_up"]}]},
+    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "max_n": "$wave_n", "src": "潮汐和声", "tags": ["follow_up"],
+     "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "scale": 0.85, "tint": [1, 1, 1, 0.6]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "scale": 0.85, "tint": [1, 1, 1, 0.6]}]}]},
    "resonance": {"trig": "tick", "every": 1.0, "cond": "skill_active:0", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$resonance_mult", "max_n": "$wave_n", "src": "深海的回响", "tags": ["skill", "dot"], "power": true}]},
-   "elite2": {"shape": "orbit", "n": "$note_n", "r": "zone", "speed": "$note_speed", "hit_r": "$note_hit", "kb": "$note_kb", "cd": "$note_cd", "mult": 0.0}
+   "elite2": {"shape": "orbit", "n": "$note_n", "r": "zone", "speed": "$note_speed", "hit_r": "$note_hit", "kb": "$note_kb", "cd": "$note_cd", "mult": 0.0,
+    "fx": [{"strip": "fx_skalter_note", "at": "orbit", "scale": 1.3, "off": [0, -8]}]}
   }
  }
 }

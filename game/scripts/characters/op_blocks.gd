@@ -239,6 +239,9 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var stun: float = float(b.get("stun", 0.0))
 	var max_n: int = int(b.get("max_n", 0))   # 0 = 不设上限
 	var hits: Array = []
+	var fx_c := Vector2.INF   # 画面帧条（docs/61 §5.6）的位置 / 半径 / 角度
+	var fx_r := 0.0
+	var fx_a := 0.0
 	match str(b.shape):
 		"circle":
 			var c: Vector2 = shape_center(o, b, at)
@@ -247,15 +250,22 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				return []
 			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
+			fx_c = c
+			fx_r = r
 		"cone":
 			var r2: float = shape_radius(o, b)
 			var ts: Array = o.nearest_enemies(1, r2 + 30.0, o.pos)
 			var ang: float = o.atk_angle((ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle())
 			hits = o.melee_hit(src, o.pos, ang, deg_to_rad(float(b.get("half_deg", 45.0))), r2, dmg, kb, stun, tags, max_n)
 			o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
+			fx_c = o.pos
+			fx_r = r2
+			fx_a = ang
 	for s in b.get("on_hit", []):
 		for e in hits:
 			apply_status(o, e, s)
+	if b.has("fx") and fx_c != Vector2.INF:
+		fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
 	return hits
 
 
@@ -434,8 +444,10 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do"]:
-					errs.append("%s.%s：技能积木只有 dur / do 两个字段" % [p, k])
+				if not k in ["dur", "do", "fx"]:
+					errs.append("%s.%s：技能积木只有 dur / do / fx 三个字段" % [p, k])
+			if sb.has("fx"):
+				_fx(sb.fx, p + ".fx", ctx, "cast")
 			_list(sb.get("do", []), p + ".do", "skill", ctx)
 	for sec in ["trait", "talent"]:
 		var arr = blocks.get(sec, [])
@@ -518,6 +530,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			var ev := eval_expr(b[k], ctx.base)
 			if not ev[0]:
 				errs.append("%s.%s：%s" % [p, k, ev[2]])
+	if b.has("fx"):
+		_fx(b.fx, p + ".fx", ctx, "%s.%s" % [fam, str(b[fam])] if fam != "custom" else "custom")
 	if fam == "custom":
 		ctx.custom += 1
 		if not kind in ["skill", "instant"]:
@@ -664,3 +678,273 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 			ctx.errs.append(p + " 缺 src（伤害来源名）")
 	elif not ctx.srcs.has(s):
 		ctx.errs.append("%s.src「%s」没在 hit_sources 里登记" % [p, s])
+
+
+# ================================================================ 画面帧条 fx（docs/61 §5.6，10-11 加；纯画面，追加式）
+## 任何积木（以及 blocks.skills[i] 本身）可以带 "fx": [条目…]，把 game.gd V6_FRAMES 里登记的帧条挂到出手 / 技能发动 / 常驻光环上。
+## 不写 fx 的干员画法与原来逐像素相同；fx 只往干员自己的 pfx 里加粒子、散布只用 g.vrng，不碰 g.rng / 玩法状态（同 seed TRACE / BALANCE 不变）。
+## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
+
+const FX_KEYS := ["strip", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot"]
+const FX_LAYERS := ["floor", "over", "add", "behind", "front"]
+## 贴身层：画在干员本体的后面 / 前面（draw_body 前后），积木生效期间循环，帧号 = floor(生效秒数 × fps) % 帧数，退出时 FX_BODY_FADE 秒淡出
+const FX_BODY := ["behind", "front"]
+const FX_BODY_FADE := 0.15
+## 放大上限（每个 1x 美术像素至多几个世界像素）：同 render/vfx.gd FX_SCALE_MAX，免得颗粒比人物粗太多；条目可用 max_scale 改
+const FX_SCALE_MAX := 3.2
+const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit"]
+const ArtS = preload("res://scripts/art.gd")
+
+
+## 瞬时播放：c / r 是出手形状的中心与半径（技能发动、常驻光环时是区域中心与半径），hits 是本次命中的敌人，ang 是锥形的朝向。
+## 带 every 的条目（常驻定时播）和 at = orbit 的条目（绕行体常驻贴图）这里跳过
+static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0.0) -> void:
+	if not (entries is Array):
+		return
+	for f in entries:
+		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or str(f.get("layer", "")) in FX_BODY:
+			continue
+		if cond_true(o, f.get("cond", {})):
+			fx_spawn(o, f, c, r, hits, ang)
+
+
+## 常驻积木上带 every 的条目：ts 是这块积木各条目的画面计时（秒，按条目下标），返回新的计时。积木生效的第一帧就播一次
+static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> Array:
+	if not (entries is Array):
+		return ts
+	if ts.size() != entries.size():
+		ts = []
+		ts.resize(entries.size())
+		ts.fill(INF)
+	for i in entries.size():
+		var f = entries[i]
+		if not (f is Dictionary):
+			continue
+		var ev: float = float(f.get("every", 0.0))
+		if ev <= 0.0 or str(f.get("at", "center")) == "orbit" or str(f.get("layer", "")) in FX_BODY:
+			continue
+		ts[i] = float(ts[i]) + dt
+		if ts[i] >= ev:
+			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
+			if cond_true(o, f.get("cond", {})):
+				fx_spawn(o, f, c, r, [], 0.0)
+	return ts
+
+
+static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
+	var g = o.g
+	var name: String = str(f.get("strip", ""))
+	if g == null or g.tex.get(name) == null or not g.V6_FRAMES.has(name) or o.pfx.size() > 220:
+		return
+	var spec: Array = g.V6_FRAMES[name]
+	var frames: int = maxi(1, int(spec[0]))
+	var fps: float = maxf(1.0, float(spec[1]))
+	var pts: Array = []
+	match str(f.get("at", "center")):
+		"self":
+			pts.append(o.pos)
+		"leader":
+			pts.append(g.ppos)
+		"zone":
+			pts.append(o.zone_c() if o.has_method("zone_c") else c)
+		"hits":
+			for e in hits:
+				pts.append(e.pos + Vector2(0, -float(e.r) * 0.5))
+		_:
+			pts.append(c)
+	var sc: float = float(f.get("scale", 1.0))
+	var fit: float = float(f.get("fit", 0.0))
+	sc *= r / fit if fit > 0.0 and r > 0.0 else g.PX
+	sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
+	var loop: bool = f.has("life")
+	var life: float = float(f.life) if loop else frames / fps
+	var tint: Color = Color.WHITE
+	var tv = f.get("tint", [])
+	if tv is Array and tv.size() >= 3:
+		tint = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+	var anc := Vector2(-1, -1)
+	var av = f.get("anchor", [])
+	if av is Array and av.size() == 2:
+		anc = Vector2(float(av[0]), float(av[1]))
+	var off := Vector2.ZERO
+	var ov = f.get("off", [])
+	if ov is Array and ov.size() == 2:
+		off = Vector2(float(ov[0]), float(ov[1]))
+	var rot: float = (ang if f.get("rot", false) else 0.0) + deg_to_rad(float(f.get("ang", 0.0)))
+	var layer: String = str(f.get("layer", "over"))
+	var spread: float = float(f.get("spread", 0.0)) * r
+	var rise: float = float(f.get("rise", 0.0))
+	for p in pts:
+		if p == Vector2.INF:
+			continue
+		for k in int(f.get("n", 1)):
+			var q: Vector2 = p + off
+			if spread > 0.0:
+				var a: float = g.vrng.randf() * TAU
+				var d: float = sqrt(g.vrng.randf()) * spread
+				q += Vector2(cos(a) * d, sin(a) * d * 0.55)   # 地面椭圆（同区域画法 y × 0.55）
+			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": rot, "anc": anc,
+				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
+				"floor": layer == "floor", "add": layer == "add"}
+			if rise != 0.0:
+				px["vel"] = Vector2(0, -rise)
+			o.fx(px)
+
+
+## 画一条 strip 粒子（data_operator._draw_pfx / draw_fx_add 调）。dim：整体透明度（fx_dim）
+static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
+	var el: float = float(f.max) - float(f.life)
+	var frames: int = int(f.fr)
+	var fr: int
+	var a: float = dim
+	if f.loop:
+		fr = (int(el * float(f.fps)) + int(f.ph)) % frames
+		a *= clampf(float(f.life) / maxf(0.01, float(f.max) * 0.3), 0.0, 1.0) * clampf(el / 0.08, 0.0, 1.0)   # 循环件：进场 0.08 秒、最后三成淡出
+	else:
+		fr = mini(int(el * float(f.fps)), frames - 1)
+	fx_frame(ci, g, str(f.name), frames, fr, f.pos, float(f.sc), Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
+
+
+## 帧条的第 fr 帧：sc = 每个 1x 美术像素的世界像素数；anc = 1x 帧内锚点（(-1,-1) = 帧中心），@2x 贴图自动换算（docs/25 §6 的 ×A.hires 规则）
+static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc: float, col: Color, anc := Vector2(-1, -1), ang := 0.0) -> void:
+	var tx: Texture2D = g.tex.get(name)
+	if tx == null or col.a <= 0.0:
+		return
+	var h: float = ArtS.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var an: Vector2 = anc * h if anc.x >= 0.0 else Vector2(fw, fh) / 2.0
+	ci.draw_set_transform(pos, ang, Vector2(sc / h, sc / h))
+	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 积木的 fx 里有没有贴身层条目
+static func fx_has_body(entries) -> bool:
+	if entries is Array:
+		for f in entries:
+			if f is Dictionary and str(f.get("layer", "")) in FX_BODY:
+				return true
+	return false
+
+
+## 贴身层（behind / front）：锚点对准干员脚底 o.pos（+ off），el = 积木已生效秒数，alpha 用于退出淡出
+static func fx_body(ci, o, entries, el: float, alpha: float, front: bool) -> void:
+	var g = o.g
+	if not (entries is Array) or o.pos == Vector2.INF:
+		return
+	for f in entries:
+		if not (f is Dictionary) or str(f.get("layer", "")) != ("front" if front else "behind") or not cond_true(o, f.get("cond", {})):
+			continue
+		var name: String = str(f.get("strip", ""))
+		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
+			continue
+		var spec: Array = g.V6_FRAMES[name]
+		var frames: int = maxi(1, int(spec[0]))
+		var tv = f.get("tint", [])
+		var col := Color.WHITE
+		if tv is Array and tv.size() >= 3:
+			col = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+		col.a *= alpha * g.world.fx_dim
+		var ov = f.get("off", [])
+		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+		var av = f.get("anchor", [])
+		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2(-1, -1)
+		fx_frame(ci, g, name, frames, int(floor(el * float(spec[1]))) % frames, o.pos + off, float(f.get("scale", 1.0)) * g.PX, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
+
+
+## shape.orbit 上 at = orbit 的条目：每个判定点画一个循环帧条（代替缺省的小菱形）。返回是否画了（缺图时 false，调用方画菱形）
+static func fx_orbit(ci, o, b: Dictionary, pts: Array, dim: float) -> bool:
+	var g = o.g
+	var drew := false
+	for f in b.get("fx", []):
+		if not (f is Dictionary) or str(f.get("at", "")) != "orbit" or not cond_true(o, f.get("cond", {})):
+			continue
+		var name: String = str(f.get("strip", ""))
+		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
+			continue
+		var spec: Array = g.V6_FRAMES[name]
+		var frames: int = maxi(1, int(spec[0]))
+		var sc: float = float(f.get("scale", 1.0)) * g.PX
+		var tv = f.get("tint", [])
+		var col := Color.WHITE
+		if tv is Array and tv.size() >= 3:
+			col = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+		col.a *= dim
+		var ov = f.get("off", [])
+		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+		var anc := Vector2(-1, -1)
+		var av = f.get("anchor", [])
+		if av is Array and av.size() == 2:
+			anc = Vector2(float(av[0]), float(av[1]))
+		for k in pts.size():
+			fx_frame(ci, g, name, frames, int(g.t * float(spec[1])) + k, pts[k] + off, sc, col, anc)
+		drew = true
+	return drew
+
+
+## 校验 fx 列表（docs/61 §8 第 9 条）。owner：所属积木的「族.名」，技能本身是 "cast"
+static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
+	var errs: Array = ctx.errs
+	if not (arr is Array):
+		errs.append(p + " 必须是数组（fx 条目列表）")
+		return
+	if arr.size() > 8:
+		errs.append("%s：一块积木至多 8 个 fx 条目，这里有 %d 个" % [p, arr.size()])
+	var instant_owner: bool = owner in ["shape.circle", "shape.cone", "cast", "verb.sp_team"]
+	for i in arr.size():
+		var q := "%s[%d]" % [p, i]
+		var f = arr[i]
+		if not (f is Dictionary):
+			errs.append(q + " 必须是对象")
+			continue
+		for k in f:
+			if not k in FX_KEYS:
+				errs.append("%s.%s：fx 条目不认识的字段（只能是 %s）" % [q, k, " / ".join(FX_KEYS)])
+		var sn = f.get("strip", null)
+		if not (sn is String) or not (sn.begins_with("fx_") or sn.begins_with("proj_")):
+			errs.append(q + ".strip 必须是 V6_FRAMES 里登记的帧条名（fx_* / proj_*）")
+		if not str(f.get("layer", "over")) in FX_LAYERS:
+			errs.append("%s.layer 只能是 %s" % [q, " / ".join(FX_LAYERS)])
+		var at := str(f.get("at", "center"))
+		if not at in FX_AT:
+			errs.append("%s.at 只能是 %s" % [q, " / ".join(FX_AT)])
+		elif at == "orbit" and owner != "shape.orbit":
+			errs.append(q + ".at = orbit 只能挂在 shape.orbit 上")
+		elif at == "hits" and not owner in ["shape.circle", "shape.cone"]:
+			errs.append(q + ".at = hits 只能挂在伤害形状（shape.circle / shape.cone）上")
+		if str(f.get("layer", "")) in FX_BODY:
+			if instant_owner:
+				errs.append(q + ".layer = behind / front 是贴身常驻层，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）")
+			if f.has("every") or f.has("life") or f.has("n") or f.has("spread") or f.has("rise"):
+				errs.append(q + "：贴身层（behind / front）跟着积木生效循环，不写 every / life / n / spread / rise")
+			if at != "self" and f.has("at"):
+				errs.append(q + ".at：贴身层只能是 self（干员脚底）")
+		if f.has("every") and instant_owner:
+			errs.append(q + ".every：瞬时积木 / 技能发动只播一次，every 只能写在常驻积木上")
+		if f.has("cond"):
+			if not (f.cond is String):
+				errs.append(q + ".cond 必须是字符串")
+			else:
+				var c := parse_cond(f.cond, ctx.base)
+				if c.has("err"):
+					errs.append("%s.cond：%s" % [q, c.err])
+		_num(f, "fit", q, ctx, false, 1.0, 512.0)
+		_num(f, "scale", q, ctx, false, 0.05, 8.0)
+		_num(f, "max_scale", q, ctx, false, 0.5, 16.0)
+		_num(f, "n", q, ctx, false, 1.0, 16.0)
+		_num(f, "spread", q, ctx, false, 0.0, 1.5)
+		_num(f, "rise", q, ctx, false, -400.0, 400.0)
+		_num(f, "life", q, ctx, false, 0.05, 5.0)
+		_num(f, "every", q, ctx, false, 0.05, 60.0)
+		_num(f, "ang", q, ctx, false)
+		for k in f:
+			if k != "cond" and f[k] is String and "$" in f[k]:
+				var ev := eval_expr(f[k], ctx.base)
+				if not ev[0]:
+					errs.append("%s.%s：%s" % [q, k, ev[2]])
+		for k in [["tint", 3, 4], ["anchor", 2, 2], ["off", 2, 2]]:
+			if f.has(k[0]):
+				var v = f[k[0]]
+				if not (v is Array) or v.size() < k[1] or v.size() > k[2] or v.any(func(x): return not (x is int or x is float)):
+					errs.append("%s.%s 必须是 %d%s 个数字的数组" % [q, k[0], k[1], "" if k[1] == k[2] else "–%d" % k[2]])
