@@ -987,19 +987,21 @@ func test_beacon_guide() -> void:
 	var mob := {"boss": false, "pos": bc.pos, "r": 10.0}
 	var boss := {"boss": true, "pos": bc.pos, "r": 30.0}
 	bs.charging = null
-	# 缺省（guide_r 0）：引路不生效，update 也不会把 guide 指上
-	bs.guide = bc
-	ok(not bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.ranged_held(mob), "缺省 guide_r 0：灯标附近子弹不吞、远程照打（旧行为）")
+	# 关掉（guide_r 0，docs/56 §7 前的缺省）：引路不生效，update 也不会把 guide 指上
 	var nb: Dictionary = keep_b.duplicate()
-	nb["guide_r"] = 160.0
+	nb["guide_r"] = 0.0
+	nb["shade_deg"] = 0.0
 	Bal._data["beacon"] = nb
+	bs.guide = bc
+	ok(not bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.ranged_held(mob), "guide_r 0：灯标附近子弹不吞、远程照打（旧行为）")
+	nb["guide_r"] = 160.0
 	ok(bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.bullet_eaten(bc.pos + Vector2(200, 0)), "guide_r 160：灯标 160 内的子弹被吞，外面不吞（不要求读条）")
 	ok(bs.ranged_held(mob) and not bs.ranged_held(boss), "guide_r 160：主控在 160 内时杂兵不起远程招，Boss 照常")
 	bs.guide = null
 	ok(not bs.bullet_eaten(bc.pos + Vector2(100, 0)) and not bs.ranged_held(mob), "guide 为空（点燃 / 寿命过 guide_life）：引路立刻结束")
-	# 背光刷怪：缺省 shade_deg 0 不改 edge_pos；开 50 时 edge_pos 的角度不落在朝灯标 ±50° 内，且随机数调用次数一样
+	# 背光刷怪：shade_deg 0 不改 edge_pos；开 50（§7 起的缺省）时 edge_pos 的角度不落在朝灯标 ±50° 内，且随机数调用次数一样
 	game.beacons = [bc]
-	ok(bs.shade_sector().is_empty(), "缺省 shade_deg 0：没有要避的扇区")
+	ok(bs.shade_sector().is_empty(), "shade_deg 0：没有要避的扇区")
 	var s0: int = game.rng.state
 	game.spawner.edge_pos()
 	var s1: int = game.rng.state
