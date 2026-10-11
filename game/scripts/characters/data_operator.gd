@@ -23,6 +23,7 @@ var _state: Dictionary = {}            # 常驻积木的状态（软减速的位
 var _warned := {}
 var _fxt: Dictionary = {}              # 画面帧条（docs/61 §5.6）：常驻积木上 every 条目的计时（_uid → [秒…]），纯画面
 var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid → {b, el, fade}；fade < 0 = 生效中，≥ 0 = 退出后淡出剩余秒数
+var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -114,6 +115,8 @@ func update(dt: float) -> void:
 	_tick_pending(dt)
 	_sustain(dt)
 	_tick_shots(dt)
+	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
+		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -140,6 +143,8 @@ func update(dt: float) -> void:
 			var tp: Vector2 = OB.point_aoe_target(self, a)
 			atk_to = tp
 			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 手动普攻 A 类（落点 aim_land）
+		"dash_line":
+			at = OB.tx_attack_point(self, a)   # 德克萨斯段
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
@@ -230,6 +235,7 @@ func _sustain(dt: float) -> void:
 				if v != 0.0:
 					for m in OB.aura_members(self, str(b.scope)):
 						want.append([OB.AURA_STAT[str(b.aura)], "add", v, "op:" + m.id])
+	OB.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
 	if want != _mods:
 		g.stats.remove_source(_src_tag())
 		for m in want:
@@ -356,7 +362,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
 			_:
-				_ext_exec(b, at)
+				_ext_exec(b, at)       # 星熊段
+				OB.tx_exec(self, b, at)   # 德克萨斯段
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -397,6 +404,7 @@ func _release_skill() -> void:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
 	_exec_list(sb.get("do", []))
+	OB.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		OB.fx_play(self, sb.fx, zone_c(), _zone_r_now())
@@ -479,7 +487,10 @@ func _draw_vortex(sink, layer: String) -> void:
 
 
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
-func _draw_pfx(f: Dictionary, _a: float) -> bool:
+## 德克萨斯段的冲刺剑光 / 剑雨（kind = tx_strip：横向拉伸、延迟起播）交给 OB.tx_draw_pfx
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	if str(f.kind) == "tx_strip":
+		return OB.tx_draw_pfx(self, f, a)
 	if str(f.kind) != "strip":
 		return false
 	if not f.get("add", false):

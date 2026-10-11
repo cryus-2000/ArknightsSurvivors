@@ -779,3 +779,88 @@ python tools/balance_run.py --game game --jobs 4 --preset angelina_mate --bot ma
 
 对本分支合入 main 后、改动前的 903e9252，`--trace=1`，10:00：维什戴尔 + 铃兰 + 塞雷娅 seed 1、斯卡蒂 + 推进之王 + 凯尔希 seed 2、艾雅法拉 `--norecruit` seed 3、浊心斯卡蒂 + 维什戴尔 + 塞雷娅 seed 4、艾丽妮 + Logos + 流明 seed 5：
 TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人开局自然招募的局从第一次出招募卡起会分叉（招募池多了她），属预期。
+## 13. 德克萨斯 `texas`（docs/59 §2 + §8.2，第二名纯数据干员，10-11）
+
+见 `data/characters/texas.json` 的 `blocks`：**0 个 `custom`**，没有 `texas.gd`。docs/59 §10 预留的逃生口 `s3_chain`（剑雨滂沱 16 次连冲的时序）用积木拼掉了：
+`trait` 里一块 `trig.tick {every: $s3_every, cond: "skill_active:2"}`，`do` = 一次 `shape.dash_line {aim: densest}` + `verb.sp_secs`；结束的剑雨是 `trig.on_skill_end {skill: 2}`。
+
+### 13.1 新积木（`op_blocks.gd` 末尾「德克萨斯段」，append-only）
+
+第三批四人并行实装，约定每人的新积木在文件末尾各占一段；核心部分只加转发，冲突时按段合并即可。
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `shape.dash_line` | 瞬时（起冲；命中逐帧结算） | `r`（冲刺长度，× `op_range` × 冲刺长度倍率）、`w`（宽，× 冲刺宽度倍率）、`t`（用时，缺省 0.18）、`hold`（到头停顿）、`aim`、`mult / src / tags / power / on_hit`（同 `shape.circle`）、`strip`（剑光帧条，可选；合并时由 `fx` 改名，避开通用 `fx` 字段）、`sfx`（起冲音，可选） | 每帧扫「上一帧位置 → 这一帧位置」的线段，宽 w/2 + 敌人半径内、这次还没打过的敌人各吃一次（精英 / Boss 乘 `vs_elite`）。`aim`：`nearest`（普攻：最近敌人，索敌 = 长度 × 1.3；手动普攻 A 方向类）/ `densest`（长度 × 1.6 内最近 24 个敌人中 80 像素内邻居最多者）/ `leader_dir`（`g.dash_dir`）/ `reverse`（上一次冲刺的反方向）。先快后慢（ease-out）。**干员是主控时冲刺就是主控本体位移**（同乌尔比安弹射：squad.update 把 `g.ppos` 拉过去并给 0.12 秒无敌），且不停顿；`leader_dir` 且本干员是主控时不另行位移，跟着主控自己的冲刺扫。新的一次起冲先把正在冲的那次结算掉。普攻形状表加了它（`validate`），普攻只许 `aim: nearest` |
+| `verb.sp_secs` | 瞬时 | `seconds`、`exclude_self`（缺省 true） | 编队各技能 +N 秒充能（推进之王 `_squad_sp_seconds` 的写法：不吃技力回复倍率，永久型跳过） |
+| `verb.dash_mod` | 常驻 | `len_add / len_mult / w_add / w_mult` | 本干员冲刺长度 / 宽度倍率 `(1 + Σadd) × Πmult`（存在 `tx.len / tx.w`） |
+| `verb.buff_leader` | 常驻 | `stat`（白名单，合并后与安洁莉娜共用一份：`move_speed / pickup / dash_cd`）、`op: add / mult`、`value` | 主控属性修正，作用域全局，随 §5.5 的 `blk:<id>` 整组重建；她当队友也生效 |
+| `verb.trail` | 瞬时（放在 `trig.on_dash_end`） | `life`、`mult`、`src`、`tags`、`on_hit` | 沿刚结束的那次冲刺留 `life` 秒残像（宽 = 那次冲刺的宽），踩进的敌人每道残像各吃一次 |
+| `verb.fx_scatter` | 瞬时、只有画面 | `strip`、`n`、`r`、`center: self / target`、`stagger` | 半径内撒 n 个帧条（错开起播）；黄金角序列取点，不碰 `g.rng` |
+| `trig.on_dash_end` | 触发 | `src`（只认这个来源的冲刺，缺省全部）、`min_hits`、`delay` | 本干员任一次 `dash_line` 结束；`do` 里的 `verb.trail` / `aim: reverse` 读这次冲刺的起止点 |
+| `trig.on_leader_dash` | 触发 | `cd` | 主控按下冲刺（`g.dash_t` 上升沿）；图鉴演示不触发 |
+| `trig.on_skill_start` / `trig.on_skill_end` | 触发 | `skill`（0 起）、`delay`（只 start） | 技能出手帧 / 持续型技能计时归零那一帧；`on_skill_end` 的 `center: target` 落在最后一次冲刺的终点 |
+
+核心改动（都标了「德克萨斯段」）：`op_blocks.gd` 的 `validate`（普攻形状表）、`_block`（`TX_IMPL` 命中转 `_tx_block`）、`exec_shape`（`dash_line` 分支）；
+`data_operator.gd` 加 `var tx` 与 6 处转发（`update` 冲刺中不起手、普攻起手点、`_sustain` 末尾 `tx_sustain`、`_exec_list` 缺省分支、`_release_skill` 后 `tx_skill_start`、`_draw_pfx` 画 `strip` 粒子）。
+帧条粒子 `kind: strip` 是通用的（`strip / frames / fps / anchor / ang / sx / delay`），其他数据干员也可以用。
+
+**game.gd（docs/59 §6 的 1 处）**：冲刺冷却倍率走属性表——`stat_defs.gd` 加 `dash_cd`（基础 1.0，下限 0.3），`STAT_SYNC` 映射到 `g.dash_cd_mult`，`_try_dash` 里 `dash_cd = DASH_CD × dash_cd_mult`。
+没有她（没人写 `dash_cd`）时恒为 1.0，老局逐字节不变（§13.4）。HUD 冲刺键条、主控脚下冲刺环、触屏冲刺按钮的冷却比例同步改成按 `DASH_CD × dash_cd_mult` 算。
+
+### 13.2 与 docs/59 的差异
+
+1. **名字**：S1「剑雨」（原作名）、S2「可靠伙伴」（用户 10-11 定保留原创名）、S3「剑雨滂沱」（缄默德克萨斯三技能，用户 10-11 定）、天赋「战术快递」（原作天赋，docs/63 §6）。分支「尖兵」写进 JSON `branch`（目前没有界面读它）；`faction: 企鹅物流`。
+2. **S3 不用 custom**（见本节开头）。S3 期间普攻停（`verb.mode no_attack`），第一次连冲在出手后 0.5 秒，技能计时归零那一帧不再冲，所以 8 秒实际 15–16 次；每次 ×0.9 × 技能强度、穿过的敌人眩晕 0.3 秒（精英减半、Boss 不晕）、全队技力 +0.4 秒；结束剑雨落在**最后一次冲刺的终点**，记在「剑雨」名下。
+3. **主控时冲刺不停顿**（`hold` 只给队友）：主控每 1.1 秒被钉 0.15 秒手感太差。主控冲刺位移照乌尔比安的写法带 0.12 秒无敌。
+4. **天赋同步冲刺**：她当队友时从自己的位置沿主控冲刺方向冲一次疾行斩；她当主控时不另行位移，跟着主控的冲刺扫一条线。伤害同疾行斩（含 S2 ×1.3）。
+5. S2「疾行斩 ×1.3」与节点「利刃 ×1.15」写成 `verb.buff_self dmg`，乘她全部伤害（含剑雨 / 剑雨滂沱），与浊心斯卡蒂节点写法一致。
+6. 「全队技力 +N 秒」只加给**除她以外**的队友（推进之王同），不吃技力回复倍率；单人开局招到人之前疾行斩回技力没有受益者。
+7. 普攻「穿过 ≥ 1 名 +0.6 秒」与天赋「穿过 ≥ 3 名再 +0.3 秒」都只认「疾行斩」来源的冲刺（含天赋同步冲刺），不认剑雨滂沱 / 回马剑。
+8. 回马剑：疾行斩（含天赋冲刺）结束 0.2 秒后从**当时的位置**沿反方向冲同样长度；她是主控时也带着主控反冲。
+9. 剑雨·连「重新瞄准」= 0.3 秒后以她当时脚下为中心。
+10. 精二「余像」对她所有冲刺生效（含剑雨滂沱、回马剑、天赋冲刺）。
+11. 选人页「攻击范围」读 `dash_len`（`initial_stats.gd` 的键表加一个）。
+12. **机器人**：高手（`--bot expert`）几乎不按冲刺（只在出圈时冲），所以标准档 expert 局里天赋几乎不触发；熟练（`--bot master`）会冲，Ⅳ / Ⅷ 局里天赋每 2–5 秒触发一次。docs/59 预期的「手残 vs 高手差距」在机器人口径里是 expert 与 master 的差别。
+
+### 13.3 接入登记
+
+`balance.json operators.texas`（A，全 0）、`lore.json`（docs/59 §8.8 档案）、`tools/balance_run.py OPS` 与预设 `texas_mate`、`sfx.gd OP_ALT`（普攻 ← 艾丽妮普攻 ×1.15，命中 ← 艾丽妮命中，S1 ← 艾丽妮 S1，S2 ← 推进之王 S2，S3 ← 艾丽妮 S3；没有新音频文件）。
+美术：Codex 正式帧条 `op_texas_*`（docs/64，返修 d954797d；发色 / 1x 徽记还在 Codex 返修中，换文件不用改 JSON），manifest 帧数 / fps / 出手帧（攻 5f14 / 1、技 7f12 / 3，脚底 (24, 46)）；
+技能图标 `skill_texas_s1..3`；特效 `fx_texas_dash`（锚在终点、朝冲刺方向、横向拉到冲刺长度）与 `fx_texas_blade`（剑雨撒 12 柄，错开起播），docs/25 §6。
+
+### 13.4 测试
+
+- 快检全量 rc=0（47 项）；`test_core` 加 `test_blocks_texas`：texas.json 通过校验，11 条反例（aim 写错、普攻不朝最近、缺宽度、主控属性不在白名单、瞬时冲刺放进常驻节点、常驻 dash_mod 放进触发器、触发积木放进技能 do、on_skill_end 带 delay、on_dash_end 的 src 没登记、残像 mult 超上限、fx_scatter 缺帧条）全部被拒，`tx_sustain` 的倍率累计与主控属性修正。
+- **老干员同 seed 不变**（对 texas-impl 合并底 70125472，`--trace=1`，10:00）：维什戴尔 + 铃兰 + 塞雷娅 seed 1、斯卡蒂 + 推进之王 + 凯尔希 seed 2、艾雅法拉 `--norecruit` seed 3、浊心斯卡蒂 + 流明 + 艾丽妮 Ⅷ 熟练 seed 4：TRACE 逐字节相同，BALANCE 只有 `bot.peak*`（画面峰值）不同。
+  单人开局自然招募（铃兰 seed 4）：TRACE 从 1:16 起分叉（招募池 14 → 15 人，抽卡结果变了），属预期。
+- 截图（开窗口，godot_runner 副屏）：`build/batch3_impl/texas/select_tab0..2/shot_oppick.png`（选人页三个页签）、`build/batch3_impl/texas/ingame/shot_*.png`（`--maxprog --sptest --realtime`，主控德克萨斯 + 维什戴尔 + 塞雷娅 seed 3：剑雨短剑、冲刺剑光、余像残线）。
+
+**本机冒烟（10-11，`--maxt=1000`，含超时口径；「她占全队」= 疾行斩 + 剑雨 + 剑雨滂沱 + 回马剑 + 余像 占全队 `out`）**
+
+| 组 | 胜 | 她占全队 | 备注 |
+|---|---|---|---|
+| 主控 · 标准 · 高手 seed 1–12 | **7 / 12（58%）** | 35%（20–56） | 输的 5 局死在 6:25–7:43 |
+| 主控 · Ⅷ · 熟练 seed 1–12 | **7 / 12（58%）** | 25%（11–42） | 熟练会冲刺，天赋常触发 |
+| 队友 · 标准 · 高手 `texas_mate` seed 1（7 局） | 4 / 7 | 20%（7–49） | 节奏位目标 20–35%；维什戴尔 7%、塞雷娅 49% 两头 |
+
+脚本错误 0。两档主控都在 50–70 里（12 局标准误约 ±14 点）。
+
+**云端整轮（同 skalter 口径：主控 56 局 × 三档、队友 7 名开局干员 × seed 1–8 × 三档、同提交 starts 对照）**：
+
+```bash
+# 主控：56 局 × 三档（seed 1–56）
+python tools/balance_run.py --game game --jobs 4 --op texas --bot expert --seeds 56 --seed0 1 --out build/cloud/tx-lead-t0 --tag tx-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op texas --bot master --seeds 56 --seed0 1 --out build/cloud/tx-lead-t1 --tag tx-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op texas --bot master --seeds 56 --seed0 1 --out build/cloud/tx-lead-t2 --tag tx-lead-t2 --extra="--maxt=1000 --tier=2"
+# 队友：7 名开局干员 × seed 1–8 = 56 局 × 三档
+python tools/balance_run.py --game game --jobs 4 --preset texas_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/tx-mate-t0 --tag tx-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset texas_mate --bot master --seeds 8 --seed0 1 --out build/cloud/tx-mate-t1 --tag tx-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset texas_mate --bot master --seeds 8 --seed0 1 --out build/cloud/tx-mate-t2 --tag tx-mate-t2 --extra="--maxt=1000 --tier=2"
+# 同提交对照：starts × seed 1–8 = 56 局 × 三档（招募池已含她）
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/tx-base-t0 --tag tx-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/tx-base-t1 --tag tx-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/tx-base-t2 --tag tx-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定：主控三档各 50–70；队友局她占全队 20–35%（docs/59 §7 节奏位）；对照推进之王单人同档差 ≤ 15 个百分点（docs/59 §2）。
+旋钮（docs/59 §2）：偏弱先加 `hit_sp`（0.6 → 0.8）再 `atk`；偏强先收 `talent_sp`（1.0 → 0.7）和 `s3_sp`；不动冲刺距离（手感）。
