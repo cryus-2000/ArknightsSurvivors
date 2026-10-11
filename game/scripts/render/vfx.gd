@@ -665,7 +665,7 @@ var _elite_seen := {}
 var _sight := {}               # docs/54 §7「首次入画」：精英 id → 登场动画起点（g.t）；fx/first_sight = 0 时不用
 var _merchant_seen := false     # 商人本次出现是否已入画（入画那一帧放出现特效）
 ## docs/54 §6 的五条帧条（tools/gen_fx_strips.py）：有图就用图，没图走下面各处原来的程序画法；fx/strips = 0 强制走程序画法
-const STRIPS := ["fx_beacon_ignite", "fx_ember", "fx_mire_dissolve", "fx_levelup_pillar", "fx_elite_spawn"]
+const STRIPS := ["fx_beacon_ignite", "fx_ember", "fx_mire_dissolve", "fx_levelup_pillar", "fx_elite_spawn", "fx_merchant_lantern"]
 
 ## world 视图（game.gd 的 world 成员与本文件互相 preload，带类型访问会解析失败，取动态引用）
 func _wv():
@@ -934,6 +934,21 @@ func watch_merchant(rd: float) -> void:
 			motes(g.merchant.pos + Vector2(-10, -34), Vector2.UP, Color(1.8, 1.3, 0.7, 0.8), 1, 25.0, 1.6, -12.0, 0.4, 2.0, 0.8, 6.0)
 	else:
 		_merchant_acc = 0.0
+
+
+## 商人灯笼亮度闪烁（docs/54 §6 最后一条，tools/gen_merchant_lantern.py）：按游戏时间的不规则节律在暗 / 亮两态间切换，
+## 不消耗随机数；world 的商人绘制按 [商人帧 × 2 + 亮] 叠画覆盖帧，update_visuals 同步抖一下 PointLight2D 能量
+func lantern_bright() -> bool:
+	return sin(g.t * 9.0) + 0.6 * sin(g.t * 23.7) > 0.45
+
+
+## 商人灯笼覆盖帧（贴图 fx_merchant_lantern 在且 fx/strips 开时才画；没有就只剩原来的 PointLight2D + 暖尘）
+func merchant_lantern(frame: int, pos: Vector2, flip: bool) -> void:
+	if not strip("fx_merchant_lantern") or not on("merchant_fx"):
+		return
+	var fr: int = frame * 2 + (1 if lantern_bright() else 0)
+	var hs: float = A.hires("fx_merchant_lantern")
+	spr_rot("fx_merchant_lantern", fr, pos, 0.0, Game.PX, Color.WHITE, Vector2(24, 45) * hs, flip)
 
 
 ## 加色层：柔光（glow，light 贴图）。draw_add_layer 调用
