@@ -867,7 +867,8 @@ func _process(delta: float) -> void:
 		res_sel = 0
 	else:
 		state_age += delta
-	Pad.context = "play" if state == S.PLAY else "game_menu"
+	if demo_op == "":
+		Pad.context = "play" if state == S.PLAY else "game_menu"   # 图鉴演示（SubViewport 里）不抢手柄映射：图鉴仍按标题页翻译 LB / RB / Ⓐ
 	if mode != Mode.PLAY:
 		_pm("")
 		autotest_sys.step()

@@ -111,7 +111,8 @@ func _ready() -> void:
 		if cd is Dictionary:
 			credits_data = cd
 	_op_layers()   # 选人页的信息面板 / 正文 / 浪幕子层（画在标题页自己的 _draw 之上）
-	add_child(preload("res://scripts/post_fx.gd").new())
+	post_fx = preload("res://scripts/post_fx.gd").new()
+	add_child(post_fx)
 	gallery = preload("res://scripts/gallery.gd").new()
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
@@ -132,7 +133,7 @@ func _ready() -> void:
 			gallery.demo_stage = int(dp[0])
 			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
 		if a.begins_with("--infotab="):
-			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（档案 / 技能 / 数值）
+			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（0 档案 / 1 技能 / 2 成长）
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
@@ -140,8 +141,18 @@ func _ready() -> void:
 			gallery._build()
 			if parts.size() > 1:
 				gallery.sel = int(parts[1])
+			for a2 in Cfg.dev_args():
+				if a2.begins_with("--galleryid="):
+					gallery.select_id(a2.substr(12))   # 按干员 / 条目 id 选（新干员加进来下标会变）
+				if a2.begins_with("--galleryfilter="):
+					gallery._set_filter(a2.substr(16))
+				if a2.begins_with("--galleryrow="):
+					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
+				if a2 == "--reducemotion":
+					Cfg.reduce_motion = true
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
+			gallery._follow()
 			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）；第 5 / 6 项：连拍张数 / 间隔秒（特效逐帧检查用）
 			var wait: float = float(parts[3]) if parts.size() > 3 else 1.2
 			var burst: int = int(parts[4]) if parts.size() > 4 else 1
@@ -200,12 +211,19 @@ func _ready() -> void:
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_guide.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--codexmotion"):
+		# 图鉴 C4' 动效录制（docs/58 §11.2 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/codexmotion/；
+		# 脚本：标题 → 斜切转场打开图鉴（维什戴尔）→ 换干员 ×2 → 换页签 ×2 → 敌人页（标本柜启辉）→ 换条目 → 回干员页 → 退出
+		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/codexmotion")
+		codex_motion = 0
 	if Cfg.dev_args().has("--opmotion"):
 		# 选人页动效录制（docs/58 §11 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/opmotion/；脚本：换人 ×2 → 换页签 → 换技能行 → 职业筛选 → 出击浪幕 → 难度页
 		_open_op_pick()
 		for a in Cfg.dev_args():
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
+			if a.begins_with("--opartk="):
+				op_art_k = float(a.substr(9))
 		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/opmotion")
 		op_motion = t
 	if Cfg.dev_args().has("--opshot"):
@@ -225,6 +243,8 @@ func _ready() -> void:
 				_op_follow(true)
 			if a.begins_with("--optab="):
 				op_tab = clampi(int(a.substr(8)), 0, 2)
+			if a.begins_with("--opartk="):
+				op_art_k = float(a.substr(9))
 			if a.begins_with("--opskill="):
 				op_skill = clampi(int(a.substr(10)), 0, 2)
 			if a.begins_with("--opfilter="):
@@ -421,6 +441,8 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 func _process(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible
+	if post_fx != null:
+		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
@@ -429,6 +451,8 @@ func _process(delta: float) -> void:
 		_op_tick(delta)
 	if op_motion >= 0.0:
 		_op_motion_tick()
+	if codex_motion >= 0:
+		_codex_motion_tick()
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
 	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
@@ -541,7 +565,7 @@ func _activate(i: int) -> void:
 		0:
 			transition.switch_page(_open_op_pick.bind(false))
 		1:
-			transition.switch_page(gallery.open)
+			transition.switch_slash(gallery.open)   # 图鉴 C4'：斜切黑带（黄前缘）转场，docs/58 §11.2
 		2:
 			if Cfg.can_boss_trial():
 				transition.switch_page(boss_trial.open)
@@ -942,6 +966,10 @@ const OP_TABS := ["属性", "技能", "编队"]
 const OP_TAB_EN := ["STATUS", "SKILL", "SQUAD"]
 const OP_STAGE := ["招募", "精英一", "精英二"]
 const OP_FADE := 0.12
+## 立绘倍数（相对 @2x 像素的整数倍，最近邻）：桌面设计稿用它，手机按 0.6 倍；原定稿 5（10-11 用户：「干员大小可以缩小点」→ 4）。
+## 描边英文名、外晕、脚底位置都按它和 5 的比例联动；--opartk=<k> 截图时临时覆盖（比较方案用）
+const OP_ART_K := 4.0
+var op_art_k := OP_ART_K
 const OP_DESK := Vector2(1280, 720)
 const OP_PHONE := Vector2(740, 360)
 var op_filter := ""              # 职业筛选（"" = 全部）
@@ -975,6 +1003,8 @@ var op_wipe_layer: Control       # 浪幕：最上层子控件，盖住选人页
 var op_bg := {}                  # 背景固定几何（浪纹、触须、灯火光点；固定种子的本地 RNG，只算一次）
 var op_glow_tex: Texture2D
 var op_motion := -1.0            # --opmotion：动效录制开始时刻
+var codex_motion := -1           # --codexmotion：已录帧数
+var post_fx: CanvasLayer
 
 
 func _op_layers() -> void:
@@ -1547,8 +1577,9 @@ func _op_bg_build(vs: Vector2) -> void:
 
 
 ## 立绘：待机帧（帧内非透明区并集）整数倍最近邻放大，底部 28 % 渐隐；换干员 60 ms 后 300 ms 缩放 0.92 → 1、右移 24 → 0、淡入，青白外晕随透明度出现
-## foot = 脚底中点（设计坐标），k2 = 相对 @2x 像素的倍数（桌面 5、手机 3）
-func _op_char(od: Dictionary, foot: Vector2, k2: float) -> void:
+## foot = 脚底中点（ci 的坐标），k2 = 相对 @2x 像素的整数倍（_op_fit 算）
+## clip = 舞台框：每一次贴图都裁进框里（缩放进入 / 右移 24 px / 外晕都不会画出框，兜底）
+func _op_char(ci: CanvasItem, od: Dictionary, foot: Vector2, k2: float, clip: Rect2) -> void:
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return
@@ -1566,15 +1597,15 @@ func _op_char(od: Dictionary, foot: Vector2, k2: float) -> void:
 	var cut := floorf(bb.size.y * 0.72)
 	if od.sil != null:
 		var gsrc := Rect2(src.position, Vector2(src.size.x, cut))
-		for ring in [4.0, 8.0, 12.0]:
+		for ring in [4.0 * k2 / 5.0, 8.0 * k2 / 5.0, 12.0 * k2 / 5.0]:
 			for d in 8:
 				var dv: Vector2 = Vector2.from_angle(TAU * d / 8.0) * ring
-				draw_texture_rect_region(od.sil, Rect2(pos + dv, Vector2(sz.x, cut * k)), gsrc, Color(150 / 255.0, 220 / 255.0, 240 / 255.0, (0.03 if ring < 6.0 else 0.018) * a))
-	draw_texture_rect_region(tx, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), Color(1, 1, 1, a))
+				UI.blit_clipped(ci, od.sil, Rect2(pos + dv, Vector2(sz.x, cut * k)), gsrc, clip, Color(150 / 255.0, 220 / 255.0, 240 / 255.0, (0.03 if ring < 6.0 else 0.018) * a))
+	UI.blit_clipped(ci, tx, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, Color(1, 1, 1, a))
 	var rows: int = int(bb.size.y - cut)
 	for y in rows:
 		var f := 1.0 - (y + 0.5) / float(rows)
-		draw_texture_rect_region(tx, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), Color(1, 1, 1, a * f))
+		UI.blit_clipped(ci, tx, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), clip, Color(1, 1, 1, a * f))
 
 
 ## 换干员：新色带从左扫入盖住旧色带（380 ms）；减少动态效果时两带 120 ms 交叉淡化
@@ -1628,8 +1659,10 @@ func _op_draw_desk(od: Dictionary) -> void:
 	var col: Color = od.col
 	var d: Dictionary = od.def
 	_op_band(H, 0.0, 1.0, col)
-	UI.ghost_name(self, font, Vector2(380, 78), od.en, _op_name_frac(), 150)
-	_op_char(od, Vector2(760, 580), 5.0)
+	# 立绘缩小时：脚底略上提、描边英文名同比缩小并下移，仍压在立绘上半身后面
+	var ar := op_art_k / 5.0
+	UI.ghost_name(self, font, Vector2(380 + (1.0 - ar) * 60.0, 78 + (1.0 - ar) * 150.0), od.en, _op_name_frac(), int(round(150 * (0.5 + 0.5 * ar))))
+	_op_draw_art(od)
 	# 顶栏：节点标签条式标题 + 说明 + 难度 / 封面标签 + 返回
 	draw_rect(Rect2(0, 0, W, 54), Color(4 / 255.0, 8 / 255.0, 18 / 255.0, 0.55))
 	_op_hline(54.5, W)
@@ -1702,7 +1735,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 		var r := Rect2(92 + i * 94, 460, 84, 56)
 		if i == 0:
 			UI.bpanel(self, r, true, true, 1.0, UI.VIOLET)
-			_op_mini(od, Vector2(r.position.x + 4, r.end.y - 4), 1.0, 46.0, 38.0)
+			_op_mini(od, Rect2(r.position.x + 2, r.position.y + 2, 46, r.size.y - 4))
 			UI.rbox(self, Rect2(r.position.x + 2, r.position.y + 2, 32, 13), 3, UI.VIOLET)
 			UI.text_at(self, font, Vector2(r.position.x + 18, r.position.y + 8.5), "封面" if cover_pick else "主控", 10, Color.WHITE, "mm")
 			var mf := UI.fit_line(font, od.name, 10, 42.0, 8)
@@ -1760,8 +1793,9 @@ func _op_draw_phone(od: Dictionary) -> void:
 	var H := OP_PHONE.y
 	var col: Color = od.col
 	_op_band(H, -150.0, 0.6, col)
-	UI.ghost_name(self, font, Vector2(150, 40), od.en, _op_name_frac(), 90, Color(0.745, 0.824, 1.0, 0.18), 2)
-	_op_char(od, Vector2(380, 312), 3.0)
+	var ar := op_art_k / 5.0
+	UI.ghost_name(self, font, Vector2(150 + (1.0 - ar) * 40.0, 40 + (1.0 - ar) * 70.0), od.en, _op_name_frac(), int(round(90 * (0.5 + 0.5 * ar))), Color(0.745, 0.824, 1.0, 0.18), 2)
+	_op_draw_art(od)
 	UI.rbox(self, Rect2(8, 6, 142, 22), 3, UI.VIOLET)
 	UI.text_at(self, font, Vector2(16, 17), "更换封面干员" if cover_pick else "选择开局干员", 13, Color.WHITE, "lm")
 	var back := Rect2(W - 66, 6, 56, 22)
@@ -1823,21 +1857,45 @@ func _op_draw_phone(od: Dictionary) -> void:
 	_op_deploy(Rect2(W - 200, H - 62, 186, 48), 18, "")
 
 
-## 编队位里的小像（待机帧并集区 1:1 @2x 像素 × k）
-func _op_mini(od: Dictionary, foot_left: Vector2, k: float, max_h := 0.0, max_w := 0.0) -> void:
+## 编队位里的小像：@2x 像素 1:1（整数倍、不糊），头顶对齐框顶 + 2，画成半身像——超出框的下半身 / 左右裁掉，不出框
+func _op_mini(od: Dictionary, box: Rect2) -> void:
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return
 	_op_art(od)
 	var bb: Rect2 = od.bb
 	var fw: float = tx.get_width() / float(od.frames)
-	var s: float = k * 2.0 / float(od.hires)
-	if max_h > 0.0:
-		s = minf(s, max_h / bb.size.y)
-	if max_w > 0.0:
-		s = minf(s, max_w / bb.size.x)
+	var s: float = 2.0 / float(od.hires)
 	var fr: int = int(t * 4.0) % int(od.frames)
-	draw_texture_rect_region(tx, Rect2(foot_left - Vector2(0, bb.size.y * s), bb.size * s), Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y))
+	var dst := Rect2(box.get_center().x - bb.size.x * s / 2.0, box.position.y + 2.0, bb.size.x * s, bb.size.y * s)
+	UI.blit_clipped(self, tx, dst, Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y), box)
+
+
+## 立绘舞台（设计坐标）：顶栏以下、名册带以上、信息面板以左；手机：名册列以右、信息面板以左
+func _op_stage_rect() -> Rect2:
+	if _touch_mode():
+		return Rect2(146, 34, 462 - 146, OP_PHONE.y - 4 - 34)
+	return Rect2(600, 56, 962 - 600, 544 - 56)
+
+
+## 立绘适配：在舞台里（四边留 margin）取 ≤ 上限的最大整数倍，使待机帧并集区整个放得下；返回 [倍数（@2x 像素）, 脚底中点]
+## 上限：桌面 op_art_k（4），手机 op_art_k × 0.6 取整（2）；中心先放在设计稿位置，放不下再往舞台里挪
+func _op_fit(od: Dictionary, ph: bool) -> Array:
+	_op_art(od)
+	var sr := _op_stage_rect()
+	var m := 8.0
+	var bb: Rect2 = od.bb
+	var hi: float = float(od.get("hires", 1.0))
+	var w2: float = bb.size.x * 2.0 / hi
+	var h2: float = bb.size.y * 2.0 / hi
+	var foot_y: float = (312.0 if ph else sr.end.y - m)
+	return UI.art_fit(w2, h2, sr, op_art_k * (0.6 if ph else 1.0), 380.0 if ph else 780.0, foot_y, m)   # 图鉴 C4' 同一规则
+
+
+## 立绘：适配倍数 + 裁进舞台框（画在描边英文名之后、名字块之前，层次同定稿）
+func _op_draw_art(od: Dictionary) -> void:
+	var fit := _op_fit(od, _touch_mode())
+	_op_char(self, od, fit[1], fit[0], _op_stage_rect())
 
 
 ## 信息面板框 + 页签（子控件 op_panel 画，设计坐标）
@@ -2108,3 +2166,25 @@ func _op_motion_tick() -> void:
 	op_motion_frame += 1
 	if rt > 8.6:
 		get_tree().quit()
+
+
+## --codexmotion：按帧号驱动（--fixed-fps 30 下一帧 = 1/30 秒），每帧存一张图
+func _codex_motion_tick() -> void:
+	var f := codex_motion
+	var steps := {15: func(): transition.switch_slash(_codex_motion_open), 75: func(): gallery._step(1), 112: func(): gallery._step(1),
+		150: func(): gallery._set_info(2), 186: func(): gallery._set_info(1), 222: func(): gallery._set_info(0),
+		260: func(): gallery._set_tab(1), 305: func(): gallery._step(1), 340: func(): gallery._step(1),
+		378: func(): gallery._set_tab(0)}
+	if steps.has(f):
+		steps[f].call()
+	if f > 0:
+		get_viewport().get_texture().get_image().save_png(_shot_dir() + "/codexmotion/%04d.png" % f)
+	codex_motion += 1
+	if codex_motion > 430:
+		get_tree().quit()
+
+
+func _codex_motion_open() -> void:
+	gallery.open()
+	gallery.select_id("wisadel")   # 打开时选维什戴尔（概念图同一位干员）
+	gallery._restart_open()

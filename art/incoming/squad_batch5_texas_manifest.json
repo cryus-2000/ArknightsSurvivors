@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_texas_idle.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "7ec4850f859340df1ba95653362597b2794962a9b2b7fe021bc30fc0ce8e37cc"
+    },
+    {
+      "file": "op_texas_idle@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "88169bb77a2b5c8d5865e5f6a055cd2a68cb27dead1c93f90659278a181ae32d"
+    },
+    {
+      "file": "op_texas_run.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "47537befae17eeb0f787b6d619767e2898c4eee3efd7bdef6412e80f86bb550e"
+    },
+    {
+      "file": "op_texas_run@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "edf328118c1ed5401b100c3074744ebaab5a5113aa6974f5ec19d67d95080a8d"
+    },
+    {
+      "file": "op_texas_attack.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 1,
+      "sha256": "fc75212daa70c6f72af4fba5fdbc28ab294e2c2ef16f168d439da23f97231123"
+    },
+    {
+      "file": "op_texas_attack@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 2,
+      "sha256": "4067f198d88b9738ef1b1477f1c3acdfc9c479694a3d50dc4c24f38256fc885a"
+    },
+    {
+      "file": "op_texas_skill.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "a78fd81fc66d85148036f773c2616a3079c0ae3b360045c8b666ef82d4dd5872"
+    },
+    {
+      "file": "op_texas_skill@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "dbec0094dbe625c9898943f5f9eb9517f2f38e1321b47dfcfdf6f500f9f077ee"
+    }
+  ]
+}

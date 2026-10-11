@@ -1243,7 +1243,7 @@ func enemy_scale(e: Dictionary) -> float:
 ## 能缓存的敌人把「贴图名 / 帧数 / 帧率 / 颜色 / 缩放 / 锚点偏移 / 描边开关」存在 e.dc，签名变了才重算（_dc_compute）；
 ## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
 ## 不进缓存、走 _draw_enemy_full 原路径（_dc_ok）：Boss、宝箱、部件、潜地、骑士（专用帧条）、DC_SKIP_TYPES，
-## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口里的敌人。
+## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 / 灯边硬直（bstag，docs/56 §10）里的敌人。
 ## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、outline_skip、Cfg.outline。
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
 const DC_SKIP_TYPES := ["carmen", "iberia", "izumik", "path", "ishar", "paranoia"]
@@ -1274,6 +1274,8 @@ func _dc_ok(e: Dictionary) -> bool:
 		return false
 	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
 		return false
+	if e.get("bstag", 0.0) > 0.0:
+		return false   # 灯边硬直（docs/56 §10）：和眩晕同样的偏蓝、停帧，走原路径画（缓存签名只认 e.stun）
 	if e.tex == "e_knight" or e.type in DC_SKIP_TYPES:
 		return false
 	# 攻击帧条（atk_anim）：出手后窗口、远处举肢、射击蓄力时帧号跟着计时器走，交给原路径
@@ -1412,7 +1414,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
 			e.mv_until = g.t + 0.2
 		e.dpos = e.pos
-		if g.t < e.mv_until and e.stun <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
+		if g.t < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = 4
 			var fps: float = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
@@ -1494,7 +1496,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if e.flash > 0.0:
 			g.vfx.spr(name + "_white", 2, 0, e.pos, Game.PX, false, Color(1, 1, 1, 0.9))
 		return
-	if e.stun > 0.0:
+	if e.stun > 0.0 or e.get("bstag", 0.0) > 0.0:   # 灯边硬直（docs/56 §10）复用眩晕的偏蓝
 		col = col * Color(0.65, 0.75, 1.0)
 	if rage_fx:
 		var rp: float = 0.5 + 0.5 * sin(g.t * 10.0 + e.id)
@@ -1720,6 +1722,15 @@ func draw_enemy_tells() -> void:
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
 			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), 10.0, wk, ENEMY_TELL, e.get("tell_dim", false))
+		# 灯边硬直（docs/56 §10）：头顶一颗暖色小光点 + 绕着转的两粒光屑，读作「被灯光震住」，随剩余时间淡出
+		var bst: float = e.get("bstag", 0.0)
+		if bst > 0.0:
+			var ba: float = clampf(bst / 0.3, 0.0, 1.0)
+			var bt: Vector2 = e.pos + Vector2(0, -e.r - 14.0)
+			g.draw_circle(bt, 3.0, Color(1.9, 1.5, 0.8, 0.85 * ba))
+			for k in 2:
+				var bo: Vector2 = Vector2.from_angle(g.t * 9.0 + PI * k) * Vector2(9.0, 3.5)
+				g.draw_circle(bt + bo, 1.6, Color(1.9, 1.5, 0.8, 0.7 * ba))
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
