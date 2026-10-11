@@ -184,9 +184,25 @@ func _ready() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--settingstab="):
 				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
-		get_tree().create_timer(1.0).timeout.connect(func():
+		for a in Cfg.dev_args():
+			if a.begins_with("--settingssel="):
+				settings.sel = int(a.substr(14))   # 截图自测：选中第几行（触屏会自动滚到可见）
+				settings._follow()
+			if a.begins_with("--settingsscroll="):
+				settings.set_scroll(float(a.substr(17)))   # 截图自测：触屏列表滚动量（像素，超出自动截到底）
+		var frames := 0   # --shotframe=N：等 N 帧再截（配 --fixed-fps 做逐像素对照）；缺省等 1 秒
+		for a in Cfg.dev_args():
+			if a.begins_with("--shotframe="):
+				frames = int(a.substr(12))
+		var snap := func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_settings.png")
-			get_tree().quit())
+			get_tree().quit()
+		if frames > 0:
+			for k in frames:
+				await get_tree().process_frame
+			snap.call()
+		else:
+			get_tree().create_timer(1.0).timeout.connect(snap)
 	if Cfg.dev_args().has("--guideshot"):
 		# 操作说明页截图（手机设置页改版 10-06 验收用）
 		guide = true
