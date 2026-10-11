@@ -1,0 +1,102 @@
+{
+  "palette": [
+    "#20180c",
+    "#494334",
+    "#876018",
+    "#ddb12f",
+    "#ffd452",
+    "#ffe69a",
+    "#fff7d8",
+    "#17150f",
+    "#40321a"
+  ],
+  "palette_override": "User 2026-10-12: golden yellow replaces docs/70 vermilion",
+  "source_sha256": "825befa2ef6d114868fa4ab3f0bd74c15a9fe91017852190048a9f899aa609b1",
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "fx_texas_blade",
+      "frame_size": [
+        16,
+        40
+      ],
+      "frames": 6,
+      "anchor": [
+        8,
+        38
+      ],
+      "anchor_2x": [
+        16,
+        76
+      ],
+      "timing": {
+        "fall_fps": 20,
+        "fall_frames": [
+          0,
+          1
+        ],
+        "stick_frames": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "stick_seconds": 0.35
+      }
+    },
+    {
+      "name": "fx_texas_rain_hit",
+      "frame_size": [
+        32,
+        24
+      ],
+      "frames": 5,
+      "anchor": [
+        16,
+        20
+      ],
+      "anchor_2x": [
+        32,
+        40
+      ],
+      "timing": {
+        "fps": 24,
+        "loop": false
+      }
+    },
+    {
+      "name": "fx_texas_rain_mark",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 6,
+      "anchor": [
+        12,
+        6
+      ],
+      "anchor_2x": [
+        24,
+        12
+      ],
+      "timing": {
+        "fps": null,
+        "warning_frames": [
+          0,
+          1,
+          2
+        ],
+        "warning_seconds": 0.12,
+        "scorch_frames": [
+          3,
+          4,
+          5
+        ],
+        "scorch_seconds": [
+          0.3,
+          0.6
+        ]
+      }
+    }
+  ]
+}
