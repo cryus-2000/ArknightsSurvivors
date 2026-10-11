@@ -21,6 +21,7 @@ var _mods: Array = []                  # 已写进 g.stats 的修正 [stat, op, 
 var _acc: Dictionary = {}              # 常驻积木的累计器（_uid → 秒）
 var _state: Dictionary = {}            # 常驻积木的状态（软减速的位置记忆、绕行体角度）
 var _warned := {}
+var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -60,7 +61,7 @@ func skill_on(i: int) -> bool:
 
 
 func skill_active_left(i: int) -> float:
-	return s_t[i]
+	return maxf(s_t[i], OB.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
 func skill_active_dur(i: int) -> float:
@@ -110,6 +111,7 @@ func update(dt: float) -> void:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
 	_tick_pending(dt)
 	_sustain(dt)
+	OB.exu_tick(self, dt)   # 能天使挂钩（docs/61 §11）：技能 end、普攻锁、连射队列、弹体
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -129,6 +131,8 @@ func update(dt: float) -> void:
 		"cone":
 			var r2: float = OB.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+		"projectile":   # 能天使挂钩（docs/61 §11）：手动普攻 B 类
+			at = OB.exu_aim(self, a)
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
@@ -307,6 +311,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				elif not _warned.has(fn):
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
+			_:   # 能天使挂钩（docs/61 §11）：shape.projectile / verb.counter / verb.attack_lock
+				OB.exu_exec(self, b, at)
 
 
 # ---------------------------------------------------------------- 出手
@@ -335,6 +341,8 @@ func _release_skill() -> void:
 	var dv = sb.get("dur", 0.0)
 	if dv is String and dv == "permanent":
 		perm_on[i] = true
+	elif dv is Dictionary:   # 能天使挂钩（docs/61 §11）：dur.ammo
+		OB.exu_skill_shell(self, i, dv)
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
@@ -394,3 +402,13 @@ func _find_uid(u: int) -> Dictionary:
 
 func stats_rows() -> Array:
 	return [["区域半径", "%d" % int(zr)], ["伤害倍率", "×%.2f" % float(loc.dmg)]]
+
+
+# ---------------------------------------------------------------- 能天使（docs/61 §11）：弹体与状态条（实现在 op_blocks.gd 末尾）
+
+func _draw_skill_over() -> void:
+	OB.exu_draw(self)
+
+
+func status_items() -> Array:
+	return OB.exu_status_items(self)

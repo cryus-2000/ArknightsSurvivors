@@ -40,7 +40,10 @@ const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill"
 const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	# 浊心斯卡蒂（docs/61，数据干员，暂无专属音）：普攻借铃兰低八度的吟唱，技能借流明 / 铃兰 / 凯尔希的发动音（docs/28 加新干员前的借用）
 	"op_skalter_atk": ["op_suzuran_atk", 0.75, -3.0], "op_skalter_s1": ["op_lumen_s1", 0.85, 0.0],
-	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0]}
+	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0],
+	# 能天使（docs/61 §11，数据干员，暂无专属音）：普攻借维什戴尔炮声升调成轻脆的枪声，命中借艾丽妮，技能借艾丽妮 / 维什戴尔，弹匣倾泻借维什戴尔重炮
+	"op_exusiai_atk": ["op_wisadel_atk", 1.9, -6.0], "op_exusiai_hit": ["op_irene_hit", 1.3, -4.0], "op_exusiai_s1": ["op_irene_s1", 1.15, 0.0],
+	"op_exusiai_s2": ["op_wisadel_s2", 1.3, 0.0], "op_exusiai_s3": ["op_wisadel_s3", 1.2, 0.0], "op_exusiai_big": ["op_wisadel_big", 1.5, -3.0]}
 ## 通用音缺文件时的借用（docs/53 §5 的三个材质 / 重击层，正式文件已由 tools/gen_sfx_hitfeel.py 合成；[音名, 音高倍率, 音量偏移 dB]，
 ## 偏移按调用处的音量算成和原顶替一样：kill_big −8 → mire_splat −9 ×0.85，kill_shell −6 → hit −6 ×0.6，hurt_heavy −8 → boom −10 ×0.7）
 const ALT := {"kill_big": ["mire_splat", 0.85, -1.0], "kill_shell": ["hit", 0.6, 0.0], "hurt_heavy": ["boom", 0.7, -2.0]}
