@@ -1,0 +1,554 @@
+{
+  "passed": true,
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_idle.png",
+      "sha256": "ac4c6ce8d08fd6b2bdc699e17336da80563a8059fd11a45387124041255ffaff",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "pixel_sha256": "f5409352fbc3e6c07bfeb2e1957d14ec3363b637de545c5685e315a58ecdb021",
+          "opaque_pixels": 735
+        },
+        {
+          "index": 1,
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "pixel_sha256": "ac0b6b7f8c6c85287d42db792bb8e84c3f7d32dd3278e9c25bbcd756cf4b47dc",
+          "opaque_pixels": 735
+        },
+        {
+          "index": 2,
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "pixel_sha256": "50576e8072d17042c1db8e1c7388e6cf38b1e7954650f5081d7b35e9334e9d60",
+          "opaque_pixels": 735
+        },
+        {
+          "index": 3,
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "pixel_sha256": "a166b3c0972f278f13b699fdcda7a15af3e8d4df20d9575786adfe126976d494",
+          "opaque_pixels": 735
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_idle@2x.png",
+      "sha256": "ff97b7785db2da071902f2da3bff125ccf225f0a70effccec9ece299a9d8cfe8",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ],
+          "pixel_sha256": "01832f097c8b71c377a5d50ccd7d5fdcde641d636c33a7da68934a7523eac216",
+          "opaque_pixels": 2981
+        },
+        {
+          "index": 1,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ],
+          "pixel_sha256": "a04cd4b2d41246910f8f2f35c7844f51e50de75a384a447d367572c5b735e8ec",
+          "opaque_pixels": 2981
+        },
+        {
+          "index": 2,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ],
+          "pixel_sha256": "2e09802f35334270ea6279480474b543d0ea9c67767ec4228364d58f3f937879",
+          "opaque_pixels": 2981
+        },
+        {
+          "index": 3,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ],
+          "pixel_sha256": "91861543f706e222791a7a9e4a445e9e3c7392504a52f0b0b480bf57ce38cbcb",
+          "opaque_pixels": 2981
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_run.png",
+      "sha256": "76101df202fbaa1947b053b388e06b6ee488fd8c1abede85d5e323f9874b713a",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            7,
+            13,
+            40,
+            46
+          ],
+          "pixel_sha256": "1d8bdff9df839effae4694ac72c42fad108eea84887f34cf389623eb70477083",
+          "opaque_pixels": 662
+        },
+        {
+          "index": 1,
+          "bbox": [
+            7,
+            14,
+            40,
+            46
+          ],
+          "pixel_sha256": "299c9c8e915132e7b17cdf27e249b3c1032929f5324d0a01d4a7a03fa494ffee",
+          "opaque_pixels": 648
+        },
+        {
+          "index": 2,
+          "bbox": [
+            6,
+            12,
+            41,
+            46
+          ],
+          "pixel_sha256": "34e9b22b2a46e3ed6516ad98d7da10b5846881441259f5028baf0020893fc575",
+          "opaque_pixels": 684
+        },
+        {
+          "index": 3,
+          "bbox": [
+            7,
+            12,
+            40,
+            46
+          ],
+          "pixel_sha256": "1a4db32d705e112921002c454691aa558c0ceab5ea39ea2d43c20405272d30e7",
+          "opaque_pixels": 657
+        },
+        {
+          "index": 4,
+          "bbox": [
+            7,
+            13,
+            39,
+            46
+          ],
+          "pixel_sha256": "0c740c4f90b06ce32728770be660098e3a48bae0106e061bf4a163666d7595ab",
+          "opaque_pixels": 647
+        },
+        {
+          "index": 5,
+          "bbox": [
+            7,
+            11,
+            40,
+            46
+          ],
+          "pixel_sha256": "fd4c328dc28108f4563c4b9167bfb93d10c6081ac23c360dda997c318402e5cf",
+          "opaque_pixels": 689
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_run@2x.png",
+      "sha256": "93ad39e6e42a371569ab0b9d6c262163d673abc29bcb45885209a74130b65b88",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            14,
+            24,
+            81,
+            92
+          ],
+          "pixel_sha256": "0811faf5e3b8a1ed2133e33bfe29dab77b14e4144b0bd70e38915ae77276bf82",
+          "opaque_pixels": 2720
+        },
+        {
+          "index": 1,
+          "bbox": [
+            14,
+            24,
+            81,
+            92
+          ],
+          "pixel_sha256": "125736cf38f4ae24a4398303a01a0de21e1797396527ab73f0f3545dc9240964",
+          "opaque_pixels": 2651
+        },
+        {
+          "index": 2,
+          "bbox": [
+            12,
+            24,
+            83,
+            92
+          ],
+          "pixel_sha256": "73d184c9ce5eca6383b70f69ee276b0d01a6d7acdc0b839c5a7db5a22420286e",
+          "opaque_pixels": 2722
+        },
+        {
+          "index": 3,
+          "bbox": [
+            14,
+            24,
+            81,
+            92
+          ],
+          "pixel_sha256": "e39397626d6ebff3933a7f3363ef47bdc0419da14d675dfa8521be06098b8e3e",
+          "opaque_pixels": 2612
+        },
+        {
+          "index": 4,
+          "bbox": [
+            15,
+            25,
+            80,
+            92
+          ],
+          "pixel_sha256": "0ac8d177d1744eb76dda5c1135c3315af3957f40dca104a6d48f9e5286480f6a",
+          "opaque_pixels": 2559
+        },
+        {
+          "index": 5,
+          "bbox": [
+            14,
+            23,
+            81,
+            92
+          ],
+          "pixel_sha256": "936585ed69482ecbf0bc75a05cea9f7c9fa8835927f96c31c0fbe7b6533f4fc7",
+          "opaque_pixels": 2730
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_attack.png",
+      "sha256": "5114f61f4d1577a7a4a83f90d9d5e81d6aef1b8370fd276dea63e563bd9de705",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            8,
+            12,
+            39,
+            46
+          ],
+          "pixel_sha256": "a88f770cb4f8f8da52d20216be947b133f2f9b031d5409780af265a346c6a2da",
+          "opaque_pixels": 688
+        },
+        {
+          "index": 1,
+          "bbox": [
+            6,
+            12,
+            40,
+            46
+          ],
+          "pixel_sha256": "91cb3c51cd6cf953d9c6f20a8344a5b80c5060f01640648220b83b40eda13f3c",
+          "opaque_pixels": 675
+        },
+        {
+          "index": 2,
+          "bbox": [
+            3,
+            6,
+            44,
+            46
+          ],
+          "pixel_sha256": "8d083ea8914ff9ff87bd432695681888bcfef9befdfd7014425d1362d04a5996",
+          "opaque_pixels": 792
+        },
+        {
+          "index": 3,
+          "bbox": [
+            7,
+            14,
+            40,
+            46
+          ],
+          "pixel_sha256": "62969718f6339ffe7541e0e0d566d57efb0b7fd71012e788c1f852a28c168dcb",
+          "opaque_pixels": 633
+        },
+        {
+          "index": 4,
+          "bbox": [
+            8,
+            12,
+            39,
+            46
+          ],
+          "pixel_sha256": "852cf29ff2082cd4cc9a0a27f9bd660d92f9c6a352c010e0ec4acdba3d9a0372",
+          "opaque_pixels": 675
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_attack@2x.png",
+      "sha256": "4d13369d2817c1852ec44886e4e26fe85af8bdfa379a0668a690cd9794ae9a0c",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            16,
+            23,
+            79,
+            92
+          ],
+          "pixel_sha256": "7b51e78df70a167d932846b528ecfad5e2655ad7c0effd7db0e8c89b22a317e8",
+          "opaque_pixels": 2794
+        },
+        {
+          "index": 1,
+          "bbox": [
+            12,
+            22,
+            82,
+            92
+          ],
+          "pixel_sha256": "519ee0ed4fb34668ce1ee916710fbde7afec907b3a9739b6bbfe7b42f3768c79",
+          "opaque_pixels": 2773
+        },
+        {
+          "index": 2,
+          "bbox": [
+            6,
+            12,
+            89,
+            92
+          ],
+          "pixel_sha256": "f8f3e2101b0bf5c67fa0f0eeeca4d59ec349c5082c671878a56cee27bc9a4fa3",
+          "opaque_pixels": 3155
+        },
+        {
+          "index": 3,
+          "bbox": [
+            14,
+            26,
+            81,
+            92
+          ],
+          "pixel_sha256": "2ef3d57bedbaed62cf0c254109bdea717f0579d2bd354c9683a41faa41322868",
+          "opaque_pixels": 2626
+        },
+        {
+          "index": 4,
+          "bbox": [
+            16,
+            23,
+            79,
+            92
+          ],
+          "pixel_sha256": "b930e037dcd2836c59cb5423733154f3556636db1c3e0a63710f593e6d743286",
+          "opaque_pixels": 2719
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_skill.png",
+      "sha256": "d39cb585d3b32757f5e163df8a5baedebc7782ea96aa555f5501e2c690bac150",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            9,
+            11,
+            37,
+            46
+          ],
+          "pixel_sha256": "7013703919d65df646f9c6cdb28cd4c70ff768ae08d0edec19c7fb7455839600",
+          "opaque_pixels": 654
+        },
+        {
+          "index": 1,
+          "bbox": [
+            7,
+            7,
+            39,
+            46
+          ],
+          "pixel_sha256": "5191515e9f15bba947d0c42e7e7a8b5371a82304fc1c01f25f93addb49feb264",
+          "opaque_pixels": 741
+        },
+        {
+          "index": 2,
+          "bbox": [
+            7,
+            7,
+            39,
+            46
+          ],
+          "pixel_sha256": "e4818bc8ec4b527d783ad5e0a9b54ed5ec0aed49e86bc4114c41807a49fb21a7",
+          "opaque_pixels": 749
+        },
+        {
+          "index": 3,
+          "bbox": [
+            7,
+            7,
+            39,
+            46
+          ],
+          "pixel_sha256": "2925920d3b1f7216a6b3266ca20591a448ff5de5d2b807413c973348276eb1d9",
+          "opaque_pixels": 844
+        },
+        {
+          "index": 4,
+          "bbox": [
+            7,
+            9,
+            40,
+            46
+          ],
+          "pixel_sha256": "83b26c71b1b17c133e7db2a6f579ee7a7f9fd70758eaf84ca016c3a21e8abe2b",
+          "opaque_pixels": 829
+        },
+        {
+          "index": 5,
+          "bbox": [
+            9,
+            10,
+            37,
+            46
+          ],
+          "pixel_sha256": "b627543af2901fe806f054d280ed57e6297db3fa7ad2d84fa20b66b1b66f5877",
+          "opaque_pixels": 719
+        },
+        {
+          "index": 6,
+          "bbox": [
+            8,
+            12,
+            38,
+            46
+          ],
+          "pixel_sha256": "f5409352fbc3e6c07bfeb2e1957d14ec3363b637de545c5685e315a58ecdb021",
+          "opaque_pixels": 735
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_angelina_skill@2x.png",
+      "sha256": "670cc2546126598b3bb4e668025c54b874e210abe586012f0eacb6a1e996cda6",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            19,
+            20,
+            76,
+            92
+          ],
+          "pixel_sha256": "11df26cc1bceb1cc9130069d5f0ee88a7892580ca058224acbb7c90b694986c1",
+          "opaque_pixels": 2683
+        },
+        {
+          "index": 1,
+          "bbox": [
+            14,
+            13,
+            80,
+            92
+          ],
+          "pixel_sha256": "42083cecd743fc86436789c9e52c5e4de0e06062adacb19e68ad7a29858bcd9f",
+          "opaque_pixels": 3010
+        },
+        {
+          "index": 2,
+          "bbox": [
+            14,
+            13,
+            80,
+            92
+          ],
+          "pixel_sha256": "e13c39fb8e49a21459f9a81e7c5a598cd909ec5839be42d77dc3b0c2ea87eb57",
+          "opaque_pixels": 3051
+        },
+        {
+          "index": 3,
+          "bbox": [
+            14,
+            14,
+            80,
+            92
+          ],
+          "pixel_sha256": "d66ab070f2da679cccc2605772838e85506d00d3a474bf7f76817e32f5abe8e9",
+          "opaque_pixels": 3377
+        },
+        {
+          "index": 4,
+          "bbox": [
+            14,
+            17,
+            81,
+            92
+          ],
+          "pixel_sha256": "4cb3e92ef6592affb791140413c55f1ab02ed172d1252346bbff0c4d585f0fbb",
+          "opaque_pixels": 3393
+        },
+        {
+          "index": 5,
+          "bbox": [
+            19,
+            20,
+            76,
+            92
+          ],
+          "pixel_sha256": "6dd73ac9387b7e18569c9131ec47388b0cdab22e68cdb3981381e5c777ba6630",
+          "opaque_pixels": 2836
+        },
+        {
+          "index": 6,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ],
+          "pixel_sha256": "01832f097c8b71c377a5d50ccd7d5fdcde641d636c33a7da68934a7523eac216",
+          "opaque_pixels": 2981
+        }
+      ]
+    }
+  ]
+}

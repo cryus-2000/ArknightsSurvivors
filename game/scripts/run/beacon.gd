@@ -18,6 +18,7 @@ var g: Game
 var next_at := -1.0      # 下一座灯标的刷新时刻（< 0：自然溟痕还没开始）
 var charging = null      # 本帧主控正在读条的那座灯标（未点燃、主控在光圈内、进度在涨）；圈内安全读它（docs/49g）
 var guide = null         # 本帧「引路」生效的那座灯标（未点燃、寿命 < beacon/guide_life、beacon/guide_r > 0）；圈内安全外扩读它（docs/56 候选 a）
+var stagger = null       # 本帧「灯边硬直」生效的那座灯标（未点燃、主控在它 beacon/stagger_r 内、stagger_r > 0）；enemy_ai 近战起手读它（docs/56 §10）
 var lit_n := 0           # 本局点燃数（平衡输出）
 var spawned_n := 0
 
@@ -33,6 +34,7 @@ func _k(key: String, d: float) -> float:
 func update(dt: float) -> void:
 	charging = null
 	guide = null
+	stagger = null
 	if _k("enabled", 1.0) <= 0.0 or g.demo_op != "" or g.trial.active:
 		return
 	# 自动测试：每 60 秒记一次场上溟痕数（溟痕存量）
@@ -80,12 +82,17 @@ func update(dt: float) -> void:
 			var md: float = float(b.get("min_d", INF))
 			var quit := "none" if md >= Bal.v("bot/beacon_seek_r", 300.0) else ("approach" if md >= 2.0 * r else "edge")
 			# maxp = 寿命内最高进度（占需要量）、in_s / relay_s = 在光圈 / 接力环里的累计秒（docs/56 §8）
-			_log("expire min_d=%.0f hold_s=%.1f quit=%s maxp=%.2f in_s=%.1f relay_s=%.1f" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit,
-				float(b.get("maxp", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0))])
+			# stag = 这座灯标寿命内被灯边硬直取代的近战起手数（docs/56 §10，旋钮关时恒 0）
+			_log("expire min_d=%.0f hold_s=%.1f quit=%s maxp=%.2f in_s=%.1f relay_s=%.1f stag=%d" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit,
+				float(b.get("maxp", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0)), int(b.get("stag_n", 0))])
 			continue
 		# 引路（docs/56 候选 a，beacon/guide_r > 0 开）：未点燃且寿命 < guide_life 的灯标，guide_r 内吞非 Boss 子弹、远程杂兵不对圈内主控起手
 		if _sk("guide_r") > 0.0 and b.age <= _k("guide_life", 45.0):
 			guide = b
+		# 灯边硬直（docs/56 §10，beacon/stagger_r > 0 开）：主控在未点燃灯标 stagger_r 内（含圈边 r..2r）时，非 Boss 近战杂兵新起的近战招换成硬直
+		var sr: float = _sk("stagger_r")
+		if sr > 0.0 and pd < sr and g.state == g.S.PLAY:
+			stagger = b
 		var rate := 1.0
 		if g.lamp < 30.0:
 			rate /= _k("low_lamp_mult", 1.5)
@@ -158,7 +165,7 @@ func _spawn() -> void:
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
 		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
 		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0),   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
-		"relay_r": _sk("relay_r"), "in_s": 0.0, "relay_s": 0.0, "relay_p": 0.0, "maxp": 0.0})   # relay_r 给画面画接力环；其余为接力环遥测（docs/56 §8）
+		"relay_r": _sk("relay_r"), "in_s": 0.0, "relay_s": 0.0, "relay_p": 0.0, "maxp": 0.0, "stag_n": 0})   # relay_r 给画面画接力环；其余为接力环遥测（docs/56 §8）
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")
@@ -193,16 +200,16 @@ func _light(b: Dictionary) -> void:
 	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
 	# 接力环遥测（docs/56 §8）：via = 最后一下在光圈 / 接力环；relay_p = 接力环贡献的进度占需要量；in_s / relay_s / min_d / hold_s 同 expire。
 	# A/B 数「圈边 → 点燃」：relay_p > 0 的点燃（旋钮关时恒 0）、via=relay 的点燃
-	_log("lit cleared=%d via=%s relay_p=%.2f in_s=%.1f relay_s=%.1f min_d=%.0f hold_s=%.1f" % [cleared, str(b.get("via", "ring")),
+	_log("lit cleared=%d via=%s relay_p=%.2f in_s=%.1f relay_s=%.1f min_d=%.0f hold_s=%.1f stag=%d" % [cleared, str(b.get("via", "ring")),
 		float(b.get("relay_p", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0)),
-		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0))])
+		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0)), int(b.get("stag_n", 0))])
 
 
 ## ---- 圈内安全（docs/49g，协调人 10-01 定候选 e；三个旋钮缺省 0 = 关，可按档开：difficulty/<档>/beacon_safe_* ≥ 0 时优先）
 ## 只在读条期间（charging）生效，只作用于非 Boss 的敌人与子弹；Boss 的预警、子弹、冲锋照常
-func _sk(key: String) -> float:
+func _sk(key: String, d := 0.0) -> float:
 	var v := float(g.dmod.get("beacon_" + key, -1.0))
-	return v if v >= 0.0 else _k(key, 0.0)
+	return v if v >= 0.0 else _k(key, d)
 
 
 ## 非 Boss 子弹 / 抛石进入正在读条的光圈：被灯光吞掉（beacon/safe_bullet）
@@ -221,6 +228,24 @@ func ranged_held(e: Dictionary) -> bool:
 	if charging != null and _sk("safe_ranged") > 0.0:
 		return true
 	return guide != null and g.combat.ground_d(g.ppos, guide.pos) < _sk("guide_r")
+
+
+## 灯边硬直（docs/56 §10，beacon/stagger_r > 0 开；缺省 0 = 关 = 旧行为）：主控在未点燃灯标 stagger_r 内时，
+## 非 Boss 敌人「将要起手」的近战预警（enemy_ai 的咬击 / 扇形斩 / 前刺 / 踏地 / 触须爆发 / 破土 / 近战额外招）不出预警，
+## 换成原地硬直 stagger_s 秒（e.bstag，不移动、不出招；不写 e.stun，免得触发「对眩晕敌人」的干员 / 藏品加成）；该招冷却照扣。
+## 每只敌人硬直后 stagger_cd 秒内不再被硬直（这段时间里的起手照常出预警），所以不是安全区，只是把「刚到圈边就被连推出去」的第一下吃掉。
+## 已经在走的预警照常结算；远程招不归它管（引路 / 圈内安全管）。不掷随机数。返回 true = 本次起手被硬直取代
+func melee_stagger(e: Dictionary) -> bool:
+	if stagger == null or e.get("boss", false) or g.t < float(e.get("bstag_next", -INF)):
+		return false
+	e["bstag"] = _sk("stagger_s", 0.6)
+	e["bstag_next"] = g.t + _sk("stagger_cd", 5.0)
+	e["attack_preparing"] = false
+	stagger["stag_n"] = int(stagger.get("stag_n", 0)) + 1
+	# 画面：敌人身上一圈暖色光环 + 光屑（和子弹被吞同一套颜色，读作「被灯光震住」）；持续中的头顶光点在 world.draw_enemy_tells 画
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": float(e.r) + 10.0, "life": 0.3, "max": 0.3, "col": Color(1.8, 1.45, 0.7), "enemy": true})
+	g.vfx.sparks(e.pos, Vector2.UP, Color(1.9, 1.5, 0.8), 4, 90.0)
+	return true
 
 
 ## 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：有未点燃灯标且在主控 beacon/shade_dist（600）内时，
