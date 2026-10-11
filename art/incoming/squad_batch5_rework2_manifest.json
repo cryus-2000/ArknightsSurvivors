@@ -1,0 +1,260 @@
+{
+  "assets": [
+    {
+      "file": "op_skalter_idle.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "077164514642cf91a19e281fbbf0d740357a74f91b08303dee3d51661e8158e6"
+    },
+    {
+      "file": "op_skalter_idle@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "2957b422f0a184ce7d37e1cac0204dc47b562c449d0d662fa5089e490734a908"
+    },
+    {
+      "file": "op_skalter_run.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "605ca18856c0d71cff98a04dcc5efe4aa9987a91f21fc3e299ba9f901012bedd"
+    },
+    {
+      "file": "op_skalter_run@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "06b39b283d2e5751132613b9834e3c7cd6758984d97535a87f14e8f7dac69045"
+    },
+    {
+      "file": "op_skalter_attack.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 1,
+      "sha256": "ce1b809169bceb2ac914e8d88aa35f756b91fd853f9337851b56bf658cacd175"
+    },
+    {
+      "file": "op_skalter_attack@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 2,
+      "sha256": "e710ceeacb818aaf2b112889b608b2a5ac79e52ae00bcdef65eb462c8e9d2d1c"
+    },
+    {
+      "file": "op_skalter_skill.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "67bd3e4f5aac3215b43f4473d9db679a98211e0cb856cb4f9d14d85dbb8a332e"
+    },
+    {
+      "file": "op_skalter_skill@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "ad445e20523736ade6635b6958871b115444fd8971b0986c67a801418fd066cb"
+    },
+    {
+      "file": "op_texas_idle.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "49c9588953dd9ed327834b128aa9200c6ef3e9fbac7546a3e111a5d0c90235e0"
+    },
+    {
+      "file": "op_texas_idle@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "b8397fe915c025608ec66bf9e10a5269b754badaad80472154d2527073a4f7a1"
+    },
+    {
+      "file": "op_texas_run.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "1b974efd7748b27688704a647ddd53078f6fe20e373ad858c4783e3a0bc615b0"
+    },
+    {
+      "file": "op_texas_run@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "5bc15dca365178d7bce4eb6171c9f90d2b28d2579e57ad05db079fb737ec9e1b"
+    },
+    {
+      "file": "op_texas_attack.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 1,
+      "sha256": "b5a48400f68c7d3e5f35aaed0f21a5fa92b5743dcd6e9e3b515c36c7cebea8ed"
+    },
+    {
+      "file": "op_texas_attack@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 14,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 2,
+      "sha256": "a83187028d55e9260b2a7e231cf74b3ec54c6d55d36414a83822dfff5022230b"
+    },
+    {
+      "file": "op_texas_skill.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "a774aedf598ee53d1e612f1eb7082e40a40071c1447a3341c268e227b6a14bf2"
+    },
+    {
+      "file": "op_texas_skill@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "a459d59bc1d7228cc08548e97fb6cc92cf3b15182f44f9cda73c809083a01048"
+    }
+  ]
+}
