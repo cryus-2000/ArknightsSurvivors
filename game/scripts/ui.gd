@@ -946,6 +946,17 @@ static func ghost_name(ci: CanvasItem, font: Font, pos: Vector2, s: String, frac
 	ci.draw_string_outline(font, pos + Vector2(0, font.get_ascent(size)), s.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, size, outline, col)
 
 
+## 贴图区域画进 dst，但只画落在 clip 里的部分（src 按比例同步裁掉）：小像 / 名册卡的人物不出框
+static func blit_clipped(ci: CanvasItem, tx: Texture2D, dst: Rect2, src: Rect2, clip: Rect2, col := Color.WHITE) -> void:
+	var vis := dst.intersection(clip)
+	if vis.size.x <= 0.0 or vis.size.y <= 0.0 or dst.size.x <= 0.0 or dst.size.y <= 0.0:
+		return
+	var sx := src.size.x / dst.size.x
+	var sy := src.size.y / dst.size.y
+	var s2 := Rect2(src.position + (vis.position - dst.position) * Vector2(sx, sy), vis.size * Vector2(sx, sy))
+	ci.draw_texture_rect_region(tx, vis, s2, col)
+
+
 ## 名册卡（B 皮：圆角 + 紫金描边 + 青色强调条；C4' 换直角黑框 / 黄条时另写皮，结构相同）
 ## od：{tex, frames, bb（帧内非透明区，贴图像素）, hires, name, cls, col}；lift 0–1（选中抬 10 px）、hover 0–1（悬停抬 4 px）；
 ## elite = 右上精英菱形个数；frame = 待机帧序号
@@ -963,17 +974,16 @@ static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, li
 		var hi: float = od.get("hires", 1.0)
 		var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
 		var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
-		var k: float = clampf(floorf((r.size.y - 46.0) / (bb.size.y * 2.0 / hi)), 1.0, 3.0) * 2.0 / hi
+		# 整数倍（@2x 像素 1 / 2 / 3 倍；放不下高度时退到 0.5 = 原始像素 1:1），整身放进卡里：脚底尽量站在名字条上方，
+		# 卡矮时脚往下沉到名字条后面（离底边 5）；左右超出的几像素裁掉，任何干员都不出框
+		var h2: float = bb.size.y * 2.0 / hi
+		var kk: float = clampf(floorf((r.size.y - 46.0) / h2), 1.0, 3.0)
+		if h2 * kk > r.size.y - 10.0:
+			kk = 0.5
+		var k: float = kk * 2.0 / hi
 		var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
-		var dst := Rect2(r.get_center().x - bb.size.x * k / 2.0, r.end.y - 24.0 - bb.size.y * k, bb.size.x * k, bb.size.y * k)
-		var top := r.position.y + 6.0
-		if dst.position.y < top:
-			var cut := (top - dst.position.y) / k
-			src.position.y += cut
-			src.size.y -= cut
-			dst.position.y = top
-			dst.size.y = src.size.y * k
-		ci.draw_texture_rect_region(tx, dst, src, Color(1, 1, 1, a))
+		var dst := Rect2(r.get_center().x - bb.size.x * k / 2.0, maxf(r.position.y + 5.0, r.end.y - 24.0 - bb.size.y * k), bb.size.x * k, bb.size.y * k)
+		blit_clipped(ci, tx, dst, src, r.grow(-2.0), Color(1, 1, 1, a))
 	rbox(ci, Rect2(r.position.x + 2, r.end.y - 22, r.size.x - 4, 20), 4, Color(0.016, 0.031, 0.063, 0.78 * a))
 	rbox(ci, Rect2(r.position.x + 4, r.position.y + 8, 16, 16), 3, Color(0, 0, 0, 0.63 * a), Color(col.r, col.g, col.b, 0.78 * a))
 	class_glyph(ci, od.get("cls", ""), r.position + Vector2(12, 16), 5.0, fa(col, a), 1.6)
