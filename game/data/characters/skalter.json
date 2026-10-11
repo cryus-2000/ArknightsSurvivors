@@ -8,7 +8,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §1 / §8.1）；纯数据干员，行为在 blocks 段（docs/61）。歌域以主控 g.ppos 为中心（用户 10-11 定）。辅助向（用户 10-11「改成辅助向」）：声浪只打最近 wave_n 个（Boss / 精英优先），强度挪进歌域内干员的攻击 / 攻速；她当主控时另有一圈不设上限的「领唱」",
-  "atk": 6, "cd": 1.0, "aura": 190, "wave_n": 16, "lead_mult": 0.5, "song_atk": 0.15, "heal_pct": 0.003, "heal_cd": 3.0,
+  "atk": 4, "cd": 1.0, "aura": 190, "wave_n": 16, "lead_mult": 0.3, "song_atk": 0.18, "heal_pct": 0.003, "heal_cd": 3.0,
   "s1_dur": 5.0, "s1_aura": 1.4, "s1_heal": 0.01, "s1_lamp_loss": 0.5, "s1_aspd": 0.25,
   "s2_aura": 0.3, "s2_aspd": 0.15, "s2_atk": 0.15, "s2_hunter_atk": 0.25,
   "s3_dur": 12.0, "s3_aura": 2.0, "s3_atk": 1.0, "s3_heal": 0.015, "s3_lamp_drain": 2.0, "s3_dark_atk": 0.3,
@@ -28,7 +28,7 @@
   "skill": {"tex": "op_skalter_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
  },
- "attack": {"mode": "auto", "name": "海潮低吟", "desc": "每 1.0 秒以主控为中心放出一圈声浪（半径 190），打圈内最近的 16 个敌人（Boss / 精英优先）造成法术伤害；歌域内干员攻击 +15%；主控在歌域内时每 3 秒回复 0.3%。她自己当主控时另有一圈「领唱」打圈内全部敌人（50% 伤害）"},
+ "attack": {"mode": "auto", "name": "海潮低吟", "desc": "每 1.0 秒以主控为中心放出一圈声浪（半径 190），打圈内最近的 16 个敌人（Boss / 精英优先）造成法术伤害；歌域内干员攻击 +18%；主控在歌域内时每 3 秒回复 0.3%。她自己当主控时另有一圈「领唱」打圈内全部敌人（30% 伤害）"},
  "skills": [
   {"name": "同归殊途之吟", "en": "WANDERING SONG", "sp": 7, "dur": 5.0, "desc": "5 秒：歌域 ×1.4、歌域内干员攻速 +25%、主控每秒回复 1%，期间受击灯火流失减半", "icon": "skill_skalter_s1"},
   {"name": "同葬无光之愿", "en": "CALL OF THE DEEP", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：歌域 +30%；歌域内干员攻击 +15%、攻速 +15%，深海猎人（斯卡蒂、乌尔比安、归溟幽灵鲨）再 +25% 攻击", "icon": "skill_skalter_s2"},
@@ -52,7 +52,7 @@
  "blocks": {
   "zone": {"center": "leader", "r": "$aura"},
   "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
-   "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "tint": [0.78, 0.95, 0.9, 0.5]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "tint": [0.85, 0.85, 0.9, 0.5]}]},
+   "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "tint": [0.78, 0.95, 0.9, 0.5]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "tint": [0.85, 0.85, 0.9, 0.38]}]},
   "trait": [
    {"trig": "passive", "do": [
     {"verb": "heal", "pct": "$heal_pct", "every": "$heal_cd", "cond": "in_zone:leader", "src": "浊心斯卡蒂"},
@@ -95,7 +95,7 @@
    "dmg_up": {"aura": "atk", "value": "$n2_atk", "scope": "in_zone"},
    "echo": {"trig": "every_n", "n": "$echo_every", "delay": "$echo_delay", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "max_n": "$wave_n", "src": "潮汐和声", "tags": ["follow_up"],
-     "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "scale": 0.85, "tint": [0.78, 0.95, 0.9, 0.35]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "scale": 0.85, "tint": [0.85, 0.85, 0.9, 0.35]}]}]},
+     "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "scale": 0.85, "tint": [0.78, 0.95, 0.9, 0.35]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "scale": 0.85, "tint": [0.85, 0.85, 0.9, 0.27]}]}]},
    "resonance": {"trig": "tick", "every": 1.0, "cond": "skill_active:0", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$resonance_mult", "max_n": "$wave_n", "src": "深海的回响", "tags": ["skill", "dot"], "power": true}]},
    "elite2": {"shape": "orbit", "n": "$note_n", "r": "zone", "speed": "$note_speed", "hit_r": "$note_hit", "kb": "$note_kb", "cd": "$note_cd", "mult": 0.0,
