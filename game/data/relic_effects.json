@@ -92,6 +92,115 @@
    "effect_category": "damage",
    "new": true
   },
+  "9": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 6
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +6；下一次三选一多一个选项",
+   "rarity": "基础",
+   "lanes": [
+    "G"
+   ],
+   "tags": [
+    "squad",
+    "economy"
+   ],
+   "shop_allowed": true,
+   "late_weight": 0.3,
+   "effect_category": "choice",
+   "new": true
+  },
+  "10": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12；此后每招募一名干员再 +12",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "economy"
+   ],
+   "effect_category": "economy",
+   "new": true
+  },
+  "11": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 18
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +18；下一次三选一多一个选项",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "14": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "ingots",
+     "args": {
+      "ingots": 15
+     }
+    }
+   ],
+   "desc": "源石锭 +12；每击败一个 Boss 再 +15",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "economy",
+    "on_kill"
+   ],
+   "effect_category": "economy",
+   "new": true
+  },
   "15": {
    "requires": [
     "118"
@@ -1490,6 +1599,32 @@
    "effect_category": "control",
    "new": true
   },
+  "104": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "far_dmg",
+     "args": {
+      "max": 0.5,
+      "at": 300
+     }
+    }
+   ],
+   "desc": "远程干员的攻击离目标越远伤害越高：300 以上 +50%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "on_hit"
+   ],
+   "requires_class": [
+    "狙击",
+    "术师",
+    "医疗",
+    "辅助"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
   "105": {
    "effects": [
     {
@@ -2367,6 +2502,26 @@
    "effect_category": "damage",
    "new": true
   },
+  "147": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "狙击"
+     }
+    }
+   ],
+   "desc": "招募狙击干员时，她立即推进 1 个成长节点",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "ranged"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
   "148": {
    "effects": [
     {
@@ -2387,6 +2542,79 @@
     "狙击"
    ],
    "effect_category": "damage"
+  },
+  "149": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:狙击"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": -0.2,
+     "scope": "class:狙击"
+    }
+   ],
+   "desc": "狙击干员伤害 +40%，攻击速度 -20%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "狙击"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "150": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:狙击"
+    }
+   ],
+   "desc": "狙击干员攻击速度 +40%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "狙击"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
+  "151": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "招募术师干员时，她立即推进 1 个成长节点",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "ranged"
+   ],
+   "effect_category": "growth",
+   "new": true
   },
   "152": {
    "effects": [
@@ -2416,6 +2644,106 @@
     "术师"
    ],
    "effect_category": "damage"
+  },
+  "153": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Tick",
+     "do": "damage_area",
+     "args": {
+      "every": 8,
+      "radius": 110,
+      "class": "术师",
+      "dmg": 40
+     }
+    }
+   ],
+   "desc": "术师干员每 8 秒对身边敌人引发一次法术爆炸（随时间成长）",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "class",
+    "arts"
+   ],
+   "requires_class": [
+    "术师"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "154": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:术师"
+    },
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": -0.2,
+     "scope": "class:术师"
+    }
+   ],
+   "desc": "术师干员伤害 +50%，攻击范围 -20%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "arts"
+   ],
+   "requires_class": [
+    "术师"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "155": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "辅助"
+     }
+    }
+   ],
+   "desc": "招募辅助干员时，她立即推进 1 个成长节点",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "ranged"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
+  "156": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:辅助"
+    }
+   ],
+   "desc": "辅助干员攻击范围 +40%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "control"
+   ],
+   "requires_class": [
+    "辅助"
+   ],
+   "effect_category": "range",
+   "new": true
   },
   "157": {
    "effects": [
@@ -2489,6 +2817,52 @@
     "医疗"
    ],
    "effect_category": "healing"
+  },
+  "160": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:医疗"
+    }
+   ],
+   "desc": "医疗干员攻击速度 +30%（治疗频率随之提高）",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "heal"
+   ],
+   "requires_class": [
+    "医疗"
+   ],
+   "effect_category": "healing",
+   "new": true
+  },
+  "161": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_out",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:医疗"
+    }
+   ],
+   "desc": "医疗干员治疗量 +50%",
+   "rarity": "基础",
+   "tags": [
+    "ranged",
+    "class",
+    "heal"
+   ],
+   "requires_class": [
+    "医疗"
+   ],
+   "effect_category": "healing",
+   "new": true
   },
   "162": {
    "effects": [
@@ -2882,6 +3256,233 @@
    ],
    "effect_category": "growth"
   },
+  "178": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick",
+     "args": {
+      "n": 2
+     }
+    }
+   ],
+   "desc": "立即获得 2 次成长三选一",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
+  "179": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick",
+     "args": {
+      "n": 3
+     }
+    }
+   ],
+   "desc": "立即获得 3 次成长三选一",
+   "rarity": "核心",
+   "tags": [
+    "squad"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
+  "180": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg_taken",
+      "per": -0.03,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，主控受到的伤害 -3%（最多 -12%）",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "survival"
+   ],
+   "effect_category": "squad",
+   "new": true
+  },
+  "181": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "max_hp",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，主控最大生命 +4%（最多 +16%）",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "survival"
+   ],
+   "effect_category": "squad",
+   "new": true
+  },
+  "182": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 2
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队伤害 +4%（最多 +16%）；主控物理减伤 +2",
+   "rarity": "基础",
+   "tags": [
+    "squad",
+    "survival"
+   ],
+   "effect_category": "squad",
+   "new": true
+  },
+  "183": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "max_hp",
+      "per": 0.03,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队伤害 +4%、主控最大生命 +3%（最多 4 人）",
+   "rarity": "稀有",
+   "tags": [
+    "squad",
+    "survival"
+   ],
+   "effect_category": "squad",
+   "new": true
+  },
+  "184": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 10
+     }
+    }
+   ],
+   "desc": "招募干员时源石锭 +10",
+   "rarity": "基础",
+   "lanes": [
+    "G"
+   ],
+   "tags": [
+    "squad",
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "economy",
+   "new": true
+  },
+  "185": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {}
+    }
+   ],
+   "desc": "招募的干员入队时立即推进 1 个成长节点",
+   "rarity": "稀有",
+   "lanes": [
+    "G"
+   ],
+   "tags": [
+    "squad"
+   ],
+   "shop_allowed": true,
+   "effect_category": "growth",
+   "new": true
+  },
+  "186": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "growth_pick",
+     "args": {
+      "n": 1
+     }
+    }
+   ],
+   "desc": "招募干员时获得一次成长三选一",
+   "rarity": "稀有",
+   "lanes": [
+    "G"
+   ],
+   "tags": [
+    "squad"
+   ],
+   "shop_allowed": true,
+   "effect_category": "growth",
+   "new": true
+  },
+  "187": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "once": true
+     }
+    }
+   ],
+   "desc": "下一次招募的干员立即推进 1 个成长节点",
+   "rarity": "基础",
+   "tags": [
+    "squad"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
   "188": {
    "effects": [
     {
@@ -2897,6 +3498,22 @@
    "late_weight": 0.3,
    "rarity": "核心",
    "effect_category": "economy"
+  },
+  "189": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "recruit_extra",
+     "value": 1
+    }
+   ],
+   "desc": "招募干员时多一个选项",
+   "rarity": "基础",
+   "tags": [
+    "squad"
+   ],
+   "effect_category": "choice",
+   "new": true
   },
   "190": {
    "effects": [
@@ -3062,6 +3679,27 @@
    "rarity": "核心",
    "effect_category": "attack_speed"
   },
+  "209": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 60,
+     "do": "supply",
+     "args": {
+      "what": "supply"
+     }
+    }
+   ],
+   "desc": "每 60 秒在主控身边掉落一个回复药剂",
+   "rarity": "稀有",
+   "tags": [
+    "summon",
+    "squad",
+    "heal"
+   ],
+   "effect_category": "healing",
+   "new": true
+  },
   "210": {
    "effects": [
     {
@@ -3080,6 +3718,97 @@
    "desc": "每 15 秒朝主控身边最密的敌群抛出 3 枚地雷（伤害随时间成长）",
    "rarity": "稀有",
    "effect_category": "damage"
+  },
+  "211": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 45,
+     "do": "bomb",
+     "args": {
+      "what": "bomb",
+      "dmg": 60,
+      "radius": 120
+     }
+    }
+   ],
+   "desc": "每 45 秒派出一台小机器冲向最近的敌人自爆（伤害随时间成长）",
+   "rarity": "稀有",
+   "tags": [
+    "summon",
+    "squad"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "212": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 30,
+     "do": "crane",
+     "args": {
+      "what": "crane",
+      "dur": 3.0,
+      "range": 420
+     }
+    }
+   ],
+   "desc": "每 30 秒吊起身边最强的一名敌人（优先精英，Boss 除外），束缚 3 秒",
+   "rarity": "稀有",
+   "tags": [
+    "control",
+    "summon",
+    "squad"
+   ],
+   "effect_category": "control",
+   "new": true
+  },
+  "213": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 30,
+     "do": "stakes",
+     "args": {
+      "what": "stakes",
+      "n": 2,
+      "life": 20,
+      "radius": 46
+     }
+    }
+   ],
+   "desc": "每 30 秒在前方放下 2 根防暴桩（持续 20 秒）：靠近的敌人被减速并推开（Boss 除外）",
+   "rarity": "稀有",
+   "tags": [
+    "summon",
+    "squad",
+    "control"
+   ],
+   "effect_category": "control",
+   "new": true
+  },
+  "214": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "medkit",
+     "args": {
+      "n": 3,
+      "at": 0.3,
+      "heal": 0.3
+     }
+    }
+   ],
+   "desc": "携带 3 个急救包：主控生命低于 30% 时自动使用一个，回复 30% 最大生命",
+   "rarity": "基础",
+   "tags": [
+    "low_hp",
+    "squad",
+    "heal"
+   ],
+   "effect_category": "healing",
+   "new": true
   },
   "216": {
    "effects": [
@@ -3582,6 +4311,21 @@
    "rarity": "遭诅古物",
    "effect_category": "light"
   },
+  "244": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "recruit_one"
+    }
+   ],
+   "desc": "立即招募一名随机干员，并让她推进 1 个成长节点；编队已满时改为一次成长三选一",
+   "rarity": "稀有",
+   "tags": [
+    "squad"
+   ],
+   "effect_category": "growth",
+   "new": true
+  },
   "245": {
    "effects": [
     {
@@ -3720,6 +4464,72 @@
    ],
    "rarity": "核心",
    "effect_category": "defense"
+  },
+  "256": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "per_relic",
+     "args": {
+      "stat": "dmg",
+      "per": 0.02,
+      "classes": [
+       "术师"
+      ]
+     }
+    }
+   ],
+   "desc": "每持有一件藏品，术师干员伤害 +2%",
+   "rarity": "稀有",
+   "tags": [
+    "ranged",
+    "class",
+    "squad"
+   ],
+   "requires_class": [
+    "术师"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "257": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "per_relic",
+     "args": {
+      "stat": "dmg",
+      "per": 0.03,
+      "classes": [
+       "术师"
+      ]
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "per_relic",
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.02,
+      "classes": [
+       "术师"
+      ]
+     }
+    }
+   ],
+   "desc": "每持有一件藏品，术师干员伤害 +3%、攻击速度 +2%",
+   "rarity": "核心",
+   "tags": [
+    "ranged",
+    "class",
+    "squad",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "术师"
+   ],
+   "effect_category": "damage",
+   "new": true
   },
   "258": {
    "effects": [

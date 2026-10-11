@@ -217,8 +217,89 @@ func test_batch_d_f() -> void:
 	near(game.stats.value(&"op_aspd") - a0, 0.3, "刀光剑影：2 件遭诅古物攻速 +30%")
 
 
+## 批 G：距离增伤、编队人数缩放、招募事件（职业 / 一次性）、招募加选项、支援装置、急救包、按藏品数的职业加成、多次成长
 func test_batch_g() -> void:
-	pass
+	var sn = op_of("狙击")
+	ok(sn != null, "编队里有狙击（wisadel）")
+	grant("104")
+	if sn != null:
+		var e: Dictionary = spawn(sn.pos + Vector2(600, 0))
+		var h := {"src": "t", "emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": [], "class": "狙击", "op": sn.id}
+		near(rfx.hit_mult(h, e), 1.5, "Scout的狙击镜：600 外远程命中 ×1.5")
+		e.pos = sn.pos + Vector2(150, 0)
+		near(rfx.hit_mult(h, e), 1.25, "Scout的狙击镜：150 处 ×1.25")
+		h.range = "近战"
+		near(rfx.hit_mult(h, e), 1.0, "Scout的狙击镜：近战不加成")
+		e.dead = true
+	var t0: float = game.stats.value(&"dmg_taken")
+	grant("180")
+	near(game.stats.value(&"dmg_taken") - t0, -0.03 * game.squad.size(), "地形图：按编队人数 -3%% / 人（%d 人）" % game.squad.size())
+	# 招募事件：残弩-突破只对狙击、一份演讲稿只一次、地区行动方案给源石锭、人事部密信给三选一
+	grant("147")
+	grant("187")
+	grant("184")
+	grant("186")
+	var van = op_of("先锋")
+	var ig0: int = game.ingots
+	var pl0: int = game.pending_levelups
+	var p0: int = sn.prog if sn != null else 0
+	if sn != null:
+		rfx.on_recruit(sn)
+		ok(sn.prog == p0 + 2, "残弩-突破 + 演讲稿：狙击入队推进 2 个节点（%d → %d）" % [p0, sn.prog])
+	ok(game.ingots == ig0 + 10, "地区行动方案：招募 +10 源石锭")
+	ok(game.pending_levelups == pl0 + 1, "人事部密信：招募 +1 次成长三选一")
+	if van != null:
+		var vp: int = van.prog
+		rfx.on_recruit(van)
+		ok(van.prog == vp, "残弩-突破不对先锋生效、演讲稿只一次（%d → %d）" % [vp, van.prog])
+	game.pending_levelups = pl0
+	grant("189")
+	ok(rfx.rule("recruit_extra") == 1, "罗德岛战术电台：招募加选项规则")
+	grant("11")
+	ok(rfx.rule("choice_extra") == 1, "源石鸢尾花：下一次三选一加选项")
+	ok(rfx.take_choice_extra() == 1 and rfx.take_choice_extra() == 0, "加选项只用一次")
+	# 支援装置：补给站掉药剂、轰隆隆自爆、起重机束缚精英、防暴桩减速
+	var gems0: int = game.gems.size()
+	grant("209")
+	game.t += 60.0
+	rfx.tick(60.5)
+	ok(game.gems.size() > gems0, "支援补给站：60 秒后身边掉落药剂")
+	grant("211")
+	rfx.tick(45.5)
+	ok(rfx.bombs.size() == 1, "支援轰隆隆：45 秒后派出一台")
+	var e3: Dictionary = spawn(game.ppos + Vector2(60, 40))
+	e3.maxhp = 100000.0
+	e3.hp = e3.maxhp
+	for k in 120:
+		rfx.tick(1.0 / 60.0)
+	ok(rfx.bombs.is_empty() and e3.hp < e3.maxhp, "支援轰隆隆：撞上敌人自爆并造成伤害（%.0f）" % (e3.maxhp - e3.hp))
+	grant("212")
+	e3.stun = 0.0
+	e3.elite = true
+	rfx.tick(30.5)
+	ok(e3.stun >= 3.0 * game.control_mult - 0.001, "支援起重机：吊起精英束缚 3 秒（%.2f）" % e3.stun)
+	grant("213")
+	rfx.tick(30.5)
+	ok(rfx.stakes.size() == 2, "支援防暴桩：放下 2 根")
+	e3.dead = true
+	# 急救包：低于 30% 自动用，最多 3 个
+	grant("214")
+	for k in 4:
+		game.hp = game.max_hp * 0.2
+		rfx.tick(0.1)
+	near(game.hp, game.max_hp * 0.2, "支援急救包：3 个用完后不再回复")
+	ok(rfx.medkits.get("214", -1) == 0, "支援急救包：剩 0 个")
+	reset_hp()
+	# 断杖-学识：每件藏品术师 +2%
+	var n0: int = game.relics.size()
+	var d0: float = game.stats.value_for(&"dmg", ["class:术师"])
+	grant("256")
+	near(game.stats.value_for(&"dmg", ["class:术师"]) - d0, 0.02 * (n0 + 1), "断杖-学识：%d 件藏品 → 术师 +%d%%" % [n0 + 1, 2 * (n0 + 1)])
+	near(game.stats.value_for(&"dmg", ["class:先锋"]) - d0, 0.0, "断杖-学识：只对术师")
+	var pl1: int = game.pending_levelups
+	grant("178")
+	ok(game.pending_levelups == pl1 + 2, "摸摸券：+2 次成长三选一")
+	game.pending_levelups = pl1
 
 
 func test_batch_general() -> void:

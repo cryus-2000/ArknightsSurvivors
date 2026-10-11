@@ -289,8 +289,9 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			if g.shield_max > 0:
 				g.shield = g.shield_max
 		"growth_pick":
-			g.pending_levelups += 1
-			g.vfx.show_banner("获得一次成长三选一")
+			var gn: int = int(args.get("n", 1))
+			g.pending_levelups += gn
+			g.vfx.show_banner("获得一次成长三选一" if gn == 1 else "获得 %d 次成长三选一" % gn)
 		"advance_class":
 			var cls: String = str(args.get("class", ""))
 			var o = _advance_target(cls)
