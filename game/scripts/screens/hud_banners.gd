@@ -333,7 +333,8 @@ func draw_zone_warning(vs: Vector2) -> void:
 func draw_banner(vs: Vector2) -> void:
 	# 横幅通知
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active():   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
+	# 暂停 / 指南 / 胜利结算时不画（横幅压在面板顶上，10-11）；暂停期间计时也停（game.gd），继续游戏后接着显示
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and g.state != Game.S.PAUSE and g.state != Game.S.INTRO and g.state != Game.S.WIN and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active():   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
 		# 入场动效（docs/62 §3.10）：从这一条第一次真正画出来起算（面板挡住期间横幅计时暂停，关掉后才「到达」）
