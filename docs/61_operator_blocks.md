@@ -430,3 +430,99 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 - 维什戴尔 + 铃兰 + 塞雷娅（满编）seed 1、斯卡蒂 + 推进之王 + 凯尔希（满编）seed 2、艾雅法拉 `--norecruit` seed 3：TRACE 与 BALANCE **逐字节相同**。
 - 单人开局、自然招募（铃兰 seed 4）：第一次出招募卡（1:16）起分叉——招募池从 13 人变成 14 人，抽卡结果变了，属预期（docs/36 §2「不含她的老编队逐局相同」指满编 / 不招募的局）。
+
+
+## 星熊 `hoshiguma` 的表达（docs/59 §3 + §8.3，纯数据干员，10-11）
+
+> 小节不编号：第三批四人并行接入，合并时按合入顺序再编号。
+
+见 `data/characters/hoshiguma.json` 的 `blocks`：0 个 `custom`，没有 `hoshiguma.gd`。名字按 docs/63 §6（S1「战意」、S2「荆棘」、S3「力之锯」、天赋「战术装甲」，分支铁卫）。
+帧条用 Codex 第五批正式图（`op_hoshiguma_*`，docs/64 验收，无占位），技能图标 `skill_hoshiguma_s1..3`，特效帧条 `fx_hoshiguma_block / _sand / _demon_slash`（docs/25 §6）。
+
+### 新积木（`op_blocks.gd` / `data_operator.gd` 末尾「星熊 hoshiguma」段，追加式）
+
+积木是通用的，星熊只是第一个用的。名字登记在 `op_blocks.gd` 的 `EXT_BLOCKS`（族.名 → 放置类别）/ `EXT_CONDS`；校验在 `_ext_block`，执行在 `data_operator.gd` 同名段。
+中段只加了转发：`parse_cond` / `cond_true` 认 `EXT_CONDS`，`_block` 认 `EXT_BLOCKS`；data_operator 的 `update` / `_release` 用 `cur_attack()`（`verb.swap_attack`）、`_sustain` 末尾调 `_ext_sustain`、`_exec_list` 缺省分支调 `_ext_exec`。
+后来的干员追加积木：另起自己的段落，往 `EXT_BLOCKS` / `EXT_CONDS` 加名字。
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `shape.line` | 瞬时 / 普攻形状 | `len, width, mult, kb, stun, max_n, src, tags, on_hit, fx_strip, fx_y` | 从自身朝最近目标（手动普攻按 A 方向）长 `len`（× op_range）、宽 `width` 的矩形，命中沿线全部；击退沿斩击方向；伤害口径同 `exec_shape`；`fx_strip` 帧条按 len / 64 缩放 |
+| `verb.displace` | 瞬时 | `center: self/leader/target/last_hit, r, kb, on_hit` | r 内非 Boss 敌人沿离心方向 `e.kb += kb`（负 = 拉），精英 ×0.3；**不造成伤害、不登记命中**（不触发命中类藏品） |
+| `verb.field` | 瞬时（生成） | `center, r, dur, every, do, fx_strip, fx_r` | 地面区域：每 `every` 秒以区域中心为 `target` 执行一次 `do`，共 round(dur / every) 次（按次数计，不靠浮点累加）；每名干员同时 ≤ 16 个 |
+| `verb.negate_next` | 只能放技能 do | `on_block, on_miss, fx_strip, text` | 技能持续期间主控下一次受到的攻击完全格挡并执行 `on_block`、技能随即结束；持续结束仍没挨打执行 `on_miss` |
+| `verb.dr` | 常驻 | `value` | 主控受到的伤害 × (1 − value)（经 `dmg_taken_mult`） |
+| `verb.negate_chance` | 常驻 | `add, mult` | 本干员 `negate: true` 的 `trig.on_hurt` 概率 = (chance + Σadd) × Πmult |
+| `verb.swap_attack` | 常驻 | `attack`（circle / cone / line） | 生效期间普攻换形状，节奏仍按 `blocks.attack.every` |
+| `trig.on_hurt` | 触发 | `chance, boss_chance, max_chance, negate, cd, fx_strip, text, do` | 主控将受到一次攻击（闪避 / 护盾之后）。概率 0 / 1 时不取随机数，(0, 1) 用 `g.rng` 取一次；`negate` = 这一下完全格挡 |
+| `trig.on_negate` | 触发 | `do` | 本干员格挡了一次攻击（negate_next 或 negate 的 on_hurt） |
+| 条件 `beacon_charging` | — | — | 主控正在给灯标读条（`beacon_sys.charging`） |
+
+受击询问里触发的 `do`（反击、推开、震退）推迟到本干员下一次 `update` 开头执行（延迟队列 t = 0）：`enemy_hit` 常在敌人遍历中途被调用，不在那里造成伤害 / 击杀。
+
+**combat.gd 1 处**（docs/59 §6 预计的「0–1 处」，通用挂点，任何干员都能用）：`enemy_hit` 询问 `dmg_taken_mult` 期间把来源放进 `combat.cur_src`（读 `boss`）；任一干员返回 ≤ 0 即**整下作废**——不扣血、不掉灯火、不吃控制 / 侵蚀、不算「受伤」（同闪避，给 0.3 秒无敌）。
+需要这一处是因为 `hurt()` 对物理伤害有 `max(1, dmg − armor)` 的底、灯火流失有 `hit_base 4` 的底，乘 0 仍会掉 1 血和 4 灯火。现有干员的 `dmg_taken_mult` 都 > 0，行为不变。
+
+### 积木写法
+
+- 普攻 `shape.cone`（r 110、半角 70、kb 220，`slash: true` 画刀光）。
+- S1 战意（3 秒）：`verb.negate_next`，on_block = 主控周围 r120 ×2.0 kb 360「举盾反击」；on_miss = 前方扇形 ×1.5。
+- S2 荆棘（8 秒）：`buff_self op_atk +0.4`、`verb.dr 0.2`、`verb.negate_chance ×2`；热砂 = 特性里 `trig.every_n n 1 cond skill_active:1` → `verb.field center last_hit`（r80、2 秒、每 0.5 秒 ×0.15 = 每秒 ×0.3）。
+- S3 力之锯（10 秒）：`buff_self op_atk +0.6`、`verb.dr 0.3`、`verb.swap_attack` → `shape.line`（220 × 50，kb 220 × 1.5）；震退 = 特性里 `trig.on_hurt cond skill_active:2` → `verb.displace r120 kb300`（含被格挡的那一下）。
+- 天赋 战术装甲：`trig.on_hurt chance 0.25 / boss_chance 0.1 / max_chance 0.8 negate` → `verb.displace r90 kb200`；`trig.passive cond beacon_charging` → `verb.negate_chance add 0.15`。
+- 节点：阔斩 `op_range +0.15`；重刃 局部 `dmg ×1.15`；盾墙 `trig.on_negate` → `verb.displace kb 0 + st.stun 0.4`；热砂·余烬 / 精二鬼面见差异。
+
+### 与 docs/59 的差异
+
+1. 名字按 docs/63 §6；hit_sources 去掉「震退」（只推不伤，不登记来源）。
+2. 战术装甲免伤时的推开 r90 = `verb.displace`，不造成伤害。
+3. 「盾墙」眩晕作用于**每次格挡**（含 S1 战意的格挡），不只天赋。
+4. 「热砂·余烬」：docs/59 §8.3 写的是 patch（sand_dur 2 → 4、灼伤 ×0.5），积木还没有 `patch`，改为**每处热砂再叠一层 4 秒余烬**（每秒 ×0.2，`ember_mult`）：前 2 秒合计每秒 ×0.5，之后 2 秒 ×0.2。
+5. 精二「鬼面」：没有 `replace_attack`，写成 `trig.every_n n 4`，第 4 次盾斧斩**之后追加**一记直线斩（×1.3），不是替换。
+6. S2 热砂落点 = 本次盾斧斩命中的第一个敌人（`center: last_hit`），没打中不留砂。
+7. 格挡概率封顶 0.8（`block_max`）；格挡反击 / 推开在下一帧执行。
+8. **数值**：`atk 30 → 32`、`block_chance 0.20 → 0.25`（docs/59 §3 的旋钮顺序：偏弱先加 block_chance 再加 atk）。原值本机标准高手 4 / 12；见下表。
+
+接入登记：`balance.json operators.hoshiguma`（A+，skill_power +0.02）、`lore.json`、`tools/balance_run.py OPS` 与预设 `hoshiguma_mate`、音效 `sfx.gd OP_ALT` 借用
+（普攻 ← 塞雷娅普攻 ×0.85、hit ← 推进之王、big（格挡「铛」）← 推进之王重击 ×1.25、S1 ← 塞雷娅 S1、S2 ← 推进之王 S2、S3 ← 斯卡蒂 S3）。选人页 / 图鉴 / 招募池按 JSON 自动列入（基础池）。
+单元测试：`tests/test_core.gd test_hoshiguma_blocks`（14 条校验反例、编译出的数值、线段判定、格挡概率、概率 0 / 1 不取随机数）。
+
+### 冒烟（本机，wip/skalter-tune + origin/main 52d01a6e，`--maxt=1000`，含超时口径，seed 1–12；「她占全队」= 盾斧斩 + 举盾反击 + 热砂 + 力之锯 + 鬼面 占全队 `out`）
+
+| 版本 | 主控 标准·高手 | 主控 Ⅷ·熟练 | 队友 标准·高手（7 开局 × seed 1） | 她占全队（主控 / 队友） | 脚本错误 |
+|---|---|---|---|---|---|
+| docs/59 原值（atk 30、block 0.20） | 4 / 12（33%） | 6 / 12（50%） | 6 / 7 | 23% / 16% | 0 |
+| atk 34、block 0.25 | 9 / 12 | — | — | 19% / — | 0 |
+| atk 30、block 0.25 | 5 / 12 | — | — | 27% / — | 0 |
+| **现值 atk 32、block 0.25** | **12 / 12（100%）** | **8 / 12（67%）** | **6 / 7**（输的是艾雅法拉） | **21% / 22%**（队友各队 10–39%） | 0 |
+| 对照 塞雷娅（同参数） | 8 / 12（67%） | — | — | — | 0 |
+
+- 12 局的噪声极大：atk 30 → 32 → 34 三档标准分别 5 / 12、12 / 12、9 / 12，不单调；招募链（谁先招到）比她自己的数值影响大。block 0.25 的三批合计标准 26 / 36（72%）。现值只作云端整轮的起点，不作定档。
+- 队友伤害占比 22% 在 docs/59 §7 目标 10–25% 内；主控局 21%（单人开局后期主输出是招来的人）。
+
+### 老干员同 seed 不变（`--trace=1`，10:00，对加星熊前的同一提交 ba093017）
+
+- 维什戴尔 + 铃兰 + 塞雷娅（满编）seed 1、斯卡蒂 + 推进之王 + 凯尔希（满编）seed 2、艾雅法拉 `--norecruit` seed 3、浊心斯卡蒂 `--norecruit` seed 5：TRACE 与 BALANCE（去掉 prof 与画面峰值 `bot.peak*`）**逐字节相同**。
+- 单人开局、自然招募（铃兰 seed 4）：52 秒起分叉——招募池 14 → 15 人，属预期（同浊心斯卡蒂）。
+
+### 云端整轮（主控 56 局 × 三档；队友 7 名开局干员 × seed 1–8 × 三档；同提交塞雷娅 / starts 对照）
+
+```bash
+# 主控：56 局 × 三档（seed 1–56）
+python tools/balance_run.py --game game --jobs 4 --op hoshiguma --bot expert --seeds 56 --seed0 1 --out build/cloud/hsg-lead-t0 --tag hsg-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op hoshiguma --bot master --seeds 56 --seed0 1 --out build/cloud/hsg-lead-t1 --tag hsg-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op hoshiguma --bot master --seeds 56 --seed0 1 --out build/cloud/hsg-lead-t2 --tag hsg-lead-t2 --extra="--maxt=1000 --tier=2"
+# 队友：7 名开局干员 × seed 1–8 = 56 局 × 三档
+python tools/balance_run.py --game game --jobs 4 --preset hoshiguma_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/hsg-mate-t0 --tag hsg-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset hoshiguma_mate --bot master --seeds 8 --seed0 1 --out build/cloud/hsg-mate-t1 --tag hsg-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset hoshiguma_mate --bot master --seeds 8 --seed0 1 --out build/cloud/hsg-mate-t2 --tag hsg-mate-t2 --extra="--maxt=1000 --tier=2"
+# 同提交对照：塞雷娅单人（docs/59 §3「对照塞雷娅 ≤ 15 个百分点」）+ starts
+python tools/balance_run.py --game game --jobs 4 --op saria --bot expert --seeds 56 --seed0 1 --out build/cloud/hsg-saria-t0 --tag hsg-saria-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op saria --bot master --seeds 56 --seed0 1 --out build/cloud/hsg-saria-t2 --tag hsg-saria-t2 --extra="--maxt=1000 --tier=2"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/hsg-base-t0 --tag hsg-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/hsg-base-t1 --tag hsg-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/hsg-base-t2 --tag hsg-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定：主控三档各 50–70、对塞雷娅同档差 ≤ 15 个百分点；队友局她占全队 10–25%（docs/59 §7）；另看承伤 / 分与熄灯秒（应低于塞雷娅）。
+旋钮（docs/59 §3）：偏弱先 `block_chance`（0.25 → 0.30）再 `atk`；偏强先回收 `atk`（32 → 30）、`s2_dr`（0.2 → 0.15）、`s3_dr`，战术装甲基础概率不低于 0.20（身份）；Ⅷ 跌破 50 先看 `beacon_bonus`。

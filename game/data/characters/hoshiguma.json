@@ -1,0 +1,95 @@
+{
+ "id": "hoshiguma",
+ "name": "星熊",
+ "en": "HOSHIGUMA",
+ "class": "重装",
+ "faction": ["龙门近卫局"],
+ "col": [0.95, 0.75, 0.3],
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "_doc": "基础数值（docs/59 §3 / §8.3；数据干员，行为在 blocks 段，docs/61「星熊」节）。保护位：不治疗，靠格挡（战术装甲概率完全免伤、挡下的不掉灯火）+ 击退",
+  "atk": 32, "cd": 1.1, "reach": 110, "half_deg": 70, "kb": 220,
+  "block_chance": 0.25, "block_chance_boss": 0.10, "block_max": 0.8, "block_kb_r": 90, "block_kb": 200, "beacon_bonus": 0.15,
+  "s1_window": 3.0, "s1_mult": 2.0, "s1_r": 120, "s1_kb": 360, "s1_miss_mult": 1.5,
+  "s2_dur": 8.0, "s2_atk": 0.4, "s2_dr": 0.2, "s2_block_x": 2.0, "sand_dur": 2.0, "sand_r": 80, "sand_mult": 0.3, "sand_tick": 0.5,
+  "s3_dur": 10.0, "s3_atk": 0.6, "s3_len": 220, "s3_w": 50, "s3_kb": 1.5, "s3_dr": 0.3, "s3_quake_r": 120, "s3_quake_kb": 300,
+  "n_reach": 0.15, "n_heavy": 1.15, "wall_stun": 0.4, "ember_dur": 4.0, "ember_mult": 0.2, "oni_every": 4, "oni_mult": 1.3
+ },
+ "leader": {
+  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
+  "max_hp": 128, "armor": 3.5, "arts_res": 0.1, "regen": 1.0
+ },
+ "sprites": {
+  "_doc": "Codex 第五批正式帧条（art/incoming/squad_batch5_hoshiguma_manifest.json，docs/64 验收）：盾沿最远点 attack f3 @2x (+45, -42)",
+  "idle": {"tex": "op_hoshiguma_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
+  "run": {"tex": "op_hoshiguma_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "attack": {"tex": "op_hoshiguma_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 3},
+  "skill": {"tex": "op_hoshiguma_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 2},
+  "size": 48,
+  "foot": [24, 46]
+ },
+ "attack": {"mode": "auto", "name": "盾斧斩", "desc": "每 1.1 秒用盾「般若」的锋利盾沿向前横扫 140°（半径 110），命中击退"},
+ "skills": [
+  {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "3 秒内主控下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在主控身边反手重斩（半径 120，×2.0）并击退；3 秒内没挨打则向前补一记 ×1.5", "icon": "skill_hoshiguma_s1"},
+  {"name": "荆棘", "en": "THORNS", "sp": 14, "dur": 8.0, "desc": "8 秒：攻击 +40%，主控受到的伤害 -20%，「战术装甲」格挡概率 ×2；盾斧斩落点留下 2 秒热砂（半径 80），踩进的敌人每秒受到 30% 攻击力的伤害", "icon": "skill_hoshiguma_s2"},
+  {"name": "力之锯", "en": "SAW OF STRENGTH", "sp": 22, "dur": 10.0, "desc": "10 秒：攻击 +60%，盾斧斩改为直线斩（长 220、宽 50，命中沿线全部，击退 ×1.5）；主控受到的伤害 -30%，每次受击（含被格挡的）震退主控身边半径 120 内的敌人", "icon": "skill_hoshiguma_s3"}
+ ],
+ "talent": {"name": "战术装甲", "desc": "主控每次受到攻击有 25% 概率完全格挡（Boss 的攻击 10%）：不掉血、不掉灯火，并推开主控身边半径 90 内的敌人；主控给灯标读条期间概率 +15%"},
+ "hit_sources": {
+  "盾斧斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["area", "basic"]},
+  "举盾反击": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]},
+  "热砂": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "dot"]},
+  "力之锯": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "area"]},
+  "鬼面": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "pierce"]}
+ },
+ "progression": [
+  {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩与技能范围 +15%"},
+  {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_size", "desc": "星熊造成的伤害 ×1.15"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：主控受到攻击时有概率完全格挡，挡下的不掉灯火"},
+  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，主控身边半径 90 内的敌人眩晕 0.4 秒（精英减半，Boss 不受）"},
+  {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "growth_t_field", "desc": "「荆棘」的每处热砂之后再留 4 秒余烬，每秒受到 20% 攻击力的伤害"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「鬼面」：每第 4 次盾斧斩后追加一记直线斩（长 220、宽 50，×1.3）"}
+ ],
+ "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：主控挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"},
+ "blocks": {
+  "attack": {"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "kb": "$kb", "every": "$cd", "mult": 1.0, "src": "盾斧斩", "tags": ["basic"], "slash": true},
+  "trait": [
+   {"trig": "on_hurt", "cond": "skill_active:2", "do": [
+    {"verb": "displace", "center": "leader", "r": "$s3_quake_r", "kb": "$s3_quake_kb"}]},
+   {"trig": "every_n", "n": 1, "cond": "skill_active:1", "do": [
+    {"verb": "field", "center": "last_hit", "r": "$sand_r", "dur": "$sand_dur", "every": "$sand_tick", "fx_strip": "fx_hoshiguma_sand", "fx_r": 23, "do": [
+     {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$sand_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]}
+  ],
+  "skills": [
+   {"dur": "$s1_window", "do": [
+    {"verb": "negate_next", "fx_strip": "fx_hoshiguma_block", "text": "战意",
+     "on_block": [{"shape": "circle", "center": "leader", "r": "$s1_r", "mult": "$s1_mult", "kb": "$s1_kb", "src": "举盾反击", "tags": ["skill"], "power": true}],
+     "on_miss": [{"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "mult": "$s1_miss_mult", "kb": "$kb", "src": "举盾反击", "tags": ["skill"], "power": true}]}]},
+   {"dur": "$s2_dur", "do": [
+    {"verb": "buff_self", "stat": "op_atk", "op": "add", "value": "$s2_atk", "power": true},
+    {"verb": "dr", "value": "$s2_dr"},
+    {"verb": "negate_chance", "mult": "$s2_block_x"}]},
+   {"dur": "$s3_dur", "do": [
+    {"verb": "buff_self", "stat": "op_atk", "op": "add", "value": "$s3_atk", "power": true},
+    {"verb": "dr", "value": "$s3_dr"},
+    {"verb": "swap_attack", "attack": {"shape": "line", "len": "$s3_len", "width": "$s3_w", "mult": 1.0, "kb": "$kb*$s3_kb", "src": "力之锯", "tags": ["skill"], "fx_strip": "fx_hoshiguma_demon_slash", "fx_y": -30}}]}
+  ],
+  "talent": [
+   {"trig": "on_hurt", "chance": "$block_chance", "boss_chance": "$block_chance_boss", "max_chance": "$block_max", "negate": true, "fx_strip": "fx_hoshiguma_block", "text": "战术装甲", "do": [
+    {"verb": "displace", "center": "leader", "r": "$block_kb_r", "kb": "$block_kb"}]},
+   {"trig": "passive", "cond": "beacon_charging", "do": [
+    {"verb": "negate_chance", "add": "$beacon_bonus"}]}
+  ],
+  "progression": {
+   "reach": {"verb": "buff_self", "stat": "op_range", "op": "add", "value": "$n_reach"},
+   "heavy": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n_heavy"},
+   "wall": {"trig": "on_negate", "do": [
+    {"verb": "displace", "center": "leader", "r": "$block_kb_r", "kb": 0, "on_hit": [{"st": "stun", "dur": "$wall_stun"}]}]},
+   "ember": {"trig": "every_n", "n": 1, "cond": "skill_active:1", "do": [
+    {"verb": "field", "center": "last_hit", "r": "$sand_r", "dur": "$ember_dur", "every": "$sand_tick", "fx_strip": "fx_hoshiguma_sand", "fx_r": 30, "do": [
+     {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$ember_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]},
+   "elite2": {"trig": "every_n", "n": "$oni_every", "do": [
+    {"shape": "line", "len": "$s3_len", "width": "$s3_w", "mult": "$oni_mult", "kb": "$kb", "src": "鬼面", "tags": ["basic"], "fx_strip": "fx_hoshiguma_demon_slash", "fx_y": -30}]}
+  }
+ }
+}
