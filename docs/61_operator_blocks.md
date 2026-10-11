@@ -849,6 +849,7 @@ TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人�
 | `verb.buff_leader` | 常驻 | `stat`、`op: add / mult`、`value` | 合并后归「共用积木」（与安洁莉娜一份，`move_speed / pickup`）；德克萨斯 10-12 改版后不再用（原来写 `dash_cd`） |
 | `verb.trail` | 瞬时（放在 `trig.on_dash_end`） | `life`、`mult`、`src`、`tags`、`on_hit` | 沿刚结束的那次冲刺留 `life` 秒残像（宽 = 那次冲刺的宽），踩进的敌人每道残像各吃一次 |
 | `verb.fx_scatter` | 瞬时、只有画面 | `strip`、`n`、`r`、`center: self / target`、`stagger` | 半径内撒 n 个帧条（错开起播）；黄金角序列取点，不碰 `g.rng` |
+| `verb.fx_rain` | 瞬时、只有画面（10-12） | 见 §13.5 | 剑雨编排：按面积密度撒剑、错开下落 + 残影、地面预兆、冲击、插地、焦痕、终结亮环；只用 `g.vrng`。德克萨斯三处剑雨 10-12 起用它（不再用 `fx_scatter`） |
 | `trig.on_dash_end` | 触发 | `src`（只认这个来源的冲刺，缺省全部）、`min_hits`、`delay` | 本干员任一次 `dash_line` 结束；`do` 里的 `verb.trail` / `aim: reverse` 读这次冲刺的起止点 |
 | `trig.on_leader_dash` | 触发 | `cd` | 主控按下冲刺（`g.dash_t` 上升沿）；图鉴演示不触发。10-12 起德克萨斯不再用（见 §13.0），积木保留 |
 | `trig.on_skill_start` / `trig.on_skill_end` | 触发 | `skill`（0 起）、`delay`（只 start） | 技能出手帧 / 持续型技能计时归零那一帧；`on_skill_end` 的 `center: target` 落在最后一次冲刺的终点 |
@@ -878,7 +879,7 @@ TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人�
 
 `balance.json operators.texas`（A，全 0）、`lore.json`（docs/59 §8.8 档案）、`tools/balance_run.py OPS` 与预设 `texas_mate`、`sfx.gd OP_ALT`（普攻 ← 艾丽妮普攻 ×1.15，命中 ← 艾丽妮命中，S1 ← 艾丽妮 S1，S2 ← 推进之王 S2，S3 ← 艾丽妮 S3；没有新音频文件）。
 美术：Codex 正式帧条 `op_texas_*`（docs/64，返修 d954797d；发色 / 1x 徽记还在 Codex 返修中，换文件不用改 JSON），manifest 帧数 / fps / 出手帧（攻 5f14 / 1、技 7f12 / 3，脚底 (24, 46)）；
-技能图标 `skill_texas_s1..3`；特效 `fx_texas_dash`（锚在终点、朝冲刺方向、横向拉到冲刺长度）与 `fx_texas_blade`（剑雨撒 12 柄，错开起播），docs/25 §6。
+技能图标 `skill_texas_s1..3`；特效 `fx_texas_dash`（锚在终点、朝冲刺方向、横向拉到冲刺长度）与剑雨三条 `fx_texas_blade` / `fx_texas_rain_hit` / `fx_texas_rain_mark`（10-12 起 `verb.fx_rain`，§13.5），docs/25 §6。
 
 ### 13.4 测试
 
@@ -916,6 +917,73 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 判定：主控三档各 50–70；队友局她占全队 20–35%（docs/59 §7 节奏位）；对照推进之王单人同档差 ≤ 15 个百分点（docs/59 §2）。
 旋钮（docs/59 §2）：偏弱先加 `hit_sp`（0.6 → 0.8）再 `atk`；偏强先收 `talent_sp`（1.0 → 0.7）和 `s3_sp`；不动冲刺距离（手感）。
+
+### 13.5 剑雨编排 `verb.fx_rain`（10-12，用户「德克萨斯的剑雨特效是不是可以优化一下」）
+
+原来三处剑雨都是 `verb.fx_scatter`：r130 内撒 12 柄 12×32 小短剑、播一遍，看着弱。改成新的通用画面积木 `verb.fx_rain`（`op_blocks.gd` 德克萨斯段末尾，`_tx_rain_validate / tx_rain / tx_rain_draw`），
+素材重画并加两条（docs/25 §6；Codex 手绘版的特效单 docs/70，到了以后优先用 Codex 版）。`verb.fx_scatter` 保留（校验与执行不变），只是德克萨斯不再用。
+
+**纯画面**：伤害照旧由同一个 `do` 里的 `shape.circle` 在出手那一帧瞬时结算（没有改成跟着剑落地结算）；剑雨的随机只用 `g.vrng`，敌人位置只读（`query_ids`），不碰 `g.rng` / 玩法状态。
+为了「打到」和「看到」对得上：第一柄剑 0 秒起落、下落 `fall_t` 0.1 秒，所以 0.1 秒内就有剑插进敌人身上；`on_enemies` 比例的剑先落在半径内的敌人（含这一下刚打死的）身上，近的先、都在前四分之一的错开时间里。
+
+编排（每柄剑，`d` = 错开的起落时间）：`d` 起从落点正上方 `fall` 像素处加速扎下（`fall_t` 秒，先慢后快，`streak` 道越来越淡的残影）→ 落地前 `lead` 秒地面出预兆标记（`mark` 帧条前 `mark_frames` 帧）
+→ 落地：冲击帧条（`hit`，按 fps 播一遍）、剑插地（`strip` 后半帧在 `stick` 秒里铺开，最后三成淡出）、地面焦痕（`mark` 后半帧在 `scorch` 秒里铺开，最后四成淡出）。
+`finale`：最后一柄落地时在中心再来一次放大冲击 + 一片地面热光 + 一圈扩散亮环（环 / 热光程序画，0.4 秒）。
+一次施放 = 两个 pfx 粒子（kind `tx_rain`：上层 = 残影 → 剑 → 冲击；地面层 = 标记 → 终结亮环），共享一份剑列表；同一张贴图连着画（贴图矩形合批），亮环 / 热光走 batch_canvas 三角形。
+低画质（`Cfg.fx_density` 0.5）柄数减半；后期 `fx_dim` 整体降透明度照旧。缺剑的帧条 = 整场跳过；缺 `hit` / `mark` = 只少那一层。`--perfab` 同局轮换时 /b 桶不画剑雨（量净成本用）。
+
+| 参数 | 缺省 | 说明 |
+|---|---|---|
+| `strip` | 必填 | 剑的帧条（`fx_*`）：前 `fall_frames` 帧 = 下落（按 fps 循环），其余 = 插地（铺在 `stick` 秒里） |
+| `hit` / `mark` | — | 冲击帧条（落地按 fps 播一遍）/ 地面标记帧条（地面层：前 `mark_frames` 帧 = 预兆，其余 = 焦痕） |
+| `r` / `center` | 必填 / `self` | 半径（× `op_range`，同 `fx_scatter`）/ `self`：干员脚下；`target`：`on_skill_end` 时是最后一次冲刺的终点 |
+| `density` / `n` | 二选一 | 每 1 万平方像素几柄（随半径变密度不变）/ 固定柄数 |
+| `n_min` / `n_max` | 6 / 48 | `density` 算出的柄数夹在这之间（≤ 64） |
+| `stagger` | 0.4 | 全部剑在这么多秒里错开起落 |
+| `fall` / `fall_t` | 90 / 0.1 | 落差（世界像素）/ 下落用时（秒，0.02–1） |
+| `lead` | 0.12 | 落地前几秒出预兆标记 |
+| `stick` / `scorch` | 0.35 / 0.45 | 剑插地停留 / 焦痕停留（秒） |
+| `scale` / `scale_j` | 1 / 0.15 | 每 1x 像素 = `g.PX × scale` 世界像素 / 每柄 ±比例抖动 |
+| `tilt` / `slant` | 5 / 0 | 每柄随机倾斜 ±度 / 整体斜落角度（度，正 = 从右上往左下） |
+| `streak` | 2 | 下落残影道数（0–4） |
+| `on_enemies` | 0 | 先落在半径内敌人身上的比例（0–1） |
+| `alpha` | 1 | 整体透明度（回响等轻量版用） |
+| `fall_frames` / `mark_frames` | 帧数一半 | 见 `strip` / `mark` |
+| `hit_scale` / `mark_scale` | 1 / 1 | 冲击 / 标记相对剑的大小倍率 |
+| `anchor` / `hit_anchor` / `mark_anchor` | 剑：底边中点上 2 px；冲击：底边中点上 4 px；标记：帧中心 | 1x 帧内像素 `[x, y]`（@2x 自动 × `A.hires`） |
+| `layer` | `over` | `over`：上层普通混合；`add`：剑与冲击画进加色层（标记照旧在地面层） |
+| `finale` | — | `{scale（终结冲击每 1x 像素 = PX × scale，0.5–3，缺省 1.6）, ring（亮环半径 = r × ring，0 = 不画，缺省 1）, t（几秒后，缺省 = 最后一柄落地）, col（亮环颜色 [r, g, b(, a)]）}` |
+
+校验（`validate`）：参数名白名单（写错名字报错，`finale` 同）、帧条名必须 `fx_*`、`density` / `n` 至少一个、各数值范围、`layer` / `center` 取值；它是瞬时积木，放进常驻节点报错。
+
+德克萨斯三处（`texas.json`；r130 时）：
+
+| 场合 | 写法要点 | 柄数 |
+|---|---|---|
+| S1「剑雨」 | `density 4, on_enemies 0.5, stagger 0.4, fall 96, scale 0.7, streak 2` | 21 |
+| 节点「剑雨·连」回响 | `density 2, stagger 0.3, fall 80, scale 0.6, streak 1, alpha 0.75, scorch 0.3`（淡一档） | 11 |
+| S3「剑雨滂沱」结束 | `density 6.5, n_max 56, on_enemies 0.4, stagger 0.5, fall 120, scale 0.95, hit_scale 1.2, scorch 0.6, finale {scale 1.8, ring 1}` | 35 |
+
+S3 结束的剑雨**画面半径仍 = 伤害半径**（`$s1_r`），「更大」靠更大的剑、更密、终结亮环，没有让画面比实际判定范围大。
+屏幕震动：游戏里已整体移除（`vfx.shake_screen` 为空，「看着头疼」），顿帧会停模拟、改变 TRACE，所以两样都没加。
+
+素材：`tools/gen_fx_batch3.py` 的 `tx_blade` / `tx_rain_hit` / `tx_rain_mark`（`--only fx_texas_blade,fx_texas_rain` 只重写这三条），规格见 docs/25 §6 与 docs/70。
+色板：深色描边 `#1c1218` + 朱红刃 `#e8401c` / 橙 `#ff7a2a` / 热橙 `#ffb873` / 白热芯 `#fff3e2`，焦痕 `#3a1a16`；避开敌方危险色（洋红 / 粉）与能天使弹药（白红 / 琥珀 / 冰青 / 过热白）。
+
+**测试（10-12）**
+
+- 快检全量 rc=0（54 项）；`test_core.test_blocks_texas` 加 7 条 `fx_rain` 反例（缺 density / n、参数名写错、冲击帧条不是 `fx_*`、层写错、下落时间超范围、`finale` 参数名写错、放进常驻节点），连同原来的「缺帧条」全部被拒。
+- 同 seed（对 origin/main 9f50d91f，headless）：`--balance --seed=1 --bot=expert --maxt=240 --trace=1 --maxprog --sptest` 主控 `--op=texas` / 队友 `--op=wisadel --squad=texas`，
+  外加 `--seed=2 --bot=master --tier=2 --maxt=600 --op=texas`（Ⅷ 熟练，417 秒结束）：TRACE 241 / 241 / 418 行与 BALANCE（去 prof、画面峰值）**逐字节相同**。
+  开窗口录像局（`--seed=3 --bot=expert --op=texas --maxprog --nodeath --realtime --fixed-fps 30 --trace=1`）跑到 8:32（183 名敌人）TRACE 512 行也逐字节相同。
+- 成本（同局轮换 `--perf --prof --perfmin --perfab=2 --sptest`，`--fixed-fps 60 --realtime`，主控德克萨斯 seed 3 `--maxprog --nodeath`，跑到 9:20，后期 100–130+ 名敌人；
+  `--sptest` 让 S1 + 回响 + S3 结束剑雨几乎不间断叠着放 = 最坏情况）：`draw_world` /a − /b（画 − 不画剑雨）每分钟段 **+0.19 ~ +0.27 毫秒 / 帧**
+  （`dw_shadows` 地面标记 +0.09 ~ +0.12、`dw_shield_drones` 剑与冲击 +0.12 ~ +0.16）；同参数跑 origin/main（/a /b 都画旧剑雨）的噪声 ±0.04。
+  渲染 CPU / GPU 中位数 /a /b 差 ≤ 0.02 毫秒（合批有效）。分段计时探针会放大约 2 倍，正常节奏（S1 6 秒一次、剑雨每次约 0.6–1.2 秒）下平均摊到每帧约 0.02–0.05 毫秒。
+- 画面（`build/texas_rain/`，主仓库也有一份）：`compare_s1.png` / `compare_s3_end.png` / `compare_late.png`（同局同帧，左 origin/main、右改后）、`s1_early_0005.png`、`rain2_echo_0005.png`、
+  `s3_end_early_0009_fall.png` / `_finale.png`、`s3_end_late_0829*.png`（8:29 约 180 名敌人、灯火昏暗）、`strips_6x.png`（三条帧条 6 倍），
+  录像 `texas_rain_before_after.mp4`（30fps，S1 → S3 结束 → 后期三段，左右对照）与 `_halfspeed.mp4`（半速）。
+
 ## 14. 能天使的表达（docs/59 §4 + §8.4，第三批第四人，10-11）
 
 见 `data/characters/exusiai.json` 的 `blocks`：0 个 `custom`，没有 `exusiai.gd`。帧条用 Codex 正式稿（docs/64，attack / skill 为 d954797d 返修的「枪保持水平」版），弹体与特效用 docs/25 §6 的 `proj_exusiai_bullet(_power)`、`fx_exusiai_muzzle(_gold)`、`fx_exusiai_hit`，技能图标 `skill_exusiai_s1..3`。

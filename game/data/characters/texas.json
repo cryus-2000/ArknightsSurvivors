@@ -10,7 +10,7 @@
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 26, "cd": 1.1, "dash_len": 140, "dash_w": 44, "dash_t": 0.18, "dash_hold": 0.15, "hit_sp": 0.6,
-  "s1_r": 130, "s1_mult": 1.6, "s1_stun": 0.5, "s1_sp": 0.10, "rain_n": 12,
+  "s1_r": 130, "s1_mult": 1.6, "s1_stun": 0.5, "s1_sp": 0.10,
   "s2_len": 0.4, "s2_mult": 1.3, "s2_cd_mult": 0.8,
   "s3_dur": 8.0, "s3_every": 0.5, "s3_mult": 0.9, "s3_stun": 0.3, "s3_sp": 0.4, "s3_end_mult": 1.6,
   "talent_cd": 2.5, "talent_sp": 0.8, "talent_many": 3, "talent_many_sp": 0.3,
@@ -63,13 +63,14 @@
     {"verb": "sp_secs", "seconds": "$s3_sp"}]},
    {"trig": "on_skill_end", "skill": 2, "do": [
     {"shape": "circle", "center": "target", "r": "$s1_r", "mult": "$s3_end_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
-    {"verb": "fx_scatter", "strip": "fx_texas_blade", "n": "$rain_n", "r": "$s1_r", "center": "target"}]}
+    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "target", "density": 6.5, "n_max": 56, "on_enemies": 0.4, "stagger": 0.5, "fall": 120, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.95, "streak": 2, "hit_scale": 1.2, "scorch": 0.6,
+     "finale": {"scale": 1.8, "ring": 1.0}}]}
   ],
   "skills": [
    {"dur": 0, "do": [
     {"shape": "circle", "center": "self", "r": "$s1_r", "mult": "$s1_mult", "power": true, "src": "剑雨", "tags": ["skill"], "on_hit": [{"st": "stun", "dur": "$s1_stun"}]},
     {"verb": "sp_team", "pct": "$s1_sp"},
-    {"verb": "fx_scatter", "strip": "fx_texas_blade", "n": "$rain_n", "r": "$s1_r", "center": "self"}]},
+    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "self", "density": 4.0, "on_enemies": 0.5, "stagger": 0.4, "fall": 96, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.7, "streak": 2}]},
    {"dur": "permanent", "do": [
     {"verb": "dash_mod", "len_add": "$s2_len"},
     {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$s2_mult"}]},
@@ -94,7 +95,7 @@
     {"shape": "dash_line", "aim": "reverse", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "mult": "$back_mult", "src": "回马剑", "tags": ["follow_up"], "strip": "fx_texas_dash"}]},
    "rain2": {"trig": "on_skill_start", "skill": 0, "delay": "$rain2_delay", "do": [
     {"shape": "circle", "center": "self", "r": "$s1_r", "mult": "$rain2_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
-    {"verb": "fx_scatter", "strip": "fx_texas_blade", "n": "$rain_n", "r": "$s1_r", "center": "self"}]},
+    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "self", "density": 2.0, "on_enemies": 0.5, "stagger": 0.3, "fall": 80, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.6, "streak": 1, "alpha": 0.75, "scorch": 0.3}]},
    "elite2": {"trig": "on_dash_end", "do": [
     {"verb": "trail", "life": "$trail_life", "mult": "$trail_mult", "src": "余像", "tags": ["dot"], "on_hit": [{"st": "slow", "dur": "$trail_slow"}]}]}
   }

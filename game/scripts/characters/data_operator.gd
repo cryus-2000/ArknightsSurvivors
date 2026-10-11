@@ -503,10 +503,14 @@ func draw_ground_fx() -> void:
 
 
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
-## 德克萨斯段的冲刺剑光 / 剑雨（kind = tx_strip：横向拉伸、延迟起播）交给 OB.tx_draw_pfx
+## 德克萨斯段的冲刺剑光 / 旧剑雨（kind = tx_strip：横向拉伸、延迟起播）交给 OB.tx_draw_pfx；剑雨编排（kind = tx_rain，verb.fx_rain）交给 OB.tx_rain_draw
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) == "tx_strip":
 		return OB.tx_draw_pfx(self, f, a)
+	if str(f.kind) == "tx_rain":   # verb.fx_rain（docs/61 §13.5）：加色层的在 draw_fx_add 画
+		if not f.get("add", false):
+			OB.tx_rain_draw(cv, self, f)
+		return true
 	if str(f.kind) != "strip":
 		return false
 	if not f.get("add", false):
@@ -521,6 +525,8 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
 			OB.fx_draw(ci, g, f, g.world.fx_dim)
+		elif str(f.kind) == "tx_rain" and f.get("add", false):
+			OB.tx_rain_draw(ci, self, f)
 
 
 func _find_uid(u: int) -> Dictionary:
