@@ -234,8 +234,13 @@
   "ishar_heal_range": 480.0,
   "ishar_tear_block_radius": 32.0
  },
+ "final": {
+  "_doc": "最终 Boss 战停刷（run/spawner.gd mobs_stopped，docs/38 §8.14，用户 10-11「最终 boss 出现以后小怪就可以不用刷了」）。stop_mobs 1：最终 Boss 在场时普通刷怪 / 精英 / 大群 / 威胁上升新种类都不刷，Boss 召唤物、剧本刷怪、补给箱、灯标照常；0 = 旧行为（仍受 boss/final_mob_cap 120 限制）。clear_mobs_s：0 = 场上现有杂兵留着；> 0 = 最终 Boss 登场时现有普通杂兵在 N 秒内由远到近逐只消散（不算击杀、不掉东西）。难度表 final_stop_mobs / final_clear_mobs_s ≥ 0 时按档覆盖",
+  "stop_mobs": 1,
+  "clear_mobs_s": 0
+ },
  "difficulty": {
-  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准",
+  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
   "standard": {},
   "hard": {
    "hunt_dur": 0.85,

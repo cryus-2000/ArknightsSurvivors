@@ -20,6 +20,7 @@ var mid_used: Array = []
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
 const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
 var next_chest := 20.0
+var fading: Array = []   # 最终 Boss 登场时排队消散的杂兵（final/clear_mobs_s > 0 才有；元素 [敌人, 消散时刻]）
 
 
 func _init(game: Game) -> void:
@@ -172,6 +173,48 @@ func boss_mob_room() -> int:
 	return cap - mob_count() if cap > 0 else max_alive()
 
 
+## 最终 Boss 战停刷（用户 10-11「最终 boss 出现以后小怪就可以不用刷了」，docs/38 §8.14）：旋钮 final/<key>，难度表 final_<key> ≥ 0 时优先。
+## 代码缺省 0 = 关 = 旧行为（balance.json 里 stop_mobs 填 1）
+func final_knob(key: String, def := 0.0) -> float:
+	var v := float(g.dmod.get("final_" + key, -1.0))
+	return v if v >= 0.0 else Bal.v("final/" + key, def)
+
+
+## 最终 Boss 在场且 final/stop_mobs 开：普通刷怪 / 精英 / 大群 / 威胁上升的新种类都不刷；Boss 召唤物、剧本刷怪（伊莎玛拉练习靶、
+## 子代蜕变等）、补给箱、灯标、商人照常——那些不走这几条路径
+func mobs_stopped() -> bool:
+	return g.final_boss != null and not g.final_boss.dead and final_knob("stop_mobs") > 0.0
+
+
+## 最终 Boss 登场时 final/clear_mobs_s > 0：场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内由远到近逐只消散。
+## 消散不算击杀：不掉经验 / 灯油 / 道具、不触发击杀类藏品与干员被动、不计 kills（理由见 docs/38 §8.14）。不掷随机数
+func queue_clear(dur: float) -> void:
+	var mobs: Array = []
+	for e in g.enemies:
+		if not e.dead and not e.boss and not e.get("chest", false) and not e.get("friendly", false) and str(e.get("event", "")) == "":
+			mobs.append(e)
+	mobs.sort_custom(func(a, b): return a.pos.distance_squared_to(g.ppos) > b.pos.distance_squared_to(g.ppos))
+	var n := mobs.size()
+	for k in n:
+		fading.append([mobs[k], g.t + dur * float(k + 1) / float(n)])
+
+
+func _update_fading() -> void:
+	var keep: Array = []
+	for f in fading:
+		var e: Dictionary = f[0]
+		if e.dead:
+			continue
+		if g.t < float(f[1]):
+			keep.append(f)
+			continue
+		e.dead = true
+		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+		if not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * maxf(1.0, e.r / 12.0)):
+			g.vfx.anim("fx_death", e.pos, 0.3, g.PX * maxf(1.0, e.r / 12.0))
+	fading = keep
+
+
 func boss_alive() -> bool:
 	for b in g.bosses:
 		if not b.dead:
@@ -225,6 +268,8 @@ func update(dt: float) -> void:
 			g.bosses.append(b)
 			spawned.append(b)
 			g.boss = b
+		if boss_idx == D.BOSS_TIMES.size() and mobs_stopped() and final_knob("clear_mobs_s") > 0.0:
+			queue_clear(final_knob("clear_mobs_s"))
 		if spawned.size() == 2:
 			spawned[0].partner = spawned[1]
 			spawned[1].partner = spawned[0]
@@ -244,7 +289,7 @@ func update(dt: float) -> void:
 		Sfx.play("roar", -1.0, 0.75, 0.0)
 		g.vfx.shake_screen(0.8)
 		var fresh: Array = tr.pool.filter(func(x): return not D.THREAT[g.threat - 1].pool.has(x))
-		if not fresh.is_empty():
+		if not fresh.is_empty() and not mobs_stopped():
 			for k in 6:
 				spawn_enemy(fresh[k % fresh.size()], edge_pos())
 	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
@@ -262,9 +307,12 @@ func update(dt: float) -> void:
 	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
 	var mob_room: int = boss_mob_room()
+	var stop := mobs_stopped()   # 最终 Boss 战停刷（final/stop_mobs）：累积照常扣掉，不刷
+	if not fading.is_empty():
+		_update_fading()
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
-		if mob_room <= 0:
+		if mob_room <= 0 or stop:
 			continue
 		mob_room -= 1
 		if g.enemies.size() < max_alive():
@@ -278,7 +326,9 @@ func update(dt: float) -> void:
 	# 数值留的旋钮 enemy/elite_during_boss：Boss 在场时精英计时的速度（1 = 照常、0 = 冻结、0.5 = 减半）
 	if boss_alive():
 		next_elite += dt * (1.0 - Bal.v("enemy/elite_during_boss", 1.0))
-	if g.t >= next_elite:
+	if stop and g.t >= next_elite:
+		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)   # 最终 Boss 战停刷：精英计时照走，不出精英
+	elif g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()
 		spawn_enemy(et, edge_pos())
@@ -298,7 +348,7 @@ func update(dt: float) -> void:
 	var due: float = g.next_horde
 	if boss_alive() and int(g.dmod.horde_in_boss) <= 0:
 		due += Bal.v("boss/horde_defer_max", 40.0)
-	var horde_ok: bool = g.t < 570.0
+	var horde_ok: bool = g.t < 570.0 and not stop   # 最终 Boss 战停刷时连预警也不出
 	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
 		horde_warned = due
 		g.horde_warn = 3.0
@@ -434,6 +484,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * float(g.dmod.boss_hp) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
 		# Boss 血量旋钮（数值会话在 balance.json 的 boss 段填）：中期 / 最终各一个总倍率，另有每只 Boss 单独的倍率；缺省都是 1.0
 		e.hp *= Bal.v("boss/hp_final" if is_final_boss_type(type) else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + type, 1.0)
+		if is_final_boss_type(type):
+			e.hp *= float(g.dmod.get("final_boss_hp", 1.0))   # 按档只加最终 Boss 的血（停刷补偿，docs/38 §8.14；缺省 1.0）
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult

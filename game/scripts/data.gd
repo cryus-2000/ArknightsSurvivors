@@ -51,13 +51,19 @@ const DMOD_DEFAULT := {
 	# 小怪控制 / 词条按档覆盖（数值 9/30：标准档不动、只收紧 Ⅳ / Ⅷ）：-1 = 用 balance.json enemy 段的全局值，读取走 combat.enemy_knob
 	"ctrl_start": -1.0, "frost_max": -1.0, "affix_start": -1.0, "affix_max": -1.0,
 	"dmg_late_cap": -1.0,                                                  # 后期敌人伤害上限（run/spawner.gd；-1 = 用 enemy/dmg_late_cap，Ⅷ 跌破 50 时可单独设 0）
-	"boss_fight_enemy_hp": -1.0,
-	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 灯标圈内安全按档开（-1 = 跟 balance.json beacon 段，缺省关；docs/49g）                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
+	"boss_fight_enemy_hp": -1.0,                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
+	"final_stop_mobs": -1.0, "final_clear_mobs_s": -1.0,                 # 最终 Boss 战停刷 / 现有杂兵消散秒数按档覆盖（-1 = 跟 balance.json final 段；spawner.final_knob）
+	"final_boss_hp": 1.0,                                                 # 只乘最终 Boss 的生命（停刷的补偿旋钮，docs/38 §8.14；不动中期 Boss / 杂兵 / 经验）
+	# 灯标按档覆盖（-1 = 跟 balance.json beacon 段；beacon._sk）。这里没登记的键 dmod_for_tier 会丢掉，所以 _sk 读的键都要在这里
+	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 圈内安全（docs/49g）
+	"beacon_guide_r": -1.0, "beacon_shade_deg": -1.0,                     # 引路 / 背光刷怪（docs/56）
+	"beacon_relay_r": -1.0, "beacon_relay_rate": -1.0,                    # 接力环（docs/56 §8）
+	"beacon_stagger_r": -1.0, "beacon_stagger_s": -1.0, "beacon_stagger_cd": -1.0,   # 灯边硬直（docs/56 §10）
 }
 ## 修正项在选难度页上的说明：[键, 模板, 显示方式]；up = (v-1)×100，down = (1-v)×100，flag = 开关；
 ## time / count / pct = 按档覆盖的 enemy 段绝对值（-1 = 用全局），只在本档值和 balance.json enemy/<键> 不同时显示：time 写成 分:秒，pct ×100
 const DMOD_TEXT := [
-	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"],
+	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"], ["final_boss_hp", "最终 Boss 生命再 +%d%%", "up"],
 	["max_hp", "主控初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
 	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然溟痕常驻，只有引航灯标能驱散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
