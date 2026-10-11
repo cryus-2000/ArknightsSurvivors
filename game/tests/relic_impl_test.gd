@@ -302,5 +302,79 @@ func test_batch_g() -> void:
 	game.pending_levelups = pl1
 
 
+## 通用批：旗帜区域、升级限时攻速、精英减伤、远程间隔、钥匙、灯火流失、未受伤回灯火、升级、随机藏品、排异解除 / 免疫、无视防御、击败 Boss
 func test_batch_general() -> void:
-	pass
+	grant("117")
+	rfx.tick(0.1)
+	var z: Dictionary = rfx.zones.get("117", {})
+	ok(not z.is_empty() and z.pos != Vector2.INF, "遗落之帜：出现旗帜")
+	var d0: float = rfx.dmg_extra()
+	var h0: float = rfx.umbrella_interval_mult()
+	var keep: Vector2 = game.ppos
+	game.ppos = z.pos
+	near(rfx.dmg_extra() / d0, 1.5, "遗落之帜：旗帜旁全队伤害 ×1.5")
+	near(rfx.umbrella_interval_mult() / h0, 1.0 / 1.5, "遗落之帜：旗帜旁攻击间隔 ÷1.5")
+	game.ppos = keep
+	near(rfx.dmg_extra() / d0, 1.0, "遗落之帜：离开后无加成")
+	grant("122")
+	rfx.on_levelup(1)
+	near(rfx.umbrella_interval_mult() / h0, 1.0 / 1.4, "疗养体验卡：升级后攻击间隔 ÷1.4")
+	game.t += 10.1
+	rfx.tick(0.0)
+	near(rfx.umbrella_interval_mult() / h0, 1.0, "疗养体验卡：10 秒后过期")
+	grant("113")
+	near(game.elite_taken_mult, 0.6, "王庭盟约：精英伤害 ×0.6")
+	grant("119")
+	near(game.enemy_ranged_cd_mult, 1.35, "捕鳞蓑：远程开火间隔 ×1.35")
+	grant("194")
+	ok(rfx.rule("chest_keys") == 3, "三钥协定：钥匙 3 把")
+	ok(not game.spawner._mimic_roll(""), "三钥协定：钥匙期间不出箱形恐鱼")
+	grant("249")
+	near(game.lamp_loss_mult, 0.6, "凝固灯油：灯火流失 ×0.6")
+	grant("247")
+	game.lamp = 50.0
+	rfx.tick(60.5)
+	near(game.lamp, 56.0, "地底的灼痕：60 秒未受伤灯火 +6")
+	rfx.on_hurt(false, 1.0)
+	near(rfx.unhurt.get("247", -1.0), 0.0, "地底的灼痕：受伤后重新计时")
+	var lv0: int = game.level
+	var pl0: int = game.pending_levelups
+	grant("76")
+	ok(game.level == lv0 + 1 and game.pending_levelups == pl0 + 1, "人偶之家：立即升 1 级（%d → %d）" % [lv0, game.level])
+	game.pending_levelups = pl0
+	var n0: int = game.relics.size()
+	grant("206")
+	ok(game.relics.size() == n0 + 2, "大教堂拼图：随机多得 1 件（%d → %d）" % [n0, game.relics.size()])
+	ok(game.RL[game.relics[-1]].rarity == "基础", "大教堂拼图：得到的是基础藏品（%s）" % game.RL[game.relics[-1]].name)
+	# 排异：失败的标本给一次 → 达里奥的提灯解除并免疫下一次
+	var rc0: int = game.doctor.rej_count
+	grant("217")
+	ok(game.doctor.rej_count == rc0 + 1, "失败的标本：一次排异反应")
+	var had := false
+	for o in game.squad.ops:
+		if not o.rej.is_empty():
+			had = true
+	grant("201")
+	var still := false
+	for o in game.squad.ops:
+		if not o.rej.is_empty():
+			still = true
+	ok(not had or not still, "达里奥的提灯：解除排异")
+	ok(rfx.rule("rej_immune") == 1, "达里奥的提灯：免疫 1 次")
+	ok(game.doctor.apply_rejection() == "已被抑制" and rfx.rule("rej_immune") == 0, "达里奥的提灯：下一次排异被抑制并用掉")
+	grant("262")
+	ok(rfx.rule("def_pierce") == 35 and rfx.rule("rej_immune") >= 99, "养育者基因种：无视防御 35%、免疫排异")
+	# 击败 Boss：立体艺术装置回血、国王的水晶扣血 + 源石锭 + 三选一、判官经文布加选项
+	grant("192")
+	grant("251")
+	grant("196")
+	game.hp = game.max_hp * 0.5
+	var ig0: int = game.ingots
+	pl0 = game.pending_levelups
+	rfx.on_kill({"boss": true, "dead": false})
+	ok(game.ingots == ig0 + 15, "国王的水晶：击败 Boss +15 源石锭")
+	ok(game.pending_levelups == pl0 + 1, "国王的水晶：击败 Boss 一次成长三选一")
+	ok(rfx.rule("choice_extra") >= 2, "判官经文布：击败 Boss 后 2 次加选项")
+	ok(game.hp > game.max_hp * 0.44 and game.hp < game.max_hp * 0.52, "立体艺术装置 + 国王的水晶：失去 20%% 当前生命再回约 10%%（%.1f%% 最大生命）" % (100.0 * game.hp / game.max_hp))
+	game.pending_levelups = pl0
+	reset_hp()

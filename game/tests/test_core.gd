@@ -127,7 +127,7 @@ func test_db_and_profile() -> void:
 	for e in errs:
 		printerr("  数据错误: ", e)
 	ok(errs.is_empty(), "效果数据校验")
-	ok(c.db.implemented().size() > 20, "已实装藏品数量")
+	ok(c.db.implemented().size() == 262, "已实装藏品 262 件（docs/57：全部实装，%d）" % c.db.implemented().size())
 	# docs/35 藏品契约：说明非空、不再出现「援护干员」、职业门槛合法、流派只用 A–H
 	var classes := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 	for r in c.db.implemented():

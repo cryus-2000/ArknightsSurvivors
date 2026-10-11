@@ -92,6 +92,79 @@
    "effect_category": "damage",
    "new": true
   },
+  "6": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.06
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.06
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 1
+    }
+   ],
+   "desc": "全队伤害 +6%；主控最大生命 +6%、物理减伤 +1",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "max_lv": 1,
+   "effect_category": "damage",
+   "new": true
+  },
+  "7": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.1
+    }
+   ],
+   "desc": "主控护盾层数上限 +1（没有护盾时获得每 12 秒一层的护盾），护盾生成间隔 -10%",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "effect_category": "shield",
+   "new": true
+  },
+  "8": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 6
+     }
+    }
+   ],
+   "desc": "源石锭 +6",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
   "9": {
    "effects": [
     {
@@ -173,6 +246,44 @@
    "effect_category": "economy",
    "new": true
   },
+  "12": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "13": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
   "14": {
    "effects": [
     {
@@ -220,6 +331,219 @@
    ],
    "rarity": "基础",
    "effect_category": "shield"
+  },
+  "16": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 2
+    }
+   ],
+   "desc": "主控护盾层数上限 +2（没有护盾时获得每 12 秒一层的护盾）",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "shield"
+   ],
+   "effect_category": "shield",
+   "new": true
+  },
+  "17": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 10
+    },
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 3
+     }
+    }
+   ],
+   "desc": "主控最大生命 +10；源石锭 +3",
+   "rarity": "基础",
+   "tags": [
+    "economy",
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "18": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 15
+    },
+    {
+     "type": "on_gain",
+     "do": "heal_flat",
+     "args": {
+      "amount": 15
+     }
+    }
+   ],
+   "desc": "主控最大生命 +15，立即回复 15 生命",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "19": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 20
+    }
+   ],
+   "desc": "主控最大生命 +20",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "20": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 30
+    }
+   ],
+   "desc": "主控最大生命 +30",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "21": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 50
+    }
+   ],
+   "desc": "主控最大生命 +50",
+   "rarity": "稀有",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "22": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "23": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "24": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "25": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 18
+     }
+    }
+   ],
+   "desc": "源石锭 +18",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
+  "26": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 24
+     }
+    }
+   ],
+   "desc": "源石锭 +24",
+   "rarity": "稀有",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
   },
   "27": {
    "effects": [
@@ -857,6 +1181,23 @@
    ],
    "effect_category": "defense"
   },
+  "62": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.5
+    }
+   ],
+   "desc": "主控最大生命 +50%",
+   "rarity": "核心",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
   "63": {
    "effects": [
     {
@@ -977,6 +1318,24 @@
    ],
    "effect_category": "healing"
   },
+  "70": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_mult",
+     "op": "add",
+     "value": 0.3
+    }
+   ],
+   "desc": "主控受到的治疗量 +30%",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "heal"
+   ],
+   "effect_category": "healing",
+   "new": true
+  },
   "71": {
    "effects": [
     {
@@ -1075,6 +1434,66 @@
    "desc": "主控闪避率 +10%",
    "rarity": "基础",
    "effect_category": "dodge"
+  },
+  "76": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 1
+     }
+    }
+   ],
+   "desc": "立即升 1 级",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "effect_category": "growth",
+   "new": true
+  },
+  "77": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 2
+     }
+    }
+   ],
+   "desc": "立即升 2 级",
+   "rarity": "稀有",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "effect_category": "growth",
+   "new": true
+  },
+  "78": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 3
+     }
+    }
+   ],
+   "desc": "立即升 3 级",
+   "rarity": "核心",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "effect_category": "growth",
+   "new": true
   },
   "79": {
    "effects": [
@@ -1827,6 +2246,24 @@
    ],
    "effect_category": "damage"
   },
+  "113": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "elite_dmg_taken",
+     "op": "add",
+     "value": -0.4
+    }
+   ],
+   "desc": "精英敌人对主控造成的伤害 -40%",
+   "rarity": "稀有",
+   "tags": [
+    "survival"
+   ],
+   "shop_allowed": true,
+   "effect_category": "defense",
+   "new": true
+  },
   "114": {
    "effects": [
     {
@@ -1878,6 +2315,27 @@
    ],
    "effect_category": "healing"
   },
+  "117": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "zone",
+     "args": {
+      "r": 95,
+      "every": 60,
+      "dmg": 0.5,
+      "aspd": 0.5
+     }
+    }
+   ],
+   "desc": "地图上出现一面旗帜：主控站在旗帜附近时全队伤害 +50%、攻击速度 +50%；每 60 秒换一次位置",
+   "rarity": "核心",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
   "118": {
    "effects": [
     {
@@ -1894,6 +2352,23 @@
    ],
    "rarity": "稀有",
    "effect_category": "shield"
+  },
+  "119": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_ranged_cd",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "远程杂兵的开火间隔 +35%（Boss 除外）",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
   },
   "120": {
    "effects": [
@@ -1942,6 +2417,50 @@
    "desc": "主控闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）",
    "rarity": "升华",
    "effect_category": "damage"
+  },
+  "122": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "LevelUp",
+     "do": "temp_stat",
+     "args": {
+      "stat": "op_aspd",
+      "op": "add",
+      "value": 0.4,
+      "dur": 10.0
+     }
+    }
+   ],
+   "desc": "每次升级后 10 秒内全队攻击速度 +40%",
+   "rarity": "稀有",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
+  "123": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "LevelUp",
+     "do": "temp_stat",
+     "args": {
+      "stat": "op_aspd",
+      "op": "add",
+      "value": 0.7,
+      "dur": 10.0
+     }
+    }
+   ],
+   "desc": "每次升级后 10 秒内全队攻击速度 +70%",
+   "rarity": "核心",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
   },
   "124": {
    "effects": [
@@ -2077,6 +2596,40 @@
     "skill"
    ],
    "effect_category": "followup",
+   "new": true
+  },
+  "131": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "corrode_taken",
+     "op": "add",
+     "value": -0.4
+    }
+   ],
+   "desc": "主控受到的侵蚀 -40%",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "132": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "nerve_taken",
+     "op": "add",
+     "value": -0.4
+    }
+   ],
+   "desc": "主控神经损伤累积 -40%",
+   "rarity": "基础",
+   "tags": [
+    "survival"
+   ],
+   "effect_category": "defense",
    "new": true
   },
   "133": {
@@ -3553,6 +4106,151 @@
    "late_weight": 0.3,
    "effect_category": "healing"
   },
+  "192": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "heal",
+     "args": {
+      "amount": 0.7
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "heal",
+     "args": {
+      "heal": 0.1
+     }
+    }
+   ],
+   "desc": "获得时主控回复 70% 生命；此后每击败一个 Boss 回复 10%",
+   "rarity": "稀有",
+   "tags": [
+    "on_kill",
+    "survival",
+    "heal"
+   ],
+   "effect_category": "healing",
+   "new": true
+  },
+  "193": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "rule",
+     "rule": "chest_keys",
+     "value": 1
+    },
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 1
+    }
+   ],
+   "desc": "主控护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "shield",
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "shield",
+   "new": true
+  },
+  "194": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "chest_keys",
+     "value": 3
+    }
+   ],
+   "desc": "补给箱钥匙 +3：开补给箱时多一个选项（用掉一把），钥匙用完前不会遇到箱形恐鱼",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "choice",
+   "new": true
+  },
+  "195": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 2
+    }
+   ],
+   "desc": "接下来 2 次三选一各多一个选项",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
+  },
+  "196": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "choice_extra",
+     "args": {
+      "choice_extra": 2
+     }
+    }
+   ],
+   "desc": "每击败一个 Boss，接下来 2 次三选一各多一个选项",
+   "rarity": "稀有",
+   "tags": [
+    "on_kill"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
+  },
+  "197": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 6
+    }
+   ],
+   "desc": "接下来 6 次三选一各多一个选项",
+   "rarity": "稀有",
+   "tags": [
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
+  },
+  "198": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "four_choices"
+    }
+   ],
+   "desc": "升级与藏品的三选一各多一个选项（与四叶草化石、「观望」叠加）",
+   "rarity": "核心",
+   "tags": [
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
+  },
   "199": {
    "requires": [
     "118"
@@ -3599,6 +4297,29 @@
    "rarity": "稀有",
    "effect_category": "shield"
   },
+  "201": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "clear_rejection",
+     "args": {}
+    },
+    {
+     "type": "rule",
+     "rule": "rej_immune",
+     "value": 1
+    }
+   ],
+   "desc": "解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "skill"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "202": {
    "effects": [
     {
@@ -3616,6 +4337,29 @@
    ],
    "rarity": "核心",
    "effect_category": "shield"
+  },
+  "203": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "clear_rejection",
+     "args": {}
+    },
+    {
+     "type": "rule",
+     "rule": "rej_immune",
+     "value": 1
+    }
+   ],
+   "desc": "解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）",
+   "rarity": "稀有",
+   "tags": [
+    "survival",
+    "skill"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
   },
   "204": {
    "effects": [
@@ -3640,6 +4384,45 @@
    "desc": "灯火 -30；灯火低于 50 时，技力回复 +50%、全队伤害 +50%",
    "rarity": "核心",
    "effect_category": "light"
+  },
+  "205": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "light",
+     "args": {
+      "amount": 5
+     }
+    }
+   ],
+   "desc": "灯火 +5",
+   "rarity": "基础",
+   "tags": [
+    "light"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "light",
+   "new": true
+  },
+  "206": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "random_relic",
+     "args": {
+      "n": 1,
+      "rarity": "基础"
+     }
+    }
+   ],
+   "desc": "随机获得 1 件基础藏品",
+   "rarity": "稀有",
+   "tags": [
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
   },
   "207": {
    "effects": [
@@ -3810,6 +4593,24 @@
    "effect_category": "healing",
    "new": true
   },
+  "215": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": -0.15
+    }
+   ],
+   "desc": "全队技力回复 -15%",
+   "rarity": "遭诅古物",
+   "tags": [
+    "skill",
+    "curse"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "216": {
    "effects": [
     {
@@ -3824,6 +4625,22 @@
    ],
    "rarity": "遭诅古物",
    "effect_category": "defense"
+  },
+  "217": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "rejection"
+    }
+   ],
+   "desc": "立即一次排异反应",
+   "rarity": "遭诅古物",
+   "tags": [
+    "curse"
+   ],
+   "shop_allowed": true,
+   "effect_category": "ending",
+   "new": true
   },
   "218": {
    "effects": [
@@ -3942,6 +4759,30 @@
    ],
    "effect_category": "ending"
   },
+  "224": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 10
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "chest_keys",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +10；补给箱钥匙 +1（开补给箱时多一个选项，钥匙用完前不会遇到箱形恐鱼）",
+   "rarity": "基础",
+   "tags": [
+    "economy"
+   ],
+   "late_weight": 0.3,
+   "effect_category": "economy",
+   "new": true
+  },
   "225": {
    "effects": [
     {
@@ -3960,6 +4801,26 @@
     "ending"
    ],
    "effect_category": "ending"
+  },
+  "226": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "random_relic",
+     "args": {
+      "n": 2,
+      "rarity": "基础"
+     }
+    }
+   ],
+   "desc": "随机获得 2 件基础藏品",
+   "rarity": "核心",
+   "tags": [
+    "economy"
+   ],
+   "shop_allowed": true,
+   "effect_category": "choice",
+   "new": true
   },
   "227": {
    "effects": [
@@ -4130,6 +4991,43 @@
    "shop_allowed": true,
    "effect_category": "followup"
   },
+  "235": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.15
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.15
+    },
+    {
+     "type": "stat",
+     "stat": "move_speed",
+     "op": "mult",
+     "value": 0.9
+    }
+   ],
+   "desc": "全队伤害 +15%；主控最大生命 +15%、受到的伤害 -15%，但移动速度 -10%",
+   "rarity": "稀有",
+   "tags": [
+    "control",
+    "survival"
+   ],
+   "max_lv": 1,
+   "effect_category": "defense",
+   "new": true
+  },
   "236": {
    "effects": [
     {
@@ -4256,6 +5154,26 @@
    ],
    "effect_category": "choice"
   },
+  "241": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 120,
+     "do": "rejection",
+     "args": {
+      "what": "rejection"
+     }
+    }
+   ],
+   "desc": "每 2 分钟一次排异反应",
+   "rarity": "遭诅古物",
+   "tags": [
+    "curse"
+   ],
+   "shop_allowed": true,
+   "effect_category": "ending",
+   "new": true
+  },
   "242": {
    "effects": [
     {
@@ -4365,6 +5283,102 @@
     "light"
    ],
    "effect_category": "followup"
+  },
+  "247": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "unhurt_light",
+     "args": {
+      "t": 60,
+      "amount": 6
+     }
+    }
+   ],
+   "desc": "主控连续 60 秒未受伤时，灯火 +6",
+   "rarity": "稀有",
+   "tags": [
+    "light"
+   ],
+   "effect_category": "light",
+   "new": true
+  },
+  "248": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "unhurt_light",
+     "args": {
+      "t": 60,
+      "amount": 9
+     }
+    }
+   ],
+   "desc": "主控连续 60 秒未受伤时，灯火 +9",
+   "rarity": "稀有",
+   "tags": [
+    "light"
+   ],
+   "effect_category": "light",
+   "new": true
+  },
+  "249": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "light_loss",
+     "op": "add",
+     "value": -0.4
+    }
+   ],
+   "desc": "受击与黑潮导致的灯火流失 -40%",
+   "rarity": "基础",
+   "tags": [
+    "on_damage",
+    "light"
+   ],
+   "effect_category": "light",
+   "new": true
+  },
+  "250": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "light_loss",
+     "op": "add",
+     "value": -0.6
+    }
+   ],
+   "desc": "受击与黑潮导致的灯火流失 -60%",
+   "rarity": "稀有",
+   "tags": [
+    "on_damage",
+    "light"
+   ],
+   "effect_category": "light",
+   "new": true
+  },
+  "251": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "growth_pick",
+     "args": {
+      "lose_hp": 0.2,
+      "ingots": 15,
+      "growth_pick": 1
+     }
+    }
+   ],
+   "desc": "每击败一个 Boss：失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
+   "rarity": "稀有",
+   "tags": [
+    "on_kill",
+    "economy"
+   ],
+   "effect_category": "growth",
+   "new": true
   },
   "252": {
    "effects": [
@@ -4624,6 +5638,41 @@
     "on_kill"
    ],
    "effect_category": "growth"
+  },
+  "262": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "clear_rejection",
+     "args": {
+      "all": true
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "rej_immune",
+     "value": 99
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.2
+    },
+    {
+     "type": "rule",
+     "rule": "def_pierce",
+     "value": 35
+    }
+   ],
+   "desc": "排异反应「进化」：已有的排异反应全部解除并免疫此后的排异；主控受到的伤害 -20%，全队攻击无视敌人 35% 的防御（只在发生过排异或走深蓝线时出现）",
+   "rarity": "核心",
+   "tags": [
+    "survival"
+   ],
+   "shop_allowed": true,
+   "effect_category": "defense",
+   "new": true
   }
  },
  "effect_categories": {
