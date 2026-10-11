@@ -39,6 +39,11 @@ func _ready() -> void:
 				last = out
 	# 当前档：设置里的亮度缺省跟随预设（快检的临时存档不写亮度）
 	check(is_equal_approx(Cfg.brightness, Look.p("bright_def")), "Cfg.brightness 缺省 %.2f ≠ 预设 %.2f" % [Cfg.brightness, Look.p("bright_def")])
+	# 旧存档亮度迁移：旧缺省 110% 跟到新缺省，自己调过的、新口径存档都不动
+	var Settings = load("res://scripts/settings.gd")
+	check(is_equal_approx(Settings.migrate_brightness(1.1, 0), Look.p("bright_def")), "旧缺省 110% 应跟到新缺省")
+	check(is_equal_approx(Settings.migrate_brightness(1.25, 0), 1.25), "自己调过的亮度不动")
+	check(is_equal_approx(Settings.migrate_brightness(1.1, Settings.LOOK_VER), 1.1), "新口径存档的 110% 不动")
 	# 后期着色器带全部观感参数
 	var names: Array = []
 	for u in load("res://shaders/post.gdshader").get_shader_uniform_list():

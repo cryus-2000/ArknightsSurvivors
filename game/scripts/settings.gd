@@ -6,6 +6,8 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
 const DIFF_VER := 2
+## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
+const LOOK_VER := 1
 
 var master := 1.0
 var music := 0.8
@@ -130,6 +132,7 @@ func _ready() -> void:
 		water_filter = c.get_value("video", "water_filter", water_filter)
 		normal_maps = c.get_value("video", "normal_maps", normal_maps)
 		brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
+		brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
 		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 		manual_attack = c.get_value("input", "manual_attack", manual_attack)
 		quality = str(c.get_value("video", "quality", ""))
@@ -198,6 +201,13 @@ func _bus(name: String, v: float) -> void:
 		# 标准 · 水月 · 高手一局不截断录音，Master 输入峰值 +6.6 dBFS，400ms 最响 -2.8）。桌面版靠限幅器，不降
 		var trim: float = WEB_MASTER_TRIM if name == "Master" and OS.has_feature("web") else 0.0
 		AudioServer.set_bus_volume_db(b, linear_to_db(max(v, 0.0001)) + trim)
+
+
+## 观感预设换了亮度缺省（render/look，10-12）：旧存档里还是旧缺省 110% 的（没动过滑杆）跟到新缺省，自己调过的不动
+static func migrate_brightness(saved: float, ver: int) -> float:
+	if ver < LOOK_VER and is_equal_approx(saved, 1.1):
+		return Look.p("bright_def")
+	return saved
 
 
 ## 旧存档（11 级累计难度）→ 3 档：通关过某档对应的累计档位（旧 diff_unlocked = 通关的最高档 + 1）就解锁下一档，
@@ -292,6 +302,7 @@ func save() -> void:
 	c.set_value("video", "water_filter", water_filter)
 	c.set_value("video", "normal_maps", normal_maps)
 	c.set_value("video", "brightness", brightness)
+	c.set_value("video", "look_ver", LOOK_VER)
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("input", "manual_attack", manual_attack)
 	c.set_value("video", "quality", quality)
