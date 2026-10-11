@@ -1,0 +1,215 @@
+{
+  "clips": [
+    {
+      "file": "texas_entry.ogg",
+      "duration_seconds": 0.9249886621315193,
+      "rms_db": -17.147046890989554,
+      "peak": 0.8014933466911316,
+      "ogg_sha256": "4ab208f8965a9a170a99ab78d99f6041e8db8f62865883a20a478f8215c6ff16",
+      "passed": true
+    },
+    {
+      "file": "texas_skill_1.ogg",
+      "duration_seconds": 0.8749886621315193,
+      "rms_db": -21.769827660015753,
+      "peak": 0.9240092635154724,
+      "ogg_sha256": "c156e1d4880e96b2b68733078afb0d56047e4d058779fa36872cbd9b19e2422c",
+      "passed": true
+    },
+    {
+      "file": "texas_skill_2.ogg",
+      "duration_seconds": 1.6749886621315193,
+      "rms_db": -15.28750661795425,
+      "peak": 0.8495127558708191,
+      "ogg_sha256": "4f99f18ffb040fc29e29fadf1f8c2f0cea9b781d0d8709810e1f84fd389ee402",
+      "passed": true
+    },
+    {
+      "file": "texas_skill_3.ogg",
+      "duration_seconds": 1.2949886621315192,
+      "rms_db": -15.590706566736337,
+      "peak": 0.8699038624763489,
+      "ogg_sha256": "306d113dbe3d8c4e02e3f800d590ff2d89fecc939b97d70adda128a99a1d79eb",
+      "passed": true
+    },
+    {
+      "file": "texas_battle.ogg",
+      "duration_seconds": 0.8449886621315192,
+      "rms_db": -18.94313539104136,
+      "peak": 0.8679962754249573,
+      "ogg_sha256": "416decc2022ea314099ed09b07490f5af1598f8af5f4c4a1eb9c3ea11757bdeb",
+      "passed": true
+    },
+    {
+      "file": "hoshiguma_entry.ogg",
+      "duration_seconds": 1.0676643990929706,
+      "rms_db": -15.946799240824738,
+      "peak": 0.7512195706367493,
+      "ogg_sha256": "105b126379fed05aa89a835a5de9c04decd57ff52b8678e30bd20aeb761ca9c8",
+      "passed": true
+    },
+    {
+      "file": "hoshiguma_skill_1.ogg",
+      "duration_seconds": 1.3952607709750566,
+      "rms_db": -16.70313863961225,
+      "peak": 0.6204730272293091,
+      "ogg_sha256": "8815b2398a38cdabcaf3bff882cfe3a7280f246bec35c0172195fb3b87513530",
+      "passed": true
+    },
+    {
+      "file": "hoshiguma_skill_2.ogg",
+      "duration_seconds": 3.6480045351473924,
+      "rms_db": -16.977194273961963,
+      "peak": 0.7528179883956909,
+      "ogg_sha256": "0d2e7dae4ae51e9ce4d364c7b72cc71754def864c939f5120d2e3f8bdb567c2b",
+      "passed": true
+    },
+    {
+      "file": "hoshiguma_skill_3.ogg",
+      "duration_seconds": 1.1098185941043084,
+      "rms_db": -15.166079053374604,
+      "peak": 0.6304932832717896,
+      "ogg_sha256": "4955cd634a9996a25cdc874ae6ab220aa9f21d17b5b0ed23e9c9f88156246ab8",
+      "passed": true
+    },
+    {
+      "file": "hoshiguma_battle.ogg",
+      "duration_seconds": 5.639886621315193,
+      "rms_db": -16.84846326588721,
+      "peak": 0.771325409412384,
+      "ogg_sha256": "810d228c14c48f5a21a764d0ca8f987c41388a73a918dc1ba3541529483dbd7f",
+      "passed": true
+    },
+    {
+      "file": "angelina_entry.ogg",
+      "duration_seconds": 2.27,
+      "rms_db": -19.229925563729356,
+      "peak": 0.7794052958488464,
+      "ogg_sha256": "6d81d341e1cb84ecf358ff5d4120d35cb1aa7e03e94ec17d141cbea9541be29e",
+      "passed": true
+    },
+    {
+      "file": "angelina_skill_1.ogg",
+      "duration_seconds": 1.8349886621315192,
+      "rms_db": -15.713812761736783,
+      "peak": 0.682232141494751,
+      "ogg_sha256": "d24145fbc4ce214c00d77fdeedfb7a3a3a61d26544360a992b7e6c0b315b0d6a",
+      "passed": true
+    },
+    {
+      "file": "angelina_skill_2.ogg",
+      "duration_seconds": 1.7349886621315194,
+      "rms_db": -15.536883044891743,
+      "peak": 0.7849833965301514,
+      "ogg_sha256": "d3c427ce52c304881251ba053d8e096b71e5a4e4b5d3f8205efb7a579b45239d",
+      "passed": true
+    },
+    {
+      "file": "angelina_skill_3.ogg",
+      "duration_seconds": 1.9649886621315193,
+      "rms_db": -15.716849610715936,
+      "peak": 1.000705361366272,
+      "ogg_sha256": "f22ff8c8c869bc568e2b960e203207fd6bf61c9690c2032dc4754f9337bd1a27",
+      "passed": true
+    },
+    {
+      "file": "angelina_battle.ogg",
+      "duration_seconds": 3.16,
+      "rms_db": -15.75672187031814,
+      "peak": 0.8194692730903625,
+      "ogg_sha256": "4b99ba0ad3abfa267389286999fcdf463d7f52ee990fbfe281264e7520e4b982",
+      "passed": true
+    },
+    {
+      "file": "skalter_entry.ogg",
+      "duration_seconds": 5.5,
+      "rms_db": -15.94956523556445,
+      "peak": 0.7827038168907166,
+      "ogg_sha256": "9d80e740546e4575fce037d6c9634ef3e8b5e4a441d80d0486927b3babe1202b",
+      "passed": true
+    },
+    {
+      "file": "skalter_skill_1.ogg",
+      "duration_seconds": 4.24498866213152,
+      "rms_db": -16.18887650285663,
+      "peak": 0.868007242679596,
+      "ogg_sha256": "7279617b73c2af68dc24cfedf68a72246f3aa9873bb77262b01bbd5eea380f44",
+      "passed": true
+    },
+    {
+      "file": "skalter_skill_2.ogg",
+      "duration_seconds": 3.93,
+      "rms_db": -14.936281369045854,
+      "peak": 0.8550017476081848,
+      "ogg_sha256": "8f44f9cb13d83644ac6f4bcdb6f1c204e3d29e93f5326275a678696e774d2b5f",
+      "passed": true
+    },
+    {
+      "file": "skalter_skill_3.ogg",
+      "duration_seconds": 7.17,
+      "rms_db": -16.66076883080907,
+      "peak": 0.7653377652168274,
+      "ogg_sha256": "e572813400de1d2d21a610dbaedb08a4d0e7697ece366e7372b1ea122f0fca5a",
+      "passed": true
+    },
+    {
+      "file": "skalter_battle.ogg",
+      "duration_seconds": 5.92,
+      "rms_db": -16.885731343716618,
+      "peak": 0.8974488973617554,
+      "ogg_sha256": "756c4e2d1ec8e39f7beb32d77595f54312adcfdcf29c1c6fcedcee7e377ef79d",
+      "passed": true
+    },
+    {
+      "file": "exusiai_entry.ogg",
+      "duration_seconds": 0.8149886621315193,
+      "rms_db": -13.556169176510508,
+      "peak": 0.8970746994018555,
+      "ogg_sha256": "a7b964def072adfce524b6da925f18acc3f3c969662b1ba16d3c7e76f1253bcd",
+      "passed": true
+    },
+    {
+      "file": "exusiai_skill_1.ogg",
+      "duration_seconds": 0.9549886621315192,
+      "rms_db": -13.852499224450213,
+      "peak": 0.8590314388275146,
+      "ogg_sha256": "1c00d3ba1f626c20aa34af9653caa5c15b1835cfa40b99c9e73438f05d27afb5",
+      "passed": true
+    },
+    {
+      "file": "exusiai_skill_2.ogg",
+      "duration_seconds": 1.0449886621315192,
+      "rms_db": -12.157223085117632,
+      "peak": 0.84564608335495,
+      "ogg_sha256": "21d41c10f4df5ea6a4002d26cd4a1748e67b60b963afa7dbfb5dfce2ba1e7b05",
+      "passed": true
+    },
+    {
+      "file": "exusiai_skill_3.ogg",
+      "duration_seconds": 0.71,
+      "rms_db": -11.86754447124595,
+      "peak": 0.8771792054176331,
+      "ogg_sha256": "f837953b3529c9523d14aff7bd68fc210309514ff1af8fc58aeb46e1dd1f700f",
+      "passed": true
+    },
+    {
+      "file": "exusiai_battle.ogg",
+      "duration_seconds": 1.09,
+      "rms_db": -14.30344726492988,
+      "peak": 0.9204990863800049,
+      "ogg_sha256": "c1edc0f94fa4d6a6339c4fb57e218f309989873f532d6b3df3f1741972137f03",
+      "passed": true
+    }
+  ],
+  "count": 25,
+  "all_passed": true,
+  "checks": [
+    "source byte size matches pinned metadata",
+    "correct CN variation and indices",
+    "mono 44100Hz PCM16 master and Vorbis output",
+    "sample count preserved",
+    "finite non-silent audio, duration within game 8s limit"
+  ],
+  "listening_review": false,
+  "engine_test": false
+}
