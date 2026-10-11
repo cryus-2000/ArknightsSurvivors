@@ -3,6 +3,7 @@ extends RefCounted
 ## 这样新图放进文件夹后，重新打开游戏就能看到，不需要重新导出。
 
 static var _cache := {}
+static var late_log := false   # --perf：开局后才读的贴图逐张打印 TEXLATE（docs/50 §10）
 
 ## 载入计时（--loadprof）：标题页离开 / game.gd _ready 各阶段 / 首帧画完打点，首帧后打印 LOADPROF（docs/36 §5）。
 ## 这里不能用 Cfg：核心契约测试与 --script 工具不带自动加载
@@ -75,6 +76,13 @@ const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growt
 static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
 		return _cache[name]
+	if late_log:
+		var lt0 := Time.get_ticks_usec()
+		late_log = false
+		var lt: Texture2D = tex(name)
+		late_log = true
+		print("TEXLATE %s %.1fms" % [name, (Time.get_ticks_usec() - lt0) / 1000.0])
+		return lt
 	var t: Texture2D = null
 	var density := 1.0
 	var src_path := ""   # 法线缓存键用：原图路径（磁盘 PNG 或包内资源）

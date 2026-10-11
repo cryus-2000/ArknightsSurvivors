@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -27,13 +28,46 @@ var impact_at := -99.0
 
 ## Shared stop budget: at most once per 0.28 simulation seconds, never cumulative.
 ## An explicit heavy impact may upgrade the small contact on the same frame.
+## 另受真实时间最小间隔约束（stop，docs/50 §10）
 func impact_pause(seconds: float) -> void:
 	if g.t < impact_at:
 		impact_at = -99.0
 	if g.t - impact_at < 0.28 and absf(g.t - impact_at) > 0.0001:
 		return
+	if not stop(clampf(seconds, 0.0, 0.075), "impact"):
+		return
 	impact_at = g.t
-	g.hitstop = maxf(g.hitstop, clampf(seconds, 0.0, 0.075))
+
+
+## 顿帧总闸（docs/50 §10，后期卡顿；用户 10-11：顿帧手感保留）：所有 g.hitstop 都从这里走。每次顿帧的时长不变，
+## 只加一条按**真实时间**算的最小间隔 fx/hitstop_gap（秒）：上一次顿帧开始后不到这么久的触发直接丢掉、不排队。
+## 原来只有 impact_pause 有「0.28 模拟秒一次」的限频，模拟秒在顿帧期间不走，主控受击 / 精英击杀又不受限，后期几乎每 0.3 秒
+## 顿一次（命中、暴击 / 大体型击杀、重型干员接触），连成一片读作卡顿；一片小怪同时倒下也只顿一次（同一间隔内）。
+## must（生命垂危、精英 / Boss 击杀）不受间隔限制，但同样记为「上一次顿帧」。
+## 纯画面节奏：平衡 / 批跑不消耗 g.hitstop（game.gd 只在玩家局与 --playclock 里走顿帧），不碰随机数，TRACE / BALANCE 不变
+var _stop_ms := -1000.0
+var _stop_frame := -1
+var stop_stat := {}   # kind -> [请求, 实给, 实给秒数]（--perf 打印）
+
+
+func stop(seconds: float, kind: String, must := false) -> bool:
+	var st: Array = stop_stat.get(kind, [0, 0, 0.0])
+	stop_stat[kind] = st
+	st[0] += 1
+	var add: float = seconds - maxf(0.0, g.hitstop)
+	if add <= 0.0:
+		return true
+	var now := UM.now()   # 界面时钟：累计真实帧间隔（顿帧期间照走；--fixed-fps 录片时按固定步长，节奏与真机一致）
+	var fr := Engine.get_process_frames()
+	# 同一帧里后来的更重的一下可以把刚给的顿帧加长（同 impact_pause 原来的「同帧升级」）
+	if not must and not g.perf_alt and fr != _stop_frame and now - _stop_ms < Bal.v("fx/hitstop_gap", 0.5):
+		return false   # g.perf_alt：--perfab 同局对照时的旧规则（没有真实时间间隔）
+	_stop_ms = now
+	_stop_frame = fr
+	g.hitstop = seconds
+	st[1] += 1
+	st[2] += add
+	return true
 
 
 func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
