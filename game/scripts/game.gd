@@ -1554,6 +1554,9 @@ const V6_FRAMES := {
 	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
 	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
 	"fx_skalter_s3_back": [6, 12.0], "fx_skalter_s3_front": [6, 12.0], "fx_skalter_s3_orbit": [6, 12.0],
+	# Codex 浊心斯卡蒂 S3 地面大漩涡（docs/66，art/incoming/skalter_vortex_handoff.md，b49d0047）：320×176 × 8 帧 10fps 循环，原点 (160, 88) = 帧中心；
+	# 1x 像素 = 歌域外半径 / 160（fit 160），地面 ground 层、整体透明度 0.5、进出 0.45 秒淡入淡出（skalter.json S3 verb.mode 的 hold 条目）
+	"fx_skalter_vortex_floor": [8, 10.0],
 	"fx_hoshiguma_block": [5, 20.0], "fx_hoshiguma_sand": [4, 8.0], "fx_hoshiguma_demon_slash": [5, 20.0],
 	"fx_texas_dash": [4, 20.0], "fx_texas_blade": [6, 20.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条

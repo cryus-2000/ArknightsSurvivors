@@ -1,0 +1,126 @@
+{
+  "passed": true,
+  "engine_tested": false,
+  "binary_alpha": true,
+  "palette_count": 6,
+  "unique_frames": 8,
+  "nearest_2x": true,
+  "frames": [
+    {
+      "frame": 0,
+      "bbox": [
+        12,
+        19,
+        307,
+        157
+      ],
+      "opaque_pixels": 1562,
+      "red_fraction": 0.03393085787451985,
+      "center_pixels": 0,
+      "thick_cross_pixels": 47
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        15,
+        19,
+        305,
+        157
+      ],
+      "opaque_pixels": 1669,
+      "red_fraction": 0.03894547633313361,
+      "center_pixels": 0,
+      "thick_cross_pixels": 57
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        14,
+        19,
+        307,
+        157
+      ],
+      "opaque_pixels": 1701,
+      "red_fraction": 0.0411522633744856,
+      "center_pixels": 0,
+      "thick_cross_pixels": 48
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        15,
+        17,
+        306,
+        159
+      ],
+      "opaque_pixels": 1653,
+      "red_fraction": 0.02722323049001815,
+      "center_pixels": 0,
+      "thick_cross_pixels": 44
+    },
+    {
+      "frame": 4,
+      "bbox": [
+        13,
+        20,
+        306,
+        157
+      ],
+      "opaque_pixels": 1677,
+      "red_fraction": 0.04174120453190221,
+      "center_pixels": 0,
+      "thick_cross_pixels": 39
+    },
+    {
+      "frame": 5,
+      "bbox": [
+        15,
+        18,
+        305,
+        158
+      ],
+      "opaque_pixels": 1788,
+      "red_fraction": 0.059843400447427295,
+      "center_pixels": 0,
+      "thick_cross_pixels": 45
+    },
+    {
+      "frame": 6,
+      "bbox": [
+        17,
+        15,
+        304,
+        160
+      ],
+      "opaque_pixels": 1573,
+      "red_fraction": 0.056579783852511126,
+      "center_pixels": 0,
+      "thick_cross_pixels": 44
+    },
+    {
+      "frame": 7,
+      "bbox": [
+        14,
+        15,
+        306,
+        160
+      ],
+      "opaque_pixels": 1804,
+      "red_fraction": 0.03824833702882483,
+      "center_pixels": 0,
+      "thick_cross_pixels": 45
+    }
+  ],
+  "adjacent_changed_pixels_including_wrap": [
+    3100,
+    3232,
+    3122,
+    3114,
+    3253,
+    3185,
+    3213,
+    3233
+  ],
+  "wrap_change_vs_adjacent_mean": 1.0185426886898599,
+  "loop_note": "Eight unique phases; wrap change checked against adjacent transitions. In-engine flow and opacity remain integration review."
+}

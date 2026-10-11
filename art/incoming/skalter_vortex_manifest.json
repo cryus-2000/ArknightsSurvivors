@@ -1,0 +1,49 @@
+{
+  "assets": [
+    {
+      "file": "fx_skalter_vortex_floor.png",
+      "frame_width": 320,
+      "frame_height": 176,
+      "frame_count": 8,
+      "fps": 10,
+      "loop": true,
+      "origin": [
+        160,
+        88
+      ],
+      "density": 1,
+      "sha256": "29fb69554a9905aa8913f0aed88709fb6b94c851014fcacc48f20e593b810714"
+    },
+    {
+      "file": "fx_skalter_vortex_floor@2x.png",
+      "frame_width": 640,
+      "frame_height": 352,
+      "frame_count": 8,
+      "fps": 10,
+      "loop": true,
+      "origin": [
+        320,
+        176
+      ],
+      "density": 2,
+      "sha256": "0ce96380dbbc89a4cf60f961758c82a03fccb80eb6dd00223a7c9a4a69db39ef"
+    }
+  ],
+  "palette": [
+    "#bff4ff",
+    "#a3e1ee",
+    "#83c6d8",
+    "#6bb0c4",
+    "#4a94ad",
+    "#2f7f9e",
+    "#c2405a",
+    "#7a2238"
+  ],
+  "layer": "floor",
+  "blend": "normal alpha",
+  "filter": "nearest",
+  "runtime_opacity": 0.5,
+  "fade_seconds": 0.45,
+  "world_scale_1x": "outer_radius / 160",
+  "existing_body_layers": "unchanged"
+}

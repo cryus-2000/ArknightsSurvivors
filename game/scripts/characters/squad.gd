@@ -268,6 +268,15 @@ func draw_auras() -> void:
 	cv.end()
 
 
+## 紧贴地砖的常驻帧条（docs/61 §5.6 layer = ground，10-12 加）：world.draw_world 画完地砖就调，在溟痕 / 地面预警 / 掉落之下
+func draw_ground_fx() -> void:
+	cv.begin()
+	for o in ops:
+		if o.has_method("draw_ground_fx"):
+			o.draw_ground_fx()
+	cv.end()
+
+
 func draw_entities_floor() -> void:
 	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
 	for o in ops:

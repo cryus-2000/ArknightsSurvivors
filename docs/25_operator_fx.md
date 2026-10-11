@@ -108,7 +108,7 @@
 
 分工：人物帧条归 Codex；技能图标、弹体、特效帧条归 Claude。本批全部程序生成：`tools/gen_fx_batch3.py`（写法同 `gen_fx_strips.py`：固定种子可复现、alpha 只有 0 / 255、`@2x` 为严格 2 倍最近邻），技能图标 `tools/skill_icons_batch3.py`（32×32，`skill_<id>_s1..3`，构图同 `make_skill_icons.py`，清单 `art/incoming/skill_icons_batch3_manifest.json`）。原作干员都没有天赋图标，本批也不做。
 
-已登记 `game.gd V6_FRAMES`（开局即加载）。浊心斯卡蒂三条已接（10-11，数据干员走 docs/61 §5.6 的 `fx` 积木字段，另加 Codex 重绘的 `fx_skalter_s3_back / _front / _orbit`，6 帧 12fps 96×96、原点 (48, 84)）；10-12 第三批合入后其余四人也全部接上（见下表后的「接入」段）。原写法备忘：数据干员实现时用 `op_api.spawn_fx_sprite(name, pos, scale, ang, flip, bottom)` 播一次性帧条，弹体 / 循环件用 `g.vfx.spr_rot(name, frame, pos, ang, scale, col, anchor_px)` 自己按 fps 取帧。所有帧条**朝右画（角度 0 = 右）**；锚点为帧内像素（表中是 1x 坐标）；`spr_rot` / `add_strip` 的 anchor 按贴图实际像素算，加载到 @2x 时要乘 `A.hires(name)`（即 ×2），`fx_sprite` 的缺省居中 / `bottom` 锚点不受影响。
+已登记 `game.gd V6_FRAMES`（开局即加载）。浊心斯卡蒂三条已接（10-11，数据干员走 docs/61 §5.6 的 `fx` 积木字段，另加 Codex 重绘的 `fx_skalter_s3_back / _front / _orbit`，6 帧 12fps 96×96、原点 (48, 84)；10-12 再加 Codex 的 S3 地面大漩涡 `fx_skalter_vortex_floor`，8 帧 10fps 320×176、原点 (160, 88)，docs/66 / docs/61 §10 第 16 条）；10-12 第三批合入后其余四人也全部接上（见下表后的「接入」段）。原写法备忘：数据干员实现时用 `op_api.spawn_fx_sprite(name, pos, scale, ang, flip, bottom)` 播一次性帧条，弹体 / 循环件用 `g.vfx.spr_rot(name, frame, pos, ang, scale, col, anchor_px)` 自己按 fps 取帧。所有帧条**朝右画（角度 0 = 右）**；锚点为帧内像素（表中是 1x 坐标）；`spr_rot` / `add_strip` 的 anchor 按贴图实际像素算，加载到 @2x 时要乘 `A.hires(name)`（即 ×2），`fx_sprite` 的缺省居中 / `bottom` 锚点不受影响。
 
 | 帧条 | 帧尺寸 × 帧数 | fps | 锚点 | 内容 / 用法 |
 |---|---|---|---|---|

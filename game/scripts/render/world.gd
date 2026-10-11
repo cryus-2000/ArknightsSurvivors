@@ -241,6 +241,7 @@ func draw_world() -> void:
 	watch_bosses()
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	g.map.draw_ground(g.get_viewport_rect().size)
+	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
 	_pk("mire")

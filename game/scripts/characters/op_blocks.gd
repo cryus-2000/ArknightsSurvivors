@@ -745,8 +745,13 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 ## 不写 fx 的干员画法与原来逐像素相同；fx 只往干员自己的 pfx 里加粒子、散布只用 g.vrng，不碰 g.rng / 玩法状态（同 seed TRACE / BALANCE 不变）。
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
-const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot"]
-const FX_LAYERS := ["floor", "over", "add", "behind", "front"]
+const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
+	"hold", "fade", "if_tex"]
+## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
+const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
+## 常驻跟随帧条（hold: true，10-12 加）：积木生效期间循环、跟着区域中心 / 半径走，缺省淡入淡出秒数（条目 fade 可改）
+const FX_HOLD_FADE := 0.3
+const FX_HOLD_LAYERS := ["ground", "floor", "add"]
 ## 贴身层：画在干员本体的后面 / 前面（draw_body 前后），积木生效期间循环，帧号 = floor(生效秒数 × fps) % 帧数，退出时 FX_BODY_FADE 秒淡出
 const FX_BODY := ["behind", "front"]
 const FX_BODY_FADE := 0.15
@@ -771,7 +776,7 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 	for f in entries:
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
-		if cond_true(o, f.get("cond", {})):
+		if fx_on(o, f):
 			fx_spawn(o, f, c, r, hits, ang)
 
 
@@ -793,7 +798,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		ts[i] = float(ts[i]) + dt
 		if ts[i] >= ev:
 			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
-			if cond_true(o, f.get("cond", {})):
+			if fx_on(o, f):
 				fx_spawn(o, f, c, r, [], 0.0)
 	return ts
 
@@ -886,9 +891,102 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 常驻跟随条目：贴身层（behind / front）或程序漩涡（vortex），积木生效期间一直画、退出淡出
+## 常驻跟随条目：贴身层（behind / front）、程序漩涡（vortex）或常驻跟随帧条（hold），积木生效期间一直画、退出淡出
 static func fx_is_hold(f) -> bool:
-	return f is Dictionary and (str(f.get("layer", "")) in FX_BODY or f.has("vortex"))
+	return f is Dictionary and (str(f.get("layer", "")) in FX_BODY or f.has("vortex") or _hold(f))
+
+
+## 条目是不是常驻跟随帧条（hold: true；写成非布尔时按 false，校验另报错）
+static func _hold(f: Dictionary) -> bool:
+	var h = f.get("hold", false)
+	return h is bool and h
+
+
+## 条目这一刻画不画：cond（§1.3）+ if_tex（"fx_x" = 有这条贴图才画；"!fx_x" = 缺这条贴图才画，程序回退用；10-12 加）
+static func fx_on(o, f: Dictionary) -> bool:
+	if not cond_true(o, f.get("cond", {})):
+		return false
+	var it = f.get("if_tex", "")
+	if it is String and it != "":
+		var neg: bool = it.begins_with("!")
+		var has: bool = o.g.tex.get(it.substr(1) if neg else it) != null
+		return has != neg
+	return true
+
+
+## 常驻跟随条目的淡入 / 淡出秒数 Vector2(in, out)：条目 fade（数字 = 进出同长；[进, 出]）优先，
+## 缺省：贴身层 (0, FX_BODY_FADE)，漩涡 (0.5, FX_VORTEX_FADE)，hold 帧条 (FX_HOLD_FADE, FX_HOLD_FADE)
+static func fx_fade_io(f: Dictionary) -> Vector2:
+	var d := Vector2(FX_HOLD_FADE, FX_HOLD_FADE)
+	if f.has("vortex"):
+		d = Vector2(0.5, FX_VORTEX_FADE)
+	elif str(f.get("layer", "")) in FX_BODY:
+		d = Vector2(0.0, FX_BODY_FADE)
+	var v = f.get("fade", null)
+	if v is Array and v.size() == 2:
+		d = Vector2(float(v[0]), float(v[1]))
+	elif v is int or v is float:
+		d = Vector2(float(v), float(v))
+	return d
+
+
+## 积木退出后贴身层记录保留多久（= 各常驻跟随条目淡出秒数的最大值）
+static func fx_hold_out(entries) -> float:
+	var m := 0.0
+	if entries is Array:
+		for f in entries:
+			if fx_is_hold(f):
+				m = maxf(m, fx_fade_io(f).y)
+	return m if m > 0.0 else FX_BODY_FADE
+
+
+## 条目的进出透明度：e 是贴身层记录 {el = 生效秒数, fade = 退出后剩余秒数（< 0 = 生效中）}
+static func fx_hold_alpha(f: Dictionary, e: Dictionary) -> float:
+	var io := fx_fade_io(f)
+	var a: float = 1.0 if io.x <= 0.0 else clampf(float(e.el) / io.x, 0.0, 1.0)
+	if float(e.fade) >= 0.0:
+		a *= clampf(float(e.fade) / io.y, 0.0, 1.0) if io.y > 0.0 else 0.0
+	return a
+
+
+## 常驻跟随帧条（hold: true）：积木生效期间在 at 点循环播（帧号 = floor(生效秒数 × fps) % 帧数），
+## 写了 fit 时每帧按当前区域半径缩放（每个 1x 像素 = r / fit × scale，夹到 max_scale），区域变大变小即时跟上；进出按 fade 淡入淡出。
+## layer：ground = 地砖之上、溟痕 / 地面预警 / 掉落之下（data_operator.draw_ground_fx）；floor = 区域椭圆层（draw_auras）；add = 加色层
+static func fx_hold_strips(ci, o, e: Dictionary, layer: String, c_zone: Vector2, r_zone: float) -> void:
+	var g = o.g
+	for f in e.b.fx:
+		if not (f is Dictionary) or not _hold(f) or str(f.get("layer", "floor")) != layer or not fx_on(o, f):
+			continue
+		var name: String = str(f.get("strip", ""))
+		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
+			continue
+		var spec: Array = g.V6_FRAMES[name]
+		var frames: int = maxi(1, int(spec[0]))
+		var tv = f.get("tint", [])
+		var col := Color.WHITE
+		if tv is Array and tv.size() >= 3:
+			col = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+		col.a *= fx_hold_alpha(f, e) * float(g.world.fx_dim)
+		if col.a <= 0.004:
+			continue
+		var c: Vector2 = c_zone
+		match str(f.get("at", "zone")):
+			"self":
+				c = o.pos
+			"leader":
+				c = g.ppos
+		if c == Vector2.INF:
+			continue
+		var ov = f.get("off", [])
+		if ov is Array and ov.size() == 2:
+			c += Vector2(float(ov[0]), float(ov[1]))
+		var sc: float = float(f.get("scale", 1.0))
+		var fit: float = float(f.get("fit", 0.0))
+		sc *= r_zone / fit if fit > 0.0 and r_zone > 0.0 else g.PX
+		sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
+		var av = f.get("anchor", [])
+		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2(-1, -1)
+		fx_frame(ci, g, name, frames, int(floor(float(e.el) * float(spec[1]))) % frames, c, sc, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
 
 
 ## 积木的 fx 里有没有常驻跟随条目（贴身层 / 漩涡）
@@ -904,7 +1002,7 @@ static func fx_has_body(entries) -> bool:
 static func fx_any_tex(o, entries) -> bool:
 	if entries is Array:
 		for f in entries:
-			if f is Dictionary and o.g.tex.get(str(f.get("strip", ""))) != null and cond_true(o, f.get("cond", {})):
+			if f is Dictionary and o.g.tex.get(str(f.get("strip", ""))) != null and fx_on(o, f):
 				return true
 	return false
 
@@ -973,12 +1071,12 @@ static func _vcol(v: Dictionary, k: String) -> Color:
 static func vortex_ring_mul(o, e: Dictionary) -> float:
 	var m := 1.0
 	for f in e.b.fx:
-		if f is Dictionary and f.has("vortex") and cond_true(o, f.get("cond", {})):
+		if f is Dictionary and f.has("vortex") and fx_on(o, f):
 			m = minf(m, float(_vp(f.vortex, "ring")))
 	return m
 
 
-## 画 e（贴身层记录 {b, el, fade, fl}）上 layer 层的漩涡条目。alpha：积木进出的淡入淡出；sink：带 add_tris 的合批画布或 CanvasItem
+## 画 e（贴身层记录 {b, el, fade, fl}）上 layer 层的漩涡条目。alpha：整体倍率（进出淡入淡出按条目 fade 在这里算，fx_hold_alpha）；sink：带 add_tris 的合批画布或 CanvasItem
 static func fx_vortex(sink, o, e: Dictionary, layer: String, alpha: float, c_zone: Vector2, r_zone: float) -> void:
 	var g = o.g
 	var fx_arr = e.b.fx
@@ -997,11 +1095,11 @@ static func fx_vortex(sink, o, e: Dictionary, layer: String, alpha: float, c_zon
 		if not (f is Dictionary) or not f.has("vortex") or str(f.get("layer", "floor")) != layer:
 			continue
 		# 条目条件切换时 0.35 秒交叉淡入淡出（例：歌域漩涡在 S3 期间让位给 S3 漩涡）
-		var want: float = 1.0 if cond_true(o, f.get("cond", {})) else 0.0
+		var want: float = 1.0 if fx_on(o, f) else 0.0
 		var ca: float = float(e.va.get(i, want))
 		ca = move_toward(ca, want, dt / 0.35)
 		e.va[i] = ca
-		var al: float = alpha * ca * float(g.world.fx_dim)
+		var al: float = alpha * fx_hold_alpha(f, e) * ca * float(g.world.fx_dim)
 		var tv = f.get("tint", [])
 		var tint := Color.WHITE
 		if tv is Array and tv.size() >= 3:
@@ -1166,13 +1264,15 @@ static func _fx_vortex_check(v, q: String, ctx: Dictionary) -> void:
 			_num(v, k, q + ".vortex", ctx, false, float(VORTEX_LIM[k][0]), float(VORTEX_LIM[k][1]))
 
 
-## 贴身层（behind / front）：锚点对准干员脚底 o.pos（+ off），el = 积木已生效秒数，alpha 用于退出淡出
-static func fx_body(ci, o, entries, el: float, alpha: float, front: bool) -> void:
+## 贴身层（behind / front）：锚点对准干员脚底 o.pos（+ off）；e 是贴身层记录 {b, el = 积木已生效秒数, fade}，进出淡入淡出按条目 fade（fx_hold_alpha）
+static func fx_body(ci, o, e: Dictionary, front: bool) -> void:
 	var g = o.g
+	var entries = e.b.get("fx", [])
+	var el: float = float(e.el)
 	if not (entries is Array) or o.pos == Vector2.INF:
 		return
 	for f in entries:
-		if not (f is Dictionary) or str(f.get("layer", "")) != ("front" if front else "behind") or not cond_true(o, f.get("cond", {})):
+		if not (f is Dictionary) or str(f.get("layer", "")) != ("front" if front else "behind") or not fx_on(o, f):
 			continue
 		var name: String = str(f.get("strip", ""))
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
@@ -1183,7 +1283,7 @@ static func fx_body(ci, o, entries, el: float, alpha: float, front: bool) -> voi
 		var col := Color.WHITE
 		if tv is Array and tv.size() >= 3:
 			col = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
-		col.a *= alpha * g.world.fx_dim
+		col.a *= fx_hold_alpha(f, e) * g.world.fx_dim
 		var ov = f.get("off", [])
 		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
 		var av = f.get("anchor", [])
@@ -1196,7 +1296,7 @@ static func fx_orbit(ci, o, b: Dictionary, pts: Array, dim: float) -> bool:
 	var g = o.g
 	var drew := false
 	for f in b.get("fx", []):
-		if not (f is Dictionary) or str(f.get("at", "")) != "orbit" or not cond_true(o, f.get("cond", {})):
+		if not (f is Dictionary) or str(f.get("at", "")) != "orbit" or not fx_on(o, f):
 			continue
 		var name: String = str(f.get("strip", ""))
 		if g.tex.get(name) == null or not g.V6_FRAMES.has(name):
@@ -1274,6 +1374,41 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 				errs.append(q + ".at：贴身层只能是 self（干员脚底）")
 		if f.has("every") and instant_owner:
 			errs.append(q + ".every：瞬时积木 / 技能发动只播一次，every 只能写在常驻积木上")
+		# 常驻跟随帧条 hold / 进出淡入淡出 fade / 按贴图有无取舍 if_tex（10-12 加，§5.6）
+		if f.has("hold"):
+			if not (f.hold is bool):
+				errs.append(q + ".hold 必须是 true / false")
+			elif f.hold:
+				if f.has("vortex"):
+					errs.append(q + ".hold：vortex 本来就跟着积木常驻，不写 hold")
+				if instant_owner:
+					errs.append(q + ".hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）")
+				if not str(f.get("layer", "floor")) in FX_HOLD_LAYERS:
+					errs.append("%s.layer：hold 帧条只能是 %s" % [q, " / ".join(FX_HOLD_LAYERS)])
+				if not at in ["center", "zone", "self", "leader"]:
+					errs.append(q + ".at：hold 帧条只能是 zone / self / leader")
+				for k in ["every", "life", "n", "spread", "rise", "rot"]:
+					if f.has(k):
+						errs.append("%s.%s：hold 帧条跟着积木生效循环，不写这个字段" % [q, k])
+		if str(f.get("layer", "")) == "ground" and not _hold(f):
+			errs.append(q + ".layer = ground 只给常驻跟随帧条（hold: true）用")
+		if f.has("fade"):
+			var fv = f.fade
+			if not fx_is_hold(f):
+				errs.append(q + ".fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）")
+			if fv is int or fv is float:
+				if float(fv) < 0.0 or float(fv) > 5.0:
+					errs.append(q + ".fade 超出范围（0–5 秒）")
+			elif fv is Array and fv.size() == 2 and fv.all(func(x): return x is int or x is float):
+				if fv.any(func(x): return float(x) < 0.0 or float(x) > 5.0):
+					errs.append(q + ".fade 超出范围（0–5 秒）")
+			else:
+				errs.append(q + ".fade 必须是秒数，或 [淡入, 淡出] 两个秒数")
+		if f.has("if_tex"):
+			var tn = f.if_tex
+			var tb: String = tn.trim_prefix("!") if tn is String else ""
+			if not (tb.begins_with("fx_") or tb.begins_with("proj_")):
+				errs.append(q + ".if_tex 必须是帧条名（fx_* / proj_*），前面加 ! 表示缺这条贴图时才画")
 		if f.has("cond"):
 			if not (f.cond is String):
 				errs.append(q + ".cond 必须是字符串")
