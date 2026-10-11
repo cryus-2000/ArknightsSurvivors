@@ -15,6 +15,9 @@
 C 方向提炼（docs/58 §8–§9）：
   python tools/concept_operator_ui.py --cvariants [输出目录]  C1–C5 选择页、C4 / C1 图鉴、C4 手机与总览，缺省 build/concept/operator_ui/c_variants
   python tools/concept_operator_ui.py --anim [--animvariant=C4] [输出目录]  三段动效 GIF（换干员 / 开技能页 / 出击转场）
+定稿（docs/58 §11）：选择 = B+，图鉴 = C4'
+  python tools/concept_operator_ui.py --final [输出目录]  静图 / 网格对照 / 标题进入对照 / 手机 / 分段 GIF / MP4，缺省 build/concept/operator_ui/final
+  标题页底图：先用 Godot --titleshot（经 godot_runner，窗口在屏幕外）截到 build/concept/operator_ui/current/shot_title.png
 """
 import os, sys, json, glob, math, random
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
@@ -1259,9 +1262,11 @@ def contact_sheet(tiles, out_path, title):
         y = 70 + r * (th + lab + gap)
         sheet.paste(im.convert("RGB").resize((tw, th), Image.LANCZOS), (x, y))
         d.rectangle([x, y + th, x + tw, y + th + lab], fill=(24, 28, 36))
-        d.rectangle([x, y + th, x + 40, y + th + lab], fill=CYAN)
-        d.text((x + 20, y + th + lab / 2), letter, font=ImageFont.truetype(K.FONT_UI, 22), fill=(8, 20, 24), anchor="mm")
-        d.text((x + 52, y + th + lab / 2), desc, font=font_for(desc, 15), fill=(242, 244, 245), anchor="lm")
+        lf = font_for(letter, 22)
+        bw = max(40, int(d.textlength(letter, font=lf)) + 16)
+        d.rectangle([x, y + th, x + bw, y + th + lab], fill=CYAN)
+        d.text((x + bw / 2, y + th + lab / 2), letter, font=lf, fill=(8, 20, 24), anchor="mm")
+        d.text((x + bw + 12, y + th + lab / 2), desc, font=font_for(desc, 15), fill=(242, 244, 245), anchor="lm")
     sheet.save(out_path)
 
 
@@ -1407,10 +1412,11 @@ def stage_bg(img, W, H, col, prev_col, A, split):
     d.rectangle([0, 0, W, H], fill=Z["bg"] + (255,))
     ov = layer(img)
     od = ImageDraw.Draw(ov)
-    for x in range(0, W, 32):
-        od.line([(x, 0), (x, H)], fill=Z["grid"])
-    for y in range(0, H, 32):
-        od.line([(0, y), (W, y)], fill=Z["grid"])
+    if GRID_STAGE:
+        for x in range(0, W, 32):
+            od.line([(x, 0), (x, H)], fill=Z["grid"])
+        for y in range(0, H, 32):
+            od.line([(0, y), (W, y)], fill=Z["grid"])
     bc = CC["band"] or col
     pc = CC["band"] or prev_col
     t = ease_io(A.get("band", 1.0))
@@ -2120,8 +2126,833 @@ def run_anim(out, v="C4"):
         print("GIF", name, len(fr), "帧")
 
 
+# =====================================================================================
+# 定稿（docs/58 §11）：干员选择 = B+（水月 / 集成战略 + C 的职业色斜带与巨型描边英文名）；干员图鉴 = C4'（C4 去网格）。
+#   python tools/concept_operator_ui.py --final [输出目录]   静图、手机、网格对照、总览、分段 GIF、合成 MP4（1280×720 30 fps H.264）
+#   缺省 build/concept/operator_ui/final/；标题页底图取 build/concept/operator_ui/current/shot_title.png（Godot --titleshot 截的），没有就画占位
+# =====================================================================================
+GRID_STAGE = True
+_BCACHE = {}
+
+
+def b_backdrop(W=1280, H=720):
+    if (W, H) not in _BCACHE:
+        set_theme("B")
+        _BCACHE[(W, H)] = backdrop(W, H, CYAN)
+    return _BCACHE[(W, H)].copy()
+
+
+def b_band(img, col, prev_col, t, ox=0, sc=1.0):
+    """B+ 的职业色斜带：比 C 柔（透明度 35 %），右缘一道金细线、左缘一道紫细线（B 的饰线语言）"""
+    W, H = img.size
+    e = ease_io(t)
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+
+    def poly(dx, c, a):
+        od.polygon([(ox + (560 + dx) * sc, H), (ox + (800 + dx) * sc, H), (ox + (1010 + dx) * sc, 0), (ox + (770 + dx) * sc, 0)], fill=c + (a,))
+    if e < 1 and prev_col:
+        poly(0, prev_col, 90)
+    dx = -900 * (1 - e)
+    poly(dx, col, 90)
+    img.alpha_composite(ov)
+    d = ImageDraw.Draw(img)
+    d.line([(ox + (806 + dx) * sc, H), (ox + (1016 + dx) * sc, 0)], fill=GOLD + (170,), width=2)
+    d.line([(ox + (548 + dx) * sc, H), (ox + (758 + dx) * sc, 0)], fill=PURPLE + (120,), width=1)
+
+
+def b_ghost(img, s, frac, x=380, y=78, size=150):
+    n = int(round(len(s) * max(0.0, min(1.0, frac))))
+    if n <= 0:
+        return
+    ov = layer(img)
+    ImageDraw.Draw(ov).text((x, y), s[:n], font=ImageFont.truetype(K.FONT_UI, size), fill=(0, 0, 0, 0), stroke_width=2, stroke_fill=(190, 210, 255, 46))
+    img.alpha_composite(ov)
+
+
+def b_char(img, op, A, cx=760, by=580, scale=5):
+    """立绘：缩放 0.92 → 1 + 右移 24 → 0 + 淡入；B 用青白外晕（不用 C 的硬投影）"""
+    t = ease_out(A.get("char", 1.0))
+    if t <= 0:
+        return
+    big = K.up(frame(op["_tex"], 0), scale)
+    k = 0.92 + 0.08 * t
+    if k < 1.0:
+        big = big.resize((int(big.width * k), int(big.height * k)), Image.NEAREST)
+    a = big.split()[3]
+    mask = Image.new("L", big.size, 255)
+    md = ImageDraw.Draw(mask)
+    h = big.height
+    for y in range(int(h * 0.72), h):
+        md.line([(0, y), (big.width, y)], fill=max(0, int(255 * (1 - (y - h * 0.72) / (h * 0.28)))))
+    a = ImageChops.multiply(a, mask)
+    if t < 1.0:
+        a = a.point(lambda v: int(v * t))
+    big.putalpha(a)
+    px = int(cx - big.width / 2 + 24 * (1 - t))
+    py = by - big.height
+    K.put_glow(img, big, (150, 220, 240), 12, 0.5 * t, (px, py))
+    img.alpha_composite(big, (px, py))
+
+
+def b_card(img, box, op, sel=False, lift=0.0, hover=0.0, elite=0):
+    """与图鉴共用的名册卡结构（顶部职业色条 / 左上职业框 / 右上精英菱形 / 底部名字条），换 B 的圆角与紫金描边"""
+    x0, y0, x1, y1 = box
+    up = int(10 * lift + 4 * hover)
+    y0 -= up
+    y1 -= up
+    col = CLASS_COL.get(op.get("class"), CYAN)
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    if lift > 0.01:
+        od.rounded_rectangle([x0 - 3, y0 - 3, x1 + 3, y1 + 3], 7, fill=VIOLET + (int(50 * lift),))
+    od.rounded_rectangle([x0, y0, x1, y1], 5, fill=(22, 26, 52, 235) if lift > 0.5 else (10, 20, 30, 220),
+                         outline=(VIOLET + (255,)) if lift > 0.5 else (168, 133, 255, 80), width=2 if lift > 0.5 else 1)
+    od.rectangle([x0 + 4, y0 + 2, x1 - 4, y0 + 4], fill=col + (255,))
+    img.alpha_composite(ov)
+    f = frame(op["_tex"], 0)
+    k = max(1, min(3, int((y1 - y0 - 46) / f.height)))
+    sp = K.up(f, k)
+    px = (x0 + x1) // 2 - sp.width // 2
+    py = y1 - 24 - sp.height
+    if py < y0 + 6:
+        sp = sp.crop((0, y0 + 6 - py, sp.width, sp.height))
+        py = y0 + 6
+    img.alpha_composite(sp, (px, py))
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.rounded_rectangle([x0 + 2, y1 - 22, x1 - 2, y1 - 2], 4, fill=(4, 8, 16, 200))
+    od.rounded_rectangle([x0 + 4, y0 + 8, x0 + 20, y0 + 24], 3, fill=(0, 0, 0, 160), outline=col + (200,))
+    img.alpha_composite(ov)
+    glyph(img, (x0 + 12, y0 + 16), 5, CLASS_GLYPH.get(op.get("class"), "diamond"), col)
+    text(img, ((x0 + x1) // 2, y1 - 12), op["name"], 12, (242, 244, 245), anchor="mm")
+    star_row(img, (x1 - 6 - elite * 9, y0 + 10), elite, GOLD, 6, 3)
+    d = ImageDraw.Draw(img)
+    hl = max(lift, hover * 0.6)
+    if hl > 0.01:
+        w = int((x1 - x0 - 12) * ease_out(hl))
+        d.rounded_rectangle([x0 + 6, y1 + 4, x0 + 6 + max(4, w), y1 + 7], 2, fill=CYAN)
+    if lift > 0.5:
+        diamond(d, ((x0 + x1) / 2, y0), 5, GOLD)
+
+
+def b_tabs(img, box, names, pos, size=14):
+    """B 页签：当前页淡紫底 + 紫下划线（可滑动）+ 金菱形"""
+    x0, y0, x1, y1 = box
+    d = ImageDraw.Draw(img)
+    tw = (x1 - x0) / len(names)
+    cur = int(round(pos))
+    ov = layer(img)
+    ImageDraw.Draw(ov).rounded_rectangle([x0 + cur * tw + 2, y0 + 2, x0 + (cur + 1) * tw - 2, y1], 4, fill=VIOLET + (55,))
+    img.alpha_composite(ov)
+    for i, nm in enumerate(names):
+        text(img, (x0 + i * tw + tw / 2, (y0 + y1) / 2), nm, size, T["text"] if i == cur else T["sub"], anchor="mm")
+    ux = x0 + pos * tw
+    d.line([(x0, y1), (x1, y1)], fill=T["line"])
+    d.rounded_rectangle([ux + 10, y1 - 2, ux + tw - 10, y1], 1, fill=VIOLET)
+    diamond(d, (ux + tw / 2, y1 - 1), 3, GOLD)
+
+
+def b_code(img, xy, s, size=9, col=None, anchor="la"):
+    return en(img, xy, s, size, T["sub"] if col is None else col, 2, anchor, italic=False)
+
+
+def gauge(img, box, frac, col=CYAN):
+    """圆角槽 + 实色填充 + 顶部高光（UI.gbar 的样子）"""
+    x0, y0, x1, y1 = box
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.rounded_rectangle([x0, y0, x1, y1], (y1 - y0) // 2, fill=(0, 0, 0, 150), outline=(168, 133, 255, 70))
+    w = int((x1 - x0) * max(0.0, min(1.0, frac)))
+    if w > (y1 - y0):
+        od.rounded_rectangle([x0, y0, x0 + w, y1], (y1 - y0) // 2, fill=col + (255,))
+        od.line([(x0 + 4, y0 + 1), (x0 + w - 4, y0 + 1)], fill=(255, 255, 255, 120))
+    img.alpha_composite(ov)
+
+
+def b_content(L, op, tab, box, A):
+    px0, py0, px1, py1 = box
+    base = op.get("base", {})
+    cnt = A.get("count", 1.0)
+    d = ImageDraw.Draw(L)
+    if tab == 1:
+        y = py0
+        stats = [("攻击", fmt_count(base.get("atk", 0), cnt)), ("间隔", "%.2fs" % (base.get("cd", 0) * (2 - ease_out(cnt)))),
+                 ("射程", fmt_count(base["reach"], cnt) if "reach" in base else "—"), ("生命", "主控 " + fmt_count(100, cnt))]
+        for i, (k, v) in enumerate(stats):
+            sx = px0 + 2 + i * 72
+            tab_head(L, (sx, y), k, TAB_HP if i < 3 else TAB_LAMP, 9)
+            text(L, (sx, y + 18), v, 15)
+        y += 46
+        d.line([(px0, y), (px1, y)], fill=T["line"])
+        y += 10
+        stg = A.get("rows", [1.0, 1.0, 1.0])
+        for i in range(3):
+            t = ease_out(stg[i])
+            if t > 0:
+                R = layer(L)
+                skill_row(R, (px0, y), px1 - px0, op, i, selected=(i == 2), manual=(i == 2), stage_lbl=["招募", "精英一", "精英二"][i])
+                put_layer(L, R, 40 * (1 - t), t)
+            y += 66
+        if stg[2] >= 1:
+            for i, ln in enumerate(wrap("主控按 Q 释放；作为队友自动。" + op["skills"][2].get("desc", ""), 11, px1 - px0 - 8)[:3]):
+                text(L, (px0 + 2, y + i * 16), ln, 11, T["sub"])
+            y += 54
+            chip(L, (px0 + 2, y), "天赋", CLASS_COL.get(op.get("class"), CYAN), 10)
+            text(L, (px0 + 52, y + 1), op.get("talent", {}).get("name", "") + "  精英一解锁", 12)
+    else:
+        y = py0
+        rows = [("攻击", "ATK", base.get("atk", 0), 80, "%d"), ("攻击间隔", "INTERVAL", base.get("cd", 0), 2.0, "%.2fs"),
+                ("攻击范围", "RANGE", base.get("reach", 0), 220, "%d"), ("生命（主控）", "HP", 100, 160, "%d"), ("移动速度", "SPEED", 150, 200, "%d")]
+        for i, (k, e, v, mx, fm) in enumerate(rows):
+            yy = y + i * 58
+            tab_head(L, (px0, yy), k, TAB_HP if i != 3 else TAB_LAMP, 9)
+            b_code(L, (px0 + 90, yy + 2), e, 8)
+            val = (v * ease_out(cnt)) if fm != "%.2fs" else v * (2 - ease_out(cnt))
+            text(L, (px1, yy - 4), fm % val, 24, anchor="ra", bold=True)
+            gauge(L, (px0, yy + 30, px1 - 110, yy + 40), min(1.0, v / mx) * ease_out(cnt), CYAN if i != 3 else GOLD)
+        y += 5 * 58 + 6
+        b_code(L, (px0, y), "TRAIT // 特性", 8)
+        for i, ln in enumerate(wrap(op.get("attack", {}).get("desc", ""), 11, px1 - px0)[:2]):
+            text(L, (px0, y + 14 + i * 16), ln, 11, T["sub"])
+
+
+def b_button(img, box, A, s="出击  ›", sub="ENTER / 手柄 A  ·  下一步选择难度", size=24):
+    """B 出击：青底圆角 + 金外框 + 两侧金菱形；外框随时间呼吸；按下下沉 3 px + 闪白"""
+    x0, y0, x1, y1 = box
+    p = A.get("press", 0.0)
+    sink = int(3 * math.sin(math.pi * min(1.0, p))) if p > 0 else 0
+    x0, y0, x1, y1 = x0, y0 + sink, x1, y1 + sink
+    d = ImageDraw.Draw(img)
+    br = 0.5 + 0.5 * math.sin(A.get("time", 0.0) * 2 * math.pi / 1.6)
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.rounded_rectangle([x0 - 7, y0 - 7, x1 + 7, y1 + 7], 12, outline=CYAN + (int(40 + 60 * br),), width=2)
+    img.alpha_composite(ov)
+    d.rounded_rectangle([x0 - 4, y0 - 4, x1 + 4, y1 + 4], 9, outline=GOLD, width=1)
+    d.rounded_rectangle([x0, y0, x1, y1], 6, fill=CYAN)
+    d.line([(x0 + 8, y0 + 2), (x1 - 8, y0 + 2)], fill=(200, 255, 252))
+    diamond(d, (x0 - 4, (y0 + y1) / 2), 5, GOLD)
+    diamond(d, (x1 + 4, (y0 + y1) / 2), 5, GOLD)
+    ink = (8, 20, 24)
+    cy = (y0 + y1) / 2 - (7 if sub else 0)
+    d.text(((x0 + x1) / 2, cy), s, font=F(size, s), fill=ink, anchor="mm", stroke_width=1, stroke_fill=ink)
+    if sub:
+        d.text(((x0 + x1) / 2, cy + 22), sub, font=F(10, sub), fill=ink, anchor="mm")
+    if 0 < p < 1:
+        ov = layer(img)
+        ImageDraw.Draw(ov).rounded_rectangle([x0, y0, x1, y1], 6, fill=(255, 255, 255, int(150 * math.sin(math.pi * p))))
+        img.alpha_composite(ov)
+
+
+def compose_bplus(sel_id="skadi", A=None, prev_id=None):
+    A = A or {}
+    set_theme("B")
+    W, H = 1280, 720
+    ops = roster()
+    op = next(o for o in ops if o["_id"] == sel_id)
+    prev = next((o for o in ops if o["_id"] == prev_id), None)
+    col = CLASS_COL.get(op.get("class"), CYAN)
+    img = b_backdrop()
+    b_band(img, col, CLASS_COL.get(prev.get("class")) if prev else None, A.get("band", 1.0))
+    b_ghost(img, op.get("en", ""), A.get("name", 1.0))
+    b_char(img, op, A)
+    title_bar(img, W, 54, "OPERATOR SELECT", "选择开局干员", col, ("主控 1 名；其余干员在探索中通过升级招募", "下一步：选择难度"))
+    chip(img, (W - 372, 18), "难度 Ⅳ 潮汐已涨", STEEL, 11)
+    chip(img, (W - 250, 18), "封面干员 水月", PURPLE, 11)
+    small_btn(img, (W - 120, 14, W - 16, 42), "返回  Esc")
+    rail(img, 14, 68, 46, op.get("class"), col)
+    # 名字块：微型代码 + 中文名 + 英文名（打字机）+ 圆角标签
+    nt = A.get("name", 1.0)
+    b_code(img, (92, 282), "No.%02d  //  %s  //  %s" % (ops.index(op) + 1, op.get("class", ""), "近战" if "近战" in op.get("gallery", {}).get("tags", []) else "远程"), 9)
+    if nt > 0:
+        L = layer(img)
+        text(L, (90, 296), op["name"], 44, bold=True)
+        en(L, (94, 350), op.get("en", "")[:max(0, int(round(len(op.get("en", "")) * nt)))], 14, col, 4)
+        put_layer(img, L, 0, min(1.0, nt * 1.6))
+    cx = 92
+    cx += chip(img, (cx, 376), op.get("class", ""), col, 12)
+    for tg in op.get("gallery", {}).get("tags", []):
+        cx += chip(img, (cx, 376), tg, PURPLE, 11)
+    text(img, (92, 406), op.get("gallery", {}).get("desc", ""), 12, T["sub"])
+    d = ImageDraw.Draw(img)
+    sq = (92, 440)
+    tab_head(img, sq, "编队", (90, 70, 190), 9)
+    for i in range(3):
+        bx, by = sq[0] + i * 94, sq[1] + 20
+        panel(img, (bx, by, bx + 84, by + 56), sel=(i == 0), accent=VIOLET if i == 0 else None, shadow=False)
+        if i == 0:
+            spr = frame(op["_tex"], 0)
+            img.alpha_composite(spr, (bx + 6, by + 56 - spr.height - 4))
+            d.rounded_rectangle([bx + 2, by + 2, bx + 34, by + 15], 3, fill=VIOLET)
+            text(img, (bx + 6, by + 2), "主控", 10, (255, 255, 255))
+            text(img, (bx + 62, by + 34), op["name"], 10, anchor="mm")
+        else:
+            text(img, (bx + 42, by + 22), "队友 %d" % i, 11, T["sub"], anchor="mm")
+            text(img, (bx + 42, by + 40), "探索中招募", 9, T["sub"], anchor="mm")
+    # 信息面板（整体可滑入）
+    px0, py0, px1, py1 = 968, 68, W - 16, 530
+    P = layer(img)
+    panel(P, (px0, py0, px1, py1), accent=VIOLET)
+    b_code(P, (px0 + 14, py0 + 8), "OPERATOR DATA // %s" % ("STATUS" if A.get("ctab", int(round(A.get("tab", 1)))) == 0 else "SKILL"), 8)
+    b_tabs(P, (px0 + 4, py0 + 22, px1 - 4, py0 + 54), ["属性", "技能", "编队"], A.get("tab", 1))
+    L = layer(img)
+    b_content(L, op, A.get("ctab", int(round(A.get("tab", 1)))), (px0 + 12, py0 + 66, px1 - 12, py1 - 10), A)
+    put_layer(P, L, 60 * (1 - ease_out(A.get("panel", 1.0))), A.get("panel_a", min(1.0, A.get("panel", 1.0) * 1.5)))
+    put_layer(img, P, 340 * (1 - ease_out(A.get("open", 1.0))), min(1.0, A.get("open", 1.0) * 2))
+    # 名册带
+    ry0 = H - 170
+    ov = layer(img)
+    ImageDraw.Draw(ov).rectangle([0, ry0 - 6, W, H], fill=(4, 8, 18, 160))
+    img.alpha_composite(ov)
+    for i in range(W):
+        d.point((i, ry0 - 6), fill=PURPLE + (int(110 * (1 - abs(i - W / 2) / (W / 2))),))
+    b_code(img, (70, ry0 + 2), "ROSTER  13 / 13   //   SORT: CLASS", 8)
+    text(img, (W - 230, ry0 - 2), "◀ ▶ / 滚轮 切换    Enter 下一步", 10, T["sub"])
+    x = 70
+    lifts = A.get("lift", {sel_id: 1.0})
+    hov = A.get("hover", {})
+    for o in ops[:10]:
+        b_card(img, (x, ry0 + 22, x + 82, ry0 + 22 + 112), o, sel=(o["_id"] == sel_id), lift=lifts.get(o["_id"], 0.0), hover=hov.get(o["_id"], 0.0), elite=2 if o["_id"] == sel_id else 0)
+        x += 90
+    text(img, (x + 6, ry0 + 70), "▶", 16, T["sub"])
+    text(img, (x + 6, ry0 + 92), "还有 3 名", 10, T["sub"])
+    b_button(img, (1036, ry0 + 40, W - 22, ry0 + 112), A)
+    return img
+
+
+def compose_b_diff():
+    """出击后的难度选择（B 版占位，转场目标）"""
+    set_theme("B")
+    W, H = 1280, 720
+    img = b_backdrop()
+    title_bar(img, W, 54, "OPERATION", "选择难度", CYAN, ("第 2 步 / 2",))
+    for i, (n, nm, s) in enumerate([("Ⅰ", "标准", "第一次下潜"), ("Ⅳ", "潮汐已涨", "敌人更多更快"), ("Ⅷ", "深海回响", "精英与 Boss 强化")]):
+        x = 190 + i * 310
+        panel(img, (x, 190, x + 280, 500), sel=(i == 1), accent=VIOLET if i == 1 else None)
+        text(img, (x + 140, 290), n, 72, anchor="mm", bold=True)
+        text(img, (x + 140, 380), nm, 22, anchor="mm")
+        text(img, (x + 140, 414), s, 12, T["sub"], anchor="mm")
+    b_button(img, (1036, 590, W - 22, 662), {}, "下潜  ›", "ENTER / 手柄 A")
+    return img
+
+
+def wave_wipe(img, nxt, t):
+    """B+ 转场：深海浪幕从下往上漫过（浪尖青白泡沫线），过半换页，再继续上涌退出"""
+    W, H = img.size
+    e = ease_io(t)
+    out = (img if e < 0.5 else nxt).copy()
+    k = e * 2 if e < 0.5 else (e - 0.5) * 2
+    base_y = H + 70 - (H + 140) * k
+
+    def edge(x):
+        return base_y + 22 * math.sin(x / 95.0 + k * 7) + 9 * math.sin(x / 37.0 - k * 11)
+    pts = [(x, edge(x)) for x in range(0, W + 9, 8)]
+    ov = layer(out)
+    od = ImageDraw.Draw(ov)
+    poly = pts + ([(W, H + 10), (0, H + 10)] if e < 0.5 else [(W, -10), (0, -10)])
+    od.polygon(poly, fill=(10, 26, 44, 255))
+    # 浪身里的紫色暗层与气泡
+    pts2 = [(x, y + (40 if e < 0.5 else -40)) for x, y in pts]
+    poly2 = pts2 + ([(W, H + 10), (0, H + 10)] if e < 0.5 else [(W, -10), (0, -10)])
+    od.polygon(poly2, fill=(30, 16, 56, 160))
+    rnd = random.Random(int(k * 1000) // 50)
+    for i in range(40):
+        x = rnd.randint(0, W)
+        y = edge(x) + (rnd.randint(10, 160) if e < 0.5 else -rnd.randint(10, 160))
+        r = rnd.choice([1, 2, 2, 3])
+        od.ellipse([x - r, y - r, x + r, y + r], outline=(150, 235, 245, 120))
+    od.line(pts, fill=(150, 240, 245, 230), width=3)
+    od.line([(x, y + (8 if e < 0.5 else -8)) for x, y in pts], fill=(54, 226, 220, 110), width=1)
+    out.alpha_composite(ov)
+    return out
+
+
+def title_img():
+    p = os.path.join(ROOT, "build", "concept", "operator_ui", "current", "shot_title.png")
+    if os.path.exists(p):
+        return Image.open(p).convert("RGBA").resize((1280, 720))
+    set_theme("B")
+    im = b_backdrop()
+    text(im, (90, 160), "方舟幸存者", 64, bold=True)
+    return im
+
+
+# ---------- C4' 图鉴 ----------
+def compose_codex_final(sel_id="wisadel", A=None, prev_id=None, panel_grid="none", stage_grid=False):
+    """C4'：C4 图鉴去掉舞台网格；数据面板网格 none / tint（1 px、4 %）/ full（原 C4 选择页的 12 %）"""
+    global GRID_STAGE
+    A = A or {}
+    cset("C4")
+    GRID_STAGE = stage_grid
+    W, H = 1280, 720
+    ops = roster()
+    op = next(o for o in ops if o["_id"] == sel_id)
+    prev = next((o for o in ops if o["_id"] == prev_id), None)
+    col = CLASS_COL.get(op.get("class"), CYAN)
+    img = Image.new("RGBA", (W, H))
+    stage_bg(img, W, H, col, CLASS_COL.get(prev.get("class")) if prev else None, {"band": A.get("band", 1.0)}, False)
+    GRID_STAGE = True
+    ghost_name(img, op.get("en", ""), A.get("name", 1.0), 440, 60)
+    c_char(img, op, A, 680, 440, 4)
+    # 右侧亮区（斜边分区）
+    zone("panel")
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.polygon([(910, 48), (W, 48), (W, H), (866, H)], fill=Z["bg"] + (255,))
+    img.alpha_composite(ov)
+    if panel_grid != "none":
+        ga = 10 if panel_grid == "tint" else 30
+        g = layer(img)
+        gd = ImageDraw.Draw(g)
+        for x in range(864, W, 32):
+            gd.line([(x, 48), (x, H)], fill=(0, 0, 0, 255))
+        for y in range(64, H, 32):
+            gd.line([(860, y), (W, y)], fill=(0, 0, 0, 255))
+        m = Image.new("L", (W, H), 0)
+        ImageDraw.Draw(m).polygon([(912, 49), (W, 49), (W, H), (868, H)], fill=ga)
+        g.putalpha(ImageChops.multiply(g.split()[3], m))
+        img.alpha_composite(g)
+    zone("stage")
+    d = ImageDraw.Draw(img)
+    d.line([(910, 48), (866, H)], fill=CC["acc"], width=3)
+    # 顶栏（大页签）
+    ov = layer(img)
+    ImageDraw.Draw(ov).rectangle([0, 0, W, 48], fill=Z["panel"])
+    img.alpha_composite(ov)
+    d.line([(0, 48), (W, 48)], fill=Z["rule"], width=2)
+    d.rectangle([0, 0, 120, 48], fill=(236, 238, 240))
+    hz(img, (120, 0, 140, 48), A.get("stripe", 0) * 0.3)
+    code(img, (18, 7), "ARCHIVE", 9, (22, 24, 28))
+    ct(img, (18, 21), "图鉴", 18, (22, 24, 28))
+    x = 156
+    for i, (cn, e) in enumerate([("干员", "OPERATOR"), ("敌人", "ENEMY"), ("精英", "ELITE"), ("Boss", "BOSS"), ("道具", "ITEM"), ("藏品", "RELIC"), ("结局", "ENDING")]):
+        para(d, (x, 8, x + 100, 42), 10, fill=CC["acc"] if i == 0 else None, outline=Z["rule"])
+        ct(img, (x + 22, 12), cn, 13, (22, 24, 28) if i == 0 else Z["ink"])
+        code(img, (x + 20, 29), e, 7, (22, 24, 28) if i == 0 else Z["sub"])
+        x += 106
+    code(img, (W - 120, 20), "13 / 13", 9)
+    # 职业框轨 + 网格（打开时错开 20 ms 依次浮现）
+    for i, c in enumerate(["全部"] + CLASS_ORDER[:7]):
+        y = 64 + i * 44
+        if c == op.get("class"):
+            class_box(img, (24, y), 36, c, on=True)
+        else:
+            d.rectangle([24, y, 60, y + 36], fill=Z["panel"][:3], outline=Z["rule"])
+            if c == "全部":
+                ct(img, (42, y + 18), "ALL", 10, anchor="mm")
+            else:
+                glyph(img, (42, y + 18), 9, CLASS_GLYPH[c], Z["ink"], 2)
+    code(img, (76, 60), "OPERATORS  //  SORT: CLASS", 8)
+    op_t = A.get("open", 1.0)
+    lifts = A.get("lift", {sel_id: 1.0})
+    for i, o in enumerate(ops):
+        ti = ease_out((op_t * ms(520) - ms(20) * i) / ms(200)) if op_t < 1 else 1.0
+        if ti <= 0:
+            continue
+        cx = 76 + (i % 4) * 88
+        cy = 86 + (i // 4) * 120 + int(16 * (1 - ti))
+        Lc = layer(img)
+        c_card(Lc, (cx, cy, cx + 80, cy + 110), o, sel=(o["_id"] == sel_id), lift=lifts.get(o["_id"], 0.0), hover=A.get("hover", {}).get(o["_id"], 0.0),
+               elite=[2, 1, 2, 0, 1, 2, 2, 1, 0, 2, 1, 2, 2][i % 13])
+        put_layer(img, Lc, 0, ti)
+    cx, cy = 76 + 88, 86 + 3 * 120
+    d.rectangle([cx, cy, cx + 80, cy + 110], outline=Z["rule"])
+    ct(img, (cx + 40, cy + 50), "?", 28, Z["sub"], anchor="mm")
+    code(img, (cx + 40, cy + 88), "LOCKED", 7, anchor="ma")
+    # 名字块
+    nt = A.get("name", 1.0)
+    code(img, (452, 452), "No.%02d  //  %s" % (ops.index(op) + 1, op.get("class", "")), 9)
+    if nt > 0:
+        L = layer(img)
+        ct(L, (450, 466), op["name"], 44, bold=True)
+        en(L, (454, 522), op.get("en", "")[:max(0, int(round(len(op.get("en", "")) * nt)))], 13, Z["sub"], 5)
+        put_layer(img, L, 0, min(1.0, nt * 1.6))
+    class_box(img, (452, 548), 22, op.get("class"))
+    x = 482
+    for tg in op.get("gallery", {}).get("tags", []):
+        x += ctag(img, (x, 548), tg)
+    lore = json.load(open(os.path.join(ROOT, "game", "data", "lore.json"), encoding="utf-8")).get(sel_id, {})
+    prof = lore.get("profile", {}) if isinstance(lore, dict) else {}
+    for i, (k, vv) in enumerate(list(prof.items())[:4]):
+        xx = 452 + (i % 2) * 200
+        yy = 584 + (i // 2) * 30
+        code(img, (xx, yy), k, 8)
+        ct(img, (xx, yy + 10), str(vv), 13)
+    for i, fm in enumerate(["待机", "移动", "攻击", "技能", "精二"]):
+        fx = 452 + i * 72
+        para(d, (fx, 652, fx + 66, 678), 8, fill=Z["rule"] if i == 0 else None, outline=Z["rule"])
+        ct(img, (fx + 33, 665), fm, 11, Z["inv"] if i == 0 else Z["ink"], anchor="mm")
+    # 右侧数据面板（亮场）
+    zone("panel")
+    px0, py0, px1, py1 = 920, 64, W - 24, H - 24
+    P = layer(img)
+    tpos = A.get("tab", 2)
+    ctab = A.get("ctab", int(round(tpos)))
+    code(P, (px0 + 12, py0 + 8), "OPERATOR FILE // %s" % ["PROFILE", "SKILL", "GROWTH", "RELIC SYNERGY"][ctab], 8)
+    c_tabs(P, (px0 + 12, py0 + 22, px1 - 12, py0 + 52), ["档案", "技能", "成长", "藏品契合"], tpos, 8)
+    L = layer(img)
+    codex_content(L, op, ctab, (px0 + 12, py0 + 66, px1 - 12, py1), A, sel_id)
+    put_layer(P, L, 60 * (1 - ease_out(A.get("panel", 1.0))), A.get("panel_a", min(1.0, A.get("panel", 1.0) * 1.5)))
+    put_layer(img, P, 300 * (1 - ease_out(A.get("open", 1.0))), min(1.0, A.get("open", 1.0) * 2))
+    zone("stage")
+    return img
+
+
+def codex_content(L, op, tab, box, A, sel_id):
+    px0, py0, px1, py1 = box
+    d = ImageDraw.Draw(L)
+    stg = A.get("rows", [1.0] * 8)
+    if tab == 2:
+        nodes = op.get("progression", [])[:6]
+        lx = px0 + 12
+        y = py0
+        d.line([(lx, y + 8), (lx, y + 8 + 50 * (len(nodes) - 1))], fill=Z["rule"], width=2)
+        gicons = ["growth_hp", "growth_armor", "growth_dodge", "growth_pickup", "growth_b_range", "growth_b_count"]
+        for i, n in enumerate(nodes):
+            t = ease_out(stg[i] if i < len(stg) else 1.0)
+            if t <= 0:
+                continue
+            R = layer(L)
+            dr = ImageDraw.Draw(R)
+            ny = y + i * 50
+            el = n.get("type") == "elite"
+            dr.rectangle([lx - 7, ny + 1, lx + 7, ny + 15], fill=(CC["acc"] if el else Z["rule"]) if i < 3 else Z["panel"][:3], outline=Z["rule"], width=2)
+            cpanel(R, (lx + 18, ny - 6, px1, ny + 38), sel=el, shadow=False)
+            ic = icon(n.get("icon", "")) or icon(("skill_%s_s%d" % (sel_id, 2 if n.get("level") == 1 else 3)) if el else gicons[i % len(gicons)])
+            dr.rectangle([lx + 28, ny - 1, lx + 60, ny + 31], fill=Z["rule"])
+            if ic:
+                R.alpha_composite(ic.resize((28, 28), Image.NEAREST), (lx + 30, ny + 1))
+            code(R, (lx + 70, ny - 2), "NODE %02d" % (i + 1), 7)
+            ct(R, (lx + 70, ny + 8), n.get("name", ""), 13)
+            ct(R, (px1 - 10, ny + 16), ("精英化" if el else ("已取" if i < 3 else "未取")), 10, Z["sub"], anchor="rm")
+            put_layer(L, R, 40 * (1 - t), t)
+        y += 50 * len(nodes) + 4
+        d.line([(px0, y), (px1, y)], fill=Z["rule"])
+        code(L, (px0, y + 8), "RELIC SYNERGY // 藏品契合（缩略）", 8)
+        for i, rid in enumerate(["relic_10", "relic_11", "relic_13", "relic_18", "relic_2", "relic_103", "relic_104", "relic_125"]):
+            bx = px0 + i * 38
+            d.rectangle([bx, y + 24, bx + 34, y + 58], fill=Z["rule"] if i < 2 else Z["panel"][:3], outline=Z["rule"])
+            ic = icon(rid)
+            if ic:
+                L.alpha_composite(ic, (bx + 1, y + 25))
+    elif tab == 3:
+        groups = [("强契合 // CORE", ["relic_10", "relic_11", "relic_13", "relic_18", "relic_2"]),
+                  ("可用 // USABLE", ["relic_103", "relic_104", "relic_125", "relic_147", "relic_230", "relic_10", "relic_13"]),
+                  ("无关 // NO EFFECT", ["relic_18", "relic_2", "relic_11"])]
+        y = py0
+        code(L, (px0, y), "按 hit_sources 推算：远程 / 物理 / 范围 / 精英克制", 8)
+        y += 18
+        k = 0
+        for gi, (gname, ids) in enumerate(groups):
+            ct(L, (px0, y), gname, 12, Z["ink"] if gi < 2 else Z["sub"])
+            y += 20
+            for i, rid in enumerate(ids):
+                t = ease_out(stg[min(k // 3, len(stg) - 1)])
+                k += 1
+                bx = px0 + (i % 6) * 52
+                by = y + (i // 6) * 52 + int(10 * (1 - t))
+                R = layer(L)
+                dr = ImageDraw.Draw(R)
+                dr.rectangle([bx, by, bx + 46, by + 46], fill=(CC["acc"] if gi == 0 else Z["panel"][:3]), outline=Z["rule"], width=2 if gi == 0 else 1)
+                ic = icon(rid)
+                if ic:
+                    if gi == 2:
+                        ic = ic.copy()
+                        ic.putalpha(ic.split()[3].point(lambda v: v // 3))
+                    R.alpha_composite(ic.resize((40, 40), Image.NEAREST), (bx + 3, by + 3))
+                put_layer(L, R, 0, t)
+            y += 52 * ((len(ids) + 5) // 6) + 10
+        code(L, (px0, y + 4), "点图标看效果 · 金框 = 本干员的核心藏品", 8)
+    elif tab == 1:
+        y = py0
+        for i in range(3):
+            t = ease_out(stg[i])
+            if t > 0:
+                R = layer(L)
+                c_skill(R, (px0, y), px1 - px0, op, i, sel=(i == 2))
+                put_layer(L, R, 40 * (1 - t), t)
+            y += 64
+    else:
+        lore = json.load(open(os.path.join(ROOT, "game", "data", "lore.json"), encoding="utf-8")).get(sel_id, {})
+        y = py0
+        for ln in wrap((lore.get("lore", "") if isinstance(lore, dict) else "").replace("\n", ""), 12, px1 - px0)[:16]:
+            ct(L, (px0, y), ln, 12)
+            y += 20
+
+
+# ---------- 手机 ----------
+def compose_bplus_phone():
+    set_theme("B")
+    W, H = 740, 360
+    ops = roster()
+    op = next(o for o in ops if o["_id"] == "skadi")
+    col = CLASS_COL.get(op.get("class"), CYAN)
+    img = b_backdrop(W, H)
+    b_band(img, col, None, 1.0, -150, 0.6)
+    b_ghost(img, op.get("en", ""), 1.0, 150, 40, 90)
+    b_char(img, op, {}, 380, 312, 3)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([8, 6, 150, 28], 3, fill=VIOLET)
+    text(img, (16, 17), "选择开局干员", 13, (255, 255, 255), anchor="lm")
+    small_btn(img, (W - 66, 6, W - 10, 28), "返回")
+    for i, o in enumerate(ops[:6]):
+        cx = 10 + (i % 2) * 68
+        cy = 40 + (i // 2) * 100
+        b_card(img, (cx, cy, cx + 62, cy + 88), o, sel=(o["_id"] == "skadi"), lift=1.0 if o["_id"] == "skadi" else 0.0)
+    b_code(img, (74, H - 12), "SWIPE  +7", 7, anchor="ma")
+    text(img, (152, 206), op["name"], 30, bold=True)
+    en(img, (154, 244), op.get("en", ""), 10, col, 4)
+    cx = 152
+    cx += chip(img, (cx, 262), op.get("class", ""), col, 10)
+    chip(img, (cx, 262), op.get("gallery", {}).get("tags", [""])[0], PURPLE, 10)
+    px0, py0, px1, py1 = 470, 38, W - 10, H - 80
+    panel(img, (px0, py0, px1, py1), accent=VIOLET)
+    b_tabs(img, (px0 + 2, py0 + 2, px1 - 2, py0 + 28), ["属性", "技能", "编队"], 1, 12)
+    y = py0 + 36
+    for i in range(3):
+        y += skill_row(img, (px0 + 8, y), px1 - px0 - 16, op, i, selected=(i == 2), manual=(i == 2), stage_lbl=["招募", "精英一", "精英二"][i], compact=True) + 6
+    b_button(img, (W - 200, H - 62, W - 14, H - 14), {}, "出击  ›", None, 18)
+    return img
+
+
+def compose_codex_phone():
+    cset("C4")
+    W, H = 740, 360
+    ops = roster()
+    op = next(o for o in ops if o["_id"] == "wisadel")
+    col = CLASS_COL.get(op.get("class"), CYAN)
+    img = Image.new("RGBA", (W, H))
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, W, H], fill=Z["bg"])
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.polygon([(300, H), (400, H), (520, 0), (420, 0)], fill=col + (150,))
+    od.polygon([(410, H), (418, H), (538, 0), (530, 0)], fill=Z["rule"] + (200,))
+    img.alpha_composite(ov)
+    ov = layer(img)
+    ImageDraw.Draw(ov).text((150, 40), op.get("en", ""), font=ImageFont.truetype(K.FONT_UI, 90), fill=(0, 0, 0, 0), stroke_width=2, stroke_fill=Z["ghost"])
+    img.alpha_composite(ov)
+    c_char(img, op, {}, 380, 290, 3)
+    zone("panel")
+    ov = layer(img)
+    od = ImageDraw.Draw(ov)
+    od.polygon([(492, 0), (W, 0), (W, H), (470, H)], fill=Z["bg"] + (255,))
+    img.alpha_composite(ov)
+    d.line([(492, 0), (470, H)], fill=CC["acc"], width=3)
+    zone("stage")
+    d.rectangle([0, 0, 96, 30], fill=(236, 238, 240))
+    hz(img, (96, 0, 110, 30))
+    ct(img, (10, 7), "图鉴 · 干员", 13, (22, 24, 28))
+    for i, o in enumerate(ops[:6]):
+        cx = 8 + (i % 2) * 68
+        cy = 42 + (i // 2) * 98
+        c_card(img, (cx, cy, cx + 62, cy + 90), o, sel=(o["_id"] == "wisadel"), lift=1.0 if o["_id"] == "wisadel" else 0.0)
+    code(img, (72, H - 14), "SWIPE  +7", 7, anchor="ma")
+    code(img, (152, 208), "No.07 // 狙击", 7)
+    ct(img, (150, 218), op["name"], 28, bold=True)
+    en(img, (152, 254), op.get("en", ""), 10, Z["sub"], 4)
+    class_box(img, (152, 272), 18, op.get("class"))
+    ctag(img, (176, 272), op.get("gallery", {}).get("tags", [""])[0], 10)
+    zone("panel")
+    px0, px1 = 504, W - 10
+    para(d, (W - 52, 6, W - 10, 26), 6, fill=Z["rule"])
+    ct(img, (W - 31, 16), "Esc", 10, Z["inv"], anchor="mm")
+    c_tabs(img, (px0, 34, px1, 60), ["档案", "技能", "成长", "契合"], 2, 6)
+    nodes = op.get("progression", [])[:5]
+    y = 72
+    for i, n in enumerate(nodes):
+        el = n.get("type") == "elite"
+        cpanel(img, (px0, y, px1, y + 50), sel=el, shadow=False)
+        ic = icon(n.get("icon", "")) or icon(("skill_wisadel_s%d" % (2 if n.get("level") == 1 else 3)) if el else "growth_hp")
+        d.rectangle([px0 + 8, y + 9, px0 + 40, y + 41], fill=Z["rule"])
+        if ic:
+            img.alpha_composite(ic.resize((28, 28), Image.NEAREST), (px0 + 10, y + 11))
+        code(img, (px0 + 48, y + 7), "NODE %02d" % (i + 1), 7)
+        ct(img, (px0 + 48, y + 18), n.get("name", ""), 13)
+        ct(img, (px1 - 8, y + 25), "精英化" if el else ("已取" if i < 3 else "未取"), 10, Z["sub"], anchor="rm")
+        y += 56
+    zone("stage")
+    return img
+
+
+# ---------- 动效段落 ----------
+def seg_b_switch():
+    fr = []
+    a_id, b_id, hover_at, click = "skadi", "wisadel", 8, 16
+    for f in range(56):
+        A = {"time": f / FPS}
+        if f < click:
+            A["lift"] = {a_id: 1.0}
+            A["hover"] = {b_id: ease_out((f - hover_at) / ms(120))} if f >= hover_at else {}
+            fr.append(compose_bplus(a_id, A))
+            continue
+        t = f - click
+        A.update(lift={b_id: ease_back(t / ms(220)), a_id: 1 - ease_out(t / ms(160))}, band=t / ms(380), char=(t - ms(60)) / ms(300),
+                 name=(t - ms(80)) / ms(420), panel=(t - ms(120)) / ms(260), count=(t - ms(120)) / ms(450),
+                 rows=[(t - ms(120) - ms(60) * i) / ms(260) for i in range(3)])
+        fr.append(compose_bplus(b_id, A, prev_id=a_id))
+    return fr
+
+
+def seg_b_tab():
+    fr = []
+    for f in range(40):
+        A = {"time": f / FPS, "tab": 0}
+        if f >= 8:
+            t = f - 8
+            A["tab"] = ease_out(t / ms(200))
+            if t < ms(100):
+                A.update(ctab=0, panel_a=1 - t / ms(100))
+            else:
+                A.update(ctab=1, rows=[(t - ms(100) - ms(60) * i) / ms(250) for i in range(3)], count=(t - ms(100)) / ms(400))
+        fr.append(compose_bplus("skadi", A))
+    return fr
+
+
+def seg_b_confirm():
+    fr = []
+    nxt = compose_b_diff()
+    for f in range(50):
+        A = {"time": f / FPS}
+        if f >= 8:
+            A["press"] = (f - 8) / ms(160)
+        img = compose_bplus("skadi", A)
+        if f >= 8 + ms(140):
+            img = wave_wipe(img, nxt, (f - 8 - ms(140)) / ms(700))
+        fr.append(img)
+    return fr
+
+
+def seg_c_open():
+    """标题 → 图鉴：斜切黑带（黄前缘）扫过，图鉴卡片错开浮现、右侧面板滑入、色带扫入、英文名打字"""
+    fr = []
+    ti = title_img()
+    full = compose_codex_final()
+    for f in range(50):
+        if f < 6:
+            fr.append(ti.copy())
+            continue
+        t = f - 6
+        if t < ms(600) / 2:
+            fr.append(wipe(ti, full, t / ms(600)))
+            continue
+        u = t - ms(300)
+        A = {"open": u / ms(520), "band": u / ms(380), "char": (u - ms(60)) / ms(300), "name": (u - ms(80)) / ms(420),
+             "panel": (u - ms(200)) / ms(260), "rows": [(u - ms(200) - ms(50) * i) / ms(240) for i in range(8)], "stripe": f}
+        img = compose_codex_final("wisadel", A)
+        if t < ms(600):
+            img = wipe(ti, img, t / ms(600))
+        fr.append(img)
+    return fr
+
+
+def seg_c_switch():
+    fr = []
+    a_id, b_id, click = "wisadel", "skadi", 10
+    for f in range(50):
+        A = {"stripe": f}
+        if f < click:
+            A["lift"] = {a_id: 1.0}
+            A["hover"] = {b_id: ease_out((f - 4) / ms(120))} if f >= 4 else {}
+            fr.append(compose_codex_final(a_id, A))
+            continue
+        t = f - click
+        A.update(lift={b_id: ease_back(t / ms(220)), a_id: 1 - ease_out(t / ms(160))}, band=t / ms(380), char=(t - ms(60)) / ms(300),
+                 name=(t - ms(80)) / ms(420), panel=(t - ms(120)) / ms(260), rows=[(t - ms(120) - ms(50) * i) / ms(240) for i in range(8)])
+        fr.append(compose_codex_final(b_id, A, prev_id=a_id))
+    return fr
+
+
+def seg_c_tab():
+    fr = []
+    for f in range(36):
+        A = {"tab": 2, "stripe": f}
+        if f >= 8:
+            t = f - 8
+            A["tab"] = 2 + ease_out(t / ms(200))
+            if t < ms(100):
+                A.update(ctab=2, panel_a=1 - t / ms(100))
+            else:
+                A.update(ctab=3, rows=[(t - ms(100) - ms(50) * i) / ms(220) for i in range(8)])
+        fr.append(compose_codex_final("wisadel", A))
+    return fr
+
+
+def caption(img, s):
+    d = ImageDraw.Draw(img)
+    f = font_for(s, 14)
+    w = d.textlength(s, font=f)
+    d.rounded_rectangle([16, 684, 36 + w, 708], 4, fill=(0, 0, 0, 200))
+    d.text((26, 696), s, font=f, fill=(242, 244, 245), anchor="lm")
+    return img
+
+
+def write_mp4(frames, path):
+    import subprocess, imageio_ffmpeg
+    exe = imageio_ffmpeg.get_ffmpeg_exe()
+    p = subprocess.Popen([exe, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1280x720", "-r", str(FPS), "-i", "-",
+                          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20", "-movflags", "+faststart", path], stdin=subprocess.PIPE)
+    for fr in frames:
+        p.stdin.write(fr.convert("RGB").tobytes())
+    p.stdin.close()
+    p.wait()
+    return p.returncode
+
+
+def run_final(out):
+    global GRID_STAGE
+    os.makedirs(out, exist_ok=True)
+    sel = compose_bplus()
+    cod = compose_codex_final()
+    cod_rel = compose_codex_final(A={"tab": 3})
+    sel.convert("RGB").save(os.path.join(out, "final_select_Bplus.png"))
+    cod.convert("RGB").save(os.path.join(out, "final_codex_C4prime.png"))
+    cod_rel.convert("RGB").save(os.path.join(out, "final_codex_C4prime_relic.png"))
+    g_old = compose_codex_final(panel_grid="full", stage_grid=True)
+    g_tint = compose_codex_final(panel_grid="tint")
+    for nm, im in (("grid_C4_original", g_old), ("grid_C4prime_none", cod), ("grid_C4prime_tint", g_tint)):
+        im.convert("RGB").save(os.path.join(out, nm + ".png"))
+    compose_b_diff().convert("RGB").save(os.path.join(out, "final_difficulty_B.png"))
+    ti = title_img()
+    tiles = [("B+", "干员选择 · 水月底 + 职业色斜带 + 巨型描边英文", sel),
+             ("C4'", "干员图鉴 · 成长页（暗舞台无网格，亮面板无网格）", cod),
+             ("C4'", "干员图鉴 · 藏品契合页", cod_rel),
+             ("网格", "原 C4：舞台 + 面板都有网格（碍眼）", g_old),
+             ("网格", "C4' 采用：全部去掉网格", cod),
+             ("网格", "C4' 备选：面板 1 px 4 % 淡网格", g_tint),
+             ("1", "标题页（现状）", ti),
+             ("→", "深海浪幕转场（B+）", wave_wipe(ti, sel, 0.42)),
+             ("B+", "进入干员选择：同一片深海的紫青", sel),
+             ("1", "标题页（现状）", ti),
+             ("→", "斜切黑带转场（图鉴，黄前缘）", wipe(ti, cod, 0.42)),
+             ("C4'", "进入图鉴：暗舞台延续标题的暗，右侧亮面板读字", cod)]
+    contact_sheet(tiles, os.path.join(out, "contact_sheet_final.png"), "定稿 · 选择 = B+，图鉴 = C4'（第 2 行：网格取舍；第 3–4 行：从标题页进入）")
+    pb = compose_bplus_phone()
+    pc = compose_codex_phone()
+    pb.convert("RGB").save(os.path.join(out, "final_phone_select_Bplus.png"))
+    pc.convert("RGB").save(os.path.join(out, "final_phone_codex_C4prime.png"))
+    phone_sheet([("B+ 手机 · 干员选择（左两列名册、右技能面板、青色出击）", pb), ("C4' 手机 · 干员图鉴（成长页）", pc)], os.path.join(out, "contact_sheet_final_phone.png"), "定稿 · 手机触屏 740×360")
+    segs = [("B+ 选择 · 换干员", seg_b_switch, "anim_Bplus_switch"), ("B+ 选择 · 打开技能页", seg_b_tab, "anim_Bplus_tab"),
+            ("B+ 选择 · 出击 → 深海浪幕 → 难度", seg_b_confirm, "anim_Bplus_confirm"),
+            ("C4' 图鉴 · 从标题页打开", seg_c_open, "anim_C4prime_open"), ("C4' 图鉴 · 换干员", seg_c_switch, "anim_C4prime_switch"),
+            ("C4' 图鉴 · 成长 → 藏品契合", seg_c_tab, "anim_C4prime_tab")]
+    video = []
+    for cap, fn, nm in segs:
+        fr = fn()
+        save_gif(fr, os.path.join(out, nm + ".gif"))
+        for rep in (1, 2):
+            video += [caption(f.copy(), "%s  (%d/2)" % (cap, rep)) for f in fr]
+        print("段", nm, len(fr))
+    rc = write_mp4(video, os.path.join(out, "operator_ui_motion_final.mp4"))
+    print("MP4", len(video), "帧", "%.1f 秒" % (len(video) / FPS), "rc", rc)
+
+
 if __name__ == "__main__":
     _args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if "--final" in sys.argv:
+        run_final(_args[0] if _args else os.path.join(ROOT, "build", "concept", "operator_ui", "final"))
+        sys.exit(0)
     if "--cvariants" in sys.argv or "--anim" in sys.argv:
         _out = _args[0] if _args else os.path.join(ROOT, "build", "concept", "operator_ui", "c_variants")
         _v = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--animvariant=")), "C4")
