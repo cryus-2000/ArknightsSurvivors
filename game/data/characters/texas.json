@@ -64,7 +64,7 @@
    {"trig": "on_skill_end", "skill": 2, "do": [
     {"shape": "circle", "center": "target", "r": "$s1_r", "mult": "$s3_end_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
     {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "target", "density": 6.5, "n_max": 56, "on_enemies": 0.4, "stagger": 0.5, "fall": 120, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.95, "streak": 2, "hit_scale": 1.2, "scorch": 0.6,
-     "finale": {"scale": 1.8, "ring": 1.0}}]}
+     "finale": {"scale": 1.8, "ring": 1.0, "col": [1.0, 0.86, 0.45, 0.9]}}]}
   ],
   "skills": [
    {"dur": 0, "do": [
