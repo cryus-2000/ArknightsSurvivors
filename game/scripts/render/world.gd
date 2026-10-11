@@ -1308,6 +1308,8 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	if g.foot_anchor.has(e.tex):
 		anc = Vector2(0.5, 1.0)
 		off = Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
+	if g.tex.get(name) == null and not g.tex_deferred.is_empty():
+		g.tex_deferred_miss(name)   # 网页版推迟加载漏网：记日志并补读
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
@@ -1566,6 +1568,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			frames = ia.frames
 			frame = ia.frame
 	# @2x 高清帧条（伊莎玛拉变身形态有 @2x）：同一逻辑尺寸，按密度减半
+	if g.tex.get(name) == null and not g.tex_deferred.is_empty():
+		g.tex_deferred_miss(name)   # 网页版推迟加载漏网：记日志并补读
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr

@@ -440,11 +440,18 @@ static func white_of(src: Texture2D) -> Texture2D:
 	if img.is_compressed():
 		img.decompress()
 	img.convert(Image.FORMAT_RGBA8)
-	for y in img.get_height():
-		for x in img.get_width():
-			var c := img.get_pixel(x, y)
-			if c.a > 0.0:
-				img.set_pixel(x, y, Color(1, 1, 1, c.a))
+	# 按字节直接改（2026-10-11）：以前逐像素 get_pixel / set_pixel，网页版按需加载时一张 Boss 帧条要几十毫秒；
+	# 结果与原来逐字节相同（alpha > 0 的像素 RGB 置 255，alpha 不变）
+	var data := img.get_data()
+	var n := data.size()
+	var i := 3
+	while i < n:
+		if data[i] != 0:
+			data[i - 3] = 255
+			data[i - 2] = 255
+			data[i - 1] = 255
+		i += 4
+	img = Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8, data)
 	var w := ImageTexture.create_from_image(img)
 	_hires_rid[w.get_rid()] = hires_of(src)
 	return w

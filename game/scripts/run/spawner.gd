@@ -377,6 +377,8 @@ func is_final_boss_type(type: String) -> bool:
 func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
 	var role: String = d.get("role", "")
+	g.ensure_enemy_tex(d.tex)   # 网页版推迟加载的贴图在这里补读（桌面版名单为空，直接返回）；要在下面查 tex_* 变体之前
+
 	# 生命曲线：前 8 分钟线性到 ×4.4，之后放缓（后期靠进化体与远程比例提升压力，而不是堆血）
 	# 曲线参数见 data/balance.json enemy 段（docs/27 §4）
 	var hpm := g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp)

@@ -324,6 +324,11 @@ var panel_fg: Control          # 标题、商人立绘、事件插画画在这�
 var panel_tip: Control         # 面板最上层：截断说明的完整提示
 var font: Font
 var tex := {}
+## 网页版（OS.has_feature("web")）推迟到首次刷出时才加载的敌人贴图名（本体 / 帧条 / 白色剪影一起），省开局内存与解码时间：
+## 老手机（2–3 GB 内存）的标签页在开局就解码全部 Boss 帧条会被系统杀掉（docs/33 移动端）。桌面版永远为空（行为不变）。
+## 名单：开局 WEB_EARLY_T 秒内会刷到的种类（威胁表、精英 elite_after、同伴骑士）照常预载，其余在 spawner.new_enemy 里经 ensure_enemy_tex 按需加载
+var tex_deferred := {}
+const WEB_EARLY_T := 180.0
 var panel_title_text := ""
 # ---------- 打击感 ----------
 var hitstop := 0.0
@@ -441,6 +446,68 @@ static func preload_tex_names() -> Array:
 		names.append_array(mj.get("big_props", {}).get("list", []))
 		names.append_array(mj.get("foreground", {}).get("tex", []))
 	return names
+
+
+## 一个敌人贴图名的整套加载：本体 + 白色剪影 + 脚底锚点 + ENEMY_SUFFIXES 帧条（_death 不要剪影）。_ready 的预载与网页版按需加载共用
+func _load_enemy_tex(n: String) -> void:
+	if tex.get(n) == null:
+		tex[n] = A.tex(n)
+		if tex[n] != null:
+			tex[n + "_white"] = A.white_of(tex[n])
+	if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
+		foot_anchor[n] = true
+	for suffix in ENEMY_SUFFIXES:
+		var mn: String = n + suffix
+		if tex.get(mn) == null:
+			tex[mn] = A.tex(mn)
+			if tex[mn] != null and suffix != "_death":
+				tex[mn + "_white"] = A.white_of(tex[mn])
+
+
+## 网页版开局要预载的敌人贴图名：威胁表 WEB_EARLY_T 秒内各档的池子、elite_after ≤ WEB_EARLY_T 的精英（含拟态箱）、同伴骑士（开局就在场上画）
+func _web_early_enemy_tex() -> Dictionary:
+	var early := {}
+	for i in D.THREAT.size():
+		if float(D.THREAT[i].get("t", 0.0)) <= WEB_EARLY_T:
+			for k in D.THREAT[i].get("pool", []):
+				if D.ENEMIES.has(k):
+					early[D.ENEMIES[k].tex] = true
+			for mix in D.THREAT[i].get("horde_mix", []):
+				for k in mix:
+					if D.ENEMIES.has(k):
+						early[D.ENEMIES[k].tex] = true
+	for k in D.ENEMIES:
+		var d: Dictionary = D.ENEMIES[k]
+		if d.get("role", "") == "elite" and float(d.get("elite_after", 0.0)) <= WEB_EARLY_T:
+			early[d.tex] = true
+	if D.ENEMIES.has("knight"):
+		early[D.ENEMIES.knight.tex] = true
+	return early
+
+
+## 网页版按需加载（spawner.new_enemy 在生成字典前调用）：n 及其派生名（e_paranoia → e_paranoia2）若在推迟名单里就现在读。
+## 桌面版名单为空，直接返回；不碰 g.rng，同 seed 不受影响
+func ensure_enemy_tex(n: String) -> void:
+	if not tex_deferred.has(n):
+		return
+	var t0 := Time.get_ticks_msec()
+	var names: Array = []
+	for k in tex_deferred:
+		if k == n or (k as String).begins_with(n):
+			names.append(k)
+	for k in names:
+		tex_deferred.erase(k)
+		_load_enemy_tex(k)
+	print("TEXLAZY %s ms=%d" % [",".join(names), Time.get_ticks_msec() - t0])
+
+
+## 网页版推迟加载漏网的贴图（画到了还没读的敌人）：记一次日志，顺手把它读进来。正常跑不该出现，网页版测试在控制台里 grep TEXMISS
+func tex_deferred_miss(n: String) -> void:
+	for k in tex_deferred:
+		if n == k or n.begins_with(k):
+			print("TEXMISS %s（推迟名单 %s）" % [n, k])
+			ensure_enemy_tex(k)
+			return
 
 
 func _ready() -> void:
@@ -563,19 +630,13 @@ func _ready() -> void:
 		var tn: String = D.ENEMIES[k].tex
 		if not etex.has(tn):
 			etex.append(tn)
+	# 网页版：开局 WEB_EARLY_T 秒内刷不到的种类（中后期小怪、全部 Boss）先不加载，首次刷出时再读（ensure_enemy_tex）
+	var early := _web_early_enemy_tex() if OS.has_feature("web") and demo_op == "" else {}
 	for n in etex:
-		if tex.get(n) == null:
-			tex[n] = A.tex(n)
-			if tex[n] != null:
-				tex[n + "_white"] = A.white_of(tex[n])
-		if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
-			foot_anchor[n] = true
-		for suffix in ENEMY_SUFFIXES:
-			var mn: String = n + suffix
-			if tex.get(mn) == null:
-				tex[mn] = A.tex(mn)
-				if tex[mn] != null and suffix != "_death":
-					tex[mn + "_white"] = A.white_of(tex[mn])
+		if not early.is_empty() and not early.has(n):
+			tex_deferred[n] = true
+			continue
+		_load_enemy_tex(n)
 
 	A.mark("tex_enemies")
 	var cm := CanvasModulate.new()

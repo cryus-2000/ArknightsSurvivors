@@ -44,7 +44,7 @@ def split(out_dir, name, part_bytes):
         data = gzip.compress(raw[i:i + part_bytes], compresslevel=9, mtime=0)
         with open(os.path.join(out_dir, pn), "wb") as fh:
             fh.write(data)
-        parts.append([pn, len(data)])
+        parts.append([pn, len(data), min(part_bytes, len(raw) - i)])   # [文件名, gz 字节, 原始字节]：加载器按原始长度直接写进整块
     os.remove(path)
     return {"size": len(raw), "type": TYPES[name], "parts": parts}
 
