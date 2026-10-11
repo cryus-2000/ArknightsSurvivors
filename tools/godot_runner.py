@@ -142,6 +142,36 @@ def _test_userdir():
     return root, env
 
 
+def _secondary_rect():
+    """副屏的工作区矩形 (l, t, r, b)；没有副屏返回 None（用户 10-11：测试窗口只放副屏，主屏在玩游戏）。
+    ARK_TEST_SCREEN=off 时也返回 None（退回屏幕外）"""
+    if os.name != "nt" or os.environ.get("ARK_TEST_SCREEN") == "off":
+        return None
+    try:
+        import ctypes, ctypes.wintypes as W
+        u = ctypes.windll.user32
+        class MI(ctypes.Structure):
+            _fields_ = [("cbSize", W.DWORD), ("rcMonitor", W.RECT), ("rcWork", W.RECT), ("dwFlags", W.DWORD)]
+        found = []
+        idx = [0]
+        def cb(h, dc, r, l):
+            mi = MI(); mi.cbSize = ctypes.sizeof(MI)
+            if u.GetMonitorInfoW(h, ctypes.byref(mi)) and not (mi.dwFlags & 1):   # 1 = MONITORINFOF_PRIMARY
+                w = mi.rcWork
+                found.append((w.left, w.top, w.right, w.bottom, idx[0]))
+            idx[0] += 1
+            return 1
+        CB = ctypes.WINFUNCTYPE(ctypes.c_int, W.HMONITOR, W.HDC, ctypes.POINTER(W.RECT), W.LPARAM)
+        u.EnumDisplayMonitors(None, None, CB(cb), 0)
+        return found[0] if found else None
+    except Exception:
+        return None
+
+
+_SEC = _secondary_rect()   # (l, t, r, b, 屏幕序号)；Godot 在 Windows 上的屏幕序号与 EnumDisplayMonitors 顺序一致（10-11 实测）
+_TEST_POS = (_SEC[0] + 40, _SEC[1] + 40) if _SEC else (5000, 100)
+
+
 def _no_focus_kwargs(args):
     """开窗口的测试局不抢前台（用户 10-06：别让弹窗打扰）：Windows 下以「最小化且不激活」启动，截图仍从画布取帧不受影响；
     设 ARK_SHOW_WINDOW=1 可恢复正常弹窗（肉眼看局时用）。--headless 不受影响"""
@@ -153,16 +183,15 @@ def _no_focus_kwargs(args):
     return {"startupinfo": si}
 
 
-NO_FOCUS_OVERRIDE = """; 由 tools/godot_runner.py 为测试局临时写入（不入库，跑完即删）：窗口不抢焦点、创建时就在屏幕外
+NO_FOCUS_OVERRIDE = """; 由 tools/godot_runner.py 为测试局临时写入（不入库，跑完即删）：窗口不抢焦点、创建时就在副屏（无副屏时在屏幕外）
 [display]
 window/size/no_focus=true
-window/size/initial_position_type=0
-window/size/initial_position=Vector2i(5000, 100)
-"""
+window/size/initial_position_type=%s
+""" % ("3\nwindow/size/initial_screen=%d" % _SEC[4] if _SEC else "0\nwindow/size/initial_position=Vector2i(5000, 100)")
 
 
 def _hide_offscreen(p):
-    """开窗口测试局：用 Win32 把该进程的窗口挪到屏幕外并压到 Z 序最底（Godot 自己会把 --position 夹回屏幕内，所以从外面挪）。
+    """开窗口测试局：用 Win32 把该进程的窗口挪到副屏（无副屏时挪到屏幕外）并压到 Z 序最底（Godot 自己会把 --position 夹回屏幕内，所以从外面挪）。
     窗口不最小化（最小化后画布不渲染、截图全黑）。后台线程跟到进程结束，前 10 秒每 50 ms、之后每 0.5 秒补一次"""
     if os.name != "nt":
         return
@@ -210,8 +239,14 @@ def _hide_offscreen(p):
         for h in hs:
             r = W.RECT()
             u.GetWindowRect(h, ctypes.byref(r))
-            if r.left > -3000:
-                ok = u.SetWindowPos(h, HWND_BOTTOM, -4000, -4000, 0, 0, 0x0001 | 0x0010)   # NOSIZE | NOACTIVATE
+            if _SEC:
+                inside = _SEC[0] <= r.left < _SEC[2] and _SEC[1] <= r.top < _SEC[3]
+                tx, ty = _TEST_POS
+            else:
+                inside = r.left <= -3000
+                tx, ty = -4000, -4000
+            if not inside:
+                ok = u.SetWindowPos(h, HWND_BOTTOM, tx, ty, 0, 0, 0x0001 | 0x0010)   # NOSIZE | NOACTIVATE
                 if os.environ.get("ARK_NOFOCUS_DEBUG"):
                     r2 = W.RECT(); u.GetWindowRect(h, ctypes.byref(r2))
                     sys.stderr.write("[nofocus] move %s: %s -> ok=%s now %s\n" % (h, (r.left, r.top), ok, (r2.left, r2.top)))
@@ -252,10 +287,10 @@ def run_godot(args, timeout):
         env = dict(env or os.environ)
         env["ARK_NO_FOCUS"] = "1"   # 游戏内 settings.gd：不居中、unfocusable、前 6 秒持续最小化
         override = _write_override(args)   # 项目级 no_focus + 初始位置屏幕外：窗口创建那一瞬间就不抢前台、不可见
-        if "--position" not in args:
+        if "--position" not in args and not _SEC:
             args = list(args)
             i = args.index("--") if "--" in args else len(args)
-            args[i:i] = ["-w", "--position", "5000,100"]
+            args[i:i] = ["-w", "--position", "%d,%d" % _TEST_POS]
     while True:
         f = _lock()
         try:

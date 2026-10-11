@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_hoshiguma_idle.png",
+      "character": "hoshiguma",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "a6fa40a8604e643f9e75c95cebe7ba9035cf66be974a7173cd51bb18916b241f"
+    },
+    {
+      "file": "op_hoshiguma_idle@2x.png",
+      "character": "hoshiguma",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "e44cb418e8ceabeceb988cb351313fbfba41581f647679631f035e2e92179d22"
+    },
+    {
+      "file": "op_hoshiguma_run.png",
+      "character": "hoshiguma",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "9f2069756c2b8da20cbaa5c334ab0ed2b2b0ebbe971128d49006f644409b9cf2"
+    },
+    {
+      "file": "op_hoshiguma_run@2x.png",
+      "character": "hoshiguma",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "2345d5cfbeeedb8ea05846a6a454b53f0c56b7e966be417ce940b14dd225fb5a"
+    },
+    {
+      "file": "op_hoshiguma_attack.png",
+      "character": "hoshiguma",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "227e9bbf3203535f60b93de7eb1e7807d691218867c814d8ba8a91f6d9eb1f24"
+    },
+    {
+      "file": "op_hoshiguma_attack@2x.png",
+      "character": "hoshiguma",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "0a0bac51cf7f11ebefaf347c49de64956c1abb6381dd2f4bd145cb78246b8f46"
+    },
+    {
+      "file": "op_hoshiguma_skill.png",
+      "character": "hoshiguma",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 1,
+      "sha256": "922ca9a63ab94f02271d0750f5d87c6cfe759ca2172a44566b431f81f21cab2d"
+    },
+    {
+      "file": "op_hoshiguma_skill@2x.png",
+      "character": "hoshiguma",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 2,
+      "sha256": "44b6df994a00071e53c2ae8489e76dfeea4302a85569c9f7b2cf3837a6db25fb"
+    }
+  ]
+}
