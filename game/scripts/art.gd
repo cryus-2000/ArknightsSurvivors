@@ -123,10 +123,9 @@ static func tex(name: String) -> Texture2D:
 
 ## 占位美术（明确标注，等正式帧条交付后删条目）：名字以 key 开头、又找不到正式文件的贴图，取 from 前缀的同名帧条，
 ## 按 ramp 色阶重新上色（按亮度映射，保留明暗）。只在载入时做一次。
-## 浊心斯卡蒂（docs/59 §1，2026-10-11 数据干员第一人）：Codex 画好 op_skalter_* 之前，借斯卡蒂的帧条改成「浊心红」
-const PLACEHOLDER := {
-	"op_skalter_": {"from": "op_skadi_", "ramp": [[0.0, Color(0.12, 0.02, 0.06)], [0.3, Color(0.5, 0.08, 0.16)], [0.6, Color(0.88, 0.3, 0.38)], [1.0, Color(1.0, 0.94, 0.96)]]},
-}
+## 目前没有条目（留空备用）。写法：{"op_<id>_": {"from": "op_<借谁>_", "ramp": [[亮度, Color], …]}}；
+## 浊心斯卡蒂曾借斯卡蒂帧条改「浊心红」，Codex 正式帧条交付后删掉（docs/64 §5.1）
+const PLACEHOLDER := {}
 
 
 static func _placeholder(name: String) -> Array:

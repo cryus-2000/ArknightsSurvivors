@@ -265,7 +265,7 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 接入登记（docs/27 §9.2）：`balance.json operators.skalter`（A+，skill_power +0.02）、`lore.json`、`tools/balance_run.py OPS` 与预设 `skalter_mate`、
 技能图标 `skill_skalter_s1..3`（main ca52b04c 的正式图；起初的 `make_skill_icons.py` 占位画法合入 main 时撤掉）、音效 `sfx.gd OP_ALT` 借用（普攻 ← 铃兰普攻低音，S1 ← 流明 S1，S2 ← 铃兰 S2，S3 ← 凯尔希 S3）。
 选人页 / 图鉴 / 招募池都按 `data/characters/*.json` 自动列入（基础池，不走战绩解锁）。
-**占位美术**：`art.gd PLACEHOLDER` 在载入时把 `op_skadi_*` 帧条按「浊心红」色阶重新上色当作 `op_skalter_*`（JSON `sprites._placeholder` 有标注）；Codex 交正式帧条后删掉这两处即可，不用改别的。
+**美术**：起初 `art.gd PLACEHOLDER` 借 `op_skadi_*` 帧条改「浊心红」当占位；10-11 Codex 正式帧条 `art/incoming/op_skalter_*` 验收合入（docs/64），已按 docs/64 §5.1 切过来：删 PLACEHOLDER 条目（字典留空备用）与 `sprites._placeholder`，`idle.foot` [22, 46] → [24, 46]、`attack.fps` 14 → 12、`skill.fire` 4 → 3。攻击 / 技能帧条的 fps 与 fire 决定出手时刻（character.gd `start_attack`：`fire_at = (fire + 0.5) / fps`）：普攻出手 0.18 → 0.21 秒、技能 0.38 → 0.29 秒，间隔不变（`every / op_aspd`）。
 
 **与 docs/59 的差异（设计偏差）**
 

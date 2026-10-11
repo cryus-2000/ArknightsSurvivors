@@ -22,11 +22,10 @@
   "max_hp": 105, "armor": 1.0, "arts_res": 0.2, "regen": 1.1
  },
  "sprites": {
-  "_placeholder": "占位：载入时由斯卡蒂帧条按浊心红色阶重新上色（art.gd PLACEHOLDER），等 Codex 交正式帧条后删掉这一行与 PLACEHOLDER 条目",
-  "idle": {"tex": "op_skalter_idle", "frames": 4, "fps": 4, "foot": [22, 46]},
+  "idle": {"tex": "op_skalter_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
   "run": {"tex": "op_skalter_run", "frames": 6, "fps": 10, "foot": [24, 46]},
-  "attack": {"tex": "op_skalter_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 2},
-  "skill": {"tex": "op_skalter_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 4},
+  "attack": {"tex": "op_skalter_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 2},
+  "skill": {"tex": "op_skalter_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
  },
  "attack": {"mode": "auto", "name": "海潮低吟", "desc": "每 1.0 秒以主控为中心放出一圈声浪（半径 190），打圈内最近的 16 个敌人（Boss / 精英优先）造成法术伤害；歌域内干员攻击 +15%；主控在歌域内时每 3 秒回复 0.3%。她自己当主控时另有一圈「领唱」打圈内全部敌人（50% 伤害）"},
