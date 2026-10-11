@@ -7,8 +7,8 @@
  "col": [0.95, 0.3, 0.3],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）",
-  "atk": 13, "cd": 0.35, "range": 300, "bullet_speed": 520, "shots": 1, "pierce": 2, "kb": 30, "spread_deg": 8, "elite_prio": 1.2,
+  "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30 → 40（10-12 第一旋钮）、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）",
+  "atk": 13, "cd": 0.35, "range": 300, "bullet_speed": 520, "shots": 1, "pierce": 2, "kb": 40, "spread_deg": 8, "elite_prio": 1.2,
   "s1_ammo": 6, "s1_mult": 1.8, "s1_pierce": 3,
   "s2_dur": 8.0, "s2_cd": 0.20, "s2_mult": 0.9, "s2_overheat": 1.0,
   "s3_dur": 10.0, "s3_burst": 4, "s3_gap": 0.06, "s3_mult": 0.8, "s3_range": 0.2, "s3_prio": 99, "s3_pause": 0.2,
