@@ -28,6 +28,7 @@ func _init() -> void:
 	test_db_and_profile()
 	test_squad_contract()
 	test_voice()
+	test_blocks_angelina()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -288,3 +289,48 @@ func test_voice() -> void:
 			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
+
+
+## 安洁莉娜段的积木（docs/61 §11）：校验接受 angelina.json、拒绝放错位置 / 参数越界；位移反解、失重倍率、悬浮高度的数学
+func test_blocks_angelina() -> void:
+	var Ch = load("res://scripts/characters/character.gd")
+	var OB = load("res://scripts/characters/op_blocks.gd")
+	var an: Dictionary = Ch.load_def("angelina")
+	ok(an.has("blocks") and Ch.validate_operator("angelina", an), "安洁莉娜通过积木校验")
+	var bads := {
+		"落点弹放进技能 do": func(d): d.blocks.skills[2].do.append({"shape": "point_aoe", "range": 300, "r": 60, "src": "重力弹"}),
+		"环带整形不在力场里": func(d): d.blocks.attack.then[0]["dir"] = "ring",
+		"力场没有子项": func(d): d.blocks.skills[1].do[0]["tick"] = [],
+		"where ring 但力场没写 ring": func(d): d.blocks.skills[2].do[0].tick.append({"st": "dot", "mult": 0.1, "src": "潮汐锁", "where": "ring"}),
+		"持续伤害不在力场里": func(d): d.blocks.attack.on_hit.append({"st": "dot", "mult": 0.1, "src": "潮汐锁"}),
+		"次数型写成永久": func(d): d.skills[0]["permanent"] = true,
+		"attack_patch 不认识的键": func(d): d.blocks.skills[0].attack_patch["boom"] = 1,
+		"attack_patch 只能跟 next_attacks": func(d): d.blocks.skills[2]["attack_patch"] = {"mult": 2.0},
+		"主控属性不在白名单": func(d): d.blocks.skills[1].do[1]["stat"] = "armor",
+		"失重倍率小于 1": func(d): d.blocks.attack.then[0].on_hit[0]["kb_mult"] = 0.5,
+		"落点触发器的 do 放常驻积木": func(d): d.blocks.progression.pull2.do.append({"verb": "buff_leader", "stat": "pickup", "op": "mult", "value": 2.0}),
+		"位移距离越界": func(d): d.blocks.attack.then[0]["dist"] = 999,
+	}
+	for why in bads:
+		var d2: Dictionary = an.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("angelina", d2), "安洁莉娜积木校验应拒绝：" + why)
+	# 位移反解（enemies.gd：位移按 e.kb × m 走，e.kb 每秒衰减 900）：60 帧步进模拟，实际位移与目标差 < 3% + 2 像素（先移动后衰减，离散步多走约半帧）
+	for m in [1.0, 0.3, 1.4]:
+		for want in [15.0, 40.0, 80.0]:
+			var kb: float = OB.kb_for(want, m)
+			var moved := 0.0
+			var dt := 1.0 / 60.0
+			while kb > 0.0:
+				moved += kb * m * dt
+				kb = move_toward(kb, 0.0, OB.KB_DECAY * dt)
+			ok(absf(moved - want) < 0.03 * want + 2.0, "位移反解：m=%.1f 目标 %.0f 实际 %.1f" % [m, want, moved])
+	ok(OB.kb_for(10.0, 0.0) == 0.0 and OB.kb_for(0.0, 1.0) == 0.0, "位移反解：m 或距离为 0 时不推")
+	# 失重：期间返回 wl_kb，过期 / 没有 = 1.0（melee_hit 乘它，老干员逐字节不变）
+	ok(OB.kb_taken({}, 5.0) == 1.0, "没失重 = 1.0")
+	ok(is_equal_approx(OB.kb_taken({"wl_t": 6.0, "wl_kb": 1.3}, 5.0), 1.3), "失重期间 = wl_kb")
+	ok(OB.kb_taken({"wl_t": 6.0, "wl_kb": 1.3}, 6.5) == 1.0, "失重过期 = 1.0")
+	# 悬浮高度：起跳 0 → 中段满高 → 落地 0
+	near(OB.air_height({"t": 0.0, "dur": 1.0, "h": 30.0}), 0.0, "悬浮起点高度 0")
+	near(OB.air_height({"t": 0.5, "dur": 1.0, "h": 30.0}), 30.0, "悬浮中段满高")
+	near(OB.air_height({"t": 1.0, "dur": 1.0, "h": 30.0}), 0.0, "悬浮终点高度 0")

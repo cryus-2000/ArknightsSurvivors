@@ -14,7 +14,7 @@ var taken: Array = []                  # 已选的 custom 节点 id（按选下�
 var nodes_taken := ""                  # 同上的字符串（成长节点测试看「当场有变化」）
 var atk_n := 0                         # 普攻出手次数（trig.every_n）
 var pending: Array = []                # 延迟执行：[{t, do}]
-var loc := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0}   # 本干员局部倍率（docs/61 §5.1）
+var loc := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0, "area": 1.0, "force": 1.0, "force_lit": 1.0}   # 本干员局部倍率（docs/61 §5.1；area / force / force_lit 见安洁莉娜段）
 var no_attack := false
 var zr := 0.0                          # 本帧区域半径（上一帧的值给 in_zone 条件用）
 var _mods: Array = []                  # 已写进 g.stats 的修正 [stat, op, value, scope]
@@ -56,7 +56,7 @@ func in_zone(p: Vector2) -> bool:
 
 
 func skill_on(i: int) -> bool:
-	return s_t[i] > 0.0 or perm_on[i]
+	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0
 
 
 func skill_active_left(i: int) -> float:
@@ -80,6 +80,7 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 
 
 func on_leave() -> void:
+	OB.airborne_clear(self)
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -110,6 +111,7 @@ func update(dt: float) -> void:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
 	_tick_pending(dt)
 	_sustain(dt)
+	_tick_shots(dt)
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -129,6 +131,10 @@ func update(dt: float) -> void:
 		"cone":
 			var r2: float = OB.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+		"point_aoe":
+			var tp: Vector2 = OB.point_aoe_target(self, a)
+			atk_to = tp
+			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 手动普攻 A 类（落点 aim_land）
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
@@ -146,7 +152,7 @@ func _tick_pending(dt: float) -> void:
 			due.append(p)
 	pending = pending.filter(func(p): return p.t > 0.0)
 	for p in due:
-		_exec_list(p.do)
+		_exec_list(p.do, p.get("at", Vector2.INF))
 
 
 ## 常驻积木：先收集本帧生效的（条件在这里各求值一次），再按 局部倍率 → 属性 → 副作用 三遍执行
@@ -171,8 +177,11 @@ func _sustain(dt: float) -> void:
 		if elite >= k[1] and pg.has(k[0]):
 			_collect_trig(pg[k[0]], act)
 	# 一：局部倍率
-	var add := {"zone": 0.0, "dmg": 0.0, "heal": 0.0, "interval": 0.0}
-	var mul := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0}
+	var add := {}
+	var mul := {}
+	for k in loc:
+		add[k] = 0.0
+		mul[k] = 1.0
 	no_attack = false
 	for b in act:
 		match str(b.get("_tag", "")):
@@ -205,6 +214,8 @@ func _sustain(dt: float) -> void:
 			"verb.lamp":
 				if b.has("loss_mult"):
 					want.append(["light_loss", "mult", float(b.loss_mult), ""])
+			"verb.buff_leader":
+				want.append([str(b.stat), str(b.op), float(b.value), ""])
 			"aura.atk", "aura.aspd", "aura.skill_power", "aura.range":
 				var v: float = float(b.value)
 				if b.get("power", false):
@@ -249,6 +260,11 @@ func _sustain(dt: float) -> void:
 				if not _state.has(u):
 					_state[u] = {"ang": 0.0, "hit": {}}
 				OB.orbit_tick(self, b, _state[u], dt)
+			"verb.field":
+				seen[u] = true
+				if not _state.has(u):
+					_state[u] = {}
+				OB.field_tick(self, b, _state[u], dt)
 	# 这一帧没生效的累计器 / 状态清零（技能结束、条件不成立时重新计时）
 	for u in _acc.keys():
 		if not seen.has(u):
@@ -300,6 +316,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 					g.lamp = clampf(g.lamp + float(b.add), 0.0, g.lamp_cap)
 			"verb.sp_team":
 				g.squad.gain_sp(float(b.pct), self if b.get("exclude_self", true) else null)
+			"verb.displace":
+				OB.displace_at(self, b, at)
 			"custom":
 				var fn: String = str(b.custom)
 				if has_method(fn):
@@ -312,7 +330,11 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 # ---------------------------------------------------------------- 出手
 
 func _release() -> void:
-	OB.exec_shape(self, B.get("attack", {}))
+	var a: Dictionary = B.get("attack", {})
+	if str(a.get("shape", "")) == "point_aoe":
+		_fire_point_aoe(a)
+	else:
+		OB.exec_shape(self, a)
 	_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
@@ -335,6 +357,8 @@ func _release_skill() -> void:
 	var dv = sb.get("dur", 0.0)
 	if dv is String and dv == "permanent":
 		perm_on[i] = true
+	elif dv is Dictionary:
+		ammo[i] = int(dv.get("next_attacks", 0))   # dur.next_n：接下来 N 次普攻带 attack_patch
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
@@ -361,6 +385,7 @@ func _sfx_op(kind: String) -> void:
 
 ## 区域：地面椭圆，灯火充盈 / 昏暗 / 其他三种色；shape.orbit 的判定点画成小菱形
 func draw_auras() -> void:
+	_draw_fields()
 	if pos == Vector2.INF or not B.has("zone"):
 		return
 	var c := zone_c()
@@ -394,3 +419,145 @@ func _find_uid(u: int) -> Dictionary:
 
 func stats_rows() -> Array:
 	return [["区域半径", "%d" % int(zr)], ["伤害倍率", "×%.2f" % float(loc.dmg)]]
+
+
+# ================================================================ 安洁莉娜 angelina（docs/59 §5；docs/61 §11）—— 第三批追加段，只往后加
+# shape.point_aoe 的飞行弹、dur.next_n 的次数、st.airborne 的悬浮表、verb.field 的画法；积木本身在 op_blocks.gd 的同名段
+
+const GRAV := Color(0.7, 0.5, 0.95)   # 重力紫（docs/59 §5 特效主色）
+var ammo: Array = [0, 0, 0]            # dur.next_n：技能 i 还剩几次强化普攻
+var shots: Array = []                  # shape.point_aoe 飞行中的弹：[{p0, p1, t, dur, patch}]
+var shot: Dictionary = {}              # 正在结算的这一弹的 attack_patch（verb.displace 读 force_mult）
+var air_list: Array = []               # st.airborne：[{e, t, dur, h}]
+var atk_to := Vector2.INF              # point_aoe 起手时选的落点（出手帧找不到新落点时用）
+
+
+func skill_pending(i: int) -> bool:
+	return ammo[i] > 0
+
+
+## 出手帧：手动给了方向用 aim_land，否则重新选最密处（起手到出手之间敌人会动），都没有用起手时的落点；接下来 N 次的强化按技能序号先到先用
+func _fire_point_aoe(a: Dictionary) -> void:
+	var reach: float = float(a.get("range", 300.0)) * stat(&"op_range")
+	var to := Vector2.INF
+	var lp: Dictionary = aim_land(reach)
+	if not lp.is_empty():
+		to = lp.pos
+	else:
+		to = OB.point_aoe_target(self, a)
+	if to == Vector2.INF:
+		to = atk_to
+	if to == Vector2.INF:
+		return
+	face = signf(to.x - pos.x) if absf(to.x - pos.x) > 2.0 else face
+	var patch := {}
+	var sk: Array = B.get("skills", [])
+	for i in 3:
+		if ammo[i] > 0 and i < sk.size():
+			ammo[i] -= 1
+			patch = sk[i].get("attack_patch", {})
+			break
+	OB.point_aoe_fire(self, a, to, patch)
+
+
+func _tick_shots(dt: float) -> void:
+	OB.airborne_tick(self, dt)
+	if shots.is_empty():
+		return
+	var a: Dictionary = B.get("attack", {})
+	var landed: Array = []
+	for s in shots:
+		s.t += dt
+		if s.t >= s.dur:
+			landed.append(s)
+	shots = shots.filter(func(s): return s.t < s.dur)
+	for s in landed:
+		OB.point_aoe_land(self, a, s)
+		_sfx_op("hit")
+		fx({"kind": "ring", "pos": s.p1, "r": float(a.get("r", 60.0)) * float(loc.area), "r0": 6.0, "life": 0.3, "col": GRAV, "floor": true, "w": 2.0, "alpha": 0.7})
+
+
+## 落点触发（trig.on_impact）：c = 落点；delay > 0 进延迟队列（带落点）
+func impact(c: Vector2) -> void:
+	for t in _trigs():
+		if str(t.get("_tag", "")) != "trig.on_impact" or not OB.cond_true(self, t.get("cond", {})):
+			continue
+		var dl: float = float(t.get("delay", 0.0))
+		if dl > 0.0:
+			pending.append({"t": dl, "do": t.get("do", []), "at": c})
+		else:
+			_exec_list(t.get("do", []), c)
+
+
+## 力场（verb.field look）：ring = 地面环带虚线缓慢旋转 + 内外两圈相向的光点（S2 重力场）；lift = 大圆 + 上升光点（S3 悬浮场）。
+## 悬浮中的敌人脚下挂 fx_angelina_levitate。全部只读 g.t，不碰随机数
+func _draw_fields() -> void:
+	for u in _state:
+		var st = _state[u]
+		if not (st is Dictionary) or not st.has("look") or st.look == "none" or st.c == Vector2.INF:
+			continue
+		var c: Vector2 = st.c
+		var r: float = st.r
+		var gt: float = g.t
+		cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		if st.look == "ring":
+			var rr: float = st.ring if st.ring > 0.0 else r * 0.7
+			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.035))
+			cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(GRAV.r, GRAV.g, GRAV.b, 0.16), 1.0)
+			var n := 24
+			for q in n:
+				var a0: float = TAU * q / n + gt * 0.35
+				cv.draw_arc(Vector2.ZERO, rr, a0, a0 + TAU / n * 0.55, 4, Color(GRAV.r * 1.3, GRAV.g * 1.3, GRAV.b * 1.3, 0.55), 2.0)
+			for q in 10:
+				var k: float = fmod(gt * 0.6 + q * 0.1, 1.0)
+				var ang: float = TAU * q / 10.0 + 0.4 * q
+				var po: Vector2 = Vector2.from_angle(ang) * lerpf(r, rr, k)          # 外圈往里
+				var pin: Vector2 = Vector2.from_angle(ang + 0.3) * lerpf(rr * 0.35, rr, k)   # 内圈往外
+				var al: float = sin(k * PI) * 0.8
+				cv.draw_circle(po, 2.2, Color(GRAV.r * 1.6, GRAV.g * 1.6, GRAV.b * 1.6, al))
+				cv.draw_circle(pin, 1.8, Color(1.2, 1.0, 1.5, al * 0.7))
+		else:
+			var pulse: float = 0.5 + 0.5 * sin(gt * 2.4)
+			cv.draw_circle(Vector2.ZERO, r, Color(GRAV.r, GRAV.g, GRAV.b, 0.06 + 0.02 * pulse))
+			for q in 32:
+				var a1: float = TAU * q / 32 - gt * 0.25
+				cv.draw_arc(Vector2.ZERO, r, a1, a1 + TAU / 64.0, 3, Color(GRAV.r * 1.4, GRAV.g * 1.4, GRAV.b * 1.4, 0.6), 2.0)
+			cv.draw_arc(Vector2.ZERO, r * 0.55, 0.0, TAU, 40, Color(GRAV.r, GRAV.g, GRAV.b, 0.12 + 0.1 * pulse), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if st.look == "lift":
+			for q in 14:
+				var k2: float = fmod(gt * 0.45 + q * 0.071, 1.0)
+				var ang2: float = TAU * q / 14.0 + q * 1.7
+				var rad: float = r * (0.25 + 0.7 * fmod(q * 0.37, 1.0))
+				var p2: Vector2 = c + Vector2(cos(ang2) * rad, sin(ang2) * rad * 0.55) + Vector2(0, -60.0 * k2)
+				cv.draw_circle(p2, 1.8, Color(1.3, 1.0, 1.6, sin(k2 * PI) * 0.7))
+	var lt: Texture2D = _fx_tex("fx_angelina_levitate") if not air_list.is_empty() else null
+	for a in air_list:
+		var e: Dictionary = a.e
+		if e.dead:
+			continue
+		var fr: int = int((g.t + float(e.id) * 0.13) * 10.0) % 6
+		if lt == null or not _fx_strip("fx_angelina_levitate", 6, fr, e.pos + Vector2(0, float(e.r) * 0.8), Vector2(0.5, 27.0 / 32.0)):
+			cv.draw_set_transform(e.pos + Vector2(0, float(e.r) * 0.8), 0.0, Vector2(1.0, 0.45))
+			cv.draw_arc(Vector2.ZERO, float(e.r) + 4.0, 0.0, TAU, 20, Color(GRAV.r * 1.4, GRAV.g * 1.4, GRAV.b * 1.4, 0.7), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 重力弹：杖头飞向落点，略带弧线；proj_angelina_orb 循环帧条（docs/25 §6，锚点居中）+ 落点地面预示圈
+func _draw_skill_over() -> void:
+	if shots.is_empty():
+		return
+	var a: Dictionary = B.get("attack", {})
+	for s in shots:
+		var k: float = clampf(s.t / maxf(0.01, s.dur), 0.0, 1.0)
+		var p: Vector2 = s.p0.lerp(s.p1, k) + Vector2(0, -sin(k * PI) * 26.0)
+		var big: bool = not s.patch.is_empty()
+		cv.draw_circle(p, 11.0 if big else 8.0, Color(GRAV.r, GRAV.g, GRAV.b, 0.25))
+		if _fx_tex("proj_angelina_orb") != null:
+			draw_spr_rot("proj_angelina_orb", int(g.t * 12.0) % 4, p, 0.0, g.PX * (1.35 if big else 1.0))
+		else:
+			cv.draw_circle(p, 5.0, Color(GRAV.r * 1.6, GRAV.g * 1.6, GRAV.b * 1.6))
+		var lr: float = float(a.get("r", 60.0)) * float(loc.area) * float(s.patch.get("r_mult", 1.0))
+		cv.draw_set_transform(s.p1 + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_arc(Vector2.ZERO, lr * (1.0 - 0.6 * k), 0.0, TAU, 28, Color(GRAV.r, GRAV.g, GRAV.b, 0.35 * k), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

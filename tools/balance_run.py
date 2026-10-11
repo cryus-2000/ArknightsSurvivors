@@ -28,7 +28,8 @@ import godot_runner as GR
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 OPS = ["mizuki", "wisadel", "eyjafjalla", "kaltsit", "saria", "siege", "skadi", "suzuran",
-       "ulpianus", "irene", "specter_unchained", "logos", "lumen", "skalter"]
+       "ulpianus", "irene", "specter_unchained", "logos", "lumen", "skalter",
+       "angelina"]
 PRESETS = {
     "solo": [[o] for o in OPS],
     "squads": [
@@ -67,6 +68,8 @@ PRESETS = {
     "gapleaders": [["skadi"], ["ulpianus"], ["irene"], ["wisadel"], ["logos"], ["eyjafjalla"]],
     # 浊心斯卡蒂当队友（docs/61 §测试）：starts 的 7 名开局干员各带她开局，--seeds 16 = 112 局
     "skalter_mate": [[o, "skalter"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],
+    # 安洁莉娜当队友（docs/61 §11）：同 skalter_mate
+    "angelina_mate": [[o, "angelina"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],
 }
 
 

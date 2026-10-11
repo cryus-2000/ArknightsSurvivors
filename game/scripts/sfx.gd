@@ -40,7 +40,10 @@ const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill"
 const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	# 浊心斯卡蒂（docs/61，数据干员，暂无专属音）：普攻借铃兰低八度的吟唱，技能借流明 / 铃兰 / 凯尔希的发动音（docs/28 加新干员前的借用）
 	"op_skalter_atk": ["op_suzuran_atk", 0.75, -3.0], "op_skalter_s1": ["op_lumen_s1", 0.85, 0.0],
-	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0]}
+	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0],
+	# 安洁莉娜（docs/61 §11，数据干员，暂无专属音）：普攻借 Logos 低沉的法术起手（「嗡」），落点借铃兰命中压低（内收短鸣），技能借 Logos / 铃兰 / 流明
+	"op_angelina_atk": ["op_logos_atk", 0.7, -2.0], "op_angelina_hit": ["op_suzuran_hit", 0.7, -2.0], "op_angelina_s1": ["op_logos_s1", 0.85, 0.0],
+	"op_angelina_s2": ["op_suzuran_s2", 0.6, 0.0], "op_angelina_s3": ["op_lumen_s3", 1.15, 0.0]}
 ## 通用音缺文件时的借用（docs/53 §5 的三个材质 / 重击层，正式文件已由 tools/gen_sfx_hitfeel.py 合成；[音名, 音高倍率, 音量偏移 dB]，
 ## 偏移按调用处的音量算成和原顶替一样：kill_big −8 → mire_splat −9 ×0.85，kill_shell −6 → hit −6 ×0.6，hurt_heavy −8 → boom −10 ×0.7）
 const ALT := {"kill_big": ["mire_splat", 0.85, -1.0], "kill_shell": ["hit", 0.6, 0.0], "hurt_heavy": ["boom", 0.7, -2.0]}

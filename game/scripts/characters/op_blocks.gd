@@ -21,7 +21,7 @@ const PLANNED := {
 }
 const FAMILIES := ["shape", "verb", "aura", "st", "trig", "custom"]
 ## 本干员的局部倍率（verb.buff_self 的 stat 取这些时不进 g.stats）
-const LOCAL_STATS := ["zone", "dmg", "heal", "interval"]
+const LOCAL_STATS := ["zone", "dmg", "heal", "interval", "area", "force", "force_lit"]   # area / force / force_lit：安洁莉娜段（落点范围 / 位移距离 / 灯光内位移）
 ## verb.buff_self 可写进 g.stats 的干员属性（作用域 op:<id>）
 const OP_STATS := ["op_atk", "op_aspd", "op_range", "op_skill_power"]
 const AURA_STAT := {"atk": "op_atk", "aspd": "op_aspd", "skill_power": "op_skill_power", "range": "op_range"}
@@ -403,8 +403,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				errs.append("blocks.zone.center 只能是 leader / self")
 			_num(z, "r", "blocks.zone", ctx, true)
 	var atk = blocks.get("attack", null)
-	if not (atk is Dictionary) or not str(atk.get("shape", "")) in ["circle", "cone"]:
-		errs.append("blocks.attack 必须是一个伤害形状（shape.circle / shape.cone）")
+	if not (atk is Dictionary) or not str(atk.get("shape", "")) in ["circle", "cone", "point_aoe"]:
+		errs.append("blocks.attack 必须是一个伤害形状（shape.circle / shape.cone / shape.point_aoe）")
 	else:
 		_block(atk, "blocks.attack", "attack", ctx)
 		_num(atk, "every", "blocks.attack", ctx, true, 0.1)
@@ -425,6 +425,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 			if dv is String and dv == "permanent":
 				if not perm_json:
 					errs.append("%s.dur 是 permanent，但 skills[%d] 没写 \"permanent\": true" % [p, i])
+			elif dv is Dictionary:
+				_v_next_n(sb, p, perm_json, ctx)   # dur.next_n（安洁莉娜段）
 			else:
 				if perm_json:
 					errs.append("skills[%d] 是 permanent，%s.dur 也要写 \"permanent\"" % [i, p])
@@ -434,8 +436,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do"]:
-					errs.append("%s.%s：技能积木只有 dur / do 两个字段" % [p, k])
+				if not k in ["dur", "do"] and not (k == "attack_patch" and dv is Dictionary):
+					errs.append("%s.%s：技能积木只有 dur / do 两个字段（dur.next_n 另有 attack_patch）" % [p, k])
 			_list(sb.get("do", []), p + ".do", "skill", ctx)
 	for sec in ["trait", "talent"]:
 		var arr = blocks.get(sec, [])
@@ -525,6 +527,9 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		return
 	var nm: String = str(b[fam])
 	var tag := "%s.%s" % [fam, nm]
+	if tag in ANGELINA_TAGS:
+		_v_angelina(b, p, kind, ctx, tag)
+		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
 		return
@@ -664,3 +669,354 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 			ctx.errs.append(p + " 缺 src（伤害来源名）")
 	elif not ctx.srcs.has(s):
 		ctx.errs.append("%s.src「%s」没在 hit_sources 里登记" % [p, s])
+
+
+# ================================================================ 安洁莉娜 angelina（docs/59 §5；docs/61 §11）—— 第三批追加段，只往后加
+# 新积木：shape.point_aoe（落点弹）、verb.displace（拉 / 推 / 向心 / 环带整形）、verb.field（常驻力场）、verb.buff_leader（主控属性）、
+# st.airborne（悬浮）、st.weightless（失重：受到的击退倍率）、st.dot（力场里的持续伤害）、trig.on_impact（落点触发）；
+# 技能外壳 dur.next_n（{"next_attacks": N} + attack_patch）。
+# 体型档（docs/60 §2.8 / §5「重量 / 力度」）：Boss 不位移、不悬浮（只吃写了 boss / boss_only 的子项）；精英位移 × elite_mult（缺省 0.5）、
+# 控制时长 × 0.5；重型（enemies.json heavy）位移 × 0.3（就是 enemies.gd 对 e.kb 的既有折扣，这里先算进去好夹住不越过中心）。
+# 位移走 e.kb（速度，enemies.gd 每秒衰减 KB_DECAY），所以自动乘 g.enemy_kb_mult：藏品 #103「安洁莉娜的创想」受到的击退 +40% = 拉得远 40%。
+
+const ANGELINA_TAGS := ["shape.point_aoe", "verb.displace", "verb.field", "verb.buff_leader", "st.airborne", "st.weightless", "st.dot", "trig.on_impact"]
+const KB_DECAY := 900.0                       # enemies.gd：e.kb.move_toward(ZERO, 900 * dt)
+const LEADER_STATS := ["move_speed", "pickup"]   # verb.buff_leader 可写的主控属性（全局作用域）
+const AIR_RISE := 0.15                        # 悬浮：起跳 / 落地秒数（画面高度，不影响判定）
+const AIR_FALL := 0.2
+static var _D = null
+
+
+static func _heavy(e: Dictionary) -> bool:
+	if _D == null:
+		_D = load("res://scripts/data.gd")
+	return _D.ENEMIES.get(e.get("type", ""), {}).get("heavy", false)
+
+
+## 失重（st.weightless）期间受到的击退倍率；没有失重 = 1.0（character.gd melee_hit 的击退乘它，老干员乘 1.0 逐字节不变）
+static func kb_taken(e: Dictionary, t: float) -> float:
+	return float(e.wl_kb) if e.has("wl_t") and float(e.wl_t) > t else 1.0
+
+
+## 能被位移 / 悬浮的敌人：不是 Boss、Boss 部件、宝箱、固定物
+static func _movable(e: Dictionary) -> bool:
+	return not (e.dead or e.boss or e.get("part", false) or e.get("chest", false) or str(e.get("ai", "")) == "static")
+
+
+## 实际位移 dist（世界像素，已含所有倍率）所需的 e.kb 速度：位移 = |kb|² / (2·KB_DECAY) × m，m = 重型 0.3 × enemy_kb（enemies.gd 移动时乘）
+static func kb_for(dist: float, m: float) -> float:
+	return sqrt(2.0 * KB_DECAY * dist / m) if dist > 0.0 and m > 0.0 else 0.0
+
+
+## 一名敌人按 b（verb.displace）位移；c = 中心，ring = 环带半径（dir ring 用），sc = 额外倍率（技能 force_mult、per_sec × 间隔）。返回是否动了
+static func displace_one(o, e: Dictionary, c: Vector2, b: Dictionary, sc := 1.0, ring := -1.0) -> bool:
+	if not _movable(e):
+		return false
+	var g = o.g
+	var d: Vector2 = e.pos - c
+	var L: float = d.length()
+	var dist: float = float(b.get("dist", 0.0)) * sc * float(o.loc.force) * (float(b.get("elite_mult", 0.5)) if e.elite else 1.0)
+	if e.pos.distance_to(g.ppos) <= o.lamp_radius():
+		dist *= float(o.loc.force_lit)   # 灯光内的敌人拉得更远（天赋）
+	dist *= kb_taken(e, g.t)
+	var m: float = (0.3 if _heavy(e) else 1.0) * float(g.enemy_kb_mult)
+	dist *= m
+	var dir := Vector2.ZERO
+	match str(b.get("dir", "pull")):
+		"pull", "center":
+			if L < 1.0:
+				return false
+			dir = -d / L
+			dist = minf(dist, maxf(0.0, L - float(e.r)))   # 不越过中心
+		"push":
+			dir = d / L if L > 0.5 else Vector2.RIGHT
+		"ring":
+			var gap: float = L - ring
+			if ring < 0.0 or absf(gap) < 2.0 or L < 1.0:
+				return false
+			dir = -d / L if gap > 0.0 else d / L
+			dist = minf(dist, absf(gap))
+	if dist < 0.5:
+		return false
+	e.kb += dir * kb_for(dist, m)
+	return true
+
+
+## verb.displace 瞬时：中心（target = 落点 / zone / leader / self）半径 r（× 本干员 area 倍率）内的敌人逐个位移，再对动了的敌人施加 on_hit
+static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> void:
+	var c: Vector2 = shape_center(o, b, at)
+	if c == Vector2.INF:
+		return
+	var r: float = float(b.get("r", 0.0)) * float(o.loc.area)
+	var sc: float = float(o.shot.get("force_mult", 1.0))
+	var moved: Array = []
+	for j in o.query_ids(c, r + 24.0):
+		var e: Dictionary = o.g.enemies[j]
+		if e.dead or e.pos.distance_to(c) > r:
+			continue
+		if displace_one(o, e, c, b, sc):
+			moved.append(e)
+	for s in b.get("on_hit", []):
+		for e in moved:
+			status_one(o, e, s, c)
+	if b.has("fx"):
+		o.spawn_fx_sprite(str(b.fx), c, clampf(r / 30.0, 1.0, 3.2))   # fx_angelina_pull：外径 ≈ 30 美术像素，按半径缩放（docs/25 §6）
+
+
+## 一名敌人吃一条状态（st.*）。c / ring / ring_w：within（离 c 不超过）与 where: ring（在环带 ±ring_w 内）的筛选。
+## Boss：缺省不受；boss: true 也受（stun ×0.25 / slow 照常）；boss_only: true 只对 Boss
+static func status_one(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring := -1.0, ring_w := 0.0) -> void:
+	if e.dead or not cond_true(o, s.get("cond", {})):
+		return
+	if e.boss and not (s.get("boss", false) or s.get("boss_only", false)):
+		return
+	if s.get("boss_only", false) and not e.boss:
+		return
+	if s.has("within") and c != Vector2.INF and e.pos.distance_to(c) > float(s.within) + float(e.r) * 0.5:
+		return
+	if str(s.get("where", "")) == "ring" and (ring < 0.0 or absf(e.pos.distance_to(c) - ring) > ring_w):
+		return
+	var g = o.g
+	var k: float = 0.25 if e.boss else (0.5 if e.elite else 1.0)
+	match str(s.get("_tag", "")):
+		"st.stun":
+			e.stun = maxf(e.stun, float(s.dur) * k)
+		"st.slow":
+			e.slow = maxf(e.slow, float(s.dur) * (1.0 if e.boss else k))
+		"st.airborne":
+			lift(o, e, float(s.dur), float(s.get("h", 26.0)), s)
+		"st.weightless":
+			if _movable(e):
+				var was: float = float(e.get("wl_kb", 1.0)) if float(e.get("wl_t", 0.0)) > g.t else 1.0
+				e["wl_t"] = maxf(float(e.get("wl_t", 0.0)), g.t + float(s.dur))
+				e["wl_kb"] = maxf(was, float(s.kb_mult))
+		"st.dot":
+			o.log_hit(str(s.get("src", "")), s.get("tags", []))
+			o.deal_damage(e, o.base(str(s.get("atk_key", "atk")), 0.0) * float(s.get("mult", 0.0)) * float(o.loc.dmg) * o._dmg_bonus() * (o.vs_elite() if e.elite or e.boss else 1.0))
+
+
+## st.airborne：悬浮 = e.stun + e.air（world.gd 按 e.air 抬高绘制，enemies.gd 悬空时没有接触伤害；同艾丽妮浮空）。精英时长 × 0.5；
+## elite_up / elite_down：精英按局内时间周期间歇落地（up 秒能被托起、down 秒落地，确定性）。重复施加只续时长、不重新起跳。
+## o.air_list：[{e, t, dur, h}]，data_operator 每帧 airborne_tick 推进
+static func lift(o, e: Dictionary, dur: float, h: float, s: Dictionary = {}) -> void:
+	if not _movable(e) or dur <= 0.0:
+		return
+	if e.elite:
+		if s.has("elite_up"):
+			var up: float = float(s.elite_up)
+			var per: float = up + float(s.get("elite_down", 0.0))
+			if per > 0.0 and fmod(o.g.t, per) >= up:
+				return
+		dur *= 0.5
+	for a in o.air_list:
+		if is_same(a.e, e):
+			a.dur = maxf(a.dur, a.t + dur)
+			e.stun = maxf(e.stun, a.dur - a.t)
+			return
+	o.air_list.append({"e": e, "t": 0.0, "dur": dur, "h": h})
+	e.stun = maxf(e.stun, dur)
+
+
+static func air_height(a: Dictionary) -> float:
+	var k: float = clampf(minf(a.t / AIR_RISE, (a.dur - a.t) / AIR_FALL), 0.0, 1.0)
+	return a.h * (1.0 - (1.0 - k) * (1.0 - k))
+
+
+static func airborne_tick(o, dt: float) -> void:
+	if o.air_list.is_empty():
+		return
+	for a in o.air_list:
+		a.t += dt
+		var e: Dictionary = a.e
+		e.air = 0.0 if e.dead or a.t >= a.dur else air_height(a)
+	o.air_list = o.air_list.filter(func(a): return a.t < a.dur and not a.e.dead)
+
+
+static func airborne_clear(o) -> void:
+	for a in o.air_list:
+		a.e.air = 0.0
+	o.air_list = []
+
+
+## verb.field 中心：leader = 主控（图鉴演示以自己为中心），self = 自己
+static func field_center(o, b: Dictionary) -> Vector2:
+	if str(b.get("center", "leader")) == "self" or o.g.demo_op != "":
+		return o.pos
+	return o.g.ppos
+
+
+## verb.field（docs/60 §8 第 22 条）：以 center 为心、半径 r（× op_range）的常驻力场，每 every 秒对场内敌人逐个执行 tick 子项
+## （verb.displace / st.*）。ring：环带半径（displace dir: ring 往这里收；子项 where: ring 只作用于环带 ±ring_w）。生效当帧先跑一次。
+## st：本积木的状态 {acc, c, r, ring, look, t}（data_operator 的 _state，绘制也读它）
+static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
+	var every: float = float(b.get("every", 0.5))
+	st.acc = float(st.get("acc", every)) + dt
+	st.c = field_center(o, b)
+	st.r = float(b.get("r", 0.0)) * o.stat(&"op_range")
+	st.ring = float(b.get("ring", -1.0)) * o.stat(&"op_range") if b.has("ring") else -1.0
+	st.look = str(b.get("look", "none"))
+	st.t = float(st.get("t", 0.0)) + dt
+	if st.acc < every or st.c == Vector2.INF:
+		return
+	st.acc -= every
+	var c: Vector2 = st.c
+	var rw: float = float(b.get("ring_w", 24.0))
+	for j in o.query_ids(c, st.r + 24.0):
+		var e: Dictionary = o.g.enemies[j]
+		if e.dead or e.pos.distance_to(c) > st.r:
+			continue
+		for s in b.get("tick", []):
+			if e.dead:
+				break
+			if str(s.get("_tag", "")) == "verb.displace":
+				if not cond_true(o, s.get("cond", {})):
+					continue
+				if displace_one(o, e, c, s, every if s.get("per_sec", false) else 1.0, st.ring):
+					for s2 in s.get("on_hit", []):
+						status_one(o, e, s2, c, st.ring, rw)
+			else:
+				status_one(o, e, s, c, st.ring, rw)
+
+
+## shape.point_aoe 选落点：land = densest（射程内敌群最密处，缺省）/ nearest
+static func point_aoe_target(o, b: Dictionary) -> Vector2:
+	var reach: float = float(b.get("range", 300.0)) * o.stat(&"op_range")
+	if str(b.get("land", "densest")) == "nearest":
+		var ts: Array = o.nearest_enemies(1, reach, o.pos)
+		return ts[0].pos if not ts.is_empty() else Vector2.INF
+	return o.densest_point(reach, o.pos)
+
+
+## shape.point_aoe 出手：从 muzzle（脚底为原点、朝右，世界像素 = @2x 像素）射向落点，飞 dist / speed 秒。patch：次数型技能的 attack_patch
+static func point_aoe_fire(o, b: Dictionary, to: Vector2, patch: Dictionary) -> void:
+	if to == Vector2.INF:
+		return
+	var mz = b.get("muzzle", [0.0, 0.0])
+	var p0: Vector2 = o.pos + Vector2(float(mz[0]) * o.face, float(mz[1])) if mz is Array and mz.size() == 2 else o.pos
+	var dur: float = o.pos.distance_to(to) / maxf(1.0, float(b.get("speed", 400.0)))
+	o.shots.append({"p0": p0, "p1": to, "t": 0.0, "dur": dur, "patch": patch})
+
+
+## 落点结算：半径 r（× area × patch.r_mult）伤害 + on_hit（本体的 + patch 的）→ then（瞬时积木，center: target = 落点）→ trig.on_impact
+static func point_aoe_land(o, b: Dictionary, s: Dictionary) -> void:
+	var c: Vector2 = s.p1
+	var patch: Dictionary = s.patch
+	o.shot = patch
+	var r: float = float(b.get("r", 0.0)) * float(o.loc.area) * float(patch.get("r_mult", 1.0))
+	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * float(patch.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
+	var hits: Array = o.area_hit(str(patch.get("src", b.get("src", ""))), c, r, dmg, 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0)))
+	for lst in [b.get("on_hit", []), patch.get("on_hit", [])]:
+		for st in lst:
+			for e in hits:
+				status_one(o, e, st, c)
+	o._exec_list(b.get("then", []), c)
+	o.impact(c)
+	o.shot = {}
+
+
+# ---------------------------------------------------------------- 安洁莉娜段：校验
+
+## _block 的分流：tag 是本段的积木时由这里校验
+static func _v_angelina(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> void:
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"shape.point_aoe": ["attack"],
+		"verb.displace": ["skill", "instant", "field"],
+		"verb.field": ["skill", "sustain"],
+		"verb.buff_leader": ["skill", "sustain"],
+		"st.airborne": ["on_hit", "field"],
+		"st.weightless": ["on_hit", "field"],
+		"st.dot": ["field"],
+		"trig.on_impact": ["trig"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（只能在 %s）" % [p, tag, " / ".join(where_ok[tag])])
+		return
+	match tag:
+		"shape.point_aoe":
+			_num(b, "range", p, ctx, true, 1.0)
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "speed", p, ctx, false, 1.0)
+			_num(b, "mult", p, ctx, false, -INF, 20.0)
+			_num(b, "max_n", p, ctx, false, 1.0, 99.0)
+			if not str(b.get("land", "densest")) in ["densest", "nearest"]:
+				errs.append(p + ".land 只能是 densest / nearest")
+			var mz = b.get("muzzle", [0, 0])
+			if not (mz is Array and mz.size() == 2 and (mz[0] is float or mz[0] is int) and (mz[1] is float or mz[1] is int)):
+				errs.append(p + ".muzzle 应是 [x, y]（脚底为原点、朝右，@2x 像素）")
+			_src(b, p, ctx, true)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+			_list(b.get("then", []), p + ".then", "instant", ctx)
+		"verb.displace":
+			var dirs: Array = ["pull", "push", "center", "ring"] if kind == "field" else ["pull", "push"]
+			if not str(b.get("dir", "pull")) in dirs:
+				errs.append("%s.dir 只能是 %s" % [p, " / ".join(dirs)])
+			_num(b, "dist", p, ctx, true, 0.0, 400.0)
+			_num(b, "elite_mult", p, ctx, false, 0.0, 1.0)
+			if kind != "field":
+				_num(b, "r", p, ctx, true, 1.0)
+				if not str(b.get("center", "target")) in ["target", "zone", "leader", "self"]:
+					errs.append(p + ".center 只能是 target / zone / leader / self")
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+		"verb.field":
+			_num(b, "r", p, ctx, true, 1.0)
+			_num(b, "every", p, ctx, false, 0.1)
+			_num(b, "ring", p, ctx, false, 0.0)
+			_num(b, "ring_w", p, ctx, false, 1.0)
+			if not str(b.get("center", "leader")) in ["leader", "self"]:
+				errs.append(p + ".center 只能是 leader / self")
+			if not str(b.get("look", "none")) in ["ring", "lift", "none"]:
+				errs.append(p + ".look 只能是 ring / lift / none")
+			var tk = b.get("tick", [])
+			if not (tk is Array) or tk.is_empty():
+				errs.append(p + ".tick 至少要一个子项（verb.displace / st.*）")
+			else:
+				_list(tk, p + ".tick", "field", ctx)
+				for i in tk.size():
+					if tk[i] is Dictionary and (str(tk[i].get("where", "")) == "ring" or str(tk[i].get("dir", "")) == "ring") and not b.has("ring"):
+						errs.append("%s.tick[%d]：where / dir 为 ring 时力场要写 ring" % [p, i])
+		"verb.buff_leader":
+			if not str(b.get("stat", "")) in LEADER_STATS:
+				errs.append("%s.stat 只能是 %s" % [p, " / ".join(LEADER_STATS)])
+			if not str(b.get("op", "")) in ["add", "mult"]:
+				errs.append(p + ".op 只能是 add / mult")
+			_num(b, "value", p, ctx, true, 0.0, 5.0)
+		"st.airborne":
+			_num(b, "dur", p, ctx, true, 0.0, 10.0)
+			_num(b, "h", p, ctx, false, 0.0, 80.0)
+			_num(b, "within", p, ctx, false, 0.0)
+			_num(b, "elite_up", p, ctx, false, 0.0)
+			_num(b, "elite_down", p, ctx, false, 0.0)
+		"st.weightless":
+			_num(b, "dur", p, ctx, true, 0.0, 10.0)
+			_num(b, "kb_mult", p, ctx, true, 1.0, 3.0)
+		"st.dot":
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_src(b, p, ctx, true)
+		"trig.on_impact":
+			_num(b, "delay", p, ctx, false, 0.0, 5.0)
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+
+
+## 技能外壳 dur.next_n（docs/61 §2）：{"next_attacks": N} + attack_patch（叠到接下来 N 次普攻上；目前只配 shape.point_aoe 的普攻）
+static func _v_next_n(sb: Dictionary, p: String, perm_json: bool, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	var dv: Dictionary = sb.dur
+	if perm_json:
+		errs.append(p + ".dur：permanent 技能不能写 next_attacks")
+	for k in dv:
+		if k != "next_attacks":
+			errs.append("%s.dur.%s：dur 对象只支持 next_attacks" % [p, k])
+	_num(dv, "next_attacks", p + ".dur", ctx, true, 1.0, 20.0)
+	var ap = sb.get("attack_patch", {})
+	if not (ap is Dictionary):
+		errs.append(p + ".attack_patch 必须是对象")
+		return
+	for k in ap:
+		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit"]:
+			errs.append("%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit" % [p, k])
+	for k in ["mult", "r_mult", "force_mult"]:
+		_num(ap, k, p + ".attack_patch", ctx, false, 0.0, 20.0)
+	if ap.has("src"):
+		_src(ap, p + ".attack_patch", ctx, true)
+	_list(ap.get("on_hit", []), p + ".attack_patch.on_hit", "on_hit", ctx)
