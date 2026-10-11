@@ -323,9 +323,10 @@ func show_runs_folder() -> void:
 
 ## Boss 演练入口：开发（调试版）一律开；发布版只有对内包（build.json audience = internal）开。
 ## 按 audience 判断而不是 EA 标记——EA 只是开发阶段标记，对外包也可能带 EA，不能因此开放演练（docs/33 §双版本）
+## 调试版可用 --audience=public 模拟对外包的入口（标题页磁贴群截图 / 测试用；发布版 dev_args 恒为空，不受影响）
 func can_boss_trial() -> bool:
 	if OS.is_debug_build():
-		return true
+		return not dev_args().has("--audience=public")
 	return build_audience() == "internal"
 
 

@@ -8,9 +8,12 @@ const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Game = preload("res://scripts/game.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
+const TUI = preload("res://scripts/screens/tide_ui.gd")
+const Tiles = preload("res://scripts/screens/title_tiles.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
+## 菜单项（T5s 磁贴群，docs/67 §12）：0 集结出发 / 1 图鉴 / 2 Boss 演练 / 3 操作说明 / 4 设置 / 5 退出；文字与图标在 screens/title_tiles.gd
 const ITEMS := [
 	{"cn": "集结出发", "en": "DEPLOY"},
 	{"cn": "图鉴", "en": "GALLERY"},
@@ -19,8 +22,6 @@ const ITEMS := [
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
 ]
-## 菜单当前项下方的一行说明（方案 A 纵向时间轴菜单）
-const ITEM_SUB := ["选择干员与难度，走进深海", "干员、敌人、藏品与结局档案", "直接选择 Boss，检查招式与阶段", "键盘、手柄与触屏操作", "画面、声音与操作设置", "离开游戏"]
 
 var font: Font
 var tex_player: Texture2D
@@ -32,6 +33,13 @@ var player_frames := 1
 var t := 0.0
 var sel := 0
 var item_rects: Array = []
+var menu_lay := {}            # 磁贴群排版（title_tiles.layout，_draw 里按当前尺寸算）
+var menu_boss := true         # 有没有「Boss 演练」（_ready 按 Cfg.can_boss_trial()；测试可改）
+var menu_exit := true         # 有没有「退出」（网页 / --simweb 没有；测试可改）
+var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
+var menu_rip_t := -10.0       # 选中变化的时刻（标题页时间 t）：涟漪扩散
+var menu_mem_x := -1.0        # 二维导航记住的列（磁贴中心 x）
+var cover_hover := false
 var branches: Array = []   # [a, b, width, depth]
 var nodes: Array = []      # 发光节点 [pos, phase]
 var motes: Array = []
@@ -93,6 +101,9 @@ func _ready() -> void:
 		Cfg.ui_fill(self)
 		get_viewport().size_changed.connect(func(): Cfg.ui_fill(self))
 	font = load("res://fonts/ui.ttf")
+	# 菜单项门槛（同旧版）：对外包没有 Boss 演练（Cfg.can_boss_trial；调试版可用 --audience=public 模拟），网页没有退出（--simweb 模拟）
+	menu_boss = Cfg.can_boss_trial()
+	menu_exit = not (OS.has_feature("web") or Cfg.dev_args().has("--simweb"))
 	tex_player = A.tex("player")
 	if A.tex("player_idle") != null:
 		tex_player = A.tex("player_idle")
@@ -191,7 +202,7 @@ func _ready() -> void:
 	Sfx.play_music("title")
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := Cfg.dev_args()
-	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort")) or Cfg.title_seen:
+	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion")) or Cfg.title_seen:
 		intro = INTRO_LEN
 	elif Cfg.opening_seen or args.has("--introshort"):
 		intro = INTRO_SHORT   # 看过完整版：只播 Logo 扫光和菜单滑入
@@ -257,6 +268,15 @@ func _ready() -> void:
 		# 脚本：标题 → 斜切转场打开图鉴（维什戴尔）→ 换干员 ×2 → 换页签 ×2 → 敌人页（标本柜启辉）→ 换条目 → 回干员页 → 退出
 		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/codexmotion")
 		codex_motion = 0
+	if Cfg.dev_args().has("--titlemotion"):
+		# 标题 T5s 动效录制（docs/67 §12 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/titlemotion/；
+		# 脚本：完整开场 → 磁贴浮出 → 二维导航换选中（涨潮 / 涟漪）→ 集结出发 → 选人 → 出击浪幕 → 难度页涨潮 → 换档
+		for a in Cfg.dev_args():
+			if a == "--reducemotion":
+				Cfg.reduce_motion = true
+		Cfg.diff_unlocked = D.DIFFICULTY_TIERS.size() - 1   # 只改内存（测试模式不写存档），录到能出发的档
+		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/titlemotion")
+		title_motion = 0
 	if Cfg.dev_args().has("--opmotion"):
 		# 选人页动效录制（docs/58 §11 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/opmotion/；脚本：换人 ×2 → 换页签 → 换技能行 → 职业筛选 → 出击浪幕 → 难度页
 		_open_op_pick()
@@ -320,6 +340,14 @@ func _ready() -> void:
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_loading.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--titleshot"):
+		# 可选 --titlesel=<菜单项 0–5>（截选中别的磁贴）
+		for a in Cfg.dev_args():
+			if a.begins_with("--titlesel="):
+				sel = clampi(int(a.substr(11)), 0, 5)
+				if not _menu_ids().has(sel):
+					sel = 0
+			if a == "--reducemotion":
+				Cfg.reduce_motion = true
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
@@ -344,26 +372,27 @@ func _exit_tree() -> void:
 func _diff_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
-			KEY_LEFT, KEY_A:
-				_diff_step(-1)
-			KEY_RIGHT, KEY_D:
+			# 潮位尺是竖的：↑ 涨潮（更高档）/ ↓ 退潮；← → 保留（旧习惯与手柄横推）
+			KEY_UP, KEY_W, KEY_RIGHT, KEY_D:
 				_diff_step(1)
+			KEY_DOWN, KEY_S, KEY_LEFT, KEY_A:
+				_diff_step(-1)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_diff_go()
 			KEY_ESCAPE, KEY_BACKSPACE:
 				_diff_back()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var p: Vector2 = make_input_local(event).position
 		for k in diff_rects:
-			if diff_rects[k].has_point(make_input_local(event).position):
+			if diff_rects[k].has_point(p):
 				match k:
-					"left":
-						_diff_step(-1)
-					"right":
-						_diff_step(1)
 					"go":
 						_diff_go()
 					"back":
 						_diff_back()
+					_:
+						if str(k).begins_with("tier"):
+							_diff_step(int(str(k).substr(4)) - diff_sel)
 				return
 
 
@@ -378,6 +407,7 @@ func _diff_step(d: int) -> void:
 	# 未解锁的档也能翻过去看效果，只是不能出发（_diff_go）
 	var n := clampi(diff_sel + d, 0, D.DIFFICULTY_TIERS.size() - 1)
 	if n != diff_sel:
+		_diff_level_to(n, absi(n - diff_sel))
 		diff_sel = n
 		Sfx.play("ui_move")
 
@@ -396,66 +426,228 @@ func _diff_go() -> void:
 	leaving = 0.0
 
 
-## 难度选择：3 档（D.DIFFICULTY_TIERS）左右切换；下方按档列出各自新增的效果（逐档叠加）
-func _draw_diff(vs: Vector2) -> void:
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.82))
-	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：面板占满（四边留 8 / 24），菱形与列表上移、列表两列拉开
-	var ph: bool = Pad.touch_ui() and vs.y < 520.0
-	var r := Rect2(vs.x / 2 - 380, 60, 760, vs.y - 120) if not ph else Rect2(24, 8, vs.x - 48, vs.y - 16)
-	var col := UI.CYAN.lerp(UI.RED, float(diff_sel) / (D.DIFFICULTY_TIERS.size() - 1))
-	UI.panel(self, r, UI.BG2, Color(col.r, col.g, col.b, 0.6), 16.0, col)
-	UI.en(self, font, r.position + Vector2(36, 42 if not ph else 30), "DIFFICULTY", 13, col, 4.0)
-	UI.text(self, font, r.position + Vector2(36, 80 if not ph else 62), "选择难度", 26, UI.TEXT)
-	# 当前难度
-	var c := Vector2(r.get_center().x, r.position.y + (140 if not ph else 96))
-	diff_rects.clear()
-	diff_rects["left"] = Rect2(c + Vector2(-200, -30), Vector2(50, 60))
-	diff_rects["right"] = Rect2(c + Vector2(150, -30), Vector2(50, 60))
-	UI.text(self, font, c + Vector2(-200, 12), "◀", 30, UI.TEXT if diff_sel > 0 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
-	UI.text(self, font, c + Vector2(150, 12), "▶", 30, UI.TEXT if diff_sel < D.DIFFICULTY_TIERS.size() - 1 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 50)
-	UI.diamond(self, c + Vector2(0, -2), 44.0, Color(col.r, col.g, col.b, 0.15))
-	UI.diamond(self, c + Vector2(0, -2), 36.0, Color(0.02, 0.06, 0.08), col)
-	var tdef: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
-	# 档名「波涛迭起·Ⅳ」（2026-09-27 用户定，贴原作）：菱形里只放「·」后的级数（Ⅳ / Ⅷ），首档没有级数画一道潮纹「≈」；
-	# 完整档名放在菱形下方一行，英文再下一行。旧的两字档名（标准 / 困难）仍直接放进菱形
-	var tname: String = str(tdef.name)
-	var parts: PackedStringArray = tname.split("·")
-	var mark: String = parts[1].strip_edges() if parts.size() > 1 else ("≈" if tname.length() > 2 else tname)
-	UI.text(self, font, c + Vector2(-40, 12), mark, 28 if mark.length() <= 1 else 24, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
-	if tname != mark:
-		UI.text(self, font, c + Vector2(-160, 68), tname, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 320)
-	UI.en(self, font, c + Vector2(-font.get_string_size(tdef.en, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x / 2.0 - 10, 90 if tname != mark else 66), tdef.en, 11, col, 3.0)
-	# 效果列表：选中档的全部修正（各档独立，不再逐级叠加）；未解锁的档写解锁条件
-	var y := r.position.y + (292 if not ph else 238)
-	var locked := diff_sel > Cfg.diff_unlocked
-	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
-	# 副标题：档位说明（DIFFICULTY_TIERS 的 desc，文案定）；没有 desc 时沿用旧写法
-	var sub_txt: String = str(tdef.get("desc", "深海原本的样子" if lines.is_empty() else "本难度的全部效果"))
-	if diff_sel > 0 and diff_sel > Cfg.diff_unlocked:
-		sub_txt = "通关「%s」后解锁" % D.DIFFICULTY_TIERS[diff_sel - 1].name
-	UI.text(self, font, Vector2(r.position.x, y - 32), sub_txt, 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	var ic := Color(0.3, 0.36, 0.4) if locked else col
-	# 两列均分（原来左列固定 7 行）；行距按按钮上沿以上的空间压缩（触屏紧凑版面板矮，Ⅷ 有 11 条）
-	var per: int = maxi(1, ceili(lines.size() / 2.0))
-	var step: float = clampf((r.end.y - (70.0 if not ph else 64.0) - 14.0 - y) / float(per), 22.0, 30.0)
-	for k in lines.size():
-		var x := r.position.x + 60 + (k / per) * (340.0 if not ph else (r.size.x - 120.0) / 2.0)
-		var yy := y + (k % per) * step
-		UI.diamond(self, Vector2(x + 4, yy - 6), 5.0, ic, ic)
-		UI.text(self, font, Vector2(x + 20, yy), lines[k], 14 if not ph else 16, UI.SUB if locked else UI.TEXT)
-	# 按钮（手机：贴面板底边，44 高）
-	var go := Rect2(r.get_center().x - 170, r.end.y - (70 if not ph else 56), 160, 44)
-	var back := Rect2(r.get_center().x + 10, r.end.y - (70 if not ph else 56), 160, 44)
-	diff_rects["go"] = go
-	diff_rects["back"] = back
-	if locked:
-		UI.panel(self, go, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-		UI.text(self, font, go.position + Vector2(0, 29), "未解锁", 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
+## 难度页（T5s，docs/67 §12）：左边竖的潮位尺就是选档器（三档卡贴在刻度上，尺内水位停在所选档；↑↓ 换档 = 水位升降，
+## docs/62 §3.3「潮位上涨」out_back(1.2)，跨两档 0.6 秒），右边「档位文件」列修正项，下面 出发 / 返回。
+## 选中档 = 反白 + 细青边（与标题选中块同一处理）；档名用 DIFFICULTY_TIERS 的真实名字，Ⅳ / Ⅷ 换成像素字 IV / VIII（ui.ttf 没有 Ⅷ）。
+var diff_lv_from := -1.0      # 水位动画：起点 / 终点（0 = 尺底，1 = 尺顶；按档位刻度换算）、开始时刻、时长
+var diff_lv_to := -1.0
+var diff_lv_t0 := -10.0
+var diff_lv_dur := 0.38
+var diff_was := false         # 上一帧难度页是否开着（打开那一帧水位从尺底涨上来）
+var diff_mod_t := -10.0       # 换档时修正项淡入（T2）
+const DIFF_PAD := 0.15        # 三档刻度离尺两端的留白（占尺高）
+var _mod_re: RegEx
+
+
+func _diff_frac(i: int) -> float:
+	return DIFF_PAD + (1.0 - DIFF_PAD * 2.0) * float(i) / float(maxi(1, D.DIFFICULTY_TIERS.size() - 1))
+
+
+func _diff_level_to(n: int, steps: int) -> void:
+	diff_lv_from = _diff_level_now()
+	diff_lv_to = _diff_frac(n)
+	diff_lv_t0 = t
+	diff_lv_dur = 0.6 if steps > 1 else 0.38
+	diff_mod_t = t
+
+
+func _diff_level_now() -> float:
+	if diff_lv_to < 0.0:
+		return _diff_frac(diff_sel)
+	if Cfg.reduce_motion or diff_lv_dur <= 0.0:
+		return diff_lv_to
+	var x := clampf((t - diff_lv_t0) / diff_lv_dur, 0.0, 1.0)
+	var e := 1.0 + 2.2 * pow(x - 1.0, 3.0) + 1.2 * pow(x - 1.0, 2.0)   # out_back(1.2)
+	return lerpf(diff_lv_from, diff_lv_to, e)
+
+
+func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
+	var L := {}
+	if not ph:
+		L.gauge = Rect2(40, 112, 92, vs.y - 192)
+		L.card_x = 156.0
+		L.card_w = 400.0
+		L.card_h = 88.0
+		L.panel = Rect2(612, 100, vs.x - 28 - 612, vs.y - 220)
+		L.go = Rect2(612, vs.y - 100, 300, 60)
+		L.back = Rect2(932, vs.y - 92, 150, 44)
 	else:
-		UI.panel(self, go, Color(0.05, 0.2, 0.24, 0.9), col, 8.0, col)
-		UI.text(self, font, go.position + Vector2(0, 29), Pad.hint("出发  Enter", "出发  Ⓐ", "出发"), 17, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, go.size.x)
-	UI.panel(self, back, Color(0.02, 0.06, 0.09, 0.8), UI.LINE, 8.0)
-	UI.text(self, font, back.position + Vector2(0, 29), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 17, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, back.size.x)
+		L.gauge = Rect2(20, 64, 64, vs.y - 80)
+		L.card_x = 100.0
+		L.card_w = 300.0
+		L.card_h = 74.0
+		L.panel = Rect2(420, 56, vs.x - 16 - 420, vs.y - 56 - 76)
+		L.go = Rect2(420, vs.y - 64, 260, 52)
+		L.back = Rect2(696, vs.y - 60, 150, 44)
+	var g: Rect2 = L.gauge
+	L.cards = []
+	for i in D.DIFFICULTY_TIERS.size():
+		var cy: float = g.end.y - g.size.y * _diff_frac(i)
+		L.cards.append(Rect2(L.card_x, cy - L.card_h / 2.0, L.card_w, L.card_h))
+	return L
+
+
+func _draw_diff(vs: Vector2) -> void:
+	if not diff_was:
+		# 打开难度页：水位从尺底涨到所选档（docs/62 §3.3）
+		diff_was = true
+		diff_lv_from = 0.0
+		diff_lv_to = _diff_frac(diff_sel)
+		diff_lv_t0 = t
+		diff_lv_dur = 0.6
+		diff_mod_t = t
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.024, 0.063, 0.5))
+	var ph: bool = vs.y < 520.0   # 只看界面高度：手机接手柄时（Pad.using）也得用紧凑版式，否则按钮出界
+	var touch := Pad.touch_ui()
+	var c := TUI.ctx(self)
+	var L := _diff_layout(vs, ph)
+	var ps := TUI.cell(c, 2.0 if not ph else 1.4)
+	var k1 := 1.0 if not ph else 1.4   # 小号像素字：手机按屏幕至少 2 像素一格
+	var hx := 28.0 if not ph else 20.0
+	# 顶栏
+	TUI.ptext(self, c, Vector2(hx, 34 if not ph else 18), "OPERATION // DIFFICULTY", k1, TUI.CY)
+	var hs := 26 if not ph else 22
+	UI.text(self, font, Vector2(hx, (62 if not ph else 40) + hs * 0.36), "选择潮位", hs, TUI.TXT)
+	var hw: float = font.get_string_size("选择潮位", HORIZONTAL_ALIGNMENT_LEFT, -1, hs).x
+	TUI.ptext(self, c, Vector2(hx + hw + 16, (64 if not ph else 42)), "TIDE LEVEL", 2.0 if not ph else 1.4, TUI.TXT2, 2)
+	diff_rects.clear()
+	# 潮位尺：抖动藏青竖条 + 水 + 刻度 + 涟漪
+	var gg := TUI.grid(c, L.gauge, ps)
+	TUI.panel(self, gg, 3)
+	var lv := _diff_level_now()
+	var base := int(round(gg.ch - 1 - (gg.ch - 2) * lv))
+	TUI.water_rows(self, gg, 3, base, gg.ch + 6, 0.0 if Cfg.reduce_motion else t * 1.2, "edge_rest")
+	var cl: float = gg.cl
+	var yy := 8
+	while yy < gg.ch - 4:
+		var long := yy % 16 == 0
+		draw_rect(Rect2(gg.pos + Vector2(3, yy) * cl, Vector2(7 if long else 3, 1) * cl), TUI.CY_DIM)
+		yy += 4
+	var rip := clampf((t - diff_lv_t0 - diff_lv_dur * 0.6) / 0.6, 0.0, 1.0) if not Cfg.reduce_motion else 1.0
+	TUI.ripple(self, gg, 3, gg.rect.get_center().x, base, gg.rect.size.x * 0.42, 1.0 - pow(1.0 - rip, 3.0))
+	if not ph:
+		TUI.ptext(self, c, Vector2(gg.rect.get_center().x, gg.rect.end.y + 16), "TIDE", k1, TUI.TXT2, 1, 1)
+	# 三档卡（刻度旁）
+	for i in D.DIFFICULTY_TIERS.size():
+		var tdef: Dictionary = D.DIFFICULTY_TIERS[i]
+		var on := i == diff_sel
+		var locked := i > Cfg.diff_unlocked
+		var r: Rect2 = L.cards[i]
+		diff_rects["tier%d" % i] = r
+		var g := TUI.grid(c, r, ps)
+		var cy := r.get_center().y
+		if on:
+			TUI.halo(self, g, 3)
+			# 指针：从尺的右缘指到卡片
+			var px0: float = gg.rect.end.x + 2.0
+			var px1: float = g.rect.position.x - 4.0
+			draw_colored_polygon(PackedVector2Array([Vector2(px0, cy), Vector2(px1, cy - 8), Vector2(px1, cy + 8)]), TUI.SEL_EDGE)
+		else:
+			draw_rect(Rect2(gg.rect.end.x + 4.0, cy - 1.0, g.rect.position.x - gg.rect.end.x - 10.0, 2.0), TUI.CY_DIM)
+		TUI.tile(self, g, 3, on)
+		var ink := TUI.SEL_INK if on else TUI.TXT
+		var sub := TUI.SEL_SUB if on else TUI.TXT2
+		var num_c := TUI.SEL_IDX if on else ink
+		if locked and not on:
+			ink = TUI.TXT2
+			num_c = TUI.TXT2
+		var x0: float = g.rect.position.x
+		var y0: float = g.rect.position.y
+		var parts: PackedStringArray = str(tdef.name).split("·")
+		var nm: String = parts[0].strip_edges()
+		var num: String = TUI.roman_ascii(parts[1].strip_edges()) if parts.size() > 1 else "0"
+		var kbig := 4.0 if not ph else 3.0
+		TUI.ptext(self, c, Vector2(x0 + (22 if not ph else 14), cy), num, kbig, num_c)
+		var tx0 := x0 + (140.0 if not ph else 104.0)
+		var ns := 22 if not ph else 19
+		UI.text(self, font, Vector2(tx0, y0 + (30 if not ph else 24) + ns * 0.36), nm, ns, ink)
+		var nw: float = font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, ns).x
+		if num != "0":
+			TUI.ptext(self, c, Vector2(tx0 + nw + 10, y0 + (30 if not ph else 24)), num, 2.0 if not ph else 1.4, ink)
+		TUI.ptext(self, c, Vector2(tx0 + 2, y0 + (54 if not ph else 44)), TUI.roman_ascii(str(tdef.en)), k1, ink, 2)
+		var desc: String = str(tdef.get("desc", ""))
+		if locked and i > 0:
+			desc = "通关「%s」后解锁" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[i - 1].name))
+		UI.text_fit(self, font, Vector2(tx0, y0 + (72 if not ph else 60) + 5), desc, 13, sub, g.rect.end.x - tx0 - 10, 11)
+		TUI.ptext(self, c, Vector2(g.rect.end.x - 14, y0 + 16), "LV %d" % int(tdef.get("level", 0)), k1, sub, 1, 2)
+	# 右：档位文件（修正项）
+	var pr: Rect2 = L.panel
+	var pg := TUI.grid(c, pr, ps)
+	TUI.panel(self, pg, 3, 0.93)
+	var pp: Vector2 = pg.rect.position
+	var tdef2: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
+	var locked2 := diff_sel > Cfg.diff_unlocked
+	var ma := clampf((t - diff_mod_t) / (0.12 if Cfg.reduce_motion else 0.22), 0.0, 1.0)
+	TUI.ptext(self, c, pp + Vector2(24 if not ph else 16, 24 if not ph else 18), "TIER FILE // MODIFIERS", k1, TUI.CY)
+	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
+	var head: String = str(tdef2.get("desc", ""))
+	if locked2:
+		head = "通关「%s」后解锁 · 可以先看效果" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[diff_sel - 1].name))
+	var hs2 := 18 if not ph else 16
+	UI.text_fit(self, font, pp + Vector2(24 if not ph else 16, (54 if not ph else 42) + hs2 * 0.36), head, hs2, _fa(TUI.TXT, ma), pg.rect.size.x - 48, 12)
+	var gx := pp.x + (24.0 if not ph else 16.0)
+	var gy := pp.y + (84.0 if not ph else 64.0)
+	var gw: float = pg.rect.size.x - (48.0 if not ph else 32.0)
+	var gh: float = pg.rect.end.y - (20.0 if not ph else 14.0) - gy
+	if lines.is_empty():
+		UI.text(self, font, Vector2(gx, gy + 24), "深海原本的样子：没有额外修正。", 15, _fa(TUI.TXT2, ma))
+	else:
+		if _mod_re == null:
+			_mod_re = RegEx.new()
+			_mod_re.compile("^(.+?)\\s+([+\\-]?\\d+%|\\d+:\\d\\d)$")
+		var per := ceili(lines.size() / 2.0)
+		var colw := (gw - 16.0) / 2.0
+		var rh := minf(80.0, gh / per)
+		var chh := rh - (12.0 if not ph else 8.0)
+		for k in lines.size():
+			var col := k / per
+			var row := k % per
+			var cr := Rect2(gx + col * (colw + 16.0), gy + row * rh, colw, chh)
+			var cg := TUI.grid(c, cr, ps)
+			TUI.panel(self, cg, 2, 0.85 * ma)
+			var cp: Vector2 = cg.rect.position
+			var ln: String = lines[k]
+			var lab := ln
+			var val := ""
+			var m := _mod_re.search(ln)
+			if m != null:
+				lab = m.get_string(1)
+				val = m.get_string(2)
+			var tc := TUI.TXT2 if locked2 else TUI.TXT
+			var big := chh >= 52.0
+			if big:
+				TUI.ptext(self, c, cp + Vector2(14, 16), "MOD %02d" % (k + 1), k1, _fa(TUI.CY_DIM, ma))
+			var vw := 0.0
+			if val != "":
+				vw = TUI.ptext(self, c, Vector2(cg.rect.end.x - 14, cg.rect.get_center().y + (6 if big else 0)), val, 2.0 if not ph else 1.4, _fa(tc, ma), 1, 2)
+			var ls := 15 if not ph else 14
+			UI.text_fit(self, font, Vector2(cp.x + 14, cg.rect.get_center().y + (8 if big else 0) + ls * 0.36), lab, ls, _fa(tc, ma), cg.rect.size.x - 28 - vw - 10, 11)
+	# 出发 / 返回
+	var mp := get_local_mouse_position()
+	var gog := TUI.grid(c, L.go, ps)
+	diff_rects["go"] = gog.rect
+	TUI.panel(self, gog, 3)
+	var go_h: bool = gog.rect.has_point(mp) and not touch
+	var gcy: float = gog.rect.get_center().y
+	if locked2:
+		TUI.outline(self, gog, 3, TUI.EDGE)
+		UI.text(self, font, Vector2(gog.rect.position.x + 72, gcy + 22 * 0.36), "未解锁", 22, TUI.TXT2)
+	else:
+		TUI.outline(self, gog, 3, TUI.FOAM if go_h else TUI.SEL_EDGE)
+		TUI.icon(self, c, "deploy", Vector2(gog.rect.position.x + 36, gcy), 2.0 if not ph else 1.5, TUI.SEL_EDGE, TUI.FOAM)
+		UI.text(self, font, Vector2(gog.rect.position.x + 72, gcy + 24 * 0.36), "出发", 24, TUI.TXT)
+	if not touch:
+		TUI.ptext(self, c, Vector2(gog.rect.end.x - 16, gcy), Pad.hint("ENTER", "PAD A", ""), k1, TUI.TXT2, 1, 2)
+	var bg := TUI.grid(c, L.back, ps)
+	diff_rects["back"] = bg.rect
+	TUI.panel(self, bg, 2)
+	if bg.rect.has_point(mp) and not touch:
+		TUI.outline(self, bg, 2, TUI.CY)
+	var bcy: float = bg.rect.get_center().y
+	UI.text(self, font, Vector2(bg.rect.position.x + 20, bcy + 15 * 0.36), "返回", 15, TUI.TXT)
+	if not touch:
+		TUI.ptext(self, c, Vector2(bg.rect.end.x - 14, bcy), Pad.hint("ESC", "PAD B", ""), k1, TUI.TXT2, 1, 2)
+		TUI.ptext(self, c, Vector2(vs.x - 28, vs.y - 20), Pad.hint("↑↓ CHANGE TIDE", "D-PAD CHANGE TIDE", ""), k1, TUI.TXT2, 1, 2)
 
 
 ## 递归生成巨树（像海嗣一样弯曲的枝干）
@@ -488,6 +680,9 @@ func _process(delta: float) -> void:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
 	t += delta
+	_menu_tick(delta)
+	if not diff_pick:
+		diff_was = false
 	if op_panel != null:
 		_op_tick(delta)
 	if op_motion >= 0.0:
@@ -495,6 +690,8 @@ func _process(delta: float) -> void:
 	_credits_tick(delta)
 	if codex_motion >= 0:
 		_codex_motion_tick()
+	if title_motion >= 0:
+		_title_motion_tick()
 	if glass_perf >= 0:
 		var on := (glass_perf / 90) % 2 == 0
 		gallery.glass_fx = on
@@ -559,11 +756,20 @@ func _input(event: InputEvent) -> void:
 			return
 		match event.keycode:
 			KEY_UP, KEY_W:
-				_menu_step(-1)
-				Sfx.play("ui_move")
+				_menu_nav(Vector2i(0, -1))
 			KEY_DOWN, KEY_S:
-				_menu_step(1)
-				Sfx.play("ui_move")
+				_menu_nav(Vector2i(0, 1))
+			KEY_LEFT, KEY_A:
+				_menu_nav(Vector2i(-1, 0))
+			KEY_RIGHT, KEY_D:
+				_menu_nav(Vector2i(1, 0))
+			KEY_TAB:
+				# Tab / Shift+Tab：按可见顺序线性走（兜底，不用想格子也能到所有项）
+				_menu_set(Tiles.linear(_menu_ids(), sel, -1 if event.shift_pressed else 1), true)
+			KEY_ESCAPE:
+				# 首页 Esc / 手柄 Ⓑ：焦点跳到「退出」，不直接退（网页 / 手机没有退出时不动）
+				if _menu_ids().has(5):
+					_menu_set(5, true)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				_activate(sel)
 			KEY_C, KEY_X:
@@ -575,8 +781,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position) and sel != i:
-				sel = i
-				Sfx.play("ui_move")
+				_menu_set(i, true)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if guide:
 			_close_info()
@@ -601,16 +806,37 @@ func _close_info() -> void:
 
 
 func _menu_ids() -> Array:
-	var ids: Array = [0, 1, 2, 3, 4, 5] if Cfg.can_boss_trial() else [0, 1, 3, 4, 5]
+	var ids: Array = [0, 1, 2, 3, 4, 5]
+	if not menu_boss:
+		ids.erase(2)
 	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）
-	if OS.has_feature("web"):
+	if not menu_exit:
 		ids.erase(5)
 	return ids
 
 
-func _menu_step(direction: int) -> void:
-	var ids := _menu_ids()
-	sel = ids[posmod(ids.find(sel) + direction, ids.size())]
+## 磁贴群二维导航（title_tiles.nav）：↑↓ 换行落到最近的列（记住列），← → 行内，不循环
+func _menu_nav(d: Vector2i) -> void:
+	if menu_lay.is_empty():
+		menu_lay = Tiles.layout(_menu_ids(), 90.0, 304.0, 400.0, 354.0, false)
+	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
+		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
+	var r: Array = Tiles.nav(menu_lay, sel, d, menu_mem_x)
+	menu_mem_x = r[1]
+	_menu_set(r[0], false)
+
+
+## 换选中：涨潮 + 涟漪从此刻开始；remember = 同时把记住的列改成新磁贴（悬停 / 点击 / Tab / 横移）
+func _menu_set(i: int, remember: bool) -> void:
+	if not _menu_ids().has(i):
+		return
+	if remember and menu_lay.has("rects") and menu_lay.rects.has(i):
+		menu_mem_x = (menu_lay.rects[i] as Rect2).get_center().x
+	if i == sel:
+		return
+	sel = i
+	menu_rip_t = t
+	Sfx.play("ui_move")
 
 
 func _activate(i: int) -> void:
@@ -633,6 +859,39 @@ func _activate(i: int) -> void:
 			get_tree().quit()
 
 
+## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
+## 减少动态效果：不浮出，整块 T1 淡入（_tile_text_a 管文字）
+const TILE_T0 := 3.3
+func _tile_row(i: int) -> int:
+	if menu_lay.has("rows"):
+		for r in menu_lay.rows.size():
+			if menu_lay.rows[r].has(i):
+				return r
+	return 0
+
+
+func _tile_rise(i: int) -> float:
+	var t0 := TILE_T0 + _tile_row(i) * 0.09
+	if Cfg.reduce_motion:
+		return 1.0 if intro >= t0 else 0.0
+	return _ease((intro - t0) / 0.38)
+
+
+func _tile_text_a(i: int) -> float:
+	var t0 := TILE_T0 + _tile_row(i) * 0.09 + (0.0 if Cfg.reduce_motion else 0.38)
+	return clampf((intro - t0) / 0.12, 0.0, 1.0)
+
+
+## 水位：选中块涨潮、其余退潮（T2 0.22 秒）；磁贴还没浮出水面时不涨；减少动态效果直接到位
+func _menu_tick(delta: float) -> void:
+	for i in 6:
+		var target := 1.0 if i == sel and _tile_rise(i) >= 1.0 else 0.0
+		if Cfg.reduce_motion:
+			menu_water[i] = target
+		else:
+			menu_water[i] = move_toward(menu_water[i], target, delta / 0.22)
+
+
 ## 开场动画进度：seg 段在 [t0, t0+dur] 内从 0 缓动到 1
 func _seg(t0: float, dur: float) -> float:
 	return _ease((intro - t0) / dur)
@@ -650,13 +909,18 @@ func _fa(c: Color, a: float) -> Color:
 func _draw() -> void:
 	var vs := size
 	var tx := 90.0
+	if diff_pick and not op_pick and not guide and not credits:
+		# 难度页（T5s）：整屏是它自己的版式，标题的 Logo / 磁贴 / 页脚都不画
+		_draw_diff(vs)
+		_draw_leaving(vs)
+		return
 	# 左侧柔和暗角：让标题与菜单浮在星空上，不与银河抢
 	var vg := _ease(intro / 1.6)
 	for i in 14:
 		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
 		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
 	# 顶部小标（方案 A）：本作徽记 + 英文
-	var hf0 := _seg(2.9, 0.4)
+	var hf0 := _seg(2.9, 0.4) * (0.0 if Pad.touch_ui() and size.y < 520.0 else 1.0)   # 手机：Logo 上移后会压住这行小标，不画
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
 	if Cfg.unlock_all:
@@ -705,84 +969,69 @@ func _draw() -> void:
 		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
 		draw_rect(Rect2(Vector2(tx + 420 * rl - 2, ry - 2), Vector2(5, 5)), Color(1, 1, 1, 0.55 * rl))
 
-	# 菜单（原作「主题选择」左侧的纵向时间轴）：一条竖细线串起各项；当前项实心圆点 + 外圈、白字 + 青色英文 + 一行说明
+	# 菜单：T5s 磁贴群（docs/67 §12）——Logo 下方、原纵向菜单的位置；keyart 与人物不动
 	item_rects.clear()
 	item_rects.resize(ITEMS.size())
 	item_rects.fill(Rect2())
 	var menu_ids := _menu_ids()
-	var compact: bool = vs.y < 680.0   # 触屏放大后的紧凑排版
-	var my := (242.0 if ph else 300.0) if compact else 318.0
-	var step := (38.0 if ph else 44.0) if compact else 51.0
-	var lx := tx + 4.0
-	var mf0 := _seg(3.3, 0.4)
-	if mf0 > 0.0:
-		var y0 := my - 8.0
-		var y1 := my + (menu_ids.size() - 1) * step + 46.0
-		draw_rect(Rect2(Vector2(lx, y0), Vector2(1, (y1 - y0) * mf0)), Color(1, 1, 1, 0.22))
-		draw_rect(Rect2(Vector2(lx - 2, y0 - 4), Vector2(5, 5)), Color(1, 1, 1, 0.55 * mf0))
-		if mf0 >= 1.0:
-			draw_rect(Rect2(Vector2(lx - 2, y1), Vector2(5, 5)), Color(1, 1, 1, 0.55))
-	for mi in menu_ids.size():
-		var i: int = menu_ids[mi]
-		var r := Rect2(tx - 10, my + mi * step, 330, 48)
-		item_rects[i] = r
-		var f := _seg(3.4 + i * 0.08, 0.3)
-		if f <= 0.0:
-			continue
-		var dx := -30.0 * (1.0 - f)
-		var on := i == sel
-		var cy := r.position.y + 20.0
-		if on:
-			var b0 := Color(0.03, 0.035, 0.045, 0.72 * f)
-			var b1 := Color(0.03, 0.035, 0.045, 0.0)
-			draw_polygon(PackedVector2Array([Vector2(lx + 8 + dx, r.position.y - 4), Vector2(lx + 340 + dx, r.position.y - 4), Vector2(lx + 340 + dx, r.end.y + 8), Vector2(lx + 8 + dx, r.end.y + 8)]), PackedColorArray([b0, b1, b1, b0]))
-			draw_circle(Vector2(lx + 0.5, cy), 5.5, _fa(UI.TEXT, f))
-			draw_arc(Vector2(lx + 0.5, cy), 10.0, 0.0, TAU, 28, _fa(Color(1, 1, 1, 0.4), f), 1.0)
-		else:
-			draw_circle(Vector2(lx + 0.5, cy), 4.0, _fa(Color(0.04, 0.05, 0.06), f))
-			draw_arc(Vector2(lx + 0.5, cy), 4.0, 0.0, TAU, 16, _fa(Color(1, 1, 1, 0.5), f), 1.2)
-			draw_line(Vector2(lx + 7, cy), Vector2(lx + 13, cy), _fa(Color(1, 1, 1, 0.3), f), 1.0)
-		var tx2 := lx + 26.0 + dx
-		var cn: String = ITEMS[i].cn
-		var fs := 24 if on else 20
-		UI.text(self, font, Vector2(tx2, cy + (9 if on else 7)), cn, fs, _fa(UI.TEXT if on else Color(0.76, 0.79, 0.81), f))
-		var cw: float = font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		var enw: float = UI.en(self, font, Vector2(tx2 + cw + 14, cy + 6), ITEMS[i].en, 12, _fa(UI.CYAN if on else Color(0.41, 0.45, 0.49), f), 3.5)
-		if on:
-			if compact:
-				# 紧凑排版（手机）：行距 44，说明放在条目下面会压到下一项，改放在英文标签右边
-				UI.text(self, font, Vector2(tx2 + cw + 14 + enw + 18, cy + 7), ITEM_SUB[i], 13, _fa(UI.SUB, f))
-			else:
-				UI.text(self, font, Vector2(tx2, cy + 30), ITEM_SUB[i], 12, _fa(UI.SUB, f))
-	# 操作提示
+	var touch := Pad.touch_ui()
+	var my := ry + 22.0
+	var foot_h := 12.0 if ph else 40.0
+	var hint_h := 0.0 if touch else 24.0
+	menu_lay = Tiles.layout(menu_ids, tx, my, 400.0, vs.y - my - foot_h - hint_h, touch or Cfg.touch_device())
+	for i in menu_ids:
+		item_rects[i] = menu_lay.rects[i]
+	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
+		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
+	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	for i in menu_ids:
+		rise[i] = _tile_rise(i)
+		text_a[i] = _tile_text_a(i)
+	if not diff_pick and not op_pick:
+		Tiles.draw(self, menu_lay, {"sel": sel, "water": menu_water, "rip_t": menu_rip_t, "now": t, "rise": rise, "text_a": text_a,
+			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion})
+	var tc := TUI.ctx(self)
+	# 操作提示：一行暗色像素字（键鼠 / 手柄；触屏不画）
 	var hf := _seg(4.0, 0.4)
-	# 触屏不画（点按菜单不用提示；740×360 下还会压到时间轴竖线和最后一项的圆点）
-	if hf > 0.0 and not diff_pick and not op_pick and not Pad.touch_ui():
-		var hy := my + menu_ids.size() * step + 12
-		UI.en(self, font, Vector2(tx + 2, hy), Pad.hint("W / S  ·  ↑ ↓   SELECT        ENTER   CONFIRM", "STICK  ·  D-PAD   SELECT        Ⓐ   CONFIRM", ""), 11, _fa(Color(0.4, 0.44, 0.48), hf), 2.0)
-	# 右下主按钮（原作主题页的「进入主题 》」）：READY TO DEPLOY / 选择干员 》
+	if hf > 0.0 and not diff_pick and not op_pick and not touch:
+		var hs: String = Pad.hint("WASD / ↑↓←→ SELECT   ENTER CONFIRM   TAB NEXT", "D-PAD SELECT   PAD A CONFIRM   PAD B EXIT", "")
+		TUI.ptext(self, tc, Vector2(tx + 2, menu_lay.bottom + 16), hs, 1.0, Color(0.35, 0.41, 0.47, hf))
+	# 右下「更换封面干员」（小号）：像素菱形 + 中文 + 像素键名 V；悬停下划线变长变青
 	var df := _seg(3.9, 0.4)
 	deploy_rect = Rect2()
 	if df > 0.0 and not diff_pick and not op_pick:
-		var bx := vs.x - 240.0
-		var by := vs.y - 98.0
-		deploy_rect = Rect2(Vector2(bx - 8, by + 8), Vector2(214, 50))
-		var dh := deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-		UI.en(self, font, Vector2(bx, by), "COVER OPERATOR" if Pad.touch_ui() else "COVER OPERATOR  ·  V", 10, _fa(UI.CYAN, df), 3.5)
-		_draw_emblem(Vector2(bx + 14, by + 33), 14.0, _fa(UI.TEXT, df))
-		UI.text(self, font, Vector2(bx + 40, by + 42), "更换封面干员", 19, _fa(UI.TEXT, df))
-		UI.text(self, font, Vector2(bx + 178, by + 41), "》", 22, _fa(UI.CYAN if dh else Color(0.81, 0.84, 0.85), df))
-		draw_rect(Rect2(Vector2(bx, by + 56), Vector2(192, 1)), _fa(Color(1, 1, 1, 0.3), df))
-		draw_rect(Rect2(Vector2(bx, by + 55), Vector2(28.0 + (44.0 if dh else 0.0), 3)), _fa(UI.CYAN, df))
+		var cs := 16 if ph else 15
+		var x1 := vs.x - (24.0 if ph else 44.0)
+		var cy := vs.y - (44.0 if ph else 54.0)
+		var kw := 0.0 if touch else TUI.ptext_w(tc, "V", 1.0) + 10.0
+		var tw: float = font.get_string_size("更换封面干员", HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
+		var ix := x1 - kw - tw - 18.0
+		deploy_rect = Rect2(ix - 14.0, cy - 22.0, x1 - ix + 20.0, 44.0)
+		cover_hover = deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN and not touch
+		var cc := Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df) if cover_hover else Color(TUI.TXT.r, TUI.TXT.g, TUI.TXT.b, df)
+		TUI.pdiamond(self, tc, Vector2(ix, cy), 3, TUI.cell(tc, 2.0 if not ph else 1.5), cc)
+		UI.text(self, font, Vector2(ix + 14.0, cy + cs * 0.36), "更换封面干员", cs, cc)
+		if not touch:
+			TUI.ptext(self, tc, Vector2(x1, cy), "V", 1.0, Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df), 1, 2)
+		var uy := cy + 15.0
+		draw_rect(Rect2(ix - 8.0, uy, x1 - ix + 8.0, 1.0), Color(1, 1, 1, 0.22 * df))
+		draw_rect(Rect2(ix - 8.0, uy - 1.0, 22.0 + (40.0 if cover_hover else 0.0), 2.0), Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df))
 
-	# 页脚：最后淡入
+	# 页脚：一行（同人声明 · 与鹰角网络无关 · 致谢与声明 · 版本），最后淡入；手机挪到右下（左下是磁贴群）
 	var ff := _seg(4.1, 0.4)
-	var fx: float = (vs.x - 560.0) if ph else tx   # 手机：页脚挪到右下（左下是菜单最后一项）
-	credits_rect = Rect2(fx - 6, vs.y - 38, 300, 26)
+	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明"
+	var fs := 12
+	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var vk := 1.4 if ph else 1.0
+	var vw := TUI.ptext_w(tc, "V2.0", vk)
+	var fx: float = (vs.x - 24.0 - fw - 12.0 - vw) if ph else tx
+	var fy := vs.y - (12.0 if ph else 20.0)
+	credits_rect = Rect2(fx - 6, fy - 18, fw + 12, 26)
 	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(fx, vs.y - 20), ("明日方舟同人作品 · 非商业  ·  致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges(), 13, _fa(UI.CYAN if cr_hover else Color(0.5, 0.54, 0.58), ff))
-	UI.en(self, font, Vector2(vs.x - 110, vs.y - 20), "v2.0", 13, _fa(Color(0.5, 0.54, 0.58), ff), 2.0)
-	# 对内包页脚提示（docs/40，用户 10-10）：版本号左边；手机页脚已被致谢占满，手机只在设置页提示
+	UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(TUI.CY if cr_hover else Color(0.5, 0.54, 0.58), ff))
+	TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", vk, _fa(Color(0.5, 0.54, 0.58), ff))
+	# 对内包页脚提示（docs/40，用户 10-10）：右下；手机页脚已占满，手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(vs.x - 440, vs.y - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
 
@@ -814,8 +1063,10 @@ func _draw() -> void:
 		_draw_credits(vs)
 	if op_pick:
 		_draw_op_pick(vs)
-	if diff_pick:
-		_draw_diff(vs)
+	_draw_leaving(vs)
+
+
+func _draw_leaving(vs: Vector2) -> void:
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
 		if wait_t > 0.0:
@@ -2396,6 +2647,33 @@ func _op_motion_tick() -> void:
 	op_motion_frame += 1
 	if rt > 8.6:
 		get_tree().quit()
+
+
+## --titlemotion：按帧号驱动（--fixed-fps 30），[秒, 动作]
+const TITLE_MOTION_SCRIPT := [[5.6, "down"], [6.3, "right"], [7.0, "down"], [7.7, "left"], [8.4, "left"], [9.1, "up"], [9.8, "up"],
+	[10.6, "enter"], [12.2, "go"], [14.4, "up"], [15.3, "up"], [16.2, "down"], [17.0, "down"], [17.8, "click1"], [18.8, "end"]]
+var title_motion := -1
+
+
+func _title_motion_tick() -> void:
+	var rt := title_motion / 30.0
+	for ev in TITLE_MOTION_SCRIPT:
+		if absf(rt - ev[0]) < 0.5 / 30.0:
+			match ev[1]:
+				"down", "up", "left", "right", "enter":
+					var e := InputEventKey.new()
+					e.keycode = {"down": KEY_DOWN, "up": KEY_UP, "left": KEY_LEFT, "right": KEY_RIGHT, "enter": KEY_ENTER}[ev[1]]
+					e.pressed = true
+					Input.parse_input_event(e)
+				"go":
+					_op_go()
+				"click1":
+					if diff_rects.has("tier1"):
+						_diff_step(1 - diff_sel)
+				"end":
+					get_tree().quit()
+	get_viewport().get_texture().get_image().save_png(_shot_dir() + "/titlemotion/f_%04d.png" % title_motion)
+	title_motion += 1
 
 
 ## --codexmotion：按帧号驱动（--fixed-fps 30 下一帧 = 1/30 秒），每帧存一张图
