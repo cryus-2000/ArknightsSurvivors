@@ -44,6 +44,7 @@
 | 压缩英文 | `cond` / `ctext` / `en` | 没有额外字体文件：`FontVariation` 把 UI 字体横向压到 0.82 并略加粗；`en` 带字距 |
 | 线性图标 | `icon` | enemy / clock / box / ingot / pause / refresh / exit |
 | 其他 | `fade_band` / `hairline` / `quatrefoil` | 两端渐隐的暗带、渐隐细线、四叶环（楼层名背后） |
+| B+（选人，docs/58 §11） | `bpanel` / `rbox` / `pill` / `btab` / `btabs` / `class_glyph` / `class_band` / `ghost_name` / `roster_card` / `sp_ring` / `gauge` / `deploy_button` / `wave_wipe` / `text_at` / `code` | 圆角紫边面板 + 金菱形饰角、圆角标签片、职业线性图标、职业色斜带、描边英文名、名册卡、SP 环、出击呼吸按钮、深海浪幕；图鉴 C4' 复用斜带 / 描边英文名 / 名册卡结构 |
 | 墨痕（C 版式） | `jag_rect` / `brush_poly` / `enso` / `blob` / `curly_lines` / `curly_emblem` | 事件画面的撕纸边、笔刷、墨圈、卷须徽记 |
 
 ## 4. 画面
