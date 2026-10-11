@@ -40,6 +40,20 @@ var credits := false
 var credits_rect := Rect2()
 var deploy_rect := Rect2()   # 右下「更换封面干员」
 var credits_data: Dictionary = {}
+var cr_scroll := 0.0         # 致谢与声明：正文滚动（目标，像素）
+var cr_scroll_f := 0.0       # 显示用，逐帧逼近（拖动时相等）
+var cr_max := 0.0            # 可滚动的最大量（排版时算）
+var cr_view: Control         # 正文裁剪子控件：条目画在它里面，按 cr_scroll_f 平移
+var cr_vr := Rect2()         # 正文可视区（标题页坐标）
+var cr_bar := Rect2()        # 滚动条轨道（命中区左右各放宽）
+var cr_back := Rect2()       # 钉在底部的「返回」按钮
+var cr_panel := Rect2()
+var cr_lay: Dictionary = {}  # 排版缓存（按正文列宽）
+var cr_lay_w := -1.0
+var cr_drag := 0             # 0 没按 / 1 按在正文（拖动滚动）/ 2 按在滚动条
+var cr_moved := false        # 本次按下已拖过 CR_SLOP
+var cr_vel := 0.0            # 松手惯性（像素 / 秒）
+var cr_press := Vector2.ZERO
 var leaving := -1.0
 var auto_go := false        # --autotest 开窗口：等法线预热完再进局
 var wait_t := 0.0           # 出发后等预热的时间（载入中…）
@@ -111,6 +125,12 @@ func _ready() -> void:
 		if cd is Dictionary:
 			credits_data = cd
 	_op_layers()   # 选人页的信息面板 / 正文 / 浪幕子层（画在标题页自己的 _draw 之上）
+	cr_view = Control.new()
+	cr_view.clip_contents = true
+	cr_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cr_view.visible = false
+	cr_view.draw.connect(_draw_credits_body)
+	add_child(cr_view)
 	post_fx = preload("res://scripts/post_fx.gd").new()
 	add_child(post_fx)
 	gallery = preload("res://scripts/gallery.gd").new()
@@ -211,6 +231,16 @@ func _ready() -> void:
 			snap.call()
 		else:
 			get_tree().create_timer(1.0).timeout.connect(snap)
+	if Cfg.dev_args().has("--creditsshot"):
+		# 致谢与声明页截图（10-11 改滚动条验收）：可选 --creditsscroll=<像素>（超出自动截到底）
+		_open_credits()
+		for a in Cfg.dev_args():
+			if a.begins_with("--creditsscroll="):
+				cr_scroll = float(a.substr(16))
+				cr_scroll_f = cr_scroll
+		get_tree().create_timer(1.0).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_credits.png")
+			get_tree().quit())
 	if Cfg.dev_args().has("--guideshot"):
 		# 操作说明页截图（手机设置页改版 10-06 验收用）
 		guide = true
@@ -457,6 +487,7 @@ func _process(delta: float) -> void:
 		_op_tick(delta)
 	if op_motion >= 0.0:
 		_op_motion_tick()
+	_credits_tick(delta)
 	if codex_motion >= 0:
 		_codex_motion_tick()
 	if intro < INTRO_LEN:
@@ -496,6 +527,9 @@ func _input(event: InputEvent) -> void:
 				or (event is InputEventMouseButton and event.pressed):
 			intro = INTRO_LEN
 		return
+	if credits:
+		_credits_input(event)
+		return
 	if diff_pick:
 		_diff_input(event)
 		return
@@ -503,7 +537,7 @@ func _input(event: InputEvent) -> void:
 		_op_input(event)
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if guide or credits:
+		if guide:
 			_close_info()
 			Sfx.play("ui_ok")
 			return
@@ -518,7 +552,7 @@ func _input(event: InputEvent) -> void:
 				_activate(sel)
 			KEY_C, KEY_X:
 				# 致谢与声明：键盘 C、手柄 Ⓨ（标题页 Ⓨ 映射为 X）也能打开（原来只能鼠标点页脚）
-				transition.switch_page(func(): credits = true)
+				transition.switch_page(_open_credits)
 				Sfx.play("ui_ok")
 			KEY_V:
 				transition.switch_page(_open_op_pick.bind(true))
@@ -528,11 +562,11 @@ func _input(event: InputEvent) -> void:
 				sel = i
 				Sfx.play("ui_move")
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if guide or credits:
+		if guide:
 			_close_info()
 			return
 		if credits_rect.has_point(make_input_local(event).position):
-			transition.switch_page(func(): credits = true)
+			transition.switch_page(_open_credits)
 			Sfx.play("ui_ok")
 			return
 		if deploy_rect.has_point(make_input_local(event).position):
@@ -839,62 +873,234 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）", "点击任意处返回"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
-## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行，不再压到右列）、右列说明 + 链接；
-## 面板 960 宽，整页按屏幕高度挑字号（14 → 13 → 12，间距跟着收），16:9 下也能整页放下、标题和底部提示不被裁掉。
-## 说明按像素宽度排版（docs/37，UI.fit 自带防孤字，「成。」这样的单字不会单独掉一行）
-const CREDITS_W := 960.0
+## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行）、右列说明 + 链接。
+## 10-11 用户：「字放大点，改成滚动条」——正文固定字号（说明 17、条目名 19、链接 14，不再按屏幕高度缩到 11），
+## 标题与底部（声明 + 「返回」按钮）钉住，中间条目在裁剪子控件 cr_view 里滚动；右侧滚动条可拖，上下有内容时边缘渐隐。
+## 滚动：滚轮、拖正文（触屏松手带惯性）、拖滚动条、↑↓ / W S、PgUp / PgDn（手柄 LB / RB）、Home / End、手柄十字键 / 左摇杆（Pad 翻译成 ↑↓ 连发）。
+## 关闭：Esc / Enter / 空格 / C（手柄 Ⓐ Ⓑ Ⓨ）、点「返回」、点面板外。说明按像素宽度排版（docs/37，UI.fit 自带防孤字）
+const CREDITS_W := 1040.0
 const CREDITS_LX := 58.0       # 条目名左边（菱形在它左边）
-const CREDITS_LW := 150.0      # 条目名列宽
+const CREDITS_LW := 170.0      # 条目名列宽
 const CREDITS_HEAD := 84.0     # 标题区高度
-const CREDITS_FOOT := 58.0     # 底部声明 + 返回提示
+const CREDITS_FOOT := 70.0     # 底部声明 + 返回按钮
+const CREDITS_FS := 17         # 说明字号（原来按高度 14 → 11）
+const CREDITS_LINE := 52.0     # ↑↓ 一步滚动量
+const CR_SLOP := 10.0          # 按下后移动超过这个距离算拖动
+
+
+func _open_credits() -> void:
+	credits = true
+	cr_scroll = 0.0
+	cr_scroll_f = 0.0
+	cr_vel = 0.0
+	cr_drag = 0
+
+
+func _close_credits() -> void:
+	cr_drag = 0
+	cr_vel = 0.0
+	_close_info()
+
+
+func _credits_tick(delta: float) -> void:
+	if cr_view == null:
+		return
+	cr_view.visible = credits
+	if not credits:
+		return
+	if cr_drag == 0 and absf(cr_vel) > 1.0:
+		# 松手惯性：按速度继续滚，指数衰减；碰到两端停下
+		cr_scroll = clampf(cr_scroll + cr_vel * delta, 0.0, cr_max)
+		cr_vel *= exp(-4.0 * delta)
+		if cr_scroll <= 0.0 or cr_scroll >= cr_max:
+			cr_vel = 0.0
+		cr_scroll_f = cr_scroll
+	elif cr_drag == 0:
+		cr_scroll_f = lerpf(cr_scroll_f, cr_scroll, 1.0 - exp(-16.0 * delta))
+		if absf(cr_scroll_f - cr_scroll) < 0.25:
+			cr_scroll_f = cr_scroll
+	cr_view.queue_redraw()
+
+
+func _credits_scroll_by(d: float) -> void:
+	cr_vel = 0.0
+	cr_scroll = clampf(cr_scroll + d, 0.0, cr_max)
+
+
+## 滚动条：按在轨道上 y 处 → 滑块中心对到 y
+func _credits_bar_to(y: float) -> void:
+	if cr_max <= 0.0:
+		return
+	var th: float = _credits_thumb_h()
+	var k: float = clampf((y - cr_vr.position.y - th / 2.0) / maxf(1.0, cr_vr.size.y - th), 0.0, 1.0)
+	cr_scroll = k * cr_max
+	cr_scroll_f = cr_scroll
+	cr_vel = 0.0
+
+
+func _credits_thumb_h() -> float:
+	return maxf(36.0, cr_vr.size.y * cr_vr.size.y / (cr_vr.size.y + cr_max))
+
+
+func _credits_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		var page: float = maxf(CREDITS_LINE, cr_vr.size.y - 60.0)
+		match event.keycode:
+			KEY_UP, KEY_W:
+				_credits_scroll_by(-CREDITS_LINE)
+			KEY_DOWN, KEY_S:
+				_credits_scroll_by(CREDITS_LINE)
+			KEY_PAGEUP, KEY_Q:
+				_credits_scroll_by(-page)
+			KEY_PAGEDOWN, KEY_E:
+				_credits_scroll_by(page)
+			KEY_HOME:
+				_credits_scroll_by(-cr_max - 1.0)
+			KEY_END:
+				_credits_scroll_by(cr_max + 1.0)
+			KEY_ESCAPE, KEY_BACKSPACE, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_C, KEY_X:
+				if not event.echo:
+					_close_credits()
+					Sfx.play("ui_ok")
+	elif event is InputEventMouseButton:
+		var mp: Vector2 = make_input_local(event).position
+		match event.button_index:
+			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
+				if event.pressed:
+					var f: float = event.factor if event.factor > 0.0 else 1.0
+					_credits_scroll_by((-1.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0) * 60.0 * f)
+			MOUSE_BUTTON_LEFT:
+				if event.pressed:
+					cr_press = mp
+					cr_moved = false
+					cr_vel = 0.0
+					if cr_max > 0.0 and cr_bar.has_point(mp):
+						cr_drag = 2
+						_credits_bar_to(mp.y)
+					elif cr_vr.has_point(mp):
+						cr_drag = 1
+						cr_scroll_f = cr_scroll   # 按住就停（惯性 / 平滑都停在当前显示位置）
+						cr_scroll = cr_scroll_f
+					else:
+						cr_drag = 3   # 面板外 / 返回按钮：松手时判定
+				else:
+					var was: int = cr_drag
+					cr_drag = 0
+					if was == 3 and not cr_moved and (cr_back.has_point(mp) or not cr_panel.has_point(mp)):
+						_close_credits()
+						Sfx.play("ui_ok")
+	elif event is InputEventMouseMotion:
+		var mp: Vector2 = make_input_local(event).position
+		if cr_drag != 0 and not cr_moved and cr_press.distance_to(mp) > CR_SLOP:
+			cr_moved = true
+		if cr_drag == 2:
+			_credits_bar_to(mp.y)
+		elif cr_drag == 1 and cr_moved:
+			# 1:1 跟手（标题页放大后 relative 也要换到本地比例）
+			var dy: float = (make_input_local(event) as InputEventMouseMotion).relative.y
+			cr_scroll = clampf(cr_scroll - dy, 0.0, cr_max)
+			cr_scroll_f = cr_scroll
+			var dt: float = maxf(get_process_delta_time(), 1.0 / 240.0)
+			cr_vel = lerpf(cr_vel, -dy / dt, 0.5)
 
 
 func _draw_credits(vs: Vector2) -> void:
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.9))
 	var secs: Array = credits_data.get("sections", [])
-	var pw: float = minf(CREDITS_W, vs.x - 48.0)
-	var tx: float = CREDITS_LX + CREDITS_LW + 16.0
-	var tw: float = pw - tx - 36.0
-	var lay: Dictionary = {}
-	# 放不下就逐级缩字号，最后再收紧条目间距（触屏逻辑高 626 时 10 条放不下 12 号）
-	for fs in [14, 13, 12, 11, -11]:
-		lay = _credits_layout(secs, absi(fs), tw, 3.0 if fs < 0 else -1.0)
-		if CREDITS_HEAD + lay.h + CREDITS_FOOT <= vs.y - 32.0:
-			break
-	var h: float = CREDITS_HEAD + lay.h + CREDITS_FOOT
-	var r := Rect2(roundf(vs.x / 2 - pw / 2), roundf(maxf(16.0, vs.y / 2 - h / 2)), pw, h)
+	var touch: bool = Pad.touch_ui()
+	var pw: float = minf(CREDITS_W, vs.x - (24.0 if touch else 48.0))
+	var tx: float = CREDITS_LX + CREDITS_LW + 18.0
+	var tw: float = pw - tx - 56.0   # 右边留滚动条
+	if tw != cr_lay_w or cr_lay.is_empty():
+		cr_lay = _credits_layout(secs, CREDITS_FS, tw)
+		cr_lay_w = tw
+	var margin: float = 8.0 if touch else 16.0
+	var h: float = minf(CREDITS_HEAD + cr_lay.h + 8.0 + CREDITS_FOOT, vs.y - 2.0 * margin)
+	var r := Rect2(roundf(vs.x / 2 - pw / 2), roundf(maxf(margin, vs.y / 2 - h / 2)), pw, h)
+	cr_panel = r
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
 	var title: String = credits_data.get("title", "致谢与声明")
 	UI.text(self, font, r.position + Vector2(36, 52), title, 26, UI.TEXT)
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x + 18, 50), credits_data.get("en", "CREDITS"), 12, UI.CYAN, 3.0)
 	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
-	var y: float = r.position.y + CREDITS_HEAD
-	for row in lay.rows:
-		UI.diamond(self, Vector2(r.position.x + 44, y + 9), 4.0, UI.CYAN)
-		UI.draw_fit(self, font, Vector2(r.position.x + CREDITS_LX, y), row.label, UI.CYAN)
-		var th: float = UI.draw_fit(self, font, Vector2(r.position.x + tx, y + 1), row.text, UI.TEXT)
-		if row.link != "":
-			UI.text_fit(self, font, Vector2(r.position.x + tx, y + 1 + th + 4 + font.get_ascent(12)), row.link, 12, Color(0.5, 0.75, 0.85), tw, 10)
+	# 正文可视区（钉住的标题与底部之间）
+	cr_vr = Rect2(r.position.x + 20, r.position.y + CREDITS_HEAD - 8.0, pw - 40, h - CREDITS_HEAD + 8.0 - CREDITS_FOOT)
+	cr_max = maxf(0.0, cr_lay.h + 16.0 - cr_vr.size.y)
+	cr_scroll = clampf(cr_scroll, 0.0, cr_max)
+	cr_scroll_f = clampf(cr_scroll_f, 0.0, cr_max)
+	cr_view.position = cr_vr.position
+	cr_view.size = cr_vr.size
+	if cr_max > 0.0:
+		# 滚动条：正文右侧 6 像素（触屏 8），轨道命中区左右各放宽到 28；上下有内容时边缘渐隐
+		var bw: float = 8.0 if touch else 6.0
+		var track := Rect2(cr_vr.end.x - bw - 6.0, cr_vr.position.y + 4.0, bw, cr_vr.size.y - 8.0)
+		cr_bar = Rect2(track.position.x - 12.0, track.position.y, bw + 24.0, track.size.y)
+		draw_rect(track, Color(1, 1, 1, 0.07))
+		var th: float = maxf(36.0, track.size.y * cr_vr.size.y / (cr_vr.size.y + cr_max))
+		var hot: bool = cr_drag == 2 or cr_bar.has_point(get_local_mouse_position())
+		draw_rect(Rect2(track.position.x, track.position.y + (track.size.y - th) * clampf(cr_scroll_f / cr_max, 0.0, 1.0), bw, th), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if hot else 0.7))
+	else:
+		cr_bar = Rect2()
+	# 底部钉住：细线 + 声明 + 操作提示 + 「返回」
+	var fy: float = r.end.y - CREDITS_FOOT
+	UI.rule(self, Vector2(r.position.x + 36, fy + 4), Vector2(r.end.x - 36, fy + 4), UI.EDGE_DIM)
+	var bw2: float = 132.0 if touch else 120.0
+	cr_back = Rect2(r.end.x - 36 - bw2, fy + 16, bw2, 40.0 if touch else 36.0)
+	var back_hot: bool = cr_back.has_point(get_local_mouse_position()) and not touch
+	UI.button(self, font, cr_back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), "normal", back_hot, 17 if touch else 16)
+	var fw: float = cr_back.position.x - 24 - (r.position.x + 36)
+	var ft := UI.fit_line(font, credits_data.get("footer", ""), 15, fw, 12)
+	UI.text(self, font, Vector2(r.position.x + 36, fy + 32), ft[0], ft[1], UI.SUB)
+	var hint := Pad.hint("滚轮 / ↑↓ / PgUp PgDn 滚动 · 拖动右侧滚动条", "十字键 / 左摇杆 滚动 · LB / RB 翻页", "上下滑动查看全部")
+	UI.text_fit(self, font, Vector2(r.position.x + 36, fy + 54), hint, 13, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, 0.75), fw, 11)
+
+
+## 正文条目（cr_view 子控件里画，坐标原点 = 可视区左上，按 cr_scroll_f 平移，超出的被裁掉）
+func _draw_credits_body() -> void:
+	if not credits or cr_lay.is_empty():
+		return
+	var ox: float = -20.0   # 子控件原点在面板左边 + 20
+	var tx: float = CREDITS_LX + CREDITS_LW + 18.0
+	var y: float = 8.0 - cr_scroll_f
+	for row in cr_lay.rows:
+		if y + row.h >= 0.0 and y <= cr_vr.size.y:
+			UI.diamond(cr_view, Vector2(ox + 44, y + 12), 4.0, UI.CYAN)
+			UI.draw_fit(cr_view, font, Vector2(ox + CREDITS_LX, y), row.label, UI.CYAN)
+			var th: float = UI.draw_fit(cr_view, font, Vector2(ox + tx, y + 2), row.text, UI.TEXT)
+			if row.link != "":
+				UI.text_fit(cr_view, font, Vector2(ox + tx, y + 2 + th + 4 + font.get_ascent(14)), row.link, 14, Color(0.5, 0.75, 0.85), cr_vr.size.x - tx - 40.0, 11)
 		y += row.h
-	var ft := UI.fit_line(font, credits_data.get("footer", ""), 13, pw - 72, 11)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 34), ft[0], ft[1], UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 14), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）", "点击任意处返回"), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	# 上下边缘渐隐：提示那头还有内容
+	if cr_scroll_f > 0.5:
+		_credits_vfade(true)
+	if cr_scroll_f < cr_max - 0.5:
+		_credits_vfade(false)
+
+
+func _credits_vfade(top: bool) -> void:
+	var n := 8
+	var hh: float = 26.0 / n
+	var w: float = cr_vr.size.x - 28.0
+	for k in n:
+		var a: float = 0.8 * (1.0 - (k + 0.5) / n)
+		var yy: float = (k * hh) if top else (cr_vr.size.y - (k + 1) * hh)
+		cr_view.draw_rect(Rect2(0, yy, w, hh + 0.5), Color(0.06, 0.08, 0.1, a))
 
 
 ## 致谢页排版：每条 {label: 条目名 fit, text: 说明 fit, link, h}；返回 {rows, h}
-func _credits_layout(secs: Array, fs: int, tw: float, gap_override := -1.0) -> Dictionary:
+func _credits_layout(secs: Array, fs: int, tw: float) -> Dictionary:
 	var rows: Array = []
 	var total := 0.0
-	var gap: float = fs - 1.0 if gap_override < 0.0 else gap_override
+	var gap: float = 16.0
 	for sec in secs:
-		# 条目名：先试一行（最小 13 号），放不下再折成两行，按半长折开（「第三方开放许可 / 特效素材」）
-		var lab := UI.fit(font, sec[0], CREDITS_LW, font.get_height(15), [15, 14, 13])
+		# 条目名：先试一行（19 → 17 号），放不下再折成两行，按半长折开（「第三方开放许可 / 特效素材」）
+		var lab := UI.fit(font, sec[0], CREDITS_LW, font.get_height(19), [19, 18, 17])
 		if not lab.fit:
-			var half: float = font.get_string_size(sec[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x / 2.0 + 14.0
-			lab = UI.fit(font, sec[0], minf(CREDITS_LW, half), 2.0 * font.get_height(14), [14, 13])
-		var txt := UI.fit(font, sec[1], tw, 9999.0, [fs])   # UI.fit 自带防孤字
+			var half: float = font.get_string_size(sec[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x / 2.0 + 18.0
+			lab = UI.fit(font, sec[0], minf(CREDITS_LW, half), 2.0 * font.get_height(18), [18, 17])
+		var txt := UI.fit(font, sec[1], tw, 9999.0, [fs], 3.0)   # UI.fit 自带防孤字；行距加 3
 		var link: String = sec[2] if sec.size() > 2 else ""
-		var rh: float = maxf(float(lab.h), float(txt.h) + (4.0 + font.get_height(12) if link != "" else 0.0)) + gap
+		var rh: float = maxf(float(lab.h), float(txt.h) + (6.0 + font.get_height(14) if link != "" else 0.0)) + gap
 		rows.append({"label": lab, "text": txt, "link": link, "h": rh})
 		total += rh
 	return {"rows": rows, "h": total}
