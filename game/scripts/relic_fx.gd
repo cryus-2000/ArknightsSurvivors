@@ -67,6 +67,7 @@ var used := {}             # 一次性触发（args.once）已用：id -> true
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
 var _trig_cache := {}      # 事件名 -> [[id, effect], …]，获得藏品时重建
+var _rule_cache := {}      # 规则名 / "id:规则名" -> args，获得藏品时重建
 const HOME_R := 95.0
 const KING_LOW := 0.5     # 国王套装「低血」门槛：原来 30%，实测主控生命低于 35% 的时间占比只有 0–0.7%，几乎不触发（2026-09-27）
 const MINE_N := 3          # 支援地雷组：每次朝敌群抛出几枚
@@ -109,13 +110,20 @@ func take_choice_extra() -> int:
 	return 0
 
 
-## 带参数的规则：返回第一件持有该规则的藏品的 args（没有则空字典）
+## 带参数的规则：返回第一件持有该规则的藏品的 args（没有则空字典）。每次伤害 / 每帧都会查，按规则名缓存，获得藏品时清
 func _rule_args(name: String) -> Dictionary:
+	if _rule_cache.has(name):
+		return _rule_cache[name]
+	var out: Dictionary = {}
 	for id in g.relics:
 		for ef in db.get_relic(id).get("effects", []):
 			if ef.get("type", "") == "rule" and ef.get("rule", "") == name:
-				return ef.get("args", {})
-	return {}
+				out = ef.get("args", {})
+				break
+		if not out.is_empty():
+			break
+	_rule_cache[name] = out
+	return out
 
 
 ## 持有藏品里某事件的全部 trigger：[[id, effect], …]（缓存，获得藏品时重建）
@@ -222,6 +230,7 @@ func apply(id: String) -> void:
 	if r.tags.has("king"):
 		king_n += 1
 	_trig_cache.clear()
+	_rule_cache.clear()
 	var squad_dep := false
 	for ef in r.effects:
 		match ef.get("type", "stat"):
@@ -740,12 +749,18 @@ func _class_pulse(id: String, a: Dictionary) -> void:
 			g.vfx.sparks(o.pos, Vector2.ZERO, col, 10, 220.0)
 
 
-## 某件藏品里某条规则的 args
+## 某件藏品里某条规则的 args（缓存同上）
 func _rule_args_of(id: String, name: String) -> Dictionary:
+	var key := id + ":" + name
+	if _rule_cache.has(key):
+		return _rule_cache[key]
+	var out: Dictionary = {}
 	for ef in db.get_relic(id).get("effects", []):
 		if ef.get("type", "") == "rule" and ef.get("rule", "") == name:
-			return ef.get("args", {})
-	return {}
+			out = ef.get("args", {})
+			break
+	_rule_cache[key] = out
+	return out
 
 
 ## 支援起重机（docs/57）：吊起身边 420 内最强的一名非 Boss 敌人（优先精英，其次生命最高），束缚 dur 秒

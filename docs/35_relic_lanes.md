@@ -343,3 +343,26 @@ docs/55 §4 把 `relic_effects.json` 的 `args.icd`（#145 铁卫-无锋、#170 
 | #170 | `pct` 0.03、`boss_pct` 0.005、`icd` 0.5 | 写死 | `on_hit` 读数据 |
 
 数值前后相同，**玩法不变**（同 seed 水月 + 塞雷娅 + 维什戴尔带 #94/#145/#169/#170 200 秒、维什戴尔 `--bosstimes=40,90,130` 150 秒、斯卡蒂 200 秒：TRACE 201 / 151 / 201 行逐字节相同，BALANCE 除 `bot.peak_min` 外相同）。以后改这四件的数值只改 `relic_effects.json`；`tests/test_core.gd` 新增契约：这些键必须在数据里（删键 / 改名会报错，而不是静默退回代码缺省值）。
+
+
+## 附录：262 件全部实装后的流派件数（2026-10-11，docs/57）
+
+剩余 129 件按 docs/57 逐件实装（工作树 agent-afdfd59bb51eca569，6 个提交）。流派只是标签，池子仍按稀有度加权（基础 60 / 稀有 26 / 核心 12 / 升华 7:00 后 3，遭诅只在商店）；流派加权、H 时间权重、`late_weight` 不变。原表「不适用」24 件也给了效果：先锋 / 近卫 / 重装职业专属 10 件划入 A，9 / 184 / 185 / 186 划入 G，83 划入 C，其余通用。
+
+| 流派 | 件数（本次新增） | 基础 / 稀有 / 核心 / 升华 / 遭诅 / 结局 | 带职业或编队门槛 |
+| --- | --- | --- | --- |
+| A 前锋·近战 | 39（+26） | 12 / 14 / 10 / 3 / 0 / 0 | 20 |
+| B 追击·召唤 | 7（+1） | 0 / 2 / 5 / 0 / 0 / 0 | 0 |
+| C 控制·技能循环 | 27（+14） | 4 / 8 / 12 / 3 / 0 / 0 | 0 |
+| D 收割·弱点 | 10（+1） | 2 / 3 / 4 / 1 / 0 / 0 | 1 |
+| E 远程·火力 | 12（0） | 2 / 6 / 4 / 0 / 0 / 0 | 9 |
+| F 深蓝·低灯火 | 9（+2） | 0 / 0 / 4 / 1 / 4 / 0 | 0 |
+| G 编队·协同 | 52（+34） | 23 / 25 / 2 / 2 / 0 / 0 | 22（另 9 件招募类只在编队未满时出现） |
+| H 守护·续航 | 26（0） | 10 / 9 / 5 / 2 / 0 / 0 | 4 |
+| 通用 | 82（+51） | 26 / 27 / 16 / 1 / 4 / 8 | 0（排异类 3 件只在发生过排异 / 深蓝线出现） |
+
+- G 件数最多，但 22 件带职业门槛、9 件带招募条件、4 件是编队人数缩放，同一编队里实际可出现的约 25 件；通用 82 件里一次性资源件 20 件带 `late_weight 0.3`。
+- 第二批实装的 129 件在 `relic_effects.json` 里标 `"new": true`；`balance.json relic/new_pool`（缺省 1）置 0 时整批不进三选一 / 商店（`--relics=all` 冒烟仍会发），同 seed 结果与之前逐字节相同，供云端 A/B「第二批对难度的影响」。
+- 新原语（全部数据驱动，`relic_fx.gd` 不写死数值）：`enemy_speed` / `enemy_kb` / `enemy_ranged_cd` / `boss_dmg` / `light_loss` / `elite_dmg_taken` 属性；规则 `hp_dmg` / `low_hp_haste` / `far_dmg` / `zone` / `sp_pulse` / `per_relic` / `medkit` / `unhurt_light` / `chest_keys` / `choice_extra` / `recruit_extra` / `rej_immune` / `def_pierce`；事件 `LevelUp` / `Recruited` / `BossKilled`，`Dodge → invuln`，`SkillStarted → refund / stack_stat / 带职业 temp_stat`，`DamageTaken → damage_all / stun_near`，`EnemyKilled → sp 带职业`，`Tick damage_area 带职业`（174 / 153 / 168 共用）；支援装置 `supply / bomb / crane / stakes`；`on_gain heal_flat / levels / random_relic / clear_rejection / recruit_one / sp`。
+- 验证：`tests/test_core.gd`（已实装 == 262、带参数的规则 / 动作必须在数据里给齐参数）、`tests/relic_impl_test.tscn`（check.py `relic_impl`，130 项：每个原语在真局里直接调钩子验数值）、每批 `--relics=all --maxprog` 冒烟 2 名干员、`new_pool=0` 同 seed TRACE 对照 main 201 行相同。
+- 文字解释与取舍（详见 docs/57 §2）：「援护干员上限 +1」改成招募奖励 / 编队人数缩放（编队上限仍只由罐头提供）；「唤醒所需普攻次数」改成定时回技力；「启示」改成随机基础藏品；「钥匙」改成补给箱钥匙（多一个选项 + 不遇恐鱼）；「骰子」改成一次性加选项；防暴桩「阻挡」简化为减速 + 推开。
