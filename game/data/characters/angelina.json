@@ -53,7 +53,7 @@
    "on_hit": [
     {"st": "airborne", "dur": "$zero_air", "within": "$zero_r", "h": 22, "cond": "elite >= 2"}],
    "then": [
-    {"verb": "displace", "center": "target", "r": "$pull_r", "dir": "pull", "dist": "$pull", "elite_mult": "$pull_elite", "fx": [{"strip": "fx_angelina_pull", "fit": 30}],
+    {"verb": "displace", "center": "target", "r": "$pull_r", "dir": "pull", "dist": "$pull", "elite_mult": "$pull_elite", "fx": [{"strip": "fx_angelina_pull", "fit": 30, "layer": "floor"}],
      "on_hit": [{"st": "weightless", "dur": "$grav_dur", "kb_mult": "1+$grav_kb", "cond": "elite >= 1"}]}]},
   "skills": [
    {"dur": {"next_attacks": "$s1_n"}, "attack_patch": {"r_mult": "$s1_r", "force_mult": "$s1_pull", "src": "秘杖·速充模式", "on_hit": [{"st": "stun", "dur": "$s1_pause"}]}, "do": []},
