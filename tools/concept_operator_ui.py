@@ -1970,6 +1970,20 @@ def compose_c_phone(v="C4", tab=1):
     ct(img, (W - 38, 16), "返回", 10, Z["inv"], anchor="mm")
     c_tabs(img, (px0, 34, px1, 60), ["属性", "技能", "编队"], tab, 8)
     y = 70
+    if tab == 0:
+        base = op.get("base", {})
+        for i, (k, e, val, frac) in enumerate([("攻击", "ATK", "%d" % base.get("atk", 0), base.get("atk", 0) / 80.0),
+                                              ("攻击间隔", "INTERVAL", "%.2fs" % base.get("cd", 0), base.get("cd", 0) / 2.0),
+                                              ("攻击范围", "RANGE", "%d" % base.get("reach", 0), base.get("reach", 0) / 220.0)]):
+            yy = y + i * 64
+            code(img, (px0, yy), "%02d // %s" % (i + 1, e), 7)
+            ct(img, (px0, yy + 12), k, 11, Z["sub"])
+            ct(img, (px1, yy + 2), val, 26, anchor="ra", bold=True)
+            para(d, (px0, yy + 38, px1 - 60, yy + 48), 6, outline=Z["rule"])
+            para(d, (px0, yy + 38, px0 + int((px1 - 60 - px0) * min(1.0, frac)), yy + 48), 6, fill=CC["acc"])
+        c_button(img, (px0 + 6, H - 74, px1, H - 10), {})
+        zone("stage")
+        return img
     for i in range(3):
         sk = op["skills"][i]
         cpanel(img, (px0, y, px1, y + 46), sel=(i == 2), shadow=False)
