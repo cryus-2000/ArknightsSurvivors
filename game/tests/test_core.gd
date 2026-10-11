@@ -27,6 +27,7 @@ func _init() -> void:
 	test_modifiers()
 	test_db_and_profile()
 	test_squad_contract()
+	test_hoshiguma_blocks()
 	test_voice()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
@@ -288,3 +289,58 @@ func test_voice() -> void:
 			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
+
+
+## 星熊的新积木（docs/61「星熊」节，op_blocks.gd 末尾「星熊 hoshiguma」段）：校验正反例、编译结果、线段判定、格挡概率、随机数只在需要时取
+func test_hoshiguma_blocks() -> void:
+	var Ch = load("res://scripts/characters/character.gd")
+	var OB = load("res://scripts/characters/op_blocks.gd")
+	var hd: Dictionary = Ch.load_def("hoshiguma")
+	ok(hd.has("blocks") and Ch.validate_operator("hoshiguma", hd), "星熊（数据干员）通过校验")
+	var bads := {
+		"negate_next 只能放技能 do": func(d): d.blocks.talent[0].do.append({"verb": "negate_next"}),
+		"常驻 verb.dr 放进触发器": func(d): d.blocks.talent[0].do.append({"verb": "dr", "value": 0.1}),
+		"on_hurt 概率超过 1": func(d): d.blocks.talent[0]["chance"] = 1.5,
+		"on_hurt negate 不是布尔": func(d): d.blocks.talent[0]["negate"] = "yes",
+		"shape.line 缺 len": func(d): d.blocks.skills[2].do[2].attack.erase("len"),
+		"shape.line 伤害来源没登记": func(d): d.blocks.progression.elite2.do[0]["src"] = "没登记",
+		"swap_attack 不是伤害形状": func(d): d.blocks.skills[2].do[2]["attack"] = {"verb": "dr", "value": 0.1},
+		"verb.field 没有 do": func(d): d.blocks.trait[1].do[0].erase("do"),
+		"verb.field 的 center 写错": func(d): d.blocks.trait[1].do[0]["center"] = "moon",
+		"verb.dr 超出范围": func(d): d.blocks.skills[1].do[1]["value"] = 1.2,
+		"negate_chance 什么都没写": func(d): d.blocks.skills[1].do[2].erase("mult"),
+		"displace 缺 kb": func(d): d.blocks.talent[0].do[0].erase("kb"),
+		"on_negate 里放常驻积木": func(d): d.blocks.progression.wall.do.append({"verb": "negate_chance", "add": 0.1}),
+		"条件写错": func(d): d.blocks.talent[1]["cond"] = "beacon_chargin",
+	}
+	for why in bads:
+		var d2: Dictionary = hd.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("hoshiguma", d2), "星熊积木校验应拒绝：" + why)
+	# 编译：$ 表达式解析成数字（单运算）
+	var cb: Dictionary = OB.compile(hd)
+	near(float(cb.talent[0].chance), float(hd.base.block_chance), "编译：战术装甲概率 = $block_chance")
+	near(float(cb.skills[2].do[2].attack.kb), float(hd.base.kb) * float(hd.base.s3_kb), "编译：力之锯击退 = $kb*$s3_kb")
+	near(float(cb.trait[1].do[0].do[0].mult), float(hd.base.sand_mult) * float(hd.base.sand_tick), "编译：热砂每跳 = $sand_mult*$sand_tick")
+	ok(cb.talent[1].cond is Dictionary and str(cb.talent[1].cond.k) == "beacon_charging", "编译：beacon_charging 条件")
+	# 线段判定：原点朝右、长 220、宽 50
+	var R := Vector2.RIGHT
+	ok(OB.line_contains(Vector2.ZERO, R, 220.0, 50.0, Vector2(100, 20), 8.0), "直线斩：线内")
+	ok(not OB.line_contains(Vector2.ZERO, R, 220.0, 50.0, Vector2(100, 40), 8.0), "直线斩：偏出半宽 + 半径")
+	ok(not OB.line_contains(Vector2.ZERO, R, 220.0, 50.0, Vector2(-20, 0), 8.0), "直线斩：身后")
+	ok(OB.line_contains(Vector2.ZERO, R, 220.0, 50.0, Vector2(225, 0), 8.0), "直线斩：末端擦边")
+	# 格挡概率：Boss 用 boss_chance；negate 触发器吃 add / mult，夹到 max_chance；非 negate 触发器不吃
+	var t := {"chance": 0.2, "boss_chance": 0.1, "negate": true, "max_chance": 0.8}
+	near(OB.hurt_chance(t, false, 0.0, 1.0), 0.2, "格挡概率：普通")
+	near(OB.hurt_chance(t, true, 0.0, 1.0), 0.1, "格挡概率：Boss")
+	near(OB.hurt_chance(t, false, 0.15, 2.0), 0.7, "格挡概率：灯标 +0.15、荆棘 ×2")
+	near(OB.hurt_chance(t, false, 0.5, 2.0), 0.8, "格挡概率：封顶 max_chance")
+	near(OB.hurt_chance({}, false, 0.5, 2.0), 1.0, "非 negate 触发器：概率恒为 1，不吃加成")
+	# 随机数：概率 0 / 1 不取数（不改变 g.rng 序列），(0, 1) 取一次
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var fake := {"rng": rng}
+	var st0: int = rng.state
+	ok(OB.roll(fake, 1.0) and not OB.roll(fake, 0.0) and rng.state == st0, "roll：概率 0 / 1 不取随机数")
+	OB.roll(fake, 0.5)
+	ok(rng.state != st0, "roll：概率 (0, 1) 取一次随机数")

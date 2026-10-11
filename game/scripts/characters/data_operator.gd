@@ -120,7 +120,7 @@ func update(dt: float) -> void:
 		return
 	if no_attack or cd > 0.0:
 		return
-	var a: Dictionary = B.get("attack", {})
+	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
 	match str(a.get("shape", "")):
 		"circle":
@@ -131,10 +131,13 @@ func update(dt: float) -> void:
 		"cone":
 			var r2: float = OB.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+		"line":
+			var rl: float = float(a.get("len", 0.0)) * stat(&"op_range")
+			at = atk_point(nearest_enemies(1, rl, pos), rl)   # 手动普攻 A 类
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
-		cd = float(a.get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
+		cd = float(B.get("attack", {}).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
 		start_attack(at)
 
 
@@ -258,6 +261,7 @@ func _sustain(dt: float) -> void:
 	for u in _state.keys():
 		if not seen.has(u):
 			_state.erase(u)
+	_ext_sustain(act, dt)
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
 	var fseen := {}
 	for b in act:
@@ -331,14 +335,16 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				elif not _warned.has(fn):
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
-		if b.has("fx") and not str(b.get("_tag", "")) in ["shape.circle", "shape.cone"]:   # 伤害形状的 fx 由 exec_shape 按出手位置播
+			_:
+				_ext_exec(b, at)
+		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
 
 # ---------------------------------------------------------------- 出手
 
 func _release() -> void:
-	OB.exec_shape(self, B.get("attack", {}))
+	exec_any_shape(cur_attack(), Vector2.INF, true)
 	_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
@@ -474,3 +480,174 @@ func _find_uid(u: int) -> Dictionary:
 
 func stats_rows() -> Array:
 	return [["区域半径", "%d" % int(zr)], ["伤害倍率", "×%.2f" % float(loc.dmg)]]
+
+
+# ================================================================ 星熊 hoshiguma（docs/59 §3，docs/61「星熊」节）：新积木的执行（op_blocks.gd 末尾同名段落）
+## shape.line / verb.displace / verb.field / verb.negate_next / verb.dr / verb.negate_chance / verb.swap_attack / trig.on_hurt / trig.on_negate。
+## 受击询问走 character 的 dmg_taken_mult 挂点（combat.gd enemy_hit 在闪避 / 护盾之后、扣血之前逐个干员询问）：返回 0 = 这一下被格挡，
+## combat.gd 整下作废（不扣血、不掉灯火、不吃控制 / 侵蚀，同闪避给 0.3 秒无敌）。
+
+const FIELD_CAP := 16                   # 每名干员同时存在的地面区域上限（超出时最早的先消失）
+
+var last_hit_pos := Vector2.INF        # 上一次普攻命中的第一个敌人（verb.field center: last_hit）
+var neg_armed: Dictionary = {}         # 待命的 verb.negate_next：技能序号 → 积木
+var fields: Array = []                 # 地面区域：{pos, r, t, dur, every, n, done, do, fx}
+var ext_dr := 1.0                      # 本帧 verb.dr 的乘积
+var neg_add := 0.0                     # 本帧 verb.negate_chance 的 Σadd
+var neg_mul := 1.0                     # 本帧 verb.negate_chance 的 Πmult
+var swap_atk: Dictionary = {}          # 本帧生效的 verb.swap_attack（空 = 用 blocks.attack）
+var negate_n := 0                      # 本局格挡次数（图鉴 / 测试看）
+var _hurt_cd: Dictionary = {}          # trig.on_hurt 的冷却（_uid → 下次可触发的 g.t）
+
+
+## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack
+func cur_attack() -> Dictionary:
+	return swap_atk if not swap_atk.is_empty() else B.get("attack", {})
+
+
+## 执行一个伤害形状（circle / cone 走 op_blocks.exec_shape，line 走 exec_line）；is_attack = 普攻出手，记下第一个命中点
+func exec_any_shape(b: Dictionary, at: Vector2 = Vector2.INF, is_attack := false) -> Array:
+	var hits: Array = OB.exec_line(self, b) if str(b.get("shape", "")) == "line" else OB.exec_shape(self, b, at)
+	if is_attack:
+		last_hit_pos = hits[0].pos if not hits.is_empty() else Vector2.INF
+		if b.get("slash", false) and not hits.is_empty() and str(b.get("shape", "")) == "cone":
+			slash_fx(pos, (hits[0].pos - pos).angle(), deg_to_rad(float(b.get("half_deg", 45.0))), OB.shape_radius(self, b), col())
+	return hits
+
+
+## 常驻部分（_sustain 末尾调用；act 是本帧生效的常驻积木，条件已求值）
+func _ext_sustain(act: Array, dt: float) -> void:
+	var dr := 1.0
+	var add := 0.0
+	var mul := 1.0
+	var sw: Dictionary = {}
+	for b in act:
+		match str(b.get("_tag", "")):
+			"verb.dr":
+				dr *= 1.0 - float(b.value)
+			"verb.negate_chance":
+				add += float(b.get("add", 0.0))
+				mul *= float(b.get("mult", 1.0))
+			"verb.swap_attack":
+				if sw.is_empty():
+					sw = b.attack
+	ext_dr = dr
+	neg_add = add
+	neg_mul = mul
+	swap_atk = sw
+	# 技能结束仍没挨打：negate_next 执行 on_miss（不白放）
+	if not neg_armed.is_empty():
+		var ks: Array = neg_armed.keys()
+		ks.sort()
+		for i in ks:
+			if not skill_on(int(i)):
+				var nb: Dictionary = neg_armed[i]
+				neg_armed.erase(i)
+				_exec_list(nb.get("on_miss", []))
+	# 地面区域：按 tick 计数（第 k 次在 k × every 秒），不靠浮点累加，次数 = round(dur / every)
+	if not fields.is_empty():
+		for f in fields:
+			f.t += dt
+			while f.done < f.n and f.t >= (f.done + 1) * f.every - 0.0001:
+				f.done += 1
+				_exec_list(f.do, f.pos)
+		fields = fields.filter(func(f): return f.done < f.n)
+
+
+## 瞬时部分（_exec_list 认不出的族.名转到这里）
+func _ext_exec(b: Dictionary, at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"shape.line":
+			OB.exec_line(self, b)
+		"verb.displace":
+			OB.exec_displace(self, b, at)
+		"verb.field":
+			var c: Vector2 = OB.field_center(self, b, at)
+			if c == Vector2.INF:
+				return
+			var ev: float = float(b.every)
+			fields.append({"pos": c, "r": float(b.r) * stat(&"op_range"), "t": 0.0, "dur": float(b.dur), "every": ev,
+				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", [])})
+			if fields.size() > FIELD_CAP:
+				fields.pop_front()
+			if b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束
+				var fl: Array = []
+				for f in b.fx:
+					fl.append(f if not (f is Dictionary) or f.has("life") else f.merged({"life": float(b.dur)}))
+				OB.fx_play(self, fl, c, float(b.r) * stat(&"op_range"))
+		"verb.negate_next":
+			if cur_skill >= 0:
+				neg_armed[cur_skill] = b
+
+
+## 主控受击询问（combat.gd enemy_hit）：先用待命的 negate_next，再按固定顺序过 trig.on_hurt；格挡了返回 0，否则返回 verb.dr 的乘积
+func dmg_taken_mult() -> float:
+	var src: Dictionary = g.combat.cur_src
+	var boss: bool = src.get("boss", false)
+	var negated := false
+	if not neg_armed.is_empty():
+		var ks: Array = neg_armed.keys()
+		ks.sort()
+		var i: int = int(ks[0])
+		var nb: Dictionary = neg_armed[i]
+		neg_armed.erase(i)
+		s_t[i] = 0.0   # 「下一次」用掉了，技能随即结束
+		negated = true
+		_negate_fx(nb)
+		_defer(nb.get("on_block", []))
+	for t in _trigs():
+		if str(t.get("_tag", "")) != "trig.on_hurt" or not OB.cond_true(self, t.get("cond", {})):
+			continue
+		var neg: bool = t.get("negate", false)
+		if neg and negated:
+			continue
+		var u: int = int(t.get("_uid", 0))
+		if float(_hurt_cd.get(u, -INF)) > g.t:
+			continue
+		if not OB.roll(g, OB.hurt_chance(t, boss, neg_add, neg_mul)):
+			continue
+		if t.has("cd"):
+			_hurt_cd[u] = g.t + float(t.cd)
+		if neg:
+			negated = true
+			_negate_fx(t)
+		_defer(t.get("do", []))
+	if not negated:
+		return ext_dr
+	negate_n += 1
+	for t in _trigs():
+		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", {})):
+			_defer(t.get("do", []))
+	return 0.0
+
+
+## 受击询问里触发的积木推迟到本干员下一次 update 开头执行（延迟队列，t = 0）：enemy_hit 常在敌人遍历中途被调用，
+## 不在那里造成伤害 / 击杀，免得遍历中改敌人列表；顺序仍固定（同 seed 可复现）
+func _defer(arr: Array) -> void:
+	if not arr.is_empty():
+		pending.append({"t": 0.0, "do": arr})
+
+
+## 格挡的画面 / 声音（不碰 g.rng）：通用 fx（§5.6，中心 = 主控）、text = 飘字（缺省「格挡」）
+func _negate_fx(b: Dictionary) -> void:
+	if b.has("fx"):
+		OB.fx_play(self, b.fx, g.ppos, 30.0)
+	float_text(g.ppos + Vector2(0, -88), str(b.get("text", "格挡")), Color(1.0, 0.85, 0.4), 16)
+	_sfx_op("big")
+
+
+## 地面层：区域帧条由通用 fx 在生成时播（pfx，循环到区域结束）；没写 fx / 缺图时画程序椭圆；negate_next 待命时主控脚下一圈金色盾环
+func draw_entities_floor() -> void:
+	for f in fields:
+		if OB.fx_any_tex(self, f.fx):
+			continue
+		var a: float = clampf((f.n * f.every - f.t) / 0.4, 0.0, 1.0) * clampf(f.t / 0.15, 0.0, 1.0)
+		var cc: Color = col()
+		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, float(f.r), Color(cc.r, cc.g, cc.b, 0.16 * a))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not neg_armed.is_empty() and g.ppos != Vector2.INF:
+		var k: float = 0.55 + 0.25 * sin(g.t * 8.0)
+		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, k), 2.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
