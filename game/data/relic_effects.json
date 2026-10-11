@@ -985,6 +985,32 @@
    "rarity": "稀有",
    "effect_category": "damage"
   },
+  "80": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.2
+    },
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "class:术师"
+    }
+   ],
+   "desc": "追击与召唤物伤害 +20%；术师干员伤害 +15%",
+   "rarity": "稀有",
+   "tags": [
+    "follow_up",
+    "summon",
+    "arts"
+   ],
+   "effect_category": "followup",
+   "new": true
+  },
   "81": {
    "effects": [
     {
@@ -1039,6 +1065,29 @@
    "shop_allowed": true,
    "effect_category": "range"
   },
+  "83": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 30,
+     "do": "fill_random",
+     "args": {
+      "what": "fill_random"
+     }
+    }
+   ],
+   "desc": "每 30 秒随机一名干员的技能立即充满",
+   "rarity": "核心",
+   "lanes": [
+    "C"
+   ],
+   "tags": [
+    "skill"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "84": {
    "effects": [
     {
@@ -1074,6 +1123,76 @@
    ],
    "effect_category": "skill_cycle"
   },
+  "86": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "sp",
+     "args": {
+      "pct": 0.2
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "sp",
+     "args": {
+      "pct": 0.2
+     }
+    }
+   ],
+   "desc": "获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力",
+   "rarity": "基础",
+   "tags": [
+    "skill"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "87": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "sp",
+     "args": {
+      "pct": 0.3
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "sp",
+     "args": {
+      "pct": 0.3
+     }
+    }
+   ],
+   "desc": "获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力",
+   "rarity": "稀有",
+   "tags": [
+    "skill"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "88": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "desc": "全队技力回复 +15%",
+   "rarity": "基础",
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "89": {
    "effects": [
     {
@@ -1090,6 +1209,88 @@
    "desc": "全队技力回复速度 +30%",
    "rarity": "核心",
    "effect_category": "skill_cycle"
+  },
+  "90": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "全队技力回复 +35%",
+   "rarity": "稀有",
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "91": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sp_pulse",
+     "args": {
+      "every": 3.5,
+      "pct": 0.02
+     }
+    }
+   ],
+   "desc": "每 3.5 秒全队回复 2% 技力",
+   "rarity": "基础",
+   "tags": [
+    "skill"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "92": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sp_pulse",
+     "args": {
+      "every": 2.5,
+      "pct": 0.02
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.1
+    }
+   ],
+   "desc": "每 2.5 秒全队回复 2% 技力；全队技力回复 +10%",
+   "rarity": "稀有",
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "93": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sp_pulse",
+     "args": {
+      "every": 1.5,
+      "pct": 0.02
+     }
+    }
+   ],
+   "desc": "每 1.5 秒全队回复 2% 技力",
+   "rarity": "核心",
+   "tags": [
+    "skill"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
   },
   "94": {
    "effects": [
@@ -1265,6 +1466,29 @@
     "arts"
    ],
    "effect_category": "healing"
+  },
+  "103": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_speed",
+     "op": "mult",
+     "value": 0.85
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_kb",
+     "op": "add",
+     "value": 0.4
+    }
+   ],
+   "desc": "所有敌人移动速度 -15%，受到的击退 +40%（Boss 除外）",
+   "rarity": "稀有",
+   "tags": [
+    "control"
+   ],
+   "effect_category": "control",
+   "new": true
   },
   "105": {
    "effects": [
@@ -1683,6 +1907,42 @@
    ],
    "shop_allowed": true,
    "effect_category": "followup"
+  },
+  "130": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.25
+    },
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ]
+     },
+     "do": "sp",
+     "args": {
+      "pct": 0.002,
+      "cap": 0.01
+     }
+    }
+   ],
+   "desc": "追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）",
+   "rarity": "基础",
+   "tags": [
+    "follow_up",
+    "summon",
+    "skill"
+   ],
+   "effect_category": "followup",
+   "new": true
   },
   "133": {
    "effects": [
@@ -2586,6 +2846,28 @@
    ],
    "effect_category": "damage"
   },
+  "176": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "stack_stat",
+     "args": {
+      "stat": "sp_gain",
+      "per": 0.12,
+      "max": 4
+     }
+    }
+   ],
+   "desc": "每施放一次技能，全队技力回复 +12%（最多 4 层）",
+   "rarity": "核心",
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "177": {
    "effects": [
     {
@@ -3021,6 +3303,51 @@
    "rarity": "核心",
    "effect_category": "control"
   },
+  "232": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "damage_all",
+     "args": {
+      "cd": 30,
+      "dmg": 120,
+      "boss_pct": 0.03
+     }
+    }
+   ],
+   "desc": "主控受到伤害时，对全场敌人造成真实伤害（随时间成长，Boss 最多 3% 最大生命；冷却 30 秒）",
+   "rarity": "升华",
+   "tags": [
+    "on_damage",
+    "control"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "233": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "stun_near",
+     "args": {
+      "min_pct": 0.1,
+      "r": 180,
+      "dur": 3.0
+     }
+    }
+   ],
+   "desc": "主控一次受到超过 10% 最大生命的伤害时，周围敌人晕眩 3 秒（Boss 除外）",
+   "rarity": "核心",
+   "tags": [
+    "control",
+    "on_damage",
+    "survival"
+   ],
+   "effect_category": "control",
+   "new": true
+  },
   "234": {
    "effects": [
     {
@@ -3049,6 +3376,30 @@
    ],
    "shop_allowed": true,
    "effect_category": "followup"
+  },
+  "236": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "mult",
+     "value": 0.75
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.5
+    }
+   ],
+   "desc": "主控最大生命 -25%；全队技力回复 +50%",
+   "rarity": "稀有",
+   "tags": [
+    "skill",
+    "survival"
+   ],
+   "effect_category": "skill_cycle",
+   "new": true
   },
   "237": {
    "effects": [

@@ -308,6 +308,9 @@ func _on_gain(what: String, args: Dictionary) -> void:
 		"contract":
 			_contract_start()
 		# ---- docs/57
+		"sp":
+			_gain_sp(float(args.get("pct", 0.2)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "全队技力 +%d%%" % int(float(args.get("pct", 0.2)) * 100.0), Color(0.8, 0.9, 1.0), 16)
 		"heal_flat":
 			g.combat.heal(amt, "藏品")
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "生命 +%d" % int(amt), Color(0.55, 1.0, 0.6), 16)
@@ -1224,6 +1227,17 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 	if cls == "术师" and g.relics.has("175"):
 		shatter = mini(10, shatter + 1)
 		shatter_t = g.t
+	# docs/57：数据驱动的「命中回技力」（衍生者终端 130 等）；229 / 139 / 171 仍走上面 / 下面的写法
+	for t in _triggers("Hit"):
+		if t[0] in ["229", "139", "171", "170", "234", "169", "112", "175"] or str(t[1].get("do", "")) != "sp":
+			continue
+		var a: Dictionary = t[1].get("args", {})
+		if a.has("class") and cls != str(a.class):
+			continue
+		var cond: Dictionary = t[1].get("if", {})
+		if cond.has("tags_any") and not g.combat.is_followup(h):
+			continue
+		_budget_sp(t[0], h.get("op", "") if a.has("class") or cond.has("tags_any") else "", float(a.get("pct", 0.002)), float(a.get("cap", 0.01)))
 	if not g.combat.is_followup(h):
 		return
 	# 追击命中：扣挠之手（目标当前生命 pct，Boss boss_pct，每个敌人每 icd 秒一次；数据 #170）

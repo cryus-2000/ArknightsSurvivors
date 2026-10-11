@@ -22,6 +22,11 @@ func _process(_d: float) -> void:
 	if frames != 5:
 		return
 	rfx = game.rfx
+	# 藏品携带上限（relic/carry_cap 15）对本测试不适用：一局里要发几十件
+	Bal.v("relic/carry_cap", 15.0)
+	if not Bal._data.has("relic"):
+		Bal._data["relic"] = {}
+	Bal._data["relic"]["carry_cap"] = 999
 	test_batch_a()
 	test_batch_b_c()
 	test_batch_d_f()
@@ -134,8 +139,66 @@ func test_batch_a() -> void:
 	game.hit = {"src": "test", "emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": [], "class": "", "op": ""}
 
 
+## 批 B / C：on_gain sp + 招募回技力 / sp_pulse / stack_stat / 受击全屏真伤（冷却）/ 受重击晕眩 / 追击命中回技力
 func test_batch_b_c() -> void:
-	pass
+	var van = op_of("先锋")
+	if van == null:
+		return
+	var zero := func():
+		for o in game.squad.ops:
+			for i in 3:
+				o.sp[i] = 0.0
+	zero.call()
+	grant("86")
+	near(van.sp[0], van.sp_need(0) * 0.2, "高卢银行支票：获得时全队技力 +20%")
+	zero.call()
+	rfx.on_recruit(van)
+	near(van.sp[0], van.sp_need(0) * 0.2, "高卢银行支票：招募入队时 +20%")
+	zero.call()
+	grant("91")
+	rfx.tick(3.6)
+	near(van.sp[0], van.sp_need(0) * 0.02, "摩根队长佳酿：3.5 秒后全队 +2% 技力")
+	var sg0: float = game.stats.value(&"sp_gain")
+	grant("176")
+	rfx.on_skill_start(van, 0)
+	rfx.on_skill_start(van, 0)
+	near(game.stats.value(&"sp_gain") - sg0, 0.24, "永流之手：两次施放 +24% 技力回复")
+	for k in 5:
+		rfx.on_skill_start(van, 0)
+	near(game.stats.value(&"sp_gain") - sg0, 0.48, "永流之手：最多 4 层")
+	# 荣耀套餐：受到 ≥10% 最大生命的伤害时周围晕眩
+	grant("233")
+	var e: Dictionary = spawn(game.ppos + Vector2(60, 0))
+	e.stun = 0.0
+	rfx.on_hurt(false, game.max_hp * 0.05)
+	near(e.stun, 0.0, "荣耀套餐：5%% 的伤害不触发" % [])
+	rfx.on_hurt(false, game.max_hp * 0.2)
+	ok(e.stun >= 3.0 * game.control_mult - 0.001, "荣耀套餐：20%% 的伤害周围晕眩 3 秒（%.2f）" % e.stun)
+	# 碎片大厦的回忆：全屏真伤，30 秒冷却
+	grant("232")
+	e.maxhp = 100000.0
+	e.hp = e.maxhp
+	var hp0: float = e.hp
+	rfx.on_hurt(false, 1.0)
+	ok(e.hp < hp0, "碎片大厦：受击后全场真实伤害（%.1f → %.1f）" % [hp0, e.hp])
+	var hp1: float = e.hp
+	rfx.on_hurt(false, 1.0)
+	near(e.hp, hp1, "碎片大厦：冷却内不再触发")
+	game.t += 31.0
+	rfx.on_hurt(false, 1.0)
+	ok(e.hp < hp1, "碎片大厦：30 秒后再次触发")
+	e.dead = true
+	# 衍生者终端：追击命中回技力（有每秒上限）
+	zero.call()
+	grant("130")
+	var e2: Dictionary = spawn(game.ppos + Vector2(80, 0))
+	var h := {"src": "t", "emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up"], "class": "先锋", "op": van.id}
+	rfx.on_hit(e2, h)
+	near(van.sp[0], van.sp_need(0) * 0.002, "衍生者终端：追击命中 +0.2% 技力")
+	for k in 20:
+		rfx.on_hit(e2, h)
+	near(van.sp[0], van.sp_need(0) * 0.01, "衍生者终端：每秒最多 1%")
+	e2.dead = true
 
 
 func test_batch_d_f() -> void:
