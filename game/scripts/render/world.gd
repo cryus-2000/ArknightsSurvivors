@@ -6,6 +6,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -1249,7 +1250,11 @@ func enemy_scale(e: Dictionary) -> float:
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
 const DC_SKIP_TYPES := ["carmen", "iberia", "izumik", "path", "ishar", "paranoia"]
 
+var _no_flash: bool = Look.dbg("noflash") != ""
+var _act_mod := Color.WHITE   # 当前这只敌人的受光封顶缩放（Look.actor_mod；_espr 乘在本体 / 白闪上，描边不乘）
+
 func draw_enemy(e: Dictionary) -> void:
+	_act_mod = Look.actor_mod(g, e.pos)
 	if not dc_on or not _dc_ok(e):
 		_draw_enemy_full(e)
 		return
@@ -1355,10 +1360,12 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 
 ## 贴图绘制的包装：--dccheck 比对时只记参数（含 draw_off，vfx.spr / _spr_outline 会加上它），平时直接画
 func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
+	if _no_flash and name.ends_with("_white"):
+		return   # --lookdbg=noflash：量受击闪白对「白灰」的贡献
 	if _rec != null:
-		_rec.append(["b", name, frames, frame, pos + g.draw_off, sc, flip, col, anc, sq])
+		_rec.append(["b", name, frames, frame, pos + g.draw_off, sc, flip, col * _act_mod, anc, sq])
 		return
-	g.vfx.spr(name, frames, frame, pos, sc, flip, col, anc, sq)
+	g.vfx.spr(name, frames, frame, pos, sc, flip, col * _act_mod, anc, sq)
 
 
 func _espr_outline(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
@@ -1637,7 +1644,7 @@ func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx)
 	g.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col)
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col * Look.actor_mod(g, pos))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -3218,5 +3225,5 @@ func draw_player() -> void:
 	g.draw_set_transform(g.sprite.position + g.p_off, g.sprite.rotation + g.p_lean, Vector2(sx * g.p_sq.x, pk * g.p_sq.y))
 	# 博士挂件不受击：不吃主控的受击闪白 / 无敌闪烁（那些现在画在主控干员身上）
 	var dmod: Color = Color(0.5, 0.5, 0.6, 0.6) if g.state == Game.S.DEAD else Color.WHITE
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + g.sprite.offset, Vector2(fw, fh)), src, dmod)
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + g.sprite.offset, Vector2(fw, fh)), src, dmod * Look.actor_mod(g, g.sprite.position))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

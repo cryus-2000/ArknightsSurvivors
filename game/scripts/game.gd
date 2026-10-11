@@ -14,6 +14,7 @@ const Knight = preload("res://scripts/allies/knight.gd")
 const Touch = preload("res://scripts/touch.gd")
 const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
+const Look = preload("res://scripts/render/look.gd")   # 观感预设 render/look（角色受光封顶 / 后期曲线，scripts/render/look.gd）
 const EnemyAI = preload("res://scripts/enemies/enemy_ai.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
@@ -687,6 +688,7 @@ func _ready() -> void:
 	lamp_light.color = Color(1.0, 0.86, 0.62)
 	lamp_light.energy = 1.15
 	lamp_light.height = 90.0
+	lamp_light.enabled = Look.dbg("nolamp") == ""   # --lookdbg=nolamp：量灯火对画面的贡献（render/look.gd）
 	add_child(lamp_light)
 
 	# 2.5D 景深 / 远景水雾（在 HUD 之下）
@@ -702,6 +704,7 @@ func _ready() -> void:
 	dof_layer.add_child(dof)
 	dof_layer.visible = Cfg.dof
 	post = PostFx.new()
+	post.world = true   # 观感曲线只叠在对局画面（render/look.gd）
 	add_child(post)
 
 	var ul := CanvasLayer.new()

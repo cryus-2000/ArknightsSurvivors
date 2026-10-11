@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const Look = preload("res://scripts/render/look.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -582,7 +583,8 @@ func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, 
 
 func draw_add_layer() -> void:
 	g.draw_off = Vector2.ZERO
-	g.map.draw_god_rays(g.fx_add, g.get_viewport_rect().size, g.cam.position)
+	if Look.dbg("nogod") == "":
+		g.map.draw_god_rays(g.fx_add, g.get_viewport_rect().size, g.cam.position)
 	var loop := int(g.t * 10.0)
 	g.squad.draw_fx_add(g.fx_add, loop)
 	draw_glows(g.fx_add)   # docs/54 柔光（灯标点燃 / 升级 / 晋升 / 拾取 / 精英登场 / 商人）

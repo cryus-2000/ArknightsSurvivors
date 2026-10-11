@@ -404,6 +404,7 @@ SCENE_REGRESSIONS = {
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
+    "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
 }
 
 

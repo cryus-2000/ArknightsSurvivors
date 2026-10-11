@@ -2,6 +2,7 @@
 extends CanvasLayer
 
 const Bal = preload("res://scripts/core/balance.gd")
+const Look = preload("res://scripts/render/look.gd")
 
 var rect: ColorRect
 var mat: ShaderMaterial
@@ -9,6 +10,8 @@ var hurt := 0.0        # 由 game.gd 写入
 var crowd := 0.0       # 特效密度 0–1（render/world.gd 写入）：后期满屏特效时辉光减半，免得整片过曝
 var desat := 0.0       # 0..1 去色（最终 Boss 击破演出，screens/boss_intro.gd 写入；低画质恒 0）
 var t := 0.0
+var world := false    # 对局画面（game.gd 在 add_child 前设）：才叠观感曲线
+var _curve := false   # 观感曲线开着时整层常显
 var crisp := false     # 图鉴打开时（title.gd 写入）：不加辉光与水下滤镜（色差会把浅色终端面板的黑细线染出红绿边），亮度照常
 
 
@@ -21,6 +24,14 @@ func _ready() -> void:
 	mat.shader = load("res://shaders/post.gdshader")
 	rect.material = mat
 	add_child(rect)
+	# 观感预设（render/look，开局读一次）：高光软肩 / 黑位 / 暗部伽马 / 饱和度 / 辉光门槛。
+	# 曲线只给对局画面（world = true，game.gd 设）；标题 / 选人 / 图鉴是界面配色（docs/37），只吃亮度
+	mat.set_shader_parameter("bloom_threshold", Look.p("bloom_th"))
+	if world:
+		for k in ["shoulder", "toe", "pivot", "sat"]:
+			mat.set_shader_parameter(k, Look.p(k))
+		mat.set_shader_parameter("black_pt", Look.p("black"))
+		_curve = Look.p("shoulder") > 0.0 or Look.p("black") > 0.0 or Look.p("toe") > 1.001 or absf(Look.p("sat")) > 0.001
 
 
 func _process(delta: float) -> void:
@@ -34,4 +45,4 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("hurt", hurt)
 	mat.set_shader_parameter("desat", desat)
 	# 全关时整层隐藏，省一次全屏采样
-	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001
+	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or _curve

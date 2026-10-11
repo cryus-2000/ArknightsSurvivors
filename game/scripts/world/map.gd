@@ -3,6 +3,7 @@
 extends RefCounted
 
 const A = preload("res://scripts/art.gd")
+const Look = preload("res://scripts/render/look.gd")
 
 var g                              # Game (Node2D)
 var id := ""
@@ -426,6 +427,7 @@ func draw_god_rays(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var span: float = float(gr.get("span", 1900))
 	var col: Array = gr.get("color", [1.8, 2.4, 2.8])
 	var a0: float = float(gr.get("alpha", 0.05))
+	var gk: float = Look.p("god")   # 观感预设 render/look ≥ 3 减淡远景光束（加法层叠出的乳白雾感）
 	var t: float = g.t
 	for k in int(gr.get("count", 6)):
 		var base := fposmod(k * 331.0 - cp.x * 0.5 + t * 6.0, span) - span / 2.0
@@ -434,7 +436,7 @@ func draw_god_rays(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 		var top := cp.y - vs.y / 2.0 - 40.0
 		var bot := cp.y + vs.y / 2.0 + 40.0
 		var sl := 260.0
-		var a := a0 + 0.03 * sin(t * 0.4 + k * 1.7)
+		var a := (a0 + 0.03 * sin(t * 0.4 + k * 1.7)) * gk
 		var c0 := Color(col[0], col[1], col[2], a)
 		var c1 := Color(col[0], col[1], col[2], 0.0)
 		ci.draw_polygon(PackedVector2Array([Vector2(x, top), Vector2(x + w, top), Vector2(x + w - sl, bot), Vector2(x - sl, bot)]),

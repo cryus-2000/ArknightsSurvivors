@@ -3,6 +3,7 @@ extends Node
 
 const PATH := "user://settings.cfg"
 const D = preload("res://scripts/data.gd")
+const Look = preload("res://scripts/render/look.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
 const DIFF_VER := 2
 
@@ -22,7 +23,7 @@ var dof := true          # 2.5D 景深与前景
 var bloom := true        # 辉光
 var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
-var brightness := 1.1    # 画面亮度 0.8 ~ 1.4
+var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 画质档位 "high" / "low"（空 = 首次启动，按设备猜）：低档关后期、粒子减半、真人局同屏敌人上限 300
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
@@ -105,6 +106,7 @@ func _ready() -> void:
 		water_filter = false
 		normal_maps = false
 		dof = DisplayServer.is_touchscreen_available() == false
+	brightness = Look.p("bright_def")
 	_migrate_internal_save()
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
@@ -147,6 +149,19 @@ func _ready() -> void:
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
+	# 观感量测（render/look.gd --lookdbg）：逐层关掉后期 / 法线光照，或固定亮度
+	if Look.dbg("nonormal") != "":
+		normal_maps = false
+	if Look.dbg("nobloom") != "":
+		bloom = false
+	if Look.dbg("nofilter") != "":
+		water_filter = false
+	if Look.dbg("nodof") != "":
+		dof = false
+	if Look.dbg("nooutline") != "":
+		outline = false
+	if Look.dbg("bright") != "":
+		brightness = float(Look.dbg("bright"))
 	apply.call_deferred()
 
 
