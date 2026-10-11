@@ -65,6 +65,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		if o.has_method("dmg_taken_mult"):
 			dmg *= o.dmg_taken_mult()
 	var boss: bool = src.get("boss", false)
+	if src.get("elite", false):
+		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
 	one_cap = 0.0
@@ -87,7 +89,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
 		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay
+	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
@@ -440,7 +442,7 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
 	amount = lose_hp(amount, g.dmg_src, boss)
-	g.rfx.on_hurt(g.dmg_src == "nerve")
+	g.rfx.on_hurt(g.dmg_src == "nerve", amount)
 	g.invuln = 0.45
 	g.hurt_flash = 0.2
 	# 受击反馈按伤害占最大生命的比例分级
@@ -485,7 +487,7 @@ func update_zone(dt: float) -> void:
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
 		zone_out_t += dt
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt)
+		g.lamp = maxf(0.0, g.lamp - 6.0 * dt * g.lamp_loss_mult)
 		if zone_out_t < ZONE_GRACE:
 			return
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
@@ -935,7 +937,14 @@ func damage(e: Dictionary, dmg: float) -> void:
 	var ty: Array = [g.hit.range, g.hit.kind]
 	var weak_hit := false
 	if ty[1] != "真实":
-		dmg *= e.def * g.rfx.dmg_extra()
+		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
+		var edef: float = e.def
+		var pierce: int = g.rfx.rule("def_pierce")
+		if pierce > 0 and edef < 1.0:
+			edef = 1.0 - (1.0 - edef) * (1.0 - 0.01 * pierce)
+		dmg *= edef * g.rfx.dmg_extra()
+		if e.boss:
+			dmg *= g.boss_mult   # “文明的存续”（docs/57 P3）
 		# 弱点：对应类型伤害 +50%（藏品可加成 / 赋予双弱点）
 		var wk: String = e.get("weak", "")
 		if wk == ty[1] or (wk == "双" and ty[1] != "真实") or (g.rfx.rule("all_weak") > 0):
@@ -947,7 +956,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
 		if is_followup(g.hit):
 			dmg *= g.followup_mult * g.rfx.followup_extra()
-		dmg *= g.rfx.hit_mult(g.hit)
+		dmg *= g.rfx.hit_mult(g.hit, e)
 		# Logos「安魂」：受到的法术伤害 +15%
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
 			dmg *= 1.15

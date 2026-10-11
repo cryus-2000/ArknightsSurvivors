@@ -171,6 +171,13 @@ var followup_mult := 1.0         # 追击与召唤物伤害（docs/35）
 var heal_mult := 1.0             # 主控干员受到的回复效果
 var corrode_taken_mult := 1.0    # 受到的侵蚀
 var nerve_taken_mult := 1.0      # 神经损伤累积
+# ---- docs/57 新接的属性（原先只在 stat_defs 里有定义、没人读）
+var boss_mult := 1.0             # 对 Boss 伤害
+var lamp_loss_mult := 1.0        # 受击 / 黑潮 / 吞噬的灯火流失
+var enemy_speed_mult := 1.0      # 非 Boss 敌人移速
+var enemy_kb_mult := 1.0         # 非 Boss 敌人受到的击退
+var enemy_ranged_cd_mult := 1.0  # 远程杂兵开火间隔
+var elite_taken_mult := 1.0      # 精英来源对主控的伤害
 var in_type: Array = ["近战", "物理"]   # 当前受到的伤害类型（受击前设置）
 var dmg_type_out: Dictionary = {}     # 造成伤害按类型统计
 var RL: Dictionary = {}          # 藏品表 id -> {name, cat, desc, rarity, ...}（由 relic_fx 从 data/ 读取）
@@ -1259,6 +1266,9 @@ const STAT_SYNC := {
 	&"shop_price": "shop_price_mult", &"ally_dmg": "ally_mult", &"shield_interval": "shield_every",
 	&"enemy_hp": "enemy_hp_mult", &"enemy_dmg": "enemy_dmg_mult",
 	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
+	# docs/57 P1–P5 / P7
+	&"boss_dmg": "boss_mult", &"light_loss": "lamp_loss_mult", &"enemy_speed": "enemy_speed_mult", &"enemy_kb": "enemy_kb_mult",
+	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult",
 }
 
 

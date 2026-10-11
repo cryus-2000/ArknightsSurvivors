@@ -258,6 +258,7 @@ func gain_xp(v: float) -> void:
 		levelup_fx()
 	if g.level != lv0:
 		sync_level_pickup()
+		g.rfx.on_levelup(g.level - lv0)   # 疗养卡（docs/57 P9）
 
 
 ## 升级演出：金色光环 + 冲击波推开周围敌人 + 头顶字样，0.5 秒后再弹出选项

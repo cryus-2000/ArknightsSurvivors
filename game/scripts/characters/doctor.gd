@@ -266,6 +266,11 @@ func _press_point(o, i: int, pt: Vector2) -> void:
 ## 排异反应：博士承受，效果落在编队里随机一名能被海嗣化的干员身上（干员实现 apply_rejection）；
 ## 没有可承受的干员时改为直接削减博士生命上限
 func apply_rejection() -> String:
+	# 达里奥的提灯 / 郁金香的秘方 / 养育者基因种（docs/57 P18）：免疫次数 > 0 时这次排异被抑制
+	if g.get("rfx") != null and g.rfx.rule("rej_immune") > 0:
+		g.rfx.use_rule("rej_immune")
+		rej_log.append("已被抑制")
+		return "已被抑制"
 	rej_count += 1
 	var cands: Array = []
 	for o in g.squad.ops:

@@ -339,6 +339,7 @@ SCENE_REGRESSIONS = {
     "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
+    "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
 }
 
 

@@ -41,6 +41,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			"price_class": e.get("price_class", rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
 			"late_weight": float(e.get("late_weight", 1.0)),
+			"new_pool": bool(e.get("new", false)),   # docs/57 第二批实装：balance.json relic/new_pool = 0 时不进池（A/B 用）
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),
 		}
 	return items.size()

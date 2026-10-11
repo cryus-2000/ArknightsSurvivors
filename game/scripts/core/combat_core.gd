@@ -17,7 +17,10 @@ const Defs = preload("res://scripts/core/stat_defs.gd")
 const GAME_ACTIONS := ["light", "ingots", "heal", "sp", "stun_all", "damage_all", "damage_area", "execute",
 	"bonus_current_hp", "scale_hit", "spawn", "rejection", "recruit_knight",
 	# docs/35：护盾补满、成长三选一、典训推进、博士银印、编队上限、生还者合约
-	"shield_fill", "growth_pick", "advance_class", "silver_seal", "extra_slot", "contract"]
+	"shield_fill", "growth_pick", "advance_class", "silver_seal", "extra_slot", "contract",
+	# docs/57：剩余 129 件的原语（relic_fx.gd）
+	"invuln", "refund", "stack_stat", "stun_near", "advance", "choice_extra", "lose_hp", "clear_rejection", "random_relic",
+	"levels", "heal_flat", "recruit_one", "fill_random", "supply", "bomb", "crane", "stakes"]
 
 var bus = Bus.new()
 var stats = SB.new()

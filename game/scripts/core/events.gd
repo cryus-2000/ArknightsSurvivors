@@ -31,6 +31,7 @@ const RELIC_GAINED := &"RelicGained"    # { id }
 const HEALED := &"Healed"               # { amount, src }
 const SHIELD_BROKEN := &"ShieldBroken"  # { layers_left }
 const TICK := &"Tick"                   # { dt } 每帧一次，给计时类效果用
+const RECRUITED := &"Recruited"         # { op } 招募一名干员入队（开局干员不算；docs/57 P10）
 
 const ALL := [ATTACK_STARTED, HIT, DAMAGE_DEALT, DAMAGE_TAKEN, ENEMY_KILLED, SKILL_STARTED, SKILL_ENDED,
-	STATUS_APPLIED, DODGE, LIGHT_CHANGED, SUPPORT_ATTACKED, BOSS_KILLED, LEVEL_UP, RELIC_GAINED, HEALED, SHIELD_BROKEN, TICK]
+	STATUS_APPLIED, DODGE, LIGHT_CHANGED, SUPPORT_ATTACKED, BOSS_KILLED, LEVEL_UP, RELIC_GAINED, HEALED, SHIELD_BROKEN, TICK, RECRUITED]

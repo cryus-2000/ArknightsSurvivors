@@ -22,6 +22,76 @@
    ],
    "effect_category": "squad"
   },
+  "2": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.03
+    }
+   ],
+   "desc": "全队攻击速度 +3%",
+   "rarity": "基础",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
+  "3": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.03
+    }
+   ],
+   "desc": "全队伤害 +3%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "basic_attack"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "4": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.05
+    }
+   ],
+   "desc": "全队攻击速度 +5%",
+   "rarity": "基础",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
+  "5": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.05
+    }
+   ],
+   "desc": "全队伤害 +5%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "basic_attack"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
   "15": {
    "requires": [
     "118"
@@ -325,6 +395,36 @@
    "tags": [],
    "rarity": "基础",
    "effect_category": "defense"
+  },
+  "42": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.35
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.25
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.45
+    }
+   ],
+   "desc": "全队伤害 +35%；主控受到的伤害 -25%、最大生命 +45%",
+   "rarity": "升华",
+   "tags": [
+    "melee",
+    "survival"
+   ],
+   "effect_category": "damage",
+   "new": true
   },
   "43": {
    "effects": [
@@ -647,6 +747,63 @@
     "survival"
    ],
    "effect_category": "defense"
+  },
+  "63": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "desc": "物理伤害 +15%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "64": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "desc": "物理伤害 +25%",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "65": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "物理伤害 +35%",
+   "rarity": "核心",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ],
+   "effect_category": "damage",
+   "new": true
   },
   "66": {
    "effects": [
@@ -1427,6 +1584,46 @@
    "rarity": "升华",
    "effect_category": "damage"
   },
+  "124": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "hp_dmg",
+     "args": {
+      "max": 0.3
+     }
+    }
+   ],
+   "desc": "主控生命越高，全队伤害越高：满血时 +30%",
+   "rarity": "核心",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "125": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "low_hp_haste",
+     "args": {
+      "max": 0.6,
+      "at": 0.3
+     }
+    }
+   ],
+   "desc": "主控生命越低，全队攻击越快：生命 30% 时 +60%",
+   "rarity": "核心",
+   "tags": [
+    "attack_speed",
+    "low_hp"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
   "126": {
    "effects": [
     {
@@ -1487,6 +1684,95 @@
    "shop_allowed": true,
    "effect_category": "followup"
   },
+  "133": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "class:先锋"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "先锋干员伤害 +15%；主控最大生命 +20%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "survival"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "effect_category": "damage",
+   "new": true
+  },
+  "134": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_skill_sp",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:先锋"
+    }
+   ],
+   "desc": "先锋干员技能充能 +30%",
+   "rarity": "稀有",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "skill"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
+  },
+  "135": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "refund",
+     "args": {
+      "class": "先锋",
+      "pct": 0.35
+     }
+    }
+   ],
+   "desc": "先锋干员施放技能后，该技能立即返还 35% 技力",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "skill"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
+  },
   "136": {
    "effects": [
     {
@@ -1515,6 +1801,39 @@
    ],
    "shop_allowed": true,
    "effect_category": "skill_cycle"
+  },
+  "137": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.1,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "近卫干员伤害 +10%；主控最大生命 +20%",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "survival"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true,
+   "effect_category": "damage",
+   "new": true
   },
   "138": {
    "effects": [
@@ -1564,6 +1883,39 @@
    "shop_allowed": true,
    "effect_category": "skill_cycle"
   },
+  "140": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.2,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.05
+    }
+   ],
+   "desc": "近卫干员攻击范围 +20%；主控受到的伤害 -5%",
+   "rarity": "稀有",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "survival"
+   ],
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true,
+   "effect_category": "range",
+   "new": true
+  },
   "141": {
    "effects": [
     {
@@ -1600,6 +1952,39 @@
    "shop_allowed": true,
    "effect_category": "damage"
   },
+  "142": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.25
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 1
+    }
+   ],
+   "desc": "主控最大生命 +25%、物理减伤 +1",
+   "rarity": "基础",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "survival"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true,
+   "max_lv": 1,
+   "effect_category": "defense",
+   "new": true
+  },
   "143": {
    "effects": [
     {
@@ -1621,6 +2006,46 @@
    ],
    "shop_allowed": true,
    "effect_category": "damage"
+  },
+  "144": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:重装"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:重装"
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": 0.1
+    }
+   ],
+   "desc": "重装干员伤害 +40%、攻击速度 +30%；主控受到的伤害 +10%",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true,
+   "effect_category": "damage",
+   "new": true
   },
   "145": {
    "effects": [
@@ -1646,6 +2071,41 @@
    ],
    "shop_allowed": true,
    "effect_category": "skill_cycle"
+  },
+  "146": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "class": "重装",
+      "stat": "dmg",
+      "op": "add",
+      "value": 0.5,
+      "stat2": "dmg_taken",
+      "value2": -0.3,
+      "dur": 5.0
+     }
+    }
+   ],
+   "desc": "重装干员开启技能后 5 秒内，全队伤害 +50%、主控受到的伤害 -30%（再次开启刷新时长）",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "skill",
+    "survival"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true,
+   "effect_category": "damage",
+   "new": true
   },
   "148": {
    "effects": [
@@ -1795,6 +2255,58 @@
    ],
    "effect_category": "defense"
   },
+  "163": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "class:特种"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "desc": "特种干员伤害 +15%；主控最大生命 +25%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "class",
+    "survival"
+   ],
+   "requires_class": [
+    "特种"
+   ],
+   "effect_category": "damage",
+   "new": true
+  },
+  "164": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.2,
+     "scope": "class:特种"
+    }
+   ],
+   "desc": "特种干员攻击速度 +20%",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "class",
+    "attack_speed"
+   ],
+   "requires_class": [
+    "特种"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
+  },
   "165": {
    "effects": [
     {
@@ -1815,6 +2327,76 @@
     "特种"
    ],
    "effect_category": "damage"
+  },
+  "166": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Dodge",
+     "do": "invuln",
+     "args": {
+      "dur": 1.0
+     }
+    }
+   ],
+   "desc": "主控闪避后 1 秒内无敌",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "on_dodge",
+    "survival"
+   ],
+   "effect_category": "dodge",
+   "new": true
+  },
+  "167": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_kb",
+     "op": "add",
+     "value": 0.6
+    }
+   ],
+   "desc": "全队攻击对敌人的击退 +60%（Boss 除外）",
+   "rarity": "基础",
+   "tags": [
+    "melee",
+    "control"
+   ],
+   "effect_category": "control",
+   "new": true
+  },
+  "168": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Tick",
+     "do": "damage_area",
+     "args": {
+      "every": 1,
+      "radius": 100,
+      "class": "重装",
+      "dmg": 12
+     }
+    }
+   ],
+   "desc": "重装干员每秒对身边敌人造成法术伤害（随时间成长）",
+   "rarity": "核心",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "arts"
+   ],
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true,
+   "effect_category": "damage",
+   "new": true
   },
   "169": {
    "effects": [
@@ -1922,6 +2504,37 @@
     "squad"
    ],
    "effect_category": "attack_speed"
+  },
+  "173": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "EnemyKilled",
+     "do": "sp",
+     "args": {
+      "class": "先锋",
+      "pct": 0.03,
+      "cap": 0.09
+     }
+    }
+   ],
+   "desc": "先锋干员每次击杀回复 3% 技力（每秒最多 9%）",
+   "rarity": "稀有",
+   "lanes": [
+    "A"
+   ],
+   "tags": [
+    "melee",
+    "class",
+    "skill",
+    "on_kill"
+   ],
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "effect_category": "skill_cycle",
+   "new": true
   },
   "174": {
    "effects": [
@@ -2337,6 +2950,24 @@
    ],
    "effect_category": "ending"
   },
+  "227": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "boss_dmg",
+     "op": "add",
+     "value": 0.5
+    }
+   ],
+   "desc": "对 Boss 造成的伤害 +50%",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "execute"
+   ],
+   "effect_category": "weakness",
+   "new": true
+  },
   "228": {
    "effects": [
     {
@@ -2418,6 +3049,29 @@
    ],
    "shop_allowed": true,
    "effect_category": "followup"
+  },
+  "237": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.1
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_atk_speed",
+     "op": "mult",
+     "value": 0.9
+    }
+   ],
+   "desc": "全队攻击速度 +10%；所有敌人攻击速度 -10%",
+   "rarity": "稀有",
+   "tags": [
+    "attack_speed"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
   },
   "238": {
    "effects": [

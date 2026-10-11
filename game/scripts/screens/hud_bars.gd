@@ -298,6 +298,10 @@ func draw_status_bar(vs: Vector2) -> void:
 	for x in g.rfx.temps:
 		if x.stat == "dmg":
 			items.append(["增伤 +%d%%" % int(x.value * 100.0), Color(1.0, 0.75, 0.4), clampf((x.until - g.t) / 6.0, 0.0, 1.0)])
+		elif x.stat == "op_aspd":
+			items.append(["攻速 +%d%%" % int(x.value * 100.0), Color(1.0, 0.9, 0.5), clampf((x.until - g.t) / 10.0, 0.0, 1.0)])
+		elif x.stat == "dmg_taken":
+			items.append(["减伤 %d%%" % int(-x.value * 100.0), Color(0.6, 0.9, 1.0), clampf((x.until - g.t) / 5.0, 0.0, 1.0)])
 	if g.rfx.rule("black_tulip") > 0 and g.rfx.tulip_t > 1.0:
 		items.append(["郁金香 +%d%%" % int(80.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
 	if g.rfx.perm_dmg > 0.0:

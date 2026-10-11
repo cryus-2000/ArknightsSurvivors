@@ -501,6 +501,17 @@ func apply_rejection() -> String:
 	return "%s「%s」海嗣化：技能强度 +40%%、充能 +30%%；主控最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
 
 
+## 解除一个排异反应（docs/57 P18）：撤销那次排异加的属性来源。没有排异时返回 false
+func clear_rejection() -> bool:
+	if rej.is_empty():
+		return false
+	var i: int = rej.keys()[0]
+	rej.erase(i)
+	g.stats.remove_source("rej:%s:%d" % [id, i])
+	refresh_stats()
+	return true
+
+
 ## 精英化演出：新技能（+ 精一天赋）
 func _elite_show(stage: int) -> void:
 	var items: Array = [skill_item(stage)]
