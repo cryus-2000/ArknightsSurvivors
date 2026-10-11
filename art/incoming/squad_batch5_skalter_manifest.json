@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_skalter_idle.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "584dce29491a4baedac8a3f1ab6cfa780ec5971b9c4aab7bdf9b971a2ec91a5a"
+    },
+    {
+      "file": "op_skalter_idle@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "c888ddd068d7eaf99e6ac58e46bc92c8e774d1ed656694d8bfee30ffb88a1cdc"
+    },
+    {
+      "file": "op_skalter_run.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "e0cdd9a9ac158678c1f6b995f393c5d7f90be168ea974ea2761e551e7d22d0e1"
+    },
+    {
+      "file": "op_skalter_run@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "ec31ff6faba036fb7e2781f8dc6bd96dd04fedb98e151818ec9e2ca0f2758ab6"
+    },
+    {
+      "file": "op_skalter_attack.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 1,
+      "sha256": "f5dd8c278e84fea96befa02c30435478ff174f5b901a10a0200e79e7f7d0a42c"
+    },
+    {
+      "file": "op_skalter_attack@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 2,
+      "sha256": "c93e07ef5759cd784ff2428c2bf7941651d24b6c2babd678666f6eb27da944b0"
+    },
+    {
+      "file": "op_skalter_skill.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "6d9cde940a8f23a7b7f92d941c4f4f9f59cd204243d9efc791158f98a8ace082"
+    },
+    {
+      "file": "op_skalter_skill@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "6436bd332da3899c52cf957cf6ffec41a2b79c657bbd2d4b6a89b07db9ed2319"
+    }
+  ]
+}

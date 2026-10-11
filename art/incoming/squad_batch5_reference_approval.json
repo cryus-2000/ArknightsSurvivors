@@ -1,0 +1,57 @@
+{
+  "references": [
+    {
+      "source_original_sha256": "afc294eb687b56e4cfad3dd735779bdb838d50b88a2318b4cdae8a6db294f5d8",
+      "reference_file": "skalter_e0.png",
+      "weapon_approved": true,
+      "reference_sha256": "8bec51bb13c8a145b5a1fec0d7c8a059350b7586a6de4b5255b7c3f114ed972f",
+      "standing_art_approved": true,
+      "id": "skalter",
+      "version": "elite0",
+      "source_url": "https://media.prts.wiki/2/26/%E7%AB%8B%E7%BB%98_%E6%B5%8A%E5%BF%83%E6%96%AF%E5%8D%A1%E8%92%82_1.png?image_process=format,webp/quality,Q_90"
+    },
+    {
+      "source_original_sha256": "9d6dbbcd645d47299cde2e137e9e7b6956eee95505a1f401986ce25987b1a5ec",
+      "reference_file": "texas.png",
+      "weapon_approved": true,
+      "reference_sha256": "237b8ec04c637aeea09ff04e2728c62332e79644c3e392dde0da676a58138712",
+      "standing_art_approved": true,
+      "id": "texas",
+      "version": "elite0",
+      "source_url": "https://media.prts.wiki/f/fc/%E7%AB%8B%E7%BB%98_%E5%BE%B7%E5%85%8B%E8%90%A8%E6%96%AF_1.png?image_process=format,webp/quality,Q_90"
+    },
+    {
+      "source_original_sha256": "444996c5ecfb95ed215977b8f3b99c2d381743f8ebe825e516e3fba57d3beccf",
+      "reference_file": "hoshiguma.png",
+      "weapon_approved": true,
+      "reference_sha256": "c68111af0e020b32446e5352c868699c5c45aea14498e61a74cb01f0e6ded9a2",
+      "standing_art_approved": true,
+      "id": "hoshiguma",
+      "version": "elite0",
+      "source_url": "https://media.prts.wiki/d/d4/%E7%AB%8B%E7%BB%98_%E6%98%9F%E7%86%8A_1.png?image_process=format,webp/quality,Q_90"
+    },
+    {
+      "source_original_sha256": "2c54b0deb3b2ea096db063128bc441297b91735b238d5f3f9d199794d0a20da1",
+      "reference_file": "exusiai.png",
+      "weapon_approved": true,
+      "reference_sha256": "f747d1465897763c9f84e289732077ae1817e50ead646e91de687687c0ac8546",
+      "standing_art_approved": true,
+      "id": "exusiai",
+      "version": "elite0",
+      "source_url": "https://media.prts.wiki/b/bd/%E7%AB%8B%E7%BB%98_%E8%83%BD%E5%A4%A9%E4%BD%BF_1.png?image_process=format,webp/quality,Q_90"
+    },
+    {
+      "source_original_sha256": "76c6fbcd4e299a92008a7466d5dd8c4d31a10d0cc583f8a4de62332f4dd83e46",
+      "reference_file": "angelina.png",
+      "weapon_approved": true,
+      "reference_sha256": "a17f6bd67840695367bd6ea0cea6420bccb1bd26850b49a74ea9468a340e1331",
+      "standing_art_approved": true,
+      "id": "angelina",
+      "version": "elite0",
+      "source_url": "https://media.prts.wiki/f/fe/%E7%AB%8B%E7%BB%98_%E5%AE%89%E6%B4%81%E8%8E%89%E5%A8%9C_1.png?image_process=format,webp/quality,Q_90"
+    }
+  ],
+  "interpretation": "浊心斯卡蒂精零并保留手持物；其余四人立绘和装备均通过",
+  "date": "2026-10-11",
+  "user_quote": "1. 用精0增加手持物，剩余私人没问题"
+}

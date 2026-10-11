@@ -67,6 +67,11 @@ func update(dt: float) -> void:
 			e.stun = 0.0
 		e.squash -= dt
 		e.slow -= dt / g.control_mult
+		# 灯边硬直（docs/56 §10，beacon.melee_stagger 写入）：和眩晕一样不移动、不出招，但不是 e.stun（不吃控制时长加成、不触发「对眩晕敌人」的加成）
+		var bst: float = e.get("bstag", 0.0)
+		if bst > 0.0:
+			bst -= dt
+			e.bstag = bst
 		if e.get("wind", 0.0) > 0.0:
 			e.wind -= dt
 		if e.get("pose", 0.0) > 0.0:
@@ -160,10 +165,11 @@ func update(dt: float) -> void:
 			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
 			move_dir = (e.aggro - e.pos).normalized()
 			e.aggro = Vector2.INF
-		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if e.stun <= 0.0 else Vector2.INF
+		var held: bool = e.stun > 0.0 or bst > 0.0
+		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if not held else Vector2.INF
 		if ov != Vector2.INF:
 			v += ov
-		elif e.stun <= 0.0:
+		elif not held:
 			match e.ai:
 				"melee":
 					v += move_dir * spd

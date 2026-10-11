@@ -102,6 +102,18 @@ func run() -> void:
 			n += 1
 	check(title.op_defs.size() == n, "roster has all %d recruitable operators (got %d)" % [n, title.op_defs.size()])
 	check(cur_id() == "mizuki", "opens on configured operator")
+	# 立绘适配：每名干员（桌面 / 手机两套版式）待机帧并集区按选定整数倍放进舞台框（四边至少留 2）
+	for ph in [false, true]:
+		Cfg._touch = 1 if ph else 0
+		var sr: Rect2 = title._op_stage_rect()
+		for od in title.op_defs:
+			var fit: Array = title._op_fit(od, ph)
+			var bb: Rect2 = od.bb
+			var sz: Vector2 = bb.size * 2.0 / float(od.hires) * float(fit[0])
+			var box := Rect2(fit[1].x - sz.x / 2.0, fit[1].y - sz.y, sz.x, sz.y)
+			check(float(fit[0]) == floorf(float(fit[0])) and float(fit[0]) >= 1.0, "integer art scale for %s" % od.id)
+			check(sr.grow(-2.0).encloses(box), "%s art fits stage (%s) on %s: %s" % [od.id, str(sr), "phone" if ph else "desktop", str(box)])
+	Cfg._touch = -1
 	# 键盘：→ 换人、↓ 换页签、E 职业筛选、Q 回到全部、Tab 换技能行
 	var s0: int = title.op_sel
 	await key(KEY_RIGHT)

@@ -1,0 +1,532 @@
+{
+  "passed": true,
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_exusiai_idle.png",
+      "sha256": "8ea7b7bc787750cf5d05548b466270606f5e42235d9af1a8ee4b075328acde06",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            12,
+            11,
+            35,
+            46
+          ],
+          "pixel_sha256": "e3cbe7d690e61fb1bd778aa964c29e8664c9ae62870e8783fcdb15f3bbe54c2f",
+          "opaque_pixels": 526
+        },
+        {
+          "index": 1,
+          "bbox": [
+            12,
+            11,
+            35,
+            46
+          ],
+          "pixel_sha256": "09ad30f0d76cc985fc31ac87c9aaf530a59001c04e32873cdf6cce92300027f7",
+          "opaque_pixels": 526
+        },
+        {
+          "index": 2,
+          "bbox": [
+            12,
+            11,
+            35,
+            46
+          ],
+          "pixel_sha256": "8ab289c1ec0912de9cf1b233318fbcfab83aa5cf0001e6b52de638878596b1c7",
+          "opaque_pixels": 526
+        },
+        {
+          "index": 3,
+          "bbox": [
+            12,
+            11,
+            35,
+            46
+          ],
+          "pixel_sha256": "940242177219d0def473ed08edeca049878d1be80d12633f228ae9753fdf67d3",
+          "opaque_pixels": 527
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_exusiai_idle@2x.png",
+      "sha256": "033f95ff23bd768bbff09e88859fdc3c63cdc73838346cbde2a4c1bbd86291fd",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            24,
+            21,
+            72,
+            92
+          ],
+          "pixel_sha256": "250c035b4ebc99e5043b74cb9bbdbd7e6598bed18cb20bdd5183927a20eeb9ed",
+          "opaque_pixels": 2221
+        },
+        {
+          "index": 1,
+          "bbox": [
+            24,
+            21,
+            72,
+            92
+          ],
+          "pixel_sha256": "45f12604ca0ee81dcf15a06515734aac96ced786487488d099aeddd79446ef97",
+          "opaque_pixels": 2221
+        },
+        {
+          "index": 2,
+          "bbox": [
+            24,
+            21,
+            72,
+            92
+          ],
+          "pixel_sha256": "96c91fa55d1a46958a90c2b535295833f394caf0a1b93bddbf055cf81239bd78",
+          "opaque_pixels": 2221
+        },
+        {
+          "index": 3,
+          "bbox": [
+            24,
+            21,
+            72,
+            92
+          ],
+          "pixel_sha256": "6ed6b0f181a4d2996b70b1473934e81407d28a701771b5e7968a39408fe76f0a",
+          "opaque_pixels": 2218
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_exusiai_run.png",
+      "sha256": "ac308561a281601c0100023c09d81ace41136f2bcdcbe820d9a15aa6763e14a7",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            11,
+            14,
+            37,
+            46
+          ],
+          "pixel_sha256": "388d7fea5d679ecd2f52fbaae17548084892cffafd0fa540b77a5ceca808aad4",
+          "opaque_pixels": 520
+        },
+        {
+          "index": 1,
+          "bbox": [
+            10,
+            14,
+            37,
+            46
+          ],
+          "pixel_sha256": "4d384bf64b005139106a531935dd90b008555ce6e622fcf88e820da427036c25",
+          "opaque_pixels": 526
+        },
+        {
+          "index": 2,
+          "bbox": [
+            10,
+            14,
+            37,
+            46
+          ],
+          "pixel_sha256": "38675ec6d11d355cc8baab7daa546c06854b8698106c9bc2fe06942f6eb24d55",
+          "opaque_pixels": 515
+        },
+        {
+          "index": 3,
+          "bbox": [
+            10,
+            13,
+            37,
+            46
+          ],
+          "pixel_sha256": "30f1e6c22e33c68b1efaf44b7c5af261f0f8fb97e8c0cee0b90bdb4272ff5047",
+          "opaque_pixels": 531
+        },
+        {
+          "index": 4,
+          "bbox": [
+            10,
+            11,
+            37,
+            46
+          ],
+          "pixel_sha256": "ea5a71f12d00b44326fafa25ee5795b156e185520968a26f255704d75c07b35e",
+          "opaque_pixels": 563
+        },
+        {
+          "index": 5,
+          "bbox": [
+            10,
+            12,
+            37,
+            46
+          ],
+          "pixel_sha256": "98a1fad261e16a6c95ace11ea4de4332627178ae6582729c091f94ec7b7d8e17",
+          "opaque_pixels": 529
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_exusiai_run@2x.png",
+      "sha256": "776d02ea74e3062368f7dfc247b1b521bf7a3541fdd291917e08ff5711379c1a",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            20,
+            24,
+            76,
+            92
+          ],
+          "pixel_sha256": "9935f2d811785885af9064cf7d511220b84b0a59dbb041bafd309e5dd0801e67",
+          "opaque_pixels": 2257
+        },
+        {
+          "index": 1,
+          "bbox": [
+            18,
+            24,
+            76,
+            92
+          ],
+          "pixel_sha256": "5072c95a4a7dd7cc37d5a7a79fb56b9a0d44f7566dd1583b958c98e107f7a888",
+          "opaque_pixels": 2299
+        },
+        {
+          "index": 2,
+          "bbox": [
+            18,
+            24,
+            76,
+            92
+          ],
+          "pixel_sha256": "9593f42121012e89ba994ee1ace27f461f7e8165fd600e95dc4f966ec2e28378",
+          "opaque_pixels": 2261
+        },
+        {
+          "index": 3,
+          "bbox": [
+            20,
+            26,
+            76,
+            92
+          ],
+          "pixel_sha256": "5a1ad0de2f8fa5bc81ea0906894211224cacc15125bd854125cc1412c7b93f03",
+          "opaque_pixels": 2238
+        },
+        {
+          "index": 4,
+          "bbox": [
+            20,
+            22,
+            76,
+            92
+          ],
+          "pixel_sha256": "4cfb6dd34d2a0c884b1a885b47c0aaa2c83df7c5b852bc7ac68ed96e2efe0d42",
+          "opaque_pixels": 2313
+        },
+        {
+          "index": 5,
+          "bbox": [
+            20,
+            22,
+            76,
+            92
+          ],
+          "pixel_sha256": "e221bffca391ace900d958a7e46950a162c5c2fef3eedea64f093b45963c1e53",
+          "opaque_pixels": 2312
+        }
+      ]
+    },
+    {
+      "binary_alpha": true,
+      "frames": [
+        {
+          "pixel_sha256": "2635bb875091a5e1968ef8a9441d8e50069770e54893b95332088e2bccf2a42c",
+          "index": 0,
+          "opaque_pixels": 553,
+          "bbox": [
+            9,
+            12,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "638596cab8fdfccff66c5d32a105102afeb59605bf0db14be0a305499286c4bd",
+          "index": 1,
+          "opaque_pixels": 564,
+          "bbox": [
+            9,
+            12,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "3b652e7d879b4c7cf192f3c95f641a495e21486a57dd21a3a304e37502984190",
+          "index": 2,
+          "opaque_pixels": 564,
+          "bbox": [
+            9,
+            12,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "f47b264a52e285280be277ee53659a1a9132c15e91dad13b84976bd7408d13b1",
+          "index": 3,
+          "opaque_pixels": 566,
+          "bbox": [
+            9,
+            12,
+            38,
+            46
+          ]
+        }
+      ],
+      "file": "op_exusiai_attack.png",
+      "sha256": "88c2823b77e086397154601e0d361714aa1fc800e8a4049d0cc40350af8012d7",
+      "outline": "080E18"
+    },
+    {
+      "binary_alpha": true,
+      "frames": [
+        {
+          "pixel_sha256": "f91e95bc063c8954088419ad42078d063c6f5a9dba565afba1e58b82c6b8dcdb",
+          "index": 0,
+          "opaque_pixels": 2333,
+          "bbox": [
+            18,
+            23,
+            77,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "03d8ae66e4eadfea768db30c9a3859b9146d8714c9f32c53426819b2ec572c7e",
+          "index": 1,
+          "opaque_pixels": 2304,
+          "bbox": [
+            19,
+            23,
+            78,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "366b4391d9670bfd9334d27993b2509fa082342b9c96851f995b4b18394a307b",
+          "index": 2,
+          "opaque_pixels": 2357,
+          "bbox": [
+            17,
+            23,
+            78,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "0eb837f2f41ff5660ea7d644852da957a8596f8d53a086aab16d1f2fb9698646",
+          "index": 3,
+          "opaque_pixels": 2365,
+          "bbox": [
+            18,
+            23,
+            78,
+            92
+          ]
+        }
+      ],
+      "file": "op_exusiai_attack@2x.png",
+      "sha256": "89eb3cae6000d6c4b1f94350f3cfecc8c49e8e381920b6f066b21258ea092339",
+      "outline": "080E18"
+    },
+    {
+      "binary_alpha": true,
+      "frames": [
+        {
+          "pixel_sha256": "0aaa6900003bae98a9d4cae5c0ee2f929924dd187db2ee43e6c31bb8898a9da5",
+          "index": 0,
+          "opaque_pixels": 519,
+          "bbox": [
+            12,
+            12,
+            34,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "d58dbe159d03081218223666adcb6bfd361e2cb1036b146bb7ec31010b130a8c",
+          "index": 1,
+          "opaque_pixels": 539,
+          "bbox": [
+            13,
+            12,
+            35,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "dcca5b05a5120a71bf8351c3c319225669651c13d836e9c3b4be348a1c4d9353",
+          "index": 2,
+          "opaque_pixels": 558,
+          "bbox": [
+            9,
+            13,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "b8779ef2c232ba8d6ed2323d42527c581e0c0dd5cec77f000c7df0162bce9363",
+          "index": 3,
+          "opaque_pixels": 585,
+          "bbox": [
+            10,
+            11,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "9611160ac9bd408921d4ecfb2be81aeaba95e0d5c2c8adff323cd741f544b72b",
+          "index": 4,
+          "opaque_pixels": 582,
+          "bbox": [
+            9,
+            12,
+            39,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "49aced09b621fa934d9bceec3eecffeeb65c2b0926d722ba8abd325b9f6676c2",
+          "index": 5,
+          "opaque_pixels": 573,
+          "bbox": [
+            10,
+            11,
+            38,
+            46
+          ]
+        },
+        {
+          "pixel_sha256": "e3cbe7d690e61fb1bd778aa964c29e8664c9ae62870e8783fcdb15f3bbe54c2f",
+          "index": 6,
+          "opaque_pixels": 526,
+          "bbox": [
+            12,
+            11,
+            35,
+            46
+          ]
+        }
+      ],
+      "file": "op_exusiai_skill.png",
+      "sha256": "71f7d2d3331018fbe00224bb92b8eff30e14d4730a3598aaeba8680ed9aa3938",
+      "outline": "080E18"
+    },
+    {
+      "binary_alpha": true,
+      "frames": [
+        {
+          "pixel_sha256": "a065c77c6896dd9508cffe5ca1598624cbca92d7f1d35cb5a81e4158fbb1bd98",
+          "index": 0,
+          "opaque_pixels": 2228,
+          "bbox": [
+            23,
+            23,
+            71,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "9d30aa43d332854bbbcf9a6a19c49947dc7e188849fa9d2338bd8561d8edc8d2",
+          "index": 1,
+          "opaque_pixels": 2224,
+          "bbox": [
+            23,
+            23,
+            72,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "ec0c260f9eeb7253a7041f70f4163687d52531dbfd4c5dc2471efb7e89d3163f",
+          "index": 2,
+          "opaque_pixels": 2363,
+          "bbox": [
+            18,
+            23,
+            78,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "7ea4e6c08a0614d7b90cefdeb05a0d55343ae71f4664377df75807eda57bea3e",
+          "index": 3,
+          "opaque_pixels": 2419,
+          "bbox": [
+            17,
+            21,
+            78,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "a9cb9571ad26f0028461b5bfcd91853891b84da60d465c4dccfb742e78d8ed85",
+          "index": 4,
+          "opaque_pixels": 2423,
+          "bbox": [
+            16,
+            22,
+            79,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "9e4c20224df1b517370b1260c5246f4a5eee93e1637e6eca19215556069d24f8",
+          "index": 5,
+          "opaque_pixels": 2412,
+          "bbox": [
+            18,
+            20,
+            77,
+            92
+          ]
+        },
+        {
+          "pixel_sha256": "250c035b4ebc99e5043b74cb9bbdbd7e6598bed18cb20bdd5183927a20eeb9ed",
+          "index": 6,
+          "opaque_pixels": 2221,
+          "bbox": [
+            24,
+            21,
+            72,
+            92
+          ]
+        }
+      ],
+      "file": "op_exusiai_skill@2x.png",
+      "sha256": "4d16438b0acf1f1356e4b08fe008aaa63b3b67d258009c1422c3d6a92ae51069",
+      "outline": "080E18"
+    }
+  ]
+}
