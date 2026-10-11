@@ -335,24 +335,24 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 1.1 秒朝最近敌人方向冲刺 140（宽 44，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +0.6 秒"},
  "skills": [
   {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 130 落下剑雨，×1.6 并眩晕 0.5 秒（精英 0.25 秒，Boss 不晕），全队技力 +10%", "icon": "skill_texas_s1"},
-  {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +40%、疾行斩 ×1.3；主控的冲刺冷却 -20%", "icon": "skill_texas_s2"},
-  {"name": "速递", "en": "EXPRESS DELIVERY", "sp": 20, "dur": 8.0, "desc": "8 秒内每 0.5 秒向敌群最密处冲刺一次（×0.9），穿过的敌人眩晕 0.3 秒、全队技力 +0.4 秒；结束时落点剑雨 ×1.6", "icon": "skill_texas_s3"}
+  {"name": "冲锋号令·γ型", "en": "CHARGE γ", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +40%、疾行斩 ×1.3；主控的冲刺冷却 -20%", "icon": "skill_texas_s2"},
+  {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "8 秒内每 0.5 秒向敌群最密处冲刺一次（×0.9），穿过的敌人眩晕 0.3 秒、全队技力 +0.4 秒；结束时落点剑雨 ×1.6", "icon": "skill_texas_s3"}
  ],
- "talent": {"name": "冲锋手", "desc": "主控按下冲刺时德克萨斯同步冲一次疾行斩（每 2 秒至多一次）并全队技力 +1 秒；一次穿过 3 名以上敌人时额外 +0.3 秒"},
+ "talent": {"name": "战术快递", "desc": "主控按下冲刺时德克萨斯同步冲一次疾行斩（每 2 秒至多一次）并全队技力 +1 秒；一次穿过 3 名以上敌人时额外 +0.3 秒"},
  "hit_sources": {
   "疾行斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
   "剑雨": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "stun"]},
-  "速递": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "stun"]},
+  "剑雨滂沱": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "stun"]},
   "回马剑": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up", "pierce"]},
   "余像": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "dot", "control"]}
  },
  "progression": [
   {"type": "custom", "id": "wide", "name": "阔剑", "icon": "growth_b_range", "desc": "冲刺宽度 +30%"},
   {"type": "custom", "id": "sharp", "name": "利刃", "icon": "growth_b_atk", "desc": "疾行斩 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「冲锋手」：主控冲刺时她同步冲刺并为全队回技力"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「冲锋号令·γ型」；解锁天赋「战术快递」：主控冲刺时她同步冲刺并为全队回技力"},
   {"type": "custom", "id": "back", "name": "回马剑", "icon": "growth_b_echo", "desc": "冲到头 0.2 秒后原路反冲一次（50% 伤害）"},
   {"type": "custom", "id": "rain2", "name": "剑雨·连", "icon": "skill_texas_s1", "desc": "「剑雨」0.3 秒后再落一次（60% 伤害，重新瞄准）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「速递」；普攻质变「余像」：冲刺路径上留下 0.6 秒剑气残像，踩进的敌人受 30% 伤害并减速"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：冲刺路径上留下 0.6 秒剑气残像，踩进的敌人受 30% 伤害并减速"}
  ],
  "gallery": {"tags": ["近战", "位移", "穿透", "技力"], "desc": "冲刺穿过敌阵为全队回技力；你一按冲刺，她就跟着冲"}
 }
@@ -390,28 +390,28 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  },
  "attack": {"mode": "auto", "name": "盾斧斩", "desc": "每 1.1 秒前压横扫 140°（半径 110），命中击退"},
  "skills": [
-  {"name": "举盾", "en": "SHIELD UP", "sp": 6, "dur": 3.0, "desc": "3 秒内主控下一次受到的伤害被完全格挡（不掉灯火），格挡瞬间反手重斩半径 120 ×2.0 并击退；没挨打则向前一记 ×1.5", "icon": "skill_hoshiguma_s1"},
-  {"name": "热砂", "en": "SCORCHING SANDS", "sp": 14, "dur": 8.0, "desc": "8 秒：攻击 +40%、主控受到的伤害 -20%、「盾卫」概率 ×2；斩击落点留下 2 秒热砂，踩进的敌人每秒灼伤", "icon": "skill_hoshiguma_s2"},
-  {"name": "魔王", "en": "DEMON KING", "sp": 22, "dur": 10.0, "desc": "10 秒：攻击 +60%，盾斧斩改为直线斩（长 220、宽 50，命中沿线全部），击退 ×1.5；主控受伤 -30%，每次受击触发半径 120 震退", "icon": "skill_hoshiguma_s3"}
+  {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "3 秒内主控下一次受到的伤害被完全格挡（不掉灯火），格挡瞬间反手重斩半径 120 ×2.0 并击退；没挨打则向前一记 ×1.5", "icon": "skill_hoshiguma_s1"},
+  {"name": "荆棘", "en": "THORNS", "sp": 14, "dur": 8.0, "desc": "8 秒：攻击 +40%、主控受到的伤害 -20%、「战术装甲」概率 ×2；斩击落点留下 2 秒热砂，踩进的敌人每秒灼伤", "icon": "skill_hoshiguma_s2"},
+  {"name": "力之锯", "en": "SAW OF STRENGTH", "sp": 22, "dur": 10.0, "desc": "10 秒：攻击 +60%，盾斧斩改为直线斩（长 220、宽 50，命中沿线全部），击退 ×1.5；主控受伤 -30%，每次受击触发半径 120 震退", "icon": "skill_hoshiguma_s3"}
  ],
- "talent": {"name": "盾卫", "desc": "主控每次受伤 20% 概率完全免伤（Boss 攻击 10%），免伤的攻击不掉灯火，并推开半径 90 内敌人；灯标读条期间概率 +15%"},
+ "talent": {"name": "战术装甲", "desc": "主控每次受伤 20% 概率完全免伤（Boss 攻击 10%），免伤的攻击不掉灯火，并推开半径 90 内敌人；灯标读条期间概率 +15%"},
  "hit_sources": {
   "盾斧斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["area", "basic"]},
   "举盾反击": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]},
   "热砂": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "dot"]},
-  "魔王": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "area"]},
+  "力之锯": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "area"]},
   "震退": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "control"]},
   "鬼面": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "pierce"]}
  },
  "progression": [
   {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩范围 +15%"},
   {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_atk", "desc": "盾斧斩 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「热砂」；解锁天赋「盾卫」：概率完全免伤，挡下的攻击不掉灯火"},
-  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_u_area", "desc": "盾卫免伤时推开的敌人眩晕 0.4 秒"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：概率完全免伤，挡下的攻击不掉灯火"},
+  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_u_area", "desc": "战术装甲免伤时推开的敌人眩晕 0.4 秒"},
   {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "skill_hoshiguma_s2", "desc": "热砂持续 2 → 4 秒，灼伤 ×0.5"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「魔王」；普攻质变「鬼面」：每第 4 次盾斧斩变成一记直线斩（×1.3）"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「鬼面」：每第 4 次盾斧斩变成一记直线斩（×1.3）"}
  ],
- "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：概率把伤害完全挡下、挡下就反砍，魔王一刀穿一列"}
+ "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：概率把伤害完全挡下、挡下就反砍，力之锯一刀穿一列"}
 }
 ```
 
@@ -447,25 +447,25 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  },
  "attack": {"mode": "auto", "name": "速射", "desc": "每 0.35 秒向最近敌人（精英优先）射出 1 发物理弹（射程 300）；每次射击的子弹数可成长，多发时各自索敌"},
  "skills": [
-  {"name": "强力击", "en": "POWER STRIKE", "sp": 6, "desc": "装填 6 发强力弹：之后的射击每发 ×1.8 并穿透 1 名敌人，打完为止", "icon": "skill_exusiai_s1"},
-  {"name": "过载模式", "en": "OVERDRIVE MODE", "sp": 14, "dur": 8.0, "desc": "8 秒：射击间隔 0.35 → 0.20，每发 ×0.9；结束时过热 1 秒不射", "icon": "skill_exusiai_s2"},
-  {"name": "处决模式", "en": "EXECUTION MODE", "sp": 22, "dur": 10.0, "desc": "10 秒：每次射击改为 4 连射（每发 ×0.7），射程 +20%，优先精英 / Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 0.2 秒", "icon": "skill_exusiai_s3"}
+  {"name": "冲锋模式", "en": "CHARGING MODE", "sp": 6, "desc": "装填 6 发强力弹：之后的射击每发 ×1.8 并穿透 1 名敌人，打完为止", "icon": "skill_exusiai_s1"},
+  {"name": "扫射模式", "en": "SHOOTING MODE", "sp": 14, "dur": 8.0, "desc": "8 秒：射击间隔 0.35 → 0.20，每发 ×0.9；结束时过热 1 秒不射", "icon": "skill_exusiai_s2"},
+  {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "10 秒：每次射击改为 4 连射（每发 ×0.7），射程 +20%，优先精英 / Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 0.2 秒", "icon": "skill_exusiai_s3"}
  ],
- "talent": {"name": "速射", "desc": "弹夹：每击杀 1 名敌人 +1（上限 8），主控在灯光内击杀 +2；弹夹满时下一次射击倾泻 8 发散射（每发 ×0.8，穿透 1）并清空"},
+ "talent": {"name": "快速弹匣", "desc": "弹夹：每击杀 1 名敌人 +1（上限 8），主控在灯光内击杀 +2；弹夹满时下一次射击倾泻 8 发散射（每发 ×0.8，穿透 1）并清空"},
  "hit_sources": {
   "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
-  "强力击": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
-  "处决模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
+  "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
+  "过载模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
   "弹夹倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
   "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]}
  },
  "progression": [
   {"type": "custom", "id": "range", "name": "延长弹道", "icon": "growth_b_range", "desc": "射程 +15%"},
   {"type": "custom", "id": "power", "name": "高压弹", "icon": "growth_b_atk", "desc": "速射 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「过载模式」；解锁天赋「速射」：击杀喂满弹夹后倾泻 8 发"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀喂满弹夹后倾泻 8 发"},
   {"type": "custom", "id": "twin", "name": "双枪", "icon": "growth_b_count", "desc": "每次射击子弹数 +1"},
   {"type": "custom", "id": "ricochet", "name": "跳弹", "icon": "growth_b_echo", "desc": "子弹命中后 40% 概率跳向 120 内另一名敌人（50% 伤害）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「处决模式」；普攻质变「天使的弹幕」：子弹数再 +1，弹夹上限 8 → 12"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的弹幕」：子弹数再 +1，弹夹上限 8 → 12"}
  ],
  "gallery": {"tags": ["远程", "连射", "单体", "子弹数"], "desc": "一秒三发的速射手；每次射击的子弹数越养越多，弹夹打满就倾泻"}
 }
@@ -503,14 +503,14 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  },
  "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向敌群最密处射一枚重力弹（射程 320）：落点半径 60 法术伤害，并把半径 100 内的敌人向落点拉拢"},
  "skills": [
-  {"name": "重力调节", "en": "GRAVITY ADJUSTMENT", "sp": 7, "desc": "下 3 发重力弹：拉拢距离 ×2、范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
-  {"name": "重力控制", "en": "GRAVITY CONTROL", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},
-  {"name": "悬浮", "en": "LEVITATION", "sp": 24, "dur": 10.0, "desc": "10 秒：半径 220 内全部非 Boss 敌人悬浮并向场心汇聚（精英间歇落地，Boss 减速 30%）；队友攻速 +20%，主控每秒回复 1%、移速 +15%；悬浮敌人掉落的经验 / 灯油被吸向主控", "icon": "skill_angelina_s3"}
+  {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "下 3 发重力弹：拉拢距离 ×2、范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
+  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},
+  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：半径 220 内全部非 Boss 敌人悬浮并向场心汇聚（精英间歇落地，Boss 减速 30%）；队友攻速 +20%，主控每秒回复 1%、移速 +15%；悬浮敌人掉落的经验 / 灯油被吸向主控", "icon": "skill_angelina_s3"}
  ],
- "talent": {"name": "重力转换", "desc": "拉拽 / 汇聚吃敌人受到的击退倍率（藏品「安洁莉娜的创想」+40%）；被她拉动过的敌人 2 秒内受到的击退 +30%；主控在灯光内时拉拽 +20%"},
+ "talent": {"name": "加速力场", "desc": "拉拽 / 汇聚吃敌人受到的击退倍率（藏品「安洁莉娜的创想」+40%）；被她拉动过的敌人 2 秒内受到的击退 +30%；主控在灯光内时拉拽 +20%"},
  "hit_sources": {
   "重力弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["projectile", "area", "basic", "control"]},
-  "重力调节": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["skill", "area", "control"]},
+  "秘杖·速充模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["skill", "area", "control"]},
   "潮汐锁": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["dot", "area"]},
   "双重引力": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["follow_up", "area", "control"]},
   "失重": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["basic", "control"]}
@@ -518,10 +518,10 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  "progression": [
   {"type": "custom", "id": "wide", "name": "引力扩散", "icon": "growth_b_range", "desc": "重力弹范围 +15%"},
   {"type": "custom", "id": "dense", "name": "致密", "icon": "growth_b_atk", "desc": "重力弹 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「重力控制」；解锁天赋「重力转换」：拉拽吃击退倍率，被拉过的敌人更容易被击退"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：拉拽吃击退倍率，被拉过的敌人更容易被击退"},
   {"type": "custom", "id": "pull2", "name": "双重引力", "icon": "growth_b_echo", "desc": "重力弹落点 0.3 秒后再拉一次（50% 伤害）"},
   {"type": "custom", "id": "lock", "name": "潮汐锁", "icon": "skill_angelina_s2", "desc": "重力场环带上的敌人每秒受到重力弹 20% 的法术伤害"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「悬浮」；普攻质变「失重」：重力弹落点中心半径 30 的敌人悬浮 0.6 秒"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「秘杖·反重力模式」；普攻质变「失重」：重力弹落点中心半径 30 的敌人悬浮 0.6 秒"}
  ],
  "gallery": {"tags": ["远程", "聚怪", "悬浮", "控制"], "desc": "把敌人拉成一圈再整片托上天，给范围干员喂靶子；拿到「安洁莉娜的创想」拉得更狠"}
 }
@@ -743,7 +743,7 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
   {"verb": "mode", "dur": "$s2_dur",
    "do": [{"verb": "buff", "stat": "op_atk", "op": "add", "value": "$s2_atk", "who": "self"}, {"verb": "buff", "stat": "dmg_taken", "op": "mult", "value": "1-$s2_dr", "who": "leader"}, {"rule": "block_chance_mult", "value": "$s2_block_x"}],
    "on_hit": [{"verb": "field", "shape": "ring", "r": "$sand_r", "dur": "$sand_dur", "tick": [{"verb": "damage", "mult": "$sand_mult", "src": "热砂", "tags": ["skill", "area", "dot"]}]}]},
-  {"verb": "mode", "dur": "$s3_dur", "attack": {"shape": "line", "len": "$s3_len", "w": "$s3_w", "kb_mult": "$s3_kb", "src": "魔王", "tags": ["skill", "pierce", "area"]},
+  {"verb": "mode", "dur": "$s3_dur", "attack": {"shape": "line", "len": "$s3_len", "w": "$s3_w", "kb_mult": "$s3_kb", "src": "力之锯", "tags": ["skill", "pierce", "area"]},
    "do": [{"verb": "buff", "stat": "op_atk", "op": "add", "value": "$s3_atk", "who": "self"}, {"verb": "buff", "stat": "dmg_taken", "op": "mult", "value": "1-$s3_dr", "who": "leader"}],
    "on_damage_taken": [{"shape": "ring", "r": "$s3_quake_r", "do": [{"ctrl": "knockback", "value": "$s3_quake_kb", "src": "震退"}]}]}
  ],
@@ -768,9 +768,9 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
  "attack": {"shape": "bolt", "range": "$range", "speed": "$bullet_speed", "shots": "$shots", "spread_deg": "$spread_deg", "target": "nearest", "elite_prio": "$elite_prio",
             "do": [{"verb": "damage", "mult": 1.0, "kind": "物理", "src": "速射", "tags": ["projectile", "basic"]}]},
  "skills": [
-  {"verb": "ammo", "n": "$s1_ammo", "attack_patch": {"mult": "$s1_mult", "pierce": "$s1_pierce", "src": "强力击", "tags": ["skill", "projectile", "pierce"]}},
+  {"verb": "ammo", "n": "$s1_ammo", "attack_patch": {"mult": "$s1_mult", "pierce": "$s1_pierce", "src": "冲锋模式", "tags": ["skill", "projectile", "pierce"]}},
   {"verb": "mode", "dur": "$s2_dur", "attack_patch": {"cd": "$s2_cd", "mult": "$s2_mult"}, "then_end": [{"verb": "buff", "stat": "attack_lock", "op": "add", "value": "$s2_overheat", "who": "self"}]},
-  {"verb": "mode", "dur": "$s3_dur", "attack_patch": {"burst": "$s3_burst", "burst_gap": "$s3_gap", "mult": "$s3_mult", "range_mult": "1+$s3_range", "target": "elite", "src": "处决模式", "last_shot": [{"ctrl": "pause", "dur": "$s3_pause", "elite_mult": 0, "boss": 0}]}}
+  {"verb": "mode", "dur": "$s3_dur", "attack_patch": {"burst": "$s3_burst", "burst_gap": "$s3_gap", "mult": "$s3_mult", "range_mult": "1+$s3_range", "target": "elite", "src": "过载模式", "last_shot": [{"ctrl": "pause", "dur": "$s3_pause", "elite_mult": 0, "boss": 0}]}}
  ],
  "talent": [
   {"trig": "on_kill", "do": [{"verb": "counter", "name": "mag", "add": 1, "cap": "$mag_cap"}]},
@@ -795,7 +795,7 @@ python tools/balance_run.py --preset squads --seeds 3                   # 老编
             "do": [{"verb": "damage", "mult": 1.0, "kind": "法术", "src": "重力弹", "tags": ["projectile", "area", "basic", "control"]},
                    {"ctrl": "pull", "r": "$pull_r", "dist": "$pull", "elite_mult": "$pull_elite", "boss": 0, "scale": "enemy_kb", "mark": {"name": "grav_t", "dur": "$grav_dur"}}]},
  "skills": [
-  {"verb": "ammo", "n": "$s1_n", "attack_patch": {"pull_mult": "$s1_pull", "aoe_mult": "$s1_r", "extra": [{"ctrl": "pause", "dur": "$s1_pause", "elite_mult": 0.5, "boss": 0}], "src": "重力调节"}},
+  {"verb": "ammo", "n": "$s1_n", "attack_patch": {"pull_mult": "$s1_pull", "aoe_mult": "$s1_r", "extra": [{"ctrl": "pause", "dur": "$s1_pause", "elite_mult": 0.5, "boss": 0}], "src": "秘杖·速充模式"}},
   {"permanent": true, "do": [{"verb": "field", "shape": "aura", "center": "leader", "r": "$s2_r", "dur": 0, "every": "$s2_every", "tick": [{"ctrl": "ring_shape", "ring": "$s2_ring", "force": "$s2_force", "boss": 0}]}, {"verb": "buff", "stat": "move_speed", "op": "mult", "value": "1+$s2_speed", "who": "leader"}]},
   {"verb": "field", "shape": "aura", "center": "leader", "r": "$s3_r", "dur": "$s3_dur", "every": 0.1,
    "tick": [{"ctrl": "levitate", "dur": "$s3_stun", "elite_cycle": ["$s3_elite_up", "$s3_elite_down"], "boss": {"ctrl": "slow_soft", "value": "$s3_boss_slow"}}, {"ctrl": "pull", "to": "center", "dist": "$s3_gather", "per_sec": true}],
