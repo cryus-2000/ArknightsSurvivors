@@ -49,6 +49,24 @@ func flush() -> void:
 	_idx = PackedInt32Array()
 
 
+## 现成的顶点色三角形（程序漩涡 op_blocks.fx_vortex 等）：pts 按当前 draw_set_transform 换算后并进批；不在合批阶段时直接提交给 g
+func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array) -> void:
+	if xf != Transform2D.IDENTITY:
+		pts = xf * pts
+	if not active:
+		sync()
+		if _gxf != Transform2D.IDENTITY:
+			g.draw_set_transform_matrix(Transform2D.IDENTITY)
+			_gxf = Transform2D.IDENTITY
+		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), idx, pts, cols)
+		return
+	var base: int = _pts.size()
+	_pts.append_array(pts)
+	_cols.append_array(cols)
+	for i in idx:
+		_idx.append(base + i)
+
+
 ## 直接往 g 上画之前：先提交几何，再把当前变换下发给 g（批外的贴图 / UI 画法与原来同样处在这个变换下）
 func sync() -> void:
 	flush()

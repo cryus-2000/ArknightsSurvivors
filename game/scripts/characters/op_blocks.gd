@@ -685,7 +685,7 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 ## 不写 fx 的干员画法与原来逐像素相同；fx 只往干员自己的 pfx 里加粒子、散布只用 g.vrng，不碰 g.rng / 玩法状态（同 seed TRACE / BALANCE 不变）。
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
-const FX_KEYS := ["strip", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot"]
+const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot"]
 const FX_LAYERS := ["floor", "over", "add", "behind", "front"]
 ## 贴身层：画在干员本体的后面 / 前面（draw_body 前后），积木生效期间循环，帧号 = floor(生效秒数 × fps) % 帧数，退出时 FX_BODY_FADE 秒淡出
 const FX_BODY := ["behind", "front"]
@@ -702,7 +702,7 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 	if not (entries is Array):
 		return
 	for f in entries:
-		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or str(f.get("layer", "")) in FX_BODY:
+		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
 		if cond_true(o, f.get("cond", {})):
 			fx_spawn(o, f, c, r, hits, ang)
@@ -721,7 +721,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		if not (f is Dictionary):
 			continue
 		var ev: float = float(f.get("every", 0.0))
-		if ev <= 0.0 or str(f.get("at", "center")) == "orbit" or str(f.get("layer", "")) in FX_BODY:
+		if ev <= 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
 		ts[i] = float(ts[i]) + dt
 		if ts[i] >= ev:
@@ -819,13 +819,275 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 积木的 fx 里有没有贴身层条目
+## 常驻跟随条目：贴身层（behind / front）或程序漩涡（vortex），积木生效期间一直画、退出淡出
+static func fx_is_hold(f) -> bool:
+	return f is Dictionary and (str(f.get("layer", "")) in FX_BODY or f.has("vortex"))
+
+
+## 积木的 fx 里有没有常驻跟随条目（贴身层 / 漩涡）
 static func fx_has_body(entries) -> bool:
 	if entries is Array:
 		for f in entries:
-			if f is Dictionary and str(f.get("layer", "")) in FX_BODY:
+			if fx_is_hold(f):
 				return true
 	return false
+
+
+## 积木的 fx 里有没有漩涡条目（退出淡出用 FX_VORTEX_FADE）
+static func fx_has_vortex(entries) -> bool:
+	if entries is Array:
+		for f in entries:
+			if f is Dictionary and f.has("vortex"):
+				return true
+	return false
+
+
+# ---------------------------------------------------------------- 程序漩涡 vortex（docs/61 §5.6，10-11 加；纯画面）
+## 用户 10-11 对照原作 S3：大片、柔和、半透明的青色水流漩涡铺在地面上（覆盖区域，不贴身），细细的弧形水流线绕着转、
+## 零星光点、少量暗红流线点缀，整体低饱和低透明，战场与单位看得清。
+## 写法：常驻积木的 fx 条目 {"vortex": {参数…}, "layer": "floor" | "add", "at": "zone" | "self" | "leader", "cond", "tint"}。
+## 画法：n 条流线 = 透视椭圆（y × 0.55）上的螺旋弧，各自从外圈慢慢卷向内圈（生命周期 sin 包络淡入淡出）、沿弧两端渐隐、内圈转得快；
+## 加 motes 个上飘闪烁的小光点，中心一团柔光、整片一层极淡的水色底。全部攒成一组三角形（顶点色）一次提交（合批，docs/50）。
+## 每条流线 / 光点的随机常数在积木生效后第一次画时用 g.vrng 生成并缓存在贴身层记录里（不碰 g.rng）；运动只看 g.t。
+const FX_VORTEX_FADE := 0.4
+const VORTEX_DEF := {
+	"n": 32,              # 流线条数（≤ 64）
+	"r": 1.0,             # 外半径 = 区域半径 × r
+	"max_r": 520.0,       # 外半径上限（世界像素）
+	"r0": 0.12,           # 流线卷到的最内圈（外半径的比例）
+	"len": 1.3,           # 每条流线的弧长（弧度）
+	"curl": 0.22,         # 尾端比头端外扩多少（外半径比例）：螺旋感
+	"spin": 0.55,         # 角速度（弧度 / 秒，外圈；内圈按 1 / (0.35 + 0.65 rf) 加快）
+	"drift": 0.10,        # 向内卷的速度（每秒走完生命周期的几分之几）
+	"w": 1.6,             # 线宽（世界像素，中段；两端收细）
+	"a": 0.3,             # 流线最大透明度
+	"col": [0.55, 0.92, 1.0],    # 主色（青）
+	"acc": [0.95, 0.32, 0.42],   # 点缀色（暗红）
+	"acc_n": 4,           # 点缀流线条数
+	"acc_a": 0.55,        # 点缀流线透明度系数（相对 a）
+	"seg": 8,             # 每条流线分几段
+	"halo": 0.0,          # 软边：再画一遍宽 halo 倍、透明度 halo_a 倍的淡线（0 = 不画；约多一倍顶点）
+	"halo_a": 0.25,
+	"motes": 24,          # 光点个数（≤ 64）
+	"mote_a": 0.55,       # 光点最大透明度
+	"mote_sz": 2.0,       # 光点边长（世界像素）
+	"mote_rise": 18.0,    # 光点上飘高度（世界像素，一个周期）
+	"glow": 0.12,         # 中心柔光透明度（0 = 不画）
+	"glow_r": 0.3,        # 中心柔光半径（外半径比例）
+	"fill": 0.05,         # 整片水色底透明度（0 = 不画）
+	"ring": 1.0,          # 区域椭圆边线透明度倍率（< 1 把程序硬边压淡；取所有生效漩涡的最小值）
+	"sy": 0.55,           # 透视压扁（同区域椭圆）
+}
+const VORTEX_LIM := {"n": [0, 64], "r": [0.05, 3.0], "max_r": [16.0, 2000.0], "r0": [0.0, 0.95], "len": [0.1, 6.3], "curl": [-1.0, 1.0],
+	"spin": [-8.0, 8.0], "drift": [0.0, 2.0], "w": [0.5, 8.0], "a": [0.0, 1.0], "halo": [0.0, 8.0], "halo_a": [0.0, 1.0], "acc_n": [0, 64], "acc_a": [0.0, 2.0], "seg": [2, 24],
+	"motes": [0, 64], "mote_a": [0.0, 1.0], "mote_sz": [0.5, 8.0], "mote_rise": [-200.0, 200.0], "glow": [0.0, 1.0], "glow_r": [0.0, 1.0],
+	"fill": [0.0, 1.0], "ring": [0.0, 1.0], "sy": [0.1, 1.0]}
+
+
+static func _vp(v: Dictionary, k: String):
+	return v.get(k, VORTEX_DEF[k])
+
+
+static func _vcol(v: Dictionary, k: String) -> Color:
+	var a = v.get(k, VORTEX_DEF[k])
+	return Color(float(a[0]), float(a[1]), float(a[2])) if a is Array and a.size() >= 3 else Color.WHITE
+
+
+## 区域椭圆边线的透明度倍率：e 是贴身层记录（data_operator._fxb 的值）
+static func vortex_ring_mul(o, e: Dictionary) -> float:
+	var m := 1.0
+	for f in e.b.fx:
+		if f is Dictionary and f.has("vortex") and cond_true(o, f.get("cond", {})):
+			m = minf(m, float(_vp(f.vortex, "ring")))
+	return m
+
+
+## 画 e（贴身层记录 {b, el, fade, fl}）上 layer 层的漩涡条目。alpha：积木进出的淡入淡出；sink：带 add_tris 的合批画布或 CanvasItem
+static func fx_vortex(sink, o, e: Dictionary, layer: String, alpha: float, c_zone: Vector2, r_zone: float) -> void:
+	var g = o.g
+	var fx_arr = e.b.fx
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var t: float = float(g.t)
+	if not e.has("vx"):
+		e["vx"] = {}
+		e["va"] = {}
+		e["vt"] = t
+	var dt: float = clampf(t - float(e.vt), 0.0, 0.1)
+	e.vt = t
+	for i in fx_arr.size():
+		var f = fx_arr[i]
+		if not (f is Dictionary) or not f.has("vortex") or str(f.get("layer", "floor")) != layer:
+			continue
+		# 条目条件切换时 0.35 秒交叉淡入淡出（例：歌域漩涡在 S3 期间让位给 S3 漩涡）
+		var want: float = 1.0 if cond_true(o, f.get("cond", {})) else 0.0
+		var ca: float = float(e.va.get(i, want))
+		ca = move_toward(ca, want, dt / 0.35)
+		e.va[i] = ca
+		var al: float = alpha * ca * float(g.world.fx_dim)
+		var tv = f.get("tint", [])
+		var tint := Color.WHITE
+		if tv is Array and tv.size() >= 3:
+			tint = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+		al *= tint.a
+		if al <= 0.004:
+			continue
+		var v: Dictionary = f.vortex
+		var c: Vector2 = c_zone
+		match str(f.get("at", "zone")):
+			"self":
+				c = o.pos
+			"leader":
+				c = g.ppos
+		var ov = f.get("off", [])
+		if ov is Array and ov.size() == 2:
+			c += Vector2(float(ov[0]), float(ov[1]))
+		if c == Vector2.INF:
+			continue
+		var R: float = minf(r_zone * float(_vp(v, "r")), float(_vp(v, "max_r")))
+		if R <= 1.0:
+			continue
+		var n: int = int(_vp(v, "n"))
+		var acc_n: int = mini(int(_vp(v, "acc_n")), n)
+		var nm: int = int(_vp(v, "motes"))
+		if not e.vx.has(i):
+			# 随机常数（g.vrng）：流线 [基角, 相位, 弧长倍率, 透明度倍率, 速度倍率, 线宽倍率]，光点 [角, 半径比例, 相位, 速度, 闪烁相位]
+			var sl: Array = []
+			for k in n:
+				sl.append([g.vrng.randf() * TAU, g.vrng.randf(), g.vrng.randf_range(0.6, 1.4), g.vrng.randf_range(0.45, 1.0),
+					g.vrng.randf_range(0.75, 1.3), g.vrng.randf_range(0.6, 1.25)])
+			var ml: Array = []
+			for k in nm:
+				ml.append([g.vrng.randf() * TAU, sqrt(g.vrng.randf()) * 0.95, g.vrng.randf(), g.vrng.randf_range(0.15, 0.4), g.vrng.randf() * TAU,
+					2.0 if g.vrng.randf() < 0.3 else 1.0])
+			e.vx[i] = [sl, ml]
+		var sl2: Array = e.vx[i][0]
+		var ml2: Array = e.vx[i][1]
+		var sy: float = float(_vp(v, "sy"))
+		var col: Color = _vcol(v, "col") * Color(tint.r, tint.g, tint.b, 1.0)
+		var acc: Color = _vcol(v, "acc") * Color(tint.r, tint.g, tint.b, 1.0)
+		# 整片水色底 + 中心柔光：径向扇形（中心 → glow_r → 外缘），顶点色插值成软边
+		var fill: float = float(_vp(v, "fill")) * al
+		var glow: float = float(_vp(v, "glow")) * al
+		if fill > 0.002 or glow > 0.002:
+			var gr: float = R * float(_vp(v, "glow_r"))
+			var segc := 28
+			var b0: int = pts.size()
+			pts.append(c)
+			cols.append(Color(col.r, col.g, col.b, glow + fill))
+			for q in segc:
+				var d := Vector2(cos(q * TAU / segc), sin(q * TAU / segc) * sy)
+				pts.append(c + d * gr)
+				cols.append(Color(col.r, col.g, col.b, fill))
+				pts.append(c + d * R)
+				cols.append(Color(col.r, col.g, col.b, 0.0))
+			for q in segc:
+				var q1: int = (q + 1) % segc
+				var i0: int = b0 + 1 + q * 2
+				var i1: int = b0 + 1 + q1 * 2
+				idx.append_array([b0, i0, i1, i0, i0 + 1, i1 + 1, i0, i1 + 1, i1])
+		# 流线
+		var r0: float = float(_vp(v, "r0"))
+		var ln: float = float(_vp(v, "len"))
+		var curl: float = float(_vp(v, "curl"))
+		var spin: float = float(_vp(v, "spin"))
+		var drift: float = float(_vp(v, "drift"))
+		var w: float = float(_vp(v, "w"))
+		var amax: float = float(_vp(v, "a")) * al
+		var acc_a: float = float(_vp(v, "acc_a"))
+		var seg: int = int(_vp(v, "seg"))
+		var halo: float = float(_vp(v, "halo"))
+		var halo_a: float = float(_vp(v, "halo_a"))
+		var dir: float = 1.0 if spin >= 0.0 else -1.0
+		for k in n:
+			var s: Array = sl2[k]
+			var u: float = fposmod(float(s[1]) + t * drift * float(s[4]), 1.0)
+			var env: float = sin(u * PI)
+			var aa: float = amax * float(s[3]) * env
+			if aa <= 0.004:
+				continue
+			var rf: float = lerpf(1.0, r0, u)
+			var a0: float = float(s[0]) + spin * t * float(s[4]) / (0.35 + 0.65 * rf)
+			var cc: Color = acc if k < acc_n else col
+			if k < acc_n:
+				aa *= acc_a
+			var L: float = ln * float(s[2]) * (0.6 + 0.4 * rf)
+			var ww: float = w * float(s[5])
+			var cp := PackedVector2Array()   # 中心线与法向（近似取径向：流线大致沿切向）
+			var cn := PackedVector2Array()
+			var pr := PackedFloat32Array()   # 沿线包络：两端渐隐、中段最亮
+			for q in seg + 1:
+				var sq: float = float(q) / seg
+				var ang: float = a0 - dir * L * (1.0 - sq)          # 头（sq = 1）在前，尾在后
+				var rr: float = R * (rf + curl * (1.0 - sq) * rf)    # 尾端更靠外：螺旋
+				var ca2: float = cos(ang)
+				var sa2: float = sin(ang)
+				cp.append(c + Vector2(ca2 * rr, sa2 * rr * sy))
+				cn.append(Vector2(ca2, sa2 * sy).normalized())
+				pr.append(sin(sq * PI))
+			# 两遍：halo（宽、很淡，软边水光）→ 芯线（细、亮）
+			for pass_i in 2:
+				var pw: float = ww * (halo if pass_i == 0 else 1.0)
+				var pa: float = aa * (halo_a if pass_i == 0 else 1.0)
+				if pass_i == 0 and (halo <= 0.0 or halo_a <= 0.0):
+					continue
+				var b1: int = pts.size()
+				for q in seg + 1:
+					var nrm: Vector2 = cn[q] * (pw * 0.5 * (0.35 + 0.65 * pr[q]))
+					var va: float = pa * pow(pr[q], 0.7) if q > 0 and q < seg else 0.0
+					pts.append(cp[q] - nrm)
+					pts.append(cp[q] + nrm)
+					var vc := Color(cc.r, cc.g, cc.b, va)
+					cols.append(vc)
+					cols.append(vc)
+				for q in seg:
+					var j: int = b1 + q * 2
+					idx.append_array([j, j + 1, j + 3, j, j + 3, j + 2])
+		# 光点：跟着漩涡慢转、上飘、闪烁（mote_sz 见方的小方块，三成是两倍大，像素风）
+		var ma: float = float(_vp(v, "mote_a")) * al
+		var msz: float = float(_vp(v, "mote_sz"))
+		var mrise: float = float(_vp(v, "mote_rise"))
+		var mcol: Color = Color(minf(col.r * 1.3, 1.0), minf(col.g * 1.15, 1.0), 1.0)
+		for k in nm:
+			var m: Array = ml2[k]
+			var ph: float = fposmod(float(m[2]) + t * float(m[3]), 1.0)
+			var am: float = ma * sin(ph * PI) * (0.6 + 0.4 * sin(t * 5.0 + float(m[4])))
+			if am <= 0.004:
+				continue
+			var ang2: float = float(m[0]) + spin * 0.6 * t
+			var rm: float = R * float(m[1])
+			var mp := c + Vector2(cos(ang2) * rm, sin(ang2) * rm * sy - ph * mrise)
+			mp = mp.round()
+			var ms: float = msz * float(m[5])
+			var b2: int = pts.size()
+			pts.append_array([mp, mp + Vector2(ms, 0), mp + Vector2(ms, ms), mp + Vector2(0, ms)])
+			var mc := Color(mcol.r, mcol.g, mcol.b, am)
+			cols.append_array([mc, mc, mc, mc])
+			idx.append_array([b2, b2 + 1, b2 + 2, b2, b2 + 2, b2 + 3])
+	if idx.is_empty():
+		return
+	if sink != null and sink.has_method("add_tris"):
+		sink.add_tris(pts, cols, idx)
+	else:
+		RenderingServer.canvas_item_add_triangle_array(sink.get_canvas_item(), idx, pts, cols)
+
+
+## 校验漩涡参数（§8 第 9 条）
+static func _fx_vortex_check(v, q: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	if not (v is Dictionary):
+		errs.append(q + ".vortex 必须是对象（参数见 docs/61 §5.6 漩涡表）")
+		return
+	for k in v:
+		if not VORTEX_DEF.has(k):
+			errs.append("%s.vortex.%s：不认识的漩涡参数（只能是 %s）" % [q, k, " / ".join(VORTEX_DEF.keys())])
+		elif k in ["col", "acc"]:
+			var a = v[k]
+			if not (a is Array) or a.size() != 3 or a.any(func(x): return not (x is int or x is float)):
+				errs.append("%s.vortex.%s 必须是 3 个数字的数组" % [q, k])
+		elif VORTEX_LIM.has(k):
+			_num(v, k, q + ".vortex", ctx, false, float(VORTEX_LIM[k][0]), float(VORTEX_LIM[k][1]))
 
 
 ## 贴身层（behind / front）：锚点对准干员脚底 o.pos（+ off），el = 积木已生效秒数，alpha 用于退出淡出
@@ -902,7 +1164,21 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 			if not k in FX_KEYS:
 				errs.append("%s.%s：fx 条目不认识的字段（只能是 %s）" % [q, k, " / ".join(FX_KEYS)])
 		var sn = f.get("strip", null)
-		if not (sn is String) or not (sn.begins_with("fx_") or sn.begins_with("proj_")):
+		if f.has("vortex"):
+			# 程序漩涡：不用帧条；常驻跟随（同贴身层），只能挂在常驻积木上；层只能 floor / add；at 只能 zone / self / leader
+			_fx_vortex_check(f.vortex, q, ctx)
+			if f.has("strip"):
+				errs.append(q + "：vortex 条目是程序画法，不写 strip")
+			if instant_owner:
+				errs.append(q + ".vortex 是常驻漩涡，只能挂在常驻积木上（光环、技能 do 里的常驻积木等）")
+			if not str(f.get("layer", "floor")) in ["floor", "add"]:
+				errs.append(q + ".layer：vortex 只能是 floor / add")
+			if not str(f.get("at", "zone")) in ["zone", "self", "leader"]:
+				errs.append(q + ".at：vortex 只能是 zone / self / leader")
+			for k in ["every", "life", "n", "spread", "rise", "fit", "scale", "max_scale", "anchor", "ang", "rot"]:
+				if f.has(k):
+					errs.append("%s.%s：vortex 条目不写这个字段（参数写进 vortex 对象）" % [q, k])
+		elif not (sn is String) or not (sn.begins_with("fx_") or sn.begins_with("proj_")):
 			errs.append(q + ".strip 必须是 V6_FRAMES 里登记的帧条名（fx_* / proj_*）")
 		if not str(f.get("layer", "over")) in FX_LAYERS:
 			errs.append("%s.layer 只能是 %s" % [q, " / ".join(FX_LAYERS)])
