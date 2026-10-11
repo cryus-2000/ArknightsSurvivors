@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "file": "fx_texas_blade.png",
+      "size": [
+        96,
+        40
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 6,
+      "sha256": "9c3d6ed578c85ac3a951dc9067529836d4c8191226470e66151f25d573751873"
+    },
+    {
+      "file": "fx_texas_blade@2x.png",
+      "size": [
+        192,
+        80
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 6,
+      "sha256": "4e716af6e274b5b771848ac8831d902e6696b45de5eb26d99583cc9d032589f9"
+    },
+    {
+      "file": "fx_texas_rain_hit.png",
+      "size": [
+        160,
+        24
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 5,
+      "sha256": "5c13b8b10153e80cbe60b7c6a8d6b32bbe1e0dfda8328271c8383cbe0dbe34b1"
+    },
+    {
+      "file": "fx_texas_rain_hit@2x.png",
+      "size": [
+        320,
+        48
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 5,
+      "sha256": "cbfa7e7bf00eac3ad943c45b751e2d68d399bc7b0e375db111ff713c7fd54e26"
+    },
+    {
+      "file": "fx_texas_rain_mark.png",
+      "size": [
+        144,
+        12
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 6,
+      "sha256": "34cb80106756d668f92e8571bf604d4bd79fb079d842d8b2f20960ba01aefb7e"
+    },
+    {
+      "file": "fx_texas_rain_mark@2x.png",
+      "size": [
+        288,
+        24
+      ],
+      "binary_alpha": true,
+      "nonempty_frames": 6,
+      "sha256": "15a25bb0f2182f07b478a004afc561efee820fb26ff4d53c1d32012d21627f39"
+    }
+  ],
+  "engine_test": false,
+  "palette_count": 9
+}
