@@ -484,6 +484,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.hp = d.hp * (1.0 + g.t / Bal.v("enemy/boss_hp_time_div", 600.0)) * float(g.dmod.boss_hp) * maxf(Bal.v("boss/hp_mult_floor", 0.8), g.enemy_hp_mult)
 		# Boss 血量旋钮（数值会话在 balance.json 的 boss 段填）：中期 / 最终各一个总倍率，另有每只 Boss 单独的倍率；缺省都是 1.0
 		e.hp *= Bal.v("boss/hp_final" if is_final_boss_type(type) else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + type, 1.0)
+		if is_final_boss_type(type):
+			e.hp *= float(g.dmod.get("final_boss_hp", 1.0))   # 按档只加最终 Boss 的血（停刷补偿，docs/38 §8.14；缺省 1.0）
 		e.maxhp = e.hp
 		e.spd = d.spd
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult

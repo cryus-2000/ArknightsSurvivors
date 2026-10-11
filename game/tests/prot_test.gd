@@ -1088,7 +1088,25 @@ func test_enemy_knob() -> void:
 	var s2: Dictionary = game.spawner.new_enemy("slider", game.ppos + Vector2(900, 0))
 	ok(absf(s2.maxhp / s0.maxhp - 1.0) < 0.01, "-1：跟 enemy_hp 走")
 	game.final_boss = keep_f
+	# final_boss_hp（停刷补偿，docs/38 §8.14）：只乘最终 Boss，中期 Boss 不变
+	game.dmod["final_boss_hp"] = 1.0
+	var f0: Dictionary = game.spawner.new_enemy("paranoia", game.ppos + Vector2(900, 0))
+	var p0: Dictionary = game.spawner.new_enemy("path", game.ppos + Vector2(900, 0))
+	game.dmod["final_boss_hp"] = 1.4
+	var f1: Dictionary = game.spawner.new_enemy("paranoia", game.ppos + Vector2(900, 0))
+	var p1: Dictionary = game.spawner.new_enemy("path", game.ppos + Vector2(900, 0))
+	ok(absf(f1.maxhp / f0.maxhp - 1.4) < 0.001 and absf(p1.maxhp / p0.maxhp - 1.0) < 0.001, "final_boss_hp 1.4：最终 Boss ×%.2f、中期 Boss ×%.2f" % [f1.maxhp / f0.maxhp, p1.maxhp / p0.maxhp])
 	game.dmod = keep
+	# 按档覆盖的键都要登记在 DMOD_DEFAULT，否则 dmod_for_tier 会丢掉（beacon._sk 读的键、final_boss_hp）
+	var keep_x: Dictionary = Bal.sec("difficulty/extreme").duplicate()
+	var dx: Dictionary = Bal._data["difficulty"]["extreme"]
+	for k in ["final_boss_hp", "beacon_guide_r", "beacon_shade_deg", "beacon_relay_r", "beacon_relay_rate", "beacon_stagger_r", "beacon_stagger_s", "beacon_stagger_cd", "beacon_safe_slow"]:
+		dx[k] = 1.25
+	var mx: Dictionary = D.dmod_for_tier(2)
+	var miss: Array = ["final_boss_hp", "beacon_guide_r", "beacon_shade_deg", "beacon_relay_r", "beacon_relay_rate", "beacon_stagger_r", "beacon_stagger_s", "beacon_stagger_cd", "beacon_safe_slow"].filter(func(k): return not is_equal_approx(float(mx.get(k, -9.0)), 1.25))
+	ok(miss.is_empty(), "difficulty/<档> 的 final_boss_hp / beacon_* 能被 dmod_for_tier 读到（漏：%s）" % str(miss))
+	Bal._data["difficulty"]["extreme"] = keep_x
+	ok(is_equal_approx(float(D.dmod_for_tier(2).final_boss_hp), 1.0) and is_equal_approx(float(D.dmod_for_tier(0).final_boss_hp), 1.0), "final_boss_hp 缺省 1.0（各档不变）")
 
 ## 灯标圈内安全（docs/49g）：缺省全关；开了以后只在读条期间、只对非 Boss 生效
 func test_beacon_safe() -> void:

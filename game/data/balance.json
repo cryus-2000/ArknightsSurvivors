@@ -240,7 +240,7 @@
   "clear_mobs_s": 0
  },
  "difficulty": {
-  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准",
+  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
   "standard": {},
   "hard": {
    "hunt_dur": 0.85,
