@@ -21,6 +21,7 @@ var _mods: Array = []                  # 已写进 g.stats 的修正 [stat, op, 
 var _acc: Dictionary = {}              # 常驻积木的累计器（_uid → 秒）
 var _state: Dictionary = {}            # 常驻积木的状态（软减速的位置记忆、绕行体角度）
 var _warned := {}
+var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -110,6 +111,8 @@ func update(dt: float) -> void:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
 	_tick_pending(dt)
 	_sustain(dt)
+	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
+		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
@@ -129,6 +132,8 @@ func update(dt: float) -> void:
 		"cone":
 			var r2: float = OB.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+		"dash_line":
+			at = OB.tx_attack_point(self, a)   # 德克萨斯段
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
@@ -214,6 +219,7 @@ func _sustain(dt: float) -> void:
 				if v != 0.0:
 					for m in OB.aura_members(self, str(b.scope)):
 						want.append([OB.AURA_STAT[str(b.aura)], "add", v, "op:" + m.id])
+	OB.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
 	if want != _mods:
 		g.stats.remove_source(_src_tag())
 		for m in want:
@@ -307,6 +313,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				elif not _warned.has(fn):
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
+			_:
+				OB.tx_exec(self, b, at)   # 德克萨斯段
 
 
 # ---------------------------------------------------------------- 出手
@@ -339,6 +347,7 @@ func _release_skill() -> void:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
 	_exec_list(sb.get("do", []))
+	OB.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 
 
@@ -380,6 +389,11 @@ func draw_auras() -> void:
 			var b := _find_uid(u)
 			for p in OB.orbit_points(self, b, st.ang):
 				draw_diamond(p + Vector2(0, -6), 5.0, Color(cc.r * 1.4, cc.g * 1.4, cc.b * 1.4, 0.85), Color(0.05, 0.05, 0.1, 0.7))
+
+
+## 帧条粒子（德克萨斯段 tx_draw_pfx：kind = strip）
+func _draw_pfx(f: Dictionary, a: float) -> bool:
+	return OB.tx_draw_pfx(self, f, a)
 
 
 func _find_uid(u: int) -> Dictionary:

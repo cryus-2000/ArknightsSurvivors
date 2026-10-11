@@ -303,7 +303,7 @@ func draw_leader_mark() -> void:
 	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.9), 2.5)
 	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(1, 1, 1, 0.6), 1.0)
 	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
-	var dk: float = 1.0 - g.dash_cd / g.DASH_CD
+	var dk: float = 1.0 - g.dash_cd / (g.DASH_CD * g.dash_cd_mult)
 	if dk < 1.0:
 		cv.draw_arc(Vector2.ZERO, 30.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
 	else:

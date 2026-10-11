@@ -28,6 +28,7 @@ func _init() -> void:
 	test_db_and_profile()
 	test_squad_contract()
 	test_voice()
+	test_blocks_texas()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -288,3 +289,44 @@ func test_voice() -> void:
 			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
+
+
+## 德克萨斯段积木（docs/61 §11，op_blocks.gd 末尾）：texas.json 通过校验；改坏一处就不通过；冲刺长度 / 宽度倍率与主控属性修正的累计
+func test_blocks_texas() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var tx: Dictionary = Ch.load_def("texas")
+	ok(tx.has("blocks") and Ch.validate_operator("texas", tx), "德克萨斯 texas.json 通过积木校验")
+	var bads := {
+		"冲刺 aim 写错": func(d): d.blocks.talent[0].do[0]["aim"] = "random",
+		"普攻冲刺不朝最近敌人": func(d): d.blocks.attack["aim"] = "densest",
+		"冲刺缺宽度": func(d): d.blocks.attack.erase("w"),
+		"主控属性不在白名单": func(d): d.blocks.skills[1].do[2]["stat"] = "move_speed",
+		"瞬时冲刺放进常驻节点": func(d): d.blocks.progression["wide"] = {"shape": "dash_line", "r": 100, "w": 40, "src": "疾行斩"},
+		"常驻 dash_mod 放进触发器": func(d): d.blocks.trait[0].do.append({"verb": "dash_mod", "len_add": 0.1}),
+		"触发积木放进技能 do": func(d): d.blocks.skills[0].do.append({"trig": "on_dash_end", "do": []}),
+		"on_skill_end 带 delay": func(d): d.blocks.trait[2]["delay"] = 0.2,
+		"on_dash_end 的 src 没登记": func(d): d.blocks.trait[0]["src"] = "没登记",
+		"残像伤害超上限": func(d): d.blocks.progression.elite2.do[0]["mult"] = 50,
+		"fx_scatter 缺帧条": func(d): d.blocks.skills[0].do[2].erase("strip"),
+	}
+	for why in bads:
+		var d2: Dictionary = tx.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("texas", d2), "德克萨斯积木校验应拒绝：" + why)
+	# 编译：$ 表达式解析成数字、每块编号
+	var B: Dictionary = OB.compile(tx)
+	near(float(B.skills[1].do[2].value), 0.8, "可靠伙伴：主控冲刺冷却 1-$s2_dash_cd = 0.8")
+	ok(str(B.attack.get("_tag", "")) == "shape.dash_line" and float(B.attack.r) == 140.0, "普攻编译成 shape.dash_line、长度 140")
+	# 常驻累计：S2 冲刺长度 +40%、节点「阔剑」宽度 ×1.3；主控冲刺冷却进 want（作用域空 = 全局）
+	var fake := {"tx": {}}
+	var want: Array = []
+	OB.tx_sustain(fake, [B.skills[1].do[0], B.skills[1].do[2], B.progression.wide], want)
+	near(float(fake.tx.len), 1.4, "冲刺长度倍率 (1 + 0.4)")
+	near(float(fake.tx.w), 1.3, "冲刺宽度倍率 ×1.3")
+	ok(want.size() == 1 and want[0][0] == "dash_cd" and want[0][1] == "mult" and is_equal_approx(float(want[0][2]), 0.8) and want[0][3] == "", "主控冲刺冷却修正 [dash_cd, mult, 0.8, 全局]：%s" % str(want))
+	fake.tx = {}
+	want = []
+	OB.tx_sustain(fake, [], want)
+	ok(float(fake.tx.len) == 1.0 and float(fake.tx.w) == 1.0 and want.is_empty(), "没有常驻积木时倍率回到 1、不写主控属性")
+

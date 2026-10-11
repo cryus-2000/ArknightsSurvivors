@@ -1166,6 +1166,7 @@ const DASH_SPEED := 700.0
 const DASH_CD := 1.2
 var dash_t := 0.0
 var dash_cd := 0.0
+var dash_cd_mult := 1.0       # 冲刺冷却倍率（stats dash_cd；德克萨斯 S2「可靠伙伴」，docs/59 §6）
 var dash_dir := Vector2.RIGHT
 var last_mv := Vector2.ZERO
 var move_in := Vector2.ZERO   # 这一帧的移动输入（僵直时也记）：冲刺方向用
@@ -1177,7 +1178,7 @@ func _try_dash() -> void:
 		return
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
-	dash_cd = DASH_CD
+	dash_cd = DASH_CD * dash_cd_mult
 	dash_used = true
 	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
 	root_t = 0.0   # 冲刺挣脱冻结 / 束缚
@@ -1361,6 +1362,7 @@ const STAT_SYNC := {
 	# docs/57 P1–P5 / P7
 	&"boss_dmg": "boss_mult", &"light_loss": "lamp_loss_mult", &"enemy_speed": "enemy_speed_mult", &"enemy_kb": "enemy_kb_mult",
 	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult",
+	&"dash_cd": "dash_cd_mult",
 }
 
 

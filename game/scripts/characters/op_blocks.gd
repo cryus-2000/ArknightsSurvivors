@@ -253,6 +253,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			var ang: float = o.atk_angle((ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle())
 			hits = o.melee_hit(src, o.pos, ang, deg_to_rad(float(b.get("half_deg", 45.0))), r2, dmg, kb, stun, tags, max_n)
 			o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
+		"dash_line":
+			return tx_dash_start(o, b, dmg)   # 德克萨斯段：命中逐帧结算，这里只起冲
 	for s in b.get("on_hit", []):
 		for e in hits:
 			apply_status(o, e, s)
@@ -403,8 +405,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				errs.append("blocks.zone.center 只能是 leader / self")
 			_num(z, "r", "blocks.zone", ctx, true)
 	var atk = blocks.get("attack", null)
-	if not (atk is Dictionary) or not str(atk.get("shape", "")) in ["circle", "cone"]:
-		errs.append("blocks.attack 必须是一个伤害形状（shape.circle / shape.cone）")
+	if not (atk is Dictionary) or not str(atk.get("shape", "")) in ["circle", "cone", "dash_line"]:
+		errs.append("blocks.attack 必须是一个伤害形状（shape.circle / shape.cone / shape.dash_line）")
 	else:
 		_block(atk, "blocks.attack", "attack", ctx)
 		_num(atk, "every", "blocks.attack", ctx, true, 0.1)
@@ -525,6 +527,9 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		return
 	var nm: String = str(b[fam])
 	var tag := "%s.%s" % [fam, nm]
+	if nm in TX_IMPL.get(fam, []):   # 德克萨斯段（文件末尾）
+		_tx_block(b, p, kind, tag, ctx)
+		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
 		return
@@ -664,3 +669,398 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 			ctx.errs.append(p + " 缺 src（伤害来源名）")
 	elif not ctx.srcs.has(s):
 		ctx.errs.append("%s.src「%s」没在 hit_sources 里登记" % [p, s])
+
+
+
+# ================================================================ 德克萨斯 texas（docs/61 §11）
+# 第三批并行实装约定：每名干员的新积木在文件末尾各占一段（append-only）；核心部分只加三处转发：
+# validate 的普攻形状表、_block 里 TX_IMPL 命中时转给 _tx_block、exec_shape 的 dash_line 分支。
+# data_operator.gd 里对应的转发都标了「德克萨斯段」。状态存在干员的 tx 字典里（data_operator.gd 的 var tx）。
+#
+#  shape.dash_line   冲刺穿行：沿一条线段冲出 r（× op_range × 冲刺长度倍率），宽 w，用时 t、到头停 hold；
+#                    逐帧扫过的线段内敌人各吃一次（不重复）。aim：nearest（最近敌人，手动普攻 A 方向类）/ densest（敌群最密处）/
+#                    leader_dir（主控冲刺方向；本干员是主控时不另行位移，跟着主控的冲刺扫）/ reverse（上一次冲刺的反方向）。
+#                    干员是主控时冲刺就是主控本体位移（同乌尔比安弹射，squad.update 把 g.ppos 拉过去），到头不停顿。
+#                    其余参数同 shape.circle：mult、src、tags、power、on_hit（st.stun / st.slow）；fx：剑光帧条名（可选）；sfx：起冲时播的音（可选）
+#  verb.sp_secs      瞬时：编队技能各 +seconds 秒充能（推进之王 _squad_sp_seconds 的写法；不吃回复倍率）；exclude_self 缺省 true
+#  verb.dash_mod     常驻：本干员冲刺长度 / 宽度倍率（len_add / len_mult / w_add / w_mult；(1 + Σadd) × Πmult）
+#  verb.buff_leader  常驻：主控属性修正，第一版只开 stat = dash_cd（主控冲刺冷却倍率，game.gd dash_cd_mult）；op: add / mult
+#  verb.trail        瞬时（放在 trig.on_dash_end 里）：沿刚结束的那次冲刺留下 life 秒的残像，踩进的敌人各吃一次 mult 伤害 + on_hit
+#  verb.fx_scatter   瞬时、只有画面：在 center（self / target）半径 r 内撒 n 个帧条（strip），错开 stagger 秒起播；不碰 g.rng
+#  trig.on_dash_end  本干员任一次 dash_line 结束时：src（只认这个伤害来源的冲刺，缺省全部）、min_hits（这次扫中的敌人数下限）、delay
+#  trig.on_leader_dash  主控按下冲刺（g.dash_t 上升沿）：cd（两次之间至少隔几秒）
+#  trig.on_skill_start / trig.on_skill_end  本干员技能 skill（0 起）出手 / 持续结束：delay（只 on_skill_start）
+
+const TX_IMPL := {
+	"shape": ["dash_line"],
+	"verb": ["sp_secs", "dash_mod", "buff_leader", "trail", "fx_scatter"],
+	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
+}
+const TX_AIMS := ["nearest", "densest", "leader_dir", "reverse"]
+const TX_LEADER_STATS := ["dash_cd"]
+const TxArt = preload("res://scripts/art.gd")
+
+
+## 校验（由 _block 转来；cond 与 $ 表达式已在 _block 里查过）
+static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter"]
+	var is_trig: bool = tag.begins_with("trig.")
+	match kind:
+		"attack":
+			if tag != "shape.dash_line":
+				errs.append("%s：普攻只能是伤害形状，不能是「%s」" % [p, tag])
+				return
+		"trig":
+			if not is_trig:
+				errs.append("%s：这里要触发积木，不是「%s」" % [p, tag])
+				return
+		"on_hit":
+			errs.append("%s：on_hit 里只能放 st.stun / st.slow，不能放「%s」" % [p, tag])
+			return
+		"instant":
+			if not instant:
+				errs.append("%s：触发器的 do 只执行一次，「%s」不是瞬时积木" % [p, tag])
+				return
+		"sustain":
+			if instant or is_trig:
+				errs.append("%s：常驻列表里只能放常驻积木，「%s」不是" % [p, tag])
+				return
+		"skill":
+			if is_trig:
+				errs.append("%s：技能 do 里不能放「%s」" % [p, tag])
+				return
+	match tag:
+		"shape.dash_line":
+			_num(b, "r", p, ctx, true, 10.0, 600.0)
+			_num(b, "w", p, ctx, true, 4.0, 200.0)
+			_num(b, "t", p, ctx, false, 0.02, 1.0)
+			_num(b, "hold", p, ctx, false, 0.0, 1.0)
+			_num(b, "mult", p, ctx, false, -INF, 20.0)
+			if not str(b.get("aim", "nearest")) in TX_AIMS:
+				errs.append("%s.aim 只能是 %s" % [p, " / ".join(TX_AIMS)])
+			if kind == "attack" and str(b.get("aim", "nearest")) != "nearest":
+				errs.append(p + ".aim：普攻冲刺只能朝最近敌人（nearest）")
+			_src(b, p, ctx, true)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+		"verb.sp_secs":
+			_num(b, "seconds", p, ctx, true, 0.0, 10.0)
+		"verb.dash_mod":
+			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult")):
+				errs.append(p + "：verb.dash_mod 至少写 len_add / len_mult / w_add / w_mult 之一")
+			for k in ["len_add", "w_add"]:
+				_num(b, k, p, ctx, false, -0.9, 3.0)
+			for k in ["len_mult", "w_mult"]:
+				_num(b, k, p, ctx, false, 0.1, 4.0)
+		"verb.buff_leader":
+			if not str(b.get("stat", "")) in TX_LEADER_STATS:
+				errs.append("%s.stat 只能是 %s" % [p, " / ".join(TX_LEADER_STATS)])
+			if not str(b.get("op", "")) in ["add", "mult"]:
+				errs.append(p + ".op 只能是 add / mult")
+			_num(b, "value", p, ctx, true, -1.0, 4.0)
+		"verb.trail":
+			_num(b, "life", p, ctx, true, 0.05, 5.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_src(b, p, ctx, true)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+		"verb.fx_scatter":
+			if str(b.get("strip", "")) == "":
+				errs.append(p + " 缺 strip（帧条名）")
+			_num(b, "n", p, ctx, true, 1.0, 32.0)
+			_num(b, "r", p, ctx, true, 0.0, 600.0)
+			_num(b, "stagger", p, ctx, false, 0.0, 2.0)
+			if not str(b.get("center", "self")) in ["self", "target"]:
+				errs.append(p + ".center 只能是 self / target")
+		"trig.on_dash_end":
+			_num(b, "min_hits", p, ctx, false, 0.0, 99.0)
+			_num(b, "delay", p, ctx, false, 0.0, 5.0)
+			if b.has("src"):
+				_src(b, p, ctx, true)
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+		"trig.on_leader_dash":
+			_num(b, "cd", p, ctx, false, 0.0, 60.0)
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+		"trig.on_skill_start", "trig.on_skill_end":
+			_num(b, "skill", p, ctx, true, 0.0, 2.0)
+			if tag == "trig.on_skill_start":
+				_num(b, "delay", p, ctx, false, 0.0, 5.0)
+			elif b.has("delay"):
+				errs.append(p + "：trig.on_skill_end 不支持 delay")
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+
+
+## 冲刺长度（世界像素）：r × op_range × 本干员冲刺长度倍率
+static func tx_len(o, b: Dictionary) -> float:
+	return float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.tx.get("len", 1.0))
+
+
+## 普攻起手点（data_operator.update 转来）：最近敌人在冲刺长度 × 1.3 内就起手（手动普攻 A 方向类：沿瞄准方向照冲）
+static func tx_attack_point(o, b: Dictionary) -> Vector2:
+	var r: float = tx_len(o, b)
+	return o.atk_point(o.nearest_enemies(1, r * 1.3, o.pos), r)
+
+
+## 起冲（瞬时）：正在冲的那次先结算掉，再按 aim 定方向。dmg 已含 mult / 局部伤害倍率 / 技能强度（exec_shape 算好）
+static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
+	var g = o.g
+	if o.pos == Vector2.INF:
+		return []
+	if o.tx.has("dash"):
+		_tx_dash_end(o)
+	var aim: String = str(b.get("aim", "nearest"))
+	var len: float = tx_len(o, b)
+	var dir := Vector2.ZERO
+	match aim:
+		"nearest":
+			var ts: Array = o.nearest_enemies(1, len * 1.3, o.pos)
+			var ang: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
+			dir = Vector2.from_angle(o.atk_angle(ang))
+		"densest":
+			var p: Vector2 = _tx_densest(o, len * 1.6)
+			dir = (p - o.pos).normalized() if p != Vector2.INF and p.distance_to(o.pos) > 1.0 else Vector2(o.face, 0.0)
+		"leader_dir":
+			dir = g.dash_dir if g.dash_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
+		"reverse":
+			dir = -Vector2(o.tx.get("last_dir", Vector2(o.face, 0.0)))
+	if dir == Vector2.ZERO:
+		dir = Vector2(o.face, 0.0)
+	dir = dir.normalized()
+	if absf(dir.x) > 0.1:
+		o._set_face(signf(dir.x), true)
+	var ride: bool = o.is_leader and aim == "leader_dir"   # 主控自己按的冲刺：位移交给主控，冲刺只负责扫
+	var d := {"from": o.pos, "to": o.pos + dir * len, "dir": dir, "t": 0.0, "dur": float(b.get("t", 0.18)),
+		"hold": 0.0 if o.is_leader else float(b.get("hold", 0.0)), "ride": ride, "last": o.pos, "hit": {},
+		"dmg": dmg, "w": float(b.get("w", 40.0)) * float(o.tx.get("w", 1.0)), "b": b, "src": str(b.get("src", ""))}
+	o.tx["dash"] = d
+	if b.has("sfx"):
+		o._sfx_op(str(b.sfx))
+	if b.has("fx"):
+		var fr: Array = g.V6_FRAMES.get(str(b.fx), [4, 20.0])
+		o.fx({"kind": "strip", "strip": str(b.fx), "frames": int(fr[0]), "fps": float(fr[1]), "pos": d.to, "ang": dir.angle(), "sx": len / 128.0,
+			"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(fr[0]) / float(fr[1]) + d.dur * 0.5, "delay": d.dur * 0.5})
+	return []
+
+
+## 敌群最密处：半径 rr 内最近的 24 个敌人里，80 像素内邻居最多的那个（并列取近的）；没有敌人返回 INF
+static func _tx_densest(o, rr: float) -> Vector2:
+	var cand: Array = o.g.enemies_sys.nearest(24, rr, o.pos)
+	var best := Vector2.INF
+	var bn := -1
+	for e in cand:
+		var n := 0
+		for f in cand:
+			if e.pos.distance_squared_to(f.pos) <= 6400.0:
+				n += 1
+		if n > bn:
+			bn = n
+			best = e.pos
+	return best
+
+
+## 每帧（data_operator.update 在常驻积木之后调）：主控冲刺 / 技能结束的触发、延迟队列、残像、冲刺推进与扫线。
+## 返回 true = 正在冲刺（这一帧不起手普攻 / 技能）
+static func tx_update(o, dt: float) -> bool:
+	var g = o.g
+	var tx: Dictionary = o.tx
+	# 主控冲刺上升沿
+	var ld: float = float(g.dash_t)
+	if ld > 0.0 and float(tx.get("prev_ld", 0.0)) <= 0.0 and g.demo_op == "":
+		for t in o._trigs():
+			if str(t.get("_tag", "")) != "trig.on_leader_dash" or not cond_true(o, t.get("cond", {})):
+				continue
+			var k: String = "ld%d" % int(t.get("_uid", 0))
+			if g.t < float(tx.get(k, -99.0)):
+				continue
+			tx[k] = g.t + float(t.get("cd", 0.0))
+			o._exec_list(t.get("do", []))
+	tx["prev_ld"] = ld
+	# 技能持续结束
+	var prev: Array = tx.get("prev_s", [0.0, 0.0, 0.0])
+	for i in 3:
+		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
+			for t in o._trigs():
+				if str(t.get("_tag", "")) == "trig.on_skill_end" and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):
+					o._exec_list(t.get("do", []), tx.get("last_to", o.pos))
+	tx["prev_s"] = o.s_t.duplicate()
+	# 延迟队列（on_dash_end / on_skill_start 的 delay）
+	var q: Array = tx.get("queue", [])
+	if not q.is_empty():
+		var due: Array = []
+		for it in q:
+			it.t -= dt
+			if it.t <= 0.0:
+				due.append(it)
+		tx["queue"] = q.filter(func(it): return it.t > 0.0)
+		for it in due:
+			tx["ctx"] = it.ctx
+			o._exec_list(it.do, it.ctx.get("to", Vector2.INF))
+	# 残像
+	var trails: Array = tx.get("trails", [])
+	if not trails.is_empty():
+		for tr in trails:
+			tr.life -= dt
+			_tx_sweep(o, tr.from, tr.to, tr.w, tr.hit, tr.dmg, tr.b)
+		tx["trails"] = trails.filter(func(tr): return tr.life > 0.0)
+	# 冲刺
+	if not tx.has("dash") or o.pos == Vector2.INF:
+		return false
+	var d: Dictionary = tx.dash
+	d.t += dt
+	var k2: float = clampf(d.t / maxf(0.01, d.dur), 0.0, 1.0)
+	if not d.ride:
+		o.pos = (d.from as Vector2).lerp(d.to, 1.0 - (1.0 - k2) * (1.0 - k2))   # 先快后慢
+	if d.t <= d.dur + dt * 0.5:
+		_tx_sweep(o, d.last, o.pos, d.w, d.hit, d.dmg, d.b)
+		d.last = o.pos
+	if d.t >= d.dur + d.hold:
+		_tx_dash_end(o)
+		return false
+	return true
+
+
+## 扫一段线段：线段两侧 w/2（+ 敌人半径）内、hit 里没有的敌人各吃一次 dmg（对精英 / Boss 乘 vs_elite）与 on_hit 状态
+static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg: float, b: Dictionary) -> void:
+	var g = o.g
+	var seg: Vector2 = c - a
+	var L: float = seg.length()
+	var mid: Vector2 = (a + c) * 0.5
+	var src: String = str(b.get("src", ""))
+	var tags: Array = b.get("tags", [])
+	var ve: float = o.vs_elite()
+	for j in o.query_ids(mid, L * 0.5 + w * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or hit.has(e.id):
+			continue
+		var q: Vector2 = a if L < 0.5 else a + seg * clampf((e.pos - a).dot(seg) / (L * L), 0.0, 1.0)
+		if e.pos.distance_to(q) > w * 0.5 + float(e.r):
+			continue
+		hit[e.id] = true
+		o.log_hit(src, tags)
+		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+		for s in b.get("on_hit", []):
+			apply_status(o, e, s)
+		o.fx({"kind": "shard", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "ang": seg.angle() + 0.5, "sz": 7.0, "life": 0.16, "col": Color(1.0, 0.75, 0.4)})
+
+
+## 一次冲刺结束：记下终点与方向，按 on_dash_end 触发
+static func _tx_dash_end(o) -> void:
+	var tx: Dictionary = o.tx
+	var d: Dictionary = tx.dash
+	tx.erase("dash")
+	var n: int = d.hit.size()
+	tx["last_to"] = o.pos if d.ride else d.to
+	tx["last_dir"] = d.dir
+	var ctx := {"from": d.from, "to": tx.last_to, "dir": d.dir, "n": n, "src": d.src, "w": d.w}
+	if n > 0:
+		o._sfx_op("hit")
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_dash_end" or not cond_true(o, t.get("cond", {})):
+			continue
+		if t.has("src") and str(t.src) != d.src:
+			continue
+		if n < int(t.get("min_hits", 0)):
+			continue
+		var dl: float = float(t.get("delay", 0.0))
+		if dl > 0.0:
+			var q: Array = tx.get("queue", [])
+			q.append({"t": dl, "do": t.get("do", []), "ctx": ctx})
+			tx["queue"] = q
+		else:
+			tx["ctx"] = ctx
+			o._exec_list(t.get("do", []), ctx.to)
+
+
+## 技能出手（data_operator._release_skill 转来）：trig.on_skill_start
+static func tx_skill_start(o, i: int) -> void:
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_skill_start" or int(t.get("skill", -1)) != i or not cond_true(o, t.get("cond", {})):
+			continue
+		var dl: float = float(t.get("delay", 0.0))
+		if dl > 0.0:
+			var q: Array = o.tx.get("queue", [])
+			q.append({"t": dl, "do": t.get("do", []), "ctx": {}})
+			o.tx["queue"] = q
+		else:
+			o._exec_list(t.get("do", []))
+
+
+## 瞬时积木（data_operator._exec_list 的缺省分支转来）
+static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"shape.dash_line":
+			exec_shape(o, b, at)
+		"verb.sp_secs":
+			var sec: float = float(b.seconds)
+			for m in o.g.squad.ops:
+				if m == o and b.get("exclude_self", true):
+					continue
+				for i in 3:
+					if m.skill_unlocked(i) and m.sp_need(i) > 0.0 and not m.perm[i]:
+						m.sp[i] = minf(m.sp_need(i), m.sp[i] + sec)
+		"verb.trail":
+			var c: Dictionary = o.tx.get("ctx", {})
+			if c.has("from"):
+				var tr := {"from": c.from, "to": c.to, "w": float(c.w), "life": float(b.life), "hit": {}, "b": b,
+					"dmg": o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.mult) * float(o.loc.dmg) * o._dmg_bonus()}
+				var trails: Array = o.tx.get("trails", [])
+				trails.append(tr)
+				o.tx["trails"] = trails
+				o.fx({"kind": "line", "pos": c.from, "to": c.to, "w": float(c.w) * 0.35, "life": float(b.life), "col": o.col(), "floor": true})
+		"verb.fx_scatter":
+			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
+			var n: int = int(b.n)
+			var r: float = float(b.r) * o.stat(&"op_range")
+			var fr: Array = o.g.V6_FRAMES.get(str(b.strip), [6, 20.0])
+			var life0: float = float(fr[0]) / float(fr[1])
+			var st: float = float(b.get("stagger", 0.25))
+			var sd: int = int(o.tx.get("fxn", 0))
+			o.tx["fxn"] = sd + 1
+			for k in n:
+				# 画面用的低差异序列（黄金角），不碰 g.rng
+				var u: float = fposmod((sd * n + k) * 0.618034, 1.0)
+				var rad: float = r * sqrt((k + 0.5) / float(n))
+				var p: Vector2 = cc + Vector2.from_angle(u * TAU + k * 2.39996) * rad * Vector2(1.0, 0.55)
+				var dl: float = st * fposmod(k * 0.381966 + u, 1.0)
+				o.fx({"kind": "strip", "strip": str(b.strip), "frames": int(fr[0]), "fps": float(fr[1]), "pos": p, "anchor": Vector2(0.5, 30.0 / 32.0),
+					"life": life0 + dl, "delay": dl})
+
+
+## 常驻积木（data_operator._sustain 第二遍末尾转来）：冲刺长度 / 宽度倍率写进 tx，主控属性修正追加进 want（随 g.stats 整组重建）
+static func tx_sustain(o, act: Array, want: Array) -> void:
+	var la := 0.0
+	var lm := 1.0
+	var wa := 0.0
+	var wm := 1.0
+	for b in act:
+		match str(b.get("_tag", "")):
+			"verb.dash_mod":
+				la += float(b.get("len_add", 0.0))
+				lm *= float(b.get("len_mult", 1.0))
+				wa += float(b.get("w_add", 0.0))
+				wm *= float(b.get("w_mult", 1.0))
+			"verb.buff_leader":
+				want.append([str(b.stat), str(b.op), float(b.value), ""])
+	o.tx["len"] = (1.0 + la) * lm
+	o.tx["w"] = (1.0 + wa) * wm
+
+
+## 帧条粒子（data_operator._draw_pfx 转来）：kind = strip；delay 秒后起播，sx 横向缩放（冲刺剑光拉到冲刺长度）
+static func tx_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	if str(f.get("kind", "")) != "strip":
+		return false
+	var el: float = float(f.max) - float(f.life) - float(f.get("delay", 0.0))
+	if el < 0.0:
+		return true
+	var tx: Texture2D = o._fx_tex(str(f.strip))
+	if tx == null:
+		return true
+	var frames: int = int(f.frames)
+	var fr: int = mini(frames - 1, int(el * float(f.fps)))
+	var fw: float = float(tx.get_width() / frames)
+	var fh: float = float(tx.get_height())
+	var k: float = o.g.PX / TxArt.hires_of(tx)
+	var al: float = o.g.world.fx_dim if a > 0.0 else 0.0
+	o.cv.draw_set_transform((f.pos as Vector2).round(), float(f.get("ang", 0.0)), Vector2(k * float(f.get("sx", 1.0)), k))
+	o.cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * (f.anchor as Vector2), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), Color(1, 1, 1, al))
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true

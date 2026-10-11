@@ -23,6 +23,7 @@ const PLAYER := {
 	&"shield_max": {"base": 0.0, "min": 0.0, "old": "shield_max", "name": "护盾层数上限"},
 	&"shield_interval": {"base": 12.0, "min": 2.0, "old": "shield_every", "name": "护盾生成间隔"},
 	&"elite_dmg_taken": {"base": 1.0, "min": 0.0, "name": "精英敌人对主控造成的伤害倍率（docs/57 P7）"},
+	&"dash_cd": {"base": 1.0, "min": 0.3, "name": "主控冲刺冷却倍率（德克萨斯 S2，docs/59 §6）"},
 	# ---- 公共：输出
 	&"dmg": {"base": 1.0, "min": 0.0, "old": "dmg_mult", "name": "全伤害倍率"},
 	&"physical_dmg": {"base": 1.0, "min": 0.0, "name": "物理伤害倍率"},
