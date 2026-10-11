@@ -135,7 +135,8 @@ func close(s: String) -> void:
 				g.panel.visible = false
 				g.state = Game.S.PLAY
 		"shop":
-			g.shop_sys.close()   # 不管当前状态都关：连按钮一起收掉
+			g.shop_sys.close()
+			g.merchant = {}   # 商人就站在主控脚下，不清掉会马上自动再打开商店
 		"pause":
 			g.state = Game.S.PLAY
 		"banner":
