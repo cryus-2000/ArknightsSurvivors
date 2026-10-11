@@ -278,11 +278,14 @@ func test_squad_contract() -> void:
 ## sfx.gd 按「干员_事件.ogg」取文件；目录里不能留没转换的 WAV（游戏只读 OGG，WAV 会被静默跳过）
 func test_voice() -> void:
 	var man = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
-	ok(man is Dictionary and man.get("clips", []).size() >= 66, "语音清单可读，至少 66 条")
+	ok(man is Dictionary and man.get("clips", []).size() >= 91, "语音清单可读，至少 91 条（66 + 第五批 25）")
 	if not man is Dictionary:
 		return
+	var SfxS = load("res://scripts/sfx.gd")
+	var have := {}
 	for c in man.clips:
 		var f: String = c.file
+		have[f] = true
 		ok(f == "%s_%s.ogg" % [c.operator, c.event], "语音文件名 = 干员_事件.ogg：" + f)
 		var path := "res://audio/voice/" + f
 		var st = load(path) if ResourceLoader.exists(path) else null
@@ -290,6 +293,12 @@ func test_voice() -> void:
 		if st is AudioStreamOggVorbis:
 			ok(not st.loop, "语音不循环：" + f)
 			ok(absf(st.get_length() - float(c.duration_seconds)) < 0.01, "语音时长与母带一致：%s（%.3f / %.3f）" % [f, st.get_length(), float(c.duration_seconds)])
+			ok(st.get_length() <= SfxS.VOICE_MAX_LEN, "语音不超过 VOICE_MAX_LEN（超长会被 sfx.gd 静默丢掉）：%s %.2f 秒" % [f, st.get_length()])
+	# 第五批语音（第三批干员，art/incoming/voice_batch5_1012，2026-10-12）：五人 × 五个事件齐全
+	for cid in ["texas", "hoshiguma", "angelina", "skalter", "exusiai"]:
+		ok(man.operators.has(cid), "语音清单登记了干员：" + cid)
+		for ev in ["entry", "skill_1", "skill_2", "skill_3", "battle"]:
+			ok(have.has("%s_%s.ogg" % [cid, ev]), "语音齐全：%s_%s" % [cid, ev])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
 
