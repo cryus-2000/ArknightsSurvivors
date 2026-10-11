@@ -27,9 +27,10 @@ static func steps(real_delta: float, accelerated := true) -> PackedFloat64Array:
 	var out := PackedFloat64Array()
 	if not is_finite(real_delta) or real_delta <= 0.0:
 		return out
-	var duration: float = real_delta * (current_speed() if accelerated else 1.0)
-	if accelerated and not test_legacy:
-		duration = minf(duration, MAX_STEP * MAX_STEPS)
+	# 防「越卡越追」：先把真实帧间隔封到 MAX_STEPS × 1/60（30 fps 以下模拟略放慢），再乘倍速——
+	# 这样 2× 倍速照样是 2×（10-11 补：原写法封的是乘倍速后的时长，30 fps + 2× 时只剩约 1.25×）
+	var rd: float = real_delta if (test_legacy or not accelerated) else minf(real_delta, MAX_STEPS / 60.0)
+	var duration: float = rd * (current_speed() if accelerated else 1.0)
 	var count: int = maxi(1, ceili(duration / (1.0 / 60.0 if test_legacy else MAX_STEP)))
 	out.resize(count)
 	out.fill(duration / float(count))

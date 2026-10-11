@@ -15,8 +15,8 @@ func _ready() -> void:
 			for step in Clock.steps(delta):
 				check(step > 0.0 and step <= Clock.MAX_STEP + 0.000000001, "bounded positive step")
 				total += step
-			check(absf(total - minf(delta * speed, Clock.MAX_STEP * Clock.MAX_STEPS)) < 0.000000001, "preserve scaled time up to the per-frame cap")
-			check(Clock.steps(delta).size() <= Clock.MAX_STEPS, "at most MAX_STEPS steps per frame")
+			check(absf(total - minf(delta, Clock.MAX_STEPS / 60.0) * speed) < 0.000000001, "real frame time capped at MAX_STEPS/60, then scaled by speed (2x stays 2x)")
+			check(Clock.steps(delta).size() <= ceili(Clock.MAX_STEPS * speed * 48.0 / 60.0 + 0.0001), "steps bounded by cap x speed")
 			var menu_total := 0.0
 			for step in Clock.steps(delta, false):
 				menu_total += step
