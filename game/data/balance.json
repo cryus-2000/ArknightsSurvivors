@@ -167,6 +167,7 @@
  "relic": {
   "_doc": "藏品层旋钮（docs/35）：流派加权、守护·续航随时间的权重、藏品直接伤害（按敌人生命的时间倍率缩放）、技力类藏品上限。代码里的缺省值与这里一致",
   "carry_cap": 15,
+  "new_pool": 1,
   "elite_drop_chance": 0.3,
   "lane_weight": 1.3,
   "lane_weight_cap": 2.0,

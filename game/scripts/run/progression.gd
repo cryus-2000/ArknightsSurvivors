@@ -65,14 +65,14 @@ func recruit_cards() -> Array:
 
 
 func open_levelup() -> void:
-	var want: int = 3 + g.rfx.rule("four_choices")
+	var want: int = 3 + g.rfx.rule("four_choices") + g.rfx.take_choice_extra()   # 后者：一次性「多一个选项」（docs/57 P27）
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 	var recruit: Array = recruit_cards()
 	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
 		g._shuffle(recruit)
-		g.panel_ui.show_choices("招募干员", recruit.slice(0, want), "level")
+		g.panel_ui.show_choices("招募干员", recruit.slice(0, want + g.rfx.rule("recruit_extra")), "level")   # 罗德岛战术电台：招募多一个选项
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -154,7 +154,9 @@ func deep_cards() -> Array:
 ## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
 ## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
 func relic_pool_ids(for_shop := false) -> Array:
-	var cands: Array = g.rfx.db.implemented().filter(func(r): return g.rfx.can_offer(r, for_shop) and can_gain_relic(r.id))
+	# docs/57：relic/new_pool = 0 时第二批实装的藏品不进池（同 seed 结果与之前一致，供云端 A/B）
+	var new_ok: bool = Bal.vi("relic/new_pool", 1) != 0
+	var cands: Array = g.rfx.db.implemented().filter(func(r): return (new_ok or not r.new_pool) and g.rfx.can_offer(r, for_shop) and can_gain_relic(r.id))
 	var lane_n := {}
 	for rid in g.relics:
 		for ln in g.RL.get(rid, {}).get("lanes", []):
@@ -205,7 +207,13 @@ func open_relic_choice() -> void:
 		g.ingots += 12 * n
 		g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可升级藏品 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
 		return
-	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices"))
+	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
+	var extra: int = g.rfx.take_choice_extra()
+	if g.rfx.rule("chest_keys") > 0:
+		g.rfx.use_rule("chest_keys")
+		extra += 1
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "钥匙 · 多一个选项", UI.GOLD, 15)
+	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
 	g.panel_ui.show_choices("获得藏品", shown, "relic")

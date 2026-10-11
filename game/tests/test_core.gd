@@ -127,7 +127,7 @@ func test_db_and_profile() -> void:
 	for e in errs:
 		printerr("  数据错误: ", e)
 	ok(errs.is_empty(), "效果数据校验")
-	ok(c.db.implemented().size() > 20, "已实装藏品数量")
+	ok(c.db.implemented().size() == 262, "已实装藏品 262 件（docs/57：全部实装，%d）" % c.db.implemented().size())
 	# docs/35 藏品契约：说明非空、不再出现「援护干员」、职业门槛合法、流派只用 A–H
 	var classes := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 	for r in c.db.implemented():
@@ -149,6 +149,27 @@ func test_db_and_profile() -> void:
 		for k in need[id]:
 			ok(trig.get("args", {}).has(k), "藏品 %s 触发参数 %s 存在" % [id, k])
 	ok(c.db.get_relic("169").effects[0].get("if", {}).has("target_hp_below"), "藏品 169 处决门槛 target_hp_below 存在")
+	# docs/57：第二批原语的数据契约——带参数的规则 / 触发必须在数据里给齐参数（relic_fx.gd 不写死数值）
+	var rule_keys := {"hp_dmg": ["max"], "low_hp_haste": ["max", "at"], "far_dmg": ["max", "at"], "zone": ["r", "every"], "sp_pulse": ["every", "pct"],
+		"medkit": ["n", "at", "heal"], "unhurt_light": ["t", "amount"], "per_relic": ["stat", "per"], "squad_scale": ["stat", "per", "count"]}
+	var do_keys := {"refund": ["class", "pct"], "stack_stat": ["stat", "per", "max"], "invuln": ["dur"], "stun_near": ["min_pct", "r", "dur"],
+		"damage_all": ["cd", "dmg"], "random_relic": ["n"], "levels": ["n"], "heal_flat": ["amount"]}
+	var new_n := 0
+	for r in c.db.implemented():
+		if r.get("new_pool", false):
+			new_n += 1
+			ok(r.rarity in ["基础", "稀有", "核心", "升华", "遭诅古物"], "藏品 %s 稀有度合法（%s）" % [r.id, r.rarity])
+		for ef in r.effects:
+			var a: Dictionary = ef.get("args", {})
+			if ef.get("type", "") == "rule" and rule_keys.has(ef.get("rule", "")):
+				for k in rule_keys[ef.rule]:
+					ok(a.has(k), "藏品 %s 规则 %s 缺参数 %s" % [r.id, ef.rule, k])
+			if ef.get("type", "") in ["trigger", "on_gain"] and do_keys.has(ef.get("do", "")):
+				for k in do_keys[ef.do]:
+					ok(a.has(k), "藏品 %s 动作 %s 缺参数 %s" % [r.id, ef.do, k])
+			if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Tick" and a.has("class"):
+				ok(a.has("every") and a.has("radius"), "藏品 %s 职业周期伤害缺 every / radius" % r.id)
+	ok(new_n > 0, "第二批藏品已标记 new")
 	# Build Profile：拿近战藏品后，A 流派领先
 	for id in ["54", "56", "120", "121"]:
 		c.gain_relic(id)

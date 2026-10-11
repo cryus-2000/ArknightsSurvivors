@@ -9,6 +9,14 @@
 ##   on_gain {do, args}                         —— 获得时执行一次：light / ingots / heal / shield_fill / growth_pick /
 ##                                                 advance_class / silver_seal / extra_slot / contract / rejection / recruit_knight
 ## 条目字段 requires_class（docs/35）：编队里有其中任一职业时才会出现在三选一 / 商店。
+## docs/57（第二批 129 件）新增：
+##   trigger 事件 LevelUp / Recruited / BossKilled / Dodge(invuln) / SkillStarted(refund, stack_stat, 带 class) / DamageTaken(damage_all, stun_near) /
+##     EnemyKilled(sp 带 class) / Tick damage_area 带 class（职业周期伤害，174 / 153 / 168 共用）；args 一律从数据读（_targs / _triggers）
+##   rule：per_relic（按持有藏品数）/ zone（旗帜）/ sp_pulse / hp_dmg / low_hp_haste / far_dmg / chest_keys / choice_extra / recruit_extra /
+##     rej_immune / def_pierce / medkit / unhurt_light；带参数的规则用 _rule_args(name) 取第一件持有者的 args
+##   spawn what：supply / bomb / crane / stakes / fill_random / rejection
+##   on_gain：heal_flat / levels / random_relic / clear_rejection / recruit_one
+##   条目字段 new: true = 第二批，balance.json relic/new_pool = 0 时不进池
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
@@ -47,6 +55,19 @@ var home_pos := Vector2.INF   # 遥乡之引：区域中心
 var home_t := 0.0             # 距下次换位置
 var contract_op := ""      # 生还者合约：被选中的干员
 var hurt_sp_cd := 0.0      # 铁卫-无锋：受击回技力冷却
+# ---- docs/57 新增
+var zones := {}            # 旗帜类区域：id -> {pos, t}
+var pulses := {}           # sp_pulse 计时：id -> 剩余秒
+var cpulse := {}           # 职业周期伤害计时：id -> 剩余秒
+var unhurt := {}           # unhurt_light 计时：id -> 连续未受伤秒数
+var hurt_cd := {}          # DamageTaken 冷却：id -> 可再次触发的时刻
+var sp_stack := {}         # stack_stat 层数：id -> 层
+var medkits := {}          # 急救包剩余：id -> 个数
+var used := {}             # 一次性触发（args.once）已用：id -> true
+var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
+var stakes: Array = []     # 防暴桩：{pos, life}
+var _trig_cache := {}      # 事件名 -> [[id, effect], …]，获得藏品时重建
+var _rule_cache := {}      # 规则名 / "id:规则名" -> args，获得藏品时重建
 const HOME_R := 95.0
 const KING_LOW := 0.5     # 国王套装「低血」门槛：原来 30%，实测主控生命低于 35% 的时间占比只有 0–0.7%，几乎不触发（2026-09-27）
 const MINE_N := 3          # 支援地雷组：每次朝敌群抛出几枚
@@ -73,6 +94,49 @@ func has(id: String) -> bool:
 
 func rule(name: String) -> int:
 	return int(rules.get(name, 0))
+
+
+## 计数型规则用掉一次（补给箱钥匙 / 排异免疫 / 一次性加选项）
+func use_rule(name: String) -> void:
+	if rules.get(name, 0) > 0:
+		rules[name] = rules[name] - 1
+
+
+## 「下一次三选一多一个选项」：有就用掉一次，返回 1；否则 0（docs/57 P27）
+func take_choice_extra() -> int:
+	if rule("choice_extra") > 0:
+		use_rule("choice_extra")
+		return 1
+	return 0
+
+
+## 带参数的规则：返回第一件持有该规则的藏品的 args（没有则空字典）。每次伤害 / 每帧都会查，按规则名缓存，获得藏品时清
+func _rule_args(name: String) -> Dictionary:
+	if _rule_cache.has(name):
+		return _rule_cache[name]
+	var out: Dictionary = {}
+	for id in g.relics:
+		for ef in db.get_relic(id).get("effects", []):
+			if ef.get("type", "") == "rule" and ef.get("rule", "") == name:
+				out = ef.get("args", {})
+				break
+		if not out.is_empty():
+			break
+	_rule_cache[name] = out
+	return out
+
+
+## 持有藏品里某事件的全部 trigger：[[id, effect], …]（缓存，获得藏品时重建）
+func _triggers(event: String) -> Array:
+	if _trig_cache.has(event):
+		return _trig_cache[event]
+	var out: Array = []
+	for id in g.relics:
+		for ef in db.get_relic(id).get("effects", []):
+			if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == event:
+				out.append([id, ef])
+	_trig_cache[event] = out
+	return out
 
 
 ## 纯属性型藏品可升到 3 级；带触发 / 规则 / 一次性效果的只有 1 级
@@ -119,6 +183,16 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 				# 典训：该职业里没有能推进的干员就不出（避免废卡）
 				if _advance_target(str(ef.get("args", {}).get("class", ""))) == null:
 					return false
+			"recruit_one":
+				if g.squad.is_full():
+					return false
+			"clear_rejection":
+				# 排异类（docs/57 P18）：发生过排异、或走在深蓝线上才有意义
+				if g.doctor.rej_count <= 0 and rule("deep_sea") <= 0:
+					return false
+		# 招募事件类（docs/57 P10）：编队已满、没人可招就不出（避免废卡）
+		if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Recruited" and g.progression.recruit_cards().is_empty():
+			return false
 	return true
 
 
@@ -155,6 +229,8 @@ func apply(id: String) -> void:
 		return
 	if r.tags.has("king"):
 		king_n += 1
+	_trig_cache.clear()
+	_rule_cache.clear()
 	var squad_dep := false
 	for ef in r.effects:
 		match ef.get("type", "stat"):
@@ -162,6 +238,7 @@ func apply(id: String) -> void:
 				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value), "relic:" + id, ef.get("scope", ""))
 			"rule":
 				rules[ef.rule] = rules.get(ef.rule, 0) + int(ef.get("value", 1))
+				var ra: Dictionary = ef.get("args", {})
 				if ef.rule == "squad_scale":
 					squad_dep = true
 				if ef.rule == "deep_sea":
@@ -171,16 +248,28 @@ func apply(id: String) -> void:
 					g.shield_burst = true
 				elif ef.rule == "shield_heal":
 					g.shield_heal = true
+				# docs/57 带状态的规则
+				elif ef.rule == "zone":
+					zones[id] = {"pos": Vector2.INF, "t": 0.0}
+				elif ef.rule == "sp_pulse":
+					pulses[id] = float(ra.get("every", 3.0))
+				elif ef.rule == "medkit":
+					medkits[id] = int(ra.get("n", 3))
+				elif ef.rule == "unhurt_light":
+					unhurt[id] = 0.0
 			"status":
 				dot_mult = maxf(dot_mult, float(ef.get("args", {}).get("dot_mult", 0.0)))
 			"spawn":
-				timers.append({"every": float(ef.every), "left": float(ef.get("first", ef.every)), "what": ef.get("args", {}).get("what", "mine")})
+				timers.append({"every": float(ef.every), "left": float(ef.get("first", ef.every)), "what": ef.get("args", {}).get("what", "mine"), "id": id, "args": ef.get("args", {})})
 			"on_gain":
 				_on_gain(str(ef.do), ef.get("args", {}))
 			"trigger":
-				pass  # 触发型由 on_*() 钩子按 id 查询
+				if str(ef.get("event", "")) == "Tick" and ef.get("args", {}).has("class"):
+					cpulse[id] = 0.0   # 第一帧就打一次（与原 174 的 dust_t 行为相同）
 	if squad_dep:
 		refresh_squad()
+	if rule("per_relic") > 0:
+		refresh_relic_count()
 
 
 func _on_gain(what: String, args: Dictionary) -> void:
@@ -209,8 +298,9 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			if g.shield_max > 0:
 				g.shield = g.shield_max
 		"growth_pick":
-			g.pending_levelups += 1
-			g.vfx.show_banner("获得一次成长三选一")
+			var gn: int = int(args.get("n", 1))
+			g.pending_levelups += gn
+			g.vfx.show_banner("获得一次成长三选一" if gn == 1 else "获得 %d 次成长三选一" % gn)
 		"advance_class":
 			var cls: String = str(args.get("class", ""))
 			var o = _advance_target(cls)
@@ -227,6 +317,33 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			g.vfx.show_banner("编队上限 +1")
 		"contract":
 			_contract_start()
+		# ---- docs/57
+		"sp":
+			_gain_sp(float(args.get("pct", 0.2)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "全队技力 +%d%%" % int(float(args.get("pct", 0.2)) * 100.0), Color(0.8, 0.9, 1.0), 16)
+		"heal_flat":
+			g.combat.heal(amt, "藏品")
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "生命 +%d" % int(amt), Color(0.55, 1.0, 0.6), 16)
+		"levels":
+			# 立即升 n 级：每级补足到下一级所需经验（走 pickups.gain_xp，升级选卡照常弹出）
+			for k in int(args.get("n", 1)):
+				g.pickups.gain_xp(maxf(0.0, g.xp_need - g.xp) + 0.001)
+			g.vfx.show_banner("等级 +%d" % int(args.get("n", 1)))
+		"random_relic":
+			_random_relics(int(args.get("n", 1)), str(args.get("rarity", "")))
+		"clear_rejection":
+			var n := 0
+			for o in g.squad.ops:
+				while o.clear_rejection():
+					n += 1
+					if not bool(args.get("all", false)):
+						break
+				if n > 0 and not bool(args.get("all", false)):
+					break
+			if n > 0:
+				g.vfx.show_banner("排异反应解除 ×%d" % n)
+		"recruit_one":
+			_recruit_one()
 
 
 ## 典训的推进对象：该职业里下一个节点可用、进度最少的干员
@@ -261,6 +378,70 @@ func _silver_seal() -> void:
 		if not n.is_empty() and o.node_available(n):
 			o.advance("")
 	g.vfx.show_banner("博士银印：全队各推进一个成长节点")
+
+
+## 人事部铜印（docs/57）：招募一名随机干员并推进 1 个成长节点；编队已满时改为一次成长三选一
+func _recruit_one() -> void:
+	var cards: Array = g.progression.recruit_cards()
+	if cards.is_empty():
+		g.pending_levelups += 1
+		g.vfx.show_banner("人事部铜印：编队已满，改为一次成长三选一")
+		return
+	var c: Dictionary = cards[g.rng.randi() % cards.size()]
+	var o = g.squad.add(c.id)
+	if o == null:
+		g.pending_levelups += 1
+		return
+	if not o.next_node().is_empty() and o.node_available(o.next_node()):
+		o.advance("")
+	g.vfx.show_banner("人事部铜印：「%s」加入编队" % o.display_name())
+
+
+## 随机获得 n 件藏品（大教堂拼图 / “绝唱”，docs/57 P19）：从当前可出现的候选里按 g.rng 抽，rarity 非空时只抽该档
+func _random_relics(n: int, rarity: String) -> void:
+	for k in n:
+		var cands: Array = []
+		for r in db.implemented():
+			if g.relics.has(r.id) or (rarity != "" and r.rarity != rarity):
+				continue
+			if r.get("source", "any") != "any" or not can_offer(r, false) or not g.progression.can_gain_relic(r.id):
+				continue
+			cands.append(r.id)
+		if cands.is_empty():
+			g.ingots += 12
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可得藏品 · 源石锭 +12", Color(1.0, 0.85, 0.4), 16)
+			continue
+		var rid: String = cands[g.rng.randi() % cands.size()]
+		g.progression.gain_relic(rid)
+		g.vfx.show_banner("获得藏品：%s" % db.get_relic(rid).name)
+
+
+## 按持有藏品数生效（docs/57 P11）：per_relic {stat, per, cap?, classes?, rarity?}；获得藏品时重算来源 relic_count
+func refresh_relic_count() -> void:
+	if g.stats == null:
+		return
+	g.stats.remove_source("relic_count")
+	for id in g.relics:
+		for ef in db.get_relic(id).get("effects", []):
+			if ef.get("type", "") != "rule" or ef.get("rule", "") != "per_relic":
+				continue
+			var a: Dictionary = ef.get("args", {})
+			var want: String = str(a.get("rarity", ""))
+			var n := 0
+			for rid in g.relics:
+				if want == "" or db.get_relic(rid).get("rarity", "") == want:
+					n += 1
+			n = mini(n, int(a.get("cap", 99)))
+			if n <= 0:
+				continue
+			var v: float = float(a.get("per", 0.0)) * n
+			var scs: Array = a.get("classes", [])
+			if scs.is_empty():
+				g.stats.add(StringName(a.stat), "add", v, "relic_count")
+			else:
+				for c in scs:
+					g.stats.add(StringName(a.stat), "add", v, "relic_count", "class:" + str(c))
+	g.sync_stats()
 
 
 ## 生还者合约：随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%
@@ -386,12 +567,41 @@ func tick(dt: float) -> void:
 			else:
 				keep.append(c)
 		coin_q = keep
-	# 净尘之手：医疗干员每秒灼烧身边敌人
-	if g.relics.has("174"):
-		dust_t -= dt
-		if dust_t <= 0.0:
-			dust_t = 1.0
-			_dust()
+	# 职业周期伤害（净尘之手 174 / 断杖-凝神 153 / 尖刺之手 168）：Tick damage_area 带 class，数据给 every / radius / dmg
+	for id in cpulse:
+		cpulse[id] -= dt
+		if cpulse[id] <= 0.0:
+			var a: Dictionary = _targs(id)
+			cpulse[id] = float(a.get("every", 1.0))
+			_class_pulse(id, a)
+	# docs/57：定时回技力 / 旗帜区域 / 未受伤回灯火 / 急救包 / 轰隆隆 / 防暴桩
+	for id in pulses:
+		pulses[id] -= dt
+		if pulses[id] <= 0.0:
+			var a2: Dictionary = _rule_args_of(id, "sp_pulse")
+			pulses[id] = float(a2.get("every", 3.0))
+			g.squad.gain_sp(float(a2.get("pct", 0.02)))
+	for id in zones:
+		_tick_zone(id, dt)
+	for id in unhurt:
+		var a3: Dictionary = _rule_args_of(id, "unhurt_light")
+		unhurt[id] += dt
+		if unhurt[id] >= float(a3.get("t", 60.0)):
+			unhurt[id] = 0.0
+			g.lamp = minf(g.lamp_cap, g.lamp + float(a3.get("amount", 6.0)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s · 灯火 +%d" % [db.get_relic(id).name, int(a3.get("amount", 6.0))], Color(0.5, 0.8, 1.0), 15)
+	for id in medkits:
+		var a4: Dictionary = _rule_args_of(id, "medkit")
+		if medkits[id] > 0 and g.hp > 0.0 and g.hp < g.max_hp * float(a4.get("at", 0.3)):
+			medkits[id] -= 1
+			g.combat.heal(g.max_hp * float(a4.get("heal", 0.3)), "藏品")
+			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
+			g.vfx.show_banner("支援急救包：回复 %d%%（剩 %d 个）" % [int(float(a4.get("heal", 0.3)) * 100.0), medkits[id]])
+			Sfx.play("relic", -4.0, 1.5, 0.0)
+	if not bombs.is_empty():
+		_tick_bombs(dt)
+	if not stakes.is_empty():
+		_tick_stakes(dt)
 	# 食腐者手杖：溢出回复每 0.5 秒结算一次
 	if overheal > 0.0:
 		overheal_t -= dt
@@ -401,13 +611,37 @@ func tick(dt: float) -> void:
 	# 遥乡之引
 	if g.relics.has("116"):
 		_tick_home(dt)
-	# 周期生成：地雷
+	# 周期生成：地雷 / 支援装置 / 随机充满 / 定时排异（docs/57 P21 P24 P18）
 	for tm in timers:
 		tm.left -= dt
 		if tm.left <= 0.0:
 			tm.left = tm.every
-			if tm.what == "mine":
-				_throw_mines()
+			match tm.what:
+				"mine":
+					_throw_mines()
+				"supply":
+					var p: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * 70.0
+					g.pickups.drop(p, "heal", 0.0)
+					g.vfx.add_text(p + Vector2(0, -30), "补给站 · 回复药剂", Color(0.5, 1.0, 0.65), 14)
+				"bomb":
+					bombs.append({"pos": g.ppos + Vector2(0, 30), "life": 12.0, "dmg": float(tm.args.get("dmg", 60.0)), "r": float(tm.args.get("radius", 120.0))})
+					g.vfx.add_text(g.ppos + Vector2(0, -90), "轰隆隆先生出发", Color(1.0, 0.7, 0.4), 14)
+				"crane":
+					_crane(tm.args)
+				"stakes":
+					var dir := Vector2.RIGHT if g.facing >= 0.0 else Vector2.LEFT
+					for k in int(tm.args.get("n", 2)):
+						var sp: Vector2 = g.ppos + dir * 120.0 + Vector2(0, -40.0 + 80.0 * k)
+						stakes.append({"pos": sp, "life": float(tm.args.get("life", 20.0)), "r": float(tm.args.get("radius", 46.0))})
+						g.fx.append({"kind": "ring", "pos": sp, "r": 20.0, "life": 0.3, "max": 0.3, "col": Color(0.8, 0.7, 0.5)})
+				"fill_random":
+					if not g.squad.ops.is_empty():
+						var o = g.squad.ops[g.rng.randi() % g.squad.size()]
+						o.fill_sp()
+						g.vfx.add_text(o.pos + Vector2(0, -60), "技能充满", Color(0.8, 0.9, 1.0), 14)
+				"rejection":
+					var what2: String = g.doctor.apply_rejection()
+					g.vfx.show_banner("排异反应：%s" % what2)
 	for mn in mines:
 		mn.life -= dt
 		if mn.life <= 0.0:
@@ -497,14 +731,106 @@ func _wrath_blast(p: Vector2) -> void:
 	Sfx.play("boom", -8.0, 0.8, 0.05)
 
 
-## 净尘之手：每名医疗干员对身边 120 内的敌人造成法术伤害（约其攻击力的 50%）
-func _dust() -> void:
+## 职业周期伤害：该职业每名干员对身边 radius 内的敌人造成法术伤害（dmg × 敌人生命的时间倍率 × 该干员的伤害倍率）。
+## 净尘之手（174）的 dmg 缺省读 balance.json relic/dust_dmg，行为与原来相同
+func _class_pulse(id: String, a: Dictionary) -> void:
+	var cls: String = str(a.get("class", ""))
+	var r: float = float(a.get("radius", 120.0))
+	var base: float = float(a.get("dmg", Bal.v("relic/dust_dmg", 10.0)))
+	var src: String = "净尘" if id == "174" else "藏品"
+	var col := Color(0.85, 1.0, 0.9, 0.45) if id == "174" else Color(1.0, 0.75, 0.5, 0.5)
 	for o in g.squad.ops:
-		if o.cls != "医疗" or o.pos == Vector2.INF:
+		if o.cls != cls or o.pos == Vector2.INF:
 			continue
-		var dmg: float = Bal.v("relic/dust_dmg", 10.0) * g.combat.enemy_hp_time_mult() * o._dmg_bonus()
-		_area("净尘", o.pos, 120.0, dmg)
-		g.fx.append({"kind": "ring", "pos": o.pos, "r": 120.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 1.0, 0.9, 0.45)})
+		var dmg: float = base * g.combat.enemy_hp_time_mult() * o._dmg_bonus()
+		_area(src, o.pos, r, dmg)
+		g.fx.append({"kind": "ring", "pos": o.pos, "r": r, "life": 0.35, "max": 0.35, "col": col})
+		if id != "174":
+			g.vfx.sparks(o.pos, Vector2.ZERO, col, 10, 220.0)
+
+
+## 某件藏品里某条规则的 args（缓存同上）
+func _rule_args_of(id: String, name: String) -> Dictionary:
+	var key := id + ":" + name
+	if _rule_cache.has(key):
+		return _rule_cache[key]
+	var out: Dictionary = {}
+	for ef in db.get_relic(id).get("effects", []):
+		if ef.get("type", "") == "rule" and ef.get("rule", "") == name:
+			out = ef.get("args", {})
+			break
+	_rule_cache[key] = out
+	return out
+
+
+## 支援起重机（docs/57）：吊起身边 420 内最强的一名非 Boss 敌人（优先精英，其次生命最高），束缚 dur 秒
+func _crane(a: Dictionary) -> void:
+	var best: Dictionary = {}
+	var score := -1.0
+	for j in g.enemies_sys.query(g.ppos, float(a.get("range", 420.0))):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.chest or e.boss or e.get("friendly", false) or e.invuln:
+			continue
+		var s: float = e.maxhp + (1.0e6 if e.elite else 0.0)
+		if s > score:
+			score = s
+			best = e
+	if best.is_empty():
+		return
+	best.stun = maxf(best.stun, float(a.get("dur", 3.0)) * g.control_mult)
+	best.kb = Vector2.ZERO
+	g.fx.append({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.85, 0.4)})
+	g.vfx.add_text(best.pos + Vector2(0, -best.r - 20.0), "吊起", Color(1.0, 0.85, 0.4), 16)
+	Sfx.play("skill", -6.0, 1.2)
+
+
+## 轰隆隆先生：朝最近的敌人跑，撞上或寿命到就自爆（伤害随时间成长）
+func _tick_bombs(dt: float) -> void:
+	for b in bombs:
+		b.life -= dt
+		var tgt: Dictionary = {}
+		var bd := 1.0e9
+		for j in g.enemies_sys.query(b.pos, 520.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.chest or e.get("friendly", false):
+				continue
+			var d: float = e.pos.distance_squared_to(b.pos)
+			if d < bd:
+				bd = d
+				tgt = e
+		if not tgt.is_empty():
+			b.pos += (tgt.pos - b.pos).normalized() * 170.0 * dt
+			if tgt.pos.distance_to(b.pos) < tgt.r + 12.0:
+				b.life = 0.0
+		else:
+			b.pos = b.pos.move_toward(g.ppos + Vector2(0, 30), 120.0 * dt)
+		if b.life <= 0.0:
+			_area("地雷", b.pos, b.r, b.dmg * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			for j in g.enemies_sys.query(b.pos, b.r + 20.0):
+				var e2: Dictionary = g.enemies[j]
+				if not e2.dead and not e2.boss and e2.pos.distance_to(b.pos) < b.r + e2.r:
+					e2.kb += (e2.pos - b.pos).normalized() * 300.0
+			g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
+			g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
+			g.vfx.shake_screen(0.5)
+			Sfx.play("boom", -6.0, 1.0, 0.05)
+	bombs = bombs.filter(func(x): return x.life > 0.0)
+
+
+## 防暴桩：靠近的非 Boss 敌人被减速并推开（「阻挡」的简化，docs/57 P21）
+func _tick_stakes(dt: float) -> void:
+	for s in stakes:
+		s.life -= dt
+		if s.life <= 0.0:
+			continue
+		for j in g.enemies_sys.query(s.pos, s.r + 24.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.chest or e.boss or e.get("friendly", false):
+				continue
+			if e.pos.distance_to(s.pos) < s.r + e.r:
+				e.slow = maxf(e.slow, 0.3)
+				e.kb += (e.pos - s.pos).normalized() * 140.0 * dt * 10.0
+	stakes = stakes.filter(func(x): return x.life > 0.0)
 
 
 ## 溢出回复登记（game.gd _heal / 自然回复调用）
@@ -544,6 +870,41 @@ func in_home() -> bool:
 	return home_pos != Vector2.INF and g.ppos.distance_to(home_pos) < HOME_R
 
 
+## 旗帜类区域（遗落之帜，docs/57 P12）：rule zone {r, every, dmg, aspd, heal, sp}；每 every 秒换一次位置（主控身边 220–360 且在黑潮圈内）
+func _tick_zone(id: String, dt: float) -> void:
+	var z: Dictionary = zones[id]
+	var a: Dictionary = _rule_args_of(id, "zone")
+	var r: float = float(a.get("r", HOME_R))
+	z.t -= dt
+	if z.pos == Vector2.INF or z.t <= 0.0:
+		z.t = float(a.get("every", 60.0))
+		var p: Vector2 = g.ppos
+		for k in 8:
+			p = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(220.0, 360.0)
+			if p.distance_to(g.zone_c) < g.zone_r - r:
+				break
+		z.pos = p
+		g.fx.append({"kind": "ring", "pos": p, "r": r, "life": 0.8, "max": 0.8, "col": Color(1.0, 0.8, 0.4)})
+	if in_zone(id) and float(a.get("heal", 0.0)) > 0.0:
+		g.combat.heal(g.max_hp * float(a.get("heal", 0.0)) * dt, "藏品")
+
+
+func in_zone(id: String) -> bool:
+	var z: Dictionary = zones.get(id, {})
+	if z.is_empty() or z.pos == Vector2.INF:
+		return false
+	return g.ppos.distance_to(z.pos) < float(_rule_args_of(id, "zone").get("r", HOME_R))
+
+
+## 站在区域里的某项加成合计（dmg / aspd / sp）
+func _zone_bonus(key: String) -> float:
+	var v := 0.0
+	for id in zones:
+		if in_zone(id):
+			v += float(_rule_args_of(id, "zone").get(key, 0.0))
+	return v
+
+
 func draw() -> void:
 	for mn in mines:
 		var bl: float = 0.5 + 0.5 * sin(g.t * 8.0)
@@ -560,6 +921,28 @@ func draw() -> void:
 		g.draw_arc(Vector2.ZERO, HOME_R, 0.0, TAU, 48, Color(0.55, 1.0, 0.9, 0.45 + 0.25 * bl2), 2.0)
 		g.draw_arc(Vector2.ZERO, HOME_R * (0.35 + 0.6 * fmod(g.t * 0.4, 1.0)), 0.0, TAU, 40, Color(0.7, 1.0, 0.95, 0.35 * (1.0 - fmod(g.t * 0.4, 1.0))), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 旗帜：金色地圈 + 旗杆与飘动的三角旗
+	for id in zones:
+		var z: Dictionary = zones[id]
+		if z.pos == Vector2.INF:
+			continue
+		var zr: float = float(_rule_args_of(id, "zone").get("r", HOME_R))
+		var ins := in_zone(id)
+		var wv: float = sin(g.t * 6.0) * 4.0
+		g.draw_set_transform(z.pos, 0.0, Vector2(1.0, 0.55))
+		g.draw_circle(Vector2.ZERO, zr, Color(1.0, 0.8, 0.4, 0.06 + (0.06 if ins else 0.0)))
+		g.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(1.0, 0.85, 0.5, 0.5), 2.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.draw_line(z.pos, z.pos + Vector2(0, -54), Color(0.5, 0.4, 0.3), 2.0)
+		g.draw_colored_polygon(PackedVector2Array([z.pos + Vector2(0, -54), z.pos + Vector2(26 + wv, -46), z.pos + Vector2(0, -38)]), Color(1.0, 0.75, 0.3, 0.9))
+	# 轰隆隆：小圆身子 + 红灯
+	for b in bombs:
+		g.draw_circle(b.pos, 8.0, Color(0.35, 0.35, 0.4))
+		g.draw_circle(b.pos + Vector2(0, -3), 3.0, Color(1.0, 0.3 + 0.4 * (0.5 + 0.5 * sin(g.t * 12.0)), 0.3))
+	# 防暴桩：木桩
+	for s in stakes:
+		g.draw_rect(Rect2(s.pos + Vector2(-5, -26), Vector2(10, 30)), Color(0.55, 0.42, 0.3))
+		g.draw_rect(Rect2(s.pos + Vector2(-7, -28), Vector2(14, 5)), Color(0.85, 0.75, 0.3))
 
 
 ## ---------- 动态倍率（每次伤害查询）----------
@@ -581,6 +964,11 @@ func dmg_extra() -> float:
 	# 火油与药膏：低灯火时全队伤害 +50%（深蓝·低灯火不挑编队的收益）
 	if rule("low_light_sp") > 0 and g.lamp < DEEP_LAMP:
 		m *= 1.5
+	# docs/57：古乔治营养原浆（生命越高伤害越高）、旗帜区域
+	if rule("hp_dmg") > 0:
+		m *= 1.0 + float(_rule_args("hp_dmg").get("max", 0.3)) * clampf(g.hp / maxf(1.0, g.max_hp), 0.0, 1.0)
+	if not zones.is_empty():
+		m *= 1.0 + _zone_bonus("dmg")
 	return m
 
 
@@ -589,13 +977,18 @@ func followup_extra() -> float:
 	return 1.0 + Bal.v("relic/coral_followup", 0.6) if g.relics.has("246") and g.lamp < DEEP_LAMP else 1.0
 
 
-## 按命中描述符的倍率：碎靶之手（术师叠层）、荣耀绶带（不带范围效果的单体攻击）
-func hit_mult(h: Dictionary) -> float:
+## 按命中描述符的倍率：碎靶之手（术师叠层）、荣耀绶带（不带范围效果的单体攻击）、Scout的狙击镜（远程命中按距离，docs/57 P15）
+func hit_mult(h: Dictionary, e: Dictionary = {}) -> float:
 	var m := 1.0
 	if shatter > 0 and h.get("class", "") == "术师" and g.relics.has("175"):
 		m *= 1.0 + 0.05 * shatter
 	if g.relics.has("112") and not h.tags.has("area") and h.get("origin", "") != "relic":
 		m *= 1.5
+	if rule("far_dmg") > 0 and h.get("range", "") == "远程" and h.get("origin", "") != "relic" and not e.is_empty():
+		var o = g.squad.get_op(str(h.get("op", "")))
+		if o != null and o.pos != Vector2.INF:
+			var a: Dictionary = _rule_args("far_dmg")
+			m *= 1.0 + float(a.get("max", 0.5)) * clampf(o.pos.distance_to(e.pos) / float(a.get("at", 300.0)), 0.0, 1.0)
 	return m
 
 
@@ -609,6 +1002,17 @@ func umbrella_interval_mult() -> float:
 	if coin > 0:
 		var cap: float = 0.2 if coin == 3 else 0.3
 		m /= 1.0 + minf(cap, float(g.ingots / 5) * coin * 0.01)
+	# docs/57：限时攻速（疗养卡）、紧急活性剂（生命越低越快）、旗帜区域
+	for x in temps:
+		if x.stat == "op_aspd":
+			m /= 1.0 + x.value
+	if rule("low_hp_haste") > 0:
+		var a: Dictionary = _rule_args("low_hp_haste")
+		var at: float = float(a.get("at", 0.3))
+		var k: float = clampf((1.0 - g.hp / maxf(1.0, g.max_hp)) / maxf(0.01, 1.0 - at), 0.0, 1.0)
+		m /= 1.0 + float(a.get("max", 0.6)) * k
+	if not zones.is_empty():
+		m /= 1.0 + _zone_bonus("aspd")
 	return m
 
 
@@ -621,6 +1025,9 @@ func taken_mult() -> float:
 		m *= 0.7 if king_low() else 0.95
 	if rule("bone_blood") > 0 and g.knight_alive:
 		m *= 1.8   # 骑士骨血：骑士阵亡 / 离队后不再加受伤（EA 验收 P1-4）
+	for x in temps:
+		if x.stat == "dmg_taken":
+			m *= maxf(0.0, 1.0 + x.value)   # 铁卫-临时要塞（docs/57 P8）
 	return m
 
 
@@ -633,6 +1040,8 @@ func sp_extra() -> float:
 		m *= 1.5 if king_low() else 1.1
 	if g.relics.has("116") and in_home():
 		m *= 1.3
+	if not zones.is_empty():
+		m *= 1.0 + _zone_bonus("sp")
 	return m
 
 
@@ -642,6 +1051,10 @@ func on_dodge() -> void:
 		_temp("dmg", 1.3, 6.0, "121")
 	elif g.relics.has("120"):
 		_temp("dmg", 0.6, 6.0, "120")
+	# 锈刃-可视静谧（docs/57）：闪避后无敌
+	for t in _triggers("Dodge"):
+		if t[1].get("do", "") == "invuln":
+			g.invuln = maxf(g.invuln, float(t[1].get("args", {}).get("dur", 1.0)))
 
 
 ## 技能开始（character.spend_sp）：o 为施放的干员，i 为技能序号
@@ -653,10 +1066,98 @@ func on_skill_start(o = null, i := -1) -> void:
 	if g.relics.has("85") and o != null and i >= 0:
 		coin_q.append({"t": g.t + float(o.skill_def(i).get("dur", 0.0)), "op": o})
 	tulip_t = 0.0
+	# docs/57：数据驱动的 SkillStarted（refund / stack_stat / 带职业的 temp_stat）；110 / 111 仍走上面的写法
+	for t in _triggers("SkillStarted"):
+		var id: String = t[0]
+		if id in ["110", "111", "85"]:
+			continue
+		var a: Dictionary = t[1].get("args", {})
+		var cls: String = str(a.get("class", ""))
+		if cls != "" and (o == null or o.cls != cls):
+			continue
+		match str(t[1].get("do", "")):
+			"refund":
+				if o != null and i >= 0 and not o.perm[i]:
+					o.sp[i] = maxf(o.sp[i], o.sp_need(i) * float(a.get("pct", 0.35)))
+			"stack_stat":
+				sp_stack[id] = mini(int(a.get("max", 4)), int(sp_stack.get(id, 0)) + 1)
+				g.stats.remove_source("relic_stack:" + id)
+				g.stats.add(StringName(a.stat), str(a.get("op", "add")), float(a.get("per", 0.0)) * sp_stack[id], "relic_stack:" + id)
+				g.sync_stats()
+			"temp_stat":
+				_temp(str(a.stat), float(a.value), float(a.get("dur", 3.0)), id)
+				if a.has("stat2"):
+					_temp(str(a.stat2), float(a.value2), float(a.get("dur", 3.0)), id + "b")
 
 
-func on_hurt(src_corrode: bool) -> void:
+## 升级（pickups.gain_xp）：疗养体验卡 / 疗养特供卡（docs/57 P9）
+func on_levelup(_n: int) -> void:
+	for t in _triggers("LevelUp"):
+		var a: Dictionary = t[1].get("args", {})
+		if str(t[1].get("do", "")) == "temp_stat":
+			_temp(str(a.stat), float(a.value), float(a.get("dur", 10.0)), t[0])
+
+
+## 招募一名干员入队（squad.add；开局干员不算）：docs/57 P10
+func on_recruit(op) -> void:
+	for t in _triggers("Recruited"):
+		var id: String = t[0]
+		var a: Dictionary = t[1].get("args", {})
+		if bool(a.get("once", false)) and used.get(id, false):
+			continue
+		var cls: String = str(a.get("class", ""))
+		if cls != "" and op.cls != cls:
+			continue
+		match str(t[1].get("do", "")):
+			"advance":
+				if not op.next_node().is_empty() and op.node_available(op.next_node()):
+					op.advance("")
+					g.vfx.show_banner("%s：%s 推进一个成长节点" % [db.get_relic(id).name, op.display_name()])
+			"sp":
+				op.gain_sp(float(a.get("pct", 0.2)))
+			"ingots":
+				g.ingots += int(a.get("amount", 10))
+				g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(a.get("amount", 10)), Color(1.0, 0.85, 0.4), 16)
+			"growth_pick":
+				g.pending_levelups += int(a.get("n", 1))
+		if bool(a.get("once", false)):
+			used[id] = true
+
+
+func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 	no_hurt_t = 0.0
+	for id in unhurt:
+		unhurt[id] = 0.0
+	# docs/57 P23：受击全屏真伤（碎片大厦的回忆，带冷却）、受重击周围晕眩（荣耀套餐）
+	for t in _triggers("DamageTaken"):
+		var id: String = t[0]
+		var a: Dictionary = t[1].get("args", {})
+		match str(t[1].get("do", "")):
+			"damage_all":
+				if g.t < float(hurt_cd.get(id, -1.0)):
+					continue
+				hurt_cd[id] = g.t + float(a.get("cd", 30.0))
+				var dmg: float = float(a.get("dmg", 120.0)) * g.combat.enemy_hp_time_mult()
+				var keep: Dictionary = g.hit
+				g.combat.hit("真实")
+				for e in g.enemies:
+					if e.dead or e.chest or e.get("friendly", false):
+						continue
+					g.combat.damage(e, minf(dmg, e.maxhp * float(a.get("boss_pct", 0.03))) if e.boss else dmg)
+				g.hit = keep
+				g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.8, "max": 0.8, "col": Color(1.0, 0.95, 0.8)})
+				g.vfx.show_banner("%s：全场真实伤害" % db.get_relic(id).name)
+				Sfx.play("boom", -4.0, 0.9, 0.05)
+			"stun_near":
+				if amount < g.max_hp * float(a.get("min_pct", 0.1)):
+					continue
+				var r: float = float(a.get("r", 180.0))
+				for j in g.enemies_sys.query(g.ppos, r + 24.0):
+					var e2: Dictionary = g.enemies[j]
+					if not e2.dead and not e2.chest and not e2.boss and e2.pos.distance_to(g.ppos) < r + e2.r:
+						e2.stun = maxf(e2.stun, float(a.get("dur", 3.0)) * g.control_mult)
+				g.fx.append({"kind": "ring", "pos": g.ppos, "r": r, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.9, 0.6)})
+				g.vfx.add_text(g.ppos + Vector2(0, -96), "荣耀套餐 · 周围晕眩", Color(1.0, 0.9, 0.6), 15)
 	# 盘蛇之匣：受伤回技力 pct，神经损伤来源再加 corrode_extra（数据 relic_effects.json #94）
 	if g.relics.has("94"):
 		var a: Dictionary = _targs("94")
@@ -699,6 +1200,30 @@ func on_kill(e: Dictionary) -> void:
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
 		g.sync_stats()
 		g.vfx.show_banner("生还者合约：伤害再 +20%")
+	if e.get("dead", false):
+		return
+	# docs/57 P25：击杀回技力（积攒之手，按出手干员的职业）
+	for t in _triggers("EnemyKilled"):
+		var a: Dictionary = t[1].get("args", {})
+		if str(t[1].get("do", "")) == "sp" and a.has("class") and g.hit.get("class", "") == str(a.class):
+			_budget_sp(t[0], str(g.hit.get("op", "")), float(a.get("pct", 0.03)), float(a.get("cap", 0.09)))
+	# docs/57 P16：击败 Boss 时（赤金的远征 / 立体艺术装置 / 判官经文布 / 国王的水晶）
+	if e.get("boss", false):
+		for t in _triggers("BossKilled"):
+			var a2: Dictionary = t[1].get("args", {})
+			var nm: String = db.get_relic(t[0]).name
+			if a2.has("lose_hp"):
+				g.combat.lose_hp(g.hp * float(a2.lose_hp), "relic")
+				g.hp = maxf(g.hp, 1.0)
+			if a2.has("heal"):
+				g.combat.heal(g.max_hp * float(a2.heal), "藏品")
+			if a2.has("ingots"):
+				g.ingots += int(a2.ingots)
+			if a2.has("growth_pick"):
+				g.pending_levelups += int(a2.growth_pick)
+			if a2.has("choice_extra"):
+				rules["choice_extra"] = rule("choice_extra") + int(a2.choice_extra)
+			g.vfx.show_banner("%s：击败 Boss 的报偿" % nm)
 
 
 ## 旧接口（水月伞击调用）：荣耀绶带已改为按描述符生效（hit_mult），这里恒为 1，避免重复加成
@@ -718,6 +1243,17 @@ func on_hit(e: Dictionary, h: Dictionary) -> void:
 	if cls == "术师" and g.relics.has("175"):
 		shatter = mini(10, shatter + 1)
 		shatter_t = g.t
+	# docs/57：数据驱动的「命中回技力」（衍生者终端 130 等）；229 / 139 / 171 仍走上面 / 下面的写法
+	for t in _triggers("Hit"):
+		if t[0] in ["229", "139", "171", "170", "234", "169", "112", "175"] or str(t[1].get("do", "")) != "sp":
+			continue
+		var a: Dictionary = t[1].get("args", {})
+		if a.has("class") and cls != str(a.class):
+			continue
+		var cond: Dictionary = t[1].get("if", {})
+		if cond.has("tags_any") and not g.combat.is_followup(h):
+			continue
+		_budget_sp(t[0], h.get("op", "") if a.has("class") or cond.has("tags_any") else "", float(a.get("pct", 0.002)), float(a.get("cap", 0.01)))
 	if not g.combat.is_followup(h):
 		return
 	# 追击命中：扣挠之手（目标当前生命 pct，Boss boss_pct，每个敌人每 icd 秒一次；数据 #170）

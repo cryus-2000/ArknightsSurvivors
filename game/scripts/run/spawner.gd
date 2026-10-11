@@ -529,7 +529,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": event_id == "" and g.rng.randf() < 0.15, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": true, "hidden": _mimic_roll(event_id), "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
@@ -539,6 +539,14 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 		"extra_next": INF,
 	})
 	check_enemy(g.enemies[-1], "chest")
+
+
+## 是否伪装成箱形恐鱼：约 15%；持有补给箱钥匙（docs/57 P17）期间不出。随机数先抽再判断，钥匙不改变 g.rng 的消耗
+func _mimic_roll(event_id: String) -> bool:
+	if event_id != "":
+		return false
+	var roll: bool = g.rng.randf() < 0.15
+	return roll and g.rfx.rule("chest_keys") <= 0
 
 
 ## 箱形恐鱼现形

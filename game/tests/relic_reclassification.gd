@@ -9,7 +9,7 @@ func _ready() -> void:
 func _run() -> void:
 	var db = DB.new()
 	db.load_files()
-	assert(db.implemented().size() == 133, "Review must cover all implemented relics")
+	assert(db.implemented().size() == 262, "Review must cover all implemented relics (docs/57: all 262)")
 	assert(db.get_relic("79").rarity == "稀有", "Global damage +20% is rare")
 	assert(db.get_relic("89").rarity == "核心", "Global SP +30% is core")
 	assert(db.price("79") == 14, "Default price follows resolved rarity")
@@ -30,5 +30,5 @@ func _run() -> void:
 		assert(r.rarity == "升华", "Ascension pool should remain viable")
 	assert(db.get_relic("221").source == "event")
 	assert(db.get_relic("216").rarity == "遭诅古物")
-	print("RELIC_RECLASSIFICATION_OK 133 reviewed; categories, prices and reward pools checked")
+	print("RELIC_RECLASSIFICATION_OK %d reviewed; categories, prices and reward pools checked" % db.implemented().size())
 	get_tree().quit()

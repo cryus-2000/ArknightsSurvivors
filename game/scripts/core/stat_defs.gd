@@ -22,6 +22,7 @@ const PLAYER := {
 	&"nerve_taken": {"base": 1.0, "min": 0.0, "name": "神经损伤累积倍率"},
 	&"shield_max": {"base": 0.0, "min": 0.0, "old": "shield_max", "name": "护盾层数上限"},
 	&"shield_interval": {"base": 12.0, "min": 2.0, "old": "shield_every", "name": "护盾生成间隔"},
+	&"elite_dmg_taken": {"base": 1.0, "min": 0.0, "name": "精英敌人对主控造成的伤害倍率（docs/57 P7）"},
 	# ---- 公共：输出
 	&"dmg": {"base": 1.0, "min": 0.0, "old": "dmg_mult", "name": "全伤害倍率"},
 	&"physical_dmg": {"base": 1.0, "min": 0.0, "name": "物理伤害倍率"},
@@ -70,4 +71,6 @@ const ENEMY := {
 	&"enemy_atk_speed": {"base": 1.0, "min": 0.1, "name": "敌人攻速倍率"},
 	&"enemy_dmg_taken": {"base": 1.0, "min": 0.0, "name": "敌人受到伤害倍率"},
 	&"enemy_low_hp_dmg_taken": {"base": 1.0, "min": 0.0, "name": "低血（<50%）敌人受到伤害倍率"},
+	&"enemy_kb": {"base": 1.0, "min": 0.0, "name": "非 Boss 敌人受到的击退倍率（docs/57 P2）"},
+	&"enemy_ranged_cd": {"base": 1.0, "min": 0.3, "name": "远程杂兵开火间隔倍率（docs/57 P5，Boss 不受影响）"},
 }

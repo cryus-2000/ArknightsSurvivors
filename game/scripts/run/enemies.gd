@@ -144,6 +144,11 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
+		if not e.boss:
+			# 藏品（docs/57 P1 / P2）：非 Boss 敌人的移速与受到的击退倍率；自己冲锋（kb_self）不算击退
+			spd *= g.enemy_speed_mult
+			if not e.get("kb_self", false):
+				v *= g.enemy_kb_mult
 		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
@@ -183,7 +188,7 @@ func update(dt: float) -> void:
 							e["shot_wind_until"] = g.t + 0.35
 						elif g.t >= float(e.get("shot_wind_until", 0.0)):
 							e["shot_ready"] = false
-							e.cdt = e.cd * (0.82 if e.boss else 1.0)
+							e.cdt = e.cd * (0.82 if e.boss else g.enemy_ranged_cd_mult)   # 捕鳞蓑（docs/57 P5）：远程杂兵开火间隔
 							g.eai.shoot(e, dir)
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
@@ -263,7 +268,7 @@ func update(dt: float) -> void:
 				g.in_type = ["近战", "物理"]
 				# 底海滑动者冲刺撞击：熄灭灯火
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
-					g.lamp = maxf(0.0, g.lamp - 8.0)
+					g.lamp = maxf(0.0, g.lamp - 8.0 * g.lamp_loss_mult)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧

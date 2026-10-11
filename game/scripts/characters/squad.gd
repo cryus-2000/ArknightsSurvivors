@@ -90,6 +90,8 @@ func add(cid: String):
 	_apply_size_hp()
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+		if not op.is_leader:
+			g.rfx.on_recruit(op)   # 招募事件（docs/57 P10）：开局干员不算
 	return op
 
 
