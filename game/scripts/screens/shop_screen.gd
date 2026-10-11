@@ -23,7 +23,10 @@ func _init(game: Game) -> void:
 	g = game
 
 
-func build() -> void:
+## restart：打开商店 / 刷新货架时为 true（货架从第一格重新点亮，docs/62 §3.15）；买东西重建卡片时不重放
+func build(restart := false) -> void:
+	if restart:
+		g.panel_ui.motion.start_shop()
 	g.nav_sel = clampi(g.nav_sel, 0, maxi(0, g.shop_items.size() - 1))
 	for c in g.panel_box.get_children():
 		c.queue_free()
@@ -64,12 +67,12 @@ func build() -> void:
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
 			card.add_theme_stylebox_override(st, empty)
 		card.set_meta("born", Time.get_ticks_msec() + i * 50)
-		card.set_meta("oy", 60.0)
+		card.set_meta("oy", 0.0)
 		card.set_meta("lift", 0.0)
-		card.set_meta("dy", 174.0)
 		card.set_meta("item", it)
-		card.modulate.a = 0.0
-		card.draw.connect(draw_card.bind(card, it, i))
+		card.draw.connect(func():
+			draw_card(card, it, i)
+			g.panel_ui.motion.shop_card_post(card, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(g.shop_sys.buy.bind(i))
@@ -229,7 +232,9 @@ func draw_bg(vs: Vector2) -> void:
 		var ks: float = 5.0 / A.hires_of(mtx)
 		var sz := Vector2(fw, fh) * ks
 		var fr := int(g.t * 2.0) % 2
-		g.panel_fg.draw_texture_rect_region(mtx, Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 + my - sz.y)).round(), sz), Rect2(fw * fr, 0, fw, fh))
+		var mdst := Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 + my - sz.y)).round(), sz)
+		g.panel_fg.draw_texture_rect_region(mtx, mdst, Rect2(fw * fr, 0, fw, fh))
+		g.panel_ui.motion.draw_shop_lantern(g.panel_fg, mdst, fr)   # 灯笼一明一暗、货架逐格亮起（docs/62 §3.15）
 	g.panel_fg.draw_rect(mr, Color(1, 1, 1, 0.11), false, 1.0)
 	g.panel_fg.draw_rect(Rect2(mr.position, Vector2(14, 2)), UI.GOLD)
 	UI.strip(g.panel_fg, g.font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(g.merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))
