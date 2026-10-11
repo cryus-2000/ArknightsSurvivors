@@ -7,6 +7,7 @@ extends "res://scripts/characters/op_api.gd"
 
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
+const OpBlocks = preload("res://scripts/characters/op_blocks.gd")   # 数据干员的积木校验（docs/61）
 
 var def: Dictionary = {}   # 角色定义（JSON）
 var id := ""
@@ -65,7 +66,7 @@ static func list_ids() -> Array:
 
 
 static func load_def(cid: String) -> Dictionary:
-	var f := FileAccess.open("res://data/characters/%s.json" % cid, FileAccess.READ)
+	var f := FileAccess.open(def_path(cid), FileAccess.READ)
 	if f == null:
 		push_error("character def missing: " + cid)
 		return {"id": cid}
@@ -73,10 +74,32 @@ static func load_def(cid: String) -> Dictionary:
 	return d if d is Dictionary else {"id": cid}
 
 
-## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd）
+## 测试专用干员（docs/61 §测试）：不在 data/characters/ 里（不进名单 / 招募池 / 图鉴），只能用 --op=<id> 指名加载
+const TEST_OPS_DIR := "res://tests/data_ops/"
+
+
+## 干员定义文件：data/characters/<id>.json；没有时找测试专用干员
+static func def_path(cid: String) -> String:
+	var p := "res://data/characters/%s.json" % cid
+	if not FileAccess.file_exists(p) and FileAccess.file_exists(TEST_OPS_DIR + cid + ".json"):
+		return TEST_OPS_DIR + cid + ".json"
+	return p
+
+
+## 能按 id 加载（正式名单 + 测试专用干员）
+static func exists(cid: String) -> bool:
+	return cid != "" and FileAccess.file_exists(def_path(cid))
+
+
+## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd；
+## 有 blocks 而没写 script 的是数据干员，用 data_operator.gd，docs/61）。
+## 测试开关 --opscript=<id>=<脚本路径>：同一个 id 改用别的脚本加载（积木等价测试用手写参照，tools/check.py blocks_eq）
 static func create(game, cid: String) -> RefCounted:
 	var d := load_def(cid)
-	var path: String = d.get("script", "res://scripts/characters/%s.gd" % cid)
+	var path: String = d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--opscript=%s=" % cid):
+			path = a.substr(("--opscript=%s=" % cid).length())
 	var scr = load(path)
 	if scr == null:
 		push_error("character script missing: " + path)
@@ -123,6 +146,13 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 		elif n.type == "elite" and not n.has("level"):
 			push_error("干员 %s 的精英化节点 %d 缺 level" % [cid, i])
 			ok = false
+	var fac = d.get("faction", [])
+	if not (fac is Array) or fac.any(func(x): return not (x is String) or x == ""):
+		push_error("干员 %s 的 faction 必须是字符串数组" % cid)
+		ok = false
+	# 数据干员（docs/61 §8）：积木名、参数、$ 引用、伤害来源、节点对应
+	if d.has("blocks") and not OpBlocks.validate(cid, d):
+		ok = false
 	return ok
 
 
@@ -1055,9 +1085,12 @@ func draw_extra_shadows() -> void:
 	pass
 
 
-## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人
-func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
+## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人。
+## max_n > 0：最多打 max_n 个（cap_targets 的顺序：Boss → 精英 → 其余，同档按离 origin 由近到远、再按 id；docs/61 §3.3 max_n）
+func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = [], max_n := 0) -> Array:
 	var hits: Array = arc_targets(origin, ang, half, radius)
+	if max_n > 0 and hits.size() > max_n:
+		hits = cap_targets(hits, origin, max_n)
 	var ve: float = vs_elite()
 	for e in hits:
 		log_hit(src, tags)
@@ -1084,9 +1117,21 @@ func _hit_fx(_e: Dictionary, _origin: Vector2) -> void:
 	pass
 
 
-## 圆形范围伤害（技能 / 爆炸）：返回命中的敌人
-func area_hit(src: String, c: Vector2, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
-	return melee_hit(src, c, 0.0, PI, radius, dmg, kb, stun, tags)
+## 圆形范围伤害（技能 / 爆炸）：返回命中的敌人；max_n 同 melee_hit
+func area_hit(src: String, c: Vector2, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = [], max_n := 0) -> Array:
+	return melee_hit(src, c, 0.0, PI, radius, dmg, kb, stun, tags, max_n)
+
+
+## 从命中列表里挑 n 个（确定性，不用随机数）：Boss → 精英 → 其余，同档离 origin 近的先，再按 id
+static func cap_targets(hits: Array, origin: Vector2, n: int) -> Array:
+	var keyed: Array = []
+	for e in hits:
+		keyed.append([0 if e.boss else (1 if e.elite else 2), origin.distance_squared_to(e.pos), int(e.id), e])
+	keyed.sort_custom(func(a, b): return a[0] < b[0] if a[0] != b[0] else (a[1] < b[1] if a[1] != b[1] else a[2] < b[2]))
+	var out: Array = []
+	for k in mini(n, keyed.size()):
+		out.append(keyed[k][3])
+	return out
 
 
 ## 技能强度倍率（全队被动「协同·锐」等）

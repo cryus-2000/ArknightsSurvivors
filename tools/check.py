@@ -5,7 +5,7 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / regressions，或单项回归名）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions，或单项回归名）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
@@ -316,6 +316,65 @@ def check_repro(godot):
     return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
 
+# 积木等价测试（docs/61 §测试）：测试专用干员 eqtest（game/tests/data_ops/eqtest.json）用 data_operator.gd 执行 blocks，
+# 与同一份数值的手写参照（eqtest_hand.gd，--opscript 换脚本）同 seed 跑，TRACE 行与 BALANCE（去掉 prof / 画面峰值）必须逐字节相同
+EQ_HAND = "--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd"
+EQ_CASES = [
+    ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=eqtest", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ("seed2 自然流程", ["--balance", "--seed=2", "--op=eqtest", "--bot=expert", "--maxt=300", "--trace=1"]),
+]
+EQ_SRCS = ["测试脉冲", "测试回声", "测试共鸣", "测试斩", "测试音符"]
+
+
+def _balance_core(d):
+    d = dict(d or {})
+    d.pop("prof", None)
+    if isinstance(d.get("bot"), dict):
+        d["bot"] = {k: v for k, v in d["bot"].items() if k not in ("peak", "peak_min")}
+    return d
+
+
+def check_blocks_eq(godot):
+    jobs = [(name, extra, hand) for name, extra in EQ_CASES for hand in (False, True)]
+
+    def one(j):
+        name, extra, hand = j
+        out, err, to, log = _run(godot_args(godot, extra + ([EQ_HAND] if hand else [])), 300, "blocks_eq_%s_%s" % (name.split()[0], "hand" if hand else "data"))
+        return j, out, err, to, log
+    with ThreadPoolExecutor(min(len(jobs), JOBS)) as ex:
+        res = list(ex.map(one, jobs))
+    errs, details, logs = [], [], []
+    by = {}
+    for (name, extra, hand), out, err, to, log in res:
+        logs.append(log or "")
+        se = GR.script_errors(out, err)
+        d = parse_balance(out)
+        if to or se or d is None:
+            errs.append("%s（%s）：%s" % (name, "手写" if hand else "数据", "超时" if to else (se[0][:160] if se else "没有 BALANCE 行")))
+            continue
+        by[(name, hand)] = ([l for l in out.splitlines() if l.startswith("TRACE ")], _balance_core(d), d)
+    for name, _ in EQ_CASES:
+        if (name, False) not in by or (name, True) not in by:
+            continue
+        (ta, ba, da), (tb, bb, db) = by[(name, False)], by[(name, True)]
+        if len(ta) < 30:
+            errs.append("%s：TRACE 行太少（%d），--trace 没生效？" % (name, len(ta)))
+        bad_t = next((k for k in range(max(len(ta), len(tb))) if k >= len(ta) or k >= len(tb) or ta[k] != tb[k]), None)
+        if bad_t is not None:
+            errs.append("%s：TRACE 第 %d 行起不同：数据「%s」 / 手写「%s」" % (name, bad_t + 1, ta[bad_t] if bad_t < len(ta) else "-", tb[bad_t] if bad_t < len(tb) else "-"))
+        diff = [k for k in sorted(set(ba) | set(bb)) if ba.get(k) != bb.get(k)]
+        if diff:
+            errs.append("%s：BALANCE 不同的字段：%s" % (name, "、".join(diff[:8])))
+        # 积木真的在打：各伤害来源都出现在本局的伤害统计里（数据版）
+        blob = json.dumps(da, ensure_ascii=False)
+        miss = [s for s in EQ_SRCS if s not in blob] if "全节点" in name else []
+        if miss:
+            errs.append("%s：伤害统计里没有这些来源：%s" % (name, "、".join(miss)))
+        details.append("%s %d 行 t=%d" % (name.split()[0], len(ta), int(da.get("t", 0))))
+    ok = not errs and len(by) == len(jobs)
+    return {"name": "积木等价（数据版 = 手写参照）", "ok": ok, "detail": "；".join(details) if details else "没有跑完", "errors": errs[:5], "log": "、".join(l for l in logs if l)}
+
+
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
     "relic_reclassification": ("藏品效果分类与稀有度", "relic_reclassification", r"RELIC_RECLASSIFICATION_OK", []),
@@ -450,7 +509,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "regressions"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--auto", action="store_true",
@@ -497,6 +556,8 @@ def main():
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):
             jobs.append(lambda: check_repro(godot))
+        if a.only in (None, "blocks_eq"):
+            jobs.append(lambda: check_blocks_eq(godot))
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))
