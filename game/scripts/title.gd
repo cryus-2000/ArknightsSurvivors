@@ -1555,8 +1555,9 @@ func _op_bg_build(vs: Vector2) -> void:
 
 
 ## 立绘：待机帧（帧内非透明区并集）整数倍最近邻放大，底部 28 % 渐隐；换干员 60 ms 后 300 ms 缩放 0.92 → 1、右移 24 → 0、淡入，青白外晕随透明度出现
-## foot = 脚底中点（设计坐标），k2 = 相对 @2x 像素的倍数（桌面 5、手机 3）
-func _op_char(od: Dictionary, foot: Vector2, k2: float) -> void:
+## foot = 脚底中点（ci 的坐标），k2 = 相对 @2x 像素的整数倍（_op_fit 算）
+## clip = 舞台框：每一次贴图都裁进框里（缩放进入 / 右移 24 px / 外晕都不会画出框，兜底）
+func _op_char(ci: CanvasItem, od: Dictionary, foot: Vector2, k2: float, clip: Rect2) -> void:
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return
@@ -1577,12 +1578,12 @@ func _op_char(od: Dictionary, foot: Vector2, k2: float) -> void:
 		for ring in [4.0 * k2 / 5.0, 8.0 * k2 / 5.0, 12.0 * k2 / 5.0]:
 			for d in 8:
 				var dv: Vector2 = Vector2.from_angle(TAU * d / 8.0) * ring
-				draw_texture_rect_region(od.sil, Rect2(pos + dv, Vector2(sz.x, cut * k)), gsrc, Color(150 / 255.0, 220 / 255.0, 240 / 255.0, (0.03 if ring < 6.0 else 0.018) * a))
-	draw_texture_rect_region(tx, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), Color(1, 1, 1, a))
+				UI.blit_clipped(ci, od.sil, Rect2(pos + dv, Vector2(sz.x, cut * k)), gsrc, clip, Color(150 / 255.0, 220 / 255.0, 240 / 255.0, (0.03 if ring < 6.0 else 0.018) * a))
+	UI.blit_clipped(ci, tx, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, Color(1, 1, 1, a))
 	var rows: int = int(bb.size.y - cut)
 	for y in rows:
 		var f := 1.0 - (y + 0.5) / float(rows)
-		draw_texture_rect_region(tx, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), Color(1, 1, 1, a * f))
+		UI.blit_clipped(ci, tx, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), clip, Color(1, 1, 1, a * f))
 
 
 ## 换干员：新色带从左扫入盖住旧色带（380 ms）；减少动态效果时两带 120 ms 交叉淡化
@@ -1639,7 +1640,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 	# 立绘缩小时：脚底略上提、描边英文名同比缩小并下移，仍压在立绘上半身后面
 	var ar := op_art_k / 5.0
 	UI.ghost_name(self, font, Vector2(380 + (1.0 - ar) * 60.0, 78 + (1.0 - ar) * 150.0), od.en, _op_name_frac(), int(round(150 * (0.5 + 0.5 * ar))))
-	_op_char(od, Vector2(760, 580 - (1.0 - ar) * 40.0), op_art_k)
+	_op_draw_art(od)
 	# 顶栏：节点标签条式标题 + 说明 + 难度 / 封面标签 + 返回
 	draw_rect(Rect2(0, 0, W, 54), Color(4 / 255.0, 8 / 255.0, 18 / 255.0, 0.55))
 	_op_hline(54.5, W)
@@ -1712,7 +1713,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 		var r := Rect2(92 + i * 94, 460, 84, 56)
 		if i == 0:
 			UI.bpanel(self, r, true, true, 1.0, UI.VIOLET)
-			_op_mini(od, Vector2(r.position.x + 4, r.end.y - 4), 1.0, 46.0, 38.0)
+			_op_mini(od, Rect2(r.position.x + 2, r.position.y + 2, 46, r.size.y - 4))
 			UI.rbox(self, Rect2(r.position.x + 2, r.position.y + 2, 32, 13), 3, UI.VIOLET)
 			UI.text_at(self, font, Vector2(r.position.x + 18, r.position.y + 8.5), "封面" if cover_pick else "主控", 10, Color.WHITE, "mm")
 			var mf := UI.fit_line(font, od.name, 10, 42.0, 8)
@@ -1772,7 +1773,7 @@ func _op_draw_phone(od: Dictionary) -> void:
 	_op_band(H, -150.0, 0.6, col)
 	var ar := op_art_k / 5.0
 	UI.ghost_name(self, font, Vector2(150 + (1.0 - ar) * 40.0, 40 + (1.0 - ar) * 70.0), od.en, _op_name_frac(), int(round(90 * (0.5 + 0.5 * ar))), Color(0.745, 0.824, 1.0, 0.18), 2)
-	_op_char(od, Vector2(380, 312 - (1.0 - ar) * 16.0), op_art_k * 0.6)
+	_op_draw_art(od)
 	UI.rbox(self, Rect2(8, 6, 142, 22), 3, UI.VIOLET)
 	UI.text_at(self, font, Vector2(16, 17), "更换封面干员" if cover_pick else "选择开局干员", 13, Color.WHITE, "lm")
 	var back := Rect2(W - 66, 6, 56, 22)
@@ -1834,21 +1835,51 @@ func _op_draw_phone(od: Dictionary) -> void:
 	_op_deploy(Rect2(W - 200, H - 62, 186, 48), 18, "")
 
 
-## 编队位里的小像（待机帧并集区 1:1 @2x 像素 × k）
-func _op_mini(od: Dictionary, foot_left: Vector2, k: float, max_h := 0.0, max_w := 0.0) -> void:
+## 编队位里的小像：@2x 像素 1:1（整数倍、不糊），头顶对齐框顶 + 2，画成半身像——超出框的下半身 / 左右裁掉，不出框
+func _op_mini(od: Dictionary, box: Rect2) -> void:
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return
 	_op_art(od)
 	var bb: Rect2 = od.bb
 	var fw: float = tx.get_width() / float(od.frames)
-	var s: float = k * 2.0 / float(od.hires)
-	if max_h > 0.0:
-		s = minf(s, max_h / bb.size.y)
-	if max_w > 0.0:
-		s = minf(s, max_w / bb.size.x)
+	var s: float = 2.0 / float(od.hires)
 	var fr: int = int(t * 4.0) % int(od.frames)
-	draw_texture_rect_region(tx, Rect2(foot_left - Vector2(0, bb.size.y * s), bb.size * s), Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y))
+	var dst := Rect2(box.get_center().x - bb.size.x * s / 2.0, box.position.y + 2.0, bb.size.x * s, bb.size.y * s)
+	UI.blit_clipped(self, tx, dst, Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y), box)
+
+
+## 立绘舞台（设计坐标）：顶栏以下、名册带以上、信息面板以左；手机：名册列以右、信息面板以左
+func _op_stage_rect() -> Rect2:
+	if _touch_mode():
+		return Rect2(146, 34, 462 - 146, OP_PHONE.y - 4 - 34)
+	return Rect2(600, 56, 962 - 600, 544 - 56)
+
+
+## 立绘适配：在舞台里（四边留 margin）取 ≤ 上限的最大整数倍，使待机帧并集区整个放得下；返回 [倍数（@2x 像素）, 脚底中点]
+## 上限：桌面 op_art_k（4），手机 op_art_k × 0.6 取整（2）；中心先放在设计稿位置，放不下再往舞台里挪
+func _op_fit(od: Dictionary, ph: bool) -> Array:
+	_op_art(od)
+	var sr := _op_stage_rect()
+	var m := 8.0
+	var bb: Rect2 = od.bb
+	var hi: float = float(od.get("hires", 1.0))
+	var w2: float = bb.size.x * 2.0 / hi
+	var h2: float = bb.size.y * 2.0 / hi
+	var foot_y: float = (312.0 if ph else sr.end.y - m)
+	var cx: float = 380.0 if ph else 780.0
+	var k: float = maxf(1.0, floorf(op_art_k * (0.6 if ph else 1.0)))
+	while k > 1.0 and (w2 * k > sr.size.x - 2.0 * m or h2 * k > foot_y - sr.position.y - m):
+		k -= 1.0
+	var half: float = w2 * k / 2.0
+	cx = clampf(cx, sr.position.x + m + half, sr.end.x - m - half)
+	return [k, Vector2(cx, foot_y)]
+
+
+## 立绘：适配倍数 + 裁进舞台框（画在描边英文名之后、名字块之前，层次同定稿）
+func _op_draw_art(od: Dictionary) -> void:
+	var fit := _op_fit(od, _touch_mode())
+	_op_char(self, od, fit[1], fit[0], _op_stage_rect())
 
 
 ## 信息面板框 + 页签（子控件 op_panel 画，设计坐标）
