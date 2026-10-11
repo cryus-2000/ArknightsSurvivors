@@ -124,6 +124,16 @@
 | `--realtime` | 按真实帧间隔推进、不多跑模拟步；**绘制 / 帧时间对比必须加**（批跑步长每帧 0.5 秒游戏时间，特效很快消失，绘制被低估） |
 | `--trace=秒` | 定期打印状态摘要（排查复现） |
 
+**界面动效**（docs/62 §8，带 `--autotest`、开窗口；`run/motion_shot.gd`）
+
+| 开关 | 作用 |
+| --- | --- |
+| `--motionshot=<界面>,<秒,…>` | 第 30 帧打开该界面（levelup / relic / recruit / shop / pause / banner / fail），按界面时钟在各时刻截 `shot_motion_<界面>_<full\|rm>_<毫秒>.png`；fail 从倒下算（结算动效 1.7 秒起） |
+| `--reducemotion` | 同时打开「减少动态效果」（不写存档），截减少动态那一组 |
+| `--motionpress=<key\|mouse\|touch\|pad>@<秒>` | 在该时刻注入一次按下 + 松开，2 帧后打印 `MOTIONPRESS`（动效被跳过、没有误选），0.4 秒后再按一次打印 `MOTIONPRESS2`（这次生效） |
+| `--motionrec` | 按脚本依次演示各界面（全动效 → 减少动态 → 失败结算），每帧存 `rec_<帧>.png`、打印 `MOTIONREC` 分段；配 `--fixed-fps 30` 录片 |
+| `--motionperf=<界面>[,秒]` | 同局轮换量开销：界面开着，每 0.9 秒重放动效并在全动效 / 减少动态间轮换，关垂直同步不限帧，打印 `MOTIONPERF {json}`（两桶帧时间中位 / 均值 / P90、渲染 CPU、净差） |
+
 **冒烟 / 强制状态**
 
 | 开关 | 作用 |

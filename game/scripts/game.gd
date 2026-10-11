@@ -5,6 +5,7 @@ extends Node2D
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
@@ -350,6 +351,8 @@ var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 var nav_sel := 0               # 当前焦点卡片（选卡 / 商店共用 panel_box 的下标）
 var res_sel := 0               # 暂停 / 结算按钮焦点
 var kb_nav := false            # 键盘方向键导航过（显示焦点而不是鼠标悬停），鼠标一动就关
+var ui_skip := false            # 本状态的界面动效（暂停表盘 / 失败结算打捞）已被输入跳到终态（docs/62 §2.5）；切状态时清掉
+var _skip_frame := -1            # 跳过动效那一帧：同一帧里随之而来的模拟鼠标 / 手柄注入按键一并吞掉
 var state_age := 0.0           # 进入当前状态的秒数（防止手柄连按把刚弹出的选卡 / 演出直接点掉）
 var _last_state := -1
 
@@ -851,6 +854,7 @@ func view_center() -> Vector2:
 # 主循环
 # =====================================================================
 func _process(delta: float) -> void:
+	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -859,6 +863,7 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 		state_age = 0.0
+		ui_skip = false
 		res_sel = 0
 	else:
 		state_age += delta
@@ -942,6 +947,9 @@ func _input(event: InputEvent) -> void:
 		kb_nav = false
 	if settings.visible:
 		return
+	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
 	if touch.handle(event):
 		get_viewport().set_input_as_handled()
 		return
@@ -983,6 +991,28 @@ func _input(event: InputEvent) -> void:
 				else:
 					intro_screen.next_page()
 		get_viewport().set_input_as_handled()
+
+
+## 招牌动效进行中（docs/62 §2.5）：任意按键 / 点击 / 触屏 = 立即跳到终态，不算操作，下一次输入才算。
+## 选卡（升级发牌翻面 / 藏品光柱 / 招募落地）任意键都跳；暂停表盘、失败结算只有点击 / 触屏 / 确认键跳，Esc 与字母快捷键照常（暂停里 Esc = 继续）。
+## 商人不拦（从第一帧起就能买）。手柄的 Ⓐ 由 Pad 注入成 Enter，走按键这一支
+func _motion_skip(event: InputEvent) -> bool:
+	var press: bool = (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventScreenTouch and event.pressed) \
+		or (event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT))
+	if not press:
+		return false
+	if _skip_frame == Engine.get_process_frames():
+		return true
+	if state == S.CHOICE and panel_ui.motion.running():
+		panel_ui.motion.skip()
+	elif (state == S.PAUSE or state == S.DEAD) and result_screen.motion_running():
+		if event is InputEventKey and not (event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]):
+			return false
+		ui_skip = true
+	else:
+		return false
+	_skip_frame = Engine.get_process_frames()
+	return true
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -386,6 +386,7 @@ const HINT_WORDS := ["加入编队", "加入支援", "升至 Lv", "晋升至精�
 var banner_seen := {}
 var banner_small := false
 var banner_prio := 0
+var banner_serial := 0            # 每换一条横幅 +1（hud_banners 据此重放字距收拢动效，docs/62 §3.10）
 var banner_q: Array = []          # [{text, prio}]
 var notices: Array = []           # [{text, t}]
 var _boss_words: Array = []
@@ -414,6 +415,7 @@ func show_banner(text: String, prio := -1) -> void:
 
 func _banner_now(text: String, prio: int) -> void:
 	g.banner = text
+	banner_serial += 1
 	banner_prio = prio
 	banner_small = banner_seen.has(text)
 	banner_seen[text] = true

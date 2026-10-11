@@ -6,7 +6,9 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const D = preload("res://scripts/data.gd")
+const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot / --motionrec / --motionperf / --motionpress（docs/62）
 var g: Game
+var mshot: MotionShot
 var winshot := false
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -69,6 +71,7 @@ func _vfx_demo() -> void:
 
 func _init(game: Game) -> void:
 	g = game
+	mshot = MotionShot.new(game)
 
 
 ## 平衡机器人选卡（docs/27 §6）：像一个「懂玩」的玩家——优先干员深度 / 技能卡，早期见招募就招，
@@ -120,6 +123,8 @@ func step() -> void:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
 	if vfxdemo:
 		_vfx_demo()
+	if mshot.step():
+		return   # 界面动效自测接管这一局（docs/62）
 	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_open_%03d.png" % g.at_frames)

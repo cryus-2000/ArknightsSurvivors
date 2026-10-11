@@ -98,7 +98,7 @@ func open() -> void:
 	Sfx.play("relic", -4.0)
 	if g.mode != g.Mode.PLAY:
 		print("SHOP ", g.shop_items.map(func(it): return it.name))
-	g.shop_ui.build()
+	g.shop_ui.build(true)
 
 
 func buy(i: int) -> void:
@@ -140,7 +140,7 @@ func refresh() -> void:
 	g.ingots -= price("refresh")
 	roll()
 	Sfx.play("relic", -6.0)
-	g.shop_ui.build()
+	g.shop_ui.build(true)
 
 
 func close() -> void:
