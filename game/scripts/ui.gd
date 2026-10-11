@@ -1091,3 +1091,184 @@ static func wave_wipe(ci: CanvasItem, vs: Vector2, e: float) -> void:
 
 static func _wave_y(x: float, base_y: float, k: float) -> float:
 	return base_y + 22.0 * sin(x / 95.0 + k * 7.0) + 9.0 * sin(x / 37.0 - k * 11.0)
+
+
+# ---------------------------------------------------------------- C 版式（干员图鉴 C4'，docs/58 §8 / §11；docs/37：浅色面板、平行四边形、警示黄只用于图鉴）
+## 令牌：亮场 L（右侧终端数据面板）/ 暗场 D（左侧舞台、名册、顶栏）。只加常量，不改上面的。
+const C_ACC := Color(1.0, 0.808, 0.0)                    # 警示黄 #FFCE00（只在图鉴里用）
+const C_HZ := Color(0.086, 0.094, 0.11)                  # 警示条的黑段 (22,24,28)
+const C_L_BG := Color(0.886, 0.894, 0.906)               # #E2E4E7
+const C_L_PANEL := Color(0.98, 0.98, 0.98, 0.94)
+const C_L_SEL := Color(1.0, 0.969, 0.808)                # #FFF7CE
+const C_L_INK := Color(0.086, 0.094, 0.11)               # #16181C 正文 / 线
+const C_L_SUB := Color(0.361, 0.376, 0.408)              # #5C6068
+const C_L_INV := Color(0.98, 0.98, 0.98)
+const C_D_BG := Color(0.059, 0.063, 0.075)               # #0F1013
+const C_D_PANEL := Color(0.102, 0.11, 0.129, 0.94)       # #1A1C21
+const C_D_SEL := Color(0.227, 0.204, 0.078)              # #3A3414
+const C_D_INK := Color(0.925, 0.933, 0.941)              # #ECEEF0
+const C_D_SUB := Color(0.573, 0.592, 0.627)              # #9297A0
+const C_D_INV := Color(0.059, 0.063, 0.075)
+const C_D_CARD := Color(0.125, 0.133, 0.153)
+const C_D_GHOST := Color(1.0, 1.0, 1.0, 0.133)           # 舞台上的描边英文名
+
+
+## 平行四边形（右倾，原作按钮 / 页签）：r 外接矩形，skew 顶边右移量；fill / line 的 a = 0 时不画
+static func para(ci: CanvasItem, r: Rect2, skew: float, fill: Color, line := Color(0, 0, 0, 0), w := 1.0) -> void:
+	var p := PackedVector2Array([Vector2(r.position.x + skew, r.position.y), Vector2(r.end.x, r.position.y), Vector2(r.end.x - skew, r.end.y), Vector2(r.position.x, r.end.y)])
+	if fill.a > 0.0:
+		ci.draw_colored_polygon(p, fill)
+	if line.a > 0.0:
+		p.append(p[0])
+		ci.draw_polyline(p, line, w, true)
+
+
+## 黄黑警示条（45°，条宽 step）：phase = 滚动像素（调用方按时间算；减少动态时传 0）
+static func hazard(ci: CanvasItem, r: Rect2, phase := 0.0, a := C_ACC, b := C_HZ, step := 8.0) -> void:
+	ci.draw_rect(r, a)
+	var h := r.size.y
+	var x := -h - step * 2.0 + fposmod(phase, step * 2.0)
+	while x < r.size.x + h:
+		var q := _clip_poly_x(PackedVector2Array([r.position + Vector2(x, h), r.position + Vector2(x + step, h), r.position + Vector2(x + step + h, 0), r.position + Vector2(x + h, 0)]), r.position.x, r.end.x)
+		if q.size() >= 3:
+			ci.draw_colored_polygon(q, b)
+		x += step * 2.0
+
+
+## 多边形按竖直线 x0 / x1 裁切（Sutherland–Hodgman 两刀）
+static func _clip_poly_x(p: PackedVector2Array, x0: float, x1: float) -> PackedVector2Array:
+	for side in 2:
+		var out := PackedVector2Array()
+		var n := p.size()
+		var xe := x0 if side == 0 else x1
+		for i in n:
+			var a := p[i]
+			var b := p[(i + 1) % n]
+			var ina := a.x >= x0 if side == 0 else a.x <= x1
+			var inb := b.x >= x0 if side == 0 else b.x <= x1
+			if ina:
+				out.append(a)
+			if ina != inb and absf(b.x - a.x) > 0.0001:
+				out.append(a.lerp(b, (xe - a.x) / (b.x - a.x)))
+		p = out
+		if p.size() < 3:
+			return p
+	return p
+
+
+## 职业框：图标装在方框里（卡上 16 / 名字旁 22 / 左轨 36）；on = 强调色底 + 黑图标；ink / inv = 所在场的墨色与反色
+static func class_box(ci: CanvasItem, pos: Vector2, s: float, cls: String, on := false, ink := C_D_INK, inv := C_D_INV, a := 1.0) -> void:
+	ci.draw_rect(Rect2(pos, Vector2(s, s)), fa(C_ACC if on else ink, a))
+	class_glyph(ci, cls, pos + Vector2(s, s) / 2.0, s * 0.3, fa(C_HZ if on else inv, a), maxf(1.4, s / 12.0))
+
+
+## 大数字：微型英文代码 + 小号中文标签，下方大号数值（右侧数据面板）；返回数值宽度
+static func stat_big(ci: CanvasItem, font: Font, pos: Vector2, label: String, en_s: String, val: String, size := 22, ink := C_L_INK, sub := C_L_SUB, a := 1.0) -> float:
+	var ew := code(ci, font, pos, en_s, 8, fa(sub, a))
+	text_at(ci, font, pos + Vector2(ew + 4, -2), label, 9, fa(sub, a))
+	return text_at(ci, font, pos + Vector2(0, 12), val, size, fa(ink, a), "la", size >= 18)
+
+
+## C 平行四边形页签 + 可滑动的强调下划线（pos 可为小数）；亮场配色；返回每个页签的命中矩形
+static func c_tabs(ci: CanvasItem, font: Font, r: Rect2, names: Array, pos: float, skew := 8.0, size := 13, a := 1.0) -> Array:
+	var tw := r.size.x / names.size()
+	var cur := int(round(pos))
+	var out: Array = []
+	for i in names.size():
+		var tr := Rect2(r.position.x + i * tw + 2, r.position.y, tw - 4, r.size.y - 6)
+		var on := i == cur
+		para(ci, tr, skew, fa(C_L_INK, a) if on else Color(0, 0, 0, 0), fa(C_L_INK, a))
+		code(ci, font, tr.position + Vector2(skew + 4, 2), "%02d" % (i + 1), 7, fa(C_ACC if on else C_L_SUB, a))
+		text_at(ci, font, tr.get_center() + Vector2(0, 2), names[i], size, fa(C_L_INV if on else C_L_INK, a), "mm")
+		out.append(Rect2(r.position.x + i * tw, r.position.y, tw, r.size.y))
+	var ux := r.position.x + pos * tw
+	ci.draw_rect(Rect2(ux + 6, r.end.y - 3, tw - 12, 3), fa(C_ACC, a))
+	ci.draw_line(Vector2(r.position.x, r.end.y), r.end, fa(C_L_INK, a), 1.0)
+	return out
+
+
+## C 面板（亮场）：白底 + 1 px 墨色框；sel = 选中底 + 2 px 框 + 左侧 4 px 强调条
+static func cpanel(ci: CanvasItem, r: Rect2, sel := false, a := 1.0) -> void:
+	ci.draw_rect(r, fa(C_L_SEL if sel else C_L_PANEL, a))
+	ci.draw_rect(r, fa(C_L_INK, a), false, 2.0 if sel else 1.0)
+	if sel:
+		ci.draw_rect(Rect2(r.position, Vector2(4, r.size.y)), fa(C_ACC, a))
+
+
+## C 标签片：面板底 + 左侧 UI.PURPLE 色条（PURPLE 仍只做干员标签）；dark = 画在暗场上；返回占位宽度（含 6 间距）
+static func ctag(ci: CanvasItem, font: Font, pos: Vector2, s: String, size := 11, dark := true, a := 1.0) -> float:
+	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
+	var h := size + 8.0
+	var ink := C_D_INK if dark else C_L_INK
+	ci.draw_rect(Rect2(pos, Vector2(w, h)), fa(C_D_PANEL if dark else C_L_PANEL, a))
+	ci.draw_rect(Rect2(pos, Vector2(w, h)), fa(ink, a), false, 1.0)
+	ci.draw_rect(Rect2(pos, Vector2(3, h)), fa(PURPLE, a))
+	text_at(ci, font, pos + Vector2(9, 4), s, size, fa(ink, a))
+	return w + 6.0
+
+
+## C 斜带（图鉴 C4'）：职业色实带 + 右侧一道细带（暗场里是浅墨色）；与 class_band 同一扫入规则：新带从左扫到位盖住 prev
+## b0 = 主带底边左 x，w = 带宽，run = 顶边相对底边右移，thin = (细带相对主带的偏移, 细带宽)
+static func c_band(ci: CanvasItem, h: float, b0: float, w: float, run: float, col: Color, prev: Color, t: float, alpha := 0.6, thin := Vector2(258, 16), ink := C_D_INK, a := 1.0) -> void:
+	var e := ease_io(t)
+	if e < 1.0 and prev.a > 0.0:
+		_c_band_poly(ci, h, b0, w, run, Color(prev.r, prev.g, prev.b, alpha * a))
+		_c_band_poly(ci, h, b0 + thin.x, thin.y, run, Color(ink.r, ink.g, ink.b, 0.86 * a))
+	var dx := -900.0 * w / 240.0 * (1.0 - e)
+	_c_band_poly(ci, h, b0 + dx, w, run, Color(col.r, col.g, col.b, alpha * a))
+	_c_band_poly(ci, h, b0 + thin.x + dx, thin.y, run, Color(ink.r, ink.g, ink.b, 0.86 * a))
+
+
+static func _c_band_poly(ci: CanvasItem, h: float, x0: float, w: float, run: float, c: Color) -> void:
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(x0, h), Vector2(x0 + w, h), Vector2(x0 + w + run, 0), Vector2(x0 + run, 0)]), c)
+
+
+## 名册卡上的人物：整数倍（@2x 像素 1 / 2 / 3 倍；放不下高度时退到 0.5 = 原始像素 1:1），整身放进卡里、裁进卡框
+## （与 roster_card 同一规则，图鉴 C4' 的卡用）；od：{tex, frames, bb, hires}；name_h = 底部名字条高
+static func card_art(ci: CanvasItem, r: Rect2, od: Dictionary, frame: int, col := Color.WHITE, name_h := 24.0) -> void:
+	var tx: Texture2D = od.get("tex")
+	if tx == null:
+		return
+	var hi: float = od.get("hires", 1.0)
+	var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
+	var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
+	var h2: float = bb.size.y * 2.0 / hi
+	var kk: float = clampf(floorf((r.size.y - name_h - 22.0) / h2), 1.0, 3.0)
+	if h2 * kk > r.size.y - 10.0:
+		kk = 0.5
+	var k: float = kk * 2.0 / hi
+	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
+	var dst := Rect2(r.get_center().x - bb.size.x * k / 2.0, maxf(r.position.y + 5.0, r.end.y - name_h - bb.size.y * k), bb.size.x * k, bb.size.y * k)
+	blit_clipped(ci, tx, dst, src, r.grow(-2.0), col)
+
+
+## 立绘适配（选人 B+ 与图鉴 C4' 同一规则）：在舞台框里（四边留 m）取 ≤ kmax 的最大整数倍（@2x 像素），使待机帧并集区整个放得下；
+## w2 / h2 = 并集区按 @2x 像素的宽高；中心先放在 cx，放不下再往舞台里挪；返回 [倍数, 脚底中点]
+static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, foot_y: float, m := 8.0) -> Array:
+	var k: float = maxf(1.0, floorf(kmax))
+	while k > 1.0 and (w2 * k > stage.size.x - 2.0 * m or h2 * k > foot_y - stage.position.y - m):
+		k -= 1.0
+	var half: float = w2 * k / 2.0
+	cx = clampf(cx, stage.position.x + m + half, stage.end.x - m - half)
+	return [k, Vector2(cx, foot_y)]
+
+
+## 待机帧并集区（各帧非透明区的并集，立绘按它对齐、不抖）；读不到图（无头）就用整帧
+static func idle_bb(tx: Texture2D, frames: int) -> Rect2:
+	if tx == null:
+		return Rect2()
+	var fw: int = tx.get_width() / maxi(1, frames)
+	var out := Rect2(0, 0, fw, tx.get_height())
+	var img := tx.get_image()
+	if img == null or img.is_empty():
+		return out
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var u := Rect2i()
+	for f in maxi(1, frames):
+		var r := img.get_region(Rect2i(f * fw, 0, fw, img.get_height())).get_used_rect()
+		if r.size.x > 0:
+			u = r if u.size.x == 0 else u.merge(r)
+	return Rect2(u) if u.size.x > 0 else out

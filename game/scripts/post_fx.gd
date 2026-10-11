@@ -9,6 +9,7 @@ var hurt := 0.0        # 由 game.gd 写入
 var crowd := 0.0       # 特效密度 0–1（render/world.gd 写入）：后期满屏特效时辉光减半，免得整片过曝
 var desat := 0.0       # 0..1 去色（最终 Boss 击破演出，screens/boss_intro.gd 写入；低画质恒 0）
 var t := 0.0
+var crisp := false     # 图鉴打开时（title.gd 写入）：不加辉光与水下滤镜（色差会把浅色终端面板的黑细线染出红绿边），亮度照常
 
 
 func _ready() -> void:
@@ -25,12 +26,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	mat.set_shader_parameter("time", t)
-	mat.set_shader_parameter("bloom", 0.3 * (1.0 - 0.5 * crowd) if Cfg.bloom else 0.0)
-	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter else 0.0)
+	mat.set_shader_parameter("bloom", 0.3 * (1.0 - 0.5 * crowd) if Cfg.bloom and not crisp else 0.0)
+	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter and not crisp else 0.0)
 	# 全局亮度 = 玩家设置 × render/ambient_gain（界面与美术 10-01：整体略提亮；乘在最后，低灯和正常灯的明暗比例不变）
 	var br: float = Cfg.brightness * Bal.v("render/ambient_gain", 1.0)
 	mat.set_shader_parameter("brightness", br)
 	mat.set_shader_parameter("hurt", hurt)
 	mat.set_shader_parameter("desat", desat)
 	# 全关时整层隐藏，省一次全屏采样
-	rect.visible = Cfg.bloom or Cfg.water_filter or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001
+	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001

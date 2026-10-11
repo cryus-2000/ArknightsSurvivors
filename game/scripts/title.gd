@@ -111,7 +111,8 @@ func _ready() -> void:
 		if cd is Dictionary:
 			credits_data = cd
 	_op_layers()   # 选人页的信息面板 / 正文 / 浪幕子层（画在标题页自己的 _draw 之上）
-	add_child(preload("res://scripts/post_fx.gd").new())
+	post_fx = preload("res://scripts/post_fx.gd").new()
+	add_child(post_fx)
 	gallery = preload("res://scripts/gallery.gd").new()
 	add_child(gallery)
 	settings = preload("res://scripts/settings_panel.gd").new()
@@ -132,7 +133,7 @@ func _ready() -> void:
 			gallery.demo_stage = int(dp[0])
 			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
 		if a.begins_with("--infotab="):
-			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（档案 / 技能 / 数值）
+			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（0 档案 / 1 技能 / 2 成长）
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
@@ -140,8 +141,18 @@ func _ready() -> void:
 			gallery._build()
 			if parts.size() > 1:
 				gallery.sel = int(parts[1])
+			for a2 in Cfg.dev_args():
+				if a2.begins_with("--galleryid="):
+					gallery.select_id(a2.substr(12))   # 按干员 / 条目 id 选（新干员加进来下标会变）
+				if a2.begins_with("--galleryfilter="):
+					gallery._set_filter(a2.substr(16))
+				if a2.begins_with("--galleryrow="):
+					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
+				if a2 == "--reducemotion":
+					Cfg.reduce_motion = true
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
+			gallery._follow()
 			# 第 4 项：截图前等待秒数（攻击演示需要几秒才有画面）；第 5 / 6 项：连拍张数 / 间隔秒（特效逐帧检查用）
 			var wait: float = float(parts[3]) if parts.size() > 3 else 1.2
 			var burst: int = int(parts[4]) if parts.size() > 4 else 1
@@ -200,6 +211,11 @@ func _ready() -> void:
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_guide.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--codexmotion"):
+		# 图鉴 C4' 动效录制（docs/58 §11.2 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/codexmotion/；
+		# 脚本：标题 → 斜切转场打开图鉴（维什戴尔）→ 换干员 ×2 → 换页签 ×2 → 敌人页（标本柜启辉）→ 换条目 → 回干员页 → 退出
+		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/codexmotion")
+		codex_motion = 0
 	if Cfg.dev_args().has("--opmotion"):
 		# 选人页动效录制（docs/58 §11 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/opmotion/；脚本：换人 ×2 → 换页签 → 换技能行 → 职业筛选 → 出击浪幕 → 难度页
 		_open_op_pick()
@@ -425,6 +441,8 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 func _process(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible
+	if post_fx != null:
+		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
@@ -433,6 +451,8 @@ func _process(delta: float) -> void:
 		_op_tick(delta)
 	if op_motion >= 0.0:
 		_op_motion_tick()
+	if codex_motion >= 0:
+		_codex_motion_tick()
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
 	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
@@ -545,7 +565,7 @@ func _activate(i: int) -> void:
 		0:
 			transition.switch_page(_open_op_pick.bind(false))
 		1:
-			transition.switch_page(gallery.open)
+			transition.switch_slash(gallery.open)   # 图鉴 C4'：斜切黑带（黄前缘）转场，docs/58 §11.2
 		2:
 			if Cfg.can_boss_trial():
 				transition.switch_page(boss_trial.open)
@@ -983,6 +1003,8 @@ var op_wipe_layer: Control       # 浪幕：最上层子控件，盖住选人页
 var op_bg := {}                  # 背景固定几何（浪纹、触须、灯火光点；固定种子的本地 RNG，只算一次）
 var op_glow_tex: Texture2D
 var op_motion := -1.0            # --opmotion：动效录制开始时刻
+var codex_motion := -1           # --codexmotion：已录帧数
+var post_fx: CanvasLayer
 
 
 func _op_layers() -> void:
@@ -1867,13 +1889,7 @@ func _op_fit(od: Dictionary, ph: bool) -> Array:
 	var w2: float = bb.size.x * 2.0 / hi
 	var h2: float = bb.size.y * 2.0 / hi
 	var foot_y: float = (312.0 if ph else sr.end.y - m)
-	var cx: float = 380.0 if ph else 780.0
-	var k: float = maxf(1.0, floorf(op_art_k * (0.6 if ph else 1.0)))
-	while k > 1.0 and (w2 * k > sr.size.x - 2.0 * m or h2 * k > foot_y - sr.position.y - m):
-		k -= 1.0
-	var half: float = w2 * k / 2.0
-	cx = clampf(cx, sr.position.x + m + half, sr.end.x - m - half)
-	return [k, Vector2(cx, foot_y)]
+	return UI.art_fit(w2, h2, sr, op_art_k * (0.6 if ph else 1.0), 380.0 if ph else 780.0, foot_y, m)   # 图鉴 C4' 同一规则
 
 
 ## 立绘：适配倍数 + 裁进舞台框（画在描边英文名之后、名字块之前，层次同定稿）
@@ -2150,3 +2166,25 @@ func _op_motion_tick() -> void:
 	op_motion_frame += 1
 	if rt > 8.6:
 		get_tree().quit()
+
+
+## --codexmotion：按帧号驱动（--fixed-fps 30 下一帧 = 1/30 秒），每帧存一张图
+func _codex_motion_tick() -> void:
+	var f := codex_motion
+	var steps := {15: func(): transition.switch_slash(_codex_motion_open), 75: func(): gallery._step(1), 112: func(): gallery._step(1),
+		150: func(): gallery._set_info(2), 186: func(): gallery._set_info(1), 222: func(): gallery._set_info(0),
+		260: func(): gallery._set_tab(1), 305: func(): gallery._step(1), 340: func(): gallery._step(1),
+		378: func(): gallery._set_tab(0)}
+	if steps.has(f):
+		steps[f].call()
+	if f > 0:
+		get_viewport().get_texture().get_image().save_png(_shot_dir() + "/codexmotion/%04d.png" % f)
+	codex_motion += 1
+	if codex_motion > 430:
+		get_tree().quit()
+
+
+func _codex_motion_open() -> void:
+	gallery.open()
+	gallery.select_id("wisadel")   # 打开时选维什戴尔（概念图同一位干员）
+	gallery._restart_open()
