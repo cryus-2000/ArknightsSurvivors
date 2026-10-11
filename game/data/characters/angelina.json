@@ -1,0 +1,89 @@
+{
+ "id": "angelina",
+ "name": "安洁莉娜",
+ "en": "ANGELINA",
+ "class": "辅助",
+ "col": [0.7, 0.5, 0.95],
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "_doc": "基础数值（docs/59 §5 / §8.5）；纯数据干员，行为在 blocks 段（docs/61 §12）。拉拽 = 位移距离（像素），走 e.kb，自动吃 enemy_kb 倍率（藏品 #103 安洁莉娜的创想 +40%）、重型 ×0.3；精英 ×pull_elite，Boss 不动",
+  "atk": 20, "cd": 1.1, "range": 320, "bullet_speed": 380, "aoe": 75, "pull_r": 100, "pull": 40, "pull_elite": 0.5,
+  "s1_n": 3, "s1_pull": 2.0, "s1_r": 1.4, "s1_pause": 0.6,
+  "s2_r": 150, "s2_ring": 110, "s2_every": 0.5, "s2_force": 30, "s2_speed": 0.08,
+  "s3_dur": 10.0, "s3_r": 220, "s3_every": 0.2, "s3_stun": 0.5, "s3_lift_h": 30, "s3_elite_up": 1.5, "s3_elite_down": 0.5, "s3_gather": 30, "s3_aspd": 0.2, "s3_heal": 0.01, "s3_speed": 0.15, "s3_pickup": 3.0,
+  "grav_dur": 2.0, "grav_kb": 0.3, "talent_lit": 0.2,
+  "n1_area": 1.15, "n2_dmg": 1.15,
+  "pull2_delay": 0.3, "pull2_mult": 0.5, "lock_mult": 0.2, "lock_tick": 1.0, "lock_w": 30, "zero_r": 30, "zero_air": 0.6
+ },
+ "leader": {
+  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1484 / 防御 134 / 法抗 20%，远程主控有效生命 ×1.00",
+  "max_hp": 100, "armor": 1.0, "arts_res": 0.2, "regen": 1.1
+ },
+ "sprites": {
+  "idle": {"tex": "op_angelina_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
+  "run": {"tex": "op_angelina_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "attack": {"tex": "op_angelina_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 2},
+  "skill": {"tex": "op_angelina_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
+  "size": 48, "foot": [24, 46]
+ },
+ "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 75 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
+ "skills": [
+  {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 3 发重力弹：拉拢距离 ×2、落点范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
+  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},
+  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：主控周围半径 220 内的敌人悬浮（不能移动和攻击；精英每 2 秒落地 0.5 秒，Boss 只减速）并向场心汇聚；全队攻速 +20%，主控每秒回复 1%、移速 +15%、拾取范围 ×3", "icon": "skill_angelina_s3"}
+ ],
+ "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 2 秒内失重：受到的击退与拉拽 +30%（斯卡蒂、星熊、塞雷娅的击退都吃）；灯光照亮范围内的敌人被她拉得更远（+20%）"},
+ "hit_sources": {
+  "重力弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["projectile", "area", "basic", "control"]},
+  "秘杖·速充模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["skill", "area", "control"]},
+  "双重引力": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["follow_up", "area", "control"]},
+  "潮汐锁": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["dot", "area"]}
+ },
+ "progression": [
+  {"type": "custom", "id": "wide", "name": "引力扩散", "icon": "growth_b_range", "desc": "重力弹的落点范围与拉拢范围 ×1.15"},
+  {"type": "custom", "id": "dense", "name": "致密", "icon": "growth_b_size", "desc": "重力弹伤害 ×1.15"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：被拉过的敌人失重、更容易被击退，灯光里的敌人拉得更远"},
+  {"type": "custom", "id": "pull2", "name": "双重引力", "icon": "growth_b_echo", "desc": "重力弹落地 0.3 秒后在落点再拉一次（拉拢与伤害各 50%）"},
+  {"type": "custom", "id": "lock", "name": "潮汐锁", "icon": "skill_angelina_s2", "desc": "「秘杖·微粒模式」的环带上的敌人每秒受到重力弹 20% 的法术伤害"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「秘杖·反重力模式」；普攻质变「失重」：重力弹落点中心半径 30 的敌人悬浮 0.6 秒"}
+ ],
+ "gallery": {"tags": ["远程", "聚怪", "悬浮", "控制"], "desc": "凝滞师：把敌人拉成一圈、再整片托上天，给范围干员喂靶子；拿到「安洁莉娜的创想」拉得更狠"},
+ "blocks": {
+  "attack": {"shape": "point_aoe", "land": "densest", "range": "$range", "speed": "$bullet_speed", "r": "$aoe", "every": "$cd", "mult": 1.0, "src": "重力弹", "muzzle": [34, -80],
+   "on_hit": [
+    {"st": "airborne", "dur": "$zero_air", "within": "$zero_r", "h": 22, "cond": "elite >= 2"}],
+   "then": [
+    {"verb": "displace", "center": "target", "r": "$pull_r", "dir": "pull", "dist": "$pull", "elite_mult": "$pull_elite", "fx": [{"strip": "fx_angelina_pull", "fit": 30}],
+     "on_hit": [{"st": "weightless", "dur": "$grav_dur", "kb_mult": "1+$grav_kb", "cond": "elite >= 1"}]}]},
+  "skills": [
+   {"dur": {"next_attacks": "$s1_n"}, "attack_patch": {"r_mult": "$s1_r", "force_mult": "$s1_pull", "src": "秘杖·速充模式", "on_hit": [{"st": "stun", "dur": "$s1_pause"}]}, "do": []},
+   {"dur": "permanent", "do": [
+    {"verb": "field", "center": "leader", "r": "$s2_r", "ring": "$s2_ring", "every": "$s2_every", "look": "ring",
+     "tick": [{"verb": "displace", "dir": "ring", "dist": "$s2_force", "elite_mult": "$pull_elite",
+               "on_hit": [{"st": "weightless", "dur": "$grav_dur", "kb_mult": "1+$grav_kb", "cond": "elite >= 1"}]}]},
+    {"verb": "buff_leader", "stat": "move_speed", "op": "mult", "value": "1+$s2_speed"}]},
+   {"dur": "$s3_dur", "do": [
+    {"verb": "field", "center": "leader", "r": "$s3_r", "every": "$s3_every", "look": "lift",
+     "tick": [
+      {"st": "airborne", "dur": "$s3_stun", "h": "$s3_lift_h", "elite_up": "$s3_elite_up", "elite_down": "$s3_elite_down"},
+      {"verb": "displace", "dir": "center", "dist": "$s3_gather", "per_sec": true, "elite_mult": "$pull_elite"},
+      {"st": "slow", "dur": "$s3_stun", "boss_only": true}]},
+    {"aura": "aspd", "value": "$s3_aspd", "scope": "squad", "power": true},
+    {"verb": "heal", "pct": "$s3_heal", "every": 1.0, "power": true, "src": "安洁莉娜"},
+    {"verb": "buff_leader", "stat": "move_speed", "op": "mult", "value": "1+$s3_speed"},
+    {"verb": "buff_leader", "stat": "pickup", "op": "mult", "value": "$s3_pickup"}]}
+  ],
+  "talent": [
+   {"trig": "passive", "do": [{"verb": "buff_self", "stat": "force_lit", "op": "add", "value": "$talent_lit"}]}
+  ],
+  "progression": {
+   "wide": {"verb": "buff_self", "stat": "area", "op": "mult", "value": "$n1_area"},
+   "dense": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_dmg"},
+   "pull2": {"trig": "on_impact", "delay": "$pull2_delay", "do": [
+    {"shape": "circle", "center": "target", "r": "$aoe", "mult": "$pull2_mult", "src": "双重引力"},
+    {"verb": "displace", "center": "target", "r": "$pull_r", "dir": "pull", "dist": "$pull*$pull2_mult", "elite_mult": "$pull_elite"}]},
+   "lock": {"verb": "field", "center": "leader", "r": "$s2_r", "ring": "$s2_ring", "ring_w": "$lock_w", "every": "$lock_tick", "look": "none", "cond": "skill_active:1",
+    "tick": [{"st": "dot", "mult": "$lock_mult", "src": "潮汐锁", "where": "ring"}]}
+  }
+ }
+}
