@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_exusiai_idle.png",
+      "character": "exusiai",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "8ea7b7bc787750cf5d05548b466270606f5e42235d9af1a8ee4b075328acde06"
+    },
+    {
+      "file": "op_exusiai_idle@2x.png",
+      "character": "exusiai",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "033f95ff23bd768bbff09e88859fdc3c63cdc73838346cbde2a4c1bbd86291fd"
+    },
+    {
+      "file": "op_exusiai_run.png",
+      "character": "exusiai",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "ac308561a281601c0100023c09d81ace41136f2bcdcbe820d9a15aa6763e14a7"
+    },
+    {
+      "file": "op_exusiai_run@2x.png",
+      "character": "exusiai",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "776d02ea74e3062368f7dfc247b1b521bf7a3541fdd291917e08ff5711379c1a"
+    },
+    {
+      "file": "op_exusiai_attack.png",
+      "character": "exusiai",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 1,
+      "sha256": "4d78572e1e83de54d9ada69a2998aeb636cbb811013f18a0ce3b218a04040eac"
+    },
+    {
+      "file": "op_exusiai_attack@2x.png",
+      "character": "exusiai",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 1,
+      "loop": false,
+      "density": 2,
+      "sha256": "8147593ba7a0a73a6cece2a80e252c28341999ae0ccf2200bde3a952cf61a816"
+    },
+    {
+      "file": "op_exusiai_skill.png",
+      "character": "exusiai",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "5e2a842d2a99c2d6737e87ecfa08bc44701b62ccd70b7553dba39645ce453e63"
+    },
+    {
+      "file": "op_exusiai_skill@2x.png",
+      "character": "exusiai",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "e9505b48b6bb5d8ee39544a8993d3f7f266dd46bffb82db8cb8a51b359f560df"
+    }
+  ]
+}
