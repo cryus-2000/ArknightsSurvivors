@@ -9,9 +9,9 @@
     },
     {
      "type": "stat",
-     "stat": "regen",
+     "stat": "regen_pct",
      "op": "flat",
-     "value": 0.5
+     "value": 0.005
     }
    ],
    "desc": "编队上限 +1；主控每秒回复 0.5% 最大生命（每局最多 1 件编队上限类藏品）",
@@ -1375,9 +1375,9 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "regen",
+     "stat": "regen_pct",
      "op": "flat",
-     "value": 0.5
+     "value": 0.005
     }
    ],
    "tags": [
@@ -4790,7 +4790,7 @@
      "rule": "bone_blood"
     }
    ],
-   "desc": "最终 Boss 受到的伤害 +80%，主控受到的伤害 +80%",
+   "desc": "最终 Boss 受到的伤害 +80%，主控受到的伤害 +80%（猎潮的骑士倒下或离队后解除）",
    "rarity": "结局",
    "shop_allowed": false,
    "source": "event",
@@ -5216,10 +5216,14 @@
     },
     {
      "type": "rule",
-     "rule": "tree_light"
+     "rule": "tree_light",
+     "args": {
+      "t": 15,
+      "amount": 6
+     }
     }
    ],
-   "desc": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15",
+   "desc": "所有敌人攻击速度 +15%；主控每连续 15 秒未受伤，灯火 +6（闪避与护盾抵挡不算受伤）",
    "tags": [
     "attack_speed",
     "low_light",
@@ -5290,12 +5294,12 @@
      "type": "rule",
      "rule": "unhurt_light",
      "args": {
-      "t": 60,
-      "amount": 6
+      "t": 15,
+      "amount": 3
      }
     }
    ],
-   "desc": "主控连续 60 秒未受伤时，灯火 +6",
+   "desc": "主控每连续 15 秒未受伤，灯火 +3（闪避与护盾抵挡不算受伤）",
    "rarity": "稀有",
    "tags": [
     "light"
@@ -5309,12 +5313,12 @@
      "type": "rule",
      "rule": "unhurt_light",
      "args": {
-      "t": 60,
-      "amount": 9
+      "t": 15,
+      "amount": 4
      }
     }
    ],
-   "desc": "主控连续 60 秒未受伤时，灯火 +9",
+   "desc": "主控每连续 15 秒未受伤，灯火 +4（闪避与护盾抵挡不算受伤）",
    "rarity": "稀有",
    "tags": [
     "light"
