@@ -139,7 +139,8 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 			T.halo(ci, g, n)
 		T.tile(ci, g, n, on)
 		var wl: float = st.water[id]
-		var crest := T.water(ci, g, n, FRAC[kind], UI_ease(wl), st.phase, on)
+		var frac: float = 0.2 if (kind == "small" and not big_ui) else FRAC[kind]   # 手机小号磁贴矮（46），水位压低一点，不淹英文
+		var crest := T.water(ci, g, n, frac, UI_ease(wl), st.phase, on)
 		var ta: float = st.text_a[id]
 		var ink := T.SEL_INK if on else T.TXT
 		var sub := T.SEL_SUB if on else T.TXT2
@@ -193,8 +194,8 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 				T.icon(ci, c, ICON[id], Vector2(x0 + 20 * maxf(f, 0.8), y0 + h / 2 - 4 * minf(f, 1.0)), ks, ico, ico2)
 				var cs := int(16 * f) if big_ui else 15
 				var tx := x0 + 38 * maxf(f, 0.8)
-				var cy0 := (h / 2 - 6 * minf(f, 1.0)) if big_ui else (h / 2 - 8.0)
-				var ey0 := (h / 2 + 9 * minf(f, 1.0)) if big_ui else (h / 2 + 11.0)
+				var cy0 := (h / 2 - 6 * minf(f, 1.0)) if big_ui else (h / 2 - 10.0)
+				var ey0 := (h / 2 + 9 * minf(f, 1.0)) if big_ui else (h / 2 + 8.0)
 				UI.text(ci, font, Vector2(tx, y0 + cy0 + cs * 0.36), CN[id], cs, ink)
 				T.ptext(ci, c, Vector2(tx + 1, y0 + ey0), EN[id], k1, sub)
 				T.ptext(ci, c, Vector2(rr.end.x - 8 * f, y0 + 8 * f), nums, k1, idx, 1, 2)
