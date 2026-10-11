@@ -215,6 +215,28 @@
 **贴身层**（`layer: behind / front`）：挂在常驻积木上（例：S3 的 `verb.mode`），积木生效期间循环；锚点对准干员脚底 `pos`（+ `off`），每 1x 像素 = `g.PX × scale`、不压扁不旋转；
 帧号 = `floor(积木已生效秒数 × fps) % 帧数`（同一块积木的 back / front 共用）；积木失效后 0.15 秒淡出。不写 `every / life / n / spread / rise`，`at` 只能是 `self`。
 
+**程序漩涡**（`{"vortex": {参数…}}`，10-11 加，用户对照原作 S3「饱和度太高，要这种效果」）：不用帧条，程序画一片铺在地面上的大漩涡——
+许多细弧形水流线在透视椭圆（y × `sy`）里螺旋着绕中心转、各自从外圈卷向内圈（生命周期 sin 包络淡入淡出）、沿线两端渐隐，
+少量点缀色（暗红）流线、上飘闪烁的小光点、中心柔光与一层极淡的水色底。像贴身层一样**跟着常驻积木**：生效期间一直画，0.5 秒淡入、退出 0.4 秒淡出；
+条目 `cond` 切换时 0.35 秒交叉淡入淡出。条目字段只用 `vortex / layer（floor = 人物下面，缺省；add = 加色层）/ at（zone 缺省 / self / leader）/ off / cond / tint`（tint 的 a 乘整体透明度）。
+全部顶点色三角形攒进编队合批画布一次提交（`batch_canvas.add_tris`，docs/50 合批口径）；随机常数在第一次画时用 `g.vrng` 生成并缓存，运动只看 `g.t`，不碰玩法。
+`--perfab=N` 同局轮换时 /b 桶不画漩涡（量净成本用）。
+
+| 参数 | 缺省 | 说明 |
+|---|---|---|
+| `n` / `acc_n` | 32 / 4 | 流线条数（≤ 64）/ 其中点缀色几条 |
+| `r` / `max_r` / `r0` | 1 / 520 / 0.12 | 外半径 = 区域半径 × r（封顶 max_r 世界像素）/ 流线卷到的最内圈比例 |
+| `len` / `curl` | 1.3 / 0.22 | 每条弧长（弧度）/ 尾端比头端外扩多少（螺旋感） |
+| `spin` / `drift` | 0.55 / 0.10 | 角速度（弧度 / 秒，内圈更快）/ 向内卷的速度（生命周期 / 秒） |
+| `w` / `a` | 1.6 / 0.3 | 线宽（世界像素）/ 最大透明度 |
+| `halo` / `halo_a` | 0 / 0.25 | 软边：再画一遍宽 halo 倍、透明度 halo_a 倍的淡线（0 = 不画） |
+| `col` / `acc` / `acc_a` | 青 / 暗红 / 0.55 | 主色、点缀色 `[r, g, b]`、点缀透明度倍率 |
+| `seg` | 8 | 每条流线分几段 |
+| `motes` / `mote_a` / `mote_sz` / `mote_rise` | 24 / 0.55 / 2 / 18 | 光点个数（≤ 64）/ 透明度 / 边长（三成两倍大）/ 上飘高度 |
+| `glow` / `glow_r` / `fill` | 0.12 / 0.3 / 0.05 | 中心柔光透明度 / 半径比例 / 整片水色底透明度 |
+| `ring` | 1 | 区域椭圆边线透明度倍率（< 1 压淡程序硬边；取所有生效漩涡的最小值） |
+| `sy` | 0.55 | 透视压扁 |
+
 浊心斯卡蒂（§10 第 13 条）：
 
 ```jsonc
@@ -268,6 +290,7 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 8. 夹紧（创意工坊 📝）：`mult ≤ 20`、`every ≥ 0.1`、`orbit.n ≤ 12`——防止数据把局打崩。
 9. `fx`（§5.6）：是数组、≤ 8 条；字段只能是表里那些；`strip` 是 `fx_*` / `proj_*`；`layer` / `at` 取值在表内（`orbit` 只挂 `shape.orbit`、`hits` 只挂伤害形状）；
    `every` 和贴身层只能在常驻积木上；`cond` 能解析；数值夹紧（`scale` 0.05–8、`max_scale` 0.5–16、`n` ≤ 16、`spread` ≤ 1.5、`life` ≤ 5、`every` ≥ 0.05）。技能条目 `blocks.skills[i]` 允许 `dur / do / fx` 三个字段。
+   `vortex` 条目：不写 `strip`，只能挂常驻积木，`layer` 只能 floor / add、`at` 只能 zone / self / leader，不写帧条专用字段；`vortex` 对象的键在漩涡表内、数值按表夹紧、`col / acc` 是 3 个数字。
 
 ## 9. 名字对照（docs/59 §10 → docs/60 → 本文）
 
@@ -334,6 +357,11 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     精二「溟海之声」6 个判定点画 `fx_skalter_note` 代替小菱形。歌域椭圆与 `exec_shape` 的程序扩散环照旧作底。
     声浪帧条按 30px 半径画、放大封顶 `max_scale 4`（@2x 每像素 2 世界像素，与人物 1x 像素同密度）：歌域 190–460 时帧条只到中心约 120 像素，外圈仍由程序环扩到歌域边——
     完全按歌域放大会是 7–15 像素的大方块（实测截图，`build/skalter_fx/`）；要「帧条直接铺满歌域」需要 Codex 出更大的声浪图（例如外径 ≥ 100px、线宽 1px）。
+14. **降饱和 + 地面大漩涡**（10-11，用户对照原作 S3：「饱和度是不是太高了」）：所有 fx 条目加 `tint`——声浪 0.5、回声 0.35、音符 0.7 / 0.75、S3 发动加色声浪 0.45、
+    贴身 `fx_skalter_s3_back / _front` 0.55 / 0.45，颜色乘 `[0.8, 0.98, 0.92]` 一类（压红、压蓝，偏青，降低饱和观感）；帧条本身仍是二值透明，半透明全靠 modulate。
+    S3 的 `verb.mode` 加一条程序 `vortex`（外半径 = 歌域 × 0.62、封顶 330；40 条流线含 6 条暗红、halo 软边、50 个光点、区域边线压到 0.4）；
+    常驻歌域光环（特性 `aura.atk`）加一条更淡的 `vortex`（16 条、无中心光，`cond: "!skill_active:2"`，S3 期间交叉淡出让位）。
+    正式的地面漩涡帧条已写特效单给 Codex：docs/66。
 
 ## 测试
 
@@ -529,3 +557,11 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 浊心斯卡蒂当主控（`--op=skalter`）、当队友（`--op=mizuki --squad=skalter`）各 1 局：`TRACE` 241 行逐字节相同；`BALANCE` 去掉 `prof` 与 `bot.peak / peak_min`（画面峰值，blocks_eq 同口径）后逐字段相同。
 画面：`build/skalter_fx/skalter_fx.mp4`（14 秒：声浪 → S3 → 灯火切昏暗的深紫声浪 → S3 结束）、`before_after.png`（同局同帧，左 = 去掉 fx 条目、右 = 现行）。
+
+### 程序漩涡（10-11，§5.6 `vortex`）
+
+- 画面：`build/skalter_fx/ref_compare.png`（原作参考 | 改前 main | 改后，同局同帧：`--balance --seed=1 --bot=expert --op=skalter --maxprog --sptest --nodeath`，1280×720，帧 525 / 690，S3 生效、灯火 36 / 昏暗 29）；
+  `skalter_fx_v2.mp4`（同参数 `--recframes=28,330`，22 秒，15 fps）。
+- 成本（同局轮换 `--perf --prof --perfab=30`，同上参数跑到 150 秒，1280×720，每桶约 1130 帧，S3 约一半时间生效）：`dw_shadows`（歌域与漩涡所在段）0.15 / 0.04 毫秒（开 / 关），
+  `draw_world` 0.41 / 0.30 → 漩涡净成本约 **0.11 毫秒 / 帧**；渲染 CPU 中位 1.15 / 1.19、GPU 中位 1.03 / 1.01 毫秒（噪声内）。
+- 同 seed（对 main f024142a，headless `--balance --seed=1 --bot=expert --maxt=240 --trace=1 --maxprog --sptest`，主控 / 队友各 1 局）：TRACE 241 行与 BALANCE（去 prof、画面峰值）逐字节相同。

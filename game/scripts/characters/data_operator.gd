@@ -267,7 +267,7 @@ func _sustain(dt: float) -> void:
 			_fxt[u] = OB.fx_tick(self, b.fx, zone_c(), zr, _fxt.get(u, []), dt)
 			if OB.fx_has_body(b.fx):
 				if not _fxb.has(u) or float(_fxb[u].fade) >= 0.0:
-					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0}
+					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0, "fl": OB.FX_VORTEX_FADE if OB.fx_has_vortex(b.fx) else OB.FX_BODY_FADE}
 				else:
 					_fxb[u].el += dt
 	for u in _fxt.keys():
@@ -277,7 +277,7 @@ func _sustain(dt: float) -> void:
 		if not fseen.has(u):
 			var e: Dictionary = _fxb[u]
 			e.el += dt
-			e.fade = OB.FX_BODY_FADE if float(e.fade) < 0.0 else float(e.fade) - dt
+			e.fade = float(e.fl) if float(e.fade) < 0.0 else float(e.fade) - dt
 			if e.fade <= 0.0:
 				_fxb.erase(u)
 
@@ -398,10 +398,14 @@ func draw_auras() -> void:
 	elif g.lamp < 30.0:
 		cc = cc.lerp(Color(0.45, 0.2, 0.75), 0.6)
 	var on := skill_active()
+	var rm := 1.0   # 程序漩涡（§5.6 vortex.ring）可把区域硬边压淡
+	for u in _fxb:
+		rm = minf(rm, OB.vortex_ring_mul(self, _fxb[u]))
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, 0.08 if on else 0.045))
-	cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, (0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)), 2.0)
+	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
+	cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_vortex(cv, "floor")
 	for u in _state:
 		var st = _state[u]
 		if st is Dictionary and st.has("ang"):
@@ -427,6 +431,20 @@ func _draw_body_fx(front: bool) -> void:
 		OB.fx_body(cv, self, e.b.fx, float(e.el), al, front)
 
 
+## 程序漩涡（docs/61 §5.6 vortex）：floor 层在 draw_auras（人物下面）、add 层在 draw_fx_add；生效后 0.5 秒淡入、退出 FX_VORTEX_FADE 秒淡出
+func _draw_vortex(sink, layer: String) -> void:
+	if pos == Vector2.INF or g.perf_alt:   # g.perf_alt：--perfab 同局轮换量漩涡开 / 关的净成本（/b 桶不画；正常游戏恒为 false）
+		return
+	for u in _fxb:
+		var e: Dictionary = _fxb[u]
+		if not OB.fx_has_vortex(e.b.fx):
+			continue
+		var al: float = clampf(float(e.el) / 0.5, 0.0, 1.0)
+		if float(e.fade) >= 0.0:
+			al *= clampf(float(e.fade) / OB.FX_VORTEX_FADE, 0.0, 1.0)
+		OB.fx_vortex(sink, self, e, layer, al, zone_c(), zr)
+
+
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
 func _draw_pfx(f: Dictionary, _a: float) -> bool:
 	if str(f.kind) != "strip":
@@ -438,6 +456,7 @@ func _draw_pfx(f: Dictionary, _a: float) -> bool:
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
+	_draw_vortex(ci, "add")
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
 			OB.fx_draw(ci, g, f, g.world.fx_dim)
