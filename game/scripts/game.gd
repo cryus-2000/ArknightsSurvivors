@@ -1511,6 +1511,12 @@ const V6_FRAMES := {
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
+	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
+	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
+	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
+	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
+	"fx_hoshiguma_block": [5, 20.0], "fx_hoshiguma_sand": [4, 8.0], "fx_hoshiguma_demon_slash": [5, 20.0],
+	"fx_texas_dash": [4, 20.0], "fx_texas_blade": [6, 20.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }
