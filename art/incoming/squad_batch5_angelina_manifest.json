@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_angelina_idle.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "ac4c6ce8d08fd6b2bdc699e17336da80563a8059fd11a45387124041255ffaff"
+    },
+    {
+      "file": "op_angelina_idle@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "ff97b7785db2da071902f2da3bff125ccf225f0a70effccec9ece299a9d8cfe8"
+    },
+    {
+      "file": "op_angelina_run.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "76101df202fbaa1947b053b388e06b6ee488fd8c1abede85d5e323f9874b713a"
+    },
+    {
+      "file": "op_angelina_run@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "93ad39e6e42a371569ab0b9d6c262163d673abc29bcb45885209a74130b65b88"
+    },
+    {
+      "file": "op_angelina_attack.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 1,
+      "sha256": "5114f61f4d1577a7a4a83f90d9d5e81d6aef1b8370fd276dea63e563bd9de705"
+    },
+    {
+      "file": "op_angelina_attack@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 2,
+      "loop": false,
+      "density": 2,
+      "sha256": "4d13369d2817c1852ec44886e4e26fe85af8bdfa379a0668a690cd9794ae9a0c"
+    },
+    {
+      "file": "op_angelina_skill.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 1,
+      "sha256": "d39cb585d3b32757f5e163df8a5baedebc7782ea96aa555f5501e2c690bac150"
+    },
+    {
+      "file": "op_angelina_skill@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 7,
+      "fps": 12,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": 3,
+      "loop": false,
+      "density": 2,
+      "sha256": "670cc2546126598b3bb4e668025c54b874e210abe586012f0eacb6a1e996cda6"
+    }
+  ]
+}

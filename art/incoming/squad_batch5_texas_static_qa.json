@@ -1,0 +1,554 @@
+{
+  "passed": true,
+  "engine_tested": false,
+  "assets": [
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_idle.png",
+      "sha256": "32c48d21afd328a6844787def95cc9f95b956b9b186d91d848635e423acb182b",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            8,
+            11,
+            38,
+            46
+          ],
+          "pixel_sha256": "06da16e1100877ec6a0c0f87560760bf3532bd667214572b4bcf0949baf21511",
+          "opaque_pixels": 636
+        },
+        {
+          "index": 1,
+          "bbox": [
+            8,
+            11,
+            38,
+            46
+          ],
+          "pixel_sha256": "0f5a96075070020f72d8ef3498b36a004ed02ff84d10b2d60112c8153c5935ab",
+          "opaque_pixels": 636
+        },
+        {
+          "index": 2,
+          "bbox": [
+            8,
+            11,
+            38,
+            46
+          ],
+          "pixel_sha256": "64dbada73ec4ce1c7c37a8df966d9b6200f8eda986b236dd2af3093130d732ad",
+          "opaque_pixels": 636
+        },
+        {
+          "index": 3,
+          "bbox": [
+            8,
+            11,
+            38,
+            46
+          ],
+          "pixel_sha256": "d449969431b04538e51f281d66a914edac7699c435562e8f737c7f079b1bd3c8",
+          "opaque_pixels": 636
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_idle@2x.png",
+      "sha256": "beafe1d667627d50321132138160773a00b1ab024d0d8c704eea95d1d4e3fd32",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            16,
+            21,
+            79,
+            92
+          ],
+          "pixel_sha256": "53dec86a367e4657ef0035b48143a9e0908b7e0f35a01d5bb6483433e286193f",
+          "opaque_pixels": 2559
+        },
+        {
+          "index": 1,
+          "bbox": [
+            16,
+            21,
+            79,
+            92
+          ],
+          "pixel_sha256": "6fdbe8f516eb549c65ba435c2963108f6b330cee7eacc22027f2717ad53f184b",
+          "opaque_pixels": 2559
+        },
+        {
+          "index": 2,
+          "bbox": [
+            16,
+            21,
+            79,
+            92
+          ],
+          "pixel_sha256": "573cc9222da166b05f7098869454646951c25551ef635481c469faca51f00a82",
+          "opaque_pixels": 2559
+        },
+        {
+          "index": 3,
+          "bbox": [
+            16,
+            21,
+            79,
+            92
+          ],
+          "pixel_sha256": "f8d9f249053849614398e6574e12ab87866cd29e2cd5d7a7c491359e07152427",
+          "opaque_pixels": 2559
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_run.png",
+      "sha256": "61f643fefd27cec5ca6bd9ba2c20d8ae322b2d8f46c61985ab7440c0b2ebf9cc",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            6,
+            13,
+            41,
+            46
+          ],
+          "pixel_sha256": "194a2c51125cd5e8e7a2d1457a314338a9b41babf7fd7fb9941bde0e5b9a156e",
+          "opaque_pixels": 662
+        },
+        {
+          "index": 1,
+          "bbox": [
+            7,
+            13,
+            39,
+            46
+          ],
+          "pixel_sha256": "75b99db2dc5ef87b75023fa00cb98858044d9cc459bcb915ecfe87b10dcdd55f",
+          "opaque_pixels": 636
+        },
+        {
+          "index": 2,
+          "bbox": [
+            7,
+            14,
+            40,
+            46
+          ],
+          "pixel_sha256": "a848e3ad6025912b906276210e263cbebecc93d47dc6f4bff6d88392f2ee6e70",
+          "opaque_pixels": 610
+        },
+        {
+          "index": 3,
+          "bbox": [
+            7,
+            13,
+            38,
+            46
+          ],
+          "pixel_sha256": "819cca51a92d2998366babadbec42c13f57673ccd6da111e504fa62c2afeb0fe",
+          "opaque_pixels": 631
+        },
+        {
+          "index": 4,
+          "bbox": [
+            7,
+            13,
+            40,
+            46
+          ],
+          "pixel_sha256": "f6fed26f4f50df62bb2696b8537471d7531b1928bbccafe6190a79a9bbf978cd",
+          "opaque_pixels": 620
+        },
+        {
+          "index": 5,
+          "bbox": [
+            6,
+            12,
+            41,
+            46
+          ],
+          "pixel_sha256": "da8cc5052f2db819d5251e8c09238c8e288314db264d8422a1e303e7212e7189",
+          "opaque_pixels": 676
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_run@2x.png",
+      "sha256": "b914d2e259220794d1eeccb9679dc5a9ac66655b14462c5fb60fc012d6f430db",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            12,
+            25,
+            82,
+            92
+          ],
+          "pixel_sha256": "656798b477e3d297d401508c934958641102957a3266f7bbb18b923150c4fabc",
+          "opaque_pixels": 2645
+        },
+        {
+          "index": 1,
+          "bbox": [
+            15,
+            25,
+            79,
+            92
+          ],
+          "pixel_sha256": "6055fd1b5df12efa7e337e23606e279752aa74b1266817b5fa6a561073c883dd",
+          "opaque_pixels": 2560
+        },
+        {
+          "index": 2,
+          "bbox": [
+            14,
+            26,
+            81,
+            92
+          ],
+          "pixel_sha256": "846b2679da6e76e55b2c954f6dcfa8da46c2109876b3b8a6b66a37f88eda81a4",
+          "opaque_pixels": 2473
+        },
+        {
+          "index": 3,
+          "bbox": [
+            15,
+            26,
+            80,
+            92
+          ],
+          "pixel_sha256": "3e0f67d2030324001f29234e5fcd8cc4da04bfec6074af9a26623405930542bd",
+          "opaque_pixels": 2546
+        },
+        {
+          "index": 4,
+          "bbox": [
+            14,
+            26,
+            81,
+            92
+          ],
+          "pixel_sha256": "2a417aa4d881aebf0b3659eaf3fd569ec8de1d6543eda4cd8a7e17f4f1a5cb40",
+          "opaque_pixels": 2471
+        },
+        {
+          "index": 5,
+          "bbox": [
+            12,
+            24,
+            82,
+            92
+          ],
+          "pixel_sha256": "d5fb0f5fb4937aa171beff042018df7396f5dad216056a20f872f7353d4472bb",
+          "opaque_pixels": 2640
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_attack.png",
+      "sha256": "e3aab5023a34ed78137cb081ac060acc83037bb74da73f2bdceebdc3790cf206",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            8,
+            16,
+            39,
+            46
+          ],
+          "pixel_sha256": "38cd9589b4c22710843c61b7419a9c74b42b4763c68680435e06b7a10a4d4297",
+          "opaque_pixels": 582
+        },
+        {
+          "index": 1,
+          "bbox": [
+            2,
+            18,
+            45,
+            46
+          ],
+          "pixel_sha256": "d3cabd801bf0006ff2d871f033a1c6b36a7bbc76b1eb9078c4d611a918add80d",
+          "opaque_pixels": 594
+        },
+        {
+          "index": 2,
+          "bbox": [
+            4,
+            16,
+            43,
+            46
+          ],
+          "pixel_sha256": "20da452008b2d3b3e84c8be1b23c2f19c49c399deef124ebb09a5cc0eb585e36",
+          "opaque_pixels": 624
+        },
+        {
+          "index": 3,
+          "bbox": [
+            7,
+            16,
+            38,
+            46
+          ],
+          "pixel_sha256": "edb61a3c97a76e209d0e80c364326020feb0cfe4d0b2016bdd10ceb26a1067c4",
+          "opaque_pixels": 564
+        },
+        {
+          "index": 4,
+          "bbox": [
+            7,
+            14,
+            39,
+            46
+          ],
+          "pixel_sha256": "d38ba4787caa2780698503d8736a95bcccf89b471f54ec387da1782e4be5ce5e",
+          "opaque_pixels": 598
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_attack@2x.png",
+      "sha256": "dd0b1cb44b0bf61a9435077b22dbab31278ab2a200ca0af0defe2280d980d8f1",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            17,
+            32,
+            79,
+            92
+          ],
+          "pixel_sha256": "cc4b9746ef5230ae8527e0c989c994e298a8f823c1e5ba8a5cd8e4ecb6ed5672",
+          "opaque_pixels": 2303
+        },
+        {
+          "index": 1,
+          "bbox": [
+            4,
+            32,
+            91,
+            92
+          ],
+          "pixel_sha256": "252245814a7472dad21e7d0ecabb0c947d1843fe9391f9327db0054bed03d7cc",
+          "opaque_pixels": 2459
+        },
+        {
+          "index": 2,
+          "bbox": [
+            8,
+            31,
+            87,
+            92
+          ],
+          "pixel_sha256": "c20952465f3015c1876356d4070096bac866eb70b6f6297d34143857d7dc6e09",
+          "opaque_pixels": 2521
+        },
+        {
+          "index": 3,
+          "bbox": [
+            15,
+            31,
+            80,
+            92
+          ],
+          "pixel_sha256": "8cdd742d3b1556327c151cf4d86bbef1adc9640c491317131261d26b135d872e",
+          "opaque_pixels": 2286
+        },
+        {
+          "index": 4,
+          "bbox": [
+            15,
+            28,
+            79,
+            92
+          ],
+          "pixel_sha256": "90a1b8a40d4a71bc7559da56338f31fc9fe9c7786dadfdcb7bac428696d379d6",
+          "opaque_pixels": 2360
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_skill.png",
+      "sha256": "b50ea714342e44bb560c358db07b81936d31b9fe97dcf1d304605d7ef7054f6c",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            7,
+            13,
+            40,
+            46
+          ],
+          "pixel_sha256": "f3f2b8adf7e7a276e4f4a71488f97967c2ce5003623bcf212c1adda1b750186d",
+          "opaque_pixels": 624
+        },
+        {
+          "index": 1,
+          "bbox": [
+            6,
+            14,
+            41,
+            46
+          ],
+          "pixel_sha256": "80a63c8a621bb3e65fac8d3392212331322557a70d954ac46ea57bc5ae2c3f31",
+          "opaque_pixels": 607
+        },
+        {
+          "index": 2,
+          "bbox": [
+            10,
+            10,
+            37,
+            46
+          ],
+          "pixel_sha256": "f8d64ac51428a91bfdd6c76545ab8cd64dd6f3f49db89f914c416bdc9587ff30",
+          "opaque_pixels": 626
+        },
+        {
+          "index": 3,
+          "bbox": [
+            10,
+            6,
+            37,
+            46
+          ],
+          "pixel_sha256": "055b1aa1a9aa042ad2fb19b62e14f6c5793aa6237f04c1787840be3fe7ac1ab1",
+          "opaque_pixels": 583
+        },
+        {
+          "index": 4,
+          "bbox": [
+            11,
+            9,
+            35,
+            46
+          ],
+          "pixel_sha256": "5f545ec0fbfed7ef2c7718a8865c4ae601033ff9fd148c2efe7b7f44f4fc7c8c",
+          "opaque_pixels": 568
+        },
+        {
+          "index": 5,
+          "bbox": [
+            5,
+            14,
+            40,
+            46
+          ],
+          "pixel_sha256": "fe9c8b1461182d4b8e0f2a97440dd30a09d43de20f4d67a34044b717a32e521e",
+          "opaque_pixels": 613
+        },
+        {
+          "index": 6,
+          "bbox": [
+            8,
+            11,
+            38,
+            46
+          ],
+          "pixel_sha256": "06da16e1100877ec6a0c0f87560760bf3532bd667214572b4bcf0949baf21511",
+          "opaque_pixels": 636
+        }
+      ]
+    },
+    {
+      "outline": "080E18",
+      "binary_alpha": true,
+      "file": "op_texas_skill@2x.png",
+      "sha256": "42b3dac8304ecf5b65fb1d139854dad17701f4d245783c7fe59ecaeb6d9d4cc5",
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            14,
+            25,
+            80,
+            92
+          ],
+          "pixel_sha256": "6b9d89318c09446fa250d5b7b94b29c8b001aa01a3553002ede512af828cbe20",
+          "opaque_pixels": 2491
+        },
+        {
+          "index": 1,
+          "bbox": [
+            12,
+            26,
+            82,
+            92
+          ],
+          "pixel_sha256": "dfdbd3050469cf2744c769b349fac18de5e00f9be4904f8a953ec93e73b502b8",
+          "opaque_pixels": 2427
+        },
+        {
+          "index": 2,
+          "bbox": [
+            20,
+            18,
+            74,
+            92
+          ],
+          "pixel_sha256": "c1557af329c41b07e6044f7a9f2327b60304421ab89e3f7daba8b1d552cf4843",
+          "opaque_pixels": 2510
+        },
+        {
+          "index": 3,
+          "bbox": [
+            20,
+            11,
+            75,
+            92
+          ],
+          "pixel_sha256": "88fa9089dce33cad84161ec9525b1bad2128d610c48870a790e977c2bb9d1b5f",
+          "opaque_pixels": 2409
+        },
+        {
+          "index": 4,
+          "bbox": [
+            23,
+            17,
+            72,
+            92
+          ],
+          "pixel_sha256": "4d6f8c6f489dabaaf8ba335fa35ee69d0391cdbfa951d8f27d453ce5d701ed4e",
+          "opaque_pixels": 2264
+        },
+        {
+          "index": 5,
+          "bbox": [
+            11,
+            26,
+            83,
+            92
+          ],
+          "pixel_sha256": "109a11c9e4797ee161eea0bd01017f9ee0fdf78d93219574dc5df87aa2bf105e",
+          "opaque_pixels": 2460
+        },
+        {
+          "index": 6,
+          "bbox": [
+            16,
+            21,
+            79,
+            92
+          ],
+          "pixel_sha256": "53dec86a367e4657ef0035b48143a9e0908b7e0f35a01d5bb6483433e286193f",
+          "opaque_pixels": 2559
+        }
+      ]
+    }
+  ]
+}
