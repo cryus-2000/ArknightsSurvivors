@@ -695,6 +695,50 @@ def lumen_lighthouse(ic):
     ic.rect(6, 28, 25, 29, WHT, 1.0)
 
 
+# ---------------------------------------------------------------- 浊心斯卡蒂（占位，docs/61：数据干员第一人，正式图标待界面与美术重画）
+SKRED = ramp("#4a0c18", "#8e1a2e", "#d23a4e")
+
+
+def note(ic, cx, cy, s=1.0, rp=None):
+    """音符：椭圆符头 + 竖杆 + 小旗"""
+    rp = rp or WHT
+    ic.ellipse(cx, cy, 3.4 * s, 2.6 * s, rp, 1.0)
+    ic.poly([(cx + 2.2 * s, cy - 11 * s), (cx + 3.8 * s, cy - 11 * s), (cx + 3.8 * s, cy), (cx + 2.2 * s, cy)], rp, 1.0)
+    ic.poly([(cx + 3.6 * s, cy - 11 * s), (cx + 8 * s, cy - 7 * s), (cx + 3.6 * s, cy - 8 * s)], rp, 1.0)
+
+
+@icon("skalter", 1)
+def skalter_s1(ic):
+    """同归殊途之吟：暗红底 + 两圈声波 + 白色音符"""
+    tile(ic, SKRED)
+    ic.ring(15.5, 16, 9.5, 11, WHT, 0.4, a0=200, a1=340)
+    ic.ring(15.5, 16, 12.5, 13.6, WHT, 0.2, a0=210, a1=330)
+    note(ic, 13, 21, 1.1)
+    frame(ic)
+
+
+@icon("skalter", 2)
+def skalter_s2(ic):
+    """同葬无光之愿：深红八边形徽章里的白色潮浪"""
+    tile(ic)
+    ic.poly(ngon(15.5, 15.5, 15.6, 8, -67.5), WHT, 1.0)
+    ic.poly(ngon(15.5, 15.5, 13.6, 8, -67.5), SKRED, 0.6)
+    ic.sweep((6, 21), (12, 6), (25, 15), 1.2, 2.6, WHT, 1.0)
+    ic.sweep((7, 25), (15, 16), (25, 22), 0.8, 1.8, WHT, 0.8)
+
+
+@icon("skalter", 3)
+def skalter_s3(ic):
+    """潮涌，潮枯：红色放射 + 涨落两道潮线 + 中心音符"""
+    tile(ic, SKRED)
+    for a in (60, 120):
+        wedge(ic, 15.5, 16, a, 12, CRIMSON, 0.8)
+    ic.sweep((4, 12), (15, 2), (27, 12), 0.8, 1.8, WHT, 1.0)
+    ic.sweep((4, 25), (15, 31), (27, 25), 0.8, 1.8, WHT, 0.7)
+    note(ic, 14, 20, 0.9)
+    frame(ic)
+
+
 # ---------------------------------------------------------------- 水月（覆盖 skill_s1/2/3）
 @icon("mizuki", 1)
 def mizuki_awaken(ic):

@@ -17,7 +17,7 @@ static func rows(cid: String, definition: Dictionary) -> Array:
 	var hp: float = float(lead.get("max_hp", doctor.get("max_hp", StatDefs.PLAYER[&"max_hp"].base)))
 	var atk: float = _first(b, ["atk", "m_atk", "umbrella_dmg", "bolt_atk"]) * (1.0 + float(mod.get("atk", 0.0)))
 	var interval: float = _first(b, ["cd", "m_cd", "swing_interval", "bolt_cd"]) / maxf(0.2, 1.0 + float(mod.get("aspd", 0.0)))
-	var reach: float = _first(b, ["range", "bolt_range", "reach", "m_reach", "swing_radius", "len"]) * (1.0 + float(mod.get("range", 0.0)))
+	var reach: float = _first(b, ["range", "bolt_range", "reach", "m_reach", "swing_radius", "len", "aura"]) * (1.0 + float(mod.get("range", 0.0)))   # aura：以区域为普攻范围的数据干员（浊心斯卡蒂歌域，docs/61）
 	var speed: float = float(doctor.get("move_speed", StatDefs.PLAYER[&"move_speed"].base))
 	return [["初始生命", "%.0f" % hp], ["Mon3tr 攻击" if b.has("m_atk") else "初始攻击", "%.1f" % atk],
 		["攻击间隔", "%.2f 秒" % interval], ["攻击范围", "%.0f" % reach], ["移动速度", "%.0f" % speed],
