@@ -662,6 +662,8 @@ var _lamp_ember_acc := 0.0
 var _merchant_on := false
 var _merchant_acc := 0.0
 var _elite_seen := {}
+var _sight := {}               # docs/54 §7「首次入画」：精英 id → 登场动画起点（g.t）；fx/first_sight = 0 时不用
+var _merchant_seen := false     # 商人本次出现是否已入画（入画那一帧放出现特效）
 ## docs/54 §6 的五条帧条（tools/gen_fx_strips.py）：有图就用图，没图走下面各处原来的程序画法；fx/strips = 0 强制走程序画法
 const STRIPS := ["fx_beacon_ignite", "fx_ember", "fx_mire_dissolve", "fx_levelup_pillar", "fx_elite_spawn"]
 
@@ -695,6 +697,33 @@ func add_strip(name: String, pos: Vector2, scale: float, col: Color, anchor: Vec
 	var spec: Array = Game.V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
 	g.fx.append({"kind": "aspr", "name": name, "pos": pos, "scale": scale, "col": col, "anchor": anchor, "life": dur, "max": dur})
+
+
+## 「首次入画」（docs/54 §7 第 2–3 条，fx/first_sight 缺省 1）：精英登场 / 商人出现的特效改在实体第一次进入视野时播，
+## 而不是刷出（多在屏外）那一刻；刷出时就在视野内则和原来一样从刷出算起。纯画面状态，不碰 g.rng
+func first_sight() -> bool:
+	return _kv("first_sight", 1.0) > 0.0
+
+
+## 精英本帧要不要走登场动画（world 每帧按视野内的精英调）：首次入画起 0.9 秒内为真
+func elite_entrance_due(e: Dictionary) -> bool:
+	if not first_sight():
+		return e.age < 0.9
+	var key: int = int(e.get("id", 0))
+	if not _sight.has(key):
+		if _sight.size() > 128:
+			_prune_sight()
+		_sight[key] = g.t - minf(float(e.get("age", 0.0)), 0.9)   # 刷出时已在视野内：从刷出算起（同改动前）
+	return g.t - float(_sight[key]) < 0.9
+
+
+func _prune_sight() -> void:
+	var live := {}
+	for e in g.enemies:
+		live[int(e.get("id", 0))] = true
+	for k in _sight.keys():
+		if not live.has(k):
+			_sight.erase(k)
 
 
 ## 常驻环境粒子（溟痕光尘、低灯火余烬、商人灯笼）：低画质和触屏设备不画
@@ -792,12 +821,14 @@ func watch_lamp(rd: float) -> void:
 
 ## ④ 精英登场（world 每帧调；按 e.age 画，第一次看到时放一次光尘）：洋红地环扩开 + 8 道竖光 + 柔光
 func elite_entrance(e: Dictionary) -> void:
+	var key: int = int(e.get("id", 0))
 	var age: float = float(e.get("age", 9.0))
+	if first_sight() and _sight.has(key):
+		age = g.t - float(_sight[key])   # 首次入画起算（elite_entrance_due 登记）
 	if age > 0.9 or e.get("dead", false):
 		return
 	var pos: Vector2 = e.pos
 	var r: float = float(e.get("r", 16.0))
-	var key: int = int(e.get("id", 0))
 	if not _elite_seen.has(key):
 		if _elite_seen.size() > 64:
 			_elite_seen.clear()
@@ -879,7 +910,18 @@ func pickup_burst(kind: String, col: Color) -> void:
 ## ⑧ 商人（world.update_visuals 每帧调）：出现那一刻一圈暖光 + 光尘；在场时灯笼每秒 fx/merchant_motes 粒暖尘飘起（ambient_ok）
 func watch_merchant(rd: float) -> void:
 	var here: bool = not g.merchant.is_empty()
-	if here and not _merchant_on and on("merchant_fx"):
+	if not here:
+		_merchant_seen = false
+	var burst := false
+	if here and on("merchant_fx"):
+		if first_sight():
+			# 首次入画才放（docs/54 §7 第 3 条）：刷在屏外时等玩家找到它那一刻；刷在视野内则当帧就放
+			if not _merchant_seen and _wv().view_rect(40.0).has_point(g.merchant.pos):
+				_merchant_seen = true
+				burst = true
+		else:
+			burst = not _merchant_on
+	if burst:
 		var mp: Vector2 = g.merchant.pos
 		glow(mp + Vector2(0, -30), 150.0, Color(1.0, 0.75, 0.45, 0.6), 0.9, 0.3)
 		g.fx.append({"kind": "ring", "pos": mp + Vector2(0, 10), "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.5)})

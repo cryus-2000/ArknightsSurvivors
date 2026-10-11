@@ -1015,11 +1015,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
 func _draw_tells_outlines() -> void:
 	draw_enemy_tells()
-	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；无贴图批，一次提交）
+	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
 		var elr: Rect2 = view_rect(120.0)
 		for e in g.enemies:
-			if e.elite and not e.boss and e.age < 0.9 and elr.has_point(e.pos):
+			if e.elite and not e.boss and elr.has_point(e.pos) and g.vfx.elite_entrance_due(e):
 				g.vfx.elite_entrance(e)
 		tb_flush()
 	draw_leader_ailments()

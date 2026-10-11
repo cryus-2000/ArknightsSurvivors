@@ -353,7 +353,7 @@
   "hurt_duck_hz": 900,
   "_doc_enemy_draw_cache": "敌人画法缓存（render/world.gd，docs/50 §9.9）：1 开、0 全走原路径（对照用，画面应逐像素一致）",
   "enemy_draw_cache": 1,
-  "_doc_vfx2": "画面特效二轮（docs/54，2026-10-10，环境与事件特效，纯画面、只用 vrng）：vfx2 总开关（0 = 全关，等价改动前）；beacon_burst2 灯标点燃的柔光 / 余烬（beacon_embers 粒）/ 溟痕退散；levelup_burst 升级柔光 + 光柱 + levelup_motes 粒光尘 + 全屏轻闪 levelup_flash；lamp_dim 灯火跌破 30 / 归零的暗红一压 + lamp_embers 粒余烬，灯火 < 30 常驻每秒 lamp_low_embers 粒；elite_entrance 精英登场地环 + 竖光；mire_motes 每片溟痕最多几粒上浮光尘（0 = 关；全场 ≤ 48）；promote_burst 晋升 / 入队；pickup_burst 油 / 治疗 / 磁铁 / 源石锭 / 宝箱拾取；merchant_fx 商人出现 + 灯笼每秒 merchant_motes 粒暖尘。常驻环境粒子（溟痕光尘、低灯余烬、商人灯笼）低画质 / 触屏不画；一次性粒子低画质减半",
+  "_doc_vfx2": "画面特效二轮（docs/54，2026-10-10，环境与事件特效，纯画面、只用 vrng）：vfx2 总开关（0 = 全关，等价改动前）；beacon_burst2 灯标点燃的柔光 / 余烬（beacon_embers 粒）/ 溟痕退散；levelup_burst 升级柔光 + 光柱 + levelup_motes 粒光尘 + 全屏轻闪 levelup_flash；lamp_dim 灯火跌破 30 / 归零的暗红一压 + lamp_embers 粒余烬，灯火 < 30 常驻每秒 lamp_low_embers 粒；elite_entrance 精英登场地环 + 竖光；mire_motes 每片溟痕最多几粒上浮光尘（0 = 关；全场 ≤ 48）；promote_burst 晋升 / 入队；pickup_burst 油 / 治疗 / 磁铁 / 源石锭 / 宝箱拾取；merchant_fx 商人出现 + 灯笼每秒 merchant_motes 粒暖尘；first_sight 精英登场 / 商人出现的特效改在实体首次进入视野时播（0 = 刷出那一刻，同改动前）。常驻环境粒子（溟痕光尘、低灯余烬、商人灯笼）低画质 / 触屏不画；一次性粒子低画质减半",
   "vfx2": 1,
   "beacon_burst2": 1,
   "beacon_embers": 28,
@@ -368,7 +368,7 @@
   "promote_burst": 1,
   "pickup_burst": 1,
   "merchant_fx": 1,
-  "merchant_motes": 1.5
+  "merchant_motes": 1.5, "first_sight": 1
  },
  "render": {
   "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
