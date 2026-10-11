@@ -5,6 +5,7 @@
 只出图、登记 game.gd V6_FRAMES；**不接玩法**（docs/59 的数据干员实现时再用 op_api.spawn_fx_sprite / g.vfx.spr_rot 取）。
 
   能天使   proj_exusiai_bullet / _power、fx_exusiai_muzzle / _gold、fx_exusiai_hit
+           技能弹药换色（EXU_VARIANTS）：proj_exusiai_bullet_s1/_s2/_s3、fx_exusiai_muzzle_s1/_s2/_s3、fx_exusiai_hit_s1/_s2/_s3/_gold
   安洁莉娜 proj_angelina_orb、fx_angelina_pull、fx_angelina_levitate
   浊心斯卡蒂 fx_skalter_wave / _dim、fx_skalter_note
   星熊     fx_hoshiguma_block、fx_hoshiguma_sand、fx_hoshiguma_demon_slash
@@ -31,6 +32,28 @@ def C(s):
 # 能天使 天使红 (0.95, 0.3, 0.3) + 白色弹道；弹夹满时金色
 EX_W, EX_P, EX_R, EX_D = C("#fff6f2"), C("#ffc0b4"), C("#f24d4d"), C("#8a1c24")
 EX_GW, EX_GP, EX_G, EX_GD = C("#fffbe6"), C("#fff0b0"), C("#ffd86a"), C("#c08a1e")
+# 能天使三个技能的弹药色（10-12 用户「不同技能的弹药颜色是否可以更改」，docs/25 §6.1）：由上面的红 / 金帧条整张换色得到，形状不变。
+# 避开敌方危险色（洋红 world.ENEMY_TELL / ui.RED、敌弹洋红描边、新星弹紫、酸团橄榄、神经弹浅黄）与治疗绿；三档明度也拉开（色盲靠亮度也分得清）。
+#   S1 冲锋模式 冰青（强力弹形状）  S2 扫射模式 琥珀橙曳光  S3 过载模式 过热白 + 深红尾  弹匣倾泻 金（原样，另补金色命中）
+EXU_S1 = {EX_W: C("#f0fdff"), EX_P: C("#b8f2ff"), EX_R: C("#48ccff"), EX_D: C("#12528a"),   # 小号帧条（枪口焰 / 命中）的四色
+          EX_GW: C("#f0fdff"), EX_GP: C("#b8f2ff"), EX_G: C("#5cd8ff")}                   # 强力弹的金色三阶；红边 / 暗红尾走上一行
+EXU_S1_POWER = {**EXU_S1, EX_R: C("#2a9ee0")}     # 强力弹里的红是外缘与拖尾：换成深一阶的青，弹头更亮
+EXU_S2 = {EX_W: C("#fffaec"), EX_P: C("#ffdca4"), EX_R: C("#ff9a2e"), EX_D: C("#b04e10")}
+EXU_S3 = {EX_W: C("#ffffff"), EX_P: C("#fff4ee"), EX_R: C("#ffd0c8"), EX_D: C("#d42a3a")}
+EXU_GOLD = {EX_W: EX_GW, EX_P: EX_GP, EX_R: EX_G, EX_D: EX_GD}   # = fx_exusiai_muzzle_gold 的换色，给倾泻的命中火花
+#   新帧条: (源帧条, 色板)
+EXU_VARIANTS = {
+    "proj_exusiai_bullet_s1": ("proj_exusiai_bullet_power", EXU_S1_POWER),
+    "proj_exusiai_bullet_s2": ("proj_exusiai_bullet", EXU_S2),
+    "proj_exusiai_bullet_s3": ("proj_exusiai_bullet", EXU_S3),
+    "fx_exusiai_muzzle_s1": ("fx_exusiai_muzzle", EXU_S1),
+    "fx_exusiai_muzzle_s2": ("fx_exusiai_muzzle", EXU_S2),
+    "fx_exusiai_muzzle_s3": ("fx_exusiai_muzzle", EXU_S3),
+    "fx_exusiai_hit_s1": ("fx_exusiai_hit", EXU_S1),
+    "fx_exusiai_hit_s2": ("fx_exusiai_hit", EXU_S2),
+    "fx_exusiai_hit_s3": ("fx_exusiai_hit", EXU_S3),
+    "fx_exusiai_hit_gold": ("fx_exusiai_hit", EXU_GOLD),
+}
 # 安洁莉娜 重力紫 (0.7, 0.5, 0.95)
 AN_W, AN_L, AN_V, AN_D, AN_K = C("#f6efff"), C("#dcc4ff"), C("#b380f2"), C("#6a44b0"), C("#34205e")
 # 浊心斯卡蒂 浊心红 (0.85, 0.25, 0.35) + 海蓝波纹；昏暗档换深紫（PAL_DIM）
@@ -64,6 +87,7 @@ SPECS = {
     "fx_texas_dash": (64, 16, 4, 20.0, (63, 8)),
     "fx_texas_blade": (12, 32, 6, 20.0, (6, 30)),
 }
+SPECS.update({k: SPECS[src] for k, (src, _) in EXU_VARIANTS.items()})   # 换色帧条：尺寸 / 帧数 / fps / 锚点同源帧条
 
 
 # ---------------------------------------------------------------- 像素助手（px: dict (x,y)->RGBA）
@@ -581,6 +605,7 @@ GEN = {
     "fx_exusiai_muzzle": ex_muzzle,
     "fx_exusiai_muzzle_gold": ex_muzzle_gold,
     "fx_exusiai_hit": ex_hit,
+    **{k: None for k in EXU_VARIANTS},    # = 源帧条整张换色（EXU_VARIANTS）
     "proj_angelina_orb": an_orb,
     "fx_angelina_pull": an_pull,
     "fx_angelina_levitate": an_levitate,
@@ -614,6 +639,10 @@ def build():
             continue
         ims[name] = strip(name, fn)
     ims["fx_skalter_wave_dim"] = swap(ims["fx_skalter_wave"], PAL_DIM)
+    for name, (src, pal) in EXU_VARIANTS.items():
+        left = {p for p in ims[src].getdata() if p[3] and p not in pal}
+        assert not left, (name, "源帧条里有色板没覆盖的颜色", left)   # 每个像素都换掉，不留原色
+        ims[name] = swap(ims[src], pal)
     return {k: ims[k] for k in GEN}
 
 

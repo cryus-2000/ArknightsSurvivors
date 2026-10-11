@@ -133,4 +133,27 @@
 `fx_hoshiguma_demon_slash`（直线斩，通用 fx：线段中点、fit 32、rot、off (0, −30)）；安洁莉娜 `fx_angelina_pull`（落点拉拢，通用 fx：floor、fit 30）、`proj_angelina_orb` / `fx_angelina_levitate`（代码画：飞行弹 / 悬浮敌人脚下）；
 德克萨斯 `fx_texas_dash`（`shape.dash_line.strip`：锚终点、横向拉到冲刺长度）、`fx_texas_blade`（`verb.fx_scatter`）；能天使 `proj_exusiai_bullet` / `_power`（`attack.tex` / 技能 `attack_patch.tex`）、`fx_exusiai_muzzle` / `_gold`（`muzzle_fx`）、`fx_exusiai_hit`（代码，命中点）。截图 `build/batch3_fx/<id>/shot_*.png`。
 
+### 6.1 能天使各模式的弹药颜色（10-12，用户「能天使不同技能的弹药颜色是否可以更改」）
+
+每种射击模式一套「弹体 + 枪口焰 + 命中火花」，同一模式三件同色。全部由 `tools/gen_fx_batch3.py` 的 `EXU_VARIANTS` 把上表的红 / 金帧条**整张换色**得到（形状、帧数、fps、锚点与源帧条相同；源帧条里每种颜色都必须在色板里，脚本会断言；`@2x` 严格 2 倍最近邻），登记在 `game.gd V6_FRAMES`，由 `exusiai.json` 的 `attack_patch.tex / muzzle_fx / hit_fx` 引用（docs/61 §14.1）。纯画面：同 seed TRACE 与改前逐行相同。
+
+| 模式 | 弹体（形状） | 枪口焰 / 命中 | 主色 | 四阶（白芯 / 亮 / 主 / 暗尾） | 弹体平均明度* |
+|---|---|---|---|---|---|
+| 速射（普攻，含跳弹） | `proj_exusiai_bullet`（16×6，原样） | `fx_exusiai_muzzle` / `fx_exusiai_hit` | 天使红 | `#fff6f2` / `#ffc0b4` / `#f24d4d` / `#8a1c24` | 0.49 |
+| S1 冲锋模式 | `proj_exusiai_bullet_s1`（强力弹形状 20×8） | `fx_exusiai_muzzle_s1` / `fx_exusiai_hit_s1` | 冰青 | `#f0fdff` / `#b8f2ff` / `#5cd8ff`（小号帧条 `#48ccff`）/ 外缘 `#2a9ee0`、暗尾 `#12528a` | 0.47（色相在蓝–黄轴另一侧） |
+| S2 扫射模式 | `proj_exusiai_bullet_s2`（16×6） | `fx_exusiai_muzzle_s2` / `fx_exusiai_hit_s2` | 琥珀橙曳光 | `#fffaec` / `#ffdca4` / `#ff9a2e` / `#b04e10` | 0.62 |
+| S3 过载模式 | `proj_exusiai_bullet_s3`（16×6） | `fx_exusiai_muzzle_s3` / `fx_exusiai_hit_s3` | 过热白 + 深红尾 | `#ffffff` / `#fff4ee` / `#ffd0c8` / `#d42a3a` | 0.78 |
+| 弹匣倾泻（天赋） | `proj_exusiai_bullet_power`（20×8，原样） | `fx_exusiai_muzzle_gold`（原样）/ `fx_exusiai_hit_gold`（新） | 金 | `#fffbe6` / `#fff0b0` / `#ffd86a` / `#c08a1e`（弹体红边原样） | 0.48 |
+
+\* 不透明像素的相对亮度均值（sRGB 线性化，0–1）；括号外按 Machado 2009 绿色盲模拟算的结果差不到 0.05。
+
+选色依据：
+- **不碰敌方色**：洋红是敌方危险主色（`world.ENEMY_TELL #ff4db8`、`ui.RED #ff3d8b`、敌弹外圈的亮洋红描边、精英登场），紫是新星弹 / 囊海爬行者 / 束缚，暗橄榄是酸团，浅黄是神经弹；绿是治疗（医疗无人机、伊莎玛拉治疗）。所以 S3 没用最初设想的「亮粉 / 洋红」，改成**过热白**（整条弹体发白、只在尾巴留能天使的深红），读作「枪管过载」，也最亮。
+- **色盲也分得开**：普攻红与 S1 冰青落在蓝–黄轴两侧（红绿色盲照样分得清）；红 → 琥珀橙 → 过热白 明度依次 0.49 → 0.62 → 0.78 拉开；倾泻的金与普攻红明度接近，但倾泻是 8 发扇形 + 大号弹体 + 金色枪口，形状与节奏就分得开。
+- **暗海床上看得清**：海床底色约 `#17262a`，各模式都有白芯弹头，主色明度都远高于底色；冰青比拾取的经验结晶（静止、偏青绿）更亮、而且在飞。
+- **倾泻**：沿用原来的金色强力弹 + 金枪口焰（和「弹匣满」时枪口的金光、状态条「弹匣 n/上限」同色），只补了金色命中火花；不复用普攻红，免得倾泻混在普攻里。
+- S1 与 S2 / S3 同时生效时，S1 的余弹逐发换成冰青（补丁逐发合并，枪口焰跟第一发）；S2 与 S3 重叠时后一个技能的颜色生效。跳弹继承母弹的弹体与命中火花。
+
+对照图 `build/exu_ammo/`：`compare_strips.png`（五套帧条 4 倍放大，海床底色上）、`shot_normal / s1 / s2 / s3 / mag.png`（实机 1280×720）、`zoom_*.png`（主控周围 2 倍放大）、`exu_ammo_modes.mp4`（依次循环五种模式）。
+
 未做（需要时再补）：德克萨斯冲刺**人物残影**依赖 Codex 的人物帧（建议实现时用当前帧半透明叠 2–3 份，同乌尔比安弹射残影写法）；安洁莉娜 S2 常驻重力场环带与浊心斯卡蒂歌域地面纹理按 docs/59 走程序绘制，不出帧条。

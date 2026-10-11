@@ -1550,6 +1550,10 @@ const V6_FRAMES := {
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
 	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
+	# 能天使技能弹药换色（docs/25 §6.1，gen_fx_batch3.py EXU_VARIANTS）：S1 冰青 / S2 琥珀橙 / S3 过热白；倾泻补金色命中
+	"proj_exusiai_bullet_s1": [2, 20.0], "proj_exusiai_bullet_s2": [2, 20.0], "proj_exusiai_bullet_s3": [2, 20.0],
+	"fx_exusiai_muzzle_s1": [3, 30.0], "fx_exusiai_muzzle_s2": [3, 30.0], "fx_exusiai_muzzle_s3": [3, 30.0],
+	"fx_exusiai_hit_s1": [3, 24.0], "fx_exusiai_hit_s2": [3, 24.0], "fx_exusiai_hit_s3": [3, 24.0], "fx_exusiai_hit_gold": [3, 24.0],
 	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
 	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
 	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
