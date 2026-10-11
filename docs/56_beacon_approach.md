@@ -1,4 +1,4 @@
-# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关；§6 28 局筛：D 过线进 112 局；§7 112 局 + 标准高手白给检查：D 过判定，已定为缺省）
+# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关；§6 28 局筛：D 过线进 112 局；§7 112 局 + 标准高手白给检查：D 过判定，已定为缺省；§8 接力环原型，缺省关，A/B 待跑）
 
 > 背景：圈内安全（docs/49g 候选 e）已三档全开（7dd0af7），把「进了圈被杂兵远程逼出来」修掉了，但整体点燃率只到 22–28%。
 > 刷新距离 A/B（docs/38 §8.12 灯标段）112 局不显著，距离这条已到头。瓶颈记为「灯标附近、走过去这段路上的危险」，本稿给机制级候选。
@@ -188,3 +188,44 @@
 - **已落地（10-11）**：balance.json `beacon/guide_r 0 → 160`、`beacon/shade_deg 0 → 50`，三档同值，`difficulty/<档>/beacon_guide_r / beacon_shade_deg` 没有设过、不另加。此后同 seed TRACE / BALANCE 与改动前分叉（背光从第一次刷怪起换角度），**属预期**；要复现改动前行为用 `--bal=beacon/guide_r=0 --bal=beacon/shade_deg=0`。
 - 下一刀（不阻塞 D 合入，另开一轮）：对准 quit=edge 的 343 座与 danger 里 73% 的近战预警——§2 c `relay_r`（圈边 70–140 环内进度不退）是最便宜的一层；或把机器人在圈边对杂兵预警的容忍调高——但那会动 Ⅳ / Ⅷ 熟练基线（§8.12 直走的教训），要与数值一起重跑基线。推开 ③ 仍不做。
 - 本批工具：解析脚本只是一次性 python（scratchpad），没进 tools/；下次同格式再跑时建议沉淀成 `tools/beacon_report.py`。
+
+## 8. 接力环 relay_r（2026-10-11 原型，制作人 / 用户 10-11 定 §2 c；缺省关，A/B 待跑）
+
+**对准的问题**：§7 第 4 条——D 之后未点燃熄灭的灯标里 quit=edge 占 57%（112 局 343 座，按出现摊 0.35 座 / 座），主控到过圈边 70–140 px 却没点成；BDBGC 里离圈 danger 的 73% 是杂兵近战预警（tracer / reaper / founder），不是远程，所以再扩引路（只管子弹 / 远程起手）没用。现行规则下圈边是一条硬线：在 r 70 以内才读条，退出一步就按每秒 20% 往回掉；而近战预警的落点正好压在圈边，机器人（和真人）躲一下就出了圈。
+
+**选的版本（最小的一个）**：只加一圈「接力环」，不加安全区、不加硬直。
+- 规则：未点燃灯标的光圈 r（70）到 `relay_r` 之间是接力环。主控在环里时 ① 进度**不退**（`out_t` 清零，离开接力环才开始按 decay 规则退）；② 进度按光圈内速度的 `relay_rate` 倍继续**慢涨**（低灯 ×1.5、流明 ×2 照乘），涨满就在环里点燃；`relay_rate 0` = 只保持不涨（§2 c 原版）。
+- 为什么要 ②：只保持对「已经读了一截又被挤出去」的灯标有用，但 edge 里很大一部分是**根本没进过 r 70**——同 seed 对照里就有一座 `min_d=70 hold_s=3.0 maxp=0.00 quit=edge`：机器人在圈边站了 3 秒、一点进度没有。环内慢涨让「贴着圈边躲近战预警」也能把灯点亮，正中 edge；②关掉的 R2 组用来分开两件事各占多少。
+- 不做的：环内**不是**安全区——`charging` 只在 r 内设，`safe_bullet` / `safe_ranged` / `guide_r` 都不变；不推怪、不给近战杂兵硬直（硬直要动 `enemies.gd` 的近战状态机，还牵涉 Boss 判定与随机数，留作下一层）；不延长灯标寿命（§2 c 的 `life_per_prog` 不做）；不动机器人（`bot/beacon_seek_r` 300、`beacon_walk_r` 120、`_stand_ok` 都不改），机制对真人和机器人一样生效。
+- 不影响 Boss：只改灯标进度，Boss 的预警、子弹、冲锋、溟痕一概照旧；Boss 战里的灯标同样有接力环。
+- 随机数：一个距离判定，不掷 `g.rng`；旋钮 0 时整条分支不走。
+
+| 旋钮（balance.json beacon 段） | 含义 | 缺省 | 对照用 |
+|---|---|---|---|
+| `beacon/relay_r` | 接力环外半径（须 > r 70 才生效）；0 = 关 = 现行为 | **0** | R / R2：140（= 2×r，正好是 quit=edge 的判定线，也在 guide_r 160 之内） |
+| `beacon/relay_rate` | 环内读条速度 = 光圈内 × relay_rate；0 = 只保持不涨 | 0.5（relay_r 0 时不起作用） | R：0.5；R2：0 |
+
+- 难度表可按档覆盖：`difficulty/<档>/beacon_relay_r`、`beacon_relay_rate`（≥ 0 时优先，同 `beacon_guide_r`）。
+- **画面**（world.draw_beacons，世界层地面，和引路虚线圈同色系，不进敌人绘制缓存）：未点燃灯标的 r..relay_r 一圈很淡的暖色带（`draw_arc` 宽 relay_r − r，alpha 0.06–0.08）；主控站在带里时提亮到 0.12–0.17，告诉玩家「这里也在充」。原有光圈 / 进度环 / 引路圈不变。`--vfxdemo` 的演示灯标也带上 relay_r，便于截图。
+- **遥测**（A/B 数「圈边 → 点燃」用；格式只在行尾追加字段，旧解析不受影响）：
+  - `BEACON lit cleared=N via=<ring|relay> relay_p=<接力环贡献的进度 / 需要量> in_s=<光圈内累计秒> relay_s=<接力环内累计秒> min_d= hold_s= t= mires=`。旋钮关时 `relay_p` 恒 0、`via` 恒 ring；**接力环转化 = relay_p > 0 的点燃数**（via=relay = 最后一下在环里点着的，是更严格的口径）。
+  - `BEACON expire min_d= hold_s= quit= maxp=<寿命内最高进度 / 需要量> in_s= relay_s= t= mires=`：看 edge 熄灭里还有多少读到一半（maxp）、在环里待了多久。
+  - `BDBG leave ... t= keep=<离圈这一刻还剩的进度> band=<离圈时是否落在接力环里 0/1>`：机器人离开 r 70 后进度是否保住。
+  - 判 A/B：点燃率（两比例 z）、按出现摊的 edge 数（A 约 0.35）、relay_p > 0 的点燃占比、进圈后点燃率、Ⅷ 胜率与同 seed 翻转。
+
+**验证（本提交）**
+- 快检 `tools/check.py` 42 项全过（rc=0）；prot_test 加 9 条（`test_beacon_relay`）：relay_r 0 圈外照旧退；relay_rate 0 环内不退不涨且不算读条；环外照旧退；relay_rate 0.5 环内速度 = 光圈内一半；站环里也能点燃（via=relay、relay_p = 全部进度）；读一半被挤进环里不退反涨；环内杂兵 / Boss 远程照打、子弹不吞（不是安全区）；难度表 `beacon_relay_r 0` 按档关掉；全程 `g.rng` 状态不变。
+- 同 seed 确定性：Ⅷ（--tier=2）master，水月 / 维什戴尔 seed 1，--maxt=420 --trace=1 --bdbg。旋钮关（缺省）对改动前（12db872）：TRACE 421 / 421、361 / 361 行**逐字节相同**，BALANCE 除画面峰值 `bot/peak*` 外全部相同（同 docs/55 口径）；`relay_r 140` 连跑两次 TRACE 逐字节相同（可复现），与关着的局从第一次进接力环起分叉，属预期。
+
+**云端 A/B（已备好，未发）**：Ⅷ 熟练（master）starts 7 干员 × seed 1–8 = 56 局 / 组，同 seed 配对；A = 现行缺省（guide_r 160 + shade_deg 50，接力环关）；R = `relay_r 140`（relay_rate 缺省 0.5）；R2 = `relay_r 140, relay_rate 0`（只保持，§2 c 原版）；标准高手 28 局白给检查只跑 R（rl-t0-A 为可选基线，本提交改了源文件，旧缓存不命中）。
+
+```
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/rl-x-A --tag rl-x-A --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=2 --bdbg"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/rl-x-R --tag rl-x-R --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=2 --bdbg --bal=beacon/relay_r=140"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/rl-x-R2 --tag rl-x-R2 --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=2 --bdbg --bal=beacon/relay_r=140 --bal=beacon/relay_rate=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 4 --seed0 1 --out build/cloud/rl-t0-R --tag rl-t0-R --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=0 --bdbg --bal=beacon/relay_r=140"
+# 可选：标准高手基线（同局型，接力环关）
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 4 --seed0 1 --out build/cloud/rl-t0-A --tag rl-t0-A --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=0 --bdbg"
+```
+
+**判定与回退**：过线 = R 对 A 点燃率 +5 点以上或 edge / 出现 0.35 → ≤ 0.25，且 Ⅷ 胜率 50–70、翻转对称，标准高手 ≤ 70；过线进 112 局（bd8 式 2 × 56）再定缺省。R 超框先降 `relay_rate 0.5 → 0.3`，再降 `relay_r 140 → 120`（都不给奖励）。R2 若与 R 一样好，取 R2（更保守、只改「挤出去」那一下）；R2 无效而 R 有效，说明 edge 主要是「圈边站着没进」，接力环慢涨是正解。R 也不显著时，下一层才是近战杂兵进圈硬直（要动 enemies.gd，另开一轮）。

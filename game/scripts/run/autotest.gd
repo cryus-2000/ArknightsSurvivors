@@ -49,7 +49,7 @@ func _vfx_demo() -> void:
 			m.life = 60.0
 			g.mires.append(m)
 		_vd_beacon = {"pos": bp, "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
-			"r": 70.0, "clear_r": 260.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+			"r": 70.0, "clear_r": 260.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0, "relay_r": g.beacon_sys._sk("relay_r")}   # 接力环画面（docs/56 §8，旋钮关时 0）
 		g.beacons.append(_vd_beacon)
 	elif _vd_step == 1 and g.t >= 20.0:
 		_vd_step = 2
