@@ -189,6 +189,45 @@
 每块积木内部按 `do` 的书写顺序。得到「局部倍率」和一组 `stats` 修正 `[stat, op, value, scope]`；与上一帧那组完全相同就什么都不做，
 否则 `remove_source("blk:<id>")` 后按顺序整组重加、`refresh_stats()`。所以：同一份 JSON 每次的修正顺序相同，浮点结果可复现；手写参照（tests/data_ops/eqtest_hand.gd）照同一顺序加，结果逐字节一致。
 
+### 5.6 画面帧条 `fx`（10-11 加，纯画面，追加式）
+
+任何积木（以及 `blocks.skills[i]` 本身 = 技能发动那一刻）可以带 `"fx": [条目…]`，把 `game.gd V6_FRAMES` 里登记的帧条挂上去。**不写 `fx` 的干员画法逐像素不变**；
+`fx` 只往干员自己的 `pfx` 加粒子，散布只用 `g.vrng`，不碰 `g.rng` / 玩法状态（同 seed `TRACE` / `BALANCE` 不变，见 §测试「fx 同 seed」）。缺图（`g.tex` 没有这条）时静默跳过，原来的程序画法照旧作底。
+实现：`op_blocks.gd` 末尾的 `fx_play / fx_tick / fx_spawn / fx_draw / fx_body / fx_orbit / _fx`；`data_operator.gd` 的 `_draw_pfx`、`draw_fx_add`、`draw_body`（贴身层）、`draw_auras`（绕行体）。
+
+| 字段 | 缺省 | 说明 |
+|---|---|---|
+| `strip` | 必填 | 帧条名（`fx_*` / `proj_*`，帧数与 fps 取 `V6_FRAMES`） |
+| `cond` | — | 同 §1.3 的条件串（例：`"lamp < $talent_dark"` 选昏暗版） |
+| `at` | `center` | `center`：形状中心（技能发动 / 常驻积木时是区域中心）；`self`：干员脚底；`leader`：主控；`zone`：区域中心；`hits`：本次命中的每个敌人（只限伤害形状）；`orbit`：`shape.orbit` 的每个判定点（代替小菱形，循环播） |
+| `layer` | `over` | `floor`：地面层（人物下面）；`over`：上层普通混合；`add`：加色层；`behind` / `front`：贴身层，画在本体后 / 前（见下） |
+| `fit` | — | 帧条在 1x 美术像素里的「半径」；写了就按形状半径缩放：每个 1x 像素 = `r / fit` 世界像素（再乘 `scale`） |
+| `scale` | 1 | 没写 `fit` 时：每个 1x 像素 = `g.PX × scale` 世界像素；写了 `fit` 时是额外倍率 |
+| `max_scale` | 3.2 | 放大上限（每 1x 像素至多几世界像素，同 `vfx.gd FX_SCALE_MAX`），免得颗粒比人物粗太多 |
+| `n` / `spread` | 1 / 0 | 播几份；在 `spread × 半径` 的地面椭圆里随机散开（`g.vrng`） |
+| `rise` | 0 | 向上飘的速度（像素 / 秒） |
+| `life` | 一遍 | 写了就循环播这么多秒（最后三成淡出）；不写 = 帧数 / fps 播一遍 |
+| `every` | — | 只用于常驻积木：生效期间每隔这么多秒播一次（第一帧就播）；瞬时积木 / 技能发动上写了报错 |
+| `tint` | 白 | `[r, g, b]` 或 `[r, g, b, a]` |
+| `anchor` | 帧中心 | 1x 帧内锚点（@2x 贴图自动 × `A.hires`，docs/25 §6 的规则） |
+| `off` / `ang` / `rot` | — | 位置偏移（世界像素）/ 旋转角度（度）/ `true` = 随锥形朝向转 |
+
+**贴身层**（`layer: behind / front`）：挂在常驻积木上（例：S3 的 `verb.mode`），积木生效期间循环；锚点对准干员脚底 `pos`（+ `off`），每 1x 像素 = `g.PX × scale`、不压扁不旋转；
+帧号 = `floor(积木已生效秒数 × fps) % 帧数`（同一块积木的 back / front 共用）；积木失效后 0.15 秒淡出。不写 `every / life / n / spread / rise`，`at` 只能是 `self`。
+
+浊心斯卡蒂（§10 第 13 条）：
+
+```jsonc
+"attack": {"shape": "circle", …, "fx": [
+  {"strip": "fx_skalter_wave",     "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark"},
+  {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark"}]},
+"skills": [{"dur": "$s1_dur", "fx": [{"strip": "fx_skalter_note", "at": "zone", "n": 6, "spread": 0.6, "rise": 26, "life": 1.1, "scale": 1.2}], "do": […]}, …,
+  {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", …}], "do": [
+    {"verb": "mode", "zone_mult": "$s3_aura", "fx": [
+      {"strip": "fx_skalter_s3_back", "layer": "behind", "anchor": [48, 84]},
+      {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84]}]}, …]}]
+```
+
 ## 6. 逃生口 `custom`
 
 `{"custom": "<函数名>", ...}` 放在任何 `do` 列表里，瞬时执行：干员脚本（继承 data_operator.gd 的小脚本）有这个函数就调 `fn(block)`，没有就第一次 `push_warning` 后忽略。
@@ -227,6 +266,8 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 6. `cond` 能解析；`progression` 的键是 custom 节点 id 或 `elite1 / elite2`；每个 custom 节点都有积木。
 7. `custom` ≤ 2 个。
 8. 夹紧（创意工坊 📝）：`mult ≤ 20`、`every ≥ 0.1`、`orbit.n ≤ 12`——防止数据把局打崩。
+9. `fx`（§5.6）：是数组、≤ 8 条；字段只能是表里那些；`strip` 是 `fx_*` / `proj_*`；`layer` / `at` 取值在表内（`orbit` 只挂 `shape.orbit`、`hits` 只挂伤害形状）；
+   `every` 和贴身层只能在常驻积木上；`cond` 能解析；数值夹紧（`scale` 0.05–8、`max_scale` 0.5–16、`n` ≤ 16、`spread` ≤ 1.5、`life` ≤ 5、`every` ≥ 0.05）。技能条目 `blocks.skills[i]` 允许 `dur / do / fx` 三个字段。
 
 ## 9. 名字对照（docs/59 §10 → docs/60 → 本文）
 
@@ -288,6 +329,11 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     - 增益（受益者 = 歌域内干员，含她自己与主控；`scope in_zone`）：特性「歌声」攻击 +15%（`song_atk`，新）；S1 加攻速 +25%（`s1_aspd`，新，乘技能强度）；S2 攻击 +15%（`s2_atk`，新）+ 攻速 +15%（不变），深海猎人 0.15 → 0.25；
       S3 全队攻击 0.5 → 1.0，昏暗时不再「声浪 ×1.5」，改为全队攻击再 +30%（`s3_dark_atk`）；天赋昏暗「声浪 +50%」改为歌域内攻击 +10%（`dark_atk`）；深海猎人每人 0.04 → 0.08（最多 3 人）；节点 2「潮声渐强」从「声浪 ×1.15」改为歌域内攻击 +10%（`aura.atk`）。
     - 灯火代价不变：S3 灯火每秒 -2，昏暗时不扣；S1 受击灯火流失减半不变。治疗数值不变。
+13. **特效帧条**（10-11，§5.6 `fx`）：每次声浪（普攻）在地面播 `fx_skalter_wave`，灯火昏暗（< `talent_dark`）换 `fx_skalter_wave_dim`；「潮汐和声」回声同样播、透明度 0.6；
+    S1 / S2 发动时歌域里散 6 个 `fx_skalter_note` 上飘；S3 发动时区域中心加色层一圈声浪，持续期间脚下 Codex 重绘的 `fx_skalter_s3_back / _front`（ec06672e，`art/incoming/skalter_s3_handoff.md`）分层夹住本体，S3 期间不再撒旧音符、不叠 `fx_skalter_s3_orbit`（不分层预览 / 回退件）；
+    精二「溟海之声」6 个判定点画 `fx_skalter_note` 代替小菱形。歌域椭圆与 `exec_shape` 的程序扩散环照旧作底。
+    声浪帧条按 30px 半径画、放大封顶 `max_scale 4`（@2x 每像素 2 世界像素，与人物 1x 像素同密度）：歌域 190–460 时帧条只到中心约 120 像素，外圈仍由程序环扩到歌域边——
+    完全按歌域放大会是 7–15 像素的大方块（实测截图，`build/skalter_fx/`）；要「帧条直接铺满歌域」需要 Codex 出更大的声浪图（例如外径 ≥ 100px、线宽 1px）。
 
 ## 测试
 
@@ -478,3 +524,8 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 - 维什戴尔 + 铃兰 + 塞雷娅（满编）seed 1、斯卡蒂 + 推进之王 + 凯尔希（满编）seed 2、艾雅法拉 `--norecruit` seed 3：TRACE 与 BALANCE **逐字节相同**。
 - 单人开局、自然招募（铃兰 seed 4）：第一次出招募卡（1:16）起分叉——招募池从 13 人变成 14 人，抽卡结果变了，属预期（docs/36 §2「不含她的老编队逐局相同」指满编 / 不招募的局）。
+
+### fx 同 seed（10-11，§5.6 接入后对 main b8b97658，headless `--balance --seed=1 --bot=expert --maxt=240 --trace=1 --maxprog --sptest`）
+
+浊心斯卡蒂当主控（`--op=skalter`）、当队友（`--op=mizuki --squad=skalter`）各 1 局：`TRACE` 241 行逐字节相同；`BALANCE` 去掉 `prof` 与 `bot.peak / peak_min`（画面峰值，blocks_eq 同口径）后逐字段相同。
+画面：`build/skalter_fx/skalter_fx.mp4`（14 秒：声浪 → S3 → 灯火切昏暗的深紫声浪 → S3 结束）、`before_after.png`（同局同帧，左 = 去掉 fx 条目、右 = 现行）。
