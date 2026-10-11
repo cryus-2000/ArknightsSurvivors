@@ -183,7 +183,9 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 func _draw_bg_phone(vs: Vector2) -> void:
 	var cx := vs.x / 2.0
 	var top: float = g.panel_box.offset_top
-	var note: String = "第 %d 次交易 · 价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
+	var note: String = "第 %d 次交易 · 价格 ×%.2f · 每购一件余货 +20%%" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult()]
+	if not g.shop_sys.relic_buy_unlimited():
+		note += " · 藏品还可买 %d 件" % g.shop_sys.relic_buys_left()
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
 	var left: float = cx + g.panel_box.offset_left
 	var right: float = cx + g.panel_box.offset_right
@@ -211,7 +213,9 @@ func draw_bg(vs: Vector2) -> void:
 	var cx := vs.x / 2.0
 	# 纵向：标题 92 起；货架卡片顶边 = panel_box.offset_top（222），下面是按钮；商人框与卡片 + 按钮等高
 	var top: float = g.panel_box.offset_top
-	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件（刷新不重置）" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
+	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · 每购一件余货 +20%%" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult()]
+	if not g.shop_sys.relic_buy_unlimited():
+		note += " · 藏品还可买 %d 件（刷新不重置）" % g.shop_sys.relic_buys_left()
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
 	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
 	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)

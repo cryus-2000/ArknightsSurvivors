@@ -150,11 +150,11 @@
   "late_mult": 1.95
  },
  "shop": {
-  "_doc": "商人第1/2/3拨价格倍率；同次每购买一件后其余商品涨价，刷新不重置",
+  "_doc": "商人第1/2/3拨价格倍率；同次每购买一件后其余商品涨价，刷新不重置；relic_buy_limit 每次商人可买藏品件数，-1 = 不限（用户 10-11 取消硬上限）",
   "second_visit_mult": 1.5,
   "third_visit_mult": 2.0,
   "purchase_step": 0.2,
-  "relic_buy_limit": 2
+  "relic_buy_limit": -1
  },
  "levelup": {
   "_doc": "升级卡池（game.gd _open_levelup）",

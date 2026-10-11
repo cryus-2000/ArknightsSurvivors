@@ -52,8 +52,15 @@ func price_mult() -> float:
 	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2))
 
 
+## 每次商人可买藏品件数；balance shop/relic_buy_limit < 0 = 不限（用户 10-11：取消硬上限，只靠「每购一件余货 +20%」和藏品栏容量软限制）
+func relic_buy_unlimited() -> bool:
+	return Bal.vi("shop/relic_buy_limit", -1) < 0
+
+
 func relic_buys_left() -> int:
-	return maxi(0, Bal.vi("shop/relic_buy_limit", 2) - int(g.merchant.get("relic_purchases", 0)))
+	if relic_buy_unlimited():
+		return 999
+	return maxi(0, Bal.vi("shop/relic_buy_limit", -1) - int(g.merchant.get("relic_purchases", 0)))
 
 
 func can_buy(it: Dictionary) -> bool:
