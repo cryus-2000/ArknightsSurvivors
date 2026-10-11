@@ -34,6 +34,12 @@ var atk_id := -1
 var atk_origin := Vector2.ZERO
 var atk_drag := Vector2.ZERO
 var atk_rect := Rect2()
+## 触点编号归一（10-12 手机端移动不了）：网页版 InputEventScreenTouch / Drag 的 index 就是浏览器的 Touch.identifier（Godot 按 i32 存）。
+## Chrome 安卓从 0 起的小整数；iOS Safari 是全局累加的大数，超过 2^31 后变成负数——上面三个 *_id 用「≥ 0 = 正在按」判定，
+## 负的触点按下后摇杆不画、move_vec 恒为零（主控走不动），技能键拖动 / 攻击键同样失灵。这里把原始 index 映射成 0 起的小槽位：
+## 按下分配最小空槽，拖动查表，松手释放；没登记过的触点（按下没经过这里）返回 UNKNOWN，不会撞上任何 *_id
+const UNKNOWN := -2
+var _slots := {}            # 原始 index -> 槽位（0 起）
 
 
 func _init(game) -> void:
@@ -50,13 +56,15 @@ func handle(event: InputEvent) -> bool:
 	if not active:
 		return false
 	var p := Vector2.ZERO   # 触点的 UI 坐标（界面层放大 Cfg.ui_k 后视口坐标要除回去）
+	var fid := UNKNOWN   # 本事件的触点槽位（_finger 归一后的 index，见 _slots）
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		p = event.position / Cfg.ui_k
+		fid = _finger(event)
 	if event is InputEventScreenTouch:
 		var vs: Vector2 = g.hud.size
 		if event.pressed:
 			if atk_rect.size.x > 0.0 and atk_id < 0 and _hit(atk_rect).has_point(p):
-				atk_id = event.index
+				atk_id = fid
 				atk_origin = p
 				atk_drag = Vector2.ZERO
 				g.doctor.touch_atk = true
@@ -64,7 +72,7 @@ func handle(event: InputEvent) -> bool:
 				return true
 			# 技能键：按下只记触点，松手才释放（以后可以改成拖动瞄准）
 			if skill_rect.size.x > 0.0 and skill_id < 0 and _hit(skill_rect).has_point(p):
-				skill_id = event.index
+				skill_id = fid
 				skill_origin = p
 				skill_aim = Vector2.ZERO
 				return true
@@ -89,16 +97,16 @@ func handle(event: InputEvent) -> bool:
 				g.state = g.S.PLAY
 				return true
 			if g.state == g.S.PLAY and stick_id < 0 and p.x > EDGE and p.x < vs.x * 0.55:
-				stick_id = event.index
+				stick_id = fid
 				stick_origin = p
 				stick_pos = p
 				vec = Vector2.ZERO
 				return true
 		else:
-			if event.index == atk_id:
+			if fid == atk_id:
 				_atk_release()
 				return true
-			if event.index == skill_id:
+			if fid == skill_id:
 				skill_id = -1
 				flash["skill"] = 0.2
 				if g.state == g.S.PLAY:
@@ -106,19 +114,19 @@ func handle(event: InputEvent) -> bool:
 					g.doctor.try_manual_skill(aim_dir())
 				skill_aim = Vector2.ZERO   # 松手清掉拖动量：选落点圈读它（验收 P2：松手后圈停在旧位置）
 				return true
-			if event.index == stick_id:
+			if fid == stick_id:
 				stick_id = -1
 				vec = Vector2.ZERO
 				return true
 	elif event is InputEventScreenDrag:
-		if event.index == atk_id:
+		if fid == atk_id:
 			atk_drag = p - atk_origin
 			g.doctor.touch_atk_dir = atk_drag if atk_drag.length() >= AIM_DEAD else Vector2.ZERO
 			return true
-		if event.index == skill_id:
+		if fid == skill_id:
 			skill_aim = p - skill_origin
 			return true
-		if event.index == stick_id:
+		if fid == stick_id:
 			stick_pos = p
 			var d: Vector2 = stick_pos - stick_origin
 			var l: float = d.length()
@@ -134,6 +142,27 @@ func handle(event: InputEvent) -> bool:
 					vec = vec.normalized()
 			return true
 	return false
+
+
+## 原始触点 index → 槽位：按下分配（同一原始 index 重复按下沿用旧槽），松手返回槽位并释放，拖动只查表。
+## 松手事件被别处吞掉（设置面板开着等）会留下陈旧登记：登记超过 8 个就整表清掉重来（同时按住的手指不会这么多）
+func _finger(event: InputEvent) -> int:
+	var raw: int = event.index
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			if not _slots.has(raw):
+				if _slots.size() >= 8:
+					_slots.clear()
+				var used: Array = _slots.values()
+				var s := 0
+				while used.has(s):
+					s += 1
+				_slots[raw] = s
+			return _slots[raw]
+		var r: int = _slots.get(raw, UNKNOWN)
+		_slots.erase(raw)
+		return r
+	return _slots.get(raw, UNKNOWN)
 
 
 ## 点击区：按钮图形外扩到至少 HIT 见方（图形本身更大时外扩 8）

@@ -387,6 +387,7 @@ SCENE_REGRESSIONS = {
     "codex": ("图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配", "codex_input_test", r"CODEX INPUT: 0 failures", []),
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
+    "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
