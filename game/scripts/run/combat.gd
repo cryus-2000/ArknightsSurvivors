@@ -452,7 +452,7 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	g.hp_shake = 0.35
 	g.head_bar_t = 2.5
 	g.vfx.shake_screen(0.55 + 0.8 * sev)
-	g.hitstop = max(g.hitstop, 0.045 + 0.06 * sev)
+	g.vfx.stop(0.045 + 0.06 * sev, "hurt")
 	Sfx.play("hurt", 3.0 + 3.0 * sev, 1.0 - 0.2 * sev, 0.05)   # 打击感检查：原来实际只有 -24 左右，比命中声还轻，+4 dB
 	# 重击（单发 ≥ 最大生命 12% × fx/hurt_heavy_sev，Boss 招式基本都到）：再叠一层次低频 hurt_heavy，并把配乐低通压到 fx/hurt_duck_hz、
 	# 保持 fx/hurt_duck_t 秒（music_director 读 g.hurt_duck，world.update_player_feel 按真实时间衰减）。docs/53
@@ -468,7 +468,7 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	# 首次跌破 30%：时间短暂变慢 + 警告
 	if g.hp > 0.0 and g.hp < g.max_hp * 0.3 and not low_warned:
 		low_warned = true
-		g.hitstop = max(g.hitstop, 0.35)
+		g.vfx.stop(0.35, "low_hp", true)
 		g.vfx.show_banner("生命垂危！")
 	elif g.hp > g.max_hp * 0.45:
 		low_warned = false
@@ -1098,7 +1098,7 @@ func kill(e: Dictionary) -> void:
 		g.elites_killed += 1
 	if e.elite or e.boss:
 		Sfx.play("boom", 0.0, 1.0, 0.0)
-		g.hitstop = max(g.hitstop, 0.12)
+		g.vfx.stop(0.12, "elite_kill", true)
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)

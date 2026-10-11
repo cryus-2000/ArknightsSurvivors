@@ -15,7 +15,8 @@ func _ready() -> void:
 			for step in Clock.steps(delta):
 				check(step > 0.0 and step <= Clock.MAX_STEP + 0.000000001, "bounded positive step")
 				total += step
-			check(absf(total - delta * speed) < 0.000000001, "preserve scaled time")
+			check(absf(total - minf(delta * speed, Clock.MAX_STEP * Clock.MAX_STEPS)) < 0.000000001, "preserve scaled time up to the per-frame cap")
+			check(Clock.steps(delta).size() <= Clock.MAX_STEPS, "at most MAX_STEPS steps per frame")
 			var menu_total := 0.0
 			for step in Clock.steps(delta, false):
 				menu_total += step
@@ -26,6 +27,8 @@ func _ready() -> void:
 	check(Clock.cycle() == 1.0 and Clock.current_label() == "1×", "cycle to 1")
 	Cfg.play_speed = -5.0
 	check(Clock.current_speed() == 1.0, "invalid settings fallback")
+	check(Clock.steps(1.0 / 59.94).size() == 1, "a frame slightly longer than 1/60 runs one step")
+	check(Clock.steps(1.0 / 30.0).size() == 2, "30 fps runs two steps")
 	for delta in [0.0, -0.01, INF, NAN]:
 		check(Clock.steps(delta).is_empty(), "invalid delta has no steps")
 	Cfg.play_speed = 1.0

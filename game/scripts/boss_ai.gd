@@ -447,7 +447,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.vfx.sparks(w.pos, Vector2.UP, Color(0.8, 0.7, 0.6), 18, 300.0)
 			Sfx.play("boom", 0.0, 0.6, 0.0)
 			g.vfx.shake_screen(1.2)
-			g.hitstop = maxf(g.hitstop, 0.05)
+			g.vfx.stop(0.05, "boss_slam")
 		"burst":
 			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
 			g.vfx.sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)

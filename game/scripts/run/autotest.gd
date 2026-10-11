@@ -29,7 +29,15 @@ var perf := {}
 var perf_prev := {}            # 上一帧的 g.prof 累计（配合 --prof：逐帧分段）
 var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取最慢 25 帧
 var perf_kills := 0
-var vfxab := -1                # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
+const A_ = preload("res://scripts/art.gd")
+const PlayClockT = preload("res://scripts/run/play_clock.gd")
+var perf_upd := 0
+var perf_min := false          # --perfmin：按游戏分钟分段（docs/50 §10）
+var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /a /b 两桶
+var perf_dump: FileAccess = null   # --perfdump=<路径>：逐帧 CSV（帧时间、各列表长度、--prof 分段）
+const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw_fg", "autotest", "pre", "spawn", "grid", "enemies", "squad", "bullets", "ebullets",
+	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
+var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
 var _vd_beacon = null
@@ -108,6 +116,30 @@ func bot_pick() -> int:
 	return ws.size() - 1
 
 
+## --recframes=<起始秒>,<帧数>（docs/50 §10 顿帧前后对照录像，配 --playclock --fixed-fps 30）：游戏时间过了起始秒后连存 N 帧
+## rec_<帧>.png 到 --shotdir；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
+var _rec_t0 := -2.0
+var _rec_left := 0
+var _rec_i := 0
+func _rec_step() -> void:
+	if _rec_t0 < -1.0:
+		_rec_t0 = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--recframes="):
+				var p: PackedStringArray = a.substr(12).split(",")
+				_rec_t0 = float(p[0])
+				_rec_left = int(p[1])
+			if a == "--legacyfeel":
+				g.perf_alt = true
+				PlayClockT.test_legacy = true
+	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and g.state == g.S.PLAY and DisplayServer.get_name() != "headless":
+		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%05d.png" % _rec_i)
+		_rec_i += 1
+		_rec_left -= 1
+		if _rec_left == 0:
+			g.get_tree().quit()
+
+
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
@@ -119,6 +151,7 @@ func step() -> void:
 		vfxdemo = Cfg.dev_args().has("--vfxdemo")
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
+	_rec_step()
 	if vfxab > 0 and g.at_frames % vfxab == 0:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
 	if vfxdemo:
@@ -399,6 +432,9 @@ func step() -> void:
 			bal_done = true
 			if perf_on:
 				print("PERF ", JSON.stringify(_perf_summary()))
+			if perf_dump != null:
+				perf_dump.close()
+				perf_dump = null
 			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			g.get_tree().quit()
 		return
@@ -644,11 +680,26 @@ func _perf_sample() -> void:
 	if not perf_on:
 		perf_on = true
 		RenderingServer.viewport_set_measure_render_time(rid, true)
+		for a in Cfg.dev_args():
+			if a == "--perfmin":
+				perf_min = true
+			elif a.begins_with("--perfab="):
+				perf_ab = int(a.substr(9))
+			elif a.begins_with("--perfdump="):
+				perf_dump = FileAccess.open(a.substr(11), FileAccess.WRITE)
+				if perf_dump != null:
+					perf_dump.store_line("frame,t,ft,rcpu,gpu,alt,steps,en,bul,ebul,fx,texts,gems,warns,mires,boss,final," + ",".join(PERF_DUMP_KEYS))
 	var now := Time.get_ticks_usec()
+	if perf_last > 0 and g.state == g.S.PLAY and not A_.late_log:
+		A_.late_log = true
 	if perf_last > 0 and g.state == g.S.PLAY:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
+		if perf_min:
+			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
 		if vfxab > 0:
 			w += "/on" if g.vfx.p2 else "/off"   # --vfxab：上一帧是在哪个模式下画的（轮换在采样之后）
+		if perf_ab > 0:
+			w += "/b" if g.perf_alt else "/a"   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
 		if not perf.has(w):
 			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
 				"sfx0": _sfx_snap(), "fps40": 0}
@@ -669,6 +720,14 @@ func _perf_sample() -> void:
 					d.stage[k] = float(d.stage.get(k, 0.0)) + v / 1000.0
 					if ft >= 33.3:
 						d.slow_stage[k] = float(d.slow_stage.get(k, 0.0)) + v / 1000.0
+		if perf_dump != null:
+			var row := PackedStringArray([str(g.at_frames), str(snappedf(g.t, 0.01)), str(snappedf(ft, 0.01)),
+				str(snappedf(RenderingServer.viewport_get_measured_render_time_cpu(rid), 0.01)), str(snappedf(RenderingServer.viewport_get_measured_render_time_gpu(rid), 0.01)),
+				str(int(g.perf_alt)), str(g.upd_n - perf_upd), str(g.enemies.size()), str(g.bullets.size()), str(g.ebullets.size()), str(g.fx.size()), str(g.texts.size()),
+				str(g.gems.size()), str(g.warns.size()), str(g.mires.size()), str(g.bosses.size()), str(int(g.final_boss != null and not g.final_boss.dead))])
+			for k in PERF_DUMP_KEYS:
+				row.append(str(snappedf(float(br.get(k, 0.0)), 0.01)))
+			perf_dump.store_line(",".join(row))
 		if ft >= 33.3:
 			d.slow_n += 1
 			perf_slow.append({"t": snappedf(g.t, 0.1), "ft": snappedf(ft, 0.1), "en": g.enemies.size(), "kills": g.kills - perf_kills,
@@ -679,7 +738,11 @@ func _perf_sample() -> void:
 	if g.prof_on:
 		perf_prev = g.prof.duplicate()
 	perf_kills = g.kills
+	perf_upd = g.upd_n
 	perf_last = now
+	if perf_ab > 0 and g.at_frames % perf_ab == 0:
+		g.perf_alt = not g.perf_alt
+		PlayClockT.test_legacy = g.perf_alt   # --perfab=N：每 N 帧轮换 g.perf_alt（/b = 旧的 PlayClock 切步与顿帧规则，同局对照，docs/50 §10）
 
 
 ## 各段：帧数、帧时间中位 / 最差 1%（P99）/ 最大、渲染 CPU 中位 / P99、GPU 中位 / P99（毫秒）、敌人数中位 / 峰值
@@ -695,6 +758,7 @@ func _perf_summary() -> Dictionary:
 	perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
 	out["slow_top"] = perf_slow.slice(0, 25)
 	out["realtime"] = g.realtime
+	out["hitstop"] = g.vfx.stop_stat   # 顿帧：kind -> [请求, 实给, 实给秒数]（docs/50 §10）
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null and "sfx_by" in sfx and not sfx.sfx_by.is_empty():
 		out["sfx_by_cat"] = _sfx_cats(sfx.sfx_by)
