@@ -864,3 +864,95 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 判定：主控三档各 50–70；队友局她占全队 20–35%（docs/59 §7 节奏位）；对照推进之王单人同档差 ≤ 15 个百分点（docs/59 §2）。
 旋钮（docs/59 §2）：偏弱先加 `hit_sp`（0.6 → 0.8）再 `atk`；偏强先收 `talent_sp`（1.0 → 0.7）和 `s3_sp`；不动冲刺距离（手感）。
+## 14. 能天使的表达（docs/59 §4 + §8.4，第三批第四人，10-11）
+
+见 `data/characters/exusiai.json` 的 `blocks`：0 个 `custom`，没有 `exusiai.gd`。帧条用 Codex 正式稿（docs/64，attack / skill 为 d954797d 返修的「枪保持水平」版），弹体与特效用 docs/25 §6 的 `proj_exusiai_bullet(_power)`、`fx_exusiai_muzzle(_gold)`、`fx_exusiai_hit`，技能图标 `skill_exusiai_s1..3`。
+
+### 14.1 新积木（`op_blocks.gd` 末尾「能天使 exusiai」一段，只追加）
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `shape.projectile` | 普攻 / 瞬时 | `every`（普攻）、`range`、`speed`、`shots`（1–12）、`spread_deg`、`pierce`、`kb`、`mult`、`elite_prio`、`focus_boss`、`fan`、`burst` / `burst_gap`、`tex`、`muzzle [x, y]`、`muzzle_fx`、`src`、`on_hit` | 自推进弹体（不追踪），命中走 `log_hit + deal_damage`，乘 `vs_elite`。子弹数 = `shots ×` 属性 `op_shots`（只对普攻）。各发独立索敌：候选 = `aim_targets`（自动 = 最近、保留 Boss 优先；手动 = B 类瞄准锥），按「距离 ÷ 精英优先度」再按 id 取前 n 个，目标不够时多出的子弹按 ±`spread_deg` 逐级错开；`focus_boss: true` = 头号目标是 Boss 时全部子弹打它；`fan: true` = 朝最近目标的扇形均布；`kb` 沿弹道击退（精英 ×0.3、Boss 不受，同 `melee_hit`）。枪口 = 脚底 + (`x × 朝向`, `y`)，瞄准 / 判定点 = 敌人脚底上方 10 |
+| 外壳 `dur: {"ammo": N}` | — | `ammo` | 次数型（docs/61 §2 的 📝 `dur.ammo`）：出手帧装填 N 发，配 `attack_patch` 时普攻**每发子弹**扣 1 发、按补丁射，打完为止；HUD 环显示剩余 / 总数，装填期间不充能 |
+| 技能 `attack_patch` | — | `mult`、`range_mult`（相乘）、`power`（取或）、`pierce`、`src`、`tags`、`tex`、`burst`、`burst_gap`、`elite_prio`、`spread_deg`、`focus_boss`、`kb`、`last_on_hit`、`muzzle_fx`（覆盖） | 技能生效期间（持续型 / 永久型）或有余弹时（次数型）改普攻弹道；`burst` > 1 时一次射击连射几轮，`last_on_hit` 只挂在最后一轮 |
+| 技能 `end` | — | 瞬时积木列表 | 持续型技能计时归零那一帧执行一次 |
+| `trig.on_attack` | 触发 | `counter`、`need`（缺省 = 该计数器当前上限）、`replace`（缺省 true）、`reset`（缺省 true）、`do` | 普攻出手时计数器 ≥ need：执行 `do`、清零，并换掉这一次普攻 |
+| `verb.counter` | 瞬时 | `name`、`add`、`add_lit`（目标点在主控灯光半径内时用它代替 `add`）、`cap`、`set`、`own`（true = 只算本干员的击杀，看 `g.hit.op`）、`label`（状态条显示名） | 命名计数器 |
+| `verb.counter_cap` | 常驻 | `name`、`value` | 改计数器上限（精英化 / 节点里写） |
+| `verb.attack_lock` | 瞬时 | `dur` | 之后 `dur` 秒不普攻（技能照放） |
+| `verb.ricochet` | 常驻 | `chance`、`r`、`mult`、`src` | 本干员子弹命中后掷 `g.rng`，命中则向 `r` 内离被击中者最近的另一名敌人（同距按 id）射一发 `mult` 倍的子弹，跳出的子弹不再跳 |
+| `st.pause` | 命中时 | `dur`（0–2） | 短停顿：写 `e.stun`，只对非精英、非 Boss（`apply_status` 里加了这一分支，圆 / 锥的 `on_hit` 也能用） |
+
+属性 `op_shots`（`stat_defs.gd`，基础 1，下限 1）：子弹数倍率，`add 1.0` = 单发干员多 1 发。`verb.buff_self` 的 `stat` 可写它（成长节点「双枪」、精英二），藏品也可以直接写：`{"type": "stat", "stat": "op_shots", "op": "add", "value": 1.0, "scope": "range:远程"}`（本次没有新增这类藏品）。
+
+挂钩（通用代码里只插了这些行，都标「能天使挂钩」）：`op_blocks.gd` 的 `OP_STATS` 加 `op_shots`、`exec_shape` 加 `projectile` 分支、`apply_status` 加 `pause`、`validate` 的普攻形状列表 / 技能字段列表 / `dur` 对象分支 / `_exu_skill`、`_block` 开头 `_exu_block`；
+`data_operator.gd` 加 `var ext`、`update` 里 `exu_tick` 与普攻 `projectile` 分支、`_exec_list` 的缺省分支、`_release_skill` 的 `dur` 对象分支、`skill_active_left` 取次数型余弹，末尾 `_draw_skill_over` / `status_items`。
+没用到这些积木的数据干员（浊心斯卡蒂、eqtest）不建 `ext`、不走任何新分支，`blocks_eq` 逐字节相同。
+
+### 14.2 能天使的数据表达
+
+- 普攻「速射」：`shape.projectile`，`every $cd`（0.35）、`range 300`、`speed 520`、`shots 1`、`pierce 2`、`kb 30`、`spread 8°`、精英优先度 1.2、`focus_boss`、枪口 (+30, −35)（docs/64 §5.2 返修后的出手帧，@2x 像素 = 世界像素）；`atk 13`。
+- S1「冲锋模式」：`dur {"ammo": 6}` + `attack_patch {mult 1.8, pierce 3, src 冲锋模式, 金色弹体, power}`。
+- S2「扫射模式」：8 秒 `verb.mode {interval_mult $s2_cd/$cd, dmg_mult 0.9}`，`end: verb.attack_lock 1.0`（过热）。
+- S3「过载模式」：10 秒 `attack_patch {burst 4, burst_gap 0.06, mult 0.8, range_mult 1.2, elite_prio 99, src 过载模式, power, last_on_hit: st.pause 0.2}`。
+- 天赋「快速弹匣」：`trig.on_kill → verb.counter mag {own, add 1, add_lit 2, cap 8}`；`trig.on_attack {counter mag} → shape.projectile {shots 8, fan, ±25°, pierce 1, ×1.0, src 弹夹倾泻, 金色弹体与枪口焰}`。弹匣满时枪口挂一点金光，状态条显示「弹匣 n/上限」「冲锋模式 ×n」「过热」。
+- 成长（顺序：双枪 → 高压弹 → 精英一 → 延长弹道 → 跳弹 → 精英二）：双枪 `buff_self op_shots +1`；高压弹 `buff_self dmg ×1.15`；延长弹道 `buff_self op_range +0.15`；跳弹 `verb.ricochet {0.4, 120, 0.5}`；精英二 `trig.passive {op_shots +1, counter_cap mag 12}`。
+- 接入登记：`balance.json operators.exusiai`（S，atk +0.03、skill_power +0.03）、`lore.json`、`tools/balance_run.py OPS` 与预设 `exusiai_mate`、`sfx.gd OP_ALT` 借音（普攻 ← 维什戴尔普攻 ×1.9 −6 dB，命中 ← 艾丽妮命中，S1 ← 艾丽妮 S1，S2 / S3 ← 维什戴尔 S2 / S3，弹匣倾泻 big ← 维什戴尔 big）、`check.py` 场景回归 `exusiai_blocks`。选人页 / 图鉴 / 招募池按 JSON 自动列入（基础池）。
+
+**与 docs/59 的差异**
+
+1. 名字按 docs/63 §6：S1 冲锋模式、S2 扫射模式、S3 过载模式、天赋快速弹匣（§8.4 草案已改）；`faction: 企鹅物流`（新写，给将来德克萨斯协同用）。
+2. 弹匣只吃**她自己的**击杀（`own`）。docs/61 §4 的 `trig.on_kill` 照旧是「谁杀的都算」，满编时队友的击杀会让弹匣几乎每发都满，倾泻就变成常态普攻。
+3. 「灯光内 +2」= 被击杀的敌人在主控灯光半径内时 **+2 代替 +1**（docs/59「在灯光内翻倍」），不是 +1 再 +2；流明照亮的 `e.lit` 不算（积木拿到的只有位置）。
+4. 「高压弹」是她**全部**伤害 ×1.15（局部 `dmg` 倍率），不只速射；图标用 `growth_b_size`（没有 `growth_b_atk`）。
+5. S1 / S3 的子弹乘技能强度（`power`），S2 的 ×0.9 不乘；倾泻与跳弹不乘。
+6. S3 每一轮重新选目标（目标在连射中被打死就换人）；连射与子弹数相乘（精英二 3 发 × 4 轮 = 12 发）。
+7. 射击间隔短于 0.25 秒的攻击动作时（S2 0.20 秒、攻速加成），出手后把剩下的动作截短，射速不被动作拖慢。
+8. 跳弹只从普攻 / 技能 / 倾泻的子弹起跳一次，半径 120 不吃射程加成；这是她唯一用 `g.rng` 的地方。
+9. 过热只停普攻，技能照常起手。
+10. **数值上调（本机冒烟，见 11.3）**：docs/59 原值（atk 9、不穿透）标准高手 3 / 12、Ⅷ 熟练 0 / 12（9 局死在 2:00 前后），对照维什戴尔同 seed 8 / 12、5 / 12。
+    按 docs/59 §4 的旋钮先把「双枪」提前到第 1 节点、atk 9 → 10，早死消失但胜率仍在 10–25%；只加伤害（atk 13–16、S3 ×0.8、倾泻 ×1.0）胜率不动——她的问题不是总伤害，而是单体弹挡不住贴脸的冲锋怪。
+    改成**普攻穿透 2 + 每发击退 30**（S1 强力弹穿透 3）之后同 seed 胜率翻倍。现值 `atk 13`、`pierce 2`、`kb 30`、`s1_pierce 3`、`s3_mult 0.8`、`mag_mult 1.0`、`focus_boss`（新：最近的是 Boss 时多发子弹全打 Boss）。docs/59「单体、无范围」的定位因此松动成「单体 + 穿透 + 轻击退」。
+    主控胜率仍低于 50–70 的下沿（下表），等云端 56 局定；队友局反而偏强。
+
+### 14.3 测试
+
+- `python tools/check.py --only exusiai_blocks`（快检全量里也跑）：`tests/exusiai_blocks_test.tscn`，校验正反例 12 条 + 运行时 46 条（子弹数、枪口、命中与击退、S1 余弹与倍率、弹匣 +1 / +2 / 别人的击杀、倾泻 8 发 ±25°、精英二上限 12 与子弹数、S2 过热、S3 四连与最后一轮停顿、停顿不吃精英、跳弹、无跳弹时不碰 `g.rng`、浊心斯卡蒂不受影响）。
+
+**本机冒烟（10-11 / 12，`--maxt=1000`，含超时口径，单人开局自然招募；「她占全队」= 速射 + 冲锋模式 + 过载模式 + 弹夹倾泻 + 跳弹 占全队 `out`）**
+
+| 版本 | 主控 标准·高手 seed 1–12 | 主控 Ⅷ·熟练 seed 1–12 | 她占全队（主控） | 备注 |
+|---|---|---|---|---|
+| docs/59 原值（atk 9，不穿透，range 节点在前） | 3 / 12 | 0 / 12 | 36% / 70% | Ⅷ 9 局死在 2:00 前后（1:15 骨潮清不动，docs/59 预警过的情况） |
+| 双枪提前 + atk 10 | 1 / 12 | 3 / 12 | 28% / 38% | 早死消失，死在 5–8 分钟 |
+| + atk 13、S3 ×0.8、倾泻 ×1.0 / + focus_boss、atk 12 | 2 / 12、2 / 12 | 3 / 12、2 / 12 | 32–35% | 加伤害不加胜率 |
+| + 穿透 2（atk 12），36 局 | 11 / 36（31%） | 9 / 36（25%） | 43% | |
+| **+ 击退 30**（atk 12 / 14 / **13 现值**，各 24 / 24 / 12 局） | 12 / 24、12 / 24、**3 / 12**；合计 **27 / 60（45%）** | 11 / 24、8 / 24、**4 / 12**；合计 **23 / 60（38%）** | 40–48% | 主要死因 bullet（敌方弹幕）、contact_slider / tracer |
+| 对照 维什戴尔（同参数，seed 1–12） | 8 / 12 | 5 / 12 | 55–57% | 主控每分钟伤害 39k / 50k，她 24k / 27k |
+
+队友（`exusiai_mate`，7 名开局干员各带她开局，标准·高手 seed 1，现值）：**5 / 7**（对照同提交 `starts` seed 1：2 / 7）；她占全队 39%（16–66%，在 docs/59 §7 的 30–50 内）。
+
+- 12 局一批的标准误约 ±14 个百分点，同一版本两批能差 50 点（穿透 2：标准 1 / 12 → 10 / 24）；结论只看 24 局以上的合计。
+- 判断：主控两档都低于 50–70 的下沿（45% / 38%），对照维什戴尔差 7–25 点；队友偏强。没有继续往上加，等云端 56 局 × 三档再定；按上面的经验，下一刀先动 `kb`（30 → 40）或 `pierce`，不先动 `atk`。
+
+**老干员同 seed 不变**（对本分支合入前的底 bf159d14，`--trace=1 --maxt=600`，高手）：维什戴尔 + 铃兰 + 塞雷娅（满编）seed 1、斯卡蒂 + 推进之王 + 凯尔希（满编）seed 2、艾雅法拉 `--norecruit` seed 3、浊心斯卡蒂 + 流明 + 艾丽妮（满编，数据干员）seed 4：
+TRACE **逐行相同**，BALANCE 除 `bot.peak / peak_min`（画面峰值，docs/61 §测试 同样排除）外相同。单人开局自然招募（铃兰 seed 5）在第一次招募（1:12）起分叉——招募池 14 → 15 人，属预期。
+
+**云端（协调人建例行任务；口径同 §测试 浊心斯卡蒂）**
+
+```bash
+# 主控：56 局 × 三档（seed 1–56）
+python tools/balance_run.py --game game --jobs 4 --op exusiai --bot expert --seeds 56 --seed0 1 --out build/cloud/exu-lead-t0 --tag exu-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op exusiai --bot master --seeds 56 --seed0 1 --out build/cloud/exu-lead-t1 --tag exu-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op exusiai --bot master --seeds 56 --seed0 1 --out build/cloud/exu-lead-t2 --tag exu-lead-t2 --extra="--maxt=1000 --tier=2"
+# 队友：7 名开局干员 × seed 1–8 = 56 局 × 三档
+python tools/balance_run.py --game game --jobs 4 --preset exusiai_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/exu-mate-t0 --tag exu-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset exusiai_mate --bot master --seeds 8 --seed0 1 --out build/cloud/exu-mate-t1 --tag exu-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset exusiai_mate --bot master --seeds 8 --seed0 1 --out build/cloud/exu-mate-t2 --tag exu-mate-t2 --extra="--maxt=1000 --tier=2"
+# 同提交对照：starts × seed 1–8 × 三档（与 sks-base-* 同口径；招募池已含她）
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/exu-base-t0 --tag exu-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/exu-base-t1 --tag exu-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/exu-base-t2 --tag exu-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定（docs/59 §7）：主控三档各 50–70，对照维什戴尔相差 ≤ 15 个百分点；队友局她占全队 30–50%。旋钮：偏弱先把「双枪」节点提前到第 1 节点、再 `atk` 9 → 10；偏强先收 `s3_mult`（0.7 → 0.6）、`mag_mult`（0.8 → 0.65），不动 `cd 0.35`。

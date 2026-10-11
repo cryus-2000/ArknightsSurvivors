@@ -24,6 +24,7 @@ var _warned := {}
 var _fxt: Dictionary = {}              # 画面帧条（docs/61 §5.6）：常驻积木上 every 条目的计时（_uid → [秒…]），纯画面
 var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid → {b, el, fade}；fade < 0 = 生效中，≥ 0 = 退出后淡出剩余秒数
 var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
+var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -63,7 +64,7 @@ func skill_on(i: int) -> bool:
 
 
 func skill_active_left(i: int) -> float:
-	return s_t[i]
+	return maxf(s_t[i], OB.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
 func skill_active_dur(i: int) -> float:
@@ -115,6 +116,7 @@ func update(dt: float) -> void:
 	_tick_pending(dt)
 	_sustain(dt)
 	_tick_shots(dt)
+	OB.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if acting():
@@ -145,6 +147,8 @@ func update(dt: float) -> void:
 			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 手动普攻 A 类（落点 aim_land）
 		"dash_line":
 			at = OB.tx_attack_point(self, a)   # 德克萨斯段
+		"projectile":   # 能天使段：手动普攻 B 类
+			at = OB.exu_aim(self, a)
 	if at == Vector2.INF:
 		cd = idle_cd(0.2)
 	else:
@@ -364,6 +368,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 			_:
 				_ext_exec(b, at)       # 星熊段
 				OB.tx_exec(self, b, at)   # 德克萨斯段
+				OB.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -398,8 +403,10 @@ func _release_skill() -> void:
 	var dv = sb.get("dur", 0.0)
 	if dv is String and dv == "permanent":
 		perm_on[i] = true
+	elif dv is Dictionary and dv.has("ammo"):   # 能天使段：dur.ammo（N 发子弹）
+		OB.exu_skill_shell(self, i, dv)
 	elif dv is Dictionary:
-		ammo[i] = int(dv.get("next_attacks", 0))   # dur.next_n：接下来 N 次普攻带 attack_patch
+		ammo[i] = int(dv.get("next_attacks", 0))   # 安洁莉娜段：dur.next_n，接下来 N 次普攻带 attack_patch
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
@@ -812,7 +819,7 @@ func _draw_fields() -> void:
 
 
 ## 重力弹：杖头飞向落点，略带弧线；proj_angelina_orb 循环帧条（docs/25 §6，锚点居中）+ 落点地面预示圈
-func _draw_skill_over() -> void:
+func _draw_shots() -> void:
 	if shots.is_empty():
 		return
 	var a: Dictionary = B.get("attack", {})
@@ -829,3 +836,12 @@ func _draw_skill_over() -> void:
 		cv.draw_set_transform(s.p1 + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
 		cv.draw_arc(Vector2.ZERO, lr * (1.0 - 0.6 * k), 0.0, TAU, 28, Color(GRAV.r, GRAV.g, GRAV.b, 0.35 * k), 1.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+# ---------------------------------------------------------------- 能天使（docs/61 §14）：弹体与状态条（实现在 op_blocks.gd 末尾）
+
+func _draw_skill_over() -> void:
+	_draw_shots()      # 安洁莉娜段：重力弹
+	OB.exu_draw(self)  # 能天使段：弹体
+
+
+func status_items() -> Array:
+	return OB.exu_status_items(self)

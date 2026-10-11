@@ -29,7 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 OPS = ["mizuki", "wisadel", "eyjafjalla", "kaltsit", "saria", "siege", "skadi", "suzuran",
        "ulpianus", "irene", "specter_unchained", "logos", "lumen", "skalter",
-       "hoshiguma", "angelina", "texas"]
+       "hoshiguma", "angelina", "texas", "exusiai"]
 PRESETS = {
     "solo": [[o] for o in OPS],
     "squads": [
@@ -73,6 +73,8 @@ PRESETS = {
     # 安洁莉娜当队友（docs/61 §12）：同 skalter_mate
     "angelina_mate": [[o, "angelina"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],
     "texas_mate": [[o, "texas"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],   # 德克萨斯当队友（docs/61 §13）
+    # 能天使当队友（docs/61 §14）：同上，7 名开局干员各带她开局
+    "exusiai_mate": [[o, "exusiai"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],
 }
 
 

@@ -104,7 +104,8 @@
   },
   "hoshiguma": {"tier": "A+", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
   "angelina": {"tier": "A+", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.02},
-  "texas": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
+  "texas": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
+  "exusiai": {"tier": "S", "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03}
  },
  "enemy": {
   "_doc": "敌人生命 / 攻击随时间的曲线（docs/27 §4）。hp = base × (1 + min(t,hp_knee)/hp_div + max(t-hp_knee,0)/hp_late_div)；dmg = base × (1 + min(t,dmg_knee)/dmg_div)",
