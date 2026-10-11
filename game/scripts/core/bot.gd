@@ -786,7 +786,9 @@ func _bdbg(p: Vector2, here: float) -> void:
 				left = b
 		if left != null and not left.lit:
 			var why := "danger" if bd.last_danger else ("switch" if bd.last_hold != bd.pos else "pushed")
-			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t])
+			# keep = 离圈这一刻灯标还剩的进度、band = 离圈时是否落在接力环里（docs/56 §8，旋钮关时恒 0）
+			print("BDBG leave why=%s in_s=%.1f prog=%.2f need=%.1f hp=%d lamp=%d t=%d keep=%.2f band=%d" % [why, g.t - bd.t0, bd.maxp, float(left.get("need", 2.5)), int(100.0 * g.hp / g.max_hp), int(g.lamp), g.t,
+				float(left.get("prog", 0.0)), 1 if p.distance_to(left.pos) < float(left.get("relay_r", 0.0)) else 0])
 			print("BDBGC why=%s %s" % [why, JSON.stringify(bd.get("comp", {}))])
 	bd.last_danger = here <= -4.0
 	bd.last_hold = beacon_hold

@@ -2179,6 +2179,11 @@ func draw_beacons() -> void:
 				for q in 28:
 					var a2: float = -g.t * 0.2 + q * TAU / 28.0
 					tb_arc(pos, gr, a2, a2 + TAU / 56.0, 1.5, Color(BEACON_COL.r * 1.3, BEACON_COL.g * 1.3, BEACON_COL.b * 1.3, 0.16 + 0.04 * pulse), 3, ground_y())
+			# 接力环（docs/56 §8，beacon/relay_r > r 才有）：光圈外 r..relay_r 一圈很淡的暖色带（同引路圈的色），主控站在带里（进度不退 / 慢涨）时提亮
+			var rr: float = float(b.get("relay_r", 0.0))
+			if rr > r:
+				var on_band: bool = b.get("band", false)
+				g.draw_arc(Vector2.ZERO, (r + rr) * 0.5, 0.0, TAU, 48, Color(BEACON_COL.r, BEACON_COL.g, BEACON_COL.b, (0.12 + 0.05 * pulse) if on_band else 0.06 + 0.02 * pulse), rr - r)
 		else:
 			var left: float = float(b.get("safe_end", 0.0)) - g.t
 			if left > 0.0:

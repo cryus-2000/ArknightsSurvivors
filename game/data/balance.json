@@ -282,7 +282,10 @@
   "guide_r": 160,
   "guide_life": 45,
   "shade_deg": 50,
-  "shade_dist": 600
+  "shade_dist": 600,
+  "_doc3": "docs/56 §8 接力环（10-11 原型，缺省关）：relay_r 接力环外半径（0 = 关，须 > r 70 才生效）——未点燃灯标的光圈 r 到 relay_r 这一环里，主控在内时进度不退，并按 relay_rate（光圈内读条速度的倍率；0 = 只保持不涨）继续涨，可以在环里点燃；环内不是安全区（safe_* / guide_r 不变）、不影响 Boss、不掷随机数。难度表可用 beacon_relay_r / beacon_relay_rate 按档覆盖",
+  "relay_r": 0,
+  "relay_rate": 0.5
  },
  "squad": {
   "_doc": "编队人数加主控最大生命（docs/46 §6，用户定每人 +15%）",
