@@ -3283,6 +3283,30 @@
    "rarity": "核心",
    "effect_category": "skill_cycle"
   },
+  "230": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_hp",
+     "op": "mult",
+     "value": 0.85
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_speed",
+     "op": "mult",
+     "value": 0.85
+    }
+   ],
+   "desc": "所有敌人生命 -15%（Boss 最多 -20%），移动速度 -15%（Boss 除外）",
+   "rarity": "稀有",
+   "tags": [
+    "control",
+    "execute"
+   ],
+   "effect_category": "weakness",
+   "new": true
+  },
   "231": {
    "effects": [
     {
@@ -3618,6 +3642,52 @@
    "desc": "每次击杀，全队伤害永久 +0.1%（上限 +30%）",
    "rarity": "核心",
    "effect_category": "damage"
+  },
+  "253": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "per_relic",
+     "args": {
+      "stat": "dmg_taken",
+      "per": -0.08,
+      "cap": 4,
+      "rarity": "遭诅古物"
+     }
+    }
+   ],
+   "desc": "每持有一件遭诅古物，主控受到的伤害 -8%（最多 -32%）",
+   "rarity": "核心",
+   "tags": [
+    "low_light",
+    "survival",
+    "curse"
+   ],
+   "effect_category": "defense",
+   "new": true
+  },
+  "254": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "per_relic",
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.15,
+      "cap": 4,
+      "rarity": "遭诅古物"
+     }
+    }
+   ],
+   "desc": "每持有一件遭诅古物，全队攻击速度 +15%（最多 +60%）",
+   "rarity": "升华",
+   "tags": [
+    "attack_speed",
+    "low_light",
+    "curse"
+   ],
+   "effect_category": "attack_speed",
+   "new": true
   },
   "255": {
    "effects": [

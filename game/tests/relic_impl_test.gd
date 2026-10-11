@@ -201,8 +201,20 @@ func test_batch_b_c() -> void:
 	e2.dead = true
 
 
+## 批 D / F：敌人移速、按遭诅古物件数生效（per_relic 带 rarity）
 func test_batch_d_f() -> void:
-	pass
+	grant("230")
+	near(game.enemy_speed_mult, 0.85, "苦痛的快乐：敌人移速 ×0.85")
+	var t0: float = game.stats.value(&"dmg_taken")
+	grant("253")
+	near(game.stats.value(&"dmg_taken") - t0, 0.0, "蓝卡坞安全衣：没有遭诅古物时无效果")
+	grant("216")
+	near(game.stats.value(&"dmg_taken") - t0, -0.08, "蓝卡坞安全衣：1 件遭诅古物 -8%")
+	grant("218")
+	near(game.stats.value(&"dmg_taken") - t0, -0.16, "蓝卡坞安全衣：2 件 -16%")
+	var a0: float = game.stats.value(&"op_aspd")
+	grant("254")
+	near(game.stats.value(&"op_aspd") - a0, 0.3, "刀光剑影：2 件遭诅古物攻速 +30%")
 
 
 func test_batch_g() -> void:
