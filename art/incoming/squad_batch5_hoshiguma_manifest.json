@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "a6fa40a8604e643f9e75c95cebe7ba9035cf66be974a7173cd51bb18916b241f"
+      "sha256": "e30cd2918c33ecde44338814731e19ab709ff5298520ba76a3c270c6e098eab2"
     },
     {
       "file": "op_hoshiguma_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "e44cb418e8ceabeceb988cb351313fbfba41581f647679631f035e2e92179d22"
+      "sha256": "ff4b87c9bbd8c11565186c097b35f23924403234b94b6ca43e9e44250161b03c"
     },
     {
       "file": "op_hoshiguma_run.png",
@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "9f2069756c2b8da20cbaa5c334ab0ed2b2b0ebbe971128d49006f644409b9cf2"
+      "sha256": "ae96f61180c55cb44386172a1c64f82e79edf06b37b81663a592e389bfcc9f3c"
     },
     {
       "file": "op_hoshiguma_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "2345d5cfbeeedb8ea05846a6a454b53f0c56b7e966be417ce940b14dd225fb5a"
+      "sha256": "88e74e111e0dbea7539d8b2f09f404fa6e02819a1650d0e537516c92008da8bf"
     },
     {
       "file": "op_hoshiguma_attack.png",
@@ -78,7 +78,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 1,
-      "sha256": "227e9bbf3203535f60b93de7eb1e7807d691218867c814d8ba8a91f6d9eb1f24"
+      "sha256": "cbeda65c021c5a4322795d8a00ff976efcde7e531de9efdca531000b6b30cc74"
     },
     {
       "file": "op_hoshiguma_attack@2x.png",
@@ -94,7 +94,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 2,
-      "sha256": "0a0bac51cf7f11ebefaf347c49de64956c1abb6381dd2f4bd145cb78246b8f46"
+      "sha256": "7cfd68556bc111776e9f13ee0c3d33545f625b4965dc84d5c0e38c3ac3f85c39"
     },
     {
       "file": "op_hoshiguma_skill.png",
@@ -110,7 +110,7 @@
       "event_frame_zero_based": 2,
       "loop": false,
       "density": 1,
-      "sha256": "922ca9a63ab94f02271d0750f5d87c6cfe759ca2172a44566b431f81f21cab2d"
+      "sha256": "d2ec8b847a352f80b165f5d1401def41a998702b10eac5537e36f71a07998372"
     },
     {
       "file": "op_hoshiguma_skill@2x.png",
@@ -126,7 +126,7 @@
       "event_frame_zero_based": 2,
       "loop": false,
       "density": 2,
-      "sha256": "44b6df994a00071e53c2ae8489e76dfeea4302a85569c9f7b2cf3837a6db25fb"
+      "sha256": "59087a21fab63d5c6d912c2a037ae19f84819a7ebc085306d82b4e40fc47c5ae"
     }
   ]
 }
