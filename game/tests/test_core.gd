@@ -31,6 +31,7 @@ func _init() -> void:
 	test_voice()
 	test_blocks_angelina()
 	test_blocks_texas()
+	test_fx_hold()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -438,3 +439,42 @@ func test_blocks_texas() -> void:
 	OB.tx_sustain(fake, [], want)
 	ok(float(fake.tx.len) == 1.0 and float(fake.tx.w) == 1.0 and want.is_empty(), "没有常驻积木时倍率回到 1、不写主控属性")
 
+
+## 常驻跟随帧条 hold / 进出淡入淡出 fade / if_tex / ground 层（docs/61 §5.6，10-12 浊心斯卡蒂 S3 地面漩涡接入）：校验正反例 + 淡入淡出与贴图取舍
+func test_fx_hold() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var sk: Dictionary = Ch.load_def("skalter")
+	ok(sk.has("blocks") and Ch.validate_operator("skalter", sk), "浊心斯卡蒂（含 S3 地面漩涡 hold 帧条）通过校验")
+	var bads := {
+		"hold 帧条挂在技能发动上（瞬时）": func(d): d.blocks.skills[2].fx.append({"strip": "fx_skalter_vortex_floor", "hold": true, "layer": "ground"}),
+		"ground 层不是 hold 帧条": func(d): d.blocks.skills[2].do[0].fx[2].erase("hold"),
+		"hold 帧条写 every": func(d): d.blocks.skills[2].do[0].fx[2]["every"] = 1.0,
+		"hold 帧条放贴身层": func(d): d.blocks.skills[2].do[0].fx[2]["layer"] = "behind",
+		"hold 帧条 at = hits": func(d): d.blocks.skills[2].do[0].fx[2]["at"] = "hits",
+		"hold 不是布尔": func(d): d.blocks.skills[2].do[0].fx[2]["hold"] = 1,
+		"fade 超出范围": func(d): d.blocks.skills[2].do[0].fx[2]["fade"] = 9,
+		"fade 写成三个数": func(d): d.blocks.skills[2].do[0].fx[2]["fade"] = [0.1, 0.2, 0.3],
+		"fade 写在一次性条目上": func(d): d.blocks.skills[2].fx[0]["fade"] = 0.3,
+		"if_tex 不是帧条名": func(d): d.blocks.skills[2].do[0].fx[3]["if_tex"] = "!skalter",
+		"vortex 写 hold": func(d): d.blocks.skills[2].do[0].fx[3]["hold"] = true,
+	}
+	for why in bads:
+		var d2: Dictionary = sk.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("skalter", d2), "fx hold 校验应拒绝：" + why)
+	# 淡入淡出：hold 帧条 fade 0.45 进出；缺省 贴身层 (0, 0.15)、漩涡 (0.5, 0.4)、hold (0.3, 0.3)
+	var hs := {"strip": "fx_x", "hold": true, "fade": 0.45}
+	near(OB.fx_hold_alpha(hs, {"el": 0.225, "fade": -1.0}), 0.5, "hold 帧条淡入一半")
+	near(OB.fx_hold_alpha(hs, {"el": 3.0, "fade": -1.0}), 1.0, "hold 帧条生效中满透明度")
+	near(OB.fx_hold_alpha(hs, {"el": 3.0, "fade": 0.09}), 0.2, "hold 帧条退出淡出")
+	near(OB.fx_hold_alpha({"strip": "fx_x", "layer": "behind"}, {"el": 0.0, "fade": -1.0}), 1.0, "贴身层缺省不淡入")
+	near(OB.fx_hold_alpha({"strip": "fx_x", "layer": "front"}, {"el": 1.0, "fade": 0.075}), 0.5, "贴身层缺省 0.15 秒淡出")
+	near(OB.fx_hold_alpha({"vortex": {}}, {"el": 0.25, "fade": 0.2}), 0.25, "漩涡缺省 0.5 秒淡入 × 0.4 秒淡出")
+	near(OB.fx_hold_alpha({"strip": "fx_x", "hold": true, "fade": [0.2, 0.0]}, {"el": 1.0, "fade": 0.1}), 0.0, "淡出 0 秒 = 退出即消失")
+	near(OB.fx_hold_out([{"strip": "fx_x", "layer": "behind"}, {"vortex": {}}, hs]), 0.45, "记录保留 = 各条目淡出最大值")
+	near(OB.fx_hold_out([{"strip": "fx_x", "layer": "behind"}]), 0.15, "只有贴身层时同原来 0.15")
+	# if_tex：有贴图才画 / 缺贴图才画（程序回退）
+	var fo := {"g": {"tex": {"fx_have": ImageTexture.new()}}}
+	ok(OB.fx_on(fo, {"if_tex": "fx_have"}) and not OB.fx_on(fo, {"if_tex": "!fx_have"}), "if_tex：贴图在时只画正向条目")
+	ok(OB.fx_on(fo, {"if_tex": "!fx_none"}) and not OB.fx_on(fo, {"if_tex": "fx_none"}), "if_tex：缺图时只画回退条目")

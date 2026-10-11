@@ -211,6 +211,16 @@
 | `tint` | 白 | `[r, g, b]` 或 `[r, g, b, a]` |
 | `anchor` | 帧中心 | 1x 帧内锚点（@2x 贴图自动 × `A.hires`，docs/25 §6 的规则） |
 | `off` / `ang` / `rot` | — | 位置偏移（世界像素）/ 旋转角度（度）/ `true` = 随锥形朝向转 |
+| `hold` | false | `true` = **常驻跟随帧条**（10-12 加，见下）：挂常驻积木，生效期间循环、每帧跟着区域中心 / 当前区域半径走 |
+| `fade` | 见下 | 常驻跟随条目（贴身层 / `vortex` / `hold`）的进出淡入淡出秒数：一个数 = 进出同长，`[进, 出]` 分开写（0–5）。缺省：贴身层 `[0, 0.15]`、`vortex` `[0.5, 0.4]`、`hold` `[0.3, 0.3]` |
+| `if_tex` | — | 按贴图有无取舍（10-12 加，纯画面）：`"fx_x"` = 有这条贴图才画，`"!fx_x"` = 缺这条贴图才画（程序回退）。任何条目都能写 |
+
+**常驻跟随帧条**（`hold: true`，10-12 加，浊心斯卡蒂 S3 地面漩涡 docs/66 首用）：同贴身层一样跟着常驻积木（技能 do 里的 `verb.mode`、光环等）——生效期间一直画，
+帧号 = `floor(积木已生效秒数 × fps) % 帧数`；位置 = `at`（`zone` 缺省 / `self` / `leader`）+ `off`；写了 `fit` 时**每帧**按当前区域半径缩放（每个 1x 像素 = `r / fit × scale`，夹到 `max_scale`），
+区域被 buff 放大缩小即时跟上；整体透明度 = `tint` 的 a × 进出淡入淡出（`fade`）× 特效亮度设置。不写 `every / life / n / spread / rise / rot`。
+`layer` 只能是 `ground`（**紧贴地砖**：画在地砖之后、溟痕 / Boss 地面预警 / 灯标 / 掉落之前，大片地面特效不盖住危险提示；`world.draw_world` → `squad.draw_ground_fx` → `data_operator.draw_ground_fx`）、
+`floor`（区域椭圆层，在程序漩涡下面）或 `add`（加色层）。`ground` 只给 `hold` 帧条用。实现：`op_blocks.fx_hold_strips / fx_hold_alpha / fx_fade_io / fx_hold_out / fx_on`。
+贴身层记录退出后保留 = 各常驻跟随条目淡出秒数的最大值（原来：有漩涡 0.4、否则 0.15；不写 `fade` 时与原来相同）。
 
 **贴身层**（`layer: behind / front`）：挂在常驻积木上（例：S3 的 `verb.mode`），积木生效期间循环；锚点对准干员脚底 `pos`（+ `off`），每 1x 像素 = `g.PX × scale`、不压扁不旋转；
 帧号 = `floor(积木已生效秒数 × fps) % 帧数`（同一块积木的 back / front 共用）；积木失效后 0.15 秒淡出。不写 `every / life / n / spread / rise`，`at` 只能是 `self`。
@@ -218,7 +228,8 @@
 **程序漩涡**（`{"vortex": {参数…}}`，10-11 加，用户对照原作 S3「饱和度太高，要这种效果」）：不用帧条，程序画一片铺在地面上的大漩涡——
 许多细弧形水流线在透视椭圆（y × `sy`）里螺旋着绕中心转、各自从外圈卷向内圈（生命周期 sin 包络淡入淡出）、沿线两端渐隐，
 少量点缀色（暗红）流线、上飘闪烁的小光点、中心柔光与一层极淡的水色底。像贴身层一样**跟着常驻积木**：生效期间一直画，0.5 秒淡入、退出 0.4 秒淡出；
-条目 `cond` 切换时 0.35 秒交叉淡入淡出。条目字段只用 `vortex / layer（floor = 人物下面，缺省；add = 加色层）/ at（zone 缺省 / self / leader）/ off / cond / tint`（tint 的 a 乘整体透明度）。
+条目 `cond` 切换时 0.35 秒交叉淡入淡出。条目字段只用 `vortex / layer（floor = 人物下面，缺省；add = 加色层）/ at（zone 缺省 / self / leader）/ off / cond / tint / fade / if_tex`（tint 的 a 乘整体透明度）。
+有了美术帧条后的写法（10-12，浊心斯卡蒂 S3）：帧条用 `hold` 条目作主体，完整程序漩涡写 `"if_tex": "!帧条名"` 留作缺图回退，另一条只剩光点的漩涡（`n: 0`）写 `"if_tex": "帧条名"` 叠在帧条上。
 全部顶点色三角形攒进编队合批画布一次提交（`batch_canvas.add_tris`，docs/50 合批口径）；随机常数在第一次画时用 `g.vrng` 生成并缓存，运动只看 `g.t`，不碰玩法。
 `--perfab=N` 同局轮换时 /b 桶不画漩涡（量净成本用）。
 
@@ -247,7 +258,10 @@
   {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", …}], "do": [
     {"verb": "mode", "zone_mult": "$s3_aura", "fx": [
       {"strip": "fx_skalter_s3_back", "layer": "behind", "anchor": [48, 84]},
-      {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84]}]}, …]}]
+      {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84]},
+      {"strip": "fx_skalter_vortex_floor", "hold": true, "layer": "ground", "fit": 160, "scale": 0.62, "max_scale": 2.0625, "fade": 0.45, "tint": [0.92, 0.98, 0.98, 0.5]},
+      {"vortex": {…完整程序漩涡…}, "layer": "floor", "if_tex": "!fx_skalter_vortex_floor"},
+      {"vortex": {"n": 0, "motes": 40, …}, "layer": "floor", "fade": 0.45, "if_tex": "fx_skalter_vortex_floor"}]}, …]}]
 ```
 
 ## 6. 逃生口 `custom`
@@ -290,6 +304,8 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 8. 夹紧（创意工坊 📝）：`mult ≤ 20`、`every ≥ 0.1`、`orbit.n ≤ 12`——防止数据把局打崩。
 9. `fx`（§5.6）：是数组、≤ 8 条；字段只能是表里那些；`strip` 是 `fx_*` / `proj_*`；`layer` / `at` 取值在表内（`orbit` 只挂 `shape.orbit`、`hits` 只挂伤害形状）；
    `every` 和贴身层只能在常驻积木上；`cond` 能解析；数值夹紧（`scale` 0.05–8、`max_scale` 0.5–16、`n` ≤ 16、`spread` ≤ 1.5、`life` ≤ 5、`every` ≥ 0.05）。技能条目 `blocks.skills[i]` 允许 `dur / do / fx` 三个字段。
+   `hold` 条目（10-12）：`hold` 是布尔，只能挂常驻积木，`layer` 只能 ground / floor / add、`at` 只能 zone / self / leader，不写 every / life / n / spread / rise / rot，不和 vortex 同写；`layer: ground` 只给 hold 帧条；
+   `fade` 只写在常驻跟随条目上，一个数或两个数、0–5 秒；`if_tex` 是 `fx_*` / `proj_*` 帧条名（可带 `!`）。
    `vortex` 条目：不写 `strip`，只能挂常驻积木，`layer` 只能 floor / add、`at` 只能 zone / self / leader，不写帧条专用字段；`vortex` 对象的键在漩涡表内、数值按表夹紧、`col / acc` 是 3 个数字。
 
 ## 9. 名字对照（docs/59 §10 → docs/60 → 本文）
@@ -365,6 +381,11 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     评审后再压一档：灯火昏暗的声浪 `fx_skalter_wave_dim`（普攻与回声）的紫色还是太亮，透明度 0.5 → 0.38、回声 0.35 → 0.27（同比例），与第 15 条同一次提交。
 15. **再往辅助推一档（用户 10-11 批）**：用户看画面觉得声浪比别的干员的普攻还显眼、还强。`atk 6 → 4`（声浪、潮汐和声、深海的回响、领唱都按它算）、领唱 `lead_mult 0.5 → 0.3`、歌声 `song_atk 0.15 → 0.18`；其余不变。
     她当队友时占全队的伤害会再降（sks 云端 13–17% → 预计 10% 上下），胜率提升更多来自歌声；当主控时单人输出降一截（声浪 ×0.67、领唱 ×0.4），靠歌声 +18% 与 S2 / S3 加在她自己身上补一部分。定档看 §测试「再推辅助一档」的云端批。
+16. **S3 地面大漩涡换 Codex 帧条**（10-12，docs/66，素材 b49d0047 `fx_skalter_vortex_floor` 8 帧 320×176 10fps 循环，`art/incoming/skalter_vortex_handoff.md`）：
+    S3 `verb.mode` 加一条 `hold` 帧条——`layer: ground`（地砖之上、溟痕 / Boss 地面预警 / 掉落之下，不盖危险提示）、中心 = 歌域中心（主控）、
+    `fit 160 × scale 0.62`（每个 1x 像素 = 漩涡外半径 / 160，外半径 = 歌域 × 0.62，同原程序漩涡，跟着歌域 buff 变）、`max_scale 2.0625`（外半径封顶 330，同程序版 `max_r`）、透明度 0.5、tint 略压红、进出 0.45 秒淡入淡出；
+    原程序漩涡（40 条流线）改成 `if_tex: "!fx_skalter_vortex_floor"`，只在缺图时画（回退）；有图时另画一条只有光点 + 淡中心光的漩涡（`n: 0`、40 个光点、区域边线照旧压到 0.4）。贴身 `_back / _front` 不变。
+    「外半径」按 docs/66 §2.1 的算例（240–330 → 每 1x 像素 1.5–2 世界像素）取漩涡外半径；按整个歌域（× 1）放大时后期歌域 500+，帧条铺出画面、只看得到中心留空的那一圈（实测截图后改）。
 
 ## 测试
 

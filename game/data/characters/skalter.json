@@ -75,7 +75,9 @@
    {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", "scale": 1.1, "tint": [0.8, 1.0, 0.95, 0.45]}], "do": [
     {"verb": "mode", "zone_mult": "$s3_aura",
      "fx": [{"strip": "fx_skalter_s3_back", "layer": "behind", "anchor": [48, 84], "tint": [0.8, 0.98, 0.92, 0.55]}, {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84], "tint": [0.8, 0.98, 0.92, 0.45]},
-      {"vortex": {"r": 0.62, "max_r": 330, "n": 40, "a": 0.6, "acc_n": 6, "acc_a": 0.6, "motes": 50, "mote_a": 0.85, "glow": 0.16, "glow_r": 0.3, "fill": 0.08, "spin": 0.7, "drift": 0.12, "len": 1.1, "curl": 0.6, "w": 2.0, "halo": 3.5, "halo_a": 0.25, "ring": 0.4}, "layer": "floor"}]},
+      {"strip": "fx_skalter_vortex_floor", "hold": true, "layer": "ground", "fit": 160, "scale": 0.62, "max_scale": 2.0625, "fade": 0.45, "tint": [0.92, 0.98, 0.98, 0.5]},
+      {"vortex": {"r": 0.62, "max_r": 330, "n": 40, "a": 0.6, "acc_n": 6, "acc_a": 0.6, "motes": 50, "mote_a": 0.85, "glow": 0.16, "glow_r": 0.3, "fill": 0.08, "spin": 0.7, "drift": 0.12, "len": 1.1, "curl": 0.6, "w": 2.0, "halo": 3.5, "halo_a": 0.25, "ring": 0.4}, "layer": "floor", "if_tex": "!fx_skalter_vortex_floor"},
+      {"vortex": {"r": 0.62, "max_r": 330, "n": 0, "acc_n": 0, "motes": 40, "mote_a": 0.7, "glow": 0.1, "glow_r": 0.22, "fill": 0.0, "spin": 0.5, "ring": 0.4}, "layer": "floor", "fade": 0.45, "if_tex": "fx_skalter_vortex_floor"}]},
     {"aura": "atk", "value": "$s3_atk", "scope": "squad", "power": true},
     {"verb": "heal", "pct": "$s3_heal", "every": 1.0, "power": true, "src": "浊心斯卡蒂"},
     {"verb": "lamp", "per_sec": "-$s3_lamp_drain", "cond": "lamp >= $talent_dark"},

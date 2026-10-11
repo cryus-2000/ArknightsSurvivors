@@ -53,7 +53,11 @@ modulate 透明度约 0.5、略压蓝；S3 生效期间循环，开关 0.4–0.5
 `skalter_vortex_manifest.json`（每条：帧数、fps、帧尺寸、1x / @2x 原点、色板）、`skalter_vortex_handoff.md`、预览 GIF（深色地面底 + 50% 透明度合成，另附一张 100% 的）。
 自检：首尾帧无缝、所有像素 alpha 只有 0 / 255、帧尺寸与原点一致、中心留空。
 
-## 5. 现状（程序版，接入前的缺省）
+## 4.1 接入（10-12）
+
+Codex 素材 b49d0047 已接：docs/61 §10 第 16 条（`hold` 帧条 + `ground` 层 + `if_tex` 回退，通用字段见 docs/61 §5.6）。截图 / 录像 `build/skalter_vortex/`。可选的 `fx_skalter_motes` 没交，继续用程序光点。
+
+## 5. 现状（程序版，接入前的缺省；10-12 起只作缺图回退）
 
 `game/data/characters/skalter.json`：S3 `verb.mode` 的 fx 里一条 `vortex`（外半径 = 歌域 × 0.62，封顶 330；40 条流线含 6 条暗红、50 个光点、软边 halo），
 常驻歌域光环上一条更淡的 `vortex`（16 条、S3 期间让位）。画法与参数见 docs/61 §5.6「程序漩涡」；对照图 `build/skalter_fx/ref_compare.png`，录像 `build/skalter_fx/skalter_fx_v2.mp4`。

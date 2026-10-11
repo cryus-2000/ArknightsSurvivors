@@ -299,7 +299,7 @@ func _sustain(dt: float) -> void:
 			_fxt[u] = OB.fx_tick(self, b.fx, zone_c(), zr, _fxt.get(u, []), dt)
 			if OB.fx_has_body(b.fx):
 				if not _fxb.has(u) or float(_fxb[u].fade) >= 0.0:
-					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0, "fl": OB.FX_VORTEX_FADE if OB.fx_has_vortex(b.fx) else OB.FX_BODY_FADE}
+					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0, "fl": OB.fx_hold_out(b.fx)}
 				else:
 					_fxb[u].el += dt
 	for u in _fxt.keys():
@@ -453,6 +453,7 @@ func draw_auras() -> void:
 	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
 	cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_hold_strips(cv, "floor")
 	_draw_vortex(cv, "floor")
 	for u in _state:
 		var st = _state[u]
@@ -474,12 +475,10 @@ func draw_body() -> void:
 
 func _draw_body_fx(front: bool) -> void:
 	for u in _fxb:
-		var e: Dictionary = _fxb[u]
-		var al: float = 1.0 if float(e.fade) < 0.0 else clampf(float(e.fade) / OB.FX_BODY_FADE, 0.0, 1.0)
-		OB.fx_body(cv, self, e.b.fx, float(e.el), al, front)
+		OB.fx_body(cv, self, _fxb[u], front)
 
 
-## 程序漩涡（docs/61 §5.6 vortex）：floor 层在 draw_auras（人物下面）、add 层在 draw_fx_add；生效后 0.5 秒淡入、退出 FX_VORTEX_FADE 秒淡出
+## 程序漩涡（docs/61 §5.6 vortex）：floor 层在 draw_auras（人物下面）、add 层在 draw_fx_add；进出淡入淡出按条目 fade（缺省 0.5 秒淡入、FX_VORTEX_FADE 秒淡出）
 func _draw_vortex(sink, layer: String) -> void:
 	if pos == Vector2.INF or g.perf_alt:   # g.perf_alt：--perfab 同局轮换量漩涡开 / 关的净成本（/b 桶不画；正常游戏恒为 false）
 		return
@@ -487,10 +486,20 @@ func _draw_vortex(sink, layer: String) -> void:
 		var e: Dictionary = _fxb[u]
 		if not OB.fx_has_vortex(e.b.fx):
 			continue
-		var al: float = clampf(float(e.el) / 0.5, 0.0, 1.0)
-		if float(e.fade) >= 0.0:
-			al *= clampf(float(e.fade) / OB.FX_VORTEX_FADE, 0.0, 1.0)
-		OB.fx_vortex(sink, self, e, layer, al, zone_c(), zr)
+		OB.fx_vortex(sink, self, e, layer, 1.0, zone_c(), zr)
+
+
+## 常驻跟随帧条（docs/61 §5.6 hold: true，10-12 加）：ground 层在 draw_ground_fx（地砖之上、溟痕 / 地面预警之下）、floor 层在 draw_auras、add 层在 draw_fx_add
+func _draw_hold_strips(ci, layer: String) -> void:
+	if pos == Vector2.INF:
+		return
+	for u in _fxb:
+		OB.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), zr)
+
+
+## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
+func draw_ground_fx() -> void:
+	_draw_hold_strips(cv, "ground")
 
 
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
@@ -507,6 +516,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
+	_draw_hold_strips(ci, "add")
 	_draw_vortex(ci, "add")
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
