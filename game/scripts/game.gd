@@ -1499,6 +1499,7 @@ const V6_FRAMES := {
 	# ansimuz 爆炸与魔法合集（tools/fx_import.py 'dir' 模式，2026-09-26）
 	# docs/54 §6 事件特效帧条（tools/gen_fx_strips.py，程序生成；有图用图、没图走原程序画法）
 	"fx_beacon_ignite": [8, 16.0], "fx_ember": [4, 8.0], "fx_mire_dissolve": [6, 8.0], "fx_levelup_pillar": [6, 12.0], "fx_elite_spawn": [6, 6.7],
+	"fx_merchant_lantern": [4, 0.0],   # 商人灯笼覆盖帧（tools/gen_merchant_lantern.py）：[商人帧 × 2 + 亮]，手动选帧
 	"fx_flames": [7, 12.0], "fx_fire_aura": [13, 18.0], "fx_splash_blue": [9, 18.0],
 	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
 	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留

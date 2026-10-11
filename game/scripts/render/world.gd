@@ -123,6 +123,8 @@ func update_visuals(dt: float) -> void:
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
 	g.vfx.watch_merchant(rd)    # docs/54 ⑧ 商人出现 + 灯笼暖尘
+	if g.merchant_light != null and g.merchant_light.visible and g.vfx.strip("fx_merchant_lantern"):
+		g.merchant_light.energy = 1.2 if g.vfx.lantern_bright() else 1.0   # 灯光能量随灯笼覆盖帧一起抖
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.get_viewport_rect().size)
 	_enemy_act_fx()
@@ -296,7 +298,10 @@ func _draw_warns_auras() -> void:
 		var big_m: bool = mtx != null and mtx.get_height() >= 40
 		g.vfx.spr("shadow", 1, 0, g.merchant.pos + Vector2(0, 18), Game.PX * (1.6 if big_m else 1.2))
 		if big_m:
-			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos + Vector2(0, 18), Game.PX, g.ppos.x < g.merchant.pos.x, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
+			var mfr: int = int(g.t * 2.0) % 2
+			var mflip: bool = g.ppos.x < g.merchant.pos.x
+			g.vfx.spr("merchant", 2, mfr, g.merchant.pos + Vector2(0, 18), Game.PX, mflip, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
+			g.vfx.merchant_lantern(mfr, g.merchant.pos + Vector2(0, 18), mflip)   # 灯笼亮度闪烁覆盖帧（docs/54 §6；贴图不在就不画）
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
@@ -1015,11 +1020,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
 func _draw_tells_outlines() -> void:
 	draw_enemy_tells()
-	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；无贴图批，一次提交）
+	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
 		var elr: Rect2 = view_rect(120.0)
 		for e in g.enemies:
-			if e.elite and not e.boss and e.age < 0.9 and elr.has_point(e.pos):
+			if e.elite and not e.boss and elr.has_point(e.pos) and g.vfx.elite_entrance_due(e):
 				g.vfx.elite_entrance(e)
 		tb_flush()
 	draw_leader_ailments()
