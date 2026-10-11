@@ -206,6 +206,8 @@ func _ready() -> void:
 		for a in Cfg.dev_args():
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
+			if a.begins_with("--opartk="):
+				op_art_k = float(a.substr(9))
 		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/opmotion")
 		op_motion = t
 	if Cfg.dev_args().has("--opshot"):
@@ -225,6 +227,8 @@ func _ready() -> void:
 				_op_follow(true)
 			if a.begins_with("--optab="):
 				op_tab = clampi(int(a.substr(8)), 0, 2)
+			if a.begins_with("--opartk="):
+				op_art_k = float(a.substr(9))
 			if a.begins_with("--opskill="):
 				op_skill = clampi(int(a.substr(10)), 0, 2)
 			if a.begins_with("--opfilter="):
@@ -942,6 +946,10 @@ const OP_TABS := ["属性", "技能", "编队"]
 const OP_TAB_EN := ["STATUS", "SKILL", "SQUAD"]
 const OP_STAGE := ["招募", "精英一", "精英二"]
 const OP_FADE := 0.12
+## 立绘倍数（相对 @2x 像素的整数倍，最近邻）：桌面设计稿用它，手机按 0.6 倍；原定稿 5（10-11 用户：「干员大小可以缩小点」→ 4）。
+## 描边英文名、外晕、脚底位置都按它和 5 的比例联动；--opartk=<k> 截图时临时覆盖（比较方案用）
+const OP_ART_K := 4.0
+var op_art_k := OP_ART_K
 const OP_DESK := Vector2(1280, 720)
 const OP_PHONE := Vector2(740, 360)
 var op_filter := ""              # 职业筛选（"" = 全部）
@@ -1566,7 +1574,7 @@ func _op_char(od: Dictionary, foot: Vector2, k2: float) -> void:
 	var cut := floorf(bb.size.y * 0.72)
 	if od.sil != null:
 		var gsrc := Rect2(src.position, Vector2(src.size.x, cut))
-		for ring in [4.0, 8.0, 12.0]:
+		for ring in [4.0 * k2 / 5.0, 8.0 * k2 / 5.0, 12.0 * k2 / 5.0]:
 			for d in 8:
 				var dv: Vector2 = Vector2.from_angle(TAU * d / 8.0) * ring
 				draw_texture_rect_region(od.sil, Rect2(pos + dv, Vector2(sz.x, cut * k)), gsrc, Color(150 / 255.0, 220 / 255.0, 240 / 255.0, (0.03 if ring < 6.0 else 0.018) * a))
@@ -1628,8 +1636,10 @@ func _op_draw_desk(od: Dictionary) -> void:
 	var col: Color = od.col
 	var d: Dictionary = od.def
 	_op_band(H, 0.0, 1.0, col)
-	UI.ghost_name(self, font, Vector2(380, 78), od.en, _op_name_frac(), 150)
-	_op_char(od, Vector2(760, 580), 5.0)
+	# 立绘缩小时：脚底略上提、描边英文名同比缩小并下移，仍压在立绘上半身后面
+	var ar := op_art_k / 5.0
+	UI.ghost_name(self, font, Vector2(380 + (1.0 - ar) * 60.0, 78 + (1.0 - ar) * 150.0), od.en, _op_name_frac(), int(round(150 * (0.5 + 0.5 * ar))))
+	_op_char(od, Vector2(760, 580 - (1.0 - ar) * 40.0), op_art_k)
 	# 顶栏：节点标签条式标题 + 说明 + 难度 / 封面标签 + 返回
 	draw_rect(Rect2(0, 0, W, 54), Color(4 / 255.0, 8 / 255.0, 18 / 255.0, 0.55))
 	_op_hline(54.5, W)
@@ -1760,8 +1770,9 @@ func _op_draw_phone(od: Dictionary) -> void:
 	var H := OP_PHONE.y
 	var col: Color = od.col
 	_op_band(H, -150.0, 0.6, col)
-	UI.ghost_name(self, font, Vector2(150, 40), od.en, _op_name_frac(), 90, Color(0.745, 0.824, 1.0, 0.18), 2)
-	_op_char(od, Vector2(380, 312), 3.0)
+	var ar := op_art_k / 5.0
+	UI.ghost_name(self, font, Vector2(150 + (1.0 - ar) * 40.0, 40 + (1.0 - ar) * 70.0), od.en, _op_name_frac(), int(round(90 * (0.5 + 0.5 * ar))), Color(0.745, 0.824, 1.0, 0.18), 2)
+	_op_char(od, Vector2(380, 312 - (1.0 - ar) * 16.0), op_art_k * 0.6)
 	UI.rbox(self, Rect2(8, 6, 142, 22), 3, UI.VIOLET)
 	UI.text_at(self, font, Vector2(16, 17), "更换封面干员" if cover_pick else "选择开局干员", 13, Color.WHITE, "lm")
 	var back := Rect2(W - 66, 6, 56, 22)
