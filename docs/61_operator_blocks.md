@@ -283,10 +283,10 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     「单体 14 · 群体不设上限」在大群里就是全场最高输出。改为 `atk 6`、`s3_mult 2.0` 后 8 / 12（67%，见 §测试）。云端 56 局 × 6 批（§测试「强度测试结果」）三档主控 73 / 70 / 48%、合计 64%，胜率在区间内；
     但当队友时她拿全队 42–74% 的伤害、开局干员占比被压低 10–20 个百分点——「辅助」实际是主输出。
 12. **辅助向（用户 10-11「改成辅助向」，取代第 11 条）**：她当队友时伤害占比目标 20–30%，开局干员占比回到不带她的水平；她给的胜率提升主要来自歌域里的增益，不来自她自己的声浪。原作对应：浊心斯卡蒂是给友军加攻击 + 持续回复的吟游者，S3 自损换全队大幅攻击。
-    - 声浪 `atk 6 → 5`，`max_n 12`（`wave_n`，打圈内最近 12 个，Boss / 精英优先）；「潮汐和声」「深海的回响」也只打 12 个。S3 不再放大声浪（删 `s3_mult`，`verb.mode` 只留 `zone_mult`）。
-    - **领唱**（新，特性）：她自己当主控时，每次声浪再放一圈**不设上限**的声浪（`trig.every_n n 1` + `cond is_leader`，`lead_mult 1.2`，同记「声浪」）——单人开局在招到人之前不能只剩 12 个目标的输出。当队友时没有这一圈。
-    - 增益（受益者 = 歌域内干员，含她自己与主控；`scope in_zone`）：特性「歌声」攻击 +12%（`song_atk`，新）；S1 加攻速 +25%（`s1_aspd`，新，乘技能强度）；S2 攻击 +15%（`s2_atk`，新）+ 攻速 +15%（不变），深海猎人 0.15 → 0.25；
-      S3 全队攻击 0.5 → 0.8，昏暗时不再「声浪 ×1.5」，改为全队攻击再 +30%（`s3_dark_atk`）；天赋昏暗「声浪 +50%」改为歌域内攻击 +10%（`dark_atk`）；深海猎人每人 0.04 → 0.08（最多 3 人）；节点 2「潮声渐强」从「声浪 ×1.15」改为歌域内攻击 +10%（`aura.atk`）。
+    - 声浪 `atk 6`，`max_n 16`（`wave_n`，打圈内最近 16 个，Boss / 精英优先）；「潮汐和声」「深海的回响」也只打 16 个。（第一版 atk 5 / 12 个，云端后上调，见 §测试「辅助向云端结果」）S3 不再放大声浪（删 `s3_mult`，`verb.mode` 只留 `zone_mult`）。
+    - **领唱**（新，特性）：她自己当主控时，每次声浪再放一圈**不设上限**的声浪（`trig.every_n n 1` + `cond is_leader`，`lead_mult 0.5`，同记「声浪」；第一版 1.2 主控偏强）——单人开局在招到人之前不能只剩 12 个目标的输出。当队友时没有这一圈。
+    - 增益（受益者 = 歌域内干员，含她自己与主控；`scope in_zone`）：特性「歌声」攻击 +15%（`song_atk`，新）；S1 加攻速 +25%（`s1_aspd`，新，乘技能强度）；S2 攻击 +15%（`s2_atk`，新）+ 攻速 +15%（不变），深海猎人 0.15 → 0.25；
+      S3 全队攻击 0.5 → 1.0，昏暗时不再「声浪 ×1.5」，改为全队攻击再 +30%（`s3_dark_atk`）；天赋昏暗「声浪 +50%」改为歌域内攻击 +10%（`dark_atk`）；深海猎人每人 0.04 → 0.08（最多 3 人）；节点 2「潮声渐强」从「声浪 ×1.15」改为歌域内攻击 +10%（`aura.atk`）。
     - 灯火代价不变：S3 灯火每秒 -2，昏暗时不扣；S1 受击灯火流失减半不变。治疗数值不变。
 
 ## 测试
@@ -425,6 +425,54 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 判定：主控三档各 50–70；队友局她占全队 20–30%、开局干员占比不低于同提交 starts；队友合计胜率比同提交 starts 高、但不超过 70 太多（每格 8 局只看合计）。
 旋钮：她占比偏低 → `wave_n` / `atk`；队伍提升偏大 → `s3_atk`（0.8）、`song_atk`（0.12）；单人主控偏弱 → `lead_mult`（1.2），偏强同理往回收（只影响主控局，不动队友口径）。
+
+### 辅助向云端结果（10-11，`sks-*` 九批，底 70843079：atk 5、max_n 12、领唱 1.2）
+
+口径同上：超时算负；对照 = 同一提交的 starts（seed 1–8），队友差值在同一个底上算。
+
+| 档 | 主控（56 局） | 同提交 starts 对照 | 队友 合计（56 局） | 她占全队（队友局） | 开局干员占比 带她 / 不带 | 判定 |
+|---|---|---|---|---|---|---|
+| 标准·高手 | **44 / 56 = 79%**（死亡 1 / 3 / 5 / 2：<6 / 6–7 / 8–9 / 10+；击杀 6792；等级 26.9；她占 55%） | 41 / 56 = 73% | 36 / 56 = 64%（−9） | 16.7% | 42.6% / 38.4% | 主控超上沿；队友占比低、队伍不升反降 |
+| Ⅳ·熟练 | **49 / 56 = 88%**（0 / 3 / 3 / 1；7289；27.6；53%） | 39 / 56 = 70% | 37 / 56 = 66%（−4） | 15.7% | 44.5% / 35.5% | 主控明显超；同上 |
+| Ⅷ·熟练 | **33 / 56 = 59%**（3 / 12 / 7 / 0；6520；25.5；57%） | **28 / 56 = 50%** | 34 / 56 = 61%（+11） | 13.2% | 44.7% / 37.9% | 主控、队友都在区间 |
+
+- 主控局她占全队 53–57%（几乎全是「声浪」，含领唱圈），队友局只占 13–17%：辅助向的结构成立，开局干员占比在三档都高于同提交 starts（只有艾雅法拉标准档 55% 对 58% 略低）。
+- 队友局按开局干员看（8 局一格，只作参考）：标准 凯尔希 4 → 8、铃兰 6 → 1；Ⅳ 斯卡蒂 7 → 4；Ⅷ 维什戴尔 / 艾雅法拉 / 塞雷娅 / 铃兰各 +2。铃兰 + 她（两名辅助、只剩 1 个招募位）在标准 / Ⅳ 最差。
+- **Ⅷ 基线**（docs/56 §9 的担心：585aa4bc 上 Ⅷ 熟练缺省 44.6%）：同提交 `sks-base-t2` 28 / 56 = **50%**，在区间下沿；标准 73%、Ⅳ 70% 在上沿或略超。
+
+**调数（e267737b）**：主控偏强靠领唱，队友偏弱靠占比——两头分开动：
+- 她自己的声浪 `atk 5 → 6`、`wave_n 12 → 16`（队友局占比往 20–30 推）；
+- 领唱 `lead_mult 1.2 → 0.5`（只影响她当主控，先 0.6 冒烟后再收一档）；
+- 增益往上给一点让队友局提升回到正数：歌声 `song_atk 0.12 → 0.15`、S3 `s3_atk 0.8 → 1.0`（这两项也作用于她自己当主控，所以领唱多收了 0.1）。
+
+本机冒烟（atk 6、wave_n 16、领唱 0.6，其余同 70843079；seed 与云端同号，作同 seed 对比）：
+
+| | 主控 标准 seed 1–24 | 主控 Ⅳ seed 1–24 | 主控 Ⅷ seed 1–24 | 队友 标准 seed 1–4（28 局） | 队友 Ⅳ seed 1–4（28 局） |
+|---|---|---|---|---|---|
+| 云端 70843079 同 seed | 18 / 24 | 20 / 24 | 17 / 24 | 她占 16.7%（seed 1–8） | 15.7%（seed 1–8） |
+| 冒烟 | 18 / 24（75%） | 16 / 24（67%） | 16 / 24（67%） | 20 / 28（对照 21 / 28）；**她占 25.1%**；开局干员 38.7%（对照 38.6%） | 17 / 28（对照 18 / 28）；**她占 22.6%**；开局干员 40.1%（对照 37.5%） |
+
+占比进了 20–30；主控标准档还在 75% 左右，所以最终再把领唱收到 0.5、同时把歌声 / S3 往上给（上面最后一条）。这一版没有在本机跑（10-11 起本机冒烟每次不超过约 6 局，批量走云端）。
+
+**接正式美术（fb82bcd6）**：攻击条 fps 14 → 12 让普攻出手晚 0.03 秒、技能出手早 0.08 秒，普攻间隔不变，对胜率的影响远小于本轮调数，一并在下面的确认轮里看。
+**老干员同 seed 不变**：对 main 6010d3aa（`game/` + `art/` 同版本），维什戴尔 + 铃兰 + 塞雷娅 seed 1、斯卡蒂 + 推进之王 + 凯尔希 seed 2、艾雅法拉 `--norecruit` seed 3，`--trace=1`、10:00：TRACE **逐行相同**（BALANCE 只差 `wall` 等计时字段，main 对 main 自比也一样）。
+快检全量（fb82bcd6，`--jobs 4`）46 项 rc=0；合入 6010d3aa 后 `--only core` rc=0。
+
+**确认轮（云端，底 = wip/skalter-tune 当前提交）**：
+
+```bash
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot expert --seeds 56 --seed0 1 --out build/cloud/sk3-lead-t0 --tag sk3-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 1 --out build/cloud/sk3-lead-t1 --tag sk3-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 1 --out build/cloud/sk3-lead-t2 --tag sk3-lead-t2 --extra="--maxt=1000 --tier=2"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/sk3-mate-t0 --tag sk3-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 1 --out build/cloud/sk3-mate-t1 --tag sk3-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 1 --out build/cloud/sk3-mate-t2 --tag sk3-mate-t2 --extra="--maxt=1000 --tier=2"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/sk3-base-t0 --tag sk3-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/sk3-base-t1 --tag sk3-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/sk3-base-t2 --tag sk3-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定同上一节。已知风险：标准 / Ⅳ 的同提交基线本身就在 70 上下，「队友合计高于基线又不远超 70」在这两档几乎没有空间，以 Ⅷ 的提升和占比为主看；主控标准档若仍 > 72%，再收 `lead_mult` 0.5 → 0.4。
 
 ### 老干员同 seed 不变（10-11，对 main 71c078d5，`--trace=1`，10:00）
 
