@@ -7,6 +7,7 @@ extends "res://scripts/characters/op_api.gd"
 
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
+const OpBlocks = preload("res://scripts/characters/op_blocks.gd")   # 数据干员的积木校验（docs/61）
 
 var def: Dictionary = {}   # 角色定义（JSON）
 var id := ""
@@ -65,7 +66,7 @@ static func list_ids() -> Array:
 
 
 static func load_def(cid: String) -> Dictionary:
-	var f := FileAccess.open("res://data/characters/%s.json" % cid, FileAccess.READ)
+	var f := FileAccess.open(def_path(cid), FileAccess.READ)
 	if f == null:
 		push_error("character def missing: " + cid)
 		return {"id": cid}
@@ -73,10 +74,32 @@ static func load_def(cid: String) -> Dictionary:
 	return d if d is Dictionary else {"id": cid}
 
 
-## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd）
+## 测试专用干员（docs/61 §测试）：不在 data/characters/ 里（不进名单 / 招募池 / 图鉴），只能用 --op=<id> 指名加载
+const TEST_OPS_DIR := "res://tests/data_ops/"
+
+
+## 干员定义文件：data/characters/<id>.json；没有时找测试专用干员
+static func def_path(cid: String) -> String:
+	var p := "res://data/characters/%s.json" % cid
+	if not FileAccess.file_exists(p) and FileAccess.file_exists(TEST_OPS_DIR + cid + ".json"):
+		return TEST_OPS_DIR + cid + ".json"
+	return p
+
+
+## 能按 id 加载（正式名单 + 测试专用干员）
+static func exists(cid: String) -> bool:
+	return cid != "" and FileAccess.file_exists(def_path(cid))
+
+
+## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd；
+## 有 blocks 而没写 script 的是数据干员，用 data_operator.gd，docs/61）。
+## 测试开关 --opscript=<id>=<脚本路径>：同一个 id 改用别的脚本加载（积木等价测试用手写参照，tools/check.py blocks_eq）
 static func create(game, cid: String) -> RefCounted:
 	var d := load_def(cid)
-	var path: String = d.get("script", "res://scripts/characters/%s.gd" % cid)
+	var path: String = d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--opscript=%s=" % cid):
+			path = a.substr(("--opscript=%s=" % cid).length())
 	var scr = load(path)
 	if scr == null:
 		push_error("character script missing: " + path)
@@ -123,6 +146,13 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 		elif n.type == "elite" and not n.has("level"):
 			push_error("干员 %s 的精英化节点 %d 缺 level" % [cid, i])
 			ok = false
+	var fac = d.get("faction", [])
+	if not (fac is Array) or fac.any(func(x): return not (x is String) or x == ""):
+		push_error("干员 %s 的 faction 必须是字符串数组" % cid)
+		ok = false
+	# 数据干员（docs/61 §8）：积木名、参数、$ 引用、伤害来源、节点对应
+	if d.has("blocks") and not OpBlocks.validate(cid, d):
+		ok = false
 	return ok
 
 

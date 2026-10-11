@@ -3,6 +3,7 @@
  "name": "归溟幽灵鲨",
  "en": "SPECTER THE UNCHAINED",
  "class": "特种",
+ "faction": ["深海猎人"],
  "col": [
   0.75,
   0.85,

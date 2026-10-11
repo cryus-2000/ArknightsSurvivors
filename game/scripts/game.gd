@@ -544,7 +544,7 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
-	if not Character.list_ids().has(Cfg.character_id):
+	if not Character.exists(Cfg.character_id):   # 正式名单 + 测试专用干员（docs/61 §测试，tests/data_ops）
 		Cfg.character_id = "mizuki"
 	A.mark("map+doctor")
 	ch = squad.add(demo_op if demo_op != "" else (str(trial.config.operator) if trial.active else Cfg.character_id))

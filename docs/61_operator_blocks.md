@@ -80,14 +80,15 @@
 |---|---|---|
 | `sp.auto` | `skills[i].sp` | ✅ 现状（character.gd `tick_sp`） |
 | `sp.on_attack` / `sp.on_hurt` | `skills[i].sp_type: "attack" / "hurt"` | 📝 |
-| `dur.instant / timed / permanent / next_n` | `blocks.skills[i].dur` | ✅ |
+| `dur.instant / timed / permanent` | `blocks.skills[i].dur` | ✅ |
+| `dur.next_n` | `{"next_attacks": N}` + `attack_patch` | 📝（13 人里最常见的 S1 写法，迁移现有干员时第一个补） |
 | `dur.ammo` | `{"ammo": N}` | 📝 |
 | `cast.auto` / `cast.manual` | `skills[i].mode`（`aim` 📝） | ✅（手动走 character.gd `cast_manual → start_skill`，数据干员无需另写） |
 | `cast.passive` | `dur: "permanent"` + `skills[i].sp: 0` | 📝 |
 
 时序（与手写干员相同）：充满 → `start_skill`（扣技力、播技能帧条、`permanent` 在这里置 `perm[i]`）→ 出手帧 `_release_skill`：
 执行 `do` 里的**瞬时**积木一次，**常驻**积木从这一刻起生效到持续结束（`permanent` 永久）；生效期间不充能（`skill_active_left`）。
-`dur.next_n`：`skill_pending(i)` 为真，`attack_patch` 叠到接下来 N 次普攻上，打完为止。
+`dur.next_n`（📝）：`skill_pending(i)` 为真，`attack_patch` 叠到接下来 N 次普攻上，打完为止。
 
 ## 3. 形状 `shape.*`（每次出手打到谁）与区域
 
@@ -130,7 +131,7 @@
 | `trig.every_n` | `trig/on_hit {count_every}` | `n`、`delay`（秒） | ✅ 每第 n 次普攻出手，`delay` 秒后执行 `do` |
 | `trig.tick` | `trig/tick` | `every`、`cond` | ✅ 条件成立时计时，满 `every` 秒执行一次（条件不成立时计时清零） |
 | `trig.on_kill` | `trig/on_kill` | `filter: any / elite / boss` | ✅（`on_kill(e)` 分发；只算本干员的击杀不区分，同手写干员） |
-| `trig.on_skill_start` | `trig/on_skill_start` | `skill`（0 起） | ✅ 该技能出手帧 |
+| `trig.on_skill_start` | `trig/on_skill_start` | `skill`（0 起） | 📝 |
 | `trig.on_hurt` | `trig/on_damage_taken` | `chance, min_pct, cd` | 📝（要 `dmg_taken_mult` 挂点） |
 | `trig.on_leader_dash` / `trig.on_deploy` | 同名 | | 📝 |
 
@@ -171,7 +172,7 @@
 |---|---|---|---|
 | `st.stun` | 瞬时（命中时） | `dur`（精英 ×0.5，Boss 不受） | ✅ |
 | `st.slow` | 瞬时（命中时） | `dur`（减速状态，敌人 `slow` 计时） | ✅ |
-| `st.fragile` | 瞬时（命中时） | `value`（敌人 `aura_weak`，同名取最高） | ✅ |
+| `st.fragile` | 瞬时（命中时） | `value`（敌人 `aura_weak`，同名取最高） | 📝 |
 | `st.slow_soft` | 常驻 | `pct`、`scope: in_zone`、`boss`（缺省 false） | ✅ 新：不是减速状态、不与 `st.slow` 叠——每帧把区域内非 Boss 敌人这一帧的位移退回 `pct`（含被击退的位移）。docs/59 §1 天赋「移速 -10%」 |
 | `st.airborne` / `st.bind` / `st.weightless` / `st.dot` / `st.mark` | | docs/60 第 29–31 条 | 📝 |
 
@@ -199,10 +200,10 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 |---|---|
 | `_init` | 读 `blocks`，表达式解析成数字、条件解析成元组（§1.2 / §1.3） |
 | `update(dt)` | 技能计时 → 延迟队列（`every_n delay`）→ 常驻积木（属性重建、`verb.heal every`、`verb.lamp per_sec`、`trig.tick`、`st.slow_soft`、`shape.orbit`）→ `charge_skills` 起手 → 普攻起手 |
-| `_release()` | 执行普攻形状（叠 `next_n` 的 `attack_patch`），然后 `trig.every_n` 计数 |
-| `_release_skill()` | 执行 `blocks.skills[cur_skill]`：开计时 / 永久、瞬时积木、`trig.on_skill_start` |
-| `skill_active_left / skill_active_dur / skill_pending` | 来自技能计时与 `next_n` |
-| `on_kill(e)` | `trig.on_kill` |
+| `_release()` | 执行普攻形状，然后 `trig.every_n` 计数 |
+| `_release_skill()` | 执行 `blocks.skills[cur_skill]`：开计时 / 永久、瞬时积木 |
+| `skill_active_left / skill_active_dur` | 来自技能计时 |
+| `on_kill(e)` | `trig.on_kill`（`center: target` 的形状落在被击杀的敌人处） |
 | `on_custom_node(id)` / `on_elite(stage)` | 记下已选节点（`nodes_taken`，字符串，成长节点测试能看到「当场有变化」） |
 | `_swing_radius()` | 普攻形状半径（机器人走位用） |
 | `draw_auras()` | 区域椭圆（灯火 ≥70 / <30 / 其他三种色）+ `shape.orbit` 判定点 |

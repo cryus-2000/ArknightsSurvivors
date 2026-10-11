@@ -3,6 +3,7 @@
  "name": "乌尔比安",
  "en": "ULPIANUS",
  "class": "近卫",
+ "faction": ["深海猎人"],
  "col": [
   0.45,
   0.7,

@@ -1,0 +1,92 @@
+{
+ "_doc": "积木等价测试专用干员（docs/61 §测试）：不在 data/characters/，不进名单 / 招募池 / 图鉴。数据版用 data_operator.gd 执行 blocks；手写参照 tests/data_ops/eqtest_hand.gd 读同一份 base（--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd）。两边同 seed 的 TRACE / BALANCE 必须逐字节相同（tools/check.py blocks_eq）。",
+ "id": "eqtest",
+ "name": "积木等价测试",
+ "en": "BLOCK EQUIVALENCE TEST",
+ "class": "辅助",
+ "col": [0.45, 0.8, 1.0],
+ "faction": [],
+ "recruitable": false,
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "atk": 16, "cd": 0.9, "aura": 170, "heal_pct": 0.004, "heal_cd": 2.0, "kill_heal": 0.002,
+  "s1_dur": 4.0, "s1_zone": 1.3, "s1_heal": 0.01, "s1_loss": 0.5, "s1_sp": 0.1,
+  "s2_zone": 0.25, "s2_aspd": 0.12, "s2_dmg": 0.2,
+  "s3_dur": 8.0, "s3_mult": 2.5, "s3_atk": 0.3, "s3_drain": 1.5, "s3_cone_r": 320, "s3_cone_deg": 60, "s3_cone_mult": 3.0, "s3_stun": 0.6,
+  "bright": 70, "dark": 30, "bright_zone": 0.15, "dark_mult": 1.4, "dark_slow": 0.1, "mate_atk": 0.03, "mate_cap": 3,
+  "n1_zone": 1.15, "n2_dmg": 1.15, "echo_n": 3, "echo_delay": 0.2, "echo_mult": 0.5, "res_mult": 0.3, "res_slow": 0.5,
+  "orb_n": 4, "orb_speed": 0.9, "orb_hit": 18, "orb_kb": 100, "orb_cd": 0.5, "orb_mult": 0.2
+ },
+ "leader": {"max_hp": 100, "armor": 1.0, "arts_res": 0.1, "regen": 1.0},
+ "sprites": {
+  "idle": {"tex": "op_skadi_idle", "frames": 4, "fps": 4, "foot": [22, 46]},
+  "run": {"tex": "op_skadi_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "attack": {"tex": "op_skadi_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 2},
+  "skill": {"tex": "op_skadi_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 4},
+  "size": 48, "foot": [24, 46]
+ },
+ "attack": {"mode": "auto", "name": "测试脉冲", "desc": "以主控为中心的范围脉冲"},
+ "skills": [
+  {"name": "测试一", "en": "T1", "sp": 6, "dur": 4.0, "desc": "区域 ×1.3、每秒回复、受击灯火流失减半、全队技力 +10%"},
+  {"name": "测试二", "en": "T2", "sp": 14, "permanent": true, "desc": "永久：区域 +25%、区域内攻速 +12%、伤害 +20%"},
+  {"name": "测试三", "en": "T3", "sp": 20, "dur": 8.0, "desc": "8 秒：伤害 ×2.5、全队攻击 +30%、灯火流失；起手前方扇形重击并眩晕"}
+ ],
+ "talent": {"name": "测试天赋", "desc": "灯火高区域变大，灯火低伤害变高并软减速；深海猎人队友加攻"},
+ "hit_sources": {
+  "测试脉冲": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["area", "basic"]},
+  "测试回声": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["area", "follow_up"]},
+  "测试共鸣": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["area", "skill", "dot"]},
+  "测试斩": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill"]},
+  "测试音符": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["basic", "control"]}
+ },
+ "progression": [
+  {"type": "custom", "id": "n1", "name": "测试节点一", "desc": "区域 ×1.15"},
+  {"type": "custom", "id": "n2", "name": "测试节点二", "desc": "伤害 ×1.15"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能与天赋"},
+  {"type": "custom", "id": "echo", "name": "测试回声", "desc": "每第 3 次脉冲 0.2 秒后回声"},
+  {"type": "custom", "id": "res", "name": "测试共鸣", "desc": "一技能期间每秒共鸣伤害并减速"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能；区域边缘 4 个绕行音符"}
+ ],
+ "gallery": {"tags": ["测试"], "desc": "积木等价测试"},
+ "blocks": {
+  "zone": {"center": "leader", "r": "$aura"},
+  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "src": "测试脉冲", "tags": ["basic"]},
+  "trait": [
+   {"trig": "passive", "do": [{"verb": "heal", "pct": "$heal_pct", "every": "$heal_cd", "cond": "in_zone:leader"}]},
+   {"trig": "on_kill", "filter": "elite", "do": [{"verb": "heal", "pct": "$kill_heal"}]}
+  ],
+  "skills": [
+   {"dur": "$s1_dur", "do": [
+    {"verb": "buff_self", "stat": "zone", "op": "mult", "value": "$s1_zone"},
+    {"verb": "heal", "pct": "$s1_heal", "every": 1.0, "power": true},
+    {"verb": "lamp", "loss_mult": "$s1_loss"},
+    {"verb": "sp_team", "pct": "$s1_sp"}]},
+   {"dur": "permanent", "do": [
+    {"verb": "buff_self", "stat": "zone", "op": "add", "value": "$s2_zone"},
+    {"aura": "aspd", "value": "$s2_aspd", "scope": "in_zone", "power": true},
+    {"verb": "buff_self", "stat": "dmg", "op": "add", "value": "$s2_dmg"}]},
+   {"dur": "$s3_dur", "do": [
+    {"verb": "mode", "dmg_mult": "$s3_mult", "power": true},
+    {"aura": "atk", "value": "$s3_atk", "scope": "squad", "power": true},
+    {"verb": "lamp", "per_sec": "-$s3_drain", "cond": "lamp >= $dark"},
+    {"shape": "cone", "r": "$s3_cone_r", "half_deg": "$s3_cone_deg", "mult": "$s3_cone_mult", "src": "测试斩", "tags": ["skill"], "power": true,
+     "on_hit": [{"st": "stun", "dur": "$s3_stun"}]}]}
+  ],
+  "talent": [
+   {"trig": "passive", "cond": "lamp >= $bright", "do": [{"verb": "buff_self", "stat": "zone", "op": "add", "value": "$bright_zone"}]},
+   {"trig": "passive", "cond": "lamp < $dark", "do": [
+    {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$dark_mult"},
+    {"st": "slow_soft", "pct": "$dark_slow", "scope": "in_zone"}]},
+   {"trig": "passive", "do": [{"aura": "atk", "value": "$mate_atk", "per": "faction:深海猎人", "cap": "$mate_cap", "scope": "in_zone"}]}
+  ],
+  "progression": {
+   "n1": {"verb": "buff_self", "stat": "zone", "op": "mult", "value": "$n1_zone"},
+   "n2": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_dmg"},
+   "echo": {"trig": "every_n", "n": "$echo_n", "delay": "$echo_delay", "do": [
+    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "src": "测试回声", "tags": ["follow_up"]}]},
+   "res": {"trig": "tick", "every": 1.0, "cond": "skill_active:0", "do": [
+    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$res_mult", "src": "测试共鸣", "tags": ["skill", "dot"], "on_hit": [{"st": "slow", "dur": "$res_slow"}]}]},
+   "elite2": {"shape": "orbit", "n": "$orb_n", "r": "zone", "speed": "$orb_speed", "hit_r": "$orb_hit", "kb": "$orb_kb", "cd": "$orb_cd", "mult": "$orb_mult", "src": "测试音符", "tags": ["basic"]}
+  }
+ }
+}

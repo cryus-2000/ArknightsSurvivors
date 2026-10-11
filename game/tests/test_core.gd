@@ -244,6 +244,23 @@ func test_squad_contract() -> void:
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a", "mode": "manual"}, {"name": "b"}, {"name": "c", "mode": "manual"}]}), "干员 2 个 manual 技能不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {"mode": "auto"}, "skills": [{"name": "a"}, {"name": "b", "mode": "toggle"}, {"name": "c"}]}), "非法技能 mode 不通过")
 	ok(not Ch.validate_operator("bad", {"attack": {}, "skills": [{"name": "a"}, {"name": "b"}, {"name": "c"}], "progression": [{"type": "elite"}]}), "elite 节点缺 level 不通过")
+	# 数据干员的积木校验（docs/61 §8）：等价测试干员通过；改坏一处就不通过
+	var eq: Dictionary = Ch.load_def("eqtest")
+	ok(eq.has("blocks") and Ch.validate_operator("eqtest", eq), "积木等价测试干员 eqtest 通过校验")
+	var bads := {
+		"不认识的积木": func(d): d.blocks.skills[0].do[0]["verb"] = "lamb",
+		"已登记未实现": func(d): d.blocks.skills[0].do.append({"shape": "chain", "src": "测试脉冲"}),
+		"$ 引用不在 base": func(d): d.blocks.skills[0].do[0]["value"] = "$nope",
+		"伤害来源没登记": func(d): d.blocks.attack["src"] = "没登记",
+		"常驻积木放进触发器": func(d): d.blocks.progression.echo.do.append({"verb": "buff_self", "stat": "zone", "op": "add", "value": 0.1}),
+		"permanent 不对应": func(d): d.blocks.skills[1]["dur"] = 0,
+		"条件写错": func(d): d.blocks.talent[0]["cond"] = "lamp ~ 3",
+		"custom 节点没积木": func(d): d.blocks.progression.erase("res"),
+	}
+	for why in bads:
+		var d2: Dictionary = eq.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("eqtest", d2), "积木校验应拒绝：" + why)
 
 
 ## 干员语音（audio/voice，tools/voice_ogg.py）：清单里每条都有 OGG、能加载、不循环、时长和母带一致；
