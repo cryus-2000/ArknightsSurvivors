@@ -894,9 +894,10 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 | 积木 | 类 | 参数 | 说明 |
 |---|---|---|---|
-| `shape.projectile` | 普攻 / 瞬时 | `every`（普攻）、`range`、`speed`、`shots`（1–12）、`spread_deg`、`pierce`、`kb`、`mult`、`elite_prio`、`focus_boss`、`fan`、`burst` / `burst_gap`、`tex`、`muzzle [x, y]`、`muzzle_fx`、`src`、`on_hit` | 自推进弹体（不追踪），命中走 `log_hit + deal_damage`，乘 `vs_elite`。子弹数 = `shots ×` 属性 `op_shots`（只对普攻）。各发独立索敌：候选 = `aim_targets`（自动 = 最近、保留 Boss 优先；手动 = B 类瞄准锥），按「距离 ÷ 精英优先度」再按 id 取前 n 个，目标不够时多出的子弹按 ±`spread_deg` 逐级错开；`focus_boss: true` = 头号目标是 Boss 时全部子弹打它；`fan: true` = 朝最近目标的扇形均布；`kb` 沿弹道击退（精英 ×0.3、Boss 不受，同 `melee_hit`）。枪口 = 脚底 + (`x × 朝向`, `y`)，瞄准 / 判定点 = 敌人脚底上方 10 |
+| `shape.projectile` | 普攻 / 瞬时 | `every`（普攻）、`range`、`speed`、`shots`（1–12）、`spread_deg`、`pierce`、`kb`、`mult`、`elite_prio`、`focus_boss`、`fan`、`burst` / `burst_gap`、`tex`、`muzzle [x, y]`、`muzzle_fx`、`hit_fx`、`src`、`on_hit` | 自推进弹体（不追踪），命中走 `log_hit + deal_damage`，乘 `vs_elite`。子弹数 = `shots ×` 属性 `op_shots`（只对普攻）。各发独立索敌：候选 = `aim_targets`（自动 = 最近、保留 Boss 优先；手动 = B 类瞄准锥），按「距离 ÷ 精英优先度」再按 id 取前 n 个，目标不够时多出的子弹按 ±`spread_deg` 逐级错开；`focus_boss: true` = 头号目标是 Boss 时全部子弹打它；`fan: true` = 朝最近目标的扇形均布；`kb` 沿弹道击退（精英 ×0.3、Boss 不受，同 `melee_hit`）。枪口 = 脚底 + (`x × 朝向`, `y`)，瞄准 / 判定点 = 敌人脚底上方 10 |
 | 外壳 `dur: {"ammo": N}` | — | `ammo` | 次数型（docs/61 §2 的 📝 `dur.ammo`）：出手帧装填 N 发，配 `attack_patch` 时普攻**每发子弹**扣 1 发、按补丁射，打完为止；HUD 环显示剩余 / 总数，装填期间不充能 |
-| 技能 `attack_patch` | — | `mult`、`range_mult`（相乘）、`power`（取或）、`pierce`、`src`、`tags`、`tex`、`burst`、`burst_gap`、`elite_prio`、`spread_deg`、`focus_boss`、`kb`、`last_on_hit`、`muzzle_fx`（覆盖） | 技能生效期间（持续型 / 永久型）或有余弹时（次数型）改普攻弹道；`burst` > 1 时一次射击连射几轮，`last_on_hit` 只挂在最后一轮 |
+| 技能 `attack_patch` | — | `mult`、`range_mult`（相乘）、`power`（取或）、`pierce`、`src`、`tags`、`tex`、`burst`、`burst_gap`、`elite_prio`、`spread_deg`、`focus_boss`、`kb`、`last_on_hit`、`muzzle_fx`、`hit_fx`（覆盖） | 技能生效期间（持续型 / 永久型）或有余弹时（次数型）改普攻弹道；`burst` > 1 时一次射击连射几轮，`last_on_hit` 只挂在最后一轮。只写画面字段（`tex` / `muzzle_fx` / `hit_fx`）的补丁只换颜色、不动结算（能天使 S2） |
+| 画面字段 `tex` / `muzzle_fx` / `hit_fx` | — | 帧条名 | 弹体（`proj_` 开头）/ 枪口焰 / 命中火花（`fx_` 开头），小写字母、数字、下划线（`_exu_fx_ok` 校验；帧条须在 `game.gd V6_FRAMES` 登记，`exusiai_blocks` 场景测试逐个查）。缺省 = 普攻的 `tex`、`fx_exusiai_muzzle`、`fx_exusiai_hit`。次数型补丁逐发合并，枪口焰跟这次射击的第一发走；跳弹继承母弹的 `tex` / `hit_fx`。弹体锚点在 `EXU_TEX_ANCHOR`（新弹体帧条要登记锚点，否则居中）。纯画面，不进结算、不碰 `g.rng` |
 | 技能 `end` | — | 瞬时积木列表 | 持续型技能计时归零那一帧执行一次 |
 | `trig.on_attack` | 触发 | `counter`、`need`（缺省 = 该计数器当前上限）、`replace`（缺省 true）、`reset`（缺省 true）、`do` | 普攻出手时计数器 ≥ need：执行 `do`、清零，并换掉这一次普攻 |
 | `verb.counter` | 瞬时 | `name`、`add`、`add_lit`（目标点在主控灯光半径内时用它代替 `add`）、`cap`、`set`、`own`（true = 只算本干员的击杀，看 `g.hit.op`）、`label`（状态条显示名） | 命名计数器 |
@@ -914,10 +915,11 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 ### 14.2 能天使的数据表达
 
 - 普攻「速射」：`shape.projectile`，`every $cd`（0.35）、`range 300`、`speed 520`、`shots 1`、`pierce 2`、`kb 30`、`spread 8°`、精英优先度 1.2、`focus_boss`、枪口 (+30, −35)（docs/64 §5.2 返修后的出手帧，@2x 像素 = 世界像素）；`atk 13`。
-- S1「冲锋模式」：`dur {"ammo": 6}` + `attack_patch {mult 1.8, pierce 3, src 冲锋模式, 金色弹体, power}`。
+- S1「冲锋模式」：`dur {"ammo": 6}` + `attack_patch {mult 1.8, pierce 3, src 冲锋模式, 冰青弹体 / 枪口焰 / 命中（10-12 前是金色强力弹）, power}`。
 - S2「扫射模式」：8 秒 `verb.mode {interval_mult $s2_cd/$cd, dmg_mult 0.9}`，`end: verb.attack_lock 1.0`（过热）。
 - S3「过载模式」：10 秒 `attack_patch {burst 4, burst_gap 0.06, mult 0.8, range_mult 1.2, elite_prio 99, src 过载模式, power, last_on_hit: st.pause 0.2}`。
-- 天赋「快速弹匣」：`trig.on_kill → verb.counter mag {own, add 1, add_lit 2, cap 8}`；`trig.on_attack {counter mag} → shape.projectile {shots 8, fan, ±25°, pierce 1, ×1.0, src 弹夹倾泻, 金色弹体与枪口焰}`。弹匣满时枪口挂一点金光，状态条显示「弹匣 n/上限」「冲锋模式 ×n」「过热」。
+- 天赋「快速弹匣」：`trig.on_kill → verb.counter mag {own, add 1, add_lit 2, cap 8}`；`trig.on_attack {counter mag} → shape.projectile {shots 8, fan, ±25°, pierce 1, ×1.0, src 弹夹倾泻, 金色弹体、枪口焰与命中火花}`。
+- **弹药颜色**（10-12，docs/25 §6.1）：速射红（原样）、S1 冰青（`attack_patch.tex / muzzle_fx / hit_fx` = `*_s1`，强力弹形状）、S2 琥珀橙（S2 新加只有这三个画面字段的 `attack_patch`）、S3 过热白、倾泻金。同 seed TRACE 与改前逐行相同。弹匣满时枪口挂一点金光，状态条显示「弹匣 n/上限」「冲锋模式 ×n」「过热」。
 - 成长（顺序：双枪 → 高压弹 → 精英一 → 延长弹道 → 跳弹 → 精英二）：双枪 `buff_self op_shots +1`；高压弹 `buff_self dmg ×1.15`；延长弹道 `buff_self op_range +0.15`；跳弹 `verb.ricochet {0.4, 120, 0.5}`；精英二 `trig.passive {op_shots +1, counter_cap mag 12}`。
 - 接入登记：`balance.json operators.exusiai`（S，atk +0.03、skill_power +0.03）、`lore.json`、`tools/balance_run.py OPS` 与预设 `exusiai_mate`、`sfx.gd OP_ALT` 借音（普攻 ← 维什戴尔普攻 ×1.9 −6 dB，命中 ← 艾丽妮命中，S1 ← 艾丽妮 S1，S2 / S3 ← 维什戴尔 S2 / S3，弹匣倾泻 big ← 维什戴尔 big）、`check.py` 场景回归 `exusiai_blocks`。选人页 / 图鉴 / 招募池按 JSON 自动列入（基础池）。
 

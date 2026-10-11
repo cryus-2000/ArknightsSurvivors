@@ -2,7 +2,8 @@ extends Node
 ## 能天使积木（docs/61 §14）的局内单元测试：godot --headless --path game res://tests/exusiai_blocks_test.tscn -- --regression --balance --seed=1 --op=exusiai
 ## 把 game.tscn 当子节点跑起来，第 5 帧冻结主场景，直接调积木执行器逐条检查：校验正反例、子弹数（op_shots）、弹体命中、
 ## 次数型 S1（dur.ammo + attack_patch）、弹匣（verb.counter + trig.on_attack）、精英二改上限（verb.counter_cap）、
-## S2 结束过热（end + verb.attack_lock）、S3 连射（burst + last_on_hit 的 st.pause）、跳弹节点、没有跳弹时不碰 g.rng、老数据干员不受影响。
+## S2 结束过热（end + verb.attack_lock）、S3 连射（burst + last_on_hit 的 st.pause）、跳弹节点、没有跳弹时不碰 g.rng、老数据干员不受影响、
+## 各模式的弹药颜色（tex / muzzle_fx / hit_fx，docs/25 §6.1）与帧条登记。
 ## 全部通过时打印 "EXUSIAI BLOCKS failures=0"。
 
 const OB = preload("res://scripts/characters/op_blocks.gd")
@@ -89,11 +90,31 @@ func test_validate() -> void:
 		"子弹数超出夹紧": func(x): x.blocks.attack["shots"] = 40,
 		"attack_patch 配瞬发技能": func(x): x.blocks.skills[2]["dur"] = 0,
 		"muzzle 写错": func(x): x.blocks.attack["muzzle"] = [30],
+		"attack_patch.tex 不是帧条名": func(x): x.blocks.skills[1].attack_patch["tex"] = 3,
+		"hit_fx 前缀不对": func(x): x.blocks.attack["hit_fx"] = "proj_exusiai_bullet",
 	}
 	for why in bads:
 		var d2: Dictionary = d.duplicate(true)
 		bads[why].call(d2)
 		ok(not Ch.validate_operator("exusiai", d2), "积木校验应拒绝：" + why)
+	# 弹药颜色：JSON 里写到的帧条都在 V6_FRAMES 登记、贴图读得到
+	var names: Array = []
+	var blks: Array = [d.blocks.attack] + d.blocks.talent[1].do
+	for sk in d.blocks.skills:
+		if sk.has("attack_patch"):
+			blks.append(sk.attack_patch)
+	for b in blks:
+		for k in ["tex", "muzzle_fx", "hit_fx"]:
+			if b.has(k):
+				names.append(str(b[k]))
+	ok(names.size() == 13, "JSON 写了 13 处弹药帧条（实际 %d）" % names.size())
+	for nm in names:
+		ok(game.V6_FRAMES.has(nm) and game.tex.get(nm) != null, "帧条已登记且读得到：" + nm)
+
+
+## 最近一次 spawn_fx_sprite 播的帧条名（枪口焰）
+func last_fx() -> String:
+	return str(game.fx[-1].get("name", "")) if not game.fx.is_empty() else ""
 
 
 # ---------------------------------------------------------------- 运行时
@@ -112,6 +133,7 @@ func test_runtime(o) -> void:
 	OB.exu_fire(o, a)
 	ok(st.bul.size() == 1, "基础 1 发（实际 %d）" % st.bul.size())
 	ok(str(st.bul[0].src) == "速射", "普攻子弹来源 = 速射")
+	ok(str(st.bul[0].tex) == "proj_exusiai_bullet" and str(st.bul[0].hfx) == "fx_exusiai_hit" and last_fx() == "fx_exusiai_muzzle", "普攻：红弹体 / 红命中 / 红枪口焰")
 	var mz: Vector2 = o.pos + Vector2(30, -35)
 	ok(st.bul[0].p.distance_to(mz) < 0.01, "子弹从枪口出（脚底 +30, −35）")
 	var d_basic: float = st.bul[0].dmg
@@ -146,7 +168,8 @@ func test_runtime(o) -> void:
 	if not st.bul.is_empty():
 		ok(str(st.bul[0].src) == "冲锋模式" and int(st.bul[0].pierce) == int(o.base("s1_pierce", -1.0)), "强力弹：来源冲锋模式、穿透 s1_pierce")
 		near(st.bul[0].dmg / d_basic, 1.8 * o.skill_power(), "强力弹伤害 ×1.8 × 技能强度")
-		ok(str(st.bul[0].tex) == "proj_exusiai_bullet_power", "强力弹换金色弹体帧条")
+		ok(str(st.bul[0].tex) == "proj_exusiai_bullet_s1" and str(st.bul[0].hfx) == "fx_exusiai_hit_s1", "强力弹换冰青弹体与命中")
+		ok(last_fx() == "fx_exusiai_muzzle_s1", "次数型补丁的枪口焰跟第一发走：冰青（实际 %s）" % last_fx())
 	st.ammo[0] = 0
 	st.bul.clear()
 	# 4. 弹匣：精一后击杀 +1，灯光里 +2，别人的击杀不算；满 8 下一次射击换成 8 发扇形倾泻并清空
@@ -165,6 +188,7 @@ func test_runtime(o) -> void:
 	OB.exu_fire(o, a)
 	ok(st.bul.size() == 8, "弹匣满：倾泻 8 发（实际 %d）" % st.bul.size())
 	ok(st.bul.all(func(b): return str(b.src) == "弹夹倾泻" and int(b.pierce) == 1), "倾泻：来源弹夹倾泻、穿透 1，不再另射普攻")
+	ok(st.bul.all(func(b): return str(b.tex) == "proj_exusiai_bullet_power" and str(b.hfx) == "fx_exusiai_hit_gold") and last_fx() == "fx_exusiai_muzzle_gold", "倾泻：金弹体 / 金命中 / 金枪口焰")
 	near(float(st.cnt.get("mag", -1.0)), 0.0, "倾泻后弹匣清空")
 	if st.bul.size() == 8:
 		var spread: float = absf(st.bul[0].v.angle() - st.bul[7].v.angle())
@@ -184,6 +208,11 @@ func test_runtime(o) -> void:
 	near(o.s_t[1], 8.0, "S2 持续 8 秒")
 	o._sustain(0.0)
 	near(float(o.loc.interval), 0.20 / 0.35, "S2 射击间隔 0.35 → 0.20", 0.0001)
+	st.bul.clear()
+	OB.exu_fire(o, a)
+	ok(not st.bul.is_empty() and st.bul.all(func(b): return str(b.tex) == "proj_exusiai_bullet_s2" and str(b.hfx) == "fx_exusiai_hit_s2" and str(b.src) == "速射"), "S2：琥珀橙弹体 / 命中，来源仍是速射")
+	ok(last_fx() == "fx_exusiai_muzzle_s2", "S2 枪口焰琥珀橙")
+	st.bul.clear()
 	OB.exu_tick(o, 0.0)
 	o.s_t[1] = 0.0
 	OB.exu_tick(o, 0.0)
@@ -202,6 +231,7 @@ func test_runtime(o) -> void:
 	ok(st.burst.size() == 1 and int(st.burst[0].left) == 3, "S3 连射队列还剩 3 轮")
 	if per > 0:
 		ok(str(st.bul[0].src) == "过载模式", "S3 子弹来源 = 过载模式")
+		ok(str(st.bul[0].tex) == "proj_exusiai_bullet_s3" and str(st.bul[0].hfx) == "fx_exusiai_hit_s3" and last_fx() == "fx_exusiai_muzzle_s3", "S3：过热白弹体 / 命中 / 枪口焰")
 		ok(st.bul[0].on_hit.is_empty(), "前几轮不带停顿")
 	var sv: Array = st.bul.duplicate()
 	st.bul.clear()

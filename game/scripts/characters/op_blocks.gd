@@ -2264,12 +2264,15 @@ static func tx_draw_pfx(o, f: Dictionary, a: float) -> bool:
 
 const EXU_IMPL := {"shape": ["projectile"], "verb": ["counter", "counter_cap", "attack_lock", "ricochet"], "st": ["pause"], "trig": ["on_attack"]}
 const EXU_SKILL_KEYS := ["attack_patch", "end"]
-const EXU_PATCH_KEYS := ["mult", "pierce", "src", "tags", "tex", "power", "burst", "burst_gap", "range_mult", "elite_prio", "last_on_hit", "muzzle_fx", "spread_deg", "focus_boss", "kb"]
+const EXU_PATCH_KEYS := ["mult", "pierce", "src", "tags", "tex", "power", "burst", "burst_gap", "range_mult", "elite_prio", "last_on_hit", "muzzle_fx", "spread_deg", "focus_boss", "kb", "hit_fx"]
 const EXU_BULLET_MAX := 96            # 同时在场的弹体上限（docs/59 §4：上限约 36 发/秒 × 寿命 0.7 秒）
 const EXU_AIM_Y := -10.0              # 瞄准 / 判定点：敌人脚底往上 10（身体中段）
 const EXU_HIT_PAD := 6.0              # 判定半径 = 敌人半径 + 6
 ## 弹体帧条的弹头锚点（docs/25 §6，1x 像素；@2x 自动 ×2）
-const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4)}
+const EXU_TEX_ANCHOR := {"proj_exusiai_bullet": Vector2(12, 3), "proj_exusiai_bullet_power": Vector2(15, 4),
+	"proj_exusiai_bullet_s1": Vector2(15, 4), "proj_exusiai_bullet_s2": Vector2(12, 3), "proj_exusiai_bullet_s3": Vector2(12, 3)}   # 技能弹药换色帧条（docs/25 §6.1）同源帧条的锚点
+## 画面帧条字段（tex 弹体 / muzzle_fx 枪口焰 / hit_fx 命中火花）：纯画面，不进结算；缺省 = 能天使的普攻那一套
+const EXU_FX_KEYS := {"tex": "proj_", "muzzle_fx": "fx_", "hit_fx": "fx_"}
 const EXU_ART = preload("res://scripts/art.gd")
 
 
@@ -2444,11 +2447,14 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 	var sp: float = deg_to_rad(float(p.get("spread_deg", 0.0)))
 	var speed: float = maxf(60.0, float(p.get("speed", 520.0)))
 	var ap: Array = _exu_ammo_patch(o) if main else [-1, {}]
+	var mfx: String = str(p.get("muzzle_fx", "fx_exusiai_muzzle"))
 	for k in n:
 		var q := p
 		if ap[0] >= 0 and int(st.ammo[ap[0]]) > 0:
 			q = _exu_merge(p, ap[1])
 			st.ammo[ap[0]] = int(st.ammo[ap[0]]) - 1
+			if k == 0:
+				mfx = str(q.get("muzzle_fx", mfx))   # 次数型技能的补丁是逐发合并的：枪口焰跟第一发子弹走（冲锋模式的青色焰）
 		var dir: Vector2
 		if fan:
 			dir = d0.rotated(lerpf(-sp, sp, float(k) / float(n - 1)) if n > 1 else 0.0)
@@ -2466,8 +2472,8 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			oh = oh + q.last_on_hit
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
-				"tags": q.get("tags", []), "pierce": int(q.get("pierce", 0)), "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": str(q.get("tex", "")), "on_hit": oh, "ric": true})
-	o.spawn_fx_sprite(str(p.get("muzzle_fx", "fx_exusiai_muzzle")), mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
+				"tags": q.get("tags", []), "pierce": int(q.get("pierce", 0)), "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": str(q.get("tex", "")), "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true})
+	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 
 
 ## 每帧（data_operator.update 在常驻积木之后调）：技能结束 → end；普攻锁；连射队列；弹体推进与命中
@@ -2525,7 +2531,7 @@ static func _exu_bullets(o, dt: float) -> void:
 			for s in bu.on_hit:
 				apply_status(o, e, s)
 			o._sfx_op("hit")
-			o.spawn_fx_sprite("fx_exusiai_hit", e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
+			o.spawn_fx_sprite(str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
 			if bu.ric and not ric.is_empty() and g.rng.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
@@ -2533,7 +2539,7 @@ static func _exu_bullets(o, dt: float) -> void:
 					var spd: float = bu.v.length()
 					spawn.append({"p": from, "v": (nx.pos + Vector2(0, EXU_AIM_Y) - from).normalized() * spd, "life": float(ric.get("r", 120.0)) * 1.4 / spd,
 						"dmg": bu.dmg * float(ric.get("mult", 0.5)), "src": str(ric.get("src", "")), "tags": [], "pierce": 0, "hit": {e.id: true},
-						"tex": bu.tex, "on_hit": [], "ric": false})
+						"tex": bu.tex, "hfx": bu.get("hfx", "fx_exusiai_hit"), "on_hit": [], "ric": false})
 			if bu.pierce > 0:
 				bu.pierce -= 1
 			else:
@@ -2693,6 +2699,7 @@ static func _exu_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "burst_gap", p, ctx, false, 0.02, 1.0)
 			_num(b, "elite_prio", p, ctx, false, 1.0, 100.0)
 			_exu_muzzle_ok(b, p, ctx)
+			_exu_fx_ok(b, p, ctx)
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"verb.counter":
@@ -2730,6 +2737,17 @@ static func _exu_muzzle_ok(b: Dictionary, p: String, ctx: Dictionary) -> void:
 		ctx.errs.append(p + ".muzzle 应是 [x, y]（脚底为原点、朝右、世界像素）")
 
 
+## tex / muzzle_fx / hit_fx：帧条名（小写字母、数字、下划线，tex 以 proj_ 开头、另两个以 fx_ 开头）；帧条要在 game.gd V6_FRAMES 登记（exusiai_blocks 场景测试查）
+static func _exu_fx_ok(b: Dictionary, p: String, ctx: Dictionary) -> void:
+	for k in EXU_FX_KEYS:
+		if not b.has(k):
+			continue
+		var v = b[k]
+		var re := RegEx.create_from_string("^[a-z0-9_]+$")
+		if not (v is String) or not str(v).begins_with(EXU_FX_KEYS[k]) or re.search(str(v)) == null:
+			ctx.errs.append("%s.%s 应是帧条名（%s…，小写字母 / 数字 / 下划线）" % [p, k, EXU_FX_KEYS[k]])
+
+
 ## dur.ammo：{"ammo": N}，次数型（与 permanent 互斥）
 static func _exu_dur(dv: Dictionary, p: String, perm_json: bool, i: int, ctx: Dictionary) -> void:
 	if perm_json:
@@ -2760,6 +2778,7 @@ static func _exu_skill(sb: Dictionary, p: String, ctx: Dictionary, atk_shape := 
 			_num(ap, "burst_gap", p + ".attack_patch", ctx, false, 0.02, 1.0)
 			_num(ap, "elite_prio", p + ".attack_patch", ctx, false, 1.0, 100.0)
 			_num(ap, "spread_deg", p + ".attack_patch", ctx, false, 0.0, 90.0)
+			_exu_fx_ok(ap, p + ".attack_patch", ctx)
 			if ap.has("src"):
 				_src(ap, p + ".attack_patch", ctx, true)
 			_list(ap.get("last_on_hit", []), p + ".attack_patch.last_on_hit", "on_hit", ctx)
