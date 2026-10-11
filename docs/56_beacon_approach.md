@@ -1,4 +1,4 @@
-# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关；§6 28 局筛：D 过线进 112 局；§7 112 局 + 标准高手白给检查：D 过判定，已定为缺省；§8 接力环原型，缺省关；§9 56 局 A/B：R / R2 都不过线，缺省仍关）
+# 56 · 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关；§6 28 局筛：D 过线进 112 局；§7 112 局 + 标准高手白给检查：D 过判定，已定为缺省；§8 接力环原型，缺省关；§9 56 局 A/B：R / R2 都不过线，缺省仍关；§10 灯边硬直原型，缺省关，云端 A/B 待发）
 
 > 背景：圈内安全（docs/49g 候选 e）已三档全开（7dd0af7），把「进了圈被杂兵远程逼出来」修掉了，但整体点燃率只到 22–28%。
 > 刷新距离 A/B（docs/38 §8.12 灯标段）112 局不显著，距离这条已到头。瓶颈记为「灯标附近、走过去这段路上的危险」，本稿给机制级候选。
@@ -277,3 +277,43 @@ python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset star
 - 真人侧：接力环的「圈边也在充」对真人可能比对机器人更有用（真人会主动贴边），但机器人测不出、难度也没动，可作为 EA 问卷项（docs/52 已有「走过去太危险」一问）的备选，不占缺省。
 - 下一层（§8 判定的最后一句）：edge 的瓶颈是「圈边 70–140 px 站不住」，接力环证明了站住就能点（进圈后点燃率 +7 点、relay_p ≥ 0.5 的 18 座），缺的是站住的时间。候选按成本：① 近战杂兵对读条中主控的预警进圈硬直 / 迟滞（要动 `enemies.gd` 近战状态机，另开一轮）；② 机器人在灯标 2×r 内对杂兵近战预警的容忍调高（会动 Ⅳ / Ⅷ 熟练基线，要与数值一起重跑基线）。两者都先 28 局筛。
 - 本批工具：解析仍是 scratchpad 一次性 python（在 §7 脚本上加 via / relay_p / maxp / relay_s / keep / band 字段）；下次同格式时沉淀成 `tools/beacon_report.py` 的建议不变。
+
+## 10. 灯边硬直 stagger_r（2026-10-11 原型，用户 10-11 定 §9 下一层 ①；缺省关；云端 A/B 已备好未发）
+
+**对准的问题**：§7 / §9 的 edge——未点燃熄灭里 quit=edge 按出现摊 0.33–0.35 座 / 座，是剩下最大的一块；§9 证明 edge 的主体是「到了圈边（70–140 px）站着没进去」，不是「读了一截被挤出去」（R2 只保持无效、R 慢涨只把 edge 从「一点没读」变成「读一半」）。BDBGC 里 danger 离圈的 73–78% 是杂兵近战预警（tracer 前刺 / reaper 扇形斩 / founder 踏地），出手者以杂兵为主；引路已经把子弹项压到 16%、远程额外招（reaper 镰肢直刺、founder 晶刺突起都是 pierce）在 guide_r 内不起手，剩下没人管的就是近战起手。机器人（和真人）在圈边每被一个近战预警罩住就要躲一步，几只杂兵轮流起手就把人一直推在圈外。
+
+**规则（最小版本）**
+- 主控在**未点燃**灯标 `stagger_r` 内（建议 140 = 2×r，**含圈边 r..2r**）时，非 Boss 敌人「将要起手」的近战预警不出，换成原地**硬直 `stagger_s`**（0.6 秒）：不移动、不出招，该招冷却照扣（相当于这一下白挥）。
+- 覆盖的起手：`enemy_ai` 的咬击（bite）、扇形斩（reap）、前刺（thrust）、触须爆发（lash）、破土咬击（burrow，照常露头但这口不咬）、踏地（stomp）、近战额外招（swipe / pulse，如引痕者尾刃反扫）。**不管**：远程额外招（pierce / volley，归引路 / 圈内安全）、远程射击、冲刺（slider 的 dash 不是预警）、接触伤害、**已经在走的预警**（照常结算）、Boss（含 Boss 的全部招式）。
+- **每只敌人冷却 `stagger_cd`**（5 秒，从硬直那一刻算）：冷却内这只再起手照常出预警。按各招冷却算，引痕者（thrust_cd 3.2）/ 奠基者（stomp_cd 4.5）大约每两下被吃一下，收割者（reap_cd 2.2）每三下吃一下——**不是安全区**，只是把「刚走到圈边就被一只接一只推出去」的头一下吃掉，给人迈进 r 70 的那 0.6 秒加一个起手周期。
+- 为什么含圈边而不是只在读条时（r 内）：§9 的 edge 绝大部分 maxp = 0 或很低、在圈边站着没进；只在 r 内生效对「站在 70–140 被预警逼退、从没进圈」的那部分完全不起作用，等于只修已经修过的「进圈后」（圈内安全已把进圈后点燃率抬到 36–46%）。2×r 正好是 quit=edge 的判定线，也在 guide_r 160 之内，三层由外到内：背光（路上少刷）→ 引路 160（子弹 / 远程）→ 灯边硬直 140（近战起手）。
+- 状态写 `e.bstag`（剩余秒）/ `e.bstag_next`，**不写 `e.stun`**：e.stun 会吃控制时长加成（control_mult），还会触发「对眩晕 / 减速敌人」的干员与藏品加成（艾琳、水月、relic_fx），硬直就从「挡一下」变成「加伤」；单独字段只让 `enemies.gd` 的移动 / 出招判定和眩晕同等对待。接触伤害照旧（和眩晕一样）。
+- 机制对真人和机器人一样生效，**机器人不改**（`bot/beacon_seek_r` 300、`beacon_walk_r` 120、`_stand_ok` 都不动）：机器人只是少看到一批预警。
+- 随机数：一次距离判定 + 一次字段比较，不掷 `g.rng`（光屑走 `g.vrng`）；旋钮 0 时 `beacon_sys.stagger` 恒为空，`enemy_ai._stag` 读一个字段就返回，近战起手路径与改动前一致。
+
+| 旋钮（balance.json beacon 段） | 含义 | 缺省 | 对照用 |
+|---|---|---|---|
+| `beacon/stagger_r` | 主控离未点燃灯标多近时生效；0 = 关 = 现行为 | **0** | S：140 |
+| `beacon/stagger_s` | 硬直秒数 | 0.6 | — |
+| `beacon/stagger_cd` | 同一只敌人两次硬直的最短间隔（秒，从硬直起算） | 5 | — |
+
+- 难度表可按档覆盖：`difficulty/<档>/beacon_stagger_r`、`beacon_stagger_s`、`beacon_stagger_cd`（≥ 0 时优先，同 `beacon_guide_r`）。
+- **画面**：起手被吃的那一下，敌人身上一圈暖色光环 + 4 粒光屑（和子弹被吞的 `eat_fx` 同色，读作「被灯光震住」，走 g.fx / vfx.sparks 现有合批）；硬直期间本体偏蓝、停在本体帧（复用眩晕的着色与停帧），头顶一颗暖色小光点 + 两粒绕转光屑（`world.draw_enemy_tells` 覆盖层，随剩余时间淡出）。敌人画法缓存：`bstag > 0` 的敌人进 `_dc_ok` 排除（走原路径），缓存签名不变。
+- **遥测**：`BEACON lit ... hold_s= stag=N t= mires=`、`BEACON expire ... relay_s= stag=N t= mires=`，N = 这座灯标寿命内被硬直取代的近战起手数（旋钮关时恒 0）。BDBG / BDBGC 不变——看硬直之后 danger 离圈里的 `wsrc` 还剩谁（预期 m:tracer / reaper / founder 的近战 act 降、Boss 不变）。
+- 判 A/B：点燃率（两比例 z）、edge / 出现（A 约 0.33）、每座进圈、进圈后点燃率、BDBGC danger 里 warn 占比与 wsrc 拆分、每座 stag 均值；Ⅷ 胜率 50–70 与同 seed 翻转对称，标准高手 ≤ 70。
+
+**验证（本提交）**
+- prot_test 加 `test_beacon_stagger`（12 条）：stagger_r 0 圈边近战照常出预警；开 140 时圈边起手换成 0.6 秒硬直、不出预警、stag_n +1、冷却照扣；stagger_cd 内同一只再起手照常出预警、过了冷却又能硬直；近战额外招（尾刃反扫）被吃、远程额外招（晶刺突起）不受影响；Boss 起手不被硬直；主控离灯标 200 不生效；灯标点燃后立刻结束；难度表 `beacon_stagger_r 0` 按档关；全程 `g.rng` 状态不变。
+- 快检 `tools/check.py` 44 项全过（rc=0，主控保护 318 条 0 失败；冒烟带 `--dccheck`）。
+- 同 seed 确定性：Ⅷ（--tier=2）master，水月 / 维什戴尔 seed 1，--maxt=420 --trace=1 --bdbg。旋钮关（缺省）对改动前（6823428e，同一目录同一份导入缓存里换入改动后的文件对照）：TRACE 421 / 421、421 / 421 行**逐字节相同**，BEACON / BDBG / BDBGC 去掉新加的 `stag=0` 后逐行相同，BALANCE 除画面峰值 `bot/peak*` 外全部相同（同 docs/55 口径）。注意：工作树目录与临时拷贝目录之间同 seed 本身就会从约第 4 秒分叉（改动前的代码也一样），所以对照必须在同一目录里换文件做。`stagger_r 140` 连跑两次 TRACE / BALANCE 逐字节相同（可复现）；维什戴尔那局 7 次硬直（两座点燃的灯标各 3 / 4 次），与关着的局从第一次硬直起分叉，属预期；`--dccheck` 比对 9494 / 10725 次、0 次不一致。
+
+**云端 A/B（已备好，未发）**：Ⅷ 熟练（master）starts 7 干员 × seed 1–8 = 56 局 / 组，同 seed 配对；A = 现行缺省（引路 160 + 背光 50，接力环关，硬直关）；S = `stagger_r 140`（stagger_s 0.6 / stagger_cd 5 缺省）。标准高手（expert，--tier=0）seed 1–4 = 28 局，A / S 两组做白给检查。本提交改了源文件，旧缓存不命中，A 组要重跑。
+
+```
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/rs-x-A --tag rs-x-A --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=2 --bdbg"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/rs-x-S --tag rs-x-S --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=2 --bdbg --bal=beacon/stagger_r=140"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 4 --seed0 1 --out build/cloud/rs-t0-A --tag rs-t0-A --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=0 --bdbg"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 4 --seed0 1 --out build/cloud/rs-t0-S --tag rs-t0-S --keep=BEACON,BDBG,BDBGC --extra="--maxt=1000 --tier=0 --bdbg --bal=beacon/stagger_r=140"
+```
+
+**判定与回退**：过线 = S 对 A 点燃率 +5 点以上，或 edge / 出现 0.33 → ≤ 0.25；且 Ⅷ 胜率 50–70、翻转对称，标准高手 ≤ 70；过线进 112 局（bd8 式 2 × 56）再定缺省。S 超框（灯边变成喘气点）先把 `stagger_cd 5 → 8`（每只吃得更少），再 `stagger_r 140 → 100`（只留圈边内半），都不给奖励。S 不显著时看 BDBGC：若 danger 离圈里杂兵近战预警占比明显下降而 edge 不降，说明圈边站不住的原因已不是预警（转去看敌人贴近 `enemy` 项 / Boss 在场的 65%），硬直这条到头；若近战预警占比不降，查 `stag` 均值——每座 < 1 说明 140 太小或机器人根本没走到 2×r（看 quit=approach）。§9 的候选 ②（机器人在 2×r 内对杂兵近战预警的容忍调高）仍是备选，但会动 Ⅳ / Ⅷ 熟练基线。

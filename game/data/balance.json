@@ -285,7 +285,11 @@
   "shade_dist": 600,
   "_doc3": "docs/56 §8 接力环（10-11 原型，缺省关）：relay_r 接力环外半径（0 = 关，须 > r 70 才生效）——未点燃灯标的光圈 r 到 relay_r 这一环里，主控在内时进度不退，并按 relay_rate（光圈内读条速度的倍率；0 = 只保持不涨）继续涨，可以在环里点燃；环内不是安全区（safe_* / guide_r 不变）、不影响 Boss、不掷随机数。难度表可用 beacon_relay_r / beacon_relay_rate 按档覆盖",
   "relay_r": 0,
-  "relay_rate": 0.5
+  "relay_rate": 0.5,
+  "_doc4": "docs/56 §10 灯边硬直（10-11 原型，缺省关）：stagger_r（0 = 关）——主控在未点燃灯标 stagger_r 内（建议 140 = 2×r，含圈边）时，非 Boss 敌人新起的近战预警（咬击 / 扇形斩 / 前刺 / 踏地 / 触须爆发 / 破土 / 近战额外招）换成原地硬直 stagger_s 秒（不移动、不出招、该招冷却照扣；不是 e.stun）；每只敌人硬直后 stagger_cd 秒内不再被硬直（期间照常出招）；已在走的预警照常结算、远程招不管、Boss 不受影响、不掷随机数。难度表可用 beacon_stagger_r / beacon_stagger_s / beacon_stagger_cd 按档覆盖",
+  "stagger_r": 0,
+  "stagger_s": 0.6,
+  "stagger_cd": 5
  },
  "squad": {
   "_doc": "编队人数加主控最大生命（docs/46 §6，用户定每人 +15%）",
