@@ -84,6 +84,10 @@ func test_batch_a() -> void:
 	near(rfx.umbrella_interval_mult() / h0, 1.0, "紧急活性剂：满血不加速")
 	game.hp = game.max_hp * 0.3
 	near(rfx.umbrella_interval_mult() / h0, 1.0 / 1.6, "紧急活性剂：30% 生命时攻击间隔 ÷1.6")
+	game.hp = game.max_hp * 0.5
+	near(rfx.umbrella_interval_mult() / h0, 1.0 / 1.6, "紧急活性剂：50% 生命已拿满 ÷1.6（docs/65）")
+	game.hp = game.max_hp * 0.75
+	near(rfx.umbrella_interval_mult() / h0, 1.0 / 1.3, "紧急活性剂：75% 生命 ÷1.3（docs/65）")
 	reset_hp()
 	grant("167")
 	near(game.enemy_kb_mult, 1.6, "锈刃-神力：击退倍率 1.6")
@@ -347,6 +351,28 @@ func test_batch_general() -> void:
 	var rp0: float = game.regen_pct
 	grant("72")
 	near(game.regen_pct - rp0, 0.005, "演出用香水：每秒回复 0.5% 最大生命（regen_pct，docs/65）", 0.0001)
+	# docs/65 第二轮（用户 10-11「剩下的按建议来」）
+	reset_hp()
+	var tk0: float = rfx.taken_mult()
+	grant("126")
+	near(rfx.taken_mult() / tk0, 0.95, "国王的圆饼：满血受伤 ×0.95")
+	game.hp = game.max_hp * 0.65
+	near(rfx.taken_mult() / tk0, 0.7, "国王的圆饼：生命 65%（< 70%）时 ×0.7（docs/65）")
+	reset_hp()
+	grant("105")
+	rfx.tulip_t = 30.0
+	if not game.squad.any_skill_active():
+		near(rfx.tulip_bonus(), 0.3, "黑色郁金香：累计 30 秒 +30%（满额 +60%）")
+	rfx.on_skill_start(null, -1)
+	near(rfx.tulip_t, 30.0, "黑色郁金香：施放技能不清零（docs/65）")
+	var ad0: float = game.stats.value_for(&"arts_dmg", [])
+	grant("67")
+	near(game.stats.value_for(&"arts_dmg", []) - ad0, 0.3, "皇帝的收藏：法术伤害 +30%")
+	grant("68")
+	near(game.stats.value_for(&"arts_dmg", []) - ad0, 0.7, "璀璨悲泣：法术伤害 +40%")
+	var ck0: int = rfx.rule("chest_keys")
+	grant("25")
+	ok(rfx.rule("chest_keys") == ck0 + 2, "万能钥匙：补给箱钥匙 +2")
 	var lv0: int = game.level
 	var pl0: int = game.pending_levelups
 	grant("76")
