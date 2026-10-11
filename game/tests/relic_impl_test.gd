@@ -333,10 +333,20 @@ func test_batch_general() -> void:
 	near(game.lamp_loss_mult, 0.6, "凝固灯油：灯火流失 ×0.6")
 	grant("247")
 	game.lamp = 50.0
-	rfx.tick(60.5)
-	near(game.lamp, 56.0, "地底的灼痕：60 秒未受伤灯火 +6")
+	rfx.tick(14.0)
+	near(game.lamp, 50.0, "地底的灼痕：未满 15 秒不加灯火")
+	rfx.tick(1.5)
+	near(game.lamp, 53.0, "地底的灼痕：每 15 秒未受伤灯火 +3（docs/65）")
 	rfx.on_hurt(false, 1.0)
 	near(rfx.unhurt.get("247", -1.0), 0.0, "地底的灼痕：受伤后重新计时")
+	grant("243")
+	game.lamp = 50.0
+	rfx.on_hurt(false, 1.0)
+	rfx.tick(15.5)
+	near(game.lamp, 59.0, "深蓝之树 + 地底的灼痕：15 秒未受伤灯火 +6 +3（docs/65）")
+	var rp0: float = game.regen_pct
+	grant("72")
+	near(game.regen_pct - rp0, 0.005, "演出用香水：每秒回复 0.5% 最大生命（regen_pct，docs/65）", 0.0001)
 	var lv0: int = game.level
 	var pl0: int = game.pending_levelups
 	grant("76")
