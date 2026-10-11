@@ -5,6 +5,7 @@ extends Node2D
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
@@ -350,6 +351,8 @@ var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 var nav_sel := 0               # 当前焦点卡片（选卡 / 商店共用 panel_box 的下标）
 var res_sel := 0               # 暂停 / 结算按钮焦点
 var kb_nav := false            # 键盘方向键导航过（显示焦点而不是鼠标悬停），鼠标一动就关
+var ui_skip := false            # 本状态的界面动效（暂停表盘 / 失败结算打捞）已被输入跳到终态（docs/62 §2.5）；切状态时清掉
+var _skip_frame := -1            # 跳过动效那一帧：同一帧里随之而来的模拟鼠标 / 手柄注入按键一并吞掉
 var state_age := 0.0           # 进入当前状态的秒数（防止手柄连按把刚弹出的选卡 / 演出直接点掉）
 var _last_state := -1
 
@@ -851,6 +854,7 @@ func view_center() -> Vector2:
 # 主循环
 # =====================================================================
 func _process(delta: float) -> void:
+	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -859,6 +863,7 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 		state_age = 0.0
+		ui_skip = false
 		res_sel = 0
 	else:
 		state_age += delta
@@ -894,8 +899,8 @@ func _process(delta: float) -> void:
 				if state == S.PLAY:
 					_update(dt)
 					simulated_dt += dt
-	if not panel.visible and state != S.SHOW:
-		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
+	if not panel.visible and state != S.SHOW and state != S.PAUSE and state != S.INTRO:
+		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出 / 暂停 / 指南时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	world.update_visuals(simulated_dt if state == S.PLAY else 0.0)
 	_pm("visuals")
@@ -942,6 +947,9 @@ func _input(event: InputEvent) -> void:
 		kb_nav = false
 	if settings.visible:
 		return
+	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
 	if touch.handle(event):
 		get_viewport().set_input_as_handled()
 		return
@@ -983,6 +991,28 @@ func _input(event: InputEvent) -> void:
 				else:
 					intro_screen.next_page()
 		get_viewport().set_input_as_handled()
+
+
+## 招牌动效进行中（docs/62 §2.5）：任意按键 / 点击 / 触屏 = 立即跳到终态，不算操作，下一次输入才算。
+## 选卡（升级发牌翻面 / 藏品光柱 / 招募落地）任意键都跳；暂停表盘、失败结算只有点击 / 触屏 / 确认键跳，Esc 与字母快捷键照常（暂停里 Esc = 继续）。
+## 商人不拦（从第一帧起就能买）。手柄的 Ⓐ 由 Pad 注入成 Enter，走按键这一支
+func _motion_skip(event: InputEvent) -> bool:
+	var press: bool = (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventScreenTouch and event.pressed) \
+		or (event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT))
+	if not press:
+		return false
+	if _skip_frame == Engine.get_process_frames():
+		return true
+	if state == S.CHOICE and panel_ui.motion.running():
+		panel_ui.motion.skip()
+	elif (state == S.PAUSE or state == S.DEAD) and result_screen.motion_running():
+		if event is InputEventKey and not (event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]):
+			return false
+		ui_skip = true
+	else:
+		return false
+	_skip_frame = Engine.get_process_frames()
+	return true
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1511,6 +1541,12 @@ const V6_FRAMES := {
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
+	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
+	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
+	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
+	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
+	"fx_hoshiguma_block": [5, 20.0], "fx_hoshiguma_sand": [4, 8.0], "fx_hoshiguma_demon_slash": [5, 20.0],
+	"fx_texas_dash": [4, 20.0], "fx_texas_blade": [6, 20.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

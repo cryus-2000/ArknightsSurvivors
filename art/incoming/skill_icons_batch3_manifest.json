@@ -1,0 +1,21 @@
+{
+ "tool": "tools/skill_icons_batch3.py",
+ "doc": "docs/59",
+ "ids": [
+  "skill_angelina_s1",
+  "skill_angelina_s2",
+  "skill_angelina_s3",
+  "skill_exusiai_s1",
+  "skill_exusiai_s2",
+  "skill_exusiai_s3",
+  "skill_hoshiguma_s1",
+  "skill_hoshiguma_s2",
+  "skill_hoshiguma_s3",
+  "skill_skalter_s1",
+  "skill_skalter_s2",
+  "skill_skalter_s3",
+  "skill_texas_s1",
+  "skill_texas_s2",
+  "skill_texas_s3"
+ ]
+}

@@ -7,9 +7,11 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Affects = preload("res://scripts/run/affects.gd")
+const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面板的入场动效分派（docs/62 第一批）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
+var motion: CardMotion          # 选卡 / 商人 / 事件面板的入场动效（按种类分派，screens/card_motion.gd）
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
 var ev_bars_h := 0.0           # 事件选项条的总高度（选项条按说明行数加高，提示文字跟在后面）
@@ -39,6 +41,7 @@ func card_h() -> float:
 
 func _init(game: Game) -> void:
 	g = game
+	motion = CardMotion.new(game)
 
 
 ## 卡片是否"被选中"：用手柄 / 方向键时看焦点，否则看鼠标悬停
@@ -212,6 +215,7 @@ func draw_bg() -> void:
 			if not ph:   # 手机：卡片顶到底，没有提示行的位置（点卡片本身就是操作）
 				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+			motion.draw_under(g.panel_fg)   # 藏品光柱（压暗带之上、卡片之下）
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -382,6 +386,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	for c in g.panel_col.get_children():
 		c.queue_free()
 	layout(kind)
+	motion.start(kind, opts)
 	var ev := kind == "event"
 	ev_bars_h = 0.0
 	# 触屏事件条：说明字号在 17 → 13 里取「全部选项条加起来放得进屏幕」的最大一档（桌面 13 → 12 不变）
@@ -472,41 +477,13 @@ func option_description(option: Dictionary) -> String:
 	return description
 
 
+## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
 func animate_cards(dt: float) -> void:
 	if not g.panel.visible:
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
-	var now := Time.get_ticks_msec()
-	var box: BoxContainer = g.panel_col if (g.choice_kind == "event" and g.state == Game.S.CHOICE) else g.panel_box
-	for card in box.get_children():
-		if not card.has_meta("born"):
-			continue
-		var age := (now - int(card.get_meta("born"))) / 1000.0
-		var k := clampf(age / 0.32, 0.0, 1.0)
-		# easeOutBack
-		var c1 := 1.7
-		var e := 1.0 + (c1 + 1.0) * pow(k - 1.0, 3) + c1 * pow(k - 1.0, 2)
-		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
-		var hot := card_hot(card as Button, card.get_index()) and not sold
-		var desc: Label = card.get_meta("desc") if card.has_meta("desc") else null   # get_meta 的默认值给 null 会报错
-		card.modulate.a = clampf(age / 0.2, 0.0, 1.0)
-		if card.has_meta("bar"):
-			# 事件选项条：从右侧滑入，悬停时向左探出一点
-			var lift: float = lerpf(card.get_meta("lift"), -8.0 if hot else 0.0, clampf(dt * 18.0, 0.0, 1.0))
-			card.set_meta("lift", lift)
-			var ox := (1.0 - e) * 80.0 + lift
-			card.set_meta("ox", ox)
-			if desc != null:
-				desc.position.x = float(card.get_meta("dx", 112.0)) + ox
-		else:
-			var lift2: float = lerpf(card.get_meta("lift"), -10.0 if hot else 0.0, clampf(dt * 18.0, 0.0, 1.0))
-			card.set_meta("lift", lift2)
-			var oy := (1.0 - e) * 60.0 + lift2
-			card.set_meta("oy", oy)
-			if desc != null:
-				desc.position.y = float(card.get_meta("dy", 230.0)) + oy
-		card.queue_redraw()
+	motion.update(dt)
 
 
 ## 卡片图标：按种类取对应贴图（relic_ / growth_ / weapon_ / evo_ / skill_），没有则返回 null
@@ -546,6 +523,8 @@ func card_color(o: Dictionary) -> Color:
 
 
 func draw_card(card: Button, o: Dictionary, i: int) -> void:
+	if motion.begin(card, i):
+		return   # 升级选卡翻面前：这一帧画的是卡背
 	var hov := card_hot(card, i)
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	if hov:
@@ -582,7 +561,13 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	if not idle.is_empty():
 		var ks: float = ((1.0 if compact else 2.0) if idle.fh <= 48 else (64.0 if compact else 96.0) / idle.fh)
 		var asz := Vector2(idle.fw, idle.fh) * ks
-		card.draw_texture_rect_region(idle.tex, Rect2(c - asz / 2.0 + Vector2(0, bob + 4), asz), Rect2(0, 0, idle.fw, idle.fh))
+		# 招募卡的部署落地（card_motion）：脚底画部署格 / 落地环，待机帧按 icon_off 从上方落下、落地按 icon_scale 压扁（以脚底为基点）
+		var feet := c + Vector2(0, asz.y / 2.0 + bob + 4)
+		if o.kind == "recruit":
+			motion.draw_deploy(card, i, feet.round())
+		if motion.icon_a > 0.0:
+			var isz := asz * motion.icon_scale
+			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), Rect2(0, 0, idle.fw, idle.fh))
 	elif ic != null:
 		draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
 	else:
@@ -590,14 +575,15 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var nm := name
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
-	UI.text(card, g.font, r.position + Vector2(0, (160.0 if ph else 184.0) if compact else 230.0), nm, 22 if ph else 20, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	var ta: float = motion.text_a   # 招募：落地后名字 / 说明 / 标签再淡入
+	UI.text(card, g.font, r.position + Vector2(0, (160.0 if ph else 184.0) if compact else 230.0), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(20, (176.0 if ph else 198.0) if compact else 244.0), fd, Color(0.655, 0.69, 0.725), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+		UI.draw_fit(card, g.font, r.position + Vector2(20, (176.0 if ph else 198.0) if compact else 244.0), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 53.0), chips, r.size.x - 32.0, 1, "特性" if o.kind == "recruit" else "影响")
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 53.0), chips, r.size.x - 32.0, 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
@@ -609,6 +595,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
 	UI.text(card, g.font, Vector2(sx, ab.position.y + (21 if ph else 20)), "选择", sfs, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
+	motion.end(card, i, o)
 
 
 ## 卡片左上角标签：[英文, 中文, 稀有度小牌, 小牌底色]

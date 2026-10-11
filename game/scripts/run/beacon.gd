@@ -79,7 +79,9 @@ func update(dt: float) -> void:
 			# quit：none = 从没走到寻灯半径（bot/beacon_seek_r 300）内；approach = 进过寻灯半径但没到 2×r（半路放弃）；edge = 到过 2×r（圈边 / 进过圈）没点
 			var md: float = float(b.get("min_d", INF))
 			var quit := "none" if md >= Bal.v("bot/beacon_seek_r", 300.0) else ("approach" if md >= 2.0 * r else "edge")
-			_log("expire min_d=%.0f hold_s=%.1f quit=%s" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit])
+			# maxp = 寿命内最高进度（占需要量）、in_s / relay_s = 在光圈 / 接力环里的累计秒（docs/56 §8）
+			_log("expire min_d=%.0f hold_s=%.1f quit=%s maxp=%.2f in_s=%.1f relay_s=%.1f" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit,
+				float(b.get("maxp", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0))])
 			continue
 		# 引路（docs/56 候选 a，beacon/guide_r > 0 开）：未点燃且寿命 < guide_life 的灯标，guide_r 内吞非 Boss 子弹、远程杂兵不对圈内主控起手
 		if _sk("guide_r") > 0.0 and b.age <= _k("guide_life", 45.0):
@@ -89,19 +91,26 @@ func update(dt: float) -> void:
 			rate /= _k("low_lamp_mult", 1.5)
 		if g.squad.in_sanctuary(b.pos):
 			rate *= _k("lumen_mult", 2.0)
-		if b.pos.distance_to(g.ppos) < r and g.state == g.S.PLAY:
+		# 接力环（docs/56 §8，beacon/relay_r > r 开）：主控在 r..relay_r 环内时进度不退，并按 relay_rate 的倍率继续涨（0 = 只保持）
+		var rr: float = _sk("relay_r")
+		b["band"] = false   # 画面读：本帧主控在接力环里
+		if pd < r and g.state == g.S.PLAY:
 			charging = b
 			b.out_t = 0.0
-			b.prog = minf(b.need, b.prog + rate * dt)
-			b.count_max = b.need
-			b.count_end = g.t + (b.need - b.prog) / rate
-			# 进度嘀嗒：每 0.5 秒进度一声，音高随进度升高（回退后重新充能会再响）
-			var tk := int(b.prog / 0.5)
-			if tk > int(b.get("tick", 0)) and b.prog < b.need:
-				Sfx.play("beacon_tick", -12.0, 0.85 + 0.5 * b.prog / b.need, 0.0)
-			b["tick"] = tk
-			if b.prog >= b.need:
-				_light(b)
+			b.in_s = float(b.get("in_s", 0.0)) + dt
+			_charge(b, rate, dt, "ring")
+		elif rr > r and pd < rr and g.state == g.S.PLAY:
+			# 不设 charging：圈内安全（safe_bullet / safe_ranged）仍只管光圈 r 内，接力环不是安全区
+			b["band"] = true
+			b.out_t = 0.0
+			b.relay_s = float(b.get("relay_s", 0.0)) + dt
+			var rk: float = _sk("relay_rate")
+			if rk > 0.0:
+				var p0: float = b.prog
+				_charge(b, rate * rk, dt, "relay")
+				b.relay_p = float(b.get("relay_p", 0.0)) + (b.prog - p0)
+			else:
+				b.count_end = 0.0
 		else:
 			# 离开时不清零：先保持 beacon/decay_delay 秒，之后每秒回退需要量的 beacon/decay_pct（缺省 0 / 0.2 = 离开就按 0.5 秒/秒退，docs/49f ①）
 			b.out_t = float(b.get("out_t", 0.0)) + dt
@@ -110,6 +119,22 @@ func update(dt: float) -> void:
 			b.count_end = 0.0
 			b["tick"] = int(b.prog / 0.5)
 	g.beacons = g.beacons.filter(func(b): return not b.dead)
+
+
+## 读条一帧：进度按 rate 涨，到 need 点燃；via 记最后一下是在光圈（ring）还是接力环（relay）里（遥测用）
+func _charge(b: Dictionary, rate: float, dt: float, via: String) -> void:
+	b.prog = minf(b.need, b.prog + rate * dt)
+	b.maxp = maxf(float(b.get("maxp", 0.0)), b.prog)
+	b.count_max = b.need
+	b.count_end = g.t + (b.need - b.prog) / rate
+	# 进度嘀嗒：每 0.5 秒进度一声，音高随进度升高（回退后重新充能会再响）
+	var tk := int(b.prog / 0.5)
+	if tk > int(b.get("tick", 0)) and b.prog < b.need:
+		Sfx.play("beacon_tick", -12.0, 0.85 + 0.5 * b.prog / b.need, 0.0)
+	b["tick"] = tk
+	if b.prog >= b.need:
+		b["via"] = via
+		_light(b)
 
 
 ## 选址：主控 250–400 的环上取 16 方向 × 3 半径的候选点（圈内），挑 clear_r 内非 Boss 溟痕最多的那个
@@ -132,7 +157,8 @@ func _spawn() -> void:
 	p = g.spawner.safe_event_pos(p, 110.0)
 	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
 		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
-		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0)})   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
+		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0),   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
+		"relay_r": _sk("relay_r"), "in_s": 0.0, "relay_s": 0.0, "relay_p": 0.0, "maxp": 0.0})   # relay_r 给画面画接力环；其余为接力环遥测（docs/56 §8）
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")
@@ -165,7 +191,11 @@ func _light(b: Dictionary) -> void:
 	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字
 	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
 	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
-	_log("lit cleared=%d" % cleared)
+	# 接力环遥测（docs/56 §8）：via = 最后一下在光圈 / 接力环；relay_p = 接力环贡献的进度占需要量；in_s / relay_s / min_d / hold_s 同 expire。
+	# A/B 数「圈边 → 点燃」：relay_p > 0 的点燃（旋钮关时恒 0）、via=relay 的点燃
+	_log("lit cleared=%d via=%s relay_p=%.2f in_s=%.1f relay_s=%.1f min_d=%.0f hold_s=%.1f" % [cleared, str(b.get("via", "ring")),
+		float(b.get("relay_p", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0)),
+		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0))])
 
 
 ## ---- 圈内安全（docs/49g，协调人 10-01 定候选 e；三个旋钮缺省 0 = 关，可按档开：difficulty/<档>/beacon_safe_* ≥ 0 时优先）

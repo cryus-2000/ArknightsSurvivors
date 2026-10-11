@@ -5,8 +5,11 @@ const Bars = preload("res://scripts/screens/hud_bars.gd")   # Bars.BOSS_BARS_MAX
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
+var _b_serial := -1   # 横幅动效：正在画的是哪一条（vfx.banner_serial）、第一次真正画出来的界面时刻
+var _b_t0 := 0.0
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
 
@@ -330,20 +333,56 @@ func draw_zone_warning(vs: Vector2) -> void:
 func draw_banner(vs: Vector2) -> void:
 	# 横幅通知
 	var horde_band: bool = g.vfx.horde_band_on() and not g.panel.visible
-	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active():   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
+	# 暂停 / 指南 / 胜利结算时不画（横幅压在面板顶上，10-11）；暂停期间计时也停（game.gd），继续游戏后接着显示
+	if g.banner_t > 0.0 and not g.panel.visible and g.state != Game.S.SHOW and g.state != Game.S.DEAD and g.state != Game.S.PAUSE and g.state != Game.S.INTRO and g.state != Game.S.WIN and (not horde_band or g.vfx.banner_prio >= 3) and not g.boss_intro.active():   # 精英化演出的遮罩只有 86%，横幅会透出来；Boss 登场名片在场时横幅让位（只是不画，计时照走）
 		var a: float = clamp(g.banner_t, 0.0, 1.0)
 		var by := banner_y(vs) if not horde_band else vs.y * 0.3 + 70.0   # 大群横幅在场时 Boss 横幅让到它下面
+		# 入场动效（docs/62 §3.10）：从这一条第一次真正画出来起算（面板挡住期间横幅计时暂停，关掉后才「到达」）
+		if g.vfx.banner_serial != _b_serial:
+			_b_serial = g.vfx.banner_serial
+			_b_t0 = UM.now()
+		var et: float = 99.0 if UM.skip_all() else UM.now() - _b_t0
 		if g.vfx.banner_small:
-			# 同一句第二次起（反复放的技能名）：窄暗带 + 小字，不压满屏宽（EA 1.1 后期降噪）
+			# 同一句第二次起（反复放的技能名）：窄暗带 + 小字，不压满屏宽（EA 1.1 后期降噪）；只做 T1 淡入，不收字距
+			a *= clampf(et / UM.T1, 0.0, 1.0)
 			UI.fade_band(g.hud, Rect2(vs.x * 0.36, by - 22, vs.x * 0.28, 30), Color(0.03, 0.035, 0.045, 0.7 * a), 60.0)
 			UI.text(g.hud, g.font, Vector2(0, by - 2), g.banner, 15, Color(1, 1, 1, 0.85 * a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		else:
-			# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）
-			UI.fade_band(g.hud, Rect2(vs.x * 0.12, by - 30, vs.x * 0.76, 46), Color(0.03, 0.035, 0.045, 0.84 * a), 160.0)
-			for yy in [by - 30.0, by + 16.0]:
-				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.16, yy), Color(1, 1, 1), 0.4 * a, 0.0)
-				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x * 0.84, yy), Color(1, 1, 1), 0.4 * a, 0.0)
-			UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			# 两端渐隐的暗带 + 上下从中间向两边淡出的细线（原作提示横幅）。
+			# 字距收拢：暗带与细线从中线向两侧展开（T2）；文字以宽字距、半透明出现，字距收拢到正常并变实（T3）；退场只淡出
+			var kb := 1.0
+			var kt := 1.0
+			if UM.rm():
+				a *= clampf(et / UM.T1, 0.0, 1.0)
+			else:
+				kb = UM.out_cubic(et / UM.T2)
+				kt = UM.out_cubic(et / UM.T3)
+			var bw: float = vs.x * 0.76 * kb
+			if bw >= 4.0:
+				UI.fade_band(g.hud, Rect2(vs.x / 2.0 - bw / 2.0, by - 30, bw, 46), Color(0.03, 0.035, 0.045, 0.84 * a), minf(160.0, bw / 2.0))
+			for yy in ([by - 30.0, by + 16.0] if bw >= 4.0 else []):
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 - vs.x * 0.34 * kb, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+				UI.hairline(g.hud, Vector2(vs.x / 2.0, yy), Vector2(vs.x / 2.0 + vs.x * 0.34 * kb, yy), Color(1, 1, 1), 0.4 * a, 0.0)
+			if kt >= 1.0:
+				UI.text(g.hud, g.font, Vector2(0, by), g.banner, 21, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			else:
+				_spaced_text(vs, by, g.banner, 21, Color(1, 1, 1, a * lerpf(0.35, 1.0, kt)), 1.0 - kt)
+
+
+## 横幅文字按字距展开画（k = 1 时每个字间多出约一个字宽，最宽不超过屏宽 90%），居中
+func _spaced_text(vs: Vector2, y: float, s: String, size: int, col: Color, k: float) -> void:
+	var ws: Array = []
+	var w0 := 0.0
+	for ch in s:
+		var cw: float = g.font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		ws.append(cw)
+		w0 += cw
+	var n := s.length()
+	var gap: float = 0.0 if n < 2 else minf(float(size) * 1.1, maxf(0.0, (vs.x * 0.9 - w0) / (n - 1))) * k
+	var x: float = roundf(vs.x / 2.0 - (w0 + gap * (n - 1)) / 2.0)
+	for i in n:
+		UI.text(g.hud, g.font, Vector2(roundf(x), y), s[i], size, col, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+		x += float(ws[i]) + gap
 
 
 ## Boss 战期间的次要横幅改成左侧小字通知（vfx.notices）：横幅暗带下方、左对齐一行一条，4 秒淡出

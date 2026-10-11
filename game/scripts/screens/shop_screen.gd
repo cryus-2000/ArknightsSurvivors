@@ -23,7 +23,10 @@ func _init(game: Game) -> void:
 	g = game
 
 
-func build() -> void:
+## restart：打开商店 / 刷新货架时为 true（货架从第一格重新点亮，docs/62 §3.15）；买东西重建卡片时不重放
+func build(restart := false) -> void:
+	if restart:
+		g.panel_ui.motion.start_shop()
 	g.nav_sel = clampi(g.nav_sel, 0, maxi(0, g.shop_items.size() - 1))
 	for c in g.panel_box.get_children():
 		c.queue_free()
@@ -64,12 +67,12 @@ func build() -> void:
 		for st in ["normal", "hover", "pressed", "disabled", "focus"]:
 			card.add_theme_stylebox_override(st, empty)
 		card.set_meta("born", Time.get_ticks_msec() + i * 50)
-		card.set_meta("oy", 60.0)
+		card.set_meta("oy", 0.0)
 		card.set_meta("lift", 0.0)
-		card.set_meta("dy", 174.0)
 		card.set_meta("item", it)
-		card.modulate.a = 0.0
-		card.draw.connect(draw_card.bind(card, it, i))
+		card.draw.connect(func():
+			draw_card(card, it, i)
+			g.panel_ui.motion.shop_card_post(card, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
 		card.pressed.connect(g.shop_sys.buy.bind(i))
@@ -184,6 +187,9 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
 	var left: float = cx + g.panel_box.offset_left
 	var right: float = cx + g.panel_box.offset_right
+	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
+	var rl: String = "藏品 %d/15 · 为结局保留 %d 格 · 商人还会停留 %d 秒" % [g.relics.size(), g.endg.reserved_relic_slots(), int(g.merchant.get("life", 0.0))]
+	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
 	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), "藏品 %d/15 · 为结局保留 %d 格 · 商人还会停留 %d 秒" % [g.relics.size(), g.endg.reserved_relic_slots(), int(g.merchant.get("life", 0.0))], 14, UI.SUB)
 	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
@@ -207,9 +213,9 @@ func draw_bg(vs: Vector2) -> void:
 	var top: float = g.panel_box.offset_top
 	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · 每购一件余货 +20%% · 藏品还可买 %d 件（刷新不重置）" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.relic_buys_left()]
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
-	# 触屏：这行下移 8、字 13，不和标题下的说明行挤在一起（手机上两行 12 号字贴着看不清）
-	var tch: bool = Cfg.touch_device()
-	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 52.0 + (8.0 if tch else 0.0)), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 13 if tch else 12, UI.SUB)
+	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
+	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)
+	UI.text(g.panel_fg, g.font, Vector2(cx - 232 + gw + 18.0, top - 20.0), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)
@@ -229,7 +235,9 @@ func draw_bg(vs: Vector2) -> void:
 		var ks: float = 5.0 / A.hires_of(mtx)
 		var sz := Vector2(fw, fh) * ks
 		var fr := int(g.t * 2.0) % 2
-		g.panel_fg.draw_texture_rect_region(mtx, Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 + my - sz.y)).round(), sz), Rect2(fw * fr, 0, fw, fh))
+		var mdst := Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 + my - sz.y)).round(), sz)
+		g.panel_fg.draw_texture_rect_region(mtx, mdst, Rect2(fw * fr, 0, fw, fh))
+		g.panel_ui.motion.draw_shop_lantern(g.panel_fg, mdst, fr)   # 灯笼一明一暗、货架逐格亮起（docs/62 §3.15）
 	g.panel_fg.draw_rect(mr, Color(1, 1, 1, 0.11), false, 1.0)
 	g.panel_fg.draw_rect(Rect2(mr.position, Vector2(14, 2)), UI.GOLD)
 	UI.strip(g.panel_fg, g.font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(g.merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))

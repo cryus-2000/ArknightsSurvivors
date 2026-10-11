@@ -80,11 +80,11 @@ static func cwidth(font: Font, s: String, size: int, italic := false) -> float:
 
 
 ## 英文小标签（压缩字 + 字距）
-static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing := 2.0) -> float:
+static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing := 2.0, italic := false) -> float:
 	if tq != null:
-		tq.append(func(): en(ci, font, pos, text, size, col, spacing))
+		tq.append(func(): en(ci, font, pos, text, size, col, spacing, italic))
 		return en_width(font, text, size, spacing)
-	var f := cond(font)
+	var f := cond(font, italic)
 	var x := pos.x
 	for ch in text:
 		ci.draw_string(f, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
@@ -768,3 +768,316 @@ static func fit_line(font: Font, s: String, size: int, max_w: float, min_size :=
 			t = t.substr(0, t.length() - 1)
 		t += "…"
 	return [t, fs]
+
+
+# ---------------------------------------------------------------- B+（干员选择，docs/58 §11；图鉴 C4' 也复用其中的斜带 / 描边英文名 / 名册卡结构）
+## 水月 / 集成战略式：无切角圆角面板、紫色细边 + 顶角金菱形饰角（docs/37 §1 旁注：饰角不是像素角括）、圆角标签片、青色出击。
+## 只加组件，不改上面的常量。动效参数（t 0–1）由调用方按真实时间算，这里只按进度画；不碰任何随机数。
+const B_FILL := Color(0.039, 0.063, 0.11, 0.80)       # 面板底 (10,16,28,205)
+const B_FILL_SEL := Color(0.086, 0.102, 0.204, 0.90)  # 选中底 (22,26,52,230)
+const B_LINE := Color(0.66, 0.52, 1.0, 0.31)          # 紫色细边 (168,133,255,80)
+const B_SUB := Color(0.627, 0.659, 0.745)             # B 的次要字 (160,168,190)
+const CLASS_GLYPH := {"先锋": "flag", "近卫": "blade", "重装": "shield", "狙击": "cross", "术师": "orb", "医疗": "plus", "辅助": "wave", "特种": "diamond"}
+static var _rbox_cache := {}
+
+
+static func ease_out(x: float) -> float:
+	x = clampf(x, 0.0, 1.0)
+	return 1.0 - pow(1.0 - x, 3.0)
+
+
+static func ease_io(x: float) -> float:
+	x = clampf(x, 0.0, 1.0)
+	return 4.0 * x * x * x if x < 0.5 else 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0
+
+
+## ease-out back（名册卡选中抬起的轻微过冲）
+static func ease_back(x: float) -> float:
+	x = clampf(x, 0.0, 1.0)
+	var c1 := 1.70158
+	return 1.0 + (c1 + 1.0) * pow(x - 1.0, 3.0) + c1 * pow(x - 1.0, 2.0)
+
+
+static func fa(c: Color, a: float) -> Color:
+	return Color(c.r, c.g, c.b, c.a * a)
+
+
+## 圆角矩形（StyleBoxFlat，抗锯齿）；border.a = 0 时不描边
+static func rbox(ci: CanvasItem, r: Rect2, radius: float, fill: Color, border := Color(0, 0, 0, 0), bw := 1) -> void:
+	if r.size.x <= 0.0 or r.size.y <= 0.0:
+		return
+	var key := "%s|%s|%d|%d" % [fill.to_html(), border.to_html(), bw, int(radius)]
+	var sb: StyleBoxFlat = _rbox_cache.get(key)
+	if sb == null:
+		if _rbox_cache.size() > 400:
+			_rbox_cache.clear()
+		sb = StyleBoxFlat.new()
+		sb.bg_color = fill
+		sb.draw_center = fill.a > 0.0
+		sb.set_corner_radius_all(int(radius))
+		sb.corner_detail = 6
+		sb.anti_aliasing = true
+		if border.a > 0.0:
+			sb.border_color = border
+			sb.set_border_width_all(bw)
+		_rbox_cache[key] = sb
+	ci.draw_style_box(sb, r)
+
+
+## 文字按锚点画（移植概念图坐标用）：anchor = la（左上）/ lm（左中）/ mm（正中）/ ma（中上）/ ra（右上）/ rm（右中）；bold = 同色 1px 描边加粗
+static func text_at(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, anchor := "la", bold := false) -> float:
+	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var x := pos.x
+	if anchor[0] == "m":
+		x -= w / 2.0
+	elif anchor[0] == "r":
+		x -= w
+	var asc := font.get_ascent(size)
+	var y := pos.y + asc
+	if anchor[1] == "m":
+		y = pos.y + (asc - font.get_descent(size)) / 2.0
+	if bold:
+		ci.draw_string_outline(font, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 2, col)
+	ci.draw_string(font, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	return w
+
+
+## 微型代码（`No.04 // 近卫 // 近战`、`OPERATOR DATA // SKILL`）：压缩字、不斜体、字距 2；pos 是左上角
+static func code(ci: CanvasItem, font: Font, pos: Vector2, s: String, size := 9, col := B_SUB, anchor := "la") -> float:
+	var w := en_width(font, s, size, 2.0)
+	var x := pos.x - (w / 2.0 if anchor == "ma" else (w if anchor == "ra" else 0.0))
+	return en(ci, font, Vector2(x, pos.y + cond(font).get_ascent(size)), s, size, col, 2.0)
+
+
+## B 面板：圆角 4、紫色细边、内衬细线、顶部高光；accent（当前 / 选中）时顶角金菱形 + 两段金细线；edge = 选中时的描边色
+static func bpanel(ci: CanvasItem, r: Rect2, accent := false, sel := false, a := 1.0, edge := Color(0, 0, 0, 0)) -> void:
+	var border := fa(B_LINE, a)
+	if sel and edge.a > 0.0:
+		border = fa(Color(edge.r, edge.g, edge.b, 0.9), a)
+	rbox(ci, r, 4, fa(B_FILL_SEL if sel else B_FILL, a), border)
+	if r.size.x > 60.0 and r.size.y > 40.0:
+		rbox(ci, r.grow(-3.0), 3, Color(0, 0, 0, 0), Color(1, 1, 1, 0.063 * a))
+	ci.draw_line(Vector2(r.position.x + 6, r.position.y + 1.5), Vector2(r.end.x - 6, r.position.y + 1.5), Color(1, 1, 1, 0.12 * a), 1.0)
+	if accent or sel:
+		diamond(ci, r.position + Vector2(1, 1), 4.0, fa(GOLD, a))
+		diamond(ci, Vector2(r.end.x - 1, r.position.y + 1), 4.0, fa(GOLD, a))
+		if r.size.x > 120.0:
+			ci.draw_line(r.position + Vector2(10, 0.5), r.position + Vector2(40, 0.5), fa(GOLD, a), 1.0)
+			ci.draw_line(Vector2(r.end.x - 40, r.position.y + 0.5), Vector2(r.end.x - 10, r.position.y + 0.5), fa(GOLD, a), 1.0)
+
+
+## B 圆角标签片：solid = 实色底深字，否则暗底 + 彩色细边；返回占位宽度（含 6 像素间距）
+static func pill(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 11, solid := false, a := 1.0) -> float:
+	var h := size + 8.0
+	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 18.0
+	rbox(ci, Rect2(pos, Vector2(w, h)), h / 2.0, fa(col, a) if solid else Color(0, 0, 0, 0.51 * a), fa(Color(col.r, col.g, col.b, 0.86), a))
+	text_at(ci, font, pos + Vector2(w / 2.0, h / 2.0), s, size, Color(0.04, 0.05, 0.06, a) if solid else fa(TEXT, a), "mm")
+	return w + 6.0
+
+
+static func pill_width(font: Font, s: String, size := 11) -> float:
+	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 24.0
+
+
+## B 小标签头（圆角 3，彩色底白字）；pos 左上，返回宽度
+static func btab(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 9, a := 1.0) -> float:
+	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 10.0
+	rbox(ci, Rect2(pos, Vector2(w, size + 5)), 3, fa(col, a))
+	text_at(ci, font, pos + Vector2(5, 1), s, size, Color(1, 1, 1, a))
+	return w
+
+
+## 职业线性图标（白线几何示意，不用原作图标）：c 中心，r 半径
+static func class_glyph(ci: CanvasItem, cls: String, c: Vector2, r: float, col: Color, w := 2.0) -> void:
+	var x := c.x
+	var y := c.y
+	match CLASS_GLYPH.get(cls, "diamond"):
+		"blade":
+			ci.draw_line(Vector2(x - r, y + r), Vector2(x + r, y - r), col, w)
+			ci.draw_line(Vector2(x - r * 0.3, y + r), Vector2(x + r, y + r * 0.3), col, w)
+		"shield":
+			var p := PackedVector2Array([Vector2(x - r, y - r), Vector2(x + r, y - r), Vector2(x + r, y + r * 0.2), Vector2(x, y + r), Vector2(x - r, y + r * 0.2), Vector2(x - r, y - r)])
+			ci.draw_polyline(p, col, w)
+		"cross":
+			ci.draw_arc(c, r, 0.0, TAU, 24, col, w)
+			ci.draw_line(Vector2(x - r, y), Vector2(x + r, y), col, w)
+			ci.draw_line(Vector2(x, y - r), Vector2(x, y + r), col, w)
+		"orb":
+			ci.draw_arc(c, r * 0.7, 0.0, TAU, 20, col, w)
+			ci.draw_polyline(PackedVector2Array([Vector2(x, y - r), Vector2(x + r, y + r * 0.8), Vector2(x - r, y + r * 0.8), Vector2(x, y - r)]), col, 1.0)
+		"plus":
+			ci.draw_rect(Rect2(x - r * 0.3, y - r, r * 0.6, r * 2.0), col)
+			ci.draw_rect(Rect2(x - r, y - r * 0.3, r * 2.0, r * 0.6), col)
+		"wave":
+			var p := PackedVector2Array()
+			for i in 9:
+				p.append(Vector2(x - r + i * r / 4.0, y + (r * 0.5 if i % 2 else -r * 0.5)))
+			ci.draw_polyline(p, col, w)
+		"flag":
+			ci.draw_line(Vector2(x - r * 0.7, y - r), Vector2(x - r * 0.7, y + r), col, w)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(x - r * 0.7, y - r), Vector2(x + r, y - r * 0.5), Vector2(x - r * 0.7, y)]), col)
+		_:
+			ci.draw_polyline(PackedVector2Array([Vector2(x, y - r), Vector2(x + r, y), Vector2(x, y + r), Vector2(x - r, y), Vector2(x, y - r)]), col, w)
+
+
+## 职业色斜带（选人 B+ 与图鉴 C4' 同一位置 / 倾角 / 宽度）：设计坐标 1280×720 下底边 x 560–800、顶边 770–1010（约 66°）；
+## h = 画面高、ox / sc = 横向偏移与缩放（手机版式用）；t = 扫入进度（新带从左 -900 扫到位，盖住 prev 旧带）；
+## alpha 0.35 + 右缘金细线 + 左缘紫细线（B 的柔带）；C4' 传 alpha 0.8、lines = false 后自己画黑细带
+static func class_band(ci: CanvasItem, h: float, ox: float, sc: float, col: Color, prev: Color, t: float, alpha := 0.35, lines := true, a := 1.0) -> void:
+	var e := ease_io(t)
+	if e < 1.0 and prev.a > 0.0:
+		_band_poly(ci, h, ox, sc, 0.0, Color(prev.r, prev.g, prev.b, alpha * a))
+	var dx := -900.0 * (1.0 - e)
+	_band_poly(ci, h, ox, sc, dx, Color(col.r, col.g, col.b, alpha * a))
+	if lines:
+		ci.draw_line(Vector2(ox + (806 + dx) * sc, h), Vector2(ox + (1016 + dx) * sc, 0), fa(Color(GOLD.r, GOLD.g, GOLD.b, 0.67), a), 2.0, true)
+		ci.draw_line(Vector2(ox + (548 + dx) * sc, h), Vector2(ox + (758 + dx) * sc, 0), fa(Color(PURPLE.r, PURPLE.g, PURPLE.b, 0.47), a), 1.0, true)
+
+
+static func _band_poly(ci: CanvasItem, h: float, ox: float, sc: float, dx: float, c: Color) -> void:
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(ox + (560 + dx) * sc, h), Vector2(ox + (800 + dx) * sc, h), Vector2(ox + (1010 + dx) * sc, 0), Vector2(ox + (770 + dx) * sc, 0)]), c)
+
+
+## 巨型描边英文名（压在立绘后）：只描边不填充；frac = 打字机进度（逐字出现）；pos 是左上角
+static func ghost_name(ci: CanvasItem, font: Font, pos: Vector2, s: String, frac: float, size := 150, col := Color(0.745, 0.824, 1.0, 0.18), outline := 3) -> void:
+	var n := int(round(s.length() * clampf(frac, 0.0, 1.0)))
+	if n <= 0:
+		return
+	ci.draw_string_outline(font, pos + Vector2(0, font.get_ascent(size)), s.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, size, outline, col)
+
+
+## 名册卡（B 皮：圆角 + 紫金描边 + 青色强调条；C4' 换直角黑框 / 黄条时另写皮，结构相同）
+## od：{tex, frames, bb（帧内非透明区，贴图像素）, hires, name, cls, col}；lift 0–1（选中抬 10 px）、hover 0–1（悬停抬 4 px）；
+## elite = 右上精英菱形个数；frame = 待机帧序号
+static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, lift: float, hover: float, elite: int, frame: int, a := 1.0, name_size := 12) -> void:
+	r.position.y -= 10.0 * lift + 4.0 * hover
+	var col: Color = od.get("col", CYAN)
+	var selv := lift > 0.5
+	if lift > 0.01:
+		rbox(ci, r.grow(3.0), 7, Color(VIOLET.r, VIOLET.g, VIOLET.b, 0.2 * minf(lift, 1.0) * a))
+	rbox(ci, r, 5, Color(0.086, 0.102, 0.204, 0.92 * a) if selv else Color(0.039, 0.078, 0.118, 0.86 * a),
+		fa(VIOLET, a) if selv else Color(0.66, 0.52, 1.0, 0.31 * a), 2 if selv else 1)
+	ci.draw_rect(Rect2(r.position.x + 4, r.position.y + 2, r.size.x - 8, 3), fa(col, a))
+	var tx: Texture2D = od.get("tex")
+	if tx != null:
+		var hi: float = od.get("hires", 1.0)
+		var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
+		var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
+		var k: float = clampf(floorf((r.size.y - 46.0) / (bb.size.y * 2.0 / hi)), 1.0, 3.0) * 2.0 / hi
+		var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
+		var dst := Rect2(r.get_center().x - bb.size.x * k / 2.0, r.end.y - 24.0 - bb.size.y * k, bb.size.x * k, bb.size.y * k)
+		var top := r.position.y + 6.0
+		if dst.position.y < top:
+			var cut := (top - dst.position.y) / k
+			src.position.y += cut
+			src.size.y -= cut
+			dst.position.y = top
+			dst.size.y = src.size.y * k
+		ci.draw_texture_rect_region(tx, dst, src, Color(1, 1, 1, a))
+	rbox(ci, Rect2(r.position.x + 2, r.end.y - 22, r.size.x - 4, 20), 4, Color(0.016, 0.031, 0.063, 0.78 * a))
+	rbox(ci, Rect2(r.position.x + 4, r.position.y + 8, 16, 16), 3, Color(0, 0, 0, 0.63 * a), Color(col.r, col.g, col.b, 0.78 * a))
+	class_glyph(ci, od.get("cls", ""), r.position + Vector2(12, 16), 5.0, fa(col, a), 1.6)
+	var fl := fit_line(font, str(od.get("name", "")), name_size, r.size.x - 8.0, 9)
+	text_at(ci, font, Vector2(r.get_center().x, r.end.y - 12), fl[0], fl[1], fa(TEXT, a), "mm")
+	for i in elite:
+		diamond(ci, Vector2(r.end.x - 6 - elite * 9 + i * 9 + 3, r.position.y + 13), 3.0, fa(GOLD, a))
+	var hl := maxf(lift, hover * 0.6)
+	if hl > 0.01:
+		var w := maxf(4.0, (r.size.x - 12.0) * ease_out(minf(hl, 1.0)))
+		rbox(ci, Rect2(r.position.x + 6, r.end.y + 4, w, 3), 1, fa(CYAN, a))
+	if selv:
+		diamond(ci, Vector2(r.get_center().x, r.position.y), 5.0, fa(GOLD, a))
+
+
+## 技能充能 SP 环：灰轨 + 彩色进度弧（12 点起顺时针），中间 SP 数，下方「SP」
+static func sp_ring(ci: CanvasItem, font: Font, c: Vector2, rad: float, frac: float, col: Color, sp: String, a := 1.0, size := 11) -> void:
+	ci.draw_arc(c, rad, 0.0, TAU, 40, Color(1, 1, 1, 0.12 * a), 3.0, true)
+	if frac > 0.0:
+		ci.draw_arc(c, rad, -PI / 2.0, -PI / 2.0 + TAU * clampf(frac, 0.0, 1.0), 40, fa(col, a), 3.0, true)
+	text_at(ci, font, c, sp, size, fa(TEXT, a), "mm")
+	text_at(ci, font, c + Vector2(0, rad + 4.0), "SP", 7, fa(B_SUB, a), "mm")
+
+
+## 圆角量条（UI.gbar 的 B 版）：暗槽 + 紫细边 + 实色填充 + 顶部高光
+static func gauge(ci: CanvasItem, r: Rect2, frac: float, col: Color, a := 1.0) -> void:
+	var rad := r.size.y / 2.0
+	rbox(ci, r, rad, Color(0, 0, 0, 0.59 * a), Color(0.66, 0.52, 1.0, 0.27 * a))
+	var w := r.size.x * clampf(frac, 0.0, 1.0)
+	if w > r.size.y:
+		rbox(ci, Rect2(r.position, Vector2(w, r.size.y)), rad, fa(col, a))
+		ci.draw_line(r.position + Vector2(4, 1.5), r.position + Vector2(w - 4, 1.5), Color(1, 1, 1, 0.47 * a), 1.0)
+
+
+## B 页签：当前页淡紫底 + 紫下划线（pos 可为小数：滑动中）+ 金菱形；返回每个页签的矩形
+static func btabs(ci: CanvasItem, font: Font, r: Rect2, names: Array, pos: float, size := 14, a := 1.0) -> Array:
+	var tw := r.size.x / names.size()
+	var cur := int(round(pos))
+	var out: Array = []
+	rbox(ci, Rect2(r.position.x + cur * tw + 2, r.position.y + 2, tw - 4, r.size.y - 2), 4, Color(VIOLET.r, VIOLET.g, VIOLET.b, 0.22 * a))
+	for i in names.size():
+		out.append(Rect2(r.position.x + i * tw, r.position.y, tw, r.size.y))
+		text_at(ci, font, Vector2(r.position.x + i * tw + tw / 2.0, r.get_center().y), names[i], size, fa(TEXT if i == cur else B_SUB, a), "mm")
+	ci.draw_line(Vector2(r.position.x, r.end.y), r.end, fa(B_LINE, a), 1.0)
+	var ux := r.position.x + pos * tw
+	rbox(ci, Rect2(ux + 10, r.end.y - 2, tw - 20, 2), 1, fa(VIOLET, a))
+	diamond(ci, Vector2(ux + tw / 2.0, r.end.y - 1), 3.0, fa(GOLD, a))
+	return out
+
+
+## B 出击按钮：青底圆角 + 金外框 + 两侧金菱形；breathe 0–1 = 外圈青光呼吸（1.6 秒一次，调用方算）；press 0–1 = 按下（下沉 3 px + 闪白）
+static func deploy_button(ci: CanvasItem, font: Font, r: Rect2, s: String, sub: String, breathe: float, press := 0.0, size := 24, a := 1.0, sink_px := 3.0) -> void:
+	if press > 0.0 and press < 1.0:
+		r.position.y += roundf(sink_px * sin(PI * press))
+	rbox(ci, r.grow(7.0), 12, Color(0, 0, 0, 0), Color(CYAN.r, CYAN.g, CYAN.b, (0.16 + 0.24 * breathe) * a), 2)
+	rbox(ci, r.grow(4.0), 9, Color(0, 0, 0, 0), fa(GOLD, a), 1)
+	rbox(ci, r, 6, fa(CYAN, a))
+	ci.draw_line(r.position + Vector2(8, 2.5), Vector2(r.end.x - 8, r.position.y + 2.5), Color(0.78, 1.0, 0.99, a), 1.0)
+	diamond(ci, Vector2(r.position.x - 4, r.get_center().y), 5.0, fa(GOLD, a))
+	diamond(ci, Vector2(r.end.x + 4, r.get_center().y), 5.0, fa(GOLD, a))
+	var ink := Color(0.03, 0.08, 0.094, a)
+	var cy := r.get_center().y - (7.0 if sub != "" else 0.0)
+	text_at(ci, font, Vector2(r.get_center().x, cy), s, size, ink, "mm", true)
+	if sub != "":
+		text_at(ci, font, Vector2(r.get_center().x, cy + 22), sub, 10, ink, "mm")
+	if press > 0.0 and press < 1.0:
+		rbox(ci, r, 6, Color(1, 1, 1, 0.59 * sin(PI * press) * a))
+
+
+## 深海浪幕（选人 → 难度的转场，docs/58 §11.2）：e = 0–1 总进度（调用方已做 ease-in-out）；前半浪从下往上漫过（填浪下方），
+## 过半由调用方换页，后半继续上涌退出（填浪上方）。气泡位置由序号哈希决定，不用随机数
+static func wave_wipe(ci: CanvasItem, vs: Vector2, e: float) -> void:
+	var first := e < 0.5
+	var k := e * 2.0 if first else (e - 0.5) * 2.0
+	var base_y := vs.y + 70.0 - (vs.y + 140.0) * k
+	var pts := PackedVector2Array()
+	var x := 0.0
+	while x <= vs.x + 8.0:
+		pts.append(Vector2(x, _wave_y(x, base_y, k)))
+		x += 8.0
+	var end_x: float = pts[pts.size() - 1].x
+	var tail := PackedVector2Array([Vector2(end_x, vs.y + 10.0), Vector2(0, vs.y + 10.0)]) if first else PackedVector2Array([Vector2(end_x, -10.0), Vector2(0, -10.0)])
+	var body := pts.duplicate()
+	body.append_array(tail)
+	fill_poly(ci, body, Color(0.039, 0.102, 0.173, 1.0))
+	var dy := 40.0 if first else -40.0
+	var p2 := PackedVector2Array()
+	for p in pts:
+		p2.append(p + Vector2(0, dy))
+	p2.append_array(tail)
+	fill_poly(ci, p2, Color(0.118, 0.063, 0.22, 0.63))
+	var bucket := int(k * 1000.0) / 50
+	for i in 40:
+		var h1 := fposmod(sin(i * 12.9898 + bucket * 78.233) * 43758.5453, 1.0)
+		var h2 := fposmod(sin(i * 39.3468 + bucket * 11.135) * 24634.6345, 1.0)
+		var bx := h1 * vs.x
+		var by := _wave_y(bx, base_y, k) + (10.0 + h2 * 150.0) * (1.0 if first else -1.0)
+		ci.draw_arc(Vector2(bx, by), 1.0 + float(i % 3), 0.0, TAU, 10, Color(0.59, 0.92, 0.96, 0.47), 1.0)
+	ci.draw_polyline(pts, Color(0.59, 0.94, 0.96, 0.9), 3.0, true)
+	var p3 := PackedVector2Array()
+	for p in pts:
+		p3.append(p + Vector2(0, 8.0 if first else -8.0))
+	ci.draw_polyline(p3, Color(CYAN.r, CYAN.g, CYAN.b, 0.43), 1.0, true)
+
+
+static func _wave_y(x: float, base_y: float, k: float) -> float:
+	return base_y + 22.0 * sin(x / 95.0 + k * 7.0) + 9.0 * sin(x / 37.0 - k * 11.0)

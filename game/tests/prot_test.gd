@@ -73,6 +73,7 @@ func _process(_d: float) -> void:
 	test_enemy_knob()
 	test_beacon_safe()
 	test_beacon_guide()
+	test_beacon_relay()
 	test_saint_tiers()
 	test_arena()
 	test_ground()
@@ -1025,6 +1026,94 @@ func test_beacon_guide() -> void:
 	game.beacons = keep_beacons
 	bs.charging = keep_c
 	bs.guide = keep_g
+
+
+## 接力环（docs/56 §8）：relay_r 0 = 旧行为（离开光圈就退）；开了以后 r..relay_r 环内进度不退 / 按 relay_rate 慢涨、可在环里点燃；
+## 环外照旧退；环内不设 charging（圈内安全不外扩、Boss 照常出招）；不掷随机数
+func test_beacon_relay() -> void:
+	var bs = game.beacon_sys
+	var keep_beacons: Array = game.beacons
+	var keep_b: Dictionary = Bal._data.get("beacon", {}).duplicate()
+	var keep_next: float = bs.next_at
+	var keep_zone: int = game.zone_state
+	var keep_state: int = game.state
+	var keep_lamp: float = game.lamp
+	var keep_c = bs.charging
+	var keep_nerve: float = game.nerve
+	bs.next_at = 1.0e9   # 测试期间不刷新灯标
+	game.zone_state = 0
+	game.state = Game.S.PLAY
+	game.lamp = maxf(game.lamp, 60.0)   # 不触发低灯 ×1.5
+	var mk := func(off: Vector2, prog: float) -> Dictionary:
+		var d := {"pos": game.ppos + off, "lit": false, "prog": prog, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0,
+			"dead": false, "r": 70.0, "clear_r": 340.0, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+		game.beacons = [d]
+		return d
+	var step := func(sec: float) -> void:
+		for k in int(round(sec * 60.0)):
+			bs.update(1.0 / 60.0)
+	var nb: Dictionary = keep_b.duplicate()
+	nb["guide_r"] = 0.0
+	nb["relay_r"] = 0.0
+	nb["relay_rate"] = 0.5
+	nb["decay_delay"] = 0.0
+	nb["decay_pct"] = 0.2
+	Bal._data["beacon"] = nb
+	# 关：主控在 100 px（圈外）→ 照旧每秒退 20%
+	var b0: Dictionary = mk.call(Vector2(100, 0), 1.25)
+	var s0: int = game.rng.state
+	step.call(1.0)
+	ok(absf(b0.prog - 0.75) < 0.02 and not b0.get("band", false), "relay_r 0：圈外 100 px 离开 1 秒进度 1.25 → 0.75（旧行为）")
+	# 光圈内 1 秒的进度作为对照速度（同一帧的低灯 / 流明倍率）
+	var bi: Dictionary = mk.call(Vector2(30, 0), 0.0)
+	step.call(1.0)
+	var p_in: float = bi.prog
+	# 开 relay_r 140、relay_rate 0：环内只保持不涨
+	nb["relay_r"] = 140.0
+	nb["relay_rate"] = 0.0
+	var b1: Dictionary = mk.call(Vector2(100, 0), 1.25)
+	step.call(2.0)
+	ok(absf(b1.prog - 1.25) < 0.001 and b1.get("band", false) and bs.charging == null, "relay_r 140 / rate 0：环内 2 秒进度不退不涨，且不算读条（charging 空）")
+	# 环外照旧退
+	var b2: Dictionary = mk.call(Vector2(200, 0), 1.25)
+	step.call(1.0)
+	ok(absf(b2.prog - 0.75) < 0.02 and not b2.get("band", false), "relay_r 140：环外 200 px 照旧每秒退 20%")
+	# relay_rate 0.5：环内按光圈速度的一半涨，涨满在环里点燃，遥测记 via=relay / relay_p
+	nb["relay_rate"] = 0.5
+	var b3: Dictionary = mk.call(Vector2(100, 0), 0.0)
+	step.call(1.0)
+	ok(p_in > 0.0 and absf(b3.prog - 0.5 * p_in) < 0.02 and float(b3.get("relay_s", 0.0)) > 0.9, "relay_rate 0.5：环内 1 秒进度 = 光圈内的一半（%.2f / %.2f）" % [b3.prog, p_in])
+	var lit0: int = bs.lit_n
+	step.call(2.0 * 2.5 / maxf(0.01, p_in) + 0.5)
+	ok(b3.lit and bs.lit_n == lit0 + 1 and str(b3.get("via", "")) == "relay" and absf(float(b3.get("relay_p", 0.0)) - 2.5) < 0.05, "relay_rate 0.5：一直站环里也能点燃，via=relay、relay_p = 全部进度")
+	# 先进圈读一半、被逼到环里：进度保持并接着慢涨，不清零（「圈边被挤出去」的那一下）
+	var b4: Dictionary = mk.call(Vector2(30, 0), 0.0)
+	step.call(1.0)
+	var pk: float = b4.prog
+	b4.pos = game.ppos + Vector2(110, 0)
+	step.call(0.5)
+	ok(b4.prog > pk and not b4.lit, "被挤到接力环：进度 %.2f → %.2f 不退反涨" % [pk, b4.prog])
+	# 环内不是安全区：圈内安全 / 远程不起手只看光圈 r（charging），Boss 照常
+	var mob := {"boss": false, "pos": b4.pos, "r": 10.0}
+	var boss := {"boss": true, "pos": b4.pos, "r": 30.0}
+	ok(bs.charging == null and not bs.ranged_held(mob) and not bs.ranged_held(boss) and not bs.bullet_eaten(game.ppos), "接力环内：不算读条，杂兵 / Boss 远程照打、子弹不吞（guide_r 关时）")
+	# 难度表覆盖：beacon_relay_r = 0 时按档关掉
+	var keep_d: Dictionary = game.dmod
+	game.dmod = keep_d.duplicate()
+	game.dmod["beacon_relay_r"] = 0.0
+	var b5: Dictionary = mk.call(Vector2(100, 0), 1.25)
+	step.call(1.0)
+	ok(absf(b5.prog - 0.75) < 0.02, "difficulty beacon_relay_r 0 覆盖：按档关掉接力环")
+	game.dmod = keep_d
+	ok(game.rng.state == s0, "接力环全程不掷随机数（g.rng 状态不变）")
+	Bal._data["beacon"] = keep_b
+	game.beacons = keep_beacons
+	bs.next_at = keep_next
+	game.zone_state = keep_zone
+	game.state = keep_state
+	game.lamp = keep_lamp
+	game.nerve = keep_nerve
+	bs.charging = keep_c
 
 
 ## 圣徒两档（用户 10-01 按原作核对：卡门 / 伊比利亚是同一人物）：中期抽取按人物互斥；弹药按数据（卡门 3、伊比利亚 1）
