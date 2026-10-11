@@ -10,6 +10,7 @@
 ## 美术分工（2026-09-24 更新）
 
 - Codex 只负责**人物与怪物形象**：`player_*`、`ally_*`、`e_*`、`boss*`、`bosses/`、`doctor`、`merchant`、`mizuki_*`。
+- **2026-10-11 更新（用户：特效之类的有的也可以交给 Codex）**：重点技能特效可以按单派给 Codex 重绘（例：浊心斯卡蒂 S3 `fx_skalter_s3_back/front/orbit`，ec06672e）。规则：① 由 Claude 写特效单（文件名、帧数 / fps、帧尺寸、原点、前后分层、何时播放），用户或 Claude 点名的才画，其余 fx_* / proj_* / 图标仍由 Claude 做；② Codex 只交素材（1x + @2x、manifest、handoff、预览），不改 game/；③ 需要遮挡关系的绕身特效分 `_back`（人物后）/ `_front`（人物前）两层，共用同一原点与帧号，另给不分层的 `_orbit` 作回退；④ Claude 审规格后接入，Codex 交的版本优先于 Claude 的程序版同名素材；Claude 程序版作为没有 Codex 版时的缺省。
 - 其余美术由 Claude 在 main 上直接制作与修改：`fx_*`、`proj_*`、`evo_*`、`weapon_*`、`skill_*`、`relic_*`、`growth_*`、`terrain_*`、`prop_*`、`tiles`、掉落物、`slash`、`tentacle`、`drone_*`、`light` 等。这些文件 Codex 不要改；Codex `git merge main` 时照单全收即可。
 - 如果一张图同时涉及两边（例如怪物攻击帧里带弹道），先由用户裁定归属。
 
