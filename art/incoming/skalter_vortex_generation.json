@@ -1,0 +1,122 @@
+{
+  "tool": "builtin imagegen",
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4b2a41d6-1792-44ae-8fb8-7407da58ac32.png",
+  "source_sha256": "2670e6c074cbf248c86a58336ac2a0bc4c68825447bd1dfd586885dcf11d5627",
+  "crops": [
+    {
+      "cell": [
+        0,
+        0,
+        627,
+        314
+      ],
+      "registered_crop": [
+        10,
+        79,
+        610,
+        299
+      ]
+    },
+    {
+      "cell": [
+        627,
+        0,
+        1254,
+        314
+      ],
+      "registered_crop": [
+        14,
+        83,
+        614,
+        303
+      ]
+    },
+    {
+      "cell": [
+        0,
+        314,
+        627,
+        627
+      ],
+      "registered_crop": [
+        10,
+        70,
+        610,
+        290
+      ]
+    },
+    {
+      "cell": [
+        627,
+        314,
+        1254,
+        627
+      ],
+      "registered_crop": [
+        13,
+        72,
+        613,
+        292
+      ]
+    },
+    {
+      "cell": [
+        0,
+        627,
+        627,
+        940
+      ],
+      "registered_crop": [
+        14,
+        70,
+        614,
+        290
+      ]
+    },
+    {
+      "cell": [
+        627,
+        627,
+        1254,
+        940
+      ],
+      "registered_crop": [
+        11,
+        76,
+        611,
+        296
+      ]
+    },
+    {
+      "cell": [
+        0,
+        940,
+        627,
+        1254
+      ],
+      "registered_crop": [
+        14,
+        66,
+        614,
+        286
+      ]
+    },
+    {
+      "cell": [
+        627,
+        940,
+        1254,
+        1254
+      ],
+      "registered_crop": [
+        13,
+        67,
+        613,
+        287
+      ]
+    }
+  ],
+  "export": "fixed 600x220 registered crops to312x156, inset4/10; BOX resample, alpha threshold140; alpha-strength cyan tone mapping, eight-color mapping, exact nearest2x",
+  "exporter_sha256": "8131fa41d3f8bf29379ed259c22736bac888639127706a20e366e2b935927e3d",
+  "accepted_prompt": "Create a professional 8-frame animated game WATER VORTEX LINE ART spritesheet, 2 columns x 4 rows. Canvas aspect ratio 1:1. Each cell 2:1 landscape. TRANSPARENT background. ONLY hairline pale cyan strokes, about 25 separate curved lines distributed over a broad flat oval. Each stroke is a single clean 1px contour, NOT a shaded shape. Like delicate contour lines on a topographic map that spiral clockwise inward, with many gaps. 95% blank space. Center radius25% empty. Some small pixel-dither gaps at line tips. 2 faint dusty crimson lines per frame, rest light cyan. NO FILLED RIBBONS, NO BLOCKS, NO PAINT, NO SMOKE, NO SHADING, NO FULL CLOSED CIRCLES, NO MULTICOLORED NOISE. Single-pixel strokes clearly separated by 5-10px transparent gaps. Flat ellipse 2:1. Eight successive small clockwise flow phases, consistent full oval extent and position across all cells. No text no grid. The effect is fine ripples of shallow water, understated. Preserve generous transparent margins in each cell.\n"
+}
