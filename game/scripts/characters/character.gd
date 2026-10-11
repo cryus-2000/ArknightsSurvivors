@@ -1085,9 +1085,12 @@ func draw_extra_shadows() -> void:
 	pass
 
 
-## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人
-func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
+## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人。
+## max_n > 0：最多打 max_n 个（cap_targets 的顺序：Boss → 精英 → 其余，同档按离 origin 由近到远、再按 id；docs/61 §3.3 max_n）
+func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = [], max_n := 0) -> Array:
 	var hits: Array = arc_targets(origin, ang, half, radius)
+	if max_n > 0 and hits.size() > max_n:
+		hits = cap_targets(hits, origin, max_n)
 	var ve: float = vs_elite()
 	for e in hits:
 		log_hit(src, tags)
@@ -1114,9 +1117,21 @@ func _hit_fx(_e: Dictionary, _origin: Vector2) -> void:
 	pass
 
 
-## 圆形范围伤害（技能 / 爆炸）：返回命中的敌人
-func area_hit(src: String, c: Vector2, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = []) -> Array:
-	return melee_hit(src, c, 0.0, PI, radius, dmg, kb, stun, tags)
+## 圆形范围伤害（技能 / 爆炸）：返回命中的敌人；max_n 同 melee_hit
+func area_hit(src: String, c: Vector2, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = [], max_n := 0) -> Array:
+	return melee_hit(src, c, 0.0, PI, radius, dmg, kb, stun, tags, max_n)
+
+
+## 从命中列表里挑 n 个（确定性，不用随机数）：Boss → 精英 → 其余，同档离 origin 近的先，再按 id
+static func cap_targets(hits: Array, origin: Vector2, n: int) -> Array:
+	var keyed: Array = []
+	for e in hits:
+		keyed.append([0 if e.boss else (1 if e.elite else 2), origin.distance_squared_to(e.pos), int(e.id), e])
+	keyed.sort_custom(func(a, b): return a[0] < b[0] if a[0] != b[0] else (a[1] < b[1] if a[1] != b[1] else a[2] < b[2]))
+	var out: Array = []
+	for k in mini(n, keyed.size()):
+		out.append(keyed[k][3])
+	return out
 
 
 ## 技能强度倍率（全队被动「协同·锐」等）

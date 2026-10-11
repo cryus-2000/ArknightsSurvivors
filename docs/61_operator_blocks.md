@@ -105,12 +105,14 @@
 ### 3.3 形状表
 
 公共参数（所有伤害形状）：`mult`（× `base[atk_key]`，`atk_key` 缺省 `"atk"`）、`src`（必须在 `hit_sources`）、`tags`（追加到命中描述符）、`kb`、`stun`（同 `melee_hit`：精英击退 ×0.3、眩晕 ×0.5，Boss 不受）、
-`power`（true = 再乘 `skill_power()`）、`on_hit`（每个命中目标执行的 `st.*` 列表）。伤害 = `base[atk_key] × mult × 本干员 dmg 倍率 × _dmg_bonus() [× skill_power]`。
+`power`（true = 再乘 `skill_power()`）、`on_hit`（每个命中目标执行的 `st.*` 列表）、
+`max_n`（`circle` / `cone`：最多打几个，1–99，缺省不设上限；10-11 为浊心斯卡蒂辅助向加，docs/60 §2.5 的 `max_n`。取舍走 character.gd `cap_targets`：Boss → 精英 → 其余，同档离圆心 / 原点近的先、再按敌人 id，确定性；
+`melee_hit / area_hit` 末尾多了可选参数 `max_n`，缺省 0 = 原行为，老干员逐字节不变）。伤害 = `base[atk_key] × mult × 本干员 dmg 倍率 × _dmg_bonus() [× skill_power]`。
 
 | 积木 | docs/59 §10 旧名 | 参数 | 实现 |
 |---|---|---|---|
-| `shape.circle` | `shape/ring`、`shape/aura`（脉冲） | `center: zone / self / leader / target`、`r`（数值或 `"zone"`） | ✅ `area_hit` |
-| `shape.cone` | `shape/fan` | `r`、`half_deg`、`origin_off` 📝；朝最近目标 | ✅ `melee_hit` |
+| `shape.circle` | `shape/ring`、`shape/aura`（脉冲） | `center: zone / self / leader / target`、`r`（数值或 `"zone"`）、`max_n?` | ✅ `area_hit` |
+| `shape.cone` | `shape/fan` | `r`、`half_deg`、`max_n?`、`origin_off` 📝；朝最近目标 | ✅ `melee_hit` |
 | `shape.orbit` | `shape/aura_edge_orbs` | `n`、`r`（`"zone"`）、`speed`（弧度 / 秒）、`hit_r`、`kb`、`cd`（同一敌人间隔）、`mult`（0 = 只推不伤） | ✅ 常驻：区域边缘绕行的 n 个判定点（地面椭圆 y × 0.55，与画面一致） |
 | `shape.line` | `shape/line` | `len, width, pierce` | 📝（艾丽妮线段判定抽出后） |
 | `shape.point_aoe` | `shape/land` | `r, land: nearest/densest/aim, travel` | 📝 |
@@ -258,10 +260,10 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 
 ## 10. 浊心斯卡蒂的表达（docs/59 §1 + §8.1，歌域以主控为中心）
 
-见 `data/characters/skalter.json` 的 `blocks`：0 个 `custom`，没有 `skalter.gd`。基础数值照 docs/59 §8.1，只有 `atk` 与 `s3_mult` 按本机冒烟先收了一档（偏差第 11 条）。
+见 `data/characters/skalter.json` 的 `blocks`：0 个 `custom`，没有 `skalter.gd`。基础数值起步照 docs/59 §8.1；**10-11 用户定「改成辅助向」**，现行数值见偏差第 12 条（取代第 11 条的伤害型数值）。
 
 接入登记（docs/27 §9.2）：`balance.json operators.skalter`（A+，skill_power +0.02）、`lore.json`、`tools/balance_run.py OPS` 与预设 `skalter_mate`、
-技能图标 `skill_skalter_s1..3`（`tools/make_skill_icons.py` 占位画法）、音效 `sfx.gd OP_ALT` 借用（普攻 ← 铃兰普攻低音，S1 ← 流明 S1，S2 ← 铃兰 S2，S3 ← 凯尔希 S3）。
+技能图标 `skill_skalter_s1..3`（main ca52b04c 的正式图；起初的 `make_skill_icons.py` 占位画法合入 main 时撤掉）、音效 `sfx.gd OP_ALT` 借用（普攻 ← 铃兰普攻低音，S1 ← 流明 S1，S2 ← 铃兰 S2，S3 ← 凯尔希 S3）。
 选人页 / 图鉴 / 招募池都按 `data/characters/*.json` 自动列入（基础池，不走战绩解锁）。
 **占位美术**：`art.gd PLACEHOLDER` 在载入时把 `op_skadi_*` 帧条按「浊心红」色阶重新上色当作 `op_skalter_*`（JSON `sprites._placeholder` 有标注）；Codex 交正式帧条后删掉这两处即可，不用改别的。
 
@@ -278,7 +280,14 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 9. 主控满血时不治疗（不触发「溢出治疗」类藏品，同铃兰）；S1 / S3 的回复、S2 / S3 的光环、S3 的 ×3 和「深海的回响」都乘技能强度（排异 +40% 会生效）。
 10. 档案（lore.json）里「歌声总是绕着博士」改成绕着走在最前面的人（歌域以主控为中心）。
 11. **数值先收一档**：docs/59 的 `atk 14`、`s3_mult 3.0` 本机 12 局标准高手 12 / 12 通关、她占全队伤害 78%——声浪打歌域内**全部**敌人，半径 190 起步还会被 S2 / 天赋 / 节点 / S3 叠到 400 以上，
-    「单体 14 · 群体不设上限」在大群里就是全场最高输出。改为 `atk 6`、`s3_mult 2.0` 后 8 / 12（67%，见 §测试）。云端 56 局 × 6 批（§测试「强度测试结果」）三档主控 73 / 70 / 48%、合计 64%，**定档不改**；还偏强时下一步收 `aura`（190 → 170）或给 `shape.circle` 加 `max_n`（docs/60 已登记）。
+    「单体 14 · 群体不设上限」在大群里就是全场最高输出。改为 `atk 6`、`s3_mult 2.0` 后 8 / 12（67%，见 §测试）。云端 56 局 × 6 批（§测试「强度测试结果」）三档主控 73 / 70 / 48%、合计 64%，胜率在区间内；
+    但当队友时她拿全队 42–74% 的伤害、开局干员占比被压低 10–20 个百分点——「辅助」实际是主输出。
+12. **辅助向（用户 10-11「改成辅助向」，取代第 11 条）**：她当队友时伤害占比目标 20–30%，开局干员占比回到不带她的水平；她给的胜率提升主要来自歌域里的增益，不来自她自己的声浪。原作对应：浊心斯卡蒂是给友军加攻击 + 持续回复的吟游者，S3 自损换全队大幅攻击。
+    - 声浪 `atk 6 → 5`，`max_n 12`（`wave_n`，打圈内最近 12 个，Boss / 精英优先）；「潮汐和声」「深海的回响」也只打 12 个。S3 不再放大声浪（删 `s3_mult`，`verb.mode` 只留 `zone_mult`）。
+    - **领唱**（新，特性）：她自己当主控时，每次声浪再放一圈**不设上限**的声浪（`trig.every_n n 1` + `cond is_leader`，`lead_mult 1.2`，同记「声浪」）——单人开局在招到人之前不能只剩 12 个目标的输出。当队友时没有这一圈。
+    - 增益（受益者 = 歌域内干员，含她自己与主控；`scope in_zone`）：特性「歌声」攻击 +12%（`song_atk`，新）；S1 加攻速 +25%（`s1_aspd`，新，乘技能强度）；S2 攻击 +15%（`s2_atk`，新）+ 攻速 +15%（不变），深海猎人 0.15 → 0.25；
+      S3 全队攻击 0.5 → 0.8，昏暗时不再「声浪 ×1.5」，改为全队攻击再 +30%（`s3_dark_atk`）；天赋昏暗「声浪 +50%」改为歌域内攻击 +10%（`dark_atk`）；深海猎人每人 0.04 → 0.08（最多 3 人）；节点 2「潮声渐强」从「声浪 ×1.15」改为歌域内攻击 +10%（`aura.atk`）。
+    - 灯火代价不变：S3 灯火每秒 -2，昏暗时不扣；S1 受击灯火流失减半不变。治疗数值不变。
 
 ## 测试
 
@@ -318,7 +327,7 @@ python tools/balance_run.py --preset skalter_mate --bot master --seeds 16 --extr
 
 对照：同参数把 `skalter` 换成 `suzuran`（docs/59 §7「单人对照 铃兰」，同角色相差 ≤ 15 个百分点）。偏弱先动 `aura`（190 → 210）再动 `atk`；偏强先收 `s3_atk`、`s3_mult`。
 
-### 强度测试结果（云端 10-11，wip/skalter db36917 = 现值 atk 6、s3_mult 2.0）
+### 强度测试结果（云端 10-11，wip/skalter db36917 = 伤害型 atk 6、s3_mult 2.0；已被辅助向取代，见下一节）
 
 结果分支 `cloud-results/sk-lead-t0/t1/t2`、`sk-mate-t0/t1/t2`（`build/cloud/<名>/`）。实际跑的是 §测试 命令的一半：主控 seed 1–56、队友 seed 1–8（各 56 局，`--maxt=1000`）。口径：超时算负；死亡分钟只数死亡局；「她的伤害占比」= 声浪 + 潮汐和声 + 深海的回响 占全队 `out`（S3 的 ×2 记在声浪名下）。
 
@@ -356,7 +365,7 @@ starts 预设与她的主控局同口径（单人开局、自然招募）；skal
 - 带她平均 +15 / +3 / +9 个百分点；不是「谁带她都稳赢」：Ⅷ 维什戴尔 / 艾雅法拉带她 1 / 8，铃兰 3 / 8。每格 8 局，单格 ±25 都在噪声里，只看合计。
 - 当队友时她仍拿全队 42–74% 的伤害，开局干员占比被压低 10–20 个百分点（歌域以主控为中心、打圈内全部敌人，抢走了主控的击杀）。这是设计取向问题（「辅助」却是主输出），不是胜率问题，留给制作人判断；要压可以给 `shape.circle` 加 `max_n`（docs/60 已登记），不动胜率口径。
 
-**定档结论：数值不改（维持 atk 6、s3_mult 2.0）。**
+**定档结论（伤害型）：胜率在区间内、数值不改（atk 6、s3_mult 2.0）；之后用户按队友伤害占比定「改成辅助向」，见下一节。**
 
 1. 三档主控 73 / 70 / 48，合计 107 / 168 = 64%，在 50–70 内。标准超上沿 3 点、Ⅷ 低下沿 2 点，方向相反；56 局的标准误约 ±6 个百分点，两档都在一个标准误以内。她的旋钮不分档，任何统一收紧都会把 Ⅷ 压到 45% 以下。
 2. 对名单：标准档 8 人里排第 4（水月、塞雷娅 88，凯尔希 75），Ⅷ 在中位（50% 对名单 50%），既不是最强也不是摆设。
@@ -381,6 +390,41 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 事先定好的判定（112 局合并后）：标准 ≥ 75% 且 Ⅷ ≥ 50% → `aura` 190 → 180；Ⅷ < 45% 且标准 ≤ 70% → `aura` 190 → 200；其余不动。
 （同底名单对照里招募池已含她，starts 局可能招到她，这才是 main 合入后的真实名单强度。）
+
+### 辅助向冒烟（10-11，用户「改成辅助向」后；docs/61 §10 第 12 条）
+
+上面「强度测试结果」测的是伤害型（db36917），已被取代。本机冒烟在合入 main 29082e52 之后的 skalter-tune 上跑（`--maxt=1000`，含超时口径；「她占全队」= 声浪 + 潮汐和声 + 深海的回响 占全队 `out`）：
+
+| 版本 | 主控 标准·高手 seed 1–12 | 主控 Ⅷ·熟练 seed 1–12 | 队友 标准·高手 seed 1–3（21 局） | 她占全队（主控 / 队友） | 开局干员占比（队友局） |
+|---|---|---|---|---|---|
+| 伤害型 db36917（云端同 seed 子集） | 10 / 12 | 8 / 12 | 17 / 21 | 61–65% / 42–74%（均 ≈ 55%） | — |
+| 辅助向第一稿（atk 4、max_n 6、领唱 ×1.0、歌声 +8%、S2 攻 +10%，seed 1–2 共 14 局） | 7 / 12 | 4 / 12 | 6 / 14 | 43–47% / 8% | 58% |
+| **辅助向现值**（atk 5、max_n 12、领唱 ×1.2、歌声 +12%、S1 攻速 +25%、S2 攻 +15%、节点 2 +10%） | **7 / 12（58%）** | **9 / 12（75%）** | **17 / 21（81%）** | **55–57% / 18.6%**（各队 12–24%） | **47%** |
+| 对照 rp-t0-np1（不带她，底 6a3c857，seed 1–3） | — | — | 13 / 21（62%） | — | 36% |
+
+- 队友：她的占比从约 55% 降到 19%，开局干员占比从「被压 10–20 点」变成比不带她还高（47% 对 36%）；队伍胜率与伤害型同 seed 持平（17 / 21），提升改由歌域增益给出。占比略低于 20–30 目标的下沿，云端确认后可把 `wave_n` 12 → 14 或 `atk` 5 → 5.5 往上推一点。
+- 主控：单人开局她仍是主输出（领唱圈不设上限），标准 7 / 12、Ⅷ 9 / 12，12 局的标准误约 ±14 点，方向上没有掉出 50–70。第一稿（无领唱加成、只打 6 个）Ⅷ 4 / 12，说明单人开局靠的就是领唱这一圈。
+- 合入 main 后的快检全量通过；`blocks_eq` 里 eqtest 的回声加了 `max_n 5`，数据版与手写参照逐字节相同；核心契约测试加了 `cap_targets` 取舍顺序与「`max_n` 超出范围」校验两条。
+
+**云端整轮（skalter-tune 当前提交；同一提交的 starts 对照，队友差值在同一个底上算）**：
+
+```bash
+# 主控：56 局 × 三档（seed 1–56）
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot expert --seeds 56 --seed0 1 --out build/cloud/sks-lead-t0 --tag sks-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 1 --out build/cloud/sks-lead-t1 --tag sks-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 1 --out build/cloud/sks-lead-t2 --tag sks-lead-t2 --extra="--maxt=1000 --tier=2"
+# 队友：7 名开局干员 × seed 1–8 = 56 局 × 三档
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/sks-mate-t0 --tag sks-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 1 --out build/cloud/sks-mate-t1 --tag sks-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 1 --out build/cloud/sks-mate-t2 --tag sks-mate-t2 --extra="--maxt=1000 --tier=2"
+# 同提交对照：starts（7 名开局干员单人开局、自然招募）× seed 1–8 = 56 局 × 三档
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/sks-base-t0 --tag sks-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/sks-base-t1 --tag sks-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/sks-base-t2 --tag sks-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定：主控三档各 50–70；队友局她占全队 20–30%、开局干员占比不低于同提交 starts；队友合计胜率比同提交 starts 高、但不超过 70 太多（每格 8 局只看合计）。
+旋钮：她占比偏低 → `wave_n` / `atk`；队伍提升偏大 → `s3_atk`（0.8）、`song_atk`（0.12）；单人主控偏弱 → `lead_mult`（1.2），偏强同理往回收（只影响主控局，不动队友口径）。
 
 ### 老干员同 seed 不变（10-11，对 main 71c078d5，`--trace=1`，10:00）
 

@@ -14,7 +14,7 @@
   "s2_zone": 0.25, "s2_aspd": 0.12, "s2_dmg": 0.2,
   "s3_dur": 8.0, "s3_mult": 2.5, "s3_atk": 0.3, "s3_drain": 1.5, "s3_cone_r": 320, "s3_cone_deg": 60, "s3_cone_mult": 3.0, "s3_stun": 0.6,
   "bright": 70, "dark": 30, "bright_zone": 0.15, "dark_mult": 1.4, "dark_slow": 0.1, "mate_atk": 0.03, "mate_cap": 3,
-  "n1_zone": 1.15, "n2_dmg": 1.15, "echo_n": 3, "echo_delay": 0.2, "echo_mult": 0.5, "res_mult": 0.3, "res_slow": 0.5,
+  "n1_zone": 1.15, "n2_dmg": 1.15, "echo_n": 3, "echo_delay": 0.2, "echo_mult": 0.5, "echo_max_n": 5, "res_mult": 0.3, "res_slow": 0.5,
   "orb_n": 4, "orb_speed": 0.9, "orb_hit": 18, "orb_kb": 100, "orb_cd": 0.5, "orb_mult": 0.2
  },
  "leader": {"max_hp": 100, "armor": 1.0, "arts_res": 0.1, "regen": 1.0},
@@ -43,7 +43,7 @@
   {"type": "custom", "id": "n1", "name": "测试节点一", "desc": "区域 ×1.15"},
   {"type": "custom", "id": "n2", "name": "测试节点二", "desc": "伤害 ×1.15"},
   {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能与天赋"},
-  {"type": "custom", "id": "echo", "name": "测试回声", "desc": "每第 3 次脉冲 0.2 秒后回声"},
+  {"type": "custom", "id": "echo", "name": "测试回声", "desc": "每第 3 次脉冲 0.2 秒后回声（最多打 5 个，测 max_n）"},
   {"type": "custom", "id": "res", "name": "测试共鸣", "desc": "一技能期间每秒共鸣伤害并减速"},
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能；区域边缘 4 个绕行音符"}
  ],
@@ -83,7 +83,7 @@
    "n1": {"verb": "buff_self", "stat": "zone", "op": "mult", "value": "$n1_zone"},
    "n2": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_dmg"},
    "echo": {"trig": "every_n", "n": "$echo_n", "delay": "$echo_delay", "do": [
-    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "src": "测试回声", "tags": ["follow_up"]}]},
+    {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "max_n": "$echo_max_n", "src": "测试回声", "tags": ["follow_up"]}]},
    "res": {"trig": "tick", "every": 1.0, "cond": "skill_active:0", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$res_mult", "src": "测试共鸣", "tags": ["skill", "dot"], "on_hit": [{"st": "slow", "dur": "$res_slow"}]}]},
    "elite2": {"shape": "orbit", "n": "$orb_n", "r": "zone", "speed": "$orb_speed", "hit_r": "$orb_hit", "kb": "$orb_kb", "cd": "$orb_cd", "mult": "$orb_mult", "src": "测试音符", "tags": ["basic"]}

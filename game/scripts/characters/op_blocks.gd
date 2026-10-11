@@ -237,6 +237,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var tags: Array = b.get("tags", [])
 	var kb: float = float(b.get("kb", 0.0))
 	var stun: float = float(b.get("stun", 0.0))
+	var max_n: int = int(b.get("max_n", 0))   # 0 = 不设上限
 	var hits: Array = []
 	match str(b.shape):
 		"circle":
@@ -244,13 +245,13 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			var r: float = shape_radius(o, b)
 			if c == Vector2.INF:
 				return []
-			hits = o.area_hit(src, c, r, dmg, kb, stun, tags)
+			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 		"cone":
 			var r2: float = shape_radius(o, b)
 			var ts: Array = o.nearest_enemies(1, r2 + 30.0, o.pos)
 			var ang: float = o.atk_angle((ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle())
-			hits = o.melee_hit(src, o.pos, ang, deg_to_rad(float(b.get("half_deg", 45.0))), r2, dmg, kb, stun, tags)
+			hits = o.melee_hit(src, o.pos, ang, deg_to_rad(float(b.get("half_deg", 45.0))), r2, dmg, kb, stun, tags, max_n)
 			o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 	for s in b.get("on_hit", []):
 		for e in hits:
@@ -559,6 +560,7 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 	match tag:
 		"shape.circle", "shape.cone":
 			_num(b, "mult", p, ctx, false, -INF, 20.0)
+			_num(b, "max_n", p, ctx, false, 1.0, 99.0)
 			if not (b.get("r", null) is String and b.r == "zone"):
 				_num(b, "r", p, ctx, true)
 			if tag == "shape.cone":

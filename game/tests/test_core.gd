@@ -256,7 +256,14 @@ func test_squad_contract() -> void:
 		"permanent 不对应": func(d): d.blocks.skills[1]["dur"] = 0,
 		"条件写错": func(d): d.blocks.talent[0]["cond"] = "lamp ~ 3",
 		"custom 节点没积木": func(d): d.blocks.progression.erase("res"),
+		"max_n 超出范围": func(d): d.blocks.progression.echo.do[0]["max_n"] = 0,
 	}
+	# max_n 的取舍（docs/61 §3.3）：Boss → 精英 → 其余，同档近的先、再按 id
+	var cand := [{"id": 5, "pos": Vector2(10, 0), "boss": false, "elite": false}, {"id": 2, "pos": Vector2(90, 0), "boss": false, "elite": true},
+		{"id": 3, "pos": Vector2(10, 0), "boss": false, "elite": false}, {"id": 9, "pos": Vector2(150, 0), "boss": true, "elite": false},
+		{"id": 7, "pos": Vector2(40, 0), "boss": false, "elite": false}]
+	var picked: Array = Ch.cap_targets(cand, Vector2.ZERO, 3).map(func(e): return e.id)
+	ok(picked == [9, 2, 3], "max_n 取舍顺序 Boss → 精英 → 近 → id：%s" % str(picked))
 	for why in bads:
 		var d2: Dictionary = eq.duplicate(true)
 		bads[why].call(d2)

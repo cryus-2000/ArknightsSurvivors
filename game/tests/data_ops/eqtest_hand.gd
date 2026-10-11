@@ -83,7 +83,7 @@ func update(dt: float) -> void:
 				due += 1
 		echo_q = echo_q.filter(func(t): return t > 0.0)
 		for k in due:
-			_pulse(base("echo_mult", 0.5), "测试回声", ["follow_up"])
+			_pulse(base("echo_mult", 0.5), "测试回声", ["follow_up"], int(base("echo_max_n", 0.0)))
 	# ---- 本帧条件（帧首求值一次）
 	var s1 := s1_t > 0.0
 	var s3 := s3_t > 0.0
@@ -200,8 +200,8 @@ func _heal(pct: float, power: bool) -> void:
 	heal_leader(h, display_name())
 
 
-func _pulse(mult: float, src: String, tags: Array) -> Array:
-	return area_hit(src, _zc(), zr, base("atk", 0.0) * mult * dmg_mult * _dmg_bonus(), 0.0, 0.0, tags)
+func _pulse(mult: float, src: String, tags: Array, max_n := 0) -> Array:
+	return area_hit(src, _zc(), zr, base("atk", 0.0) * mult * dmg_mult * _dmg_bonus(), 0.0, 0.0, tags, max_n)
 
 
 func _soft_slow() -> void:
