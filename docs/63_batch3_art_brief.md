@@ -4,7 +4,7 @@
 > 第一步是参考审批（§2）：Codex 先交五人的全身立绘截图和武器局部截图，用户确认后才画帧条。这一步和第四批一样（art/incoming/squad_batch4_reference_feedback.md）。
 >
 > 2026-10-11。依据 docs/59_batch3_operators.md（技能、普攻与出手时机）、docs/24_squad_art_brief.md §1 §6（通用规格与交付）、docs/27_batch2_art_brief.md（上一批的写法）、docs/32_squad_art_review.md 与 docs/32_art_review_0926_acceptance.md（第四批的验收教训）。
-> 分工不变：Codex 只做**人物形象**。特效（fx_*）、弹道（proj_*）、歌域 / 重力场 / 热砂等光域、图标、UI 都由 Claude 在 main 上做，这里不要画。本批**没有**非人物件，不像上一批有灯塔和替身。
+> （10-11 更新：重点技能特效可另开特效单交 Codex，见 docs/06 美术分工；本单仍只含人物。）分工：Codex 只做**人物形象**。特效（fx_*）、弹道（proj_*）、歌域 / 重力场 / 热砂等光域、图标、UI 都由 Claude 在 main 上做，这里不要画。本批**没有**非人物件，不像上一批有灯塔和替身。
 > 通用规格、命名、交付方式与 docs/24 §1、§6 **完全一致**，本文只写差异和每个角色的内容。docs/24 §5 里「`skadi_corrupting` 浊心斯卡蒂，第 4 批解锁干员」的旧条目作废：id 改为 `skalter`，她进基础池，按本文做。
 
 ## 0. 背景（读这一段就够）

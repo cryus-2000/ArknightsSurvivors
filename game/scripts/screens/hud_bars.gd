@@ -303,7 +303,8 @@ func draw_status_bar(vs: Vector2) -> void:
 		elif x.stat == "dmg_taken":
 			items.append(["减伤 %d%%" % int(-x.value * 100.0), Color(0.6, 0.9, 1.0), clampf((x.until - g.t) / 5.0, 0.0, 1.0)])
 	if g.rfx.rule("black_tulip") > 0 and g.rfx.tulip_t > 1.0:
-		items.append(["郁金香 +%d%%" % int(80.0 * g.rfx.tulip_t / 60.0), Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
+		var tb: float = g.rfx.tulip_bonus()
+		items.append(["郁金香 +%d%%" % int(100.0 * tb) if tb > 0.0 else "郁金香 暂停", Color(1.0, 0.6, 0.7), g.rfx.tulip_t / 60.0])
 	if g.rfx.perm_dmg > 0.0:
 		items.append(["刻勋 +%.1f%%" % (g.rfx.perm_dmg * 100.0), Color(1.0, 0.85, 0.5), -1.0])
 	if g.rfx.king_low() and (g.rfx.rule("king_crown") + g.rfx.rule("king_gun") + g.rfx.rule("king_cake") + g.rfx.rule("king_branch")) > 0:

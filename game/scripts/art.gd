@@ -3,6 +3,7 @@ extends RefCounted
 ## 这样新图放进文件夹后，重新打开游戏就能看到，不需要重新导出。
 
 static var _cache := {}
+static var late_log := false   # --perf：开局后才读的贴图逐张打印 TEXLATE（docs/50 §10）
 
 ## 载入计时（--loadprof）：标题页离开 / game.gd _ready 各阶段 / 首帧画完打点，首帧后打印 LOADPROF（docs/36 §5）。
 ## 这里不能用 Cfg：核心契约测试与 --script 工具不带自动加载
@@ -75,6 +76,13 @@ const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growt
 static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
 		return _cache[name]
+	if late_log:
+		var lt0 := Time.get_ticks_usec()
+		late_log = false
+		var lt: Texture2D = tex(name)
+		late_log = true
+		print("TEXLATE %s %.1fms" % [name, (Time.get_ticks_usec() - lt0) / 1000.0])
+		return lt
 	var t: Texture2D = null
 	var density := 1.0
 	var src_path := ""   # 法线缓存键用：原图路径（磁盘 PNG 或包内资源）
@@ -107,13 +115,66 @@ static func tex(name: String) -> Texture2D:
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		src_path = "res://art/px/%s.png" % name
 		t = load(src_path)
-	if t != null and normal_maps and _wants_normal(name):
+	if t == null:
+		var ph := _placeholder(name)
+		if not ph.is_empty():
+			t = ph[0]
+			density = ph[1]
+	if t != null and normal_maps and _wants_normal(name) and src_path != "":
 		t = _with_normal(t, name, src_path)
 	if t != null:
 		_hires[name] = density
 		_hires_rid[t.get_rid()] = density
 	_cache[name] = t
 	return t
+
+
+## 占位美术（明确标注，等正式帧条交付后删条目）：名字以 key 开头、又找不到正式文件的贴图，取 from 前缀的同名帧条，
+## 按 ramp 色阶重新上色（按亮度映射，保留明暗）。只在载入时做一次。
+## 目前没有条目（留空备用）。写法：{"op_<id>_": {"from": "op_<借谁>_", "ramp": [[亮度, Color], …]}}；
+## 浊心斯卡蒂曾借斯卡蒂帧条改「浊心红」，Codex 正式帧条交付后删掉（docs/64 §5.1）
+const PLACEHOLDER := {}
+
+
+static func _placeholder(name: String) -> Array:
+	for pre in PLACEHOLDER:
+		if not name.begins_with(pre):
+			continue
+		var spec: Dictionary = PLACEHOLDER[pre]
+		var src: String = spec.from + name.substr(pre.length())
+		var st: Texture2D = tex(src)
+		if st == null:
+			return []
+		var img: Image = st.get_image()
+		if img == null or img.is_empty():
+			return []
+		if img.is_compressed():
+			img.decompress()
+		img.convert(Image.FORMAT_RGBA8)
+		var lut := PackedByteArray()
+		lut.resize(256 * 3)
+		var ramp: Array = spec.ramp
+		for i in 256:
+			var l: float = i / 255.0
+			var c: Color = ramp[-1][1]
+			for k in range(1, ramp.size()):
+				if l <= ramp[k][0]:
+					c = ramp[k - 1][1].lerp(ramp[k][1], (l - ramp[k - 1][0]) / (ramp[k][0] - ramp[k - 1][0]))
+					break
+			lut[i * 3] = int(c.r * 255.0)
+			lut[i * 3 + 1] = int(c.g * 255.0)
+			lut[i * 3 + 2] = int(c.b * 255.0)
+		var data: PackedByteArray = img.get_data()
+		for i in range(0, data.size(), 4):
+			if data[i + 3] == 0:
+				continue
+			var li: int = (data[i] * 77 + data[i + 1] * 150 + data[i + 2] * 29) >> 8
+			data[i] = lut[li * 3]
+			data[i + 1] = lut[li * 3 + 1]
+			data[i + 2] = lut[li * 3 + 2]
+		var out := Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8, data)
+		return [ImageTexture.create_from_image(out), hires(src)]
+	return []
 
 
 ## 贴图的像素密度（1 = 普通，2 = @2x 高清），绘制倍率应除以它

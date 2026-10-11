@@ -45,15 +45,22 @@ func _process(_dt: float) -> void:
 	game.shop_sys.refresh()
 	check(game.merchant.purchases == purchases, "refresh cannot reset purchase escalation")
 	game.ingots = 1000
+	# 缺省不限购（用户 10-11）：连买三件藏品都成交，只靠涨价与藏品栏容量软限制
+	check(game.shop_sys.relic_buy_unlimited(), "relic purchases are unlimited by default")
 	game.shop_sys.buy(0)
 	game.shop_sys.buy(1)
-	check(game.shop_sys.relic_buys_left() == 0, "two relic purchases exhaust this visit")
-	var limited_gold: int = game.ingots
+	var before_third: int = game.ingots
 	game.shop_sys.buy(2)
-	check(game.ingots == limited_gold and not game.shop_items[2].sold, "third relic cannot be purchased")
+	check(game.shop_items[2].sold and game.ingots < before_third, "third relic can be purchased when unlimited")
+	# 旧的硬上限仍可用旋钮打开：shop/relic_buy_limit = 2
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("shop/relic_buy_limit", -1.0)   # 确保已加载
+	Bal._data["shop"]["relic_buy_limit"] = 2.0
+	check(not game.shop_sys.relic_buy_unlimited() and game.shop_sys.relic_buys_left() == 0, "knob 2 restores the two-relic limit")
 	game.shop_refreshed = false
 	game.shop_sys.refresh()
-	check(game.shop_sys.relic_buys_left() == 0, "refresh cannot reset two-relic limit")
+	check(game.shop_sys.relic_buys_left() == 0, "refresh cannot reset the two-relic limit")
+	Bal._data["shop"]["relic_buy_limit"] = -1.0
 	# Merchant and altar positions are safe even for player standing at/outside an edge.
 	game.zone_state = 2
 	game.zone_c = Vector2(100, -80)

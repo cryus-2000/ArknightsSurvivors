@@ -123,6 +123,9 @@
 | `--perf` | 开窗口跑时按 0–8 / 8–10 / 10+ 分钟记帧时间、渲染 CPU / GPU、敌人数、慢帧明细，结束打印 `PERF {json}`（docs/50） |
 | `--realtime` | 按真实帧间隔推进、不多跑模拟步；**绘制 / 帧时间对比必须加**（批跑步长每帧 0.5 秒游戏时间，特效很快消失，绘制被低估） |
 | `--trace=秒` | 定期打印状态摘要（排查复现） |
+| `--perfmin` / `--perfab=N` / `--perfdump=路径` | 配 `--perf`：按游戏分钟分段（`m08`，`F` = 最终 Boss 在场）；每 N 帧轮换 `g.perf_alt`（同时切旧的 PlayClock 切步与顿帧规则，分 `/a` `/b` 两桶，同局对照）；逐帧 CSV（帧时间、模拟步数、各列表长度、`--prof` 分段）。开局后才读的贴图打印 `TEXLATE 名字 毫秒`（docs/50 §10） |
+| `--playclock` | 配 `--balance --realtime`：开垂直同步、按玩家局的 PlayClock 分步与顿帧推进，量玩家实际帧时间与顿帧（docs/50 §10） |
+| `--recframes=秒,帧数` / `--legacyfeel` | 游戏时间过了该秒后连存 N 帧 `rec_*.png` 到 `--shotdir`（配 `--playclock --fixed-fps 30` 录对照片）；`--legacyfeel` 整局用旧切步与旧顿帧规则 |
 
 **界面动效**（docs/62 §8，带 `--autotest`、开窗口；`run/motion_shot.gd`）
 

@@ -69,7 +69,7 @@ var stakes: Array = []     # 防暴桩：{pos, life}
 var _trig_cache := {}      # 事件名 -> [[id, effect], …]，获得藏品时重建
 var _rule_cache := {}      # 规则名 / "id:规则名" -> args，获得藏品时重建
 const HOME_R := 95.0
-const KING_LOW := 0.5     # 国王套装「低血」门槛：原来 30%，实测主控生命低于 35% 的时间占比只有 0–0.7%，几乎不触发（2026-09-27）
+const KING_LOW := 0.7     # 国王套装「低血」门槛：30%（9-27 前）→ 50% → 70%（docs/65：高手生命 < 50% 只占 1.5–2.2% 时间，用户 10-11 定）
 const MINE_N := 3          # 支援地雷组：每次朝敌群抛出几枚
 const DEEP_LAMP := 50.0   # 深蓝·低灯火的门槛（火油与药膏 / 无字珊瑚 / 佣兵保单）：原来 30，自然流程里灯火低于 30 的时间只有 4–5%，收益几乎触发不了
 
@@ -528,18 +528,17 @@ func tick(dt: float) -> void:
 			g.stats.add(&"op_aspd", "mult", 1.0 / hm, "relic_haste")
 		g.sync_stats()
 	# 黑色郁金香：技能未生效时累计，最多 60 秒
-	if rule("black_tulip") > 0:
-		if g.squad.any_skill_active():
-			tulip_t = 0.0
-		else:
-			tulip_t = minf(60.0, tulip_t + dt)
-	# 深蓝之树：连续 60 秒未受伤 → 灯火 +15
+	# 黑色郁金香（docs/65，用户 10-11 定）：技能生效时暂停计时、不清零
+	if rule("black_tulip") > 0 and not g.squad.any_skill_active():
+		tulip_t = minf(float(_rule_args("black_tulip").get("t", 60.0)), tulip_t + dt)
+	# 深蓝之树：每连续 t 秒未受伤 → 灯火 +amount（数据 relic_effects.json #243 args；docs/65：60 秒窗口 6 分钟后实测 0 次触发，改 15 秒）
 	if rule("tree_light") > 0:
+		var ta: Dictionary = _rule_args("tree_light")
 		no_hurt_t += dt
-		if no_hurt_t >= 60.0:
+		if no_hurt_t >= float(ta.get("t", 15.0)):
 			no_hurt_t = 0.0
-			g.lamp = minf(g.lamp_cap, g.lamp + 15.0)
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +15", Color(0.5, 0.8, 1.0), 15)
+			g.lamp = minf(g.lamp_cap, g.lamp + float(ta.get("amount", 6.0)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +%d" % int(ta.get("amount", 6.0)), Color(0.5, 0.8, 1.0), 15)
 	stun_all_cd -= dt
 	hurt_sp_cd -= dt
 	wrath_cd -= dt
@@ -586,10 +585,10 @@ func tick(dt: float) -> void:
 	for id in unhurt:
 		var a3: Dictionary = _rule_args_of(id, "unhurt_light")
 		unhurt[id] += dt
-		if unhurt[id] >= float(a3.get("t", 60.0)):
+		if unhurt[id] >= float(a3.get("t", 15.0)):
 			unhurt[id] = 0.0
-			g.lamp = minf(g.lamp_cap, g.lamp + float(a3.get("amount", 6.0)))
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s · 灯火 +%d" % [db.get_relic(id).name, int(a3.get("amount", 6.0))], Color(0.5, 0.8, 1.0), 15)
+			g.lamp = minf(g.lamp_cap, g.lamp + float(a3.get("amount", 3.0)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s · 灯火 +%d" % [db.get_relic(id).name, int(a3.get("amount", 3.0))], Color(0.5, 0.8, 1.0), 15)
 	for id in medkits:
 		var a4: Dictionary = _rule_args_of(id, "medkit")
 		if medkits[id] > 0 and g.hp > 0.0 and g.hp < g.max_hp * float(a4.get("at", 0.3)):
@@ -951,6 +950,14 @@ func king_low() -> bool:
 	return g.hp < g.max_hp * KING_LOW
 
 
+## 黑色郁金香当前加成（技能生效时为 0；HUD 也读这个）
+func tulip_bonus() -> float:
+	if rule("black_tulip") <= 0 or tulip_t <= 0.0 or g.squad.any_skill_active():
+		return 0.0
+	var a: Dictionary = _rule_args("black_tulip")
+	return float(a.get("max", 0.6)) * tulip_t / float(a.get("t", 60.0))
+
+
 ## 额外伤害倍率：限时修正 + 国王的冠冕 + 黑色郁金香 + 刻勋之手
 func dmg_extra() -> float:
 	var m := 1.0 + perm_dmg
@@ -959,8 +966,7 @@ func dmg_extra() -> float:
 			m *= 1.0 + x.value
 	if rule("king_crown") > 0:
 		m *= (2.5 if king_n >= 3 else 1.5) if king_low() else 1.1
-	if rule("black_tulip") > 0 and tulip_t > 0.0:
-		m *= 1.0 + 0.8 * tulip_t / 60.0
+	m *= 1.0 + tulip_bonus()
 	# 火油与药膏：低灯火时全队伤害 +50%（深蓝·低灯火不挑编队的收益）
 	if rule("low_light_sp") > 0 and g.lamp < DEEP_LAMP:
 		m *= 1.5
@@ -1065,7 +1071,6 @@ func on_skill_start(o = null, i := -1) -> void:
 		_temp("dmg", 1.0, 1.0, "111")
 	if g.relics.has("85") and o != null and i >= 0:
 		coin_q.append({"t": g.t + float(o.skill_def(i).get("dur", 0.0)), "op": o})
-	tulip_t = 0.0
 	# docs/57：数据驱动的 SkillStarted（refund / stack_stat / 带职业的 temp_stat）；110 / 111 仍走上面的写法
 	for t in _triggers("SkillStarted"):
 		var id: String = t[0]

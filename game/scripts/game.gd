@@ -398,6 +398,9 @@ var dbg_relic_take: Array = []   # 平衡输出：获得的藏品（[t, id, 当�
 var relic_out := 0.0             # 平衡输出：藏品直接造成的伤害（描述符 origin == relic）
 var bal_maxt := 780.0            # --maxt=<秒>：平衡 / 冒烟测试提前结束（默认 780 = 终局 Boss 登场后再给 3 分钟）
 var realtime := false            # --realtime（仅测试，配合 --balance --perf）：按真实帧间隔推进、不多跑模拟步，测真实游戏的帧时间
+var playclock_test := false     # --playclock（仅测试，配合 --balance --realtime）：开垂直同步、按玩家局的 PlayClock 分步推进，测玩家实际帧时间（docs/50 §10）
+var upd_n := 0                  # _update 调用次数（--perfdump 逐帧记模拟步数）
+var perf_alt := false           # --perfab=N（仅测试）：autotest 每 N 帧轮换，同局对照两种实现（docs/50 §10）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
 var _prof_t := 0
@@ -433,7 +436,7 @@ static func preload_tex_names() -> Array:
 		if csp.has("base"):
 			names.append(csp.base)
 	names.append_array(V6_FRAMES.keys())
-	var etex: Array = ["e_paranoia2"]
+	var etex: Array = ["e_paranoia2", "e_ishar_t", "e_ishar_transform"]   # 伊莎玛拉变身形态（render/world.gd 原来首次画到才读：变身那一帧同步读图 + 算法线，卡 0.7–0.8 秒，docs/50 §10）
 	for k in D.ENEMIES:
 		var tn: String = D.ENEMIES[k].tex
 		if not etex.has(tn):
@@ -547,7 +550,7 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
-	if not Character.list_ids().has(Cfg.character_id):
+	if not Character.exists(Cfg.character_id):   # 正式名单 + 测试专用干员（docs/61 §测试，tests/data_ops）
 		Cfg.character_id = "mizuki"
 	A.mark("map+doctor")
 	ch = squad.add(demo_op if demo_op != "" else (str(trial.config.operator) if trial.active else Cfg.character_id))
@@ -628,7 +631,7 @@ func _ready() -> void:
 			tex[n + "_white"] = A.white_of(tex[n])
 	A.mark("tex_v6")
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
-	var etex: Array = ["e_paranoia2"]
+	var etex: Array = ["e_paranoia2", "e_ishar_t", "e_ishar_transform"]   # 伊莎玛拉变身形态（render/world.gd 原来首次画到才读：变身那一帧同步读图 + 算法线，卡 0.7–0.8 秒，docs/50 §10）
 	for k in D.ENEMIES:
 		var tn: String = D.ENEMIES[k].tex
 		if not etex.has(tn):
@@ -793,8 +796,10 @@ func _ready() -> void:
 			for v in arg.substr(8).split(","):
 				shot_at.append(int(v))
 	if mode == Mode.BALANCE:
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-		Engine.max_fps = 0
+		playclock_test = Cfg.dev_args().has("--playclock") and Cfg.dev_args().has("--realtime")
+		if not playclock_test:
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+			Engine.max_fps = 0
 		for a in Cfg.dev_args():
 			if a.begins_with("--maxt="):
 				bal_maxt = float(a.substr(7))
@@ -877,10 +882,10 @@ func _process(delta: float) -> void:
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
-	elif hitstop > 0.0 and mode == Mode.PLAY and Cfg.hitstop and demo_op == "":
+	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
 		hitstop -= delta
 	elif state == S.PLAY:
-		if mode != Mode.PLAY or demo_op != "":
+		if (mode != Mode.PLAY and not playclock_test) or demo_op != "":
 			_update(dt)
 			simulated_dt += dt
 		else:
@@ -1189,6 +1194,7 @@ func _try_dash() -> void:
 
 func _update(dt: float) -> void:
 	_pm("")
+	upd_n += 1
 	if int(t + dt) != int(t):
 		GalleryProgress.observe(self)
 	t += dt
@@ -1546,6 +1552,8 @@ const V6_FRAMES := {
 	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
 	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
 	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
+	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
+	"fx_skalter_s3_back": [6, 12.0], "fx_skalter_s3_front": [6, 12.0], "fx_skalter_s3_orbit": [6, 12.0],
 	"fx_hoshiguma_block": [5, 20.0], "fx_hoshiguma_sand": [4, 8.0], "fx_hoshiguma_demon_slash": [5, 20.0],
 	"fx_texas_dash": [4, 20.0], "fx_texas_blade": [6, 20.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条

@@ -476,6 +476,9 @@ const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.95
 const STAT_EN := {"生命": "HP", "伤害": "DMG", "移速": "SPD", "类型": "TYPE", "射程": "RNG", "体型": "SIZE", "等级": "RANK", "效果分类": "CAT",
 	"原类别": "ORIG", "流派": "LANE", "Boss": "BOSS", "回复": "REGEN", "闪避": "DODGE", "拾取": "PICKUP"}
 const LIGHT_BLOCK := Color(0.925, 0.933, 0.941)
+var glass: Color = UI.C_L_GLASS    # 右侧面板底（截图对照：--codexglass=<透明度>）
+var glass_back := 0.0              # 正文块后再垫一层同色底的透明度（对照用，缺省 0 不垫）
+var glass_block := true            # 左上 ARCHIVE 浅色块也用同一半透明底（--codexglassblock 截图对照时也会打开）
 const SPEC_TICKS := false          # 非干员页舞台四角的黄色小角标：10-11 去掉底框后对照过，没有框时角标像悬空的残框，关掉，只留 SPECIMEN 代码
 var dk := 1.0
 var doff := Vector2.ZERO
@@ -1199,7 +1202,10 @@ func _draw_panel_bg(ph: bool, vr: Rect2) -> void:
 	var xa := xt + (xb - xt) * (y0 - top) / (D.y - top)
 	var xz := xt + (xb - xt) * (y1 - top) / (D.y - top)
 	var xr := maxf(D.x, vr.end.x) + 1.0
-	draw_colored_polygon(PackedVector2Array([Vector2(xa, y0), Vector2(xr, y0), Vector2(xr, y1), Vector2(xz, y1)]), UI.C_L_BG)
+	draw_colored_polygon(PackedVector2Array([Vector2(xa, y0), Vector2(xr, y0), Vector2(xr, y1), Vector2(xz, y1)]), glass)
+	if glass_back > 0.0:
+		var px := _panel_x()
+		draw_rect(Rect2(px.x - 10, 6.0 if ph else 62.0, px.y - px.x + 20, (348.0 if ph else 640.0)), UI.fa(UI.C_L_BG, glass_back))
 	draw_line(Vector2(xa, y0), Vector2(xz, y1), UI.C_ACC, 3.0, true)
 
 
@@ -1212,7 +1218,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		if not en.get("locked", false):
 			unl += 1
 	if ph:
-		draw_rect(Rect2(vr.position.x, minf(0.0, vr.position.y), 96.0 - vr.position.x, 30.0 - minf(0.0, vr.position.y)), LIGHT_BLOCK)
+		draw_rect(Rect2(vr.position.x, minf(0.0, vr.position.y), 96.0 - vr.position.x, 30.0 - minf(0.0, vr.position.y)), UI.fa(LIGHT_BLOCK, glass.a) if glass_block else LIGHT_BLOCK)
 		UI.hazard(self, Rect2(96, 0, 14, 30), ht)
 		UI.text_at(self, font, Vector2(10, 15), "图鉴 · " + str(TABS[tab].cn), 13, UI.C_HZ, "lm", true)
 		for i in TABS.size():
@@ -1228,7 +1234,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		return
 	draw_rect(Rect2(vr.position.x, 0, vr.size.x, 48), UI.C_D_PANEL)
 	draw_line(Vector2(vr.position.x, 48), Vector2(vr.end.x, 48), UI.C_D_INK, 2.0)
-	draw_rect(Rect2(vr.position.x, 0, 120.0 - vr.position.x, 48), LIGHT_BLOCK)
+	draw_rect(Rect2(vr.position.x, 0, 120.0 - vr.position.x, 48), UI.fa(LIGHT_BLOCK, glass.a) if glass_block else LIGHT_BLOCK)
 	UI.hazard(self, Rect2(120, 0, 20, 48), ht)
 	UI.code(self, font, Vector2(18, 7), "ARCHIVE", 9, UI.C_HZ)
 	UI.text_at(self, font, Vector2(18, 19), "图鉴", 18, UI.C_HZ, "la", true)

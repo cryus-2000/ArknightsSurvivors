@@ -1,0 +1,48 @@
+{
+  "tool": "builtin imagegen",
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-957eac66-d6c6-4a77-8571-8261acfbc32f.png",
+  "source_sha256": "bef9f92dbe575a73c8afd4d68eccb2306e511372a45a3573ac00793751a99d72",
+  "source_rectangles": [
+    [
+      0,
+      0,
+      512,
+      512
+    ],
+    [
+      512,
+      0,
+      1024,
+      512
+    ],
+    [
+      1024,
+      0,
+      1536,
+      512
+    ],
+    [
+      0,
+      512,
+      512,
+      1024
+    ],
+    [
+      512,
+      512,
+      1024,
+      1024
+    ],
+    [
+      1024,
+      512,
+      1536,
+      1024
+    ]
+  ],
+  "prompts": {
+    "generation": "Create a production PIXEL ART transparent VFX animation spritesheet for Skadi the Corrupting Heart skill 3, using attached screenshot ONLY as visual reference. NO characters, no scenery, no text. EXACTLY SIX equal square animation frames, arranged 3 columns x 2 rows, invisible cell grid, each effect fully inside its cell with generous transparent gutters. All six effects have SAME center and SAME overall scale. A looping magical ocean aura: luminous thin CYAN and TEAL water arcs swirl around a transparent empty central space where a character will stand; lower elliptical foot vortex and taller wispy curved water ribbons reaching above head, few small cyan droplets and flecks. 3 slender muted CORAL RED fish-shaped flowing ribbon strokes orbit between water arcs, inspired by red streaks in screenshot. Add only TWO tiny recognizable ivory-cyan musical eighth notes per frame, tasteful secondary accents, not dominant. Center must stay mostly EMPTY transparent so character is readable. Delicate incomplete arcs NOT a solid bubble or thick portal donut, no explosion, no giant symbols, no white disk. Six successive phases of clockwise water and red fish orbit, frame6 flows back to frame1, constant radius. Crisp pixel clusters and stepped edges, limited palette cyan/teal/deep blue/coral red/ivory, approximately 96x96 logical pixels per frame at final resolution, no soft airbrush gradients. Actual alpha transparency, no checkerboard, no shadow ground. Make each square frame visually separate with no crossing of cell borders."
+  },
+  "export": "fixed 92px scale, 2px inset, shared 24-color palette, alpha threshold128, nearest @2x",
+  "exporter_sha256": "de52a43ea4354f42ed397db45f07117e7808b66294f052d1aceee0828b6b3cd7"
+}

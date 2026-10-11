@@ -28,7 +28,7 @@ import godot_runner as GR
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 OPS = ["mizuki", "wisadel", "eyjafjalla", "kaltsit", "saria", "siege", "skadi", "suzuran",
-       "ulpianus", "irene", "specter_unchained", "logos", "lumen"]
+       "ulpianus", "irene", "specter_unchained", "logos", "lumen", "skalter"]
 PRESETS = {
     "solo": [[o] for o in OPS],
     "squads": [
@@ -65,6 +65,8 @@ PRESETS = {
             ["specter_unchained", "wisadel", "lumen"], ["mizuki", "logos", "siege"]],
     # 快检主控可玩性：近战 / 远程各三名开局主控，自然招募
     "gapleaders": [["skadi"], ["ulpianus"], ["irene"], ["wisadel"], ["logos"], ["eyjafjalla"]],
+    # 浊心斯卡蒂当队友（docs/61 §测试）：starts 的 7 名开局干员各带她开局，--seeds 16 = 112 局
+    "skalter_mate": [[o, "skalter"] for o in ["wisadel", "eyjafjalla", "skadi", "mizuki", "saria", "kaltsit", "suzuran"]],
 }
 
 

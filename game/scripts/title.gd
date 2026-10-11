@@ -150,6 +150,12 @@ func _ready() -> void:
 					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
 				if a2 == "--reducemotion":
 					Cfg.reduce_motion = true
+				if a2.begins_with("--codexglass="):
+					gallery.glass.a = float(a2.substr(13))   # 截图对照：右侧面板底透明度
+				if a2.begins_with("--codexglassback="):
+					gallery.glass_back = float(a2.substr(17))
+				if a2 == "--codexglassblock":
+					gallery.glass_block = true
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
 			gallery._follow()

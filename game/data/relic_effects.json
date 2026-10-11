@@ -9,9 +9,9 @@
     },
     {
      "type": "stat",
-     "stat": "regen",
+     "stat": "regen_pct",
      "op": "flat",
-     "value": 0.5
+     "value": 0.005
     }
    ],
    "desc": "编队上限 +1；主控每秒回复 0.5% 最大生命（每局最多 1 件编队上限类藏品）",
@@ -98,13 +98,13 @@
      "type": "stat",
      "stat": "dmg",
      "op": "add",
-     "value": 0.06
+     "value": 0.04
     },
     {
      "type": "stat",
      "stat": "max_hp",
      "op": "add",
-     "value": 0.06
+     "value": 0.04
     },
     {
      "type": "stat",
@@ -113,7 +113,7 @@
      "value": 1
     }
    ],
-   "desc": "全队伤害 +6%；主控最大生命 +6%、物理减伤 +1",
+   "desc": "全队伤害 +4%；主控最大生命 +4%、物理减伤 +1",
    "rarity": "基础",
    "tags": [
     "survival"
@@ -152,7 +152,7 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 6
+      "amount": 12
      }
     }
    ],
@@ -406,9 +406,16 @@
      "stat": "max_hp",
      "op": "flat",
      "value": 20
+    },
+    {
+     "type": "on_gain",
+     "do": "heal_flat",
+     "args": {
+      "amount": 20
+     }
     }
    ],
-   "desc": "主控最大生命 +20",
+   "desc": "主控最大生命 +20，立即回复 20 生命",
    "rarity": "基础",
    "tags": [
     "survival"
@@ -513,11 +520,16 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 18
+      "amount": 12
      }
+    },
+    {
+     "type": "rule",
+     "rule": "chest_keys",
+     "value": 2
     }
    ],
-   "desc": "源石锭 +18",
+   "desc": "源石锭 +12；补给箱钥匙 +2（开补给箱时多一个选项，钥匙用完前不会遇到箱形恐鱼）",
    "rarity": "基础",
    "tags": [
     "economy"
@@ -609,7 +621,6 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3,
    "rarity": "基础",
    "effect_category": "light"
   },
@@ -626,7 +637,6 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3,
    "rarity": "基础",
    "effect_category": "light"
   },
@@ -643,7 +653,6 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3,
    "rarity": "稀有",
    "effect_category": "light"
   },
@@ -939,7 +948,7 @@
      "type": "stat",
      "stat": "enemy_hp",
      "op": "mult",
-     "value": 0.85
+     "value": 0.82
     }
    ],
    "tags": [],
@@ -1277,12 +1286,12 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "physical_dmg",
+     "stat": "arts_dmg",
      "op": "add",
      "value": 0.3
     }
    ],
-   "desc": "物理伤害 +30%",
+   "desc": "法术伤害 +30%",
    "tags": [],
    "rarity": "核心",
    "effect_category": "damage"
@@ -1293,10 +1302,10 @@
      "type": "stat",
      "stat": "arts_dmg",
      "op": "add",
-     "value": 0.3
+     "value": 0.4
     }
    ],
-   "desc": "法术伤害 +30%",
+   "desc": "法术伤害 +40%",
    "tags": [],
    "rarity": "核心",
    "effect_category": "damage"
@@ -1375,9 +1384,9 @@
    "effects": [
     {
      "type": "stat",
-     "stat": "regen",
+     "stat": "regen_pct",
      "op": "flat",
-     "value": 0.5
+     "value": 0.005
     }
    ],
    "tags": [
@@ -2048,13 +2057,17 @@
    "effects": [
     {
      "type": "rule",
-     "rule": "black_tulip"
+     "rule": "black_tulip",
+     "args": {
+      "max": 0.6,
+      "t": 60
+     }
     }
    ],
    "tags": [
     "skill"
    ],
-   "desc": "没有技能生效时，全队伤害在 60 秒内逐渐提升至 +80%；任一技能生效时清零",
+   "desc": "没有技能生效时，全队伤害在累计 60 秒内逐渐提升至 +60%；任一技能生效时暂停计时、加成不生效（不清零）",
    "rarity": "核心",
    "effect_category": "damage"
   },
@@ -2343,9 +2356,15 @@
      "stat": "shield_max",
      "op": "flat",
      "value": 1
+    },
+    {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.15
     }
    ],
-   "desc": "主控每 12 秒生成一层护盾，抵挡一次伤害",
+   "desc": "主控每 12 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%",
    "tags": [
     "survival",
     "shield"
@@ -2489,11 +2508,11 @@
      "rule": "low_hp_haste",
      "args": {
       "max": 0.6,
-      "at": 0.3
+      "at": 0.5
      }
     }
    ],
-   "desc": "主控生命越低，全队攻击越快：生命 30% 时 +60%",
+   "desc": "主控生命越低，全队攻击越快：生命 50% 及以下时 +60%",
    "rarity": "核心",
    "tags": [
     "attack_speed",
@@ -4284,12 +4303,18 @@
      "stat": "shield_max",
      "op": "flat",
      "value": 2
+    },
+    {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.15
     }
    ],
    "requires": [
     "118"
    ],
-   "desc": "主控最大生命 -10，护盾层数上限 +2",
+   "desc": "主控最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%",
    "tags": [
     "survival",
     "shield"
@@ -4400,7 +4425,6 @@
    "tags": [
     "light"
    ],
-   "late_weight": 0.3,
    "effect_category": "light",
    "new": true
   },
@@ -4578,12 +4602,12 @@
      "rule": "medkit",
      "args": {
       "n": 3,
-      "at": 0.3,
+      "at": 0.4,
       "heal": 0.3
      }
     }
    ],
-   "desc": "携带 3 个急救包：主控生命低于 30% 时自动使用一个，回复 30% 最大生命",
+   "desc": "携带 3 个急救包：主控生命低于 40% 时自动使用一个，回复 30% 最大生命",
    "rarity": "基础",
    "tags": [
     "low_hp",
@@ -4790,7 +4814,7 @@
      "rule": "bone_blood"
     }
    ],
-   "desc": "最终 Boss 受到的伤害 +80%，主控受到的伤害 +80%",
+   "desc": "最终 Boss 受到的伤害 +80%，主控受到的伤害 +80%（猎潮的骑士倒下或离队后解除）",
    "rarity": "结局",
    "shop_allowed": false,
    "source": "event",
@@ -5216,10 +5240,14 @@
     },
     {
      "type": "rule",
-     "rule": "tree_light"
+     "rule": "tree_light",
+     "args": {
+      "t": 15,
+      "amount": 6
+     }
     }
    ],
-   "desc": "所有敌人攻击速度 +15%；连续 60 秒未受伤时灯火 +15",
+   "desc": "所有敌人攻击速度 +15%；主控每连续 15 秒未受伤，灯火 +6（闪避与护盾抵挡不算受伤）",
    "tags": [
     "attack_speed",
     "low_light",
@@ -5290,13 +5318,13 @@
      "type": "rule",
      "rule": "unhurt_light",
      "args": {
-      "t": 60,
-      "amount": 6
+      "t": 15,
+      "amount": 3
      }
     }
    ],
-   "desc": "主控连续 60 秒未受伤时，灯火 +6",
-   "rarity": "稀有",
+   "desc": "主控每连续 15 秒未受伤，灯火 +3（闪避与护盾抵挡不算受伤）",
+   "rarity": "基础",
    "tags": [
     "light"
    ],
@@ -5309,12 +5337,12 @@
      "type": "rule",
      "rule": "unhurt_light",
      "args": {
-      "t": 60,
-      "amount": 9
+      "t": 15,
+      "amount": 4
      }
     }
    ],
-   "desc": "主控连续 60 秒未受伤时，灯火 +9",
+   "desc": "主控每连续 15 秒未受伤，灯火 +4（闪避与护盾抵挡不算受伤）",
    "rarity": "稀有",
    "tags": [
     "light"
