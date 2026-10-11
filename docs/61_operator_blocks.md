@@ -610,6 +610,15 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
   `draw_world` 0.41 / 0.30 → 漩涡净成本约 **0.11 毫秒 / 帧**；渲染 CPU 中位 1.15 / 1.19、GPU 中位 1.03 / 1.01 毫秒（噪声内）。
 - 同 seed（对 main f024142a，headless `--balance --seed=1 --bot=expert --maxt=240 --trace=1 --maxprog --sptest`，主控 / 队友各 1 局）：TRACE 241 行与 BALANCE（去 prof、画面峰值）逐字节相同。
 
+### S3 地面漩涡帧条（10-12，§10 第 16 条）
+
+- 快检全量 rc=0（53 项，合 origin/main 246341f2 后）；`test_core.test_fx_hold`：skalter.json 通过校验、11 条反例全部被拒、淡入淡出与 `if_tex` 数值。
+- 同 seed（对 origin/main 246341f2，headless `--balance --seed=1 --bot=expert --maxt=240 --trace=1 --maxprog --sptest`，主控 `--op=skalter` / 队友 `--op=mizuki --squad=skalter`）：TRACE 241 行与 BALANCE（去 prof、画面峰值）逐字节相同。
+- 缺图回退：在临时副本里拿掉 `fx_skalter_vortex_floor(@2x).png` 同局录屏，完整程序漩涡照旧出现、没有报错（`build/skalter_vortex/*_fallback.*`）。
+- 画面：`build/skalter_vortex/`——`s3_early_0109_strip.png` / `s3_late_0831_strip.png`（同局 `--balance --seed=1 --bot=expert --op=skalter --maxprog --nodeath --realtime --fixed-fps 30`，1280×720，01:09 与 08:31 满屏敌人）、
+  `*_fallback.png`（同帧缺图回退）、`compare_strip_vs_fallback.png`、`skalter_vortex_s3.mp4`（30.5–46.5 秒：S3 发动淡入 → 循环 → 结束淡出，30fps）与 `skalter_vortex_s3_fallback.mp4`。
+- 素材检查：alpha 只有 0 / 255、帧边缘无不透明像素（无裁切）；相邻帧 alpha 变化 2972–3167 像素，末帧 → 首帧 3164（在相邻范围内，循环不跳）。
+
 ## 11. 星熊 `hoshiguma` 的表达（docs/59 §3 + §8.3，纯数据干员，10-11）
 
 见 `data/characters/hoshiguma.json` 的 `blocks`：0 个 `custom`，没有 `hoshiguma.gd`。名字按 docs/63 §6（S1「战意」、S2「荆棘」、S3「力之锯」、天赋「战术装甲」，分支铁卫）。
