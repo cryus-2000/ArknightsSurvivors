@@ -7,7 +7,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §5 / §8.5）；纯数据干员，行为在 blocks 段（docs/61 §11）。拉拽 = 位移距离（像素），走 e.kb，自动吃 enemy_kb 倍率（藏品 #103 安洁莉娜的创想 +40%）、重型 ×0.3；精英 ×pull_elite，Boss 不动",
-  "atk": 20, "cd": 1.1, "range": 320, "bullet_speed": 380, "aoe": 60, "pull_r": 100, "pull": 40, "pull_elite": 0.5,
+  "atk": 20, "cd": 1.1, "range": 320, "bullet_speed": 380, "aoe": 75, "pull_r": 100, "pull": 40, "pull_elite": 0.5,
   "s1_n": 3, "s1_pull": 2.0, "s1_r": 1.4, "s1_pause": 0.6,
   "s2_r": 150, "s2_ring": 110, "s2_every": 0.5, "s2_force": 30, "s2_speed": 0.08,
   "s3_dur": 10.0, "s3_r": 220, "s3_every": 0.2, "s3_stun": 0.5, "s3_lift_h": 30, "s3_elite_up": 1.5, "s3_elite_down": 0.5, "s3_gather": 30, "s3_aspd": 0.2, "s3_heal": 0.01, "s3_speed": 0.15, "s3_pickup": 3.0,
@@ -26,7 +26,7 @@
   "skill": {"tex": "op_angelina_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
  },
- "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 60 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
+ "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 75 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
  "skills": [
   {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 3 发重力弹：拉拢距离 ×2、落点范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
   {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},

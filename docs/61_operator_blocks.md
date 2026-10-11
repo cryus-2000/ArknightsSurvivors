@@ -430,3 +430,101 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 
 - 维什戴尔 + 铃兰 + 塞雷娅（满编）seed 1、斯卡蒂 + 推进之王 + 凯尔希（满编）seed 2、艾雅法拉 `--norecruit` seed 3：TRACE 与 BALANCE **逐字节相同**。
 - 单人开局、自然招募（铃兰 seed 4）：第一次出招募卡（1:16）起分叉——招募池从 13 人变成 14 人，抽卡结果变了，属预期（docs/36 §2「不含她的老编队逐局相同」指满编 / 不招募的局）。
+
+
+## 11. 安洁莉娜的表达（docs/59 §5 + §8.5；10-11 第三批第 5 人）
+
+见 `data/characters/angelina.json` 的 `blocks`：0 个 `custom`，没有 `angelina.gd`。名字按 docs/63 §6（S1–S3「秘杖·速充 / 微粒 / 反重力模式」，分支凝滞师），天赋只借原作名「加速力场」、机制按本作（用户 10-11 定，docs/59 §9）。
+
+### 11.1 新积木（`op_blocks.gd` 文件末尾「安洁莉娜」段，只往后加）
+
+第三批四人同时在加积木，为了好合并：新积木不改顶部的 `IMPL / PLANNED` 表，`_block` 里一行分流（`tag in ANGELINA_TAGS → _v_angelina`），执行器 / 校验全部写在文件末尾的本段；
+`data_operator.gd` 的挂点各一行（`_exec_list` / `_sustain` / `update` / `_release` / `_release_skill` / `draw_auras`），状态变量与绘制写在它文件末尾的同名段。表里的 📝 → ✅ 只对本段生效。
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `shape.point_aoe` | 普攻形状 | `range`（× op_range）、`land: densest / nearest`、`speed`、`r`（× 本干员 `area`）、`mult`、`src`、`muzzle [x, y]`（脚底为原点朝右，@2x 像素）、`on_hit`、`then` | 落点弹：出手帧从杖头射向射程内敌群最密处（手动普攻 A 类 = `aim_land`），飞 `距离 / speed` 秒；落地半径 r 伤害 → 对命中者 `on_hit` → 在落点执行 `then`（瞬时积木，`center: target` = 落点）→ `trig.on_impact` |
+| `verb.displace` | 瞬时 / 力场子项 | `dir: pull / push`（力场里另有 `center / ring`）、`dist`（实际位移像素）、`r`、`center`、`elite_mult`（缺省 0.5）、`per_sec`（力场里 × 间隔）、`on_hit`（动了的敌人吃的状态）、`fx` | docs/60 `verb.displace`。体型档：Boss / 部件 / 宝箱 / 固定物不动，精英 × elite_mult，重型 × 0.3；拉向中心时夹住不越过中心，环带整形夹住不越过环 |
+| `verb.field` | 常驻 | `center: leader / self`、`r`（× op_range）、`every`、`ring`、`ring_w`、`look: ring / lift / none`、`tick: [子项]` | docs/60 第 22 条。每 `every` 秒对场内敌人逐个执行子项（`verb.displace` / `st.*`），生效当帧先跑一次；`look` 是程序画法（§11.3） |
+| `verb.buff_leader` | 常驻 | `stat: move_speed / pickup`、`op`、`value` | 主控（全局作用域）的移速 / 拾取范围 |
+| `st.airborne` | 命中 / 力场子项 | `dur`、`h`、`within`、`elite_up / elite_down` | docs/60 `st.airborne`：悬浮 = `e.stun` + `e.air`（同艾丽妮：world.gd 抬高绘制、悬空没有接触伤害）。精英时长 × 0.5，Boss 不受；`elite_up / down` = 精英按局内时间间歇落地 |
+| `st.weightless` | 命中 / 力场子项 | `dur`、`kb_mult` | docs/60 `st.weightless`（藏品 P2 的单体版）：期间受到的击退 × kb_mult。character.gd `melee_hit / area_hit` 的击退乘 `OpBlocks.kb_taken(e)`（没失重 = 1.0，老干员逐字节不变），她自己的位移也乘 |
+| `st.dot` | 力场子项 | `mult`、`src`、`where: ring` | 力场 tick 时的伤害（× atk × 本干员 dmg 倍率，吃 vs_elite） |
+| `trig.on_impact` | 触发 | `delay` | `shape.point_aoe` 落地时触发，`do` 里 `center: target` = 落点 |
+| `dur.next_n` | 技能外壳 | `{"next_attacks": N}` + `attack_patch {mult, r_mult, force_mult, src, on_hit}` | docs/61 §2 📝 → ✅：接下来 N 发普攻带补丁。同维什戴尔 S1：打完之前照常充能（`skill_pending` 为真、`skill_active_left` 为 0），再放时重置为 N |
+
+状态的公共筛选（`st.*` 任何位置）：`cond`、`boss: true`（Boss 也受，stun × 0.25）、`boss_only: true`、`within`、`where: ring`。新局部倍率 `area / force / force_lit`（`verb.buff_self`）：落点与拉拢范围、位移距离、灯光内位移。
+
+**位移怎么落地（与藏品 #103 对齐）**：位移写成 `e.kb` 速度（enemies.gd 每秒衰减 900，位移 = |kb|² / 1800 × 移动倍率），反解时已把重型 0.3 与 `g.enemy_kb_mult` 算进去——
+所以「拉拢 40」就是实际被拉 40 像素，**拿到 #103「安洁莉娜的创想」（受到的击退 +40%）她拉得远 40%**，和斯卡蒂 / 塞雷娅的击退吃同一个倍率。离散步进多走约半帧（单元测试：< 3% + 2 像素）。
+
+### 11.2 积木写法
+
+- 普攻：`shape.point_aoe`（r75、atk 20、1.1 秒）→ `then: verb.displace pull r100 dist 40`，被拉动的敌人（精一起）`st.weightless 2 秒 ×1.3`；精二起落点 r30 内 `st.airborne 0.6 秒`（`cond: elite >= 2`，即普攻质变「失重」）。
+- S1：`dur.next_n 3` + `attack_patch {r_mult 1.4, force_mult 2.0, src 秘杖·速充模式, on_hit [st.stun 0.6]}`（精英 0.3）。
+- S2（永久）：`verb.field r150 ring110 every 0.5 look ring` → `verb.displace dir ring dist 30`（+ 失重）；`verb.buff_leader move_speed ×1.08`。
+- S3（10 秒）：`verb.field r220 every 0.2 look lift` → `st.airborne 0.5`（精英 1.5 秒托起 / 0.5 秒落地）、`verb.displace dir center 30/秒`、`st.slow boss_only`；`aura.aspd squad +20%`、`verb.heal 1%/秒`、`buff_leader move_speed ×1.15`、`pickup ×3`。
+- 天赋：`verb.buff_self force_lit +0.2`（失重写在普攻 / S2 的 `on_hit` 里，`cond: elite >= 1`）。
+- 成长：`wide` = `area ×1.15`；`dense` = `dmg ×1.15`；`pull2` = `trig.on_impact delay 0.3` → 落点 r75 ×0.5 伤害 + r100 拉 20；`lock` = 另一块 `verb.field`（同 S2 圆心半径，`cond: skill_active:1`，`st.dot 0.2 where ring ±30`，每秒）。
+
+### 11.3 画面与音效
+
+- 帧条：Codex 正式帧条 `op_angelina_*`（docs/64 验收通过），出手帧 attack f2 / skill f3；重力弹从杖头 (+34, −80)（docs/64 §5.2）飞出，带 26 像素弧高。
+- 特效帧条（docs/25 §6）：`proj_angelina_orb`（重力弹，S1 强化弹放大 1.35 倍）、`fx_angelina_pull`（落点拉拢，按拉拢半径缩放，上限 3.2 倍 ≈ 96 像素）、`fx_angelina_levitate`（悬浮敌人脚下循环）。
+- 程序画（`draw_auras`，地面层）：S2 重力场 = 场内淡紫底 + 环带 24 段虚线缓慢旋转 + 外圈往里 / 内圈往外的相向光点；S3 = 大圆脉动 + 外缘反向旋转虚线 + 上升光点；落点预示圈随弹飞近收缩。全部只读 `g.t`，不碰随机数。
+- 技能图标 `skill_angelina_s1..3`（docs/25 §6 批 3）。音效 `sfx.gd OP_ALT` 借用：普攻 ← Logos 普攻 ×0.7、落点 ← 铃兰命中 ×0.7、S1 ← Logos S1、S2 ← 铃兰 S2 ×0.6、S3 ← 流明 S3 ×1.15。
+
+### 11.4 与 docs/59 §5 的差异
+
+1. **「拉拽吃 enemy_kb」不是天赋**：位移走 `e.kb`，#103 倍率从招募起就生效（和藏品描述「受到的击退 +40%」同一个口径，没有理由只在精一后生效）；`talent_kb_scale` 删掉。
+2. **「主控在灯光内时拉拽 +20%」**：主控永远在自己的灯光里，这条会恒成立。改为「灯光照亮范围内（`lamp_radius`，同『光中敌人受伤 +25%』）的敌人被拉得更远 +20%」：灯火高时范围大、更容易吃到。
+3. **`grav_t` 标记改成 `st.weightless`**（docs/60 的名字）：除了别人的 `melee_hit / area_hit` 击退 +30%，她自己的拉拽 / 环带也 +30%。其他直接写 `e.kb` 的击退（浊心斯卡蒂音符、维什戴尔炮弹等）不吃。
+4. S1 次数型打完之前照常充能（同维什戴尔 S1），再放重置为 3 发。
+5. S3「Boss 只减速 30%」→ 本作只有一种减速状态（−35%），Boss 在场内吃 `st.slow`；「悬浮敌人掉落的经验被吸向主控」按 docs/59 的实现注记做成 S3 期间拾取范围 ×3（全局）；队友攻速 +20% 用 `aura.aspd scope squad`（含她自己），乘技能强度。
+6. 「双重引力」的 50% 同时作用于伤害（落点 r75）和拉拢（20）；「潮汐锁」环带宽 ±30（`lock_w`）。
+7. 精二「失重」不登记伤害来源（只控不伤），`hit_sources.失重` 删掉；节点 2 图标用 `growth_b_size`（没有 `growth_b_atk`，同浊心斯卡蒂）。
+8. S2 / S3 半径乘 `op_range`；落点 / 拉拢半径乘本干员 `area`（节点「引力扩散」），不乘 `op_range`。
+
+9. **`aoe` 60 → 75**（docs/59 §5「纯拉拽清不动骨潮时先加 aoe（60 → 75）」）：60 时本机冒烟 Ⅷ 4 / 12，主控死在 5–8 分钟的大群里；75 后标准 / Ⅷ 都是 6 / 12（§11.6）。
+
+### 11.5 测试
+
+- 核心契约（`tests/test_core.gd test_blocks_angelina`）：angelina.json 通过校验；12 种改坏写法被拒（放错位置、`dir ring` 不在力场、力场没子项、`where ring` 但没 `ring`、`st.dot` 不在力场、次数型写成永久、`attack_patch` 坏键 / 跟错外壳、主控属性不在白名单、失重倍率 < 1、触发器 do 放常驻积木、位移越界）；位移反解在 m = 1 / 0.3 / 1.4 × 15 / 40 / 80 像素下与步进模拟相符；`kb_taken` 失重期间 / 过期；悬浮高度起止为 0、中段满高。
+- 老干员同 seed：见 §11.8。
+
+### 11.6 冒烟（10-11，本机，`--maxt=1000`，含超时口径）
+
+「她占全队」= 重力弹 + 秘杖·速充模式 + 双重引力 + 潮汐锁 占全队 `out`；主控局是单人开局、自然招募。
+
+| 组 | aoe 60（docs/59 原值） | **aoe 75（现值）** | 她占全队（现值） |
+|---|---|---|---|
+| 主控 · 标准 · 高手 seed 1–12 | 6 / 12（50%） | **6 / 12（50%）**，超时 1 | 33.5%（16–52%） |
+| 主控 · Ⅷ · 熟练 seed 1–12 | 4 / 12（33%） | **6 / 12（50%）**，超时 2 | 36.8%（13–62%） |
+| 队友 · 标准 · 高手（angelina_mate，7 名开局干员 × seed 1） | 5 / 7 | **6 / 7** | 25.1%（12–39%） |
+
+- 队友局各开局干员：维什戴尔 胜（她 12%）、艾雅法拉 负（17%）、斯卡蒂 胜（23%）、水月 胜（28%）、塞雷娅 胜（33%）、凯尔希 胜（25%）、铃兰 胜（39%）；平均 25%，在 docs/59 §7 的 10–25% 上沿。
+- 输出构成：她最大的来源是「秘杖·速充模式」（S1 三发 ×1.4 范围，平均占全队 13–18%），其次双重引力、重力弹各 5–9%。S1 打完之前照常充能，7 SP 的技能等于每 3–4 发普攻就有 3 发强化，偏强时先收 `s1_r`（1.4）或 `s1_n`。
+- 结论：12 局的标准误约 ±14 个百分点，两档都在 50–70 的下沿，方向上没有越界；队友抬队伍、她占比不超 25%。数值不再动，等云端（§11.7）。对照铃兰（docs/61 §测试：同参数标准 6 / 12）持平。
+- 截图：`build/batch3_impl/angelina/`（`select_angelina*.png` 选人页三个技能页签；`shot_*.png` 带艾雅法拉 + 斯卡蒂的满编局，S2 环带 + S3 悬浮场 + 重力弹飞行；`solo/shot_1650.png` 单人 S3 悬浮场里整圈敌人被托起、脚下挂 `fx_angelina_levitate`）。
+
+### 11.7 云端命令（协调人建例行任务；与浊心斯卡蒂同口径）
+
+```bash
+# 主控：56 局 × 三档（seed 1–56）
+python tools/balance_run.py --game game --jobs 4 --op angelina --bot expert --seeds 56 --seed0 1 --out build/cloud/an-lead-t0 --tag an-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op angelina --bot master --seeds 56 --seed0 1 --out build/cloud/an-lead-t1 --tag an-lead-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op angelina --bot master --seeds 56 --seed0 1 --out build/cloud/an-lead-t2 --tag an-lead-t2 --extra="--maxt=1000 --tier=2"
+# 队友：7 名开局干员 × seed 1–8 = 56 局 × 三档（预设 angelina_mate）
+python tools/balance_run.py --game game --jobs 4 --preset angelina_mate --bot expert --seeds 8 --seed0 1 --out build/cloud/an-mate-t0 --tag an-mate-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset angelina_mate --bot master --seeds 8 --seed0 1 --out build/cloud/an-mate-t1 --tag an-mate-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset angelina_mate --bot master --seeds 8 --seed0 1 --out build/cloud/an-mate-t2 --tag an-mate-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定：主控三档各 50–70；队友局她占全队 10–25%、开局干员占比不低于同提交 starts；队友合计胜率比同提交 starts 高。同提交 starts 对照可复用 docs/61 §测试的 `sks-base-t0/t1/t2` 写法（四名新干员合入后跑一次即可，不必每人一份）。
+旋钮：偏弱先加 `pull`（40 → 55），再 `aoe`（75 → 85）；偏强先收 `s1_r`（1.4）/ `s1_n`（3），再收 `s3_pickup`（3 → 2）与 `s3_aspd`；不动 S2 环带半径（队形手感）。
+藏品 #103 对照（可选，docs/59 §5）：同命令加 `--relics=103`，预期胜率 +5–10 个百分点，> 15 收 `grav_kb`。
+
+### 11.8 老干员同 seed 不变
+
+对本分支合入 main 后、改动前的 903e9252，`--trace=1`，10:00：维什戴尔 + 铃兰 + 塞雷娅 seed 1、斯卡蒂 + 推进之王 + 凯尔希 seed 2、艾雅法拉 `--norecruit` seed 3、浊心斯卡蒂 + 维什戴尔 + 塞雷娅 seed 4、艾丽妮 + Logos + 流明 seed 5：
+TRACE 与 BALANCE（去掉 prof 与画面峰值）**逐字节相同**。单人开局自然招募的局从第一次出招募卡起会分叉（招募池多了她），属预期。
