@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "49c9588953dd9ed327834b128aa9200c6ef3e9fbac7546a3e111a5d0c90235e0"
+      "sha256": "30bc363dff0eae787a8a4a37edb01fb6fd24aa7c355db681e86ac2a47285045c"
     },
     {
       "file": "op_texas_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "b8397fe915c025608ec66bf9e10a5269b754badaad80472154d2527073a4f7a1"
+      "sha256": "bf431e71b5217610c869367ce3346a3c29a290439837e1c827aab477515fea20"
     },
     {
       "file": "op_texas_run.png",
@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "1b974efd7748b27688704a647ddd53078f6fe20e373ad858c4783e3a0bc615b0"
+      "sha256": "5165b13d006dd8f927b8dddc3efa85947f3267ab644c97932e3ee8b7bf1338b6"
     },
     {
       "file": "op_texas_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "5bc15dca365178d7bce4eb6171c9f90d2b28d2579e57ad05db079fb737ec9e1b"
+      "sha256": "9d0deb12c85a0a6dc66354e5de91f3733775496b3d7d6b56a6d0bc41754538c1"
     },
     {
       "file": "op_texas_attack.png",
@@ -78,7 +78,7 @@
       "event_frame_zero_based": 1,
       "loop": false,
       "density": 1,
-      "sha256": "b5a48400f68c7d3e5f35aaed0f21a5fa92b5743dcd6e9e3b515c36c7cebea8ed"
+      "sha256": "57fe3c12f442960aa40cfd5202cec980bb966eb65ba3249364357dd638d1cbba"
     },
     {
       "file": "op_texas_attack@2x.png",
@@ -94,7 +94,7 @@
       "event_frame_zero_based": 1,
       "loop": false,
       "density": 2,
-      "sha256": "a83187028d55e9260b2a7e231cf74b3ec54c6d55d36414a83822dfff5022230b"
+      "sha256": "11af136bdaec590d3338b85649a6bdfb2074afc57db66e2498e71e47750439b6"
     },
     {
       "file": "op_texas_skill.png",
@@ -110,7 +110,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 1,
-      "sha256": "a774aedf598ee53d1e612f1eb7082e40a40071c1447a3341c268e227b6a14bf2"
+      "sha256": "7c3606f8b75aefb2395dae2ffcb1eb220254ed1f1ab6eea82e34eaef8ab5a8c7"
     },
     {
       "file": "op_texas_skill@2x.png",
@@ -126,7 +126,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 2,
-      "sha256": "a459d59bc1d7228cc08548e97fb6cc92cf3b15182f44f9cda73c809083a01048"
+      "sha256": "f16ab5526c2f5e6fef9efe6d410e72c099060193cf28566b080c192760b14a6a"
     }
   ]
 }
