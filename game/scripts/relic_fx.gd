@@ -533,13 +533,14 @@ func tick(dt: float) -> void:
 			tulip_t = 0.0
 		else:
 			tulip_t = minf(60.0, tulip_t + dt)
-	# 深蓝之树：连续 60 秒未受伤 → 灯火 +15
+	# 深蓝之树：每连续 t 秒未受伤 → 灯火 +amount（数据 relic_effects.json #243 args；docs/65：60 秒窗口 6 分钟后实测 0 次触发，改 15 秒）
 	if rule("tree_light") > 0:
+		var ta: Dictionary = _rule_args("tree_light")
 		no_hurt_t += dt
-		if no_hurt_t >= 60.0:
+		if no_hurt_t >= float(ta.get("t", 15.0)):
 			no_hurt_t = 0.0
-			g.lamp = minf(g.lamp_cap, g.lamp + 15.0)
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +15", Color(0.5, 0.8, 1.0), 15)
+			g.lamp = minf(g.lamp_cap, g.lamp + float(ta.get("amount", 6.0)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +%d" % int(ta.get("amount", 6.0)), Color(0.5, 0.8, 1.0), 15)
 	stun_all_cd -= dt
 	hurt_sp_cd -= dt
 	wrath_cd -= dt
@@ -586,10 +587,10 @@ func tick(dt: float) -> void:
 	for id in unhurt:
 		var a3: Dictionary = _rule_args_of(id, "unhurt_light")
 		unhurt[id] += dt
-		if unhurt[id] >= float(a3.get("t", 60.0)):
+		if unhurt[id] >= float(a3.get("t", 15.0)):
 			unhurt[id] = 0.0
-			g.lamp = minf(g.lamp_cap, g.lamp + float(a3.get("amount", 6.0)))
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s · 灯火 +%d" % [db.get_relic(id).name, int(a3.get("amount", 6.0))], Color(0.5, 0.8, 1.0), 15)
+			g.lamp = minf(g.lamp_cap, g.lamp + float(a3.get("amount", 3.0)))
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s · 灯火 +%d" % [db.get_relic(id).name, int(a3.get("amount", 3.0))], Color(0.5, 0.8, 1.0), 15)
 	for id in medkits:
 		var a4: Dictionary = _rule_args_of(id, "medkit")
 		if medkits[id] > 0 and g.hp > 0.0 and g.hp < g.max_hp * float(a4.get("at", 0.3)):
