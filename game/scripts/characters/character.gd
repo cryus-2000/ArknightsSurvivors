@@ -97,7 +97,7 @@ static func exists(cid: String) -> bool:
 static func create(game, cid: String) -> RefCounted:
 	var d := load_def(cid)
 	var path: String = d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
-	for a in OS.get_cmdline_user_args():
+	for a in Cfg.dev_args():   # 发布版不读命令行（check_release）
 		if a.begins_with("--opscript=%s=" % cid):
 			path = a.substr(("--opscript=%s=" % cid).length())
 	var scr = load(path)
