@@ -413,7 +413,14 @@ func test_blocks_texas() -> void:
 		"on_skill_end 带 delay": func(d): d.blocks.trait[2]["delay"] = 0.2,
 		"on_dash_end 的 src 没登记": func(d): d.blocks.trait[0]["src"] = "没登记",
 		"残像伤害超上限": func(d): d.blocks.progression.elite2.do[0]["mult"] = 50,
-		"fx_scatter 缺帧条": func(d): d.blocks.skills[0].do[2].erase("strip"),
+		"fx_rain 缺帧条": func(d): d.blocks.skills[0].do[2].erase("strip"),
+		"fx_rain 既没 density 也没 n": func(d): d.blocks.skills[0].do[2].erase("density"),
+		"fx_rain 参数名写错": func(d): d.blocks.skills[0].do[2]["fal"] = 90,
+		"fx_rain 冲击帧条不是 fx_*": func(d): d.blocks.skills[0].do[2]["hit"] = "texas_hit",
+		"fx_rain 层写错": func(d): d.blocks.skills[0].do[2]["layer"] = "floor",
+		"fx_rain 下落时间超范围": func(d): d.blocks.skills[0].do[2]["fall_t"] = 3.0,
+		"fx_rain 终结参数名写错": func(d): d.blocks.trait[2].do[1].finale["flash"] = 2,
+		"fx_rain 放进常驻节点": func(d): d.blocks.progression["wide"] = d.blocks.skills[0].do[2].duplicate(true),
 	}
 	for why in bads:
 		var d2: Dictionary = tx.duplicate(true)

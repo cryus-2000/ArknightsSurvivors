@@ -9,9 +9,10 @@
   安洁莉娜 proj_angelina_orb、fx_angelina_pull、fx_angelina_levitate
   浊心斯卡蒂 fx_skalter_wave / _dim、fx_skalter_note
   星熊     fx_hoshiguma_block、fx_hoshiguma_sand、fx_hoshiguma_demon_slash
-  德克萨斯 fx_texas_dash、fx_texas_blade
+  德克萨斯 fx_texas_dash；剑雨（10-12 重做，docs/70）fx_texas_blade、fx_texas_rain_hit、fx_texas_rain_mark
 
-用法：python tools/gen_fx_batch3.py [--preview [目录]] [--no-write]
+用法：python tools/gen_fx_batch3.py [--preview [目录]] [--no-write] [--only 前缀]
+  --only 只写名字以该前缀开头的帧条（例：--only fx_texas_rain / --only fx_texas_blade），其余照样生成并自检、不落盘。
   --preview 另写 <目录>/contact.png（缺省 build/batch3_art/）：每条帧条一行，1x 与 4x。
 """
 import os, sys, math, random
@@ -85,7 +86,9 @@ SPECS = {
     "fx_hoshiguma_sand": (48, 24, 4, 8.0, (24, 12)),
     "fx_hoshiguma_demon_slash": (64, 16, 5, 20.0, (0, 8)),
     "fx_texas_dash": (64, 16, 4, 20.0, (63, 8)),
-    "fx_texas_blade": (12, 32, 6, 20.0, (6, 30)),
+    "fx_texas_blade": (16, 40, 6, 20.0, (8, 38)),
+    "fx_texas_rain_hit": (32, 24, 5, 24.0, (16, 20)),
+    "fx_texas_rain_mark": (24, 12, 6, 12.0, (12, 6)),
 }
 SPECS.update({k: SPECS[src] for k, (src, _) in EXU_VARIANTS.items()})   # 换色帧条：尺寸 / 帧数 / fps / 锚点同源帧条
 
@@ -554,48 +557,170 @@ def tx_dash(px, f):
             put(px, rnd.uniform(40, 62), cy + rnd.uniform(-4, 4), TX_O)
 
 
-BLADE = [
-    ".KKK.",
-    "OOOOO",
-    "..K..",
-    ".KWK.",
-    ".KOK.",
-    ".KOK.",
-    ".KOK.",
-    ".KOK.",
-    ".KOK.",
-    "..K..",
-    "..W..",
-]
+# 剑雨（10-12 重做，docs/70；用户「德克萨斯的剑雨特效是不是可以优化一下」）：
+#   fx_texas_blade     16×40 × 6 帧，锚点 (8, 38) = 剑尖落点。0–1 = 下落（剑身 + 上方拖影 + 外圈抖动辉光，循环），2–5 = 插地（白热 → 常态 → 冷却 → 棋盘散去，按停留时间铺开）
+#   fx_texas_rain_hit  32×24 × 5 帧 24fps，锚点 (16, 20) = 落点：白热闪柱 + 地面闪光椭圆 → 扩散环 + 火星飞溅 → 余烬
+#   fx_texas_rain_mark 24×12 × 6 帧，锚点 (12, 6) = 落点（地面层）：0–2 = 落地前的预兆（阴影由小变大、四个橙色刻度向内收），3–5 = 落地后的焦痕（余烬裂纹 → 暗红 → 散去）
+# 色板：深色描边 + 朱橙发光刃（色相 8–25°），避开敌方危险色（洋红 / 粉）与能天使的白红 / 琥珀 / 冰青弹药（docs/25 §6.1）
+RN_K, RN_S, RN_D = C("#1c1218"), C("#4a3a44"), C("#8c2414")          # 描边 / 剑柄暗钢 / 余烬暗红
+RN_E, RN_O, RN_H, RN_W = C("#e8401c"), C("#ff7a2a"), C("#ffb873"), C("#fff3e2")   # 朱红刃边 / 橙 / 热橙 / 白热芯
+RN_SH, RN_CH = C("#160c10"), C("#3a1a16")                             # 落点阴影 / 焦痕
+
+TX_RAIN_GY = 38       # 剑尖落点行（帧高 40）
+TX_RAIN_GUARD = 16    # 下落帧护手顶行；剑身 19–38（20 px），剑柄 12–15，柄头 10–11，拖影 0–9
+
+
+def _tx_rain_sword(px, g, clip=99, pal=None, aura=0, f=0):
+    """一柄剑：护手顶行 g，剑尖在 g + 22；clip 以下的行不画（插进地里）；pal 换色；aura 外圈辉光（0 无 / 1 抖动 / 2 实心）"""
+    pal = pal or {}
+    P = lambda c: pal.get(c, c)
+    def pt(x, y, c):
+        if y <= clip and 0 <= y < 40:
+            put(px, x, y, P(c))
+    # 柄头 + 剑柄
+    for x in (7, 8, 9):
+        pt(x, g - 6, RN_K)
+    pt(6, g - 5, RN_K); pt(7, g - 5, RN_O); pt(8, g - 5, RN_H); pt(9, g - 5, RN_O); pt(10, g - 5, RN_K)
+    for y in range(g - 4, g):
+        pt(7, y, RN_K); pt(8, y, RN_D if (y - g) % 2 else RN_S); pt(9, y, RN_K)
+    # 护手（11 宽，两端描边，中间热橙）
+    for x in range(3, 14):
+        pt(x, g, RN_K)
+    pt(3, g + 1, RN_K); pt(13, g + 1, RN_K)
+    for x in range(4, 13):
+        pt(x, g + 1, RN_H if 7 <= x <= 9 else RN_O)
+    for x in range(5, 12):
+        pt(x, g + 2, RN_K)
+    # 剑身：半宽 2（描边 / 朱红刃边 / 白热芯，芯近尖处转热橙），最后 4 行收尖
+    tip = g + 22
+    for y in range(g + 3, tip + 1):
+        k = tip - y
+        hw = 2 if k >= 4 else [0, 1, 1, 2][k]
+        for dx in range(-hw, hw + 1):
+            a = abs(dx)
+            if hw == 0:
+                c = RN_E
+            elif a == hw:
+                c = RN_K
+            elif a == hw - 1 and hw >= 2:
+                c = RN_E
+            else:
+                c = RN_W if k >= 7 else RN_H
+            pt(8 + dx, y, c)
+        if aura and (aura == 2 or (y + f) % 2 == 0):
+            pt(8 - hw - 1, y, RN_E)
+            pt(8 + hw + 1, y, RN_E)
+    if aura:
+        for x in (2, 14):
+            if aura == 2 or f % 2 == 0:
+                pt(x, g + 1, RN_E)
 
 
 def tx_blade(px, f):
-    """12×32 剑雨的一柄短剑（锚点 (6, 30) = 落点）：两帧下落（带橙色拖影）→ 插地白闪 → 橙色地环 → 剑身棋盘淡出 → 火星"""
-    leg = {"K": TX_K, "O": TX_O, "W": TX_W}
-    gy = 30
+    """16×40 剑雨的一柄剑（锚点 (8, 38) = 剑尖落点）：0–1 下落（带拖影、辉光闪动），2 插地白热、3 常态、4 冷却、5 棋盘散去"""
     if f in (0, 1):
-        top = [0, 9][f]
-        for y in range(max(0, top - 8), top):
-            if (y + f) % 2 == 0 or y > top - 4:
-                put(px, 6, y, TX_O if y > top - 4 else TX_D)
-        glyph(px, BLADE, 4, top, leg)
+        g = TX_RAIN_GUARD
+        # 上方拖影：中线实、两侧稀；越往上越暗（暗红 → 朱红 → 橙），两帧错一格闪动
+        for y in range(0, g - 6):
+            u = y / float(g - 7)                # 0 顶 … 1 贴近柄头
+            c = RN_O if u > 0.7 else (RN_E if u > 0.35 else RN_D)
+            if u > 0.35 or (y + f) % 2 == 0:
+                put(px, 8, y, c)
+            if u > 0.45 and (y + f) % 2 == 1:
+                put(px, 6, y + 1, RN_E if u > 0.75 else RN_D)
+                put(px, 10, y, RN_E if u > 0.75 else RN_D)
+        _tx_rain_sword(px, g, aura=1, f=f)
     else:
-        top = gy - 10
+        g = TX_RAIN_GUARD + 5                   # 剑尖没入地面 5 行
+        clip = TX_RAIN_GY
         if f == 2:
-            disc(px, 6.5, gy, 5.5, TX_P, sy=0.35)
-            disc(px, 6.5, gy, 3.0, TX_W, sy=0.35)
-            line(px, 6, gy - 1, 6, gy - 14, TX_W)
+            _tx_rain_sword(px, g, clip, {RN_E: RN_O, RN_O: RN_H}, aura=2)
+            for x in (4, 12):                   # 溅起的土
+                put(px, x, clip, RN_S)
         elif f == 3:
-            disc(px, 6.5, gy, 6.0, TX_O, sy=0.35, rmin=4.5)
+            _tx_rain_sword(px, g, clip, aura=1, f=1)
+        elif f == 4:
+            _tx_rain_sword(px, g, clip, {RN_W: RN_H, RN_H: RN_O, RN_E: RN_D, RN_O: RN_E})
+        else:
+            tmp = {}
+            _tx_rain_sword(tmp, g, clip, {RN_W: RN_O, RN_H: RN_E, RN_E: RN_D, RN_O: RN_D})
+            for (x, y), c in tmp.items():
+                if (x + y) % 2 == 0:
+                    px[(x, y)] = c
+
+
+# 命中火星：固定种子，一组火星逐帧按速度 + 重力外飞（帧间连贯）
+_TX_HIT_SPARKS = [(random.Random(5980 + i).uniform(-2.9, -0.25), random.Random(5990 + i).uniform(4.0, 6.5)) for i in range(9)]
+
+
+def tx_rain_hit(px, f):
+    """32×24 剑雨落点冲击（锚点 (16, 20)）：白热闪柱 + 地面闪光 → 扩散环 + 火星 → 余烬"""
+    cx, gy = 16.5, 20
+    if f == 0:
+        line(px, 16, gy - 10, 16, gy, RN_W)
+        line(px, 15, gy - 5, 15, gy, RN_H)
+        line(px, 17, gy - 5, 17, gy, RN_H)
+        disc(px, cx, gy, 7.0, RN_O, sy=0.4)
+        disc(px, cx, gy, 5.0, RN_H, sy=0.4)
+        disc(px, cx, gy, 2.5, RN_W, sy=0.4)
+        for dx, dy in ((-1, -1), (1, -1), (-1, 0.4), (1, 0.4)):
+            for s in range(5, 9):
+                put(px, cx - 0.5 + dx * s, gy + dy * s * 0.6, RN_O)
+    elif f == 1:
+        disc(px, cx, gy, 9.5, RN_O, sy=0.4, rmin=7.5)
+        disc(px, cx, gy, 5.5, RN_H, sy=0.4, dither=True)
+        line(px, 16, gy - 8, 16, gy, RN_H)
+    elif f == 2:
+        disc(px, cx, gy, 12.5, RN_E, sy=0.4, rmin=11.0, dither=True)
+        for x in (5, 6, 26, 27):
+            put(px, x, gy - 1, RN_S)
+    elif f == 3:
+        disc(px, cx, gy, 14.5, RN_D, sy=0.4, rmin=13.5, dither=True, phase=1)
+    t = 0.55 + f * 0.9
+    for i, (a, v) in enumerate(_TX_HIT_SPARKS):
+        if f == 0 or (f == 4 and i % 3):
+            continue
+        x = cx - 0.5 + math.cos(a) * v * t
+        y = gy - 2 + math.sin(a) * v * t * 0.8 + 0.55 * t * t
+        if 0 <= y <= gy + 2:
+            col = RN_H if f == 1 else (RN_O if f == 2 else (RN_E if f == 3 else RN_D))
+            put(px, x, y, col)
+            if f <= 2:
+                put(px, x - math.cos(a), y - math.sin(a) * 0.8, RN_E if f == 1 else RN_D)
+
+
+def tx_rain_mark(px, f):
+    """24×12 剑雨落点地面标记（锚点 (12, 6)，地面层）：0–2 预兆（阴影变大 + 四个刻度向内收）、3–5 焦痕（余烬裂纹 → 暗红 → 散去）"""
+    cx, cy = 12.5, 6.0
+    if f <= 2:
+        r = [4.0, 6.0, 8.0][f]
+        disc(px, cx, cy, r, RN_SH, sy=0.5, dither=(f == 0))
+        if f == 2:
+            disc(px, cx, cy, 8.5, RN_E, sy=0.5, rmin=7.4)
+        tk = [10, 8, 6][f]
+        col = [RN_O, RN_E, RN_H][f]
+        for s in (-1, 1):
+            put(px, cx - 0.5 + s * tk, cy - 0.5, col)
+            put(px, cx - 0.5 + s * (tk + 1), cy - 0.5, col)
+            put(px, cx - 0.5, cy - 0.5 + s * (tk * 0.5), col)
+    else:
+        disc(px, cx, cy, 8.0, RN_CH, sy=0.5, dither=(f >= 4), phase=f)
+        if f == 5:
+            for k in list(px):
+                if (k[0] * 3 + k[1]) % 4:
+                    del px[k]
+        rays = [(-2.8, 8), (-2.0, 6), (-0.9, 7), (0.0, 9), (0.7, 6), (2.3, 7), (3.0, 5)]
         if f <= 4:
-            for j, r in enumerate(BLADE):
-                for i, ch in enumerate(r):
-                    if ch in leg and (f <= 3 or (i + j) % 2 == 0):
-                        px[(4 + i, top + j)] = leg[ch] if f <= 3 else TX_S
-        if f >= 4:
-            rnd = random.Random(5970 + f)
-            for q in range(4 if f == 4 else 3):
-                put(px, rnd.uniform(1, 11), gy - rnd.uniform(1, 6 + f), TX_O if q % 2 else TX_D)
+            for a, L in rays:
+                for s in range(1, L + 1):
+                    if f == 4 and s % 2:
+                        continue
+                    put(px, cx - 0.5 + math.cos(a) * s, cy - 0.5 + math.sin(a) * s * 0.5,
+                        (RN_H if s <= 2 else RN_O) if f == 3 else RN_D)
+            put(px, cx - 0.5, cy - 0.5, RN_H if f == 3 else RN_D)
+        else:
+            put(px, cx + 3, cy, RN_D)
+            put(px, cx - 5, cy - 1, RN_D)
 
 
 # ----------------------------------------------------------------
@@ -617,6 +742,8 @@ GEN = {
     "fx_hoshiguma_demon_slash": ho_demon,
     "fx_texas_dash": tx_dash,
     "fx_texas_blade": tx_blade,
+    "fx_texas_rain_hit": tx_rain_hit,
+    "fx_texas_rain_mark": tx_rain_mark,
 }
 
 
@@ -682,9 +809,10 @@ def preview(ims, out_dir, icons=None):
 
 def main():
     ims = build()
+    only = sys.argv[sys.argv.index("--only") + 1].split(",") if "--only" in sys.argv else None
     for name, im in ims.items():
         check(im, name)
-        if "--no-write" not in sys.argv:
+        if "--no-write" not in sys.argv and (only is None or any(name.startswith(o) for o in only)):
             im.save(os.path.join(OUT, name + ".png"))
             _x2(im).save(os.path.join(OUT, name + "@2x.png"))
         print("ok", name, im.size)

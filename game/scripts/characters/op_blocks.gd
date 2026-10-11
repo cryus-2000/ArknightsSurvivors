@@ -2014,13 +2014,14 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #  （verb.buff_leader 合并后在「共用积木」段；德克萨斯自动冲刺改版后不再改主控冲刺冷却）
 #  verb.trail        瞬时（放在 trig.on_dash_end 里）：沿刚结束的那次冲刺留下 life 秒的残像，踩进的敌人各吃一次 mult 伤害 + on_hit
 #  verb.fx_scatter   瞬时、只有画面：在 center（self / target）半径 r 内撒 n 个帧条（strip），错开 stagger 秒起播；不碰 g.rng
+#  verb.fx_rain      瞬时、只有画面（10-12 加，§13.5）：剑雨编排——按面积密度撒剑、错开下落 + 残影、落地前地面预兆、冲击帧条、插地停留、焦痕、终结亮环；只用 g.vrng
 #  trig.on_dash_end  本干员任一次 dash_line 结束时：src（只认这个伤害来源的冲刺，缺省全部）、min_hits（这次扫中的敌人数下限）、delay
 #  trig.on_leader_dash  主控按下冲刺（g.dash_t 上升沿）：cd（两次之间至少隔几秒）。积木保留可用；德克萨斯 10-12 改自动冲刺后不再用它
 #  trig.on_skill_start / trig.on_skill_end  本干员技能 skill（0 起）出手 / 持续结束：delay（只 on_skill_start）
 
 const TX_IMPL := {
 	"shape": ["dash_line"],
-	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter"],   # verb.buff_leader 在「共用积木」段
+	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain"],   # verb.buff_leader 在「共用积木」段
 	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
 }
 const TX_AIMS := ["nearest", "densest", "leader_dir", "reverse"]
@@ -2030,7 +2031,7 @@ const TxArt = preload("res://scripts/art.gd")
 ## 校验（由 _block 转来；cond 与 $ 表达式已在 _block 里查过）
 static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
-	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter"]
+	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain"]
 	var is_trig: bool = tag.begins_with("trig.")
 	match kind:
 		"attack":
@@ -2093,6 +2094,8 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "stagger", p, ctx, false, 0.0, 2.0)
 			if not str(b.get("center", "self")) in ["self", "target"]:
 				errs.append(p + ".center 只能是 self / target")
+		"verb.fx_rain":
+			_tx_rain_validate(b, p, ctx)
 		"trig.on_dash_end":
 			_num(b, "min_hits", p, ctx, false, 0.0, 99.0)
 			_num(b, "delay", p, ctx, false, 0.0, 5.0)
@@ -2350,6 +2353,8 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 				var dl: float = st * fposmod(k * 0.381966 + u, 1.0)
 				o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(fr[0]), "fps": float(fr[1]), "pos": p, "anchor": Vector2(0.5, 30.0 / 32.0),
 					"life": life0 + dl, "delay": dl})
+		"verb.fx_rain":
+			tx_rain(o, b, at)
 
 
 ## 常驻积木（data_operator._sustain 第二遍末尾转来）：冲刺长度 / 宽度倍率写进 tx，主控属性修正追加进 want（随 g.stats 整组重建）
@@ -2389,6 +2394,274 @@ static func tx_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	o.cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * (f.anchor as Vector2), Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), Color(1, 1, 1, al))
 	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	return true
+
+
+## ---------------------------------------------------------------- verb.fx_rain（10-12 加，docs/61 §13.5；德克萨斯剑雨首用，docs/70）
+## 瞬时、只有画面：半径 r 内按面积密度撒 n 柄剑，错开 stagger 秒、各自从 fall 像素高处 fall_t 秒加速落下（带 streak 道残影），
+## 落地前 lead 秒地面出现预兆标记（mark 帧条前 mark_frames 帧），落地播冲击帧条（hit）、剑身插地停留 stick 秒、地面焦痕（mark 后半）停留 scorch 秒；
+## finale：最后一柄落地后在中心再来一次放大的冲击 + 一圈亮环。落点：on_enemies 比例先落在半径内的敌人身上（近的先、第一波），其余黄金角铺满透视椭圆。
+## 随机只用 g.vrng（画面），敌人位置只读（query_ids），不碰 g.rng / 玩法状态；伤害照旧由同一 do 里的 shape 瞬时结算（第一波 fall_t ≈ 0.1 秒内落地）。
+## 一次施放 = 两个 pfx 粒子（kind tx_rain：上层剑 + 冲击，地面层标记 + 焦痕 + 终结亮环），共享同一份剑列表；同一张贴图连着画（合批）。
+const TX_RAIN_KEYS := ["verb", "cond", "_doc", "strip", "hit", "mark", "r", "center", "density", "n", "n_min", "n_max", "stagger", "fall", "fall_t", "lead",
+	"stick", "scorch", "scale", "scale_j", "tilt", "slant", "streak", "on_enemies", "alpha", "fall_frames", "mark_frames", "hit_scale", "mark_scale",
+	"anchor", "hit_anchor", "mark_anchor", "layer", "finale"]
+const TX_RAIN_FIN_KEYS := ["scale", "ring", "t", "col"]
+
+
+static func _tx_rain_validate(b: Dictionary, p: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	for k in b:
+		if not str(k).begins_with("_") and not str(k) in TX_RAIN_KEYS:
+			errs.append("%s：verb.fx_rain 没有参数「%s」" % [p, str(k)])
+	for k in ["strip", "hit", "mark"]:
+		if b.has(k) or k == "strip":
+			var s = b.get(k, "")
+			if not (s is String and s.begins_with("fx_")):
+				errs.append("%s.%s 必须是帧条名（fx_*）" % [p, k])
+	if not (b.has("density") or b.has("n")):
+		errs.append(p + "：verb.fx_rain 要写 density（每 1 万平方像素几柄）或 n（固定柄数）")
+	_num(b, "r", p, ctx, true, 0.0, 600.0)
+	_num(b, "density", p, ctx, false, 0.05, 20.0)
+	for k in ["n", "n_min", "n_max"]:
+		_num(b, k, p, ctx, false, 1.0, 64.0)
+	_num(b, "stagger", p, ctx, false, 0.0, 2.0)
+	_num(b, "fall", p, ctx, false, 0.0, 600.0)
+	_num(b, "fall_t", p, ctx, false, 0.02, 1.0)
+	_num(b, "lead", p, ctx, false, 0.0, 1.0)
+	_num(b, "stick", p, ctx, false, 0.0, 3.0)
+	_num(b, "scorch", p, ctx, false, 0.0, 5.0)
+	_num(b, "scale", p, ctx, false, 0.1, 4.0)
+	_num(b, "scale_j", p, ctx, false, 0.0, 0.9)
+	_num(b, "tilt", p, ctx, false, 0.0, 45.0)
+	_num(b, "slant", p, ctx, false, -60.0, 60.0)
+	_num(b, "streak", p, ctx, false, 0.0, 4.0)
+	_num(b, "on_enemies", p, ctx, false, 0.0, 1.0)
+	_num(b, "alpha", p, ctx, false, 0.05, 1.0)
+	_num(b, "fall_frames", p, ctx, false, 1.0, 32.0)
+	_num(b, "mark_frames", p, ctx, false, 0.0, 32.0)
+	_num(b, "hit_scale", p, ctx, false, 0.1, 8.0)
+	_num(b, "mark_scale", p, ctx, false, 0.1, 8.0)
+	for k in ["anchor", "hit_anchor", "mark_anchor"]:
+		if b.has(k) and not (b[k] is Array and b[k].size() == 2 and (b[k][0] is float or b[k][0] is int) and (b[k][1] is float or b[k][1] is int)):
+			errs.append("%s.%s 要写 [x, y]（1x 帧内像素）" % [p, k])
+	if not str(b.get("layer", "over")) in ["over", "add"]:
+		errs.append(p + ".layer 只能是 over / add")
+	if not str(b.get("center", "self")) in ["self", "target"]:
+		errs.append(p + ".center 只能是 self / target")
+	if b.has("n_min") and b.has("n_max") and b.n_min is float and b.n_max is float and float(b.n_min) > float(b.n_max):
+		errs.append(p + "：n_min 大于 n_max")
+	if b.has("finale"):
+		if not b.finale is Dictionary:
+			errs.append(p + ".finale 要写 {scale, ring, t, col}")
+		else:
+			for k in b.finale:
+				if not str(k) in TX_RAIN_FIN_KEYS:
+					errs.append("%s.finale 没有参数「%s」" % [p, str(k)])
+			_num(b.finale, "scale", p + ".finale", ctx, false, 0.5, 3.0)
+			_num(b.finale, "ring", p + ".finale", ctx, false, 0.0, 3.0)
+			_num(b.finale, "t", p + ".finale", ctx, false, 0.0, 3.0)
+			if b.finale.has("col") and not (b.finale.col is Array and b.finale.col.size() in [3, 4]):
+				errs.append(p + ".finale.col 要写 [r, g, b] 或 [r, g, b, a]")
+
+
+## 帧条规格：[贴图, 帧数, fps, 每帧宽（贴图像素）, 帧高, 锚点（贴图像素）, 1x 像素 → 贴图像素倍数]；缺图返回空
+static func _tx_rain_spec(o, name: String, anchor, def_anchor: Vector2) -> Array:
+	if name == "":
+		return []
+	var t: Texture2D = o._fx_tex(name)
+	if t == null:
+		return []
+	var fr: Array = o.g.V6_FRAMES.get(name, [1, 12.0])
+	var n: int = maxi(1, int(fr[0]))
+	var hi: float = TxArt.hires_of(t)
+	var fw: float = float(t.get_width() / n)
+	var fh: float = float(t.get_height())
+	var an: Vector2 = Vector2(float(anchor[0]), float(anchor[1])) * hi if anchor is Array else Vector2(fw * def_anchor.x, fh - def_anchor.y * hi)
+	return [t, n, float(fr[1]), fw, fh, an, hi]
+
+
+static func tx_rain(o, b: Dictionary, at: Vector2) -> void:
+	var g = o.g
+	var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
+	if cc == Vector2.INF:
+		return
+	var bs: Array = _tx_rain_spec(o, str(b.strip), b.get("anchor"), Vector2(0.5, 2.0))
+	if bs.is_empty():
+		return   # 缺剑的帧条：整条跳过（伤害形状自己的扩散环照旧）
+	var r: float = float(b.r) * o.stat(&"op_range")
+	var n: int
+	if b.has("density"):
+		n = clampi(int(round(float(b.density) * PI * r * r / 10000.0)), int(b.get("n_min", 6)), int(b.get("n_max", 48)))
+	else:
+		n = int(b.n)
+	var cfg = g.get_node_or_null("/root/Cfg")   # 不直接写 Cfg：核心契约测试（-s 脚本模式）没有自动加载
+	n = maxi(1, int(round(n * (float(cfg.fx_density()) if cfg != null else 1.0))))   # 低画质减半（同 vfx.sparks）
+	var rng: RandomNumberGenerator = g.vrng
+	var st: float = float(b.get("stagger", 0.4))
+	var ft: float = float(b.get("fall_t", 0.1))
+	var sc: float = float(b.get("scale", 1.0))
+	var sj: float = float(b.get("scale_j", 0.15))
+	var tilt: float = deg_to_rad(float(b.get("tilt", 5.0)))
+	var slant: float = deg_to_rad(float(b.get("slant", 0.0)))
+	# 第一波：半径内的敌人（含这一下刚打死的），近的先
+	var pts: Array = []
+	var ne: int = int(round(n * float(b.get("on_enemies", 0.0))))
+	if ne > 0:
+		var cand: Array = []
+		for j in o.query_ids(cc, r):
+			var ep: Vector2 = g.enemies[j].pos
+			if ep.distance_squared_to(cc) <= r * r:
+				cand.append(ep)
+		cand.sort_custom(func(p1, p2): return p1.distance_squared_to(cc) < p2.distance_squared_to(cc))
+		for k in mini(ne, cand.size()):
+			pts.append(cand[k] + Vector2(rng.randf_range(-4.0, 4.0), rng.randf_range(-2.0, 2.0)))
+	var first: int = pts.size()
+	var m: int = n - first
+	var u0: float = rng.randf()
+	for k in m:
+		var rad: float = r * sqrt((k + rng.randf_range(0.2, 0.8)) / float(m))
+		var ang: float = u0 * TAU + k * 2.39996 + rng.randf_range(-0.3, 0.3)
+		pts.append(cc + Vector2.from_angle(ang) * rad * Vector2(1.0, 0.55))
+	var bl: Array = []
+	var tmax := 0.0
+	for k in pts.size():
+		# 敌人身上的在前四分之一时间里落，其余在 stagger 里均匀铺开（抖动），第一柄贴着 0 秒
+		var d: float = rng.randf_range(0.0, st * 0.25) if k < first else st * (float(k - first) + rng.randf()) / float(maxi(1, m))
+		if k == 0:
+			d = 0.0
+		var a: float = slant + rng.randf_range(-tilt, tilt)
+		bl.append({"p": pts[k], "d": d, "s": sc * (1.0 + rng.randf_range(-sj, sj)), "a": a, "fl": rng.randf() < 0.5})
+		tmax = maxf(tmax, d)
+	var hs: Array = _tx_rain_spec(o, str(b.get("hit", "")), b.get("hit_anchor"), Vector2(0.5, 4.0))
+	var ms: Array = _tx_rain_spec(o, str(b.get("mark", "")), b.get("mark_anchor"), Vector2(0.5, -1.0))
+	if not ms.is_empty() and not b.has("mark_anchor"):
+		ms[5] = Vector2(ms[3], ms[4]) * 0.5   # 地面标记缺省锚点 = 帧中心
+	var q := {"bs": bs, "hs": hs, "ms": ms, "fall": float(b.get("fall", 90.0)), "ft": ft, "lead": float(b.get("lead", 0.12)),
+		"stick": float(b.get("stick", 0.35)), "scorch": float(b.get("scorch", 0.45)), "streak": int(b.get("streak", 2)), "al": float(b.get("alpha", 1.0)),
+		"ff": clampi(int(b.get("fall_frames", maxi(1, bs[1] / 2))), 1, bs[1]), "mf": int(b.get("mark_frames", 0 if ms.is_empty() else maxi(1, ms[1] / 2))),
+		"hsc": float(b.get("hit_scale", 1.0)), "msc": float(b.get("mark_scale", 1.0)), "c": cc, "r": r}
+	var hd: float = 0.0 if hs.is_empty() else float(hs[1]) / maxf(1.0, float(hs[2]))
+	var life: float = tmax + ft + maxf(maxf(q.stick, hd), q.scorch) + 0.05
+	if b.has("finale") and b.finale is Dictionary:
+		var fin: Dictionary = b.finale
+		var c4: Array = fin.get("col", [1.0, 0.72, 0.4, 0.9])
+		q["fin"] = {"t": float(fin.get("t", tmax + ft)), "scale": float(fin.get("scale", 1.6)), "ring": float(fin.get("ring", 1.0)),
+			"col": Color(float(c4[0]), float(c4[1]), float(c4[2]), float(c4[3]) if c4.size() > 3 else 0.9)}
+		life = maxf(life, float(q.fin.t) + maxf(hd * 1.5, 0.45) + 0.05)
+	var add: bool = str(b.get("layer", "over")) == "add"
+	o.fx({"kind": "tx_rain", "pos": cc, "life": life, "bl": bl, "q": q, "add": add})
+	if not ms.is_empty() or q.has("fin"):
+		o.fx({"kind": "tx_rain", "pos": cc, "life": life, "bl": bl, "q": q, "floor": true})
+
+
+## 画一次施放（data_operator._draw_pfx / draw_fx_add 调）：上层 = 残影 → 剑 → 冲击（同贴图连着画）；地面层 = 预兆 / 焦痕标记 → 终结亮环
+static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（batch_canvas）或加色层 CanvasItem
+	var g = o.g
+	if g.perf_alt:   # --perfab 同局轮换：/b 桶不画剑雨（量净成本用；正常游戏恒为 false）
+		return
+	var q: Dictionary = f.q
+	var el: float = float(f.max) - float(f.life)
+	var base: float = float(q.al) * float(g.world.fx_dim)
+	var ft: float = q.ft
+	var px: float = g.PX
+	if f.get("floor", false):
+		var ms: Array = q.ms
+		if not ms.is_empty():
+			var tx: Texture2D = ms[0]
+			var nf: int = ms[1]
+			var mf: int = mini(int(q.mf), nf)
+			for bl in f.bl:
+				var tl: float = float(bl.d) + ft
+				var t0: float = maxf(0.0, tl - float(q.lead))
+				var fr := -1
+				var al := base
+				if el >= t0 and el < tl and mf > 0:
+					fr = mini(mf - 1, int((el - t0) / maxf(0.001, tl - t0) * mf))
+					al *= 0.85
+				elif el >= tl and el < tl + float(q.scorch) and nf > mf:
+					var k: float = (el - tl) / maxf(0.001, float(q.scorch))
+					fr = mf + mini(nf - mf - 1, int(k * (nf - mf)))
+					al *= 1.0 if k < 0.6 else (1.0 - k) / 0.4
+				if fr < 0:
+					continue
+				var kk: float = px * float(bl.s) * float(q.msc) / float(ms[6])
+				var sz := Vector2(ms[3], ms[4]) * kk
+				ci.draw_texture_rect_region(tx, Rect2((bl.p as Vector2).round() - (ms[5] as Vector2) * kk, sz), Rect2(float(ms[3]) * fr, 0, ms[3], ms[4]), Color(1, 1, 1, al))
+		if q.has("fin"):
+			var fin: Dictionary = q.fin
+			var k2: float = (el - float(fin.t)) / 0.4
+			if k2 >= 0.0 and k2 < 1.0 and float(fin.ring) > 0.0:
+				var rr: float = float(q.r) * float(fin.ring) * lerpf(0.25, 1.0, 1.0 - (1.0 - k2) * (1.0 - k2))
+				var c: Color = fin.col
+				ci.draw_set_transform(q.c, 0.0, Vector2(1.0, 0.55))
+				if k2 < 0.6:   # 地面闪光：一片热橙椭圆迅速淡掉（程序画，合批三角形；不把冲击帧条放大成粗方块）
+					var kf: float = 1.0 - k2 / 0.6
+					ci.draw_circle(Vector2.ZERO, rr * 0.85, Color(1.0, 0.62, 0.3, 0.22 * kf * kf * base))
+					ci.draw_circle(Vector2.ZERO, rr * 0.4, Color(1.0, 0.9, 0.72, 0.3 * kf * kf * base))
+				ci.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r, c.g, c.b, c.a * (1.0 - k2) * base), 4.0)
+				ci.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 56, Color(1.0, 0.95, 0.85, 0.6 * (1.0 - k2) * base), 1.5)
+				ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
+	# 上层：剑（下落 + 残影 / 插地），同一张贴图
+	var bs: Array = q.bs
+	var btx: Texture2D = bs[0]
+	var nb: int = bs[1]
+	var ff: int = q.ff
+	var fw: float = bs[3]
+	var fh: float = bs[4]
+	var ban: Vector2 = bs[5]
+	var stick: float = q.stick
+	for bl in f.bl:
+		var d: float = bl.d
+		if el < d:
+			continue
+		var tl: float = d + ft
+		var kk: float = px * float(bl.s) / float(bs[6])
+		var sx: float = -kk if bl.fl else kk
+		var a: float = bl.a
+		var p: Vector2 = bl.p
+		if el < tl:
+			var kf: float = (el - d) / maxf(0.001, ft)
+			var dirv := Vector2(-sin(a), cos(a))   # 剑尖朝向（落向）
+			var off: float = float(q.fall) * (1.0 - kf * kf)   # 先慢后快地扎下来
+			var fr: int = int(el * float(bs[2])) % ff
+			var src := Rect2(fw * fr, 0, fw, fh)
+			var al: float = base * minf(1.0, kf * 5.0 + 0.2)
+			for i in range(int(q.streak), -1, -1):
+				var pp: Vector2 = p - dirv * (off + float(q.fall) * 0.16 * i)
+				ci.draw_set_transform(pp.round(), a, Vector2(sx, kk))
+				ci.draw_texture_rect_region(btx, Rect2(-ban, Vector2(fw, fh)), src, Color(1, 1, 1, al * pow(0.42, i)))
+		elif el < tl + stick and nb > ff:
+			var k3: float = (el - tl) / maxf(0.001, stick)
+			var fr2: int = ff + mini(nb - ff - 1, int(k3 * (nb - ff)))
+			ci.draw_set_transform(p.round(), a, Vector2(sx, kk))
+			ci.draw_texture_rect_region(btx, Rect2(-ban, Vector2(fw, fh)), Rect2(fw * fr2, 0, fw, fh), Color(1, 1, 1, base * (1.0 if k3 < 0.7 else (1.0 - k3) / 0.3)))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# 冲击帧条
+	var hs: Array = q.hs
+	if hs.is_empty():
+		return
+	var htx: Texture2D = hs[0]
+	var hn: int = hs[1]
+	var hfps: float = hs[2]
+	var hw: float = hs[3]
+	var hh: float = hs[4]
+	for bl in f.bl:
+		var e2: float = el - float(bl.d) - ft
+		if e2 < 0.0:
+			continue
+		var fr3: int = int(e2 * hfps)
+		if fr3 >= hn:
+			continue
+		var kh: float = px * float(bl.s) * float(q.hsc) / float(hs[6])
+		ci.draw_texture_rect_region(htx, Rect2((bl.p as Vector2).round() - (hs[5] as Vector2) * kh, Vector2(hw, hh) * kh), Rect2(hw * fr3, 0, hw, hh), Color(1, 1, 1, base))
+	if q.has("fin"):
+		var fin2: Dictionary = q.fin
+		var e3: float = el - float(fin2.t)
+		var fr4: int = int(e3 * hfps * 0.75)   # 终结冲击放慢一点
+		if e3 >= 0.0 and fr4 < hn:
+			var kf2: float = px * float(fin2.scale) / float(hs[6])
+			ci.draw_texture_rect_region(htx, Rect2((q.c as Vector2).round() - (hs[5] as Vector2) * kf2, Vector2(hw, hh) * kf2), Rect2(hw * fr4, 0, hw, hh), Color(1, 1, 1, base))
 # ================================================================ 能天使 exusiai（docs/61 §14，2026-10-11 第三批第四人）
 # 本段只追加。积木：弹道 shape.projectile、技能外壳 dur.ammo（次数型）+ attack_patch（技能生效期间改普攻）+ end（技能结束时执行）、
 # trig.on_attack（命名计数器满时，这一次普攻换成 do 里的积木）、verb.counter（命名计数器）/ verb.counter_cap（常驻：改计数器上限）/

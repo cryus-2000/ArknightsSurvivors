@@ -127,11 +127,13 @@
 | `fx_hoshiguma_sand` | 48×24 × 4 | 8（循环） | (24, 12) | 热砂（地面层）：椭圆内砂粒按相位明灭 + 上升热浪点；默认半宽 ≈ 23px，按 r80 缩放，2 秒内循环 |
 | `fx_hoshiguma_demon_slash` | 64×16 × 5 | 20 | (0, 8) 起点 | 魔王直线斩：白芯 → 黑红獠牙边的直线 → 红棋盘散 → 碎片；长 64px，横向缩放到 220 |
 | `fx_texas_dash` | 64×16 × 4 | 20 | (63, 8) 终点 | 疾行斩剑光：尖头白芯 + 橙 + 暗橙棋盘拖尾 + 两道速度线；锚在冲刺终点、朝冲刺方向，横向缩放到冲刺距离 |
-| `fx_texas_blade` | 12×32 × 6 | 20 | (6, 30) 落点 | 剑雨的一柄短剑：两帧下落（橙拖影）→ 插地白闪 → 橙地环 → 剑身淡出 → 火星；S1 在 r130 内撒多柄、错开起播 |
+| `fx_texas_blade` | 16×40 × 6 | 20 | (8, 38) 剑尖落点 | 剑雨的一柄剑（10-12 重做，docs/70）：深色描边 + 朱红刃边 + 白热芯 + 护手 / 剑柄；0–1 下落（上方拖影、外圈抖动辉光，循环），2 插地白热、3 常态、4 冷却、5 棋盘散去（插地段按 `stick` 秒铺开） |
+| `fx_texas_rain_hit` | 32×24 × 5 | 24 | (16, 20) 落点 | 剑雨落点冲击：白热闪柱 + 地面闪光椭圆 → 扩散环 + 火星外飞 → 余烬 |
+| `fx_texas_rain_mark` | 24×12 × 6 | 12 | (12, 6) 帧中心 | 剑雨地面标记（地面层）：0–2 落地前预兆（阴影变大、四个橙刻度向内收），3–5 落地后焦痕（余烬裂纹 → 暗红 → 散去） |
 
 接入（10-12，batch3-integrate）：星熊 `fx_hoshiguma_block`（格挡，通用 fx：中心 = 主控，off (0, −26)，scale 1.4，over）、`fx_hoshiguma_sand`（热砂，通用 fx：floor，fit 23 / 余烬 30，循环到区域结束）、
 `fx_hoshiguma_demon_slash`（直线斩，通用 fx：线段中点、fit 32、rot、off (0, −30)）；安洁莉娜 `fx_angelina_pull`（落点拉拢，通用 fx：floor、fit 30）、`proj_angelina_orb` / `fx_angelina_levitate`（代码画：飞行弹 / 悬浮敌人脚下）；
-德克萨斯 `fx_texas_dash`（`shape.dash_line.strip`：锚终点、横向拉到冲刺长度）、`fx_texas_blade`（`verb.fx_scatter`）；能天使 `proj_exusiai_bullet` / `_power`（`attack.tex` / 技能 `attack_patch.tex`）、`fx_exusiai_muzzle` / `_gold`（`muzzle_fx`）、`fx_exusiai_hit`（代码，命中点）。截图 `build/batch3_fx/<id>/shot_*.png`。
+德克萨斯 `fx_texas_dash`（`shape.dash_line.strip`：锚终点、横向拉到冲刺长度）、剑雨三条 `fx_texas_blade` / `fx_texas_rain_hit` / `fx_texas_rain_mark`（10-12 起 `verb.fx_rain`，docs/61 §13.5；色板与 Codex 手绘版规格见 docs/70）；能天使 `proj_exusiai_bullet` / `_power`（`attack.tex` / 技能 `attack_patch.tex`）、`fx_exusiai_muzzle` / `_gold`（`muzzle_fx`）、`fx_exusiai_hit`（代码，命中点）。截图 `build/batch3_fx/<id>/shot_*.png`。
 
 ### 6.1 能天使各模式的弹药颜色（10-12，用户「能天使不同技能的弹药颜色是否可以更改」）
 
