@@ -37,6 +37,7 @@ PRESET = "Windows Desktop"
 INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录：%APPDATA%\ArknightsSurvivors_Internal
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、预览图不带
 SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
+ART_SUBDIRS = ["portraits"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取）
 
 README = """方舟幸存者（明日方舟同人，非商业）
 版本：{channel}{ver}（{date}）
@@ -212,9 +213,11 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
         packed_art = Path(gpath) / "art" / "incoming"
         packed_art.mkdir(parents=True, exist_ok=True)
-        for png in sorted((Path(src) / "art" / "incoming").glob("*.png")):
-            if not any(w in png.name.lower() for w in SKIP_WORDS):
-                shutil.copy2(png, packed_art / png.name)
+        for pat in ["*.png"] + [d + "/*.png" for d in ART_SUBDIRS]:
+            for png in sorted((Path(src) / "art" / "incoming").glob(pat)):
+                if not any(w in png.name.lower() for w in SKIP_WORDS):
+                    (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art).mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(png, (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art) / png.name)
         # Preserve editor/external-art workflow; public binaries only read their packed resources.
         art_loader = Path(gpath) / "scripts" / "art.gd"
         loader = art_loader.read_text(encoding="utf-8")
@@ -247,11 +250,16 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     if not a.encrypted:
         os.makedirs(art_dst)
     n = 0
-    for f in sorted(os.listdir(art_src)):
-        if f.lower().endswith(".png") and not any(w in f.lower() for w in SKIP_WORDS):
-            if not a.encrypted:
-                shutil.copy2(os.path.join(art_src, f), art_dst)
-            n += 1
+    for sub in [""] + ART_SUBDIRS:
+        sdir = os.path.join(art_src, sub) if sub else art_src
+        if not os.path.isdir(sdir):
+            continue
+        for f in sorted(os.listdir(sdir)):
+            if f.lower().endswith(".png") and not any(w in f.lower() for w in SKIP_WORDS):
+                if not a.encrypted:
+                    os.makedirs(os.path.join(art_dst, sub) if sub else art_dst, exist_ok=True)
+                    shutil.copy2(os.path.join(sdir, f), os.path.join(art_dst, sub) if sub else art_dst)
+                n += 1
     print(("Packed/encrypted PNG: %d" if a.encrypted else "美术 PNG：%d 张") % n)
     with open(os.path.join(pkg, "开始游戏.bat"), "w", encoding="gbk") as fh:
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')

@@ -68,7 +68,7 @@ const USE_HIRES := true
 static var _hires := {}
 static var _hires_rid := {}
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
-const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser"]
+const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser", "portraits/"]
 
 
 ## 取贴图；找不到返回 null

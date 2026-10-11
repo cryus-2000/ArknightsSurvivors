@@ -11,6 +11,7 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const A = preload("res://scripts/art.gd")
 var g: Game
 
 const DUR := 1.5          # 登场演出总长（秒，真实时间；面板 / 暂停时停表）
@@ -19,18 +20,20 @@ const BAR_T := 0.25       # 黑边滑入 / 滑出用时
 
 ## 名片数据（每只 Boss 一条；缺的字段按缺省）：
 ##   cn 名字行（缺省 enemies.json 的 name）、en 英文副标、sub 一句标题（小标签右段）、col 强调色（缺省 vfx.BOSS_STYLE 的招式色）、
-##   sfx 登场音（缺省 boss_<id>，Sfx.CUE_VOL 里有电平；没有文件就静默）、portrait 头像帧条（缺省 e.tex 待机条第 0 帧）、line 一句台词（lore.json 口径）
+##   sfx 登场音（缺省 boss_<id>，Sfx.CUE_VOL 里有电平；没有文件就静默）、line 一句台词（lore.json 口径）、
+##   portrait 头像（10-11：art/incoming/portraits/boss_<id>.png 88×88 手摆头肩像 + @2x，tools/boss_portraits_hand.py；
+##   名字带 portraits/ 前缀的按整张头像画，缺图退回 e.tex 待机条第 0 帧）
 const CARDS := {
-	"path": {"en": "PATHSHAPER", "sub": "替大群探路的海嗣", "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"},
-	"iberia": {"en": "SAINT OF IBERIA", "sub": "老猎人的枪 · 强化", "line": "斗篷破了，他不再说话；手炮只装一发，装得更快、打得更狠。"},
-	"carmen": {"en": "SAINT CARMEN", "sub": "伊比利亚最后的圣徒", "line": "退后、装填、瞄准——弹药打空就用炮身砸过来，他仍记得谁是敌人。"},
-	"bishop": {"en": "TIDE BISHOP", "sub": "分离与统一", "line": "一方倒下只是假死，两者同时倒下才会真正消散。"},
-	"archon": {"en": "TIDE DEFIER", "sub": "与主教同生共死", "line": "粗壮的近战海嗣——单独击倒它只会让它假死片刻。"},
-	"immortal": {"en": "TIDE REBUKER", "sub": "与主教共享同一份执念", "line": "迅捷的近战海嗣，与主教同生共死。"},
-	"paranoia": {"cn": "「偏执泡影」", "en": "PARANOIA", "sub": "最终 · 变成最厌恶的样子", "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"},
-	"ishar": {"en": "ISHAR-MLA, CORRUPTED HEART", "sub": "最终 · 替大群发声", "line": "转化完成后，深海的敌意才显露出来。"},
-	"izumik": {"en": "IZUMIK, FOUNT OF LIFE", "sub": "最终 · 人之光辉", "line": "海嗣的母体之一，生命从它身上涌出，也在它身上腐烂。"},
-	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今成为海潮的一部分。"},
+	"path": {"en": "PATHSHAPER", "sub": "替大群探路的海嗣", "portrait": "portraits/boss_path", "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"},
+	"iberia": {"en": "SAINT OF IBERIA", "sub": "老猎人的枪 · 强化", "portrait": "portraits/boss_iberia", "line": "斗篷破了，他不再说话；手炮只装一发，装得更快、打得更狠。"},
+	"carmen": {"en": "SAINT CARMEN", "sub": "伊比利亚最后的圣徒", "portrait": "portraits/boss_carmen", "line": "退后、装填、瞄准——弹药打空就用炮身砸过来，他仍记得谁是敌人。"},
+	"bishop": {"en": "TIDE BISHOP", "sub": "分离与统一", "portrait": "portraits/boss_bishop", "line": "一方倒下只是假死，两者同时倒下才会真正消散。"},
+	"archon": {"en": "TIDE DEFIER", "sub": "与主教同生共死", "portrait": "portraits/boss_archon", "line": "粗壮的近战海嗣——单独击倒它只会让它假死片刻。"},
+	"immortal": {"en": "TIDE REBUKER", "sub": "与主教共享同一份执念", "portrait": "portraits/boss_immortal", "line": "迅捷的近战海嗣，与主教同生共死。"},
+	"paranoia": {"cn": "「偏执泡影」", "en": "PARANOIA", "sub": "最终 · 变成最厌恶的样子", "portrait": "portraits/boss_paranoia", "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"},
+	"ishar": {"en": "ISHAR-MLA, CORRUPTED HEART", "sub": "最终 · 替大群发声", "portrait": "portraits/boss_ishar", "line": "转化完成后，深海的敌意才显露出来。"},
+	"izumik": {"en": "IZUMIK, FOUNT OF LIFE", "sub": "最终 · 人之光辉", "portrait": "portraits/boss_izumik", "line": "海嗣的母体之一，生命从它身上涌出，也在它身上腐烂。"},
+	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "portrait": "portraits/boss_knight_boss", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今成为海潮的一部分。"},
 }
 
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：
@@ -122,7 +125,16 @@ func card_for(bosses: Array) -> Dictionary:
 		en += " & " + str(cd2.get("en", b2.type.to_upper()))
 	var col: Color = cd.get("col", g.vfx.boss_color(main.type))
 	return {"cn": cn, "en": en, "sub": str(cd.get("sub", "")), "col": col, "line": str(cd.get("line", "")),
-		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": str(cd.get("portrait", main.tex)), "type": main.type}
+		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": _portrait_name(str(cd.get("portrait", "")), str(main.tex)), "type": main.type}
+
+
+## 头像贴图名：CARDS 指定的头像按需加载进 g.tex（不在开局预载表里）；没指定或缺图就用待机帧条
+func _portrait_name(name: String, fallback: String) -> String:
+	if name == "":
+		return fallback
+	if not g.tex.has(name):
+		g.tex[name] = A.tex(name)
+	return name if g.tex[name] != null else fallback
 
 
 ## 每渲染帧（game._process 的 delta，真实时间）：面板 / 非战斗状态时停表，关掉后接着播
@@ -294,11 +306,13 @@ func _draw_top() -> void:
 	# 半透明暗带托底（两端渐隐）
 	var band := Rect2(cx - maxf(total_w, 420.0) * 0.5 - 60.0, y0 - 54.0, maxf(total_w, 420.0) + 120.0, 118.0)
 	UI.fade_band(ci, band, Color(0.03, 0.035, 0.045, 0.72 * a), 120.0)
-	# 头像：待机帧条第 0 帧放大到 80 高，左侧细边与强调色底
+	# 头像：手摆头肩像（portraits/boss_<id>，88×88；@2x 按密度折半画成 88）整张贴进 88 框；
+	# 退回待机帧条时取第 0 帧放大到 80 高。左侧细边与强调色底
 	if ptx != null:
-		var fw: int = ptx.get_width() / 2
+		var is_portrait: bool = card.portrait.begins_with("portraits/")
+		var fw: int = ptx.get_width() if is_portrait else ptx.get_width() / 2
 		var fh: int = ptx.get_height()
-		var sc: float = minf(84.0 / float(fh), 84.0 / float(fw))
+		var sc: float = 1.0 / A.hires_of(ptx) if is_portrait else minf(84.0 / float(fh), 84.0 / float(fw))
 		sc = floorf(sc) if sc >= 1.0 else sc
 		var sz := Vector2(fw, fh) * sc
 		var pc := Vector2(x0 + 42.0, y0 - 2.0)
