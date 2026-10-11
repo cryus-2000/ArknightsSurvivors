@@ -278,7 +278,7 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 9. 主控满血时不治疗（不触发「溢出治疗」类藏品，同铃兰）；S1 / S3 的回复、S2 / S3 的光环、S3 的 ×3 和「深海的回响」都乘技能强度（排异 +40% 会生效）。
 10. 档案（lore.json）里「歌声总是绕着博士」改成绕着走在最前面的人（歌域以主控为中心）。
 11. **数值先收一档**：docs/59 的 `atk 14`、`s3_mult 3.0` 本机 12 局标准高手 12 / 12 通关、她占全队伤害 78%——声浪打歌域内**全部**敌人，半径 190 起步还会被 S2 / 天赋 / 节点 / S3 叠到 400 以上，
-    「单体 14 · 群体不设上限」在大群里就是全场最高输出。改为 `atk 6`、`s3_mult 2.0` 后 8 / 12（67%，见 §测试）。定档以云端 112 局为准；还偏强时下一步收 `aura`（190 → 170）或给 `shape.circle` 加 `max_n`（docs/60 已登记）。
+    「单体 14 · 群体不设上限」在大群里就是全场最高输出。改为 `atk 6`、`s3_mult 2.0` 后 8 / 12（67%，见 §测试）。云端 56 局 × 6 批（§测试「强度测试结果」）三档主控 73 / 70 / 48%、合计 64%，**定档不改**；还偏强时下一步收 `aura`（190 → 170）或给 `shape.circle` 加 `max_n`（docs/60 已登记）。
 
 ## 测试
 
@@ -317,6 +317,70 @@ python tools/balance_run.py --preset skalter_mate --bot master --seeds 16 --extr
 （「她占全队伤害」是单人开局的主控占比，不是 docs/59 §7 的 `--preset share` 口径。）
 
 对照：同参数把 `skalter` 换成 `suzuran`（docs/59 §7「单人对照 铃兰」，同角色相差 ≤ 15 个百分点）。偏弱先动 `aura`（190 → 210）再动 `atk`；偏强先收 `s3_atk`、`s3_mult`。
+
+### 强度测试结果（云端 10-11，wip/skalter db36917 = 现值 atk 6、s3_mult 2.0）
+
+结果分支 `cloud-results/sk-lead-t0/t1/t2`、`sk-mate-t0/t1/t2`（`build/cloud/<名>/`）。实际跑的是 §测试 命令的一半：主控 seed 1–56、队友 seed 1–8（各 56 局，`--maxt=1000`）。口径：超时算负；死亡分钟只数死亡局；「她的伤害占比」= 声浪 + 潮汐和声 + 深海的回响 占全队 `out`（S3 的 ×2 记在声浪名下）。
+
+**对照选哪批**：wip/skalter 底在 main 71c078d5，它 = 6a3c857 + 灯标「引路 + 背光」缺省开（a9ce313b，标准高手 28 局 57.1%）+ 两条画面改动。
+最可比的是 `rp-t0-np1`（标准 · 高手 · starts · seed 1–8）与 `rp-x-np1-1/2`（Ⅷ · 熟练 · starts · seed 1–16），底 6a3c857：262 件藏品已在，只差灯标引路。
+`bg8-D-1/2`（底 269d066，`--bal` 开了同样的引路参数）是藏品实装**之前**的底，只作旁证（Ⅷ 61 / 112 = 54%，与 rp 的 50% 差在噪声内）。
+Ⅳ 没有近期的 starts 批，只有 `close8-master-t1-1/2`（底 f633172，9 月底，73 / 112 = 65%），差了藏品与灯标两轮，**只能看量级**。
+starts 预设与她的主控局同口径（单人开局、自然招募）；skalter_mate 是「开局干员 + 她」两人开局再招 1 人，对照是同一开局干员的 starts 局（两人随机招募），所以队友差值 = 「她」对比「一名随机招募」。
+
+**主控（单人开局，56 局）**
+
+| 组 | 胜 | 胜率 | 超时 | 死亡分钟（<6 / 6–7 / 8–9 / 10+） | 平均击杀 | 平均终局等级 | 她占全队伤害 | 前四伤害来源 | 主要死因 | 同档名单对照 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 标准 · 高手 | 41 / 56 | **73%** | 0 | 0 / 7 / 3 / 5 | 7138 | 27.4 | 61% | 声浪 46%、潮汐和声 7%、深海的回响 6%、锯刃 3% | wound 9、corrode 3 | rp-t0-np1 7 人 31 / 56 = 55%（37 / 37 / 37 / 88 / 88 / 75 / 25）；她 seed 1–8 为 6 / 8 |
+| Ⅳ · 熟练 | 39 / 56 | **70%** | 1 | 2 / 6 / 7 / 1 | 7003 | 26.9 | 63% | 声浪 47%、潮汐和声 8%、深海的回响 6%、Mon3tr 2% | wound 12、corrode 2 | close8-master-t1（旧底）65%；她 seed 1–8 为 8 / 8 |
+| Ⅷ · 熟练 | 27 / 56 | **48%** | 1 | 7 / 11 / 8 / 2 | 6546 | 25.2 | 65% | 声浪 49%、潮汐和声 8%、深海的回响 6%、Mon3tr 4% | wound 12、corrode 6、contact_slider 4 | rp-x-np1 7 人 56 / 112 = 50%（斯卡蒂 88、水月 63、塞雷娅 63、凯尔希 56、维什戴尔 44、艾雅法拉 25、铃兰 12）；她 seed 1–16 为 8 / 16 |
+
+- 输出：主控每分钟伤害 63k / 70k / 71k，名单里最高的是维什戴尔 / 水月（Ⅷ 53–59k）；她占全队 61–65%，与维什戴尔（60%）、艾雅法拉（54–59%）同一档，不是独大。
+- 中期 Boss：标准 2.4 只 / 41 秒、Ⅷ 2.0 只 / 63 秒（名单 Ⅷ 48–96 秒）；熄灯秒 7 / 9 / 35（名单 Ⅷ 22–98），S3 扣灯火没有把她推进黑暗。
+- 档间落差：标准 → Ⅷ 掉 25 个百分点，名单平均只掉 5。她强在清大群，Ⅷ 的血量 / 侵蚀压力下回到名单中位（Ⅷ 死在 8 分钟前的 18 局，标准只有 7 局）。
+
+**队友（7 名开局干员各带她开局，seed 1–8，每格 8 局）**
+
+| 开局干员 | 标准：对照 → 带她（差） | 她占全队 | 开局干员占比 对照 → 带她 | Ⅳ：旧底对照 → 带她 | Ⅷ：对照 → 带她（差） | 她占全队 |
+|---|---|---|---|---|---|---|
+| 维什戴尔 | 3 → 3（0） | 51% | 49% → 31% | 6 → 5 | 3 → 1（−25） | 42% |
+| 艾雅法拉 | 3 → 3（0） | 54% | 49% → 28% | 2 → 3 | 2 → 1（−12） | 44% |
+| 斯卡蒂 | 3 → 7（+50） | 60% | 29% → 22% | 7 → 8 | 7 → 7（0） | 55% |
+| 水月 | 7 → 6（−12） | 45% | 46% → 28% | 8 → 8 | 4 → 7（+38） | 54% |
+| 塞雷娅 | 7 → 7（0） | 61% | 10% → 10% | 6 → 6 | 4 → 6（+25） | 57% |
+| 凯尔希 | 6 → 7（+12） | 58% | 32% → 22% | 5 → 8 | 7 → 8（+12） | 57% |
+| 铃兰 | 2 → 6（+50） | 74% | 27% → 12% | 5 → 3 | 1 → 3（+25） | 63% |
+| **合计** | **31 → 39（55% → 70%）** | — | — | **39 → 41（70% → 73%）** | **28 → 33（50% → 59%）** | — |
+
+- 带她平均 +15 / +3 / +9 个百分点；不是「谁带她都稳赢」：Ⅷ 维什戴尔 / 艾雅法拉带她 1 / 8，铃兰 3 / 8。每格 8 局，单格 ±25 都在噪声里，只看合计。
+- 当队友时她仍拿全队 42–74% 的伤害，开局干员占比被压低 10–20 个百分点（歌域以主控为中心、打圈内全部敌人，抢走了主控的击杀）。这是设计取向问题（「辅助」却是主输出），不是胜率问题，留给制作人判断；要压可以给 `shape.circle` 加 `max_n`（docs/60 已登记），不动胜率口径。
+
+**定档结论：数值不改（维持 atk 6、s3_mult 2.0）。**
+
+1. 三档主控 73 / 70 / 48，合计 107 / 168 = 64%，在 50–70 内。标准超上沿 3 点、Ⅷ 低下沿 2 点，方向相反；56 局的标准误约 ±6 个百分点，两档都在一个标准误以内。她的旋钮不分档，任何统一收紧都会把 Ⅷ 压到 45% 以下。
+2. 对名单：标准档 8 人里排第 4（水月、塞雷娅 88，凯尔希 75），Ⅷ 在中位（50% 对名单 50%），既不是最强也不是摆设。
+3. 队友：抬队伍 +9 到 +15 个百分点，Ⅷ 带她合计 59%，在区间内。
+
+**补测（把 §测试 原计划的 112 局补齐，同时拿同底的名单对照）**，在 wip/skalter-tune 上跑（数值同 db36917，结果可与上表合并）：
+
+```bash
+# 主控补 seed 57–112
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot expert --seeds 56 --seed0 57 --out build/cloud/sk-lead-t0-2 --tag sk-lead-t0-2 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 57 --out build/cloud/sk-lead-t1-2 --tag sk-lead-t1-2 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --op skalter --bot master --seeds 56 --seed0 57 --out build/cloud/sk-lead-t2-2 --tag sk-lead-t2-2 --extra="--maxt=1000 --tier=2"
+# 队友补 seed 9–16
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot expert --seeds 8 --seed0 9 --out build/cloud/sk-mate-t0-2 --tag sk-mate-t0-2 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 9 --out build/cloud/sk-mate-t1-2 --tag sk-mate-t1-2 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot master --seeds 8 --seed0 9 --out build/cloud/sk-mate-t2-2 --tag sk-mate-t2-2 --extra="--maxt=1000 --tier=2"
+# 同底名单对照（starts，seed 1–16；Ⅳ 目前没有近期对照）
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 16 --seed0 1 --out build/cloud/sk-base-t0 --tag sk-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 16 --seed0 1 --out build/cloud/sk-base-t1 --tag sk-base-t1 --extra="--maxt=1000 --tier=1"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 16 --seed0 1 --out build/cloud/sk-base-t2 --tag sk-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+事先定好的判定（112 局合并后）：标准 ≥ 75% 且 Ⅷ ≥ 50% → `aura` 190 → 180；Ⅷ < 45% 且标准 ≤ 70% → `aura` 190 → 200；其余不动。
+（同底名单对照里招募池已含她，starts 局可能招到她，这才是 main 合入后的真实名单强度。）
 
 ### 老干员同 seed 不变（10-11，对 main 71c078d5，`--trace=1`，10:00）
 
