@@ -95,6 +95,37 @@ func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	font = load("res://fonts/ui.ttf")
+	# 画面分三层：背后层（舞台）→ 背缓冲拷贝 → 玻璃层（面板底磨砂）→ 本节点（顶栏 / 名册 / 面板正文）
+	back_ci = Control.new()
+	var bbc := BackBufferCopy.new()
+	bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	glass_ci = Control.new()
+	for c in [back_ci, bbc, glass_ci]:
+		c.show_behind_parent = true
+		if c is Control:
+			c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		add_child(c)
+	back_ci.draw.connect(_draw_back)
+	glass_ci.draw.connect(_draw_glass)
+	var sh = load("res://shaders/ui_glass.gdshader")
+	if sh is Shader:
+		glass_mat = ShaderMaterial.new()
+		glass_mat.shader = sh
+		glass_mat.set_shader_parameter("tint", Color(UI.C_L_BG.r, UI.C_L_BG.g, UI.C_L_BG.b, 0.70))
+	if Cfg.dev_args().has("--noglassfx"):
+		glass_fx = false
+	var gr := Gradient.new()
+	gr.set_color(0, Color(1, 1, 1, 1))
+	gr.set_color(1, Color(1, 1, 1, 0))
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 128
+	gt.height = 128
+	glow_tex = gt
 
 
 func open() -> void:
@@ -198,6 +229,8 @@ func _process(delta: float) -> void:
 		if cur != target:
 			hover[i] = target if UIMo.rm() else move_toward(cur, target, delta / 0.12)
 	queue_redraw()
+	back_ci.queue_redraw()
+	glass_ci.queue_redraw()
 
 
 # ---------------------------------------------------------------- 数据
@@ -476,9 +509,14 @@ const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.95
 const STAT_EN := {"生命": "HP", "伤害": "DMG", "移速": "SPD", "类型": "TYPE", "射程": "RNG", "体型": "SIZE", "等级": "RANK", "效果分类": "CAT",
 	"原类别": "ORIG", "流派": "LANE", "Boss": "BOSS", "回复": "REGEN", "闪避": "DODGE", "拾取": "PICKUP"}
 const LIGHT_BLOCK := Color(0.925, 0.933, 0.941)
-var glass: Color = UI.C_L_GLASS    # 右侧面板底（截图对照：--codexglass=<透明度>）
-var glass_back := 0.0              # 正文块后再垫一层同色底的透明度（对照用，缺省 0 不垫）
-var glass_block := true            # 左上 ARCHIVE 浅色块也用同一半透明底（--codexglassblock 截图对照时也会打开）
+var glass: Color = UI.C_L_GLASS    # 磨砂不可用时的平涂底（截图对照：--codexglass=<透明度>）
+var glass_fx := true               # 磨砂玻璃（--noglassfx 关；--glassperf 轮换开关量帧时）
+const GLASS_R := 8.0               # 模糊半径（设计像素，按 dk 与界面缩放换算成屏幕像素）
+var glass_mat: ShaderMaterial
+var glow_tex: Texture2D
+var back_ci: Control               # 背后层（舞台）
+var glass_ci: Control              # 玻璃层（面板底 + ARCHIVE 块）
+var demo_hits: Array = []          # 演示按钮命中区（背后层画的）
 const SPEC_TICKS := false          # 非干员页舞台四角的黄色小角标：10-11 去掉底框后对照过，没有框时角标像悬空的残框，关掉，只留 SPECIMEN 代码
 var dk := 1.0
 var doff := Vector2.ZERO
@@ -706,9 +744,10 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 				return
 			var p := _design(event.position)
-			for j in range(hits.size() - 1, -1, -1):
-				if hits[j][0].has_point(p):
-					_hit(hits[j][1], hits[j][2])
+			var all: Array = demo_hits + hits
+			for j in range(all.size() - 1, -1, -1):
+				if all[j][0].has_point(p):
+					_hit(all[j][1], all[j][2])
 					break
 	accept_event()
 
@@ -974,7 +1013,6 @@ func _demo_form(e: Dictionary) -> bool:
 
 func _draw() -> void:
 	_fit_view()
-	draw_rect(Rect2(Vector2.ZERO, size), UI.C_D_BG)
 	hits.clear()
 	_xf()
 	var ph := phone()
@@ -983,8 +1021,7 @@ func _draw() -> void:
 	if not e.is_empty():
 		form = clampi(form, 0, e.forms.size() - 1)
 	var demo := _demo_form(e)
-	_draw_stage(e, ph, demo)
-	_draw_panel_bg(ph, vr)
+	_draw_panel_edge(ph, vr)
 	_draw_top(ph, vr)
 	if tab == 0 and not ph:
 		_draw_rail()
@@ -997,15 +1034,34 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
+## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
+func _bands(ci: CanvasItem, H: float, b: Array, col: Color, prev: Color, t: float, alpha: float, a: float, ph: bool) -> void:
+	UI.c_band(ci, H, b[0], b[1], b[2], col, prev, t, alpha, b[3], UI.C_D_INK, a)
+	if ph:
+		UI.c_band(ci, H, b[0] + 250.0, 70.0, b[2], col, prev, t, alpha * 0.85, Vector2(84, 6), UI.C_D_INK, a)
+	else:
+		UI.c_band(ci, H, b[0] + 440.0, 160.0, b[2], col, prev, t, alpha * 0.85, Vector2(180, 12), UI.C_D_INK, a)
+
+
+## 立绘背后的职业色辉光：从舞台一直铺到右侧面板底下（磨砂玻璃透出来的颜色）
+func _draw_glow(ci: CanvasItem, col: Color, ph: bool) -> void:
+	if glow_tex == null:
+		return
+	var c := Vector2(380, 150) if ph else Vector2(700, 250)
+	var r := Vector2(420, 230) if ph else Vector2(700, 420)
+	ci.draw_texture_rect(glow_tex, Rect2(c - r, r * 2.0), false, Color(col.r, col.g, col.b, 0.3))
+
+
 ## 左侧暗舞台：职业色斜带（换干员时从左扫入盖住旧带）+ 描边英文名 + 立绘 / 演示
-func _draw_stage(e: Dictionary, ph: bool, demo: bool) -> void:
+func _draw_stage(ci: CanvasItem, e: Dictionary, ph: bool, demo: bool) -> void:
 	var H := _dsz().y
 	var col: Color = _band_col(e) if not e.is_empty() else TAB_COL[tab]
 	var b := [300.0, 100.0, 120.0, Vector2(110, 8)] if ph else [560.0, 240.0, 210.0, Vector2(258, 16)]
 	# 远处淡带（静止）
+	_draw_glow(ci, col, ph)
 	var fx: float = 380.0 if ph else 470.0
 	var fw: float = 8.0 if ph else 16.0
-	draw_colored_polygon(PackedVector2Array([Vector2(fx, H), Vector2(fx + fw, H), Vector2(fx + fw + b[2], 0), Vector2(fx + b[2], 0)]), UI.fa(UI.C_D_INK, 0.14))
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(fx, H), Vector2(fx + fw, H), Vector2(fx + fw + b[2], 0), Vector2(fx + b[2], 0)]), UI.fa(UI.C_D_INK, 0.14))
 	if tab == 0:
 		var prev := Color(0, 0, 0, 0)
 		if prev_sel >= 0 and prev_sel < entries.size() and prev_sel != sel:
@@ -1013,29 +1069,29 @@ func _draw_stage(e: Dictionary, ph: bool, demo: bool) -> void:
 		if UIMo.rm() and not UIMo.skip_all():
 			var f := UIMo.rm_fade(sw_t0)
 			if f < 1.0 and prev.a > 0.0:
-				UI.c_band(self, H, b[0], b[1], b[2], prev, Color(0, 0, 0, 0), 1.0, 0.6, b[3], UI.C_D_INK, 1.0 - f)
-			UI.c_band(self, H, b[0], b[1], b[2], col, Color(0, 0, 0, 0), 1.0, 0.6, b[3], UI.C_D_INK, f)
+				_bands(ci, H, b, prev, Color(0, 0, 0, 0), 1.0, 0.6, 1.0 - f, ph)
+			_bands(ci, H, b, col, Color(0, 0, 0, 0), 1.0, 0.6, f, ph)
 		else:
-			UI.c_band(self, H, b[0], b[1], b[2], col, prev, _p(sw_t0, 0.0, 0.38), 0.6, b[3])
+			_bands(ci, H, b, col, prev, _p(sw_t0, 0.0, 0.38), 0.6, 1.0, ph)
 	else:
-		UI.c_band(self, H, b[0], b[1], b[2], col, Color(0, 0, 0, 0), 1.0, 0.45, b[3])
+		_bands(ci, H, b, col, Color(0, 0, 0, 0), 1.0, 0.45, 1.0, ph)
 	if e.is_empty():
 		return
 	var locked: bool = e.get("locked", false)
 	if demo:
-		_draw_demo(e, e.forms[form])
+		_draw_demo(ci, e, e.forms[form])
 		return
 	_demo_stop()
 	if not locked:
-		UI.ghost_name(self, font, Vector2(150, 40) if ph else Vector2(440, 60), str(e.en), _name_frac(), 90 if ph else 150, UI.C_D_GHOST, 2)
+		UI.ghost_name(ci, font, Vector2(150, 40) if ph else Vector2(440, 60), str(e.en), _name_frac(), 90 if ph else 150, UI.C_D_GHOST, 2)
 	if e.has("od") and form == 0 and tab == 0:
-		_draw_op_art(e, ph)
+		_draw_op_art(ci, e, ph)
 	else:
-		_draw_form_art(e, e.forms[form], ph)
+		_draw_form_art(ci, e, e.forms[form], ph)
 
 
 ## 干员待机帧（整数倍最近邻、底部 25 % 渐隐、黑色硬投影；换干员 60 ms 后 300 ms 缩放 0.92 → 1、右移 24 → 0、淡入；全部裁进舞台框）
-func _draw_op_art(e: Dictionary, ph: bool) -> void:
+func _draw_op_art(ci: CanvasItem, e: Dictionary, ph: bool) -> void:
 	var od := _od(e)
 	var tx: Texture2D = od.get("tex")
 	if tx == null:
@@ -1046,11 +1102,11 @@ func _draw_op_art(e: Dictionary, ph: bool) -> void:
 	if a <= 0.0:
 		return
 	var frames: int = int(od.frames)
-	_blit_art(tx, frames, od.bb, float(od.hires), fit[0], fit[1], c, a, _stage(), Color.WHITE, int(t * 4.0) % maxi(1, frames), true)
+	_blit_art(ci, tx, frames, od.bb, float(od.hires), fit[0], fit[1], c, a, _stage(), Color.WHITE, int(t * 4.0) % maxi(1, frames), true)
 
 
 ## 一张帧条的一帧：k2 = @2x 像素倍数，foot = 脚底中点，c = 进场进度（缩放 / 右移），a = 透明度，clip = 舞台框
-func _blit_art(tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, foot: Vector2, c: float, a: float, clip: Rect2, tint: Color, fr: int, shadow: bool, sil := false, fade := true) -> void:
+func _blit_art(ci: CanvasItem, tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, foot: Vector2, c: float, a: float, clip: Rect2, tint: Color, fr: int, shadow: bool, sil := false, fade := true) -> void:
 	var fw: float = tx.get_width() / float(maxi(1, frames))
 	var k: float = k2 * 2.0 / hires * (0.92 + 0.08 * c)
 	var sz := bb.size * k
@@ -1061,19 +1117,19 @@ func _blit_art(tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, f
 	var cut := floorf(bb.size.y * 0.75) if fade else bb.size.y
 	var wt := _white_of(tx)
 	if shadow and wt != null:
-		UI.blit_clipped(self, wt, Rect2(pos + Vector2(14, 10) * k2 / 4.0, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, Color(0, 0, 0, 0.35 * a))
+		UI.blit_clipped(ci, wt, Rect2(pos + Vector2(14, 10) * k2 / 4.0, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, Color(0, 0, 0, 0.35 * a))
 	var body: Texture2D = wt if sil and wt != null else tx
 	var col := Color(tint.r, tint.g, tint.b, tint.a * a)
-	UI.blit_clipped(self, body, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, col)
+	UI.blit_clipped(ci, body, Rect2(pos, Vector2(sz.x, cut * k)), Rect2(src.position, Vector2(src.size.x, cut)), clip, col)
 	var rows: int = int(bb.size.y - cut)
 	for y in rows:
 		var f := 1.0 - (y + 0.5) / float(rows)
-		UI.blit_clipped(self, body, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), clip, Color(col.r, col.g, col.b, col.a * f))
+		UI.blit_clipped(ci, body, Rect2(pos + Vector2(0, (cut + y) * k), Vector2(sz.x, k)), Rect2(src.position + Vector2(0, cut + y), Vector2(src.size.x, 1)), clip, Color(col.r, col.g, col.b, col.a * f))
 
 
 ## 其他形态 / 非干员条目：同一适配规则，直接画在舞台斜带前（同干员页，不画底框，10-11 用户：「敌人那里为什么有个黑框」）；
 ## 非干员页换条目时四角黄色小角标与 SPECIMEN 代码先亮（T2，「灯箱」只剩角标），再出精灵（T1）；未解锁画暗剪影
-func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
+func _draw_form_art(ci: CanvasItem, e: Dictionary, f: Dictionary, ph: bool) -> void:
 	var sr := _stage()
 	var locked: bool = e.get("locked", false)
 	var a := 1.0
@@ -1085,8 +1141,8 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 		var tk := sr.grow(-12.0)
 		if SPEC_TICKS:
 			for cn in [tk.position, Vector2(tk.end.x - 14, tk.position.y), Vector2(tk.position.x, tk.end.y - 2), tk.end - Vector2(14, 2)]:
-				draw_rect(Rect2(cn, Vector2(14, 2)), UI.fa(UI.C_ACC, lb))
-		UI.code(self, font, tk.position + Vector2(10, 8), "SPECIMEN  //  NO.%02d" % (vlist.find(sel) + 1), 7 if ph else 8, UI.fa(UI.C_D_SUB, lb))
+				ci.draw_rect(Rect2(cn, Vector2(14, 2)), UI.fa(UI.C_ACC, lb))
+		UI.code(ci, font, tk.position + Vector2(10, 8), "SPECIMEN  //  NO.%02d" % (vlist.find(sel) + 1), 7 if ph else 8, UI.fa(UI.C_D_SUB, lb))
 		a = _pa(sel_t0, UIMo.T2, UIMo.T1)
 		box = sr.grow(-4.0)   # 留出 SPECIMEN 代码行；其余同干员页的舞台框
 		box.position.y += 14.0
@@ -1115,11 +1171,11 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 		var k: float = k2 * 2.0 / hi
 		var total: float = (bb.size.x + gap + bb2.size.x) * k
 		var x0: float = foot.x - total / 2.0
-		_blit_art(tx, int(f.frames), bb, hi, k2, Vector2(x0 + bb.size.x * k / 2.0, foot.y), 1.0, a, clip, tint, _form_frame(f), not locked, locked)
-		_blit_art(pf.tex, int(pf.frames), bb2, hi, k2, Vector2(x0 + (bb.size.x + gap) * k + bb2.size.x * k / 2.0, foot.y), 1.0, a, clip, tint, _form_frame(pf), not locked, locked)
+		_blit_art(ci, tx, int(f.frames), bb, hi, k2, Vector2(x0 + bb.size.x * k / 2.0, foot.y), 1.0, a, clip, tint, _form_frame(f), not locked, locked)
+		_blit_art(ci, pf.tex, int(pf.frames), bb2, hi, k2, Vector2(x0 + (bb.size.x + gap) * k + bb2.size.x * k / 2.0, foot.y), 1.0, a, clip, tint, _form_frame(pf), not locked, locked)
 		if not locked:
-			UI.code(self, font, Vector2(x0 + bb.size.x * k / 2.0, foot.y + 4), str(f.get("main_label", "")), 8, UI.C_D_SUB, "ma")
-			UI.code(self, font, Vector2(x0 + (bb.size.x + gap) * k + bb2.size.x * k / 2.0, foot.y + 4), str(pf.get("pair_label", f.get("pair_label", ""))), 8, UI.C_D_SUB, "ma")
+			UI.code(ci, font, Vector2(x0 + bb.size.x * k / 2.0, foot.y + 4), str(f.get("main_label", "")), 8, UI.C_D_SUB, "ma")
+			UI.code(ci, font, Vector2(x0 + (bb.size.x + gap) * k + bb2.size.x * k / 2.0, foot.y + 4), str(pf.get("pair_label", f.get("pair_label", ""))), 8, UI.C_D_SUB, "ma")
 		return
 	var ds: float = float(f.get("dscale", 1.0))
 	if ds > 1.05:
@@ -1135,14 +1191,14 @@ func _draw_form_art(e: Dictionary, f: Dictionary, ph: bool) -> void:
 			var src := Rect2(fw * fr2 + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 			var dst := Rect2((foot - Vector2(bb.size.x * k3 / 2.0, bb.size.y * k3)).round(), bb.size * k3)
 			for d in [Vector2(k3, 0), Vector2(-k3, 0), Vector2(0, k3), Vector2(0, -k3)]:
-				UI.blit_clipped(self, wt, Rect2(dst.position + d, dst.size), src, clip, Color(0.7, 0.85, 0.95, 0.5 * a))
-	_blit_art(tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), not locked, locked, tab in [0, 1, 2, 3, 6])
+				UI.blit_clipped(ci, wt, Rect2(dst.position + d, dst.size), src, clip, Color(0.7, 0.85, 0.95, 0.5 * a))
+	_blit_art(ci, tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), not locked, locked, tab in [0, 1, 2, 3, 6])
 	if locked:
-		UI.text_at(self, font, foot - Vector2(0, h2 * k2 / 2.0), "?", 40 if not ph else 28, UI.C_D_SUB, "mm", true)
+		UI.text_at(ci, font, foot - Vector2(0, h2 * k2 / 2.0), "?", 40 if not ph else 28, UI.C_D_SUB, "mm", true)
 
 
 ## 实机演示（干员技能 / 敌人攻击）：SubViewport 画进舞台框；右上两排平行四边形按钮，左下名字与当前段落
-func _draw_demo(e: Dictionary, f: Dictionary) -> void:
+func _draw_demo(ci: CanvasItem, e: Dictionary, f: Dictionary) -> void:
 	var dr := Rect2(146, 34, 320, 262) if phone() else _stage()
 	var is_enemy: bool = f.has("enemy_demo")
 	if is_enemy:
@@ -1150,10 +1206,10 @@ func _draw_demo(e: Dictionary, f: Dictionary) -> void:
 	else:
 		_demo_start(f.demo, Vector2i(dr.size))
 	if demo_vp != null:
-		draw_texture_rect(demo_vp.get_texture(), dr, false)
-	draw_rect(dr, UI.C_D_INK, false, 1.0)
+		ci.draw_texture_rect(demo_vp.get_texture(), dr, false)
+	ci.draw_rect(dr, UI.C_D_INK, false, 1.0)
 	for cn in [dr.position, Vector2(dr.end.x - 16, dr.position.y)]:
-		draw_rect(Rect2(cn, Vector2(16, 3)), UI.C_ACC)
+		ci.draw_rect(Rect2(cn, Vector2(16, 3)), UI.C_ACC)
 	var cur: int = -9
 	if demo_game != null and demo_game.demo_pi >= 0 and not demo_game.demo_phases.is_empty():
 		cur = demo_game.demo_phases[demo_game.demo_pi]
@@ -1179,20 +1235,20 @@ func _draw_demo(e: Dictionary, f: Dictionary) -> void:
 			var on: bool = enemy_demo_mode == v if kind == "enemy_phase" else ((demo_stage == v) if kind == "stage" else (demo_mode == v and kind == "mode"))
 			var locked_skill: bool = kind == "mode" and v >= 0 and v <= 2 and v > demo_stage
 			var playing: bool = kind == "mode" and demo_mode == -1 and v == cur and demo_game != null and not demo_game.demo_basic
-			UI.para(self, cr, 6, UI.C_D_INK if on else UI.C_D_PANEL, Color(0, 0, 0, 0) if on else (UI.C_ACC if playing else UI.fa(UI.C_D_INK, 0.55)))
-			UI.text_at(self, font, cr.get_center(), lbl, fs, UI.C_D_INV if on else (UI.fa(UI.C_D_SUB, 0.6) if locked_skill else UI.C_D_INK), "mm")
-			hits.append([cr, "demo", [kind, v]])
+			UI.para(ci, cr, 6, UI.C_D_INK if on else UI.C_D_PANEL, Color(0, 0, 0, 0) if on else (UI.C_ACC if playing else UI.fa(UI.C_D_INK, 0.55)))
+			UI.text_at(ci, font, cr.get_center(), lbl, fs, UI.C_D_INV if on else (UI.fa(UI.C_D_SUB, 0.6) if locked_skill else UI.C_D_INK), "mm")
+			demo_hits.append([cr, "demo", [kind, v]])
 			cx -= 4.0
 	var by := dr.end.y - 40.0
-	draw_rect(Rect2(dr.position.x + 1, by - 4, dr.size.x - 2, 43), Color(0, 0, 0, 0.55))
-	UI.code(self, font, Vector2(dr.position.x + 10, by), "%s  //  %s" % [str(e.en), "ATTACK DEMO"], 7 if phone() else 8, UI.C_D_SUB)
-	UI.text_at(self, font, Vector2(dr.position.x + 10, by + 11), "%s · 攻击演示" % e.name, 12 if phone() else 13, UI.C_D_INK)
+	ci.draw_rect(Rect2(dr.position.x + 1, by - 4, dr.size.x - 2, 43), Color(0, 0, 0, 0.55))
+	UI.code(ci, font, Vector2(dr.position.x + 10, by), "%s  //  %s" % [str(e.en), "ATTACK DEMO"], 7 if phone() else 8, UI.C_D_SUB)
+	UI.text_at(ci, font, Vector2(dr.position.x + 10, by + 11), "%s · 攻击演示" % e.name, 12 if phone() else 13, UI.C_D_INK)
 	if demo_game != null:
-		UI.text_at(self, font, Vector2(dr.end.x - 10, by + 13), str(demo_game.demo_label), 11 if phone() else 12, UI.C_ACC, "ra")
+		UI.text_at(ci, font, Vector2(dr.end.x - 10, by + 13), str(demo_game.demo_label), 11 if phone() else 12, UI.C_ACC, "ra")
 
 
 ## 右侧浅色终端面板（斜边分区 + 3 px 警示黄线）；超出设计稿的部分（宽屏 / 高屏）一直铺到屏幕边
-func _draw_panel_bg(ph: bool, vr: Rect2) -> void:
+func _panel_poly(ph: bool, vr: Rect2) -> PackedVector2Array:
 	var D := _dsz()
 	var top := 0.0 if ph else 48.0
 	var xt := 492.0 if ph else 910.0
@@ -1202,11 +1258,50 @@ func _draw_panel_bg(ph: bool, vr: Rect2) -> void:
 	var xa := xt + (xb - xt) * (y0 - top) / (D.y - top)
 	var xz := xt + (xb - xt) * (y1 - top) / (D.y - top)
 	var xr := maxf(D.x, vr.end.x) + 1.0
-	draw_colored_polygon(PackedVector2Array([Vector2(xa, y0), Vector2(xr, y0), Vector2(xr, y1), Vector2(xz, y1)]), glass)
-	if glass_back > 0.0:
-		var px := _panel_x()
-		draw_rect(Rect2(px.x - 10, 6.0 if ph else 62.0, px.y - px.x + 20, (348.0 if ph else 640.0)), UI.fa(UI.C_L_BG, glass_back))
-	draw_line(Vector2(xa, y0), Vector2(xz, y1), UI.C_ACC, 3.0, true)
+	return PackedVector2Array([Vector2(xa, y0), Vector2(xr, y0), Vector2(xr, y1), Vector2(xz, y1)])
+
+
+## 左上 ARCHIVE 浅色块（也是磨砂玻璃）
+func _block_rect(ph: bool, vr: Rect2) -> Rect2:
+	if ph:
+		return Rect2(vr.position.x, minf(0.0, vr.position.y), 96.0 - vr.position.x, 30.0 - minf(0.0, vr.position.y))
+	return Rect2(vr.position.x, 0, 120.0 - vr.position.x, 48)
+
+
+## 背后层：暗底 + 辉光 + 斜带 + 描边英文名 + 立绘 / 演示（show_behind_parent，画在前层之下、玻璃之下）
+func _draw_back() -> void:
+	_fit_view()
+	back_ci.draw_rect(Rect2(Vector2.ZERO, size), UI.C_D_BG)
+	back_ci.draw_set_transform(doff, 0.0, Vector2(dk, dk))
+	demo_hits.clear()
+	var e: Dictionary = entries[sel] if sel >= 0 and sel < entries.size() else {}
+	if not e.is_empty():
+		form = clampi(form, 0, e.forms.size() - 1)
+	_draw_stage(back_ci, e, phone(), _demo_form(e))
+
+
+## 玻璃层：右侧面板与 ARCHIVE 块。磨砂（ui_glass.gdshader：模糊背后层 + 浅色底 0.70）；着色器不可用 / 无头 / --noglassfx 时退回 UI.C_L_GLASS 平涂
+func _draw_glass() -> void:
+	var ph := phone()
+	var vr := Rect2(-doff / dk, size / dk)
+	glass_ci.draw_set_transform(doff, 0.0, Vector2(dk, dk))
+	var on := glass_on()
+	glass_ci.material = glass_mat if on else null
+	if on:
+		var sc: float = glass_ci.get_global_transform_with_canvas().get_scale().x * get_viewport().get_final_transform().get_scale().x
+		glass_mat.set_shader_parameter("radius", GLASS_R * dk * sc)
+	var col := Color.WHITE if on else glass
+	glass_ci.draw_colored_polygon(_panel_poly(ph, vr), col)
+	glass_ci.draw_rect(_block_rect(ph, vr), col if on else UI.fa(LIGHT_BLOCK, glass.a))
+
+
+func glass_on() -> bool:
+	return glass_fx and glass_mat != null and not UIMo.skip_all()
+
+
+func _draw_panel_edge(ph: bool, vr: Rect2) -> void:
+	var p := _panel_poly(ph, vr)
+	draw_line(p[0], p[3], UI.C_ACC, 3.0, true)
 
 
 ## 顶栏：浅色标题块「ARCHIVE / 图鉴」+ 警示条（30 px / 秒缓慢滚动）+ 七个平行四边形大页签 + 收录数 + 返回
@@ -1218,7 +1313,6 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		if not en.get("locked", false):
 			unl += 1
 	if ph:
-		draw_rect(Rect2(vr.position.x, minf(0.0, vr.position.y), 96.0 - vr.position.x, 30.0 - minf(0.0, vr.position.y)), UI.fa(LIGHT_BLOCK, glass.a) if glass_block else LIGHT_BLOCK)
 		UI.hazard(self, Rect2(96, 0, 14, 30), ht)
 		UI.text_at(self, font, Vector2(10, 15), "图鉴 · " + str(TABS[tab].cn), 13, UI.C_HZ, "lm", true)
 		for i in TABS.size():
@@ -1232,9 +1326,8 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		UI.text_at(self, font, br.get_center() + Vector2(0, 1), Pad.hint("Esc", "Ⓑ", "返回"), 10, UI.C_L_INV, "mm")
 		hits.append([br.grow(6.0), "back", 0])
 		return
-	draw_rect(Rect2(vr.position.x, 0, vr.size.x, 48), UI.C_D_PANEL)
+	draw_rect(Rect2(120, 0, vr.end.x - 120.0, 48), UI.C_D_PANEL)
 	draw_line(Vector2(vr.position.x, 48), Vector2(vr.end.x, 48), UI.C_D_INK, 2.0)
-	draw_rect(Rect2(vr.position.x, 0, 120.0 - vr.position.x, 48), UI.fa(LIGHT_BLOCK, glass.a) if glass_block else LIGHT_BLOCK)
 	UI.hazard(self, Rect2(120, 0, 20, 48), ht)
 	UI.code(self, font, Vector2(18, 7), "ARCHIVE", 9, UI.C_HZ)
 	UI.text_at(self, font, Vector2(18, 19), "图鉴", 18, UI.C_HZ, "la", true)

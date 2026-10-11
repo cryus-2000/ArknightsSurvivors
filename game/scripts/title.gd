@@ -171,11 +171,9 @@ func _ready() -> void:
 				if a2 == "--reducemotion":
 					Cfg.reduce_motion = true
 				if a2.begins_with("--codexglass="):
-					gallery.glass.a = float(a2.substr(13))   # 截图对照：右侧面板底透明度
-				if a2.begins_with("--codexglassback="):
-					gallery.glass_back = float(a2.substr(17))
-				if a2 == "--codexglassblock":
-					gallery.glass_block = true
+					gallery.glass.a = float(a2.substr(13))   # 截图对照：磨砂关掉时平涂底的透明度
+				if a2 == "--noglassfx":
+					gallery.glass_fx = false   # 截图对照：磨砂玻璃关掉（平涂 UI.C_L_GLASS）
 			if parts.size() > 2:
 				gallery.form = int(parts[2])
 			gallery._follow()
@@ -247,6 +245,13 @@ func _ready() -> void:
 		get_tree().create_timer(1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_guide.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--glassperf"):
+		# 图鉴磨砂玻璃开销（同局轮换）：开图鉴（维什戴尔），关垂直同步、不限帧，每 90 帧切换一次磨砂开 / 关，各丢掉切换后 10 帧，共 1800 帧后打印 GLASSPERF
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		Engine.max_fps = 0
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+		_codex_motion_open()
+		glass_perf = 0
 	if Cfg.dev_args().has("--codexmotion"):
 		# 图鉴 C4' 动效录制（docs/58 §11.2 验收）：配 --fixed-fps 30 每帧存图到 <shotdir>/codexmotion/；
 		# 脚本：标题 → 斜切转场打开图鉴（维什戴尔）→ 换干员 ×2 → 换页签 ×2 → 敌人页（标本柜启辉）→ 换条目 → 回干员页 → 退出
@@ -490,6 +495,17 @@ func _process(delta: float) -> void:
 	_credits_tick(delta)
 	if codex_motion >= 0:
 		_codex_motion_tick()
+	if glass_perf >= 0:
+		var on := (glass_perf / 90) % 2 == 0
+		gallery.glass_fx = on
+		if glass_perf % 90 >= 10 and glass_perf > 60:
+			glass_acc[0 if on else 1] += delta
+			glass_acc[2 if on else 3] += 1
+			glass_acc[4 if on else 5] += RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
+		glass_perf += 1
+		if glass_perf >= 1860:
+			print("GLASSPERF on=%.3f ms off=%.3f ms diff=%.3f ms (frames %d / %d) gpu on=%.3f off=%.3f ms" % [glass_acc[0] / glass_acc[2] * 1000.0, glass_acc[1] / glass_acc[3] * 1000.0, (glass_acc[0] / glass_acc[2] - glass_acc[1] / glass_acc[3]) * 1000.0, glass_acc[2], glass_acc[3], glass_acc[4] / glass_acc[2], glass_acc[5] / glass_acc[3]])
+			get_tree().quit()
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
 	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
@@ -1216,6 +1232,8 @@ var op_bg := {}                  # 背景固定几何（浪纹、触须、灯火
 var op_glow_tex: Texture2D
 var op_motion := -1.0            # --opmotion：动效录制开始时刻
 var codex_motion := -1           # --codexmotion：已录帧数
+var glass_perf := -1             # --glassperf：已跑帧数
+var glass_acc := [0.0, 0.0, 0, 0, 0.0, 0.0]   # 开 / 关 累计秒数与帧数、GPU 渲染毫秒
 var post_fx: CanvasLayer
 
 
