@@ -1098,8 +1098,8 @@ static func _wave_y(x: float, base_y: float, k: float) -> float:
 const C_ACC := Color(1.0, 0.808, 0.0)                    # 警示黄 #FFCE00（只在图鉴里用）
 const C_HZ := Color(0.086, 0.094, 0.11)                  # 警示条的黑段 (22,24,28)
 const C_L_BG := Color(0.886, 0.894, 0.906)               # #E2E4E7
-const C_L_GLASS := Color(0.886, 0.894, 0.906, 0.82)    # 图鉴右侧终端面板 + 左上 ARCHIVE 块底（10-11 用户：「右边白色可以改成半透明吗」；0.88 / 0.82 / 0.76+垫底 对照后取 0.82，透出斜带、文字仍清楚）
-const C_L_PANEL := Color(0.98, 0.98, 0.98, 0.94)
+const C_L_GLASS := Color(0.886, 0.894, 0.906, 0.82)    # 图鉴右侧面板 + ARCHIVE 块：磨砂玻璃（ui_glass.gdshader，模糊后叠 0.70 浅色底）不可用时的平涂底（10-11 用户：「右边白色可以改成半透明吗」）
+const C_L_PANEL := Color(0.98, 0.98, 0.98, 1.0)         # 不透明：磨砂玻璃上的「标签卡」（技能行 / 成长节点）
 const C_L_SEL := Color(1.0, 0.969, 0.808)                # #FFF7CE
 const C_L_INK := Color(0.086, 0.094, 0.11)               # #16181C 正文 / 线
 const C_L_SUB := Color(0.361, 0.376, 0.408)              # #5C6068
