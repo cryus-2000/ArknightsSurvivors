@@ -58,3 +58,14 @@
 内置 imagegen 绘制母图；艾丽妮小跑与技能、乌尔比安小跑单独补绘。
 分离完整像素连通角色，逐源图保存共同尺度和分割记录，清除单色背景，统一 48/96px 导出；低清/高清共享各自角色色板，二值 alpha 与1px深色轮廓。
 详细完整 prompts、母图路径及哈希见 squad_batch4_generation.json；流明与灯塔先前制作记录见 squad_batch4_lumen_handoff.md。
+
+
+## squad_batch5（2026-10-11）
+
+用户已逐项批准精零立绘及装备；浊心斯卡蒂明确保留手持物，详见审批 JSON / feedback。
+- 浊心斯卡蒂：https://prts.wiki/w/浊心斯卡蒂 ，精零原皮。
+- 德克萨斯：https://prts.wiki/w/德克萨斯 ，精零原皮。
+- 星熊：https://prts.wiki/w/星熊 ，精零原皮。
+- 能天使：https://prts.wiki/w/能天使 ，精零原皮。
+- 安洁莉娜：https://prts.wiki/w/安洁莉娜 ，精零原皮。
+内置 imagegen 绘制五张动作母图，完整 prompts、母图哈希、切帧坐标和共同缩放见 squad_batch5_generation.json。原作参考 PNG 仅本机缓存，不入库。技术导出脚本：E:/水月/squad_batch5_delivery/export_batch5.py。

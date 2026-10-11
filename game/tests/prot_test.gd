@@ -74,6 +74,7 @@ func _process(_d: float) -> void:
 	test_beacon_safe()
 	test_beacon_guide()
 	test_beacon_relay()
+	test_beacon_stagger()
 	test_saint_tiers()
 	test_arena()
 	test_ground()
@@ -1114,6 +1115,115 @@ func test_beacon_relay() -> void:
 	game.lamp = keep_lamp
 	game.nerve = keep_nerve
 	bs.charging = keep_c
+
+
+## 灯边硬直（docs/56 §10）：stagger_r 0 = 旧行为（近战照常出预警）；开了以后主控在未点燃灯标 stagger_r 内（含圈边）时，
+## 非 Boss 近战起手换成硬直（不出预警、e.bstag、冷却照扣、灯标 stag_n +1）；stagger_cd 内同一只再起手照常出预警；
+## 远程额外招（凿石贯射）不管；Boss 不管；主控离灯标远 / 灯标已点燃时不生效；难度表可按档关；全程不掷随机数
+func test_beacon_stagger() -> void:
+	var bs = game.beacon_sys
+	var ai = game.eai
+	var sp = game.spawner
+	var keep_beacons: Array = game.beacons
+	var keep_b: Dictionary = Bal._data.get("beacon", {}).duplicate()
+	var keep_next: float = bs.next_at
+	var keep_zone: int = game.zone_state
+	var keep_state: int = game.state
+	var keep_c = bs.charging
+	var keep_g = bs.guide
+	var keep_s = bs.stagger
+	var keep_sec: float = ai.next_secondary_at
+	bs.next_at = 1.0e9
+	game.zone_state = 0
+	game.state = Game.S.PLAY
+	ai.next_secondary_at = 0.0
+	game.warns.clear()
+	# 主控站在圈边（离灯标 100：r 70 外、2×r 140 内）
+	var bc := {"pos": game.ppos + Vector2(100, 0), "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0,
+		"dead": false, "r": 70.0, "clear_r": 340.0, "safe_end": 0.0, "age": 1.0, "out_t": 0.0, "stag_n": 0}
+	game.beacons = [bc]
+	var nb: Dictionary = keep_b.duplicate()
+	nb["guide_r"] = 0.0   # 远程不起手先关掉，单测硬直
+	nb["stagger_r"] = 0.0
+	nb["stagger_s"] = 0.6
+	nb["stagger_cd"] = 5.0
+	Bal._data["beacon"] = nb
+	# 刷怪本身掷随机数（移速 / 冷却散布），先刷好再记 g.rng 状态
+	var t0: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
+	var t1: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
+	var t2: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
+	var t3: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
+	var f2: Dictionary = sp.spawn_enemy("founder", game.ppos + Vector2(200, 0))
+	var s0: int = game.rng.state
+	# 引痕者前刺（直线预警）：起手函数直接调，dist 100 在 thrust_range 内
+	var thrust := func(e: Dictionary) -> int:
+		var n0: int = game.warns.size()
+		e.wind = 0.0
+		ai._thrust(e, ai.def_of(e), Vector2.LEFT, 100.0, 1.0 / 60.0)
+		return game.warns.size() - n0
+	# 关：update 不指 stagger，近战照常出预警
+	bs.update(1.0 / 60.0)
+	ok(bs.stagger == null and thrust.call(t0) == 1 and float(t0.get("bstag", 0.0)) <= 0.0 and int(bc.stag_n) == 0, "stagger_r 0：圈边近战照常出预警（旧行为）")
+	# 开 140：圈边起手被硬直取代
+	nb["stagger_r"] = 140.0
+	bs.update(1.0 / 60.0)
+	var w1: int = thrust.call(t1)
+	ok(bs.stagger == bc and w1 == 0 and absf(float(t1.get("bstag", 0.0)) - 0.6) < 0.001 and int(bc.stag_n) == 1, "stagger_r 140：主控在圈边，近战起手换成 0.6 秒硬直、不出预警、stag_n=1")
+	ok(float(t1.cds.get("thrust", 0.0)) > game.t, "硬直时该招冷却照扣")
+	# 冷却：stagger_cd 5 秒内同一只再起手照常出预警；过了 5 秒又能被硬直
+	t1.cds["thrust"] = 0.0
+	ok(thrust.call(t1) == 1 and int(bc.stag_n) == 1, "stagger_cd 内：同一只再起手照常出预警（不是安全区）")
+	game.warns.clear()
+	game.t += 5.5
+	bs.update(1.0 / 60.0)
+	t1.cds["thrust"] = 0.0
+	ok(thrust.call(t1) == 0 and int(bc.stag_n) == 2, "过了 stagger_cd：又能被硬直（stag_n=2）")
+	# 近战额外招（引痕者尾刃反扫 swipe）也算近战；远程额外招（奠基者晶刺突起 pierce）不管
+	t2.age = 10.0
+	t2.extra_next = 0.0
+	t2.wind = 0.0
+	var n2: int = game.warns.size()
+	var r2: bool = ai._secondary(t2, ai.def_of(t2), Vector2.LEFT, 100.0)
+	ok(r2 and game.warns.size() == n2 and float(t2.get("bstag", 0.0)) > 0.0 and float(t2.extra_next) > game.t, "近战额外招（尾刃反扫）被硬直取代，冷却照扣")
+	f2.age = 10.0
+	f2.extra_next = 0.0
+	f2.wind = 0.0
+	var nf: int = game.warns.size()
+	ai._secondary(f2, ai.def_of(f2), Vector2.LEFT, 200.0)
+	ok(game.warns.size() == nf + 1 and float(f2.get("bstag", 0.0)) <= 0.0, "远程额外招（晶刺突起）不受硬直影响，照常出预警")
+	# Boss 不受影响
+	var bossd := {"boss": true, "pos": game.ppos, "r": 30.0}
+	ok(not bs.melee_stagger(bossd) and not bossd.has("bstag"), "Boss 起手不被硬直")
+	# 主控离灯标 200（2×r 外）：不生效；灯标点燃后：不生效
+	bc.pos = game.ppos + Vector2(200, 0)
+	bs.update(1.0 / 60.0)
+	ok(bs.stagger == null and thrust.call(t3) == 1, "主控离灯标 200（stagger_r 140 外）：照常出预警")
+	bc.pos = game.ppos + Vector2(100, 0)
+	bc.lit = true
+	bc.lit_t = game.t
+	bs.update(1.0 / 60.0)
+	ok(bs.stagger == null, "灯标点燃后硬直立刻结束")
+	bc.lit = false
+	# 难度表覆盖：beacon_stagger_r 0 按档关掉
+	var keep_d: Dictionary = game.dmod
+	game.dmod = keep_d.duplicate()
+	game.dmod["beacon_stagger_r"] = 0.0
+	bs.update(1.0 / 60.0)
+	ok(bs.stagger == null, "difficulty beacon_stagger_r 0 覆盖：按档关掉")
+	game.dmod = keep_d
+	ok(game.rng.state == s0, "硬直全程不掷随机数（g.rng 状态不变）")
+	for e in [t0, t1, t2, f2, t3]:
+		e.dead = true
+	game.warns.clear()
+	Bal._data["beacon"] = keep_b
+	game.beacons = keep_beacons
+	bs.next_at = keep_next
+	game.zone_state = keep_zone
+	game.state = keep_state
+	bs.charging = keep_c
+	bs.guide = keep_g
+	bs.stagger = keep_s
+	ai.next_secondary_at = keep_sec
 
 
 ## 圣徒两档（用户 10-01 按原作核对：卡门 / 伊比利亚是同一人物）：中期抽取按人物互斥；弹药按数据（卡门 3、伊比利亚 1）
