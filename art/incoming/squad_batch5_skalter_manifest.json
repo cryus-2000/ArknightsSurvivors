@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "605ca18856c0d71cff98a04dcc5efe4aa9987a91f21fc3e299ba9f901012bedd"
+      "sha256": "ef70c5062f134ec177953c863d2c7e177d733c3729f823d32569b4f6a8a5073a"
     },
     {
       "file": "op_skalter_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "06b39b283d2e5751132613b9834e3c7cd6758984d97535a87f14e8f7dac69045"
+      "sha256": "272c23ac8642fc950e84df8e7382fc21957a4f13d2f9a1b653d8e7d26abb9151"
     },
     {
       "file": "op_skalter_attack.png",

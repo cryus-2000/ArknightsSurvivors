@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "file": "op_texas_run.png",
+      "character": "texas",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "3a8f68d0bc13253fa5f1950f9501e7a6750af1e2786112bc82d0889a2a909cda"
+    },
+    {
+      "file": "op_texas_run@2x.png",
+      "character": "texas",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "cd6ddcdff5e807ab0e3108bff15d233c6eda54720bd8d90706cc3a62fe911124"
+    },
+    {
+      "file": "op_hoshiguma_run.png",
+      "character": "hoshiguma",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "0980cd74b2bcf798a2cb21cde1c0abac98b58cc3c083586bcad26599a8280168"
+    },
+    {
+      "file": "op_hoshiguma_run@2x.png",
+      "character": "hoshiguma",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "25eb7926cdf399cd722858db36ab1c0080f6f26822895f5c25cd055a9bd60c08"
+    },
+    {
+      "file": "op_angelina_run.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "044b0278710799f5ca1666df1845a765c1c46b3c2c6e2e1bc107d358d5069486"
+    },
+    {
+      "file": "op_angelina_run@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "97f793acfad938eef2d5f040044a4456136a9b83d0d2dbbd164ae425ea9c9a2b"
+    },
+    {
+      "file": "op_skalter_run.png",
+      "character": "skalter",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 1,
+      "sha256": "ef70c5062f134ec177953c863d2c7e177d733c3729f823d32569b4f6a8a5073a"
+    },
+    {
+      "file": "op_skalter_run@2x.png",
+      "character": "skalter",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "loop": true,
+      "density": 2,
+      "sha256": "272c23ac8642fc950e84df8e7382fc21957a4f13d2f9a1b653d8e7d26abb9151"
+    }
+  ]
+}

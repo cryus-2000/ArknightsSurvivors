@@ -1,0 +1,885 @@
+{
+  "engine_tested": false,
+  "motion_thresholds_passed": true,
+  "motion": {
+    "texas": {
+      "op": "texas",
+      "frames": 6,
+      "diff": 0.6805537667520212,
+      "minpair": 0.577217125382263,
+      "pairs": [
+        0.644,
+        0.74,
+        0.671,
+        0.577,
+        0.75,
+        0.701
+      ],
+      "sil_xor": 0.2235334924035015,
+      "half": 0.33111709533775785,
+      "bob_top": 2.0,
+      "bob_c": 1.923973150211154,
+      "head_bob": 1.340170911453086,
+      "tops": [
+        11.5,
+        12.5,
+        10.5,
+        11.5,
+        12.5,
+        10.5
+      ],
+      "height": 35.0,
+      "foot_dx": 11.75,
+      "stride_max": 23.0,
+      "stride_rng": 18.0,
+      "contact_l_rng": 5.0,
+      "contact_r_rng": 16.0,
+      "lean": 25.784311920535657,
+      "lean_rng": 4.222493198204621,
+      "feet_seq": "211211",
+      "feet_alt": 4,
+      "idle_h": 34.5,
+      "leg_xor": 0.5504471808019803,
+      "move": 0.07789165300344537,
+      "move_half": 0.007435769850813408,
+      "leg_move": 0.24847611786758614,
+      "leg_move_half": 0.031011712326620918,
+      "upper_move": 0.020156188135283148,
+      "leg_px": 107.70833333333333,
+      "crouch": 1.0144927536231885,
+      "near_identical_pairs": 0,
+      "silhouette_pair_changes": [
+        0.0681551116333725,
+        0.04741546832491255,
+        0.11476582052198785,
+        0.06804281345565749,
+        0.04626469472885855,
+        0.12270600935588341
+      ],
+      "op_texas_run.png_hsl": 0.26865971107544134,
+      "op_texas_run@2x.png_hsl": 0.26578661105940465
+    },
+    "hoshiguma": {
+      "op": "hoshiguma",
+      "frames": 6,
+      "diff": 0.7764235008111512,
+      "minpair": 0.7617198335644938,
+      "pairs": [
+        0.763,
+        0.808,
+        0.762,
+        0.781,
+        0.774,
+        0.772
+      ],
+      "sil_xor": 0.22451848679402833,
+      "half": 0.3633788716760014,
+      "bob_top": 2.0,
+      "bob_c": 2.0450624898348586,
+      "head_bob": 1.4614835114234026,
+      "tops": [
+        11.5,
+        12.5,
+        10.5,
+        11.5,
+        12.5,
+        10.5
+      ],
+      "height": 35.0,
+      "foot_dx": 8.431818181818183,
+      "stride_max": 26.0,
+      "stride_rng": 18.0,
+      "contact_l_rng": 10.0,
+      "contact_r_rng": 10.5,
+      "lean": 7.5791874085740885,
+      "lean_rng": 4.397054071592586,
+      "feet_seq": "221221",
+      "feet_alt": 4,
+      "idle_h": 32.0,
+      "leg_xor": 0.6727746079318829,
+      "move": 0.10234580877753023,
+      "move_half": 0.011764036420101385,
+      "leg_move": 0.37718317101770377,
+      "leg_move_half": 0.04631541036768331,
+      "upper_move": 0.010331155641253026,
+      "leg_px": 120.75,
+      "crouch": 1.09375,
+      "near_identical_pairs": 0,
+      "silhouette_pair_changes": [
+        0.07882882882882883,
+        0.06928948913681739,
+        0.1478502080443828,
+        0.12175370008377548,
+        0.041679342865835106,
+        0.15467328370554176
+      ],
+      "op_hoshiguma_run.png_hsl": 0.4131580295398275,
+      "op_hoshiguma_run@2x.png_hsl": 0.4132244324232227
+    },
+    "angelina": {
+      "op": "angelina",
+      "frames": 6,
+      "diff": 0.7847603880561428,
+      "minpair": 0.706115107913669,
+      "pairs": [
+        0.706,
+        0.849,
+        0.792,
+        0.764,
+        0.844,
+        0.754
+      ],
+      "sil_xor": 0.16876762702918038,
+      "half": 0.43364627464965994,
+      "bob_top": 2.0,
+      "bob_c": 1.413223755986973,
+      "head_bob": 1.4297127992780183,
+      "tops": [
+        11.5,
+        12.5,
+        10.5,
+        11.5,
+        12.5,
+        10.5
+      ],
+      "height": 35.0,
+      "foot_dx": 5.25,
+      "stride_max": 7.0,
+      "stride_rng": 1.5,
+      "contact_l_rng": 6.5,
+      "contact_r_rng": 7.0,
+      "lean": 14.285946819068592,
+      "lean_rng": 3.478601757818586,
+      "feet_seq": "111111",
+      "feet_alt": 0,
+      "idle_h": 36.0,
+      "leg_xor": 0.43127929837707185,
+      "move": 0.041538606238093696,
+      "move_half": 0.0034139925337047135,
+      "leg_move": 0.17321430173616514,
+      "leg_move_half": 0.017079773828944985,
+      "upper_move": 0.004190105560610827,
+      "leg_px": 105.33333333333333,
+      "crouch": 0.9722222222222222,
+      "near_identical_pairs": 1,
+      "silhouette_pair_changes": [
+        0.001079136690647482,
+        0.056932350971198926,
+        0.0690933602965959,
+        0.026545581557806498,
+        0.03197576573544261,
+        0.06360544217687075
+      ],
+      "op_angelina_run.png_hsl": 0.4805493119894743,
+      "op_angelina_run@2x.png_hsl": 0.4826460536472552
+    },
+    "skalter": {
+      "op": "skalter",
+      "frames": 6,
+      "diff": 0.7602441861900093,
+      "minpair": 0.7297704177643959,
+      "pairs": [
+        0.73,
+        0.745,
+        0.755,
+        0.788,
+        0.797,
+        0.746
+      ],
+      "sil_xor": 0.16909535830279865,
+      "half": 0.332703201385295,
+      "bob_top": 2.0,
+      "bob_c": 1.1952275817766491,
+      "head_bob": 1.4790510444969058,
+      "tops": [
+        11.5,
+        12.5,
+        10.5,
+        11.5,
+        12.5,
+        10.5
+      ],
+      "height": 35.0,
+      "foot_dx": 5.75,
+      "stride_max": 19.5,
+      "stride_rng": 13.0,
+      "contact_l_rng": 7.0,
+      "contact_r_rng": 8.5,
+      "lean": 15.822043953989835,
+      "lean_rng": 2.3897497107103103,
+      "feet_seq": "221211",
+      "feet_alt": 4,
+      "idle_h": 35.5,
+      "leg_xor": 0.33432534753463994,
+      "move": 0.03594510597405471,
+      "move_half": 0.0045697712089508595,
+      "leg_move": 0.10728188731858553,
+      "leg_move_half": 0.015012480882788051,
+      "upper_move": 0.00831019293056211,
+      "leg_px": 125.08333333333333,
+      "crouch": 0.9859154929577465,
+      "near_identical_pairs": 0,
+      "silhouette_pair_changes": [
+        0.02898005269100489,
+        0.011419870574800152,
+        0.04483500717360115,
+        0.06085343228200371,
+        0.015489233094068758,
+        0.05409304002884962
+      ],
+      "op_skalter_run.png_hsl": 0.47122070376972336,
+      "op_skalter_run@2x.png_hsl": 0.4768406894074204
+    }
+  },
+  "static": {
+    "palette_counts": [
+      {
+        "character": "angelina",
+        "colors": 21
+      },
+      {
+        "character": "hoshiguma",
+        "colors": 22
+      },
+      {
+        "character": "texas",
+        "colors": 14
+      },
+      {
+        "character": "skalter",
+        "colors": 22
+      }
+    ],
+    "baseline_checked": true,
+    "passed": true,
+    "assets": [
+      {
+        "binary_alpha": true,
+        "file": "op_texas_run.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "2d3d37a9b51c49003f275aa2035a623de741b4fc22200f6797a333814abd9686",
+            "bbox": [
+              7,
+              12,
+              36,
+              46
+            ],
+            "index": 0,
+            "opaque_pixels": 602
+          },
+          {
+            "pixel_sha256": "9105a150289bbf0899397b0d78a21cb245b527b8377a8a51a5f61bdfc2dc6786",
+            "bbox": [
+              8,
+              13,
+              36,
+              46
+            ],
+            "index": 1,
+            "opaque_pixels": 561
+          },
+          {
+            "pixel_sha256": "1267ab4307e7ba8cebd2e87a59dd11ecbd743885fd846a5c7cf703876f4ba2dd",
+            "bbox": [
+              7,
+              11,
+              36,
+              46
+            ],
+            "index": 2,
+            "opaque_pixels": 598
+          },
+          {
+            "pixel_sha256": "1197926206f978797d79f9f7e9c39a2d1a08e0a326d0d26a3e429f0ab277b209",
+            "bbox": [
+              7,
+              12,
+              36,
+              46
+            ],
+            "index": 3,
+            "opaque_pixels": 630
+          },
+          {
+            "pixel_sha256": "d097e01c055173a00b8b42b596fa6990de3b4873755f426a2da4e06bdc33160c",
+            "bbox": [
+              7,
+              13,
+              36,
+              46
+            ],
+            "index": 4,
+            "opaque_pixels": 573
+          },
+          {
+            "pixel_sha256": "a4f4cad0914fbf09c241b027cd744fe70a01c7e65bd22138961ca2ebb4b25e6d",
+            "bbox": [
+              7,
+              11,
+              36,
+              46
+            ],
+            "index": 5,
+            "opaque_pixels": 606
+          }
+        ],
+        "sha256": "3a8f68d0bc13253fa5f1950f9501e7a6750af1e2786112bc82d0889a2a909cda"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_texas_run@2x.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "2d91c574d2fafc8cfed0a79b839b76c9904a75e3be02a10254806b3151c26467",
+            "bbox": [
+              14,
+              23,
+              73,
+              92
+            ],
+            "index": 0,
+            "opaque_pixels": 2391
+          },
+          {
+            "pixel_sha256": "427ac9d9403ec5aa453f9bc5736da6519b9f533e49d3c42cdc751071a74fce21",
+            "bbox": [
+              15,
+              25,
+              73,
+              92
+            ],
+            "index": 1,
+            "opaque_pixels": 2206
+          },
+          {
+            "pixel_sha256": "697218b5e840cda636c1306b9bd29211fc0ad81c4d582ff8c007919488b82127",
+            "bbox": [
+              14,
+              21,
+              73,
+              92
+            ],
+            "index": 2,
+            "opaque_pixels": 2379
+          },
+          {
+            "pixel_sha256": "7da8dd39916f08a0dd6747e71eb2511660d69d36a1abdd9d362d1a23f33e530e",
+            "bbox": [
+              13,
+              23,
+              73,
+              92
+            ],
+            "index": 3,
+            "opaque_pixels": 2509
+          },
+          {
+            "pixel_sha256": "a17e843c60e24793c082952cb6730df27787e5a0a2fabf48113f9fcbd3e81e65",
+            "bbox": [
+              14,
+              25,
+              73,
+              92
+            ],
+            "index": 4,
+            "opaque_pixels": 2278
+          },
+          {
+            "pixel_sha256": "634b60b0271ffa0f039a9a66056978bcf1af6c5f101472faeec5c2348fe4bc0f",
+            "bbox": [
+              14,
+              21,
+              73,
+              92
+            ],
+            "index": 5,
+            "opaque_pixels": 2401
+          }
+        ],
+        "sha256": "cd6ddcdff5e807ab0e3108bff15d233c6eda54720bd8d90706cc3a62fe911124"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_hoshiguma_run.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "5d75808dafed7c5896e9c2a45c59b948e1363f4bf024473a6b16126b11310b2b",
+            "bbox": [
+              7,
+              12,
+              42,
+              46
+            ],
+            "index": 0,
+            "opaque_pixels": 819
+          },
+          {
+            "pixel_sha256": "b52a52595c2cd1d0dd17144e59aa6366eb5be946a86016eac9b97bddfc6f9cc9",
+            "bbox": [
+              8,
+              13,
+              42,
+              46
+            ],
+            "index": 1,
+            "opaque_pixels": 779
+          },
+          {
+            "pixel_sha256": "c6fc757c9669e25ff0d48a467aa864f3d3fdf31bf9fb6971bddbc1d55850fc01",
+            "bbox": [
+              8,
+              11,
+              42,
+              46
+            ],
+            "index": 2,
+            "opaque_pixels": 747
+          },
+          {
+            "pixel_sha256": "074cd1be387167ff2bd21f571ae2bf4800c3c13e5d48f99e0db50a86d36c6260",
+            "bbox": [
+              7,
+              12,
+              42,
+              46
+            ],
+            "index": 3,
+            "opaque_pixels": 829
+          },
+          {
+            "pixel_sha256": "eefb4488cfaf200f364cdf0b6a12f8d5b793d1a735871513007af1044c13e9c8",
+            "bbox": [
+              8,
+              13,
+              42,
+              46
+            ],
+            "index": 4,
+            "opaque_pixels": 751
+          },
+          {
+            "pixel_sha256": "fb27093afbf9321075d14a2278cfac6e3df3cbf4271898bd1eca55043fef9cec",
+            "bbox": [
+              8,
+              11,
+              42,
+              46
+            ],
+            "index": 5,
+            "opaque_pixels": 768
+          }
+        ],
+        "sha256": "0980cd74b2bcf798a2cb21cde1c0abac98b58cc3c083586bcad26599a8280168"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_hoshiguma_run@2x.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "3dd04a58fa30a73452bd1b1569063ad9351d2afa4d5c1d1e873b3f05e6d7e893",
+            "bbox": [
+              14,
+              23,
+              84,
+              92
+            ],
+            "index": 0,
+            "opaque_pixels": 3282
+          },
+          {
+            "pixel_sha256": "8f5858c54eaff9aeb552e05232bcc9dafa3c2190967dc6eec1f93689dd6c0b2d",
+            "bbox": [
+              15,
+              25,
+              84,
+              92
+            ],
+            "index": 1,
+            "opaque_pixels": 3101
+          },
+          {
+            "pixel_sha256": "c2b272c4cdcb28920666a0d5c3bc7f18e8aa7b70c65a9bc64db623076389e34e",
+            "bbox": [
+              15,
+              21,
+              84,
+              92
+            ],
+            "index": 2,
+            "opaque_pixels": 2986
+          },
+          {
+            "pixel_sha256": "dbee0730e00f630b2d2948f37431fb589c7b38c7496865dcbd9aa818ee26ee76",
+            "bbox": [
+              14,
+              23,
+              84,
+              92
+            ],
+            "index": 3,
+            "opaque_pixels": 3287
+          },
+          {
+            "pixel_sha256": "5c14246ecdea2e60a0825a4994914db3e74a45dd93635a57a67f4a2feee368a8",
+            "bbox": [
+              15,
+              25,
+              84,
+              92
+            ],
+            "index": 4,
+            "opaque_pixels": 2987
+          },
+          {
+            "pixel_sha256": "462a66f75e7a6a0c2c48114b4630d03792d2a49f5161d8569f27d7d3fc0aee95",
+            "bbox": [
+              15,
+              21,
+              84,
+              92
+            ],
+            "index": 5,
+            "opaque_pixels": 3040
+          }
+        ],
+        "sha256": "25eb7926cdf399cd722858db36ab1c0080f6f26822895f5c25cd055a9bd60c08"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_angelina_run.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "47fa3a07fc9bbc02a332e91de3509d2acaa8b5de75c92287d213b58a68b973c2",
+            "bbox": [
+              6,
+              12,
+              39,
+              46
+            ],
+            "index": 0,
+            "opaque_pixels": 674
+          },
+          {
+            "pixel_sha256": "c73ef0adfdc7aedfbcbd53ea67af2242e48f1fc2d259843f14f97299531fa16d",
+            "bbox": [
+              6,
+              13,
+              39,
+              46
+            ],
+            "index": 1,
+            "opaque_pixels": 662
+          },
+          {
+            "pixel_sha256": "79de6e5b25590a7fdacca9e5773aa11174e3a8b610c15ab80e8041f9d3024dca",
+            "bbox": [
+              6,
+              11,
+              39,
+              46
+            ],
+            "index": 2,
+            "opaque_pixels": 687
+          },
+          {
+            "pixel_sha256": "28b90bdd17755f4e33db1a16fc357c374442110c972119328854cd8ae24e510e",
+            "bbox": [
+              6,
+              12,
+              39,
+              46
+            ],
+            "index": 3,
+            "opaque_pixels": 676
+          },
+          {
+            "pixel_sha256": "fa705475a0e64289eefaca9b90ed5497229bf98d2e7203a57fde700f3924ac1d",
+            "bbox": [
+              6,
+              13,
+              39,
+              46
+            ],
+            "index": 4,
+            "opaque_pixels": 669
+          },
+          {
+            "pixel_sha256": "1765d2dd150625aa1156bd3301022109024a4d222b7b9a1db0d2ec175dca0dd0",
+            "bbox": [
+              6,
+              11,
+              39,
+              46
+            ],
+            "index": 5,
+            "opaque_pixels": 694
+          }
+        ],
+        "sha256": "044b0278710799f5ca1666df1845a765c1c46b3c2c6e2e1bc107d358d5069486"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_angelina_run@2x.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "d7381e5e547cbd2cb9f1cf78ced294d57caac0f01a29401931b75dba17e8ae85",
+            "bbox": [
+              12,
+              23,
+              78,
+              92
+            ],
+            "index": 0,
+            "opaque_pixels": 2636
+          },
+          {
+            "pixel_sha256": "c9d3089677a9ff95795ba1bb2720c4423ef3d949de411f09a432d5f90ed7bcab",
+            "bbox": [
+              12,
+              25,
+              78,
+              92
+            ],
+            "index": 1,
+            "opaque_pixels": 2626
+          },
+          {
+            "pixel_sha256": "f2319dae71589ce77122b6d9415bb919ebc7cb22003247998a5e5a5dfe7ee137",
+            "bbox": [
+              12,
+              21,
+              78,
+              92
+            ],
+            "index": 2,
+            "opaque_pixels": 2704
+          },
+          {
+            "pixel_sha256": "2e9f272b76883f84235015230cd7825fe492faf21b29f26735fb140dc9f213c5",
+            "bbox": [
+              11,
+              23,
+              78,
+              92
+            ],
+            "index": 3,
+            "opaque_pixels": 2675
+          },
+          {
+            "pixel_sha256": "2f3852b2a212a36ada7e8ad8fbfdc50b5e2a7707a83277dbeda7eeacf2869454",
+            "bbox": [
+              11,
+              25,
+              78,
+              92
+            ],
+            "index": 4,
+            "opaque_pixels": 2653
+          },
+          {
+            "pixel_sha256": "d2c95ac80e9b85ff880acc728d8d19964b70b6416925374edeb0a4cdb2d13244",
+            "bbox": [
+              11,
+              21,
+              78,
+              92
+            ],
+            "index": 5,
+            "opaque_pixels": 2728
+          }
+        ],
+        "sha256": "97f793acfad938eef2d5f040044a4456136a9b83d0d2dbbd164ae425ea9c9a2b"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_skalter_run.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "857c9a8697d8344fa101030dfc4dfd513fef1f18cebe14b5a3a27ae934bf4fb7",
+            "bbox": [
+              5,
+              12,
+              35,
+              46
+            ],
+            "index": 0,
+            "opaque_pixels": 645
+          },
+          {
+            "pixel_sha256": "e555fd6de389d838ad58f09baed92a4e88d0d15063bdbe112dd1064b9681f864",
+            "bbox": [
+              5,
+              13,
+              35,
+              46
+            ],
+            "index": 1,
+            "opaque_pixels": 607
+          },
+          {
+            "pixel_sha256": "e646c15c730487a745c23082082b8544652eef61d94cae6c537c37534876aa3e",
+            "bbox": [
+              6,
+              11,
+              35,
+              46
+            ],
+            "index": 2,
+            "opaque_pixels": 646
+          },
+          {
+            "pixel_sha256": "ba6abf101542395462448dce71764d0696b41b4ac180f31a87d74488fe52b561",
+            "bbox": [
+              5,
+              12,
+              35,
+              46
+            ],
+            "index": 3,
+            "opaque_pixels": 655
+          },
+          {
+            "pixel_sha256": "57e74bcbfa125f24fac57390fd19117d9660408c71540b80bbef3e81bf70f36e",
+            "bbox": [
+              6,
+              13,
+              35,
+              46
+            ],
+            "index": 4,
+            "opaque_pixels": 592
+          },
+          {
+            "pixel_sha256": "7ea4c74fbedd70a23b482fe61f2ef0440f5ea74978c685ae5b10245ffd3dfa61",
+            "bbox": [
+              5,
+              11,
+              35,
+              46
+            ],
+            "index": 5,
+            "opaque_pixels": 650
+          }
+        ],
+        "sha256": "ef70c5062f134ec177953c863d2c7e177d733c3729f823d32569b4f6a8a5073a"
+      },
+      {
+        "binary_alpha": true,
+        "file": "op_skalter_run@2x.png",
+        "outline": "080E18",
+        "frames": [
+          {
+            "pixel_sha256": "d42ba1a92b2b3242329e31e06c60d7d7cebef278fc83b3a910dca857fccc3d40",
+            "bbox": [
+              10,
+              23,
+              70,
+              92
+            ],
+            "index": 0,
+            "opaque_pixels": 2521
+          },
+          {
+            "pixel_sha256": "96760e41e5da8f0149e40dc66658f81350618906f7bd75446a13db970e4d3a25",
+            "bbox": [
+              11,
+              25,
+              70,
+              92
+            ],
+            "index": 1,
+            "opaque_pixels": 2358
+          },
+          {
+            "pixel_sha256": "301ea85f4c0ba4bbb137f96f19a94404ab823fd1899977ad6668f11ae0785d58",
+            "bbox": [
+              11,
+              21,
+              70,
+              92
+            ],
+            "index": 2,
+            "opaque_pixels": 2522
+          },
+          {
+            "pixel_sha256": "e115a958e1496ba2c8751ff33e4640035293e96ff1d7225d85c65231ab9d857f",
+            "bbox": [
+              10,
+              23,
+              70,
+              92
+            ],
+            "index": 3,
+            "opaque_pixels": 2569
+          },
+          {
+            "pixel_sha256": "5c87497827be24fd161cb4b75e80b99a689b44a6e790b156064c030660ff6555",
+            "bbox": [
+              12,
+              25,
+              70,
+              92
+            ],
+            "index": 4,
+            "opaque_pixels": 2304
+          },
+          {
+            "pixel_sha256": "7b930b96b97b1277b72a46f5512f1a5454ae901eec86e22dd47d1992121f75cc",
+            "bbox": [
+              10,
+              21,
+              70,
+              92
+            ],
+            "index": 5,
+            "opaque_pixels": 2543
+          }
+        ],
+        "sha256": "272c23ac8642fc950e84df8e7382fc21957a4f13d2f9a1b653d8e7d26abb9151"
+      }
+    ],
+    "engine_tested": false,
+    "allow_repeated_frames": false
+  },
+  "static_passed": true,
+  "shared_character_palette_counts": {
+    "texas": 15,
+    "hoshiguma": 24,
+    "angelina": 23,
+    "skalter": 24
+  },
+  "skalter_staff_cyan_2x2_1x_witness_xy": [
+    [
+      30,
+      21
+    ],
+    [
+      30,
+      22
+    ],
+    [
+      30,
+      20
+    ],
+    [
+      30,
+      21
+    ],
+    [
+      30,
+      22
+    ],
+    [
+      30,
+      20
+    ]
+  ]
+}

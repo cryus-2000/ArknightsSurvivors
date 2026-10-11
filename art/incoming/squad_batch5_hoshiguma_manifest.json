@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "ae96f61180c55cb44386172a1c64f82e79edf06b37b81663a592e389bfcc9f3c"
+      "sha256": "0980cd74b2bcf798a2cb21cde1c0abac98b58cc3c083586bcad26599a8280168"
     },
     {
       "file": "op_hoshiguma_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "88e74e111e0dbea7539d8b2f09f404fa6e02819a1650d0e537516c92008da8bf"
+      "sha256": "25eb7926cdf399cd722858db36ab1c0080f6f26822895f5c25cd055a9bd60c08"
     },
     {
       "file": "op_hoshiguma_attack.png",
