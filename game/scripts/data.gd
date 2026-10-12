@@ -53,6 +53,7 @@ const DMOD_DEFAULT := {
 	"dmg_late_cap": -1.0,                                                  # 后期敌人伤害上限（run/spawner.gd；-1 = 用 enemy/dmg_late_cap，Ⅷ 跌破 50 时可单独设 0）
 	"boss_fight_enemy_hp": -1.0,                                          # 最终 Boss 在场时新刷杂兵的生命倍率（-1 = 跟 enemy_hp；spawner.new_enemy）
 	"final_stop_mobs": -1.0, "final_clear_mobs_s": -1.0,                 # 最终 Boss 战停刷 / 现有杂兵消散秒数按档覆盖（-1 = 跟 balance.json final 段；spawner.final_knob）
+	"final_trickle_mult": -1.0, "final_trickle_cap": -1.0, "final_trickle_fresh_w": -1.0,   # 最终 Boss 战少量补怪的倍率 / 上限 / 新种类权重按档覆盖（-1 = 跟 final 段）
 	"final_boss_hp": 1.0,                                                 # 只乘最终 Boss 的生命（停刷的补偿旋钮，docs/38 §8.14；不动中期 Boss / 杂兵 / 经验）
 	# 灯标按档覆盖（-1 = 跟 balance.json beacon 段；beacon._sk）。这里没登记的键 dmod_for_tier 会丢掉，所以 _sk 读的键都要在这里
 	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0, "beacon_safe_slow": -1.0,   # 圈内安全（docs/49g）

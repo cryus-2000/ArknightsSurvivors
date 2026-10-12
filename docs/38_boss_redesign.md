@@ -1517,3 +1517,53 @@ python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset star
 | Ⅷ · 熟练 | 28/56（50.0%） | 36/56（64.3%） | 53/112（47.3%）→ 74/112（66.1%） |
 
 结论：两档开停刷都在 50–70 内（标准贴上沿 69.6%），`final_boss_hp` 维持 1.0 不补偿；若之后标准档因其他改动越过 70，先试 `difficulty/standard/final_boss_hp=1.2`。
+
+#### §8.14 少量补怪（10-12，用户：「最后 boss 我觉得还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」）
+
+**规则（`final` 段新增三个旋钮，run/spawner.gd `trickling()`）**
+- 「停刷」开着（`final/stop_mobs` = 1）且 `final/trickle_mult` > 0 时，最终 Boss 在场期间普通刷怪不再全停，改为少量补怪：
+  - `trickle_mult` = **0.35**：刷怪率 = 正常刷怪率（`spawn_base + t / spawn_div`，含拐点）× 0.35。这一项替代 `enemy/spawn_boss_mult` 0.8；灯火不足的 ×1.15 照常叠加。
+  - `trickle_cap` = **40**：存活杂兵（非 Boss / 宝箱 / 友方，含 Boss 召唤物）到 40 就不再补。这一项替代 `boss/final_mob_cap` 120；填 0 时仍用 final_mob_cap。
+  - `trickle_fresh_w` = **0.5**：本级威胁新出现的种类（当前威胁刷怪池里有、上一级池里没有的），在补怪里的抽取权重减半。其余种类权重不变，池里的重复项照常按次数计权重。按现在的 waves.json，最后一级威胁（8:40「深渊之潮」）新出现的只有「收割者」，它在补怪里的占比从 1/10 降到约 5.3%（0.5 / 9.5）。trickle_fresh_w 为 1 或不在补怪时，pick_type 走原来的单次 `randi()`，随机流不变。
+- **仍然不刷**：精英（计时照走，同全停）、大群（连预警也不出）、威胁上升那一波 6 只新种类。新种类只通过补怪按低权重出现。
+- **照常**：Boss 召唤物、剧本刷怪、补给箱、灯标、商人；中期 Boss 不受影响（不进 trickling 分支）。
+- `trickle_mult` = 0（代码缺省）就是 10-11 的全停；`stop_mobs` = 0 回到 10-11 之前的旧行为（× spawn_boss_mult 0.8、上限 120、有精英 / 大群 / 威胁新种类）。
+- 难度表按档覆盖：`difficulty/<档>/final_trickle_mult`、`final_trickle_cap`、`final_trickle_fresh_w`（DMOD_DEFAULT 缺省 −1，表示跟全局）。现有难度表里没有任何 final_* 覆盖，所以 Ⅳ / Ⅷ 都跟缺省走，不另调。
+- 测试探针：`--bal=final/trickle_mult=0` 是全停；`--bal=final/trickle_cap=25` 试更少的补怪。
+- prot_test：`test_final_stop_mobs` 新增 7 条，覆盖补到上限为止、威胁那一波不刷、无精英且计时照走、无大群和预警、余量按 trickle_cap 算、累积 = 正常刷怪率 × 0.35、新种类权重 × 0.5（抽 4000 次，占比误差 < 3 点；权重 0 时抽不到）、难度表 final_trickle_mult 0 按档回到全停。`test_final_mob_cap` 加 1 条（补怪开时余量 = 40 − 存活杂兵）。
+
+**实测要点**：终局时刷怪率约 17 只/秒，× 0.35 后约 6 只/秒，场上很快补满 40。所以实际起作用的是上限 `trickle_cap`，`trickle_mult` 只决定补满要多快。要再少，优先调 `trickle_cap`。
+
+**本地冒烟（各 14 局 = starts 7 主控 × seed 1–2，--maxt=1000，同 seed 配对；A = f06e485f 全停，B = 少量补怪缺省；tools/cloud_compare.py）**
+
+| 档 · 机器人 | 胜 A → B | 只 A 赢 / 只 B 赢（McNemar p） | 终局击杀用时 中位（均值），两边都赢的对 | 终局存活敌人 均值 | 终局存活敌人 峰值（中位 / 最大） | `on_boss` 均值 | 超时 |
+|---|---|---|---|---|---|---|---|
+| 标准 · 高手 | 12 → 10 / 14 | 2 / 0（p 0.5） | 66（92）→ 138（146）秒，10 对 | 11 → 44 | 152 / 209 → 152 / 209 | 0.67 → 0.25 | 0 → 0 |
+| Ⅷ · 熟练 | 7 → 6 / 14 | 1 / 0（p 1） | 154（171）→ 252（238）秒，6 对 | 13 → 45 | 152 / 238 → 152 / 238 | 0.61 → 0.21 | 0 → 0 |
+
+- 「终局存活敌人」取自遥测 `bosses[].en_alive` / `en_alive_pk`：最终 Boss 在场期间每秒采样一次 `g.enemies.size()`，包括 Boss 本身和召唤物。峰值两边相同，因为都出现在 10:00 登场那一刻，是登场前留下的杂兵（`clear_mobs_s` 仍是 0）；之后 B 一直维持在 40 出头。
+- 到终局之前两边逐局相同（同 seed 14 / 14 对终局前死亡、最终 Boss 类型都一致），说明改动只作用于终局。
+- 翻转只有一个方向，3 局都是偏执泡影：标准 塞雷娅 seed 1、seed 2，Ⅷ 铃兰 seed 1，均为赢 → 终局里死。终局击杀用时配对差：标准中位 +52 秒，区间 [+4, +82]；Ⅷ 中位 +47 秒，区间 [+26, +128]（只有 6 对）。承伤配对差区间不含 0（B 更多）。打在 Boss 上的输出占比 `on_boss` 回到接近 10-11 之前旧行为的水平（当时 0.16–0.19）。
+- 14 局只能当冒烟：胜率差不显著，区间约 ±18–21 点。方向上，终局会比全停难、比 10-11 之前的旧行为易（旧行为上限 120，还有精英 / 大群）。泡影是受影响最大的一型。§8.14 云端结果里，全停把 Ⅷ 泡影从 5 / 17 胜提到 16 / 17 胜，少量补怪会回吐其中一部分。
+- 0 个脚本错误（4 × 14 局）。同一版本连跑两次（标准高手 斯卡蒂 seed 2，走完终局补怪段）BALANCE 除画面峰值 `bot/peak*` 外全部相同；check.py 同 seed 复现通过。
+- 冒烟时踩到的坑：A 组如果只 `git archive` 出 game/，art.gd 会读不到 `../art/incoming`，素材不同会让前 10 分钟就分叉。基准目录要连 `art/incoming` 一起导出，并且加 `--nocache`（缓存键不含 art/）。
+
+**云端验证命令（docs/80 口径：标准高手 / Ⅷ 熟练各 56 局 = starts 7 × seed 1–8，同 seed 配对，含超时）**：A 在 main 当前提交 f06e485f（全停）上跑，B 在 wip/final-trickle 上跑。
+
+```
+# A：git checkout f06e485f
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/ftr-t0-base --tag ftr-t0-base --extra="--maxt=1000 --tier=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/ftr-t2-base --tag ftr-t2-base --extra="--maxt=1000 --tier=2"
+# B：git checkout wip/final-trickle
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/ftr-t0-on --tag ftr-t0-on --extra="--maxt=1000 --tier=0"
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/ftr-t2-on --tag ftr-t2-on --extra="--maxt=1000 --tier=2"
+# 可选 C（在 B 的提交上）：上限再低一档
+python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/ftr-t2-c25 --tag ftr-t2-c25 --extra="--maxt=1000 --tier=2 --bal=final/trickle_cap=25"
+# 对比
+python tools/cloud_compare.py 全停=ftr-t0-base 少量补怪=ftr-t0-on --out build/cmp_ftr_t0.md
+python tools/cloud_compare.py 全停=ftr-t2-base 少量补怪=ftr-t2-on 上限25=ftr-t2-c25 --out build/cmp_ftr_t2.md
+```
+
+在 B 的提交上加 `--bal=final/trickle_mult=0`，代码路径与全停相同，也可以当 A（同一台机器、同一提交，更干净）。
+
+**看什么**：两档胜率要留在 50–70（docs/38 §8.12 / 难度目标 v2；Ⅷ 机制改动不得跌破 50）、终局击杀用时、按 Boss 类型看泡影的胜负与超时、低血秒。§8.14 确认轮里全停是标准 69.6% / Ⅷ 66.1%。冒烟方向是变难，预计两档各回吐几个点。如果 Ⅷ 跌近 50，先试 `trickle_cap` 25，再考虑 `final_boss_hp`。
