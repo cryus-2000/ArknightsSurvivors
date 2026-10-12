@@ -136,7 +136,7 @@ func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)
 	g.enemies[g.enemies.size() - 1].invuln = true   # 不吃伤害：只在主控走近时打开（update 里）
-	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 打开它做出选择" % ev.name)
+	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 靠近祭坛进行抉择" % ev.name)
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 
 

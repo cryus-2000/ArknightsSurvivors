@@ -44,7 +44,7 @@ const PLAYER := {
 	&"op_atk": {"base": 1.0, "min": 0.0, "name": "干员攻击倍率"},
 	&"op_aspd": {"base": 1.0, "min": 0.2, "name": "干员攻速倍率"},
 	&"op_range": {"base": 1.0, "min": 0.3, "name": "干员射程 / 范围倍率"},
-	&"op_skill_sp": {"base": 1.0, "min": 0.1, "name": "干员技能充能倍率"},
+	&"op_skill_sp": {"base": 1.0, "min": 0.1, "name": "干员技力回复倍率"},
 	&"op_skill_power": {"base": 1.0, "min": 0.0, "name": "干员技能强度倍率"},
 	&"op_shots": {"base": 1.0, "min": 1.0, "name": "干员每次射击子弹数倍率（弹道普攻 shape.projectile 读：子弹数 = shots × 本值，add +1.0 = 单发干员多 1 发；能天使 docs/61 §14）"},
 	# ---- 兼容：旧援护系统的键（藏品数据仍引用；现在等价于全队干员修正）

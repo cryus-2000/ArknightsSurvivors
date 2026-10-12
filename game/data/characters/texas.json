@@ -28,7 +28,7 @@
   "skill": {"tex": "op_texas_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
  },
- "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 1.1 秒朝最近敌人方向冲刺 140（宽 44，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +0.6 秒"},
+ "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 1.1 秒朝最近敌人方向冲刺 140（宽 44，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +0.6 秒（即 0.6 秒的自然回复量）"},
  "skills": [
   {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 130 落下剑雨，×1.6 并眩晕 0.5 秒（精英 0.25 秒，Boss 不晕），全队技力 +10%", "icon": "skill_texas_s1"},
   {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +40%、伤害 ×1.3；「战术快递」自动冲刺的间隔 -20%（2.5 → 2.0 秒）", "icon": "skill_texas_s2"},

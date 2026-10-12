@@ -56,7 +56,7 @@ func update(dt: float) -> void:
 	for q in queued:
 		q.t -= dt
 		if q.t <= 0.0 and pos != Vector2.INF:
-			_cast(pos + q.get("tip", _staff_tip() - pos), q.to, q.dmg, q.aoe, "火山弹", q.hot, 0.0, q.sz)   # 排队时的杖尖：动作结束朝向还原后也不从身后出（docs/45 #7）
+			_cast(pos + q.get("tip", _staff_tip() - pos), q.to, q.dmg, q.aoe, "熔岩弹", q.hot, 0.0, q.sz)   # 排队时的杖尖：动作结束朝向还原后也不从身后出（docs/45 #7）
 	queued = queued.filter(func(q): return q.t > 0.0)
 	for p in pending:
 		p.t -= dt
@@ -110,7 +110,7 @@ func _release() -> void:
 		heat -= 1
 	var dmg: float = base("atk", 22.0) * (1.0 if not hot else skill_power())
 	var aoe: float = _aoe() * (base("s1_aoe", 1.4) if hot else 1.0)
-	_cast(_staff_tip(), ts[0].pos, dmg, aoe, "火山弹", hot, 0.0)
+	_cast(_staff_tip(), ts[0].pos, dmg, aoe, "熔岩弹", hot, 0.0)
 	fx({"kind": "glow", "pos": _staff_tip(), "r": 10.0, "life": 0.12, "col": ORANGE, "alpha": 0.6})
 	# 复咏 / 三重咏唱：后续熔岩弹隔 0.12 秒依次出手，打其他目标（没有就在首发目标两侧偏开）
 	var n: int = 2 if triple else (1 if twin_cast else 0)
@@ -199,7 +199,7 @@ func bullet_exploded(b: Dictionary) -> void:
 	else:
 		spawn_fx_sprite("fx_flam_hit", b.pos + Vector2(0, -8), g.PX * clampf(b.aoe / 60.0, 0.8, 1.5))
 	# N2「火星迸溅」：普攻熔岩弹炸开迸出 2 颗火星，弹跳向附近的敌人（优先爆炸圈外的）
-	if embers_on and b.get("src", "") == "火山弹":
+	if embers_on and b.get("src", "") == "熔岩弹":
 		var near: Array = []
 		for e in nearest_enemies(6, base("ember_reach", 200.0), b.pos):
 			if e.pos.distance_to(b.pos) > b.aoe * 0.6 and near.size() < 2:
@@ -209,7 +209,7 @@ func bullet_exploded(b: Dictionary) -> void:
 		for p in near:
 			_lob(b.pos, p, b.dmg * base("ember_mult", 0.3), base("ember_r", 30.0), "火星", 30.0, 0.7)
 	# N5「熔岩天降」：「炽热」强化的火山弹炸开时向附近 2 名随机敌人高抛熔岩弹（这发伤害的 50%）；精二后火山喷发同样如此
-	if meteor_on and b.get("src", "") == "火山弹" and b.get("burn", false):
+	if meteor_on and b.get("src", "") == "熔岩弹" and b.get("burn", false):
 		var mc: Array = nearest_enemies(10, base("meteor_reach", 320.0), b.pos)
 		shuffle_rng(mc)
 		for k in mini(2, mc.size()):

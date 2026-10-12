@@ -32,7 +32,7 @@
   {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},
   {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：主控周围半径 220 内的敌人悬浮（不能移动和攻击；精英每 2 秒落地 0.5 秒，Boss 只减速）并向场心汇聚；全队攻速 +20%，主控每秒回复 1%、移速 +15%、拾取范围 ×3", "icon": "skill_angelina_s3"}
  ],
- "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 2 秒内失重：受到的击退与拉拽 +30%（斯卡蒂、星熊、塞雷娅的击退都吃）；灯光照亮范围内的敌人被她拉得更远（+20%）"},
+ "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 2 秒内失重：受到的击退与拉拽 +30%（斯卡蒂、星熊、塞雷娅的击退都吃）；照亮范围内的敌人被她拉得更远（+20%）"},
  "hit_sources": {
   "重力弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["projectile", "area", "basic", "control"]},
   "秘杖·速充模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["skill", "area", "control"]},
@@ -42,7 +42,7 @@
  "progression": [
   {"type": "custom", "id": "wide", "name": "引力扩散", "icon": "growth_b_range", "desc": "重力弹的落点范围与拉拢范围 ×1.15"},
   {"type": "custom", "id": "dense", "name": "致密", "icon": "growth_b_size", "desc": "重力弹伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：被拉过的敌人失重、更容易被击退，灯光里的敌人拉得更远"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：被拉过的敌人失重、更容易被击退，照亮范围内的敌人拉得更远"},
   {"type": "custom", "id": "pull2", "name": "双重引力", "icon": "growth_b_echo", "desc": "重力弹落地 0.3 秒后在落点再拉一次（拉拢与伤害各 50%）"},
   {"type": "custom", "id": "lock", "name": "潮汐锁", "icon": "skill_angelina_s2", "desc": "「秘杖·微粒模式」的环带上的敌人每秒受到重力弹 20% 的法术伤害"},
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「秘杖·反重力模式」；普攻质变「失重」：重力弹落点中心半径 30 的敌人悬浮 0.6 秒"}

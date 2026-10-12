@@ -72,7 +72,7 @@ func update(dt: float) -> void:
 					start_at += 10.0
 					return
 				state = 1
-				g.vfx.show_banner("围猎 —— 海嗣合拢了包围，撕开一道缺口！")
+				g.vfx.show_banner("围猎 —— 海嗣围了上来，从缺口突围！")
 				Sfx.play("hunt_warn", -2.0, 1.0, 0.0)
 		1:
 			if g.t >= start_at:
@@ -150,7 +150,7 @@ func _tick(dt: float) -> void:
 			broke = true
 			g.combat.heal(g.max_hp * 0.2, "事件")
 			g.lamp = minf(g.lamp_cap, g.lamp + 20.0)
-			g.vfx.show_banner("突围成功 —— 主控回复 20% 生命，灯火 +20")
+			g.vfx.show_banner("突围成功 —— 主控回复 20% 最大生命，灯火 +20")
 			_log("broke")
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
 			Sfx.play("hunt_break", -6.0, 1.0, 0.0)

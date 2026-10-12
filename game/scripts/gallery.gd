@@ -48,7 +48,7 @@ const ENEMY_DESC := {
 	"izumik": "结局四「如星空般深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收；解读阶段周期释放冲击波。",
 	"ishar": "结局三「息潮的代价」的最终 Boss。人形阶段治疗受伤海嗣，不攻击主控，干员也不会以她为目标；转化充能随时间增长，未被主控靠近压制的之泪会加快充能。充满后变为敌对白壳海嗣，使用弹幕、潮汐吐息与近身潮噬；未压制的泪滴会在变身后发动「泪滴共鸣」。",
 	"knight_boss": "结局二「静谧时代」的最终 Boss。冲锋附带冰霜，近身长枪三连刺，周期展开寒冰领域；「冰线」之后发动「寒冷追击」，第一次生命归零后寒冰重生进入二阶段。",
-	"knight": "精英。堕入海嗣的最后的骑士——只在同伴骑士道中阵亡后出现。直线冲锋，命中附带冰霜减速。",
+	"knight": "精英。倒向海嗣的最后的骑士，只在猎潮的骑士（结局二路线）倒下后出现。直线冲锋，命中附带冰霜减速。",
 }
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
@@ -351,7 +351,7 @@ func _build() -> void:
 					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
 					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
-					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇。在冒险中遭遇后收录。"})
+					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇。在探索中遇到后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
 			for i in ENDING_ORDER.size():
@@ -380,11 +380,11 @@ func _build() -> void:
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity + ("" if r.implemented else " · 未实装"), "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
-					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not all_relics, "locked_text": "尚未获得。在一局中拿到它之后会收录到这里。"})
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not all_relics, "locked_text": "尚未获得。在探索中拿到后收录。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
-			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火过低时敌人更快、更凶，熄灭后持续受到伤害。"})
-			entries.append({"name": "源石锭", "en": "INGOT", "tag": "货币", "forms": [_anim_n("源石锭", "ingot", 1, 1.0)], "stats": [], "desc": "精英、Boss 与箱形恐鱼会掉落，可在局内商人处购买藏品与补给。"})
+			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火低于 30 时敌人移速与伤害 +20%；灯火归零后每秒失去 3 点生命。"})
+			entries.append({"name": "源石锭", "en": "INGOT", "tag": "货币", "forms": [_anim_n("源石锭", "ingot", 1, 1.0)], "stats": [], "desc": "精英、Boss 与箱形恐鱼会掉落，可在商人处购买藏品与补给。"})
 			entries.append({"name": "磁铁", "en": "MAGNET", "tag": "道具", "forms": [_anim_n("磁铁", "pickup_magnet", 1, 1.0)], "stats": [], "desc": "拾取后吸取全场的经验结晶、灯油与源石锭。小怪低概率掉落，精英与 Boss 必掉磁铁或回复药剂。"})
 			entries.append({"name": "回复药剂", "en": "HEAL", "tag": "道具", "forms": [_anim_n("回复药剂", "pickup_heal", 1, 1.0)], "stats": [], "desc": "拾取后立即回复 30% 最大生命。"})
 			entries.append({"name": "补给箱", "en": "CHEST", "tag": "宝箱", "forms": [_anim_n("补给箱", "e_chest", 2, 1.0)], "stats": [], "desc": "地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。"})
@@ -393,11 +393,11 @@ func _build() -> void:
 				if A.tex(sp[2]) != null:
 					entries.append({"name": sp[0], "en": sp[1], "tag": "场景", "forms": [_anim_n(sp[0], sp[2], sp[3], 2.0)], "stats": [],
 						"desc": {"terrain_mire": "地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。", "prop_beacon": "仿照伊比利亚灯塔做的小型信标，熄灭着立在海床上。站进光圈点燃它，灯光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。"}.get(sp[2], "深海遗迹中的场景物件，会与角色前后遮挡。")})
-			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "局内会出现 3 次，停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
+			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "每次探索出现 3 次，每次停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
 	if tab == 4:
 		for entry in entries:
 			entry["locked"] = not Cfg.unlock_all and not Cfg.gallery_seen.has("item:" + str(entry.en))
-			entry["locked_text"] = "尚未发现。在冒险中发现后收录。"
+			entry["locked_text"] = "尚未发现。在探索中遇到后收录。"
 	sel = clampi(sel, 0, max(0, entries.size() - 1))
 	_rebuild_view()
 	if not vlist.is_empty() and not vlist.has(sel):
@@ -477,7 +477,7 @@ func _doctor_entry() -> Dictionary:
 			["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},
-		"desc": _lore_text("doctor", "罗德岛的高层领导，三大创始人之一。作为矿石病治疗与天灾研究方面的顶尖学者，拥有生物学，神经工程学博士等学历。致力于清除矿石病，是罗德岛的中流砥柱之一。虽然本身没有战斗能力，但是拥有极强的指挥能力。")}
+		"desc": _lore_text("doctor", "罗德岛的博士。失去了过去的记忆，重要的事情都回忆不起来。这次行动中负责指挥小队。")}
 
 
 ## 介绍文字：lore.json 的档案文字在前，机制说明在后
@@ -1814,7 +1814,7 @@ func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		y += hs[i] + gap
 	if not ph:
 		var a2 := _rowm(nodes.size(), am, odx, motion)
-		UI.text_at(self, font, Vector2(x0, box.end.y - 12), "局内升级时，成长卡按这个顺序出现；精英化同时解锁新技能。", 10, UI.fa(UI.C_L_SUB, a2))
+		UI.text_at(self, font, Vector2(x0, box.end.y - 12), "探索中升级时，成长卡按这个顺序出现；精英化同时解锁新技能。", 10, UI.fa(UI.C_L_SUB, a2))
 
 
 ## 各行高度：桌面每行 = 标题 + 说明（字号 12 → 10，仍放不下就平分剩余高度并截断）；
