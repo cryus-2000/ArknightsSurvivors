@@ -235,6 +235,54 @@ func test_screen() -> void:
 		var tag := "假记录 %dx%d" % [int(vs.x), int(vs.y)]
 		ok(_cards().size() == 5, tag + "：编队条五张卡（四名干员 + 藏品与支援）")
 		_in_bounds(vs, tag + " 总览")
+		# 藏品不设上限（10-12）：60 件时藏品格不出区域、方向键走得到最后一件且它在视野里
+		var keep: Array = rs.model.relic_list
+		var many: Array = []
+		for k in 60:
+			many.append(keep[k % keep.size()].duplicate())
+		rs.model.relic_list = many
+		if vs.y < 560.0:
+			rs._act("tab", 1)
+		await _redraw()
+		_in_bounds(vs, tag + " 60 件藏品")
+		ok(rs.cells.filter(func(c): return c[1] == "relic").size() >= 30, tag + "：60 件藏品至少画出 30 格")
+		rs.zone = 0
+		rs.rel = 0
+		for k in 80:
+			rs._nav(1, 0)
+		await _redraw()
+		ok(rs.rel == 59 and rs.cells.any(func(c): return c[1] == "relic" and int(c[2]) == 59), tag + "：→ 走到第 60 件且在视野里")
+		var grid_bot := 0.0
+		for c in rs.cells:
+			if c[1] == "relic":
+				grid_bot = maxf(grid_bot, (c[0] as Rect2).end.y)
+		ok(grid_bot <= rs._relic_rect.end.y + 0.5 and (vs.y < 560.0 or grid_bot < vs.y * 0.62), tag + "：60 件藏品格压缩 / 滚动后不压数据（格底 %.0f）" % grid_bot)
+		var cw0: float = 99.0
+		for c in rs.cells:
+			if c[1] == "relic":
+				cw0 = minf(cw0, (c[0] as Rect2).size.x)
+		ok(cw0 >= 23.9, tag + "：藏品格最小压到 30 像素格（格宽 %.0f）" % cw0)
+		await _redraw()
+		ok(rs._pop_anchor.size.x > 0.0, tag + "：60 件时选中藏品仍有说明弹窗")
+		# 200 件：压到 30 像素格也放不下，要滚动；选中最后一件时它滚进视野
+		var lots: Array = []
+		for k in 200:
+			lots.append(keep[k % keep.size()].duplicate())
+		rs.model.relic_list = lots
+		rs.zone = 0
+		rs.rel = 0
+		await _redraw()
+		for k in 220:
+			rs._nav(1, 0)
+		await _redraw()
+		ok(rs.rel == 199 and (rs._rel_row0 > 0 or vs.y < 560.0) and rs.cells.any(func(c): return c[1] == "relic" and int(c[2]) == 199), tag + "：200 件时滚动到最后一件（第 %d 行起）" % (rs._rel_row0 + 1))
+		_in_bounds(vs, tag + " 200 件藏品")
+		rs.model.relic_list = keep
+		rs.rel = 0
+		rs.zone = 1
+		if vs.y < 560.0:
+			rs._act("tab", 0)
+		await _redraw()
 		if vs.y >= 560.0:
 			ok(rs.cells.filter(func(c): return c[1] == "relic").size() == 5, tag + "：藏品格五格")
 			rs.key(KEY_RIGHT)

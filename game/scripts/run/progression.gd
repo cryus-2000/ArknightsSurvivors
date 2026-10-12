@@ -278,7 +278,20 @@ func apply_relic(id: String) -> void:
 		Cfg.save()
 
 
-## 容量按不同藏品计数；升级不增加槽。全藏品测试开关只由 Cfg.dev_args 暴露。
+## 藏品携带上限：relic/carry_cap < 0 = 不限（缺省；用户 10-12 取消上限，爆率即软上限）。≥ 0 时恢复旧规则（含结局信物预留槽），只供对照测试
+func relic_cap() -> int:
+	return Bal.vi("relic/carry_cap", -1)
+
+
+## 界面上的藏品数：不限上限时只写「藏品 N」；测试时设了上限才写「N/上限 · 为结局保留 k 格」
+func relic_count_text() -> String:
+	var cap: int = relic_cap()
+	if cap < 0:
+		return "藏品 %d" % g.relics.size()
+	return "藏品 %d/%d · 为结局保留 %d 格" % [g.relics.size(), cap, g.endg.reserved_relic_slots()]
+
+
+## 容量按不同藏品计数；升级不增加槽。不限上限时只看「已拥有且满级」。全藏品测试开关只由 Cfg.dev_args 暴露。
 func can_gain_relic(id: String) -> bool:
 	if not g.RL.has(id):
 		return false
@@ -286,7 +299,9 @@ func can_gain_relic(id: String) -> bool:
 		return int(g.rfx.lv.get(id, 0)) < g.rfx.max_lv(id)
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--relics=all"):
 		return true
-	var cap: int = Bal.vi("relic/carry_cap", 15)
+	var cap: int = relic_cap()
+	if cap < 0:
+		return true
 	if g.relics.size() >= cap:
 		return false
 	if g.endg.is_route_relic(id):

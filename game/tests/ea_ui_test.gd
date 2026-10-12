@@ -90,6 +90,21 @@ func run() -> void:
 		for cell in game.tray_cells:
 			check(not game.speed_btn.intersects(cell[0]), "speed button avoids relic cells")
 		await capture("ea_hud_speed")
+		# 藏品不设上限（10-12）：40 / 60 件时藏品栏封顶 3 行、不出屏、不压倍速键，超出的写「+N」
+		for cnt in [40, 60]:
+			game.relics = game.RL.keys().slice(0, cnt)
+			game.hud.queue_redraw()
+			await RenderingServer.frame_post_draw
+			var vsz: Vector2 = game.get_viewport().get_visible_rect().size
+			var bottom := 0.0
+			for cell in game.tray_cells:
+				check(Rect2(Vector2.ZERO, vsz).encloses(cell[0]), "relic cell inside viewport at %d" % cnt)
+				check(not game.speed_btn.intersects(cell[0]), "speed button avoids relic cells at %d" % cnt)
+				bottom = maxf(bottom, cell[0].end.y)
+			check(bottom <= 140.0, "relic tray height capped at %d (bottom %.0f)" % [cnt, bottom])
+			check(game.tray_cells.size() == mini(cnt, 42), "tray shows %d cells at %d" % [game.tray_cells.size(), cnt])
+			check(cnt <= 42 or game.tray_cells[0][1] == "", "overflow cell first at %d" % cnt)
+			await capture("ea_hud_relics_%d" % cnt)
 	game.state = game.S.WIN
 	game.diff_new = true
 	game.tier = game.D.DIFFICULTY_TIERS.size() - 1

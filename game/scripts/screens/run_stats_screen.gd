@@ -44,6 +44,9 @@ var _per_row := 1       # 藏品格每行几个（方向键上下用）
 var _tex_miss := {}
 var _id_big := true
 var _pop_anchor := Rect2()   # 选中藏品格的位置（说明弹窗贴着它）
+var _rel_row0 := 0      # 藏品格滚动：最上面画第几行（藏品不设上限，压到 30 像素格仍放不下时才滚，10-12）
+var _rel_seen := -1     # 上一帧的选中藏品：选中变了才把它滚进视野，滚轮滚动不被拉回
+var _relic_rect := Rect2()   # 藏品格所在区域（滚轮落在这里滚藏品，否则滚数据）
 # 每帧绘制用
 var _c: Dictionary
 var _ps := 2
@@ -69,6 +72,8 @@ func show_model(m: Dictionary) -> void:
 	rel = 0
 	tab = 0
 	stat_scroll = 0
+	_rel_row0 = 0
+	_rel_seen = -1
 	skipped = false
 	t_open = UM.now()
 	t_page = t_open
@@ -208,7 +213,10 @@ func click(mp: Vector2) -> bool:
 
 func wheel(dy: int) -> void:
 	if open and page == 0:
-		stat_scroll = maxi(0, stat_scroll + dy)
+		if _relic_rect.has_point(_mouse()):
+			_rel_row0 = maxi(0, _rel_row0 + signi(dy))   # 上限在 _relic_grid 里按行数夹
+		else:
+			stat_scroll = maxi(0, stat_scroll + dy)
 
 
 func _act(a: String, arg) -> void:
@@ -393,6 +401,22 @@ func _portrait(id: String, box: Rect2, kmax: float) -> Rect2:
 	var fr := 0 if (UM.rm() or UM.skip_all()) else int(UM.now() * 4.0) % nfr
 	var bb := _bbox(tx, fw, fh, nfr)
 	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, 2.0 if fh > 64 else 1.0, box, kmax)
+
+
+## 这名干员的像放进 box 能用的最大美术像素倍数（整数，≤ kmax）：编队列表取各行最小值，大家同一倍数
+func _portrait_k(id: String, box: Rect2, kmax: float) -> float:
+	if id == RunStats.OTHER or id == "":
+		return kmax
+	var idle: Dictionary = g.panel_ui.op_idle(id)
+	if idle.is_empty():
+		return kmax
+	var tx: Texture2D = idle.tex
+	var fw: int = idle.fw
+	var fh: int = idle.fh
+	var bb := _bbox(tx, fw, fh, maxi(1, tx.get_width() / maxi(1, fw)))
+	var art := 2.0 if fh > 64 else 1.0
+	var k: float = minf(kmax, minf(box.size.x / (bb.size.x / art), box.size.y / (bb.size.y / art)))
+	return floorf(k) if k >= 1.0 else k
 
 
 ## 环境击倒者的图：溟痕用地面溟痕贴图，其余（黑潮 / 寂灭 / 围猎……）用生成的像素图
@@ -596,18 +620,18 @@ func _draw_overview(vs: Vector2) -> void:
 				_squad_list(body, t, false)
 			1:
 				zone = 0
-				var gb := _relic_grid(body, t, false)
+				var gb := _relic_grid(body, t, true)
 				_relic_popup(body.end.x, gb)
 			2:
 				_stats(body, t, 2)
 	else:
 		var lw := (vs.x - M * 2.0) * 0.4
 		_banner(Rect2(M, top, lw, 112.0))
-		_leader_card(Rect2(M, top + 124.0, lw, 100.0))
-		_squad_list(Rect2(M, top + 236.0, lw, bot - top - 236.0), t, true)
+		_leader_card(Rect2(M, top + 124.0, lw, 150.0))
+		_squad_list(Rect2(M, top + 286.0, lw, bot - top - 286.0), t, true)
 		var rx := M + lw + 24.0
 		var rr2 := Rect2(rx, top, vs.x - M - rx, bot - top)
-		var gb2 := _relic_grid(rr2, t, true)
+		var gb2 := _relic_grid(Rect2(rx, top, rr2.size.x, (bot - top) * 0.45), t, true)
 		_stats(Rect2(rx, gb2 + 14.0, rr2.size.x, bot - gb2 - 14.0), t, 0)
 		_relic_popup(rr2.end.x, gb2)
 	var br := Rect2(vs.x - M - (160.0 if not _ph else 150.0), vs.y - (52.0 if not _ph else 56.0), 160.0 if not _ph else 150.0, 34.0 if not _ph else 44.0)
@@ -639,43 +663,49 @@ func _banner(r: Rect2) -> void:
 		_t(Vector2(x0, rr.end.y - (22.0 if not _ph else 16.0)), sub, 16 if not _ph else 13, TUI.TXT, 0, rr.size.x - 40.0)
 
 
-## 主控 / 击倒者卡：像框（不出框）、名字、Lv. · 精英 · 难度、探索时间；下半一行 击倒者（敌人或环境图 + 名字 + 死因）/ 击破最终 Boss
+## 主控 / 击倒者卡：左边主控像（占整卡高）；右上 名字、探索时间、Lv. · 精英 · 难度；
+## 右下单独一行 击倒者（失败）/ 击破的最终 Boss（胜利）：自己的像框（约 56 见方）+ 标签 + 名字 + 死因
 func _leader_card(r: Rect2) -> void:
 	var rr := _panel(r, 2, 0.92)
 	var ld: Dictionary = {}
 	for rw in rows():
 		if rw.leader:
 			ld = rw
-	var pb := Rect2(rr.position.x + 10.0, rr.position.y + 8.0, (76.0 if not _ph else 64.0), rr.size.y - 16.0)
+	var pb := Rect2(rr.position.x + 10.0, rr.position.y + 8.0, (84.0 if not _ph else 64.0), rr.size.y - 16.0)
 	if not ld.is_empty():
-		_portrait(str(ld.key), pb, 2.0)
+		_portrait(str(ld.key), pb, 3.0 if not _ph else 2.0)
 	var tx := pb.end.x + 12.0
 	var x1 := rr.end.x - 14.0
-	var y := rr.position.y + 22.0
-	_t(Vector2(tx, y), str(ld.get("name", "")), 16 if not _ph else 14, TUI.TXT, 0, x1 - tx - 90.0)
+	var y := rr.position.y + (20.0 if not _ph else 16.0)
+	_t(Vector2(tx, y), str(ld.get("name", "")), 16 if not _ph else 14, TUI.TXT, 0, x1 - tx - 96.0)
 	_p(Vector2(x1, y), fmt_t(float(model.get("t", 0.0))), 2.0, TUI.TXT, 2)
-	y += 22.0
-	_t(Vector2(tx, y), "Lv.%d · %s · %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)], str(model.get("tier_name", ""))], 12, TUI.TXT2, 0, x1 - tx)
-	y += 16.0
+	y += 20.0 if not _ph else 18.0
+	_t(Vector2(tx, y), "Lv.%d · %s · %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)], str(model.get("tier_name", ""))], 12, TUI.TXT2, 0, x1 - tx - 70.0)
+	y += 14.0 if not _ph else 12.0
 	_ci().draw_rect(Rect2(tx, roundf(y), x1 - tx, 1), Color(1, 1, 1, 0.08))
-	y += 18.0
 	var won: bool = str(model.get("result", "")) == "win"
 	var kd: Dictionary = model.get("final_boss", {}) if won else model.get("killer", {})
+	var row_y := y + 4.0
+	var row_h := rr.end.y - 6.0 - row_y
 	if kd.is_empty():
-		_t(Vector2(tx, y), "演练完成" if won else "", 13, TUI.TXT2)
+		_t(Vector2(tx, row_y + row_h * 0.5), "演练完成" if won else "", 13, TUI.TXT2)
 		return
-	var ab := Rect2(tx, y - 15.0, 30.0, 30.0)
+	var side := minf(56.0, row_h)
+	var ab := Rect2(tx, row_y + (row_h - side) * 0.5, side, side)
 	var fr: Array = _enemy_frame(str(kd.get("type", ""))) if str(kd.get("env", "")) == "" else _env_art(str(kd.env))
 	if not fr.is_empty():
 		var tx0: Texture2D = fr[0]
 		var src: Rect2 = fr[1]
 		var bb := _bbox(tx0, int(src.size.x), int(src.size.y), 1) if str(kd.get("env", "")) == "" else Rect2(Vector2.ZERO, src.size)
-		_fit(tx0, src, bb, 1.0, ab, 2.0)
-	var lab := "击破最终 Boss" if won else "击倒者"
-	var lw := _t(Vector2(ab.end.x + 8.0, y), lab, 12, TUI.CY_DIM if won else UI.RED)
-	_t(Vector2(ab.end.x + 16.0 + lw, y), str(kd.get("name", "")), 13, TUI.TXT, 0, x1 - ab.end.x - lw - 70.0)
+		_fit(tx0, src, bb, 1.0, ab, 3.0)
+	var lx := ab.end.x + 10.0
+	var cy := ab.get_center().y
+	var two: bool = side >= 40.0
+	_t(Vector2(lx, cy - (10.0 if two else 0.0)), "击破最终 Boss" if won else "击倒者", 12, TUI.CY_DIM if won else UI.RED)
+	var nm_x := lx if two else lx + 52.0
+	_t(Vector2(nm_x, cy + (10.0 if two else 0.0)), str(kd.get("name", "")), 15 if two else 13, TUI.TXT, 0, x1 - nm_x - 60.0)
 	if not won and str(kd.get("cause", "")) != "":
-		_t(Vector2(x1, y), str(kd.cause), 12, Color(0.85, 0.6, 1.0), 2)
+		_t(Vector2(x1, cy + (10.0 if two else 0.0)), str(kd.cause), 12, Color(0.85, 0.6, 1.0), 2)
 
 
 ## 编队：竖排行（像框、名字、入队、全队占比条、百分比），行高撑满给定高度；Enter / 点击进干员详情
@@ -690,10 +720,15 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 	if n == 0:
 		return
 	var gap := 6.0
-	var rh: float = minf(84.0, (r.end.y - y + gap) / n)
+	var rh: float = minf(140.0, (r.end.y - y + gap) / n)   # 人少时行变高，左栏底边和右栏对齐（10-12 版式反馈）
 	var vmax := 0.0
 	for rw in rws:
 		vmax = maxf(vmax, float(rw.share))
+	# 同一倍数：先按每行像框算能放的最大倍数，取最小（宽帧条的凯尔希带 Mon3tr 不会比别人小一号）
+	var ph_h: float = rh - gap - 8.0
+	var kmax_l: float = 1.0 if rh - gap < 60.0 else (2.0 if rh - gap < 110.0 else 3.0)
+	for rw in rws:
+		kmax_l = minf(kmax_l, _portrait_k(str(rw.key), Rect2(0, 0, minf(180.0 if _ph else 130.0, (rh - gap) * 1.6), ph_h), kmax_l))
 	for i in n:
 		var row: Dictionary = rws[i]
 		var cr := Rect2(r.position.x, y + i * rh, r.size.x, rh - gap)
@@ -707,8 +742,8 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 		var sub: Color = TUI.SEL_SUB if on else TUI.TXT2
 		var cl: float = _ps / _c.k
 		_ci().draw_rect(Rect2(rr.position.x + cl * 2.0, rr.position.y + cl * 3.0, cl * 2.0, rr.size.y - cl * 6.0), row.col)
-		var pb := Rect2(rr.position.x + 10.0, rr.position.y + 3.0, minf(52.0, rr.size.y * 1.1), rr.size.y - 6.0)
-		_portrait(str(row.key), pb, 1.0 if rr.size.y < 60.0 else 2.0)
+		var pb := Rect2(rr.position.x + 10.0, rr.position.y + 4.0, minf(180.0 if _ph else 130.0, rr.size.y * 1.6), rr.size.y - 8.0)   # 宽一点：横向宽的帧条（凯尔希带 Mon3tr）也能和别人同倍数
+		_portrait(str(row.key), pb, kmax_l)
 		var nx := pb.end.x + 8.0
 		var cy := rr.get_center().y
 		var two: bool = rr.size.y >= 40.0
@@ -738,20 +773,34 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 		return y + 24.0
 	var cell := 46.0
 	var per := maxi(1, int(r.size.x / cell))
-	var max_rows := 3 if not _ph else 5
-	while ceili(rl.size() / float(per)) > max_rows and cell > 30.0:
+	var avail_h: float = r.end.y - y
+	while ceili(rl.size() / float(per)) * cell > avail_h and cell > 30.0:
 		cell -= 2.0
 		per = maxi(1, int(r.size.x / cell))
 	_per_row = per
 	rel = clampi(rel, 0, rl.size() - 1)
 	var n := rl.size()
-	var step := minf(0.035, 0.42 / maxf(1.0, n))
+	var total_rows: int = ceili(n / float(per))
+	var vis_rows: int = maxi(1, mini(total_rows, int(avail_h / cell)))
+	_relic_rect = Rect2(x0, y, r.size.x, vis_rows * cell)
+	if total_rows > vis_rows:
+		if rel != _rel_seen:
+			_rel_row0 = clampi(_rel_row0, rel / per - vis_rows + 1, rel / per)
+		_rel_row0 = clampi(_rel_row0, 0, total_rows - vis_rows)
+		if title:
+			_t(Vector2(r.end.x, y - 16.0), "第 %d–%d 行 / 共 %d 行" % [_rel_row0 + 1, _rel_row0 + vis_rows, total_rows], 12, TUI.TXT2, 2)
+	else:
+		_rel_row0 = 0
+	_rel_seen = rel
+	var i0: int = _rel_row0 * per
+	var i1: int = mini(n, (_rel_row0 + vis_rows) * per)
+	var step := minf(0.035, 0.42 / maxf(1.0, i1 - i0))
 	var cl: float = _ps / _c.k
 	var mp := _mouse()
 	_pop_anchor = Rect2()
-	for i in n:
+	for i in range(i0, i1):
 		var it: Dictionary = rl[i]
-		var cr := Rect2(x0 + (i % per) * cell, y + (i / per) * cell, cell - 6.0, cell - 6.0)
+		var cr := Rect2(x0 + (i % per) * cell, y + (i / per - _rel_row0) * cell, cell - 6.0, cell - 6.0)
 		cells.append([cr, "relic", i])
 		if not g.kb_nav and not Pad.using and cr.has_point(mp):
 			zone = 0
@@ -759,7 +808,7 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 		var on := zone == 0 and rel == i
 		if on:
 			_pop_anchor = cr
-		var d := SEG0 + i * step
+		var d := SEG0 + (i - i0) * step
 		var e := 1.0 if UM.rm() else clampf((t - d) / UM.T2, 0.0, 1.0)
 		if e <= 0.0:
 			continue
@@ -783,7 +832,7 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 			var mc: Color = UI.RED if rar == "遭诅古物" else UI.VIOLET
 			var p0 := Vector2(rr.end.x - cl * 1.0, rr.position.y + cl * 1.0)
 			_ci().draw_colored_polygon(PackedVector2Array([p0, p0 + Vector2(-cl * 6.0, 0), p0 + Vector2(0, cl * 6.0)]), _fa(mc, a))
-	return y + ceilf(n / float(per)) * cell - 6.0
+	return y + vis_rows * cell - 6.0
 
 
 ## 选中 / 悬停藏品的说明：贴着图标下方弹出（画在数据之上，不占版面）；没选中藏品时不画
