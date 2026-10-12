@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "9584da66dbea1731b4d18ba4833fa5d379bb9d1bb05cdd0dae1d40154c66a706"
+      "sha256": "5c0c4093a147b11a9f1e335988b9a847eb03655c4160ca7b56931753e1eaac22"
     },
     {
       "file": "op_exusiai_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "9148bfa9780d87230f7f1fd6ddfacda0488ddba24cfac3f7db9fa37334590135"
+      "sha256": "14d1a639c5d2d75f21251d260bb13af75a8ee336dce1c521d3eacebbe3d5e319"
     },
     {
       "file": "op_exusiai_run.png",

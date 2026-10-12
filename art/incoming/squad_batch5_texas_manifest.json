@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "e908c5f846640e81fc184cf382fb69d73c8d135a5e5914b364951b233bc61dd5"
+      "sha256": "30a83b8fc3fec9fe40c2d81c255cb7aebe7d5c595e1991ed3ce63edabce752a5"
     },
     {
       "file": "op_texas_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "7601f2c534fc839d95c862bee6031c3752506b904d250c76806ac640f6b10c1e"
+      "sha256": "a0c2aadeb2fde4687a791208be13a7a86909c13b4cc0e290713bd6f18eb67bf1"
     },
     {
       "file": "op_texas_run.png",

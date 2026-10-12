@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "e30cd2918c33ecde44338814731e19ab709ff5298520ba76a3c270c6e098eab2"
+      "sha256": "895f571efcaf166ce4590414ef7ad58db881701f6d301f571e57ce5123e8b8ea"
     },
     {
       "file": "op_hoshiguma_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "ff4b87c9bbd8c11565186c097b35f23924403234b94b6ca43e9e44250161b03c"
+      "sha256": "1a7973e0e0798682915caaf029a3da7e94fd2ee1ddd8c7a4cba305fca3361973"
     },
     {
       "file": "op_hoshiguma_run.png",

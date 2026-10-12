@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "08fab90dfcb27de0fe01e790306c8eb53d8da793bbbe4332e6e6973d0b59891b"
+      "sha256": "d1a4cefb23d787b82311b7da1ea7b18d50e91da10d5a7a2e4e11e6574c3640bf"
     },
     {
       "file": "op_skalter_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "103c993a127ed2e0be3d0ff6b1f0a0b2950a9c3ea3eb2b6d2e8ff436d909bf7c"
+      "sha256": "8767aa1c8ffd6fd3be7faecae06d00f1d88f9379f506592b909001d6a42c5a82"
     },
     {
       "file": "op_skalter_run.png",
@@ -112,7 +112,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 1,
-      "sha256": "dafc5735b13d305a9462ad706a35f62b5cfd81e3b72af892c1b9184cf1e39872"
+      "sha256": "4c213658bdcb07d392b20083ff00d1b55c59a1b114d456dcf275d4cc0e8c6ed5"
     },
     {
       "file": "op_skalter_skill@2x.png",
@@ -128,7 +128,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 2,
-      "sha256": "e889dc3b11419ad52b56bf44aead6d271955f2e3c23f18231d158a0c61969490"
+      "sha256": "cba698c5f234cea751fecadec8f6b49da072ce138a151ef6897f5ddd6f478d2f"
     }
   ]
 }
