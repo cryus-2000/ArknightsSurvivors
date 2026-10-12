@@ -9,7 +9,7 @@ func _ready() -> void:
 func _run() -> void:
 	var db = DB.new()
 	db.load_files()
-	assert(db.implemented().size() == 262, "Review must cover all implemented relics (docs/57: all 262)")
+	assert(db.implemented().size() == 264, "Review must cover all implemented relics (docs/57: all 262 + docs/74: 263-264)")
 	assert(db.get_relic("79").rarity == "稀有", "Global damage +20% is rare")
 	assert(db.get_relic("89").rarity == "核心", "Global SP +30% is core")
 	assert(db.price("79") == 14, "Default price follows resolved rarity")

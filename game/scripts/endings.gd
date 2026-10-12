@@ -225,7 +225,10 @@ func pick(o: Dictionary) -> void:
 			if x.has("relic_choice"):
 				g.pending_chests += int(x.relic_choice)
 			if x.has("ingots"):
-				g.ingots += int(x.ingots)
+				if int(x.ingots) > 0:
+					g.rfx.gain_ingots(int(x.ingots), "-")   # 熔铸后进熔铸池（docs/74）
+				else:
+					g.ingots += int(x.ingots)
 			if x.has("flag"):
 				g.set(x.flag, true)
 		return

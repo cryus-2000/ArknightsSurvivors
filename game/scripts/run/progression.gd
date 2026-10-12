@@ -204,8 +204,7 @@ func open_relic_choice() -> void:
 		# 每个待开的宝箱各补 12 源石锭
 		var n: int = maxi(1, g.pending_chests)
 		g.pending_chests = 0
-		g.ingots += 12 * n
-		g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可升级藏品 · 源石锭 +%d" % (12 * n), UI.GOLD, 16)
+		g.rfx.gain_ingots(12 * n, "暂无可升级藏品 · ")
 		return
 	# 一次性加选项（docs/57 P27）与补给箱钥匙（P17）：各多一个选项，用掉一次
 	var extra: int = g.rfx.take_choice_extra()

@@ -191,7 +191,19 @@
   "coin_sp": 0.12,
   "iron_sp": 0.05,
   "judge_cap": 0.04,
-  "coral_followup": 0.6
+  "coral_followup": 0.6,
+  "_doc_74": "docs/74（用户 10-12）：steal_* = #263 吸血（伤害的 pct 转主控生命，每秒上限 cap × 最大生命，生命 < low_at 时上限 × low_mult）；killheal_* = #264 击杀回复（每 n 击杀权重回 pct 最大生命，精英 / Boss 权重）；fuse_* = 最后一位商人离开后源石锭熔铸（每 per 枚 = 全队伤害 +pct，连续折算，封顶 cap）",
+  "steal_pct": 0.0005,
+  "steal_cap": 0.005,
+  "steal_low_at": 0.5,
+  "steal_low_mult": 2.0,
+  "killheal_n": 60,
+  "killheal_pct": 0.02,
+  "killheal_elite": 10,
+  "killheal_boss": 60,
+  "fuse_per": 15,
+  "fuse_pct": 0.01,
+  "fuse_cap": 0.2
  },
  "bot": {
   "beacon_seek_r": 300,

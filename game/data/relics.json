@@ -4638,6 +4638,45 @@
    "first_batch": false,
    "boss_only": false,
    "shop_allowed": false
+  },
+  {
+   "id": 263,
+   "name": "血魔的银杯",
+   "original": "（本作新增）血魔贵族宴席上传下来的银杯。杯壁很薄，盛过的东西总会少一点，又总会回到持杯人身上。",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "全队伤害的 0.05% 转为主控生命（每秒上限 0.5% 最大生命，残血翻倍）",
+   "rarity": "稀有",
+   "lanes": [
+    "H"
+   ],
+   "tags": [
+    "survival",
+    "heal"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
+  },
+  {
+   "id": 264,
+   "name": "猎人的口粮",
+   "original": "（本作新增）阿戈尔猎人出海时揣在怀里的压缩干粮。猎得越多，嚼得越勤。",
+   "cat": "生存",
+   "tier": "B",
+   "adapt": "每击杀 60 名敌人回复 2% 最大生命（精英 10、Boss 60）",
+   "rarity": "基础",
+   "lanes": [
+    "H"
+   ],
+   "tags": [
+    "survival",
+    "heal",
+    "on_kill"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
   }
  ]
 }
