@@ -150,7 +150,8 @@
 | `verb.buff_self` | `verb/buff {who: self}` | 常驻 | `stat`、`op: add / mult`、`value`、`power`；`stat` 是 `op_atk / op_aspd / op_range / op_skill_power`（写进 `op:<id>`）或本干员局部倍率 `zone / dmg / heal / interval` | ✅ |
 | `verb.mode` | `verb/mode` | 常驻 | `dmg_mult`、`zone_mult`、`interval_mult`、`no_attack`、`power`（只作用于 `dmg_mult`） | ✅（局部倍率的 mult 糖） |
 | `verb.sp_team` | `verb/sp` | 瞬时 | `pct`、`exclude_self`（缺省 true） | ✅ `g.squad.gain_sp` |
-| `verb.field` / `verb.summon` / `verb.shield` / `verb.protect` / `verb.displace` / `verb.cleanse` / `verb.dash` | 同名 / `verb/negate*` / `ctrl/pull` | — | docs/60 §8 第 22–27 条 | 📝 |
+| `verb.summon` / `verb.shield` | 同名 | 瞬时 | 见 §15 | ✅ 10-12（召唤 / 封印段，§15） |
+| `verb.field` / `verb.protect` / `verb.displace` / `verb.cleanse` / `verb.dash` | 同名 / `verb/negate*` / `ctrl/pull` | — | docs/60 §8 第 22–27 条 | 📝（field / displace 已在 §11–§12 实现） |
 
 局部倍率（§5.2）：`(1 + Σ add) × Π mult`，按积木顺序累计；`zone` 乘区域半径，`dmg` 乘本干员所有形状的伤害，`heal` 乘本干员所有治疗，`interval` 乘普攻间隔。
 
@@ -166,7 +167,7 @@
 | `leader` | 主控干员 |
 | `faction:<阵营>` | 该阵营的干员（含自己，若自己也是） |
 
-`per: "faction:<阵营>"`：数值 × 编队里除自己以外该阵营人数（`cap` 封顶，0 人时不生效）。`aura.heal / aura.dps / aura.dr` 用 `verb.heal` / 📝。
+`per: "faction:<阵营>"`：数值 × 编队里除自己以外该阵营人数（`cap` 封顶，0 人时不生效）。`aura.heal` ✅（§15，主控在区域内每秒回复）；`aura.dps / aura.dr` 📝。
 
 ### 5.3 状态 `st.*`（docs/60 §2.8；docs/59 `ctrl/*`）
 
@@ -176,7 +177,8 @@
 | `st.slow` | 瞬时（命中时） | `dur`（减速状态，敌人 `slow` 计时） | ✅ |
 | `st.fragile` | 瞬时（命中时） | `value`（敌人 `aura_weak`，同名取最高） | 📝 |
 | `st.slow_soft` | 常驻 | `pct`、`scope: in_zone`、`boss`（缺省 false） | ✅ 新：不是减速状态、不与 `st.slow` 叠——每帧把区域内非 Boss 敌人这一帧的位移退回 `pct`（含被击退的位移）。docs/59 §1 天赋「移速 -10%」 |
-| `st.airborne` / `st.bind` / `st.weightless` / `st.dot` / `st.mark` | | docs/60 第 29–31 条 | 📝 |
+| `st.seal` | 瞬时（命中时 / 力场 tick） | `dur`、`elite_mult`、`boss`、`boss_mult`、`boss_max`、`boss_immune` | ✅ 10-12，封印（敌人特殊能力失效），见 §15.3 |
+| `st.airborne` / `st.bind` / `st.weightless` / `st.dot` / `st.mark` | | docs/60 第 29–31 条 | 📝（airborne / weightless / dot 已在 §12 实现） |
 
 ### 5.4 修饰 `mod.*`、代价 `cost.*`
 
@@ -307,6 +309,7 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
    `hold` 条目（10-12）：`hold` 是布尔，只能挂常驻积木，`layer` 只能 ground / floor / add、`at` 只能 zone / self / leader，不写 every / life / n / spread / rise / rot，不和 vortex 同写；`layer: ground` 只给 hold 帧条；
    `fade` 只写在常驻跟随条目上，一个数或两个数、0–5 秒；`if_tex` 是 `fx_*` / `proj_*` 帧条名（可带 `!`）。
    `vortex` 条目：不写 `strip`，只能挂常驻积木，`layer` 只能 floor / add、`at` 只能 zone / self / leader，不写帧条专用字段；`vortex` 对象的键在漩涡表内、数值按表夹紧、`col / acc` 是 3 个数字。
+10. 召唤 / 封印 / 护盾 / 治疗光环（10-12）：`blocks.summons` 段与 `verb.summon / st.seal / verb.shield / aura.heal` 的规则见 §15.6。
 
 ## 9. 名字对照（docs/59 §10 → docs/60 → 本文）
 
@@ -1079,3 +1082,168 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 ```
 
 判定（docs/59 §7）：主控三档各 50–70，对照维什戴尔相差 ≤ 15 个百分点；队友局她占全队 30–50%。旋钮：偏弱先把「双枪」节点提前到第 1 节点、再 `atk` 9 → 10；偏强先收 `s3_mult`（0.7 → 0.6）、`mag_mult`（0.8 → 0.65），不动 `cd 0.35`。
+
+
+## 15. 召唤 / 封印 / 护盾 / 治疗光环（10-12，通用积木，给下一批干员备用）
+
+下一批（荒芜拉普兰德：封印 + 自动追咬的狼首；令：三种召唤物；银灰；莫斯提马；阿米娅）还没开工，这一节先把缺的积木做成通用的。**没有加任何正式干员**；
+测试专用干员 `game/tests/data_ops/sstest.json`（不在 `data/characters/`，不进名单 / 招募池 / 图鉴，只能 `--op=sstest` 指名加载）演示全部写法。
+
+实现：`op_blocks.gd` 文件末尾「召唤 / 封印段」（`SM_TAGS`，append-only）；核心部分只加了 3 处转发（`validate` 认 `blocks.summons` 段、`_block` 里 `SM_TAGS` 转给 `_sm_block`、
+`apply_status` 的 `st.seal` 绕开「Boss 缺省不受」）。`data_operator.gd` 的转发都标了「召唤 / 封印段」：`update` 调 `sm_tick`、`_sustain` 末尾调 `sm_sustain`、
+`_exec_list` 缺省分支调 `sm_exec`、`dmg_taken_mult` 末尾调 `shield_mult`、`extra_bodies / draw_extra / draw_extra_shadows / _draw_skill_over / status_items / on_leave`。
+运行时状态在干员的 `sm` 字典（**不放 `ext`**：`ext` 非空会被能天使段当成「用得到」）；`sm` 为空时这些转发一律直接返回。
+
+游戏侧挂点（敌人一侧，封印读 `e.seal_t`，护盾读 `combat.cur_dmg`）：
+
+| 文件 | 处 | 做什么 |
+|---|---|---|
+| `run/enemies.gd` | 2 | 非 Boss 被封印时不调 `enemy_ai.pattern`（`enemy_ai.busy(e)` = 已经起手的冲刺 / 蓄力 / 环弹 / 自爆照常走完）；远程开火条件加 `not sealed` |
+| `enemies/enemy_ai.gd` | 1 | 新函数 `busy(e)` |
+| `boss_ai.gd` | 1 | Boss 被封印时 `ready = false`（不起新招，冷却照走） |
+| `run/combat.gd` | 3 | 封印时甲壳词条的防御倍率还原、潮盾不挡；`enemy_hit` 询问 `dmg_taken_mult` 前把这一下的伤害放进 `combat.cur_dmg` |
+
+没有封印 / 护盾时这些分支都不走：**老干员同 seed `TRACE` / `BALANCE` 逐字节不变**（§15.7）。
+
+### 15.1 召唤物 `blocks.summons` + `verb.summon`
+
+召唤物的种类写在 `blocks.summons.<种类名>`（种类名是标识符），`verb.summon` 只说「召唤几个、在哪」：
+
+```jsonc
+"summons": {
+ "wolf": {"name": "狼首", "invuln": true, "life": "skill", "cap": 4, "r": 8, "col": [0.75, 0.6, 1.0],
+  "move": {"mode": "chase", "speed": 320, "leash": 280, "target": "nearest", "anchor": "leader"},
+  "attack": {"shape": "circle", "center": "target", "r": 26, "mult": "$wolf_mult", "every": 0.8, "src": "狼首", "power": true,
+   "on_hit": [{"st": "seal", "dur": 2.0}]}},
+ "decoy": {"name": "诱饵", "hp": 60, "life": 10, "cap": 2, "move": {"mode": "stay"}, "enemy_target": "decoy", "decoy_r": 180, "hurt_mult": 0.5,
+  "on_expire": [{"shape": "circle", "center": "target", "r": 70, "mult": 1.2, "src": "诱饵爆"}]}
+},
+"skills": [{"dur": 8, "do": [{"verb": "summon", "kind": "wolf", "n": 2, "at": "leader", "spread": 30}]}, …]
+```
+
+**种类定义**（`blocks.summons.<kind>`）：
+
+| 字段 | 缺省 | 说明（校验范围） |
+|---|---|---|
+| `name` | 种类名 | 状态条显示名 |
+| `invuln` | false | true = 无敌（不写 `hp`）；false 时必须写 `hp`（1–100000） |
+| `hp` | — | 生命；只有 `enemy_target: decoy` 时会被打（见下） |
+| `life` | 必填 | 秒数（0.5–120）/ `"skill"` = 召唤它的技能生效期间（`verb.summon` 必须在技能 do 里）/ `"permanent"` |
+| `cap` | 必填 | 本干员同种同时在场上限（1–12）；超过时**最早的先到期**（也执行 `on_expire`） |
+| `r` | 10 | 身体半径（4–40）：程序体大小、影子、诱饵挨打的接触距离 |
+| `col` | 干员色 | 程序体 / 出生环颜色 `[r, g, b]` |
+| `move.mode` | 必填 | `chase` 追击（选目标见下）/ `orbit` 绕锚点转 / `follow` 跟在锚点身边的固定槽位 / `stay` 原地 |
+| `move.anchor` | leader | 锚点：`leader` 主控 / `self` 本干员 |
+| `move.speed` | 240 | 移动速度（0–1200 像素 / 秒；不吃攻速） |
+| `move.leash` | 240 | `chase`：只追锚点 `leash`（40–800）内的敌人，目标跑出 `leash + 40` 就放手回位 |
+| `move.target` | nearest | `chase` 选目标：`nearest` 离召唤物最近（含 Boss 优先，同伴已盯上的往后排，分散开）/ `densest` 敌群最密处 / `elite` Boss → 精英 → 其余 / `low_hp` 生命比例最低 |
+| `move.orbit_r` | orbit 60 / 其他 44 | `orbit` 的半径、`follow` / 没目标时回位槽位的半径（地面椭圆，y × 0.55）|
+| `move.orbit_speed` | 1.6 | `orbit` 角速度（−6–6 弧度 / 秒；同种共用一个角，均匀分布） |
+| `attack` | 无 | 已有伤害形状 `shape.circle / cone / line`（参数同 §3.3 / §11，`src` 要在 `hit_sources` 里）+ `every`（必填 0.1–10 秒）+ `range`（可选 4–600）。以召唤物为原点；`circle` 的 `center` 只能 `self` / `target`；不写 = 不攻击（纯诱饵） |
+| `on_spawn` / `on_expire` | 无 | 瞬时积木列表，`center: target` = 召唤物位置；`on_expire` 在到时 / 技能结束 / 被打倒 / 被 cap 顶掉时执行（离队清场不执行）；**里面不能再召唤** |
+| `body` | 程序体 | `{strip, frames?, fps?, scale, anchor, tint, flip, hover}`：`strip` 是 `fx_* / proj_* / op_* / ally_*` 帧条（帧数 / fps 缺省取 `V6_FRAMES`），脚底锚点缺省帧底中心，`flip`（缺省 true）随朝向翻转，`hover` 悬浮高度（0–60，带起伏）。缺图时画程序体（圆身 + 高光 + 眼睛 + 出手前扑），不报错 |
+| `enemy_target` | ignore | **缺省 `ignore`：敌人不理召唤物**（保持简单）。`decoy` = 诱饵：`decoy_r`（20–600，缺省 160）内的近战杂兵改追它（同骑士 / 海嗣分身的 `e.aggro`，Boss / 宝箱 / 远程不受）；有生命的诱饵被贴身的近战敌人打，每个敌人 1 秒一次、伤害 = 敌人 `dmg × hurt_mult`（0–5，缺省 0.4）。子弹 / 预警招式不打召唤物 |
+
+**`verb.summon`**（瞬时：技能 do / 触发器 do）：`kind`（必须在 `blocks.summons`）、`n`（1–12，缺省 1）、`at`（`self` 缺省 / `leader` / `target` = 触发点，如 `trig.on_kill` 的击杀处 / `zone`）、
+`spread`（0–200，缺省 28：按黄金角散开，确定性）、`life`（覆盖种类的 life）、`fx`（在每个召唤物出生处播，§5.6）。
+
+**数值继承**：召唤物出手伤害 = 本干员 `base[atk_key] × mult × 局部 dmg 倍率 × _dmg_bonus()`（含 `op_atk`、全局伤害）`[× skill_power]`，精英 / Boss × `vs_elite`；
+出手间隔 = `every ÷ op_aspd`；形状半径 / 攻击距离 × `op_range`。伤害走 `area_hit / melee_hit`（直线自己算），`log_hit(src, tags)` 记在**本干员的伤害来源**下
+（遥测按 `hit_sources` 的 `op` 归到本干员），`tags` 自动加 `summon`（`out_tag.summon` 可看召唤物合计，藏品以后可以写 `scope: tag:summon`）。`on_hit` 状态照常（含 `st.seal`）。
+
+**到期 / 消失**：`life` 到时、`life: skill` 的技能结束、生命归零、被 cap 顶掉、干员离队（`on_leave` 清场）。离锚点超过 900（主控冲刺 / 传送）直接拉回锚点。
+
+**性能**：全编队同时在场的召唤物 ≤ `SM_TOTAL_CAP` 24（再召唤直接失败）；每个召唤物 = 一个 2.5D 排序条目（`extra_bodies`）+ 一次贴图（或 4 个程序圆，进合批画布）+ 一个影子椭圆（合批）。
+每帧：移动 O(1)；`chase` 只在没目标时选目标，没找到时 0.25 秒后再找（大群里不每帧排序）；出手是一次网格查询；诱饵每帧多一次 `decoy_r` 网格查询。不用 `g.rng`（落点散布用黄金角）。
+
+### 15.2 例：荒芜拉普兰德式「狼首」、令式三种召唤物（只是写法示意，不是设计稿）
+
+```jsonc
+// 荒芜拉普兰德：S 期间 3 只狼首自动追咬，咬到就封印；天赋：击杀精英时在原地留一只限时狼首
+"summons": {"wolf": {"invuln": true, "life": "skill", "cap": 3, "move": {"mode": "chase", "speed": 340, "leash": 300, "target": "elite"},
+  "attack": {"shape": "circle", "center": "target", "r": 24, "mult": "$wolf_mult", "every": 0.7, "src": "狼首", "on_hit": [{"st": "seal", "dur": "$seal"}]},
+  "body": {"strip": "fx_lappland_wolf", "hover": 18}}},
+"skills": [ …, {"dur": "$s2_dur", "do": [{"verb": "summon", "kind": "wolf", "n": 3, "at": "self"}]}, …],
+"talent": [{"trig": "on_kill", "filter": "elite", "do": [{"verb": "summon", "kind": "wolf", "at": "target", "life": 6}]}]
+
+// 令：常驻绕身的「弦惊」（orbit）、技能放的「手中影」（chase）、原地的「诗中影」诱饵（decoy + on_expire 爆）
+"summons": {
+ "orbiter": {"invuln": true, "life": "permanent", "cap": 2, "move": {"mode": "orbit", "orbit_r": 60, "orbit_speed": 1.8},
+  "attack": {"shape": "cone", "r": 60, "half_deg": 50, "mult": 0.4, "every": 0.6, "src": "弦惊"}},
+ "hunter": {"invuln": true, "life": 8, "cap": 3, "move": {"mode": "chase", "speed": 300, "leash": 260},
+  "attack": {"shape": "line", "len": 90, "width": 24, "mult": 0.8, "every": 0.9, "src": "手中影"}},
+ "poem": {"hp": 200, "life": 12, "cap": 1, "move": {"mode": "stay"}, "enemy_target": "decoy", "decoy_r": 200,
+  "on_expire": [{"shape": "circle", "center": "target", "r": 120, "mult": 2.0, "src": "诗中影"}]}
+}
+```
+
+### 15.3 封印 `st.seal`
+
+`{"st": "seal", "dur": 4, "elite_mult"?, "boss"?, "boss_mult"?, "boss_max"?, "boss_immune"?, "cond"?}`，放在 `on_hit`（伤害形状 / 召唤物攻击 / `verb.displace` 的命中列表）或力场 `tick` 里。
+不造成伤害；想「只封印不打」就挂在 `verb.displace {kb: 0}` 的 `on_hit` 上（不登记命中、不触发命中类藏品）：
+
+```jsonc
+{"verb": "displace", "kb": 0, "r": 200, "center": "leader", "on_hit": [{"st": "seal", "dur": "$s2_seal"}]}
+```
+
+| 对象 | 规则 |
+|---|---|
+| 普通敌人 | 封印 `dur`（0.1–10）秒：**不起新的特殊招式**（`enemy_ai.pattern` 整个跳过：冲刺、吐酸、环弹、自爆、踏地、潜地咬、前刺、扇形斩、**神经光环**、`enemies.json` 的额外招式），**不远程开火**（冷却留着，解封即打），**甲壳 / 潮盾词条失效**（防御还原、护盾不挡）。已经起手的（蓄力中的冲刺 / 环弹 / 自爆，`enemy_ai.busy`）照常走完，已经亮出的预警照常结算——封印是「打断施法的起手」，不是「取消已经警告过的攻击」（公平：玩家看到的预警都会兑现）。仍然会走路、贴身接触伤害照常 |
+| 精英 | 同上，时长 × `elite_mult`（0–1，缺省 0.5，同眩晕的精英减半） |
+| Boss | 缺省也受（`boss: false` 不受），但只是**推迟出招**：时长 × `boss_mult`（缺省 0.3）、封顶 `boss_max`（0–3，缺省 1.5 秒），期间 `boss_ai` 的 `ready` 为假——不起新的招式（冷却照走，解封后下一招立刻接上，等于把下一招推迟不超过 1.5 秒）、不远程开火；已经在读的预警照常结算。封印结束后 `boss_immune`（3–60，缺省 10）秒免疫（飘「封印免疫」，1.5 秒内只飘一次）。所以对 Boss 每 11.5 秒至多「推迟 1.5 秒」，不会锁死 |
+| 宝箱 / 友方单位 | 不受 |
+
+重复施加取较长的结束时刻（不缩短）。标记：被封印的敌人脚下一圈紫环、头顶一个旋转的紫色方锁 + 叉（施加者的技能上层合批画，最后 0.3 秒淡出；多名干员封同一个敌人时只画最后施加的那位）；
+精英 / Boss 吃到封印时飘「封印」。敌人字典只加 `seal_t / seal_imm / seal_by / seal_txt` 四个可选键（`check_enemy` 的模板不变）。
+
+### 15.4 护盾 `verb.shield`
+
+瞬时：`{"verb": "shield", "pct": 0.2, "cap": 0.3, "dur": 10, "decay": 0.05, "power"?}`——主控护盾 + `pct`（0.01–1）× 最大生命，总量封顶 `cap`（0.01–2，缺省 = pct）× 最大生命
+（已有的护盾比封顶还多时不削），`dur`（0.5–60，缺省 10）秒后清零（重复施加取较长），每秒按当前量衰减 `decay`（0–1）。吸收发生在受击询问 `dmg_taken_mult` 里：
+其他减伤（`verb.dr`）之后、护甲 / 法抗之前；一下被**全部**吸收时返回 0，combat 按「这一下作废」处理（不扣血、不掉灯火、不吃控制，0.3 秒无敌，同星熊格挡）。
+画面：主控身上一圈青色泡壳 + 头顶护盾条；吸收时飘「护盾 -N」。状态条显示剩余量。和藏品的「护盾」层数（`g.shield`，先于干员询问）互不相干。
+
+### 15.5 治疗光环 `aura.heal`
+
+常驻：`{"aura": "heal", "pct": 0.01, "scope": "in_zone" | "always", "power"?, "src"?}`——`scope: in_zone`（缺省）时主控在本干员区域内每 1 秒回复 `pct`（0–0.1）× 最大生命 × 局部 `heal` 倍率 `[× 技能强度]`；
+离开区域计时清零；主控满血时不治（不触发溢出治疗类藏品，同 `verb.heal`）。放技能 do（持续期间）、`trig.passive` 的 do 或成长节点。
+
+### 15.6 校验（§8 补充）
+
+`blocks.summons` 是对象、种类名是标识符、字段在表内、`$` 引用都在 `base` 里；`move.mode / anchor / target`、`enemy_target` 取值在表内；数值按上面各表夹紧；
+`attack` 是 circle / cone / line 且有 `every`（circle 的 `center` 只能 self / target）；`on_spawn / on_expire` 是瞬时列表且不再召唤；`body.strip` 是帧条名。
+`verb.summon` 的 `kind` 已定义，`life: skill` 只能在技能 do 里；`st.seal` 只能放 `on_hit` / 力场 tick；`verb.shield` 瞬时；`aura.heal` 常驻。
+
+### 15.7 测试
+
+- 单元：`tests/test_core.gd test_blocks_summon_seal`（sstest 通过校验 + 10 条反例；封印时长规则：普通 / 精英 / Boss 缩短 / 封顶 / 免疫 / `boss: false` / 宝箱；护盾吸收倍率；召唤物攻击距离）。
+- 局内：`tests/summon_seal_blocks_test.tscn`（`python tools/check.py --only summon_seal_blocks`，快检全量里也跑，`--balance --op=sstest`）：25 条校验反例；
+  狼首（技能期间存在、追咬、伤害记在本干员来源、带 summon 标签、命中封印、全程不碰 `g.rng`、吃 op_atk / 技能强度 / 攻速、技能结束消失）；
+  浮游（成长节点每 5 秒放、cap 3、绕主控转、打身边敌人）；猎犬（每第 3 次普攻、限时 4 秒）；封印的敌人一侧（远程不开火 / 解封开火、冲刺怪不起冲刺 / 解封冲刺、
+  潮盾 / 甲壳失效、真 Boss（主教）封印期间不起新招 / 解封后出招）；诱饵（吸引近战杂兵、挨打 × hurt_mult、1 秒一次、倒下 on_expire 爆炸、精英击杀处放诱饵）；
+  护盾（叠加封顶、吸收、经 `combat.enemy_hit` 整下吸收不掉血、衰减、到时消失）；治疗光环；全编队上限 24、同种 cap 顶掉最早的；老数据干员（浊心斯卡蒂）用不到本段。
+- 冒烟（本机，`--balance --seed=1 --op=sstest --squad=suzuran,siege --bot=expert --maxt=180 --maxprog --sptest --relics=all --bosstimes=30,60,90 --forceboss=1 --dccheck`）：
+  143 秒通关、0 脚本错误、`dc_bad 0`；伤害统计里狼首 9063 / 浮游 256 / 诱饵爆 193，`out_tag.summon` 9320。
+- **老干员同 seed 不变**（对改动前的 3b161612，`--trace=1`，4:00）：`--seed=1 --op=hoshiguma --squad=exusiai,kaltsit`（三名数据 / 手写干员，含星熊的受击询问）
+  与 `--seed=3 --op=skalter --squad=angelina,texas --maxprog --sptest`：TRACE 241 行逐行相同、BALANCE（去掉 prof / 画面峰值）逐字段相同。
+
+### 15.8 凯尔希 Mon3tr 迁到 `verb.summon` 的评估（只评估，没做）
+
+能直接表达的：常驻一只、跟随主控 `leash` 190 追最近的敌人（`chase` + `anchor: leader` + `leash`）、扇形爪击（`cone`，`kb`）、伤害吃 atk / 攻速 / 技能强度、
+来源记在凯尔希名下、爪痕帧条（`attack.fx` 挂 `fx_mon3tr_claw`）、离太远拉回。缺口：
+
+| 缺口 | 现在 Mon3tr 怎么做 | 要补的积木 / 字段 | 估计 |
+|---|---|---|---|
+| 出生即在场（不是技能召唤） | 第一次 update 就放在凯尔希身前 | `trig.on_deploy`（docs/60 已登记 📝）或 `life: permanent` + 特性里一次性召唤 | 小 |
+| 状态机动画：idle / run / attack 三条帧条，攻击有出手帧（先起手、到 fire 帧才判定） | `m.act / m.fire`、`sprite_spec("m_attack")` | `body` 改成按状态的帧条表 `{idle, run, attack{fire}}`，出手延到 fire 帧 | 中 |
+| 熔毁（S3）：Mon3tr 伤害 ×1.6 × 技能强度、换真伤来源「Mon3tr · 真伤」、换猩红帧条 / 月牙斩、技能结束在 Mon3tr 处熔毁爆炸 | `melt > 0` 分支 | 召唤物的「技能期间 attack_patch」（mult / src / fx 覆盖）、body 按条件换帧条、`trig.on_skill_end` 以召唤物位置为 `target` | 中 |
+| S2 战术协同（永久）：攻速 ×1.4、范围 ×1.3、移速 ×1.3；精一伤害 ×1.3、范围 ×1.2 | `coord` / `elite` 乘在 `_m_dmg / _m_reach` 上 | 常驻积木 `verb.summon_mod {kind, dmg, aspd, reach, speed, half_deg}`（按 §5.5 顺序累计，带 cond） | 小 |
+| 节点：骨爪增生（0.08 秒后第二爪 60%）、清创（扇面 ×1.4）、八面展开（背后镜像一爪 70%）、不毁重构（熔毁收尾三连爆 + 眩晕） | 各自的布尔开关 | 召唤物攻击的 `then`（延迟追加一击）、`mirror`（反方向再判一次）、上面的 summon_mod；三连爆 = on_skill_end + 延迟队列 | 中 |
+| 手动普攻 B 类：按攻击键才命令 Mon3tr 扑向瞄准方向的目标，松手 1.2 秒内打完 | `manual_attack()` 分支 | 召唤物 `manual: command`（读 `g.doctor.attack_want / aim_targets`） | 中 |
+| 走位：绕开凯尔希和博士（`_m_route` 滞回）、柱子 `map.push_out`、转向防抖 | `_m_route` | 移动里加 push_out + 可选绕行（通用，所有召唤物受益） | 小–中 |
+| 画面：精二常驻爪刃、协同残影 / 光环、熔毁红雾、悬浮起伏 | `draw_extra` 定制 | 基本只能 `custom` 逃生口或 §5.6 贴身层的召唤物版 | 中（偏美术） |
+| 确定性：现在 Mon3tr 的粒子用了 `g.rng`（`_update_mon3tr` 的 glow / mote） | — | 迁移后改用 `g.vrng`，**同 seed 结果会变**，凯尔希要重跑强度（docs/59 §7 口径） | 跑批 |
+
+结论：积木要再补 summon_mod、按状态的 body 动画 + 出手帧、技能期间 attack_patch、on_skill_end 以召唤物为中心、then / mirror、手动指挥、push_out 七项（约 1.5–2 天代码），
+加上画面对齐（爪刃 / 残影 / 熔毁）与凯尔希重新定档（约 1–2 天，含云端批），合计 **3–4 天**。建议先不迁：等第二个「Mon3tr 式」召唤物（令的「手中影」或荒芜拉普兰德的狼首）
+真的要用状态机动画 / 技能期间改攻击时，把这些字段作为通用扩展补进 §15，再顺手迁 Mon3tr。

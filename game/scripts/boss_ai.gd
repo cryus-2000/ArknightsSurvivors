@@ -65,6 +65,9 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			g.vfx.add_text(e.pos + Vector2(0, -50), "复苏（%d / %d）" % [e.revives, int(Bal.v("boss/pair_revives", 2.0))], Color(0.6, 1.0, 0.9), 18)
 		return
 	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.get("dash_t", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
+	# 封印（docs/61 §15 st.seal）：Boss 只是推迟出招——封印期间（已按 boss_mult / boss_max 缩到 ≤1.5 秒）不起新招，冷却照走；之后 boss_immune 秒免疫
+	if ready and float(e.get("seal_t", 0.0)) > g.t:
+		ready = false
 	# 原作机制转译：冰线后的骑士冲锋、接潮双体的假死反击。均走正式预警管线。
 	if ready and e.type == "knight_boss" and g.t >= float(e.get("hunt_follow_at", INF)):
 		e.hunt_follow_at = INF

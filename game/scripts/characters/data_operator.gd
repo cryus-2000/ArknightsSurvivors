@@ -25,6 +25,7 @@ var _fxt: Dictionary = {}              # 画面帧条（docs/61 §5.6）：常�
 var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid → {b, el, fade}；fade < 0 = 生效中，≥ 0 = 退出后淡出剩余秒数
 var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
 var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
+var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -85,6 +86,7 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 
 func on_leave() -> void:
 	OB.airborne_clear(self)
+	OB.sm_clear(self)   # 召唤 / 封印段
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -117,6 +119,7 @@ func update(dt: float) -> void:
 	_sustain(dt)
 	_tick_shots(dt)
 	OB.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
+	OB.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
 	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if acting():
@@ -290,6 +293,7 @@ func _sustain(dt: float) -> void:
 		if not seen.has(u):
 			_state.erase(u)
 	_ext_sustain(act, dt)
+	OB.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
 	var fseen := {}
 	for b in act:
@@ -369,6 +373,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				_ext_exec(b, at)       # 星熊段
 				OB.tx_exec(self, b, at)   # 德克萨斯段
 				OB.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
+				OB.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -675,7 +680,7 @@ func dmg_taken_mult() -> float:
 			_negate_fx(t)
 		_defer(t.get("do", []))
 	if not negated:
-		return ext_dr
+		return OB.shield_mult(self, ext_dr)   # 召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回 ext_dr）
 	negate_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", {})):
@@ -857,7 +862,22 @@ func _draw_shots() -> void:
 func _draw_skill_over() -> void:
 	_draw_shots()      # 安洁莉娜段：重力弹
 	OB.exu_draw(self)  # 能天使段：弹体
+	OB.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 
 
 func status_items() -> Array:
-	return OB.exu_status_items(self)
+	return OB.exu_status_items(self) + OB.sm_status_items(self)
+
+
+# ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）
+
+func extra_bodies() -> Array:
+	return OB.sm_bodies(self)
+
+
+func draw_extra(it: Dictionary) -> void:
+	OB.sm_draw(self, it.s)
+
+
+func draw_extra_shadows() -> void:
+	OB.sm_shadows(self)
