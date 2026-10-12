@@ -1,0 +1,211 @@
+{
+  "source": "E:\\水月\\exusiai_jog_1012\\source.png",
+  "source_sha256": "f6a3447d0b6a24cdbd4ec12eebb071eb8ad3c1a80cac4aaa3767c77eab41c1a9",
+  "transforms": [
+    {
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        25,
+        22
+      ],
+      "face_center_before_translation": 23.0
+    },
+    {
+      "rect": [
+        512,
+        0,
+        1024,
+        512
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        26,
+        22
+      ],
+      "face_center_before_translation": 22.0
+    },
+    {
+      "rect": [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        26,
+        23
+      ],
+      "face_center_before_translation": 22.0
+    },
+    {
+      "rect": [
+        0,
+        512,
+        512,
+        1024
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        24,
+        23
+      ],
+      "face_center_before_translation": 24.0
+    },
+    {
+      "rect": [
+        512,
+        512,
+        1024,
+        1024
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        24,
+        23
+      ],
+      "face_center_before_translation": 24.0
+    },
+    {
+      "rect": [
+        1024,
+        512,
+        1536,
+        1024
+      ],
+      "scale": 0.1471861471861472,
+      "translation": [
+        25,
+        22
+      ],
+      "face_center_before_translation": 23.0
+    }
+  ],
+  "head_patch": false,
+  "palette": [
+    [
+      8,
+      14,
+      24
+    ],
+    [
+      22,
+      25,
+      36
+    ],
+    [
+      41,
+      43,
+      55
+    ],
+    [
+      66,
+      66,
+      77
+    ],
+    [
+      69,
+      43,
+      49
+    ],
+    [
+      102,
+      97,
+      106
+    ],
+    [
+      103,
+      48,
+      58
+    ],
+    [
+      105,
+      38,
+      56
+    ],
+    [
+      114,
+      89,
+      52
+    ],
+    [
+      139,
+      57,
+      72
+    ],
+    [
+      140,
+      132,
+      144
+    ],
+    [
+      150,
+      95,
+      89
+    ],
+    [
+      163,
+      52,
+      69
+    ],
+    [
+      172,
+      75,
+      84
+    ],
+    [
+      175,
+      139,
+      82
+    ],
+    [
+      198,
+      190,
+      183
+    ],
+    [
+      199,
+      73,
+      84
+    ],
+    [
+      199,
+      100,
+      104
+    ],
+    [
+      214,
+      155,
+      134
+    ],
+    [
+      233,
+      154,
+      137
+    ],
+    [
+      243,
+      198,
+      173
+    ],
+    [
+      244,
+      236,
+      226
+    ],
+    [
+      255,
+      245,
+      233
+    ]
+  ],
+  "export_script_sha256": "fe564da189c8024f5e692211e67c69292af05937b974ca94cf7e0f91267a9e7d",
+  "tool": "built-in imagegen",
+  "prompt": "Draw this Exusiai character doing a LIGHT JOG, a real running gait NOT WALKING. Six consecutive frames arranged 3 columns x2 rows equal cells. Side three-quarter view facing right. CRITICAL anatomical movement: forward torso lean about10 degrees from ankles, soft bent knees, rear heel kicks upward toward buttocks with knee bent about70 degrees, front thigh lifts only25degrees (not high knee). Compact run stride. Frame0 left foot contact right heel raised behind; frame1 compress on bent left supporting knee, right foot passes underneath pelvis; frame2 push-off and SHORT AIRBORNE FLIGHT, both feet off ground slightly, right leg reaches modestly forward and left heel folds behind; frame3 right foot contact left heel raised behind; frame4 compress on bent right knee while left passes; frame5 push-off short airborne with left advancing and right heel folded behind. Near leg alternates front/back. DO NOT draw straight-legged heel-toe walking. DO NOT draw exaggerated sitting or kicking forward. Same stable head and torso with small vertical running bounce; both hands hold same compact tan/black gun at chest in all frames. Preserve original auburn hair, amber eyes, golden halo, pale gold wings, white/black top, dark skirt, continuous smooth BLACK SHEER TIGHTS, black high-top sneakers with red sole trim. Tight coherent pixel artwork with dark navy outline, no head patch or detached pixels. Character scale identical in all cells. Genuine transparent background NO ambient glow or shadows. No captions, no frames. This is a sprite animation requiring noticeably bent knees and lifted rear heels, not a static pose sheet.\n"
+}
