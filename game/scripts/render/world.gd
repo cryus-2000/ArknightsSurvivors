@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
+const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -24,7 +25,23 @@ var anim_t := 0.0
 ## 后期画面降噪（EA 1.1，docs/37 §7）：场上特效粒子一多，友方特效整体降透明度、加色发光层变淡、辉光减弱，
 ## 让敌人、敌方弹幕、Boss 预警和掉落物浮出来。crowd 0–1 按「世界特效 + 干员粒子」总数平滑算出
 var crowd := 0.0
-var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45）
+var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45；render/declutter 的 dim_floor）
+var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
+var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
+var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
+var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
+var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
+var gem_qa := 0.7                 # 远处安静结晶的透明度（declutter gem_quiet_a 随拥挤度插值；缺省 0.7 = 不变）
+var tell_fill := 1.0              # 预警填充透明度系数（declutter tell_fill_k；只压填充，轮廓不动）
+var tell_edge := 1.0              # 预警轮廓线宽系数（declutter tell_edge_k；深色描边 + 白芯一起加粗）
+var spark_left := 0                # 本帧世界层友方火花的剩余绘制预算（declutter spark_budget，0 = 不限）
+var _dbg_friend: bool = Dc.dbg("nofriend")
+var _dbg_enemy: bool = Dc.dbg("noenemy")
+var _dbg_foe: bool = Dc.dbg("nofoe")
+var _dbg_amb: bool = Dc.dbg("noamb")
+var _dbg_ground: bool = Dc.dbg("noground")
+var _dbg_gem: bool = Dc.dbg("nogem")
+var _dbg_mire: bool = Dc.dbg("nomire")
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
@@ -40,6 +57,8 @@ const CROWD_FROM := 80.0          # 特效总数超过这个开始降
 const CROWD_SPAN := 220.0         # 再多这么多降到底
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam / horde_ring、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
+const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
+const AMB_KINDS := ["mote", "horde_ring", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
 ## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
 ## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
@@ -133,24 +152,34 @@ func update_visuals(dt: float) -> void:
 	var nfx: int = g.fx.size()
 	for o in g.squad.ops:
 		nfx += o.pfx.size()
-	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - CROWD_FROM) / CROWD_SPAN, 0.0, 1.0)
+	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - Dc.p("crowd_from")) / Dc.p("crowd_span"), 0.0, 1.0)
 	crowd = move_toward(crowd, want, rd * (3.0 if want > crowd else 0.8))
-	fx_dim = lerpf(1.0, 0.45, crowd)
 	var ne := 0
 	for e in g.enemies:
 		if not e.dead:
 			ne += 1
 	var ewant: float = 0.0 if g.demo_op != "" else clampf((ne - 90.0) / 120.0, 0.0, 1.0)
 	ecrowd = move_toward(ecrowd, ewant, rd * 0.8)
+	# 后期降噪预设（render/declutter，render/declutter.gd）：敌人多也算拥挤（crowd_mix，缺省 0 = 只看特效数）
+	dcrowd = maxf(crowd, ecrowd * Dc.p("crowd_mix"))
+	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
+	mate_dim = Dc.at("mate_k", dcrowd)
+	lead_dim = Dc.at("lead_k", dcrowd)
+	if _dbg_friend:
+		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
+	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
+	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
+	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	# 满屏降级（性能 docs/50 §9.8：普通怪的描边贴图和本体贴图交替，每只多一次绘制调用）；回差 10 只，免得在阈值上来回闪
 	var omax: float = Bal.v("fx/outline_max", 150.0)
 	if ne >= omax:
 		outline_skip = true
 	elif ne < omax - 10.0:
 		outline_skip = false
-	g.fx_add.modulate.a = lerpf(1.0, 0.6, crowd)
+	g.fx_add.modulate.a = 0.0 if _dbg_friend else lerpf(1.0, Dc.p("add_floor"), dcrowd)
 	if g.post != null and "crowd" in g.post:
-		g.post.crowd = crowd
+		g.post.crowd = dcrowd
+		g.post.bloom_cut = Dc.p("bloom_cut")
 
 
 ## Boss 换幕 / 倒下演出（docs/48 P1：换幕只有横幅，死亡特效和精英同一套、比本体还小）。
@@ -241,14 +270,26 @@ func draw_world() -> void:
 	_pk("")
 	watch_bosses()
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
-	g.map.draw_ground(g.get_viewport_rect().size)
+	if _dbg_ground:
+		g.draw_rect(view_rect(0.0), Color(0.16, 0.17, 0.2))   # --clutterdbg=noground（量测）：地面 / 地形道具换成平涂底色
+	else:
+		g.map.draw_ground(g.get_viewport_rect().size)
+		# 后期降噪（render/declutter ground_veil，缺省 0 = 不画）：拥挤时地面盖一层地面平均色的薄纱，压地砖 / 小道具纹理的对比，
+		# 让敌人、弹幕和预警从地上浮出来；在溟痕 / 地面预警 / 掉落之下，灯火照常照在上面
+		var gv: float = Dc.p("ground_veil") * dcrowd
+		if gv > 0.002:
+			var gm: Color = g.map.ground_mean()
+			g.draw_rect(view_rect(8.0), Color(gm.r, gm.g, gm.b, gv))
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
 	_pk("mire")
+	tell_fill = Dc.p("tell_fill_k")
+	tell_edge = Dc.p("tell_edge_k")
 	_draw_warns_auras()
 	_pk("warns_auras")
-	_draw_pickups()
+	if not _dbg_gem:   # --clutterdbg=nogem（量测）
+		_draw_pickups()
 	_pk("gems")
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	_draw_shadows(evr)
@@ -261,7 +302,8 @@ func draw_world() -> void:
 	_pk("bullets")
 	_draw_fx()
 	_pk("fx")
-	_draw_ebullets_lobs_shocks()
+	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
+		_draw_ebullets_lobs_shocks()
 	_pk("ebullets_lobs_shocks")
 	_draw_tells_outlines()
 	_pk("tells_outlines")
@@ -277,24 +319,28 @@ func _draw_mires() -> void:
 	var bubbles: Array = []
 	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx.on("mire_motes") else 0   # docs/54 溟痕光尘（高画质、非触屏）
 	for m in g.mires:
-		g.map.draw_mire(m)
+		if not _dbg_mire:
+			g.map.draw_mire(m)
 		if mvr.has_point(m.pos):
 			if bubbles.size() < MIRE_BUBBLE_MAX:
 				_mire_bubbles(m, bubbles)
 			if mote_budget > 0:
 				mote_budget -= g.vfx.mire_motes(m, mote_budget)
 	tb_flush()
-	_draw_mire_bubbles(bubbles)
+	if not _dbg_mire:
+		_draw_mire_bubbles(bubbles)
 
 
 ## 预警分类 → Boss 招式预警（boss_ai）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
 func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
-	g.bai._draw_warns()
+	if not _dbg_foe:
+		g.bai._draw_warns()
 	draw_nest_auras()
 	draw_beacons()
 	draw_hunt_ring()
-	g.rfx.draw()
+	if not _dbg_friend:
+		g.rfx.draw()   # 藏品特效（--clutterdbg=nofriend 量测时不画；只画不抽随机数）
 	if not g.merchant.is_empty():
 		var mtx: Texture2D = g.tex.merchant
 		var big_m: bool = mtx != null and mtx.get_height() >= 40
@@ -340,6 +386,7 @@ func draw_hunt_ring() -> void:
 ## 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）；拖尾 / 辉光 / 深色底进 tb 批，贴图与闪光循环后统一画
 func _draw_pickups() -> void:
 	var vr: Rect2 = view_rect(40.0)
+	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
 	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
 	var cells := {}
 	var gem_spr: Array = []     # 结晶贴图：[名字, 位置, 缩放, 颜色]
@@ -391,7 +438,7 @@ func _draw_pickups() -> void:
 				tb_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, Color(0.0, 0.02, 0.05, 0.55), 1.0, 10)   # 深色底：压在特效和敌人上也分得出
 				var gcol: Color = Color(1.25, 1.25, 1.3) if not big else Color(1.35, 1.2, 1.5)
 				if quiet:
-					gcol = Color(0.9, 0.95, 1.0, 0.7)   # 远处的结晶压暗一些，贴近主控或被吸时才亮
+					gcol = Color(0.9, 0.95, 1.0, gem_qa)   # 远处的结晶压暗一些，贴近主控或被吸时才亮（后期降噪 render/declutter gem_quiet_a，缺省 0.7）
 				gem_spr.append(["gem_big" if big else "gem_small", gp, Game.PX * (1.9 if big else 1.45), gcol])
 				if not quiet:
 					var sp2: float = 2.0 + 1.5 * tw
@@ -423,7 +470,7 @@ func _draw_pickups() -> void:
 			if (n >= 3) != big_pass:
 				continue
 			var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
-			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, 0.7))
+			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, gem_qa))
 
 
 ## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
@@ -436,7 +483,7 @@ func _draw_shadows(evr: Rect2) -> void:
 			continue
 		var sc: float = Game.PX * e.r / 10.0
 		var hop: float = minf(e.kb.length() * 0.03, 14.0)
-		g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0))
+		g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0), false, Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0))
 	g.squad.draw_shadows()
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
@@ -463,7 +510,10 @@ func _draw_sorted_entities(evr: Rect2) -> void:
 	for it in dl:
 		match it[1]:
 			5:
+				var d0: float = fx_dim
+				fx_dim = d0 * (lead_dim if it[2].is_leader else mate_dim)   # 贴身层帧条也按队友 / 主控系数（render/declutter）
 				it[2].draw_body()
+				fx_dim = d0
 			6:
 				it[2][0].draw_extra(it[2][1])
 			4:
@@ -473,7 +523,8 @@ func _draw_sorted_entities(evr: Rect2) -> void:
 			2:
 				draw_player()
 			3:
-				g.map.draw_sort_prop(it[2])
+				if not _dbg_ground:
+					g.map.draw_sort_prop(it[2])
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
@@ -513,6 +564,9 @@ func _draw_overlays_shield_drones() -> void:
 
 ## 友方投射物：V6 帧条按速度方向旋转（程序只画拖尾）；没贴图的按种类程序画
 func _draw_bullets() -> void:
+	# 自己的投射物（render/declutter bullet_k / bullet_desat）：拥挤时略淡、略去饱和，让敌方弹幕更跳；缺省不变
+	_bk = 0.0 if _dbg_friend else Dc.at("bullet_k", dcrowd)
+	_bd = Dc.p("bullet_desat") * dcrowd
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
@@ -524,37 +578,62 @@ func _draw_bullets() -> void:
 			var pfr: int = (int(g.t * pspec[1] + b.pos.x * 0.01) % int(pspec[0])) if pspec[1] > 0.0 else 0
 			match b.kind:
 				"arrow":
-					g.draw_line(b.pos - n * 34.0, b.pos - n * 12.0, Color(1.6, 1.4, 1.0, 0.3), 2.0)
+					g.draw_line(b.pos - n * 34.0, b.pos - n * 12.0, _bc(Color(1.6, 1.4, 1.0, 0.3)), 2.0)
 				"fire":
-					g.draw_circle(b.pos, 14.0, Color(1.4, 0.6, 2.2, 0.2))
+					g.draw_circle(b.pos, 14.0, _bc(Color(1.4, 0.6, 2.2, 0.2)))
 				"arcane":
-					g.draw_line(b.pos - n * 20.0, b.pos, Color(1.4, 0.6, 2.2, 0.35), 4.0)
-			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX)
+					g.draw_line(b.pos - n * 20.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.35)), 4.0)
+			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX, _bc(Color.WHITE))
 			continue
 		match b.kind:
 			"arrow":
-				g.draw_line(b.pos - n * 26.0, b.pos - n * 10.0, Color(1.6, 1.4, 1.0, 0.35), 2.0)
-				g.draw_line(b.pos - n * 14.0, b.pos + n * 4.0, Color(2.2, 2.0, 1.6), 3.0)
+				g.draw_line(b.pos - n * 26.0, b.pos - n * 10.0, _bc(Color(1.6, 1.4, 1.0, 0.35)), 2.0)
+				g.draw_line(b.pos - n * 14.0, b.pos + n * 4.0, _bc(Color(2.2, 2.0, 1.6)), 3.0)
 			"fire":
 				var fl := 1.0 + 0.2 * sin(g.t * 40.0 + b.pos.x)
-				g.draw_circle(b.pos, 13.0 * fl, Color(2.0, 0.8, 0.2, 0.25))
-				g.draw_circle(b.pos, 8.0 * fl, Color(2.4, 1.1, 0.3, 0.8))
-				g.draw_circle(b.pos, 4.0, Color(2.8, 2.4, 1.4))
+				g.draw_circle(b.pos, 13.0 * fl, _bc(Color(2.0, 0.8, 0.2, 0.25)))
+				g.draw_circle(b.pos, 8.0 * fl, _bc(Color(2.4, 1.1, 0.3, 0.8)))
+				g.draw_circle(b.pos, 4.0, _bc(Color(2.8, 2.4, 1.4)))
 			"arcane":
-				g.draw_line(b.pos - n * 18.0, b.pos, Color(1.4, 0.6, 2.2, 0.4), 4.0)
-				g.draw_circle(b.pos, 8.0, Color(1.2, 0.5, 2.0, 0.35))
-				UI.diamond(g, b.pos, 5.0, Color(1.8, 1.0, 2.6), Color(2.2, 1.6, 2.8))
+				g.draw_line(b.pos - n * 18.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.4)), 4.0)
+				g.draw_circle(b.pos, 8.0, _bc(Color(1.2, 0.5, 2.0, 0.35)))
+				UI.diamond(g, b.pos, 5.0, _bc(Color(1.8, 1.0, 2.6)), _bc(Color(2.2, 1.6, 2.8)))
 			_:
-				g.vfx.spr("orb", 1, 0, b.pos, Game.PX)
+				g.vfx.spr("orb", 1, 0, b.pos, Game.PX, false, _bc(Color.WHITE))
+
+
+var _bk := 1.0
+var _bd := 0.0
+
+
+func _bc(c: Color) -> Color:
+	if _bk >= 1.0 and _bd <= 0.0:
+		return c
+	var l: float = (c.r + c.g + c.b) / 3.0
+	return Color(lerpf(c.r, l, _bd), lerpf(c.g, l, _bd), lerpf(c.b, l, _bd), c.a * _bk)
 
 
 ## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
 func _draw_fx() -> void:
+	# 友方火花绘制预算（render/declutter spark_budget；缺省不限）：超出时跳过最早的（快淡完的），只影响绘制
+	var skip_sparks := 0
+	if spark_left < (1 << 29):
+		var ns := 0
+		for f in g.fx:
+			if f.kind == "spark" and not f.get("enemy", false):
+				ns += 1
+		skip_sparks = maxi(0, ns - spark_left)
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
+		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
+		if (_dbg_foe and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
+			continue   # --clutterdbg 量测：这一层不画
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
 			a *= fdim
+		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
+			skip_sparks -= 1
+			continue
 		match f.kind:
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹（地面椭圆与判定一致，ground_y，docs/48 ①）
@@ -992,7 +1071,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		var k: float = l.t / l.dur
 		# 抛石落点：地面椭圆（与判定一致）+ 深色描边 + 敌方洋红，不再乘亮度（docs/48 ①④）
 		g.draw_set_transform(l.to, 0.0, Vector2(1.0, ground_y()))
-		g.draw_circle(Vector2.ZERO, l.r * k, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.22))
+		g.draw_circle(Vector2.ZERO, l.r * k, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.22 * tell_fill))
 		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(0, 0, 0, 0.55), 4.0)
 		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.6 + 0.35 * sin(g.t * 20.0)), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1012,7 +1091,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	for sh in g.shocks:
 		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
 		g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
-		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a), 10.0)
+		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a * tell_fill), 10.0)
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
 		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
@@ -1021,7 +1100,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
 func _draw_tells_outlines() -> void:
-	draw_enemy_tells()
+	if not _dbg_foe:
+		draw_enemy_tells()
 	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
 		var elr: Rect2 = view_rect(120.0)
@@ -1030,7 +1110,8 @@ func _draw_tells_outlines() -> void:
 				g.vfx.elite_entrance(e)
 		tb_flush()
 	draw_leader_ailments()
-	draw_warn_outlines()
+	if not _dbg_foe:
+		draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
 	if g.squad.has_method("draw_leader_mark"):
 		g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
@@ -1343,11 +1424,11 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 	if c[15]:
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
 		if not e.elite:
-			oc.a *= lerpf(1.0, 0.4, ecrowd)
+			oc.a *= ol_mul
 		_espr_outline(c[8], frames, frame, bpos, sc, flip, oc, anc, Vector2.ONE)
 	_espr(c[8], frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
 	if e.flash > 0.0:
-		_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, Vector2.ONE)
+		_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
 	if _rec == null and e.affix != "":
 		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.weak
@@ -1365,6 +1446,8 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 	if _rec != null:
 		_rec.append(["b", name, frames, frame, pos + g.draw_off, sc, flip, col * _act_mod, anc, sq])
 		return
+	if _dbg_enemy:
+		col.a = 0.0   # --clutterdbg=noenemy（量测）
 	g.vfx.spr(name, frames, frame, pos, sc, flip, col * _act_mod, anc, sq)
 
 
@@ -1372,6 +1455,8 @@ func _espr_outline(name: String, frames: int, frame: int, pos: Vector2, sc: floa
 	if _rec != null:
 		_rec.append(["o", name, frames, frame, pos + g.draw_off, sc, flip, col, anc, sq])
 		return
+	if _dbg_enemy:
+		col.a = 0.0
 	_spr_outline(name, frames, frame, pos, sc, flip, col, anc, sq)
 
 
@@ -1611,11 +1696,12 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
-			oc.a *= lerpf(1.0, 0.4, ecrowd)   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1）；精英 / Boss 不变
+			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
-		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc, sq)
+		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
+		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if (e.elite or e.boss) else flash_a), anc, sq)
 	elif e.boss and _rec == null and g.tex.has(name + "_white"):
 		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
 		var sk: float = g.boss_intro.silhouette_k(e)
@@ -2659,7 +2745,7 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 		# 打不到主控的冲刺线：只画淡边框（预警不藏，但不再整片盖住主控）
 		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35)), 1.5)
 		return
-	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, 0.22 + 0.12 * k))
+	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill))
 	var lt: Texture2D = _wtex("fx_warn_line")
 	if lt != null:
 		# 沿线平铺流动水纹（16px 一段，按线宽缩放），终点放漩涡
@@ -2671,7 +2757,7 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 		while x < L - 1.0:
 			var w: float = minf(seg, L - x)
 			g.draw_set_transform(a + d.normalized() * x, ang, Vector2(half * 2.0 / 16.0, half * 2.0 / 16.0))
-			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55))
+			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55 * tell_fill))
 			x += seg
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var et: Texture2D = _wtex("fx_warn_end")
@@ -2680,8 +2766,8 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 			g.draw_set_transform(b, 0.0, Vector2(es, es * ground_y()))
 			g.draw_texture_rect_region(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8))
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0)
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0 * tell_edge)
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0 * tell_edge)
 	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
 
 
@@ -2802,17 +2888,17 @@ func classify_tells() -> void:
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(g.t * 18.0)
 	g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致
-	g.draw_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, 0.18 + 0.1 * k))
+	g.draw_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, (0.18 + 0.1 * k) * tell_fill))
 	var rt: Texture2D = _wtex("fx_warn_ring")
 	if rt != null:
 		# V7 涟漪：从外向内收缩的水纹，按半径缩放（radius_px 30）
 		var rs: float = r / 30.0
 		g.draw_set_transform(p, 0.0, Vector2(rs, rs * ground_y()))
-		g.draw_texture_rect_region(rt, Rect2(-32, -32, 64, 64), Rect2(64 * (int(g.t * 12.0) % 4), 0, 64, 64), Color(c.r, c.g, c.b, 0.5))
+		g.draw_texture_rect_region(rt, Rect2(-32, -32, 64, 64), Rect2(64 * (int(g.t * 12.0) % 4), 0, 64, 64), Color(c.r, c.g, c.b, 0.5 * tell_fill))
 		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0)
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0)
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0 * tell_edge)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0 * tell_edge)
+	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0 * tell_edge)
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -2871,8 +2957,8 @@ func draw_warn_outlines() -> void:
 					_warn_dash_arc(w.r, 0.0, TAU, edge, 5.0)
 					_warn_dash_arc(w.r, 0.0, TAU, core, 2.0)
 				else:
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, edge, 5.0)
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, core, 2.0)
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, edge, 5.0 * tell_edge)
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, core, 2.0 * tell_edge)
 				if must:
 					# ⑤ 必须冲刺：白色双描边
 					var pk: float = 0.5 + 0.5 * sin(g.t * 12.0)
@@ -2903,8 +2989,8 @@ func draw_warn_outlines() -> void:
 							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), core, 2.0)
 						xx += 24.0
 				else:
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), edge, false, 5.0)
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), core, false, 2.0)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), edge, false, 5.0 * tell_edge)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), core, false, 2.0 * tell_edge)
 					if lock_flash > 0.0:
 						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * lock_flash), true)
 				# 终点端盖
@@ -2933,8 +3019,8 @@ func draw_warn_outlines() -> void:
 							g.draw_line(pts[q], pts[q + 1], edge, 5.0)
 							g.draw_line(pts[q], pts[q + 1], core, 2.0)
 				else:
-					g.draw_polyline(pts, edge, 5.0)
-					g.draw_polyline(pts, core, 2.0)
+					g.draw_polyline(pts, edge, 5.0 * tell_edge)
+					g.draw_polyline(pts, core, 2.0 * tell_edge)
 				# 扇面内一道随时间向外推的弧
 				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, (0.3 + 0.4 * k) * da), 1.5)
 				if lock_flash > 0.0:

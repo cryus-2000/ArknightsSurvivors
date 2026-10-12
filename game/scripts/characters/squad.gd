@@ -263,25 +263,40 @@ func on_kill(e: Dictionary) -> void:
 
 func draw_auras() -> void:
 	cv.begin()
+	var d0: float = g.world.fx_dim
 	for o in ops:
+		_op_dim(o, d0)
 		o.draw_auras()
+	g.world.fx_dim = d0
+	cv.mute = false
+	cv.amul = 1.0
 	cv.end()
 
 
 ## 紧贴地砖的常驻帧条（docs/61 §5.6 layer = ground，10-12 加）：world.draw_world 画完地砖就调，在溟痕 / 地面预警 / 掉落之下
 func draw_ground_fx() -> void:
 	cv.begin()
+	var d0: float = g.world.fx_dim
 	for o in ops:
 		if o.has_method("draw_ground_fx"):
+			_op_dim(o, d0)
 			o.draw_ground_fx()
+	g.world.fx_dim = d0
+	cv.mute = false
+	cv.amul = 1.0
 	cv.end()
 
 
 func draw_entities_floor() -> void:
 	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
+	var d0: float = g.world.fx_dim
 	for o in ops:
+		_op_dim(o, d0)
 		o.draw_entities_floor()
 		o.draw_pfx(true)
+	g.world.fx_dim = d0
+	cv.mute = false
+	cv.amul = 1.0
 	cv.end()
 
 
@@ -328,13 +343,32 @@ func draw_leader_mark() -> void:
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
+	var d0: float = g.world.fx_dim
 	for o in ops:
+		_op_dim(o, d0)
+		g.world.fx_dim = d0 * cv.amul   # 加色层直接画在 ci（不经 cv）：读 fx_dim 的干员特效按同一系数降
 		o.draw_fx_add(ci, loop)
+	g.world.fx_dim = d0
+	cv.mute = false
+	cv.amul = 1.0
 
 
 func draw_skill_over() -> void:
 	cv.begin()
+	var d0: float = g.world.fx_dim
 	for o in ops:
+		_op_dim(o, d0)
 		o._draw_skill_over()
 		o.draw_pfx(false)
+	g.world.fx_dim = d0
+	cv.mute = false
+	cv.amul = 1.0
 	cv.end()
+
+
+## 后期降噪（render/declutter mate_k / lead_k）：画某名干员的特效阶段时，合批画布 cv 的每次绘制乘上队友 / 主控系数（cv.amul）；
+## 加色层不经 cv，改乘 fx_dim。画完由调用方恢复。缺省两个系数恒 1 = 不变
+func _op_dim(o, d0: float) -> void:
+	g.world.fx_dim = d0
+	cv.amul = g.world.lead_dim if o.is_leader else g.world.mate_dim   # 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）
+	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示

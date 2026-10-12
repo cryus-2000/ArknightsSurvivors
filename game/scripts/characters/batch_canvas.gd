@@ -13,6 +13,8 @@ var _pts := PackedVector2Array()
 var _cols := PackedColorArray()
 var _idx := PackedInt32Array()
 var _off := -1
+var mute := false   # --clutterdbg=nofriend 量测：干员特效阶段的绘制全部丢掉（代码照跑、随机数照抽），squad 设
+var amul := 1.0     # 后期降噪（render/declutter mate_k / lead_k）：squad 在干员特效阶段按「队友 / 主控」设的透明度系数，乘在每次绘制的颜色上；1 = 不变
 
 
 func _init(game) -> void:
@@ -51,6 +53,12 @@ func flush() -> void:
 
 ## 现成的顶点色三角形（程序漩涡 op_blocks.fx_vortex 等）：pts 按当前 draw_set_transform 换算后并进批；不在合批阶段时直接提交给 g
 func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		cols = cols.duplicate()
+		for i in cols.size():
+			cols[i].a *= amul
 	if xf != Transform2D.IDENTITY:
 		pts = xf * pts
 	if not active:
@@ -92,12 +100,20 @@ func draw_set_transform(p: Vector2, rot := 0.0, sc := Vector2.ONE) -> void:
 
 
 func draw_texture_rect_region(tex: Texture2D, rect: Rect2, src: Rect2, mod := Color.WHITE, transpose := false, clip := true) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		mod.a *= amul
 	if active:
 		sync()
 	g.draw_texture_rect_region(tex, rect, src, mod, transpose, clip)
 
 
 func draw_circle(p: Vector2, r: float, col: Color, filled := true, width := -1.0, aa := false) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		col.a *= amul
 	if not active:
 		g.draw_circle(p, r, col, filled, width, aa)
 		return
@@ -115,6 +131,10 @@ func draw_circle(p: Vector2, r: float, col: Color, filled := true, width := -1.0
 
 
 func draw_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, width := -1.0, aa := false) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		col.a *= amul
 	if not active:
 		g.draw_arc(c, r, a0, a1, n, col, width, aa)
 		return
@@ -122,6 +142,10 @@ func draw_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, wi
 
 
 func draw_line(a: Vector2, b: Vector2, col: Color, width := -1.0, aa := false) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		col.a *= amul
 	if not active:
 		g.draw_line(a, b, col, width, aa)
 		return
@@ -129,10 +153,15 @@ func draw_line(a: Vector2, b: Vector2, col: Color, width := -1.0, aa := false) -
 
 
 func draw_polyline(points: PackedVector2Array, col: Color, width := -1.0, aa := false) -> void:
+	if mute:
+		return
+	var unbatched: bool = width > 2.0 or col.a < 1.0   # 按原色判断进不进批（降噪的 amul 不改变合批与否）
+	if amul < 1.0:
+		col.a *= amul
 	if not active:
 		g.draw_polyline(points, col, width, aa)
 		return
-	if width > 2.0 or col.a < 1.0:
+	if unbatched:
 		# 粗线 / 半透明折线不进批，交 Godot 画（折点的衔接与原来完全一样；测试与验收 9/30 查出推进之王破阵地裂变成方块链）
 		sync()
 		g.draw_polyline(points, col, width, aa)
@@ -141,6 +170,10 @@ func draw_polyline(points: PackedVector2Array, col: Color, width := -1.0, aa := 
 
 
 func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedVector2Array(), tex: Texture2D = null) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		col.a *= amul
 	if not active or tex != null:
 		if active:
 			sync()
@@ -157,6 +190,10 @@ func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedV
 
 
 func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := false) -> void:
+	if mute:
+		return
+	if amul < 1.0:
+		col.a *= amul
 	if not active:
 		g.draw_rect(rect, col, filled, width, aa)
 		return
