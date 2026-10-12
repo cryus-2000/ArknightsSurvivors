@@ -68,7 +68,26 @@ func event_pos(min_distance: float, max_distance: float, margin := 100.0) -> Vec
 
 func pick_type() -> String:
 	var pool: Array = D.THREAT[g.threat].pool
-	var pick: String = pool[g.rng.randi() % pool.size()]
+	var pick: String = ""
+	var fw := final_knob("trickle_fresh_w", 1.0) if trickling() else 1.0
+	if fw != 1.0 and g.threat > 0:
+		# 最终 Boss 战少量补怪（docs/38 §8.14 10-12）：本级威胁新出现的种类（上一级池里没有的）权重 × trickle_fresh_w，池里重复项照常算权重
+		var prev: Array = D.THREAT[g.threat - 1].pool
+		var ws: Array = []
+		var tot := 0.0
+		for x in pool:
+			var w := maxf(0.0, fw) if not prev.has(x) else 1.0
+			ws.append(w)
+			tot += w
+		var r := g.rng.randf() * tot
+		pick = pool[pool.size() - 1]
+		for k in pool.size():
+			r -= float(ws[k])
+			if r < 0.0:
+				pick = pool[k]
+				break
+	else:
+		pick = pool[g.rng.randi() % pool.size()]
 	var caps := {"stone": (6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)), "brood": 6, "offspring": 6 if g.t < 420.0 else 10, "spitter": 6}
 	if D.ENEMIES[pick].has("cap"):
 		caps[pick] = int(D.ENEMIES[pick].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
@@ -168,6 +187,8 @@ func boss_mob_room() -> int:
 	var cap := 0
 	if g.final_boss != null and not g.final_boss.dead:
 		cap = int(Bal.v("boss/final_mob_cap", 120.0))
+		if trickling() and final_knob("trickle_cap") > 0.0:
+			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap）
 	elif boss_alive():
 		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
 	return cap - mob_count() if cap > 0 else max_alive()
@@ -184,6 +205,14 @@ func final_knob(key: String, def := 0.0) -> float:
 ## 子代蜕变等）、补给箱、灯标、商人照常——那些不走这几条路径
 func mobs_stopped() -> bool:
 	return g.final_boss != null and not g.final_boss.dead and final_knob("stop_mobs") > 0.0
+
+
+## 最终 Boss 战少量补怪（用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」，docs/38 §8.14）：
+## 停刷开着且 final/trickle_mult > 0 时，普通刷怪按「正常刷怪率 × trickle_mult」继续（替代 enemy/spawn_boss_mult），存活杂兵上限改读
+## final/trickle_cap；本级威胁新种类在补怪里的抽取权重 × final/trickle_fresh_w。精英 / 大群 / 威胁上升那一小波仍按 mobs_stopped() 不刷。
+## trickle_mult 0（代码缺省）= 10-11 的全停
+func trickling() -> bool:
+	return mobs_stopped() and final_knob("trickle_mult") > 0.0
 
 
 ## 最终 Boss 登场时 final/clear_mobs_s > 0：场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内由远到近逐只消散。
@@ -300,7 +329,10 @@ func update(dt: float) -> void:
 	# 中期 / 最终 Boss 在场分开两个倍率（缺省都读原来的 spawn_boss_mult）；用户 9/27：中期 Boss 在场时普通刷怪照常，由数值填 mid 1.0
 	if boss_alive():
 		var fin: bool = g.final_boss != null and not g.final_boss.dead
-		rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
+		if fin and trickling():
+			rate *= final_knob("trickle_mult")   # 少量补怪：相对正常刷怪率的倍率
+		else:
+			rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	spawn_acc += rate * dt
@@ -308,11 +340,12 @@ func update(dt: float) -> void:
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
 	var mob_room: int = boss_mob_room()
 	var stop := mobs_stopped()   # 最终 Boss 战停刷（final/stop_mobs）：累积照常扣掉，不刷
+	var mobs_off := stop and not trickling()   # 少量补怪开着时普通怪仍按低倍率 + 低上限补；精英 / 大群仍看 stop
 	if not fading.is_empty():
 		_update_fading()
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
-		if mob_room <= 0 or stop:
+		if mob_room <= 0 or mobs_off:
 			continue
 		mob_room -= 1
 		if g.enemies.size() < max_alive():

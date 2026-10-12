@@ -817,8 +817,16 @@ func test_final_mob_cap() -> void:
 	game.final_boss = null
 	ok(sp.boss_mob_room() == sp.max_alive(), "没有最终 Boss：不限")
 	game.final_boss = fb
+	var keep_fin = Bal._data.get("final", null)
+	Bal._data["final"] = {"stop_mobs": 0.0}   # 旧行为：final_mob_cap；少量补怪的 trickle_cap 见 test_final_stop_mobs
 	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
 	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.boss_mob_room())
+	Bal._data["final"] = {"stop_mobs": 1.0, "trickle_mult": 0.35, "trickle_cap": 40.0}
+	ok(sp.boss_mob_room() == 35, "少量补怪开：余量 = trickle_cap 40 − 存活杂兵（%d）" % sp.boss_mob_room())
+	if keep_fin == null:
+		Bal._data.erase("final")
+	else:
+		Bal._data["final"] = keep_fin
 	fb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
 	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：读 boss/mid_mob_cap
@@ -836,7 +844,8 @@ func test_final_mob_cap() -> void:
 
 ## 最终 Boss 战停刷（用户 10-11，docs/38 §8.14）：final/stop_mobs 只在最终 Boss 在场时停普通刷怪 / 精英 / 大群 / 威胁新种类；
 ## 中期 Boss 不停；Boss 召唤物照常；旋钮关 = 旧行为；难度表 final_stop_mobs 按档覆盖；clear_mobs_s > 0 时现有杂兵由远到近逐只消散，
-## 不掉经验、不计击杀；停刷那一帧 spawner.update 不掷随机数
+## 不掉经验、不计击杀；停刷那一帧 spawner.update 不掷随机数。
+## 10-12 少量补怪（final/trickle_mult / trickle_cap / trickle_fresh_w）：普通怪按低倍率补、不超上限，新种类权重降低，无精英 / 大群 / 威胁那一小波
 func test_final_stop_mobs() -> void:
 	var D = preload("res://scripts/data.gd")
 	var sp = game.spawner
@@ -881,8 +890,8 @@ func test_final_stop_mobs() -> void:
 	game.final_boss = fb
 	var n0: int = step.call()
 	ok(not sp.mobs_stopped() and n0 >= 4 and sp.next_elite > game.t, "stop_mobs 0：最终 Boss 在场照常刷普通怪 + 精英（%d 只）" % n0)
-	# 旋钮开：普通怪 / 精英 / 大群 / 威胁新种类都不刷，精英计时照走，不掷随机数
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0}
+	# 旋钮开、trickle_mult 0（全停，10-11）：普通怪 / 精英 / 大群 / 威胁新种类都不刷，精英计时照走，不掷随机数
+	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.0}
 	game.threat = D.THREAT.size() - 2
 	game.next_horde = game.t - 50.0
 	sp.horde_warned = -1.0
@@ -900,6 +909,66 @@ func test_final_stop_mobs() -> void:
 	game.dmod["final_stop_mobs"] = 0.0
 	ok(not sp.mobs_stopped() and step.call() >= 3, "difficulty final_stop_mobs 0 覆盖：按档照常刷")
 	game.dmod = keep_d
+	# 少量补怪（10-12）：stop_mobs 1 + trickle_mult 0.35 + trickle_cap 5，场上已有 3 只杂兵；攒 10 只的累积、精英到点、大群到点、威胁待升
+	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0, "trickle_fresh_w": 0.5}
+	game.enemies = [fb]
+	game.bosses = [fb]
+	for k in 3:
+		sp.spawn_enemy("bone", game.ppos + Vector2(500 + k * 20, 0))
+	game.threat = D.THREAT.size() - 2
+	game.next_horde = game.t - 50.0
+	sp.horde_warned = -1.0
+	game.horde_warn = 0.0
+	nh = game.horde_log.size()
+	sp.spawn_acc = 10.0
+	sp.next_elite = game.t - 1.0
+	sp.update(0.0)
+	var live: Array = game.enemies.filter(func(e): return not e.dead and not e.boss)
+	var n_el: int = live.filter(func(e): return e.elite).size()
+	ok(sp.trickling() and sp.mob_count() == 5 and live.size() == 5, "少量补怪：普通怪补到 trickle_cap 5 为止（%d 只，威胁那一小波不刷）" % live.size())
+	ok(n_el == 0 and sp.next_elite > game.t, "少量补怪：精英不刷、计时照走")
+	ok(game.horde_log.size() == nh and game.horde_warn <= 0.0 and game.threat == D.THREAT.size() - 1, "少量补怪：大群不来、不出预警；威胁等级照常升")
+	ok(sp.boss_mob_room() == 0, "少量补怪：余量按 trickle_cap 算（%d）" % sp.boss_mob_room())
+	game.next_horde = 1.0e9
+	# 刷怪率 = 正常刷怪率 × trickle_mult（不再乘 spawn_boss_mult）
+	var keep_lamp: float = game.lamp
+	game.lamp = 100.0
+	sp.spawn_acc = 0.0
+	sp.next_elite = 1.0e9
+	sp.update(0.1)
+	var knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
+	var base: float = Bal.v("enemy/spawn_base", 1.6) + minf(game.t, knee) / Bal.v("enemy/spawn_div", 30.0) + maxf(game.t - knee, 0.0) / Bal.v("enemy/spawn_late_div", Bal.v("enemy/spawn_div", 30.0))
+	ok(absf(sp.spawn_acc - base * 0.35 * 0.1) < 0.001, "少量补怪：累积 = 正常刷怪率 × 0.35（%.4f / %.4f）" % [sp.spawn_acc, base * 0.35 * 0.1])
+	game.lamp = keep_lamp
+	# 新种类（本级威胁池里上一级没有的）抽取权重 × trickle_fresh_w
+	var keep_rs: int = game.rng.state
+	var pool: Array = D.THREAT[game.threat].pool
+	var prev: Array = D.THREAT[game.threat - 1].pool
+	var fresh: Array = pool.filter(func(x): return not prev.has(x))
+	for e in game.enemies:
+		if not e.boss:
+			e.dead = true
+	game.enemies = [fb]
+	var cnt := func(n: int) -> int:
+		var c := 0
+		for k in n:
+			if fresh.has(sp.pick_type()):
+				c += 1
+		return c
+	Bal._data["final"]["trickle_fresh_w"] = 0.0
+	var c0: int = cnt.call(400)
+	Bal._data["final"]["trickle_fresh_w"] = 0.5
+	var c5: int = cnt.call(4000)
+	var nf := float(fresh.size())
+	var want: float = 0.5 * nf / (float(pool.size()) - nf + 0.5 * nf)
+	ok(fresh.is_empty() or (c0 == 0 and absf(float(c5) / 4000.0 - want) < 0.03), "少量补怪：新种类 %s 权重 × 0.5（占比 %.3f，期望 %.3f；权重 0 时 %d 次）" % [str(fresh), float(c5) / 4000.0, want, c0])
+	game.rng.state = keep_rs
+	# 难度表覆盖：final_trickle_mult 0 按档回到全停
+	game.dmod = keep_d.duplicate()
+	game.dmod["final_trickle_mult"] = 0.0
+	ok(sp.mobs_stopped() and not sp.trickling() and step.call() == 0, "difficulty final_trickle_mult 0 覆盖：按档全停")
+	game.dmod = keep_d
+	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.0}
 	# 只有中期 Boss：不停
 	fb.dead = true
 	game.final_boss = null
