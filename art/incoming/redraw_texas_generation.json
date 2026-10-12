@@ -1,0 +1,151 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Create final pixel-art game animation source atlas for TEXAS ONLY using TOP MIDDLE TEXAS of the approved reference board. Transparent background, no text no panels no shadows. EXACT grid 7 columns x 4 rows. Each cell same size, only one complete character in each used cell with margins. Row1 idle FOUR frames in columns1-4, last3 cells EMPTY. Row2 run SIX frames in columns1-6, last cell EMPTY. Row3 attack FIVE frames columns1-5 last2 EMPTY. Row4 skill SEVEN frames all7. Facing right three-quarter. Same body proportions and scale throughout. Dark charcoal long wolf hair and ears, amber eyes, white shirt/white small chest badge, black coat and shorts, burgundy straps, BLACK SHEER STOCKINGS smooth continuous legs not pants/armor, black shoes, one orange-gold thin sword. Preserve approved standing design. Limited color crisp pixel clusters designed for 96x96 game cells; dark #080e18 outer outline, black fabric, keep white shirt bright, not muddy. Head anatomically over shoulders, no forward neck. Idle subtle breathing and hair sway f2 blink; run pronounced six-phase alternating LEGS (first leg forward, compression, passing, OPPOSITE leg forward, compression, passing), upper body leans as whole, low-held sword points back/down, hair trails back/down. Attack f0 draw sword back f1 decisive full forward slash (event) f2 extension f3 recovery f4 stand. Skill f0 lower sword f1 raise f2 nearly overhead f3 sword vertical upward other hand sweeps down (event) f4 hold f5 lower f6 EXACT idle0 pose. No attack VFX or trails baked into sprites. No captions. Transparent genuine alpha.",
+  "source_path": "E:\\水月\\approved_redraw_1012\\texas_source.png",
+  "source_sha256": "1eb5a19d2e0458449a7d41baf0ef6956fd3bdc983ed1fff2309d617ea1c6d8fa",
+  "frame_rectangles": {
+    "idle": [
+      [
+        0,
+        0,
+        245,
+        239
+      ],
+      [
+        245,
+        0,
+        490,
+        239
+      ],
+      [
+        490,
+        0,
+        735,
+        239
+      ],
+      [
+        735,
+        0,
+        980,
+        239
+      ]
+    ],
+    "run": [
+      [
+        0,
+        240,
+        245,
+        468
+      ],
+      [
+        245,
+        240,
+        490,
+        468
+      ],
+      [
+        490,
+        240,
+        735,
+        468
+      ],
+      [
+        735,
+        240,
+        980,
+        468
+      ],
+      [
+        980,
+        240,
+        1225,
+        468
+      ],
+      [
+        1225,
+        240,
+        1470,
+        468
+      ]
+    ],
+    "attack": [
+      [
+        0,
+        474,
+        246,
+        704
+      ],
+      [
+        244,
+        474,
+        509,
+        704
+      ],
+      [
+        509,
+        474,
+        755,
+        704
+      ],
+      [
+        754,
+        474,
+        1005,
+        704
+      ],
+      [
+        1004,
+        474,
+        1247,
+        704
+      ]
+    ],
+    "skill": [
+      [
+        0,
+        690,
+        237,
+        948
+      ],
+      [
+        237,
+        690,
+        474,
+        948
+      ],
+      [
+        474,
+        690,
+        711,
+        948
+      ],
+      [
+        711,
+        690,
+        948,
+        948
+      ],
+      [
+        948,
+        690,
+        1185,
+        948
+      ],
+      [
+        1185,
+        690,
+        1422,
+        948
+      ],
+      [
+        1422,
+        690,
+        1659,
+        948
+      ]
+    ]
+  },
+  "scale": 0.29,
+  "export_script_sha256": "5aef2f60ff3664a69ae50657da157922fdbf84e31815e98602d7854239a2394c",
+  "reference": "User-approved draft v3; Skalter E0 legwear reference; user approved 2026-10-12"
+}
