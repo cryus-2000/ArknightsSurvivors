@@ -29,6 +29,7 @@ func _init() -> void:
 	test_squad_contract()
 	test_hoshiguma_blocks()
 	test_voice()
+	test_voice_interrupt()
 	test_blocks_angelina()
 	test_blocks_texas()
 	test_fx_hold()
@@ -301,6 +302,74 @@ func test_voice() -> void:
 			ok(have.has("%s_%s.ogg" % [cid, ev]), "语音齐全：%s_%s" % [cid, ev])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
+
+
+## 语音打断规则（用户 10-12「语音用1」方案 A，sfx.gd voice_can_cut）：技能语音只打断正在说的战斗台词（battle / W 笑声），
+## 间隔从打断时刻起算；技能 / 部署语音互不打断，战斗台词不打断任何语音，台词播完后的静默间隔里技能语音照旧放弃。
+## 这里 Sfx 不在场景树里（不真的出声），用 voice_now 拨钟只验证调度
+func test_voice_interrupt() -> void:
+	var S = load("res://scripts/sfx.gd").new()
+	S.voice_player = AudioStreamPlayer.new()
+	S.voice_fader = AudioStreamPlayer.new()
+	var GAP: float = S.VOICE_GAP
+	var fresh := func(t: float) -> void:
+		S.voice_reset()
+		S.voice_end = 0.0
+		S.voice_last.clear()
+		S.voice_op_last.clear()
+		S.voice_now = t
+	var at := func(t: float, cid: String, key: String, q := false) -> void:
+		S.voice_now = t
+		S.voice(cid, key, q)
+	var len_of := func(cid: String, key: String) -> float:
+		var st = S._voice_stream(cid, key)
+		return st.get_length() if st != null else -1.0
+	var cur := func() -> String:
+		return "%s:%s" % [S.voice_cid, S.voice_key]
+	ok(len_of.call("hoshiguma", "battle") > 2.0 and len_of.call("texas", "skill_1") > 0.0, "打断测试用的语音能加载")
+	# 技能打断战斗台词；被打断的那条换到 voice_fader，间隔从打断时刻起算
+	fresh.call(1000.0)
+	at.call(1000.0, "hoshiguma", "battle")
+	ok(cur.call() == "hoshiguma:battle", "战斗台词开播：" + cur.call())
+	var bst = S.voice_player.stream
+	at.call(1001.0, "texas", "skill_1")
+	ok(cur.call() == "texas:skill_1", "技能语音打断正在说的战斗台词：" + cur.call())
+	ok(S.voice_fader.stream == bst and S.voice_player.stream != bst, "被打断的台词换到淡出播放器")
+	near(S.voice_end, 1001.0 + len_of.call("texas", "skill_1") + GAP, "打断后全队间隔从打断时刻起算")
+	# 技能不打断技能
+	at.call(1001.3, "exusiai", "skill_3")
+	ok(cur.call() == "texas:skill_1", "技能语音不打断技能语音：" + cur.call())
+	# 技能不打断部署
+	fresh.call(2000.0)
+	at.call(2000.0, "skalter", "entry", true)
+	at.call(2001.0, "hoshiguma", "skill_2")
+	ok(cur.call() == "skalter:entry", "技能语音不打断部署语音：" + cur.call())
+	# 战斗台词不打断台词，部署语音也不打断台词（照旧排队）
+	fresh.call(3000.0)
+	at.call(3000.0, "hoshiguma", "battle")
+	at.call(3001.0, "texas", "battle")
+	ok(cur.call() == "hoshiguma:battle", "战斗台词不打断战斗台词：" + cur.call())
+	at.call(3001.5, "angelina", "entry", true)
+	ok(cur.call() == "hoshiguma:battle" and S.voice_queue.size() == 1, "部署语音不打断台词、进队列：%s 队列 %d" % [cur.call(), S.voice_queue.size()])
+	# 战斗台词不打断技能
+	fresh.call(4000.0)
+	at.call(4000.0, "texas", "skill_1")
+	at.call(4000.3, "hoshiguma", "battle")
+	ok(cur.call() == "texas:skill_1", "战斗台词不打断技能语音：" + cur.call())
+	# 台词已经说完、还在 VOICE_GAP 静默期：技能语音照旧放弃
+	fresh.call(5000.0)
+	at.call(5000.0, "hoshiguma", "battle")
+	at.call(5000.0 + len_of.call("hoshiguma", "battle") + 0.5, "texas", "skill_1")
+	ok(cur.call() == "hoshiguma:battle", "台词播完后的静默间隔里技能语音不插播：" + cur.call())
+	# W 的笑声同属战斗台词
+	if len_of.call("wisadel", "w_laugh") > 0.0:
+		fresh.call(6000.0)
+		at.call(6000.0, "wisadel", "w_laugh")
+		at.call(6000.2, "texas", "skill_1")
+		ok(cur.call() == "texas:skill_1", "技能语音打断 W 的笑声：" + cur.call())
+	S.voice_player.free()
+	S.voice_fader.free()
+	S.free()
 
 
 ## 星熊的新积木（docs/61「星熊」节，op_blocks.gd 末尾「星熊 hoshiguma」段）：校验正反例、编译结果、线段判定、格挡概率、随机数只在需要时取

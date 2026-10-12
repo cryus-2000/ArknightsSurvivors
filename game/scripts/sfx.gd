@@ -153,6 +153,9 @@ func _ready() -> void:
 	voice_player = AudioStreamPlayer.new()
 	voice_player.bus = "Voice"
 	add_child(voice_player)
+	voice_fader = AudioStreamPlayer.new()
+	voice_fader.bus = "Voice"
+	add_child(voice_fader)
 	var cfg: Node = get_node_or_null("/root/Cfg")
 	if cfg != null and "voice" in cfg:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(cfg.voice), 0.0001)))
@@ -507,18 +510,29 @@ var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
 
 
 # ---------------------------------------------------------------- 干员语音（Codex 交付 game/audio/voice，README 事件映射）
-## 用户定（2026-09-26 第二版）：语音要全（不再按时长筛掉），但**绝不打断正在播的语音**、整体频率要低。
+## 用户定（2026-09-26 第二版）：语音要全（不再按时长筛掉），但**不打断正在播的语音**、整体频率要低。
 ## 规则：同一时刻只有一条，占线时新语音直接放弃（部署语音排队）；两条之间至少隔 VOICE_GAP 秒；
 ## 每名干员自己的任意语音之间至少隔 VOICE_OP_GAP 秒；同一句另有冷却（一技能最长，因为它放得最频繁）。缺文件静默跳过。
+## 例外（用户 2026-10-12「语音用1」，方案 A）：技能语音（skill_1/2/3）可以打断**正在播的战斗台词**（battle / W 笑声，
+## VOICE_CHATTER）——台词 0.1 秒淡出，技能语音立即开播，全队间隔从打断时刻起算。部署语音、技能语音之间仍互不打断，
+## 战斗台词不打断任何语音；台词播完后的 VOICE_GAP 静默期里技能语音照旧放弃（只打断「正在说的台词」，不抢间隔）。
 const VOICE_MAX_LEN := 8.0             # 只防意外的超长文件；Codex 交付最长 6.4 秒，全部可用
 const VOICE_GAP := 3.0                 # 两条语音之间至少间隔（全队）
 const VOICE_OP_GAP := 15.0             # 同一名干员两条语音之间至少间隔
 const VOICE_CD := {"entry": 0.0, "skill_1": 45.0, "skill_2": 30.0, "skill_3": 20.0, "battle": 60.0, "w_laugh": 75.0}
 const VOICE_PRIO := {"skill_3": 4, "skill_2": 3, "skill_1": 3, "entry": 2, "battle": 1, "w_laugh": 1}
+const VOICE_CHATTER := ["battle", "w_laugh"]   # 可被技能语音打断的战斗台词
+const VOICE_CUT_FADE := 0.1            # 被打断的台词淡出秒数
 ## 响度归一（Codex 交付的各段 RMS 相差约 7 dB）：按各干员实测平均 RMS 拉到 -17 dB 附近（2026-09-26 测量）
 ## 第五批（10-12 量母带）：能天使平均 -13.2 dB → -4；德克萨斯 -17.7 → +0.5；星熊 / 安洁莉娜 / 浊心 -16.2～-16.4，与斯卡蒂、艾琳同档不调
 const VOICE_TRIM := {"eyjafjalla": -4.0, "saria": 1.0, "wisadel": 1.0, "logos": 0.5, "exusiai": -4.0, "texas": 0.5}
 var voice_player: AudioStreamPlayer
+var voice_fader: AudioStreamPlayer     # 被打断的台词换到这里淡出（与 voice_player 轮换）
+var voice_fade_tw: Tween
+var voice_key := ""                    # 正在播（或刚播完）的事件
+var voice_cid := ""
+var voice_play_end := 0.0              # 当前这条播完的时刻（不含 VOICE_GAP）
+var voice_now := -1.0                  # 测试用时钟（≥ 0 时代替墙钟，test_core.test_voice_interrupt）
 var voice_streams := {}                # 路径 -> AudioStream（null = 缺文件或超长）
 var voice_last := {}                   # "cid:key" -> 上次播放时间
 var voice_op_last := {}                # cid -> 该干员上次开口时间
@@ -539,20 +553,32 @@ func _voice_stream(cid: String, key: String) -> AudioStream:
 	return voice_streams[path]
 
 
+func _vnow() -> float:
+	return voice_now if voice_now >= 0.0 else Time.get_ticks_msec() / 1000.0
+
+
+## 技能语音能否打断现在这条：只打断正在说的战斗台词（10-12 方案 A）
+func voice_can_cut(key: String, now: float) -> bool:
+	return key.begins_with("skill") and voice_key in VOICE_CHATTER and now < voice_play_end
+
+
 ## 播一条干员语音；queue = true 时占线则排队（部署语音用），否则直接放弃
 func voice(cid: String, key: String, queue := false) -> void:
 	var st := _voice_stream(cid, key)
 	if st == null:
 		return
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := _vnow()
 	var lk := cid + ":" + key
 	if now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
 		return
 	if key != "entry" and now - float(voice_op_last.get(cid, -999.0)) < VOICE_OP_GAP:
 		return
 	var prio: int = VOICE_PRIO.get(key, 1)
-	# 占线：一律不打断（用户要求）；部署语音排队，其余放弃
+	# 占线：不打断（用户要求）；部署语音排队，其余放弃。例外：技能语音打断正在说的战斗台词（10-12）
 	var busy: bool = voice_player.playing or now < voice_end
+	if busy and voice_can_cut(key, now):
+		_voice_fade_out()
+		busy = false
 	if busy:
 		if queue and voice_queue.size() < 4:
 			voice_queue.append([cid, key])
@@ -560,16 +586,36 @@ func voice(cid: String, key: String, queue := false) -> void:
 	voice_last[lk] = now
 	voice_op_last[cid] = now
 	voice_prio = prio
+	voice_key = key
+	voice_cid = cid
 	voice_player.stream = st
 	voice_player.volume_db = float(VOICE_TRIM.get(cid, 0.0))
-	voice_player.play()
-	voice_end = now + st.get_length() + VOICE_GAP
+	if voice_player.is_inside_tree():   # test_core 里不在场景树中，只验证调度
+		voice_player.play()
+	voice_play_end = now + st.get_length()
+	voice_end = voice_play_end + VOICE_GAP
+
+
+## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
+func _voice_fade_out() -> void:
+	if voice_fade_tw != null and voice_fade_tw.is_valid():
+		voice_fade_tw.kill()
+	voice_fader.stop()
+	var p := voice_fader
+	voice_fader = voice_player
+	voice_player = p
+	if voice_fader.playing and is_inside_tree():
+		voice_fade_tw = create_tween()
+		voice_fade_tw.tween_property(voice_fader, "volume_db", voice_fader.volume_db - 40.0, VOICE_CUT_FADE)
+		voice_fade_tw.tween_callback(voice_fader.stop)
+	else:
+		voice_fader.stop()
 
 
 func _voice_tick() -> void:
 	if voice_queue.is_empty() or voice_player.playing:
 		return
-	if Time.get_ticks_msec() / 1000.0 < voice_end:
+	if _vnow() < voice_end:
 		return
 	var q: Array = voice_queue.pop_front()
 	voice_prio = 0
@@ -582,7 +628,12 @@ func voice_reset() -> void:
 		lp.stop()
 	voice_queue.clear()
 	voice_player.stop()
+	if voice_fade_tw != null and voice_fade_tw.is_valid():
+		voice_fade_tw.kill()
+	voice_fader.stop()
 	voice_prio = 0
+	voice_key = ""
+	voice_play_end = 0.0
 
 
 func _process(delta: float) -> void:
