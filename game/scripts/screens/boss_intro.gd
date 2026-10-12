@@ -28,12 +28,12 @@ const CARDS := {
 	"iberia": {"en": "SAINT OF IBERIA", "sub": "老猎人的枪 · 强化", "portrait": "portraits/boss_iberia", "line": "斗篷破了，他不再说话；手炮只装一发，装得更快、打得更狠。"},
 	"carmen": {"en": "SAINT CARMEN", "sub": "伊比利亚最后的圣徒", "portrait": "portraits/boss_carmen", "line": "退后、装填、瞄准——弹药打空就用炮身砸过来，他仍记得谁是敌人。"},
 	"bishop": {"en": "TIDE BISHOP", "sub": "分离与统一", "portrait": "portraits/boss_bishop", "line": "一方倒下只是假死，两者同时倒下才会真正消散。"},
-	"archon": {"en": "TIDE DEFIER", "sub": "与主教同生共死", "portrait": "portraits/boss_archon", "line": "粗壮的近战海嗣——单独击倒它只会让它假死片刻。"},
-	"immortal": {"en": "TIDE REBUKER", "sub": "与主教共享同一份执念", "portrait": "portraits/boss_immortal", "line": "迅捷的近战海嗣，与主教同生共死。"},
+	"archon": {"en": "TIDE DEFIER", "sub": "接潮主教的护卫", "portrait": "portraits/boss_archon", "line": "粗壮的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"},
+	"immortal": {"en": "TIDE REBUKER", "sub": "接潮主教的另一名护卫", "portrait": "portraits/boss_immortal", "line": "迅捷的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"},
 	"paranoia": {"cn": "「偏执泡影」", "en": "PARANOIA", "sub": "最终 · 变成最厌恶的样子", "portrait": "portraits/boss_paranoia", "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"},
 	"ishar": {"en": "ISHAR-MLA, CORRUPTED HEART", "sub": "最终 · 替大群发声", "portrait": "portraits/boss_ishar", "line": "转化完成后，深海的敌意才显露出来。"},
 	"izumik": {"en": "IZUMIK, FOUNT OF LIFE", "sub": "最终 · 人之光辉", "portrait": "portraits/boss_izumik", "line": "海嗣的母体之一，生命从它身上涌出，也在它身上腐烂。"},
-	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "portrait": "portraits/boss_knight_boss", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今成为海潮的一部分。"},
+	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "portrait": "portraits/boss_knight_boss", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"},
 }
 
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：

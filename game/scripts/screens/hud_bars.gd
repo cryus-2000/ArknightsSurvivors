@@ -100,7 +100,7 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_en = "OUT"
 		st_col = UI.RED
 	elif g.lamp < 30.0:
-		st_txt = "灯火暗淡 · 敌人更快更凶更多 · 拾取 -30%"
+		st_txt = "灯火暗淡 · 敌人移速与伤害 +20% · 拾取 -30%"
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:

@@ -286,7 +286,7 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			Sfx.play("roar", -6.0, 1.4, 0.0)
 		"recruit_knight":
 			g.knight_alive = true
-			g.vfx.show_banner("猎潮的骑士加入了你的旅程")
+			g.vfx.show_banner("猎潮的骑士加入编队")
 		"ingots":
 			g.ingots += int(amt)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
@@ -1162,7 +1162,7 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 					if not e2.dead and not e2.chest and not e2.boss and e2.pos.distance_to(g.ppos) < r + e2.r:
 						e2.stun = maxf(e2.stun, float(a.get("dur", 3.0)) * g.control_mult)
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": r, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.9, 0.6)})
-				g.vfx.add_text(g.ppos + Vector2(0, -96), "荣耀套餐 · 周围晕眩", Color(1.0, 0.9, 0.6), 15)
+				g.vfx.add_text(g.ppos + Vector2(0, -96), "荣耀套餐 · 周围眩晕", Color(1.0, 0.9, 0.6), 15)
 	# 盘蛇之匣：受伤回技力 pct，神经损伤来源再加 corrode_extra（数据 relic_effects.json #94）
 	if g.relics.has("94"):
 		var a: Dictionary = _targs("94")
@@ -1180,7 +1180,7 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 			if not e.dead and not e.chest and not e.boss:
 				e.stun = maxf(e.stun, 3.0)
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.7, "max": 0.7, "col": Color(1.0, 0.9, 0.6)})
-		g.vfx.show_banner("小格兰法洛：全场晕眩")
+		g.vfx.show_banner("小格兰法洛：全场眩晕")
 		Sfx.play("skill", -2.0, 0.7)
 
 

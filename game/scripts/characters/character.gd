@@ -528,7 +528,7 @@ func apply_rejection() -> String:
 	g.stats.add(&"max_hp", "flat", -10.0, "rej:%s:%d" % [id, i])
 	refresh_stats()
 	g.hp = minf(g.hp, g.max_hp)
-	return "%s「%s」海嗣化：技能强度 +40%%、充能 +30%%；主控最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
+	return "%s「%s」海嗣化：技能强度 +40%%、所需技力 +30%%；主控最大生命 -10" % [display_name(), skill_def(i).get("name", "")]
 
 
 ## 解除一个排异反应（docs/57 P18）：撤销那次排异加的属性来源。没有排异时返回 false

@@ -590,7 +590,7 @@ func _draw_diff(vs: Vector2) -> void:
 	var gw: float = pg.rect.size.x - (48.0 if not ph else 32.0)
 	var gh: float = pg.rect.end.y - (20.0 if not ph else 14.0) - gy
 	if lines.is_empty():
-		UI.text(self, font, Vector2(gx, gy + 24), "深海原本的样子：没有额外修正。", 15, _fa(TUI.TXT2, ma))
+		UI.text(self, font, Vector2(gx, gy + 24), "没有额外修正。", 15, _fa(TUI.TXT2, ma))
 	else:
 		if _mod_re == null:
 			_mod_re = RegEx.new()
@@ -1113,7 +1113,7 @@ const TOUCH_GUIDE := [
 	["手动技能", "主控有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点"],
 	["手动普攻", "可在设置 · 游戏里把普攻改为手动：冲刺键左侧出现攻击键，按住攻击，拖动选方向"],
 	["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
-	["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
+	["灯火", "受击时损失，拾取灯油补充；低于 30 时敌人更快、伤害更高；归零后持续掉血"],
 	["经验", "离开视野 6 秒的经验结晶会自动回收。"],
 	["升级 / 藏品", "点击卡片选择"],
 	["属性 / 暂停", "右侧「暂停」「属性」键；属性面板点任意处关闭"],
@@ -1134,7 +1134,7 @@ func _draw_guide(vs: Vector2) -> void:
 		["手动普攻", "可在设置 · 游戏里把普攻改为手动：左键 / J 攻击，朝光标方向"],
 		["选落点", "乌尔比安三技能：鼠标指哪落哪；或按住 Q / E 蓄距离、松手掷出；手柄右摇杆推多远落多远"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
-		["灯火", "受击时熄灭一截，拾取灯油补充；过低时敌人变强"],
+		["灯火", "受击时损失，拾取灯油补充；低于 30 时敌人更快、伤害更高；归零后持续掉血"],
 		["经验", "离开视野 6 秒的经验结晶会自动回收。"],
 		["升级 / 藏品", "按数字键或点击选择"],
 		["属性 / 暂停", "Tab 或 C 查看属性　　Esc 暂停　　M 开关音乐　　R 重来　　T 回标题"],
@@ -2165,7 +2165,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 	var tw := UI.text_at(self, font, Vector2(182, 27), "更换封面干员" if cover_pick else "选择开局干员", 20, UI.TEXT, "lm")
 	var sx := 182.0 + tw + 20.0
 	if cover_pick:
-		UI.text_at(self, font, Vector2(sx, 14), "与博士一起站在浪边的干员", 12, UI.B_SUB)
+		UI.text_at(self, font, Vector2(sx, 14), "显示在标题页上的干员", 12, UI.B_SUB)
 		UI.text_at(self, font, Vector2(sx, 30), "不改变开局编队", 11, UI.B_SUB)
 	else:
 		UI.text_at(self, font, Vector2(sx, 14), "主控 1 名；其余干员在探索中通过升级招募", 12, UI.B_SUB)
