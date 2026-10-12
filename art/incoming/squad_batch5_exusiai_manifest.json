@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "ac308561a281601c0100023c09d81ace41136f2bcdcbe820d9a15aa6763e14a7"
+      "sha256": "8b65c9b5b1cbfcc3d36fa705e4e14caf516cc406279947a69dbd5f71896cf1d0"
     },
     {
       "file": "op_exusiai_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "776d02ea74e3062368f7dfc247b1b521bf7a3541fdd291917e08ff5711379c1a"
+      "sha256": "f55617a43460380ecea73efc56cf56a5486b2c46726617cf782d42fc71054f1a"
     },
     {
       "file": "op_exusiai_attack.png",
