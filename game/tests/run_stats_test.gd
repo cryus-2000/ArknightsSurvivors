@@ -100,6 +100,16 @@ func test_fake_details() -> void:
 	ok(RunStats.pct_ints([0, 0]) == [0, 0], "最大余数法：全 0")
 	ok(RunStats.pct_ints([999, 1]) == [100, 0] or RunStats.pct_ints([999, 1]) == [99, 1], "最大余数法：极端比例")
 	ok(game.run_stats.fmt_n(1291000.0) == "1,291,000" and game.run_stats.fmt_n(12.0) == "12", "千分位")
+	# 右栏统计表：数值与模型一致
+	var sv := {}
+	for st in m.stats:
+		sv[st.label] = st
+	near(float(sv["造成伤害"].v), float(m.total), "统计表：造成伤害 = 全队伤害", 0.0001)
+	ok(int(sv["技能发动"].v) == 60, "统计表：技能发动 = 各干员合计（%d）" % int(sv["技能发动"].v))
+	ok(int(sv["藏品"].v) == 5 and int(sv["Boss 击破"].v) == 3 and int(sv["打开补给箱"].v) == 6, "统计表：藏品 / Boss 击破 / 补给箱")
+	ok(sv.has("源石锭熔铸") and sv.has("海嗣祭坛") and int(sv["点亮引航灯标"].v) == 4, "统计表：熔铸、祭坛、灯标")
+	near(float(sv["受到伤害"].v), float(m.leader.taken), "统计表：受到伤害 = 主控承伤", 0.0001)
+	ok(m.final_boss.name == "偏执泡影" and m.relic_list.size() == 5, "胜利：最终 Boss 与藏品列表")
 	var top: Array = game.run_stats.top_sources(m.rows[0].sources, 3)
 	var tv := 0.0
 	var tp := 0
@@ -146,6 +156,12 @@ func test_real() -> void:
 	near(ls, float(game.t), "真实局：灯火四档时长合计 = 局内时间", 0.05)
 	var m: Dictionary = RunStats.model(RunStats.snapshot(game))
 	test_model(m, "真实局")
+	var sv := {}
+	for st in m.stats:
+		sv[st.label] = st
+	ok(int(sv["击杀"].v) == int(game.kills) and int(sv["藏品"].v) == game.relics.size(), "真实局：统计表击杀 / 藏品数")
+	ok(float(sv["获得经验"].v) > 0.0 and float(sv["探索时间"].v) >= 45.0, "真实局：统计表经验与时间")
+	ok(m.relic_list.size() == game.relics.size(), "真实局：藏品列表按拾取顺序全部列出")
 	near(float(m.total), out, "真实局：模型全队伤害 = dmg_out 合计", 0.0001)
 
 
@@ -216,8 +232,25 @@ func test_screen() -> void:
 		rs.show_model(RunStats.model(RunStats.fake_raw()))
 		await _redraw()
 		var tag := "假记录 %dx%d" % [int(vs.x), int(vs.y)]
-		ok(_cards().size() == 5, tag + "：五张卡（四名干员 + 藏品与支援）")
+		ok(_cards().size() == 5, tag + "：编队条五张卡（四名干员 + 藏品与支援）")
 		_in_bounds(vs, tag + " 总览")
+		if vs.y >= 560.0:
+			ok(rs.cells.filter(func(c): return c[1] == "relic").size() == 5, tag + "：藏品格五格")
+			rs.key(KEY_UP)
+			ok(rs.zone == 0, tag + "：编队条 ↑ 进藏品格")
+			rs.key(KEY_RIGHT)
+			ok(rs.rel == 1, tag + "：藏品格 → 选下一件")
+			rs.key(KEY_DOWN)
+			ok(rs.zone == 1, tag + "：藏品格最下一行 ↓ 回编队条")
+		else:
+			for tb in [1, 2, 0]:
+				rs._act("tab", tb)
+				await _redraw()
+				_in_bounds(vs, tag + " 第 %d 页" % tb)
+				if tb == 1:
+					ok(rs.cells.filter(func(c): return c[1] == "relic").size() == 5, tag + "：藏品页五格")
+				if tb == 2:
+					ok(rs.stat_scroll == 0, tag + "：数据页")
 		var cards: Array = _cards()
 		var ok_gap := true
 		for i in cards.size() - 1:

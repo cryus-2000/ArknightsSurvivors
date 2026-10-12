@@ -1,24 +1,24 @@
 extends RefCounted
 ## 界面 · 作战记录（局终统计，docs/77，2026-10-12）：胜利 / 结局结算与失败结算上的「作战记录」按钮（Tab / C）打开，
 ## 不替换结局演出与结算面板；Esc / Ⓑ / 「返回结算」回到结算。
-## 10-12 用户「UI 简洁一点，数据统计展示也简洁一点」后的 v2：
-## - 总览：结果标签 + 一行要点（时间 · 难度 · 击杀 · 等级）+ 全队伤害分段条 + 干员卡（待机帧、名字、入队、占比大字、伤害 · 每秒）
-##   + 一行 Boss 击破时刻。
-## - 详情（在卡上 Enter / 点卡）：身份卡（伤害 / 占比 / 每秒 / 击杀 / 技能 / 治疗）+ 前 5 个伤害来源（其余并成「其他」）；
-##   主控另有一小块「生存」：受到伤害、生命回复（前 3 个来源）、灯火通明占比、源石锭熔铸。
-## 风格：局外 T5s（docs/37 §8：阶梯切角、藏青抖动、S4 近白选中、像素字数字）。
-## 动效（docs/62 §3.24）：主动作「分段拼合」——全队伤害条按干员一段段从右端滑入落位（out_cubic，错开 70 ms），
-##   每段落位后对应卡片的占比数字计数到终值（次要）。减少动态：直接终态，只留 T1 淡入。
+## v3（10-12 用户「是不是太精简了，学习一下类似于雨中冒险这种是怎么做统计的」）：结构参考雨中冒险 2 的结算「Run Report」，
+## 一屏三栏——左：难度 / 时间、主控、击倒者（失败）或击破的最终 Boss（胜利）；中：藏品格（拾取顺序，选中看名字与效果）+ 编队条
+## （待机帧、入队、全队占比）；右：统计表（标签左、数值右、细分隔线，可滚动）。编队条上 Enter / 点击进干员详情（v2 的简化详情）。
+## 手机：三页（概况 / 藏品 / 数据）。风格：局外 T5s（docs/37 §8）。
+## 动效（docs/62 §3.24）：主动作「藏品依次弹出」（每格 T2 out_back(1.4)，0.6 → 1 倍，间隔 ≤ 35 ms，整组 ≤ 0.6 秒）；
+##   统计数值计数到终值、全队占比条分段落位（次要）。减少动态：直接终态，只留 T1 淡入。
 ## 数据只读 run/run_stats.gd 的 model（不碰 g.rng、不改对局状态）。
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
+const A = preload("res://scripts/art.gd")
+const D = preload("res://scripts/data.gd")
 const RunStats = preload("res://scripts/run/run_stats.gd")
 const Game = preload("res://scripts/game.gd")
 
-const SEG0 := 0.08      # 第一段开始滑入
-const SEG_S := 0.07     # 段间错开
+const SEG0 := 0.08      # 第一格 / 第一段开始
+const SEG_S := 0.07     # 占比条段间错开
 const SEG := UM.T2      # 每段滑入时长
 const TOP_SRC := 5      # 详情里列出的伤害来源条数（其余并成「其他」）
 
@@ -26,12 +26,18 @@ var g: Game
 var open := false
 var model: Dictionary = {}
 var page := 0           # 0 总览 / 1 详情
-var sel := 0            # 选中的行（干员卡）
+var sel := 0            # 选中的干员行
+var zone := 1           # 总览焦点：0 藏品格 / 1 编队条
+var rel := 0            # 选中的藏品
+var tab := 0            # 手机总览页：0 概况 / 1 藏品 / 2 数据
+var stat_scroll := 0    # 统计表滚动
 var t_open := 0.0
 var t_page := 0.0
 var skipped := false
 var cells: Array = []   # [Rect2, 动作, 参数]：命中区（终态位置）
 var _last_mouse := Vector2(-1, -1)
+var _per_row := 1       # 藏品格每行几个（方向键上下用）
+var _tex_miss := {}
 # 每帧绘制用
 var _c: Dictionary
 var _ps := 2
@@ -53,6 +59,10 @@ func show_model(m: Dictionary) -> void:
 	open = true
 	page = 0
 	sel = 0
+	zone = 1
+	rel = 0
+	tab = 0
+	stat_scroll = 0
 	skipped = false
 	t_open = UM.now()
 	t_page = t_open
@@ -76,17 +86,14 @@ func _mt(t0: float) -> float:
 	return UM.now() - t0
 
 
-func _seg_end() -> float:
-	return SEG0 + UM.stagger(maxi(0, rows().size() - 1), SEG_S) + SEG + UM.T2
-
-
 func motion_running() -> bool:
 	if not open or skipped or UM.rm() or UM.skip_all():
 		return false
-	return _mt(t_open) < _seg_end() if page == 0 else _mt(t_page) < 0.4
+	return _mt(t_open) < 0.75 if page == 0 else _mt(t_page) < 0.4
 
 
 # ================================================================== 输入
+## 总览焦点：zone 0 = 藏品格（rel 为下标），zone 1 = 编队条（sel 为干员行）。手机另有三页（tab：概况 / 藏品 / 数据）
 ## 按键（含手柄翻译过来的键）；返回是否处理
 func key(k: int) -> bool:
 	if not open:
@@ -95,19 +102,38 @@ func key(k: int) -> bool:
 		skipped = true   # docs/62 §2.5：确认键先跳到终态
 		return true
 	var n: int = rows().size()
+	var nr: int = relics().size()
 	if page == 0:
 		match k:
-			KEY_LEFT, KEY_A, KEY_UP, KEY_W, KEY_PAGEUP:
-				_move(-1, n)
-			KEY_RIGHT, KEY_D, KEY_DOWN, KEY_S, KEY_PAGEDOWN:
-				_move(1, n)
+			KEY_LEFT, KEY_A:
+				_nav(-1, 0)
+			KEY_RIGHT, KEY_D:
+				_nav(1, 0)
+			KEY_UP, KEY_W:
+				_nav(0, -1)
+			KEY_DOWN, KEY_S:
+				_nav(0, 1)
+			KEY_PAGEUP:
+				stat_scroll = maxi(0, stat_scroll - 3)
+			KEY_PAGEDOWN:
+				stat_scroll += 3
+			KEY_TAB:
+				if _ph:
+					tab = (tab + 1) % 3
+					Sfx.play("ui_move")
+				else:
+					Sfx.play("ui_ok", -6.0)
+					close()
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-				_detail(sel)
-			KEY_ESCAPE, KEY_TAB, KEY_C, KEY_BACKSPACE:
+				if zone == 1 and n > 0:
+					_detail(sel)
+			KEY_ESCAPE, KEY_C, KEY_BACKSPACE:
 				Sfx.play("ui_ok", -6.0)
 				close()
 			_:
 				return false
+		if nr == 0:
+			zone = 1
 		return true
 	match k:
 		KEY_LEFT, KEY_A, KEY_UP, KEY_W, KEY_PAGEUP:
@@ -125,10 +151,32 @@ func key(k: int) -> bool:
 	return true
 
 
-func _move(dx: int, n: int) -> void:
-	var ns := clampi(sel + dx, 0, maxi(0, n - 1))   # 不循环（docs/67 §12 导航规则）
-	if ns != sel:
-		sel = ns
+## 方向键：藏品格内按行列走，最下一行再往下进编队条；编队条往上回到藏品格（不循环，docs/67 §12）
+func _nav(dx: int, dy: int) -> void:
+	var nr: int = relics().size()
+	var n: int = rows().size()
+	var per: int = maxi(1, _per_row)
+	var before := [zone, rel, sel]
+	if _ph and tab != 1:
+		zone = 1
+	if _ph and tab == 1:
+		zone = 0
+	if zone == 0 and nr > 0:
+		if dx != 0:
+			rel = clampi(rel + dx, 0, nr - 1)
+		elif dy < 0:
+			rel = maxi(0, rel - per) if rel >= per else rel
+		elif dy > 0:
+			if rel + per < nr:
+				rel += per
+			elif not _ph:
+				zone = 1
+	else:
+		if dx != 0:
+			sel = clampi(sel + dx, 0, maxi(0, n - 1))
+		elif dy < 0 and nr > 0 and not _ph:
+			zone = 0
+	if [zone, rel, sel] != before:
 		g.kb_nav = true
 		Sfx.play("ui_move")
 
@@ -154,14 +202,23 @@ func click(mp: Vector2) -> bool:
 	return true   # 全屏界面：点空白处不落到下面的结算按钮
 
 
-func wheel(_dy: int) -> void:
-	pass   # v2 详情最多 6 行，不用滚动
+func wheel(dy: int) -> void:
+	if open and page == 0:
+		stat_scroll = maxi(0, stat_scroll + dy)
 
 
 func _act(a: String, arg) -> void:
 	match a:
 		"card":
+			zone = 1
 			_detail(int(arg))
+		"relic":
+			zone = 0
+			rel = int(arg)
+		"tab":
+			if tab != int(arg):
+				tab = int(arg)
+				Sfx.play("ui_move")
 		"back":
 			Sfx.play("ui_ok", -6.0)
 			if page == 1:
@@ -384,60 +441,297 @@ func _header(vs: Vector2, title: String, en: String) -> float:
 	return y_t + (36.0 if not _ph else 26.0)
 
 
-# ------------------------------------------------------------------ 总览
+# ------------------------------------------------------------------ 总览（v3：雨中冒险 2 结算的三栏结构）
+func relics() -> Array:
+	return model.get("relic_list", [])
+
+
+func _relic_tex(id: String) -> Texture2D:
+	var k := "relic_" + id
+	var tx: Texture2D = g.tex.get(k)
+	if tx == null and not _tex_miss.has(k):
+		tx = A.tex(k)
+		if tx == null:
+			_tex_miss[k] = true
+		else:
+			g.tex[k] = tx
+	return tx
+
+
+## 敌人第一帧：[贴图, 源矩形]（没有贴图返回 []）
+func _enemy_frame(ty: String) -> Array:
+	var tn := str(D.ENEMIES.get(ty, {}).get("tex", ""))
+	if tn == "":
+		return []
+	var tx: Texture2D = g.tex.get(tn)
+	if tx == null and not _tex_miss.has(tn):
+		tx = A.tex(tn)
+		if tx == null:
+			_tex_miss[tn] = true
+		else:
+			g.tex[tn] = tx
+	if tx == null:
+		return []
+	var fh: int = tx.get_height()
+	var nf: int = maxi(1, tx.get_width() / maxi(1, fh))
+	var fw: int = tx.get_width() / nf
+	return [tx, Rect2(0, 0, fw, fh)]
+
+
 func _draw_overview(vs: Vector2) -> void:
 	var t := _mt(t_open)
-	var M := 40.0 if not _ph else 24.0
-	var y := _header(vs, "作战记录", "RUN RECORD")
-	var rws: Array = rows()
-	# 一行要点：时间 · 难度 · 击杀 · 等级
-	var facts: Array = [["演练用时" if bool(model.get("trial", false)) else "探索时间", fmt_t(float(model.get("t", 0.0)))],
-		["难度", str(model.get("tier_name", ""))], ["击杀", fmt_n(float(model.get("kills", 0)))],
-		["等级", "Lv.%d %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)]]]]
-	var x := M
-	var fs := 15 if not _ph else 13
-	for i in facts.size():
-		if i > 0:
-			x += _t(Vector2(x, y), "·", fs, TUI.CY_DIM) + 12.0
-		x += _t(Vector2(x, y), facts[i][0], fs, TUI.TXT2) + 8.0
-		x += _t(Vector2(x, y), facts[i][1], fs, TUI.TXT) + 12.0
-	# 全队伤害 + 分段条（招牌：分段拼合）
-	y += 40.0 if not _ph else 28.0
-	var total: float = float(model.get("total", 0.0))
-	var lw := _t(Vector2(M, y), "全队伤害", 14 if not _ph else 13, TUI.TXT2) + 10.0
-	var nw := _p(Vector2(M + lw, y), fmt_n(total), 2.0, TUI.TXT)
-	_t(Vector2(M + lw + nw + 14, y), "每秒 %s" % fmt_n(float(model.get("dps", 0.0))), 14 if not _ph else 13, TUI.TXT2)
-	var bar := Rect2(M, y + (16 if not _ph else 12), vs.x - M * 2.0, 24.0 if not _ph else 16.0)
-	_squad_bar(bar, rws, t)
-	# 干员卡
-	var cy0 := bar.end.y + (28.0 if not _ph else 16.0)
-	var foot_h := 92.0 if not _ph else 66.0
-	var ch := minf(vs.y - cy0 - foot_h, 280.0 if not _ph else 250.0)
-	var n := rws.size()
-	var cg := 14.0 if not _ph else 8.0
-	var cw: float = minf(250.0 if not _ph else 220.0, (vs.x - M * 2.0 - cg * maxf(0.0, n - 1)) / maxi(1, n))
-	var cx := M + ((vs.x - M * 2.0) - (cw * n + cg * maxf(0.0, n - 1))) * 0.5
-	for i in n:
-		var cr := Rect2(cx, cy0, cw, ch)
-		if _hovered(cr) and sel != i:
-			sel = i
-		_card(cr, rws[i], i, t)
-		cells.append([cr, "card", i])
-		cx += cw + cg
-	# Boss 击破时刻（一行）
-	var parts: Array = []
-	for b in model.get("bosses", []):
-		if float(b.t1) >= 0.0:
-			parts.append("%s %s" % [str(b.name), fmt_t(float(b.t1))])
-	var by := cy0 + ch + (28.0 if not _ph else 18.0)
-	if not parts.is_empty():
-		var bx := M + _t(Vector2(M, by), "Boss 击破", 13 if not _ph else 12, TUI.TXT2) + 12.0
-		_t(Vector2(bx, by), "   ".join(parts), 13 if not _ph else 12, TUI.TXT, 0, vs.x - bx - M - (0.0 if not _ph else 180.0))
-	# 返回与提示
+	var M := 32.0 if not _ph else 20.0
+	var top := _header(vs, "作战记录", "RUN REPORT") + (4.0 if not _ph else 0.0)
+	var bot := vs.y - (68.0 if not _ph else 64.0)
+	if _ph:
+		# 手机：三页（概况 / 藏品 / 数据），页签在标题行右边
+		var names := ["概况", "藏品", "数据"]
+		for i in 3:
+			var trr := Rect2(vs.x - M - (3 - i) * 96.0 + 8.0, 22.0, 88.0, 36.0)
+			var rr := _tile(trr, 2, tab == i)
+			_t(rr.get_center(), names[i], 15, TUI.SEL_INK if tab == i else TUI.TXT2, 1)
+			cells.append([trr.grow_individual(0, 8, 0, 6), "tab", i])
+		match tab:
+			0:
+				_left(Rect2(M, top, 300.0, bot - top), t)
+				_squad_zone(Rect2(M + 316.0, top, vs.x - M * 2.0 - 316.0, bot - top), t)
+			1:
+				_relic_zone(Rect2(M, top, vs.x - M * 2.0, bot - top), t)
+			2:
+				_stats(Rect2(M, top, vs.x - M * 2.0, bot - top), t)
+	else:
+		var lw := 300.0
+		var rw := 356.0
+		var gap := 24.0
+		var cx0 := M + lw + gap
+		var cx1 := vs.x - M - rw - gap
+		_left(Rect2(M, top, lw, bot - top), t)
+		var sq_h := 188.0
+		_relic_zone(Rect2(cx0, top, cx1 - cx0, bot - top - sq_h - 16.0), t)
+		_squad_zone(Rect2(cx0, bot - sq_h, cx1 - cx0, sq_h), t)
+		_stats(Rect2(vs.x - M - rw, top, rw, bot - top), t)
 	var br := Rect2(vs.x - M - (160.0 if not _ph else 150.0), vs.y - (52.0 if not _ph else 56.0), 160.0 if not _ph else 150.0, 34.0 if not _ph else 44.0)
 	_button(br, "返回结算", "ESC" if not Pad.using else "B", "back", _hovered(br))
 	if not _ph:
-		_hints(Vector2(M, br.get_center().y), [["← →", "选择干员"], ["ENTER" if not Pad.using else "A", "详情"]])
+		_hints(Vector2(M, br.get_center().y), [["↑ ↓ ← →", "藏品 / 编队"], ["ENTER" if not Pad.using else "A", "干员详情"], ["PGUP PGDN" if not Pad.using else "LB RB", "滚动数据"]])
+
+
+## 左栏：难度与时间、主控、击倒者（失败）/ 击破的最终 Boss（胜利）
+func _left(r: Rect2, t: float) -> void:
+	var x0 := r.position.x
+	var y := r.position.y + 12.0
+	_t(Vector2(x0, y), "难度", 13, TUI.TXT2)
+	_t(Vector2(x0 + 44, y), str(model.get("tier_name", "")), 15, TUI.TXT, 0, r.size.x - 50.0)
+	y += 34.0
+	_t(Vector2(x0, y), "演练用时" if bool(model.get("trial", false)) else "探索时间", 13, TUI.TXT2)
+	_p(Vector2(x0 + 72, y), fmt_t(float(model.get("t", 0.0))), 3.0, TUI.TXT)
+	y += 26.0
+	# 主控
+	var ld: Dictionary = {}
+	for rw in rows():
+		if rw.leader:
+			ld = rw
+	var ch_h := 170.0 if not _ph else 150.0
+	var cr := _panel(Rect2(x0, y, r.size.x, ch_h), 2, 0.9)
+	if not ld.is_empty():
+		_sprite(str(ld.key), Vector2(cr.position.x + 64.0, cr.position.y + ch_h * 0.5 + 50.0), 3.0 if not _ph else 2.0)
+		var tx := cr.position.x + (132.0 if not _ph else 110.0)
+		_t(Vector2(tx, cr.position.y + 48), str(ld.name), 20 if not _ph else 17, TUI.TXT, 0, cr.end.x - tx - 10.0)
+		_p(Vector2(tx + 2, cr.position.y + 74), str(ld.en), 1.0, TUI.CY_DIM, 0, 2)
+		_t(Vector2(tx, cr.position.y + 104), "Lv.%d · %s" % [int(model.get("level", 1)), ["精零", "精英一", "精英二"][clampi(int(model.get("elite", 0)), 0, 2)]], 14, TUI.TXT2)
+		_t(Vector2(tx, cr.position.y + 128), "主控", 13, TUI.CY_DIM)
+		_ci().draw_rect(Rect2(cr.position.x + 3.0 * _ps / _c.k, cr.position.y + 2.0 * _ps / _c.k, 2.0 * _ps / _c.k, ch_h - 4.0 * _ps / _c.k), ld.col)
+	y += ch_h + 14.0
+	# 击倒者 / 最终 Boss
+	var kr := _panel(Rect2(x0, y, r.size.x, r.end.y - y), 2, 0.9)
+	var won: bool = str(model.get("result", "")) == "win"
+	var kd: Dictionary = model.get("final_boss", {}) if won else model.get("killer", {})
+	var lab := "击破最终 Boss" if won else "击倒者"
+	if won and kd.is_empty():
+		lab = "演练完成"
+	var lc: Color = TUI.CY if won else UI.RED
+	_t(Vector2(kr.position.x + 16, kr.position.y + 22), lab, 14, lc)
+	if kd.is_empty():
+		return
+	var box := Rect2(kr.position.x + 16, kr.position.y + 40, 88, minf(88.0, kr.size.y - 52.0))
+	var fr: Array = _enemy_frame(str(kd.get("type", "")))
+	if not fr.is_empty() and box.size.y > 20.0:
+		var src: Rect2 = fr[1]
+		var k: float = minf(box.size.x / src.size.x, box.size.y / src.size.y)
+		k = floorf(k) if k >= 1.0 else k
+		var sz := src.size * k
+		_ci().draw_texture_rect_region(fr[0], Rect2(TUI.snap(_c, box.get_center() - sz * 0.5), sz), src)
+	else:
+		TUI.pdiamond(_ci(), _c, box.get_center(), 9, _ps, lc)
+	var tx2 := box.end.x + 14.0
+	_t(Vector2(tx2, kr.position.y + 64), str(kd.get("name", "")), 16, TUI.TXT, 0, kr.end.x - tx2 - 10.0)
+	var when := float(model.get("t", 0.0))
+	if won:
+		for b in model.get("bosses", []):
+			if str(b.name) == str(kd.get("name", "")) and float(b.t1) >= 0.0:
+				when = float(b.t1)
+	_t(Vector2(tx2, kr.position.y + 90), "击破于" if won else "倒下于", 12, TUI.TXT2)
+	_p(Vector2(tx2 + 46, kr.position.y + 90), fmt_t(when), 1.0, TUI.TXT)
+
+
+## 中栏上：藏品格（拾取顺序；等级点、遭诅 / 升华角标）+ 选中藏品的名字与效果
+func _relic_zone(r: Rect2, t: float) -> void:
+	var rl: Array = relics()
+	var x0 := r.position.x
+	var y := r.position.y + 12.0
+	var tw := _t(Vector2(x0, y), "藏品", 16, TUI.TXT)
+	_p(Vector2(x0 + tw + 10, y), "%d" % rl.size(), 2.0, TUI.CY)
+	if rl.is_empty():
+		_t(Vector2(x0, y + 40), "这次探索没有获得藏品", 14, TUI.TXT2)
+		_per_row = 1
+		return
+	var cell := 48.0 if not _ph else 46.0
+	_per_row = maxi(1, int(r.size.x / cell))
+	var gy := y + 24.0
+	var info_h := 82.0
+	var rows_fit := maxi(1, int((r.end.y - gy - info_h - 8.0) / cell))
+	var per := _per_row
+	if ceili(rl.size() / float(per)) > rows_fit:
+		cell = maxf(30.0, floorf(r.size.x / ceilf(rl.size() / float(rows_fit))))
+		per = maxi(1, int(r.size.x / cell))
+		_per_row = per
+	rel = clampi(rel, 0, rl.size() - 1)
+	var n := rl.size()
+	var step := minf(0.035, 0.42 / maxf(1.0, n))
+	var cl: float = _ps / _c.k
+	var mp := _mouse()
+	for i in n:
+		var it: Dictionary = rl[i]
+		var cr := Rect2(x0 + (i % per) * cell, gy + (i / per) * cell, cell - 6.0, cell - 6.0)
+		cells.append([cr, "relic", i])
+		if not g.kb_nav and not Pad.using and cr.has_point(mp):
+			zone = 0
+			rel = i
+		var on := zone == 0 and rel == i
+		var d := SEG0 + i * step
+		var e := 1.0 if UM.rm() else clampf((t - d) / UM.T2, 0.0, 1.0)
+		if e <= 0.0:
+			continue
+		var a := clampf((t - d) / UM.T1, 0.0, 1.0) if not UM.rm() else 1.0
+		var col: Color = UI.CAT_COL.get(str(it.cat), UI.GOLD)
+		var rr := _tile(cr, 1, on, a)
+		_ci().draw_rect(Rect2(rr.position + Vector2(cl * 2.0, cl * 2.0), Vector2(cl * 4.0, cl)), _fa(col, a))
+		var sc := 1.0 if UM.rm() else 0.6 + 0.4 * UM.out_back(e, 1.4)
+		var isz := 32.0 * sc if cell >= 44.0 else 16.0 * sc
+		var ic := _relic_tex(str(it.id))
+		var c := rr.get_center()
+		if ic != null:
+			_ci().draw_texture_rect(ic, Rect2((c - Vector2(isz, isz) * 0.5).round(), Vector2(isz, isz)), false, Color(1, 1, 1, a))
+		else:
+			_t(c, str(it.name).substr(0, 1), 14, _fa(col, a), 1)
+		# 等级点（左下）、遭诅 / 升华角标（右上）
+		if int(it.lv) > 1:
+			for q in mini(int(it.lv), 5):
+				_ci().draw_rect(Rect2(rr.position.x + cl * 2.0 + q * cl * 3.0, rr.end.y - cl * 3.0, cl * 2.0, cl * 1.5), _fa(col.lightened(0.3), a))
+		var rar := str(it.rarity)
+		if rar == "遭诅古物" or rar == "升华":
+			var mc: Color = UI.RED if rar == "遭诅古物" else UI.VIOLET
+			var p0 := Vector2(rr.end.x - cl * 1.0, rr.position.y + cl * 1.0)
+			_ci().draw_colored_polygon(PackedVector2Array([p0, p0 + Vector2(-cl * 6.0, 0), p0 + Vector2(0, cl * 6.0)]), _fa(mc, a))
+	# 选中藏品的说明
+	var it2: Dictionary = rl[rel]
+	var iy := gy + ceilf(n / float(per)) * cell + 6.0
+	var ir := _panel(Rect2(x0, iy, r.size.x, minf(info_h, r.end.y - iy)), 2, 0.9)
+	var nm := str(it2.name)
+	var nw := _t(Vector2(ir.position.x + 14, ir.position.y + 18), nm, 15, TUI.TXT, 0, ir.size.x * 0.6)
+	var tag := str(it2.rarity)
+	if int(it2.max) > 1:
+		tag = "Lv.%d / %d · %s" % [int(it2.lv), int(it2.max), tag]
+	var rc: Color = UI.RED if str(it2.rarity) == "遭诅古物" else (UI.VIOLET if str(it2.rarity) == "升华" else TUI.CY_DIM)
+	_t(Vector2(ir.position.x + 24 + nw, ir.position.y + 18), tag + " · " + str(it2.cat), 12, rc, 0, ir.size.x - nw - 40.0)
+	var lines: PackedStringArray = UI.wrap_lines(g.font, str(it2.desc), 12, ir.size.x - 28.0)
+	for li in mini(lines.size(), 3):
+		var ln := lines[li]
+		if li == 2 and lines.size() > 3:
+			ln = ln.substr(0, maxi(0, ln.length() - 1)) + "…"
+		_t(Vector2(ir.position.x + 14, ir.position.y + 40 + li * 17), ln, 12, TUI.TXT2)
+
+
+## 中栏下：编队条（待机帧、入队、全队占比条 + 百分比），Enter / 点击进干员详情
+func _squad_zone(r: Rect2, t: float) -> void:
+	var rws: Array = rows()
+	var x0 := r.position.x
+	var y := r.position.y + 12.0
+	var tw := _t(Vector2(x0, y), "编队", 16, TUI.TXT)
+	var total: float = float(model.get("total", 0.0))
+	_t(Vector2(x0 + tw + 14, y), "全队伤害 %s · 每秒 %s" % [fmt_n(total), fmt_n(float(model.get("dps", 0.0)))], 13, TUI.TXT2, 0, r.size.x - tw - 20.0)
+	var bar := Rect2(x0, y + 16.0, r.size.x, 10.0 if not _ph else 8.0)
+	_squad_bar(bar, rws, t)
+	var cy0 := bar.end.y + 12.0
+	var n := rws.size()
+	var cg := 8.0
+	var cw: float = minf(130.0, (r.size.x - cg * maxf(0.0, n - 1)) / maxi(1, n))
+	var ch: float = minf(r.end.y - cy0, 210.0)
+	for i in n:
+		var row: Dictionary = rws[i]
+		var cr := Rect2(x0 + i * (cw + cg), cy0, cw, ch)
+		if _hovered(cr) and (sel != i or zone != 1):
+			sel = i
+			zone = 1
+		cells.append([cr, "card", i])
+		var on := zone == 1 and sel == i
+		var rr := _tile(cr, 2, on)
+		var ink: Color = TUI.SEL_INK if on else TUI.TXT
+		var sub: Color = TUI.SEL_SUB if on else TUI.TXT2
+		var cl: float = _ps / _c.k
+		_ci().draw_rect(Rect2(rr.position.x + cl * 3.0, rr.position.y + cl * 2.0, rr.size.x - cl * 6.0, cl * 2.0), row.col)
+		var foot := rr.position.y + minf(ch * 0.5, 80.0)
+		_sprite(str(row.key), Vector2(rr.get_center().x, foot), 2.0 if (not _ph and cw >= 96.0) else 1.4)
+		var yy := foot + 14.0
+		_t(Vector2(rr.position.x + 10, yy), str(row.name), 13, ink, 0, cw - 16.0)
+		yy += 17.0
+		_t(Vector2(rr.position.x + 10, yy), _join_text(row), 11, sub, 0, cw - 16.0)
+		yy += 24.0
+		if yy < rr.end.y - 6.0:
+			var ck := _count_k(t, i)
+			_p(Vector2(rr.position.x + 10, yy), "%d%%" % int(round(float(row.pct) * ck)), 2.0, ink)
+			_t(Vector2(rr.end.x - 8, yy), fmt_n(float(row.dmg)), 11, sub, 2, cw * 0.55)
+
+
+## 右栏：统计表（标签左、数值右、细分隔线；放不下时 PgUp / PgDn / 滚轮滚动）。数值计数到终值
+func _stats(r: Rect2, t: float) -> void:
+	var st: Array = model.get("stats", [])
+	var x0 := r.position.x
+	var y := r.position.y + 12.0
+	_t(Vector2(x0, y), "数据", 16, TUI.TXT)
+	_p(Vector2(x0 + 44, y), "STATS", 1.0, TUI.CY_DIM, 0, 2)
+	var cols := 2 if _ph else 1
+	var gap := 24.0
+	var cw: float = (r.size.x - gap * (cols - 1)) / cols
+	var rh := 25.0 if not _ph else 26.0
+	var y0 := y + 22.0
+	var vis := maxi(1, int((r.end.y - y0) / rh)) * cols
+	stat_scroll = clampi(stat_scroll, 0, maxi(0, st.size() - vis))
+	for k in mini(vis, st.size() - stat_scroll):
+		var i := stat_scroll + k
+		var s: Dictionary = st[i]
+		var cx := x0 + (k / (vis / cols)) * (cw + gap) if cols > 1 else x0
+		var ry := y0 + (k % (vis / cols)) * rh + rh * 0.5
+		_ci().draw_rect(Rect2(cx, roundf(ry + rh * 0.5 - 1.0), cw, 1), Color(1, 1, 1, 0.07))
+		_t(Vector2(cx, ry), str(s.label), 13, TUI.TXT2)
+		var ck := 1.0 if UM.rm() else UM.linear((t - SEG0 - mini(i, 12) * 0.02) / UM.T3)
+		var v: float = float(s.v) * ck
+		var txt: String
+		match str(s.fmt):
+			"t":
+				txt = fmt_t(v)
+			"pct":
+				txt = "%d%%" % int(round(v))
+			"txt":
+				txt = str(s.get("txt", "")) if ck >= 1.0 else fmt_n(v)
+			_:
+				txt = fmt_n(v)
+		var vw := _t(Vector2(cx + cw, ry), txt, 14, TUI.TXT, 2)
+		if s.has("sub") and str(s.sub) != "":
+			var lw0: float = g.font.get_string_size(str(s.label), HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+			_t(Vector2(cx + cw - vw - 10, ry), str(s.sub), 11, TUI.CY_DIM, 2, cw - vw - lw0 - 24.0)
+	if st.size() > vis:
+		_p(Vector2(x0 + r.size.x, y), "%d-%d / %d" % [stat_scroll + 1, mini(stat_scroll + vis, st.size()), st.size()], 1.0, TUI.CY_DIM, 2)
 
 
 ## 计数动画系数：第 i 段落位前 0.1 秒开始，T3 线性数到终值
@@ -447,14 +741,12 @@ func _count_k(t: float, i: int) -> float:
 	return UM.linear((t - (SEG0 + UM.stagger(i, SEG_S) + SEG) + 0.1) / UM.T3)
 
 
-## 全队伤害分段条：第 i 段从条的右端滑入落位（out_cubic），落定时 1 格亮边闪一下（T1）
+## 全队伤害分段条：第 i 段从条的右端滑入落位（out_cubic）
 func _squad_bar(r: Rect2, rws: Array, t: float) -> void:
 	var total: float = float(model.get("total", 0.0))
 	_bar(r, [], 1.0, true)
 	if total <= 0.0:
-		_t(Vector2(r.position.x + 8, r.get_center().y), "这次探索没有造成伤害", 12, TUI.TXT2)
 		return
-	var cl: float = _ps / _c.k
 	var x := 0.0
 	for i in rws.size():
 		var w: float = r.size.x * float(rws[i].share)
@@ -464,37 +756,8 @@ func _squad_bar(r: Rect2, rws: Array, t: float) -> void:
 		if e > 0.0:
 			var fx: float = r.position.x + x
 			var sx := fx + (r.end.x - fx) * (1.0 - e)
-			var sr := Rect2(sx, r.position.y, minf(w * (0.4 + 0.6 * e), r.end.x - sx), r.size.y)
-			_bar(sr, [[1.0, rws[i].col]], 1.0, false, clampf(e * 3.0, 0.0, 1.0))
-			var fl: float = (t - SEG0 - UM.stagger(i, SEG_S) - SEG) / UM.T1
-			if fl >= 0.0 and fl < 1.0 and not UM.rm():
-				_ci().draw_rect(Rect2(TUI.snap(_c, sr.position), Vector2(sr.size.x - cl, sr.size.y)), _fa(TUI.SEL, 0.7 * (1.0 - fl)), false, cl)
+			_bar(Rect2(sx, r.position.y, minf(w * (0.4 + 0.6 * e), r.end.x - sx), r.size.y), [[1.0, rws[i].col]], 1.0, false, clampf(e * 3.0, 0.0, 1.0))
 		x += w
-
-
-func _card(r: Rect2, row: Dictionary, i: int, t: float) -> void:
-	var on := i == sel
-	var rr := _tile(r, 3, on)
-	var ink: Color = TUI.SEL_INK if on else TUI.TXT
-	var sub: Color = TUI.SEL_SUB if on else TUI.TXT2
-	var x0 := rr.position.x + (18.0 if not _ph else 12.0)
-	var y0 := rr.position.y
-	var h := rr.size.y
-	var cl: float = _ps / _c.k
-	# 职业色：卡片顶边一道
-	_ci().draw_rect(Rect2(rr.position.x + cl * 4.0, y0 + cl * 2.0, rr.size.x - cl * 8.0, cl * 2.0), row.col)
-	var foot := y0 + h * 0.42
-	_sprite(str(row.key), Vector2(rr.get_center().x, foot), 2.0 if not _ph else 1.4)
-	var y := foot + (18.0 if not _ph else 12.0)
-	_t(Vector2(x0, y), str(row.name), 17 if not _ph else 14, ink, 0, rr.size.x - 28.0)
-	y += 20.0 if not _ph else 16.0
-	_t(Vector2(x0, y), _join_text(row), 12 if not _ph else 11, sub, 0, rr.size.x - 28.0)
-	y += 36.0 if not _ph else 24.0
-	var ck := _count_k(t, i)
-	_p(Vector2(x0, y), "%d%%" % int(round(float(row.pct) * ck)), 5.0 if not _ph else 4.0, ink)
-	y += 34.0 if not _ph else 22.0
-	var dw := _p(Vector2(x0, y), fmt_n(float(row.dmg)), 2.0, ink)
-	_t(Vector2(x0 + dw + 10, y), "每秒 %s" % fmt_n(float(row.dps)), 12 if not _ph else 11, sub, 0, rr.end.x - x0 - dw - 18.0)
 
 
 # ------------------------------------------------------------------ 详情

@@ -123,8 +123,18 @@ func _stats_shot() -> bool:
 			if UM.now() - float(_ss.t) >= 0.3 and not _ss.has("m"):
 				_ss["m"] = true
 				shot.call("motion")
-			if UM.now() - float(_ss.t) >= 1.4:
+			if UM.now() - float(_ss.t) >= 1.4 and not _ss.has("o"):
+				_ss["o"] = true
 				shot.call("overview")
+				if Cfg.touch_device():
+					g.run_stats.tab = 1   # 手机：再截「藏品」「数据」两页
+			if _ss.has("o") and Cfg.touch_device() and g.run_stats.tab == 1 and UM.now() - float(_ss.t) >= 1.8:
+				shot.call("tab1")
+				g.run_stats.tab = 2
+			if _ss.has("o") and Cfg.touch_device() and g.run_stats.tab == 2 and UM.now() - float(_ss.t) >= 2.2:
+				shot.call("tab2")
+				g.run_stats.tab = 0
+			if _ss.has("o") and (not Cfg.touch_device() or UM.now() - float(_ss.t) >= 2.5) and g.run_stats.tab == 0:
 				g.run_stats.key(KEY_ENTER)
 				_ss.phase = 3
 				_ss.t = UM.now()

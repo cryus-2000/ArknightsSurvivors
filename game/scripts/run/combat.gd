@@ -1086,10 +1086,12 @@ func kill(e: Dictionary) -> void:
 		Sfx.play("relic", -2.0, 0.8)
 		g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
 		g.fx.append({"kind": "rays", "pos": e.pos, "life": 0.7, "max": 0.7, "col": Color(0.5, 0.8, 1.0)})
+		g.telemetry.altars += 1   # 作战记录（docs/77）
 		g.endg.open(e.event)
 		return
 	# 补给箱被打碎
 	if e.chest:
+		g.telemetry.chests += 1   # 作战记录（docs/77）
 		Sfx.play("relic", -6.0, 1.3)
 		g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
 		for k in g.rng.randi_range(3, 6):

@@ -64,6 +64,10 @@ var best_hit: Dictionary = {}   # 最高单次伤害：{v, src, op, t}
 var dodges := 0                 # 闪避次数（enemy_hit 判定闪避）
 var dashes := 0                 # 冲刺次数
 var blocks := 0                 # 护盾抵挡次数
+var chests := 0                 # 打开补给箱
+var altars := 0                 # 打开海嗣祭坛
+var ingots_got := 0             # 获得源石锭（gain_ingots，含熔铸后进池的）
+var ingots_spent := 0           # 商店花掉的源石锭（购买 + 刷新）
 var lamp_s: Array = [0.0, 0.0, 0.0, 0.0]   # 灯火四档累计秒数：通明（≥ 70）/ 摇曳（30–69）/ 暗淡（< 30）/ 寂灭（0）
 # ---- 本地保存
 var saved := false

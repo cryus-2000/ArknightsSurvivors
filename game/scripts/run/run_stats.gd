@@ -64,6 +64,24 @@ static func snapshot(g) -> Dictionary:
 	var ending_name := ""
 	if won and not g.trial.active:
 		ending_name = str(D.ENDINGS.get(g.ending, {}).get("name", ""))
+	# 藏品（拾取顺序）：名字、分类、稀有度、等级、简短效果
+	var relic_list: Array = []
+	for id in g.relics:
+		var rd: Dictionary = g.RL.get(id, {})
+		var desc := str(rd.get("desc", ""))
+		if rfx != null and rfx.has_method("display_desc"):
+			desc = str(rfx.display_desc(id))
+		relic_list.append({"id": str(id), "name": str(rd.get("name", id)), "cat": str(rd.get("cat", "")), "rarity": str(rd.get("rarity", "")),
+			"lv": int(rfx.lv.get(id, 1)) if rfx != null else 1, "max": int(rfx.max_lv(id)) if rfx != null else 1, "desc": desc})
+	# 击倒者（失败）：最后一次掉血的来源；最终 Boss（胜利）：结局对应的 Boss
+	var killer := {}
+	if not won:
+		var ks: String = str(tm.last_src)
+		killer = {"key": ks, "name": taken_name(ks), "type": taken_type(ks)}
+	var final_boss := {}
+	if won and not g.trial.active:
+		var bt: String = str(D.ENDINGS.get(g.ending, {}).get("boss", ""))
+		final_boss = {"type": bt, "name": str(D.ENEMIES.get(bt, {}).get("name", bt)).replace("\"", "")}
 	return {"result": "win" if won else "dead", "trial": g.trial.active, "ending": str(g.ending), "ending_name": ending_name,
 		"t": t_end, "t0": g.trial.started_at if g.trial.active else 0.0,
 		"tier": g.tier, "tier_name": str(D.DIFFICULTY_TIERS[g.tier].name), "level": g.level, "elite": g.ch.elite if g.ch != null else 0,
@@ -73,7 +91,8 @@ static func snapshot(g) -> Dictionary:
 		"heal": g.heal_log.duplicate(), "taken": g.dmg_log.duplicate(), "dark_dmg": tm.dark_dmg, "hits": tm.hits,
 		"best": tm.best_hit.duplicate(), "bosses": bosses, "lamp_s": tm.lamp_s.duplicate(),
 		"beacons": [int(g.beacon_sys.lit_n), g.beacons.size()], "dodges": tm.dodges, "dashes": tm.dashes, "blocks": tm.blocks,
-		"low_hp_s": tm.low_hp_s, "fuse": fuse}
+		"low_hp_s": tm.low_hp_s, "fuse": fuse, "relic_list": relic_list, "killer": killer, "final_boss": final_boss,
+		"xp": float(g.pickups.xp_total), "chests": tm.chests, "altars": tm.altars, "ingots_got": tm.ingots_got, "ingots_spent": tm.ingots_spent}
 
 
 static func _sum(d: Dictionary) -> float:
@@ -115,6 +134,14 @@ static func taken_name(k: String) -> String:
 			var ty := k.substr(p.length())
 			return str(D.ENEMIES.get(ty, {}).get("name", ty)).replace("\"", "")
 	return k
+
+
+## 承伤来源键 → 敌人类型（画头像用；黑潮、侵蚀等环境来源返回空串）
+static func taken_type(k: String) -> String:
+	for p in TAKEN_PREFIX:
+		if k.begins_with(p):
+			return k.substr(p.length())
+	return ""
 
 
 ## 行顺序：主控在前，其余按入队时间
@@ -234,7 +261,45 @@ static func model(raw: Dictionary) -> Dictionary:
 	for r in rows:
 		if r.key == str(best.get("op", "")):
 			best_op = r.name
-	return {"result": str(raw.get("result", "dead")), "trial": bool(raw.get("trial", false)), "ending": str(raw.get("ending", "")),
+	var relic_list: Array = raw.get("relic_list", [])
+	var killed := 0
+	for b in bosses:
+		if float(b.t1) >= 0.0:
+			killed += 1
+	var casts_all := 0
+	for r in rows:
+		casts_all += int(r.casts)
+	var ls: Array = raw.get("lamp_s", [0.0, 0.0, 0.0, 0.0])
+	var lt := 0.0
+	for v in ls:
+		lt += float(v)
+	var bc: Array = raw.get("beacons", [0, 0])
+	var fu: Dictionary = raw.get("fuse", {})
+	# 右栏统计表（雨中冒险 2 结算的「标签 — 数值」一列；docs/77 §2.3）。fmt：n 千分位 / t 时间 / pct 百分比 / txt 原样
+	var stats: Array = [
+		{"label": "探索时间", "v": t_end, "fmt": "t"},
+		{"label": "击杀", "v": float(raw.get("kills", 0)), "fmt": "n"},
+		{"label": "精英击杀", "v": float(raw.get("elites", 0)), "fmt": "n"},
+		{"label": "Boss 击破", "v": float(killed), "fmt": "n"},
+		{"label": "造成伤害", "v": total, "fmt": "n", "sub": "每秒 %d" % int(total / t_end)},
+		{"label": "最高单次伤害", "v": float(best.get("v", 0.0)), "fmt": "n", "sub": str(best.get("src", "")) + ("（%s）" % best_op if best_op != "" else "")},
+		{"label": "受到伤害", "v": _sum(taken), "fmt": "n"},
+		{"label": "生命回复", "v": _sum(heal), "fmt": "n"},
+		{"label": "获得经验", "v": float(raw.get("xp", 0.0)), "fmt": "n", "sub": "Lv.%d" % int(raw.get("level", 1))},
+		{"label": "获得源石锭", "v": float(raw.get("ingots_got", 0)), "fmt": "n", "sub": "花费 %d" % int(raw.get("ingots_spent", 0))},
+		{"label": "打开补给箱", "v": float(raw.get("chests", 0)), "fmt": "n"}]
+	if int(raw.get("altars", 0)) > 0:
+		stats.append({"label": "海嗣祭坛", "v": float(raw.altars), "fmt": "n"})
+	if int(bc[0]) > 0 or int(bc[1]) > 0:
+		stats.append({"label": "点亮引航灯标", "v": float(bc[0]), "fmt": "n"})   # 只写点燃数：熄灭消散的灯标会从 g.beacons 移除，「出现数」不可靠
+	stats.append({"label": "灯火通明", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
+	stats.append({"label": "冲刺", "v": float(raw.get("dashes", 0)), "fmt": "n"})
+	stats.append({"label": "技能发动", "v": float(casts_all), "fmt": "n"})
+	stats.append({"label": "藏品", "v": float(relic_list.size()), "fmt": "n"})
+	if bool(fu.get("on", false)):
+		stats.append({"label": "源石锭熔铸", "v": float(fu.get("pct", 0.0)) * 100.0, "fmt": "txt", "txt": "全队伤害 +%s%%" % str(snappedf(float(fu.get("pct", 0.0)) * 100.0, 0.1)).trim_suffix(".0")})
+	return {"relic_list": relic_list, "killer": raw.get("killer", {}), "final_boss": raw.get("final_boss", {}), "stats": stats,
+		"result": str(raw.get("result", "dead")), "trial": bool(raw.get("trial", false)), "ending": str(raw.get("ending", "")),
 		"ending_name": str(raw.get("ending_name", "")), "t": t_end, "tier": int(raw.get("tier", 0)), "tier_name": str(raw.get("tier_name", "")),
 		"level": int(raw.get("level", 1)), "elite": int(raw.get("elite", 0)), "kills": int(raw.get("kills", 0)), "elites": int(raw.get("elites", 0)),
 		"relics": int(raw.get("relics", 0)), "total": total, "dps": total / t_end, "rows": rows,
@@ -281,4 +346,11 @@ static func fake_raw() -> Dictionary:
 		"bosses": [{"type": "path", "name": "塑路者", "t0": 210.0, "t1": 262.0}, {"type": "bishop", "name": "接潮主教", "t0": 420.0, "t1": 497.0},
 			{"type": "paranoia", "name": "偏执泡影", "t0": 600.0, "t1": 742.0}],
 		"lamp_s": [402.0, 231.0, 96.0, 13.0], "beacons": [4, 5], "dodges": 38, "dashes": 214, "blocks": 12, "low_hp_s": 72.0,
-		"fuse": {"pool": 90, "pct": 0.06, "on": true}}
+		"fuse": {"pool": 90, "pct": 0.06, "on": true},
+		"relic_list": [{"id": "1", "name": "精选兽肉罐头", "cat": "编队协同", "rarity": "稀有", "lv": 1, "max": 1, "desc": "示例效果说明。"},
+			{"id": "4", "name": "咖啡平原咖啡糖", "cat": "攻击与输出", "rarity": "基础", "lv": 3, "max": 3, "desc": "示例效果说明，两行以内。"},
+			{"id": "42", "name": "“静音小队”", "cat": "攻击与输出", "rarity": "升华", "lv": 1, "max": 1, "desc": "升华藏品示例。"},
+			{"id": "13", "name": "玻璃小鸟", "cat": "经济", "rarity": "基础", "lv": 2, "max": 3, "desc": "示例。"},
+			{"id": "999", "name": "遭诅示例", "cat": "生存", "rarity": "遭诅古物", "lv": 1, "max": 1, "desc": "遭诅藏品示例。"}],
+		"killer": {}, "final_boss": {"type": "paranoia", "name": "偏执泡影"},
+		"xp": 4210.0, "chests": 6, "altars": 2, "ingots_got": 148, "ingots_spent": 120}

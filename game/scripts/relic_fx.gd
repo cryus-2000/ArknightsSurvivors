@@ -263,6 +263,7 @@ func fuse_pct() -> float:
 func gain_ingots(n: int, text := "") -> void:
 	if n <= 0:
 		return
+	g.telemetry.ingots_got += n   # 作战记录：获得源石锭（含熔铸后进池的，docs/77）
 	if not fuse_on:
 		g.ingots += n
 		if text != "-":

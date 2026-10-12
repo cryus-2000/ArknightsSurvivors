@@ -121,6 +121,7 @@ func buy(i: int) -> void:
 		g.vfx.show_banner("藏品空间已预留给旅途事件；可以升级已有藏品")
 		return
 	g.ingots -= it.price
+	g.telemetry.ingots_spent += it.price   # 作战记录（docs/77）
 	it.sold = true
 	if not g.merchant.is_empty():
 		g.merchant["bought"] = true
@@ -144,6 +145,7 @@ func refresh() -> void:
 	if g.shop_refreshed or g.ingots < price("refresh"):
 		return
 	g.shop_refreshed = true
+	g.telemetry.ingots_spent += price("refresh")
 	g.ingots -= price("refresh")
 	roll()
 	Sfx.play("relic", -6.0)
