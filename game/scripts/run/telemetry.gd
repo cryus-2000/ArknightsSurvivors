@@ -52,6 +52,18 @@ var ring: Array = []            # {t, src, amt, hp_after, boss, zone_out}
 var ring_ctx: Array = []        # [t, dt, corrode_pool, in_mire, 敌人数, 敌弹数, 熄灯]
 var floor_snaps: Array = []     # 不死模式每次托底的快照（最多前 5 次）
 var floor_seen := 0
+# ---- 作战记录（局终统计界面，docs/77，2026-10-12）：按干员拆的输出 / 击杀 / 技能次数等。只累加、不读随机数，不影响同 seed 复现
+const BIN_S := 10.0             # 时间线分箱（局内秒）
+var op_out: Dictionary = {}     # 干员 id（没有干员的来源记 "_other"：援护 / 藏品 / 地雷……）-> {来源名: 有效伤害}
+var op_kills: Dictionary = {}   # 干员 id -> 最后一击数（同上，"_other" = 藏品 / 支援 / 无描述符）
+var op_casts: Dictionary = {}   # 干员 id -> 技能发动次数（spend_sp）
+var out_bins: Array = []        # 每 10 秒一格：{干员 id: 有效伤害}
+var joins: Array = []           # 入队记录：{id, name, en, col, leader, t, left, cls}（被事件替换的干员 left = 离队秒数）
+var best_hit: Dictionary = {}   # 最高单次伤害：{v, src, op, t}
+var dodges := 0                 # 闪避次数（enemy_hit 判定闪避）
+var dashes := 0                 # 冲刺次数
+var blocks := 0                 # 护盾抵挡次数
+var lamp_s: Array = [0.0, 0.0, 0.0, 0.0]   # 灯火四档累计秒数：通明（≥ 70）/ 摇曳（30–69）/ 暗淡（< 30）/ 寂灭（0）
 # ---- 本地保存
 var saved := false
 var build: Dictionary = {}
@@ -78,6 +90,7 @@ func tick(dt: float) -> void:
 	last_pos = g.ppos
 	if g.hp < g.max_hp * 0.35:
 		low_hp_s += dt
+	lamp_s[lamp_tier(g.lamp)] += dt
 	if g.lamp <= 0.0:
 		dark_s += dt
 		dark_dmg += 3.0 * dt
@@ -192,6 +205,67 @@ func tick(dt: float) -> void:
 			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size(),
 			"zone": g.zone_state, "boss": int(_boss_alive())})
 		taken_window = 0.0
+
+
+## 灯火档位（docs/76 §5，以 hud_bars.gd 为准）：0 通明 ≥ 70 / 1 摇曳 30–69 / 2 暗淡 < 30 / 3 寂灭 0
+static func lamp_tier(v: float) -> int:
+	if v <= 0.0:
+		return 3
+	if v < 30.0:
+		return 2
+	if v < 70.0:
+		return 1
+	return 0
+
+
+## ---- 作战记录计数（combat / squad / character / game 调用；docs/77）
+## 一次有效伤害：eff = 实际扣掉的生命（同 dmg_out），raw = 这一下算出来的伤害（不封顶到剩余生命，「最高单次」用）
+func on_dmg(eff: float, raw: float) -> void:
+	var op: String = str(g.hit.get("op", ""))
+	if op == "":
+		op = "_other"
+	var src: String = str(g.hit.get("src", "?"))
+	var d: Dictionary = op_out.get(op, {})
+	if d.is_empty():
+		op_out[op] = d
+	d[src] = float(d.get(src, 0.0)) + eff
+	var bi := int(g.t / BIN_S)
+	while out_bins.size() <= bi:
+		out_bins.append({})
+	var b: Dictionary = out_bins[bi]
+	b[op] = float(b.get(op, 0.0)) + eff
+	if raw > float(best_hit.get("v", 0.0)):
+		best_hit = {"v": raw, "src": src, "op": op, "t": g.t}
+
+
+## 致死的那一下记给当前伤害描述符的干员（combat.damage 里 kill 之前调用）
+func on_kill_credit(e: Dictionary) -> void:
+	if e.get("dead", false) or e.get("chest", false) or e.get("friendly", false):
+		return
+	var op: String = str(g.hit.get("op", ""))
+	if op == "":
+		op = "_other"
+	op_kills[op] = int(op_kills.get(op, 0)) + 1
+
+
+func on_cast(op_id: String) -> void:
+	op_casts[op_id] = int(op_casts.get(op_id, 0)) + 1
+
+
+## 入队 / 离队（squad.add / squad.remove）：名字、颜色等当场记下，被替换掉的干员结算时还能画
+func on_join(op) -> void:
+	for j in joins:
+		if j.id == op.id and int(j.left) < 0:
+			return
+	var c: Color = op.col()
+	joins.append({"id": op.id, "name": op.display_name(), "en": str(op.def.get("en", op.id.to_upper())), "col": [c.r, c.g, c.b],
+		"leader": op.is_leader, "t": g.t, "left": -1.0, "cls": str(op.get("cls"))})
+
+
+func on_leave(op_id: String) -> void:
+	for j in joins:
+		if j.id == op_id and float(j.left) < 0.0:
+			j.left = g.t
 
 
 func _boss_alive() -> bool:

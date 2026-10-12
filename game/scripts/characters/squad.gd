@@ -84,6 +84,8 @@ func add(cid: String):
 		hs["op"] = op.id
 		g.hit_src[k] = hs
 	op.pos = g.ppos + _slot_offset(op.slot)
+	if g.get("telemetry") != null:
+		g.telemetry.on_join(op)   # 作战记录：入队时间、名字、颜色（docs/77）
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
@@ -99,6 +101,8 @@ func add(cid: String):
 func remove(cid: String) -> void:
 	for i in ops.size():
 		if ops[i].id == cid:
+			if g.get("telemetry") != null:
+				g.telemetry.on_leave(cid)
 			if ops[i].has_method("on_leave"):
 				ops[i].on_leave()
 			ops.remove_at(i)

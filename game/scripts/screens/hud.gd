@@ -149,8 +149,11 @@ func _draw_body() -> void:
 			else:
 				if g.trial.active:
 					draw_trial_result(vs, false)
+				elif g.run_stats.open:
+					g.result_btns.clear()
+					g.run_stats.draw(vs)   # 作战记录（docs/77）
 				else:
-					g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["回到标题", "T", "title"]])
+					g.result_screen.draw(vs, "探索终止", "OPERATION FAILED", UI.RED, [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]])
 				# 结算面板淡入：盖一层和过渡末尾同色的暗幕，0.35 秒退去
 				var fa: float = 1.0 - clampf((g.state_age - DEATH_T) / 0.35, 0.0, 1.0)
 				if fa > 0.0:
@@ -158,8 +161,11 @@ func _draw_body() -> void:
 		Game.S.WIN:
 			if g.trial.active:
 				draw_trial_result(vs, true)
+			elif g.run_stats.open:
+				g.result_btns.clear()
+				g.run_stats.draw(vs)   # 作战记录（docs/77）
 			else:
-				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["回到标题", "T", "title"]], true)
+				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]], true)
 
 
 ## 原 _draw_body 开头那段：精英标记、伤害数字（图鉴演示 / 精英化演出时也画），以及之后的升级字样、全屏闪光 / 溟痕 / 受伤红 / 低血 / 低灯暗角、

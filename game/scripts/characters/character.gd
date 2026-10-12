@@ -498,6 +498,8 @@ func spend_sp(i: int) -> void:
 		perm[i] = true
 		sp[i] = sp_need(i)
 	g.rfx.on_skill_start(self, i)
+	if g.get("telemetry") != null:
+		g.telemetry.on_cast(id)   # 作战记录：技能发动次数（docs/77）
 
 
 ## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能

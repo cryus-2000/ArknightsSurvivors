@@ -6,6 +6,7 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const D = preload("res://scripts/data.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot / --motionrec / --motionperf / --motionpress（docs/62）
 var g: Game
 var mshot: MotionShot
@@ -80,6 +81,68 @@ func _vfx_demo() -> void:
 func _init(game: Game) -> void:
 	g = game
 	mshot = MotionShot.new(game)
+
+
+## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
+## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
+## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
+var _ss := {}
+func _stats_shot() -> bool:
+	if _ss.is_empty():
+		_ss = {"on": false}
+		for a in Cfg.dev_args():
+			if a.begins_with("--statsshot="):
+				var pp: PackedStringArray = a.substr(12).split(",")
+				_ss = {"on": true, "sec": float(pp[0]), "dead": pp.has("dead"), "phase": 0, "f": 0}
+	if not _ss.on:
+		return false
+	var shot := func(name: String) -> void:
+		if DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_stats_%s.png" % name)
+		print("STATSSHOT ", name)
+	match int(_ss.phase):
+		0:
+			if g.state != g.S.PLAY or g.t < float(_ss.sec):
+				return false
+			if _ss.dead:
+				g.state = g.S.DEAD
+			else:
+				g.ending = "standard"
+				g.endg.cur = "standard"
+				g.state = g.S.WIN
+			_ss.phase = 1
+			_ss.f = 0
+		1:
+			_ss.f += 1
+			if g.state_age > (2.6 if _ss.dead else 0.8):
+				shot.call("result")
+				g._do_action("stats")
+				_ss.phase = 2
+				_ss.t = UM.now()
+		2:
+			if UM.now() - float(_ss.t) >= 0.3 and not _ss.has("m"):
+				_ss["m"] = true
+				shot.call("motion")
+			if UM.now() - float(_ss.t) >= 1.4:
+				shot.call("overview")
+				g.run_stats.key(KEY_ENTER)
+				_ss.phase = 3
+				_ss.t = UM.now()
+		3:
+			if UM.now() - float(_ss.t) >= 0.9:
+				shot.call("detail0")
+				if g.run_stats.rows().size() > 1:
+					g.run_stats.key(KEY_RIGHT)
+				_ss.phase = 4
+				_ss.t = UM.now()
+		4:
+			if UM.now() - float(_ss.t) >= 0.9:
+				shot.call("detail1")
+				var m: Dictionary = g.run_stats.model
+				print("STATSSHOT_MODEL ", JSON.stringify({"total": m.total, "rows": m.rows.map(func(r): return [r.key, int(r.dmg), r.pct, r.kills, r.casts, snappedf(r.join_t, 1)])}))
+				g.get_tree().quit()
+				_ss.phase = 5
+	return true
 
 
 ## 平衡机器人选卡（docs/27 §6）：像一个「懂玩」的玩家——优先干员深度 / 技能卡，早期见招募就招，
@@ -158,6 +221,8 @@ func step() -> void:
 		_vfx_demo()
 	if mshot.step():
 		return   # 界面动效自测接管这一局（docs/62）
+	if _stats_shot():
+		return   # 作战记录截图接管（docs/77）
 	if g.state == g.S.OPENING and Cfg.dev_args().has("--openshot"):
 		if g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_open_%03d.png" % g.at_frames)

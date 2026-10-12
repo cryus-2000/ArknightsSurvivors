@@ -129,6 +129,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 
 
 func on_dodge() -> void:
+	g.telemetry.dodges += 1
 	g.rfx.on_dodge()
 
 
@@ -608,6 +609,7 @@ func zone_dir() -> Vector2:
 ## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复
 func shield_block() -> void:
 	g.shield -= 1
+	g.telemetry.blocks += 1
 	g.shield_flash = 0.3
 	g.invuln = 0.5
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
@@ -1000,6 +1002,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
+	g.telemetry.on_dmg(eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
 	if g.hit.origin == "relic":
 		g.relic_out += eff
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
@@ -1056,6 +1059,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.count_max = Bal.v("boss/pair_race", 8.0)
 			g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
 			return
+		g.telemetry.on_kill_credit(e)   # 作战记录：最后一击记给当前伤害描述符的干员（docs/77）
 		kill(e)
 
 

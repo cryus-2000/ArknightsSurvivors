@@ -29,6 +29,7 @@ const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
 const ChoicePanel = preload("res://scripts/screens/choice_panel.gd")
 const ResultScreen = preload("res://scripts/screens/result.gd")
+const RunStatsScreen = preload("res://scripts/screens/run_stats_screen.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
 const IntroScreen = preload("res://scripts/screens/intro.gd")
@@ -110,6 +111,7 @@ var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
+var run_stats = RunStatsScreen.new(self)   # 界面 · 作战记录（结算上的「作战记录」按钮 / Tab 打开，docs/77）
 var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state CHOICE）
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
@@ -950,6 +952,8 @@ func _do_action(act: String) -> void:
 			get_tree().reload_current_scene()
 		"title":
 			get_tree().change_scene_to_file("res://main.tscn")
+		"stats":
+			run_stats.open_for_run()
 
 
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
@@ -1046,6 +1050,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	# 跳过 / 播完过渡后 0.35 秒（结算面板淡入期间）再挡一下输入：倒下时习惯连按，第二下别落到还在淡入的结算按钮上（架构建议）
 	if state == S.DEAD and state_age < HudView.DEATH_T + 0.35:
 		return
+	# 作战记录打开时独占输入（docs/77）：键盘 / 手柄（Pad 翻成按键）/ 鼠标与触屏点按 / 滚轮
+	if (state == S.DEAD or state == S.WIN) and run_stats.open:
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				run_stats.click(event.position / Cfg.ui_k)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				run_stats.wheel(-1)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				run_stats.wheel(1)
+			get_viewport().set_input_as_handled()
+		elif event is InputEventKey and event.pressed and not event.echo:
+			if run_stats.key(event.keycode) and is_inside_tree():
+				get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
@@ -1097,6 +1115,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			Sfx.play("ui_ok", -6.0)
 		elif state == S.STATS:
 			state = S.PLAY
+		elif (state == S.DEAD or state == S.WIN) and not trial.active:
+			Sfx.play("ui_ok", -6.0)
+			run_stats.open_for_run()   # 结算 → 作战记录（docs/77）
 		return
 	if state == S.STATS:
 		if k == KEY_ESCAPE:
@@ -1191,6 +1212,7 @@ func _try_dash() -> void:
 	dash_t = DASH_TIME
 	dash_cd = DASH_CD
 	dash_used = true
+	telemetry.dashes += 1   # 作战记录（docs/77）
 	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
 	root_t = 0.0   # 冲刺挣脱冻结 / 束缚
 	apop = maxf(0.0, apop - Bal.v("enemy/apop_dash", 40.0))   # 冲刺清掉一部分凋亡损伤
