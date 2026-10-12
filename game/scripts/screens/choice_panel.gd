@@ -328,7 +328,7 @@ func draw_event_bg(vs: Vector2) -> void:
 	var col_top: float = g.panel_col.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
 	var tt: float = 12.0 if Cfg.touch_device() else 0.0   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
-	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "做出你的选择", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
+	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, 14 if Cfg.touch_device() else 12, Color(0.55, 0.54, 0.52))
 
@@ -349,7 +349,7 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 		g.panel_fg.draw_texture_rect_region(etx, Rect2(Vector2(x0, 8.0).round(), sz), Rect2(fw * fr, 0, fw, fh))
 		x0 += sz.x + 14.0
 	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
-	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  海嗣祭坛  ·  做出你的选择", 11, Color(0.6, 0.59, 0.56))
+	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  海嗣祭坛  ·  选择一项", 11, Color(0.6, 0.59, 0.56))
 	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 	var tw := serif.get_string_size(g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
 	if panel_sub_text != "":

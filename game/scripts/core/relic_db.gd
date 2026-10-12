@@ -41,6 +41,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 			"price_class": e.get("price_class", rarity), "effects": e.get("effects", []),
 			"max_lv": int(e.get("max_lv", 0)),
 			"late_weight": float(e.get("late_weight", 1.0)),
+			"late_fuse": int(e.get("late_fuse", 0)),   # docs/74：源石锭熔铸后获得时，折算成这么多枚源石锭熔铸（锈蚀的铁锤）
 			"new_pool": bool(e.get("new", false)),   # docs/57 第二批实装：balance.json relic/new_pool = 0 时不进池（A/B 用）
 			"implemented": e.has("effects"), "first_batch": r.get("first_batch", false),
 		}

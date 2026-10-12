@@ -6,6 +6,8 @@ Multi-session coordination (Claude sessions): docs/41_agent_team.md. The user no
 
 Original-game reference (Arknights 集成战略 / battle mechanics / boss originals, sourced from PRTS and unpacked game data): docs/49_原作参考.md (sub-files 49a / 49b / 49c). Check it before designing mechanics, numbers or names that borrow from the original.
 
+Language style (binding, user 2026-10-12): all player-facing text (UI, guide, banners, skill / relic / talent effects, gallery, lore, endings, events) must follow docs/76_language_style.md: Arknights / Rhodes Island register, terse and exact, no slogans or moralising tail sentences, the canonical terminology table, and canon character quotes / facts only from PRTS (never invented). Run its self-check list before committing text.
+
 - User owns product decisions. Codex owns character and monster art (player, allies, NPCs, enemies, bosses: idle / move / attack / feign strips and their portraits). Claude owns gameplay code, integration, builds, and all other art: attack and hit effects (fx_*), projectiles (proj_*), warnings, drone / weapon / evo / skill / relic / growth icons, terrain, props, pickups and UI.
 - Claude uses E:\ArknightsSurvivors on main. Codex uses E:\ArknightsSurvivors\.worktrees\codex-art on codex/art.
 - Worktree convention: .worktrees/ (ignored by Git). Do not change branches in the other agent's directory.

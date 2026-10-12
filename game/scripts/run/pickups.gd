@@ -178,7 +178,7 @@ func update(dt: float) -> void:
 				"chest":
 					g.pending_chests += 1
 				"ingot":
-					g.ingots += int(g_item.val)
+					g.rfx.gain_ingots(int(g_item.val), "-")   # 最后一位商人离开后进熔铸池（docs/74）
 					Sfx.play("pickup", -10.0, 1.6, 0.05)
 				"magnet":
 					# 磁铁：吸取全场的经验、灯油和源石锭
