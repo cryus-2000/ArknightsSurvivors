@@ -98,8 +98,8 @@ func _process(_dt: float) -> void:
 			check(is_same(op._execute_target(300.0), hostile), "Wisadel elite priority cannot consume a shot on ally")
 		if cid == "kaltsit":
 			game.stats.define_all(op.stat_defs())
-			op.update(0.01)
-			check(is_same(op.m.tgt, hostile), "Mon3tr autonomous targeting excludes ally")
+			op.update(0.01)   # 数据干员（docs/61 §15.9）：第一帧 trig.on_deploy 放出 Mon3tr，随行召唤物当帧选目标
+			check(not op.sm.is_empty() and op.sm.list.size() == 1 and is_same(op.sm.list[0].tgt, hostile), "Mon3tr autonomous targeting excludes ally")
 		if cid == "mizuki":
 			op.mirror_pos = Vector2.ZERO
 			ally.pos = Vector2(-12, 0)

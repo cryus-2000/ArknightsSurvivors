@@ -3,14 +3,9 @@
  "name": "凯尔希",
  "en": "KAL'TSIT",
  "class": "医疗",
- "col": [
-  0.55,
-  1.0,
-  0.5
- ],
- "script": "res://scripts/characters/kaltsit.gd",
+ "col": [0.55, 1.0, 0.5],
  "base": {
-  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+  "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）",
   "heal_pct": 0.03,
   "heal_cd": 3.5,
   "s1_heal": 0.068,
@@ -28,7 +23,28 @@
   "shell_red": 0.35,
   "melt_stun": 1.5,
   "melt_echo_gap": 0.2,
-  "melt_echo_mult": 0.5
+  "melt_echo_mult": 0.5,
+  "knight_heal": 0.05,
+  "guard_red": 0.2,
+  "guard_dur": 5.0,
+  "e1_heal": 1.5,
+  "e1_dmg": 1.3,
+  "e1_reach": 1.2,
+  "s2_aspd": 1.4,
+  "s2_reach": 1.3,
+  "s2_heal": 1.3,
+  "s3_dur": 8.0,
+  "s3_speed": 1.3,
+  "m_leash": 190,
+  "m_speed": 260,
+  "m_gap": 26,
+  "m_recall": 700,
+  "m_first": 0.8,
+  "melt_r": 130,
+  "melt_stun_lo": 0.5,
+  "rebuild_r": 70,
+  "rebuild_mult": 1.2,
+  "rebuild_stun": 0.8
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1633 / 防御 215 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -38,134 +54,23 @@
   "regen": 1.0
  },
  "sprites": {
-  "idle": {
-   "tex": "op_kaltsit_idle",
-   "frames": 4,
-   "fps": 4,
-   "foot": [
-    24,
-    46
-   ]
-  },
-  "run": {
-   "tex": "op_kaltsit_run",
-   "frames": 6,
-   "fps": 10,
-   "foot": [
-    28,
-    46
-   ]
-  },
-  "attack": {
-   "tex": "op_kaltsit_attack",
-   "frames": 4,
-   "fps": 14,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 2
-  },
-  "skill": {
-   "tex": "op_kaltsit_skill",
-   "frames": 6,
-   "fps": 12,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 3
-  },
+  "idle": {"tex": "op_kaltsit_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
+  "run": {"tex": "op_kaltsit_run", "frames": 6, "fps": 10, "foot": [28, 46]},
+  "attack": {"tex": "op_kaltsit_attack", "frames": 4, "fps": 14, "foot": [24, 46], "fire": 2},
+  "skill": {"tex": "op_kaltsit_skill", "frames": 6, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48,
-  "foot": [
-   24,
-   46
-  ],
-  "m_idle": {
-   "tex": "op_mon3tr_idle",
-   "frames": 4,
-   "fps": 4,
-   "foot": [
-    32,
-    60
-   ]
-  },
-  "m_run": {
-   "tex": "op_mon3tr_run",
-   "frames": 6,
-   "fps": 10,
-   "foot": [
-    32,
-    60
-   ]
-  },
-  "m_attack": {
-   "tex": "op_mon3tr_attack",
-   "frames": 4,
-   "fps": 14,
-   "foot": [
-    32,
-    60
-   ],
-   "fire": 2
-  },
-  "command": {
-   "tex": "op_kaltsit_command",
-   "frames": 6,
-   "fps": 12,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 2
-  },
-  "m_skill": {
-   "tex": "op_mon3tr_skill",
-   "frames": 6,
-   "fps": 12,
-   "foot": [
-    32,
-    60
-   ],
-   "fire": 2
-  },
-  "m_attack_melt": {
-   "tex": "op_mon3tr_attack_melt",
-   "frames": 4,
-   "fps": 14,
-   "foot": [
-    32,
-    60
-   ],
-   "fire": 2
-  }
+  "foot": [24, 46],
+  "m_idle": {"tex": "op_mon3tr_idle", "frames": 4, "fps": 4, "foot": [32, 60]},
+  "m_run": {"tex": "op_mon3tr_run", "frames": 6, "fps": 10, "foot": [32, 60]},
+  "m_attack": {"tex": "op_mon3tr_attack", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2},
+  "command": {"tex": "op_kaltsit_command", "frames": 6, "fps": 12, "foot": [24, 46], "fire": 2},
+  "m_skill": {"tex": "op_mon3tr_skill", "frames": 6, "fps": 12, "foot": [32, 60], "fire": 2},
+  "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2}
  },
- "extra_sprites": [
-  "m_idle",
-  "m_run",
-  "m_attack",
-  "command",
-  "m_skill",
-  "m_attack_melt"
- ],
- "attack": {
-  "mode": "auto",
-  "name": "治疗",
-  "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）",
-  "heal": true
- },
+ "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt"],
+ "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）", "heal": true},
  "skills": [
-  {
-   "name": "医疗单元",
-   "en": "MEDICAL UNIT",
-   "sp": 7,
-   "desc": "立即为主控回复 6.8% 最大生命并清除神经损伤",
-   "heal": true,
-   "cleanse": [
-    "神经损伤"
-   ],
-   "icon": "skill_kaltsit_s1"
-  },
+  {"name": "医疗单元", "en": "MEDICAL UNIT", "sp": 7, "desc": "立即为主控回复 6.8% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
   {
    "name": "战术协同",
    "en": "TACTICAL COORDINATION",
@@ -185,71 +90,17 @@
    "anim": "command"
   }
  ],
- "talent": {
-  "name": "指挥",
-  "desc": "治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"
- },
+ "talent": {"name": "指挥", "desc": "治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"},
  "hit_sources": {
-  "Mon3tr": {
-   "emitter": "summon",
-   "origin": "core",
-   "range": "近战",
-   "kind": "物理",
-   "tags": [
-    "entity",
-    "basic"
-   ]
-  },
-  "Mon3tr · 熔毁": {
-   "emitter": "summon",
-   "origin": "skill",
-   "range": "近战",
-   "kind": "真实",
-   "tags": [
-    "entity",
-    "skill",
-    "area"
-   ]
-  },
-  "Mon3tr · 真伤": {
-   "emitter": "summon",
-   "origin": "skill",
-   "range": "近战",
-   "kind": "真实",
-   "tags": [
-    "entity",
-    "skill"
-   ]
-  }
+  "Mon3tr": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "basic"]},
+  "Mon3tr · 熔毁": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill", "area"]},
+  "Mon3tr · 真伤": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill"]}
  },
  "progression": [
-  {
-   "type": "custom",
-   "id": "twin_claw",
-   "name": "骨爪增生",
-   "icon": "growth_t_count",
-   "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"
-  },
-  {
-   "type": "custom",
-   "id": "wide_arc",
-   "name": "清创",
-   "icon": "growth_u_area",
-   "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"
-  },
-  {
-   "type": "elite",
-   "level": 1,
-   "name": "精英一",
-   "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"
-  },
-  {
-   "type": "custom",
-   "id": "s1_shell",
-   "name": "结构加固",
-   "icon": "skill_kaltsit_s1",
-   "desc": "「医疗单元」同时给主控罩上 3 秒绿色护壳：受到的伤害 -35%"
-  },
+  {"type": "custom", "id": "twin_claw", "name": "骨爪增生", "icon": "growth_t_count", "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"},
+  {"type": "custom", "id": "wide_arc", "name": "清创", "icon": "growth_u_area", "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"},
+  {"type": "custom", "id": "s1_shell", "name": "结构加固", "icon": "skill_kaltsit_s1", "desc": "「医疗单元」同时给主控罩上 3 秒绿色护壳：受到的伤害 -35%"},
   {
    "type": "custom",
    "id": "melt_triple",
@@ -264,13 +115,470 @@
    "desc": "解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 展开四爪，前后同时出爪（身后一爪 70% 伤害）"
   }
  ],
- "gallery": {
-  "tags": [
-   "治疗",
-   "护主控",
-   "召唤",
-   "近战"
+ "gallery": {"tags": ["治疗", "护主控", "召唤", "近战"], "desc": "持续治疗主控，Mon3tr 在身边撕碎靠近的敌人"},
+ "blocks": {
+  "summons": {
+   "mon3tr": {
+    "_doc": "Mon3tr（docs/61 §15.9 随行召唤物）：上场即在；闲时站凯尔希身前偏下，追主控 m_leash 内离主控最近的敌人；爪击朝面向挥出（真伤 / 猩红帧条见 patch）",
+    "name": "Mon3tr",
+    "invuln": true,
+    "life": "permanent",
+    "cap": 1,
+    "r": 14,
+    "col": [0.55, 1.0, 0.5],
+    "status": false,
+    "move": {
+     "mode": "escort",
+     "anchor": "leader",
+     "speed": "$m_speed",
+     "leash": "$m_leash",
+     "rest": [44, 18],
+     "gap": "$m_gap",
+     "avoid": ["self", "leader"],
+     "solid": 14,
+     "recall": "$m_recall"
+    },
+    "manual": "command",
+    "anim": {"idle": "m_idle", "run": "m_run", "attack": "m_attack"},
+    "float": {"h": 4, "amp": 3, "hz": 2.6},
+    "shadow": 1.4,
+    "attack": {
+     "shape": "cone",
+     "atk_key": "m_atk",
+     "r": "$m_reach",
+     "pad": 16,
+     "half": "$m_arc",
+     "dir": "face",
+     "origin": [0, -10],
+     "fx_origin": [0, -14],
+     "kb": 120,
+     "every": "$m_cd",
+     "first": "$m_first",
+     "src": "Mon3tr",
+     "sfx": {"kind": "atk"},
+     "fx": [
+      {"sprite": {"name": "fx_mon3tr_claw", "fit": [64, 0.9, 1.5], "second_scale": 0.9, "second_rot": 1.05}, "along": 0.55, "cond": "!skill_active:2"},
+      {
+       "sprite": {"name": "fx_mon3tr_claw", "fit": [64, 0.9, 1.5], "scale": 0.85, "rot": -0.65, "second_scale": 0.9, "second_rot": 1.05, "tint": [0.8, 1.0, 0.8, 0.8]},
+       "along": 0.55,
+       "off": [0, -6],
+       "cond": "!skill_active:2 && skill_active:1"
+      },
+      {"sparks": {"col": [0.55, 1.0, 0.5], "n": 5, "spd": 160, "life": 0.3, "sz": 2.5}, "along": 0.6, "cond": "!skill_active:2"},
+      {"arc": {"pad": 8, "w": 5, "life": 0.2, "col": [0.5, 1.1, 0.55]}, "first_only": true, "cond": "node:wide_arc && !skill_active:2"},
+      {"sprite": {"name": "fx_mon3tr_melt_slash", "scale_r": 0.034375, "swing_rot": 0.18}, "side_x": 0.38, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"pfx": {"kind": "impact", "r": 20, "life": 0.14, "col": [1.6, 0.15, 0.12]}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"sparks": {"col": [1.7, 0.25, 0.15], "n": 7, "spd": 240, "life": 0.28, "sz": 2.5}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits", "cond": "!skill_active:2"},
+      {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [1.6, 0.15, 0.12], "alpha": 0.55}, "at": "hits", "cond": "skill_active:2"}
+     ]
+    },
+    "patch": [
+     {
+      "_doc": "熔毁：真伤、伤害 × s3_mult × 技能强度、移速 × s3_speed、猩红攻击帧条；待机 / 移动换熔毁帧条（起手 3 帧、f2–f4 循环、结束补末帧 0.12 秒）",
+      "cond": "skill_active:2",
+      "mult": "$s3_mult",
+      "power": true,
+      "src": "Mon3tr · 真伤",
+      "speed": "$s3_speed",
+      "anim": {"attack": "m_attack_melt"},
+      "seq": {"strip": "m_skill", "intro": 3, "loop": [2, 4], "out": 0.12},
+      "sfx": {"db": 2.0, "pitch": 0.85}
+     },
+     {"cond": "skill_active:1", "tint": [1.08, 1.18, 1.05]}
+    ],
+    "fx": [
+     {"ghost": {"every": 0.12, "tint": [1.5, 0.2, 0.15, 0.35]}, "cond": "skill_active:2"},
+     {"mist": {"n": 3, "col": [0.85, 0.025, 0.02, 0.12]}, "cond": "skill_active:2"},
+     {
+      "pfx": {"kind": "glow", "r": [10, 18], "life": 0.5, "col": [1.6, 0.15, 0.12], "alpha": 0.3},
+      "every": 0.07,
+      "jit": [-26, -46, 26, -4],
+      "cond": "skill_active:2"
+     },
+     {
+      "pfx": {"kind": "line", "life": 0.15, "col": [1.6, 0.15, 0.12], "w": 1.5},
+      "every": 0.07,
+      "jit": [-30, -44, 30, 0],
+      "to": "center",
+      "to_jit": [-50, -70, 50, -10],
+      "cond": "skill_active:2"
+     },
+     {
+      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 33, "col": [0.55, 1.0, 0.5], "j": 0},
+      "cond": "elite >= 2 && !skill_active:2"
+     },
+     {
+      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 33, "col": [0.55, 1.0, 0.5], "j": 1},
+      "cond": "elite >= 2 && !skill_active:2 && node:twin_claw"
+     },
+     {"side": {"col": [1.6, 0.15, 0.12], "j": 0}, "cond": "elite >= 2 && skill_active:2"},
+     {"side": {"col": [1.6, 0.15, 0.12], "j": 1}, "cond": "elite >= 2 && skill_active:2 && node:twin_claw"}
+    ]
+   }
+  },
+  "attack": {
+   "_doc": "治疗：每 heal_cd 秒（÷ 攻速 × 战术协同）一拍，主控或骑士同伴没满血才起手；出手帧治骑士 knight_heal、主控 heal_pct（× op_atk × 同伴倍率 × heal_out × 天赋）；溢出时庇护",
+   "shape": "support",
+   "every": "$heal_cd",
+   "first": 1.0,
+   "when": "hurt_any",
+   "do": [
+    {
+     "verb": "heal",
+     "pct": "$heal_pct",
+     "scale": "op",
+     "knight": "$knight_heal",
+     "text": 16,
+     "sfx": "heal",
+     "on_over": [{"verb": "guard", "name": "庇护", "value": "$guard_red", "dur": "$guard_dur", "col": [0.55, 1.0, 0.5]}],
+     "fx": [
+      {"pfx": {"kind": "ring", "r": 30, "r0": 8, "life": 0.4, "col": [0.55, 1.0, 0.5], "floor": true}, "at": "leader"},
+      {"sprite": {"name": "fx_heal_aura_green", "scale": 1.3, "bottom": true}, "at": "leader", "off": [0, 6]},
+      {"sprite": {"name": "fx_holy_impact", "scale": 0.9, "tint": [0.75, 1.3, 0.8]}, "at": "leader", "off": [0, -34]},
+      {
+       "gfx": {"kind": "beam", "life": 0.3, "col": [0.55, 1.0, 0.5], "w": 3.0},
+       "at": "self",
+       "off": [27, -39],
+       "face_x": true,
+       "to": "leader",
+       "to_off": [0, -24]
+      },
+      {"pfx": {"kind": "glow", "r": 10, "life": 0.25, "col": [0.55, 1.0, 0.5], "alpha": 0.5}, "at": "self", "off": [27, -39], "face_x": true}
+     ]
+    }
+   ]
+  },
+  "trait": [
+   {"trig": "on_deploy", "do": [{"verb": "summon", "kind": "mon3tr", "at": "rest"}]},
+   {
+    "trig": "passive",
+    "cond": "elite >= 1",
+    "do": [{"verb": "summon_mod", "kind": "mon3tr", "dmg": "$e1_dmg", "reach": "$e1_reach"}, {"verb": "buff_self", "stat": "heal", "op": "mult", "value": "$e1_heal"}]
+   },
+   {
+    "trig": "on_skill_end",
+    "skill": 2,
+    "at": "summon:mon3tr",
+    "cond": "!node:melt_triple",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$melt_r",
+      "r_abs": true,
+      "atk_key": "m_atk",
+      "mult": "$melt_mult",
+      "power": true,
+      "kb": 260,
+      "stun": "$melt_stun_lo",
+      "src": "Mon3tr · 熔毁",
+      "ring": false,
+      "fx": [
+       {"pfx": {"kind": "glow", "r": 60, "life": 0.3, "col": [2.0, 0.3, 0.15], "alpha": 0.7}, "off": [0, -24]},
+       {"pfx": {"kind": "core", "r": 26, "life": 0.4}, "off": [0, -24]},
+       {"pfx": {"kind": "beamray", "len": [0.8, 1.3], "life": 0.35, "col": [1.6, 0.15, 0.12]}, "n": 10, "ring": 0.2, "r_scale": ["len"], "off": [0, -24]},
+       {
+        "pfx": {"kind": "qshard", "drag": 2.2, "life": [0.5, 0.8], "sz": [5, 11], "ang": [0, 6.2832], "spin": [-9, 9]},
+        "n": 14,
+        "vel_r": [120, 320],
+        "off": [0, -24]
+       },
+       {
+        "pfx": {"kind": "shard", "drag": 2.0, "life": 0.5, "col": [0.03, 0.05, 0.04], "sz": [4, 7], "spin": 10},
+        "n": 10,
+        "vel_r": [100, 260],
+        "ang_vel": true,
+        "off": [0, -24]
+       },
+       {
+        "pfx": {"kind": "mote", "vel": [[-30, 30], [-70, -20]], "life": [0.5, 0.9], "col": [1.6, 0.15, 0.12], "sz": [1.5, 3]},
+        "n": 24,
+        "jit_r": [1, 0.6],
+        "off": [0, -24]
+       },
+       {"pfx": {"kind": "ring", "r": 1, "r0": 12, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r"]},
+       {"pause": 0.075},
+       {"text": {"s": "熔毁", "col": [1.6, 0.15, 0.12], "size": 18}, "off": [0, -70]},
+       {"sfx": "big"},
+       {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+      ]
+     }
+    ]
+   }
   ],
-  "desc": "持续治疗主控，Mon3tr 在身边撕碎靠近的敌人"
+  "skills": [
+   {
+    "aim": "summon:mon3tr",
+    "fx": [{"pfx": {"kind": "ring", "r": 44, "r0": 6, "life": 0.45, "col": [0.55, 1.0, 0.5], "floor": true}, "at": "self"}],
+    "do": [
+     {
+      "verb": "heal",
+      "pct": "$s1_heal",
+      "scale": "op",
+      "power": true,
+      "full": true,
+      "text": 18,
+      "sfx": "heal",
+      "on_over": [{"verb": "guard", "name": "庇护", "value": "$guard_red", "dur": "$guard_dur", "col": [0.55, 1.0, 0.5]}],
+      "fx": [
+       {"pfx": {"kind": "ring", "r": 30, "r0": 8, "life": 0.4, "col": [0.55, 1.0, 0.5], "floor": true}, "at": "leader"},
+       {"sprite": {"name": "fx_heal_aura_green", "scale": 1.3, "bottom": true}, "at": "leader", "off": [0, 6]},
+       {"sprite": {"name": "fx_holy_impact", "scale": 0.9, "tint": [0.75, 1.3, 0.8]}, "at": "leader", "off": [0, -34]},
+       {
+        "gfx": {"kind": "beam", "life": 0.3, "col": [0.55, 1.0, 0.5], "w": 3.0},
+        "at": "self",
+        "off": [27, -39],
+        "face_x": true,
+        "to": "leader",
+        "to_off": [0, -24]
+       },
+       {"pfx": {"kind": "glow", "r": 10, "life": 0.25, "col": [0.55, 1.0, 0.5], "alpha": 0.5}, "at": "self", "off": [27, -39], "face_x": true}
+      ]
+     },
+     {"verb": "cleanse", "what": ["nerve"]}
+    ]
+   },
+   {
+    "dur": "permanent",
+    "aim": "summon:mon3tr",
+    "fx": [
+     {"gfx": {"kind": "rays", "life": 0.5, "col": [0.55, 1.0, 0.5]}, "at": "summon", "off": [0, -30]},
+     {"gfx": {"kind": "beam", "life": 0.35, "col": [0.55, 1.0, 0.5], "w": 3.0}, "at": "self", "off": [0, -26], "to": "summon:mon3tr", "to_off": [0, -30]},
+     {"pfx": {"kind": "glow", "r": 34, "life": 0.35, "col": [0.55, 1.0, 0.5], "alpha": 0.5}, "at": "summon", "off": [0, -28]},
+     {"banner": "战术协同：Mon3tr 永久强化"}
+    ],
+    "do": [
+     {"verb": "summon_mod", "kind": "mon3tr", "aspd": "$s2_aspd", "reach": "$s2_reach"},
+     {"verb": "buff_self", "stat": "interval", "op": "mult", "value": "1/$s2_heal"}
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "aim": "summon:mon3tr",
+    "status": "熔毁",
+    "status_col": [1.6, 0.15, 0.12],
+    "fx": [
+     {"gfx": {"kind": "rays", "life": 0.5, "col": [0.55, 1.0, 0.5]}, "at": "summon", "off": [0, -30]},
+     {"gfx": {"kind": "beam", "life": 0.35, "col": [0.55, 1.0, 0.5], "w": 3.0}, "at": "self", "off": [0, -26], "to": "summon:mon3tr", "to_off": [0, -30]},
+     {"pfx": {"kind": "glow", "r": 34, "life": 0.35, "col": [0.55, 1.0, 0.5], "alpha": 0.5}, "at": "summon", "off": [0, -28]},
+     {"text": {"s": "熔毁", "col": [1.6, 0.15, 0.12], "size": 16}, "at": "summon", "off": [0, -70]}
+    ],
+    "do": []
+   }
+  ],
+  "talent": [],
+  "progression": {
+   "twin_claw": {"verb": "summon_mod", "kind": "mon3tr", "then": {"delay": "$claw2_delay", "mult": "$claw2_mult", "pitch": 1.15}},
+   "wide_arc": {"verb": "summon_mod", "kind": "mon3tr", "arc": "$m_arc_wide"},
+   "s1_shell": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "do": [
+     {
+      "verb": "guard",
+      "name": "结构加固",
+      "value": "$shell_red",
+      "dur": "$shell_dur",
+      "col": [0.55, 1.0, 0.5],
+      "look": {"strip": "fx_kaltsit_shell", "frames": 4, "fps": 6, "anchor": [24, 20], "alpha": 0.5, "off": [0, -22], "fade_in": 0.2, "blink": 0.5},
+      "fx": [{"pfx": {"kind": "ring", "r": 40, "r0": 12, "life": 0.35, "col": [0.7, 1.6, 0.8], "w": 2.5}, "at": "leader", "off": [0, -22]}]
+     }
+    ]
+   },
+   "melt_triple": [
+    {
+     "trig": "on_skill_end",
+     "skill": 2,
+     "at": "summon:mon3tr",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$melt_r",
+       "r_abs": true,
+       "atk_key": "m_atk",
+       "mult": "$melt_mult",
+       "power": true,
+       "kb": 260,
+       "stun": "$melt_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 60, "life": 0.3, "col": [2.0, 0.3, 0.15], "alpha": 0.7}, "off": [0, -24]},
+        {"pfx": {"kind": "core", "r": 26, "life": 0.4}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.3], "life": 0.35, "col": [1.6, 0.15, 0.12]}, "n": 10, "ring": 0.2, "r_scale": ["len"], "off": [0, -24]},
+        {
+         "pfx": {"kind": "qshard", "drag": 2.2, "life": [0.5, 0.8], "sz": [5, 11], "ang": [0, 6.2832], "spin": [-9, 9]},
+         "n": 14,
+         "vel_r": [120, 320],
+         "off": [0, -24]
+        },
+        {
+         "pfx": {"kind": "shard", "drag": 2.0, "life": 0.5, "col": [0.03, 0.05, 0.04], "sz": [4, 7], "spin": 10},
+         "n": 10,
+         "vel_r": [100, 260],
+         "ang_vel": true,
+         "off": [0, -24]
+        },
+        {
+         "pfx": {"kind": "mote", "vel": [[-30, 30], [-70, -20]], "life": [0.5, 0.9], "col": [1.6, 0.15, 0.12], "sz": [1.5, 3]},
+         "n": 24,
+         "jit_r": [1, 0.6],
+         "off": [0, -24]
+        },
+        {"pfx": {"kind": "ring", "r": 1, "r0": 12, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r"]},
+        {"pause": 0.075},
+        {"text": {"s": "熔毁", "col": [1.6, 0.15, 0.12], "size": 18}, "off": [0, -70]},
+        {"sfx": "big"},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_end",
+     "skill": 2,
+     "at": "summon:mon3tr",
+     "delay": "$melt_echo_gap",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$melt_r*1.25",
+       "r_abs": true,
+       "atk_key": "m_atk",
+       "mult": "$melt_mult*$melt_echo_mult",
+       "power": true,
+       "kb": 160,
+       "stun": "$melt_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 40, "life": 0.25, "col": [2.0, 0.3, 0.15], "alpha": 0.5}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.1], "life": 0.3, "col": [1.6, 0.15, 0.12]}, "n": 8, "ring": 0.3, "r_scale": ["len"], "off": [0, -24]},
+        {"pfx": {"kind": "qshard", "drag": 2.2, "life": 0.5, "sz": [5, 9], "ang": [0, 6.2832], "spin": [-9, 9]}, "n": 6, "vel_r": [160, 340], "off": [0, -24]},
+        {"pfx": {"kind": "ring", "r": 1, "r0": 0.5, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r", "r0"]},
+        {"sfx": {"kind": "big", "db": -4, "pitch": 1.15}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_end",
+     "skill": 2,
+     "at": "summon:mon3tr",
+     "delay": "$melt_echo_gap*2",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$melt_r*1.5",
+       "r_abs": true,
+       "atk_key": "m_atk",
+       "mult": "$melt_mult*$melt_echo_mult",
+       "power": true,
+       "kb": 160,
+       "stun": "$melt_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 40, "life": 0.25, "col": [2.0, 0.3, 0.15], "alpha": 0.5}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.1], "life": 0.3, "col": [1.6, 0.15, 0.12]}, "n": 8, "ring": 0.3, "r_scale": ["len"], "off": [0, -24]},
+        {"pfx": {"kind": "qshard", "drag": 2.2, "life": 0.5, "sz": [5, 9], "ang": [0, 6.2832], "spin": [-9, 9]}, "n": 6, "vel_r": [160, 340], "off": [0, -24]},
+        {"pfx": {"kind": "ring", "r": 1, "r0": 0.5, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r", "r0"]},
+        {"sfx": {"kind": "big", "db": -4, "pitch": 1.15}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "at": "summon:mon3tr",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$rebuild_r",
+       "atk_key": "m_atk",
+       "mult": "$rebuild_mult",
+       "power": true,
+       "kb": 160,
+       "stun": "$rebuild_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 40, "life": 0.25, "col": [2.0, 0.3, 0.15], "alpha": 0.5}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.1], "life": 0.3, "col": [1.6, 0.15, 0.12]}, "n": 8, "ring": 0.3, "r_scale": ["len"], "off": [0, -24]},
+        {"pfx": {"kind": "qshard", "drag": 2.2, "life": 0.5, "sz": [5, 9], "ang": [0, 6.2832], "spin": [-9, 9]}, "n": 6, "vel_r": [160, 340], "off": [0, -24]},
+        {"pfx": {"kind": "ring", "r": 1, "r0": 0.5, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r", "r0"]},
+        {"sfx": {"kind": "big", "db": -4, "pitch": 1.15}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "at": "summon:mon3tr",
+     "delay": "$melt_echo_gap",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$rebuild_r*1.25",
+       "atk_key": "m_atk",
+       "mult": "$rebuild_mult*0.5",
+       "power": true,
+       "kb": 160,
+       "stun": "$rebuild_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 40, "life": 0.25, "col": [2.0, 0.3, 0.15], "alpha": 0.5}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.1], "life": 0.3, "col": [1.6, 0.15, 0.12]}, "n": 8, "ring": 0.3, "r_scale": ["len"], "off": [0, -24]},
+        {"pfx": {"kind": "qshard", "drag": 2.2, "life": 0.5, "sz": [5, 9], "ang": [0, 6.2832], "spin": [-9, 9]}, "n": 6, "vel_r": [160, 340], "off": [0, -24]},
+        {"pfx": {"kind": "ring", "r": 1, "r0": 0.5, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r", "r0"]},
+        {"sfx": {"kind": "big", "db": -4, "pitch": 1.15}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "at": "summon:mon3tr",
+     "delay": "$melt_echo_gap*2",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$rebuild_r*1.5",
+       "atk_key": "m_atk",
+       "mult": "$rebuild_mult*0.5",
+       "power": true,
+       "kb": 160,
+       "stun": "$rebuild_stun",
+       "src": "Mon3tr · 熔毁",
+       "ring": false,
+       "fx": [
+        {"pfx": {"kind": "glow", "r": 40, "life": 0.25, "col": [2.0, 0.3, 0.15], "alpha": 0.5}, "off": [0, -24]},
+        {"pfx": {"kind": "beamray", "len": [0.8, 1.1], "life": 0.3, "col": [1.6, 0.15, 0.12]}, "n": 8, "ring": 0.3, "r_scale": ["len"], "off": [0, -24]},
+        {"pfx": {"kind": "qshard", "drag": 2.2, "life": 0.5, "sz": [5, 9], "ang": [0, 6.2832], "spin": [-9, 9]}, "n": 6, "vel_r": [160, 340], "off": [0, -24]},
+        {"pfx": {"kind": "ring", "r": 1, "r0": 0.5, "life": 0.4, "col": [1.6, 0.15, 0.12], "floor": true, "w": 3.0}, "r_scale": ["r", "r0"]},
+        {"sfx": {"kind": "big", "db": -4, "pitch": 1.15}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}
+       ]
+      }
+     ]
+    }
+   ],
+   "elite2": {"verb": "summon_mod", "kind": "mon3tr", "mirror": {"mult": "$m_back_mult"}}
+  }
  }
 }

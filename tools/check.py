@@ -316,61 +316,72 @@ def check_repro(godot):
     return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
 
-# 积木等价测试（docs/61 §测试）：测试专用干员 eqtest（game/tests/data_ops/eqtest.json）用 data_operator.gd 执行 blocks，
-# 与同一份数值的手写参照（eqtest_hand.gd，--opscript 换脚本）同 seed 跑，TRACE 行与 BALANCE（去掉 prof / 画面峰值）必须逐字节相同
-EQ_HAND = "--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd"
-EQ_CASES = [
-    ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=eqtest", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-    ("seed2 自然流程", ["--balance", "--seed=2", "--op=eqtest", "--bot=expert", "--maxt=300", "--trace=1"]),
+# 积木等价测试（docs/61 §测试）：数据干员（data_operator.gd 执行 blocks）与同一份数值的手写参照（--opscript 换脚本）同 seed 跑，
+# TRACE 行与 BALANCE（去掉 prof / 画面峰值）必须逐字节相同。两组：
+#  eqtest   测试专用干员（game/tests/data_ops/eqtest.json ↔ eqtest_hand.gd）
+#  kaltsit  凯尔希（data/characters/kaltsit.json ↔ tests/data_ops/kaltsit_legacy.gd = 原手写脚本，画面粒子改 g.vrng；docs/61 §15.9）。
+#           数据版的 Mon3tr 出手带通用召唤物标签 summon，所以 BALANCE 的 out_tag.summon 只在数据版有，比较时去掉
+EQ_GROUPS = [
+    ("eqtest", "--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd", [
+        ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=eqtest", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+        ("seed2 自然流程", ["--balance", "--seed=2", "--op=eqtest", "--bot=expert", "--maxt=300", "--trace=1"]),
+    ], ["测试脉冲", "测试回声", "测试共鸣", "测试斩", "测试音符"]),
+    ("kaltsit", "--opscript=kaltsit=res://tests/data_ops/kaltsit_legacy.gd", [
+        ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=kaltsit", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+        ("seed3 当队友 + 全藏品", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=240", "--trace=1",
+                                 "--maxprog", "--sptest", "--relics=all"]),
+    ], ["Mon3tr", "Mon3tr · 真伤", "Mon3tr · 熔毁"]),
 ]
-EQ_SRCS = ["测试脉冲", "测试回声", "测试共鸣", "测试斩", "测试音符"]
 
 
-def _balance_core(d):
+def _balance_core(d, drop_tags=()):
     d = dict(d or {})
     d.pop("prof", None)
     if isinstance(d.get("bot"), dict):
         d["bot"] = {k: v for k, v in d["bot"].items() if k not in ("peak", "peak_min")}
+    if drop_tags and isinstance(d.get("out_tag"), dict):
+        d["out_tag"] = {k: v for k, v in d["out_tag"].items() if k not in drop_tags}
     return d
 
 
 def check_blocks_eq(godot):
-    jobs = [(name, extra, hand) for name, extra in EQ_CASES for hand in (False, True)]
+    jobs = [(gid, hand_arg, name, extra, hand) for gid, hand_arg, cases, _ in EQ_GROUPS for name, extra in cases for hand in (False, True)]
 
     def one(j):
-        name, extra, hand = j
-        out, err, to, log = _run(godot_args(godot, extra + ([EQ_HAND] if hand else [])), 300, "blocks_eq_%s_%s" % (name.split()[0], "hand" if hand else "data"))
+        gid, hand_arg, name, extra, hand = j
+        out, err, to, log = _run(godot_args(godot, extra + ([hand_arg] if hand else [])), 300, "blocks_eq_%s_%s_%s" % (gid, name.split()[0], "hand" if hand else "data"))
         return j, out, err, to, log
     with ThreadPoolExecutor(min(len(jobs), JOBS)) as ex:
         res = list(ex.map(one, jobs))
     errs, details, logs = [], [], []
     by = {}
-    for (name, extra, hand), out, err, to, log in res:
+    for (gid, _h, name, extra, hand), out, err, to, log in res:
         logs.append(log or "")
         se = GR.script_errors(out, err)
         d = parse_balance(out)
         if to or se or d is None:
-            errs.append("%s（%s）：%s" % (name, "手写" if hand else "数据", "超时" if to else (se[0][:160] if se else "没有 BALANCE 行")))
+            errs.append("%s %s（%s）：%s" % (gid, name, "手写" if hand else "数据", "超时" if to else (se[0][:160] if se else "没有 BALANCE 行")))
             continue
-        by[(name, hand)] = ([l for l in out.splitlines() if l.startswith("TRACE ")], _balance_core(d), d)
-    for name, _ in EQ_CASES:
-        if (name, False) not in by or (name, True) not in by:
-            continue
-        (ta, ba, da), (tb, bb, db) = by[(name, False)], by[(name, True)]
-        if len(ta) < 30:
-            errs.append("%s：TRACE 行太少（%d），--trace 没生效？" % (name, len(ta)))
-        bad_t = next((k for k in range(max(len(ta), len(tb))) if k >= len(ta) or k >= len(tb) or ta[k] != tb[k]), None)
-        if bad_t is not None:
-            errs.append("%s：TRACE 第 %d 行起不同：数据「%s」 / 手写「%s」" % (name, bad_t + 1, ta[bad_t] if bad_t < len(ta) else "-", tb[bad_t] if bad_t < len(tb) else "-"))
-        diff = [k for k in sorted(set(ba) | set(bb)) if ba.get(k) != bb.get(k)]
-        if diff:
-            errs.append("%s：BALANCE 不同的字段：%s" % (name, "、".join(diff[:8])))
-        # 积木真的在打：各伤害来源都出现在本局的伤害统计里（数据版）
-        blob = json.dumps(da, ensure_ascii=False)
-        miss = [s for s in EQ_SRCS if s not in blob] if "全节点" in name else []
-        if miss:
-            errs.append("%s：伤害统计里没有这些来源：%s" % (name, "、".join(miss)))
-        details.append("%s %d 行 t=%d" % (name.split()[0], len(ta), int(da.get("t", 0))))
+        by[(gid, name, hand)] = ([l for l in out.splitlines() if l.startswith("TRACE ")], _balance_core(d, ("summon",) if gid == "kaltsit" else ()), d)
+    for gid, _h, cases, srcs in EQ_GROUPS:
+        for name, _ in cases:
+            if (gid, name, False) not in by or (gid, name, True) not in by:
+                continue
+            (ta, ba, da), (tb, bb, db) = by[(gid, name, False)], by[(gid, name, True)]
+            if len(ta) < 30:
+                errs.append("%s %s：TRACE 行太少（%d），--trace 没生效？" % (gid, name, len(ta)))
+            bad_t = next((k for k in range(max(len(ta), len(tb))) if k >= len(ta) or k >= len(tb) or ta[k] != tb[k]), None)
+            if bad_t is not None:
+                errs.append("%s %s：TRACE 第 %d 行起不同：数据「%s」 / 手写「%s」" % (gid, name, bad_t + 1, ta[bad_t] if bad_t < len(ta) else "-", tb[bad_t] if bad_t < len(tb) else "-"))
+            diff = [k for k in sorted(set(ba) | set(bb)) if ba.get(k) != bb.get(k)]
+            if diff:
+                errs.append("%s %s：BALANCE 不同的字段：%s" % (gid, name, "、".join(diff[:8])))
+            # 积木真的在打：各伤害来源都出现在本局的伤害统计里（数据版）
+            blob = json.dumps(da, ensure_ascii=False)
+            miss = [s for s in srcs if '"%s"' % s not in blob] if "全节点" in name else []
+            if miss:
+                errs.append("%s %s：伤害统计里没有这些来源：%s" % (gid, name, "、".join(miss)))
+            details.append("%s %s %d 行 t=%d" % (gid, name.split()[0], len(ta), int(da.get("t", 0))))
     ok = not errs and len(by) == len(jobs)
     return {"name": "积木等价（数据版 = 手写参照）", "ok": ok, "detail": "；".join(details) if details else "没有跑完", "errors": errs[:5], "log": "、".join(l for l in logs if l)}
 

@@ -62,6 +62,9 @@
 | `skill_active:<i>` | 本干员技能 i（0 起）生效中 | `trig.skill_idle` 取反 |
 | `in_zone:leader` | 主控在本干员区域内 | docs/59 `cond/in_aura` |
 | `is_leader` | 本干员是主控 | `trig.leader` |
+| `node:<id>` | 已选这个 custom 成长节点（10-12，§15.9） | — |
+| `hurt_any` | 主控或骑士同伴没满血（10-12，§15.9） | — |
+| `a && b` | 几段都成立（各段可自带 `!`；10-12，§15.9） | — |
 
 ## 2. 外壳：技能的 `sp / dur / cast`（docs/60 §2.1–2.3）
 
@@ -135,7 +138,8 @@
 | `trig.on_kill` | `trig/on_kill` | `filter: any / elite / boss` | ✅（`on_kill(e)` 分发；只算本干员的击杀不区分，同手写干员） |
 | `trig.on_skill_start` | `trig/on_skill_start` | `skill`（0 起） | 📝 |
 | `trig.on_hurt` | `trig/on_damage_taken` | `chance, min_pct, cd` | 📝（要 `dmg_taken_mult` 挂点） |
-| `trig.on_leader_dash` / `trig.on_deploy` | 同名 | | 📝 |
+| `trig.on_leader_dash` | 同名 | | ✅（德克萨斯段 §13） |
+| `trig.on_deploy` | 同名 | `do` | ✅ 10-12（§15.9：上场后第一帧执行一次） |
 
 ## 5. 效果积木（放在 `do` 列表里）
 
@@ -1227,7 +1231,7 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 - **老干员同 seed 不变**（对改动前的 3b161612，`--trace=1`，4:00）：`--seed=1 --op=hoshiguma --squad=exusiai,kaltsit`（三名数据 / 手写干员，含星熊的受击询问）
   与 `--seed=3 --op=skalter --squad=angelina,texas --maxprog --sptest`：TRACE 241 行逐行相同、BALANCE（去掉 prof / 画面峰值）逐字段相同。
 
-### 15.8 凯尔希 Mon3tr 迁到 `verb.summon` 的评估（只评估，没做）
+### 15.8 凯尔希 Mon3tr 迁到 `verb.summon` 的评估（10-12 评估；同日用户「现在就迁」，已按 §15.9 迁完）
 
 能直接表达的：常驻一只、跟随主控 `leash` 190 追最近的敌人（`chase` + `anchor: leader` + `leash`）、扇形爪击（`cone`，`kb`）、伤害吃 atk / 攻速 / 技能强度、
 来源记在凯尔希名下、爪痕帧条（`attack.fx` 挂 `fx_mon3tr_claw`）、离太远拉回。缺口：
@@ -1247,3 +1251,91 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 结论：积木要再补 summon_mod、按状态的 body 动画 + 出手帧、技能期间 attack_patch、on_skill_end 以召唤物为中心、then / mirror、手动指挥、push_out 七项（约 1.5–2 天代码），
 加上画面对齐（爪刃 / 残影 / 熔毁）与凯尔希重新定档（约 1–2 天，含云端批），合计 **3–4 天**。建议先不迁：等第二个「Mon3tr 式」召唤物（令的「手中影」或荒芜拉普兰德的狼首）
 真的要用状态机动画 / 技能期间改攻击时，把这些字段作为通用扩展补进 §15，再顺手迁 Mon3tr。
+
+### 15.9 召唤物扩展（10-12，凯尔希 Mon3tr 迁成数据干员；用户「现在就开始迁」）
+
+凯尔希改成纯数据干员：`data/characters/kaltsit.json` 去掉 `script`、加 `blocks`；原 `scripts/characters/kaltsit.gd` 删除，
+只留一份**测试参照** `tests/data_ops/kaltsit_legacy.gd`（原脚本逐行不动，只把画面粒子的随机数换成 `g.vrng`，见下「确定性」），给 `blocks_eq` 用。
+§15.8 列的七个缺口全部做成**通用扩展**（`op_blocks.gd` 文件末尾「召唤物扩展段」，前缀 `mf_`，append-only；核心只加转发），
+以后令的「手中影」、荒芜拉普兰德的狼首这类召唤物直接用。凯尔希 0 个 `custom`。
+
+**新积木 / 字段**
+
+| 名 | 放哪 | 说明 |
+|---|---|---|
+| `trig.on_deploy` | trait / talent / 成长节点 | 本干员上场后（`pos` 有效）第一帧执行一次 `do`；节点里的在选下后的第一帧。Mon3tr = `{"trig": "on_deploy", "do": [{"verb": "summon", "kind": "mon3tr", "at": "rest"}]}` |
+| `move.mode: escort` | `blocks.summons.<kind>.move` | 随行：闲时站本干员脚底 + `rest`（x 乘本干员朝向）；追锚点 `leash` 内**离锚点最近**的敌人（目标出 `leash + 40` 才换），从当前一侧贴到 `tg.r + gap`；出手动作期间不走；`avoid: [self, leader]` 直线会穿过本干员 / 主控时先走到那人脚下前方 56 的绕行点（进 32 / 出 16 滞回、1.2 秒超时、退出后 0.4 秒不再进）；`solid` = 柱子 `push_out` 半径；离锚点超过 `recall` 瞬回闲时站位；转向防抖 0.35 秒（同干员本体）。字段 `rest / gap / avoid / solid / recall` 只用于 escort |
+| `anim` | 种类 | `{idle, run, attack}` = 本干员 `sprites` 里的帧条键（校验）。`mv`（平滑速度）> 30 播 run；起手播 attack 一遍（帧数 / fps），**到 `fire` 帧才判定**（`(fire + 0.5) / fps`），出手冷却 = `attack.every ÷ op_aspd`、`attack.first` = 首击冷却 |
+| `float` / `shadow` | 种类 | 悬浮 `-h - amp × sin(g.t × hz + x × 0.01)`；`shadow` = 影子贴图倍率（随起伏 ±10%） |
+| `patch` | 种类，数组 ≤ 6 | 第一条 `cond` 成立的生效：`mult`（`power` 再 × 技能强度）、`src`（换伤害来源，如真伤）、`speed`、`anim`（按状态换帧条）、`seq`（`{strip, intro, loop: [首, 末], out}`：待机 / 移动换成「起手 intro 帧 → loop 段循环 → 失效后停在末帧 out 秒」）、`tint`（本体染色）、`sfx`（`db / pitch`） |
+| `verb.summon_mod` | 常驻（技能 do / passive / 节点） | 某种召唤物的 `dmg / aspd / reach / arc / speed` 倍率，按 §5.5 固定顺序**依次相乘**；`then: {delay, mult, pitch?}` = 每次出手后 delay 秒再追一击（追击不再触发 then）；`mirror: {mult}` = 同时向身后镜像一击（没打到不画）。各取第一块 |
+| `attack`（escort） | 种类 | 只能是 `shape.cone`：`dir: face`（朝召唤物面向，缺省）/ `target`；`half` = 半角弧度（也可写 `half_deg`）；判定半径 = `r × op_range × reach 倍率 + pad`，起手距离不含 pad；`origin` / `fx_origin` 判定 / 特效原点偏移；`sfx: {kind}` 打到才播。伤害 = `base[atk_key] × _dmg_bonus × dmg 倍率 [× patch.mult]` × 追击 / 镜像倍率 |
+| `manual: command` | 种类（escort） | 手动普攻 B 类（契约 v2.5）：按攻击键才命令召唤物扑向瞄准方向 ±45° 的目标（按下时换目标），松手 `manual/m_linger`（1.2）秒内打完手上这个，之后回位；本干员自己的普攻照旧自动 |
+| `status: false` | 种类 | 状态条不显示在场数（常驻随行的不需要） |
+| `verb.guard` | 瞬时 | 限时减伤 `value`（`dur` 秒）：同 `name` 共用一个计时（重复施加重新计时，不叠层），多种按积木顺序相乘，`dmg_taken_mult` 里在 `verb.dr` 之后、护盾之前；`look` 画主控周身护壳（`strip` = art.gd 贴图 + `frames / fps / anchor / alpha / off / fade_in / blink`，缺图画程序六边形）；状态条显示 `name` |
+| `verb.cleanse` | 瞬时 | `what: ["nerve"]`：清神经损伤 |
+| `verb.heal` 追加 | — | `scale: "op"`（× op_atk × 同伴倍率 × heal_out，同手写治疗干员）、`knight`（同时治骑士同伴 × 骑士最大生命）、`full: true`（满血也结算，溢出类藏品照常触发）、`on_over`（溢出时执行的瞬时列表）、`text`（飘「+N」字号）、`sfx`；`fx` 在真的治疗时以主控为中心播 |
+| `shape.support` | `blocks.attack` | 不造成伤害的普攻：`every`（÷ op_aspd × 局部 interval）一拍，`when` 条件成立才朝主控起手（不成立也照常计这一拍，同原凯尔希），出手帧执行 `do`；`first` = 首拍冷却；不受手动普攻闸门 |
+| `trig.on_skill_start / on_skill_end` 追加 `at` | — | `summon:<种类>` / `self` / `leader`：触发那一刻取点，`do` 里 `center: target` 落在这个点；可写 `delay`（进本干员延迟队列，带点）。带 `at` 的 `on_skill_end` 在本帧**开头**结算（召唤物移动之前，同原熔毁时序）；不带 `at` 的照旧（德克萨斯不变） |
+| `shape.circle` 追加 | — | `center: summon:<种类>`；`r_abs: true`（半径不吃 op_range，熔毁 130）；`ring: false`（不画缺省地面环） |
+| 技能积木追加 | `blocks.skills[i]` | `aim`（`summon:<种类>` / `leader`：起手转向那边，原凯尔希起手朝 Mon3tr）、`status` / `status_col`（生效中状态条文字） |
+| 成长节点数组 | `blocks.progression.<id>` | 一个节点可以写 1–8 块积木（数组，按顺序生效）。「不毁重构」= 6 个带 `at` 的技能触发 |
+| 条件追加 | §1.3 | `node:<custom 节点 id>`（已选该节点）、`hurt_any`（主控或骑士同伴没满血）、`a && b`（各段自带 `!`） |
+
+**程序 fx 条目**（§5.6 追加，纯画面，散布只用 `g.vrng`）：任何 `fx` 列表都可以放（上限从 8 放宽到 16），一条恰好写一种：
+`pfx`（往本干员 pfx 加一个粒子：模板 `kind` = ring / glow / spark / shard / line / mote / crescent / impact / core / qshard / beamray，数值写 `[lo, hi]` 取随机，
+`n` 份、`jit` 方框 / `jit_r` 半径椭圆散开、`ring` 均匀分角度 ± 抖动、`vel_r` 随机方向速度、`ang_vel`、`r_scale` 列出的字段 × 宿主半径、`to / to_off / to_jit` 线段终点）、
+`gfx`（加进全局 `g.fx`：beam / rays / cross）、`sprite`（vfx 一次性帧条：`along` / `side_x` / `r_mult` 沿这一击放，`fit` / `scale_r` / `scale` 缩放，`rot / second_rot / swing_rot` 乘这一击左右，朝左翻转）、
+`sparks`、`arc`（这一击扇面的月牙）、`text`、`banner`、`pause`（顿帧）、`sfx`；`at` 追加 `summon`（本干员每个召唤物）、`hits`；`off` + `face_x`（x 乘本干员朝向）。
+**只能写在召唤物种类 `fx` 上的**：`ghost`（每 `every` 秒记一次残影、按 `tint` 画在身后）、`mist`（身后几团慢慢翻动的半透明雾）、`side`（身体两侧对称的常驻装饰：`strip` 贴图或程序双层弧 `col`，`j` = 第几组）；
+种类 `fx` 里带 `every` 的条目在召唤物处定时播。攻击 `fx` 里 `first_only` = 追击（then）不播。
+
+**凯尔希的写法**（数值全在 `base`，新增的都是原脚本里的常数：`m_leash 190 / m_speed 260 / m_gap 26 / m_recall 700 / m_first 0.8 / knight_heal 0.05 / guard_red 0.2 / guard_dur 5 / e1_* / s2_* / s3_dur 8 / s3_speed 1.3 / melt_r 130 / melt_stun_lo 0.5 / rebuild_* `）：
+
+- `summons.mon3tr`：escort（`rest [44, 18]`、`avoid [self, leader]`、`solid 14`）、`manual: command`、`anim {m_idle, m_run, m_attack}`、`float {4, 3, 2.6}`、`shadow 1.4`；
+  攻击 `cone`（`m_atk`、`r $m_reach + pad 16`、`half $m_arc`、`dir face`、`kb 120`、`every $m_cd`、`first $m_first`、src「Mon3tr」）+ 9 条爪击 fx（爪痕 / 协同叠爪 / 绿火花 / 清创月牙 / 熔毁猩红月牙 / 冲击星芒 / 红火花 / 命中光点两色）；
+  `patch[0]`（`skill_active:2` 熔毁）：`mult $s3_mult × 技能强度`、src「Mon3tr · 真伤」、`speed $s3_speed`、`m_attack_melt`、`seq m_skill {intro 3, loop [2, 4], out 0.12}`、音效 +2 dB / 0.85；`patch[1]`（协同）：本体略偏绿；
+  种类 `fx`：熔毁期间残影 / 红雾 / 每 0.07 秒红光团 + 飞线，精二起两侧爪刃（骨爪增生后两组，熔毁染猩红）。
+- `attack`：`shape.support`（`every $heal_cd`、`first 1`、`when hurt_any`）→ `verb.heal {pct $heal_pct, scale op, knight $knight_heal, on_over: 庇护 0.2 × 5 秒}` + 治疗光环 / 星光 / 药剂光束。
+- `trait`：`on_deploy` 召唤；`passive (elite >= 1)`：`summon_mod {dmg $e1_dmg, reach $e1_reach}` + `buff_self heal × $e1_heal`（天赋「指挥」；放 trait 而非 talent 是为了和原脚本的乘法顺序逐位一致：精一倍率先于战术协同）；
+  `on_skill_end (skill 2, at summon:mon3tr, cond !node:melt_triple)`：熔毁 130 × `melt_mult` 真伤、眩晕 0.5。
+- `skills`：S1 `verb.heal {s1_heal, power, full, on_over 庇护}` + `verb.cleanse nerve`；S2 permanent `summon_mod {aspd $s2_aspd, reach $s2_reach}` + `buff_self interval × 1/$s2_heal` + 迸光 / 横幅；S3 `dur $s3_dur`、`status 熔毁`（攻击覆盖全在 `patch[0]`）。三个都 `aim: summon:mon3tr`。
+- `progression`：`twin_claw` = `summon_mod then {claw2_delay, claw2_mult, pitch 1.15}`；`wide_arc` = `arc × m_arc_wide`；`s1_shell` = `on_skill_start(0)` → `verb.guard 结构加固`（护壳贴图 `fx_kaltsit_shell`）；
+  `melt_triple` = 熔毁三连爆（主爆眩晕 `melt_stun`、0.2 / 0.4 秒后 ×1.25 / ×1.5 半径、`melt_echo_mult`）+ 医疗单元时 Mon3tr 处三连爆（`rebuild_*`）；`elite2` = `summon_mod mirror {m_back_mult}`（八面展开）。
+
+**确定性 / 与原脚本的差别**：原脚本 Mon3tr 的熔毁红雾、爪击火花（`fx_sparks`）、熔毁碎片 / 光束 / 光点都吃了对局随机数 `g.rng`，所以**凯尔希在场的局，同 seed 结果相对迁移前会变**（游戏逻辑没变，只是随机数序列从第一次爪击 / 熔毁起错开）。
+数据版一律 `g.vrng`。等价测试用的参照 `kaltsit_legacy.gd` 只把这几处换成 `g.vrng`（`_vsparks`），玩法逐行不动。
+其余**画面**差别（不影响玩法）：技能发动时多一圈数据干员通用的地面环；熔毁爪击月牙的上下交替在熔毁外也翻（原来只在熔毁里翻，影响第一刀朝上还是朝下）；协同染色在熔毁收尾 0.12 秒内不显示；
+缺图时的程序回退（程序爪痕 / 程序月牙 / 治疗十字星）没有搬（这些帧条都在仓库里）。
+
+**测试**
+
+- 等价（`python tools/check.py --only blocks_eq`，快检全量也跑）：新增 `kaltsit` 组，数据版 ↔ `--opscript=kaltsit=res://tests/data_ops/kaltsit_legacy.gd` 同 seed：
+  seed 1 主控 `--maxprog --sptest` 240 秒（全部节点、三技能、熔毁三连爆、八面展开）、seed 3 维什戴尔主控带凯尔希当队友 `--relics=all` 240 秒：**TRACE 逐行相同、BALANCE 逐字段相同**，
+  唯一差别 `out_tag.summon`（数据版 Mon3tr 出手带通用召唤物标签，比较时去掉）。本地另跑 seed 2 自然流程 300 秒同样逐字节相同。
+- 单元：`tests/test_core.gd test_blocks_summon_ext`：凯尔希通过校验 + 21 条反例；条件 `node: / hurt_any / &&`；倍率依次乘、then 取第一块、patch 乘技能强度；限时减伤排序 / 相乘 / 到时 / 同名重新计时。
+- 回归：`mon3tr_fx`（改成读召唤物：普通 / 协同 / 熔毁 × 左右的爪痕 / 月牙帧条与翻转、协同叠爪、熔毁攻击 / 待机帧条）、`friendly_target`（Mon3tr 选目标不选友方单位）。
+- 与**迁移前原脚本**（`g.rng` 版，同一提交上用 `--opscript` 临时换回原文件跑，跑完删掉）的多 seed 对照（本机无头，凯尔希单人主控，`--maxt=1000`，均值 ± 标准误）：
+
+| 档 | 版本 | 胜 | 存活秒 | 全队伤害 / 分 | Mon3tr 伤害 / 分 | Mon3tr 占全队 | 真伤占 Mon3tr（熔毁在场比例的代理） | 熔毁 / 分 | 凯尔希治疗 / 分 | 击杀 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 标准 · 高手 seed 1–12 | 原脚本 | 10 / 12 | 668 ± 29 | 62.6k ± 3.3k | 22.5k ± 2.0k | 36.9 ± 3.6% | 38.9 ± 4.5% | 1.80k ± 0.22k | 77 ± 7 | 5750 ± 210 |
+| | 数据版 | 10 / 12 | 658 ± 33 | 63.1k ± 4.5k | 21.7k ± 1.7k | 35.6 ± 2.7% | 34.7 ± 3.4% | 1.77k ± 0.26k | 92 ± 8 | 5650 ± 310 |
+| Ⅷ · 熟练 seed 1–8 | 原脚本 | 4 / 8 | 647 ± 61 | 68.2k ± 5.2k | 26.1k ± 2.0k | 39.8 ± 3.8% | 31.5 ± 3.8% | 1.77k ± 0.36k | 62 ± 10 | 4720 ± 350 |
+| | 数据版 | 4 / 8 | 630 ± 62 | 69.0k ± 7.3k | 27.4k ± 2.0k | 42.6 ± 4.9% | 34.1 ± 4.9% | 2.25k ± 0.30k | 73 ± 11 | 4690 ± 420 |
+
+  全部在 1.5 个标准误以内（逻辑与参照逐字节相同，差别只来自原脚本粒子吃掉的 `g.rng` 让后续随机序列错开）；BALANCE 没有分来源击杀数，「Mon3tr 击杀占比」用伤害占比代替，技能在场时间用真伤占比代替（同 seed 参照对照里技能时序逐帧相同）。
+- 画面对照：`build/mon3tr/`（主仓库）：`a_*`（`--sptest`，熔毁形态 / 熔毁爆炸）、`b_*`（自然技力，待机 / 移动 / 爪击 / 精二爪刃），每张左原脚本、右数据版，同一帧号同一局面；`a_clip.gif` / `b_clip.gif` 连拍。
+
+**云端（协调人建例行任务；同一提交）**：
+
+```bash
+# 凯尔希主控 56 局：标准（高手）+ Ⅷ（熟练）
+python tools/balance_run.py --game game --jobs 4 --op kaltsit --bot expert --seeds 56 --seed0 1 --out build/cloud/m3-lead-t0 --tag m3-lead-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --op kaltsit --bot master --seeds 56 --seed0 1 --out build/cloud/m3-lead-t2 --tag m3-lead-t2 --extra="--maxt=1000 --tier=2"
+# 同提交对照：starts（7 名开局干员单人开局）× seed 1–8 = 56 局
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots expert --seeds 8 --seed0 1 --out build/cloud/m3-base-t0 --tag m3-base-t0 --extra="--maxt=1000 --tier=0"
+python tools/balance_run.py --game game --jobs 4 --preset starts --bots master --seeds 8 --seed0 1 --out build/cloud/m3-base-t2 --tag m3-base-t2 --extra="--maxt=1000 --tier=2"
+```
+
+判定：两档主控各 50–70（difficulty v2 口径，含超时）；与迁移前凯尔希的历史结果同档差在噪声内即可，不调数值（这次只换实现）。
