@@ -55,12 +55,12 @@ func run() -> void:
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true):
 			continue
-		var rows: Array = InitialStats.rows(cid, d)
-		check(rows.size() == 6, "six initial stats for " + cid)
-		check(rows[0][1] == "%.0f" % float(d.leader.max_hp), "leader HP from JSON " + cid)
+		var sh: Dictionary = InitialStats.sheet(cid, d)
+		check(sh.rows.size() == InitialStats.REQUIRED.size(), "full stat sheet for " + cid)
+		check(InitialStats.row(sh, "hp").text == "%.0f" % float(d.leader.max_hp), "leader HP from JSON " + cid)
 	var synthetic := {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155}}
-	var dynamic_rows: Array = InitialStats.rows("test", synthetic)
-	check(dynamic_rows[0][1] == "155" and dynamic_rows[1][1] == "77.0" and dynamic_rows[2][1] == "2.50 秒", "numbers respond to supplied data")
+	var dyn: Dictionary = InitialStats.sheet("test", synthetic)
+	check(InitialStats.row(dyn, "hp").text == "155" and InitialStats.row(dyn, "atk").text == "77" and InitialStats.row(dyn, "cd").text == "2.50 秒", "numbers respond to supplied data")
 	# 实际编队对象：同一项精英化在主控提示 Q，队友明确自动。
 	var game = load("res://game.tscn").instantiate()
 	game.demo_op = "ulpianus"

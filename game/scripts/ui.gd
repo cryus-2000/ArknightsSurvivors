@@ -1179,7 +1179,8 @@ static func c_tabs(ci: CanvasItem, font: Font, r: Rect2, names: Array, pos: floa
 		var tr := Rect2(r.position.x + i * tw + 2, r.position.y, tw - 4, r.size.y - 6)
 		var on := i == cur
 		para(ci, tr, skew, fa(C_L_INK, a) if on else Color(0, 0, 0, 0), fa(C_L_INK, a))
-		code(ci, font, tr.position + Vector2(skew + 4, 2), "%02d" % (i + 1), 7, fa(C_ACC if on else C_L_SUB, a))
+		if tr.size.x - font.get_string_size(names[i], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x >= 2.0 * (skew + 16.0):   # 窄页签（手机四页签）不画序号，免得压字
+			code(ci, font, tr.position + Vector2(skew + 4, 2), "%02d" % (i + 1), 7, fa(C_ACC if on else C_L_SUB, a))
 		text_at(ci, font, tr.get_center() + Vector2(0, 2), names[i], size, fa(C_L_INV if on else C_L_INK, a), "mm")
 		out.append(Rect2(r.position.x + i * tw, r.position.y, tw, r.size.y))
 	var ux := r.position.x + pos * tw
