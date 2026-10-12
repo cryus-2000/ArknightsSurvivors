@@ -29,6 +29,8 @@ var dark_dmg := 0.0             # 熄灯每秒 3 点的持续掉血（不进 dmg
 var hits := 0                   # 受击次数
 var taken_last := 0.0
 var taken_window := 0.0         # 当前采样窗口内的承伤
+var win_src: Dictionary = {}    # 当前采样窗口内按来源的承伤（docs/82：6–9 分钟承伤来源）
+var heal_last: Dictionary = {}  # 上一个采样点的 heal_log（窗口治疗 = 增量）
 var last_src := ""              # 最近一次掉血的来源（死因）
 var last_log: Dictionary = {}
 var boss_seen: Dictionary = {}  # id -> {type, t0, t1}
@@ -116,6 +118,7 @@ func tick(dt: float) -> void:
 		tot += v
 		var inc: float = v - float(last_log.get(k, 0.0))
 		if inc > 0.01:
+			win_src[k] = float(win_src.get(k, 0.0)) + inc
 			ring.append({"t": snappedf(t, 0.1), "src": k, "amt": snappedf(inc, 0.1), "hp_after": int(g.hp), "boss": _is_boss_src(k),
 				"zone_out": g.zone_state > 0 and g.ppos.distance_to(g.zone_c) > g.zone_r})
 		if inc > inc_best:
@@ -213,10 +216,22 @@ func tick(dt: float) -> void:
 		peak_min[mi][i] = maxi(peak_min[mi][i], now[i])
 	if t >= sample_next:
 		sample_next += SAMPLE_EVERY
+		# 窗口内按来源的承伤 dsrc / 治疗 hsrc（docs/82，只记 ≥ 1 的来源）、最大生命 mhp：看「哪一段、谁打的、谁奶的」
+		var dsrc := {}
+		for k in win_src:
+			if win_src[k] >= 1.0:
+				dsrc[k] = int(win_src[k])
+		var hsrc := {}
+		for k in g.heal_log:
+			var hv: float = float(g.heal_log[k]) - float(heal_last.get(k, 0.0))
+			if hv >= 1.0:
+				hsrc[k] = int(hv)
+		heal_last = g.heal_log.duplicate()
 		curve.append({"t": int(t), "hp": int(100.0 * g.hp / maxf(1.0, g.max_hp)), "lamp": int(g.lamp), "lv": g.level,
 			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size(),
-			"zone": g.zone_state, "boss": int(_boss_alive())})
+			"zone": g.zone_state, "boss": int(_boss_alive()), "mhp": int(g.max_hp), "dsrc": dsrc, "hsrc": hsrc})
 		taken_window = 0.0
+		win_src = {}
 
 
 ## 灯火档位（docs/76 §5，以 hud_bars.gd 为准）：0 通明 ≥ 70 / 1 摇曳 30–69 / 2 暗淡 < 30 / 3 寂灭 0
@@ -439,13 +454,27 @@ func end_ctx() -> Dictionary:
 		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot()}
 
 
+## 最后一个不满 30 秒的采样窗口（死前那一段，docs/82）：承伤 / 按来源承伤 / 按来源治疗，字段同 curve
+func curve_tail() -> Dictionary:
+	var dsrc := {}
+	for k in win_src:
+		if win_src[k] >= 1.0:
+			dsrc[k] = int(win_src[k])
+	var hsrc := {}
+	for k in g.heal_log:
+		var hv: float = float(g.heal_log[k]) - float(heal_last.get(k, 0.0))
+		if hv >= 1.0:
+			hsrc[k] = int(hv)
+	return {"t": int(g.t), "t0": int(sample_next - SAMPLE_EVERY), "taken": int(taken_window), "mhp": int(g.max_hp), "dsrc": dsrc, "hsrc": hsrc}
+
+
 ## 整局指标块（记录里的 "bot" 字段：名字沿用平衡工具的历史叫法，玩家局 profile = "player"）
 func metrics(profile: String) -> Dictionary:
 	var t: float = maxf(1.0, g.t)
 	return {"profile": profile, "hits": hits, "hits_pm": snappedf(hits / t * 60.0, 0.1), "taken": int(taken_last),
 		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
-		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve,
+		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve, "curve_tail": curve_tail(),
 		"peak": peak, "peak_min": peak_min, "end": end_ctx(), "floors": floor_snaps}
 
 

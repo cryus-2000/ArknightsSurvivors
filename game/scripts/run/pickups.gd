@@ -227,7 +227,7 @@ func xp_required(level: int) -> float:
 
 ## 平衡输出（telemetry）：一局经验总量、其中溢出直接入账的量、按分钟分段的溢出量
 var xp_total := 0.0
-var item_log := {"magnet_mob": 0, "magnet_elite": 0, "heal_mob": 0, "heal_elite": 0, "magnet_pick": 0, "heal_pick": 0, "mob_rolled": 0, "mob_capped": 0}   # 磁铁 / 回复药剂的掉落（按小怪 / 精英 Boss）与拾取次数（平衡输出）
+var item_log := {"magnet_mob": 0, "magnet_elite": 0, "heal_mob": 0, "heal_elite": 0, "magnet_pick": 0, "heal_pick": 0, "mob_rolled": 0, "mob_capped": 0, "heal_low": 0}   # 磁铁 / 回复药剂的掉落（按小怪 / 精英 Boss）与拾取次数（平衡输出）
 ## 经验分来源（docs/38 §8.13）：walk 走近捡、magnet 磁铁吸回、recall 视野外回收（含兜底直接入账）；守恒：
 ## xp_dropped = walk + magnet + recall + xp_on_ground()（BALANCE 逐局，tools/check.py 断言）
 var xp_src := {"walk": 0.0, "magnet": 0.0, "recall": 0.0}

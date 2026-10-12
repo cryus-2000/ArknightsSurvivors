@@ -115,7 +115,7 @@ func draw(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
 		y += 30
 	var rows0 := [
-		["生命回复", "%.1f / 秒" % (g.regen + g.regen_pct * g.max_hp)], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
+		["生命回复", "%.1f / 秒" % ((g.regen + g.regen_pct * g.max_hp) * g.combat.regen_time_mult())], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 		["照亮范围", "%d" % int(g._lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
@@ -384,7 +384,7 @@ func draw_phone(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, Vector2(b.position.x + 92 + barw, y + 12), "%d" % int(g.lamp), 18, UI.TEXT)
 			y += 38
 			var rows0 := [
-				["生命回复", "%.1f / 秒" % (g.regen + g.regen_pct * g.max_hp)], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
+				["生命回复", "%.1f / 秒" % ((g.regen + g.regen_pct * g.max_hp) * g.combat.regen_time_mult())], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 				["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 				["照亮范围", "%d" % int(g._lamp_r())],
 				["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],

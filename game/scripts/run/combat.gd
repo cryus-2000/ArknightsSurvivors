@@ -657,6 +657,15 @@ func enemy_hp_time_mult() -> float:
 	return 1.0 + minf(g.t, hk) / Bal.v("enemy/hp_div", 120.0) + maxf(g.t - hk, 0.0) / Bal.v("enemy/hp_late_div", 300.0)
 
 
+## 主控生命回复的时间倍率（docs/82，10-13）：1 + min(t, regen_knee) / regen_div。敌人攻击随时间涨（enemy/dmg_div），
+## 自身回复原来恒定，无医疗编队 6–9 分钟靠它撑不住；regen_div = 0 关（恒为 1）
+func regen_time_mult() -> float:
+	var dv: float = Bal.v("sustain/regen_div", 0.0)
+	if dv <= 0.0:
+		return 1.0
+	return 1.0 + minf(g.t, Bal.v("sustain/regen_knee", 480.0)) / dv
+
+
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
 func hit(src: String, extra_tags: Array = []) -> void:
 	var base: Dictionary = g.hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
@@ -1175,9 +1184,18 @@ func kill(e: Dictionary) -> void:
 				g.pickups.item_log.magnet_mob += 1
 		else:
 			g.pickups.item_log.mob_capped += 1
-		if g.pickups.count_items() < int(Bal.v("pickup/item_cap", 3.0)) and g.rng.randf() < Bal.v("pickup/heal_kill_chance", 0.0035):
+		# 低血补给（docs/82，10-13）：主控生命 < heal_low_hp 时，小怪掉回复药剂的概率 × heal_low_mult，
+		# 且场上道具已满时只要回复药剂 < heal_low_cap 仍可掉（磁铁 / 远处没捡的药剂不再挡住）。生命不低时与原规则逐帧相同（不多耗随机数）
+		var low_hp: bool = g.hp < g.max_hp * Bal.v("pickup/heal_low_hp", 0.0)
+		var heal_room: bool = g.pickups.count_items() < int(Bal.v("pickup/item_cap", 3.0))
+		if low_hp and not heal_room:
+			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 0.0))
+		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0)
+		if heal_room and g.rng.randf() < hc:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
+			if low_hp:
+				g.pickups.item_log.heal_low += 1
 	elif g.pickups.count_items() >= int(Bal.v("pickup/item_cap", 3.0)):
 		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（magnet_cap = 0 时的原行为，不耗随机数）
 	else:
