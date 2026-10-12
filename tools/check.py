@@ -419,6 +419,9 @@ SCENE_REGRESSIONS = {
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
+    "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
+                 ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
+                  "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
 }
 
