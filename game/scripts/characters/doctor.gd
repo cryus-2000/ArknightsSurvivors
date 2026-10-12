@@ -354,7 +354,7 @@ func passive_preview(pid: String) -> String:
 	match pid:
 		"hp": return "最大生命 %d → %d" % [int(g.max_hp), int(g.max_hp) + 20]
 		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.regen, g.regen + 0.6]
-		"armor": return "减伤 %d → %d" % [int(g.armor), int(g.armor) + 2]
+		"armor": return "减伤 %.1f → %.1f" % [g.armor, g.armor + 2.0]
 		"dodge": return "闪避 %d%% → %d%%" % [int(g.dodge * 100), int(g.dodge * 100) + 5]
 		"speed": return "移动速度 %d → %d" % [int(g.speed), int(g.speed * 1.1)]
 		"pickup": return "拾取范围 %d → %d" % [int(g.pickup), int(g.pickup * 1.3)]

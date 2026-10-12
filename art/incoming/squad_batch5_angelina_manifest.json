@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "ac4c6ce8d08fd6b2bdc699e17336da80563a8059fd11a45387124041255ffaff"
+      "sha256": "3cb9184d8b6a652afaf15ff6bfe2fbd4222974105624b54b3f070e76fa35ee96"
     },
     {
       "file": "op_angelina_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "ff97b7785db2da071902f2da3bff125ccf225f0a70effccec9ece299a9d8cfe8"
+      "sha256": "14834d090e45a4b2aa5900ad60b53dfd93b63c787c7adbc95625e0be0d7910a3"
     },
     {
       "file": "op_angelina_run.png",

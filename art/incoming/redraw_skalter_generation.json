@@ -1,0 +1,151 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Create final pixel-art game animation source atlas for SKADI THE CORRUPTING HEART / SKALTER ONLY. Image1 bottom row approved side-sitting flight design, image2 official E0 costume. Transparent alpha, no text/grid/background/shadows. EXACT 7 columns x4 rows uniformly sized cells. Row1 4 standing idle frames in first4 cells, remaining3 empty. Row2 6 SIDE-SITTING HOVER MOVEMENT frames first6, last empty. Row3 5 standing casting attack frames first5,last2empty. Row4 7 standing skill frames. Entire body in every cell, same scale across all poses, consistent big hat, face and clothing. Costume: silver hair, red eyes, black hat with cyan details/red ribbon, red black dress, original dark cyan-tipped handheld staff. BARE warm pale skin legs NOT white stockings: ONLY anatomical LEFT leg has dark broad diagonal crisscross straps upper thigh through knee to calf, right leg unstrapped bare. BOTH feet wear structured WHITE/SILVER MID-CALF BOOTS with RED diamond front accents and black soles, never sandals. Face over shoulders no forward neck. Crisp pixel art authored for 96px frame, readable small clustered details #080e18 dark outline. Idle f0 neutral,f1 slight breath,f2 blink,f3 settle. Flight6frames: seated side saddle knees together bent to side, staff in HAND not riding it, tiny cyan sea crescent beneath hips as approved; float cycle low/rising/high/high/falling/low, flowing hair/hem lag behind bob, knees/boots gently swing rather than walk; retain consistent LEFT strapped leg. Attack5: gather f0,raise staff f1,extend staff toward right f2 event,follow f3,return f4. Skill7: gather f0,lift f1,prepare f2,staff UP and free hand extends f3 event,hold f4,return f5,EXACT idle0 f6. No magic attack effects. No extra characters. Maintain same facial and accessory pixel shapes throughout.",
+  "source_path": "E:\\水月\\approved_redraw_1012\\skalter_source.png",
+  "source_sha256": "e29e84f11476ff7537fcb14d898876ac1df052cfccee9883f72e7ee127279603",
+  "frame_rectangles": {
+    "idle": [
+      [
+        0,
+        0,
+        273,
+        242
+      ],
+      [
+        273,
+        0,
+        546,
+        242
+      ],
+      [
+        546,
+        0,
+        819,
+        242
+      ],
+      [
+        819,
+        0,
+        1092,
+        242
+      ]
+    ],
+    "run": [
+      [
+        0,
+        244,
+        241,
+        480
+      ],
+      [
+        241,
+        244,
+        482,
+        480
+      ],
+      [
+        482,
+        244,
+        723,
+        480
+      ],
+      [
+        723,
+        244,
+        964,
+        480
+      ],
+      [
+        964,
+        244,
+        1205,
+        480
+      ],
+      [
+        1205,
+        244,
+        1446,
+        480
+      ]
+    ],
+    "attack": [
+      [
+        0,
+        480,
+        263,
+        715
+      ],
+      [
+        263,
+        474,
+        523,
+        715
+      ],
+      [
+        495,
+        474,
+        816,
+        715
+      ],
+      [
+        777,
+        474,
+        1037,
+        715
+      ],
+      [
+        1037,
+        474,
+        1300,
+        715
+      ]
+    ],
+    "skill": [
+      [
+        0,
+        705,
+        237,
+        948
+      ],
+      [
+        237,
+        705,
+        474,
+        948
+      ],
+      [
+        474,
+        705,
+        711,
+        948
+      ],
+      [
+        711,
+        705,
+        948,
+        948
+      ],
+      [
+        948,
+        705,
+        1185,
+        948
+      ],
+      [
+        1185,
+        705,
+        1422,
+        948
+      ],
+      [
+        1422,
+        705,
+        1659,
+        948
+      ]
+    ]
+  },
+  "scale": 0.28,
+  "export_script_sha256": "5aef2f60ff3664a69ae50657da157922fdbf84e31815e98602d7854239a2394c",
+  "reference": "User-approved draft v3; Skalter E0 legwear reference; user approved 2026-10-12"
+}

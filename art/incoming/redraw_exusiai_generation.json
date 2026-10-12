@@ -1,0 +1,49 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Create a production six-frame running animation sprite atlas for EXUSIAI only, using middle row character in approved reference. EXACT 3 columns x2 rows equally spaced cells, read left-to-right then bottom row. True transparent background no captions/grid/shadow. Pixel art intended 96x96 per frame, fixed same character size, consistent head and face, same short auburn hair, gold halo, small bright geometric wings, black red white uniform, gray compact firearm held in both hands across chest, same gun and outfit. This is a real running cycle, NOT six copies of same pose. f0 LEFT leg reaches forward heel contact, right leg extended backward; f1 left knee compresses right knee begins swing; f2 legs pass under hips, right knee raised forward and left foot pushes back; f3 RIGHT leg reaches forward heel contact, left leg extended backward; f4 right knee compresses left begins swing; f5 legs pass, left knee raised forward, right foot pushes back. Explicit alternating near and far legs, strong visible knee flexion and changing silhouette, no identical pairs. Hips bob slightly, upper torso stable, shoulders/head aligned no forward neck, firearm stable with mild bob, halo/wings/hair lag a frame. Crisp 2px-equivalent dark #080e18 outline and limited colors, clean readable clusters. Every full body isolated within cell with margins. No firing, no muzzle flash, no trails. Do not change standing/attack/skill designs.",
+  "source_path": "E:\\水月\\approved_redraw_1012\\exusiai_source.png",
+  "source_sha256": "7e1c289c4f657ab98cbb8c640fe73e43016cc30cbb2bb95a3f79ad52a022025b",
+  "frame_rectangles": {
+    "run": [
+      [
+        0,
+        0,
+        512,
+        512
+      ],
+      [
+        512,
+        0,
+        1024,
+        512
+      ],
+      [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      [
+        0,
+        512,
+        512,
+        1024
+      ],
+      [
+        512,
+        512,
+        1024,
+        1024
+      ],
+      [
+        1024,
+        512,
+        1536,
+        1024
+      ]
+    ]
+  },
+  "scale": 0.155,
+  "export_script_sha256": "5aef2f60ff3664a69ae50657da157922fdbf84e31815e98602d7854239a2394c",
+  "reference": "User-approved draft v3; Skalter E0 legwear reference; user approved 2026-10-12"
+}

@@ -107,7 +107,7 @@ func run() -> void:
 	check(op_ids.size() == ids.size(), "operator count %d == %d" % [op_ids.size(), ids.size()])
 	check(gal.entries[0].id == "mizuki", "cover operator first")
 	check(gal.entries[gal.entries.size() - 1].id == "doctor", "doctor last")
-	check(gal.INFO_TABS == ["档案", "技能", "成长"], "info tabs are 档案 / 技能 / 成长 only")
+	check(gal.INFO_TABS == ["档案", "属性", "技能", "成长"], "info tabs are 档案 / 属性 / 技能 / 成长 only")
 	# 立绘适配：每名干员（桌面 / 手机）待机帧并集区按整数倍放进舞台框（四边至少留 2），倍数不超过选人页上限
 	for ph in [false, true]:
 		Cfg._touch = 1 if ph else 0
@@ -170,7 +170,7 @@ func run() -> void:
 	check(gal.sel != s1, "gamepad dpad right switches operator")
 	var it: int = gal.info_tab
 	await pad(JOY_BUTTON_A)
-	check(gal.info_tab == (it + 1) % 3, "gamepad A cycles info tab")
+	check(gal.info_tab == (it + 1) % gal.INFO_TABS.size(), "gamepad A cycles info tab")
 	await pad(JOY_BUTTON_X)
 	check(gal.form != 0, "gamepad X changes form")
 	await pad(JOY_BUTTON_RIGHT_SHOULDER)
@@ -244,8 +244,8 @@ func run() -> void:
 	await click(r, true)
 	check(gal.sel == gal.vlist[1], "touch tap selects card")
 	await settle()
-	await click(hit("itab", 1), true)
-	check(gal.info_tab == 1, "touch tap changes info tab")
+	await click(hit("itab", 2), true)
+	check(gal.info_tab == 2, "touch tap changes info tab (skills)")
 	await settle()
 	r = hit("row", 2)
 	check(r.size.x > 0.0, "phone skill rows tappable")

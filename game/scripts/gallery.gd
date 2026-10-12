@@ -71,7 +71,7 @@ var enemy_demo_mode := 0
 var demo_mode := -1
 ## 干员详情的信息页：档案 / 技能 / 成长（docs/58 §11，10-11 用户定：不要藏品契合、不要战绩；旧「数值」页并进技能页顶部的大数字）
 var info_tab := 0
-const INFO_TABS := ["档案", "技能", "成长"]
+const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
 ## 敌人图鉴的附加形态（标签, 贴图, 帧数, 帧率, 循环）：说明里写了第二形态的 Boss（docs/48 验收 P2-6）
 const EXTRA_FORMS := {
 	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
@@ -825,7 +825,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_set_info((info_tab + 1) % INFO_TABS.size())
 			else:
 				_form_step(1)
-		KEY_1, KEY_2, KEY_3:
+		KEY_1, KEY_2, KEY_3, KEY_4:
 			if _is_op():
 				_set_info(k - KEY_1)
 
@@ -1563,7 +1563,7 @@ func _draw_panel(e: Dictionary, ph: bool) -> void:
 		_draw_data(e, ph, px, oa, odx)
 		_xf()
 		return
-	UI.code(self, font, Vector2(px.x, 14 if ph else 72), "OPERATOR FILE  //  %s" % ["PROFILE", "SKILL", "GROWTH"][info_tab], 7 if ph else 8, UI.fa(UI.C_L_SUB, oa))
+	UI.code(self, font, Vector2(px.x, 14 if ph else 72), "OPERATOR FILE  //  %s" % ["PROFILE", "STATS", "SKILL", "GROWTH"][info_tab], 7 if ph else 8, UI.fa(UI.C_L_SUB, oa))
 	var tr := Rect2(px.x, 34 if ph else 86, px.y - px.x, 26 if ph else 30)
 	var rs: Array = UI.c_tabs(self, font, tr, INFO_TABS, _itab_pos(), 6.0 if ph else 8.0, 12 if ph else 13, oa)
 	for i in rs.size():
@@ -1582,8 +1582,10 @@ func _content(e: Dictionary, which: int, box: Rect2, ph: bool, am: float, odx: f
 		0:
 			_c_profile(e, box, ph, am, odx, motion)
 		1:
-			_c_skills(e, box, ph, am, odx, motion)
+			_c_stats(e, box, ph, am, odx, motion)
 		2:
+			_c_skills(e, box, ph, am, odx, motion)
+		3:
 			_c_growth(e, box, ph, am, odx, motion)
 
 
@@ -1618,6 +1620,58 @@ func _c_profile(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, moti
 		y += UI.draw_fit(self, font, Vector2(box.position.x, y), f, UI.fa(UI.C_L_INK, a)) + 10.0
 
 
+## 数值表缓存（条目字典里存一份；InitialStats 读 doctor.json）
+func _sheet(e: Dictionary) -> Dictionary:
+	if not e.has("sheet"):
+		e["sheet"] = InitialStats.sheet(str(e.id), e.op)
+	return e.sheet
+
+
+func b_mon3tr(sh: Dictionary) -> bool:
+	return "Mon3tr" in str(InitialStats.row(sh, "atk").get("label", ""))
+
+
+## 属性页：主控数值表（与选人「属性」页同源）。两列大数字（攻击行带段数 / 附加伤害），干员特有行（治疗 / 歌域 / 穿透 / 对精英）接在后面，
+## 再是定位标签与口径说明；数字过长时按列宽缩字
+func _c_stats(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motion: bool) -> void:
+	var sh: Dictionary = _sheet(e)
+	var x0 := box.position.x
+	var w := box.size.x
+	var y := box.position.y
+	var a := _rowm(0, am, odx, motion)
+	UI.code(self, font, Vector2(x0, y), "LEADER  //  E0  //  NO RELIC", 7 if ph else 8, UI.fa(UI.C_L_SUB, a))
+	y += 14.0 if ph else 18.0
+	var all: Array = sh.rows + sh.extra
+	var cw := w / 2.0
+	var lh := 34.0 if ph else 46.0
+	var vs := 15 if ph else 19
+	for i in all.size():
+		var r: Dictionary = all[i]
+		if i % 2 == 0:
+			a = _rowm(1 + i / 2, am, odx, motion)
+		var cx := x0 + (i % 2) * cw
+		var cy := y + (i / 2) * lh
+		var lbl := UI.fit_line(font, InitialStats.label_text(r), 9, cw - UI.en_width(font, str(r.en), 8, 2.0) - 12.0, 7)
+		var ew := UI.code(self, font, Vector2(cx, cy), str(r.en), 8, UI.fa(UI.C_L_SUB, a))
+		UI.text_at(self, font, Vector2(cx + ew + 4, cy - 2), lbl[0], lbl[1], UI.fa(UI.C_L_SUB, a))
+		var fl := UI.fit_line(font, InitialStats.value_text(r), vs, cw - 10.0, 10)
+		UI.text_at(self, font, Vector2(cx, cy + 12), fl[0], fl[1], UI.fa(UI.C_L_INK, a), "la", fl[1] >= 18)
+		if i % 2 == 1 or i == all.size() - 1:
+			draw_line(Vector2(x0, cy + lh - 6.0), Vector2(box.end.x, cy + lh - 6.0), UI.fa(UI.C_L_INK, 0.18 * a), 1.0)
+	y += ceili(all.size() / 2.0) * lh + 2.0
+	a = _rowm(2 + ceili(all.size() / 2.0), am, odx, motion)
+	var cx2 := x0
+	for c in sh.tags:
+		var cwid: float = font.get_string_size(str(c), HORIZONTAL_ALIGNMENT_LEFT, -1, 10 if ph else 11).x + 22.0
+		if cx2 + cwid > box.end.x:
+			cx2 = x0
+			y += 24.0
+		cx2 += UI.ctag(self, font, Vector2(cx2, y), str(c), 10 if ph else 11, false, a)
+	y += 26.0
+	var nf := UI.fit_line(font, str(sh.note), 10 if ph else 11, w, 8)
+	UI.text_at(self, font, Vector2(x0, minf(y, box.end.y - 14.0)), nf[0], nf[1], UI.fa(UI.C_L_SUB, a))
+
+
 ## 技能页数据：[代码, 名称, 英文, 图标, SP, 标签, 手动, 说明]
 func _skill_rows(cd: Dictionary) -> Array:
 	var rows: Array = []
@@ -1645,15 +1699,15 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 	var y := box.position.y
 	# 大数字：初始生命 / 攻击 / 间隔 / 范围（数字跳动；间隔从 2× 降到终值）
 	var a := _rowm(0, am, odx, motion)
-	var st: Array = InitialStats.rows(str(e.id), cd)
+	var sh: Dictionary = _sheet(e)
 	var cnt := _count() if motion else 1.0
-	var defs := [[0, "生命", "HP"], [1, "Mon3tr" if "Mon3tr" in str(st[1][0]) else "攻击", "ATK"], [2, "间隔", "INT"], [3, "范围", "RNG"]]
+	var defs := [["hp", "生命", "HP"], ["atk", "Mon3tr" if b_mon3tr(sh) else "攻击", "ATK"], ["cd", "间隔", "INT"], ["reach", "范围", "RNG"]]
 	var cw := w / 4.0
 	for j in defs.size():
-		var raw: String = str(st[defs[j][0]][1]).split(" ")[0]
+		var raw: String = str(InitialStats.row(sh, defs[j][0]).text).split(" ")[0]
 		var v := raw.to_float()
 		var shown: String
-		if defs[j][0] == 2:
+		if defs[j][0] == "cd":
 			shown = "%.2f" % (v * (2.0 - cnt))
 		elif "." in raw:
 			shown = "%.1f" % (v * cnt)

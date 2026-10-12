@@ -1,0 +1,46 @@
+{
+  "assets": [
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "specter_unchained",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 10,
+      "file": "op_specter_unchained_fall.png",
+      "density": 1,
+      "hold_last_frame": true,
+      "frame_width": 48,
+      "sha256": "6ea1b5c8ec4805105cd85b286f5e947a029bbb0c3057925a45022cc1c9f62eaa",
+      "outline_px": 1,
+      "event_frame_zero_based": 4,
+      "frame_count": 5,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "specter_unchained",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 10,
+      "file": "op_specter_unchained_fall@2x.png",
+      "density": 2,
+      "hold_last_frame": true,
+      "frame_width": 96,
+      "sha256": "032b6e3fae40e6a7c1994f20a795990dc6dea335ba6754a720abef3e76df2b87",
+      "outline_px": 2,
+      "event_frame_zero_based": 4,
+      "frame_count": 5,
+      "direction": "right",
+      "frame_height": 96
+    }
+  ]
+}

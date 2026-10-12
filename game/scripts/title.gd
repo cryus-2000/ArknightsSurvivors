@@ -164,7 +164,7 @@ func _ready() -> void:
 			gallery.demo_stage = int(dp[0])
 			gallery.demo_mode = int(dp[1]) if dp.size() > 1 else -1
 		if a.begins_with("--infotab="):
-			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（0 档案 / 1 技能 / 2 成长）
+			gallery.info_tab = int(a.substr(10))   # 截图自测：干员详情的信息页（0 档案 / 1 属性 / 2 技能 / 3 成长）
 		if a.begins_with("--galleryshot="):
 			var parts := a.substr(14).split(",")
 			gallery.open()
@@ -1552,16 +1552,16 @@ func _open_op_pick(for_cover := false) -> void:
 			var cc = d.get("col", null)
 			if cc is Array and cc.size() >= 3:
 				col = Color(float(cc[0]), float(cc[1]), float(cc[2]))
-			var numbers: Array = InitialStats.rows(cid, d)
+			var sh: Dictionary = InitialStats.sheet(cid, d)   # 选人「属性」页与图鉴「属性」页同一张表
 			var elite := 0
 			for n in d.get("progression", []):
 				if n is Dictionary and n.get("type", "") == "elite":
 					elite += 1
 			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "hires": A.hires_of(tx), "lore": op_lore.get(cid, {}).get("lore", ""),
-				"numbers": numbers, "name": d.get("name", cid), "en": str(d.get("en", cid.to_upper())), "cls": cls, "col": col,
+				"sheet": sh, "name": d.get("name", cid), "en": str(d.get("en", cid.to_upper())), "cls": cls, "col": col,
 				"elite": elite if elite > 0 else 2, "melee": _op_is_melee(d),
-				"vals": {"hp": str(numbers[0][1]).to_float(), "atk": str(numbers[1][1]).to_float(), "cd": str(numbers[2][1]).to_float(),
-					"reach": str(numbers[3][1]).to_float(), "speed": str(numbers[4][1]).to_float()}, "mon3tr": "Mon3tr" in str(numbers[1][0])})
+				"vals": {"hp": InitialStats.row(sh, "hp").val, "atk": InitialStats.row(sh, "atk").val, "cd": InitialStats.row(sh, "cd").val,
+					"reach": InitialStats.row(sh, "reach").val, "speed": InitialStats.row(sh, "speed").val, "dps": InitialStats.row(sh, "dps").val}})
 		# 原作按稀有度排；本作没有稀有度：封面干员水月在前，其余按职业顺序（docs/58 §11 概念图同序）
 		op_defs.sort_custom(func(a, b):
 			var ka: int = 0 if a.id == "mizuki" else 1
@@ -1571,7 +1571,7 @@ func _open_op_pick(for_cover := false) -> void:
 			var ca: int = CLASS_ORDER.find(a.cls)
 			var cb: int = CLASS_ORDER.find(b.cls)
 			return ca < cb if ca != cb else a.id < b.id)
-		for key in ["hp", "atk", "cd", "reach", "speed"]:
+		for key in ["hp", "atk", "cd", "reach", "speed", "dps"]:
 			var mx := 0.001
 			for od in op_defs:
 				mx = maxf(mx, float(od.vals[key]))
@@ -2442,34 +2442,76 @@ func _op_fmt(v: float, key: String, real := 1.0) -> String:
 		return "—"
 	if key == "cd":
 		return "%.2f 秒" % v
+	if key == "dps":
+		return "%.1f" % v
 	if key == "atk" and absf(v - roundf(v)) > 0.05:
 		return "%.1f" % v
 	return "%d" % int(round(v))
 
 
-## 属性页：五项大数字 + 圆角量条（满值 = 全体干员该项上限，数字与量条同步长出）+ 特性
+## 属性页（数值表与图鉴「属性」页同源：InitialStats.sheet）：桌面 = 五项大数字 + 量条（满值 = 全体干员该项上限）+ 两列小表 + 定位；
+## 手机 = 只有两列小表（版面放不下量条）；底部一行口径说明
 func _op_status(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bool) -> void:
 	var cnt: float = m.cnt
 	var v: Dictionary = od.vals
-	var rows := [["Mon3tr 攻击" if od.mon3tr else "攻击", "ATK", "atk"], ["攻击间隔", "INTERVAL", "cd"], ["攻击范围", "RANGE", "reach"],
-		["生命（主控）", "HP", "hp"], ["移动速度", "SPEED", "speed"]]
-	var step := 40.0 if ph else 58.0
-	for i in rows.size():
-		var yy := box.position.y + i * step
-		var key: String = rows[i][2]
-		var val: float = v[key]
-		var shown := val * (2.0 - cnt) if key == "cd" else val * cnt
-		var lw := UI.btab(ci, font, Vector2(box.position.x, yy), rows[i][0], UI.TAB_LAMP if key == "hp" else UI.TAB_HP, 9)
-		UI.code(ci, font, Vector2(box.position.x + lw + 8, yy + 2), rows[i][1], 8)
-		UI.text_at(ci, font, Vector2(box.end.x, yy - (2 if ph else 4)), _op_fmt(shown, key, val), 18 if ph else 24, UI.TEXT, "ra", true)
-		var gw := box.size.x - (90.0 if ph else 110.0)
-		UI.gauge(ci, Rect2(box.position.x, yy + (22 if ph else 30), gw, 7 if ph else 10), val / float(op_max[key]) * cnt, UI.GOLD if key == "hp" else UI.CYAN)
-	var y := box.position.y + rows.size() * step + 6.0
+	var sh: Dictionary = od.sheet
+	var y := box.position.y
+	var small: Array = []
+	if ph:
+		for r in sh.rows:
+			small.append(r)
+	else:
+		var step := 46.0
+		for key in ["atk", "dps", "cd", "reach", "hp"]:
+			var r: Dictionary = InitialStats.row(sh, key)
+			var val: float = v[key]
+			var shown := val * (2.0 - cnt) if key == "cd" else val * cnt
+			var lw := UI.btab(ci, font, Vector2(box.position.x, y), r.label, UI.TAB_LAMP if key == "hp" else UI.TAB_HP, 9)
+			UI.code(ci, font, Vector2(box.position.x + lw + 8, y + 2), r.en, 8)
+			var vw := UI.text_at(ci, font, Vector2(box.end.x, y - 4), _op_fmt(shown, key, val), 22, UI.TEXT, "ra", true)
+			if str(r.sub) != "":
+				UI.text_at(ci, font, Vector2(box.end.x - vw - 6, y + 4), r.sub, 10, UI.B_SUB, "ra")
+			UI.gauge(ci, Rect2(box.position.x, y + 25, box.size.x - 110.0, 8), val / float(op_max[key]) * cnt, UI.GOLD if key == "hp" else UI.CYAN)
+			y += step
+		for r in sh.rows:
+			if not r.key in ["atk", "dps", "cd", "reach", "hp"]:
+				small.append(r)
+		y += 2.0
+	small.append_array(sh.extra)
+	ci.draw_line(Vector2(box.position.x, y), Vector2(box.end.x, y), UI.B_LINE, 1.0)
+	y += 6.0 if ph else 8.0
+	var lh := 21.0 if ph else 22.0
+	var cw := (box.size.x - 10.0) / 2.0
+	for i in small.size():
+		var r: Dictionary = small[i]
+		var cx := box.position.x + (i % 2) * (cw + 10.0)
+		var cy := y + (i / 2) * lh
+		var lbl: String = r.label
+		var lsz := 10 if ph else 11
+		var lwid := font.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, lsz).x
+		UI.text_at(ci, font, Vector2(cx, cy + 2), lbl, lsz, UI.B_SUB)
+		var txt: String = r.text
+		if ph and str(r.sub) != "" and r.key == "atk":
+			txt += " " + str(r.sub)
+		var fl := UI.fit_line(font, txt, 12 if ph else 13, cw - lwid - 6.0, 9)
+		UI.text_at(ci, font, Vector2(cx + cw, cy), fl[0], fl[1], UI.TEXT, "ra")
+		ci.draw_line(Vector2(cx, cy + lh - 3), Vector2(cx + cw, cy + lh - 3), Color(UI.B_LINE.r, UI.B_LINE.g, UI.B_LINE.b, 0.35), 1.0)
+	y += ceili(small.size() / 2.0) * lh + 4.0
+	var tags: Array = sh.tags
+	if not tags.is_empty() and y + 22.0 < box.end.y - 12.0:
+		var tx := box.position.x + UI.btab(ci, font, Vector2(box.position.x, y + 3), "定位", UI.TAB_HP, 9) + 8.0
+		for c in tags:
+			var pw := UI.pill_width(font, str(c), 10)
+			if tx + pw > box.end.x + 6.0:
+				break
+			tx += UI.pill(ci, font, Vector2(tx, y), str(c), UI.PURPLE, 10)
+		y += 24.0
 	var desc: String = od.def.get("attack", {}).get("desc", "")
-	if desc != "" and y + 30.0 < box.end.y:
+	if not ph and desc != "" and y + 42.0 < box.end.y - 12.0:
 		UI.code(ci, font, Vector2(box.position.x, y), "TRAIT // 特性", 8)
-		var f := UI.fit(font, desc, box.size.x, box.end.y - y - 14.0, [11, 10])
+		var f := UI.fit(font, desc, box.size.x, box.end.y - y - 28.0, [11, 10])
 		UI.draw_fit(ci, font, Vector2(box.position.x, y + 14), f, UI.B_SUB)
+	UI.text_at(ci, font, Vector2(box.position.x, box.end.y - 12), sh.note, 9, UI.B_SUB)
 
 
 ## 技能页：攻击 / 间隔 / 范围 / 生命小标签头 + 三行技能卡（图标 + 名字 / 英文 + SP 环 + 解锁阶段 + 手动 Q / 自动）+ 展开说明 + 天赋
@@ -2480,7 +2522,8 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 	var col: Color = od.col
 	if not ph:
 		var v: Dictionary = od.vals
-		var stats := [["攻击", _op_fmt(v.atk * cnt, "atk", v.atk)], ["间隔", _op_fmt(v.cd * (2.0 - cnt), "cd", v.cd)], ["范围", _op_fmt(v.reach * cnt, "reach", v.reach)], ["生命", "主控 %d" % int(round(v.hp * cnt))]]
+		var stats := [[InitialStats.row(od.sheet, "atk").label, _op_fmt(v.atk * cnt, "atk", v.atk)], ["间隔", _op_fmt(v.cd * (2.0 - cnt), "cd", v.cd)],
+			[InitialStats.row(od.sheet, "reach").label, _op_fmt(v.reach * cnt, "reach", v.reach)], ["生命", "主控 %d" % int(round(v.hp * cnt))]]
 		var cw := box.size.x / 4.0
 		for i in stats.size():
 			var sx := box.position.x + 2 + i * cw
@@ -2548,10 +2591,11 @@ func _op_skill_row(ci: CanvasItem, r: Rect2, od: Dictionary, i: int, compact: bo
 ## 编队页：主控受击属性 + 编队位（主控 + 两名探索中招募的队友）+ 定位标签 + 精英二条件 + 档案摘录
 func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bool) -> void:
 	var d: Dictionary = od.def
-	var ld: Dictionary = d.get("leader", {})
 	var y := box.position.y
-	var stats := [["生命", "%d" % int(round(float(od.vals.hp)))], ["物理减伤", str(snappedf(float(ld.get("armor", 0.0)), 0.5))],
-		["法术抗性", "%d%%" % int(round(float(ld.get("arts_res", 0.0)) * 100.0))], ["生命回复", "%.1f / 秒" % float(ld.get("regen", 1.0))]]
+	var stats: Array = []
+	for key in ["hp", "armor", "arts", "regen"]:
+		var sr: Dictionary = InitialStats.row(od.sheet, key)
+		stats.append([sr.label, sr.text])
 	var cw := box.size.x / 4.0
 	for i in stats.size():
 		var sx := box.position.x + 2 + i * cw
@@ -2692,7 +2736,7 @@ func _title_motion_tick() -> void:
 func _codex_motion_tick() -> void:
 	var f := codex_motion
 	var steps := {15: func(): transition.switch_slash(_codex_motion_open), 75: func(): gallery._step(1), 112: func(): gallery._step(1),
-		150: func(): gallery._set_info(2), 186: func(): gallery._set_info(1), 222: func(): gallery._set_info(0),
+		150: func(): gallery._set_info(3), 186: func(): gallery._set_info(1), 222: func(): gallery._set_info(0),
 		260: func(): gallery._set_tab(1), 305: func(): gallery._step(1), 340: func(): gallery._step(1),
 		378: func(): gallery._set_tab(0)}
 	if steps.has(f):

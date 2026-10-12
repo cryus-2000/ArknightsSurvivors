@@ -1,0 +1,31 @@
+{
+  "tool": "built-in imagegen; generated motion study plus approved f0 pixel registration",
+  "sources": {
+    "texas": {
+      "file": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-45709868-3995-446b-9b76-0a369c289d48.png",
+      "sha256": "10e90de928b80ccbf450f5871ab75af3e1ad496eff7a1d382f4ab50e27ce8c4e",
+      "prompt": "Edit this exact pixel character into a horizontal four-frame subtle breathing idle strip. Four equally spaced cells. Frame0 exactly neutral source, frame1 head torso arms held weapon lower2px at96pxscale, frame2 lower4px, frame3 lower2px. Feet fixed baseline. Same head/face, patterns and palette pixels translated as rigid parts, do NOT redraw identity. Secondary motion lags1frame by1-2px. Long dark hair tips and tail sway 1px, golden sword tip follows. Black pantyhose unchanged. Same character height/scale allframes. Transparent background, no text, no shadow, no effect. Preserve pixel art density and dark outline."
+    },
+    "hoshiguma": {
+      "file": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0d6a7435-e3df-4c48-b475-9b86d519c6fe.png",
+      "sha256": "0593284f5bc4b2a857dd67a8425b79d08efb7fbf73a5b70b38c56c2b888e2f8f",
+      "prompt": "Edit this exact pixel character into a horizontal four-frame subtle breathing idle strip. Four equally spaced cells. Frame0 exactly neutral source, frame1 head torso arms held weapon lower2px at96pxscale, frame2 lower4px, frame3 lower2px. Feet fixed baseline. Same head/face, patterns and palette pixels translated as rigid parts, do NOT redraw identity. Secondary motion lags1frame by1-2px. Shield follows torso sinking 1px, long green hair tips lag, horn keeps its shape rigid without wobble. Preserve intricate triangular shield pixels. Same character height/scale allframes. Transparent background, no text, no shadow, no effect. Preserve pixel art density and dark outline."
+    },
+    "angelina": {
+      "file": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-999d9a9b-76db-405c-909b-a64549fc18eb.png",
+      "sha256": "a4910a885afb5dc3229e9831c4fd3d1e19f3dee134be9bfca768a167e928eaed",
+      "prompt": "Edit this exact pixel character into a horizontal four-frame subtle breathing idle strip. Four equally spaced cells. Frame0 exactly neutral source, frame1 head torso arms held weapon lower2px at96pxscale, frame2 lower4px, frame3 lower2px. Feet fixed baseline. Same head/face, patterns and palette pixels translated as rigid parts, do NOT redraw identity. Secondary motion lags1frame by1-2px. Large tail sways 1-2 pixels, staff head1pixel, fox ear tips lag one frame. Same character height/scale allframes. Transparent background, no text, no shadow, no effect. Preserve pixel art density and dark outline."
+    },
+    "skalter": {
+      "file": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-e26b6258-af5e-4abe-a834-90565d7e8e89.png",
+      "sha256": "1b48e5ba7f58425594a03dd0f5ab3755549ef05e15cd453b7d33cb069e7cca26",
+      "prompt": "Create a 4-frame horizontal PIXEL sprite breathing idle animation by editing this exact Skadi the Corrupting Heart sprite. Four equally spaced cells, same exact scale. Frame0 identical neutral standing, frame1 entire head torso arms and staff sink slightly, frame2 sink a little further, frame3 rise. Feet planted at same baseline all frames. Preserve same pixels in face and dress patterns, no flicker or color changes. Long hair tips and hat brim gently lag one frame, hem gently sways. Staff vertical with cyan tip at least a visible 4x4 pixel cluster in 96px target. She has bare legs, diagonal bands on her anatomical left leg ONLY and white boots (no tights). Same hat, skin, red/navy dress, silver hair, dark outline. Subtle 2-4 pixel bob when scaled to96x96. Transparent background. No shadows, effects, labels, no flying, no redesign."
+    },
+    "exusiai": {
+      "file": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-a354d0fd-8ef0-4a5d-8a46-2d502efb063b.png",
+      "sha256": "d971d4cf8702c6907731132fabad08f71beff377115d99d6f3ccc025b4d83516",
+      "prompt": "Edit this exact Exusiai sprite to a four-frame horizontal breathing idle sequence, equally spaced cells transparent. Frame0neutral frame1 head torso arms gun lower2px at96pxscale frame2 lower4px frame3rise. Feet fixed same baseline, face and shirt details identical pixel patterns translated only. Smooth BLACK PANTYHOSE legs not pants or knee armor, black high-top sneakers red sole rim. Halo floats in counterphase1pixel, wing fragments gently flicker, hair tips lag1frame. Preserve weapon and stance, golden halo, auburn hair and amber eyes. No captions or effects."
+    }
+  },
+  "export_script_sha256": "cdc9d4c2bd464db1ff66a5400a03d921cb97ba21132a5e8d71f002240aa43175"
+}
