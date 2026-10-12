@@ -1,0 +1,264 @@
+{
+  "engine_tested": false,
+  "shared_palette_colors": 23,
+  "before": {
+    "op": "exusiai",
+    "frames": 6,
+    "diff": 0.8534266379186918,
+    "minpair": 0.8068524096385542,
+    "pairs": [
+      0.807,
+      0.872,
+      0.871,
+      0.83,
+      0.863,
+      0.878
+    ],
+    "sil_xor": 0.3497729457808319,
+    "half": 0.4952761075630769,
+    "bob_top": 2.0,
+    "bob_c": 1.216744093502406,
+    "head_bob": 1.7400679714051321,
+    "tops": [
+      12.5,
+      13.0,
+      11.0,
+      12.0,
+      13.0,
+      11.0
+    ],
+    "height": 34.416666666666664,
+    "foot_dx": 1.5,
+    "stride_max": 10.5,
+    "stride_rng": 3.5,
+    "contact_l_rng": 1.0,
+    "contact_r_rng": 3.0,
+    "lean": -9.874543842821184,
+    "lean_rng": 36.06228629665056,
+    "feet_seq": "112111",
+    "feet_alt": 2,
+    "idle_h": 35.0,
+    "leg_xor": 0.5592516118503942,
+    "move": 0.17958447714020442,
+    "move_half": 0.000656943896991197,
+    "leg_move": 0.33704034015128403,
+    "leg_move_half": 0.003687315634218289,
+    "upper_move": 0.01666708344459249,
+    "leg_px": 97.95833333333333,
+    "crouch": 0.9833333333333333
+  },
+  "after": {
+    "op": "exusiai",
+    "frames": 6,
+    "diff": 0.4487695849370225,
+    "minpair": 0.3651056775797762,
+    "pairs": [
+      0.568,
+      0.365,
+      0.377,
+      0.376,
+      0.412,
+      0.595
+    ],
+    "sil_xor": 0.1539567847813068,
+    "half": 0.40345566299325836,
+    "bob_top": 0.0,
+    "bob_c": 1.4916535767645307,
+    "head_bob": 0.03402432629610885,
+    "tops": [
+      10.5,
+      10.5,
+      10.5,
+      10.5,
+      10.5,
+      10.5
+    ],
+    "height": 36.0,
+    "foot_dx": 1.7916666666666679,
+    "stride_max": 20.0,
+    "stride_rng": 11.0,
+    "contact_l_rng": 5.5,
+    "contact_r_rng": 7.0,
+    "lean": 5.056964005746696,
+    "lean_rng": 0.37897860504431957,
+    "feet_seq": "212212",
+    "feet_alt": 4,
+    "idle_h": 35.0,
+    "leg_xor": 0.5367212557012563,
+    "move": 0.05829749756989213,
+    "move_half": 0.009103850498164192,
+    "leg_move": 0.21968600055527135,
+    "leg_move_half": 0.032467045010959976,
+    "upper_move": 0.0,
+    "leg_px": 113.125,
+    "crouch": 1.0285714285714285
+  },
+  "static_verifier": {
+    "passed": true,
+    "assets": [
+      {
+        "outline": "080E18",
+        "sha256": "4a5028858bda4d3d192549c2c46bbe84b261e05e4c8c58816bde2b2a259dfd61",
+        "file": "op_exusiai_run.png",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "pixel_sha256": "bc1e5a4bbaef422f4b92bbffeedd5acec85ef0e7bed07d3780791e00e1cee262",
+            "opaque_pixels": 596,
+            "bbox": [
+              11,
+              11,
+              34,
+              46
+            ],
+            "index": 0
+          },
+          {
+            "pixel_sha256": "28dfb692bbf2428a22d93c3cf6c8f7b659393e6324f6411a6b7cce26332ebd21",
+            "opaque_pixels": 538,
+            "bbox": [
+              12,
+              11,
+              35,
+              46
+            ],
+            "index": 1
+          },
+          {
+            "pixel_sha256": "b8c872cd128887dacde98bf3540a40c7a255b0d4eb708bf3ece264dbdc121b2b",
+            "opaque_pixels": 583,
+            "bbox": [
+              12,
+              11,
+              35,
+              46
+            ],
+            "index": 2
+          },
+          {
+            "pixel_sha256": "5cd38938869c4d3260e9b3d6f099e960183ae37143e3c14731697ebaf90375eb",
+            "opaque_pixels": 589,
+            "bbox": [
+              12,
+              11,
+              35,
+              46
+            ],
+            "index": 3
+          },
+          {
+            "pixel_sha256": "7e08c362c15ab82ae4d40fece2df6fdcafb0e37f013d57d3d48516d77ce74758",
+            "opaque_pixels": 534,
+            "bbox": [
+              12,
+              11,
+              35,
+              46
+            ],
+            "index": 4
+          },
+          {
+            "pixel_sha256": "2de1e3f9e1f70fe7a69cb46c3afd48d5b0e4c98181fad75c44ed6e5ce8cc0447",
+            "opaque_pixels": 592,
+            "bbox": [
+              12,
+              11,
+              35,
+              46
+            ],
+            "index": 5
+          }
+        ]
+      },
+      {
+        "outline": "080E18",
+        "sha256": "e75121a511d1f560a1aecb0401bc8b93fa97f584b221c3eb21a55ee8fd5512fd",
+        "file": "op_exusiai_run@2x.png",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "pixel_sha256": "44a80c065b45bb736397effd21eb3f5523580639f4336a29e1ed1fcf93fb1e18",
+            "opaque_pixels": 2366,
+            "bbox": [
+              22,
+              21,
+              69,
+              92
+            ],
+            "index": 0
+          },
+          {
+            "pixel_sha256": "ffc7c2bab763dd61d84122aaef730e598307d745cc389a88905dc041eaa28b9f",
+            "opaque_pixels": 2156,
+            "bbox": [
+              23,
+              21,
+              70,
+              92
+            ],
+            "index": 1
+          },
+          {
+            "pixel_sha256": "c32e6d3a8867d2afcaa4b5c0d0178bbaf79e9612d84e1d595b1a185f9269bb48",
+            "opaque_pixels": 2330,
+            "bbox": [
+              23,
+              21,
+              70,
+              92
+            ],
+            "index": 2
+          },
+          {
+            "pixel_sha256": "2548131705969d1520ba96f757d3f5d8abb7ba839e4fce2b764bba0cc79a49d2",
+            "opaque_pixels": 2355,
+            "bbox": [
+              23,
+              21,
+              70,
+              92
+            ],
+            "index": 3
+          },
+          {
+            "pixel_sha256": "bde3f1a3182af21e72e01bc521b9e7c1cebb594618ce2ded702cecd43b991b28",
+            "opaque_pixels": 2135,
+            "bbox": [
+              23,
+              21,
+              70,
+              92
+            ],
+            "index": 4
+          },
+          {
+            "pixel_sha256": "05a4f1ea5802f29d0f2f0b148652139fcac10faca9acdcb649072ded3f72cc83",
+            "opaque_pixels": 2381,
+            "bbox": [
+              23,
+              21,
+              70,
+              92
+            ],
+            "index": 5
+          }
+        ]
+      }
+    ],
+    "engine_tested": false,
+    "allow_repeated_frames": false,
+    "baseline_checked": true,
+    "palette_counts": [
+      {
+        "character": "exusiai",
+        "colors": 23
+      }
+    ]
+  },
+  "visual_review": {
+    "no_rectangular_head_patch": true,
+    "full_character_per_frame": true,
+    "black_tights_preserved": true,
+    "reviewed_contact_sheet": true
+  }
+}
