@@ -1,0 +1,88 @@
+{
+ "_doc": "召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15）的测试专用干员：不在 data/characters/，不进名单 / 招募池 / 图鉴，只能 --op=sstest 指名加载。tests/summon_seal_blocks_test.tscn 用它逐条检查；数值只为演示写法，不是平衡数。",
+ "id": "sstest",
+ "name": "召唤封印测试",
+ "en": "SUMMON SEAL TEST",
+ "class": "辅助",
+ "col": [0.7, 0.55, 1.0],
+ "faction": [],
+ "recruitable": false,
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "atk": 14, "cd": 1.0, "aura": 160, "heal_pct": 0.01,
+  "wolf_mult": 0.6, "wolf_every": 0.8, "wolf_cap": 4, "wolf_speed": 320, "wolf_leash": 280, "wolf_seal": 2.0, "s1_n": 2, "s1_dur": 8.0,
+  "orb_mult": 0.3, "orb_every": 0.5, "orb_r": 70, "orb_cd": 5.0,
+  "decoy_hp": 60, "decoy_life": 10, "decoy_blast": 1.2,
+  "hound_mult": 0.5, "hound_life": 4,
+  "s2_seal": 4.0, "s2_r": 200,
+  "s3_dur": 10.0, "shield_pct": 0.2, "shield_cap": 0.3, "shield_decay": 0.05
+ },
+ "leader": {"max_hp": 100, "armor": 1.0, "arts_res": 0.1, "regen": 1.0},
+ "sprites": {
+  "idle": {"tex": "op_skadi_idle", "frames": 4, "fps": 4, "foot": [22, 46]},
+  "run": {"tex": "op_skadi_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "attack": {"tex": "op_skadi_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 2},
+  "skill": {"tex": "op_skadi_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 4},
+  "size": 48, "foot": [24, 46]
+ },
+ "attack": {"mode": "auto", "name": "测试封印脉冲", "desc": "以主控为中心的范围脉冲"},
+ "skills": [
+  {"name": "狼首", "en": "T1", "sp": 8, "dur": 8.0, "desc": "召唤 2 只狼首（技能期间存在），追咬敌人并封印"},
+  {"name": "封缄", "en": "T2", "sp": 12, "desc": "封印主控周围的敌人，并放下一个诱饵"},
+  {"name": "壁垒", "en": "T3", "sp": 16, "dur": 10.0, "desc": "主控获得护盾"}
+ ],
+ "talent": {"name": "测试天赋", "desc": "精英击杀处放下诱饵"},
+ "hit_sources": {
+  "测试封印脉冲": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["area", "basic"]},
+  "狼首": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "法术", "tags": ["skill"]},
+  "浮游": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic"]},
+  "诱饵爆": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "法术", "tags": ["area"]},
+  "猎犬": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up"]}
+ },
+ "progression": [
+  {"type": "custom", "id": "orbs", "name": "浮游", "desc": "每 5 秒放出一个绕主控转的浮游单元（最多 3 个）"},
+  {"type": "custom", "id": "regen", "name": "回复光环", "desc": "主控在区域内每秒回复"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能与天赋"},
+  {"type": "custom", "id": "hound", "name": "猎犬", "desc": "每第 3 次脉冲放出一只跟随的猎犬"},
+  {"type": "custom", "id": "spare", "name": "备用", "desc": "伤害 ×1.1"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能"}
+ ],
+ "gallery": {"tags": ["测试"], "desc": "召唤 / 封印积木测试"},
+ "blocks": {
+  "zone": {"center": "leader", "r": "$aura"},
+  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "src": "测试封印脉冲", "tags": ["basic"]},
+  "summons": {
+   "wolf": {"name": "狼首", "invuln": true, "life": "skill", "cap": "$wolf_cap", "r": 8, "col": [0.75, 0.6, 1.0],
+    "move": {"mode": "chase", "speed": "$wolf_speed", "leash": "$wolf_leash", "target": "nearest", "anchor": "leader"},
+    "attack": {"shape": "circle", "center": "target", "r": 26, "mult": "$wolf_mult", "every": "$wolf_every", "src": "狼首", "tags": ["skill"], "power": true,
+     "on_hit": [{"st": "seal", "dur": "$wolf_seal"}]}},
+   "orb": {"name": "浮游", "invuln": true, "life": "permanent", "cap": 3, "r": 6,
+    "move": {"mode": "orbit", "orbit_r": "$orb_r", "orbit_speed": 2.0, "anchor": "leader"},
+    "attack": {"shape": "cone", "r": 50, "half_deg": 60, "mult": "$orb_mult", "every": "$orb_every", "src": "浮游"},
+    "body": {"strip": "fx_skalter_note", "hover": 20, "scale": 1.0, "flip": false}},
+   "decoy": {"name": "诱饵", "hp": "$decoy_hp", "life": "$decoy_life", "cap": 2, "r": 10, "col": [0.9, 0.85, 0.6],
+    "move": {"mode": "stay"}, "enemy_target": "decoy", "decoy_r": 180, "hurt_mult": 0.5,
+    "on_expire": [{"shape": "circle", "center": "target", "r": 70, "mult": "$decoy_blast", "src": "诱饵爆"}]},
+   "hound": {"name": "猎犬", "invuln": true, "life": "$hound_life", "cap": 2, "r": 7,
+    "move": {"mode": "follow", "speed": 280, "orbit_r": 40, "anchor": "self"},
+    "attack": {"shape": "line", "len": 70, "width": 18, "mult": "$hound_mult", "every": 0.6, "src": "猎犬"}}
+  },
+  "trait": [
+   {"trig": "on_kill", "filter": "elite", "do": [{"verb": "summon", "kind": "decoy", "at": "target"}]}
+  ],
+  "skills": [
+   {"dur": "$s1_dur", "do": [{"verb": "summon", "kind": "wolf", "n": "$s1_n", "at": "leader", "spread": 30}]},
+   {"dur": 0, "do": [
+    {"verb": "displace", "kb": 0, "r": "$s2_r", "center": "leader", "on_hit": [{"st": "seal", "dur": "$s2_seal"}]},
+    {"verb": "summon", "kind": "decoy", "at": "leader"}]},
+   {"dur": "$s3_dur", "do": [{"verb": "shield", "pct": "$shield_pct", "cap": "$shield_cap", "dur": "$s3_dur", "decay": "$shield_decay"}]}
+  ],
+  "talent": [],
+  "progression": {
+   "orbs": {"trig": "tick", "every": "$orb_cd", "do": [{"verb": "summon", "kind": "orb", "at": "leader"}]},
+   "regen": {"aura": "heal", "pct": "$heal_pct", "scope": "in_zone"},
+   "hound": {"trig": "every_n", "n": 3, "do": [{"verb": "summon", "kind": "hound", "at": "self"}]},
+   "spare": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": 1.1}
+  }
+ }
+}

@@ -166,7 +166,10 @@ func update(dt: float) -> void:
 			move_dir = (e.aggro - e.pos).normalized()
 			e.aggro = Vector2.INF
 		var held: bool = e.stun > 0.0 or bst > 0.0
-		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if not held else Vector2.INF
+		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
+		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
+		var sealed: bool = float(e.get("seal_t", 0.0)) > g.t
+		var ov: Vector2 = g.eai.pattern(e, dir, dist, dt, spd) if not held and not (sealed and not e.boss and not g.eai.busy(e)) else Vector2.INF
 		if ov != Vector2.INF:
 			v += ov
 		elif not held:
@@ -188,7 +191,7 @@ func update(dt: float) -> void:
 					if e.set_t <= 0.0 and e.set_done:
 						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0) and not g.beacon_sys.ranged_held(e):   # 圈内安全：读条期间远程杂兵不开火，冷却留着出圈即打（docs/49g）
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0) and not g.beacon_sys.ranged_held(e) and not sealed:   # sealed：封印期间不远程开火（冷却留着）   # 圈内安全：读条期间远程杂兵不开火，冷却留着出圈即打（docs/49g）
 						if not e.boss and not e.get("shot_ready", false):
 							e["shot_ready"] = true
 							e["shot_wind_until"] = g.t + 0.35
