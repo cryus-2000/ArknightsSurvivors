@@ -679,6 +679,8 @@ func _process(delta: float) -> void:
 	if overlay_was_open and not overlay_open and not transition.busy:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
+	if leaving < 0.0 and not auto_go:
+		Sfx.play_music(menu_track())   # 出发后（载入中）不换曲，开场引子由对局接手
 	t += delta
 	_menu_tick(delta)
 	if not diff_pick:
@@ -729,6 +731,16 @@ func _process(delta: float) -> void:
 		A.mark("title_leave")
 		get_tree().change_scene_to_file("res://game.tscn")
 	queue_redraw()
+
+
+## 当前界面该放哪首局外配乐（docs/21「局外配乐」）：图鉴 archive；选人（出发前，不含换封面）/ 难度 / Boss 演练 deploy；
+## 其余（标题、设置、操作说明、致谢、换封面干员）title。每帧请求，同名无副作用
+func menu_track() -> String:
+	if gallery.visible:
+		return "archive"
+	if boss_trial.visible or diff_pick or (op_pick and not cover_pick):
+		return "deploy"
+	return "title"
 
 
 func _input(event: InputEvent) -> void:

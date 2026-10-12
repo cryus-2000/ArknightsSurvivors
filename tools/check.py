@@ -385,6 +385,7 @@ SCENE_REGRESSIONS = {
     "ea_ui": ("EA 标题与 HUD", "ea_ui_test", r"EA UI regression: 0 failures", []),
     "op_select": ("选人页 B+ 键鼠 / 手柄 / 触屏输入", "op_select_input_test", r"OP SELECT INPUT: 0 failures", []),
     "codex": ("图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配", "codex_input_test", r"CODEX INPUT: 0 failures", []),
+    "menu_bgm": ("局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆", "menu_bgm_test", r"MENU BGM: 0 failures", []),
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),

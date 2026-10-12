@@ -70,6 +70,8 @@ var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟
 ##   两组播放器轮流：下一句在另一组里开播，正文按音频时钟精确接在上一句末尾，上一句的余音在原来那组里响完
 const MUSIC := {
 	"title": ["title"],
+	"archive": ["archive"],
+	"deploy": ["deploy"],
 	"opening": ["opening"],
 	"shop": ["shop"],
 	"win_loop": ["win_loop"],
@@ -104,6 +106,13 @@ const BOSS_HIT := 0.75       # boss_in 里太鼓重击的时刻：Boss 曲从这
 const BAR_AHEAD := 0.1       # 分层提前这么多秒开始淡入，保证小节线上的重拍是满音量
 const STEM_IN := 10.0        # 分层淡入 / 淡出速度（每秒）：进层干脆，退层用两秒慢慢收
 const STEM_OUT := 0.5
+## 局外配乐（docs/21「局外配乐」，用户 10-12）：标题 / 设置 / 操作说明 / 致谢 = title，图鉴 = archive，选人 / 难度 / Boss 演练 = deploy。
+## 局外曲目之间约 1 秒交叉淡化；离开时记住播到第几秒，回来接着放（不从头）；两个界面共用一首时 play_music 同名无副作用，不会重开。
+## 进局（任何不是局外曲目的曲目开播）清空记忆：打完一局回标题，标题曲从头放
+const MENU_TRACKS := ["title", "archive", "deploy"]
+const MENU_FADE := 1.0       # 局外曲目互切的淡入 / 淡出速度（每秒）= 1 秒
+var menu_pos := {}           # 局外曲目 -> 淡出停下时播到的秒数
+var track_t0 := {}           # 整首曲目 -> 「第 0 秒」对应的墙钟（算播放位置，不依赖音频驱动：网页样本播放位置滞后、无界面哑驱动偏慢）
 var groups := {}          # 整首曲目 -> Array[AudioStreamPlayer]
 var seq := {}             # 乐句式曲目 -> {segs 句 -> [各层流], danger, decks [两组播放器], cur 当前组, seg 当前句, hist 最近两句, t0, len 句长, bpm, kind}
 var group_vol := {}       # 曲目 -> 当前整体音量（0~1）
@@ -394,7 +403,7 @@ func _seq_tick(tname: String) -> void:
 ## - Boss 倒下回到战斗：先让击破乐句响 1.2 秒，战斗曲再从头缓缓回来
 ## - 其余：新曲从头淡入，旧曲淡出后停止
 func play_music(tname: String) -> void:
-	if tname != "title":
+	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
 	if not seq.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
 		return
@@ -415,6 +424,9 @@ func play_music(tname: String) -> void:
 	elif (old == "boss" or old == "final") and tname.begins_with("battle"):
 		pending = {"track": tname, "at": now + 1.2, "fade_in": 0.5, "out": 0.8}
 		_release(0.8)
+	elif MENU_TRACKS.has(tname) and MENU_TRACKS.has(old):
+		pending = {}
+		_start(tname, MENU_FADE, MENU_FADE)
 	else:
 		pending = {}
 		_start(tname, 0.8, 0.6)
@@ -427,6 +439,8 @@ func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 	cur_track = tname
 	clock_beat = -1
 	group_rate[tname] = [fade_in, 0.6]
+	if not MENU_TRACKS.has(tname):
+		menu_pos.clear()
 	if seq.has(tname):
 		for i in stem_on[tname].size():
 			stem_on[tname][i] = _stem_want(tname, i)
@@ -435,9 +449,28 @@ func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 		_seq_stop(tname)
 		_seq_play(tname, _seq_first(tname), 0, SEG_PRE + from)
 	else:
-		for pl in groups[tname]:
-			pl.play(from)
+		var menu := MENU_TRACKS.has(tname)
+		if menu and group_vol[tname] > 0.0 and (groups[tname][0] as AudioStreamPlayer).playing:
+			pass   # 局外曲目还没淡完就切回来：接着淡入，不重开
+		else:
+			if menu and from == 0.0:
+				from = float(menu_pos.get(tname, 0.0))
+			for pl in groups[tname]:
+				pl.play(from)
+			track_t0[tname] = _now() - from
 		music = groups[tname][0]
+
+
+## 整首曲目当前播到第几秒（按开播时记的墙钟算，循环取模；没在播时给离开时记下的位置）
+func track_pos(tname: String) -> float:
+	if not groups.has(tname) or groups[tname].is_empty():
+		return 0.0
+	var pl: AudioStreamPlayer = groups[tname][0]
+	if not pl.playing or not track_t0.has(tname):
+		return float(menu_pos.get(tname, 0.0))
+	var t := _now() - float(track_t0[tname])
+	var ln := pl.stream.get_length() if pl.stream != null else 0.0
+	return fposmod(t, ln) if ln > 0.0 else t
 
 
 ## 当前曲目提前放手（淡出），等 pending 里的下一首
@@ -642,7 +675,7 @@ func _process(delta: float) -> void:
 	# 兜底：若游戏场景没有主动选曲（未接入分层逻辑的版本），进入战斗时自动播放战斗曲
 	driven_t += delta
 	var sc := get_tree().current_scene
-	if driven_t > 1.0 and sc != null and sc.get_script() != null and str(sc.get_script().resource_path).ends_with("game.gd") and cur_track == "title":
+	if driven_t > 1.0 and sc != null and sc.get_script() != null and str(sc.get_script().resource_path).ends_with("game.gd") and MENU_TRACKS.has(cur_track):
 		battle_lv = 1
 		play_music("battle1")
 	var now := _now()
@@ -658,6 +691,8 @@ func _process(delta: float) -> void:
 		var rate: Array = group_rate[tname]
 		var gv: float = move_toward(group_vol[tname], want, delta * (rate[0] if want > group_vol[tname] else rate[1]))
 		group_vol[tname] = gv
+		if gv <= 0.0 and MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track) and not groups[tname].is_empty() 				and (groups[tname][0] as AudioStreamPlayer).playing:
+			menu_pos[tname] = track_pos(tname)   # 局外曲目淡完：记住位置，回到这个界面时接着放
 		for pl in groups[tname]:
 			pl.volume_db = linear_to_db(maxf(gv, 0.0001)) + vol_target
 			if gv <= 0.0 and pl.playing:

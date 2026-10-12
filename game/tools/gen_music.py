@@ -7,6 +7,8 @@
   win_loop.ogg / lose_loop.ogg  结算短乐句之后接续的循环
   opening.ogg                   开场动画引子《沉降》（不循环，对齐 3.6 s 动画）
   boss_in.ogg / boss_down.ogg   Boss 登场 / 击破叠加短乐句（不循环，叠在当前音乐之上）
+  archive.ogg                   图鉴《潮汐档案》A 大调 54 BPM（局外配乐，2026-10-12，自带种子）
+  deploy.ogg                    选人 / 难度 / Boss 演练《整装》升 F 小调 76 BPM（同上）
 全部为原创旋律与编曲，合成方式：减法/FM/Karplus-Strong + 卷积混响。
 战斗曲、中期 Boss、最终 Boss 自 v2.0 起由 gen_music_battle.py 生成，本脚本不再生成它们。
 依赖 numpy / scipy / soundfile（不需要 ffmpeg）。
@@ -680,6 +682,184 @@ def make_result_loops():
     finish(tr, "lose_loop", peak=0.35, verb=(6.5, 0.9, 0.5, 3200))
 
 
+# ============================================================ 10. 局外配乐（2026-10-12，docs/21「局外配乐」）
+# 两首都自带随机种子（与前面几轮无关，单独重做结果一样），循环接缝靠 finish 把余音折回开头；
+# 响度对齐标题曲（BS.1770 积分 -17.8 LUFS，gen_music_battle.lufs 测），峰值用 tanh 软限。
+MENU_LUFS = -17.8
+
+
+def finish_lufs(tr, name, verb, target=MENU_LUFS):
+    from gen_music_battle import lufs   # 延迟导入：gen_music_battle 自己也 import 本文件
+    buf = reverb(tr.buf, *verb)
+    data = buf[: tr.len].copy()
+    data[: tr.tail] += buf[tr.len: tr.len + tr.tail]
+    for _ in range(3):   # 软限会吃掉一点响度，迭代两三次收敛
+        data = data * 10 ** ((target - lufs(data)) / 20)
+        data = np.tanh(data * 1.25) / 1.25
+    print(name, "LUFS %.2f" % lufs(data), "峰值 %.3f" % np.max(np.abs(data)))
+    pcm = np.clip(data, -1, 1).astype(np.float32)
+    dst = os.path.join(OUTDIR, name + ".ogg")
+    with sf.SoundFile(dst, "w", SR, 2, format="OGG", subtype="VORBIS", compression_level=OGG_LEVEL) as f:
+        for i in range(0, len(pcm), 8192):
+            f.write(pcm[i:i + 8192])
+    print(name, round(len(data) / SR, 2), "s")
+
+
+def make_archive():
+    """图鉴《潮汐档案》：A 大调 54 BPM，16 小节约 71 秒循环。安静、私语感：竖琴慢分解 + 钢琴稀疏旋律 + 「呜」声垫 + 远处鲸歌。
+    和弦（按 F 大调写，TRANSPOSE +4 → A 大调，与标题升 F 小调互为关系调）：F | Am | B♭ | Csus–C | Dm | Am | Gm7 | Csus，
+    引子 4 小节 = 前半句和声只有竖琴；第 4–11 小节钢琴旋律（原创）；第 12–15 小节竖琴 + 八音盒回声收薄，末小节停在属和弦接回开头。"""
+    global TRANSPOSE, rng
+    rng = np.random.default_rng(1012)
+    TRANSPOSE = 4
+    tr = Track(54, 16, tail=9.0)
+    bt, bar = tr.beat, tr.bar
+    F = [53, 57, 60, 64]; Am = [57, 60, 64, 67]; Bb = [58, 62, 65, 69]; Csus = [55, 60, 65, 67]; C = [55, 60, 64, 67]
+    Dm = [57, 60, 62, 65]; Gm7 = [55, 58, 62, 65]
+    phrase = [[(F, 4)], [(Am, 4)], [(Bb, 4)], [(Csus, 2), (C, 2)], [(Dm, 4)], [(Am, 4)], [(Gm7, 4)], [(Csus, 4)]]
+    roots = {tuple(F): 29, tuple(Am): 33, tuple(Bb): 34, tuple(Csus): 36, tuple(C): 36, tuple(Dm): 26, tuple(Gm7): 31}
+    order = [0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7]   # 每小节用 phrase 的第几项
+
+    n = tr.len
+    w = wash(n, 0.004, 340, 8)
+    tr.buf[:n, 0] += w
+    tr.buf[:n, 1] += np.roll(w, 9000)
+    for b in range(16):
+        pos = 0
+        for ch, beats in phrase[order[b]]:
+            # 低音：长音、慢起
+            tr.add(sub(roots[tuple(ch)], beats * bt + 1.0, amp=0.015, a=0.9, r=1.2), tr.at(b, pos))
+            # 声垫：「呜」不变元音，很轻
+            tr.add(voice([ch[1], ch[2], ch[3]], beats * bt + 2.5, amp=0.011, a=2.6, r=2.8, morph=False), tr.at(b, pos), pan=0.2)
+            # 竖琴：上行分解（每拍一音，第 3 拍后半补一个高音），音量随段落起伏
+            amp_h = 0.022 if 4 <= b < 12 else 0.026
+            pat = [(0, ch[0]), (1, ch[1] + 12 if ch[1] + 12 < 80 else ch[1]), (2, ch[2] + 12), (2.5, ch[3] + 12), (3, ch[1] + 12)]
+            for k, (off, note) in enumerate(pat):
+                if off >= beats:
+                    break
+                tr.add(harp(note - 12 if k == 0 else note, 3.2, amp=amp_h * (1.0 if k == 0 else 0.8)),
+                       tr.at(b, pos + off + rng.uniform(0, 0.025)), pan=-0.4 + 0.2 * k)
+            pos += beats
+    # 弦乐涌浪：两次，托住旋律的句中
+    tr.add(swell([57, 60, 64, 69], bar * 2, amp=0.011, peak=0.55, bright=1100), tr.at(6), pan=-0.15)
+    tr.add(swell([57, 62, 65, 69], bar * 2, amp=0.012, peak=0.5, bright=1100), tr.at(10), pan=0.15)
+    # 钢琴旋律（原创）：两句问答，第二句高一点、落在属音上
+    mel = [(None, 1), (72, 1), (77, 2),
+           (76, 1.5), (72, 0.5), (69, 2),
+           (70, 1), (74, 1), (77, 1), (72, 1),
+           (72, 4),
+           (None, 1), (74, 1), (77, 1), (81, 1),
+           (79, 1.5), (76, 0.5), (72, 2),
+           (74, 1), (70, 1), (72, 1), (74, 1),
+           (72, 3), (None, 1)]
+    p_ = 0.0
+    for note, beats in mel:
+        if note is not None:
+            t0 = tr.at(4) + p_ * bt + rng.uniform(-0.015, 0.015)
+            tr.add(piano(note, beats * bt + 2.5, amp=0.075, vel=0.7 + 0.2 * (note >= 77), tone=3400), t0, pan=-0.1)
+        p_ += beats
+    # 收尾：八音盒轻轻回声旋律开头（第 12–14 小节），末小节只剩竖琴与声垫
+    for k, (note, beat_at) in enumerate([(72, 1), (77, 2), (76, 4 + 0), (72, 4 + 1.5), (69, 4 + 2), (70, 8 + 1), (74, 8 + 2)]):
+        tr.add(musicbox(note + 12, 2.6, amp=0.022), tr.at(12) + beat_at * bt, pan=0.3 - 0.1 * k)
+    # 远处鲸歌
+    tr.add(whale(45, 52, 6.0, 0.018), tr.at(2, 1), pan=0.45)
+    tr.add(whale(52, 45, 6.5, 0.016), tr.at(13, 0), pan=-0.45)
+    # 零星玻璃风铃
+    for b in range(16):
+        if rng.random() < 0.4:
+            ch = phrase[order[b]][0][0]
+            tr.add(bell(ch[int(rng.integers(1, 4))] + 24, 5.0, amp=0.008, ratio=2.0, index=0.5, decay=0.9),
+                   tr.at(b, float(rng.integers(0, 8)) / 2), pan=rng.uniform(-0.6, 0.6))
+    tr.buf[:, 0] = lp(tr.buf[:, 0], 8000)
+    tr.buf[:, 1] = lp(tr.buf[:, 1], 8000)
+    finish_lufs(tr, "archive", verb=(6.0, 0.95, 0.5, 4000))
+    TRANSPOSE = 0
+
+
+def make_deploy():
+    """选人 / 难度 / Boss 演练《整装》：升 F 小调 76 BPM，24 小节约 76 秒循环。标题主旋律（TITLE_MEL）换一套和声，
+    底下一直走轻脉动（低鼓 1、「2 与」两下 + 竖琴八分持续音滴答），越往后越满，制造出发前的期待感。
+    和弦（按 D 小调写，TRANSPOSE +4）：Dm9 | Gm7 | F | B♭–C | Am7 | Dm7 | Gm7 | Asus–A（标题曲是 Dm B♭ F Gm–A …）。
+    0–3 引子（脉动 + 和声）/ 4–11 钢琴唱主旋律 / 12–19 主旋律高八度交给人声「啊」+ 钢琴，弦乐与军鼓边击加入 /
+    20–23 退回脉动与钢琴回声，末小节属和弦 + 轻微上扬接回开头。"""
+    global TRANSPOSE, rng
+    rng = np.random.default_rng(1013)
+    TRANSPOSE = 4
+    tr = Track(76, 24, tail=8.0)
+    bt, bar = tr.beat, tr.bar
+    Dm9 = [50, 57, 60, 64, 65]; Gm7 = [43, 50, 53, 58, 62]; F = [41, 48, 53, 57, 60]
+    Bb = [46, 53, 58, 62, 65]; C = [48, 55, 60, 64, 67]; Am7 = [45, 52, 55, 60, 64]; Dm7 = [38, 50, 57, 60, 65]
+    Asus = [45, 52, 57, 62, 64]; A = [45, 52, 57, 61, 64]
+    phrase = [[(Dm9, 4)], [(Gm7, 4)], [(F, 4)], [(Bb, 2), (C, 2)], [(Am7, 4)], [(Dm7, 4)], [(Gm7, 4)], [(Asus, 2), (A, 2)]]
+    roots = {id(Dm9): 26, id(Gm7): 31, id(F): 29, id(Bb): 34, id(C): 36, id(Am7): 33, id(Dm7): 26, id(Asus): 33, id(A): 33}
+
+    def chords_at(b):
+        return phrase[(b - 4) % 8] if b >= 4 else phrase[b]
+
+    def piano_mel(mel, start_bar, oct_=0, amp=0.08):
+        pos = 0.0
+        for note, beats in mel:
+            if note is not None:
+                t0 = tr.at(start_bar) + pos * bt + rng.uniform(-0.01, 0.01)
+                tr.add(piano(note + oct_, beats * bt + 1.8, amp=amp, vel=0.8, tone=3800), t0, pan=-0.12)
+            pos += beats
+
+    n = tr.len
+    w = wash(n, 0.006, 380, 12)
+    tr.buf[:n, 0] += w
+    tr.buf[:n, 1] += np.roll(w, 6000)
+    for b in range(24):
+        full = 12 <= b < 20
+        pos = 0
+        for ch, beats in chords_at(b):
+            r = roots[id(ch)]
+            tr.add(sub(r, beats * bt + 0.2, amp=0.018, a=0.05, r=0.4), tr.at(b, pos))
+            tr.add(voice([n_ + 12 for n_ in ch[2:]], beats * bt + 1.6, amp=0.014 if not full else 0.018, a=1.2, r=1.6, morph=False),
+                   tr.at(b, pos), pan=0.2)
+            if full:
+                tr.add(strings([n_ + 12 for n_ in ch[1:4]], beats * bt + 0.8, amp=0.009, a=0.6, r=0.9, bright=1500), tr.at(b, pos), pan=-0.25)
+            pos += beats
+        # 脉动：低鼓（第 1 拍 + 第 2 拍后半，第 3 拍轻一下），第 20–23 小节退回只剩第 1 拍
+        tr.add(taiko(0.11, 82, 0.5), tr.at(b, 0))
+        if b < 20 or b == 23:
+            tr.add(taiko(0.06, 82, 0.4), tr.at(b, 1.5))
+            tr.add(taiko(0.075, 76, 0.45), tr.at(b, 2))
+        if full or b == 11:
+            tr.add(snare(0.05, 0.18), tr.at(b, 3), pan=0.15)   # 轻边击（只在第 4 拍）
+        # 竖琴滴答：八分音符持续音（主音 + 五度交替），落在当前和弦的根音上
+        ch0 = chords_at(b)[0][0]
+        tick = [ch0[2] + 12, ch0[1] + 24 if ch0[1] + 24 < 84 else ch0[1] + 12]
+        for e in range(8):
+            if b < 2 and e % 2:
+                continue   # 引子头两小节只有四分音符，慢慢起来
+            note = tick[e % 2]
+            tr.add(harp(note, 1.4, amp=0.017 if e % 2 else 0.021), tr.at(b, e * 0.5 + rng.uniform(0, 0.01)), pan=0.35 if e % 2 else -0.3)
+        # 小沙锤式的高频滴答（第 4 小节起，反拍）
+        if b >= 4:
+            for e in range(1, 8, 2):
+                tr.add(hat(0.012 if not full else 0.016), tr.at(b, e * 0.5), pan=0.45)
+    piano_mel(TITLE_MEL, 4, amp=0.078)
+    piano_mel(TITLE_MEL, 12, oct_=12, amp=0.06)
+    # 人声「啊」高八度唱主旋律（第 12–19 小节）
+    pos = 0.0
+    for note, beats in TITLE_MEL:
+        if note is not None:
+            tr.add(voice([note + 12], beats * bt + 0.6, amp=0.013, a=0.25, r=0.5), tr.at(12) + pos * bt, pan=0.1)
+        pos += beats
+    tr.add(swell([62, 65, 69, 74], bar * 4, amp=0.014, peak=0.6, bright=1400), tr.at(12), pan=0.2)
+    tr.add(swell([57, 61, 64, 69], bar * 4, amp=0.014, peak=0.5, bright=1400), tr.at(16), pan=-0.2)
+    tr.add(cymbal(0.05, 3.0), tr.at(12))
+    # 第 20–23 小节：钢琴回声主旋律头两个音组，末小节轻微上扬接回开头
+    for k, (note, at) in enumerate([(69, 0), (74, 1), (72, 2.5), (69, 4), (74, 5), (76, 6.5)]):
+        tr.add(piano(note, 3.0, amp=0.055, vel=0.75, tone=3400), tr.at(20) + at * bt, pan=0.1)
+    tr.add(riser(bar * 0.9, 0.012), tr.at(23, 0.4))
+    tr.add(whale(43, 50, 5.0, 0.018), tr.at(1, 2), pan=0.4)
+    tr.buf[:, 0] = lp(tr.buf[:, 0], 9000)
+    tr.buf[:, 1] = lp(tr.buf[:, 1], 9000)
+    finish_lufs(tr, "deploy", verb=(4.0, 1.4, 0.4, 4200))
+    TRANSPOSE = 0
+
+
 if __name__ == "__main__":
     import sys
     args = sys.argv[1:]
@@ -687,6 +867,6 @@ if __name__ == "__main__":
         k = args.index("--skip")
         SKIP.update(args[k + 1].split(","))
         del args[k:k + 2]
-    which = args or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops"]
+    which = args or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops", "archive", "deploy"]
     for w in which:
         globals()["make_" + w]()
