@@ -587,7 +587,7 @@
       "frame_count": 4,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_idle.png",
-      "sha256": "ec8bc79224f99a4f57d797cc7841f10f2e0c20b0fe26cf1d9c665a8d726a32ac"
+      "sha256": "d5197e514ef235aa0656397bbc01ad08943a21903a7f91a7b29b0fd349cfbc1e"
     },
     {
       "character": "specter_unchained_1",
@@ -604,7 +604,7 @@
       "frame_count": 6,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_run.png",
-      "sha256": "a9e327c94a87575634bd44fc4ed0eda615fb07288102d8f21552aac28cc42c4c"
+      "sha256": "3f066f581843dbe1246ad158cd6351c95fd70d02beb1a66d851d594db763cda9"
     },
     {
       "character": "specter_unchained_1",
@@ -621,7 +621,7 @@
       "frame_count": 5,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_attack.png",
-      "sha256": "4777ef73befaa1968e896e1d3ff9525b1bac431249cce52ea2e272c93eda5122"
+      "sha256": "c8b97e8c5ae92ea1da46b9ded00dcbcf4bee023e16221dd11093fe680c940cb1"
     },
     {
       "character": "specter_unchained_1",
@@ -638,7 +638,7 @@
       "frame_count": 7,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_skill.png",
-      "sha256": "b2fc7a34f857277a5b0e2e9abd5953e7545afe86788a6b135b23c51b833df6a8"
+      "sha256": "c5da2e5989641f085ba2fc0d11748a4a6f3f7557c07b7d9abd61c60396a0033f"
     },
     {
       "character": "specter_unchained_2",
@@ -655,7 +655,7 @@
       "frame_count": 4,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_idle@2x.png",
-      "sha256": "d61304aa006b0b671909152f4f08bd018a0a1284deb5127262243af418889247"
+      "sha256": "cfe30229612033daa63f7c19a96db48248e4fc3d434618a73e64d97fe03ff72a"
     },
     {
       "character": "specter_unchained_2",
@@ -672,7 +672,7 @@
       "frame_count": 6,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_run@2x.png",
-      "sha256": "5a557d87338138bd25ea7bc6e9b9a4419d303e897cceec1a55cc96b2a3e00738"
+      "sha256": "3ec492806e50118c0030f000d0bfe2adecf6e6d0ff60254deae82a44b416f8fa"
     },
     {
       "character": "specter_unchained_2",
@@ -689,7 +689,7 @@
       "frame_count": 5,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_attack@2x.png",
-      "sha256": "7c84f0acecf7d731bd9f88f245a736ab2c197b8bdd455014ac604336705bce49"
+      "sha256": "047348d14d9b9fc0b84e2e63fc48b75abadcaa7e204307407be5ba509529328c"
     },
     {
       "character": "specter_unchained_2",
@@ -706,7 +706,7 @@
       "frame_count": 7,
       "operator_id": "specter_unchained",
       "file": "op_specter_unchained_skill@2x.png",
-      "sha256": "fa278c2169d9c43fd100d2533787fd9d1a92e882f21aa1384f2b5c93ee273279"
+      "sha256": "36587fec3f97bff3efc0e09a776be84adce5979a021c512ab943d0e5600c117a"
     },
     {
       "character": "specter_doll_1",
