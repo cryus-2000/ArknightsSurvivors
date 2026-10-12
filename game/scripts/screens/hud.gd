@@ -8,6 +8,7 @@ const UI = preload("res://scripts/ui.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
+var _dbg_nonum: bool = preload("res://scripts/render/declutter.gd").dbg("nonum")   # --clutterdbg=nonum：不画伤害数字（量测，tools/late_clutter.py）
 const Tris = preload("res://scripts/screens/hud_tris.gd")   # 无贴图图元批（原内部类）
 const HudBars = preload("res://scripts/screens/hud_bars.gd")
 const HudRelics = preload("res://scripts/screens/hud_relics.gd")
@@ -173,7 +174,7 @@ func _draw_body() -> void:
 func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
-	for f in (g.texts if (g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "" else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）
+	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		# 图鉴演示：主控身上的飘字压淡（斯卡蒂潮汐时成串数字会整块盖住她）
 		if g.demo_op != "" and g.ch != null and absf(f.pos.x - g.ch.pos.x) < 36.0 and f.pos.y > g.ch.pos.y - 80.0 and f.pos.y < g.ch.pos.y + 10.0:

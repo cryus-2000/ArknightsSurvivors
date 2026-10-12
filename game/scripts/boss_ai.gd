@@ -556,6 +556,7 @@ func _draw_warns() -> void:
 			# 预告（如注亡拟嗣生成点）：没有伤害，压低亮度，别和伤害圈抢眼
 			fa *= 0.4
 			oa *= 0.45
+		fa *= g.world.tell_fill   # 后期降噪（render/declutter tell_fill_k，缺省 1）：填充减淡、轮廓（world.draw_warn_outlines）加粗
 		var fill := Color(c.r, c.g, c.b, fa * 1.3)
 		var line := Color(c.r, c.g, c.b, oa)
 		match w.shape:
