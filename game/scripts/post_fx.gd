@@ -8,6 +8,7 @@ var rect: ColorRect
 var mat: ShaderMaterial
 var hurt := 0.0        # 由 game.gd 写入
 var crowd := 0.0       # 特效密度 0–1（render/world.gd 写入）：后期满屏特效时辉光减半，免得整片过曝
+var bloom_cut := 0.5   # crowd = 1 时辉光减掉的比例（render/declutter 的 bloom_cut，world.gd 写入）
 var desat := 0.0       # 0..1 去色（最终 Boss 击破演出，screens/boss_intro.gd 写入；低画质恒 0）
 var t := 0.0
 var world := false    # 对局画面（game.gd 在 add_child 前设）：才叠观感曲线
@@ -37,7 +38,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	mat.set_shader_parameter("time", t)
-	mat.set_shader_parameter("bloom", 0.3 * (1.0 - 0.5 * crowd) if Cfg.bloom and not crisp else 0.0)
+	mat.set_shader_parameter("bloom", 0.3 * (1.0 - bloom_cut * crowd) if Cfg.bloom and not crisp else 0.0)
 	mat.set_shader_parameter("filter_on", 1.0 if Cfg.water_filter and not crisp else 0.0)
 	# 全局亮度 = 玩家设置 × render/ambient_gain（界面与美术 10-01：整体略提亮；乘在最后，低灯和正常灯的明暗比例不变）
 	var br: float = Cfg.brightness * Bal.v("render/ambient_gain", 1.0)

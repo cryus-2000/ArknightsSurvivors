@@ -4,6 +4,7 @@ extends RefCounted
 
 const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
+const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 
 var g                              # Game (Node2D)
 var id := ""
@@ -132,6 +133,28 @@ func draw_ground(vs: Vector2) -> void:
 			sort_props.append([pr[0], pr[1], pr[2]])
 		else:
 			_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, Color.WHITE)
+
+
+## 地面的平均色（后期降噪 render/declutter ground_veil 用：拥挤时在地面上盖一层同色薄纱，压地砖 / 小道具的纹理对比，不改明暗）。
+## 取第一块地面缓存贴图缩到 1×1；没有贴图时用深灰蓝
+var _gmean := Color(-1, 0, 0)
+
+func ground_mean() -> Color:
+	if _gmean.r >= 0.0:
+		return _gmean
+	_gmean = Color(0.14, 0.16, 0.19)
+	for k in ground_cache:
+		var tx = ground_cache[k][0]
+		if tx is Texture2D:
+			var img: Image = tx.get_image()
+			if img != null:
+				if img.is_compressed():
+					img.decompress()
+				img.resize(1, 1, Image.INTERPOLATE_BILINEAR)
+				_gmean = img.get_pixel(0, 0)
+				_gmean.a = 1.0
+		break
+	return _gmean
 
 
 ## 生成 / 取一块地面缓存：[贴图, 道具列表 [tex, pos, hash, cx, cy]]
@@ -414,8 +437,10 @@ func update_snow(dt: float, vs: Vector2) -> void:
 
 func draw_snow() -> void:
 	var sc: Array = theme.get("snow", {}).get("color", [0.8, 0.9, 1.0])
+	# 后期降噪（render/declutter snow_k，缺省 1 = 不变）：拥挤时浮游颗粒变淡；--clutterdbg=noamb 量测时不显示
+	var sk: float = 0.0 if g.world._dbg_amb else Dc.at("snow_k", g.world.dcrowd)
 	for s in snow:
-		var c := Color(sc[0], sc[1], sc[2], 0.25 + 0.15 * sin(s.s * 2.0))
+		var c := Color(sc[0], sc[1], sc[2], (0.25 + 0.15 * sin(s.s * 2.0)) * sk)
 		g.draw_rect(Rect2((s.p + Vector2(sin(s.s) * 6.0, 0)).round(), Vector2(2, 2)), c)
 
 
@@ -427,7 +452,7 @@ func draw_god_rays(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var span: float = float(gr.get("span", 1900))
 	var col: Array = gr.get("color", [1.8, 2.4, 2.8])
 	var a0: float = float(gr.get("alpha", 0.05))
-	var gk: float = Look.p("god")   # 观感预设 render/look ≥ 3 减淡远景光束（加法层叠出的乳白雾感）
+	var gk: float = Look.p("god") * Dc.at("god_k", g.world.dcrowd)   # 观感预设 render/look ≥ 3 减淡远景光束（加法层叠出的乳白雾感）；后期降噪 render/declutter god_k
 	var t: float = g.t
 	for k in int(gr.get("count", 6)):
 		var base := fposmod(k * 331.0 - cp.x * 0.5 + t * 6.0, span) - span / 2.0

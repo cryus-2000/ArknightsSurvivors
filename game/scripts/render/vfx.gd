@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")
+const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -155,8 +156,14 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	var r: float = float(e.get("r", 12.0))
 	var big: bool = r >= Bal.v("fx/kill_big_r", 20.0)
 	var n: int = Bal.vi("fx/kill_sparks", 7) + int(r * Bal.v("fx/kill_sparks_per_r", 0.3))
+	# 后期降噪（render/declutter kill_k / kill_ring，缺省不变）：普通小怪的击杀火花随拥挤度减少、拥挤过半时不画小冲击环；
+	# 火花只用 g.vrng，不碰对局随机数；精英 / Boss / 大体型照旧
+	var plain: bool = not big and not e.get("elite", false) and not e.get("boss", false)
+	if plain:
+		n = maxi(1, int(round(n * Dc.at("kill_k", g.world.dcrowd))))
 	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
-	g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col})
+	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col})
 	var pitch: float = clampf(1.15 - r / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
@@ -284,12 +291,20 @@ func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
 		return
 	if _boss_fight():
 		return
-	if not weak and g.texts.size() > Bal.vi("fx/text_crowd", 30):
-		return   # 飘字多时普通白字不飘，只留暴击 / 弱点 / 破绽（可读性，1.1.1）
+	if weak and Dc.p("num_weak") < 1.0 and g.world.dcrowd > 0.5 and g.texts.size() > _white_cap():
+		return   # 后期降噪 num_weak = 0：拥挤过半时「弱点 N」也和白字一样受上限（暴击 / 破绽照飘）
+	if not weak and g.texts.size() > _white_cap():
+		return   # 飘字多时普通白字不飘，只留暴击 / 弱点 / 破绽（可读性，1.1.1；后期上限随拥挤度降到 render/declutter num_cap）
 	if weak:
 		add_text(e.pos + jit + Vector2(0, -e.r - 12), "弱点 " + str(int(round(dmg))), Color(1.0, 0.85, 0.35), 18)
 	else:
-		add_text(e.pos + jit + Vector2(0, -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), 14)
+		add_text(e.pos + jit + Vector2(0, -e.r - 8), str(int(round(dmg))), Color(1, 1, 1, 0.95), int(round(14.0 * Dc.at("num_scale", g.world.dcrowd))))
+
+
+## 普通白字伤害数字的同屏上限：fx/text_crowd（缺省 30），拥挤时按 render/declutter num_cap 插值（缺省 30 = 不变）
+func _white_cap() -> int:
+	var c0: float = Bal.v("fx/text_crowd", 30.0)
+	return int(round(lerpf(c0, minf(c0, Dc.p("num_cap")), g.world.dcrowd)))
 
 
 ## 无敌时的提示（combat.damage 的 invuln 分支）：伊祖米克学习期飘「学习中」，其余无敌不飘（§1.15 删掉「无效」）
@@ -306,7 +321,7 @@ func _flush_boss_sum(dt: float) -> void:
 		var e: Dictionary = s.e
 		if s.dmg >= 1.0 and s.get("brk", false):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 16), "破绽 " + str(int(round(s.dmg))), UI.GOLD, 22)   # 破绽期间：金色大一号（打击感审查）
-		elif s.dmg >= 1.0 and (s.weak or g.texts.size() <= Bal.vi("fx/text_crowd", 30)):
+		elif s.dmg >= 1.0 and (s.weak or g.texts.size() <= _white_cap()):
 			add_text(e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r - 14), ("弱点 " if s.weak else "") + str(int(round(s.dmg))), Color(1.0, 0.85, 0.35) if s.weak else Color(1, 0.92, 0.95), 18)
 	_boss_sum = _boss_sum.filter(func(s): return s.t > 0.0)
 
@@ -321,8 +336,9 @@ func mark_enemy_fx(from: int) -> void:
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	var pn: Array = _num_parts(text)
 	if not pn.is_empty():
-		var mt: float = Bal.v("fx/text_merge_t", TEXT_MERGE_T)
-		var mr: float = Bal.v("fx/text_merge_r", TEXT_MERGE_R)
+		# 后期降噪（render/declutter num_merge_t / num_merge_r，缺省 = fx 段原值）：拥挤时合并窗口拉长、半径放大，同一片目标的数字并成一个
+		var mt: float = lerpf(Bal.v("fx/text_merge_t", TEXT_MERGE_T), maxf(Bal.v("fx/text_merge_t", TEXT_MERGE_T), Dc.p("num_merge_t")), g.world.dcrowd)
+		var mr: float = lerpf(Bal.v("fx/text_merge_r", TEXT_MERGE_R), maxf(Bal.v("fx/text_merge_r", TEXT_MERGE_R), Dc.p("num_merge_r")), g.world.dcrowd)
 		for i in range(g.texts.size() - 1, maxi(-1, g.texts.size() - 25), -1):
 			var t: Dictionary = g.texts[i]
 			if t.max - t.life > mt or t.col != col or t.get("base", t.size) != size:

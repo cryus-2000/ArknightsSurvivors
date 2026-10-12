@@ -32,6 +32,7 @@ var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取�
 var perf_kills := 0
 const A_ = preload("res://scripts/art.gd")
 const PlayClockT = preload("res://scripts/run/play_clock.gd")
+const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（--clutterab / --clutterlog 量测，tools/late_clutter.py）
 var perf_upd := 0
 var perf_min := false          # --perfmin：按游戏分钟分段（docs/50 §10）
 var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /a /b 两桶
@@ -236,6 +237,7 @@ func step() -> void:
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
 	_rec_step()
+	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
 	if vfxdemo:
@@ -445,6 +447,8 @@ func step() -> void:
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
+		if Cfg.dev_args().has("--clutterlog"):
+			_clutter_log()
 	# 机器人的手动技能（契约 v2.3：只有主控有手动技能）：就绪且干员自己想放时替玩家按下。
 	# 时机由干员的 bot_wants_manual 决定：缺省保命型（主控生命 < bot/manual_hp），乌尔比安 S3 就绪即放
 	if g.state == g.S.PLAY:
@@ -784,6 +788,8 @@ func _perf_sample() -> void:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
 		if vfxab > 0:
 			w += "/on" if g.vfx.p2 else "/off"   # --vfxab：上一帧是在哪个模式下画的（轮换在采样之后）
+		if Dc.ab_every > 0:
+			w += "/d0" if Dc.ab_alt else "/dN"   # --clutterab：上一帧按哪一档画的（轮换在采样之后）
 		if perf_ab > 0:
 			w += "/b" if g.perf_alt else "/a"   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
 		if not perf.has(w):
@@ -931,3 +937,75 @@ func _sfx_cats(by: Dictionary) -> Dictionary:
 		for i in 5:
 			out[c][i] += int(by[n][i])
 	return out
+
+
+## --clutterlog（配 --shots）：截图的同一帧写 shot_<帧>.json——画面上各类东西的数量与拥挤度（tools/late_clutter.py 量后期画面杂乱）。
+## 只读状态，不改对局
+func _clutter_log() -> void:
+	var ct: Transform2D = g.get_viewport().get_canvas_transform()
+	var vs: Vector2 = g.get_viewport_rect().size
+	var scr := Rect2(Vector2.ZERO, vs)
+	var on := func(p: Vector2) -> bool: return scr.has_point(ct * p)
+	var en := 0
+	var en_on := 0
+	var el_on := 0
+	var dash_full := 0
+	var dash_dim := 0
+	for e in g.enemies:
+		if e.dead:
+			continue
+		en += 1
+		if on.call(e.pos):
+			en_on += 1
+			if e.elite or e.boss:
+				el_on += 1
+		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir"):
+			if e.get("tell_dim", false):
+				dash_dim += 1
+			else:
+				dash_full += 1
+	var kinds := {}
+	var fx_friend := 0
+	var fx_foe := 0
+	for f in g.fx:
+		var foe: bool = f.get("enemy", false) or g.world.FOE_KINDS.has(f.kind)
+		var key: String = ("foe:" if foe else "") + str(f.kind)
+		kinds[key] = int(kinds.get(key, 0)) + 1
+		if foe:
+			fx_foe += 1
+		else:
+			fx_friend += 1
+	var ops := []
+	for o in g.squad.ops:
+		var pk := {}
+		for f in o.pfx:
+			pk[str(f.kind)] = int(pk.get(str(f.kind), 0)) + 1
+		ops.append({"id": o.id, "leader": o.is_leader, "pfx": o.pfx.size(), "kinds": pk})
+	var wfull := 0
+	var wdim := 0
+	for w in g.warns:
+		if w.get("dim", false):
+			wdim += 1
+		else:
+			wfull += 1
+	var eb_on := 0
+	for b in g.ebullets:
+		if on.call(b.pos):
+			eb_on += 1
+	var gems_on := 0
+	for gm in g.gems:
+		if on.call(gm.pos):
+			gems_on += 1
+	var lp: Vector2 = ct * g.ppos
+	var d := {"frame": g.at_frames, "t": snappedf(g.t, 0.01), "enemies": en, "enemies_on": en_on, "elite_boss_on": el_on,
+		"bosses": g.bosses.filter(func(b): return not b.dead).map(func(b): return str(b.type)),
+		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops,
+		"bullets": g.bullets.size(), "ebullets": g.ebullets.size(), "ebullets_on": eb_on, "lobs": g.lobs.size(), "shocks": g.shocks.size(),
+		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
+		"gems_on": gems_on, "mires": g.mires.size(), "snow": g.map.snow.size(),
+		"crowd": snappedf(g.world.crowd, 0.001), "ecrowd": snappedf(g.world.ecrowd, 0.001), "dcrowd": snappedf(g.world.dcrowd, 0.001),
+		"fx_dim": snappedf(g.world.fx_dim, 0.001), "declutter": Dc.level(), "leader_scr": [lp.x, lp.y], "lamp": g.lamp,
+		"lamp_r": g.lamp_light.texture_scale * 64.0}
+	var f := FileAccess.open(g.shot_dir + "/shot_%d.json" % g.at_frames, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(d))
