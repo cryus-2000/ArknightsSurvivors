@@ -46,7 +46,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "92f6e16106b2cfe725dc3db8ab851014240fb2941bea2c3444efa439641199d3"
+      "sha256": "a7a36c898ad40d14120f83ac93c5006ef4f03e11647e33c3b9d0f7085265828f"
     },
     {
       "file": "op_texas_run@2x.png",
@@ -62,7 +62,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "5bbbffaac4e6eb52b79b14b75f15ca96eca8eb55f2919461f599d6a6bb109f08"
+      "sha256": "a37aa751959e172e0244f2ec8c07b25b72cf4df09e3ee419a2979797f1c11716"
     },
     {
       "file": "op_texas_attack.png",

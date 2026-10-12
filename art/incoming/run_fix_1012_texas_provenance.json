@@ -1,0 +1,209 @@
+{
+  "source": "E:\\\u6c34\u6708\\approved_redraw_1012\\texas_source.png",
+  "source_sha256": "1eb5a19d2e0458449a7d41baf0ef6956fd3bdc983ed1fff2309d617ea1c6d8fa",
+  "transforms": [
+    {
+      "rect": [
+        0,
+        240,
+        250,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        6,
+        32
+      ],
+      "face_center_before_translation": 48.0
+    },
+    {
+      "rect": [
+        250,
+        240,
+        500,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        4,
+        33
+      ],
+      "face_center_before_translation": 50.0
+    },
+    {
+      "rect": [
+        500,
+        240,
+        750,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        6,
+        32
+      ],
+      "face_center_before_translation": 48.0
+    },
+    {
+      "rect": [
+        750,
+        240,
+        972,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        10,
+        34
+      ],
+      "face_center_before_translation": 44.0
+    },
+    {
+      "rect": [
+        972,
+        240,
+        1198,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        9,
+        33
+      ],
+      "face_center_before_translation": 45.0
+    },
+    {
+      "rect": [
+        1198,
+        240,
+        1420,
+        468
+      ],
+      "scale": 0.29,
+      "translation": [
+        12,
+        32
+      ],
+      "face_center_before_translation": 42.0
+    }
+  ],
+  "head_patch": false,
+  "palette": [
+    [
+      8,
+      14,
+      24
+    ],
+    [
+      14,
+      13,
+      18
+    ],
+    [
+      28,
+      26,
+      34
+    ],
+    [
+      40,
+      40,
+      48
+    ],
+    [
+      51,
+      40,
+      49
+    ],
+    [
+      56,
+      50,
+      62
+    ],
+    [
+      69,
+      52,
+      56
+    ],
+    [
+      72,
+      64,
+      80
+    ],
+    [
+      98,
+      89,
+      102
+    ],
+    [
+      101,
+      92,
+      96
+    ],
+    [
+      110,
+      52,
+      50
+    ],
+    [
+      123,
+      87,
+      81
+    ],
+    [
+      154,
+      52,
+      61
+    ],
+    [
+      154,
+      84,
+      28
+    ],
+    [
+      181,
+      173,
+      184
+    ],
+    [
+      198,
+      83,
+      88
+    ],
+    [
+      198,
+      190,
+      201
+    ],
+    [
+      221,
+      164,
+      135
+    ],
+    [
+      231,
+      177,
+      149
+    ],
+    [
+      233,
+      231,
+      223
+    ],
+    [
+      255,
+      190,
+      60
+    ],
+    [
+      255,
+      226,
+      199
+    ],
+    [
+      255,
+      246,
+      233
+    ]
+  ],
+  "export_script_sha256": "ac6d4aa1beeb9891922d074225a178c171de39d863787870d21e2c7ebe8858a3"
+}
