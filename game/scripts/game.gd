@@ -317,6 +317,7 @@ var pending_chests := 0
 var cam: Camera2D
 var sprite: Sprite2D
 var lamp_light: PointLight2D
+var actor_mat: ShaderMaterial = null   # 白色保护（render/look_white_lift > 0，scripts/render/look.gd）：挂在本节点上，只作用于干员本体
 var merchant_light: PointLight2D
 var hud: Control
 var panel: Control
@@ -690,6 +691,9 @@ func _ready() -> void:
 	lamp_light.height = 90.0
 	lamp_light.enabled = Look.dbg("nolamp") == ""   # --lookdbg=nolamp：量灯火对画面的贡献（render/look.gd）
 	add_child(lamp_light)
+	actor_mat = Look.make_actor_mat()
+	if actor_mat != null:
+		material = actor_mat
 
 	# 2.5D 景深 / 远景水雾（在 HUD 之下）
 	dof_layer = CanvasLayer.new()
