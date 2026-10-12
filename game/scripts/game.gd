@@ -314,6 +314,9 @@ var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
 var hud_lv_flash := 0.0   # 左上角等级闪光
 var xp_flash := 0.0       # 吃到经验时经验环亮一下
 var pending_chests := 0
+## 木桩表（tests/op_dummy_test，docs/79）：只由测试场景置位。为真时不刷怪（含 Boss / 溟痕 / 威胁上升）、不走事件 / 围猎 / 灯标 / 商人 / 拾取，
+## 场上只有测试自己摆的目标。缺省 false，正常游戏与其他测试行为完全不变
+var sandbox := false
 
 # ---------- 节点与资源 ----------
 var cam: Camera2D
@@ -1305,7 +1308,7 @@ func _update(dt: float) -> void:
 	_pm("pre")
 	if demo_op != "":
 		demo_sys.step(dt)
-	elif not trial.active:
+	elif not trial.active and not sandbox:
 		spawner.update(dt)
 	_pm("spawn")
 	enemies_sys.build_grid()
@@ -1329,7 +1332,7 @@ func _update(dt: float) -> void:
 	enemies_sys.update_status(dt)
 	rfx.tick(dt)
 	_pm("relic")
-	if not trial.active:
+	if not trial.active and not sandbox:
 		endg.update(dt)
 		endg.tick_final_warning()
 		hunt.update(dt)
@@ -1339,7 +1342,7 @@ func _update(dt: float) -> void:
 		if demo_op == "":
 			shop_sys.update(dt)
 		pickups.update(dt)
-	else:
+	elif trial.active:
 		trial.maintain()
 	_pm("misc")
 	vfx.update(dt)

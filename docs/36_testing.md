@@ -152,6 +152,7 @@
 | `--forceending=<结局>` | 最终 Boss 登场时改用该结局的 Boss（standard 泡影 / deep 伊莎玛拉 / knight 骑士 / resolve 伊祖米克） |
 | `--fastlevel` | 快速升级 |
 | `--eventtest=<id>` | 开局在身边刷事件箱 |
+| `--dummy_op= / --dummy_role= / --dummy_scene= / --dummy_stage=`（`tests/op_dummy_test.tscn`） | 干员木桩表：站桩打木桩 / 怪群 60 秒记秒伤、治疗、护盾；批量用 `python tools/op_dummy_table.py`，口径见 docs/79 |
 
 **截图**（需要窗口，仍静音；`--shotdir=` 指定目录）
 
