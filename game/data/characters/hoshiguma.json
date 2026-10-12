@@ -17,7 +17,7 @@
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
-  "max_hp": 128, "armor": 3.5, "arts_res": 0.1, "regen": 1.0
+  "max_hp": 128, "armor": 3.0, "arts_res": 0.1, "regen": 1.0
  },
  "sprites": {
   "_doc": "Codex 第五批正式帧条（art/incoming/squad_batch5_hoshiguma_manifest.json，docs/64 验收）：盾沿最远点 attack f3 @2x (+45, -42)",
