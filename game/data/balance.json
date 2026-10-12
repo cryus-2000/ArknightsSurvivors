@@ -110,7 +110,7 @@
  "enemy": {
   "_doc": "敌人生命 / 攻击随时间的曲线（docs/27 §4）。hp = base × (1 + min(t,hp_knee)/hp_div + max(t-hp_knee,0)/hp_late_div)；dmg = base × (1 + min(t,dmg_knee)/dmg_div)",
   "hp_knee": 480,
-  "hp_div": 130,
+  "hp_div": 110,
   "hp_late_div": 120,
   "dmg_knee": 480,
   "dmg_div": 420,
