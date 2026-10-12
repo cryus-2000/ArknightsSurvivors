@@ -5,10 +5,10 @@
  "class": "医疗",
  "col": [0.55, 1.0, 0.5],
  "base": {
-  "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）",
-  "heal_pct": 0.03,
+  "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）。10-12 削治疗（docs/72 §6）：heal_pct 0.03→0.015、s1_heal 0.068→0.026、knight_heal 0.05→0.025、天赋治疗倍率 e1_heal 1.5→1.1、精二总倍率 e2_heal 1.5（新增）",
+  "heal_pct": 0.015,
   "heal_cd": 3.5,
-  "s1_heal": 0.068,
+  "s1_heal": 0.026,
   "m_atk": 25,
   "m_cd": 0.9,
   "m_reach": 93,
@@ -24,10 +24,11 @@
   "melt_stun": 1.5,
   "melt_echo_gap": 0.2,
   "melt_echo_mult": 0.5,
-  "knight_heal": 0.05,
+  "knight_heal": 0.025,
   "guard_red": 0.2,
   "guard_dur": 5.0,
-  "e1_heal": 1.5,
+  "e1_heal": 1.1,
+  "e2_heal": 1.5,
   "e1_dmg": 1.3,
   "e1_reach": 1.2,
   "s2_aspd": 1.4,
@@ -68,9 +69,9 @@
   "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2}
  },
  "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt"],
- "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为主控回复 3% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）", "heal": true},
+ "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为主控回复 1.5% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）", "heal": true},
  "skills": [
-  {"name": "医疗单元", "en": "MEDICAL UNIT", "sp": 7, "desc": "立即为主控回复 6.8% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
+  {"name": "医疗单元", "en": "MEDICAL UNIT", "sp": 7, "desc": "立即为主控回复 2.6% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
   {
    "name": "战术协同",
    "en": "TACTICAL COORDINATION",
@@ -90,7 +91,7 @@
    "anim": "command"
   }
  ],
- "talent": {"name": "指挥", "desc": "治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"},
+ "talent": {"name": "指挥", "desc": "治疗量 +10%（精英二 +50%）；Mon3tr 伤害 +30%，爪击范围 +20%"},
  "hit_sources": {
   "Mon3tr": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "basic"]},
   "Mon3tr · 熔毁": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill", "area"]},
@@ -99,7 +100,7 @@
  "progression": [
   {"type": "custom", "id": "twin_claw", "name": "骨爪增生", "icon": "growth_t_count", "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"},
   {"type": "custom", "id": "wide_arc", "name": "清创", "icon": "growth_u_area", "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +50%；Mon3tr 伤害 +30%，爪击范围 +20%"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +10%；Mon3tr 伤害 +30%，爪击范围 +20%"},
   {"type": "custom", "id": "s1_shell", "name": "结构加固", "icon": "skill_kaltsit_s1", "desc": "「医疗单元」同时给主控罩上 3 秒绿色护壳：受到的伤害 -35%"},
   {
    "type": "custom",
@@ -112,7 +113,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 展开四爪，前后同时出爪（身后一爪 70% 伤害）"
+   "desc": "天赋「指挥」治疗量提升至 +50%；解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 展开四爪，前后同时出爪（身后一爪 70% 伤害）"
   }
  ],
  "gallery": {"tags": ["治疗", "护主控", "召唤", "近战"], "desc": "持续治疗主控，Mon3tr 在身边撕碎靠近的敌人"},
@@ -305,7 +306,8 @@
       ]
      }
     ]
-   }
+   },
+   {"trig": "passive", "cond": "elite >= 2", "do": [{"verb": "buff_self", "stat": "heal", "op": "mult", "value": "$e2_heal/$e1_heal"}]}
   ],
   "skills": [
    {

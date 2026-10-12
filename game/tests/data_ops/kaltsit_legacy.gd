@@ -45,7 +45,17 @@ var melt_echo: Array = []     # 不毁重构的后续爆炸：{t, pos, r, dmg}
 
 
 func _heal_mult() -> float:
-	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out") * (1.5 if elite >= 1 else 1.0)
+	return stat(&"op_atk") * g.ally_mult * stat(&"heal_out") * _elite_heal()
+
+
+## 10-12 削治疗：天赋「指挥」治疗倍率改读 base（精一 e1_heal，精二总倍率 e2_heal）；乘法顺序与数据版 buff_self 局部倍率相同
+func _elite_heal() -> float:
+	var mlt := 1.0
+	if elite >= 1:
+		mlt *= base("e1_heal", 1.5)
+	if elite >= 2:
+		mlt *= base("e2_heal", 1.5) / base("e1_heal", 1.5)
+	return mlt
 
 
 func _boosted() -> bool:
@@ -100,7 +110,7 @@ func update(dt: float) -> void:
 
 func _release() -> void:
 	if g.knight.alive:
-		g.knight.heal(g.knight.maxhp * 0.05)
+		g.knight.heal(g.knight.maxhp * base("knight_heal", 0.05))
 	if g.hp < g.max_hp:
 		_heal(g.max_hp * base("heal_pct", 0.035) * _heal_mult(), 16)
 
