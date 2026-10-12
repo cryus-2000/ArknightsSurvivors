@@ -7,10 +7,10 @@
   win_loop.ogg / lose_loop.ogg  结算短乐句之后接续的循环
   opening.ogg                   开场动画引子《沉降》（不循环，对齐 3.6 s 动画）
   boss_in.ogg / boss_down.ogg   Boss 登场 / 击破叠加短乐句（不循环，叠在当前音乐之上）
-  archive.ogg                   图鉴《潮汐档案》A 大调 54 BPM（局外配乐，2026-10-12，自带种子）
+  （archive.ogg 图鉴《潮汐档案》V0 A 大调 54 BPM：文件已删，make_archive 保留，点名生成）
   deploy.ogg                    选人 / 难度 / Boss 演练《整装》升 F 小调 76 BPM（同上）
-  archive_v1.ogg                图鉴 V1「本舰」舒缓电子氛围 88 BPM（2026-10-12 第二轮，自带种子；默认版本见 sfx.gd ARCHIVE_FILE）
-  archive_v2.ogg                图鉴 V2「卫戍」战术律动电子 104 BPM（同上）；archive.ogg《潮汐档案》保留为 V0
+  （archive_v1.ogg 图鉴 V1「本舰」88 BPM：未选用，文件已删，make_archive_v1 保留）
+  archive_v2.ogg                图鉴「卫戍」战术律动电子 104 BPM（2026-10-12 定稿，自带种子；编制避开标题曲；sfx.gd ARCHIVE_FILE）
 全部为原创旋律与编曲，合成方式：减法/FM/Karplus-Strong + 卷积混响。
 战斗曲、中期 Boss、最终 Boss 自 v2.0 起由 gen_music_battle.py 生成，本脚本不再生成它们。
 依赖 numpy / scipy / soundfile（不需要 ffmpeg）。
@@ -1133,9 +1133,9 @@ def finish_loop_fx(buf, L, tail, name, target=None, ceil=0.68, post=None):
 
 
 class Mix:
-    """几条总线（各自一个 Track 缓冲）：drums / bass / pad / pluck / lead / harp / amb，最后各自加效果再相加"""
+    """几条总线（各自一个 Track 缓冲）：drums / bass / pad / pluck / lead / harp / mallet / amb，最后各自加效果再相加"""
     def __init__(self, bpm, bars, tail=8.0):
-        self.bus = {k: Track(bpm, bars, tail) for k in ("drums", "bass", "pad", "pluck", "lead", "harp", "amb")}
+        self.bus = {k: Track(bpm, bars, tail) for k in ("drums", "bass", "pad", "pluck", "lead", "harp", "mallet", "amb")}
         self.t = self.bus["pad"]
 
     def balance(self, targets):
@@ -1335,12 +1335,101 @@ def uniform_smooth(x, w):
     return uniform_filter1d(x, max(1, w), mode="nearest")
 
 
+# ============================================================ 12b. 图鉴专用音色（2026-10-12 第三轮：与标题《海底祈愿》的钢琴 / 竖琴 / 人声 / 弦乐涌浪 / 鲸歌区分开）
+def pwm_osc(f, n, pw):
+    """脉宽调制方波（两个限带锯齿相减），pw 可以是逐采样数组（0.1–0.9）"""
+    fa = np.broadcast_to(np.asarray(f, dtype=float), (n,))
+    dt = np.minimum(fa / SR, 0.45)
+    p = (np.cumsum(dt) + rng.random()) % 1.0
+    q = (p - pw) % 1.0
+    return (2.0 * p - _blep(p, dt)) - (2.0 * q - _blep(q, dt))
+
+
+def pwm_pad(notes, dur, amp=0.01, cut=1300, a=0.3, r=0.6, rate=0.35, depth=0.22, voices=2, detune=0.07):
+    """暖的 PWM 声垫：脉宽缓慢摆动（每个声部速率不同），低通 + 去直流"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    sig = np.zeros(n)
+    for note in notes:
+        f = midi(note)
+        for v in range(voices):
+            det = detune * (2 * v / max(1, voices - 1) - 1)
+            pw = 0.5 + depth * np.sin(2 * np.pi * (rate + 0.15 * rng.random()) * t_ + rng.random() * 6)
+            sig += pwm_osc(f * 2 ** (det / 12), n, pw)
+    return hp(lp(sig, cut), 70) * env(n, a, r) * amp
+
+
+def mallet(note, dur=1.6, amp=0.03, kind="vibe"):
+    """FM / 加法槌击乐器：vibe = 颤音琴式（1 : 4 : 10 分音 + 马达颤音），marimba = 木琴式（1 : 3.93 : 9.2，短、木头感）"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    f = midi(note)
+    if kind == "vibe":
+        parts = ((1.0, 1.0, 1.1), (4.0, 0.22, 4.5), (10.0, 0.05, 14.0))
+        trem = 1 - 0.28 * (0.5 + 0.5 * np.sin(2 * np.pi * 5.6 * t_ + rng.random() * 6))
+    else:
+        parts = ((1.0, 1.0, 3.4), (3.93, 0.32, 9.0), (9.2, 0.07, 22.0))
+        trem = 1.0
+    s = np.zeros(n)
+    for ratio, a_, dec in parts:
+        if f * ratio < SR / 2 - 500:
+            s += np.sin(2 * np.pi * f * ratio * t_ + rng.random() * 6) * np.exp(-t_ * dec) * a_
+    s += lp(rng.standard_normal(n), 2500 if kind == "vibe" else 1500) * np.exp(-t_ * 250) * 0.15   # 槌头
+    return s * trem * env(n, 0.001, 0.08) * amp
+
+
+def glass(note, dur=3.0, amp=0.008):
+    """玻璃质感的 FM 铃：不谐和调制比 2.76 + 5.4 分音、两个微去谐的副本（区别于标题曲 2:1 的玻璃风铃）"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    f = midi(note)
+    s = np.zeros(n)
+    for c in (-3, 3):
+        fc = f * 2 ** (c / 1200)
+        mod = np.sin(2 * np.pi * fc * 2.76 * t_) * 1.8 * np.exp(-t_ * 3.0)
+        s += np.sin(2 * np.pi * fc * t_ + mod) * np.exp(-t_ * 1.6)
+    s += np.sin(2 * np.pi * f * 5.4 * t_) * np.exp(-t_ * 6) * 0.25
+    return s * env(n, 0.001, 0.2) * amp
+
+
+_FORMANT_BANDS = (310, 450, 640, 900, 1250, 1700, 2350, 3200)
+
+
+def formant_pad(notes, dur, amp=0.006, a=1.2, r=1.6):
+    """声码器味的共振峰声垫：脉冲源过八条窄带通（固定频率），各带音量随机慢速起伏——机械、透明，不是人声元音"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    src = np.zeros(n)
+    for note in notes:
+        src += pwm_osc(midi(note), n, 0.3)
+    out = np.zeros(n)
+    for fc in _FORMANT_BANDS:
+        lfo = 0.55 + 0.45 * np.sin(2 * np.pi * (0.12 + 0.3 * rng.random()) * t_ + rng.random() * 6)
+        out += bp(src, fc * 0.94, fc * 1.06) * lfo
+    return out * env(n, a, r) * amp
+
+
+def sea_noise(n, amp=0.004, waves=6):
+    """「海」噪声：低 / 中两段带通噪声按整数个周期缓慢交替起伏（FFT 生成，本身首尾相接），取代鲸歌做深海底色"""
+    fr = np.fft.rfftfreq(n, 1 / SR)
+    out = []
+    for lo_, hi_ in ((120, 480), (550, 1800)):
+        X = np.fft.rfft(rng.standard_normal(n))
+        X *= 1 / np.sqrt(1 + (lo_ / np.maximum(fr, 1e-6)) ** 4) / np.sqrt(1 + (fr / hi_) ** 4)
+        w_ = np.fft.irfft(X, n)
+        out.append(w_ / np.std(w_))
+    ph = 2 * np.pi * np.arange(n) / n * waves
+    return (out[0] * (0.6 + 0.4 * np.sin(ph)) + out[1] * 0.5 * (0.5 + 0.5 * np.sin(ph * 1.5 + 1.0) ** 2)) * amp
+
+
 # ============================================================ 13. 图鉴 V2「卫戍」：战术律动电子（104 BPM）
 # 和弦（升 F 小调，原创排列）：
 #   引子 0–3：F#m | D | E | C#m（滤波琶音逐小节打开）
 #   A 4–11：F#m | D | E | C#m | F#m | D | E | C#sus–C#（底鼓 + 2/4 拍军鼓 + 十六分镲 + 八分低音推进）
-#   B 12–19：Bm | D | F#m | E | Bm | D | C#sus | C#（方波主奏原创动机 + 竖琴高八度叠奏）
-#   间奏 20–25：D | E | F#m | F#m | Bm | C#sus–C#（鼓退场，竖琴 + 鲸歌 + 人声「呜」，第 24 小节起闷鼓慢慢回来）
+#   B 12–19：Bm | D | F#m | E | Bm | D | C#sus | C#（方波主奏原创动机 + 颤音琴高八度叠奏）
+#   间奏 20–25：D | E | F#m | F#m | Bm | C#sus–C#（鼓退场，木琴琶音 + 声码器声垫 + 声呐，第 24 小节起闷鼓慢慢回来）
+# 编制刻意避开标题曲（钢琴 / 竖琴 / 人声 / 弦乐涌浪 / 鲸歌，用户 10-12）：PWM 声垫、颤音琴 / 木琴、玻璃 FM 铃、
+# 声码器味共振峰声垫、带通「海」噪声、声呐叮
 #   回归 26–31：F#m | D | E | C#m | Bm–D | C#sus–C#（末小节只剩镲与琶音，接回引子）
 V2_CH = {
     "F#m": (42, [57, 61, 66, 69]), "D": (38, [57, 62, 66, 69]), "E": (40, [56, 59, 64, 68]),
@@ -1360,9 +1449,10 @@ V2_MEL = [(71, 0.5), (None, 0.25), (71, 0.25), (74, 0.5), (76, 0.5), (78, 1), (7
           (81, 1.5), (78, 0.5), (76, 1), (74, 1),
           (73, 1), (None, 0.5), (73, 0.5), (71, 0.5), (73, 0.5), (78, 1),
           (77, 3), (None, 1)]
-V2_BAL = {"pad": (-23.9, 4, 12), "pluck": (-23.3, 4, 12), "lead": (-22.2, 12, 20), "amb": (-33.0, 4, 12), "harp": (-27.0, 20, 24),
+V2_BAL = {"pad": (-23.9, 4, 12), "pluck": (-23.3, 4, 12), "lead": (-22.2, 12, 20), "amb": (-33.0, 4, 12), "mallet": (-27.0, 20, 24),
           "drums": (-21.4, 4, 12), "bass": (-25.0, 4, 12)}
 V2_ARP = [0, 2, 1, 3, 2, 1, 0, 2, 0, 2, 1, 3, 2, 3, 1, 2]
+FORMANT_AMP, VIBE_AMP, SWELL_AMP = 0.008, 0.02, 0.004   # 间奏声码器声垫 / B 段颤音琴叠奏 / 间奏 PWM 慢涌
 
 
 def make_archive_v2():
@@ -1384,9 +1474,9 @@ def make_archive_v2():
             dur = beats * bt
             cut = 800 + 120 * b if b < 4 else 1500 if b in B_ else 1550 if b in BRK else 1150
             for pan in (-0.55, 0.55):
-                mx.add("pad", synpad(vc, dur + 0.5, amp=0.0085 * (0.6 if b in BRK else 1.0), cut=cut, a=0.08 if groove(b) else 0.4, r=0.5, detune=0.12), t0, pan=pan)
-            if b in BRK:   # 人声「呜」铺底（深海底色）
-                mx.add("amb", voice([vc[1] + 12, vc[2] + 12], dur + 1.5, amp=0.0035, a=1.5, r=2.0, morph=False), t0, pan=0.2)
+                mx.add("pad", pwm_pad(vc, dur + 0.5, amp=0.0085 * (0.6 if b in BRK else 1.0), cut=cut, a=0.08 if groove(b) else 0.4, r=0.5), t0, pan=pan)
+            if b in BRK:   # 声码器味的共振峰声垫铺底
+                mx.add("amb", formant_pad([vc[1] + 12, vc[2] + 12, vc[3] + 12], dur + 1.5, amp=FORMANT_AMP, a=1.5, r=2.0), t0, pan=0.2)
             # 低音：groove 段八分推进（根音 + 八度 / 五度点缀），间奏长音，引子后半闷声八分
             if groove(b):
                 patt = [(0, 0, 1.0, 0.45), (0.75, 0, 0.6, 0.2), (1.5, 12, 0.6, 0.22), (2, 0, 0.9, 0.45),
@@ -1416,11 +1506,11 @@ def make_archive_v2():
                     acc = 1.0 if s % 4 == 0 else 0.8 if s % 2 == 0 else 0.6
                     mx.add("pluck", spluck(note, 0.22, amp=a_p * acc, wave="pulse", lo=500, hi=hi_c, k=22, decay=9),
                            mx.at(b, pos + s * 0.25), pan=0.35 if s % 2 else -0.35)
-            # 竖琴：间奏八分上行分解
+            # 木琴：间奏八分上行分解
             if b in BRK:
                 for k in range(int(beats * 2)):
                     note = vc[k % 4] + (12 if (k // 4) % 2 == 0 else 24)
-                    mx.add("harp", harp(note, 2.4, amp=0.016), mx.at(b, pos + k * 0.5 + rng.uniform(0, 0.015)), pan=-0.45 + 0.9 * (k % 4) / 3)
+                    mx.add("mallet", mallet(note, 1.2, amp=0.03, kind="marimba"), mx.at(b, pos + k * 0.5 + rng.uniform(0, 0.012)), pan=-0.45 + 0.9 * (k % 4) / 3)
             pos += beats
 
         # ---- 鼓
@@ -1466,27 +1556,26 @@ def make_archive_v2():
                 if rng.random() < pr:
                     mx.add("amb", glitch(0.007), mx.at(b, s * 0.25), pan=float(rng.uniform(-0.7, 0.7)))
 
-    # ---- 主奏：B 段方波动机 + 竖琴高八度叠奏；间奏电钢琴慢速回声动机头
+    # ---- 主奏：B 段方波动机 + 颤音琴高八度叠奏；间奏颤音琴慢速回声动机头
     play_line(mx, "lead", V2_MEL, 12, lambda n_, d, **k: slead(n_, max(d * 0.85, 0.08), amp=0.022, wave="square", cut=2600), pan=-0.1)
-    play_line(mx, "harp", V2_MEL, 12, lambda n_, d, **k: harp(n_ + 12, 1.6, amp=0.016), pan=0.3)
-    play_line(mx, "lead", [(n_, d * 2) for n_, d in V2_MEL[:8]], 22, lambda n_, d, **k: epiano(n_, d + 1.4, amp=0.022, vel=0.75), pan=0.1)
-    # 声呐「叮」：引子、B 段首、间奏首
-    for b_, note in ((0, 90), (12, 85), (20, 88)):
-        mx.add("lead", ping(note, 0.016), mx.at(b_, 0.0), pan=0.15)
-    # ---- 深海底色
+    play_line(mx, "mallet", V2_MEL, 12, lambda n_, d, **k: mallet(n_ + 12, 1.4, amp=VIBE_AMP), pan=0.3)
+    play_line(mx, "mallet", [(n_, d * 2) for n_, d in V2_MEL[:8]], 22, lambda n_, d, **k: mallet(n_, d + 1.6, amp=0.03), pan=0.1)
+    # 声呐「叮」（深海标志）：引子、B 段首、间奏首与间奏中段
+    for b_, beat_, note in ((0, 0, 90), (12, 0, 85), (20, 0, 88), (21, 2, 85), (23, 2, 83)):
+        mx.add("lead", ping(note, 0.016), mx.at(b_, beat_), pan=0.15)
+    # ---- 深海底色：带通「海」噪声、PWM 慢涌、玻璃 FM 铃
     am = mx.bus["amb"]
     n = tr.len
-    w = wash(n, 0.0035, 360, 8)
+    w = sea_noise(n, 0.0035, 8)
     am.buf[:n, 0] += w
     am.buf[:n, 1] += np.roll(w, 9000)
-    mx.add("amb", whale(45, 52, 6.0, 0.006), mx.at(20, 2), pan=0.45)
-    mx.add("amb", whale(54, 47, 5.5, 0.005), mx.at(23, 0), pan=-0.4)
-    mx.add("amb", swell([57, 62, 66, 69], bar * 2, amp=0.003, peak=0.55, bright=1200), mx.at(22), pan=-0.15)
-    mx.add("amb", swell([54, 61, 65, 68], bar * 2, amp=0.003, peak=0.5, bright=1200), mx.at(24), pan=0.15)
+    for b_, ch, pan in ((22, [57, 62, 66, 69], -0.15), (24, [54, 61, 65, 68], 0.15)):
+        sw = pwm_pad([c + 12 for c in ch], bar * 2, amp=SWELL_AMP, cut=1800, a=bar * 0.9, r=bar * 0.9, rate=0.5, depth=0.3)
+        mx.add("amb", sw, mx.at(b_), pan=pan)
     for b in range(bars):
         if rng.random() < 0.25:
             vc = V2_CH[V2_BARS[b][0][0]][1]
-            mx.add("amb", bell(vc[int(rng.integers(1, 4))] + 24, 4.0, amp=0.005, ratio=2.0, index=0.5, decay=1.0),
+            mx.add("amb", glass(vc[int(rng.integers(1, 4))] + 24, 3.0, amp=0.006),
                    mx.at(b, float(rng.integers(0, 8)) / 2), pan=float(rng.uniform(-0.6, 0.6)))
 
     L = tr.len + tr.tail
@@ -1503,7 +1592,7 @@ def make_archive_v2():
     mx.balance(V2_BAL)
     out = (reverb(B["drums"].buf, 0.6, 8.0, 0.1, 6000) + B["bass"].buf
            + reverb(B["pad"].buf + B["pluck"].buf + B["lead"].buf, 2.4, 2.0, 0.25, 4500)
-           + reverb(B["amb"].buf + B["harp"].buf, 5.0, 1.0, 0.45, 4000))
+           + reverb(B["amb"].buf + B["mallet"].buf, 5.0, 1.0, 0.45, 4000))
     finish_loop_fx(out, tr.len, tr.tail, "archive_v2",
                    post=lambda d: tape_loop(d, drive=1.3, wow_ms=0.3, flutter_ms=0.02, hi=11500))
     TRANSPOSE = 0
@@ -1516,6 +1605,6 @@ if __name__ == "__main__":
         k = args.index("--skip")
         SKIP.update(args[k + 1].split(","))
         del args[k:k + 2]
-    which = args or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops", "archive", "deploy", "archive_v1", "archive_v2"]
+    which = args or ["title", "shop", "stingers", "opening", "boss_cues", "result_loops", "deploy", "archive_v2"]   # archive（V0）/ archive_v1 已不进游戏，要试听时点名生成
     for w in which:
         globals()["make_" + w]()

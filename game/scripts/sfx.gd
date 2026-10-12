@@ -68,10 +68,10 @@ var prng := RandomNumberGenerator.new()   # 音高抖动专用：限流按墙钟
 ## - 乐句式（SEQ）：战斗三段 / 中期 Boss / 最终 Boss。8 小节一句，每句结束时按局势挑下一句（不紧挨着重复），无限不重样；
 ##   每句若干层同步开播（战斗：base 平静 / pulse 交战 / drive 激战 + danger 危险；最终 Boss：p1 / p2 二阶段）。
 ##   两组播放器轮流：下一句在另一组里开播，正文按音频时钟精确接在上一句末尾，上一句的余音在原来那组里响完
-## 图鉴曲目用哪个版本（docs/21「局外配乐」，用户 10-12 要融合罗德岛本舰 / 卫戍协议的电子风格）：
-## "archive" = V0《潮汐档案》（竖琴钢琴慢板）/ "archive_v1" = V1「本舰」舒缓电子氛围 / "archive_v2" = V2「卫戍」战术律动电子。
-## 改这一行即可切换；曲目名仍叫 archive（title.gd 选曲、menu_bgm_test 都不用动）
-const ARCHIVE_FILE := "archive_v1"
+## 图鉴曲目文件（docs/21「局外配乐」）：用户 10-12 定 V2「卫戍」战术律动电子，编制与标题曲区分开（无钢琴 / 竖琴 / 人声 / 弦乐 / 鲸歌）。
+## V0《潮汐档案》、V1「本舰」的文件已删（省包体），要试回去先 `python gen_music.py archive` / `archive_v1` 重新生成再改这一行；
+## 曲目名仍叫 archive（title.gd 选曲、menu_bgm_test 都不用动）
+const ARCHIVE_FILE := "archive_v2"
 const MUSIC := {
 	"title": ["title"],
 	"archive": [ARCHIVE_FILE],
