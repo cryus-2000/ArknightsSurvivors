@@ -178,7 +178,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
 
 
-## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n/15 · 商人还会停留」一行，
+## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n · 商人还会停留」一行，
 ## 右上持有源石锭；商人立绘框放不下不画
 func _draw_bg_phone(vs: Vector2) -> void:
 	var cx := vs.x / 2.0
@@ -190,9 +190,9 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	var left: float = cx + g.panel_box.offset_left
 	var right: float = cx + g.panel_box.offset_right
 	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
-	var rl: String = "藏品 %d/15 · 为结局保留 %d 格 · 商人还会停留 %d 秒" % [g.relics.size(), g.endg.reserved_relic_slots(), int(g.merchant.get("life", 0.0))]
+	var rl: String = "%s · 商人还会停留 %d 秒" % [g.progression.relic_count_text(), int(g.merchant.get("life", 0.0))]
 	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
-	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), "藏品 %d/15 · 为结局保留 %d 格 · 商人还会停留 %d 秒" % [g.relics.size(), g.endg.reserved_relic_slots(), int(g.merchant.get("life", 0.0))], 14, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), rl, 14, UI.SUB)
 	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
 	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
@@ -219,7 +219,7 @@ func draw_bg(vs: Vector2) -> void:
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
 	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
 	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)
-	UI.text(g.panel_fg, g.font, Vector2(cx - 232 + gw + 18.0, top - 20.0), "藏品 %d/15 · 为结局保留 %d 格；满后仍可升级已有藏品" % [g.relics.size(), g.endg.reserved_relic_slots()], 12, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(cx - 232 + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)

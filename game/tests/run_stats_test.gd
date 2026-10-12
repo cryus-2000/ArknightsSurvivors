@@ -234,6 +234,34 @@ func test_screen() -> void:
 		var tag := "假记录 %dx%d" % [int(vs.x), int(vs.y)]
 		ok(_cards().size() == 5, tag + "：编队条五张卡（四名干员 + 藏品与支援）")
 		_in_bounds(vs, tag + " 总览")
+		# 藏品不设上限（10-12）：60 件时藏品格不出区域、方向键走得到最后一件且它在视野里
+		var keep: Array = rs.model.relic_list
+		var many: Array = []
+		for k in 60:
+			many.append(keep[k % keep.size()].duplicate())
+		rs.model.relic_list = many
+		if vs.y < 560.0:
+			rs._act("tab", 1)
+		await _redraw()
+		_in_bounds(vs, tag + " 60 件藏品")
+		ok(rs.cells.filter(func(c): return c[1] == "relic").size() >= 30, tag + "：60 件藏品至少画出 30 格")
+		rs.zone = 0
+		rs.rel = 0
+		for k in 80:
+			rs._nav(1, 0)
+		await _redraw()
+		ok(rs.rel == 59 and rs.cells.any(func(c): return c[1] == "relic" and int(c[2]) == 59), tag + "：→ 走到第 60 件且在视野里")
+		var grid_bot := 0.0
+		for c in rs.cells:
+			if c[1] == "relic":
+				grid_bot = maxf(grid_bot, (c[0] as Rect2).end.y)
+		ok(grid_bot <= vs.y - 64.0 - 82.0 + 8.0, tag + "：60 件藏品格不压说明框（格底 %.0f）" % grid_bot)
+		rs.model.relic_list = keep
+		rs.rel = 0
+		rs.zone = 1
+		if vs.y < 560.0:
+			rs._act("tab", 0)
+		await _redraw()
 		if vs.y >= 560.0:
 			ok(rs.cells.filter(func(c): return c[1] == "relic").size() == 5, tag + "：藏品格五格")
 			rs.key(KEY_UP)

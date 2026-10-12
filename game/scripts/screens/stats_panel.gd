@@ -230,7 +230,7 @@ func draw(vs: Vector2) -> void:
 	var room: float = b2.end.y - 8.0 - gy - 36.0
 	var pitch := 46.0
 	var per := 1
-	for pc in ([62.0, 54.0, 46.0, 40.0, 34.0] if touch else [46.0, 40.0, 34.0, 30.0, 26.0]):   # 触屏格子大一号（图标 ≥ 28，手指点得准）
+	for pc in ([62.0, 54.0, 46.0, 40.0, 34.0, 30.0] if touch else [46.0, 40.0, 34.0, 30.0, 26.0, 22.0]):   # 触屏格子大一号（图标 ≥ 28，手指点得准）
 		pitch = pc
 		per = maxi(1, int((b2.size.x - 32) / pitch))
 		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
@@ -259,8 +259,14 @@ func draw(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(b2.position.x + (120 if not touch else 150), y + 12), "点图标查看效果" if Pad.touch_ui() else "鼠标移到图标上查看效果", fs_min, UI.CYAN_DIM)
 	y += 22 if not touch else 26
 	var mouse2 := g.hud.get_local_mouse_position()
-	for i in nr:
-		var rc := Vector2(gx + (i % per) * pitch, y + (i / per) * pitch)
+	var skip: int = _relic_skip(nr, per, pitch, cs, y, b2.end.y - 2.0)
+	var slot := 0
+	if skip > 0:
+		_draw_more_cell(Vector2(gx, y), cs, skip, 16 if touch else 13)
+		slot = 1
+	for i in range(skip, nr):
+		var rc := Vector2(gx + (slot % per) * pitch, y + (slot / per) * pitch)
+		slot += 1
 		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = g.RL[g.relics[i]]
@@ -280,6 +286,19 @@ func draw(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, rc + Vector2(cs - 18 - (6 if touch else 0), cs - 1), "L%d" % rl, fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18 + (6 if touch else 0), 2)
 		g.stats_cells.append([cr, "relic", g.relics[i]])
 	_draw_footer(vs, r)
+
+
+## 藏品格放不下时省略的件数（较早获得的先省略，第一格让给「+N」）；放得下返回 0
+func _relic_skip(nr: int, per: int, pitch: float, cs: float, y0: float, bottom: float) -> int:
+	var fit: int = per * maxi(1, int((bottom - y0 - cs) / pitch) + 1)
+	return 0 if nr <= fit else nr - (fit - 1)
+
+
+func _draw_more_cell(p: Vector2, cs: float, n: int, fs: int) -> void:
+	var cr := Rect2(p, Vector2(cs, cs))
+	g.hud.draw_rect(cr, Color(1, 1, 1, 0.08))
+	g.hud.draw_rect(cr, Color(1, 1, 1, 0.22), false, 1.0)
+	UI.text(g.hud, g.font, p + Vector2(0, cs * 0.5 + fs * 0.35), "+%d" % n, fs, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
 
 
 ## 底栏汇总 + 悬停提示（藏品 / 成长 / 技能行）
@@ -463,7 +482,7 @@ func _phone_relics(b2: Rect2) -> void:
 	var room: float = b2.end.y - 8.0 - (y + 36.0) - 36.0 - 14.0
 	var pitch := 62.0
 	var per := 1
-	for pc in [62.0, 54.0, 46.0, 40.0, 34.0]:
+	for pc in [62.0, 54.0, 46.0, 40.0, 34.0, 30.0]:
 		pitch = pc
 		per = maxi(1, int((b2.size.x - 32) / pitch))
 		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
@@ -495,8 +514,14 @@ func _phone_relics(b2: Rect2) -> void:
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 150, y + 20), "点图标查看效果", 15, UI.CYAN_DIM)
 	y += 32
 	var mouse2 := g.hud.get_local_mouse_position()
-	for i in nr:
-		var rc := Vector2(gx + (i % per) * pitch, y + (i / per) * pitch)
+	var skip: int = _relic_skip(nr, per, pitch, cs, y, b2.end.y - 2.0)
+	var slot := 0
+	if skip > 0:
+		_draw_more_cell(Vector2(gx, y), cs, skip, 16)
+		slot = 1
+	for i in range(skip, nr):
+		var rc := Vector2(gx + (slot % per) * pitch, y + (slot / per) * pitch)
+		slot += 1
 		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = g.RL[g.relics[i]]

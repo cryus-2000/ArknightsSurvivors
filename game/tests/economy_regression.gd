@@ -100,6 +100,12 @@ func _process(_dt: float) -> void:
 	check(game.pickups.xp_required(30) >= 984 * 1.64, "late XP slows growth")
 	for lv in range(12, 40):
 		check(game.pickups.xp_required(lv + 1) > game.pickups.xp_required(lv), "XP curve stays monotonic")
+	# 藏品缺省不设上限（用户 10-12）；下面这段旧规则（15 件 + 结局信物预留槽）只在测试旋钮 relic/carry_cap = 15 时生效，照旧验证
+	var file_cap: int = Bal.vi("relic/carry_cap", 999)
+	check(file_cap < 0, "balance.json: relic carry cap defaults to unlimited")
+	if not Bal._data.has("relic"):
+		Bal._data["relic"] = {}
+	Bal._data["relic"]["carry_cap"] = 15
 	# Fill ordinary slots, then follow knight / resolve / deep sequence without blocking routes.
 	var ordinary: Array = game.rfx.db.implemented().filter(func(r): return r.rarity != "结局" and r.get("source", "any") != "event" and r.effects.all(func(ef): return ef.get("type", "stat") == "stat"))
 	check(game.endg.reserved_relic_slots() == 4, "only four core route tokens reserve slots")
@@ -154,6 +160,31 @@ func _process(_dt: float) -> void:
 	before = game.ingots
 	game.progression.open_relic_choice()
 	check(game.pending_chests == 0 and game.ingots == before + 24 and game.state == game.S.PLAY, "no upgrade candidates converts rewards without empty modal")
+	# 不设上限（缺省）：同一局继续拿到 40 件以上，三选一 / 商人照常出新藏品、照常成交
+	Bal._data["relic"]["carry_cap"] = -1
+	check(game.progression.relic_count_text() == "藏品 %d" % game.relics.size(), "uncapped count text has no slash")
+	var passive: Array = game.rfx.db.implemented().filter(func(r): return r.rarity != "结局" and r.get("source", "any") == "any" and r.effects.all(func(ef): return ef.get("type", "stat") in ["stat", "rule"]))
+	for r in passive:
+		if game.relics.size() >= 40:
+			break
+		game.progression.gain_relic(r.id)
+	check(game.relics.size() >= 40, "uncapped: 40 relics can be held (%d)" % game.relics.size())
+	var offers: Array = game.progression.relic_pool_ids()
+	check(offers.any(func(x): return not game.relics.has(x)), "uncapped: chest offers still include new relics at 40")
+	check(offers.size() >= 3, "uncapped: offer pool not degraded")
+	var new2 := ""
+	for r in passive:
+		if not game.relics.has(r.id):
+			new2 = r.id
+			break
+	if new2 != "":
+		game.state = game.S.SHOP
+		game.ingots = 99
+		game.shop_items = [{"kind":"relic", "id":new2, "name":game.rfx.display_name(new2), "desc":game.rfx.display_desc(new2), "sold":false, "price":5}]
+		var n40: int = game.relics.size()
+		game.shop_sys.buy(0)
+		check(game.relics.size() == n40 + 1 and game.shop_items[0].sold, "uncapped: merchant sells a new relic at 40+")
+		game.state = game.S.PLAY
 	print("ECONOMY REGRESSION: ", fails, " failures; elite successes=", count)
 	game.queue_free()
 	game = null

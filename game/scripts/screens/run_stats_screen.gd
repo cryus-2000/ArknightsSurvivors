@@ -37,6 +37,9 @@ var skipped := false
 var cells: Array = []   # [Rect2, 动作, 参数]：命中区（终态位置）
 var _last_mouse := Vector2(-1, -1)
 var _per_row := 1       # 藏品格每行几个（方向键上下用）
+var _rel_row0 := 0      # 藏品格滚动：最上面画第几行（藏品不设上限后，压到 30 像素格仍放不下时才滚，10-12）
+var _rel_seen := -1     # 上一帧的选中藏品：选中变了才把它滚进视野，滚轮滚动不被拉回
+var _relic_rect := Rect2()   # 藏品格所在区域（滚轮落在这里滚藏品，否则滚统计表）
 var _tex_miss := {}
 # 每帧绘制用
 var _c: Dictionary
@@ -63,6 +66,8 @@ func show_model(m: Dictionary) -> void:
 	rel = 0
 	tab = 0
 	stat_scroll = 0
+	_rel_row0 = 0
+	_rel_seen = -1
 	skipped = false
 	t_open = UM.now()
 	t_page = t_open
@@ -204,7 +209,10 @@ func click(mp: Vector2) -> bool:
 
 func wheel(dy: int) -> void:
 	if open and page == 0:
-		stat_scroll = maxi(0, stat_scroll + dy)
+		if _relic_rect.has_point(_mouse()):
+			_rel_row0 = maxi(0, _rel_row0 + signi(dy))   # 上限在 _relic_zone 里按行数夹
+		else:
+			stat_scroll = maxi(0, stat_scroll + dy)
 
 
 func _act(a: String, arg) -> void:
@@ -597,18 +605,32 @@ func _relic_zone(r: Rect2, t: float) -> void:
 		_per_row = per
 	rel = clampi(rel, 0, rl.size() - 1)
 	var n := rl.size()
+	# 压到 30 像素格还放不下：只画放得下的行，选中项滚进视野；标题行右侧写「第 a–b 行 / 共 c 行」
+	var total_rows: int = ceili(n / float(per))
+	var vis_rows: int = maxi(1, int((r.end.y - gy - info_h - 8.0) / cell))
+	_relic_rect = Rect2(x0, gy, r.size.x, minf(total_rows, vis_rows) * cell)
+	if total_rows > vis_rows:
+		if rel != _rel_seen:
+			_rel_row0 = clampi(_rel_row0, rel / per - vis_rows + 1, rel / per)
+		_rel_row0 = clampi(_rel_row0, 0, total_rows - vis_rows)
+		_t(Vector2(r.end.x, y), "第 %d–%d 行 / 共 %d 行" % [_rel_row0 + 1, _rel_row0 + vis_rows, total_rows], 12, TUI.TXT2, 2)
+	else:
+		_rel_row0 = 0
+	_rel_seen = rel
+	var i0: int = _rel_row0 * per
+	var i1: int = mini(n, (_rel_row0 + vis_rows) * per)
 	var step := minf(0.035, 0.42 / maxf(1.0, n))
 	var cl: float = _ps / _c.k
 	var mp := _mouse()
-	for i in n:
+	for i in range(i0, i1):
 		var it: Dictionary = rl[i]
-		var cr := Rect2(x0 + (i % per) * cell, gy + (i / per) * cell, cell - 6.0, cell - 6.0)
+		var cr := Rect2(x0 + (i % per) * cell, gy + (i / per - _rel_row0) * cell, cell - 6.0, cell - 6.0)
 		cells.append([cr, "relic", i])
 		if not g.kb_nav and not Pad.using and cr.has_point(mp):
 			zone = 0
 			rel = i
 		var on := zone == 0 and rel == i
-		var d := SEG0 + i * step
+		var d := SEG0 + (i - i0) * step
 		var e := 1.0 if UM.rm() else clampf((t - d) / UM.T2, 0.0, 1.0)
 		if e <= 0.0:
 			continue
@@ -635,7 +657,7 @@ func _relic_zone(r: Rect2, t: float) -> void:
 			_ci().draw_colored_polygon(PackedVector2Array([p0, p0 + Vector2(-cl * 6.0, 0), p0 + Vector2(0, cl * 6.0)]), _fa(mc, a))
 	# 选中藏品的说明
 	var it2: Dictionary = rl[rel]
-	var iy := gy + ceilf(n / float(per)) * cell + 6.0
+	var iy := gy + minf(total_rows, vis_rows) * cell + 6.0
 	var ir := _panel(Rect2(x0, iy, r.size.x, minf(info_h, r.end.y - iy)), 2, 0.9)
 	var nm := str(it2.name)
 	var nw := _t(Vector2(ir.position.x + 14, ir.position.y + 18), nm, 15, TUI.TXT, 0, ir.size.x * 0.6)

@@ -22,7 +22,7 @@ func _process(_d: float) -> void:
 	if frames != 5:
 		return
 	rfx = game.rfx
-	# 藏品携带上限（relic/carry_cap 15）对本测试不适用：一局里要发几十件
+	# 一局里要发几十件：缺省已不设上限（relic/carry_cap -1），这里仍显式放开，免得有人改回旋钮时本测试误报
 	Bal.v("relic/carry_cap", 15.0)
 	if not Bal._data.has("relic"):
 		Bal._data["relic"] = {}
@@ -295,11 +295,12 @@ func test_batch_g() -> void:
 	near(game.hp, game.max_hp * 0.2, "支援急救包：3 个用完后不再回复")
 	ok(rfx.medkits.get("214", -1) == 0, "支援急救包：剩 0 个")
 	reset_hp()
-	# 断杖-学识：每件藏品术师 +2%
+	# 断杖-学识：每件藏品术师 +2%，最多计 20 件（藏品不设上限后加的 cap，docs/74 §10）
 	var n0: int = game.relics.size()
 	var d0: float = game.stats.value_for(&"dmg", ["class:术师"])
 	grant("256")
-	near(game.stats.value_for(&"dmg", ["class:术师"]) - d0, 0.02 * (n0 + 1), "断杖-学识：%d 件藏品 → 术师 +%d%%" % [n0 + 1, 2 * (n0 + 1)])
+	var nc: int = mini(n0 + 1, 20)
+	near(game.stats.value_for(&"dmg", ["class:术师"]) - d0, 0.02 * nc, "断杖-学识：%d 件藏品 → 术师 +%d%%（最多计 20 件）" % [n0 + 1, 2 * nc])
 	near(game.stats.value_for(&"dmg", ["class:先锋"]) - d0, 0.0, "断杖-学识：只对术师")
 	var pl1: int = game.pending_levelups
 	grant("178")
