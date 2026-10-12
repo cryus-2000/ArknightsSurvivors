@@ -55,7 +55,8 @@ var floor_seen := 0
 # ---- 作战记录（局终统计界面，docs/77，2026-10-12）：按干员拆的输出 / 击杀 / 技能次数等。只累加、不读随机数，不影响同 seed 复现
 const BIN_S := 10.0             # 时间线分箱（局内秒）
 var op_out: Dictionary = {}     # 干员 id（没有干员的来源记 "_other"：援护 / 藏品 / 地雷……）-> {来源名: 有效伤害}
-var op_kills: Dictionary = {}   # 干员 id -> 最后一击数（同上，"_other" = 藏品 / 支援 / 无描述符）
+var op_kills: Dictionary = {}   # 干员 id -> 参与击杀数：敌人死前 KILL_WINDOW 秒内命中过它的干员各记一次（"_other" = 藏品 / 支援）
+const KILL_WINDOW := 3.0
 var op_casts: Dictionary = {}   # 干员 id -> 技能发动次数（spend_sp）
 var out_bins: Array = []        # 每 10 秒一格：{干员 id: 有效伤害}
 var joins: Array = []           # 入队记录：{id, name, en, col, leader, t, left, cls}（被事件替换的干员 left = 离队秒数）
@@ -220,10 +221,16 @@ static func lamp_tier(v: float) -> int:
 
 ## ---- 作战记录计数（combat / squad / character / game 调用；docs/77）
 ## 一次有效伤害：eff = 实际扣掉的生命（同 dmg_out），raw = 这一下算出来的伤害（不封顶到剩余生命，「最高单次」用）
-func on_dmg(eff: float, raw: float) -> void:
+func on_dmg(e: Dictionary, eff: float, raw: float) -> void:
 	var op: String = str(g.hit.get("op", ""))
 	if op == "":
 		op = "_other"
+	# 参与击杀：敌人身上记「谁最近一次命中我」（只是记账字段，不参与任何玩法判定）
+	var hb = e.get("_hb")
+	if hb == null:
+		hb = {}
+		e["_hb"] = hb
+	hb[op] = g.t
 	var src: String = str(g.hit.get("src", "?"))
 	var d: Dictionary = op_out.get(op, {})
 	if d.is_empty():
@@ -238,14 +245,16 @@ func on_dmg(eff: float, raw: float) -> void:
 		best_hit = {"v": raw, "src": src, "op": op, "t": g.t}
 
 
-## 致死的那一下记给当前伤害描述符的干员（combat.damage 里 kill 之前调用）
+## 参与击杀（combat.damage 里 kill 之前调用）：死前 KILL_WINDOW 秒内命中过这个敌人的干员各记一次；
+## 致死那一下的干员也在 _hb 里（on_dmg 先记）。一个敌人可以记给多名干员，所以各行合计可能大于总击杀
 func on_kill_credit(e: Dictionary) -> void:
-	if e.get("dead", false) or e.get("chest", false) or e.get("friendly", false):
+	var hb = e.get("_hb")
+	e.erase("_hb")
+	if e.get("dead", false) or e.get("chest", false) or e.get("friendly", false) or hb == null:
 		return
-	var op: String = str(g.hit.get("op", ""))
-	if op == "":
-		op = "_other"
-	op_kills[op] = int(op_kills.get(op, 0)) + 1
+	for op in hb:
+		if float(hb[op]) >= g.t - KILL_WINDOW:
+			op_kills[op] = int(op_kills.get(op, 0)) + 1
 
 
 func on_cast(op_id: String) -> void:
@@ -399,6 +408,7 @@ func save_local(result: String) -> void:
 		"platform": OS.get_name(), "time": Time.get_datetime_string_from_system(true), "seed": g.rng.seed,
 		"diff": g.diff, "map": Cfg.map_id, "start_op": g.ch.id if g.ch != null else "", "result": result},
 		"run": record()}
+	line.run["op_stats"] = op_summary()   # 作战记录的按干员汇总（docs/77；只进本地记录，对外包整段不写，见上面的判断）
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	_rotate_if_big(path)
 	var f := FileAccess.open(path, FileAccess.READ_WRITE if FileAccess.file_exists(path) else FileAccess.WRITE)
@@ -406,6 +416,18 @@ func save_local(result: String) -> void:
 		return
 	f.seek_end()
 	f.store_line(JSON.stringify(line))
+
+
+## 按干员汇总（runs.jsonl 的 run.op_stats）：id、入队 / 离队秒数、伤害、占比、在队每秒、参与击杀、技能次数、治疗主控、主要来源
+func op_summary() -> Array:
+	var RS = load("res://scripts/run/run_stats.gd")
+	var m: Dictionary = RS.model(RS.snapshot(g))
+	var out: Array = []
+	for r in m.rows:
+		out.append({"id": r.key, "join": int(r.join_t), "left": int(r.left_t), "dmg": int(r.dmg), "share": snappedf(float(r.share), 0.001),
+			"dps": snappedf(float(r.dps), 0.1), "kills": int(r.kills), "casts": int(r.casts), "heal": int(r.heal),
+			"top": str(r.sources[0].name) if not (r.sources as Array).is_empty() else ""})
+	return out
 
 
 func _rotate_if_big(path: String) -> void:

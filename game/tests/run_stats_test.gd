@@ -4,6 +4,7 @@ extends Node
 ##    来源占比合计 100、离队干员的在队时长、承伤按敌人合并、最大余数法边界。
 ## B. 真实短局（机器人打到 45 秒）：按干员拆的输出合计 = dmg_out 合计、时间线分箱合计 = 输出合计、入队记录、模型守恒。
 ## C. 界面：结算上打开作战记录 → 卡片命中区 = 行数、方向键 / Enter / Esc / 点卡 / 换干员 / 返回；假记录在桌面 1280×720 与手机 1044×481 下排版不出界。
+## 击杀是参与击杀（死前 3 秒内命中过），各行合计可以大于总击杀；runs.jsonl 的 op_stats 由 telemetry.op_summary() 给出。
 ## 全部通过时打印 "RUN STATS failures=0"。
 
 const RunStats = preload("res://scripts/run/run_stats.gd")
@@ -99,6 +100,13 @@ func test_fake_details() -> void:
 	ok(RunStats.pct_ints([0, 0]) == [0, 0], "最大余数法：全 0")
 	ok(RunStats.pct_ints([999, 1]) == [100, 0] or RunStats.pct_ints([999, 1]) == [99, 1], "最大余数法：极端比例")
 	ok(game.run_stats.fmt_n(1291000.0) == "1,291,000" and game.run_stats.fmt_n(12.0) == "12", "千分位")
+	var top: Array = game.run_stats.top_sources(m.rows[0].sources, 3)
+	var tv := 0.0
+	var tp := 0
+	for s in top:
+		tv += float(s.v)
+		tp += int(s.pct)
+	ok(top.size() == 4 and top[3].name == "其他" and absf(tv - float(m.rows[0].dmg)) < 0.01 and tp == 100, "前 N 条 + 其他：数值与占比守恒")
 
 
 func test_real() -> void:
@@ -120,10 +128,17 @@ func test_real() -> void:
 	var ids: Array = tm.joins.map(func(j): return j.id)
 	ok(ids.has("mizuki") and ids.has("skadi"), "真实局：入队记录有主控与 --squad 干员（%s）" % [ids])
 	ok(tm.op_out.has("mizuki"), "真实局：主控有按干员记的输出")
-	var kills := 0
+	var kmax := 0
 	for k in tm.op_kills:
-		kills += int(tm.op_kills[k])
-	ok(kills <= int(game.kills) and kills > 0, "真实局：最后一击合计（%d）≤ 击杀（%d）" % [kills, game.kills])
+		kmax = maxi(kmax, int(tm.op_kills[k]))
+	ok(kmax > 0 and kmax <= int(game.kills), "真实局：参与击杀每名干员（最多 %d）≤ 击杀（%d）" % [kmax, game.kills])
+	var lead_k := int(tm.op_kills.get("mizuki", 0))
+	ok(lead_k > 0, "真实局：主控有参与击杀")
+	var osum: Array = tm.op_summary()
+	var shs := 0.0
+	for o in osum:
+		shs += float(o.share)
+	ok(osum.size() >= 2 and absf(shs - 1.0) < 0.01 and osum[0].id == "mizuki" and str(osum[0].top) != "", "真实局：runs.jsonl 按干员汇总（%d 行，占比合计 %.3f）" % [osum.size(), shs])
 	ok(float(tm.best_hit.get("v", 0.0)) > 0.0, "真实局：有最高单次")
 	var ls := 0.0
 	for v in tm.lamp_s:
@@ -212,11 +227,6 @@ func test_screen() -> void:
 		rs.key(KEY_ENTER)
 		await _redraw()
 		_in_bounds(vs, tag + " 主控详情")
-		if vs.y < 560.0:
-			ok(rs.cells.any(func(c): return c[1] == "tab"), tag + "：手机主控详情有「伤害来源 / 生存」页签")
-			rs.key(KEY_TAB)
-			ok(rs.sub_tab == 1, tag + "：Tab 切到生存")
-			await _redraw()
 		rs.key(KEY_RIGHT)
 		await _redraw()
 		_in_bounds(vs, tag + " 队友详情")

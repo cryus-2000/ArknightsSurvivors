@@ -1002,7 +1002,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
-	g.telemetry.on_dmg(eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
+	g.telemetry.on_dmg(e, eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
 	if g.hit.origin == "relic":
 		g.relic_out += eff
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
@@ -1059,7 +1059,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.count_max = Bal.v("boss/pair_race", 8.0)
 			g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
 			return
-		g.telemetry.on_kill_credit(e)   # 作战记录：最后一击记给当前伤害描述符的干员（docs/77）
+		g.telemetry.on_kill_credit(e)   # 作战记录：参与击杀（死前 3 秒内命中过的干员各记一次，docs/77）
 		kill(e)
 
 
