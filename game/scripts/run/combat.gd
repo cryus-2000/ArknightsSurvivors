@@ -77,6 +77,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.invuln = maxf(g.invuln, 0.3)
 		return
 	var boss: bool = src.get("boss", false)
+	g.telemetry.hit_type = g.telemetry.src_type(src)
 	if src.get("elite", false):
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
@@ -93,6 +94,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		if not sd.is_empty():
 			add_cold(int(sd.get("cold_hit", 0)))
 			add_wound(int(sd.get("wound_hit", 0)))
+			if int(sd.get("wound_hit", 0)) > 0:
+				g.telemetry.on_status("wound", g.telemetry.hit_type, float(sd.wound_hit))
 			if src.get("warn", false):
 				add_root(float(sd.get("root_hit", 0.0)), "束缚")
 	ctrl_hit_cat = "other"
@@ -124,9 +127,11 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 				corrode_boss += add
 		g.corrode_pool += add
 		if add > 0.0:
+			g.telemetry.on_status("corrode", g.telemetry.hit_type, add)
 			g.vfx.add_text(g.ppos + Vector2(14, -64), "侵蚀", Color(0.8, 0.5, 1.0), 13)
 	# 命中附带的神经损伤：用户 9/29 按原作改成只有溟痕累积，命中来源乘 enemy/nerve_hit_mult（缺省 0 = 不累积）
 	if src.get("nerve", 0.0) > 0.0:
+		g.telemetry.on_status("nerve", g.telemetry.hit_type, float(src.nerve))
 		add_nerve(src.nerve * g.nerve_taken_mult * Bal.v("enemy/nerve_hit_mult", 0.0))
 
 
@@ -167,6 +172,7 @@ func update_nerve(dt: float, in_src: bool, sanct: bool) -> void:
 	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
 	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
 	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
+		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
 		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * dt)
 	else:
 		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
@@ -337,6 +343,7 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 		amount = _boss_clamp(amount, src)
 	amount = _any_clamp(amount)
 	g.hp -= amount
+	g.telemetry.on_lose(amount, src)   # 作战记录：击倒者归属（持续伤害记给施加它的敌人，docs/77）
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
 	return amount

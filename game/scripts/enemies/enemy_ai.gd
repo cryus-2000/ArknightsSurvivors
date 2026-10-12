@@ -207,6 +207,7 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		if e.aura_t >= 0.5:
 			e.aura_t = 0.0
 			if g.invuln <= 0.0:
+				g.telemetry.aura_type = str(e.type)   # 作战记录：神经损伤记给放光环的敌人
 				g.nerve_aura_t = 0.6   # 神经光环按「站在溟痕里」累积神经损伤（combat.update_nerve）
 	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai._cd(e, "lash", float(d.get("lash_cd", 5.0))):
 		if _stag(e):

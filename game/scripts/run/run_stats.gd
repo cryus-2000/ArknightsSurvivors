@@ -76,8 +76,7 @@ static func snapshot(g) -> Dictionary:
 	# 击倒者（失败）：最后一次掉血的来源；最终 Boss（胜利）：结局对应的 Boss
 	var killer := {}
 	if not won:
-		var ks: String = str(tm.last_src)
-		killer = {"key": ks, "name": taken_name(ks), "type": taken_type(ks)}
+		killer = killer_info(tm.killer())
 	var final_boss := {}
 	if won and not g.trial.active:
 		var bt: String = str(D.ENDINGS.get(g.ending, {}).get("boss", ""))
@@ -134,6 +133,25 @@ static func taken_name(k: String) -> String:
 			var ty := k.substr(p.length())
 			return str(D.ENEMIES.get(ty, {}).get("name", ty)).replace("\"", "")
 	return k
+
+
+## 环境击倒者的名字（docs/76 术语）
+const ENV_NAME := {"zone": "黑潮", "mire": "溟痕", "dark": "寂灭", "hunt_ring": "围猎", "relic": "藏品代价", "bullet": "敌方弹幕",
+	"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神经损伤"}
+const ENV_SUB := {"zone": "安全区外", "mire": "站在溟痕里", "dark": "灯火熄灭后的持续伤害", "hunt_ring": "围猎圈", "relic": "藏品的代价"}
+
+
+## telemetry.killer() 的结果 → {type（敌人类型）, env（环境）, name, cause}
+static func killer_info(k: Dictionary) -> Dictionary:
+	var key := str(k.get("key", ""))
+	var cause := str(k.get("cause", ""))
+	if key.begins_with("e:"):
+		var ty := key.substr(2)
+		return {"type": ty, "env": "", "name": str(D.ENEMIES.get(ty, {}).get("name", ty)).replace("\"", ""), "cause": cause}
+	if key.begins_with("env:"):
+		var ev := key.substr(4)
+		return {"type": "", "env": ev, "name": str(ENV_NAME.get(ev, ev)), "cause": cause if cause != "" else str(ENV_SUB.get(ev, ""))}
+	return {}
 
 
 ## 承伤来源键 → 敌人类型（画头像用；黑潮、侵蚀等环境来源返回空串）

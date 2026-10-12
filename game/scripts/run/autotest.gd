@@ -86,6 +86,7 @@ func _init(game: Game) -> void:
 ## --statsshot=<秒>[,dead]（docs/77 实机截图）：机器人照常打到第 <秒> 秒后直接进胜利（结局一）/ 失败结算，
 ## 依次截 结算面板（多了「作战记录」按钮）→ 作战记录总览动效中（0.3 秒）→ 总览终态 → 主控详情 → 第二名干员详情，
 ## 存到 --shotdir：shot_stats_result / _motion / _overview / _detail0 / _detail1.png，截完退出。无头不截（只走流程）。
+## 失败截图可加 cause=corrode@<敌人类型> 或 cause=mire / zone 摆拍击倒者（倒下前补一段扣血记账，只影响击倒者显示）。
 var _ss := {}
 func _stats_shot() -> bool:
 	if _ss.is_empty():
@@ -93,7 +94,10 @@ func _stats_shot() -> bool:
 		for a in Cfg.dev_args():
 			if a.begins_with("--statsshot="):
 				var pp: PackedStringArray = a.substr(12).split(",")
-				_ss = {"on": true, "sec": float(pp[0]), "dead": pp.has("dead"), "phase": 0, "f": 0}
+				_ss = {"on": true, "sec": float(pp[0]), "dead": pp.has("dead"), "phase": 0, "f": 0, "cause": ""}
+				for q in pp:
+					if q.begins_with("cause="):
+						_ss.cause = q.substr(6)   # 截图摆拍：cause=corrode@<敌人类型> / cause=mire —— 倒下前补一段对应的扣血记账（只改击倒者显示）
 	if not _ss.on:
 		return false
 	var shot := func(name: String) -> void:
@@ -105,6 +109,13 @@ func _stats_shot() -> bool:
 			if g.state != g.S.PLAY or g.t < float(_ss.sec):
 				return false
 			if _ss.dead:
+				var cz: String = str(_ss.cause)
+				if cz.begins_with("corrode@"):
+					g.telemetry.on_status("corrode", cz.substr(8), 40.0)
+					g.telemetry.on_lose(30.0, "corrode")
+				elif cz != "":
+					g.telemetry.on_status("nerve", "", 5.0)
+					g.telemetry.on_lose(30.0, cz)
 				g.state = g.S.DEAD
 			else:
 				g.ending = "standard"

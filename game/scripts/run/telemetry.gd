@@ -68,6 +68,13 @@ var chests := 0                 # 打开补给箱
 var altars := 0                 # 打开海嗣祭坛
 var ingots_got := 0             # 获得源石锭（gain_ingots，含熔铸后进池的）
 var ingots_spent := 0           # 商店花掉的源石锭（购买 + 刷新）
+# 击倒者归属（docs/77 §2.1）：每次扣血记成 [时刻, 归属键, 死因, 量]，归属键 = "e:<敌人类型>" 或 "env:<zone|mire|dark|…>"；
+# 侵蚀 / 侵蚀创口 / 神经损伤这类持续伤害记给最近 10 秒施加得最多的敌人（溟痕里的神经损伤算环境）。只记账，不读随机数
+const BLAME_S := 3.0
+var blame: Array = []
+var hit_type := ""              # enemy_hit 这一下的来源敌人类型
+var aura_type := ""             # 最近一次神经光环的敌人类型
+var appliers: Dictionary = {}   # 状态 -> [[时刻, 敌人类型（"" = 环境）, 量]]
 var lamp_s: Array = [0.0, 0.0, 0.0, 0.0]   # 灯火四档累计秒数：通明（≥ 70）/ 摇曳（30–69）/ 暗淡（< 30）/ 寂灭（0）
 # ---- 本地保存
 var saved := false
@@ -259,6 +266,104 @@ func on_kill_credit(e: Dictionary) -> void:
 	for op in hb:
 		if float(hb[op]) >= g.t - KILL_WINDOW:
 			op_kills[op] = int(op_kills.get(op, 0)) + 1
+
+
+## 伤害来源字典（enemy_hit 的 src：敌人本体 / 子弹 / 预警招式）→ 敌人类型；Boss 子弹没写类型时记在场的第一个 Boss
+func src_type(src: Dictionary) -> String:
+	var ty := str(src.get("type", src.get("src_type", "")))
+	if ty == "" and src.get("boss", false):
+		for b in g.bosses:
+			if not b.dead and not b.get("friendly", false):
+				return str(b.type)
+	return ty
+
+
+## 状态施加（侵蚀进池量 / 侵蚀创口层数 / 神经损伤量）：记下是谁施加的
+func on_status(kind: String, ty: String, amt: float) -> void:
+	var l: Array = appliers.get(kind, [])
+	if l.is_empty():
+		appliers[kind] = l
+	if not l.is_empty() and str(l[l.size() - 1][1]) == ty and g.t - float(l[l.size() - 1][0]) < 0.5:
+		l[l.size() - 1][2] = float(l[l.size() - 1][2]) + amt   # 同一来源半秒内合并（溟痕每帧都记）
+		return
+	l.append([g.t, ty, amt])
+	while l.size() > 1 and float(l[0][0]) < g.t - 10.0:
+		l.pop_front()
+
+
+## 某种状态最近 10 秒施加得最多的来源（"" = 环境 / 不明）
+func applier(kind: String) -> String:
+	var l: Array = appliers.get(kind, [])
+	var acc := {}
+	var best := ""
+	var bv := -1.0
+	for x in l:
+		if float(x[0]) >= g.t - 10.0 or l.size() == 1:
+			acc[x[1]] = float(acc.get(x[1], 0.0)) + float(x[2])
+			if acc[x[1]] > bv:
+				bv = acc[x[1]]
+				best = x[1]
+	if best == "" and not l.is_empty():
+		best = str(l[l.size() - 1][1])
+	return best
+
+
+const DOT_CAUSE := {"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神经损伤"}
+const DIRECT_PREFIX := ["contact_", "atk_", "boss_", "blast_", "shock_"]
+
+
+## lose_hp 每次扣血调用：换算成归属键
+func on_lose(amount: float, src: String) -> void:
+	if amount <= 0.0:
+		return
+	var key := ""
+	var cause := ""
+	if DOT_CAUSE.has(src):
+		cause = DOT_CAUSE[src]
+		var ty := applier(src)
+		key = ("e:" + ty) if ty != "" else ("env:mire" if src == "nerve" else "env:" + src)
+	elif src == "bullet":
+		key = ("e:" + hit_type) if hit_type != "" else "env:bullet"
+	elif src == "tear":
+		key = "e:tear"
+	else:
+		for p in DIRECT_PREFIX:
+			if src.begins_with(p):
+				key = "e:" + src.substr(p.length())
+		if key == "":
+			key = "env:" + src   # zone 黑潮 / mire 溟痕 / dark 寂灭 / hunt_ring 围猎 / relic 藏品代价
+	blame.append([g.t, key, cause, amount])
+	while blame.size() > 1 and float(blame[0][0]) < g.t - BLAME_S - 2.0:
+		blame.pop_front()
+
+
+## 击倒者：最近 3 秒造成伤害最多的归属键；死因 = 这个归属里占比最大的持续伤害（直接攻击为空串）
+func killer() -> Dictionary:
+	var by := {}
+	var causes := {}
+	for x in blame:
+		if float(x[0]) < g.t - BLAME_S:
+			continue
+		by[x[1]] = float(by.get(x[1], 0.0)) + float(x[3])
+		var c: Dictionary = causes.get(x[1], {})
+		causes[x[1]] = c
+		c[x[2]] = float(c.get(x[2], 0.0)) + float(x[3])
+	var best := ""
+	var bv := -1.0
+	for k in by:
+		if by[k] > bv:
+			bv = by[k]
+			best = k
+	if best == "" and not blame.is_empty():
+		best = str(blame[blame.size() - 1][1])
+		causes[best] = {str(blame[blame.size() - 1][2]): 1.0}
+	var cause := ""
+	var cv := -1.0
+	for c in causes.get(best, {}):
+		if causes[best][c] > cv:
+			cv = causes[best][c]
+			cause = c
+	return {"key": best, "cause": cause}
 
 
 func on_cast(op_id: String) -> void:

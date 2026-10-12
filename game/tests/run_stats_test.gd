@@ -9,6 +9,7 @@ extends Node
 
 const RunStats = preload("res://scripts/run/run_stats.gd")
 const Game = preload("res://scripts/game.gd")
+const Character = preload("res://scripts/characters/character.gd")
 
 var game: Node
 var frames := 0
@@ -198,11 +199,11 @@ func test_screen() -> void:
 	var nrow: int = rs.rows().size()
 	ok(_cards().size() == nrow and nrow >= 2, "总览：每行一张卡（%d / %d）" % [_cards().size(), nrow])
 	ok(game.result_btns.is_empty(), "作战记录打开时结算按钮不接点击")
-	rs.key(KEY_RIGHT)
-	ok(rs.sel == 1, "→ 选下一张卡")
-	rs.key(KEY_LEFT)
-	rs.key(KEY_LEFT)
-	ok(rs.sel == 0, "← 到头不循环")
+	rs.key(KEY_DOWN)
+	ok(rs.sel == 1, "↓ 选下一名干员")
+	rs.key(KEY_UP)
+	rs.key(KEY_UP)
+	ok(rs.sel == 0, "↑ 到头不循环")
 	rs.key(KEY_ENTER)
 	ok(rs.page == 1 and rs.sel == 0, "Enter 进详情")
 	await _redraw()
@@ -236,12 +237,15 @@ func test_screen() -> void:
 		_in_bounds(vs, tag + " 总览")
 		if vs.y >= 560.0:
 			ok(rs.cells.filter(func(c): return c[1] == "relic").size() == 5, tag + "：藏品格五格")
-			rs.key(KEY_UP)
-			ok(rs.zone == 0, tag + "：编队条 ↑ 进藏品格")
+			rs.key(KEY_RIGHT)
+			ok(rs.zone == 0, tag + "：编队列表 → 进藏品格")
 			rs.key(KEY_RIGHT)
 			ok(rs.rel == 1, tag + "：藏品格 → 选下一件")
-			rs.key(KEY_DOWN)
-			ok(rs.zone == 1, tag + "：藏品格最下一行 ↓ 回编队条")
+			await _redraw()
+			ok(rs.portraits.size() >= 1 and rs._pop_anchor.size.x > 0.0, tag + "：选中藏品时画说明弹窗")
+			rs.key(KEY_LEFT)
+			rs.key(KEY_LEFT)
+			ok(rs.zone == 1, tag + "：藏品格最左 ← 回编队列表")
 		else:
 			for tb in [1, 2, 0]:
 				rs._act("tab", tb)
@@ -264,3 +268,70 @@ func test_screen() -> void:
 		await _redraw()
 		_in_bounds(vs, tag + " 队友详情")
 		rs.close()
+	await test_portraits()
+	await test_killer()
+
+
+func _check_portraits(tag: String) -> void:
+	var bad: Array = []
+	for pr in game.run_stats.portraits:
+		var d: Rect2 = pr[0]
+		var box: Rect2 = pr[1]
+		if d.size.x <= 0.0 or d.position.x < box.position.x - 0.51 or d.position.y < box.position.y - 0.51 or d.end.x > box.end.x + 0.51 or d.end.y > box.end.y + 0.51:
+			bad.append("%s in %s" % [d, box])
+	ok(bad.is_empty(), "%s：像都在像框内 %s" % [tag, bad.slice(0, 3)])
+
+
+## 18 名干员分批放进编队（每批 5 名），桌面与手机的总览、每名干员的详情：像都在像框内（像框都在卡片内，由版式保证）
+func test_portraits() -> void:
+	var rs = game.run_stats
+	var ids: Array = Character.list_ids()
+	ok(ids.size() >= 18, "干员名单 %d 名" % ids.size())
+	var base: Dictionary = RunStats.fake_raw()
+	var k := 0
+	while k < ids.size():
+		var batch: Array = ids.slice(k, k + 5)
+		var raw: Dictionary = base.duplicate(true)
+		raw.ops = []
+		raw.op_out = {}
+		for j in batch.size():
+			var d: Dictionary = Character.load_def(batch[j])
+			raw.ops.append({"id": batch[j], "name": str(d.get("name", batch[j])), "en": str(d.get("en", "")), "col": [0.5, 0.7, 0.9], "leader": j == 0, "t": j * 60.0, "left": -1.0})
+			raw.op_out[batch[j]] = {"普攻": 1000.0 * (j + 1)}
+		for vs in [Vector2(1280, 720), Vector2(1044, 481)]:
+			game.hud.size = vs
+			rs.show_model(RunStats.model(raw))
+			await _redraw()
+			var cnt: int = rs.portraits.size()
+			ok(cnt >= batch.size() + 1, "像框数（%d）≥ 编队 %d + 主控卡" % [cnt, batch.size()])
+			_check_portraits("%s %dx%d 总览" % [",".join(batch), int(vs.x), int(vs.y)])
+			for j in batch.size():
+				rs._detail(j)
+				await _redraw()
+				_check_portraits("%s %dx%d 详情" % [batch[j], int(vs.x), int(vs.y)])
+			rs.close()
+		k += 5
+
+
+## 击倒者归属：侵蚀记给施加它的敌人、溟痕记成环境、最近 3 秒伤害最多的那一方
+func test_killer() -> void:
+	var tm = game.telemetry
+	tm.blame.clear()
+	tm.appliers.clear()
+	tm.on_status("corrode", "bone", 30.0)
+	tm.on_lose(5.0, "contact_slider")
+	tm.on_lose(12.0, "corrode")
+	var k: Dictionary = RunStats.killer_info(tm.killer())
+	ok(k.get("type", "") == "bone" and k.get("cause", "") == "侵蚀", "侵蚀致死记给施加侵蚀的敌人（%s）" % [k])
+	tm.blame.clear()
+	tm.on_status("nerve", "", 1.0)
+	tm.on_lose(20.0, "mire")
+	tm.on_lose(8.0, "nerve")
+	k = RunStats.killer_info(tm.killer())
+	ok(k.get("env", "") == "mire" and k.get("name", "") == "溟痕", "溟痕致死是环境（%s）" % [k])
+	tm.blame.clear()
+	tm.on_lose(9.0, "zone")
+	k = RunStats.killer_info(tm.killer())
+	ok(k.get("env", "") == "zone" and k.get("name", "") == "黑潮", "黑潮致死是环境")
+	var arts: Array = game.run_stats._env_art("zone")
+	ok(arts.size() == 2 and arts[0] != null, "黑潮有图（不是占位菱形）")
