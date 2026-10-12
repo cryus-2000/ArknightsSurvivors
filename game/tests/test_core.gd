@@ -34,6 +34,7 @@ func _init() -> void:
 	test_blocks_texas()
 	test_fx_hold()
 	test_operator_sheet()
+	test_blocks_summon_seal()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -603,3 +604,90 @@ func test_operator_sheet() -> void:
 	near(float(IS.row(IS.sheet("irene", Ch.load_def("irene")), "dps").val), 24.0 * 1.03 * 2.0 / 0.8, "艾丽妮单体每秒伤害 = 攻击 × 2 段 ÷ 间隔")
 	var syn: Dictionary = IS.sheet("test", {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155, "armor": 0.5}})
 	ok(IS.row(syn, "hp").text == "155" and IS.row(syn, "atk").text == "77" and IS.row(syn, "cd").text == "2.50 秒" and IS.row(syn, "armor").text == "0.5", "数值表跟随传入的数据")
+
+
+## 召唤 / 封印 / 护盾 / 治疗光环段（docs/61 §15，op_blocks.gd 末尾）：测试专用干员 sstest 通过校验、改坏一处就不通过；
+## 封印的时长规则（普通 / 精英减半 / Boss 缩短封顶 + 免疫 / boss: false）、护盾吸收倍率、召唤物攻击距离。局内行为见 tests/summon_seal_blocks_test
+class FakeOp:
+	extends RefCounted
+	var g
+	var id := "fake"
+	var sm := {}
+	var texts := 0
+
+	func float_text(_p, _t, _c, _s := 14) -> void:
+		texts += 1
+
+	func stat(_n) -> float:
+		return 1.5
+
+
+func test_blocks_summon_seal() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var d: Dictionary = Ch.load_def("sstest")
+	ok(d.has("blocks") and Ch.validate_operator("sstest", d), "测试专用干员 sstest（召唤 / 封印 / 护盾 / 治疗光环）通过校验")
+	var bads := {
+		"召唤没定义的种类": func(x): x.blocks.skills[0].do[0]["kind"] = "ghost",
+		"life = skill 不在技能 do 里": func(x): x.blocks.trait[0].do[0]["life"] = "skill",
+		"cap 超过 12": func(x): x.blocks.summons.wolf["cap"] = 13,
+		"移动方式写错": func(x): x.blocks.summons.wolf.move["mode"] = "teleport",
+		"封印放进常驻列表": func(x): x.blocks.progression["spare"] = {"st": "seal", "dur": 2},
+		"Boss 免疫时间太短": func(x): x.blocks.skills[1].do[0].on_hit[0]["boss_immune"] = 1,
+		"护盾放进常驻列表": func(x): x.blocks.progression["spare"] = {"verb": "shield", "pct": 0.1},
+		"治疗光环比例超范围": func(x): x.blocks.progression.regen["pct"] = 0.5,
+		"召唤数超范围": func(x): x.blocks.skills[0].do[0]["n"] = 20,
+		"召唤物种类名不是标识符": func(x): x.blocks.summons["狼 首"] = x.blocks.summons.wolf.duplicate(true),
+	}
+	for why in bads:
+		var d2: Dictionary = d.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("sstest", d2), "召唤 / 封印校验应拒绝：" + why)
+	ok(not ("summon" in OB.PLANNED.verb) and not ("shield" in OB.PLANNED.verb) and not ("heal" in OB.PLANNED.aura), "verb.summon / verb.shield / aura.heal 不再是「已登记未实现」")
+	# 封印时长
+	var o := FakeOp.new()
+	o.g = {"t": 5.0, "ppos": Vector2.ZERO, "combat": {"cur_dmg": 0.0}}
+	var ids := [0]
+	var mk := func(elite: bool, boss: bool) -> Dictionary:
+		ids[0] += 1
+		return {"id": ids[0], "dead": false, "chest": false, "elite": elite, "boss": boss, "pos": Vector2.ZERO, "r": 10.0}
+	var e: Dictionary = mk.call(false, false)
+	OB.apply_status(o, e, {"st": "seal", "dur": 3.0})
+	near(float(e.seal_t), 8.0, "封印：普通 3 秒")
+	ok(OB.sealed(e, 7.9) and not OB.sealed(e, 8.0), "封印到点解除")
+	var el: Dictionary = mk.call(true, false)
+	OB.apply_status(o, el, {"st": "seal", "dur": 3.0, "elite_mult": 0.4})
+	near(float(el.seal_t), 6.2, "封印：精英 × elite_mult")
+	var bo: Dictionary = mk.call(false, true)
+	OB.apply_status(o, bo, {"st": "seal", "dur": 3.0})
+	near(float(bo.seal_t), 5.9, "封印：Boss × 0.3（缺省）")
+	near(float(bo.seal_imm), 5.9 + 10.0, "封印：Boss 结束后免疫 10 秒（缺省）")
+	ok(o.texts == 2, "精英 / Boss 吃到封印各飘一次「封印」（普通敌人不飘）")
+	o.g.t = 9.0
+	OB.apply_status(o, bo, {"st": "seal", "dur": 3.0})
+	OB.apply_status(o, bo, {"st": "seal", "dur": 3.0})
+	ok(not OB.sealed(bo, 9.0) and o.texts == 3, "免疫期间不吃封印，「封印免疫」1.5 秒内只飘一次（%d）" % o.texts)
+	var b2: Dictionary = mk.call(false, true)
+	OB.apply_status(o, b2, {"st": "seal", "dur": 9.0, "boss_mult": 1.0, "boss_max": 2.0})
+	near(float(b2.seal_t), 11.0, "封印：Boss 封顶 boss_max")
+	var b3: Dictionary = mk.call(false, true)
+	OB.apply_status(o, b3, {"st": "seal", "dur": 9.0, "boss": false})
+	ok(not b3.has("seal_t"), "boss: false：Boss 不受")
+	var ch: Dictionary = mk.call(false, false)
+	ch.chest = true
+	OB.apply_status(o, ch, {"st": "seal", "dur": 2.0})
+	ok(not ch.has("seal_t"), "宝箱不吃封印")
+	ok(o.sm.seal.size() == 4, "施加者记下被封印的敌人（画标记用）")
+	# 护盾吸收倍率：m = 其余减伤；全吸收 0，部分吸收按比例
+	o.sm.shield = 6.0
+	o.g.combat.cur_dmg = 10.0
+	near(OB.shield_mult(o, 0.5), 0.0, "护盾 6 吸收 10 × 0.5 = 5：倍率 0")
+	near(float(o.sm.shield), 1.0, "护盾剩 1")
+	near(OB.shield_mult(o, 1.0), 0.9, "护盾 1 吸收 1：倍率 0.9")
+	near(OB.shield_mult(o, 0.7), 0.7, "护盾空了：倍率原样")
+	# 召唤物攻击距离（× op_range，FakeOp 1.5）
+	near(OB.sm_reach(o, {"shape": "circle", "r": 20}), 30.0, "以自身为心的圆：半径 × op_range")
+	near(OB.sm_reach(o, {"shape": "circle", "r": 20, "center": "target"}), 60.0, "以目标为心的圆：40 × op_range")
+	near(OB.sm_reach(o, {"shape": "line", "len": 50}), 75.0, "直线：长度 × op_range")
+	near(OB.sm_reach(o, {"shape": "cone", "r": 40, "range": 10}), 15.0, "写了 range 用 range × op_range")
+	near(OB.sm_reach(o, {}), 0.0, "没有攻击 = 0")

@@ -41,6 +41,7 @@ var high_t := -INF           # 最近一次「扣血前生命 ≥ fullhp_guard_a
 var guard_end := -INF        # 满血保护触发后兜底到的时刻（这一轮连击结束：high_t + fullhp_guard_combo）
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
 var enemy_stun_next := 0.0   # 普通怪短僵直的全局间隔，避免多只怪连续控住主控
+var cur_dmg := 0.0   # 同上期间 = 这一下的伤害（干员护盾 verb.shield 读，docs/61 §15）
 var cur_src: Dictionary = {}   # enemy_hit 询问干员 dmg_taken_mult 期间 = 这一下的来源（数据干员 trig.on_hurt 读 boss，docs/61「星熊」节）
 
 
@@ -66,6 +67,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	var negated := false
 	for o in g.squad.ops:
 		if o.has_method("dmg_taken_mult"):
+			cur_dmg = dmg   # 这一下（已乘前面干员的减伤）的伤害：干员护盾（docs/61 §15 verb.shield）按它算吸收量
 			var m: float = o.dmg_taken_mult()
 			negated = negated or m <= 0.0
 			dmg *= m
@@ -951,6 +953,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
 		var edef: float = e.def
+		if float(e.get("seal_t", 0.0)) > g.t and e.get("affix", "") == "armor":
+			edef /= Bal.v("enemy/affix_armor", 0.75)   # 封印（docs/61 §15 st.seal）：甲壳词条失效
 		var pierce: int = g.rfx.rule("def_pierce")
 		if pierce > 0 and edef < 1.0:
 			edef = 1.0 - (1.0 - edef) * (1.0 - 0.01 * pierce)
@@ -990,7 +994,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.boss:
 		dmg = gate_clamp(e, dmg)
 	# 潮盾词条：先扣护盾（spawner.roll_affix）
-	if e.get("shield_hp", 0.0) > 0.0 and dmg > 0.0:
+	if e.get("shield_hp", 0.0) > 0.0 and dmg > 0.0 and float(e.get("seal_t", 0.0)) <= g.t:   # 封印期间潮盾不挡（docs/61 §15）
 		var ab: float = minf(e.shield_hp, dmg)
 		e.shield_hp -= ab
 		dmg -= ab

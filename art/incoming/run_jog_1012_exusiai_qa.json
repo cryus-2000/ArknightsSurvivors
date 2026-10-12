@@ -1,0 +1,305 @@
+{
+  "engine_tested": false,
+  "shared_palette_colors": 23,
+  "before": {
+    "op": "exusiai",
+    "frames": 6,
+    "diff": 0.4487695849370225,
+    "minpair": 0.3651056775797762,
+    "pairs": [
+      0.568,
+      0.365,
+      0.377,
+      0.376,
+      0.412,
+      0.595
+    ],
+    "sil_xor": 0.1539567847813068,
+    "half": 0.40345566299325836,
+    "bob_top": 0.0,
+    "bob_c": 1.4916535767645307,
+    "head_bob": 0.03402432629610885,
+    "tops": [
+      10.5,
+      10.5,
+      10.5,
+      10.5,
+      10.5,
+      10.5
+    ],
+    "height": 36.0,
+    "foot_dx": 1.7916666666666679,
+    "stride_max": 20.0,
+    "stride_rng": 11.0,
+    "contact_l_rng": 5.5,
+    "contact_r_rng": 7.0,
+    "lean": 5.056964005746696,
+    "lean_rng": 0.37897860504431957,
+    "feet_seq": "212212",
+    "feet_alt": 4,
+    "idle_h": 35.0,
+    "leg_xor": 0.5367212557012563,
+    "move": 0.05829749756989213,
+    "move_half": 0.009103850498164192,
+    "leg_move": 0.21968600055527135,
+    "leg_move_half": 0.032467045010959976,
+    "upper_move": 0.0,
+    "leg_px": 113.125,
+    "crouch": 1.0285714285714285
+  },
+  "after": {
+    "op": "exusiai",
+    "frames": 6,
+    "diff": 0.615069742225521,
+    "minpair": 0.4324090121317158,
+    "pairs": [
+      0.49,
+      0.712,
+      0.728,
+      0.432,
+      0.731,
+      0.598
+    ],
+    "sil_xor": 0.227401072535329,
+    "half": 0.6732145399494699,
+    "bob_top": 0.5,
+    "bob_c": 0.9320696164616393,
+    "head_bob": 0.7850121562709589,
+    "tops": [
+      10.0,
+      10.0,
+      10.5,
+      10.5,
+      10.5,
+      10.0
+    ],
+    "height": 35.916666666666664,
+    "foot_dx": 8.25,
+    "stride_max": 20.5,
+    "stride_rng": 13.0,
+    "contact_l_rng": 13.0,
+    "contact_r_rng": 10.5,
+    "lean": 5.915140998627989,
+    "lean_rng": 3.1146368471074437,
+    "feet_seq": "112111",
+    "feet_alt": 2,
+    "idle_h": 35.0,
+    "leg_xor": 0.7471270882965961,
+    "move": 0.12042864173299082,
+    "move_half": 0.007594774490664469,
+    "leg_move": 0.463133326789535,
+    "leg_move_half": 0.04140077013024812,
+    "upper_move": 0.0,
+    "leg_px": 81.66666666666667,
+    "crouch": 1.026190476190476
+  },
+  "static_verifier": {
+    "passed": true,
+    "palette_counts": [
+      {
+        "colors": 23,
+        "character": "exusiai"
+      }
+    ],
+    "assets": [
+      {
+        "binary_alpha": true,
+        "frames": [
+          {
+            "index": 0,
+            "pixel_sha256": "673b03858818777e4acecd5e6376d0ddf52d84e65b4d9e07808e987f190be35c",
+            "bbox": [
+              12,
+              10,
+              34,
+              46
+            ],
+            "opaque_pixels": 528
+          },
+          {
+            "index": 1,
+            "pixel_sha256": "d45857307df2c6cfb12df9c9ab5e3d078dda3da32b3880d2c8513a46ef92626b",
+            "bbox": [
+              12,
+              10,
+              34,
+              46
+            ],
+            "opaque_pixels": 499
+          },
+          {
+            "index": 2,
+            "pixel_sha256": "ba77e1e6aa3c1fcffb46cfafb4ce99faac91e361356f58372d99dd8d3d485b28",
+            "bbox": [
+              12,
+              11,
+              35,
+              45
+            ],
+            "opaque_pixels": 533
+          },
+          {
+            "index": 3,
+            "pixel_sha256": "aa19b6aacaad7bbbc8edbd6ea88967149c9814c93efdbd43c109c1505f80ebe2",
+            "bbox": [
+              11,
+              11,
+              34,
+              46
+            ],
+            "opaque_pixels": 527
+          },
+          {
+            "index": 4,
+            "pixel_sha256": "4db0b4801993c29d3538ac49cedaf1a6d7d909e24807350618abac413f46fa47",
+            "bbox": [
+              11,
+              11,
+              34,
+              46
+            ],
+            "opaque_pixels": 507
+          },
+          {
+            "index": 5,
+            "pixel_sha256": "df264520eb3a7547201c51266db4bb0301519d2211762ed2fb1eb1bce0d75cb4",
+            "bbox": [
+              12,
+              10,
+              35,
+              45
+            ],
+            "opaque_pixels": 539
+          }
+        ],
+        "file": "op_exusiai_run.png",
+        "sha256": "e24b4ca8ed2c275b75a01a39411a54b88ff42dd9c95cf5590f85f1f84cd26175",
+        "outline": "080E18"
+      },
+      {
+        "binary_alpha": true,
+        "frames": [
+          {
+            "index": 0,
+            "pixel_sha256": "bdf61f809f841b2befb192928da818a3a89fc36ef28d379d19d78e23b408d00a",
+            "bbox": [
+              23,
+              20,
+              68,
+              92
+            ],
+            "opaque_pixels": 2119
+          },
+          {
+            "index": 1,
+            "pixel_sha256": "d18ae1c08f1f1bba59d238a127e8a463728a0ee2e80f0e8ebd157148e352958b",
+            "bbox": [
+              24,
+              20,
+              69,
+              92
+            ],
+            "opaque_pixels": 2005
+          },
+          {
+            "index": 2,
+            "pixel_sha256": "3c36ff9bfec47818206c2e50f6d7bbed57b56b49a89eac3ca5706c80a8e929ae",
+            "bbox": [
+              24,
+              21,
+              70,
+              90
+            ],
+            "opaque_pixels": 2148
+          },
+          {
+            "index": 3,
+            "pixel_sha256": "4e80bc0e76ec0122d8b446fd8a140affdae843c7cb0f4d7bcda7f2b6350f0b3f",
+            "bbox": [
+              22,
+              21,
+              68,
+              92
+            ],
+            "opaque_pixels": 2096
+          },
+          {
+            "index": 4,
+            "pixel_sha256": "aa3b39b4ca8e601dce6c2e874c7fb5c8e02d0a1f30a638389e6e39b5892ad14e",
+            "bbox": [
+              22,
+              21,
+              68,
+              92
+            ],
+            "opaque_pixels": 2031
+          },
+          {
+            "index": 5,
+            "pixel_sha256": "4320e0588d81951e00fd4871d5cff9225da1aff7027e90845a72e6b8ed5d08f1",
+            "bbox": [
+              23,
+              20,
+              70,
+              90
+            ],
+            "opaque_pixels": 2140
+          }
+        ],
+        "file": "op_exusiai_run@2x.png",
+        "sha256": "6eb248cd8488c910a5ba06bb40c45ad6e008fcba3c5c67dd6d1c1aded043bffc",
+        "outline": "080E18"
+      }
+    ],
+    "engine_tested": false,
+    "baseline_checked": false,
+    "allow_repeated_frames": false
+  },
+  "visual_review": {
+    "no_rectangular_head_patch": true,
+    "full_character_per_frame": true,
+    "black_tights_preserved": true,
+    "reviewed_contact_sheet": true
+  },
+  "phase_aware_baseline": {
+    "96": {
+      "measured_bottom_y": [
+        92,
+        92,
+        90,
+        92,
+        92,
+        90
+      ],
+      "expected_bottom_y": [
+        92,
+        92,
+        90,
+        92,
+        92,
+        90
+      ],
+      "pass": true
+    },
+    "48": {
+      "measured_bottom_y": [
+        46,
+        46,
+        45,
+        46,
+        46,
+        45
+      ],
+      "expected_bottom_y": [
+        46,
+        46,
+        45,
+        46,
+        46,
+        45
+      ],
+      "pass": true
+    }
+  },
+  "baseline_exception": "Short flight in frames2,5, one logical pixel above contact frames; world anchor unchanged"
+}

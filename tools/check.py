@@ -407,6 +407,7 @@ SCENE_REGRESSIONS = {
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
+    "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
 }
 

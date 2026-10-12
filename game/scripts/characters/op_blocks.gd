@@ -14,10 +14,11 @@ const IMPL := {
 }
 ## 第三批（星熊 / 安洁莉娜 / 德克萨斯 / 能天使）实现的积木不在 IMPL 里，由 _block 按 SHARED_TAGS / EXT_BLOCKS / ANGELINA_TAGS / TX_IMPL / EXU_IMPL 分流到文件末尾各段；
 ## 这里只剩还没人实现的
+## verb.summon / verb.shield / aura.heal / st.seal 在文件末尾「召唤 / 封印段」（SM_TAGS，10-12）
 const PLANNED := {
 	"shape": ["chain", "summon"],
-	"verb": ["summon", "shield", "protect", "cleanse", "dash"],
-	"aura": ["heal", "dps", "dr", "inspire"],
+	"verb": ["protect", "cleanse", "dash"],
+	"aura": ["dps", "dr", "inspire"],
 	"st": ["fragile", "bind", "mark"],
 	"trig": ["on_deploy", "stack"],
 }
@@ -288,13 +289,16 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring := -1.0, ring_w := 0.0) -> void:
 	if e.dead or not cond_true(o, s.get("cond", {})):
 		return
-	if e.boss and not (s.get("boss", false) or s.get("boss_only", false)):
-		return
-	if s.get("boss_only", false) and not e.boss:
-		return
 	if s.has("within") and c != Vector2.INF and e.pos.distance_to(c) > float(s.within) + float(e.r) * 0.5:
 		return
 	if str(s.get("where", "")) == "ring" and (ring < 0.0 or absf(e.pos.distance_to(c) - ring) > ring_w):
+		return
+	if str(s.get("st", "")) == "seal":   # 召唤 / 封印段：Boss 有自己的规则（缩短 + 免疫），不走下面的「Boss 缺省不受」
+		seal_apply(o, e, s)
+		return
+	if e.boss and not (s.get("boss", false) or s.get("boss_only", false)):
+		return
+	if s.get("boss_only", false) and not e.boss:
 		return
 	var g = o.g
 	var k: float = 0.25 if e.boss else (0.5 if e.elite else 1.0)
@@ -437,10 +441,12 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		return _report(cid, errs)
 	var base: Dictionary = d.get("base", {})
 	var srcs: Dictionary = d.get("hit_sources", {})
-	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0}
+	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {})}
 	for k in blocks:
-		if not k in ["zone", "attack", "trait", "skills", "talent", "progression"]:
-			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression）" % k)
+		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons"]:
+			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons）" % k)
+	if blocks.has("summons"):   # 召唤物种类（文件末尾「召唤 / 封印段」）
+		_sm_kinds(blocks, ctx)
 	if blocks.has("zone"):
 		var z = blocks.zone
 		if not (z is Dictionary):
@@ -598,6 +604,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		_tx_block(b, p, kind, tag, ctx)
 		return
 	if _exu_block(b, p, kind, ctx, tag):   # 能天使段
+		return
+	if _sm_block(b, p, kind, ctx, tag):   # 召唤 / 封印段
 		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
@@ -760,11 +768,11 @@ const FX_SCALE_MAX := 3.2
 const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit"]
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate"]
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield"]
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next"]
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield"]
 const ArtS = preload("res://scripts/art.gd")
 
 
@@ -3192,3 +3200,805 @@ static func _exu_skill(sb: Dictionary, p: String, ctx: Dictionary, atk_shape := 
 			_list(ap.get("last_on_hit", []), p + ".attack_patch.last_on_hit", "on_hit", ctx)
 	if sb.has("end"):
 		_list(sb.end, p + ".end", "instant", ctx)
+
+
+# ================================================================ 召唤 / 封印 / 护盾 / 治疗光环（docs/61 §15，10-12 通用积木，下一批干员备用）
+# 通用积木，现在还没有正式干员用（测试专用干员 tests/data_ops/sstest.json 演示全部写法）。核心部分只加了几处转发：
+# validate 认 blocks.summons 段、_block 里 SM_TAGS 命中时转给 _sm_block、apply_status 的 st.seal 绕开「Boss 缺省不受」（Boss 有自己的规则）。
+# data_operator.gd 对应的转发都标了「召唤 / 封印段」；运行时状态在干员的 sm 字典（不放 ext：ext 非空会被能天使段当成用得到）。
+# 游戏侧挂点（敌人一侧，封印读 e.seal_t）：run/enemies.gd 2 处（特殊招式 pattern、远程开火）、boss_ai.gd 1 处（Boss 出招 ready）、
+# run/combat.gd 2 处（甲壳 / 潮盾词条失效）+ 1 处（受击询问时把这一下的伤害放进 combat.cur_dmg，护盾用）。没有封印 / 护盾时这些分支都不走，老干员逐字节不变。
+#
+#  verb.summon  瞬时：召唤 n 个 kind（写在 blocks.summons.<kind>）的召唤物。at：self（缺省）/ leader / target / zone；spread 散开半径；life 可覆盖种类的 life
+#  st.seal      命中状态（on_hit / 力场 tick）：封印 dur 秒——非 Boss 敌人不起新的特殊招式（enemy_ai 的 pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……）、
+#               不远程开火、甲壳 / 潮盾词条失效；已经起手的蓄力照常打完。精英 × elite_mult；
+#               Boss：时长 × boss_mult、封顶 boss_max 秒，期间不起新招（冷却照走 = 推迟下一招），封印结束后 boss_immune 秒免疫
+#  verb.shield  瞬时：主控护盾 + pct × 最大生命（总量封顶 cap × 最大生命），dur 秒后消失，每秒按当前量衰减 decay；吸收在减伤（verb.dr）之后、护甲 / 法抗之前
+#  aura.heal    常驻：scope in_zone（缺省，主控在本干员区域内）/ always，每秒回复主控 pct × 最大生命（× 局部 heal 倍率 [× 技能强度]）；满血时不治
+
+const SM_TAGS := ["verb.summon", "st.seal", "verb.shield", "aura.heal"]
+const SM_MOVES := ["orbit", "chase", "stay", "follow"]
+const SM_TARGETS := ["nearest", "densest", "elite", "low_hp"]
+const SM_AT := ["self", "leader", "target", "zone"]
+const SM_KIND_KEYS := ["name", "hp", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "_doc"]
+const SM_MOVE_KEYS := ["mode", "speed", "anchor", "leash", "orbit_r", "orbit_speed", "target"]
+const SM_BODY_KEYS := ["strip", "frames", "fps", "scale", "anchor", "tint", "flip", "hover"]
+const SM_TOTAL_CAP := 24      # 全编队同时在场的召唤物上限（性能：每个召唤物 = 一个 2.5D 排序条目 + 一次贴图 / 几何绘制）
+const SM_KIND_CAP := 12       # 每种召唤物 cap 的上限（校验）
+const SM_FAR := 900.0         # 离锚点超过这么远（主控冲刺 / 传送）直接拉回锚点
+const SM_GOLD := 2.39996      # 黄金角：召唤落点 / 围攻站位的确定性散布（不取随机数）
+const SEAL_COL := Color(0.66, 0.45, 1.0)
+const SHIELD_COL := Color(0.55, 0.9, 1.0)
+
+
+static func sm_st(o) -> Dictionary:
+	if o.sm.is_empty():
+		o.sm.merge({"list": [], "seq": 0, "ang": {}, "seal": {}, "shield": 0.0, "shield_max": 0.0, "shield_t": 0.0, "shield_decay": 0.0, "heal_acc": {}})
+	return o.sm
+
+
+static func sm_kind(o, k: String) -> Dictionary:
+	return o.B.get("summons", {}).get(k, {})
+
+
+## 全编队在场的召唤物数（SM_TOTAL_CAP 用）
+static func sm_total(o) -> int:
+	var sq = o.g.get("squad")
+	if sq == null or not (o in sq.ops):
+		return o.sm.get("list", []).size()
+	var n := 0
+	for m in sq.ops:
+		var s = m.get("sm")
+		if s is Dictionary and s.has("list"):
+			n += s.list.size()
+	return n
+
+
+## 瞬时积木（data_operator._exec_list 的缺省分支转来）
+static func sm_exec(o, b: Dictionary, at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"verb.summon":
+			sm_spawn(o, b, at)
+		"verb.shield":
+			shield_add(o, b)
+
+
+# ---------------------------------------------------------------- 召唤物
+
+## 召唤：每个召唤物 {id, kind, pos, face, t, life（< 0 不限时）, skill（life: skill 时绑定的技能序号）, hp, max_hp, inv, tgt, cd, anim, rt, hurt, flash, gone}
+static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
+	var g = o.g
+	var kind: String = str(b.get("kind", ""))
+	var kd := sm_kind(o, kind)
+	if kd.is_empty():
+		return
+	var st := sm_st(o)
+	var c := Vector2.INF
+	match str(b.get("at", "self")):
+		"leader":
+			c = g.ppos
+		"target":
+			c = at
+		"zone":
+			c = o.zone_c()
+		_:
+			c = o.pos
+	if c == Vector2.INF:
+		c = g.ppos
+	if c == Vector2.INF:
+		return
+	var lv = b.get("life", kd.get("life", 0.0))
+	var life := -1.0
+	var sk := -1
+	if lv is String:
+		if lv == "skill":
+			sk = o.cur_skill
+	elif float(lv) > 0.0:
+		life = float(lv)
+	var n: int = int(b.get("n", 1))
+	var spread: float = float(b.get("spread", 28.0))
+	var cap: int = int(kd.get("cap", 1))
+	var hp: float = float(kd.get("hp", 0.0))
+	for k in n:
+		var same: Array = st.list.filter(func(q): return q.kind == kind)
+		if same.size() >= cap:
+			_sm_end(o, same[0], "cap")   # 同种超过 cap：最早的先到期（也执行 on_expire）
+		if sm_total(o) >= SM_TOTAL_CAP:
+			break
+		st.seq += 1
+		var a: float = float(st.seq) * SM_GOLD
+		var rr: float = spread * (0.5 + 0.5 * float(k + 1) / float(n))
+		var p: Vector2 = c + Vector2(cos(a) * rr, sin(a) * rr * 0.55)
+		var s := {"id": int(st.seq), "kind": kind, "pos": p, "face": float(o.face), "t": 0.0, "life": life, "skill": sk,
+			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": 0.25, "anim": 0.0, "rt": 0.0,
+			"hurt": {}, "flash": 0.0, "gone": false}
+		st.list.append(s)
+		o.fx({"kind": "ring", "pos": p, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8})
+		if b.has("fx"):
+			fx_play(o, b.fx, p, float(kd.get("r", 10.0)) * 2.0)
+		o._exec_list(kd.get("on_spawn", []), p)
+
+
+static func _sm_col(o, kd: Dictionary) -> Color:
+	var cv = kd.get("col", [])
+	if cv is Array and cv.size() >= 3:
+		return Color(float(cv[0]), float(cv[1]), float(cv[2]))
+	return o.col()
+
+
+## 一个召唤物结束（why：life / skill / dead / cap / leave）：移出列表，leave 以外执行 on_expire（中心 target = 召唤物位置）
+static func _sm_end(o, s: Dictionary, why: String) -> void:
+	if s.gone:
+		return
+	s.gone = true
+	o.sm.list.erase(s)
+	var kd := sm_kind(o, str(s.kind))
+	o.fx({"kind": "ring", "pos": s.pos, "r": float(kd.get("r", 10.0)) * 2.0, "r0": float(kd.get("r", 10.0)), "life": 0.3, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.6})
+	if why != "leave":
+		o._exec_list(kd.get("on_expire", []), s.pos)
+
+
+## 干员离队 / 局结束：清掉召唤物（不执行 on_expire）、护盾、封印标记
+static func sm_clear(o) -> void:
+	if o.sm.is_empty():
+		return
+	for s in o.sm.list.duplicate():
+		_sm_end(o, s, "leave")
+	o.sm.shield = 0.0
+	o.sm.seal = {}
+
+
+static func _sm_anchor(o, mv: Dictionary) -> Vector2:
+	var p: Vector2 = o.pos if str(mv.get("anchor", "leader")) == "self" else o.g.ppos
+	return p if p != Vector2.INF else o.g.ppos
+
+
+## 攻击距离（世界像素）：写了 range 用 range × op_range；否则按形状（circle 以自身为心 = r，以目标为心 = 40；cone = r；line = len）
+static func sm_reach(o, a: Dictionary) -> float:
+	if a.is_empty():
+		return 0.0
+	var k: float = o.stat(&"op_range")
+	if a.has("range"):
+		return float(a.range) * k
+	match str(a.get("shape", "")):
+		"circle":
+			return float(a.get("r", 30.0)) * k if str(a.get("center", "self")) == "self" else 40.0 * k
+		"line":
+			return float(a.get("len", 60.0)) * k
+	return float(a.get("r", 30.0)) * k
+
+
+## 能当目标：活着、不是友方单位、不是宝箱
+static func _sm_ok(e) -> bool:
+	return e != null and not e.dead and not e.get("friendly", false) and not e.chest
+
+
+static func _hp_frac(e: Dictionary) -> float:
+	return float(e.hp) / maxf(1.0, float(e.maxhp))
+
+
+## 选目标（chase）：锚点 leash 内。nearest = 离召唤物最近（同伴已盯上的往后排，分散开；含 Boss 优先，同 nearest_enemies）；
+## densest = 敌群最密处最近的；elite = Boss → 精英 → 其余（同档近的先，cap_targets 的顺序）；low_hp = 生命比例最低（同比例按 id）。全部确定性，不取随机数
+static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: float):
+	var g = o.g
+	var taken := {}
+	for q in o.sm.list:
+		if q != s and q.tgt != null:
+			taken[int(q.tgt.id)] = true
+	var cand: Array = []
+	var how: String = str(mv.get("target", "nearest"))
+	match how:
+		"densest":
+			var dp: Vector2 = o.densest_point(leash, anc)
+			if dp == Vector2.INF:
+				return null
+			cand = o.nearest_enemies(1, 60.0, dp)
+		"elite", "low_hp":
+			for j in o.query_ids(anc, leash):
+				var e: Dictionary = g.enemies[j]
+				if _sm_ok(e) and e.pos.distance_to(anc) <= leash:
+					cand.append(e)
+			if how == "elite":
+				cand = o.cap_targets(cand, s.pos, 6)
+			else:
+				cand.sort_custom(func(x, y): return _hp_frac(x) < _hp_frac(y) if _hp_frac(x) != _hp_frac(y) else int(x.id) < int(y.id))
+		_:
+			for e in o.nearest_enemies(6, leash * 2.0, s.pos):
+				if e.pos.distance_to(anc) <= leash:
+					cand.append(e)
+	cand = cand.filter(func(e): return _sm_ok(e))
+	if cand.is_empty():
+		return null
+	for e in cand:
+		if not taken.has(int(e.id)):
+			return e
+	return cand[0]
+
+
+## 每帧（data_operator.update 在能天使段之后调）：护盾计时、封印标记清理、召唤物到期 / 移动 / 出手 / 诱饵
+static func sm_tick(o, dt: float) -> void:
+	if o.sm.is_empty():
+		return
+	var g = o.g
+	var st: Dictionary = o.sm
+	if float(st.shield) > 0.0:
+		st.shield_t = float(st.shield_t) - dt
+		if st.shield_t <= 0.0:
+			st.shield = 0.0
+		else:
+			st.shield = maxf(0.0, float(st.shield) * (1.0 - float(st.shield_decay) * dt))
+	if not st.seal.is_empty():
+		for id in st.seal.keys():
+			var se: Dictionary = st.seal[id]
+			if se.dead or float(se.get("seal_t", 0.0)) <= g.t:
+				st.seal.erase(id)
+	if st.list.is_empty():
+		return
+	var cnt := {}
+	for s in st.list:
+		cnt[s.kind] = int(cnt.get(s.kind, 0)) + 1
+	for k in cnt:
+		var mv: Dictionary = sm_kind(o, k).get("move", {})
+		st.ang[k] = fposmod(float(st.ang.get(k, 0.0)) + float(mv.get("orbit_speed", 1.6)) * dt, TAU)
+	var idx := {}
+	var ends: Array = []
+	for s in st.list.duplicate():   # 出手可能击杀 → on_kill → 再召唤，遍历副本
+		if s.gone:
+			continue
+		var kd := sm_kind(o, s.kind)
+		s.t += dt
+		s.flash = maxf(0.0, float(s.flash) - dt)
+		if float(s.life) > 0.0 and s.t >= float(s.life):
+			ends.append([s, "life"])
+			continue
+		if int(s.skill) >= 0 and not o.skill_on(int(s.skill)):
+			ends.append([s, "skill"])
+			continue
+		if not s.inv and float(s.hp) <= 0.0:
+			ends.append([s, "dead"])
+			continue
+		var i: int = int(idx.get(s.kind, 0))
+		idx[s.kind] = i + 1
+		_sm_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)
+	for en in ends:
+		_sm_end(o, en[0], en[1])
+
+
+static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float) -> void:
+	var mv: Dictionary = kd.get("move", {})
+	var mode: String = str(mv.get("mode", "follow"))
+	var anc := _sm_anchor(o, mv)
+	var a: Dictionary = kd.get("attack", {})
+	var reach := sm_reach(o, a)
+	if s.pos.distance_to(anc) > SM_FAR:
+		s.pos = anc
+		s.tgt = null
+	var tg = s.tgt
+	if tg != null and not _sm_ok(tg):
+		tg = null
+	var orr: float = float(mv.get("orbit_r", 60.0 if mode == "orbit" else 44.0))
+	var sa: float = PI * 0.5 + TAU * i / maxf(1.0, n)
+	var slot: Vector2 = anc + Vector2(cos(sa) * orr, sin(sa) * orr * 0.55)
+	var want: Vector2 = s.pos
+	match mode:
+		"orbit":
+			var an: float = float(o.sm.ang.get(s.kind, 0.0)) + TAU * i / maxf(1.0, n)
+			want = anc + Vector2(cos(an) * orr, sin(an) * orr * 0.55)
+			tg = null
+		"follow":
+			want = slot
+			tg = null
+		"stay":
+			tg = null
+		_:   # chase
+			var leash: float = float(mv.get("leash", 240.0))
+			if tg != null and tg.pos.distance_to(anc) > leash + 40.0:
+				tg = null
+			s.rt = float(s.rt) - dt
+			if tg == null and s.rt <= 0.0:
+				tg = _sm_pick(o, s, mv, anc, leash)
+				if tg == null:
+					s.rt = 0.25   # 没目标时每 0.25 秒再找（大群里不每帧排序）
+			if tg != null:
+				var ga: float = float(s.id) * SM_GOLD
+				want = tg.pos + Vector2(cos(ga), sin(ga) * 0.55) * (float(tg.r) + maxf(8.0, reach * 0.6))
+			else:
+				want = slot
+	s.tgt = tg
+	var prev: Vector2 = s.pos
+	s.pos = s.pos.move_toward(want, float(mv.get("speed", 240.0)) * dt)
+	var vx: float = s.pos.x - prev.x
+	if absf(vx) > 0.5:
+		s.face = signf(vx)
+	# 诱饵：近战杂兵改追它（同骑士 / 海嗣分身的 e.aggro，每帧重标）；有生命的诱饵挨贴身接触伤害（每个敌人 1 秒一次）
+	if str(kd.get("enemy_target", "ignore")) == "decoy":
+		_sm_decoy(o, s, kd)
+	# 出手
+	s.cd = float(s.cd) - dt
+	s.anim = maxf(0.0, float(s.anim) - dt)
+	if a.is_empty() or s.cd > 0.0:
+		return
+	var t2 = tg
+	if t2 == null:
+		var ts: Array = o.nearest_enemies(1, reach + 30.0, s.pos)
+		t2 = ts[0] if not ts.is_empty() else null
+	if not _sm_ok(t2) or s.pos.distance_to(t2.pos) > reach + float(t2.r):
+		return
+	s.cd = float(a.get("every", 1.0)) / maxf(0.05, o.stat(&"op_aspd"))
+	sm_strike(o, s, a, t2)
+
+
+static func _sm_decoy(o, s: Dictionary, kd: Dictionary) -> void:
+	var g = o.g
+	var dr: float = float(kd.get("decoy_r", 160.0))
+	var br: float = float(kd.get("r", 10.0))
+	for j in o.query_ids(s.pos, dr):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.chest or e.boss or e.ai != "melee" or e.pos.distance_to(s.pos) > dr:
+			continue
+		e.aggro = s.pos
+	if s.inv:
+		return
+	var hm: float = float(kd.get("hurt_mult", 0.4))
+	for j in o.query_ids(s.pos, br + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.chest or e.dmg <= 0.0 or e.ai != "melee" or e.get("coma", false) or e.get("under", false) or e.get("dormant", false):
+			continue
+		if e.pos.distance_to(s.pos) > float(e.r) + br or float(s.hurt.get(e.id, -1.0)) > g.t:
+			continue
+		s.hurt[e.id] = g.t + 1.0
+		s.hp = float(s.hp) - float(e.dmg) * hm
+		s.flash = 0.15
+	if s.hurt.size() > 48:
+		for k in s.hurt.keys():
+			if float(s.hurt[k]) <= g.t:
+				s.hurt.erase(k)
+
+
+## 召唤物出手：已有形状（circle / cone / line）以召唤物为原点。伤害 = 本干员 base[atk_key] × mult × 局部 dmg × _dmg_bonus（含 op_atk）[× 技能强度]，
+## 精英 / Boss × vs_elite；来源 src 记在本干员名下，tags 自动加 summon；on_hit 状态（含 st.seal）照常；画面走通用 fx（中心 = 判定中心）
+static func sm_dmg(o, a: Dictionary) -> float:
+	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * float(a.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
+	return dmg * o.skill_power() if a.get("power", false) else dmg
+
+
+static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
+	var g = o.g
+	var dmg: float = sm_dmg(o, a)
+	var src: String = str(a.get("src", ""))
+	var tags: Array = a.get("tags", []).duplicate()
+	if not "summon" in tags:
+		tags.append("summon")
+	var kb: float = float(a.get("kb", 0.0))
+	var stun: float = float(a.get("stun", 0.0))
+	var max_n: int = int(a.get("max_n", 0))
+	var kr: float = o.stat(&"op_range")
+	var ang: float = (tg.pos - s.pos).angle()
+	if absf(tg.pos.x - s.pos.x) > 2.0:
+		s.face = signf(tg.pos.x - s.pos.x)
+	s.anim = 0.22
+	var hits: Array = []
+	var c: Vector2 = s.pos
+	var r: float = float(a.get("r", 30.0)) * kr
+	match str(a.get("shape", "circle")):
+		"cone":
+			hits = o.melee_hit(src, s.pos, ang, deg_to_rad(float(a.get("half_deg", 45.0))), r, dmg, kb, stun, tags, max_n)
+		"line":
+			var L: float = float(a.get("len", 60.0)) * kr
+			var W: float = float(a.get("width", 20.0))
+			var d := Vector2.from_angle(ang)
+			for j in o.query_ids(s.pos + d * L * 0.5, L * 0.5 + W + 40.0):
+				var e: Dictionary = g.enemies[j]
+				if not e.dead and line_contains(s.pos, d, L, W, e.pos, float(e.r)):
+					hits.append(e)
+			if max_n > 0 and hits.size() > max_n:
+				hits = o.cap_targets(hits, s.pos, max_n)
+			var ve: float = o.vs_elite()
+			for e in hits:
+				o.log_hit(src, tags)
+				o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+				if not e.dead and not e.boss and kb > 0.0:
+					e.kb += d * kb * (0.3 if e.elite else 1.0)
+				if not e.dead and not e.boss and stun > 0.0:
+					e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			c = s.pos + d * L * 0.5
+			r = L * 0.5
+		_:
+			if str(a.get("center", "self")) == "target":
+				c = tg.pos
+			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
+	for stt in a.get("on_hit", []):
+		for e in hits:
+			apply_status(o, e, stt)
+	if a.has("fx") and fx_any_tex(o, a.fx):
+		fx_play(o, a.fx, c, r, hits, ang)
+	else:
+		var cc: Color = _sm_col(o, sm_kind(o, str(s.kind)))
+		o.fx({"kind": "ring", "pos": c, "r": maxf(10.0, r * 0.8), "r0": 4.0, "life": 0.2, "col": cc, "floor": true, "w": 2.0, "alpha": 0.7})
+	return hits
+
+
+## 2.5D 排序条目（data_operator.extra_bodies）
+static func sm_bodies(o) -> Array:
+	var out: Array = []
+	if o.sm.is_empty():
+		return out
+	for s in o.sm.list:
+		out.append({"y": s.pos.y + 4.0, "s": s})
+	return out
+
+
+## 影子（squad.draw_shadows 的合批画布里）
+static func sm_shadows(o) -> void:
+	if o.sm.is_empty():
+		return
+	for s in o.sm.list:
+		var r: float = float(sm_kind(o, str(s.kind)).get("r", 10.0))
+		o.cv.draw_set_transform(s.pos + Vector2(0, 2), 0.0, Vector2(1.0, 0.4))
+		o.cv.draw_circle(Vector2.ZERO, r * 1.1, Color(0, 0, 0, 0.28))
+		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 画一个召唤物（data_operator.draw_extra）：body.strip 帧条（按脚底锚点、随朝向翻转、可悬浮起伏）；缺图时画程序体（圆身 + 眼睛 + 出手前扑）
+static func sm_draw(o, s: Dictionary) -> void:
+	var g = o.g
+	var kd := sm_kind(o, str(s.kind))
+	var body: Dictionary = kd.get("body", {})
+	var hov: float = float(body.get("hover", 0.0))
+	var p: Vector2 = s.pos + Vector2(0, -hov + (sin(g.t * 3.5 + float(s.id)) * 2.0 if hov > 0.0 else 0.0))
+	var al: float = clampf(float(s.t) / 0.15, 0.0, 1.0)
+	if float(s.life) > 0.0:
+		al *= clampf((float(s.life) - float(s.t)) / 0.3, 0.0, 1.0)
+	var lunge := Vector2(float(s.face) * 4.0 * sin(clampf(float(s.anim) / 0.22, 0.0, 1.0) * PI), 0)
+	var tint := Color.WHITE
+	var tv = body.get("tint", [])
+	if tv is Array and tv.size() >= 3:
+		tint = Color(float(tv[0]), float(tv[1]), float(tv[2]), float(tv[3]) if tv.size() > 3 else 1.0)
+	if float(s.flash) > 0.0:
+		tint = tint.lerp(Color(1.6, 1.6, 1.6, tint.a), 0.6)
+	tint.a *= al
+	var name: String = str(body.get("strip", ""))
+	var tx: Texture2D = g.tex.get(name) if name != "" else null
+	if tx != null:
+		var spec: Array = g.V6_FRAMES.get(name, [])
+		var frames: int = maxi(1, int(body.get("frames", spec[0] if spec.size() > 0 else 1)))
+		var fps: float = maxf(1.0, float(body.get("fps", spec[1] if spec.size() > 1 else 8)))
+		var fr: int = int(float(s.t) * fps) % frames
+		var h: float = ArtS.hires_of(tx)
+		var fw: int = tx.get_width() / frames
+		var fh: int = tx.get_height()
+		var an := Vector2(fw * 0.5, fh)
+		var av = body.get("anchor", [])
+		if av is Array and av.size() == 2:
+			an = Vector2(float(av[0]), float(av[1])) * h
+		var sc: float = g.PX * float(body.get("scale", 1.0))
+		var fl: float = -1.0 if body.get("flip", true) and float(s.face) < 0.0 else 1.0
+		o._cv_flush()
+		o.cv.draw_set_transform(p + lunge, 0.0, Vector2(fl * sc / h, sc / h))
+		o.cv.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), tint)
+		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		var r: float = float(kd.get("r", 10.0))
+		var cc: Color = _sm_col(o, kd)
+		var q: Vector2 = p + lunge + Vector2(0, -r)
+		o.cv.draw_circle(q, r + 1.5, Color(0.03, 0.03, 0.06, 0.8 * al))
+		o.cv.draw_circle(q, r, Color(cc.r * tint.r, cc.g * tint.g, cc.b * tint.b, al))
+		o.cv.draw_circle(q + Vector2(-r * 0.25, -r * 0.3), r * 0.45, Color(minf(cc.r * 1.5, 1.5), minf(cc.g * 1.5, 1.5), minf(cc.b * 1.5, 1.5), 0.5 * al))
+		var ex: float = float(s.face) * r * 0.45
+		o.cv.draw_circle(q + Vector2(ex, -r * 0.15), maxf(1.5, r * 0.18), Color(1.0, 0.95, 0.85, al))
+	if not s.inv and float(s.hp) < float(s.max_hp):
+		var w: float = 18.0
+		var bp: Vector2 = s.pos + Vector2(-w * 0.5, -hov - float(kd.get("r", 10.0)) * 2.0 - 8.0)
+		o.cv.draw_rect(Rect2(bp, Vector2(w, 2.5)), Color(0.05, 0.05, 0.08, 0.8 * al))
+		o.cv.draw_rect(Rect2(bp, Vector2(w * clampf(float(s.hp) / float(s.max_hp), 0.0, 1.0), 2.5)), Color(0.5, 1.0, 0.6, al))
+
+
+# ---------------------------------------------------------------- 封印 st.seal
+
+## 一名敌人吃封印（apply_status 转来；Boss 规则在这里，不走「Boss 缺省不受」）。
+## e.seal_t = 封印结束的 g.t；e.seal_imm = Boss 免疫结束的 g.t；e.seal_by = 施加者 id（画标记用）
+static func seal_apply(o, e: Dictionary, s: Dictionary) -> void:
+	var g = o.g
+	if e.dead or e.chest or e.get("friendly", false):
+		return
+	var dur: float = float(s.get("dur", 0.0))
+	if e.boss:
+		if not s.get("boss", true):
+			return
+		if float(e.get("seal_imm", -1.0)) > g.t:
+			if float(e.get("seal_txt", -1.0)) <= g.t:
+				e["seal_txt"] = g.t + 1.5
+				o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 30.0), "封印免疫", Color(0.75, 0.7, 0.85), 13)
+			return
+		dur = minf(dur * float(s.get("boss_mult", 0.3)), float(s.get("boss_max", 1.5)))
+		if dur <= 0.0:
+			return
+		e["seal_imm"] = g.t + dur + float(s.get("boss_immune", 10.0))
+	elif e.elite:
+		dur *= float(s.get("elite_mult", 0.5))
+	if dur <= 0.0:
+		return
+	var was: bool = float(e.get("seal_t", 0.0)) > g.t
+	e["seal_t"] = maxf(float(e.get("seal_t", 0.0)), g.t + dur)
+	e["seal_by"] = o.id
+	sm_st(o).seal[int(e.id)] = e
+	if not was and (e.elite or e.boss):
+		o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 30.0), "封印", SEAL_COL, 15)
+
+
+static func sealed(e: Dictionary, t: float) -> bool:
+	return float(e.get("seal_t", 0.0)) > t
+
+
+## 技能上层（data_operator._draw_skill_over）：本干员施加的封印标记（头顶旋转的锁环 + 脚下紫环）、主控护盾（泡壳 + 头顶护盾条）
+static func sm_draw_over(o) -> void:
+	if o.sm.is_empty():
+		return
+	var g = o.g
+	var cv = o.cv
+	for id in o.sm.seal:
+		var e: Dictionary = o.sm.seal[id]
+		if e.dead or not sealed(e, g.t) or str(e.get("seal_by", "")) != o.id:
+			continue
+		var left: float = float(e.seal_t) - g.t
+		var al: float = clampf(left / 0.3, 0.0, 1.0) * 0.9
+		var er: float = float(e.r)
+		cv.draw_set_transform(e.pos + Vector2(0, er * 0.6), 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, er + 6.0, 0.0, TAU, 24, Color(SEAL_COL.r, SEAL_COL.g, SEAL_COL.b, 0.55 * al), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var hp: Vector2 = e.pos + Vector2(0, -er * 2.0 - 14.0)
+		var rot: float = g.t * 1.6 + float(id)
+		var pts := PackedVector2Array()
+		for k in 5:
+			pts.append(hp + Vector2.from_angle(rot + TAU * k / 4.0) * 7.0)
+		cv.draw_polyline(pts, Color(0.05, 0.02, 0.1, 0.7 * al), 4.0)
+		cv.draw_polyline(pts, Color(SEAL_COL.r * 1.3, SEAL_COL.g * 1.3, SEAL_COL.b * 1.3, al), 2.0)
+		cv.draw_line(hp + Vector2(-3, -3), hp + Vector2(3, 3), Color(1.2, 1.0, 1.4, al), 1.5)
+		cv.draw_line(hp + Vector2(-3, 3), hp + Vector2(3, -3), Color(1.2, 1.0, 1.4, al), 1.5)
+	var sh: float = float(o.sm.shield)
+	if sh > 0.0 and g.ppos != Vector2.INF:
+		var k2: float = clampf(sh / maxf(1.0, float(o.sm.shield_max)), 0.0, 1.0)
+		var pulse: float = 0.5 + 0.15 * sin(g.t * 5.0)
+		cv.draw_set_transform(g.ppos + Vector2(0, -22), 0.0, Vector2(1.0, 1.25))
+		cv.draw_arc(Vector2.ZERO, 26.0, 0.0, TAU, 40, Color(SHIELD_COL.r, SHIELD_COL.g, SHIELD_COL.b, (0.25 + 0.35 * k2) * pulse), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var bp: Vector2 = g.ppos + Vector2(-20, -100)
+		cv.draw_rect(Rect2(bp, Vector2(40, 3)), Color(0.03, 0.05, 0.08, 0.75))
+		cv.draw_rect(Rect2(bp, Vector2(40.0 * k2, 3)), Color(SHIELD_COL.r, SHIELD_COL.g, SHIELD_COL.b, 0.95))
+
+
+# ---------------------------------------------------------------- 护盾 verb.shield / 治疗光环 aura.heal
+
+static func shield_add(o, b: Dictionary) -> void:
+	var g = o.g
+	var st := sm_st(o)
+	var mh: float = g.max_hp
+	var add: float = mh * float(b.get("pct", 0.0)) * (o.skill_power() if b.get("power", false) else 1.0)
+	var cap: float = mh * float(b.get("cap", b.get("pct", 0.0)))
+	st.shield = maxf(float(st.shield), minf(float(st.shield) + add, cap))   # 已有的护盾比上限还多时不削
+	st.shield_max = maxf(cap, float(st.shield))
+	st.shield_t = maxf(float(st.shield_t), float(b.get("dur", 10.0)))
+	st.shield_decay = float(b.get("decay", 0.0))
+	if b.has("fx"):
+		fx_play(o, b.fx, g.ppos, 30.0)
+
+
+## 受击询问（data_operator.dmg_taken_mult 末尾）：m = 其余减伤的乘积；护盾吸收 combat.cur_dmg × m 里能吸的部分，返回新的倍率
+## （全吸收 = 0，combat 按「这一下作废」处理：不扣血、不掉灯火，给 0.3 秒无敌）
+static func shield_mult(o, m: float) -> float:
+	if o.sm.is_empty() or float(o.sm.shield) <= 0.0:
+		return m
+	var raw: float = float(o.g.combat.cur_dmg)
+	var d: float = raw * m
+	if raw <= 0.0 or d <= 0.0:
+		return m
+	var ab: float = minf(float(o.sm.shield), d)
+	o.sm.shield = float(o.sm.shield) - ab
+	o.float_text(o.g.ppos + Vector2(18, -92), "护盾 -%d" % int(ab), SHIELD_COL, 13)
+	return (d - ab) / raw
+
+
+## 常驻部分（data_operator._sustain 末尾）：aura.heal 每秒回复（各积木独立计时，没生效的计时清零）
+static func sm_sustain(o, act: Array, dt: float) -> void:
+	var seen := {}
+	for b in act:
+		if str(b.get("_tag", "")) != "aura.heal":
+			continue
+		var st := sm_st(o)
+		var u: int = int(b.get("_uid", 0))
+		seen[u] = true
+		if str(b.get("scope", "in_zone")) == "in_zone" and not o.in_zone(o.g.ppos):
+			st.heal_acc.erase(u)
+			continue
+		st.heal_acc[u] = float(st.heal_acc.get(u, 0.0)) + dt
+		if st.heal_acc[u] >= 1.0:
+			st.heal_acc[u] -= 1.0
+			var g = o.g
+			if g.hp < g.max_hp:
+				o.heal_leader(g.max_hp * float(b.get("pct", 0.0)) * float(o.loc.heal) * (o.skill_power() if b.get("power", false) else 1.0), str(b.get("src", o.display_name())))
+	if not o.sm.is_empty() and not o.sm.heal_acc.is_empty():
+		for u in o.sm.heal_acc.keys():
+			if not seen.has(u):
+				o.sm.heal_acc.erase(u)
+
+
+## Tab / 头像下的状态条：各种召唤物在场数、护盾
+static func sm_status_items(o) -> Array:
+	var out: Array = []
+	if o.sm.is_empty():
+		return out
+	var cnt := {}
+	for s in o.sm.list:
+		cnt[s.kind] = int(cnt.get(s.kind, 0)) + 1
+	for k in cnt:
+		var kd := sm_kind(o, k)
+		out.append(["%s ×%d" % [str(kd.get("name", k)), int(cnt[k])], _sm_col(o, kd)])
+	if float(o.sm.shield) > 0.0:
+		out.append(["护盾 %d" % int(o.sm.shield), SHIELD_COL])
+	return out
+
+
+# ---------------------------------------------------------------- 召唤 / 封印段的校验
+
+## blocks.summons 段：每种召唤物的定义（docs/61 §15.1）
+static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	var sd = blocks.get("summons", {})
+	if not (sd is Dictionary):
+		errs.append("blocks.summons 必须是对象（种类名 → 定义）")
+		return
+	for k in sd:
+		var p := "blocks.summons." + str(k)
+		var kd = sd[k]
+		if not str(k).is_valid_identifier():
+			errs.append(p + "：种类名只能是字母 / 数字 / 下划线（不以数字开头）")
+		if not (kd is Dictionary):
+			errs.append(p + " 必须是对象")
+			continue
+		for q in kd:
+			if not q in SM_KIND_KEYS:
+				errs.append("%s.%s：召唤物定义不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_KIND_KEYS)])
+		_sm_exprs(kd, p, ctx)
+		var inv = kd.get("invuln", false)
+		if not (inv is bool):
+			errs.append(p + ".invuln 只能是 true / false")
+		elif not inv:
+			_num(kd, "hp", p, ctx, true, 1.0, 100000.0)
+		elif kd.has("hp"):
+			errs.append(p + "：invuln（无敌）的召唤物不写 hp")
+		var lv = kd.get("life", null)
+		if lv == null:
+			errs.append(p + " 缺 life（秒数 / \"skill\" = 召唤它的技能生效期间 / \"permanent\"）")
+		elif lv is String and not "$" in lv:
+			if not lv in ["skill", "permanent"]:
+				errs.append(p + ".life 只能是秒数、\"skill\" 或 \"permanent\"")
+		else:
+			_num(kd, "life", p, ctx, true, 0.5, 120.0)
+		_num(kd, "cap", p, ctx, true, 1.0, float(SM_KIND_CAP))
+		_num(kd, "r", p, ctx, false, 4.0, 40.0)
+		_num(kd, "decoy_r", p, ctx, false, 20.0, 600.0)
+		_num(kd, "hurt_mult", p, ctx, false, 0.0, 5.0)
+		if not str(kd.get("enemy_target", "ignore")) in ["ignore", "decoy"]:
+			errs.append(p + ".enemy_target 只能是 ignore（缺省：敌人不理召唤物）/ decoy（诱饵：近战杂兵改追它、贴身时它挨打）")
+		if kd.has("col"):
+			var c = kd.col
+			if not (c is Array) or c.size() != 3 or c.any(func(x): return not (x is int or x is float)):
+				errs.append(p + ".col 必须是 3 个数字 [r, g, b]")
+		var mv = kd.get("move", null)
+		if not (mv is Dictionary):
+			errs.append(p + ".move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）")
+		else:
+			for q in mv:
+				if not q in SM_MOVE_KEYS:
+					errs.append("%s.move.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_MOVE_KEYS)])
+			_sm_exprs(mv, p + ".move", ctx)
+			if not str(mv.get("mode", "")) in SM_MOVES:
+				errs.append("%s.move.mode 只能是 %s" % [p, " / ".join(SM_MOVES)])
+			if not str(mv.get("anchor", "leader")) in ["leader", "self"]:
+				errs.append(p + ".move.anchor 只能是 leader / self")
+			if not str(mv.get("target", "nearest")) in SM_TARGETS:
+				errs.append("%s.move.target 只能是 %s" % [p, " / ".join(SM_TARGETS)])
+			_num(mv, "speed", p + ".move", ctx, false, 0.0, 1200.0)
+			_num(mv, "leash", p + ".move", ctx, false, 40.0, 800.0)
+			_num(mv, "orbit_r", p + ".move", ctx, false, 0.0, 400.0)
+			_num(mv, "orbit_speed", p + ".move", ctx, false, -6.0, 6.0)
+		var a = kd.get("attack", null)
+		if a != null:
+			if not (a is Dictionary) or not str(a.get("shape", "")) in ["circle", "cone", "line"]:
+				errs.append(p + ".attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）")
+			else:
+				_block(a, p + ".attack", "attack", ctx)
+				_num(a, "every", p + ".attack", ctx, true, 0.1, 10.0)
+				_num(a, "range", p + ".attack", ctx, false, 4.0, 600.0)
+				if str(a.shape) == "circle" and not str(a.get("center", "self")) in ["self", "target"]:
+					errs.append(p + ".attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心")
+		for lk in ["on_spawn", "on_expire"]:
+			if kd.has(lk):
+				_list(kd[lk], "%s.%s" % [p, lk], "instant", ctx)
+				if kd[lk] is Array and kd[lk].any(func(x): return x is Dictionary and str(x.get("verb", "")) == "summon"):
+					errs.append("%s.%s：不能再召唤（免得召唤物连环生成）" % [p, lk])
+		if kd.has("body"):
+			var bd = kd.body
+			if not (bd is Dictionary):
+				errs.append(p + ".body 必须是对象")
+			else:
+				for q in bd:
+					if not q in SM_BODY_KEYS:
+						errs.append("%s.body.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_BODY_KEYS)])
+				var sn = bd.get("strip", "")
+				if not (sn is String) or not (sn.begins_with("fx_") or sn.begins_with("proj_") or sn.begins_with("op_") or sn.begins_with("ally_")):
+					errs.append(p + ".body.strip 必须是帧条名（fx_* / proj_* / op_* / ally_*）；缺图时画程序体")
+				_num(bd, "frames", p + ".body", ctx, false, 1.0, 64.0)
+				_num(bd, "fps", p + ".body", ctx, false, 1.0, 60.0)
+				_num(bd, "scale", p + ".body", ctx, false, 0.1, 8.0)
+				_num(bd, "hover", p + ".body", ctx, false, 0.0, 60.0)
+				if bd.has("flip") and not (bd.flip is bool):
+					errs.append(p + ".body.flip 只能是 true / false")
+				for kk in [["tint", 3, 4], ["anchor", 2, 2]]:
+					if bd.has(kk[0]):
+						var v = bd[kk[0]]
+						if not (v is Array) or v.size() < kk[1] or v.size() > kk[2] or v.any(func(x): return not (x is int or x is float)):
+							errs.append("%s.body.%s 必须是 %d%s 个数字的数组" % [p, kk[0], kk[1], "" if kk[1] == kk[2] else "–%d" % kk[2]])
+
+
+## 对象里一层的 $ 表达式（召唤物定义 / move 不是积木，_block 的 $ 扫描管不到）
+static func _sm_exprs(d: Dictionary, p: String, ctx: Dictionary) -> void:
+	for k in d:
+		if d[k] is String and "$" in d[k]:
+			var ev := eval_expr(d[k], ctx.base)
+			if not ev[0]:
+				ctx.errs.append("%s.%s：%s" % [p, k, ev[2]])
+
+
+## 本段的积木：校验完返回 true（_block 不再往下走）；不是本段的返回 false
+static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in SM_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"verb.summon": ["skill", "instant"],
+		"verb.shield": ["skill", "instant"],
+		"st.seal": ["on_hit", "field"],
+		"aura.heal": ["skill", "sustain"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"verb.summon":
+			var k := str(b.get("kind", ""))
+			var sd = ctx.get("summons", {})
+			var kd = sd.get(k, null) if sd is Dictionary else null
+			if not (kd is Dictionary):
+				errs.append("%s.kind「%s」没在 blocks.summons 里定义" % [p, k])
+			_num(b, "n", p, ctx, false, 1.0, float(SM_KIND_CAP))
+			_num(b, "spread", p, ctx, false, 0.0, 200.0)
+			if not str(b.get("at", "self")) in SM_AT:
+				errs.append("%s.at 只能是 %s" % [p, " / ".join(SM_AT)])
+			var lv = b.get("life", kd.get("life", 0.0) if kd is Dictionary else 0.0)
+			if b.has("life"):
+				if lv is String and not "$" in lv:
+					if not lv in ["skill", "permanent"]:
+						errs.append(p + ".life 只能是秒数、\"skill\" 或 \"permanent\"")
+				else:
+					_num(b, "life", p, ctx, true, 0.5, 120.0)
+			if lv is String and lv == "skill" and kind != "skill":
+				errs.append(p + "：life = skill（随技能结束消失）的召唤只能放在技能 do 里")
+		"verb.shield":
+			_num(b, "pct", p, ctx, true, 0.01, 1.0)
+			_num(b, "cap", p, ctx, false, 0.01, 2.0)
+			_num(b, "dur", p, ctx, false, 0.5, 60.0)
+			_num(b, "decay", p, ctx, false, 0.0, 1.0)
+		"st.seal":
+			_num(b, "dur", p, ctx, true, 0.1, 10.0)
+			_num(b, "elite_mult", p, ctx, false, 0.0, 1.0)
+			_num(b, "boss_mult", p, ctx, false, 0.0, 1.0)
+			_num(b, "boss_max", p, ctx, false, 0.0, 3.0)
+			_num(b, "boss_immune", p, ctx, false, 3.0, 60.0)
+			if b.has("boss") and not (b.boss is bool):
+				errs.append(p + ".boss 只能是 true / false")
+		"aura.heal":
+			_num(b, "pct", p, ctx, true, 0.0, 0.1)
+			if not str(b.get("scope", "in_zone")) in ["in_zone", "always"]:
+				errs.append(p + ".scope 只能是 in_zone（主控在本干员区域内）/ always")
+	return true
