@@ -1133,9 +1133,9 @@ def finish_loop_fx(buf, L, tail, name, target=None, ceil=0.68, post=None):
 
 
 class Mix:
-    """几条总线（各自一个 Track 缓冲）：drums / bass / pad / pluck / lead / harp / mallet / amb，最后各自加效果再相加"""
+    """几条总线（各自一个 Track 缓冲）：drums / bass / pad / pluck / lead / harp / mallet / bells / fx / amb，最后各自加效果再相加"""
     def __init__(self, bpm, bars, tail=8.0):
-        self.bus = {k: Track(bpm, bars, tail) for k in ("drums", "bass", "pad", "pluck", "lead", "harp", "mallet", "amb")}
+        self.bus = {k: Track(bpm, bars, tail) for k in ("drums", "bass", "pad", "pluck", "lead", "harp", "mallet", "bells", "fx", "amb")}
         self.t = self.bus["pad"]
 
     def balance(self, targets):
@@ -1426,10 +1426,9 @@ def sea_noise(n, amp=0.004, waves=6):
 # 和弦（升 F 小调，原创排列）：
 #   引子 0–3：F#m | D | E | C#m（滤波琶音逐小节打开）
 #   A 4–11：F#m | D | E | C#m | F#m | D | E | C#sus–C#（底鼓 + 2/4 拍军鼓 + 十六分镲 + 八分低音推进）
-#   B 12–19：Bm | D | F#m | E | Bm | D | C#sus | C#（方波主奏原创动机 + 颤音琴高八度叠奏）
-#   间奏 20–25：D | E | F#m | F#m | Bm | C#sus–C#（鼓退场，木琴琶音 + 声码器声垫 + 声呐，第 24 小节起闷鼓慢慢回来）
-# 编制刻意避开标题曲（钢琴 / 竖琴 / 人声 / 弦乐涌浪 / 鲸歌，用户 10-12）：PWM 声垫、颤音琴 / 木琴、玻璃 FM 铃、
-# 声码器味共振峰声垫、带通「海」噪声、声呐叮
+#   B 12–19：Bm | D | F#m | E | Bm | D | C#sus | C#（共振滤波方波主奏原创动机 + FM 合成铃高八度叠奏）
+#   间奏 20–25：D | E | F#m | F#m | Bm | C#sus–C#（鼓退场，方波拨弦琶音 + 声码器声垫 + 比特粉碎主奏回声 + 声呐，第 24 小节起闷鼓慢慢回来）
+# 编制刻意避开标题曲（钢琴 / 竖琴 / 人声 / 弦乐涌浪 / 鲸歌，用户 10-12），并按「电子感更强一点」改成纯合成器 + 鼓机（见 make_archive_v2）
 #   回归 26–31：F#m | D | E | C#m | Bm–D | C#sus–C#（末小节只剩镲与琶音，接回引子）
 V2_CH = {
     "F#m": (42, [57, 61, 66, 69]), "D": (38, [57, 62, 66, 69]), "E": (40, [56, 59, 64, 68]),
@@ -1449,13 +1448,150 @@ V2_MEL = [(71, 0.5), (None, 0.25), (71, 0.25), (74, 0.5), (76, 0.5), (78, 1), (7
           (81, 1.5), (78, 0.5), (76, 1), (74, 1),
           (73, 1), (None, 0.5), (73, 0.5), (71, 0.5), (73, 0.5), (78, 1),
           (77, 3), (None, 1)]
-V2_BAL = {"pad": (-23.9, 4, 12), "pluck": (-23.3, 4, 12), "lead": (-22.2, 12, 20), "amb": (-33.0, 4, 12), "mallet": (-27.0, 20, 24),
+V2_BAL = {"pad": (-23.5, 12, 20), "pluck": (-23.3, 4, 12), "lead": (-22.2, 12, 20), "amb": (-35.0, 4, 12), "bells": (-27.0, 20, 24),
+          "fx": (-31.0, 0, 32),
           "drums": (-21.4, 4, 12), "bass": (-25.0, 4, 12)}
 V2_ARP = [0, 2, 1, 3, 2, 1, 0, 2, 0, 2, 1, 3, 2, 3, 1, 2]
-FORMANT_AMP, VIBE_AMP, SWELL_AMP = 0.008, 0.02, 0.004   # 间奏声码器声垫 / B 段颤音琴叠奏 / 间奏 PWM 慢涌
+FORMANT_AMP, BELL_AMP, SWELL_AMP = 0.005, 0.016, 0.004   # 间奏声码器声垫 / B 段 FM 合成铃叠奏 / 间奏 PWM 慢涌
+
+
+# ============================================================ 12c. 更电子的音色与效果（2026-10-12 第四轮，用户「电子感更强一点」）
+def res_lp(x, cut, q=0.9, block=64):
+    """时变共振低通（RBJ 双二阶，按块更新系数、状态连续）：cut 可以是常数或逐采样数组，q > 0.707 出共振峰"""
+    from scipy.signal import lfilter
+    n = len(x)
+    cut = np.broadcast_to(np.asarray(cut, dtype=float), (n,))
+    out = np.empty(n)
+    zi = np.zeros(2)
+    for i in range(0, n, block):
+        c = min(max(float(cut[i]), 30.0), SR * 0.45)
+        w0 = 2 * np.pi * c / SR
+        al = np.sin(w0) / (2 * q)
+        cs = np.cos(w0)
+        a0 = 1 + al
+        b = np.array([(1 - cs) / 2, 1 - cs, (1 - cs) / 2]) / a0
+        a = np.array([1.0, -2 * cs / a0, (1 - al) / a0])
+        out[i:i + block], zi = lfilter(b, a, x[i:i + block], zi=zi)
+    return out
+
+
+def supersaw(notes, dur, amp=0.006, voices=7, detune=0.22, a=0.05, r=0.4, cut=7000):
+    """超级锯齿声垫：每个音 voices 个去谐锯齿（中间的最响），只做一个宽松低通，扫频交给总线上的 res_lp"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    sig = np.zeros(n)
+    for note in notes:
+        f = midi(note)
+        for v in range(voices):
+            x = 2 * v / max(1, voices - 1) - 1
+            g = 1.0 if v == voices // 2 else 0.6
+            drift = 1 + 0.0008 * np.sin(2 * np.pi * (0.2 + 0.3 * rng.random()) * t_ + rng.random() * 6)
+            sig += osc(f * 2 ** (detune * x / 12) * drift, n, "saw") * g
+    return hp(lp(sig, cut), 90) * env(n, a, r) * amp
+
+
+def kick909(amp=0.5, click=0.55):
+    """鼓机底鼓：高起点快扫频 + 明显咔嗒 + 过载"""
+    return ekick(amp, f0=230, f1=50, sweep=42, decay=6.0, click=click, drive=2.2)
+
+
+def gated_verb(x, length=0.11, mix=0.6):
+    """门限混响（80 年代鼓机味）：平直的噪声冲激在 length 秒处被一刀切断"""
+    n = int(length * SR)
+    ir = lp(rng.standard_normal(n), 6500) * env(n, 0.002, 0.006)
+    ir /= np.sqrt(np.sum(ir ** 2))
+    wet = fftconvolve(x, ir)[: len(x) + n]
+    out = np.zeros(len(x) + n)
+    out[: len(x)] += x
+    out[: len(wet)] += wet * mix
+    return out
+
+
+def growl_bass(note, dur, amp=0.06, hi=1500, lo=180, q=3.2, k=13, drive=2.4):
+    """次低音（正弦）+ 中频咆哮层（两个去谐锯齿过共振低通，滤波包络从 hi 关到 lo）"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    f = midi(note)
+    raw = osc(f, n, "saw") + osc(f * 1.007, n, "saw")
+    mid = res_lp(raw, lo + (hi - lo) * np.exp(-t_ * k), q)
+    s = np.tanh(mid * 0.5 * drive) / drive + np.sin(2 * np.pi * f * t_) * 0.75
+    return s * env(n, 0.003, 0.05) * amp
+
+
+def synbell(note, dur=1.2, amp=0.02):
+    """短 FM 合成铃：金属调制比 3.41、调制深度快速衰减，两个副本差 5 音分"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    f = midi(note)
+    s = np.zeros(n)
+    for c in (-2.5, 2.5):
+        fc = f * 2 ** (c / 1200)
+        s += np.sin(2 * np.pi * fc * t_ + 2.4 * np.exp(-t_ * 7) * np.sin(2 * np.pi * fc * 3.41 * t_))
+    return s * np.exp(-t_ * 4.5) * env(n, 0.001, 0.1) * amp
+
+
+def noise_sweep(dur, up=True, amp=0.02, lo=250, hi=7500, q=2.5):
+    """上扬 / 下沉的噪声扫频（riser / downlifter）：共振低通按指数扫，音量跟着走"""
+    n = int(dur * SR)
+    x = np.linspace(0, 1, n)
+    c = lo * (hi / lo) ** (x if up else 1 - x)
+    s = res_lp(rng.standard_normal(n), c, q, block=128)
+    shape = x ** 2 if up else (1 - x) ** 1.5
+    return s * shape * env(n, 0.01, 0.03) * amp
+
+
+def rev_cymbal(dur=1.6, amp=0.03):
+    """反向镲：衰减的高通噪声倒过来，正好在落点前涌到最大"""
+    n = int(dur * SR)
+    t_ = tt(n)
+    s = hp(rng.standard_normal(n), 3500) * np.exp(-t_ * 2.6)
+    return s[::-1] * env(n, 0.05, 0.004) * amp
+
+
+def stutter(buf, t0, beat, plan):
+    """节拍重复式切片（beat-repeat）：plan = [(起拍, 切片拍长, 重复次数, 增益)…]，从 t0 + 起拍处取一片、在原地往后连贴几次（覆盖原声）"""
+    for at, sl, reps, g in plan:
+        i0 = int((t0 + at * beat) * SR)
+        m = int(sl * beat * SR)
+        piece = buf[i0:i0 + m].copy()
+        fade = np.ones(m)
+        k = min(m // 4, int(0.003 * SR))
+        if k > 0:
+            fade[:k] = np.linspace(0, 1, k)
+            fade[-k:] = np.linspace(1, 0, k)
+        piece *= fade[:, None]
+        for r_ in range(reps):
+            j = i0 + r_ * m
+            buf[j:j + m] = piece * (g ** r_)
+
+
+def mono_line(mx, bus, mel, start_bar, amp=0.022, glide=0.05, hi=3400, lo=650, q=4.0, k=8.0, crush=None, pan=0.0, gate=0.85):
+    """单音合成器主奏：方波 + 锯齿，共振低通滤波包络，前后两音之间带滑音（portamento），crush=(位数, 降采样) 时比特粉碎"""
+    bt = mx.t.beat
+    pos = 0.0
+    prev = None
+    for note, beats in mel:
+        if note is not None:
+            d = max(beats * bt * gate, 0.08)
+            n = int((d + 0.06) * SR)
+            t_ = tt(n)
+            f1 = midi(note)
+            f0 = midi(prev) if prev is not None else f1
+            f = f1 + (f0 - f1) * np.exp(-t_ / (glide / 3))
+            raw = osc(f, n, "square") * 0.8 + osc(f * 1.004, n, "saw") * 0.35
+            y = res_lp(raw, lo + (hi - lo) * np.exp(-t_ * k), q)
+            y = y * env(n, 0.003, 0.06) * amp
+            if crush:
+                y = bitcrush(y / amp, *crush) * amp
+            mx.add(bus, y, mx.at(start_bar) + pos * bt, pan=pan)
+            prev = note
+        pos += beats
 
 
 def make_archive_v2():
+    """图鉴「卫戍」（第四轮：电子感更强）。编制：超级锯齿 + PWM 声垫（共振低通分段扫频、每拍约 5 dB 侧链、A 段 trance gate）、
+    909 式底鼓 / 门限混响军鼓拍手 / 清脆开闭镲、次低音 + 咆哮中频低音、十六分脉冲波琶音、共振滤波方波主奏（滑音）+ FM 合成铃叠奏、
+    段落交界的噪声上扬 / 下沉与反向镲、句尾节拍重复切片、间奏比特粉碎主奏回声 + 声码器味声垫 + 方波拨弦琶音，声呐叮作深海标志"""
     global TRANSPOSE, rng
     rng = np.random.default_rng(1015)
     TRANSPOSE = 0
@@ -1472,24 +1608,26 @@ def make_archive_v2():
             root, vc = V2_CH[name]
             t0 = mx.at(b, pos)
             dur = beats * bt
-            cut = 800 + 120 * b if b < 4 else 1500 if b in B_ else 1550 if b in BRK else 1150
-            for pan in (-0.55, 0.55):
-                mx.add("pad", pwm_pad(vc, dur + 0.5, amp=0.0085 * (0.6 if b in BRK else 1.0), cut=cut, a=0.08 if groove(b) else 0.4, r=0.5), t0, pan=pan)
-            if b in BRK:   # 声码器味的共振峰声垫铺底
+            # 声垫：超级锯齿左右两层 + PWM 一层（扫频与侧链在总线上做）
+            pg = 0.6 if b in BRK else 0.75 if b < 4 else 1.0   # 间奏 / 引子声垫轻一点
+            for pan in (-0.6, 0.6):
+                mx.add("pad", supersaw(vc, dur + 0.35, amp=0.0042 * pg, a=0.03 if groove(b) else 0.3, r=0.35), t0, pan=pan)
+            mx.add("pad", pwm_pad([c + 12 for c in vc[1:]], dur + 0.4, amp=0.004 * pg, cut=3000, a=0.05, r=0.4), t0, pan=0.0)
+            if b in BRK:   # 声码器味的共振峰声垫
                 mx.add("amb", formant_pad([vc[1] + 12, vc[2] + 12, vc[3] + 12], dur + 1.5, amp=FORMANT_AMP, a=1.5, r=2.0), t0, pan=0.2)
-            # 低音：groove 段八分推进（根音 + 八度 / 五度点缀），间奏长音，引子后半闷声八分
+            # 低音：groove 段八分推进（次低音 + 咆哮层），间奏长音，引子后半闷声八分
             if groove(b):
                 patt = [(0, 0, 1.0, 0.45), (0.75, 0, 0.6, 0.2), (1.5, 12, 0.6, 0.22), (2, 0, 0.9, 0.45),
                         (2.75, 0, 0.6, 0.2), (3, 7, 0.65, 0.22), (3.5, 12, 0.6, 0.22)]
                 for off, iv, a_, d in patt:
                     if off < beats:
-                        mx.add("bass", abass(root + iv, d * bt * 1.6, amp=0.07 * a_, cut=520, k=16, drive=2.0), mx.at(b, pos + off))
+                        mx.add("bass", growl_bass(root + iv, d * bt * 1.6, amp=0.07 * a_, hi=1700 if b in B_ else 1300), mx.at(b, pos + off))
             elif b in BRK or b == 31:
-                mx.add("bass", abass(root, dur + 0.2, amp=0.03, cut=200, k=3, a=0.3, r=0.6), t0)
+                mx.add("bass", growl_bass(root, dur + 0.2, amp=0.035, hi=400, lo=150, k=1.5, q=1.5), t0)
             elif b >= 2:
                 for e in range(int(beats * 2)):
-                    mx.add("bass", abass(root, 0.35 * bt, amp=0.035, cut=180, k=8), mx.at(b, pos + e * 0.5))
-            # 十六分琶音（方波拨弦）：引子逐小节打开，B 段让给主奏（更轻更暗），间奏前四小节退场
+                    mx.add("bass", growl_bass(root, 0.35 * bt, amp=0.035, hi=500, lo=150), mx.at(b, pos + e * 0.5))
+            # 十六分琶音（脉冲波拨弦）
             if not (20 <= b < 24):
                 if b < 4:
                     hi_c, a_p = 900 + 650 * b, 0.011
@@ -1500,73 +1638,84 @@ def make_archive_v2():
                 elif b == 31:
                     hi_c, a_p = 2400 - 400 * pos, 0.011
                 else:
-                    hi_c, a_p = 3000, 0.012
+                    hi_c, a_p = 3200, 0.012
                 for s in range(int(beats * 4)):
                     note = vc[V2_ARP[s % 16]] + 12
                     acc = 1.0 if s % 4 == 0 else 0.8 if s % 2 == 0 else 0.6
                     mx.add("pluck", spluck(note, 0.22, amp=a_p * acc, wave="pulse", lo=500, hi=hi_c, k=22, decay=9),
                            mx.at(b, pos + s * 0.25), pan=0.35 if s % 2 else -0.35)
-            # 木琴：间奏八分上行分解
+            # 间奏：去谐方波拨弦八分上行分解（取代木琴）
             if b in BRK:
                 for k in range(int(beats * 2)):
                     note = vc[k % 4] + (12 if (k // 4) % 2 == 0 else 24)
-                    mx.add("mallet", mallet(note, 1.2, amp=0.03, kind="marimba"), mx.at(b, pos + k * 0.5 + rng.uniform(0, 0.012)), pan=-0.45 + 0.9 * (k % 4) / 3)
+                    mx.add("bells", spluck(note, 0.6, amp=0.03, wave="square", lo=600, hi=2800, k=10, decay=5, det=0.12),
+                           mx.at(b, pos + k * 0.5), pan=-0.45 + 0.9 * (k % 4) / 3)
             pos += beats
 
-        # ---- 鼓
+        # ---- 鼓（鼓机味）
         if groove(b):
             full = not (b == 30)
             kicks = [0, 1.5, 2] + ([3.25] if b % 2 == 0 else [3.75])
             for kb in kicks:
                 if not full and kb >= 2:
                     continue
-                mx.add("drums", ekick(0.55 if kb in (0, 2) else 0.38, f0=150, f1=48, decay=7.5, click=0.25, tone=6000), mx.at(b, kb))
+                mx.add("drums", kick909(0.58 if kb in (0, 2) else 0.4), mx.at(b, kb))
             for sb in (1, 3):
                 if not full and sb == 3:
                     continue
-                mx.add("drums", esnare(0.15, tone=215, tight=28), mx.at(b, sb), pan=0.05)
-                if b in B_ and sb == 3:
-                    mx.add("drums", eclap(0.08), mx.at(b, sb + 0.01), pan=-0.1)
+                hit = esnare(0.13, tone=225, tight=36, nlo=2200, nhi=9000) + eclap(0.07 if b in B_ or sb == 3 else 0.04)[: int(0.35 * SR)]
+                mx.add("drums", gated_verb(hit, 0.11, 0.55), mx.at(b, sb), pan=0.05)
             for s in range(16):
-                acc = [0.034, 0.014, 0.024, 0.014][s % 4]
-                mx.add("drums", ehat(acc, tone=8000), mx.at(b, s * 0.25), pan=0.28)
-            if b % 2 == 1:
-                mx.add("drums", ehat(0.02, open_=True, tone=7000), mx.at(b, 3.5), pan=0.32)
+                acc = [0.03, 0.012, 0.022, 0.012][s % 4]
+                mx.add("drums", ehat(acc, tone=9500), mx.at(b, s * 0.25), pan=0.28)
+            if b % 2 == 1 or b in B_:
+                mx.add("drums", ehat(0.024, open_=True, tone=8000), mx.at(b, 3.5), pan=0.32)
+            if b in B_ or b in A_:
+                mx.add("drums", ehat(0.016, open_=True, tone=8000), mx.at(b, 1.5), pan=-0.3)
         elif b < 4:
             for s in range(16 if b >= 2 else 8):
                 step = 0.25 if b >= 2 else 0.5
-                mx.add("drums", ehat(0.02 if (s * step) % 1 == 0.5 else 0.012, tone=8500), mx.at(b, s * step), pan=0.3)
+                mx.add("drums", ehat(0.02 if (s * step) % 1 == 0.5 else 0.012, tone=9500), mx.at(b, s * step), pan=0.3)
             if b == 3:
                 for kb in (0, 2):
                     mx.add("drums", ekick(0.3, f0=120, f1=48, decay=8, click=0.0, tone=400), mx.at(b, kb))
         elif b in BRK:
-            mx.add("drums", erim(0.035), mx.at(b, 3), pan=0.15)
+            mx.add("drums", gated_verb(erim(0.035), 0.08, 0.4), mx.at(b, 3), pan=0.15)
             for e in range(1, 8, 2):
-                mx.add("drums", ehat(0.01, tone=9000), mx.at(b, e * 0.5), pan=0.4)
+                mx.add("drums", ehat(0.01, tone=9500), mx.at(b, e * 0.5), pan=0.4)
             if b in (24, 25):   # 闷鼓慢慢回来
                 for kb in range(4):
-                    mx.add("drums", ekick(0.26 + 0.06 * (b - 24), f0=120, f1=48, decay=8, click=0.0, tone=350 + 500 * (b - 24) + 120 * kb), mx.at(b, kb))
+                    mx.add("drums", ekick(0.26 + 0.06 * (b - 24), f0=150, f1=50, decay=7, click=0.1, tone=350 + 600 * (b - 24) + 150 * kb), mx.at(b, kb))
         elif b == 31:
             for s in range(16):
-                mx.add("drums", ehat([0.024, 0.01, 0.016, 0.01][s % 4], tone=8500), mx.at(b, s * 0.25), pan=0.3)
-        # 科技滴答（B 段多一点）
+                mx.add("drums", ehat([0.024, 0.01, 0.016, 0.01][s % 4], tone=9500), mx.at(b, s * 0.25), pan=0.3)
+        # 科技滴答
         if b >= 4:
             pr = 0.16 if b in B_ else 0.1 if groove(b) else 0.05
             for s in range(16):
                 if rng.random() < pr:
                     mx.add("amb", glitch(0.007), mx.at(b, s * 0.25), pan=float(rng.uniform(-0.7, 0.7)))
 
-    # ---- 主奏：B 段方波动机 + 颤音琴高八度叠奏；间奏颤音琴慢速回声动机头
-    play_line(mx, "lead", V2_MEL, 12, lambda n_, d, **k: slead(n_, max(d * 0.85, 0.08), amp=0.022, wave="square", cut=2600), pan=-0.1)
-    play_line(mx, "mallet", V2_MEL, 12, lambda n_, d, **k: mallet(n_ + 12, 1.4, amp=VIBE_AMP), pan=0.3)
-    play_line(mx, "mallet", [(n_, d * 2) for n_, d in V2_MEL[:8]], 22, lambda n_, d, **k: mallet(n_, d + 1.6, amp=0.03), pan=0.1)
-    # 声呐「叮」（深海标志）：引子、B 段首、间奏首与间奏中段
+    # ---- 主奏：B 段共振滤波方波（滑音）+ FM 合成铃高八度叠奏；间奏比特粉碎的慢速回声动机头
+    mono_line(mx, "lead", V2_MEL, 12, amp=0.024, pan=-0.1)
+    play_line(mx, "bells", V2_MEL, 12, lambda n_, d, **k: synbell(n_ + 12, 1.0, amp=BELL_AMP), pan=0.3)
+    mono_line(mx, "lead", [(n_, d * 2) for n_, d in V2_MEL[:8]], 22, amp=0.016, hi=2600, lo=500, k=4, crush=(5, 6), pan=0.12, gate=0.7)
+    # 声呐「叮」（深海标志）
     for b_, beat_, note in ((0, 0, 90), (12, 0, 85), (20, 0, 88), (21, 2, 85), (23, 2, 83)):
         mx.add("lead", ping(note, 0.016), mx.at(b_, beat_), pan=0.15)
-    # ---- 深海底色：带通「海」噪声、PWM 慢涌、玻璃 FM 铃
+    # ---- 段落交界：噪声上扬 / 下沉、反向镲
+    for b_ in (3, 11, 25):
+        mx.add("fx", noise_sweep(bar, up=True, amp=0.03), mx.at(b_), pan=-0.2)
+        mx.add("fx", noise_sweep(bar, up=True, amp=0.03), mx.at(b_) + 0.01, pan=0.2)
+    for b_ in (4, 12, 26):
+        c = rev_cymbal(bt * 2, 0.03)
+        mx.add("fx", c, mx.at(b_) - len(c) / SR, pan=0.0)
+    mx.add("fx", noise_sweep(bar * 1.5, up=False, amp=0.03), mx.at(20), pan=0.1)
+    mx.add("fx", noise_sweep(bar, up=False, amp=0.02, hi=5000), mx.at(31), pan=-0.1)
+    # ---- 深海底色（很轻）：带通「海」噪声、PWM 慢涌、玻璃 FM 铃
     am = mx.bus["amb"]
     n = tr.len
-    w = sea_noise(n, 0.0035, 8)
+    w = sea_noise(n, 0.0015, 8)
     am.buf[:n, 0] += w
     am.buf[:n, 1] += np.roll(w, 9000)
     for b_, ch, pan in ((22, [57, 62, 66, 69], -0.15), (24, [54, 61, 65, 68], 0.15)):
@@ -1579,22 +1728,46 @@ def make_archive_v2():
                    mx.at(b, float(rng.integers(0, 8)) / 2), pan=float(rng.uniform(-0.6, 0.6)))
 
     L = tr.len + tr.tail
-    depth = np.full(L, 0.1)
+    B = mx.bus
+    # 句尾节拍重复（第 11 / 19 / 29 小节第 4 拍）：鼓、琶音、低音一起切
+    for b_ in (11, 19, 29):
+        for k in ("drums", "pluck", "bass"):
+            stutter(B[k].buf, mx.at(b_), bt, [(3.0, 0.5, 1, 1.0), (3.5, 0.25, 2, 0.9), (3.75, 0.125, 2, 0.85)])
+    # 声垫：共振低通分段扫频（引子打开 → A 平 → B 慢慢上扬 → 间奏收暗再打开 → 回归 → 末两小节合上接回引子）
+    pts = [(0, 400), (4, 1800), (12, 1900), (20, 3200), (20.25, 700), (26, 2400), (30, 2200), (32, 400), (32 + L / SR / bar, 400)]
+    xb = np.arange(L) / SR / bar
+    cut = np.exp(np.interp(xb, [p_[0] for p_ in pts], [np.log(p_[1]) for p_ in pts]))
+    for c in range(2):
+        B["pad"].buf[:, c] = res_lp(B["pad"].buf[:, c], cut, q=2.2, block=256)
+    # 侧链：groove 段每拍压下约 5 dB，其余浅
+    depth = np.full(L, 0.12)
     for b in range(bars):
         if groove(b):
-            depth[int(mx.at(b) * SR):int(mx.at(b + 1) * SR)] = 0.4
+            depth[int(mx.at(b) * SR):int(mx.at(b + 1) * SR)] = 0.45
     depth = uniform_smooth(depth, int(0.2 * SR))
-    B = mx.bus
-    B["pad"].buf *= pump_env(L, bt, depth)[:, None]
-    B["bass"].buf *= pump_env(L, bt, depth * 0.35)[:, None]
+    B["pad"].buf *= pump_env(L, bt, depth, rel=0.6)[:, None]
+    B["bass"].buf *= pump_env(L, bt, depth * 0.3)[:, None]
+    # A 段 trance gate（十六分开合，关时留 15%）
+    gate = np.ones(L)
+    patt = [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1]
+    s16 = bt / 4
+    for b in A_:
+        for s in range(16):
+            if not patt[s]:
+                i0 = int((mx.at(b) + s * s16) * SR)
+                gate[i0:i0 + int(s16 * SR)] = 0.15
+    gate = uniform_smooth(gate, int(0.004 * SR))
+    B["pad"].buf *= gate[:, None]
     B["pluck"].buf += pingpong(B["pluck"].buf.mean(axis=1), 0.75 * bt, fb=0.3, taps=5, tone=3000) * 0.3
-    B["lead"].buf += pingpong(B["lead"].buf.mean(axis=1), 0.5 * bt, fb=0.3, taps=5, tone=3200) * 0.3
+    B["lead"].buf += pingpong(B["lead"].buf.mean(axis=1), 0.5 * bt, fb=0.32, taps=5, tone=3400) * 0.32
+    B["bells"].buf += pingpong(B["bells"].buf.mean(axis=1), 0.75 * bt, fb=0.3, taps=4, tone=3500) * 0.25
     mx.balance(V2_BAL)
-    out = (reverb(B["drums"].buf, 0.6, 8.0, 0.1, 6000) + B["bass"].buf
-           + reverb(B["pad"].buf + B["pluck"].buf + B["lead"].buf, 2.4, 2.0, 0.25, 4500)
-           + reverb(B["amb"].buf + B["mallet"].buf, 5.0, 1.0, 0.45, 4000))
+    out = (reverb(B["drums"].buf, 0.5, 9.0, 0.08, 7000) + B["bass"].buf
+           + reverb(B["pad"].buf + B["pluck"].buf + B["lead"].buf + B["bells"].buf, 2.2, 2.2, 0.22, 5000)
+           + reverb(B["fx"].buf, 2.5, 2.0, 0.3, 6000)
+           + reverb(B["amb"].buf, 5.0, 1.0, 0.45, 4000))
     finish_loop_fx(out, tr.len, tr.tail, "archive_v2",
-                   post=lambda d: tape_loop(d, drive=1.3, wow_ms=0.3, flutter_ms=0.02, hi=11500))
+                   post=lambda d: tape_loop(d, drive=1.15, wow_ms=0.15, flutter_ms=0.01, hi=14000))
     TRANSPOSE = 0
 
 
