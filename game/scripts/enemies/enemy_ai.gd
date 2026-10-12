@@ -53,6 +53,11 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 	return Vector2.INF
 
 
+## 封印（docs/61 §15 st.seal）期间仍要推进的招式状态：已经起手的蓄力 / 冲刺 / 环弹蓄力 / 自爆照常走完，不卡在半截
+func busy(e: Dictionary) -> bool:
+	return e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0
+
+
 ## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。
 func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool:
 	var a: Dictionary = d.get("extra", _NONE)
