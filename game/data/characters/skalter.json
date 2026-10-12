@@ -8,7 +8,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §1 / §8.1）；纯数据干员，行为在 blocks 段（docs/61）。歌域以主控 g.ppos 为中心（用户 10-11 定）。辅助向（用户 10-11「改成辅助向」）：声浪只打最近 wave_n 个（Boss / 精英优先），强度挪进歌域内干员的攻击 / 攻速；她当主控时另有一圈不设上限的「领唱」",
-  "atk": 4, "cd": 1.0, "aura": 190, "wave_n": 16, "lead_mult": 0.3, "song_atk": 0.18, "heal_pct": 0.003, "heal_cd": 3.0,
+  "atk": 4, "cd": 1.0, "aura": 190, "wave_n": 16, "lead_mult": 0.255, "song_atk": 0.18, "heal_pct": 0.003, "heal_cd": 3.0,
   "s1_dur": 5.0, "s1_aura": 1.4, "s1_heal": 0.01, "s1_lamp_loss": 0.5, "s1_aspd": 0.25,
   "s2_aura": 0.3, "s2_aspd": 0.15, "s2_atk": 0.15, "s2_hunter_atk": 0.25,
   "s3_dur": 12.0, "s3_aura": 2.0, "s3_atk": 1.0, "s3_heal": 0.015, "s3_lamp_drain": 2.0, "s3_dark_atk": 0.3,
@@ -51,7 +51,7 @@
  "gallery": {"tags": ["增益", "光环", "灯火", "深海猎人"], "desc": "歌声绕着主控回荡：歌域里的干员攻击更高、出手更快；灯火充盈时是治愈的歌，昏暗时是溟海的歌；深海猎人在她身边更强"},
  "blocks": {
   "zone": {"center": "leader", "r": "$aura"},
-  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 1.0, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
+  "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 0.85, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
    "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "tint": [0.78, 0.95, 0.9, 0.5]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "tint": [0.85, 0.85, 0.9, 0.38]}]},
   "trait": [
    {"trig": "passive", "do": [
