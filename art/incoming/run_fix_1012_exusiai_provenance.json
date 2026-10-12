@@ -1,0 +1,211 @@
+{
+  "source": "E:\\水月\\run_review_1012\\exusiai_run_source.png",
+  "source_sha256": "23472422394d4e3ab9b46cd1b545fe5dbe4f8fd61b13ee96d335bb1669157a6b",
+  "transforms": [
+    {
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        24,
+        23
+      ],
+      "face_center_before_translation": 24.0
+    },
+    {
+      "rect": [
+        512,
+        0,
+        1024,
+        512
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        25,
+        23
+      ],
+      "face_center_before_translation": 23.0
+    },
+    {
+      "rect": [
+        1024,
+        0,
+        1536,
+        512
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        25,
+        23
+      ],
+      "face_center_before_translation": 23.0
+    },
+    {
+      "rect": [
+        0,
+        512,
+        512,
+        1024
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        25,
+        23
+      ],
+      "face_center_before_translation": 23.0
+    },
+    {
+      "rect": [
+        512,
+        512,
+        1024,
+        1024
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        25,
+        23
+      ],
+      "face_center_before_translation": 23.0
+    },
+    {
+      "rect": [
+        1024,
+        512,
+        1536,
+        1024
+      ],
+      "scale": 0.14977973568281938,
+      "translation": [
+        25,
+        23
+      ],
+      "face_center_before_translation": 23.0
+    }
+  ],
+  "head_patch": false,
+  "palette": [
+    [
+      8,
+      14,
+      24
+    ],
+    [
+      22,
+      25,
+      36
+    ],
+    [
+      41,
+      43,
+      55
+    ],
+    [
+      66,
+      66,
+      77
+    ],
+    [
+      69,
+      43,
+      49
+    ],
+    [
+      102,
+      97,
+      106
+    ],
+    [
+      103,
+      48,
+      58
+    ],
+    [
+      105,
+      38,
+      56
+    ],
+    [
+      114,
+      89,
+      52
+    ],
+    [
+      139,
+      57,
+      72
+    ],
+    [
+      140,
+      132,
+      144
+    ],
+    [
+      150,
+      95,
+      89
+    ],
+    [
+      163,
+      52,
+      69
+    ],
+    [
+      172,
+      75,
+      84
+    ],
+    [
+      175,
+      139,
+      82
+    ],
+    [
+      198,
+      190,
+      183
+    ],
+    [
+      199,
+      73,
+      84
+    ],
+    [
+      199,
+      100,
+      104
+    ],
+    [
+      214,
+      155,
+      134
+    ],
+    [
+      233,
+      154,
+      137
+    ],
+    [
+      243,
+      198,
+      173
+    ],
+    [
+      244,
+      236,
+      226
+    ],
+    [
+      255,
+      245,
+      233
+    ]
+  ],
+  "export_script_sha256": "ac6d4aa1beeb9891922d074225a178c171de39d863787870d21e2c7ebe8858a3",
+  "tool": "built-in imagegen",
+  "prompt": "Animate the referenced character WALKING BRISKLY to the right in a seamless six frame side-view locomotion cycle. Not running or leaping: LOW AMPLITUDE brisk walk with weapon ready. Make 3 columns2rows sprite sheet, six equal cells transparent background. Frame1 wide-ish small walking stride right-facing, NEAR LEG FORWARD and far leg back. Frame2 feet passing closely together under pelvis. Frame3 NEAR LEG BACK and far leg FORWARD. Frame4 near leg back under planted hips, far heel coming down. Frame5 feet passing together with NEAR KNEE slightly forward. Frame6 NEAR LEG FORWARD again small heel contact. The foreground leg must alternate between left and right side of image, NOT always foreground leg straight forward. Both legs almost straight, small knee flex, feet only about one shoe-length apart maximum. Each upper body almost identical and stable, both hands grip tan-black compact gun chest height. Preserve Exusiai's gold halo, orange eyes, red hair, white-black shirt, skirt, smooth sheer BLACK TIGHTS (not trousers) and black high top sneakers red soles. Authentic clean production pixel game sprite matching reference, dark outline, same size across frames. NO glows, NO shading of background, NO labels. Transparent pixels everywhere outside character.\n"
+}
