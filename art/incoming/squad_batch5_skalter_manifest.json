@@ -14,7 +14,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "077164514642cf91a19e281fbbf0d740357a74f91b08303dee3d51661e8158e6"
+      "sha256": "08fab90dfcb27de0fe01e790306c8eb53d8da793bbbe4332e6e6973d0b59891b"
     },
     {
       "file": "op_skalter_idle@2x.png",
@@ -30,7 +30,7 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "2957b422f0a184ce7d37e1cac0204dc47b562c449d0d662fa5089e490734a908"
+      "sha256": "103c993a127ed2e0be3d0ff6b1f0a0b2950a9c3ea3eb2b6d2e8ff436d909bf7c"
     },
     {
       "file": "op_skalter_run.png",
@@ -46,7 +46,8 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 1,
-      "sha256": "ef70c5062f134ec177953c863d2c7e177d733c3729f823d32569b4f6a8a5073a"
+      "sha256": "7236c88c52cf0d95e8402364a8d5f4e0032b5bec94c1ea004a27b9984afbf73a",
+      "motion": "approved side-sitting hover; anchor remains world ground, feet airborne"
     },
     {
       "file": "op_skalter_run@2x.png",
@@ -62,7 +63,8 @@
       "event_frame_zero_based": null,
       "loop": true,
       "density": 2,
-      "sha256": "272c23ac8642fc950e84df8e7382fc21957a4f13d2f9a1b653d8e7d26abb9151"
+      "sha256": "a6931b76155a5a6a4dbf0013360bdc439082eb24fc1fcce0a66cd7e3362d1ee7",
+      "motion": "approved side-sitting hover; anchor remains world ground, feet airborne"
     },
     {
       "file": "op_skalter_attack.png",
@@ -78,7 +80,7 @@
       "event_frame_zero_based": 2,
       "loop": false,
       "density": 1,
-      "sha256": "ce1b809169bceb2ac914e8d88aa35f756b91fd853f9337851b56bf658cacd175"
+      "sha256": "e80104d056b5695192ad0f5129244f02b7e00675c5aa865cc2f9beb8b8ac34a5"
     },
     {
       "file": "op_skalter_attack@2x.png",
@@ -94,7 +96,7 @@
       "event_frame_zero_based": 2,
       "loop": false,
       "density": 2,
-      "sha256": "e710ceeacb818aaf2b112889b608b2a5ac79e52ae00bcdef65eb462c8e9d2d1c"
+      "sha256": "3332dda86b312dc419778482f3de987c67da8f08f6ea3b54f68d5c710e87a29b"
     },
     {
       "file": "op_skalter_skill.png",
@@ -110,7 +112,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 1,
-      "sha256": "67bd3e4f5aac3215b43f4473d9db679a98211e0cb856cb4f9d14d85dbb8a332e"
+      "sha256": "dafc5735b13d305a9462ad706a35f62b5cfd81e3b72af892c1b9184cf1e39872"
     },
     {
       "file": "op_skalter_skill@2x.png",
@@ -126,7 +128,7 @@
       "event_frame_zero_based": 3,
       "loop": false,
       "density": 2,
-      "sha256": "ad445e20523736ade6635b6958871b115444fd8971b0986c67a801418fd066cb"
+      "sha256": "e889dc3b11419ad52b56bf44aead6d271955f2e3c23f18231d158a0c61969490"
     }
   ]
 }
