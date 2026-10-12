@@ -4069,7 +4069,9 @@
    ],
    "late_weight": 0.3,
    "rarity": "核心",
-   "effect_category": "economy"
+   "effect_category": "economy",
+   "late_fuse": 60,
+   "desc": "商人处所有商品价格 -50%（最后一位商人离开后获得：改为熔铸 60 枚源石锭）"
   },
   "189": {
    "effects": [
@@ -5701,6 +5703,49 @@
    "shop_allowed": true,
    "effect_category": "defense",
    "new": true
+  },
+  "263": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "lifesteal",
+     "value": 1
+    }
+   ],
+   "desc": "全队造成伤害的 0.05% 转为主控生命（每秒最多 0.5% 最大生命；主控生命低于 50% 时上限翻倍）",
+   "rarity": "稀有",
+   "lanes": [
+    "H"
+   ],
+   "tags": [
+    "survival",
+    "heal"
+   ],
+   "shop_allowed": true,
+   "effect_category": "healing",
+   "max_lv": 1
+  },
+  "264": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "killheal",
+     "value": 1
+    }
+   ],
+   "desc": "每击杀 60 名敌人，主控回复 2% 最大生命（精英算 10 名，Boss 算 60 名）",
+   "rarity": "基础",
+   "lanes": [
+    "H"
+   ],
+   "tags": [
+    "survival",
+    "heal",
+    "on_kill"
+   ],
+   "shop_allowed": true,
+   "effect_category": "healing",
+   "max_lv": 1
   }
  },
  "effect_categories": {

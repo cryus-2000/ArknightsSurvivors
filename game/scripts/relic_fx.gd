@@ -17,6 +17,9 @@
 ##   spawn what：supply / bomb / crane / stakes / fill_random / rejection
 ##   on_gain：heal_flat / levels / random_relic / clear_rejection / recruit_one
 ##   条目字段 new: true = 第二批，balance.json relic/new_pool = 0 时不进池
+## docs/74（用户 10-12）：
+##   rule lifesteal（吸血，数值 balance.json relic/steal_*）/ killheal（击杀回复，relic/killheal_*）；
+##   源石锭熔铸：最后一位商人离开后源石锭一律走 gain_ingots 进熔铸池（relic/fuse_*）；条目字段 late_fuse = 熔铸后获得时折算的源石锭
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
@@ -66,6 +69,13 @@ var medkits := {}          # 急救包剩余：id -> 个数
 var used := {}             # 一次性触发（args.once）已用：id -> true
 var bombs: Array = []      # 轰隆隆：{pos, life, dmg}
 var stakes: Array = []     # 防暴桩：{pos, life}
+# ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
+var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成），随 sp_budget_t 每秒清零
+var kh_cnt := 0            # 击杀回复：累计击杀权重（精英 / Boss 按权重计）
+var fuse_on := false       # 源石锭熔铸：最后一位商人离开后为 true
+var fuse_pool := 0         # 已熔铸的源石锭（剩余 + 之后获得）
+var fuse_t := -1           # 熔铸开始时刻（秒，遥测）
+var fuse_left := 0         # 熔铸那一刻剩余的源石锭（遥测）
 var _trig_cache := {}      # 事件名 -> [[id, effect], …]，获得藏品时重建
 var _rule_cache := {}      # 规则名 / "id:规则名" -> args，获得藏品时重建
 const HOME_R := 95.0
@@ -190,6 +200,11 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 				# 排异类（docs/57 P18）：发生过排异、或走在深蓝线上才有意义
 				if g.doctor.rej_count <= 0 and rule("deep_sea") <= 0:
 					return false
+		# 罗德岛战术电台（docs/74 #189，用户 10-12 定最小修）：只作用于强制招募那一屏（编队不满 3 人），
+		# 常规编队满员（或没人可招）后就不出，和招募事件类一致
+		if ef.get("type", "") == "rule" and str(ef.get("rule", "")) == "recruit_extra":
+			if g.squad.size() >= g.squad.REGULAR_MAX or g.progression.recruit_cards().is_empty():
+				return false
 		# 招募事件类（docs/57 P10）：编队已满、没人可招就不出（避免废卡）
 		if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Recruited" and g.progression.recruit_cards().is_empty():
 			return false
@@ -207,7 +222,88 @@ func display_desc(id: String) -> String:
 	var cur: int = lv.get(id, 0)
 	if cur > 0:
 		return "%s\n（可叠加，本级 %d%%）" % [r.desc, int(LV_SCALE[cur] * 100.0)]
+	# 源石锭熔铸之后（docs/74）：给源石锭 / 商店折扣的藏品写出折算后的伤害
+	if fuse_on:
+		var n := ingot_value_of(id)
+		if n > 0:
+			return "%s\n（商人已全部离开：源石锭改为熔铸，%d 枚 ≈ 全队伤害 +%s%%；当前熔铸 +%s%% / 上限 +%d%%）" % [
+				r.desc, n, _pct_s(n * fuse_rate()), _pct_s(fuse_pct()), int(round(Bal.v("relic/fuse_cap", 0.2) * 100.0))]
 	return r.desc
+
+
+## 这件藏品在熔铸后折算成多少枚源石锭：获得时的源石锭 + 招募 / 击败 Boss 时的源石锭（按一次计）+ late_fuse（锈蚀的铁锤）
+func ingot_value_of(id: String) -> int:
+	var r: Dictionary = db.get_relic(id)
+	var n := int(r.get("late_fuse", 0))
+	for ef in r.get("effects", []):
+		var a: Dictionary = ef.get("args", {})
+		if str(ef.get("do", "")) == "ingots":
+			n += int(a.get("amount", a.get("ingots", 0)))
+		elif a.has("ingots"):
+			n += int(a.ingots)
+	return n
+
+
+func _pct_s(v: float) -> String:
+	return ("%.1f" % (v * 100.0)).trim_suffix(".0")
+
+
+## ---------- 源石锭熔铸（docs/74 §7 第 2 条，用户 10-12 定）----------
+## 最后一位商人离开后，剩余的源石锭与之后获得的源石锭一律熔铸：每 fuse_per 枚 = 全队伤害 +fuse_pct（连续折算，封顶 fuse_cap）
+func fuse_rate() -> float:
+	return Bal.v("relic/fuse_pct", 0.01) / maxf(1.0, Bal.v("relic/fuse_per", 15.0))
+
+
+func fuse_pct() -> float:
+	return minf(Bal.v("relic/fuse_cap", 0.2), fuse_pool * fuse_rate())
+
+
+## 源石锭的唯一入口（藏品 / 拾取 / 事件 / 宝箱补偿）：熔铸前加进 g.ingots，熔铸后进熔铸池。
+## text 是飘字前缀（例如藏品名，可为空串）；"-" = 不飘字（拾取）
+func gain_ingots(n: int, text := "") -> void:
+	if n <= 0:
+		return
+	if not fuse_on:
+		g.ingots += n
+		if text != "-":
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "%s源石锭 +%d" % [text, n], Color(1.0, 0.85, 0.4), 16)
+		return
+	var before := fuse_pct()
+	fuse_pool += n
+	_fuse_sync()
+	if text != "-":
+		g.vfx.add_text(g.ppos + Vector2(0, -90), "%s熔铸 · 全队伤害 +%s%%" % [text, _pct_s(fuse_pct() - before)], Color(1.0, 0.6, 0.3), 16)
+
+
+## 投币玩具类按「源石锭总值」算：熔铸后剩余的锭进了熔铸池，不让它们因此失效
+func ingot_total() -> int:
+	return g.ingots + fuse_pool
+
+
+func _fuse_check() -> void:
+	if fuse_on or g.merchant_idx < g.MERCHANT_TIMES.size() or not g.merchant.is_empty():
+		return
+	fuse_on = true
+	fuse_t = int(g.t)
+	fuse_left = g.ingots
+	fuse_pool += g.ingots
+	g.ingots = 0
+	_fuse_sync()
+	if fuse_pool > 0:
+		g.vfx.show_banner("源石锭熔铸：全队伤害 +%s%%（%d 枚）" % [_pct_s(fuse_pct()), fuse_left])
+	else:
+		g.vfx.show_banner("商人已全部离开：此后获得的源石锭将熔铸为全队伤害")
+	Sfx.play("relic", -4.0, 0.8)
+
+
+func _fuse_sync() -> void:
+	if g.stats == null:
+		return
+	g.stats.remove_source("ingot_fuse")
+	var p := fuse_pct()
+	if p > 0.0:
+		g.stats.add(&"dmg", "add", p, "ingot_fuse")
+	g.sync_stats()
 
 
 ## ---------- 获得藏品 ----------
@@ -226,6 +322,8 @@ func apply(id: String) -> void:
 			if ef.get("type", "stat") == "stat":
 				_apply_stat(ef.stat, ef.get("op", "add"), float(ef.value) * sc if ef.get("op", "add") != "mult" else 1.0 - (1.0 - float(ef.value)) * sc, "relic:" + id, ef.get("scope", ""))
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "%s Lv.%d" % [r.name, cur + 1], Color(1.0, 0.9, 0.5), 16)
+		if fuse_on and int(r.get("late_fuse", 0)) > 0:
+			gain_ingots(int(round(int(r.late_fuse) * sc)), r.name + " · ")
 		return
 	if r.tags.has("king"):
 		king_n += 1
@@ -270,6 +368,9 @@ func apply(id: String) -> void:
 		refresh_squad()
 	if rule("per_relic") > 0:
 		refresh_relic_count()
+	# 商店类藏品（锈蚀的铁锤）在熔铸后获得：按 late_fuse 枚源石锭熔铸（docs/74）
+	if fuse_on and int(r.get("late_fuse", 0)) > 0:
+		gain_ingots(int(r.late_fuse), r.name + " · ")
 
 
 func _on_gain(what: String, args: Dictionary) -> void:
@@ -288,8 +389,7 @@ func _on_gain(what: String, args: Dictionary) -> void:
 			g.knight_alive = true
 			g.vfx.show_banner("猎潮的骑士加入编队")
 		"ingots":
-			g.ingots += int(amt)
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(amt), Color(1.0, 0.85, 0.4), 16)
+			gain_ingots(int(amt))
 		"heal":
 			# amount = 最大生命的比例
 			g.combat.heal(g.max_hp * amt, "藏品")
@@ -408,8 +508,7 @@ func _random_relics(n: int, rarity: String) -> void:
 				continue
 			cands.append(r.id)
 		if cands.is_empty():
-			g.ingots += 12
-			g.vfx.add_text(g.ppos + Vector2(0, -90), "暂无可得藏品 · 源石锭 +12", Color(1.0, 0.85, 0.4), 16)
+			gain_ingots(12, "暂无可得藏品 · ")
 			continue
 		var rid: String = cands[g.rng.randi() % cands.size()]
 		g.progression.gain_relic(rid)
@@ -547,6 +646,8 @@ func tick(dt: float) -> void:
 	if sp_budget_t <= 0.0:
 		sp_budget_t = 1.0
 		sp_budget.clear()
+		steal_used = 0.0
+	_fuse_check()
 	# 岁怒：上一帧追击命中登记的引爆
 	if not wrath_q.is_empty():
 		var q: Array = wrath_q
@@ -1007,7 +1108,7 @@ func umbrella_interval_mult() -> float:
 	var coin: int = rule("coin_toy")
 	if coin > 0:
 		var cap: float = 0.2 if coin == 3 else 0.3
-		m /= 1.0 + minf(cap, float(g.ingots / 5) * coin * 0.01)
+		m /= 1.0 + minf(cap, float(ingot_total() / 5) * coin * 0.01)   # 熔铸后按源石锭总值算（docs/74）
 	# docs/57：限时攻速（疗养卡）、紧急活性剂（生命越低越快）、旗帜区域
 	for x in temps:
 		if x.stat == "op_aspd":
@@ -1121,8 +1222,7 @@ func on_recruit(op) -> void:
 			"sp":
 				op.gain_sp(float(a.get("pct", 0.2)))
 			"ingots":
-				g.ingots += int(a.get("amount", 10))
-				g.vfx.add_text(g.ppos + Vector2(0, -90), "源石锭 +%d" % int(a.get("amount", 10)), Color(1.0, 0.85, 0.4), 16)
+				gain_ingots(int(a.get("amount", 10)))
 			"growth_pick":
 				g.pending_levelups += int(a.get("n", 1))
 		if bool(a.get("once", false)):
@@ -1207,6 +1307,16 @@ func on_kill(e: Dictionary) -> void:
 		g.vfx.show_banner("生还者合约：伤害再 +20%")
 	if e.get("dead", false):
 		return
+	# 击杀回复（docs/74 L2）：每 killheal_n 击杀权重回复 killheal_pct 最大生命；精英算 killheal_elite、Boss 算 killheal_boss。
+	# 宝箱 / 友方 / 泪滴（不计击杀数）不算
+	if rule("killheal") > 0 and not e.get("chest", false) and not e.get("friendly", false) and str(e.get("type", "")) != "tear":
+		kh_cnt += int(Bal.v("relic/killheal_boss", 60.0)) if e.get("boss", false) else (int(Bal.v("relic/killheal_elite", 10.0)) if e.get("elite", false) else 1)
+		var need: int = maxi(1, int(Bal.v("relic/killheal_n", 60.0)))
+		while kh_cnt >= need:
+			kh_cnt -= need
+			if g.hp > 0.0:
+				g.combat.heal(g.max_hp * Bal.v("relic/killheal_pct", 0.02), "击杀回复")
+				g.vfx.add_text(g.ppos + Vector2(0, -84), "+%s%%" % _pct_s(Bal.v("relic/killheal_pct", 0.02)), Color(0.55, 1.0, 0.6), 13)
 	# docs/57 P25：击杀回技力（积攒之手，按出手干员的职业）
 	for t in _triggers("EnemyKilled"):
 		var a: Dictionary = t[1].get("args", {})
@@ -1223,7 +1333,7 @@ func on_kill(e: Dictionary) -> void:
 			if a2.has("heal"):
 				g.combat.heal(g.max_hp * float(a2.heal), "藏品")
 			if a2.has("ingots"):
-				g.ingots += int(a2.ingots)
+				gain_ingots(int(a2.ingots), "-")
 			if a2.has("growth_pick"):
 				g.pending_levelups += int(a2.growth_pick)
 			if a2.has("choice_extra"):
@@ -1236,10 +1346,14 @@ func single_hit_mult(_hit_count: int) -> float:
 	return 1.0
 
 
-## 任意命中（带伤害描述符）。藏品自己造成的伤害（origin == relic）不再触发藏品，避免连锁
-func on_hit(e: Dictionary, h: Dictionary) -> void:
+## 任意命中（带伤害描述符）。藏品自己造成的伤害（origin == relic）不再触发藏品，避免连锁。
+## amount：这一下打进敌人生命的伤害（护盾之后、扣血之前；combat.damage 传入，缺省 0 = 不知道）
+func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if h.get("origin", "") == "relic":
 		return
+	# 吸血（docs/74 L1）：食腐者手杖的伤害显式排除（它的 origin 已是 relic，这里再保一道，防回路）
+	if amount > 0.0 and rule("lifesteal") > 0 and str(h.get("src", "")) != "食腐":
+		_lifesteal(minf(amount, maxf(0.0, float(e.get("hp", amount)))))
 	if g.relics.has("229"):
 		_budget_sp("229", "", 0.002, Bal.v("relic/judge_cap", 0.03))
 	var cls: String = h.get("class", "")
@@ -1317,6 +1431,29 @@ func _temp(stat: String, value: float, dur: float, key := "") -> void:
 ## 藏品回技力：全队干员按各自需求的百分比充能
 func _gain_sp(pct: float) -> void:
 	g.squad.gain_sp(pct)
+
+
+## 吸血（docs/74 L1）：伤害的 steal_pct 转为主控生命；每秒上限 steal_cap 最大生命，生命低于 steal_low_at 时上限 × steal_low_mult。
+## 上限按未乘受治疗加成的量计（之后 combat.heal 再乘受治疗加成 / 侵蚀创口）；多段 / 持续伤害都算，由每秒上限兜住
+var _steal_k: Array = []   # [pct, cap, low_at, low_mult]：每次命中都查，首次用时从 balance.json 取一次
+
+
+func _lifesteal(dmg: float) -> void:
+	if g.hp <= 0.0 or g.max_hp <= 0.0:
+		return
+	if _steal_k.is_empty():
+		_steal_k = [Bal.v("relic/steal_pct", 0.0005), Bal.v("relic/steal_cap", 0.005), Bal.v("relic/steal_low_at", 0.5), Bal.v("relic/steal_low_mult", 2.0)]
+	var cap: float = g.max_hp * float(_steal_k[1])
+	if g.hp < g.max_hp * float(_steal_k[2]):
+		cap *= float(_steal_k[3])
+	var room: float = cap - steal_used
+	if room <= 0.0:
+		return
+	var v: float = minf(dmg * float(_steal_k[0]), room)
+	if v <= 0.0:
+		return
+	steal_used += v
+	g.combat.heal(v, "吸血")
 
 
 ## 带每秒上限的回技力：oid 为空时全队，否则只给该干员；上限按「藏品:干员」分别计

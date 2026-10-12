@@ -128,12 +128,12 @@ func test_modifiers() -> void:
 func test_db_and_profile() -> void:
 	var c = Core.new()
 	var cnt: int = c.load_data()
-	ok(cnt == 262, "读取 262 件藏品（%d）" % cnt)
+	ok(cnt == 264, "读取 264 件藏品（%d）" % cnt)
 	var errs: Array = c.validate()
 	for e in errs:
 		printerr("  数据错误: ", e)
 	ok(errs.is_empty(), "效果数据校验")
-	ok(c.db.implemented().size() == 262, "已实装藏品 262 件（docs/57：全部实装，%d）" % c.db.implemented().size())
+	ok(c.db.implemented().size() == 264, "已实装藏品 264 件（docs/57 全部实装 + docs/74 吸血两件，%d）" % c.db.implemented().size())
 	# docs/35 藏品契约：说明非空、不再出现「援护干员」、职业门槛合法、流派只用 A–H
 	var classes := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 	for r in c.db.implemented():

@@ -32,6 +32,7 @@ func _process(_d: float) -> void:
 	test_batch_d_f()
 	test_batch_g()
 	test_batch_general()
+	test_docs74()
 	print("%d checks, %d failed" % [n, fails])
 	print("RELIC IMPL failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -414,3 +415,133 @@ func test_batch_general() -> void:
 	ok(game.hp > game.max_hp * 0.44 and game.hp < game.max_hp * 0.52, "立体艺术装置 + 国王的水晶：失去 20%% 当前生命再回约 10%%（%.1f%% 最大生命）" % (100.0 * game.hp / game.max_hp))
 	game.pending_levelups = pl0
 	reset_hp()
+
+
+## docs/74（用户 10-12）：#189 满员不出 / 源石锭熔铸 / #263 吸血 / #264 击杀回复
+func test_docs74() -> void:
+	# ---- #189 罗德岛战术电台：编队满员不出；其他招募相关藏品同样不出
+	ok(game.squad.size() >= 3, "编队已满 3 人（--squad=saria,wisadel）")
+	# 上面批 B 已经发过电台：临时拿掉拥有记录，只看出现条件
+	var had189: bool = game.relics.has("189")
+	game.relics.erase("189")
+	var lv189 = rfx.lv.get("189", 0)
+	rfx.lv.erase("189")
+	ok(not rfx.can_offer(rfx.db.get_relic("189"), false), "罗德岛战术电台：编队满员后不出现在三选一")
+	ok(not rfx.can_offer(rfx.db.get_relic("189"), true), "罗德岛战术电台：编队满员后不出现在商店")
+	for rid in ["10", "86", "87", "147", "151", "155", "184", "185", "186", "187", "244"]:
+		if not game.relics.has(rid):
+			ok(not rfx.can_offer(rfx.db.get_relic(rid), false), "招募相关藏品 %s：编队满员后不出现" % rid)
+	var keep_op = game.squad.ops.pop_back()
+	ok(rfx.can_offer(rfx.db.get_relic("189"), false), "罗德岛战术电台：编队 2 人时仍会出现")
+	game.squad.ops.append(keep_op)
+	if had189:
+		game.relics.append("189")
+		rfx.lv["189"] = lv189
+	# ---- 吸血 #263：伤害的 0.05%，每秒上限 0.5% 最大生命，低于 50% 翻倍；上限按受治疗加成之前算
+	grant("263")
+	game.wound = 0
+	var e: Dictionary = spawn(game.ppos + Vector2(60, 0))
+	e.maxhp = 1.0e9
+	e.hp = 1.0e9
+	var h := {"src": "测试", "origin": "core", "range": "近战", "kind": "物理", "tags": [], "class": "", "op": ""}
+	var cap: float = game.max_hp * Bal.v("relic/steal_cap", 0.005)
+	game.hp = game.max_hp * 0.8
+	rfx.steal_used = 0.0
+	var hp0: float = game.hp
+	var hl0: float = float(game.heal_log.get("吸血", 0.0))
+	rfx.on_hit(e, h, 100.0)
+	near(rfx.steal_used, 100.0 * Bal.v("relic/steal_pct", 0.0005), "吸血：一次 100 伤害回 0.05%（未到上限）")
+	rfx.on_hit(e, h, 1.0e6)
+	near(rfx.steal_used, cap, "吸血：本秒回复封顶 0.5% 最大生命", 0.0001)
+	near(game.hp - hp0, cap * game.heal_mult, "吸血：实际回复 = 上限 × 受治疗加成", 0.001)
+	near(float(game.heal_log.get("吸血", 0.0)) - hl0, cap * game.heal_mult, "吸血：遥测 heal 记「吸血」", 0.001)
+	var hp1: float = game.hp
+	for k in 20:
+		rfx.on_hit(e, h, 1.0e5)
+	near(game.hp, hp1, "吸血：同一秒内多段命中不再回复")
+	rfx.sp_budget_t = 0.0
+	rfx.tick(0.0)
+	near(rfx.steal_used, 0.0, "吸血：每秒清零")
+	game.hp = game.max_hp * 0.3
+	rfx.on_hit(e, h, 1.0e6)
+	near(rfx.steal_used, cap * Bal.v("relic/steal_low_mult", 2.0), "吸血：生命低于 50% 时上限翻倍", 0.0001)
+	# 藏品自身伤害 / 食腐者手杖不吸血（防回路）
+	rfx.steal_used = 0.0
+	rfx.on_hit(e, {"src": "藏品", "origin": "relic", "tags": ["dot"], "class": "", "op": ""}, 1.0e6)
+	near(rfx.steal_used, 0.0, "吸血：藏品自身伤害不计")
+	rfx.on_hit(e, {"src": "食腐", "origin": "core", "tags": [], "class": "", "op": ""}, 1.0e6)
+	near(rfx.steal_used, 0.0, "吸血：食腐者手杖的伤害不计")
+	grant("102")
+	reset_hp()
+	rfx.steal_used = 0.0
+	rfx.overheal = 0.0
+	rfx.on_hit(e, h, 1.0e6)
+	ok(rfx.overheal > 0.0, "吸血 + 食腐者手杖：满血时吸血溢出登记（%.2f）" % rfx.overheal)
+	var su: float = rfx.steal_used
+	rfx._scavenge()
+	near(rfx.steal_used, su, "吸血 + 食腐者手杖：溢出转成的伤害不再吸血（无回路）")
+	near(rfx.overheal, 0.0, "食腐者手杖：结算后溢出清空")
+	e.dead = true
+	# ---- 击杀回复 #264：每 60 击杀权重回 2% 最大生命；精英 10、Boss 60；宝箱 / 泪滴不算
+	grant("264")
+	rfx.kh_cnt = 0
+	game.hp = game.max_hp * 0.5
+	var kpct: float = Bal.v("relic/killheal_pct", 0.02)
+	var kl0: float = float(game.heal_log.get("击杀回复", 0.0))
+	for k in 59:
+		rfx.on_kill({"dead": false, "type": "runner"})
+	near(float(game.heal_log.get("击杀回复", 0.0)), kl0, "击杀回复：59 名还不回复")
+	rfx.on_kill({"dead": false, "type": "runner"})
+	near(float(game.heal_log.get("击杀回复", 0.0)) - kl0, game.max_hp * kpct * game.heal_mult, "击杀回复：第 60 名回复 2% 最大生命", 0.001)
+	ok(rfx.kh_cnt == 0, "击杀回复：计数归零")
+	for k in 100:
+		rfx.on_kill({"dead": false, "type": "runner", "chest": true})
+		rfx.on_kill({"dead": false, "type": "tear"})
+	ok(rfx.kh_cnt == 0, "击杀回复：宝箱 / 泪滴不计")
+	for k in 5:
+		rfx.on_kill({"dead": false, "type": "runner", "elite": true})
+	ok(rfx.kh_cnt == 50, "击杀回复：精英每只算 10（5 只 = 50，%d）" % rfx.kh_cnt)
+	kl0 = float(game.heal_log.get("击杀回复", 0.0))
+	game.hp = game.max_hp * 0.5
+	rfx.on_kill({"dead": false, "type": "runner", "elite": true})
+	ok(rfx.kh_cnt == 0 and float(game.heal_log.get("击杀回复", 0.0)) > kl0, "击杀回复：第 6 只精英触发")
+	kl0 = float(game.heal_log.get("击杀回复", 0.0))
+	game.hp = game.max_hp * 0.3
+	rfx.on_kill({"dead": false, "type": "runner", "boss": true})
+	ok(float(game.heal_log.get("击杀回复", 0.0)) > kl0 and rfx.kh_cnt == 0, "击杀回复：一个 Boss 算 60，直接回复一次")
+	reset_hp()
+	# ---- 源石锭熔铸：最后一位商人离开后，剩余与之后获得的源石锭按每 15 枚全队伤害 +1% 计，封顶 +20%
+	ok(not rfx.fuse_on, "熔铸：商人还会来时不触发")
+	var rate: float = Bal.v("relic/fuse_pct", 0.01) / Bal.v("relic/fuse_per", 15.0)
+	var fcap: float = Bal.v("relic/fuse_cap", 0.2)
+	game.ingots = 150
+	game.merchant = {}
+	game.merchant_idx = game.MERCHANT_TIMES.size() - 1
+	rfx.tick(0.0)
+	ok(not rfx.fuse_on and game.ingots == 150, "熔铸：第三位商人还没来时不触发")
+	game.merchant_idx = game.MERCHANT_TIMES.size()
+	game.merchant = {"pos": game.ppos + Vector2(2000, 0), "life": 30.0, "near": false}
+	rfx.tick(0.0)
+	ok(not rfx.fuse_on, "熔铸：最后一位商人还在场时不触发")
+	game.merchant = {}
+	var dm0: float = game.stats.value_for(&"dmg", [])
+	rfx.tick(0.0)
+	ok(rfx.fuse_on and game.ingots == 0 and rfx.fuse_left == 150 and rfx.fuse_pool == 150, "熔铸：最后一位商人离开后剩余 150 枚全部熔铸")
+	near(rfx.fuse_pct(), 0.1, "熔铸：150 枚 = 全队伤害 +10%")
+	near(game.stats.value_for(&"dmg", []) - dm0, 0.1, "熔铸：全队伤害属性 +10%")
+	var ivx: int = rfx.ingot_value_of("12")
+	ok(ivx > 0 and rfx.display_desc("12").contains("熔铸"), "熔铸后源石锭藏品的说明写出折算值（%s）" % rfx.display_desc("12"))
+	grant("12")
+	ok(game.ingots == 0 and rfx.fuse_pool == 150 + ivx, "熔铸后获得源石锭藏品：锭进熔铸池（+%d）" % ivx)
+	grant("188")
+	ok(rfx.fuse_pool == 150 + ivx + 60, "熔铸后获得锈蚀的铁锤：熔铸 60 枚")
+	ok(rfx.display_desc("29").contains("熔铸"), "熔铸后另一件源石锭藏品说明也写出折算值")
+	rfx.gain_ingots(5, "-")
+	ok(rfx.fuse_pool == 150 + ivx + 65 and game.ingots == 0, "熔铸后拾取的源石锭也进熔铸池")
+	near(rfx.fuse_pct(), minf(fcap, (150 + ivx + 65) * rate), "熔铸：连续折算")
+	rfx.gain_ingots(1000, "-")
+	near(rfx.fuse_pct(), fcap, "熔铸：封顶 +20%")
+	near(game.stats.value_for(&"dmg", []) - dm0, fcap, "熔铸：全队伤害属性封顶 +20%")
+	ok(rfx.ingot_total() >= 1000, "投币玩具按源石锭总值算（熔铸不让它失效）")
+	var rec: Dictionary = game.telemetry.record()
+	ok(rec.has("fuse") and int(rec.fuse.t) >= 0 and int(rec.fuse.left) == 150, "遥测记录熔铸（%s）" % str(rec.get("fuse", {})))
