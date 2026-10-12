@@ -33,6 +33,7 @@ func _init() -> void:
 	test_blocks_angelina()
 	test_blocks_texas()
 	test_fx_hold()
+	test_operator_sheet()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -563,3 +564,42 @@ func test_fx_hold() -> void:
 	var fo := {"g": {"tex": {"fx_have": ImageTexture.new()}}}
 	ok(OB.fx_on(fo, {"if_tex": "fx_have"}) and not OB.fx_on(fo, {"if_tex": "!fx_have"}), "if_tex：贴图在时只画正向条目")
 	ok(OB.fx_on(fo, {"if_tex": "!fx_none"}) and not OB.fx_on(fo, {"if_tex": "fx_none"}), "if_tex：缺图时只画回退条目")
+
+
+## 干员数值表（选人「属性」页 / 图鉴「属性」页共用，screens/initial_stats.gd）：每名可招募干员都有完整的 9 行 + 定位，
+## 减伤保留一位小数（docs/72 §4.1 #4：0.5 档不能被截断），特殊干员的标签 / 段数说明正确
+func test_operator_sheet() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var IS = preload("res://scripts/screens/initial_stats.gd")
+	ok(IS.fmt_armor(2.5) == "2.5" and IS.fmt_armor(0.5) == "0.5" and IS.fmt_armor(3.0) == "3.0" and IS.fmt_armor(4.5) == "4.5", "减伤显示保留一位小数")
+	var cnt := 0
+	for cid in Ch.list_ids():
+		var d: Dictionary = Ch.load_def(cid)
+		if not d.get("recruitable", true):
+			continue
+		cnt += 1
+		var sh: Dictionary = IS.sheet(cid, d)
+		var keys: Array = sh.rows.map(func(r): return r.key)
+		ok(keys == IS.REQUIRED, "%s 数值表 9 行齐全且顺序固定：%s" % [cid, str(keys)])
+		for r in sh.rows + sh.extra:
+			ok(str(r.text) != "" and str(r.label) != "" and str(r.en) != "", "%s 的 %s 行有标签和数值" % [cid, r.key])
+			ok(float(r.val) > 0.0 or r.key in ["armor", "arts"], "%s 的 %s 行数值为正（%s）" % [cid, r.key, str(r.val)])
+		ok(not sh.tags.is_empty() and sh.note != "", "%s 有定位标签和口径说明" % cid)
+		var lead: Dictionary = d.get("leader", {})
+		ok(IS.row(sh, "armor").text == "%.1f" % float(lead.get("armor", 0.0)), "%s 减伤按一位小数显示（%s）" % [cid, IS.row(sh, "armor").text])
+		ok(IS.row(sh, "hp").text == "%d" % int(round(float(lead.get("max_hp", 0.0)))), "%s 生命取 leader.max_hp" % cid)
+	ok(cnt >= 18, "数值表覆盖全部可招募干员（%d）" % cnt)
+	var sk: Dictionary = IS.sheet("skalter", Ch.load_def("skalter"))
+	ok(IS.row(sk, "atk").label == "声浪伤害" and "16" in IS.value_text(IS.row(sk, "atk")), "浊心斯卡蒂：声浪伤害 × 最多 16 名")
+	ok(IS.row(sk, "reach").label == "歌域半径" and not IS.row(sk, "song").is_empty(), "浊心斯卡蒂：歌域半径 + 歌域增益")
+	ok(IS.row(IS.sheet("texas", Ch.load_def("texas")), "reach").label == "冲刺距离", "德克萨斯：范围标为冲刺距离")
+	ok("2 段" in IS.row(IS.sheet("irene", Ch.load_def("irene")), "atk").sub, "艾丽妮：每次 2 段")
+	ok("2 发" in IS.row(IS.sheet("suzuran", Ch.load_def("suzuran")), "atk").sub, "铃兰：每次 2 发")
+	ok("余震" in IS.row(IS.sheet("wisadel", Ch.load_def("wisadel")), "atk").sub, "维什戴尔：附带余震")
+	ok("触手" in IS.row(IS.sheet("mizuki", Ch.load_def("mizuki")), "atk").sub, "水月：附带触手")
+	ok(IS.row(IS.sheet("kaltsit", Ch.load_def("kaltsit")), "atk").label == "Mon3tr 攻击", "凯尔希：攻击标为 Mon3tr")
+	var ex: Dictionary = IS.sheet("exusiai", Ch.load_def("exusiai"))
+	ok(IS.row(ex, "cd").text == "0.35 秒" and not IS.row(ex, "pierce").is_empty(), "能天使：间隔 0.35 秒 + 穿透")
+	near(float(IS.row(IS.sheet("irene", Ch.load_def("irene")), "dps").val), 24.0 * 1.03 * 2.0 / 0.8, "艾丽妮单体每秒伤害 = 攻击 × 2 段 ÷ 间隔")
+	var syn: Dictionary = IS.sheet("test", {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155, "armor": 0.5}})
+	ok(IS.row(syn, "hp").text == "155" and IS.row(syn, "atk").text == "77" and IS.row(syn, "cd").text == "2.50 秒" and IS.row(syn, "armor").text == "0.5", "数值表跟随传入的数据")
