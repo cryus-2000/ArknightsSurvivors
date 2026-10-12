@@ -17,10 +17,10 @@ const IMPL := {
 ## verb.summon / verb.shield / aura.heal / st.seal 在文件末尾「召唤 / 封印段」（SM_TAGS，10-12）
 const PLANNED := {
 	"shape": ["chain", "summon"],
-	"verb": ["protect", "cleanse", "dash"],
+	"verb": ["protect", "dash"],   # verb.cleanse / verb.guard / verb.summon_mod / trig.on_deploy 在文件末尾「召唤物扩展段」（§15.9）
 	"aura": ["dps", "dr", "inspire"],
 	"st": ["fragile", "bind", "mark"],
-	"trig": ["on_deploy", "stack"],
+	"trig": ["stack"],
 }
 const FAMILIES := ["shape", "verb", "aura", "st", "trig", "custom"]
 ## 本干员的局部倍率（verb.buff_self 的 stat 取这些时不进 g.stats）
@@ -96,6 +96,9 @@ static func _operand(s: String, base: Dictionary) -> Array:
 static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	var c := {"neg": false, "k": "", "a": "", "op": "", "v": 0.0}
 	s = s.strip_edges()
+	var mc := mf_parse_cond(s, base)   # 召唤物扩展段：a && b、node:<id>、hurt_any
+	if not mc.is_empty():
+		return mc
 	if s.begins_with("!"):
 		c.neg = true
 		s = s.substr(1).strip_edges()
@@ -198,7 +201,8 @@ static func cond_true(o, c) -> bool:
 		"class":
 			r = _cmp(float(count_others(o, "class:" + str(c.a))), c.op, c.v)
 		_:
-			r = ext_cond_true(o, str(c.k))
+			var mc := mf_cond(o, c)   # 召唤物扩展段的条件
+			r = mc[1] if mc[0] else ext_cond_true(o, str(c.k))
 	return r != bool(c.neg)
 
 
@@ -259,7 +263,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			if c == Vector2.INF:
 				return []
 			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
-			o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
+			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
+				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			fx_c = c
 			fx_r = r
 		"cone":
@@ -323,7 +328,10 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 
 
 static func shape_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2:
-	match str(b.get("center", "zone")):
+	var cn: String = str(b.get("center", "zone"))
+	if cn.begins_with("summon"):   # 召唤物扩展段：summon:<种类> = 这种召唤物所在处
+		return mf_at_point(o, cn)
+	match cn:
 		"self":
 			return o.pos
 		"leader":
@@ -337,6 +345,8 @@ static func shape_radius(o, b: Dictionary) -> float:
 	var r = b.get("r", 0.0)
 	if r is String and r == "zone":
 		return o.zone_r()
+	if b.get("r_abs", false):   # 召唤物扩展段：r_abs = 半径不吃 op_range（凯尔希熔毁 130）
+		return float(r)
 	return float(r) * o.stat(&"op_range")
 
 
@@ -441,7 +451,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		return _report(cid, errs)
 	var base: Dictionary = d.get("base", {})
 	var srcs: Dictionary = d.get("hit_sources", {})
-	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {})}
+	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {}), "sprites": d.get("sprites", {})}
 	for k in blocks:
 		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons"]:
 			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons）" % k)
@@ -456,7 +466,9 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				errs.append("blocks.zone.center 只能是 leader / self")
 			_num(z, "r", "blocks.zone", ctx, true)
 	var atk = blocks.get("attack", null)
-	if not (atk is Dictionary) or not str(atk.get("shape", "")) in ATTACK_SHAPES:
+	if atk is Dictionary and str(atk.get("shape", "")) == "support":   # 召唤物扩展段：不造成伤害的普攻（凯尔希的治疗）
+		_mf_support(atk, ctx)
+	elif not (atk is Dictionary) or not str(atk.get("shape", "")) in ATTACK_SHAPES:
 		errs.append("blocks.attack 必须是一个伤害形状（%s）" % " / ".join(ATTACK_SHAPES.map(func(x): return "shape." + x)))
 	else:
 		_block(atk, "blocks.attack", "attack", ctx)
@@ -492,8 +504,10 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do", "fx"] + EXU_SKILL_KEYS:
-					errs.append("%s.%s：技能积木只有 dur / do / fx / attack_patch / end 这几个字段" % [p, k])
+				if not k in ["dur", "do", "fx", "aim", "status", "status_col"] + EXU_SKILL_KEYS:
+					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / status / status_col / attack_patch / end 这几个字段" % [p, k])
+				elif k == "aim" and not (str(sb.aim) == "leader" or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
+					errs.append("%s.aim 只能是 leader / summon:<blocks.summons 里的种类>" % p)
 				elif k == "attack_patch" and atk_shape == "point_aoe" and not (dv is Dictionary and dv.has("next_attacks")):
 					errs.append("%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{\"next_attacks\": N}）" % p)
 			if sb.has("fx"):
@@ -536,6 +550,12 @@ static func _report(cid: String, errs: Array) -> bool:
 
 ## 成长节点：触发积木，或一块常驻效果积木
 static func _node(b, p: String, ctx: Dictionary) -> void:
+	if b is Array:   # 召唤物扩展段（§15.9）：一个节点可以写几块积木（数组，按顺序生效）
+		if b.is_empty() or b.size() > 8:
+			ctx.errs.append(p + "：积木数组要有 1–8 块")
+		for i in b.size():
+			_node(b[i], "%s[%d]" % [p, i], ctx)
+		return
 	if b is Dictionary and b.has("trig"):
 		_trig(b, p, ctx)
 	else:
@@ -607,6 +627,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		return
 	if _sm_block(b, p, kind, ctx, tag):   # 召唤 / 封印段
 		return
+	if _mf_block(b, p, kind, ctx, tag):   # 召唤物扩展段（§15.9）
+		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
 		return
@@ -646,11 +668,18 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			if not (b.get("r", null) is String and b.r == "zone"):
 				_num(b, "r", p, ctx, true)
 			if tag == "shape.cone":
-				_num(b, "half_deg", p, ctx, true)
+				if b.has("half"):   # 召唤物扩展段：half = 弧度（半角）
+					_num(b, "half", p, ctx, true, 0.05, PI)
+				else:
+					_num(b, "half_deg", p, ctx, true)
 				if str(b.get("center", "self")) != "self":
 					errs.append(p + ".center：shape.cone 只能以自身为原点")
+			elif str(b.get("center", "")).begins_with("summon:"):
+				var sk2 := str(b.center).substr(7)
+				if not (ctx.summons is Dictionary and ctx.summons.has(sk2)):
+					errs.append("%s.center「%s」：summon: 后面应是 blocks.summons 里的种类" % [p, str(b.center)])
 			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target"]:
-				errs.append(p + ".center 只能是 zone / self / leader / target")
+				errs.append(p + ".center 只能是 zone / self / leader / target / summon:<种类>")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"shape.orbit":
@@ -664,6 +693,15 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		"verb.heal":
 			_num(b, "pct", p, ctx, true, 0.0, 0.2)
 			_num(b, "every", p, ctx, false, 0.1)
+			# 召唤物扩展段（§15.9）：scale / knight / on_over / text / sfx
+			_num(b, "knight", p, ctx, false, 0.0, 1.0)
+			_num(b, "text", p, ctx, false, 8.0, 40.0)
+			if b.has("full") and not (b.full is bool):
+				errs.append(p + ".full 只能是 true / false")
+			if b.has("scale") and str(b.scale) != "op":
+				errs.append(p + ".scale 只能是 op（× op_atk × 同伴倍率 × heal_out）")
+			if b.has("on_over"):
+				_list(b.on_over, p + ".on_over", "instant", ctx)
 		"verb.lamp":
 			if not (b.has("add") or b.has("per_sec") or b.has("loss_mult")):
 				errs.append(p + "：verb.lamp 要写 add / per_sec / loss_mult 之一")
@@ -768,11 +806,11 @@ const FX_SCALE_MAX := 3.2
 const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit"]
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield"]
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard"]
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield"]
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard"]
 const ArtS = preload("res://scripts/art.gd")
 
 
@@ -782,6 +820,10 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 	if not (entries is Array):
 		return
 	for f in entries:
+		if mf_is(f):   # 召唤物扩展段的程序条目
+			if float(f.get("every", 0.0)) <= 0.0 and fx_on(o, f):
+				mf_fx_spawn(o, f, {"c": c, "r": r, "hits": hits, "ang": ang})
+			continue
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
 		if fx_on(o, f):
@@ -807,7 +849,10 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		if ts[i] >= ev:
 			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
 			if fx_on(o, f):
-				fx_spawn(o, f, c, r, [], 0.0)
+				if mf_is(f):
+					mf_fx_spawn(o, f, {"c": c, "r": r})
+				else:
+					fx_spawn(o, f, c, r, [], 0.0)
 	return ts
 
 
@@ -1335,14 +1380,16 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 	if not (arr is Array):
 		errs.append(p + " 必须是数组（fx 条目列表）")
 		return
-	if arr.size() > 8:
-		errs.append("%s：一块积木至多 8 个 fx 条目，这里有 %d 个" % [p, arr.size()])
+	if arr.size() > 16:
+		errs.append("%s：一块积木至多 16 个 fx 条目，这里有 %d 个" % [p, arr.size()])
 	var instant_owner: bool = owner in FX_INSTANT_OWNERS
 	for i in arr.size():
 		var q := "%s[%d]" % [p, i]
 		var f = arr[i]
 		if not (f is Dictionary):
 			errs.append(q + " 必须是对象")
+			continue
+		if _mf_fx_check(f, q, ctx, owner):   # 召唤物扩展段的程序条目（pfx / sprite / sparks / ghost …）
 			continue
 		for k in f:
 			if not k in FX_KEYS:
@@ -2115,10 +2162,14 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_list(b.get("do", []), p + ".do", "instant", ctx)
 		"trig.on_skill_start", "trig.on_skill_end":
 			_num(b, "skill", p, ctx, true, 0.0, 2.0)
-			if tag == "trig.on_skill_start":
+			if b.has("at"):   # 召唤物扩展段（§15.9）：do 里 center: target 落在这个点；on_skill_end 带 at 时也能写 delay
+				var atv := str(b.at)
+				if not (atv in ["self", "leader"] or (atv.begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(atv.substr(7)))):
+					errs.append(p + ".at 只能是 self / leader / summon:<blocks.summons 里的种类>")
+			if tag == "trig.on_skill_start" or b.has("at"):
 				_num(b, "delay", p, ctx, false, 0.0, 5.0)
 			elif b.has("delay"):
-				errs.append(p + "：trig.on_skill_end 不支持 delay")
+				errs.append(p + "：trig.on_skill_end 不写 at 时不支持 delay")
 			_list(b.get("do", []), p + ".do", "instant", ctx)
 
 
@@ -2217,7 +2268,7 @@ static func tx_update(o, dt: float) -> bool:
 	for i in 3:
 		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
 			for t in o._trigs():
-				if str(t.get("_tag", "")) == "trig.on_skill_end" and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):
+				if str(t.get("_tag", "")) == "trig.on_skill_end" and not t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):   # 带 at 的在 mf_tick（帧开头）
 					o._exec_list(t.get("do", []), tx.get("last_to", o.pos))
 	tx["prev_s"] = o.s_t.duplicate()
 	# 延迟队列（on_dash_end / on_skill_start 的 delay）
@@ -2312,6 +2363,9 @@ static func _tx_dash_end(o) -> void:
 static func tx_skill_start(o, i: int) -> void:
 	for t in o._trigs():
 		if str(t.get("_tag", "")) != "trig.on_skill_start" or int(t.get("skill", -1)) != i or not cond_true(o, t.get("cond", {})):
+			continue
+		if t.has("at"):   # 召唤物扩展段：点在触发这一刻取，delay 进本干员延迟队列
+			mf_fire_at(o, t, mf_at_point(o, str(t.at)))
 			continue
 		var dl: float = float(t.get("delay", 0.0))
 		if dl > 0.0:
@@ -3219,7 +3273,7 @@ static func _exu_skill(sb: Dictionary, p: String, ctx: Dictionary, atk_shape := 
 const SM_TAGS := ["verb.summon", "st.seal", "verb.shield", "aura.heal"]
 const SM_MOVES := ["orbit", "chase", "stay", "follow"]
 const SM_TARGETS := ["nearest", "densest", "elite", "low_hp"]
-const SM_AT := ["self", "leader", "target", "zone"]
+const SM_AT := ["self", "leader", "target", "zone", "rest"]   # rest：escort 召唤物的闲时站位（§15.9）
 const SM_KIND_KEYS := ["name", "hp", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "_doc"]
 const SM_MOVE_KEYS := ["mode", "speed", "anchor", "leash", "orbit_r", "orbit_speed", "target"]
 const SM_BODY_KEYS := ["strip", "frames", "fps", "scale", "anchor", "tint", "flip", "hover"]
@@ -3281,6 +3335,8 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 			c = at
 		"zone":
 			c = o.zone_c()
+		"rest":
+			c = mf_rest(o, kd.get("move", {}))
 		_:
 			c = o.pos
 	if c == Vector2.INF:
@@ -3309,9 +3365,15 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 		var a: float = float(st.seq) * SM_GOLD
 		var rr: float = spread * (0.5 + 0.5 * float(k + 1) / float(n))
 		var p: Vector2 = c + Vector2(cos(a) * rr, sin(a) * rr * 0.55)
-		var s := {"id": int(st.seq), "kind": kind, "pos": p, "face": float(o.face), "t": 0.0, "life": life, "skill": sk,
-			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": 0.25, "anim": 0.0, "rt": 0.0,
+		var esc: bool = str(kd.get("move", {}).get("mode", "")) == "escort"
+		if esc and n == 1:
+			p = c   # 随行召唤物：就站在落点（rest 时 = 闲时站位）
+		var s := {"id": int(st.seq), "kind": kind, "pos": p, "face": 1.0 if esc else float(o.face), "t": 0.0, "life": life, "skill": sk,
+			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": float(kd.get("attack", {}).get("first", 0.25)), "anim": 0.0, "rt": 0.0,
 			"hurt": {}, "flash": 0.0, "gone": false}
+		if esc:   # 召唤物扩展段（§15.9）的状态：动画、出手动作、绕行、追击队列、patch、残影、画面计时
+			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
+				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0, "cmd_t": 0.0})
 		st.list.append(s)
 		o.fx({"kind": "ring", "pos": p, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8})
 		if b.has("fx"):
@@ -3459,7 +3521,10 @@ static func sm_tick(o, dt: float) -> void:
 			continue
 		var i: int = int(idx.get(s.kind, 0))
 		idx[s.kind] = i + 1
-		_sm_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)
+		if str(kd.get("move", {}).get("mode", "")) == "escort":
+			mf_step(o, s, kd, dt)   # 召唤物扩展段（§15.9）：随行召唤物
+		else:
+			_sm_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)
 	for en in ends:
 		_sm_end(o, en[0], en[1])
 
@@ -3633,6 +3698,8 @@ static func sm_shadows(o) -> void:
 	if o.sm.is_empty():
 		return
 	for s in o.sm.list:
+		if mf_shadow(o, s, sm_kind(o, str(s.kind))):   # 召唤物扩展段：影子贴图
+			continue
 		var r: float = float(sm_kind(o, str(s.kind)).get("r", 10.0))
 		o.cv.draw_set_transform(s.pos + Vector2(0, 2), 0.0, Vector2(1.0, 0.4))
 		o.cv.draw_circle(Vector2.ZERO, r * 1.1, Color(0, 0, 0, 0.28))
@@ -3643,6 +3710,8 @@ static func sm_shadows(o) -> void:
 static func sm_draw(o, s: Dictionary) -> void:
 	var g = o.g
 	var kd := sm_kind(o, str(s.kind))
+	if kd.has("anim") and mf_draw(o, s, kd):   # 召唤物扩展段：按状态的帧条（缺图时往下画程序体）
+		return
 	var body: Dictionary = kd.get("body", {})
 	var hov: float = float(body.get("hover", 0.0))
 	var p: Vector2 = s.pos + Vector2(0, -hov + (sin(g.t * 3.5 + float(s.id)) * 2.0 if hov > 0.0 else 0.0))
@@ -3832,6 +3901,8 @@ static func sm_status_items(o) -> Array:
 		cnt[s.kind] = int(cnt.get(s.kind, 0)) + 1
 	for k in cnt:
 		var kd := sm_kind(o, k)
+		if not kd.get("status", true):   # 召唤物扩展段：status: false = 不显示在场数（常驻随行的 Mon3tr）
+			continue
 		out.append(["%s ×%d" % [str(kd.get("name", k)), int(cnt[k])], _sm_col(o, kd)])
 	if float(o.sm.shield) > 0.0:
 		out.append(["护盾 %d" % int(o.sm.shield), SHIELD_COL])
@@ -3856,8 +3927,8 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 			errs.append(p + " 必须是对象")
 			continue
 		for q in kd:
-			if not q in SM_KIND_KEYS:
-				errs.append("%s.%s：召唤物定义不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_KIND_KEYS)])
+			if not q in SM_KIND_KEYS + MF_KIND_KEYS:
+				errs.append("%s.%s：召唤物定义不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_KIND_KEYS + MF_KIND_KEYS)])
 		_sm_exprs(kd, p, ctx)
 		var inv = kd.get("invuln", false)
 		if not (inv is bool):
@@ -3889,11 +3960,11 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 			errs.append(p + ".move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）")
 		else:
 			for q in mv:
-				if not q in SM_MOVE_KEYS:
-					errs.append("%s.move.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_MOVE_KEYS)])
+				if not q in SM_MOVE_KEYS + MF_MOVE_KEYS:
+					errs.append("%s.move.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_MOVE_KEYS + MF_MOVE_KEYS)])
 			_sm_exprs(mv, p + ".move", ctx)
-			if not str(mv.get("mode", "")) in SM_MOVES:
-				errs.append("%s.move.mode 只能是 %s" % [p, " / ".join(SM_MOVES)])
+			if not str(mv.get("mode", "")) in SM_MOVES + ["escort"]:
+				errs.append("%s.move.mode 只能是 %s" % [p, " / ".join(SM_MOVES + ["escort"])])
 			if not str(mv.get("anchor", "leader")) in ["leader", "self"]:
 				errs.append(p + ".move.anchor 只能是 leader / self")
 			if not str(mv.get("target", "nearest")) in SM_TARGETS:
@@ -3912,6 +3983,7 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 				_num(a, "range", p + ".attack", ctx, false, 4.0, 600.0)
 				if str(a.shape) == "circle" and not str(a.get("center", "self")) in ["self", "target"]:
 					errs.append(p + ".attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心")
+		_mf_kind(kd, p, ctx)   # 召唤物扩展段（§15.9）：escort / anim / patch / fx …
 		for lk in ["on_spawn", "on_expire"]:
 			if kd.has(lk):
 				_list(kd[lk], "%s.%s" % [p, lk], "instant", ctx)
@@ -4002,3 +4074,1156 @@ static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			if not str(b.get("scope", "in_zone")) in ["in_zone", "always"]:
 				errs.append(p + ".scope 只能是 in_zone（主控在本干员区域内）/ always")
 	return true
+
+
+# ================================================================ 召唤物扩展段（docs/61 §15.9，10-12：凯尔希 Mon3tr 迁到通用召唤积木；只往后加）
+# 给「常驻随行、按状态播帧条、技能期间改攻击」一类召唤物用的通用扩展（第一个用户：凯尔希的 Mon3tr）：
+#  trig.on_deploy        招募 / 节点生效时执行一次（召唤物从上场起就在）
+#  move.mode = escort    随行：闲时站本干员身前 rest，追锚点 leash 内离锚点最近的敌人、从当前一侧贴到 gap 处；
+#                        出手动作期间不走；绕开本干员 / 主控（avoid，滞回）、柱子推出（solid）、离锚点 recall 外瞬回
+#  anim                  按状态的帧条 {idle, run, attack}（干员自己 sprites 里的键）；攻击在 attack 帧条的出手帧（fire）才判定
+#  patch                 条件成立（如 skill_active:2）时的攻击覆盖：mult（× 技能强度 power）、src（如真伤来源）、speed、
+#                        anim / seq（换帧条、起手 + 循环 + 收尾）、tint、sfx；第一条成立的生效
+#  verb.summon_mod       常驻：某种召唤物的 dmg / aspd / reach / arc / speed 倍率（按 §5.5 固定顺序依次乘），
+#                        then（延迟 delay 秒再追一击 mult）、mirror（同时向身后镜像一击 mult，没打到不画）
+#  manual = command      手动普攻 B 类：按攻击键才命令召唤物扑向瞄准方向的目标，松手 manual/m_linger 秒内打完
+#  fx（种类 / 攻击上）     §5.6 条目之外的程序条目：pfx / gfx / sprite / sparks / arc / text / banner / pause / sfx；
+#                        种类上另有 ghost（残影）/ mist（身后红雾）/ side（身体两侧的常驻爪刃）。散布一律 g.vrng
+#  verb.guard            瞬时：限时减伤（同名共用一个计时，重复施加重新计时），dmg_taken_mult 里按积木顺序相乘；look 画护壳
+#  verb.cleanse          瞬时：清除主控负面状态（what: nerve = 神经损伤）
+#  verb.heal 追加        scale: op（× op_atk × 同伴倍率 × heal_out）、knight（同时治骑士同伴）、on_over（溢出时执行）、text / sfx
+#  shape.support         普攻不造成伤害：every 秒一拍、when 条件成立时朝主控起手、出手帧执行 do（凯尔希的治疗）
+#  条件追加              node:<custom 节点 id>（已选这个节点）、hurt_any（主控或骑士同伴没满血）、a && b
+#  trig.on_skill_start / on_skill_end 追加 at（summon:<种类> / self / leader）：do 里 center: target 落在触发那一刻的这个点，
+#                        带 at 的 on_skill_end 在本帧开头结算（召唤物移动之前），二者都可写 delay（进本干员延迟队列）
+
+const MF_TAGS := ["verb.summon_mod", "verb.guard", "verb.cleanse", "trig.on_deploy"]
+const MF_KIND_KEYS := ["anim", "patch", "float", "shadow", "fx", "status", "manual"]
+const MF_MOVE_KEYS := ["rest", "gap", "avoid", "solid", "recall"]
+const MF_PATCH_KEYS := ["cond", "mult", "power", "src", "speed", "anim", "seq", "tint", "sfx", "_doc"]
+const MF_MOD_FACTORS := ["dmg", "aspd", "reach", "arc", "speed"]
+const MF_FX_KINDS := ["pfx", "gfx", "sprite", "sparks", "arc", "text", "banner", "pause", "sfx", "ghost", "mist", "side"]
+const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_r", "ring", "r_scale", "vel_r", "ang_vel", "along", "side_x", "r_mult",
+	"first_only", "face_x", "to", "to_off", "to_jit", "_doc"]
+const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side"]
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray"]
+const MF_GFX_KINDS := ["beam", "rays", "cross"]
+const MF_AT := ["center", "self", "leader", "hits", "summon"]
+const MF_CLEANSE := ["nerve"]
+const MF_GUARD_KEYS := ["verb", "value", "dur", "name", "col", "look", "fx", "cond", "_doc"]
+const MF_LOOK_KEYS := ["strip", "frames", "fps", "anchor", "alpha", "off", "fade_in", "blink", "r"]
+const MF_FACE_MIN := 0.35   # 同 character.gd FACE_MIN（转向防抖）
+const MfBal = preload("res://scripts/core/balance.gd")
+
+
+## 干员的扩展状态（data_operator.mf）：guards（名字 → {t, v, u, dur, col, look}）、mods（种类 → 倍率表）、deployed（已执行的 on_deploy）
+static func mf_st(o) -> Dictionary:
+	if o.mf.is_empty():
+		o.mf.merge({"guards": {}, "mods": {}, "deployed": {}})
+	return o.mf
+
+
+static func _mf_col(v, def := Color.WHITE) -> Color:
+	if v is Array and v.size() >= 3:
+		return Color(float(v[0]), float(v[1]), float(v[2]), float(v[3]) if v.size() > 3 else 1.0)
+	return def
+
+
+# ---------------------------------------------------------------- 条件追加（parse_cond / cond_true 转来）
+
+static func mf_parse_cond(s: String, base: Dictionary) -> Dictionary:
+	if "&&" in s:
+		var out := {"neg": false, "k": "all", "a": "", "op": "", "v": 0.0, "list": []}
+		for part in s.split("&&"):
+			var c := parse_cond(part.strip_edges(), base)
+			if c.has("err"):
+				return c
+			out.list.append(c)
+		return out
+	var neg := s.begins_with("!")
+	var t := s.substr(1).strip_edges() if neg else s
+	if t.begins_with("node:") and t.length() > 5:
+		return {"neg": neg, "k": "node", "a": t.substr(5), "op": "", "v": 0.0}
+	if t == "hurt_any":
+		return {"neg": neg, "k": "hurt_any", "a": "", "op": "", "v": 0.0}
+	return {}
+
+
+## 返回 [是否本段的条件, 值]
+static func mf_cond(o, c: Dictionary) -> Array:
+	match str(c.k):
+		"all":
+			for q in c.list:
+				if not cond_true(o, q):
+					return [true, false]
+			return [true, true]
+		"node":
+			var tk = o.get("taken")
+			return [true, tk is Array and str(c.a) in tk]
+		"hurt_any":
+			var g = o.g
+			return [true, g.hp < g.max_hp or (g.knight.alive and g.knight.hp < g.knight.maxhp)]
+	return [false, false]
+
+
+# ---------------------------------------------------------------- 瞬时 / 常驻积木
+
+## 瞬时（data_operator._exec_list 缺省分支）：verb.guard / verb.cleanse
+static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"verb.guard":
+			var st := mf_st(o)
+			var nm: String = str(b.get("name", "减伤"))
+			var gd: Dictionary = st.guards.get(nm, {})
+			if gd.is_empty():
+				gd = {"u": int(b.get("_uid", 0))}
+				st.guards[nm] = gd
+				var keys: Array = st.guards.keys()
+				keys.sort_custom(func(x, y): return int(st.guards[x].u) < int(st.guards[y].u))   # 相乘顺序固定：按积木顺序
+				var sorted := {}
+				for k in keys:
+					sorted[k] = st.guards[k]
+				st.guards = sorted
+			gd.t = float(b.get("dur", 3.0))
+			gd.dur = float(b.get("dur", 3.0))
+			gd.v = float(b.get("value", 0.0))
+			gd.col = _mf_col(b.get("col", []), o.col())
+			gd.look = b.get("look", {})
+			if b.has("fx"):
+				fx_play(o, b.fx, o.g.ppos, 30.0)
+		"verb.cleanse":
+			for w in b.get("what", []):
+				if str(w) == "nerve":
+					o.g.nerve = 0.0
+
+
+## 常驻（data_operator._sustain 转来）：verb.summon_mod 按本帧生效顺序整理成每种召唤物的倍率表
+static func mf_sustain(o, act: Array) -> void:
+	var mods := {}
+	for b in act:
+		if str(b.get("_tag", "")) != "verb.summon_mod":
+			continue
+		var k: String = str(b.get("kind", ""))
+		if not mods.has(k):
+			mods[k] = _mf_mod_empty()
+		var m: Dictionary = mods[k]
+		for f in MF_MOD_FACTORS:
+			if b.has(f):
+				m[f].append(float(b[f]))
+		if b.has("then") and m.then.is_empty():
+			m.then = b.then
+		if b.has("mirror") and m.mirror.is_empty():
+			m.mirror = b.mirror
+	if not mods.is_empty() or not o.mf.is_empty():
+		mf_st(o).mods = mods
+
+
+static func _mf_mod_empty() -> Dictionary:
+	return {"dmg": [], "aspd": [], "reach": [], "arc": [], "speed": [], "then": {}, "mirror": {}}
+
+
+static func mf_mods(o, kind: String) -> Dictionary:
+	if o.mf.is_empty():
+		return _mf_mod_empty()
+	return o.mf.mods.get(kind, _mf_mod_empty())
+
+
+## 每帧开头（data_operator.update）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end（prev = 上一帧的技能剩余秒数）
+static func mf_tick(o, dt: float, prev: Array) -> void:
+	if not o.mf.is_empty() and not o.mf.guards.is_empty():
+		for nm in o.mf.guards:
+			var gd: Dictionary = o.mf.guards[nm]
+			gd.t = maxf(0.0, float(gd.t) - dt)
+	if o.B.get("_mf_deploy", false):
+		var st := mf_st(o)
+		for t in o._trigs():
+			if str(t.get("_tag", "")) == "trig.on_deploy" and not st.deployed.has(int(t._uid)) and o.pos != Vector2.INF and cond_true(o, t.get("cond", {})):
+				st.deployed[int(t._uid)] = true
+				o._exec_list(t.get("do", []))
+	for i in 3:
+		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
+			for t in o._trigs():
+				if str(t.get("_tag", "")) == "trig.on_skill_end" and t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):
+					mf_fire_at(o, t, mf_at_point(o, str(t.at)))
+
+
+## 带 at 的技能触发：delay > 0 进本干员延迟队列（带点），否则立即执行（do 里 center: target = 这个点）
+static func mf_fire_at(o, t: Dictionary, p: Vector2) -> void:
+	var dl: float = float(t.get("delay", 0.0))
+	if dl > 0.0:
+		o.pending.append({"t": dl, "do": t.get("do", []), "at": p})
+	else:
+		o._exec_list(t.get("do", []), p)
+
+
+## summon:<种类> = 这种召唤物里最早的一个的位置（没有时退回本干员）；self / leader
+static func mf_at_point(o, at: String) -> Vector2:
+	if at.begins_with("summon"):
+		var k: String = at.substr(7) if at.length() > 7 else ""
+		if not o.sm.is_empty():
+			for s in o.sm.list:
+				if k == "" or str(s.kind) == k:
+					return s.pos
+		return o.pos
+	if at == "leader":
+		return o.g.ppos
+	return o.pos
+
+
+## 技能起手朝向（blocks.skills[i].aim）：summon:<种类> / leader；没写返回 INF（不转身）
+static func mf_skill_aim(o, i: int) -> Vector2:
+	var sk: Array = o.B.get("skills", [])
+	if i < 0 or i >= sk.size() or not sk[i].has("aim"):
+		return Vector2.INF
+	var a: String = str(sk[i].aim)
+	if a.begins_with("summon") and (o.sm.is_empty() or o.sm.list.is_empty()):
+		return o.g.ppos
+	return mf_at_point(o, a)
+
+
+## 受击询问（data_operator.dmg_taken_mult）：m × Π(1 - 各生效减伤)，按积木顺序
+static func mf_guard_mult(o, m: float) -> float:
+	if o.mf.is_empty():
+		return m
+	for nm in o.mf.guards:
+		var gd: Dictionary = o.mf.guards[nm]
+		if float(gd.t) > 0.0:
+			m *= 1.0 - float(gd.v)
+	return m
+
+
+## 状态条：技能 status（生效中）+ 生效的减伤
+static func mf_status_items(o) -> Array:
+	var out: Array = []
+	var sk: Array = o.B.get("skills", [])
+	for i in mini(3, sk.size()):
+		if sk[i].has("status") and o.skill_on(i):
+			out.append([str(sk[i].status), _mf_col(sk[i].get("status_col", []), o.col())])
+	if not o.mf.is_empty():
+		for nm in o.mf.guards:
+			if float(o.mf.guards[nm].t) > 0.0:
+				out.append([str(nm), o.mf.guards[nm].col])
+	return out
+
+
+## 减伤护壳（verb.guard.look）：主控周身。strip（art.gd 贴图，frames / fps / anchor）缺图时画程序六边形；
+## 刚罩上 fade_in 秒淡入，最后 blink 秒闪烁淡出
+static func mf_draw_guards(o) -> void:
+	if o.mf.is_empty() or o.g.ppos == Vector2.INF:
+		return
+	var g = o.g
+	for nm in o.mf.guards:
+		var gd: Dictionary = o.mf.guards[nm]
+		var lk: Dictionary = gd.get("look", {})
+		var t: float = float(gd.t)
+		if t <= 0.0 or lk.is_empty():
+			continue
+		var bl: float = float(lk.get("blink", 0.5))
+		var al: float = 1.0 if t > bl else (0.35 + 0.65 * absf(sin(t * 18.0)))
+		var c: Vector2 = g.ppos + Vector2(0, -22)
+		var ov = lk.get("off", [])
+		if ov is Array and ov.size() == 2:
+			c = g.ppos + Vector2(float(ov[0]), float(ov[1]))
+		var stx: Texture2D = ArtS.tex(str(lk.get("strip", ""))) if lk.has("strip") else null
+		if stx != null:
+			var fr: int = maxi(1, int(lk.get("frames", 1)))
+			var fin: float = clampf((float(gd.dur) - t) / maxf(0.01, float(lk.get("fade_in", 0.2))), 0.0, 1.0)
+			var av = lk.get("anchor", [])
+			var an: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2.ZERO
+			o._strip(stx, fr, int(g.t * float(lk.get("fps", 6))) % fr, c, g.PX, an, false, Color(1, 1, 1, float(lk.get("alpha", 0.5)) * al * fin))
+			continue
+		var cc: Color = gd.col
+		var R: float = float(lk.get("r", 34.0)) + 1.5 * sin(g.t * 5.0)
+		var hexp := PackedVector2Array()
+		for i in 7:
+			var an2: float = g.t * 0.6 + i * TAU / 6.0
+			hexp.append(c + Vector2(cos(an2) * R, sin(an2) * R * 1.12))
+		o.cv.draw_colored_polygon(hexp.slice(0, 6), Color(cc.r * 0.7, cc.g * 1.3, cc.b * 0.9, 0.13 * al))
+		o.cv.draw_polyline(hexp, Color(minf(cc.r * 1.6, 2.0), 2.0, minf(cc.b * 1.6, 2.0), 0.7 * al), 2.0)
+		for i in 3:
+			o.cv.draw_line(hexp[i], hexp[i + 3], Color(cc.r * 1.2, cc.g * 1.7, cc.b * 1.3, 0.18 * al), 1.0)
+
+
+# ---------------------------------------------------------------- 随行召唤物（move.mode = escort）
+
+## 闲时站位：本干员脚底 + rest（x 乘本干员朝向）
+static func mf_rest(o, mv: Dictionary) -> Vector2:
+	var rv = mv.get("rest", [44, 18])
+	var r := Vector2(float(rv[0]), float(rv[1])) if rv is Array and rv.size() == 2 else Vector2(44, 18)
+	return o.pos + r * Vector2(o.face, 1.0)
+
+
+## 攻击距离：r × op_range × 各 reach 倍率（依次乘）
+static func mf_reach(o, a: Dictionary, mods: Dictionary) -> float:
+	var r: float = float(a.get("r", 30.0)) * o.stat(&"op_range")
+	for f in mods.reach:
+		r *= f
+	return r
+
+
+## 出手伤害：base[atk_key] × _dmg_bonus × 各 dmg 倍率 [× patch.mult（× 技能强度）]
+static func mf_dmg(o, a: Dictionary, mods: Dictionary, pt: Dictionary) -> float:
+	var d: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus()
+	for f in mods.dmg:
+		d *= f
+	if pt.has("mult"):
+		d *= float(pt.mult) * (o.skill_power() if pt.get("power", false) else 1.0)
+	return d
+
+
+## 转向防抖：距上次翻身至少 FACE_MIN 秒（同干员本体）
+static func _mf_face(o, s: Dictionary, want: float) -> void:
+	if want == 0.0 or want == float(s.face) or o.g.t - float(s.get("flip_t", -99.0)) < MF_FACE_MIN:
+		return
+	s.face = want
+	s.flip_t = o.g.t
+
+
+static func _mf_set_anim(s: Dictionary, k: String) -> void:
+	if str(s.ak) != k:
+		s.ak = k
+		s.at = 0.0
+
+
+## 回位 / 追击路径绕开 avoid 里的人（self = 本干员、leader = 主控）：直线会从人身上穿过时，先走到那人脚下前方 56 的绕行点；
+## 滞回：进了绕行就走到绕行点（16 内）或 1.2 秒后才退出，退出后 0.4 秒内不再进入（docs/45 §5 的 Mon3tr 走位）
+static func _mf_route(o, s: Dictionary, mv: Dictionary, want: Vector2) -> Vector2:
+	var av = mv.get("avoid", [])
+	if not (av is Array) or av.is_empty():
+		return want
+	var g = o.g
+	if s.via != Vector2.INF:
+		if s.pos.distance_to(s.via) > 16.0 and g.t - float(s.via_t) < 1.2:
+			return s.via
+		s.via = Vector2.INF
+		s.via_off = g.t
+	if g.t - float(s.via_off) < 0.4:
+		return want
+	var cs: Array = []
+	for w in av:
+		cs.append(o.pos if str(w) == "self" else g.ppos)
+	for c in cs:
+		if c == Vector2.INF or s.pos.distance_to(c) < 12.0 or want.distance_to(c) < 12.0:
+			continue
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(c, s.pos, want)
+		if q.distance_to(c) < 40.0 and absf(s.pos.y - c.y) < 50.0:
+			var via: Vector2 = c + Vector2(0, 56)
+			if mv.has("solid") and g.tex.get("prop_pillar") != null:
+				via = g.map.push_out(via, float(mv.solid))
+			if s.pos.distance_to(via) > 32.0:
+				s.via = via
+				s.via_t = g.t
+				return via
+	return want
+
+
+## 当前生效的 patch（第一条 cond 成立的；没有 = {}）。换 patch 时记下旧 patch 的 seq 收尾秒数
+static func _mf_patch_tick(o, s: Dictionary, kd: Dictionary, dt: float) -> Dictionary:
+	var pl: Array = kd.get("patch", [])
+	var idx := -1
+	for i in pl.size():
+		if cond_true(o, pl[i].get("cond", {})):
+			idx = i
+			break
+	if idx != int(s.pidx):
+		var old: int = int(s.pidx)
+		if old >= 0 and old < pl.size() and pl[old].has("seq"):
+			s.pout = float(pl[old].seq.get("out", 0.0))
+			s.pold = old
+		s.pidx = idx
+		s.pt = 0.0
+	s.pt = float(s.pt) + dt
+	s.pout = maxf(0.0, float(s.pout) - dt)
+	s.pcur = pl[idx] if idx >= 0 else {}
+	return s.pcur
+
+
+## 种类 fx 的定时部分：带 every 的条目在召唤物处播；ghost 每 every 秒记一次残影（条件不成立时清掉）
+static func _mf_fx_tick(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
+	var fl: Array = kd.get("fx", [])
+	if fl.is_empty():
+		return
+	var gh := false
+	for i in fl.size():
+		var f: Dictionary = fl[i]
+		if f.has("ghost"):
+			if not fx_on(o, f):
+				continue
+			gh = true
+			if s.ghost.is_empty() or float(s.ghost.t) <= 0.0:
+				s.ghost = {"pos": s.pos, "face": s.face, "ak": s.ak, "at": s.at, "t": float(f.ghost.get("every", 0.12))}
+			else:
+				s.ghost.t = float(s.ghost.t) - dt
+			continue
+		var ev: float = float(f.get("every", 0.0))
+		if ev <= 0.0:
+			continue
+		var tm: float = float(s.fxt.get(i, 0.0)) - dt
+		if tm <= 0.0:
+			tm = ev
+			if fx_on(o, f):
+				if mf_is(f):
+					mf_fx_spawn(o, f, {"c": s.pos, "r": float(kd.get("r", 10.0)), "s": s})
+				else:
+					fx_spawn(o, f, s.pos, float(kd.get("r", 10.0)), [], 0.0)
+		s.fxt[i] = tm
+	if not gh:
+		s.ghost = {}
+
+
+## 一步（sm_tick 转来，代替 _sm_step）：顺序同原 Mon3tr——瞬回 → patch / 画面计时 → 选目标 → 移动 → 冷却 → 追击队列 → 出手动作 / 起手 → 动画状态
+static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
+	var g = o.g
+	var mv: Dictionary = kd.get("move", {})
+	var a: Dictionary = kd.get("attack", {})
+	var mods: Dictionary = mf_mods(o, str(s.kind))
+	var rest := mf_rest(o, mv)
+	if s.pos == Vector2.INF or s.pos.distance_to(g.ppos) > float(mv.get("recall", SM_FAR)):
+		s.pos = rest
+	var pt := _mf_patch_tick(o, s, kd, dt)
+	_mf_fx_tick(o, s, kd, dt)
+	var leash: float = float(mv.get("leash", 240.0))
+	var anc: Vector2 = _sm_anchor(o, mv)
+	var tg = s.tgt
+	if str(kd.get("manual", "")) == "command" and o.manual_attack():
+		# 手动普攻 B 类（契约 v2.5）：按攻击键命令召唤物扑向瞄准方向的目标；按下时换目标，松手后 manual/m_linger 秒内打完手上这个
+		if g.doctor.attack_want():
+			s.cmd_t = MfBal.v("manual/m_linger", 1.2)
+			if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
+				var tsm: Array = o.aim_targets(1, leash, anc)
+				if not tsm.is_empty():
+					tg = tsm[0]
+					g.doctor.atk_buf = 0.0
+		else:
+			s.cmd_t = maxf(0.0, float(s.cmd_t) - dt)
+		if float(s.cmd_t) <= 0.0 or (tg != null and (tg.dead or tg.pos.distance_to(anc) > leash + 40.0)):
+			tg = null
+		s.tgt = tg
+	elif tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
+		var ts: Array = o.nearest_enemies(1, leash, anc)
+		tg = ts[0] if not ts.is_empty() else null
+		s.tgt = tg
+	var want: Vector2 = rest
+	if tg != null:
+		var off: Vector2 = s.pos - tg.pos
+		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-float(s.face), 0)) * (float(tg.r) + float(mv.get("gap", 26.0)))
+	var prev: Vector2 = s.pos
+	if float(s.act) <= 0.0:
+		var spd: float = float(mv.get("speed", 240.0))
+		if pt.has("speed"):
+			spd *= float(pt.speed)
+		for f in mods.speed:
+			spd *= f
+		var d: Vector2 = _mf_route(o, s, mv, want) - s.pos
+		s.pos += d.normalized() * minf(d.length(), spd * dt)
+		if mv.has("solid") and g.tex.get("prop_pillar") != null:
+			s.pos = g.map.push_out(s.pos, float(mv.solid))
+	var vel: Vector2 = (s.pos - prev) / maxf(dt, 0.0001)
+	s.mv = lerpf(float(s.mv), vel.length(), clampf(dt * 10.0, 0.0, 1.0))
+	if absf(vel.x) > 20.0 and float(s.act) <= 0.0:
+		_mf_face(o, s, signf(vel.x))
+	var k: float = dt
+	for f in mods.aspd:
+		k *= f
+	s.cd = float(s.cd) - k
+	if not s.pend.is_empty():
+		for pc in s.pend:
+			pc.t -= dt
+			if pc.t <= 0.0:
+				_mf_claw(o, s, kd, float(pc.mult), true)
+		s.pend = s.pend.filter(func(pc): return pc.t > 0.0)
+	if float(s.act) > 0.0:
+		s.act = float(s.act) - dt
+		if float(s.fire) >= 0.0:
+			s.fire = float(s.fire) - dt
+			if float(s.fire) < 0.0:
+				s.fire = -1.0
+				_mf_strike(o, s, kd)
+	elif tg != null and not a.is_empty() and float(s.cd) <= 0.0 and s.pos.distance_to(tg.pos) < float(tg.r) + mf_reach(o, a, mods):
+		s.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
+		if absf(tg.pos.x - s.pos.x) > 2.0:
+			_mf_face(o, s, signf(tg.pos.x - s.pos.x))
+		var spec: Dictionary = o.sprite_spec(str(kd.get("anim", {}).get("attack", "")))
+		var fps: float = float(spec.get("fps", 14))
+		s.act = float(spec.get("frames", 4)) / fps
+		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps
+		_mf_set_anim(s, "attack")
+	_mf_set_anim(s, "attack" if float(s.act) > 0.0 else ("run" if float(s.mv) > 30.0 else "idle"))
+	s.at = float(s.at) + dt
+
+
+static func _mf_strike(o, s: Dictionary, kd: Dictionary) -> void:
+	s.swing = -float(s.swing)
+	_mf_claw(o, s, kd, 1.0, false)
+	var th: Dictionary = mf_mods(o, str(s.kind)).then
+	if not th.is_empty():
+		s.pend.append({"t": float(th.get("delay", 0.1)), "mult": float(th.get("mult", 0.5))})
+
+
+## 一击：朝 dir（face = 召唤物面向；target = 朝目标）挥出锥形；mirror 时同时向身后镜像一击（没打到不画）。second = then 的追击
+static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool) -> void:
+	var a: Dictionary = kd.get("attack", {})
+	var mods: Dictionary = mf_mods(o, str(s.kind))
+	var pt: Dictionary = s.pcur
+	var fwd: float = 0.0 if float(s.face) >= 0.0 else PI
+	if str(a.get("dir", "face")) == "target" and s.tgt != null and not s.tgt.dead:
+		fwd = (s.tgt.pos - s.pos).angle()
+	var ov = a.get("origin", [])
+	var org: Vector2 = s.pos + (Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO)
+	var fv = a.get("fx_origin", ov)
+	var fo: Vector2 = s.pos + (Vector2(float(fv[0]), float(fv[1])) if fv is Array and fv.size() == 2 else Vector2.ZERO)
+	var half: float = float(a.half) if a.has("half") else deg_to_rad(float(a.get("half_deg", 45.0)))
+	for f in mods.arc:
+		half *= f
+	var mi: Dictionary = mods.mirror
+	var dirs: Array = [fwd, fwd + PI] if not mi.is_empty() else [fwd]
+	var src: String = str(pt.get("src", a.get("src", "")))
+	var tags: Array = a.get("tags", []).duplicate()
+	if not "summon" in tags:
+		tags.append("summon")
+	var any := false
+	for i in dirs.size():
+		var ang: float = dirs[i]
+		var sd: float = 1.0 if cos(ang) >= 0.0 else -1.0
+		var reach := mf_reach(o, a, mods)
+		var dmg: float = mf_dmg(o, a, mods, pt) * mult * (1.0 if i == 0 else float(mi.get("mult", 1.0)))
+		var hits: Array = o.melee_hit(src, org, ang, half, reach + float(a.get("pad", 0.0)), dmg, float(a.get("kb", 0.0)), float(a.get("stun", 0.0)), tags, int(a.get("max_n", 0)))
+		any = any or not hits.is_empty()
+		for stt in a.get("on_hit", []):
+			for e in hits:
+				apply_status(o, e, stt)
+		if i > 0 and hits.is_empty():
+			continue   # 身后一击没打到时不画（刀光会正好盖在本干员和主控身上，docs/45 #6）
+		if a.has("fx"):
+			for f in a.fx:
+				if f is Dictionary and fx_on(o, f) and not (second and f.get("first_only", false)):
+					if mf_is(f):
+						mf_fx_spawn(o, f, {"c": fo, "r": reach, "hits": hits, "ang": ang, "sd": sd, "reach": reach, "half": half, "second": second, "swing": float(s.swing), "s": s})
+					else:
+						fx_spawn(o, f, fo, reach, hits, ang)
+	if any:
+		var sf: Dictionary = a.get("sfx", {})
+		var ps: Dictionary = pt.get("sfx", {})
+		if not sf.is_empty():
+			var th: Dictionary = mods.then
+			_mf_sfx(o, str(sf.get("kind", "atk")), float(ps.get("db", sf.get("db", 0.0))),
+				float(ps.get("pitch", sf.get("pitch", 1.0))) * (float(th.get("pitch", 1.0)) if second else 1.0))
+
+
+static func _mf_sfx(o, kind: String, db: float, pitch: float) -> void:
+	var g = o.g
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		sfx.op(o.id, kind, db, pitch)
+
+
+## 悬浮高度（世界像素，负 = 往上）：float {h, amp, hz}：-h - amp × sin(g.t × hz + x × 0.01)
+static func _mf_hover(o, s: Dictionary, kd: Dictionary) -> float:
+	var fl: Dictionary = kd.get("float", {})
+	if fl.is_empty():
+		return 0.0
+	return -float(fl.get("h", 0.0)) - float(fl.get("amp", 0.0)) * sin(o.g.t * float(fl.get("hz", 2.6)) + s.pos.x * 0.01)
+
+
+## 这一帧的帧条：[贴图, 帧号, 帧数, 脚底键]；patch 的 seq（起手 intro 帧、loop 段循环、收尾 out 秒停在末帧）代替 idle / run，攻击用 patch.anim.attack
+static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -> Array:
+	var an: Dictionary = kd.get("anim", {})
+	var pl: Array = kd.get("patch", [])
+	var pt: Dictionary = s.pcur
+	var sq: Dictionary = {}
+	var live := false
+	if pt.has("seq"):
+		sq = pt.seq
+		live = true
+	elif float(s.pout) > 0.0 and int(s.get("pold", -1)) >= 0 and int(s.pold) < pl.size():
+		sq = pl[int(s.pold)].get("seq", {})
+	if not sq.is_empty() and ak != "attack":
+		var key: String = str(sq.get("strip", ""))
+		var tx: Texture2D = o.anim_tex(key)
+		if tx != null:
+			var n: int = o.anim_hframes(tx, key)
+			var fps: float = float(o.sprite_spec(key).get("fps", 12))
+			var fr: int
+			if not live:
+				fr = n - 1
+			else:
+				var el: float = float(s.pt)
+				var intro: float = float(sq.get("intro", 0)) / fps
+				var lp = sq.get("loop", [0, n - 1])
+				var l0: int = int(lp[0])
+				var ln: int = maxi(1, int(lp[1]) - l0 + 1)
+				fr = int(el * fps) if el < intro else l0 + int((el - intro) * fps) % ln
+			return [tx, clampi(fr, 0, n - 1), n, key]
+	var base_key: String = str(an.get(ak, an.get("idle", "")))
+	var pa: Dictionary = pt.get("anim", {})
+	var tx2: Texture2D = o.anim_tex(str(pa.get(ak, base_key)))
+	if tx2 == null:
+		tx2 = o.anim_tex(base_key)
+	if tx2 == null:
+		return []
+	var n2: int = o.anim_hframes(tx2, base_key)
+	var fr2: int
+	if ak == "attack":
+		fr2 = clampi(int(at * float(o.sprite_spec(base_key).get("fps", 14))), 0, n2 - 1)
+	else:
+		fr2 = int(at * float(o.sprite_spec(base_key).get("fps", 4))) % n2
+	return [tx2, fr2, n2, base_key]
+
+
+## 画一个随行召唤物（sm_draw 转来）：残影 → 身后红雾 → 本体（按状态帧条、悬浮起伏、patch 染色）→ 两侧爪刃
+static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
+	var fr := _mf_frame(o, s, kd, str(s.ak), float(s.at))
+	if fr.is_empty():
+		return false
+	var g = o.g
+	var hov := _mf_hover(o, s, kd)
+	var fl: Array = kd.get("fx", [])
+	for f in fl:
+		if not (f is Dictionary) or not fx_on(o, f):
+			continue
+		if f.has("ghost") and not s.ghost.is_empty() and s.ghost.pos.distance_to(s.pos) > 3.0:
+			var gf := _mf_frame(o, s, kd, str(s.ghost.ak), float(s.ghost.at))
+			if not gf.is_empty():
+				o.draw_sprite_at(s.ghost.pos + Vector2(0, hov), float(s.ghost.face) < 0.0, _mf_col(f.ghost.get("tint", []), Color(1, 1, 1, 0.35)), gf[1], gf[0], gf[2], o.foot_off(gf[0], gf[3]))
+		elif f.has("mist"):
+			var m: Dictionary = f.mist
+			var mc: Color = _mf_col(m.get("col", []), Color(0.85, 0.025, 0.02, 0.12))
+			for q in int(m.get("n", 3)):
+				var ph: float = g.t * float(m.get("hz", 1.7)) + q * 1.3
+				var off := Vector2(cos(ph) * float(m.get("dx", 16.0)), sin(ph * 1.3) * float(m.get("dy", 10.0)) + hov + float(m.get("y", -50.0)))
+				o.cv.draw_circle(s.pos + off, float(m.get("r", 14.0)) + float(m.get("rv", 5.0)) * sin(ph * 2.0), mc)
+	var col := Color.WHITE
+	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
+		col = _mf_col(s.pcur.tint)
+	o.draw_sprite_at(s.pos + Vector2(0, hov), float(s.face) < 0.0, col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
+	for f in fl:
+		if f is Dictionary and f.has("side") and fx_on(o, f):
+			_mf_side(o, s, f.side, hov)
+	return true
+
+
+## 身体两侧对称的常驻装饰（爪刃）：strip（art.gd 贴图，frames / fps / anchor，朝右一侧水平镜像）或程序双层弧（col）；j = 第几组（往外 dxj、往下 yj）
+static func _mf_side(o, s: Dictionary, sd: Dictionary, hov: float) -> void:
+	var g = o.g
+	var j: int = int(sd.get("j", 0))
+	var body: Vector2 = s.pos + Vector2(0, hov + float(sd.get("body_y", -26.0)))
+	var sides: Array = [float(s.face), -float(s.face)]
+	var tx: Texture2D = ArtS.tex(str(sd.strip)) if sd.has("strip") else null
+	if tx != null:
+		var frames: int = maxi(1, int(sd.get("frames", 1)))
+		var bf: int = int(g.t * float(sd.get("fps", 4))) % frames
+		var av = sd.get("anchor", [])
+		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2.ZERO
+		for q in sides:
+			var bob: float = sin(g.t * 3.0 + j * 1.7 + q) * float(sd.get("bob", 2.5))
+			var bp: Vector2 = body + Vector2(q * (float(sd.get("dx", 33.0)) + float(sd.get("dxj", 5.0)) * j), float(sd.get("y", -10.0)) + float(sd.get("yj", 15.0)) * j + bob)
+			o._strip(tx, frames, (bf + j) % frames, bp, g.PX, anc, q > 0.0, Color.WHITE)
+		return
+	if sd.has("strip") and not sd.has("col"):
+		return
+	var c: Color = _mf_col(sd.get("col", []), o.col())
+	for q in sides:
+		var base_a: float = 0.0 if q >= 0.0 else PI
+		var sway: float = sin(g.t * 3.0 + j * 1.7 + q) * 0.18
+		var cp: Vector2 = body + Vector2(q * (float(sd.get("arc_dx", 27.0)) + float(sd.get("dxj", 5.0)) * j), float(sd.get("y", -10.0)) + float(sd.get("yj", 15.0)) * j)
+		var a0: float = base_a - 0.95 + sway
+		var a1: float = base_a + 0.95 + sway
+		o.cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r, c.g, c.b, 0.22), 6.0)
+		o.cv.draw_arc(cp, 15.0, a0, a1, 12, Color(c.r * 1.7, c.g * 1.7, c.b * 1.5, 0.85), 2.0)
+
+
+## 影子：shadow = 影子贴图倍率（悬浮时随起伏缩放 ±10%）；返回 false = 没写，走程序椭圆
+static func mf_shadow(o, s: Dictionary, kd: Dictionary) -> bool:
+	if not kd.has("shadow"):
+		return false
+	var fl: Dictionary = kd.get("float", {})
+	var k: float = float(kd.shadow)
+	if not fl.is_empty():
+		k *= 1.0 - 0.1 * sin(o.g.t * float(fl.get("hz", 2.6)) + s.pos.x * 0.01)
+	o.draw_spr("shadow", 1, 0, s.pos + Vector2(0, 4), o.g.PX * k)
+	return true
+
+
+# ---------------------------------------------------------------- 程序 fx 条目（§5.6 追加；纯画面，只用 g.vrng）
+
+static func mf_is(f) -> bool:
+	if not (f is Dictionary):
+		return false
+	for k in MF_FX_KINDS:
+		if f.has(k):
+			return true
+	return false
+
+
+## 一个数值：数字原样；[lo, hi] 取 g.vrng 区间随机
+static func _mf_num(g, v) -> float:
+	if v is Array and v.size() == 2:
+		return g.vrng.randf_range(float(v[0]), float(v[1]))
+	return float(v)
+
+
+## 条目的落点列表（at：center = 出手 / 区域中心、self、leader、hits = 每个命中的敌人、summon = 本干员的每个召唤物）
+static func _mf_points(o, f: Dictionary, ctx: Dictionary) -> Array:
+	var g = o.g
+	var out: Array = []
+	match str(f.get("at", "center")):
+		"self":
+			out.append(o.pos)
+		"leader":
+			out.append(g.ppos)
+		"hits":
+			for e in ctx.get("hits", []):
+				out.append(e.pos + Vector2(0, -float(e.r) * 0.5))
+		"summon":
+			if not o.sm.is_empty():
+				for s in o.sm.list:
+					out.append(s.pos)
+		_:
+			out.append(ctx.get("c", o.pos))
+	var res: Array = []
+	var ov = f.get("off", [])
+	var off := Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+	if f.get("face_x", false):
+		off.x *= o.face
+	var al: float = float(f.get("along", 0.0)) * float(f.get("r_mult", 1.0))
+	var sx: float = float(f.get("side_x", 0.0)) * float(f.get("r_mult", 1.0))
+	var rch: float = float(ctx.get("reach", ctx.get("r", 0.0)))
+	var dir := Vector2.from_angle(float(ctx.get("ang", 0.0)))
+	for p in out:
+		if p == Vector2.INF:
+			continue
+		res.append(p + off + dir * rch * al + Vector2(float(ctx.get("sd", 1.0)) * rch * sx, 0))
+	return res
+
+
+## 播一个程序条目。ctx：c（中心）、r（半径）、hits、ang、sd（这一击朝左右）、reach、half、second、swing、s（召唤物）
+static func mf_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
+	var g = o.g
+	if g == null:
+		return
+	if f.has("pause"):
+		o.impact_pause(float(f.pause))
+		return
+	if f.has("sfx"):
+		var sv = f.sfx
+		if sv is Dictionary:
+			_mf_sfx(o, str(sv.get("kind", "hit")), float(sv.get("db", 0.0)), float(sv.get("pitch", 1.0)))
+		else:
+			_mf_sfx(o, str(sv), 0.0, 1.0)
+		return
+	if f.has("banner"):
+		o.show_banner(str(f.banner))
+		return
+	if f.has("ghost") or f.has("mist") or f.has("side"):
+		return   # 种类常驻画面，在 mf_draw 里画
+	if f.has("pfx") and o.pfx.size() > 260:
+		return
+	for p in _mf_points(o, f, ctx):
+		if f.has("text"):
+			var tv: Dictionary = f.text if f.text is Dictionary else {"s": str(f.text)}
+			o.float_text(p, str(tv.get("s", "")), _mf_col(tv.get("col", []), o.col()), int(tv.get("size", 14)))
+		elif f.has("sparks"):
+			var sp: Dictionary = f.sparks
+			var n: int = int(round(float(sp.get("n", 5)) * (1.0 + 0.2 * o.node_lv)))
+			var spd: float = float(sp.get("spd", 160.0))
+			for k in n:
+				o.fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd),
+					"life": float(sp.get("life", 0.3)) * g.vrng.randf_range(0.7, 1.2), "col": _mf_col(sp.get("col", []), o.col()), "sz": float(sp.get("sz", 2.5)), "drag": 2.0, "grav": 0.0, "floor": false})
+		elif f.has("arc"):
+			var ar: Dictionary = f.arc
+			o.fx({"kind": "crescent", "pos": p, "ang": float(ctx.get("ang", 0.0)), "r": float(ctx.get("reach", 30.0)) + float(ar.get("pad", 0.0)),
+				"w": float(ar.get("w", 5.0)), "sweep": float(ctx.get("half", 0.5)) * 2.0, "dir": float(ctx.get("sd", 1.0)), "life": float(ar.get("life", 0.2)),
+				"col": _mf_col(ar.get("col", []), o.col())})
+		elif f.has("sprite"):
+			_mf_sprite(o, f, p, ctx)
+		elif f.has("pfx") or f.has("gfx"):
+			var tpl: Dictionary = f.pfx if f.has("pfx") else f.gfx
+			var n2: int = int(f.get("n", 1))
+			for i in n2:
+				var px := _mf_particle(o, f, tpl, p, ctx, i, n2)
+				if f.has("gfx"):
+					px["max"] = px.life
+					g.fx.append(px)
+				else:
+					o.fx(px)
+
+
+## 一个粒子：模板里的 [lo, hi] 取随机；jit 方框 / jit_r（× 半径的地面椭圆）散开；ring 均匀分角度（± 抖动）；vel_r 随机方向速度；
+## r_scale 列出的字段 × 半径；to / to_off 给 beam / line 的终点；颜色字段是数组
+static func _mf_particle(o, f: Dictionary, tpl: Dictionary, p: Vector2, ctx: Dictionary, i: int, n: int) -> Dictionary:
+	var g = o.g
+	var px := {}
+	for k in tpl:
+		var v = tpl[k]
+		if k in ["col"]:
+			px[k] = _mf_col(v, o.col())
+		elif k == "vel" and v is Array and v.size() == 2 and v[0] is Array:
+			px[k] = Vector2(_mf_num(g, v[0]), _mf_num(g, v[1]))
+		elif v is Array and v.size() == 2 and (v[0] is int or v[0] is float):
+			px[k] = _mf_num(g, v)
+		else:
+			px[k] = v
+	var r: float = float(ctx.get("r", 0.0))
+	for k in f.get("r_scale", []):
+		if px.has(k):
+			px[k] = float(px[k]) * r
+	var q: Vector2 = p
+	var jv = f.get("jit", [])
+	if jv is Array and jv.size() == 4:
+		q += Vector2(g.vrng.randf_range(float(jv[0]), float(jv[2])), g.vrng.randf_range(float(jv[1]), float(jv[3])))
+	var jr = f.get("jit_r", [])
+	if jr is Array and jr.size() == 2:
+		q += Vector2(g.vrng.randf_range(-r, r) * float(jr[0]), g.vrng.randf_range(-r, r) * float(jr[1]))
+	px["pos"] = q
+	if f.has("ring"):
+		px["ang"] = TAU * i / float(maxi(1, n)) + g.vrng.randf_range(-float(f.ring), float(f.ring))
+	if f.has("vel_r"):
+		var vr = f.vel_r
+		var vel: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * _mf_num(g, vr)
+		px["vel"] = vel
+		if f.get("ang_vel", false):
+			px["ang"] = vel.angle()
+	if f.has("to"):
+		var tp: Vector2 = mf_at_point(o, str(f.to)) if str(f.to) != "center" else ctx.get("c", o.pos)
+		var tv2 = f.get("to_off", [])
+		if tv2 is Array and tv2.size() == 2:
+			tp += Vector2(float(tv2[0]), float(tv2[1]))
+		var tj = f.get("to_jit", [])
+		if tj is Array and tj.size() == 4:
+			tp += Vector2(g.vrng.randf_range(float(tj[0]), float(tj[2])), g.vrng.randf_range(float(tj[1]), float(tj[3])))
+		if str(px.get("kind", "")) == "beam":
+			px["a"] = q
+			px["b"] = tp
+		else:
+			px["to"] = tp
+	if not px.has("life"):
+		px["life"] = 0.3
+	return px
+
+
+## 一次性帧条（vfx 精灵，同手写干员的 spawn_fx_sprite）：along / side_x 沿这一击的方向放；fit = [参考半径, 最小, 最大] 按攻击距离缩放、
+## scale_r = 每世界像素半径的倍率（× r_mult 后的半径）；rot / second_rot / swing_rot 都乘这一击的左右（sd）；flip_side（缺省 true）：朝左时水平翻转
+static func _mf_sprite(o, f: Dictionary, p: Vector2, ctx: Dictionary) -> void:
+	var g = o.g
+	var sv: Dictionary = f.sprite if f.sprite is Dictionary else {"name": str(f.sprite)}
+	var nm: String = str(sv.get("name", ""))
+	var sd: float = float(ctx.get("sd", 1.0))
+	var second: bool = ctx.get("second", false)
+	var rch: float = float(ctx.get("reach", ctx.get("r", 0.0)))
+	var sc: float = g.PX
+	var fit = sv.get("fit", [])
+	if fit is Array and fit.size() == 3:
+		sc = g.PX * clampf(rch / float(fit[0]), float(fit[1]), float(fit[2]))
+	elif sv.has("scale_r"):
+		sc = rch * float(f.get("r_mult", 1.0)) * float(sv.scale_r)
+	sc *= float(sv.get("scale", 1.0)) * (float(sv.get("second_scale", 1.0)) if second else 1.0)
+	var sw: float = float(ctx.get("swing", 1.0)) * (-1.0 if second else 1.0)
+	var rot: float = sd * (float(sv.get("rot", 0.0)) + (float(sv.get("second_rot", 0.0)) if second else 0.0) + float(sv.get("swing_rot", 0.0)) * sw)
+	o.spawn_fx_sprite(nm, p, sc, rot, sv.get("flip_side", true) and sd < 0.0, sv.get("bottom", false), _mf_col(sv.get("tint", [])))
+
+
+## 程序粒子的画法（data_operator._draw_pfx 转来；原凯尔希脚本的 crescent / impact / core / qshard / beamray）
+static func mf_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	var P := func(v: Vector2) -> Vector2: return (v / 2.0).round() * 2.0
+	match str(f.kind):
+		"crescent":
+			var u: float = 1.0 - a
+			var rev: float = minf(1.0, u / 0.4)
+			var half: float = f.sweep * 0.5
+			var a0: float = f.ang - half * f.dir
+			var a1: float = a0 + f.sweep * rev * f.dir
+			var n := 16
+			var outer := PackedVector2Array()
+			var inner := PackedVector2Array()
+			var edge := PackedVector2Array()
+			for i in n + 1:
+				var t: float = float(i) / n
+				var an: float = lerpf(a0, a1, t)
+				var th: float = f.w * sin(t * PI) * (1.0 - 0.5 * maxf(0.0, u - 0.4) / 0.6)
+				var dv: Vector2 = Vector2.from_angle(an)
+				var sq := Vector2(1.0, 0.8)
+				outer.append(P.call(f.pos + dv * (f.r + th * 0.5) * sq))
+				inner.append(P.call(f.pos + dv * (f.r - th * 0.5) * sq))
+				edge.append(P.call(f.pos + dv * (f.r + th * 0.35) * sq))
+			var c: Color = f.col
+			if outer[0].distance_to(outer[outer.size() - 1]) > 4.0:
+				for i in n:
+					var q := PackedVector2Array([outer[i], outer[i + 1], inner[i + 1], inner[i]])
+					if absf((q[1] - q[0]).cross(q[3] - q[0])) + absf((q[2] - q[1]).cross(q[3] - q[1])) > 2.0:
+						cv.draw_colored_polygon(q, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.75 * a))
+				cv.draw_polyline(edge, Color(2.0, 2.0, 1.9, 0.9 * a), 2.0)
+			return true
+		"impact":
+			var k: float = 1.0 - a
+			var L: float = f.r * (0.6 + 0.8 * k)
+			var c2: Color = f.col
+			cv.draw_circle(f.pos, f.r * (0.9 + 0.4 * k), Color(c2.r * 1.5, c2.g * 1.5, c2.b * 1.5, 0.35 * a))
+			cv.draw_circle(f.pos, f.r * 0.7 * a + 2.0, Color(2.4, 2.4, 2.2, a))
+			for q in 4:
+				var dv2 := Vector2.from_angle(q * PI / 4.0)
+				var ll: float = L * (1.0 if q % 2 == 0 else 0.6)
+				cv.draw_line(f.pos - dv2 * ll, f.pos + dv2 * ll, Color(2.2, 2.2, 2.0, a), 2.0)
+			return true
+		"core":
+			var k3: float = 1.0 - a
+			var sc: float = 0.6 + 0.8 * minf(1.0, k3 * 2.5)
+			var al: float = 1.0 if k3 < 0.55 else maxf(0.0, 1.0 - (k3 - 0.55) / 0.45)
+			var R: float = f.r * sc
+			var top: Vector2 = f.pos + Vector2(0, -R * 1.3)
+			var bot: Vector2 = f.pos + Vector2(0, R * 1.3)
+			var lft: Vector2 = f.pos + Vector2(-R, 0)
+			var rgt: Vector2 = f.pos + Vector2(R, 0)
+			var mid: Vector2 = f.pos + Vector2(R * 0.25, -R * 0.1)
+			var cc: Color = f.get("col", Color(1.6, 0.16, 0.12))
+			cv.draw_circle(f.pos, R * 1.8, Color(cc.r * 1.25, cc.g * 1.9, cc.b * 1.25, 0.25 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, rgt, bot, lft]), Color(cc.r, cc.g, cc.b, 0.85 * al))
+			cv.draw_colored_polygon(PackedVector2Array([top, mid, bot, lft]), Color(cc.r * 1.375, cc.g * 3.1, cc.b * 2.5, 0.9 * al))
+			cv.draw_polyline(PackedVector2Array([top, rgt, bot, lft, top]), Color(cc.r * 1.5, cc.g * 6.2, cc.b * 5.8, al), 2.0)
+			return true
+		"qshard":
+			var hs: float = f.sz * 0.5
+			var r0: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * hs * 1.414
+			var r1: Vector2 = r0.orthogonal()
+			var pts := PackedVector2Array([f.pos + r0, f.pos + r1, f.pos - r0, f.pos - r1, f.pos + r0])
+			var qc: Color = f.get("col", Color(1.6, 0.2, 0.1))
+			cv.draw_colored_polygon(pts.slice(0, 4), Color(qc.r, qc.g, qc.b, 0.25 * a))
+			cv.draw_polyline(pts, Color(qc.r * 1.375, qc.g * 2.0, qc.b * 2.0, a), 2.0)
+			return true
+		"beamray":
+			var k4: float = 1.0 - a
+			var dv3: Vector2 = Vector2.from_angle(f.ang)
+			var L2: float = f.len * minf(1.0, k4 * 3.0)
+			cv.draw_line(f.pos + dv3 * 10.0, f.pos + dv3 * L2, Color(f.col.r * 1.4, f.col.g * 1.6, f.col.b * 1.3, 0.6 * a), 3.0 * a + 1.0)
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+## _block 转来：本段的积木（MF_TAGS）校验完返回 true
+static func _mf_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in MF_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"verb.summon_mod": ["skill", "sustain"],
+		"verb.guard": ["skill", "instant"],
+		"verb.cleanse": ["skill", "instant"],
+		"trig.on_deploy": ["trig"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"verb.summon_mod":
+			var k := str(b.get("kind", ""))
+			var sd = ctx.get("summons", {})
+			if not (sd is Dictionary) or not sd.has(k):
+				errs.append("%s.kind「%s」没在 blocks.summons 里定义" % [p, k])
+			var any := false
+			for f in MF_MOD_FACTORS:
+				if b.has(f):
+					any = true
+					_num(b, f, p, ctx, false, 0.1, 10.0)
+			for q in ["then", "mirror"]:
+				if b.has(q):
+					any = true
+					var v = b[q]
+					if not (v is Dictionary):
+						errs.append("%s.%s 必须是对象" % [p, q])
+						continue
+					for kk in v:
+						if not kk in ["delay", "mult", "pitch", "_doc"]:
+							errs.append("%s.%s.%s：只能写 delay / mult / pitch" % [p, q, kk])
+					_sm_exprs(v, "%s.%s" % [p, q], ctx)
+					_num(v, "mult", "%s.%s" % [p, q], ctx, true, 0.0, 5.0)
+					if q == "then":
+						_num(v, "delay", "%s.%s" % [p, q], ctx, true, 0.0, 2.0)
+					_num(v, "pitch", "%s.%s" % [p, q], ctx, false, 0.25, 4.0)
+			if not any:
+				errs.append(p + "：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror 之一")
+			for kk in b:
+				if not kk in MF_MOD_FACTORS + ["then", "mirror", "verb", "kind", "cond", "_doc", "_uid", "_tag"]:
+					errs.append("%s.%s：verb.summon_mod 不认识的字段" % [p, kk])
+		"verb.guard":
+			_num(b, "value", p, ctx, true, 0.0, 0.9)
+			_num(b, "dur", p, ctx, true, 0.1, 60.0)
+			for kk in b:
+				if not kk in MF_GUARD_KEYS:
+					errs.append("%s.%s：verb.guard 不认识的字段（只能是 %s）" % [p, kk, " / ".join(MF_GUARD_KEYS)])
+			if b.has("look"):
+				if not (b.look is Dictionary):
+					errs.append(p + ".look 必须是对象")
+				else:
+					for kk in b.look:
+						if not kk in MF_LOOK_KEYS:
+							errs.append("%s.look.%s：不认识的字段（只能是 %s）" % [p, kk, " / ".join(MF_LOOK_KEYS)])
+		"verb.cleanse":
+			var w = b.get("what", [])
+			if not (w is Array) or w.is_empty() or w.any(func(x): return not str(x) in MF_CLEANSE):
+				errs.append("%s.what 必须是非空数组，取值 %s" % [p, " / ".join(MF_CLEANSE)])
+		"trig.on_deploy":
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+	return true
+
+
+## 召唤物种类的扩展字段（_sm_kinds 转来）
+static func _mf_kind(kd: Dictionary, p: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	var mv: Dictionary = kd.get("move", {}) if kd.get("move", {}) is Dictionary else {}
+	var esc: bool = str(mv.get("mode", "")) == "escort"
+	for k in MF_MOVE_KEYS:
+		if mv.has(k) and not esc:
+			errs.append("%s.move.%s 只用于 mode = escort" % [p, k])
+	if esc:
+		if mv.has("rest") and not (mv.rest is Array and mv.rest.size() == 2):
+			errs.append(p + ".move.rest 必须是 [x, y]")
+		_num(mv, "gap", p + ".move", ctx, false, 0.0, 200.0)
+		_num(mv, "solid", p + ".move", ctx, false, 1.0, 60.0)
+		_num(mv, "recall", p + ".move", ctx, false, 100.0, 2000.0)
+		var av = mv.get("avoid", [])
+		if not (av is Array) or av.any(func(x): return not str(x) in ["self", "leader"]):
+			errs.append(p + ".move.avoid 只能是 self / leader 的数组")
+		var a = kd.get("attack", null)
+		if a is Dictionary and str(a.get("shape", "")) != "cone":
+			errs.append(p + ".attack：escort 召唤物的攻击只能是 shape.cone（朝面向挥出）")
+		if a is Dictionary:
+			if not str(a.get("dir", "face")) in ["face", "target"]:
+				errs.append(p + ".attack.dir 只能是 face / target")
+			_num(a, "pad", p + ".attack", ctx, false, 0.0, 200.0)
+			for q in ["origin", "fx_origin"]:
+				if a.has(q) and not (a[q] is Array and a[q].size() == 2):
+					errs.append("%s.attack.%s 必须是 [x, y]" % [p, q])
+	if kd.has("manual") and str(kd.manual) != "command":
+		errs.append(p + ".manual 只能是 command（手动普攻 B 类：按攻击键才命令它出击）")
+	if kd.has("manual") and not esc:
+		errs.append(p + ".manual 只用于 mode = escort")
+	if kd.has("status") and not (kd.status is bool):
+		errs.append(p + ".status 只能是 true / false（false = 状态条不显示在场数）")
+	_num(kd, "shadow", p, ctx, false, 0.2, 4.0)
+	if kd.has("float"):
+		if not (kd.float is Dictionary):
+			errs.append(p + ".float 必须是对象 {h, amp, hz}")
+		else:
+			_num(kd.float, "h", p + ".float", ctx, false, 0.0, 60.0)
+			_num(kd.float, "amp", p + ".float", ctx, false, 0.0, 30.0)
+			_num(kd.float, "hz", p + ".float", ctx, false, 0.0, 20.0)
+	if kd.has("anim"):
+		if not esc:
+			errs.append(p + ".anim 只用于 mode = escort")
+		var an = kd.anim
+		if not (an is Dictionary) or not an.has("idle"):
+			errs.append(p + ".anim 必须是对象，至少有 idle")
+		else:
+			for k in an:
+				if not k in ["idle", "run", "attack"]:
+					errs.append("%s.anim.%s：只能是 idle / run / attack" % [p, k])
+				elif not ctx.get("sprites", {}).has(str(an[k])):
+					errs.append("%s.anim.%s「%s」不是本干员 sprites 里的帧条" % [p, k, str(an[k])])
+	if kd.has("patch"):
+		var pl = kd.patch
+		if not (pl is Array) or pl.size() > 6:
+			errs.append(p + ".patch 必须是数组（≤ 6 条）")
+		else:
+			for i in pl.size():
+				var q := "%s.patch[%d]" % [p, i]
+				var pe = pl[i]
+				if not (pe is Dictionary):
+					errs.append(q + " 必须是对象")
+					continue
+				for k in pe:
+					if not k in MF_PATCH_KEYS:
+						errs.append("%s.%s：不认识的字段（只能是 %s）" % [q, k, " / ".join(MF_PATCH_KEYS)])
+				if not pe.has("cond"):
+					errs.append(q + " 缺 cond（什么时候生效）")
+				elif not (pe.cond is String) or parse_cond(pe.cond, ctx.base).has("err"):
+					errs.append(q + ".cond 看不懂")
+				_sm_exprs(pe, q, ctx)
+				_num(pe, "mult", q, ctx, false, 0.0, 20.0)
+				_num(pe, "speed", q, ctx, false, 0.1, 5.0)
+				if pe.has("src") and not ctx.srcs.has(str(pe.src)):
+					errs.append("%s.src「%s」没在 hit_sources 里登记" % [q, str(pe.src)])
+				if pe.has("anim"):
+					for k in pe.anim:
+						if not ctx.get("sprites", {}).has(str(pe.anim[k])):
+							errs.append("%s.anim.%s「%s」不是本干员 sprites 里的帧条" % [q, k, str(pe.anim[k])])
+				if pe.has("seq"):
+					var sq = pe.seq
+					if not (sq is Dictionary) or not ctx.get("sprites", {}).has(str(sq.get("strip", ""))):
+						errs.append(q + ".seq.strip 必须是本干员 sprites 里的帧条")
+					elif sq.has("loop") and not (sq.loop is Array and sq.loop.size() == 2):
+						errs.append(q + ".seq.loop 必须是 [首帧, 末帧]")
+	if kd.has("fx"):
+		_fx(kd.fx, p + ".fx", ctx, "summon")
+
+
+## fx 条目里的程序条目（_fx 转来）：返回 true = 已校验
+static func _mf_fx_check(f: Dictionary, q: String, ctx: Dictionary, owner: String) -> bool:
+	if not mf_is(f):
+		return false
+	var errs: Array = ctx.errs
+	var kinds: Array = MF_FX_KINDS.filter(func(k): return f.has(k))
+	if kinds.size() != 1:
+		errs.append("%s：程序 fx 条目恰好写一种（%s），这里有 %d 种" % [q, " / ".join(MF_FX_KINDS), kinds.size()])
+		return true
+	var kk: String = kinds[0]
+	for k in f:
+		if k != kk and not k in MF_FX_COMMON:
+			errs.append("%s.%s：程序 fx 条目不认识的字段" % [q, k])
+	if kk in ["ghost", "mist", "side"] and owner != "summon":
+		errs.append("%s.%s 只能写在召唤物种类的 fx 里" % [q, kk])
+	var at := str(f.get("at", "center"))
+	if not at in MF_AT:
+		errs.append("%s.at 只能是 %s" % [q, " / ".join(MF_AT)])
+	if f.has("cond"):
+		if not (f.cond is String) or parse_cond(f.cond, ctx.base).has("err"):
+			errs.append(q + ".cond 看不懂")
+	_num(f, "n", q, ctx, false, 1.0, 32.0)
+	_num(f, "every", q, ctx, false, 0.03, 60.0)
+	if f.has("every") and owner in FX_INSTANT_OWNERS:
+		errs.append(q + ".every 只能写在常驻积木 / 召唤物种类上")
+	match kk:
+		"pfx", "gfx":
+			var t = f[kk]
+			if not (t is Dictionary):
+				errs.append("%s.%s 必须是粒子模板对象" % [q, kk])
+			elif not str(t.get("kind", "")) in (MF_PFX_KINDS if kk == "pfx" else MF_GFX_KINDS):
+				errs.append("%s.%s.kind 只能是 %s" % [q, kk, " / ".join(MF_PFX_KINDS if kk == "pfx" else MF_GFX_KINDS)])
+			else:
+				for k in t:   # 数值字段：数字或 [lo, hi]（g.vrng 区间随机）
+					var v = t[k]
+					if v is Array and v.size() == 2 and v.all(func(x): return x is int or x is float):
+						if float(v[0]) > float(v[1]):
+							errs.append("%s.%s.%s：[lo, hi] 要 lo ≤ hi" % [q, kk, k])
+					elif k == "life":
+						_num(t, "life", "%s.%s" % [q, kk], ctx, false, 0.02, 5.0)
+		"sprite":
+			var sv = f.sprite
+			var nm: String = str(sv.get("name", "")) if sv is Dictionary else str(sv)
+			if not nm.begins_with("fx_"):
+				errs.append(q + ".sprite 必须是 V6_FRAMES 里的 fx_* 帧条（字符串，或 {name, fit, scale, rot…}）")
+			if sv is Dictionary:
+				for k in sv:
+					if k != "name" and not k in MF_SPRITE_KEYS:
+						errs.append("%s.sprite.%s：不认识的字段（只能是 name / %s）" % [q, k, " / ".join(MF_SPRITE_KEYS)])
+		"text":
+			if not (f.text is String or f.text is Dictionary):
+				errs.append(q + ".text 必须是字符串或 {s, col, size}")
+		"pause":
+			_num(f, "pause", q, ctx, true, 0.0, 0.2)
+	return true
+
+
+## shape.support（不造成伤害的普攻：every 一拍、when 条件、出手帧执行 do）
+static func _mf_support(atk: Dictionary, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	for k in atk:
+		if not k in ["shape", "every", "first", "when", "do", "_doc"]:
+			errs.append("blocks.attack.%s：shape.support 只有 every / first / when / do" % k)
+	_num(atk, "every", "blocks.attack", ctx, true, 0.1)
+	_num(atk, "first", "blocks.attack", ctx, false, 0.0, 30.0)
+	if atk.has("when") and (not (atk.when is String) or parse_cond(atk.when, ctx.base).has("err")):
+		errs.append("blocks.attack.when 看不懂（条件串，§1.3）")
+	_list(atk.get("do", []), "blocks.attack.do", "instant", ctx)
+	_sm_exprs(atk, "blocks.attack", ctx)

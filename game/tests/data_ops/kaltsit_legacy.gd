@@ -3,7 +3,20 @@
 ## Mon3tr 是本干员的附属实体（64×64 帧条，脚底 (32, 60)），自己寻敌、自己播动画，通过 extra_bodies 参与 2.5D 排序。
 ## 特效（docs/25，2026-09-26 照原作截图修改）：荧光绿。普通爪击三道平行爪痕、协同后双爪爪痕；
 ## 熔毁期间 Mon3tr 染猩红、周身红雾红光、每爪一道巨大猩红月牙斩；熔毁结束绿色八面体晶核碎裂，迸出空心方形晶片 + 黑色碎片 + 放射光束。
+##
+## ⚠ 测试参照（10-12 起）：凯尔希已迁成数据干员（data/characters/kaltsit.json 的 blocks，docs/61 §15.9），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=kaltsit=res://tests/data_ops/kaltsit_legacy.gd）。相对原脚本只改了一处：
+## 画面粒子（熔毁红雾 / 爪击火花 / 熔毁碎片）的随机数从 g.rng 换成 g.vrng（_vsparks 代替 character.gd 的 fx_sparks），
+## 原脚本这几处吃了对局随机数（同 seed 结果会因画面粒子而变，docs/61 §15.8 末条），数据版一律 g.vrng。玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
+
+
+## 同 character.gd fx_sparks，但散布用 g.vrng（纯画面）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": 0.0, "floor": false})
 
 const GREEN := Color(0.55, 1.0, 0.5)
 const MELT := Color(1.6, 0.15, 0.12)   # 2026-09-27：熔毁恢复红光，普通爪击仍为绿色
@@ -218,10 +231,10 @@ func _update_mon3tr(dt: float) -> void:
 			glow_t = 0.07
 			if melt > 0.0:
 				# 熔毁：周身绿雾团 + 飞线
-				fx({"kind": "glow", "pos": m.pos + Vector2(g.rng.randf_range(-26, 26), g.rng.randf_range(-46, -4)), "r": g.rng.randf_range(10.0, 18.0), "life": 0.5, "col": MELT, "alpha": 0.3})
-				fx({"kind": "line", "pos": m.pos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-44, 0)), "to": m.pos + Vector2(g.rng.randf_range(-50, 50), g.rng.randf_range(-70, -10)), "life": 0.15, "col": MELT, "w": 1.5})
+				fx({"kind": "glow", "pos": m.pos + Vector2(g.vrng.randf_range(-26, 26), g.vrng.randf_range(-46, -4)), "r": g.vrng.randf_range(10.0, 18.0), "life": 0.5, "col": MELT, "alpha": 0.3})
+				fx({"kind": "line", "pos": m.pos + Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-44, 0)), "to": m.pos + Vector2(g.vrng.randf_range(-50, 50), g.vrng.randf_range(-70, -10)), "life": 0.15, "col": MELT, "w": 1.5})
 			else:
-				fx({"kind": "mote", "pos": m.pos + Vector2(g.rng.randf_range(-22, 22), g.rng.randf_range(-40, 0)), "vel": Vector2(0, -50), "life": 0.5, "col": GREEN, "sz": 2.0})
+				fx({"kind": "mote", "pos": m.pos + Vector2(g.vrng.randf_range(-22, 22), g.vrng.randf_range(-40, 0)), "vel": Vector2(0, -50), "life": 0.5, "col": GREEN, "sz": 2.0})
 		if ghost.is_empty() or ghost.t <= 0.0:
 			ghost = {"pos": m.pos, "face": m.face, "kind": m.kind, "at": m.at, "t": 0.12}
 		else:
@@ -335,7 +348,7 @@ func _m_claw(mult: float, second: bool) -> void:
 				fx({"kind": "crescent", "pos": o + Vector2(-10.0 * sd, 0), "ang": ang, "r": R * 0.72, "w": 10.0, "sweep": 1.8, "dir": sw * sd, "life": 0.2, "col": Color(1.6, 0.3, 0.2)})
 			var hp: Vector2 = o + Vector2.from_angle(ang) * R * 0.75
 			fx({"kind": "impact", "pos": hp, "r": 20.0, "life": 0.14, "col": MELT})
-			fx_sparks(hp, Color(1.7, 0.25, 0.15), 7, 240.0, 0.28, 2.5)
+			_vsparks(hp, Color(1.7, 0.25, 0.15), 7, 240.0, 0.28, 2.5)
 		else:
 			# 重绘本体配套爪痕：协同叠加反向爪痕，缺图退回程序三道爪痕
 			# 第二爪：爪痕旋转约 60°，与第一爪交叉
@@ -346,7 +359,7 @@ func _m_claw(mult: float, second: bool) -> void:
 				fx({"kind": "claw", "pos": o + Vector2.from_angle(ang) * 10.0, "ang": ang + rot, "len": _m_reach() + 10.0, "life": 0.25, "col": GREEN})
 			if coord:
 				spawn_fx_sprite("fx_mon3tr_claw", cp + Vector2(0, -6), sc * 0.85, rot - 0.65 * sd, sd < 0.0, false, Color(0.8, 1.0, 0.8, 0.8))
-			fx_sparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
+			_vsparks(o + Vector2.from_angle(ang) * _m_reach() * 0.6, GREEN, 5, 160.0, 0.3, 2.5)
 			# N2「清创」：更宽的扇面用一道淡绿细月牙画出来
 			if wide_arc and not second:
 				fx({"kind": "crescent", "pos": o, "ang": ang, "r": _m_reach() + 8.0, "w": 5.0, "sweep": half * 2.0, "dir": sd, "life": 0.2, "col": Color(0.5, 1.1, 0.55)})
@@ -377,10 +390,10 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override :=
 		var c2: Vector2 = at + Vector2(0, -24)
 		fx({"kind": "glow", "pos": c2, "r": 40.0, "life": 0.25, "col": Color(2.0, 0.3, 0.15), "alpha": 0.5})
 		for i in 8:
-			fx({"kind": "beamray", "pos": c2, "ang": TAU * i / 8.0 + g.rng.randf_range(-0.3, 0.3), "len": r * g.rng.randf_range(0.8, 1.1), "life": 0.3, "col": MELT})
+			fx({"kind": "beamray", "pos": c2, "ang": TAU * i / 8.0 + g.vrng.randf_range(-0.3, 0.3), "len": r * g.vrng.randf_range(0.8, 1.1), "life": 0.3, "col": MELT})
 		for i in 6:
-			var v3: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160, 340)
-			fx({"kind": "qshard", "pos": c2, "vel": v3, "drag": 2.2, "life": 0.5, "sz": g.rng.randf_range(5.0, 9.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-9, 9)})
+			var v3: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(160, 340)
+			fx({"kind": "qshard", "pos": c2, "vel": v3, "drag": 2.2, "life": 0.5, "sz": g.vrng.randf_range(5.0, 9.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-9, 9)})
 		fx({"kind": "ring", "pos": at, "r": r, "r0": r * 0.5, "life": 0.4, "col": MELT, "floor": true, "w": 3.0})
 		Sfx.op(id, "big", -4.0, 1.15)
 		return
@@ -389,16 +402,16 @@ func _melt_burst(at: Vector2, r: float, dmg: float, main: bool, stun_override :=
 	fx({"kind": "glow", "pos": c, "r": 60.0, "life": 0.3, "col": Color(2.0, 0.3, 0.15), "alpha": 0.7})
 	fx({"kind": "core", "pos": c, "r": 26.0, "life": 0.4})
 	for i in 10:
-		var ba: float = TAU * i / 10.0 + g.rng.randf_range(-0.2, 0.2)
-		fx({"kind": "beamray", "pos": c, "ang": ba, "len": r * g.rng.randf_range(0.8, 1.3), "life": 0.35, "col": MELT})
+		var ba: float = TAU * i / 10.0 + g.vrng.randf_range(-0.2, 0.2)
+		fx({"kind": "beamray", "pos": c, "ang": ba, "len": r * g.vrng.randf_range(0.8, 1.3), "life": 0.35, "col": MELT})
 	for i in 14:
-		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 320)
-		fx({"kind": "qshard", "pos": c, "vel": v, "drag": 2.2, "life": g.rng.randf_range(0.5, 0.8), "sz": g.rng.randf_range(5.0, 11.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-9, 9)})
+		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(120, 320)
+		fx({"kind": "qshard", "pos": c, "vel": v, "drag": 2.2, "life": g.vrng.randf_range(0.5, 0.8), "sz": g.vrng.randf_range(5.0, 11.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-9, 9)})
 	for i in 10:
-		var v2: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(100, 260)
-		fx({"kind": "shard", "pos": c, "vel": v2, "drag": 2.0, "life": 0.5, "col": Color(0.03, 0.05, 0.04), "sz": g.rng.randf_range(4.0, 7.0), "ang": v2.angle(), "spin": 10.0})
+		var v2: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(100, 260)
+		fx({"kind": "shard", "pos": c, "vel": v2, "drag": 2.0, "life": 0.5, "col": Color(0.03, 0.05, 0.04), "sz": g.vrng.randf_range(4.0, 7.0), "ang": v2.angle(), "spin": 10.0})
 	for i in 24:
-		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r, r), g.rng.randf_range(-r, r) * 0.6), "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-70, -20)), "life": g.rng.randf_range(0.5, 0.9), "col": MELT, "sz": g.rng.randf_range(1.5, 3.0)})
+		fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-r, r), g.vrng.randf_range(-r, r) * 0.6), "vel": Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-70, -20)), "life": g.vrng.randf_range(0.5, 0.9), "col": MELT, "sz": g.vrng.randf_range(1.5, 3.0)})
 	fx({"kind": "ring", "pos": at, "r": r, "r0": 12.0, "life": 0.4, "col": MELT, "floor": true, "w": 3.0})
 	impact_pause(0.075)
 	float_text(at + Vector2(0, -70), "熔毁", MELT, 18)

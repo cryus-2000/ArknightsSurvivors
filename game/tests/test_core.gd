@@ -35,6 +35,7 @@ func _init() -> void:
 	test_fx_hold()
 	test_operator_sheet()
 	test_blocks_summon_seal()
+	test_blocks_summon_ext()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -691,3 +692,94 @@ func test_blocks_summon_seal() -> void:
 	near(OB.sm_reach(o, {"shape": "line", "len": 50}), 75.0, "直线：长度 × op_range")
 	near(OB.sm_reach(o, {"shape": "cone", "r": 40, "range": 10}), 15.0, "写了 range 用 range × op_range")
 	near(OB.sm_reach(o, {}), 0.0, "没有攻击 = 0")
+
+
+## 召唤物扩展段（docs/61 §15.9，10-12：凯尔希 Mon3tr 迁到通用召唤积木）
+class FakeMf:
+	extends RefCounted
+	var g
+	var id := "fake"
+	var sm := {}
+	var mf := {}
+	var taken: Array = []
+	var elite := 0
+	var B := {}
+	var s_t: Array = [0.0, 0.0, 0.0]
+	func col() -> Color:
+		return Color.WHITE
+	func stat(_n) -> float:
+		return 1.5
+	func base(k: String, d: float) -> float:
+		return {"m_atk": 20.0}.get(k, d)
+	func _dmg_bonus() -> float:
+		return 2.0
+	func skill_power() -> float:
+		return 1.25
+	func skill_on(_i: int) -> bool:
+		return false
+
+
+func test_blocks_summon_ext() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var d: Dictionary = Ch.load_def("kaltsit")
+	ok(d.has("blocks") and not d.has("script") and Ch.validate_operator("kaltsit", d), "凯尔希是数据干员（blocks，无 script）并通过校验")
+	var bads := {
+		"随行召唤物的帧条不在 sprites 里": func(x): x.blocks.summons.mon3tr.anim["run"] = "m_fly",
+		"patch 的伤害来源没登记": func(x): x.blocks.summons.mon3tr.patch[0]["src"] = "Mon3tr · 不存在",
+		"patch 缺 cond": func(x): x.blocks.summons.mon3tr.patch[1].erase("cond"),
+		"summon_mod 种类没定义": func(x): x.blocks.progression.wide_arc["kind"] = "wolf",
+		"summon_mod 倍率超范围": func(x): x.blocks.progression.wide_arc["arc"] = 50,
+		"summon_mod 放进触发器 do": func(x): x.blocks.trait[0].do.append({"verb": "summon_mod", "kind": "mon3tr", "dmg": 2}),
+		"then 缺 delay": func(x): x.blocks.progression.twin_claw.then.erase("delay"),
+		"verb.guard 缺 value": func(x): x.blocks.progression.s1_shell.do[0].erase("value"),
+		"verb.cleanse 写错": func(x): x.blocks.skills[0].do[1]["what"] = ["poison"],
+		"残影写在攻击的 fx 里": func(x): x.blocks.summons.mon3tr.attack.fx.append({"ghost": {"every": 0.1}}),
+		"escort 的攻击不是锥形": func(x): x.blocks.summons.mon3tr.attack["shape"] = "circle",
+		"rest 只用于 escort": func(x): x.blocks.summons.mon3tr.move["mode"] = "follow",
+		"on_skill_end 的 at 种类没定义": func(x): x.blocks.trait[2]["at"] = "summon:wolf",
+		"技能 aim 写错": func(x): x.blocks.skills[0]["aim"] = "enemy",
+		"shape.support 多字段": func(x): x.blocks.attack["r"] = 40,
+		"shape.support 的 when 看不懂": func(x): x.blocks.attack["when"] = "hurt_any &&",
+		"条件 node: 后面为空": func(x): x.blocks.trait[2]["cond"] = "!node:",
+		"verb.heal 的 scale 写错": func(x): x.blocks.attack.do[0]["scale"] = "atk",
+		"程序 fx 条目写两种": func(x): x.blocks.summons.mon3tr.fx[2]["sparks"] = {"n": 3},
+		"程序粒子 kind 写错": func(x): x.blocks.summons.mon3tr.fx[2].pfx["kind"] = "smoke",
+		"节点积木数组为空": func(x): x.blocks.progression["melt_triple"] = [],
+	}
+	for why in bads:
+		var d2: Dictionary = d.duplicate(true)
+		bads[why].call(d2)
+		ok(not Ch.validate_operator("kaltsit", d2), "召唤物扩展校验应拒绝：" + why)
+	# 条件：node / hurt_any / &&
+	var o := FakeMf.new()
+	o.g = {"t": 1.0, "hp": 50.0, "max_hp": 100.0, "knight": {"alive": false, "hp": 0.0, "maxhp": 1.0}}
+	var c1: Dictionary = OB.parse_cond("node:twin_claw && !hurt_any", {})
+	ok(c1.k == "all" and c1.list.size() == 2, "a && b 解析成 all")
+	ok(not OB.cond_true(o, c1), "没选节点：不成立")
+	o.taken = ["twin_claw"]
+	ok(not OB.cond_true(o, c1), "选了节点但主控没满血：!hurt_any 不成立")
+	o.g.hp = 100.0
+	ok(OB.cond_true(o, c1), "选了节点、主控满血、骑士不在：成立")
+	o.g.knight = {"alive": true, "hp": 5.0, "maxhp": 10.0}
+	ok(OB.cond_true(o, OB.parse_cond("hurt_any", {})), "hurt_any：骑士同伴没满血也算")
+	ok(OB.parse_cond("node:", {}).has("err") or OB.parse_cond("node:", {}).k != "node", "node: 后面为空不算节点条件")
+	# 召唤物倍率：依次乘（顺序固定），then / mirror 取第一块
+	OB.mf_sustain(o, [{"_tag": "verb.summon_mod", "kind": "m", "reach": 1.2, "dmg": 1.3},
+		{"_tag": "verb.summon_mod", "kind": "m", "reach": 1.3, "aspd": 1.4, "then": {"delay": 0.08, "mult": 0.6}},
+		{"_tag": "verb.summon_mod", "kind": "m", "then": {"delay": 1.0, "mult": 1.0}}])
+	var mods: Dictionary = OB.mf_mods(o, "m")
+	near(OB.mf_reach(o, {"r": 100.0}, mods), 100.0 * 1.5 * 1.2 * 1.3, "攻击距离：r × op_range × 各 reach 依次乘")
+	near(OB.mf_dmg(o, {"atk_key": "m_atk"}, mods, {}), 20.0 * 2.0 * 1.3, "伤害：base × _dmg_bonus × 各 dmg")
+	near(OB.mf_dmg(o, {"atk_key": "m_atk"}, mods, {"mult": 1.6, "power": true}), 20.0 * 2.0 * 1.3 * 1.6 * 1.25, "patch：× mult × 技能强度")
+	near(float(mods.then.delay), 0.08, "then 取第一块")
+	ok(OB.mf_mods(o, "other").dmg.is_empty(), "别的种类没有倍率")
+	# 限时减伤：同名共用计时、按积木顺序相乘
+	OB.mf_exec(o, {"_tag": "verb.guard", "_uid": 9, "name": "护壳", "value": 0.35, "dur": 3.0}, Vector2.ZERO)
+	OB.mf_exec(o, {"_tag": "verb.guard", "_uid": 2, "name": "庇护", "value": 0.2, "dur": 5.0}, Vector2.ZERO)
+	ok(o.mf.guards.keys() == ["庇护", "护壳"], "减伤按积木顺序排（uid）")
+	near(OB.mf_guard_mult(o, 1.0), 0.8 * 0.65, "两层减伤相乘")
+	OB.mf_tick(o, 3.5, [0.0, 0.0, 0.0])
+	near(OB.mf_guard_mult(o, 1.0), 0.8, "到时的那层不再生效")
+	OB.mf_exec(o, {"_tag": "verb.guard", "_uid": 7, "name": "庇护", "value": 0.2, "dur": 5.0}, Vector2.ZERO)
+	ok(o.mf.guards.size() == 2 and float(o.mf.guards["庇护"].t) == 5.0, "同名重复施加：重新计时，不叠层")

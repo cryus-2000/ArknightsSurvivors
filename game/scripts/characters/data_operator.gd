@@ -26,11 +26,31 @@ var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid �
 var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
 var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
+var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 
 
 func _init(game, def_: Dictionary) -> void:
 	super(game, def_)
 	B = OB.compile(def)
+	# 召唤物扩展段（§15.9）：普攻 shape.support 的 when 条件、首拍；有没有 trig.on_deploy（每帧只在有时才查）
+	var a: Dictionary = B.get("attack", {})
+	if str(a.get("shape", "")) == "support":
+		if a.get("when", null) is String:
+			a.when = OB.parse_cond(str(a.when), def.get("base", {}))
+		cd = float(a.get("first", cd))
+	var dep := false
+	for sec in ["trait", "talent"]:
+		for t in B.get(sec, []):
+			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
+	for k in B.get("progression", {}):
+		for t in _node_list(B.progression[k]):
+			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
+	B["_mf_deploy"] = dep
+
+
+## 成长节点的积木：一块，或数组（§15.9）
+static func _node_list(v) -> Array:
+	return v if v is Array else [v]
 
 
 func _src_tag() -> String:
@@ -74,7 +94,7 @@ func skill_active_dur(i: int) -> float:
 
 func _swing_radius() -> float:
 	var a: Dictionary = B.get("attack", {})
-	return OB.shape_radius(self, a) if a.has("shape") else 90.0
+	return OB.shape_radius(self, a) if a.has("shape") and str(a.shape) != "support" else 90.0
 
 
 # ---------------------------------------------------------------- 成长
@@ -101,10 +121,10 @@ func _trigs() -> Array:
 	var pg: Dictionary = B.get("progression", {})
 	for nid in taken:
 		if pg.has(nid):
-			out.append(pg[nid])
+			out.append_array(_node_list(pg[nid]))
 	for k in [["elite1", 1], ["elite2", 2]]:
 		if elite >= k[1] and pg.has(k[0]):
-			out.append(pg[k[0]])
+			out.append_array(_node_list(pg[k[0]]))
 	return out
 
 
@@ -112,9 +132,11 @@ func _trigs() -> Array:
 
 func update(dt: float) -> void:
 	cd -= dt
+	var prev_s: Array = s_t.duplicate()
 	for i in 3:
 		if s_t[i] > 0.0:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
+	OB.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
 	_tick_shots(dt)
@@ -126,13 +148,18 @@ func update(dt: float) -> void:
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
-		start_skill(Vector2.INF, ready)
+		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
 		return
 	if no_attack or cd > 0.0:
 		return
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
 	match str(a.get("shape", "")):
+		"support":   # 召唤物扩展段（§15.9）：不造成伤害的普攻，every 一拍，when 成立才朝主控起手（手动普攻不管它）
+			cd = float(a.get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
+			if OB.cond_true(self, a.get("when", {})):
+				start_attack(g.ppos)
+			return
 		"circle":
 			var c: Vector2 = OB.shape_center(self, a)
 			var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else OB.shape_radius(self, a)
@@ -189,10 +216,12 @@ func _sustain(dt: float) -> void:
 	var pg: Dictionary = B.get("progression", {})
 	for nid in taken:
 		if pg.has(nid):
-			_collect_trig(pg[nid], act)
+			for t in _node_list(pg[nid]):
+				_collect_trig(t, act)
 	for k in [["elite1", 1], ["elite2", 2]]:
 		if elite >= k[1] and pg.has(k[0]):
-			_collect_trig(pg[k[0]], act)
+			for t in _node_list(pg[k[0]]):
+				_collect_trig(t, act)
 	# 一：局部倍率
 	var add := {}
 	var mul := {}
@@ -294,6 +323,7 @@ func _sustain(dt: float) -> void:
 			_state.erase(u)
 	_ext_sustain(act, dt)
 	OB.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
+	OB.mf_sustain(self, act)       # 召唤物扩展段：verb.summon_mod 的倍率表
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
 	var fseen := {}
 	for b in act:
@@ -336,12 +366,27 @@ func _collect_trig(t: Dictionary, act: Array) -> void:
 
 
 func _heal(b: Dictionary) -> void:
-	if g.hp >= g.max_hp:
+	if b.has("knight") and g.knight.alive:   # 召唤物扩展段（§15.9）：同时治骑士同伴（按骑士最大生命）
+		g.knight.heal(g.knight.maxhp * float(b.knight))
+	if g.hp >= g.max_hp and not b.get("full", false):   # full: true = 满血也照常结算（溢出治疗类藏品 / on_over 照常触发，同手写凯尔希 S1）
 		return
-	var h: float = g.max_hp * float(b.pct) * float(loc.heal)
+	var h: float
+	if str(b.get("scale", "")) == "op":   # × op_atk × 同伴倍率 × heal_out × 局部 heal 倍率（同手写治疗干员的写法）
+		h = g.max_hp * float(b.pct) * (stat(&"op_atk") * g.ally_mult * stat(&"heal_out") * float(loc.heal))
+	else:
+		h = g.max_hp * float(b.pct) * float(loc.heal)
 	if b.get("power", false):
 		h *= skill_power()
+	var over: float = maxf(0.0, g.hp + h - g.max_hp)
 	heal_leader(h, str(b.get("src", display_name())))
+	if b.has("sfx"):
+		_sfx_op(str(b.sfx))
+	if over > 0.0 and b.has("on_over"):
+		_exec_list(b.on_over)
+	if b.has("text"):
+		float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), col(), int(b.text))
+	if b.has("fx"):
+		OB.fx_play(self, b.fx, g.ppos, 30.0)
 
 
 ## 瞬时积木列表（技能出手、触发器触发、延迟到点）
@@ -374,6 +419,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				OB.tx_exec(self, b, at)   # 德克萨斯段
 				OB.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
 				OB.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
+				OB.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -382,6 +428,9 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 
 func _release() -> void:
 	var a: Dictionary = cur_attack()
+	if str(a.get("shape", "")) == "support":   # 召唤物扩展段（§15.9）：出手帧执行 do（音效由 do 里的积木自己播）
+		_exec_list(a.get("do", []), g.ppos)
+		return
 	if str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
 	else:
@@ -517,7 +566,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			OB.tx_rain_draw(cv, self, f)
 		return true
 	if str(f.kind) != "strip":
-		return false
+		return OB.mf_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）
 	if not f.get("add", false):
 		OB.fx_draw(cv, g, f, g.world.fx_dim)
 	return true
@@ -680,7 +729,7 @@ func dmg_taken_mult() -> float:
 			_negate_fx(t)
 		_defer(t.get("do", []))
 	if not negated:
-		return OB.shield_mult(self, ext_dr)   # 召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回 ext_dr）
+		return OB.shield_mult(self, OB.mf_guard_mult(self, ext_dr))   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
 	negate_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", {})):
@@ -863,10 +912,11 @@ func _draw_skill_over() -> void:
 	_draw_shots()      # 安洁莉娜段：重力弹
 	OB.exu_draw(self)  # 能天使段：弹体
 	OB.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
+	OB.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 
 
 func status_items() -> Array:
-	return OB.exu_status_items(self) + OB.sm_status_items(self)
+	return OB.mf_status_items(self) + OB.exu_status_items(self) + OB.sm_status_items(self)
 
 
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）
