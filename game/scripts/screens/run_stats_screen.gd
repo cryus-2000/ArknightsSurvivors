@@ -371,24 +371,37 @@ func _bbox(tx: Texture2D, fw: int, fh: int, nfr: int) -> Rect2:
 
 ## 把一帧（frame 为帧在贴图里的位置，bb 为帧内包围盒）放进 box：底边居中，按美术像素整数倍缩放（不超过 kmax），永远不出框。
 ## art = 一个美术像素占几个贴图像素（高清帧条 2）。返回画出的矩形
-func _fit(tx: Texture2D, frame: Rect2, bb: Rect2, art: float, box: Rect2, kmax: float, a := 1.0) -> Rect2:
+## by_height：只按高度定倍数（编队行：每人按自己的包围盒放到同一高度，角色看起来一样大）；
+## 宽出像框的部分左右对称裁掉（武器 / Mon3tr 这类横向宽的帧条），画出的矩形仍在框内
+func _fit(tx: Texture2D, frame: Rect2, bb: Rect2, art: float, box: Rect2, kmax: float, a := 1.0, by_height := false) -> Rect2:
 	if bb.size.x <= 0.0 or box.size.x <= 2.0 or box.size.y <= 2.0:
 		return Rect2()
-	var k_art: float = minf(kmax, minf(box.size.x / (bb.size.x / art), box.size.y / (bb.size.y / art)))
+	var k_art: float = minf(kmax, box.size.y / (bb.size.y / art)) if by_height else minf(kmax, minf(box.size.x / (bb.size.x / art), box.size.y / (bb.size.y / art)))
 	if k_art >= 1.0:
-		k_art = floorf(k_art)
-	var sz := bb.size * (k_art / art)
+		# 按高度时：差一点就够下一个整数倍（≥ 0.75）就取下一倍、把头顶多出的几格裁掉——高帧条（法杖 / 帽子）和别人一样大
+		k_art = (floorf(k_art) + 1.0) if (by_height and k_art - floorf(k_art) >= 0.75 and floorf(k_art) + 1.0 <= kmax) else floorf(k_art)
+	var sc: float = k_art / art
+	var src := Rect2(frame.position + bb.position, bb.size)
+	if bb.size.y * sc > box.size.y:
+		var keep_h: float = box.size.y / sc
+		src.position.y += bb.size.y - keep_h
+		src.size.y = keep_h
+	if bb.size.x * sc > box.size.x:
+		var keep: float = box.size.x / sc
+		src.position.x += (bb.size.x - keep) * 0.5
+		src.size.x = keep
+	var sz := src.size * sc
 	var pos := TUI.snap(_c, Vector2(box.get_center().x - sz.x * 0.5, box.end.y - sz.y))
 	pos.x = clampf(pos.x, box.position.x, box.end.x - sz.x)
 	pos.y = clampf(pos.y, box.position.y, box.end.y - sz.y)
 	var dst := Rect2(pos, sz)
-	_ci().draw_texture_rect_region(tx, dst, Rect2(frame.position + bb.position, bb.size), Color(1, 1, 1, a))
+	_ci().draw_texture_rect_region(tx, dst, src, Color(1, 1, 1, a))
 	portraits.append([dst, box])
 	return dst
 
 
 ## 干员待机帧放进 box（卡片 / 主控块 / 详情身份卡的像框）
-func _portrait(id: String, box: Rect2, kmax: float) -> Rect2:
+func _portrait(id: String, box: Rect2, kmax: float, by_height := false) -> Rect2:
 	if id == RunStats.OTHER or id == "":
 		return Rect2()
 	var idle: Dictionary = g.panel_ui.op_idle(id)
@@ -400,23 +413,7 @@ func _portrait(id: String, box: Rect2, kmax: float) -> Rect2:
 	var nfr: int = maxi(1, tx.get_width() / maxi(1, fw))
 	var fr := 0 if (UM.rm() or UM.skip_all()) else int(UM.now() * 4.0) % nfr
 	var bb := _bbox(tx, fw, fh, nfr)
-	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, 2.0 if fh > 64 else 1.0, box, kmax)
-
-
-## 这名干员的像放进 box 能用的最大美术像素倍数（整数，≤ kmax）：编队列表取各行最小值，大家同一倍数
-func _portrait_k(id: String, box: Rect2, kmax: float) -> float:
-	if id == RunStats.OTHER or id == "":
-		return kmax
-	var idle: Dictionary = g.panel_ui.op_idle(id)
-	if idle.is_empty():
-		return kmax
-	var tx: Texture2D = idle.tex
-	var fw: int = idle.fw
-	var fh: int = idle.fh
-	var bb := _bbox(tx, fw, fh, maxi(1, tx.get_width() / maxi(1, fw)))
-	var art := 2.0 if fh > 64 else 1.0
-	var k: float = minf(kmax, minf(box.size.x / (bb.size.x / art), box.size.y / (bb.size.y / art)))
-	return floorf(k) if k >= 1.0 else k
+	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, 2.0 if fh > 64 else 1.0, box, kmax, 1.0, by_height)
 
 
 ## 环境击倒者的图：溟痕用地面溟痕贴图，其余（黑潮 / 寂灭 / 围猎……）用生成的像素图
@@ -724,11 +721,7 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 	var vmax := 0.0
 	for rw in rws:
 		vmax = maxf(vmax, float(rw.share))
-	# 同一倍数：先按每行像框算能放的最大倍数，取最小（宽帧条的凯尔希带 Mon3tr 不会比别人小一号）
-	var ph_h: float = rh - gap - 8.0
-	var kmax_l: float = 1.0 if rh - gap < 60.0 else (2.0 if rh - gap < 110.0 else 3.0)
-	for rw in rws:
-		kmax_l = minf(kmax_l, _portrait_k(str(rw.key), Rect2(0, 0, minf(180.0 if _ph else 130.0, (rh - gap) * 1.6), ph_h), kmax_l))
+	var kmax_l: float = 2.0 if rh - gap < 110.0 else 3.0
 	for i in n:
 		var row: Dictionary = rws[i]
 		var cr := Rect2(r.position.x, y + i * rh, r.size.x, rh - gap)
@@ -743,7 +736,7 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 		var cl: float = _ps / _c.k
 		_ci().draw_rect(Rect2(rr.position.x + cl * 2.0, rr.position.y + cl * 3.0, cl * 2.0, rr.size.y - cl * 6.0), row.col)
 		var pb := Rect2(rr.position.x + 10.0, rr.position.y + 4.0, minf(180.0 if _ph else 130.0, rr.size.y * 1.6), rr.size.y - 8.0)   # 宽一点：横向宽的帧条（凯尔希带 Mon3tr）也能和别人同倍数
-		_portrait(str(row.key), pb, kmax_l)
+		_portrait(str(row.key), pb, kmax_l, true)   # 每人按自己的包围盒放到同一高度（10-12 制作人：共用倍数会被最宽的帧条拖小）
 		var nx := pb.end.x + 8.0
 		var cy := rr.get_center().y
 		var two: bool = rr.size.y >= 40.0

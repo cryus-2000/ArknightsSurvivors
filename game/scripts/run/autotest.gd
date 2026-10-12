@@ -161,7 +161,7 @@ func _stats_shot() -> bool:
 			if UM.now() - float(_ss.t) >= 0.9:
 				shot.call("detail1")
 				var m: Dictionary = g.run_stats.model
-				print("STATSSHOT_MODEL ", JSON.stringify({"total": m.total, "rows": m.rows.map(func(r): return [r.key, int(r.dmg), r.pct, r.kills, r.casts, snappedf(r.join_t, 1)])}))
+				print("STATSSHOT_MODEL ", JSON.stringify({"total": m.total, "taken": int(m.leader.taken), "heal": int(m.leader.heal), "heal_src": m.leader.heal_src.map(func(x): return [x.name, int(x.v)]), "taken_src": m.leader.taken_src.map(func(x): return [x.name, int(x.v)]), "hp": [int(g.hp), int(g.max_hp)], "floor": g.floor_hits, "hits": g.telemetry.hits, "rows": m.rows.map(func(r): return [r.key, int(r.dmg), r.pct, r.kills, r.casts, snappedf(r.join_t, 1)])}))
 				g.get_tree().quit()
 				_ss.phase = 5
 	return true
