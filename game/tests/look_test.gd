@@ -59,7 +59,20 @@ func _ready() -> void:
 	g.lamp_light.texture_scale = 520.0 / 64.0
 	var near: Color = Look.actor_mod(g, Vector2(100, 136))
 	var far: Color = Look.actor_mod(g, Vector2(3000, 3000))
-	check(near.r <= 1.0 and near.r > 0.5 and is_equal_approx(near.r, near.b), "灯下缩放 %.3f 应在 (0.5, 1] 且三通道相同" % near.r)
+	check(near.r <= 1.0 and near.r > 0.5, "灯下缩放 %.3f 应在 (0.5, 1]" % near.r)
+	if Look.p("actor_tint") <= 0.0 and Look.p("actor_neutral") <= 0.0:
+		check(is_equal_approx(near.r, near.b), "不去暖时三通道应相同")
+	if Look.p("actor_neutral") > 0.0:
+		# 只去暖：R 缩放不变（软膝照旧按最大通道），G / B 只往上补、不超过把它们补满到 R 的量
+		check(near.g >= near.r - 0.0001 and near.b >= near.g - 0.0001, "去暖应只抬 G / B（%.3f %.3f %.3f）" % [near.r, near.g, near.b])
+	# 白色保护：材质挂在 game 节点上；干员 modulate 走负号标记，灯外 / 关掉时原样
+	if Look.p("white_lift") > 0.0:
+		check(g.actor_mat != null and g.material == g.actor_mat, "白色保护开着却没挂材质")
+		var om: Color = Look.op_mod(g, Vector2(100, 136), Color.WHITE)
+		check(om.r < 0.0 and om.g < 0.0 and om.b < 0.0 and om.a == 1.0, "白色保护：干员 modulate 应带负号标记")
+	else:
+		check(g.actor_mat == null and g.material == null, "白色保护关着不该挂材质")
+		check(Look.op_mod(g, Vector2(100, 136), Color.WHITE) == near, "白色保护关着 op_mod 应等于 actor_mod")
 	check(far == Color.WHITE, "远离灯火应不缩放")
 	if Look.p("actor_cap") <= 0.0:
 		check(near == Color.WHITE, "L0 不缩放")

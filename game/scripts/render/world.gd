@@ -121,6 +121,7 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	Look.update_actor_mat(g)
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
 	g.vfx.watch_merchant(rd)    # docs/54 ⑧ 商人出现 + 灯笼暖尘
@@ -1644,7 +1645,7 @@ func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Textur
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx)
 	g.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, col * Look.actor_mod(g, pos))
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
