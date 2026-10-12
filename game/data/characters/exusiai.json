@@ -12,12 +12,12 @@
   "s1_ammo": 6, "s1_mult": 1.8, "s1_pierce": 3,
   "s2_dur": 8.0, "s2_cd": 0.20, "s2_mult": 0.9, "s2_overheat": 1.0,
   "s3_dur": 10.0, "s3_burst": 4, "s3_gap": 0.06, "s3_mult": 0.8, "s3_range": 0.2, "s3_prio": 99, "s3_pause": 0.2,
-  "mag_cap": 8, "mag_lit_bonus": 2, "mag_shots": 8, "mag_spread_deg": 25, "mag_mult": 1.0, "mag_pierce": 1,
-  "n1_range": 0.15, "n2_mult": 1.15, "twin_shots": 1, "ricochet_chance": 0.4, "ricochet_r": 120, "ricochet_mult": 0.5, "e2_shots": 1, "e2_mag_cap": 12
+  "mag_cap": 8, "mag_lit_bonus": 2, "mag_shots": 8, "mag_spread_deg": 25, "mag_mult": 1.2, "mag_pierce": 1,
+  "n1_range": 0.15, "n2_mult": 1.15, "twin_shots": 1, "ricochet_chance": 0.5, "ricochet_r": 120, "ricochet_mult": 0.5, "e2_shots": 1, "e2_mag_cap": 12
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1613 / 防御 136 / 法抗 0%，远程主控有效生命 ×1.00",
-  "max_hp": 110, "armor": 1.0, "arts_res": 0.0, "regen": 1.1
+  "max_hp": 110, "armor": 1.0, "arts_res": 0.0, "regen": 1.3
  },
  "sprites": {
   "idle": {"tex": "op_exusiai_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
@@ -30,9 +30,9 @@
  "skills": [
   {"name": "冲锋模式", "en": "CHARGING MODE", "sp": 6, "desc": "装填 6 发强力弹：之后的子弹每发伤害 ×1.8、穿透 3 名敌人，打完为止（子弹数越多耗得越快）", "icon": "skill_exusiai_s1"},
   {"name": "扫射模式", "en": "SHOOTING MODE", "sp": 14, "dur": 8.0, "desc": "8 秒：射击间隔 0.35 → 0.20 秒，每发伤害 ×0.9；结束时枪管过热，1 秒不能射击", "icon": "skill_exusiai_s2"},
-  {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "10 秒：每次射击改为 4 连射（每发伤害 ×0.7），射程 +20%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 0.2 秒", "icon": "skill_exusiai_s3"}
+  {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "10 秒：每次射击改为 4 连射（每发伤害 ×0.8），射程 +20%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 0.2 秒", "icon": "skill_exusiai_s3"}
  ],
- "talent": {"name": "快速弹匣", "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 8），敌人倒在主控照亮范围内时 +2；弹匣满时下一次射击改为一次倾泻：8 发扇形散射（每发伤害 ×0.8，穿透 1 名敌人），然后清空"},
+ "talent": {"name": "快速弹匣", "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 8），敌人倒在主控照亮范围内时 +2；弹匣满时下一次射击改为一次倾泻：8 发扇形散射（每发伤害 ×1.2，穿透 1 名敌人），然后清空"},
  "hit_sources": {
   "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
   "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
@@ -45,7 +45,7 @@
   {"type": "custom", "id": "power", "name": "高压弹", "icon": "growth_b_size", "desc": "她的伤害 ×1.15"},
   {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 8 发"},
   {"type": "custom", "id": "range", "name": "延长弹道", "icon": "growth_b_range", "desc": "射程 +15%"},
-  {"type": "custom", "id": "ricochet", "name": "跳弹", "icon": "growth_b_echo", "desc": "子弹命中后有 40% 概率跳向 120 内另一名敌人（伤害 50%）"},
+  {"type": "custom", "id": "ricochet", "name": "跳弹", "icon": "growth_b_echo", "desc": "子弹命中后有 50% 概率跳向 120 内另一名敌人（伤害 50%）"},
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的弹幕」：子弹数再 +1，弹匣上限 8 → 12"}
  ],
  "gallery": {"tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "一秒三发的速射手：每次射击的子弹数随成长增加，击杀攒满弹匣后倾泻一轮；在照亮范围内击杀，弹匣攒得更快"},

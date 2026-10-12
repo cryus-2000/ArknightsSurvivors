@@ -18,8 +18,8 @@
   ]
  },
  "base": {
-  "umbrella_dmg": 18,
-  "swing_radius": 142,
+  "umbrella_dmg": 15,
+  "swing_radius": 132,
   "swing_interval": 0.9,
   "swing_arc": 150,
   "tentacle_mult": 0.6,
