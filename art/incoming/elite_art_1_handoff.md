@@ -19,3 +19,6 @@ python tools/art_lint.py --ops hoshiguma,kaltsit:未豁免FAIL0。新动作未�
 存量WARN：星熊1x skill末帧不同；凯尔希m_skill f5低高清帧序、存量总色数129/134、skill末帧不同、run脚底x24.4对配置28、浅衣浅发明度超通用值。本批未改旧动作，保留并明确记录。新Mon3tr的精确idle端点继承旧色数，避免动作切换变色。
 
 context_preview.gif为实际1x人物/敌人旁合成；preview.gif为全素材板，方便逐项审查。GIF80ms近似12fps，游戏按manifest各条fps播放。低分辨率视觉效果须Claude接入后复核。
+
+## 10-13 色板复核
+按用户追加要求，将安洁莉娜、星熊红光与 Mon3tr 的新特效重新量化到 manifest 列明的既有参考色板；德克萨斯仍按用户指定保留金黄色。manifest 记录逐条实色值，asset QA 和 preview 已重建。此前 context_preview 为旧构图辅助图，最新颜色以 elite_art_1_preview.gif 为准。本次不改角色动作和游戏代码。

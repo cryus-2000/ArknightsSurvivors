@@ -1,0 +1,203 @@
+{
+  "assets": [
+    {
+      "file": "fx_logos_chain_tile.png",
+      "frame_size": [
+        16,
+        8
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        8,
+        4
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "91b54975182e3764804f457333b7a17fe42f0b660f2b7f9083141bb248333f7d",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    },
+    {
+      "file": "fx_logos_chain_tile@2x.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "9f300836eeee6c751628e4b0c419361ed20c1b2dfb931a69bdb95fe00143c389",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    },
+    {
+      "file": "fx_logos_chain_pulse.png",
+      "frame_size": [
+        16,
+        8
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        8,
+        4
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 3,
+      "density": 1,
+      "fire": null,
+      "sha256": "5dc74e72c5ef966978ecbecf55c6c71218c839ea347f58f1f0b4e4504ab66184",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    },
+    {
+      "file": "fx_logos_chain_pulse@2x.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 3,
+      "density": 2,
+      "fire": null,
+      "sha256": "946b706f42fe06162cbdeba6ccd9d8b2565b90ba1625be3739e4510e1af1096e",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    },
+    {
+      "file": "fx_logos_chain_anchor.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "56acecdd5724c6fdb505eed3544b2a1f72ca360195c61ca0bb3ca96ae272cff3",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    },
+    {
+      "file": "fx_logos_chain_anchor@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "ee58192bd028b5209383d28e2b1b81b2c867f1e05bacec2597fdbaf7a3dbcf8a",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+      "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+      "color_reference": "User white scripture closeup; no black ribbon",
+      "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+      "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+    }
+  ],
+  "source": {
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1572a634-6991-403f-9607-a6580128062b.png",
+    "source_sha256": "27133dfdb1c5f79b2b3f54c9b50bc7fabe76c26be079196cc94bab0fb741c460",
+    "color_reference": "User white scripture closeup; no black ribbon",
+    "glyph_reference": "Generated from supplied Sarkaz alphabet; visual glyph sequences, no translation claimed",
+    "revision": "Dense small glyphs in continuous staggered rows; 2026-10-13"
+  }
+}

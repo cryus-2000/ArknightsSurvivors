@@ -82,10 +82,10 @@
         1705,
         2172
       ],
-      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_soul. black smoky ghost silhouette with two scarlet eyes and crimson edge accents. frames 1-4 frontal levitating breathing loop, frames 5-6 lean and dive toward RIGHT with smoky trailing wisps. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 20:28; entire sheet ratio 120:28. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 20x28 pixels with detailed 40x56 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "prompt_subject": "10-13 user override: grounded black thorn construction with white zigzag and crimson interior. No floating ghost or eyes. See elite_art_4_manifest.json.",
       "loop": false,
       "event_frame_zero_based": 4,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-53e572ef-4973-4b53-b5ff-477fa04d3d47.png",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-72a5a437-2b92-49fc-bdf4-776275e4c984.png",
       "fps": 8,
       "file": "fx_wisadel_soul.png",
       "frame_width": 20,
@@ -95,27 +95,26 @@
         10,
         14
       ],
-      "source_sha256": "75c3ab4ad1c4796c3ce73c669f0869b25771795ce615c861dcee41f80e20dd03",
+      "source_sha256": "815fea5262bee007ce6474845a3addca29bae69b4f976dcf6693a60e844c673b",
       "hold_last_frame": false,
       "density": 1,
-      "sha256": "8b0b635abefe7b53e45b2665c472a052e00829abfdf967442d6b4eb9269c1905",
+      "sha256": "e938d0a48f313f1e78268ad287afe26bcce0c70c98b25c3fe4bba28d7bb4025d",
       "recommended_modulate_alpha": 1.0,
-      "clips": [
-        {
-          "name": "hover",
-          "loop": true,
+      "clips": {
+        "idle": {
+          "from": 0,
+          "to": 3,
           "fps": 8,
-          "count": 4,
-          "start": 0
+          "loop": true
         },
-        {
-          "name": "dive",
-          "loop": false,
+        "attack": {
+          "from": 4,
+          "to": 5,
           "fps": 12,
-          "count": 2,
-          "start": 4
+          "loop": false
         }
-      ]
+      },
+      "superseded_by": "elite_art_4_manifest.json"
     },
     {
       "character": "fx_wisadel_soul",
@@ -128,10 +127,10 @@
         1705,
         2172
       ],
-      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_soul. black smoky ghost silhouette with two scarlet eyes and crimson edge accents. frames 1-4 frontal levitating breathing loop, frames 5-6 lean and dive toward RIGHT with smoky trailing wisps. EXACTLY 6 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 20:28; entire sheet ratio 120:28. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 20x28 pixels with detailed 40x56 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "prompt_subject": "10-13 user override: grounded black thorn construction with white zigzag and crimson interior. No floating ghost or eyes. See elite_art_4_manifest.json.",
       "loop": false,
       "event_frame_zero_based": 4,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-53e572ef-4973-4b53-b5ff-477fa04d3d47.png",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-72a5a437-2b92-49fc-bdf4-776275e4c984.png",
       "fps": 8,
       "file": "fx_wisadel_soul@2x.png",
       "frame_width": 40,
@@ -141,27 +140,26 @@
         20,
         28
       ],
-      "source_sha256": "75c3ab4ad1c4796c3ce73c669f0869b25771795ce615c861dcee41f80e20dd03",
+      "source_sha256": "815fea5262bee007ce6474845a3addca29bae69b4f976dcf6693a60e844c673b",
       "hold_last_frame": false,
       "density": 2,
-      "sha256": "200099b62d56984369f0da22517e8e7e8503bcae99ff154c2d7bdce2fc240976",
+      "sha256": "48e12d96c214665a0bef2abb19aa787e7ae637cf296f3ac026b078c047297c09",
       "recommended_modulate_alpha": 1.0,
-      "clips": [
-        {
-          "name": "hover",
-          "loop": true,
+      "clips": {
+        "idle": {
+          "from": 0,
+          "to": 3,
           "fps": 8,
-          "count": 4,
-          "start": 0
+          "loop": true
         },
-        {
-          "name": "dive",
-          "loop": false,
+        "attack": {
+          "from": 4,
+          "to": 5,
           "fps": 12,
-          "count": 2,
-          "start": 4
+          "loop": false
         }
-      ]
+      },
+      "superseded_by": "elite_art_4_manifest.json"
     },
     {
       "character": "fx_wisadel_mark",
@@ -170,10 +168,10 @@
         724,
         1448
       ],
-      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_mark. tiny black ghost-shaped enemy overhead mark, two red eyes, scarlet contour. two clearly different flicker brightness frames. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 16:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "prompt_subject": "10-13 user override: grounded black thorn construction with white zigzag and crimson interior. No floating ghost or eyes. See elite_art_4_manifest.json.",
       "loop": true,
       "event_frame_zero_based": null,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9de8dcfa-9aae-4bc6-bdfd-7d161809a274.png",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c4bdaf9a-076a-4204-b23f-5e43463a20ab.png",
       "fps": 4,
       "file": "fx_wisadel_mark.png",
       "frame_width": 8,
@@ -183,10 +181,10 @@
         4,
         6
       ],
-      "source_sha256": "33ca8abd22a609639c0f2bd814a2ae76cb6a7f3303c7c261d6ab338951d13287",
+      "source_sha256": "532a01e01c8276217d76c3e5fb9bef072b16e3fd304bf30bafdc7b24da16cc2e",
       "hold_last_frame": false,
       "density": 1,
-      "sha256": "1465556e41decf298d2037f20fe4e8e67763bdc620a0d1f64af473c1c94ad54e",
+      "sha256": "22e06b9554e35b433c75c192b167a7e4c995c5570e4a3f3be31cb4e198c5a8c5",
       "recommended_modulate_alpha": 1.0,
       "clips": {
         "name": "default",
@@ -194,7 +192,8 @@
         "fps": 4,
         "count": 2,
         "start": 0
-      }
+      },
+      "superseded_by": "elite_art_4_manifest.json"
     },
     {
       "character": "fx_wisadel_mark",
@@ -203,10 +202,10 @@
         724,
         1448
       ],
-      "prompt_subject": "Create ONE game pixel-art animation sprite sheet for fx_wisadel_mark. tiny black ghost-shaped enemy overhead mark, two red eyes, scarlet contour. two clearly different flicker brightness frames. EXACTLY 2 frames in ONE horizontal row, equal cells, generous transparent margins and clean separation. Each cell aspect ratio 8:12; entire sheet ratio 16:12. Stable camera and anchor, consistent scale, clearly evolving animation. Design to read at 8x12 pixels with detailed 16x24 version. Crisp limited-color pixel clusters, no smooth antialiasing, no text labels, no ground, NO SHADOW. Genuine transparent background. Deep sea fantasy palette with specified accent colors. Original effects inspired by Arknights setting, not traced game assets. Keep empty transparent space between frames, never overlap cells.",
+      "prompt_subject": "10-13 user override: grounded black thorn construction with white zigzag and crimson interior. No floating ghost or eyes. See elite_art_4_manifest.json.",
       "loop": true,
       "event_frame_zero_based": null,
-      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9de8dcfa-9aae-4bc6-bdfd-7d161809a274.png",
+      "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c4bdaf9a-076a-4204-b23f-5e43463a20ab.png",
       "fps": 4,
       "file": "fx_wisadel_mark@2x.png",
       "frame_width": 16,
@@ -216,10 +215,10 @@
         8,
         12
       ],
-      "source_sha256": "33ca8abd22a609639c0f2bd814a2ae76cb6a7f3303c7c261d6ab338951d13287",
+      "source_sha256": "532a01e01c8276217d76c3e5fb9bef072b16e3fd304bf30bafdc7b24da16cc2e",
       "hold_last_frame": false,
       "density": 2,
-      "sha256": "bcf40a7975250dedc964efd7274cd197081ac9b71c0ed8e8c29d93365d7e91ee",
+      "sha256": "d0831a51bdafe190f3437d0568d9937553f5e12618c2460a2457e0e9d359fb4f",
       "recommended_modulate_alpha": 1.0,
       "clips": {
         "name": "default",
@@ -227,7 +226,8 @@
         "fps": 4,
         "count": 2,
         "start": 0
-      }
+      },
+      "superseded_by": "elite_art_4_manifest.json"
     },
     {
       "character": "fx_suzuran_wisp",

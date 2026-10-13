@@ -1,0 +1,36 @@
+{
+  "logical_resolution": [
+    240,
+    180
+  ],
+  "nearest_scale": 5,
+  "base_colors": 64,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b84a2629-8bc1-4d25-8857-29f27596ab6c.png",
+  "source_sha256": "0c10548b5d6263a5a0625d28ad7d13c8895de15a20a11a8ea05147a54a0ad2e2",
+  "files": {
+    "toy_poster_chunky_1014_4x3.png": {
+      "dimensions": [
+        1200,
+        900
+      ],
+      "bytes": 66558,
+      "sha256": "109f99d1c58941c7cdf37d36a3b008caf83ec23e714df82ea248e9266c998e57"
+    },
+    "toy_poster_chunky_1014_4x3_notext.png": {
+      "dimensions": [
+        1200,
+        900
+      ],
+      "bytes": 64976,
+      "sha256": "f1c30c0a4917b38078e2f1207850cc46b916bbf21fb8b7162831884365fdaadf"
+    },
+    "toy_poster_chunky_1014_preview.png": {
+      "dimensions": [
+        400,
+        300
+      ],
+      "bytes": 46977,
+      "sha256": "6142369441677f88e3ea535695b732cfb7d91c0b0327b549815a7612b6b1f593"
+    }
+  }
+}

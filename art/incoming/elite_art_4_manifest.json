@@ -1,0 +1,1158 @@
+{
+  "batch": 4,
+  "assets": [
+    {
+      "file": "fx_siege_rock_spike.png",
+      "frame_size": [
+        16,
+        28
+      ],
+      "frames": 7,
+      "fps": 18,
+      "origin": [
+        8,
+        28
+      ],
+      "origin_1x": [
+        8,
+        28
+      ],
+      "origin_2x": [
+        16,
+        56
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "d5aeb03302562ef78d375f9f47fefcb98702737c6729ccb174ad9c50e75f7cb8",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#080e18",
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#e6b563",
+        "#fff0c0"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "fx_siege_rock_spike@2x.png",
+      "frame_size": [
+        32,
+        56
+      ],
+      "frames": 7,
+      "fps": 18,
+      "origin": [
+        16,
+        56
+      ],
+      "origin_1x": [
+        8,
+        28
+      ],
+      "origin_2x": [
+        16,
+        56
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "6daed9b88b8092b12271f5abbb3eae117d4a326a691024ca1c94205496044021",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#080e18",
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#e6b563",
+        "#fff0c0"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "fx_siege_fissure_tile.png",
+      "frame_size": [
+        32,
+        12
+      ],
+      "frames": 4,
+      "fps": 12,
+      "origin": [
+        16,
+        6
+      ],
+      "origin_1x": [
+        16,
+        6
+      ],
+      "origin_2x": [
+        32,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "f5872ca058c5839935cd42aaaed8b12663500ba006a9007ea9e04bf7b0a09c1f",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#d19843",
+        "#e6b563",
+        "#fff0c0"
+      ]
+    },
+    {
+      "file": "fx_siege_fissure_tile@2x.png",
+      "frame_size": [
+        64,
+        24
+      ],
+      "frames": 4,
+      "fps": 12,
+      "origin": [
+        32,
+        12
+      ],
+      "origin_1x": [
+        16,
+        6
+      ],
+      "origin_2x": [
+        32,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "dbd9a6d9885f8df20ed90a6ea9d22a60f959061f9f2e724ed7cdd5608fa5702a",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#d19843",
+        "#e6b563",
+        "#fff0c0"
+      ]
+    },
+    {
+      "file": "fx_suzuran_bigfox_trail.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 5,
+      "fps": 12,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "584cb235b92183d02fc7e96cb1ba5018597044983e2b07361d09e49fb8d220e0",
+      "color_reference": "fx_suzuran_wisp.png",
+      "palette": [
+        "#080e18",
+        "#574543",
+        "#ffd173",
+        "#ffe5a3",
+        "#fffbe8"
+      ]
+    },
+    {
+      "file": "fx_suzuran_bigfox_trail@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 5,
+      "fps": 12,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "789f125fc3cebe2996f107560eca56dc39a35406f5bf8a88c78ae691246b7c5d",
+      "color_reference": "fx_suzuran_wisp.png",
+      "palette": [
+        "#080e18",
+        "#574543",
+        "#ffd173",
+        "#ffe5a3",
+        "#fffbe8"
+      ]
+    },
+    {
+      "file": "fx_saria_pillar_rise.png",
+      "frame_size": [
+        16,
+        32
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        8,
+        32
+      ],
+      "origin_1x": [
+        8,
+        32
+      ],
+      "origin_2x": [
+        16,
+        64
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 1,
+      "fire": null,
+      "sha256": "ef59b51587a7e63c730fd1ec0e0a4df38fc8477ea78c2fb6bb0a51fd7e1753fa",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "fx_saria_pillar_rise@2x.png",
+      "frame_size": [
+        32,
+        64
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        16,
+        64
+      ],
+      "origin_1x": [
+        8,
+        32
+      ],
+      "origin_2x": [
+        16,
+        64
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 2,
+      "fire": null,
+      "sha256": "b30fd5cf24ddcf291c7b210a7054741538ccf58aef1bca7d9fd2a5878f4dfaa1",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "fx_saria_pillar_idle.png",
+      "frame_size": [
+        16,
+        32
+      ],
+      "frames": 4,
+      "fps": 6,
+      "origin": [
+        8,
+        32
+      ],
+      "origin_1x": [
+        8,
+        32
+      ],
+      "origin_2x": [
+        16,
+        64
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 11,
+      "density": 1,
+      "fire": null,
+      "sha256": "967e3047770654d8e5fb59f37eff0e6491790d8ec5e96c0e3198865db06cc6d4",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "fx_saria_pillar_idle@2x.png",
+      "frame_size": [
+        32,
+        64
+      ],
+      "frames": 4,
+      "fps": 6,
+      "origin": [
+        16,
+        64
+      ],
+      "origin_1x": [
+        8,
+        32
+      ],
+      "origin_2x": [
+        16,
+        64
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 11,
+      "density": 2,
+      "fire": null,
+      "sha256": "71cc22dbf93070f5add3740721e5b0f4996fa2ea1c80db2823557fd524ce3eb7",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "fx_saria_pillar_break.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 1,
+      "fire": null,
+      "sha256": "a6804c81b1c6bc4c4fcc6afd7f4f4ceabb5c310e0a257da1c270c386e8f9ba0a",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_saria_pillar_break@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 2,
+      "fire": null,
+      "sha256": "ebf73ff4ca5b7b324c900fe883b2b18107b58be290aeceae57e6aa68de7ca530",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#597084",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#f5faff",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_wisadel_soul.png",
+      "frame_size": [
+        20,
+        28
+      ],
+      "frames": 6,
+      "fps": 8,
+      "origin": [
+        10,
+        14
+      ],
+      "origin_1x": [
+        10,
+        14
+      ],
+      "origin_2x": [
+        20,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 1,
+      "fire": null,
+      "sha256": "e938d0a48f313f1e78268ad287afe26bcce0c70c98b25c3fe4bba28d7bb4025d",
+      "reference": "user soul shadow screenshot 2026-10-13",
+      "identity": "grounded black thorn base, tall crooked horn, white zigzag, crimson interior; no eyes or ghost",
+      "ground_base_1x": [
+        10,
+        27
+      ],
+      "legacy_center_origin_preserved": true,
+      "clips": {
+        "idle": [
+          0,
+          3,
+          8
+        ],
+        "attack": [
+          4,
+          5,
+          12
+        ]
+      },
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#7e8b96",
+        "#8d0102",
+        "#a1483f",
+        "#c7c3c2",
+        "#e40000",
+        "#ffffff"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "fx_wisadel_soul@2x.png",
+      "frame_size": [
+        40,
+        56
+      ],
+      "frames": 6,
+      "fps": 8,
+      "origin": [
+        20,
+        28
+      ],
+      "origin_1x": [
+        10,
+        14
+      ],
+      "origin_2x": [
+        20,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 13,
+      "density": 2,
+      "fire": null,
+      "sha256": "48e12d96c214665a0bef2abb19aa787e7ae637cf296f3ac026b078c047297c09",
+      "reference": "user soul shadow screenshot 2026-10-13",
+      "identity": "grounded black thorn base, tall crooked horn, white zigzag, crimson interior; no eyes or ghost",
+      "ground_base_1x": [
+        10,
+        27
+      ],
+      "legacy_center_origin_preserved": true,
+      "clips": {
+        "idle": [
+          0,
+          3,
+          8
+        ],
+        "attack": [
+          4,
+          5,
+          12
+        ]
+      },
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#7e8b96",
+        "#8d0102",
+        "#a1483f",
+        "#c7c3c2",
+        "#d8757f",
+        "#e40000",
+        "#ff4731",
+        "#ffffff"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "fx_wisadel_soul_fire.png",
+      "frame_size": [
+        20,
+        28
+      ],
+      "frames": 5,
+      "fps": 16,
+      "origin": [
+        10,
+        14
+      ],
+      "origin_1x": [
+        10,
+        14
+      ],
+      "origin_2x": [
+        20,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 11,
+      "density": 1,
+      "fire": 2,
+      "sha256": "054d02a3b0fd5e97ceeffe72583e99ab0011c6c8430b6e57b144020058c2bb36",
+      "reference": "user soul shadow screenshot 2026-10-13",
+      "identity": "grounded black thorn base, tall crooked horn, white zigzag, crimson interior; no eyes or ghost",
+      "ground_base_1x": [
+        10,
+        27
+      ],
+      "legacy_center_origin_preserved": true,
+      "clips": {
+        "fire": 2
+      },
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#502d69",
+        "#7e8b96",
+        "#8d0102",
+        "#c7c3c2",
+        "#e40000",
+        "#ffffff"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "fx_wisadel_soul_fire@2x.png",
+      "frame_size": [
+        40,
+        56
+      ],
+      "frames": 5,
+      "fps": 16,
+      "origin": [
+        20,
+        28
+      ],
+      "origin_1x": [
+        10,
+        14
+      ],
+      "origin_2x": [
+        20,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 12,
+      "density": 2,
+      "fire": 2,
+      "sha256": "320ab78e8d1c516004065ba023127f31cb1b080e14c061f3628d80fdae4f5d41",
+      "reference": "user soul shadow screenshot 2026-10-13",
+      "identity": "grounded black thorn base, tall crooked horn, white zigzag, crimson interior; no eyes or ghost",
+      "ground_base_1x": [
+        10,
+        27
+      ],
+      "legacy_center_origin_preserved": true,
+      "clips": {
+        "fire": 2
+      },
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#502d69",
+        "#7e8b96",
+        "#8d0102",
+        "#c7c3c2",
+        "#e40000",
+        "#ff4731",
+        "#ffffff"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "proj_wisadel_soul_shell.png",
+      "frame_size": [
+        14,
+        8
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        7,
+        4
+      ],
+      "origin_1x": [
+        7,
+        4
+      ],
+      "origin_2x": [
+        14,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "6355ec61c382127cdf0ce7445824e7979641f6df969bdcc46b00f5752310303a",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#080e18",
+        "#2d1747",
+        "#461211",
+        "#8d0102",
+        "#c7c3c2"
+      ],
+      "outline_px": 1
+    },
+    {
+      "file": "proj_wisadel_soul_shell@2x.png",
+      "frame_size": [
+        28,
+        16
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        14,
+        8
+      ],
+      "origin_1x": [
+        7,
+        4
+      ],
+      "origin_2x": [
+        14,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "41d2a5e9dd12d8d1aa4823032611fcfe0d020da754b660bc75043cfd3768a65a",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#080e18",
+        "#2d1747",
+        "#461211",
+        "#8d0102",
+        "#c7c3c2"
+      ],
+      "outline_px": 2
+    },
+    {
+      "file": "fx_wisadel_gift_mark.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 12,
+      "density": 1,
+      "fire": null,
+      "sha256": "e4d2b6099925d23c2314f444d59b86a8562df2a8447de0f703f02415cf28a978",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#7e8b96",
+        "#8d0102",
+        "#a1483f",
+        "#c7c3c2",
+        "#e40000",
+        "#ff4731",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_wisadel_gift_mark@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 12,
+      "density": 2,
+      "fire": null,
+      "sha256": "faf2d750b4f218fe040547b7dd6c069fe8a21cef00cedb86c18300c77949705a",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#444349",
+        "#461211",
+        "#7e8b96",
+        "#8d0102",
+        "#a1483f",
+        "#c7c3c2",
+        "#e40000",
+        "#ff4731",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_wisadel_mark.png",
+      "frame_size": [
+        8,
+        12
+      ],
+      "frames": 2,
+      "fps": 4,
+      "origin": [
+        4,
+        6
+      ],
+      "origin_1x": [
+        4,
+        6
+      ],
+      "origin_2x": [
+        8,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "22e06b9554e35b433c75c192b167a7e4c995c5570e4a3f3be31cb4e198c5a8c5",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#461211",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_wisadel_mark@2x.png",
+      "frame_size": [
+        16,
+        24
+      ],
+      "frames": 2,
+      "fps": 4,
+      "origin": [
+        8,
+        12
+      ],
+      "origin_1x": [
+        4,
+        6
+      ],
+      "origin_2x": [
+        8,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "d0831a51bdafe190f3437d0568d9937553f5e12618c2460a2457e0e9d359fb4f",
+      "color_reference": "user Soul Shadow screenshot black/crimson/silver; pale muted-purple smoke per doc93",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#2d1747",
+        "#461211",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_siege_pebbles.png",
+      "frame_size": [
+        40,
+        24
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        20,
+        12
+      ],
+      "origin_1x": [
+        20,
+        12
+      ],
+      "origin_2x": [
+        40,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 8,
+      "density": 1,
+      "fire": null,
+      "sha256": "5592744e6ebd551275fc9920870c7ad65c030b1799bfc195d7b9414a1cd4ff92",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#d19843",
+        "#fff0c0"
+      ]
+    },
+    {
+      "file": "fx_siege_pebbles@2x.png",
+      "frame_size": [
+        80,
+        48
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        40,
+        24
+      ],
+      "origin_1x": [
+        20,
+        12
+      ],
+      "origin_2x": [
+        40,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 8,
+      "density": 2,
+      "fire": null,
+      "sha256": "40eae9f232e83d3bdddcbe7613ee334b8099b53ef1ba82ddc9a34689e65173f5",
+      "color_reference": "fx_rock_burst.png",
+      "palette": [
+        "#462c11",
+        "#734a1c",
+        "#7d511e",
+        "#9d6a2a",
+        "#a26f2d",
+        "#c0893b",
+        "#d19843",
+        "#fff0c0"
+      ]
+    },
+    {
+      "file": "fx_suzuran_seal.png",
+      "frame_size": [
+        20,
+        10
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        10,
+        5
+      ],
+      "origin_1x": [
+        10,
+        5
+      ],
+      "origin_2x": [
+        20,
+        10
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "173ec39b96f4dbe9f52f58f06a6d385ff5b22d9b36b5033cf377b6a137cb4e2a",
+      "color_reference": "fx_suzuran_wisp.png",
+      "palette": [
+        "#ffe5a3",
+        "#fffbe8"
+      ]
+    },
+    {
+      "file": "fx_suzuran_seal@2x.png",
+      "frame_size": [
+        40,
+        20
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        20,
+        10
+      ],
+      "origin_1x": [
+        10,
+        5
+      ],
+      "origin_2x": [
+        20,
+        10
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "4a9a7c37d7de37bcd4a52e932f5520fe2aa04211f18b22b44f889fa0dc2119ab",
+      "color_reference": "fx_suzuran_wisp.png",
+      "palette": [
+        "#ffe5a3",
+        "#fffbe8"
+      ]
+    },
+    {
+      "file": "fx_saria_amber_spot.png",
+      "frame_size": [
+        12,
+        12
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        6,
+        6
+      ],
+      "origin_1x": [
+        6,
+        6
+      ],
+      "origin_2x": [
+        12,
+        12
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "c49728e907946259c02b3167b3aae5cc9b2cc2fc108b4f0bae5a7383fdb86ae2",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_saria_amber_spot@2x.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        6,
+        6
+      ],
+      "origin_2x": [
+        12,
+        12
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "7e4bb2438abe7152d9c27be879b15b1ca357506a72ea282dc578666eaf15edbc",
+      "color_reference": "fx_saria_calcite.png",
+      "palette": [
+        "#080e18",
+        "#344356",
+        "#849cac",
+        "#b4815b",
+        "#b6cbd5",
+        "#dde8ea",
+        "#ffb861",
+        "#ffd39d",
+        "#ffffff"
+      ]
+    }
+  ],
+  "production": "imagegen sources, mechanical crop/transform/quantization/export",
+  "notes": "第4批12条，另按用户最新参考重画旧fx_wisadel_soul与fx_wisadel_mark两条，共14条。魂灵采用贴地黑棘基座、角状结构、白色折线和暗红纹理；不再使用漂浮幽灵/眼睛。火力帧2，首末匹配新魂灵f0。黑红是该角色原作参考色，优先于通用敌我配色建议。所有道具保留各角色参考色板。此批没有新增op人物帧条。"
+}
