@@ -89,12 +89,15 @@ func _release() -> void:
 	if heal_t < base("heal_cd", 3.0):
 		pass
 	elif g.corrode_pool > 0.5 or g.nerve > 0.5:
+		if g.bot != null:   # docs/88 遥测：只在 --balance 下记
+			g.telemetry.note_clean("corrode", g.corrode_pool)
+			g.telemetry.note_clean("nerve", minf(g.nerve, 15.0))
 		g.corrode_pool = 0.0
 		g.nerve = maxf(0.0, g.nerve - 15.0)
 		float_text(g.ppos + Vector2(0, -96), "驱散", PALE, 14)
 		did = true
 	elif g.hp < g.max_hp:
-		_heal_doctor(g.max_hp * base("heal_pct", 0.02) * (1.5 if guiding else 1.0) * _heal_mult(), 15)
+		_heal_doctor(g.max_hp * base("heal_pct", 0.02) * (1.5 if guiding else 1.0) * _heal_mult(), 15, "荧光")
 		did = true
 	if did:
 		heal_t = 0.0
@@ -110,10 +113,10 @@ func _release() -> void:
 		Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
 
-func _heal_doctor(h: float, size: int) -> void:
+func _heal_doctor(h: float, size: int, sub: String = "") -> void:
 	if h <= 0.0:
 		return
-	heal_leader(h, "流明")
+	heal_leader(h, "流明", sub)
 	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), WARM, size)
 	spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
 	if not spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
@@ -144,7 +147,7 @@ func _update_bolts(dt: float) -> void:
 			Sfx.op(id, "hit", -4.0 if src != "光弹" else 0.0)
 			# 灯火不灭：强化光弹命中时为主控回复 0.5% 最大生命
 			if b.get("heal", 0.0) > 0.0 and g.hp < g.max_hp:
-				heal_leader(b.heal, "流明")
+				heal_leader(b.heal, "流明", "长明")
 				fx({"kind": "glow", "pos": g.ppos + Vector2(0, -26), "r": 10.0, "life": 0.25, "col": WARM, "alpha": 0.5})
 			# 小范围溅射（60%），溅到的也被照亮
 			var ar: float = base("bolt_aoe", 24.0)
@@ -168,7 +171,10 @@ func _update_bolts(dt: float) -> void:
 func _release_skill() -> void:
 	match cur_skill:
 		0:
-			_heal_doctor(g.max_hp * base("s1_heal", 0.06) * _heal_mult() * skill_power(), 18)
+			_heal_doctor(g.max_hp * base("s1_heal", 0.06) * _heal_mult() * skill_power(), 18, "沐雨")
+			if g.bot != null:   # docs/88 遥测：只在 --balance 下记
+				g.telemetry.note_clean("corrode", g.corrode_pool)
+				g.telemetry.note_clean("nerve", g.nerve)
 			g.corrode_pool = 0.0
 			g.nerve = 0.0
 			immune_t = 3.0
@@ -234,6 +240,8 @@ func _update_tower(dt: float) -> void:
 	tower_side = move_toward(tower_side, g.facing, dt * 5.0)
 	var r: float = base("s3_r", 220.0)
 	if _in_tower(g.ppos):
+		if g.bot != null:   # docs/88 遥测：只在 --balance 下记
+			g.telemetry.note_clean("corrode", g.corrode_pool)
 		g.corrode_pool = 0.0
 		g.nerve = 0.0
 		tower_tick += dt
@@ -241,7 +249,7 @@ func _update_tower(dt: float) -> void:
 			tower_tick -= 1.0
 			g.lamp = minf(g.lamp_cap, g.lamp + base("s3_lamp", 2.0))
 			if g.hp < g.max_hp:
-				heal_leader(g.max_hp * base("s3_heal", 0.015) * _heal_mult(), "流明")
+				heal_leader(g.max_hp * base("s3_heal", 0.015) * _heal_mult(), "流明", "灯塔")
 				_talent_lamp()
 	# 塔顶光点 + 区内漂浮光尘
 	mote_t -= dt

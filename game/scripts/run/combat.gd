@@ -70,6 +70,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 			cur_dmg = dmg   # 这一下（已乘前面干员的减伤）的伤害：干员护盾（docs/61 §15 verb.shield）按它算吸收量
 			var m: float = o.dmg_taken_mult()
 			negated = negated or m <= 0.0
+			if g.bot != null and m < 1.0:
+				g.telemetry.note_dr(str(o.id), dmg * (1.0 - maxf(0.0, m)))   # docs/88 遥测：只在 --balance 下记
 			dmg *= m
 	cur_src = {}
 	# 干员格挡（dmg_taken_mult 返回 0，docs/59 §3 星熊「战术装甲」）：这一下整个作废——不扣血、不掉灯火、不吃控制 / 侵蚀，同闪避给 0.3 秒无敌
@@ -81,7 +83,7 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if src.get("elite", false):
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
-	var lost := hurt(dmg * (1.15 if g.lamp < 30.0 else 1.0), ignore_armor, boss)
+	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.15) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
 	one_cap = 0.0
 	if lost <= 0.0:
 		return
@@ -972,6 +974,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		return   # 变身动画保护独立计时，结束后无需清理永久无敌标记。
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
+		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g._lamp_r() * g._lamp_r():
+			g.telemetry.sus_seg().lit += dmg * 0.25   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
 		dmg *= 1.25
 	# 偏执泡影的茧：本体无敌，伤害打在外壳上（docs/38 §8.5）
 	if e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0:
@@ -1114,10 +1118,12 @@ func damage(e: Dictionary, dmg: float) -> void:
 		kill(e)
 
 
-func heal(v: float, src: String = "其他") -> void:
+func heal(v: float, src: String = "其他", sub: String = "") -> void:
 	v *= g.heal_mult * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound)   # 侵蚀创口减受治疗
 	var got: float = minf(v, maxf(0.0, g.max_hp - g.hp))
 	g.heal_log[src] = float(g.heal_log.get(src, 0.0)) + got
+	if g.bot != null:
+		g.telemetry.note_heal_sub(src, sub, got, v)   # docs/88 遥测：只在 --balance 下记
 	if v > got:
 		g.rfx.on_overheal(v - got)
 	g.hp = min(g.max_hp, g.hp + v)
