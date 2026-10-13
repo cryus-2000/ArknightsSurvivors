@@ -37,9 +37,9 @@
  "extra_sprites": ["ishar_idle", "ishar_move", "ishar_attack", "ishar_summon"],
  "attack": {"mode": "auto", "name": "海潮低吟", "desc": "每 1.0 秒以队长为中心放出一圈声浪（半径 190），打圈内最近的 16 个敌人（Boss / 精英优先）造成法术伤害；歌域内干员攻击 +18%；队长在歌域内时每 3 秒回复 0.3%。她自己当队长时另有一圈「领唱」打圈内全部敌人（30% 伤害）"},
  "skills": [
-  {"name": "同归殊途之吟", "en": "WANDERING SONG", "sp": 7, "dur": 5.0, "desc": "5 秒：歌域 ×1.4、歌域内干员攻速 +25%、队长每秒回复 1%，期间受击灯火流失减半", "icon": "skill_skalter_s1"},
-  {"name": "同葬无光之愿", "en": "CALL OF THE DEEP", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：歌域 +30%；歌域内干员攻击 +15%、攻速 +15%，深海猎人（斯卡蒂、乌尔比安、归溟幽灵鲨）再 +25% 攻击", "icon": "skill_skalter_s2"},
-  {"name": "潮涌，潮枯", "en": "TIDES ROSE, TIDES FELL", "sp": 24, "dur": 12.0, "desc": "12 秒：歌域 ×2、全队攻击 +100%、队长每秒回复 1.5%；灯火每秒 -2。灯火暗淡（< 30）时不再扣灯火，改为全队攻击再 +30%", "icon": "skill_skalter_s3"}
+  {"name": "同归殊途之吟", "en": "CHANT OF RETURNING BY VARIED PATHS", "sp": 7, "dur": 5.0, "desc": "5 秒：歌域 ×1.4、歌域内干员攻速 +25%、队长每秒回复 1%，期间受击灯火流失减半", "icon": "skill_skalter_s1"},
+  {"name": "同葬无光之愿", "en": "WISH OF BURIAL BEYOND THE LIGHT", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：歌域 +30%；歌域内干员攻击 +15%、攻速 +15%，深海猎人（斯卡蒂、乌尔比安、归溟幽灵鲨）再 +25% 攻击", "icon": "skill_skalter_s2"},
+  {"name": "潮涌，潮枯", "en": "THE TIDE SURGES, THE TIDE RECEDES", "sp": 24, "dur": 12.0, "desc": "12 秒：歌域 ×2、全队攻击 +100%、队长每秒回复 1.5%；灯火每秒 -2。灯火暗淡（< 30）时不再扣灯火，改为全队攻击再 +30%", "icon": "skill_skalter_s3"}
  ],
  "talent": {"name": "捕食习性", "desc": "灯火通明（≥ 70）：歌域 +20%、回复翻倍；暗淡（< 30）：歌域内干员攻击 +10%、歌域内敌人移速 -10%（不算减速状态）；编队里每名其他深海猎人，歌域内干员攻击 +8%（最多 3 人）"},
  "hit_sources": {

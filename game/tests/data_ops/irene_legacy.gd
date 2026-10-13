@@ -241,7 +241,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		var e: Dictionary = h[1]
 		# 追诉：刺中浮空 / 被她控住的敌人时追加一发手炮（先判定：本次伤害可能把它打死）
 		var pursue: bool = pursue_on and pursue_cd <= 0.0 and not e.dead and (e.get("air", 0.0) > 0.0 or _is_airborne(e))
-		log_hit("疾风" if tag_gust else "刺剑")
+		log_hit("起风" if tag_gust else "刺剑")
 		deal_damage(e, dmg * _talent_mult(e))
 		if pursue:
 			pursue_cd = base("pursue_cd", 0.4)
@@ -343,7 +343,7 @@ func _release_skill() -> void:
 			var r3: float = base("s3_r", 160.0) * stat(&"op_range")
 			var dmg3: float = base("atk", 24.0) * base("s3_mult", 1.9) * _dmg_bonus() * skill_power()
 			for e in arc_targets(pos + Vector2(0, -10), 0.0, PI, r3):
-				log_hit("审判")
+				log_hit("判决")
 				deal_damage(e, dmg3 * _talent_mult(e))
 				_lift(e, base("s3_lift", 4.0), 44.0)
 			judge_c = pos
@@ -357,7 +357,7 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP, "op_spoke": true})
 			impact_pause(0.08)
-			show_banner("审判")
+			show_banner("判决")
 
 
 ## 碎潮：前方锥形，最多 8 名，×2.8 × mult，浮空 2 秒（每次重新瞄准最近的敌人）
@@ -374,7 +374,7 @@ func _shattertide(mult: float) -> void:
 	var n: int = mini(int(base("s2_n", 8.0)), hits.size())
 	for i in n:
 		var e: Dictionary = hits[i]
-		log_hit("碎潮")
+		log_hit("裂潮")
 		deal_damage(e, dmg * _talent_mult(e))
 		_lift(e, 2.0, 34.0)
 	# 第二斩：镜像翻转 + 偏银白，与第一斩区分
@@ -473,9 +473,9 @@ func _draw_skill_over() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if gust_next:
-		out.append(["疾风", PINK])
+		out.append(["起风", PINK])
 	if judge_left > 0.0:
-		out.append(["审判", LAMP])
+		out.append(["判决", LAMP])
 	return out
 
 

@@ -156,7 +156,7 @@ func _release_skill() -> void:
 		1:
 			coord = true
 			_mon3tr_burst()
-			show_banner("战术协同：Mon3tr 永久强化")
+			show_banner("指令：战术协同 —— Mon3tr 永久强化")
 		2:
 			melt = S3_DUR
 			_mon3tr_burst()

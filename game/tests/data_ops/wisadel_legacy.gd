@@ -120,7 +120,7 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		ash = 3
 		fx({"kind": "glow", "pos": _muzzle(), "r": 16.0, "life": 0.3, "col": RED, "alpha": 0.5})
-		float_text(pos + Vector2(0, -80), "灰烬弹幕", RED, 14)
+		float_text(pos + Vector2(0, -80), "定点清算", RED, 14)
 		return
 	if ready > 0:
 		var tg: Dictionary = _execute_target(_reach(540.0)) if ready == 1 else _target(_reach(520.0))
@@ -179,13 +179,13 @@ func _release_skill() -> void:
 			var tgt: Dictionary = _execute_target(_reach(540.0))
 			if tgt.is_empty():
 				return
-			_fire(tgt.pos, base("atk", 30.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
+			_fire(tgt.pos, base("atk", 30.0) * base("s2_mult", 3.0) * skill_power(), "饱和复仇", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
 			_vsparks(_muzzle(), EMBER, 10, 200.0, 0.3)
 		2:
 			# 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
 			ammo = int(base("s3_ammo", 8.0))
-			show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
+			show_banner("爆裂黎明：巨炮装填 ×%d" % ammo)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 30.0, "life": 0.4, "col": RED, "alpha": 0.6})
 			_vsparks(_muzzle(), EMBER, 10, 160.0, 0.3)
 			var tg3: Dictionary = _target(_reach(540.0))
@@ -211,7 +211,7 @@ func skill_pending(i: int) -> bool:
 
 ## 巨型炮弹：伤害 ×1.6、爆炸范围 ×2、必余震；炮口焰加倍 + 后坐火星，落地顿帧
 func _fire_giant(to: Vector2) -> void:
-	_fire(to, base("atk", 30.0) * base("s3_mult", 1.6) * skill_power(), "饱和炮击", base("s3_size", 2.0), true, 0.0)
+	_fire(to, base("atk", 30.0) * base("s3_mult", 1.6) * skill_power(), "爆裂黎明", base("s3_size", 2.0), true, 0.0)
 	var dir: Vector2 = (to - _muzzle()).normalized()
 	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
 	for k in 8:
@@ -392,7 +392,7 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			if stun > 0.0 and not e.boss:
 				e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 			# N5「亡者回响」：凋零处刑炸到的敌人全部挂上残影标记
-			if src == "凋零处刑" and exec_mark:
+			if src == "饱和复仇" and exec_mark:
 				_mark(e)
 	match src:
 		"余震":
@@ -410,16 +410,16 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 		"殉爆":
 			fx({"kind": "smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": DARK})
 			_impact_fx(c, r, light)
-		"饱和炮击":
+		"爆裂黎明":
 			_burst_fx(c, r)
 			impact_pause(0.05)   # 巨炮落地：短顿帧
-		"凋零处刑":
+		"饱和复仇":
 			_burst_fx(c, r, true)
 		_:
 			_impact_fx(c, r, light)
 	if src == "余震":
 		Sfx.op(id, "quake", 0.0, 1.0, 0.1)
-	elif src in ["饱和炮击", "凋零处刑"]:
+	elif src in ["爆裂黎明", "饱和复仇"]:
 		Sfx.op(id, "big", -1.0, 1.0, 0.04)
 	else:
 		Sfx.op(id, "hit", -3.0 if light else 0.0, 1.0, 0.08)
@@ -680,7 +680,7 @@ func _comet_outline(pts: Array, hw: float) -> PackedVector2Array:
 func status_items() -> Array:
 	var out: Array = []
 	if ash > 0:
-		out.append(["灰烬弹幕 ×%d" % ash, RED])
+		out.append(["定点清算 ×%d" % ash, RED])
 	if ammo > 0:
 		out.append(["巨炮 ×%d" % ammo, Color(1.0, 0.55, 0.45)])
 	return out

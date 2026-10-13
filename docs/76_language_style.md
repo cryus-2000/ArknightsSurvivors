@@ -99,6 +99,7 @@
 | 探索 | 冒险、旅程 | 见 §2 |
 | 加入编队 | 加入你的旅程 | |
 | 熔岩弹 | 火山弹 | 艾雅法拉的普攻（伤害来源键也已改成「熔岩弹」）；三技能才叫「火山」 |
+| 原作技能 / 天赋名 | 本作自拟的旧名（疾风、湮灭、潮涌斩、求生之技等） | 2026-10-14 用户定「技能名改回原作名称」：原作已有的技能、天赋一律用原作中文名（解包 `skill_table` / `character_table`，对应 PRTS 干员页），英文名用 en_US 原作名的大写。伤害来源键随技能名一起改。本作新增的精英化形态、成长节点、普攻名不受此限。逐人对照与未改项见 docs/91 附录 B |
 | 靠近祭坛进行抉择 | 打开它 / 打碎它做出选择 | 祭坛在队长走近时打开 |
 | 中期 Boss ／ 最终 Boss | 强敌 | |
 
@@ -195,6 +196,12 @@
 结局一到三的描述正文（gallery lore）与原作没有冲突，不改。偏执泡影来自 enemy_handbook「吞下海嗣细胞后失控的阿戈尔少女」，伊莎玛拉来自「她不再歌唱，它为大群发声」。
 
 原作里**达成各结局的具体局内条件**（哪一层、哪件藏品），PRTS 转述自相矛盾，没有核实。本作的结局条件是自己设计的，不按原作。
+
+### A.5 技能 / 天赋名（2026-10-14 查证）
+
+- 中文名：https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/skill_table.json（`levels[0].name`）与同目录 character_table.json（`skills[].skillId`、`talents[].candidates[].name`）
+- 英文名：https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main/en_US/gamedata/excel/skill_table.json 与同目录 character_table.json
+- 对应 PRTS 页面：`https://prts.wiki/w/<干员名>`（艾丽妮、逻各斯、推进之王、归溟幽灵鲨、乌尔比安、凯尔希、铃兰、斯卡蒂、维什戴尔、安洁莉娜、能天使、艾雅法拉、星熊另经 PRTS MediaWiki API 交叉核对）
 
 ### A.3 博士
 

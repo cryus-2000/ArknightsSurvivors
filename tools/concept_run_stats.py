@@ -73,7 +73,7 @@ OPS = [
     dict(id="mizuki", name="水月", en="MIZUKI", col=(0.62, 0.55, 1.0), tex="player_idle", join=0, leader=True, kills=1412, casts=31, heal=0,
          src=[("伞击", "普攻", 268000), ("技能", "技能", 172000), ("触手", "天赋", 96000), ("触须阵", "分支", 61000), ("水刃", "分支", 22000)]),
     dict(id="skadi", name="斯卡蒂", en="SKADI", col=(0.35, 0.55, 0.95), tex="op_skadi_idle", join=192, kills=903, casts=14, heal=0,
-         src=[("大剑", "普攻", 154000), ("潮涌斩", "技能", 121000), ("跃浪", "技能", 48000), ("反手斩", "天赋", 20000)]),
+         src=[("大剑", "普攻", 154000), ("迅捷打击·γ型", "技能", 121000), ("跃浪", "技能", 48000), ("反手斩", "天赋", 20000)]),
     dict(id="saria", name="塞雷娅", en="SARIA", col=(1.0, 0.72, 0.38), tex="op_saria_idle", join=400, kills=211, casts=9, heal=1840,
          src=[("拳击", "普攻", 52000), ("碎晶", "技能", 39000), ("阻挡", "天赋", 6000)]),
     dict(id="kaltsit", name="凯尔希", en="KAL'TSIT", col=(0.55, 1.0, 0.5), tex="op_kaltsit_idle", join=485, kills=344, casts=6, heal=2310,
@@ -385,7 +385,7 @@ def overview(W=1280, H=720, s=1.0, sel=0, frac_bar=1.0, frac_fill=1.0, frac_tl=1
     m = 32 * s
     kh = 58 * s
     items = [("探索时间", mmss(T_END), None), ("难度", "IV", "波涛迭起"), ("击杀", num(3057), None), ("等级", "LV 41", "精英二"),
-             ("藏品", "19", None), ("最高单次", num(18412), "潮涌斩")]
+             ("藏品", "19", None), ("最高单次", num(18412), "迅捷打击·γ型")]
     if phone:
         items = items[:4] + [items[5]]
     kpis(img, m, 92 * s, W - 2 * m, kh, s, P, items, phone)

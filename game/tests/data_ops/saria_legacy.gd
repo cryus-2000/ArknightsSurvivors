@@ -557,7 +557,7 @@ func _draw_skill_over() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if hot_t > 0.0:
-		out.append(["药剂散布", AMBER])
+		out.append(["药物配置", AMBER])
 	if calc > 0.0:
 		out.append(["钙质化", AMBER])
 	if suit_on:

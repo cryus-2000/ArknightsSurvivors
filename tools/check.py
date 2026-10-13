@@ -364,7 +364,7 @@ EQ_GROUPS = [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=skadi", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=skadi,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
-    ], ["大剑", "潮涌斩"]),
+    ], ["大剑", "迅捷打击·γ型"]),
     ("eyjafjalla", "--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=eyjafjalla,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
@@ -394,7 +394,7 @@ EQ_GROUPS = [
     ("irene", "--opscript=irene=res://tests/data_ops/irene_legacy.gd", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=irene", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=irene,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
-    ], ["刺剑", "疾风"]),
+    ], ["刺剑", "起风"]),
     ("lumen", "--opscript=lumen=res://tests/data_ops/lumen_legacy.gd", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=lumen", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=lumen,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),

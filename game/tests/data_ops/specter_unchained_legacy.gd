@@ -241,13 +241,13 @@ func _release_skill() -> void:
 	match cur_skill:
 		0:
 			s1_t = base("s1_dur", 8.0)
-			float_text(pos + Vector2(0, -60), "求生之技", GHOST, 15)
+			float_text(pos + Vector2(0, -60), "生存的技巧", GHOST, 15)
 		1:
 			s2_t = base("s2_dur", 10.0)
-			show_banner("求生之渴：队长暂不会倒下")
+			show_banner("生存的渴望：队长暂不会倒下")
 		2:
 			s3_t = base("s3_dur", 12.0)
-			show_banner("求生之压")
+			show_banner("生存的重压")
 	fx({"kind": "ring", "pos": pos, "r": _reach(), "r0": 8.0, "life": 0.45, "col": GHOST if cur_skill < 2 else RED, "floor": true})
 	spawn_fx_sprite("fx_circle_ghost", pos + Vector2(0, 4), g.PX * 1.8)
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED, "op_spoke": true})
@@ -497,7 +497,7 @@ func status_items() -> Array:
 	if s2_t > 0.0:
 		out.append(["不倒", GHOST])
 	if s3_t > 0.0:
-		out.append(["求生之压", RED])
+		out.append(["生存的重压", RED])
 	if _beast_on():
 		out.append(["困兽", RED])
 	if doll_t > 0.0:

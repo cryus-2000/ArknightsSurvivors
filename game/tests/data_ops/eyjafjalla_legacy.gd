@@ -90,7 +90,7 @@ func update(dt: float) -> void:
 		spend_sp(0)
 		heat = 3
 		fx({"kind": "glow", "pos": pos + Vector2(0, -30), "r": 22.0, "life": 0.3, "col": ORANGE, "alpha": 0.5})
-		float_text(pos + Vector2(0, -80), "炽热", ORANGE, 14)
+		float_text(pos + Vector2(0, -80), "二重咏唱", ORANGE, 14)
 		return
 	if ready > 0:
 		var ts: Array = los_targets(1, (base("range", 290.0) + 60.0) * stat(&"op_range"), pos)
@@ -386,7 +386,7 @@ func _draw_skill_over() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if heat > 0:
-		out.append(["炽热 ×%d" % heat, ORANGE])
+		out.append(["二重咏唱 ×%d" % heat, ORANGE])
 	if erupt > 0:
 		out.append(["火山", ORANGE])
 	return out

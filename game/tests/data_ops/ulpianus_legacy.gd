@@ -246,7 +246,7 @@ func _release_skill() -> void:
 			g.stats.add(&"op_atk", "add", 0.4, "ulpianus_kept", "op:" + id)
 			refresh_stats()
 			_apply_stacks()
-			show_banner("必须坚守：攻击与范围永久提升")
+			show_banner("必须维系的界限：攻击与范围永久提升")
 			fx({"kind": "ring", "pos": pos, "r": 90.0, "r0": 8.0, "life": 0.5, "col": STEEL, "floor": true})
 			spawn_fx_sprite("fx_shield_amber", pos + Vector2(0, -20), g.PX * 1.4, 0.0, false, false, Color(0.7, 0.9, 1.2))
 
@@ -548,7 +548,7 @@ func _zip_land() -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(c) > r3 + e.r:
 				continue
-			log_hit("必须开辟")
+			log_hit("必须开辟的通路")
 			deal_damage(e, dmg3)
 			if not e.dead:
 				var st: float = base("s3_stun", 3.0) * (0.27 if e.boss else (0.5 if e.elite else 1.0))
@@ -558,7 +558,7 @@ func _zip_land() -> void:
 		_splash(c, 10, 1.3)
 		haste_t = base("s3_haste", 8.0)
 		spawn_fx_sprite("fx_circle_steel", c + Vector2(0, 4), g.PX * (r3 / 40.0))
-		float_text(c + Vector2(0, -70), "必须开辟", STEEL, 18)
+		float_text(c + Vector2(0, -70), "必须开辟的通路", STEEL, 18)
 		impact_pause(0.1)
 		Sfx.op(id, "big")
 		# 通路洞开：从起跳点到锚点裂开一道直线裂隙，沿途敌人被掀飞 0.8 秒并受到锚击 80% 伤害

@@ -101,7 +101,7 @@ func _release() -> void:
 			if pool.is_empty():
 				break
 			var e2: Dictionary = pool.pop_at(g.rng.randi() % pool.size())
-			_queue_word(e2, _atk() * wm * base("talent_mult", 0.6), "词法演化")
+			_queue_word(e2, _atk() * wm * base("talent_mult", 0.6), "语汇演化")
 			e2.slow = maxf(e2.slow, 0.8)
 	Sfx.op(id, "atk", 0.0, 1.0, 0.08)
 
@@ -179,10 +179,10 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	# 湮灭：处决非精英残血，溢出转给随机另一名敌人
 	if perish and not e.elite and not e.boss and e.hp < _atk() * base("s2_exec", 1.5):
 		var over: float = maxf(0.0, dmg - e.hp)
-		log_hit("湮灭")
+		log_hit("殁亡")
 		deal_damage(e, e.hp + 1.0)
 		Sfx.op(id, "big", -3.0)
-		float_text(e.pos + Vector2(0, -e.r - 14), "湮灭", INK, 14)
+		float_text(e.pos + Vector2(0, -e.r - 14), "殁亡", INK, 14)
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 16.0, "life": 0.3, "col": INK, "alpha": 0.7})
 		# N5 墓志铭：在处决处写下一枚大咒文，1 秒后爆开
 		# （同时最多 3 枚，写满时新的处决不再写字）
@@ -259,7 +259,7 @@ func _release_skill() -> void:
 			float_text(best.pos + Vector2(0, -best.r - 16), "提喻", INK, 15)
 		1:
 			perish = true
-			show_banner("湮灭：攻击范围与攻击永久提升，处决残血")
+			show_banner("殁亡：攻击范围与攻击永久提升，处决残血")
 			fx({"kind": "ring", "pos": pos, "r": 56.0, "r0": 8.0, "life": 0.5, "col": INK, "floor": true})
 			spawn_fx_sprite("fx_logos_s2", pos + Vector2(0, -16), g.PX * 0.7)   # 已购 CodeManu felspell 按 ink 色板重上色（tools/fx_import.py）
 		2:
@@ -269,7 +269,7 @@ func _release_skill() -> void:
 			fan_eval = 0.5
 			fan_tick = 0.0
 			face_to(fan_ang)
-			show_banner("延展敏锐")
+			show_banner("延异视阈")
 			spawn_fx_sprite("fx_holy_pillar_ink", pos + Vector2(0, 4), g.PX * 1.3, 0.0, false, true)
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -26), "life": 0.6, "max": 0.6, "col": INK, "op_spoke": true})
 	# 技能发动音 op_logos_s1/s2/s3 由 spend_sp 播放
@@ -401,7 +401,7 @@ func _update_acuity(dt: float) -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or not _in_fan(e.pos):
 				continue
-			log_hit("延展敏锐")
+			log_hit("延异视阈")
 			deal_damage(e, dmg)
 			if not e.dead:
 				e["requiem"] = base("requiem_dur", 5.0)
@@ -656,7 +656,7 @@ func status_items() -> Array:
 	if lock_t > 0.0:
 		out.append(["提喻", INK])
 	if acuity_t > 0.0:
-		out.append(["延展敏锐", INK])
+		out.append(["延异视阈", INK])
 	return out
 
 

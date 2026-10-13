@@ -338,11 +338,11 @@ static func fake_raw() -> Dictionary:
 		{"id": "kaltsit", "name": "凯尔希", "en": "KAL'TSIT", "col": [0.55, 1.0, 0.5], "leader": false, "t": 485.0, "left": -1.0, "elite": 1},
 	]
 	var op_out := {"mizuki": {"伞击": 268000.0, "技能": 172000.0, "触手": 96000.0, "触须阵": 61000.0, "水刃": 22000.0},
-		"skadi": {"大剑": 154000.0, "潮涌斩": 121000.0, "跃浪": 48000.0, "反手斩": 20000.0},
+		"skadi": {"大剑": 154000.0, "迅捷打击·γ型": 121000.0, "跃浪": 48000.0, "反手斩": 20000.0},
 		"saria": {"拳击": 52000.0, "碎晶": 39000.0, "阻挡": 6000.0},
 		"kaltsit": {"Mon3tr": 88000.0, "Mon3tr · 熔毁": 61000.0},
 		OTHER: {"援护": 41000.0, "藏品": 30000.0, "地雷": 12000.0}}
-	var origin := {"伞击": "core", "技能": "skill", "触手": "talent", "触须阵": "route", "水刃": "route", "大剑": "core", "潮涌斩": "skill",
+	var origin := {"伞击": "core", "技能": "skill", "触手": "talent", "触须阵": "route", "水刃": "route", "大剑": "core", "迅捷打击·γ型": "skill",
 		"跃浪": "skill", "反手斩": "talent", "拳击": "core", "碎晶": "skill", "阻挡": "talent", "Mon3tr": "core", "Mon3tr · 熔毁": "skill",
 		"援护": "support", "藏品": "relic", "地雷": "relic"}
 	var t := 742.0
@@ -360,7 +360,7 @@ static func fake_raw() -> Dictionary:
 		"op_casts": {"mizuki": 31, "skadi": 14, "saria": 9, "kaltsit": 6}, "bins": bins, "bin_s": 10.0, "origin": origin,
 		"heal": {"凯尔希": 2310.0, "塞雷娅": 1840.0, "自身回复": 1210.0, "吸血": 640.0, "击杀回复": 380.0, "拾取": 300.0},
 		"taken": {"boss_bishop": 1400.0, "contact_bishop": 740.0, "corrode": 1180.0, "zone": 760.0, "contact_slider": 540.0}, "dark_dmg": 39.0, "hits": 412,
-		"best": {"v": 18412.0, "src": "潮涌斩", "op": "skadi", "t": 655.0},
+		"best": {"v": 18412.0, "src": "迅捷打击·γ型", "op": "skadi", "t": 655.0},
 		"bosses": [{"type": "path", "name": "塑路者", "t0": 210.0, "t1": 262.0}, {"type": "bishop", "name": "接潮主教", "t0": 420.0, "t1": 497.0},
 			{"type": "paranoia", "name": "偏执泡影", "t0": 600.0, "t1": 742.0}],
 		"lamp_s": [402.0, 231.0, 96.0, 13.0], "beacons": [4, 5], "dodges": 38, "dashes": 214, "blocks": 12, "low_hp_s": 72.0,

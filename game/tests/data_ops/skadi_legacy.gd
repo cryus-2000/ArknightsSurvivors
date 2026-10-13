@@ -274,7 +274,7 @@ func _release_skill() -> void:
 		0:
 			# 潮涌斩：一次 ×2 宽幅横扫
 			var ang := _aim()
-			if not melee_hit("潮涌斩", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 40.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
+			if not melee_hit("迅捷打击·γ型", pos + Vector2(0, -10), ang, 1.75, _reach() * 1.1, base("atk", 40.0) * base("s1_mult", 2.0) * _dmg_bonus() * skill_power(), 120.0).is_empty():
 				Sfx.op(id, "hit", 5.0, 0.85)
 			_slash(ang, 1.75, _reach() * 1.1, Color(0.3, 0.5, 0.9), FOAM, 0.26)
 			# 和普攻区分（docs/45 #11）：再叠一道反向的泡沫斩 + 身前一道贴地浪痕
@@ -294,7 +294,7 @@ func _release_skill() -> void:
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE, "op_spoke": true})
 			for k in 16:
 				fx({"kind": "mote", "pos": pos + Vector2(g.vrng.randf_range(-40, 40), 0), "vel": Vector2(g.vrng.randf_range(-40, 40), g.vrng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
-			show_banner("潮汐")
+			show_banner("涌潮悲歌")
 
 
 func skill_active_left(i: int) -> float:
@@ -381,5 +381,5 @@ func _draw_skill_over() -> void:
 
 func status_items() -> Array:
 	if tide > 0.0:
-		return [["潮汐", BLUE]]
+		return [["涌潮悲歌", BLUE]]
 	return []

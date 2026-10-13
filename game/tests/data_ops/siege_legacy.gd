@@ -162,7 +162,7 @@ func _release_skill() -> void:
 			g.squad.gain_sp(base("s1_sp", 0.15) * skill_power(), self)
 			_sp_motes(2)
 			fx({"kind": "glow", "pos": pos + Vector2(0, -62), "r": 12.0, "life": 0.3, "col": GOLD, "alpha": 0.5})   # 头顶，不再把躯干染金（docs/45 §4）
-			float_text(pos + Vector2(0, -80), "冲锋号令", GOLD, 14)
+			float_text(pos + Vector2(0, -80), "冲锋号令·γ型", GOLD, 14)
 			if king_on:
 				_command_wave()
 		1:
@@ -176,7 +176,7 @@ func _release_skill() -> void:
 			skull = S3_DUR
 			fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.35, "col": Color(1.0, 0.6, 0.3), "alpha": 0.6})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": GOLD, "op_spoke": true})
-			show_banner("碎颅")
+			show_banner("碎颅击")
 
 
 ## 跃空锤落地：伤害 / 眩晕 / 全队技力在这一刻结算；特效照原作截图：一圈向上窜的橙黄火焰 + 黄色光柱与放射光线 + 贴地冲击波
@@ -528,9 +528,9 @@ func _squad_sp_seconds(sec: float) -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if charge_next:
-		out.append(["冲锋号令", GOLD])
+		out.append(["冲锋号令·γ型", GOLD])
 	if skull > 0.0:
-		out.append(["碎颅", Color(1.0, 0.6, 0.3)])
+		out.append(["碎颅击", Color(1.0, 0.6, 0.3)])
 	return out
 
 

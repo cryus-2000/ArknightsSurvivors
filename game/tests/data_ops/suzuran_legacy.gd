@@ -319,11 +319,11 @@ func _release_skill() -> void:
 		1:
 			warm = true
 			_field_buff(base("s2_buff", 0.15) * skill_power())
-			show_banner("暖光：光域永久扩大")
+			show_banner("儿时的舞乐：光域永久扩大")
 		2:
 			haze_t = S3_DUR
 			_field_buff(base("s3_buff", 0.2) * skill_power())
-			show_banner("狐火迷雾")
+			show_banner("狐火渺然")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
 	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD, "op_spoke": true})
 	# 圣光光柱（Pimen Holy VFX 02）：中心一根 + 光域边缘六根小的
@@ -500,9 +500,9 @@ func draw_entities_floor() -> void:
 func status_items() -> Array:
 	var out: Array = []
 	if volley_next:
-		out.append(["狐火连珠", GOLD])
+		out.append(["全力以赴", GOLD])
 	if haze_t > 0.0:
-		out.append(["狐火迷雾", GOLD])
+		out.append(["狐火渺然", GOLD])
 	return out
 
 
