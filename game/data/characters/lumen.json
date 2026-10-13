@@ -52,7 +52,12 @@
   "talent_lamp_at": 70,
   "talent_sp": 0.2,
   "s3_burst_kb": 160,
-  "s3_burst_stun": 0.6
+  "s3_burst_stun": 0.6,
+  "refract_r": 120,
+  "refract_mult": 0.25,
+  "pillar_len": 200,
+  "pillar_w": 10,
+  "pillar_mult": 1.4
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1825 / 防御 111 / 法抗 10%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低。2026-10-13（docs/82）：流明当主控前期清怪最弱，Ⅷ 32 局有 13 局在 2:00 围猎 / 首只精英时被贴身打死（opr-t2），生命 115→135、减伤 0.5→1.5，只影响当主控",
@@ -218,6 +223,26 @@
     "skill",
     "area"
    ]
+  },
+  "折光": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "ricochet"
+   ]
+  },
+  "灯塔光柱": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "pierce",
+    "basic"
+   ]
   }
  },
  "progression": [
@@ -239,7 +264,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「沛霖」；解锁天赋「凡人之愿」：每次回复或驱散，灯火 +2；灯火通明时，自身技力回复 +20%"
+   "desc": "解锁二技能「沛霖」；解锁天赋「凡人之愿」：每次回复或驱散，灯火 +2；灯火通明时，自身技力回复 +20%；光弹命中已被照亮的敌人时，折出一道光射向 120 内最近的未照亮敌人（25% 伤害，照亮它）",
+   "attack": {
+    "name": "折光",
+    "desc": "光弹命中已被照亮的敌人时，折出一道细光射向 120 内最近的未照亮敌人（光弹 25% 伤害，照亮它）；每发只折一次"
+   }
   },
   {
    "type": "custom",
@@ -259,7 +288,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「灯火不灭」：灯塔随行 10 秒，以队长为中心的灯塔光圈内，队长回复生命、免疫负面，灯火回升，结束时光爆；普攻质变「长明」：发光单元每射 8 发攒满一轮，接下来 8 发变为强化光弹（更大更亮、2 倍伤害，每发为队长回复 0.425% 最大生命）"
+   "desc": "解锁三技能「灯火不灭」：灯塔随行 10 秒，以队长为中心的灯塔光圈内，队长回复生命、免疫负面，灯火回升，结束时光爆；普攻质变「长明」：流明与发光单元每射 8 发攒满一轮，接下来 8 发变为灯塔光柱：从身前笔直打出，穿透一线上的全部敌人并照亮它们，伤害 ×1.4，每发为队长回复 0.425% 最大生命",
+   "attack": {
+    "name": "灯塔光柱",
+    "desc": "流明与发光单元每射 8 发攒满一轮，接下来 8 发变为直线短光柱（长 200）：瞬间穿透一线上的全部敌人并照亮，伤害 ×1.4，每发为队长回复 0.425% 最大生命"
+   }
   }
  ],
  "gallery": {
@@ -303,7 +336,15 @@
     "splash": 0.6,
     "lit": 3.0,
     "src": "光弹",
-    "tex": "proj_lumen_bolt"
+    "tex": "proj_lumen_bolt",
+    "refract": {
+     "cond": "elite >= 1",
+     "r": "$refract_r",
+     "mult": "$refract_mult",
+     "src": "折光",
+     "hit": "fx_lumen_refract_hit",
+     "_doc": "精一折光：光弹命中已被照亮的敌人时，折向 120 内最近的未照亮敌人（25%，照亮它）；每发只折一次"
+    }
    },
    "units": {
     "nodes": [
@@ -318,17 +359,22 @@
     "cd": "$unit_cd",
     "mult": "$unit_mult",
     "speed": "$unit_speed",
-    "src": "发光单元",
-    "charge": {
-     "cond": "elite >= 2",
-     "need": "$charge_need",
-     "shots": "$charge_shots",
-     "mult": "$charge_mult",
-     "speed": "$charge_speed",
-     "heal": "$charge_heal",
-     "heal_sub": "长明",
-     "_doc": "精二灯火不灭：发光单元攒满 8 发后连射 8 发强化光弹（2 倍伤害，命中回复队长）"
-    }
+    "src": "发光单元"
+   },
+   "beam": {
+    "cond": "elite >= 2",
+    "need": "$charge_need",
+    "shots": "$charge_shots",
+    "len": "$pillar_len",
+    "w": "$pillar_w",
+    "mult": "$pillar_mult",
+    "heal": "$charge_heal",
+    "heal_sub": "长明",
+    "src": "灯塔光柱",
+    "tile": "fx_lumen_beam",
+    "flare": "fx_lumen_beam_flare",
+    "hit": "fx_lumen_beam_hit",
+    "_doc": "精二灯塔光柱（取代强化光弹）：流明与发光单元每射满 8 发，接下来 8 发变为直线短光柱（长 200、宽 10，穿透一线并照亮，×1.4，每发回复队长 0.425%）"
    }
   },
   "skills": [
@@ -566,6 +612,16 @@
      }
     ],
     "_doc": "灯塔守望：灯塔在场或沐雨后 3 秒，旋转光束扫过的敌人受到伤害并被照亮"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精一折光：写在 attack.bolt.refract（cond elite >= 1）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精二灯塔光柱：写在 attack.beam（cond elite >= 2）"
    }
   }
  }

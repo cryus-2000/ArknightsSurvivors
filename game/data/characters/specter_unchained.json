@@ -49,7 +49,12 @@
   "first_cd": 0.4,
   "idle_cd": 0.1,
   "aim_pad": 30,
-  "kb": 70
+  "kb": 70,
+  "curl_r": 160,
+  "curl_dist": 20,
+  "flash_range": 300,
+  "flash_r": 100,
+  "flash_mult": 0.5
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -120,11 +125,23 @@
     46
    ],
    "fire": 4
+  },
+  "doll_spin": {
+   "_doc": "Codex 精英化第 3 批（elite_art_3_manifest）：替身闪现旋身环斩 6 帧 16fps，出手帧 2，首末帧接人偶 f0",
+   "tex": "op_specter_unchained_doll_spin",
+   "frames": 6,
+   "fps": 16,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
   }
  },
  "extra_sprites": [
   "doll",
-  "fall"
+  "fall",
+  "doll_spin"
  ],
  "attack": {
   "mode": "auto",
@@ -193,6 +210,16 @@
     "dot",
     "entity"
    ]
+  },
+  "替身闪现": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "entity"
+   ]
   }
  },
  "progression": [
@@ -214,7 +241,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「求生之渴」；解锁天赋「拥抱自我」：替身光环，灯火暗淡时她的伤害 +25%"
+   "desc": "解锁二技能「求生之渴」；解锁天赋「拥抱自我」：替身光环，灯火暗淡时她的伤害 +25%；环斩起手时把 160 内的敌人吸近 20（Boss 除外）",
+   "attack": {
+    "name": "卷刃",
+    "desc": "环斩起手时，锯刃外圈一道向内收的水纹，把环斩范围外、160 内的敌人吸近 20（精英减半，Boss 除外）"
+   }
   },
   {
    "type": "custom",
@@ -234,7 +265,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「求生之压」：慢而重的环斩，对残血敌人再增伤；普攻质变「无尽回旋」：每次环斩化为持续旋转 0.6 秒，每 0.15 秒再斩一段（45%）；灯火 <30 时延长到 1.2 秒"
+   "desc": "解锁三技能「求生之压」：慢而重的环斩，对残血敌人再增伤；普攻质变「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，斩一圈（半径 100，50% 伤害）后碎成泡沫消失",
+   "attack": {
+    "name": "替身闪现",
+    "desc": "每第 3 次环斩，替身在 300 内敌群最密处从水花里现身，斩一圈冷色锯环（半径 100，环斩 50% 伤害），随后碎成泡沫消失；同时最多 1 个，替身跟随队长期间不出现"
+   }
   }
  ],
  "gallery": {
@@ -324,14 +359,6 @@
     "tick": "$ring_tick",
     "mult": "$ring_mult",
     "src": "血色潮痕"
-   },
-   "whirl": {
-    "cond": "elite >= 2",
-    "tick": "$whirl_tick",
-    "dur": "$whirl_dur",
-    "dur_dark": "$whirl_dur_dark",
-    "mult": "$whirl_mult",
-    "_doc": "精二无尽回旋：环斩化为持续旋转 0.6 秒（灯火 <30 时 1.2 秒），每 0.15 秒一段 45%"
    },
    "look": {
     "saw": "fx_specter_saw",
@@ -692,6 +719,48 @@
     "trig": "passive",
     "do": [],
     "_doc": "阿戈尔挽歌：写在 S2 的 verb.substitute（doll_aura.slow_mults / elegy）"
+   },
+   "elite1": {
+    "trig": "on_windup",
+    "_doc": "精一卷刃：环斩起手时把外圈（环斩范围外、160 内）的敌人吸近 20（精英减半、重型 ×0.3、Boss 不动）",
+    "do": [
+     {
+      "verb": "displace",
+      "dir": "pull",
+      "center": "self",
+      "r": "$curl_r",
+      "r_in": "attack",
+      "dist": "$curl_dist",
+      "elite_mult": 0.5,
+      "fx": [
+       {
+        "strip": "fx_specter_inward_ripple",
+        "layer": "floor",
+        "fit": 48,
+        "max_scale": 3.4
+       }
+      ]
+     }
+    ]
+   },
+   "elite2": {
+    "trig": "every_n",
+    "n": 3,
+    "_doc": "精二替身闪现（取代无尽回旋）：每第 3 次环斩，替身人偶在 300 内敌群最密处现身斩一圈后碎成泡沫",
+    "do": [
+     {
+      "verb": "doll_flash",
+      "range": "$flash_range",
+      "r": "$flash_r",
+      "basis": "attack",
+      "mult": "$flash_mult",
+      "appear": 0.25,
+      "spin": 0.3,
+      "burst": 0.3,
+      "anim": "doll_spin",
+      "src": "替身闪现"
+     }
+    ]
    }
   }
  }

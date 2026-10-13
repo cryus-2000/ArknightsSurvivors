@@ -1737,6 +1737,13 @@ const V6_FRAMES := {
 	"fx_skadi_leap_splash": [6, 18.0], "proj_skadi_surge_blade": [4, 16.0], "fx_skadi_surge_hit": [5, 18.0], "fx_skadi_surge_release": [4, 18.0],
 	"fx_ulpianus_chain_tile": [2, 12.0], "fx_ulpianus_pull_ring": [6, 14.0], "fx_ulpianus_anchor_impact_back": [6, 16.0], "fx_ulpianus_anchor_impact_front": [6, 16.0],
 	"fx_ulpianus_drag_dust": [4, 14.0],
+	# Codex 精英化第 3 批（docs/93 §3，art/incoming/elite_art_3_manifest.json；接入见 docs/91 §25）：帧数 / fps 按 manifest。
+	# 人物帧条 op_specter_unchained_doll_spin / op_irene_finisher 登记在各干员 JSON 的 sprites（doll_spin / finisher）
+	"fx_specter_inward_ripple": [6, 18.0], "fx_specter_doll_appear": [5, 18.0], "fx_specter_doll_burst": [6, 18.0],
+	"fx_specter_saw_cold_back": [6, 24.0], "fx_specter_saw_cold_front": [6, 24.0],
+	"fx_mizuki_tentacle_curl": [4, 14.0], "fx_mizuki_jelly_dart": [6, 14.0], "fx_mizuki_jelly_sting": [5, 18.0], "fx_mizuki_bind_ring": [6, 10.0],
+	"fx_irene_lift_arc": [4, 20.0], "fx_irene_crescent_wide": [5, 20.0], "fx_irene_gun_burst": [3, 24.0],
+	"fx_lumen_refract_hit": [4, 20.0], "fx_lumen_beam": [4, 20.0], "fx_lumen_beam_flare": [5, 20.0], "fx_lumen_beam_hit": [4, 20.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

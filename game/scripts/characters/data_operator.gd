@@ -785,6 +785,8 @@ func anim_state() -> Dictionary:
 	var st := super()
 	if not hw.is_empty() and hw.has("sp"):
 		st = OB.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
+	if not hw.is_empty() and hw.has("ir"):
+		st = OB.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
 	return OB.hw_anim_state(self, st) if not hw.is_empty() else st
 
 

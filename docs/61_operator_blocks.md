@@ -1607,3 +1607,37 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - **积木等价**（`python tools/check.py --only blocks_eq`）：四组各两局（seed 1 当队友全节点 240 秒、seed 1 主控全节点 + 技力常满 240 秒），数据版 ↔ `--opscript=<id>=res://tests/data_ops/<id>_legacy.gd`：TRACE 241 行逐行相同、BALANCE 逐字段相同；
   迁移时另跑了全藏品（seed 2 主控、seed 3 当队友）与自然流程（seed 4，300 秒）三局，同样逐行相同。参照只改了画面随机数（写在各文件开头）。
 - **单元**：`tests/test_core.gd test_blocks_hw3`：四人通过校验 + 21 条反例。
+
+## 20. 精英化第 3 批的积木（docs/91 §5 / §8 / §9 / §14、§25；10-14）
+
+归溟幽灵鲨、水月、艾丽妮、流明迁积木（§19）之后，精一 / 精二新形态全部用积木写，JSON 里不写干员特判。
+代码在 `op_blocks.gd` 末尾「精英化第 3 批」段（`E3_TAGS`，前缀 `_e3`，只往后加，状态在 §19 的 `o.hw` 子字典），其余是 §19 积木上加的参数；
+核心部分只多一处：`verb.displace` 的 `r_in: attack` 改按 `h3_attack_r`（第 3 批的普攻形状按各自半径，其余同 `shape_radius`，老干员不变）。`data_operator.gd` 只多一行（收尾斩的帧条）。
+
+### 20.1 新积木 / 新参数
+
+| 积木 / 参数 | 类 | 说明 |
+|---|---|---|
+| `trig.on_windup` | 触发 | 第 3 批的普攻形状起手时执行 do（中心 = 自己）。幽灵鲨精一「卷刃」：起手时 `verb.displace` 把环斩范围外、160 内的敌人吸近 20（出手帧约在起手后 0.2 秒） |
+| `verb.doll_flash` | 瞬时（`trig.every_n` do） | 替身人偶在 range 内敌群最密处从水花里现身 appear 秒 → 旋身斩一圈（r × op_range，basis × mult，src）→ 碎成泡沫 burst 秒；同时最多 1 个，替身跟随队长期间不出。幽灵鲨精二「替身闪现」 |
+| `shape.thrust` 的 `stages[k].on_first` | 命中状态 | 第 k 段命中的第一个敌人吃的状态（可带 `cd` / `fx`）。艾丽妮精一「挑刺」 |
+| `shape.thrust` 的 `finisher {cond, every, anim, do, volley}` | 普攻参数 | 每第 every 次刺击，最后一段换成 do；收尾帧条 anim（斩出帧对准收尾那一刻）；volley {delay, n, mult[], r, src}：delay 秒后手炮补射这一斩里浮空的至多 n 名。艾丽妮精二「裂潮余波」 |
+| `shape.cleave` 的 `aim: thrust` / `look: crescent` | 参数 | 沿这一轮刺击的方向（不转身）/ 新月斩画面 |
+| `shape.lantern` 的 `bolt.refract {cond, r, mult, src}` | 普攻参数 | 光弹命中前已被照亮的敌人：折向 r 内最近的未照亮敌人（× mult，照亮它），每发一次。流明精一「折光」 |
+| `shape.lantern` 的 `beam {cond, need, shots, len, w, mult, heal, src}` | 普攻参数 | 流明本人与发光单元每射满 need 发，接下来 shots 发变为直线光柱：从脚底朝目标长 len × op_range、宽 w 的一线全部命中（× mult，照亮），每发回复队长 heal × 最大生命。流明精二「灯塔光柱」（取代 `units.charge` 强化光弹） |
+| `shape.umbrella` 的 `tentacle.pull {cond, dist, elite_mult}` | 普攻参数 | 触手命中后把目标拖向自己（同 `verb.displace` 的距离换算：精英 × elite_mult、重型 ×0.3、Boss 不动）。水月精一「拖拽」 |
+| `shape.umbrella` 的 `jelly {cond, every, every_mults, r, speed, back, mult, stun, src}` | 普攻参数 | 身后小水母（数量 = 触手追击数）各自每 every 秒飞向 r 内一名敌人（别的水母没盯上的；3 秒内被触手打过的优先，其次最近），伞击 × mult 法伤 + 束缚 stun 秒（精英减半、Boss 不受），再飘回。水月精二「深蓝之籽」（取代 `tentacle.stake` 固着） |
+
+### 20.2 画面
+
+全部接 Codex 第 3 批素材（docs/93 §3，接入记录 §3.5）；人物帧条 `op_specter_unchained_doll_spin`（`sprites.doll_spin`）、`op_irene_finisher`（`sprites.finisher`）登记为动作（列进 `extra_sprites`）。
+缺图时：内收水纹 → 通用程序环，人偶现身 / 碎散 → 人偶帧条淡入 / 淡出 + 程序泡沫，冷色锯环 → 程序锯环（冷色），挑刺弧光 → 不画，新月斩 → 程序弧光，手炮枪火 → 旧炮口火光，
+折光命中 → 小号 `fx_holy_impact_lantern`，光柱 → 程序两层线 + 光晕，水母游猎 → 常驻水母画法，蜇刺 → 程序光晕，束缚环 → 程序椭圆环。
+
+### 20.3 测试
+
+- 积木等价改为只比精零（同 §17.6 第 2 批）：四组 × 两局（seed 1 主控 `--sptest` 45 秒、seed 3 当队友 `--sptest` 60 秒）TRACE / BALANCE 逐行相同。
+  当队友那局**不带全藏品**：`--relics=all` 时 40 秒内全队就升到精二（BALANCE 的 `ops` 可查），比的已不是精零。
+- `test_blocks_hw3` 加 9 条反例（起手触发放进技能 do、替身闪现缺 r / 帧条不在 sprites、收尾帧条 / 缺 every、挑刺不是命中状态、光柱缺 len、折光缺 src、水母缺 src）与精英节点普攻卡、旧精二形态已被取代的检查。
+- 其他干员同 seed 不变（对 e4444a4a，`--trace=1 --maxprog --sptest` 240 秒）：维什戴尔 + 铃兰 + 塞雷娅（全藏品，seed 1）、星熊 + 能天使 + 凯尔希（seed 2）、浊心斯卡蒂 + 艾雅法拉 + 乌尔比安（seed 3）、逻各斯 + 斯卡蒂 + 推进之王（seed 4）：TRACE 与 BALANCE 逐字节相同。
+- 木桩表与画面见 docs/91 §25。

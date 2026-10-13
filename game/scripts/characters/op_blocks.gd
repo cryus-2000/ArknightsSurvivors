@@ -2360,7 +2360,7 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		r = float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.loc.get("area", 1.0))
 	var r_in := -1.0
 	if b.has("r_in"):
-		r_in = shape_radius(o, o.cur_attack()) if str(b.r_in) == "attack" else float(b.r_in) * o.stat(&"op_range")
+		r_in = h3_attack_r(o, o.cur_attack()) if str(b.r_in) == "attack" else float(b.r_in) * o.stat(&"op_range")   # h3_attack_r：第 3 批的普攻形状按各自半径，其余同 shape_radius
 	var by_dist: bool = b.has("dist")
 	var kb: float = float(b.get("kb", 0.0))
 	var sc: float = float(o.shot.get("force_mult", 1.0)) if by_dist else 1.0
@@ -6984,6 +6984,8 @@ static func _hw_shape_params(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
 	if tag in H3_TAGS:   # 手写迁移段第 3 批
 		return _h3_block(b, p, kind, ctx, tag)
+	if tag in E3_TAGS:   # 精英化第 3 批
+		return _e3_block(b, p, kind, ctx, tag)
 	if tag in HW2_TAGS:
 		return _hw2_block(b, p, kind, ctx, tag)
 	if tag in HW3_TAGS:
@@ -10017,6 +10019,7 @@ static func h3_attack_start(o, a: Dictionary, dt: float) -> void:
 	if an == "" and a.has("anim"):
 		an = str(a.anim)
 	o.start_attack(at if a.get("turn", true) else Vector2.INF, 0.5, 0.25, an)
+	_e3_windup(o)   # 精英化第 3 批：trig.on_windup（卷刃）
 
 
 ## 普攻出手（data_operator._release）
@@ -10050,6 +10053,7 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 	if not patch.is_empty():
 		mult = float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
 	ir.st_i = 1
+	_e3_fin_arm(o, a)   # 精英化第 3 批：这一轮是不是收尾换斩
 	var first: Dictionary = _h3_thrust(o, a, ang, mult, patch, 1)
 	var stg: Array = a.get("stages", [])
 	if not stg.is_empty() and cond_true(o, stg[0].get("cond", {})):
@@ -10090,9 +10094,17 @@ static func _h3_stage_tick(o, ir: Dictionary, dt: float) -> void:
 	if k < 0 or k >= stg.size():
 		return
 	var sg: Dictionary = stg[k]
+	var more: bool = k + 1 < stg.size() and cond_true(o, stg[k + 1].get("cond", {}))
+	if not more and ir.get("fin", false):   # 精英化第 3 批：这一轮的收尾换成 finisher（裂潮余波）
+		ir.fin = false
+		_e3_finisher(o, a)
+		return
 	var m: float = float(ir.st_mult) * float(sg.mult) if sg.has("mult") else float(ir.st_mult)
-	_h3_thrust(o, a, float(ir.st_ang), m, {}, int(ir.st_i))
-	if k + 1 < stg.size() and cond_true(o, stg[k + 1].get("cond", {})):
+	var first: Dictionary = _h3_thrust(o, a, float(ir.st_ang), m, {}, int(ir.st_i))
+	if not first.is_empty():
+		for s in sg.get("on_first", []):   # 精英化第 3 批：这一段首中目标的状态（挑刺）
+			apply_status(o, first, s, first.pos, -1.0, 0.0, 0)
+	if more:
 		ir.st_t = _h3_stage_gap(o, a)
 
 
@@ -10273,7 +10285,9 @@ static func h3_lift_around(o, b: Dictionary, at: Vector2) -> void:
 static func h3_cleave(o, b: Dictionary, at: Vector2) -> Array:
 	var g = o.g
 	var ang: float = float(b.get("ang", 0.0))
-	if str(b.get("aim", "")) == "nearest":
+	if str(b.get("aim", "")) == "thrust" and o.hw.has("ir"):   # 精英化第 3 批：沿这一轮刺击的方向（不转身）
+		ang = float(o.hw.ir.st_ang)
+	elif str(b.get("aim", "")) == "nearest":
 		var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 240.0)), o.pos)
 		ang = o.facing_angle()
 		if not ts.is_empty():
@@ -10306,9 +10320,13 @@ static func h3_cleave(o, b: Dictionary, at: Vector2) -> Array:
 			apply_status(o, e, s, org)
 		out.append(e)
 	hw_record(o, dmg, ang, r, org)
+	if o.hw.has("ir"):
+		o.hw.ir["last_hits"] = out
 	var lk = b.get("look", "")
 	if str(lk) == "rose_heavy":
 		_h3_cleave_fx(o, b, ang, r)
+	elif str(lk) == "crescent":
+		_e3_crescent_fx(o, b, ang, r)
 	if b.has("fx"):
 		fx_play(o, b.fx, o.pos, r, out, ang)
 	return out
@@ -10422,6 +10440,7 @@ static func h3_tick(o, dt: float) -> bool:
 		ir.pcd = maxf(0.0, float(ir.pcd) - dt)
 		_h3_stage_tick(o, ir, dt)
 		_h3_followup_tick(o, ir, dt)
+		_e3_ir_tick(o, ir, dt)
 	return false
 
 
@@ -10456,6 +10475,8 @@ static func h3_exec(o, b: Dictionary, at: Vector2) -> void:
 			h3_kill_heal(o, b)
 		"verb.heal_lamp":
 			_h3_heal_lamp(o)
+		"verb.doll_flash":
+			h3_doll_flash(o, b)
 
 
 # ---------------------------------------------------------------- 画面
@@ -10564,6 +10585,9 @@ static func h3_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	match str(f.kind):
 		"h3_saw":
 			_h3_draw_saw(o, f, a)
+			return true
+		"h3_beam":
+			_e3_draw_beam(o, f, a)
 			return true
 		"h3_thrust":
 			_h3_draw_thrust(o, f, a)
@@ -10688,8 +10712,9 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 						errs.append(q + " 必须是对象 {cond, mult}")
 						continue
 					for k in stg[i]:
-						if not k in ["cond", "mult", "_doc"]:
-							errs.append("%s.%s：一段只有 cond / mult" % [q, k])
+						if not k in ["cond", "mult", "on_first", "_doc"]:
+							errs.append("%s.%s：一段只有 cond / mult / on_first" % [q, k])
+					_list(stg[i].get("on_first", []), q + ".on_first", "on_hit", ctx)
 					if stg[i].has("cond") and (not (stg[i].cond is String) or parse_cond(stg[i].cond, ctx.base).has("err")):
 						errs.append(q + ".cond 看不懂")
 					_num(stg[i], "mult", q, ctx, false, 0.0, 10.0)
@@ -10701,6 +10726,18 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 					_num(pu, "cd", p + ".pursue", ctx, true, 0.0, 10.0)
 					_num(pu, "r", p + ".pursue", ctx, false, 1.0, 200.0)
 					_src(pu, p + ".pursue", ctx, true)
+			if b.has("finisher"):   # 精英化第 3 批：收尾换斩
+				var fn = b.finisher
+				if not (fn is Dictionary):
+					errs.append(p + ".finisher 必须是对象 {cond, every, anim, do, volley}")
+				else:
+					_num(fn, "every", p + ".finisher", ctx, true, 1.0, 20.0)
+					if fn.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(fn.anim))):
+						errs.append("%s.finisher.anim「%s」不是 sprites 里的帧条键" % [p, str(fn.anim)])
+					_list(fn.get("do", []), p + ".finisher.do", "instant", ctx)
+					if fn.get("volley", null) is Dictionary:
+						_num(fn.volley, "n", p + ".finisher.volley", ctx, true, 1.0, 12.0)
+						_src(fn.volley, p + ".finisher.volley", ctx, true)
 			_src(b, p, ctx, true)
 		"shape.cleave":
 			if str(b.get("r", "")) != "attack":
@@ -10708,8 +10745,8 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "half", p, ctx, false, 0.05, 3.2)   # ≥ PI = 整圈（不看角度）
 			_num(b, "aim_r", p, ctx, false, 1.0, 2000.0)
 			_num(b, "max_n", p, ctx, false, 1.0, 99.0)
-			if b.has("aim") and str(b.aim) != "nearest":
-				errs.append(p + ".aim 只能是 nearest")
+			if b.has("aim") and not str(b.aim) in ["nearest", "thrust"]:
+				errs.append(p + ".aim 只能是 nearest / thrust")
 			if b.has("order") and str(b.order) != "near":
 				errs.append(p + ".order 只能是 near")
 			if b.has("origin_off") and not (b.origin_off is Array and b.origin_off.size() == 2):
@@ -10762,6 +10799,16 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_src(b.bolt, p + ".bolt", ctx, true)
 			if b.get("units", null) is Dictionary:
 				_src(b.units, p + ".units", ctx, true)
+			if b.get("bolt", null) is Dictionary and b.bolt.get("refract", null) is Dictionary:   # 精英化第 3 批：折光
+				_num(b.bolt.refract, "r", p + ".bolt.refract", ctx, true, 1.0, 600.0)
+				_src(b.bolt.refract, p + ".bolt.refract", ctx, true)
+			if b.has("beam"):   # 精英化第 3 批：灯塔光柱
+				if not (b.beam is Dictionary):
+					errs.append(p + ".beam 必须是对象")
+				else:
+					_num(b.beam, "need", p + ".beam", ctx, true, 1.0, 50.0)
+					_num(b.beam, "len", p + ".beam", ctx, true, 10.0, 800.0)
+					_src(b.beam, p + ".beam", ctx, true)
 		"verb.mend":
 			_num(b, "pct", p, ctx, true, 0.0, 0.5)
 		"verb.purge":
@@ -10793,6 +10840,13 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_src(b.tentacle, p + ".tentacle", ctx, true)
 			if b.get("echo", null) is Dictionary:
 				_src(b.echo, p + ".echo", ctx, true)
+			if b.has("jelly"):   # 精英化第 3 批：深蓝之籽
+				if not (b.jelly is Dictionary):
+					errs.append(p + ".jelly 必须是对象")
+				else:
+					_num(b.jelly, "every", p + ".jelly", ctx, true, 0.1, 10.0)
+					_num(b.jelly, "r", p + ".jelly", ctx, true, 1.0, 800.0)
+					_src(b.jelly, p + ".jelly", ctx, true)
 			_src(b, p, ctx, true)
 		"verb.kill_heal":
 			_num(b, "pct", p, ctx, true, 0.0, 0.2)
@@ -10874,6 +10928,7 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 			v += clampf(1.0 - o.g.hp / o.g.max_hp, 0.0, 1.0)
 		m *= v
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * m * (o.skill_power() if (str(a.get("power", "")) == "active" and _h3_any_skill(o)) else 1.0)
+	hw_record(o, dmg, 0.0, h3_saw_r(o, a), o.pos)   # basis attack = 这一圈主环斩的伤害（替身闪现按它取百分比）
 	_h3_spin(o, a, dmg, 0)
 	var s2 = a.get("spin2", null)
 	var dbl: bool = s2 is Dictionary and cond_true(o, s2.get("cond", {}))
@@ -11107,6 +11162,7 @@ static func _h3sp_tick(o, sp: Dictionary, dt: float) -> bool:
 	if o.s_t[0] > 0.0 and not h3_away(o) and g.vrng.randf() < dt * 14.0 and o.B.get("attack", {}).get("look", {}).get("flame", false):
 		o.fx({"kind": "mote", "pos": o.pos + Vector2(g.vrng.randf_range(-16, 16), g.vrng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_h3_spins_tick(o, sp, dt)
+	_e3_flash_tick(o, sp, dt)   # 精英化第 3 批：替身闪现
 	return h3_away(o) or float(sp.fall_t) > 0.0
 
 
@@ -11132,12 +11188,18 @@ static func h3_bodies(o) -> Array:
 	if not hw_on(o) or not o.hw.has("sp"):
 		return []
 	var sp: Dictionary = o.hw.sp
+	var out: Array = []
 	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF:
-		return [{"y": (sp.doll_pos as Vector2).y + 2.0, "h3": "doll"}]
-	return []
+		out.append({"y": (sp.doll_pos as Vector2).y + 2.0, "h3": "doll"})
+	if not sp.get("flash", {}).is_empty():
+		out.append({"y": (sp.flash.pos as Vector2).y + 2.0, "h3": "flash"})
+	return out
 
 
 static func h3_draw_extra(o, it: Dictionary) -> void:
+	if str(it.get("h3", "")) == "flash":
+		_e3_flash_draw(o)
+		return
 	if str(it.get("h3", "")) == "doll":
 		var sp: Dictionary = o.hw.sp
 		var an: String = str(sp.sub.get("doll_anim", "doll"))
@@ -11406,6 +11468,8 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 	if not ts.is_empty():
 		var bt: Dictionary = a.get("bolt", {})
 		var d: Vector2 = (ts[0].pos - hand).normalized()
+		if _e3_beam_shot(o, lm, hand, ts[0].pos, o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus()):
+			return   # 精英化第 3 批：这一发变灯塔光柱
 		if lm.bolts.size() < H3_BOLT_MAX:
 			lm.bolts.append({"pos": hand, "vel": d * float(bt.get("speed", 380.0)), "dmg": o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus(), "life": float(bt.get("life", 1.4)), "src": str(bt.get("src", ""))})
 
@@ -11428,6 +11492,7 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 			if e.dead or e.pos.distance_to(b.pos) > e.r + float(bt.get("r", 8.0)):
 				continue
 			var src: String = b.get("src", main_src)
+			var was_lit: bool = float(e.get("lit", 0.0)) > 0.0   # 精英化第 3 批：折光看命中前是否已被照亮
 			o.log_hit(src)
 			o.deal_damage(e, b.dmg)
 			e["lit"] = float(bt.get("lit", 3.0))
@@ -11443,6 +11508,8 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 				o.log_hit(src)
 				o.deal_damage(q, b.dmg * float(bt.get("splash", 0.6)))
 				q["lit"] = float(bt.get("lit", 3.0))
+			if was_lit:
+				_e3_refract(o, bt, e, b.dmg)
 			b.life = 0.0
 			if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
 				o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
@@ -11601,6 +11668,10 @@ static func _h3_units_tick(o, lm: Dictionary, dt: float) -> void:
 		var up: Vector2 = _h3_unit_pos(o, k)
 		var d: Vector2 = (ts[0].pos + Vector2(0, -ts[0].r * 0.5) - up).normalized()
 		var dmg: float = o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(un.get("mult", 0.6))
+		if _e3_beam_shot(o, lm, up, ts[0].pos, dmg):   # 精英化第 3 批：这一发变灯塔光柱
+			lm.unit_fire[k] = g.t
+			lm.unit_fdir[k] = -1.0 if d.x < 0.0 else 1.0
+			continue
 		var big := false
 		if charge_on:
 			if int(lm.empowered) > 0:
@@ -11997,6 +12068,7 @@ static func h3_free_update(o, dt: float) -> void:
 	if not kh.is_empty():
 		mz.budget = min(float(mz.budget) + dt * float(kh.get("regen", 0.05)), float(kh.get("cap", 0.05)))
 	_h3_stakes_tick(o, mz, dt)
+	_e3_jelly_tick(o, mz, dt)   # 精英化第 3 批：深蓝之籽
 	var s3i: int = int(a.get("mirror_skill", 2))
 	var was3: float = float(mz.last_s[s3i])
 	for i in 3:
@@ -12204,6 +12276,8 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		var dr = tb.get("drag", null)
 		if dr is Dictionary and cond_true(o, dr.get("cond", {})) and not target.boss:
 			target.kb += (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0)))
+		_e3_pull(o, a, target)   # 精英化第 3 批：拖拽
+		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
 	var sk = tb.get("stake", null)
 	if sk is Dictionary and cond_true(o, sk.get("cond", {})):
 		if mz.stakes.size() >= int(sk.get("max", 6)):
@@ -12345,6 +12419,7 @@ static func _h3mz_draw_floor(o) -> void:
 	for f in g.fx:
 		if f.kind == "tentacle":
 			_h3_draw_tentacle(o, f)
+	_e3_draw_binds(o)
 	for s in mz.stakes:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
 		var sr: float = float(s.b.get("r", 60.0))
@@ -12419,6 +12494,8 @@ static func _h3mz_draw_jellies(o) -> void:
 		var ang: float = g.t * 0.6 + k * TAU / float(n)
 		var ph: float = g.t * 1.3 + k * 2.1
 		var p: Vector2 = o.pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
+		if _e3_draw_jelly(o, k):   # 精英化第 3 批：离身游猎中的水母
+			continue
 		if glow:
 			cv.draw_circle(p, 13.0, Color(0.9, 0.6, 1.6, 0.16))
 		if o._fx_strip("fx_mizuki_jelly", 4, int(g.t * 6.0) + k * 3, p + Vector2(0, 6)):
@@ -12506,3 +12583,514 @@ static func _h3mz_rows(o) -> Array:
 		["挥砍半径", "%d" % int(float(a.get("r", 142.0)) * _h3_st(o, "area", 1.0))], ["挥砍角度", "%d°" % int(half * 2.0)], ["触手倍率", "×%.2f" % _h3_st(o, "t_mult", 0.6)],
 		["追击目标", "%d" % int(_h3_st(o, "t_n", 1.0))], ["技力回复", "×%.2f" % o.g.sp_mult],
 	]
+
+
+# ================================================================ 精英化第 3 批（docs/91 §5 / §8 / §9 / §14、§25；docs/61 §20，10-14）
+# 只往后加，建在第 3 批手写迁移段上（o.hw 的 ir / sp / lm / mz）。新积木 / 新参数：
+#  trig.on_windup     普攻起手时（第 3 批的普攻形状）执行 do。幽灵鲨精一「卷刃」：起手把外圈敌人吸近（verb.displace，环斩在出手帧）
+#  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → 旋身斩一圈
+#                     （r × op_range，basis × mult，src）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
+#  shape.thrust 的 stages[k].on_first           第 k 段命中的第一个敌人吃的状态（艾丽妮精一「挑刺」：第 2 段挑起，cd 门）
+#  shape.thrust 的 finisher {cond, every, anim, do, volley}  每第 every 次刺击，最后一段换成 do（艾丽妮精二「裂潮余波」：新月斩 + 浮空），
+#                     volley {delay, n, mult[], r, src}：收尾 delay 秒后手炮补射这一斩里浮空的至多 n 名
+#  shape.cleave 的 aim: thrust（沿这一轮刺击的方向，不转身）、look: crescent
+#  shape.lantern 的 bolt.refract {cond, r, mult, src}  光弹打中已被照亮的敌人时折向 r 内最近的未照亮敌人（流明精一「折光」）
+#  shape.lantern 的 beam {cond, need, shots, len, w, mult, heal, src}  流明与发光单元每射满 need 发，接下来 shots 发变为直线光柱（流明精二「灯塔光柱」）
+#  shape.umbrella 的 tentacle.pull {cond, dist, elite_mult}  触手命中把目标拖向自己（水月精一「拖拽」）
+#  shape.umbrella 的 jelly {cond, every, s3, r, speed, back, mult, stun, src}  身后小水母离身游猎蜇刺（水月精二「深蓝之籽」）
+# 确定性：本段不取 g.rng（选目标都按距离 / 次序）；画面只用 g.vrng 与 g.t。
+
+const E3_TAGS := ["trig.on_windup", "verb.doll_flash"]
+const H3_COLD := Color(0.6, 0.8, 1.05)
+
+
+## 起手（h3_attack_start 转来）：trig.on_windup
+static func _e3_windup(o) -> void:
+	for t in o._trigs():
+		if str(t.get("_tag", "")) == "trig.on_windup" and cond_true(o, t.get("cond", {})):
+			o._exec_list(t.get("do", []), o.pos)
+
+
+## 当前普攻的判定半径（verb.displace r_in: attack 用；第 3 批的形状按各自的长度 / 半径）
+static func h3_attack_r(o, a: Dictionary) -> float:
+	match str(a.get("shape", "")):
+		"thrust":
+			return h3_thrust_len(o, a)
+		"saw":
+			return h3_saw_r(o, a)
+		"umbrella":
+			return h3_umb_radius(o, a)
+	return shape_radius(o, a)
+
+
+# ---------------------------------------------------------------- 归溟幽灵鲨：替身闪现
+
+static func h3_doll_flash(o, b: Dictionary) -> void:
+	var sp := _h3sp(o)
+	if not sp.get("flash", {}).is_empty() or h3_away(o) or o.pos == Vector2.INF:
+		return
+	var rr: float = float(b.get("range", 300.0)) * o.stat(&"op_range")
+	var c: Vector2 = o.densest_point(rr, o.pos)
+	if c == Vector2.INF:
+		var ts: Array = o.nearest_enemies(1, rr, o.pos)
+		if ts.is_empty():
+			return
+		c = ts[0].pos
+	var dmg: float = hw_basis(o, str(b.get("basis", "attack"))) * float(b.get("mult", 0.4))
+	sp["flash"] = {"pos": c, "t": 0.0, "dmg": dmg, "hit": false, "b": b, "rev": o.face < 0.0}
+	var g = o.g
+	if not o.spawn_fx_sprite("fx_water_splash", c + Vector2(0, 4), g.PX, 0.0, false, true):
+		o.fx({"kind": "ring", "pos": c, "r": 26.0, "r0": 4.0, "life": 0.3, "col": H3_COLD, "floor": true, "w": 2.0})
+
+
+static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
+	var f: Dictionary = sp.get("flash", {})
+	if f.is_empty():
+		return
+	var g = o.g
+	var b: Dictionary = f.b
+	f.t = float(f.t) + dt
+	var ap: float = float(b.get("appear", 0.25))
+	var sw: float = float(b.get("spin", 0.3))
+	if not f.hit and float(f.t) >= ap + float(b.get("hit_at", 0.08)):
+		f.hit = true
+		var r: float = float(b.get("r", 100.0)) * o.stat(&"op_range")
+		var c: Vector2 = f.pos
+		var src: String = str(b.get("src", ""))
+		for e in o.arc_targets(c + Vector2(0, -10), 0.0, PI, r):
+			o.log_hit(src, b.get("tags", []))
+			o.deal_damage(e, float(f.dmg))
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_COLD, "alpha": 0.5})
+		var sc: float = r / 34.0
+		var ok_b: bool = o.spawn_fx_sprite(str(b.get("saw_back", "fx_specter_saw_cold_back")), c + Vector2(0, -6), sc, 0.0, f.rev)
+		var ok_f: bool = o.spawn_fx_sprite(str(b.get("saw_front", "fx_specter_saw_cold_front")), c + Vector2(0, -6), sc, 0.0, f.rev)
+		if not (ok_b or ok_f):
+			o.fx({"kind": "h3_saw", "pos": c + Vector2(0, -8), "r": r, "life": 0.24, "col": H3_COLD, "spin": (-1.0 if f.rev else 1.0) * 34.0, "tooth": 5.0, "ang": g.vrng.randf() * TAU})
+		_h3_sfx(o, "atk", -3.0, 1.2, 0.06)
+	if float(f.t) >= ap + sw + float(b.get("burst", 0.3)):
+		sp.flash = {}
+
+
+static func _e3_flash_draw(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var f: Dictionary = o.hw.sp.get("flash", {})
+	if f.is_empty():
+		return
+	var b: Dictionary = f.b
+	var ap: float = float(b.get("appear", 0.25))
+	var sw: float = float(b.get("spin", 0.3))
+	var bu: float = float(b.get("burst", 0.3))
+	var t: float = float(f.t)
+	var p: Vector2 = f.pos
+	var mid := p + Vector2(0, -16.0 * g.PX)
+	if t < ap:
+		var k: float = t / ap
+		var nm: String = str(b.get("appear_fx", "fx_specter_doll_appear"))
+		if g.tex.get(nm) != null:
+			fx_frame(cv, g, nm, 5, mini(int(k * 5.0), 4), mid, g.PX, Color.WHITE)
+		else:
+			_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, k), 0)
+		return
+	if t < ap + sw:
+		var ksp: float = (t - ap) / sw
+		var tx: Texture2D = o.anim_tex(str(b.get("anim", "doll_spin")))
+		if tx != null:
+			var n: int = o.anim_hframes(tx, str(b.get("anim", "doll_spin")))
+			o.draw_sprite_at(p, f.rev, Color(0.92, 0.96, 1.1), clampi(int(ksp * n), 0, n - 1), tx, n, o.foot_off(tx, str(b.get("anim", "doll_spin"))))
+		else:
+			_e3_doll_body(o, p, f.rev, Color(0.92, 0.96, 1.1), int(ksp * 4.0))
+		return
+	var kb: float = clampf((t - ap - sw) / bu, 0.0, 1.0)
+	var nb: String = str(b.get("burst_fx", "fx_specter_doll_burst"))
+	if g.tex.get(nb) != null:
+		fx_frame(cv, g, nb, 6, mini(int(kb * 6.0), 5), mid, g.PX, Color.WHITE)
+	else:
+		_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, 1.0 - kb), 0)
+		for q in 7:
+			var an: float = q * TAU / 7.0 + p.x * 0.01
+			cv.draw_circle(mid + Vector2(cos(an), sin(an) * 0.6) * (6.0 + 22.0 * kb) + Vector2(0, -14.0 * kb), 2.5 * (1.0 - kb) + 1.0, Color(0.8, 0.92, 1.2, 0.8 * (1.0 - kb)))
+
+
+static func _e3_doll_body(o, p: Vector2, flip: bool, col: Color, fr: int) -> void:
+	var tx: Texture2D = o.anim_tex("doll")
+	if tx == null:
+		o.cv.draw_circle(p + Vector2(0, -20), 12.0, Color(H3_GHOST.r, H3_GHOST.g, H3_GHOST.b, col.a))
+		return
+	var n: int = o.anim_hframes(tx, "doll")
+	o.draw_sprite_at(p, flip, col, fr % n, tx, n, o.foot_off(tx, "doll"))
+
+
+# ---------------------------------------------------------------- 艾丽妮：挑刺 / 裂潮余波
+
+## 这一刺（出手帧）是不是收尾换斩的那一轮
+static func _e3_fin_arm(o, a: Dictionary) -> void:
+	var ir: Dictionary = o.hw.ir
+	var fn = a.get("finisher", null)
+	ir["fin"] = fn is Dictionary and cond_true(o, fn.get("cond", {})) and (int(o.atk_n) + 1) % maxi(1, int(fn.get("every", 3))) == 0
+
+
+static func _e3_finisher(o, a: Dictionary) -> void:
+	var ir: Dictionary = o.hw.ir
+	var fn: Dictionary = a.finisher
+	ir["fin_t"] = 0.0
+	ir["fin_anim"] = str(fn.get("anim", ""))
+	ir["last_hits"] = []
+	o._exec_list(fn.get("do", []))
+	var vl = fn.get("volley", null)
+	if vl is Dictionary:
+		ir["volley"] = {"t": float(vl.get("delay", 0.15)), "b": vl}
+
+
+static func _e3_ir_tick(o, ir: Dictionary, dt: float) -> void:
+	if ir.has("fin_t"):
+		ir.fin_t = float(ir.fin_t) + dt
+	var vo: Dictionary = ir.get("volley", {})
+	if vo.is_empty():
+		return
+	vo.t = float(vo.t) - dt
+	if float(vo.t) > 0.0:
+		return
+	ir.volley = {}
+	var b: Dictionary = vo.b
+	var n := 0
+	for e in ir.get("last_hits", []):
+		if n >= int(b.get("n", 2)):
+			break
+		if e.dead or not _h3_is_air(o, e):
+			continue
+		n += 1
+		var cb: Dictionary = b.duplicate()
+		if not cb.has("muzzle"):
+			cb["muzzle"] = "fx_irene_gun_burst"
+		_h3_cannon(o, cb, e.pos, hw_mul(o.base(str(b.get("atk_key", "atk")), 0.0), b.get("mult", 1.0)) * o._dmg_bonus())
+
+
+## 收尾动作帧条（anim_state 转来）
+static func e3_ir_anim(o, st: Dictionary) -> Dictionary:
+	var ir: Dictionary = o.hw.ir
+	var an: String = str(ir.get("fin_anim", ""))
+	if an == "" or not ir.has("fin_t"):
+		return st
+	var tx: Texture2D = o.anim_tex(an)
+	if tx == null:
+		return st
+	var spec: Dictionary = o.sprite_spec(an)
+	var n: int = o.anim_hframes(tx, an)
+	var fps: float = float(spec.get("fps", 14))
+	var fire: float = float(spec.get("fire", 2))
+	var fr: int = int(float(ir.fin_t) * fps + fire)   # 斩出帧对准收尾那一刻
+	if fr >= n:
+		return st
+	return {"tex": tx, "frame": clampi(fr, 0, n - 1), "hf": n, "flip": (o.face < 0.0) != o.sprite_mirror(an), "kind": an}
+
+
+static func _e3_crescent_fx(o, b: Dictionary, ang: float, r: float) -> void:
+	var g = o.g
+	var dir := Vector2.from_angle(ang)
+	if not o.spawn_fx_sprite(str(b.get("strip", "fx_irene_crescent_wide")), o.pos + Vector2(0, -14) + dir * r * 0.5, r / 58.0, ang, false, false, Color.WHITE):
+		o.slash_fx(o.pos + Vector2(0, -14), ang, float(b.get("half", 0.785)), r, Color(0.7, 0.95, 1.1), "slash", 0.26)
+	_h3_vsparks(o, o.pos + dir * r * 0.55, Color(0.8, 0.95, 1.1), 8, 200.0, 0.35, 2.5, 160.0)
+	_h3_sfx(o, "atk", 3.0, 0.9)
+
+
+# ---------------------------------------------------------------- 流明：折光 / 灯塔光柱
+
+## 光弹命中已被照亮的敌人（was_lit）：折向 r 内最近的未照亮敌人
+static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
+	var rf = bt.get("refract", null)
+	if not (rf is Dictionary) or not cond_true(o, rf.get("cond", {})):
+		return
+	var g = o.g
+	var r: float = float(rf.get("r", 120.0))
+	var best := {}
+	var bd := INF
+	for j in o.query_ids(e.pos, r + 20.0):
+		var q: Dictionary = g.enemies[j]
+		if q.dead or is_same(q, e) or float(q.get("lit", 0.0)) > 0.0:
+			continue
+		var d: float = q.pos.distance_to(e.pos)
+		if d <= r and d < bd:
+			bd = d
+			best = q
+	if best.is_empty():
+		return
+	o.log_hit(str(rf.get("src", "")))
+	o.deal_damage(best, dmg * float(rf.get("mult", 0.25)))
+	best["lit"] = float(bt.get("lit", 3.0))
+	var a: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
+	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
+	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0})
+	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
+		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
+
+
+## 一发（流明本人 / 发光单元）：光柱攒满时这一发变光柱，返回 true（不再射光弹）；否则计数
+static func _e3_beam_shot(o, lm: Dictionary, from: Vector2, to_pt: Vector2, dmg: float) -> bool:
+	var bm = o.B.get("attack", {}).get("beam", null)
+	if not (bm is Dictionary) or not cond_true(o, bm.get("cond", {})):
+		return false
+	if int(lm.empowered) > 0:
+		lm.empowered = int(lm.empowered) - 1
+		_e3_beam_fire(o, bm, from, (to_pt - o.pos).normalized(), dmg)
+		return true
+	lm.charge_n = int(lm.charge_n) + 1
+	if int(lm.charge_n) >= int(bm.get("need", 8)):
+		lm.charge_n = 0
+		lm.empowered = int(bm.get("shots", 8))
+		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": H3_WARM, "keep": true})
+		_h3_vsparks(o, o.pos + Vector2(0, -94), H3_WARM, 8, 120.0, 0.4, 2.0)
+	return false
+
+
+static func _e3_beam_fire(o, bm: Dictionary, from: Vector2, d: Vector2, dmg: float) -> void:
+	var g = o.g
+	var L: float = float(bm.get("len", 200.0)) * o.stat(&"op_range")
+	var W: float = float(bm.get("w", 10.0))
+	var org: Vector2 = o.pos   # 判定贴地：从脚底朝目标脚底；画面从出光点（提灯 / 发光单元的高度）平行打出
+	var hits: Array = []
+	for j in o.query_ids(org + d * L * 0.5, L * 0.6 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var rel: Vector2 = e.pos - org
+		var along: float = rel.dot(d)
+		if along < -e.r or along > L + e.r or absf(rel.cross(d)) > W * 0.5 + e.r:
+			continue
+		hits.append([along, e])
+	hits.sort_custom(func(x, y): return x[0] < y[0])
+	var src: String = str(bm.get("src", ""))
+	var bd: float = dmg * float(bm.get("mult", 1.4))
+	for hh in hits:
+		var e: Dictionary = hh[1]
+		o.log_hit(src)
+		o.deal_damage(e, bd)
+		e["lit"] = 3.0
+		if not o.spawn_fx_sprite(str(bm.get("hit", "fx_lumen_beam_hit")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
+			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.18, "col": Color(1.6, 1.5, 1.2), "alpha": 0.7})
+	if g.hp < g.max_hp and float(bm.get("heal", 0.0)) > 0.0:
+		o.heal_leader(g.max_hp * float(bm.heal), o.display_name(), str(bm.get("heal_sub", "")))
+	o.fx({"kind": "h3_beam", "pos": from, "dir": d, "len": L, "w": W, "life": 0.2, "tile": str(bm.get("tile", "fx_lumen_beam"))})
+	if not o.spawn_fx_sprite(str(bm.get("flare", "fx_lumen_beam_flare")), from, g.PX):
+		o.fx({"kind": "glow", "pos": from, "r": 14.0, "life": 0.2, "col": Color(1.6, 1.4, 0.9), "alpha": 0.7})
+	_h3_sfx(o, "atk", 2.0, 1.25, 0.05)
+
+
+static func _e3_draw_beam(o, f: Dictionary, a: float) -> void:
+	var g = o.g
+	var cv = o.cv
+	var p0: Vector2 = f.pos
+	var p1: Vector2 = p0 + (f.dir as Vector2) * float(f.len)
+	var tn: String = str(f.get("tile", "fx_lumen_beam"))
+	if g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+		var nfr: int = int(g.V6_FRAMES[tn][0])
+		_hw_draw_tiled(o, tn, p0, p1, g.PX, 0.0, 0, Color(1, 1, 1, clampf(a * 1.4, 0.0, 1.0)), mini(int((1.0 - a) * nfr), nfr - 1))
+		return
+	var w: float = float(f.get("w", 10.0)) * (0.35 + 0.65 * a)
+	cv.draw_line(p0, p1, Color(1.0, 0.85, 0.5, 0.55 * a), w)
+	cv.draw_line(p0, p1, Color(2.0, 1.9, 1.6, 0.9 * a), maxf(1.0, w * 0.35))
+	cv.draw_circle(p0, 6.0 + 6.0 * a, Color(1.5, 1.3, 0.8, 0.5 * a))
+
+
+# ---------------------------------------------------------------- 水月：拖拽 / 深蓝之籽
+
+static func _e3_pull(o, a: Dictionary, target: Dictionary) -> void:
+	var pl = a.get("tentacle", {}).get("pull", null)
+	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", {})):
+		return
+	if displace_one(o, target, o.pos, pl):
+		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX, 0.0, target.pos.x > o.pos.x)
+
+
+## 第 k 只水母在身后的位置（同常驻画法）
+static func _e3_jelly_home(o, k: int, n: int) -> Vector2:
+	var g = o.g
+	var ang: float = g.t * 0.6 + k * TAU / float(maxi(1, n))
+	var ph: float = g.t * 1.3 + k * 2.1
+	return o.pos + Vector2(cos(ang) * 34.0, -34.0 + sin(ang) * 12.0 + sin(ph * 1.7) * 3.0)
+
+
+static func _e3_jelly_on(o) -> Dictionary:
+	var jb = o.B.get("attack", {}).get("jelly", null)
+	if jb is Dictionary and cond_true(o, jb.get("cond", {})):
+		return jb
+	return {}
+
+
+static func _e3_jelly_tick(o, mz: Dictionary, dt: float) -> void:
+	var jb := _e3_jelly_on(o)
+	if not mz.has("jel"):
+		mz["jel"] = []
+		mz["marks"] = {}
+		mz["binds"] = []
+	if jb.is_empty() or o.pos == Vector2.INF:
+		mz.jel = []
+		return
+	var g = o.g
+	var n: int = int(_h3_st(o, "t_n", 1.0))
+	while mz.jel.size() < n:
+		var k0: int = mz.jel.size()
+		mz.jel.append({"ph": "home", "cd": 0.3 * k0, "p": _e3_jelly_home(o, k0, n), "v": Vector2.ZERO, "tgt": {}, "t": 0.0})
+	while mz.jel.size() > n:
+		mz.jel.pop_back()
+	var rr: float = float(jb.get("r", 200.0)) * o.stat(&"op_range")
+	var every: float = float(jb.get("every", 1.2))
+	for m in jb.get("every_mults", []):
+		if cond_true(o, m.get("cond", {})):
+			every *= float(m.get("mult", 1.0))
+	for k in n:
+		var j: Dictionary = mz.jel[k]
+		var home: Vector2 = _e3_jelly_home(o, k, n)
+		match str(j.ph):
+			"home":
+				j.p = home
+				j.cd = float(j.cd) - dt
+				if float(j.cd) <= 0.0:
+					var tgt := _e3_jelly_pick(o, mz, rr, k)
+					if tgt.is_empty():
+						j.cd = 0.25
+					else:
+						j.ph = "out"
+						j.tgt = tgt
+						j.t = 0.0
+			"out":
+				j.t = float(j.t) + dt
+				var e: Dictionary = j.tgt
+				if e.dead or float(j.t) > float(jb.get("max_t", 1.0)):
+					j.ph = "back"
+					continue
+				var to: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
+				var dv: Vector2 = to - (j.p as Vector2)
+				var step: float = float(jb.get("speed", 420.0)) * dt
+				if dv.length() <= step + float(e.r) * 0.5 + 4.0:
+					j.p = to
+					_e3_sting(o, jb, e)
+					j.ph = "back"
+				else:
+					j.v = dv.normalized() * float(jb.get("speed", 420.0))
+					j.p = (j.p as Vector2) + dv.normalized() * step
+			"back":
+				var dv2: Vector2 = home - (j.p as Vector2)
+				var st2: float = float(jb.get("back", 160.0)) * dt
+				if dv2.length() <= st2 + 2.0:
+					j.p = home
+					j.ph = "home"
+					j.cd = every
+				else:
+					j.v = dv2.normalized() * float(jb.get("back", 160.0))
+					j.p = (j.p as Vector2) + dv2.normalized() * st2
+	for bd in mz.binds:
+		bd.t = float(bd.t) - dt
+	mz.binds = mz.binds.filter(func(x): return float(x.t) > 0.0 and not x.e.dead)
+
+
+## 选目标：r 内、别的水母没盯上的；最近被触手打过的优先，其次最近的
+static func _e3_jelly_pick(o, mz: Dictionary, rr: float, k: int) -> Dictionary:
+	var g = o.g
+	var taken := {}
+	for q in mz.jel.size():
+		var jq: Dictionary = mz.jel[q]
+		if q != k and str(jq.ph) == "out" and not jq.tgt.is_empty():
+			taken[int(jq.tgt.id)] = true
+	var first := {}
+	for e in o.nearest_enemies(10, rr, o.pos):
+		if e.dead or taken.has(int(e.id)):
+			continue
+		if float(mz.marks.get(int(e.id), -99.0)) > float(g.t) - 3.0:
+			return e
+		if first.is_empty():
+			first = e
+	return first
+
+
+static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
+	var g = o.g
+	var mz: Dictionary = o.hw.mz
+	var a: Dictionary = o.B.get("attack", {})
+	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o._dmg_bonus()
+	for m in a.get("dmg_mults", []):
+		if cond_true(o, m.get("cond", {})):
+			dmg *= float(m.get("mult", 1.0))
+	o.log_hit(str(jb.get("src", "")))
+	o.deal_damage(e, dmg * float(jb.get("mult", 0.4)))
+	if not e.dead and not e.boss:
+		var sd: float = float(jb.get("stun", 0.3)) * (0.5 if e.elite else 1.0)
+		e.stun = maxf(e.stun, sd)
+		mz.binds.append({"e": e, "t": sd})
+	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": Color(0.9, 0.6, 1.6), "alpha": 0.6})
+
+
+static func _e3_mark(o, e: Dictionary) -> void:
+	var mz: Dictionary = o.hw.mz
+	if not mz.has("marks") or _e3_jelly_on(o).is_empty():
+		return
+	mz.marks[int(e.id)] = float(o.g.t)
+	if mz.marks.size() > 64:
+		for kk in mz.marks.keys():
+			if float(mz.marks[kk]) < float(o.g.t) - 3.0:
+				mz.marks.erase(kk)
+
+
+## 水母画法（_h3mz_draw_jellies 转来）：在外的画拉长的水滴形 + 淡紫细尾；返回 true = 已画
+static func _e3_draw_jelly(o, k: int) -> bool:
+	var mz: Dictionary = o.hw.mz
+	if not mz.has("jel") or k >= mz.jel.size():
+		return false
+	var j: Dictionary = mz.jel[k]
+	if str(j.ph) == "home":
+		return false
+	var g = o.g
+	var cv = o.cv
+	var p: Vector2 = j.p
+	var v: Vector2 = j.v
+	var ang: float = v.angle() if v.length() > 1.0 else 0.0
+	cv.draw_line(p - v.normalized() * 14.0, p, Color(0.9, 0.65, 1.5, 0.45), 2.0)
+	if g.tex.get("fx_mizuki_jelly_dart") != null:
+		fx_frame(cv, g, "fx_mizuki_jelly_dart", 6, int(g.t * 14.0 + k * 2) % 6, p, g.PX, Color.WHITE, Vector2(-1, -1), ang)
+		return true
+	return false
+
+
+static func _e3_draw_binds(o) -> void:
+	var mz: Dictionary = o.hw.mz
+	if not mz.has("binds"):
+		return
+	var g = o.g
+	var cv = o.cv
+	for bd in mz.binds:
+		var e: Dictionary = bd.e
+		var bp: Vector2 = e.pos + Vector2(0, float(e.r) * 0.6)
+		if g.tex.get("fx_mizuki_bind_ring") != null:
+			fx_frame(cv, g, "fx_mizuki_bind_ring", 6, int(g.t * 10.0) % 6, bp, g.PX * clampf(float(e.r) / 10.0, 1.0, 2.0), Color(1, 1, 1, 0.9))
+		else:
+			cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
+			cv.draw_arc(Vector2.ZERO, float(e.r) + 4.0, 0.0, TAU, 20, Color(0.9, 0.65, 1.5, 0.8), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in E3_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {"trig.on_windup": ["trig"], "verb.doll_flash": ["skill", "instant"]}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"trig.on_windup":
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+		"verb.doll_flash":
+			_num(b, "range", p, ctx, true, 10.0, 1000.0)
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "mult", p, ctx, true, 0.0, 10.0)
+			for k in ["appear", "spin", "burst"]:
+				_num(b, k, p, ctx, false, 0.0, 3.0)
+			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
+				errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
+			_src(b, p, ctx, true)
+	return true

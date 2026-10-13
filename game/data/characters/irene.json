@@ -48,7 +48,14 @@
   "s3_active": 3.6,
   "s3_t0": 0.35,
   "s3_gap": 0.25,
-  "cannon_r": 40
+  "cannon_r": 40,
+  "pick_lift": 0.4,
+  "pick_cd": 2.0,
+  "tide_r": 150,
+  "tide_half": 0.785,
+  "tide_mult": 1.2,
+  "tide_lift": 0.8,
+  "tide_shots": 2
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2935 / 防御 349 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -101,7 +108,18 @@
    24,
    46
   ],
-  "second": 3
+  "second": 3,
+  "finisher": {
+   "_doc": "Codex 精英化第 3 批（elite_art_3_manifest）：裂潮余波收尾 7 帧 14fps，斩出帧 2、开枪帧 5，末帧接 idle",
+   "tex": "op_irene_finisher",
+   "frames": 7,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  }
  },
  "attack": {
   "mode": "auto",
@@ -198,6 +216,16 @@
     "follow_up",
     "area"
    ]
+  },
+  "裂潮余波": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "stun"
+   ]
   }
  },
  "progression": [
@@ -219,7 +247,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「碎潮」；解锁天赋「涤罪之焰」：自身对受控敌人伤害 +30%"
+   "desc": "解锁二技能「碎潮」；解锁天赋「涤罪之焰」：自身对受控敌人伤害 +30%；刺击第 2 段命中的第一个敌人浮空 0.4 秒（每 2 秒至多一次，精英减半，Boss 除外）",
+   "attack": {
+    "name": "挑刺",
+    "desc": "刺击第 2 段命中的第一个敌人被挑起浮空 0.4 秒（每 2 秒至多一次；精英减半，Boss 除外），浮空中吃「涤罪之焰」增伤"
+   }
   },
   {
    "type": "custom",
@@ -239,7 +271,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「审判」：冲击波掀起一片，随后转身手炮连射 12 发；普攻质变「追诉」：刺中浮空 / 被她控住的敌人时追加一发手炮（手炮一发的 60%，每 0.4 秒至多一次）"
+   "desc": "解锁三技能「审判」：冲击波掀起一片，随后转身手炮连射 12 发；普攻质变「裂潮余波」：每第 3 次刺击收尾改为前方锥形斩（×1.2），被斩中的敌人浮空 0.8 秒，随后手炮追击其中 2 名（手炮一发的 60%）；刺中浮空的敌人时追加一发手炮（60%，每 0.4 秒至多一次）",
+   "attack": {
+    "name": "裂潮余波",
+    "desc": "每第 3 次刺击，收尾改为前方 90° 新月斩（半径 150，×1.2），斩中的敌人浮空 0.8 秒（精英减半，Boss 除外），随后手炮追击其中浮空的 2 名；刺中浮空的敌人时照旧追诉"
+   }
   }
  ],
  "gallery": {
@@ -283,7 +319,25 @@
    "ctrl": true,
    "stages": [
     {
-     "_doc": "第 2 段（剑豪）"
+     "_doc": "第 2 段（剑豪）；精一挑刺：命中的第一个敌人浮空 0.4 秒（每 2 秒至多一次）",
+     "on_first": [
+      {
+       "st": "launch",
+       "cond": "elite >= 1",
+       "dur": "$pick_lift",
+       "h": 10,
+       "cd": "$pick_cd",
+       "fx": [
+        {
+         "strip": "fx_irene_lift_arc",
+         "off": [
+          0,
+          -18
+         ]
+        }
+       ]
+      }
+     ]
     },
     {
      "cond": "node:retrial",
@@ -316,6 +370,45 @@
      0.7,
      0.95
     ]
+   },
+   "finisher": {
+    "cond": "elite >= 2",
+    "every": 3,
+    "anim": "finisher",
+    "_doc": "精二裂潮余波：每第 3 次刺击收尾改为前方 90° 新月斩（×1.2）+ 浮空 0.8 秒，0.15 秒后手炮追击其中浮空的 2 名",
+    "do": [
+     {
+      "shape": "cleave",
+      "src": "裂潮余波",
+      "aim": "thrust",
+      "r": "$tide_r",
+      "half": "$tide_half",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "mult": "$tide_mult",
+      "ctrl": true,
+      "on_hit": [
+       {
+        "st": "launch",
+        "dur": "$tide_lift",
+        "h": 30
+       }
+      ],
+      "look": "crescent"
+     }
+    ],
+    "volley": {
+     "delay": 0.15,
+     "n": "$tide_shots",
+     "mult": [
+      "$s3_strike_mult",
+      "$pursue_mult"
+     ],
+     "r": "$cannon_r",
+     "src": "追诉"
+    }
    }
   },
   "skills": [
@@ -624,7 +717,20 @@
     "trig": "passive",
     "do": [],
     "_doc": "二度裂潮：写在 S2 的 do（verb.followup，cond node:tide2）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精一挑刺：写在 attack.stages[0].on_first（cond elite >= 1）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精二裂潮余波：写在 attack.finisher（cond elite >= 2）；追诉写在 attack.pursue"
    }
   }
- }
+ },
+ "extra_sprites": [
+  "finisher"
+ ]
 }

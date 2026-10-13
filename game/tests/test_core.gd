@@ -1020,6 +1020,16 @@ func test_blocks_hw3() -> void:
 		["mizuki", "专属属性 op 写错", func(d): d.blocks.progression.tentacle_a["op"] = "set"],
 		["mizuki", "buff_self 写了没定义的属性", func(d): d.blocks.progression.tentacle_a["stat"] = "mizuki_nope"],
 		["mizuki", "回复放进技能 do", func(d): d.blocks.skills[1].do.append({"verb": "kill_heal", "pct": 0.01})],
+		# 精英化第 3 批（docs/61 §20）
+		["specter_unchained", "起手触发放进技能 do", func(d): d.blocks.skills[0]["do"] = [{"trig": "on_windup", "do": []}]],
+		["specter_unchained", "替身闪现缺 r", func(d): d.blocks.progression.elite2.do[0].erase("r")],
+		["specter_unchained", "替身闪现帧条不在 sprites", func(d): d.blocks.progression.elite2.do[0]["anim"] = "spin"],
+		["irene", "收尾帧条不在 sprites", func(d): d.blocks.attack.finisher["anim"] = "slash2"],
+		["irene", "收尾缺 every", func(d): d.blocks.attack.finisher.erase("every")],
+		["irene", "挑刺不是命中状态", func(d): d.blocks.attack.stages[0]["on_first"] = [{"verb": "lamp", "add": 1}]],
+		["lumen", "光柱缺 len", func(d): d.blocks.attack.beam.erase("len")],
+		["lumen", "折光缺 src", func(d): d.blocks.attack.bolt.refract.erase("src")],
+		["mizuki", "水母缺 src", func(d): d.blocks.attack.jelly.erase("src")],
 	]
 	for bd in bads:
 		var d2: Dictionary = defs[bd[0]].duplicate(true)
@@ -1029,3 +1039,13 @@ func test_blocks_hw3() -> void:
 		ok(OB.H3_TAGS.has(t), "第 3 批积木已登记：%s" % t)
 	ok(OB.ATTACK_SHAPES.has("thrust") and OB.ATTACK_SHAPES.has("umbrella"), "第 3 批普攻形状已登记")
 	ok(str(defs["mizuki"].blocks.attack.get("flow", "")) == "free", "水月：不等动作（flow free）")
+	ok(OB.E3_TAGS.has("trig.on_windup") and OB.E3_TAGS.has("verb.doll_flash"), "精英化第 3 批积木已登记")
+	for id in ["specter_unchained", "mizuki", "irene", "lumen"]:
+		var pg: Dictionary = defs[id].blocks.progression
+		ok(pg.has("elite1") and pg.has("elite2"), "精英化第 3 批：%s 有精一 / 精二积木" % id)
+		for nd in defs[id].progression:
+			if nd.get("type", "") == "elite":
+				ok(nd.has("attack") and str(nd.attack.get("name", "")) != "" and str(nd.attack.get("desc", "")) != "" and not "主控" in str(nd.attack.desc) and not "主控" in str(nd.desc),
+					"精英化第 3 批：%s 精%d 节点有普攻卡（不写「主控」）" % [id, int(nd.level)])
+	ok(not defs["specter_unchained"].blocks.attack.has("whirl") and not defs["mizuki"].blocks.attack.tentacle.has("stake") and not defs["lumen"].blocks.attack.units.has("charge"),
+		"精英化第 3 批：精二旧形态（无尽回旋 / 固着 / 强化光弹）已被取代")
