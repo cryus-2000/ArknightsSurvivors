@@ -52,7 +52,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 		# 卷风：贴地三道玫瑰色旋风弧由外向内收拢，外圈一道淡环标出卷起范围
 		var u0: float = 1.0 - a
 		cv.draw_set_transform(f.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
-		cv.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(PINK.r, PINK.g, PINK.b, 0.35 * a), 1.5)
+		if Dc.hit_rings():   # 外圈淡环属命中装饰圈（render/hit_rings 缺省不画），旋风弧照画
+			cv.draw_arc(Vector2.ZERO, f.r, 0.0, TAU, 32, Color(PINK.r, PINK.g, PINK.b, 0.35 * a), 1.5)
 		for q in 3:
 			var rr: float = f.r * (1.0 - 0.6 * u0) * (1.0 - q * 0.22)
 			var a0: float = u0 * 9.0 + q * TAU / 3.0

@@ -52,6 +52,16 @@ static var _dbg: Dictionary = {}
 static var _dbg_read := false
 static var ab_every := -1          # --clutterab=N
 static var ab_alt := false         # 轮换中：true = 本帧按 0 档画
+static var _hr := -1
+
+
+## 干员攻击 / 技能命中的装饰圆圈（用户 10-13：艾雅法拉攻击特效的圆圈不用加，保留火焰；其余干员也是）。
+## render/hit_rings：0 = 不画（缺省），1 = 照旧画（回退）。只在绘制时跳过：粒子照常生成、计数、走完寿命，不碰对局与 fx 计数。
+## 标了 keep 的干员环（升级、召唤物出入场、状态提示、替身减速范围）和敌方预警 / 拾取 / 灯标等一律不受影响。
+static func hit_rings() -> bool:
+	if _hr < 0:
+		_hr = 1 if Bal.v("render/hit_rings", 0.0) > 0.0 else 0
+	return _hr == 1
 
 
 static func level() -> int:

@@ -261,7 +261,7 @@ func _umbrella(target: Dictionary) -> void:
 	if empowered and hit.size() > 0:
 		var ip: Vector2 = hit[0].pos
 		g.fx.append({"kind": "impact", "pos": ip, "ang": ang, "life": 0.35, "max": 0.35, "col": UI.GOLD})
-		g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": UI.GOLD})
+		g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": UI.GOLD, "op_hit": true})
 		g.flash = maxf(g.flash, 0.12)
 		for k in mini(hit.size(), 3):
 			delayed.append({"at": 0.06 * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * S1_BURST_MULT, "r": S1_BURST_R})
@@ -342,8 +342,8 @@ func _skill_cast(i: int) -> void:
 	screen_shake(0.5 if i == 1 else 0.8)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = Color(0.45, 0.8, 1.0) if i == 1 else UI.PURPLE
-	g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c})
-	g.fx.append({"kind": "ring", "pos": pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c})
+	g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
+	g.fx.append({"kind": "ring", "pos": pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
 	g.fx.append({"kind": "rays", "pos": pos, "life": 0.6, "max": 0.6, "col": c})
 	sparks(pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
 	for j in query_ids(pos, 140.0):
@@ -374,7 +374,7 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
 	spawn_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU, false, false, deep_col(1.4))
 	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
-	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": deep_col(1.6)})
+	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": deep_col(1.6), "op_hit": true})
 	Sfx.play("tentacle", -4.0)
 	sparks(p + Vector2(0, 8), Vector2.UP, deep_col(1.5), 7, 200.0)
 

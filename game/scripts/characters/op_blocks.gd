@@ -4,6 +4,8 @@
 ## 本文件也被 -s 测试脚本（tests/test_core.gd，经 character.gd 的 validate_operator）加载：不许引用 Sfx 等自动加载。
 extends RefCounted
 
+const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
+
 ## 已实现的积木（族 → 名）。docs/61 里标 📝 的写在 PLANNED：写了校验会报「已登记未实现」
 const IMPL := {
 	"shape": ["circle", "cone", "orbit"],
@@ -2660,8 +2662,9 @@ static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（
 					var kf: float = 1.0 - k2 / 0.6
 					ci.draw_circle(Vector2.ZERO, rr * 0.85, Color(1.0, 0.62, 0.3, 0.22 * kf * kf * base))
 					ci.draw_circle(Vector2.ZERO, rr * 0.4, Color(1.0, 0.9, 0.72, 0.3 * kf * kf * base))
-				ci.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r, c.g, c.b, c.a * (1.0 - k2) * base), 4.0)
-				ci.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 56, Color(1.0, 0.95, 0.85, 0.6 * (1.0 - k2) * base), 1.5)
+				if Dc.hit_rings():   # 终结亮环属命中装饰圈（render/hit_rings 缺省不画），地面闪光照画
+					ci.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 56, Color(c.r, c.g, c.b, c.a * (1.0 - k2) * base), 4.0)
+					ci.draw_arc(Vector2.ZERO, rr * 0.92, 0.0, TAU, 56, Color(1.0, 0.95, 0.85, 0.6 * (1.0 - k2) * base), 1.5)
 				ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 	# 上层：剑（下落 + 残影 / 插地），同一张贴图
@@ -3375,7 +3378,7 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
 				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0, "cmd_t": 0.0})
 		st.list.append(s)
-		o.fx({"kind": "ring", "pos": p, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8})
+		o.fx({"kind": "ring", "pos": p, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8, "keep": true})
 		if b.has("fx"):
 			fx_play(o, b.fx, p, float(kd.get("r", 10.0)) * 2.0)
 		o._exec_list(kd.get("on_spawn", []), p)
@@ -3395,7 +3398,7 @@ static func _sm_end(o, s: Dictionary, why: String) -> void:
 	s.gone = true
 	o.sm.list.erase(s)
 	var kd := sm_kind(o, str(s.kind))
-	o.fx({"kind": "ring", "pos": s.pos, "r": float(kd.get("r", 10.0)) * 2.0, "r0": float(kd.get("r", 10.0)), "life": 0.3, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.6})
+	o.fx({"kind": "ring", "pos": s.pos, "r": float(kd.get("r", 10.0)) * 2.0, "r0": float(kd.get("r", 10.0)), "life": 0.3, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.6, "keep": true})
 	if why != "leave":
 		o._exec_list(kd.get("on_expire", []), s.pos)
 

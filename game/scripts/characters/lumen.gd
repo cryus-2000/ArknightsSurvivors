@@ -117,7 +117,7 @@ func _heal_doctor(h: float, size: int) -> void:
 	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), WARM, size)
 	spawn_fx_sprite("fx_holy_impact_lantern", g.ppos + Vector2(0, -34), g.PX * 0.9)
 	if not spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
-		fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": WARM, "floor": true})
+		fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.4, "col": WARM, "floor": true, "keep": true})
 
 
 ## 天赋余晖：每次回复 / 驱散灯火 +2
@@ -320,7 +320,7 @@ func _update_units(dt: float) -> void:
 				if charge_n >= int(base("charge_need", 8.0)):
 					charge_n = 0
 					empowered = int(base("charge_shots", 8.0))
-					fx({"kind": "ring", "pos": pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": WARM})
+					fx({"kind": "ring", "pos": pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": WARM, "keep": true})
 					fx_sparks(pos + Vector2(0, -94), WARM, 8, 120.0, 0.4, 2.0)
 		unit_fire[k] = g.t
 		unit_fdir[k] = -1.0 if d.x < 0.0 else 1.0

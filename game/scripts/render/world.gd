@@ -668,6 +668,9 @@ func _draw_fx() -> void:
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
 			"ring":
+				# op_hit：干员攻击 / 技能命中的装饰环（水月），render/hit_rings 缺省不画；其余（敌方、拾取、藏品……）照画
+				if f.get("op_hit", false) and not Dc.hit_rings():
+					continue
 				var rr: float = f.r * (1.15 - a * 0.3)
 				g.draw_arc(f.pos, rr, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.9), 4.0)
 				g.draw_arc(f.pos, rr - 6.0, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.35), 2.0)
@@ -717,7 +720,8 @@ func _draw_fx() -> void:
 				var c: Color = f.col
 				g.draw_circle(f.pos, f.r * (0.3 + 0.7 * k), Color(c.r * 2.2, c.g * 1.8, c.b * 1.2, 0.45 * a))
 				g.draw_circle(f.pos, f.r * 0.45 * a, Color(2.8, 2.4, 1.6, a))
-				g.draw_arc(f.pos, f.r * (0.5 + 0.7 * k), 0.0, TAU, 32, Color(c.r * 2.4, c.g * 2.0, c.b * 1.4, a), 4.0)
+				if not f.get("op_hit", false) or Dc.hit_rings():   # 干员法术弹（艾雅法拉熔岩弹）的冲击环：render/hit_rings 缺省不画，火光照画
+					g.draw_arc(f.pos, f.r * (0.5 + 0.7 * k), 0.0, TAU, 32, Color(c.r * 2.4, c.g * 2.0, c.b * 1.4, a), 4.0)
 			"cross":
 				# 治疗：上升的绿色十字
 				var age: float = f.max - f.life

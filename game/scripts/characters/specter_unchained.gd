@@ -324,8 +324,8 @@ func _update_doll(dt: float) -> void:
 		if elegy_t <= 0.0:
 			elegy_t = base("elegy_every", 0.8)
 			var er: float = _doll_slow_r()
-			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er, "r0": 14.0, "life": 1.6, "col": Color(0.45, 0.75, 1.1), "floor": true, "w": 2.5, "alpha": 0.7})
-			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er * 0.7, "r0": 6.0, "life": 1.2, "col": Color(0.8, 0.95, 1.3), "floor": true, "w": 1.5, "alpha": 0.45})
+			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er, "r0": 14.0, "life": 1.6, "col": Color(0.45, 0.75, 1.1), "floor": true, "w": 2.5, "alpha": 0.7, "keep": true})
+			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er * 0.7, "r0": 6.0, "life": 1.2, "col": Color(0.8, 0.95, 1.3), "floor": true, "w": 1.5, "alpha": 0.45, "keep": true})
 			fx({"kind": "mote", "pos": doll_pos + Vector2(g.rng.randf_range(-8, 8), -40), "vel": Vector2(g.rng.randf_range(-10, 10), -26.0), "life": 1.0, "col": Color(0.6, 0.85, 1.2), "sz": 2.0})
 	# 天赋：替身光环每秒法伤 + 减速（挽歌：减速范围翻倍，伤害范围不变）
 	if elite >= 1:
@@ -347,7 +347,7 @@ func _update_doll(dt: float) -> void:
 				log_hit("替身")
 				deal_damage(e, base("doll_dps", 10.0) * _dmg_bonus())
 			if not spawn_fx_sprite("fx_circle_ghost", doll_pos + Vector2(0, 4), g.PX * (r / 40.0)):
-				fx({"kind": "ring", "pos": doll_pos, "r": r, "r0": r * 0.6, "life": 0.5, "col": GHOST, "floor": true, "alpha": 0.5})
+				fx({"kind": "ring", "pos": doll_pos, "r": r, "r0": r * 0.6, "life": 0.5, "col": GHOST, "floor": true, "alpha": 0.5, "keep": true})
 	if doll_t <= 0.0:
 		elegy_t = 0.0
 		# 归队：从替身处回到编队位

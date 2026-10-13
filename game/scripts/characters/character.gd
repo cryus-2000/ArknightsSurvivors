@@ -8,6 +8,7 @@ extends "res://scripts/characters/op_api.gd"
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 const OpBlocks = preload("res://scripts/characters/op_blocks.gd")   # 数据干员的积木校验（docs/61）
+const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关
 
 var def: Dictionary = {}   # 角色定义（JSON）
 var id := ""
@@ -592,6 +593,9 @@ func draw_pfx(floor_layer: bool) -> void:
 	for f in pfx:
 		if f.get("floor", false) != floor_layer:
 			continue
+		# 攻击 / 技能命中的装饰扩散环（render/hit_rings，缺省不画；keep 的升级 / 召唤 / 状态提示环照画）：只跳过绘制，粒子照常走完寿命
+		if f.kind == "ring" and not f.get("keep", false) and not Dc.hit_rings():
+			continue
 		# 后期特效密集时整体降透明度（render/world.gd 的 fx_dim，EA 1.1）；a 也传给干员自己的 _draw_pfx
 		var a: float = clampf(f.life / f.max, 0.0, 1.0) * g.world.fx_dim
 		if _draw_pfx(f, a):
@@ -802,7 +806,7 @@ func advance(choice: String = "") -> void:
 		refresh_stats()
 		# 升级瞬间：职业色光柱 + 一圈光点，告诉玩家「她变强了」
 		if pos != Vector2.INF:
-			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0})
+			fx({"kind": "ring", "pos": pos, "r": 46.0, "r0": 6.0, "life": 0.45, "col": col(), "floor": true, "w": 3.0, "keep": true})
 			fx_sparks(pos + Vector2(0, -24), col().lerp(Color.WHITE, 0.4), 12, 180.0, 0.5, 3.0, -120.0)
 	if n.has("banner"):
 		show_banner(n.banner % display_name() if "%s" in n.banner else n.banner)

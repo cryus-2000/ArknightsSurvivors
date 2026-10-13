@@ -643,7 +643,7 @@ func on_kill(e: Dictionary) -> void:
 	if add > 0 and blood_on and not blood_ready:
 		blood_ready = true
 		float_text(pos + Vector2(0, -78), "血脉沸腾", BLOOD, 14)
-		fx({"kind": "ring", "pos": pos, "r": 50.0, "r0": 10.0, "life": 0.35, "col": BLOOD, "floor": true, "w": 3.0})
+		fx({"kind": "ring", "pos": pos, "r": 50.0, "r0": 10.0, "life": 0.35, "col": BLOOD, "floor": true, "w": 3.0, "keep": true})
 	if add <= 0 or stacks >= _stack_cap():
 		return
 	stacks = mini(_stack_cap(), stacks + add)
