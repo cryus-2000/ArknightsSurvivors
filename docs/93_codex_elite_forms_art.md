@@ -281,6 +281,16 @@
 | `op_skalter_ishar_summon` | 48×48 | 6 帧 12fps | — | 精二：伊莎玛拉从地面水纹中浮现 |
 | `fx_skalter_seaborn_zone` | 160×88 | 8 帧 10fps 循环 | ground | 精二：海嗣的第二个小歌域（同 vortex 风格、小一号、更淡） |
 
+### 5.2 接入记录（Claude，10-14）
+
+第 5 批 6 项（12 个文件，含 @2x；Codex 提交 e0b6b15e，`art/incoming/elite_art_5_manifest.json`）全部接上，帧数 / fps / 原点按 manifest；用法见 docs/61 §23、docs/91 §27。
+- **没有覆盖已有文件**：e0b6b15e 的 21 个文件全是新增（6 项素材 × 1x / @2x + manifest / handoff / QA / 预览）。
+- **海嗣形象**：handoff 写明按用户 10-13 最新截图改为浊心斯卡蒂立绘里的深蓝盘曲海嗣（黑色棘鳍、青色光点、锯齿裂口），不是伊莎玛拉人形或白壳金鳍 Boss；文件名 `op_skalter_ishar_*` 只为命名兼容。
+  实现直接用正式帧条（没有走 `e_ishar*` 缩小占位）：登记为浊心斯卡蒂的 sprites `ishar_idle / ishar_move / ishar_attack / ishar_summon`（列进 `extra_sprites`，脚底 (24, 46)，攻击出手帧 2）。
+  出场播 summon 一遍（末帧 = idle 首帧）；平时 idle / move 按速度切换；她每放一圈声浪，海嗣播一遍 attack，第 2 帧放出自己的声浪。
+- `fx_skalter_echo_ring`（5 帧 14fps）、`fx_skalter_seaborn_zone`（8 帧 10fps 循环）登记在 game.gd `V6_FRAMES`。回声环按歌域半径缩放、帧号按 fps 逐帧播（一帧比一帧疏），暗档灯火染紫；小歌域帧条贴地（ground 层），按小歌域半径缩放（fit 74，封顶 2.6 倍）。
+- 缺图回退：回声环 → 程序余波环；小歌域帧条 → 只画区域椭圆；海嗣帧条 → 召唤物程序体。
+
 ---
 
 ## 6. 优先级与节奏

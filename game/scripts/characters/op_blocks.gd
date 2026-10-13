@@ -295,6 +295,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				return []
 			if b.has("only"):   # 精英化段：只打处于某些状态的敌人（安洁莉娜失重井）
 				hits = el_area_only(o, b, c, r, dmg)
+			elif b.has("band") or b.has("among"):   # 精英化第 5 批段：环带 / 只打上一次普攻命中的敌人（浊心斯卡蒂余音）
+				hits = e5_area(o, b, c, r, dmg)
 			else:
 				hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
@@ -401,6 +403,8 @@ static func shape_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2
 static func shape_radius(o, b: Dictionary) -> float:
 	var r = b.get("r", 0.0)
 	if r is String and r == "zone":
+		if str(b.get("center", "")).begins_with("summon:"):   # 精英化第 5 批段：以召唤物为心 = 那个召唤物自带区域的半径
+			return e5_summon_zr(o, str(b.center).substr(7))
 		return o.zone_r()
 	if b.get("r_abs", false):   # 召唤物扩展段：r_abs = 半径不吃 op_range（凯尔希熔毁 130）
 		return float(r) * float(b.r_mult) if b.has("r_mult") else float(r)
@@ -757,6 +761,7 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				_num(b, "stagger", p, ctx, false, 0.0, 1.0)
 			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target", "front"]:
 				errs.append(p + ".center 只能是 zone / self / leader / target / path / front / summon:<种类>")
+			_e5_shape(b, p, ctx, tag)   # 精英化第 5 批段：band / among、center summon:<种类> + r: zone
 			if b.has("only"):   # 精英化段：只打处于这些状态的敌人
 				var ol = b.only
 				if not (ol is Array) or ol.is_empty() or ol.any(func(x): return not str(x) in EL_ONLY):
@@ -891,7 +896,7 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
 	"hold", "fade", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
-	"delay", "stay", "once", "face_x", "flash", "along"]   # 精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
+	"delay", "stay", "once", "face_x", "flash", "along", "play"]   # play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
 ## 常驻跟随帧条（hold: true，10-12 加）：积木生效期间循环、跟着区域中心 / 半径走，缺省淡入淡出秒数（条目 fade 可改）
@@ -1015,6 +1020,12 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var grow: float = float(f.get("grow", FX_GROW))
 	if ease != "" and str(f.get("grow_to", "")) == "zone" and o.has_method("zone_c"):
 		pts = [o.zone_c()]   # grow_to = zone：从区域中心扩到区域半径（画的时候每帧跟着区域中心 / 半径走）
+	var sumk: String = str(f.get("grow_to", "")).substr(7) if ease != "" and str(f.get("grow_to", "")).begins_with("summon:") else ""
+	if sumk != "":   # 精英化第 5 批段：grow_to = summon:<种类>，从那个召唤物扩到它的区域半径（画的时候每帧跟着它走）
+		var sp := e5_summon(o, sumk)
+		if sp.is_empty():
+			return
+		pts = [sp.pos]
 	for p in pts:
 		if p == Vector2.INF:
 			continue
@@ -1040,6 +1051,10 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 				px["R"] = r * float(f.get("scale", 1.0))
 				px["zmul"] = float(f.get("scale", 1.0))
 				px["zone"] = str(f.get("grow_to", "")) == "zone"
+				if sumk != "":
+					px["sumk"] = sumk
+				if str(f.get("play", "")) == "fps":
+					px["pfps"] = true
 				px["off"] = off
 				px["maxs"] = float(f.get("max_scale", FX_SCALE_MAX))
 				px["src"] = o
@@ -1197,6 +1212,11 @@ static func fx_draw_grow(ci, g, f: Dictionary, dim: float) -> void:
 		if zc != Vector2.INF:
 			c = zc + f.off
 			R = float(o.zr) * float(f.zmul)
+	elif f.has("sumk") and o != null and is_instance_valid(o):   # 精英化第 5 批段：跟着召唤物与它的区域半径走（召唤物没了就停在最后的位置）
+		var sp := e5_summon(o, str(f.sumk))
+		if not sp.is_empty():
+			c = sp.pos + f.off
+			R = float(sp.get("zr", R)) * float(f.zmul)
 	var e: float = fx_ease(str(f.ease), t)
 	var g0: float = float(f.g0)
 	var rad: float = R * lerpf(g0, 1.0, e)
@@ -1204,10 +1224,13 @@ static func fx_draw_grow(ci, g, f: Dictionary, dim: float) -> void:
 	# 当前半径够大时直接跳到自身半径 × PX ≤ 当前半径的最后一帧；每帧按自身半径缩放到当前半径
 	var frames: int = int(f.fr)
 	var fr: int = clampi(int(e * frames), 1 if frames >= 3 else 0, frames - 1)
-	for k in range(frames - 1, fr, -1):
-		if fx_frame_r(g, str(f.name), frames, k) * g.PX <= rad:
-			fr = k
-			break
+	if f.get("pfps", false):   # 精英化第 5 批段：play = fps，帧号按帧条自己的 fps 播（回声环一帧比一帧疏，不跳帧）
+		fr = mini(int(el * float(f.fps)), frames - 1)
+	else:
+		for k in range(frames - 1, fr, -1):
+			if fx_frame_r(g, str(f.name), frames, k) * g.PX <= rad:
+				fr = k
+				break
 	var rf: float = fx_frame_r(g, str(f.name), frames, fr)
 	if rf > 0.0:
 		var sc: float = rad / rf
@@ -1820,8 +1843,10 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 				errs.append("%s.ease 只能是 %s（grow / grow0 / grow_to / wake 要配 ease）" % [q, " / ".join(FX_EASES)])
 			if fx_is_hold(f) or f.has("life") or f.has("vortex"):
 				errs.append(q + ".ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）")
-			if f.has("grow_to") and str(f.grow_to) != "zone":
-				errs.append(q + ".grow_to 只能是 zone（扩到区域半径、跟着区域走）")
+			if f.has("grow_to") and str(f.grow_to) != "zone" and not e5_grow_to_ok(f.grow_to, ctx):
+				errs.append(q + ".grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>")
+			if f.has("play") and str(f.play) != "fps":
+				errs.append(q + ".play 只能是 fps（帧号按帧条 fps 播）")
 			if f.has("wake"):
 				var wk = f.wake
 				if not (wk is Dictionary):
@@ -1836,6 +1861,8 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 							errs.append("%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）" % [q, k])
 						elif not (wk[k] is int or wk[k] is float) or float(wk[k]) < float(FX_WAKE_LIM[k][0]) or float(wk[k]) > float(FX_WAKE_LIM[k][1]):
 							errs.append("%s.wake.%s 超出范围（%s–%s）" % [q, k, str(FX_WAKE_LIM[k][0]), str(FX_WAKE_LIM[k][1])])
+		if f.has("play") and not f.has("ease"):   # 精英化第 5 批段
+			errs.append(q + ".play 要配 ease（只用于扩散缓动条目）")
 		if f.has("xfade"):
 			if fx_is_hold(f):
 				errs.append(q + ".xfade 只给一次性帧条用（常驻条目的 cond 切换另有淡入淡出）")
@@ -3862,6 +3889,8 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 		if esc:   # 召唤物扩展段（§15.9）的状态：动画、出手动作、绕行、追击队列、patch、残影、画面计时
 			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
 				"pend": [], "pidx": -1, "pt": 0.0, "pout": 0.0, "pold": -1, "pcur": {}, "ghost": {}, "fxt": {}, "swing": 1.0, "cmd_t": 0.0})
+		elif kd.has("anim") or kd.has("zone"):   # 精英化第 5 批段：非随行召唤物的帧条状态（浮现 / 待机 / 移动 / 施放）、自带区域
+			e5_spawn_state(o, s, kd)
 		st.list.append(s)
 		o.fx({"kind": "ring", "pos": p, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8, "keep": true})
 		if b.has("fx"):
@@ -4011,6 +4040,8 @@ static func sm_tick(o, dt: float) -> void:
 		idx[s.kind] = i + 1
 		if str(kd.get("move", {}).get("mode", "")) == "escort":
 			mf_step(o, s, kd, dt)   # 召唤物扩展段（§15.9）：随行召唤物
+		elif s.has("e5"):
+			e5_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)   # 精英化第 5 批段：带帧条 / 区域的召唤物（内部照样走 _sm_step）
 		else:
 			_sm_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)
 	for en in ends:
@@ -4047,6 +4078,12 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 			var leash: float = float(mv.get("leash", 240.0))
 			if tg != null and tg.pos.distance_to(anc) > leash + 40.0:
 				tg = null
+			if mv.has("repick"):   # 精英化第 5 批段：每 repick 秒重新选一次目标（densest = 跟着敌群最密处走）
+				s["rp"] = float(s.get("rp", 0.0)) - dt
+				if float(s.rp) <= 0.0:
+					s.rp = float(mv.repick)
+					tg = null
+					s.rt = 0.0
 			s.rt = float(s.rt) - dt
 			if tg == null and s.rt <= 0.0:
 				tg = _sm_pick(o, s, mv, anc, leash)
@@ -4197,6 +4234,8 @@ static func sm_shadows(o) -> void:
 ## 画一个召唤物（data_operator.draw_extra）：body.strip 帧条（按脚底锚点、随朝向翻转、可悬浮起伏）；缺图时画程序体（圆身 + 眼睛 + 出手前扑）
 static func sm_draw(o, s: Dictionary) -> void:
 	var g = o.g
+	if g.perf_alt and s.has("e5"):   # 精英化第 5 批段：--perfab 的 /b 桶不画（量净成本用）
+		return
 	var kd := sm_kind(o, str(s.kind))
 	if kd.has("anim") and mf_draw(o, s, kd):   # 召唤物扩展段：按状态的帧条（缺图时往下画程序体）
 		return
@@ -4415,8 +4454,8 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 			errs.append(p + " 必须是对象")
 			continue
 		for q in kd:
-			if not q in SM_KIND_KEYS + MF_KIND_KEYS:
-				errs.append("%s.%s：召唤物定义不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_KIND_KEYS + MF_KIND_KEYS)])
+			if not q in SM_KIND_KEYS + MF_KIND_KEYS + E5_KIND_KEYS:
+				errs.append("%s.%s：召唤物定义不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_KIND_KEYS + MF_KIND_KEYS + E5_KIND_KEYS)])
 		_sm_exprs(kd, p, ctx)
 		var inv = kd.get("invuln", false)
 		if not (inv is bool):
@@ -4448,8 +4487,8 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 			errs.append(p + ".move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）")
 		else:
 			for q in mv:
-				if not q in SM_MOVE_KEYS + MF_MOVE_KEYS:
-					errs.append("%s.move.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_MOVE_KEYS + MF_MOVE_KEYS)])
+				if not q in SM_MOVE_KEYS + MF_MOVE_KEYS + E5_MOVE_KEYS:
+					errs.append("%s.move.%s：不认识的字段（只能是 %s）" % [p, q, " / ".join(SM_MOVE_KEYS + MF_MOVE_KEYS + E5_MOVE_KEYS)])
 			_sm_exprs(mv, p + ".move", ctx)
 			if not str(mv.get("mode", "")) in SM_MOVES + ["escort"]:
 				errs.append("%s.move.mode 只能是 %s" % [p, " / ".join(SM_MOVES + ["escort"])])
@@ -4472,6 +4511,7 @@ static func _sm_kinds(blocks: Dictionary, ctx: Dictionary) -> void:
 				if str(a.shape) == "circle" and not str(a.get("center", "self")) in ["self", "target"]:
 					errs.append(p + ".attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心")
 		_mf_kind(kd, p, ctx)   # 召唤物扩展段（§15.9）：escort / anim / patch / fx …
+		_e5_kind(kd, p, ctx)   # 精英化第 5 批段：zone / move.repick / 非随行召唤物的 anim
 		for lk in ["on_spawn", "on_expire"]:
 			if kd.has(lk):
 				_list(kd[lk], "%s.%s" % [p, lk], "instant", ctx)
@@ -5638,10 +5678,10 @@ static func _mf_kind(kd: Dictionary, p: String, ctx: Dictionary) -> void:
 			_num(kd.float, "amp", p + ".float", ctx, false, 0.0, 30.0)
 			_num(kd.float, "hz", p + ".float", ctx, false, 0.0, 20.0)
 	if kd.has("anim"):
-		if not esc:
-			errs.append(p + ".anim 只用于 mode = escort")
 		var an = kd.anim
-		if not (an is Dictionary) or not an.has("idle"):
+		if not esc:   # 精英化第 5 批段：非随行召唤物也能写 anim（idle / run / attack / spawn），在 _e5_kind 里查
+			pass
+		elif not (an is Dictionary) or not an.has("idle"):
 			errs.append(p + ".anim 必须是对象，至少有 idle")
 		else:
 			for k in an:
@@ -6197,6 +6237,9 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 	var g = o.g
 	if o.sm.is_empty():
 		return
+	if str(b.get("action", "")) == "cast":   # 精英化第 5 批段：原地施放（播 attack 帧条，出手帧执行 then）
+		e5_cast(o, b)
+		return
 	var kind: String = str(b.get("kind", ""))
 	var kd := sm_kind(o, kind)
 	if kd.is_empty() or str(kd.get("move", {}).get("mode", "")) != "escort":
@@ -6376,11 +6419,11 @@ static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			var k := str(b.get("kind", ""))
 			if not (ctx.summons is Dictionary and ctx.summons.has(k)):
 				errs.append("%s.kind「%s」没在 blocks.summons 里定义" % [p, k])
-			if str(b.get("action", "")) != "leap":
-				errs.append(p + ".action 现在只有 leap（跃回 to 身边）")
+			if not str(b.get("action", "")) in ["leap", "cast"]:
+				errs.append(p + ".action 只能是 leap（跃回 to 身边）/ cast（原地施放，精英化第 5 批段）")
 			if not str(b.get("to", "leader")) in ["leader", "self"]:
 				errs.append(p + ".to 只能是 leader / self")
-			_num(b, "t", p, ctx, true, 0.05, 2.0)
+			_num(b, "t", p, ctx, str(b.get("action", "")) == "leap", 0.05, 2.0)
 			_num(b, "h", p, ctx, false, 0.0, 200.0)
 			_num(b, "land_dx", p, ctx, false, 0.0, 200.0)
 			_num(b, "land_dy", p, ctx, false, -100.0, 100.0)
@@ -16301,3 +16344,328 @@ static func _h4e_check(b: Dictionary, p: String, ctx: Dictionary, tag: String) -
 				_num(pc, "life", p + ".pillars", ctx, true, 0.1, 10.0)
 				_num(pc, "mult", p + ".pillars", ctx, true, 0.0, 10.0)
 				_num(pc, "elite_push", p + ".pillars", ctx, false, 0.0, 1.0)
+
+
+# ================================================================ 精英化第 5 批（docs/91 §13 / §27：浊心斯卡蒂「余音」/「远古血亲」，10-14；docs/61 §23；只往后加）
+# 新参数（通用，任何数据干员都能用；没写的干员一个新分支都不走）：
+#  shape.circle 的 band [内, 外]     只打离中心 内 × r 到 外 × r 之间的敌人（按敌人边缘算，同 arc_hit 的 + e.r）
+#  shape.circle 的 among: attack     只打本干员上一次普攻命中的敌人；放在带 delay 的 trig.every_n 里时，用排队那一刻的命中表。浊心斯卡蒂精一「余音」
+#  召唤物 zone {r, share, mode, look}  召唤物自带区域：以召唤物为心，半径 = r × op_range × (1 + (本干员区域倍率 − 1) × share)；
+#                                     mode: false = 区域倍率里不算 verb.mode 的 zone_mult（技能模式的放大不传给召唤物）。
+#                                     与本干员的区域取并集：data_operator.in_zone 认它（aura scope in_zone、cond in_zone:leader），同一名干员不会因此叠加两份。
+#                                     shape.circle center: summon:<种类> + r: zone = 那个召唤物的区域半径；look = 地面帧条（ground 层，紧贴地砖）+ 区域椭圆（ring = 透明度倍率）
+#  召唤物 anim（非随行）{idle, run, attack, spawn}  spawn 出场播一遍（期间不走）；move.repick（chase）每隔几秒重选目标（densest = 跟着敌群最密处走）
+#  verb.summon_cmd action: cast      召唤物原地施放：播 anim.attack，出手帧（sprites 的 fire）执行 then（center: summon:<种类> 落在它身上）；没有帧条 / 正在浮现时立即执行
+#  fx 条目 grow_to: summon:<种类>      扩散缓动跟着那个召唤物与它的区域半径走；play: fps = 帧号按帧条 fps 播（不跟扩散进度跳帧）
+# 运行时状态：干员的 e5 字典（ah = 上一次普攻命中的敌人 id 表）与 zmode（verb.mode 的 zone_mult 乘积）；召唤物身上 e5 / zr / ak / at / act / fire / e5_then / rp。
+# 确定性：本段不取随机数，画面只看 g.t。--perfab 同局轮换的 /b 桶：带 e5 的召唤物不走、不画（量净成本用，正常游戏恒为 false）。
+
+const E5_KIND_KEYS := ["zone"]
+const E5_MOVE_KEYS := ["repick"]
+const E5_ANIM_KEYS := ["idle", "run", "attack", "spawn"]
+const E5_LOOK_KEYS := ["strip", "fit", "scale", "max_scale", "tint", "ring", "fade"]
+
+
+## 普攻命中表（data_operator.exec_any_shape 记下、延迟队列带走）：敌人 id → true
+static func e5_ids(hits: Array) -> Dictionary:
+	var out := {}
+	for e in hits:
+		out[int(e.id)] = true
+	return out
+
+
+## blocks 里有没有写 among 的积木（data_operator._init 查一次；没有就不记命中表）
+static func e5_scan(n) -> bool:
+	if n is Dictionary:
+		if n.has("among"):
+			return true
+		for k in n:
+			if e5_scan(n[k]):
+				return true
+	elif n is Array:
+		for x in n:
+			if e5_scan(x):
+				return true
+	return false
+
+
+## shape.circle 的 band / among：伤害口径同 area_hit（× vs_elite、log_hit、命中特效），多两道筛选；不击退、不眩晕
+static func e5_area(o, b: Dictionary, c: Vector2, r: float, dmg: float) -> Array:
+	var bd = b.get("band", [0.0, 1.0])
+	var lo: float = float(bd[0]) * r
+	var hi: float = float(bd[1]) * r
+	var use_ah: bool = str(b.get("among", "")) == "attack"
+	var ah: Dictionary = o.e5.get("ah", {}) if use_ah else {}
+	var hits: Array = []
+	if use_ah and ah.is_empty():
+		return hits
+	for e in o.arc_targets(c, 0.0, PI, hi):
+		if e.dead or (use_ah and not ah.has(int(e.id))):
+			continue
+		if e.pos.distance_to(c) + float(e.r) < lo:
+			continue
+		hits.append(e)
+	var max_n: int = int(b.get("max_n", 0))
+	if max_n > 0 and hits.size() > max_n:
+		hits = o.cap_targets(hits, c, max_n)
+	var ve: float = o.vs_elite()
+	var src: String = str(b.get("src", ""))
+	var tags: Array = b.get("tags", [])
+	for e in hits:
+		o.log_hit(src, tags)
+		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+	for e in hits:
+		o._hit_fx(e, c)
+	return hits
+
+
+# ---------------------------------------------------------------- 召唤物自带区域 / 帧条 / 施放
+
+## 这种召唤物里最早在场的一个（没有 = {}）
+static func e5_summon(o, kind: String) -> Dictionary:
+	if o.sm.is_empty():
+		return {}
+	for s in o.sm.list:
+		if not s.gone and (kind == "" or str(s.kind) == kind):
+			return s
+	return {}
+
+
+## 召唤物自带区域的半径：r × op_range × (1 + (本干员区域倍率 − 1) × share)；mode: false 时区域倍率先除掉 verb.mode 的 zone_mult
+static func e5_zone_r(o, kd: Dictionary) -> float:
+	var z = kd.get("zone", {})
+	if not (z is Dictionary) or z.is_empty():
+		return 0.0
+	var lz: float = float(o.loc.zone)
+	if not z.get("mode", true):
+		lz /= maxf(0.01, float(o.zmode))
+	return float(z.get("r", 0.0)) * o.stat(&"op_range") * maxf(0.0, 1.0 + (lz - 1.0) * float(z.get("share", 1.0)))
+
+
+## shape.circle center: summon:<种类> + r: zone：那个召唤物的区域半径（场上没有时按定义现算）
+static func e5_summon_zr(o, kind: String) -> float:
+	var s := e5_summon(o, kind)
+	if not s.is_empty() and s.has("zr"):
+		return float(s.zr)
+	return e5_zone_r(o, sm_kind(o, kind))
+
+
+## data_operator.in_zone 转来：p 在本干员任一召唤物的区域里（半径是这一帧召唤物更新时记下的）
+static func e5_in_zone(o, p: Vector2) -> bool:
+	for s in o.sm.list:
+		if float(s.get("zr", 0.0)) > 0.0 and not s.gone and s.pos.distance_to(p) <= float(s.zr):
+			return true
+	return false
+
+
+## sm_spawn 转来：非随行召唤物的帧条 / 区域状态（mf_draw 认的那几个字段同随行召唤物）
+static func e5_spawn_state(o, s: Dictionary, kd: Dictionary) -> void:
+	var an: Dictionary = kd.get("anim", {})
+	var sp: bool = an.has("spawn") and o.anim_tex(str(an.spawn)) != null
+	s.merge({"e5": true, "mv": 0.0, "ak": "spawn" if sp else "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0,
+		"pcur": {}, "pout": 0.0, "pold": -1, "ghost": {}, "e5_then": [], "rp": 0.0})
+	s["zr"] = e5_zone_r(o, kd)
+
+
+## 帧条一遍的秒数（sprites 的 frames / fps）
+static func e5_anim_len(o, key: String) -> float:
+	var sp: Dictionary = o.sprite_spec(key)
+	return float(sp.get("frames", 4)) / maxf(1.0, float(sp.get("fps", 10)))
+
+
+## 每帧（sm_tick 转来）：区域半径 → 浮现（期间不走）→ 照常 _sm_step（chase / follow / orbit / stay）→ 转向防抖、施放出手帧、帧条状态
+static func e5_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float) -> void:
+	if o.g.perf_alt:
+		return
+	var an: Dictionary = kd.get("anim", {})
+	if kd.has("zone"):
+		s.zr = e5_zone_r(o, kd)
+	if str(s.ak) == "spawn":
+		if float(s.at) < e5_anim_len(o, str(an.get("spawn", ""))):
+			s.at = float(s.at) + dt
+			return
+		_mf_set_anim(s, "idle")
+	var prev: Vector2 = s.pos
+	var f0: float = float(s.face)
+	_sm_step(o, s, kd, i, n, dt)
+	var want: float = float(s.face)
+	s.face = f0
+	var vel: Vector2 = (s.pos - prev) / maxf(dt, 0.0001)
+	s.mv = lerpf(float(s.mv), vel.length(), clampf(dt * 10.0, 0.0, 1.0))
+	if want != f0 and absf(vel.x) > 20.0:
+		_mf_face(o, s, want)
+	if float(s.act) > 0.0:
+		s.act = float(s.act) - dt
+		if float(s.fire) >= 0.0:
+			s.fire = float(s.fire) - dt
+			if float(s.fire) < 0.0:
+				e5_cast_fire(o, s)
+	if not an.is_empty():
+		_mf_set_anim(s, "attack" if float(s.act) > 0.0 else ("run" if float(s.mv) > 30.0 else "idle"))
+	s.at = float(s.at) + dt
+
+
+## verb.summon_cmd action: cast：kind 种召唤物原地施放，出手帧执行 then（上一次还没到出手帧的先结算，不丢）
+static func e5_cast(o, b: Dictionary) -> void:
+	var kind: String = str(b.get("kind", ""))
+	var kd := sm_kind(o, kind)
+	var ak: String = str(kd.get("anim", {}).get("attack", ""))
+	for s in o.sm.list.duplicate():
+		if s.gone or str(s.kind) != kind:
+			continue
+		if not s.has("e5") or str(s.ak) == "spawn" or ak == "" or o.anim_tex(ak) == null or o.g.perf_alt:
+			o._exec_list(b.get("then", []), s.pos)
+			continue
+		if float(s.fire) >= 0.0:
+			e5_cast_fire(o, s)
+		var sp: Dictionary = o.sprite_spec(ak)
+		var fps: float = maxf(1.0, float(sp.get("fps", 10)))
+		s.act = float(sp.get("frames", 4)) / fps
+		s.fire = (float(sp.get("fire", 2)) + 0.5) / fps
+		s.e5_then = b.get("then", [])
+		s.ak = "attack"
+		s.at = 0.0
+
+
+static func e5_cast_fire(o, s: Dictionary) -> void:
+	s.fire = -1.0
+	var th: Array = s.get("e5_then", [])
+	s.e5_then = []
+	if not th.is_empty() and not s.gone:
+		o._exec_list(th, s.pos)
+
+
+## 区域淡入（召唤物出场后 look.fade 秒，缺省 0.5）
+static func e5_zone_fade(s: Dictionary, lk: Dictionary) -> float:
+	var fi: float = float(lk.get("fade", 0.5))
+	return clampf(float(s.t) / fi, 0.0, 1.0) if fi > 0.0 else 1.0
+
+
+## 召唤物区域的椭圆（data_operator.draw_auras 转来，同本干员区域的画法与颜色，透明度 × look.ring）
+static func e5_draw_zones(o, cc: Color, on: bool) -> void:
+	var g = o.g
+	if g.perf_alt:
+		return
+	for s in o.sm.list:
+		var zr: float = float(s.get("zr", 0.0))
+		if zr <= 0.0 or s.gone:
+			continue
+		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", {}).get("look", {})
+		var k: float = float(lk.get("ring", 0.6)) * e5_zone_fade(s, lk)
+		if k <= 0.004:
+			continue
+		o.cv.draw_set_transform(s.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		o.cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * k))
+		o.cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 40, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0 + 1.3)) * k), 2.0)
+		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 召唤物区域的地面帧条（data_operator.draw_ground_fx 转来，紧贴地砖：溟痕 / Boss 地面预警之下）：每 1x 像素 = 半径 / fit × scale（封顶 max_scale），循环播
+static func e5_draw_zone_ground(o) -> void:
+	var g = o.g
+	if g.perf_alt:
+		return
+	for s in o.sm.list:
+		var zr: float = float(s.get("zr", 0.0))
+		if zr <= 0.0 or s.gone:
+			continue
+		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", {}).get("look", {})
+		var name: String = str(lk.get("strip", ""))
+		if name == "" or g.tex.get(name) == null or not g.V6_FRAMES.has(name):
+			continue
+		var spec: Array = g.V6_FRAMES[name]
+		var frames: int = maxi(1, int(spec[0]))
+		var fr: int = int(float(s.t) * float(spec[1])) % frames
+		var sc: float = minf(zr / maxf(1.0, float(lk.get("fit", 64.0))) * float(lk.get("scale", 1.0)), float(lk.get("max_scale", FX_SCALE_MAX)))
+		var col := _mf_col(lk.get("tint", []), Color(1, 1, 1, 0.5))
+		col.a *= e5_zone_fade(s, lk) * float(g.world.fx_dim)
+		if col.a > 0.004:
+			fx_frame(o.cv, g, name, frames, fr, s.pos, sc, col)
+
+
+# ---------------------------------------------------------------- 校验
+
+## _sm_kinds 转来：zone / move.repick / 非随行召唤物的 anim
+static func _e5_kind(kd: Dictionary, p: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	var mv: Dictionary = kd.get("move", {}) if kd.get("move", {}) is Dictionary else {}
+	var mode: String = str(mv.get("mode", ""))
+	if mv.has("repick"):
+		if mode != "chase":
+			errs.append(p + ".move.repick 只用于 mode = chase")
+		_num(mv, "repick", p + ".move", ctx, false, 0.1, 10.0)
+	if kd.has("anim") and mode != "escort":
+		var an = kd.anim
+		if not (an is Dictionary) or not an.has("idle"):
+			errs.append(p + ".anim 必须是对象，至少有 idle")
+		else:
+			for k in an:
+				if not k in E5_ANIM_KEYS:
+					errs.append("%s.anim.%s：非随行召唤物只能是 %s" % [p, k, " / ".join(E5_ANIM_KEYS)])
+				elif not ctx.get("sprites", {}).has(str(an[k])):
+					errs.append("%s.anim.%s「%s」不是本干员 sprites 里的帧条" % [p, k, str(an[k])])
+		if kd.has("attack"):
+			errs.append(p + "：非随行召唤物写了 anim 就不写 attack（出手用 verb.summon_cmd action: cast 指挥）")
+	if kd.has("zone"):
+		var z = kd.zone
+		if not (z is Dictionary):
+			errs.append(p + ".zone 必须是对象 {r, share, mode, look}")
+			return
+		for k in z:
+			if not k in ["r", "share", "mode", "look", "_doc"]:
+				errs.append("%s.zone.%s：不认识的字段（只能是 r / share / mode / look）" % [p, k])
+		_sm_exprs(z, p + ".zone", ctx)
+		_num(z, "r", p + ".zone", ctx, true, 10.0, 600.0)
+		_num(z, "share", p + ".zone", ctx, false, 0.0, 1.0)
+		if z.has("mode") and not (z.mode is bool):
+			errs.append(p + ".zone.mode 只能是 true / false（false = 不算 verb.mode 的 zone_mult）")
+		if z.has("look"):
+			var lk = z.look
+			if not (lk is Dictionary):
+				errs.append(p + ".zone.look 必须是对象 {strip, fit, scale, max_scale, tint, ring, fade}")
+				return
+			for k in lk:
+				if not k in E5_LOOK_KEYS:
+					errs.append("%s.zone.look.%s：不认识的字段（只能是 %s）" % [p, k, " / ".join(E5_LOOK_KEYS)])
+			if lk.has("strip") and not (lk.strip is String and str(lk.strip).begins_with("fx_")):
+				errs.append(p + ".zone.look.strip 必须是 fx_* 帧条名（V6_FRAMES 里登记）")
+			_num(lk, "fit", p + ".zone.look", ctx, false, 1.0, 512.0)
+			_num(lk, "scale", p + ".zone.look", ctx, false, 0.05, 8.0)
+			_num(lk, "max_scale", p + ".zone.look", ctx, false, 0.5, 16.0)
+			_num(lk, "ring", p + ".zone.look", ctx, false, 0.0, 1.0)
+			_num(lk, "fade", p + ".zone.look", ctx, false, 0.0, 5.0)
+			if lk.has("tint"):
+				var tv = lk.tint
+				if not (tv is Array) or tv.size() < 3 or tv.size() > 4 or tv.any(func(x): return not (x is int or x is float)):
+					errs.append(p + ".zone.look.tint 必须是 3–4 个数字")
+
+
+## shape.circle / cone 校验转来：band / among、center summon:<种类> + r: zone
+static func _e5_shape(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
+	var errs: Array = ctx.errs
+	if b.has("band"):
+		var bd = b.band
+		if tag != "shape.circle" or not (bd is Array) or bd.size() != 2:
+			errs.append(p + ".band 必须是 [内, 外]（半径的比例，只用于 shape.circle）")
+		else:
+			var lo := _val(bd[0], ctx.base)
+			var hi := _val(bd[1], ctx.base)
+			if lo < 0.0 or hi > 1.0 or lo >= hi:
+				errs.append(p + ".band 要满足 0 ≤ 内 < 外 ≤ 1")
+	if b.has("among") and (tag != "shape.circle" or str(b.among) != "attack"):
+		errs.append(p + ".among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）")
+	if (b.has("band") or b.has("among")) and b.has("only"):
+		errs.append(p + "：band / among 不和 only 同用")
+	var cn := str(b.get("center", ""))
+	if cn.begins_with("summon:") and b.get("r", null) is String and str(b.r) == "zone":
+		var kd = ctx.summons.get(cn.substr(7), null) if ctx.summons is Dictionary else null
+		if not (kd is Dictionary and kd.has("zone")):
+			errs.append(p + "：center: summon:<种类> 配 r: zone 时，这种召唤物要写 zone（召唤物自带区域）")
+
+
+## fx 条目 grow_to: summon:<种类>：种类要在 blocks.summons 里、且带 zone
+static func e5_grow_to_ok(v, ctx: Dictionary) -> bool:
+	if not (v is String) or not str(v).begins_with("summon:"):
+		return false
+	var kd = ctx.summons.get(str(v).substr(7), null) if ctx.get("summons", null) is Dictionary else null
+	return kd is Dictionary and kd.has("zone")

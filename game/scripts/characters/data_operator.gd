@@ -30,6 +30,8 @@ var mf := {}                           # 召唤物扩展段（docs/61 §15.9）�
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
 var hw := {}                           # 手写迁移段（docs/91 第 2 批，op_blocks.gd 末尾）：basis、连斩、浪墙、弹体、锚……；空 = 用不到
 var atk_live := false                  # 正在结算普攻的那一下（局部倍率 atk 只乘这时的伤害）
+var e5 := {}                           # 精英化第 5 批段（op_blocks.gd 末尾）：ah = 上一次普攻命中的敌人 id 表（shape.circle among: attack）；空 = 用不到
+var zmode := 1.0                       # 本帧 verb.mode 的 zone_mult 乘积（召唤物区域 zone.mode: false 时除掉，精英化第 5 批段）
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -57,6 +59,7 @@ func _init(game, def_: Dictionary) -> void:
 	B["_mf_deploy"] = dep
 	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
 	B["_free"] = str(a.get("flow", "")) == "free"   # 手写迁移段第 3 批：不等动作的干员（水月）
+	B["_e5_among"] = OB.e5_scan(B)   # 精英化第 5 批段：有 among 的积木才记普攻命中表
 
 
 ## 成长节点的积木：一块，或数组（§15.9）
@@ -88,7 +91,9 @@ func _zone_r_now() -> float:
 
 func in_zone(p: Vector2) -> bool:
 	var c := zone_c()
-	return c != Vector2.INF and p != Vector2.INF and p.distance_to(c) <= zr
+	if c != Vector2.INF and p != Vector2.INF and p.distance_to(c) <= zr:
+		return true
+	return not sm.is_empty() and p != Vector2.INF and OB.e5_in_zone(self, p)   # 精英化第 5 批段：召唤物自带的区域（并集，不叠加）
 
 
 func skill_on(i: int) -> bool:
@@ -239,7 +244,12 @@ func _tick_pending(dt: float) -> void:
 	pending = pending.filter(func(p): return p.t > 0.0)
 	for p in due:
 		var keep: Dictionary = OB.hw_push(self, p.get("bs", {}))   # 手写迁移段：延迟执行带着排队时的 basis
+		var ah = e5.get("ah", {})
+		if p.has("ah"):   # 精英化第 5 批段：延迟执行用排队那一刻的普攻命中表
+			e5["ah"] = p.ah
 		_exec_list(p.do, p.get("at", Vector2.INF))
+		if p.has("ah"):
+			e5["ah"] = ah
 		if p.has("combo"):
 			OB.hw_combo_next(self, int(p.combo))
 		OB.hw_pop(self, keep)
@@ -281,6 +291,7 @@ func _sustain(dt: float, stats_only := false) -> void:
 		add[k] = 0.0
 		mul[k] = 1.0
 	no_attack = false
+	var zm := 1.0
 	for b in act:
 		match str(b.get("_tag", "")):
 			"verb.buff_self", "verb.buff_timed":   # buff_timed（精英化段）生效期间等同 buff_self，op 缺省 add
@@ -297,12 +308,14 @@ func _sustain(dt: float, stats_only := false) -> void:
 					mul.dmg *= float(b.dmg_mult) * (skill_power() if b.get("power", false) else 1.0)
 				if b.has("zone_mult"):
 					mul.zone *= float(b.zone_mult)
+					zm *= float(b.zone_mult)
 				if b.has("interval_mult"):
 					mul.interval *= float(b.interval_mult)
 				if b.get("no_attack", false):
 					no_attack = true
 	for k in loc:
 		loc[k] = (1.0 + add[k]) * mul[k]
+	zmode = zm
 	zr = _zone_r_now()
 	# 二：g.stats 修正（与上一帧相同就不动；不同就整组重建，顺序固定）
 	var want: Array = []
@@ -540,7 +553,7 @@ func _release() -> void:
 				var dl: float = float(t.get("delay", 0.0))
 				if dl > 0.0:
 					if hw.is_empty():
-						pending.append({"t": dl, "do": t.get("do", [])})
+						pending.append({"t": dl, "do": t.get("do", [])} if not B.get("_e5_among", false) else {"t": dl, "do": t.get("do", []), "ah": e5.get("ah", {})})
 					else:   # 手写迁移段：带上 basis 快照；at: attack = 落在这一次普攻的判定中心
 						pending.append({"t": dl, "do": t.get("do", []), "bs": OB.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
 				else:
@@ -675,6 +688,8 @@ func draw_auras() -> void:
 	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
 	cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not sm.is_empty():
+		OB.e5_draw_zones(self, cc, on)   # 精英化第 5 批段：召唤物自带的区域椭圆
 	_draw_hold_strips(cv, "floor")
 	_draw_vortex(cv, "floor")
 	for u in _state:
@@ -730,6 +745,8 @@ func _draw_hold_strips(ci, layer: String) -> void:
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
 func draw_ground_fx() -> void:
 	_draw_hold_strips(cv, "ground")
+	if not sm.is_empty():
+		OB.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
 
 
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
@@ -884,6 +901,8 @@ func exec_any_shape(b: Dictionary, at: Vector2 = Vector2.INF, is_attack := false
 	var hits: Array = OB.exec_line(self, b) if str(b.get("shape", "")) == "line" else OB.exec_shape(self, b, at)
 	if is_attack:
 		last_hit_pos = hits[0].pos if not hits.is_empty() else Vector2.INF
+		if B.get("_e5_among", false):   # 精英化第 5 批段：记下这一次普攻命中的敌人（shape.circle among: attack）
+			e5["ah"] = OB.e5_ids(hits)
 		if b.get("slash", false) and not hits.is_empty() and str(b.get("shape", "")) == "cone":
 			slash_fx(pos, (hits[0].pos - pos).angle(), deg_to_rad(float(b.get("half_deg", 45.0))), OB.shape_radius(self, b), col())
 	return hits

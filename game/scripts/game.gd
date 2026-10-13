@@ -1758,6 +1758,9 @@ const V6_FRAMES := {
 	"fx_suzuran_seal": [6, 10.0], "fx_suzuran_bigfox_trail": [5, 12.0],
 	"fx_wisadel_gift_mark": [6, 10.0], "fx_wisadel_soul_fire": [5, 16.0], "proj_wisadel_soul_shell": [2, 20.0],
 	"fx_saria_amber_spot": [4, 8.0], "fx_saria_pillar_rise": [5, 20.0], "fx_saria_pillar_idle": [4, 6.0], "fx_saria_pillar_break": [6, 18.0],
+	# Codex 精英化第 5 批（docs/93 §5，art/incoming/elite_art_5_manifest.json；接入见 docs/91 §27）：浊心斯卡蒂余音回声环、海嗣小歌域。
+	# 海嗣本体帧条 op_skalter_ishar_* 是人物帧条，登记在 skalter.json sprites（extra_sprites）
+	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

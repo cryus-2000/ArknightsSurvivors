@@ -40,6 +40,7 @@ func _init() -> void:
 	test_blocks_handwritten()
 	test_blocks_hw3()
 	test_blocks_hw4()
+	test_blocks_e5()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -1115,3 +1116,107 @@ func test_blocks_hw4() -> void:
 		and str(defs["wisadel"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "死魂灵的余息"
 		and str(defs["saria"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "莱茵充能护服",
 		"精英化第 4 批：精二原有形态（破阵 / 九尾祈愿 / 死魂灵的余息 / 莱茵充能护服）保留")
+
+
+## 精英化第 5 批（docs/61 §23、docs/91 §27：浊心斯卡蒂「余音」/「远古血亲」）：校验正反例、召唤物区域半径与并集、band / among 筛选
+class FakeE5:
+	extends RefCounted
+	var g
+	var loc := {"zone": 1.0}
+	var zmode := 1.0
+	var sm := {}
+	var e5 := {}
+	var dealt: Array = []
+	var pool: Array = []
+	func stat(_n) -> float:
+		return 1.0
+	func arc_targets(c: Vector2, _a: float, _h: float, r: float) -> Array:
+		return pool.filter(func(e): return e.pos.distance_to(c) <= r + float(e.r))
+	func cap_targets(hits: Array, c: Vector2, k: int) -> Array:
+		return preload("res://scripts/characters/character.gd").cap_targets(hits, c, k)
+	func vs_elite() -> float:
+		return 2.0
+	func log_hit(_s, _t := []) -> void:
+		pass
+	func deal_damage(e: Dictionary, d: float) -> void:
+		dealt.append([int(e.id), d])
+	func _hit_fx(_e, _c) -> void:
+		pass
+
+
+func test_blocks_e5() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var sk: Dictionary = Ch.load_def("skalter")
+	ok(Ch.validate_operator("skalter", sk), "精英化第 5 批：浊心斯卡蒂通过积木校验")
+	var pg: Dictionary = sk.blocks.progression
+	ok(pg.has("elite1") and pg.elite2 is Array, "精英化第 5 批：浊心斯卡蒂有精一 / 精二积木")
+	ok(not JSON.stringify(pg.elite2).contains("\"orbit\""), "精二「溟海之声」（shape.orbit 音符）已被「远古血亲」取代")
+	ok(sk.blocks.summons.ishar.has("zone") and str(sk.blocks.summons.ishar.move.mode) == "chase", "海嗣：自带区域、跟着敌群走")
+	for k in ["ishar_idle", "ishar_move", "ishar_attack", "ishar_summon"]:
+		ok(sk.sprites.has(k) and k in sk.get("extra_sprites", []), "海嗣帧条登记并列进 extra_sprites：" + k)
+	for nd in sk.progression:
+		if nd.get("type", "") == "elite":
+			ok(nd.has("attack") and str(nd.attack.get("name", "")) != "" and not "主控" in str(nd.attack.desc) and not "主控" in str(nd.desc),
+				"精英化第 5 批：精%d 节点有普攻卡（不写「主控」）" % int(nd.level))
+	var names: Array = sk.progression.filter(func(n): return n.get("type", "") == "elite").map(func(n): return str(n.attack.name))
+	ok(names == ["余音", "远古血亲"], "普攻卡：余音 / 远古血亲（%s）" % str(names))
+	var bads := [
+		["band 内大于外", func(d): d.blocks.progression.elite1.do[0]["band"] = [0.9, 0.5]],
+		["band 不是两个数", func(d): d.blocks.progression.elite1.do[0]["band"] = 0.8],
+		["among 写错", func(d): d.blocks.progression.elite1.do[0]["among"] = "all"],
+		["band 和 only 同用", func(d): d.blocks.progression.elite1.do[0]["only"] = ["airborne"]],
+		["召唤物区域缺 r", func(d): d.blocks.summons.ishar.zone.erase("r")],
+		["召唤物区域字段写错", func(d): d.blocks.summons.ishar.zone["radius"] = 120],
+		["区域帧条不是 fx_*", func(d): d.blocks.summons.ishar.zone.look["strip"] = "op_skalter_idle"],
+		["区域 mode 不是布尔", func(d): d.blocks.summons.ishar.zone["mode"] = 0],
+		["repick 用在非 chase", func(d): d.blocks.summons.ishar.move["mode"] = "follow"],
+		["非随行召唤物的帧条键写错", func(d): d.blocks.summons.ishar.anim["walk"] = "ishar_move"],
+		["帧条不在 sprites", func(d): d.blocks.summons.ishar.anim["spawn"] = "ishar_rise"],
+		["写了 anim 又写 attack", func(d): d.blocks.summons.ishar["attack"] = {"shape": "circle", "center": "self", "r": 40, "every": 1.0, "src": "海嗣"}],
+		["summon_cmd 动作写错", func(d): d.blocks.progression.elite2[1].do[0]["action"] = "dance"],
+		["召唤物没有区域却 r: zone", func(d): d.blocks.summons.ishar.erase("zone")],
+		["grow_to 指向不存在的召唤物", func(d): d.blocks.progression.elite2[1].do[0].then[0].fx[0]["grow_to"] = "summon:nope"],
+		["play 写错", func(d): d.blocks.progression.elite1.do[0].fx[0]["play"] = "time"],
+		["play 没配 ease", func(d): d.blocks.skills[0].fx[0]["play"] = "fps"],
+	]
+	for bd in bads:
+		var d2: Dictionary = sk.duplicate(true)
+		bd[1].call(d2)
+		ok(not Ch.validate_operator("skalter", d2), "精英化第 5 批积木校验应拒绝：" + bd[0])
+	var B: Dictionary = OB.compile(sk)
+	ok(OB.e5_scan(B) and not OB.e5_scan(OB.compile(Ch.load_def("texas"))), "among 扫描：浊心斯卡蒂有，德克萨斯没有")
+	# 召唤物区域半径：r × op_range × (1 + (区域倍率 − 1) × share)，mode: false 先除掉 verb.mode 的放大
+	var o := FakeE5.new()
+	var kd := {"zone": {"r": 120.0, "share": 0.5, "mode": false}}
+	o.loc.zone = 1.5
+	near(OB.e5_zone_r(o, kd), 150.0, "小歌域吃一半歌域扩张（×1.5 → ×1.25）")
+	o.loc.zone = 3.0
+	o.zmode = 2.0
+	near(OB.e5_zone_r(o, kd), 150.0, "S3 的 ×2 不传给小歌域")
+	kd.zone["mode"] = true
+	near(OB.e5_zone_r(o, kd), 240.0, "mode: true 时技能模式的放大也算（一半）")
+	near(OB.e5_zone_r(o, {}), 0.0, "没写 zone 半径为 0")
+	# 并集：召唤物区域里的点算在区域内；离开就不算
+	o.sm = {"list": [{"pos": Vector2(100, 0), "zr": 50.0, "gone": false}]}
+	ok(OB.e5_in_zone(o, Vector2(130, 0)) and not OB.e5_in_zone(o, Vector2(200, 0)), "召唤物区域：半径内算、半径外不算")
+	o.sm.list[0].gone = true
+	ok(not OB.e5_in_zone(o, Vector2(130, 0)), "召唤物消失后它的区域不算")
+	# band / among：只打上一次普攻命中的、外圈（80%–100%）的敌人
+	o.pool = [
+		{"id": 1, "pos": Vector2(50, 0), "r": 6.0, "dead": false, "elite": false, "boss": false},
+		{"id": 2, "pos": Vector2(160, 0), "r": 6.0, "dead": false, "elite": false, "boss": false},
+		{"id": 3, "pos": Vector2(0, 175), "r": 6.0, "dead": false, "elite": false, "boss": false},
+		{"id": 4, "pos": Vector2(-185, 0), "r": 6.0, "dead": false, "elite": true, "boss": false},
+		{"id": 5, "pos": Vector2(0, -150), "r": 6.0, "dead": false, "elite": false, "boss": false},
+	]
+	o.e5 = {"ah": {1: true, 2: true, 4: true, 5: true}}
+	var hits: Array = OB.e5_area(o, {"band": [0.8, 1.0], "among": "attack"}, Vector2.ZERO, 190.0, 10.0)
+	var ids: Array = hits.map(func(e): return int(e.id))
+	ids.sort()
+	ok(ids == [2, 4, 5], "余音：外圈（按敌人边缘 ≥ 152）且被这圈声浪打中的（%s）" % str(ids))
+	ok(o.dealt.any(func(x): return x[0] == 4 and absf(x[1] - 20.0) < 0.001), "余音对精英 × vs_elite")
+	o.e5 = {}
+	ok(OB.e5_area(o, {"band": [0.8, 1.0], "among": "attack"}, Vector2.ZERO, 190.0, 10.0).is_empty(), "没有普攻命中表时余音不打")
+	ok(OB.e5_area(o, {"band": [0.8, 1.0]}, Vector2.ZERO, 190.0, 10.0).size() == 4, "只写 band：外圈全部")
+	ok(OB.e5_area(o, {"band": [0.8, 1.0], "max_n": 2}, Vector2.ZERO, 190.0, 10.0).size() == 2, "band 也认 max_n")

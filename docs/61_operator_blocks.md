@@ -416,6 +416,7 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     外圈由 1–3 道程序余波环带到歌域边（明：青 `[0.55, 0.92, 1.0]`；暗：紫 `[0.62, 0.46, 0.88]`）；明 / 暗两套 `xfade: 0.4`，灯火跨 30 时 0.4 秒交叉淡入淡出。
     预留 Codex 原尺寸大声浪 `fx_skalter_wave_big` / `_big_dim`（`game.gd V6_FRAMES` 已登记 8 帧 12fps；1x 帧 208×120、圈心 = 帧中心、末帧外圈半径约 95，帧内自己按先快后慢扩）：
     有图时用大帧条（`max_scale 3`、不画余波环），缺图回退到小帧条 + 余波环。只改画面：同 seed 主控 / 队友各 1 局 TRACE 241 行与 BALANCE（去 prof、画面峰值）逐字节相同。
+18. **精英化**（10-14，docs/91 §13 / §27）：精一加「余音」（外圈回声环 10%），精二「远古血亲」（常驻海嗣 + 第二个小歌域）**取代第 8 条「溟海之声」**（音符 `shape.orbit` 与 `note_*` 数值已删）；写法见 §23。
 
 ## 测试
 
@@ -1726,3 +1727,54 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - 积木等价改为只比精零（同 §17.6 / §20.3）：四组 × 两局（seed 1 主控 `--sptest` 45 秒、seed 3 当队友 `--sptest` 60 秒，星熊队长、不带全藏品）TRACE / BALANCE 逐行相同。
 - `test_blocks_hw4` 加 10 条反例（粉碎缺 src / 没写 cond、岩刺缺 step、灼印缺 value、拖尾来源没登记、好礼缺 mult、魂炮缺 src、钙化拳缺 pct、晶柱缺 n / 超过 16 根）与精英节点普攻卡、精二原有形态保留的检查。
 - 木桩表、晶柱开销与画面见 docs/91 §26。
+
+## 23. 精英化第 5 批的积木（docs/91 §13、§27：浊心斯卡蒂「余音」/「远古血亲」；10-14）
+
+浊心斯卡蒂本来就是积木干员，不用迁移。精一 / 精二新形态全部用**通用**参数写（JSON 里不写干员特判），代码在 `op_blocks.gd` 末尾「精英化第 5 批」段（前缀 `e5_` / `_e5`，只往后加）。
+核心部分只插了标「精英化第 5 批段」的转发：`exec_shape`（band / among）、`shape_radius`（以召唤物为心的 `r: zone`）、`fx_spawn / fx_draw_grow`（`grow_to: summon:`、`play: fps`）、
+`sm_spawn / sm_tick / _sm_step / sm_draw`（非随行召唤物的帧条与区域、`repick`）、`el_summon_cmd`（`action: cast`）与几处校验。`data_operator.gd`：`in_zone`（并上召唤物区域）、
+`exec_any_shape` / 延迟队列（普攻命中表）、`_sustain`（记下 `verb.mode` 的 zone_mult 乘积 `zmode`）、`draw_auras` / `draw_ground_fx`（召唤物区域的椭圆与地面帧条）。
+没写这些参数的干员一个新分支都不走：其他干员同 seed TRACE / BALANCE 逐字节不变（§23.4）。
+
+### 23.1 新参数
+
+| 积木 / 参数 | 说明 |
+|---|---|
+| `shape.circle` 的 `band: [内, 外]` | 只打离中心 `内 × r` 到 `外 × r` 之间的敌人（半径比例 0–1；按敌人边缘算，同 `arc_hit` 的 `+ e.r`）。伤害口径同 `area_hit`（× vs_elite、`log_hit`、命中特效），不击退、不眩晕；认 `max_n`。不和 `only` 同用 |
+| `shape.circle` 的 `among: attack` | 只打本干员**上一次普攻命中**的敌人。放在带 `delay` 的 `trig.every_n` 里时，用排队那一刻的命中表（延迟队列条目带 `ah`），中间又出了一次普攻也不会换表。只有写了 `among` 的干员才记命中表（`_init` 扫一次 `blocks`） |
+| 召唤物 `zone {r, share, mode, look}` | 召唤物**自带区域**：以召唤物为心，半径 = `r × op_range × (1 + (本干员区域倍率 − 1) × share)`（share 缺省 1）；`mode: false` = 区域倍率先除掉 `verb.mode` 的 `zone_mult`（技能模式的放大不传给召唤物）。<br>这个区域与本干员的区域**取并集**：`data_operator.in_zone` 认它，所以 `aura.* scope: in_zone`、`cond: in_zone:leader`（治疗）对区域里的干员同样生效，同一名干员只算一次（不叠加）。`st.slow_soft` 等按区域中心算的敌方效果不受影响。<br>`look {strip, fit, scale, max_scale, tint, ring, fade}`：地面帧条（ground 层，紧贴地砖，在溟痕 / Boss 地面预警之下；每 1x 像素 = 半径 / fit × scale，封顶 max_scale，按 V6_FRAMES 的 fps 循环）+ 区域椭圆（同本干员区域的画法与灯火颜色，透明度 × ring）；出场后 fade 秒淡入 |
+| `shape.circle center: summon:<种类>` + `r: zone` | 以那个召唤物为心、半径取它的区域半径（种类要写 `zone`，校验查） |
+| 召唤物 `anim`（**非随行**召唤物） | `{idle, run, attack, spawn}`（本干员 sprites 的键，列进 `extra_sprites`）：`spawn` 出场播一遍（期间不走、不出手；施放来了立即结算）；之后按平滑速度 > 30 播 run、否则 idle；转向防抖同随行召唤物。写了 anim 的非随行召唤物不写 `attack`（出手由 `verb.summon_cmd action: cast` 指挥）。画法走召唤物扩展段的 `mf_draw`（`float` / `shadow` 照用） |
+| 召唤物 `move.repick`（chase） | 每隔这么多秒（0.1–10）重新选一次目标；`target: densest` 时召唤物就跟着锚点 `leash` 内的敌群最密处走 |
+| `verb.summon_cmd action: cast` | 指挥 kind 种召唤物**原地施放**：播 `anim.attack` 一遍，出手帧（sprites 的 `fire`，`(fire + 0.5) / fps`）执行 `then`（`center: summon:<种类>` 落在它身上）。上一次还没到出手帧又来一次时先结算上一次（不丢）；没有帧条或正在浮现时立即执行。`t` 只在 `action: leap` 时必填 |
+| fx 条目 `grow_to: summon:<种类>` | 扩散缓动（§5.6）从那个召唤物扩到**它的区域半径**，画的时候每帧跟着它走（种类要写 `zone`） |
+| fx 条目 `play: fps` | 扩散缓动条目的帧号按帧条自己的 fps 播（不跟扩散进度、不跳到大帧）。回声环这类「一帧比一帧疏」的帧条用；要配 `ease` |
+
+**确定性**：本段不取随机数（落点黄金角、画面只看 `g.t`）。**性能**：召唤物区域的半径每帧随召唤物更新算一次（`s.zr`），`in_zone` 只比一次距离；地面帧条 + 椭圆每个区域各一次绘制；`repick` 每 0.5 秒一次 `densest_point`（12 个候选 × 网格查询）。
+`--perfab=N` 同局轮换的 /b 桶：带 `e5` 的召唤物不走、不画、施放立即结算（量净成本用，正常游戏恒为 false）。实测见 docs/91 §27。
+
+### 23.2 浊心斯卡蒂的写法（数值全在 base）
+
+- **精一「余音」** `progression.elite1`：`trig.every_n {n: 1, delay: $ring_delay 0.6}` → `shape.circle {center: zone, r: zone, band: [$ring_in 0.8, 1], among: attack, mult: $ring_mult 0.1, max_n: $wave_n, src: 余音, ring: false}`：
+  每圈声浪扩散到边（声浪 `grow 0.7`、`out2`，0.6 秒时已到 98%）时，这圈声浪打中的敌人里位于外圈的再受 10%。
+  画面：Codex `fx_skalter_echo_ring`（明 / 暗两条按灯火 `xfade 0.4`，暗档染紫）`ease: linear, play: fps, grow 0.36, grow0 0.95, scale 1.04`：从歌域边 0.99 倍扩到 1.04 倍、5 帧逐帧变疏并淡出；另带一道很淡的程序余波环（放大超过 `max_scale 3.5` 后帧条按 (max / 倍率)² 变淡，余波环兜底）。缺图时只画程序余波环（`if_tex: "!fx_skalter_echo_ring"`）。
+- **精二「远古血亲」** `progression.elite2`（数组，取代 `shape.orbit` 音符「溟海之声」）：
+  - `trig.on_deploy` → `verb.summon {kind: ishar, at: self}`：精二起常驻（`life: permanent`、`invuln`、`cap 1`、`status: false`，敌人不理它）。
+  - `summons.ishar`：`move {chase, target: densest, speed $ishar_speed 220, leash $ishar_leash 300, anchor: leader, repick $ishar_repick 0.5}`；
+    `anim {idle, run, attack, spawn}` = Codex `op_skalter_ishar_*`（4 / 6 / 4 / 6 帧，4 / 10 / 10 / 12 fps，脚底 (24, 46)，攻击出手帧 2）、`float {h 4, amp 2}`、`shadow 1.1`；
+    `zone {r $ishar_r 120, share $ishar_share 0.5, mode: false, look {fx_skalter_seaborn_zone, fit 74, max_scale 2.6, 透明度 0.55, ring 0.6}}`。
+  - `trig.every_n {n: 1}` → `verb.summon_cmd {ishar, action: cast, then: [shape.circle {center: summon:ishar, r: zone, max_n $ishar_n 8, mult $ishar_mult 0.5, src: 海嗣, tags: [summon]}]}`：
+    她每放一圈声浪，海嗣播一遍施放帧条，出手帧（约 0.25 秒后）从自身放一圈声浪；画面同她的声浪（大帧条 / 小帧条 + 余波环、明暗 `xfade`），`grow_to: summon:ishar`、扩 0.6 秒。
+  - 小歌域里的干员算「在歌域内」（歌声 / 节点 / 天赋 / S1 / S2 的 `scope: in_zone` 光环与队长回复），不叠加；S3 的 ×2 不传给小歌域（`mode: false`），其余歌域扩张吃一半。
+- 伤害来源：`余音`（follow_up / area）、`海嗣`（emitter summon，entity / area，命中再带 `summon` 标签）。
+
+### 23.3 与 docs/91 写法不同的地方
+
+见 docs/91 §27（海嗣的形象按 Codex 10-13 交付与用户最新截图：浊心斯卡蒂立绘里的深蓝盘曲海嗣，不是伊莎玛拉 Boss 形态；玩家可见名称用原作天赋里的「海嗣」）。
+
+### 23.4 测试
+
+- 单元：`tests/test_core.gd test_blocks_e5`：浊心斯卡蒂通过校验、精二不再有 `shape.orbit`、海嗣帧条登记、普攻卡（余音 / 远古血亲，不写「主控」）；17 条反例（band 越界 / 不是两个数、among 写错、band 与 only 同用、区域缺 r / 字段写错 / 帧条不是 fx_* / mode 不是布尔、repick 用在非 chase、非随行召唤物的帧条键写错 / 不在 sprites / 又写 attack、summon_cmd 动作写错、没有区域却 r: zone、grow_to 指向不存在的召唤物、play 写错 / 没配 ease）；
+  among 扫描；区域半径（吃一半扩张、S3 不传、mode: true、没写 zone）；区域并集（半径内外、召唤物消失）；band / among 筛选（外圈且被打中、精英 × vs_elite、没有命中表不打、只写 band、max_n）。
+- 积木等价 `blocks_eq` 里没有浊心斯卡蒂组（她一直是数据干员），不用改。
+- 其他干员同 seed 不变、木桩表、画面、开销见 docs/91 §27。
