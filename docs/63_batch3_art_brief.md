@@ -1,5 +1,7 @@
 # 63 · 第三批干员美术指令（给 Codex）
 
+> **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
+
 > **状态：先交参考，后开工。** 第三批五人的技能设计见 docs/59（2026-10-11 起草，用户已定 §9 四条）。
 > 第一步是参考审批（§2）：Codex 先交五人的全身立绘截图和武器局部截图，用户确认后才画帧条。这一步和第四批一样（art/incoming/squad_batch4_reference_feedback.md）。
 >

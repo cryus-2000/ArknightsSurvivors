@@ -1,5 +1,7 @@
 # 85 · Codex 返修单：五个跑步循环（2026-10-13）
 
+> **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
+
 > 用户 10-13：「艾丽妮、斯卡蒂、艾雅法拉、维什戴尔、博士的跑步动作是不是不达标」。
 > 对象：`op_irene_run`、`op_skadi_run`、`op_eyjafjalla_run`、`op_wisadel_run`、`doctor_run`（各 1x + @2x）。只改 `_run`，配色、剪影、其他动作不动。
 > 规格与验收沿用 docs/69 §C（本文件与其冲突处以本文件为准）。
