@@ -1,0 +1,172 @@
+{
+ "spec": "docs/87",
+ "ok": true,
+ "results": [
+  {
+   "op": "angelina",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.091,
+   "detail": "@2x 缩到 1x 剪影差最大 0.091",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "outline",
+   "level": "WARN",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 0.969",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "colors",
+   "level": "PASS",
+   "value": 23,
+   "detail": "1x 22 色 / @2x 23 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.0,
+   "detail": "@2x 相同，1x 备用版 skill 末帧 ≠ idle f0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "facing",
+   "level": "PASS",
+   "value": 16.65,
+   "detail": "头部同向分 +16.65（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.092,
+   "detail": "待机 / 跑步头部对称差比 1.092（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.07183129090578377,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.072 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0415,
+    "leg_move": 0.1732,
+    "upper_move": 0.0042,
+    "head_bob": 1.4297,
+    "lean": 14.2859,
+    "foot_dx": 5.25,
+    "static_pairs": 1
+   },
+   "detail": "剪影 0.042 腿 0.173 上身 0.004 头起伏 1.4px 前倾 +14° 停顿 1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     23.4,
+     46.0
+    ],
+    "run": [
+     25.2,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.461,
+    "dark": 0.079,
+    "bright": 0.212,
+    "gain": 0.077
+   },
+   "detail": "超出通用范围：近黑 8%；HSL 0.461 近黑 8% 亮部 21% 受光变亮 8%",
+   "waiver": null,
+   "stale_waiver": false
+  }
+ ]
+}

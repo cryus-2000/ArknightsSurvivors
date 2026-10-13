@@ -1,0 +1,8 @@
+{
+  "reference_method": "Only prior locally generated cover supplied to imagegen. Canonical full-body artwork inspected separately and translated into costume instructions; no official image pixels composited or supplied to generation.",
+  "reference_urls": {
+    "kaltsit": "https://web-static.hg-cdn.com/arknights/official/_next/static/media/kaltsit_e1.a53cfc2e.png",
+    "mizuki": "https://patchwiki.biligame.com/images/arknights/9/9e/5a377x9s3ihb1q7rhnfuuapl3uh90wc.png",
+    "doctor": "https://ami.animecharactersdatabase.com/uploads/chars/29946-1282584620.png"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-ef27a6f1-d16e-4b41-881b-18971eed510f.png",
+  "source_sha256": "4e19ffc06fdba32673bad87d0d6d8763d6434ef32cf4acba6b207b0ebf2fb1e2",
+  "logical_resolution": [
+    600,
+    450
+  ],
+  "pixel_scale": 2,
+  "palette_limit": 96,
+  "reason": "Characters retain more detail than previous300x225/32-color covers; no low-resolution blur filter.",
+  "central_80_percent_safe_area": [
+    120,
+    90,
+    1080,
+    810
+  ],
+  "title_bbox": [
+    280,
+    640,
+    920,
+    810
+  ],
+  "files": {
+    "toy_poster_trio_pixel_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "colors": 96,
+      "bytes": 322875,
+      "sha256": "36f36a47c85d02a6e7cdfe13e465bfae4d5f8f3d762524625a07a6b8840ac7fa"
+    },
+    "toy_poster_trio_pixel_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "colors": 96,
+      "bytes": 338457,
+      "sha256": "66de4f3eab1567288e101151e35dfa188f18cc6676a3e07b679bcff0491dfbec"
+    },
+    "toy_poster_trio_pixel_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "colors": 96,
+      "bytes": 140523,
+      "sha256": "723a52a9a80d26fb4c9626fd15a8e4dfe8724292e730c03a7178023884718268"
+    }
+  }
+}

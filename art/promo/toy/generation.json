@@ -1,0 +1,28 @@
+{
+  "prompts": {
+    "A": "Original fan-game promotional pixel art for 方舟幸存者. NO official logos, no official art, no words or letters. Use attached locally created game sprite sheets ONLY as character design references, NOT as panels in the picture. Characters: Mizuki, small blue-haired boy wearing navy jellyfish cap and navy-white coat; Skadi, silver-haired chibi woman in wide navy hat, dark waistcoat/shorts and boots with greatsword; Doctor, tiny hooded navy masked figure. All modest, fully clothed chibi 2.5 heads tall. Meticulous hand-placed pixel art look, hard edges, clusters, limited 32 color palette, no smooth painting, no 3D. Deep navy #0a1020 and indigo #1b1f45, bioluminescent cyan #36E2DC, ONE golden lantern #F4C04E as only warm focal point. Quiet lonely but hopeful. Landscape 4:3 cover. Side-on intimate low camera: a trio of large readable chibi pixel adventurers stride right along a dark raised sea-bed ridge through rising seawater. Mizuki in middle foreground holds a GOLD LANTERN clearly at chest height, Skadi left a pace behind, Doctor right. Characters occupy central x28-72% and y48-84%, full silhouettes clearly separated. Huge delicate cyan branching luminous tree far away central background from y28% to55%, cyan reflection on sea. Schools of dark seaborn silhouettes curve around left and right foreground corners, nearly black with tiny dim red eye specks. A distant thin pale-cyan dawn horizon, NO orange sunrise. Reserve upper central rectangle x12-88% y10-27% clean dark navy open sky for later title placement. Keep ALL essential character bodies and lamp in central80% safe area, not touching frame. Strong carefully composed poster, readable at thumbnail, minimal noise.",
+    "B": "Original fan-game promotional pixel art for 方舟幸存者. NO official logos, no official art, no words or letters. Use attached locally created game sprite sheets ONLY as character design references, NOT as panels in the picture. Characters: Mizuki, small blue-haired boy wearing navy jellyfish cap and navy-white coat; Skadi, silver-haired chibi woman in wide navy hat, dark waistcoat/shorts and boots with greatsword; Doctor, tiny hooded navy masked figure. All modest, fully clothed chibi 2.5 heads tall. Meticulous hand-placed pixel art look, hard edges, clusters, limited 32 color palette, no smooth painting, no 3D. Deep navy #0a1020 and indigo #1b1f45, bioluminescent cyan #36E2DC, ONE golden lantern #F4C04E as only warm focal point. Quiet lonely but hopeful. Landscape 4:3 alternate cover, different from side-on march: dramatic overhead/isometric view of a small circular stone beacon platform centered at x50% y61%. A single tall golden LANTERN BEACON dominates the center. Three very small recognizable chibi teammates Mizuki Skadi Doctor stand within the circle at its base, gathering rather than fighting. Geometric stepped golden light rings travel outward across midnight-blue ocean pushing back a surrounding ring of deep-sea monster silhouettes. Keep GOLD tightly confined to lamp and narrow light ring, all outer ocean indigo. An enormous ghostly cyan branching tree looms from far upper-right background, reflected in water like fine lightning roots. Upper x12-88% y10-27% blank deep navy negative space for title later. The platform and team all within x22-78% y35-82%. Clean strong graphic large shapes, only a handful of bright cyan wave edges, pixel clusters no noisy stipple, hope amid dark ocean.",
+    "icon": "Square 1:1 pixel art game icon, original no text no logos. A single iconic golden lantern, large simple glowing gold square chamber #F4C04E, dark iron navy cap and short sturdy stone beacon pedestal, centered occupying x28-72% y20-80%. Behind it a simple symmetrical branching cyan deep-sea tree silhouette #36E2DC rising in deep navy/indigo #0a1020 #1b1f45; 2 broad pixel ocean wave lines below. Quiet hopeful cold sea with one warm light. Hard pixel edges, limited 16-24 colors, thick readable silhouettes, absolutely no blur or antialiasing, no gradients, no intricate clutter, readable at 48px. Central80%safe area. Flat opaque dark navy background, not transparent."
+  },
+  "sources": {
+    "A": {
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-022661df-cdf8-41a8-9c1f-ab5a0529579d.png",
+      "sha256": "fe6fb5a229646d32d7f76ed211288255e72a4509d14960368a9b5d0524a6ab0c"
+    },
+    "B": {
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-cd950185-0f22-4618-833a-c52591953857.png",
+      "sha256": "a5f243e06e7129bfd296ba52fe8e22f9e18b1d3a88fd206f8132a0bc64f7f5fa"
+    },
+    "icon": {
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-d4f2deee-1715-4730-957c-49d0a830b3c2.png",
+      "sha256": "3e257f973d2e8c388fa7cf156f19aee380bf6a79fd005c2ebcf30fd0972a296b"
+    }
+  },
+  "reference_policy": "Only locally-created game sprites and fan-game logo; no official artwork, screenshots, or official logo supplied to image generation.",
+  "references": {
+    "logo.png": "a9cbf43f3ad6e48538c2c1cb734fb8a093d6e127a8f615d6a4469e872cf8ecb3",
+    "player_idle@2x.png": "0d5a918c8d59baff513a3965f4ef75c7134c5b9bfb9671b8765171d5c6da622f",
+    "op_skadi_idle@2x.png": "27b6771195f7b36a33ea5689f7c424a9fc670cb415ef14b0f306f269406ba229",
+    "doctor_idle@2x.png": "2c3e211dd06743258c1c4ac42d317e73b53725c5735141e801cddf5eae4e097e"
+  }
+}
