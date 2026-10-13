@@ -1419,3 +1419,140 @@ docs/91 第 1 批（德克萨斯、能天使、星熊、安洁莉娜、凯尔希
 - 同 seed：三名不相关干员（浊心斯卡蒂主控全节点、塞雷娅 + 艾雅法拉、维什戴尔 + 铃兰 + 斯卡蒂全藏品，240 秒 `--trace=1 --maxprog --sptest`）与改前同一提交逐行相同。
 - 木桩表（`python tools/op_dummy_table.py --ops texas,exusiai,hoshiguma,angelina,kaltsit --stages 1,2`）改前 / 改后对照见 docs/91 §23。
 - 星熊「般若回旋」换掉的那一下沿用上一次普攻的 last_hit（荆棘的热砂照常落）。
+
+
+## 17. 手写干员迁积木：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安（docs/91 §19 第 2 批，10-14）
+
+用户 10-13：「实现方式上面都尽可能积木实现，如果现在有的积木不够就用新的积木」。四人原来是手写脚本（`scripts/characters/<id>.gd`），先**原样迁到积木**（本节），
+再在积木上加精一 / 精二新形态（§18）。迁移照凯尔希的做法（§15.9）：JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本删掉，留一份**测试参照**
+`tests/data_ops/<id>_legacy.gd` 给 `blocks_eq` 同 seed 逐行对照。0 个 `custom`，代码里没有任何「是不是这名干员」的判断。
+
+代码在 `op_blocks.gd` 末尾「手写迁移段」（`HW_TAGS` / `HW2_TAGS`（艾雅法拉段）/ `HW3_TAGS`（逻各斯段）/ `HW4_TAGS`（乌尔比安段），只往后加，前缀 `hw_`）；
+运行时状态在干员的 `hw` 字典（`data_operator.gd var hw`）。核心部分只插了标「手写迁移段」的转发：`exec_shape`（basis / cone 的新参数 / circle 的 front）、
+`shape_radius`（r_mult）、`apply_status`（点燃 / 易伤 / 安魂在「Boss 缺省不受」之前截下）、`parse_cond` / `cond_true`（timer / armed）、`count_others`（stack:）、
+`aura_members`（self）、`fx_play` / `fx_is_hold` / `_fx`（程序条目）、`mf_skill_aim`（aim: nearest / los / range / tether）、`validate`（顶层段、技能字段）。
+data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按手写 `update` 的先后：计时 → 锚 → 掀飞 → 浪墙 → 锁定 → 咒域 → 地面 → 点燃 → 抛射 → 后续弹 → 喷发 → 咒文弹），
+起手前问 `hw_busy`；`_release`（法术弹 / 咒文弹 / 蓄势 / 连斩）、`_tick_pending`（带 basis 快照）、`_sustain`（倒计时 tick、局部倍率吃技能强度、光环排除自己）、
+`_restat`（属性立刻重算）、`follow_target`、`_hit_fx`、`bullet_exploded`、`skill_active_left` / `skill_on`、`manual_*` / `bot_wants_manual`、`anim_state`、各绘制层。
+**没写这些积木 / 参数的数据干员 `hw` 为空，一个新分支都不走**：浊心斯卡蒂 / 星熊 / 能天使 / 凯尔希等同 seed 逐行不变（§17.6）。
+
+### 17.1 通用的新积木 / 参数（四人都可能用，后来的干员照用）
+
+| 名 | 放哪 | 说明 |
+|---|---|---|
+| `blocks.follow {leash, gap}` | 顶层 | 近战前压：当队友时站到队长 `leash` 内最近敌人的身前 `gap` 处（`character.melee_spot`）；不写 = 编队位 |
+| `blocks.hit_fx [fx…]` | 顶层 | 本干员每打中一名敌人（melee_hit / area_hit）在它身上播的画面 |
+| `blocks.look [fx…]` | 顶层 | 按 `cond` 常驻的画面：`aura_ring`（脚下圈）/ `outline`（本体轮廓光，当前帧白色剪影向 8 个方向偏移染色） |
+| `attack.first` / `idle` | 普攻 | 首击冷却 / 没目标时的重试间隔（缺省 0.5 / 0.2；手写干员各自的初值） |
+| `attack.anim` / `turn` | 普攻（含 swap_attack 换上的） | 这一下播的帧条 / `false` = 起手不转身 |
+| `attack.combo [{cond, delay, do}]` + `trig.on_combo_end` | 普攻 / 触发 | 连斩：出手后第 1 段 `cond` 成立就 `delay` 秒后执行它的 `do`，执行完再看下一段；最后一段执行完（或第 1 段不成立）触发 `on_combo_end`。延迟执行带着出手那一刻的 basis |
+| 形状 `basis` | shape.circle / cone / wave / lob / pool / hit | 伤害 = 已算好的伤害 × `mult`：`attack` 本轮普攻这一下、`prev` 上一个伤害形状、`hit` 触发事件（弹体命中、爆炸）、`atk` 攻击值（base × 加成 × `attack.atk_mults`）。同手写「dmg × 0.7」这类写法的浮点顺序 |
+| `mult` 数组 | 同上 | 依次乘（`[a, b]` = × a × b，同手写 `_atk() × wm × tm` 的顺序）；数组里的 `$` 表达式编译时求值 |
+| shape.cone `origin_off` / `aim_pad` / `aim_r` + `aim_mult` / `face` / `dir: back` / `half` / `ring` | 形状 | 判定原点偏移；找目标的半径（缺省 = 本形状半径 + 30；`aim_r` × op_range × `aim_mult` 另给）；`face` = 布尔或条件串：朝目标转身；本次普攻反方向；半角弧度；`ring: false` 不画缺省环 |
+| shape.circle `center: front` + `front` / `start_pad` | 形状 | 判定中心 = 脚底 + 朝最近敌人（转身）× 半径 × `front`（锚击砸在身前） |
+| `r_mult` | circle / cone | 半径 × op_range × r_mult（同手写 `_reach() × 1.4` 的顺序） |
+| `trig.tick.countdown` | 触发 | 倒计时写法：生效当帧起算 `every`，到点执行并重置为 `every`（手写计时器） |
+| verb.buff_self 局部 `mult` + `power` | 常驻 | 局部倍率也吃技能强度（潮汐期间普攻 × 1.5 × 技能强度） |
+| 技能 `aim: nearest / los / range / tether` + `aim_r` / `aim_pad` | 技能积木 | 起手朝向：`aim_r` 内最近的；普攻射程 + `aim_pad` 内视线优先的；攻击距离内最近的；本技能 `verb.tether` 选的落点 |
+| fx 程序条目 `blade` / `slam` / `whirl` / `aura_ring` / `outline` | fx | 刀光帧条（按形状半径与方向缩放旋转、缺图画程序弧光、可带水珠）/ 砸地一套 / 锁链回旋 / 常驻脚下圈 / 轮廓光；`sprite` 加 `rot_ang`（随这一击方向转） |
+
+### 17.2 艾雅法拉段（`HW2_TAGS`）
+
+| 积木 | 类 | 说明 |
+|---|---|---|
+| `shape.shell` | 普攻 / 技能 do | 直线法术弹（game 的 fire 子弹：hidden、命中即在 `aoe` 内爆炸，爆炸后回调 `bullet_exploded`）。伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；`aoe` × op_range × `aoe_mults`（cond）× `aoe_mult`；`tip / tip_skill` 出手点；`follow`（第一条 cond 成立的：n 发后续弹每 `gap` 秒一发，打首发目标以外的敌人，不够就在两侧偏开 `side`）；`on_explode`（target = 爆点、basis hit = 这一弹、r: hit = 爆炸半径）；`look` / `fire_fx` / `boom_fx` 画面 |
+| 技能 `cast: instant` + `dur.next_n` + `attack_patch {power, aoe_mult, on_explode}` | 技能 | 充满当帧生效、不播技能动作（「炽热」）；接下来 N 发法术弹带补丁；`status` 里的 `%d` = 剩余发数 |
+| 技能 `dur.pulses {pulses, every}` + `pulse {r, pad, jit, delay, fx, do}` | 技能 | 连续喷发：每 every 秒在 (r + pad) × op_range 内敌群最密处 ± jit（g.rng，同手写）标一处，delay 秒后执行 do；期间不起手、不放别的技能；技能剩余 = 剩余次数 × every |
+| `verb.lob` | 瞬时 | 抛射火团：pick `near_out` / `shuffle` / `ring`（g.rng，同手写次数与顺序），飞 clamp(距离 / 420, 0.25, 0.6) 秒（h > 80 再 + 0.2），落地 r 内 area_hit；同时 ≤ 12 个 |
+| `verb.affect` | 瞬时 | r（数字 × op_range 或 `hit`）内活着的敌人逐个吃 `on_hit` 状态（不伤害、不登记命中） |
+| `st.burn` | 状态 | 点燃：dur 秒内每跨过一个 every 整数倍受到 basis × mult × every（Boss 也吃，同一敌人可叠多条） |
+| `st.fragile` | 状态 | 易伤：dur 秒（敌人 aura_weak，受到的伤害 +10%）；`kind: arts` = 受到的法术伤害 + value（melt，同名取最高、不叠层，Boss 也吃；combat.gd 一处读） |
+| `shape.pool` | 瞬时 | 地面持续伤害区：半径、伤害生成时定；`tick0` 首跳计时、`accum` 到点 += every（否则重置）、`tail` 剩余低于它不再跳、`burst` 只在到时炸一次；`group / group_cap / evict / max` 同组上限（满了先挤掉同组最早的可挤条目）；`look: lava / pool / rune` |
+
+### 17.3 逻各斯段（`HW3_TAGS`）
+
+| 积木 | 类 | 说明 |
+|---|---|---|
+| `attack.atk_mults` / `range_mults` | 普攻 | 攻击值、攻击距离按 cond 再乘（湮灭期间 ×1.5 / ×1.3） |
+| `shape.bolt` | 普攻 / 触发 do | 飘飞咒文弹：pick `aim`（aim_targets；咒域生效时多要 6 个只留域内的；`extra` 追加目标与倍率）/ `random`（射程内最近 `pool` 个里 g.rng 抽 `count` 个，`chance` 先掷一次，`slow` 选中即减速）。排进出手队列（第 k 枚晚 gap × 队列长度），从 `tip` 飘出（≤ 12 枚，满了直接命中），追着目标飞、左右摆动（相位 g.rng——决定轨迹，同手写），飞到执行 `then`（`then_of: attack` 用普攻的）；没有目标时这一下不出手、不走 every_n |
+| `shape.hit` | then | 对命中的敌人 basis × mult（src 缺省 = 这一枚的来源）+ on_hit；`splash {r, mult}` 周围其他敌人 |
+| `verb.execute` | then | 非精英、生命低于 攻击值 × thr 时处决（src），溢出转给射程内 `pool` 个里 g.rng 随机一名（over_src / over_on_hit）；`on_exec` 在处决处；`halt` 处决了就不再执行后面的 |
+| `st.requiem` | 状态 | 安魂：dur 秒内受到的法术伤害 +15%（全队法伤受益，直接覆盖剩余时间） |
+| `verb.lock` | 技能 do | 锁定射程内优先精英 / Boss 的最近敌人，dur 秒每 tick 秒 攻击值 × mult × ramp × 技能强度并减速；没目标退回 refund 的技力；`jump`（cond）目标死了跳到最近的；技能剩余 = 锁定剩余 |
+| `verb.fan` | 技能 do | 扇形咒域：dur 秒、deg 度、半径 = 攻击距离 × r_mult；每 eval 秒重算敌人最多的方向、turn 度 / 秒转过去；每 tick 秒域内 攻击值 × mult × 技能强度 + on_hit；域内弹幕减速、结束清掉；`body` 绕身前后两层帧条 |
+
+### 17.4 乌尔比安段（`HW4_TAGS`）
+
+| 积木 | 类 | 说明 |
+|---|---|---|
+| `verb.tether` | 技能 do | 掷锚：pick `elite`（pick_r_elite 内最近精英 / Boss，退到 densest）/ `densest`；`manual: true` = 队长手动时用玩家给的落点 / 方向（aim_cone / aim_range / aim_empty / aim_free / aim_snap，契约 v2.4 / v2.5），并接管 `manual_ready / manual_block_reason / manual_aim_point / bot_wants_manual`。锚 throw 秒飞到落点咬地；`mode: reel` 钩住 hook_r（`hook_more` 成立时 × r_mult、+n）内至多 hook_n 名非 Boss 敌人拽到身前、眩晕、停 hold 秒重砸身前（钩中的首个精英 × elite_mult）；钩不到 / 钩到 Boss 就和 `mode: zip` 一样顺锁链弹射到落点前落地砸 r（stun_boss / stun_elite / land_kb / kb_boss），然后 `then`、`drag`（cond：拽来 r 内至多 n 名）、`rift`（cond：起跳点到落点裂开通路，沿线掀飞）。锚在外面时不起手，动作停在技能条第 hold_frame 帧 |
+| `verb.stack` | 触发 do | 叠层：+add（Boss + add_boss），上限 cap + cap_more（cond）；层数一变**立刻**重算属性（`_restat`，同手写 refresh_stats）；`status` / `row` 显示 |
+| `verb.arm` + `attack.armed [{key, do}]` | 触发 do / 普攻 | 蓄势：置位后下一次普攻整个换成 do（target = 锚击中心），不计普攻次数、不走 every_n |
+| `verb.timer` + 技能 `active_timer` | 瞬时 / 技能积木 | 计时 dur 秒（每帧开头倒数）；条件 `timer:<key>`；技能剩余按这个计时（「开辟」8 秒内不充能） |
+| 光环 `per: stack:<key>`、`scope: self`、`exclude_self` | 光环 | 每层 × value；只给自己；阵营光环不含自己 |
+
+### 17.5 四人的写法（数值全在 base；原脚本里的常数都补成了 base 键）
+
+- **斯卡蒂**：`follow {200, 30}`；普攻 `shape.cone`（r reach、half 1.4、kb 60、origin_off [0, -10]、aim_pad 60、face、first 0.3 / idle 0.1、blade 刀光）+ `combo`（狂舞 / 异乡之舞两段，潮汐内外各一块）；
+  天赋 `every_n 3`（!潮汐）→ cone `dir: back` basis attack × 0.7；S1 / S2 cone（aim_r = 普攻半径，潮汐时 aim_mult 1.4）+ 涌潮 / 跃浪（cond 节点）；S3 `swap_attack`（全方向、×1.4、attack_spin、不转身）+ `buff_self atk × s3_mult × 技能强度` + 脚下 `aura_ring`；
+  涌潮节点 `trig.tick countdown`；精二悲歌 `on_combo_end` → circle basis attack × 0.5。浪墙 `shape.wave`（basis prev × 0.8，帧条 fx_skadi_wave）。
+- **艾雅法拉**：普攻 `shape.shell`（aoe_mults 精一 ×1.25、follow 复咏 / 三重咏唱、on_explode 火星）；S1 `cast: instant` + `next_attacks 3` + 补丁（技能强度、aoe ×1.4、熔岩天降、点燃）；
+  S2 shell「点燃弹」（on_explode 星火燎原 + 点燃 + 易伤 6 秒）；S3 `dur.pulses` 10 × 0.2 秒 + pulse（最密处 ± 50 / 40，0.12 秒后：火山圆 + 熔岩天降 + 熔岩池 `shape.pool`）。
+- **逻各斯**：普攻 `shape.bolt`（atk_mults / range_mults 湮灭、extra 复指、fan_filter）+ then [处决（湮灭期间，on_exec 墓志铭 burst 池）、hit（安魂 + 溅射）、铭文池（accum、tail −0.01、同组 6 枚可挤）]；
+  天赋两块 `every_n 1`（精二前 1 枚 / 精二 2 枚，random + chance + slow，then_of attack）；S1 `verb.lock`（jump 转喻）；S2 永久；S3 `verb.fan`。
+- **乌尔比安**：`follow {200, 28}`；普攻 circle `center: front`（kb 90）+ `armed` 血脉大爆破；S1 `verb.tether reel`（hook_more / drag 不容挣脱、rift 通路洞开）；S2 永久 `buff_self op_atk +0.4` + `swap_attack`（×1.3）；
+  S3 `verb.tether zip manual`（then `verb.timer haste`，`active_timer`）；特性 `passive timer:haste` → interval ×0.7；天赋 `on_kill` → `verb.stack`（上限 10、必须坚守后 +5）+ 光环 `per: stack:blood`（自己 / 其他深海猎人一半）；
+  节点：定点爆破 `every_n 1 delay 0.2 at attack`、锁链回旋 `every_n 3`；精二 `on_kill` → `verb.arm` + `look`（血脉轮廓光、脚下红圈，就绪时更亮更快）。
+
+**与手写版的差别（有意的 / 只在画面）**
+
+1. 乌尔比安天赋「其他深海猎人得一半」：手写按 id（斯卡蒂、归溟幽灵鲨），积木按阵营（`faction:深海猎人`，浊心斯卡蒂也算，天赋文字同步去掉括号里的点名）；新招到的深海猎人当帧就拿到加成（手写要等下一次层数变化）。
+2. 画面随机数一律 g.vrng（手写四人都有画面粒子吃 g.rng）：**这四人在场的局，同 seed 结果相对迁移前会变**（逻辑不变，只是随机序列从第一次画面粒子起错开），同凯尔希（§15.9）。
+3. 画面：技能发动时多一圈数据干员通用的地面环；斯卡蒂命中的短白线改成小光点、连斩第三段的切向水珠改成随机散开；艾雅法拉喷发地裂、乌尔比安血脉大爆破的刀光不随方向转；
+   逻各斯命中咒文不随机左右翻转。四人 `stats_rows` 只列层数（乌尔比安「血脉层数」），不再列数据干员缺省的「区域半径 / 伤害倍率」。
+
+### 17.6 测试
+
+- **积木等价**（`python tools/check.py --only blocks_eq`，快检全量也跑）：四组，每组两局，数据版 ↔ `--opscript=<id>=res://tests/data_ops/<id>_legacy.gd` 同 seed：
+  seed 1 当队友（塞雷娅队长 + 铃兰）`--maxprog` 240 秒（全节点，伤害统计里各来源都要出现）、seed 1 主控 `--maxprog --sptest` 240 秒（三技能常放；乌尔比安满编、机器人按手动掷锚）：**TRACE 241 行逐行相同、BALANCE 逐字段相同**。
+  参照只改了三类（写在各文件开头）：画面随机数 g.rng → g.vrng（含 character.gd `fx_sparks` 换成 g.vrng 版 `_vsparks`）、斯卡蒂涌潮伤害的乘法顺序、斯卡蒂连斩 / 乌尔比安定点爆破同帧到期时按排队先后（原来倒序）、
+  乌尔比安层数变化时「必须坚守」+40% 与层数一起移到属性表末尾（同数据版整组重建的浮点求和顺序）。
+  **加精一 / 精二新形态之后（§18）**，旧手写参照没有新形态，等价组改为同凯尔希只比精零：seed 1 主控 `--sptest` 45 秒、seed 3 当队友（维什戴尔队长 + 铃兰，全藏品）`--sptest` 60 秒，不推全节点、不进精英化。
+- **单元**：`tests/test_core.gd test_blocks_handwritten`：四人通过校验 + 30 条反例；mult 数组、timer / armed 条件、数组里的 `$` 表达式。
+- **其他干员同 seed 不变**（对改前 e5227947，满编不招募，`--trace=1 --maxprog --sptest` 240 秒）：维什戴尔 + 铃兰 + 塞雷娅（全藏品，seed 1）、星熊 + 能天使 + 凯尔希（seed 2）、浊心斯卡蒂 + 水月 + 流明（seed 3）：TRACE 与 BALANCE 逐字节相同。
+- **画面**：`python tools/elite_demo_shots.py --ops logos,eyjafjalla,skadi,ulpianus --stages 2`（新工具：`tests/elite_demo_shot.tscn` 以图鉴演示模式连拍，拼成拼图 + GIF），四人精二轮播 90 帧无脚本错误。
+
+## 18. 精英化第 2 批的积木（docs/91 §3 / §7 / §12 / §17、§24；10-14）
+
+逻各斯、艾雅法拉、斯卡蒂、乌尔比安迁积木（§17）之后，精一 / 精二新形态全部用积木写，JSON 里不写干员特判。
+代码在 `op_blocks.gd` 末尾「精英化第 2 批」段（`HW5_TAGS`，只往后加，状态在 `o.hw`，与 §17 同一套），其余是 §17 已有积木上加的参数；
+`data_operator.gd` 只多两处挂钩：`deal_damage` 之后转 `hw_dealt`（咒文链传递）、`every_n` 的 `skip_replaced`；`combat.gd` 两行（安魂按层数、熔蚀）。
+没写这些积木 / 参数的干员一个新分支都不走：其他干员同 seed TRACE 逐行不变（§18.3）。
+
+### 18.1 新积木 / 新参数
+
+| 积木 / 参数 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `verb.requiem_stack` | 常驻（passive do） | `per`、`max`、`look`（按层数分档的帧条数组 [1 层, 2 层, 3 层]） | 本干员挂 `st.requiem` 时改为叠层：还在安魂中再挂 +1 层（至多 max）并刷新时间，每层受到的法术伤害 + per（`combat.gd` 读 `e.requiem_k`；没有这块时照旧 +15%）。头顶按层数横排 1–3 枚符文。逻各斯精一「剜魂」 |
+| `verb.link` | 瞬时（命中 then） | `n`、`r`、`dur`、`share`、`cap`、`src`、`kinds`、`exclude`、`tile` / `pulse` / `anchor` | 从刚命中的敌人向 r 内最近 n 名拉链 dur 秒（同时 ≤ cap 组，至多 8）。链上任一名受到本干员 kinds 类伤害（来源不在 exclude）时，同组其他人各受这次 × share（src；传过去的不再传）。链节帧条沿线平铺、传递时亮起，两端咒文结。逻各斯精二「连缀」 |
+| `shape.hookshot` | 瞬时 | `range`、`min_d`、`r`、`basis`、`mult`、`back_mult`、`w`、`taut`、`drag`、`front`、`speed`、`apex`、`lock`、`src`、`back_src`、`chain`、`impact_fx` / `dust_fx` / `arrive_fx`、`max_n` | 锚掷向 range（× op_range）内 min_d 外最远的敌人（没有就最近的），低弧飞 clamp(距离 / speed, 0.1, 0.24) 秒；落地 r 内 basis × mult；锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人（已在身前 front 内的不拖，至多 max_n）拖回身前 front 处（drag 秒），到了再受 basis × back_mult（× vs_elite）。lock = 锚在外面时不普攻。乌尔比安精二「掷锚」 |
+| `shape.shell` 的 `lob` | 普攻 | `cond`、`n`、`mults`、`gap`、`spacing`、`flight`、`apex`、`tex`、`boom_fx`、`pool`（瞬时积木数组） | cond 成立时法术弹改低弧抛射：n 发（第 k 发 × mults[k]、晚 gap × k 秒）在目标周围呈三角落下（相邻落点间距 spacing），飞 flight 秒、顶点 apex，地面只有小影子跟着走、**没有落点预示圈**。落地在 aoe 内爆炸（伤害出手时定，不乘 vs_elite，同直线弹），再执行 on_explode；整组落完在三角中心执行 pool（`center: target` = 中心，`basis: hit` = 第一发）。艾雅法拉精二「三重咏唱·低抛」 |
+| `shape.wave` 的 `from: self`、`aim: nearest`、`aim_r`、`fan`、`fan_once`、`proj`、`hit_fx`、`release_fx` | 瞬时 | 见左 | 从本干员脚底朝 aim_r 内最近敌人（没有朝面向）放出；fan = 几道的偏角（度）；fan_once = 同一轮几道共用命中表（一名敌人每轮只吃一道）；proj = 旋转的弹体帧条（缺图画程序新月）。斯卡蒂精二「涌潮」潮刃 |
+| `verb.displace` 的 `r: "attack"` + `r_mult`、`r_in: "attack"` | 瞬时 | — | 半径按当前普攻半径 × r_mult；r_in 内（这一下已经打到的）不拉。乌尔比安精一「收链」 |
+| `st.fragile` 的 `kind: arts` + `look` | 命中状态 | — | 法术易伤写进 `e.melt_t / melt_v`（不叠层取高、再命中刷新），`combat.gd` 法术伤害 × (1 + melt_v)；look = 脚下裂纹帧条（前段出现、中段停在中间帧、最后 0.3 秒淡出）。艾雅法拉精一「熔蚀」 |
+| `trig.every_n` 的 `skip_replaced` | 触发参数 | bool | 本次普攻被别的 `replace` 块换掉时（如掷锚）这块不执行。乌尔比安定点爆破、收链（落点跟着锚击走） |
+
+精一 / 精二各块挂在 `blocks.progression.elite1 / elite2`（可以是数组），或写在普攻里带 `cond: "elite >= N"`：
+逻各斯 elite1 = passive requiem_stack，精二连缀在命中 then 里；艾雅法拉熔蚀在 on_explode 里、低抛在 `attack.lob`；斯卡蒂 elite1 = `every_n 6 replace anim leap_strike`（潮汐期间不换）、elite2 = 两块 `on_combo_end`（非潮汐 1 道 / 潮汐 3 道）；乌尔比安 elite1 = `every_n 1 at attack skip_replaced` 拉人、elite2 = `every_n 3 replace anim throw` 掷锚。
+
+### 18.2 画面
+
+全部接 Codex 第 2 批素材（docs/93 §2，接入记录 §2.5）；缺图时：符文 → 暗金小方块，咒文链 → 黑底 + 淡金两层线，熔岩弹 → 程序三层圆，熔池 → 通用 pool 画法，裂纹 → 三段暗橙弧，
+潮刃 → 程序新月，潮刃命中 → 青白光点，落地水花 → `fx_splash_blue`，锁链 → 程序双线，砸地 → slam 程序画面，人物帧条（跃起下劈 / 掷锚）→ attack。
+
+### 18.3 测试
+
+- 积木等价（只比精零，见 §17.6）四组 × 两局 TRACE / BALANCE 逐行相同。
+- `test_blocks_handwritten` 加 15 条反例（叠层安魂缺 per / look 不是帧条、咒文链缺 share / 放进常驻、低抛缺 flight / mults 不是数组 / 弹体不是 proj_ / 熔池缺 every、潮刃 fan 不是数组 / from 写错 / 弹体不是 proj_、掷锚缺 range / back_src 没登记 / basis 写错 / 放进常驻）与精英节点普攻卡检查。
+- 其他干员同 seed 不变（对迁移前 e5227947，同 §17.6 三局满编 240 秒）：TRACE 与 BALANCE 逐字节相同。
+- 木桩表与画面见 docs/91 §24。

@@ -3,13 +3,15 @@
  "name": "乌尔比安",
  "en": "ULPIANUS",
  "class": "近卫",
- "faction": ["深海猎人"],
+ "faction": [
+  "深海猎人"
+ ],
  "col": [
   0.45,
   0.7,
   0.95
  ],
- "script": "res://scripts/characters/ulpianus.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值",
   "atk": 52,
@@ -44,8 +46,44 @@
   "rift_mult": 0.8,
   "rift_w": 26,
   "rift_air": 0.8,
-  "blood_r": 160,
-  "blood_mult": 2.5
+  "first_cd": 0.5,
+  "idle_cd": 0.1,
+  "leash": 200,
+  "gap": 28,
+  "aim_pad": 60,
+  "start_pad": 40,
+  "front": 0.55,
+  "slam_kb": 90,
+  "s2_atk": 0.4,
+  "s2_reach": 1.3,
+  "stack_cap_s2": 5,
+  "stack_boss": 3,
+  "haste_mult": 0.7,
+  "s1_throw": 0.16,
+  "s3_throw": 0.22,
+  "pick_r_elite": 420,
+  "pick_r": 400,
+  "refund": 0.6,
+  "hook_more_r": 1.8,
+  "s1_slam_kb": 70,
+  "s1_land_kb": 50,
+  "s3_land_kb": 60,
+  "s3_stun_boss": 0.27,
+  "blast2_kb": 60,
+  "whirl_kb": 140,
+  "rift_h": 30,
+  "pull_r": 1.43,
+  "pull_dist": 20,
+  "throw_n": 3,
+  "throw_range": 320,
+  "throw_min": 160,
+  "throw_r": 90,
+  "throw_mult": 1.2,
+  "throw_back": 0.4,
+  "throw_w": 40,
+  "throw_taut": 0.2,
+  "throw_drag": 0.18,
+  "throw_front": 60
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 6022 / 防御 0 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -97,7 +135,18 @@
   "foot": [
    24,
    46
-  ]
+  ],
+  "throw": {
+   "_doc": "Codex 精英化第 2 批（elite_art_2_manifest）：掷锚 8 帧 14fps，出手帧 3（锚离手）、回拉帧 6，首末帧接 idle",
+   "tex": "op_ulpianus_throw",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  }
  },
  "attack": {
   "mode": "auto",
@@ -133,7 +182,7 @@
  ],
  "talent": {
   "name": "血脉滋养",
-  "desc": "击杀精英 +1 层、Boss +3 层，每层攻击 +4%（上限 10 层）；编队里其他深海猎人（斯卡蒂、归溟幽灵鲨）获得一半"
+  "desc": "击杀精英 +1 层、Boss +3 层，每层攻击 +4%（上限 10 层）；编队里其他深海猎人获得一半"
  },
  "hit_sources": {
   "锚击": {
@@ -208,6 +257,26 @@
     "area",
     "control"
    ]
+  },
+  "抛锚": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "回拉": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "control"
+   ]
   }
  },
  "progression": [
@@ -229,7 +298,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「必须坚守」；解锁天赋「血脉滋养」：击杀精英叠攻击，其他深海猎人得一半"
+   "desc": "解锁二技能「必须坚守」；解锁天赋「血脉滋养」：击杀精英叠攻击，其他深海猎人得一半；锚击把落点外圈 150 内的敌人拉向落点 20（Boss 除外）",
+   "attack": {
+    "name": "收链",
+    "desc": "锚击落点外圈（锚击范围之外、150 以内）的敌人被拉向落点 20（精英减半，Boss 除外），下一锤就能砸到"
+   }
   },
   {
    "type": "custom",
@@ -249,7 +322,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「必须开辟」（当队长时手动释放）：掷锚眩晕一片并弹射过去，之后 8 秒锚击加速；普攻质变「血脉沸腾」：身上常亮血脉红纹；击杀精英后下一次锚击变为大爆破（半径 160、锚击 ×2.5），红纹脉动提示"
+   "desc": "解锁三技能「必须开辟」（当队长时手动释放）：掷锚眩晕一片并弹射过去，之后 8 秒锚击加速；普攻质变「掷锚」：身上常亮血脉红纹；每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就掷向最近的），落地造成锚击 ×1.2 伤害，随后顺锁链把沿线敌人拖回面前，再造成 40% 伤害（拖动 Boss 除外）",
+   "attack": {
+    "name": "掷锚",
+    "desc": "每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就掷向最近的）：落地半径 90 造成锚击 ×1.2 伤害，锁链绷直后把乌尔比安与锚之间宽 40 的一线敌人拖回面前，再造成 40% 伤害（Boss 不拖）。锚在外面时不出锚击"
+   }
   }
  ],
  "gallery": {
@@ -260,5 +337,668 @@
    "精英克制"
   ],
   "desc": "抡锚砸身前一片，掷锚后顺着锁链弹射到精英面前；每击杀一个精英攻击 +4%（最多 10 层）"
- }
+ },
+ "blocks": {
+  "_doc": "乌尔比安（docs/61 §17.5）：锚击（身前圆）、必须接触（掷锚钩回 / 弹射）、必须坚守（永久）、必须开辟（手动掷锚弹射 + 8 秒加速）、血脉滋养（叠层）、精二血脉沸腾（蓄势大爆破）；原手写脚本作参照 tests/data_ops/ulpianus_legacy.gd",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 9.0,
+     "life": 0.15,
+     "col": [
+      0.55,
+      0.75,
+      0.95
+     ],
+     "alpha": 0.5
+    }
+   }
+  ],
+  "look": [
+   {
+    "outline": {
+     "col": [
+      1.0,
+      0.45,
+      0.5
+     ],
+     "rings": [
+      [
+       4,
+       0.3
+      ],
+      [
+       2,
+       0.9
+      ]
+     ],
+     "hz": 2.5,
+     "a": [
+      0.3,
+      0.2
+     ]
+    },
+    "cond": "elite >= 2",
+    "_doc": "精二血脉红纹常亮"
+   },
+   {
+    "aura_ring": {
+     "r": 30,
+     "sy": 0.45,
+     "col": [
+      1.0,
+      0.25,
+      0.3
+     ],
+     "fill": 0.06,
+     "fill_pulse": 0.05,
+     "a": 0.3,
+     "pulse": 0.4,
+     "hz": 2.5,
+     "arc_k": 1.5
+    },
+    "cond": "elite >= 2",
+    "off": [
+     0,
+     4
+    ]
+   }
+  ],
+  "attack": {
+   "shape": "circle",
+   "center": "front",
+   "front": "$front",
+   "r": "$reach",
+   "aim_pad": "$aim_pad",
+   "start_pad": "$start_pad",
+   "kb": "$slam_kb",
+   "src": "锚击",
+   "ring": false,
+   "fx": [
+    {
+     "sprite": {
+      "name": "fx_slash_heavy_steel",
+      "scale_r": 0.04643,
+      "rot_ang": true,
+      "flip_side": false
+     },
+     "along": -0.1,
+     "off": [
+      0,
+      -16
+     ]
+    },
+    {
+     "slam": {
+      "k": 1.0
+     }
+    }
+   ],
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd"
+  },
+  "skills": [
+   {
+    "dur": 0,
+    "aim": "tether",
+    "do": [
+     {
+      "verb": "tether",
+      "mode": "reel",
+      "pick": "elite",
+      "pick_r_elite": "$pick_r_elite",
+      "pick_r": "$pick_r",
+      "throw": "$s1_throw",
+      "refund": "$refund",
+      "hook_r": "$s1_hook_r",
+      "hook_n": "$s1_pull_n",
+      "hook_more": {
+       "cond": "node:drag",
+       "r_mult": "$hook_more_r",
+       "n": "$drag_n"
+      },
+      "front": 34,
+      "hold": "$s1_hold",
+      "r": "$s1_r",
+      "mult": "$s1_mult",
+      "src": "掷锚",
+      "stun": "$s1_stun",
+      "elite_mult": "$s1_elite_mult",
+      "slam_kb": "$s1_slam_kb",
+      "land_kb": "$s1_land_kb",
+      "hook_text": "钩住！",
+      "hold_frame": 5,
+      "drag": {
+       "cond": "node:drag",
+       "n": "$drag_n",
+       "r": "$drag_r",
+       "mult": "$drag_mult",
+       "src": "不容挣脱"
+      },
+      "rift": {
+       "cond": "node:rift",
+       "mult": "$rift_mult",
+       "w": "$rift_w",
+       "air": "$rift_air",
+       "h": "$rift_h",
+       "src": "通路洞开"
+      }
+     }
+    ]
+   },
+   {
+    "dur": "permanent",
+    "fx": [
+     {
+      "banner": "必须坚守：攻击与范围永久提升"
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 90.0,
+       "r0": 8.0,
+       "life": 0.5,
+       "col": [
+        0.55,
+        0.75,
+        0.95
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "sprite": {
+       "name": "fx_shield_amber",
+       "scale": 1.4,
+       "tint": [
+        0.7,
+        0.9,
+        1.2
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "add",
+      "value": "$s2_atk"
+     },
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "circle",
+       "center": "front",
+       "front": "$front",
+       "r": "$reach",
+       "aim_pad": "$aim_pad",
+       "start_pad": "$start_pad",
+       "kb": "$slam_kb",
+       "src": "锚击",
+       "ring": false,
+       "fx": [
+        {
+         "sprite": {
+          "name": "fx_slash_heavy_steel",
+          "scale_r": 0.04643,
+          "rot_ang": true,
+          "flip_side": false
+         },
+         "along": -0.1,
+         "off": [
+          0,
+          -16
+         ]
+        },
+        {
+         "slam": {
+          "k": 1.0
+         }
+        }
+       ],
+       "r_mult": "$s2_reach"
+      }
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "aim": "tether",
+    "active_timer": "haste",
+    "do": [
+     {
+      "verb": "tether",
+      "mode": "zip",
+      "pick": "densest",
+      "pick_r": "$pick_r",
+      "manual": true,
+      "aim_cone": "$aim_cone",
+      "aim_range": "$aim_range",
+      "aim_empty": "$aim_empty",
+      "aim_free": "$aim_free",
+      "aim_snap": "$aim_snap",
+      "throw": "$s3_throw",
+      "refund": "$refund",
+      "r": "$s3_r",
+      "mult": "$s3_mult",
+      "src": "必须开辟",
+      "stun": "$s3_stun",
+      "stun_boss": "$s3_stun_boss",
+      "stun_elite": 0.5,
+      "land_kb": "$s3_land_kb",
+      "kb_boss": true,
+      "big": true,
+      "hold_frame": 5,
+      "then": [
+       {
+        "verb": "timer",
+        "key": "haste",
+        "dur": "$s3_haste",
+        "status": "开辟",
+        "status_col": [
+         0.55,
+         0.75,
+         0.95
+        ]
+       }
+      ],
+      "land_fx": [
+       {
+        "sprite": {
+         "name": "fx_circle_steel",
+         "scale_r": 0.025
+        },
+        "off": [
+         0,
+         4
+        ]
+       },
+       {
+        "text": {
+         "s": "必须开辟",
+         "col": [
+          0.55,
+          0.75,
+          0.95
+         ],
+         "size": 18
+        },
+        "off": [
+         0,
+         -70
+        ]
+       }
+      ],
+      "rift": {
+       "cond": "node:rift",
+       "mult": "$rift_mult",
+       "w": "$rift_w",
+       "air": "$rift_air",
+       "h": "$rift_h",
+       "src": "通路洞开"
+      }
+     }
+    ]
+   }
+  ],
+  "trait": [
+   {
+    "trig": "passive",
+    "cond": "timer:haste",
+    "_doc": "必须开辟之后 8 秒锚击间隔 ×0.7",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "interval",
+      "op": "mult",
+      "value": "$haste_mult"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "on_kill",
+    "filter": "elite",
+    "_doc": "血脉滋养：击杀精英 +1 层、Boss +3 层（必须坚守后上限 +5）",
+    "do": [
+     {
+      "verb": "stack",
+      "key": "blood",
+      "add": 1,
+      "add_boss": "$stack_boss",
+      "cap": "$stack_cap",
+      "cap_more": [
+       {
+        "cond": "skill_active:1",
+        "add": "$stack_cap_s2"
+       }
+      ],
+      "text": "血脉 ×%d",
+      "text_col": [
+       0.55,
+       0.75,
+       0.95
+      ],
+      "status": "血脉 ×%d",
+      "status_col": [
+       0.9,
+       0.4,
+       0.45
+      ],
+      "row": "血脉层数",
+      "fx": [
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 16.0,
+         "life": 0.3,
+         "col": [
+          0.9,
+          0.3,
+          0.35
+         ],
+         "alpha": 0.5
+        },
+        "at": "self",
+        "off": [
+         0,
+         -24
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "_doc": "每层攻击 +stack_atk；编队里其他深海猎人得一半",
+    "do": [
+     {
+      "aura": "atk",
+      "value": "$stack_atk",
+      "per": "stack:blood",
+      "cap": 999,
+      "scope": "self"
+     },
+     {
+      "aura": "atk",
+      "value": "$stack_atk*0.5",
+      "per": "stack:blood",
+      "cap": 999,
+      "scope": "faction:深海猎人",
+      "exclude_self": true
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "blast2": {
+    "trig": "every_n",
+    "n": 1,
+    "delay": "$blast2_delay",
+    "at": "attack",
+    "_doc": "定点爆破：锚击 0.2 秒后同一落点第二道冲击环",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$blast2_r",
+      "basis": "atk",
+      "mult": "$blast2_mult",
+      "kb": "$blast2_kb",
+      "src": "定点爆破",
+      "ring": false,
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.4,
+         "life": 0.3,
+         "col": [
+          0.4,
+          0.62,
+          1.1
+         ],
+         "floor": true,
+         "w": 4.0
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.7,
+         "r0": 6.0,
+         "life": 0.22,
+         "col": [
+          1.3,
+          1.6,
+          2.2
+         ],
+         "floor": true,
+         "w": 2.0
+        },
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 16.0,
+         "life": 0.18,
+         "col": [
+          1.2,
+          1.5,
+          2.2
+         ],
+         "alpha": 0.7
+        },
+        "off": [
+         0,
+         -8
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.8,
+         "bottom": true
+        },
+        "off": [
+         0,
+         6
+        ]
+       }
+      ]
+     }
+    ],
+    "skip_replaced": true
+   },
+   "whirl": {
+    "trig": "every_n",
+    "n": 3,
+    "_doc": "锁链回旋：每第 3 次锚击抡锁链甩一整圈",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$whirl_r",
+      "basis": "atk",
+      "mult": "$whirl_mult",
+      "kb": "$whirl_kb",
+      "src": "锁链回旋",
+      "ring": false,
+      "fx": [
+       {
+        "whirl": {}
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.6,
+         "life": 0.3,
+         "col": [
+          0.62,
+          0.68,
+          0.78
+         ],
+         "floor": true,
+         "w": 2.0,
+         "alpha": 0.6
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "drag": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "不容挣脱：写在 S1 verb.tether 的 hook_more / drag（cond node:drag）"
+   },
+   "rift": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "通路洞开：写在 S1 / S3 verb.tether 的 rift（cond node:rift）"
+   },
+   "elite2": {
+    "trig": "every_n",
+    "n": "$throw_n",
+    "replace": true,
+    "anim": "throw",
+    "_doc": "精二掷锚：每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就最近的），落地砸一圈，锁链绷直后把沿线敌人拖回身前（Boss 不动）；取代血脉沸腾的大爆破，红纹常亮",
+    "do": [
+     {
+      "shape": "hookshot",
+      "range": "$throw_range",
+      "min_d": "$throw_min",
+      "r": "$throw_r",
+      "basis": "atk",
+      "mult": "$throw_mult",
+      "back_mult": "$throw_back",
+      "w": "$throw_w",
+      "taut": "$throw_taut",
+      "drag": "$throw_drag",
+      "front": "$throw_front",
+      "speed": 900,
+      "apex": 24,
+      "lock": true,
+      "src": "抛锚",
+      "back_src": "回拉",
+      "chain": "fx_ulpianus_chain_tile",
+      "impact_fx": [
+       {
+        "strip": "fx_ulpianus_anchor_impact_back",
+        "layer": "floor",
+        "fit": 32,
+        "max_scale": 6
+       },
+       {
+        "strip": "fx_ulpianus_anchor_impact_front",
+        "fit": 32,
+        "max_scale": 6,
+        "off": [
+         0,
+         -6
+        ]
+       },
+       {
+        "slam": {
+         "k": 1.1,
+         "r_mult": 1.0
+        }
+       }
+      ],
+      "dust_fx": [
+       {
+        "strip": "fx_ulpianus_drag_dust",
+        "layer": "floor",
+        "off": [
+         0,
+         4
+        ]
+       }
+      ],
+      "arrive_fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 46.0,
+         "r0": 8.0,
+         "life": 0.25,
+         "col": [
+          0.55,
+          0.75,
+          0.95
+         ],
+         "floor": true,
+         "w": 3.0
+        }
+       },
+       {
+        "sfx": {
+         "kind": "atk",
+         "db": 2.0,
+         "pitch": 0.85
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "elite1": {
+    "trig": "every_n",
+    "n": 1,
+    "at": "attack",
+    "skip_replaced": true,
+    "_doc": "精一收链：锚击落点外圈（锚击半径外、× pull_r 内）的敌人被拉向落点 pull_dist",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "target",
+      "r": "attack",
+      "r_mult": "$pull_r",
+      "r_in": "attack",
+      "dist": "$pull_dist",
+      "dir": "pull",
+      "fx": [
+       {
+        "strip": "fx_ulpianus_pull_ring",
+        "layer": "floor",
+        "fit": 32,
+        "max_scale": 6
+       }
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "extra_sprites": [
+  "throw"
+ ]
 }

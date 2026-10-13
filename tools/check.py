@@ -357,6 +357,29 @@ EQ_GROUPS = [
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["Mon3tr", "Mon3tr · 真伤", "Mon3tr · 熔毁"]),
+    # 10-14 精英化第 2 批（docs/91 §19 批 2）：四名手写干员迁积木（docs/61 §17），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
+    # 只把画面随机数换成 g.vrng、少数乘法顺序与同帧先后对齐数据版，见各文件开头）。迁移提交时两版全节点 + 精二逐行相同；
+    # 之后加了精一 / 精二新形态（docs/91 §24），旧手写参照没有，所以同凯尔希只比精零（不推全节点、不进精英化）：主控技力常满一局、当队友全藏品一局
+    ("skadi", "--opscript=skadi=res://tests/data_ops/skadi_legacy.gd", [
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=skadi", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=skadi,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
+                                 "--sptest", "--relics=all"]),
+    ], ["大剑", "潮涌斩"]),
+    ("eyjafjalla", "--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd", [
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=eyjafjalla,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
+                                 "--sptest", "--relics=all"]),
+    ], ["熔岩弹"]),
+    ("logos", "--opscript=logos=res://tests/data_ops/logos_legacy.gd", [
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=logos", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=logos,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
+                                 "--sptest", "--relics=all"]),
+    ], ["言", "提喻"]),
+    ("ulpianus", "--opscript=ulpianus=res://tests/data_ops/ulpianus_legacy.gd", [
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=ulpianus", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=ulpianus,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
+                                 "--sptest", "--relics=all"]),
+    ], ["锚击"]),
 ]
 
 

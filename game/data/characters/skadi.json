@@ -3,13 +3,15 @@
  "name": "斯卡蒂",
  "en": "SKADI",
  "class": "近卫",
- "faction": ["深海猎人"],
+ "faction": [
+  "深海猎人"
+ ],
  "col": [
   0.35,
   0.55,
   0.95
  ],
- "script": "res://scripts/characters/skadi.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 40,
@@ -33,9 +35,34 @@
   "pulse_r": 120,
   "pulse_mult": 0.4,
   "pulse_kb": 200,
-  "elegy_r": 90,
-  "elegy_mult": 0.5,
-  "elegy_kb": 220
+  "first_cd": 0.3,
+  "idle_cd": 0.1,
+  "leash": 200,
+  "gap": 30,
+  "aim_pad": 60,
+  "half": 1.4,
+  "kb": 60,
+  "back_mult": 0.7,
+  "s3_reach": 1.4,
+  "s1_reach": 1.1,
+  "s1_half": 1.75,
+  "s1_kb": 120,
+  "s2_half": 1.92,
+  "s2_kb": 240,
+  "combo3_kb": 90,
+  "skill_aim": 200,
+  "s3_dur": 8.0,
+  "leap_n": 6,
+  "leap_r": 130,
+  "leap_half": 1.047,
+  "leap_mult": 1.4,
+  "leap_kb": 78,
+  "blade_mult": 0.6,
+  "blade_dist": 200,
+  "blade_spd": 420,
+  "blade_w": 48,
+  "blade_kb": 190,
+  "blade_aim": 260
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3866 / 防御 263 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -97,10 +124,22 @@
     46
    ],
    "fire": 2
+  },
+  "leap_strike": {
+   "_doc": "Codex 精英化第 2 批（elite_art_2_manifest）：跃起下劈 7 帧 14fps，出手帧 4，首末帧接 idle",
+   "tex": "op_skadi_leap_strike",
+   "frames": 7,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
   }
  },
  "extra_sprites": [
-  "attack_spin"
+  "attack_spin",
+  "leap_strike"
  ],
  "attack": {
   "mode": "auto",
@@ -200,7 +239,17 @@
     "aftershock"
    ]
   },
-  "悲歌": {
+  "跃浪击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "潮刃": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -208,7 +257,7 @@
    "tags": [
     "basic",
     "area",
-    "aftershock"
+    "projectile"
    ]
   }
  },
@@ -231,7 +280,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「重斩」；解锁天赋「深海猎人」：每第 3 次横扫追加一次反手斩（70%）"
+   "desc": "解锁二技能「重斩」；解锁天赋「深海猎人」：每第 3 次横扫追加一次反手斩（70%）；每第 6 次横扫改为跃起下劈：前方扇形 ×1.4 伤害并击退",
+   "attack": {
+    "name": "跃浪击",
+    "desc": "每第 6 次横扫改为跃起下劈：前方 120° 扇形（半径 130）×1.4 伤害，落点溅起水花，击退更远（「潮汐」期间不换）"
+   }
   },
   {
    "type": "custom",
@@ -251,7 +304,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5；普攻质变「悲歌」：每轮连斩收尾，身边涌起一圈小海浪（半径 90，50% 伤害，击退）"
+   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5；普攻质变「涌潮」：每轮连斩收尾，朝前方放出一道潮刃，飞出 200，穿透沿途全部敌人，造成横扫 60% 伤害并推开；「潮汐」期间每轮放 3 道",
+   "attack": {
+    "name": "涌潮",
+    "desc": "每轮连斩收尾，朝最近的敌人放出一道潮刃：飞出 200，穿透沿途全部敌人，造成横扫 60% 的伤害并推开；「潮汐」期间每轮放 3 道（扇形 ±25°）"
+   }
   }
  ],
  "gallery": {
@@ -261,5 +318,1595 @@
    "高频"
   ],
   "desc": "贴身高频横扫，技能大范围重斩"
+ },
+ "blocks": {
+  "_doc": "斯卡蒂（docs/61 §17.5）：近战前压、横扫（手动 A 类）、连斩（狂舞 / 异乡之舞）、天赋反手斩、精二悲歌；原手写脚本作参照 tests/data_ops/skadi_legacy.gd",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 6.0,
+     "life": 0.15,
+     "col": [
+      0.8,
+      0.95,
+      1.0
+     ],
+     "alpha": 0.5
+    }
+   }
+  ],
+  "attack": {
+   "shape": "cone",
+   "origin_off": [
+    0,
+    -10
+   ],
+   "aim_pad": "$aim_pad",
+   "ring": false,
+   "src": "大剑",
+   "r": "$reach",
+   "half": "$half",
+   "kb": "$kb",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "face": true,
+   "fx": [
+    {
+     "blade": {
+      "strip": "fx_slash_arc_deep",
+      "fit": 40,
+      "k": 1.15,
+      "along": 0.5,
+      "col": [
+       0.35,
+       0.55,
+       0.95
+      ],
+      "edge": [
+       0.8,
+       0.95,
+       1.0
+      ],
+      "life": 0.22,
+      "half": 1.4,
+      "motes": {
+       "n": 5,
+       "col": [
+        0.6,
+        0.9,
+        1.0
+       ],
+       "along": 0.6,
+       "y": -10
+      }
+     }
+    }
+   ],
+   "combo": [
+    {
+     "cond": "node:combo2",
+     "delay": "$combo2_delay",
+     "do": [
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "大剑",
+       "cond": "!skill_active:2",
+       "r": "$reach",
+       "half": "$half",
+       "basis": "attack",
+       "mult": "$combo2_mult",
+       "kb": "$kb",
+       "tags": [
+        "follow_up"
+       ],
+       "face": true,
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_arc_deep",
+          "fit": 40,
+          "k": 1.15,
+          "along": 0.5,
+          "col": [
+           0.3,
+           0.5,
+           0.95
+          ],
+          "edge": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "life": 0.2,
+          "half": 1.4,
+          "tint": [
+           0.8,
+           0.92,
+           1.1,
+           0.85
+          ],
+          "mirror": true,
+          "motes": {
+           "n": 5,
+           "col": [
+            0.6,
+            0.9,
+            1.0
+           ],
+           "along": 0.6,
+           "y": -10
+          }
+         }
+        }
+       ]
+      },
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "大剑",
+       "cond": "skill_active:2",
+       "r": "$reach",
+       "r_mult": "$s3_reach",
+       "half": 3.14159265,
+       "basis": "attack",
+       "mult": "$combo2_mult",
+       "kb": "$kb",
+       "tags": [
+        "follow_up"
+       ],
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_circle_deep",
+          "fit": 66,
+          "k": 1.6,
+          "along": 0.0,
+          "rot": false,
+          "col": [
+           0.3,
+           0.5,
+           0.95
+          ],
+          "edge": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "life": 0.2,
+          "half": 3.1416,
+          "tint": [
+           0.8,
+           0.92,
+           1.1,
+           0.45
+          ],
+          "mirror": true,
+          "motes": {
+           "n": 5,
+           "col": [
+            0.6,
+            0.9,
+            1.0
+           ],
+           "along": 0.6,
+           "y": -10
+          }
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cond": "node:combo3",
+     "delay": "$combo3_delay",
+     "do": [
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "大剑",
+       "cond": "!skill_active:2",
+       "r": "$reach",
+       "r_mult": "$combo3_reach",
+       "aim_r": "$reach",
+       "half": 3.14159265,
+       "basis": "attack",
+       "mult": "$combo3_mult",
+       "kb": "$combo3_kb",
+       "tags": [
+        "follow_up"
+       ],
+       "face": true,
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_circle_deep",
+          "fit": 66,
+          "k": 1.6,
+          "along": 0.0,
+          "rot": false,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "edge": [
+           1.2,
+           1.5,
+           1.7
+          ],
+          "life": 0.24,
+          "half": 3.1416,
+          "tint": [
+           0.95,
+           1.05,
+           1.2,
+           0.45
+          ],
+          "mirror": "face"
+         }
+        },
+        {
+         "pfx": {
+          "kind": "mote",
+          "life": 0.35,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "sz": 2.0,
+          "grav": 200.0
+         },
+         "n": 12,
+         "vel_r": [
+          110,
+          150
+         ],
+         "jit_r": [
+          0.8,
+          0.44
+         ],
+         "off": [
+          0,
+          -12
+         ]
+        }
+       ]
+      },
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "大剑",
+       "cond": "skill_active:2",
+       "r": "$reach",
+       "r_mult": "$s3_reach*$combo3_reach",
+       "aim_r": "$reach",
+       "aim_mult": "$s3_reach",
+       "half": 3.14159265,
+       "basis": "attack",
+       "mult": "$combo3_mult",
+       "kb": "$combo3_kb",
+       "tags": [
+        "follow_up"
+       ],
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_circle_deep",
+          "fit": 66,
+          "k": 1.6,
+          "along": 0.0,
+          "rot": false,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "edge": [
+           1.2,
+           1.5,
+           1.7
+          ],
+          "life": 0.24,
+          "half": 3.1416,
+          "tint": [
+           0.95,
+           1.05,
+           1.2,
+           0.45
+          ],
+          "mirror": "face"
+         }
+        },
+        {
+         "pfx": {
+          "kind": "mote",
+          "life": 0.35,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "sz": 2.0,
+          "grav": 200.0
+         },
+         "n": 12,
+         "vel_r": [
+          110,
+          150
+         ],
+         "jit_r": [
+          0.8,
+          0.44
+         ],
+         "off": [
+          0,
+          -12
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "skills": [
+   {
+    "dur": 0,
+    "aim": "nearest",
+    "aim_r": "$skill_aim",
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "潮涌斩",
+      "cond": "!skill_active:2",
+      "r": "$reach",
+      "r_mult": "$s1_reach",
+      "aim_r": "$reach",
+      "half": "$s1_half",
+      "mult": "$s1_mult",
+      "power": true,
+      "kb": "$s1_kb",
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
+         "col": [
+          0.3,
+          0.5,
+          0.9
+         ],
+         "edge": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "life": 0.26,
+         "half": 1.75,
+         "motes": {
+          "n": 5,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.364,
+         "along": 0.5,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "edge": [
+          1.2,
+          1.5,
+          1.7
+         ],
+         "life": 0.3,
+         "half": 1.75,
+         "tint": [
+          0.85,
+          0.95,
+          1.1,
+          0.6
+         ],
+         "mirror": true
+        }
+       },
+       {
+        "sfx": {
+         "kind": "hit",
+         "db": 5.0,
+         "pitch": 0.85
+        }
+       }
+      ],
+      "face": true
+     },
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "潮涌斩",
+      "cond": "skill_active:2",
+      "r": "$reach",
+      "r_mult": "$s3_reach*$s1_reach",
+      "aim_r": "$reach",
+      "half": "$s1_half",
+      "mult": "$s1_mult",
+      "power": true,
+      "kb": "$s1_kb",
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
+         "col": [
+          0.3,
+          0.5,
+          0.9
+         ],
+         "edge": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "life": 0.26,
+         "half": 1.75,
+         "motes": {
+          "n": 5,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.364,
+         "along": 0.5,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "edge": [
+          1.2,
+          1.5,
+          1.7
+         ],
+         "life": 0.3,
+         "half": 1.75,
+         "tint": [
+          0.85,
+          0.95,
+          1.1,
+          0.6
+         ],
+         "mirror": true
+        }
+       },
+       {
+        "sfx": {
+         "kind": "hit",
+         "db": 5.0,
+         "pitch": 0.85
+        }
+       }
+      ],
+      "aim_mult": "$s3_reach"
+     },
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$pulse_r",
+      "r_abs": true,
+      "mult": "$s3_mult*$pulse_mult",
+      "power": true,
+      "kb": "$pulse_kb",
+      "src": "涌潮",
+      "ring": false,
+      "fx": [
+       {
+        "strip": "fx_skadi_surge",
+        "layer": "floor",
+        "fit": 37,
+        "max_scale": 6,
+        "off": [
+         0,
+         4
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.1,
+         "life": 0.5,
+         "col": [
+          0.3,
+          0.55,
+          1.0
+         ],
+         "floor": true,
+         "w": 6.0,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ],
+        "off": [
+         0,
+         4
+        ],
+        "if_tex": "!fx_skadi_surge"
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.9,
+         "r0": 0.07,
+         "life": 0.42,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "floor": true,
+         "w": 2.0
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ],
+        "off": [
+         0,
+         4
+        ],
+        "if_tex": "!fx_skadi_surge"
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "off": [
+         0,
+         6
+        ]
+       }
+      ],
+      "cond": "node:surge"
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "aim": "nearest",
+    "aim_r": "$skill_aim",
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 26.0,
+       "life": 0.3,
+       "col": [
+        0.35,
+        0.55,
+        0.95
+       ],
+       "alpha": 0.35
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     }
+    ],
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "重斩",
+      "cond": "!skill_active:2",
+      "r": "$s2_r",
+      "aim_r": "$reach",
+      "half": "$s2_half",
+      "mult": "$s2_mult",
+      "power": true,
+      "kb": "$s2_kb",
+      "face": true,
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
+         "col": [
+          0.25,
+          0.4,
+          0.85
+         ],
+         "edge": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "life": 0.32,
+         "half": 1.92,
+         "motes": {
+          "n": 5,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.7,
+         "r0": 10.0,
+         "life": 0.35,
+         "col": [
+          0.35,
+          0.55,
+          0.95
+         ],
+         "floor": true,
+         "w": 3.0
+        },
+        "r_scale": [
+         "r"
+        ],
+        "along": 0.45
+       },
+       {
+        "pfx": {
+         "kind": "crack",
+         "r": 0.6,
+         "life": 0.45,
+         "col": [
+          0.35,
+          0.55,
+          0.95
+         ],
+         "floor": true,
+         "n": 9
+        },
+        "r_scale": [
+         "r"
+        ],
+        "along": 0.45
+       },
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 34.0,
+         "life": 0.2,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "alpha": 0.5
+        },
+        "along": 0.45,
+        "off": [
+         0,
+         -10
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 1.4,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         0,
+         6
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         -40,
+         10
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         40,
+         10
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "mote",
+         "vel": [
+          [
+           -70,
+           70
+          ],
+          [
+           -260,
+           -120
+          ]
+         ],
+         "life": 0.6,
+         "col": [
+          0.6,
+          0.9,
+          1.0
+         ],
+         "sz": 2.5,
+         "grav": 380.0
+        },
+        "n": 16,
+        "along": 0.45,
+        "jit": [
+         -40,
+         0,
+         40,
+         0
+        ]
+       },
+       {
+        "sfx": {
+         "kind": "big"
+        }
+       }
+      ]
+     },
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "重斩",
+      "cond": "skill_active:2",
+      "r": "$s2_r",
+      "aim_r": "$reach",
+      "aim_mult": "$s3_reach",
+      "half": "$s2_half",
+      "mult": "$s2_mult",
+      "power": true,
+      "kb": "$s2_kb",
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
+         "col": [
+          0.25,
+          0.4,
+          0.85
+         ],
+         "edge": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "life": 0.32,
+         "half": 1.92,
+         "motes": {
+          "n": 5,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.7,
+         "r0": 10.0,
+         "life": 0.35,
+         "col": [
+          0.35,
+          0.55,
+          0.95
+         ],
+         "floor": true,
+         "w": 3.0
+        },
+        "r_scale": [
+         "r"
+        ],
+        "along": 0.45
+       },
+       {
+        "pfx": {
+         "kind": "crack",
+         "r": 0.6,
+         "life": 0.45,
+         "col": [
+          0.35,
+          0.55,
+          0.95
+         ],
+         "floor": true,
+         "n": 9
+        },
+        "r_scale": [
+         "r"
+        ],
+        "along": 0.45
+       },
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 34.0,
+         "life": 0.2,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "alpha": 0.5
+        },
+        "along": 0.45,
+        "off": [
+         0,
+         -10
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 1.4,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         0,
+         6
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         -40,
+         10
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "along": 0.45,
+        "off": [
+         40,
+         10
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "mote",
+         "vel": [
+          [
+           -70,
+           70
+          ],
+          [
+           -260,
+           -120
+          ]
+         ],
+         "life": 0.6,
+         "col": [
+          0.6,
+          0.9,
+          1.0
+         ],
+         "sz": 2.5,
+         "grav": 380.0
+        },
+        "n": 16,
+        "along": 0.45,
+        "jit": [
+         -40,
+         0,
+         40,
+         0
+        ]
+       },
+       {
+        "sfx": {
+         "kind": "big"
+        }
+       }
+      ]
+     },
+     {
+      "shape": "wave",
+      "cond": "node:leap_wave",
+      "basis": "prev",
+      "mult": "$wave_mult",
+      "dist": "$wave_dist",
+      "w": "$wave_w",
+      "speed": "$wave_spd",
+      "kb": "$wave_kb",
+      "along": 0.45,
+      "src": "跃浪",
+      "tex": "fx_skadi_wave",
+      "anchor": [
+       32,
+       30
+      ]
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "status": "潮汐",
+    "status_col": [
+     0.35,
+     0.55,
+     0.95
+    ],
+    "fx": [
+     {
+      "blade": {
+       "strip": "fx_slash_circle_deep",
+       "fit": 66,
+       "k": 2.24,
+       "along": 0.0,
+       "rot": false,
+       "col": [
+        0.25,
+        0.4,
+        0.85
+       ],
+       "edge": [
+        0.8,
+        0.95,
+        1.0
+       ],
+       "life": 0.3,
+       "half": 3.1416,
+       "tint": [
+        0.72,
+        0.86,
+        1.05,
+        0.45
+       ],
+       "r": "$reach*$s1_reach"
+      }
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 120.0,
+       "r0": 10.0,
+       "life": 0.5,
+       "col": [
+        0.35,
+        0.55,
+        0.95
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        0.35,
+        0.55,
+        0.95
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "mote",
+       "vel": [
+        [
+         -40,
+         40
+        ],
+        [
+         -220,
+         -100
+        ]
+       ],
+       "life": 0.6,
+       "col": [
+        0.6,
+        0.9,
+        1.0
+       ],
+       "sz": 2.5,
+       "grav": 300.0
+      },
+      "n": 16,
+      "at": "self",
+      "jit": [
+       -40,
+       0,
+       40,
+       0
+      ]
+     },
+     {
+      "banner": "潮汐"
+     }
+    ],
+    "do": [
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "大剑",
+       "r": "$reach",
+       "r_mult": "$s3_reach",
+       "half": 3.14159265,
+       "kb": "$kb",
+       "anim": "attack_spin",
+       "turn": false,
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_circle_deep",
+          "fit": 66,
+          "k": 1.6,
+          "along": 0.0,
+          "rot": false,
+          "col": [
+           0.25,
+           0.4,
+           0.85
+          ],
+          "edge": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "life": 0.22,
+          "half": 3.1416,
+          "tint": [
+           0.72,
+           0.86,
+           1.05,
+           0.45
+          ],
+          "motes": {
+           "n": 5,
+           "col": [
+            0.6,
+            0.9,
+            1.0
+           ],
+           "along": 0.6,
+           "y": -10
+          }
+         }
+        }
+       ]
+      },
+      "fx": [
+       {
+        "aura_ring": {
+         "r": "attack",
+         "col": [
+          0.35,
+          0.55,
+          0.95
+         ],
+         "a": 0.3,
+         "pulse": 0.1,
+         "hz": 5.0,
+         "w": 2.0
+        },
+        "at": "self"
+       }
+      ]
+     },
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s3_mult",
+      "power": true
+     }
+    ]
+   }
+  ],
+  "trait": [],
+  "talent": [
+   {
+    "trig": "every_n",
+    "n": 3,
+    "cond": "!skill_active:2",
+    "_doc": "深海猎人：每第 3 次横扫追加反手斩（本次横扫伤害 × back_mult，反方向）",
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "反手斩",
+      "dir": "back",
+      "r": "$reach",
+      "half": "$half",
+      "basis": "attack",
+      "mult": "$back_mult",
+      "kb": "$kb",
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_arc_deep",
+         "fit": 40,
+         "k": 1.15,
+         "along": 0.5,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "edge": [
+          1.2,
+          1.5,
+          1.7
+         ],
+         "life": 0.2,
+         "half": 1.4,
+         "motes": {
+          "n": 5,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "combo2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "狂舞：连斩第 2 段写在 attack.combo[0]（cond node:combo2）"
+   },
+   "combo3": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "异乡之舞：连斩第 3 段写在 attack.combo[1]（cond node:combo3）"
+   },
+   "leap_wave": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "跃浪：写在 S2 的 do（cond node:leap_wave）"
+   },
+   "surge": {
+    "trig": "tick",
+    "every": "$pulse_every",
+    "countdown": true,
+    "cond": "skill_active:2",
+    "_doc": "涌潮：潮汐期间每秒一圈水环；S1 那一圈写在 S1 的 do（cond node:surge）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$pulse_r",
+      "r_abs": true,
+      "mult": "$s3_mult*$pulse_mult",
+      "power": true,
+      "kb": "$pulse_kb",
+      "src": "涌潮",
+      "ring": false,
+      "fx": [
+       {
+        "strip": "fx_skadi_surge",
+        "layer": "floor",
+        "fit": 37,
+        "max_scale": 6,
+        "off": [
+         0,
+         4
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.1,
+         "life": 0.5,
+         "col": [
+          0.3,
+          0.55,
+          1.0
+         ],
+         "floor": true,
+         "w": 6.0,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ],
+        "off": [
+         0,
+         4
+        ],
+        "if_tex": "!fx_skadi_surge"
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.9,
+         "r0": 0.07,
+         "life": 0.42,
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "floor": true,
+         "w": 2.0
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ],
+        "off": [
+         0,
+         4
+        ],
+        "if_tex": "!fx_skadi_surge"
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 0.9,
+         "bottom": true
+        },
+        "off": [
+         0,
+         6
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "elite2": [
+    {
+     "trig": "on_combo_end",
+     "cond": "!skill_active:2",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        0
+       ],
+       "basis": "attack",
+       "mult": "$blade_mult",
+       "dist": "$blade_dist",
+       "speed": "$blade_spd",
+       "w": "$blade_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "fan_once": true,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "潮刃",
+       "proj": "proj_skadi_surge_blade",
+       "hit_fx": [
+        {
+         "strip": "fx_skadi_surge_hit",
+         "if_tex": "fx_skadi_surge_hit"
+        },
+        {
+         "pfx": {
+          "kind": "glow",
+          "r": 10.0,
+          "life": 0.18,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "alpha": 0.6
+         },
+         "if_tex": "!fx_skadi_surge_hit"
+        }
+       ],
+       "release_fx": [
+        {
+         "strip": "fx_skadi_surge_release",
+         "rot": true,
+         "along": 0.5,
+         "off": [
+          0,
+          -18
+         ]
+        }
+       ]
+      }
+     ],
+     "_doc": "精二涌潮：每轮连斩收尾朝最近敌人放出一道潮刃（穿透、横扫 60%、推开）；潮汐期间每轮 3 道（±25°）。取代悲歌"
+    },
+    {
+     "trig": "on_combo_end",
+     "cond": "skill_active:2",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        -25,
+        0,
+        25
+       ],
+       "basis": "attack",
+       "mult": "$blade_mult",
+       "dist": "$blade_dist",
+       "speed": "$blade_spd",
+       "w": "$blade_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "fan_once": true,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "潮刃",
+       "proj": "proj_skadi_surge_blade",
+       "hit_fx": [
+        {
+         "strip": "fx_skadi_surge_hit",
+         "if_tex": "fx_skadi_surge_hit"
+        },
+        {
+         "pfx": {
+          "kind": "glow",
+          "r": 10.0,
+          "life": 0.18,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "alpha": 0.6
+         },
+         "if_tex": "!fx_skadi_surge_hit"
+        }
+       ],
+       "release_fx": [
+        {
+         "strip": "fx_skadi_surge_release",
+         "rot": true,
+         "along": 0.5,
+         "off": [
+          0,
+          -18
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "elite1": {
+    "trig": "every_n",
+    "n": "$leap_n",
+    "replace": true,
+    "anim": "leap_strike",
+    "cond": "!skill_active:2",
+    "_doc": "精一跃浪击：每第 6 次横扫改为跃起下劈（前方 120° 扇形 × leap_mult，击退 × 1.3）；潮汐期间不换",
+    "do": [
+     {
+      "shape": "cone",
+      "r": "$leap_r",
+      "half": "$leap_half",
+      "mult": "$leap_mult",
+      "kb": "$leap_kb",
+      "src": "跃浪击",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "face": true,
+      "ring": false,
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
+         "col": [
+          0.25,
+          0.4,
+          0.85
+         ],
+         "edge": [
+          0.8,
+          0.95,
+          1.0
+         ],
+         "life": 0.3,
+         "half": 1.05,
+         "motes": {
+          "n": 8,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "strip": "fx_skadi_leap_splash",
+        "layer": "floor",
+        "along": 0.6,
+        "off": [
+         0,
+         4
+        ],
+        "scale": 1.0
+       },
+       {
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 1.1,
+         "bottom": true
+        },
+        "along": 0.6,
+        "off": [
+         0,
+         6
+        ],
+        "if_tex": "!fx_skadi_leap_splash"
+       },
+       {
+        "sfx": {
+         "kind": "big",
+         "db": -4.0
+        }
+       }
+      ]
+     }
+    ]
+   }
+  }
  }
 }
