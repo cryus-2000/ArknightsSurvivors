@@ -80,6 +80,36 @@ var appliers: Dictionary = {}   # 状态 -> [[时刻, 敌人类型（"" = 环境
 var lamp_s: Array = [0.0, 0.0, 0.0, 0.0]   # 灯火四档累计秒数：通明（≥ 70）/ 摇曳（30–69）/ 暗淡（< 30）/ 寂灭（0）
 # ---- 本地保存
 var saved := false
+## 医疗差距遥测（docs/88，只在 --balance 下记，g.bot == null 时各调用点直接跳过）：按 0–3 / 3–6 / 6–9 / 9+ 分钟分段
+##   sus.heal["来源·子项"] = [实际回进去, 给出的量（含溢出）]；sus.dr[干员 id] = 干员减伤（dmg_taken_mult，护甲前）挡掉的伤害；
+##   sus.clean[corrode / nerve] = 净化清掉的侵蚀池 / 神经损伤量；sus.lit = 只因「照亮」（灯光外）多打的伤害
+var sus: Dictionary = {}
+
+
+func sus_seg() -> Dictionary:
+	var k: String = "m0" if g.t < 180.0 else ("m3" if g.t < 360.0 else ("m6" if g.t < 540.0 else "m9"))
+	if not sus.has(k):
+		sus[k] = {"heal": {}, "dr": {}, "clean": {}, "lit": 0.0}
+	return sus[k]
+
+
+func note_heal_sub(src: String, sub: String, got: float, offered: float) -> void:
+	var h: Dictionary = sus_seg().heal
+	var key: String = src if sub == "" else "%s·%s" % [src, sub]
+	var a: Array = h.get(key, [0.0, 0.0])
+	h[key] = [float(a[0]) + got, float(a[1]) + offered]
+
+
+func note_dr(op_id: String, saved_dmg: float) -> void:
+	if saved_dmg > 0.0:
+		var d: Dictionary = sus_seg().dr
+		d[op_id] = float(d.get(op_id, 0.0)) + saved_dmg
+
+
+func note_clean(kind: String, amt: float) -> void:
+	if amt > 0.0:
+		var c: Dictionary = sus_seg().clean
+		c[kind] = float(c.get(kind, 0.0)) + amt
 var build: Dictionary = {}
 
 
@@ -510,6 +540,7 @@ func record(marks = null) -> Dictionary:
 		"floor_hits": g.floor_hits, "floor_times": g.floor_times,
 		"hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "mix": h.get("mix", ""), "comp": h.comp}),
 		"armor_cf": g.combat.armor_cf, "growth": g.growth.duplicate(), "dashes": dashes,   # docs/83：物理减伤遥测、被动卡等级、冲刺次数
+		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 
 

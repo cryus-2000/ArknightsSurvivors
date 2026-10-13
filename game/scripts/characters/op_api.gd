@@ -100,8 +100,8 @@ func deal_damage(e: Dictionary, dmg: float) -> void:
 
 
 ## 治疗主控（src 进治疗统计）
-func heal_leader(v: float, src: String = "其他") -> void:
-	g.combat.heal(v, src)
+func heal_leader(v: float, src: String = "其他", sub: String = "") -> void:
+	g.combat.heal(v, src, sub)   # sub：遥测子项（docs/88，「常驻 / 技能」等），不进 heal_log
 
 
 ## 属性块变动后立即刷新 game.gd 的缓存变量（stats.add 之后需要当帧生效时调用）
