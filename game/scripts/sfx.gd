@@ -180,6 +180,7 @@ func _ready() -> void:
 			streams[sn] = _load_wav("res://audio/sfx/%s.wav" % sn)
 			if OP_LIMIT.has(kind):
 				op_limit[sn] = OP_LIMIT[kind]
+	op_limit["op_siege_s1"] = SIEGE_S1_GAP   # 冲锋号令（见 VOICE_CAP 上方的实测）
 	for i in 32:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"
@@ -807,6 +808,33 @@ const PRIO_NAME := {
 	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4,
 	"pickup": 1, "kill": 1, "hit": 1,
 }
+## ---- 连发节流（用户 10-13「冲锋的音效触发太频繁了有点吵闹」）：在 LIMIT（同名最短间隔）之外再加两道旋钮——
+## VOICE_CAP：同名音同时在响的上限（到上限就丢弃这次，不抢占）；带位置的音（play_at）按离画面多远降音量：
+## 画面内照常，出画面边缘后 OFF_FADE 像素内线性降到 −OFF_DB，再远（> OFF_FADE）不播。view 由 music_director 每帧写（空 = 不按距离处理）
+## 实测（安洁莉娜 + 德克萨斯 + 推进之王，8–12 分钟）：用户说的「冲锋」是推进之王 S1「冲锋号令」的发动音 op_siege_s1——
+## 技能类音量（OP_VOL s1 = −4 dB），S1 回技力快，每秒 0.4–0.53 次（约 2 秒一下）；敌方冲锋预警 cue_charge_* 只在 Boss 战 0.03–0.13 次 / 秒，
+## 骑士 knight_charge 没出现。节流：冲锋号令全局至少隔 SIEGE_S1_GAP 秒（技能照常放，只是不每次都响），同名音同时只响 1 个；
+## 冲锋类预警同时最多 1 个；骑士冲锋按位置降音量（world.gd 用 play_at）
+const SIEGE_S1_GAP := 4.5
+const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2}
+const OFF_FADE := 480.0
+const OFF_DB := 12.0
+var view := Rect2()
+
+
+## 带世界坐标的音效：离画面越远越轻，太远不播（见 OFF_FADE / OFF_DB）
+func play_at(name: String, pos: Vector2, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
+	if view.has_area() and not view.has_point(pos):
+		var q: Vector2 = pos.clamp(view.position, view.end)
+		var d: float = pos.distance_to(q)
+		if d > OFF_FADE:
+			_by(name, 0)
+			_by(name, 3)
+			return
+		vol -= OFF_DB * d / OFF_FADE
+	play(name, vol, pitch, pitch_var)
+
+
 var sfx_stat := {"plays": 0, "merged": 0, "dropped": 0, "stolen": 0, "ducked": 0, "voices_max": 0, "us": 0}
 ## --sfxstat（仅测试，Cfg.dev_args）：按音名计数 [请求, 实播, 同名合并, 满槽丢弃, 降音量]；--perf 结束时按类别汇总打印（run/autotest.gd）
 var sfx_by := {}
@@ -855,6 +883,7 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	var p: AudioStreamPlayer = null
 	var lowest: AudioStreamPlayer = null
 	var low_prio := 99
+	var same := 0
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
 		if not c.playing:
@@ -863,10 +892,16 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 				next = (next + i + 1) % players.size()
 			continue
 		busy += 1
+		if c.get_meta("sname", "") == name:
+			same += 1
 		var cp: int = c.get_meta("prio", 2)
 		if cp < low_prio:
 			low_prio = cp
 			lowest = c
+	if VOICE_CAP.has(name) and same >= int(VOICE_CAP[name]):   # 同名音已有 VOICE_CAP 个在响：丢弃
+		sfx_stat.dropped += 1
+		_by(name, 3)
+		return
 	if low and busy >= LOW_CAP:
 		p = null   # 低画质：按 16 个算满槽
 	if low and busy >= DUCK_AT and prio <= 2:
@@ -891,6 +926,7 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	p.volume_db = vol
 	p.pitch_scale = pitch * prng.randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p.set_meta("prio", prio)
+	p.set_meta("sname", name)
 	p.play()
 	sfx_stat.plays += 1
 	_by(name, 1)

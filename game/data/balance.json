@@ -145,7 +145,11 @@
  },
  "lamp": {
   "_doc": "受击灯火损失 = (hit_base + hit_scale × 伤害/最大生命) × light_decay。原值 4 / 30：一记 16 伤害就掉 8.8，十次就熄灯进入死亡螺旋",
-  "hit_base": 3,
+  "_hit_base": "10-13 docs/88 方案：3 → 2（受击灯火损失放缓）",
+  "hit_base": 2,
+  "_dark": "灯火暗淡（< 30）倍率：dark_taken 队长受伤、dark_enemy 海嗣移速与接触伤害。10-13 docs/88 云端 mgc：1.15 / 1.2 → 1.05 / 1.1",
+  "dark_taken": 1.05,
+  "dark_enemy": 1.1,
   "hit_scale": 18,
   "oil_kill_chance": 0.006,
   "elite_oil_chance": 0.65,
@@ -354,6 +358,15 @@
   "cd_card": 0.88,
   "dist_card": 0.12
  },
+ "terrain": {
+  "_doc": "地形阻挡（10-13 用户批准；world/map.gd point_blocked / segment_blocked，开局读一次）：1 = 开、0 = 关。block_bullets 我方直线弹（艾雅法拉熔岩弹、能天使弹道含跳弹、流明光弹、塞雷娅针剂 / 碎晶、铃兰大狐火）撞景物底座即消失；block_enemy_bullets 敌方直线弹（非 Boss；追踪弹、预警类弹幕不挡）；block_boss_bullets Boss 直线弹（缺省不挡）；aim_los 上述直线弹干员自动选目标时先选视线内的，全被挡才退回最近目标；dash_stop 冲刺撞底座即停（这一帧被推出超过 dash_stop_px 像素算撞上，无敌照常走完）。范围、地面法阵、激光、抛物线落点、近战、追踪弹一律不挡",
+  "block_bullets": 1,
+  "block_enemy_bullets": 1,
+  "block_boss_bullets": 0,
+  "aim_los": 1,
+  "dash_stop": 1,
+  "dash_stop_px": 3
+ },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.55,
@@ -450,5 +463,9 @@
   "hit_rings": 0,
   "_hit_spokes_doc": "干员命中 / 技能发动的放射线（用户 10-13 追加「向四周发散的直线一样的特效也删除」，scripts/render/declutter.gd hit_spokes）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过；连线、锁定线、预警射线、激光 / 光束不受影响。10-13 起 hit_rings 也管通用击杀 / 破绽小圆环。对照截图用 --bal=render/hit_spokes=1",
   "hit_spokes": 0
+ },
+ "ui": {
+  "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
+  "phone_font_mult": 1.18
  }
 }

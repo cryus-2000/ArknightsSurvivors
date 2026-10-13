@@ -1774,7 +1774,7 @@ func _enemy_act_fx() -> void:
 		var ang: float = float(la.get("ang", 0.0))
 		match str(la.get("act", "")):
 			"dash", "charge":
-				Sfx.play("knight_charge", -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
+				Sfx.play_at("knight_charge", e.pos, -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
 				var L: float = float(la.get("len", 200.0))
 				var dv := Vector2.from_angle(ang)
 				var s := 0.0
@@ -1857,7 +1857,7 @@ func _count_ring(e: Dictionary) -> void:
 	_ground_ring(foot, rr, k, c)
 	var tag := "%d" % ceili(left)
 	var tp: Vector2 = foot + Vector2(rr + 6.0, -4.0)
-	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cwidth(g.font, tag, 13) + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
+	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cond(g.font).get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
 	UI.ctext(g, g.font, tp + Vector2(2, 1), tag, 13, c)
 
 

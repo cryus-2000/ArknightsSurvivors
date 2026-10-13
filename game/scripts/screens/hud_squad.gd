@@ -105,7 +105,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 		var nm: String = o.display_name().substr(0, 5)
 		var cls: String = String(o.cls).substr(0, 1)
 		var el: String = ["精零", "精一", "精二"][o.elite]
-		var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 8.0
+		var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(10)).x + 8.0
 		if S:
 			fg.grad(Rect2(Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.size.x, 28)), clear, shade)
 			txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), nm, 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2))
@@ -187,7 +187,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
 				var tip := "%s  ·  %s" % [sd.get("name", ""), ["招募", "精英一", "精英二"][k] + ("" if o.skill_unlocked(k) else "解锁")]
-				var tw: float = g.font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
+				var tw: float = g.font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 24.0
 				var tipr := Rect2(Vector2(minf(c.x - tw / 2.0, g.hud.size.x - tw - 8.0), sk_y - 70), Vector2(tw, 28))
 				txt.append(func():
 					UI.panel(g.hud, tipr, UI.BG2, ocol, 6.0)

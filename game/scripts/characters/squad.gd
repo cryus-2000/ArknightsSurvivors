@@ -342,7 +342,8 @@ func draw_shadows() -> void:
 		if o.pos != Vector2.INF:
 			cv.sync()
 			cv.touch()
-			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX)
+			var sk: Vector2 = o.shadow_k()   # 技能换动作组离地（docs/92 安洁莉娜浮空）：缩小变淡；判定仍按地面位置
+			g.vfx.spr("shadow", 1, 0, o.pos + Vector2(0, 4), g.PX * sk.x, false, Color(1, 1, 1, sk.y))
 		o.draw_extra_shadows()
 	cv.end()
 

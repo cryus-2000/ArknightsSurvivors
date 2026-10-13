@@ -25,7 +25,7 @@
   "melt_echo_gap": 0.2,
   "melt_echo_mult": 0.5,
   "knight_heal": 0.025,
-  "guard_red": 0.2,
+  "guard_red": 0.1,
   "guard_dur": 5.0,
   "e1_heal": 1.1,
   "e2_heal": 1.5,

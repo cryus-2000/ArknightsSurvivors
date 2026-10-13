@@ -365,8 +365,9 @@ def _balance_core(d, drop_tags=()):
             for k, v in (sd.get("heal") or {}).items():
                 base = k.split("·", 1)[0]
                 a = merged.get(base, [0.0, 0.0])
-                merged[base] = [round(a[0] + v[0], 3), round(a[1] + v[1], 3)]
-            sd["heal"] = merged
+                merged[base] = [a[0] + v[0], a[1] + v[1]]
+            # 先求和再取整（逐项取整会让 7.025 / 7.026 这种舍入差被当成不等价）
+            sd["heal"] = {k: [round(v[0], 2), round(v[1], 2)] for k, v in merged.items()}
             sus[seg] = sd
         d["sus"] = sus
     return d

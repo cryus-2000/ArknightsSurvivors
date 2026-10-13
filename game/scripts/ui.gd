@@ -52,6 +52,24 @@ static var _cond := {}
 ## 三角形批（hud.gd 的 Tris），tq 非空时文字延后（追加成 Callable，批提交后再画，保证字压在色块上）。平时都是 null，行为不变
 static var sink = null
 static var tq = null
+## 手机横屏正文字号放大（用户 10-13「手机版的字可以放大一点」）：局内（game.gd）在 Cfg.phone_ui() 时设为 balance.json ui/phone_font_mult，
+## 离开局内恢复 1；桌面、平板、标题页恒为 1，排版逐像素不变。只放大正文类字号：< FS_CAP 的字号乘倍率、封顶 FS_CAP，
+## 大标题（≥ FS_CAP）与英文小标签（en / en_width）不变。画字的助手只对 Control（HUD / 面板 / 设置 / 卡片）放大，
+## 世界层（Node2D 上的头顶字）不变；量字的助手（cwidth / wrap_lines / fit / fit_line / chip_fits / strip_width）按同一倍率量，
+## 调用方自己用 font.get_string_size 量、再交给这些助手画的地方要改用 fs() 换算
+static var fk := 1.0
+const FS_CAP := 24
+
+
+## 正文字号换算：手机局内放大，其余原样
+static func fs(size: int) -> int:
+	if fk == 1.0 or size >= FS_CAP:
+		return size
+	return mini(int(round(size * fk)), FS_CAP)
+
+
+static func _ks(ci: CanvasItem, size: int) -> int:
+	return fs(size) if fk != 1.0 and ci is Control else size
 
 
 static func cond(base: Font, italic := false) -> Font:
@@ -72,11 +90,11 @@ static func ctext(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int
 	if tq != null:
 		tq.append(func(): ctext(ci, font, pos, s, size, col, align, width, italic))
 		return
-	ci.draw_string(cond(font, italic), pos, s, align, width, size, col)
+	ci.draw_string(cond(font, italic), pos, s, align, width, _ks(ci, size), col)
 
 
 static func cwidth(font: Font, s: String, size: int, italic := false) -> float:
-	return cond(font, italic).get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	return cond(font, italic).get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs(size)).x
 
 
 ## 英文小标签（压缩字 + 字距）
@@ -104,6 +122,7 @@ static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int,
 	if tq != null:
 		tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))
 		return
+	size = _ks(ci, size)
 	if outline > 0:
 		ci.draw_string_outline(font, pos, s, align, width, size, outline, Color(0, 0, 0, col.a * 0.8))
 	ci.draw_string(font, pos, s, align, width, size, col)
@@ -165,6 +184,7 @@ static func vines(_ci: CanvasItem, _r: Rect2, _seed: int, _t: float, _k := 1.0) 
 
 ## 小标签头（原作「目标生命值 / 指挥等级」）：彩色底 + 白字，放在数值上方；返回宽度
 static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, size := 11) -> float:
+	size = _ks(ci, size)
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0
 	if sink != null:
 		sink.rect(Rect2(pos, Vector2(w, size + 6)), bg)
@@ -179,6 +199,7 @@ static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, 
 
 ## 节点标签条（原作地图上的「COMBAT OPS. ✕ 虫群横行」）：左段彩色底 + 压缩斜体英文，右段暗底中文；返回宽度
 static func strip(ci: CanvasItem, font: Font, pos: Vector2, en_s: String, cn: String, col: Color, cn_col := TEXT, size := 12, bg := Color(0.0, 0.0, 0.0, 0.6)) -> float:
+	size = _ks(ci, size)
 	var cf := cond(font, true)
 	var h := size + 8.0
 	var ew := cf.get_string_size(en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1).x + 13.0 if en_s != "" else 0.0
@@ -206,6 +227,10 @@ static func _strip_text(ci: CanvasItem, font: Font, cf: Font, pos: Vector2, h: f
 
 ## 标签片：暗底 + 左侧色条 + 文字，返回宽度
 static func chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 12) -> float:
+	return _chip(ci, font, pos, s, col, _ks(ci, size))
+
+
+static func _chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size: int) -> float:
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
 	var r := Rect2(pos, Vector2(w, size + 8))
 	ci.draw_rect(r, Color(0.03, 0.035, 0.045, 0.8 * col.a))
@@ -220,6 +245,7 @@ static func chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color
 static func chip_row(ci: CanvasItem, font: Font, bot_c: Vector2, chips: Array, max_w: float, rows := 1, label := "", size := 11, a := 1.0) -> int:
 	if chips.is_empty():
 		return 0
+	size = _ks(ci, size)
 	var lay := _chip_layout(font, chips, max_w, rows, label, size)
 	var packed: Array = lay.packed
 	var lw: float = lay.lw
@@ -241,14 +267,14 @@ static func chip_row(ci: CanvasItem, font: Font, bot_c: Vector2, chips: Array, m
 				ci.draw_string(font, p + Vector2(6, size + 2), it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(SUB.r, SUB.g, SUB.b, a))
 			else:
 				var col: Color = it[1]
-				chip(ci, font, p, it[0], Color(col.r, col.g, col.b, col.a * a), size)
+				_chip(ci, font, p, it[0], Color(col.r, col.g, col.b, col.a * a), size)
 			p.x += it[2] + 4.0
 	return packed.size()
 
 
 ## chip_row 能否不收起（不出现「+N」、不截断）地放下全部标签片；放不下时调用方可以在悬停提示里列全
 static func chip_fits(font: Font, chips: Array, max_w: float, rows := 1, size := 11) -> bool:
-	return chips.is_empty() or not _pack_chips(_chip_items(font, chips, size), max_w, rows, 0.0).is_empty()
+	return chips.is_empty() or not _pack_chips(_chip_items(font, chips, fs(size)), max_w, rows, 0.0).is_empty()
 
 
 static func _chip_items(font: Font, chips: Array, size: int) -> Array:
@@ -269,7 +295,7 @@ static func _chip_layout(font: Font, chips: Array, max_w: float, rows: int, labe
 		packed = _pack_chips(items.slice(0, k) + [[more, SUB, font.get_string_size(more, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0, true]], max_w, rows, 0.0)
 		k -= 1
 	if packed.is_empty():
-		var fl := fit_line(font, items[0][0], size, max_w - 16.0, size)
+		var fl := _fit_line(font, items[0][0], size, max_w - 16.0, size)
 		packed = [[[fl[0], items[0][1], font.get_string_size(fl[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0]]]
 	return {"packed": packed, "lw": lw}
 
@@ -295,7 +321,8 @@ static func _pack_chips(items: Array, max_w: float, rows: int, lw: float) -> Arr
 
 ## 按键牌：细边框里的按键名（SPACE / Esc / 1）；返回宽度
 static func keycap(ci: CanvasItem, font: Font, pos: Vector2, key: String, col := TEXT, size := 11) -> float:
-	var w := cwidth(font, key, size) + 12.0
+	size = _ks(ci, size)
+	var w := cond(font).get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0
 	if sink != null and tq != null:
 		sink.frame(Rect2(pos, Vector2(w, size + 7)), Color(col.r, col.g, col.b, 0.55 * col.a), 1.0)
 		tq.append(func(): ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col))
@@ -307,6 +334,7 @@ static func keycap(ci: CanvasItem, font: Font, pos: Vector2, key: String, col :=
 
 ## A 风格按钮：kind = "primary"（青底深字）/ "normal"（钢蓝半透明底）/ "outline"（暗底细边）/ "off"（禁用）
 static func button(ci: CanvasItem, font: Font, r: Rect2, s: String, kind := "normal", hot := false, size := 15, a := 1.0) -> void:
+	size = _ks(ci, size)
 	var fg := Color(1, 1, 1, a)
 	match kind:
 		"primary":
@@ -677,6 +705,7 @@ static func curly_emblem(ci: CanvasItem, lines: Array, c: Vector2, r: float, col
 
 ## 节点标签条的宽度（排版前量一下，放不下时可以只留英文）
 static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> float:
+	size = fs(size)
 	var ew := cond(font, true).get_string_size(en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1).x + 13.0 if en_s != "" else 0.0
 	var cw := font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 15.0 if cn != "" else 0.0
 	return ew + cw
@@ -686,6 +715,10 @@ static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> flo
 ## 按像素宽度折行（中文按字断行，遵守 soft() 的标点规则）；\n 分段。返回每一行的文字。
 ## 防孤字：某段末行只剩一两个字（多为「字 + 句号」）时，把这段收窄一到四个字宽重排，行数不变才采用（不会让文字变高）
 static func wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
+	return _wrap_lines(font, s, fs(size), width)
+
+
+static func _wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
 	var out := PackedStringArray()
 	for para in s.split("\n"):
 		var sp := soft(para)
@@ -720,11 +753,12 @@ static func _wrap_para(font: Font, sp: String, size: int, width: float) -> Packe
 ## 返回 {size, lines, lh（行高）, h（总高）, fit}
 static func fit(font: Font, s: String, width: float, max_h: float, sizes: Array = [13, 12, 11], gap := 0.0) -> Dictionary:
 	var res := {}
-	for fs in sizes:
-		var lines := wrap_lines(font, s, fs, width)
-		var lh: float = font.get_height(fs) + gap
+	for fs0 in sizes:
+		var sz := fs(int(fs0))
+		var lines := _wrap_lines(font, s, sz, width)
+		var lh: float = font.get_height(sz) + gap
 		var n := maxi(1, int(floor((max_h + gap) / lh)))
-		res = {"size": fs, "lines": lines, "lh": lh, "n": n, "fit": lines.size() <= n}
+		res = {"size": sz, "lines": lines, "lh": lh, "n": n, "fit": lines.size() <= n}
 		if lines.size() <= n:
 			res.h = lines.size() * lh
 			return res
@@ -753,21 +787,25 @@ static func draw_fit(ci: CanvasItem, font: Font, pos: Vector2, f: Dictionary, co
 
 ## 单行文字限宽：太宽先缩字号（最小 min_size），还放不下就截断加「…」
 static func text_fit(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, max_w: float, min_size := 10) -> void:
-	var fl := fit_line(font, s, size, max_w, min_size)
+	var fl := _fit_line(font, s, _ks(ci, size), max_w, _ks(ci, min_size))
 	ci.draw_string(font, pos, fl[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fl[1], col)
 
 
 ## text_fit 的排版部分：返回 [文字, 字号]
 static func fit_line(font: Font, s: String, size: int, max_w: float, min_size := 10) -> Array:
-	var fs := size
-	while fs > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
-		fs -= 1
+	return _fit_line(font, s, fs(size), max_w, fs(min_size))
+
+
+static func _fit_line(font: Font, s: String, size: int, max_w: float, min_size: int) -> Array:
+	var sz := size
+	while sz > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
+		sz -= 1
 	var t := s
-	if font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
-		while t.length() > 1 and font.get_string_size(t + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > max_w:
+	if font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
+		while t.length() > 1 and font.get_string_size(t + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
 			t = t.substr(0, t.length() - 1)
 		t += "…"
-	return [t, fs]
+	return [t, sz]
 
 
 # ---------------------------------------------------------------- B+（干员选择，docs/58 §11；图鉴 C4' 也复用其中的斜带 / 描边英文名 / 名册卡结构）
