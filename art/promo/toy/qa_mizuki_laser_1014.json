@@ -1,0 +1,44 @@
+{
+  "logical_resolution": [
+    200,
+    150
+  ],
+  "nearest_scale": 6,
+  "base_palette": 64,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0bd34005-e5a4-4d88-bc7a-c32f522f315b.png",
+  "source_sha256": "55db9464ccda6100a7be0880f9d19cbde0353dfb3f641eef1962bb84407701b5",
+  "files": {
+    "toy_poster_mizuki_laser_1014_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 46276,
+      "sha256": "3f8ce4650d965a85b7bb8dff914ae7882929347d8ca81a2be4913a34b70ff290"
+    },
+    "toy_poster_mizuki_laser_1014_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 44952,
+      "sha256": "c2a612cd36d6211ee19400946f11d74a34d6a2933b7b10cd5aee5502392628fc"
+    },
+    "toy_poster_mizuki_laser_1014_detail.png": {
+      "size": [
+        480,
+        425
+      ],
+      "bytes": 11300,
+      "sha256": "7f54bd8a46b25fb0e3f5514733e94262d55fb38b3221f376c04638dd1901222d"
+    },
+    "toy_poster_mizuki_laser_1014_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 30943,
+      "sha256": "3d51c9e3320713484aa3ebe6dfe73e24a19d9bf8c5f88ed44c46fb69fa851121"
+    }
+  }
+}
