@@ -110,7 +110,8 @@ static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int
 		if tq is Array:
 			tq.append(func(): en(ci, font, pos, text, size, col, spacing, italic))
 		else:
-			tq.add(false, TextQ.key(cond(font, italic), size), func(): _en_draw(ci, font, pos, text, size, col, spacing, italic))
+			var cf := cond(font, italic)
+			tq.add(false, TextQ.key(cf, size), func(): _en_draw(ci, cf, pos, text, size, col, spacing))
 		return en_width(font, text, size, spacing)
 	var f := cond(font, italic)
 	var x := pos.x
@@ -120,8 +121,7 @@ static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int
 	return x - pos.x
 
 
-static func _en_draw(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing: float, italic: bool) -> void:
-	var f := cond(font, italic)
+static func _en_draw(ci: CanvasItem, f: Font, pos: Vector2, text: String, size: int, col: Color, spacing: float) -> void:
 	var x := pos.x
 	for ch in text:
 		ci.draw_string(f, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)

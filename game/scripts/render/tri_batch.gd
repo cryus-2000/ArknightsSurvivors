@@ -75,6 +75,28 @@ static func half(c: Color) -> Color:
 	return Color(_hbuf.decode_half(0), _hbuf.decode_half(2), _hbuf.decode_half(4), _hbuf.decode_half(6))
 
 
+## draw_rect(r, col, false, w)（空心）：线宽不小于边长时是外扩的实心矩形，否则是闭合折线（斜接三角带）；折线几何按矩形缓存
+static var _rl_cache := {}
+
+func rect_line(r: Rect2, col: Color, w: float, xf := Transform2D.IDENTITY) -> void:
+	var ra := r.abs()
+	if w >= ra.size.x or w >= ra.size.y:
+		rect(ra.grow(0.5 * w), col, xf)
+		return
+	var byw = _rl_cache.get(w)
+	if byw == null:
+		byw = {}
+		_rl_cache[w] = byw
+	var q = byw.get(ra)
+	if q == null:
+		if byw.size() > 256:
+			byw.clear()
+		q = strip_tris(PackedVector2Array([ra.position, ra.position + Vector2(ra.size.x, 0), ra.end, ra.position + Vector2(0, ra.size.y), ra.position]), w)
+		byw[ra] = q
+	pts.append_array(q if xf == Transform2D.IDENTITY else xf * q)
+	_fill(q.size(), col)
+
+
 ## draw_colored_polygon(p, col)：引擎先三角化（Geometry2D.triangulate_polygon），这里同样三角化
 func polygon(p: PackedVector2Array, col: Color, xf := Transform2D.IDENTITY) -> void:
 	var idx: PackedInt32Array = Geometry2D.triangulate_polygon(p)
@@ -128,20 +150,6 @@ func arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, w: floa
 		return
 	pts.append_array(xf * Transform2D(a0, c) * hit)
 	_fill(hit.size(), col)
-
-
-static var _seen := {}   # 见过一次、还没缓存的弧
-
-## 这一段弧值得走三角形批：几何已缓存，或者上一帧也画过同样的弧（半径不变的预警圈等，第二次起现算一次、之后命中缓存）。
-## 逐帧变半径的大环（进度环、收缩圈）每帧都是新键，返回 false，调用方退回引擎画法，免得每帧在脚本里现算
-static func want_arc(n: int, r: float, w: float, span: float) -> bool:
-	var key := Vector4(n, r, w, clampf(span, -TAU, TAU))
-	if _ring_cache.has(key) or _seen.has(key):
-		return true
-	if _seen.size() > 1024:
-		_seen.clear()
-	_seen[key] = true
-	return false
 
 
 static var _dirs := {}   # 段数 -> 整圈单位方向（同 arc_points 的角度）

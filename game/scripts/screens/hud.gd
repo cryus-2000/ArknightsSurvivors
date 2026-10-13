@@ -38,7 +38,7 @@ var _hb: Tris = null
 func batch_begin() -> void:
 	_hb = Tris.new()
 	UI.sink = _hb
-	UI.tq = TextQ.new() if hb_on() else []
+	UI.tq = _tq_get() if hb_on() else []
 
 
 ## HUD 合批（docs/50 §13，OPT_HUDB）：字按字体字号成组、图标走图集、飘字分组。--optab 同局对照时旧写法照原样
@@ -55,12 +55,19 @@ func text_flush(fs: Array) -> void:
 			f.call()
 		return
 	var keep = UI.tq
-	var q := TextQ.new()
+	var q: TextQ = _tq_get()
 	UI.tq = q
 	for f in fs:
 		f.call()
 	UI.tq = keep
 	q.flush()
+	_tqs.append(q)
+
+
+var _tqs: Array = []   # 用过的 TextQ（flush 后是空的），重复用，省得每段新建
+
+func _tq_get() -> TextQ:
+	return _tqs.pop_back() if not _tqs.is_empty() else TextQ.new()
 
 
 ## 画一组图标 [贴图, 目标矩形(, 源矩形, 调制色)]：合批时从图标图集取区域连着画（放不下的照旧画原贴图，按原顺序）
@@ -110,6 +117,7 @@ func batch_end(mid: Array = []) -> void:
 			f.call()
 	else:
 		q.flush()
+		_tqs.append(q)
 
 
 ## HUD 分层（性能，docs/50 §9.10）：不每帧变的部分（藏品栏、编队卡的静态部分）和小地图画在 g.hud 下面的子画布上
@@ -343,16 +351,32 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 ## 同字号连着画；层按顺序画。所以重叠的两个字前后关系和原来一样，不重叠的谁先谁后都一样（画面不变）
 func _dmg_numbers(dn: Array) -> void:
 	var n: int = dn.size()
+	var ci: CanvasItem = g.hud
+	var fnt: Font = g.font
 	var bbs: Array = []
 	var lay := PackedInt32Array()
 	lay.resize(n)
+	var kss := PackedInt32Array()
+	kss.resize(n)
 	var maxl := 0
 	for i in n:
 		var it: Array = dn[i]
-		var ks: int = UI._ks(g.hud, it[2])
-		var w: float = g.font.get_string_size(it[1], HORIZONTAL_ALIGNMENT_LEFT, -1, ks).x
+		var ks: int = UI._ks(ci, it[2])
+		kss[i] = ks
+		var wc = _numw.get(ks)
+		if wc == null:
+			wc = {}
+			_numw[ks] = wc
+			_numh[ks] = Vector2(fnt.get_ascent(ks), fnt.get_height(ks))
+		var w = wc.get(it[1])
+		if w == null:
+			if wc.size() > 512:
+				wc.clear()
+			w = fnt.get_string_size(it[1], HORIZONTAL_ALIGNMENT_LEFT, -1, ks).x
+			wc[it[1]] = w
+		var ah: Vector2 = _numh[ks]
 		var p: Vector2 = it[0]
-		var bb := Rect2(p.x + (120.0 - w) * 0.5 - 6.0, p.y - g.font.get_ascent(ks) - 6.0, w + 12.0, g.font.get_height(ks) + 12.0)
+		var bb := Rect2(p.x + (120.0 - w) * 0.5 - 6.0, p.y - ah.x - 6.0, w + 12.0, ah.y + 12.0)
 		var L := 0
 		for j in i:
 			if lay[j] >= L and (bbs[j] as Rect2).intersects(bb):
@@ -360,15 +384,33 @@ func _dmg_numbers(dn: Array) -> void:
 		lay[i] = L
 		maxl = maxi(maxl, L)
 		bbs.append(bb)
+	# 同 UI.text(…, 描边 4)：描边色 = 黑、透明度 × 0.8。按 (层, 字号) 归组，一遍分好
+	var order: Array = []   # 每层的组键（首次出现顺序）
+	order.resize(maxl + 1)
 	for L in maxl + 1:
-		var q := TextQ.new()
-		UI.tq = q
-		for i in n:
-			if lay[i] == L:
-				var it: Array = dn[i]
-				UI.text(g.hud, g.font, it[0], it[1], it[2], it[3], HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
-		UI.tq = null
-		q.flush()
+		order[L] = []
+	var grp := {}
+	for i in n:
+		var k: int = lay[i] * 1024 + kss[i]
+		var a = grp.get(k)
+		if a == null:
+			a = []
+			grp[k] = a
+			order[lay[i]].append(k)
+		a.append(dn[i])
+	for L in maxl + 1:
+		for k in order[L]:
+			var ks: int = k % 1024
+			for it in grp[k]:
+				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
+		for k in order[L]:
+			var ks: int = k % 1024
+			for it in grp[k]:
+				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, 120, ks, it[3])
+
+
+var _numw := {}   # 字号 -> {字串: 宽}（飘字外接框用；数字常重复，省掉重复量字）
+var _numh := {}   # 字号 -> Vector2(上沿高, 行高)
 
 
 func draw_trial_result(vs: Vector2, won: bool) -> void:

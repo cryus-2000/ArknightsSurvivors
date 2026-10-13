@@ -244,8 +244,7 @@ func draw_relic_tray_b(tr: Vector2) -> void:
 
 ## 同 draw_rect(r, col, false, 1.0)（线宽小于边长：闭合折线）
 func _rect_line(tb: TriBatch, r: Rect2, col: Color) -> void:
-	var ra := r.abs()
-	tb.polyline(PackedVector2Array([ra.position, ra.position + Vector2(ra.size.x, 0), ra.end, ra.position + Vector2(0, ra.size.y), ra.position]), col, 1.0)
+	tb.rect_line(r, col, 1.0)
 
 
 ## 同 Tris.frame（四条矩形）
