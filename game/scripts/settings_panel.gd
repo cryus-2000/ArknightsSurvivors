@@ -30,6 +30,8 @@ const ROWS := [
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
+	# 触屏按键布局（用户 10-13）：点「调整」进编辑页（screens/touch_editor.gd），拖动改位置、调大小；只在触屏设备列出
+	{"cn": "触屏按键布局", "en": "TOUCH LAYOUT", "key": "touch_layout", "type": "touchpad"},
 	# 测试版对局记录（docs/40，用户 10-10）：只在 Cfg.runs_log_enabled() 时列出（调试版 / 对内包），对外包没有这一行；
 	# 点一下在系统文件管理器里选中 runs.jsonl，测试者把文件发回来
 	{"cn": "对局记录", "en": "RUN LOG", "key": "runs", "type": "runs"},
@@ -40,11 +42,17 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["manual_attack", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
+	["游戏", "GAMEPLAY", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
 ]
 
 ## 触屏不显示的选项键名（手机设置页改版 10-06）
 const TOUCH_HIDE := ["fullscreen", "res_index"]
+## 只在触屏设备显示的选项键名
+const TOUCH_ONLY := ["touch_layout"]
+## 局内打开设置时由 game.gd 设：触屏按键布局编辑页按本次探索实际的普攻方式决定是否摆出攻击键（标题页为 null，按设置）
+var game_ref: Node = null
+var editor: Control = null   # 触屏按键布局编辑页（第一次打开时建）
+var eat_release := false     # 编辑页在按下时关掉：同一次点击的松手不能落到设置面板上（触屏版松手才算点选，会误点下面的行）
 
 var font: Font
 var tab := 0
@@ -76,6 +84,10 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	font = load("res://fonts/ui.ttf")
 	visible = false
+	# 转屏 / 浏览器栏收起：开着的设置面板跟着撑满新的 UI 逻辑区（标题页没有 game._ui_fit 代劳）
+	get_viewport().size_changed.connect(func():
+		if visible and Cfg.ui_k != 1.0:
+			Cfg.ui_fill(self))
 
 
 func open() -> void:
@@ -127,6 +139,8 @@ func _set_tab(t: int) -> void:
 	for key in TABS[tab][2]:
 		if touch and key in TOUCH_HIDE:
 			continue
+		if not touch and key in TOUCH_ONLY:
+			continue
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
 		for i in ROWS.size():
@@ -147,8 +161,14 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible:
-		return
+	if not visible or (editor != null and editor.visible):
+		return   # 触屏按键布局编辑页开着：输入归它（_gui_input）
+	if eat_release and event is InputEventMouseButton:
+		if not event.pressed:
+			eat_release = false
+			get_viewport().set_input_as_handled()
+			return
+		eat_release = false
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_UP, KEY_W:
@@ -263,11 +283,29 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.show_runs_folder()
 			Sfx.play("ui_ok")
 			return
+		"touchpad":
+			open_touch_editor()
+			return
 		"back":
 			close()
 			return
 	Cfg.apply()
 	Sfx.play("ui_move")
+
+
+## 打开触屏按键布局编辑页（盖在设置面板上，关掉回到设置）
+func open_touch_editor() -> void:
+	if editor == null:
+		editor = preload("res://scripts/screens/touch_editor.gd").new()
+		add_child(editor)
+		editor.closed.connect(func():
+			eat_release = true
+			drag_on = false)
+	var manual: bool = Cfg.manual_attack
+	if game_ref != null and game_ref.get("doctor") != null:
+		manual = game_ref.doctor.manual_attack
+	editor.open(manual)
+	Sfx.play("ui_ok")
 
 
 func _apply_res() -> void:
@@ -436,6 +474,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
 			ci.draw_rect(br, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
 			UI.text(ci, font, br.position + Vector2(0, 18 if not touch else 22), "打开记录文件夹", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		"touchpad":
+			# 右侧「调整」按钮；左边一行说明（有自定义时写「已自定义」）
+			var custom: bool = not Cfg.touch_layout.is_empty()
+			UI.text(ci, font, Vector2(vx - 14 - (230.0 if touch else 0.0), rr.position.y + ty0), "已自定义" if custom else "默认布局", 13 if touch else 11, UI.CYAN if custom else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
+			var bh2: float = 32.0 if touch else 26.0
+			var br2 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh2)
+			ci.draw_rect(br2, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
+			ci.draw_rect(br2, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
+			UI.text(ci, font, br2.position + Vector2(0, 18 if not touch else 22), "调整", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br2.size.x)
 		"vol":
 			var v: float = Cfg.get(row.key)
 			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)

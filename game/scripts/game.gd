@@ -352,6 +352,7 @@ var red_flash := 0.0
 var crit_hit := false
 var fx_add: Node2D
 var settings: Control
+var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
 var result_btns: Array = []   # [Rect2, action]
 var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 # ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
@@ -719,6 +720,7 @@ func _ready() -> void:
 	var ul := CanvasLayer.new()
 	ul.layer = 10
 	add_child(ul)
+	ui_layer = ul
 	# 触屏：整个界面层（HUD / 面板 / 设置）再放大 Cfg.ui_k（手机 1.3），世界层不动；根控件尺寸见 _ui_fit
 	Cfg.ui_k = Cfg.ui_scale()
 	if Cfg.ui_k != 1.0:
@@ -731,6 +733,7 @@ func _ready() -> void:
 	A.mark("nodes")
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
+	settings.game_ref = self   # 触屏按键布局编辑页按本次探索的普攻方式摆攻击键
 	ul.add_child(settings)
 	if Cfg.ui_k != 1.0:
 		_ui_fit()
@@ -853,6 +856,11 @@ var demo_label := ""
 ## 镜头看着的位置：平时跟主控；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
 ## 触屏界面层放大（Cfg.ui_k）：三个根控件撑满 UI 逻辑区（视口 / ui_k）
 func _ui_fit() -> void:
+	# 视口变了（竖屏进局再转横屏等）：放大倍数按新宽度重算（Cfg.ui_scale），不然界面层一直按旧比例排
+	var k: float = Cfg.ui_scale()
+	if k != Cfg.ui_k and ui_layer != null:
+		Cfg.ui_k = k
+		ui_layer.scale = Vector2(k, k)
 	for c in [hud, panel, settings]:
 		Cfg.ui_fill(c)
 

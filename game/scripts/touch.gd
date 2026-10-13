@@ -4,6 +4,8 @@
 extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
+const TouchLayout = preload("res://scripts/touch_layout.gd")   # 各按键位置 / 大小（缺省 + 设置里的自定义，10-13）
+const PlayClock = preload("res://scripts/run/play_clock.gd")
 
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
@@ -40,6 +42,8 @@ var atk_rect := Rect2()
 ## 按下分配最小空槽，拖动查表，松手释放；没登记过的触点（按下没经过这里）返回 UNKNOWN，不会撞上任何 *_id
 const UNKNOWN := -2
 var _slots := {}            # 原始 index -> 槽位（0 起）
+var _lay := {}              # 本帧的按键布局（TouchLayout.resolve），按帧缓存
+var _lay_key: Array = []
 
 
 func _init(game) -> void:
@@ -76,12 +80,17 @@ func handle(event: InputEvent) -> bool:
 				skill_origin = p
 				skill_aim = Vector2.ZERO
 				return true
-			# 按钮优先
+			# 按钮优先；点击区互相挨着时取中心最近的那个
+			var hit_b: Array = []
+			var hit_d := INF
 			for b in btn_rects:
-				if _hit(b[0]).has_point(p):
-					_do(b[1])
-					flash[b[1]] = 0.2
-					return true
+				if _hit(b[0]).has_point(p) and (b[0] as Rect2).get_center().distance_to(p) < hit_d:
+					hit_d = (b[0] as Rect2).get_center().distance_to(p)
+					hit_b = b
+			if not hit_b.is_empty():
+				_do(hit_b[1])
+				flash[hit_b[1]] = 0.2
+				return true
 			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:
 				for c in g.stats_cells:
@@ -96,11 +105,16 @@ func handle(event: InputEvent) -> bool:
 						return false
 				g.state = g.S.PLAY
 				return true
-			if g.state == g.S.PLAY and stick_id < 0 and p.x > EDGE and p.x < vs.x * 0.55:
+			if g.state == g.S.PLAY and stick_id < 0 and _stick_zone(p, vs):
 				stick_id = fid
 				stick_origin = p
 				stick_pos = p
 				vec = Vector2.ZERO
+				# 摇杆位置改过（设置 → 触屏按键布局）：按在摇杆圈内时以摇杆圈为中心（固定摇杆手感），圈外仍是按下处为中心
+				var st: Dictionary = layout(vs).stick
+				if st.custom and p.distance_to(st.c) <= stick_r() * 1.25:
+					stick_origin = st.c
+					_stick_move(p)
 				return true
 		else:
 			if fid == atk_id:
@@ -127,21 +141,57 @@ func handle(event: InputEvent) -> bool:
 			skill_aim = p - skill_origin
 			return true
 		if fid == stick_id:
-			stick_pos = p
-			var d: Vector2 = stick_pos - stick_origin
-			var l: float = d.length()
-			if l < DEAD:
-				vec = Vector2.ZERO
-			else:
-				# 摇杆中心跟着手指"拖走"：行程超出最大半径时把中心往手指方向挪，避免手指越滑越远
-				if l > RADIUS:
-					stick_origin = stick_pos - d / l * RADIUS
-					d = stick_pos - stick_origin
-				vec = d / RADIUS
-				if vec.length() > 1.0:
-					vec = vec.normalized()
+			_stick_move(p)
 			return true
 	return false
+
+
+## 摇杆手指移到 p：死区内不动；行程超出最大半径时中心跟着手指"拖走"，避免手指越滑越远
+func _stick_move(p: Vector2) -> void:
+	stick_pos = p
+	var rr: float = stick_r()
+	var d: Vector2 = stick_pos - stick_origin
+	var l: float = d.length()
+	if l < DEAD:
+		vec = Vector2.ZERO
+		return
+	if l > rr:
+		stick_origin = stick_pos - d / l * rr
+		d = stick_pos - stick_origin
+	vec = d / rr
+	if vec.length() > 1.0:
+		vec = vec.normalized()
+
+
+## 摇杆最大行程（按布局缩放）
+func stick_r() -> float:
+	var L: Dictionary = _lay if not _lay.is_empty() else layout(g.hud.size)
+	return RADIUS * float(L.stick.s)
+
+
+## 能起摇杆的区域：摇杆在左半边时是左侧 55%（离左边缘 EDGE 以内不算，见 EDGE 注释），被挪到右半边时是右侧 55%
+func _stick_zone(p: Vector2, vs: Vector2) -> bool:
+	var st: Dictionary = layout(vs).stick
+	if st.c.x < vs.x / 2.0:
+		return p.x > EDGE and p.x < vs.x * 0.55
+	return p.x < vs.x - EDGE and p.x > vs.x * 0.45
+
+
+## 本帧的按键布局（TouchLayout.resolve）：{键: {c, s, custom}}；视口 / 普攻方式 / 自定义布局不变时复用
+func layout(vs: Vector2) -> Dictionary:
+	var manual: bool = g.doctor != null and g.doctor.manual_attack
+	var key: Array = [vs, manual, Cfg.touch_layout.hash(), Cfg.safe_insets().hash()]
+	if key != _lay_key:
+		_lay_key = key
+		_lay = TouchLayout.resolve(vs, manual, Cfg.touch_layout, Cfg.touch_safe_rect(vs))
+	return _lay
+
+
+## 倍速键的矩形（hud_relics.draw_speed_button 画，这里管点击）
+func speed_rect(vs: Vector2) -> Rect2:
+	var sp: Dictionary = layout(vs).speed
+	var sz: Vector2 = Vector2(56.0, 34.0) * float(sp.s)
+	return Rect2(sp.c - sz / 2.0, sz)
 
 
 ## 原始触点 index → 槽位：按下分配（同一原始 index 重复按下沿用旧槽），松手返回槽位并释放，拖动只查表。
@@ -194,6 +244,9 @@ func _do(action: String) -> void:
 				Sfx.play("ui_ok", -6.0)
 			elif g.state == g.S.PAUSE:
 				g.state = g.S.PLAY
+		"speed":
+			if g.state == g.S.PLAY:
+				PlayClock.cycle()
 		"stats":
 			if g.state == g.S.PLAY:
 				g.state = g.S.STATS
@@ -225,37 +278,43 @@ func draw_hud(vs: Vector2) -> void:
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	btn_rects.clear()
+	# 位置 / 大小：缺省或玩家在「设置 → 触屏按键布局」里改过的（touch_layout.gd，夹在安全区内）
+	var L: Dictionary = layout(vs)
+	var sk: float = L.stick.s
 	# 摇杆
 	if stick_id >= 0 and g.state == g.S.PLAY:
-		hud.draw_circle(stick_origin, RADIUS + 10.0, Color(0.05, 0.12, 0.16, 0.35))
-		hud.draw_arc(stick_origin, RADIUS + 10.0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.5), 2.0)
-		var knob: Vector2 = stick_origin + vec * RADIUS
-		hud.draw_circle(knob, 24.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
-		hud.draw_arc(knob, 24.0, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
+		var rr: float = stick_r()
+		hud.draw_circle(stick_origin, rr + 10.0 * sk, Color(0.05, 0.12, 0.16, 0.35))
+		hud.draw_arc(stick_origin, rr + 10.0 * sk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.5), 2.0)
+		var knob: Vector2 = stick_origin + vec * rr
+		hud.draw_circle(knob, 24.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
+		hud.draw_arc(knob, 24.0 * sk, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
 	elif g.state == g.S.PLAY:
-		# 提示：左下角淡淡的摇杆位置
-		var c := Vector2(maxf(250.0, vs.x * 0.2), vs.y - 150)
-		hud.draw_arc(c, 40.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12), 1.5)
-		hud.draw_circle(c, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12))
-	# 冲刺按钮：右下角大圆（冷却中显示进度环），摆在编队区（源石锭框 + 「编队 n / m」）正上方；技能键再往上
-	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134，
-	# 技能键在冲刺键左上，四个键的 84 点击区互不重叠、都在编队卡上方
+		# 提示：左下角淡淡的摇杆位置（改过位置时稍亮一点：那里按下就是固定摇杆）
+		var c: Vector2 = L.stick.c
+		var ka: float = 0.2 if L.stick.custom else 0.12
+		hud.draw_arc(c, 40.0 * sk, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka), 1.5)
+		hud.draw_circle(c, 10.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka))
+	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 攻击键缺省跟着冲刺键（touch_layout.default_center）
+	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134
 	var ph: bool = vs.y < 520.0
 	if g.state == g.S.PLAY:
-		var dc := Vector2(vs.x - (134.0 if ph else 80.0), g.hud_view.squad.squad_top(vs) - 14.0 - BTN * 0.7)
-		var dr0 := Rect2(dc - Vector2(BTN * 0.7, BTN * 0.7), Vector2(BTN * 1.4, BTN * 1.4))
+		var ds: float = L.dash.s
+		var dc: Vector2 = L.dash.c
+		var dr: float = BTN * 0.7 * ds
+		var dr0 := Rect2(dc - Vector2(dr, dr), Vector2(dr * 2.0, dr * 2.0))
 		btn_rects.append([dr0, "dash"])
 		var ready: bool = g.dash_cd <= 0.0
-		hud.draw_circle(dc, BTN * 0.7, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
-		hud.draw_arc(dc, BTN * 0.7, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
-		UI.text(hud, font, dc + Vector2(-40, 8), "冲刺", 18, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
+		hud.draw_circle(dc, dr, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
+		hud.draw_arc(dc, dr, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - g.dash_cd / g.DASH_CD), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
+		var dfs: int = int(round(18.0 * clampf(ds, 0.85, 1.3)))
+		UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		if g.doctor.manual_attack:
-			# 手动普攻：攻击键在冲刺键左边同一行，技能键挪到攻击键正上方
-			_draw_atk_button(hud, font, dc + Vector2(-BTN * 1.85, -BTN * 0.05))
-			_draw_skill_button(hud, font, dc + Vector2(-BTN * 1.85, -BTN * 1.85))
+			_draw_atk_button(hud, font, L.atk.c, L.atk.s)
 		else:
 			atk_rect = Rect2()
-			_draw_skill_button(hud, font, dc + Vector2(-BTN * 2.0, -BTN * 0.65))   # 左上斜方：正上方会撞「属性」键（触屏 HUD 缩放后只有约 626 高）
+		_draw_skill_button(hud, font, L.skill.c, L.skill.s)
+		btn_rects.append([speed_rect(vs), "speed"])
 	else:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
@@ -263,31 +322,34 @@ func draw_hud(vs: Vector2) -> void:
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]
 		for i in items.size():
-			var c := Vector2(vs.x - 46, (172 if ph else 186) + i * 86)
-			var r := Rect2(c - Vector2(BTN / 2.0, BTN / 2.0), Vector2(BTN, BTN))
+			var e: Dictionary = L[items[i][1]]
+			var c: Vector2 = e.c
+			var br: float = BTN / 2.0 * float(e.s)
+			var r := Rect2(c - Vector2(br, br), Vector2(br * 2.0, br * 2.0))
 			btn_rects.append([r, items[i][1]])
 			var lit: bool = flash.get(items[i][1], 0.0) > 0.0 or (items[i][1] == "pause" and g.state == g.S.PAUSE) or (items[i][1] == "stats" and g.state == g.S.STATS)
-			hud.draw_circle(c, BTN / 2.0, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
-			hud.draw_arc(c, BTN / 2.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
-			UI.text(hud, font, c + Vector2(-20, 7), items[i][0], 20, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
-			UI.text(hud, font, c + Vector2(-30, BTN / 2.0 + 15), items[i][2], 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			hud.draw_circle(c, br, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
+			hud.draw_arc(c, br, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
+			var ifs: int = int(round(20.0 * clampf(float(e.s), 0.8, 1.3)))
+			UI.text(hud, font, c + Vector2(-20, ifs * 0.35), items[i][0], ifs, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
+			UI.text(hud, font, c + Vector2(-30, br + 15), items[i][2], 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
 			# 开局「点「属性」查看……」提示期间，属性键跟着呼吸（提示条件同 hud.gd）
 			if items[i][1] == "stats" and g.state == g.S.PLAY and (((g.t >= 6.0 and g.t < 16.0) and not g.tab_used) or g.tab_hint > 0.0):
 				var pulse: float = 0.5 + 0.5 * sin(g.t * 5.0)
-				hud.draw_arc(c, BTN / 2.0 + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
+				hud.draw_arc(c, br + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
 
 
 ## 攻击键：圆底 + 交叉双刃图标 + 「攻击」；按住时亮、拖动时按钮上画小摇杆（同技能键）
-func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
-	var r := BTN * 0.62
+func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> void:
+	var r := BTN * 0.62 * sc
 	atk_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var held: bool = atk_id >= 0 or flash.get("atk", 0.0) > 0.0
 	var ac := Color(1.0, 0.72, 0.4)
 	hud.draw_circle(c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
 	hud.draw_arc(c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)
 	for sgn in [-1.0, 1.0]:
-		var a0: Vector2 = c + Vector2(-12.0 * sgn, 12.0)
-		var a1: Vector2 = c + Vector2(12.0 * sgn, -12.0)
+		var a0: Vector2 = c + Vector2(-12.0 * sgn, 12.0) * sc
+		var a1: Vector2 = c + Vector2(12.0 * sgn, -12.0) * sc
 		hud.draw_line(a0, a1, Color(1, 1, 1, 0.95 if held else 0.75), 3.0)
 		hud.draw_line(a0 + Vector2(-4.0 * sgn, -4.0), a0 + Vector2(4.0 * sgn, 4.0), Color(ac.r, ac.g, ac.b, 0.9), 3.0)
 	if atk_id >= 0:
@@ -300,7 +362,7 @@ func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 
 
 ## 手动技能键：圆底 + 技能图标 + 外圈充能；就绪时青色呼吸外圈。只在主控有已解锁的手动技能时画（干员契约 v2.3：手动只对主控）
-func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
+func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> void:
 	skill_rect = Rect2()
 	var ld = g.squad.leader()
 	if ld == null:
@@ -308,7 +370,7 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2) -> void:
 	var i: int = ld.manual_index()
 	if i < 0 or not ld.skill_unlocked(i):
 		return
-	var r := BTN * 0.7
+	var r := BTN * 0.7 * sc
 	skill_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var need: float = ld.sp_need(i)
 	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0

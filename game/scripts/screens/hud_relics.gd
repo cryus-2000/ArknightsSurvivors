@@ -46,12 +46,15 @@ func draw_right_top(vs: Vector2) -> void:
 
 func draw_speed_button(vs: Vector2) -> void:
 	var rect := Rect2(vs.x - 72.0, 76.0, 56.0, 34.0)
+	if g.touch.active:
+		rect = g.touch.speed_rect(vs)   # 触屏：位置 / 大小按触屏按键布局（touch_layout.gd），点击由 touch.gd 处理
 	var enabled: bool = g.state == Game.S.PLAY
-	var hovered: bool = enabled and rect.has_point(g.hud.get_local_mouse_position())
-	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, 16)
-	UI.text(g.hud, g.font, rect.position + Vector2(0, 48), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
-	if enabled:
-		g.speed_btn = g.touch._hit(rect) if g.touch.active else rect   # 触屏：点击区 84 见方
+	var hovered: bool = enabled and not g.touch.active and rect.has_point(g.hud.get_local_mouse_position())
+	var fs: int = int(round(16.0 * clampf(rect.size.y / 34.0, 0.85, 1.3)))
+	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, fs)
+	UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	if enabled and not g.touch.active:
+		g.speed_btn = rect
 
 
 ## 藏品栏排布（藏品不设上限后，10-12）：≤ 16 件 38 像素格、一行 8 个；更多时紧凑格 22 像素、一行 14 个，最多 3 行（42 格）。

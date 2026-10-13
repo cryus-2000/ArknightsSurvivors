@@ -99,7 +99,11 @@ func _ready() -> void:
 	if Cfg.ui_k != 1.0:
 		scale = Vector2(Cfg.ui_k, Cfg.ui_k)
 		Cfg.ui_fill(self)
-		get_viewport().size_changed.connect(func(): Cfg.ui_fill(self))
+		# 视口变了（竖屏进页面再转横屏、浏览器栏收起）：放大倍数按新宽度重算，不然一直用竖屏时的 1.11，手机版式判定（size.y < 520）也跟着错
+		get_viewport().size_changed.connect(func():
+			Cfg.ui_k = Cfg.ui_scale()
+			scale = Vector2(Cfg.ui_k, Cfg.ui_k)
+			Cfg.ui_fill(self))
 	font = load("res://fonts/ui.ttf")
 	# 菜单项门槛（同旧版）：对外包没有 Boss 演练（Cfg.can_boss_trial；调试版可用 --audience=public 模拟），网页没有退出（--simweb 模拟）
 	menu_boss = Cfg.can_boss_trial()

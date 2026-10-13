@@ -211,7 +211,8 @@ func draw_bg() -> void:
 			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
 				en_label = "RECRUIT"
 			var ph: bool = Cfg.touch_device()
-			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - (80.0 if ph else 92.0))
+			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
+			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - (76.0 if ph else 92.0))
 			if not ph:   # 手机：卡片顶到底，没有提示行的位置（点卡片本身就是操作）
 				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)

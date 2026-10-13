@@ -4,6 +4,7 @@ extends Node
 const PATH := "user://settings.cfg"
 const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
+const TouchLayout = preload("res://scripts/touch_layout.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
 const DIFF_VER := 2
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
@@ -28,6 +29,8 @@ var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下�
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 画质档位 "high" / "low"（空 = 首次启动，按设备猜）：低档关后期、粒子减半、真人局同屏敌人上限 300
+## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
+var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
 var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
@@ -78,6 +81,50 @@ func ui_scale() -> float:
 		return 1.0
 	var vs: Vector2 = get_viewport().get_visible_rect().size
 	return clampf(vs.x / 1000.0, 1.0, 1.3)
+
+
+## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。
+## 原生移动端读 DisplayServer 的安全区；网页读 CSS env(safe-area-inset-*)（页面没声明 viewport-fit=cover 时浏览器自己留黑边，读到 0，
+## 嵌在 itch 的 iframe 里也是 0）；B站 Toy 容器里 tools/web/container.js 已把画布缩进安全区（window.__sySafe），这里按 0 算。
+## 桌面恒为 0。按视口尺寸缓存
+var _ins_key := Vector3(-1, -1, -1)
+var _ins: Array = [0.0, 0.0, 0.0, 0.0]
+
+
+func safe_insets() -> Array:
+	if not touch_device():
+		return [0.0, 0.0, 0.0, 0.0]
+	var vis: Vector2 = get_viewport().get_visible_rect().size
+	var key := Vector3(vis.x, vis.y, ui_k)
+	if key == _ins_key:
+		return _ins
+	_ins_key = key
+	_ins = [0.0, 0.0, 0.0, 0.0]
+	var px := [0.0, 0.0, 0.0, 0.0]
+	var per_px := 0.0   # 1 个物理 / CSS 像素 = 多少视口逻辑像素
+	if OS.has_feature("web"):
+		var js = JavaScriptBridge.eval("(function(){if(window.__sySafe)return '0,0,0,0,'+innerWidth;var d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)';document.body.appendChild(d);var s=getComputedStyle(d);var r=[s.paddingLeft,s.paddingTop,s.paddingRight,s.paddingBottom].map(parseFloat).join(',');d.remove();return r+','+innerWidth;})()", true)
+		if js is String:
+			var parts: PackedStringArray = js.split(",")
+			if parts.size() == 5 and float(parts[4]) > 0.0:
+				for i in 4:
+					px[i] = float(parts[i])
+				per_px = vis.x / float(parts[4])
+	elif OS.has_feature("mobile"):
+		var sa: Rect2i = DisplayServer.get_display_safe_area()
+		var ws: Vector2i = DisplayServer.window_get_size()
+		if sa.size.x > 0 and ws.x > 0:
+			px = [sa.position.x, sa.position.y, ws.x - sa.end.x, ws.y - sa.end.y]
+			per_px = vis.x / float(ws.x)
+	if per_px > 0.0:
+		for i in 4:
+			_ins[i] = maxf(0.0, float(px[i]) * per_px / ui_k)
+	return _ins
+
+
+## 触屏控件的安全区（UI 坐标）：touch.gd 与触屏按键布局编辑页共用
+func touch_safe_rect(vs: Vector2) -> Rect2:
+	return TouchLayout.safe_rect(vs, safe_insets())
 
 
 func ui_size() -> Vector2:
@@ -135,6 +182,7 @@ func _ready() -> void:
 		brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
 		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 		manual_attack = c.get_value("input", "manual_attack", manual_attack)
+		touch_layout = TouchLayout.load_from(c)
 		quality = str(c.get_value("video", "quality", ""))
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
@@ -305,6 +353,7 @@ func save() -> void:
 	c.set_value("video", "look_ver", LOOK_VER)
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("input", "manual_attack", manual_attack)
+	TouchLayout.save_to(c, touch_layout)
 	c.set_value("video", "quality", quality)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
