@@ -8,6 +8,7 @@ const PATH := "user://settings.cfg"
 const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
+const CloudPack = preload("res://scripts/core/cloud_pack.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
 const DIFF_VER := 2
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
@@ -65,6 +66,14 @@ var unlock_all := false      # 本次运行全部解锁（只在内存里，见 
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
 var opening_seen := false    # 看过完整的标题开场（写入存档）：之后启动只播简短版（2026-09-27 用户定，开场方案 A）
+## B站 Toy 云存档（docs/89，cloud_save.gd）：设置最后修改时刻（Unix 秒，合并时设置取较新的一份）、上次与云端一致时的正文签名、
+## 设置部分的签名（save() 时比对，变了才更新 cloud_set_t）。存在 settings.cfg 的 [cloud]
+var cloud_set_t := 0
+var cloud_sig := ""
+var _set_sig := ""
+## 上云的设置项（Cfg 属性名）。画质 / 全屏 / 分辨率 / 辉光 / 景深 / 法线光照 / 水下滤镜跟设备性能走，不上云
+const CLOUD_SET_KEYS := ["master", "music", "sfx", "voice", "dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline",
+	"brightness", "pad_rumble", "manual_attack", "ui_size_pct", "cam_zoom_pct", "play_speed", "cover_character_id", "difficulty", "touch_layout"]
 
 
 ## ui.ttf（Noto Sans CJK SC 子集）缺的几十个字（娅 / 鲨 / 砥 / 琥珀 / Ⓐ 等）：桌面版靠系统字体补，网页版没有系统字体会显示方块。
@@ -230,6 +239,11 @@ func _ready() -> void:
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
+		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
+		cloud_sig = str(c.get_value("cloud", "sig", ""))
+		_set_sig = str(c.get_value("cloud", "set_sig", ""))
+	if _set_sig == "":
+		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
 	for a in dev_args():
 		# 截图 / 对照用：--uisize=80（界面大小 %）、--camzoom=140（战斗画面缩放 %）
@@ -409,7 +423,82 @@ func save() -> void:
 	c.set_value("progress", "seen_intro", seen_intro)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
+	var ss := _settings_sig()
+	if ss != _set_sig:
+		_set_sig = ss
+		cloud_set_t = int(Time.get_unix_time_from_system())
+	c.set_value("cloud", "set_t", cloud_set_t)
+	c.set_value("cloud", "sig", cloud_sig)
+	c.set_value("cloud", "set_sig", _set_sig)
 	c.save(PATH)
+	var cloud := get_node_or_null("/root/Cloud")
+	if cloud != null:
+		cloud.local_saved()   # 云存档：只记「待上传」并把最新内容交给网页（页面隐藏时上传），不在这里联网
+
+
+## ---- 云存档（docs/89）：存档正文与 Cfg 字段互转。合并 / 打包规则在 core/cloud_pack.gd ----
+
+func _settings_sig() -> String:
+	var d := {}
+	for k in CLOUD_SET_KEYS:
+		d[k] = get(k)
+	return CloudPack.canon(d).md5_text()
+
+
+## 当前本地存档的正文（全部解锁时用存档里的真实进度，同 save()）
+func cloud_body() -> Dictionary:
+	var d := {}
+	for k in CLOUD_SET_KEYS:
+		d[k] = TouchLayout.sanitize(touch_layout) if k == "touch_layout" else get(k)
+	return {"set": {"t": cloud_set_t, "d": d},
+		"prog": {"diff": int(_real_progress.get("diff_unlocked", diff_unlocked)), "gal": gallery_seen.duplicate(),
+			"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
+			"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen}}
+
+
+## 把正文写回 Cfg 字段（逐项校验 / 夹取；类型不对的项保持本地值），不落盘。之后调用方 save()；
+## 设置签名同步更新，cloud_set_t 取正文里的时刻：采用云端设置不算本机的新修改
+func cloud_apply(body: Dictionary) -> void:
+	var d: Dictionary = body.set.d
+	for k in ["master", "music", "sfx", "voice"]:
+		if d.get(k) is float or d.get(k) is int:
+			set(k, clampf(float(d[k]), 0.0, 1.0))
+	for k in ["dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline", "pad_rumble", "manual_attack"]:
+		if d.get(k) is bool:
+			set(k, d[k])
+	if d.get("brightness") is float or d.get("brightness") is int:
+		brightness = clampf(float(d.brightness), 0.8, 1.4)
+	if d.get("ui_size_pct") is float or d.get("ui_size_pct") is int:
+		ui_size_pct = clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+	if d.get("cam_zoom_pct") is float or d.get("cam_zoom_pct") is int:
+		var z := int(d.cam_zoom_pct)
+		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+	if (d.get("play_speed") is float or d.get("play_speed") is int) and float(d.play_speed) in [1.0, 1.5, 2.0]:
+		play_speed = float(d.play_speed)
+	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id):
+		cover_character_id = d.cover_character_id
+	if d.has("touch_layout"):
+		touch_layout = TouchLayout.sanitize(d.touch_layout)
+	var p: Dictionary = body.prog
+	var unlocked: int = clampi(int(p.get("diff", 0)), 0, D.DIFFICULTY_TIERS.size() - 1)
+	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows"}
+	if unlock_all:
+		_real_progress["diff_unlocked"] = unlocked
+		_real_progress["seen_relics"] = p.get("rel", []).duplicate()
+		_real_progress["endings_cleared"] = p.get("end", []).duplicate()
+		lists.erase("rel")
+		lists.erase("end")
+	else:
+		diff_unlocked = unlocked
+	for k in lists:
+		set(lists[k], p.get(k, []).map(func(x): return str(x)))
+	seen_intro = bool(p.get("intro", seen_intro))
+	opening_seen = bool(p.get("open", opening_seen))
+	if d.get("difficulty") is float or d.get("difficulty") is int:
+		difficulty = int(d.difficulty)
+	difficulty = clampi(difficulty, 0, int(_real_progress.get("diff_unlocked", diff_unlocked)))
+	cloud_set_t = int(body.set.t)
+	_set_sig = _settings_sig()
 
 
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""

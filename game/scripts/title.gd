@@ -103,6 +103,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_ui_refit)
 	Cfg.view_changed.connect(_ui_refit)
 	font = load("res://fonts/ui.ttf")
+	Cloud.flush("title")   # B站云存档：回到标题时上传待上传的进度（只在 B站环境生效，docs/89）
 	# 菜单项门槛（同旧版）：对外包没有 Boss 演练（Cfg.can_boss_trial；调试版可用 --audience=public 模拟），网页没有退出（--simweb 模拟）
 	menu_boss = Cfg.can_boss_trial()
 	menu_exit = not (OS.has_feature("web") or Cfg.dev_args().has("--simweb"))
