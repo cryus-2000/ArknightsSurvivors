@@ -23,10 +23,22 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 9,
+      "colors": 6,
       "density": 1,
       "fire": null,
-      "sha256": "bd896020e5cb03db3015496ccf3f458fa681a676c258c31e8c011c9b7bb7a3c8"
+      "sha256": "66b0a9ef7fe1d5f1df0f1c20f2bac88e5a894782d37f7657fc2779789d378ccd",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_float_dust@2x.png",
@@ -50,10 +62,22 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 9,
+      "colors": 6,
       "density": 2,
       "fire": null,
-      "sha256": "34ad4bce79f8a28f8cee47d2d1b5c4e4a77e99f70bd90ae2c6ab36b1b553a0d9"
+      "sha256": "fbea5b23ba127efc605388a4f002f3d5135f3022c8227f388cc1d76e74715fd7",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_halt.png",
@@ -77,10 +101,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "161f2c4c75a7486b499e111e7f028362588de84cc44c8b79a87d2d50d35780ae"
+      "sha256": "a080348b0a4f0715c86ebfc77dbc8b1de28d72eaf4fa9bb51ca03e7a754b3e2d",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_halt@2x.png",
@@ -104,10 +139,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "50d924af05eaccadf3dc3038976c7519d573898a06271ba26762429190e355b6"
+      "sha256": "964180872bfa220b55f103b820926fb09bde28f3e4819ff397c9e07f127d55b1",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_back.png",
@@ -131,10 +177,21 @@
       ],
       "layer": "ground",
       "loop": true,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "b6a1fca90cee814ee588569930198397019e0b240ccbc9a456238d9a33b38db9"
+      "sha256": "972057d24f12c4c3744e1bc7b2d7db1db25339ff0d40a71d9138b3a245eb092b",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_back@2x.png",
@@ -158,10 +215,21 @@
       ],
       "layer": "ground",
       "loop": true,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "c7f464eb118b0efe7abea0535c6f6d803d829891289742d867785acf616f6a89"
+      "sha256": "898d8504ecdf0424bfafe3fb8bf796b7a7454bfdea81adc408f589c154dab1a4",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_close.png",
@@ -185,10 +253,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "14f4ccc8b55d296d044059a3a7093c38cabf4b54bd9955e0ffb680d7176e889f"
+      "sha256": "0e036626b894494071879791d1fd746543a636f3117d667bced782f9afda034e",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_close@2x.png",
@@ -212,10 +291,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "173101c5c3de89f8846d6f8254d3c2b5a61d42a310924784c18f4b7df20edc40"
+      "sha256": "7f62cb3b35ba2f7531695fd01df16c1d6c96bdf3e8e3f307b5fb2973cb4cea3a",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_front.png",
@@ -239,10 +329,22 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 10,
+      "colors": 6,
       "density": 1,
       "fire": null,
-      "sha256": "6efeb8887f6c829b62201f3311ecfbd06cddcabebebecb8f1cdfe02f23afb2a5"
+      "sha256": "417e503239b68dda1fae1c1083f7d2cae812d1ebb233abda02b3b5a54159f3a5",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_front@2x.png",
@@ -266,10 +368,22 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 10,
+      "colors": 6,
       "density": 2,
       "fire": null,
-      "sha256": "b1abd018beb315b000e1b1f962ca77d49167629e55da32e99c646862de5af8cf"
+      "sha256": "c325b51234a10e7190ea4893db35dfb3316a264077685987ff910668c0af135a",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_open.png",
@@ -293,10 +407,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "568e1f884fcabc9b6b47ae042b485570b0dbbc4df65bfc895c7a5520ee8cd2d1"
+      "sha256": "f3854db9b2e8d15fb32c9c652207a000957748d59161d7ca9f579062448c0dd8",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_angelina_well_open@2x.png",
@@ -320,10 +445,21 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "6eebeea6c7a25eb1850df89138ca27f0048080feb9600851d470902c152c1fb7"
+      "sha256": "7f2abce4eff8b3e28bf259b002ff8a696c78ec3649f2e6955bc1a74be06daf68",
+      "color_reference": [
+        "proj_angelina_orb.png",
+        "fx_angelina_levitate.png"
+      ],
+      "palette": [
+        "#34205e",
+        "#6a44b0",
+        "#b380f2",
+        "#dcc4ff",
+        "#f6efff"
+      ]
     },
     {
       "file": "fx_exusiai_blessed_flash.png",
@@ -350,7 +486,18 @@
       "colors": 6,
       "density": 1,
       "fire": null,
-      "sha256": "e1ff059100d02f17686f6092e2f898c4d2df6d377ad15a85556ad85b2072c76c"
+      "sha256": "e1ff059100d02f17686f6092e2f898c4d2df6d377ad15a85556ad85b2072c76c",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_exusiai_blessed_flash@2x.png",
@@ -377,7 +524,18 @@
       "colors": 6,
       "density": 2,
       "fire": null,
-      "sha256": "9b5cb579282da897a6a37447c01a67239b130e3db933f1097bea28e23d4a3b8a"
+      "sha256": "9b5cb579282da897a6a37447c01a67239b130e3db933f1097bea28e23d4a3b8a",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_exusiai_halo.png",
@@ -404,7 +562,19 @@
       "colors": 7,
       "density": 1,
       "fire": null,
-      "sha256": "d04bf3113b39694df0f269444f94eccee19a1ca1bbaee997761506763c02eba7"
+      "sha256": "d04bf3113b39694df0f269444f94eccee19a1ca1bbaee997761506763c02eba7",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_exusiai_halo@2x.png",
@@ -431,7 +601,19 @@
       "colors": 7,
       "density": 2,
       "fire": null,
-      "sha256": "2bc3039cd6aee12f899fe1fcf9f846f0e186e9145bb6e593d93c6fa1fbcc5968"
+      "sha256": "2bc3039cd6aee12f899fe1fcf9f846f0e186e9145bb6e593d93c6fa1fbcc5968",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_exusiai_hit_gold.png",
@@ -458,7 +640,18 @@
       "colors": 6,
       "density": 1,
       "fire": null,
-      "sha256": "b9f5be6fdfcacff0625b181b71f620a3deacb4cd85f9a7cdc5aeb3020c5ef042"
+      "sha256": "b9f5be6fdfcacff0625b181b71f620a3deacb4cd85f9a7cdc5aeb3020c5ef042",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_exusiai_hit_gold@2x.png",
@@ -485,7 +678,18 @@
       "colors": 6,
       "density": 2,
       "fire": null,
-      "sha256": "e1901b121683d2f04f747d7c0f032e2719f7f54d57692b5f5ea9a97b13df7301"
+      "sha256": "e1901b121683d2f04f747d7c0f032e2719f7f54d57692b5f5ea9a97b13df7301",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_hoshiguma_guard_glow.png",
@@ -509,10 +713,20 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "8faead58b10f280c02fadfb4281cacc1fb6896b9f8782e7121fddf351a7564c9"
+      "sha256": "5e71b4e70cf2d6b599ffc5b5fd3fc58b08d413e894b2a79356a33fd9b0ff38e7",
+      "color_reference": [
+        "fx_hoshiguma_demon_slash.png"
+      ],
+      "palette": [
+        "#1a0a0e",
+        "#5a0c18",
+        "#c82434",
+        "#ff8a8a",
+        "#fffbea"
+      ]
     },
     {
       "file": "fx_hoshiguma_guard_glow@2x.png",
@@ -536,10 +750,20 @@
       ],
       "layer": "front",
       "loop": true,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "4c39a7aeca77483c43e849f48cff1ec691ebd94742716266a2cfe244bef8799f"
+      "sha256": "b1be3b22cc16215232e0e37034c9a5432def4c83499c43f6435f5113cba364e9",
+      "color_reference": [
+        "fx_hoshiguma_demon_slash.png"
+      ],
+      "palette": [
+        "#1a0a0e",
+        "#5a0c18",
+        "#c82434",
+        "#ff8a8a",
+        "#fffbea"
+      ]
     },
     {
       "file": "fx_hoshiguma_saw_spark.png",
@@ -566,7 +790,19 @@
       "colors": 7,
       "density": 1,
       "fire": null,
-      "sha256": "1b9fca17010a92ea1215492be3646cd8cd52a19c9921d7203411b8b356bbd326"
+      "sha256": "1b9fca17010a92ea1215492be3646cd8cd52a19c9921d7203411b8b356bbd326",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#080e18",
+        "#1d402d",
+        "#2d6037",
+        "#4d8445",
+        "#7da862",
+        "#a6c882",
+        "#f1fbde"
+      ]
     },
     {
       "file": "fx_hoshiguma_saw_spark@2x.png",
@@ -593,7 +829,19 @@
       "colors": 7,
       "density": 2,
       "fire": null,
-      "sha256": "193346b52e3bd1cef34c7a6d9a1b35cf3d6a45ac1a2f37cf4f5cd03a737b6f13"
+      "sha256": "193346b52e3bd1cef34c7a6d9a1b35cf3d6a45ac1a2f37cf4f5cd03a737b6f13",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#080e18",
+        "#1d402d",
+        "#2d6037",
+        "#4d8445",
+        "#7da862",
+        "#a6c882",
+        "#f1fbde"
+      ]
     },
     {
       "file": "fx_mon3tr_afterimage.png",
@@ -620,7 +868,13 @@
       "colors": 1,
       "density": 1,
       "fire": null,
-      "sha256": "7c0525e01e709feeb466d74495f210efe99ab9ec5de564e1272da24a0593fc55"
+      "sha256": "4f1dea5a7edfc2bb45903727c6da2b0ea4f3b90d86ea3f1f56f0e6152d1cdf8c",
+      "color_reference": [
+        "fx_mon3tr_claw.png"
+      ],
+      "palette": [
+        "#80a060"
+      ]
     },
     {
       "file": "fx_mon3tr_afterimage@2x.png",
@@ -647,7 +901,13 @@
       "colors": 1,
       "density": 2,
       "fire": null,
-      "sha256": "f0a7b63bfb1e1762bec5e823c95d5cf331953e4d9bf06be4853aa0664b461c40"
+      "sha256": "73161de468c13a267b381e4b61a896823a2bf4934d2b7a57ad8e93d6ed0b7621",
+      "color_reference": [
+        "fx_mon3tr_claw.png"
+      ],
+      "palette": [
+        "#80a060"
+      ]
     },
     {
       "file": "fx_mon3tr_slam_ring.png",
@@ -671,10 +931,22 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 8,
+      "colors": 7,
       "density": 1,
       "fire": null,
-      "sha256": "ec73a4a49f6e61f3b481f9f8fc2ab1ae4d16d00e6f5fd99906e1849f7be96790"
+      "sha256": "31a83e4ac9dce919c4c2f1b6b79b5afaf57fd5c9aa67f19944b9e4ccb902ab29",
+      "color_reference": [
+        "fx_mon3tr_claw.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#205020",
+        "#509040",
+        "#80a060",
+        "#b0e090",
+        "#f0ffb0",
+        "#ffffff"
+      ]
     },
     {
       "file": "fx_mon3tr_slam_ring@2x.png",
@@ -698,10 +970,22 @@
       ],
       "layer": "ground",
       "loop": false,
-      "colors": 8,
+      "colors": 7,
       "density": 2,
       "fire": null,
-      "sha256": "d011d48b6001cb8ecd191a3fdadc4de41744b2d9ade04fc866f17a9f9d40a8b3"
+      "sha256": "4b4757cd2b9993e1f86c35a9ca126b20df6387f5c5f6fddd48704130311cd682",
+      "color_reference": [
+        "fx_mon3tr_claw.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#205020",
+        "#509040",
+        "#80a060",
+        "#b0e090",
+        "#f0ffb0",
+        "#ffffff"
+      ]
     },
     {
       "file": "fx_slash_heavy_rose.png",
@@ -725,10 +1009,20 @@
       ],
       "layer": "front",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 1,
       "fire": null,
-      "sha256": "3f6e318ab367cadb4f0176fdb762ee69e8a97b5030bb4db1ef150d91e49f03f8"
+      "sha256": "d85cb5389e1a4a9e95bd11d3e8d8a9f4b7e2fd0375bb7855f1cbf70ec0cefe1b",
+      "color_reference": [
+        "fx_hoshiguma_demon_slash.png"
+      ],
+      "palette": [
+        "#1a0a0e",
+        "#5a0c18",
+        "#c82434",
+        "#ff8a8a",
+        "#fffbea"
+      ]
     },
     {
       "file": "fx_slash_heavy_rose@2x.png",
@@ -752,10 +1046,20 @@
       ],
       "layer": "front",
       "loop": false,
-      "colors": 7,
+      "colors": 5,
       "density": 2,
       "fire": null,
-      "sha256": "e8969a92d6cdbbef48a68133272087a779b815c2b63e1d4787700fe36bf4bd8d"
+      "sha256": "1bf7070bd9bf67f7d9be225a3df9b9a3ad9b374725216d6f62402d9f801f49dd",
+      "color_reference": [
+        "fx_hoshiguma_demon_slash.png"
+      ],
+      "palette": [
+        "#1a0a0e",
+        "#5a0c18",
+        "#c82434",
+        "#ff8a8a",
+        "#fffbea"
+      ]
     },
     {
       "file": "fx_texas_pin_shatter.png",
@@ -782,7 +1086,21 @@
       "colors": 8,
       "density": 1,
       "fire": null,
-      "sha256": "5cd4ad0ee70f1cdccb6012de940abd5c4c92ee919d680004c14cc45feb5f592f"
+      "sha256": "5cd4ad0ee70f1cdccb6012de940abd5c4c92ee919d680004c14cc45feb5f592f",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#372e1e",
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_pin_shatter@2x.png",
@@ -809,7 +1127,21 @@
       "colors": 8,
       "density": 2,
       "fire": null,
-      "sha256": "3b4abfbdd799134b439d47cb27159af6008430a1b5380dc2da99a6eb5571a9c4"
+      "sha256": "3b4abfbdd799134b439d47cb27159af6008430a1b5380dc2da99a6eb5571a9c4",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#372e1e",
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_pin_sword.png",
@@ -838,7 +1170,20 @@
       "fire": null,
       "sha256": "267e7314bdf431bd4de9fd176455596f00d71e1903b84ec90d41444df66ca65e",
       "direction": "down",
-      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right.",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#080e18",
+        "#372e1e",
+        "#956e20",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_pin_sword@2x.png",
@@ -867,7 +1212,20 @@
       "fire": null,
       "sha256": "98a94db9f04ea5c057b49d8428a50f51801894f331082093bb731c974830645e",
       "direction": "down",
-      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right.",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#080e18",
+        "#372e1e",
+        "#956e20",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_sword_drop.png",
@@ -896,7 +1254,20 @@
       "fire": null,
       "sha256": "fe30f483c4112f788c295625809dcf611044a538ac80a92af1c4855bf824592e",
       "direction": "down",
-      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right.",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#080e18",
+        "#372e1e",
+        "#956e20",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_sword_drop@2x.png",
@@ -925,7 +1296,20 @@
       "fire": null,
       "sha256": "327606acd67855c9bc07cc852b133a701faeb1c80e3c86b554944effc345f3be",
       "direction": "down",
-      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right.",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#080e18",
+        "#372e1e",
+        "#956e20",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_sword_impact.png",
@@ -952,7 +1336,21 @@
       "colors": 8,
       "density": 1,
       "fire": null,
-      "sha256": "6391e1239b3d4b7e6e29e67f53561b9b7f9e80a52d4768a7fc80fe7f82b02b9a"
+      "sha256": "6391e1239b3d4b7e6e29e67f53561b9b7f9e80a52d4768a7fc80fe7f82b02b9a",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#372e1e",
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "fx_texas_sword_impact@2x.png",
@@ -979,7 +1377,21 @@
       "colors": 8,
       "density": 2,
       "fire": null,
-      "sha256": "8e3422ec8d9a81dc80a42ce9752e3147ce3dda0dd46e8f7c0a6e82258b0486c2"
+      "sha256": "8e3422ec8d9a81dc80a42ce9752e3147ce3dda0dd46e8f7c0a6e82258b0486c2",
+      "color_reference": [
+        "fx_texas_blade@2x.png",
+        "user override golden-yellow sword rain"
+      ],
+      "palette": [
+        "#372e1e",
+        "#654d1e",
+        "#956e20",
+        "#be952b",
+        "#e0b444",
+        "#f4cf69",
+        "#ffe89e",
+        "#fff6d0"
+      ]
     },
     {
       "file": "op_hoshiguma_throw.png",
@@ -1006,7 +1418,36 @@
       "colors": 24,
       "density": 1,
       "fire": 2,
-      "sha256": "512b13f38ce67e1896e108b8fa9f583430efef1879a00c27ff048f67705acdfb"
+      "sha256": "512b13f38ce67e1896e108b8fa9f583430efef1879a00c27ff048f67705acdfb",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#050615",
+        "#080e18",
+        "#134854",
+        "#14161e",
+        "#15192c",
+        "#197a80",
+        "#1a1c24",
+        "#1c7c80",
+        "#1f212a",
+        "#1fa39c",
+        "#22252f",
+        "#2e323e",
+        "#2fc7b6",
+        "#3a3e4a",
+        "#4c505c",
+        "#4fd6c0",
+        "#5e6370",
+        "#7a808c",
+        "#7de0ce",
+        "#d6bfb9",
+        "#dde4ed",
+        "#e7e6e7",
+        "#fefaf3",
+        "#ffe4d1"
+      ]
     },
     {
       "file": "op_hoshiguma_throw@2x.png",
@@ -1033,7 +1474,36 @@
       "colors": 24,
       "density": 2,
       "fire": 2,
-      "sha256": "36af4f500782a31ae279aad650a408157c2f4da10fe027caac99ae653eb005e4"
+      "sha256": "36af4f500782a31ae279aad650a408157c2f4da10fe027caac99ae653eb005e4",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#050615",
+        "#080e18",
+        "#134854",
+        "#14161e",
+        "#15192c",
+        "#197a80",
+        "#1a1c24",
+        "#1c7c80",
+        "#1f212a",
+        "#1fa39c",
+        "#22252f",
+        "#2e323e",
+        "#2fc7b6",
+        "#3a3e4a",
+        "#4c505c",
+        "#4fd6c0",
+        "#5e6370",
+        "#7a808c",
+        "#7de0ce",
+        "#d6bfb9",
+        "#dde4ed",
+        "#e7e6e7",
+        "#fefaf3",
+        "#ffe4d1"
+      ]
     },
     {
       "file": "op_kaltsit_m_leap.png",
@@ -1062,7 +1532,57 @@
       "fire": null,
       "sha256": "d0c2d33dbfbcdb77eb70ac721aebb655ac046d2ea6070010d755ffe2e0334ac9",
       "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
-      "floating": true
+      "floating": true,
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000008",
+        "#000810",
+        "#000820",
+        "#080e18",
+        "#081018",
+        "#081820",
+        "#102020",
+        "#102030",
+        "#102820",
+        "#102828",
+        "#182028",
+        "#202830",
+        "#203030",
+        "#283030",
+        "#283840",
+        "#284028",
+        "#303838",
+        "#304048",
+        "#304830",
+        "#384040",
+        "#384840",
+        "#384848",
+        "#386028",
+        "#405040",
+        "#405050",
+        "#485050",
+        "#485858",
+        "#506058",
+        "#506840",
+        "#585868",
+        "#586058",
+        "#607068",
+        "#686858",
+        "#708070",
+        "#709030",
+        "#782828",
+        "#809080",
+        "#98a898",
+        "#b0b8a8",
+        "#b8c0a8",
+        "#b8c0b8",
+        "#c8d0c0",
+        "#c8d830",
+        "#d0d8a8",
+        "#e0e8d8"
+      ]
     },
     {
       "file": "op_kaltsit_m_leap@2x.png",
@@ -1091,7 +1611,57 @@
       "fire": null,
       "sha256": "af0999ded7c49e3d8beb747069341f19485c2b49d550fd1be39e7eecc8967ac6",
       "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
-      "floating": true
+      "floating": true,
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000008",
+        "#000810",
+        "#000820",
+        "#080e18",
+        "#081018",
+        "#081820",
+        "#102020",
+        "#102030",
+        "#102820",
+        "#102828",
+        "#182028",
+        "#202830",
+        "#203030",
+        "#283030",
+        "#283840",
+        "#284028",
+        "#303838",
+        "#304048",
+        "#304830",
+        "#384040",
+        "#384840",
+        "#384848",
+        "#386028",
+        "#405040",
+        "#405050",
+        "#485050",
+        "#485858",
+        "#506058",
+        "#506840",
+        "#585868",
+        "#586058",
+        "#607068",
+        "#686858",
+        "#708070",
+        "#709030",
+        "#782828",
+        "#809080",
+        "#98a898",
+        "#b0b8a8",
+        "#b8c0a8",
+        "#b8c0b8",
+        "#c8d0c0",
+        "#c8d830",
+        "#d0d8a8",
+        "#e0e8d8"
+      ]
     },
     {
       "file": "op_kaltsit_m_lunge.png",
@@ -1120,7 +1690,57 @@
       "fire": 3,
       "sha256": "100c6b55e6ff30a1482333e6f61e57ea3332cf6bf285a0afb2683efa4aedf7ed",
       "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
-      "floating": true
+      "floating": true,
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000008",
+        "#000810",
+        "#000820",
+        "#080e18",
+        "#081018",
+        "#081820",
+        "#102020",
+        "#102030",
+        "#102820",
+        "#102828",
+        "#182028",
+        "#202830",
+        "#203030",
+        "#283030",
+        "#283840",
+        "#284028",
+        "#303838",
+        "#304048",
+        "#304830",
+        "#384040",
+        "#384840",
+        "#384848",
+        "#386028",
+        "#405040",
+        "#405050",
+        "#485050",
+        "#485858",
+        "#506058",
+        "#506840",
+        "#585868",
+        "#586058",
+        "#607068",
+        "#686858",
+        "#708070",
+        "#709030",
+        "#782828",
+        "#809080",
+        "#98a898",
+        "#b0b8a8",
+        "#b8c0a8",
+        "#b8c0b8",
+        "#c8d0c0",
+        "#c8d830",
+        "#d0d8a8",
+        "#e0e8d8"
+      ]
     },
     {
       "file": "op_kaltsit_m_lunge@2x.png",
@@ -1149,7 +1769,57 @@
       "fire": 3,
       "sha256": "c1837b590b7797f5651208ad4c5ed1ce226fb473a7056f0c3c56fd4dc50432b3",
       "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
-      "floating": true
+      "floating": true,
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000008",
+        "#000810",
+        "#000820",
+        "#080e18",
+        "#081018",
+        "#081820",
+        "#102020",
+        "#102030",
+        "#102820",
+        "#102828",
+        "#182028",
+        "#202830",
+        "#203030",
+        "#283030",
+        "#283840",
+        "#284028",
+        "#303838",
+        "#304048",
+        "#304830",
+        "#384040",
+        "#384840",
+        "#384848",
+        "#386028",
+        "#405040",
+        "#405050",
+        "#485050",
+        "#485858",
+        "#506058",
+        "#506840",
+        "#585868",
+        "#586058",
+        "#607068",
+        "#686858",
+        "#708070",
+        "#709030",
+        "#782828",
+        "#809080",
+        "#98a898",
+        "#b0b8a8",
+        "#b8c0a8",
+        "#b8c0b8",
+        "#c8d0c0",
+        "#c8d830",
+        "#d0d8a8",
+        "#e0e8d8"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t1.png",
@@ -1176,7 +1846,15 @@
       "colors": 3,
       "density": 1,
       "fire": null,
-      "sha256": "c12197fac02520b6e11b5a3bd5d4dee2fa606ef0a1b3a04606bebc7dd3078b65"
+      "sha256": "c12197fac02520b6e11b5a3bd5d4dee2fa606ef0a1b3a04606bebc7dd3078b65",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#a4b9c7",
+        "#f7faf5"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t1@2x.png",
@@ -1203,7 +1881,15 @@
       "colors": 3,
       "density": 2,
       "fire": null,
-      "sha256": "616e3e156f1202816309cac102966de19bb9ae77a9306ac318b7c2942a60aea9"
+      "sha256": "616e3e156f1202816309cac102966de19bb9ae77a9306ac318b7c2942a60aea9",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#a4b9c7",
+        "#f7faf5"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t2.png",
@@ -1230,7 +1916,15 @@
       "colors": 3,
       "density": 1,
       "fire": null,
-      "sha256": "c26f7c2b9ad29b60e3b2608a45412a09376c8215af8e4c09ff89901afd465ff4"
+      "sha256": "c26f7c2b9ad29b60e3b2608a45412a09376c8215af8e4c09ff89901afd465ff4",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#c7aa69",
+        "#ffeebc"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t2@2x.png",
@@ -1257,7 +1951,15 @@
       "colors": 3,
       "density": 2,
       "fire": null,
-      "sha256": "d6f4771224f3fb1a056d983e425c78a56794cbf40be1bca5685019a3abe87190"
+      "sha256": "d6f4771224f3fb1a056d983e425c78a56794cbf40be1bca5685019a3abe87190",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#c7aa69",
+        "#ffeebc"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t3.png",
@@ -1284,7 +1986,15 @@
       "colors": 3,
       "density": 1,
       "fire": null,
-      "sha256": "098804571ef834eef0801a6e151c581d9efcb5d0c70370252810dfeaa87553d5"
+      "sha256": "098804571ef834eef0801a6e151c581d9efcb5d0c70370252810dfeaa87553d5",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#cf9b31",
+        "#ffda67"
+      ]
     },
     {
       "file": "proj_exusiai_bullet_t3@2x.png",
@@ -1311,7 +2021,15 @@
       "colors": 3,
       "density": 2,
       "fire": null,
-      "sha256": "d833e3c380d5e123b1ed2f50220fe84a4729761b28f23a2304a366511a65281f"
+      "sha256": "d833e3c380d5e123b1ed2f50220fe84a4729761b28f23a2304a366511a65281f",
+      "color_reference": [
+        "docs/93 white / pale gold / gold progression"
+      ],
+      "palette": [
+        "#080e18",
+        "#cf9b31",
+        "#ffda67"
+      ]
     },
     {
       "file": "proj_hoshiguma_sawshield.png",
@@ -1339,7 +2057,19 @@
       "density": 1,
       "fire": null,
       "sha256": "60733bd8ab90498852618a77f63277d978a35465fad1bec8bce33df8d10966e2",
-      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon."
+      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon.",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#080e18",
+        "#1e272b",
+        "#3d4c4a",
+        "#678275",
+        "#7ea988",
+        "#a7bea9",
+        "#d9e7d5"
+      ]
     },
     {
       "file": "proj_hoshiguma_sawshield@2x.png",
@@ -1367,7 +2097,19 @@
       "density": 2,
       "fire": null,
       "sha256": "da97956ba83f144ccd0952a7026406f6326767802729f326af1d329ac054020f",
-      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon."
+      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon.",
+      "color_reference": [
+        "op_hoshiguma_idle@2x.png; green Hannya highlights"
+      ],
+      "palette": [
+        "#080e18",
+        "#1e272b",
+        "#3d4c4a",
+        "#678275",
+        "#7ea988",
+        "#a7bea9",
+        "#d9e7d5"
+      ]
     }
   ],
   "sources": [
