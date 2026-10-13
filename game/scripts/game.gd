@@ -1672,6 +1672,9 @@ const V6_FRAMES := {
 	"fx_exusiai_hit_s1": [3, 24.0], "fx_exusiai_hit_s2": [3, 24.0], "fx_exusiai_hit_s3": [3, 24.0], "fx_exusiai_hit_gold": [3, 24.0],
 	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
 	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
+	# 预留：Codex 原尺寸大声浪（docs/61 §5.6 扩散缓动、§10 第 17 条；还没交图，缺图时 skalter.json 回退到上面的小帧条 + 程序余波环）：
+	# 8 帧 12fps（≈ 扩散 0.65 秒），1x 帧 208×120、圈心 = 帧中心，末帧外圈半径约 95（= 歌域 190 / 2 世界像素）；明 / 暗两套共用规格
+	"fx_skalter_wave_big": [8, 12.0], "fx_skalter_wave_big_dim": [8, 12.0],
 	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
 	"fx_skalter_s3_back": [6, 12.0], "fx_skalter_s3_front": [6, 12.0], "fx_skalter_s3_orbit": [6, 12.0],
 	# Codex 浊心斯卡蒂 S3 地面大漩涡（docs/66，art/incoming/skalter_vortex_handoff.md，b49d0047）：320×176 × 8 帧 10fps 循环，原点 (160, 88) = 帧中心；
