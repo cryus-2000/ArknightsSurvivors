@@ -194,6 +194,41 @@ static func normalize(b: Dictionary) -> Dictionary:
 	return out
 
 
+## 两份正文哪些字段不同（日志用）：["set.t", "set.d.master", "prog.rel", "ops"……]
+static func diff_keys(a: Dictionary, b: Dictionary) -> Array:
+	var out := []
+	var na := normalize(a) if valid_body(a) else a
+	var nb := normalize(b) if valid_body(b) else b
+	for k in _keys(na, nb):
+		if k == "set" or k == "prog":
+			continue
+		if canon(na.get(k)) != canon(nb.get(k)):
+			out.append(str(k))
+	for k in _keys(na.get("prog", {}), nb.get("prog", {})):
+		if canon(na.get("prog", {}).get(k)) != canon(nb.get("prog", {}).get(k)):
+			out.append("prog." + str(k))
+	var sa: Dictionary = na.get("set", {})
+	var sb: Dictionary = nb.get("set", {})
+	for k in _keys(sa, sb):
+		if k == "d":
+			for dk in _keys(sa.get("d", {}), sb.get("d", {})):
+				if canon(sa.get("d", {}).get(dk)) != canon(sb.get("d", {}).get(dk)):
+					out.append("set.d." + str(dk))
+		elif canon(sa.get(k)) != canon(sb.get(k)):
+			out.append("set." + str(k))
+	return out
+
+
+static func _keys(a, b) -> Array:
+	var out := []
+	for d in [a, b]:
+		if d is Dictionary:
+			for k in d:
+				if not out.has(k):
+					out.append(k)
+	return out
+
+
 ## 并集：保留 a 的顺序，再接上 b 里 a 没有的
 static func union(a: Array, b: Array) -> Array:
 	var out := a.duplicate()

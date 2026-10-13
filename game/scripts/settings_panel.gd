@@ -41,7 +41,7 @@ const ROWS := [
 	# B站云存档（docs/89）：只在 B站 Toy 环境（Cloud.supported）多出「存档」页。状态行点一下 = 立即同步；恢复 / 覆盖要点两次确认
 	{"cn": "云存档", "en": "CLOUD SAVE", "key": "cloud", "type": "cloud"},
 	{"cn": "从云端恢复", "en": "RESTORE", "key": "cloud_pull", "type": "cloud_pull"},
-	{"cn": "以本地覆盖云端", "en": "OVERWRITE", "key": "cloud_push", "type": "cloud_push"},
+	{"cn": "以本地覆盖云端", "en": "", "key": "cloud_push", "type": "cloud_push"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
@@ -427,8 +427,9 @@ func _draw() -> void:
 		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), tabs[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
 		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), tabs[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
 	if not Pad.touch_ui():
-		UI.keycap(self, font, Vector2(r.end.x - 118, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
-		UI.keycap(self, font, Vector2(r.end.x - 70, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
+		var kx: float = 0.0 if tabs.size() <= TABS.size() else 34.0   # 多出「存档」页（B站环境）：键位提示右移，不压标签
+		UI.keycap(self, font, Vector2(r.end.x - 118 + kx, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
+		UI.keycap(self, font, Vector2(r.end.x - 70 + kx * 0.6, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
 	UI.rule(self, Vector2(r.position.x + 30, ty + (50 if not touch else 58)), Vector2(r.end.x - 30, ty + (50 if not touch else 58)), UI.EDGE_DIM)
 	row_rects.clear()
 	if touch:
@@ -528,7 +529,7 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			var can: bool = Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()
 			var conf: bool = confirm_key == row.type and st < confirm_until
 			var hint: String = "再点一次确认" if conf else (CLOUD_HINT[row.type] if can else ("请更新游戏" if Cloud.st == Cloud.St.NEWER else "登录后可用"))
-			UI.text(ci, font, Vector2(vx - 14 - (230.0 if touch else 0.0), rr.position.y + ty0), hint, 13 if touch else 11, UI.GOLD if conf else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
+			UI.text(ci, font, Vector2(vx - 14 - 230.0, rr.position.y + ty0), hint, 13 if touch else 11, UI.GOLD if conf else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
 			var bh3: float = 32.0 if touch else 26.0
 			var br3 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh3)
 			ci.draw_rect(br3, Color(0.2, 0.15, 0.05, 0.9) if conf else (Color(0.05, 0.2, 0.24, 0.9) if on and can else Color(0.04, 0.09, 0.12, 0.8)))

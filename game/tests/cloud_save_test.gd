@@ -135,6 +135,8 @@ func merge_tests() -> void:
 	c.prog.open = false
 	var m := Pack.merge(l, c)
 	check(m.prog.rel == ["1", "2", "3", "4"], "藏品应取并集：%s" % [m.prog.rel])
+	var dk := Pack.diff_keys(l, m)
+	check("prog.rel" in dk and "prog.diff" in dk and not ("set.d.master" in dk) and Pack.diff_keys(m, m).is_empty(), "diff_keys：%s" % [dk])
 	check(m.prog.gal == ["enemy:bone", "enemy:runner"], "图鉴应取并集")
 	check(m.prog.end == ["standard", "e2"], "结局应取并集")
 	check(int(m.prog.diff) == 2, "已解锁难度应取较大值")

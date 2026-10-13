@@ -261,10 +261,12 @@ func _on_get(args: Array) -> void:
 		Cfg.cloud_apply(merged)
 		Cfg.save()   # 写回本地（st 仍是 SYNCING / busy，local_saved 不会排上传）
 		Cfg.apply()
-		_log("合并了云端存档")
+		_log("合并了云端存档，本地变化：%s" % ", ".join(Pack.diff_keys(local, merged)))
 	if res.status == "ok" and Pack.canon(merged) == Pack.canon(res.body):
 		_done_ok(Pack.sig(merged))
 		return
+	if res.status == "ok":
+		_log("云端需要更新：%s" % ", ".join(Pack.diff_keys(res.body, merged)))
 	_upload(merged)
 
 
