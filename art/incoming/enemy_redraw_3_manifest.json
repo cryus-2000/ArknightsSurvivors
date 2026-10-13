@@ -1,0 +1,2257 @@
+{
+  "brief": "docs/94_codex_enemy_redraw.md",
+  "batch": 3,
+  "scope": "art/incoming only",
+  "units": [
+    {
+      "id": "pocket",
+      "batch": 3,
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-764a236a-d8e8-4a44-b8f3-df59159226f1.png",
+      "source_sha256": "426b8ec4b5adde2d24433a4dcf05a723ddfa8cb6dc2f0db40ea9debe1f21a57d",
+      "source_rectangles": [
+        {
+          "action": "",
+          "frame": 0,
+          "source_rect": [
+            0,
+            0,
+            324,
+            404
+          ],
+          "alpha_bbox": [
+            62,
+            116,
+            316,
+            403
+          ]
+        },
+        {
+          "action": "",
+          "frame": 1,
+          "source_rect": [
+            324,
+            0,
+            649,
+            404
+          ],
+          "alpha_bbox": [
+            49,
+            111,
+            313,
+            404
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 0,
+          "source_rect": [
+            0,
+            404,
+            324,
+            808
+          ],
+          "alpha_bbox": [
+            62,
+            93,
+            324,
+            377
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 1,
+          "source_rect": [
+            324,
+            404,
+            649,
+            808
+          ],
+          "alpha_bbox": [
+            0,
+            87,
+            293,
+            383
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 2,
+          "source_rect": [
+            649,
+            404,
+            974,
+            808
+          ],
+          "alpha_bbox": [
+            49,
+            89,
+            294,
+            383
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 3,
+          "source_rect": [
+            974,
+            404,
+            1298,
+            808
+          ],
+          "alpha_bbox": [
+            46,
+            91,
+            281,
+            386
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 0,
+          "source_rect": [
+            0,
+            808,
+            324,
+            1212
+          ],
+          "alpha_bbox": [
+            62,
+            66,
+            316,
+            356
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 1,
+          "source_rect": [
+            324,
+            808,
+            649,
+            1212
+          ],
+          "alpha_bbox": [
+            43,
+            31,
+            325,
+            360
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 2,
+          "source_rect": [
+            649,
+            808,
+            974,
+            1212
+          ],
+          "alpha_bbox": [
+            0,
+            13,
+            325,
+            358
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 3,
+          "source_rect": [
+            974,
+            808,
+            1298,
+            1212
+          ],
+          "alpha_bbox": [
+            0,
+            64,
+            298,
+            354
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "e_pocket.png",
+          "frames": 2,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "98326e8d308249ae94c98c0a91f77fcee455a326496f6423bb24b2bbfce29174"
+        },
+        {
+          "file": "e_pocket_move.png",
+          "frames": 4,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "4223b98a33b8eea153ac4975f8d18ca7197c40d2b409cb670846d760814089b1"
+        },
+        {
+          "file": "e_pocket_attack.png",
+          "frames": 4,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "720f93d16d1702df829ea0be4fff858603f7872571db31867d1d5686c755c73c"
+        },
+        {
+          "file": "e_pocket@2x.png",
+          "frames": 2,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "06bf6374382c0b2109af5c0deaee5d1465f0f6e68eec02ea86738bfb167e0a1a"
+        },
+        {
+          "file": "e_pocket_move@2x.png",
+          "frames": 4,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "080487691b7a02b97d939814cb4e242d9f4c509e999568524b142f3755c080c1"
+        },
+        {
+          "file": "e_pocket_attack@2x.png",
+          "frames": 4,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "ff51ce465ab5c8d7e9f8fc0646d6f60d8a73e4dd3b6282a86503e4ed8233bdaf"
+        }
+      ],
+      "checks": [
+        {
+          "density": 1,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            5,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            4,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            4,
+            6,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            5,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            5,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            5,
+            5,
+            24,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            5,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            4,
+            2,
+            26,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            2,
+            1,
+            27,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            5,
+            5,
+            25,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            10,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            8,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            8,
+            12,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            10,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            10,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            10,
+            10,
+            48,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            10,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            8,
+            4,
+            52,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            4,
+            2,
+            54,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            10,
+            10,
+            50,
+            56
+          ],
+          "colors": 15
+        }
+      ],
+      "palette": [
+        [
+          255,
+          154,
+          60
+        ],
+        [
+          226,
+          230,
+          232
+        ],
+        [
+          214,
+          222,
+          225
+        ],
+        [
+          189,
+          209,
+          216
+        ],
+        [
+          184,
+          204,
+          212
+        ],
+        [
+          180,
+          203,
+          211
+        ],
+        [
+          183,
+          196,
+          201
+        ],
+        [
+          168,
+          195,
+          206
+        ],
+        [
+          141,
+          158,
+          179
+        ],
+        [
+          84,
+          79,
+          118
+        ],
+        [
+          55,
+          75,
+          115
+        ],
+        [
+          55,
+          65,
+          82
+        ],
+        [
+          55,
+          47,
+          96
+        ],
+        [
+          47,
+          46,
+          91
+        ]
+      ],
+      "outline": [
+        8,
+        14,
+        24
+      ]
+    },
+    {
+      "id": "skimmer",
+      "batch": 3,
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-31ed54fd-73c5-4348-8df6-b9cd09f1ab81.png",
+      "source_sha256": "9dbf77dce666c915ed06b1905646abdb6b6e5379ce4b8fd95ba980b008a37189",
+      "source_rectangles": [
+        {
+          "action": "",
+          "frame": 0,
+          "source_rect": [
+            0,
+            0,
+            346,
+            379
+          ],
+          "alpha_bbox": [
+            26,
+            113,
+            344,
+            317
+          ]
+        },
+        {
+          "action": "",
+          "frame": 1,
+          "source_rect": [
+            346,
+            0,
+            691,
+            379
+          ],
+          "alpha_bbox": [
+            18,
+            110,
+            343,
+            323
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 0,
+          "source_rect": [
+            0,
+            379,
+            346,
+            759
+          ],
+          "alpha_bbox": [
+            26,
+            101,
+            346,
+            293
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 1,
+          "source_rect": [
+            346,
+            379,
+            691,
+            759
+          ],
+          "alpha_bbox": [
+            0,
+            63,
+            345,
+            311
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 2,
+          "source_rect": [
+            691,
+            379,
+            1036,
+            759
+          ],
+          "alpha_bbox": [
+            0,
+            111,
+            345,
+            295
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 3,
+          "source_rect": [
+            1036,
+            379,
+            1382,
+            759
+          ],
+          "alpha_bbox": [
+            0,
+            110,
+            330,
+            329
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 0,
+          "source_rect": [
+            0,
+            759,
+            346,
+            1138
+          ],
+          "alpha_bbox": [
+            75,
+            69,
+            313,
+            244
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 1,
+          "source_rect": [
+            346,
+            759,
+            691,
+            1138
+          ],
+          "alpha_bbox": [
+            48,
+            57,
+            345,
+            252
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 2,
+          "source_rect": [
+            691,
+            759,
+            1036,
+            1138
+          ],
+          "alpha_bbox": [
+            0,
+            22,
+            345,
+            239
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 3,
+          "source_rect": [
+            1036,
+            759,
+            1382,
+            1138
+          ],
+          "alpha_bbox": [
+            0,
+            64,
+            324,
+            271
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "e_skimmer.png",
+          "frames": 2,
+          "frame_size": [
+            34,
+            28
+          ],
+          "density": 1,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "0c27f77c4e71e2449975f753864c518f05f056b69417f4066a0fdcde55064197"
+        },
+        {
+          "file": "e_skimmer_move.png",
+          "frames": 4,
+          "frame_size": [
+            34,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "649609029c4604e22cfa5affb4401fac4cdbe3ac1e0882457f96c4b459300ba1"
+        },
+        {
+          "file": "e_skimmer_attack.png",
+          "frames": 4,
+          "frame_size": [
+            34,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "20f387f6310b177843cd8fd51e86be5757490562c3459299deac94c393770005"
+        },
+        {
+          "file": "e_skimmer@2x.png",
+          "frames": 2,
+          "frame_size": [
+            68,
+            56
+          ],
+          "density": 2,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "cd2bca988e53d884d8e6ac6dcd4f49bcd0d9c202f0fdc2b4b39ae5e7cc302e1a"
+        },
+        {
+          "file": "e_skimmer_move@2x.png",
+          "frames": 4,
+          "frame_size": [
+            68,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "dbc90336043b38db2b0e8a1a91fdc3fe6fed63d1205f1276526f096322e96b88"
+        },
+        {
+          "file": "e_skimmer_attack@2x.png",
+          "frames": 4,
+          "frame_size": [
+            68,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "ad1814df693ffe510382e112922a09f3b76bc19d1d8e855454bdcb775ef37759"
+        }
+      ],
+      "checks": [
+        {
+          "density": 1,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            2,
+            9,
+            32,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            2,
+            8,
+            32,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            2,
+            10,
+            32,
+            28
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            2,
+            5,
+            31,
+            28
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            1,
+            11,
+            33,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            3,
+            7,
+            30,
+            28
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            6,
+            12,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            3,
+            10,
+            31,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            3,
+            8,
+            31,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            2,
+            9,
+            32,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            4,
+            18,
+            64,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            4,
+            16,
+            64,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            4,
+            20,
+            64,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            4,
+            10,
+            62,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            2,
+            22,
+            66,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            6,
+            14,
+            60,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            12,
+            24,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            6,
+            20,
+            62,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            6,
+            16,
+            62,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            4,
+            18,
+            64,
+            56
+          ],
+          "colors": 15
+        }
+      ],
+      "palette": [
+        [
+          247,
+          245,
+          240
+        ],
+        [
+          227,
+          214,
+          200
+        ],
+        [
+          255,
+          154,
+          60
+        ],
+        [
+          182,
+          178,
+          175
+        ],
+        [
+          160,
+          149,
+          148
+        ],
+        [
+          113,
+          119,
+          144
+        ],
+        [
+          82,
+          106,
+          156
+        ],
+        [
+          62,
+          77,
+          111
+        ],
+        [
+          66,
+          65,
+          72
+        ],
+        [
+          55,
+          65,
+          91
+        ],
+        [
+          55,
+          65,
+          82
+        ],
+        [
+          47,
+          65,
+          108
+        ],
+        [
+          44,
+          57,
+          90
+        ],
+        [
+          34,
+          47,
+          80
+        ]
+      ],
+      "outline": [
+        8,
+        14,
+        24
+      ]
+    },
+    {
+      "id": "mother",
+      "batch": 3,
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-15ad5e65-cf71-4540-8faa-d61467b2fad8.png",
+      "source_sha256": "9ce76bc98e6e59143d90793b6933c0844be225b12895bd25f012027a0f7823f5",
+      "source_rectangles": [
+        {
+          "action": "",
+          "frame": 0,
+          "source_rect": [
+            0,
+            0,
+            324,
+            405
+          ],
+          "alpha_bbox": [
+            20,
+            95,
+            314,
+            385
+          ]
+        },
+        {
+          "action": "",
+          "frame": 1,
+          "source_rect": [
+            324,
+            0,
+            648,
+            405
+          ],
+          "alpha_bbox": [
+            14,
+            95,
+            308,
+            388
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 0,
+          "source_rect": [
+            0,
+            405,
+            324,
+            809
+          ],
+          "alpha_bbox": [
+            17,
+            83,
+            324,
+            365
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 1,
+          "source_rect": [
+            324,
+            405,
+            648,
+            809
+          ],
+          "alpha_bbox": [
+            0,
+            98,
+            322,
+            366
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 2,
+          "source_rect": [
+            648,
+            405,
+            971,
+            809
+          ],
+          "alpha_bbox": [
+            15,
+            88,
+            323,
+            366
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 3,
+          "source_rect": [
+            971,
+            405,
+            1295,
+            809
+          ],
+          "alpha_bbox": [
+            0,
+            87,
+            315,
+            366
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 0,
+          "source_rect": [
+            0,
+            809,
+            324,
+            1214
+          ],
+          "alpha_bbox": [
+            11,
+            50,
+            322,
+            346
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 1,
+          "source_rect": [
+            324,
+            809,
+            648,
+            1214
+          ],
+          "alpha_bbox": [
+            14,
+            42,
+            324,
+            344
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 2,
+          "source_rect": [
+            648,
+            809,
+            971,
+            1214
+          ],
+          "alpha_bbox": [
+            0,
+            71,
+            323,
+            344
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 3,
+          "source_rect": [
+            971,
+            809,
+            1295,
+            1214
+          ],
+          "alpha_bbox": [
+            0,
+            73,
+            314,
+            345
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "e_mother.png",
+          "frames": 2,
+          "frame_size": [
+            34,
+            32
+          ],
+          "density": 1,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "63ee873ce0ba8d902447b6550e0739e1d0f3a38a5d847afc449700d657fad882"
+        },
+        {
+          "file": "e_mother_move.png",
+          "frames": 4,
+          "frame_size": [
+            34,
+            32
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "31c7ed5aac2baa1ce8fd98426278555d67d18cd01f49f264f17ead1f40e9d386"
+        },
+        {
+          "file": "e_mother_attack.png",
+          "frames": 4,
+          "frame_size": [
+            34,
+            32
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "3fcb9154b95fe8ffa3875c258efdd4762a095d95d7034ad144a2715c2c8c50f7"
+        },
+        {
+          "file": "e_mother@2x.png",
+          "frames": 2,
+          "frame_size": [
+            68,
+            64
+          ],
+          "density": 2,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "a4bf5f8f608de7edc001a44015f32dc2b4170e1214cd74dacd3639fc64de32ac"
+        },
+        {
+          "file": "e_mother_move@2x.png",
+          "frames": 4,
+          "frame_size": [
+            68,
+            64
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "e4fb47b2b4e5f81d576134f893069d54701d3a495e40a82eb1a6a223cfef3dc9"
+        },
+        {
+          "file": "e_mother_attack@2x.png",
+          "frames": 4,
+          "frame_size": [
+            68,
+            64
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "3dda2afe9054d91b08951d50e0265482416ec064427ce64e41e369249a647dca"
+        }
+      ],
+      "checks": [
+        {
+          "density": 1,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            2,
+            3,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            2,
+            3,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            1,
+            4,
+            32,
+            32
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            2,
+            5,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            2,
+            4,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            1,
+            4,
+            33,
+            32
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            1,
+            2,
+            33,
+            32
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            1,
+            5,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            1,
+            2,
+            32,
+            32
+          ],
+          "colors": 14
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            2,
+            3,
+            32,
+            32
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            4,
+            6,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            4,
+            6,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            2,
+            8,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            4,
+            10,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            4,
+            8,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            2,
+            8,
+            66,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            2,
+            4,
+            66,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            2,
+            10,
+            64,
+            64
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            2,
+            4,
+            64,
+            64
+          ],
+          "colors": 14
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            4,
+            6,
+            64,
+            64
+          ],
+          "colors": 15
+        }
+      ],
+      "palette": [
+        [
+          245,
+          239,
+          226
+        ],
+        [
+          235,
+          229,
+          221
+        ],
+        [
+          255,
+          154,
+          60
+        ],
+        [
+          215,
+          211,
+          208
+        ],
+        [
+          192,
+          180,
+          171
+        ],
+        [
+          146,
+          158,
+          173
+        ],
+        [
+          112,
+          113,
+          124
+        ],
+        [
+          65,
+          79,
+          112
+        ],
+        [
+          68,
+          67,
+          79
+        ],
+        [
+          55,
+          68,
+          106
+        ],
+        [
+          55,
+          66,
+          82
+        ],
+        [
+          55,
+          65,
+          82
+        ],
+        [
+          69,
+          56,
+          54
+        ],
+        [
+          44,
+          56,
+          85
+        ]
+      ],
+      "outline": [
+        8,
+        14,
+        24
+      ]
+    },
+    {
+      "id": "mimic",
+      "batch": 3,
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-79031e01-fcf6-4339-9f9c-b313e5b0a706.png",
+      "source_sha256": "378c34fba72ff01c093990afcaf1ac1055021d7ffc8717386e2d3b615c5b470c",
+      "source_rectangles": [
+        {
+          "action": "",
+          "frame": 0,
+          "source_rect": [
+            0,
+            0,
+            324,
+            404
+          ],
+          "alpha_bbox": [
+            26,
+            196,
+            321,
+            381
+          ]
+        },
+        {
+          "action": "",
+          "frame": 1,
+          "source_rect": [
+            324,
+            0,
+            649,
+            404
+          ],
+          "alpha_bbox": [
+            31,
+            147,
+            324,
+            381
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 0,
+          "source_rect": [
+            0,
+            404,
+            324,
+            808
+          ],
+          "alpha_bbox": [
+            16,
+            83,
+            315,
+            343
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 1,
+          "source_rect": [
+            324,
+            404,
+            649,
+            808
+          ],
+          "alpha_bbox": [
+            17,
+            60,
+            325,
+            350
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 2,
+          "source_rect": [
+            649,
+            404,
+            974,
+            808
+          ],
+          "alpha_bbox": [
+            16,
+            71,
+            325,
+            352
+          ]
+        },
+        {
+          "action": "_move",
+          "frame": 3,
+          "source_rect": [
+            974,
+            404,
+            1298,
+            808
+          ],
+          "alpha_bbox": [
+            0,
+            90,
+            310,
+            351
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 0,
+          "source_rect": [
+            0,
+            808,
+            324,
+            1212
+          ],
+          "alpha_bbox": [
+            14,
+            46,
+            316,
+            321
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 1,
+          "source_rect": [
+            324,
+            808,
+            649,
+            1212
+          ],
+          "alpha_bbox": [
+            17,
+            36,
+            317,
+            327
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 2,
+          "source_rect": [
+            649,
+            808,
+            974,
+            1212
+          ],
+          "alpha_bbox": [
+            11,
+            10,
+            325,
+            328
+          ]
+        },
+        {
+          "action": "_attack",
+          "frame": 3,
+          "source_rect": [
+            974,
+            808,
+            1298,
+            1212
+          ],
+          "alpha_bbox": [
+            0,
+            66,
+            310,
+            327
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "e_mimic.png",
+          "frames": 2,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "a87be91c5089bb3c02772e75336f26f9d0d186507ea71b14440e54f74a4dcb65"
+        },
+        {
+          "file": "e_mimic_move.png",
+          "frames": 4,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "e4a81221c0fc35d066a35a532764b610085bce5545a8196769bdad30fbd85009"
+        },
+        {
+          "file": "e_mimic_attack.png",
+          "frames": 4,
+          "frame_size": [
+            30,
+            28
+          ],
+          "density": 1,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "f61b657b2551497936a3c796c2e066f8df36b4ac03e452de152b8383e3f14df1"
+        },
+        {
+          "file": "e_mimic@2x.png",
+          "frames": 2,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 3,
+          "hit_frame": null,
+          "sha256": "0cb84112cd5f8991babd67ddc445d9ea4358eba76e76abfd0ea35448cae8be3b"
+        },
+        {
+          "file": "e_mimic_move@2x.png",
+          "frames": 4,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": null,
+          "sha256": "d1ca69734a61b64e8cd95adfbfc575d0ededa01fdfd95ac8fcfe5f315d6764b5"
+        },
+        {
+          "file": "e_mimic_attack@2x.png",
+          "frames": 4,
+          "frame_size": [
+            60,
+            56
+          ],
+          "density": 2,
+          "fps": 6,
+          "hit_frame": 2,
+          "sha256": "02ec910efe6bec064f365ea91a5cf58681fdce68c922105363096315276b87a3"
+        }
+      ],
+      "checks": [
+        {
+          "density": 1,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            2,
+            12,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            2,
+            8,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            2,
+            6,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            2,
+            3,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            2,
+            4,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            2,
+            6,
+            27,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            2,
+            4,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            2,
+            3,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            1,
+            1,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 1,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            2,
+            6,
+            28,
+            28
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 0,
+          "bbox": [
+            4,
+            24,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "",
+          "frame": 1,
+          "bbox": [
+            4,
+            16,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 0,
+          "bbox": [
+            4,
+            12,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 1,
+          "bbox": [
+            4,
+            6,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 2,
+          "bbox": [
+            4,
+            8,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_move",
+          "frame": 3,
+          "bbox": [
+            4,
+            12,
+            54,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 0,
+          "bbox": [
+            4,
+            8,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 1,
+          "bbox": [
+            4,
+            6,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 2,
+          "bbox": [
+            2,
+            2,
+            56,
+            56
+          ],
+          "colors": 15
+        },
+        {
+          "density": 2,
+          "action": "_attack",
+          "frame": 3,
+          "bbox": [
+            4,
+            12,
+            56,
+            56
+          ],
+          "colors": 15
+        }
+      ],
+      "palette": [
+        [
+          245,
+          244,
+          245
+        ],
+        [
+          228,
+          226,
+          227
+        ],
+        [
+          215,
+          210,
+          212
+        ],
+        [
+          196,
+          200,
+          208
+        ],
+        [
+          181,
+          181,
+          189
+        ],
+        [
+          143,
+          154,
+          173
+        ],
+        [
+          113,
+          111,
+          117
+        ],
+        [
+          87,
+          91,
+          106
+        ],
+        [
+          255,
+          154,
+          60
+        ],
+        [
+          62,
+          61,
+          62
+        ],
+        [
+          55,
+          72,
+          103
+        ],
+        [
+          55,
+          65,
+          82
+        ],
+        [
+          55,
+          55,
+          60
+        ],
+        [
+          47,
+          49,
+          57
+        ]
+      ],
+      "outline": [
+        8,
+        14,
+        24
+      ]
+    }
+  ],
+  "references": {
+    "pocket": "https://raw.githubusercontent.com/Aceship/Arknight-Images/main/enemy/enemy_1152_dsurch.png",
+    "skimmer": "https://raw.githubusercontent.com/Aceship/Arknight-Images/main/enemy/enemy_2025_syufo.png",
+    "mother": "https://raw.githubusercontent.com/Aceship/Arknight-Images/main/enemy/enemy_2023_sypult.png",
+    "mimic": "https://raw.githubusercontent.com/Aceship/Arknight-Images/main/enemy/enemy_2035_sybox.png"
+  }
+}
