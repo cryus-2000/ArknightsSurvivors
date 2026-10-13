@@ -23,7 +23,12 @@ static func observe(g: Game) -> void:
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(g.ppos) < 350.0:
 		found.append("item:MERCHANT")
 	var changed := false
+	# 先去重再查：后期一秒一次，几百只敌人 / 几百颗掉落各拼一个键，逐个在图鉴已见表里线性查找会卡一帧（性能，docs/50 §11）。
+	# 字典保留第一次出现的顺序，写进已见表的顺序和原来相同
+	var uniq := {}
 	for key in found:
+		uniq[key] = true
+	for key in uniq:
 		if not Cfg.gallery_seen.has(key):
 			Cfg.gallery_seen.append(key)
 			changed = true

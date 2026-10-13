@@ -410,6 +410,15 @@ var realtime := false            # --realtime（仅测试，配合 --balance --p
 var playclock_test := false     # --playclock（仅测试，配合 --balance --realtime）：开垂直同步、按玩家局的 PlayClock 分步推进，测玩家实际帧时间（docs/50 §10）
 var upd_n := 0                  # _update 调用次数（--perfdump 逐帧记模拟步数）
 var perf_alt := false           # --perfab=N（仅测试）：autotest 每 N 帧轮换，同局对照两种实现（docs/50 §10）
+## 性能优化同局对照（docs/50 §11，仅测试）：--optab=N 每 N 帧在「新实现」与「旧实现」之间轮换；opt_old 是当前走旧实现的优化位（OPT_*），
+## --optmask=<位> 只轮换其中几项（缺省全部）；--optold=<位> 整局固定走旧实现。正常游戏恒为 0（全走新实现）。各项新旧实现逐帧结果相同
+var opt_old := 0
+const OPT_GEM := 1        # 掉落物更新
+const OPT_GEMDRAW := 2    # 掉落物绘制
+const OPT_CLEANUP := 4    # 清理死亡实体
+const OPT_ENEMY := 8      # 敌人更新
+const OPT_DRAW := 16      # 其他绘制
+var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
 var _prof_t := 0
@@ -826,6 +835,10 @@ func _ready() -> void:
 				bal_maxt = float(a.substr(7))
 		prof_on = Cfg.dev_args().has("--prof")
 		realtime = Cfg.dev_args().has("--realtime")
+		for a in Cfg.dev_args():
+			if a.begins_with("--rtfrom=") and realtime:
+				rt_from = float(a.substr(9))
+				realtime = false
 		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
 		for a in Cfg.dev_args():
 			if a.begins_with("--trace="):
@@ -1557,7 +1570,10 @@ func facing_angle() -> float:
 
 func _cleanup() -> void:
 	enemies = enemies.filter(func(e): return not e.dead)
-	gems = gems.filter(func(g): return not g.dead)
+	# 掉落物只在 pickups.gd 里被标记 dead（拾取 / 回收，计数 dead_n）：这一帧没有就不重建（满地几百颗时逐帧 filter 是常驻开销，docs/50 §11）
+	if pickups.dead_n > 0 or opt_old & OPT_CLEANUP:
+		gems = gems.filter(func(g): return not g.dead)
+		pickups.dead_n = 0
 	bullets = bullets.filter(func(b): return b.life > 0.0)
 	ebullets = ebullets.filter(func(b): return b.life > 0.0)
 	fx = fx.filter(func(f): return f.life > 0.0)
