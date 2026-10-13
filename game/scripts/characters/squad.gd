@@ -145,7 +145,8 @@ static func member_steps(size: int) -> int:
 	return mini(maxi(size - 1, 0), Bal.vi("squad/hp_member_cap", 3))
 
 
-## 招募卡上的入队加成说明（数字读 balance.json squad 段；这名干员入队后台阶已封顶 = 空串）
+## 入队加成说明（数字读 balance.json squad 段；这名干员入队后台阶已封顶 = 空串）。
+## 用户 10-13：不再写在每张招募卡上，改在招募三选一 / 混有招募卡的升级三选一的标题说明行写一次（choice_panel.show_choices）
 func join_bonus_text() -> String:
 	if member_steps(ops.size() + 1) <= member_steps(ops.size()):
 		return ""
@@ -156,7 +157,7 @@ func join_bonus_text() -> String:
 		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
 	if rper > 0.0:
 		parts.append("生命回复 +%s / 秒" % _num(rper * g.heal_mult))
-	return ("入队：" + "，".join(parts)) if not parts.is_empty() else ""
+	return ("入队加成：" + "，".join(parts)) if not parts.is_empty() else ""
 
 
 ## 0.9 → "0.9"，1.0 → "1"，1.25 → "1.25"（去掉多余的 0）

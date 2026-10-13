@@ -56,7 +56,6 @@ func recruit_cards() -> Array:
 	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
 	if g.squad.is_full() or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
 		return opts
-	var bonus: String = g.squad.join_bonus_text()   # 入队加成（docs/83）：数字读 balance.json squad 段
 	for cid in Character.list_ids():
 		if g.squad.has(cid):
 			continue
@@ -64,8 +63,7 @@ func recruit_cards() -> Array:
 		if not d.get("recruitable", true):
 			continue
 		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
-		if bonus != "":
-			desc += "\n" + bonus
+		# 入队加成不再逐张写（用户 10-13）：统一写在三选一标题下的说明行（choice_panel.show_choices）
 		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": desc, "cls": d.get("class", "")})
 	return opts
 

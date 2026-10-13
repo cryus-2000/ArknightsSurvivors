@@ -242,7 +242,7 @@ func draw_bg() -> void:
 			draw_event_bg(vs)
 		_:
 			var en_label := "RELIC" if g.choice_kind == "relic" else "LEVEL UP"
-			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
+			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
 				en_label = "RECRUIT"
 			var ph: bool = Cfg.touch_device()
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
@@ -411,10 +411,16 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	if sub == "":
 		if kind == "relic":
 			panel_sub_text = "从发现的藏品中挑选一件带走"
-		elif opts.size() > 0 and opts[0].kind == "recruit":
-			panel_sub_text = "挑选一名干员加入编队"
+		elif opts.size() > 0 and opts.all(func(o): return o.get("kind", "") == "recruit"):
+			panel_sub_text = "挑选一名干员加入编队"   # 纯招募；升级界面混一张招募卡仍写「选择一项强化」
 		elif kind != "event":
 			panel_sub_text = "选择一项强化"
+		# 入队加成（docs/83）：用户 10-13 定不再逐张写在招募卡上，三选一里有招募卡时在标题说明行写一次（数字读 balance.json squad 段；
+		# 台阶已封顶不再加成时不写）。混有单张招募卡的升级界面也写在这里：带实际数字、不占卡片空间，比给卡片加角标更清楚
+		if kind != "event" and opts.any(func(o): return o.get("kind", "") == "recruit"):
+			var jb: String = g.squad.join_bonus_text()
+			if jb != "":
+				panel_sub_text += " · " + jb
 	Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in g.panel_box.get_children():
 		c.queue_free()
