@@ -1655,7 +1655,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
-	# 最后的骑士 / 敌对骑士的专用帧条（Codex boss_p1，docs/38_boss_p1_art_handoff）：冲锋途中换 e_knight_charge_form 循环（原来被出招姿态盖成攻击帧），
+	# 最后的骑士 / 敌对骑士的专用帧条（Codex boss_p1，docs/archive/38_boss_p1_art_handoff）：冲锋途中换 e_knight_charge_form 循环（原来被出招姿态盖成攻击帧），
 	# 寒冰领域插枪换 e_knight_plant（预警期间举枪 → 落枪，结算后枪尖触地一拍；原来用攻击帧定格）。只换画面，判定和时序不动
 	if e.tex == "e_knight":
 		var ka := knight_animation(e)
