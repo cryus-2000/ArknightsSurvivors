@@ -1,0 +1,63 @@
+{
+  "irene": {
+    "path": "E:/水月/reference_cache/batch4/irene.png",
+    "source": "https://wiki.biligame.com/arknights/艾丽妮",
+    "approved": "existing 2026-09-25 approval",
+    "checks": [
+      "black feather headpiece",
+      "pale gray-white tights on BOTH legs",
+      "pale pink lantern flame",
+      "slim rapier with ornate guard",
+      "waist pistol",
+      "white collar and muted mauve lining",
+      "User 2026-10-13: pale gray-white irises, dark pupils/eyelashes; preserve cute face and bright pale hair."
+    ],
+    "sha256": "7033a15cca2c69daf40eb7083850798727728b9fa63163e657181146c05e84d4"
+  },
+  "skadi": {
+    "path": "E:/水月/squad_batch5_reference_cache/skadi.png",
+    "source": "existing canonical cache",
+    "checks": [
+      "blue-lined black hat",
+      "red eyes",
+      "gray waistcoat and black shorts",
+      "exposed upper thighs above dark legwear",
+      "brown lace boots",
+      "black greatsword silver edge"
+    ],
+    "sha256": "60079860265337af11c18757ac13c15d52008f2510f7a2ec39f5d2c702305eab"
+  },
+  "eyjafjalla": {
+    "source": "user-supplied original standing art in conversation; original clipboard file expired",
+    "checks": [
+      "curved sheep horns",
+      "brown curls",
+      "gray mauve dress floral hem",
+      "white coat red lining ribbons",
+      "dark gray thigh-highs brown boots",
+      "thin straight staff, not fork wand"
+    ]
+  },
+  "suzuran": {
+    "source": "user-supplied original standing art in conversation; PRTS file page cross-check",
+    "url": "https://prts.wiki/w/文件:立绘_铃兰_1.png",
+    "checks": [
+      "green eyes",
+      "large fox ears blue headband",
+      "many pale golden tails",
+      "navy pale blue cape lavender-white skirt",
+      "white tights dark shoes",
+      "dark-silver loop-and-spoke staff, not gold sun"
+    ]
+  },
+  "wisadel": {
+    "source": "user-supplied original standing art and weapon breakdown in conversation; clipboard file expired",
+    "checks": [
+      "silver hair red-black horns",
+      "red-black short jacket black shorts",
+      "bare thighs black lace boots red leg marking",
+      "engraved silver-gray flat cannon red core pointed fins and blade, not generic rifle"
+    ],
+    "approved_weapon_master": "E:/水月/ew_weapon_revision/wisadel_source_clean.png"
+  }
+}

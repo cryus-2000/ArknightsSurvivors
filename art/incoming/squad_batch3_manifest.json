@@ -117,7 +117,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "cbd3592dab651f1d9aefdced77fe6cbd08a049a690b115910452e31d6bd81c20"
+      "sha256": "8fedd3a8cd140cb7486ddcc179e72c2fdf838ce22c0eeb841816b293e884522d"
     },
     {
       "file": "op_skadi_attack.png",
@@ -269,7 +269,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "ec132d5f0d14860b0b08f7ac873d8edff163621a2024613c4ea89a12f64a6c95"
+      "sha256": "6564c4826d1bac68e953a8c988df4abfeb37642105dd13e02d809a33bff73071"
     },
     {
       "file": "op_eyjafjalla_attack.png",

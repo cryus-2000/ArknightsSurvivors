@@ -190,7 +190,7 @@
       "frame_count": 6,
       "operator_id": "irene",
       "file": "op_irene_run.png",
-      "sha256": "8f246f42d30a19cc7dd65525cc2130739f748fd6e08e0589d65187ad8c556f28"
+      "sha256": "9a8dc4c29e4f826547589b812f4bf3c48f692af38cd565cf61eae9f3aec28dad"
     },
     {
       "secondary_event_frames_zero_based": [
@@ -261,7 +261,7 @@
       "frame_count": 6,
       "operator_id": "irene",
       "file": "op_irene_run@2x.png",
-      "sha256": "5c181e8d75b5224513cf7b3032933dfab8df17c472f09020435c544d43b58e82"
+      "sha256": "9a452cc1b8ee02e96c4d53146ae1d3fb54dbe1b065849b26c3b9616c9526f358"
     },
     {
       "secondary_event_frames_zero_based": [

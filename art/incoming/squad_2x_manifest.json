@@ -48,10 +48,10 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "6f94c3b0914298b36e1945e2f97bea4d82eb179b841b2d7afa753429fe338e4f",
+      "sha256": "8a43e7c35fa0b654e8b5525e02a5d61c3a23df57a824e995b3740de54901653e",
       "density": 2,
       "original_file": "doctor_run.png",
-      "original_sha256": "c6a667233bfc1fc0193bbbfee758a3ce05be5b4619511bf44509c2be9feda7e6",
+      "original_sha256": "56cb79d63e76cf74b81913731bf0c738177c3fd69044df1d86030f486092b6a8",
       "logical_anchor": [
         24,
         46
@@ -152,10 +152,10 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "17dde13c66f11c66e2553f91a8ad17d9cc56915f825e48209e3321c40d1e8027",
+      "sha256": "69119cc550d57721d609494a7679a6476dce3d130e42465557e80877e9731638",
       "density": 2,
       "original_file": "op_wisadel_run.png",
-      "original_sha256": "79605acc502c2628163e4d72b17a801e20b307f592983d593f3942ffb0304631",
+      "original_sha256": "111e30449ab25234bb67cbc56a113972fd08ca9aef8d28b86d399f87ca2b0394",
       "logical_anchor": [
         24,
         46
@@ -360,10 +360,10 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "e7ac6f61c0b40663938f15a282e4b3313104b126f4161bc06b0071960be1b909",
+      "sha256": "273f8c1f2db83211ea3bcd446f3bad3c8752b9ae7b0ac13525461735c9968a13",
       "density": 2,
       "original_file": "op_skadi_run.png",
-      "original_sha256": "cbd3592dab651f1d9aefdced77fe6cbd08a049a690b115910452e31d6bd81c20",
+      "original_sha256": "8fedd3a8cd140cb7486ddcc179e72c2fdf838ce22c0eeb841816b293e884522d",
       "logical_anchor": [
         24,
         46
@@ -568,10 +568,10 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "addeb5aabaedfe1f9826d351e452f7e53823b6765e661639cef984619c3067c2",
+      "sha256": "f1fb01b66f0a37a81399fd8d69a85d49a727f7c85044d9e754e35e2dbe60beaa",
       "density": 2,
       "original_file": "op_eyjafjalla_run.png",
-      "original_sha256": "ec132d5f0d14860b0b08f7ac873d8edff163621a2024613c4ea89a12f64a6c95",
+      "original_sha256": "6564c4826d1bac68e953a8c988df4abfeb37642105dd13e02d809a33bff73071",
       "logical_anchor": [
         24,
         46
