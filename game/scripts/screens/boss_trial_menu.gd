@@ -62,7 +62,7 @@ func _ready() -> void:
 		_add_boss_group(group)
 	for ending in D.ENDINGS.values():
 		_add_boss_group([ending.boss])
-	op_pick = _select_row(box, "主控干员")
+	op_pick = _select_row(box, "队长")
 	op_ids = Character.list_ids()
 	for id in op_ids:
 		op_pick.add_item(Character.load_def(id).get("name", id))
@@ -74,7 +74,7 @@ func _ready() -> void:
 	phase_pick.add_item("正常开战")
 	phase_pick.add_item("直接进入第二形态（支持的 Boss）")
 	safe_pick = CheckBox.new()
-	safe_pick.text = "观察模式：主控不会倒下"
+	safe_pick.text = "观察模式：队长不会倒下"
 	safe_pick.button_pressed = true
 	box.add_child(safe_pick)
 	var buttons := HBoxContainer.new()

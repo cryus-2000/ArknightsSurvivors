@@ -65,7 +65,7 @@ const DMOD_DEFAULT := {
 ## time / count / pct = 按档覆盖的 enemy 段绝对值（-1 = 用全局），只在本档值和 balance.json enemy/<键> 不同时显示：time 写成 分:秒，pct ×100
 const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"], ["final_boss_hp", "最终 Boss 生命再 +%d%%", "up"],
-	["max_hp", "主控初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
+	["max_hp", "队长初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
 	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然溟痕常驻，只有引航灯标能驱散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
 	["ctrl_start", "小怪控制提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
@@ -147,9 +147,9 @@ static func tier_of_level(level: int) -> int:
 ## tags 供 Build Profile 使用
 const WEAPONS := {
 	"drone": {"tags": ["support", "summon", "heal"], "name": "医疗无人机", "en": "MEDIC DRONE", "glyph": "机", "col": Color(0.55, 1.0, 0.7), "lv": [
-		"加入支援：跟随主控，每 6 秒回复 2% 最大生命",
+		"加入支援：跟随队长，每 6 秒回复 2% 最大生命",
 		"回复 3%",
-		"主控生命低于 40% 时立即急救 6%（冷却 25 秒）",
+		"队长生命低于 40% 时立即急救 6%（冷却 25 秒）",
 		"增派第二架无人机（各回复 2%）",
 		"两架各回复 2.5%、间隔 5 秒，治疗时清除神经损伤",
 	]},

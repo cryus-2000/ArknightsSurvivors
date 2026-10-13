@@ -268,7 +268,7 @@ static func chips(g, o: Dictionary) -> Array:
 		if res.all != null:
 			out.append(_chip(g, "全队", UI.CYAN, res.all))
 		if res.leader != null and ld != null:
-			out.append(_chip(g, "主控 · " + ld.display_name(), ld.col(), res.leader))
+			out.append(_chip(g, "队长 · " + ld.display_name(), ld.col(), res.leader))
 	if res.has("random"):
 		out.append(_chip(g, "随机一名干员", UI.CYAN, false))
 	if res.has("recruit"):

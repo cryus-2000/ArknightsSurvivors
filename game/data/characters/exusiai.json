@@ -32,7 +32,7 @@
   {"name": "扫射模式", "en": "SHOOTING MODE", "sp": 14, "dur": 8.0, "desc": "8 秒：射击间隔 0.35 → 0.20 秒，每发伤害 ×0.9；结束时枪管过热，1 秒不能射击", "icon": "skill_exusiai_s2"},
   {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "10 秒：每次射击改为 4 连射（每发伤害 ×0.8），射程 +20%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 0.2 秒", "icon": "skill_exusiai_s3"}
  ],
- "talent": {"name": "快速弹匣", "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 8），敌人倒在主控照亮范围内时 +2；弹匣满时下一次射击改为一次倾泻：8 发扇形散射（每发伤害 ×1.2，穿透 1 名敌人），然后清空"},
+ "talent": {"name": "快速弹匣", "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 8），敌人倒在队长照亮范围内时 +2；弹匣满时下一次射击改为一次倾泻：8 发扇形散射（每发伤害 ×1.2，穿透 1 名敌人），然后清空"},
  "hit_sources": {
   "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
   "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},

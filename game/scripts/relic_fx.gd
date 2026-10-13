@@ -1292,7 +1292,7 @@ func on_death() -> bool:
 		g.hp = g.max_hp * 0.5
 		g.invuln = 2.0
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.9, "max": 0.9, "col": Color(1.0, 0.85, 0.5)})
-		g.vfx.show_banner("时光之末 —— 主控干员重新站了起来")
+		g.vfx.show_banner("时光之末 —— 队长重新站了起来")
 		Sfx.play("levelup", 0.0, 0.7)
 		return true
 	return false

@@ -486,7 +486,7 @@ func draw_open_hints(vs: Vector2) -> void:
 			# 触屏没有 Tab：写成点右侧「属性」按钮（按钮本身也跟着呼吸，见 touch.draw_hud）
 			var tkey: String = "点「属性」" if g.touch.active else Pad.hint("TAB", "SELECT")
 			var tkw: float = UI.keycap(g.hud, g.font, Vector2(cx - 134, y - 12), tkey, Color(1, 1, 1, ha), 12)
-			UI.text(g.hud, g.font, Vector2(cx - 134 + tkw + 12.0, y + 4), "查看主控与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
+			UI.text(g.hud, g.font, Vector2(cx - 134 + tkw + 12.0, y + 4), "查看队长与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
 
 func draw_dash_hint(vs: Vector2) -> void:

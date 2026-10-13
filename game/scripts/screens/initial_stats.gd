@@ -6,7 +6,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
-const NOTE := "以上为主控、精零、无藏品时的数值"
+const NOTE := "以上为队长、精零、无藏品时的数值"
 ## 每张数值表都必须有的行（测试按这个查缺）
 const REQUIRED := ["hp", "atk", "cd", "dps", "reach", "armor", "arts", "regen", "speed"]
 ## 每次普攻的段数写死在脚本里的干员（irene.gd：刺击两段，N1 再审才 3 段）
@@ -101,7 +101,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 		extra.append(_row("elite", "对精英", "VS ELITE", "伤害 ×%s" % _num(float(b.vs_elite)), float(b.vs_elite)))
 	if b.has("heal_pct") and b.has("heal_cd"):
 		var hp_pct: float = float(b.heal_pct) * 100.0
-		extra.append(_row("heal", "治疗主控", "HEAL", "%s%% / %s 秒" % ["%.1f" % hp_pct if absf(hp_pct - roundf(hp_pct)) > 0.05 else "%d" % int(round(hp_pct)), _num(float(b.heal_cd))], float(b.heal_pct), "最大生命"))
+		extra.append(_row("heal", "治疗队长", "HEAL", "%s%% / %s 秒" % ["%.1f" % hp_pct if absf(hp_pct - roundf(hp_pct)) > 0.05 else "%d" % int(round(hp_pct)), _num(float(b.heal_cd))], float(b.heal_pct), "最大生命"))
 	var dps := single / maxf(0.05, interval)
 	var armor: float = float(lead.get("armor", 0.0))
 	var arts: float = float(lead.get("arts_res", 0.0))

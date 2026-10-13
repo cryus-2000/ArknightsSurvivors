@@ -34,7 +34,7 @@
   {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +40%、伤害 ×1.3；「战术快递」自动冲刺的间隔 -20%（2.5 → 2.0 秒）", "icon": "skill_texas_s2"},
   {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "8 秒内每 0.5 秒向敌群最密处冲刺一次（×0.9），穿过的敌人眩晕 0.3 秒、全队技力 +0.4 秒；结束时在最后的落点落下剑雨 ×1.6", "icon": "skill_texas_s3"}
  ],
- "talent": {"name": "战术快递", "desc": "每 2.5 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当主控时带着主控冲，你的冲刺键照旧），穿过敌人时全队技力 +0.8 秒；一次冲刺穿过 3 名以上敌人时额外 +0.3 秒"},
+ "talent": {"name": "战术快递", "desc": "每 2.5 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +0.8 秒；一次冲刺穿过 3 名以上敌人时额外 +0.3 秒"},
  "hit_sources": {
   "疾行斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
   "剑雨": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "stun"]},

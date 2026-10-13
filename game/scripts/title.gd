@@ -1121,8 +1121,8 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 const TOUCH_GUIDE := [
 	["移动", "按住屏幕左半边任意处拖动：手指落下的地方就是摇杆中心"],
 	["冲刺", "右下「冲刺」键（无敌，冷却 1.2 秒），在编队栏正上方"],
-	["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放"],
-	["手动技能", "主控有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点"],
+	["攻击", "默认全自动：编队干员跟在队长身边普攻，技能各自充能后自动释放"],
+	["手动技能", "队长有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点"],
 	["手动普攻", "可在设置 · 游戏里把普攻改为手动：冲刺键左侧出现攻击键，按住攻击，拖动选方向"],
 	["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
 	["灯火", "受击时损失，拾取灯油补充；低于 30 时敌人更快、伤害更高；归零后持续掉血"],
@@ -1142,7 +1142,7 @@ func _draw_guide(vs: Vector2) -> void:
 	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
 	var lines: Array = TOUCH_GUIDE if Pad.touch_ui() else [
 		["移动", "WASD / 方向键；空格冲刺（无敌，冷却 1.2 秒）；Q / E 放手动技能"],
-		["攻击", "默认全自动：编队干员跟在主控身边普攻，技能各自充能后自动释放（手动技能按 Q / E）"],
+		["攻击", "默认全自动：编队干员跟在队长身边普攻，技能各自充能后自动释放（手动技能按 Q / E）"],
 		["手动普攻", "可在设置 · 游戏里把普攻改为手动：左键 / J 攻击，朝光标方向"],
 		["选落点", "乌尔比安三技能：鼠标指哪落哪；或按住 Q / E 蓄距离、松手掷出；手柄右摇杆推多远落多远"],
 		["编队", "升级时选干员深度卡成长、精英化解锁新技能；升级途中可招募，最多 3 人"],
@@ -2182,7 +2182,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 		UI.text_at(self, font, Vector2(sx, 14), "显示在标题页上的干员", 12, UI.B_SUB)
 		UI.text_at(self, font, Vector2(sx, 30), "不改变开局编队", 11, UI.B_SUB)
 	else:
-		UI.text_at(self, font, Vector2(sx, 14), "主控 1 名；其余干员在探索中通过升级招募", 12, UI.B_SUB)
+		UI.text_at(self, font, Vector2(sx, 14), "队长 1 名；其余干员在探索中通过升级招募", 12, UI.B_SUB)
 		UI.text_at(self, font, Vector2(sx, 30), "下一步：选择难度", 11, UI.B_SUB)
 	var back := Rect2(W - 120, 14, 104, 28)
 	_op_btn(back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"))
@@ -2244,7 +2244,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 			UI.bpanel(self, r, true, true, 1.0, UI.VIOLET)
 			_op_mini(od, Rect2(r.position.x + 2, r.position.y + 2, 46, r.size.y - 4))
 			UI.rbox(self, Rect2(r.position.x + 2, r.position.y + 2, 32, 13), 3, UI.VIOLET)
-			UI.text_at(self, font, Vector2(r.position.x + 18, r.position.y + 8.5), "封面" if cover_pick else "主控", 10, Color.WHITE, "mm")
+			UI.text_at(self, font, Vector2(r.position.x + 18, r.position.y + 8.5), "封面" if cover_pick else "队长", 10, Color.WHITE, "mm")
 			var mf := UI.fit_line(font, od.name, 10, 42.0, 8)
 			UI.text_at(self, font, Vector2(r.position.x + 62, r.position.y + 34), mf[0], mf[1], UI.TEXT, "mm")
 		else:
@@ -2537,7 +2537,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 	if not ph:
 		var v: Dictionary = od.vals
 		var stats := [[InitialStats.row(od.sheet, "atk").label, _op_fmt(v.atk * cnt, "atk", v.atk)], ["间隔", _op_fmt(v.cd * (2.0 - cnt), "cd", v.cd)],
-			[InitialStats.row(od.sheet, "reach").label, _op_fmt(v.reach * cnt, "reach", v.reach)], ["生命", "主控 %d" % int(round(v.hp * cnt))]]
+			[InitialStats.row(od.sheet, "reach").label, _op_fmt(v.reach * cnt, "reach", v.reach)], ["生命", "队长 %d" % int(round(v.hp * cnt))]]
 		var cw := box.size.x / 4.0
 		for i in stats.size():
 			var sx := box.position.x + 2 + i * cw
@@ -2559,7 +2559,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		y += rs
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
-		var txt: String = ("主控按 Q 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
+		var txt: String = ("队长按 Q 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
 		var room := (box.end.y - y) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0))
 		var f := UI.fit(font, txt, box.size.x - 8.0, room, [11, 10] if not ph else [10, 9])
 		UI.draw_fit(ci, font, Vector2(box.position.x + 2, y - 2), f, UI.B_SUB)
@@ -2627,7 +2627,7 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 			r.position.x += 40.0 * (1.0 - a)
 			UI.bpanel(ci, r, false, i == 0, a, UI.VIOLET)
 			if i == 0:
-				var w := UI.btab(ci, font, r.position + Vector2(8, (sh - 14.0) / 2.0), "封面" if cover_pick else "主控", UI.VIOLET, 9, a)
+				var w := UI.btab(ci, font, r.position + Vector2(8, (sh - 14.0) / 2.0), "封面" if cover_pick else "队长", UI.VIOLET, 9, a)
 				var nx := r.position.x + 16 + w
 				UI.text_at(ci, font, Vector2(nx, r.get_center().y), od.name, 13 if ph else 15, UI.fa(UI.TEXT, a), "lm")
 				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "与博士同行" if cover_pick else "唯一受击体", 10, UI.fa(UI.B_SUB, a), "rm")

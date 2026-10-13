@@ -13,7 +13,7 @@
 
 | 中文 | English |
 |---|---|
-| **13 名干员，自由编队**：水月、斯卡蒂、铃兰、维什戴尔……开局选主控，一路招募成三人小队（藏品还能多带一位），每人三项技能随精英化解锁。 | **13 operators, your own squad**: Mizuki, Skadi, Suzuran, Wisadel and more. Pick a leader, recruit a three-operator squad (a relic can add a fourth), and unlock three skills per operator as they promote. |
+| **13 名干员，自由编队**：水月、斯卡蒂、铃兰、维什戴尔……开局选队长，一路招募成三人小队（藏品还能多带一位），每人三项技能随精英化解锁。 | **13 operators, your own squad**: Mizuki, Skadi, Suzuran, Wisadel and more. Pick a leader, recruit a three-operator squad (a relic can add a fourth), and unlock three skills per operator as they promote. |
 | **灯火就是生命线**：灯火越亮越强，暗下来敌人就更凶；找到灯标点亮它，把黑暗推回去。 | **Your lamp is your lifeline**: a bright lamp makes you stronger, a dim one makes the sea deadlier. Find beacons and light them to push the dark back. |
 | **262 件藏品、8 条流派**：每局组出不同的打法，叠满一条流派会发生质变。 | **262 relics across 8 build lanes**: every run plays differently, and a fully stacked lane changes how you fight. |
 | **10 位 Boss，读招才能活**：偏执泡影、最后的骑士、伊莎玛拉……预警清楚、破绽明确，躲得漂亮就打得痛。 | **10 bosses that reward reading**: Paranoia, the Last Knight, Ishar-mla and more. Clear tells and clear openings — dodge well, hit hard. |

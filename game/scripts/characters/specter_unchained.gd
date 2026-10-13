@@ -240,7 +240,7 @@ func _release_skill() -> void:
 			float_text(pos + Vector2(0, -60), "求生之技", GHOST, 15)
 		1:
 			s2_t = base("s2_dur", 10.0)
-			show_banner("求生之渴：主控暂不会倒下")
+			show_banner("求生之渴：队长暂不会倒下")
 		2:
 			s3_t = base("s3_dur", 12.0)
 			show_banner("求生之压")

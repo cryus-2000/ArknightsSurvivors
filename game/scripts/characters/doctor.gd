@@ -420,7 +420,7 @@ func passive_preview(pid: String) -> String:
 ## 填充卡：其他类别都满时
 func filler_cards() -> Array:
 	return [
-		{"kind": "filler", "id": "heal", "name": "急救补给", "desc": "主控立刻回复 30% 最大生命", "cat": "补给  SUPPLY"},
+		{"kind": "filler", "id": "heal", "name": "急救补给", "desc": "队长立刻回复 30% 最大生命", "cat": "补给  SUPPLY"},
 		{"kind": "filler", "id": "oil", "name": "灯油补给", "desc": "灯火 +30", "cat": "补给  SUPPLY"},
 		{"kind": "filler", "id": "atk", "name": "临时协同", "desc": "全队干员攻击 +4%（可叠加）", "cat": "补给  SUPPLY"},
 	]

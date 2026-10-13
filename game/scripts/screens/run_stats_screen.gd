@@ -498,7 +498,7 @@ func _join_text(row: Dictionary, long := false) -> String:
 	if row.key == RunStats.OTHER:
 		jt = "全程"
 	elif row.leader:
-		jt = "主控 · 开局"
+		jt = "队长 · 开局"
 	elif float(row.join_t) < 1.0:
 		jt = "开局"
 	else:
@@ -977,7 +977,7 @@ func _identity(lr: Rect2, row: Dictionary) -> void:
 	if int(row.casts) > 0:
 		lines.append(["技能", "%d" % int(row.casts)])
 	if float(row.heal) >= 1.0:
-		lines.append(["治疗主控", fmt_n(float(row.heal))])
+		lines.append(["治疗队长", fmt_n(float(row.heal))])
 	var best: Dictionary = model.get("best", {})
 	if str(best.get("op", "")) == str(row.name) and float(best.get("v", 0.0)) > 0.0:
 		lines.append(["最高单次", fmt_n(float(best.v))])

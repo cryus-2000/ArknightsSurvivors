@@ -81,7 +81,7 @@ func reset() -> void:
 			g.ch.pos = g.ppos
 	if id == "ishar" and subject.get("friendly", false):
 		_seed_heal_targets()
-	g.demo_label = "真实 AI · 移动 → 蓄势 → 攻击 · 主控为不死演示靶"
+	g.demo_label = "真实 AI · 移动 → 蓄势 → 攻击 · 队长为不死演示靶"
 
 
 func _seed_heal_targets() -> void:
@@ -137,6 +137,6 @@ func step(dt: float) -> void:
 			var charge: float = float(subject.get("ally_charge", 0.0)) / maxf(0.01, float(subject.get("ally_charge_need", 30.0)))
 			g.demo_label = "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(clampf(charge, 0.0, 1.0) * 100.0)
 		elif subject.type == "tear":
-			g.demo_label = "泪滴不伤害主控 · " + ("靠近压制充能中" if subject.get("blocked", false) else "远离时加速转化")
+			g.demo_label = "泪滴不伤害队长 · " + ("靠近压制充能中" if subject.get("blocked", false) else "远离时加速转化")
 		else:
-			g.demo_label = "%s%s · %s · 主控为不死演示靶" % [subject.name, stage, action]
+			g.demo_label = "%s%s · %s · 队长为不死演示靶" % [subject.name, stage, action]

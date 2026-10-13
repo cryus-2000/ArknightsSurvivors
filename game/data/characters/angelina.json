@@ -29,8 +29,8 @@
  "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 75 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
  "skills": [
   {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 3 发重力弹：拉拢距离 ×2、落点范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
-  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：主控周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；主控移速 +8%", "icon": "skill_angelina_s2"},
-  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：主控周围半径 220 内的敌人悬浮（不能移动和攻击；精英每 2 秒落地 0.5 秒，Boss 只减速）并向场心汇聚；全队攻速 +20%，主控每秒回复 1%、移速 +15%、拾取范围 ×3", "icon": "skill_angelina_s3"}
+  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：队长周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；队长移速 +8%", "icon": "skill_angelina_s2"},
+  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：队长周围半径 220 内的敌人悬浮（不能移动和攻击；精英每 2 秒落地 0.5 秒，Boss 只减速）并向场心汇聚；全队攻速 +20%，队长每秒回复 1%、移速 +15%、拾取范围 ×3", "icon": "skill_angelina_s3"}
  ],
  "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 2 秒内失重：受到的击退与拉拽 +30%（斯卡蒂、星熊、塞雷娅的击退都吃）；照亮范围内的敌人被她拉得更远（+20%）"},
  "hit_sources": {

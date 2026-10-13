@@ -30,11 +30,11 @@
  },
  "attack": {"mode": "auto", "name": "盾斧斩", "desc": "每 1.1 秒用盾「般若」的锋利盾沿向前横扫 140°（半径 110），命中击退"},
  "skills": [
-  {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "3 秒内主控下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在主控身边反手重斩（半径 120，×2.0）并击退；3 秒内没挨打则向前补一记 ×1.5", "icon": "skill_hoshiguma_s1"},
-  {"name": "荆棘", "en": "THORNS", "sp": 14, "dur": 8.0, "desc": "8 秒：攻击 +40%，主控受到的伤害 -20%，「战术装甲」格挡概率 ×2；盾斧斩落点留下 2 秒热砂（半径 80），踩进的敌人每秒受到 30% 攻击力的伤害", "icon": "skill_hoshiguma_s2"},
-  {"name": "力之锯", "en": "SAW OF STRENGTH", "sp": 22, "dur": 10.0, "desc": "10 秒：攻击 +60%，盾斧斩改为直线斩（长 220、宽 50，命中沿线全部，击退 ×1.5）；主控受到的伤害 -30%，每次受击（含被格挡的）震退主控身边半径 120 内的敌人", "icon": "skill_hoshiguma_s3"}
+  {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "3 秒内队长下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在队长身边反手重斩（半径 120，×2.0）并击退；3 秒内没挨打则向前补一记 ×1.5", "icon": "skill_hoshiguma_s1"},
+  {"name": "荆棘", "en": "THORNS", "sp": 14, "dur": 8.0, "desc": "8 秒：攻击 +40%，队长受到的伤害 -20%，「战术装甲」格挡概率 ×2；盾斧斩落点留下 2 秒热砂（半径 80），踩进的敌人每秒受到 30% 攻击力的伤害", "icon": "skill_hoshiguma_s2"},
+  {"name": "力之锯", "en": "SAW OF STRENGTH", "sp": 22, "dur": 10.0, "desc": "10 秒：攻击 +60%，盾斧斩改为直线斩（长 220、宽 50，命中沿线全部，击退 ×1.5）；队长受到的伤害 -30%，每次受击（含被格挡的）震退队长身边半径 120 内的敌人", "icon": "skill_hoshiguma_s3"}
  ],
- "talent": {"name": "战术装甲", "desc": "主控每次受到攻击有 25% 概率完全格挡（Boss 的攻击 10%）：不掉血、不掉灯火，并推开主控身边半径 90 内的敌人；主控给灯标读条期间概率 +15%"},
+ "talent": {"name": "战术装甲", "desc": "队长每次受到攻击有 25% 概率完全格挡（Boss 的攻击 10%）：不掉血、不掉灯火，并推开队长身边半径 90 内的敌人；队长给灯标读条期间概率 +15%"},
  "hit_sources": {
   "盾斧斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["area", "basic"]},
   "举盾反击": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]},
@@ -45,12 +45,12 @@
  "progression": [
   {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩与技能范围 +15%"},
   {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_size", "desc": "星熊造成的伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：主控受到攻击时有概率完全格挡，挡下的不掉灯火"},
-  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，主控身边半径 90 内的敌人眩晕 0.4 秒（精英减半，Boss 不受）"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有概率完全格挡，挡下的不掉灯火"},
+  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，队长身边半径 90 内的敌人眩晕 0.4 秒（精英减半，Boss 不受）"},
   {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "growth_t_field", "desc": "「荆棘」的每处热砂之后再留 4 秒余烬，每秒受到 20% 攻击力的伤害"},
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「鬼面」：每第 4 次盾斧斩后追加一记直线斩（长 220、宽 50，×1.3）"}
  ],
- "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：主控挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"},
+ "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：队长挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"},
  "blocks": {
   "attack": {"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "kb": "$kb", "every": "$cd", "mult": 1.0, "src": "盾斧斩", "tags": ["basic"], "slash": true},
   "trait": [
