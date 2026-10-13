@@ -24,8 +24,16 @@
   "run": {"tex": "op_angelina_run", "frames": 6, "fps": 10, "foot": [24, 46]},
   "attack": {"tex": "op_angelina_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 2},
   "skill": {"tex": "op_angelina_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
+  "float_in": {"tex": "op_angelina_float_in", "frames": 4, "fps": 12, "foot": [24, 46]},
+  "float": {"tex": "op_angelina_float", "frames": 6, "fps": 8, "foot": [24, 46]},
+  "float_move": {"tex": "op_angelina_float_move", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "float_attack": {"tex": "op_angelina_float_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 2},
+  "skill_pose": {"_doc": "S3 秘杖·反重力模式期间浮空（docs/92）：施法后播 float_in 起飞，待机 / 移动 / 普攻换浮空帧条，结束倒放 float_in 落地；影子缩到 70%、变淡。纯画面，判定按地面位置",
+   "skill": 2, "in": "float_in", "out": "float_in", "out_rev": true,
+   "map": {"idle": "float", "run": "float_move", "attack": "float_attack"}, "shadow": 0.7, "shadow_a": 0.55, "ease": 0.25},
   "size": 48, "foot": [24, 46]
  },
+ "extra_sprites": ["float_in", "float", "float_move", "float_attack"],
  "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 75 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
  "skills": [
   {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 3 发重力弹：拉拢距离 ×2、落点范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
