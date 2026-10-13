@@ -32,6 +32,7 @@ func run() -> void:
 	pack_tests()
 	merge_tests()
 	cfg_tests()
+	compat_tests()
 	await platform_tests()
 	print("CLOUD SAVE failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)
@@ -54,6 +55,20 @@ func pack_tests() -> void:
 		big.prog.gal.append("enemy:some_long_enemy_name_%d" % i)
 	pk = Pack.pack(big, 1)
 	var n := int(JSON.parse_string(pk.items[Pack.HEAD_KEY]).n)
+	print("CLOUD SIZE big body=%d bytes chunks=%d keys=%d" % [int(JSON.parse_string(pk.items[Pack.HEAD_KEY]).len), n, pk.items.size()])
+	# 当前版本全收集（全部藏品 + 全部敌人 / 物件 + 全结局 + 七个触屏键自定义）的实际大小
+	var full := Cfg.cloud_body()
+	var db = preload("res://scripts/core/relic_db.gd").new()
+	db.load_files()
+	full.prog.rel = db.implemented().map(func(r): return str(r.id))
+	var en: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json")).enemies
+	full.prog.gal = en.keys().map(func(k): return "enemy:" + str(k)) + ["item:EXP", "item:OIL", "item:INGOT", "item:MAGNET", "item:HEAL", "item:CHEST", "item:PILLAR", "item:RUINED WALL", "item:WRECK", "item:RIDGE", "item:PEAK", "item:MIRE", "item:MERCHANT"]
+	full.prog.end = preload("res://scripts/data.gd").ENDINGS.keys()
+	for k in preload("res://scripts/touch_layout.gd").KEYS:
+		full.set.d.touch_layout[k] = {"ax": 1, "ay": 1, "x": 1234.0, "y": 456.0, "s": 1.25}
+	var fpk := Pack.pack(full, 1)
+	print("CLOUD SIZE full body=%d bytes chunks=%d keys=%d (relics=%d gal=%d)" % [int(JSON.parse_string(fpk.items[Pack.HEAD_KEY]).len), fpk.items.size() - 1, fpk.items.size(), full.prog.rel.size(), full.prog.gal.size()])
+	check(fpk.items.size() <= 8, "当前全收集存档应在 8 个 key 以内")
 	check(n >= 3 and pk.items.size() == n + 1, "大存档应拆成多片：n=%d" % n)
 	check(Pack.items_ok(pk.items), "大存档分片超出平台限制")
 	for k in pk.items:
@@ -99,8 +114,9 @@ func pack_tests() -> void:
 	var newer := good.duplicate()
 	var h = JSON.parse_string(newer[Pack.HEAD_KEY])
 	h.v = Pack.VERSION + 1
+	h.minv = Pack.VERSION + 1
 	newer[Pack.HEAD_KEY] = JSON.stringify(h)
-	check(Pack.unpack(newer).status == "newer", "更高版本应判为 newer")
+	check(Pack.unpack(newer).status == "newer", "要求更高版本（minv）应判为 newer")
 	h.v = 0
 	newer[Pack.HEAD_KEY] = JSON.stringify(h)
 	check(Pack.unpack(newer).status == "bad", "版本 0 应判为 bad")
@@ -189,3 +205,84 @@ func platform_tests() -> void:
 	Cloud.local_saved()
 	check(Cloud.requests == 0, "非网页平台不应发请求")
 	check(Cloud.status_text() == "", "非网页平台没有状态行")
+	# 只读保护的提示与入口（状态机本身在网页 mock 里验证）
+	Cloud.st = Cloud.St.NEWER
+	check(Cloud.status_text() == "云存档版本较新，请更新游戏", "版本较新的提示")
+	check(not Cloud.can_push(), "版本较新时不许以本地覆盖云端")
+	Cloud.st = Cloud.St.OFF
+
+
+## 版本升级不丢档（用户 10-13，docs/89 §3.1）
+func compat_tests() -> void:
+	# 1. 旧格式云档（缺 shows / open / 部分设置项）+ 本地新版本多出的字段（新干员）：缺的按缺省补齐，新字段保留，其余照常合并
+	var old := {"set": {"t": 50, "d": {"master": 0.2}}, "prog": {"diff": 1, "gal": ["enemy:runner"], "rel": ["9"], "end": ["standard"], "intro": true}}
+	var oldp := Pack.pack(old, 1, 1, 1)
+	var ou := Pack.unpack(oldp.items)
+	check(ou.status == "ok" and ou.body.prog.shows == [] and ou.body.prog.open == false, "旧档缺的字段应按缺省补齐：%s" % ou.body)
+	var local := body(100, 0, ["1"], {"new_op_setting": "texas_alt"})
+	local.prog["ops_seen"] = ["texas"]
+	var m := Pack.merge(local, ou.body)
+	check(m.prog.rel == ["1", "9"] and m.prog.gal == ["enemy:bone", "enemy:runner"] and int(m.prog.diff) == 1, "旧档与新字段合并：进度并集")
+	check(m.prog.get("ops_seen") == ["texas"] and m.set.d.get("new_op_setting") == "texas_alt", "本地新增的干员字段不应丢：%s" % m)
+	check(float(m.set.d.master) == 0.8 and m.set.d.has("music"), "本地设置较新：保留本地，云端缺的设置项不清空")
+	# Cfg：旧档缺字段时 cloud_apply 不清空本地
+	var keep := Cfg.cloud_body()
+	var keep_t := Cfg.cloud_set_t
+	var keep_ex: Dictionary = Cfg.cloud_extra.duplicate(true)
+	Cfg.gallery_seen = ["enemy:bone"]
+	Cfg.seen_shows = ["x"]
+	Cfg.cloud_apply({"set": {"t": 1, "d": {}}, "prog": {"diff": 0}})
+	check(Cfg.gallery_seen == ["enemy:bone"] and Cfg.seen_shows == ["x"], "云档缺的列表不应清空本地")
+	# 2. 新版本（v2，只加字段，minv 仍为 1）写的云档：本版能读；未知字段（顶层 / set / set.d / prog）合并、写回本地、再上传都不丢，头里版本不降
+	var nb := body(300, 2, ["5"], {"new_setting": 5})
+	nb["ops"] = {"texas": {"elite": 2}}
+	nb.set["x"] = 1
+	nb.prog["ops_seen"] = ["texas", "angelina"]
+	var np := Pack.pack(nb, 9, 2, 1)
+	var nu := Pack.unpack(np.items)
+	check(nu.status == "ok" and int(nu.v) == 2 and int(nu.minv) == 1, "v2 / minv1 的云档本版应能读：%s" % nu.status)
+	var cur := Cfg.cloud_body()
+	var nm := Pack.merge(cur, nu.body)
+	check(Pack.canon(nm.get("ops")) == Pack.canon({"texas": {"elite": 2}}) and int(nm.set.get("x", 0)) == 1 and int(nm.set.d.get("new_setting", 0)) == 5 and nm.prog.get("ops_seen") == ["texas", "angelina"], "合并时未知字段应透传：%s" % nm)
+	Cfg.cloud_apply(nm)
+	Cfg.cloud_v = maxi(Cfg.cloud_v, int(nu.v))
+	Cfg.cloud_minv = maxi(Cfg.cloud_minv, int(nu.minv))
+	var back := Cfg.cloud_body()
+	check(Pack.canon(back.get("ops")) == Pack.canon({"texas": {"elite": 2}}) and int(back.set.d.get("new_setting", 0)) == 5 and back.prog.get("ops_seen") == ["texas", "angelina"] and int(back.set.get("x", 0)) == 1, "写回本地后再取正文，未知字段应还在")
+	var rp := Pack.pack(back, 10, Cfg.cloud_v, Cfg.cloud_minv)
+	var rh = JSON.parse_string(rp.items[Pack.HEAD_KEY])
+	check(int(rh.v) == 2 and int(rh.minv) == 1, "旧代码回写时头里版本不降：%s" % rh)
+	var ru := Pack.unpack(rp.items)
+	check(Pack.canon(ru.body) == Pack.canon(Pack.normalize(back)), "回写后的云档往返一致")
+	# 默认参数打包也不降：v / minv 至少是本版
+	var dh = JSON.parse_string(Pack.pack(back, 1, 0, 0).items[Pack.HEAD_KEY])
+	check(int(dh.v) == Pack.VERSION and int(dh.minv) == Pack.MIN_READ, "版本号不低于本版")
+	Cfg.cloud_apply(keep)
+	Cfg.cloud_extra = keep_ex
+	Cfg.cloud_set_t = keep_t
+	Cfg.cloud_v = 0
+	Cfg.cloud_minv = 0
+	# 3. 不兼容的新格式（minv 高于本版）：只读保护
+	var hp := Pack.pack(nb, 9, 3, 3)
+	var hu := Pack.unpack(hp.items)
+	check(hu.status == "newer" and hu.body.is_empty(), "minv 高于本版应判为 newer、不给正文")
+	# 4. 迁移：v → v+1 逐级按顺序执行；本版读旧档时生效
+	var steps := {1: _m12, 2: _m23}
+	var mig := Pack.migrate({"set": {}, "prog": {}}, 1, 3, steps)
+	check(mig.get("m12") == true and mig.get("m23") == true, "迁移应逐级按顺序执行：%s" % mig)
+	var v1items: Dictionary = Pack.pack(body(1, 0, []), 1, 1, 1).items
+	var mu := Pack.unpack(v1items, 3, steps)
+	check(mu.status == "ok" and mu.body.get("m23") == true, "读旧版本的档时应走迁移")
+	check(Pack.migrate({"a": 1}, 1, 1, steps) == {"a": 1}, "同版本不迁移")
+
+
+func _m12(b: Dictionary) -> Dictionary:
+	var o: Dictionary = b.duplicate(true)
+	o["m12"] = true
+	return o
+
+
+func _m23(b: Dictionary) -> Dictionary:
+	var o: Dictionary = b.duplicate(true)
+	o["m23"] = bool(o.get("m12", false))
+	return o

@@ -87,12 +87,30 @@ func can_manual() -> bool:
 	return st in [St.SYNCED, St.PENDING, St.FAILED, St.BAD, St.NEWER] and not _busy
 
 
+## 「以本地覆盖云端」：云端是更新版本的不兼容格式时不许（只读保护，版本只升不降）
+func can_push() -> bool:
+	return can_manual() and st != St.NEWER
+
+
+## 打包本地正文：头里的版本取 max(本版, 见过的云端版本)，只升不降
+func _pack(body: Dictionary) -> Dictionary:
+	return Pack.pack(body, int(Time.get_unix_time_from_system()), Cfg.cloud_v, Cfg.cloud_minv)
+
+
+## 读到可用的云端存档：记下它的版本（回写时不降）
+func _seen(res: Dictionary) -> void:
+	Cfg.cloud_v = maxi(Cfg.cloud_v, int(res.v))
+	Cfg.cloud_minv = maxi(Cfg.cloud_minv, int(res.minv))
+
+
 func pending() -> bool:
 	return Pack.sig(Cfg.cloud_body()) != Cfg.cloud_sig
 
 
 ## 设置里状态行的文字（docs/76：短、陈述）
 func status_text() -> String:
+	if _busy and active():
+		return "同步中"
 	match st:
 		St.PROBING, St.SYNCING:
 			return "同步中"
@@ -101,13 +119,13 @@ func status_text() -> String:
 		St.SYNCED:
 			return "待上传" if pending() else "已同步"
 		St.PENDING:
-			return "同步中" if _busy else "待上传"
+			return "待上传"
 		St.FAILED:
 			return "上传失败，稍后重试"
 		St.BAD:
 			return "云端存档无法读取（仅本地保存）"
 		St.NEWER:
-			return "云端存档来自更新的版本（仅本地保存）"
+			return "云存档版本较新，请更新游戏"
 	return ""
 
 
@@ -122,7 +140,7 @@ func local_saved() -> void:
 		return
 	if st == St.SYNCED:
 		_set_st(St.PENDING)
-	var pk := Pack.pack(body, int(Time.get_unix_time_from_system()))
+	var pk := _pack(body)
 	if pk.err == "":
 		_js.stage(JSON.stringify(pk.items))
 
@@ -180,7 +198,7 @@ func pull() -> void:
 
 ## 以本地覆盖云端：本机存档整份写到云端（不合并；云端无法读取 / 版本更新时也写）
 func push() -> void:
-	if _js == null or not can_manual():
+	if _js == null or not can_push():
 		return
 	_start("push")
 
@@ -214,6 +232,7 @@ func _on_get(args: Array) -> void:
 	if _mode == "pull":
 		_busy = false
 		if res.status == "ok":
+			_seen(res)
 			Cfg.cloud_apply(res.body)
 			Cfg.cloud_sig = Pack.sig(Cfg.cloud_body())
 			Cfg.save()
@@ -222,7 +241,7 @@ func _on_get(args: Array) -> void:
 			_set_st(St.SYNCED)
 			_say("已从云端恢复")
 		else:
-			_say("云端没有可用的存档" if res.status != "newer" else "云端存档来自更新的版本")
+			_say("云端没有可用的存档" if res.status != "newer" else "云存档版本较新，请更新游戏")
 			changed.emit()
 		return
 	match res.status:
@@ -234,6 +253,8 @@ func _on_get(args: Array) -> void:
 			_js.stage("")
 			_set_st(St.NEWER if res.status == "newer" else St.BAD)
 			return
+	if res.status == "ok":
+		_seen(res)
 	var local := Cfg.cloud_body()
 	var merged := Pack.merge(local, res.body)
 	if Pack.canon(merged) != Pack.canon(local):
@@ -248,7 +269,7 @@ func _on_get(args: Array) -> void:
 
 
 func _upload(body: Dictionary) -> void:
-	var pk := Pack.pack(body, int(Time.get_unix_time_from_system()))
+	var pk := _pack(body)
 	if pk.err != "":
 		_busy = false
 		err_text = "存档超过 %d 片" % Pack.MAX_CHUNKS

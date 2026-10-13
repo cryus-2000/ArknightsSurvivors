@@ -324,7 +324,7 @@ func _adjust(i: int, dir: int) -> void:
 			Sfx.play("ui_ok")
 			return
 		"cloud_pull", "cloud_push":
-			if not Cloud.can_manual():
+			if not (Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()):
 				Sfx.play("ui_move", -4.0, 0.6)
 				return
 			if confirm_key == row.type and st < confirm_until:
@@ -525,9 +525,9 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			var good: bool = Cloud.msg == "" and stt == "已同步"
 			UI.text(ci, font, Vector2(rr.end.x - 16.0 - 380.0, rr.position.y + ty0), stt, fs_v - 2, UI.CYAN if good else (UI.GOLD if Cloud.msg != "" else UI.TEXT), HORIZONTAL_ALIGNMENT_RIGHT, 380)
 		"cloud_pull", "cloud_push":
-			var can: bool = Cloud.can_manual()
+			var can: bool = Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()
 			var conf: bool = confirm_key == row.type and st < confirm_until
-			var hint: String = "再点一次确认" if conf else (CLOUD_HINT[row.type] if can else "登录后可用")
+			var hint: String = "再点一次确认" if conf else (CLOUD_HINT[row.type] if can else ("请更新游戏" if Cloud.st == Cloud.St.NEWER else "登录后可用"))
 			UI.text(ci, font, Vector2(vx - 14 - (230.0 if touch else 0.0), rr.position.y + ty0), hint, 13 if touch else 11, UI.GOLD if conf else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
 			var bh3: float = 32.0 if touch else 26.0
 			var br3 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh3)

@@ -71,6 +71,11 @@ var opening_seen := false    # 看过完整的标题开场（写入存档）：�
 var cloud_set_t := 0
 var cloud_sig := ""
 var _set_sig := ""
+## 云端存档里本版不认识的字段（新版本加的），{"top", "set", "d", "prog"} 各一份；回写云端时原样带上。cloud_v / cloud_minv：
+## 见过的云端格式版本最大值，回写时头里的版本只升不降（docs/89 §3.1）
+var cloud_extra := {}
+var cloud_v := 0
+var cloud_minv := 0
 ## 上云的设置项（Cfg 属性名）。画质 / 全屏 / 分辨率 / 辉光 / 景深 / 法线光照 / 水下滤镜跟设备性能走，不上云
 const CLOUD_SET_KEYS := ["master", "music", "sfx", "voice", "dmg_numbers", "hitstop", "boss_intro", "reduce_motion", "outline",
 	"brightness", "pad_rumble", "manual_attack", "ui_size_pct", "cam_zoom_pct", "play_speed", "cover_character_id", "difficulty", "touch_layout"]
@@ -242,6 +247,10 @@ func _ready() -> void:
 		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
 		cloud_sig = str(c.get_value("cloud", "sig", ""))
 		_set_sig = str(c.get_value("cloud", "set_sig", ""))
+		var ex = CloudPack.parse(str(c.get_value("cloud", "extra", "{}")))
+		cloud_extra = ex if ex is Dictionary else {}
+		cloud_v = int(c.get_value("cloud", "v", 0))
+		cloud_minv = int(c.get_value("cloud", "minv", 0))
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
@@ -388,7 +397,9 @@ func save() -> void:
 	for a in dev_args():
 		if a.begins_with("--"):
 			return
+	# 先读回原文件再逐项覆盖：本版不认识的键（更新的版本写的）原样留着，不因为整份重写而丢掉（docs/89 §3.1）
 	var c := ConfigFile.new()
+	c.load(PATH)
 	c.set_value("display", "cover_character", cover_character_id)
 	c.set_value("game", "play_speed", play_speed)
 	c.set_value("audio", "master", master)
@@ -430,6 +441,9 @@ func save() -> void:
 	c.set_value("cloud", "set_t", cloud_set_t)
 	c.set_value("cloud", "sig", cloud_sig)
 	c.set_value("cloud", "set_sig", _set_sig)
+	c.set_value("cloud", "extra", JSON.stringify(cloud_extra))
+	c.set_value("cloud", "v", cloud_v)
+	c.set_value("cloud", "minv", cloud_minv)
 	c.save(PATH)
 	var cloud := get_node_or_null("/root/Cloud")
 	if cloud != null:
@@ -445,21 +459,32 @@ func _settings_sig() -> String:
 	return CloudPack.canon(d).md5_text()
 
 
-## 当前本地存档的正文（全部解锁时用存档里的真实进度，同 save()）
+## 当前本地存档的正文（全部解锁时用存档里的真实进度，同 save()）。
+## 云端带来的、本版不认识的字段（新版本加的）存在 cloud_extra 里，这里原样放回去：回写云端时不丢（docs/89 §3.1）
 func cloud_body() -> Dictionary:
-	var d := {}
+	var d: Dictionary = (cloud_extra.get("d", {}) as Dictionary).duplicate(true)
 	for k in CLOUD_SET_KEYS:
 		d[k] = TouchLayout.sanitize(touch_layout) if k == "touch_layout" else get(k)
-	return {"set": {"t": cloud_set_t, "d": d},
-		"prog": {"diff": int(_real_progress.get("diff_unlocked", diff_unlocked)), "gal": gallery_seen.duplicate(),
-			"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
-			"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen}}
+	var st: Dictionary = (cloud_extra.get("set", {}) as Dictionary).duplicate(true)
+	st["t"] = cloud_set_t
+	st["d"] = d
+	var pr: Dictionary = (cloud_extra.get("prog", {}) as Dictionary).duplicate(true)
+	pr.merge({"diff": int(_real_progress.get("diff_unlocked", diff_unlocked)), "gal": gallery_seen.duplicate(),
+		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
+		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen}, true)
+	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
+	out["set"] = st
+	out["prog"] = pr
+	return out
 
 
-## 把正文写回 Cfg 字段（逐项校验 / 夹取；类型不对的项保持本地值），不落盘。之后调用方 save()；
+## 把正文写回 Cfg 字段（逐项校验 / 夹取），不落盘。之后调用方 save()。
+## 正文里没有的字段（旧版本写的云档）、类型不对的字段都保持本地值，不清空；本版不认识的字段记进 cloud_extra。
 ## 设置签名同步更新，cloud_set_t 取正文里的时刻：采用云端设置不算本机的新修改
 func cloud_apply(body: Dictionary) -> void:
-	var d: Dictionary = body.set.d
+	var st: Dictionary = body.get("set", {}) if body.get("set") is Dictionary else {}
+	var d: Dictionary = st.get("d", {}) if st.get("d") is Dictionary else {}
+	var p: Dictionary = body.get("prog", {}) if body.get("prog") is Dictionary else {}
 	for k in ["master", "music", "sfx", "voice"]:
 		if d.get(k) is float or d.get(k) is int:
 			set(k, clampf(float(d[k]), 0.0, 1.0))
@@ -477,27 +502,47 @@ func cloud_apply(body: Dictionary) -> void:
 		play_speed = float(d.play_speed)
 	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id):
 		cover_character_id = d.cover_character_id
-	if d.has("touch_layout"):
+	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
-	var p: Dictionary = body.prog
-	var unlocked: int = clampi(int(p.get("diff", 0)), 0, D.DIFFICULTY_TIERS.size() - 1)
 	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows"}
-	if unlock_all:
-		_real_progress["diff_unlocked"] = unlocked
-		_real_progress["seen_relics"] = p.get("rel", []).duplicate()
-		_real_progress["endings_cleared"] = p.get("end", []).duplicate()
-		lists.erase("rel")
-		lists.erase("end")
-	else:
-		diff_unlocked = unlocked
+	if p.get("diff") is float or p.get("diff") is int:
+		var unlocked: int = clampi(int(p.diff), 0, D.DIFFICULTY_TIERS.size() - 1)
+		if unlock_all:
+			_real_progress["diff_unlocked"] = unlocked
+		else:
+			diff_unlocked = unlocked
 	for k in lists:
-		set(lists[k], p.get(k, []).map(func(x): return str(x)))
-	seen_intro = bool(p.get("intro", seen_intro))
-	opening_seen = bool(p.get("open", opening_seen))
+		if not (p.get(k) is Array):
+			continue
+		var arr: Array = p[k].map(func(x): return str(x))
+		if unlock_all and k in ["rel", "end"]:
+			_real_progress[{"rel": "seen_relics", "end": "endings_cleared"}[k]] = arr
+		else:
+			set(lists[k], arr)
+	if p.get("intro") is bool:
+		seen_intro = p.intro
+	if p.get("open") is bool:
+		opening_seen = p.open
 	if d.get("difficulty") is float or d.get("difficulty") is int:
 		difficulty = int(d.difficulty)
 	difficulty = clampi(difficulty, 0, int(_real_progress.get("diff_unlocked", diff_unlocked)))
-	cloud_set_t = int(body.set.t)
+	if st.get("t") is float or st.get("t") is int:
+		cloud_set_t = int(st.t)
+	# 不认识的字段：记下来，回写云端时原样带上
+	var ex := {"top": {}, "set": {}, "d": {}, "prog": {}}
+	for k in body:
+		if not (k in ["set", "prog"]):
+			ex.top[k] = body[k]
+	for k in st:
+		if not (k in ["t", "d"]):
+			ex.set[k] = st[k]
+	for k in d:
+		if not (k in CLOUD_SET_KEYS):
+			ex.d[k] = d[k]
+	for k in p:
+		if not (k in CloudPack.PROG_KEYS):
+			ex.prog[k] = p[k]
+	cloud_extra = ex
 	_set_sig = _settings_sig()
 
 
