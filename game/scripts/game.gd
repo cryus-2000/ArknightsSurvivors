@@ -420,6 +420,8 @@ const OPT_ENEMY := 8      # 敌人更新
 const OPT_DRAW := 16      # 其他绘制
 const OPT_OUTLINE := 32   # 普通怪 / 精英描边（docs/50 §12 A：新 = 不画；旧 = 照 fx/outline_max 满屏降级画）——会改画面，只供同局量帧时间
 const OPT_ATLAS := 64     # 普通怪 / 精英帧条图集（docs/50 §12 B：新 = 图集取帧；旧 = 各自的帧条贴图），画面相同
+const OPT_HUDB := 128     # HUD 合批（docs/50 §13：图标图集、字按字体字号成组、飘字分组），画面相同
+const OPT_PICKB := 256    # 掉落物剩余断点合批（docs/50 §13：空中影子 / 特殊掉落的圈与光柱进三角形批、贴图成组），画面相同
 var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
