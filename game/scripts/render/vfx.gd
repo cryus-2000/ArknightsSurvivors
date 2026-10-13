@@ -600,7 +600,7 @@ func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, 
 func draw_add_layer() -> void:
 	g.draw_off = Vector2.ZERO
 	if Look.dbg("nogod") == "":
-		g.map.draw_god_rays(g.fx_add, g.get_viewport_rect().size, g.cam.position)
+		g.map.draw_god_rays(g.fx_add, g.view_size(), g.cam.position)
 	var loop := int(g.t * 10.0)
 	g.squad.draw_fx_add(g.fx_add, loop)
 	draw_glows(g.fx_add)   # docs/54 柔光（灯标点燃 / 升级 / 晋升 / 拾取 / 精英登场 / 商人）

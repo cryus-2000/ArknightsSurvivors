@@ -196,6 +196,45 @@ func in_game() -> void:
 	game.panel.visible = false
 	game.state = game.S.PLAY
 	check(not game.hud_view.panel_over_top(), "对局中 panel_over_top 应为假")
+	# 设置页触屏行的 ◀ / ▶（用户 10-13「设置大小不能减小只能放大」：触屏行宽约 1100，◀ 原来被判成 ▶）：
+	# 画面页「界面大小」「战斗画面缩放」点 ◀ 减、点 ▶ 加；战斗画面缩放能降到 80%
+	game.settings.open()
+	game.settings._set_tab(1)
+	await frames(3)
+	for key in ["ui_size_pct", "cam_zoom_pct"]:
+		var si := -1
+		for k in game.settings.cur.size():
+			if game.settings.ROWS[game.settings.cur[k]].key == key:
+				si = k
+		check(si >= 0 and si < game.settings.row_rects.size(), "画面页应有 %s 行" % key)
+		if si < 0 or si >= game.settings.row_rects.size():
+			continue
+		game.settings.sel = si
+		game.settings._follow()
+		await frames(3)
+		var rr: Rect2 = game.settings.row_rects[si]
+		var vx: float = rr.position.x + rr.size.x - 252.0
+		var before: float = Cfg.ui_size_pct if key == "ui_size_pct" else Cfg.cam_zoom() * 100.0
+		game.settings._tap(Vector2(vx - 4.0, rr.get_center().y), MOUSE_BUTTON_LEFT)
+		await frames(2)
+		var mid: float = Cfg.ui_size_pct if key == "ui_size_pct" else Cfg.cam_zoom() * 100.0
+		check(mid < before - 0.5, "%s 点 ◀ 应减小（%.0f → %.0f）" % [key, before, mid])
+		game.settings._tap(Vector2(vx + 186.0, rr.get_center().y), MOUSE_BUTTON_LEFT)
+		await frames(2)
+		var after: float = Cfg.ui_size_pct if key == "ui_size_pct" else Cfg.cam_zoom() * 100.0
+		check(after > mid + 0.5, "%s 点 ▶ 应增大（%.0f → %.0f）" % [key, mid, after])
+	for i in 20:
+		game.settings._adjust(game.settings.ROWS.map(func(r): return r.key).find("cam_zoom_pct"), -1)
+	check(absf(Cfg.cam_zoom() - 0.8) < 0.001 and absf(game.cam.zoom.x - 0.8) < 0.001, "战斗画面缩放可降到 80%%（%.2f）" % game.cam.zoom.x)
+	check(game.view_size().x > game.get_viewport_rect().size.x, "拉远时 view_size 比视口大（地面按它铺满）")
+	for i in 20:
+		game.settings._adjust(game.settings.ROWS.map(func(r): return r.key).find("ui_size_pct"), -1)
+	check(Cfg.ui_size_pct == 80 and Cfg.ui_k < Cfg.UI_K_PHONE * 0.85 and Cfg.phone_ui(), "界面大小 80%% 在手机横屏下确实变小（ui_k=%.3f）" % Cfg.ui_k)
+	Cfg.ui_size_pct = 100
+	Cfg.cam_zoom_pct = -1
+	Cfg.apply()
+	game.settings.visible = false
+	await frames(2)
 	# 编辑页：拖动 / 推开 / 调大小 / 恢复默认 / 完成
 	Cfg.touch_layout = {}
 	game.settings.open()

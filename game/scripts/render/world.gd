@@ -147,7 +147,7 @@ func update_visuals(dt: float) -> void:
 	if g.merchant_light != null and g.merchant_light.visible and g.vfx.strip("fx_merchant_lantern"):
 		g.merchant_light.energy = 1.2 if g.vfx.lantern_bright() else 1.0   # 灯光能量随灯笼覆盖帧一起抖
 	# 海中浮游颗粒
-	g.map.update_snow(dt, g.get_viewport_rect().size)
+	g.map.update_snow(dt, g.view_size())
 	_enemy_act_fx()
 	# 特效密度 → 友方特效降噪（图鉴演示不降，演示本来就是看特效的）
 	var nfx: int = g.fx.size()
@@ -274,7 +274,7 @@ func draw_world() -> void:
 	if _dbg_ground:
 		g.draw_rect(view_rect(0.0), Color(0.16, 0.17, 0.2))   # --clutterdbg=noground（量测）：地面 / 地形道具换成平涂底色
 	else:
-		g.map.draw_ground(g.get_viewport_rect().size)
+		g.map.draw_ground(g.view_size())
 		# 后期降噪（render/declutter ground_veil，缺省 0 = 不画）：拥挤时地面盖一层地面平均色的薄纱，压地砖 / 小道具纹理的对比，
 		# 让敌人、弹幕和预警从地上浮出来；在溟痕 / 地面预警 / 掉落之下，灯火照常照在上面
 		var gv: float = Dc.p("ground_veil") * dcrowd
@@ -3048,7 +3048,7 @@ func draw_warn_outlines() -> void:
 func draw_zone() -> void:
 	if g.zone_state == 0:
 		return
-	var vs := g.get_viewport_rect().size
+	var vs := g.view_size()
 	var far := vs.length() + 200.0
 	var seg := 96
 	var outer := g.zone_r + far + g.ppos.distance_to(g.zone_c)
@@ -3085,7 +3085,7 @@ func draw_zone_band(pulse: float) -> void:
 	var r: float = g.zone_r
 	var c: Vector2 = g.zone_c
 	var vc: Vector2 = g.cam.position
-	var view: float = g.get_viewport_rect().size.length() * 0.6 + 80.0
+	var view: float = g.view_size().length() * 0.6 + 80.0
 	var n: int = clampi(int(TAU * r / ZB_SEG), 64, 420)
 	var t: float = g.t
 	var crest := PackedVector2Array()

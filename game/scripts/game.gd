@@ -679,7 +679,7 @@ func _ready() -> void:
 	# 2.5D 前景视差层（镜头前的虚化海草剪影）
 	fg = Node2D.new()
 	fg.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	fg.draw.connect(func(): _timed("draw_fg", func(): if Cfg.dof: map.draw_foreground(fg, get_viewport_rect().size, cam.position)))
+	fg.draw.connect(func(): _timed("draw_fg", func(): if Cfg.dof: map.draw_foreground(fg, view_size(), cam.position)))
 	add_child(fg)
 
 	merchant_light = PointLight2D.new()
@@ -881,6 +881,13 @@ func _apply_zoom() -> void:
 		return
 	var z: float = Cfg.cam_zoom()
 	cam.zoom = Vector2(z, z)
+
+
+## 镜头实际看得到的世界范围（视口 / 镜头 zoom）：地面、前景、雪、光柱、黑潮圈按它铺满。
+## 战斗画面缩放 < 100%（拉远）时比视口大，按视口尺寸画会在四周漏出空底（用户 10-13 改下限到 80%）
+func view_size() -> Vector2:
+	var z: Vector2 = cam.zoom if cam != null else Vector2.ONE
+	return get_viewport_rect().size / z
 
 
 ## 世界坐标 → HUD 坐标（界面层放大后 = 画布变换再除以 ui_k；桌面就是画布变换本身）

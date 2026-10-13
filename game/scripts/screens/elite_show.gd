@@ -77,6 +77,21 @@ func close() -> void:
 	g._check_pending()
 
 
+## 版面按 1280×720 设计（演示框 60–600、说明卡 620–1200、每张卡占 190 高）。界面逻辑尺寸放不下时整块等比缩小居中
+## （用户 10-13 手机实测「获得新干员 / 精英化时超出屏幕」：手机横屏界面逻辑约 1181×544，说明卡右边与第二张卡底边出框、「点击继续」压在卡上）。
+## 放得下（电脑 1280×720、两张卡）时缩放 1、不平移，版面与原来逐像素一致
+const DESIGN_W := 1240.0
+
+
+func fit_xf(vs: Vector2, n: int) -> Array:
+	var dh: float = maxf(620.0, 190.0 + n * 190.0 + 20.0)
+	var k: float = minf(1.0, minf(vs.x / DESIGN_W, vs.y / dh))
+	if k >= 1.0:
+		return [1.0, Vector2.ZERO, vs]
+	var d := Vector2(DESIGN_W, dh)
+	return [k, ((vs - d * k) / 2.0).round(), d]
+
+
 ## 解锁演出：暗场 -> 标题横幅 -> 水月演示 -> 说明卡依次滑入
 func draw(vs: Vector2) -> void:
 	var sc := show_cur
@@ -84,11 +99,22 @@ func draw(vs: Vector2) -> void:
 	var col: Color = sc.col
 	var fade := clampf(st / 0.3, 0.0, 1.0)
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.86 * fade))
-	# 扫光带
+	var xf: Array = fit_xf(vs, (sc["items"] as Array).size())
+	var k: float = xf[0]
+	var o: Vector2 = xf[1]
+	# 扫光带（横跨整屏；高度随版面缩放）
 	var sweep := clampf((st - 0.1) / 0.5, 0.0, 1.0)
-	g.hud.draw_rect(Rect2(0, 70, vs.x * sweep, 64), Color(col.r, col.g, col.b, 0.14))
-	g.hud.draw_rect(Rect2(0, 70, vs.x * sweep, 2), col)
-	g.hud.draw_rect(Rect2(0, 132, vs.x * sweep, 2), Color(col.r, col.g, col.b, 0.5))
+	g.hud.draw_rect(Rect2(0, o.y + 70 * k, vs.x * sweep, 64 * k), Color(col.r, col.g, col.b, 0.14))
+	g.hud.draw_rect(Rect2(0, o.y + 70 * k, vs.x * sweep, 2), col)
+	g.hud.draw_rect(Rect2(0, o.y + 132 * k, vs.x * sweep, 2), Color(col.r, col.g, col.b, 0.5))
+	if k < 1.0:
+		g.hud.draw_set_transform(o, 0.0, Vector2(k, k))
+		vs = xf[2]
+	_draw_body(sc, st, col, vs)
+	g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_body(sc: Dictionary, st: float, col: Color, vs: Vector2) -> void:
 	var ha := clampf((st - 0.25) / 0.3, 0.0, 1.0)
 	var hx := lerpf(-60.0, 0.0, ha)
 	UI.en(g.hud, g.font, Vector2(90 + hx, 94), sc.en, 13, Color(col.r, col.g, col.b, ha), 5.0)

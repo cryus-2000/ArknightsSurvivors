@@ -105,7 +105,8 @@ func _draw_body() -> void:
 		g.show_screen.draw(vs)
 		return
 	# 各块的顺序就是绘制层次（2026-10-10 拆分前 _draw_body 的原顺序），别调换
-	bars.draw_top_left(vs)
+	if not (panel_over_top() and g.choice_kind == "event"):
+		bars.draw_top_left(vs)   # 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
 	banners.draw_leader_hints(ct)
 	banners.draw_merchant_pointer(vs, ct)
 	banners.draw_altar_pointers(vs, ct)
