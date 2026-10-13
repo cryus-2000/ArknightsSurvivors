@@ -52,7 +52,10 @@
  "blocks": {
   "zone": {"center": "leader", "r": "$aura"},
   "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 0.85, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
-   "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "tint": [0.78, 0.95, 0.9, 0.5]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "tint": [0.85, 0.85, 0.9, 0.38]}]},
+   "fx": [{"strip": "fx_skalter_wave_big", "if_tex": "fx_skalter_wave_big", "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "tint": [0.78, 0.95, 0.9, 0.6]},
+    {"strip": "fx_skalter_wave_big_dim", "if_tex": "fx_skalter_wave_big_dim", "layer": "floor", "cond": "lamp < $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "tint": [0.85, 0.85, 0.9, 0.48]},
+    {"strip": "fx_skalter_wave", "if_tex": "!fx_skalter_wave_big", "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "tint": [0.78, 0.95, 0.9, 0.5], "wake": {"n": 2, "w": 12, "a": 0.55, "lag": 0.09, "col": [0.55, 0.92, 1.0]}},
+    {"strip": "fx_skalter_wave_dim", "if_tex": "!fx_skalter_wave_big_dim", "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "tint": [0.85, 0.85, 0.9, 0.38], "wake": {"n": 2, "w": 12, "a": 0.5, "lag": 0.09, "col": [0.62, 0.46, 0.88]}}]},
   "trait": [
    {"trig": "passive", "do": [
     {"verb": "heal", "pct": "$heal_pct", "every": "$heal_cd", "cond": "in_zone:leader", "src": "浊心斯卡蒂"},
@@ -72,7 +75,8 @@
     {"aura": "aspd", "value": "$s2_aspd", "scope": "in_zone", "power": true},
     {"aura": "atk", "value": "$s2_atk", "scope": "in_zone", "power": true},
     {"aura": "atk", "value": "$s2_hunter_atk", "scope": "faction:深海猎人", "power": true}]},
-   {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", "scale": 1.1, "tint": [0.8, 1.0, 0.95, 0.45]}], "do": [
+   {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "if_tex": "!fx_skalter_wave_big", "at": "zone", "max_scale": 4, "layer": "add", "scale": 1.1, "ease": "out2", "grow": 0.8, "grow0": 0.1, "grow_to": "zone", "tint": [0.8, 1.0, 0.95, 0.45], "wake": {"n": 3, "w": 16, "a": 0.4, "lag": 0.1, "col": [0.6, 1.0, 0.95]}},
+    {"strip": "fx_skalter_wave_big", "if_tex": "fx_skalter_wave_big", "at": "zone", "max_scale": 3, "layer": "add", "scale": 1.1, "ease": "out2", "grow": 0.8, "grow0": 0.1, "grow_to": "zone", "tint": [0.8, 1.0, 0.95, 0.5]}], "do": [
     {"verb": "mode", "zone_mult": "$s3_aura",
      "fx": [{"strip": "fx_skalter_s3_back", "layer": "behind", "anchor": [48, 84], "tint": [0.8, 0.98, 0.92, 0.55]}, {"strip": "fx_skalter_s3_front", "layer": "front", "anchor": [48, 84], "tint": [0.8, 0.98, 0.92, 0.45]},
       {"strip": "fx_skalter_vortex_floor", "hold": true, "layer": "ground", "fit": 160, "scale": 0.62, "max_scale": 2.0625, "fade": 0.45, "tint": [0.92, 0.98, 0.98, 0.5]},
@@ -97,7 +101,10 @@
    "dmg_up": {"aura": "atk", "value": "$n2_atk", "scope": "in_zone"},
    "echo": {"trig": "every_n", "n": "$echo_every", "delay": "$echo_delay", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$echo_mult", "max_n": "$wave_n", "src": "潮汐和声", "tags": ["follow_up"],
-     "fx": [{"strip": "fx_skalter_wave", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "scale": 0.85, "tint": [0.78, 0.95, 0.9, 0.35]}, {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "scale": 0.85, "tint": [0.85, 0.85, 0.9, 0.27]}]}]},
+     "fx": [{"strip": "fx_skalter_wave_big", "if_tex": "fx_skalter_wave_big", "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "scale": 0.85, "tint": [0.78, 0.95, 0.9, 0.42]},
+      {"strip": "fx_skalter_wave_big_dim", "if_tex": "fx_skalter_wave_big_dim", "layer": "floor", "cond": "lamp < $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "scale": 0.85, "tint": [0.85, 0.85, 0.9, 0.34]},
+      {"strip": "fx_skalter_wave", "if_tex": "!fx_skalter_wave_big", "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "scale": 0.85, "tint": [0.78, 0.95, 0.9, 0.35], "wake": {"n": 1, "w": 12, "a": 0.4, "lag": 0.09, "col": [0.55, 0.92, 1.0]}},
+      {"strip": "fx_skalter_wave_dim", "if_tex": "!fx_skalter_wave_big_dim", "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "scale": 0.85, "tint": [0.85, 0.85, 0.9, 0.27], "wake": {"n": 1, "w": 12, "a": 0.36, "lag": 0.09, "col": [0.62, 0.46, 0.88]}}]}]},
    "resonance": {"trig": "tick", "every": 1.0, "cond": "skill_active:0", "do": [
     {"shape": "circle", "center": "zone", "r": "zone", "mult": "$resonance_mult", "max_n": "$wave_n", "src": "深海的回响", "tags": ["skill", "dot"], "power": true}]},
    "elite2": {"shape": "orbit", "n": "$note_n", "r": "zone", "speed": "$note_speed", "hit_r": "$note_hit", "kb": "$note_kb", "cd": "$note_cd", "mult": 0.0,

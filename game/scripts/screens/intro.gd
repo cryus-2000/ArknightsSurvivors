@@ -420,7 +420,7 @@ static func fill_numbers(ln: String) -> String:
 	var Bal = preload("res://scripts/core/balance.gd")
 	var Sq = preload("res://scripts/characters/squad.gd")
 	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))
-	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq._num(Bal.v("squad/regen_per_member", 0.0))) \
+	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq.regen_steps_text()) \
 		.replace("{dark_taken}", pct.call(Bal.v("lamp/dark_taken", 1.15))).replace("{dark_enemy}", pct.call(Bal.v("lamp/dark_enemy", 1.2))) \
 		.replace("{dark_spawn}", pct.call(Bal.v("enemy/spawn_dark_mult", 1.15))) \
 		.replace("{lamp_hit_10}", Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1)).replace("{lamp_hit}", Sq._num(Bal.v("lamp/hit_base", 4.0)))

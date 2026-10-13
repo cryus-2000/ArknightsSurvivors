@@ -5,7 +5,7 @@
  "class": "医疗",
  "col": [0.55, 1.0, 0.5],
  "base": {
-  "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）。10-12 削治疗（docs/72 §6）：heal_pct 0.03→0.015、s1_heal 0.068→0.026、knight_heal 0.05→0.025、天赋治疗倍率 e1_heal 1.5→1.1、精二总倍率 e2_heal 1.5（新增）",
+  "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）。10-12 削治疗（docs/72 §6）：heal_pct 0.03→0.015、s1_heal 0.068→0.026、knight_heal 0.05→0.025、天赋治疗倍率 e1_heal 1.5→1.1、精二总倍率 e2_heal 1.5（新增）。精英化形态（docs/91 §6）：lunge_* 精一「扑击」，guard_cd / leap_* 精二「回防」，八面展开身后一爪 m_back_mult 保持 0.7（docs/91 的 0.6 配合下调不做：木桩表里回防 + 扑击合计让精二怪群比改前低，不需要再收）",
   "heal_pct": 0.015,
   "heal_cd": 3.5,
   "s1_heal": 0.026,
@@ -45,7 +45,17 @@
   "melt_stun_lo": 0.5,
   "rebuild_r": 70,
   "rebuild_mult": 1.2,
-  "rebuild_stun": 0.8
+  "rebuild_stun": 0.8,
+  "lunge_min": 80,
+  "lunge_t": 0.15,
+  "lunge_cd": 1.5,
+  "lunge_mult": 0.3,
+  "lunge_r": 40,
+  "guard_cd": 3.0,
+  "leap_t": 0.25,
+  "leap_r": 100,
+  "leap_mult": 1.2,
+  "leap_kb": 260
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1633 / 防御 215 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -66,9 +76,11 @@
   "m_attack": {"tex": "op_mon3tr_attack", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2},
   "command": {"tex": "op_kaltsit_command", "frames": 6, "fps": 12, "foot": [24, 46], "fire": 2},
   "m_skill": {"tex": "op_mon3tr_skill", "frames": 6, "fps": 12, "foot": [32, 60], "fire": 2},
-  "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2}
+  "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2},
+  "m_lunge": {"_doc": "Codex 精英化第 1 批：Mon3tr 前扑，出手帧 3 落爪", "tex": "op_kaltsit_m_lunge", "frames": 6, "fps": 14, "foot": [32, 60], "fire": 3},
+  "m_leap": {"_doc": "Codex 精英化第 1 批：Mon3tr 跃回，第 4 帧展开刃爪落地", "tex": "op_kaltsit_m_leap", "frames": 6, "fps": 12, "foot": [32, 60]}
  },
- "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt"],
+ "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt", "m_lunge", "m_leap"],
  "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为队长回复 1.5% 最大生命；随行的 Mon3tr 自动撕咬队长身边的敌人（物理）", "heal": true},
  "skills": [
   {"name": "医疗单元", "en": "MEDICAL UNIT", "sp": 7, "desc": "立即为队长回复 2.6% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
@@ -95,12 +107,14 @@
  "hit_sources": {
   "Mon3tr": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "basic"]},
   "Mon3tr · 熔毁": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill", "area"]},
-  "Mon3tr · 真伤": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill"]}
+  "Mon3tr · 真伤": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill"]},
+  "Mon3tr · 回防": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "area"]}
  },
  "progression": [
   {"type": "custom", "id": "twin_claw", "name": "骨爪增生", "icon": "growth_t_count", "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"},
   {"type": "custom", "id": "wide_arc", "name": "清创", "icon": "growth_u_area", "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +10%；Mon3tr 伤害 +30%，爪击范围 +20%"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「战术协同」；解锁天赋「指挥」：治疗量 +10%；Mon3tr 伤害 +30%，爪击范围 +20%；Mon3tr 的目标在 80 外时先扑过去，落地造成 30% 伤害（每 1.5 秒至多一次）",
+   "attack": {"name": "扑击", "desc": "Mon3tr 盯上的目标在 80 外时先扑过去，落地对半径 40 内的敌人造成 30% 伤害，再出爪（每 1.5 秒至多一次）"}},
   {"type": "custom", "id": "s1_shell", "name": "结构加固", "icon": "skill_kaltsit_s1", "desc": "「医疗单元」同时给队长罩上 3 秒绿色护壳：受到的伤害 -35%"},
   {
    "type": "custom",
@@ -113,7 +127,8 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "天赋「指挥」治疗量提升至 +50%；解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 展开四爪，前后同时出爪（身后一爪 70% 伤害）"
+   "desc": "天赋「指挥」治疗量提升至 +50%；解锁三技能「熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 前后同时出爪（身后一爪 70%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 100 内的敌人造成 ×1.2 伤害并击退（每 3 秒至多一次）",
+   "attack": {"name": "回防", "desc": "队长受到攻击时，Mon3tr 跃回队长身边，落地对周围半径 100 内的敌人造成 ×1.2 伤害并击退（每 3 秒至多一次）；「八面展开」前后同时出爪照旧（身后一爪 70%）"}
   }
  ],
  "gallery": {"tags": ["治疗", "护队长", "召唤", "近战"], "desc": "持续治疗队长，Mon3tr 在身边撕碎靠近的敌人"},
@@ -140,7 +155,7 @@
      "recall": "$m_recall"
     },
     "manual": "command",
-    "anim": {"idle": "m_idle", "run": "m_run", "attack": "m_attack"},
+    "anim": {"idle": "m_idle", "run": "m_run", "attack": "m_attack", "lunge": "m_lunge", "leap": "m_leap"},
     "float": {"h": 4, "amp": 3, "hz": 2.6},
     "shadow": 1.4,
     "attack": {
@@ -580,7 +595,20 @@
      ]
     }
    ],
-   "elite2": {"verb": "summon_mod", "kind": "mon3tr", "mirror": {"mult": "$m_back_mult"}}
+   "elite1": {"verb": "summon_mod", "kind": "mon3tr", "_doc": "扑击（docs/91 §6）：目标在 lunge_min 外时先扑过去，落地 lunge_r 内 × lunge_mult",
+    "lunge": {"min_d": "$lunge_min", "t": "$lunge_t", "cd": "$lunge_cd", "mult": "$lunge_mult", "r": "$lunge_r",
+     "fx": [{"strip": "fx_claw_green", "scale": 0.8, "off": [0, -14]}]}},
+   "elite2": [
+    {"verb": "summon_mod", "kind": "mon3tr", "mirror": {"mult": "$m_back_mult"}},
+    {"trig": "on_hurt", "cd": "$guard_cd", "_doc": "回防（docs/91 §6）：队长受击时 Mon3tr 跃回队长身边，落地一圈 × leap_mult 并击退", "do": [
+     {"verb": "summon_cmd", "kind": "mon3tr", "action": "leap", "to": "leader", "t": "$leap_t", "then": [
+      {"shape": "circle", "center": "target", "r": "$leap_r", "r_abs": true, "atk_key": "m_atk", "mult": "$leap_mult", "kb": "$leap_kb", "src": "Mon3tr · 回防", "ring": false,
+       "fx": [
+        {"strip": "fx_mon3tr_slam_ring", "layer": "floor", "fit": 32},
+        {"strip": "fx_circle_steel", "if_tex": "!fx_mon3tr_slam_ring", "layer": "floor", "fit": 16, "tint": [0.55, 1.0, 0.5]},
+        {"strip": "fx_mon3tr_claw", "n": 4, "spread": 0.55, "off": [0, -10]},
+        {"sfx": {"kind": "big", "db": -6, "pitch": 1.1}},
+        {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}]}]}]}]
   }
  }
 }

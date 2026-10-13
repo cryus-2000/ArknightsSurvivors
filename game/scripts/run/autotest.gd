@@ -174,6 +174,20 @@ func _stats_shot() -> bool:
 func bot_pick() -> int:
 	if g.choices.is_empty():
 		return 0
+	if g.choice_kind == "swap":
+		return g.progression.auto_swap_pick()   # 更换队友画面（bot/swap 缺省 0 = 不替换）
+	# 满员招募卡（更换队友）：bot/swap 关时不进候选，其余选法照旧；下标映射回 g.choices
+	var idx: Array = g.progression.auto_choices()
+	if idx.size() < g.choices.size():
+		var keep: Array = g.choices
+		g.choices = idx.map(func(k): return keep[k])
+		var sub_i: int = _bot_pick_inner()
+		g.choices = keep
+		return int(idx[clampi(sub_i, 0, idx.size() - 1)])
+	return _bot_pick_inner()
+
+
+func _bot_pick_inner() -> int:
 	if g.bot != null:
 		var bp: int = g.bot.pick(g.choices)
 		if bp >= 0:
@@ -227,9 +241,29 @@ func _rec_step() -> void:
 			g.get_tree().quit()
 
 
+## --optab=N / --optmask=位 / --optold=位（docs/50 §11，仅测试）：每 N 帧在新 / 旧实现之间轮换 g.opt_old（只在真实步长段轮换）；
+## --perf 分 /new /old 两桶
+var _optab := -1
+var _optmask := 0xffff
+func _opt_ab() -> void:
+	if _optab < 0:
+		_optab = 0
+		for a in Cfg.dev_args():
+			if a.begins_with("--optab="):
+				_optab = int(a.substr(8))
+			elif a.begins_with("--optmask="):
+				_optmask = int(a.substr(10))
+			elif a.begins_with("--optold="):
+				g.opt_old = int(a.substr(9))
+	if _optab > 0 and g.at_frames % _optab == 0 and g.realtime:
+		g.opt_old = 0 if g.opt_old != 0 else _optmask
+
+
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
 func step() -> void:
 	g.at_frames += 1
+	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
+		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
 	if vfxab < 0:
 		vfxab = 0
 		for a in Cfg.dev_args():
@@ -241,6 +275,7 @@ func step() -> void:
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
 	_rec_step()
+	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
@@ -596,15 +631,18 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_choice.png")
 		if choice_wait > 45:
 			choice_wait = 0
-			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机
+			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机（满员招募卡按 bot/swap，缺省不选；更换画面选「不替换」）
+			var ok_i: Array = g.progression.auto_choices()
 			var deep: Array = []
-			for ci in g.choices.size():
+			for ci in ok_i:
 				if g.choices[ci].kind == "prog":
 					deep.append(ci)
-			if not deep.is_empty() and g.rng.randf() < 0.7:
+			if g.choice_kind == "swap":
+				g.progression.pick(g.progression.auto_swap_pick())
+			elif not deep.is_empty() and g.rng.randf() < 0.7:
 				g.progression.pick(deep[g.rng.randi() % deep.size()])
 			else:
-				g.progression.pick(g.rng.randi() % g.choices.size())
+				g.progression.pick(ok_i[g.rng.randi() % ok_i.size()])
 	if g.at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d hp=%d enemies=%d mires=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.mires.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:
@@ -794,11 +832,11 @@ func _perf_sample() -> void:
 			elif a.begins_with("--perfdump="):
 				perf_dump = FileAccess.open(a.substr(11), FileAccess.WRITE)
 				if perf_dump != null:
-					perf_dump.store_line("frame,t,ft,rcpu,gpu,alt,steps,en,bul,ebul,fx,texts,gems,warns,mires,boss,final," + ",".join(PERF_DUMP_KEYS))
+					perf_dump.store_line("frame,t,ft,rcpu,gpu,alt,steps,en,bul,ebul,fx,texts,gems,warns,mires,boss,final,dcalls,objs," + ",".join(PERF_DUMP_KEYS))
 	var now := Time.get_ticks_usec()
 	if perf_last > 0 and g.state == g.S.PLAY and not A_.late_log:
 		A_.late_log = true
-	if perf_last > 0 and g.state == g.S.PLAY:
+	if perf_last > 0 and g.state == g.S.PLAY and (g.rt_from < 0.0 or g.realtime):   # --rtfrom：快进段不记
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
@@ -806,16 +844,19 @@ func _perf_sample() -> void:
 			w += "/on" if g.vfx.p2 else "/off"   # --vfxab：上一帧是在哪个模式下画的（轮换在采样之后）
 		if Dc.ab_every > 0:
 			w += "/d0" if Dc.ab_alt else "/dN"   # --clutterab：上一帧按哪一档画的（轮换在采样之后）
+		if _optab > 0:
+			w += "/old" if g.opt_old != 0 else "/new"   # --optab：这一帧（上一帧的模拟与绘制）走的是旧 / 新实现
 		if perf_ab > 0:
 			w += "/b" if g.perf_alt else "/a"   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
 		if not perf.has(w):
-			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
+			perf[w] = {"ft": PackedFloat32Array(), "rcpu": PackedFloat32Array(), "gpu": PackedFloat32Array(), "en": PackedInt32Array(), "dc": PackedInt32Array(), "stage": {}, "slow_stage": {}, "slow_n": 0,
 				"sfx0": _sfx_snap(), "fps40": 0}
 		var d: Dictionary = perf[w]
 		d.ft.append((now - perf_last) / 1000.0)
 		d.rcpu.append(RenderingServer.viewport_get_measured_render_time_cpu(rid))
 		d.gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
 		d.en.append(g.enemies.size())
+		d.dc.append(int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))   # 上一帧的绘制调用数
 		if (now - perf_last) > 25000:
 			d.fps40 += 1   # 帧时间 > 25 毫秒（低于 40 fps）
 		var ft: float = (now - perf_last) / 1000.0
@@ -831,8 +872,9 @@ func _perf_sample() -> void:
 		if perf_dump != null:
 			var row := PackedStringArray([str(g.at_frames), str(snappedf(g.t, 0.01)), str(snappedf(ft, 0.01)),
 				str(snappedf(RenderingServer.viewport_get_measured_render_time_cpu(rid), 0.01)), str(snappedf(RenderingServer.viewport_get_measured_render_time_gpu(rid), 0.01)),
-				str(int(g.perf_alt)), str(g.upd_n - perf_upd), str(g.enemies.size()), str(g.bullets.size()), str(g.ebullets.size()), str(g.fx.size()), str(g.texts.size()),
-				str(g.gems.size()), str(g.warns.size()), str(g.mires.size()), str(g.bosses.size()), str(int(g.final_boss != null and not g.final_boss.dead))])
+				str(int(g.perf_alt) + 2 * int(g.opt_old != 0)), str(g.upd_n - perf_upd), str(g.enemies.size()), str(g.bullets.size()), str(g.ebullets.size()), str(g.fx.size()), str(g.texts.size()),
+				str(g.gems.size()), str(g.warns.size()), str(g.mires.size()), str(g.bosses.size()), str(int(g.final_boss != null and not g.final_boss.dead)),
+				str(int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))), str(int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))])
 			for k in PERF_DUMP_KEYS:
 				row.append(str(snappedf(float(br.get(k, 0.0)), 0.01)))
 			perf_dump.store_line(",".join(row))
@@ -858,9 +900,16 @@ func _perf_summary() -> Dictionary:
 	var out := {}
 	for w in perf:
 		var d: Dictionary = perf[w]
-		out[w] = {"n": d.ft.size(), "ft_med": _pct(d.ft, 0.5), "ft_p99": _pct(d.ft, 0.99), "ft_max": _pct(d.ft, 1.0),
+		var fsum := 0.0
+		var over := 0
+		for x in d.ft:
+			fsum += x
+			if x > 16.7:
+				over += 1
+		out[w] = {"n": d.ft.size(), "ft_mean": snappedf(fsum / maxf(1.0, d.ft.size()), 0.01), "ft_med": _pct(d.ft, 0.5), "ft_p95": _pct(d.ft, 0.95), "ft_p99": _pct(d.ft, 0.99), "ft_max": _pct(d.ft, 1.0),
+			"over16_pct": snappedf(100.0 * over / maxf(1.0, d.ft.size()), 0.1),
 			"rcpu_med": _pct(d.rcpu, 0.5), "rcpu_p99": _pct(d.rcpu, 0.99), "gpu_med": _pct(d.gpu, 0.5), "gpu_p99": _pct(d.gpu, 0.99),
-			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0), "slow_n": d.slow_n,
+			"en_med": _pct(d.en, 0.5), "en_peak": _pct(d.en, 1.0), "dc_med": _pct(d.dc, 0.5), "slow_n": d.slow_n,
 			"stage_ms": _per_frame(d.stage, d.ft.size()), "slow_stage_ms": _per_frame(d.slow_stage, d.slow_n),
 			"below40_pct": snappedf(100.0 * d.fps40 / maxf(1.0, d.ft.size()), 0.1), "sfx": _sfx_delta(d.sfx0)}
 	perf_slow.sort_custom(func(a, b): return a.ft > b.ft)

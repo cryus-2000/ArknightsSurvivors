@@ -35,7 +35,7 @@
 
 | 文件 | 尺寸 | 帧 | 层 | 用途 |
 |---|---|---|---|---|
-| `fx_skalter_wave_big` | 约 400×220 | 8–10 帧 12fps，不循环 | ground | 普攻「海潮低吟」每圈声浪（原尺寸大声浪，覆盖歌域）：从内到外扩散、先快后慢，外圈跟两三道渐淡余波；二值透明，渐淡靠抖动疏密 |
+| `fx_skalter_wave_big` | **208×120**（已接线，按此尺寸） | **8 帧 12fps**，不循环 | ground | 普攻「海潮低吟」每圈声浪：圈心 = 帧中心 (104, 60)，从内到外扩散、先快后慢，**末帧外圈半径约 95**（游戏按半径把每帧缩放到歌域，最多放大 3 倍）；外圈跟两三道渐淡余波；二值透明，渐淡靠抖动疏密。游戏里有这张图时不再画程序余波环 |
 | `fx_skalter_wave_big_dim` | 同上 | 同上 | ground | 暗版（灯火暗淡 / 歌域效果弱时用），同一套帧、整体更暗更稀 |
 
 两条帧数必须相同、逐帧对应（程序在明 / 暗两版间交叉淡入淡出）。原点 = 椭圆中心；俯视压扁 y ≈ 0.55。
@@ -95,6 +95,17 @@
 | `fx_texas_pin_shatter` | 24×24 | 5 帧 18fps | front | 精一：钉剑消失时碎成红光 |
 | `fx_texas_sword_drop` | 12×40 | 5 帧 20fps | front | 精二：从天而降的剑（带下落光迹，最后一帧剑尖入地） |
 | `fx_texas_sword_impact` | 32×16 | 5 帧 18fps | ground | 精二：剑雨每一柄落地的地面裂光 |
+
+
+### 1.6 接入记录（Claude，10-14）
+
+第 1 批 25 条（含 10-13 色板复核版）全部接上，帧数 / fps / 原点按 manifest，登记在 game.gd `V6_FRAMES`，人物帧条登记在各干员 `sprites`（`throw`、`m_lunge`、`m_leap`），@2x 自动加载；用法见 docs/61 §16、docs/91 §23。
+- **两处覆盖已有文件，规格不同，改名为本批专用、原文件恢复原样**：
+  - `fx_slash_heavy_rose`：Codex 版是 4 帧 × 35×34（暗红抖动刀光，色板复核版同规格）；原文件是 5 帧 × 28×34（玫红刀光，艾丽妮 irene.gd 在用，V6_FRAMES 按 5 帧切）。总尺寸同为 140×34，但按 5 帧切 Codex 版会切坏 → Codex 版改名 `fx_hoshiguma_slash_rose`（+ @2x，星熊反击架势用），`fx_slash_heavy_rose.png` 恢复为交付前的版本（原本没有 @2x，Codex 带来的 @2x 也随改名移走，否则会被自动加载盖住原图）。
+  - `fx_exusiai_hit_gold`：Codex 版是 5 帧 × 24×24；原文件是 3 帧 × 12×12（能天使天赋「弹夹倾泻」命中火花，与 hit_s1 / s2 / s3 同一套）→ Codex 版改名 `fx_exusiai_pierce_gold`（+ @2x，穿甲连射叠满火花），原文件与 @2x 恢复。
+  - manifest 里这两条仍是原文件名，以本节为准。
+- `fx_texas_pin_sword` / `fx_texas_sword_drop` 朝下画（manifest 写明的朝向例外），按落剑用法接，不旋转。
+- 缺图回退：钉剑 → `fx_texas_rain_mark`；剑雨 → 旧剑雨帧条；失重井 → `proj_angelina_orb` + `fx_angelina_pull`；回防落地环 → `fx_circle_steel` 染绿；残影 → 当前帧染绿；扑击 / 跃回帧条 → `m_run`；盾锯 → 程序圆盾；祝福金光 → 程序光点。
 
 ---
 

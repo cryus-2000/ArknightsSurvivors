@@ -410,6 +410,17 @@ var realtime := false            # --realtime（仅测试，配合 --balance --p
 var playclock_test := false     # --playclock（仅测试，配合 --balance --realtime）：开垂直同步、按玩家局的 PlayClock 分步推进，测玩家实际帧时间（docs/50 §10）
 var upd_n := 0                  # _update 调用次数（--perfdump 逐帧记模拟步数）
 var perf_alt := false           # --perfab=N（仅测试）：autotest 每 N 帧轮换，同局对照两种实现（docs/50 §10）
+## 性能优化同局对照（docs/50 §11，仅测试）：--optab=N 每 N 帧在「新实现」与「旧实现」之间轮换；opt_old 是当前走旧实现的优化位（OPT_*），
+## --optmask=<位> 只轮换其中几项（缺省全部）；--optold=<位> 整局固定走旧实现。正常游戏恒为 0（全走新实现）。各项新旧实现逐帧结果相同
+var opt_old := 0
+const OPT_GEM := 1        # 掉落物更新
+const OPT_GEMDRAW := 2    # 掉落物绘制
+const OPT_CLEANUP := 4    # 清理死亡实体
+const OPT_ENEMY := 8      # 敌人更新
+const OPT_DRAW := 16      # 其他绘制
+const OPT_OUTLINE := 32   # 普通怪 / 精英描边（docs/50 §12 A：新 = 不画；旧 = 照 fx/outline_max 满屏降级画）——会改画面，只供同局量帧时间
+const OPT_ATLAS := 64     # 普通怪 / 精英帧条图集（docs/50 §12 B：新 = 图集取帧；旧 = 各自的帧条贴图），画面相同
+var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
 var _prof_t := 0
@@ -497,6 +508,11 @@ func _web_early_enemy_tex() -> Dictionary:
 			early[d.tex] = true
 	if D.ENEMIES.has("knight"):
 		early[D.ENEMIES.knight.tex] = true
+	# 普通怪 / 精英（Boss 除外）全部预载（docs/50 §12）：帧条合计约 0.2 M 像素，开局要拼进敌人图集；推迟加载留给 Boss 的大帧条
+	for k in D.ENEMIES:
+		var dk: Dictionary = D.ENEMIES[k]
+		if str(dk.get("role", "")) != "boss" and not dk.get("boss", false):
+			early[dk.tex] = true
 	return early
 
 
@@ -653,6 +669,7 @@ func _ready() -> void:
 			continue
 		_load_enemy_tex(n)
 
+	world.build_enemy_atlas()   # 普通怪 / 精英帧条图集（docs/50 §12 B）
 	A.mark("tex_enemies")
 	var cm := CanvasModulate.new()
 	cm.color = map.ambient
@@ -826,6 +843,10 @@ func _ready() -> void:
 				bal_maxt = float(a.substr(7))
 		prof_on = Cfg.dev_args().has("--prof")
 		realtime = Cfg.dev_args().has("--realtime")
+		for a in Cfg.dev_args():
+			if a.begins_with("--rtfrom=") and realtime:
+				rt_from = float(a.substr(9))
+				realtime = false
 		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
 		for a in Cfg.dev_args():
 			if a.begins_with("--trace="):
@@ -1557,7 +1578,10 @@ func facing_angle() -> float:
 
 func _cleanup() -> void:
 	enemies = enemies.filter(func(e): return not e.dead)
-	gems = gems.filter(func(g): return not g.dead)
+	# 掉落物只在 pickups.gd 里被标记 dead（拾取 / 回收，计数 dead_n）：这一帧没有就不重建（满地几百颗时逐帧 filter 是常驻开销，docs/50 §11）
+	if pickups.dead_n > 0 or opt_old & OPT_CLEANUP:
+		gems = gems.filter(func(g): return not g.dead)
+		pickups.dead_n = 0
 	bullets = bullets.filter(func(b): return b.life > 0.0)
 	ebullets = ebullets.filter(func(b): return b.life > 0.0)
 	fx = fx.filter(func(f): return f.life > 0.0)
@@ -1681,6 +1705,9 @@ const V6_FRAMES := {
 	"fx_exusiai_hit_s1": [3, 24.0], "fx_exusiai_hit_s2": [3, 24.0], "fx_exusiai_hit_s3": [3, 24.0], "fx_exusiai_hit_gold": [3, 24.0],
 	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
 	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
+	# 预留：Codex 原尺寸大声浪（docs/61 §5.6 扩散缓动、§10 第 17 条；还没交图，缺图时 skalter.json 回退到上面的小帧条 + 程序余波环）：
+	# 8 帧 12fps（≈ 扩散 0.65 秒），1x 帧 208×120、圈心 = 帧中心，末帧外圈半径约 95（= 歌域 190 / 2 世界像素）；明 / 暗两套共用规格
+	"fx_skalter_wave_big": [8, 12.0], "fx_skalter_wave_big_dim": [8, 12.0],
 	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
 	"fx_skalter_s3_back": [6, 12.0], "fx_skalter_s3_front": [6, 12.0], "fx_skalter_s3_orbit": [6, 12.0],
 	# Codex 浊心斯卡蒂 S3 地面大漩涡（docs/66，art/incoming/skalter_vortex_handoff.md，b49d0047）：320×176 × 8 帧 10fps 循环，原点 (160, 88) = 帧中心；
@@ -1690,6 +1717,16 @@ const V6_FRAMES := {
 	"fx_texas_dash": [4, 20.0],
 	# 德克萨斯剑雨（10-12 重做，docs/70，verb.fx_rain docs/61 §13.5）：剑 16×40（0–1 下落循环 / 2–5 插地按停留时间铺开，锚 (8, 38)）、冲击 32×24（锚 (16, 20)）、地面标记 24×12（0–2 预兆 / 3–5 焦痕，锚帧中心）
 	"fx_texas_blade": [6, 20.0], "fx_texas_rain_hit": [5, 24.0], "fx_texas_rain_mark": [6, 12.0],
+	# Codex 精英化第 1 批（docs/93 §1，art/incoming/elite_art_1_manifest.json；接入见 docs/91 第 1 批）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor。
+	# fx_hoshiguma_slash_rose / fx_exusiai_pierce_gold 是 Codex 这批交来时覆盖了已有的 fx_slash_heavy_rose（艾丽妮用）/ fx_exusiai_hit_gold（倾泻用），
+	# 规格不同（4 帧 35×34 / 5 帧 24×24），改名成本批专用，原文件恢复原样
+	"fx_angelina_halt": [5, 14.0], "fx_angelina_well_back": [8, 10.0], "fx_angelina_well_front": [8, 10.0], "fx_angelina_well_open": [5, 14.0],
+	"fx_angelina_well_close": [5, 14.0], "fx_angelina_float_dust": [4, 8.0],
+	"proj_exusiai_bullet_t1": [2, 20.0], "proj_exusiai_bullet_t2": [2, 20.0], "proj_exusiai_bullet_t3": [2, 20.0], "fx_exusiai_pierce_gold": [5, 20.0],
+	"fx_exusiai_halo": [8, 10.0], "fx_exusiai_blessed_flash": [4, 20.0],
+	"fx_hoshiguma_slash_rose": [4, 20.0], "fx_hoshiguma_guard_glow": [6, 10.0], "proj_hoshiguma_sawshield": [8, 24.0], "fx_hoshiguma_saw_spark": [4, 20.0],
+	"fx_mon3tr_slam_ring": [6, 16.0], "fx_mon3tr_afterimage": [1, 1.0],
+	"fx_texas_pin_sword": [4, 12.0], "fx_texas_pin_shatter": [5, 18.0], "fx_texas_sword_drop": [5, 20.0], "fx_texas_sword_impact": [5, 18.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

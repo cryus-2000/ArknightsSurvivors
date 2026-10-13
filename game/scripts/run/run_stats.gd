@@ -192,7 +192,7 @@ static func model(raw: Dictionary) -> Dictionary:
 		var c: Array = j.get("col", [0.6, 0.9, 1.0])
 		rows.append({"key": j.id, "name": str(j.name), "en": str(j.get("en", "")), "col": Color(c[0], c[1], c[2]),
 			"leader": bool(j.get("leader", false)), "join_t": t_in, "left_t": (left - t0) if left >= 0.0 else -1.0,
-			"in_s": maxf(1.0, t_out - t_in), "elite": int(j.get("elite", 0)), "heal": float(heal.get(str(j.name), 0.0)), "src_d": op_out.get(j.id, {})})
+			"in_s": maxf(1.0, t_out - t_in - float(j.get("away", 0.0))), "elite": int(j.get("elite", 0)), "heal": float(heal.get(str(j.name), 0.0)), "src_d": op_out.get(j.id, {})})
 	# 记录里有输出、却不在入队名单里的干员（理论上不会有）：并进「藏品与支援」，保证合计守恒
 	var other_d: Dictionary = (op_out.get(OTHER, {}) as Dictionary).duplicate()
 	for k in op_out:

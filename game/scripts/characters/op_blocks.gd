@@ -26,7 +26,7 @@ const PLANNED := {
 }
 const FAMILIES := ["shape", "verb", "aura", "st", "trig", "custom"]
 ## 本干员的局部倍率（verb.buff_self 的 stat 取这些时不进 g.stats）
-const LOCAL_STATS := ["zone", "dmg", "heal", "interval", "area", "force", "force_lit"]   # area / force / force_lit：安洁莉娜段（落点范围 / 位移距离 / 灯光内位移）
+const LOCAL_STATS := ["zone", "dmg", "heal", "interval", "area", "force", "force_lit", "atk"]   # area / force / force_lit：安洁莉娜段（落点范围 / 位移距离 / 灯光内位移）；atk：只乘普攻（精英化段，星熊反击架势）
 ## verb.buff_self 可写进 g.stats 的干员属性（作用域 op:<id>）
 const OP_STATS := ["op_atk", "op_aspd", "op_range", "op_skill_power", "op_shots"]   # op_shots：能天使（docs/61 §14）
 const AURA_STAT := {"atk": "op_atk", "aspd": "op_aspd", "skill_power": "op_skill_power", "range": "op_range"}
@@ -101,6 +101,9 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	var mc := mf_parse_cond(s, base)   # 召唤物扩展段：a && b、node:<id>、hurt_any
 	if not mc.is_empty():
 		return mc
+	var ec := el_parse_cond(s)   # 精英化段：buff:<key>
+	if not ec.is_empty():
+		return ec
 	if s.begins_with("!"):
 		c.neg = true
 		s = s.substr(1).strip_edges()
@@ -204,7 +207,12 @@ static func cond_true(o, c) -> bool:
 			r = _cmp(float(count_others(o, "class:" + str(c.a))), c.op, c.v)
 		_:
 			var mc := mf_cond(o, c)   # 召唤物扩展段的条件
-			r = mc[1] if mc[0] else ext_cond_true(o, str(c.k))
+			if mc[0]:
+				r = mc[1]
+			elif str(c.k) == "buff":   # 精英化段：限时增益 buff:<key> 生效中
+				r = el_buff_on(o, str(c.a))
+			else:
+				r = ext_cond_true(o, str(c.k))
 	return r != bool(c.neg)
 
 
@@ -249,6 +257,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * mult * float(o.loc.dmg) * o._dmg_bonus()
 	if b.get("power", false):
 		dmg *= o.skill_power()
+	dmg *= el_atk_mult(o)   # 精英化段：只乘普攻的局部倍率 atk（普攻出手时才生效；其余干员恒 1.0）
 	var src: String = str(b.get("src", ""))
 	var tags: Array = b.get("tags", [])
 	var kb: float = float(b.get("kb", 0.0))
@@ -260,11 +269,17 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var fx_a := 0.0
 	match str(b.shape):
 		"circle":
+			if str(b.get("center", "")) == "path":   # 精英化段：沿上一次冲刺路径每 step 一处（德克萨斯余像·剑雨）
+				el_path_circles(o, b)
+				return []
 			var c: Vector2 = shape_center(o, b, at)
 			var r: float = shape_radius(o, b)
 			if c == Vector2.INF:
 				return []
-			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
+			if b.has("only"):   # 精英化段：只打处于某些状态的敌人（安洁莉娜失重井）
+				hits = el_area_only(o, b, c, r, dmg)
+			else:
+				hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			fx_c = c
@@ -283,8 +298,8 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		"projectile":   # 能天使段：弹体自推进，命中在 exu_tick 里结算，这里返回空
 			exu_fire(o, b)
 	for s in b.get("on_hit", []):
-		for e in hits:
-			apply_status(o, e, s)
+		for i in hits.size():
+			apply_status(o, hits[i], s, Vector2.INF, -1.0, 0.0, i)
 	if b.has("fx") and fx_c != Vector2.INF:
 		fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
 	return hits
@@ -293,7 +308,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 ## 命中 / 力场里的状态（st.*，第三批合并时与安洁莉娜段的 status_one 统一）：stun / slow 精英时长减半、Boss 缺省不受（与原 apply_status 逐字节相同）。
 ## 一名敌人吃一条状态。c / ring / ring_w：within（离 c 不超过）与 where: ring（在环带 ±ring_w 内）的筛选。
 ## Boss：缺省不受；boss: true 也受（stun ×0.25 / slow 照常）；boss_only: true 只对 Boss
-static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring := -1.0, ring_w := 0.0) -> void:
+static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring := -1.0, ring_w := 0.0, idx := -1) -> void:
 	if e.dead or not cond_true(o, s.get("cond", {})):
 		return
 	if s.has("within") and c != Vector2.INF and e.pos.distance_to(c) > float(s.within) + float(e.r) * 0.5:
@@ -307,6 +322,10 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 		return
 	if s.get("boss_only", false) and not e.boss:
 		return
+	if (s.has("first_only") or s.has("cd")) and not el_status_gate(o, s, idx):   # 精英化段：只对这次命中的第一个敌人 / 冷却
+		return
+	if s.has("fx"):   # 精英化段：状态自带画面（中心 = 这名敌人脚底，半径 = 敌人半径）
+		fx_play(o, s.fx, e.pos, float(e.r), [e])
 	var g = o.g
 	var k: float = 0.25 if e.boss else (0.5 if e.elite else 1.0)
 	match "st." + str(s.get("st", "")):
@@ -605,6 +624,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				errs.append("%s.%s：%s" % [p, k, ev[2]])
 	if b.has("fx"):
 		_fx(b.fx, p + ".fx", ctx, "%s.%s" % [fam, str(b[fam])] if fam != "custom" else "custom")
+	if fam == "st":   # 精英化段：命中状态的 first_only / cd（任何 st.* 都能写）
+		_el_st_common(b, p, ctx)
 	if fam == "custom":
 		ctx.custom += 1
 		if not kind in ["skill", "instant"]:
@@ -630,6 +651,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 	if _sm_block(b, p, kind, ctx, tag):   # 召唤 / 封印段
 		return
 	if _mf_block(b, p, kind, ctx, tag):   # 召唤物扩展段（§15.9）
+		return
+	if _el_block(b, p, kind, ctx, tag):   # 精英化段（docs/91 第 1 批）
 		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
@@ -680,8 +703,18 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				var sk2 := str(b.center).substr(7)
 				if not (ctx.summons is Dictionary and ctx.summons.has(sk2)):
 					errs.append("%s.center「%s」：summon: 后面应是 blocks.summons 里的种类" % [p, str(b.center)])
+			elif str(b.get("center", "")) == "path":   # 精英化段：沿上一次冲刺 / 残像路径
+				_num(b, "step", p, ctx, true, 8.0, 400.0)
+				_num(b, "delay", p, ctx, false, 0.0, 5.0)
+				_num(b, "stagger", p, ctx, false, 0.0, 1.0)
 			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target"]:
-				errs.append(p + ".center 只能是 zone / self / leader / target / summon:<种类>")
+				errs.append(p + ".center 只能是 zone / self / leader / target / path / summon:<种类>")
+			if b.has("only"):   # 精英化段：只打处于这些状态的敌人
+				var ol = b.only
+				if not (ol is Array) or ol.is_empty() or ol.any(func(x): return not str(x) in EL_ONLY):
+					errs.append(p + ".only 必须是非空数组，取值 " + " / ".join(EL_ONLY))
+				elif tag != "shape.circle":
+					errs.append(p + ".only 只用于 shape.circle")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"shape.orbit":
@@ -748,6 +781,16 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			_num(b, "n", p, ctx, true, 1.0)
 			_num(b, "delay", p, ctx, false, 0.0)
 			_list(b.get("do", []), p + ".do", "instant", ctx)
+			# 精英化段：replace = 这一次普攻整个换成 do（不再出普攻形状）；anim = 这一次起手播的帧条（sprites 里的键，缺图退回 attack）
+			if b.has("replace") and not (b.replace is bool):
+				errs.append(p + ".replace 只能是 true / false")
+			if b.has("anim"):
+				if not b.get("replace", false):
+					errs.append(p + ".anim 只配 replace: true（换掉的那一次普攻播别的帧条）")
+				elif not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
+					errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
+			if b.get("replace", false) and b.has("delay") and _val(b.delay, ctx.base) > 0.0:
+				errs.append(p + "：replace 的 every_n 不写 delay（就在这一次出手帧执行）")
 		"trig.tick":
 			_num(b, "every", p, ctx, true, 0.1)
 			_list(b.get("do", []), p + ".do", "instant", ctx)
@@ -794,25 +837,28 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
-	"hold", "fade", "if_tex"]
+	"hold", "fade", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
+	"delay", "stay", "once", "face_x", "flash", "along"]   # 精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
 ## 常驻跟随帧条（hold: true，10-12 加）：积木生效期间循环、跟着区域中心 / 半径走，缺省淡入淡出秒数（条目 fade 可改）
 const FX_HOLD_FADE := 0.3
-const FX_HOLD_LAYERS := ["ground", "floor", "add"]
+const FX_HOLD_LAYERS := ["ground", "floor", "add", "over"]   # over：画在人物之上（_draw_skill_over，精英化段：能天使祝福光环挂在队友头顶）
 ## 贴身层：画在干员本体的后面 / 前面（draw_body 前后），积木生效期间循环，帧号 = floor(生效秒数 × fps) % 帧数，退出时 FX_BODY_FADE 秒淡出
 const FX_BODY := ["behind", "front"]
 const FX_BODY_FADE := 0.15
 ## 放大上限（每个 1x 美术像素至多几个世界像素）：同 render/vfx.gd FX_SCALE_MAX，免得颗粒比人物粗太多；条目可用 max_scale 改
 const FX_SCALE_MAX := 3.2
-const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit"]
+const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit", "members", "mate"]   # members：光环的受益者（hold）；mate：出手的那名队友（trig.on_mate_attack）
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard"]
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
+	"st.stun", "st.slow", "st.airborne", "st.weightless", "st.pause", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]   # 精英化段（docs/91 第 1 批）
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard"]
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
+	"shape.boomerang", "verb.summon_cmd"]
 const ArtS = preload("res://scripts/art.gd")
 
 
@@ -828,7 +874,7 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 			continue
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
-		if fx_on(o, f):
+		if fx_on_spawn(o, f):
 			fx_spawn(o, f, c, r, hits, ang)
 
 
@@ -850,7 +896,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		ts[i] = float(ts[i]) + dt
 		if ts[i] >= ev:
 			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
-			if fx_on(o, f):
+			if fx_on_spawn(o, f):
 				if mf_is(f):
 					mf_fx_spawn(o, f, {"c": c, "r": r})
 				else:
@@ -883,8 +929,10 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var fit: float = float(f.get("fit", 0.0))
 	sc *= r / fit if fit > 0.0 and r > 0.0 else g.PX
 	sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
-	var loop: bool = f.has("life")
+	var loop: bool = f.has("life") and not f.get("once", false)
 	var life: float = float(f.life) if loop else frames / fps
+	if f.has("stay"):   # 精英化段：一次性帧条播完停在末帧，共 stay 秒（钉剑插在敌人身上）
+		life = maxf(life, float(f.stay))
 	var tint: Color = Color.WHITE
 	var tv = f.get("tint", [])
 	if tv is Array and tv.size() >= 3:
@@ -897,10 +945,19 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var ov = f.get("off", [])
 	if ov is Array and ov.size() == 2:
 		off = Vector2(float(ov[0]), float(ov[1]))
+	if f.get("face_x", false):
+		off.x *= float(o.face)
+	if f.has("along"):   # 精英化段：沿出手方向往外放 along × 半径（锥形斩的刀光放在身前）
+		off += Vector2.from_angle(ang) * r * float(f.along)
+	var dly: float = float(f.get("delay", 0.0))   # 精英化段：delay 秒后才起播（画面计时，不进玩法）
 	var rot: float = (ang if f.get("rot", false) else 0.0) + deg_to_rad(float(f.get("ang", 0.0)))
 	var layer: String = str(f.get("layer", "over"))
 	var spread: float = float(f.get("spread", 0.0)) * r
 	var rise: float = float(f.get("rise", 0.0))
+	var ease: String = str(f.get("ease", ""))
+	var grow: float = float(f.get("grow", FX_GROW))
+	if ease != "" and str(f.get("grow_to", "")) == "zone" and o.has_method("zone_c"):
+		pts = [o.zone_c()]   # grow_to = zone：从区域中心扩到区域半径（画的时候每帧跟着区域中心 / 半径走）
 	for p in pts:
 		if p == Vector2.INF:
 			continue
@@ -913,14 +970,42 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": rot, "anc": anc,
 				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
 				"floor": layer == "floor", "add": layer == "add"}
+			if dly > 0.0:
+				px["life"] = life + dly
+				px["dly"] = dly
 			if rise != 0.0:
 				px["vel"] = Vector2(0, -rise)
+			if ease != "":   # 扩散缓动（§5.6 ease / grow / grow_to / wake，10-13 加）：半径在画的时候按经过时间算，见 fx_draw_grow
+				px["life"] = grow
+				px["grow"] = grow
+				px["ease"] = ease
+				px["g0"] = float(f.get("grow0", FX_GROW0))
+				px["R"] = r * float(f.get("scale", 1.0))
+				px["zmul"] = float(f.get("scale", 1.0))
+				px["zone"] = str(f.get("grow_to", "")) == "zone"
+				px["off"] = off
+				px["maxs"] = float(f.get("max_scale", FX_SCALE_MAX))
+				px["src"] = o
+				if f.get("wake", null) is Dictionary:
+					px["wake"] = f.wake
+			if float(f.get("xfade", 0.0)) > 0.0:
+				px["xe"] = f   # 交叉淡入淡出：画的时候乘条目 cond 的平滑权重（fx_xw）
+				px["src"] = o
 			o.fx(px)
 
 
 ## 画一条 strip 粒子（data_operator._draw_pfx / draw_fx_add 调）。dim：整体透明度（fx_dim）
 static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
-	var el: float = float(f.max) - float(f.life)
+	if f.has("grow"):
+		fx_draw_grow(ci, g, f, dim)
+		return
+	if f.has("xe"):
+		dim *= fx_xw(f.src, f.xe)
+		if dim <= 0.004:
+			return
+	var el: float = float(f.max) - float(f.life) - float(f.get("dly", 0.0))
+	if el < 0.0:
+		return   # 精英化段：delay 还没到
 	var frames: int = int(f.fr)
 	var fr: int
 	var a: float = dim
@@ -944,6 +1029,190 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	ci.draw_set_transform(pos, ang, Vector2(sc / h, sc / h))
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- 扩散缓动 / 交叉淡入淡出 / 余波环（docs/61 §5.6，10-13 加；纯画面）
+## 用户 10-13「浊心斯卡蒂的声浪的转变是不是也有点僵硬」：小帧条整条放大 4 倍、按灯火硬切两套、扩散匀速且够不到歌域边。
+## ease：半径从 grow0 × R 按缓动曲线扩到 R（grow 秒），帧号跟着扩散进度走、每帧按这一帧自身的半径缩放（帧条里的圈不论画多大都正好落在当前半径上）；
+## 帧条只作纹理层：随扩散渐淡，放大超过 max_scale 后按 (max_scale / 倍率)² 再淡（颗粒粗的大圈交给程序余波环）；
+## wake：程序余波环（顶点色软边环带，合批提交），领头一道正好在当前半径、后面几道各晚 lag 秒，外缘随扩散渐淡。
+## xfade：同一组按 cond 二选一的条目（灯火明 / 暗）不再硬切：两条都生成，透明度乘各自 cond 的平滑权重（xfade 秒从 0 到 1）。
+const FX_GROW := 0.65        # 扩散时长缺省（秒）
+const FX_GROW0 := 0.12       # 起始半径比例缺省
+const FX_EASES := ["out", "out2", "linear"]
+const FX_WAKE_DEF := {"n": 2, "w": 10.0, "a": 0.5, "lag": 0.09, "sy": 0.55, "col": null}
+const FX_WAKE_LIM := {"n": [0, 4], "w": [1.0, 60.0], "a": [0.0, 1.0], "lag": [0.0, 0.5], "sy": [0.1, 1.0]}
+static var _fr_r := {}       # 帧条名 → 每帧自身半径（1x 像素，按不透明像素的横向范围量一次缓存）
+
+
+## 缓动：out = 三次方先快后慢（缺省），out2 = 二次方，linear = 匀速
+static func fx_ease(kind: String, t: float) -> float:
+	t = clampf(t, 0.0, 1.0)
+	match kind:
+		"out2":
+			return 1.0 - (1.0 - t) * (1.0 - t)
+		"linear":
+			return t
+	return 1.0 - pow(1.0 - t, 3.0)
+
+
+## 帧条第 fr 帧自身的半径（1x 像素）：不透明像素离帧中心的最大横向距离；量不到（压缩贴图读不出图）时按帧宽一半
+static func fx_frame_r(g, name: String, frames: int, fr: int) -> float:
+	if not _fr_r.has(name):
+		var tx: Texture2D = g.tex.get(name)
+		var rs: Array = []
+		if tx != null:
+			var h: float = ArtS.hires_of(tx)
+			var fw: int = tx.get_width() / frames
+			var img: Image = tx.get_image()
+			if img != null and img.is_compressed():
+				img = null
+			for k in frames:
+				var r := fw / 2.0
+				if img != null:
+					var mn := fw
+					var mx := -1
+					for x in fw:
+						for y in range(0, img.get_height(), 1):
+							if img.get_pixel(k * fw + x, y).a > 0.1:
+								mn = mini(mn, x)
+								mx = maxi(mx, x)
+								break
+					if mx >= mn:
+						r = maxf(fw / 2.0 - mn, mx + 1 - fw / 2.0)
+				rs.append(maxf(1.0, r) / h)
+		_fr_r[name] = rs
+	var a: Array = _fr_r[name]
+	return float(a[fr]) if fr < a.size() else 0.0
+
+
+## 交叉淡入淡出权重：条目 f 的 cond 此刻为真 → 1，假 → 0，按 xfade 秒线性靠拢（只看 g.t，画面状态存在干员的 meta 里，不碰玩法）。
+## 同 strip + cond + if_tex 的条目共用一个权重（普攻与回声同一档灯火同进同出）
+static func fx_xw(o, f: Dictionary) -> float:
+	if o == null or not is_instance_valid(o):
+		return 1.0
+	var xf: float = float(f.get("xfade", 0.0))
+	var tgt: float = 1.0 if fx_on(o, f) else 0.0
+	if xf <= 0.0:
+		return tgt
+	var m: Dictionary = o.get_meta("fx_xw") if o.has_meta("fx_xw") else {}
+	if not o.has_meta("fx_xw"):
+		o.set_meta("fx_xw", m)
+	var key := "%s|%s|%s" % [f.get("strip", ""), f.get("cond", ""), f.get("if_tex", "")]
+	var t: float = float(o.g.t)
+	if not m.has(key):
+		m[key] = [tgt, t]
+		return tgt
+	var v: Array = m[key]
+	var w: float = move_toward(float(v[0]), tgt, maxf(0.0, t - float(v[1])) / xf)
+	m[key] = [w, t]
+	return w
+
+
+## 生成时的取舍：带 xfade 的条目只看 if_tex（cond 交给画的时候的权重），并先把权重推到此刻；其余同 fx_on
+static func fx_on_spawn(o, f: Dictionary) -> bool:
+	if float(f.get("xfade", 0.0)) <= 0.0 or not f.has("cond"):
+		return fx_on(o, f)
+	var it = f.get("if_tex", "")
+	if it is String and it != "":
+		var neg: bool = it.begins_with("!")
+		if (o.g.tex.get(it.substr(1) if neg else it) != null) == neg:
+			return false
+	fx_xw(o, f)   # 先把权重推到此刻
+	return true   # 两档都生成：扩散途中跨阈值时同一圈声浪也能平滑换图（权重为 0 的那条画的时候直接跳过）
+
+
+## 扩散缓动粒子（fx_spawn 写了 grow）：帧条纹理层 + 程序余波环
+static func fx_draw_grow(ci, g, f: Dictionary, dim: float) -> void:
+	var o = f.get("src")
+	var el: float = float(f.max) - float(f.life)
+	var T: float = maxf(0.05, float(f.grow))
+	var t: float = clampf(el / T, 0.0, 1.0)
+	var a: float = dim * clampf(el / 0.06, 0.0, 1.0)
+	if f.has("xe"):
+		a *= fx_xw(o, f.xe)
+	if a <= 0.004:
+		return
+	var c: Vector2 = f.pos
+	var R: float = float(f.R)
+	if f.zone and o != null and is_instance_valid(o) and o.has_method("zone_c"):
+		var zc: Vector2 = o.zone_c()
+		if zc != Vector2.INF:
+			c = zc + f.off
+			R = float(o.zr) * float(f.zmul)
+	var e: float = fx_ease(str(f.ease), t)
+	var g0: float = float(f.g0)
+	var rad: float = R * lerpf(g0, 1.0, e)
+	# 纹理层：帧号跟扩散进度走（帧 0 多是起爆小点，帧数 ≥ 3 时从帧 1 起），且不选比原尺寸（g.PX）还要放大的小帧——
+	# 当前半径够大时直接跳到自身半径 × PX ≤ 当前半径的最后一帧；每帧按自身半径缩放到当前半径
+	var frames: int = int(f.fr)
+	var fr: int = clampi(int(e * frames), 1 if frames >= 3 else 0, frames - 1)
+	for k in range(frames - 1, fr, -1):
+		if fx_frame_r(g, str(f.name), frames, k) * g.PX <= rad:
+			fr = k
+			break
+	var rf: float = fx_frame_r(g, str(f.name), frames, fr)
+	if rf > 0.0:
+		var sc: float = rad / rf
+		var ta: float = a * pow(1.0 - t, 1.3)
+		var mxs: float = float(f.maxs)
+		if sc > mxs:
+			ta *= pow(mxs / sc, 2.0)
+		if ta > 0.004:
+			fx_frame(ci, g, str(f.name), frames, fr, c, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * ta), f.anc, float(f.ang))
+	if f.has("wake"):
+		fx_wake(ci, f.wake, c, R, g0, str(f.ease), el, T, a, f.col)
+
+
+## 程序余波环：n 道软边环带（透视椭圆 y × sy），第 i 道晚 i × lag 秒起步、同一缓动扩到 R；环带宽 w（随扩散略展宽），
+## 透明度 a × (1 - 进度)^1.4 × 越往后越淡；颜色 col（缺省取条目 tint 的 rgb）。全部顶点色三角形攒成一组：合批画布走 add_tris，否则直接提交
+static func fx_wake(ci, wk: Dictionary, c: Vector2, R: float, g0: float, ease: String, el: float, T: float, a: float, tint: Color) -> void:
+	var n: int = int(wk.get("n", FX_WAKE_DEF.n))
+	var w: float = float(wk.get("w", FX_WAKE_DEF.w))
+	var wa: float = float(wk.get("a", FX_WAKE_DEF.a)) * a
+	var lag: float = float(wk.get("lag", FX_WAKE_DEF.lag))
+	var sy: float = float(wk.get("sy", FX_WAKE_DEF.sy))
+	var cv = wk.get("col", null)
+	var col := Color(tint.r, tint.g, tint.b)
+	if cv is Array and cv.size() >= 3:
+		col = Color(float(cv[0]), float(cv[1]), float(cv[2]))
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var seg: int = clampi(int(R / 5.0), 32, 72)
+	for i in n:
+		var ti: float = clampf((el - lag * i) / T, 0.0, 1.0)
+		if ti <= 0.0:
+			continue
+		var ri: float = R * lerpf(g0, 1.0, fx_ease(ease, ti))
+		var wi: float = w * (0.7 + 0.6 * ti) * (1.0 - 0.2 * i)
+		var ai: float = wa * pow(1.0 - ti, 1.4) * (1.0 - 0.3 * i) * clampf((el - lag * i) / 0.05, 0.0, 1.0)
+		if ai <= 0.004:
+			continue
+		var cin := Color(col.r, col.g, col.b, 0.0)
+		var cpk := Color(minf(col.r * 1.15, 1.0), minf(col.g * 1.1, 1.0), minf(col.b * 1.1, 1.0), ai)
+		_wake_band(pts, cols, idx, c, maxf(0.0, ri - wi), ri, cin, cpk, sy, seg)        # 内侧拖尾：透明 → 峰值
+		_wake_band(pts, cols, idx, c, ri, ri + wi * 0.35, cpk, cin, sy, seg)             # 外缘：峰值 → 透明（窄，前沿清楚）
+	if idx.is_empty():
+		return
+	if ci != null and ci.has_method("add_tris"):
+		ci.add_tris(pts, cols, idx)
+	else:
+		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), idx, pts, cols)
+
+
+static func _wake_band(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array, c: Vector2, r0: float, r1: float, c0: Color, c1: Color, sy: float, seg: int) -> void:
+	var base: int = pts.size()
+	for q in seg:
+		var d := Vector2.from_angle(q * TAU / seg)
+		pts.append(c + Vector2(d.x * r0, d.y * r0 * sy))
+		pts.append(c + Vector2(d.x * r1, d.y * r1 * sy))
+		cols.append(c0)
+		cols.append(c1)
+	for q in seg:
+		var a0: int = base + q * 2
+		var a1: int = base + ((q + 1) % seg) * 2
+		idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
 
 
 ## 常驻跟随条目：贴身层（behind / front）、程序漩涡（vortex）或常驻跟随帧条（hold），积木生效期间一直画、退出淡出
@@ -1024,24 +1293,33 @@ static func fx_hold_strips(ci, o, e: Dictionary, layer: String, c_zone: Vector2,
 		col.a *= fx_hold_alpha(f, e) * float(g.world.fx_dim)
 		if col.a <= 0.004:
 			continue
-		var c: Vector2 = c_zone
+		if str(f.get("flash", "")) == "fire":   # 精英化段：本干员每次普攻出手提亮一下（0.25 秒衰减）
+			var k: float = clampf(1.0 - (float(g.t) - float(o.el.get("fire_t", -99.0))) / 0.25, 0.0, 1.0)
+			col = Color(col.r * (1.0 + 0.9 * k), col.g * (1.0 + 0.9 * k), col.b * (1.0 + 0.6 * k), minf(1.0, col.a * (1.0 + 0.5 * k)))
+		var cs: Array = [c_zone]
 		match str(f.get("at", "zone")):
 			"self":
-				c = o.pos
+				cs = [o.pos]
 			"leader":
-				c = g.ppos
-		if c == Vector2.INF:
-			continue
+				cs = [g.ppos]
+			"members":   # 精英化段：光环（aura.*）的受益者，每人头顶一个
+				cs = []
+				for m in aura_members(o, str(e.b.get("scope", "others"))):
+					cs.append(m.pos)
 		var ov = f.get("off", [])
-		if ov is Array and ov.size() == 2:
-			c += Vector2(float(ov[0]), float(ov[1]))
+		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+		if f.get("face_x", false):
+			off.x *= float(o.face)
 		var sc: float = float(f.get("scale", 1.0))
 		var fit: float = float(f.get("fit", 0.0))
 		sc *= r_zone / fit if fit > 0.0 and r_zone > 0.0 else g.PX
 		sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
 		var av = f.get("anchor", [])
 		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2(-1, -1)
-		fx_frame(ci, g, name, frames, int(floor(float(e.el) * float(spec[1]))) % frames, c, sc, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
+		for c in cs:
+			if c == Vector2.INF:
+				continue
+			fx_frame(ci, g, name, frames, int(floor(float(e.el) * float(spec[1]))) % frames, c + off, sc, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
 
 
 ## 积木的 fx 里有没有常驻跟随条目（贴身层 / 漩涡）
@@ -1341,6 +1619,8 @@ static func fx_body(ci, o, e: Dictionary, front: bool) -> void:
 		col.a *= fx_hold_alpha(f, e) * g.world.fx_dim
 		var ov = f.get("off", [])
 		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+		if f.get("face_x", false):   # 精英化段：偏移随朝向（星熊盾在身前）
+			off.x *= float(o.face)
 		var av = f.get("anchor", [])
 		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2(-1, -1)
 		fx_frame(ci, g, name, frames, int(floor(el * float(spec[1]))) % frames, o.pos + off, float(f.get("scale", 1.0)) * g.PX, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
@@ -1442,8 +1722,10 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 					errs.append(q + ".hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）")
 				if not str(f.get("layer", "floor")) in FX_HOLD_LAYERS:
 					errs.append("%s.layer：hold 帧条只能是 %s" % [q, " / ".join(FX_HOLD_LAYERS)])
-				if not at in ["center", "zone", "self", "leader"]:
-					errs.append(q + ".at：hold 帧条只能是 zone / self / leader")
+				if not at in ["center", "zone", "self", "leader", "members"]:
+					errs.append(q + ".at：hold 帧条只能是 zone / self / leader / members")
+				if at == "members" and not owner.begins_with("aura."):
+					errs.append(q + ".at = members（光环受益者）只能挂在 aura.* 上")
 				for k in ["every", "life", "n", "spread", "rise", "rot"]:
 					if f.has(k):
 						errs.append("%s.%s：hold 帧条跟着积木生效循环，不写这个字段" % [q, k])
@@ -1473,6 +1755,36 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 				var c := parse_cond(f.cond, ctx.base)
 				if c.has("err"):
 					errs.append("%s.cond：%s" % [q, c.err])
+		# 扩散缓动 ease / grow / grow0 / grow_to / wake、交叉淡入淡出 xfade（10-13 加，§5.6）
+		if f.has("ease") or f.has("grow") or f.has("grow0") or f.has("grow_to") or f.has("wake"):
+			if not str(f.get("ease", "")) in FX_EASES:
+				errs.append("%s.ease 只能是 %s（grow / grow0 / grow_to / wake 要配 ease）" % [q, " / ".join(FX_EASES)])
+			if fx_is_hold(f) or f.has("life") or f.has("vortex"):
+				errs.append(q + ".ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）")
+			if f.has("grow_to") and str(f.grow_to) != "zone":
+				errs.append(q + ".grow_to 只能是 zone（扩到区域半径、跟着区域走）")
+			if f.has("wake"):
+				var wk = f.wake
+				if not (wk is Dictionary):
+					errs.append(q + ".wake 必须是对象 {n, w, a, lag, sy, col}")
+				else:
+					for k in wk:
+						if k == "col":
+							var cv = wk.col
+							if not (cv is Array) or cv.size() != 3 or cv.any(func(x): return not (x is int or x is float)):
+								errs.append(q + ".wake.col 必须是 3 个数字 [r, g, b]")
+						elif not FX_WAKE_LIM.has(k):
+							errs.append("%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）" % [q, k])
+						elif not (wk[k] is int or wk[k] is float) or float(wk[k]) < float(FX_WAKE_LIM[k][0]) or float(wk[k]) > float(FX_WAKE_LIM[k][1]):
+							errs.append("%s.wake.%s 超出范围（%s–%s）" % [q, k, str(FX_WAKE_LIM[k][0]), str(FX_WAKE_LIM[k][1])])
+		if f.has("xfade"):
+			if fx_is_hold(f):
+				errs.append(q + ".xfade 只给一次性帧条用（常驻条目的 cond 切换另有淡入淡出）")
+			if not f.has("cond"):
+				errs.append(q + ".xfade 要配 cond（按 cond 的真假交叉淡入淡出）")
+		_num(f, "grow", q, ctx, false, 0.1, 3.0)
+		_num(f, "grow0", q, ctx, false, 0.0, 0.95)
+		_num(f, "xfade", q, ctx, false, 0.0, 3.0)
 		_num(f, "fit", q, ctx, false, 1.0, 512.0)
 		_num(f, "scale", q, ctx, false, 0.05, 8.0)
 		_num(f, "max_scale", q, ctx, false, 0.5, 16.0)
@@ -1482,6 +1794,23 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 		_num(f, "life", q, ctx, false, 0.05, 5.0)
 		_num(f, "every", q, ctx, false, 0.05, 60.0)
 		_num(f, "ang", q, ctx, false)
+		# 精英化段（docs/91 第 1 批）：delay / stay / once / face_x / flash；at = members / mate 的宿主
+		_num(f, "delay", q, ctx, false, 0.0, 5.0)
+		_num(f, "stay", q, ctx, false, 0.05, 5.0)
+		_num(f, "along", q, ctx, false, -2.0, 2.0)
+		for k in ["once", "face_x"]:
+			if f.has(k) and not (f[k] is bool):
+				errs.append("%s.%s 只能是 true / false" % [q, k])
+		if (f.has("delay") or f.has("stay")) and fx_is_hold(f):
+			errs.append(q + "：delay / stay 只给一次性帧条用")
+		if f.has("stay") and f.has("life") and not f.get("once", false):
+			errs.append(q + ".stay：循环帧条（写了 life）不停在末帧")
+		if f.has("flash") and (str(f.flash) != "fire" or not _hold(f)):
+			errs.append(q + ".flash 只能是 fire，且只给常驻跟随帧条（hold）用")
+		if at == "mate" and owner != "trig.on_mate_attack":
+			errs.append(q + ".at = mate 只能挂在 trig.on_mate_attack 上")
+		if at == "members" and not _hold(f):
+			errs.append(q + ".at = members 只给常驻跟随帧条（hold）用")
 		for k in f:
 			if k != "cond" and f[k] is String and "$" in f[k]:
 				var ev := eval_expr(f[k], ctx.base)
@@ -1574,6 +1903,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
 	if b.get("power", false):
 		dmg *= o.skill_power()
+	dmg *= el_atk_mult(o)   # 精英化段：普攻（含 swap_attack 换上的直线斩）吃局部倍率 atk
 	var src: String = str(b.get("src", ""))
 	var tags: Array = b.get("tags", [])
 	var kb: float = float(b.get("kb", 0.0))
@@ -2040,6 +2370,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_num(b, "r", p, ctx, true, 1.0, 800.0)
 				_num(b, "dur", p, ctx, true, 0.1, 30.0)
 				_num(b, "every", p, ctx, true, 0.1, 30.0)
+				_num(b, "cap", p, ctx, false, 1.0, 16.0)   # 精英化段：这块积木同时最多几处（超出时最早的先消失；安洁莉娜失重井 3 口）
 				if not str(b.get("center", "self")) in FIELD_CENTERS:
 					errs.append("%s.center 只能是 %s" % [p, " / ".join(FIELD_CENTERS)])
 				if not (b.get("do", null) is Array) or b.do.is_empty():
@@ -2132,17 +2463,20 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 		"verb.sp_secs":
 			_num(b, "seconds", p, ctx, true, 0.0, 10.0)
 		"verb.dash_mod":
-			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult")):
-				errs.append(p + "：verb.dash_mod 至少写 len_add / len_mult / w_add / w_mult 之一")
+			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult") or b.has("on_hit")):
+				errs.append(p + "：verb.dash_mod 至少写 len_add / len_mult / w_add / w_mult / on_hit 之一")
 			for k in ["len_add", "w_add"]:
 				_num(b, k, p, ctx, false, -0.9, 3.0)
 			for k in ["len_mult", "w_mult"]:
 				_num(b, k, p, ctx, false, 0.1, 4.0)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)   # 精英化段：生效期间每次冲刺扫到的敌人追加的状态（德克萨斯钉剑 first_only）
 		"verb.trail":
 			_num(b, "life", p, ctx, true, 0.05, 5.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+			if b.has("on_expire"):   # 精英化段：残像消散时执行（do 里的 center: path 沿这道残像）
+				_list(b.on_expire, p + ".on_expire", "instant", ctx)
 		"verb.fx_scatter":
 			if str(b.get("strip", "")) == "":
 				errs.append(p + " 缺 strip（帧条名）")
@@ -2288,10 +2622,16 @@ static func tx_update(o, dt: float) -> bool:
 	# 残像
 	var trails: Array = tx.get("trails", [])
 	if not trails.is_empty():
+		var gone: Array = []
 		for tr in trails:
 			tr.life -= dt
 			_tx_sweep(o, tr.from, tr.to, tr.w, tr.hit, tr.dmg, tr.b)
+			if tr.life <= 0.0 and tr.b.has("on_expire"):
+				gone.append(tr)
 		tx["trails"] = trails.filter(func(tr): return tr.life > 0.0)
+		for tr in gone:   # 精英化段：残像消散 → on_expire（路径 = 这道残像）
+			tx["ctx"] = {"from": tr.from, "to": tr.to, "dir": (tr.to - tr.from).normalized(), "w": tr.w, "n": 0, "src": ""}
+			o._exec_list(tr.b.on_expire, tr.to)
 	# 冲刺
 	if not tx.has("dash") or o.pos == Vector2.INF:
 		return false
@@ -2301,7 +2641,7 @@ static func tx_update(o, dt: float) -> bool:
 	if not d.ride:
 		o.pos = (d.from as Vector2).lerp(d.to, 1.0 - (1.0 - k2) * (1.0 - k2))   # 先快后慢
 	if d.t <= d.dur + dt * 0.5:
-		_tx_sweep(o, d.last, o.pos, d.w, d.hit, d.dmg, d.b)
+		_tx_sweep(o, d.last, o.pos, d.w, d.hit, d.dmg, d.b, true)
 		d.last = o.pos
 	if d.t >= d.dur + d.hold:
 		_tx_dash_end(o)
@@ -2310,7 +2650,7 @@ static func tx_update(o, dt: float) -> bool:
 
 
 ## 扫一段线段：线段两侧 w/2（+ 敌人半径）内、hit 里没有的敌人各吃一次 dmg（对精英 / Boss 乘 vs_elite）与 on_hit 状态
-static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg: float, b: Dictionary) -> void:
+static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg: float, b: Dictionary, dash := false) -> void:
 	var g = o.g
 	var seg: Vector2 = c - a
 	var L: float = seg.length()
@@ -2330,6 +2670,9 @@ static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg:
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		for s in b.get("on_hit", []):
 			apply_status(o, e, s)
+		if dash:   # 精英化段：verb.dash_mod 的 on_hit（idx = 这次冲刺扫到的第几个，first_only 只给第 0 个）
+			for s in o.tx.get("on_hit", []):
+				apply_status(o, e, s, Vector2.INF, -1.0, 0.0, hit.size() - 1)
 		o.fx({"kind": "shard", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "ang": seg.angle() + 0.5, "sz": 7.0, "life": 0.16, "col": Color(1.0, 0.75, 0.4)})
 
 
@@ -2427,6 +2770,7 @@ static func tx_sustain(o, act: Array, want: Array) -> void:
 	var lm := 1.0
 	var wa := 0.0
 	var wm := 1.0
+	var oh: Array = []
 	for b in act:
 		match str(b.get("_tag", "")):
 			"verb.dash_mod":
@@ -2434,8 +2778,11 @@ static func tx_sustain(o, act: Array, want: Array) -> void:
 				lm *= float(b.get("len_mult", 1.0))
 				wa += float(b.get("w_add", 0.0))
 				wm *= float(b.get("w_mult", 1.0))
+				oh.append_array(b.get("on_hit", []))
 	o.tx["len"] = (1.0 + la) * lm
 	o.tx["w"] = (1.0 + wa) * wm
+	if not oh.is_empty() or o.tx.has("on_hit"):   # 精英化段：冲刺追加状态（没有时不写这个键）
+		o.tx["on_hit"] = oh
 
 
 ## 帧条粒子（data_operator._draw_pfx 转来）：kind = tx_strip（与通用 fx 的 strip 粒子分开）；delay 秒后起播，sx 横向缩放（冲刺剑光拉到冲刺长度）
@@ -2468,7 +2815,8 @@ static func tx_draw_pfx(o, f: Dictionary, a: float) -> bool:
 ## 一次施放 = 两个 pfx 粒子（kind tx_rain：上层剑 + 冲击，地面层标记 + 焦痕 + 终结亮环），共享同一份剑列表；同一张贴图连着画（合批）。
 const TX_RAIN_KEYS := ["verb", "cond", "_doc", "strip", "hit", "mark", "r", "center", "density", "n", "n_min", "n_max", "stagger", "fall", "fall_t", "lead",
 	"stick", "scorch", "scale", "scale_j", "tilt", "slant", "streak", "on_enemies", "alpha", "fall_frames", "mark_frames", "hit_scale", "mark_scale",
-	"anchor", "hit_anchor", "mark_anchor", "layer", "finale"]
+	"anchor", "hit_anchor", "mark_anchor", "layer", "finale",
+	"along", "step", "if_tex"]   # 精英化段：along: path = 沿上一次冲刺路径每 step 一柄、按顺序 stagger 间隔落下；if_tex 同 fx 条目（缺图回退）
 const TX_RAIN_FIN_KEYS := ["scale", "ring", "t", "col"]
 
 
@@ -2482,9 +2830,18 @@ static func _tx_rain_validate(b: Dictionary, p: String, ctx: Dictionary) -> void
 			var s = b.get(k, "")
 			if not (s is String and s.begins_with("fx_")):
 				errs.append("%s.%s 必须是帧条名（fx_*）" % [p, k])
-	if not (b.has("density") or b.has("n")):
+	var along := str(b.get("along", "")) == "path"
+	if b.has("along") and not along:
+		errs.append(p + ".along 只能是 path（沿上一次冲刺路径）")
+	if along:
+		_num(b, "step", p, ctx, true, 8.0, 400.0)
+	elif not (b.has("density") or b.has("n")):
 		errs.append(p + "：verb.fx_rain 要写 density（每 1 万平方像素几柄）或 n（固定柄数）")
-	_num(b, "r", p, ctx, true, 0.0, 600.0)
+	if b.has("if_tex"):
+		var it := str(b.if_tex).trim_prefix("!")
+		if not it.begins_with("fx_"):
+			errs.append(p + ".if_tex 必须是帧条名（fx_*），前面加 ! 表示缺这条贴图时才画")
+	_num(b, "r", p, ctx, not along, 0.0, 600.0)
 	_num(b, "density", p, ctx, false, 0.05, 20.0)
 	for k in ["n", "n_min", "n_max"]:
 		_num(b, k, p, ctx, false, 1.0, 64.0)
@@ -2546,6 +2903,14 @@ static func _tx_rain_spec(o, name: String, anchor, def_anchor: Vector2) -> Array
 
 static func tx_rain(o, b: Dictionary, at: Vector2) -> void:
 	var g = o.g
+	if b.has("if_tex"):   # 精英化段：按贴图有无取舍（同 fx 条目的 if_tex）
+		var it: String = str(b.if_tex)
+		var neg: bool = it.begins_with("!")
+		if (o._fx_tex(it.substr(1) if neg else it) != null) == neg:
+			return
+	if str(b.get("along", "")) == "path":
+		_tx_rain_path(o, b)
+		return
 	var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
 	if cc == Vector2.INF:
 		return
@@ -2596,6 +2961,34 @@ static func tx_rain(o, b: Dictionary, at: Vector2) -> void:
 		var a: float = slant + rng.randf_range(-tilt, tilt)
 		bl.append({"p": pts[k], "d": d, "s": sc * (1.0 + rng.randf_range(-sj, sj)), "a": a, "fl": rng.randf() < 0.5})
 		tmax = maxf(tmax, d)
+	_tx_rain_emit(o, b, cc, r, bl, tmax, bs, ft)
+
+
+## 精英化段：verb.fx_rain along: path——沿上一次冲刺（或残像）路径每 step 一柄（柄数 = ceil(路径长 / step)，均匀落在各段中点），
+## 从起点到终点依次间隔 stagger 秒落下（缺省 0.03）；不撒随机落点、不先落在敌人身上。画面随机只用 g.vrng
+static func _tx_rain_path(o, b: Dictionary) -> void:
+	var g = o.g
+	var c: Dictionary = o.tx.get("ctx", {})
+	if not c.has("from"):
+		return
+	var bs: Array = _tx_rain_spec(o, str(b.strip), b.get("anchor"), Vector2(0.5, 2.0))
+	if bs.is_empty():
+		return
+	var pts: Array = el_path_points(c.from, c.to, float(b.step))
+	var rng: RandomNumberGenerator = g.vrng
+	var st: float = float(b.get("stagger", 0.03))
+	var sc: float = float(b.get("scale", 1.0))
+	var sj: float = float(b.get("scale_j", 0.1))
+	var tilt: float = deg_to_rad(float(b.get("tilt", 4.0)))
+	var slant: float = deg_to_rad(float(b.get("slant", 0.0)))
+	var bl: Array = []
+	for k in pts.size():
+		bl.append({"p": pts[k], "d": st * k, "s": sc * (1.0 + rng.randf_range(-sj, sj)), "a": slant + rng.randf_range(-tilt, tilt), "fl": rng.randf() < 0.5})
+	var cc: Vector2 = ((c.from as Vector2) + (c.to as Vector2)) * 0.5
+	_tx_rain_emit(o, b, cc, (c.from as Vector2).distance_to(c.to) * 0.5, bl, st * maxf(0.0, pts.size() - 1.0), bs, float(b.get("fall_t", 0.1)))
+
+
+static func _tx_rain_emit(o, b: Dictionary, cc: Vector2, r: float, bl: Array, tmax: float, bs: Array, ft: float) -> void:
 	var hs: Array = _tx_rain_spec(o, str(b.get("hit", "")), b.get("hit_anchor"), Vector2(0.5, 4.0))
 	var ms: Array = _tx_rain_spec(o, str(b.get("mark", "")), b.get("mark_anchor"), Vector2(0.5, -1.0))
 	if not ms.is_empty() and not b.has("mark_anchor"):
@@ -2937,10 +3330,12 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			if k == 0:
 				mfx = str(q.get("muzzle_fx", mfx))   # 次数型技能的补丁是逐发合并的：枪口焰跟第一发子弹走（冲锋模式的青色焰）
 		var dir: Vector2
+		var btex: String = str(q.get("tex", ""))
 		if fan:
 			dir = d0.rotated(lerpf(-sp, sp, float(k) / float(n - 1)) if n > 1 else 0.0)
 		else:
 			var e: Dictionary = ts[k % ts.size()]
+			btex = el_stack_tex(o, str(q.get("src", "")), e, btex)   # 精英化段（st.stack）：瞄准的敌人身上的层数决定弹体颜色
 			var rep: int = k / ts.size()
 			var off: float = sp * float((rep + 1) / 2) * (1.0 if rep % 2 == 1 else -1.0)
 			var to: Vector2 = e.pos + Vector2(0, EXU_AIM_Y) - mz
@@ -2953,7 +3348,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			oh = oh + q.last_on_hit
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
-				"tags": q.get("tags", []), "pierce": int(q.get("pierce", 0)), "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": str(q.get("tex", "")), "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true})
+				"tags": q.get("tags", []), "pierce": int(q.get("pierce", 0)), "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 
 
@@ -3008,14 +3403,15 @@ static func _exu_bullets(o, dt: float) -> void:
 			if e.dead or bu.hit.has(e.id) or e.pos.distance_to(q) > float(e.r) + EXU_HIT_PAD:
 				continue
 			bu.hit[e.id] = true
+			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
 			o.log_hit(bu.src, bu.tags)
-			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0))
+			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]))
 			if float(bu.get("kb", 0.0)) > 0.0 and not e.dead and not e.boss:
 				e.kb += bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0)   # 同 melee_hit：精英 ×0.3、Boss 不受
 			for s in bu.on_hit:
 				apply_status(o, e, s)
 			o._sfx_op("hit")
-			o.spawn_fx_sprite(str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
+			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
 			if bu.ric and not ric.is_empty() and g.rng.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
@@ -4228,12 +4624,14 @@ static func mf_sustain(o, act: Array) -> void:
 			m.then = b.then
 		if b.has("mirror") and m.mirror.is_empty():
 			m.mirror = b.mirror
+		if b.has("lunge") and m.lunge.is_empty():   # 精英化段：扑击
+			m.lunge = b.lunge
 	if not mods.is_empty() or not o.mf.is_empty():
 		mf_st(o).mods = mods
 
 
 static func _mf_mod_empty() -> Dictionary:
-	return {"dmg": [], "aspd": [], "reach": [], "arc": [], "speed": [], "then": {}, "mirror": {}}
+	return {"dmg": [], "aspd": [], "reach": [], "arc": [], "speed": [], "then": {}, "mirror": {}, "lunge": {}}
 
 
 static func mf_mods(o, kind: String) -> Dictionary:
@@ -4496,6 +4894,9 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		s.pos = rest
 	var pt := _mf_patch_tick(o, s, kd, dt)
 	_mf_fx_tick(o, s, kd, dt)
+	if s.has("dash"):   # 精英化段：扑击 / 回防跃回中（位移、落地结算、帧条都在 el_dash_step）
+		el_dash_step(o, s, kd, mods, dt)
+		return
 	var leash: float = float(mv.get("leash", 240.0))
 	var anc: Vector2 = _sm_anchor(o, mv)
 	var tg = s.tgt
@@ -4517,6 +4918,8 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		var ts: Array = o.nearest_enemies(1, leash, anc)
 		tg = ts[0] if not ts.is_empty() else null
 		s.tgt = tg
+	if tg != null and float(s.act) <= 0.0 and not mods.get("lunge", {}).is_empty() and el_lunge_try(o, s, kd, tg, mods.lunge):   # 精英化段：扑击
+		return
 	var want: Vector2 = rest
 	if tg != null:
 		var off: Vector2 = s.pos - tg.pos
@@ -4651,7 +5054,7 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 		live = true
 	elif float(s.pout) > 0.0 and int(s.get("pold", -1)) >= 0 and int(s.pold) < pl.size():
 		sq = pl[int(s.pold)].get("seq", {})
-	if not sq.is_empty() and ak != "attack":
+	if not sq.is_empty() and not ak in ["attack", "lunge", "leap"]:   # lunge / leap：精英化段（扑击 / 跃回）照播自己的帧条
 		var key: String = str(sq.get("strip", ""))
 		var tx: Texture2D = o.anim_tex(key)
 		if tx != null:
@@ -4669,6 +5072,10 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 				fr = int(el * fps) if el < intro else l0 + int((el - intro) * fps) % ln
 			return [tx, clampi(fr, 0, n - 1), n, key]
 	var base_key: String = str(an.get(ak, an.get("idle", "")))
+	var dash: bool = ak in ["lunge", "leap"]
+	if dash and o.anim_tex(base_key) == null:   # 精英化段：扑击 / 跃回帧条缺图时用 run 代替（位移与残影照旧）
+		base_key = str(an.get("run", an.get("idle", "")))
+		dash = false
 	var pa: Dictionary = pt.get("anim", {})
 	var tx2: Texture2D = o.anim_tex(str(pa.get(ak, base_key)))
 	if tx2 == null:
@@ -4677,7 +5084,7 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 		return []
 	var n2: int = o.anim_hframes(tx2, base_key)
 	var fr2: int
-	if ak == "attack":
+	if ak == "attack" or dash:
 		fr2 = clampi(int(at * float(o.sprite_spec(base_key).get("fps", 14))), 0, n2 - 1)
 	else:
 		fr2 = int(at * float(o.sprite_spec(base_key).get("fps", 4))) % n2
@@ -4691,6 +5098,9 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		return false
 	var g = o.g
 	var hov := _mf_hover(o, s, kd)
+	if s.has("dash"):   # 精英化段：跃回的弧线高度 + 扑击 / 跃回的绿色残影
+		hov -= float(s.dash.get("h_now", 0.0))
+		el_draw_afterimages(o, s, kd, fr, hov)
 	var fl: Array = kd.get("fx", [])
 	for f in fl:
 		if not (f is Dictionary) or not fx_on(o, f):
@@ -5059,10 +5469,13 @@ static func _mf_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 					if q == "then":
 						_num(v, "delay", "%s.%s" % [p, q], ctx, true, 0.0, 2.0)
 					_num(v, "pitch", "%s.%s" % [p, q], ctx, false, 0.25, 4.0)
+			if b.has("lunge"):   # 精英化段：扑击（召唤物移动参数，docs/91 §6 凯尔希精一）
+				any = true
+				_el_lunge_check(b.lunge, p + ".lunge", ctx)
 			if not any:
-				errs.append(p + "：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror 之一")
+				errs.append(p + "：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror / lunge 之一")
 			for kk in b:
-				if not kk in MF_MOD_FACTORS + ["then", "mirror", "verb", "kind", "cond", "_doc", "_uid", "_tag"]:
+				if not kk in MF_MOD_FACTORS + ["then", "mirror", "lunge", "verb", "kind", "cond", "_doc", "_uid", "_tag"]:
 					errs.append("%s.%s：verb.summon_mod 不认识的字段" % [p, kk])
 		"verb.guard":
 			_num(b, "value", p, ctx, true, 0.0, 0.9)
@@ -5135,8 +5548,8 @@ static func _mf_kind(kd: Dictionary, p: String, ctx: Dictionary) -> void:
 			errs.append(p + ".anim 必须是对象，至少有 idle")
 		else:
 			for k in an:
-				if not k in ["idle", "run", "attack"]:
-					errs.append("%s.anim.%s：只能是 idle / run / attack" % [p, k])
+				if not k in ["idle", "run", "attack", "lunge", "leap"]:   # lunge / leap：精英化段（扑击 / 回防跃回）
+					errs.append("%s.anim.%s：只能是 idle / run / attack / lunge / leap" % [p, k])
 				elif not ctx.get("sprites", {}).has(str(an[k])):
 					errs.append("%s.anim.%s「%s」不是本干员 sprites 里的帧条" % [p, k, str(an[k])])
 	if kd.has("patch"):
@@ -5245,3 +5658,642 @@ static func _mf_support(atk: Dictionary, ctx: Dictionary) -> void:
 		errs.append("blocks.attack.when 看不懂（条件串，§1.3）")
 	_list(atk.get("do", []), "blocks.attack.do", "instant", ctx)
 	_sm_exprs(atk, "blocks.attack", ctx)
+
+
+# ================================================================ 精英化第 1 批（docs/91 §19 批 1、§20：德克萨斯 / 能天使 / 星熊 / 安洁莉娜 / 凯尔希，10-13）
+# 只往后加。新积木：
+#  st.stack          常驻（trait / talent / 节点 / passive do）：本干员 src 列表里的伤害命中同一名敌人时按层加伤——命中时伤害 × (1 + per × 已有层数)，
+#                    然后层数 +1（至多 max）；这名敌人 decay 秒没被这些来源打中就清零。层数记在本干员身上（按敌人 id），不写进敌人。
+#                    tex：按层数分档换弹体帧条（[1 档, 2 档, 3 档…]，层数 / max 均分；0 层用原弹体）；full_fx：叠满后这一下的命中火花。
+#                    目前作用于弹道命中（shape.projectile，能天使「穿甲连射」）；逻各斯「剜魂」迁积木时接到 st.* 法伤上
+#  verb.buff_timed   瞬时：stat / op（缺省 add）/ value，持续 dur 秒；同 key 再触发只刷新时间、不叠加。生效期间等同一块 verb.buff_self 常驻积木
+#                    （局部倍率或 op_* 属性，fx 里的贴身层 / hold 帧条也照常画），条件 buff:<key> 为真。星熊「反击架势」
+#  shape.boomerang   瞬时：往返弹体。朝最近敌人（手动普攻按 A 方向）飞出 len（× op_range），到头停 hold 秒，再飞回本干员手里（原点跟着她走）；
+#                    去程、回程各扫一遍线段（宽 w），同一敌人每程一次：去程 × mult_out 并按 kb_out 击退，回程 × mult_back 不击退。伤害口径同 shape.line
+#                    （普攻替换时也吃局部倍率 atk）。lock: true = 弹体在外面时本干员不普攻。tex：弹体帧条（缺图画程序圆盾）；spark：沿途火花帧条。星熊「般若回旋」
+#  verb.summon_cmd   瞬时：指挥 kind 种召唤物做一个动作。action: leap = 以 t 秒弧线跃回 to（leader = 队长身边），落地执行 then（center: target = 落点）。凯尔希「回防」
+#  trig.on_mate_attack  画面挂点：编队里 scope（缺省 others）范围内的队友每次普攻出手，在她的出手点播 fx（at: mate）。只有画面，不进玩法。能天使「天使的祝福」
+# 新参数（挂在已有积木上）：
+#  st.* 的 first_only（只给这次命中列表 / 这次冲刺的第一个敌人）、cd（同一块状态两次生效至少隔几秒）、fx（状态生效时在这名敌人处播，中心 = 敌人脚底）
+#  trig.every_n 的 replace（这一次普攻整个换成 do）/ anim（这一次起手播的帧条）
+#  shape.circle 的 only（[weightless / airborne]：只打处于这些状态的敌人）、center: path + step / delay / stagger（沿上一次冲刺路径每 step 一处，依次延迟结算）
+#  verb.field 的 cap；verb.dash_mod 的 on_hit；verb.trail 的 on_expire；verb.fx_rain 的 along: path / step / if_tex；verb.summon_mod 的 lunge
+#  （召唤物扑击：目标在 min_d 外时 t 秒扑过去，落地半径 r 内 × mult，cd 秒一次）；召唤物 anim 的 lunge / leap 帧条
+#  fx 条目的 delay / stay / once / face_x / flash: fire，at: members（光环受益者，hold）/ mate；hold 的 over 层（画在人物之上）
+# 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。没写这些积木 / 参数的干员一个分支都不走（同 seed 逐行不变）。
+
+const EL_TAGS := ["st.stack", "verb.buff_timed", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]
+const EL_ONLY := ["weightless", "airborne"]
+const EL_BOOM_MAX := 6           # 每名干员同时在外的往返弹体上限
+const EL_GREEN := Color(0.55, 1.0, 0.5)
+
+
+## 本段状态（data_operator.el）：timed 限时增益、stk 叠层、boom 往返弹体、cd 状态冷却、fire_t 上次普攻出手的 g.t
+static func el_st(o) -> Dictionary:
+	if o.el.is_empty():
+		o.el.merge({"timed": {}, "stk": {}, "boom": [], "cd": {}, "fire_t": -99.0})
+	return o.el
+
+
+static func el_parse_cond(s: String) -> Dictionary:
+	var neg := s.begins_with("!")
+	var t := s.substr(1).strip_edges() if neg else s
+	if t.begins_with("buff:") and t.length() > 5:
+		return {"neg": neg, "k": "buff", "a": t.substr(5), "op": "", "v": 0.0}
+	return {}
+
+
+## 限时增益 key 生效中
+static func el_buff_on(o, key: String) -> bool:
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty():
+		return false
+	var tb: Dictionary = el.timed
+	return tb.has(key) and float(tb[key].until) > float(o.g.t)
+
+
+## 只乘普攻的局部倍率（data_operator 在普攻出手的那一下把 atk_live 置 true）
+static func el_atk_mult(o) -> float:
+	if o.get("atk_live") == true:
+		return float(o.loc.get("atk", 1.0))
+	return 1.0
+
+
+## st.* 的 first_only / cd 闸门：idx = 这名敌人在这次命中列表里的序号（-1 = 没有顺序，first_only 不生效）
+static func el_status_gate(o, s: Dictionary, idx: int) -> bool:
+	if s.get("first_only", false) and idx != 0:
+		return false
+	if s.has("cd"):
+		var st := el_st(o)
+		var u: int = int(s.get("_uid", 0))
+		if float(st.cd.get(u, -INF)) > float(o.g.t):
+			return false
+		st.cd[u] = float(o.g.t) + float(s.cd)
+	return true
+
+
+## shape.circle only：圆内（同 area_hit 的判定）且处于 only 列出的状态之一的敌人，伤害同 area_hit（× vs_elite），不击退不眩晕
+static func el_area_only(o, b: Dictionary, c: Vector2, r: float, dmg: float) -> Array:
+	var g = o.g
+	var only: Array = b.get("only", [])
+	var hits: Array = []
+	for e in o.arc_targets(c, 0.0, PI, r):
+		if e.dead:
+			continue
+		var ok := false
+		for k in only:
+			match str(k):
+				"weightless":
+					ok = ok or (e.has("wl_t") and float(e.wl_t) > float(g.t))
+				"airborne":
+					ok = ok or float(e.get("air", 0.0)) > 0.0 or o.air_list.any(func(a): return is_same(a.e, e))
+		if ok:
+			hits.append(e)
+	var max_n: int = int(b.get("max_n", 0))
+	if max_n > 0 and hits.size() > max_n:
+		hits = o.cap_targets(hits, c, max_n)
+	var ve: float = o.vs_elite()
+	var src: String = str(b.get("src", ""))
+	var tags: Array = b.get("tags", [])
+	for e in hits:
+		o.log_hit(src, tags)
+		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+	return hits
+
+
+## 路径上的点：from → to 均分 ceil(长 / step) 段，取各段中点
+static func el_path_points(a: Vector2, b: Vector2, step: float) -> Array:
+	var L: float = a.distance_to(b)
+	var n: int = maxi(1, int(ceil(L / maxf(1.0, step) - 0.001)))
+	var out: Array = []
+	for i in n:
+		out.append(a.lerp(b, (float(i) + 0.5) / float(n)))
+	return out
+
+
+## shape.circle center: path：沿德克萨斯段的上一次冲刺 / 残像路径（tx.ctx）每 step 一处；第 i 处在 delay + i × stagger 秒后结算（进冲刺延迟队列）
+static func el_path_circles(o, b: Dictionary) -> void:
+	var c: Dictionary = o.tx.get("ctx", {})
+	if not c.has("from"):
+		return
+	var pts: Array = el_path_points(c.from, c.to, float(b.get("step", 40.0)))
+	var d0: float = float(b.get("delay", 0.0))
+	var st: float = float(b.get("stagger", 0.0))
+	for i in pts.size():
+		var b2: Dictionary = b.duplicate()
+		b2["center"] = "target"
+		b2.erase("cond")   # 条件在整块执行时已经看过
+		var dl: float = d0 + st * i
+		if dl <= 0.0:
+			exec_shape(o, b2, pts[i])
+		else:
+			var q: Array = o.tx.get("queue", [])
+			q.append({"t": dl, "do": [b2], "ctx": {"to": pts[i]}})
+			o.tx["queue"] = q
+
+
+# ---------------------------------------------------------------- st.stack（能天使「穿甲连射」）
+
+## 本帧生效的 st.stack（第一块），没有 = {}
+static func el_stack_block(o) -> Dictionary:
+	var el = o.get("el")
+	if not (el is Dictionary):
+		return {}
+	var bs: Array = el.get("stack_on", [])
+	return bs[0] if not bs.is_empty() else {}
+
+
+## 命中结算：返回 [伤害倍率, 满层火花帧条名或 ""]；不是 st.stack 的来源原样 [1.0, ""]
+static func el_stack_hit(o, e: Dictionary, src: String) -> Array:
+	var b := el_stack_block(o)
+	if b.is_empty() or not src in b.get("src", []):
+		return [1.0, ""]
+	var st := el_st(o)
+	var t: float = float(o.g.t)
+	var cur: Array = st.stk.get(e.id, [0, -INF])
+	var n: int = int(cur[0]) if t - float(cur[1]) <= float(b.decay) else 0
+	var mult: float = 1.0 + float(b.per) * n
+	var mx: int = int(b.max)
+	n = mini(n + 1, mx)
+	st.stk[e.id] = [n, t]
+	if st.stk.size() > 96:   # 过期 / 死掉的清掉（只按时间，确定性）
+		for k in st.stk.keys():
+			if t - float(st.stk[k][1]) > float(b.decay):
+				st.stk.erase(k)
+	return [mult, str(b.get("full_fx", "")) if n >= mx else ""]
+
+
+## 开火时的弹体帧条：瞄准的敌人身上当前层数分档（0 层 = 原帧条；缺图 = 原帧条）
+static func el_stack_tex(o, src: String, e: Dictionary, dflt: String) -> String:
+	var b := el_stack_block(o)
+	if b.is_empty() or not src in b.get("src", []) or not b.has("tex"):
+		return dflt
+	var cur: Array = o.el.stk.get(e.id, [0, -INF])
+	if float(o.g.t) - float(cur[1]) > float(b.decay) or int(cur[0]) <= 0:
+		return dflt
+	var tl: Array = b.tex
+	var tier: int = clampi(int(ceil(float(cur[0]) / float(b.max) * tl.size() - 0.001)), 1, tl.size())
+	var nm: String = str(tl[tier - 1])
+	return nm if o.g.tex.get(nm) != null else dflt
+
+
+# ---------------------------------------------------------------- 常驻部分（data_operator._sustain 转来）
+
+## 本帧生效的限时增益积木（按 key 首次触发的顺序，确定性）追加进常驻列表；同时记下本帧的 st.stack
+static func el_sustain_collect(o, act: Array) -> void:
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty():
+		for b in act:
+			if str(b.get("_tag", "")) == "st.stack":
+				el_st(o)
+				break
+		if o.el.is_empty():
+			return
+	var t: float = float(o.g.t)
+	for k in o.el.timed.keys():
+		var tb: Dictionary = o.el.timed[k]
+		if float(tb.until) > t:
+			act.append(tb.b)
+		else:
+			o.el.timed.erase(k)
+	var sk: Array = []
+	for b in act:
+		if str(b.get("_tag", "")) == "st.stack":
+			sk.append(b)
+	o.el["stack_on"] = sk
+
+
+# ---------------------------------------------------------------- 瞬时（data_operator._exec_list 缺省分支转来）
+
+static func el_exec(o, b: Dictionary, at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"verb.buff_timed":
+			var st := el_st(o)
+			var key: String = str(b.get("key", "buff"))
+			var had: bool = st.timed.has(key) and float(st.timed[key].until) > float(o.g.t)
+			st.timed[key] = {"until": float(o.g.t) + float(b.dur), "b": b}
+			if not had and b.has("text"):
+				o.float_text(o.pos + Vector2(0, -80), str(b.text), Color(1.0, 0.45, 0.4), 14)
+		"shape.boomerang":
+			el_boom_start(o, b)
+		"verb.summon_cmd":
+			el_summon_cmd(o, b, at)
+
+
+# ---------------------------------------------------------------- shape.boomerang（星熊「般若回旋」）
+
+static func el_boom_start(o, b: Dictionary) -> void:
+	var g = o.g
+	if o.pos == Vector2.INF:
+		return
+	var st := el_st(o)
+	if st.boom.size() >= EL_BOOM_MAX:
+		return
+	var L: float = float(b.get("len", 220.0)) * o.stat(&"op_range")
+	var ts: Array = o.nearest_enemies(1, L + 20.0, o.pos)
+	var ang: float = o.atk_angle((ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle())
+	var dir := Vector2.from_angle(ang)
+	if absf(dir.x) > 0.1:
+		o._set_face(signf(dir.x), true)
+	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(o.loc.dmg) * o._dmg_bonus() * el_atk_mult(o)
+	if b.get("power", false):
+		dmg *= o.skill_power()
+	st.boom.append({"b": b, "dir": dir, "L": L, "w": float(b.get("w", 56.0)), "t": 0.0, "to": float(b.get("t_out", 0.3)), "hold": float(b.get("hold", 0.1)),
+		"tb": float(b.get("t_back", 0.3)), "dmg": dmg, "last": 0.0, "hit0": {}, "hit1": {}, "spin": 0.0, "sp_t": 0.0})
+	if b.has("sfx"):
+		o._sfx_op(str(b.sfx))
+
+
+## 弹体此刻离本干员的距离（世界像素）与所在程（0 去 / 1 回）
+static func _el_boom_d(bm: Dictionary) -> Array:
+	var t: float = float(bm.t)
+	var to: float = float(bm.to)
+	if t < to:
+		var k: float = t / maxf(0.01, to)
+		return [float(bm.L) * (1.0 - (1.0 - k) * (1.0 - k)), 0]   # 先快后慢
+	if t < to + float(bm.hold):
+		return [float(bm.L), 0]
+	var k2: float = clampf((t - to - float(bm.hold)) / maxf(0.01, float(bm.tb)), 0.0, 1.0)
+	return [float(bm.L) * (1.0 - k2 * k2), 1]   # 先慢后快地收回
+
+
+static func el_boom_total(bm: Dictionary) -> float:
+	return float(bm.to) + float(bm.hold) + float(bm.tb)
+
+
+## 每帧（data_operator.update）：推进往返弹体、扫线段结算
+static func el_tick(o, dt: float) -> void:
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty() or el.boom.is_empty() or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	for bm in el.boom:
+		var d0: Array = _el_boom_d(bm)
+		bm.t = float(bm.t) + dt
+		bm.spin = float(bm.spin) + dt * 18.0
+		var d1: Array = _el_boom_d(bm)
+		var b: Dictionary = bm.b
+		var leg: int = int(d1[1])
+		if leg != int(d0[1]):   # 刚转回程：去程的最后一段补扫
+			_el_boom_sweep(o, bm, float(d0[0]), float(bm.L), 0)
+			d0 = [float(bm.L), 1]
+		_el_boom_sweep(o, bm, float(d0[0]), float(d1[0]), leg)
+		bm.sp_t = float(bm.sp_t) - dt
+		if float(bm.sp_t) <= 0.0 and b.has("spark"):   # 沿途火花（画面）
+			bm.sp_t = 0.06
+			var p: Vector2 = o.pos + bm.dir * float(d1[0]) + Vector2(0, -22)
+			o.spawn_fx_sprite(str(b.spark), p + Vector2(g.vrng.randf_range(-6.0, 6.0), g.vrng.randf_range(-6.0, 6.0)), g.PX, g.vrng.randf() * TAU)
+	el.boom = el.boom.filter(func(bm): return float(bm.t) < el_boom_total(bm))
+
+
+## 扫 [a, c]（离本干员的距离）这一段：线段内、这一程还没打过的敌人各吃一次
+static func _el_boom_sweep(o, bm: Dictionary, a: float, c: float, leg: int) -> void:
+	var g = o.g
+	if absf(c - a) < 0.01 and a > 0.5:
+		return
+	var b: Dictionary = bm.b
+	var dir: Vector2 = bm.dir
+	var lo: float = minf(a, c)
+	var hi: float = maxf(a, c)
+	var p0: Vector2 = o.pos + dir * lo
+	var hit: Dictionary = bm.hit0 if leg == 0 else bm.hit1
+	var mult: float = float(b.get("mult_out", 1.0)) if leg == 0 else float(b.get("mult_back", 1.0))
+	var kb: float = float(b.get("kb_out", 0.0)) if leg == 0 else 0.0
+	var ve: float = o.vs_elite()
+	var src: String = str(b.get("src", ""))
+	var tags: Array = b.get("tags", [])
+	var w: float = float(bm.w)
+	var got: Array = []
+	for j in o.query_ids(p0 + dir * (hi - lo) * 0.5, (hi - lo) * 0.5 + w + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or hit.has(e.id) or not line_contains(p0, dir, hi - lo, w, e.pos, float(e.r)):
+			continue
+		hit[e.id] = true
+		got.append(e)
+	for e in got:
+		o.log_hit(src, tags)
+		o.deal_damage(e, float(bm.dmg) * mult * (ve if e.elite or e.boss else 1.0))
+		if not e.dead and not e.boss and kb > 0.0:
+			e.kb += dir * kb * (0.3 if e.elite else 1.0) * kb_taken(e, g.t)
+		o._hit_fx(e, o.pos)
+		if b.has("fx"):
+			fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], dir.angle())
+	if not got.is_empty():
+		o._sfx_op("hit")
+
+
+## 普攻锁：有 lock: true 的往返弹体在外面
+static func el_attack_locked(o) -> bool:
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty():
+		return false
+	for bm in el.boom:
+		if bm.b.get("lock", false):
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- 召唤物：扑击（summon_mod.lunge）/ 跃回（verb.summon_cmd）
+
+static func _el_dash_spec(o, kd: Dictionary, k: String) -> Dictionary:
+	var key: String = str(kd.get("anim", {}).get(k, ""))
+	if key == "" or o.anim_tex(key) == null:
+		return {}
+	return o.sprite_spec(key)
+
+
+## 起一段位移：k = lunge / leap；to = 落点；t = 位移秒数；h = 弧线高度；land = 落地时执行的 [种类, 参数]
+static func _el_dash_start(o, s: Dictionary, kd: Dictionary, k: String, to: Vector2, t: float, h: float, land: Dictionary) -> void:
+	var sp := _el_dash_spec(o, kd, k)
+	var fps: float = float(sp.get("fps", 12.0))
+	var n: float = float(sp.get("frames", 0))
+	var t0 := 0.0
+	var end: float = t + 0.08
+	if not sp.is_empty():
+		var land_t: float = (float(sp.fire) + 0.5) / fps if sp.has("fire") else (n - 2.0) / fps   # 扑击：出手帧落爪；跃回：倒数第 2 帧（展开刃爪）落地
+		t0 = maxf(0.0, land_t - t)
+		end = t0 + t + 1.0 / fps   # 落地后再停一帧就交还给普通行动（帧条后面的收势帧让位给紧接着的爪击，不白占出手时间）
+	s.dash = {"k": k, "from": s.pos, "to": to, "t": 0.0, "t0": t0, "dur": t, "end": end, "h": h, "h_now": 0.0, "land": land, "done": false, "hist": []}
+	s.act = end
+	s.fire = -1.0
+	s.pend = []
+	if absf(to.x - s.pos.x) > 2.0:
+		s.face = signf(to.x - s.pos.x)
+		s.flip_t = o.g.t
+	s.ak = k
+	s.at = 0.0
+
+
+static func el_dash_step(o, s: Dictionary, kd: Dictionary, mods: Dictionary, dt: float) -> void:
+	var g = o.g
+	var d: Dictionary = s.dash
+	var prev: Vector2 = s.pos
+	var ph: float = float(d.h_now)
+	d.t = float(d.t) + dt
+	var k: float = clampf((float(d.t) - float(d.t0)) / maxf(0.01, float(d.dur)), 0.0, 1.0)
+	s.pos = (d.from as Vector2).lerp(d.to, 1.0 - (1.0 - k) * (1.0 - k) if d.k == "lunge" else k)
+	d.h_now = float(d.h) * sin(k * PI)
+	var hist: Array = d.hist
+	hist.append([float(d.t), s.pos, float(d.h_now)])
+	if hist.size() > 12:
+		hist.pop_front()
+	if d.k == "leap" and k > 0.0 and k < 1.0 and s.pos.distance_to(prev) > 0.5:   # 跃回：空中拉一道绿色弧形拖尾（逐段淡出）
+		o.fx({"kind": "line", "pos": prev + Vector2(0, -ph - 26.0), "to": s.pos + Vector2(0, -float(d.h_now) - 26.0), "w": 4.0, "life": 0.3, "col": Color(EL_GREEN.r * 1.4, EL_GREEN.g * 1.4, EL_GREEN.b * 1.4)})
+	if not d.done and float(d.t) >= float(d.t0) + float(d.dur):
+		d.done = true
+		_el_land(o, s, kd, mods, d)
+	var cdk: float = dt
+	for f in mods.aspd:
+		cdk *= f
+	s.cd = float(s.cd) - cdk
+	s.at = float(s.at) + dt
+	s.mv = 0.0
+	if float(d.t) >= float(d.end):
+		s.erase("dash")
+		s.act = 0.0
+		_mf_set_anim(s, "idle")
+
+
+static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dictionary) -> void:
+	var g = o.g
+	var ld: Dictionary = d.land
+	match str(ld.get("kind", "")):
+		"lunge":
+			var lg: Dictionary = ld.b
+			var a: Dictionary = kd.get("attack", {})
+			var r: float = float(lg.get("r", 40.0)) * o.stat(&"op_range")
+			var dmg: float = mf_dmg(o, a, mods, s.pcur) * float(lg.get("mult", 0.3))
+			var tags: Array = a.get("tags", []).duplicate()
+			if not "summon" in tags:
+				tags.append("summon")
+			var hits: Array = o.area_hit(str(s.pcur.get("src", a.get("src", ""))), s.pos, r, dmg, 0.0, 0.0, tags)
+			if lg.has("fx"):
+				fx_play(o, lg.fx, s.pos, r, hits)
+			else:
+				o.fx({"kind": "ring", "pos": s.pos, "r": r, "r0": r * 0.4, "life": 0.25, "col": EL_GREEN, "floor": true, "w": 2.0, "alpha": 0.7})
+		"leap":
+			o._exec_list(ld.get("then", []), s.pos)
+			var b: Dictionary = ld.get("b", {})
+			if b.has("fx"):
+				fx_play(o, b.fx, s.pos, 100.0)
+
+
+## 扑击：目标在 min_d（+ 目标半径）外、冷却好了 → 扑到目标身前；返回 true = 已起扑
+static func el_lunge_try(o, s: Dictionary, kd: Dictionary, tg: Dictionary, lg: Dictionary) -> bool:
+	var g = o.g
+	if float(g.t) < float(s.get("lunge_cd", -INF)):
+		return false
+	var dv: Vector2 = tg.pos - s.pos
+	# 够得着就直接出爪：扑击只替「走过去」那一段（目标在 min_d 与爪击距离两者较大的那个之外才扑）
+	var reach: float = mf_reach(o, kd.get("attack", {}), mf_mods(o, str(s.kind)))
+	if dv.length() <= maxf(float(lg.get("min_d", 80.0)), reach) + float(tg.r):
+		return false
+	var gap: float = float(tg.r) + float(kd.get("move", {}).get("gap", 26.0))
+	var to: Vector2 = tg.pos - dv.normalized() * gap
+	s.lunge_cd = float(g.t) + float(lg.get("cd", 1.5))
+	_el_dash_start(o, s, kd, "lunge", to, float(lg.get("t", 0.15)), 0.0, {"kind": "lunge", "b": lg})
+	return true
+
+
+## verb.summon_cmd：现在只有 action leap（跃回 to 身边），to 缺省 leader
+static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
+	var g = o.g
+	if o.sm.is_empty():
+		return
+	var kind: String = str(b.get("kind", ""))
+	var kd := sm_kind(o, kind)
+	if kd.is_empty() or str(kd.get("move", {}).get("mode", "")) != "escort":
+		return
+	var c: Vector2 = g.ppos if str(b.get("to", "leader")) == "leader" else o.pos
+	if c == Vector2.INF:
+		return
+	for s in o.sm.list:
+		if str(s.kind) != kind or s.gone:
+			continue
+		var side: float = signf(s.pos.x - c.x) if absf(s.pos.x - c.x) > 4.0 else float(o.face)
+		var to: Vector2 = c + Vector2(side * float(b.get("land_dx", 30.0)), float(b.get("land_dy", 8.0)))
+		_el_dash_start(o, s, kd, "leap", to, float(b.get("t", 0.25)), float(b.get("h", 46.0)), {"kind": "leap", "then": b.get("then", []), "b": b})
+
+
+## 扑击 / 跃回的残影：前 0.04 / 0.08 / 0.12 秒的位置各画一份绿色剪影（fx_mon3tr_afterimage；缺图时用当前帧染绿）
+static func el_draw_afterimages(o, s: Dictionary, kd: Dictionary, fr: Array, hov: float) -> void:
+	var g = o.g
+	var d: Dictionary = s.dash
+	var hist: Array = d.hist
+	if hist.size() < 2 or float(d.t) < float(d.t0) or float(d.t) > float(d.t0) + float(d.dur) + 0.15:
+		return
+	var tx: Texture2D = g.tex.get("fx_mon3tr_afterimage")
+	var flip: bool = float(s.face) < 0.0
+	var base_h: float = hov + float(d.h_now)
+	for q in [3, 2, 1]:
+		var tq: float = float(d.t) - 0.04 * q
+		var it: Array = hist[0]
+		for h in hist:
+			if float(h[0]) <= tq:
+				it = h
+		var p: Vector2 = it[1]
+		if p.distance_to(s.pos) < 4.0:
+			continue
+		var al: float = 0.35 * (1.0 - 0.22 * (q - 1))
+		var py: Vector2 = p + Vector2(0, base_h - float(it[2]))
+		if tx != null:
+			var hi: float = ArtS.hires_of(tx)
+			var k: float = g.PX / hi
+			o.cv.draw_set_transform(py.round(), 0.0, Vector2(-k if flip else k, k))
+			o.cv.draw_texture_rect_region(tx, Rect2(-Vector2(32, 60) * hi, Vector2(tx.get_width(), tx.get_height())), Rect2(0, 0, tx.get_width(), tx.get_height()), Color(EL_GREEN.r, EL_GREEN.g, EL_GREEN.b, al))
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		elif not fr.is_empty():
+			o.draw_sprite_at(py, flip != o.sprite_mirror(str(fr[3])), Color(EL_GREEN.r, EL_GREEN.g * 1.2, EL_GREEN.b, al), fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
+
+
+# ---------------------------------------------------------------- 画面（data_operator._draw_skill_over 转来）
+
+static func el_draw_over(o) -> void:
+	var g = o.g
+	var el = o.get("el")
+	if not (el is Dictionary) or el.is_empty() or o.pos == Vector2.INF:
+		return
+	for bm in el.boom:
+		var d: Array = _el_boom_d(bm)
+		var p: Vector2 = o.pos + bm.dir * float(d[0]) + Vector2(0, -22)
+		var b: Dictionary = bm.b
+		var tn: String = str(b.get("tex", ""))
+		var tx = g.tex.get(tn) if tn != "" else null
+		if tx != null and g.V6_FRAMES.has(tn):
+			var spec: Array = g.V6_FRAMES[tn]
+			fx_frame(o.cv, g, tn, int(spec[0]), int(float(bm.t) * float(spec[1])), p, g.PX * float(b.get("scale", 1.0)), Color.WHITE, Vector2(-1, -1), 0.0)
+		else:   # 程序圆盾：翠绿盾面 + 外圈 + 4 道锯齿，转着飞
+			var R: float = 13.0
+			o.cv.draw_circle(p, R + 3.0, Color(0.03, 0.06, 0.05, 0.6))
+			o.cv.draw_circle(p, R, Color(0.25, 0.75, 0.45))
+			o.cv.draw_arc(p, R, 0.0, TAU, 20, Color(0.75, 1.0, 0.8), 2.0)
+			for q in 4:
+				var a: float = float(bm.spin) + q * TAU / 4.0
+				var v := Vector2.from_angle(a)
+				o.cv.draw_colored_polygon(PackedVector2Array([p + v * (R - 2.0) + v.orthogonal() * 4.0, p + v * (R + 6.0), p + v * (R - 2.0) - v.orthogonal() * 4.0]), Color(0.85, 1.0, 0.9))
+
+
+# ---------------------------------------------------------------- trig.on_mate_attack（character.gd 出手时广播）
+
+## 队友 m 普攻出手：本干员生效中的 trig.on_mate_attack 在她的出手点播 fx（scope 缺省 others）
+static func el_mate_attack(o, m) -> void:
+	if o.pos == Vector2.INF or m == o or m.pos == Vector2.INF:
+		return
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_mate_attack" or not cond_true(o, t.get("cond", {})):
+			continue
+		if not m in aura_members(o, str(t.get("scope", "others"))):
+			continue
+		var c: Vector2 = m.pos + Vector2(14.0 * float(m.face), -30.0)
+		if t.has("fx"):
+			fx_play(o, t.fx, c, 12.0)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _el_st_common(b: Dictionary, p: String, ctx: Dictionary) -> void:
+	if b.has("first_only") and not (b.first_only is bool):
+		ctx.errs.append(p + ".first_only 只能是 true / false")
+	_num(b, "cd", p, ctx, false, 0.0, 60.0)
+
+
+static func _el_lunge_check(v, p: String, ctx: Dictionary) -> void:
+	if not (v is Dictionary):
+		ctx.errs.append(p + " 必须是对象 {min_d, t, cd, mult, r}")
+		return
+	for k in v:
+		if not k in ["min_d", "t", "cd", "mult", "r", "fx", "_doc"]:
+			ctx.errs.append("%s.%s：扑击只有 min_d / t / cd / mult / r / fx" % [p, k])
+	_sm_exprs(v, p, ctx)
+	_num(v, "min_d", p, ctx, true, 0.0, 400.0)
+	_num(v, "t", p, ctx, true, 0.05, 1.0)
+	_num(v, "cd", p, ctx, true, 0.0, 30.0)
+	_num(v, "mult", p, ctx, true, 0.0, 10.0)
+	_num(v, "r", p, ctx, true, 1.0, 300.0)
+	if v.has("fx"):
+		_fx(v.fx, p + ".fx", ctx, "shape.circle")
+
+
+## _block 转来：本段的积木校验完返回 true
+static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in EL_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"st.stack": ["sustain"],
+		"verb.buff_timed": ["skill", "instant"],
+		"shape.boomerang": ["skill", "instant"],
+		"verb.summon_cmd": ["skill", "instant"],
+		"trig.on_mate_attack": ["trig"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"st.stack":
+			if str(b.get("key", "")) == "":
+				errs.append(p + " 缺 key（叠层的名字）")
+			_num(b, "per", p, ctx, true, 0.0, 1.0)
+			_num(b, "max", p, ctx, true, 1.0, 50.0)
+			_num(b, "decay", p, ctx, true, 0.1, 10.0)
+			var sl = b.get("src", [])
+			if not (sl is Array) or sl.is_empty():
+				errs.append(p + ".src 必须是非空数组（哪些伤害来源叠层）")
+			else:
+				for s in sl:
+					if not ctx.srcs.has(str(s)):
+						errs.append("%s.src「%s」没在 hit_sources 里登记" % [p, str(s)])
+			if b.has("tex"):
+				var tl = b.tex
+				if not (tl is Array) or tl.is_empty() or tl.size() > 6 or tl.any(func(x): return not str(x).begins_with("proj_")):
+					errs.append(p + ".tex 必须是 1–6 个 proj_* 帧条名的数组（按层数分档）")
+			if b.has("full_fx") and not str(b.full_fx).begins_with("fx_"):
+				errs.append(p + ".full_fx 必须是 fx_* 帧条名")
+		"verb.buff_timed":
+			var st := str(b.get("stat", ""))
+			if not (st in LOCAL_STATS or st in OP_STATS):
+				errs.append("%s.stat「%s」只能是 %s" % [p, st, " / ".join(LOCAL_STATS + OP_STATS)])
+			if not str(b.get("op", "add")) in ["add", "mult"]:
+				errs.append(p + ".op 只能是 add / mult")
+			_num(b, "value", p, ctx, true, -1.0, 10.0)
+			_num(b, "dur", p, ctx, true, 0.1, 60.0)
+			if str(b.get("key", "")) == "":
+				errs.append(p + " 缺 key（同 key 再触发只刷新时间）")
+		"shape.boomerang":
+			_num(b, "len", p, ctx, true, 20.0, 800.0)
+			_num(b, "w", p, ctx, true, 4.0, 200.0)
+			_num(b, "t_out", p, ctx, true, 0.05, 2.0)
+			_num(b, "hold", p, ctx, false, 0.0, 2.0)
+			_num(b, "t_back", p, ctx, true, 0.05, 2.0)
+			_num(b, "mult_out", p, ctx, true, 0.0, 20.0)
+			_num(b, "mult_back", p, ctx, true, 0.0, 20.0)
+			_num(b, "kb_out", p, ctx, false, 0.0, 2000.0)
+			_num(b, "scale", p, ctx, false, 0.2, 4.0)
+			if b.has("lock") and not (b.lock is bool):
+				errs.append(p + ".lock 只能是 true / false")
+			for k in ["tex", "spark"]:
+				if b.has(k) and not (str(b[k]).begins_with("proj_") or str(b[k]).begins_with("fx_")):
+					errs.append("%s.%s 必须是帧条名（proj_* / fx_*）" % [p, k])
+			_src(b, p, ctx, true)
+		"verb.summon_cmd":
+			var k := str(b.get("kind", ""))
+			if not (ctx.summons is Dictionary and ctx.summons.has(k)):
+				errs.append("%s.kind「%s」没在 blocks.summons 里定义" % [p, k])
+			if str(b.get("action", "")) != "leap":
+				errs.append(p + ".action 现在只有 leap（跃回 to 身边）")
+			if not str(b.get("to", "leader")) in ["leader", "self"]:
+				errs.append(p + ".to 只能是 leader / self")
+			_num(b, "t", p, ctx, true, 0.05, 2.0)
+			_num(b, "h", p, ctx, false, 0.0, 200.0)
+			_num(b, "land_dx", p, ctx, false, 0.0, 200.0)
+			_num(b, "land_dy", p, ctx, false, -100.0, 100.0)
+			_list(b.get("then", []), p + ".then", "instant", ctx)
+		"trig.on_mate_attack":
+			var sc := str(b.get("scope", "others"))
+			if not sc in ["others", "squad", "leader"]:
+				errs.append(p + ".scope 只能是 others / squad / leader")
+			if not b.has("fx"):
+				errs.append(p + "：trig.on_mate_attack 只挂画面，要写 fx")
+			if b.has("do") and not (b.do is Array and b.do.is_empty()):
+				errs.append(p + "：trig.on_mate_attack 只挂画面，不写 do")
+	return true

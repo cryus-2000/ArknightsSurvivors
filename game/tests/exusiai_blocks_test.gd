@@ -194,10 +194,11 @@ func test_runtime(o) -> void:
 		var spread: float = absf(st.bul[0].v.angle() - st.bul[7].v.angle())
 		near(spread, deg_to_rad(50.0), "倾泻扇形 ±25°", 0.01)
 	st.bul.clear()
-	# 5. 精英二：子弹数 +1、弹匣上限 12（常驻积木在 _sustain 里落地）
+	# 5. 精英二「天使的祝福」（docs/91 §2，10-13 起取代子弹数 +1）：子弹数不变、弹匣上限 12；精一「穿甲连射」的叠层（st.stack）照常生效
 	o.elite = 2
 	o._sustain(0.0)
-	near(o.stat(&"op_shots"), 2.0, "精英二子弹数倍率 2")
+	near(o.stat(&"op_shots"), 1.0, "精英二不再加子弹（天使的祝福改给队友攻速）")
+	ok(o.el.get("stack_on", []).size() == 1, "精一起穿甲连射（st.stack）生效")
 	o.log_hit("速射")
 	o.on_kill({"pos": game.ppos + Vector2(3000, 0), "elite": false, "boss": false})
 	near(float(st.cap.get("mag", 0.0)), 12.0, "精英二弹匣上限 12（verb.counter_cap）")
@@ -227,7 +228,7 @@ func test_runtime(o) -> void:
 	st.bul.clear()
 	OB.exu_fire(o, a)
 	var per: int = st.bul.size()
-	ok(per == 2, "S3 第一轮 = 子弹数（精英二 2 发，实际 %d）" % per)
+	ok(per == 1, "S3 第一轮 = 子弹数（精英二 1 发，实际 %d）" % per)
 	ok(st.burst.size() == 1 and int(st.burst[0].left) == 3, "S3 连射队列还剩 3 轮")
 	if per > 0:
 		ok(str(st.bul[0].src) == "过载模式", "S3 子弹来源 = 过载模式")

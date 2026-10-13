@@ -419,7 +419,7 @@ func draw_minimap(vs: Vector2) -> void:
 	if not dots.is_empty():
 		g.hud.draw_multiline(dots, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.85), 2.0)
 	for g_item in g.gems:
-		if g_item.dead or not (g_item.kind == "magnet" or g_item.kind == "heal" or g_item.kind == "chest"):
+		if g_item.dead or not g_item.special:   # special = 磁铁 / 回复药剂 / 宝箱（pickups.drop），一次读字段代替三次比较（满地掉落时逐帧遍历）
 			continue
 		var p: Vector2 = ((g_item.pos - g.ppos) * k).limit_length(lim)
 		tb.circle(c + p, 3.0, g.pickups.item_col(g_item.kind), 8)

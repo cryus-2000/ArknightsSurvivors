@@ -341,10 +341,12 @@ EQ_GROUPS = [
         ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=eqtest", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
         ("seed2 自然流程", ["--balance", "--seed=2", "--op=eqtest", "--bot=expert", "--maxt=300", "--trace=1"]),
     ], ["测试脉冲", "测试回声", "测试共鸣", "测试斩", "测试音符"]),
+    # 10-13 精英化第 1 批（docs/91 §6）后数据版凯尔希的精一「扑击」/ 精二「回防」/ 八面展开 60% 是新设计，旧手写参照没有：
+    # 这组只比精零（不推全节点、不进精英化），守住 Mon3tr 迁积木的本体（随行、爪击、治疗、一技能）
     ("kaltsit", "--opscript=kaltsit=res://tests/data_ops/kaltsit_legacy.gd", [
-        ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=kaltsit", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-        ("seed3 当队友 + 全藏品", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=240", "--trace=1",
-                                 "--maxprog", "--sptest", "--relics=all"]),
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=kaltsit", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
+                                 "--sptest", "--relics=all"]),
     ], ["Mon3tr", "Mon3tr · 真伤", "Mon3tr · 熔毁"]),
 ]
 

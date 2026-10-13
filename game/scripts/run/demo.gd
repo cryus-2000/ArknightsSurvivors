@@ -43,6 +43,13 @@ func step(dt: float) -> void:
 	if demo_hurt_t >= DEMO_HURT_EVERY:
 		demo_hurt_t = 0.0
 		g.hp = g.max_hp * 0.7
+		if g.ch != null and g.ch.has_method("demo_hurt"):
+			g.ch.demo_hurt()   # 数据干员：模拟一次「队长受到攻击」（凯尔希回防、星熊格挡 / 反击架势在演示里也能看到）
+	for m in g.squad.ops:   # 演示队友（gallery.demo_mate）只普攻、不放技能
+		if m != g.ch:
+			for i in 3:
+				if not m.perm[i]:
+					m.sp[i] = 0.0
 	g.hp = clampf(g.hp, g.max_hp * 0.5, g.max_hp)
 	g.xp = 0.0
 	g.gems.clear()
@@ -206,6 +213,10 @@ func new_op() -> void:
 	var id: String = g.demo_op
 	if g.ch != null and g.squad.has(id):
 		g.squad.remove(id)
+	for m in g.squad.ops.duplicate():   # 上一段的演示队友
+		if m.id != id:
+			g.squad.remove(m.id)
+			g.stats.remove_scope("op:" + m.id)
 	g.stats.remove_scope("op:" + id)
 	g.sync_stats()
 	g.ch = g.squad.add(id)
@@ -221,6 +232,7 @@ func new_op() -> void:
 		g.show_queue.clear()
 		g.facing = 1.0
 		g.ch.pos = g.ppos
+		_add_demo_mate()
 		return
 	var want: int = g.demo_elite if g.demo_elite > 0 else 2
 	var guard := 0
@@ -234,6 +246,23 @@ func new_op() -> void:
 	g.show_queue.clear()
 	g.facing = 1.0   # 主控面朝右侧怪海
 	g.ch.pos = g.ppos + g.squad._slot_offset(0)   # 直接站在跟随位上，开场不再先走一步
+	_add_demo_mate()
+
+
+## 演示队友（干员 JSON gallery.demo_mate = {"op": 干员 id, "elite": 起始精英阶段}）：本干员到了这个精英阶段才带上一名队友，
+## 给「赋予队友」类的效果一个对象（能天使精二「天使的祝福」光环 / 金光）。队友只普攻（step 压住技力），不推成长节点
+func _add_demo_mate() -> void:
+	var dm = g.ch.def.get("gallery", {}).get("demo_mate", null)
+	if not (dm is Dictionary) or g.ch.elite < int(dm.get("elite", 2)):
+		return
+	var mid: String = str(dm.get("op", ""))
+	if mid == "" or mid == g.demo_op or g.squad.has(mid):
+		return
+	var m = g.squad.add(mid)
+	if m != null:
+		m.pos = g.ppos + g.squad._slot_offset(m.slot)
+		for i in 3:
+			m.sp[i] = 0.0
 
 
 ## 右边刷一片怪海：椭圆区域里随机撒开，慢慢向主控推进（演示里敌人不造成伤害）

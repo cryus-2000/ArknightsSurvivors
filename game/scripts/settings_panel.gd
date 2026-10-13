@@ -22,7 +22,7 @@ const ROWS := [
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
 	{"cn": "Boss 登场演出", "en": "BOSS INTRO", "key": "boss_intro", "type": "bool"},
 	{"cn": "减少动态效果", "en": "REDUCE MOTION", "key": "reduce_motion", "type": "bool"},
-	{"cn": "怪物轮廓光", "en": "ENEMY OUTLINE", "key": "outline", "type": "bool"},
+	{"cn": "Boss 轮廓光", "en": "BOSS OUTLINE", "key": "outline", "type": "bool"},
 	{"cn": "景深与前景", "en": "DEPTH OF FIELD", "key": "dof", "type": "bool"},
 	{"cn": "辉光", "en": "BLOOM", "key": "bloom", "type": "bool"},
 	{"cn": "水下滤镜", "en": "UNDERWATER FILTER", "key": "water_filter", "type": "bool"},
