@@ -64,6 +64,18 @@ static func hit_rings() -> bool:
 	return _hr == 1
 
 
+static var _hs := -1
+
+## 干员命中 / 技能发动的放射线（用户 10-13 追加：「向四周发散的直线一样的特效」也删）：g.fx rays（标 op_spoke 的）、
+## 水月创伤扩散的放射纹、维什戴尔爆炸的放射刀锋光条、推进之王落地光柱的张开光线 / 号令波狮鬃纹、凯尔希 Mon3tr 的 beamray。
+## render/hit_spokes：0 = 不画（缺省），1 = 照旧画（回退）。同 hit_rings，只在绘制时跳过。
+## 连线、锁定线、预警射线、激光 / 光束（本身就是攻击判定的线）不受影响。
+static func hit_spokes() -> bool:
+	if _hs < 0:
+		_hs = 1 if Bal.v("render/hit_spokes", 0.0) > 0.0 else 0
+	return _hs == 1
+
+
 static func level() -> int:
 	if _lv < 0:
 		_lv = clampi(Bal.vi("render/declutter", 0), 0, PRESETS.size() - 1)

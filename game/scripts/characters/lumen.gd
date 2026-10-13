@@ -261,7 +261,7 @@ func _light_burst() -> void:
 	spawn_fx_sprite("fx_sunburst", tower_pos + Vector2(0, -40), g.PX * 2.4)
 	for i in 3:
 		fx({"kind": "ring", "pos": tower_pos, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": WARM, "floor": true, "w": 4.0 - i})
-	g.fx.append({"kind": "rays", "pos": tower_pos + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": WARM})
+	g.fx.append({"kind": "rays", "pos": tower_pos + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": WARM, "op_spoke": true})
 	fx_sparks(tower_pos + Vector2(0, -30), WARM, 18, 240.0, 0.5, 3.0, 160.0)
 	float_text(tower_pos + Vector2(0, -90), "光爆", WARM, 18)
 	g.shake = maxf(g.shake, 4.0)

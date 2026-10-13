@@ -266,7 +266,7 @@ func _release_skill() -> void:
 			face_to(fan_ang)
 			show_banner("延展敏锐")
 			spawn_fx_sprite("fx_holy_pillar_ink", pos + Vector2(0, 4), g.PX * 1.3, 0.0, false, true)
-			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -26), "life": 0.6, "max": 0.6, "col": INK})
+			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -26), "life": 0.6, "max": 0.6, "col": INK, "op_spoke": true})
 	# 技能发动音 op_logos_s1/s2/s3 由 spend_sp 播放
 
 

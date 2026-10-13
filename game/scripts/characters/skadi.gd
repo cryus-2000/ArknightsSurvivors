@@ -284,7 +284,7 @@ func _release_skill() -> void:
 			pulse_t = base("pulse_every", 1.0)
 			_slash(0.0, PI, _reach() * 1.1, Color(0.25, 0.4, 0.85), FOAM, 0.3)   # 放出那一下的整圈旋斩（docs/45 #11）
 			fx({"kind": "ring", "pos": pos, "r": 120.0, "r0": 10.0, "life": 0.5, "col": BLUE, "floor": true})
-			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE})
+			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE, "op_spoke": true})
 			for k in 16:
 				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-40, 40), 0), "vel": Vector2(g.rng.randf_range(-40, 40), g.rng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
 			show_banner("潮汐")

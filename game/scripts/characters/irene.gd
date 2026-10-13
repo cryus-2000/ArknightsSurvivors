@@ -351,7 +351,7 @@ func _release_skill() -> void:
 			fx({"kind": "glow", "pos": _lantern(true), "r": 30.0, "life": 0.25, "col": Color(1.8, 1.5, 0.9), "alpha": 0.8})
 			fx({"kind": "ring", "pos": pos, "r": r3, "r0": 16.0, "life": 0.4, "col": LAMP, "floor": true, "w": 5.0})
 			fx({"kind": "ring", "pos": pos, "r": r3 * 0.75, "r0": 8.0, "life": 0.55, "col": PINK, "floor": true, "w": 2.5})
-			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP})
+			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -30), "life": 0.6, "max": 0.6, "col": LAMP, "op_spoke": true})
 			impact_pause(0.08)
 			show_banner("审判")
 

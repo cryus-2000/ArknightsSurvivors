@@ -143,7 +143,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 			return
 		_break_fx_at[key] = g.t
 		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/break_sparks", 6), 240.0)
-		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45)})
+		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45), "op_hit": true})
 		impact_pause(Bal.v("fx/break_pause", 0.035))
 
 
@@ -163,11 +163,11 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 		n = maxi(1, int(round(n * Dc.at("kill_k", g.world.dcrowd))))
 	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
 	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
-		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col})
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col, "op_hit": true})
 	var pitch: float = clampf(1.15 - r / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
-		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6)})
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
 		ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
 		var shell: bool = HIT_SHELL.has(e.get("type", ""))
 		var fxs: Dictionary = Bal.sec("fx")

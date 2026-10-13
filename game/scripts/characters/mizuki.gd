@@ -302,7 +302,7 @@ func _run_delayed(dl: Dictionary) -> void:
 					deal_damage(e, dl.dmg)
 					if not e.boss:
 						e.kb += (e.pos - dl.pos).normalized() * 200.0
-			g.fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": UI.GOLD})
+			g.fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": UI.GOLD, "op_spoke": true})
 			sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
 			Sfx.play("boom", -10.0, 1.4, 0.1)
 		"echo":
@@ -344,7 +344,7 @@ func _skill_cast(i: int) -> void:
 	var c: Color = Color(0.45, 0.8, 1.0) if i == 1 else UI.PURPLE
 	g.fx.append({"kind": "ring", "pos": pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
 	g.fx.append({"kind": "ring", "pos": pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
-	g.fx.append({"kind": "rays", "pos": pos, "life": 0.6, "max": 0.6, "col": c})
+	g.fx.append({"kind": "rays", "pos": pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
 	sparks(pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
 	for j in query_ids(pos, 140.0):
 		var e: Dictionary = g.enemies[j]

@@ -484,7 +484,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			# 红色底光（先胀后消）
 			cv.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * a))
 			# 放射状刀锋光条：12 根，长短错落，随时间向外抽出并变细
-			var nq: int = f.get("n", 12)
+			var nq: int = f.get("n", 12) if Dc.hit_spokes() else 0   # render/hit_spokes 缺省不画放射光条，底光 / 核心照画
 			for q in nq:
 				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
 				var ang: float = sd + q * TAU / nq + (h - 0.5) * 0.35

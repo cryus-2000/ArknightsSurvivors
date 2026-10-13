@@ -146,11 +146,11 @@ func _release_skill() -> void:
 			if ts.is_empty():
 				return
 			_cast(_staff_tip(), ts[0].pos, base("atk", 22.0) * base("s2_mult", 2.5) * skill_power(), _aoe() * 1.3, "点燃弹", true, 6.0)
-			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.4, "max": 0.4, "col": ORANGE})
+			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.4, "max": 0.4, "col": ORANGE, "op_spoke": true})
 		2:
 			erupt = int(base("s3_count", 10.0))
 			erupt_t = 0.0
-			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": ORANGE})
+			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": ORANGE, "op_spoke": true})
 			fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": ORANGE, "floor": true})
 
 

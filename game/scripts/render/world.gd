@@ -879,9 +879,10 @@ func _draw_fx() -> void:
 				g.draw_circle(f.pos, rr, Color(c.r * 1.8, c.g * 1.6, c.b * 1.2, 0.25 * a))
 				g.draw_arc(f.pos, rr, 0.0, TAU, 32, Color(c.r * 2.2, c.g * 2.0, c.b * 1.6, a), 5.0)
 				g.draw_arc(f.pos, rr * 0.7, 0.0, TAU, 32, Color(0.6, 1.6, 2.0, a * 0.6), 2.0)
-				for q in 10:
-					var dv := Vector2.from_angle(q * TAU / 10.0 + f.r)
-					g.draw_line(f.pos + dv * rr * 0.8, f.pos + dv * (rr + 14.0 * a), Color(2.0, 1.8, 1.2, a), 2.0)
+				if not f.get("op_spoke", false) or Dc.hit_spokes():   # 水花放射纹（render/hit_spokes 缺省不画），水花本体照画
+					for q in 10:
+						var dv := Vector2.from_angle(q * TAU / 10.0 + f.r)
+						g.draw_line(f.pos + dv * rr * 0.8, f.pos + dv * (rr + 14.0 * a), Color(2.0, 1.8, 1.2, a), 2.0)
 			"wpillar":
 				# 潮汐柱：升起的水柱 + 水花
 				var k := 1.0 - a
@@ -986,7 +987,9 @@ func _draw_fx() -> void:
 					g.draw_rect(Rect2(f.pos.x - pw / 2.0, f.pos.y - 520.0, pw, 520.0 + f.r * 0.4), Color(1.8, 1.6, 2.0, 0.55 * a))
 					g.draw_rect(Rect2(f.pos.x - pw / 6.0, f.pos.y - 520.0, pw / 3.0, 520.0 + f.r * 0.4), Color(2.0, 2.0, 2.0, 0.8 * a))
 			"rays":
-				# 技能发动：放射光束
+				# 技能发动：放射光束（op_spoke = 干员发的，render/hit_spokes 缺省不画；晋升 / 宝箱 / 祭坛 / 藏品 / 敌方照画）
+				if f.get("op_spoke", false) and not Dc.hit_spokes():
+					continue
 				var k := 1.0 - a
 				var c: Color = f.col
 				for q in 16:

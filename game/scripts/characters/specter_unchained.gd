@@ -246,7 +246,7 @@ func _release_skill() -> void:
 			show_banner("求生之压")
 	fx({"kind": "ring", "pos": pos, "r": _reach(), "r0": 8.0, "life": 0.45, "col": GHOST if cur_skill < 2 else RED, "floor": true})
 	spawn_fx_sprite("fx_circle_ghost", pos + Vector2(0, 4), g.PX * 1.8)
-	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED})
+	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GHOST if cur_skill < 2 else RED, "op_spoke": true})
 	# 锯盘砸地的落点（op_specter_unchained_skill@2x 出手帧第 4 帧：锯盘中心在脚底前 34、上 13）：一小圈贴地冲击 + 火星，
 	# 原来只在脚下画光环，锯头落地处什么都没有（docs/32 §3）
 	var saw: Vector2 = pos + Vector2(27.0 * face, 0)

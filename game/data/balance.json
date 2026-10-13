@@ -427,6 +427,8 @@
   "_declutter_doc": "后期降噪预设（用户 10-12「后期画面是不是太乱了，容易看不清」，scripts/render/declutter.gd，量测 tools/late_clutter.py）：0 现状；1 轻；2 中；3 强。只在拥挤时（特效数 / 敌人数）按比例生效：队友 / 自己的特效与投射物退后、白字伤害数字限量、普通怪描边 / 白闪变淡、击杀火花减少、地面纹理薄纱、远处结晶压暗；敌方弹幕 / 预警轮廓加粗、填充减淡；主控、灯火、特殊掉落不降。只改画面；单项可用 render/declutter_<键> 覆盖。10-12 推荐缺省切到 3（单独提交，可整条回退）",
   "declutter": 3,
   "_hit_rings_doc": "干员攻击 / 技能命中的装饰圆圈（用户 10-13「艾雅法拉的攻击特效的圆圈可以不用加，保留火焰特效就可以；其余干员也是」，scripts/render/declutter.gd hit_rings）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过，主体特效（火焰 / 斩击 / 光弹 / 帧条）、持续区域边界、敌方预警、拾取 / 灯标范围不受影响；对照截图用 --bal=render/hit_rings=1",
-  "hit_rings": 0
+  "hit_rings": 0,
+  "_hit_spokes_doc": "干员命中 / 技能发动的放射线（用户 10-13 追加「向四周发散的直线一样的特效也删除」，scripts/render/declutter.gd hit_spokes）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过；连线、锁定线、预警射线、激光 / 光束不受影响。10-13 起 hit_rings 也管通用击杀 / 破绽小圆环。对照截图用 --bal=render/hit_spokes=1",
+  "hit_spokes": 0
  }
 }

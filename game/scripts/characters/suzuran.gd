@@ -313,7 +313,7 @@ func _release_skill() -> void:
 			_field_buff(base("s3_buff", 0.2) * skill_power())
 			show_banner("狐火迷雾")
 	fx({"kind": "ring", "pos": pos, "r": aura_radius(), "r0": 10.0, "life": 0.6, "col": GOLD, "floor": true})
-	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD})
+	g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": GOLD, "op_spoke": true})
 	# 圣光光柱（Pimen Holy VFX 02）：中心一根 + 光域边缘六根小的
 	spawn_fx_sprite("fx_holy_pillar", pos + Vector2(0, 4), g.PX * (1.4 if cur_skill == 2 else 1.0), 0.0, false, true)
 	var rr3 := aura_radius()

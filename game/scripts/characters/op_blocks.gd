@@ -4846,6 +4846,8 @@ static func mf_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
 				var px := _mf_particle(o, f, tpl, p, ctx, i, n2)
 				if f.has("gfx"):
 					px["max"] = px.life
+					if str(px.get("kind", "")) == "rays":
+						px["op_spoke"] = true   # 干员技能发动的放射光束（render/hit_spokes）
 					g.fx.append(px)
 				else:
 					o.fx(px)
@@ -4994,6 +4996,8 @@ static func mf_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			cv.draw_polyline(pts, Color(qc.r * 1.375, qc.g * 2.0, qc.b * 2.0, a), 2.0)
 			return true
 		"beamray":
+			if not Dc.hit_spokes():   # 放射光束（render/hit_spokes 缺省不画）：粒子照走寿命，只是不画
+				return true
 			var k4: float = 1.0 - a
 			var dv3: Vector2 = Vector2.from_angle(f.ang)
 			var L2: float = f.len * minf(1.0, k4 * 3.0)
