@@ -1,0 +1,70 @@
+{
+  "variant": "B2: user-selected B composition with nocturnal maritime atmosphere",
+  "source_path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-b0ffb14b-ce04-43a5-91e8-17c71ebd7087.png",
+  "source_sha256": "1ca8e41a269f78105786314eefc231f11d2e46f653b888583f5f16114885dfae",
+  "pixel_size": [
+    300,
+    225
+  ],
+  "scale": 4,
+  "palette_limit": 32,
+  "safe_area": [
+    120,
+    90,
+    1080,
+    810
+  ],
+  "title_bbox": [
+    184,
+    96,
+    1016,
+    316
+  ],
+  "manual_subject_safe_area_checked": true,
+  "official_images_used": false,
+  "files": {
+    "toy_b_b2_comparison.png": {
+      "size": [
+        816,
+        316
+      ],
+      "colors": 32,
+      "bytes": 115251,
+      "sha256": "f15442e7100565bacfa9cc7c119ed3bdd50440f5bcf3c289a1899015e301514b"
+    },
+    "toy_poster_b2_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "colors": 31,
+      "bytes": 83104,
+      "sha256": "95dec8c90cb568a972f31a30196d3e7cfa768979b32c58f2bbefd55659d7976c"
+    },
+    "toy_poster_b2_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "colors": 31,
+      "bytes": 84099,
+      "sha256": "6b2958032a0daa6dd67a45fc7c5e4471d44b8aec315a8ca79754b0303502296d"
+    },
+    "toy_poster_b2_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "colors": 31,
+      "bytes": 61062,
+      "sha256": "e53c68cf80865d3001129c61cf43b0ae099347fd1133f045230db4746b57e99d"
+    }
+  },
+  "art_lint": {
+    "ok": true,
+    "scope": "Unchanged character strip baseline; separate cover checks above",
+    "unwaived_fail": 0,
+    "waived_fail": 7,
+    "warn": 56
+  }
+}

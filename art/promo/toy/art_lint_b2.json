@@ -1,0 +1,3139 @@
+{
+ "spec": "docs/87",
+ "ok": true,
+ "results": [
+  {
+   "op": "angelina",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.091,
+   "detail": "@2x 缩到 1x 剪影差最大 0.091",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "outline",
+   "level": "WARN",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 0.969",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "colors",
+   "level": "PASS",
+   "value": 23,
+   "detail": "1x 22 色 / @2x 23 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.0,
+   "detail": "@2x 相同，1x 备用版 skill 末帧 ≠ idle f0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "facing",
+   "level": "PASS",
+   "value": 16.65,
+   "detail": "头部同向分 +16.65（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.092,
+   "detail": "待机 / 跑步头部对称差比 1.092（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.07183129090578377,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.072 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0415,
+    "leg_move": 0.1732,
+    "upper_move": 0.0042,
+    "head_bob": 1.4297,
+    "lean": 14.2859,
+    "foot_dx": 5.25,
+    "static_pairs": 1
+   },
+   "detail": "剪影 0.042 腿 0.173 上身 0.004 头起伏 1.4px 前倾 +14° 停顿 1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     23.4,
+     46.0
+    ],
+    "run": [
+     25.2,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "angelina",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.461,
+    "dark": 0.079,
+    "bright": 0.212,
+    "gain": 0.077
+   },
+   "detail": "超出通用范围：近黑 8%；HSL 0.461 近黑 8% 亮部 21% 受光变亮 8%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.071,
+   "detail": "@2x 缩到 1x 剪影差最大 0.071",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "colors",
+   "level": "PASS",
+   "value": 23,
+   "detail": "1x 23 色 / @2x 23 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "facing",
+   "level": "PASS",
+   "value": 2.41,
+   "detail": "头部同向分 +2.41（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.979,
+   "detail": "待机 / 跑步头部对称差比 0.979（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.12213568710065414,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.122 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "run",
+   "level": "FAIL",
+   "value": {
+    "move": 0.1204,
+    "leg_move": 0.4631,
+    "upper_move": 0.0,
+    "head_bob": 0.785,
+    "lean": 5.9151,
+    "foot_dx": 8.25,
+    "static_pairs": 0
+   },
+   "detail": "不达标：头部起伏 0.8px、上半身变化 0.000；剪影 0.120 腿 0.463 上身 0.000 头起伏 0.8px 前倾 +6° 停顿 0",
+   "waiver": "用户 10-13 认可现版（fafe6f1e 连续性修复后）；机检上半身变化 0.000、头部起伏 0.8px 仍低于线，暂不返修",
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "665665",
+    "attack": "6666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 665665 attack 6666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     24.5,
+     46.0
+    ],
+    "run": [
+     26.6,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 26.6 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "exusiai",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.399,
+    "dark": 0.123,
+    "bright": 0.178,
+    "gain": 0.0
+   },
+   "detail": "HSL 0.399 近黑 12% 亮部 18% 受光变亮 0%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "pair",
+   "level": "WARN",
+   "value": 0.131,
+   "detail": "@2x 缩到 1x 剪影差最大 0.131",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "colors",
+   "level": "WARN",
+   "value": 47,
+   "detail": "1x 47 色 / @2x 47 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "facing",
+   "level": "PASS",
+   "value": 7.41,
+   "detail": "头部同向分 +7.41（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.868,
+   "detail": "待机 / 跑步头部对称差比 0.868（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.11512445736534832,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.115 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0519,
+    "leg_move": 0.149,
+    "upper_move": 0.0115,
+    "head_bob": 1.7073,
+    "lean": 16.3384,
+    "foot_dx": 11.5,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.052 腿 0.149 上身 0.012 头起伏 1.7px 前倾 +16° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "6666",
+    "skill": "66666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 6666 skill 66666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     24.2,
+     46.0
+    ],
+    "run": [
+     27.1,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 27.1 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "eyjafjalla",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.438,
+    "dark": 0.2,
+    "bright": 0.156,
+    "gain": 0.063
+   },
+   "detail": "HSL 0.438 近黑 20% 亮部 16% 受光变亮 6%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.098,
+   "detail": "@2x 缩到 1x 剪影差最大 0.098",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 0.986",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "colors",
+   "level": "PASS",
+   "value": 24,
+   "detail": "1x 24 色 / @2x 24 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.0,
+   "detail": "@2x 相同，1x 备用版 skill 末帧 ≠ idle f0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "facing",
+   "level": "PASS",
+   "value": 9.78,
+   "detail": "头部同向分 +9.78（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.181,
+   "detail": "待机 / 跑步头部对称差比 1.181（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.06400718008190222,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.064 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.1023,
+    "leg_move": 0.3772,
+    "upper_move": 0.0103,
+    "head_bob": 1.4615,
+    "lean": 7.5792,
+    "foot_dx": 8.4318,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.102 腿 0.377 上身 0.010 头起伏 1.5px 前倾 +8° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     24.8,
+     46.0
+    ],
+    "run": [
+     23.8,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "hoshiguma",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.358,
+    "dark": 0.299,
+    "bright": 0.243,
+    "gain": 0.0
+   },
+   "detail": "HSL 0.358 近黑 30% 亮部 24% 受光变亮 0%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.071,
+   "detail": "@2x 缩到 1x 剪影差最大 0.071",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "colors",
+   "level": "WARN",
+   "value": 68,
+   "detail": "1x 67 色 / @2x 68 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.197,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 19.7%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "facing",
+   "level": "PASS",
+   "value": 19.54,
+   "detail": "头部同向分 +19.54（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.913,
+   "detail": "待机 / 跑步头部对称差比 0.913（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "idle",
+   "level": "WARN",
+   "value": {
+    "bob": 0.5,
+    "sil": 0.037786104252813715,
+    "static_pairs": 0
+   },
+   "detail": "注意：身体起伏 0.5px；起伏 0.5px 剪影变化 0.038 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0531,
+    "leg_move": 0.1714,
+    "upper_move": 0.0105,
+    "head_bob": 1.3183,
+    "lean": 17.3757,
+    "foot_dx": 5.25,
+    "static_pairs": 1
+   },
+   "detail": "剪影 0.053 腿 0.171 上身 0.010 头起伏 1.3px 前倾 +17° 停顿 1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     25.4,
+     46.0
+    ],
+    "run": [
+     29.3,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 29.3 vs json 22",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "irene",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.494,
+    "dark": 0.214,
+    "bright": 0.415,
+    "gain": 0.043
+   },
+   "detail": "超出通用范围：亮部 42%；HSL 0.494 近黑 21% 亮部 42% 受光变亮 4%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "files",
+   "level": "PASS",
+   "value": 10,
+   "detail": "10 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "pair",
+   "level": "WARN",
+   "value": 0.095,
+   "detail": "@2x 缩到 1x 剪影差最大 0.095；帧序对不上：m_skill f5",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "colors",
+   "level": "WARN",
+   "value": 134,
+   "detail": "1x 129 色 / @2x 134 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.284,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 28.4%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "facing",
+   "level": "PASS",
+   "value": 20.33,
+   "detail": "头部同向分 +20.33（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.885,
+   "detail": "待机 / 跑步头部对称差比 0.885（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 1.5,
+    "sil": 0.11305856980033015,
+    "static_pairs": 0
+   },
+   "detail": "起伏 1.5px 剪影变化 0.113 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0621,
+    "leg_move": 0.2394,
+    "upper_move": 0.0062,
+    "head_bob": 1.2471,
+    "lean": 13.0886,
+    "foot_dx": 4.8269,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.062 腿 0.239 上身 0.006 头起伏 1.2px 前倾 +13° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "665665",
+    "attack": "6666",
+    "skill": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 665665 attack 6666 skill 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     25.2,
+     46.0
+    ],
+    "run": [
+     24.4,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 24.4 vs json 28",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "kaltsit",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.623,
+    "dark": 0.104,
+    "bright": 0.685,
+    "gain": 0.058
+   },
+   "detail": "超出通用范围：HSL 明度 0.623、亮部 68%；HSL 0.623 近黑 10% 亮部 68% 受光变亮 6%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "pair",
+   "level": "WARN",
+   "value": 0.102,
+   "detail": "@2x 缩到 1x 剪影差最大 0.102",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "colors",
+   "level": "WARN",
+   "value": 133,
+   "detail": "1x 126 色 / @2x 133 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.224,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 22.4%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "facing",
+   "level": "PASS",
+   "value": 12.45,
+   "detail": "头部同向分 +12.45（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.39,
+   "detail": "待机 / 跑步头部对称差比 1.390（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.1291394706210364,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.129 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0514,
+    "leg_move": 0.164,
+    "upper_move": 0.0116,
+    "head_bob": 1.0733,
+    "lean": 16.4044,
+    "foot_dx": 8.25,
+    "static_pairs": 1
+   },
+   "detail": "剪影 0.051 腿 0.164 上身 0.012 头起伏 1.1px 前倾 +16° 停顿 1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "655665",
+    "attack": "6666",
+    "skill": "66666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 655665 attack 6666 skill 66666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     25.4,
+     46.0
+    ],
+    "run": [
+     23.0,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 23.0 vs json 26",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "logos",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.477,
+    "dark": 0.204,
+    "bright": 0.341,
+    "gain": 0.09
+   },
+   "detail": "HSL 0.477 近黑 20% 亮部 34% 受光变亮 9%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "files",
+   "level": "PASS",
+   "value": 5,
+   "detail": "5 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.086,
+   "detail": "@2x 缩到 1x 剪影差最大 0.086",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "colors",
+   "level": "WARN",
+   "value": 134,
+   "detail": "1x 131 色 / @2x 134 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.27,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 27.0%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "facing",
+   "level": "PASS",
+   "value": 7.97,
+   "detail": "头部同向分 +7.97（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.239,
+   "detail": "待机 / 跑步头部对称差比 1.239（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.12126336538089692,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.121 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.038,
+    "leg_move": 0.1104,
+    "upper_move": 0.006,
+    "head_bob": 1.1005,
+    "lean": 15.7614,
+    "foot_dx": 7.75,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.038 腿 0.110 上身 0.006 头起伏 1.1px 前倾 +16° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "6666",
+    "skill": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 6666 skill 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     24.1,
+     46.0
+    ],
+    "run": [
+     22.0,
+     46.5
+    ]
+   },
+   "detail": "run 量得 x 22.0 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "lumen",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.403,
+    "dark": 0.165,
+    "bright": 0.186,
+    "gain": 0.019
+   },
+   "detail": "HSL 0.403 近黑 17% 亮部 19% 受光变亮 2%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "files",
+   "level": "PASS",
+   "value": 3,
+   "detail": "3 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.079,
+   "detail": "@2x 缩到 1x 剪影差最大 0.079",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "outline",
+   "level": "WARN",
+   "value": 0.9998,
+   "detail": "外圈 #080E18 占比 0.9998；@2x 第二圈 0.933",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "colors",
+   "level": "WARN",
+   "value": 201,
+   "detail": "1x 105 色 / @2x 201 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "magenta",
+   "level": "WARN",
+   "value": 1,
+   "detail": "洋红残留 1 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "facing",
+   "level": "PASS",
+   "value": 11.86,
+   "detail": "头部同向分 +11.86（依据 attack + run 帧中位数；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.934,
+   "detail": "待机 / 跑步头部对称差比 0.934（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.0978494808248842,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.098 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.1014,
+    "leg_move": 0.3028,
+    "upper_move": 0.0316,
+    "head_bob": 1.3526,
+    "lean": 8.6988,
+    "foot_dx": 8.25,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.101 腿 0.303 上身 0.032 头起伏 1.4px 前倾 +9° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "654664",
+    "attack": "6665"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 654664 attack 6665）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     26.2,
+     46.0
+    ],
+    "run": [
+     24.2,
+     46.0
+    ]
+   },
+   "detail": "idle 量得 x 26.2 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "mizuki",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.558,
+    "dark": 0.247,
+    "bright": 0.453,
+    "gain": 0.031
+   },
+   "detail": "超出通用范围：HSL 明度 0.558、亮部 45%；HSL 0.558 近黑 25% 亮部 45% 受光变亮 3%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "files",
+   "level": "PASS",
+   "value": 5,
+   "detail": "5 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.044,
+   "detail": "@2x 缩到 1x 剪影差最大 0.044",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "colors",
+   "level": "WARN",
+   "value": 93,
+   "detail": "1x 89 色 / @2x 93 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.332,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 33.2%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "facing",
+   "level": "PASS",
+   "value": 15.11,
+   "detail": "头部同向分 +15.11（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.904,
+   "detail": "待机 / 跑步头部对称差比 0.904（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "idle",
+   "level": "WARN",
+   "value": {
+    "bob": 0.5,
+    "sil": 0.07587872341244206,
+    "static_pairs": 0
+   },
+   "detail": "注意：身体起伏 0.5px；起伏 0.5px 剪影变化 0.076 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "run",
+   "level": "WARN",
+   "value": {
+    "move": 0.0434,
+    "leg_move": 0.1481,
+    "upper_move": 0.005,
+    "head_bob": 1.65,
+    "lean": -2.9529,
+    "foot_dx": 5.0,
+    "static_pairs": 0
+   },
+   "detail": "注意：前倾 -3°；剪影 0.043 腿 0.148 上身 0.005 头起伏 1.6px 前倾 -3° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "663663",
+    "attack": "6666",
+    "skill": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 663663 attack 6666 skill 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     24.4,
+     46.0
+    ],
+    "run": [
+     24.5,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "saria",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.41,
+    "dark": 0.334,
+    "bright": 0.322,
+    "gain": 0.032
+   },
+   "detail": "HSL 0.410 近黑 33% 亮部 32% 受光变亮 3%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "files",
+   "level": "PASS",
+   "value": 5,
+   "detail": "5 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.067,
+   "detail": "@2x 缩到 1x 剪影差最大 0.067",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "colors",
+   "level": "WARN",
+   "value": 90,
+   "detail": "1x 88 色 / @2x 90 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "facing",
+   "level": "PASS",
+   "value": 5.35,
+   "detail": "头部同向分 +5.35（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.988,
+   "detail": "待机 / 跑步头部对称差比 0.988（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.09879159173435592,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.099 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.1238,
+    "leg_move": 0.4474,
+    "upper_move": 0.0082,
+    "head_bob": 1.2634,
+    "lean": 14.1086,
+    "foot_dx": 7.4286,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.124 腿 0.447 上身 0.008 头起伏 1.3px 前倾 +14° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "665665",
+    "attack": "6666",
+    "skill": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 665665 attack 6666 skill 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     23.8,
+     46.0
+    ],
+    "run": [
+     26.0,
+     46.5
+    ]
+   },
+   "detail": "run 量得 x 26.0 vs json 22",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "siege",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.393,
+    "dark": 0.24,
+    "bright": 0.35,
+    "gain": 0.0
+   },
+   "detail": "超出通用范围：亮部 35%；HSL 0.393 近黑 24% 亮部 35% 受光变亮 0%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "files",
+   "level": "PASS",
+   "value": 5,
+   "detail": "5 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.068,
+   "detail": "@2x 缩到 1x 剪影差最大 0.068",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "colors",
+   "level": "WARN",
+   "value": 139,
+   "detail": "1x 121 色 / @2x 139 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.266,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 26.6%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "facing",
+   "level": "PASS",
+   "value": 12.82,
+   "detail": "头部同向分 +12.82（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.066,
+   "detail": "待机 / 跑步头部对称差比 1.066（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "idle",
+   "level": "WARN",
+   "value": {
+    "bob": 0.5133592187022842,
+    "sil": 0.1223408335120198,
+    "static_pairs": 0
+   },
+   "detail": "注意：身体起伏 0.5px；起伏 0.5px 剪影变化 0.122 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "run",
+   "level": "FAIL",
+   "value": {
+    "move": 0.0795,
+    "leg_move": 0.2728,
+    "upper_move": 0.0221,
+    "head_bob": 1.7748,
+    "lean": 21.4,
+    "foot_dx": 10.25,
+    "static_pairs": 2
+   },
+   "detail": "不达标：停顿帧 2 对；剪影 0.080 腿 0.273 上身 0.022 头起伏 1.8px 前倾 +21° 停顿 2",
+   "waiver": "docs/85 交付 928b8a35 后腿部 / 前倾已达标，仅剩停顿帧 2 对（线为 ≤ 1），协调人 10-13 接受",
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     25.9,
+     46.0
+    ],
+    "run": [
+     32.8,
+     46.0
+    ]
+   },
+   "detail": "idle 量得 x 25.9 vs json 22；run 量得 x 32.8 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skadi",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.43,
+    "dark": 0.25,
+    "bright": 0.312,
+    "gain": 0.009
+   },
+   "detail": "HSL 0.430 近黑 25% 亮部 31% 受光变亮 1%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.053,
+   "detail": "@2x 缩到 1x 剪影差最大 0.053",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "colors",
+   "level": "PASS",
+   "value": 24,
+   "detail": "1x 24 色 / @2x 24 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "facing",
+   "level": "PASS",
+   "value": 15.89,
+   "detail": "头部同向分 +15.89（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.988,
+   "detail": "待机 / 跑步头部对称差比 0.988（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.08636189447147542,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.086 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "run",
+   "level": "FAIL",
+   "value": {
+    "move": 0.0583,
+    "leg_move": 0.0176,
+    "upper_move": 0.0708,
+    "head_bob": 2.9742,
+    "lean": 13.6302,
+    "foot_dx": 2.25,
+    "static_pairs": 0
+   },
+   "detail": "不达标：腿部变化 0.018、头部起伏 3.0px；剪影 0.058 腿 0.018 上身 0.071 头起伏 3.0px 前倾 +14° 停顿 0",
+   "waiver": "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "ground",
+   "level": "FAIL",
+   "value": {
+    "idle": "6666",
+    "run": "210012",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "run 没有一帧贴地（最低行 [42, 41, 40, 40, 41, 42]，应有 = 46）",
+   "waiver": "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     20.8,
+     46.0
+    ],
+    "run": [
+     24.5,
+     42.5
+    ]
+   },
+   "detail": "idle 量得 x 20.8 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "skalter",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.411,
+    "dark": 0.267,
+    "bright": 0.225,
+    "gain": 0.116
+   },
+   "detail": "HSL 0.411 近黑 27% 亮部 23% 受光变亮 12%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "files",
+   "level": "PASS",
+   "value": 6,
+   "detail": "6 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.055,
+   "detail": "@2x 缩到 1x 剪影差最大 0.055",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "colors",
+   "level": "PASS",
+   "value": 24,
+   "detail": "1x 23 色 / @2x 24 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "facing",
+   "level": "PASS",
+   "value": 28.31,
+   "detail": "头部同向分 +28.31（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 0.902,
+   "detail": "待机 / 跑步头部对称差比 0.902（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "idle",
+   "level": "WARN",
+   "value": {
+    "bob": 0.1182483979249298,
+    "sil": 0.053911271254959196,
+    "static_pairs": 0
+   },
+   "detail": "注意：身体起伏 0.1px；起伏 0.1px 剪影变化 0.054 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "run",
+   "level": "FAIL",
+   "value": {
+    "move": 0.0508,
+    "leg_move": 0.1013,
+    "upper_move": 0.0164,
+    "head_bob": 0.6908,
+    "lean": 35.3266,
+    "foot_dx": 4.35,
+    "static_pairs": 2
+   },
+   "detail": "不达标：头部起伏 0.7px、停顿帧 2 对、前倾 +35°；剪影 0.051 腿 0.101 上身 0.016 头起伏 0.7px 前倾 +35° 停顿 2",
+   "waiver": "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     24.2,
+     46.0
+    ],
+    "run": [
+     24.4,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "specter_unchained",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.413,
+    "dark": 0.436,
+    "bright": 0.294,
+    "gain": 0.017
+   },
+   "detail": "HSL 0.413 近黑 44% 亮部 29% 受光变亮 2%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.068,
+   "detail": "@2x 缩到 1x 剪影差最大 0.068",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "colors",
+   "level": "WARN",
+   "value": 95,
+   "detail": "1x 95 色 / @2x 95 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "facing",
+   "level": "FAIL",
+   "value": -6.52,
+   "detail": "头部同向分 -6.52（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": "docs/86 交付后 idle 已朝右侧身；机检误判源于 attack 帧条偏正面 / 朝左，用户 10-13 定暂不重画 attack",
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "frontal",
+   "level": "WARN",
+   "value": 0.771,
+   "detail": "待机 / 跑步头部对称差比 0.771（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.09646969527488441,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.096 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0675,
+    "leg_move": 0.3308,
+    "upper_move": 0.0048,
+    "head_bob": 1.3755,
+    "lean": 20.1803,
+    "foot_dx": 10.0,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.067 腿 0.331 上身 0.005 头起伏 1.4px 前倾 +20° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "665665",
+    "attack": "6666",
+    "skill": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 665665 attack 6666 skill 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     24.2,
+     46.0
+    ],
+    "run": [
+     23.2,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "suzuran",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.542,
+    "dark": 0.139,
+    "bright": 0.514,
+    "gain": 0.03
+   },
+   "detail": "超出通用范围：HSL 明度 0.542、亮部 51%；HSL 0.542 近黑 14% 亮部 51% 受光变亮 3%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.052,
+   "detail": "@2x 缩到 1x 剪影差最大 0.052",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "colors",
+   "level": "PASS",
+   "value": 23,
+   "detail": "1x 23 色 / @2x 23 色",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "facing",
+   "level": "PASS",
+   "value": 5.82,
+   "detail": "头部同向分 +5.82（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.428,
+   "detail": "待机 / 跑步头部对称差比 1.428（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.06835806503506855,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.068 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "run",
+   "level": "FAIL",
+   "value": {
+    "move": 0.0535,
+    "leg_move": 0.1219,
+    "upper_move": 0.0144,
+    "head_bob": 0.545,
+    "lean": 21.2867,
+    "foot_dx": 9.25,
+    "static_pairs": 0
+   },
+   "detail": "不达标：头部起伏 0.5px；剪影 0.053 腿 0.122 上身 0.014 头起伏 0.5px 前倾 +21° 停顿 0",
+   "waiver": "用户 10-13 认可现版（1a761c8e 连续性修复后）；机检头部起伏 0.5px 仍低于线，暂不返修",
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     27.6,
+     46.0
+    ],
+    "run": [
+     20.2,
+     46.0
+    ]
+   },
+   "detail": "idle 量得 x 27.6 vs json 24；run 量得 x 20.2 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "texas",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.229,
+    "dark": 0.354,
+    "bright": 0.085,
+    "gain": 0.0
+   },
+   "detail": "HSL 0.229 近黑 35% 亮部 8% 受光变亮 0%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.073,
+   "detail": "@2x 缩到 1x 剪影差最大 0.073",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "colors",
+   "level": "WARN",
+   "value": 91,
+   "detail": "1x 86 色 / @2x 91 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "skill_end",
+   "level": "PASS",
+   "value": 0.0,
+   "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "facing",
+   "level": "PASS",
+   "value": 4.59,
+   "detail": "头部同向分 +4.59（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.148,
+   "detail": "待机 / 跑步头部对称差比 1.148（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 2.0,
+    "sil": 0.1276458527279597,
+    "static_pairs": 0
+   },
+   "detail": "起伏 2.0px 剪影变化 0.128 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0586,
+    "leg_move": 0.173,
+    "upper_move": 0.0117,
+    "head_bob": 1.504,
+    "lean": 23.1097,
+    "foot_dx": 12.0,
+    "static_pairs": 1
+   },
+   "detail": "剪影 0.059 腿 0.173 上身 0.012 头起伏 1.5px 前倾 +23° 停顿 1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "664664",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 664664 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "foot",
+   "level": "PASS",
+   "value": {
+    "idle": [
+     24.8,
+     46.0
+    ],
+    "run": [
+     25.6,
+     46.0
+    ]
+   },
+   "detail": "脚底中心与 json 偏差 ≤ 2px",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "ulpianus",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.348,
+    "dark": 0.343,
+    "bright": 0.202,
+    "gain": 0.019
+   },
+   "detail": "HSL 0.348 近黑 34% 亮部 20% 受光变亮 2%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "files",
+   "level": "PASS",
+   "value": 4,
+   "detail": "4 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "pair",
+   "level": "WARN",
+   "value": 0.135,
+   "detail": "@2x 缩到 1x 剪影差最大 0.135；帧序对不上：idle f1",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "colors",
+   "level": "WARN",
+   "value": 43,
+   "detail": "1x 43 色 / @2x 43 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "skill_end",
+   "level": "WARN",
+   "value": 0.417,
+   "detail": "skill 末帧 ≠ idle f0（@2x 不同像素 41.7%；存量，重画 idle / skill 时对齐）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "facing",
+   "level": "PASS",
+   "value": 2.74,
+   "detail": "头部同向分 +2.74（依据 skill 末帧；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.009,
+   "detail": "待机 / 跑步头部对称差比 1.009（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "idle",
+   "level": "WARN",
+   "value": {
+    "bob": 0.1423636765495253,
+    "sil": 0.03564510631858651,
+    "static_pairs": 0
+   },
+   "detail": "注意：身体起伏 0.1px；起伏 0.1px 剪影变化 0.036 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.1177,
+    "leg_move": 0.4543,
+    "upper_move": 0.0104,
+    "head_bob": 1.6732,
+    "lean": 17.2799,
+    "foot_dx": 9.5,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.118 腿 0.454 上身 0.010 头起伏 1.7px 前倾 +17° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666",
+    "attack": "66666",
+    "skill": "6666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666 attack 66666 skill 6666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     24.2,
+     46.0
+    ],
+    "run": [
+     28.1,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 28.1 vs json 25",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "wisadel",
+   "check": "tone",
+   "level": "PASS",
+   "value": {
+    "hsl": 0.396,
+    "dark": 0.4,
+    "bright": 0.272,
+    "gain": 0.034
+   },
+   "detail": "HSL 0.396 近黑 40% 亮部 27% 受光变亮 3%",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "files",
+   "level": "PASS",
+   "value": 2,
+   "detail": "2 组 × 1x/@2x",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "size",
+   "level": "PASS",
+   "value": null,
+   "detail": "尺寸 / 帧数与 json 一致",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "pair",
+   "level": "PASS",
+   "value": 0.043,
+   "detail": "@2x 缩到 1x 剪影差最大 0.043",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "alpha",
+   "level": "PASS",
+   "value": 0,
+   "detail": "半透明像素 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "outline",
+   "level": "PASS",
+   "value": 1.0,
+   "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "colors",
+   "level": "WARN",
+   "value": 48,
+   "detail": "1x 39 色 / @2x 48 色（存量，不卡）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "magenta",
+   "level": "PASS",
+   "value": 0,
+   "detail": "洋红残留 0 像素",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "facing",
+   "level": "PASS",
+   "value": 4.63,
+   "detail": "头部同向分 +4.63（依据 attack + run 帧中位数；< 0 = 待机与动作朝向相反）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "frontal",
+   "level": "PASS",
+   "value": 1.234,
+   "detail": "待机 / 跑步头部对称差比 1.234（< 0.76 = 正面朝前）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "idle",
+   "level": "PASS",
+   "value": {
+    "bob": 1.5,
+    "sil": 0.07179637687611207,
+    "static_pairs": 0
+   },
+   "detail": "起伏 1.5px 剪影变化 0.072 停顿对 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "run",
+   "level": "PASS",
+   "value": {
+    "move": 0.0481,
+    "leg_move": 0.103,
+    "upper_move": 0.0116,
+    "head_bob": 1.4561,
+    "lean": 11.0019,
+    "foot_dx": 8.0,
+    "static_pairs": 0
+   },
+   "detail": "剪影 0.048 腿 0.103 上身 0.012 头起伏 1.5px 前倾 +11° 停顿 0",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "ground",
+   "level": "PASS",
+   "value": {
+    "idle": "6666",
+    "run": "666666"
+   },
+   "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 666666）",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "foot",
+   "level": "WARN",
+   "value": {
+    "idle": [
+     24.2,
+     46.0
+    ],
+    "run": [
+     27.7,
+     46.0
+    ]
+   },
+   "detail": "run 量得 x 27.7 vs json 24",
+   "waiver": null,
+   "stale_waiver": false
+  },
+  {
+   "op": "doctor",
+   "check": "tone",
+   "level": "WARN",
+   "value": {
+    "hsl": 0.261,
+    "dark": 0.429,
+    "bright": 0.102,
+    "gain": 0.007
+   },
+   "detail": "超出通用范围：HSL 明度 0.261；HSL 0.261 近黑 43% 亮部 10% 受光变亮 1%",
+   "waiver": null,
+   "stale_waiver": false
+  }
+ ]
+}
