@@ -829,6 +829,11 @@ func _draw_shadows(evr: Rect2) -> void:
 ## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
 func _draw_sorted_entities(evr: Rect2) -> void:
 	_afast = atlas != null and not (g.opt_old & Game.OPT_ATLAS) and not _dbg_enemy and not _no_flash and EnemyAtlas.xform_flip
+	_edf = not (g.opt_old & Game.OPT_EDRAW)
+	_am_mode = Look.actor_mod_begin(g) if _edf else 0
+	if not (g.opt_old & Game.OPT_SORT) and _sorted_fast(evr):
+		_am_mode = 0
+		return
 	var dl: Array = []
 	for e in g.enemies:
 		if evr.has_point(e.pos) or dc_check:   # --dccheck：不按视野剔除（快检是无头模式，视口太小，敌人全被剔掉，自检就跑不到）
@@ -862,6 +867,112 @@ func _draw_sorted_entities(evr: Rect2) -> void:
 			3:
 				if not _dbg_ground:
 					g.map.draw_sort_prop(it[2])
+	_am_mode = 0
+
+
+## 排序实体的快速写法（性能 docs/50 §14，OPT_SORT）：排序键进 PackedFloat64Array 原生排序（不走 sort_custom 的闭包比较，
+## 也不给每只实体建 [键, 类, 对象] 三元数组），键 → 实体用字典对回去。键两两不同时排出来的次序唯一，与旧写法相同。
+## 键相同（多半是整数坐标的景物同一行）的几样按加入顺序画（稳定）；旧写法 sort_custom 是不稳定排序，同键的先后随整表内容变，
+## 两件同一行又互相压着的景物可能逐帧换前后——这是唯一可能和旧写法不同的地方
+var _se_objs: Array = []
+var _se_kind := PackedByteArray()
+var _se_keys := PackedFloat64Array()
+var _se_at := {}
+
+func _sorted_fast(evr: Rect2) -> bool:
+	var objs: Array = _se_objs
+	var kind: PackedByteArray = _se_kind
+	var ka: PackedFloat64Array = _se_keys
+	var at: Dictionary = _se_at
+	objs.clear()
+	kind.clear()
+	ka.clear()
+	at.clear()
+	for e in g.enemies:
+		var ep: Vector2 = e.pos
+		if evr.has_point(ep) or dc_check:
+			ka.append(ep.y + e.r * 0.8)
+			objs.append(e)
+	kind.resize(objs.size())
+	kind.fill(0)
+	ka.append(g.doc_pos.y + 6.0)
+	objs.append(null)
+	kind.append(2)
+	for o in g.squad.ops:
+		if o.pos != Vector2.INF:
+			ka.append(o.pos.y + 4.0)
+			objs.append(o)
+			kind.append(5)
+		for xb in o.extra_bodies():
+			ka.append(xb.y)
+			objs.append([o, xb])
+			kind.append(6)
+	if g.knight.alive:
+		ka.append(g.knight.pos.y + 18.0)
+		objs.append(null)
+		kind.append(4)
+	for pr in g.map.sort_props:
+		ka.append(pr[1].y)
+		objs.append(pr)
+		kind.append(3)
+	var keys := PackedFloat64Array()
+	for i in ka.size():
+		var k: float = ka[i]
+		var v = at.get(k)
+		if v == null:
+			at[k] = i
+			keys.append(k)
+		elif v is int:
+			at[k] = [v, i]
+		else:
+			v.append(i)
+	keys.sort()
+	for k in keys:
+		var v = at[k]
+		if v is int:
+			var ob = objs[v]
+			match kind[v]:   # 同 _se_draw（常见情形内联，省一次函数调用）
+				0:
+					draw_enemy(ob)
+				5:
+					var d0: float = fx_dim
+					fx_dim = d0 * (lead_dim if ob.is_leader else mate_dim)
+					ob.draw_body()
+					fx_dim = d0
+				6:
+					ob[0].draw_extra(ob[1])
+				4:
+					g.knight.draw()
+				2:
+					draw_player()
+				3:
+					if not _dbg_ground:
+						g.map.draw_sort_prop(ob)
+		else:
+			for i in v:
+				_se_draw(objs[i], kind[i])
+	objs.clear()
+	return true
+
+
+func _se_draw(ob, kd: int) -> void:
+	match kd:
+		0:
+			draw_enemy(ob)
+		5:
+			var d0: float = fx_dim
+			fx_dim = d0 * (lead_dim if ob.is_leader else mate_dim)
+			ob.draw_body()
+			fx_dim = d0
+		6:
+			ob[0].draw_extra(ob[1])
+		4:
+			g.knight.draw()
+		2:
+			draw_player()
+		3:
+			if not _dbg_ground:
+				g.map.draw_sort_prop(ob)
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
@@ -1658,7 +1769,7 @@ func knight_animation(e: Dictionary) -> Dictionary:
 
 
 func enemy_scale(e: Dictionary) -> float:
-	var d: Dictionary = D.ENEMIES.get(e.type, {})
+	var d: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
 	var scale_key := "transformed_draw_scale" if e.type == "ishar" and e.phase == 2 else "draw_scale"
 	var factor := float(d.get(scale_key, 1.0))
 	if e.type == "ishar" and g.t < float(e.get("transform_until", -1.0)):
@@ -1679,8 +1790,13 @@ var _no_flash: bool = Look.dbg("noflash") != ""
 var _act_mod := Color.WHITE   # 当前这只敌人的受光封顶缩放（Look.actor_mod；_espr 乘在本体 / 白闪上，描边不乘）
 
 func draw_enemy(e: Dictionary) -> void:
-	_act_mod = Look.actor_mod(g, e.pos)
-	if not dc_on or not _dc_ok(e):
+	if _am_mode == 2:
+		_act_mod = Look.actor_mod_at(e.pos)
+	elif _am_mode == 1:
+		_act_mod = Color.WHITE
+	else:
+		_act_mod = Look.actor_mod(g, e.pos)
+	if not dc_on or not (_dc_ok_fast(e) if _edf else _dc_ok(e)):
 		_draw_enemy_full(e)
 		return
 	# 移动判定写回（和 _draw_enemy_full 同一段，每帧都要做）
@@ -1696,6 +1812,33 @@ func draw_enemy(e: Dictionary) -> void:
 	if dc_check and (e.id + Engine.get_process_frames()) % 8 == 0:
 		_dc_verify(e, c)
 	_dc_emit(e, c)
+
+
+## 敌人绘制快速写法（性能 docs/50 §14，OPT_EDRAW）的开关与受光封顶模式（Look.actor_mod_begin；只在排序层里非 0）
+var _edf := false
+var _edf2 := false
+var _am_mode := 0
+
+## _dc_ok 的快速版：Boss / 宝箱 / 骑士帧条 / DC_SKIP_TYPES 这几项开局后不会变（boss、chest、tex、type 只在生成时写），
+## 第一次判过记在 e.dcs，以后只查会变的状态；其余判定与 _dc_ok 相同、同序
+func _dc_ok_fast(e: Dictionary) -> bool:
+	var st = e.get("dcs")
+	if st == null:
+		st = e.boss or e.chest or e.tex == "e_knight" or e.type in DC_SKIP_TYPES
+		e["dcs"] = st
+	if st:
+		return false
+	if e.squash > 0.0 or e.wind > 0.0 or e.dash_w > 0.0 or e.dash_t > 0.0 or e.enraged or e.wake_t > 0.0:
+		return false
+	if e.nova_w > 0.0 or e.blast_w > 0.0 or e.burst_w > 0.0 or e.air > 0.0 or e.pose > 0.0:
+		return false
+	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
+		return false
+	if e.get("bstag", 0.0) > 0.0:
+		return false
+	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
+		return false
+	return true
 
 
 func _dc_ok(e: Dictionary) -> bool:
@@ -1798,7 +1941,9 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		if e.flash > 0.0:
 			_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
 	if _rec == null and e.affix != "":
-		_affix_fx(e, bpos, _enemy_top(e))
+		var af: String = e.affix
+		if not _edf or af == "armor" or (af == "shield" and e.shield_hp > 0.0):   # 快速写法：_affix_fx 对其他词条直接返回，先判再算头顶位置
+			_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.weak
 	if _rec == null and wk != "":
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
@@ -1910,7 +2055,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if g.t < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
 			frames = 4
-			var fps: float = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
+			var fps: float = float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0))
 			if e.type == "immortal":
 				fps = 8.0
 			elif e.type in ["paranoia", "izumik", "ishar"]:
@@ -1925,7 +2070,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		else:
 			frame = 2 if e.dash_t > 0.12 else 3
 	# 美术 V8 小怪帧条：攻击（atk_anim：蓄力 / 鼓胀时第 1、2 帧，出手后 0.2 秒第 3、4 帧）、休眠 / 唤醒、狂暴待机
-	var ed: Dictionary = D.ENEMIES.get(e.type, {})
+	var ed: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
 	if ed.get("atk_anim", false) and e.tex_attack:
 		var ww: float = maxf(maxf(maxf(e.get("wind", 0.0), e.get("blast_w", 0.0)), maxf(maxf(e.get("burst_w", 0.0), e.get("dash_w", 0.0)), e.get("nova_w", 0.0))), float(e.get("shot_wind_until", 0.0)) - g.t)   # 各种蓄力都播攻击帧条前两帧（docs/48 ⑥）
 		if ww > 0.0:
@@ -1958,7 +2103,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)
-	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
+	var col: Color = ed.get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)
 	if e.type == "paranoia" and e.phase == 2:
@@ -2202,6 +2347,7 @@ const TELL_BURST := Color(0.78, 0.42, 1.0)      # 囊海爬行者爆裂：紫
 
 func draw_enemy_tells() -> void:
 	var tvr: Rect2 = view_rect(TELL_MARGIN)   # 冲刺线 / 危险圈能伸进屏幕，外扩大一些
+	_edf2 = not (g.opt_old & Game.OPT_EDRAW)
 	for e in g.enemies:
 		if e.dead or (not e.boss and not tvr.has_point(e.pos)):
 			continue
@@ -2229,7 +2375,11 @@ func draw_enemy_tells() -> void:
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
-		if e.get("stakes", []) is Array and not e.get("stakes", []).is_empty():
+		if _edf2:
+			var stk = e.get("stakes")   # 快速写法（docs/50 §14）：不给每只敌人新建默认空数组（判定结果相同）
+			if stk is Array and not stk.is_empty():
+				_draw_stakes(e)
+		elif e.get("stakes", []) is Array and not e.get("stakes", []).is_empty():
 			_draw_stakes(e)
 		if e.type == "tear":
 			_tear_zone(e)
@@ -2272,17 +2422,29 @@ func _enemy_top(e: Dictionary) -> Vector2:
 	return e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
 
 
+const _NO_DEF := {}   # 只读缺省（.get(k, {}) 每次都会新建一个空字典）
+
+
 ## 巢涌者神经光环（docs/48 P1：帧条放大 4.6 倍后颗粒很粗，画在实体层会盖住其他东西）：
 ## 地面层程序绘制——淡紫柔光底、两道向内收的涟漪、缓慢转动的虚线外圈 = 判定范围
 func draw_nest_auras() -> void:
+	var fast: bool = not (g.opt_old & Game.OPT_EDRAW)
 	for e in g.enemies:
 		if e.dead:
 			continue
 		if float(e.get("burden_r", 0.0)) > 0.0 and e.get("cocoon_t", 0.0) <= 0.0:
 			_burden_ring(e)
-		if e.get("lamps", []) is Array and not e.get("lamps", []).is_empty():
-			_izu_lamps(e)
-		var ed: Dictionary = D.ENEMIES.get(e.type, {})
+		var ed: Dictionary
+		if fast:
+			# 快速写法（docs/50 §14）：不给每只敌人新建默认空数组 / 空字典（判定结果相同）
+			var lm = e.get("lamps")
+			if lm is Array and not lm.is_empty():
+				_izu_lamps(e)
+			ed = D.ENEMIES.get(e.type, _NO_DEF)
+		else:
+			if e.get("lamps", []) is Array and not e.get("lamps", []).is_empty():
+				_izu_lamps(e)
+			ed = D.ENEMIES.get(e.type, {})
 		if not ed.has("aura_r"):
 			continue
 		var ar: float = ed.aura_r
@@ -3455,6 +3617,11 @@ func draw_zone() -> void:
 	var seg := 96
 	var outer := g.zone_r + far + g.ppos.distance_to(g.zone_c)
 	var pulse := 0.5 + 0.5 * sin(g.t * 2.5)
+	if not (g.opt_old & Game.OPT_ZONE):
+		_zone_dark_fast(seg, far, outer)
+		draw_zone_band(pulse)
+		_zone_next_ring()
+		return
 	for i in seg:
 		var a0 := TAU * i / seg
 		var a1 := TAU * (i + 1) / seg
@@ -3468,7 +3635,11 @@ func draw_zone() -> void:
 		tb_quad(p0, p1, q1, q0, Color(0.16, 0.03, 0.22, 0.55))   # 合批（原来每段一次 draw_colored_polygon）
 	tb_flush()
 	draw_zone_band(pulse)
-	# 下一圈预告（虚线）
+	_zone_next_ring()
+
+
+## 下一圈预告（虚线）
+func _zone_next_ring() -> void:
 	if g.zone_state == 1:
 		var n2 := 72
 		for i in n2:
@@ -3506,9 +3677,23 @@ func draw_zone_band(pulse: float) -> void:
 	var run_out := PackedVector2Array()
 	if rng_i.y < rng_i.x:
 		return
+	var zfast: bool = not (g.opt_old & Game.OPT_ZONE)
+	var za: PackedFloat64Array
+	var zd: PackedVector2Array
+	if zfast:
+		var tab: Array = _zone_tab(n)
+		za = tab[0]
+		zd = tab[1]
 	for i in range(rng_i.x, rng_i.y + 1):
-		var a: float = TAU * posmod(i, n) / n
-		var d := Vector2.from_angle(a)
+		var a: float
+		var d: Vector2
+		if zfast:
+			var im: int = posmod(i, n)
+			a = za[im]
+			d = zd[im]
+		else:
+			a = TAU * posmod(i, n) / n
+			d = Vector2.from_angle(a)
 		# 内沿潮头：两层正弦叠加并随时间流动；外沿更慢、更宽
 		var rin: float = r - 6.0 + 5.0 * sin(a * 23.0 + t * 1.3) + 1.5 * sin(a * 57.0 - t * 2.1)
 		var rmid: float = r + 12.0 + 4.0 * sin(a * 31.0 - t * 0.9)
@@ -3550,13 +3735,27 @@ func draw_zone_band(pulse: float) -> void:
 			if rng_j.y < rng_j.x:
 				break
 			var j: int = posmod(jr, nb)
-			var a2: float = TAU * (j + 0.5 * sin(j * 12.9898)) / nb
-			var d2 := Vector2.from_angle(a2)
-			var bp: Vector2 = c + d2 * (r + 12.0 + 7.0 * sin(j * 4.1))
-			if bp.distance_to(vc) > view:
-				continue
-			var bs: float = 56.0 * (0.85 + 0.25 * (0.5 + 0.5 * sin(j * 7.3)))
-			var fl: bool = int(j * 2654435761) % 2 == 0
+			var d2: Vector2
+			var bp: Vector2
+			var bs: float
+			var fl: bool
+			if zfast:
+				# 每块的方向 / 径向偏移 / 大小 / 翻转只跟序号走：按块数缓存（同一算式，逐位相同），每帧只算位置
+				var bt: Array = _zone_btab(nb)
+				d2 = bt[0][j]
+				bp = c + d2 * (r + 12.0 + bt[1][j])
+				if bp.distance_to(vc) > view:
+					continue
+				bs = bt[2][j]
+				fl = bt[3][j] != 0
+			else:
+				var a2: float = TAU * (j + 0.5 * sin(j * 12.9898)) / nb
+				d2 = Vector2.from_angle(a2)
+				bp = c + d2 * (r + 12.0 + 7.0 * sin(j * 4.1))
+				if bp.distance_to(vc) > view:
+					continue
+				bs = 56.0 * (0.85 + 0.25 * (0.5 + 0.5 * sin(j * 7.3)))
+				fl = int(j * 2654435761) % 2 == 0
 			var sz := Vector2(bs, bs)
 			var fr: int = (int(t * 2.0) + j) % 2
 			if fl:
@@ -3567,6 +3766,92 @@ func draw_zone_band(pulse: float) -> void:
 				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
 	for cr in crests:
 		_zone_crest(cr, pulse)
+
+
+## 黑潮缩圈快速写法（性能 docs/50 §14，OPT_ZONE）：
+## 圈外暗区 seg 段的圆周点按单位方向表（seg + 1 个，算式同 Vector2.from_angle(TAU × i / seg)，末点是 TAU 本身）整组乘 Transform2D 得到
+## （zone_c + d × 半径，逐位相同），可见判定同旧写法，整批无索引三角形一次提交（三角形与 tb_quad 的相同、同序）
+var _zdark_dirs := {}   # seg -> PackedVector2Array(seg + 1)
+var _zone_tabs := {}    # 溟痕带段数 n -> [角度 PackedFloat64Array, 方向 PackedVector2Array]
+var _zone_btabs := {}   # 溟痕块数 nb -> [方向, 径向偏移, 大小, 翻转]
+
+func _zone_dark_fast(seg: int, far: float, outer: float) -> void:
+	var dirs = _zdark_dirs.get(seg)
+	if dirs == null:
+		dirs = PackedVector2Array()
+		for i in seg + 1:
+			dirs.append(Vector2.from_angle(TAU * i / seg))
+		_zdark_dirs[seg] = dirs
+	var zc: Vector2 = g.zone_c
+	var zr: float = g.zone_r
+	var pp: Vector2 = g.ppos
+	var P: PackedVector2Array = Transform2D(Vector2(zr, 0.0), Vector2(0.0, zr), zc) * dirs
+	var Q: PackedVector2Array = Transform2D(Vector2(outer, 0.0), Vector2(0.0, outer), zc) * dirs
+	var inside: bool = pp.distance_to(zc) < zr
+	var lim: float = far + 400.0
+	var out := PackedVector2Array()
+	out.resize(seg * 6)
+	var k := 0
+	var far0: bool = P[0].distance_to(pp) > lim
+	for i in seg:
+		var far1: bool = P[i + 1].distance_to(pp) > lim
+		if inside and far0 and far1:
+			far0 = far1
+			continue
+		far0 = far1
+		var p0: Vector2 = P[i]
+		var q1: Vector2 = Q[i + 1]
+		out[k] = p0
+		out[k + 1] = P[i + 1]
+		out[k + 2] = q1
+		out[k + 3] = p0
+		out[k + 4] = q1
+		out[k + 5] = Q[i]
+		k += 6
+	if k == 0:
+		return
+	out.resize(k)
+	tb_flush()
+	var cs := PackedColorArray()
+	cs.resize(k)
+	cs.fill(Color(0.16, 0.03, 0.22, 0.55))
+	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), out, cs)
+
+
+func _zone_tab(n: int) -> Array:
+	var t = _zone_tabs.get(n)
+	if t == null:
+		var aa := PackedFloat64Array()
+		var dd := PackedVector2Array()
+		for i in n:
+			var a: float = TAU * i / n
+			aa.append(a)
+			dd.append(Vector2.from_angle(a))
+		t = [aa, dd]
+		if _zone_tabs.size() > 64:
+			_zone_tabs.clear()
+		_zone_tabs[n] = t
+	return t
+
+
+func _zone_btab(nb: int) -> Array:
+	var t = _zone_btabs.get(nb)
+	if t == null:
+		var dd := PackedVector2Array()
+		var ro := PackedFloat64Array()
+		var bs := PackedFloat64Array()
+		var fl := PackedByteArray()
+		for j in nb:
+			var a2: float = TAU * (j + 0.5 * sin(j * 12.9898)) / nb
+			dd.append(Vector2.from_angle(a2))
+			ro.append(7.0 * sin(j * 4.1))
+			bs.append(56.0 * (0.85 + 0.25 * (0.5 + 0.5 * sin(j * 7.3))))
+			fl.append(1 if int(j * 2654435761) % 2 == 0 else 0)
+		t = [dd, ro, bs, fl]
+		if _zone_btabs.size() > 64:
+			_zone_btabs.clear()
+		_zone_btabs[nb] = t
+	return t
 
 
 ## 黑潮带的一段连续弧：内沿→中线、中线→外沿两条带，各自画成一个多边形（边线正走、另一边倒走），顶点色和原来逐段画的一致

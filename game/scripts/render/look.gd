@@ -165,6 +165,28 @@ static func actor_mod(g, pos: Vector2, raw := false) -> Color:
 	return _actor_mod_tail(a, _fc_amb, _fc_lcol, _fc_br, cap, raw)
 
 
+## 敌人逐只调用的快速版（性能 docs/50 §14，OPT_EDRAW）：每帧排序层开画前 actor_mod_begin(g) 一次——判开关、填灯光缓存；
+## 返回 0 = 这一帧走 actor_mod 原函数（旧写法对照），1 = 恒为白（同 actor_mod 的提前返回），2 = 逐只用 actor_mod_at（算式同 actor_mod）
+static func actor_mod_begin(g) -> int:
+	if g.opt_old & 16:
+		return 0
+	if _cap < 0.0:
+		_read()
+	if _cap <= 0.0 and _tint <= 0.0 and _neu <= 0.0:
+		return 1
+	_fc_fill(g)
+	return 2 if _fc_on else 1
+
+
+static func actor_mod_at(pos: Vector2) -> Color:
+	var c := pos + Vector2(0, -16.0) - _fc_lpos
+	var d := c.length()
+	var a := _atten(_fc_ltex, d / maxf(_fc_lscale, 0.001)) * _fc_lenergy
+	if A.normal_maps:
+		a *= _fc_lh / sqrt(d * d + _fc_lh * _fc_lh)
+	return _actor_mod_tail(a, _fc_amb, _fc_lcol, _fc_br, _cap, false)
+
+
 ## 旧写法（逐次读灯光节点；--optab 对照用）
 static func _actor_mod_old(g, pos: Vector2, raw: bool) -> Color:
 	var cap := _cap
