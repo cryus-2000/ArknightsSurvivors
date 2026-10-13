@@ -1,0 +1,386 @@
+[
+  {
+    "file": "e_bone.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3937,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_bone_move.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.4259,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_bone_attack.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4192,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_bone@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.437,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_bone_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4748,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_bone_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4576,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3421,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3898,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider_attack.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3397,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3695,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4129,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_slider_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3694,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2471,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2509,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone_attack.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2796,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2692,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2765,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_stone_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3058,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_brood.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.3453,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_brood_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3418,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_brood@2x.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.3687,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_brood_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.3693,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4101,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4018,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner_attack.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.436,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4497,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4406,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_runner_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4755,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.3772,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4023,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater_attack.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.3662,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater@2x.png",
+    "opaque_colors": 14,
+    "nearblack_all": 0.4112,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.441,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_floater_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4028,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2206,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2565,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring_attack.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2388,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2416,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2854,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_offspring_attack@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.2624,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_fractal.png",
+    "opaque_colors": 11,
+    "nearblack_all": 0.4349,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_fractal_move.png",
+    "opaque_colors": 12,
+    "nearblack_all": 0.4233,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_fractal@2x.png",
+    "opaque_colors": 13,
+    "nearblack_all": 0.4721,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_fractal_move@2x.png",
+    "opaque_colors": 13,
+    "nearblack_all": 0.4744,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_tear.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4721,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_tear_move.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.4746,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_tear@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.5191,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  },
+  {
+    "file": "e_tear_move@2x.png",
+    "opaque_colors": 15,
+    "nearblack_all": 0.518,
+    "nearblack_without_outline": 0.0,
+    "binary_alpha": true,
+    "size_pass": true
+  }
+]
