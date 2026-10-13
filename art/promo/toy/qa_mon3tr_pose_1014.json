@@ -1,0 +1,44 @@
+{
+  "logical_resolution": [
+    200,
+    150
+  ],
+  "nearest_scale": 6,
+  "base_palette": 64,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-82b656f2-b79b-42d0-a17f-07439da05093.png",
+  "source_sha256": "ab353f4f9cd7d4c67a34cd3bb95440ba0fdd5f303b7579673bf1e33e1d7b1011",
+  "files": {
+    "toy_poster_mon3tr_pose_1014_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 40230,
+      "sha256": "8c741cc5b6c9e2a280a14b25a27a53f4be7ac26d1f848f26b4659726cf71da61"
+    },
+    "toy_poster_mon3tr_pose_1014_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 38715,
+      "sha256": "2231290e6567ad212ad64d54d4eb7b92af93d313f9b60afd18855bb335ceaf78"
+    },
+    "toy_poster_mon3tr_pose_1014_detail.png": {
+      "size": [
+        870,
+        600
+      ],
+      "bytes": 22587,
+      "sha256": "b13f9874c87ae35b1f0b3012fc3b2943f580a08cf0dea4eeb60f361abb66ce53"
+    },
+    "toy_poster_mon3tr_pose_1014_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 26423,
+      "sha256": "28b35d4dd725bf107dc81acd30767591656a499cb3d42f5a3a8dd4a3a224c684"
+    }
+  }
+}
