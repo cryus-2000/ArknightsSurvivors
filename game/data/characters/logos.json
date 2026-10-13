@@ -57,7 +57,14 @@
   "s1_slow": 0.6,
   "s1_refund": 0.6,
   "s3_eval": 0.5,
-  "glyph_tail": -0.01
+  "glyph_tail": -0.01,
+  "rq_per": 0.06,
+  "rq_max": 3,
+  "link_n": 2,
+  "link_r": 120,
+  "link_dur": 1.5,
+  "link_share": 0.3,
+  "link_cap": 4
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1663 / 防御 119 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -216,6 +223,15 @@
     "area",
     "dot"
    ]
+  },
+  "连缀": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "area"
+   ]
   }
  },
  "progression": [
@@ -237,7 +253,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「湮灭」；解锁天赋「词法演化」：50% 概率额外攻击随机敌人"
+   "desc": "解锁二技能「湮灭」；解锁天赋「词法演化」：50% 概率额外攻击随机敌人；「安魂」可叠 3 层，每层受到的法术伤害 +6%",
+   "attack": {
+    "name": "剜魂",
+    "desc": "「安魂」可叠 3 层：5 秒内再被「言」命中就加一层并刷新时间，每层受到的法术伤害 +6%（最多 +18%）。敌人头顶的符文显示层数"
+   }
   },
   {
    "type": "custom",
@@ -257,7 +277,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「延展敏锐」：扇形咒域持续伤害，减慢并消除敌方弹幕；普攻质变「众声喧哗」：天赋「词法演化」的额外攻击改为同时打 2 名随机敌人"
+   "desc": "解锁三技能「延展敏锐」；普攻质变「连缀」：「言」命中后，从目标向最近 2 名敌人拉出咒文链 1.5 秒；链上任一敌人受到逻各斯的法术伤害时，另外两名各受到 30%（三技能的咒域伤害除外）",
+   "attack": {
+    "name": "连缀",
+    "desc": "「言」命中后，从目标向 120 内最近的 2 名敌人拉出咒文链，持续 1.5 秒；链上任一敌人受到逻各斯的法术伤害时，另外两名各受到这次伤害的 30%，传过去的伤害不再往下传（三技能的咒域伤害除外）。同时最多 4 组"
+   }
   }
  ],
  "gallery": {
@@ -532,6 +556,26 @@
      ]
     },
     {
+     "verb": "link",
+     "cond": "elite >= 2",
+     "_doc": "精二连缀：命中后从目标向最近 2 名敌人拉出咒文链（三技能咒域伤害不传）",
+     "n": "$link_n",
+     "r": "$link_r",
+     "dur": "$link_dur",
+     "share": "$link_share",
+     "cap": "$link_cap",
+     "src": "连缀",
+     "kinds": [
+      "法术"
+     ],
+     "exclude": [
+      "延展敏锐"
+     ],
+     "tile": "fx_logos_chain_tile",
+     "pulse": "fx_logos_chain_pulse",
+     "anchor": "fx_logos_chain_anchor"
+    },
+    {
      "shape": "pool",
      "cond": "node:inscription",
      "center": "target",
@@ -748,40 +792,12 @@
    {
     "trig": "every_n",
     "n": 1,
-    "cond": "elite < 2",
+    "_doc": "词法演化：50% 额外攻击随机 1 名（精二「连缀」取代了众声喧哗的 2 名）",
     "do": [
      {
       "shape": "bolt",
       "pick": "random",
       "count": 1,
-      "chance": "$talent_chance",
-      "pool": "$talent_pool",
-      "slow": "$talent_slow",
-      "mult": [
-       "$word_mult",
-       "$talent_mult"
-      ],
-      "speed": "$bolt_speed",
-      "life": "$word_life",
-      "gap": "$word_gap",
-      "tip": [
-       40,
-       -36
-      ],
-      "src": "词法演化",
-      "then_of": "attack"
-     }
-    ]
-   },
-   {
-    "trig": "every_n",
-    "n": 1,
-    "cond": "elite >= 2",
-    "do": [
-     {
-      "shape": "bolt",
-      "pick": "random",
-      "count": 2,
       "chance": "$talent_chance",
       "pool": "$talent_pool",
       "slow": "$talent_slow",
@@ -822,6 +838,22 @@
     "trig": "passive",
     "do": [],
     "_doc": "墓志铭：写在 verb.execute.on_exec（cond node:epitaph）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "_doc": "精一剜魂：安魂可叠 3 层，每层受到的法术伤害 +6%（头顶 1–3 枚暗金符，满层转白金）",
+    "do": [
+     {
+      "verb": "requiem_stack",
+      "per": "$rq_per",
+      "max": "$rq_max",
+      "look": [
+       "fx_logos_soul_rune_1",
+       "fx_logos_soul_rune_2",
+       "fx_logos_soul_rune_3"
+      ]
+     }
+    ]
    }
   }
  }

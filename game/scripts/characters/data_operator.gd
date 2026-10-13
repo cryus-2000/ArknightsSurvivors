@@ -170,7 +170,7 @@ func update(dt: float) -> void:
 			return
 		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
 		return
-	if no_attack or cd > 0.0 or OB.el_attack_locked(self):   # 精英化段：往返弹体（lock）在外面时不普攻
+	if no_attack or cd > 0.0 or OB.el_attack_locked(self) or (not hw.is_empty() and OB.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
 		return
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
@@ -375,6 +375,8 @@ func _sustain(dt: float, stats_only := false) -> void:
 		if not seen.has(u):
 			_state.erase(u)
 	_ext_sustain(act, dt)
+	if not hw.is_empty():
+		OB.hw_sustain(self, act)   # 精英化第 2 批段：叠层安魂
 	OB.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
 	OB.mf_sustain(self, act)       # 召唤物扩展段：verb.summon_mod 的倍率表
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
@@ -511,6 +513,8 @@ func _release() -> void:
 	atk_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", {})):
+			if t.get("skip_replaced", false) and not rp.is_empty():
+				continue   # 精英化第 2 批段：这一下被 replace 换掉了（掷锚）——跟着锚击中心走的追加（定点爆破 / 收链……）不走
 			var n: int = maxi(1, int(t.n))
 			if atk_n % n == 0:
 				var dl: float = float(t.get("delay", 0.0))
@@ -520,7 +524,7 @@ func _release() -> void:
 					else:   # 手写迁移段：带上 basis 快照；at: attack = 落在这一次普攻的判定中心
 						pending.append({"t": dl, "do": t.get("do", []), "bs": OB.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
 				else:
-					_exec_list(t.get("do", []))
+					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
 	if not hw.is_empty():
 		OB.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
@@ -1101,6 +1105,13 @@ func status_items() -> Array:
 ## 手写迁移段：自己的法术弹（shape.shell，game 的 fire 子弹）爆炸后由 weapons.gd 回调
 func bullet_exploded(b: Dictionary) -> void:
 	OB.hw_shell_boom(self, b)
+
+
+## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
+func deal_damage(e: Dictionary, dmg: float) -> void:
+	super(e, dmg)
+	if not hw.is_empty():
+		OB.hw_dealt(self, e, dmg)
 
 
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）

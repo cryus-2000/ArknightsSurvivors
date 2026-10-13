@@ -1517,6 +1517,42 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
   seed 1 当队友（塞雷娅队长 + 铃兰）`--maxprog` 240 秒（全节点，伤害统计里各来源都要出现）、seed 1 主控 `--maxprog --sptest` 240 秒（三技能常放；乌尔比安满编、机器人按手动掷锚）：**TRACE 241 行逐行相同、BALANCE 逐字段相同**。
   参照只改了三类（写在各文件开头）：画面随机数 g.rng → g.vrng（含 character.gd `fx_sparks` 换成 g.vrng 版 `_vsparks`）、斯卡蒂涌潮伤害的乘法顺序、斯卡蒂连斩 / 乌尔比安定点爆破同帧到期时按排队先后（原来倒序）、
   乌尔比安层数变化时「必须坚守」+40% 与层数一起移到属性表末尾（同数据版整组重建的浮点求和顺序）。
+  **加精一 / 精二新形态之后（§18）**，旧手写参照没有新形态，等价组改为同凯尔希只比精零：seed 1 主控 `--sptest` 45 秒、seed 3 当队友（维什戴尔队长 + 铃兰，全藏品）`--sptest` 60 秒，不推全节点、不进精英化。
 - **单元**：`tests/test_core.gd test_blocks_handwritten`：四人通过校验 + 30 条反例；mult 数组、timer / armed 条件、数组里的 `$` 表达式。
 - **其他干员同 seed 不变**（对改前 e5227947，满编不招募，`--trace=1 --maxprog --sptest` 240 秒）：维什戴尔 + 铃兰 + 塞雷娅（全藏品，seed 1）、星熊 + 能天使 + 凯尔希（seed 2）、浊心斯卡蒂 + 水月 + 流明（seed 3）：TRACE 与 BALANCE 逐字节相同。
 - **画面**：`python tools/elite_demo_shots.py --ops logos,eyjafjalla,skadi,ulpianus --stages 2`（新工具：`tests/elite_demo_shot.tscn` 以图鉴演示模式连拍，拼成拼图 + GIF），四人精二轮播 90 帧无脚本错误。
+
+## 18. 精英化第 2 批的积木（docs/91 §3 / §7 / §12 / §17、§24；10-14）
+
+逻各斯、艾雅法拉、斯卡蒂、乌尔比安迁积木（§17）之后，精一 / 精二新形态全部用积木写，JSON 里不写干员特判。
+代码在 `op_blocks.gd` 末尾「精英化第 2 批」段（`HW5_TAGS`，只往后加，状态在 `o.hw`，与 §17 同一套），其余是 §17 已有积木上加的参数；
+`data_operator.gd` 只多两处挂钩：`deal_damage` 之后转 `hw_dealt`（咒文链传递）、`every_n` 的 `skip_replaced`；`combat.gd` 两行（安魂按层数、熔蚀）。
+没写这些积木 / 参数的干员一个新分支都不走：其他干员同 seed TRACE 逐行不变（§18.3）。
+
+### 18.1 新积木 / 新参数
+
+| 积木 / 参数 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `verb.requiem_stack` | 常驻（passive do） | `per`、`max`、`look`（按层数分档的帧条数组 [1 层, 2 层, 3 层]） | 本干员挂 `st.requiem` 时改为叠层：还在安魂中再挂 +1 层（至多 max）并刷新时间，每层受到的法术伤害 + per（`combat.gd` 读 `e.requiem_k`；没有这块时照旧 +15%）。头顶按层数横排 1–3 枚符文。逻各斯精一「剜魂」 |
+| `verb.link` | 瞬时（命中 then） | `n`、`r`、`dur`、`share`、`cap`、`src`、`kinds`、`exclude`、`tile` / `pulse` / `anchor` | 从刚命中的敌人向 r 内最近 n 名拉链 dur 秒（同时 ≤ cap 组，至多 8）。链上任一名受到本干员 kinds 类伤害（来源不在 exclude）时，同组其他人各受这次 × share（src；传过去的不再传）。链节帧条沿线平铺、传递时亮起，两端咒文结。逻各斯精二「连缀」 |
+| `shape.hookshot` | 瞬时 | `range`、`min_d`、`r`、`basis`、`mult`、`back_mult`、`w`、`taut`、`drag`、`front`、`speed`、`apex`、`lock`、`src`、`back_src`、`chain`、`impact_fx` / `dust_fx` / `arrive_fx`、`max_n` | 锚掷向 range（× op_range）内 min_d 外最远的敌人（没有就最近的），低弧飞 clamp(距离 / speed, 0.1, 0.24) 秒；落地 r 内 basis × mult；锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人（已在身前 front 内的不拖，至多 max_n）拖回身前 front 处（drag 秒），到了再受 basis × back_mult（× vs_elite）。lock = 锚在外面时不普攻。乌尔比安精二「掷锚」 |
+| `shape.shell` 的 `lob` | 普攻 | `cond`、`n`、`mults`、`gap`、`spacing`、`flight`、`apex`、`tex`、`boom_fx`、`pool`（瞬时积木数组） | cond 成立时法术弹改低弧抛射：n 发（第 k 发 × mults[k]、晚 gap × k 秒）在目标周围呈三角落下（相邻落点间距 spacing），飞 flight 秒、顶点 apex，地面只有小影子跟着走、**没有落点预示圈**。落地在 aoe 内爆炸（伤害出手时定，不乘 vs_elite，同直线弹），再执行 on_explode；整组落完在三角中心执行 pool（`center: target` = 中心，`basis: hit` = 第一发）。艾雅法拉精二「三重咏唱·低抛」 |
+| `shape.wave` 的 `from: self`、`aim: nearest`、`aim_r`、`fan`、`fan_once`、`proj`、`hit_fx`、`release_fx` | 瞬时 | 见左 | 从本干员脚底朝 aim_r 内最近敌人（没有朝面向）放出；fan = 几道的偏角（度）；fan_once = 同一轮几道共用命中表（一名敌人每轮只吃一道）；proj = 旋转的弹体帧条（缺图画程序新月）。斯卡蒂精二「涌潮」潮刃 |
+| `verb.displace` 的 `r: "attack"` + `r_mult`、`r_in: "attack"` | 瞬时 | — | 半径按当前普攻半径 × r_mult；r_in 内（这一下已经打到的）不拉。乌尔比安精一「收链」 |
+| `st.fragile` 的 `kind: arts` + `look` | 命中状态 | — | 法术易伤写进 `e.melt_t / melt_v`（不叠层取高、再命中刷新），`combat.gd` 法术伤害 × (1 + melt_v)；look = 脚下裂纹帧条（前段出现、中段停在中间帧、最后 0.3 秒淡出）。艾雅法拉精一「熔蚀」 |
+| `trig.every_n` 的 `skip_replaced` | 触发参数 | bool | 本次普攻被别的 `replace` 块换掉时（如掷锚）这块不执行。乌尔比安定点爆破、收链（落点跟着锚击走） |
+
+精一 / 精二各块挂在 `blocks.progression.elite1 / elite2`（可以是数组），或写在普攻里带 `cond: "elite >= N"`：
+逻各斯 elite1 = passive requiem_stack，精二连缀在命中 then 里；艾雅法拉熔蚀在 on_explode 里、低抛在 `attack.lob`；斯卡蒂 elite1 = `every_n 6 replace anim leap_strike`（潮汐期间不换）、elite2 = 两块 `on_combo_end`（非潮汐 1 道 / 潮汐 3 道）；乌尔比安 elite1 = `every_n 1 at attack skip_replaced` 拉人、elite2 = `every_n 3 replace anim throw` 掷锚。
+
+### 18.2 画面
+
+全部接 Codex 第 2 批素材（docs/93 §2，接入记录 §2.5）；缺图时：符文 → 暗金小方块，咒文链 → 黑底 + 淡金两层线，熔岩弹 → 程序三层圆，熔池 → 通用 pool 画法，裂纹 → 三段暗橙弧，
+潮刃 → 程序新月，潮刃命中 → 青白光点，落地水花 → `fx_splash_blue`，锁链 → 程序双线，砸地 → slam 程序画面，人物帧条（跃起下劈 / 掷锚）→ attack。
+
+### 18.3 测试
+
+- 积木等价（只比精零，见 §17.6）四组 × 两局 TRACE / BALANCE 逐行相同。
+- `test_blocks_handwritten` 加 15 条反例（叠层安魂缺 per / look 不是帧条、咒文链缺 share / 放进常驻、低抛缺 flight / mults 不是数组 / 弹体不是 proj_ / 熔池缺 every、潮刃 fan 不是数组 / from 写错 / 弹体不是 proj_、掷锚缺 range / back_src 没登记 / basis 写错 / 放进常驻）与精英节点普攻卡检查。
+- 其他干员同 seed 不变（对迁移前 e5227947，同 §17.6 三局满编 240 秒）：TRACE 与 BALANCE 逐字节相同。
+- 木桩表与画面见 docs/91 §24。

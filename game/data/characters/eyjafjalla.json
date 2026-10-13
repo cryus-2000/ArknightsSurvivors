@@ -22,7 +22,7 @@
   "s3_mult": 1.64,
   "lava_mult": 0.23,
   "twin_mult": 0.6,
-  "tri_mult": 1.5,
+  "tri_mult": 1.4,
   "tri_size": 1.5,
   "tri_aoe": 1.2,
   "ember_mult": 0.3,
@@ -59,7 +59,16 @@
   "meteor_h": 120,
   "meteor_sz": 1.2,
   "blob_h": 44,
-  "blob_ring": 1.4
+  "blob_ring": 1.4,
+  "melt_v": 0.08,
+  "melt_dur": 4.0,
+  "lob_apex": 20,
+  "lob_flight": 0.25,
+  "lob_spacing": 40,
+  "pool_r": 50,
+  "pool_dur": 1.2,
+  "pool_every": 0.4,
+  "pool_mult": 0.12
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1743 / 防御 122 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -227,6 +236,16 @@
     "projectile",
     "area"
    ]
+  },
+  "熔池": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "dot",
+    "area"
+   ]
   }
  },
  "progression": [
@@ -248,7 +267,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「点燃」；解锁天赋「炎息」：熔岩弹爆炸范围 +25%；点燃持续时间 +1 秒"
+   "desc": "解锁二技能「点燃」；解锁天赋「炎息」：熔岩弹爆炸范围 +25%，点燃持续时间 +1 秒；熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%",
+   "attack": {
+    "name": "熔蚀",
+    "desc": "熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%（不叠层，再命中刷新时间；Boss 同样生效），脚下留一圈暗红裂纹"
+   }
   },
   {
    "type": "custom",
@@ -268,7 +291,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.64），每处留下 3 秒熔岩；普攻质变「三重咏唱」：每次施法投出 3 发熔岩弹，后 2 发体积 ×1.5、伤害 ×1.5（取代复咏的 60%）"
+   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.64），每处留下 3 秒熔岩；普攻质变「三重咏唱」：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×1.4），落地后中心留下熔池 1.2 秒，每 0.4 秒造成 12% 法术伤害",
+   "attack": {
+    "name": "三重咏唱",
+    "desc": "熔岩弹改为低弧抛射：每次 3 发在目标周围呈三角落下（后 2 发伤害 ×1.4），各自爆炸；3 发都落地后，三角中心留下熔池 1.2 秒，每 0.4 秒对池内敌人造成第一发 12% 的法术伤害"
+   }
   }
  ],
  "gallery": {
@@ -392,21 +419,12 @@
    ],
    "follow": [
     {
-     "cond": "elite >= 2",
-     "n": 2,
-     "gap": "$follow_gap",
-     "mult": "$tri_mult",
-     "aoe_mult": "$tri_aoe",
-     "sz": "$tri_size",
-     "_doc": "精二三重咏唱：后 2 发"
-    },
-    {
-     "cond": "node:twin_cast",
+     "cond": "node:twin_cast && elite < 2",
      "n": 1,
      "gap": "$follow_gap",
      "mult": "$twin_mult",
      "sz": "$twin_size",
-     "_doc": "复咏：第 2 发"
+     "_doc": "复咏：第 2 发（精二起由低抛三重咏唱取代）"
     }
    ],
    "on_explode": [
@@ -425,8 +443,108 @@
      "h": "$ember_h",
      "sz": "$ember_sz",
      "src": "火星"
+    },
+    {
+     "verb": "affect",
+     "cond": "elite >= 1",
+     "center": "target",
+     "r": "hit",
+     "_doc": "精一熔蚀：熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%",
+     "on_hit": [
+      {
+       "st": "fragile",
+       "kind": "arts",
+       "value": "$melt_v",
+       "dur": "$melt_dur",
+       "look": "fx_eyja_melt_crack"
+      }
+     ]
     }
-   ]
+   ],
+   "lob": {
+    "cond": "elite >= 2",
+    "_doc": "精二三重咏唱·低抛：3 发低弧抛射在目标周围呈三角落下（后 2 发 × tri_mult），落完中心留熔池；没有落点预示圈",
+    "n": 3,
+    "mults": [
+     1.0,
+     "$tri_mult",
+     "$tri_mult"
+    ],
+    "gap": "$follow_gap",
+    "spacing": "$lob_spacing",
+    "flight": "$lob_flight",
+    "apex": "$lob_apex",
+    "tex": "proj_eyja_lava_lob",
+    "boom_fx": [
+     {
+      "strip": "fx_eyja_lava_splash",
+      "off": [
+       0,
+       -6
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "mote",
+       "vel": [
+        [
+         -90,
+         90
+        ],
+        [
+         -160,
+         -60
+        ]
+       ],
+       "life": 0.45,
+       "col": [
+        0.95,
+        0.3,
+        0.08
+       ],
+       "sz": 2.5,
+       "grav": 320.0
+      },
+      "n": 5
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 1.0,
+       "r0": 0.3,
+       "life": 0.3,
+       "col": [
+        0.8,
+        0.2,
+        0.05
+       ],
+       "floor": true,
+       "w": 2.0
+      },
+      "r_scale": [
+       "r",
+       "r0"
+      ],
+      "if_tex": "!fx_eyja_lava_splash"
+     }
+    ],
+    "pool": [
+     {
+      "shape": "pool",
+      "center": "target",
+      "r": "$pool_r",
+      "dur": "$pool_dur",
+      "every": "$pool_every",
+      "tick0": "$pool_every",
+      "basis": "hit",
+      "mult": "$pool_mult",
+      "src": "熔池",
+      "look": "pool",
+      "tex": "fx_eyja_lava_pool",
+      "fit": 22
+     }
+    ]
+   }
   },
   "skills": [
    {

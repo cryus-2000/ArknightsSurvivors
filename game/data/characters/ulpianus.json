@@ -46,8 +46,6 @@
   "rift_mult": 0.8,
   "rift_w": 26,
   "rift_air": 0.8,
-  "blood_r": 160,
-  "blood_mult": 2.5,
   "first_cd": 0.5,
   "idle_cd": 0.1,
   "leash": 200,
@@ -71,11 +69,21 @@
   "s1_land_kb": 50,
   "s3_land_kb": 60,
   "s3_stun_boss": 0.27,
-  "blood_kb": 220,
-  "blood_stun": 0.4,
   "blast2_kb": 60,
   "whirl_kb": 140,
-  "rift_h": 30
+  "rift_h": 30,
+  "pull_r": 1.43,
+  "pull_dist": 20,
+  "throw_n": 3,
+  "throw_range": 320,
+  "throw_min": 160,
+  "throw_r": 90,
+  "throw_mult": 1.2,
+  "throw_back": 0.4,
+  "throw_w": 40,
+  "throw_taut": 0.2,
+  "throw_drag": 0.18,
+  "throw_front": 60
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 6022 / 防御 0 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -127,7 +135,18 @@
   "foot": [
    24,
    46
-  ]
+  ],
+  "throw": {
+   "_doc": "Codex 精英化第 2 批（elite_art_2_manifest）：掷锚 8 帧 14fps，出手帧 3（锚离手）、回拉帧 6，首末帧接 idle",
+   "tex": "op_ulpianus_throw",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  }
  },
  "attack": {
   "mode": "auto",
@@ -238,6 +257,26 @@
     "area",
     "control"
    ]
+  },
+  "抛锚": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "回拉": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "control"
+   ]
   }
  },
  "progression": [
@@ -259,7 +298,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「必须坚守」；解锁天赋「血脉滋养」：击杀精英叠攻击，其他深海猎人得一半"
+   "desc": "解锁二技能「必须坚守」；解锁天赋「血脉滋养」：击杀精英叠攻击，其他深海猎人得一半；锚击把落点外圈 150 内的敌人拉向落点 20（Boss 除外）",
+   "attack": {
+    "name": "收链",
+    "desc": "锚击落点外圈（锚击范围之外、150 以内）的敌人被拉向落点 20（精英减半，Boss 除外），下一锤就能砸到"
+   }
   },
   {
    "type": "custom",
@@ -279,7 +322,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「必须开辟」（当队长时手动释放）：掷锚眩晕一片并弹射过去，之后 8 秒锚击加速；普攻质变「血脉沸腾」：身上常亮血脉红纹；击杀精英后下一次锚击变为大爆破（半径 160、锚击 ×2.5），红纹脉动提示"
+   "desc": "解锁三技能「必须开辟」（当队长时手动释放）：掷锚眩晕一片并弹射过去，之后 8 秒锚击加速；普攻质变「掷锚」：身上常亮血脉红纹；每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就掷向最近的），落地造成锚击 ×1.2 伤害，随后顺锁链把沿线敌人拖回面前，再造成 40% 伤害（拖动 Boss 除外）",
+   "attack": {
+    "name": "掷锚",
+    "desc": "每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就掷向最近的）：落地半径 90 造成锚击 ×1.2 伤害，锁链绷直后把乌尔比安与锚之间宽 40 的一线敌人拖回面前，再造成 40% 伤害（Boss 不拖）。锚在外面时不出锚击"
+   }
   }
  ],
  "gallery": {
@@ -336,7 +383,8 @@
       0.2
      ]
     },
-    "cond": "elite >= 2 && !armed:blood"
+    "cond": "elite >= 2",
+    "_doc": "精二血脉红纹常亮"
    },
    {
     "aura_ring": {
@@ -354,54 +402,7 @@
      "hz": 2.5,
      "arc_k": 1.5
     },
-    "cond": "elite >= 2 && !armed:blood",
-    "off": [
-     0,
-     4
-    ]
-   },
-   {
-    "outline": {
-     "col": [
-      1.0,
-      0.45,
-      0.5
-     ],
-     "rings": [
-      [
-       4,
-       0.3
-      ],
-      [
-       2,
-       0.9
-      ]
-     ],
-     "hz": 9.0,
-     "a": [
-      0.55,
-      0.35
-     ]
-    },
-    "cond": "elite >= 2 && armed:blood"
-   },
-   {
-    "aura_ring": {
-     "r": 30,
-     "sy": 0.45,
-     "col": [
-      1.0,
-      0.25,
-      0.3
-     ],
-     "fill": 0.12,
-     "fill_pulse": 0.05,
-     "a": 0.6,
-     "pulse": 0.4,
-     "hz": 9.0,
-     "arc_k": 1.5
-    },
-    "cond": "elite >= 2 && armed:blood",
+    "cond": "elite >= 2",
     "off": [
      0,
      4
@@ -440,185 +441,7 @@
    ],
    "every": "$cd",
    "first": "$first_cd",
-   "idle": "$idle_cd",
-   "armed": [
-    {
-     "key": "blood",
-     "_doc": "精二血脉沸腾：击杀精英后下一次锚击变为大爆破（不计普攻次数）",
-     "do": [
-      {
-       "shape": "circle",
-       "center": "target",
-       "r": "$blood_r",
-       "basis": "atk",
-       "mult": "$blood_mult",
-       "kb": "$blood_kb",
-       "stun": "$blood_stun",
-       "tags": [
-        "empowered"
-       ],
-       "src": "锚击",
-       "ring": false,
-       "fx": [
-        {
-         "sprite": {
-          "name": "fx_slash_heavy_steel",
-          "scale_r": 0.0352,
-          "rot_ang": true,
-          "flip_side": false,
-          "tint": [
-           1.6,
-           0.6,
-           0.6
-          ]
-         },
-         "along": -0.07,
-         "off": [
-          0,
-          -16
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "crack",
-          "r": 0.8,
-          "life": 0.6,
-          "col": [
-           1.0,
-           0.25,
-           0.3
-          ],
-          "floor": true,
-          "n": 9
-         },
-         "r_scale": [
-          "r"
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "ring",
-          "r": 1.0,
-          "r0": 20.0,
-          "life": 0.4,
-          "col": [
-           1.0,
-           0.25,
-           0.3
-          ],
-          "floor": true,
-          "w": 5.0
-         },
-         "r_scale": [
-          "r"
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "ring",
-          "r": 0.65,
-          "r0": 10.0,
-          "life": 0.5,
-          "col": [
-           0.55,
-           0.75,
-           0.95
-          ],
-          "floor": true,
-          "w": 2.5
-         },
-         "r_scale": [
-          "r"
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "glow",
-          "r": 34.0,
-          "life": 0.3,
-          "col": [
-           1.0,
-           0.25,
-           0.3
-          ],
-          "alpha": 0.7
-         },
-         "off": [
-          0,
-          -12
-         ]
-        },
-        {
-         "sprite": {
-          "name": "fx_splash_blue",
-          "scale": 1.04,
-          "bottom": true
-         },
-         "off": [
-          0,
-          6
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "mote",
-          "vel": [
-           [
-            -120,
-            120
-           ],
-           [
-            -240,
-            -110
-           ]
-          ],
-          "life": 0.45,
-          "col": [
-           0.45,
-           0.78,
-           1.0
-          ],
-          "sz": 2.0,
-          "grav": 420.0
-         },
-         "n": 10,
-         "jit": [
-          -10,
-          -4,
-          10,
-          -4
-         ]
-        },
-        {
-         "sparks": {
-          "n": 12,
-          "spd": 260.0,
-          "life": 0.45,
-          "col": [
-           1.0,
-           0.25,
-           0.3
-          ],
-          "sz": 3.0
-         },
-         "off": [
-          0,
-          -10
-         ]
-        },
-        {
-         "pause": 0.08
-        },
-        {
-         "sfx": {
-          "kind": "big"
-         }
-        }
-       ]
-      }
-     ]
-    }
-   ]
+   "idle": "$idle_cd"
   },
   "skills": [
    {
@@ -1007,7 +830,8 @@
        }
       ]
      }
-    ]
+    ],
+    "skip_replaced": true
    },
    "whirl": {
     "trig": "every_n",
@@ -1062,57 +886,119 @@
     "_doc": "通路洞开：写在 S1 / S3 verb.tether 的 rift（cond node:rift）"
    },
    "elite2": {
-    "trig": "on_kill",
-    "filter": "elite",
-    "_doc": "血脉沸腾：击杀精英 / Boss 后下一次锚击变为大爆破（attack.armed）；红纹见 blocks.look",
+    "trig": "every_n",
+    "n": "$throw_n",
+    "replace": true,
+    "anim": "throw",
+    "_doc": "精二掷锚：每第 3 次锚击改为把锚掷向 160 外最远的敌人（没有就最近的），落地砸一圈，锁链绷直后把沿线敌人拖回身前（Boss 不动）；取代血脉沸腾的大爆破，红纹常亮",
     "do": [
      {
-      "verb": "arm",
-      "key": "blood",
-      "status": "血脉沸腾",
-      "status_col": [
-       1.0,
-       0.25,
-       0.3
-      ],
-      "fx": [
+      "shape": "hookshot",
+      "range": "$throw_range",
+      "min_d": "$throw_min",
+      "r": "$throw_r",
+      "basis": "atk",
+      "mult": "$throw_mult",
+      "back_mult": "$throw_back",
+      "w": "$throw_w",
+      "taut": "$throw_taut",
+      "drag": "$throw_drag",
+      "front": "$throw_front",
+      "speed": 900,
+      "apex": 24,
+      "lock": true,
+      "src": "抛锚",
+      "back_src": "回拉",
+      "chain": "fx_ulpianus_chain_tile",
+      "impact_fx": [
        {
-        "text": {
-         "s": "血脉沸腾",
-         "col": [
-          1.0,
-          0.25,
-          0.3
-         ],
-         "size": 14
-        },
-        "at": "self",
+        "strip": "fx_ulpianus_anchor_impact_back",
+        "layer": "floor",
+        "fit": 32,
+        "max_scale": 6
+       },
+       {
+        "strip": "fx_ulpianus_anchor_impact_front",
+        "fit": 32,
+        "max_scale": 6,
         "off": [
          0,
-         -78
+         -6
         ]
        },
        {
+        "slam": {
+         "k": 1.1,
+         "r_mult": 1.0
+        }
+       }
+      ],
+      "dust_fx": [
+       {
+        "strip": "fx_ulpianus_drag_dust",
+        "layer": "floor",
+        "off": [
+         0,
+         4
+        ]
+       }
+      ],
+      "arrive_fx": [
+       {
         "pfx": {
          "kind": "ring",
-         "r": 50.0,
-         "r0": 10.0,
-         "life": 0.35,
+         "r": 46.0,
+         "r0": 8.0,
+         "life": 0.25,
          "col": [
-          1.0,
-          0.25,
-          0.3
+          0.55,
+          0.75,
+          0.95
          ],
          "floor": true,
-         "w": 3.0,
-         "keep": true
-        },
-        "at": "self"
+         "w": 3.0
+        }
+       },
+       {
+        "sfx": {
+         "kind": "atk",
+         "db": 2.0,
+         "pitch": 0.85
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "elite1": {
+    "trig": "every_n",
+    "n": 1,
+    "at": "attack",
+    "skip_replaced": true,
+    "_doc": "精一收链：锚击落点外圈（锚击半径外、× pull_r 内）的敌人被拉向落点 pull_dist",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "target",
+      "r": "attack",
+      "r_mult": "$pull_r",
+      "r_in": "attack",
+      "dist": "$pull_dist",
+      "dir": "pull",
+      "fx": [
+       {
+        "strip": "fx_ulpianus_pull_ring",
+        "layer": "floor",
+        "fit": 32,
+        "max_scale": 6
        }
       ]
      }
     ]
    }
   }
- }
+ },
+ "extra_sprites": [
+  "throw"
+ ]
 }

@@ -1729,6 +1729,14 @@ const V6_FRAMES := {
 	"fx_texas_pin_sword": [4, 12.0], "fx_texas_pin_shatter": [5, 18.0], "fx_texas_sword_drop": [5, 20.0], "fx_texas_sword_impact": [5, 18.0],
 	# 手写干员迁积木（docs/61 §17）：斯卡蒂成长线帧条原来由 skadi.gd 自己按帧切，积木的 fx 条目要登记在这里（帧数 / fps 同原脚本）
 	"fx_skadi_surge": [6, 14.0], "fx_skadi_wave": [6, 14.0],
+	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
+	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
+	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],
+	"fx_logos_chain_tile": [6, 12.0], "fx_logos_chain_pulse": [4, 20.0], "fx_logos_chain_anchor": [6, 12.0],
+	"fx_eyja_melt_crack": [6, 8.0], "proj_eyja_lava_lob": [4, 16.0], "fx_eyja_lava_pool": [8, 10.0], "fx_eyja_lava_splash": [6, 18.0],
+	"fx_skadi_leap_splash": [6, 18.0], "proj_skadi_surge_blade": [4, 16.0], "fx_skadi_surge_hit": [5, 18.0], "fx_skadi_surge_release": [4, 18.0],
+	"fx_ulpianus_chain_tile": [2, 12.0], "fx_ulpianus_pull_ring": [6, 14.0], "fx_ulpianus_anchor_impact_back": [6, 16.0], "fx_ulpianus_anchor_impact_front": [6, 16.0],
+	"fx_ulpianus_drag_dust": [4, 14.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

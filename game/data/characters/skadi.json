@@ -35,9 +35,6 @@
   "pulse_r": 120,
   "pulse_mult": 0.4,
   "pulse_kb": 200,
-  "elegy_r": 90,
-  "elegy_mult": 0.5,
-  "elegy_kb": 220,
   "first_cd": 0.3,
   "idle_cd": 0.1,
   "leash": 200,
@@ -54,7 +51,18 @@
   "s2_kb": 240,
   "combo3_kb": 90,
   "skill_aim": 200,
-  "s3_dur": 8.0
+  "s3_dur": 8.0,
+  "leap_n": 6,
+  "leap_r": 130,
+  "leap_half": 1.047,
+  "leap_mult": 1.4,
+  "leap_kb": 78,
+  "blade_mult": 0.6,
+  "blade_dist": 200,
+  "blade_spd": 420,
+  "blade_w": 48,
+  "blade_kb": 190,
+  "blade_aim": 260
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3866 / 防御 263 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -116,10 +124,22 @@
     46
    ],
    "fire": 2
+  },
+  "leap_strike": {
+   "_doc": "Codex 精英化第 2 批（elite_art_2_manifest）：跃起下劈 7 帧 14fps，出手帧 4，首末帧接 idle",
+   "tex": "op_skadi_leap_strike",
+   "frames": 7,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 4
   }
  },
  "extra_sprites": [
-  "attack_spin"
+  "attack_spin",
+  "leap_strike"
  ],
  "attack": {
   "mode": "auto",
@@ -219,7 +239,17 @@
     "aftershock"
    ]
   },
-  "悲歌": {
+  "跃浪击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "潮刃": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -227,7 +257,7 @@
    "tags": [
     "basic",
     "area",
-    "aftershock"
+    "projectile"
    ]
   }
  },
@@ -250,7 +280,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「重斩」；解锁天赋「深海猎人」：每第 3 次横扫追加一次反手斩（70%）"
+   "desc": "解锁二技能「重斩」；解锁天赋「深海猎人」：每第 3 次横扫追加一次反手斩（70%）；每第 6 次横扫改为跃起下劈：前方扇形 ×1.4 伤害并击退",
+   "attack": {
+    "name": "跃浪击",
+    "desc": "每第 6 次横扫改为跃起下劈：前方 120° 扇形（半径 130）×1.4 伤害，落点溅起水花，击退更远（「潮汐」期间不换）"
+   }
   },
   {
    "type": "custom",
@@ -270,7 +304,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5；普攻质变「悲歌」：每轮连斩收尾，身边涌起一圈小海浪（半径 90，50% 伤害，击退）"
+   "desc": "解锁三技能「潮汐」：8 秒内横扫改为全方向，范围 +40%、伤害 ×1.5；普攻质变「涌潮」：每轮连斩收尾，朝前方放出一道潮刃，飞出 200，穿透沿途全部敌人，造成横扫 60% 伤害并推开；「潮汐」期间每轮放 3 道",
+   "attack": {
+    "name": "涌潮",
+    "desc": "每轮连斩收尾，朝最近的敌人放出一道潮刃：飞出 200，穿透沿途全部敌人，造成横扫 60% 的伤害并推开；「潮汐」期间每轮放 3 道（扇形 ±25°）"
+   }
   }
  ],
  "gallery": {
@@ -1656,111 +1694,214 @@
      }
     ]
    },
-   "elite2": {
-    "trig": "on_combo_end",
-    "_doc": "悲歌：每轮连斩收尾，身边涌起一圈小海浪（本轮横扫伤害 × elegy_mult）",
+   "elite2": [
+    {
+     "trig": "on_combo_end",
+     "cond": "!skill_active:2",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        0
+       ],
+       "basis": "attack",
+       "mult": "$blade_mult",
+       "dist": "$blade_dist",
+       "speed": "$blade_spd",
+       "w": "$blade_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "fan_once": true,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "潮刃",
+       "proj": "proj_skadi_surge_blade",
+       "hit_fx": [
+        {
+         "strip": "fx_skadi_surge_hit",
+         "if_tex": "fx_skadi_surge_hit"
+        },
+        {
+         "pfx": {
+          "kind": "glow",
+          "r": 10.0,
+          "life": 0.18,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "alpha": 0.6
+         },
+         "if_tex": "!fx_skadi_surge_hit"
+        }
+       ],
+       "release_fx": [
+        {
+         "strip": "fx_skadi_surge_release",
+         "rot": true,
+         "along": 0.5,
+         "off": [
+          0,
+          -18
+         ]
+        }
+       ]
+      }
+     ],
+     "_doc": "精二涌潮：每轮连斩收尾朝最近敌人放出一道潮刃（穿透、横扫 60%、推开）；潮汐期间每轮 3 道（±25°）。取代悲歌"
+    },
+    {
+     "trig": "on_combo_end",
+     "cond": "skill_active:2",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        -25,
+        0,
+        25
+       ],
+       "basis": "attack",
+       "mult": "$blade_mult",
+       "dist": "$blade_dist",
+       "speed": "$blade_spd",
+       "w": "$blade_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "fan_once": true,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "潮刃",
+       "proj": "proj_skadi_surge_blade",
+       "hit_fx": [
+        {
+         "strip": "fx_skadi_surge_hit",
+         "if_tex": "fx_skadi_surge_hit"
+        },
+        {
+         "pfx": {
+          "kind": "glow",
+          "r": 10.0,
+          "life": 0.18,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "alpha": 0.6
+         },
+         "if_tex": "!fx_skadi_surge_hit"
+        }
+       ],
+       "release_fx": [
+        {
+         "strip": "fx_skadi_surge_release",
+         "rot": true,
+         "along": 0.5,
+         "off": [
+          0,
+          -18
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "elite1": {
+    "trig": "every_n",
+    "n": "$leap_n",
+    "replace": true,
+    "anim": "leap_strike",
+    "cond": "!skill_active:2",
+    "_doc": "精一跃浪击：每第 6 次横扫改为跃起下劈（前方 120° 扇形 × leap_mult，击退 × 1.3）；潮汐期间不换",
     "do": [
      {
-      "shape": "circle",
-      "center": "self",
-      "r": "$elegy_r",
-      "r_abs": true,
-      "basis": "attack",
-      "mult": "$elegy_mult",
-      "kb": "$elegy_kb",
-      "src": "悲歌",
+      "shape": "cone",
+      "r": "$leap_r",
+      "half": "$leap_half",
+      "mult": "$leap_mult",
+      "kb": "$leap_kb",
+      "src": "跃浪击",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "face": true,
       "ring": false,
       "fx": [
        {
-        "strip": "fx_skadi_surge",
-        "layer": "floor",
-        "fit": 37,
-        "max_scale": 6,
-        "off": [
-         0,
-         4
-        ]
-       },
-       {
-        "pfx": {
-         "kind": "ring",
-         "r": 1.0,
-         "r0": 0.18,
-         "life": 0.4,
+        "blade": {
+         "strip": "fx_slash_heavy_deep",
+         "fit": 28,
+         "k": 1.2,
+         "along": 0.5,
          "col": [
-          0.35,
-          0.55,
-          0.95
+          0.25,
+          0.4,
+          0.85
          ],
-         "floor": true,
-         "w": 5.0,
-         "alpha": 0.8
-        },
-        "r_scale": [
-         "r",
-         "r0"
-        ],
-        "off": [
-         0,
-         4
-        ],
-        "if_tex": "!fx_skadi_surge"
-       },
-       {
-        "pfx": {
-         "kind": "ring",
-         "r": 0.8,
-         "r0": 0.11,
-         "life": 0.32,
-         "col": [
+         "edge": [
           0.8,
           0.95,
           1.0
          ],
-         "floor": true,
-         "w": 2.0
-        },
-        "r_scale": [
-         "r",
-         "r0"
-        ],
+         "life": 0.3,
+         "half": 1.05,
+         "motes": {
+          "n": 8,
+          "col": [
+           0.6,
+           0.9,
+           1.0
+          ],
+          "along": 0.6,
+          "y": -10
+         }
+        }
+       },
+       {
+        "strip": "fx_skadi_leap_splash",
+        "layer": "floor",
+        "along": 0.6,
         "off": [
          0,
          4
         ],
-        "if_tex": "!fx_skadi_surge"
+        "scale": 1.0
        },
        {
-        "pfx": {
-         "kind": "mote",
-         "vel": [
-          [
-           -30,
-           30
-          ],
-          [
-           -170,
-           -90
-          ]
-         ],
-         "life": 0.45,
-         "col": [
-          0.6,
-          0.9,
-          1.0
-         ],
-         "sz": 2.5,
-         "grav": 360.0
+        "sprite": {
+         "name": "fx_splash_blue",
+         "scale": 1.1,
+         "bottom": true
         },
-        "n": 10,
-        "jit_r": [
-         0.8,
-         0.44
-        ],
+        "along": 0.6,
         "off": [
          0,
-         2
-        ]
+         6
+        ],
+        "if_tex": "!fx_skadi_leap_splash"
+       },
+       {
+        "sfx": {
+         "kind": "big",
+         "db": -4.0
+        }
        }
       ]
      }

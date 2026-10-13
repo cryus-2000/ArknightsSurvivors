@@ -2346,7 +2346,14 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	if c == Vector2.INF:
 		return []
 	var g = o.g
-	var r: float = float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.loc.get("area", 1.0))
+	var r: float
+	if str(b.get("r", "")) == "attack":   # 精英化第 2 批段：按当前普攻半径（乌尔比安收链：锚击外圈）
+		r = shape_radius(o, o.cur_attack()) * float(b.get("r_mult", 1.0)) * float(o.loc.get("area", 1.0))
+	else:
+		r = float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.loc.get("area", 1.0))
+	var r_in := -1.0
+	if b.has("r_in"):
+		r_in = shape_radius(o, o.cur_attack()) if str(b.r_in) == "attack" else float(b.r_in) * o.stat(&"op_range")
 	var by_dist: bool = b.has("dist")
 	var kb: float = float(b.get("kb", 0.0))
 	var sc: float = float(o.shot.get("force_mult", 1.0)) if by_dist else 1.0
@@ -2355,6 +2362,8 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + float(e.r):
 			continue
+		if r_in >= 0.0 and e.pos.distance_to(c) <= r_in + float(e.r):
+			continue   # r_in 内的（这一下已经打到的）不拉
 		hits.append(e)
 		if by_dist:
 			displace_one(o, e, c, b, sc)
@@ -2393,7 +2402,11 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_num(b, "dist", p, ctx, true, 0.0, 400.0)
 				_num(b, "elite_mult", p, ctx, false, 0.0, 1.0)
 			if kind != "field":
-				_num(b, "r", p, ctx, true, 1.0, 800.0)
+				if str(b.get("r", "")) != "attack":
+					_num(b, "r", p, ctx, true, 1.0, 800.0)
+				_num(b, "r_mult", p, ctx, false, 0.05, 10.0)
+				if b.has("r_in") and str(b.r_in) != "attack":
+					_num(b, "r_in", p, ctx, false, 0.0, 800.0)
 				if not str(b.get("center", "self")) in DISPLACE_CENTERS:
 					errs.append("%s.center 只能是 %s" % [p, " / ".join(DISPLACE_CENTERS)])
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
@@ -6429,6 +6442,10 @@ static func hw_init(o) -> void:
 			_hw3(o)
 		elif t in HW4_TAGS:
 			_hw4(o)
+		elif t in HW5_TAGS:
+			_hw5(o)
+	if o.B.get("attack", {}).has("lob"):
+		_hw5(o)
 
 
 static func _hw_tags(n, out: Dictionary) -> void:
@@ -6447,7 +6464,7 @@ static func _hw_uses(n) -> bool:
 		for k in n:
 			if k in ["follow", "basis", "combo", "countdown", "origin_off", "aim_pad", "hit_fx", "cast", "pulses"]:
 				return true
-			if k == "_tag" and (str(n[k]) in HW_TAGS or str(n[k]) in HW2_TAGS or str(n[k]) in HW3_TAGS or str(n[k]) in HW4_TAGS):
+			if k == "_tag" and (str(n[k]) in HW_TAGS or str(n[k]) in HW2_TAGS or str(n[k]) in HW3_TAGS or str(n[k]) in HW4_TAGS or str(n[k]) in HW5_TAGS):
 				return true
 			if _hw_uses(n[k]):
 				return true
@@ -6579,6 +6596,8 @@ static func hw_tick(o, dt: float) -> bool:
 		busy = _hw2_tick(o, dt)
 	if h.has("bolts"):
 		_hw3_bolts(o, dt)
+	if h.has("links"):   # 精英化第 2 批段：咒文链、低弧抛射、掷锚
+		_hw5_tick(o, dt)
 	return busy
 
 
@@ -6590,6 +6609,11 @@ static func hw_busy(o) -> bool:
 ## 技能上层（data_operator._draw_skill_over）
 static func hw_draw_over(o) -> void:
 	hw_draw_shells(o)
+	if o.hw.has("links"):   # 精英化第 2 批段
+		hw_draw_lobs(o)
+		hw_draw_links(o)
+		hw_draw_runes(o)
+		hw_draw_hooks(o)
 	if o.hw.has("anchor"):
 		hw_draw_tether(o)
 	if o.hw.has("bolts"):
@@ -6606,6 +6630,8 @@ static func hw_draw_auras(o) -> void:
 
 ## 地面层（data_operator.draw_entities_floor）
 static func hw_draw_floor(o) -> void:
+	if o.hw.has("links"):
+		hw_draw_melt(o)
 	hw_draw_waves(o)
 	hw_draw_pools(o)
 	hw_draw_rune_floor(o)
@@ -6651,6 +6677,10 @@ static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
 			hw_arm(o, b)
 		"verb.timer":
 			hw_timer(o, b)
+		"verb.link":
+			hw_link(o, b)
+		"shape.hookshot":
+			hw_hook_start(o, b)
 
 
 # ---------------------------------------------------------------- shape.wave（斯卡蒂「跃浪」：重斩落点掀起一道向前推进的浪墙）
@@ -6659,11 +6689,31 @@ static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
 
 static func hw_wave_start(o, b: Dictionary) -> void:
 	var h := hw_st(o)
+	var dmg: float = hw_basis(o, str(b.get("basis", "prev"))) * float(b.get("mult", 1.0))
+	if str(b.get("from", "prev")) == "self":   # 精英化第 2 批段：从脚底朝最近敌人放出（涌潮潮刃），fan = 几道的偏角
+		if o.pos == Vector2.INF:
+			return
+		var ang: float = o.facing_angle()
+		if str(b.get("aim", "")) == "nearest":
+			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
+			if not ts.is_empty():
+				ang = (ts[0].pos - o.pos).angle()
+		var ov = b.get("off", [0, 0])
+		var from0: Vector2 = o.pos + Vector2(float(ov[0]), float(ov[1]))
+		if b.has("release_fx"):
+			fx_play(o, b.release_fx, o.pos, 30.0, [], ang)
+		var shared := {}   # fan_once：同一轮的几道共用命中表，一名敌人每轮只吃一道
+		for fd in b.get("fan", [0]):
+			var d2 := Vector2.from_angle(ang + deg_to_rad(float(fd)))
+			if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
+				h.waves.pop_front()
+			h.waves.append({"b": b, "pos": from0, "dir": d2, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg,
+				"hit": shared if b.get("fan_once", false) else {}, "drop": 0.0})
+		return
 	var dir := Vector2.from_angle(float(h.prev_ang))
 	var from: Vector2 = o.pos + dir * float(h.prev_r) * float(b.get("along", 0.45))
 	if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
 		h.waves.pop_front()
-	var dmg: float = hw_basis(o, str(b.get("basis", "prev"))) * float(b.get("mult", 1.0))
 	h.waves.append({"b": b, "pos": from, "dir": dir, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg, "hit": {}, "drop": 0.0})
 
 
@@ -6689,8 +6739,10 @@ static func _hw_waves(o, dt: float) -> void:
 			o.deal_damage(e, w.dmg)
 			if not e.dead and not e.boss:
 				e.kb += w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0)
+			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
+				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
 		w.drop -= dt
-		if w.drop <= 0.0:   # 浪尖甩出的水沫（画面，g.vrng）
+		if w.drop <= 0.0 and not b.has("proj"):   # 浪尖甩出的水沫（画面，g.vrng；弹体式的潮刃不甩）
 			w.drop = 0.03
 			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
 			var mc: Color = _mf_col(b.get("foam", []), Color(0.8, 0.95, 1.0))
@@ -6706,6 +6758,16 @@ static func hw_draw_waves(o) -> void:
 	var cv = o.cv
 	for w in o.hw.waves:
 		var b: Dictionary = w.b
+		if b.has("proj"):   # 精英化第 2 批段：弹体式（潮刃）——旋转的弹体帧条，缺图画程序新月
+			var pn: String = str(b.proj)
+			var pa: float = clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
+			var pp: Vector2 = w.pos + Vector2(0, -16)
+			if g.tex.get(pn) != null and g.V6_FRAMES.has(pn):
+				var spec: Array = g.V6_FRAMES[pn]
+				fx_frame(cv, g, pn, int(spec[0]), int(float(g.t) * float(spec[1])), pp, g.PX * float(b.get("proj_scale", 1.0)), Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
+			else:
+				cv.draw_arc(pp - w.dir * 10.0, w.w * 0.5, w.dir.angle() - 1.0, w.dir.angle() + 1.0, 12, Color(0.6, 0.85, 1.3, 0.9 * pa), 4.0)
+			continue
 		var tn: String = str(b.get("tex", ""))
 		var tx: Texture2D = ArtS.tex(tn) if tn != "" else null
 		if tx != null and g.V6_FRAMES.has(tn):
@@ -6910,6 +6972,8 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		return _hw3_block(b, p, kind, ctx, tag)
 	if tag in HW4_TAGS:
 		return _hw4_block(b, p, kind, ctx, tag)
+	if tag in HW5_TAGS:   # 精英化第 2 批段
+		return _hw5_block(b, p, kind, ctx, tag)
 	if not tag in HW_TAGS:
 		return false
 	var errs: Array = ctx.errs
@@ -6929,7 +6993,17 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "kb", p, ctx, false, 0.0, 2000.0)
 			_num(b, "along", p, ctx, false, -2.0, 2.0)
 			_num(b, "depth", p, ctx, false, 1.0, 100.0)
-			_num(b, "cap", p, ctx, false, 1.0, 8.0)
+			_num(b, "cap", p, ctx, false, 1.0, 16.0)
+			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
+			if b.has("from") and not str(b.from) in ["prev", "self"]:
+				errs.append(p + ".from 只能是 prev / self")
+			if b.has("fan") and (not (b.fan is Array) or b.fan.is_empty() or b.fan.size() > 8):
+				errs.append(p + ".fan 必须是 1–8 个偏角（度）的数组")
+			if b.has("proj") and not str(b.proj).begins_with("proj_"):
+				errs.append(p + ".proj 必须是 proj_* 帧条名")
+			for k in ["hit_fx", "release_fx"]:
+				if b.has(k):
+					_fx(b[k], p + "." + k, ctx, "shape.circle")
 			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
 			if b.has("tex") and not str(b.tex).begins_with("fx_"):
@@ -7048,6 +7122,11 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	if patch.has("aoe_mult"):
 		aoe *= float(patch.aoe_mult)
 	var oe: Array = b.get("on_explode", []) + patch.get("on_explode", [])
+	if b.has("lob") and cond_true(o, b.lob.get("cond", {})):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
+		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
+		if b.has("fire_fx"):
+			fx_play(o, b.fire_fx, hw_tip(o, b), 10.0)
+		return
 	_hw_cast(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, 1.0, oe, not is_atk)
 	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
 	if b.has("fire_fx"):
@@ -7171,15 +7250,20 @@ static func hw_status(o, e: Dictionary, s: Dictionary) -> bool:
 			_hw2(o).burns.append({"e": e, "t": float(s.dur), "dps": dps, "ft": 0.0, "s": s})
 			return true
 		"st.requiem":   # 逻各斯段：安魂（直接覆盖剩余时间，同手写）
+			if o.hw.has("rq") and hw_requiem_stack(o, e, s):   # 精英化第 2 批段：叠层安魂（剜魂）
+				return true
 			e["requiem"] = float(s.dur)
 			return true
 		"st.fragile":
 			if str(s.get("kind", "")) == "arts":
 				var g = o.g
+				var mv: float = float(e.get("melt_v", 0.0)) if float(e.get("melt_t", 0.0)) > float(g.t) else 0.0
 				e["melt_t"] = maxf(float(e.get("melt_t", 0.0)), float(g.t) + float(s.dur))
-				e["melt_v"] = maxf(float(e.get("melt_v", 0.0)) if float(e.get("melt_t", 0.0)) > float(g.t) else 0.0, float(s.get("value", 0.08)))
+				e["melt_v"] = maxf(mv, float(s.get("value", 0.08)))
 				if s.has("fx"):
 					fx_play(o, s.fx, e.pos, float(e.r), [e])
+				if s.has("look"):   # 精英化第 2 批段：脚下裂纹（熔蚀）
+					hw_melt_mark(o, e, s)
 			else:
 				e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))
 			return true
@@ -7536,6 +7620,24 @@ static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				if b.has(k):
 					_fx(b[k], p + "." + k, ctx, "shape.circle")
 			_src(b, p, ctx, true)
+			if b.has("lob"):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（docs/61 §18）
+				var lb = b.lob
+				if not (lb is Dictionary):
+					errs.append(p + ".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}")
+				else:
+					_num(lb, "n", p + ".lob", ctx, true, 1.0, 6.0)
+					_num(lb, "gap", p + ".lob", ctx, false, 0.0, 2.0)
+					_num(lb, "spacing", p + ".lob", ctx, false, 0.0, 400.0)
+					_num(lb, "flight", p + ".lob", ctx, true, 0.05, 3.0)
+					_num(lb, "apex", p + ".lob", ctx, false, 0.0, 200.0)
+					var ms = lb.get("mults", [1.0])
+					if not (ms is Array) or ms.is_empty() or ms.any(func(x): return not (x is float or x is int or (x is String and str(x).begins_with("$")))):
+						errs.append(p + ".lob.mults 必须是数字数组（第 k 发的倍率）")
+					if lb.has("tex") and not str(lb.tex).begins_with("proj_"):
+						errs.append(p + ".lob.tex 必须是 proj_* 帧条名")
+					if lb.has("boom_fx"):
+						_fx(lb.boom_fx, p + ".lob.boom_fx", ctx, "shape.circle")
+					_list(lb.get("pool", []), p + ".lob.pool", "instant", ctx)
 		"verb.lob":
 			if not str(b.get("pick", "near_out")) in HW_LOB_PICKS:
 				errs.append("%s.pick 只能是 %s" % [p, " / ".join(HW_LOB_PICKS)])
@@ -8209,7 +8311,7 @@ static func hw_draw_logos_over(o) -> void:
 
 
 ## 沿 a→b 平铺一张横向帧条（每段一帧宽），offset 为沿方向的滚动位移；最后一段按端点裁剪
-static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE) -> void:
+static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1) -> void:
 	var g = o.g
 	var tx: Texture2D = g.tex.get(tn)
 	if tx == null or not g.V6_FRAMES.has(tn):
@@ -8224,7 +8326,7 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 	var L: float = a.distance_to(b)
 	if L < 2.0:
 		return
-	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames
+	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames if fixed < 0 else fixed % frames   # fixed：停在这一帧（锁链松 / 绷直）
 	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
 	var x: float = -fmod(offset, seg)
 	while x < L:
@@ -9227,4 +9329,555 @@ static func _hw4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			if str(b.get("key", "")) == "":
 				errs.append(p + " 缺 key")
 			_num(b, "dur", p, ctx, true, 0.05, 120.0)
+	return true
+
+
+# ================================================================ 精英化第 2 批（docs/91 §19 批 2：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安的精一 / 精二形态，docs/61 §18，10-14）
+# 只往后加，建在手写迁移段上（hw 状态）。新积木：
+#  verb.requiem_stack  常驻：本干员挂的「安魂」可叠层——再挂一次 +1 层（至多 max），每层受到的法术伤害 + per（combat.gd 读 e.requiem_k；不叠层时照旧 +15%）；
+#                      look：按层数分档的头顶符文帧条（[1 层, 2 层, 3 层]）。逻各斯精一「剜魂」
+#  verb.link           瞬时（命中 then）：从命中的敌人向 r 内最近 n 名拉出链 dur 秒（同时 ≤ cap 组）；链上任一名受到本干员 kinds 类伤害（来源不在 exclude 里）时，
+#                      同组其他人各受到这次伤害 × share（src；链内不再互相传递）。tile / anchor / pulse：链节平铺、两端咒文结、传递时亮起。逻各斯精二「连缀」
+#  shape.shell 的 lob  法术弹改低弧抛射：n 发（第 k 发 × mults[k]、晚 gap × k 秒出手）在目标周围呈三角（相邻落点间距 spacing）落下，飞 flight 秒、顶点 apex，
+#                      落地在 aoe 内爆炸（同 fire 子弹：伤害发射时定、不乘 vs_elite），再执行 on_explode；整组落完在三角中心执行 pool（target = 中心，basis hit = 第一发）。
+#                      没有落点预示圈，只有地面小影子。艾雅法拉精二「三重咏唱·低抛」
+#  shape.wave 的 from: self / aim: nearest / fan / proj / hit_fx / release_fx   从本干员脚底朝最近敌人（aim_r 内，没有朝面向）放出，fan = 几道的偏角（度）；
+#                      proj = 旋转的弹体帧条；命中 / 出手画面。斯卡蒂精二「涌潮」潮刃
+#  verb.displace 的 r: attack + r_mult、r_in: attack   半径按当前普攻半径；r_in 内（已被这一下打到的）不拉。乌尔比安精一「收链」
+#  shape.hookshot      瞬时：把锚掷向 range（× op_range）内离本干员最远、且在 min_d 外的敌人（没有就最近的），飞 clamp(距离 / speed, 0.1, 0.24) 秒（低弧 apex），
+#                      落地 r 内 basis × mult（src），锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人连同锚拖回身前 front 处（drag 秒），
+#                      到了再受 basis × back_mult（back_src）；lock = 锚在外面时不普攻。乌尔比安精二「掷锚」
+# 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。
+
+const HW5_TAGS := ["verb.requiem_stack", "verb.link", "shape.hookshot"]
+const HW_LINK_CAP := 8
+const HW_HOOK_MAX := 2
+
+
+static func _hw5(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("links"):
+		h.merge({"links": [], "rq": {}, "rq_list": [], "melt_list": [], "lobvol": [], "hooks": [], "link_busy": false, "vid": 0})
+	return h
+
+
+# ---------------------------------------------------------------- 常驻（data_operator._sustain 末尾转来）：本帧生效的叠层安魂
+static func hw_sustain(o, act: Array) -> void:
+	if not o.hw.has("links"):
+		return
+	o.hw.rq = {}
+	for b in act:
+		if str(b.get("_tag", "")) == "verb.requiem_stack":
+			o.hw.rq = b
+			break
+
+
+## st.requiem 叠层（hw_status 转来）：返回 true = 已按叠层处理
+static func hw_requiem_stack(o, e: Dictionary, s: Dictionary) -> bool:
+	var h: Dictionary = o.hw
+	var rq: Dictionary = h.get("rq", {})
+	if rq.is_empty():
+		return false
+	var n: int = mini(int(e.get("requiem_n", 0)) + 1, int(rq.get("max", 3))) if float(e.get("requiem", 0.0)) > 0.0 else 1
+	e["requiem_n"] = n
+	e["requiem_k"] = float(rq.get("per", 0.06)) * n
+	e["requiem"] = float(s.dur)
+	var lst: Array = h.rq_list
+	if not lst.any(func(x): return is_same(x, e)):
+		lst.append(e)
+		if lst.size() > 96:
+			lst.pop_front()
+	return true
+
+
+# ---------------------------------------------------------------- verb.link
+
+static func hw_link(o, b: Dictionary) -> void:
+	var h := _hw5(o)
+	var e: Dictionary = h.get("hit_e", {})
+	if e.is_empty() or e.dead:
+		return
+	var n: int = int(b.get("n", 2))
+	var mem: Array = [e]
+	for q in o.nearest_enemies(n + 2, float(b.get("r", 120.0)), e.pos):
+		if mem.size() > n:
+			break
+		if q.dead or is_same(q, e):
+			continue
+		mem.append(q)
+	if mem.size() < 2:
+		return
+	h.links.append({"m": mem, "t": float(b.get("dur", 1.5)), "dur": float(b.get("dur", 1.5)), "b": b, "pulse": {}})
+	while h.links.size() > mini(int(b.get("cap", 4)), HW_LINK_CAP):
+		h.links.pop_front()
+
+
+static func _hw5_links(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	for lk in h.links:
+		lk.t = float(lk.t) - dt
+		for k in lk.pulse.keys():
+			lk.pulse[k] = float(lk.pulse[k]) - dt
+	h.links = h.links.filter(func(lk): return float(lk.t) > 0.0 and lk.m.filter(func(q): return not q.dead).size() >= 2)
+
+
+## 本干员造成伤害之后（data_operator.deal_damage 转来）：链上传递
+static func hw_dealt(o, e: Dictionary, dmg: float) -> void:
+	var h: Dictionary = o.hw
+	if not h.has("links") or h.links.is_empty() or h.link_busy or dmg <= 0.0:
+		return
+	var g = o.g
+	var src: String = str(g.hit.get("src", ""))
+	var hs: Dictionary = o.def.get("hit_sources", {}).get(src, {})
+	var keep = g.hit
+	h.link_busy = true
+	for lk in h.links:
+		var b: Dictionary = lk.b
+		if src in b.get("exclude", []) or not str(hs.get("kind", "")) in b.get("kinds", ["法术"]):
+			continue
+		var at: int = -1
+		for i in lk.m.size():
+			if is_same(lk.m[i], e):
+				at = i
+				break
+		if at < 0:
+			continue
+		for i in lk.m.size():
+			var q: Dictionary = lk.m[i]
+			if i == at or q.dead:
+				continue
+			o.log_hit(str(b.get("src", "")), b.get("tags", []))
+			o.deal_damage(q, dmg * float(b.get("share", 0.3)))
+			lk.pulse[i] = 0.2
+		lk.pulse[at] = 0.2
+	h.link_busy = false
+	g.hit = keep
+
+
+static func hw_draw_links(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("links"):
+		return
+	for lk in h.links:
+		var b: Dictionary = lk.b
+		var al: float = clampf(float(lk.t) / 0.25, 0.0, 1.0) * clampf((float(lk.dur) - float(lk.t)) / 0.12, 0.0, 1.0)
+		var m: Array = lk.m
+		var a0: Dictionary = m[0]
+		if a0.dead:
+			continue
+		var pa: Vector2 = a0.pos + Vector2(0, -float(a0.r) * 0.6)
+		for i in range(1, m.size()):
+			var q: Dictionary = m[i]
+			if q.dead:
+				continue
+			var pb: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+			var tile: String = str(b.get("tile", ""))
+			if tile != "" and g.tex.get(tile) != null:
+				_hw_draw_tiled(o, tile, pa, pb, g.PX, fmod(g.t * 40.0, 16.0 * g.PX), i, Color(1, 1, 1, al))
+				var pl: String = str(b.get("pulse", ""))
+				if pl != "" and g.tex.get(pl) != null and (float(lk.pulse.get(i, 0.0)) > 0.0 or float(lk.pulse.get(0, 0.0)) > 0.0):
+					var k: float = clampf(float(lk.pulse.get(i, lk.pulse.get(0, 0.0))) / 0.2, 0.0, 1.0)
+					_hw_draw_tiled(o, pl, pa, pb, g.PX, 0.0, 0, Color(1, 1, 1, al * k))
+			else:
+				o.cv.draw_line(pa, pb, Color(0.03, 0.03, 0.08, 0.6 * al), 3.0)
+				o.cv.draw_line(pa, pb, Color(HW_PALE.r * 1.4, HW_PALE.g * 1.4, HW_PALE.b * 1.5, 0.8 * al), 1.0)
+		var an: String = str(b.get("anchor", ""))
+		for q in m:
+			if q.dead:
+				continue
+			var p: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+			if an != "" and g.tex.get(an) != null and g.V6_FRAMES.has(an):
+				var spec: Array = g.V6_FRAMES[an]
+				fx_frame(o.cv, g, an, int(spec[0]), int(g.t * float(spec[1])), p, g.PX, Color(1, 1, 1, al))
+			else:
+				o.cv.draw_arc(p, 6.0, 0.0, TAU, 12, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.8 * al), 1.5)
+
+
+## 叠层安魂的头顶符文（look：[1 层, 2 层, 3 层] 帧条，n 层横排 n 枚）
+static func hw_draw_runes(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("rq_list") or h.rq_list.is_empty():
+		return
+	h.rq_list = h.rq_list.filter(func(e): return not e.dead and float(e.get("requiem", 0.0)) > 0.0)
+	var rq: Dictionary = h.get("rq", {})
+	var look: Array = rq.get("look", [])
+	for e in h.rq_list:
+		var n: int = clampi(int(e.get("requiem_n", 1)), 1, 3)
+		var al: float = clampf(float(e.requiem) / 0.4, 0.0, 1.0)
+		var tn: String = str(look[n - 1]) if look.size() >= n else ""
+		var top: Vector2 = e.pos + Vector2(0, -float(e.r) * 2.0 - 12.0)
+		for i in n:
+			var p: Vector2 = top + Vector2((i - (n - 1) * 0.5) * 9.0, 0)
+			if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+				var spec: Array = g.V6_FRAMES[tn]
+				fx_frame(o.cv, g, tn, int(spec[0]), int(g.t * float(spec[1])) + i, p, g.PX, Color(1, 1, 1, al))
+			else:
+				o.cv.draw_rect(Rect2(p - Vector2(2, 3), Vector2(4, 6)), Color(1.3, 1.1, 0.5, 0.9 * al))
+
+
+## 熔蚀：被打中的敌人脚下暗红裂纹（st.fragile kind arts 的 look 帧条：前三成出现、中段停在中间帧、最后 0.3 秒淡出）
+static func hw_melt_mark(o, e: Dictionary, s: Dictionary) -> void:
+	var h := _hw5(o)
+	for m in h.melt_list:
+		if is_same(m.e, e):
+			m.until = float(e.melt_t)
+			m.tn = str(s.get("look", ""))
+			return
+	h.melt_list.append({"e": e, "t0": float(o.g.t), "until": float(e.melt_t), "tn": str(s.get("look", ""))})
+	if h.melt_list.size() > 96:
+		h.melt_list.pop_front()
+
+
+static func hw_draw_melt(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("melt_list") or h.melt_list.is_empty():
+		return
+	h.melt_list = h.melt_list.filter(func(m): return not m.e.dead and float(m.until) > float(g.t))
+	for m in h.melt_list:
+		var tn: String = str(m.tn)
+		var e: Dictionary = m.e
+		var el: float = float(g.t) - float(m.t0)
+		var left: float = float(m.until) - float(g.t)
+		if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+			var spec: Array = g.V6_FRAMES[tn]
+			var nf: int = int(spec[0])
+			var fps: float = float(spec[1])
+			var fr: int = mini(int(el * fps), nf / 2)
+			if left < 0.3:
+				fr = clampi(nf - 1 - int(left / 0.3 * (nf - 1 - nf / 2)), nf / 2, nf - 1)
+			fx_frame(o.cv, g, tn, nf, fr, e.pos + Vector2(0, float(e.r) * 0.6), g.PX * clampf(float(e.r) / 10.0, 1.0, 2.2), Color(1, 1, 1, 0.9))
+		else:
+			o.cv.draw_set_transform(e.pos + Vector2(0, float(e.r) * 0.6), 0.0, Vector2(1.0, 0.45))
+			for q in 3:
+				var a: float = q * TAU / 3.0 + float(e.id) * 0.7
+				o.cv.draw_arc(Vector2.ZERO, float(e.r) + 3.0, a, a + 0.8, 4, Color(0.9, 0.3, 0.1, 0.7 * clampf(left / 0.5, 0.0, 1.0)), 2.0)
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- shape.shell 的 lob（低弧抛射三角落点 + 熔池）
+
+static func hw_lob_volley(o, b: Dictionary, tip: Vector2, P: Vector2, pre: float, aoe: float, oe: Array) -> void:
+	var h := _hw5(o)
+	var lb: Dictionary = b.lob
+	var n: int = int(lb.get("n", 3))
+	var mults: Array = lb.get("mults", [1.0])
+	var R: float = float(lb.get("spacing", 40.0)) / sqrt(3.0)
+	var d: Vector2 = (P - tip).normalized() if P.distance_to(tip) > 1.0 else Vector2(o.face, 0)
+	h.vid = int(h.vid) + 1
+	var vol := {"id": h.vid, "left": n, "P": P, "base": pre * o._dmg_bonus(), "b": b, "aoe": aoe}
+	h.lobvol.append({"vol": vol, "shots": []})
+	var shots: Array = h.lobvol[-1].shots
+	for k in n:
+		var a: float = d.angle() + k * TAU / float(n)
+		var to: Vector2 = P + Vector2(cos(a) * R, sin(a) * R * 0.7)
+		var mk: float = float(mults[mini(k, mults.size() - 1)])
+		shots.append({"to": to, "wait": float(lb.get("gap", 0.12)) * k, "t": -1.0, "dur": float(lb.get("flight", 0.25)), "pre": pre * mk,
+			"aoe": aoe, "oe": oe, "tip": tip - o.pos, "from": tip, "dmg": 0.0, "sz": 1.0 if k == 0 else 1.15})
+
+
+static func _hw5_lobs(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	for v in h.lobvol:
+		var vol: Dictionary = v.vol
+		var b: Dictionary = vol.b
+		var lb: Dictionary = b.lob
+		for s in v.shots:
+			if float(s.t) < 0.0:
+				s.wait = float(s.wait) - dt
+				if float(s.wait) <= 0.0 and o.pos != Vector2.INF:   # 出手：伤害按此刻加成定（同 fire 子弹）
+					s.t = 0.0
+					s.from = o.pos + s.tip
+					s.dmg = float(s.pre) * o._dmg_bonus()
+					if absf(s.to.x - s.from.x) > 1.0:
+						o._set_face(signf(s.to.x - s.from.x))
+					o._sfx_op("atk")
+				continue
+			if float(s.t) >= float(s.dur):
+				continue
+			s.t = float(s.t) + dt
+			if float(s.t) >= float(s.dur):
+				_hw5_lob_land(o, b, s)
+				vol.left = int(vol.left) - 1
+				if int(vol.left) <= 0 and lb.has("pool"):
+					var keep := hw_snap(o)
+					h.hit_dmg = float(vol.base)
+					o._exec_list(lb.pool, vol.P)
+					hw_pop(o, keep)
+	h.lobvol = h.lobvol.filter(func(v): return int(v.vol.left) > 0)
+
+
+## 落地爆炸：同 weapons.gd 的 fire 子弹（登记一次来源，aoe 内每名敌人吃这一发伤害，不乘 vs_elite），再画面与 on_explode
+static func _hw5_lob_land(o, b: Dictionary, s: Dictionary) -> void:
+	var g = o.g
+	var c: Vector2 = s.to
+	var aoe: float = float(s.aoe)
+	o.log_hit(str(b.get("src", "")), b.get("tags", []))
+	for k in o.query_ids(c, aoe + 20.0):
+		var e: Dictionary = g.enemies[k]
+		if not e.dead and e.pos.distance_to(c) < aoe + e.r:
+			o.deal_damage(e, float(s.dmg))
+	o._sfx_op("hit")
+	var lb: Dictionary = b.lob
+	if lb.has("boom_fx"):
+		fx_play(o, lb.boom_fx, c, aoe)
+	hw_shell_boom(o, {"pos": c, "dmg": float(s.dmg), "aoe": aoe, "hw_b": {}, "hw_oe": s.oe})
+
+
+static func hw_draw_lobs(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("lobvol"):
+		return
+	for v in h.lobvol:
+		var lb: Dictionary = v.vol.b.lob
+		var tn: String = str(lb.get("tex", ""))
+		var apex: float = float(lb.get("apex", 20.0))
+		for s in v.shots:
+			if float(s.t) < 0.0 or float(s.t) >= float(s.dur):
+				continue
+			var k: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
+			var gp: Vector2 = (s.from as Vector2).lerp(s.to, k)
+			var hh: float = sin(k * PI) * apex
+			o.cv.draw_set_transform(gp + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+			o.cv.draw_circle(Vector2.ZERO, 6.0 * float(s.sz) * (1.0 - 0.3 * hh / maxf(1.0, apex)), Color(0.08, 0.03, 0.02, 0.45))
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			var p: Vector2 = gp + Vector2(0, -hh - 8.0)
+			if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+				var spec: Array = g.V6_FRAMES[tn]
+				fx_frame(o.cv, g, tn, int(spec[0]), int(float(g.t) * float(spec[1])), p, g.PX * float(s.sz), Color.WHITE)
+			else:
+				o.cv.draw_circle(p, 9.0 * float(s.sz), Color(1.6, 0.55, 0.12, 0.3))
+				o.cv.draw_circle(p, 5.5 * float(s.sz), Color(2.2, 0.8, 0.2, 0.95))
+				o.cv.draw_circle(p, 2.5 * float(s.sz), Color(2.8, 2.3, 1.4))
+
+
+# ---------------------------------------------------------------- shape.hookshot（乌尔比安精二「掷锚」）
+
+static func hw_hook_start(o, b: Dictionary) -> void:
+	var g = o.g
+	var h := _hw5(o)
+	if o.pos == Vector2.INF or h.hooks.size() >= HW_HOOK_MAX:
+		return
+	var rr: float = float(b.get("range", 160.0)) * o.stat(&"op_range")
+	var md: float = float(b.get("min_d", 160.0)) * o.stat(&"op_range")
+	var best: Dictionary = {}
+	var bd := -1.0
+	for e in o.nearest_enemies(24, rr, o.pos):
+		var dd: float = e.pos.distance_to(o.pos)
+		if dd >= md and dd > bd:
+			bd = dd
+			best = e
+	if best.is_empty():
+		var ts: Array = o.nearest_enemies(1, rr, o.pos)
+		if ts.is_empty():
+			return
+		best = ts[0]
+	var to: Vector2 = best.pos
+	var hv = b.get("hand", [33, -33])
+	var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
+	if absf(to.x - o.pos.x) > 2.0:
+		o._set_face(signf(to.x - o.pos.x), true)
+	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
+	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk")))})
+	if b.has("fx"):
+		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
+
+
+static func _hw5_hooks(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	for hk in h.hooks:
+		var b: Dictionary = hk.b
+		hk.t = float(hk.t) + dt
+		var k: float = clampf(float(hk.t) / float(hk.dur), 0.0, 1.0)
+		match str(hk.phase):
+			"fly":
+				hk.head = (hk.from as Vector2).lerp(hk.to, k) + Vector2(0, -sin(k * PI) * float(b.get("apex", 24.0)))
+				if k >= 1.0:
+					_hw5_hook_impact(o, hk)
+			"taut":
+				if k >= 1.0:
+					_hw5_hook_drag_start(o, hk)
+			"drag":
+				var kr: float = 1.0 - (1.0 - k) * (1.0 - k)
+				hk.head = (hk.to as Vector2).lerp(hk.front, kr)
+				for dg in hk.drag:
+					var e: Dictionary = dg.e
+					if e.dead:
+						continue
+					e.pos = (dg.from as Vector2).lerp(dg.spot, kr)
+					e.kb = Vector2.ZERO
+					e.stun = maxf(e.stun, 0.15)
+					dg.dust = float(dg.get("dust", 0.0)) - dt
+					if float(dg.dust) <= 0.0 and b.has("dust_fx"):
+						dg.dust = 0.07
+						fx_play(o, b.dust_fx, e.pos, float(e.r), [e])
+				if k >= 1.0:
+					_hw5_hook_arrive(o, hk)
+					hk.phase = "done"
+	h.hooks = h.hooks.filter(func(hk): return str(hk.phase) != "done")
+
+
+static func _hw5_hook_impact(o, hk: Dictionary) -> void:
+	var g = o.g
+	var b: Dictionary = hk.b
+	var c: Vector2 = hk.to
+	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var hits: Array = o.area_hit(str(b.get("src", "")), c, r, float(hk.dmg) * float(b.get("mult", 1.2)), float(b.get("kb", 0.0)), 0.0, b.get("tags", []))
+	if b.has("impact_fx"):
+		fx_play(o, b.impact_fx, c, r, hits)
+	hk.phase = "taut"
+	hk.t = 0.0
+	hk.dur = float(b.get("taut", 0.2))
+	hk.head = c
+
+
+static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
+	var g = o.g
+	var b: Dictionary = hk.b
+	if o.pos == Vector2.INF:
+		hk.phase = "done"
+		return
+	var a: Vector2 = o.pos
+	var c: Vector2 = hk.to
+	var L: float = a.distance_to(c)
+	var d: Vector2 = (c - a) / maxf(1.0, L)
+	var w: float = float(b.get("w", 40.0))
+	var front: Vector2 = a + d * float(b.get("front", 60.0))
+	var got: Array = []
+	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or not _movable(e) or not line_contains(a, d, L, w, e.pos, float(e.r)):
+			continue
+		if e.pos.distance_to(a) <= float(b.get("front", 60.0)):
+			continue   # 已经在身前的不拖
+		got.append(e)
+	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
+	var mx: int = int(b.get("max_n", 12))
+	for i in mini(mx, got.size()):
+		var e: Dictionary = got[i]
+		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
+		var spot: Vector2 = front + d * (float(e.r) * 0.5) + d.orthogonal() * side * 14.0 + d * absf(side) * 6.0
+		hk.drag.append({"e": e, "from": e.pos, "spot": spot})
+	hk.phase = "drag"
+	hk.t = 0.0
+	hk.dur = float(b.get("drag", 0.18))
+	hk.front = front
+
+
+static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
+	var b: Dictionary = hk.b
+	var dmg: float = float(hk.dmg) * float(b.get("back_mult", 0.4))
+	var src: String = str(b.get("back_src", b.get("src", "")))
+	var ve: float = o.vs_elite()
+	var hits: Array = []
+	for dg in hk.drag:
+		var e: Dictionary = dg.e
+		if e.dead:
+			continue
+		o.log_hit(src, b.get("tags", []))
+		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+		hits.append(e)
+	if b.has("arrive_fx") and not hits.is_empty():
+		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+
+
+static func hw_attack_locked(o) -> bool:
+	if not o.hw.has("hooks"):
+		return false
+	for hk in o.hw.hooks:
+		if hk.b.get("lock", false):
+			return true
+	return false
+
+
+static func hw_draw_hooks(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("hooks") or o.pos == Vector2.INF:
+		return
+	for hk in h.hooks:
+		var b: Dictionary = hk.b
+		var hv = b.get("hand", [33, -33])
+		var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
+		var p: Vector2 = (hk.head as Vector2) + Vector2(0, -6)
+		var tile: String = str(b.get("chain", ""))
+		var taut: bool = str(hk.phase) != "fly"
+		if tile != "" and g.tex.get(tile) != null:
+			var shake: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
+			_hw_draw_tiled(o, tile, hand, p + shake, g.PX, 0.0, 0, Color.WHITE, 1 if taut else 0)
+		else:
+			_hw_draw_chain(o, hand, p, 1.0)
+		for dg in hk.drag:
+			if str(hk.phase) == "drag" and not dg.e.dead:
+				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
+		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
+		_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
+
+
+# ---------------------------------------------------------------- 每帧（hw_tick 末尾转来）
+
+static func _hw5_tick(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	if not h.links.is_empty():
+		_hw5_links(o, dt)
+	if not h.lobvol.is_empty():
+		_hw5_lobs(o, dt)
+	if not h.hooks.is_empty():
+		_hw5_hooks(o, dt)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in HW5_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"verb.requiem_stack": ["sustain", "skill"],
+		"verb.link": ["instant"],
+		"shape.hookshot": ["skill", "instant"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"verb.requiem_stack":
+			_num(b, "per", p, ctx, true, 0.0, 1.0)
+			_num(b, "max", p, ctx, true, 1.0, 10.0)
+			var lk = b.get("look", [])
+			if not (lk is Array) or lk.any(func(x): return not str(x).begins_with("fx_")):
+				errs.append(p + ".look 必须是 fx_* 帧条名的数组（按层数分档）")
+		"verb.link":
+			_num(b, "n", p, ctx, true, 1.0, 6.0)
+			_num(b, "r", p, ctx, true, 1.0, 600.0)
+			_num(b, "dur", p, ctx, true, 0.1, 10.0)
+			_num(b, "share", p, ctx, true, 0.0, 2.0)
+			_num(b, "cap", p, ctx, false, 1.0, float(HW_LINK_CAP))
+			for k in ["tile", "pulse", "anchor"]:
+				if b.has(k) and not str(b[k]).begins_with("fx_"):
+					errs.append("%s.%s 必须是 fx_* 帧条名" % [p, k])
+			_src(b, p, ctx, true)
+		"shape.hookshot":
+			_num(b, "range", p, ctx, true, 10.0, 1000.0)
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "back_mult", p, ctx, false, 0.0, 20.0)
+			_num(b, "w", p, ctx, false, 1.0, 200.0)
+			_num(b, "taut", p, ctx, false, 0.0, 2.0)
+			_num(b, "drag", p, ctx, false, 0.02, 2.0)
+			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			if b.has("chain") and not str(b.chain).begins_with("fx_"):
+				errs.append(p + ".chain 必须是 fx_* 帧条名")
+			_src(b, p, ctx, true)
+			if b.has("back_src") and not ctx.srcs.has(str(b.back_src)):
+				errs.append("%s.back_src「%s」没在 hit_sources 里登记" % [p, str(b.back_src)])
+			for k in ["fx", "impact_fx", "arrive_fx", "dust_fx"]:
+				if b.has(k) and k != "fx":
+					_fx(b[k], p + "." + k, ctx, "shape.circle")
 	return true

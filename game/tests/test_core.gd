@@ -940,6 +940,22 @@ func test_blocks_handwritten() -> void:
 		["ulpianus", "光环 per 写错", func(d): d.blocks.talent[1].do[0]["per"] = "kills"],
 		["ulpianus", "掷锚放进触发 do", func(d): d.blocks.talent[0].do.append(d.blocks.skills[0].do[0].duplicate(true))],
 		["ulpianus", "center 写错", func(d): d.blocks.attack["center"] = "ahead"],
+		# 精英化第 2 批段（docs/61 §18）
+		["logos", "叠层安魂缺 per", func(d): d.blocks.progression.elite1.do[0].erase("per")],
+		["logos", "叠层安魂 look 不是帧条", func(d): d.blocks.progression.elite1.do[0]["look"] = ["rune"]],
+		["logos", "咒文链缺 share", func(d): d.blocks.attack.then[2].erase("share")],
+		["logos", "咒文链放进常驻", func(d): d.blocks.progression.elite1.do.append(d.blocks.attack.then[2].duplicate(true))],
+		["eyjafjalla", "低抛缺 flight", func(d): d.blocks.attack.lob.erase("flight")],
+		["eyjafjalla", "低抛 mults 不是数组", func(d): d.blocks.attack.lob["mults"] = 1.4],
+		["eyjafjalla", "低抛弹体不是 proj_", func(d): d.blocks.attack.lob["tex"] = "fx_eyja_lava_pool"],
+		["eyjafjalla", "熔池缺 every", func(d): d.blocks.attack.lob.pool[0].erase("every")],
+		["skadi", "潮刃 fan 不是数组", func(d): d.blocks.progression.elite2[0].do[0]["fan"] = 25],
+		["skadi", "潮刃 from 写错", func(d): d.blocks.progression.elite2[0].do[0]["from"] = "target"],
+		["skadi", "潮刃弹体不是 proj_", func(d): d.blocks.progression.elite2[0].do[0]["proj"] = "fx_skadi_surge_hit"],
+		["ulpianus", "掷锚缺 range", func(d): d.blocks.progression.elite2.do[0].erase("range")],
+		["ulpianus", "掷锚 back_src 没登记", func(d): d.blocks.progression.elite2.do[0]["back_src"] = "回收"],
+		["ulpianus", "掷锚 basis 写错", func(d): d.blocks.progression.elite2.do[0]["basis"] = "anchor"],
+		["ulpianus", "掷锚放进常驻", func(d): d.blocks.progression.elite1 = {"trig": "passive", "do": [d.blocks.progression.elite2.do[0].duplicate(true)]}],
 	]
 	for bd in bads:
 		var d2: Dictionary = defs[bd[0]].duplicate(true)
@@ -958,3 +974,15 @@ func test_blocks_handwritten() -> void:
 	ok(mv is Array and float(mv[0]) == 2.0 and float(mv[1]) == 0.5, "数组里的 $ 表达式编译成数字")
 	# 法术弹后续弹 / 地面池的同组上限：只用纯数据检查（运行时行为由 blocks_eq 同 seed 对照覆盖）
 	ok(OB.HW2_TAGS.has("shape.pool") and OB.HW3_TAGS.has("verb.lock") and OB.HW4_TAGS.has("verb.tether") and OB.HW_TAGS.has("trig.on_combo_end"), "手写迁移段的积木都登记了")
+	ok(OB.HW5_TAGS.has("verb.requiem_stack") and OB.HW5_TAGS.has("verb.link") and OB.HW5_TAGS.has("shape.hookshot"), "精英化第 2 批段的积木都登记了")
+	# 精一 / 精二形态挂在 elite1 / elite2 上：精零不生效（_trigs 只在 elite 达到时收进来）
+	for id in ["skadi", "ulpianus"]:
+		var pg: Dictionary = defs[id].blocks.progression
+		ok(pg.has("elite1") and pg.has("elite2"), "精英化第 2 批：%s 有精一 / 精二积木" % id)
+	ok(defs["logos"].blocks.progression.has("elite1") and defs["logos"].blocks.attack.then.any(func(x): return str(x.get("verb", "")) == "link" and str(x.get("cond", "")) == "elite >= 2"),
+		"逻各斯精一叠层安魂、精二连缀（命中 then 里 elite >= 2）")
+	ok(defs["eyjafjalla"].blocks.attack.has("lob") and str(defs["eyjafjalla"].blocks.attack.lob.get("cond", "")) == "elite >= 2", "艾雅法拉精二低抛只在精二生效")
+	for id in ["logos", "eyjafjalla", "skadi", "ulpianus"]:
+		for n in defs[id].progression:
+			if n.get("type", "") == "elite":
+				ok(n.has("attack") and str(n.attack.get("name", "")) != "" and str(n.attack.get("desc", "")) != "", "精英化第 2 批：%s 精%d 节点有普攻卡" % [id, int(n.level)])
