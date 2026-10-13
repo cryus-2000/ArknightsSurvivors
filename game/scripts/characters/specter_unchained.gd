@@ -294,7 +294,7 @@ func anim_state() -> Dictionary:
 		if tx != null:
 			var n: int = anim_hframes(tx, "fall")
 			var fr: int = clampi(int((_fall_dur() - fall_t) * float(sprite_spec("fall").get("fps", 10))), 0, n - 1)
-			return {"tex": tx, "frame": fr, "hf": n, "flip": face < 0.0, "kind": "fall"}
+			return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror("fall"), "kind": "fall"}
 	return super()
 
 

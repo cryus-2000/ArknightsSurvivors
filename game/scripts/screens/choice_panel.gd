@@ -681,7 +681,8 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 func op_idle(cid: String) -> Dictionary:
 	if cid == "" or not Character.list_ids().has(cid):
 		return {}
-	var sp = Character.load_def(cid).get("sprites", {}).get("idle", null)
+	var cdef: Dictionary = Character.load_def(cid)
+	var sp = cdef.get("sprites", {}).get("idle", null)
 	if sp == null:
 		return {}
 	var tn: String = sp if sp is String else sp.get("tex", "")
@@ -694,6 +695,8 @@ func op_idle(cid: String) -> Dictionary:
 	var frames: int = int(sp.get("frames", 0)) if sp is Dictionary else 0
 	if frames <= 0:
 		frames = maxi(1, tx.get_width() / tx.get_height())
+	if Character.strip_mirror(cdef, "idle"):
+		tx = A.mirror_strip(tx, frames)   # 待机条画反了（docs/84）：用镜像副本
 	return {"tex": tx, "fw": tx.get_width() / frames, "fh": tx.get_height()}
 
 

@@ -1547,6 +1547,8 @@ func _open_op_pick(for_cover := false) -> void:
 				frames = int(idle.frames)
 			elif tx != null:
 				frames = max(1, tx.get_width() / tx.get_height())
+			if Character.strip_mirror(d, "idle"):
+				tx = A.mirror_strip(tx, frames)   # 待机条画反了（docs/84）：立绘 / 编队小像用镜像副本
 			var cls: String = d.get("class", "")
 			var col: Color = Character.CLASS_COL.get(cls, UI.CYAN)
 			var cc = d.get("col", null)

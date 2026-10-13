@@ -922,7 +922,15 @@ func status_items() -> Array:
 func portrait() -> Dictionary:
 	var spec := sprite_spec("idle")
 	var tx: Texture2D = anim_tex("idle")
-	return {"tex": spec.get("tex", ""), "frames": anim_hframes(tx, "idle") if tx != null else 1}
+	var n: int = anim_hframes(tx, "idle") if tx != null else 1
+	var tn: String = spec.get("tex", "")
+	if tx != null and sprite_mirror("idle"):
+		# 待机条画反了（docs/84）：头像用镜像副本，登记进 g.tex（HUD 按名字取图）
+		var mn: String = tn + "~mirror"
+		if not g.tex.has(mn):
+			g.tex[mn] = A.mirror_strip(tx, n)
+		tn = mn
+	return {"tex": tn, "frames": n}
 
 
 # ---------------------------------------------------------------- 跟随与动画（squad.gd 调用）
@@ -1184,6 +1192,18 @@ func sprite_spec(kind: String) -> Dictionary:
 	return v
 
 
+## 帧条朝向标记（2026-10-13，docs/84）：sprites.<kind>.mirror = true 表示这条帧条画成了朝左（约定一律朝右），
+## 绘制时把它当作已翻转处理：战斗里翻转标志取反（脚底锚点 foot 按源图量，foot_dx 随翻转自动换算成 宽 − x），
+## 界面贴图用 A.mirror_strip 的镜像副本。美术返修交付后删掉标记即可
+static func strip_mirror(d: Dictionary, kind: String) -> bool:
+	var v = d.get("sprites", {}).get(kind, null)
+	return v is Dictionary and bool(v.get("mirror", false))
+
+
+func sprite_mirror(kind: String) -> bool:
+	return strip_mirror(def, kind)
+
+
 func anim_tex(kind: String) -> Texture2D:
 	var spec := sprite_spec(kind)
 	if spec.is_empty():
@@ -1215,7 +1235,7 @@ func anim_state() -> Dictionary:
 			fr = int(run_ph) % n
 		_:
 			fr = int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n
-	return {"tex": tx, "frame": fr, "hf": n, "flip": face < 0.0, "kind": kind}
+	return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 
 
 ## 跑步帧率缩放（2026-09-27）：帧条按 RUN_REF 移速画，实际速度按比例加快 / 放慢
@@ -1294,12 +1314,13 @@ func _sample_motion(vel: Vector2, dt: float) -> void:
 			ghosts.push_front({"p": pos, "st": st, "age": 0.0})
 
 
-## 在别处画一份当前帧（分身 / 残影）
+## 在别处画一份当前帧（分身 / 残影）：flip = 朝左；帧条带 mirror 标记时在这里取反
 func draw_body_at(p: Vector2, flip: bool, col: Color, st: Dictionary = {}) -> void:
 	if st.is_empty():
 		st = anim_state()
 	if st.is_empty():
 		return
+	flip = flip != sprite_mirror(str(st.get("kind", "")))
 	draw_sprite_at(p + Vector2(foot_dx(st, flip), 0), flip, col, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 
