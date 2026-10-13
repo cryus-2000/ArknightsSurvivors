@@ -9,6 +9,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
+const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -48,7 +49,12 @@ var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
-var outline_skip := false         # 活着的敌人 ≥ fx/outline_max：普通怪不画描边（Boss / 精英 / 部件照画），docs/50 §9.8
+var outline_skip := false         # 旧写法（--optold 位 OPT_OUTLINE）：活着的敌人 ≥ fx/outline_max 时普通怪不画描边，docs/50 §9.8
+## 普通怪 / 精英描边（docs/50 §12 A，用户 10-13「怪物取消描边」）：正常游戏恒为 false——只有 Boss 和部件画描边（受「轮廓光」开关）；
+## 只有同局对照的旧写法（g.opt_old & OPT_OUTLINE）才为 Cfg.outline，照原来的 fx/outline_max 满屏降级画
+var ol_norm := false
+var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
+var atlas: EnemyAtlas = null      # 普通怪 / 精英帧条图集（docs/50 §12 B，build_enemy_atlas）；null = 全走原帧条贴图
 var dc_on := true                 # 敌人画法缓存（docs/50 §9.9）：balance.json fx/enemy_draw_cache（缺省 1），0 = 全走原路径（对照用）
 var dc_check := false             # --dccheck：抽查缓存路径与原路径发出的贴图绘制参数，不一致报 SCRIPT ERROR（快检冒烟开着）
 var dc_checked := 0               # --dccheck 实际比对的次数（BALANCE prof.dc_checked）
@@ -172,8 +178,11 @@ func update_visuals(dt: float) -> void:
 	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	# 满屏降级（性能 docs/50 §9.8：普通怪的描边贴图和本体贴图交替，每只多一次绘制调用）；回差 10 只，免得在阈值上来回闪
+	ol_norm = Cfg.outline and (g.opt_old & Game.OPT_OUTLINE) != 0
 	var omax: float = Bal.v("fx/outline_max", 150.0)
-	if ne >= omax:
+	if not ol_norm:
+		outline_skip = false
+	elif ne >= omax:
 		outline_skip = true
 	elif ne < omax - 10.0:
 		outline_skip = false
@@ -719,6 +728,7 @@ func _draw_shadows(evr: Rect2) -> void:
 
 ## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
 func _draw_sorted_entities(evr: Rect2) -> void:
+	_afast = atlas != null and not (g.opt_old & Game.OPT_ATLAS) and not _dbg_enemy and not _no_flash and EnemyAtlas.xform_flip
 	var dl: Array = []
 	for e in g.enemies:
 		if evr.has_point(e.pos) or dc_check:   # --dccheck：不按视野剔除（快检是无头模式，视口太小，敌人全被剔掉，自检就跑不到）
@@ -1561,7 +1571,7 @@ func enemy_scale(e: Dictionary) -> float:
 ## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
 ## 不进缓存、走 _draw_enemy_full 原路径（_dc_ok）：Boss、宝箱、部件、潜地、骑士（专用帧条）、DC_SKIP_TYPES，
 ## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 / 灯边硬直（bstag，docs/56 §10）里的敌人。
-## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、outline_skip、Cfg.outline。
+## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、outline_skip、ol_norm（普通怪 / 精英描边，正常游戏恒 false）。
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
 const DC_SKIP_TYPES := ["carmen", "iberia", "izumik", "path", "ishar", "paranoia"]
 
@@ -1580,7 +1590,7 @@ func draw_enemy(e: Dictionary) -> void:
 		e.dpos = e.pos
 	var moving: bool = e.tex_move and g.t < e.mv_until and e.stun <= 0.0 and not e.coma
 	var c = e.get("dc")
-	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != outline_skip or c[7] != Cfg.outline:
+	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != outline_skip or c[7] != ol_norm:
 		c = _dc_compute(e, moving)
 		e["dc"] = c
 	if dc_check and (e.id + Engine.get_process_frames()) % 8 == 0:
@@ -1641,9 +1651,11 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
-	var ol: bool = Cfg.outline and g.tex.has(name + "_white") and (e.elite or not outline_skip)
-	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, outline_skip, Cfg.outline,
-		name, frames, fps, col, sc, anc, off, ol, name + "_white"]
+	var ol: bool = ol_norm and g.tex.has(name + "_white") and (e.elite or not outline_skip)
+	var ra = atlas.reg.get(name) if atlas != null else null   # [17] / [18]：图集里的本体 / 白剪影区域（docs/50 §12 B），不在图集里为 null
+	var rw = atlas.reg.get(name + "_white") if atlas != null else null
+	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, outline_skip, ol_norm,
+		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw]
 
 
 ## 按缓存发绘制：和 _draw_enemy_full 末段同序（描边 → 本体 → 白闪 → 词条 → 弱点）
@@ -1660,9 +1672,31 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		if not e.elite:
 			oc.a *= ol_mul
 		_espr_outline(c[8], frames, frame, bpos, sc, flip, oc, anc, Vector2.ONE)
-	_espr(c[8], frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
-	if e.flash > 0.0:
-		_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
+	var ra = c[17]
+	if ra != null and _afast and _rec == null:
+		# 图集快速路径（docs/50 §12 B）：本体和白闪直接按缓存的图集区域画，几何与 vfx.spr 相同；翻转时两次绘制共用一对变换
+		var fw: int = ra[2] / frames
+		var o: Vector2i = ra[1]
+		var src := Rect2(o.x + fw * frame, o.y, fw, ra[3])
+		var size := Vector2(fw, ra[3]) * sc
+		var p: Vector2 = bpos + g.draw_off
+		var rw = c[18] if e.flash > 0.0 else null
+		if flip:
+			g.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
+			var rf := Rect2(-size * anc, size)
+			g.draw_texture_rect_region(ra[0], rf, src, c[11] * _act_mod)
+			if rw != null:
+				g.draw_texture_rect_region(rw[0], rf, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			var rn := Rect2((p - size * anc).round(), size)
+			g.draw_texture_rect_region(ra[0], rn, src, c[11] * _act_mod)
+			if rw != null:
+				g.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
+	else:
+		_espr(c[8], frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
+		if e.flash > 0.0:
+			_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
 	if _rec == null and e.affix != "":
 		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.weak
@@ -1682,7 +1716,39 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 		return
 	if _dbg_enemy:
 		col.a = 0.0   # --clutterdbg=noenemy（量测）
+	if atlas != null and not (g.opt_old & Game.OPT_ATLAS):
+		var r = atlas.reg.get(name)
+		if r != null:
+			EnemyAtlas.spr(g, r, frames, frame, pos + g.draw_off, sc, flip, col * _act_mod, anc, sq)
+			return
 	g.vfx.spr(name, frames, frame, pos, sc, flip, col * _act_mod, anc, sq)
+
+
+## 普通怪 / 精英帧条图集（docs/50 §12 B）：开局贴图载完后建一次。Boss（大帧条、网页版推迟加载）和骑士（专用帧条）不进；
+## 无头模式不画，不建。进图集的帧条：本体、_move / _attack 等变体、休眠 / 唤醒 / 狂暴 / 假死，各自连同白剪影
+func build_enemy_atlas() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var t0 := Time.get_ticks_usec()
+	var names: Array = []
+	for k in D.ENEMIES:
+		var d: Dictionary = D.ENEMIES[k]
+		if str(d.get("role", "")) == "boss" or d.get("boss", false) or d.tex == "e_knight" or k in DC_SKIP_TYPES:
+			continue
+		var base: String = d.tex
+		for sfx in ["", "_feign", "_dormant", "_awaken", "_enraged"] + Game.ENEMY_SUFFIXES:
+			if sfx == "_death" or names.has(base + sfx):
+				continue
+			if g.tex.get(base + sfx) != null:
+				names.append(base + sfx)
+	EnemyAtlas.xform_flip = not Cfg.dev_args().has("--atlasflip=neg")
+	atlas = EnemyAtlas.new()
+	atlas.build(g.tex, names)
+	if atlas.reg.is_empty():
+		atlas = null
+		return
+	if Cfg.dev_args().has("--atlasinfo"):
+		print("ENEMY_ATLAS strips=%d/%d size=%s px=%d ms=%.1f" % [atlas.n_strips, names.size(), str(atlas.tex_body.get_size()), atlas.px_used, (Time.get_ticks_usec() - t0) / 1000.0])
 
 
 func _espr_outline(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
@@ -1925,7 +1991,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.draw_circle(e.pos, e.r * (1.3 + 0.5 * hb), Color(PART_COL.r * 1.4, PART_COL.g * 1.4, PART_COL.b * 1.4, 0.22 + 0.3 * hb))
 		if not Cfg.outline and g.tex.has(name + "_white"):
 			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
-	if Cfg.outline and g.tex.has(name + "_white") and (e.elite or e.boss or e.get("part", false) or not outline_skip):
+	# 描边只给 Boss 和部件（docs/50 §12 A：普通怪 / 精英取消描边，少一层贴图切换）；ol_norm 只在同局对照的旧写法里为真
+	if Cfg.outline and g.tex.has(name + "_white") and (e.boss or e.get("part", false) or (ol_norm and (e.elite or not outline_skip))):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）

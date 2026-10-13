@@ -418,6 +418,8 @@ const OPT_GEMDRAW := 2    # 掉落物绘制
 const OPT_CLEANUP := 4    # 清理死亡实体
 const OPT_ENEMY := 8      # 敌人更新
 const OPT_DRAW := 16      # 其他绘制
+const OPT_OUTLINE := 32   # 普通怪 / 精英描边（docs/50 §12 A：新 = 不画；旧 = 照 fx/outline_max 满屏降级画）——会改画面，只供同局量帧时间
+const OPT_ATLAS := 64     # 普通怪 / 精英帧条图集（docs/50 §12 B：新 = 图集取帧；旧 = 各自的帧条贴图），画面相同
 var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
@@ -506,6 +508,11 @@ func _web_early_enemy_tex() -> Dictionary:
 			early[d.tex] = true
 	if D.ENEMIES.has("knight"):
 		early[D.ENEMIES.knight.tex] = true
+	# 普通怪 / 精英（Boss 除外）全部预载（docs/50 §12）：帧条合计约 0.2 M 像素，开局要拼进敌人图集；推迟加载留给 Boss 的大帧条
+	for k in D.ENEMIES:
+		var dk: Dictionary = D.ENEMIES[k]
+		if str(dk.get("role", "")) != "boss" and not dk.get("boss", false):
+			early[dk.tex] = true
 	return early
 
 
@@ -662,6 +669,7 @@ func _ready() -> void:
 			continue
 		_load_enemy_tex(n)
 
+	world.build_enemy_atlas()   # 普通怪 / 精英帧条图集（docs/50 §12 B）
 	A.mark("tex_enemies")
 	var cm := CanvasModulate.new()
 	cm.color = map.ambient
