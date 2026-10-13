@@ -8,14 +8,15 @@
  "col": [1.0, 0.55, 0.2],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
+  "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 29, "cd": 1.1, "dash_len": 140, "dash_w": 44, "dash_t": 0.18, "dash_hold": 0.15, "hit_sp": 0.6,
   "s1_r": 130, "s1_mult": 1.6, "s1_stun": 0.5, "s1_sp": 0.10,
   "s2_len": 0.4, "s2_mult": 1.3, "s2_cd_mult": 0.8,
   "s3_dur": 8.0, "s3_every": 0.5, "s3_mult": 0.9, "s3_stun": 0.3, "s3_sp": 0.4, "s3_end_mult": 1.6,
   "talent_cd": 2.5, "talent_sp": 0.8, "talent_many": 3, "talent_many_sp": 0.3,
   "n1_w": 1.3, "n2_mult": 1.15,
-  "back_delay": 0.2, "back_mult": 0.5, "rain2_delay": 0.3, "rain2_mult": 0.6, "trail_life": 0.6, "trail_mult": 0.3, "trail_slow": 0.5
+  "back_delay": 0.2, "back_mult": 0.5, "rain2_delay": 0.3, "rain2_mult": 0.6, "trail_life": 0.6, "trail_mult": 0.15, "trail_slow": 0.5,
+  "pin_dur": 0.4, "rain_step": 40, "rain_r": 30, "rain_mult": 0.25, "rain_mult_s3": 0.2, "rain_stun": 0.2, "rain_fall": 0.1, "rain_gap": 0.03
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -41,15 +42,18 @@
   "剑雨滂沱": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "stun"]},
   "战术快递": {"emitter": "operator", "origin": "talent", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
   "回马剑": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up", "pierce"]},
-  "余像": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "dot", "control"]}
+  "余像": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "dot", "control"]},
+  "余像·剑雨": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area", "stun"]}
  },
  "progression": [
   {"type": "custom", "id": "wide", "name": "阔剑", "icon": "growth_b_range", "desc": "冲刺宽度 +30%"},
   {"type": "custom", "id": "sharp", "name": "利刃", "icon": "growth_b_size", "desc": "伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 2.5 秒自动冲进敌群并为全队回技力"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 2.5 秒自动冲进敌群并为全队回技力；冲刺穿过的第一名敌人停顿 0.4 秒（精英减半，Boss 除外）",
+   "attack": {"name": "钉剑", "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 0.4 秒（精英减半，Boss 除外）"}},
   {"type": "custom", "id": "back", "name": "回马剑", "icon": "growth_b_echo", "desc": "疾行斩冲到头 0.2 秒后原路反冲一次（50% 伤害）"},
   {"type": "custom", "id": "rain2", "name": "剑雨·连", "icon": "skill_texas_s1", "desc": "「剑雨」0.3 秒后在她脚下再落一次（60% 伤害）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 0.6 秒剑气残像，踩进的敌人受 30% 伤害并减速"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 0.6 秒剑气残像，踩进的敌人受 15% 伤害并减速；残像消散时沿路径每 40 落下一柄剑（25% 伤害，眩晕 0.2 秒，精英减半，Boss 除外）",
+   "attack": {"name": "余像·剑雨", "desc": "冲刺路径上留下 0.6 秒剑气残像（15% 伤害并减速）；残像消散时沿路径每 40 落下一柄源石剑：25% 伤害，眩晕 0.2 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 20%"}}
  ],
  "gallery": {"tags": ["近战", "位移", "穿透", "技力"], "desc": "冲刺穿过敌阵为全队回技力；不用你按，她每隔几秒自己冲进敌群"},
  "blocks": {
@@ -96,8 +100,23 @@
    "rain2": {"trig": "on_skill_start", "skill": 0, "delay": "$rain2_delay", "do": [
     {"shape": "circle", "center": "self", "r": "$s1_r", "mult": "$rain2_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
     {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "self", "density": 2.0, "on_enemies": 0.5, "stagger": 0.3, "fall": 80, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.6, "streak": 1, "alpha": 0.75, "scorch": 0.3}]},
+   "elite1": {"verb": "dash_mod", "_doc": "钉剑（docs/91 §16）：每次冲刺（普攻 / 战术快递 / 剑雨滂沱 / 回马剑）扫到的第一名敌人停顿，身上插一柄源石剑，消失时碎成红光",
+    "on_hit": [{"st": "stun", "dur": "$pin_dur", "first_only": true, "fx": [
+     {"strip": "fx_texas_pin_sword", "anchor": [6, 22], "off": [0, -8], "scale": 1.15, "stay": "$pin_dur"},
+     {"strip": "fx_texas_pin_shatter", "off": [0, -18], "delay": "$pin_dur"},
+     {"strip": "fx_texas_rain_mark", "if_tex": "!fx_texas_pin_sword", "layer": "floor", "scale": 0.8}]}]},
    "elite2": {"trig": "on_dash_end", "do": [
-    {"verb": "trail", "life": "$trail_life", "mult": "$trail_mult", "src": "余像", "tags": ["dot"], "on_hit": [{"st": "slow", "dur": "$trail_slow"}]}]}
+    {"verb": "trail", "life": "$trail_life", "mult": "$trail_mult", "src": "余像", "tags": ["dot"], "on_hit": [{"st": "slow", "dur": "$trail_slow"}],
+     "_doc": "余像·剑雨（docs/91 §16）：残像消散时沿路径每 rain_step 落一柄剑，从起点到终点间隔 rain_gap 秒；伤害在各自落地时结算",
+     "on_expire": [
+      {"shape": "circle", "center": "path", "step": "$rain_step", "r": "$rain_r", "delay": "$rain_fall", "stagger": "$rain_gap", "mult": "$rain_mult", "cond": "!skill_active:2",
+       "ring": false, "src": "余像·剑雨", "tags": ["basic"], "on_hit": [{"st": "stun", "dur": "$rain_stun"}]},
+      {"shape": "circle", "center": "path", "step": "$rain_step", "r": "$rain_r", "delay": "$rain_fall", "stagger": "$rain_gap", "mult": "$rain_mult_s3", "cond": "skill_active:2",
+       "ring": false, "src": "余像·剑雨", "tags": ["basic"], "on_hit": [{"st": "stun", "dur": "$rain_stun"}]},
+      {"verb": "fx_rain", "along": "path", "step": "$rain_step", "if_tex": "fx_texas_sword_drop", "strip": "fx_texas_sword_drop", "anchor": [6, 38], "fall_frames": 4,
+       "hit": "fx_texas_sword_impact", "hit_anchor": [16, 8], "stagger": "$rain_gap", "fall": 70, "fall_t": "$rain_fall", "stick": 0.3, "scorch": 0.0, "streak": 1, "scale": 0.9, "tilt": 3},
+      {"verb": "fx_rain", "along": "path", "step": "$rain_step", "if_tex": "!fx_texas_sword_drop", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark",
+       "stagger": "$rain_gap", "fall": 70, "fall_t": "$rain_fall", "fall_frames": 2, "mark_frames": 3, "stick": 0.3, "scorch": 0.3, "streak": 1, "scale": 0.6, "tilt": 3}]}]}
   }
  }
 }

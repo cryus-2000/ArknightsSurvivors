@@ -576,6 +576,12 @@ func _elite_show(stage: int) -> void:
 	var td := talent_def()
 	if stage == 1 and not td.is_empty():
 		items.append({"tag": "天赋", "tag_en": "TALENT", "glyph": td.get("name", "赋").substr(0, 1), "name": td.get("name", ""), "desc": td.get("desc", ""), "col": col().lerp(Color(1, 1, 1), 0.3)})
+	# 普攻形态（docs/91 §0.5）：精英化节点写了 attack {name, desc} 时，天赋后面再加一张「普攻」卡
+	for n in progression():
+		if n is Dictionary and n.get("type", "") == "elite" and int(n.get("level", 0)) == stage and n.get("attack", null) is Dictionary:
+			var ak: Dictionary = n.attack
+			items.append({"tag": "普攻", "tag_en": "ATTACK", "glyph": str(ak.get("name", "攻")).substr(0, 1), "name": ak.get("name", ""), "desc": ak.get("desc", ""), "col": col().lerp(Color(1, 0.9, 0.6), 0.35)})
+			break
 	g.show_queue.append({"head": "%s · 精英%s" % [display_name(), ["", "一", "二"][stage]], "en": "ELITE  PROMOTION  " + ["", "I", "II"][stage], "col": col(), "op": self, "elite": stage, "items": items})
 
 
@@ -996,6 +1002,7 @@ func follow(dt: float, target: Vector2) -> void:
 				_release_skill()
 			else:
 				_release()
+				_notify_attack()
 	mt += dt
 	# 动画状态
 	var want := "idle"
@@ -1048,6 +1055,7 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 			_release_skill()
 		else:
 			_release()
+			_notify_attack()
 		return
 	var spec := sprite_spec(act_anim)
 	if spec.has("fps") and spec.has("fire"):
@@ -1065,6 +1073,16 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 ## 出手（到出手帧时调用；重新找目标，动作期间原目标可能已死）
 func _release() -> void:
 	pass
+
+
+## 普攻出手后告诉编队里的其他干员（数据干员的 trig.on_mate_attack：能天使「天使的祝福」给受祝福的队友出手点挂金光；只有画面）
+func _notify_attack() -> void:
+	var sq = g.get("squad") if g != null else null
+	if sq == null:
+		return
+	for m in sq.ops:
+		if m != self and m.has_method("on_mate_attack"):
+			m.on_mate_attack(self)
 
 
 ## 技能出手帧（cur_skill 为技能序号）

@@ -36,6 +36,7 @@ func _init() -> void:
 	test_operator_sheet()
 	test_blocks_summon_seal()
 	test_blocks_summon_ext()
+	test_blocks_elite1()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -387,7 +388,7 @@ func test_hoshiguma_blocks() -> void:
 		"on_hurt 概率超过 1": func(d): d.blocks.talent[0]["chance"] = 1.5,
 		"on_hurt negate 不是布尔": func(d): d.blocks.talent[0]["negate"] = "yes",
 		"shape.line 缺 len": func(d): d.blocks.skills[2].do[2].attack.erase("len"),
-		"shape.line 伤害来源没登记": func(d): d.blocks.progression.elite2.do[0]["src"] = "没登记",
+		"shape.line 伤害来源没登记": func(d): d.blocks.skills[2].do[2].attack["src"] = "没登记",
 		"swap_attack 不是伤害形状": func(d): d.blocks.skills[2].do[2]["attack"] = {"verb": "dr", "value": 0.1},
 		"verb.field 没有 do": func(d): d.blocks.trait[1].do[0].erase("do"),
 		"verb.field 的 center 写错": func(d): d.blocks.trait[1].do[0]["center"] = "moon",
@@ -802,3 +803,96 @@ func test_blocks_summon_ext() -> void:
 	near(OB.mf_guard_mult(o, 1.0), 0.8, "到时的那层不再生效")
 	OB.mf_exec(o, {"_tag": "verb.guard", "_uid": 7, "name": "庇护", "value": 0.2, "dur": 5.0}, Vector2.ZERO)
 	ok(o.mf.guards.size() == 2 and float(o.mf.guards["庇护"].t) == 5.0, "同名重复施加：重新计时，不叠层")
+
+
+## 精英化第 1 批（docs/91 §19 批 1，op_blocks.gd 末尾「精英化」段）：五名积木干员通过校验、改坏一处就不通过；叠层 / 冷却闸门 / 路径落点 / 往返弹体的数学
+func test_blocks_elite1() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var defs := {}
+	for id in ["texas", "exusiai", "hoshiguma", "angelina", "kaltsit"]:
+		defs[id] = Ch.load_def(id)
+		ok(Ch.validate_operator(id, defs[id]), "精英化第 1 批：%s 通过积木校验" % id)
+	var bads := [
+		["exusiai", "st.stack 放进技能 do", func(d): d.blocks.skills[1].do.append({"st": "stack", "key": "x", "per": 0.02, "max": 10, "decay": 1.5, "src": ["速射"]})],
+		["exusiai", "st.stack 每层超过 100%", func(d): d.blocks.progression.elite1.do[0]["per"] = 2.0],
+		["exusiai", "st.stack 来源没登记", func(d): d.blocks.progression.elite1.do[0]["src"] = ["没登记"]],
+		["exusiai", "st.stack 分档帧条不是 proj_*", func(d): d.blocks.progression.elite1.do[0]["tex"] = ["fx_exusiai_hit"]],
+		["exusiai", "on_mate_attack 没写 fx", func(d): d.blocks.progression.elite2[1].erase("fx")],
+		["exusiai", "on_mate_attack 写了 do", func(d): d.blocks.progression.elite2[1]["do"] = [{"verb": "sp_team", "pct": 0.1}]],
+		["exusiai", "at = members 挂在非光环上", func(d): d.blocks.progression.elite2[0].do[1]["fx"] = [{"strip": "fx_exusiai_halo", "hold": true, "at": "members", "layer": "over"}]],
+		["exusiai", "flash 不是 fire", func(d): d.blocks.progression.elite2[0].do[0].fx[0]["flash"] = "hit"],
+		["exusiai", "at = mate 挂在别处", func(d): d.blocks.progression.elite2[0].do[0]["fx"] = [{"strip": "fx_exusiai_blessed_flash", "at": "mate"}]],
+		["hoshiguma", "buff_timed 缺 key", func(d): d.blocks.progression.elite1.do[0].erase("key")],
+		["hoshiguma", "buff_timed 放进常驻节点", func(d): d.blocks.progression["reach"] = {"verb": "buff_timed", "key": "k", "stat": "dmg", "value": 0.2, "dur": 5}],
+		["hoshiguma", "boomerang 缺回程时间", func(d): d.blocks.progression.elite2[0].do[0].erase("t_back")],
+		["hoshiguma", "boomerang 来源没登记", func(d): d.blocks.progression.elite2[0].do[0]["src"] = "没登记"],
+		["hoshiguma", "every_n 的 anim 不是帧条键", func(d): d.blocks.progression.elite2[0]["anim"] = "throw_x"],
+		["hoshiguma", "every_n 的 anim 没配 replace", func(d): d.blocks.progression.elite2[0].erase("replace")],
+		["hoshiguma", "延迟起播写在贴身层", func(d): d.blocks.progression.elite1.do[0].fx[0]["delay"] = 0.2],
+		["texas", "first_only 不是布尔", func(d): d.blocks.progression.elite1.on_hit[0]["first_only"] = "yes"],
+		["texas", "路径落点缺 step", func(d): d.blocks.progression.elite2.do[0].on_expire[0].erase("step")],
+		["texas", "fx_rain along 写错", func(d): d.blocks.progression.elite2.do[0].on_expire[2]["along"] = "line"],
+		["texas", "stay 超范围", func(d): d.blocks.progression.elite1.on_hit[0].fx[0]["stay"] = 9.0],
+		["texas", "on_expire 里放常驻积木", func(d): d.blocks.progression.elite2.do[0].on_expire.append({"verb": "dash_mod", "len_add": 0.1})],
+		["angelina", "only 取值写错", func(d): d.blocks.attack.then[1].do[1]["only"] = ["stunned"]],
+		["angelina", "失重井 cap 超范围", func(d): d.blocks.attack.then[1]["cap"] = 40],
+		["kaltsit", "summon_cmd 动作写错", func(d): d.blocks.progression.elite2[1].do[0]["action"] = "teleport"],
+		["kaltsit", "summon_cmd 种类没定义", func(d): d.blocks.progression.elite2[1].do[0]["kind"] = "wolf"],
+		["kaltsit", "扑击缺半径", func(d): d.blocks.progression.elite1.lunge.erase("r")],
+		["kaltsit", "召唤物帧条键写错", func(d): d.blocks.summons.mon3tr.anim["leap"] = "m_jump"],
+	]
+	for bd in bads:
+		var d2: Dictionary = defs[bd[0]].duplicate(true)
+		bd[2].call(d2)
+		ok(not Ch.validate_operator(bd[0], d2), "精英化积木校验应拒绝（%s）：%s" % [bd[0], bd[1]])
+	# 条件 buff:<key>
+	var c: Dictionary = OB.parse_cond("!buff:stance", {})
+	ok(str(c.get("k", "")) == "buff" and str(c.get("a", "")) == "stance" and bool(c.get("neg", false)), "条件 buff:<key> 解析（含取反）")
+	# 路径落点：长 140、每 40 一柄 → ceil(3.5) = 4 柄，落在四段中点
+	var pts: Array = OB.el_path_points(Vector2.ZERO, Vector2(140, 0), 40.0)
+	ok(pts.size() == 4 and pts[0].is_equal_approx(Vector2(17.5, 0)) and pts[3].is_equal_approx(Vector2(122.5, 0)), "路径落点：140 / 40 → 4 柄、段中点 %s" % str(pts))
+	ok(OB.el_path_points(Vector2.ZERO, Vector2(120, 0), 40.0).size() == 3, "路径落点：正好整除不多落一柄")
+	# 状态闸门：first_only 只给第 0 个；cd 期间不再生效
+	var fake := {"el": {}, "g": {"t": 10.0, "tex": {}}}
+	ok(OB.el_status_gate(fake, {"first_only": true}, 0) and not OB.el_status_gate(fake, {"first_only": true}, 1) and not OB.el_status_gate(fake, {"first_only": true}, -1), "first_only：只给命中列表第 0 个")
+	var sc := {"cd": 2.0, "_uid": 7}
+	ok(OB.el_status_gate(fake, sc, 0), "cd：第一次生效")
+	fake.g.t = 11.0
+	ok(not OB.el_status_gate(fake, sc, 0), "cd：2 秒内不再生效")
+	fake.g.t = 12.5
+	ok(OB.el_status_gate(fake, sc, 0), "cd：过了冷却再生效")
+	# 叠层：每层 +2%，10 层封顶；叠满那一下给满层火花；1.5 秒没打中清零
+	var sb := {"st": "stack", "key": "p", "per": 0.02, "max": 10, "decay": 1.5, "src": ["速射"], "full_fx": "fx_full"}
+	fake.el["stack_on"] = [sb]
+	var e := {"id": 3}
+	var ms: Array = []
+	var full_at := -1
+	for i in 12:
+		fake.g.t = 20.0 + i * 0.1
+		var r: Array = OB.el_stack_hit(fake, e, "速射")
+		ms.append(float(r[0]))
+		if str(r[1]) != "" and full_at < 0:
+			full_at = i
+	near(ms[0], 1.0, "叠层：第一发不加")
+	near(ms[1], 1.02, "叠层：第二发 +2%")
+	near(ms[10], 1.2, "叠层：封顶 +20%")
+	near(ms[11], 1.2, "叠层：封顶后不再涨")
+	ok(full_at == 9, "叠层：第 10 发叠满给满层火花（实际第 %d 发）" % (full_at + 1))
+	ok(float(OB.el_stack_hit(fake, e, "冲锋模式")[0]) == 1.0, "叠层：不是 src 列表里的来源不加也不叠")
+	fake.g.t = 25.0
+	near(float(OB.el_stack_hit(fake, e, "速射")[0]), 1.0, "叠层：1.5 秒没打中清零")
+	# 往返弹体：去程先快后慢到头、停 hold、回程收回到 0
+	var bm := {"t": 0.3, "to": 0.3, "hold": 0.1, "tb": 0.3, "L": 220.0}
+	near(float(OB._el_boom_d(bm)[0]), 220.0, "往返：去程到头")
+	bm.t = 0.35
+	ok(float(OB._el_boom_d(bm)[0]) == 220.0 and int(OB._el_boom_d(bm)[1]) == 0, "往返：到头停 hold（仍算去程）")
+	bm.t = 0.7
+	ok(absf(float(OB._el_boom_d(bm)[0])) < 0.001 and int(OB._el_boom_d(bm)[1]) == 1, "往返：回程收回到手里")
+	near(OB.el_boom_total(bm), 0.7, "往返：总时长 = 去 + 停 + 回")
+	# 限时增益：生效 / 过期
+	fake.el["timed"] = {"stance": {"until": 30.0, "b": {}}}
+	fake.g.t = 29.0
+	ok(OB.el_buff_on(fake, "stance") and not OB.el_buff_on(fake, "other"), "buff:<key> 生效中")
+	fake.g.t = 30.5
+	ok(not OB.el_buff_on(fake, "stance"), "buff:<key> 过期")

@@ -1717,6 +1717,16 @@ const V6_FRAMES := {
 	"fx_texas_dash": [4, 20.0],
 	# 德克萨斯剑雨（10-12 重做，docs/70，verb.fx_rain docs/61 §13.5）：剑 16×40（0–1 下落循环 / 2–5 插地按停留时间铺开，锚 (8, 38)）、冲击 32×24（锚 (16, 20)）、地面标记 24×12（0–2 预兆 / 3–5 焦痕，锚帧中心）
 	"fx_texas_blade": [6, 20.0], "fx_texas_rain_hit": [5, 24.0], "fx_texas_rain_mark": [6, 12.0],
+	# Codex 精英化第 1 批（docs/93 §1，art/incoming/elite_art_1_manifest.json；接入见 docs/91 第 1 批）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor。
+	# fx_hoshiguma_slash_rose / fx_exusiai_pierce_gold 是 Codex 这批交来时覆盖了已有的 fx_slash_heavy_rose（艾丽妮用）/ fx_exusiai_hit_gold（倾泻用），
+	# 规格不同（4 帧 35×34 / 5 帧 24×24），改名成本批专用，原文件恢复原样
+	"fx_angelina_halt": [5, 14.0], "fx_angelina_well_back": [8, 10.0], "fx_angelina_well_front": [8, 10.0], "fx_angelina_well_open": [5, 14.0],
+	"fx_angelina_well_close": [5, 14.0], "fx_angelina_float_dust": [4, 8.0],
+	"proj_exusiai_bullet_t1": [2, 20.0], "proj_exusiai_bullet_t2": [2, 20.0], "proj_exusiai_bullet_t3": [2, 20.0], "fx_exusiai_pierce_gold": [5, 20.0],
+	"fx_exusiai_halo": [8, 10.0], "fx_exusiai_blessed_flash": [4, 20.0],
+	"fx_hoshiguma_slash_rose": [4, 20.0], "fx_hoshiguma_guard_glow": [6, 10.0], "proj_hoshiguma_sawshield": [8, 24.0], "fx_hoshiguma_saw_spark": [4, 20.0],
+	"fx_mon3tr_slam_ring": [6, 16.0], "fx_mon3tr_afterimage": [1, 1.0],
+	"fx_texas_pin_sword": [4, 12.0], "fx_texas_pin_shatter": [5, 18.0], "fx_texas_sword_drop": [5, 20.0], "fx_texas_sword_impact": [5, 18.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 }

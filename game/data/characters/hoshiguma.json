@@ -7,13 +7,14 @@
  "col": [0.95, 0.75, 0.3],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/59 §3 / §8.3；数据干员，行为在 blocks 段，docs/61「星熊」节）。保护位：不治疗，靠格挡（战术装甲概率完全免伤、挡下的不掉灯火）+ 击退",
+  "_doc": "基础数值（docs/59 §3 / §8.3；数据干员，行为在 blocks 段，docs/61「星熊」节）。保护位：不治疗，靠格挡（战术装甲概率完全免伤、挡下的不掉灯火）+ 击退。精英化形态（docs/91 §4）：stance_* 精一「反击架势」（+25% 按预算改 +20%），saw_* 精二「般若回旋」（取代「鬼面」；docs/91 的回程 ×0.6 配合下调按木桩表放宽到 ×0.75：×0.6 时 E2 木桩比改前 −15%，×0.9 时木桩 −1%、怪群 +10–23%）",
   "atk": 32, "cd": 1.1, "reach": 110, "half_deg": 70, "kb": 220,
   "block_chance": 0.25, "block_chance_boss": 0.10, "block_max": 0.8, "block_kb_r": 90, "block_kb": 200, "beacon_bonus": 0.15,
   "s1_window": 3.0, "s1_mult": 2.0, "s1_r": 120, "s1_kb": 360, "s1_miss_mult": 1.5,
   "s2_dur": 8.0, "s2_atk": 0.4, "s2_dr": 0.2, "s2_block_x": 2.0, "sand_dur": 2.0, "sand_r": 80, "sand_mult": 0.3, "sand_tick": 0.5,
   "s3_dur": 10.0, "s3_atk": 0.6, "s3_len": 220, "s3_w": 50, "s3_kb": 1.5, "s3_dr": 0.3, "s3_quake_r": 120, "s3_quake_kb": 300,
-  "n_reach": 0.15, "n_heavy": 1.15, "wall_stun": 0.4, "ember_dur": 4.0, "ember_mult": 0.2, "oni_every": 4, "oni_mult": 1.3
+  "n_reach": 0.15, "n_heavy": 1.15, "wall_stun": 0.4, "ember_dur": 4.0, "ember_mult": 0.2,
+  "stance_dmg": 0.2, "stance_dur": 5.0, "saw_every": 3, "saw_len": 220, "saw_w": 56, "saw_t_out": 0.28, "saw_hold": 0.1, "saw_t_back": 0.3, "saw_out": 0.9, "saw_back": 0.75
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
@@ -25,9 +26,11 @@
   "run": {"tex": "op_hoshiguma_run", "frames": 6, "fps": 10, "foot": [24, 46]},
   "attack": {"tex": "op_hoshiguma_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 3},
   "skill": {"tex": "op_hoshiguma_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 2},
+  "throw": {"_doc": "Codex 精英化第 1 批（elite_art_1_manifest）：掷盾，出手帧 2 盾离手（盾由 proj_hoshiguma_sawshield 表现），末帧接 idle", "tex": "op_hoshiguma_throw", "frames": 6, "fps": 14, "foot": [24, 46], "fire": 2},
   "size": 48,
   "foot": [24, 46]
  },
+ "extra_sprites": ["throw"],
  "attack": {"mode": "auto", "name": "盾斧斩", "desc": "每 1.1 秒用盾「般若」的锋利盾沿向前横扫 140°（半径 110），命中击退"},
  "skills": [
   {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "3 秒内队长下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在队长身边反手重斩（半径 120，×2.0）并击退；3 秒内没挨打则向前补一记 ×1.5", "icon": "skill_hoshiguma_s1"},
@@ -40,19 +43,22 @@
   "举盾反击": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]},
   "热砂": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "dot"]},
   "力之锯": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "area"]},
-  "鬼面": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "pierce"]}
+  "般若回旋": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "pierce", "area"]}
  },
  "progression": [
   {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩与技能范围 +15%"},
   {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_size", "desc": "星熊造成的伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有概率完全格挡，挡下的不掉灯火"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有概率完全格挡，挡下的不掉灯火；格挡后 5 秒内盾斧斩伤害 +20%",
+   "attack": {"name": "反击架势", "desc": "「战术装甲」格挡成功后 5 秒内，盾斧斩伤害 +20%，刀光转为暗红，盾沿亮起红光（不叠加，再次格挡刷新时间）"}},
   {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，队长身边半径 90 内的敌人眩晕 0.4 秒（精英减半，Boss 不受）"},
   {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "growth_t_field", "desc": "「荆棘」的每处热砂之后再留 4 秒余烬，每秒受到 20% 攻击力的伤害"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「鬼面」：每第 4 次盾斧斩后追加一记直线斩（长 220、宽 50，×1.3）"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「般若回旋」：每第 3 次盾斧斩改为掷出盾牌，沿直线飞出 220 后飞回，去程造成 ×0.9 伤害并击退，回程造成 ×0.75 伤害",
+   "attack": {"name": "般若回旋", "desc": "每第 3 次盾斧斩改为把盾「般若」横转着掷出：沿直线飞出 220 再飞回手里，去程 ×0.9 并击退，回程 ×0.75；盾在外面时不出盾斧斩"}}
  ],
  "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：队长挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"},
  "blocks": {
-  "attack": {"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "kb": "$kb", "every": "$cd", "mult": 1.0, "src": "盾斧斩", "tags": ["basic"], "slash": true},
+  "attack": {"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "kb": "$kb", "every": "$cd", "mult": 1.0, "src": "盾斧斩", "tags": ["basic"], "slash": true,
+   "fx": [{"strip": "fx_hoshiguma_slash_rose", "cond": "buff:stance", "rot": true, "along": 0.5, "fit": 34, "off": [0, -18]}]},
   "trait": [
    {"trig": "on_hurt", "cond": "skill_active:2", "do": [
     {"verb": "displace", "center": "leader", "r": "$s3_quake_r", "kb": "$s3_quake_kb"}]},
@@ -88,8 +94,16 @@
    "ember": {"trig": "every_n", "n": 1, "cond": "skill_active:1", "do": [
     {"verb": "field", "center": "last_hit", "r": "$sand_r", "dur": "$ember_dur", "every": "$sand_tick", "fx": [{"strip": "fx_hoshiguma_sand", "layer": "floor", "fit": 30}], "do": [
      {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$ember_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]},
-   "elite2": {"trig": "every_n", "n": "$oni_every", "do": [
-    {"shape": "line", "len": "$s3_len", "width": "$s3_w", "mult": "$oni_mult", "kb": "$kb", "src": "鬼面", "tags": ["basic"], "fx": [{"strip": "fx_hoshiguma_demon_slash", "fit": 32, "rot": true, "off": [0, -30]}]}]}
+   "elite1": {"trig": "on_negate", "_doc": "反击架势（docs/91 §4）：格挡后 stance_dur 秒内只乘普攻的局部倍率 atk +stance_dmg（同 key 刷新不叠），盾沿红光", "do": [
+    {"verb": "buff_timed", "key": "stance", "stat": "atk", "value": "$stance_dmg", "dur": "$stance_dur", "text": "反击架势",
+     "fx": [{"strip": "fx_hoshiguma_guard_glow", "layer": "front", "off": [12, -28], "face_x": true, "fade": [0.1, 0.3]}]}]},
+   "elite2": [
+    {"trig": "every_n", "n": "$saw_every", "replace": true, "anim": "throw", "cond": "!skill_active:2", "_doc": "般若回旋（docs/91 §4）：每第 3 次盾斧斩改为掷出盾牌往返", "do": [
+     {"shape": "boomerang", "len": "$saw_len", "w": "$saw_w", "t_out": "$saw_t_out", "hold": "$saw_hold", "t_back": "$saw_t_back", "mult_out": "$saw_out", "mult_back": "$saw_back",
+      "kb_out": "$kb", "lock": true, "src": "般若回旋", "tags": ["basic"], "tex": "proj_hoshiguma_sawshield", "spark": "fx_hoshiguma_saw_spark"}]},
+    {"trig": "every_n", "n": "$saw_every", "replace": true, "anim": "throw", "cond": "skill_active:2", "_doc": "力之锯期间盾锯宽度同直线斩", "do": [
+     {"shape": "boomerang", "len": "$saw_len", "w": "$s3_w", "t_out": "$saw_t_out", "hold": "$saw_hold", "t_back": "$saw_t_back", "mult_out": "$saw_out", "mult_back": "$saw_back",
+      "kb_out": "$kb", "lock": true, "src": "般若回旋", "tags": ["basic"], "tex": "proj_hoshiguma_sawshield", "spark": "fx_hoshiguma_saw_spark"}]}]
   }
  }
 }

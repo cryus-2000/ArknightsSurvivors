@@ -1362,3 +1362,60 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 ```
 
 判定：两档主控各 50–70（difficulty v2 口径，含超时）；与迁移前凯尔希的历史结果同档差在噪声内即可，不调数值（这次只换实现）。
+
+
+## 16. 精英化第 1 批的积木（docs/91 §19 批 1、§20；10-13）
+
+docs/91 第 1 批（德克萨斯、能天使、星熊、安洁莉娜、凯尔希）的精一 / 精二形态全部用积木实现，JSON 里不写干员特判。
+代码在 `op_blocks.gd` 末尾「精英化第 1 批」段（只往后加），核心部分只插了标「精英化段」的转发；`data_operator.gd` 加 `el` 状态字典与几处挂钩。
+没写这些积木 / 参数的干员一个新分支都不走：同 seed TRACE 逐行不变（见 §16.4）。
+
+### 16.1 新积木
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `st.stack` | 常驻（trait / talent / 节点 / passive do） | `key`、`per`、`max`、`decay`、`src`（伤害来源数组）、`tex`（按层分档的弹体帧条）、`full_fx`（叠满那一下的命中火花） | 本干员 `src` 里的伤害命中同一名敌人：伤害 × (1 + per × 已有层数)，然后 +1 层（至多 max）；这名敌人 decay 秒没再被这些来源打中就清零。层数记在本干员身上（按敌人 id），不写进敌人。现在作用于弹道命中（`shape.projectile`）。能天使精一「穿甲连射」 |
+| `verb.buff_timed` | 瞬时 | `stat`、`op`（缺省 add）、`value`、`dur`、`key`、`text`、`fx` | 持续 dur 秒，同 key 再触发只刷新时间不叠加；生效期间等同一块 `verb.buff_self`（局部倍率或 op_* 属性），fx 里的贴身层 / hold 帧条跟着生效期画；条件 `buff:<key>` 为真。星熊精一「反击架势」 |
+| `shape.boomerang` | 瞬时 | `len`、`w`、`t_out`、`hold`、`t_back`、`mult_out`、`mult_back`、`kb_out`、`lock`、`tex`、`spark`、`scale`、`src`、`tags` | 往返弹体：朝最近敌人（手动普攻按 A 方向）飞出 len × op_range，到头停 hold，再飞回本干员手里（原点跟着她）；去程、回程各扫一遍线段，同一敌人每程一次。去程 × mult_out 并击退，回程 × mult_back。lock = 弹体在外面时不普攻。星熊精二「般若回旋」 |
+| `verb.summon_cmd` | 瞬时 | `kind`、`action: leap`、`to: leader / self`、`t`、`h`、`land_dx / land_dy`、`then` | 指挥召唤物以 t 秒弧线跃回 to 身边，落地执行 then（`center: target` = 落点）。跃回途中不出爪、拉一道绿色弧形拖尾、身后 3 道残影。凯尔希精二「回防」 |
+| `trig.on_mate_attack` | 触发（只挂画面） | `scope`（others / squad / leader）、`fx`（`at: mate`） | 编队里 scope 范围内的队友每次普攻出手，在她的出手点播 fx（character.gd 出手时广播，不进玩法）。能天使精二「天使的祝福」的金光 |
+
+### 16.2 已有积木的新参数
+
+| 积木 | 参数 | 说明 |
+|---|---|---|
+| 任何 `st.*` | `first_only`、`cd`、`fx` | first_only：只给这次命中列表 / 这次冲刺扫到的第一个敌人；cd：同一块状态两次生效至少隔几秒；fx：状态生效时在这名敌人处播（中心 = 敌人脚底） |
+| `trig.every_n` | `replace`、`anim` | replace：这一次普攻整个换成 do（不出普攻形状；last_hit 沿用上一次普攻的）；anim：这一次起手播的帧条（sprites 键，缺图退回 attack） |
+| `shape.circle` | `only: [weightless, airborne]` | 只打处于这些状态的敌人（安洁莉娜失重井） |
+| `shape.circle` | `center: path` + `step`、`delay`、`stagger` | 沿上一次冲刺 / 残像路径每 step 一处（ceil(路径长 / step) 处，落在各段中点），第 i 处在 delay + i × stagger 秒后结算 |
+| `verb.field`（瞬时留场） | `cap` | 这块积木同时最多几处，超出时最早的先消失 |
+| `verb.dash_mod` | `on_hit` | 生效期间每次冲刺扫到的敌人追加的状态（德克萨斯精一「钉剑」配 first_only） |
+| `verb.trail` | `on_expire` | 残像消散时执行（do 里 center: path 沿这道残像） |
+| `verb.fx_rain` | `along: path`、`step`、`if_tex` | 沿路径每 step 一柄、从起点到终点间隔 stagger 秒落下；if_tex 同 fx 条目 |
+| `verb.summon_mod` | `lunge: {min_d, t, cd, mult, r, fx}` | 召唤物扑击：目标在 min_d 与爪击距离两者较大的那个之外时 t 秒扑过去（够得着就直接出爪），落地 r 内 × mult（召唤物攻击口径），cd 秒一次；落地后再停一帧就交还普通行动（凯尔希精一「扑击」） |
+| 召唤物 `anim` | `lunge`、`leap` | 扑击 / 跃回帧条；缺图用 run |
+| 局部倍率 | `atk` | 只乘普攻那一下（含 swap_attack 换上的形状、replace 换上的往返弹体）的伤害 |
+| 条件 | `buff:<key>` | 限时增益生效中 |
+| fx 条目 | `delay`、`stay`、`once`、`face_x`、`along`、`flash: fire`、`at: members / mate`、hold 的 `over` 层 | delay 秒后起播；一次性帧条停在末帧共 stay 秒；once = 区域里不循环；偏移 x 随朝向；沿出手方向放 along × 半径；本干员普攻出手时提亮；光环受益者头顶（hold）/ 出手的队友；over = 画在人物之上 |
+
+精英化演出：精英化节点写 `attack: {name, desc}` 时，`_elite_show` 在天赋卡后面加一张「普攻」卡（docs/91 §0.5）；三张卡时整列上移、卡片压矮。
+图鉴演示：`gallery.demo_mate = {op, elite}` 到该精英阶段时带一名只普攻的队友（能天使祝福光环要有对象）；演示每 3 秒压生命时调数据干员 `demo_hurt()`，模拟一次队长受击询问（回防、格挡 / 反击架势也能演出来）。
+
+### 16.3 五人的写法（数值见各 JSON base，玩家可见文字见 progression 的 elite 节点）
+
+| 干员 | 精一 | 精二 |
+|---|---|---|
+| 德克萨斯 | `progression.elite1` = `verb.dash_mod {on_hit: [st.stun first_only + fx 钉剑]}` | `elite2` 的 `verb.trail` 加 `on_expire`：两块 `shape.circle center: path`（cond 分剑雨滂沱内外 25% / 20%）+ `verb.fx_rain along: path`（Codex 剑 / 冲击，缺图回退旧剑雨帧条）；残像 30% → 15% |
+| 能天使 | `elite1` = passive `st.stack`（每层 +2%、10 层、1.5 秒） | `elite2` = passive `aura.aspd {scope: others}`（hold 光环 `at: members`、`flash: fire`）+ `counter_cap` 12 + `trig.on_mate_attack`；删去子弹数 +1 |
+| 星熊 | `elite1` = `trig.on_negate → verb.buff_timed {key: stance, stat: atk, +20%, 5 秒}`（贴身层盾沿红光；普攻 fx 带 `cond: buff:stance` 的暗红刀光） | `elite2` = 两块 `trig.every_n {n: 3, replace, anim: throw}`（cond 分力之锯内外，宽 56 / 50）→ `shape.boomerang`（去 ×0.9 击退、回 ×0.75、lock）；取代「鬼面」 |
+| 安洁莉娜 | 普攻 `on_hit` 加 `st.stun {cond: elite >= 1, fx 紫环}` | 普攻 `then` 加 `verb.field {cond: elite >= 2, center: target, cap: 3}`：每 0.4 秒 `verb.displace` 拉向井心（on_hit 井心 r30 `st.airborne`）+ `shape.circle only [weightless, airborne]`（三技能期间减半）；落地井心先托起 0.6 秒照旧 |
+| 凯尔希 | `elite1` = `verb.summon_mod {lunge}` | `elite2` = `summon_mod mirror 0.7`（不下调）+ `trig.on_hurt {cd: 3} → verb.summon_cmd leap`，落地 `shape.circle r 100 × 1.2` 击退 |
+
+### 16.4 测试
+
+- 单元：`tests/test_core.gd test_blocks_elite1`：五人通过校验 + 27 条反例；`buff:` 条件解析；路径落点数；first_only / cd 闸门；叠层逐发倍率、封顶、满层火花、清零；往返弹体的去 / 停 / 回距离；限时增益生效 / 过期。
+- 积木等价 `blocks_eq` 的凯尔希组改成只比精零（seed 1 `--maxt=45`、seed 3 `--maxt=60`，不 `--maxprog`；60 秒时 seed 1 已到精一）：精一 / 精二是新设计，旧手写参照没有。
+- `exusiai_blocks`：精二改查「子弹数不变 + 叠层生效」，三技能第一轮 1 发。
+- 同 seed：三名不相关干员（浊心斯卡蒂主控全节点、塞雷娅 + 艾雅法拉、维什戴尔 + 铃兰 + 斯卡蒂全藏品，240 秒 `--trace=1 --maxprog --sptest`）与改前同一提交逐行相同。
+- 木桩表（`python tools/op_dummy_table.py --ops texas,exusiai,hoshiguma,angelina,kaltsit --stages 1,2`）改前 / 改后对照见 docs/91 §23。
+- 星熊「般若回旋」换掉的那一下沿用上一次普攻的 last_hit（荆棘的热砂照常落）。

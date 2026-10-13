@@ -14,7 +14,7 @@ var taken: Array = []                  # 已选的 custom 节点 id（按选下�
 var nodes_taken := ""                  # 同上的字符串（成长节点测试看「当场有变化」）
 var atk_n := 0                         # 普攻出手次数（trig.every_n）
 var pending: Array = []                # 延迟执行：[{t, do}]
-var loc := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0, "area": 1.0, "force": 1.0, "force_lit": 1.0}   # 本干员局部倍率（docs/61 §5.1；area / force / force_lit 见安洁莉娜段）
+var loc := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0, "area": 1.0, "force": 1.0, "force_lit": 1.0, "atk": 1.0}   # 本干员局部倍率（docs/61 §5.1；area / force / force_lit 见安洁莉娜段；atk 只乘普攻，精英化段）
 var no_attack := false
 var zr := 0.0                          # 本帧区域半径（上一帧的值给 in_zone 条件用）
 var _mods: Array = []                  # 已写进 g.stats 的修正 [stat, op, value, scope]
@@ -27,6 +27,8 @@ var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾�
 var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
+var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
+var atk_live := false                  # 正在结算普攻的那一下（局部倍率 atk 只乘这时的伤害）
 
 
 func _init(game, def_: Dictionary) -> void:
@@ -39,13 +41,17 @@ func _init(game, def_: Dictionary) -> void:
 			a.when = OB.parse_cond(str(a.when), def.get("base", {}))
 		cd = float(a.get("first", cd))
 	var dep := false
+	var mate := false
 	for sec in ["trait", "talent"]:
 		for t in B.get(sec, []):
 			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
+			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
 	for k in B.get("progression", {}):
 		for t in _node_list(B.progression[k]):
 			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
+			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
 	B["_mf_deploy"] = dep
+	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
 
 
 ## 成长节点的积木：一块，或数组（§15.9）
@@ -142,6 +148,7 @@ func update(dt: float) -> void:
 	_tick_shots(dt)
 	OB.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	OB.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
+	OB.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
 	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if acting():
@@ -150,7 +157,7 @@ func update(dt: float) -> void:
 	if ready >= 0:
 		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
 		return
-	if no_attack or cd > 0.0:
+	if no_attack or cd > 0.0 or OB.el_attack_locked(self):   # 精英化段：往返弹体（lock）在外面时不普攻
 		return
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
@@ -183,7 +190,8 @@ func update(dt: float) -> void:
 		cd = idle_cd(0.2)
 	else:
 		cd = float(B.get("attack", {}).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
-		start_attack(at)
+		var rp := _replace_trig(atk_n + 1)   # 精英化段：这一次普攻被 trig.every_n replace 换掉时播它的帧条
+		start_attack(at, 0.5, 0.25, str(rp.get("anim", "")))
 
 
 func _tick_pending(dt: float) -> void:
@@ -222,6 +230,7 @@ func _sustain(dt: float) -> void:
 		if elite >= k[1] and pg.has(k[0]):
 			for t in _node_list(pg[k[0]]):
 				_collect_trig(t, act)
+	OB.el_sustain_collect(self, act)   # 精英化段：生效中的限时增益（verb.buff_timed）排在最后；记下 st.stack
 	# 一：局部倍率
 	var add := {}
 	var mul := {}
@@ -231,10 +240,10 @@ func _sustain(dt: float) -> void:
 	no_attack = false
 	for b in act:
 		match str(b.get("_tag", "")):
-			"verb.buff_self":
+			"verb.buff_self", "verb.buff_timed":   # buff_timed（精英化段）生效期间等同 buff_self，op 缺省 add
 				var st: String = str(b.stat)
 				if loc.has(st):
-					if str(b.op) == "add":
+					if str(b.get("op", "add")) == "add":
 						add[st] += float(b.value)
 					else:
 						mul[st] *= float(b.value)
@@ -254,9 +263,9 @@ func _sustain(dt: float) -> void:
 	var want: Array = []
 	for b in act:
 		match str(b.get("_tag", "")):
-			"verb.buff_self":
+			"verb.buff_self", "verb.buff_timed":
 				if not loc.has(str(b.stat)):
-					want.append([str(b.stat), str(b.op), float(b.value) * (skill_power() if b.get("power", false) else 1.0), "op:" + id])
+					want.append([str(b.stat), str(b.get("op", "add")), float(b.value) * (skill_power() if b.get("power", false) else 1.0), "op:" + id])
 			"verb.lamp":
 				if b.has("loss_mult"):
 					want.append(["light_loss", "mult", float(b.loss_mult), ""])
@@ -359,7 +368,7 @@ func _collect_trig(t: Dictionary, act: Array) -> void:
 					act.append(b)
 		"trig.tick":
 			act.append(t)
-		"trig.every_n", "trig.on_kill":
+		"trig.every_n", "trig.on_kill", "trig.on_mate_attack":
 			pass
 		_:
 			act.append(t)
@@ -420,6 +429,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				OB.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
 				OB.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
 				OB.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
+				OB.el_exec(self, b, at)   # 精英化段：verb.buff_timed / shape.boomerang / verb.summon_cmd
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -431,14 +441,21 @@ func _release() -> void:
 	if str(a.get("shape", "")) == "support":   # 召唤物扩展段（§15.9）：出手帧执行 do（音效由 do 里的积木自己播）
 		_exec_list(a.get("do", []), g.ppos)
 		return
-	if str(a.get("shape", "")) == "point_aoe":
+	var rp := _replace_trig(atk_n + 1)   # 精英化段：trig.every_n replace = 这一次普攻整个换成它的 do
+	atk_live = true
+	if not el.is_empty() or not rp.is_empty():
+		OB.el_st(self).fire_t = g.t
+	if not rp.is_empty():
+		_exec_list(rp.get("do", []))   # last_hit_pos 沿用上一次普攻的（热砂这类 last_hit 区域照常落在那里）
+	elif str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
 	else:
 		exec_any_shape(a, Vector2.INF, true)
+	atk_live = false
 	_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.every_n" and OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", {})):
 			var n: int = maxi(1, int(t.n))
 			if atk_n % n == 0:
 				var dl: float = float(t.get("delay", 0.0))
@@ -446,6 +463,42 @@ func _release() -> void:
 					pending.append({"t": dl, "do": t.get("do", [])})
 				else:
 					_exec_list(t.get("do", []))
+
+
+## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）
+func _replace_trig(n: int) -> Dictionary:
+	if not B.has("_el_rep"):
+		var any := false
+		for k in B.get("progression", {}):
+			for t in _node_list(B.progression[k]):
+				any = any or (str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false))
+		for sec in ["trait", "talent"]:
+			for t in B.get(sec, []):
+				any = any or (str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false))
+		B["_el_rep"] = any
+	if not B._el_rep:
+		return {}
+	for t in _trigs():
+		if str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false) and n % maxi(1, int(t.n)) == 0 and OB.cond_true(self, t.get("cond", {})):
+			return t
+	return {}
+
+
+## 精英化段：队友 m 普攻出手（character.gd 广播）→ trig.on_mate_attack 的画面
+func on_mate_attack(m) -> void:
+	if B.get("_el_mate", false):
+		OB.el_mate_attack(self, m)
+
+
+## 图鉴演示（run/demo.gd 每 3 秒把队长生命压到 70% 时调）：演示里怪不伤人，模拟一次「队长受到攻击」的询问，
+## 让 trig.on_hurt / 格挡类效果（凯尔希回防、星熊反击架势）也能演出来；只在 g.demo_op 时有效
+func demo_hurt() -> void:
+	if g.demo_op == "" or g.combat == null:
+		return
+	var keep: Dictionary = g.combat.cur_src
+	g.combat.cur_src = {}
+	dmg_taken_mult()
+	g.combat.cur_src = keep
 
 
 func _release_skill() -> void:
@@ -682,14 +735,19 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 				return
 			var ev: float = float(b.every)
 			var fr: float = float(b.r) * stat(&"op_range") * float(loc.area)
+			var u: int = int(b.get("_uid", 0))
 			fields.append({"pos": c, "r": fr, "t": 0.0, "dur": float(b.dur), "every": ev,
-				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", [])})
+				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", []), "u": u})
+			if b.has("cap"):   # 精英化段：这块积木同时最多 cap 处，最早的先消失
+				var same: Array = fields.filter(func(q): return int(q.get("u", -1)) == u)
+				if same.size() > int(b.cap):
+					fields.erase(same[0])
 			if fields.size() > FIELD_CAP:
 				fields.pop_front()
-			if b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束
+			if b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束（once：只播一遍，精英化段）
 				var fl: Array = []
 				for f in b.fx:
-					fl.append(f if not (f is Dictionary) or f.has("life") else f.merged({"life": float(b.dur)}))
+					fl.append(f if not (f is Dictionary) or f.has("life") or f.get("once", false) else f.merged({"life": float(b.dur)}))
 				OB.fx_play(self, fl, c, fr)
 		"verb.negate_next":
 			if cur_skill >= 0:
@@ -913,6 +971,8 @@ func _draw_skill_over() -> void:
 	OB.exu_draw(self)  # 能天使段：弹体
 	OB.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 	OB.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
+	OB.el_draw_over(self)    # 精英化段：往返弹体
+	_draw_hold_strips(cv, "over")   # 常驻跟随帧条的 over 层（精英化段：能天使祝福光环挂在队友头顶）
 
 
 func status_items() -> Array:

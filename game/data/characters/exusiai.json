@@ -7,13 +7,14 @@
  "col": [0.95, 0.3, 0.3],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30 → 40（10-12 第一旋钮）、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）；弹药颜色按模式分（docs/25 §6.1，纯画面）：速射红、S1 冰青、S2 琥珀橙、S3 过热白、倾泻金",
+  "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30 → 40（10-12 第一旋钮）、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）；弹药颜色按模式分（docs/25 §6.1，纯画面）：速射红、S1 冰青、S2 琥珀橙、S3 过热白、倾泻金；精英化形态（docs/91 §2）：e1_* 精一「穿甲连射」（st.stack，原 +3% / 30% 按输出位预算改 +2% / 20%），e2_* 精二「天使的祝福」（取代子弹数 +1）",
   "atk": 13, "cd": 0.35, "range": 300, "bullet_speed": 520, "shots": 1, "pierce": 2, "kb": 40, "spread_deg": 8, "elite_prio": 1.2,
   "s1_ammo": 6, "s1_mult": 1.8, "s1_pierce": 3,
   "s2_dur": 8.0, "s2_cd": 0.20, "s2_mult": 0.9, "s2_overheat": 1.0,
   "s3_dur": 10.0, "s3_burst": 4, "s3_gap": 0.06, "s3_mult": 0.8, "s3_range": 0.2, "s3_prio": 99, "s3_pause": 0.2,
   "mag_cap": 8, "mag_lit_bonus": 2, "mag_shots": 8, "mag_spread_deg": 25, "mag_mult": 1.2, "mag_pierce": 1,
-  "n1_range": 0.15, "n2_mult": 1.15, "twin_shots": 1, "ricochet_chance": 0.5, "ricochet_r": 120, "ricochet_mult": 0.5, "e2_shots": 1, "e2_mag_cap": 12
+  "n1_range": 0.15, "n2_mult": 1.15, "twin_shots": 1, "ricochet_chance": 0.5, "ricochet_r": 120, "ricochet_mult": 0.5, "e2_mag_cap": 12,
+  "e1_per": 0.02, "e1_max": 10, "e1_decay": 1.5, "e2_aspd": 0.15
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1613 / 防御 136 / 法抗 0%，远程主控有效生命 ×1.00",
@@ -43,12 +44,14 @@
  "progression": [
   {"type": "custom", "id": "twin", "name": "双枪", "icon": "growth_b_count", "desc": "每次射击的子弹数 +1"},
   {"type": "custom", "id": "power", "name": "高压弹", "icon": "growth_b_size", "desc": "她的伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 8 发"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 8 发；普攻「穿甲连射」：连续命中同一名敌人时每发伤害 +2%（最多 +20%），1.5 秒未命中该敌人则清零",
+   "attack": {"name": "穿甲连射", "desc": "速射连续命中同一名敌人时每发伤害 +2%（最多 +20%），子弹由白转金，叠满时命中迸出金色火花；1.5 秒未命中该敌人则清零"}},
   {"type": "custom", "id": "range", "name": "延长弹道", "icon": "growth_b_range", "desc": "射程 +15%"},
   {"type": "custom", "id": "ricochet", "name": "跳弹", "icon": "growth_b_echo", "desc": "子弹命中后有 50% 概率跳向 120 内另一名敌人（伤害 50%）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的弹幕」：子弹数再 +1，弹匣上限 8 → 12"}
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的祝福」：编队中另外两名干员头顶浮现光环，攻击速度 +15%；弹匣上限 8 → 12",
+   "attack": {"name": "天使的祝福", "desc": "编队中另外两名干员头顶浮现金色光环：攻击速度 +15%，每次攻击带一道金色闪光；她开火时光环随之一亮。弹匣上限 8 → 12"}}
  ],
- "gallery": {"tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "一秒三发的速射手：每次射击的子弹数随成长增加，击杀攒满弹匣后倾泻一轮；在照亮范围内击杀，弹匣攒得更快"},
+ "gallery": {"demo_mate": {"op": "texas", "elite": 2}, "tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "一秒三发的速射手：每次射击的子弹数随成长增加，击杀攒满弹匣后倾泻一轮；在照亮范围内击杀，弹匣攒得更快"},
  "blocks": {
   "attack": {"shape": "projectile", "every": "$cd", "range": "$range", "speed": "$bullet_speed", "shots": "$shots", "spread_deg": "$spread_deg", "elite_prio": "$elite_prio", "focus_boss": true, "pierce": "$pierce", "kb": "$kb",
              "mult": 1.0, "src": "速射", "tex": "proj_exusiai_bullet", "muzzle": [30, -35]},
@@ -73,9 +76,17 @@
    "power": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_mult"},
    "twin": {"verb": "buff_self", "stat": "op_shots", "op": "add", "value": "$twin_shots"},
    "ricochet": {"verb": "ricochet", "chance": "$ricochet_chance", "r": "$ricochet_r", "mult": "$ricochet_mult", "src": "跳弹"},
-   "elite2": {"trig": "passive", "do": [
-    {"verb": "buff_self", "stat": "op_shots", "op": "add", "value": "$e2_shots"},
-    {"verb": "counter_cap", "name": "mag", "value": "$e2_mag_cap"}]}
+   "elite1": {"trig": "passive", "_doc": "穿甲连射（docs/91 §2）：速射连续命中同一名敌人逐发增伤，弹体按层数白 → 浅金 → 金，叠满换金色命中火花", "do": [
+    {"st": "stack", "key": "pierce", "per": "$e1_per", "max": "$e1_max", "decay": "$e1_decay", "src": ["速射"],
+     "tex": ["proj_exusiai_bullet_t1", "proj_exusiai_bullet_t2", "proj_exusiai_bullet_t3"], "full_fx": "fx_exusiai_pierce_gold"}]},
+   "elite2": [
+    {"trig": "passive", "_doc": "天使的祝福（docs/91 §2）：另外两名干员攻速 +15%，头顶金色光环（她开火时一亮）", "do": [
+     {"aura": "aspd", "value": "$e2_aspd", "scope": "others",
+      "fx": [{"strip": "fx_exusiai_halo", "hold": true, "at": "members", "layer": "over", "off": [0, -66], "flash": "fire", "fade": 0.3}]},
+     {"verb": "counter_cap", "name": "mag", "value": "$e2_mag_cap"}]},
+    {"trig": "on_mate_attack", "scope": "others", "fx": [
+     {"strip": "fx_exusiai_blessed_flash", "at": "mate"},
+     {"pfx": {"kind": "glow", "r": 9, "life": 0.16, "col": [1.5, 1.15, 0.45], "alpha": 0.75}, "if_tex": "!fx_exusiai_blessed_flash"}]}]
   }
  }
 }

@@ -169,16 +169,21 @@ func _draw_body(sc: Dictionary, st: float, col: Color, vs: Vector2) -> void:
 
 
 func draw_cards(items: Array, st: float) -> void:
+	# 三张卡（精一：技能 + 天赋 + 普攻形态，docs/91 §0.5）时整列上移、卡片压矮，不压到底部的「点击继续」
+	var three: bool = items.size() >= 3
+	var y0: float = 150.0 if three else 190.0
+	var gap: float = 162.0 if three else 190.0
+	var ch: float = 146.0 if three else 168.0
 	for i in items.size():
 		var it: Dictionary = items[i]
 		var ia := clampf((st - 0.55 - i * 0.25) / 0.3, 0.0, 1.0)
 		if ia <= 0.0:
 			continue
 		var e := 1.0 - pow(1.0 - ia, 3)
-		var r := Rect2(Vector2(620 + (1.0 - e) * 120.0, 190 + i * 190), Vector2(580, 168))
+		var r := Rect2(Vector2(620 + (1.0 - e) * 120.0, y0 + i * gap), Vector2(580, ch))
 		var ic: Color = it.col
 		UI.frame(g.hud, r, Color(ic.r, ic.g, ic.b, e), {"t": g.t, "vines": true, "seed": 50 + i, "vine_k": 0.6, "cut": 12.0, "bracket": 12.0, "alpha": e, "glow": 0.6 * e})
-		var gc := r.position + Vector2(70, 84)
+		var gc := r.position + Vector2(70, ch * 0.5)
 		UI.pedestal(g.hud, gc, 40.0, Color(ic.r, ic.g, ic.b, e), g.t, true)
 		var itex: Texture2D = g.tex.get(it.get("icon", "")) if it.has("icon") else null
 		if itex != null:
@@ -187,4 +192,4 @@ func draw_cards(items: Array, st: float) -> void:
 			UI.text(g.hud, g.font, gc + Vector2(-40, 12), it.glyph, 30, Color(ic.r, ic.g, ic.b, e), HORIZONTAL_ALIGNMENT_CENTER, 80)
 		UI.chip(g.hud, g.font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 		UI.text(g.hud, g.font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, 91), UI.fit(g.font, it.desc, r.size.x - 172, 72.0, [15, 14, 13, 12]), Color(0.78, 0.88, 0.9, e))
+		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, 91), UI.fit(g.font, it.desc, r.size.x - 172, ch - 96.0, [15, 14, 13, 12]), Color(0.78, 0.88, 0.9, e))
