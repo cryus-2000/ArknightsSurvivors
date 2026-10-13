@@ -1857,7 +1857,7 @@ func _count_ring(e: Dictionary) -> void:
 	_ground_ring(foot, rr, k, c)
 	var tag := "%d" % ceili(left)
 	var tp: Vector2 = foot + Vector2(rr + 6.0, -4.0)
-	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cwidth(g.font, tag, 13) + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
+	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cond(g.font).get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
 	UI.ctext(g, g.font, tp + Vector2(2, 1), tag, 13, c)
 
 

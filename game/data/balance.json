@@ -454,5 +454,9 @@
   "hit_rings": 0,
   "_hit_spokes_doc": "干员命中 / 技能发动的放射线（用户 10-13 追加「向四周发散的直线一样的特效也删除」，scripts/render/declutter.gd hit_spokes）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过；连线、锁定线、预警射线、激光 / 光束不受影响。10-13 起 hit_rings 也管通用击杀 / 破绽小圆环。对照截图用 --bal=render/hit_spokes=1",
   "hit_spokes": 0
+ },
+ "ui": {
+  "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
+  "phone_font_mult": 1.18
  }
 }

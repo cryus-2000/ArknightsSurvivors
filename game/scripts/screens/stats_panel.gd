@@ -156,7 +156,7 @@ func draw(vs: Vector2) -> void:
 		])
 		y = b1.position.y + 48
 		# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
-		var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(11) + 1.0) + 18.0
+		var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(UI.fs(11)) + 1.0) + 18.0
 		var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 17.0 if compact else 19.0, 25.0)
 		var rfs := 14 if rh1 >= 23.0 else 13
 		if touch:
@@ -378,7 +378,7 @@ func draw_phone(vs: Vector2) -> void:
 		g.hud.draw_rect(tr, Color(0.05, 0.2, 0.24, 0.8) if on else Color(1, 1, 1, 0.04))
 		g.hud.draw_rect(Rect2(tr.position.x, tr.end.y - 3, tr.size.x, 3), UI.CYAN if on else Color(1, 1, 1, 0.12))
 		UI.text(g.hud, g.font, tr.position + Vector2(16, 29), tabs[i], 20, UI.TEXT if on else UI.SUB)
-		UI.en(g.hud, g.font, tr.position + Vector2(68, 28), tabs_en[i], 9, UI.CYAN if on else UI.CYAN_DIM, 2.0)
+		UI.en(g.hud, g.font, tr.position + Vector2(28 + _cnw(tabs[i], 20), 28), tabs_en[i], 9, UI.CYAN if on else UI.CYAN_DIM, 2.0)
 		g.stats_cells.append([tr, "tab", i])
 	var top := r.position.y + 126.0
 	var b := Rect2(r.position.x + 22, top, r.size.x - 44.0, r.end.y - 34.0 - top)
@@ -389,7 +389,7 @@ func draw_phone(vs: Vector2) -> void:
 	match page:
 		0:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "生存", 18, UI.CYAN)
-			UI.en(g.hud, g.font, b.position + Vector2(62, 27), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
+			UI.en(g.hud, g.font, b.position + Vector2(26 + _cnw("生存", 18), 27), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
 			var barw := 320.0
 			UI.text(g.hud, g.font, Vector2(b.position.x + 16, y + 12), "生命", 18, UI.SUB)
 			UI.gbar(g.hud, Rect2(b.position.x + 80, y, barw, 12), g.hp / g.max_hp, UI.CYAN, 12)
@@ -408,7 +408,7 @@ func draw_phone(vs: Vector2) -> void:
 			_phone_rows(b, y, rows0, fs, half)
 		1:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "攻击", 18, UI.CYAN)
-			UI.en(g.hud, g.font, b.position + Vector2(62, 27), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
+			UI.en(g.hud, g.font, b.position + Vector2(26 + _cnw("攻击", 18), 27), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
 			var rows1: Array = g.ch.stats_rows()
 			rows1.append_array([
 				["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
@@ -417,7 +417,7 @@ func draw_phone(vs: Vector2) -> void:
 			_phone_rows(b, y, rows1, fs, half)
 		2:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "技能与天赋", 18, UI.CYAN)
-			UI.en(g.hud, g.font, b.position + Vector2(118, 27), "SKILLS", 10, UI.CYAN_DIM, 3.0)
+			UI.en(g.hud, g.font, b.position + Vector2(28 + _cnw("技能与天赋", 18), 27), "SKILLS", 10, UI.CYAN_DIM, 3.0)
 			g.result_screen.draw_generic_skill_rows(b, b.position.y + 46, skill_rows_data(), 17, 20)
 		3:
 			_phone_squad(b)
@@ -442,7 +442,7 @@ func _phone_rows(b: Rect2, y: float, rows: Array, fs: int, half: float) -> void:
 ## 手机第四页：编队各人（立绘 + 名字 · 职业 + 精英化 + 成长点 + 下一步）与支援装置
 func _phone_squad(b2: Rect2) -> void:
 	UI.text(g.hud, g.font, b2.position + Vector2(16, 28), "编队 %d/%d" % [g.squad.size(), g.squad.cap()], 18, UI.CYAN)
-	UI.en(g.hud, g.font, b2.position + Vector2(100, 27), "SQUAD", 10, UI.CYAN_DIM, 3.0)
+	UI.en(g.hud, g.font, b2.position + Vector2(26 + _cnw("编队 %d/%d" % [g.squad.size(), g.squad.cap()], 18), 27), "SQUAD", 10, UI.CYAN_DIM, 3.0)
 	var y: float = b2.position.y + 50
 	var sq_h: float = clampf((b2.end.y - 100.0 - y) / maxf(1.0, g.squad.ops.size()), 34.0, 44.0)
 	for o in g.squad.ops:
@@ -506,7 +506,7 @@ func _phone_relics(b2: Rect2) -> void:
 	var cs := pitch - 6.0
 	var isz := cs - 6.0
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 28), "成长", 18, UI.CYAN)
-	UI.en(g.hud, g.font, Vector2(b2.position.x + 62, y + 27), "GROWTH", 10, UI.CYAN_DIM, 3.0)
+	UI.en(g.hud, g.font, Vector2(b2.position.x + 26 + _cnw("成长", 18), y + 27), "GROWTH", 10, UI.CYAN_DIM, 3.0)
 	var gy: float = y + 40
 	var gi := 0
 	for gid in g.growth:
@@ -577,3 +577,8 @@ func skill_rows_data() -> Array:
 	if not td.is_empty():
 		rows.append(["赋", td.get("name", "天赋") + ("" if g.ch.elite >= 1 else "（精英一解锁）"), td.get("desc", ""), g.ch.elite >= 1, false, ""])
 	return rows
+
+
+## 手机版小标题后面接英文小标签的位置：按中文实际字宽（含手机放大字号 UI.fs）排，不写死偏移
+func _cnw(s: String, size: int) -> float:
+	return g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(size)).x
