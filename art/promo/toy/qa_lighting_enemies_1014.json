@@ -1,0 +1,31 @@
+{
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9a3a8ba5-43c9-4c9c-8b32-1f7b47444e20.png",
+  "logical_grid": [
+    300,
+    225
+  ],
+  "scale": 4,
+  "files": {
+    "toy_poster_lighting_enemies_1014.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "sha256": "922c8e3da54a5716951059bf75c88e08aed758c050fc621d34f47ae4aba78153"
+    },
+    "toy_poster_lighting_enemies_1014_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "sha256": "e6d3f3d356c2d9c77ac050271d136028150cb1400a5e9489e8b85a15209989d7"
+    },
+    "toy_poster_lighting_enemies_1014_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "sha256": "0f8bb7e0c878d2f82d17f48aafe8dd309d7edd30173dd6eb69845838c9b1cfbe"
+    }
+  }
+}
