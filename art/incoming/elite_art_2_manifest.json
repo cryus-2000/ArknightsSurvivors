@@ -1,0 +1,1761 @@
+{
+  "batch": 2,
+  "assets": [
+    {
+      "file": "proj_eyja_lava_lob.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 16,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "e6fed82e0042e07b1d2bd6a13d05caaa18c4419caa8b9f4273a92aaf84d1c342",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#fafdff",
+        "#ff8426",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "proj_eyja_lava_lob@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 4,
+      "fps": 16,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "d11fa291c95d52562220decf20b1b2fdfa601010b9fd595641d8b40b125939e9",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#fafdff",
+        "#ff8426",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "fx_eyja_lava_pool.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        24,
+        12
+      ],
+      "origin_2x": [
+        48,
+        24
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "c750a100fc8eff67ad40c66bc45c5b64fdd2c30552665b0bf24bae9dafc340aa",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#fe8929",
+        "#ff8426",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "fx_eyja_lava_pool@2x.png",
+      "frame_size": [
+        96,
+        48
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        48,
+        24
+      ],
+      "origin_1x": [
+        24,
+        12
+      ],
+      "origin_2x": [
+        48,
+        24
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "62a50848a2b45dd7ab250948db00816c3ccbbd28989ae1560a78ddcc359c8a5e",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#fe8929",
+        "#ff8426",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "fx_eyja_lava_splash.png",
+      "frame_size": [
+        40,
+        28
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        20,
+        14
+      ],
+      "origin_1x": [
+        20,
+        14
+      ],
+      "origin_2x": [
+        40,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "add15113b03274ef488aa28349d54adf6cff9260387866e0d92c00e918c87575",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#e96e1f",
+        "#fafdff",
+        "#fe8929",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "fx_eyja_lava_splash@2x.png",
+      "frame_size": [
+        80,
+        56
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        40,
+        28
+      ],
+      "origin_1x": [
+        20,
+        14
+      ],
+      "origin_2x": [
+        40,
+        28
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "eedb1bf918812bec34cf29febb9d4e14875ac76e97486f46e8bd1ab809045019",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#e96e1f",
+        "#fafdff",
+        "#fe8929",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "proj_skadi_surge_blade.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 4,
+      "fps": 16,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        24,
+        12
+      ],
+      "origin_2x": [
+        48,
+        24
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 10,
+      "density": 1,
+      "fire": null,
+      "sha256": "a1d36a57d7ecd1820547ee11f254cd103cb300de4347443f92904d18d0fb9e40",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#7777bb",
+        "#9cd1ec",
+        "#a99de0",
+        "#b5dff2",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "proj_skadi_surge_blade@2x.png",
+      "frame_size": [
+        96,
+        48
+      ],
+      "frames": 4,
+      "fps": 16,
+      "origin": [
+        48,
+        24
+      ],
+      "origin_1x": [
+        24,
+        12
+      ],
+      "origin_2x": [
+        48,
+        24
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 10,
+      "density": 2,
+      "fire": null,
+      "sha256": "2ee155448b752477c12950038b3f0efc6d804a95b7398f1a99e3401793948cad",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#7777bb",
+        "#9cd1ec",
+        "#a99de0",
+        "#b5dff2",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_skadi_surge_hit.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "d9083a388df07c8a33de4e974dbd6daa49566941765dd790917161e833b0319d",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#53a8d8",
+        "#74bae1",
+        "#85d5e0",
+        "#a99de0",
+        "#b5dff2",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_skadi_surge_hit@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "23ba8538eef5a813d5d37d99476642538a3a33007e39b50fa1ba4be705e2cce6",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#53a8d8",
+        "#74bae1",
+        "#85d5e0",
+        "#a99de0",
+        "#b5dff2",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_skadi_surge_release.png",
+      "frame_size": [
+        48,
+        32
+      ],
+      "frames": 4,
+      "fps": 18,
+      "origin": [
+        24,
+        16
+      ],
+      "origin_1x": [
+        24,
+        16
+      ],
+      "origin_2x": [
+        48,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "ce928d5a79b93f65989fd4b799748d65c6f42f18bdd146a3332a4b26d80e1dc2",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#85d5e0",
+        "#9cd1ec",
+        "#ceecf8",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_skadi_surge_release@2x.png",
+      "frame_size": [
+        96,
+        64
+      ],
+      "frames": 4,
+      "fps": 18,
+      "origin": [
+        48,
+        32
+      ],
+      "origin_1x": [
+        24,
+        16
+      ],
+      "origin_2x": [
+        48,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "49adca385d4a30995b7dce7df143cb99a0aa296c9dff4b48ce0f36eddf0dded0",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#85d5e0",
+        "#9cd1ec",
+        "#ceecf8",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "op_ulpianus_throw.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 8,
+      "fps": 14,
+      "origin": [
+        24,
+        46
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 23,
+      "density": 1,
+      "fire": 3,
+      "sha256": "1b7d3f80ab9a6e3e64b17cd97dea4a1da25cd367cbbdf672e37fd80b75f23772",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "pull_frame": 6,
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000008",
+        "#080e18",
+        "#101018",
+        "#101028",
+        "#103060",
+        "#182028",
+        "#184890",
+        "#202020",
+        "#283048",
+        "#304050",
+        "#304060",
+        "#482828",
+        "#485058",
+        "#485880",
+        "#585868",
+        "#706088",
+        "#708090",
+        "#90a0b0",
+        "#b8b8c8",
+        "#c8d8e8",
+        "#d8e0e8",
+        "#e8f0f0",
+        "#f8f8f0"
+      ]
+    },
+    {
+      "file": "op_ulpianus_throw@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 8,
+      "fps": 14,
+      "origin": [
+        48,
+        92
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 23,
+      "density": 2,
+      "fire": 3,
+      "sha256": "43da8f80dd9909e161c663c837ccead788be89d3893d94aa896321ebf0946c20",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "pull_frame": 6,
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000008",
+        "#080e18",
+        "#101018",
+        "#101028",
+        "#103060",
+        "#182028",
+        "#184890",
+        "#202020",
+        "#283048",
+        "#304050",
+        "#304060",
+        "#482828",
+        "#485058",
+        "#485880",
+        "#585868",
+        "#706088",
+        "#708090",
+        "#90a0b0",
+        "#b8b8c8",
+        "#c8d8e8",
+        "#d8e0e8",
+        "#e8f0f0",
+        "#f8f8f0"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_anchor_impact_back.png",
+      "frame_size": [
+        64,
+        40
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        32,
+        20
+      ],
+      "origin_1x": [
+        32,
+        20
+      ],
+      "origin_2x": [
+        64,
+        40
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 11,
+      "density": 1,
+      "fire": null,
+      "sha256": "986d6a97bf28262c4f5b3927497ed512aa41cdb9f92e495f4a0f75e75c93a984",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#06040c",
+        "#181821",
+        "#2f2d2f",
+        "#34383e",
+        "#44433f",
+        "#50555a",
+        "#5b5f69",
+        "#6a6d62",
+        "#6a7077",
+        "#797a83",
+        "#8f908e"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_anchor_impact_back@2x.png",
+      "frame_size": [
+        128,
+        80
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        64,
+        40
+      ],
+      "origin_1x": [
+        32,
+        20
+      ],
+      "origin_2x": [
+        64,
+        40
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 11,
+      "density": 2,
+      "fire": null,
+      "sha256": "f7a0a5120bb7d74192db50bf871ff6ea485ac593b1e9add867499b4b71c0a1d6",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#06040c",
+        "#181821",
+        "#2f2d2f",
+        "#34383e",
+        "#44433f",
+        "#50555a",
+        "#5b5f69",
+        "#6a6d62",
+        "#6a7077",
+        "#797a83",
+        "#8f908e"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_anchor_impact_front.png",
+      "frame_size": [
+        64,
+        40
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        32,
+        20
+      ],
+      "origin_1x": [
+        32,
+        20
+      ],
+      "origin_2x": [
+        64,
+        40
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 10,
+      "density": 1,
+      "fire": null,
+      "sha256": "6c048178422df1ca322a0eda89b60f98f581ffca3cd744a9b4bc101f397e3dc0",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#27282d",
+        "#413f3f",
+        "#464a4f",
+        "#54525b",
+        "#686a72",
+        "#727882",
+        "#828780",
+        "#878a94",
+        "#9693a1",
+        "#adafb2"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_anchor_impact_front@2x.png",
+      "frame_size": [
+        128,
+        80
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        64,
+        40
+      ],
+      "origin_1x": [
+        32,
+        20
+      ],
+      "origin_2x": [
+        64,
+        40
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 10,
+      "density": 2,
+      "fire": null,
+      "sha256": "df1a5590cf405a9253f1bdae1c8092007adcfbe5834707d3735bfd232081f280",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#27282d",
+        "#413f3f",
+        "#464a4f",
+        "#54525b",
+        "#686a72",
+        "#727882",
+        "#828780",
+        "#878a94",
+        "#9693a1",
+        "#adafb2"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_drag_dust.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 4,
+      "fps": 14,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "de673126cc182f348ee04b359559e76bafc09d3419615bb88f043124e752d488",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#27282d",
+        "#413f3f",
+        "#464a4f",
+        "#54525b",
+        "#686a72",
+        "#727882",
+        "#828780",
+        "#878a94",
+        "#9693a1"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_drag_dust@2x.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 4,
+      "fps": 14,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "572400f707f9e0993b69e2fe4ede045c6b77f5775aadad857959024d75013a1b",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#27282d",
+        "#413f3f",
+        "#464a4f",
+        "#54525b",
+        "#686a72",
+        "#727882",
+        "#828780",
+        "#878a94",
+        "#9693a1"
+      ]
+    },
+    {
+      "file": "fx_eyja_melt_crack.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 6,
+      "fps": 8,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 4,
+      "density": 1,
+      "fire": null,
+      "sha256": "fdaba2ce741256d6c8d70dd69e1b3eb485193b9050889dc474c2f197076b20e4",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "fx_eyja_melt_crack@2x.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 6,
+      "fps": 8,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 4,
+      "density": 2,
+      "fire": null,
+      "sha256": "d791852ade47c757d75aa7b375504b5baa756ce0ca1bda7cb869d914297f450a",
+      "color_reference": [
+        "proj_lavaball.png",
+        "fx_flames.png"
+      ],
+      "palette": [
+        "#080e18",
+        "#e3651b",
+        "#e84b2c",
+        "#ffd100"
+      ]
+    },
+    {
+      "file": "op_skadi_leap_strike.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 7,
+      "fps": 14,
+      "origin": [
+        24,
+        46
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 36,
+      "density": 1,
+      "fire": 4,
+      "sha256": "194da4e7b13685abd8cc9599bac9fc2c3d5b8ebd10588b85af2313a47f55379c",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000000",
+        "#002641",
+        "#004278",
+        "#005591",
+        "#0063a5",
+        "#0179b8",
+        "#028bc8",
+        "#080e18",
+        "#12425c",
+        "#21222b",
+        "#31333f",
+        "#321a19",
+        "#344965",
+        "#4c3124",
+        "#524645",
+        "#575b66",
+        "#703533",
+        "#767986",
+        "#7797ad",
+        "#7b4e53",
+        "#830809",
+        "#8a7164",
+        "#9ea0a6",
+        "#a67974",
+        "#b15453",
+        "#b6b6bb",
+        "#bd0b19",
+        "#c4a2a3",
+        "#c7c5c9",
+        "#ce7a70",
+        "#cf2a32",
+        "#dbd8da",
+        "#ea9d94",
+        "#efbeba",
+        "#efeaeb",
+        "#fcfefe"
+      ]
+    },
+    {
+      "file": "op_skadi_leap_strike@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 7,
+      "fps": 14,
+      "origin": [
+        48,
+        92
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 42,
+      "density": 2,
+      "fire": 4,
+      "sha256": "53c0faf033ecf42796190d7166f51b025fe846af8540d7eb394d97965e071a87",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "color_reference": [
+        "matching original operator idle palette"
+      ],
+      "palette": [
+        "#000000",
+        "#002641",
+        "#004278",
+        "#005591",
+        "#0063a5",
+        "#0179b8",
+        "#028bc8",
+        "#080e18",
+        "#08a3e0",
+        "#12425c",
+        "#21222b",
+        "#286890",
+        "#31333f",
+        "#321a19",
+        "#344965",
+        "#4387b1",
+        "#4c3124",
+        "#524645",
+        "#575b66",
+        "#703533",
+        "#767986",
+        "#7797ad",
+        "#77b4da",
+        "#7b4e53",
+        "#830809",
+        "#8a7164",
+        "#97bbcf",
+        "#9ea0a6",
+        "#a67974",
+        "#ae938b",
+        "#b15453",
+        "#b6b6bb",
+        "#bd0b19",
+        "#c4a2a3",
+        "#c7c5c9",
+        "#ce7a70",
+        "#cf2a32",
+        "#dbd8da",
+        "#ea9d94",
+        "#efbeba",
+        "#efeaeb",
+        "#fcfefe"
+      ]
+    },
+    {
+      "file": "fx_skadi_leap_splash.png",
+      "frame_size": [
+        64,
+        32
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        32,
+        16
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 10,
+      "density": 1,
+      "fire": null,
+      "sha256": "c79ea7e534ffd3b87f92cdd90ba01bc7816403c141c41d5ab0ba6a110bdf53f9",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#74bae1",
+        "#85d5e0",
+        "#9cd1ec",
+        "#ceecf8",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_skadi_leap_splash@2x.png",
+      "frame_size": [
+        128,
+        64
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        64,
+        32
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 10,
+      "density": 2,
+      "fire": null,
+      "sha256": "09ca659fec061630ff5334dd92c5c6ab55aa5b52e9b5856d8cc27a6677403952",
+      "color_reference": [
+        "proj_tide_blade.png",
+        "fx_skadi_wave.png"
+      ],
+      "palette": [
+        "#142b4b",
+        "#174f70",
+        "#247b9f",
+        "#4992c2",
+        "#53a8d8",
+        "#74bae1",
+        "#85d5e0",
+        "#9cd1ec",
+        "#ceecf8",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_chain_tile.png",
+      "frame_size": [
+        16,
+        8
+      ],
+      "frames": 2,
+      "fps": 12,
+      "origin": [
+        8,
+        4
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "ae63bb9ebd3600e1a37a47ba9c46f348ac777e77ab95ca4b4587f50b53f24918",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#1e2020",
+        "#373c47",
+        "#484c59",
+        "#58645d",
+        "#5e6a7a",
+        "#737b87",
+        "#85938d"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_chain_tile@2x.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 2,
+      "fps": 12,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "e594309a46f7ee228c5aad1ae04a4d322a2382d1143ed21c3f5398ae10f337b5",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#1e2020",
+        "#373c47",
+        "#484c59",
+        "#58645d",
+        "#5e6a7a",
+        "#737b87",
+        "#85938d"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_pull_ring.png",
+      "frame_size": [
+        64,
+        32
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        32,
+        16
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 12,
+      "density": 1,
+      "fire": null,
+      "sha256": "64cb46d1176b269839e0d2c57d859e78ac9955d4daca8eac34f1693be1f9a1fe",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000000",
+        "#1d2122",
+        "#373c4b",
+        "#454c5f",
+        "#5c5f63",
+        "#768088",
+        "#918d8c",
+        "#9e9fa0",
+        "#b9bfc6",
+        "#ced3c9",
+        "#dfe1dd",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_ulpianus_pull_ring@2x.png",
+      "frame_size": [
+        128,
+        64
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        64,
+        32
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 12,
+      "density": 2,
+      "fire": null,
+      "sha256": "1c25939d6f05c1cfead3988edacd4a427ebed54c9b5395c636852cc364a0b6e5",
+      "color_reference": [
+        "proj_ulpianus_anchor.png",
+        "op_ulpianus_idle@2x.png"
+      ],
+      "palette": [
+        "#000000",
+        "#1d2122",
+        "#373c4b",
+        "#454c5f",
+        "#5c5f63",
+        "#768088",
+        "#918d8c",
+        "#9e9fa0",
+        "#b9bfc6",
+        "#ced3c9",
+        "#dfe1dd",
+        "#ffffff"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_tile.png",
+      "frame_size": [
+        16,
+        8
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        8,
+        4
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 1,
+      "density": 1,
+      "fire": null,
+      "sha256": "c46d9dc95ab0d1bc3788a7ae32d0841ade8f13d784672a53afb4f2e808a752cf",
+      "color_reference": "user white floating Sarkaz scripture detail 2026-10-13",
+      "user_override": "No black band, no dark gold. Transparent white scripture.",
+      "glyph_reference": "user supplied alphabet, A/E/V silhouettes; visual sequence only, no translation claimed",
+      "source": "exec-b3d4782b-8dab-42ef-b61b-7babdd34bf62.png",
+      "palette": [
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_tile@2x.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 1,
+      "density": 2,
+      "fire": null,
+      "sha256": "16dc4c8fa1599e6218110670395a8db46b4b265d879a7cbf5d1dde1368604840",
+      "color_reference": "user white floating Sarkaz scripture detail 2026-10-13",
+      "user_override": "No black band, no dark gold. Transparent white scripture.",
+      "glyph_reference": "user supplied alphabet, A/E/V silhouettes; visual sequence only, no translation claimed",
+      "source": "exec-b3d4782b-8dab-42ef-b61b-7babdd34bf62.png",
+      "palette": [
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_pulse.png",
+      "frame_size": [
+        16,
+        8
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        8,
+        4
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 3,
+      "density": 1,
+      "fire": null,
+      "sha256": "b71f3e5bddfecd235406e40693d05845e2b7a0889ab4def784f6fd894c89b199",
+      "color_reference": "user white floating Sarkaz scripture detail 2026-10-13",
+      "user_override": "No black band, no dark gold. Transparent white scripture.",
+      "glyph_reference": "user supplied alphabet, A/E/V silhouettes; visual sequence only, no translation claimed",
+      "source": "exec-b3d4782b-8dab-42ef-b61b-7babdd34bf62.png",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9",
+        "#edf1f3"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_pulse@2x.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        8,
+        4
+      ],
+      "origin_2x": [
+        16,
+        8
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 3,
+      "density": 2,
+      "fire": null,
+      "sha256": "2e0ae5f1fe973d7e5337304cb9c642b09f72bafcde7d89b0e74670543bd2ad38",
+      "color_reference": "user white floating Sarkaz scripture detail 2026-10-13",
+      "user_override": "No black band, no dark gold. Transparent white scripture.",
+      "glyph_reference": "user supplied alphabet, A/E/V silhouettes; visual sequence only, no translation claimed",
+      "source": "exec-b3d4782b-8dab-42ef-b61b-7babdd34bf62.png",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9",
+        "#edf1f3"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_anchor.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "b0e4f75a66f2e5feeaab7d920da6073bd300dd40c40699167693416a55cb9d1a",
+      "color_reference": "user transparent white scripture",
+      "user_override": "Floating separate white glyphs; no black band",
+      "palette": [
+        "#d7e0e9",
+        "#edf1f3"
+      ]
+    },
+    {
+      "file": "fx_logos_chain_anchor@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "5d51c433da3fab83e4930a8d621b0f8cfd498343529e7e960737dffac9364739",
+      "color_reference": "user transparent white scripture",
+      "user_override": "Floating separate white glyphs; no black band",
+      "palette": [
+        "#d7e0e9",
+        "#edf1f3"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_1.png",
+      "frame_size": [
+        8,
+        10
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        4,
+        5
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "8baa5e1afc11cd907cf5ee00f8c7db4a47d8ca93d04fe86599c86c73d670f1dc",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_1@2x.png",
+      "frame_size": [
+        16,
+        20
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        8,
+        10
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "1395bc97d93ebc1151bb77730fa851cdb4ef6b3e07a89410eb2b214731b19635",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_2.png",
+      "frame_size": [
+        8,
+        10
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        4,
+        5
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "86073abc01b91971b5b1999b1185ef961c9fe04fdf8f12e2bffebe6710b81b29",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_2@2x.png",
+      "frame_size": [
+        16,
+        20
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        8,
+        10
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "83898aaaa2b84d18c3dda4d3f94e0e1bdfb40854c3a160dc4ef3e62b9c9aa538",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#b7c1d0",
+        "#d7e0e9"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_3.png",
+      "frame_size": [
+        8,
+        10
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        4,
+        5
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 1,
+      "density": 1,
+      "fire": null,
+      "sha256": "4b5747acdcf7d825da0f6f564441ee7c21bdcdee7b4ce07cff8c9f86a6694b68",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#edf1f3"
+      ]
+    },
+    {
+      "file": "fx_logos_soul_rune_3@2x.png",
+      "frame_size": [
+        16,
+        20
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        8,
+        10
+      ],
+      "origin_1x": [
+        4,
+        5
+      ],
+      "origin_2x": [
+        8,
+        10
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 1,
+      "density": 2,
+      "fire": null,
+      "sha256": "cb9d900516a3cb239299c7f1efc786a28314a67d9d4c70ddfd3fe342227fb174",
+      "glyph_reference": "user alphabet A/E/V; counts 1/2/3",
+      "color_reference": "user white scripture; level3 brightest white",
+      "user_override": "Replaces docs93 dark gold with user white",
+      "palette": [
+        "#edf1f3"
+      ]
+    }
+  ],
+  "production": "imagegen sources, mechanical crop/transform/quantization/export",
+  "notes": "乌尔比安沿用四爪锚造型，出手3/回拉6；斯卡蒂沿用原大剑，出手4。新增动作首末为原idle逐像素复制，存量端点色数如实保留，中间帧收敛24色。逻各斯链段左右接缝循环平铺；艾雅法拉按审定低抛熔岩，不交旧落点预示圈。 Logos按用户最新10-13参考：白/灰白悬浮萨卡兹字形，无黑底，替代工单黑带暗金说明。字形只作为视觉组合，不声称译文。"
+}

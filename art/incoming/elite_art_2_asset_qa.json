@@ -1,0 +1,1787 @@
+{
+  "ok": true,
+  "checks": {
+    "proj_eyja_lava_lob.png": {
+      "size": [
+        64,
+        16
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          3,
+          15,
+          12
+        ],
+        [
+          4,
+          3,
+          12,
+          12
+        ],
+        [
+          1,
+          3,
+          14,
+          12
+        ],
+        [
+          4,
+          3,
+          12,
+          12
+        ]
+      ]
+    },
+    "proj_eyja_lava_lob@2x.png": {
+      "size": [
+        128,
+        32
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          4,
+          6,
+          30,
+          24
+        ],
+        [
+          8,
+          6,
+          24,
+          24
+        ],
+        [
+          2,
+          6,
+          28,
+          24
+        ],
+        [
+          8,
+          6,
+          24,
+          24
+        ]
+      ]
+    },
+    "fx_eyja_lava_pool.png": {
+      "size": [
+        384,
+        24
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ],
+        [
+          1,
+          1,
+          47,
+          23
+        ]
+      ]
+    },
+    "fx_eyja_lava_pool@2x.png": {
+      "size": [
+        768,
+        48
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ],
+        [
+          2,
+          2,
+          94,
+          46
+        ]
+      ]
+    },
+    "fx_eyja_lava_splash.png": {
+      "size": [
+        240,
+        28
+      ],
+      "colors": 7,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          13,
+          9,
+          26,
+          19
+        ],
+        [
+          9,
+          5,
+          30,
+          22
+        ],
+        [
+          5,
+          2,
+          34,
+          25
+        ],
+        [
+          3,
+          1,
+          36,
+          27
+        ],
+        [
+          3,
+          1,
+          36,
+          27
+        ],
+        [
+          3,
+          3,
+          34,
+          26
+        ]
+      ]
+    },
+    "fx_eyja_lava_splash@2x.png": {
+      "size": [
+        480,
+        56
+      ],
+      "colors": 7,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          26,
+          18,
+          52,
+          38
+        ],
+        [
+          18,
+          10,
+          60,
+          44
+        ],
+        [
+          10,
+          4,
+          68,
+          50
+        ],
+        [
+          6,
+          2,
+          72,
+          54
+        ],
+        [
+          6,
+          2,
+          72,
+          54
+        ],
+        [
+          6,
+          6,
+          68,
+          52
+        ]
+      ]
+    },
+    "proj_skadi_surge_blade.png": {
+      "size": [
+        192,
+        24
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          12,
+          1,
+          36,
+          23
+        ],
+        [
+          12,
+          1,
+          36,
+          23
+        ],
+        [
+          12,
+          1,
+          36,
+          23
+        ],
+        [
+          12,
+          1,
+          36,
+          23
+        ]
+      ]
+    },
+    "proj_skadi_surge_blade@2x.png": {
+      "size": [
+        384,
+        48
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          24,
+          2,
+          72,
+          46
+        ],
+        [
+          24,
+          2,
+          72,
+          46
+        ],
+        [
+          24,
+          2,
+          72,
+          46
+        ],
+        [
+          24,
+          2,
+          72,
+          46
+        ]
+      ]
+    },
+    "fx_skadi_surge_hit.png": {
+      "size": [
+        160,
+        32
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          10,
+          11,
+          22,
+          21
+        ],
+        [
+          5,
+          7,
+          26,
+          25
+        ],
+        [
+          1,
+          3,
+          31,
+          29
+        ],
+        [
+          1,
+          3,
+          30,
+          29
+        ],
+        [
+          1,
+          3,
+          30,
+          28
+        ]
+      ]
+    },
+    "fx_skadi_surge_hit@2x.png": {
+      "size": [
+        320,
+        64
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          20,
+          22,
+          44,
+          42
+        ],
+        [
+          10,
+          14,
+          52,
+          50
+        ],
+        [
+          2,
+          6,
+          62,
+          58
+        ],
+        [
+          2,
+          6,
+          60,
+          58
+        ],
+        [
+          2,
+          6,
+          60,
+          56
+        ]
+      ]
+    },
+    "fx_skadi_surge_release.png": {
+      "size": [
+        192,
+        32
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          18,
+          10,
+          32,
+          22
+        ],
+        [
+          8,
+          4,
+          40,
+          28
+        ],
+        [
+          5,
+          1,
+          44,
+          31
+        ],
+        [
+          8,
+          1,
+          43,
+          30
+        ]
+      ]
+    },
+    "fx_skadi_surge_release@2x.png": {
+      "size": [
+        384,
+        64
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          36,
+          20,
+          64,
+          44
+        ],
+        [
+          16,
+          8,
+          80,
+          56
+        ],
+        [
+          10,
+          2,
+          88,
+          62
+        ],
+        [
+          16,
+          2,
+          86,
+          60
+        ]
+      ]
+    },
+    "op_ulpianus_throw.png": {
+      "size": [
+        384,
+        48
+      ],
+      "colors": 23,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          11,
+          14,
+          41,
+          47
+        ],
+        [
+          3,
+          15,
+          44,
+          46
+        ],
+        [
+          8,
+          9,
+          40,
+          46
+        ],
+        [
+          1,
+          15,
+          47,
+          46
+        ],
+        [
+          2,
+          15,
+          46,
+          46
+        ],
+        [
+          4,
+          15,
+          43,
+          46
+        ],
+        [
+          4,
+          15,
+          44,
+          46
+        ],
+        [
+          11,
+          14,
+          41,
+          47
+        ]
+      ]
+    },
+    "op_ulpianus_throw@2x.png": {
+      "size": [
+        768,
+        96
+      ],
+      "colors": 23,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          21,
+          27,
+          82,
+          93
+        ],
+        [
+          6,
+          31,
+          89,
+          92
+        ],
+        [
+          16,
+          18,
+          80,
+          92
+        ],
+        [
+          2,
+          31,
+          94,
+          92
+        ],
+        [
+          4,
+          31,
+          92,
+          92
+        ],
+        [
+          9,
+          31,
+          86,
+          92
+        ],
+        [
+          8,
+          31,
+          88,
+          92
+        ],
+        [
+          21,
+          27,
+          82,
+          93
+        ]
+      ]
+    },
+    "fx_ulpianus_anchor_impact_back.png": {
+      "size": [
+        384,
+        40
+      ],
+      "colors": 11,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          22,
+          13,
+          43,
+          27
+        ],
+        [
+          13,
+          9,
+          50,
+          31
+        ],
+        [
+          4,
+          5,
+          57,
+          35
+        ],
+        [
+          3,
+          3,
+          57,
+          36
+        ],
+        [
+          3,
+          3,
+          57,
+          36
+        ],
+        [
+          3,
+          5,
+          56,
+          36
+        ]
+      ]
+    },
+    "fx_ulpianus_anchor_impact_back@2x.png": {
+      "size": [
+        768,
+        80
+      ],
+      "colors": 11,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          44,
+          26,
+          86,
+          54
+        ],
+        [
+          26,
+          18,
+          100,
+          62
+        ],
+        [
+          8,
+          10,
+          114,
+          70
+        ],
+        [
+          6,
+          6,
+          114,
+          72
+        ],
+        [
+          6,
+          6,
+          114,
+          72
+        ],
+        [
+          6,
+          10,
+          112,
+          72
+        ]
+      ]
+    },
+    "fx_ulpianus_anchor_impact_front.png": {
+      "size": [
+        384,
+        40
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          27,
+          12,
+          40,
+          27
+        ],
+        [
+          24,
+          8,
+          44,
+          32
+        ],
+        [
+          22,
+          3,
+          49,
+          36
+        ],
+        [
+          20,
+          1,
+          51,
+          39
+        ],
+        [
+          20,
+          1,
+          51,
+          39
+        ],
+        [
+          22,
+          3,
+          51,
+          38
+        ]
+      ]
+    },
+    "fx_ulpianus_anchor_impact_front@2x.png": {
+      "size": [
+        768,
+        80
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          54,
+          24,
+          80,
+          54
+        ],
+        [
+          48,
+          16,
+          88,
+          64
+        ],
+        [
+          44,
+          6,
+          98,
+          72
+        ],
+        [
+          40,
+          2,
+          102,
+          78
+        ],
+        [
+          40,
+          2,
+          102,
+          78
+        ],
+        [
+          44,
+          6,
+          102,
+          76
+        ]
+      ]
+    },
+    "fx_ulpianus_drag_dust.png": {
+      "size": [
+        96,
+        12
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          9,
+          3,
+          17,
+          9
+        ],
+        [
+          7,
+          1,
+          18,
+          8
+        ],
+        [
+          9,
+          0,
+          18,
+          9
+        ],
+        [
+          11,
+          3,
+          18,
+          6
+        ]
+      ]
+    },
+    "fx_ulpianus_drag_dust@2x.png": {
+      "size": [
+        192,
+        24
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          18,
+          6,
+          34,
+          18
+        ],
+        [
+          14,
+          2,
+          36,
+          16
+        ],
+        [
+          18,
+          0,
+          36,
+          18
+        ],
+        [
+          22,
+          6,
+          36,
+          12
+        ]
+      ]
+    },
+    "fx_eyja_melt_crack.png": {
+      "size": [
+        144,
+        12
+      ],
+      "colors": 4,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          10,
+          4,
+          16,
+          7
+        ],
+        [
+          6,
+          4,
+          19,
+          8
+        ],
+        [
+          2,
+          1,
+          19,
+          8
+        ],
+        [
+          4,
+          2,
+          22,
+          10
+        ],
+        [
+          4,
+          2,
+          22,
+          8
+        ],
+        [
+          5,
+          3,
+          22,
+          8
+        ]
+      ]
+    },
+    "fx_eyja_melt_crack@2x.png": {
+      "size": [
+        288,
+        24
+      ],
+      "colors": 4,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          20,
+          8,
+          32,
+          14
+        ],
+        [
+          12,
+          8,
+          38,
+          16
+        ],
+        [
+          4,
+          2,
+          38,
+          16
+        ],
+        [
+          8,
+          4,
+          44,
+          20
+        ],
+        [
+          8,
+          4,
+          44,
+          16
+        ],
+        [
+          10,
+          6,
+          44,
+          16
+        ]
+      ]
+    },
+    "op_skadi_leap_strike.png": {
+      "size": [
+        336,
+        48
+      ],
+      "colors": 36,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          6,
+          14,
+          38,
+          47
+        ],
+        [
+          9,
+          17,
+          38,
+          46
+        ],
+        [
+          9,
+          10,
+          39,
+          43
+        ],
+        [
+          9,
+          2,
+          38,
+          42
+        ],
+        [
+          3,
+          16,
+          44,
+          46
+        ],
+        [
+          5,
+          20,
+          42,
+          46
+        ],
+        [
+          6,
+          14,
+          38,
+          47
+        ]
+      ]
+    },
+    "op_skadi_leap_strike@2x.png": {
+      "size": [
+        672,
+        96
+      ],
+      "colors": 42,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          12,
+          28,
+          75,
+          93
+        ],
+        [
+          19,
+          35,
+          76,
+          92
+        ],
+        [
+          18,
+          21,
+          78,
+          87
+        ],
+        [
+          19,
+          5,
+          77,
+          84
+        ],
+        [
+          7,
+          33,
+          89,
+          92
+        ],
+        [
+          10,
+          40,
+          85,
+          92
+        ],
+        [
+          12,
+          28,
+          75,
+          93
+        ]
+      ]
+    },
+    "fx_skadi_leap_splash.png": {
+      "size": [
+        384,
+        32
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          19,
+          10,
+          44,
+          22
+        ],
+        [
+          12,
+          6,
+          52,
+          25
+        ],
+        [
+          4,
+          3,
+          59,
+          29
+        ],
+        [
+          2,
+          1,
+          62,
+          31
+        ],
+        [
+          3,
+          1,
+          62,
+          31
+        ],
+        [
+          3,
+          1,
+          60,
+          30
+        ]
+      ]
+    },
+    "fx_skadi_leap_splash@2x.png": {
+      "size": [
+        768,
+        64
+      ],
+      "colors": 10,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          38,
+          20,
+          88,
+          44
+        ],
+        [
+          24,
+          12,
+          104,
+          50
+        ],
+        [
+          8,
+          6,
+          118,
+          58
+        ],
+        [
+          4,
+          2,
+          124,
+          62
+        ],
+        [
+          6,
+          2,
+          124,
+          62
+        ],
+        [
+          6,
+          2,
+          120,
+          60
+        ]
+      ]
+    },
+    "fx_ulpianus_chain_tile.png": {
+      "size": [
+        32,
+        8
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          0,
+          1,
+          16,
+          7
+        ],
+        [
+          0,
+          1,
+          16,
+          7
+        ]
+      ]
+    },
+    "fx_ulpianus_chain_tile@2x.png": {
+      "size": [
+        64,
+        16
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          0,
+          2,
+          32,
+          14
+        ],
+        [
+          0,
+          2,
+          32,
+          14
+        ]
+      ]
+    },
+    "fx_ulpianus_pull_ring.png": {
+      "size": [
+        384,
+        32
+      ],
+      "colors": 12,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          63,
+          31
+        ],
+        [
+          5,
+          3,
+          58,
+          29
+        ],
+        [
+          9,
+          5,
+          54,
+          27
+        ],
+        [
+          14,
+          7,
+          50,
+          24
+        ],
+        [
+          18,
+          9,
+          45,
+          22
+        ],
+        [
+          22,
+          11,
+          41,
+          20
+        ]
+      ]
+    },
+    "fx_ulpianus_pull_ring@2x.png": {
+      "size": [
+        768,
+        64
+      ],
+      "colors": 12,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          126,
+          62
+        ],
+        [
+          10,
+          6,
+          116,
+          58
+        ],
+        [
+          18,
+          10,
+          108,
+          54
+        ],
+        [
+          28,
+          14,
+          100,
+          48
+        ],
+        [
+          36,
+          18,
+          90,
+          44
+        ],
+        [
+          44,
+          22,
+          82,
+          40
+        ]
+      ]
+    },
+    "fx_logos_chain_tile.png": {
+      "size": [
+        96,
+        8
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          15,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ],
+        [
+          0,
+          1,
+          15,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ],
+        [
+          1,
+          1,
+          16,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ]
+      ]
+    },
+    "fx_logos_chain_tile@2x.png": {
+      "size": [
+        192,
+        16
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          30,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ],
+        [
+          0,
+          2,
+          30,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ],
+        [
+          2,
+          2,
+          32,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ]
+      ]
+    },
+    "fx_logos_chain_pulse.png": {
+      "size": [
+        64,
+        8
+      ],
+      "colors": 3,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          15,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ],
+        [
+          0,
+          1,
+          16,
+          6
+        ]
+      ]
+    },
+    "fx_logos_chain_pulse@2x.png": {
+      "size": [
+        128,
+        16
+      ],
+      "colors": 3,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          30,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ],
+        [
+          0,
+          2,
+          32,
+          12
+        ]
+      ]
+    },
+    "fx_logos_chain_anchor.png": {
+      "size": [
+        96,
+        16
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          3,
+          15,
+          12
+        ],
+        [
+          1,
+          3,
+          15,
+          12
+        ],
+        [
+          1,
+          4,
+          15,
+          13
+        ],
+        [
+          1,
+          4,
+          15,
+          13
+        ],
+        [
+          1,
+          3,
+          15,
+          12
+        ],
+        [
+          1,
+          3,
+          15,
+          12
+        ]
+      ]
+    },
+    "fx_logos_chain_anchor@2x.png": {
+      "size": [
+        192,
+        32
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          6,
+          30,
+          24
+        ],
+        [
+          2,
+          6,
+          30,
+          24
+        ],
+        [
+          2,
+          8,
+          30,
+          26
+        ],
+        [
+          2,
+          8,
+          30,
+          26
+        ],
+        [
+          2,
+          6,
+          30,
+          24
+        ],
+        [
+          2,
+          6,
+          30,
+          24
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_1.png": {
+      "size": [
+        32,
+        10
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          2,
+          6,
+          8
+        ],
+        [
+          1,
+          2,
+          6,
+          8
+        ],
+        [
+          1,
+          2,
+          6,
+          8
+        ],
+        [
+          1,
+          2,
+          6,
+          8
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_1@2x.png": {
+      "size": [
+        64,
+        20
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          4,
+          12,
+          16
+        ],
+        [
+          2,
+          4,
+          12,
+          16
+        ],
+        [
+          2,
+          4,
+          12,
+          16
+        ],
+        [
+          2,
+          4,
+          12,
+          16
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_2.png": {
+      "size": [
+        32,
+        10
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          6,
+          9
+        ],
+        [
+          1,
+          1,
+          6,
+          9
+        ],
+        [
+          1,
+          1,
+          6,
+          9
+        ],
+        [
+          1,
+          1,
+          6,
+          9
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_2@2x.png": {
+      "size": [
+        64,
+        20
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          12,
+          18
+        ],
+        [
+          2,
+          2,
+          12,
+          18
+        ],
+        [
+          2,
+          2,
+          12,
+          18
+        ],
+        [
+          2,
+          2,
+          12,
+          18
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_3.png": {
+      "size": [
+        32,
+        10
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          0,
+          6,
+          9
+        ],
+        [
+          1,
+          0,
+          6,
+          9
+        ],
+        [
+          1,
+          0,
+          6,
+          9
+        ],
+        [
+          1,
+          0,
+          6,
+          9
+        ]
+      ]
+    },
+    "fx_logos_soul_rune_3@2x.png": {
+      "size": [
+        64,
+        20
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          0,
+          12,
+          18
+        ],
+        [
+          2,
+          0,
+          12,
+          18
+        ],
+        [
+          2,
+          0,
+          12,
+          18
+        ],
+        [
+          2,
+          0,
+          12,
+          18
+        ]
+      ]
+    }
+  }
+}
