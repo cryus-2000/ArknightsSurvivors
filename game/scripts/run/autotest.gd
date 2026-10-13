@@ -43,6 +43,8 @@ var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2�
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
 var _vd_beacon = null
+var sfx_win_t := 0.0           # --sfxstat 批跑：每 30 秒（局内时间）打印一次各音名的 [请求, 实播] 增量（SFXWIN），查哪个音连发；实播要配 --realtime 才是真实间隔
+var sfx_win_prev := {}
 
 
 ## --vfxdemo（docs/54 录像用，只在 --balance 下）：t≥18 在主控旁放 3 片溟痕 + 1 座灯标，20 秒点燃；26 秒升级；
@@ -236,6 +238,8 @@ func step() -> void:
 		vfxdemo = Cfg.dev_args().has("--vfxdemo")
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
+	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
+		_sfx_win()
 	_rec_step()
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
@@ -763,6 +767,18 @@ func bot_move() -> Vector2:
 	if mv.length() < 0.15:
 		mv = Vector2.from_angle(g.t * 0.3) * 0.3
 	return mv
+
+
+func _sfx_win() -> void:
+	sfx_win_t = floorf(g.t / 30.0) * 30.0
+	var d := {}   # 音名 -> [请求, 实播]
+	for n in Sfx.sfx_by:
+		var pr: Array = sfx_win_prev.get(n, [0, 0])
+		var k: int = int(Sfx.sfx_by[n][0]) - int(pr[0])
+		if k > 0:
+			d[n] = [k, int(Sfx.sfx_by[n][1]) - int(pr[1])]
+		sfx_win_prev[n] = [int(Sfx.sfx_by[n][0]), int(Sfx.sfx_by[n][1])]
+	print("SFXWIN t=%d %s" % [int(sfx_win_t), JSON.stringify(d)])
 
 
 func _perf_sample() -> void:

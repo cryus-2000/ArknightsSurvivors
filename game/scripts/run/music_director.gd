@@ -37,6 +37,7 @@ func update(_dt: float) -> void:
 	if g.hurt_duck > 0.0:
 		target = minf(target, Bal.v("fx/hurt_duck_hz", 900.0))   # 重击闷音（combat.hurt 写，docs/53）
 	Sfx.cut_target = target
+	Sfx.view = g.world.view_rect(0.0) if g.state == g.S.PLAY and g.world != null else Rect2()   # 带位置的音效按离画面多远降音量（Sfx.play_at）
 	if g.state == g.S.PLAY and lamp_prev > 0.0 and g.lamp <= 0.0:
 		Sfx.play("lamp_empty", -6.6, 1.0, 0.0)   # 灯火熄灭（之后持续掉血）：噗噗灭掉 + 低沉小调
 	lamp_prev = g.lamp

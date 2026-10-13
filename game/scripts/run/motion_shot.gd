@@ -92,14 +92,20 @@ func _save(name: String) -> void:
 
 func open(s: String) -> void:
 	t0 = UM.now()
+	# relic4 / relic5 / recruit5 …：同一界面多张卡（选卡一排宽度自适应的截图验收）
+	var n := 3
+	var m := RegEx.create_from_string("^(relic|recruit)([0-9]+)$").search(s)
+	if m != null:
+		s = m.get_string(1)
+		n = int(m.get_string(2))
 	match s:
 		"levelup":
 			g.progression.open_levelup()
 		"relic":
-			g.panel_ui.show_choices("获得藏品", _relic_opts(), "relic")
+			g.panel_ui.show_choices("获得藏品", _relic_opts(n), "relic")
 		"recruit":
 			var rc: Array = g.progression.recruit_cards()
-			g.panel_ui.show_choices("招募干员", rc.slice(0, 3), "level")
+			g.panel_ui.show_choices("招募干员", rc.slice(0, n), "level")
 		"shop":
 			g.ingots = maxi(g.ingots, 60)
 			g.merchant = {"pos": g.ppos, "life": 60.0, "near": false, "purchases": 0}
@@ -115,16 +121,24 @@ func open(s: String) -> void:
 			g.state = Game.S.DEAD
 
 
-## 藏品示意：基础 / 稀有 / 核心各一张（三种光柱颜色都看得到；藏品是现成的，不新造数据）
-func _relic_opts() -> Array:
+## 藏品示意：基础 / 稀有 / 核心各一张（三种光柱颜色都看得到；藏品是现成的，不新造数据）；n > 3 时依次补别的藏品
+func _relic_opts(n := 3) -> Array:
 	var want := ["基础", "稀有", "核心"]
-	var out: Array = []
+	var ids: Array = []
 	for rar in want:
 		for rid in g.RL.keys():
-			var r: Dictionary = g.RL[rid]
-			if r.get("rarity", "") == rar and g.tex.get("relic_" + str(rid)) != null:
-				out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
+			if g.RL[rid].get("rarity", "") == rar and g.tex.get("relic_" + str(rid)) != null:
+				ids.append(rid)
 				break
+	for rid in g.RL.keys():
+		if ids.size() >= n:
+			break
+		if rid not in ids and g.tex.get("relic_" + str(rid)) != null:
+			ids.append(rid)
+	var out: Array = []
+	for rid in ids.slice(0, n):
+		var r: Dictionary = g.RL[rid]
+		out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
 	return out
 
 

@@ -1774,7 +1774,7 @@ func _enemy_act_fx() -> void:
 		var ang: float = float(la.get("ang", 0.0))
 		match str(la.get("act", "")):
 			"dash", "charge":
-				Sfx.play("knight_charge", -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
+				Sfx.play_at("knight_charge", e.pos, -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
 				var L: float = float(la.get("len", 200.0))
 				var dv := Vector2.from_angle(ang)
 				var s := 0.0
