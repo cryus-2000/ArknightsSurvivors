@@ -14,6 +14,10 @@ const HudBars = preload("res://scripts/screens/hud_bars.gd")
 const HudRelics = preload("res://scripts/screens/hud_relics.gd")
 const HudSquad = preload("res://scripts/screens/hud_squad.gd")
 const HudBanners = preload("res://scripts/screens/hud_banners.gd")
+const HudIcons = preload("res://scripts/screens/hud_icons.gd")
+const TextQ = preload("res://scripts/screens/hud_textq.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")
+var icons := HudIcons.new()   # HUD 图标图集（藏品 / 立绘 / 技能图标 / 源石锭，docs/50 §13）
 var bars: HudBars
 var relics: HudRelics
 var squad: HudSquad
@@ -34,20 +38,78 @@ var _hb: Tris = null
 func batch_begin() -> void:
 	_hb = Tris.new()
 	UI.sink = _hb
-	UI.tq = []
+	UI.tq = TextQ.new() if hb_on() else []
+
+
+## HUD 合批（docs/50 §13，OPT_HUDB）：字按字体字号成组、图标走图集、飘字分组。--optab 同局对照时旧写法照原样
+func hb_on() -> bool:
+	return not (g.opt_old & Game.OPT_HUDB)
+
+
+## 一组按原顺序画字的 Callable（各自调 UI.text / ctext / en……）：合批时按字体字号归组后再画（各行字互不重叠时用）
+func text_flush(fs: Array) -> void:
+	if fs.is_empty():
+		return
+	if not hb_on():
+		for f in fs:
+			f.call()
+		return
+	var keep = UI.tq
+	var q := TextQ.new()
+	UI.tq = q
+	for f in fs:
+		f.call()
+	UI.tq = keep
+	q.flush()
+
+
+## 画一组图标 [贴图, 目标矩形(, 源矩形, 调制色)]：合批时从图标图集取区域连着画（放不下的照旧画原贴图，按原顺序）
+func icons_draw(list: Array) -> void:
+	if list.is_empty():
+		return
+	if not hb_on():
+		for it in list:
+			_icon_raw(it)
+		return
+	var regs: Array = []
+	for it in list:
+		var t: Texture2D = it[0]
+		var full := Rect2(Vector2.ZERO, t.get_size())
+		var src: Rect2 = it[2] if it.size() > 2 else full
+		regs.append(icons.region(t, src, "" if src == full else str(src)))
+	icons.commit()
+	for i in list.size():
+		var it: Array = list[i]
+		var mod: Color = it[3] if it.size() > 3 else Color.WHITE
+		if regs[i].has_area() and icons.tex != null:
+			g.hud.draw_texture_rect_region(icons.tex, it[1], regs[i], mod)
+		else:
+			_icon_raw(it)
+
+
+func _icon_raw(it: Array) -> void:
+	var t: Texture2D = it[0]
+	var mod: Color = it[3] if it.size() > 3 else Color.WHITE
+	if it.size() > 2 and it[2] != Rect2(Vector2.ZERO, t.get_size()):
+		g.hud.draw_texture_rect_region(t, it[1], it[2], mod)
+	else:
+		g.hud.draw_texture_rect(t, it[1], false, mod)
 
 
 ## mid：色块之后、文字之前要画的贴图（同贴图连续画才合批）
 func batch_end(mid: Array = []) -> void:
-	var q: Array = UI.tq
+	var q = UI.tq
 	UI.sink = null
 	UI.tq = null
 	_hb.flush(g.hud)
 	_hb = null
 	for f in mid:
 		f.call()
-	for f in q:
-		f.call()
+	if q is Array:
+		for f in q:
+			f.call()
+	else:
+		q.flush()
 
 
 ## HUD 分层（性能，docs/50 §9.10）：不每帧变的部分（藏品栏、编队卡的静态部分）和小地图画在 g.hud 下面的子画布上
@@ -118,7 +180,7 @@ func _draw_body() -> void:
 	banners.draw_hunt_pointer(vs, ct)
 	if not overlay_left():
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）
-		_layer("minimap", [Engine.get_process_frames() / 3, vs], func(): bars.draw_minimap(vs))
+		_layer("minimap", [Engine.get_process_frames() / 3, vs, g.opt_old & Game.OPT_HUDB], func(): bars.draw_minimap(vs))
 	bars.draw_lamp_strip(vs)
 	banners.draw_zone_warning(vs)
 	bars.draw_top_center(vs)   # 开合批段（顶部中央 + 右上暂停键共用一批）
@@ -176,6 +238,8 @@ func _draw_body() -> void:
 func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
+	var dn: Array = []   # 合批时先收集，_dmg_numbers 分层画（docs/50 §13）
+	var hb := hb_on()
 	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		# 图鉴演示：主控身上的飘字压淡（斯卡蒂潮汐时成串数字会整块盖住她）
@@ -184,7 +248,12 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		var sz := int(f.size * pop)
-		UI.text(g.hud, g.font, sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a), HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
+		if hb:
+			dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
+		else:
+			UI.text(g.hud, g.font, sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a), HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
+	if not dn.is_empty():
+		_dmg_numbers(dn)
 
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
@@ -269,6 +338,39 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		edge_glow(vs, Color(0.3, 0.0, 0.2, 0.25 + 0.1 * sin(g.t * 3.0)), 140.0)
 
 
+## 飘字分层（docs/50 §13）：每个飘字是「4 像素描边 + 本体」两次画、字号还随弹出变，原来每个字至少两次绘制调用。
+## 按原顺序给每个字分层：比它早、又和它外接框重叠的字里层号最大的那个 + 1。同层的字互不重叠，层内先画全部描边、再画全部本体，
+## 同字号连着画；层按顺序画。所以重叠的两个字前后关系和原来一样，不重叠的谁先谁后都一样（画面不变）
+func _dmg_numbers(dn: Array) -> void:
+	var n: int = dn.size()
+	var bbs: Array = []
+	var lay := PackedInt32Array()
+	lay.resize(n)
+	var maxl := 0
+	for i in n:
+		var it: Array = dn[i]
+		var ks: int = UI._ks(g.hud, it[2])
+		var w: float = g.font.get_string_size(it[1], HORIZONTAL_ALIGNMENT_LEFT, -1, ks).x
+		var p: Vector2 = it[0]
+		var bb := Rect2(p.x + (120.0 - w) * 0.5 - 6.0, p.y - g.font.get_ascent(ks) - 6.0, w + 12.0, g.font.get_height(ks) + 12.0)
+		var L := 0
+		for j in i:
+			if lay[j] >= L and (bbs[j] as Rect2).intersects(bb):
+				L = lay[j] + 1
+		lay[i] = L
+		maxl = maxi(maxl, L)
+		bbs.append(bb)
+	for L in maxl + 1:
+		var q := TextQ.new()
+		UI.tq = q
+		for i in n:
+			if lay[i] == L:
+				var it: Array = dn[i]
+				UI.text(g.hud, g.font, it[0], it[1], it[2], it[3], HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
+		UI.tq = null
+		q.flush()
+
+
 func draw_trial_result(vs: Vector2, won: bool) -> void:
 	g.result_screen.draw(vs, "演练完成" if won else "演练结束", "BOSS TRIAL COMPLETE" if won else "BOSS TRIAL ENDED", UI.CYAN if won else UI.RED,
 		[["重新演练", "R", "restart"], ["返回主页", "T", "title"]], false, false)
@@ -277,6 +379,15 @@ func draw_trial_result(vs: Vector2, won: bool) -> void:
 func edge_glow(vs: Vector2, col: Color, w: float) -> void:
 	var c0 := col
 	var c1 := Color(col.r, col.g, col.b, 0.0)
+	if hb_on():
+		# 合批（docs/50 §13）：四条渐变带一次提交（同样的三角化与顶点色）
+		var tb := TriBatch.new()
+		tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), Vector2(vs.x, w), Vector2(0, w)]), PackedColorArray([c0, c0, c1, c1]))
+		tb.polygon_colors(PackedVector2Array([Vector2(0, vs.y - w), Vector2(vs.x, vs.y - w), vs, Vector2(0, vs.y)]), PackedColorArray([c1, c1, c0, c0]))
+		tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(w, 0), Vector2(w, vs.y), Vector2(0, vs.y)]), PackedColorArray([c0, c1, c1, c0]))
+		tb.polygon_colors(PackedVector2Array([Vector2(vs.x - w, 0), Vector2(vs.x, 0), vs, Vector2(vs.x - w, vs.y)]), PackedColorArray([c1, c0, c0, c1]))
+		tb.flush(g.hud)
+		return
 	g.hud.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), Vector2(vs.x, w), Vector2(0, w)]), PackedColorArray([c0, c0, c1, c1]))
 	g.hud.draw_polygon(PackedVector2Array([Vector2(0, vs.y - w), Vector2(vs.x, vs.y - w), vs, Vector2(0, vs.y)]), PackedColorArray([c1, c1, c0, c0]))
 	g.hud.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(w, 0), Vector2(w, vs.y), Vector2(0, vs.y)]), PackedColorArray([c0, c1, c1, c0]))

@@ -52,6 +52,8 @@ static var _cond := {}
 ## 三角形批（hud.gd 的 Tris），tq 非空时文字延后（追加成 Callable，批提交后再画，保证字压在色块上）。平时都是 null，行为不变
 static var sink = null
 static var tq = null
+## tq 也可以是 screens/hud_textq.gd（docs/50 §13 HUD 合批）：字按字体 / 字号 / 描边归组，段末同组连着画；为 Array 时照旧逐条延后
+const TextQ = preload("res://scripts/screens/hud_textq.gd")
 ## 手机横屏正文字号放大（用户 10-13「手机版的字可以放大一点」）：局内（game.gd）在 Cfg.phone_ui() 时设为 balance.json ui/phone_font_mult，
 ## 离开局内恢复 1；桌面、平板、标题页恒为 1，排版逐像素不变。只放大正文类字号：< FS_CAP 的字号乘倍率、封顶 FS_CAP，
 ## 大标题（≥ FS_CAP）与英文小标签（en / en_width）不变。画字的助手只对 Control（HUD / 面板 / 设置 / 卡片）放大，
@@ -88,7 +90,12 @@ static func cond(base: Font, italic := false) -> Font:
 ## 压缩字文字（数字、英文）
 static func ctext(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, italic := false) -> void:
 	if tq != null:
-		tq.append(func(): ctext(ci, font, pos, s, size, col, align, width, italic))
+		if tq is Array:
+			tq.append(func(): ctext(ci, font, pos, s, size, col, align, width, italic))
+		else:
+			var cf := cond(font, italic)
+			var ks := _ks(ci, size)
+			tq.add(false, TextQ.key(cf, ks), func(): ci.draw_string(cf, pos, s, align, width, ks, col))
 		return
 	ci.draw_string(cond(font, italic), pos, s, align, width, _ks(ci, size), col)
 
@@ -100,7 +107,10 @@ static func cwidth(font: Font, s: String, size: int, italic := false) -> float:
 ## 英文小标签（压缩字 + 字距）
 static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing := 2.0, italic := false) -> float:
 	if tq != null:
-		tq.append(func(): en(ci, font, pos, text, size, col, spacing, italic))
+		if tq is Array:
+			tq.append(func(): en(ci, font, pos, text, size, col, spacing, italic))
+		else:
+			tq.add(false, TextQ.key(cond(font, italic), size), func(): _en_draw(ci, font, pos, text, size, col, spacing, italic))
 		return en_width(font, text, size, spacing)
 	var f := cond(font, italic)
 	var x := pos.x
@@ -108,6 +118,14 @@ static func en(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int
 		ci.draw_string(f, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 		x += f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + spacing
 	return x - pos.x
+
+
+static func _en_draw(ci: CanvasItem, font: Font, pos: Vector2, text: String, size: int, col: Color, spacing: float, italic: bool) -> void:
+	var f := cond(font, italic)
+	var x := pos.x
+	for ch in text:
+		ci.draw_string(f, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+		x += f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + spacing
 
 
 static func en_width(font: Font, text: String, size: int, spacing := 2.0) -> float:
@@ -120,7 +138,13 @@ static func en_width(font: Font, text: String, size: int, spacing := 2.0) -> flo
 
 static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, outline := 0) -> void:
 	if tq != null:
-		tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))
+		if tq is Array:
+			tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))
+		else:
+			var ks := _ks(ci, size)
+			if outline > 0:
+				tq.add(true, TextQ.key(font, ks, outline), func(): ci.draw_string_outline(font, pos, s, align, width, ks, outline, Color(0, 0, 0, col.a * 0.8)))
+			tq.add(false, TextQ.key(font, ks), func(): ci.draw_string(font, pos, s, align, width, ks, col))
 		return
 	size = _ks(ci, size)
 	if outline > 0:
@@ -191,7 +215,11 @@ static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, 
 	else:
 		ci.draw_rect(Rect2(pos, Vector2(w, size + 6)), bg)
 	if tq != null:
-		tq.append(func(): ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a)))
+		var tf := func(): ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a))
+		if tq is Array:
+			tq.append(tf)
+		else:
+			tq.add(false, TextQ.key(font, size), tf)
 	else:
 		ci.draw_string(font, pos + Vector2(6, size + 1), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, bg.a))
 	return w
@@ -208,7 +236,13 @@ static func strip(ci: CanvasItem, font: Font, pos: Vector2, en_s: String, cn: St
 		sink.rect(Rect2(pos, Vector2(ew + cw, h)), Color(bg.r, bg.g, bg.b, bg.a * col.a))
 		if en_s != "":
 			sink.rect(Rect2(pos, Vector2(ew, h)), col)
-		tq.append(func(): _strip_text(ci, font, cf, pos, h, ew, en_s, cn, col, cn_col, size))
+		if tq is Array:
+			tq.append(func(): _strip_text(ci, font, cf, pos, h, ew, en_s, cn, col, cn_col, size))
+		else:
+			if en_s != "":
+				tq.add(false, TextQ.key(cf, size - 1), func(): _strip_text(ci, font, cf, pos, h, ew, en_s, "", col, cn_col, size))
+			if cn != "":
+				tq.add(false, TextQ.key(font, size), func(): _strip_text(ci, font, cf, pos, h, ew, "", cn, col, cn_col, size))
 		return ew + cw
 	ci.draw_rect(Rect2(pos, Vector2(ew + cw, h)), Color(bg.r, bg.g, bg.b, bg.a * col.a))
 	if en_s != "":
@@ -325,7 +359,11 @@ static func keycap(ci: CanvasItem, font: Font, pos: Vector2, key: String, col :=
 	var w := cond(font).get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0
 	if sink != null and tq != null:
 		sink.frame(Rect2(pos, Vector2(w, size + 7)), Color(col.r, col.g, col.b, 0.55 * col.a), 1.0)
-		tq.append(func(): ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col))
+		var kf := func(): ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+		if tq is Array:
+			tq.append(kf)
+		else:
+			tq.add(false, TextQ.key(cond(font), size), kf)
 		return w
 	ci.draw_rect(Rect2(pos, Vector2(w, size + 7)), Color(col.r, col.g, col.b, 0.55 * col.a), false, 1.0)
 	ci.draw_string(cond(font), pos + Vector2(6, size + 2), key, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)

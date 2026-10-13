@@ -10,6 +10,7 @@ const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色�
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -567,6 +568,7 @@ func _draw_pickups_fast() -> void:
 	var lit_s := Color(1.25, 1.25, 1.3)
 	var lit_b := Color(1.35, 1.2, 1.5)
 	const NEAR2 := 170.0 * 170.0
+	var pq: bool = not (g.opt_old & Game.OPT_PICKB)   # docs/50 §13：空中影子 / 特殊掉落的圈与光柱进三角形批、贴图按重叠判定成组
 	for g_item in g.gems:
 		var pos: Vector2 = g_item.pos
 		if not vr.has_point(pos):
@@ -582,7 +584,10 @@ func _draw_pickups_fast() -> void:
 				cells[ck] = int(cells.get(ck, 0)) + 1
 				continue
 			if gz > 1.0:
-				_gem_air_shadow(pos, gz)
+				if pq:
+					_pq_air_shadow(pos, gz)
+				else:
+					_gem_air_shadow(pos, gz)
 			var quiet: bool = many and far
 			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
 			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
@@ -614,6 +619,9 @@ func _draw_pickups_fast() -> void:
 				oil_p.append(pos + Vector2(0, -gz))
 			continue
 		# 其他掉落（宝箱 / 磁铁 / 回复药剂、空中的源石锭 / 灯油）：数量少，照旧写法画
+		if pq:
+			_pq_item(g_item, pos, gz, kind, t)
+			continue
 		if gz > 1.0:
 			_gem_air_shadow(pos, gz)
 		if g_item.special:
@@ -638,6 +646,8 @@ func _draw_pickups_fast() -> void:
 			"magnet", "heal":
 				g.vfx.spr("pickup_" + kind, 1, 0, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		g.draw_off = Vector2.ZERO
+	if pq:
+		_pq_flush()
 	var wc1 := PackedColorArray()
 	wc1.resize(maxi(ing_p.size(), oil_p.size()))
 	wc1.fill(Color.WHITE)
@@ -667,6 +677,96 @@ func _draw_pickups_fast() -> void:
 	qc.fill(quiet_col)
 	_gem_sprites("gem_small", Game.PX * 1.45, mp_s, qc)
 	_gem_sprites("gem_big", Game.PX * 1.9, mp_b, qc)
+
+
+## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
+## 光圈与细环原来逐个 draw_*，夹在特殊掉落和空中源石锭的贴图之间，每颗都断批。现在：图元按引擎同款几何进 _pb 三角形批，
+## 贴图先挂起；新图元或新贴图和挂起的贴图有重叠时先按原顺序交一次（图元 → 贴图），所以有重叠的前后关系和原来一样；
+## 互不重叠的挂起贴图按贴图成组连续画。几何、颜色、取整与 _gem_air_shadow / vfx.spr 相同
+var _pb := TriBatch.new()
+var _pq_spr: Array = []       # 挂起的贴图：[贴图, 目标矩形, 源矩形]
+var _pq_rects: Array = []     # 挂起贴图的目标矩形（重叠判定）
+
+
+func _pq_guard(r: Rect2) -> void:
+	for sr in _pq_rects:
+		if (sr as Rect2).intersects(r):
+			_pq_flush()
+			return
+
+
+func _pq_flush() -> void:
+	_pb.flush(g)
+	if _pq_spr.is_empty():
+		return
+	var n: int = _pq_spr.size()
+	var done := []
+	for i in n:
+		var tx: Texture2D = _pq_spr[i][0]
+		if done.has(tx):
+			continue
+		done.append(tx)
+		for j in range(i, n):
+			var it: Array = _pq_spr[j]
+			if it[0] == tx:
+				g.draw_texture_rect_region(tx, it[1], it[2])
+	_pq_spr.clear()
+	_pq_rects.clear()
+
+
+## 同 _gem_air_shadow
+func _pq_air_shadow(pos: Vector2, gz: float) -> void:
+	var r: float = 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6))
+	var c: Vector2 = pos + Vector2(0, 8)
+	_pq_guard(Rect2(c.x - r - 1.0, c.y - r * 0.45 - 1.0, r * 2.0 + 2.0, r * 0.9 + 2.0))
+	_pb.circle(Vector2.ZERO, r, Color(0, 0, 0, 0.35), Transform2D(0.0, Vector2(1.0, 0.45), 0.0, c))
+
+
+## 同 vfx.spr(name, 1, 0, pos)（单帧、锚点居中、取整，含 g.draw_off）
+func _pq_sprite(name: String, pos: Vector2) -> void:
+	var tx: Texture2D = g.tex.get(name)
+	if tx == null:
+		return
+	pos += g.draw_off
+	var fw: int = tx.get_width()
+	var fh: int = tx.get_height()
+	var size := Vector2(fw, fh) * Game.PX
+	var dst := Rect2((pos - size * Vector2(0.5, 0.5)).round(), size)
+	_pq_guard(dst)
+	_pq_spr.append([tx, dst, Rect2(0, 0, fw, fh)])
+	_pq_rects.append(dst)
+
+
+## 特殊掉落与空中的源石锭 / 灯油（_draw_pickups_fast 的「其他掉落」分支，画法同旧写法）
+func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: float) -> void:
+	if gz > 1.0:
+		_pq_air_shadow(pos, gz)
+	if g_item.special:
+		var ic := g.pickups.item_col(kind)
+		var age: float = g_item.age
+		if age < 0.9:
+			var ba := (1.0 - age / 0.9) * 0.55
+			_pq_guard(Rect2(pos + Vector2(-6, -141), Vector2(12, 142)))
+			_pb.rect(Rect2(pos + Vector2(-5, -140), Vector2(10, 140)), Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, ba * 0.5))
+			_pb.rect(Rect2(pos + Vector2(-2, -140), Vector2(4, 140)), Color(2.5, 2.5, 2.5, ba))
+		if kind != "chest":
+			var pr := 11.0 + 2.0 * sin(t * 5.0)
+			var cc: Vector2 = pos + Vector2(0, -gz - 2)
+			var rr: float = pr + 6.0
+			_pq_guard(Rect2(cc - Vector2(rr, rr), Vector2(rr, rr) * 2.0))
+			_pb.circle(cc, pr + 5.0, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.12))
+			_pb.arc(cc, pr, 0.0, TAU, 20, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.5), 1.5)
+	g.draw_off = Vector2(0, -gz)
+	match kind:
+		"oil":
+			_pq_sprite("oil", pos)
+		"chest":
+			_pq_sprite("chest", pos)
+		"ingot":
+			_pq_sprite("ingot", pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
+		"magnet", "heal":
+			_pq_sprite("pickup_" + kind, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+	g.draw_off = Vector2.ZERO
 
 
 ## 空中掉落物的地面影子（同旧写法）
@@ -860,6 +960,7 @@ func _draw_fx() -> void:
 			if f.kind == "spark" and not f.get("enemy", false):
 				ns += 1
 		skip_sparks = maxi(0, ns - spark_left)
+	var fq: bool = not (g.opt_old & Game.OPT_FXB)
 	for f in g.fx:
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
@@ -871,6 +972,30 @@ func _draw_fx() -> void:
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
 			skip_sparks -= 1
 			continue
+		if fq:
+			# docs/50 §13：火花照画（矩形批），帧条特效挂起按贴图成组；其余种类先把挂起的交掉再照原写法画
+			match f.kind:
+				"spark":
+					_fxq_spark(Rect2(f.pos.round(), Vector2(f.sz, f.sz)), Color(f.col.r, f.col.g, f.col.b, a))
+					continue
+				"sprite":
+					if not (f.get("ring", 0.0) > 0.0):
+						var qspec: Array = Game.V6_FRAMES[f.name]
+						var qfr := mini(int((f.max - f.life) * qspec[1]), qspec[0] - 1)
+						var qcol: Color = f.get("col", Color.WHITE)
+						qcol.a *= fdim
+						_fxq_sprite(f.name, qfr, f.pos, f.ang, f.scale, qcol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+						continue
+					_fxq_flush()
+				"mote":
+					if g.vfx.p2 and f.get("em", false):
+						_fxq_sprite("fx_ember", clampi(int((1.0 - a) * 4.0), 0, 3), f.pos, 0.0, Game.PX * f.sz * 0.5, Color(f.col.r, f.col.g, f.col.b, f.col.a))
+						continue
+				"ring":
+					if not (f.get("op_hit", false) and not Dc.hit_rings()):
+						_fxq_flush()
+				_:
+					_fxq_flush()
 		match f.kind:
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹（地面椭圆与判定一致，ground_y，docs/48 ①）
@@ -1251,7 +1376,87 @@ func _draw_fx() -> void:
 				var sc_col: Color = f.col if (tn == "slash" or tn.begins_with("fx_umbrella_slash")) else Color.WHITE
 				g.vfx.spr(tn, nf, fr, Vector2.ZERO, f.scale, false, sc_col, f.get("anchor", Vector2(0.5, 0.5)))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_fxq_flush()
 	tb_flush()   # gcrack 等写进 tb 批的特效在这里一次提交
+
+
+## ---- 特效合批（docs/50 §13，OPT_FXB）：每帧约 85 个火花（无贴图矩形）和 14 个帧条特效交替出现，每次换贴图都断批。
+## 帧条特效（vfx.spr_rot 的同一套变换 / 取帧）先挂起，按 32 像素格记下它们的外接矩形；火花照常立刻画——
+## 只有落在挂起特效的外接矩形里时才先把挂起的交掉（保持重叠处的前后关系）。挂起的特效之间：不同贴图且互相重叠时先交，
+## 所以交出时可以按贴图成组连续画。其余种类（圆 / 环 / 线……）照原写法画，画之前先交挂起的
+const FXQ_CELL := 32.0
+var _fxq: Array = []          # [贴图, 变换, 目标矩形, 源矩形, 颜色, 外接矩形]
+var _fxq_cells := {}          # Vector2i 格 -> true（挂起特效覆盖的格）
+
+
+func _fxq_hit(r: Rect2) -> bool:
+	if _fxq.is_empty():
+		return false
+	var c0 := Vector2i(floori(r.position.x / FXQ_CELL), floori(r.position.y / FXQ_CELL))
+	var c1 := Vector2i(floori(r.end.x / FXQ_CELL), floori(r.end.y / FXQ_CELL))
+	var any := false
+	for cy in range(c0.y, c1.y + 1):
+		for cx in range(c0.x, c1.x + 1):
+			if _fxq_cells.has(Vector2i(cx, cy)):
+				any = true
+	if not any:
+		return false
+	for it in _fxq:
+		if (it[5] as Rect2).intersects(r):
+			return true
+	return false
+
+
+func _fxq_spark(r: Rect2, col: Color) -> void:
+	if _fxq_hit(r.grow(1.0)):
+		_fxq_flush()
+	g.draw_rect(r, col)
+
+
+## 同 vfx.spr_rot（含 g.draw_off、@2x 倍率）
+func _fxq_sprite(name: String, frame: int, pos: Vector2, ang: float, scale: float, col: Color, anchor_px := Vector2(-1, -1), flip := false) -> void:
+	var tx: Texture2D = g.tex.get(name)
+	if tx == null:
+		return
+	var frames: int = Game.V6_FRAMES.get(name, [1, 0.0])[0]
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
+	scale /= A.hires_of(tx)
+	var xf := Transform2D(ang, Vector2(-scale if flip else scale, scale), 0.0, pos + g.draw_off)
+	var dst := Rect2(-an, Vector2(fw, fh))
+	var cs: PackedVector2Array = xf * PackedVector2Array([dst.position, Vector2(dst.end.x, dst.position.y), dst.end, Vector2(dst.position.x, dst.end.y)])
+	var bb := Rect2(cs[0], Vector2.ZERO).expand(cs[1]).expand(cs[2]).expand(cs[3]).grow(1.0)
+	for it in _fxq:
+		if it[0] != tx and (it[5] as Rect2).intersects(bb):
+			_fxq_flush()
+			break
+	_fxq.append([tx, xf, dst, Rect2(fw * (frame % frames), 0, fw, fh), col, bb])
+	var c0 := Vector2i(floori(bb.position.x / FXQ_CELL), floori(bb.position.y / FXQ_CELL))
+	var c1 := Vector2i(floori(bb.end.x / FXQ_CELL), floori(bb.end.y / FXQ_CELL))
+	for cy in range(c0.y, c1.y + 1):
+		for cx in range(c0.x, c1.x + 1):
+			_fxq_cells[Vector2i(cx, cy)] = true
+
+
+func _fxq_flush() -> void:
+	if _fxq.is_empty():
+		return
+	var n: int = _fxq.size()
+	var done := []
+	for i in n:
+		var tx: Texture2D = _fxq[i][0]
+		if done.has(tx):
+			continue
+		done.append(tx)
+		for j in range(i, n):
+			var it: Array = _fxq[j]
+			if it[0] == tx:
+				g.draw_set_transform_matrix(it[1])
+				g.draw_texture_rect_region(tx, it[2], it[3], it[4])
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_fxq.clear()
+	_fxq_cells.clear()
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
@@ -1344,8 +1549,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
 func _draw_tells_outlines() -> void:
+	_wq = not (g.opt_old & Game.OPT_FXB)
+	_wxf = Transform2D.IDENTITY
 	if not _dbg_foe:
 		draw_enemy_tells()
+	_w_flush()
 	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
 		var elr: Rect2 = view_rect(120.0)
@@ -1356,6 +1564,8 @@ func _draw_tells_outlines() -> void:
 	draw_leader_ailments()
 	if not _dbg_foe:
 		draw_warn_outlines()
+	_w_flush()
+	_wq = false
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
 	if g.squad.has_method("draw_leader_mark"):
 		g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
@@ -2122,19 +2332,25 @@ func draw_enemy_tells() -> void:
 		if bst > 0.0:
 			var ba: float = clampf(bst / 0.3, 0.0, 1.0)
 			var bt: Vector2 = e.pos + Vector2(0, -e.r - 14.0)
-			g.draw_circle(bt, 3.0, Color(1.9, 1.5, 0.8, 0.85 * ba))
+			_w_circle(bt, 3.0, Color(1.9, 1.5, 0.8, 0.85 * ba))
 			for k in 2:
 				var bo: Vector2 = Vector2.from_angle(g.t * 9.0 + PI * k) * Vector2(9.0, 3.5)
-				g.draw_circle(bt + bo, 1.6, Color(1.9, 1.5, 0.8, 0.7 * ba))
+				_w_circle(bt + bo, 1.6, Color(1.9, 1.5, 0.8, 0.7 * ba))
 		# 伊祖米克解读阶段的冲击波已改走 boss_ai._warn（1 秒预警、must_dash 标记，Boss与怪物 docs/48 P0-5），这里不再按 bt 预告
 		if e.get("count_max", 0.0) > 0.0 and float(e.get("count_end", 0.0)) > g.t:
 			_count_ring(e)
+		# 下面三段（木桩 / 撕裂者区域 / Boss 状态）不改写、内部还会调 _ground_ring 等：先交批，期间关掉合批（原样直画）
+		var wq0: bool = _wq
+		if wq0 and ((e.get("stakes", []) is Array and not e.get("stakes", []).is_empty()) or e.type == "tear" or e.boss):
+			_w_flush()
+			_wq = false
 		if e.get("stakes", []) is Array and not e.get("stakes", []).is_empty():
 			_draw_stakes(e)
 		if e.type == "tear":
 			_tear_zone(e)
 		elif e.boss:
 			_boss_state(e)
+		_wq = wq0
 
 
 ## 通用倒计时环（Boss与怪物约定：凡是 e.count_end / e.count_max 的单位——部件、假死、读条——都画这一种）：
@@ -2150,16 +2366,17 @@ func _count_ring(e: Dictionary) -> void:
 	_ground_ring(foot, rr, k, c)
 	var tag := "%d" % ceili(left)
 	var tp: Vector2 = foot + Vector2(rr + 6.0, -4.0)
-	g.draw_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cond(g.font).get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
+	_w_rect(Rect2(tp + Vector2(-2, -12), Vector2(UI.cond(g.font).get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 8.0, 17)), Color(0.02, 0.03, 0.05, 0.8))
+	_w_flush()
 	UI.ctext(g, g.font, tp + Vector2(2, 1), tag, 13, c)
 
 
 ## 地面进度环（脚下椭圆，从正上方顺时针填充）
 func _ground_ring(p: Vector2, r: float, k: float, c: Color) -> void:
-	g.draw_set_transform(p, 0.0, Vector2(1.0, 0.5))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0, 0, 0, 0.55), 7.0)
-	g.draw_arc(Vector2.ZERO, r, -PI / 2.0, -PI / 2.0 + TAU * k, 48, c, 4.0)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_w_xf(p, 0.0, Vector2(1.0, 0.5))
+	_w_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0, 0, 0, 0.55), 7.0)
+	_w_arc(Vector2.ZERO, r, -PI / 2.0, -PI / 2.0 + TAU * k, 48, c, 4.0)
+	_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 敌人贴图头顶的世界坐标（脚底锚点的贴图从脚往上长，不能按 e.r 算）
@@ -2241,38 +2458,38 @@ func draw_leader_ailments() -> void:
 	var body: Vector2 = g.ppos + Vector2(0, -26)
 	if g.cold > 0:
 		var ca: float = clampf(g.cold_t / maxf(0.1, Game.Bal.v("enemy/frost_dur", 3.0)), 0.3, 1.0)
-		g.draw_set_transform(foot, 0.0, Vector2(1.0, 0.42))
-		g.draw_circle(Vector2.ZERO, 22.0 + 4.0 * g.cold, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.10 * ca))
-		g.draw_arc(Vector2.ZERO, 22.0 + 4.0 * g.cold, 0.0, TAU, 32, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.5 * ca), 1.5)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_w_xf(foot, 0.0, Vector2(1.0, 0.42))
+		_w_circle(Vector2.ZERO, 22.0 + 4.0 * g.cold, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.10 * ca))
+		_w_arc(Vector2.ZERO, 22.0 + 4.0 * g.cold, 0.0, TAU, 32, Color(COLD_COL.r, COLD_COL.g, COLD_COL.b, 0.5 * ca), 1.5)
+		_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 		for q in g.cold:
 			var a: float = g.t * 2.2 + q * TAU / maxf(1.0, g.cold)
 			var cp: Vector2 = body + Vector2(cos(a) * 26.0, sin(a) * 9.0 + 8.0)
-			UI.diamond(g, cp, 4.0, Color(0.85, 1.2, 1.6, 0.9 * ca), Color(0.2, 0.4, 0.7, 0.9))
+			_w_diamond(cp, 4.0, Color(0.85, 1.2, 1.6, 0.9 * ca), Color(0.2, 0.4, 0.7, 0.9))
 	if g.root_t > 0.0:
 		var k: float = clampf(g.root_t / maxf(0.05, root_max), 0.0, 1.0)
 		if leader_nerve_stun():
 			# 神经损伤眩晕：头顶三颗洋红星转圈 + 脑后一圈抖动的神经纹
 			for q in 3:
 				var a3: float = g.t * 6.0 + q * TAU / 3.0
-				UI.diamond(g, body + Vector2(cos(a3) * 18.0, -40.0 + sin(a3) * 5.0), 4.0, Color(1.8, 0.7, 1.6), Color(0.2, 0.0, 0.2, 0.9))
+				_w_diamond(body + Vector2(cos(a3) * 18.0, -40.0 + sin(a3) * 5.0), 4.0, Color(1.8, 0.7, 1.6), Color(0.2, 0.0, 0.2, 0.9))
 			var zz := PackedVector2Array()
 			for i in 13:
 				var a4: float = i * TAU / 12.0
 				zz.append(body + Vector2(cos(a4), sin(a4) * 0.5) * (26.0 + 3.0 * sin(g.t * 30.0 + i * 2.0)) + Vector2(0, -30))
-			g.draw_polyline(zz, Color(1.6, 0.6, 1.5, 0.7), 1.5)
+			_w_polyline(zz, Color(1.6, 0.6, 1.5, 0.7), 1.5)
 		elif leader_frozen():
 			# 冰壳：六边形晶体罩住全身，剩余越少越透明、出裂纹
 			var pts := PackedVector2Array()
 			for i in 6:
 				var a2: float = -PI / 2.0 + i * TAU / 6.0
 				pts.append(body + Vector2(cos(a2) * 28.0, sin(a2) * 44.0))
-			g.draw_colored_polygon(pts, Color(0.55, 0.85, 1.3, 0.22 + 0.18 * k))
+			_w_poly(pts, Color(0.55, 0.85, 1.3, 0.22 + 0.18 * k))
 			pts.append(pts[0])
-			g.draw_polyline(pts, Color(0.9, 1.3, 1.8, 0.85), 2.0)
-			g.draw_line(body + Vector2(-14, -30), body + Vector2(-4, -4), Color(1.6, 1.8, 2.0, 0.7), 2.0)
+			_w_polyline(pts, Color(0.9, 1.3, 1.8, 0.85), 2.0)
+			_w_line(body + Vector2(-14, -30), body + Vector2(-4, -4), Color(1.6, 1.8, 2.0, 0.7), 2.0)
 			if k < 0.6:
-				g.draw_polyline(PackedVector2Array([body + Vector2(8, -34), body + Vector2(2, -12), body + Vector2(12, 4), body + Vector2(4, 22)]), Color(1.6, 1.8, 2.0, 0.9), 1.5)
+				_w_polyline(PackedVector2Array([body + Vector2(8, -34), body + Vector2(2, -12), body + Vector2(12, 4), body + Vector2(4, 22)]), Color(1.6, 1.8, 2.0, 0.9), 1.5)
 		else:
 			# 束缚：三条暗紫触须从脚下缠到腰
 			for q in 3:
@@ -2281,14 +2498,14 @@ func draw_leader_ailments() -> void:
 				for i in 9:
 					var u: float = i / 8.0
 					pts2.append(foot + Vector2(sx * (1.0 - u) + sin(u * 7.0 + q * 2.0 + g.t * 3.0) * 7.0, -u * 46.0 * (0.4 + 0.6 * k)))
-				g.draw_polyline(pts2, Color(0.25, 0.1, 0.35, 0.9), 5.0)
-				g.draw_polyline(pts2, BIND_COL, 2.0)
+				_w_polyline(pts2, Color(0.25, 0.1, 0.35, 0.9), 5.0)
+				_w_polyline(pts2, BIND_COL, 2.0)
 		# 倒计时环（脚下）
-		g.draw_set_transform(foot, 0.0, Vector2(1.0, 0.42))
+		_w_xf(foot, 0.0, Vector2(1.0, 0.42))
 		var rc: Color = COLD_COL if leader_frozen() else (Color(1.6, 0.6, 1.5) if leader_nerve_stun() else BIND_COL)
-		g.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 40, Color(0, 0, 0, 0.5), 6.0)
-		g.draw_arc(Vector2.ZERO, 36.0, -PI / 2.0, -PI / 2.0 + TAU * k, 40, rc, 4.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_w_arc(Vector2.ZERO, 36.0, 0.0, TAU, 40, Color(0, 0, 0, 0.5), 6.0)
+		_w_arc(Vector2.ZERO, 36.0, -PI / 2.0, -PI / 2.0 + TAU * k, 40, rc, 4.0)
+		_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
 	var nk: float = clampf(g.nerve / nmax, 0.0, 1.0)
 	if nk > 0.05 and g.root_t <= 0.0:
@@ -2298,14 +2515,14 @@ func draw_leader_ailments() -> void:
 			var a5: float = g.t * (3.0 + 5.0 * nk) + q * TAU / n2
 			var p5: Vector2 = body + Vector2(cos(a5) * 20.0, -30.0 + sin(a5) * 7.0)
 			var j: Vector2 = Vector2(sin(g.t * 40.0 + q) * 3.0, cos(g.t * 37.0 + q) * 3.0)
-			g.draw_line(p5, p5 + Vector2(6, -4) + j, Color(1.8, 0.6, 1.6, 0.4 + 0.5 * nk), 1.5)
+			_w_line(p5, p5 + Vector2(6, -4) + j, Color(1.8, 0.6, 1.6, 0.4 + 0.5 * nk), 1.5)
 	if g.wound > 0:
 		for q in g.wound:
 			var wp: Vector2 = body + Vector2(-12 + (q % 2) * 20, -10 + q * 9)
-			g.draw_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), Color(0.2, 0.0, 0.1, 0.9), 4.0)
-			g.draw_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), WOUND_COL, 2.0)
+			_w_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), Color(0.2, 0.0, 0.1, 0.9), 4.0)
+			_w_line(wp + Vector2(-5, -3), wp + Vector2(5, 3), WOUND_COL, 2.0)
 			var dk: float = fmod(g.t * 0.9 + q * 0.37, 1.0)
-			g.draw_circle(wp + Vector2(2, 4 + dk * 22.0), 1.8, Color(WOUND_COL.r, WOUND_COL.g, WOUND_COL.b, 1.0 - dk))
+			_w_circle(wp + Vector2(2, 4 + dk * 22.0), 1.8, Color(WOUND_COL.r, WOUND_COL.g, WOUND_COL.b, 1.0 - dk))
 
 
 ## 小怪词条外观（spawner.roll_affix）：甲壳 armor = 身前三块灰钢甲片；潮盾 shield = 青白泡壳 + 脚下细条（剩余护盾）
@@ -2684,10 +2901,11 @@ func _stake_cap(w: Dictionary) -> void:
 		return
 	var c: Vector2 = a + d * best
 	var pk: float = 0.5 + 0.5 * sin(g.t * 10.0)
-	g.draw_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(0, 0, 0, 0.7), 7.0)
-	g.draw_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(1.8, 1.5, 0.6, 0.8 + 0.2 * pk), 3.5)
-	g.draw_circle(c + Vector2(0, -26), 12.0, Color(0.05, 0.05, 0.08, 0.85))
-	g.draw_arc(c + Vector2(0, -26), 12.0, 0.0, TAU, 20, Color(1.8, 1.5, 0.6, 0.9), 1.5)
+	_w_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(0, 0, 0, 0.7), 7.0)
+	_w_line(c - d.orthogonal() * (w.wid + 10.0), c + d.orthogonal() * (w.wid + 10.0), Color(1.8, 1.5, 0.6, 0.8 + 0.2 * pk), 3.5)
+	_w_circle(c + Vector2(0, -26), 12.0, Color(0.05, 0.05, 0.08, 0.85))
+	_w_arc(c + Vector2(0, -26), 12.0, 0.0, TAU, 20, Color(1.8, 1.5, 0.6, 0.9), 1.5)
+	_w_flush()
 	UI.text(g, g.font, c + Vector2(-12, -20), "破", 14, Color(1.0, 0.9, 0.5), HORIZONTAL_ALIGNMENT_CENTER, 24, 2)
 
 
@@ -3053,9 +3271,9 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 	var n: Vector2 = d.normalized().orthogonal() * half
 	if dim:
 		# 打不到主控的冲刺线：只画淡边框（预警不藏，但不再整片盖住主控）
-		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35)), 1.5)
+		_w_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35)), 1.5)
 		return
-	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill))
+	_w_poly(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill))
 	var lt: Texture2D = _wtex("fx_warn_line")
 	if lt != null:
 		# 沿线平铺流动水纹（16px 一段，按线宽缩放），终点放漩涡
@@ -3066,19 +3284,19 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 		var x := 0.0
 		while x < L - 1.0:
 			var w: float = minf(seg, L - x)
-			g.draw_set_transform(a + d.normalized() * x, ang, Vector2(half * 2.0 / 16.0, half * 2.0 / 16.0))
-			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55 * tell_fill))
+			_w_xf(a + d.normalized() * x, ang, Vector2(half * 2.0 / 16.0, half * 2.0 / 16.0))
+			_w_tex(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55 * tell_fill))
 			x += seg
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 		var et: Texture2D = _wtex("fx_warn_end")
 		if et != null:
 			var es: float = half * 2.4 / 32.0 * 2.0
-			g.draw_set_transform(b, 0.0, Vector2(es, es * ground_y()))
-			g.draw_texture_rect_region(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8))
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0 * tell_edge)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0 * tell_edge)
-	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
+			_w_xf(b, 0.0, Vector2(es, es * ground_y()))
+			_w_tex(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8))
+			_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
+	_w_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0 * tell_edge)
+	_w_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0 * tell_edge)
+	_w_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
 
 
 ## 手动普攻方向指示（1.1.1，用户 9/30：手动攻击时看不出要打向哪里）：只在手动普攻开启时画；从主控脚下沿 doctor.attack_dir()
@@ -3197,19 +3415,116 @@ func classify_tells() -> void:
 
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(g.t * 18.0)
-	g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致
-	g.draw_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, (0.18 + 0.1 * k) * tell_fill))
+	_w_xf(p, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致
+	_w_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, (0.18 + 0.1 * k) * tell_fill))
 	var rt: Texture2D = _wtex("fx_warn_ring")
 	if rt != null:
 		# V7 涟漪：从外向内收缩的水纹，按半径缩放（radius_px 30）
 		var rs: float = r / 30.0
-		g.draw_set_transform(p, 0.0, Vector2(rs, rs * ground_y()))
-		g.draw_texture_rect_region(rt, Rect2(-32, -32, 64, 64), Rect2(64 * (int(g.t * 12.0) % 4), 0, 64, 64), Color(c.r, c.g, c.b, 0.5 * tell_fill))
-		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0 * tell_edge)
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0 * tell_edge)
-	g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0 * tell_edge)
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_w_xf(p, 0.0, Vector2(rs, rs * ground_y()))
+		_w_tex(rt, Rect2(-32, -32, 64, 64), Rect2(64 * (int(g.t * 12.0) % 4), 0, 64, 64), Color(c.r, c.g, c.b, 0.5 * tell_fill))
+		_w_xf(p, 0.0, Vector2(1.0, ground_y()))
+	_w_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(0, 0, 0, 0.6), 5.0 * tell_edge)
+	_w_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.75 + 0.25 * pulse * k), 3.0 * tell_edge)
+	_w_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(1, 1, 1, 0.55 + 0.4 * k), 1.0 * tell_edge)
+	_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## ---- 预警 / 主控状态的无贴图图元合批（docs/50 §13，OPT_FXB）：_draw_tells_outlines 这一段（敌人冲刺线 / 危险圈 / 倒计时环、
+## 主控受控状态、Boss 招式预警轮廓）原来每个圆 / 弧 / 折线 / 多边形各一次绘制调用。_wq 时这些 _w_* 按引擎同款几何（render/tri_batch.gd）
+## 进 _wb 一批，遇到贴图 / 字 / 未改写的子段先交；_wq 为假时（旧写法、其他段调用）原样转给 g.draw_*。draw_set_transform 记成 _wxf 套到顶点上
+var _wq := false
+var _wb := TriBatch.new()
+var _wxf := Transform2D.IDENTITY
+
+
+func _w_flush() -> void:
+	if _wq:
+		_wb.flush(g)
+
+
+func _w_xf(pos: Vector2, rot: float, sc: Vector2) -> void:
+	if _wq:
+		_wxf = Transform2D(rot, sc, 0.0, pos)
+	else:
+		g.draw_set_transform(pos, rot, sc)
+
+
+func _w_circle(c: Vector2, r: float, col: Color) -> void:
+	if _wq:
+		_wb.circle(c, r, col, _wxf)
+	else:
+		g.draw_circle(c, r, col)
+
+
+func _w_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, w: float) -> void:
+	if not _wq:
+		g.draw_arc(c, r, a0, a1, n, col, w)
+	elif n > 24 and not TriBatch.want_arc(n, r, w, a1 - a0):
+		# 逐帧变半径的大环（进度环、收缩圈）：现算几何比引擎画一次还贵，退回引擎画法（先交批，前后顺序不变）
+		_wb.flush(g)
+		g.draw_set_transform_matrix(_wxf)
+		g.draw_arc(c, r, a0, a1, n, col, w)
+		g.draw_set_transform_matrix(Transform2D.IDENTITY)
+	else:
+		_wb.arc(c, r, a0, a1, n, col, w, _wxf)
+
+
+func _w_line(a: Vector2, b: Vector2, col: Color, w: float) -> void:
+	if _wq:
+		_wb.line(a, b, col, w, _wxf)
+	else:
+		g.draw_line(a, b, col, w)
+
+
+func _w_polyline(p: PackedVector2Array, col: Color, w: float) -> void:
+	if _wq:
+		_wb.polyline(p, col, w, _wxf)
+	else:
+		g.draw_polyline(p, col, w)
+
+
+func _w_poly(p: PackedVector2Array, col: Color) -> void:
+	if _wq:
+		_wb.polygon(p, col, _wxf)
+	else:
+		g.draw_colored_polygon(p, col)
+
+
+## 同 CanvasItem.draw_rect（实心 / 空心带线宽）
+func _w_rect(r: Rect2, col: Color, filled := true, w := -1.0) -> void:
+	if not _wq:
+		g.draw_rect(r, col, filled, w)
+		return
+	var ra := r.abs()
+	if filled:
+		_wb.rect(ra, col, _wxf)
+	elif w >= ra.size.x or w >= ra.size.y:
+		_wb.rect(ra.grow(0.5 * w), col, _wxf)
+	else:
+		_wb.polyline(PackedVector2Array([ra.position, ra.position + Vector2(ra.size.x, 0), ra.end, ra.position + Vector2(0, ra.size.y), ra.position]), col, w, _wxf)
+
+
+func _w_tex(tx: Texture2D, dst: Rect2, src: Rect2, col: Color) -> void:
+	if _wq:
+		_wb.flush(g)
+		g.draw_set_transform_matrix(_wxf)
+		g.draw_texture_rect_region(tx, dst, src, col)
+		g.draw_set_transform_matrix(Transform2D.IDENTITY)
+	else:
+		g.draw_texture_rect_region(tx, dst, src, col)
+
+
+## 同 UI.diamond(g, …)
+func _w_diamond(c: Vector2, rad: float, fill: Color, border := Color(0, 0, 0, 0)) -> void:
+	if not _wq:
+		UI.diamond(g, c, rad, fill, border)
+		return
+	var p := PackedVector2Array([c + Vector2(0, -rad), c + Vector2(rad, 0), c + Vector2(0, rad), c + Vector2(-rad, 0)])
+	_wb.polygon(p, fill, _wxf)
+	if border.a > 0.0:
+		p.append(p[0])
+		_wb.polyline(p, border, 1.0, _wxf)
 
 
 ## Boss 招式预警的轮廓（填色仍在地面层，boss_ai._draw_warns）：按 docs/38 §8.11 收敛成五种样式，
@@ -3226,7 +3541,7 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 	var seg: float = 0.22
 	var a: float = a0
 	while a < a1:
-		g.draw_arc(Vector2.ZERO, r, a, minf(a + seg * 0.55, a1), 4, col, wdt)
+		_w_arc(Vector2.ZERO, r, a, minf(a + seg * 0.55, a1), 4, col, wdt)
 		a += seg
 
 
@@ -3258,64 +3573,64 @@ func draw_warn_outlines() -> void:
 				var must: bool = st == 5 or w.get("must_dash", false)
 				if st == 0:
 					# 预告（不伤人，如投嗣育母生成点）：很淡的虚线细圈，不填内圈、不白闪
-					g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
+					_w_xf(w.pos, 0.0, Vector2(1.0, gy))
 					_warn_dash_arc(w.r, 0.0, TAU, Color(1, 1, 1, 0.3), 1.0)
-					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 					continue
-				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, gy))
+				_w_xf(w.pos, 0.0, Vector2(1.0, gy))
 				if tracking:
 					_warn_dash_arc(w.r, 0.0, TAU, edge, 5.0)
 					_warn_dash_arc(w.r, 0.0, TAU, core, 2.0)
 				else:
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, edge, 5.0 * tell_edge)
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, core, 2.0 * tell_edge)
+					_w_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, edge, 5.0 * tell_edge)
+					_w_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, core, 2.0 * tell_edge)
 				if must:
 					# ⑤ 必须冲刺：白色双描边
 					var pk: float = 0.5 + 0.5 * sin(g.t * 12.0)
-					g.draw_arc(Vector2.ZERO, w.r + 7.0, 0.0, TAU, 56, Color(1, 1, 1, 0.55 + 0.35 * pk), 2.0)
-					g.draw_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 56, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
+					_w_arc(Vector2.ZERO, w.r + 7.0, 0.0, TAU, 56, Color(1, 1, 1, 0.55 + 0.35 * pk), 2.0)
+					_w_arc(Vector2.ZERO, w.r - 5.0, 0.0, TAU, 56, Color(1, 1, 1, 0.45 + 0.3 * pk), 1.5)
 				elif not ring:
 					# ① 落点圈：内圈随结算时间长满，最后 0.12 秒整圈白闪
-					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 48, Color(1, 1, 1, (0.35 + 0.35 * k) * da), 1.5)
+					_w_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 48, Color(1, 1, 1, (0.35 + 0.35 * k) * da), 1.5)
 					if w.dur - w.t < 0.12:
-						g.draw_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.35))
+						_w_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.35))
 				if lock_flash > 0.0:
-					g.draw_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.4 * lock_flash))
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					_w_circle(Vector2.ZERO, w.r, Color(1, 1, 1, 0.4 * lock_flash))
+				_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 				if must:
 					var ic: Vector2 = w.pos + Vector2(0, -w.r * gy - 22.0)
 					for q in 3:
 						var ox: float = -9.0 + q * 7.0
-						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
-						g.draw_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
+						_w_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(0, 0, 0, 0.7), 5.0)
+						_w_line(ic + Vector2(ox, 6), ic + Vector2(ox + 6, -6), Color(1, 1, 1, 0.95), 2.5)
 			"line":
-				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
+				_w_xf(w.pos, w.ang, Vector2.ONE)
 				if tracking:
 					var xx := 0.0
 					while xx < w.len:
 						var x2: float = minf(xx + 14.0, w.len)
 						for sy in [-w.wid, w.wid]:
-							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), edge, 5.0)
-							g.draw_line(Vector2(xx, sy), Vector2(x2, sy), core, 2.0)
+							_w_line(Vector2(xx, sy), Vector2(x2, sy), edge, 5.0)
+							_w_line(Vector2(xx, sy), Vector2(x2, sy), core, 2.0)
 						xx += 24.0
 				else:
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), edge, false, 5.0 * tell_edge)
-					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), core, false, 2.0 * tell_edge)
+					_w_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), edge, false, 5.0 * tell_edge)
+					_w_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), core, false, 2.0 * tell_edge)
 					if lock_flash > 0.0:
-						g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * lock_flash), true)
+						_w_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), Color(1, 1, 1, 0.5 * lock_flash), true)
 				# 终点端盖
-				g.draw_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), edge, 7.0)
-				g.draw_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), core, 3.0)
+				_w_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), edge, 7.0)
+				_w_line(Vector2(w.len, -w.wid - 6.0), Vector2(w.len, w.wid + 6.0), core, 3.0)
 				# 冲锋 / 突刺：沿线的方向箭头，随时间向前流动
 				if w.get("act", "") in ["dash", "stab"]:
 					var hw: float = minf(w.wid * 0.6, 14.0)
 					var off: float = fmod(g.t * 160.0, 70.0)
 					var ax: float = 30.0 + off
 					while ax < w.len - 20.0:
-						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), edge, 5.0)
-						g.draw_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), Color(1, 1, 1, (0.55 + 0.35 * k) * da), 2.0)
+						_w_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), edge, 5.0)
+						_w_polyline(PackedVector2Array([Vector2(ax - hw, -hw), Vector2(ax, 0), Vector2(ax - hw, hw)]), Color(1, 1, 1, (0.55 + 0.35 * k) * da), 2.0)
 						ax += 70.0
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				_w_xf(Vector2.ZERO, 0.0, Vector2.ONE)
 				if w.get("stake_hit", false) or (w.get("owner") is Dictionary and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty()):
 					_stake_cap(w)
 			"cone":
@@ -3326,24 +3641,25 @@ func draw_warn_outlines() -> void:
 				if tracking:
 					for q in pts.size() - 1:
 						if q % 2 == 0:
-							g.draw_line(pts[q], pts[q + 1], edge, 5.0)
-							g.draw_line(pts[q], pts[q + 1], core, 2.0)
+							_w_line(pts[q], pts[q + 1], edge, 5.0)
+							_w_line(pts[q], pts[q + 1], core, 2.0)
 				else:
-					g.draw_polyline(pts, edge, 5.0 * tell_edge)
-					g.draw_polyline(pts, core, 2.0 * tell_edge)
+					_w_polyline(pts, edge, 5.0 * tell_edge)
+					_w_polyline(pts, core, 2.0 * tell_edge)
 				# 扇面内一道随时间向外推的弧
-				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, (0.3 + 0.4 * k) * da), 1.5)
+				_w_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, (0.3 + 0.4 * k) * da), 1.5)
 				if lock_flash > 0.0:
-					g.draw_colored_polygon(pts, Color(1, 1, 1, 0.3 * lock_flash))
+					_w_poly(pts, Color(1, 1, 1, 0.3 * lock_flash))
 		# ④ 缺口环的出口：缺口两侧金色短线 + 中间「出口」小牌（缺口方向与真实弹道同一角度，不做地面压缩）
 		if w.has("gap_ang"):
 			var safe_col := Color(1.0, 0.85, 0.35, 0.9)
 			for side in [-1.0, 1.0]:
 				var v := Vector2.from_angle(float(w.gap_ang) + side * float(w.gap_half))
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
+				_w_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
+				_w_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
 			var mp: Vector2 = w.pos + Vector2.from_angle(float(w.gap_ang)) * 150.0
-			g.draw_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
+			_w_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
+			_w_flush()
 			UI.text(g, g.font, mp + Vector2(-20, 3), "出口", 12, safe_col, HORIZONTAL_ALIGNMENT_CENTER, 40)
 
 
