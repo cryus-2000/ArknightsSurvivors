@@ -110,6 +110,7 @@ func _draw_body() -> void:
 	banners.draw_merchant_pointer(vs, ct)
 	banners.draw_altar_pointers(vs, ct)
 	banners.draw_boss_pointers(vs, ct)
+	banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
 	banners.draw_field_wave(vs)
 	banners.draw_beacon_pointers(vs, ct)
 	banners.draw_hunt_ring(vs, ct)

@@ -737,7 +737,11 @@ func _ready() -> void:
 	ul.add_child(settings)
 	if Cfg.ui_k != 1.0:
 		_ui_fit()
-		get_viewport().size_changed.connect(_ui_fit)
+	get_viewport().size_changed.connect(_ui_fit)
+	Cfg.view_changed.connect(_ui_fit)      # 设置里改「界面大小」实时生效
+	Cfg.view_changed.connect(_apply_zoom)  # 设置里改「战斗画面缩放」实时生效
+	get_viewport().size_changed.connect(_apply_zoom)
+	_apply_zoom()
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
@@ -856,13 +860,26 @@ var demo_label := ""
 ## 镜头看着的位置：平时跟主控；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
 ## 触屏界面层放大（Cfg.ui_k）：三个根控件撑满 UI 逻辑区（视口 / ui_k）
 func _ui_fit() -> void:
-	# 视口变了（竖屏进局再转横屏等）：放大倍数按新宽度重算（Cfg.ui_scale），不然界面层一直按旧比例排
+	# 视口变了（竖屏进局再转横屏等）或设置里改了「界面大小」：放大倍数重算（Cfg.ui_scale），不然界面层一直按旧比例排
+	if ui_layer == null:
+		return
 	var k: float = Cfg.ui_scale()
-	if k != Cfg.ui_k and ui_layer != null:
-		Cfg.ui_k = k
-		ui_layer.scale = Vector2(k, k)
+	if k == 1.0 and ui_layer.scale == Vector2.ONE:
+		Cfg.ui_k = 1.0
+		return   # 桌面缺省：根控件仍是 FULL_RECT 锚点，排版与原来逐像素一致
+	Cfg.ui_k = k
+	ui_layer.scale = Vector2(k, k)
 	for c in [hud, panel, settings]:
 		Cfg.ui_fill(c)
+
+
+## 战斗镜头缩放（设置「战斗画面缩放」，手机横屏缺省 1.2）：只改 Camera2D.zoom，刷怪 / 索敌 / 机器人都不读视口（pickups 用的是项目设置里的固定尺寸）。
+## 图鉴演示（demo_op）的镜头由演示自己管
+func _apply_zoom() -> void:
+	if cam == null or demo_op != "":
+		return
+	var z: float = Cfg.cam_zoom()
+	cam.zoom = Vector2(z, z)
 
 
 ## 世界坐标 → HUD 坐标（界面层放大后 = 画布变换再除以 ui_k；桌面就是画布变换本身）

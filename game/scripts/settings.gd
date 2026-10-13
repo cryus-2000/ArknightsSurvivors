@@ -1,4 +1,7 @@
 extends Node
+
+## 界面大小 / 战斗画面缩放改了（设置页实时生效）：game.gd / title.gd / 设置面板重排界面层、改镜头
+signal view_changed
 ## 全局设置（自动加载为 Cfg），保存在 user://settings.cfg
 
 const PATH := "user://settings.cfg"
@@ -29,6 +32,19 @@ var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下�
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 画质档位 "high" / "low"（空 = 首次启动，按设备猜）：低档关后期、粒子减半、真人局同屏敌人上限 300
+## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
+var ui_size_pct := 100
+const UI_PCT_MIN := 80
+const UI_PCT_MAX := 120
+## 战斗画面缩放（设置 → 画面，用户 10-13「手机横屏战斗画面放大一点」）：镜头 zoom 百分比 100–140；-1 = 按设备缺省（手机横屏 120，其余 100）
+var cam_zoom_pct := -1
+const ZOOM_PCT_MIN := 100
+const ZOOM_PCT_MAX := 140
+const ZOOM_PHONE_DEF := 120
+## 手机横屏的界面放大缺省（原 1.3 → 1.15，界面整体收到约 88%）；平板 / 16:9 触屏仍按宽度 1.0–1.3
+const UI_K_PHONE := 1.15
+## 界面逻辑高度下限：界面大小调到 120% 时也不低于手机版式设计高度（原手机 481）
+const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
@@ -77,10 +93,26 @@ var ui_k := 1.0
 
 
 func ui_scale() -> float:
-	if not touch_device():
-		return 1.0
 	var vs: Vector2 = get_viewport().get_visible_rect().size
-	return clampf(vs.x / 1000.0, 1.0, 1.3)
+	var base := 1.0
+	if touch_device():
+		base = UI_K_PHONE if phone_ui() else clampf(vs.x / 1000.0, 1.0, 1.3)
+	var k: float = base * ui_size_pct / 100.0
+	return clampf(k, 0.75, maxf(0.75, vs.y / UI_MIN_H)) if ui_size_pct != 100 else base
+
+
+## 手机横屏版式（触屏 + 画面比例 ≥ 1.9，19.5:9 手机是 2.17）：不再按界面逻辑高度（< 520）判，界面放大倍数调小后手机仍走手机版式
+func phone_ui() -> bool:
+	if not touch_device():
+		return false
+	var vs: Vector2 = get_viewport().get_visible_rect().size
+	return vs.y > 0.0 and vs.x / vs.y >= 1.9
+
+
+## 战斗镜头缩放（Camera2D.zoom）：玩家设过用玩家的，否则手机横屏 1.2、其余 1.0。只改画面，玩法不读视口
+func cam_zoom() -> float:
+	var pct: int = cam_zoom_pct if cam_zoom_pct > 0 else (ZOOM_PHONE_DEF if phone_ui() else 100)
+	return clampi(pct, ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
 
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。
@@ -183,6 +215,10 @@ func _ready() -> void:
 		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 		manual_attack = c.get_value("input", "manual_attack", manual_attack)
 		touch_layout = TouchLayout.load_from(c)
+		ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+		cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
+		if cam_zoom_pct > 0:
+			cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 		quality = str(c.get_value("video", "quality", ""))
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
@@ -195,6 +231,12 @@ func _ready() -> void:
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
 	_apply_unlock_all()
+	for a in dev_args():
+		# 截图 / 对照用：--uisize=80（界面大小 %）、--camzoom=140（战斗画面缩放 %）
+		if a.begins_with("--uisize="):
+			ui_size_pct = clampi(int(a.substr(9)), UI_PCT_MIN, UI_PCT_MAX)
+		elif a.begins_with("--camzoom="):
+			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	if quality == "":
 		set_quality(_guess_quality())   # 首次启动：按设备猜一个缺省档（存档后玩家可改）
 	for a in dev_args():
@@ -217,6 +259,7 @@ func _ready() -> void:
 
 
 func apply() -> void:
+	view_changed.emit()
 	_bus("Master", master)
 	_bus("Music", music)
 	_bus("SFX", sfx)
@@ -354,6 +397,8 @@ func save() -> void:
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("input", "manual_attack", manual_attack)
 	TouchLayout.save_to(c, touch_layout)
+	c.set_value("video", "ui_size", ui_size_pct)
+	c.set_value("video", "cam_zoom", cam_zoom_pct)
 	c.set_value("video", "quality", quality)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))

@@ -119,8 +119,8 @@ static func load_from(c: ConfigFile) -> Dictionary:
 
 
 ## 各控件的缺省中心（缩放 1）。技能 / 攻击键跟着冲刺键走（冲刺键被挪过时，它们的缺省位置相对新位置算）
-static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c := Vector2.INF) -> Vector2:
-	var ph: bool = vs.y < 520.0   # 手机（界面层放大后逻辑高约 481）
+static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c := Vector2.INF, phone := false) -> Vector2:
+	var ph: bool = vs.y < 520.0 or phone   # 手机横屏（Cfg.phone_ui，或界面逻辑高 < 520）
 	var dash := Vector2(vs.x - (134.0 if ph else 80.0), vs.y - SQUAD_TOP_UP - 14.0 - BTN * 0.7)
 	if dash_c != Vector2.INF:
 		dash = dash_c
@@ -145,7 +145,7 @@ static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c :=
 
 
 ## 解出全部控件的位置与缩放：{键: {"c": 中心, "s": 缩放, "custom": 是否玩家改过}}
-static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rect2) -> Dictionary:
+static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rect2, phone := false) -> Dictionary:
 	var out := {}
 	for k in ["dash", "stick", "skill", "atk", "pause", "stats", "speed"]:
 		var e = custom.get(k)
@@ -155,7 +155,7 @@ static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rec
 			s = clamp_scale(float(e.get("s", 1.0)))
 			c = decode(e, vs)
 		else:
-			c = default_center(k, vs, manual_atk, out.dash.c if out.has("dash") else Vector2.INF)
+			c = default_center(k, vs, manual_atk, out.dash.c if out.has("dash") else Vector2.INF, phone)
 		out[k] = {"c": clamp_center(c, k, s, safe), "s": s, "custom": e is Dictionary}
 	return out
 

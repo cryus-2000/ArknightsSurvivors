@@ -20,6 +20,20 @@
 - 倍速键在触屏上改由 touch.gd 处理点击（位置可调），hud_relics 只负责画。
 - 回归：`tests/touch_layout_test`（快检 touch_layout）。
 
+## 界面大小与战斗画面缩放（10-13 用户：手机横屏太拥挤、战斗画面放大一点）
+
+- 手机横屏判定改为 `Cfg.phone_ui()`：触屏且画面比例 ≥ 1.9（19.5:9 是 2.17），不再只看界面逻辑高度 < 520（标题页、touch.gd、touch_layout 用它 OR 原条件）。
+- 手机横屏界面放大缺省 `UI_K_PHONE` 1.3 → 1.15（界面整体收到约 88%，逻辑约 1181×544）：顶栏、灯火行、SONAR、编队栏、三选一卡片、暂停 / 设置面板、触屏按键一起收；卡片高仍 382，不再顶满画面高。平板 / 16:9 触屏仍按宽度 1.0–1.3，电脑 1.0 不变。
+- 设置 → 画面「界面大小」80%–120%（步长 5），在设备缺省倍数上再乘，所有设备可用、实时生效（`Cfg.view_changed`），存 `[video] ui_size`；界面逻辑高不低于 470（`UI_MIN_H`）。触屏按键布局的单键大小在此之上再乘。
+- 设置 → 画面「战斗画面缩放」100%–140%（步长 5），`Camera2D.zoom`；缺省手机横屏 120%、其余 100%（存 -1 = 按设备缺省，`[video] cam_zoom`）。玩法不读视口（刷怪、索敌、机器人、拾取都不依赖屏幕尺寸；pickups 用项目设置里的固定尺寸），同种子 TRACE 对照一致。
+- 拉近后：SONAR 视野框按 `视口 / zoom` 画；新增屏外近处敌人的边缘红边（`hud_banners.draw_offscreen_edges`，四边各 8 段，画面外 240 界面像素内的敌人，精英 / Boss 记 3，越多越亮；zoom = 100% 时不画）。Boss / 商人 / 祭坛 / 灯标 / 围猎的边缘指示本来就按画布变换算，拉近后照常。
+- 截图 / 对照参数：`--uisize=80`、`--camzoom=140`。
+
+## B站 Toy 容器（10-13 用户确认接入）
+
+- `tools/web/container.js`（export_web.py 内联到加载器后面）：只在 B站环境（域名含 bilibili / hdslb，或 UA 含 Bili）异步加载 Toy JS SDK；`isSupport('onContainerChange')` 为真（只在 B站 App 内）时先监听再 `setContainerMode({orientation:'landscape', immersive:true})`，按回调的 `viewport` / `safeArea` 把画布缩进安全区（改写 innerWidth / innerHeight + 画布定位，派 resize）；1.5 秒收不到回调回退 `env(safe-area-inset-*)`。itch / 普通浏览器 / 桌面版不加载。
+- 本地用假 `window.toy` + `window.__syToyBoot()` 验证过；需在 B站 App 真机验证。云存档 / 排行榜 / 分享未做。
+
 ## 超宽横屏（10-13 用户反馈：iPhone 横屏在 itch App 里显示不全、比例失调）
 
 itch App 里扣掉标题栏 / 底栏后画面在 2.2:1 到 2.6:1 以上。根因与改法：

@@ -125,7 +125,36 @@ func in_game() -> void:
 		await frames(1)
 	game.invuln = 999.0
 	var vs: Vector2 = game.hud.size
-	check(absf(Cfg.ui_k - 1.3) < 0.01 and vs.y < 520.0, "19.5:9 应是手机版式（ui_k=%.2f vs=%s）" % [Cfg.ui_k, vs])
+	check(absf(Cfg.ui_k - Cfg.UI_K_PHONE) < 0.01 and Cfg.phone_ui(), "19.5:9 应是手机版式（ui_k=%.2f vs=%s）" % [Cfg.ui_k, vs])
+	check(absf(game.cam.zoom.x - Cfg.ZOOM_PHONE_DEF / 100.0) < 0.001, "手机横屏战斗镜头缺省 %.2f（实际 %.2f）" % [Cfg.ZOOM_PHONE_DEF / 100.0, game.cam.zoom.x])
+	# 界面大小 / 战斗画面缩放实时生效
+	Cfg.ui_size_pct = 80
+	Cfg.cam_zoom_pct = 140
+	Cfg.apply()
+	await frames(2)
+	check(absf(Cfg.ui_k - Cfg.UI_K_PHONE * 0.8) < 0.01 and absf(game.ui_layer.scale.x - Cfg.ui_k) < 0.001, "界面大小 80%% 应实时生效（ui_k=%.3f）" % Cfg.ui_k)
+	check(game.hud.size.is_equal_approx(Cfg.ui_size()), "界面大小改后 HUD 撑满 UI 区")
+	check(absf(game.cam.zoom.x - 1.4) < 0.001, "战斗画面缩放 140%% 应实时生效（%.2f）" % game.cam.zoom.x)
+	Cfg.ui_size_pct = 120
+	Cfg.apply()
+	await frames(2)
+	check(Cfg.ui_size().y >= Cfg.UI_MIN_H - 0.5, "界面大小 120%% 时 UI 高不低于 %d（%.1f）" % [Cfg.UI_MIN_H, Cfg.ui_size().y])
+	Cfg.ui_size_pct = 100
+	Cfg.cam_zoom_pct = -1
+	Cfg.apply()
+	await frames(2)
+	check(absf(Cfg.ui_k - Cfg.UI_K_PHONE) < 0.001 and absf(game.cam.zoom.x - 1.2) < 0.001, "恢复缺省")
+	var cfgf := ConfigFile.new()
+	Cfg.ui_size_pct = 115
+	Cfg.cam_zoom_pct = 130
+	cfgf.set_value("video", "ui_size", Cfg.ui_size_pct)
+	cfgf.set_value("video", "cam_zoom", Cfg.cam_zoom_pct)
+	check(int(cfgf.get_value("video", "ui_size")) == 115 and int(cfgf.get_value("video", "cam_zoom")) == 130, "界面大小 / 镜头缩放存档字段")
+	Cfg.ui_size_pct = 100
+	Cfg.cam_zoom_pct = -1
+	Cfg.apply()
+	await frames(2)
+	vs = game.hud.size
 	# 自定义：冲刺键挪到左下、放大；倍速键挪到左上；摇杆挪到左下另一处
 	var dash_c := Vector2(300, vs.y - 120)
 	var sp_c := Vector2(200, 160)

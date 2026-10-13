@@ -391,7 +391,7 @@ func draw_minimap(vs: Vector2) -> void:
 		tb.line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
 	tb.arc(c, lim * 0.5, 0.0, TAU, 1.0, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 40)
 	# 视野框
-	var view := g.get_viewport_rect().size
+	var view: Vector2 = g.get_viewport_rect().size / g.cam.zoom   # 战斗画面缩放：视野框按实际看得到的世界范围
 	tb.frame(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), 1.0)
 	# 普通敌人的 2×2 红点收集起来一次 draw_multiline 画完（性能，协调人 9/30：后期 300 个敌人逐个 draw_rect）
 	var dots := PackedVector2Array()

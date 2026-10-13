@@ -180,10 +180,11 @@ func _stick_zone(p: Vector2, vs: Vector2) -> bool:
 ## 本帧的按键布局（TouchLayout.resolve）：{键: {c, s, custom}}；视口 / 普攻方式 / 自定义布局不变时复用
 func layout(vs: Vector2) -> Dictionary:
 	var manual: bool = g.doctor != null and g.doctor.manual_attack
-	var key: Array = [vs, manual, Cfg.touch_layout.hash(), Cfg.safe_insets().hash()]
+	var ph: bool = Cfg.phone_ui()
+	var key: Array = [vs, manual, Cfg.touch_layout.hash(), Cfg.safe_insets().hash(), ph]
 	if key != _lay_key:
 		_lay_key = key
-		_lay = TouchLayout.resolve(vs, manual, Cfg.touch_layout, Cfg.touch_safe_rect(vs))
+		_lay = TouchLayout.resolve(vs, manual, Cfg.touch_layout, Cfg.touch_safe_rect(vs), ph)
 	return _lay
 
 
@@ -297,7 +298,7 @@ func draw_hud(vs: Vector2) -> void:
 		hud.draw_circle(c, 10.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka))
 	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 攻击键缺省跟着冲刺键（touch_layout.default_center）
 	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134
-	var ph: bool = vs.y < 520.0
+	var ph: bool = vs.y < 520.0 or Cfg.phone_ui()
 	if g.state == g.S.PLAY:
 		var ds: float = L.dash.s
 		var dc: Vector2 = L.dash.c

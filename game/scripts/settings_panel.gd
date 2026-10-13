@@ -28,6 +28,9 @@ const ROWS := [
 	{"cn": "水下滤镜", "en": "UNDERWATER FILTER", "key": "water_filter", "type": "bool"},
 	{"cn": "法线光照", "en": "NORMAL LIGHTING", "key": "normal_maps", "type": "bool", "note": "下局生效"},
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
+	# 界面大小 / 战斗画面缩放（用户 10-13：手机横屏太拥挤、战斗画面放大一点）：所有设备可用，实时生效
+	{"cn": "界面大小", "en": "UI SIZE", "key": "ui_size_pct", "type": "uisize"},
+	{"cn": "战斗画面缩放", "en": "BATTLE ZOOM", "key": "cam_zoom_pct", "type": "zoom"},
 	{"cn": "手柄震动", "en": "CONTROLLER RUMBLE", "key": "pad_rumble", "type": "bool"},
 	{"cn": "普通攻击", "en": "BASIC ATTACK", "key": "manual_attack", "type": "bool", "on": "手动", "off": "自动", "note": "下局生效"},
 	# 触屏按键布局（用户 10-13）：点「调整」进编辑页（screens/touch_editor.gd），拖动改位置、调大小；只在触屏设备列出
@@ -41,7 +44,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
+	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "ui_size_pct", "cam_zoom_pct", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
 	["游戏", "GAMEPLAY", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
 ]
 
@@ -85,9 +88,13 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	visible = false
 	# 转屏 / 浏览器栏收起：开着的设置面板跟着撑满新的 UI 逻辑区（标题页没有 game._ui_fit 代劳）
-	get_viewport().size_changed.connect(func():
-		if visible and Cfg.ui_k != 1.0:
-			Cfg.ui_fill(self))
+	get_viewport().size_changed.connect(_refit)
+	Cfg.view_changed.connect(_refit)   # 「界面大小」在本页里改：面板跟着撑满新的 UI 逻辑区
+
+
+func _refit() -> void:
+	if visible:
+		Cfg.ui_fill(self)
 
 
 func open() -> void:
@@ -246,7 +253,7 @@ func _tap(mp: Vector2, button: int) -> void:
 		var r: Rect2 = row_rects[si]
 		var i: int = cur[si]
 		if r.has_point(mp) and (list == null or si == cur.size() - 1 or view.has_point(mp)):
-			var arrows: bool = ROWS[i].type in ["vol", "bright", "res"]
+			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
 			var fx: float = (mp.x - r.position.x) / r.size.x
 			var dir := 1
 			if arrows:
@@ -274,6 +281,13 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.set_quality("low" if Cfg.quality == "high" else "high")
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
+		"uisize":
+			Cfg.ui_size_pct = clampi(Cfg.ui_size_pct + dir * 5, Cfg.UI_PCT_MIN, Cfg.UI_PCT_MAX)
+		"zoom":
+			# 调回设备缺省（手机横屏 120 / 其余 100）时存 -1：换设备仍按那台的缺省
+			var def: int = Cfg.ZOOM_PHONE_DEF if Cfg.phone_ui() else 100
+			var n: int = clampi(int(round(Cfg.cam_zoom() * 100.0)) + dir * 5, Cfg.ZOOM_PCT_MIN, Cfg.ZOOM_PCT_MAX)
+			Cfg.cam_zoom_pct = -1 if n == def else n
 		"res":
 			var n: int = Cfg.RESOLUTIONS.size()
 			pending_res = (pending_res + (1 if dir > 0 else n - 1)) % n
@@ -497,6 +511,14 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 		"quality":
 			var hq: bool = Cfg.quality != "low"
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "高" if hq else "低", fs_v, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
+		"uisize", "zoom":
+			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
+			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)
+			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
+			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % pv, fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+			if dflt:
+				UI.text(ci, font, Vector2(vx - 196, rr.position.y + ty0 - 1.0), "默认", 12 if not touch else 13, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 176)
 		"bright":
 			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % int(round(Cfg.brightness * 100.0)), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)

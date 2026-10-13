@@ -106,6 +106,66 @@ func draw_altar_pointers(vs: Vector2, ct: Transform2D) -> void:
 ## 屏幕边缘一个洋红红圈（比商人 / 祭坛大一号、双圈、脉动），里面是 Boss 常态帧头像，外侧箭头指向 Boss，旁边写名字和距离
 const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
 
+## 屏外近处敌人的边缘提示（战斗画面缩放 > 100% 时，用户 10-13）：镜头拉近后屏幕边外的敌人更多、走进画面的预警时间更短。
+## 屏幕四边各分 8 段，统计画面外 OFF_BAND（界面像素）以内的敌人（精英 / Boss ×3），在对应段画一道由外向内渐隐的红边，越多越亮。
+## 只读位置、只画界面，不影响玩法；镜头 100%（电脑缺省）时不画，画面与原来一致
+const OFF_BAND := 240.0
+const OFF_SEGS := 8
+
+
+func draw_offscreen_edges(vs: Vector2, ct: Transform2D) -> void:
+	if g.cam == null or g.cam.zoom.x <= 1.001 or g.state != Game.S.PLAY:
+		return
+	var bins := PackedFloat32Array()
+	bins.resize(4 * OFF_SEGS)
+	var scr := Rect2(Vector2.ZERO, vs)
+	for e in g.enemies:
+		if e.dead or e.get("friendly", false):
+			continue
+		var sp: Vector2 = ct * e.pos
+		if scr.has_point(sp):
+			continue
+		var q := Vector2(clampf(sp.x, 0.0, vs.x), clampf(sp.y, 0.0, vs.y))
+		if sp.distance_to(q) > OFF_BAND:
+			continue
+		var side: int
+		var f: float
+		if q.x <= 0.0:
+			side = 0
+			f = q.y / vs.y
+		elif q.x >= vs.x:
+			side = 1
+			f = q.y / vs.y
+		elif q.y <= 0.0:
+			side = 2
+			f = q.x / vs.x
+		else:
+			side = 3
+			f = q.x / vs.x
+		bins[side * OFF_SEGS + clampi(int(f * OFF_SEGS), 0, OFF_SEGS - 1)] += 3.0 if (e.boss or e.elite) else 1.0
+	var col := UI.RED
+	for i in bins.size():
+		var w: float = bins[i]
+		if w <= 0.0:
+			continue
+		var a: float = clampf(0.18 + w * 0.06, 0.18, 0.6)
+		var side: int = i / OFF_SEGS
+		var k: int = i % OFF_SEGS
+		for layer in 3:
+			var th := 4.0 + layer * 5.0
+			var la: float = a * (1.0 - layer * 0.33)
+			var r: Rect2
+			match side:
+				0:
+					r = Rect2(0, vs.y * k / OFF_SEGS + 2.0, th, vs.y / OFF_SEGS - 4.0)
+				1:
+					r = Rect2(vs.x - th, vs.y * k / OFF_SEGS + 2.0, th, vs.y / OFF_SEGS - 4.0)
+				2:
+					r = Rect2(vs.x * k / OFF_SEGS + 2.0, 0, vs.x / OFF_SEGS - 4.0, th)
+				_:
+					r = Rect2(vs.x * k / OFF_SEGS + 2.0, vs.y - th, vs.x / OFF_SEGS - 4.0, th)
+			g.hud.draw_rect(r, Color(col.r, col.g, col.b, la * 0.5))
+
 func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return

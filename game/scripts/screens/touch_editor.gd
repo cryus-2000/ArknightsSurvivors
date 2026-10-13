@@ -58,7 +58,7 @@ func safe() -> Rect2:
 
 
 func lay() -> Dictionary:
-	return TouchLayout.resolve(size, manual_atk, work, safe())
+	return TouchLayout.resolve(size, manual_atk, work, safe(), Cfg.phone_ui())
 
 
 func panel_rect() -> Rect2:
