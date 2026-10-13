@@ -106,6 +106,24 @@ func open(s: String) -> void:
 		"recruit":
 			var rc: Array = g.progression.recruit_cards()
 			g.panel_ui.show_choices("招募干员", rc.slice(0, n), "level")
+		"swapcard", "swap":
+			# 更换队友（用户 10-13）：编队补满，第一名队友推到精英一；swapcard = 混有换人卡的升级三选一，swap = 选中后的更换画面
+			for cid in ["skadi", "kaltsit", "lumen", "eyjafjalla"]:
+				if not g.squad.is_full() and not g.squad.has(cid):
+					g.panel_ui.load_op_tex(cid)
+					g.squad.add(cid)
+			for o in g.squad.ops:
+				if not o.is_leader:
+					for k in 3:
+						o.advance("")
+					break
+			g.show_queue.clear()
+			var sw: Array = g.progression.swap_cards()
+			var opts: Array = [sw[0]] + g.doctor.passive_cards("doctor").slice(0, 2)
+			g.panel_ui.show_choices("升级！ Lv.%d" % g.level, opts, "level")
+			if s == "swap":
+				g.panel_ui.motion.skip()
+				g.progression.pick(0)
 		"shop":
 			g.ingots = maxi(g.ingots, 60)
 			g.merchant = {"pos": g.ppos, "life": 60.0, "near": false, "purchases": 0}
@@ -144,7 +162,7 @@ func _relic_opts(n := 3) -> Array:
 
 func close(s: String) -> void:
 	match s:
-		"levelup", "relic", "recruit":
+		"levelup", "relic", "recruit", "swapcard", "swap":
 			if g.state == Game.S.CHOICE:
 				g.panel.visible = false
 				g.state = Game.S.PLAY

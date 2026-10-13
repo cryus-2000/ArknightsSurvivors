@@ -174,6 +174,20 @@ func _stats_shot() -> bool:
 func bot_pick() -> int:
 	if g.choices.is_empty():
 		return 0
+	if g.choice_kind == "swap":
+		return g.progression.auto_swap_pick()   # 更换队友画面（bot/swap 缺省 0 = 不替换）
+	# 满员招募卡（更换队友）：bot/swap 关时不进候选，其余选法照旧；下标映射回 g.choices
+	var idx: Array = g.progression.auto_choices()
+	if idx.size() < g.choices.size():
+		var keep: Array = g.choices
+		g.choices = idx.map(func(k): return keep[k])
+		var sub_i: int = _bot_pick_inner()
+		g.choices = keep
+		return int(idx[clampi(sub_i, 0, idx.size() - 1)])
+	return _bot_pick_inner()
+
+
+func _bot_pick_inner() -> int:
 	if g.bot != null:
 		var bp: int = g.bot.pick(g.choices)
 		if bp >= 0:
@@ -617,15 +631,18 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_choice.png")
 		if choice_wait > 45:
 			choice_wait = 0
-			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机
+			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机（满员招募卡按 bot/swap，缺省不选；更换画面选「不替换」）
+			var ok_i: Array = g.progression.auto_choices()
 			var deep: Array = []
-			for ci in g.choices.size():
+			for ci in ok_i:
 				if g.choices[ci].kind == "prog":
 					deep.append(ci)
-			if not deep.is_empty() and g.rng.randf() < 0.7:
+			if g.choice_kind == "swap":
+				g.progression.pick(g.progression.auto_swap_pick())
+			elif not deep.is_empty() and g.rng.randf() < 0.7:
 				g.progression.pick(deep[g.rng.randi() % deep.size()])
 			else:
-				g.progression.pick(g.rng.randi() % g.choices.size())
+				g.progression.pick(ok_i[g.rng.randi() % ok_i.size()])
 	if g.at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d hp=%d enemies=%d mires=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.mires.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:

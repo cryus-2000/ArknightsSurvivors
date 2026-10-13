@@ -275,7 +275,7 @@ func draw_bg() -> void:
 		"event":
 			draw_event_bg(vs)
 		_:
-			var en_label := "RELIC" if g.choice_kind == "relic" else "LEVEL UP"
+			var en_label := "RELIC" if g.choice_kind == "relic" else ("SQUAD SWAP" if g.choice_kind == "swap" else "LEVEL UP")
 			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
 				en_label = "RECRUIT"
 			var ph: bool = Cfg.touch_device()
@@ -435,7 +435,8 @@ func offset_poly(p: PackedVector2Array, o: Vector2, _clip: PackedVector2Array) -
 	return out
 
 
-func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
+## quiet：不播升级音效（「更换队友」画面进出，progression.open_swap / cancel_swap）
+func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := false) -> void:
 	g.choices = opts
 	g.choice_kind = kind
 	g.nav_sel = 0
@@ -451,11 +452,12 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			panel_sub_text = "选择一项强化"
 		# 入队加成（docs/83）：用户 10-13 定不再逐张写在招募卡上，三选一里有招募卡时在标题说明行写一次（数字读 balance.json squad 段；
 		# 台阶已封顶不再加成时不写）。混有单张招募卡的升级界面也写在这里：带实际数字、不占卡片空间，比给卡片加角标更清楚
-		if kind != "event" and opts.any(func(o): return o.get("kind", "") == "recruit"):
+		if kind != "event" and opts.any(func(o): return o.get("kind", "") == "recruit" and not o.get("swap", false)):   # 满员换人卡不加台阶
 			var jb: String = g.squad.join_bonus_text()
 			if jb != "":
 				panel_sub_text += " · " + jb
-	Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
+	if not quiet:
+		Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in g.panel_box.get_children():
 		c.queue_free()
 	for c in g.panel_col.get_children():
@@ -661,6 +663,8 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		if motion.icon_a > 0.0:
 			var isz := asz * motion.icon_scale
 			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), Rect2(0, 0, idle.fw, idle.fh))
+	elif o.kind == "swap_keep":
+		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换：返回
 	elif ic != null:
 		draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
 	else:
@@ -681,7 +685,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind in ["recruit", "swap_out"] else "影响", 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))

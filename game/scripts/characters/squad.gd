@@ -54,8 +54,9 @@ func ids() -> Array:
 	return ops.map(func(o): return o.id)
 
 
-## 招募：实例化干员、登记专属属性与伤害来源、放到主控身边。满员返回 null
-func add(cid: String):
+## 招募：实例化干员、登记专属属性与伤害来源、放到主控身边。满员返回 null。
+## recruit_event = false：中途换人（replace）时不触发「招募」类藏品（否则换一次人就能刷一次源石锭 / 成长三选一）
+func add(cid: String, recruit_event := true):
 	if has(cid) or is_full():
 		return null
 	var op = Character.create(g, cid)
@@ -89,10 +90,11 @@ func add(cid: String):
 	if op.has_method("on_join"):
 		op.on_join()
 	validate_squad()
-	_apply_size_hp()
+	if not _hold_size:
+		_apply_size_hp()
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
-		if not op.is_leader:
+		if not op.is_leader and recruit_event:
 			g.rfx.on_recruit(op)   # 招募事件（docs/57 P10）：开局干员不算
 	return op
 
@@ -109,12 +111,50 @@ func remove(cid: String) -> void:
 			break
 	for i in ops.size():
 		ops[i].slot = i
-	_apply_size_hp()
+	if not _hold_size:
+		_apply_size_hp()
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
 		_apply_leader_regen(ops[0])
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+
+
+var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）
+
+
+## 中途更换队友（用户 10-13 批准）：old_id 离队、new_id 接替它的编队位，继承 old 的成长节点数（精英化阶段 + 技能 / 成长节点），
+## 继承的节点不看条件、不重播精英化演出。队长不能被替换。被换下的干员清掉它挂在 op:<id> 作用域上的修正，回到招募池。
+## 人数不变 → 入队加成（最大生命 / 回复台阶）不重算，也不触发「招募」类藏品。失败返回 null
+func replace(old_id: String, new_id: String):
+	var old = get_op(old_id)
+	if old == null or old.is_leader or has(new_id):
+		return null
+	var idx: int = ops.find(old)
+	var inherit: int = old.prog
+	_hold_size = true
+	remove(old_id)
+	g.stats.remove_scope("op:" + old_id)
+	var op = add(new_id, false)
+	_hold_size = false
+	if op == null:
+		return null
+	ops.erase(op)
+	ops.insert(mini(idx, ops.size()), op)
+	for i in ops.size():
+		ops[i].slot = i
+	op.pos = g.ppos + _slot_offset(op.slot)
+	var sq0: int = g.show_queue.size()
+	for k in inherit:
+		var n: Dictionary = op.next_node()
+		if n.is_empty():
+			break
+		var chs: Dictionary = op.elite_choices(n) if n.get("type", "") == "elite" else {}
+		op.advance(chs.keys()[0] if not chs.is_empty() else "")
+	if g.show_queue.size() > sq0:
+		g.show_queue.resize(sq0)   # 继承来的精英化不弹演出
+	g.sync_stats()
+	return op
 
 
 ## 入队加成（docs/83，用户 10-13 定：每入队一名干员，编队生命与自动回复各上一个台阶；招募时写明）。

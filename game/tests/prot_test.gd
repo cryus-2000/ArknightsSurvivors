@@ -91,6 +91,7 @@ func _process(_d: float) -> void:
 	test_nerve()
 	test_floater_mire()
 	test_squad_sustain_dash()
+	test_squad_swap()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -2198,3 +2199,82 @@ func test_squad_sustain_dash() -> void:
 		sq.remove(cid)
 	game.sync_stats()
 	reset()
+
+
+## 中途更换队友（用户 10-13）：满员后招募卡照常出现；选中进更换画面，「不替换」回到原三选一且不消耗；队长不能换；
+## 新干员继承被换下干员的成长节点（精英化阶段）；人数不变，入队加成不变；被换下的回到招募池，再招回来专属属性不重复叠加；机器人缺省不替换
+func test_squad_swap() -> void:
+	reset()
+	var sq = game.squad
+	var pg = game.progression
+	for cid in ["skadi", "kaltsit", "lumen", "eyjafjalla", "suzuran"]:
+		if sq.is_full():
+			break
+		if not sq.has(cid):
+			sq.add(cid)
+	game.sync_stats()
+	ok(sq.is_full(), "编队已满（%s）" % str(sq.ids()))
+	ok(pg.recruit_cards().is_empty(), "满员后普通招募卡为空（藏品招募逻辑不变）")
+	var sw: Array = pg.swap_cards()
+	ok(not sw.is_empty() and sw.all(func(o): return o.get("swap", false) and not sq.has(o.id)), "满员后有更换队友卡（%d 张）" % sw.size())
+	var mate = null
+	for o in sq.ops:
+		if not o.is_leader:
+			mate = o
+			break
+	for k in 3:
+		mate.advance("")
+	ok(mate.elite == 1 and mate.prog == 3, "被换下的队友先推到精英一（prog %d）" % mate.prog)
+	game.show_queue.clear()
+	var old_id: String = mate.id
+	var leader_id: String = sq.leader().id
+	var regen0: float = game.combat.regen_per_sec()
+	var max0: float = game.max_hp
+	var filler: Array = game.doctor.filler_cards()
+	var opts: Array = [sw[0]] + filler.slice(0, 2)
+	game.pending_levelups = 1
+	game.panel_ui.show_choices("升级！", opts, "level")
+	ok(not game.panel_ui.panel_sub_text.contains("入队加成"), "满员换人卡不写入队加成（%s）" % game.panel_ui.panel_sub_text)
+	pg.pick(0)
+	ok(game.state == game.S.CHOICE and game.choice_kind == "swap" and game.pending_levelups == 1, "选中换人卡进更换画面，不消耗升级")
+	var outs: Array = game.choices.filter(func(o): return o.kind == "swap_out")
+	ok(outs.size() == sq.size() - 1 and not outs.any(func(o): return o.op == leader_id), "更换画面列出 %d 名队友，队长不在其中" % outs.size())
+	ok(game.choices[-1].kind == "swap_keep", "更换画面有「不替换」")
+	pg.pick(game.choices.size() - 1)
+	ok(game.choice_kind == "level" and game.choices.size() == opts.size() and game.pending_levelups == 1 and sq.has(old_id), "「不替换」回到原三选一，不消耗、编队不变")
+	ok(game.nav_sel == 0, "「不替换」后焦点留在换人卡")
+	pg.pick(0)
+	var oi := -1
+	for i in game.choices.size():
+		if game.choices[i].get("op", "") == old_id:
+			oi = i
+	pg.pick(oi)
+	var nop = sq.get_op(str(sw[0].id))
+	ok(nop != null and not sq.has(old_id) and sq.size() == 3, "换人后 %s 在队、%s 离队" % [str(sw[0].id), old_id])
+	ok(nop != null and nop.prog == 3 and nop.elite == 1, "新干员继承成长节点 3 / 精英一（prog %d elite %d）" % [nop.prog if nop else -1, nop.elite if nop else -1])
+	ok(game.pending_levelups == 0 and game.state == game.S.PLAY, "换人消耗这次升级")
+	game.sync_stats()
+	ok(absf(game.combat.regen_per_sec() - regen0) < 0.001 and absf(game.max_hp - max0) < 0.001, "人数不变，入队加成不变（回复 %.2f → %.2f，生命 %d → %d）" % [regen0, game.combat.regen_per_sec(), int(max0), int(game.max_hp)])
+	ok(sq.leader().id == leader_id and nop.is_leader == false, "队长不变")
+	ok(pg.swap_cards().any(func(o): return o.id == old_id), "被换下的干员回到招募池")
+	ok(game.show_queue.is_empty(), "继承的精英化不弹演出")
+	# 再换回来：专属属性（balance:<id> 档位系数等）不重复叠加
+	var back = sq.replace(str(sw[0].id), old_id)
+	var n_bal := 0
+	for st in game.stats.stats():
+		for m in game.stats.breakdown(st).sources:
+			if m.source == "balance:" + old_id:
+				n_bal += 1
+	var n_def := 0
+	for k in ["atk", "aspd", "range", "skill_power"]:
+		if float(Bal.op(old_id).get(k, 0.0)) != 0.0:
+			n_def += 1
+	ok(back != null and n_bal == n_def, "换回 %s 后档位系数 %d 条（应 %d）" % [old_id, n_bal, n_def])
+	ok(pg.swaps.size() == 1, "遥测记下 1 次换人")
+	# 机器人：bot/swap 缺省 0 → 换人卡不进自动候选，更换画面选「不替换」
+	game.panel_ui.show_choices("升级！", [pg.swap_cards()[0]] + filler.slice(0, 2), "level")
+	ok(not pg.auto_choices().has(0) and pg.auto_choices().size() == 2, "机器人缺省不选换人卡")
+	pg.open_swap(game.choices[0], 0)
+	ok(game.choices[pg.auto_swap_pick()].kind == "swap_keep", "机器人在更换画面选「不替换」")
+	game.panel.visible = false
+	game.state = game.S.PLAY

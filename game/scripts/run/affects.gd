@@ -251,6 +251,10 @@ static func _miss(res: Dictionary, s: String) -> void:
 static func chips(g, o: Dictionary) -> Array:
 	if o.get("kind", "") == "recruit":
 		return trait_chips(g, o.id)
+	if o.get("kind", "") == "swap_out":
+		return trait_chips(g, str(o.op))   # 更换队友画面：被换下的干员的特征
+	if o.get("kind", "") == "swap_keep":
+		return []
 	var res := of_choice(g, o)
 	var out: Array = []
 	var ld = g.squad.leader()

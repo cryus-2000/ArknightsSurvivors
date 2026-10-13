@@ -68,6 +68,27 @@ func recruit_cards() -> Array:
 	return opts
 
 
+## 更换队友卡（用户 10-13 批准）：编队满员后，招募卡照常按原概率出现，选中后进「更换队友」画面（open_swap），可以「不替换」。
+## 候选同 recruit_cards（未在队、允许招募），带 swap = true。levelup/swap_offer = 0 关（满员后不再出招募卡，同改前）
+func swap_cards() -> Array:
+	var opts: Array = []
+	if not g.squad.is_full() or Bal.vi("levelup/swap_offer", 1) == 0 or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
+		return opts
+	if not g.squad.ops.any(func(o): return not o.is_leader):
+		return opts
+	for cid in Character.list_ids():
+		if g.squad.has(cid):
+			continue
+		var d: Dictionary = Character.load_def(cid)
+		if not d.get("recruitable", true):
+			continue
+		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
+		opts.append({"kind": "recruit", "swap": true, "id": cid, "name": d.get("name", cid), "desc": desc + "
+编队已满：选中后挑一名队友换下，可以不替换。",
+			"cls": d.get("class", ""), "cat": "更换 · %s  SWAP" % d.get("class", "")})
+	return opts
+
+
 func open_levelup() -> void:
 	var want: int = 3 + g.rfx.rule("four_choices") + g.rfx.take_choice_extra()   # 后者：一次性「多一个选项」（docs/57 P27）
 	var picks: Array = []
@@ -97,6 +118,9 @@ func open_levelup() -> void:
 					picks.append(rc)
 					break
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
+	# 编队满员：同一个概率出「更换队友」卡（swap_cards；关掉时为空，随机数消耗与改前相同）
+	if recruit.is_empty():
+		recruit = swap_cards()
 	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and g.rng.randf() < Bal.v("levelup/recruit_chance", 0.45):
 		picks.append(recruit[g.rng.randi() % recruit.size()])
 	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
@@ -222,10 +246,107 @@ func open_relic_choice() -> void:
 	g.panel_ui.show_choices("获得藏品", shown, "relic")
 
 
+## 「更换队友」画面的上下文：{opts, kind, title, sub, sel, new}。选「不替换」时按它恢复刚才的三选一（这次选择不消耗）
+var swap_ctx: Dictionary = {}
+var swaps: Array = []   # 本局换人记录 [秒, 换下, 换上]（遥测 / 作战记录）
+
+
+## ---- 机器人 / 自动测试的换人（bot/swap 旋钮，缺省 0 = 一律「不替换」：满员招募卡不进候选，局面与没有这张卡时一样）。
+## bot/swap = 1：按评分换——干员分 = 档位（S+ 3 / S 2 / A+ 1 / 其余 0）+ 换完编队里没有医疗 / 重装时医疗或重装 +2；
+## 新干员比分最低的队友高 0.5 以上才换（换掉分最低的那名）。返回要换下的队友 id，"" = 不换
+func auto_swap_target(card: Dictionary) -> String:
+	if Bal.vi("bot/swap", 0) == 0 or card.is_empty():
+		return ""
+	var tier_v := func(cid: String) -> float:
+		return float({"S+": 3, "S": 2, "A+": 1}.get(str(Bal.op(cid).get("tier", "A")), 0))
+	var new_cls: String = str(card.get("cls", ""))
+	var best_id := ""
+	var best_gain := 0.5
+	for op in g.squad.ops:
+		if op.is_leader:
+			continue
+		var rest: Array = g.squad.ops.filter(func(o): return o != op).map(func(o): return o.cls)
+		var sustain_rest: bool = rest.has("医疗") or rest.has("重装")
+		var v_old: float = tier_v.call(op.id) + (2.0 if not sustain_rest and op.cls in ["医疗", "重装"] else 0.0)
+		var v_new: float = tier_v.call(str(card.id)) + (2.0 if not sustain_rest and new_cls in ["医疗", "重装"] else 0.0)
+		if v_new - v_old > best_gain:
+			best_gain = v_new - v_old
+			best_id = op.id
+	return best_id
+
+
+## 自动选卡可选的下标：满员招募卡只在 auto_swap_target 给出人选时才算
+func auto_choices() -> Array:
+	var out: Array = []
+	for i in g.choices.size():
+		var c: Dictionary = g.choices[i]
+		if c.get("kind", "") == "recruit" and c.get("swap", false) and auto_swap_target(c) == "":
+			continue
+		out.append(i)
+	return out
+
+
+## 「更换队友」画面里自动选哪一项：auto_swap_target 的那名队友，否则「不替换」
+func auto_swap_pick() -> int:
+	var who: String = auto_swap_target(swap_ctx.get("new", {}))
+	for i in g.choices.size():
+		if who != "" and str(g.choices[i].get("op", "")) == who and g.choices[i].get("kind", "") == "swap_out":
+			return i
+	for i in g.choices.size():
+		if g.choices[i].get("kind", "") == "swap_keep":
+			return i
+	return 0
+
+
+## 选中满员时的招募卡：列出可换下的队友（队长除外）+「不替换」
+func open_swap(card: Dictionary, sel: int) -> void:
+	swap_ctx = {"opts": g.choices, "kind": g.choice_kind, "title": g.panel_title_text, "sub": g.panel_ui.panel_sub_text, "sel": sel, "new": card}
+	var nd: Dictionary = Character.load_def(str(card.id))
+	var opts: Array = []
+	for op in g.squad.ops:
+		if op.is_leader:
+			continue
+		var total: int = op.progression().size()
+		var stage: String = ["", "精英一，", "精英二，"][clampi(op.elite, 0, 2)]
+		var n_new: int = (nd.get("progression", []) as Array).size()
+		var desc := "当前：%s成长节点 %d/%d。
+「%s」接替，继承%s成长节点 %d/%d。
+离队后仍可能再被招募。" % [
+			stage, op.prog, total, card.name, stage, mini(op.prog, n_new), n_new]
+		opts.append({"kind": "swap_out", "op": op.id, "new": str(card.id), "name": "换下 " + op.display_name(), "desc": desc,
+			"cat": "队友 · %s  SWAP OUT" % op.cls})
+	opts.append({"kind": "swap_keep", "name": "不替换", "desc": "保留当前编队，返回上一步重新选择。
+这次升级不消耗。", "cat": "保留编队  KEEP", "col": UI.SUB})
+	var sub := "「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换" % [card.name, card.get("cls", "")]
+	g.panel_ui.show_choices("更换队友", opts, "swap", sub, true)
+
+
+## 「不替换」：回到刚才的三选一，焦点留在那张招募卡上
+func cancel_swap() -> void:
+	var ctx := swap_ctx
+	swap_ctx = {}
+	g.panel_ui.show_choices(ctx.title, ctx.opts, ctx.kind, ctx.sub, true)
+	g.panel_ui.motion.skip()
+	g.nav_sel = int(ctx.get("sel", 0))
+
+
 func pick(i: int) -> void:
 	if g.state != g.S.CHOICE or i >= g.choices.size():
 		return
 	var o: Dictionary = g.choices[i]
+	match o.kind:
+		"recruit":
+			if o.get("swap", false):
+				open_swap(o, i)   # 不消耗：进更换画面
+				Sfx.play("ui_ok", -4.0)
+				return
+		"swap_keep":
+			cancel_swap()
+			Sfx.play("ui_ok", -6.0)
+			return
+		"swap_out":
+			g.choice_kind = str(swap_ctx.get("kind", "level"))   # 按原来那次三选一结算（扣升级次数）
+			swap_ctx = {}
 	if g.choice_kind == "level" and is_heal_card(o):
 		heal_pick += 1
 	match o.kind:
@@ -248,6 +369,14 @@ func pick(i: int) -> void:
 				g.vfx.promote_burst(pop.pos, o.get("elite", 0) > 0)   # docs/54 ⑥（fx/promote_burst）
 				if o.get("elite", 0) > 0:
 					g.vfx.show_banner("%s 晋升至精英%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
+		"swap_out":
+			var sop = g.squad.replace(str(o.op), str(o.new))
+			if sop != null:
+				swaps.append([int(g.t), str(o.op), str(o.new)])
+				var st: String = ["", "（精英一）", "（精英二）"][clampi(sop.elite, 0, 2)]
+				g.vfx.show_banner("「%s」接替「%s」加入编队%s" % [sop.display_name(), Character.load_def(str(o.op)).get("name", o.op), st])
+				g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})
+				g.vfx.promote_burst(sop.pos, false)
 		"recruit":
 			var nop = g.squad.add(o.id)
 			if nop != null:
