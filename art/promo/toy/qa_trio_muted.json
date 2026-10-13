@@ -1,0 +1,23 @@
+{
+  "toy_poster_trio_muted_4x3_notext.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 154355
+  },
+  "toy_poster_trio_muted_4x3.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 155411
+  },
+  "toy_poster_trio_muted_preview.png": {
+    "size": [
+      400,
+      300
+    ],
+    "bytes": 71724
+  }
+}

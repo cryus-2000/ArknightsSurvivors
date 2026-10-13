@@ -1,0 +1,1379 @@
+{
+  "batch": 1,
+  "assets": [
+    {
+      "file": "fx_angelina_float_dust.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "bd896020e5cb03db3015496ccf3f458fa681a676c258c31e8c011c9b7bb7a3c8"
+    },
+    {
+      "file": "fx_angelina_float_dust@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 4,
+      "fps": 8,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "34ad4bce79f8a28f8cee47d2d1b5c4e4a77e99f70bd90ae2c6ab36b1b553a0d9"
+    },
+    {
+      "file": "fx_angelina_halt.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "161f2c4c75a7486b499e111e7f028362588de84cc44c8b79a87d2d50d35780ae"
+    },
+    {
+      "file": "fx_angelina_halt@2x.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "50d924af05eaccadf3dc3038976c7519d573898a06271ba26762429190e355b6"
+    },
+    {
+      "file": "fx_angelina_well_back.png",
+      "frame_size": [
+        96,
+        64
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        48,
+        32
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "b6a1fca90cee814ee588569930198397019e0b240ccbc9a456238d9a33b38db9"
+    },
+    {
+      "file": "fx_angelina_well_back@2x.png",
+      "frame_size": [
+        192,
+        128
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        96,
+        64
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "c7f464eb118b0efe7abea0535c6f6d803d829891289742d867785acf616f6a89"
+    },
+    {
+      "file": "fx_angelina_well_close.png",
+      "frame_size": [
+        96,
+        64
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        48,
+        32
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "14f4ccc8b55d296d044059a3a7093c38cabf4b54bd9955e0ffb680d7176e889f"
+    },
+    {
+      "file": "fx_angelina_well_close@2x.png",
+      "frame_size": [
+        192,
+        128
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        96,
+        64
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "173101c5c3de89f8846d6f8254d3c2b5a61d42a310924784c18f4b7df20edc40"
+    },
+    {
+      "file": "fx_angelina_well_front.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        24,
+        36
+      ],
+      "origin_1x": [
+        24,
+        36
+      ],
+      "origin_2x": [
+        48,
+        72
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 10,
+      "density": 1,
+      "fire": null,
+      "sha256": "6efeb8887f6c829b62201f3311ecfbd06cddcabebebecb8f1cdfe02f23afb2a5"
+    },
+    {
+      "file": "fx_angelina_well_front@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        48,
+        72
+      ],
+      "origin_1x": [
+        24,
+        36
+      ],
+      "origin_2x": [
+        48,
+        72
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 10,
+      "density": 2,
+      "fire": null,
+      "sha256": "b1abd018beb315b000e1b1f962ca77d49167629e55da32e99c646862de5af8cf"
+    },
+    {
+      "file": "fx_angelina_well_open.png",
+      "frame_size": [
+        96,
+        64
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        48,
+        32
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "568e1f884fcabc9b6b47ae042b485570b0dbbc4df65bfc895c7a5520ee8cd2d1"
+    },
+    {
+      "file": "fx_angelina_well_open@2x.png",
+      "frame_size": [
+        192,
+        128
+      ],
+      "frames": 5,
+      "fps": 14,
+      "origin": [
+        96,
+        64
+      ],
+      "origin_1x": [
+        48,
+        32
+      ],
+      "origin_2x": [
+        96,
+        64
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "6eebeea6c7a25eb1850df89138ca27f0048080feb9600851d470902c152c1fb7"
+    },
+    {
+      "file": "fx_exusiai_blessed_flash.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "e1ff059100d02f17686f6092e2f898c4d2df6d377ad15a85556ad85b2072c76c"
+    },
+    {
+      "file": "fx_exusiai_blessed_flash@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "9b5cb579282da897a6a37447c01a67239b130e3db933f1097bea28e23d4a3b8a"
+    },
+    {
+      "file": "fx_exusiai_halo.png",
+      "frame_size": [
+        32,
+        12
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        16,
+        6
+      ],
+      "origin_1x": [
+        16,
+        6
+      ],
+      "origin_2x": [
+        32,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "d04bf3113b39694df0f269444f94eccee19a1ca1bbaee997761506763c02eba7"
+    },
+    {
+      "file": "fx_exusiai_halo@2x.png",
+      "frame_size": [
+        64,
+        24
+      ],
+      "frames": 8,
+      "fps": 10,
+      "origin": [
+        32,
+        12
+      ],
+      "origin_1x": [
+        16,
+        6
+      ],
+      "origin_2x": [
+        32,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "2bc3039cd6aee12f899fe1fcf9f846f0e186e9145bb6e593d93c6fa1fbcc5968"
+    },
+    {
+      "file": "fx_exusiai_hit_gold.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "b9f5be6fdfcacff0625b181b71f620a3deacb4cd85f9a7cdc5aeb3020c5ef042"
+    },
+    {
+      "file": "fx_exusiai_hit_gold@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "e1901b121683d2f04f747d7c0f032e2719f7f54d57692b5f5ea9a97b13df7301"
+    },
+    {
+      "file": "fx_hoshiguma_guard_glow.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "8faead58b10f280c02fadfb4281cacc1fb6896b9f8782e7121fddf351a7564c9"
+    },
+    {
+      "file": "fx_hoshiguma_guard_glow@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "4c39a7aeca77483c43e849f48cff1ec691ebd94742716266a2cfe244bef8799f"
+    },
+    {
+      "file": "fx_hoshiguma_saw_spark.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "1b9fca17010a92ea1215492be3646cd8cd52a19c9921d7203411b8b356bbd326"
+    },
+    {
+      "file": "fx_hoshiguma_saw_spark@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "193346b52e3bd1cef34c7a6d9a1b35cf3d6a45ac1a2f37cf4f5cd03a737b6f13"
+    },
+    {
+      "file": "fx_mon3tr_afterimage.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "fps": 1,
+      "origin": [
+        32,
+        60
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "back",
+      "loop": false,
+      "colors": 1,
+      "density": 1,
+      "fire": null,
+      "sha256": "7c0525e01e709feeb466d74495f210efe99ab9ec5de564e1272da24a0593fc55"
+    },
+    {
+      "file": "fx_mon3tr_afterimage@2x.png",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "fps": 1,
+      "origin": [
+        64,
+        120
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "back",
+      "loop": false,
+      "colors": 1,
+      "density": 2,
+      "fire": null,
+      "sha256": "f0a7b63bfb1e1762bec5e823c95d5cf331953e4d9bf06be4853aa0664b461c40"
+    },
+    {
+      "file": "fx_mon3tr_slam_ring.png",
+      "frame_size": [
+        64,
+        32
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        32,
+        16
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 8,
+      "density": 1,
+      "fire": null,
+      "sha256": "ec73a4a49f6e61f3b481f9f8fc2ab1ae4d16d00e6f5fd99906e1849f7be96790"
+    },
+    {
+      "file": "fx_mon3tr_slam_ring@2x.png",
+      "frame_size": [
+        128,
+        64
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        64,
+        32
+      ],
+      "origin_1x": [
+        32,
+        16
+      ],
+      "origin_2x": [
+        64,
+        32
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 8,
+      "density": 2,
+      "fire": null,
+      "sha256": "d011d48b6001cb8ecd191a3fdadc4de41744b2d9ade04fc866f17a9f9d40a8b3"
+    },
+    {
+      "file": "fx_slash_heavy_rose.png",
+      "frame_size": [
+        35,
+        34
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        17,
+        17
+      ],
+      "origin_1x": [
+        17,
+        17
+      ],
+      "origin_2x": [
+        34,
+        34
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "3f6e318ab367cadb4f0176fdb762ee69e8a97b5030bb4db1ef150d91e49f03f8"
+    },
+    {
+      "file": "fx_slash_heavy_rose@2x.png",
+      "frame_size": [
+        70,
+        68
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        34,
+        34
+      ],
+      "origin_1x": [
+        17,
+        17
+      ],
+      "origin_2x": [
+        34,
+        34
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "e8969a92d6cdbbef48a68133272087a779b815c2b63e1d4787700fe36bf4bd8d"
+    },
+    {
+      "file": "fx_texas_pin_shatter.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 8,
+      "density": 1,
+      "fire": null,
+      "sha256": "5cd4ad0ee70f1cdccb6012de940abd5c4c92ee919d680004c14cc45feb5f592f"
+    },
+    {
+      "file": "fx_texas_pin_shatter@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 8,
+      "density": 2,
+      "fire": null,
+      "sha256": "3b4abfbdd799134b439d47cb27159af6008430a1b5380dc2da99a6eb5571a9c4"
+    },
+    {
+      "file": "fx_texas_pin_sword.png",
+      "frame_size": [
+        12,
+        24
+      ],
+      "frames": 4,
+      "fps": 12,
+      "origin": [
+        6,
+        22
+      ],
+      "origin_1x": [
+        6,
+        22
+      ],
+      "origin_2x": [
+        12,
+        44
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "267e7314bdf431bd4de9fd176455596f00d71e1903b84ec90d41444df66ca65e",
+      "direction": "down",
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+    },
+    {
+      "file": "fx_texas_pin_sword@2x.png",
+      "frame_size": [
+        24,
+        48
+      ],
+      "frames": 4,
+      "fps": 12,
+      "origin": [
+        12,
+        44
+      ],
+      "origin_1x": [
+        6,
+        22
+      ],
+      "origin_2x": [
+        12,
+        44
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "98a94db9f04ea5c057b49d8428a50f51801894f331082093bb731c974830645e",
+      "direction": "down",
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+    },
+    {
+      "file": "fx_texas_sword_drop.png",
+      "frame_size": [
+        12,
+        40
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        6,
+        38
+      ],
+      "origin_1x": [
+        6,
+        38
+      ],
+      "origin_2x": [
+        12,
+        76
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "fe30f483c4112f788c295625809dcf611044a538ac80a92af1c4855bf824592e",
+      "direction": "down",
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+    },
+    {
+      "file": "fx_texas_sword_drop@2x.png",
+      "frame_size": [
+        24,
+        80
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        12,
+        76
+      ],
+      "origin_1x": [
+        6,
+        38
+      ],
+      "origin_2x": [
+        12,
+        76
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "327606acd67855c9bc07cc852b133a701faeb1c80e3c86b554944effc345f3be",
+      "direction": "down",
+      "direction_exception": "Vertical narrow canvas and explicit falling sword in docs93; matches approved existing sword. Runtime down reference, not right."
+    },
+    {
+      "file": "fx_texas_sword_impact.png",
+      "frame_size": [
+        32,
+        16
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        16,
+        8
+      ],
+      "origin_1x": [
+        16,
+        8
+      ],
+      "origin_2x": [
+        32,
+        16
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 8,
+      "density": 1,
+      "fire": null,
+      "sha256": "6391e1239b3d4b7e6e29e67f53561b9b7f9e80a52d4768a7fc80fe7f82b02b9a"
+    },
+    {
+      "file": "fx_texas_sword_impact@2x.png",
+      "frame_size": [
+        64,
+        32
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        32,
+        16
+      ],
+      "origin_1x": [
+        16,
+        8
+      ],
+      "origin_2x": [
+        32,
+        16
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 8,
+      "density": 2,
+      "fire": null,
+      "sha256": "8e3422ec8d9a81dc80a42ce9752e3147ce3dda0dd46e8f7c0a6e82258b0486c2"
+    },
+    {
+      "file": "op_hoshiguma_throw.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        24,
+        46
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 24,
+      "density": 1,
+      "fire": 2,
+      "sha256": "512b13f38ce67e1896e108b8fa9f583430efef1879a00c27ff048f67705acdfb"
+    },
+    {
+      "file": "op_hoshiguma_throw@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        48,
+        92
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 24,
+      "density": 2,
+      "fire": 2,
+      "sha256": "36af4f500782a31ae279aad650a408157c2f4da10fe027caac99ae653eb005e4"
+    },
+    {
+      "file": "op_kaltsit_m_leap.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        32,
+        60
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 45,
+      "density": 1,
+      "fire": null,
+      "sha256": "d0c2d33dbfbcdb77eb70ac721aebb655ac046d2ea6070010d755ffe2e0334ac9",
+      "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
+      "floating": true
+    },
+    {
+      "file": "op_kaltsit_m_leap@2x.png",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 6,
+      "fps": 12,
+      "origin": [
+        64,
+        120
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 45,
+      "density": 2,
+      "fire": null,
+      "sha256": "af0999ded7c49e3d8beb747069341f19485c2b49d550fd1be39e7eecc8967ac6",
+      "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
+      "floating": true
+    },
+    {
+      "file": "op_kaltsit_m_lunge.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        32,
+        60
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 45,
+      "density": 1,
+      "fire": 3,
+      "sha256": "100c6b55e6ff30a1482333e6f61e57ea3332cf6bf285a0afb2683efa4aedf7ed",
+      "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
+      "floating": true
+    },
+    {
+      "file": "op_kaltsit_m_lunge@2x.png",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        64,
+        120
+      ],
+      "origin_1x": [
+        32,
+        60
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 45,
+      "density": 2,
+      "fire": 3,
+      "sha256": "c1837b590b7797f5651208ad4c5ed1ce226fb473a7056f0c3c56fd4dc50432b3",
+      "palette_exception": "Exact first/last idle inherits legacy Mon3tr palette; new poses limited24. No existing sprites altered.",
+      "floating": true
+    },
+    {
+      "file": "proj_exusiai_bullet_t1.png",
+      "frame_size": [
+        12,
+        6
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        6,
+        3
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 1,
+      "fire": null,
+      "sha256": "c12197fac02520b6e11b5a3bd5d4dee2fa606ef0a1b3a04606bebc7dd3078b65"
+    },
+    {
+      "file": "proj_exusiai_bullet_t1@2x.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 2,
+      "fire": null,
+      "sha256": "616e3e156f1202816309cac102966de19bb9ae77a9306ac318b7c2942a60aea9"
+    },
+    {
+      "file": "proj_exusiai_bullet_t2.png",
+      "frame_size": [
+        12,
+        6
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        6,
+        3
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 1,
+      "fire": null,
+      "sha256": "c26f7c2b9ad29b60e3b2608a45412a09376c8215af8e4c09ff89901afd465ff4"
+    },
+    {
+      "file": "proj_exusiai_bullet_t2@2x.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 2,
+      "fire": null,
+      "sha256": "d6f4771224f3fb1a056d983e425c78a56794cbf40be1bca5685019a3abe87190"
+    },
+    {
+      "file": "proj_exusiai_bullet_t3.png",
+      "frame_size": [
+        12,
+        6
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        6,
+        3
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 1,
+      "fire": null,
+      "sha256": "098804571ef834eef0801a6e151c581d9efcb5d0c70370252810dfeaa87553d5"
+    },
+    {
+      "file": "proj_exusiai_bullet_t3@2x.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 2,
+      "fps": 20,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        6,
+        3
+      ],
+      "origin_2x": [
+        12,
+        6
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 3,
+      "density": 2,
+      "fire": null,
+      "sha256": "d833e3c380d5e123b1ed2f50220fe84a4729761b28f23a2304a366511a65281f"
+    },
+    {
+      "file": "proj_hoshiguma_sawshield.png",
+      "frame_size": [
+        28,
+        28
+      ],
+      "frames": 8,
+      "fps": 24,
+      "origin": [
+        14,
+        14
+      ],
+      "origin_1x": [
+        14,
+        14
+      ],
+      "origin_2x": [
+        28,
+        28
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 1,
+      "fire": null,
+      "sha256": "60733bd8ab90498852618a77f63277d978a35465fad1bec8bce33df8d10966e2",
+      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon."
+    },
+    {
+      "file": "proj_hoshiguma_sawshield@2x.png",
+      "frame_size": [
+        56,
+        56
+      ],
+      "frames": 8,
+      "fps": 24,
+      "origin": [
+        28,
+        28
+      ],
+      "origin_1x": [
+        14,
+        14
+      ],
+      "origin_2x": [
+        28,
+        28
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 7,
+      "density": 2,
+      "fire": null,
+      "sha256": "da97956ba83f144ccd0952a7026406f6326767802729f326af1d329ac054020f",
+      "canonical_override": "Triangular Hannya shield, no invented four-tooth round saw; user explicitly requires original weapon."
+    }
+  ],
+  "sources": [
+    "exec-c8ec1393-7267-4ad7-b6ae-3f651fdd9020.png",
+    "exec-09a86b69-0947-4e7a-807a-5af0144fc7c8.png",
+    "exec-22e59e09-382b-4490-9e28-4336a17b7cba.png"
+  ],
+  "production": "imagegen masters; fixed-palette mechanical transforms; canonical weapon sources reused"
+}

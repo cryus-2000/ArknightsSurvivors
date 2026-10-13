@@ -1,0 +1,23 @@
+{
+  "toy_poster_graded_title_4x3.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 543225
+  },
+  "toy_poster_graded_title_4x3_notext.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 552485
+  },
+  "toy_poster_graded_title_preview.png": {
+    "size": [
+      400,
+      300
+    ],
+    "bytes": 201364
+  }
+}

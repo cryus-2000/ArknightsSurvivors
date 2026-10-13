@@ -1,0 +1,191 @@
+{
+  "batch": "priority",
+  "contract": "docs/93 P.1 2026-10-13 approved",
+  "assets": [
+    {
+      "file": "fx_skalter_wave_big.png",
+      "frame_size": [
+        400,
+        220
+      ],
+      "frames": 10,
+      "fps": 12,
+      "loop": false,
+      "origin": [
+        200,
+        110
+      ],
+      "origin_1x": [
+        200,
+        110
+      ],
+      "origin_2x": [
+        400,
+        220
+      ],
+      "layer": "ground",
+      "colors": 10,
+      "density": 1,
+      "sha256": "242dfc29deeb9360289439aabc331f38ed8338b8810e6040b7b9bcb12409c9b0"
+    },
+    {
+      "file": "fx_skalter_wave_big_dim.png",
+      "frame_size": [
+        400,
+        220
+      ],
+      "frames": 10,
+      "fps": 12,
+      "loop": false,
+      "origin": [
+        200,
+        110
+      ],
+      "origin_1x": [
+        200,
+        110
+      ],
+      "origin_2x": [
+        400,
+        220
+      ],
+      "layer": "ground",
+      "colors": 10,
+      "density": 1,
+      "sha256": "84c02170fe6b1d9a0fcb1b5a4798ea5080162aebc17e5efdd5cc8c18e772fe02"
+    },
+    {
+      "file": "fx_skalter_wave_big@2x.png",
+      "frame_size": [
+        800,
+        440
+      ],
+      "frames": 10,
+      "fps": 12,
+      "loop": false,
+      "origin": [
+        400,
+        220
+      ],
+      "origin_1x": [
+        200,
+        110
+      ],
+      "origin_2x": [
+        400,
+        220
+      ],
+      "layer": "ground",
+      "colors": 10,
+      "density": 2,
+      "sha256": "95ab65226a673b14ad31fa42a84f45a08aeffaf2b6317d832a35c46bad68d12a"
+    },
+    {
+      "file": "fx_skalter_wave_big_dim@2x.png",
+      "frame_size": [
+        800,
+        440
+      ],
+      "frames": 10,
+      "fps": 12,
+      "loop": false,
+      "origin": [
+        400,
+        220
+      ],
+      "origin_1x": [
+        200,
+        110
+      ],
+      "origin_2x": [
+        400,
+        220
+      ],
+      "layer": "ground",
+      "colors": 10,
+      "density": 2,
+      "sha256": "9b8a88334fb121f9b9578bbf94facee33000295e99310ae69981a92a91bc3cf7"
+    }
+  ],
+  "scale_curve": [
+    0.12,
+    0.35,
+    0.54,
+    0.69,
+    0.8,
+    0.88,
+    0.94,
+    0.975,
+    0.995,
+    1.0
+  ],
+  "fade_curve": [
+    0.6,
+    1,
+    1,
+    0.94,
+    0.84,
+    0.72,
+    0.55,
+    0.35,
+    0.16,
+    0.045
+  ],
+  "dim_coverage_multiplier": 0.64,
+  "palette": [
+    [
+      32,
+      66,
+      78
+    ],
+    [
+      46,
+      88,
+      102
+    ],
+    [
+      61,
+      112,
+      126
+    ],
+    [
+      81,
+      136,
+      148
+    ],
+    [
+      111,
+      160,
+      169
+    ],
+    [
+      145,
+      186,
+      191
+    ],
+    [
+      180,
+      212,
+      215
+    ],
+    [
+      215,
+      235,
+      235
+    ],
+    [
+      100,
+      52,
+      65
+    ],
+    [
+      135,
+      70,
+      83
+    ]
+  ],
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-ea5aa4fc-c794-487c-a7d9-73785e2d4637.png",
+  "source_sha256": "85ebd2b195c8aa635bcd964b6dbe1d2a8c38eafcf52b7946288baabf99ae480b",
+  "generation": "Built-in imagegen single water-wave motif; export uses nearest-neighbor scaling, fixed palette and ordered alpha coverage",
+  "runtime_note": "Nonloop10frames at12fps. Same frame index/origin when crossfading bright/dim. Do not stretch again for ground projection."
+}

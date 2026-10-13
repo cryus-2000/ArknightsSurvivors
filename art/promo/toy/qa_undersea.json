@@ -1,0 +1,30 @@
+{
+  "logical_resolution": [
+    400,
+    300
+  ],
+  "nearest_scale": 3,
+  "files": {
+    "toy_poster_undersea_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 155791
+    },
+    "toy_poster_undersea_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 154176
+    },
+    "toy_poster_undersea_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 124288
+    }
+  }
+}
