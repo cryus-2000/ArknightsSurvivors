@@ -31,7 +31,30 @@ const CARDS_TOP_PHONE := 80.0
 const EV_COL_TOP_PHONE := 70.0
 
 
+## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放（用户 10-13「藏品还是有点太顶天立地」）：卡片按原排版画，整排（panel_box）等比缩到 0.8，
+## 382 高 → 约 306，界面逻辑高约 544 时占约 56%；图标、名字、说明、「影响」标签、选择条、卡间距一起按比例缩。
+## 标题 + 卡片整块在画面里上下居中（上下各留出一截能看到背后的战斗）。说明字最小 15 × 0.8 = 12，守住手机正文下限 12。
+## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩
+const CARD_SCALE_PHONE := 0.8
+const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
+
+
+## 手机横屏卡片说明区：说明从 176 起，「影响」标签行顶边在卡底上方约 62，再留 14（原 233 少算了标签行高，长说明会压到标签上）
+const DESC_PAD_PHONE := 256.0
+const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
+## 本次三选一的卡片高（未缩放的设计像素）：手机横屏按最长说明加高，0 = 用 card_h()
+var row_h := 0.0
+
+
+func card_scale() -> float:
+	return CARD_SCALE_PHONE if Cfg.phone_ui() else 1.0
+
+
 func cards_top() -> float:
+	if Cfg.phone_ui() and g.panel != null:
+		# 标题块 + 缩小后的卡片整体上下居中，卡片顶边不早于原来的 80
+		var block: float = HEADER_H + (row_h if row_h > 0.0 else card_h()) * CARD_SCALE_PHONE
+		return maxf(CARDS_TOP_PHONE, round((g.panel.size.y - block) / 2.0) + HEADER_H)
 	return CARDS_TOP_PHONE if Cfg.touch_device() else CARDS_TOP
 
 
@@ -195,6 +218,10 @@ func layout(kind: String) -> void:
 		g.panel_box.offset_left = 0.0
 		g.panel_box.offset_right = 0.0
 		g.panel_box.offset_top = cards_top()
+	# 手机横屏三选一：整排卡片以顶边中点为轴等比缩小（商店 / 事件不缩）
+	var sc: float = card_scale() if kind != "shop" and kind != "event" else 1.0
+	g.panel_box.scale = Vector2(sc, sc)
+	g.panel_box.pivot_offset = Vector2(vs.x / 2.0, 0.0)
 	g.panel_box.visible = kind != "event"
 	g.panel_col.visible = kind == "event"
 
@@ -386,6 +413,18 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		c.queue_free()
 	for c in g.panel_col.get_children():
 		c.queue_free()
+	row_h = 0.0
+	if Cfg.phone_ui() and kind != "event":
+		# 手机横屏：卡片缩到 0.8 后上下有空，说明在最小字号 15 下仍放不下的（长说明藏品、招募卡），整排加高到放得下，最多到画面装得下为止
+		var base_h: float = card_h()
+		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / CARD_SCALE_PHONE
+		var need := base_h
+		for o in opts:
+			var fz := UI.fit(g.font, option_description(o), CARD_W - 40.0, base_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+			if not fz.fit:
+				var f15 := UI.fit(g.font, option_description(o), CARD_W - 40.0, 9999.0, [DESC_SIZES_PHONE[-1]])
+				need = maxf(need, ceilf(f15.lines.size() * float(f15.lh)) + DESC_PAD_PHONE)
+		row_h = clampf(need, base_h, maxf(base_h, max_h))
 	layout(kind)
 	motion.start(kind, opts)
 	var ev := kind == "event"
@@ -413,7 +452,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
-		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(CARD_W, card_h())
+		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(CARD_W, row_h if row_h > 0.0 else card_h())
 		if Cfg.touch_device():
 			card.set_meta("phone", true)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -445,7 +484,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			if Cfg.touch_device():
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
-				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
+				if row_h > 0.0:
+					f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, row_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+				else:
+					f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
 				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
 			card.set_meta("fit", f0)
