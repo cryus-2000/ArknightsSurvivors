@@ -253,7 +253,7 @@ func point_preview(ld, i: int) -> Vector2:
 
 ## 光标在对局右上角的倍速 / 暂停按钮上：左键是点按钮，不算攻击（game.gd 处理那次点击）
 func _over_hud_btn() -> bool:
-	var mp: Vector2 = g.get_viewport().get_mouse_position()
+	var mp: Vector2 = g.get_viewport().get_mouse_position() / Cfg.ui_k   # 两个按钮记的是界面坐标（界面大小 ≠ 100% 时要换算）
 	for k in ["speed_btn", "pause_btn"]:
 		var r = g.get(k)
 		if r is Rect2 and r.has_area() and r.has_point(mp):

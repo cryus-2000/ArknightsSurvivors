@@ -353,6 +353,7 @@ var red_flash := 0.0
 var crit_hit := false
 var fx_add: Node2D
 var settings: Control
+var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
 var result_btns: Array = []   # [Rect2, action]
 var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 # ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
@@ -720,6 +721,7 @@ func _ready() -> void:
 	var ul := CanvasLayer.new()
 	ul.layer = 10
 	add_child(ul)
+	ui_layer = ul
 	# 触屏：整个界面层（HUD / 面板 / 设置）再放大 Cfg.ui_k（手机 1.3），世界层不动；根控件尺寸见 _ui_fit
 	Cfg.ui_k = Cfg.ui_scale()
 	if Cfg.ui_k != 1.0:
@@ -732,10 +734,15 @@ func _ready() -> void:
 	A.mark("nodes")
 	panel_ui.build(ul)
 	settings = preload("res://scripts/settings_panel.gd").new()
+	settings.game_ref = self   # 触屏按键布局编辑页按本次探索的普攻方式摆攻击键
 	ul.add_child(settings)
 	if Cfg.ui_k != 1.0:
 		_ui_fit()
-		get_viewport().size_changed.connect(_ui_fit)
+	get_viewport().size_changed.connect(_ui_fit)
+	Cfg.view_changed.connect(_ui_fit)      # 设置里改「界面大小」实时生效
+	Cfg.view_changed.connect(_apply_zoom)  # 设置里改「战斗画面缩放」实时生效
+	get_viewport().size_changed.connect(_apply_zoom)
+	_apply_zoom()
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
@@ -854,8 +861,26 @@ var demo_label := ""
 ## 镜头看着的位置：平时跟主控；图鉴演示里固定在场地中心（map.gd 按它决定画哪些地块）
 ## 触屏界面层放大（Cfg.ui_k）：三个根控件撑满 UI 逻辑区（视口 / ui_k）
 func _ui_fit() -> void:
+	# 视口变了（竖屏进局再转横屏等）或设置里改了「界面大小」：放大倍数重算（Cfg.ui_scale），不然界面层一直按旧比例排
+	if ui_layer == null:
+		return
+	var k: float = Cfg.ui_scale()
+	if k == 1.0 and ui_layer.scale == Vector2.ONE:
+		Cfg.ui_k = 1.0
+		return   # 桌面缺省：根控件仍是 FULL_RECT 锚点，排版与原来逐像素一致
+	Cfg.ui_k = k
+	ui_layer.scale = Vector2(k, k)
 	for c in [hud, panel, settings]:
 		Cfg.ui_fill(c)
+
+
+## 战斗镜头缩放（设置「战斗画面缩放」，手机横屏缺省 1.2）：只改 Camera2D.zoom，刷怪 / 索敌 / 机器人都不读视口（pickups 用的是项目设置里的固定尺寸）。
+## 图鉴演示（demo_op）的镜头由演示自己管
+func _apply_zoom() -> void:
+	if cam == null or demo_op != "":
+		return
+	var z: float = Cfg.cam_zoom()
+	cam.zoom = Vector2(z, z)
 
 
 ## 世界坐标 → HUD 坐标（界面层放大后 = 画布变换再除以 ui_k；桌面就是画布变换本身）

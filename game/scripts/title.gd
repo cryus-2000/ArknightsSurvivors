@@ -99,7 +99,9 @@ func _ready() -> void:
 	if Cfg.ui_k != 1.0:
 		scale = Vector2(Cfg.ui_k, Cfg.ui_k)
 		Cfg.ui_fill(self)
-		get_viewport().size_changed.connect(func(): Cfg.ui_fill(self))
+	# 视口变了（竖屏进页面再转横屏、浏览器栏收起）或设置里改了「界面大小」：放大倍数重算，不然一直用旧倍数
+	get_viewport().size_changed.connect(_ui_refit)
+	Cfg.view_changed.connect(_ui_refit)
 	font = load("res://fonts/ui.ttf")
 	# 菜单项门槛（同旧版）：对外包没有 Boss 演练（Cfg.can_boss_trial；调试版可用 --audience=public 模拟），网页没有退出（--simweb 模拟）
 	menu_boss = Cfg.can_boss_trial()
@@ -360,6 +362,16 @@ func _ready() -> void:
 
 
 ## 法线图预热（art.gd）：标题页一打开就在后台线程把本局要用的法线图算好 / 读缓存；出发时再调一次（设置里刚打开法线光照的情况）
+func _ui_refit() -> void:
+	var k: float = Cfg.ui_scale()
+	if k == 1.0 and scale == Vector2.ONE:
+		Cfg.ui_k = 1.0
+		return   # 桌面缺省：FULL_RECT 锚点照旧
+	Cfg.ui_k = k
+	scale = Vector2(k, k)
+	Cfg.ui_fill(self)
+
+
 func _prewarm() -> void:
 	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
 	A.prewarm_start(Game.preload_tex_names())
@@ -497,7 +509,7 @@ func _draw_diff(vs: Vector2) -> void:
 		diff_lv_dur = 0.6
 		diff_mod_t = t
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.024, 0.063, 0.5))
-	var ph: bool = vs.y < 520.0   # 只看界面高度：手机接手柄时（Pad.using）也得用紧凑版式，否则按钮出界
+	var ph: bool = vs.y < 520.0 or Cfg.phone_ui()   # 界面高度小或手机横屏：手机接手柄时（Pad.using）也得用紧凑版式，否则按钮出界
 	var touch := Pad.touch_ui()
 	var c := TUI.ctx(self)
 	var L := _diff_layout(vs, ph)
@@ -932,7 +944,7 @@ func _draw() -> void:
 		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
 		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
 	# 顶部小标（方案 A）：本作徽记 + 英文
-	var hf0 := _seg(2.9, 0.4) * (0.0 if Pad.touch_ui() and size.y < 520.0 else 1.0)   # 手机：Logo 上移后会压住这行小标，不画
+	var hf0 := _seg(2.9, 0.4) * (0.0 if Pad.touch_ui() and (size.y < 520.0 or Cfg.phone_ui()) else 1.0)   # 手机：Logo 上移后会压住这行小标，不画
 	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
 	if Cfg.unlock_all:
@@ -945,7 +957,7 @@ func _draw() -> void:
 	var lg := _seg(2.6, 0.6)
 	var ly := 6.0 * (1.0 - lg)
 	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：Logo 缩到 420×104，副标题 / 分隔线上移 28，菜单行距 40
-	var ph: bool = Pad.touch_ui() and size.y < 520.0
+	var ph: bool = Pad.touch_ui() and (size.y < 520.0 or Cfg.phone_ui())
 	if ph:
 		ly -= 50.0
 	if tex_logo != null:

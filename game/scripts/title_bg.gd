@@ -17,6 +17,8 @@ const WAVE_PERIOD := 7.5
 const FEET := Vector2(432, 311)          # 博士脚底
 const GUEST_FEET := Vector2(482, 305)    # 地图固定人物（水月）：博士右侧稍后
 const DOCTOR_TINT := Color(1.18, 1.22, 1.3)  # 博士衣服偏深，稍微提亮
+## 人物脚底离画面底边至少留这么多（UI 逻辑像素，乘 Cfg.ui_k 换成视口像素）：手机页脚（title.gd，vs.y − 12 基线、12 号字）在它下面
+const FOOT_ROOM := 34.0
 
 var t := 0.0
 var rng := RandomNumberGenerator.new()
@@ -180,7 +182,13 @@ func _draw() -> void:
 	# 非 16:9 的窗口：按覆盖方式放大并居中裁切，不留边
 	var vs := get_viewport_rect().size
 	ks = K * maxf(vs.x / (W * K), vs.y / (H * K)) * zoom
-	off = ((vs - Vector2(W, H) * ks) / 2.0).round() + Vector2(0, round(pan) * ks)
+	off = ((vs - Vector2(W, H) * ks) / 2.0).round()
+	# 超宽屏（手机横屏 2.17:1，itch App 里再扣掉标题栏 / 底栏后可到 2.6:1 以上）：按宽度覆盖后上下多出的部分不再平均裁，
+	# 改为多裁天空、少裁沙滩，让人物脚底停在页脚（同人声明行）上方 FOOT_ROOM 处——原来平均裁时脚出了画面底边、页脚压在人物身上
+	if off.y < 0.0:
+		var foot_lim: float = vs.y - FOOT_ROOM * Cfg.ui_k
+		off.y = clampf(minf(off.y, round(foot_lim - FEET.y * ks)), round(vs.y - H * ks), 0.0)
+	off += Vector2(0, round(pan) * ks)
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03))
 	draw_set_transform(off, 0.0, Vector2(ks, ks))
 	draw_texture(tex_sky, Vector2.ZERO)

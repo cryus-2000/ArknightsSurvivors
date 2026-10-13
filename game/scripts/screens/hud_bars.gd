@@ -109,6 +109,8 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_txt = "灯火摇曳 · 光中敌人受伤 +25%"
 		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
+	if h.panel_over_top():
+		return   # 触屏选卡：这一行会被卡片压住截断，不画
 	h.batch_begin()
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
 	h.batch_end()
@@ -124,6 +126,8 @@ func draw_top_center(vs: Vector2) -> void:
 	var ss := int(display_time) % 60
 	var cx0 := vs.x / 2.0
 	h.batch_begin()   # 顶部中央 + 右上暂停键：色块一批、字最后（性能 9/30）
+	if h.panel_over_top():
+		return   # 触屏选卡时面板标题占这里；合批段照常由 draw_right_top 收
 	UI.fade_band(g.hud, Rect2(cx0 - 160, 8, 320, 40), Color(0.03, 0.035, 0.045, 0.8), 56.0)
 	var ks := str(g.kills)
 	var kw := UI.cwidth(g.font, ks, 23)
@@ -170,6 +174,8 @@ const BOSS_BARS_MAX := 2
 func draw_boss_bars(vs: Vector2) -> void:
 	# Boss 血条：只给真 Boss 画（boss_bars），最多 BOSS_BARS_MAX 条，多出来的写一行「另有 N 个 Boss」
 	var bby := 0.0
+	if h.panel_over_top():
+		return   # 触屏选卡：面板标题占顶部中央（boss_bottom 保持上一帧的值，关面板后横幅位置不跳）
 	var bars: Array = boss_bars()
 	for bi in mini(bars.size(), BOSS_BARS_MAX):
 		var shown: Dictionary = bars[bi]
@@ -385,7 +391,7 @@ func draw_minimap(vs: Vector2) -> void:
 		tb.line(c, c + Vector2.from_angle(a) * lim, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.06 * (6 - q) / 6.0), 3.0)
 	tb.arc(c, lim * 0.5, 0.0, TAU, 1.0, Color(UI.GLOW.r, UI.GLOW.g, UI.GLOW.b, 0.12), 40)
 	# 视野框
-	var view := g.get_viewport_rect().size
+	var view: Vector2 = g.get_viewport_rect().size / g.cam.zoom   # 战斗画面缩放：视野框按实际看得到的世界范围
 	tb.frame(Rect2(c - view * 0.5 * k, view * k), Color(1, 1, 1, 0.2), 1.0)
 	# 普通敌人的 2×2 红点收集起来一次 draw_multiline 画完（性能，协调人 9/30：后期 300 个敌人逐个 draw_rect）
 	var dots := PackedVector2Array()

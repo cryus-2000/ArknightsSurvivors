@@ -110,6 +110,7 @@ func _draw_body() -> void:
 	banners.draw_merchant_pointer(vs, ct)
 	banners.draw_altar_pointers(vs, ct)
 	banners.draw_boss_pointers(vs, ct)
+	banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
 	banners.draw_field_wave(vs)
 	banners.draw_beacon_pointers(vs, ct)
 	banners.draw_hunt_ring(vs, ct)
@@ -411,5 +412,11 @@ const DEATH_LAMP_T := 1.2
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来
+## 触屏选卡 / 商店 / 事件：面板标题压在顶栏位置（逻辑高只有约 481），顶部中央计时器、灯火状态行、Boss 血条不画，
+## 免得从标题背后透出来（10-13 用户反馈「获得藏品」标题与计时器重叠）
+func panel_over_top() -> bool:
+	return g.touch.active and (g.state == Game.S.CHOICE or g.state == Game.S.SHOP)
+
+
 func overlay_left() -> bool:
 	return g.state == Game.S.SHOP or (g.state == Game.S.CHOICE and g.choice_kind == "event")
