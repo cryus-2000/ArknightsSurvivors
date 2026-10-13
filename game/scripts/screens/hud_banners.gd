@@ -434,7 +434,7 @@ func _spaced_text(vs: Vector2, y: float, s: String, size: int, col: Color, k: fl
 	var ws: Array = []
 	var w0 := 0.0
 	for ch in s:
-		var cw: float = g.font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		var cw: float = g.font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(size)).x
 		ws.append(cw)
 		w0 += cw
 	var n := s.length()
@@ -452,7 +452,7 @@ func draw_notices(vs: Vector2) -> void:
 	var y: float = banner_y(vs) + 44.0   # 横幅暗带下方，不和它叠
 	for n in g.vfx.notices:
 		var a: float = clampf(n.t / 0.6, 0.0, 1.0) * clampf((g.vfx.NOTICE_LIFE - n.t) / 0.2, 0.0, 1.0)
-		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 22.0, vs.x * 0.4)
+		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x + 22.0, vs.x * 0.4)
 		g.hud.draw_rect(Rect2(16, y - 15, tw, 22), Color(0.03, 0.035, 0.045, 0.7 * a))
 		g.hud.draw_rect(Rect2(16, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
 		UI.text_fit(g.hud, g.font, Vector2(26, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)

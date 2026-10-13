@@ -107,7 +107,7 @@ func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", not
 			UI.icon(b, icon, Vector2(x + 9, b.size.y / 2.0), 18.0, fg)
 			x += 26.0
 		UI.text(b, g.font, Vector2(x, b.size.y / 2.0 + 5), text, 14, fg)
-		x += g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 10.0
+		x += g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 10.0
 		if price >= 0:
 			b.draw_texture_rect(g.tex.ingot, Rect2(Vector2(x, b.size.y / 2.0 - 7), Vector2(18, 14)), false, Color(1, 1, 1, 1.0 if enabled else 0.5))
 			UI.ctext(b, g.font, Vector2(x + 22, b.size.y / 2.0 + 7), str(price), 18, fg)
@@ -455,7 +455,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		for s in [19, 18, 17, 16, 15, 14]:
 			var tot := -10.0
 			for o in opts:
-				var fe0 := UI.fit(g.font, option_description(o), ev_dw, 4.0 * g.font.get_height(s), [s])
+				var fe0 := UI.fit(g.font, option_description(o), ev_dw, 4.0 * g.font.get_height(UI.fs(s)), [s])
 				tot += ev_h0 + maxf(0.0, fe0.lines.size() - 1) * float(fe0.lh) + 10.0
 			ev_sizes = [s]
 			if tot <= avail:
@@ -486,7 +486,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(13 if not ph else int(ev_sizes[0])), ev_sizes)
+			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(UI.fs(13 if not ph else int(ev_sizes[0]))), ev_sizes)
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = ev_h0 + maxf(0.0, fe.lines.size() - ev_base_lines) * float(fe.lh)
 			ev_bars_h += card.custom_minimum_size.y + (10.0 if ph else 14.0)
@@ -652,7 +652,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
 	var sfs := 17 if ph else 14
-	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
+	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
 	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
 	UI.text(card, g.font, Vector2(sx, ab.position.y + (21 if ph else 20)), "选择", sfs, ink)

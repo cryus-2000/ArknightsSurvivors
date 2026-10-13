@@ -142,8 +142,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		g.panel_ui.draw_icon_fit(card, g.tex.pickup_heal, c, 56.0, mod)
 	else:
 		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
-	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x <= r.size.x - 14.0 else 12
-	if Cfg.touch_device() and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x <= r.size.x - 14.0:
+	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x <= r.size.x - 14.0 else 12
+	if Cfg.touch_device() and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(18)).x <= r.size.x - 14.0:
 		fs = 18   # 手机：名字 18
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
@@ -196,7 +196,7 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	var right: float = cx + g.panel_box.offset_right
 	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
 	var rl: String = "%s · 商人还会停留 %d 秒" % [g.progression.relic_count_text(), int(g.merchant.get("life", 0.0))]
-	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
+	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
 	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), rl, 14, UI.SUB)
 	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))

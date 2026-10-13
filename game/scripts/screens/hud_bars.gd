@@ -146,7 +146,7 @@ func draw_top_center(vs: Vector2) -> void:
 	UI.quatrefoil(g.hud, Vector2(cx0, 64), 34.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.28), 1.6)
 	var fname: String = "Boss 演练" if g.trial.active else tr.name
 	var fen: String = "TRIAL" if g.trial.active else String(tr.get("en", ""))
-	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var fw0 := g.font.get_string_size(fname, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x
 	var few := UI.en_width(g.font, fen, 10, 3.0)
 	var fx0 := cx0 - (14.0 + fw0 + 10.0 + few) / 2.0
 	UI.diamond(g.hud, Vector2(fx0 + 4, 61), 3.5, UI.GOLD)
@@ -263,7 +263,7 @@ func draw_boss_bars(vs: Vector2) -> void:
 		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if bars.size() > BOSS_BARS_MAX:
 		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
-		var ow: float = g.font.get_string_size(ot, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 24.0
+		var ow: float = g.font.get_string_size(ot, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 24.0
 		g.hud.draw_rect(Rect2(vs.x / 2.0 - ow / 2.0, 100 + bby - 2, ow, 20), Color(0.03, 0.035, 0.045, 0.8))
 		UI.text(g.hud, g.font, Vector2(0, 100 + bby + 13), ot, 12, Color(1, 0.82, 0.88), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		bby += 22.0
@@ -360,7 +360,7 @@ func draw_status_bar(vs: Vector2) -> void:
 	if not boss_bars().is_empty():
 		wrap_x = minf(360.0, g.hud.size.x / 2.0 - 310.0 - 12.0 - 8.0)
 	for it in items:
-		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16.0   # 与 UI.chip 的宽度算法一致
+		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 16.0   # 与 UI.chip 的宽度算法一致
 		if x + cw > wrap_x and x > 18.0:
 			x = 18.0
 			y += 26.0

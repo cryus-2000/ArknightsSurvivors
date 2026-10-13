@@ -286,13 +286,14 @@ func _ci() -> CanvasItem:
 
 ## 中文：pos.y 是字的竖直中线；align 0 左 / 1 中 / 2 右。返回宽度
 func _t(pos: Vector2, s: String, size: int, col: Color, align := 0, max_w := -1.0) -> float:
+	size = UI.fs(size)   # 手机局内正文放大（UI.fk）；下面量字与画字都用放大后的字号
 	var w: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	if max_w > 0.0 and w > max_w:
 		while size > 10 and g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > max_w:
 			size -= 1
 		w = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var x := pos.x - (w * 0.5 if align == 1 else (w if align == 2 else 0.0))
-	UI.text(_ci(), g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), s, size, col)
+	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return w
 
 
@@ -836,7 +837,8 @@ func _relic_popup(x_max: float, _grid_bottom: float) -> void:
 	var w := 340.0 if not _ph else 380.0
 	var lines: PackedStringArray = UI.wrap_lines(g.font, str(it.desc), 12, w - 28.0)
 	var nl := mini(lines.size(), 3)
-	var h := 40.0 + nl * 17.0
+	var plh: float = UI.fs(12) + 5.0   # 说明行距（手机放大字号时跟着加）
+	var h := 40.0 + nl * plh
 	var x := clampf(_pop_anchor.position.x, 16.0, x_max - w)
 	var y := _pop_anchor.end.y + 8.0
 	var pr := _panel(Rect2(x, y, w, h), 2, 0.98)
@@ -852,7 +854,7 @@ func _relic_popup(x_max: float, _grid_bottom: float) -> void:
 		var ln := lines[li]
 		if li == 2 and lines.size() > 3:
 			ln = ln.substr(0, maxi(0, ln.length() - 1)) + "…"
-		_t(Vector2(pr.position.x + 14, pr.position.y + 40 + li * 17), ln, 12, TUI.TXT2)
+		_t(Vector2(pr.position.x + 14, pr.position.y + 40 + li * plh), ln, 12, TUI.TXT2)
 
 
 ## 数据：标签左、数值右、细分隔线。行高撑满给定高度（20–30）；单列放不下改两列，还放不下才滚动。cols 0 = 自动
@@ -896,7 +898,7 @@ func _stats(r: Rect2, t: float, cols_in: int) -> void:
 				txt = fmt_n(v)
 		var vw := _t(Vector2(cx + cw, ry), txt, 14, TUI.TXT, 2)
 		if s.has("sub") and str(s.sub) != "":
-			var lw0: float = g.font.get_string_size(str(s.label), HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+			var lw0: float = g.font.get_string_size(str(s.label), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
 			_t(Vector2(cx + cw - vw - 10, ry), str(s.sub), 11, TUI.CY_DIM, 2, cw - vw - lw0 - 24.0)
 	if st.size() > vis:
 		_p(Vector2(x0 + r.size.x, y), "%d-%d / %d" % [stat_scroll + 1, mini(stat_scroll + vis, st.size()), st.size()], 1.0, TUI.CY_DIM, 2)

@@ -101,21 +101,22 @@ func draw_opening_hud(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
 
 
-## 触屏版指南（触屏验收 10-01）：键鼠说法逐句替换；最后一页「操作」整页换成触屏操作
+## 触屏版指南（触屏验收 10-01）：键鼠说法逐句替换；最后一页「操作」整页换成触屏操作（lines / more 同 Game.INTRO_PAGES）
 const TOUCH_SUBS := [
-	["你只管走位（WASD）与冲刺（空格，冲刺中无敌）", "你只管走位（按住左半屏拖动）与冲刺（右下「冲刺」键，冲刺中无敌）"],
+	["你负责走位（WASD）与冲刺（空格，冲刺中无敌）", "你负责走位（按住左半屏拖动）与冲刺（右下「冲刺」键，冲刺中无敌）"],
 	["乌尔比安的三技能要按 Q / E，并自己选落点", "乌尔比安的三技能要点技能键，按住拖动选落点"],
-	["按 Tab 随时查看", "点右侧「属性」键随时查看"],
+	["按 Tab 查看", "点右侧「属性」键查看"],
 	["Tab 面板", "属性面板"],
 	["刷新一次货架（按 F）", "刷新一次货架"],
 ]
-const TOUCH_CONTROLS := [
-	"按住屏幕左半边任意处拖动：移动（手指落下处就是摇杆中心）　　右下「冲刺」键：冲刺",
+const TOUCH_CONTROLS := {"lines": [
+	"按住屏幕左半边拖动：移动　　右下「冲刺」键：冲刺",
 	"队长有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向",
+	"右侧「暂停」「属性」键：暂停菜单与属性面板。升级 / 宝箱 / 商人 / 祭坛：点击卡片选择"], "more": [
 	"普通攻击设为手动时（设置 · 游戏）：冲刺键左侧出现攻击键，按住攻击，拖动选方向",
-	"右侧「暂停」「属性」键：暂停菜单与属性面板（属性面板点任意处关闭）",
-	"升级 / 宝箱 / 商人 / 祭坛：点击卡片选择。暂停菜单里的「指南」可随时重看本指南。祝你好运，博士。",
-]
+	"手指落下处就是摇杆中心；属性面板点任意处关闭"]}
+## 精简版（首次自动打开）最后一页末尾的提示
+const MORE_HINT := "暂停菜单里的「指南」有完整说明。祝你好运，博士。"
 
 
 static func touch_line(ln: String) -> String:
@@ -124,6 +125,21 @@ static func touch_line(ln: String) -> String:
 	for p in TOUCH_SUBS:
 		ln = ln.replace(p[0], p[1])
 	return ln
+
+
+## 完整版指南：从暂停菜单打开（G / 「指南」）时显示每页的 lines + more；首次进局自动打开的是精简版（只有 lines）
+func full_guide() -> bool:
+	return g.intro_back == Game.S.PAUSE
+
+
+## 一页要显示的段落：精简版只有 lines，最后一页末尾加 MORE_HINT；完整版接上 more
+static func page_lines(pg: Dictionary, full: bool, last: bool) -> Array:
+	var out: Array = pg.get("lines", []).duplicate()
+	if full:
+		out.append_array(pg.get("more", []))
+	elif last:
+		out.append(MORE_HINT)
+	return out
 
 
 func open(back: int) -> void:
@@ -170,29 +186,31 @@ func draw(vs: Vector2) -> void:
 	var top := r.position.y + 142
 	var avail := r.end.y - 62.0 - top
 	var touch: bool = Cfg.touch_device()
-	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变
+	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变（手机局内再乘 UI.fk，量字画字都用 UI.fs）
 	var fsz_min := 13 if touch else 12
 	var paras: Array = []
+	var src: Dictionary = TOUCH_CONTROLS if Pad.touch_ui() and g.intro_page == Game.INTRO_PAGES.size() - 1 else pg
+	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == Game.INTRO_PAGES.size() - 1)
 	while true:
 		paras.clear()
 		var tot := 0.0
-		for ln in (TOUCH_CONTROLS if Pad.touch_ui() and g.intro_page == Game.INTRO_PAGES.size() - 1 else pg.lines):
+		for ln in src_lines:
 			ln = touch_line(fill_numbers(ln))
 			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
 			paras.append(ls)
-			tot += ls.size() * (g.font.get_height(fsz) + 1.0) + 14.0
+			tot += ls.size() * (g.font.get_height(UI.fs(fsz)) + 1.0) + 14.0
 		if tot - 14.0 <= avail or fsz <= fsz_min:
 			break
 		fsz -= 1
-	var lhh: float = g.font.get_height(fsz) + 1.0
-	var asc: float = g.font.get_ascent(fsz)
+	var lhh: float = g.font.get_height(UI.fs(fsz)) + 1.0
+	var asc: float = g.font.get_ascent(UI.fs(fsz))
 	var y := top
 	for ls in paras:
 		UI.diamond(g.hud, Vector2(r.position.x + 340, y + asc - 6), 4.0, UI.CYAN)
 		for ln2 in ls:
 			if y + lhh > r.end.y - 58.0:
 				break
-			g.hud.draw_string(g.font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.85, 0.93, 0.95, ea))
+			g.hud.draw_string(g.font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, ea))
 			y += lhh
 		y += 14.0
 	# 页码点（可点击）
@@ -394,10 +412,15 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				UI.text(g.hud, g.font, kr.position + Vector2(0, 27), kk[0], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
 
 
-## 指南正文里的数值占位（docs/83：入队加成的数字读 balance.json squad 段，不写死）
+## 指南正文里的数值占位（docs/83 入队加成读 balance.json squad 段；docs/88 灯火暗淡 / 受击灯火读 lamp 段、暗淡刷新读 enemy 段；不写死）。
+## 缺省值与读取处一致：combat.gd（lamp/dark_taken、hit_base、hit_scale）、enemies.gd（lamp/dark_enemy）、spawner.gd（enemy/spawn_dark_mult）
 static func fill_numbers(ln: String) -> String:
 	if not ln.contains("{"):
 		return ln
 	var Bal = preload("res://scripts/core/balance.gd")
 	var Sq = preload("res://scripts/characters/squad.gd")
-	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq._num(Bal.v("squad/regen_per_member", 0.0)))
+	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))
+	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq._num(Bal.v("squad/regen_per_member", 0.0))) \
+		.replace("{dark_taken}", pct.call(Bal.v("lamp/dark_taken", 1.15))).replace("{dark_enemy}", pct.call(Bal.v("lamp/dark_enemy", 1.2))) \
+		.replace("{dark_spawn}", pct.call(Bal.v("enemy/spawn_dark_mult", 1.15))) \
+		.replace("{lamp_hit_10}", Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1)).replace("{lamp_hit}", Sq._num(Bal.v("lamp/hit_base", 4.0)))

@@ -196,7 +196,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if allow_unlocks and g.diff_new and g.state == Game.S.WIN:
 		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
-		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 20.0
+		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x + 20.0
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
 		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
@@ -237,7 +237,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 	var c: Color = g.ch.col()
 	var x0 := b1.position.x + 62.0
 	var dw := b1.end.x - 14.0 - x0
-	var lh: float = g.font.get_height(dfs) + 1.0
+	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
 	var avail: float = b1.end.y - 6.0 - y
 	var rh := func(n: int) -> float: return maxf(42.0, 30.0 + n * lh)
 	var wrapped: Array = []
@@ -278,7 +278,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 		for j in give[k]:
 			var ln: String = lines[j]
 			if j == give[k] - 1 and give[k] < lines.size():
-				while ln.length() > 0 and g.font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x > dw:
+				while ln.length() > 0 and g.font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(dfs)).x > dw:
 					ln = ln.substr(0, ln.length() - 1)
 				ln += "…"
 			UI.text(g.hud, g.font, Vector2(x0, y + 33 + j * lh), ln, dfs, dcol)
