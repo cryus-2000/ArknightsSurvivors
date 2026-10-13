@@ -5,7 +5,7 @@ import argparse, fnmatch, json, os, re, shutil, struct, tempfile, zipfile
 from pathlib import Path
 import encrypted_release as enc
 import godot_runner
-from export_build import SKIP_WORDS
+from release_slim import is_review_art
 
 ROOT=Path(__file__).resolve().parents[1]
 PROBE=r'''extends SceneTree
@@ -197,7 +197,7 @@ def main():
     subdirs=['']+[d for d in ('portraits',) if (art_root/d).is_dir()]
     for sub in subdirs:
         for path in sorted((art_root/sub if sub else art_root).glob('*.png')):
-            if any(word in path.name.lower() for word in SKIP_WORDS): continue
+            if is_review_art(path.name): continue
             raw=path.read_bytes()[:24]
             if raw[:8]!=b'\x89PNG\r\n\x1a\n': raise ValueError('Invalid staged PNG: '+path.name)
             width,height=struct.unpack('>II',raw[16:24])

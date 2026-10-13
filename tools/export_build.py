@@ -27,6 +27,7 @@ import json, argparse, datetime, os, shutil, subprocess, sys, tarfile, io, zipfi
 from pathlib import Path
 import godot_runner
 import encrypted_release
+import release_slim
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
@@ -35,8 +36,7 @@ OUT = os.path.join(ROOT, "build", "release")
 NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
 INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录：%APPDATA%\ArknightsSurvivors_Internal
-# art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、预览图不带
-SKIP_WORDS = ("preview", "overview", "_frames.png", "reference", "_ref.")
+# art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、审阅用拼图不带（规则在 release_slim.REVIEW_ART_GLOBS，网页包共用）
 ART_SUBDIRS = ["portraits"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取）
 
 README = """方舟幸存者（明日方舟同人，非商业）
@@ -203,6 +203,9 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
             sys.exit("project.godot 的 custom_user_dir_name 不是预期值，无法给对内包隔离存档目录")
         open(pg, "wb").write(text.replace(key, 'config/custom_user_dir_name="%s"' % INTERNAL_USER_DIR).encode("utf-8"))
 
+    # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的 fonts/ui.ttf、serif.ttf，仓库原字体不动
+    release_slim.print_font_rows(release_slim.subset_fonts(os.path.join(src, "game")))
+
     # 2. 导入 + 导出
     pkg = os.path.join(WORK, NAME)
     game_dir = os.path.join(pkg, "game")
@@ -213,11 +216,15 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
         packed_art = Path(gpath) / "art" / "incoming"
         packed_art.mkdir(parents=True, exist_ok=True)
+        skipped = 0
         for pat in ["*.png"] + [d + "/*.png" for d in ART_SUBDIRS]:
             for png in sorted((Path(src) / "art" / "incoming").glob(pat)):
-                if not any(w in png.name.lower() for w in SKIP_WORDS):
+                if release_slim.is_review_art(png.name):
+                    skipped += png.stat().st_size
+                else:
                     (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art).mkdir(parents=True, exist_ok=True)
                     shutil.copy2(png, (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art) / png.name)
+        print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）" % (skipped / 1e6), flush=True)
         # Preserve editor/external-art workflow; public binaries only read their packed resources.
         art_loader = Path(gpath) / "scripts" / "art.gd"
         loader = art_loader.read_text(encoding="utf-8")
@@ -243,6 +250,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     if "No export template found" in out or not all(os.path.isfile(os.path.join(game_dir, "ArknightsSurvivors" + ext)) for ext in (".exe", ".pck")):
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
+    print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(game_dir, "ArknightsSurvivors.pck")) / 1e6), flush=True)
 
     # 3. 美术 + 启动器 + 说明
     art_src = os.path.join(src, "art", "incoming")
@@ -255,7 +263,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         if not os.path.isdir(sdir):
             continue
         for f in sorted(os.listdir(sdir)):
-            if f.lower().endswith(".png") and not any(w in f.lower() for w in SKIP_WORDS):
+            if f.lower().endswith(".png") and not release_slim.is_review_art(f):
                 if not a.encrypted:
                     os.makedirs(os.path.join(art_dst, sub) if sub else art_dst, exist_ok=True)
                     shutil.copy2(os.path.join(sdir, f), os.path.join(art_dst, sub) if sub else art_dst)
@@ -290,6 +298,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
             for f in files:
                 full = os.path.join(d, f)
                 z.write(full, os.path.join(NAME, os.path.relpath(full, pkg)))
+    print("[瘦身] zip：%.2f MB" % (os.path.getsize(zpath) / 1e6))
     print("完成：%s（%.1f MB）" % (zpath, os.path.getsize(zpath) / 1048576))
 
 
