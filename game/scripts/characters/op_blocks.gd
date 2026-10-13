@@ -15607,7 +15607,7 @@ static func _h4_pillars_tick(o, sa: Dictionary, dt: float) -> void:
 	if float(cr.t) < float(pc.get("arm", 0.08)) or g.perf_alt:   # 拔起 arm 秒后才挡；--perfab 同局轮换的 /b 桶不挡（量净成本用，正常游戏恒为 false）
 		return
 	if _h4_pperf == null:
-		_h4_pperf = [0, 0, 0, 0] if OS.get_cmdline_user_args().has("--pillarperf") else []
+		_h4_pperf = [0, 0, 0, 0] if OS.is_debug_build() and OS.get_cmdline_user_args().has("--pillarperf") else []
 	var perf: bool = not _h4_pperf.is_empty()
 	var t0: int = Time.get_ticks_usec() if perf else 0
 	var posts: Array = cr.posts
