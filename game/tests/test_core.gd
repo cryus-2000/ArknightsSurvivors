@@ -37,6 +37,7 @@ func _init() -> void:
 	test_blocks_summon_seal()
 	test_blocks_summon_ext()
 	test_blocks_elite1()
+	test_blocks_handwritten()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -896,3 +897,64 @@ func test_blocks_elite1() -> void:
 	ok(OB.el_buff_on(fake, "stance") and not OB.el_buff_on(fake, "other"), "buff:<key> 生效中")
 	fake.g.t = 30.5
 	ok(not OB.el_buff_on(fake, "stance"), "buff:<key> 过期")
+
+
+
+## 手写迁移段（docs/61 §17，10-14）：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安迁积木的新积木 / 参数——校验、反例、几个纯函数
+func test_blocks_handwritten() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var defs := {}
+	for id in ["logos", "eyjafjalla", "skadi", "ulpianus"]:
+		defs[id] = Ch.load_def(id)
+		ok(Ch.validate_operator(id, defs[id]), "手写迁移：%s 通过积木校验" % id)
+		ok(str(defs[id].get("script", "")) == "res://scripts/characters/data_operator.gd", "手写迁移：%s 用数据干员脚本" % id)
+	var bads := [
+		["skadi", "basis 写错", func(d): d.blocks.talent[0].do[0]["basis"] = "swing"],
+		["skadi", "basis 又写 power", func(d): d.blocks.talent[0].do[0]["power"] = true],
+		["skadi", "face 条件写错", func(d): d.blocks.attack["face"] = "lamp ~ 3"],
+		["skadi", "dir 写错", func(d): d.blocks.talent[0].do[0]["dir"] = "left"],
+		["skadi", "aim_mult 没配 aim_r", func(d): d.blocks.attack["aim_mult"] = 1.4],
+		["skadi", "连斩一段多了字段", func(d): d.blocks.attack.combo[0]["mult"] = 2],
+		["skadi", "连斩缺 delay", func(d): d.blocks.attack.combo[0].erase("delay")],
+		["skadi", "on_combo_end 放进技能 do", func(d): d.blocks.skills[0].do.append({"trig": "on_combo_end", "do": []})],
+		["skadi", "浪墙缺速度", func(d): d.blocks.skills[1].do[2].erase("speed")],
+		["skadi", "follow 缺 gap", func(d): d.blocks.follow.erase("gap")],
+		["skadi", "countdown 不是布尔", func(d): d.blocks.progression.surge["countdown"] = 1],
+		["eyjafjalla", "法术弹缺 aoe", func(d): d.blocks.attack.erase("aoe")],
+		["eyjafjalla", "抛射 pick 写错", func(d): d.blocks.attack.on_explode[0]["pick"] = "far"],
+		["eyjafjalla", "点燃放进技能 do", func(d): d.blocks.skills[1].do.append({"st": "burn", "dur": 3, "mult": 0.1, "src": "点燃"})],
+		["eyjafjalla", "易伤 kind 写错", func(d): d.blocks.skills[1].do[0].on_explode[1].on_hit[2]["kind"] = "fire"],
+		["eyjafjalla", "cast 写错", func(d): d.blocks.skills[0]["cast"] = "now"],
+		["eyjafjalla", "pulse 没配 dur.pulses", func(d): d.blocks.skills[1]["pulse"] = {"r": 100, "do": []}],
+		["eyjafjalla", "attack_patch 字段写错", func(d): d.blocks.skills[0].attack_patch["burn_x"] = true],
+		["eyjafjalla", "地面池 look 写错", func(d): d.blocks.skills[2].pulse.do[2]["look"] = "fire"],
+		["logos", "咒文弹没写 then", func(d): d.blocks.attack.erase("then")],
+		["logos", "锁定放进触发 do", func(d): d.blocks.talent[0].do.append({"verb": "lock", "dur": 5, "tick": 0.25, "mult": 0.5, "src": "提喻"})],
+		["logos", "处决缺 thr", func(d): d.blocks.attack.then[0].erase("thr")],
+		["logos", "咒域缺 deg", func(d): d.blocks.skills[2].do[0].erase("deg")],
+		["logos", "安魂放进技能 do", func(d): d.blocks.skills[0].do.append({"st": "requiem", "dur": 5})],
+		["ulpianus", "掷锚 mode 写错", func(d): d.blocks.skills[0].do[0]["mode"] = "pull"],
+		["ulpianus", "叠层缺 key", func(d): d.blocks.talent[0].do[0].erase("key")],
+		["ulpianus", "计时缺 dur", func(d): d.blocks.skills[2].do[0].then[0].erase("dur")],
+		["ulpianus", "光环 per 写错", func(d): d.blocks.talent[1].do[0]["per"] = "kills"],
+		["ulpianus", "掷锚放进触发 do", func(d): d.blocks.talent[0].do.append(d.blocks.skills[0].do[0].duplicate(true))],
+		["ulpianus", "center 写错", func(d): d.blocks.attack["center"] = "ahead"],
+	]
+	for bd in bads:
+		var d2: Dictionary = defs[bd[0]].duplicate(true)
+		bd[2].call(d2)
+		ok(not Ch.validate_operator(bd[0], d2), "手写迁移积木校验应拒绝（%s）：%s" % [bd[0], bd[1]])
+	# mult 数组 = 依次乘；条件 timer: / armed:
+	near(OB.hw_mul(2.0, [3.0, 0.5]), 3.0, "mult 数组依次乘")
+	near(OB.hw_mul(2.0, 1.5), 3.0, "mult 数字")
+	var c: Dictionary = OB.parse_cond("!timer:haste", {})
+	ok(str(c.get("k", "")) == "timer" and str(c.get("a", "")) == "haste" and bool(c.get("neg", false)), "条件 timer:<key> 解析（含取反）")
+	c = OB.parse_cond("elite >= 2 && armed:blood", {"x": 1})
+	ok(str(c.get("k", "")) == "all" and c.list.size() == 2 and str(c.list[1].k) == "armed", "条件 armed:<key> 可与 && 连用")
+	# 数组里的 $ 表达式在编译时求值（mult 数组）
+	var comp: Dictionary = OB.compile({"base": {"a": 2.0, "b": 0.5}, "blocks": {"talent": [{"trig": "every_n", "n": 1, "do": [{"shape": "bolt", "mult": ["$a", "$b"]}]}]}})
+	var mv = comp.talent[0].do[0].mult
+	ok(mv is Array and float(mv[0]) == 2.0 and float(mv[1]) == 0.5, "数组里的 $ 表达式编译成数字")
+	# 法术弹后续弹 / 地面池的同组上限：只用纯数据检查（运行时行为由 blocks_eq 同 seed 对照覆盖）
+	ok(OB.HW2_TAGS.has("shape.pool") and OB.HW3_TAGS.has("verb.lock") and OB.HW4_TAGS.has("verb.tether") and OB.HW_TAGS.has("trig.on_combo_end"), "手写迁移段的积木都登记了")

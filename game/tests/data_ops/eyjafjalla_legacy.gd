@@ -2,6 +2,10 @@
 ## S1 炽热：接下来 3 发火山弹范围 ×1.4 并点燃；S2 点燃：一发 ×2.5 熔岩弹 + 易伤；S3 火山：敌群最密处连续喷发 10 次并留下熔岩。
 ## 熔岩弹复用 game.gd 的 fire 子弹做命中（带 src / fx_col / hidden），弹体、喷发、熔岩池由本干员绘制。
 ## 特效（docs/25）：橙红白。熔岩球橙核白心 + 火星尾；喷发 = 地面红裂纹 → 熔岩柱 → 熔岩池冒泡；点燃 = 敌人身上的火舌。
+## ⚠ 测试参照（10-14 起）：艾雅法拉已迁成数据干员（data/characters/eyjafjalla.json 的 blocks，docs/61 §17），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd）。相对原脚本只改了：
+## ① 画面粒子（熔岩球火星尾 / 爆炸熔岩飞溅 / 喷发熔岩珠 / 抛射火团尾迹与落地飞溅 / 熔岩池冒泡 / 点燃火舌）的随机数从 g.rng 换成 g.vrng；玩法随机（喷发落点抖动、火星补位方向、熔岩天降打乱、星火燎原起始角）照旧用 g.rng。
+## 玩法逻辑其余逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const ORANGE := Color(1.0, 0.5, 0.2)
@@ -185,13 +189,13 @@ func _update_orbs(dt: float) -> void:
 		b.etrail = b.get("etrail", 0.0) - dt
 		if b.etrail <= 0.0:
 			b.etrail = 0.04
-			fx({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.12 + Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-30, 10)), "life": 0.3, "col": ORANGE, "sz": 3.0})
+			fx({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.12 + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-30, 10)), "life": 0.3, "col": ORANGE, "sz": 3.0})
 
 
 ## fire 子弹爆炸后由 game.gd 回调：熔岩飞溅；点燃 / 易伤
 func bullet_exploded(b: Dictionary) -> void:
 	for k in 6:
-		fx({"kind": "mote", "pos": b.pos, "vel": Vector2(g.rng.randf_range(-90, 90), g.rng.randf_range(-160, -60)), "life": 0.45, "col": LAVA, "sz": 2.5, "grav": 320.0})
+		fx({"kind": "mote", "pos": b.pos, "vel": Vector2(g.vrng.randf_range(-90, 90), g.vrng.randf_range(-160, -60)), "life": 0.45, "col": LAVA, "sz": 2.5, "grav": 320.0})
 	fx({"kind": "ring", "pos": b.pos, "r": b.aoe, "r0": b.aoe * 0.3, "life": 0.3, "col": Color(0.8, 0.2, 0.05), "floor": true, "w": 2.0})
 	# 命中火焰（Ninja Adventure Flam 调橙红），按爆炸半径缩放；点燃弹换成大团熔岩爆炸（ansimuz Explosion A）
 	if b.get("src", "") == "点燃弹" and spawn_fx_sprite("fx_eyja_ignite_boom", b.pos + Vector2(0, -10), b.aoe * 2.3 / 68.0):
@@ -245,7 +249,7 @@ func _erupt(c: Vector2) -> void:
 	fx({"kind": "glow", "pos": c, "r": r * 0.5, "life": 0.18, "col": Color(1.6, 0.9, 0.4), "alpha": 0.7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": ORANGE, "floor": true, "w": 3.0})
 	for k in 8:
-		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-8, 8), -30), "vel": Vector2(g.rng.randf_range(-120, 120), g.rng.randf_range(-260, -120)), "life": 0.6, "col": LAVA, "sz": 3.0, "grav": 420.0})
+		fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-8, 8), -30), "vel": Vector2(g.vrng.randf_range(-120, 120), g.vrng.randf_range(-260, -120)), "life": 0.6, "col": LAVA, "sz": 3.0, "grav": 420.0})
 	lava.append({"pos": c, "r": r * 0.8, "t": 3.0, "tick": 0.0, "bub": 0.0, "dmg": base("atk", 22.0) * base("lava_mult", 0.23) * _dmg_bonus() * skill_power()})
 	Sfx.op(id, "big", 0.0, 1.0, 0.1)
 
@@ -269,13 +273,13 @@ func _update_lobs(dt: float) -> void:
 		l.trail -= dt
 		if l.trail <= 0.0 and l.t < l.dur:
 			l.trail = 0.05
-			fx({"kind": "spark", "pos": _lob_pos(l), "vel": Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-20, 10)), "life": 0.25, "col": ORANGE, "sz": 2.0 * l.sz})
+			fx({"kind": "spark", "pos": _lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": ORANGE, "sz": 2.0 * l.sz})
 		if l.t >= l.dur:
 			area_hit(l.src, l.to, l.r, l.dmg)
 			fx({"kind": "ring", "pos": l.to, "r": l.r, "r0": l.r * 0.3, "life": 0.28, "col": LAVA, "floor": true, "w": 2.0})
 			fx({"kind": "glow", "pos": l.to, "r": l.r * 0.6, "life": 0.18, "col": Color(1.6, 0.8, 0.3), "alpha": 0.6})
 			for k in (6 if l.sz >= 1.0 else 3):
-				fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.rng.randf_range(-80, 80), g.rng.randf_range(-140, -50)), "life": 0.4, "col": LAVA, "sz": 2.0, "grav": 320.0})
+				fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.vrng.randf_range(-80, 80), g.vrng.randf_range(-140, -50)), "life": 0.4, "col": LAVA, "sz": 2.0, "grav": 320.0})
 			if l.sz >= 1.0:
 				spawn_fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
 	lobs = lobs.filter(func(l): return l.t < l.dur)
@@ -291,8 +295,8 @@ func _update_ground(dt: float) -> void:
 			area_hit("熔岩", l.pos, l.r, l.dmg)
 		if l.bub <= 0.0 and l.t > 0.4:
 			l.bub = 0.18
-			var a: float = g.rng.randf() * TAU
-			var rr: float = g.rng.randf() * l.r * 0.8
+			var a: float = g.vrng.randf() * TAU
+			var rr: float = g.vrng.randf() * l.r * 0.8
 			fx({"kind": "mote", "pos": l.pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -28), "life": 0.55, "col": ORANGE, "sz": 2.0})
 	lava = lava.filter(func(l): return l.t > 0.0)
 	for b in burns:
@@ -303,7 +307,7 @@ func _update_ground(dt: float) -> void:
 			continue
 		if b.ft <= 0.0:
 			b.ft = 0.14
-			fx({"kind": "flame", "pos": b.e.pos + Vector2(g.rng.randf_range(-b.e.r * 0.5, b.e.r * 0.5), -b.e.r * 0.4), "vel": Vector2(0, -20), "life": 0.3, "col": ORANGE, "sz": 9.0})
+			fx({"kind": "flame", "pos": b.e.pos + Vector2(g.vrng.randf_range(-b.e.r * 0.5, b.e.r * 0.5), -b.e.r * 0.4), "vel": Vector2(0, -20), "life": 0.3, "col": ORANGE, "sz": 9.0})
 		if int((b.t + dt) * 2.0) != int(b.t * 2.0):
 			log_hit("点燃")
 			deal_damage(b.e, b.dps * 0.5)

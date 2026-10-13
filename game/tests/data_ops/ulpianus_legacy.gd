@@ -11,6 +11,12 @@
 ## 可见成长（docs/25 §5.2）：N1 定点爆破：锚击 0.2 秒后第二道冲击环；N2 锁链回旋：每第 3 击锁链甩一整圈；
 ## N4 不容挣脱：必须接触一次钩回的敌人 2 → 5、钩取半径 50 → 90（弹射落地时仍拽来 3 名）；N5 通路洞开：必须开辟从起点到锚点裂开一道通路，掀飞沿途敌人；
 ## 精二「血脉沸腾」：身上一圈淡红轮廓发光（2026-09-26 用户定，替换原来的血脉红纹），击杀精英后下一次锚击变为大爆破（发光加亮、加快脉动提示）。
+## ⚠ 测试参照（10-14 起）：乌尔比安已迁成数据干员（data/characters/ulpianus.json 的 blocks，docs/61 §17），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=ulpianus=res://tests/data_ops/ulpianus_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：锁链回旋起始角、深海蓝水珠、锚咬地火花、通路裂隙的锯齿种子（乌尔比安原来没有玩法随机）；
+## ③ 定点爆破同一帧到期时按排队先后执行（原来倒序遍历）；血脉层数变化时「必须坚守」的 +40% 与层数一起移到属性表末尾（同数据版整组重建，浮点求和顺序一致）。
+## ② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑其余逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const STEEL := Color(0.55, 0.75, 0.95)
@@ -85,12 +91,14 @@ func update(dt: float) -> void:
 	_update_anchor(dt)
 	_update_launched(dt)
 	# 定点爆破：锚击后 0.2 秒的第二道冲击环
-	for i in range(delayed.size() - 1, -1, -1):
-		delayed[i].t -= dt
-		if delayed[i].t <= 0.0:
-			var dl: Dictionary = delayed[i]
-			delayed.remove_at(i)
-			_blast2(dl.c)
+	var due: Array = []
+	for dl in delayed:
+		dl.t -= dt
+		if dl.t <= 0.0:
+			due.append(dl)
+	delayed = delayed.filter(func(dl): return dl.t > 0.0)
+	for dl in due:
+		_blast2(dl.c)
 	if acting() or not anchor.is_empty():
 		return
 	var ready := charge_skills(dt)
@@ -151,7 +159,7 @@ func _whirl() -> void:
 	ground_dust(pos, 48.0, 12)
 	var r: float = base("whirl_r", 130.0) * stat(&"op_range")
 	area_hit("锁链回旋", pos, r, _slam_dmg() * base("whirl_mult", 0.6), 140.0)
-	fx({"kind": "whirl", "pos": pos, "r": r, "life": 0.32, "a0": g.rng.randf() * TAU, "dir": face})
+	fx({"kind": "whirl", "pos": pos, "r": r, "life": 0.32, "a0": g.vrng.randf() * TAU, "dir": face})
 	fx({"kind": "ring", "pos": pos, "r": r, "r0": r * 0.6, "life": 0.3, "col": CHAIN, "floor": true, "w": 2.0, "alpha": 0.6})
 
 
@@ -165,7 +173,7 @@ func _blood_blast(c: Vector2) -> void:
 	fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": 10.0, "life": 0.5, "col": STEEL, "floor": true, "w": 2.5})
 	fx({"kind": "glow", "pos": c + Vector2(0, -12), "r": 34.0, "life": 0.3, "col": BLOOD, "alpha": 0.7})
 	_splash(c, 10, 1.3)
-	fx_sparks(c + Vector2(0, -10), BLOOD, 12, 260.0, 0.45, 3.0, 200.0)
+	_vsparks(c + Vector2(0, -10), BLOOD, 12, 260.0, 0.45, 3.0, 200.0)
 	impact_pause(0.08)
 	Sfx.op(id, "big")
 
@@ -177,16 +185,16 @@ func _slam_fx(c: Vector2, r: float, k: float) -> void:
 	fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": STEEL, "floor": true, "n": 7})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(c, int(8 * k), 1.0 * k)
-	fx_sparks(c + Vector2(0, -8), CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
+	_vsparks(c + Vector2(0, -8), CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
 
 
 ## 深海蓝水珠：向上迸开、带重力落回；落点一团蓝色水花（ansimuz water splash）
 func _splash(c: Vector2, n: int, k: float) -> void:
 	spawn_fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
 	for i in n:
-		var a: float = -PI / 2.0 + g.rng.randf_range(-1.1, 1.1)
-		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.rng.randf_range(90, 190) * k,
-			"life": g.rng.randf_range(0.35, 0.5), "col": WATER, "sz": 2.0 if i % 2 == 0 else 1.5, "grav": 420.0})
+		var a: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
+		fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.vrng.randf_range(90, 190) * k,
+			"life": g.vrng.randf_range(0.35, 0.5), "col": WATER, "sz": 2.0 if i % 2 == 0 else 1.5, "grav": 420.0})
 
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
@@ -410,8 +418,8 @@ func _anchor_bite() -> void:
 	fx({"kind": "ring", "pos": to, "r": 48.0 if big else 36.0, "r0": 6.0, "life": 0.22, "col": STEEL, "floor": true, "w": 3.0})
 	_splash(to, 6, 0.8)
 	for i in 6:
-		var a: float = dir.angle() + g.rng.randf_range(-0.9, 0.9)
-		fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.rng.randf_range(160, 300), "life": 0.22, "col": CHAIN, "sz": 2.5})
+		var a: float = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
+		fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.vrng.randf_range(160, 300), "life": 0.22, "col": CHAIN, "sz": 2.5})
 	# S1：钩住落点附近的敌人收链拽回（钩住 Boss 拖不动 → 下面退回弹射）
 	if anchor.kind == 0 and _start_reel(to, dir):
 		# 通路洞开（N5）：锁链绷直的一瞬，从乌尔比安到锚点裂开通路（精二后「必须开辟」的弹射同样开路）
@@ -595,10 +603,10 @@ func _open_rift(a: Vector2, b: Vector2) -> void:
 		log_hit("通路洞开")
 		deal_damage(e, dmg)
 		_launch(e, base("rift_air", 0.8), 30.0)
-	fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.rng.randf() * 100.0})
+	fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
 	for k in 5:
 		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
-		fx_sparks(p + Vector2(0, -4), EDGE, 3, 160.0, 0.35, 2.5, 260.0)
+		_vsparks(p + Vector2(0, -4), EDGE, 3, 160.0, 0.35, 2.5, 260.0)
 
 
 ## 掀飞：眩晕 + 一条 sin 弧线的 air 高度（game.gd 按 e.air 抬高绘制；与艾丽妮浮空同法）
@@ -654,6 +662,9 @@ func on_kill(e: Dictionary) -> void:
 
 func _apply_stacks() -> void:
 	g.stats.remove_source("ulpianus_blood")
+	if kept:   # 测试参照：同数据版整组重建（「必须坚守」与血脉层数一起移到末尾）
+		g.stats.remove_source("ulpianus_kept")
+		g.stats.add(&"op_atk", "add", 0.4, "ulpianus_kept", "op:" + id)
 	var v: float = stacks * base("stack_atk", 0.04)
 	if v > 0.0:
 		g.stats.add(&"op_atk", "add", v, "ulpianus_blood", "op:" + id)
@@ -859,3 +870,11 @@ func status_items() -> Array:
 
 func stats_rows() -> Array:
 	return [["血脉层数", "%d / %d" % [stacks, _stack_cap()]]]
+
+
+## 同 character.gd fx_sparks，但散布用 g.vrng（纯画面）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

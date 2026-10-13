@@ -348,6 +348,25 @@ EQ_GROUPS = [
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["Mon3tr", "Mon3tr · 真伤", "Mon3tr · 熔毁"]),
+    # 10-14 精英化第 2 批（docs/91 §19 批 2）：四名手写干员迁积木（docs/61 §17），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
+    # 只把画面随机数换成 g.vrng、少数乘法顺序与同帧先后对齐数据版，见各文件开头）。全节点 + 技力常满一局、当队友自然流程一局
+    ("skadi", "--opscript=skadi=res://tests/data_ops/skadi_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=skadi,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满（潮汐常开）", ["--balance", "--seed=1", "--op=skadi", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["大剑", "潮涌斩", "重斩", "反手斩", "跃浪", "涌潮", "悲歌"]),
+    ("eyjafjalla", "--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=eyjafjalla,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["熔岩弹", "点燃弹", "火山", "熔岩", "点燃", "火星", "熔岩团", "熔岩天降"]),
+    ("logos", "--opscript=logos=res://tests/data_ops/logos_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=logos,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=logos", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["言", "提喻", "湮灭", "延展敏锐", "词法演化", "铭文", "墓志铭"]),
+    # 乌尔比安：天赋「其他深海猎人得一半」数据版按阵营（含浊心斯卡蒂），手写按 id（斯卡蒂、归溟幽灵鲨）——满编、不招募，避开这处有意的差别
+    ("ulpianus", "--opscript=ulpianus=res://tests/data_ops/ulpianus_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=ulpianus,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满（手动掷锚）", ["--balance", "--seed=1", "--op=ulpianus", "--squad=suzuran,saria", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["锚击", "掷锚", "必须开辟", "定点爆破", "锁链回旋", "不容挣脱", "通路洞开"]),
 ]
 
 
