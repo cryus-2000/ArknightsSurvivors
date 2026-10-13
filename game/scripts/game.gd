@@ -173,6 +173,7 @@ var dodge_phys := 0.0            # 物理闪避（额外）
 var dodge_arts := 0.0            # 法术闪避（额外）
 var followup_mult := 1.0         # 追击与召唤物伤害（docs/35）
 var heal_mult := 1.0             # 主控干员受到的回复效果
+var phys_taken_mult := 1.0       # 队长受到的物理伤害倍率（生存卡「硬化」，docs/83）
 var corrode_taken_mult := 1.0    # 受到的侵蚀
 var nerve_taken_mult := 1.0      # 神经损伤累积
 # ---- docs/57 新接的属性（原先只在 stat_defs 里有定义、没人读）
@@ -1196,10 +1197,10 @@ func _nav_key(k: int) -> bool:
 
 
 ## 主控冲刺（2026-09-26 用户要求）：空格 / Shift / K / 手柄 B·RB / 触屏「冲刺」按钮。沿移动方向（站着不动时沿朝向）
-## 0.18 秒冲出约 126 像素，全程无敌；冷却 1.2 秒。残影由干员的动态模糊（character.gd ghosts）自动产生
+## 0.18 秒冲出 dash/dist 像素（10-13 用户：默认距离缩短，126 → 107），全程无敌；冷却 dash/cd 秒。残影由干员的动态模糊（character.gd ghosts）自动产生。
+## 机动卡（docs/83）：冷却 × 属性 dash_cd、距离 × 属性 dash_dist（冲刺时间不变、速度变快，无敌时间不变）、可储存次数 = 属性 dash_charges。
+## dash_cd = 还欠的冷却秒数：每冲一次 + 一次冷却，随时间减少；dash_cd ≤ 冷却 × (次数 − 1) 时可以再冲。只有 1 次时等同旧的「冷却归零才能冲」
 const DASH_TIME := 0.18
-const DASH_SPEED := 700.0
-const DASH_CD := 1.2
 var dash_t := 0.0
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
@@ -1207,13 +1208,46 @@ var last_mv := Vector2.ZERO
 var move_in := Vector2.ZERO   # 这一帧的移动输入（僵直时也记）：冲刺方向用
 
 
+## 一次冲刺的冷却（秒）
+func dash_cd_full() -> float:
+	return Bal.v("dash/cd", 1.2) * (stats.value(&"dash_cd") if stats != null and stats.has_stat(&"dash_cd") else 1.0)
+
+
+## 一次冲刺的距离（像素）
+func dash_dist() -> float:
+	return Bal.v("dash/dist", 107.0) * (stats.value(&"dash_dist") if stats != null and stats.has_stat(&"dash_dist") else 1.0)
+
+
+## 可储存的冲刺次数
+func dash_max() -> int:
+	return maxi(1, int(round(stats.value(&"dash_charges")))) if stats != null and stats.has_stat(&"dash_charges") else 1
+
+
+## 现在能不能冲（不看是否正在冲刺）
+func dash_ready() -> bool:
+	return dash_cd <= dash_cd_full() * float(dash_max() - 1) + 0.0001 if dash_max() > 1 else dash_cd <= 0.0
+
+
+## 现在可用的冲刺次数
+func dash_left() -> int:
+	return clampi(dash_max() - int(ceil(dash_cd / maxf(0.01, dash_cd_full()) - 0.0001)), 0, dash_max())
+
+
+## 下一次冲刺的冷却进度 0–1（界面画冷却环 / 冷却条；可冲时为 1）
+func dash_frac() -> float:
+	if dash_ready():
+		return 1.0
+	var full: float = maxf(0.01, dash_cd_full())
+	return clampf(1.0 - (dash_cd - full * float(dash_max() - 1)) / full, 0.0, 1.0)
+
+
 ## 冲刺任何时候都能按（docs/38 §1.11「永不硬控」）：只看冷却、是否正在冲刺、是否在局内；僵直时也能冲，方向取按住的方向
 func _try_dash() -> void:
-	if dash_cd > 0.0 or dash_t > 0.0 or state != S.PLAY:
+	if not dash_ready() or dash_t > 0.0 or state != S.PLAY:
 		return
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
-	dash_cd = DASH_CD
+	dash_cd += dash_cd_full()
 	dash_used = true
 	telemetry.dashes += 1   # 作战记录（docs/77）
 	combat.on_dash_break()   # 控制遥测：正在冻结就记一次冲刺挣脱
@@ -1269,8 +1303,9 @@ func _update(dt: float) -> void:
 	dash_cd = maxf(0.0, dash_cd - dt)
 	if dash_t > 0.0:
 		dash_t -= dt
-		ppos += dash_dir * DASH_SPEED * dt
-		pvel = dash_dir * DASH_SPEED
+		var dsp: float = dash_dist() / DASH_TIME
+		ppos += dash_dir * dsp * dt
+		pvel = dash_dir * dsp
 		invuln = maxf(invuln, 0.05)
 		if dash_t <= 0.0:
 			vfx.ground_dust(ppos, 20.0, 7)
@@ -1281,7 +1316,7 @@ func _update(dt: float) -> void:
 	hunt.clamp_player()   # 围猎：从圈内往外走、那个方位的海嗣还活着就夹回圈内
 	swing_face -= dt
 
-	var rg: float = (regen + regen_pct * max_hp) * heal_mult * combat.regen_time_mult() * dt
+	var rg: float = combat.regen_per_sec() * dt
 	if rg > 0.0 and hp > 0.0:
 		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量
 		heal_log["自身回复"] = float(heal_log.get("自身回复", 0.0)) + clampf(max_hp - hp, 0.0, rg)
@@ -1398,7 +1433,7 @@ const STAT_SYNC := {
 	&"sp_gain": "sp_mult", &"control_dur": "control_mult", &"light_decay": "lamp_decay", &"oil_gain": "oil_mult", &"xp_gain": "xp_mult",
 	&"shop_price": "shop_price_mult", &"ally_dmg": "ally_mult", &"shield_interval": "shield_every",
 	&"enemy_hp": "enemy_hp_mult", &"enemy_dmg": "enemy_dmg_mult",
-	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
+	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"phys_taken": "phys_taken_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
 	# docs/57 P1–P5 / P7
 	&"boss_dmg": "boss_mult", &"light_loss": "lamp_loss_mult", &"enemy_speed": "enemy_speed_mult", &"enemy_kb": "enemy_kb_mult",
 	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult",
@@ -1612,7 +1647,7 @@ const INTRO_PAGES := [
 		"你是博士。行动目标：带领小队撑过 10 分钟，击倒 10:00 出现的最终 Boss；3:30 与 7:00 各有一名中期 Boss。首次通关后，深海中会出现海嗣祭坛，祭坛上的选择决定结局。",
 		"主控走在最前面，也是唯一会受伤的人。技能大多会自动释放，你只管走位（WASD）与冲刺（空格，冲刺中无敌）；想自己出手，可在设置里把普通攻击改为手动。照亮范围内的敌人受到的伤害更高。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
-		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。主控自身的生命回复随探索时间提高，8:00 起为开局的 2.2 倍。医疗干员、回复药剂与部分藏品可以回血；主控生命低于 70% 时，小怪掉落回复药剂的概率翻倍。",
+		"生命（绿条）归零即探索失败；血量低于 30% 时会有心跳与红色警告。编队每多一名干员，队长最大生命 +{hp_per_member}%、生命回复 +{regen_per_member} / 秒（招募卡上写明）。医疗干员、回复药剂与部分藏品可以回血；主控生命低于 70% 时，小怪掉落回复药剂的概率翻倍。",
 		"灯火（金条）不会自行燃尽，只在受击时损失：每次 3 点，一次伤害每占最大生命 10% 再多损失约 2 点；在黑潮里也会持续流失。拾取敌人掉落的灯油，或向商人购买灯油补充。照亮范围内的敌人受到的伤害 +25%；照亮范围随灯火从 110 扩大到 360。",
 		"灯火分四档。≥70 通明：技力回复 +30%、拾取范围 +20%；30–69 摇曳：无加成，无惩罚。",
 		"<30 暗淡：受到的伤害 +15%，海嗣移速与接触伤害 +20%、刷新 +15%，拾取范围 -30%，灯光转红；0 寂灭：每秒失去 3 点生命。祭坛的部分选项也会消耗灯火。"]},
@@ -1626,7 +1661,7 @@ const INTRO_PAGES := [
 		"溟痕出现后，地图上会不时立起熄灭的「引航灯标」：站进光圈约 2.5 秒点燃它，驱散周围的溟痕、清空神经损伤、灯火 +5，这片地方 30 秒内不再长出溟痕。",
 		"2:30 起安全区分 4 轮收缩（小地图紫圈），圈外「黑潮」快速掉血、流失灯火；刚出圈的 2 秒不掉血，Boss 在场时暂停缩圈。看到「黑潮将至」就提前往白色虚线圈里走。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、博士被动、全队被动，升级途中会出现招募卡；医疗无人机也是常规选项：选到即加入，之后可继续升级（最高 Lv.5）。第一次拿到新技能或进阶时会有演示。",
+		"击败敌人掉落经验，升级时三选一：干员深度卡（数值 / 精英化）、生存、机动（移动与冲刺）、协同（全队），升级途中会出现招募卡；医疗无人机也是常规选项：选到即加入，之后可继续升级（最高 Lv.5）。第一次拿到新技能或进阶时会有演示。",
 		"每名干员招募即有一技能，精英一解锁二技能与天赋，精英二解锁三技能。技能大多自动释放（乌尔比安的三技能要按 Q / E，并自己选落点），先练谁、练到几精是这次探索的核心取舍。",
 		"编队最多 3 名常规干员（开局 1 名 + 探索中招募 2 名）。没有医疗干员时，可以在升级时选医疗无人机补回复。按 Tab 随时查看主控属性、编队与藏品效果。技能说明里的半径、射程与「照亮范围」用同一单位（灯火 100 时照亮范围为 360）。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [

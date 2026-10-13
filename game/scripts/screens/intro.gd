@@ -177,7 +177,7 @@ func draw(vs: Vector2) -> void:
 		paras.clear()
 		var tot := 0.0
 		for ln in (TOUCH_CONTROLS if Pad.touch_ui() and g.intro_page == Game.INTRO_PAGES.size() - 1 else pg.lines):
-			ln = touch_line(ln)
+			ln = touch_line(fill_numbers(ln))
 			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
 			paras.append(ls)
 			tot += ls.size() * (g.font.get_height(fsz) + 1.0) + 14.0
@@ -318,7 +318,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 					if gt != null:
 						g.hud.draw_texture_rect(gt, Rect2(cc0 - Vector2(24, 24), Vector2(48, 48)), false)
 				UI.text(g.hud, g.font, rc.position + Vector2(0, 100), ["成长", "招募", "被动"][k], 12, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-			UI.text(g.hud, g.font, c + Vector2(-130, 60), "干员成长 / 招募 / 博士被动", 14, UI.SUB)
+			UI.text(g.hud, g.font, c + Vector2(-130, 60), "干员成长 / 招募 / 生存与机动", 14, UI.SUB)
 		"loot":
 			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
 			for k in items.size():
@@ -392,3 +392,12 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				g.hud.draw_rect(kr, Color(0.08, 0.2, 0.24))
 				g.hud.draw_rect(kr, UI.CYAN, false, 1.5)
 				UI.text(g.hud, g.font, kr.position + Vector2(0, 27), kk[0], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+
+
+## 指南正文里的数值占位（docs/83：入队加成的数字读 balance.json squad 段，不写死）
+static func fill_numbers(ln: String) -> String:
+	if not ln.contains("{"):
+		return ln
+	var Bal = preload("res://scripts/core/balance.gd")
+	var Sq = preload("res://scripts/characters/squad.gd")
+	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq._num(Bal.v("squad/regen_per_member", 0.0)))

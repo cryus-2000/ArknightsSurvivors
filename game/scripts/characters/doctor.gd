@@ -7,22 +7,41 @@ var def: Dictionary = {}
 var rej_count := 0             # 排异反应次数（结局线用）
 var rej_log: Array = []        # 每次排异的说明文字
 
-## 博士被动（cat doctor）与全队被动（cat squad），docs/23 §6：各自最多选 4 种，选满后只出已有种类
+## 被动成长卡（docs/23 §6；10-13 用户 / 协调人改版，docs/83）。内部类别 key 不改，玩家看到的类别名见 CAT_LABEL：
+##   doctor → 生存（主控的生命 / 回复 / 减伤 / 闪避 / 拾取 / 护灯），种类上限 PASSIVE_CAP 4
+##   mobility → 机动（移动速度 + 冲刺三张），种类上限 balance.json levelup/mobility_kinds（缺省 3）
+##   squad → 协同（全队干员），种类上限 PASSIVE_CAP 4
+## 选满种类后只出已有种类。desc 里的数字由 passive_desc() 按 balance.json 现值生成的，以它为准
 const PASSIVES := {
-	"hp": {"name": "坚韧", "desc": "主控最大生命 +20", "max": 99, "cat": "doctor"},
-	"regen": {"name": "自愈", "desc": "主控每秒回复生命 +0.6", "max": 5, "cat": "doctor"},
-	"armor": {"name": "硬化", "desc": "主控物理减伤 +2（对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
-	"dodge": {"name": "水影", "desc": "主控闪避率 +5%", "max": 4, "cat": "doctor"},
-	"speed": {"name": "轻盈", "desc": "主控移动速度 +10%", "max": 5, "cat": "doctor"},
-	"pickup": {"name": "感知", "desc": "主控拾取范围 +30%", "max": 5, "cat": "doctor"},
-	"wick": {"name": "护灯", "desc": "主控受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
+	"hp": {"name": "坚韧", "desc": "队长最大生命 +20", "max": 99, "cat": "doctor"},
+	"regen": {"name": "自愈", "desc": "队长生命回复 +0.6 / 秒", "max": 5, "cat": "doctor"},
+	"armor": {"name": "硬化", "desc": "队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
+	"dodge": {"name": "水影", "desc": "队长闪避率 +5%", "max": 4, "cat": "doctor"},
+	"pickup": {"name": "感知", "desc": "队长拾取范围 +30%", "max": 5, "cat": "doctor"},
+	"wick": {"name": "护灯", "desc": "队长受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
+	"speed": {"name": "轻盈", "desc": "队长移动速度 +10%", "max": 5, "cat": "mobility"},
+	"dash_cd": {"name": "迅捷", "desc": "冲刺冷却 -12%", "max": 4, "cat": "mobility"},
+	"dash_dist": {"name": "远跃", "desc": "冲刺距离 +12%", "max": 3, "cat": "mobility"},
+	"dash_charge": {"name": "连冲", "desc": "冲刺可储存 2 次，冷却逐次恢复", "max": 1, "cat": "mobility"},
 	"sp": {"name": "协同·技", "desc": "全队技力回复 +15%", "max": 4, "cat": "squad"},
 	"squad_atk": {"name": "协同·攻", "desc": "全队干员攻击 +8%", "max": 5, "cat": "squad"},
 	"squad_aspd": {"name": "协同·迅", "desc": "全队干员攻速 +6%", "max": 5, "cat": "squad"},
 	"squad_range": {"name": "协同·广", "desc": "全队干员攻击范围 +8%", "max": 4, "cat": "squad"},
-	"squad_crit": {"name": "协同·锐", "desc": "全队干员技能强度 +10%", "max": 4, "cat": "squad"},
+	"squad_crit": {"name": "协同·专", "desc": "全队干员技能强度 +10%", "max": 4, "cat": "squad"},
 }
-const PASSIVE_CAP := 4         # 每类最多几种
+const PASSIVE_CAP := 4         # 生存 / 协同每类最多几种；机动见 cat_cap()
+const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD"}
+const CATS := ["doctor", "mobility", "squad"]
+
+
+## 类别的种类上限
+static func cat_cap(cat: String) -> int:
+	return Bal.vi("levelup/mobility_kinds", 3) if cat == "mobility" else PASSIVE_CAP
+
+
+## 被动卡的类别中文名（「生存」「机动」「协同」）：精英二条件等提示用
+static func cat_name(pid: String) -> String:
+	return str(CAT_LABEL.get(PASSIVES.get(pid, {}).get("cat", ""), "成长")).split("  ")[0]
 
 
 func _init(game) -> void:
@@ -315,7 +334,7 @@ func passive_kinds(cat: String) -> int:
 ## 可出的被动卡（按类别；种类满 4 后只出已有的）
 func passive_cards(cat: String) -> Array:
 	var out: Array = []
-	var full: bool = passive_kinds(cat) >= PASSIVE_CAP
+	var full: bool = passive_kinds(cat) >= cat_cap(cat)
 	for pid in PASSIVES:
 		var pdef: Dictionary = PASSIVES[pid]
 		if pdef.cat != cat:
@@ -324,7 +343,7 @@ func passive_cards(cat: String) -> Array:
 		if n >= pdef.max or (full and n == 0):
 			continue
 		var nm: String = pdef.name if pdef.max > 90 else "%s  %d/%d" % [pdef.name, n + 1, pdef.max]
-		out.append({"kind": "growth", "id": pid, "name": nm, "desc": pdef.desc + "\n" + passive_preview(pid), "cat": ("博士被动  DOCTOR" if cat == "doctor" else "全队被动  SQUAD")})
+		out.append({"kind": "growth", "id": pid, "name": nm, "desc": passive_desc(pid) + "\n" + passive_preview(pid), "cat": CAT_LABEL.get(cat, "")})
 	return out
 
 
@@ -335,8 +354,11 @@ func apply_passive(pid: String) -> bool:
 	var src := "growth:" + pid
 	match pid:
 		"hp": st.add(&"max_hp", "flat", 20.0, src)
-		"regen": st.add(&"regen", "flat", 0.6, src)
-		"armor": st.add(&"armor", "flat", 2.0, src)
+		"regen": st.add(&"regen", "flat", Bal.v("sustain/regen_card", 0.6), src)
+		"armor": st.add(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08), src)
+		"dash_cd": st.add(&"dash_cd", "mult", Bal.v("dash/cd_card", 0.88), src)
+		"dash_dist": st.add(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12), src)
+		"dash_charge": st.add(&"dash_charges", "flat", 1.0, src)
 		"dodge": st.add(&"dodge", "flat", 0.05, src)
 		"speed": st.add(&"move_speed", "mult", 1.1, src)
 		"pickup": st.add(&"pickup", "mult", 1.3, src)
@@ -350,15 +372,43 @@ func apply_passive(pid: String) -> bool:
 	return true
 
 
-func passive_preview(pid: String) -> String:
+## 卡面说明（数字按 balance.json 现值；「自愈」写的是选中后实际多出的每秒回复，含回复效果倍率）
+func passive_desc(pid: String) -> String:
 	match pid:
-		"hp": return "最大生命 %d → %d" % [int(g.max_hp), int(g.max_hp) + 20]
-		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.regen, g.regen + 0.6]
-		"armor": return "减伤 %.1f → %.1f" % [g.armor, g.armor + 2.0]
-		"dodge": return "闪避 %d%% → %d%%" % [int(g.dodge * 100), int(g.dodge * 100) + 5]
-		"speed": return "移动速度 %d → %d" % [int(g.speed), int(g.speed * 1.1)]
-		"pickup": return "拾取范围 %d → %d" % [int(g.pickup), int(g.pickup * 1.3)]
-		"wick": return "受击灯火损失 ×%.2f → ×%.2f" % [g.lamp_decay, g.lamp_decay * 0.85]
+		"regen":
+			var d: float = g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6)) - g.combat.regen_per_sec()
+			return "队长生命回复 +%s / 秒" % _num(d)
+		"armor":
+			return "队长受到的物理伤害 -%d%%（乘算；对法术、真实伤害无效）" % int(round(Bal.v("growth/armor_pct", 0.08) * 100.0))
+		"dash_cd":
+			return "冲刺冷却 -%d%%" % int(round((1.0 - Bal.v("dash/cd_card", 0.88)) * 100.0))
+		"dash_dist":
+			return "冲刺距离 +%d%%" % int(round(Bal.v("dash/dist_card", 0.12) * 100.0))
+	return str(PASSIVES.get(pid, {}).get("desc", ""))
+
+
+static func _num(v: float) -> String:
+	var t := "%.2f" % v
+	while t.ends_with("0"):
+		t = t.substr(0, t.length() - 1)
+	return t.trim_suffix(".")
+
+
+## 卡面预览「现值 → 选中后」：都按属性系统算最终值（StatBlock.value_with），和属性面板、实际生效一致（docs/83 §2）。
+## 坚韧的 +20 是基础值，会被入队加成 / 难度的最大生命倍率放大，预览写放大后的数
+func passive_preview(pid: String) -> String:
+	var st = g.stats
+	match pid:
+		"hp": return "最大生命 %d → %d" % [int(g.max_hp), int(maxf(20.0, st.value_with(&"max_hp", "flat", 20.0)))]
+		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.combat.regen_per_sec(), g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6))]
+		"armor": return "受到的物理伤害 ×%.2f → ×%.2f" % [g.phys_taken_mult, st.value_with(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08))]
+		"dodge": return "闪避 %d%% → %d%%" % [int(round(g.dodge * 100)), int(round(st.value_with(&"dodge", "flat", 0.05) * 100))]
+		"speed": return "移动速度 %d → %d" % [int(g.speed), int(st.value_with(&"move_speed", "mult", 1.1))]
+		"pickup": return "拾取范围 %d → %d" % [int(g.pickup), int(st.value_with(&"pickup", "mult", 1.3))]
+		"wick": return "受击灯火损失 ×%.2f → ×%.2f" % [g.lamp_decay, st.value_with(&"light_decay", "mult", 0.85)]
+		"dash_cd": return "冲刺冷却 %.2f → %.2f 秒" % [g.dash_cd_full(), Bal.v("dash/cd", 1.2) * st.value_with(&"dash_cd", "mult", Bal.v("dash/cd_card", 0.88))]
+		"dash_dist": return "冲刺距离 %d → %d" % [int(round(g.dash_dist())), int(round(Bal.v("dash/dist", 107.0) * st.value_with(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12))))]
+		"dash_charge": return "可储存次数 %d → %d" % [g.dash_max(), g.dash_max() + 1]
 		"sp": return "技力回复 ×%.2f → ×%.2f" % [g.sp_mult, g.sp_mult * 1.15]
 		"squad_atk": return "全队攻击 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_atk", ["squad"]), g.stats.value_for(&"op_atk", ["squad"]) + 0.08]
 		"squad_aspd": return "全队攻速 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_aspd", ["squad"]), g.stats.value_for(&"op_aspd", ["squad"]) + 0.06]

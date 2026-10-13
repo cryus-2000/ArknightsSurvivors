@@ -90,6 +90,7 @@ func _process(_d: float) -> void:
 	test_lore5()
 	test_nerve()
 	test_floater_mire()
+	test_squad_sustain_dash()
 	Bal._data = bal_bak
 	b.dead = true
 	print("%d checks, %d failed" % [n, fails])
@@ -2077,3 +2078,104 @@ func test_xp_recall() -> void:
 		Bal._data["pickup"] = old
 	else:
 		Bal._data.erase("pickup")
+
+
+## docs/83：入队加成（每多 1 名干员 回复 + squad/regen_per_member、最大生命 ×(1 + hp_per_member × 人数)）、
+## 回复 / 生命 / 减伤卡的预览 = 选中后的实际值、冲刺距离 / 冷却 / 连冲
+func test_squad_sustain_dash() -> void:
+	reset()
+	var sq = game.squad
+	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	ok(rper > 0.0, "squad/regen_per_member 已设（%.2f）" % rper)
+	ok(game.combat.regen_time_mult() == 1.0, "回复的时间成长已关（sustain/regen_div 0）")
+	var added: Array = []
+	for cid in ["skadi", "kaltsit", "lumen", "eyjafjalla"]:
+		if sq.is_full() or sq.has(cid):
+			continue
+		var r0: float = game.combat.regen_per_sec()
+		var steps0: int = sq.member_steps(sq.size())
+		var bonus: String = sq.join_bonus_text()
+		if sq.add(cid) == null:
+			continue
+		added.append(cid)
+		game.sync_stats()
+		var steps1: int = sq.member_steps(sq.size())
+		var want: float = float(steps1 - steps0) * rper * game.heal_mult
+		ok(absf(game.combat.regen_per_sec() - r0 - want) < 0.001, "%s 入队：回复 %.2f → %.2f / 秒（应 +%.2f）" % [cid, r0, game.combat.regen_per_sec(), want])
+		ok((bonus != "") == (steps1 > steps0), "招募卡的入队说明「%s」与是否加台阶一致" % bonus)
+		if steps1 > steps0:
+			ok(bonus.contains(sq._num(rper * game.heal_mult)), "招募卡写的回复数 = 实际（%s）" % bonus)
+	# 自愈卡：预览的后值 = 选中后的实际每秒回复
+	var prev: String = game.doctor.passive_preview("regen")
+	game.doctor.apply_passive("regen")
+	game.sync_stats()
+	ok(prev.ends_with("%.1f / 秒" % game.combat.regen_per_sec()), "自愈卡预览「%s」= 选中后 %.1f / 秒" % [prev, game.combat.regen_per_sec()])
+	var dsc: String = game.doctor.passive_desc("regen")
+	ok(dsc.contains(game.doctor._num(Bal.v("sustain/regen_card", 0.6) * game.heal_mult)), "自愈卡说明写的是含回复倍率的增量（%s）" % dsc)
+	game.stats.remove_source("growth:regen")
+	# 坚韧：预览按入队加成等倍率放大后的最大生命
+	var hp_prev: String = game.doctor.passive_preview("hp")
+	game.doctor.apply_passive("hp")
+	game.sync_stats()
+	ok(hp_prev.ends_with("→ %d" % int(game.max_hp)), "坚韧预览「%s」= 选中后最大生命 %d" % [hp_prev, int(game.max_hp)])
+	game.stats.remove_source("growth:hp")
+	# 硬化（方案 B）：受到的物理伤害 ×(1 − growth/armor_pct) / 级，乘算；固定减伤 armor 不变；法术不受影响
+	var ap: float = Bal.v("growth/armor_pct", 0.08)
+	var armor0: float = game.armor
+	var ar_prev: String = game.doctor.passive_preview("armor")
+	game.doctor.apply_passive("armor")
+	game.sync_stats()
+	ok(ar_prev.ends_with("→ ×%.2f" % game.phys_taken_mult), "硬化预览「%s」= 选中后物理伤害 ×%.2f" % [ar_prev, game.phys_taken_mult])
+	ok(absf(game.phys_taken_mult - (1.0 - ap)) < 0.0001 and game.armor == armor0, "硬化 1 级：物理伤害 ×%.2f，固定减伤不变（%.1f）" % [game.phys_taken_mult, game.armor])
+	ok(game.doctor.passive_desc("armor").contains("%d%%" % int(round(ap * 100.0))), "硬化说明写的是 growth/armor_pct（%s）" % game.doctor.passive_desc("armor"))
+	for k in 3:
+		game.doctor.apply_passive("armor")
+	game.sync_stats()
+	ok(absf(game.phys_taken_mult - pow(1.0 - ap, 4)) < 0.0001, "硬化 4 级乘算：×%.3f（应 ×%.3f）" % [game.phys_taken_mult, pow(1.0 - ap, 4)])
+	var raw := 50.0
+	var keep_hp: float = game.hp
+	game.in_type = ["近战", "物理"]
+	game.invuln = 0.0
+	var lost_p: float = c.hurt(raw)
+	game.hp = keep_hp
+	ok(absf(lost_p - maxf(1.0, raw * game.rfx.taken_mult() * game.phys_taken_mult - game.armor)) < 0.01, "硬化 4 级：物理 %d 扣 %.2f（先乘比例再减固定减伤）" % [int(raw), lost_p])
+	game.in_type = ["远程", "法术"]
+	var lost_a: float = c.hurt(raw)
+	game.hp = keep_hp
+	ok(absf(lost_a - maxf(1.0, raw * game.rfx.taken_mult() * (1.0 - minf(game.arts_res, 0.7)))) < 0.01, "硬化不影响法术伤害（扣 %.2f）" % lost_a)
+	game.stats.remove_source("growth:armor")
+	game.sync_stats()
+	ok(game.phys_taken_mult == 1.0, "移除硬化后物理伤害倍率回到 1")
+	# 冲刺：默认距离、远跃、迅捷、连冲
+	ok(absf(game.dash_dist() - Bal.v("dash/dist", 107.0)) < 0.001 and game.dash_max() == 1, "默认冲刺距离 %.0f、可储存 1 次" % game.dash_dist())
+	game.doctor.apply_passive("dash_dist")
+	game.doctor.apply_passive("dash_cd")
+	game.doctor.apply_passive("dash_charge")
+	game.sync_stats()
+	ok(absf(game.dash_dist() - Bal.v("dash/dist", 107.0) * (1.0 + Bal.v("dash/dist_card", 0.12))) < 0.001, "远跃：距离 %.1f" % game.dash_dist())
+	ok(absf(game.dash_cd_full() - Bal.v("dash/cd", 1.2) * Bal.v("dash/cd_card", 0.88)) < 0.001, "迅捷：冷却 %.2f 秒" % game.dash_cd_full())
+	var st0: int = game.state
+	game.state = Game.S.PLAY
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	ok(game.dash_left() == 2, "连冲：可用 2 次（%d）" % game.dash_left())
+	game._try_dash()
+	var t1: bool = game.dash_t > 0.0
+	game.dash_t = 0.0
+	game._try_dash()
+	var t2: bool = game.dash_t > 0.0
+	game.dash_t = 0.0
+	game._try_dash()
+	ok(t1 and t2 and game.dash_t <= 0.0, "连冲：连续冲 2 次，第 3 次要等冷却")
+	game.dash_cd = game.dash_cd_full() - 0.01   # 只差一次冷却 → 已恢复 1 次
+	ok(game.dash_ready() and game.dash_left() == 1, "连冲：冷却逐次恢复（剩 %d 次）" % game.dash_left())
+	for pid in ["dash_dist", "dash_cd", "dash_charge"]:
+		game.stats.remove_source("growth:" + pid)
+	game.sync_stats()
+	game.dash_cd = 0.0
+	game.dash_t = 0.0
+	game.state = st0
+	for cid in added:
+		sq.remove(cid)
+	game.sync_stats()
+	reset()

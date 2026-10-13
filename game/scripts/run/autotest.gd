@@ -746,7 +746,7 @@ func bot_move() -> Vector2:
 			if od > 0.0:
 				if zone_out_since < 0.0:
 					zone_out_since = g.t
-				elif g.t - zone_out_since > 0.5 and g.dash_cd <= 0.0:
+				elif g.t - zone_out_since > 0.5 and g.dash_ready():
 					want_dash = true
 			else:
 				zone_out_since = -1.0

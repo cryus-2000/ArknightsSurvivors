@@ -775,7 +775,7 @@ func node_requires_text(n: Dictionary) -> String:
 	if req.has("class_in_squad"):
 		parts.append("编队中有%s干员" % req.class_in_squad)
 	if req.has("doctor_passive"):
-		parts.append("博士被动「%s」" % g.doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
+		parts.append("%s卡「%s」" % [g.doctor.cat_name(req.doctor_passive), g.doctor.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name])
 	return "、".join(parts)
 
 

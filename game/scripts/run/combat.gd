@@ -457,10 +457,14 @@ func drain_corrode(tick: float) -> void:
 func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	if g.in_type[1] != "真实":
 		amount *= g.rfx.taken_mult()
+	if g.in_type[1] == "物理":
+		amount *= g.phys_taken_mult   # 硬化（docs/83）：所有物理伤害按比例减，在固定减伤之前；不吃护甲的冲击环也减
+	var pre := amount
 	if not ignore_armor and g.in_type[1] == "物理":
 		amount = max(1.0, amount - g.armor)
 	elif g.in_type[1] == "法术":
 		amount = max(1.0, amount * (1.0 - minf(g.arts_res, 0.7)))
+	_armor_cf(pre, amount, not ignore_armor and g.in_type[1] == "物理")
 	amount = lose_hp(amount, g.dmg_src, boss)
 	g.rfx.on_hurt(g.dmg_src == "nerve", amount)
 	g.invuln = 0.45
@@ -493,6 +497,26 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	elif g.hp > g.max_hp * 0.45:
 		low_warned = false
 	return amount
+
+
+## 物理减伤遥测（docs/83 §4，只记账、不读随机数）：按 0–4 / 4–8 / 8 分钟以后三段，记受击总量（护甲 / 法抗之后、主控保护之前）、
+## 吃护甲的物理受击（护甲前 / 后），以及「再多 2 / 4 / 8 点护甲」时这些物理受击会是多少。BALANCE 记录 armor_cf 字段
+var armor_cf := {}
+
+func _armor_cf(pre: float, post: float, phys: bool) -> void:
+	var seg: String = "m0" if g.t < 240.0 else ("m4" if g.t < 480.0 else "m8")
+	if not armor_cf.has(seg):
+		armor_cf[seg] = {"all": 0.0, "n": 0, "phys_n": 0, "phys_pre": 0.0, "phys": 0.0, "a2": 0.0, "a4": 0.0, "a8": 0.0, "armor": 0.0}
+	var c: Dictionary = armor_cf[seg]
+	c.all += post
+	c.n += 1
+	if phys:
+		c.phys_n += 1
+		c.phys_pre += pre
+		c.phys += post
+		c.armor += g.armor
+		for k in [2, 4, 8]:
+			c["a%d" % k] += maxf(1.0, pre - g.armor - float(k))
 
 
 ## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
@@ -664,6 +688,13 @@ func regen_time_mult() -> float:
 	if dv <= 0.0:
 		return 1.0
 	return 1.0 + minf(g.t, Bal.v("sustain/regen_knee", 480.0)) / dv
+
+
+## 主控实际每秒回复（生命 / 秒）：game._update 按它回血，属性面板、「自愈」卡预览、招募卡都读它，保证三处一致（docs/83 §2）。
+## add_flat / add_pct：预览「再加一张卡」时额外加进 regen / regen_pct 的量
+func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
+	var mh: float = g.max_hp if max_hp < 0.0 else max_hp
+	return (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
 
 
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）

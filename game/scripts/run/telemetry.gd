@@ -509,6 +509,7 @@ func record(marks = null) -> Dictionary:
 		"out_tag": g.dmg_tag_out, "ending": g.ending, "lamp": int(g.lamp), "rej": g.doctor.rej(), "heal": g.heal_log, "drone": g.weapons.get("drone", 0),
 		"floor_hits": g.floor_hits, "floor_times": g.floor_times,
 		"hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "mix": h.get("mix", ""), "comp": h.comp}),
+		"armor_cf": g.combat.armor_cf, "growth": g.growth.duplicate(), "dashes": dashes,   # docs/83：物理减伤遥测、被动卡等级、冲刺次数
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
 
 

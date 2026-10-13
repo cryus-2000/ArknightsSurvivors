@@ -51,6 +51,19 @@ func add(stat: StringName, op: Variant, value: float, source: String = "", scope
 	_dirty(stat)
 
 
+## 预览：再加一条修正后的全局值（不改状态、不动缓存与 version）。升级卡预览用，保证卡面数字 = 选中后属性面板的数字（docs/83 §2）
+func value_with(stat: StringName, op: Variant, value: float) -> float:
+	if not _base.has(stat):
+		return 0.0
+	var o: int = OP_NAMES[op] if op is String else int(op)
+	if not _mods.has(stat):
+		_mods[stat] = []
+	_mods[stat].append({"op": o, "value": value, "source": "", "scope": ""})
+	var v := _calc(stat, [])
+	_mods[stat].pop_back()
+	return v
+
+
 ## 撤销某个来源的全部修正，返回撤销条数
 func remove_source(source: String) -> int:
 	var n := 0

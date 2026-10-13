@@ -27,6 +27,8 @@ static func is_heal_card(c: Dictionary) -> bool:
 
 ## 选卡权重：回复类 ×levelup/heal_weight；主控生命低于 levelup/heal_low_hp（比例）时再 ×levelup/heal_low_hp_mult
 func card_weight(c: Dictionary) -> float:
+	if str(c.get("kind", "")) == "growth" and str(c.get("id", "")).begins_with("dash_"):
+		return Bal.v("levelup/dash_weight", 0.7)   # 冲刺三张（机动类，docs/83）
 	if not is_heal_card(c):
 		return 1.0
 	var w: float = Bal.v("levelup/heal_weight", 1.5)
@@ -54,13 +56,17 @@ func recruit_cards() -> Array:
 	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
 	if g.squad.is_full() or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
 		return opts
+	var bonus: String = g.squad.join_bonus_text()   # 入队加成（docs/83）：数字读 balance.json squad 段
 	for cid in Character.list_ids():
 		if g.squad.has(cid):
 			continue
 		var d: Dictionary = Character.load_def(cid)
 		if not d.get("recruitable", true):
 			continue
-		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")), "cls": d.get("class", "")})
+		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
+		if bonus != "":
+			desc += "\n" + bonus
+		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": desc, "cls": d.get("class", "")})
 	return opts
 
 
@@ -95,8 +101,8 @@ func open_levelup() -> void:
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
 	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and g.rng.randf() < Bal.v("levelup/recruit_chance", 0.45):
 		picks.append(recruit[g.rng.randi() % recruit.size()])
-	# ---- 博士被动 / 全队被动：种类各上限 4
-	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("squad")
+	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
+	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("mobility") + g.doctor.passive_cards("squad")
 	# 医疗无人机：和被动卡同池的常规选项，没满级就一直在池里（2026-09-25）；2026-09-26 起开局不带，第一张卡是 Lv.1「加入」
 	var wl: int = g.weapons.get("drone", 0)
 	if wl < 5:
