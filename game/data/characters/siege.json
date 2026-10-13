@@ -38,7 +38,11 @@
   "crack_life": 0.6,
   "s3_dur": 8.0,
   "leash": 200,
-  "gap": 26
+  "gap": 26,
+  "crush_r": 50,
+  "crush_mult": 0.2,
+  "crush_cap": 2,
+  "spike_step": 36
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2251 / 防御 384 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -194,6 +198,17 @@
     "area",
     "control"
    ]
+  },
+  "粉碎": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "aftershock",
+    "area"
+   ]
   }
  },
  "progression": [
@@ -215,7 +230,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「跃空锤」；解锁天赋「鼓舞」：锤击命中时回复的全队技力翻倍"
+   "desc": "解锁二技能「跃空锤」；解锁天赋「鼓舞」：锤击命中时回复的全队技力翻倍；锤击击倒敌人时迸出碎石，对半径 50 内的敌人造成锤击 20% 伤害（每次锤击至多 2 处）",
+   "attack": {
+    "name": "粉碎",
+    "desc": "锤击击倒敌人时，倒下处迸出一圈碎石，对半径 50 内的敌人造成锤击 20% 伤害（每次锤击至多 2 处）"
+   }
   },
   {
    "type": "custom",
@@ -235,7 +254,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「碎颅」：8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%；普攻质变「破阵」：每一锤向前砸出一道长 180 的直线金色地裂，沿途敌人受到锤击 60% 伤害"
+   "desc": "解锁三技能「碎颅」：8 秒内锤击伤害 ×1.8、每次命中 50% 眩晕 0.8 秒，攻速 -25%；普攻质变「破阵」：每一锤向前砸出一道长 180 的直线金色地裂，沿途敌人受到锤击 60% 伤害",
+   "attack": {
+    "name": "破阵",
+    "desc": "每一锤向前砸出一道长 180 的金色地裂，沿途敌人受到锤击 60% 伤害；地裂上冒出金色岩刺"
+   }
   }
  ],
  "gallery": {
@@ -312,7 +335,26 @@
     "mult": "$crack_mult",
     "life": "$crack_life",
     "max": 6,
-    "src": "破阵"
+    "src": "破阵",
+    "tile": "fx_siege_fissure_tile",
+    "spikes": {
+     "cond": "elite >= 2",
+     "step": "$spike_step",
+     "delay": 0.1,
+     "stagger": 0.012,
+     "tex": "fx_siege_rock_spike",
+     "scale": 1.0,
+     "_doc": "精二「破阵」补画面：地裂出现 0.1 秒后沿地裂每 36 冒出一根金色岩刺（拔起 → 停 → 缩回）"
+    }
+   },
+   "crush": {
+    "cond": "elite >= 1",
+    "r": "$crush_r",
+    "mult": "$crush_mult",
+    "cap": "$crush_cap",
+    "src": "粉碎",
+    "tex": "fx_siege_pebbles",
+    "_doc": "精一「粉碎」：锤击击倒的敌人处迸出碎石，半径 50 内锤击 20% 伤害，每一锤至多 2 处"
    }
   },
   "skills": [
@@ -491,7 +533,12 @@
    "elite2": {
     "trig": "passive",
     "do": [],
-    "_doc": "破阵：写在 attack.breach（cond elite >= 2）"
+    "_doc": "破阵：写在 attack.breach（cond elite >= 2）；岩刺 / 地裂帧条写在 breach.spikes / tile"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "粉碎：写在 attack.crush（cond elite >= 1）"
    }
   }
  }

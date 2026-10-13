@@ -33,7 +33,12 @@
   "hearth_n": 6,
   "hearth_mult": 0.3,
   "hearth_cd": 0.5,
-  "s3_dur": 10.0
+  "s3_dur": 10.0,
+  "brand_value": 0.08,
+  "brand_dur": 2.0,
+  "trail_life": 1.0,
+  "trail_every": 0.3,
+  "trail_mult": 0.15
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -145,6 +150,16 @@
     "entity",
     "area"
    ]
+  },
+  "狐火拖尾": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "entity"
+   ]
   }
  },
  "progression": [
@@ -166,7 +181,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「暖光」；解锁天赋「祈愿」：光域内的敌人受到的伤害 +10%；狐火 +1 发"
+   "desc": "解锁二技能「暖光」；解锁天赋「祈愿」：光域内的敌人受到的伤害 +10%；狐火 +1 发；狐火命中的敌人 2 秒内受到的伤害 +8%",
+   "attack": {
+    "name": "狐火灼印",
+    "desc": "狐火命中的敌人 2 秒内受到的伤害 +8%，脚下浮现一枚金色小印"
+   }
   },
   {
    "type": "custom",
@@ -186,7 +205,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「狐火迷雾」：展开 10 秒大光域（范围 ×2.2），光域内敌人移速 -60%、受到的伤害 +25%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普攻质变「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一"
+   "desc": "解锁三技能「狐火迷雾」：展开 10 秒大光域（范围 ×2.2），光域内敌人移速 -60%、受到的伤害 +25%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普攻质变「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 1 秒，每 0.3 秒灼伤踏入的敌人（狐火 15% 伤害）",
+   "attack": {
+    "name": "九尾祈愿",
+    "desc": "身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 1 秒，每 0.3 秒灼伤踏入的敌人（狐火 15% 伤害）"
+   }
   }
  ],
  "gallery": {
@@ -239,7 +262,19 @@
     "mult": "$merge_mult",
     "spd": "$merge_spd",
     "life": "$merge_life",
-    "r": "$merge_r"
+    "r": "$merge_r",
+    "trail": {
+     "cond": "elite >= 2",
+     "life": "$trail_life",
+     "every": "$trail_every",
+     "mult": "$trail_mult",
+     "r": 16,
+     "step": 22,
+     "cap": 4,
+     "src": "狐火拖尾",
+     "tex": "fx_suzuran_bigfox_trail",
+     "_doc": "精二「九尾祈愿」补强：大狐火飞过的路径留狐火 1 秒，每 0.3 秒灼伤后来踏入路径的敌人（狐火 15%；这团大狐火已贯穿的不再烧）"
+    }
    },
    "seal": {
     "cond": "node:fox_seal",
@@ -251,6 +286,14 @@
     "cond": "elite >= 2",
     "tex": "fx_suzuran_ninetails",
     "alpha": 0.45
+   },
+   "brand": {
+    "cond": "elite >= 1",
+    "value": "$brand_value",
+    "dur": "$brand_dur",
+    "max": 24,
+    "tex": "fx_suzuran_seal",
+    "_doc": "精一「狐火灼印」：狐火（含大狐火）命中的敌人 2 秒内受到的伤害 +8%（同名取最高），脚下金色小印"
    }
   },
   "trait": [
@@ -401,7 +444,12 @@
    "elite2": {
     "trig": "passive",
     "do": [],
-    "_doc": "九尾祈愿：写在 attack.merge.all 与 attack.tails（cond elite >= 2）"
+    "_doc": "九尾祈愿：写在 attack.merge.all 与 attack.tails；狐火拖尾写在 attack.merge.trail（cond elite >= 2）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "狐火灼印：写在 attack.brand（cond elite >= 1）"
    }
   }
  }

@@ -400,23 +400,24 @@ EQ_GROUPS = [
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=lumen,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["光弹"]),
     # 10-14 精英化第 4 批（docs/91 §19 批 4）：推进之王 / 铃兰 / 维什戴尔 / 塞雷娅迁积木（docs/61 §21），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
-    # 只把画面随机数换成 g.vrng，见各文件开头）。当队友全节点一局（星熊队长，满编不招募）、主控全节点 + 技力常满一局，各 240 秒
+    # 只把画面随机数换成 g.vrng，见各文件开头）。迁移提交（bf861722）时两版全节点 + 精二逐行相同；之后加了精一 / 精二新形态（docs/91 §26），
+    # 旧手写参照没有，所以同第 2、3 批只比精零：主控技力常满一局、当队友一局（星熊队长，不带全藏品：全藏品 40 秒内全队就满精英）
     ("siege", "--opscript=siege=res://tests/data_ops/siege_legacy.gd", [
-        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=siege,exusiai", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
-        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=siege", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-    ], ["锤击", "震地", "震地余波", "破阵", "号令"]),
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=siege", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=siege,exusiai", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
+    ], ["锤击"]),
     ("suzuran", "--opscript=suzuran=res://tests/data_ops/suzuran_legacy.gd", [
-        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=suzuran,texas", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
-        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-    ], ["狐火", "围炉"]),
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=suzuran", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=suzuran,texas", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
+    ], ["狐火"]),
     ("wisadel", "--opscript=wisadel=res://tests/data_ops/wisadel_legacy.gd", [
-        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=wisadel,angelina", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
-        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=wisadel", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-    ], ["炮击", "余震", "殉爆", "凋零处刑", "饱和炮击"]),
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=wisadel", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=wisadel,angelina", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
+    ], ["炮击"]),
     ("saria", "--opscript=saria=res://tests/data_ops/saria_legacy.gd", [
-        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=saria,kaltsit", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
-        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=saria", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
-    ], ["拳击", "钙晶", "碎晶", "急救针剂"]),
+        ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=saria", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
+        ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=saria,kaltsit", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
+    ], ["拳击"]),
 ]
 
 

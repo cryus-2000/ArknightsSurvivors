@@ -1205,10 +1205,13 @@ func deal_damage(e: Dictionary, dmg: float) -> void:
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）
 
 func extra_bodies() -> Array:
-	return OB.sm_bodies(self) + (OB.h3_extra_bodies(self) if not hw.is_empty() else [])   # 手写迁移段第 3 批：替身 / 灯塔
+	return OB.sm_bodies(self) + (OB.h3_extra_bodies(self) + OB.h4_extra_bodies(self) if not hw.is_empty() else [])   # 手写迁移段第 3 批：替身 / 灯塔；第 4 批：晶柱
 
 
 func draw_extra(it: Dictionary) -> void:
+	if it.has("h4"):   # 手写迁移段第 4 批：晶柱
+		OB.h4_draw_extra(self, it)
+		return
 	if it.has("h3"):
 		OB.h3_draw_body_extra(self, it)
 		return

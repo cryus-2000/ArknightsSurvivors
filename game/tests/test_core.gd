@@ -1083,6 +1083,17 @@ func test_blocks_hw4() -> void:
 		["saria", "钙晶 n_by 不是数组", func(d): d.blocks.trait[0].do[1]["n_by"] = 3],
 		["saria", "护服缺 seg_t", func(d): d.blocks.progression.elite2.do[0].erase("seg_t")],
 		["saria", "站位 side 不是 [x, y]", func(d): d.blocks.follow["side"] = 40],
+		# 精英化第 4 批（docs/61 §22）
+		["siege", "粉碎缺 src", func(d): d.blocks.attack.crush.erase("src")],
+		["siege", "粉碎没写 cond", func(d): d.blocks.attack.crush.erase("cond")],
+		["siege", "岩刺缺 step", func(d): d.blocks.attack.breach.spikes.erase("step")],
+		["suzuran", "灼印缺 value", func(d): d.blocks.attack.brand.erase("value")],
+		["suzuran", "狐火拖尾来源没登记", func(d): d.blocks.attack.merge.trail["src"] = "拖尾"],
+		["wisadel", "好礼缺 mult", func(d): d.blocks.attack.gift.erase("mult")],
+		["wisadel", "魂炮缺 src", func(d): d.blocks.progression.elite2.do[0].fire.erase("src")],
+		["saria", "钙化拳缺 pct", func(d): d.blocks.attack.calcify.erase("pct")],
+		["saria", "晶柱缺 n", func(d): d.blocks.progression.elite2.do[0].pillars.erase("n")],
+		["saria", "晶柱超过 16 根", func(d): d.blocks.progression.elite2.do[0].pillars["n"] = 20],
 	]
 	for bd in bads:
 		var d2: Dictionary = defs[bd[0]].duplicate(true)
@@ -1092,3 +1103,15 @@ func test_blocks_hw4() -> void:
 		ok(OB.H4_TAGS.has(t), "第 4 批积木已登记：%s" % t)
 	for sh in ["hammer", "foxfire", "cannon", "bash"]:
 		ok(OB.ATTACK_SHAPES.has(sh) and OB.H4_ATTACKS.has(sh), "第 4 批普攻形状已登记：%s" % sh)
+	for id in ["siege", "suzuran", "wisadel", "saria"]:
+		var pg: Dictionary = defs[id].blocks.progression
+		ok(pg.has("elite1") and pg.has("elite2"), "精英化第 4 批：%s 有精一 / 精二积木" % id)
+		for nd in defs[id].progression:
+			if nd.get("type", "") == "elite":
+				ok(nd.has("attack") and str(nd.attack.get("name", "")) != "" and str(nd.attack.get("desc", "")) != "" and not "主控" in str(nd.attack.desc) and not "主控" in str(nd.desc),
+					"精英化第 4 批：%s 精%d 节点有普攻卡（不写「主控」）" % [id, int(nd.level)])
+	ok(str(defs["siege"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "破阵"
+		and str(defs["suzuran"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "九尾祈愿"
+		and str(defs["wisadel"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "死魂灵的余息"
+		and str(defs["saria"].progression.filter(func(n): return n.get("type", "") == "elite" and int(n.level) == 2)[0].attack.name) == "莱茵充能护服",
+		"精英化第 4 批：精二原有形态（破阵 / 九尾祈愿 / 死魂灵的余息 / 莱茵充能护服）保留")

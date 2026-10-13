@@ -1020,6 +1020,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		dmg *= g.melee_mult if ty[0] == "近战" else g.ranged_mult
 		if e.get("aura_weak", 0.0) > 0.0:
 			dmg *= 1.1
+		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
+			dmg *= 1.0 + float(e.frag_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
 		if is_followup(g.hit):
 			dmg *= g.followup_mult * g.rfx.followup_extra()

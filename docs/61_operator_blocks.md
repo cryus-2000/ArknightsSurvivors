@@ -1688,3 +1688,41 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - **其他干员同 seed 不变**（对迁移前 c8419a5c，基线目录带 art/incoming，`--trace=1 --maxprog --sptest` 240 秒，满编不招募）：星熊 + 能天使 + 凯尔希（seed 1）、浊心斯卡蒂 + 艾雅法拉 + 乌尔比安（seed 2）、
   逻各斯 + 斯卡蒂 + 水月（seed 3）、艾丽妮 + 流明 + 归溟幽灵鲨（seed 4）：TRACE 与 BALANCE 逐字节相同。
 - 回归测试跟着改读积木段：`prot_test` 塞雷娅净化（`h4_cleanse_ctrl`）、`wisadel_cannon_test`（`h4_impact_fx` / `h4_burst_fx`）、`friendly_target_regression`（`_h4_exec_target`）。
+
+## 22. 精英化第 4 批的积木（docs/91 §10 / §11 / §15 / §18、§26；10-14）
+
+推进之王、铃兰、维什戴尔、塞雷娅迁积木（§21）之后，精一新机制与精二「保留 + 补强」全部用积木写，JSON 里不写干员特判。
+都是 §21 积木上的新参数（写在 `op_blocks.gd`「手写迁移段（第 4 批）」各干员段落里原本留空的挂点函数，状态在 §21 的 `o.hw` 子字典），没有新的积木名。
+核心部分只多两处：`combat.gd` 一处（`st.fragile` 全伤害版 `frag_t / frag_v`），`data_operator.gd` 的 `extra_bodies / draw_extra`（晶柱参与 2.5D 排序）。**没有改 `enemies.gd`**：晶柱阻挡在本干员每帧里按「地形阻挡 push_out」的思路推出（下表）。
+
+### 22.1 新参数
+
+| 积木 / 参数 | 说明 |
+|---|---|
+| `shape.hammer` 的 `crush {cond, r, mult, cap, src, tex}` | 这一锤击倒的敌人处迸出碎石：r × op_range 内 × 这一锤伤害 × mult，每一锤至多 cap 处；只算锤击本身击倒的（震地 / 破阵 / 碎石的击杀不再迸）。推进之王精一「粉碎」 |
+| `shape.hammer` 的 `breach.spikes {cond, step, delay, stagger, tex, scale}` / `breach.tile` | 纯画面：地裂出现 delay 秒后沿地裂每 step 冒出一根岩刺（逐根错开 stagger 秒，底边中点落地）；`tile` = 地裂本体帧条横向平铺（4 帧随寿命推进）。推进之王精二「破阵」补画面 |
+| `shape.foxfire` 的 `brand {cond, value, dur, max, tex}` | 狐火（含大狐火）命中的敌人 dur 秒内受到的伤害 + value（敌人 `frag_t / frag_v`，`combat.gd` 在易伤 aura_weak 之后乘；同名取最高、再命中刷新，Boss 也吃），脚下金印。普通狐火的命中由 game 结算，这里同「画地为牢」记住弹体、下一帧找撞上的敌人。铃兰精一「狐火灼印」 |
+| `shape.foxfire` 的 `merge.trail {cond, life, every, mult, r, step, cap, src, tex}` | 大狐火飞过的路径每 step 留一处狐火（life 秒），同一条拖尾每 every 秒灼伤**后来踏入**的敌人一次（攻击 × mult × vs_elite；这团大狐火已经贯穿过的不再烧），同时至多 cap 条。铃兰精二「九尾祈愿」补强 |
+| `shape.cannon` 的 `gift {cond, mult}` | 普攻炮击的主目标（手动落点的伪目标除外）直接挂残影标记，倒下必定殉爆（攻击 × mult；同一敌人被多种标记挂过时取高）。维什戴尔精一「好礼」 |
+| `verb.souls` 的 `fire {cond, every, mult, first, stagger, fire_at, anim, aim_r, size, src}` | 每个魂灵之影各自每 every 秒（待在肩后时）开一炮：优先离它最近的带残影标记的敌人（两个影子不打同一个），没有标记打离维什戴尔最近的；炮弹从影子处平射、同样余震（余震、余响照常），开火动作 anim 秒、第 fire_at 秒出膛。维什戴尔精二「死魂灵的余息」补强（魂炮） |
+| `shape.bash` 的 `calcify {cond, pct, dur, elite_mult, max, tex}` | 拳击命中的非 Boss 敌人 dur 秒内移速 -pct（精英时长 × elite_mult，同一敌人刷新取长）。**不是减速状态**（不写 `e.slow`、不与其他减速叠）：本干员每帧把这名敌人这一帧**朝队长走近**的位移退回 pct（同 `st.slow_soft` 的做法；被阻挡圈推开 / 击退的位移不打折）。身上琥珀斑。塞雷娅精一「钙化拳」 |
+| `verb.suit` 的 `pillars {cond, n, r, sy, life, pr, wall, mult, cd, elite_push, arm, src}` | 满格冲击后以塞雷娅为心、在 r 处（地面椭圆 y × sy，与冲击光环同形）升起 n 根晶柱 life 秒，柱子（半径 pr）与柱间的墙（半宽 wall；wall < 0 = 柱间不挡）挡住敌人：每帧把碰到的敌人沿法线推出（精英一帧至多推回 elite_push × 自身移速 × dt，所以能慢慢挤过；Boss / 定点单位不挡；队长与队友不受影响），碰到的敌人受到拳击 × mult（× vs_elite，同一敌人 cd 秒一次）。拔起 arm 秒后才挡。塞雷娅精二「莱茵充能护服」补强（晶柱环） |
+
+### 22.2 晶柱阻挡的实现与开销
+
+- 不动 `enemies.gd`：敌人照常移动，塞雷娅在本帧（编队更新在敌人更新之后、绘制之前）只查环心 `r + pr + 40` 内的敌人（空间网格 `query_ids`），按椭圆环带 `|q − 1| × r × sy > pr + 30 + e.r` 快速剔除，剩下的对 n 根柱子与 n 段墙各算一次最近点、取最深的一处推出。
+  每帧 = 一次网格查询 + 环带附近敌人 × 2n 次点线距离；6 根时每名候选敌人 12 次。画面同地形阻挡：渲染前已经推出，看不到穿墙。
+- 计时开关 `--pillarperf`（只打印、不改玩法）：每 600 个有晶柱的帧打印一行 `PILLAR_PERF`（帧数、总 / 平均 / 单帧最大微秒、平均候选敌人数）。`--perfab=N` 同局轮换的 /b 桶不挡（量净成本用，正常游戏恒为 false）。实测见 docs/91 §26。
+- 不会卡住队长：只推敌人；队长、队友、召唤物都不受影响，队长可以自由走出环外。
+
+### 22.3 画面
+
+全部接 Codex 第 4 批素材（docs/93 §4，接入记录 §4.5），帧条登记在 game.gd `V6_FRAMES`。缺图时：碎石 → 旧 `fx_rock_burst` 染金 + 程序石子，岩刺 → 旧 `fx_rock_spike` 染金、再缺画程序尖刺，地裂帧条 → 程序裂隙，
+灼印 → 程序小金环，狐火拖尾 → `fx_suzuran_wisp` / 程序火舌，好礼标记 → 普通残影标记，魂灵之影开火 → 悬浮帧 + 暗紫 `fx_muzzle_flash`，魂炮弹 → 程序小弹，
+琥珀斑 → 程序小圆点，晶柱拔起 / 站立 → 程序琥珀晶柱，晶柱碎裂 → `fx_rock_burst` 染琥珀 + 碎片。柱间的墙画一圈淡琥珀墙脚（地面层），看得出哪里挡路。
+
+### 22.4 测试
+
+- 积木等价改为只比精零（同 §17.6 / §20.3）：四组 × 两局（seed 1 主控 `--sptest` 45 秒、seed 3 当队友 `--sptest` 60 秒，星熊队长、不带全藏品）TRACE / BALANCE 逐行相同。
+- `test_blocks_hw4` 加 10 条反例（粉碎缺 src / 没写 cond、岩刺缺 step、灼印缺 value、拖尾来源没登记、好礼缺 mult、魂炮缺 src、钙化拳缺 pct、晶柱缺 n / 超过 16 根）与精英节点普攻卡、精二原有形态保留的检查。
+- 木桩表、晶柱开销与画面见 docs/91 §26。
