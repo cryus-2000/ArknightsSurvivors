@@ -230,10 +230,10 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "dd125408de6471ae88c9de9f3f63b9bcc592b1cf4baae5d44935488d7efc83fa",
+      "sha256": "fa09352939ec579f2861030743cb1a31ef7a8fea2780cecd3e56d50c93a09f70",
       "density": 2,
       "original_file": "op_siege_idle.png",
-      "original_sha256": "0a8b9bb8755fb80fd4d8488cbf317c8016afa889cadb525b4c431417d13fc94c",
+      "original_sha256": "2116a676f539186b743082663009f89f1b533453b7f1a54b0a640e3fb42acf49",
       "logical_anchor": [
         24,
         46
@@ -308,10 +308,10 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "a961c07158c36d8eaa536d60ed19dde378226448646499549fc48da7ea7c575f",
+      "sha256": "818504234f4ef5095f3d992181ade2f487759b106fa7e3ac56bbb8be21670d6e",
       "density": 2,
       "original_file": "op_siege_skill.png",
-      "original_sha256": "9315bd11b5d00aebf679b29c8b826851293f6e946a102818479bf9103a9333ac",
+      "original_sha256": "2bf8a23b2b2725867b29f0208167059134833bf1d20382075c61f87252ceee49",
       "logical_anchor": [
         24,
         46

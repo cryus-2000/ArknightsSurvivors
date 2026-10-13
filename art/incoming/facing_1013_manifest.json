@@ -1,0 +1,214 @@
+{
+  "assets": [
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 4,
+      "file": "op_siege_idle.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "2116a676f539186b743082663009f89f1b533453b7f1a54b0a640e3fb42acf49",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 12,
+      "file": "op_siege_skill.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "2bf8a23b2b2725867b29f0208167059134833bf1d20382075c61f87252ceee49",
+      "outline_px": 1,
+      "event_frame_zero_based": 3,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "ulpianus",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 4,
+      "file": "op_ulpianus_idle.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "718708ee36836af5dc218f89b92030ff73e1043b8d0eb50b26b9d93badef491c",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "ulpianus",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 12,
+      "file": "op_ulpianus_skill.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "d11c4d24d2a85e93f3766b1277386a04e2b4da69249dc655d79909aea42ae584",
+      "outline_px": 1,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "ulpianus",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 4,
+      "file": "op_ulpianus_idle@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "591489dec926c5963bcacc16f285f6031986354273b12fd254740296771732e6",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "ulpianus",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 12,
+      "file": "op_ulpianus_skill@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "3a6228dede6dfab2375eabfe7a0c950a26c66cff844bbba06729a7cab9a3c7b4",
+      "outline_px": 2,
+      "event_frame_zero_based": 3,
+      "frame_count": 7,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 4,
+      "file": "op_siege_idle@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "fa09352939ec579f2861030743cb1a31ef7a8fea2780cecd3e56d50c93a09f70",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 4,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 12,
+      "file": "op_siege_skill@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "818504234f4ef5095f3d992181ade2f487759b106fa7e3ac56bbb8be21670d6e",
+      "outline_px": 2,
+      "event_frame_zero_based": 3,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 12,
+      "file": "op_siege_command.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "064e64880c3f00228811947ff3f6b85bbeaf48c86d30cce45725142b3d1e3ed4",
+      "outline_px": 1,
+      "event_frame_zero_based": 2,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": false,
+      "character": "siege",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 12,
+      "file": "op_siege_command@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "da316ac672d4f5f88e6285ce7fa683642a1d5774fcb7271e8dd3edc37b4c87ae",
+      "outline_px": 2,
+      "event_frame_zero_based": 2,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    }
+  ]
+}

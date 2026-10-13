@@ -22,7 +22,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "0a8b9bb8755fb80fd4d8488cbf317c8016afa889cadb525b4c431417d13fc94c"
+      "sha256": "2116a676f539186b743082663009f89f1b533453b7f1a54b0a640e3fb42acf49"
     },
     {
       "file": "op_siege_run.png",
@@ -79,7 +79,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "9315bd11b5d00aebf679b29c8b826851293f6e946a102818479bf9103a9333ac"
+      "sha256": "2bf8a23b2b2725867b29f0208167059134833bf1d20382075c61f87252ceee49"
     },
     {
       "file": "op_skadi_idle.png",

@@ -1,0 +1,879 @@
+{
+  "brief": "84",
+  "engine_tested": false,
+  "palette_policy": "User approved: repair only specified strips; report inherited total colors without modifying other actions. New idle/run/command <=24; unchanged skill frames retain their existing colors.",
+  "operators": {
+    "ulpianus": {
+      "original_character_total_colors": 91,
+      "current_character_total_colors": 91,
+      "strips": {
+        "op_ulpianus_idle.png": {
+          "colors": 23,
+          "frame_count": 4,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "718708ee36836af5dc218f89b92030ff73e1043b8d0eb50b26b9d93badef491c"
+        },
+        "op_ulpianus_idle@2x.png": {
+          "colors": 23,
+          "frame_count": 4,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "591489dec926c5963bcacc16f285f6031986354273b12fd254740296771732e6"
+        },
+        "op_ulpianus_skill.png": {
+          "colors": 44,
+          "frame_count": 7,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "d11c4d24d2a85e93f3766b1277386a04e2b4da69249dc655d79909aea42ae584"
+        },
+        "op_ulpianus_skill@2x.png": {
+          "colors": 44,
+          "frame_count": 7,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "3a6228dede6dfab2375eabfe7a0c950a26c66cff844bbba06729a7cab9a3c7b4"
+        }
+      },
+      "skill_last_equals_idle_first": true,
+      "skill_other_frames_pixel_identical": true
+    },
+    "siege": {
+      "original_character_total_colors": 90,
+      "current_character_total_colors": 90,
+      "strips": {
+        "op_siege_command.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "064e64880c3f00228811947ff3f6b85bbeaf48c86d30cce45725142b3d1e3ed4"
+        },
+        "op_siege_command@2x.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "da316ac672d4f5f88e6285ce7fa683642a1d5774fcb7271e8dd3edc37b4c87ae"
+        },
+        "op_siege_idle.png": {
+          "colors": 23,
+          "frame_count": 4,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "2116a676f539186b743082663009f89f1b533453b7f1a54b0a640e3fb42acf49"
+        },
+        "op_siege_idle@2x.png": {
+          "colors": 23,
+          "frame_count": 4,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "fa09352939ec579f2861030743cb1a31ef7a8fea2780cecd3e56d50c93a09f70"
+        },
+        "op_siege_skill.png": {
+          "colors": 44,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "2bf8a23b2b2725867b29f0208167059134833bf1d20382075c61f87252ceee49"
+        },
+        "op_siege_skill@2x.png": {
+          "colors": 44,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "818504234f4ef5095f3d992181ade2f487759b106fa7e3ac56bbb8be21670d6e"
+        }
+      },
+      "skill_last_equals_idle_first": true,
+      "skill_other_frames_pixel_identical": true
+    }
+  },
+  "static_verifier": {
+    "assets": [
+      {
+        "file": "op_siege_idle.png",
+        "sha256": "2116a676f539186b743082663009f89f1b533453b7f1a54b0a640e3fb42acf49",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 841,
+            "index": 0,
+            "pixel_sha256": "4d34d32434a88e5034e186288180bec9e9a37f15761ad91fad87b2cdc3845da3",
+            "bbox": [
+              6,
+              8,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 817,
+            "index": 1,
+            "pixel_sha256": "647b2568b08e34100b25e6aab12d05a4b2f8a5c3ffc1dd0233ab1644fd1c1e47",
+            "bbox": [
+              6,
+              9,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 802,
+            "index": 2,
+            "pixel_sha256": "3a541b9d27632329d0157b029defcabd5202b9cc67927cf61ebc7f75853f0e05",
+            "bbox": [
+              6,
+              10,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 824,
+            "index": 3,
+            "pixel_sha256": "aad4b49d1ca98ff4570153478c6444737c1c38d122f31c78c8e2dd42bdf92f95",
+            "bbox": [
+              6,
+              9,
+              41,
+              46
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_siege_skill.png",
+        "sha256": "2bf8a23b2b2725867b29f0208167059134833bf1d20382075c61f87252ceee49",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 894,
+            "index": 0,
+            "pixel_sha256": "5fd1293e0b3c8014cec727aa5bb0bd0ce6525d8005b4c250009d93be12c72524",
+            "bbox": [
+              6,
+              8,
+              44,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 749,
+            "index": 1,
+            "pixel_sha256": "1ab6885fff963cc3a7f9620478c961577925f84c22aece97afabdfa9017cd520",
+            "bbox": [
+              8,
+              6,
+              39,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 853,
+            "index": 2,
+            "pixel_sha256": "05bacefd4cdd0a6bcd32b504aa62fdbe2b0f8fc2c7ab415df9ff25c6edb36b39",
+            "bbox": [
+              5,
+              4,
+              37,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 795,
+            "index": 3,
+            "pixel_sha256": "4689b143c2ce1a9fd3a0554ee42b89bed986c5a6ca977b16a7af0f82540bbadc",
+            "bbox": [
+              2,
+              14,
+              42,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 724,
+            "index": 4,
+            "pixel_sha256": "19b4e9668049e50f5520e76aab50e4522042b1802d1affe97471bb1997288412",
+            "bbox": [
+              3,
+              15,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 841,
+            "index": 5,
+            "pixel_sha256": "4d34d32434a88e5034e186288180bec9e9a37f15761ad91fad87b2cdc3845da3",
+            "bbox": [
+              6,
+              8,
+              41,
+              46
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_ulpianus_idle.png",
+        "sha256": "718708ee36836af5dc218f89b92030ff73e1043b8d0eb50b26b9d93badef491c",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 634,
+            "index": 0,
+            "pixel_sha256": "5132990970a39d65830d00e4420f0d7db3427175a74960e3b8da4908b1c87ca2",
+            "bbox": [
+              11,
+              14,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 607,
+            "index": 1,
+            "pixel_sha256": "2a0e5778cb817c42666dc59b87be41d702b46f83abc7bf6ee1e4eae2b51c1d5f",
+            "bbox": [
+              11,
+              15,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 585,
+            "index": 2,
+            "pixel_sha256": "17af2b89ccc9a5703c956f50525d90edc8c15dac8533577fd187dc673913f3af",
+            "bbox": [
+              11,
+              16,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 607,
+            "index": 3,
+            "pixel_sha256": "68d94d9051ee619a129d517de415a657b35f9c23e937addb2884b1c727b68abe",
+            "bbox": [
+              11,
+              15,
+              40,
+              46
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_ulpianus_skill.png",
+        "sha256": "d11c4d24d2a85e93f3766b1277386a04e2b4da69249dc655d79909aea42ae584",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 569,
+            "index": 0,
+            "pixel_sha256": "eb727aa159d9046acde862146e2da0d25ad89438fc44bf7de9cea5d0c4e53aea",
+            "bbox": [
+              11,
+              17,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 700,
+            "index": 1,
+            "pixel_sha256": "4520c5bf9919605b4a0141e7c0ba24e8ae3666cb2bcba59f0d222f7cf679fd42",
+            "bbox": [
+              9,
+              12,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 675,
+            "index": 2,
+            "pixel_sha256": "e9a8975176ae98cb1e5f13eb5e1636a20387ac92641dd26fd233d0164f4dfb34",
+            "bbox": [
+              7,
+              14,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 530,
+            "index": 3,
+            "pixel_sha256": "b20591fd76e609ecf9a24d3bb67559161e974d0dcd0d9dbbd0292184c0766fdb",
+            "bbox": [
+              10,
+              17,
+              44,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 503,
+            "index": 4,
+            "pixel_sha256": "95731b817d3b3cea7b2e3dfdf94c96f43399143d74fdab195f9478484f81a137",
+            "bbox": [
+              11,
+              17,
+              42,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 537,
+            "index": 5,
+            "pixel_sha256": "82d4449c3bd7d110272671fc1c267155c849854fd6cf1b97c46e7e08e0d7ca93",
+            "bbox": [
+              9,
+              17,
+              40,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 634,
+            "index": 6,
+            "pixel_sha256": "5132990970a39d65830d00e4420f0d7db3427175a74960e3b8da4908b1c87ca2",
+            "bbox": [
+              11,
+              14,
+              40,
+              46
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_ulpianus_idle@2x.png",
+        "sha256": "591489dec926c5963bcacc16f285f6031986354273b12fd254740296771732e6",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 2548,
+            "index": 0,
+            "pixel_sha256": "a4e90e3398f086382d4e17188acfe07753870707c3125a3755636c7453abcbb2",
+            "bbox": [
+              21,
+              27,
+              81,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2441,
+            "index": 1,
+            "pixel_sha256": "1ffd5fd286f9955867357306ec70dbaed81437c47b4c4464ccef37d14b8e7018",
+            "bbox": [
+              21,
+              29,
+              81,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2346,
+            "index": 2,
+            "pixel_sha256": "8c9f3c0e205a1175c53353c873c0b4d89573b5b78b58fb42c62134b873218b35",
+            "bbox": [
+              21,
+              31,
+              81,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2441,
+            "index": 3,
+            "pixel_sha256": "4c99871e44f61e7a3f403880a99eb2953718b3dc5fd52a8207621458c4d77ae9",
+            "bbox": [
+              21,
+              29,
+              81,
+              92
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_ulpianus_skill@2x.png",
+        "sha256": "3a6228dede6dfab2375eabfe7a0c950a26c66cff844bbba06729a7cab9a3c7b4",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 2300,
+            "index": 0,
+            "pixel_sha256": "e57084f55369e0351e0efeb7a795d33f9dfe8b27ba8d764a516193453e3911d7",
+            "bbox": [
+              21,
+              32,
+              82,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2796,
+            "index": 1,
+            "pixel_sha256": "2416dd89df2b91c1ef0d91e4bb9a2987c0e2e79003430b0017cb38eadae8cebd",
+            "bbox": [
+              18,
+              24,
+              81,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2698,
+            "index": 2,
+            "pixel_sha256": "febf617e42f0054ed7df25bb2920d14ca8c4c901a1cf4fb7d71c15df08033c8b",
+            "bbox": [
+              13,
+              28,
+              80,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2131,
+            "index": 3,
+            "pixel_sha256": "12b6c1d8e2146c6e2b1ebd7e0077790a2805416ab356c9610098fa52a57b4d2d",
+            "bbox": [
+              20,
+              34,
+              89,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2023,
+            "index": 4,
+            "pixel_sha256": "91ded8bcee000566af9a1235f11adf8c817acf80c71ff8895d963abdd8c03633",
+            "bbox": [
+              21,
+              34,
+              84,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2142,
+            "index": 5,
+            "pixel_sha256": "962c868fa684d5ab58fc7a645fcb32a220a386e62c95b2b7945211857504fe1f",
+            "bbox": [
+              18,
+              34,
+              80,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2548,
+            "index": 6,
+            "pixel_sha256": "a4e90e3398f086382d4e17188acfe07753870707c3125a3755636c7453abcbb2",
+            "bbox": [
+              21,
+              27,
+              81,
+              92
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_siege_idle@2x.png",
+        "sha256": "fa09352939ec579f2861030743cb1a31ef7a8fea2780cecd3e56d50c93a09f70",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 3348,
+            "index": 0,
+            "pixel_sha256": "8cd5225cbf0bfb607563314e331f427c8dc3828ba7c1e3e12d48b8413c80597f",
+            "bbox": [
+              11,
+              16,
+              83,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3267,
+            "index": 1,
+            "pixel_sha256": "28de2a692468b6da5663b6c8104379e957c5abf8077a5dfab8c687bd1a7fb535",
+            "bbox": [
+              11,
+              18,
+              83,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3187,
+            "index": 2,
+            "pixel_sha256": "bbf2590868dc28ba806b550862c2b411f116baa89f1cdcca0a0bfea49387e1f7",
+            "bbox": [
+              11,
+              20,
+              83,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3298,
+            "index": 3,
+            "pixel_sha256": "5148703f6df3373d0e686ce309ebf4792c3d46ce7a98318420cac19c1d3cbbc2",
+            "bbox": [
+              11,
+              18,
+              83,
+              92
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_siege_skill@2x.png",
+        "sha256": "818504234f4ef5095f3d992181ade2f487759b106fa7e3ac56bbb8be21670d6e",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 3586,
+            "index": 0,
+            "pixel_sha256": "ddb5b5457a3b939df4dae4a2c22e308fbe48bbbceb63f9470d1887ff86916d3a",
+            "bbox": [
+              11,
+              16,
+              89,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2955,
+            "index": 1,
+            "pixel_sha256": "ef4152d9507dcbd9bfd87f2cce6485189187ce89470f5e91dec3554eb930fbbe",
+            "bbox": [
+              16,
+              12,
+              78,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3385,
+            "index": 2,
+            "pixel_sha256": "aa3a6779ca622996a561fff731919d3a06c34328d291393dea5bc7dbb56ba93d",
+            "bbox": [
+              10,
+              8,
+              75,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3164,
+            "index": 3,
+            "pixel_sha256": "c070ae8d45902d13aabbaad5c1d1ef53b5fa5a71835b1da9bcfe2c19fd24dbc3",
+            "bbox": [
+              3,
+              28,
+              85,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2895,
+            "index": 4,
+            "pixel_sha256": "fece2590eb3d77af7a3eb4591be269c76ed4b87abca0255da0e867efcf10a3b4",
+            "bbox": [
+              5,
+              30,
+              83,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3348,
+            "index": 5,
+            "pixel_sha256": "8cd5225cbf0bfb607563314e331f427c8dc3828ba7c1e3e12d48b8413c80597f",
+            "bbox": [
+              11,
+              16,
+              83,
+              92
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_siege_command.png",
+        "sha256": "064e64880c3f00228811947ff3f6b85bbeaf48c86d30cce45725142b3d1e3ed4",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 841,
+            "index": 0,
+            "pixel_sha256": "4d34d32434a88e5034e186288180bec9e9a37f15761ad91fad87b2cdc3845da3",
+            "bbox": [
+              6,
+              8,
+              41,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 709,
+            "index": 1,
+            "pixel_sha256": "9b2ba5b1322b13df12f79a0cf62153cf294aa6ac3ff158850fcb325724b42ed6",
+            "bbox": [
+              9,
+              13,
+              39,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 769,
+            "index": 2,
+            "pixel_sha256": "6f5ab6ced42021ac0472817c7cd35edde2cc3bd2ff0e8e0d9f2d3b573d74d47c",
+            "bbox": [
+              10,
+              2,
+              38,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 787,
+            "index": 3,
+            "pixel_sha256": "318bd05aad4730709b955500fdbb5ac73e54785359d66f5d19011c2ed427a52f",
+            "bbox": [
+              10,
+              1,
+              38,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 727,
+            "index": 4,
+            "pixel_sha256": "82f49f76b4fdbcf62bbf84bab68bf280da2d30d38c13877e09457561d940897e",
+            "bbox": [
+              10,
+              9,
+              38,
+              46
+            ]
+          },
+          {
+            "opaque_pixels": 841,
+            "index": 5,
+            "pixel_sha256": "4d34d32434a88e5034e186288180bec9e9a37f15761ad91fad87b2cdc3845da3",
+            "bbox": [
+              6,
+              8,
+              41,
+              46
+            ]
+          }
+        ]
+      },
+      {
+        "file": "op_siege_command@2x.png",
+        "sha256": "da316ac672d4f5f88e6285ce7fa683642a1d5774fcb7271e8dd3edc37b4c87ae",
+        "outline": "080E18",
+        "binary_alpha": true,
+        "frames": [
+          {
+            "opaque_pixels": 3348,
+            "index": 0,
+            "pixel_sha256": "8cd5225cbf0bfb607563314e331f427c8dc3828ba7c1e3e12d48b8413c80597f",
+            "bbox": [
+              11,
+              16,
+              83,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2812,
+            "index": 1,
+            "pixel_sha256": "4f8f3053a6f2c85334ee305a1727f37bd566c66fbcbded2254af0d1d56881065",
+            "bbox": [
+              18,
+              25,
+              78,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3086,
+            "index": 2,
+            "pixel_sha256": "d29eca0ddf6318a10b0e37f45a08e891e4ab02e21961d6b8bf47c90f3e0ff090",
+            "bbox": [
+              19,
+              3,
+              76,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3151,
+            "index": 3,
+            "pixel_sha256": "da287e060f14401c56d510ab2024b449b6d50d37370be8e18c9257c01f88137c",
+            "bbox": [
+              19,
+              2,
+              76,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 2896,
+            "index": 4,
+            "pixel_sha256": "654fe78c82fc281a3ba176527721cf0d806a8da24957e3a5fdc63304b0f746cc",
+            "bbox": [
+              19,
+              18,
+              77,
+              92
+            ]
+          },
+          {
+            "opaque_pixels": 3348,
+            "index": 5,
+            "pixel_sha256": "8cd5225cbf0bfb607563314e331f427c8dc3828ba7c1e3e12d48b8413c80597f",
+            "bbox": [
+              11,
+              16,
+              83,
+              92
+            ]
+          }
+        ]
+      }
+    ],
+    "engine_tested": false,
+    "palette_counts": [
+      {
+        "colors": 44,
+        "character": "ulpianus"
+      },
+      {
+        "colors": 44,
+        "character": "siege"
+      }
+    ],
+    "baseline_checked": true,
+    "allow_repeated_frames": true,
+    "passed": true
+  }
+}
