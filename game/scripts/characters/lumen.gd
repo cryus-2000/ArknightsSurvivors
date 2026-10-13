@@ -73,7 +73,7 @@ func update(dt: float) -> void:
 	heal_t += dt
 	if cd <= 0.0:
 		# 手动普攻 B 类（契约 v2.5）：光弹要按攻击键；治疗 / 驱散照旧自动（到点照样起手，只是不射光弹）
-		var ts: Array = attack_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
+		var ts: Array = attack_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos) if manual_attack() else los_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
 		bolt_armed = not ts.is_empty()
 		if not ts.is_empty() or heal_t >= base("heal_cd", 3.0):
 			cd = base("bolt_cd", 1.0) / stat(&"op_aspd")
@@ -105,7 +105,7 @@ func _release() -> void:
 		g.fx.append({"kind": "beam", "a": lamp_hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": WARM, "w": 2.5})
 	hand_glow = 0.18   # 与出手动作等长，提灯放下后不再悬着光点（docs/45 #15）
 	# 光弹（手动普攻时只有按了攻击键的这一下才射）
-	var ts: Array = aim_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos) if bolt_armed or not manual_attack() else []
+	var ts: Array = (aim_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos) if bolt_armed else []) if manual_attack() else los_targets(1, base("bolt_range", 330.0) * stat(&"op_range"), pos)
 	if not ts.is_empty():
 		var d: Vector2 = (ts[0].pos - lamp_hand).normalized()
 		if bolts.size() < BOLT_MAX:
@@ -136,6 +136,9 @@ func _update_bolts(dt: float) -> void:
 		b.pos += b.vel * dt
 		b.life -= dt
 		mote_t -= dt
+		if b.life > 0.0 and g.map.tb_bul and g.map.bullet_blocked(b, b.pos):   # 地形阻挡：光弹撞景物底座即消失
+			b.life = 0.0
+			continue
 		for j in query_ids(b.pos, 30.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(b.pos) > e.r + 8.0:
@@ -309,7 +312,7 @@ func _update_units(dt: float) -> void:
 		unit_cd[k] -= dt
 		if unit_cd[k] > 0.0:
 			continue
-		var ts: Array = nearest_enemies(1, rng_r, pos)
+		var ts: Array = los_targets(1, rng_r, pos, _unit_pos(k))   # 地形阻挡：发光单元的光弹也是直线弹
 		if ts.is_empty() or bolts.size() >= BOLT_MAX:
 			unit_cd[k] = 0.15
 			continue

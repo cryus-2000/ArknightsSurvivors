@@ -2853,12 +2853,20 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:
 			out.resize(n)
+	if not o.manual_attack() and o.g.map.tb_aim and o.g.map.blocks():
+		# 地形阻挡（terrain/aim_los）：自动瞄准时视线内的先（按上面的顺序补被挡的；全被挡 = 原结果）
+		var all: Array = out.duplicate()
+		for kv in keyed:
+			if not all.has(kv[2]):
+				all.append(kv[2])
+		out = o.los_sort(all, n)
 	return out
 
 
 ## 普攻起手点（data_operator.update 的 projectile 分支）：B 需要目标类手动普攻走 attack_targets
 static func exu_aim(o, a: Dictionary) -> Vector2:
-	var ts: Array = o.attack_targets(1, _exu_range(o, _exu_params(o, a, true)), o.pos)
+	var rr: float = _exu_range(o, _exu_params(o, a, true))
+	var ts: Array = o.attack_targets(1, rr, o.pos) if o.manual_attack() else o.los_targets(1, rr, o.pos)
 	return ts[0].pos if not ts.is_empty() else Vector2.INF
 
 
@@ -2992,6 +3000,9 @@ static func _exu_bullets(o, dt: float) -> void:
 		if bu.life <= 0.0:
 			continue
 		var q: Vector2 = bu.p - Vector2(0, EXU_AIM_Y)
+		if g.map.tb_bul and g.map.bullet_blocked(bu, q):   # 地形阻挡：弹道（含跳弹）撞景物底座即消失
+			bu.life = 0.0
+			continue
 		for j in o.query_ids(q, 32.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or bu.hit.has(e.id) or e.pos.distance_to(q) > float(e.r) + EXU_HIT_PAD:

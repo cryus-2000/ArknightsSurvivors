@@ -95,6 +95,10 @@ func update_bullets(dt: float) -> void:
 			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
+		# 地形阻挡：直线弹（艾雅法拉熔岩弹等）撞景物底座即消失；追踪弹（home / 导弹）不挡
+		if g.map.tb_bul and not b.has("home") and not b.has("accel") and g.map.bullet_blocked(b, b.pos):
+			b.life = 0.0
+			continue
 		if b.kind == "fire" and not b.get("hidden", false):
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:

@@ -5,6 +5,7 @@ extends RefCounted
 const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const Bal = preload("res://scripts/core/balance.gd")
 
 var g                              # Game (Node2D)
 var id := ""
@@ -360,6 +361,14 @@ var _po_reach := -1.0       # < 0 = 未算；开局 / 换主题时重算
 var _po_cell := 560.0
 var _po_rx := 0.0           # 底座椭圆最大横半径
 var _po_ry := 0.0           # 最大纵半径
+## 地形阻挡（10-13 用户批准）：直线子弹撞景物底座即消失、冲刺撞底座即停、直线弹干员优先选视线内目标。旋钮 balance terrain/*
+var tb_bul := true          # 我方直线弹
+var tb_ebul := true         # 敌方直线弹（非 Boss）
+var tb_boss := false        # Boss 直线弹（缺省不挡：Boss 弹幕按预警设计）
+var tb_aim := true          # 自动瞄准优先视线内目标
+var tb_dash := true         # 冲刺撞停
+var tb_dash_px := 3.0       # 冲刺这一帧被推出超过此像素算撞上
+var tb_log := {"bul": 0, "ebul": 0, "dash": 0}   # 遥测（只记录）：本局挡下的我方 / 敌方直线弹、撞停的冲刺次数（telemetry.record 的 terrain）
 
 
 func _po_setup() -> void:
@@ -373,7 +382,14 @@ func _po_setup() -> void:
 		if tx != null:
 			_po_rx = maxf(_po_rx, tx.get_width() * px * float(rxk.get("terrain", 0.36) if String(name).begins_with("terrain") else rxk.get("default", 0.3)))
 	_po_ry = _po_rx * float(bd.get("base_ry", 0.38))
-	_po_reach = 0.0 if lst.is_empty() else 1.0
+	_po_reach = 0.0 if lst.is_empty() or _po_rx <= 0.0 else 1.0
+	# 地形阻挡旋钮（balance terrain/*，开局 / 换主题时读一次；逐弹逐帧不查 Bal）
+	tb_bul = Bal.v("terrain/block_bullets", 1.0) > 0.0
+	tb_ebul = Bal.v("terrain/block_enemy_bullets", 1.0) > 0.0
+	tb_boss = Bal.v("terrain/block_boss_bullets", 0.0) > 0.0
+	tb_aim = Bal.v("terrain/aim_los", 1.0) > 0.0
+	tb_dash = Bal.v("terrain/dash_stop", 1.0) > 0.0
+	tb_dash_px = Bal.v("terrain/dash_stop_px", 3.0)
 
 
 ## 把圆形实体推出景物底座（椭圆）
@@ -414,6 +430,77 @@ func push_out(pos: Vector2, r: float) -> Vector2:
 				var qn := q / ql
 				pos = c + Vector2(qn.x * rx, qn.y * ry)
 	return pos
+
+
+## 本局有没有会挡东西的景物（无景物主题 = false）；g.perf_alt：--perfab 同局轮换时 /b 桶整体关掉阻挡（量净成本用，正常游戏恒为 false）
+func blocks() -> bool:
+	if _po_reach < 0.0:
+		_po_setup()
+	return _po_reach > 0.0 and not g.perf_alt
+
+
+## 邻格粗筛：景物中心 x ∈ [cx·cell + 90, + 469]，底座中心再上移 0.6·ry；[x0, x1] × [y0, y1] 够得着的格子范围
+func _cells(x0: float, y0: float, x1: float, y1: float) -> Rect2i:
+	var cell: float = _po_cell
+	var ax := ceili((x0 - _po_rx - 469.0) / cell)
+	var bx := floori((x1 + _po_rx - 90.0) / cell)
+	var ay := ceili((y0 - _po_ry - 469.0) / cell)
+	var by := floori((y1 + _po_ry * 1.6 - 90.0) / cell)
+	return Rect2i(ax, ay, bx - ax, by - ay)
+
+
+## 点是否在任一景物底座椭圆内（与 push_out 同一椭圆，r = 0）
+func point_blocked(p: Vector2) -> bool:
+	if not blocks():
+		return false
+	var rc := _cells(p.x, p.y, p.x, p.y)
+	for cx in range(rc.position.x, rc.end.x + 1):
+		for cy in range(rc.position.y, rc.end.y + 1):
+			var bp := _big_prop(cx, cy)
+			if bp.is_empty():
+				continue
+			var d: Vector2 = p - (bp[1] + Vector2(0, -bp[4] * 0.6))
+			var qx: float = d.x / bp[3]
+			var qy: float = d.y / bp[4]
+			if qx * qx + qy * qy < 1.0:
+				return true
+	return false
+
+
+## 线段 a→b 是否穿过任一景物底座椭圆（自动瞄准的视线判定）
+func segment_blocked(a: Vector2, b: Vector2) -> bool:
+	if not blocks():
+		return false
+	var rc := _cells(minf(a.x, b.x), minf(a.y, b.y), maxf(a.x, b.x), maxf(a.y, b.y))
+	for cx in range(rc.position.x, rc.end.x + 1):
+		for cy in range(rc.position.y, rc.end.y + 1):
+			var bp := _big_prop(cx, cy)
+			if bp.is_empty():
+				continue
+			# 缩放到单位圆：椭圆 → 圆，线段到圆心最近距离 < 1 即穿过
+			var c: Vector2 = bp[1] + Vector2(0, -bp[4] * 0.6)
+			var sc := Vector2(1.0 / bp[3], 1.0 / bp[4])
+			var pa: Vector2 = (a - c) * sc
+			var ab: Vector2 = (b - a) * sc
+			var l2: float = ab.length_squared()
+			var k: float = 0.0 if l2 < 0.0001 else clampf(-pa.dot(ab) / l2, 0.0, 1.0)
+			if (pa + ab * k).length_squared() < 1.0:
+				return true
+	return false
+
+
+## 直线弹撞岩：p = 弹体的地面判定点。只在「先在底座外、后进底座」时算撞上
+##（出手点落在底座里的，例如站在岩石正下方抬手出手，先放行到它飞出底座）。撞上时播碎屑
+func bullet_blocked(b: Dictionary, p: Vector2, enemy := false) -> bool:
+	if not point_blocked(p):
+		if not b.has("tbo"):
+			b["tbo"] = true
+		return false
+	if not b.has("tbo"):
+		return false
+	g.vfx.rock_chip(p, b.get("vel", b.get("v", Vector2.ZERO)))
+	tb_log["ebul" if enemy else "bul"] += 1
+	return true
 
 
 # ------------------------------------------------------------------ 氛围层
