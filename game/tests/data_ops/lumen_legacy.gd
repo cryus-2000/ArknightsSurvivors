@@ -6,6 +6,10 @@
 ## 挂点：heal_leader / g.corrode_pool / g.nerve / g.lamp；光弹是本脚本自己推进的投射物（不改 game.gd 的子弹表）；
 ## 圣域通过 sanctuary()、光照半径通过 light_radius_mult() 供 game.gd 询问（同 dmg_taken_mult 模式）。
 ## 可见成长（docs/25 §5）：N1 发光单元 / N2 灯影成双 / N4 沐雨 / N5 灯塔守望 / 精二质变 灯火不灭。
+## ⚠ 测试参照（10-14 起）：流明已迁成数据干员（data/characters/lumen.json 的 blocks，docs/61 §19），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=lumen=res://tests/data_ops/lumen_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：灯塔光域里漂浮光尘的位置；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const WARM := Color(1.0, 0.85, 0.55)
@@ -164,7 +168,7 @@ func _update_bolts(dt: float) -> void:
 			b.life = 0.0
 			if not spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
 				fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": WARM, "alpha": 0.6})
-			fx_sparks(e.pos + Vector2(0, -e.r * 0.5), WARM, 4, 120.0, 0.3, 2.0)
+			_vsparks(e.pos + Vector2(0, -e.r * 0.5), WARM, 4, 120.0, 0.3, 2.0)
 			break
 	bolts = bolts.filter(func(b): return b.life > 0.0)
 
@@ -258,8 +262,8 @@ func _update_tower(dt: float) -> void:
 	mote_t -= dt
 	if mote_t <= 0.0:
 		mote_t = 0.06
-		var a: float = g.rng.randf() * TAU
-		var rr: float = g.rng.randf() * r
+		var a: float = g.vrng.randf() * TAU
+		var rr: float = g.vrng.randf() * r
 		fx({"kind": "mote", "pos": tower_pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -35), "life": 0.8, "col": WARM, "sz": 1.8})
 	if tower_t <= 0.0:
 		_light_burst()
@@ -273,7 +277,7 @@ func _light_burst() -> void:
 	for i in 3:
 		fx({"kind": "ring", "pos": tower_pos, "r": r * (0.6 + 0.2 * i), "r0": 16.0, "life": 0.4 + 0.1 * i, "col": WARM, "floor": true, "w": 4.0 - i})
 	g.fx.append({"kind": "rays", "pos": tower_pos + Vector2(0, -40), "life": 0.6, "max": 0.6, "col": WARM, "op_spoke": true})
-	fx_sparks(tower_pos + Vector2(0, -30), WARM, 18, 240.0, 0.5, 3.0, 160.0)
+	_vsparks(tower_pos + Vector2(0, -30), WARM, 18, 240.0, 0.5, 3.0, 160.0)
 	float_text(tower_pos + Vector2(0, -90), "光爆", WARM, 18)
 	g.shake = maxf(g.shake, 4.0)
 	Sfx.op(id, "big")
@@ -332,7 +336,7 @@ func _update_units(dt: float) -> void:
 					charge_n = 0
 					empowered = int(base("charge_shots", 8.0))
 					fx({"kind": "ring", "pos": pos + Vector2(0, -94), "r": 22.0, "r0": 4.0, "life": 0.4, "col": WARM, "keep": true})
-					fx_sparks(pos + Vector2(0, -94), WARM, 8, 120.0, 0.4, 2.0)
+					_vsparks(pos + Vector2(0, -94), WARM, 8, 120.0, 0.4, 2.0)
 		unit_fire[k] = g.t
 		unit_fdir[k] = -1.0 if d.x < 0.0 else 1.0
 		bolts.append({"pos": up, "vel": d * (340.0 if big else 400.0), "dmg": dmg, "life": 1.4, "src": "发光单元", "big": big,
@@ -568,3 +572,11 @@ func status_items() -> Array:
 	if immune_t > 0.0:
 		out.append(["净化", PALE])
 	return out
+
+
+## 同 character.gd fx_sparks，只是随机数用 g.vrng（画面粒子不碰玩法随机数，见文件开头）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

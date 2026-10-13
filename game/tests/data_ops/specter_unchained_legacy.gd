@@ -5,6 +5,10 @@
 ## 天赋 拥抱自我：替身每秒对周围 120 内敌人法伤并减速；灯火 <30「昏暗」时她的伤害 +25%。
 ## 主控不死通过 prevent_death() 供 game.gd 询问（同 dmg_taken_mult 模式）；替身是不动的附属实体（extra_bodies）。
 ## 可见成长（docs/25 §5）：N1 双重回转 / N2 血色潮痕 / N4 困兽 / N5 阿戈尔挽歌 / 精二质变 无尽回旋。
+## ⚠ 测试参照（10-14 起）：归溟幽灵鲨已迁成数据干员（data/characters/specter_unchained.json 的 blocks，docs/61 §19），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=specter_unchained=res://tests/data_ops/specter_unchained_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：求生之技气焰的出现与位置、锯环起始角、锯过的火星散布、挽歌水纹光点；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const GHOST := Color(0.75, 0.85, 0.95)
@@ -107,8 +111,8 @@ func update(dt: float) -> void:
 			_fall()
 	_update_doll(dt)
 	_update_rings(dt)
-	if s1_t > 0.0 and not away() and g.rng.randf() < dt * 14.0:
-		fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-16, 16), g.rng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
+	if s1_t > 0.0 and not away() and g.vrng.randf() < dt * 14.0:
+		fx({"kind": "mote", "pos": pos + Vector2(g.vrng.randf_range(-16, 16), g.vrng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_update_spins(dt)
 	if away() or acting() or fall_t > 0.0:
 		return
@@ -206,15 +210,15 @@ func _spin(dmg: float, kind: int) -> void:
 	# 持续段只画程序锯环（每 0.15 秒一段，帧条叠太多会糊成一片）
 	if kind == 2 or not spawn_fx_sprite("fx_specter_saw_blood" if heavy else "fx_specter_saw", pos + Vector2(0, -6), r / 40.0, 0.0, rev):
 		fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r * (0.9 if kind == 2 else 1.0), "life": 0.3 if heavy else 0.24, "col": RED if heavy else GHOST,
-			"spin": (-1.0 if rev else 1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.rng.randf() * TAU})
+			"spin": (-1.0 if rev else 1.0) * (26.0 if heavy else 34.0), "tooth": 8.0 if heavy else 6.0, "ang": g.vrng.randf() * TAU})
 	# 第二圈：外侧再加一道淡蓝锯环，两道锯痕一眼可辨
 	if kind == 1:
 		fx({"kind": "saw", "pos": pos + Vector2(0, -8), "r": r * 1.08, "life": 0.22, "col": RED if heavy else Color(0.6, 0.75, 0.95),
-			"spin": (-1.0 if rev else 1.0) * 30.0, "tooth": 5.0, "ang": g.rng.randf() * TAU})
+			"spin": (-1.0 if rev else 1.0) * 30.0, "tooth": 5.0, "ang": g.vrng.randf() * TAU})
 	for e in hits:
 		var ea: float = (e.pos - pos).angle() + PI / 2.0 * (-1.0 if rev else 1.0)
 		for k in (3 if kind == 0 else 1):
-			fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": Vector2.from_angle(ea + g.rng.randf_range(-0.35, 0.35)) * g.rng.randf_range(160, 300),
+			fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": Vector2.from_angle(ea + g.vrng.randf_range(-0.35, 0.35)) * g.vrng.randf_range(160, 300),
 				"life": 0.22, "col": Color(1.4, 1.55, 1.75) if not heavy else Color(1.6, 0.5, 0.55), "sz": 2.0, "drag": 3.0})
 	# 求生之压：每一斩脚下砸出地裂 + 短顿帧（慢而重）
 	if s3_t > 0.0 and kind == 0:
@@ -251,7 +255,7 @@ func _release_skill() -> void:
 	# 原来只在脚下画光环，锯头落地处什么都没有（docs/32 §3）
 	var saw: Vector2 = pos + Vector2(27.0 * face, 0)
 	fx({"kind": "ring", "pos": saw, "r": 30.0, "r0": 6.0, "life": 0.3, "col": GHOST if cur_skill < 2 else RED, "floor": true, "w": 3.0})
-	fx_sparks(saw + Vector2(0, -13), Color(0.85, 0.9, 1.0) if cur_skill < 2 else RED, 8, 200.0, 0.3, 2.5, 320.0)
+	_vsparks(saw + Vector2(0, -13), Color(0.85, 0.9, 1.0) if cur_skill < 2 else RED, 8, 200.0, 0.3, 2.5, 320.0)
 
 
 func skill_active_left(i: int) -> float:
@@ -307,7 +311,7 @@ func _fall() -> void:
 	melee_tgt = null
 	float_text(pos + Vector2(0, -60), "替身", GHOST, 15)
 	fx({"kind": "glow", "pos": pos + Vector2(0, -24), "r": 30.0, "life": 0.5, "col": GHOST, "alpha": 0.6})
-	fx_sparks(pos + Vector2(0, -20), GHOST, 10, 120.0, 0.5, 2.5)
+	_vsparks(pos + Vector2(0, -20), GHOST, 10, 120.0, 0.5, 2.5)
 
 
 func _update_doll(dt: float) -> void:
@@ -326,7 +330,7 @@ func _update_doll(dt: float) -> void:
 			var er: float = _doll_slow_r()
 			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er, "r0": 14.0, "life": 1.6, "col": Color(0.45, 0.75, 1.1), "floor": true, "w": 2.5, "alpha": 0.7, "keep": true})
 			fx({"kind": "ring", "pos": doll_pos + Vector2(0, 2), "r": er * 0.7, "r0": 6.0, "life": 1.2, "col": Color(0.8, 0.95, 1.3), "floor": true, "w": 1.5, "alpha": 0.45, "keep": true})
-			fx({"kind": "mote", "pos": doll_pos + Vector2(g.rng.randf_range(-8, 8), -40), "vel": Vector2(g.rng.randf_range(-10, 10), -26.0), "life": 1.0, "col": Color(0.6, 0.85, 1.2), "sz": 2.0})
+			fx({"kind": "mote", "pos": doll_pos + Vector2(g.vrng.randf_range(-8, 8), -40), "vel": Vector2(g.vrng.randf_range(-10, 10), -26.0), "life": 1.0, "col": Color(0.6, 0.85, 1.2), "sz": 2.0})
 	# 天赋：替身光环每秒法伤 + 减速（挽歌：减速范围翻倍，伤害范围不变）
 	if elite >= 1:
 		doll_tick += dt
@@ -377,7 +381,7 @@ func _update_rings(dt: float) -> void:
 					continue
 				log_hit("血色潮痕")
 				deal_damage(e, rg.dmg)
-			fx_sparks(rg.pos + Vector2(0, 2), Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 2.0, 0.0, true)
+			_vsparks(rg.pos + Vector2(0, 2), Color(1.1, 0.3, 0.4), 3, 60.0, 0.35, 2.0, 0.0, true)
 	rings = rings.filter(func(rg): return rg.t > 0.0)
 
 
@@ -499,3 +503,11 @@ func status_items() -> Array:
 	if doll_t > 0.0:
 		out.append(["替身 %d" % int(ceil(doll_t)), GHOST])
 	return out
+
+
+## 同 character.gd fx_sparks，只是随机数用 g.vrng（画面粒子不碰玩法随机数，见文件开头）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

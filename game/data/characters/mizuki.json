@@ -3,7 +3,7 @@
  "name": "水月",
  "en": "MIZUKI",
  "class": "特种",
- "script": "res://scripts/characters/mizuki.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "sprites": {
   "base": "player",
   "idle": "player_idle",
@@ -23,7 +23,37 @@
   "swing_interval": 0.9,
   "swing_arc": 150,
   "tentacle_mult": 0.6,
-  "awaken_swings": 7
+  "awaken_swings": 7,
+  "s1_mult": 3.0,
+  "s1_radius": 1.3,
+  "s1_burst_r": 80,
+  "s1_burst_mult": 0.6,
+  "s1_kb": 360,
+  "s1_stack": 3,
+  "s2_dur": 12.0,
+  "s2_interval": 0.5,
+  "s2_bind": 1.0,
+  "s3_dur": 14.0,
+  "s3_radius": 1.45,
+  "s3_mult": 1.8,
+  "s3_stun": 0.6,
+  "s3_echo_mult": 0.6,
+  "s3_echo_stun": 0.3,
+  "s3_bind": 1.0,
+  "half_base": 75,
+  "aim_pad": 60,
+  "min_cd": 0.18,
+  "kb": 240,
+  "stake_life": 1.5,
+  "stake_every": 0.5,
+  "stake_r": 60,
+  "stake_max": 6,
+  "stake_mult": 0.4,
+  "talent_mult": 1.22,
+  "talent_r": 160,
+  "kill_heal": 0.01,
+  "kill_regen": 0.05,
+  "kill_cap": 0.05
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -207,5 +237,306 @@
    "范围"
   ],
   "desc": "持伞近战，触手追击生命最低的敌人"
+ },
+ "stat_defs": {
+  "mizuki_umbrella_dmg": {
+   "base": 1.0,
+   "name": "伞击伤害倍率"
+  },
+  "mizuki_umbrella_area": {
+   "base": 1.0,
+   "name": "伞击范围倍率"
+  },
+  "mizuki_umbrella_interval": {
+   "base": 1.0,
+   "min": 0.2,
+   "name": "挥伞间隔倍率（越小越快）"
+  },
+  "mizuki_umbrella_arc": {
+   "base": 0.0,
+   "name": "挥砍角度加成（度）"
+  },
+  "mizuki_tentacle_mult": {
+   "base": 0.6,
+   "name": "触手追击伤害系数"
+  },
+  "mizuki_tentacle_targets": {
+   "base": 1.0,
+   "min": 1.0,
+   "name": "触手追击目标数"
+  },
+  "mizuki_s1_swings": {
+   "base": 7.0,
+   "min": 5.0,
+   "name": "唤醒所需挥伞次数"
+  }
+ },
+ "blocks": {
+  "_doc": "水月（docs/61 §19）：不等动作（flow free）；普攻伞击 + 触手追击；S1 唤醒（下一次伞击强化，可叠 3 次）；S2 囚徒困境（挥伞加速、束缚）；S3 镜花水月（三方向 + 镜像）；天赋反移情。原手写脚本留作 tests/data_ops/mizuki_legacy.gd",
+  "dmg_bonus": {
+   "ally": false,
+   "mults": [
+    {
+     "cond": "elite >= 1",
+     "near_low_hp": {
+      "r": "$talent_r",
+      "below": 0.5
+     },
+     "mult": "$talent_mult",
+     "_doc": "天赋反移情：附近有半血敌人时自身伤害 +22%"
+    }
+   ]
+  },
+  "attack": {
+   "shape": "umbrella",
+   "flow": "free",
+   "src": "伞击",
+   "atk_key": "umbrella_dmg",
+   "r": "$swing_radius",
+   "half_deg": "$half_base",
+   "every": "$swing_interval",
+   "first": 0,
+   "idle": 0.1,
+   "aim_pad": "$aim_pad",
+   "min_cd": "$min_cd",
+   "slow_mult": 1.5,
+   "kb": "$kb",
+   "stats": {
+    "dmg": "mizuki_umbrella_dmg",
+    "area": "mizuki_umbrella_area",
+    "interval": "mizuki_umbrella_interval",
+    "arc": "mizuki_umbrella_arc",
+    "t_mult": "mizuki_tentacle_mult",
+    "t_n": "mizuki_tentacle_targets"
+   },
+   "r_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_radius"
+    }
+   ],
+   "dmg_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_mult"
+    }
+   ],
+   "interval_mults": [
+    {
+     "cond": "skill_active:1",
+     "mult": "$s2_interval"
+    }
+   ],
+   "dirs": [
+    {
+     "cond": "skill_active:2",
+     "n": 3
+    }
+   ],
+   "stun": [
+    {
+     "cond": "skill_active:2",
+     "dur": "$s3_stun"
+    }
+   ],
+   "mirror_skill": 2,
+   "tentacle": {
+    "src": "触手",
+    "n_add": [
+     {
+      "cond": "skill_active:1",
+      "n": 1
+     },
+     {
+      "cond": "skill_active:2",
+      "n": 1
+     }
+    ],
+    "stun": [
+     {
+      "cond": "skill_active:2",
+      "dur": "$s3_bind"
+     },
+     {
+      "cond": "skill_active:1",
+      "dur": "$s2_bind"
+     }
+    ],
+    "stun_min": 0.25,
+    "more_r": 1.6,
+    "drag": {
+     "cond": "node:bind_drag && skill_active:1",
+     "kb": 320,
+     "kb_elite": 160
+    },
+    "stake": {
+     "cond": "elite >= 2",
+     "life": "$stake_life",
+     "every": "$stake_every",
+     "r": "$stake_r",
+     "max": "$stake_max",
+     "mult": "$stake_mult",
+     "_doc": "精二固着：触手命中后留在原地抽打 1.5 秒（最多 6 根）"
+    }
+   },
+   "echo": {
+    "cond": "skill_active:2",
+    "delay": 0.12,
+    "mult": "$s3_echo_mult",
+    "stun": "$s3_echo_stun",
+    "near": 1.4,
+    "src": "技能",
+    "tags": [
+     "echo"
+    ]
+   },
+   "look": {
+    "deep": [
+     0.22,
+     0.34,
+     0.88
+    ],
+    "deep_rej": [
+     0.62,
+     0.34,
+     1.0
+    ],
+    "pale": [
+     0.62,
+     0.9,
+     1.35
+    ],
+    "pale_rej": [
+     1.25,
+     0.7,
+     1.6
+    ],
+    "jelly_glow": {
+     "cond": "elite >= 2"
+    }
+   }
+  },
+  "skills": [
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 1
+    },
+    "stack_max": "$s1_stack",
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "r_mult": "$s1_radius",
+     "kb": "$s1_kb",
+     "burst": {
+      "n": 3,
+      "gap": 0.06,
+      "mult": "$s1_burst_mult",
+      "r": "$s1_burst_r",
+      "kb": 200,
+      "src": "技能·法术"
+     },
+     "swarm": {
+      "cond": "node:awaken_burst",
+      "n": 2,
+      "r_mult": 1.6,
+      "stun": 0.4
+     }
+    },
+    "fx": [
+     {
+      "text": {
+       "s": "唤醒",
+       "col": [
+        0.957,
+        0.753,
+        0.306
+       ],
+       "size": 15
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
+      ]
+     }
+    ]
+   },
+   {
+    "cast": "instant",
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "cast_push",
+      "r": 140,
+      "kb": 420,
+      "col": [
+       0.45,
+       0.8,
+       1.0
+      ]
+     }
+    ]
+   },
+   {
+    "cast": "instant",
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "mirror"
+     },
+     {
+      "verb": "cast_push",
+      "r": 140,
+      "kb": 420,
+      "col": [
+       0.66,
+       0.52,
+       1.0
+      ],
+      "big": true
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "on_kill",
+    "do": [
+     {
+      "verb": "kill_heal",
+      "pct": "$kill_heal",
+      "regen": "$kill_regen",
+      "cap": "$kill_cap",
+      "_doc": "反移情：击杀时为队长回复 1% 最大生命（每秒预算 5%）；伤害加成写在 blocks.dmg_bonus"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "tentacle_a": {
+    "verb": "buff_self",
+    "stat": "mizuki_tentacle_targets",
+    "op": "flat",
+    "value": 1,
+    "_doc": "强迫性重复：追击目标 +1"
+   },
+   "tentacle_b": {
+    "verb": "buff_self",
+    "stat": "mizuki_tentacle_targets",
+    "op": "flat",
+    "value": 1,
+    "_doc": "群体性癔症：追击目标 +1"
+   },
+   "awaken_burst": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "唤醒·涌：写在 S1 attack_patch.swarm（cond node:awaken_burst）"
+   },
+   "bind_drag": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "囚徒·缚：写在 attack.tentacle.drag（cond node:bind_drag）"
+   }
+  }
  }
 }

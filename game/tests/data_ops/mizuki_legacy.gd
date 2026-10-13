@@ -1,5 +1,9 @@
 ## 水月（特种，契约 v2.1）：伞击 + 触手追击（普攻的一部分，不用解锁）；三个自动技能：S1 唤醒 / S2 囚徒困境 / S3 镜花水月。
 ## 精一解锁 S2 与天赋二「反移情」，精二解锁 S3。与其他干员同构；旧的潮刃 / 群触路线与技能进阶已下线（docs/23 §17）。
+## ⚠ 测试参照（10-14 起）：水月已迁成数据干员（data/characters/mizuki.json 的 blocks，docs/61 §19），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=mizuki=res://tests/data_ops/mizuki_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：触手桩的左右翻转、触手帧条的翻转、触须缠绕的转角；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const UI = preload("res://scripts/ui.gd")
@@ -365,14 +369,14 @@ func _spawn_tentacle(target: Dictionary, dmg: float, stun: float) -> void:
 	if stake_on:
 		if stakes.size() >= STAKE_MAX:
 			stakes.pop_front()
-		stakes.append({"pos": p, "t": STAKE_LIFE, "tick": STAKE_EVERY, "dmg": dmg * 0.4, "flip": g.rng.randf() < 0.5})
+		stakes.append({"pos": p, "t": STAKE_LIFE, "tick": STAKE_EVERY, "dmg": dmg * 0.4, "flip": g.vrng.randf() < 0.5})
 	# 触手表现：地面裂隙 → 触手破土 → 冲击环；再从水月脚下连一道触须线到目标
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	# Codex 苍白水母触手（原作水月：海月水母触手，根部在底）；缺图退回旧触手帧条
-	if not spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.rng.randf() < 0.5, true, deep_col()):
+	if not spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.vrng.randf() < 0.5, true, deep_col()):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
-		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.rng.randf() < 0.5})
-	spawn_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.rng.randf() * TAU, false, false, deep_col(1.4))
+		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.vrng.randf() < 0.5})
+	spawn_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.vrng.randf() * TAU, false, false, deep_col(1.4))
 	g.fx.append({"kind": "tendril", "a": pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": randf() * 10.0})
 	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": deep_col(1.6), "op_hit": true})
 	Sfx.play("tentacle", -4.0)
@@ -598,3 +602,11 @@ func tentacle_col(bright := 1.0) -> Color:
 	if rej.is_empty():
 		return Color(0.62 * bright, 0.9 * bright, 1.35 * bright)
 	return Color(1.25 * bright, 0.7 * bright, 1.6 * bright)
+
+
+## 同 character.gd fx_sparks，只是随机数用 g.vrng（画面粒子不碰玩法随机数，见文件开头）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

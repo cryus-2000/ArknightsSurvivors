@@ -8,7 +8,7 @@
   0.85,
   1.0
  ],
- "script": "res://scripts/characters/lumen.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值：干员脚本用 base(key, 默认值) 读取",
   "heal_pct": 0.017,
@@ -39,7 +39,20 @@
   "charge_need": 8,
   "charge_shots": 8,
   "charge_mult": 2.0,
-  "charge_heal": 0.00425
+  "charge_heal": 0.00425,
+  "first_cd": 1.0,
+  "bolt_speed": 380,
+  "unit_speed": 400,
+  "charge_speed": 340,
+  "nerve_cut": 15,
+  "guide_heal": 1.5,
+  "s1_immune": 3.0,
+  "light_mult": 1.35,
+  "lamp_decay": 0.7,
+  "talent_lamp_at": 70,
+  "talent_sp": 0.2,
+  "s3_burst_kb": 160,
+  "s3_burst_stun": 0.6
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1825 / 防御 111 / 法抗 10%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低。2026-10-13（docs/82）：流明当主控前期清怪最弱，Ⅷ 32 局有 13 局在 2:00 围猎 / 首只精英时被贴身打死（opr-t2），生命 115→135、减伤 0.5→1.5，只影响当主控",
@@ -257,5 +270,303 @@
    "护队长"
   ],
   "desc": "礼拜堂护工：为队长回复生命、驱散侵蚀与神经损伤、补充灯火；精英二解锁灯塔。"
+ },
+ "blocks": {
+  "_doc": "流明（docs/61 §19）：普攻荧光（定时驱散 / 治疗 + 光弹照亮）；发光单元（成长节点）；S1 沐雨（治疗 + 驱散 + 光雨 / 光束窗口）；S2 沛霖（永久）；S3 灯塔随行 + 光爆；天赋凡人之愿。原手写脚本留作 tests/data_ops/lumen_legacy.gd",
+  "attack": {
+   "shape": "lantern",
+   "range": "$bolt_range",
+   "every": "$bolt_cd",
+   "first": "$first_cd",
+   "hand": [
+    31,
+    -42
+   ],
+   "heal": {
+    "every": "$heal_cd",
+    "pct": "$heal_pct",
+    "nerve_cut": "$nerve_cut",
+    "mults": [
+     {
+      "cond": "skill_active:1",
+      "mult": "$guide_heal"
+     }
+    ],
+    "sub": "荧光"
+   },
+   "bolt": {
+    "atk_key": "bolt_atk",
+    "speed": "$bolt_speed",
+    "life": 1.4,
+    "r": 8,
+    "aoe": "$bolt_aoe",
+    "splash": 0.6,
+    "lit": 3.0,
+    "src": "光弹",
+    "tex": "proj_lumen_bolt"
+   },
+   "units": {
+    "nodes": [
+     "unit_a",
+     "unit_b"
+    ],
+    "max": 2,
+    "cd0": [
+     0.5,
+     1.2
+    ],
+    "cd": "$unit_cd",
+    "mult": "$unit_mult",
+    "speed": "$unit_speed",
+    "src": "发光单元",
+    "charge": {
+     "cond": "elite >= 2",
+     "need": "$charge_need",
+     "shots": "$charge_shots",
+     "mult": "$charge_mult",
+     "speed": "$charge_speed",
+     "heal": "$charge_heal",
+     "heal_sub": "长明",
+     "_doc": "精二灯火不灭：发光单元攒满 8 发后连射 8 发强化光弹（2 倍伤害，命中回复队长）"
+    }
+   }
+  },
+  "skills": [
+   {
+    "dur": 0,
+    "aim": "leader",
+    "do": [
+     {
+      "verb": "mend",
+      "pct": "$s1_heal",
+      "power": true,
+      "text": 18,
+      "sub": "沐雨"
+     },
+     {
+      "verb": "purge",
+      "immune": "$s1_immune"
+     },
+     {
+      "verb": "lamp",
+      "add": "$s1_lamp"
+     },
+     {
+      "verb": "heal_lamp",
+      "_doc": "天赋：这次回复 / 驱散灯火 +2（精一起）"
+     },
+     {
+      "verb": "beam_window",
+      "cond": "node:watch",
+      "dur": 3.0
+     },
+     {
+      "verb": "light_rain",
+      "cond": "node:rain",
+      "dur": "$rain_dur",
+      "r": "$rain_r",
+      "tick": "$rain_tick",
+      "mult": "$rain_mult",
+      "atk_key": "bolt_atk",
+      "src": "光雨"
+     }
+    ],
+    "fx": [
+     {
+      "sprite": {
+       "name": "fx_holy_pillar_amber",
+       "scale": 1.1,
+       "bottom": true
+      },
+      "at": "leader",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "sprite": {
+       "name": "fx_circle_amber",
+       "scale": 1.8
+      },
+      "at": "leader",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "text": {
+       "s": "净化",
+       "col": [
+        0.7,
+        0.9,
+        1.0
+       ],
+       "size": 15
+      },
+      "at": "leader",
+      "off": [
+       0,
+       -110
+      ]
+     }
+    ]
+   },
+   {
+    "dur": "permanent",
+    "aim": "leader",
+    "do": [
+     {
+      "verb": "lamp",
+      "decay_mult": "$lamp_decay",
+      "radius_mult": "$light_mult",
+      "_doc": "沛霖：受击灯火损失 ×0.7、照亮范围 ×1.35；荧光回复 ×1.5 写在 attack.heal.mults"
+     }
+    ],
+    "fx": [
+     {
+      "banner": "沛霖：照亮范围永久扩大"
+     },
+     {
+      "sprite": {
+       "name": "fx_sunburst",
+       "scale": 0.6,
+       "tint": [
+        1,
+        1,
+        1,
+        0.75
+       ]
+      },
+      "at": "leader",
+      "off": [
+       0,
+       -84
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 160.0,
+       "r0": 40.0,
+       "life": 0.9,
+       "col": [
+        1.0,
+        0.85,
+        0.55
+       ],
+       "floor": true,
+       "w": 3.0
+      },
+      "at": "leader"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "aim": "leader",
+    "do": [
+     {
+      "verb": "tower",
+      "r": "$s3_r",
+      "every": 1.0,
+      "lamp": "$s3_lamp",
+      "heal": "$s3_heal",
+      "sub": "灯塔",
+      "anim": "lighthouse",
+      "status": "灯塔",
+      "burst": {
+       "atk_key": "bolt_atk",
+       "mult": "$s3_burst_mult",
+       "power": true,
+       "kb": "$s3_burst_kb",
+       "stun": "$s3_burst_stun",
+       "src": "光爆"
+      }
+     }
+    ],
+    "fx": [
+     {
+      "banner": "灯火不灭"
+     },
+     {
+      "sprite": {
+       "name": "fx_holy_pillar_amber",
+       "scale": 1.6,
+       "bottom": true
+      },
+      "at": "leader",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 220.0,
+       "r0": 20.0,
+       "life": 0.7,
+       "col": [
+        1.0,
+        0.85,
+        0.55
+       ],
+       "floor": true,
+       "w": 3.0
+      },
+      "at": "leader"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "heal_lamp",
+      "add": "$talent_lamp",
+      "lamp": "$talent_lamp_at",
+      "rate": "$talent_sp",
+      "_doc": "凡人之愿：每次回复 / 驱散灯火 +2；灯火充盈（≥70）时自身技力回复 +20%"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "unit_a": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "发光单元：写在 attack.units.nodes"
+   },
+   "unit_b": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "灯影成双：写在 attack.units.nodes"
+   },
+   "rain": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "沐雨：写在 S1 的 verb.light_rain（cond node:rain）"
+   },
+   "watch": {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "beam",
+      "len": "$beam_len",
+      "period": "$beam_period",
+      "tick": "$beam_tick",
+      "mult": "$beam_mult",
+      "cd": "$beam_cd",
+      "atk_key": "bolt_atk",
+      "src": "灯塔光束"
+     }
+    ],
+    "_doc": "灯塔守望：灯塔在场或沐雨后 3 秒，旋转光束扫过的敌人受到伤害并被照亮"
+   }
+  }
  }
 }

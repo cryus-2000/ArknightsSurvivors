@@ -371,6 +371,24 @@ EQ_GROUPS = [
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=ulpianus,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["锚击"]),
+    # 10-14 精英化第 3 批（docs/91 §19 批 3）：归溟幽灵鲨 / 水月 / 艾丽妮 / 流明迁积木（docs/61 §19），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
+    # 只把画面随机数换成 g.vrng，见各文件开头）。全节点 + 技力常满一局、当队友全节点一局（满编不招募）
+    ("specter_unchained", "--opscript=specter_unchained=res://tests/data_ops/specter_unchained_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=specter_unchained,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=specter_unchained", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["锯刃", "替身", "血色潮痕"]),
+    ("mizuki", "--opscript=mizuki=res://tests/data_ops/mizuki_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=mizuki,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=mizuki", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["伞击", "触手", "技能·法术", "技能"]),
+    ("irene", "--opscript=irene=res://tests/data_ops/irene_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=irene,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=irene", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["刺剑", "疾风", "碎潮", "审判", "手炮轰击", "追诉"]),
+    ("lumen", "--opscript=lumen=res://tests/data_ops/lumen_legacy.gd", [
+        ("seed1 当队友 + 全节点", ["--balance", "--seed=1", "--op=saria", "--squad=lumen,suzuran", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog"]),
+        ("seed1 主控 + 技力常满", ["--balance", "--seed=1", "--op=lumen", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
+    ], ["光弹", "光爆", "发光单元", "光雨", "灯塔光束"]),
 ]
 
 

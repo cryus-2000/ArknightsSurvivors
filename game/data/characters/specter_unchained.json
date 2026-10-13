@@ -3,13 +3,15 @@
  "name": "归溟幽灵鲨",
  "en": "SPECTER THE UNCHAINED",
  "class": "特种",
- "faction": ["深海猎人"],
+ "faction": [
+  "深海猎人"
+ ],
  "col": [
   0.75,
   0.85,
   0.95
  ],
- "script": "res://scripts/characters/specter_unchained.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值",
   "atk": 46,
@@ -41,7 +43,13 @@
   "whirl_dur": 0.6,
   "whirl_dur_dark": 1.2,
   "whirl_tick": 0.15,
-  "whirl_mult": 0.45
+  "whirl_mult": 0.45,
+  "leash": 200,
+  "gap": 26,
+  "first_cd": 0.4,
+  "idle_cd": 0.1,
+  "aim_pad": 30,
+  "kb": 70
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -237,5 +245,454 @@
    "低灯火"
   ],
   "desc": "贴身环斩；一技能按队长已损失的生命提高攻击，灯火暗淡时伤害 +25%，倒下时留下替身"
+ },
+ "blocks": {
+  "_doc": "归溟幽灵鲨（docs/61 §19）：近战前压；普攻贴身 360° 环斩（双重回转 / 血色潮痕 / 困兽 / 精二无尽回旋）；S2 期间队长不倒、结束本体倒下留替身 12 秒；天赋替身光环。原手写脚本留作 tests/data_ops/specter_unchained_legacy.gd",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "attack": {
+   "shape": "saw",
+   "src": "锯刃",
+   "r": "$reach",
+   "y": -10,
+   "kb": "$kb",
+   "r_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_reach"
+    },
+    {
+     "cond": "node:beast && skill_active:0",
+     "mult": "$beast_reach",
+     "status": "困兽"
+    }
+   ],
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "aim_pad": "$aim_pad",
+   "cd_div": [
+    {
+     "cond": "skill_active:1",
+     "value": "1+$s2_aspd"
+    }
+   ],
+   "cd_mult": [
+    {
+     "cond": "skill_active:2",
+     "value": "$s3_cd_mult"
+    }
+   ],
+   "mults": [
+    {
+     "cond": "skill_active:0",
+     "value": "1+$s1_atk",
+     "hp_lost": true,
+     "_doc": "求生之技：攻击 +（40% + 队长已损失生命）"
+    },
+    {
+     "cond": "skill_active:1",
+     "value": "1+$s2_atk"
+    },
+    {
+     "cond": "skill_active:2",
+     "value": "$s3_mult"
+    },
+    {
+     "cond": "elite >= 1 && lamp < 30",
+     "value": "1+$dark_bonus",
+     "_doc": "天赋：灯火昏暗时伤害 +25%"
+    }
+   ],
+   "power": "active",
+   "low_hp": {
+    "cond": "skill_active:2",
+    "below": 0.5,
+    "mult": "$s3_low_mult"
+   },
+   "spin2": {
+    "cond": "node:double_spin",
+    "delay": "$spin2_delay",
+    "mult": "$spin2_mult"
+   },
+   "trail": {
+    "cond": "node:blood_ring",
+    "max": "$ring_max",
+    "dur": "$ring_dur",
+    "tick": "$ring_tick",
+    "mult": "$ring_mult",
+    "src": "血色潮痕"
+   },
+   "whirl": {
+    "cond": "elite >= 2",
+    "tick": "$whirl_tick",
+    "dur": "$whirl_dur",
+    "dur_dark": "$whirl_dur_dark",
+    "mult": "$whirl_mult",
+    "_doc": "精二无尽回旋：环斩化为持续旋转 0.6 秒（灯火 <30 时 1.2 秒），每 0.15 秒一段 45%"
+   },
+   "look": {
+    "saw": "fx_specter_saw",
+    "blood": "fx_specter_saw_blood",
+    "heavy": {
+     "cond": "skill_active:2"
+    },
+    "flame": true,
+    "eye": true
+   }
+  },
+  "skills": [
+   {
+    "dur": "$s1_dur",
+    "fx": [
+     {
+      "text": {
+       "s": "求生之技",
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ],
+       "size": 15
+      },
+      "at": "self",
+      "off": [
+       0,
+       -60
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 120.0,
+       "r0": 8.0,
+       "life": 0.45,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "sprite": {
+       "name": "fx_circle_ghost",
+       "scale": 1.8
+      },
+      "at": "self",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -24
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 30.0,
+       "r0": 6.0,
+       "life": 0.3,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ],
+       "floor": true,
+       "w": 3.0
+      },
+      "at": "self",
+      "off": [
+       27,
+       0
+      ],
+      "face_x": true
+     },
+     {
+      "sparks": {
+       "n": 8,
+       "spd": 200,
+       "life": 0.3,
+       "col": [
+        0.85,
+        0.9,
+        1.0
+       ],
+       "sz": 2.5
+      },
+      "at": "self",
+      "off": [
+       27,
+       -13
+      ],
+      "face_x": true
+     }
+    ]
+   },
+   {
+    "dur": "$s2_dur",
+    "fx": [
+     {
+      "banner": "求生之渴：队长暂不会倒下"
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 120.0,
+       "r0": 8.0,
+       "life": 0.45,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "sprite": {
+       "name": "fx_circle_ghost",
+       "scale": 1.8
+      },
+      "at": "self",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -24
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 30.0,
+       "r0": 6.0,
+       "life": 0.3,
+       "col": [
+        0.75,
+        0.85,
+        0.95
+       ],
+       "floor": true,
+       "w": 3.0
+      },
+      "at": "self",
+      "off": [
+       27,
+       0
+      ],
+      "face_x": true
+     },
+     {
+      "sparks": {
+       "n": 8,
+       "spd": 200,
+       "life": 0.3,
+       "col": [
+        0.85,
+        0.9,
+        1.0
+       ],
+       "sz": 2.5
+      },
+      "at": "self",
+      "off": [
+       27,
+       -13
+      ],
+      "face_x": true
+     }
+    ],
+    "do": [
+     {
+      "verb": "undying",
+      "_doc": "期间队长生命不会低于 1"
+     },
+     {
+      "verb": "substitute",
+      "life": "$doll_dur",
+      "anim": "fall",
+      "doll_anim": "doll",
+      "follow": [
+       -46,
+       8
+      ],
+      "text": "替身",
+      "back_text": "归队",
+      "doll_aura": {
+       "cond": "elite >= 1",
+       "every": 1.0,
+       "r": "$doll_r",
+       "slow": 1.0,
+       "slow_mults": [
+        {
+         "cond": "node:elegy",
+         "mult": "$elegy_r_mult"
+        }
+       ],
+       "dps": "$doll_dps",
+       "src": "替身",
+       "_doc": "天赋拥抱自我：替身每秒对周围 120 内敌人法伤并减速（挽歌：减速范围翻倍）"
+      },
+      "elegy": {
+       "cond": "node:elegy",
+       "every": "$elegy_every"
+      }
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "fx": [
+     {
+      "banner": "求生之压"
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 120.0,
+       "r0": 8.0,
+       "life": 0.45,
+       "col": [
+        0.9,
+        0.3,
+        0.4
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "sprite": {
+       "name": "fx_circle_ghost",
+       "scale": 1.8
+      },
+      "at": "self",
+      "off": [
+       0,
+       4
+      ]
+     },
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        0.9,
+        0.3,
+        0.4
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -24
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 30.0,
+       "r0": 6.0,
+       "life": 0.3,
+       "col": [
+        0.9,
+        0.3,
+        0.4
+       ],
+       "floor": true,
+       "w": 3.0
+      },
+      "at": "self",
+      "off": [
+       27,
+       0
+      ],
+      "face_x": true
+     },
+     {
+      "sparks": {
+       "n": 8,
+       "spd": 200,
+       "life": 0.3,
+       "col": [
+        0.9,
+        0.3,
+        0.4
+       ],
+       "sz": 2.5
+      },
+      "at": "self",
+      "off": [
+       27,
+       -13
+      ],
+      "face_x": true
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [],
+    "_doc": "拥抱自我：替身光环写在 S2 的 verb.substitute.doll_aura，昏暗增伤写在 attack.mults（cond elite >= 1）"
+   }
+  ],
+  "progression": {
+   "double_spin": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "双重回转：写在 attack.spin2（cond node:double_spin）"
+   },
+   "blood_ring": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "血色潮痕：写在 attack.trail（cond node:blood_ring）"
+   },
+   "beast": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "困兽：写在 attack.r_mults（cond node:beast && skill_active:0）"
+   },
+   "elegy": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "阿戈尔挽歌：写在 S2 的 verb.substitute（doll_aura.slow_mults / elegy）"
+   }
+  }
  }
 }

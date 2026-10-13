@@ -8,6 +8,10 @@
 ## N4 卷风：疾风浮空的目标卷起身边 70 内的敌人；N5 二度裂潮：碎潮 0.35 秒后再斩一次（80%）；
 ## 精二「追诉」：刺中浮空 / 被她控住的敌人时追加一发手炮（手炮一发的 60%，0.4 秒一次）。
 ## 浮空 = e.stun + e.air（Boss 跳跃已在用的高度字段，game.gd 绘制时按 air 抬高），本脚本每帧写一条 sin 弧线；不改 game.gd。
+## ⚠ 测试参照（10-14 起）：艾丽妮已迁成数据干员（data/characters/irene.json 的 blocks，docs/61 §19），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=irene=res://tests/data_ops/irene_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：刺击命中火花的散布；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动（审判手炮的随机选目标仍取 g.rng）。
 extends "res://scripts/characters/character.gd"
 
 const PINK := Color(0.95, 0.6, 0.8)
@@ -242,7 +246,7 @@ func _thrust(ang: float, mult: float, tag_gust: bool) -> Dictionary:
 		if pursue:
 			pursue_cd = base("pursue_cd", 0.4)
 			_cannon(e.pos, base("atk", 24.0) * base("s3_strike_mult", 1.55) * base("pursue_mult", 0.6) * _dmg_bonus(), "追诉")
-		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.rng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
+		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.vrng.randf_range(-40, 40), -60), "life": 0.25, "col": SILVER, "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
 			spawn_fx_sprite("fx_thrust_hit_rose", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
@@ -378,7 +382,7 @@ func _shattertide(mult: float) -> void:
 	var tint: Color = Color(1.1, 1.15, 1.35) if second else Color.WHITE
 	if not spawn_fx_sprite("fx_slash_heavy_rose", pos + Vector2(0, -14) + Vector2.from_angle(ang) * r * (0.2 if second else 0.32), r * 1.0 / 28.0, ang, second, false, tint):   # 贴近剑（docs/45 #8；第二斩再近）
 		slash_fx(pos + Vector2(0, -14), ang, 0.8, r, SILVER if second else PINK, "slash", 0.25)
-	fx_sparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
+	_vsparks(pos + Vector2.from_angle(ang) * r * 0.5, SILVER, 10, 200.0, 0.4, 2.5, 200.0)
 	if second:
 		Sfx.op(id, "atk", 2.0, 0.9)
 
@@ -478,3 +482,11 @@ func status_items() -> Array:
 ## 提灯位置（docs/32 §3）：平时提在身前下方（op_irene_idle@2x：脚底前 19、上 15），举灯技能帧举过头顶（skill 第 4 帧：前 21、上 60）
 func _lantern(raised: bool) -> Vector2:
 	return pos + (Vector2(20.0 * face, -56.0) if raised else Vector2(16.0 * face, -15.0))
+
+
+## 同 character.gd fx_sparks，只是随机数用 g.vrng（画面粒子不碰玩法随机数，见文件开头）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

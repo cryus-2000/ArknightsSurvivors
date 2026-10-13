@@ -8,7 +8,7 @@
   0.6,
   0.8
  ],
- "script": "res://scripts/characters/irene.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值",
   "atk": 24,
@@ -32,7 +32,23 @@
   "tide2_delay": 0.35,
   "tide2_mult": 0.8,
   "pursue_mult": 0.6,
-  "pursue_cd": 0.4
+  "pursue_cd": 0.4,
+  "leash": 200,
+  "gap": 40,
+  "first_cd": 0.4,
+  "idle_cd": 0.1,
+  "aim_pad": 20,
+  "fire_pad": 40,
+  "skill_aim": 220,
+  "s1_lift": 1.0,
+  "s2_aim": 240,
+  "s2_reach": 1.3,
+  "s2_half": 0.8,
+  "s2_lift": 2.0,
+  "s3_active": 3.6,
+  "s3_t0": 0.35,
+  "s3_gap": 0.25,
+  "cannon_r": 40
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2935 / 防御 349 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -234,5 +250,381 @@
    "控制"
   ],
   "desc": "两段直刺穿透一列敌人；唯一会把敌人打上天的干员，对受控目标增伤"
+ },
+ "blocks": {
+  "_doc": "艾丽妮（docs/61 §19）：近战前压；普攻直线穿刺 2 段（再审 3 段，剑豪）；S1 次数型（下一次刺击）；S2 锥形斩 + 二度裂潮；S3 冲击波浮空 + 手炮连射；天赋对受控敌人增伤。原手写脚本留作 tests/data_ops/irene_legacy.gd",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "attack": {
+   "shape": "thrust",
+   "src": "刺剑",
+   "len": "$len",
+   "w": "$width",
+   "y": -12,
+   "len_mults": [
+    {
+     "cond": "node:strict",
+     "mult": "$strict_len"
+    }
+   ],
+   "w_mults": [
+    {
+     "cond": "node:strict",
+     "mult": "$strict_width"
+    }
+   ],
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "aim_pad": "$aim_pad",
+   "fire_pad": "$fire_pad",
+   "ctrl": true,
+   "stages": [
+    {
+     "_doc": "第 2 段（剑豪）"
+    },
+    {
+     "cond": "node:retrial",
+     "mult": "$retrial_mult",
+     "_doc": "再审：第 3 段 60%"
+    }
+   ],
+   "pursue": {
+    "cond": "elite >= 2",
+    "cd": "$pursue_cd",
+    "mult": [
+     "$s3_strike_mult",
+     "$pursue_mult"
+    ],
+    "r": "$cannon_r",
+    "src": "追诉",
+    "_doc": "精二追诉：刺中浮空 / 被控住的敌人时追加一发手炮（手炮一发的 60%，每 0.4 秒至多一次）"
+   },
+   "look": {
+    "beam": "fx_irene_thrust",
+    "hit": "fx_thrust_hit_rose",
+    "star": "fx_star_hit_rose",
+    "col": [
+     0.95,
+     0.6,
+     0.8
+    ],
+    "gust_col": [
+     1.1,
+     0.7,
+     0.95
+    ]
+   }
+  },
+  "skills": [
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 1
+    },
+    "status": "疾风",
+    "status_col": [
+     0.95,
+     0.6,
+     0.8
+    ],
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "power": true,
+     "src": "疾风",
+     "on_first": [
+      {
+       "st": "launch",
+       "dur": "$s1_lift",
+       "h": 26
+      }
+     ],
+     "first_fx": [
+      {
+       "pfx": {
+        "kind": "ring",
+        "r": 30.0,
+        "r0": 6.0,
+        "life": 0.3,
+        "col": [
+         0.95,
+         0.6,
+         0.8
+        ],
+        "floor": true
+       }
+      }
+     ],
+     "then_first": [
+      {
+       "verb": "lift_around",
+       "cond": "node:gale",
+       "r": "$gale_r",
+       "pad": 30,
+       "dur": "$gale_lift",
+       "h": 20
+      }
+     ]
+    },
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 14.0,
+       "life": 0.3,
+       "col": [
+        0.95,
+        0.6,
+        0.8
+       ],
+       "alpha": 0.5
+      },
+      "at": "self",
+      "off": [
+       10,
+       -30
+      ],
+      "face_x": true
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "aim": "nearest",
+    "aim_r": "$skill_aim",
+    "do": [
+     {
+      "shape": "cleave",
+      "src": "碎潮",
+      "r": "attack",
+      "r_mult": "$s2_reach",
+      "half": "$s2_half",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim": "nearest",
+      "aim_r": "$s2_aim",
+      "face": true,
+      "order": "near",
+      "max_n": "$s2_n",
+      "mult": "$s2_mult",
+      "power": true,
+      "ctrl": true,
+      "on_hit": [
+       {
+        "st": "launch",
+        "dur": "$s2_lift",
+        "h": 34
+       }
+      ],
+      "look": "rose_heavy"
+     },
+     {
+      "verb": "followup",
+      "cond": "node:tide2",
+      "delay": "$tide2_delay",
+      "do": [
+       {
+        "shape": "cleave",
+        "src": "碎潮",
+        "r": "attack",
+        "r_mult": "$s2_reach",
+        "half": "$s2_half",
+        "origin_off": [
+         0,
+         -10
+        ],
+        "aim": "nearest",
+        "aim_r": "$s2_aim",
+        "face": true,
+        "order": "near",
+        "max_n": "$s2_n",
+        "mult": "$s2_mult",
+        "power": true,
+        "ctrl": true,
+        "on_hit": [
+         {
+          "st": "launch",
+          "dur": "$s2_lift",
+          "h": 34
+         }
+        ],
+        "look": "rose_heavy",
+        "post": "$tide2_mult",
+        "second": true
+       }
+      ],
+      "_doc": "二度裂潮：0.35 秒后再斩一次（80%，重新瞄准）；没在出手就先起一个技能动作"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_active",
+    "status": "审判",
+    "status_active": true,
+    "status_col": [
+     1.0,
+     0.85,
+     0.5
+    ],
+    "aim": "nearest",
+    "aim_r": "$skill_aim",
+    "do": [
+     {
+      "shape": "cleave",
+      "src": "审判",
+      "r": "$s3_r",
+      "half": 3.2,
+      "origin_off": [
+       0,
+       -10
+      ],
+      "mult": "$s3_mult",
+      "power": true,
+      "ctrl": true,
+      "on_hit": [
+       {
+        "st": "launch",
+        "dur": "$s3_lift",
+        "h": 44
+       }
+      ],
+      "fx": [
+       {
+        "pfx": {
+         "kind": "glow",
+         "r": 30.0,
+         "life": 0.25,
+         "col": [
+          1.8,
+          1.5,
+          0.9
+         ],
+         "alpha": 0.8
+        },
+        "at": "self",
+        "off": [
+         20,
+         -56
+        ],
+        "face_x": true
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 16.0,
+         "life": 0.4,
+         "col": [
+          1.0,
+          0.85,
+          0.5
+         ],
+         "floor": true,
+         "w": 5.0
+        },
+        "at": "self",
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 0.75,
+         "r0": 8.0,
+         "life": 0.55,
+         "col": [
+          0.95,
+          0.6,
+          0.8
+         ],
+         "floor": true,
+         "w": 2.5
+        },
+        "at": "self",
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "gfx": {
+         "kind": "rays",
+         "life": 0.6,
+         "col": [
+          1.0,
+          0.85,
+          0.5
+         ]
+        },
+        "at": "self",
+        "off": [
+         0,
+         -30
+        ]
+       },
+       {
+        "pause": 0.08
+       },
+       {
+        "banner": "审判"
+       }
+      ]
+     },
+     {
+      "verb": "barrage",
+      "n": "$s3_strikes",
+      "t0": "$s3_t0",
+      "gap": "$s3_gap",
+      "r": "$s3_r",
+      "near_n": 6,
+      "near_k": 1.6,
+      "cannon": {
+       "mult": "$s3_strike_mult",
+       "power": true,
+       "r": "$cannon_r",
+       "src": "手炮轰击"
+      }
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "_doc": "涤罪之焰：写了 ctrl 的形状对浮空 / 眩晕 / 束缚中的敌人伤害 +30%",
+    "do": [
+     {
+      "verb": "ctrl_bonus",
+      "value": "$talent_bonus"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "retrial": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "再审：第 3 段写在 attack.stages[1]（cond node:retrial）"
+   },
+   "strict": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "严律：刺击长度 / 宽度写在 attack.len_mults / w_mults（cond node:strict）"
+   },
+   "gale": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "卷风：写在 S1 attack_patch.then_first（cond node:gale）"
+   },
+   "tide2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "二度裂潮：写在 S2 的 do（verb.followup，cond node:tide2）"
+   }
+  }
  }
 }

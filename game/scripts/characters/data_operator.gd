@@ -56,6 +56,7 @@ func _init(game, def_: Dictionary) -> void:
 			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
 	B["_mf_deploy"] = dep
 	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
+	B["_free"] = str(a.get("flow", "")) == "free"   # 手写迁移段第 3 批：不等动作的干员（水月）
 
 
 ## 成长节点的积木：一块，或数组（§15.9）
@@ -150,6 +151,9 @@ func update(dt: float) -> void:
 	for i in 3:
 		if s_t[i] > 0.0:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
+	if B.get("_free", false):   # 手写迁移段第 3 批：attack.flow = free（不等动作：技能充满即发、普攻直接出手；水月），整帧交给本段
+		OB.h3_free_update(self, dt)
+		return
 	var hw_busy: bool = OB.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
 	OB.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
@@ -169,6 +173,9 @@ func update(dt: float) -> void:
 		if not hw.is_empty() and OB.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
 			return
 		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
+		return
+	if str(cur_attack().get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
+		OB.h3_attack_start(self, cur_attack(), dt)
 		return
 	if no_attack or cd > 0.0 or OB.el_attack_locked(self) or (not hw.is_empty() and OB.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
 		return
@@ -303,6 +310,8 @@ func _sustain(dt: float, stats_only := false) -> void:
 			"verb.lamp":
 				if b.has("loss_mult"):
 					want.append(["light_loss", "mult", float(b.loss_mult), ""])
+				if b.has("decay_mult"):   # 手写迁移段第 3 批：受击灯火损失倍率（流明「沛霖」）
+					want.append(["light_decay", "mult", float(b.decay_mult), ""])
 			"verb.buff_leader":
 				want.append([str(b.stat), str(b.op), float(b.value), ""])
 			"aura.atk", "aura.aspd", "aura.skill_power", "aura.range":
@@ -506,6 +515,8 @@ func _release() -> void:
 		if not OB.hw_bolt_fire(self, a, true):
 			atk_live = false
 			return
+	elif str(a.get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击……
+		OB.h3_attack_fire(self, a)
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
@@ -566,6 +577,8 @@ func demo_hurt() -> void:
 
 
 func _release_skill() -> void:
+	if not hw.is_empty() and OB.h3_release_skill(self):   # 手写迁移段第 3 批：verb.followup 起的那一下（不走技能本体）
+		return
 	var i := cur_skill
 	var sk: Array = B.get("skills", [])
 	if i < 0 or i >= sk.size():
@@ -614,7 +627,7 @@ func _sfx_op(kind: String) -> void:
 ## 手写迁移段：近战前压（blocks.follow {leash, gap}）；没写 = 编队位
 func follow_target(slot_pos: Vector2) -> Vector2:
 	var fw: Dictionary = B.get("follow", {})
-	if fw.is_empty():
+	if fw.is_empty() or (not hw.is_empty() and OB.h3_away(self)):   # 手写迁移段第 3 批：本体离场（替身在场）时回编队位
 		return slot_pos
 	var p := melee_spot(float(fw.get("leash", 200.0)), float(fw.get("gap", 30.0)))
 	return p if p != Vector2.INF else slot_pos
@@ -663,6 +676,8 @@ func draw_auras() -> void:
 
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
+	if not hw.is_empty() and OB.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
+		return
 	_draw_body_fx(false)
 	if not hw.is_empty():
 		OB.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
@@ -719,6 +734,8 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
+	if not hw.is_empty():
+		OB.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
 	_draw_hold_strips(ci, "add")
 	_draw_vortex(ci, "add")
 	for f in pfx:
@@ -766,7 +783,59 @@ func bot_wants_manual(i: int) -> bool:
 
 func anim_state() -> Dictionary:
 	var st := super()
+	if not hw.is_empty() and hw.has("sp"):
+		st = OB.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
 	return OB.hw_anim_state(self, st) if not hw.is_empty() else st
+
+
+# ---------------------------------------------------------------- 手写迁移段第 3 批：干员侧询问（squad / game 按 has_method 询问；没用到的数据干员返回中性值）
+
+## 本体离场（替身在场）：不出手、不放技能、不画本体
+func away() -> bool:
+	return not hw.is_empty() and OB.h3_away(self)
+
+
+## 主控本该倒下时阻止（verb.undying 所在技能生效中）
+func prevent_death() -> bool:
+	return not hw.is_empty() and OB.h3_prevent_death(self)
+
+
+## 圣域 {pos, r}（verb.tower 灯塔在场）
+func sanctuary() -> Dictionary:
+	return OB.h3_sanctuary(self) if not hw.is_empty() else {}
+
+
+## 主控照亮半径倍率（verb.lamp radius_mult）
+func light_radius_mult() -> float:
+	return OB.h3_light_mult(self) if not hw.is_empty() else 1.0
+
+
+## 触手颜色（world.gd 巨型触手破土）
+func tentacle_col(bright := 1.0) -> Color:
+	return OB.h3_tentacle_col(self, bright) if not hw.is_empty() else Color(1.3, 1.1, 1.6)
+
+
+## 专属属性定义（JSON stat_defs：{属性名: {base, min, max, name}}）
+func stat_defs() -> Dictionary:
+	var out := {}
+	var sd = def.get("stat_defs", {})
+	if sd is Dictionary:
+		for k in sd:
+			if str(k) != "_doc":
+				out[StringName(str(k))] = sd[k]
+	return out
+
+
+func sync_stats(st) -> void:
+	if not hw.is_empty():
+		OB.h3_sync_stats(self, st)
+
+
+## 伤害加成：写了 blocks.dmg_bonus 时按它算（水月：不吃同伴倍率、附近有半血敌人时 ×1.22），否则同 character.gd
+func _dmg_bonus() -> float:
+	if B.has("dmg_bonus"):
+		return OB.h3_dmg_bonus(self)
+	return super()
 
 
 # ================================================================ 星熊 hoshiguma（docs/59 §3，docs/61「星熊」节）：新积木的执行（op_blocks.gd 末尾同名段落）
@@ -1094,7 +1163,7 @@ func _draw_skill_over() -> void:
 	OB.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 	OB.el_draw_over(self)    # 精英化段：往返弹体
 	if not hw.is_empty():
-		OB.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……
+		OB.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……（第 3 批：浮空影环、锯弧、光弹、水母……）
 	_draw_hold_strips(cv, "over")   # 常驻跟随帧条的 over 层（精英化段：能天使祝福光环挂在队友头顶）
 
 
@@ -1117,12 +1186,17 @@ func deal_damage(e: Dictionary, dmg: float) -> void:
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）
 
 func extra_bodies() -> Array:
-	return OB.sm_bodies(self)
+	return OB.sm_bodies(self) + (OB.h3_extra_bodies(self) if not hw.is_empty() else [])   # 手写迁移段第 3 批：替身 / 灯塔
 
 
 func draw_extra(it: Dictionary) -> void:
+	if it.has("h3"):
+		OB.h3_draw_body_extra(self, it)
+		return
 	OB.sm_draw(self, it.s)
 
 
 func draw_extra_shadows() -> void:
 	OB.sm_shadows(self)
+	if not hw.is_empty():
+		OB.h3_shadows(self)

@@ -1556,3 +1556,54 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 - `test_blocks_handwritten` 加 15 条反例（叠层安魂缺 per / look 不是帧条、咒文链缺 share / 放进常驻、低抛缺 flight / mults 不是数组 / 弹体不是 proj_ / 熔池缺 every、潮刃 fan 不是数组 / from 写错 / 弹体不是 proj_、掷锚缺 range / back_src 没登记 / basis 写错 / 放进常驻）与精英节点普攻卡检查。
 - 其他干员同 seed 不变（对迁移前 e5227947，同 §17.6 三局满编 240 秒）：TRACE 与 BALANCE 逐字节相同。
 - 木桩表与画面见 docs/91 §24。
+
+## 19. 手写干员迁积木：归溟幽灵鲨 / 水月 / 艾丽妮 / 流明（docs/91 §19 第 3 批，10-14）
+
+用户 10-14：「一律积木实现，缺积木就加新积木」。四人原来是手写脚本，照第 2 批（§17）先**原样迁到积木**（本节），再加精一 / 精二新形态（§20）。
+JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测试参照 `tests/data_ops/<id>_legacy.gd`（`blocks_eq` 同 seed 逐行对照）。0 个 `custom`，代码里没有「是不是这名干员」的判断。
+
+代码在 `op_blocks.gd` 末尾「手写迁移段（第 3 批）」（`H3_TAGS`，前缀 `h3_`，只往后加）；运行时状态仍在 `o.hw`（§17 同一套挂钩），各人一个子字典：`ir` / `sp` / `lm` / `mz`。
+核心部分只插了标「第 3 批」的转发：`apply_status`（`st.launch`）、`ATTACK_SHAPES`、`hw_init` / `_hw_uses` / `hw_tick`（返回「本帧不起手」）/ `hw_exec` / `hw_draw_*` / `hw_draw_pfx` / `hw_status_items` / `hw_stats_rows` / `_hw_block`、
+`verb.lamp` 的两个新参数、`verb.buff_self` 认干员 JSON `stat_defs` 里的专属属性（`op: flat`）、`attack_patch` 的新字段。
+`data_operator.gd` 的挂钩：起手（第 3 批的普攻形状 `H3_ATTACKS` 由本段接管：`h3_attack_start` / `h3_attack_fire`）、`attack.flow: free` 整帧交给 `h3_free_update`、`_release_skill` 开头（后续斩）、
+`follow_target` / `draw_body`（本体离场）、`anim_state`（倒下帧条）、`extra_bodies` / `draw_extra` / `draw_extra_shadows`（替身 / 灯塔）、`draw_fx_add`、`_sustain`（`verb.lamp decay_mult`），
+以及几个按 `has_method` 被询问的接口：`away` / `prevent_death` / `sanctuary` / `light_radius_mult` / `tentacle_col` / `stat_defs` / `sync_stats` / `_dmg_bonus`（没写对应积木的数据干员返回中性值，同 seed 逐行不变）。
+
+### 19.1 新积木 / 参数
+
+| 积木 / 参数 | 类 | 说明 |
+|---|---|---|
+| `shape.thrust` | 普攻 | 直线穿刺：长 len × op_range（× `len_mults`）、宽 w（× `w_mults`），原点 = 脚底 + (0, y)，按离原点远近逐个命中、穿透；`stages` 剑豪多段（间隔 = attack 帧条 second − fire 帧，第 k 段 cond 成立才有、mult 乘在这一轮倍率上）；次数型技能补丁 `attack_patch` 的 `mult / power / src / on_first / first_fx / then_first` 只作用于第一段；`ctrl` 吃 `verb.ctrl_bonus`；`pursue {cond, cd, mult[], r, src}` 刺中浮空 / 被控敌人时追加手炮 |
+| `shape.cleave` | 瞬时 | 扇形 / 整圈斩（按手写的结算顺序：逐个伤害 → 命中状态）：半径 r（× op_range，`attack` = 当前刺击长度）× r_mult，原点 = 脚底 + `origin_off`；`aim: nearest` + `aim_r` 朝最近敌人（`face` 转身）；`order: near` + `max_n` 取最近 n 个；伤害 = atk × mult[] × 加成 [× 技能强度] × post[] |
+| `verb.barrage` | 瞬时 | 手炮连射：n 发，第 i 发在 t0 + i × gap 秒；每发优先打本段浮空表里离发动点 r 内的敌人，没有就打身边 r × near_k 内最近 near_n 个，g.rng 随机挑一个（同手写），`cannon {mult[], power, r, src}` |
+| `verb.followup` | 瞬时 | delay 秒后执行 do：那一刻正在出手就直接执行，否则先起一个技能动作（不扣技力），出手帧执行（二度裂潮） |
+| `verb.ctrl_bonus` | 常驻（天赋） | 写了 `ctrl` 的形状对浮空 / 眩晕 / 束缚中的敌人 × (1 + value) |
+| `verb.lift_around` | 瞬时 | target 周围 r 内（查询多给 pad）除首中目标外的敌人浮空（卷风） |
+| `st.launch` | 命中状态 | 浮空（艾丽妮式：精英时长减半、Boss 不受；已浮空的刷新时长、每帧清击退、sin 弧线抬高 h） |
+| `shape.saw` | 普攻 | 贴身 360° 环斩：半径 r × op_range × `r_mults`；伤害 = atk × 加成 × Π`mults`（`hp_lost` 加主控已损失生命比例）[`power: active` 任一技能生效中 × 技能强度]；`low_hp`、`kb`（主圈）、`cd_div` / `cd_mult`、`spin2`（反向第二圈）、`trail`（血色水痕）、`whirl`（持续旋转） |
+| `verb.undying` | 技能 do | 这个技能生效期间主控不会倒下（`prevent_death`） |
+| `verb.substitute` | 技能 do | 这个技能结束时本体倒下（`anim` 播完），留下替身 life 秒：跟随队长、本体离场（不出手、不画、回编队位）；`doll_aura` 每 every 秒 r 内法伤 + slow_r 内减速；`elegy` 挽歌水纹 |
+| `shape.lantern` | 普攻 | 荧光：每 `heal.every` 秒（不出手、没技能要放的帧累计）到点就起手，出手帧驱散优先、其次治疗；同时射光弹 `bolt`（本段推进、地形挡、命中照亮并溅射）；`units` 成长节点的发光单元（各自定时射光弹；`charge` 精二攒弹强化） |
+| `verb.mend` / `verb.purge` | 瞬时 | 为队长回复（满血也结算）/ 清除侵蚀与神经损伤并免疫 immune 秒 |
+| `verb.light_rain` / `verb.beam_window` | 瞬时 | 发光单元洒下光雨（有单元才下）/ 光束窗口 |
+| `verb.tower` | 技能 do | 灯塔随行（光域跟到队长，r 内回复 / 驱散 / 灯火 / 圣域），技能结束光爆 `burst` |
+| `verb.beam` | 常驻（节点） | 灯塔在场或光束窗口内的旋转光束（扫到的敌人受伤、照亮，同一敌人 cd 秒一次） |
+| `verb.heal_lamp` | 常驻（天赋）/ 瞬时 | 每次回复 / 驱散灯火 + add；灯火 ≥ lamp 时自身技力额外 + rate；放在技能 do 里 = 这一下按天赋加灯火 |
+| `verb.lamp` 的 `decay_mult` / `radius_mult` | 常驻 | 受击灯火损失倍率（`light_decay`）/ 队长照亮半径倍率 |
+| `attack.flow: free` | 普攻 | 不等动作：技能充满即发（不起技能动作、发完不停手；次数型可叠 `stack_max` 次），普攻不起手直接出手，每帧不看「正在出手」（水月） |
+| `shape.umbrella` | 普攻 | 伞击：扇形 half = min(180°, half_deg + 角度加成)，半径 / 伤害 / 间隔按专属属性 `stats` 与 cond 倍率；`dirs` 三方向；`tentacle` 触手追击（n = 追击数属性 + n_add，不够打附近的；`drag`、`stake`）；`echo` 镜像分身延时同步挥伞；次数型补丁 `kb` / `burst`（创伤扩散）/ `swarm` |
+| `verb.kill_heal` / `verb.cast_push` / `verb.mirror` | 瞬时 | 击杀回复（每秒预算）/ 发动光环推开身边小怪 / 镜像分身出现 |
+| `blocks.dmg_bonus` | 顶层 | 本干员的伤害加成（`ally: false` 不吃同伴倍率；`mults` 带 `near_low_hp`）|
+| JSON `stat_defs` | 干员 JSON 顶层 | 专属属性定义（同原 `stat_defs()`）；`attack.stats` 把它们映射进普攻 |
+
+### 19.2 与手写版的差别（有意的 / 只在画面）
+
+1. 画面随机数一律 g.vrng（四人手写版都有画面粒子吃 g.rng）：**这四人在场的局，同 seed 结果相对迁移前会变**（逻辑不变），同 §17。
+2. 水月：死代码 `g.grip`（藏品附加能力，全项目没有地方置真）没有迁；触须线的种子由全局 randf 改 g.vrng。
+3. 画面：技能发动多一圈数据干员通用的地面环；幽灵鲨技能发动环固定半径 120（原按当时锯环半径）；艾丽妮「审判」的 HUD 总时长 3.6 秒（原 3 秒，生效时长本来就是 3.6）；流明 / 水月少量配色取近似值。
+
+### 19.3 测试
+
+- **积木等价**（`python tools/check.py --only blocks_eq`）：四组各两局（seed 1 当队友全节点 240 秒、seed 1 主控全节点 + 技力常满 240 秒），数据版 ↔ `--opscript=<id>=res://tests/data_ops/<id>_legacy.gd`：TRACE 241 行逐行相同、BALANCE 逐字段相同；
+  迁移时另跑了全藏品（seed 2 主控、seed 3 当队友）与自然流程（seed 4，300 秒）三局，同样逐行相同。参照只改了画面随机数（写在各文件开头）。
+- **单元**：`tests/test_core.gd test_blocks_hw3`：四人通过校验 + 21 条反例。

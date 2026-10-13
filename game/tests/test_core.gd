@@ -38,6 +38,7 @@ func _init() -> void:
 	test_blocks_summon_ext()
 	test_blocks_elite1()
 	test_blocks_handwritten()
+	test_blocks_hw3()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -986,3 +987,45 @@ func test_blocks_handwritten() -> void:
 		for n in defs[id].progression:
 			if n.get("type", "") == "elite":
 				ok(n.has("attack") and str(n.attack.get("name", "")) != "" and str(n.attack.get("desc", "")) != "", "精英化第 2 批：%s 精%d 节点有普攻卡" % [id, int(n.level)])
+
+
+## 手写迁移段第 3 批（docs/61 §19）：归溟幽灵鲨 / 水月 / 艾丽妮 / 流明 通过校验、用数据干员脚本；常见写错的被拒绝
+func test_blocks_hw3() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var defs := {}
+	for id in ["specter_unchained", "mizuki", "irene", "lumen"]:
+		defs[id] = Ch.load_def(id)
+		ok(Ch.validate_operator(id, defs[id]), "手写迁移第 3 批：%s 通过积木校验" % id)
+		ok(str(defs[id].get("script", "")) == "res://scripts/characters/data_operator.gd", "手写迁移第 3 批：%s 用数据干员脚本" % id)
+	var bads := [
+		["irene", "刺击缺 len", func(d): d.blocks.attack.erase("len")],
+		["irene", "刺击段多了字段", func(d): d.blocks.attack.stages[1]["delay"] = 0.2],
+		["irene", "刺击段条件写错", func(d): d.blocks.attack.stages[1]["cond"] = "node~x"],
+		["irene", "追诉缺 cd", func(d): d.blocks.attack.pursue.erase("cd")],
+		["irene", "浮空放进技能 do", func(d): d.blocks.skills[1].do.append({"st": "launch", "dur": 1.0})],
+		["irene", "斩击 aim 写错", func(d): d.blocks.skills[1].do[0]["aim"] = "far"],
+		["irene", "连射缺 cannon", func(d): d.blocks.skills[2].do[1].erase("cannon")],
+		["irene", "后续斩缺 delay", func(d): d.blocks.skills[1].do[1].erase("delay")],
+		["irene", "补丁字段写错", func(d): d.blocks.skills[0].attack_patch["lift"] = 1.0],
+		["specter_unchained", "环斩缺 r", func(d): d.blocks.attack.erase("r")],
+		["specter_unchained", "替身帧条不在 sprites", func(d): d.blocks.skills[1].do[1]["anim"] = "falling"],
+		["specter_unchained", "不倒放进常驻", func(d): d.blocks.talent[0].do.append({"verb": "undying"})],
+		["specter_unchained", "血痕缺 src", func(d): d.blocks.attack.trail.erase("src")],
+		["lumen", "荧光缺 heal", func(d): d.blocks.attack.erase("heal")],
+		["lumen", "光束放进技能 do", func(d): d.blocks.skills[0].do.append({"verb": "beam", "len": 200, "tick": 0.2, "src": "灯塔光束"})],
+		["lumen", "灯塔放进触发 do", func(d): d.blocks.progression.watch = {"trig": "every_n", "n": 1, "do": [{"verb": "tower", "r": 200}]}],
+		["lumen", "verb.lamp 一个参数都没写", func(d): d.blocks.skills[1].do[0] = {"verb": "lamp"}],
+		["mizuki", "伞击缺 tentacle", func(d): d.blocks.attack.erase("tentacle")],
+		["mizuki", "专属属性 op 写错", func(d): d.blocks.progression.tentacle_a["op"] = "set"],
+		["mizuki", "buff_self 写了没定义的属性", func(d): d.blocks.progression.tentacle_a["stat"] = "mizuki_nope"],
+		["mizuki", "回复放进技能 do", func(d): d.blocks.skills[1].do.append({"verb": "kill_heal", "pct": 0.01})],
+	]
+	for bd in bads:
+		var d2: Dictionary = defs[bd[0]].duplicate(true)
+		bd[2].call(d2)
+		ok(not Ch.validate_operator(bd[0], d2), "手写迁移第 3 批积木校验应拒绝（%s）：%s" % [bd[0], bd[1]])
+	for t in ["shape.thrust", "shape.cleave", "shape.saw", "shape.lantern", "shape.umbrella", "st.launch", "verb.substitute", "verb.tower"]:
+		ok(OB.H3_TAGS.has(t), "第 3 批积木已登记：%s" % t)
+	ok(OB.ATTACK_SHAPES.has("thrust") and OB.ATTACK_SHAPES.has("umbrella"), "第 3 批普攻形状已登记")
+	ok(str(defs["mizuki"].blocks.attack.get("flow", "")) == "free", "水月：不等动作（flow free）")
