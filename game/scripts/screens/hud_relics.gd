@@ -5,6 +5,7 @@ const PlayClock = preload("res://scripts/run/play_clock.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -39,7 +40,7 @@ func draw_right_top(vs: Vector2) -> void:
 		if (g.tray_cells[ci][0] as Rect2).has_point(mouse):
 			hov = ci
 	var lvs: Array = g.relics.map(func(r): return g.rfx.lv.get(r, 1))
-	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp], func(): draw_relic_tray(trp))
+	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp, g.opt_old & Game.OPT_HUDB], func(): draw_relic_tray(trp))
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 12.0 + tray_layout(g.relics.size()).h + 18.0), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
@@ -51,8 +52,29 @@ func draw_speed_button(vs: Vector2) -> void:
 	var enabled: bool = g.state == Game.S.PLAY
 	var hovered: bool = enabled and not g.touch.active and rect.has_point(g.hud.get_local_mouse_position())
 	var fs: int = int(round(16.0 * clampf(rect.size.y / 34.0, 0.85, 1.3)))
-	UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, fs)
-	UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+	if h.hb_on():
+		# 合批（docs/50 §13）：同 UI.button 的 outline / off 两种画法，底与边框一批（引擎同款几何），两行字按字号成组
+		var bk: String = "outline" if enabled else "off"
+		var bs: int = UI._ks(g.hud, fs)
+		var fg := Color(1, 1, 1)
+		var tb := TriBatch.new()
+		if bk == "outline":
+			tb.rect(rect, Color(0.03, 0.04, 0.05, 0.8))
+			_rect_line(tb, rect, Color(1, 1, 1, 0.6 if hovered else 0.3))
+		else:
+			tb.rect(rect, Color(0.2, 0.22, 0.25, 0.5))
+			fg = Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, 0.7)
+		if hovered and bk != "off":
+			_rect_line(tb, rect.grow(2.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
+		tb.flush(g.hud)
+		var lab: String = PlayClock.current_label()
+		var ci: CanvasItem = g.hud
+		var fnt: Font = g.font
+		h.text_flush([func(): ci.draw_string(fnt, Vector2(rect.position.x, rect.position.y + rect.size.y / 2.0 + bs * 0.36), lab, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, bs, fg),
+			func(): UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)])
+	else:
+		UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, fs)
+		UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
 	if enabled and not g.touch.active:
 		g.speed_btn = rect
 
@@ -76,6 +98,9 @@ func tray_layout(n: int) -> Dictionary:
 
 
 func draw_relic_tray(tr: Vector2) -> void:
+	if not (g.opt_old & Game.OPT_HUDB):
+		draw_relic_tray_b(tr)
+		return
 	var n := g.relics.size()
 	var L: Dictionary = tray_layout(n)
 	var compact: bool = L.compact
@@ -139,6 +164,108 @@ func draw_relic_tray(tr: Vector2) -> void:
 	for f in late:
 		f.call()
 	over.flush(g.hud)
+
+
+## 藏品栏（合批版，docs/50 §13）：画面同 draw_relic_tray。标题栏底色、盒子图标、格底 / 边框 / 分类色一批（引擎同款几何）→
+## 藏品图标从 HUD 图标图集取（一次调用）→ 字（同字体同字号挨着画）→ 等级点一批。标题栏（y < 26）和格子区不重叠，标题字挪到格子之后画不改画面
+func draw_relic_tray_b(tr: Vector2) -> void:
+	var n := g.relics.size()
+	var L: Dictionary = tray_layout(n)
+	var compact: bool = L.compact
+	var per_row: int = L.per_row
+	var cell: float = L.cell
+	var icon_sz: float = L.icon
+	var w: float = L.w
+	var o := tr + Vector2(-w, 0)
+	var r := Rect2(o, Vector2(w, L.h))
+	var under := TriBatch.new()
+	var over := Tris.new()
+	var icons: Array = []   # [贴图, 目标矩形]
+	var texts: Array[Callable] = []
+	under.rect(r, Color(0.03, 0.035, 0.045, 0.74))
+	under.rect(Rect2(o, Vector2(w, 1)), Color(1, 1, 1, 0.14))
+	# UI.icon "box"：draw_rect(空心 1.4) + 两条 1.2 的线
+	var bc := o + Vector2(15, 14)
+	var bh := 7.0
+	var bcol := Color(0.81, 0.84, 0.86)
+	var br := Rect2(bc - Vector2(bh - 1, bh * 0.4), Vector2(14.0 - 2, bh * 1.4 - 1))
+	under.polyline(PackedVector2Array([br.position, br.position + Vector2(br.size.x, 0), br.end, br.position + Vector2(0, br.size.y), br.position]), bcol, 1.4)
+	under.line(Vector2(br.position.x, bc.y), Vector2(br.end.x, bc.y), bcol, 1.2)
+	under.line(Vector2(bc.x, bc.y), Vector2(bc.x, bc.y + bh * 0.3), bcol, 1.2)
+	texts.append(func(): UI.text(g.hud, g.font, o + Vector2(28, 19), "藏品", 12, Color(0.81, 0.84, 0.86)))
+	if w >= 220.0:
+		texts.append(func(): UI.en(g.hud, g.font, o + Vector2(70, 18), "RELICS", 9, UI.SUB, 2.0))
+	var cap: int = g.progression.relic_cap()
+	texts.append(func(): UI.ctext(g.hud, g.font, o + Vector2(w - 70, 20), str(n) if cap < 0 else "%d / %d" % [n, cap], 15, UI.GOLD if cap >= 0 and n >= cap else UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 60))
+	g.tray_cells.clear()
+	var mouse := g.hud.get_local_mouse_position()
+	var slot := 0
+	if L.more > 0:
+		var c0 := o + Vector2(6 + cell / 2, 26 + cell / 2)
+		var r0 := Rect2(c0 - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
+		g.tray_cells.append([r0, ""])
+		var hov0: bool = r0.has_point(mouse)
+		under.rect(r0, Color(1, 1, 1, 0.10) if not hov0 else Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.22))
+		_frame(under, r0, Color(1, 1, 1, 0.22) if not hov0 else UI.CYAN)
+		var mt: String = "+%d" % L.more
+		texts.append(func(): UI.text(g.hud, g.font, c0 + Vector2(-cell / 2.0, 4), mt, 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cell))
+		slot = 1
+	for i in range(L.first, n):
+		var rd: Dictionary = g.RL[g.relics[i]]
+		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
+		var c := o + Vector2(6 + (slot % per_row) * cell + cell / 2, 26 + (slot / per_row) * cell + cell / 2)
+		slot += 1
+		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
+		g.tray_cells.append([cellr, g.relics[i]])
+		var hov: bool = cellr.has_point(mouse)
+		under.rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
+		_frame(under, cellr, Color(1, 1, 1, 0.13) if not hov else col)
+		under.rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
+		var ic: Texture2D = g.tex.get("relic_" + g.relics[i])
+		if ic != null:
+			icons.append([ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz))])
+		else:
+			# Tris.diamond 同款（菱形 + 1px 边：四条 Tris.line）
+			var dr: float = icon_sz * 0.34
+			var dp := PackedVector2Array([c + Vector2(0, -dr), c + Vector2(dr, 0), c + Vector2(0, dr), c + Vector2(-dr, 0)])
+			_diamond(under, dp, Color(0.03, 0.08, 0.1), col)
+			var ch: String = rd.name.substr(0, 1)
+			texts.append(func(): UI.text(g.hud, g.font, c + Vector2(-15, 5), ch, 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30))
+		var rl: int = g.rfx.lv.get(g.relics[i], 1)
+		if rl > 1:
+			var pip: float = 6.0 if not compact else 3.0
+			for q in rl:
+				over.rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
+	under.flush(g.hud)
+	h.icons_draw(icons)
+	h.text_flush(texts)
+	over.flush(g.hud)
+
+
+## 同 draw_rect(r, col, false, 1.0)（线宽小于边长：闭合折线）
+func _rect_line(tb: TriBatch, r: Rect2, col: Color) -> void:
+	tb.rect_line(r, col, 1.0)
+
+
+## 同 Tris.frame（四条矩形）
+func _frame(tb: TriBatch, r: Rect2, col: Color, w := 1.0) -> void:
+	var o := r.grow(w * 0.5)
+	tb.rect(Rect2(o.position, Vector2(o.size.x, w)), col)
+	tb.rect(Rect2(Vector2(o.position.x, o.end.y - w), Vector2(o.size.x, w)), col)
+	tb.rect(Rect2(Vector2(o.position.x, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+	tb.rect(Rect2(Vector2(o.end.x - w, o.position.y + w), Vector2(w, o.size.y - w * 2.0)), col)
+
+
+## 同 Tris.diamond（扇形三角化的菱形 + 四条 1px Tris.line）
+func _diamond(tb: TriBatch, p: PackedVector2Array, fill: Color, border: Color) -> void:
+	tb.pts.append_array([p[0], p[1], p[2], p[0], p[2], p[3]])
+	tb.cols.append_array([fill, fill, fill, fill, fill, fill])
+	for q in 4:
+		var a: Vector2 = p[q]
+		var b: Vector2 = p[(q + 1) % 4]
+		var nn := (b - a).normalized().orthogonal() * 0.5
+		tb.pts.append_array([a + nn, b + nn, b - nn, a + nn, b - nn, a - nn])
+		tb.cols.append_array([border, border, border, border, border, border])
 
 
 ## 藏品栏悬停提示（游戏中 / 暂停）

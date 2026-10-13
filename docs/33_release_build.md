@@ -71,7 +71,7 @@ python tools/export_build.py
 2. **存档目录固定**：`project.godot` 开 `config/use_custom_user_dir=true`、`config/custom_user_dir_name="ArknightsSurvivors"`，与显示名解耦，以后改名不再换目录。Windows 存档在 `%APPDATA%\ArknightsSurvivors`（实测 `OS.get_user_data_dir()`）；网页版存 IndexedDB（按网站域名隔离，与目录名无关）。发布说明写一句：此前版本的设置 / 存档在旧目录，更新后会恢复默认一次。
 3. **初始状态**：发布版必须是图鉴未解锁、难度重置。用 release 模板导出；`tools/check_release.py`（玩法系统；`export_build.py` / `export_web.py` 导出前自动对打包源码跑，不过就中止）；用全新的浏览器配置 / 全新的 Windows 用户目录实测首次打开是未解锁状态。
 4. **无数据上传 / 导出入口**（EA 小范围试玩阶段，用户 2026-09-26 定）：发布版里不得有任何网络上报，也不得有数据导出按钮。
-5. **包体**：Windows 包不带审稿拼图（`SKIP_WORDS`）；网页包由 `tools/export_web.py` 分片，脚本检查单文件 ≤25 MB（docs/22）。
+5. **包体**：两个包都不带审阅用拼图、测试与工具脚本，字体按实际用字子集化（见下「包体瘦身」）；网页包由 `tools/export_web.py` 分片，脚本检查单文件 ≤25 MB（docs/22）。
 6. **不擅自发布**：上传 / 发链接前由用户确认。
 
 
@@ -231,10 +231,32 @@ itch 的上传限制：zip 内最多 1000 个文件、单文件 ≤ 200 MB、解
 - **iPhone**：上传到 itch 的草稿页（Draft，只有自己能看），itch 自带 HTTPS，顺便把 itch 的 iframe / 全屏 / Mobile friendly 一起测了。上传要经用户确认。
 - 不走的路：给 `serve_web.py` 加局域网监听加 Chrome 的「把不安全来源当安全」开关；自签证书（iPhone 要装根证书并完全信任）；内网穿透（等于临时公网发布）。
 
+## 包体瘦身（2026-10-14，用户批准 1 / 2 / 4 项；不改画面和声音，音乐码率不动）
+
+规则都在 `tools/release_slim.py`，`export_build.py`（Windows）与 `export_web.py`（网页）共用；`python tools/check.py` 里有一项「发行包瘦身 release_slim」（不开 Godot，约 5 秒，`--only slim` 单跑）。
+
+1. **审阅用拼图不进包**：art/incoming 里 Codex 交付审阅用的图（contact / compare / comparison / composite / `*_qa.*` / `art_review_*` / `elite_art_*` / `run_rework_*` / `idle_pose_*` / `facing_*`，以及原来的 preview / overview / `_frames.png` / reference / `_ref.`）按 `REVIEW_ART_GLOBS` 排除：Windows 包挑要打进 pck 的 PNG 时跳过，网页包复制美术时跳过，两个导出预设的 `exclude_filter` 也写着同一组规则（只用 `*` / `?`，Godot 不认字符组）。
+   **防误伤**：快检把运行时文本（`game/scripts` 的字符串字面量、`game/data` 的 JSON 键与值（`_doc` 之类说明字段除外）、场景与 project.godot）里能找到的贴图名都算「引用到」——整名、`"growth_" + id` / `tex + "_move"` 这类前后两段各自是字面量的拼法、`"op_%s_%s"` 这类格式串；被排除的图只要有一张算引用到就失败。`python tools/release_slim.py --report` 列出排除的图、引用到的图，以及「找不到引用但不是审阅图」的图（多为还没接入的 fx_ / op_ 帧条，约 0.14 MB，照旧随包）。新加规则或新交付带审阅图时跑一次。
+2. **字体子集**：导出前只在打包副本里把 `fonts/ui.ttf`、`fonts/serif.ttf` 换成 fontTools 子集，仓库原字体不动；`ui_fallback.otf` 不动，`settings.gd` 挂的回退链照旧。保留的字 = `game/scripts` 的字符串与注释（注释当余量）+ `game/data` 全部 JSON 文本 + 场景 / project.godot + ASCII + 原字体里所有非汉字字符（标点、数字、符号、全角）+「田囗」（FreeType 自动微调按「田」量笔画宽度，serif.ttf 是无微调指令的 TrueType，少了它全体字形的微调都会变）。保留全部 OpenType 特性、名称表与其余表。游戏里没有玩家输入的文字，干员名、藏品名、数字都来自 JSON / 代码，导出时现扫，新加文案自动进子集。快检核对：扫描到的字原字体有的，子集里都有；原字体的非汉字字符一个不少。逐字渲染对照（FreeType，14 / 22 / 36 px，单字与 30 字连排）原字体与子集像素完全相同。
+3. **测试与工具脚本不进包**：两个预设的 `exclude_filter` 都有 `tests/*`、`tools/*`（加密预设 `encrypted_release.encrypted_preset` 也补）。运行时对 `res://tests/` 的引用只有 `--op=<测试干员>`（`Character.def_path`）与 `--padsim`（`pad.gd`），都要命令行参数，发布版 `Cfg.dev_args()` 恒为空，走不到；`game/tools/` 只有 .py，本来就不进 pck。
+
+导出时打印 `[瘦身]` 开头的行（审阅图省下的 PNG 大小、字体前后大小、pck、zip），`release_all.py` 把这些行单独转进日志（ship 的 build/ship/<提交>/ 里能看到）。
+
+| 项 | 改前（e5227947） | 改后 |
+|---|---|---|
+| 网页 itch zip | 43.43 MB | 40.46 MB（−2.98） |
+| 网页 pck（解开） | 35.77 MB | 32.73 MB（−3.04：审阅图 43 张 1.32、tests 0.38、字体 1.26） |
+| Windows 对外 zip | 61.21 MB | 58.61 MB（−2.60） |
+| Windows pck | 35.52 MB | 32.91 MB（−2.60；打包 PNG 1165 → 1122 张） |
+| 字体 ui.ttf + serif.ttf（原文件 / pck 里导入后的 fontdata） | 1.64 + 1.67 / 1.36 + 1.20 MB | 0.82 + 0.87 / 0.68 + 0.62 MB |
+
+验证（65985387）：`release_all` 四包全过（`verify_encrypted_game` 逐张读 1122 张打包 PNG、音频、JSON、图鉴；`verify_web_build`）。快检冒烟时临时给 `A.tex` / `has_override` 记录请求名（21 局冒烟 + 142 次图鉴 / 标题截图：全部干员各形态、全部敌人含攻击演示），被排除的审阅图一张都没被请求。
+Godot 里用打包副本的字体与原字体渲染全部保留字（13 / 18 / 26 px，ui 与 serif）逐像素相同。网页对内版在内置浏览器跑完一局（标题、操作说明、开局指南、图鉴干员 / 敌人 / Boss / 藏品、升级卡、结算与作战记录：无缺图、无缺字方块、控制台无报错）；Windows 对内包跑完一局（对局记录写进 runs.jsonl，godot.log 无报错）。
+
 ## 发布待办（非阻塞，2026-09-30 预演记录）
 
 1. ~~网页版 `export_web.py` 不写 `build.json` 的 commit / audience~~：2026-10-01 已补，并有 `--ea` 对内网页版与 `verify_web_build.py`（见「一条命令」）。
-2. Web 预设 `exclude_filter` 没排除 `tests/*`（加密 Windows 预设已排除）：测试脚本会打进网页包。发布版读不到命令行参数，测试入口不可达，只是多占体积。
+2. ~~Web 预设 `exclude_filter` 没排除 `tests/*`~~：2026-10-14 两个预设都排除 `tests/*`、`tools/*`（见「包体瘦身」）。
 3. 打包游戏退出时有引擎自带的「2 resources still in use / ObjectDB leaked」提示，验证脚本已按已知项放行；不影响运行。
 4. 加密导出只能在存有密钥与自编译模板的机器上做（`~/.codex/private/ArknightsSurvivors`）：换机器按「一次性准备」重来。
 

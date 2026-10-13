@@ -16,6 +16,9 @@
 """
 import argparse, datetime, gzip, io, json, os, shutil, subprocess, sys, tarfile
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import release_slim
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
 WORK = os.path.join(ROOT, "build", "_web")
@@ -66,13 +69,19 @@ def main():
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
-    # 网页没有本地文件系统：美术要打进包里（审稿拼图由 Web 预设的 exclude_filter 排除）
+    # 网页没有本地文件系统：美术要打进包里。审阅用拼图不复制（release_slim.REVIEW_ART_GLOBS，与 Windows 包同一组规则；
+    # Web 预设的 exclude_filter 也写着同样的规则，编辑器里直接导出时同样排除）
     art_dst = os.path.join(src, "game", "art", "incoming")
     os.makedirs(art_dst, exist_ok=True)
     art_src = os.path.join(src, "art", "incoming")
+    skipped = 0
     for f in os.listdir(art_src):
-        if f.lower().endswith(".png"):
+        if f.lower().endswith(".png") and os.path.isfile(os.path.join(art_src, f)):
+            if release_slim.is_review_art(f):
+                skipped += os.path.getsize(os.path.join(art_src, f))
+                continue
             shutil.copy2(os.path.join(art_src, f), art_dst)
+    print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）" % (skipped / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
     # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
     bj = os.path.join(src, "game", "data", "build.json")
@@ -94,6 +103,8 @@ def main():
         sys.exit("发布检查未通过，已中止导出")
 
     gpath = os.path.join(src, "game")
+    # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
+    release_slim.print_font_rows(release_slim.subset_fonts(gpath))
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
@@ -102,6 +113,7 @@ def main():
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Web 导出模板（web_nothreads_*.zip）？见 docs/22")
 
+    print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
     part = int(a.part_mib * 1048576)
     manifest = {n: split(tmp, n, part) for n in ("index.pck", "index.wasm")}
     html_p = os.path.join(tmp, "index.html")

@@ -10,6 +10,7 @@ const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色�
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -567,6 +568,7 @@ func _draw_pickups_fast() -> void:
 	var lit_s := Color(1.25, 1.25, 1.3)
 	var lit_b := Color(1.35, 1.2, 1.5)
 	const NEAR2 := 170.0 * 170.0
+	var pq: bool = not (g.opt_old & Game.OPT_PICKB)   # docs/50 §13：空中影子 / 特殊掉落的圈与光柱进三角形批、贴图按重叠判定成组
 	for g_item in g.gems:
 		var pos: Vector2 = g_item.pos
 		if not vr.has_point(pos):
@@ -582,7 +584,10 @@ func _draw_pickups_fast() -> void:
 				cells[ck] = int(cells.get(ck, 0)) + 1
 				continue
 			if gz > 1.0:
-				_gem_air_shadow(pos, gz)
+				if pq:
+					_pq_air_shadow(pos, gz)
+				else:
+					_gem_air_shadow(pos, gz)
 			var quiet: bool = many and far
 			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
 			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
@@ -614,6 +619,9 @@ func _draw_pickups_fast() -> void:
 				oil_p.append(pos + Vector2(0, -gz))
 			continue
 		# 其他掉落（宝箱 / 磁铁 / 回复药剂、空中的源石锭 / 灯油）：数量少，照旧写法画
+		if pq:
+			_pq_item(g_item, pos, gz, kind, t)
+			continue
 		if gz > 1.0:
 			_gem_air_shadow(pos, gz)
 		if g_item.special:
@@ -638,6 +646,8 @@ func _draw_pickups_fast() -> void:
 			"magnet", "heal":
 				g.vfx.spr("pickup_" + kind, 1, 0, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
 		g.draw_off = Vector2.ZERO
+	if pq:
+		_pq_flush()
 	var wc1 := PackedColorArray()
 	wc1.resize(maxi(ing_p.size(), oil_p.size()))
 	wc1.fill(Color.WHITE)
@@ -667,6 +677,96 @@ func _draw_pickups_fast() -> void:
 	qc.fill(quiet_col)
 	_gem_sprites("gem_small", Game.PX * 1.45, mp_s, qc)
 	_gem_sprites("gem_big", Game.PX * 1.9, mp_b, qc)
+
+
+## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
+## 光圈与细环原来逐个 draw_*，夹在特殊掉落和空中源石锭的贴图之间，每颗都断批。现在：图元按引擎同款几何进 _pb 三角形批，
+## 贴图先挂起；新图元或新贴图和挂起的贴图有重叠时先按原顺序交一次（图元 → 贴图），所以有重叠的前后关系和原来一样；
+## 互不重叠的挂起贴图按贴图成组连续画。几何、颜色、取整与 _gem_air_shadow / vfx.spr 相同
+var _pb := TriBatch.new()
+var _pq_spr: Array = []       # 挂起的贴图：[贴图, 目标矩形, 源矩形]
+var _pq_rects: Array = []     # 挂起贴图的目标矩形（重叠判定）
+
+
+func _pq_guard(r: Rect2) -> void:
+	for sr in _pq_rects:
+		if (sr as Rect2).intersects(r):
+			_pq_flush()
+			return
+
+
+func _pq_flush() -> void:
+	_pb.flush(g)
+	if _pq_spr.is_empty():
+		return
+	var n: int = _pq_spr.size()
+	var done := []
+	for i in n:
+		var tx: Texture2D = _pq_spr[i][0]
+		if done.has(tx):
+			continue
+		done.append(tx)
+		for j in range(i, n):
+			var it: Array = _pq_spr[j]
+			if it[0] == tx:
+				g.draw_texture_rect_region(tx, it[1], it[2])
+	_pq_spr.clear()
+	_pq_rects.clear()
+
+
+## 同 _gem_air_shadow
+func _pq_air_shadow(pos: Vector2, gz: float) -> void:
+	var r: float = 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6))
+	var c: Vector2 = pos + Vector2(0, 8)
+	_pq_guard(Rect2(c.x - r - 1.0, c.y - r * 0.45 - 1.0, r * 2.0 + 2.0, r * 0.9 + 2.0))
+	_pb.circle(Vector2.ZERO, r, Color(0, 0, 0, 0.35), Transform2D(0.0, Vector2(1.0, 0.45), 0.0, c))
+
+
+## 同 vfx.spr(name, 1, 0, pos)（单帧、锚点居中、取整，含 g.draw_off）
+func _pq_sprite(name: String, pos: Vector2) -> void:
+	var tx: Texture2D = g.tex.get(name)
+	if tx == null:
+		return
+	pos += g.draw_off
+	var fw: int = tx.get_width()
+	var fh: int = tx.get_height()
+	var size := Vector2(fw, fh) * Game.PX
+	var dst := Rect2((pos - size * Vector2(0.5, 0.5)).round(), size)
+	_pq_guard(dst)
+	_pq_spr.append([tx, dst, Rect2(0, 0, fw, fh)])
+	_pq_rects.append(dst)
+
+
+## 特殊掉落与空中的源石锭 / 灯油（_draw_pickups_fast 的「其他掉落」分支，画法同旧写法）
+func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: float) -> void:
+	if gz > 1.0:
+		_pq_air_shadow(pos, gz)
+	if g_item.special:
+		var ic := g.pickups.item_col(kind)
+		var age: float = g_item.age
+		if age < 0.9:
+			var ba := (1.0 - age / 0.9) * 0.55
+			_pq_guard(Rect2(pos + Vector2(-6, -141), Vector2(12, 142)))
+			_pb.rect(Rect2(pos + Vector2(-5, -140), Vector2(10, 140)), Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, ba * 0.5))
+			_pb.rect(Rect2(pos + Vector2(-2, -140), Vector2(4, 140)), Color(2.5, 2.5, 2.5, ba))
+		if kind != "chest":
+			var pr := 11.0 + 2.0 * sin(t * 5.0)
+			var cc: Vector2 = pos + Vector2(0, -gz - 2)
+			var rr: float = pr + 6.0
+			_pq_guard(Rect2(cc - Vector2(rr, rr), Vector2(rr, rr) * 2.0))
+			_pb.circle(cc, pr + 5.0, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.12))
+			_pb.arc(cc, pr, 0.0, TAU, 20, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.5), 1.5)
+	g.draw_off = Vector2(0, -gz)
+	match kind:
+		"oil":
+			_pq_sprite("oil", pos)
+		"chest":
+			_pq_sprite("chest", pos)
+		"ingot":
+			_pq_sprite("ingot", pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
+		"magnet", "heal":
+			_pq_sprite("pickup_" + kind, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+	g.draw_off = Vector2.ZERO
 
 
 ## 空中掉落物的地面影子（同旧写法）

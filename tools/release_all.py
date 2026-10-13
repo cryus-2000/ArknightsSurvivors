@@ -35,6 +35,9 @@ EXPORT_LOCK = os.path.join(ROOT, "build", "_export.lock")
 def step(title, cmd):
     print("\n== %s ==\n> %s" % (title, " ".join(cmd)), flush=True)
     p = subprocess.run(cmd, cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+    slim = [l for l in p.stdout.splitlines() if l.startswith("[瘦身]")]   # 包体瘦身的前后大小（release_slim）：不在末尾 12 行里也要进日志
+    if slim:
+        print("\n".join(slim), flush=True)
     print("\n".join(p.stdout.splitlines()[-12:]), flush=True)
     if p.returncode != 0:
         sys.exit("失败：%s（退出码 %d），已中止；前面已出的包不算发布物" % (title, p.returncode))

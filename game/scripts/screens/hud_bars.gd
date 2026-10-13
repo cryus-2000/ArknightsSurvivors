@@ -5,6 +5,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -359,24 +360,65 @@ func draw_status_bar(vs: Vector2) -> void:
 	var wrap_x := 360.0
 	if not boss_bars().is_empty():
 		wrap_x = minf(360.0, g.hud.size.x / 2.0 - 310.0 - 12.0 - 8.0)
+	# 合批（docs/50 §13）：标签片的底 / 色条 / 进度细条一批，字（同字体同字号）一批；各片互不重叠，字画在最后与原来相同
+	var hb: bool = h.hb_on()
+	var tb := TriBatch.new()
+	var tx: Array = []
 	for it in items:
 		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 16.0   # 与 UI.chip 的宽度算法一致
 		if x + cw > wrap_x and x > 18.0:
 			x = 18.0
 			y += 26.0
-		var w: float = UI.chip(g.hud, g.font, Vector2(x, y), it[0], it[1], 12)
-		if it[2] >= 0.0:
-			g.hud.draw_rect(Rect2(x, y + 20, w * it[2], 2), it[1])
+		var w: float
+		if hb:
+			w = _chip_b(tb, tx, Vector2(x, y), it[0], it[1], UI._ks(g.hud, 12))
+			if it[2] >= 0.0:
+				tb.rect(Rect2(x, y + 20, w * it[2], 2), it[1])
+		else:
+			w = UI.chip(g.hud, g.font, Vector2(x, y), it[0], it[1], 12)
+			if it[2] >= 0.0:
+				g.hud.draw_rect(Rect2(x, y + 20, w * it[2], 2), it[1])
 		x += w + 6.0
+	if hb:
+		tb.flush(g.hud)
+		for f in tx:
+			f.call()
+
+
+## 同 UI._chip（暗底 + 左侧色条 + 字），色块进 tb、字进 tx（同一字体字号，连着画）
+func _chip_b(tb: TriBatch, tx: Array, pos: Vector2, s: String, col: Color, size: int) -> float:
+	var w := g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
+	tb.rect(Rect2(pos, Vector2(w, size + 8)), Color(0.03, 0.035, 0.045, 0.8 * col.a))
+	tb.rect(Rect2(pos, Vector2(3, size + 8)), col)
+	var tc: Color = Color(col.r, col.g, col.b, col.a).lerp(Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, col.a), 0.3)
+	var ci: CanvasItem = g.hud
+	var fnt: Font = g.font
+	tx.append(func(): ci.draw_string(fnt, pos + Vector2(9, size + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, tc))
+	return w
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
 func draw_minimap(vs: Vector2) -> void:
 	var rad := 78.0
 	var c := Vector2(16 + rad + 8, vs.y - rad - 24)
-	UI.porthole(g.hud, c, rad, UI.GLOW)
 	var slr := Rect2(Vector2(c.x - rad + 2, c.y - rad - 8), Vector2(UI.en_width(g.font, "SONAR", 9, 2.0) + 10.0, 14))
-	g.hud.draw_rect(slr, Color(1, 1, 1, 0.14))
+	if h.hb_on():
+		# 合批（docs/50 §13）：UI.porthole（圆底 + 两道环 + 虚线十字）与标签底同一批，引擎同款几何
+		var pb := TriBatch.new()
+		pb.circle(c, rad, Color(0.03, 0.035, 0.045, 0.62))
+		pb.arc(c, rad, 0.0, TAU, 72, Color(1, 1, 1, 0.34), 1.0)
+		pb.arc(c, rad * 0.64, 0.0, TAU, 56, Color(1, 1, 1, 0.1), 1.0)
+		for kk in 4:
+			var dd := Vector2.from_angle(kk * PI / 2.0)
+			var ss := 0.0
+			while ss < rad - 4.0:
+				pb.line(c + dd * ss, c + dd * minf(ss + 3.0, rad - 4.0), Color(1, 1, 1, 0.1), 1.0)
+				ss += 7.0
+		pb.rect(slr, Color(1, 1, 1, 0.14))
+		pb.flush(g.hud)
+	else:
+		UI.porthole(g.hud, c, rad, UI.GLOW)
+		g.hud.draw_rect(slr, Color(1, 1, 1, 0.14))
 	UI.en(g.hud, g.font, slr.position + Vector2(5, 11), "SONAR", 9, Color(0.81, 0.84, 0.86), 2.0)
 	var world := 1100.0
 	var k := (rad - 8.0) / world

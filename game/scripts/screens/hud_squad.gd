@@ -40,7 +40,7 @@ func squad_top(vs: Vector2) -> float:
 
 ## 编队栏静态层的签名：这些变了才重画静态层
 func _squad_sig(br: Vector2) -> Array:
-	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots]
+	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots, g.opt_old & Game.OPT_HUDB]
 	for o in g.squad.ops:
 		var pt: Dictionary = o.portrait()
 		sig.append([o.id, o.elite, o.display_name(), o.cls, pt.tex, pt.frames])
@@ -62,7 +62,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	# bg 底色批 → 贴图（立绘 / 技能图标 / 源石锭）→ fg 遮罩边框批 → 文字与悬停提示。同层内顺序不变
 	var bg := Tris.new()
 	var fg := Tris.new()
-	var texq: Array[Callable] = []
+	var texq: Array = []   # 贴图：[贴图, 目标矩形(, 源矩形, 调制色)]，合批时从 HUD 图标图集取（h.icons_draw）
 	var txt: Array[Callable] = []
 	var card_y: float = br.y - SQ_CARD.y
 	var sk_y: float = card_y - SQ_SK - 14.0
@@ -71,7 +71,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	if S:
 		bg.rect(dp, Color(0.03, 0.035, 0.045, 0.82))
 		bg.rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
-		texq.append(func(): g.hud.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false))
+		texq.append([g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14))])
 	var cnt := "编队 %d / %d" % [n, g.squad.cap()]
 	if S:
 		txt.append(func():
@@ -99,7 +99,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			var dst_h := minf(fh * ks - 8.0, cr.size.y - 8.0)
 			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, 8.0 / ks, minf(cr.size.x / ks, fw), dst_h / ks)
 			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
-			texq.append(func(): g.hud.draw_texture_rect_region(at, dst, src))
+			texq.append([at, dst, src, Color.WHITE])
 		var clear := Color(0, 0, 0, 0)
 		var shade := Color(0, 0, 0, 0.88)
 		var nm: String = o.display_name().substr(0, 5)
@@ -147,7 +147,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 				# 方形技能图标（仿原作）铺满格子；充能中没充满的上半截压暗，充满后整块亮起
 				var tint: Color = Color.WHITE if unlocked else Color(0.3, 0.3, 0.35)
 				if S:
-					texq.append(func(): g.hud.draw_texture_rect(icon, sr, false, tint))
+					texq.append([icon, sr, Rect2(Vector2.ZERO, icon.get_size()), tint])
 				if unlocked and active <= 0.0 and frac < 1.0 and Dn:
 					fg.rect(Rect2(sr.position, Vector2(sr.size.x, sr.size.y * (1.0 - frac))), Color(0.02, 0.025, 0.035, 0.62))
 			elif Dn:
@@ -193,11 +193,9 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 					UI.panel(g.hud, tipr, UI.BG2, ocol, 6.0)
 					UI.text(g.hud, g.font, tipr.position + Vector2(12, 19), tip, 12, UI.TEXT))
 	bg.flush(g.hud)
-	for f in texq:
-		f.call()
+	h.icons_draw(texq)
 	fg.flush(g.hud)
-	for f in txt:
-		f.call()
+	h.text_flush(txt)
 
 
 ## 手动技能首次就绪提示：每局主控的手动技能第一次充满时，在主控头顶显示 3.5 秒「按 Q 释放「技能名」」
