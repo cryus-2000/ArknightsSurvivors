@@ -190,7 +190,7 @@
       "frame_count": 6,
       "operator_id": "irene",
       "file": "op_irene_run.png",
-      "sha256": "8f246f42d30a19cc7dd65525cc2130739f748fd6e08e0589d65187ad8c556f28"
+      "sha256": "9a8dc4c29e4f826547589b812f4bf3c48f692af38cd565cf61eae9f3aec28dad"
     },
     {
       "secondary_event_frames_zero_based": [
@@ -261,7 +261,7 @@
       "frame_count": 6,
       "operator_id": "irene",
       "file": "op_irene_run@2x.png",
-      "sha256": "5c181e8d75b5224513cf7b3032933dfab8df17c472f09020435c544d43b58e82"
+      "sha256": "9a452cc1b8ee02e96c4d53146ae1d3fb54dbe1b065849b26c3b9616c9526f358"
     },
     {
       "secondary_event_frames_zero_based": [
@@ -315,7 +315,7 @@
       "frame_count": 4,
       "operator_id": "ulpianus",
       "file": "op_ulpianus_idle.png",
-      "sha256": "65845c2ef85487f358f7bf98742ec435bd837d8b4e46515592813a4b310972ee"
+      "sha256": "718708ee36836af5dc218f89b92030ff73e1043b8d0eb50b26b9d93badef491c"
     },
     {
       "character": "ulpianus_1",
@@ -366,7 +366,7 @@
       "frame_count": 7,
       "operator_id": "ulpianus",
       "file": "op_ulpianus_skill.png",
-      "sha256": "476ad12afe54aa4f2d7c3f0c28a6daa6b79007cc58a38d5ca3c967ac6e3726f9"
+      "sha256": "d11c4d24d2a85e93f3766b1277386a04e2b4da69249dc655d79909aea42ae584"
     },
     {
       "character": "ulpianus_2",
@@ -383,7 +383,7 @@
       "frame_count": 4,
       "operator_id": "ulpianus",
       "file": "op_ulpianus_idle@2x.png",
-      "sha256": "df25b9a80c54f1cd974c7e2638ead62604078efbb4ba2f8bdddc7f2e86cd252e"
+      "sha256": "591489dec926c5963bcacc16f285f6031986354273b12fd254740296771732e6"
     },
     {
       "character": "ulpianus_2",
@@ -434,7 +434,7 @@
       "frame_count": 7,
       "operator_id": "ulpianus",
       "file": "op_ulpianus_skill@2x.png",
-      "sha256": "e0dba5b8561709c970917fad64d76e758cbaeda7f4656101ea0df6f561d35bcf"
+      "sha256": "3a6228dede6dfab2375eabfe7a0c950a26c66cff844bbba06729a7cab9a3c7b4"
     },
     {
       "character": "logos_1",

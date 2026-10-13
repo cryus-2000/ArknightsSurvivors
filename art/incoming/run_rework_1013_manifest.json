@@ -1,0 +1,217 @@
+{
+  "assets": [
+    {
+      "file": "doctor_run.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        24,
+        46
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "56cb79d63e76cf74b81913731bf0c738177c3fd69044df1d86030f486092b6a8"
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "wisadel",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 10,
+      "file": "op_wisadel_run.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "111e30449ab25234bb67cbc56a113972fd08ca9aef8d28b86d399f87ca2b0394",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "skadi",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 10,
+      "file": "op_skadi_run.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "8fedd3a8cd140cb7486ddcc179e72c2fdf838ce22c0eeb841816b293e884522d",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "eyjafjalla",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 10,
+      "file": "op_eyjafjalla_run.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "6564c4826d1bac68e953a8c988df4abfeb37642105dd13e02d809a33bff73071",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "irene",
+      "baseline": "foot baseline",
+      "anchor": [
+        24,
+        46
+      ],
+      "fps": 10,
+      "file": "op_irene_run.png",
+      "density": 1,
+      "hold_last_frame": false,
+      "frame_width": 48,
+      "sha256": "9a8dc4c29e4f826547589b812f4bf3c48f692af38cd565cf61eae9f3aec28dad",
+      "outline_px": 1,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 48
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "irene",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 10,
+      "file": "op_irene_run@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "9a452cc1b8ee02e96c4d53146ae1d3fb54dbe1b065849b26c3b9616c9526f358",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "file": "doctor_run@2x.png",
+      "character": "doctor",
+      "batch": 1,
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "anchor": [
+        48,
+        92
+      ],
+      "event_frame_zero_based": null,
+      "event_frame_one_based": null,
+      "loop": true,
+      "hold_last_frame": false,
+      "direction": "right",
+      "sha256": "8a43e7c35fa0b654e8b5525e02a5d61c3a23df57a824e995b3740de54901653e",
+      "density": 2,
+      "original_file": "doctor_run.png",
+      "original_sha256": "c6a667233bfc1fc0193bbbfee758a3ce05be5b4619511bf44509c2be9feda7e6",
+      "logical_anchor": [
+        24,
+        46
+      ]
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "wisadel",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 10,
+      "file": "op_wisadel_run@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "69119cc550d57721d609494a7679a6476dce3d130e42465557e80877e9731638",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "skadi",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 10,
+      "file": "op_skadi_run@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "273f8c1f2db83211ea3bcd446f3bad3c8752b9ae7b0ac13525461735c9968a13",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    },
+    {
+      "source_revision": "docs/32 review 2026-09-26",
+      "loop": true,
+      "character": "eyjafjalla",
+      "baseline": "foot baseline",
+      "anchor": [
+        48,
+        92
+      ],
+      "fps": 10,
+      "file": "op_eyjafjalla_run@2x.png",
+      "density": 2,
+      "hold_last_frame": false,
+      "frame_width": 96,
+      "sha256": "f1fb01b66f0a37a81399fd8d69a85d49a727f7c85044d9e754e35e2dbe60beaa",
+      "outline_px": 2,
+      "event_frame_zero_based": null,
+      "frame_count": 6,
+      "direction": "right",
+      "frame_height": 96
+    }
+  ]
+}

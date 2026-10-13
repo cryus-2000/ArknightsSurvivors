@@ -1,0 +1,1513 @@
+{
+  "brief": "85",
+  "engine_tested": false,
+  "palette_policy": "User approved: repair only specified strips; report inherited total colors without modifying other actions. New idle/run/command <=24; unchanged skill frames retain their existing colors.",
+  "operators": {
+    "eyjafjalla": {
+      "original_character_total_colors": 139,
+      "current_character_total_colors": 47,
+      "strips": {
+        "op_eyjafjalla_run.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "6564c4826d1bac68e953a8c988df4abfeb37642105dd13e02d809a33bff73071"
+        },
+        "op_eyjafjalla_run@2x.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "f1fb01b66f0a37a81399fd8d69a85d49a727f7c85044d9e754e35e2dbe60beaa"
+        }
+      },
+      "run_metrics": {
+        "before": {
+          "op": "eyjafjalla",
+          "frames": 6,
+          "diff": 0.7125858376647498,
+          "minpair": 0.5232843137254902,
+          "pairs": [
+            0.523,
+            0.823,
+            0.823,
+            0.616,
+            0.739,
+            0.752
+          ],
+          "sil_xor": 0.14768921638713592,
+          "half": 0.5627055764161341,
+          "bob_top": 1.0,
+          "bob_c": 1.4421501447104852,
+          "head_bob": 0.6674957899048763,
+          "tops": [
+            14.0,
+            14.0,
+            13.0,
+            14.0,
+            14.0,
+            13.0
+          ],
+          "height": 32.75,
+          "foot_dx": 1.5,
+          "stride_max": 16.5,
+          "stride_rng": 10.5,
+          "contact_l_rng": 9.5,
+          "contact_r_rng": 1.5,
+          "lean": 18.050666093706052,
+          "lean_rng": 3.897638127016238,
+          "feet_seq": "112212",
+          "feet_alt": 4,
+          "idle_h": 33.0,
+          "leg_xor": 0.303451822493683,
+          "move": 0.014900131714640158,
+          "move_half": 0.005654174884944116,
+          "leg_move": 0.04302662899411499,
+          "leg_move_half": 0.023809523809523808,
+          "upper_move": 0.0013346425504033085,
+          "leg_px": 109.66666666666667,
+          "crouch": 0.9924242424242424
+        },
+        "after": {
+          "op": "eyjafjalla",
+          "frames": 6,
+          "diff": 0.8253910698837267,
+          "minpair": 0.7192766132346897,
+          "pairs": [
+            0.868,
+            0.883,
+            0.719,
+            0.868,
+            0.882,
+            0.731
+          ],
+          "sil_xor": 0.21857624252005434,
+          "half": 0.0991997271591678,
+          "bob_top": 2.0,
+          "bob_c": 1.3041908747069648,
+          "head_bob": 1.70732500096738,
+          "tops": [
+            13.5,
+            15.0,
+            13.0,
+            13.5,
+            15.0,
+            13.0
+          ],
+          "height": 32.666666666666664,
+          "foot_dx": 11.5,
+          "stride_max": 10.5,
+          "stride_rng": 5.0,
+          "contact_l_rng": 11.0,
+          "contact_r_rng": 13.0,
+          "lean": 16.338363619158027,
+          "lean_rng": 2.6777851711041567,
+          "feet_seq": "121121",
+          "feet_alt": 4,
+          "idle_h": 33.0,
+          "leg_xor": 0.42981895127722325,
+          "move": 0.05192563629572434,
+          "move_half": 0.0,
+          "leg_move": 0.14897292990189978,
+          "leg_move_half": 0.0,
+          "upper_move": 0.01153058104057044,
+          "leg_px": 116.45833333333333,
+          "crouch": 0.9898989898989898
+        }
+      },
+      "acceptance_numeric": {
+        "move": true,
+        "leg_move": true,
+        "head_bob": true,
+        "upper_move": true,
+        "near_identical_pairs": true,
+        "wisadel_faces_forward": true
+      },
+      "contact_and_lean_caveat": "Raw silhouette centroid lean includes hair/cape/weapon. Bottom-pixel x range includes switching support foot; it is not a tracked anatomical foot trajectory. Values retained without adjustment; runtime slide/contact and precise body lean need visual acceptance."
+    },
+    "skadi": {
+      "original_character_total_colors": 230,
+      "current_character_total_colors": 184,
+      "strips": {
+        "op_skadi_run.png": {
+          "colors": 21,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "8fedd3a8cd140cb7486ddcc179e72c2fdf838ce22c0eeb841816b293e884522d"
+        },
+        "op_skadi_run@2x.png": {
+          "colors": 21,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "273f8c1f2db83211ea3bcd446f3bad3c8752b9ae7b0ac13525461735c9968a13"
+        }
+      },
+      "run_metrics": {
+        "before": {
+          "op": "skadi",
+          "frames": 6,
+          "diff": 0.7472249353641489,
+          "minpair": 0.5895929500629459,
+          "pairs": [
+            0.59,
+            0.816,
+            0.833,
+            0.603,
+            0.816,
+            0.826
+          ],
+          "sil_xor": 0.15854906048441048,
+          "half": 0.7124690888707746,
+          "bob_top": 1.0,
+          "bob_c": 1.5097788450596497,
+          "head_bob": 1.0303315881326327,
+          "tops": [
+            16.0,
+            16.0,
+            15.0,
+            16.0,
+            16.0,
+            15.0
+          ],
+          "height": 30.416666666666668,
+          "foot_dx": 10.25,
+          "stride_max": 20.5,
+          "stride_rng": 15.0,
+          "contact_l_rng": 14.5,
+          "contact_r_rng": 5.0,
+          "lean": 31.366351199242526,
+          "lean_rng": 3.2057400379849135,
+          "feet_seq": "222112",
+          "feet_alt": 2,
+          "idle_h": 32.5,
+          "leg_xor": 0.2789103140259773,
+          "move": 0.018707815686026318,
+          "move_half": 0.034789662570386924,
+          "leg_move": 0.06096750466446401,
+          "leg_move_half": 0.10447869415461426,
+          "upper_move": 0.0016438422231337794,
+          "leg_px": 112.0,
+          "crouch": 0.9358974358974359
+        },
+        "after": {
+          "op": "skadi",
+          "frames": 6,
+          "diff": 0.790863937177705,
+          "minpair": 0.6338028169014085,
+          "pairs": [
+            0.842,
+            0.872,
+            0.634,
+            0.836,
+            0.874,
+            0.687
+          ],
+          "sil_xor": 0.23063718381315837,
+          "half": 0.20210856001281008,
+          "bob_top": 2.0,
+          "bob_c": 1.2519166447442593,
+          "head_bob": 1.7747595665314009,
+          "tops": [
+            14.5,
+            16.0,
+            14.0,
+            14.5,
+            16.0,
+            14.0
+          ],
+          "height": 31.666666666666668,
+          "foot_dx": 10.25,
+          "stride_max": 7.0,
+          "stride_rng": 1.0,
+          "contact_l_rng": 12.0,
+          "contact_r_rng": 12.5,
+          "lean": 21.399999721379515,
+          "lean_rng": 0.850127627157061,
+          "feet_seq": "111111",
+          "feet_alt": 0,
+          "idle_h": 32.5,
+          "leg_xor": 0.47451007212132296,
+          "move": 0.07952280490058056,
+          "move_half": 0.008919722497522299,
+          "leg_move": 0.2727854167077704,
+          "leg_move_half": 0.03662182361733931,
+          "upper_move": 0.022108520881257854,
+          "leg_px": 88.75,
+          "crouch": 0.9743589743589745
+        }
+      },
+      "acceptance_numeric": {
+        "move": true,
+        "leg_move": true,
+        "head_bob": true,
+        "upper_move": true,
+        "near_identical_pairs": true,
+        "wisadel_faces_forward": true
+      },
+      "contact_and_lean_caveat": "Raw silhouette centroid lean includes hair/cape/weapon. Bottom-pixel x range includes switching support foot; it is not a tracked anatomical foot trajectory. Values retained without adjustment; runtime slide/contact and precise body lean need visual acceptance."
+    },
+    "doctor": {
+      "original_character_total_colors": 139,
+      "current_character_total_colors": 94,
+      "strips": {
+        "doctor_run.png": {
+          "colors": 22,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "56cb79d63e76cf74b81913731bf0c738177c3fd69044df1d86030f486092b6a8"
+        },
+        "doctor_run@2x.png": {
+          "colors": 22,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "8a43e7c35fa0b654e8b5525e02a5d61c3a23df57a824e995b3740de54901653e"
+        }
+      },
+      "run_metrics": {
+        "before": {
+          "op": "doctor",
+          "frames": 6,
+          "diff": 0.632410429609904,
+          "minpair": 0.3963922294172063,
+          "pairs": [
+            0.517,
+            0.702,
+            0.726,
+            0.396,
+            0.727,
+            0.726
+          ],
+          "sil_xor": 0.1252362798765339,
+          "half": 0.45157064486515486,
+          "bob_top": 1.0,
+          "bob_c": 1.3472390462466812,
+          "head_bob": 1.0266769858270486,
+          "tops": [
+            12.5,
+            12.5,
+            11.5,
+            12.5,
+            12.5,
+            11.5
+          ],
+          "height": 33.666666666666664,
+          "foot_dx": 1.5,
+          "stride_max": 18.0,
+          "stride_rng": 3.0,
+          "contact_l_rng": 3.0,
+          "contact_r_rng": 1.5,
+          "lean": 8.585319676439724,
+          "lean_rng": 4.331951329321487,
+          "feet_seq": "222222",
+          "feet_alt": 0,
+          "idle_h": 32.5,
+          "leg_xor": 0.20845713217323095,
+          "move": 0.008124447479255224,
+          "move_half": 0.004760471663139361,
+          "leg_move": 0.02218072617220426,
+          "leg_move_half": 0.0028429282160625444,
+          "upper_move": 0.0,
+          "leg_px": 106.5,
+          "crouch": 1.0358974358974358
+        },
+        "after": {
+          "op": "doctor",
+          "frames": 6,
+          "diff": 0.7203791324168868,
+          "minpair": 0.5937059652418976,
+          "pairs": [
+            0.742,
+            0.806,
+            0.617,
+            0.758,
+            0.806,
+            0.594
+          ],
+          "sil_xor": 0.2024726087745807,
+          "half": 0.1320821482149476,
+          "bob_top": 2.0,
+          "bob_c": 1.4657414464996954,
+          "head_bob": 1.4560889878034793,
+          "tops": [
+            14.0,
+            15.5,
+            13.5,
+            14.0,
+            15.5,
+            13.5
+          ],
+          "height": 32.166666666666664,
+          "foot_dx": 8.0,
+          "stride_max": 16.5,
+          "stride_rng": 8.5,
+          "contact_l_rng": 9.0,
+          "contact_r_rng": 5.5,
+          "lean": 11.00194791618602,
+          "lean_rng": 1.8416968332646064,
+          "feet_seq": "221122",
+          "feet_alt": 2,
+          "idle_h": 32.5,
+          "leg_xor": 0.3674872094926385,
+          "move": 0.048062951176484785,
+          "move_half": 0.004196038939241357,
+          "leg_move": 0.10295232936806507,
+          "leg_move_half": 0.01554726368159204,
+          "upper_move": 0.011622287660228587,
+          "leg_px": 125.875,
+          "crouch": 0.9897435897435897
+        }
+      },
+      "acceptance_numeric": {
+        "move": true,
+        "leg_move": true,
+        "head_bob": true,
+        "upper_move": true,
+        "near_identical_pairs": true,
+        "wisadel_faces_forward": true
+      },
+      "contact_and_lean_caveat": "Raw silhouette centroid lean includes hair/cape/weapon. Bottom-pixel x range includes switching support foot; it is not a tracked anatomical foot trajectory. Values retained without adjustment; runtime slide/contact and precise body lean need visual acceptance."
+    },
+    "irene": {
+      "original_character_total_colors": 91,
+      "current_character_total_colors": 68,
+      "strips": {
+        "op_irene_run.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "9a8dc4c29e4f826547589b812f4bf3c48f692af38cd565cf61eae9f3aec28dad"
+        },
+        "op_irene_run@2x.png": {
+          "colors": 24,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "9a452cc1b8ee02e96c4d53146ae1d3fb54dbe1b065849b26c3b9616c9526f358"
+        }
+      },
+      "run_metrics": {
+        "before": {
+          "op": "irene",
+          "frames": 6,
+          "diff": 0.7424272841216978,
+          "minpair": 0.6420289855072464,
+          "pairs": [
+            0.675,
+            0.816,
+            0.784,
+            0.642,
+            0.75,
+            0.787
+          ],
+          "sil_xor": 0.18827882552767783,
+          "half": 0.5953136812748138,
+          "bob_top": 1.0,
+          "bob_c": 0.8987402452619833,
+          "head_bob": 1.0368665087367646,
+          "tops": [
+            16.5,
+            16.5,
+            15.5,
+            16.5,
+            16.5,
+            15.5
+          ],
+          "height": 30.416666666666668,
+          "foot_dx": 5.5,
+          "stride_max": 19.0,
+          "stride_rng": 13.5,
+          "contact_l_rng": 7.0,
+          "contact_r_rng": 6.5,
+          "lean": 12.573691526389384,
+          "lean_rng": 1.1068076353325953,
+          "feet_seq": "212222",
+          "feet_alt": 2,
+          "idle_h": 31.5,
+          "leg_xor": 0.4275836630545515,
+          "move": 0.035454718940328624,
+          "move_half": 0.015739419614915495,
+          "leg_move": 0.12159663595776987,
+          "leg_move_half": 0.07212983215668024,
+          "upper_move": 0.0009635459216092079,
+          "leg_px": 84.375,
+          "crouch": 0.9656084656084657
+        },
+        "after": {
+          "op": "irene",
+          "frames": 6,
+          "diff": 0.8583703302513515,
+          "minpair": 0.7666374781085814,
+          "pairs": [
+            0.893,
+            0.907,
+            0.767,
+            0.911,
+            0.882,
+            0.79
+          ],
+          "sil_xor": 0.1986637215779975,
+          "half": 0.32265313366483483,
+          "bob_top": 2.0,
+          "bob_c": 1.4640865118316135,
+          "head_bob": 1.3183118317749631,
+          "tops": [
+            15.5,
+            17.0,
+            15.0,
+            15.5,
+            17.0,
+            15.0
+          ],
+          "height": 30.666666666666668,
+          "foot_dx": 5.25,
+          "stride_max": 18.0,
+          "stride_rng": 11.0,
+          "contact_l_rng": 4.0,
+          "contact_r_rng": 7.5,
+          "lean": 17.375679070146855,
+          "lean_rng": 1.9307239349504997,
+          "feet_seq": "212122",
+          "feet_alt": 4,
+          "idle_h": 31.5,
+          "leg_xor": 0.42904932237334464,
+          "move": 0.0531032741545187,
+          "move_half": 0.05583922700109783,
+          "leg_move": 0.17139203865124178,
+          "leg_move_half": 0.19578258164560525,
+          "upper_move": 0.010468647789926176,
+          "leg_px": 106.25,
+          "crouch": 0.9735449735449736
+        }
+      },
+      "acceptance_numeric": {
+        "move": true,
+        "leg_move": true,
+        "head_bob": true,
+        "upper_move": true,
+        "near_identical_pairs": true,
+        "wisadel_faces_forward": true
+      },
+      "contact_and_lean_caveat": "Raw silhouette centroid lean includes hair/cape/weapon. Bottom-pixel x range includes switching support foot; it is not a tracked anatomical foot trajectory. Values retained without adjustment; runtime slide/contact and precise body lean need visual acceptance."
+    },
+    "wisadel": {
+      "original_character_total_colors": 89,
+      "current_character_total_colors": 43,
+      "strips": {
+        "op_wisadel_run.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "bottoms": [
+            46,
+            46,
+            46,
+            46,
+            46,
+            46
+          ],
+          "sha256": "111e30449ab25234bb67cbc56a113972fd08ca9aef8d28b86d399f87ca2b0394"
+        },
+        "op_wisadel_run@2x.png": {
+          "colors": 23,
+          "frame_count": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "bottoms": [
+            92,
+            92,
+            92,
+            92,
+            92,
+            92
+          ],
+          "sha256": "69119cc550d57721d609494a7679a6476dce3d130e42465557e80877e9731638"
+        }
+      },
+      "run_metrics": {
+        "before": {
+          "op": "wisadel",
+          "frames": 6,
+          "diff": 0.802696066082713,
+          "minpair": 0.6343542784970003,
+          "pairs": [
+            0.658,
+            0.883,
+            0.9,
+            0.634,
+            0.874,
+            0.867
+          ],
+          "sil_xor": 0.19296770434938218,
+          "half": 0.6780012698317188,
+          "bob_top": 1.5,
+          "bob_c": 1.8903287274579057,
+          "head_bob": 1.337116754769017,
+          "tops": [
+            12.0,
+            12.0,
+            11.0,
+            12.5,
+            12.0,
+            11.0
+          ],
+          "height": 34.25,
+          "foot_dx": 13.25,
+          "stride_max": 20.5,
+          "stride_rng": 10.0,
+          "contact_l_rng": 3.0,
+          "contact_r_rng": 8.5,
+          "lean": -19.92358737165165,
+          "lean_rng": 3.236434984157011,
+          "feet_seq": "222222",
+          "feet_alt": 0,
+          "idle_h": 36.5,
+          "leg_xor": 0.5251209909201522,
+          "move": 0.04832653258749215,
+          "move_half": 0.002243589743589744,
+          "leg_move": 0.2420999547444923,
+          "leg_move_half": 0.01204418472292363,
+          "upper_move": 0.004079820618906111,
+          "leg_px": 97.45833333333333,
+          "crouch": 0.9383561643835616
+        },
+        "after": {
+          "op": "wisadel",
+          "frames": 6,
+          "diff": 0.8466679017565336,
+          "minpair": 0.7459893048128342,
+          "pairs": [
+            0.896,
+            0.885,
+            0.767,
+            0.893,
+            0.893,
+            0.746
+          ],
+          "sil_xor": 0.25039940814066824,
+          "half": 0.16724312683369144,
+          "bob_top": 2.0,
+          "bob_c": 1.0533379207289144,
+          "head_bob": 1.673226186323113,
+          "tops": [
+            10.0,
+            11.5,
+            9.5,
+            10.0,
+            11.5,
+            9.5
+          ],
+          "height": 36.166666666666664,
+          "foot_dx": 9.5,
+          "stride_max": 25.0,
+          "stride_rng": 17.5,
+          "contact_l_rng": 17.0,
+          "contact_r_rng": 12.0,
+          "lean": 17.27988775490609,
+          "lean_rng": 2.622539563617096,
+          "feet_seq": "211211",
+          "feet_alt": 4,
+          "idle_h": 36.5,
+          "leg_xor": 0.6612927961304408,
+          "move": 0.11768762106504917,
+          "move_half": 0.0060352675853308614,
+          "leg_move": 0.4543428787390997,
+          "leg_move_half": 0.04334950889325232,
+          "upper_move": 0.01041414499557816,
+          "leg_px": 84.375,
+          "crouch": 0.9908675799086757
+        }
+      },
+      "acceptance_numeric": {
+        "move": true,
+        "leg_move": true,
+        "head_bob": true,
+        "upper_move": true,
+        "near_identical_pairs": true,
+        "wisadel_faces_forward": true
+      },
+      "contact_and_lean_caveat": "Raw silhouette centroid lean includes hair/cape/weapon. Bottom-pixel x range includes switching support foot; it is not a tracked anatomical foot trajectory. Values retained without adjustment; runtime slide/contact and precise body lean need visual acceptance."
+    }
+  },
+  "visual_review": {
+    "facing": "right throughout",
+    "face_pixels": "shared upper-body master translated across six frames",
+    "palette_exception": "Irene: user requested brighter cute style and pale gray-white irises; palette quantized from approved revised drawing, <=24, other actions unchanged.",
+    "engine_tested": false,
+    "strict_angle_targets_raw_estimator": {
+      "eyjafjalla": {
+        "target_max": 15,
+        "raw": 16.338363619158027
+      },
+      "doctor": {
+        "target_max": 10,
+        "raw": 11.00194791618602
+      },
+      "wisadel": {
+        "target_max": 15,
+        "raw": 17.27988775490609
+      }
+    },
+    "acceptance_status": "Static and requested numeric movement checks pass. Precise body-angle and planted-foot sliding require runtime/visual acceptance; not claimed passed by silhouette proxy."
+  },
+  "static_verifier": {
+    "palette_counts": [
+      {
+        "colors": 23,
+        "character": "wisadel"
+      },
+      {
+        "colors": 24,
+        "character": "irene"
+      },
+      {
+        "colors": 21,
+        "character": "skadi"
+      },
+      {
+        "colors": 22,
+        "character": "doctor"
+      },
+      {
+        "colors": 23,
+        "character": "eyjafjalla"
+      }
+    ],
+    "engine_tested": false,
+    "allow_repeated_frames": false,
+    "assets": [
+      {
+        "sha256": "56cb79d63e76cf74b81913731bf0c738177c3fd69044df1d86030f486092b6a8",
+        "frames": [
+          {
+            "pixel_sha256": "5c4cff970b9a5242dce449a1490ae04b8cb8eb01dd83d5481ed5a7bbc58c0c24",
+            "bbox": [
+              14,
+              14,
+              37,
+              46
+            ],
+            "opaque_pixels": 494,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "d43f96eda4866d99a8d767729500470558d16bddf0b982096f7f5e85eb0b1a08",
+            "bbox": [
+              14,
+              16,
+              37,
+              46
+            ],
+            "opaque_pixels": 476,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "67f1181af1e410ae07bf3f1f9fc174a2aa328716c14430f6f06193cfaba384a9",
+            "bbox": [
+              14,
+              14,
+              37,
+              46
+            ],
+            "opaque_pixels": 493,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "4accd010b9989371e40cf10823b5f50d9c9dbd93bb0765b2497da6c685645de2",
+            "bbox": [
+              14,
+              14,
+              37,
+              46
+            ],
+            "opaque_pixels": 480,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "84d0caf148317c9f9184d04907ae75f8365fe84e8df8f634e4ef16181d597117",
+            "bbox": [
+              15,
+              16,
+              37,
+              46
+            ],
+            "opaque_pixels": 470,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "d4678b8276ffd2c5fd9f2dfd42a36baae2f4c30f15a5cf02782a20a3f5dc4a20",
+            "bbox": [
+              14,
+              14,
+              37,
+              46
+            ],
+            "opaque_pixels": 489,
+            "index": 5
+          }
+        ],
+        "file": "doctor_run.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "111e30449ab25234bb67cbc56a113972fd08ca9aef8d28b86d399f87ca2b0394",
+        "frames": [
+          {
+            "pixel_sha256": "c472176106a8303e229f36599e7f35628cedc88d877ff5bf5dcf8ce1ae2170ba",
+            "bbox": [
+              9,
+              11,
+              44,
+              46
+            ],
+            "opaque_pixels": 702,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "0f0fbb9cb7b88a59c34688b626ddac0071da149daec21d907b6e4fe109130170",
+            "bbox": [
+              9,
+              12,
+              44,
+              46
+            ],
+            "opaque_pixels": 643,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "be49c23de1c858adfe6574c2b1e1af7cf684c6c181711c88fe5cc74168608a19",
+            "bbox": [
+              9,
+              10,
+              44,
+              46
+            ],
+            "opaque_pixels": 697,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "38243ba224ff80ccbdc73afb756319f202e6a1d0268cd2ad9b6216a68d531a31",
+            "bbox": [
+              9,
+              11,
+              44,
+              46
+            ],
+            "opaque_pixels": 704,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "3cd411119cb1609a9536fe388b737db03252ac3fe53e9a3df2a50987e8eb08c9",
+            "bbox": [
+              9,
+              12,
+              44,
+              46
+            ],
+            "opaque_pixels": 644,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "f40a13dfd0520341757eda28e0906c4c7a14005d5c3bcb8c45cfc92a2d9e6394",
+            "bbox": [
+              9,
+              10,
+              44,
+              46
+            ],
+            "opaque_pixels": 694,
+            "index": 5
+          }
+        ],
+        "file": "op_wisadel_run.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "8fedd3a8cd140cb7486ddcc179e72c2fdf838ce22c0eeb841816b293e884522d",
+        "frames": [
+          {
+            "pixel_sha256": "422a988416dfec502579f7d1ada24ef2155df3ba162dabb187c2a450ae17b651",
+            "bbox": [
+              11,
+              15,
+              39,
+              46
+            ],
+            "opaque_pixels": 499,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "80432b485281bbb9756365ba9f6e5c610e0114eba7c015eee0a5a1f110867322",
+            "bbox": [
+              11,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 492,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "3ae9ad5dd387b3ef075193c4d08fe4c2b1e56fdddb9f6173f233eb6440e7bd46",
+            "bbox": [
+              10,
+              14,
+              39,
+              46
+            ],
+            "opaque_pixels": 518,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "cab181862ad30793a189e77987ab6fe0c9cecdf0578b65d9af2b64ae043b8281",
+            "bbox": [
+              11,
+              15,
+              39,
+              46
+            ],
+            "opaque_pixels": 498,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "ef903d3a48f12d55fdccb4e04a424cb176fc3c85bce6e9150fba0a1a75e66c0b",
+            "bbox": [
+              11,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 479,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "6aca781c595481abf1b0d18e2440f25ea0b0b36a15db9b34352cdb7a8c326c88",
+            "bbox": [
+              11,
+              14,
+              40,
+              46
+            ],
+            "opaque_pixels": 520,
+            "index": 5
+          }
+        ],
+        "file": "op_skadi_run.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "6564c4826d1bac68e953a8c988df4abfeb37642105dd13e02d809a33bff73071",
+        "frames": [
+          {
+            "pixel_sha256": "810176ccbfd0aabb008d677b622b5b12a7d3f21151b52c7e610d855e4129303b",
+            "bbox": [
+              13,
+              14,
+              44,
+              46
+            ],
+            "opaque_pixels": 549,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "90d2fd2a692a494fd5f325c42ae8ab2d9905efd412c61b25a64d6541d87fd7a0",
+            "bbox": [
+              13,
+              15,
+              44,
+              46
+            ],
+            "opaque_pixels": 542,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "0892b02bafeb11bd3929f897b4f53c5fc08a5e5185f6ce4484ed5f6b92597dff",
+            "bbox": [
+              13,
+              13,
+              44,
+              46
+            ],
+            "opaque_pixels": 569,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "73f605a00380d41d26c5e40c8c2cfc3d43d3b1ffeb30b710acb49651f1107bd4",
+            "bbox": [
+              13,
+              14,
+              44,
+              46
+            ],
+            "opaque_pixels": 551,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "65e4fe5fa50f8c165a7775836938f1697738b34ba34dd83fddfd28fa36ed7025",
+            "bbox": [
+              13,
+              15,
+              44,
+              46
+            ],
+            "opaque_pixels": 544,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "38cb7a61c36c94150b37861b11ae9ae5bc5f39d57abbe10467f6664003169f54",
+            "bbox": [
+              12,
+              13,
+              44,
+              46
+            ],
+            "opaque_pixels": 569,
+            "index": 5
+          }
+        ],
+        "file": "op_eyjafjalla_run.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "9a8dc4c29e4f826547589b812f4bf3c48f692af38cd565cf61eae9f3aec28dad",
+        "frames": [
+          {
+            "pixel_sha256": "bda6ae4973185456df7286dbc1a479f60767ebea7036a72d9414caa5164b4553",
+            "bbox": [
+              10,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 542,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "bd5b939f43c4491117c819d809eb1d11146312d2fdc001d46e965521fdb26d33",
+            "bbox": [
+              11,
+              18,
+              39,
+              46
+            ],
+            "opaque_pixels": 498,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "119ab510d2f034ed420a10cc2f1fd6d4461bc6bb822c6195708ab2427130d2a7",
+            "bbox": [
+              11,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 538,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "95057de8ebfc33fd53a785c3f355ac4e5935970ae0dcc765f03f652535b5fb20",
+            "bbox": [
+              10,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 514,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "7b1cf5b2d274be4f867eae34cded32ea9993b035577189898950d034c0573f72",
+            "bbox": [
+              10,
+              18,
+              39,
+              46
+            ],
+            "opaque_pixels": 511,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "2c2b72780cb0a65b4ca8bd6b27c15e34f7355d4248d8a30ba932358ebd97e499",
+            "bbox": [
+              10,
+              16,
+              39,
+              46
+            ],
+            "opaque_pixels": 541,
+            "index": 5
+          }
+        ],
+        "file": "op_irene_run.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "9a452cc1b8ee02e96c4d53146ae1d3fb54dbe1b065849b26c3b9616c9526f358",
+        "frames": [
+          {
+            "pixel_sha256": "39f6d09264d34629dc5e3cb53a9528ec3ca057e1e76edad8dcb45eeee749e12f",
+            "bbox": [
+              20,
+              31,
+              78,
+              92
+            ],
+            "opaque_pixels": 2131,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "c06909818a4155c79f9287bc932caf1f2ca577ed5803cdde4938d704510c4869",
+            "bbox": [
+              21,
+              34,
+              78,
+              92
+            ],
+            "opaque_pixels": 2002,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "eec2a0fea83c9177b025e346fe3cabe20009e4a6d50134ab2302072456a48432",
+            "bbox": [
+              21,
+              30,
+              79,
+              92
+            ],
+            "opaque_pixels": 2166,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "e6aa423bf6189481449b51e24e5a76ca22579a14a04756b65795f2010c53d0d7",
+            "bbox": [
+              20,
+              31,
+              78,
+              92
+            ],
+            "opaque_pixels": 2034,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "9ba5ab01eed0576383e5255b32d9ba0a22417eae85eb9435d881c05e89e66b81",
+            "bbox": [
+              20,
+              34,
+              79,
+              92
+            ],
+            "opaque_pixels": 2061,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "401a534d914e5d57361ad100e6691e65f4a43368233e1271327e761f3e86d51f",
+            "bbox": [
+              19,
+              30,
+              79,
+              92
+            ],
+            "opaque_pixels": 2187,
+            "index": 5
+          }
+        ],
+        "file": "op_irene_run@2x.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "8a43e7c35fa0b654e8b5525e02a5d61c3a23df57a824e995b3740de54901653e",
+        "frames": [
+          {
+            "pixel_sha256": "fdb65ef5498512f933ebb22c6ff67619046dd50540772f87a477299da95c6d9b",
+            "bbox": [
+              28,
+              28,
+              75,
+              92
+            ],
+            "opaque_pixels": 1955,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "21a3f44c5cbad7c5cbd7999de9d6b28c6ab124355c487a42bf3549c8ad428729",
+            "bbox": [
+              27,
+              31,
+              75,
+              92
+            ],
+            "opaque_pixels": 1901,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "daa280112bba47b622a91ca07e2d2bd46f3e4c01ec1395fd2cc41653292c744f",
+            "bbox": [
+              28,
+              27,
+              75,
+              92
+            ],
+            "opaque_pixels": 1971,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "32ba00409c7c9acbd1645680a6f1646926abf3f7e0ac5f8419e802ee47010f4e",
+            "bbox": [
+              28,
+              28,
+              75,
+              92
+            ],
+            "opaque_pixels": 1909,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "fbcc08f7c8ca44ca951e8e17bf4f5428c347cbdbff7e66572495442f741545c4",
+            "bbox": [
+              28,
+              31,
+              75,
+              92
+            ],
+            "opaque_pixels": 1879,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "31e5908979fc36475822131ad518e9bffc31f9603d1b0021f0cbaaeec370249f",
+            "bbox": [
+              28,
+              27,
+              75,
+              92
+            ],
+            "opaque_pixels": 1960,
+            "index": 5
+          }
+        ],
+        "file": "doctor_run@2x.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "69119cc550d57721d609494a7679a6476dce3d130e42465557e80877e9731638",
+        "frames": [
+          {
+            "pixel_sha256": "ec0f998d5b3753613147ef4790257aeaf554ac6b57f460d8c58c010924e29623",
+            "bbox": [
+              17,
+              20,
+              89,
+              92
+            ],
+            "opaque_pixels": 2804,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "de25e6c20b69ebd459b95e02bfe70de658faa9dff7b06da04701142178d53dff",
+            "bbox": [
+              17,
+              23,
+              89,
+              92
+            ],
+            "opaque_pixels": 2578,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "e9ca2a437c1f5bdb14e3f08218aae278656741aff668b729cb65aa0cabf90e84",
+            "bbox": [
+              17,
+              19,
+              89,
+              92
+            ],
+            "opaque_pixels": 2786,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "85770f9f886871b5a732daf4eab2619595e702115346b06b3ea5a579eef2a4af",
+            "bbox": [
+              17,
+              20,
+              89,
+              92
+            ],
+            "opaque_pixels": 2815,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "1ea6b67e72933f93ac5e7f748d7e3d130c44236a4665a5ab6ffaed69e3991783",
+            "bbox": [
+              17,
+              23,
+              89,
+              92
+            ],
+            "opaque_pixels": 2592,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "5856ae1b7c38ee9a35299252be60df118c07ade43c8125f6625ffc219b9a9905",
+            "bbox": [
+              17,
+              19,
+              89,
+              92
+            ],
+            "opaque_pixels": 2777,
+            "index": 5
+          }
+        ],
+        "file": "op_wisadel_run@2x.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "273f8c1f2db83211ea3bcd446f3bad3c8752b9ae7b0ac13525461735c9968a13",
+        "frames": [
+          {
+            "pixel_sha256": "19c6064571407eee25a2c6844b0cfbf65af6e8961d0b75358ab8479d9ca641e3",
+            "bbox": [
+              21,
+              29,
+              79,
+              92
+            ],
+            "opaque_pixels": 2002,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "c1089373c3b0111f564cf293b649ecc1c33e5e8d4f885322bcacd4267a578e55",
+            "bbox": [
+              21,
+              32,
+              79,
+              92
+            ],
+            "opaque_pixels": 1947,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "bfd935892e2140d107ddcc49e15926e29322ecb3016f05b85d5c1e51e3e8b2d5",
+            "bbox": [
+              20,
+              28,
+              79,
+              92
+            ],
+            "opaque_pixels": 2064,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "329682a224d7997046f2124465ef064954565a1b5500cc4106131fffb4a5d916",
+            "bbox": [
+              22,
+              29,
+              80,
+              92
+            ],
+            "opaque_pixels": 1996,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "63251f2ee2ff8cbb5c6f930b9cd0263e3c07ff8fb9c66c25362bfb66c4ab6700",
+            "bbox": [
+              21,
+              32,
+              79,
+              92
+            ],
+            "opaque_pixels": 1883,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "bf3ef56a25892fdc50a40eb9bf3ca217973737ee32bebc52ec8acd0ea75f3abe",
+            "bbox": [
+              21,
+              28,
+              80,
+              92
+            ],
+            "opaque_pixels": 2050,
+            "index": 5
+          }
+        ],
+        "file": "op_skadi_run@2x.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      },
+      {
+        "sha256": "f1fb01b66f0a37a81399fd8d69a85d49a727f7c85044d9e754e35e2dbe60beaa",
+        "frames": [
+          {
+            "pixel_sha256": "646a9ee661a81e80e70eb41c099e86132c781041e3e45572541ed0f752581e66",
+            "bbox": [
+              25,
+              27,
+              88,
+              92
+            ],
+            "opaque_pixels": 2210,
+            "index": 0
+          },
+          {
+            "pixel_sha256": "aa694f6c1042e83bd44cd3568a5e936d10916382fc7ad7ca5691e2b13957db26",
+            "bbox": [
+              25,
+              30,
+              88,
+              92
+            ],
+            "opaque_pixels": 2134,
+            "index": 1
+          },
+          {
+            "pixel_sha256": "02ad52cbad8bc13324d92cbe44f04ab5f664b81224c4b00f99e6539b6750c16b",
+            "bbox": [
+              25,
+              26,
+              88,
+              92
+            ],
+            "opaque_pixels": 2263,
+            "index": 2
+          },
+          {
+            "pixel_sha256": "e7194916b977bb0de0de3a73d1401fa930ac8919d724d5e9f27f83452cde6ce0",
+            "bbox": [
+              25,
+              27,
+              88,
+              92
+            ],
+            "opaque_pixels": 2213,
+            "index": 3
+          },
+          {
+            "pixel_sha256": "2936bef0e38d2d53680629467e670abe19f86dac2568f0be3a2aa7f400aec227",
+            "bbox": [
+              25,
+              30,
+              88,
+              92
+            ],
+            "opaque_pixels": 2137,
+            "index": 4
+          },
+          {
+            "pixel_sha256": "559db666c065fe63a44b6100a5442f51d2ce35bb10663ab43ff7c7e0f51defc0",
+            "bbox": [
+              24,
+              26,
+              88,
+              92
+            ],
+            "opaque_pixels": 2265,
+            "index": 5
+          }
+        ],
+        "file": "op_eyjafjalla_run@2x.png",
+        "binary_alpha": true,
+        "outline": "080E18"
+      }
+    ],
+    "passed": true,
+    "baseline_checked": true
+  }
+}
