@@ -1,6 +1,6 @@
 # V13 Codex 需求单：Boss 第二单（2026-09-30，用户已批）
 
-依据：docs/38 §6.2（P2 行「Codex（P1 验收后）」）、§8.2 / §8.3 / §8.5 / §8.7、`art/requests/v12_codex_all.md` 第 3.5 组、`docs/38_boss_p1_art_acceptance.md`（第一单验收时发现的问题，本单写进了规则）。第一单（骑士插枪 / 冲锋形态、伊莎玛拉变身整套）已验收并接入战斗（main b5c7165）。
+依据：docs/38 §6.2（P2 行「Codex（P1 验收后）」）、§8.2 / §8.3 / §8.5 / §8.7、`art/requests/v12_codex_all.md` 第 3.5 组、`docs/archive/38_boss_p1_art_acceptance.md`（第一单验收时发现的问题，本单写进了规则）。第一单（骑士插枪 / 冲锋形态、伊莎玛拉变身整套）已验收并接入战斗（main b5c7165）。
 
 ## 规则（每次必须遵守）
 
@@ -88,7 +88,7 @@
 
 ## 验收（交付后由测试与验收 / Boss与怪物 做，Codex 不跑游戏）
 
-1. **静态**：逐条量尺寸、帧数、@2x 倍率、二值 alpha、脚底行、四边留空、描边 1px / 2px、紫色残留 0、出手帧体量不小于待机的 85%，并看接触表。标准同 `docs/38_boss_p1_art_acceptance.md` §1。
+1. **静态**：逐条量尺寸、帧数、@2x 倍率、二值 alpha、脚底行、四边留空、描边 1px / 2px、紫色残留 0、出手帧体量不小于待机的 85%，并看接触表。标准同 `docs/archive/38_boss_p1_art_acceptance.md` §1。
 2. **接入后实机**：
    - 同 seed 截图前后对比：`--autotest --seed=1 --bosstest=<类型>`，类型为 carmen / iberia / izumik / path / paranoia2。两边逐帧确认 Boss 位置一致、只有帧条不同，做法同骑士那次（b5c7165）。
    - 图鉴演示行：每只 Boss 列出新帧条，逐帧播放一遍。

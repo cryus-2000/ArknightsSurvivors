@@ -1503,7 +1503,7 @@ python3 tools/balance_run.py --game game --jobs "$GODOT_MAX_PROCS" --preset star
 - **同类游戏**：Vampire Survivors / Brotato / HoloCure / Soulstone / Hades 各 wiki，Halls of Torment 与 Soulstone 的 Steam 讨论，DRG: Survivor 攻略。
 - **v3 评审材料**：32 条风险逐条对过代码，每条两轮复核；稳妥 / 体验 / 交付三份独立草案；一轮完整性审查（15 处，见 §3.3）。
 - **旧文档中与代码不一致处**：
-  - `docs/12_boss_attack_design.md` 写震地晕眩 0.8 秒，实际是 0.5 秒；写招式享受闪避，实际无视闪避。
+  - `docs/archive/12_boss_attack_design.md` 写震地晕眩 0.8 秒，实际是 0.5 秒；写招式享受闪避，实际无视闪避。
   - v2.1 §1.5 说塞雷娅能从韧性条受益，但她对 Boss 只有减速。
   - v2.1 说推进之王 S2 能控 Boss，实际是 S3（精二）。
   - v2.1 §2.1 路痕持续 8 秒，和 §1.8「地形 ≤6 秒」矛盾。
