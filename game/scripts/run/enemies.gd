@@ -333,7 +333,11 @@ func update_ebullets(dt: float) -> void:
 			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
 			g.beacon_sys.eat_fx(b.pos)
 			continue
-		var hitp: bool = b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
+		# 地形阻挡：敌方直线弹撞景物底座即消失（酸弹溅开 / 神经弹留溟痕照常走 life <= 0 分支）；追踪弹与预警类弹幕（no_rock）不挡，Boss 弹看 terrain/block_boss_bullets
+		var rock: bool = g.map.tb_ebul and not b.get("home", false) and (g.map.tb_boss or not b.get("boss", false)) and not b.has("no_rock") and g.map.bullet_blocked(b, b.pos, true)
+		if rock:
+			b.life = 0.0
+		var hitp: bool = not rock and b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
 		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):

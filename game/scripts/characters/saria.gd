@@ -273,6 +273,9 @@ func _update_shots(dt: float) -> void:
 		s.pos += s.vel * dt
 		# 投射物飞在腰高（-16），按地面位置判定
 		var gp: Vector2 = s.pos + Vector2(0, 16)
+		if g.map.tb_bul and g.map.bullet_blocked(s, gp):   # 地形阻挡：针剂 / 碎晶撞景物底座即消失
+			s.t = 0.0
+			continue
 		for j in query_ids(gp, 36.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(gp) > 6.0 + e.r:
@@ -304,6 +307,7 @@ func _shatter() -> bool:
 	var ts: Array = nearest_enemies(8, S3_R * 2.0, p).filter(func(e): return e.pos.distance_to(g.ppos) <= S3_R + e.r)
 	if ts.is_empty():
 		return false
+	ts = los_sort(ts, ts.size(), p)   # 地形阻挡：碎片是直线弹，视线内的先
 	pillars.erase(pl)
 	pl.ref.life = 0.001
 	# 晶柱迸裂：亮闪 + 一圈琥珀碎片 + 小冲击环
@@ -337,6 +341,7 @@ func _shatter_orb() -> bool:
 		return false
 	orb_broken[best] = base("orb_regrow", 1.0)
 	var p: Vector2 = _orb_ground(best) + Vector2(0, -16)
+	ts = los_sort(ts, ts.size(), _orb_ground(best))   # 地形阻挡：碎片是直线弹，视线内的先
 	fx({"kind": "glow", "pos": p, "r": 12.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
 	for q in 6:
 		fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 150), "life": 0.3, "col": AMBER,
@@ -372,7 +377,7 @@ func _release_skill() -> void:
 			# N4 急救针剂（档案：她随身带着注射器）：同时朝附近 3 名敌人掷出注射器，×0.6 拳击伤害并减速 2 秒
 			if syringe_on:
 				var dmg: float = _bash_dmg() * base("syringe_mult", 0.8) * skill_power()
-				for e in nearest_enemies(int(base("syringe_n", 3.0)), 260.0, pos):
+				for e in los_targets(int(base("syringe_n", 3.0)), 260.0, pos):
 					_shoot("syringe", pos + Vector2(8.0 * face, -24), e.pos + Vector2(0, -16), 460.0, dmg)
 		1:
 			# 药剂散布：立即回复 + 5 秒持续回复

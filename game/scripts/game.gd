@@ -1345,18 +1345,27 @@ func _update(dt: float) -> void:
 	ppos += mv * mspd * dt
 	# 冲刺：主控沿冲刺方向高速位移，期间无敌；僵直时也能冲，冲刺距离不受减速影响
 	dash_cd = maxf(0.0, dash_cd - dt)
+	var dash_end := false
 	if dash_t > 0.0:
 		dash_t -= dt
 		var dsp: float = dash_dist() / DASH_TIME
 		ppos += dash_dir * dsp * dt
 		pvel = dash_dir * dsp
 		invuln = maxf(invuln, 0.05)
-		if dash_t <= 0.0:
-			vfx.ground_dust(ppos, 20.0, 7)
-			vfx.impact_pause(0.022)
+		dash_end = dash_t <= 0.0
 	last_mv = mv if moving else last_mv
 	if tex.get("prop_pillar") != null:
+		var pre := ppos
 		ppos = map.push_out(ppos, 12.0)
+		# 地形阻挡（terrain/dash_stop）：冲刺撞上景物底座即停（原来沿椭圆边滑过去，看着像穿过）；无敌照常走完剩下的冲刺时间
+		if dash_t > 0.0 and map.tb_dash and pre.distance_squared_to(ppos) > map.tb_dash_px * map.tb_dash_px and map.blocks():
+			invuln = maxf(invuln, dash_t + 0.05)
+			dash_t = 0.0
+			map.tb_log.dash += 1
+			dash_end = true
+	if dash_end:
+		vfx.ground_dust(ppos, 20.0, 7)
+		vfx.impact_pause(0.022)
 	hunt.clamp_player()   # 围猎：从圈内往外走、那个方位的海嗣还活着就夹回圈内
 	swing_face -= dt
 
@@ -1694,7 +1703,8 @@ const INTRO_PAGES := [
 		"你是博士。行动目标：带领小队撑过 10 分钟，击倒 10:00 出现的最终 Boss。",
 		"队长是唯一会受伤的干员。技能大多自动释放，你负责走位（WASD）与冲刺（空格，冲刺中无敌）。"], "more": [
 		"3:30 与 7:00 各有一名中期 Boss。首次通关后，深海中会出现海嗣祭坛。",
-		"想自己出手，可在设置 · 游戏里把普通攻击改为手动。"]},
+		"想自己出手，可在设置 · 游戏里把普通攻击改为手动。",
+		"岩石、残柱与沉船残骸会挡路：冲刺撞上即停，敌我直线飞行的子弹会被挡下。"]},
 	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
 		"生命（绿条）归零即探索失败。编队每多一名干员，队长最大生命 +{hp_per_member}%、生命回复 +{regen_per_member} / 秒。",
 		"灯火（金条）只在受击时损失，拾取灯油补充。≥70 通明：技力回复 +30%；<30 暗淡：受到的伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%；0 寂灭：每秒失去 3 点生命。"], "more": [

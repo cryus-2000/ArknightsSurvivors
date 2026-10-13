@@ -52,6 +52,35 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	return out
 
 
+## 地形阻挡（terrain/aim_los，10-13 用户批准）：直线弹干员自动选目标——同 nearest_enemies，但从 from（缺省 = 干员自己）
+## 到目标的连线穿过景物底座的排到后面；全被挡时就是原来的最近目标。无景物主题 / 旋钮关 = nearest_enemies 原样
+func los_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF, from: Vector2 = Vector2.INF) -> Array:
+	if not g.map.tb_aim or not g.map.blocks():
+		return nearest_enemies(n, max_dist, origin)
+	return los_sort(nearest_enemies(n + 8, max_dist, origin), n, from)
+
+
+## 候选 cands（已按优先顺序排好）里先取视线内的，凑不够 n 个再按原顺序补被挡的；返回至多 n 个
+func los_sort(cands: Array, n: int, from: Vector2 = Vector2.INF) -> Array:
+	if cands.is_empty() or not g.map.tb_aim or not g.map.blocks():
+		return cands.slice(0, n)
+	var o: Vector2 = (get("pos") if from == Vector2.INF else from)
+	if o == Vector2.INF:
+		return cands.slice(0, n)
+	var vis: Array = []
+	var hid: Array = []
+	for e in cands:
+		if vis.size() >= n:
+			break
+		if g.map.segment_blocked(o, e.pos):
+			hid.append(e)
+		else:
+			vis.append(e)
+	if vis.size() < n:
+		vis.append_array(hid.slice(0, n - vis.size()))
+	return vis
+
+
 ## 场上可受击的 Boss（每帧缓存一次）：不在假死（coma）/ 无敌（invuln、gate_inv）/ 潜地（under）
 var _fb_frame := -1
 var _fb_list: Array = []

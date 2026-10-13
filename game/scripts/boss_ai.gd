@@ -405,7 +405,7 @@ func _warn_resolve(w: Dictionary) -> void:
 				g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * speed, "dmg": w.dmg,
 					"r": 5.0, "life": 2.4, "slow": false, "frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "corrode": e.corrode,
 					"nerve": float(w.get("nerve", 0.0)), "true": false, "kind": kind, "home": false,
-					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": false, "source_id": e.id})
+					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": false, "source_id": e.id, "no_rock": true})   # no_rock：预警类攻击不受地形阻挡
 			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 		"ishar_strike":
@@ -529,7 +529,7 @@ func _warn_resolve(w: Dictionary) -> void:
 			for k in 14:
 				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
 				g.ebullets.append({"pos": w.pos, "vel": d2 * 252.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
-					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss})
+					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss, "no_rock": true})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
 			Sfx.play("tentacle", -8.0, 1.3)
 

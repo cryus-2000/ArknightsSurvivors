@@ -176,7 +176,12 @@ func _release() -> void:
 		# 三火归一：身前汇成的一团大狐火朝最近的敌人直线射出、贯穿沿途敌人；多出来的狐火照常发射
 		room -= 1
 		n = maxi(0, n - 3)
-		_fire_big(_staff_head(), ts[0])
+		var bt: Dictionary = ts[0]
+		if not manual_attack():
+			var lt: Array = los_targets(1, (base("range", 350.0) + 20.0) * stat(&"op_range"), pos)   # 地形阻挡：大狐火是直线弹，视线内的先
+			if not lt.is_empty():
+				bt = lt[0]
+		_fire_big(_staff_head(), bt)
 	for k in n:
 		if room <= 0:
 			break
@@ -214,6 +219,9 @@ func _update_bigfox(dt: float) -> void:
 	for f in bigfox:
 		f.life -= dt
 		f.pos += f.vel * dt
+		if g.map.tb_bul and g.map.bullet_blocked(f, f.pos):   # 地形阻挡：大狐火是直线弹，撞景物底座即消失
+			f.life = 0.0
+			continue
 		f.trail -= dt
 		if f.trail <= 0.0:
 			f.trail = 0.03

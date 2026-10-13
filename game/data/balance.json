@@ -358,6 +358,15 @@
   "cd_card": 0.88,
   "dist_card": 0.12
  },
+ "terrain": {
+  "_doc": "地形阻挡（10-13 用户批准；world/map.gd point_blocked / segment_blocked，开局读一次）：1 = 开、0 = 关。block_bullets 我方直线弹（艾雅法拉熔岩弹、能天使弹道含跳弹、流明光弹、塞雷娅针剂 / 碎晶、铃兰大狐火）撞景物底座即消失；block_enemy_bullets 敌方直线弹（非 Boss；追踪弹、预警类弹幕不挡）；block_boss_bullets Boss 直线弹（缺省不挡）；aim_los 上述直线弹干员自动选目标时先选视线内的，全被挡才退回最近目标；dash_stop 冲刺撞底座即停（这一帧被推出超过 dash_stop_px 像素算撞上，无敌照常走完）。范围、地面法阵、激光、抛物线落点、近战、追踪弹一律不挡",
+  "block_bullets": 1,
+  "block_enemy_bullets": 1,
+  "block_boss_bullets": 0,
+  "aim_los": 1,
+  "dash_stop": 1,
+  "dash_stop_px": 3
+ },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.55,

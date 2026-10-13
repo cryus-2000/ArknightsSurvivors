@@ -190,6 +190,12 @@ func ground_dust(p: Vector2, radius := 22.0, count := 7) -> void:
 			"col": Color(0.43, 0.51, 0.56, 0.75), "sz": 3.0 if i % 2 == 0 else 2.0})
 
 
+## 直线弹撞上景物底座（地形阻挡，map.bullet_blocked）：反弹方向一小撮石屑 + 贴地扬尘
+func rock_chip(p: Vector2, vel: Vector2) -> void:
+	sparks(p, -vel if vel != Vector2.ZERO else Vector2.ZERO, Color(0.62, 0.66, 0.68, 0.9), 4, 130.0)
+	ground_dust(p, 8.0, 4)
+
+
 func _init(game: Game) -> void:
 	g = game
 
