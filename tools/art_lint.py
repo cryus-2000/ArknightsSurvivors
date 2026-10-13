@@ -84,6 +84,11 @@ WAIVERS = {
     ("exusiai", "run"): "用户 10-13 认可现版（fafe6f1e 连续性修复后）；机检上半身变化 0.000、头部起伏 0.8px 仍低于线，暂不返修",
     ("texas", "run"): "用户 10-13 认可现版（1a761c8e 连续性修复后）；机检头部起伏 0.5px 仍低于线，暂不返修",
     ("specter_unchained", "run"): "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
+    # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
+    ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f2–f3 离地属造型",
+    ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，最低行 38±1 离地属造型",
+    ("angelina", "ground", "float_move"): "设计例外（docs/92）：S3 浮空移动，离地属造型",
+    ("angelina", "ground", "float_attack"): "设计例外（docs/92）：S3 浮空普攻，离地属造型",
 }
 
 
@@ -98,6 +103,11 @@ def roster(data=DATA):
         sp = d.get("sprites") or {}
         foot = sp.get("foot", [24, 46])
         acts = {k: dict(v) for k, v in sp.items() if isinstance(v, dict) and "tex" in v}
+        # 技能期间换动作组（sprites.skill_pose，docs/92）引用的帧条是本人身体：和 MAIN_ACTS 一样查描边 / 色数 / 贴地
+        pz = sp.get("skill_pose") if isinstance(sp.get("skill_pose"), dict) else {}
+        for k in [pz.get("in"), pz.get("out")] + list((pz.get("map") or {}).values()):
+            if k in acts:
+                acts[k]["_body"] = True
         if not acts and cid == "mizuki":
             acts = {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
                     "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
@@ -304,11 +314,15 @@ def _lead(probs, warns):
     return ("注意：" + "、".join(warns) + "；") if warns else ""
 
 
+def _body(act, cfg):
+    return act in MAIN_ACTS or bool(cfg.get("_body"))
+
+
 def lint_op(op, acts, art=ART):
     R = []
 
-    def add(check, level, value, detail):
-        w = WAIVERS.get((op, check))
+    def add(check, level, value, detail, waiver=None):
+        w = WAIVERS.get((op, check)) or waiver
         R.append({"op": op, "check": check, "level": level, "value": value, "detail": detail,
                   "waiver": w if (w and level == "FAIL") else None, "stale_waiver": bool(w and level != "FAIL")})
 
@@ -328,7 +342,7 @@ def lint_op(op, acts, art=ART):
         cfg = acts[act]
         h1, h2 = lo.shape[0], hi.shape[0]
         n1, n2 = lo.shape[1] / h1, hi.shape[1] / h2
-        if act in MAIN_ACTS and (h1, h2) != (48, 96):
+        if _body(act, cfg) and (h1, h2) != (48, 96):
             bad.append("%s 单帧高 %d/%d（应 48/96）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
             bad.append("%s 尺寸 %dx%d / %dx%d 不成帧条" % (act, lo.shape[1], h1, hi.shape[1], h2))
@@ -360,7 +374,7 @@ def lint_op(op, acts, art=ART):
     semi, ring_n, ring_ok, r2_n, r2_ok, mag = 0, 0, 0, 0, 0, 0
     cols = {False: set(), True: set()}
     for act, pair in strips.items():
-        if act not in MAIN_ACTS:   # 召唤物 / 道具帧条（Mon3tr、人偶等）不算进本人的色数与描边
+        if not _body(act, acts[act]):   # 召唤物 / 道具帧条（Mon3tr、人偶等）不算进本人的色数与描边
             continue
         for hi, a in zip((False, True), pair):
             al = a[..., 3]
@@ -477,21 +491,30 @@ def lint_op(op, acts, art=ART):
             "剪影 %.3f 腿 %.3f 上身 %.3f 头起伏 %.1fpx 前倾 %+.0f° 停顿 %d" % (rm["move"], rm["leg_move"], rm["upper_move"], rm["head_bob"], rm["lean"], rm["static_pairs"]))
 
     # ground：脚底贴第 46 行（@2x 92）。待机每帧贴地；其他动作至少一帧贴地，跑步每帧离地 ≤ 3px
-    gf, gw, gv = [], [], {}
+    gf, gw, gv, gwv = [], [], {}, []
     for act, (lo, hi) in strips.items():
-        if act not in MAIN_ACTS:
+        if not _body(act, acts[act]):
             continue
+        sw = WAIVERS.get((op, "ground", act))
         jy = acts[act]["foot"][1]
         bots = [int(np.nonzero((f[..., 3] > 0).any(axis=1))[0].max()) // 2 for f in split(hi)]
         gv[act] = "".join(str(b - 40) if 0 <= b - 40 <= 9 else "?" for b in bots)
         if act == "idle" and any(b != jy for b in bots):
             gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
         elif max(bots) != jy:
-            gf.append("%s 没有一帧贴地（最低行 %s，应有 = %d）" % (act, bots, jy))
+            if sw:
+                gwv.append(act)
+            else:
+                gf.append("%s 没有一帧贴地（最低行 %s，应有 = %d）" % (act, bots, jy))
         elif act == "run" and min(bots) < jy - 3:
             gw.append("run 有帧离地 %dpx" % (jy - min(bots)))
-    add("ground", "FAIL" if gf else ("WARN" if gw else "PASS"), gv,
-        "；".join(gf + gw) if (gf or gw) else "脚底贴第 46 行（每帧最低行 − 40：%s）" % " ".join("%s %s" % (k, v) for k, v in gv.items()))
+    det = "；".join(gf + gw) if (gf or gw) else "脚底贴第 46 行（每帧最低行 − 40：%s）" % " ".join("%s %s" % (k, v) for k, v in gv.items())
+    if gwv:
+        det += "；单条豁免离地：" + "、".join(gwv)
+    if gf or not gwv:
+        add("ground", "FAIL" if gf else ("WARN" if gw else "PASS"), gv, det)
+    else:   # 只有单条豁免的帧条离地：记 FAIL*（其余帧条全部贴地）
+        add("ground", "FAIL", gv, det, "；".join("%s：%s" % (a, WAIVERS[(op, "ground", a)]) for a in gwv))
 
     # foot：脚底中心 x 与 json foot 偏差（只 WARN：json 的 foot 是接入时为站跑衔接手调的）
     fw = []
