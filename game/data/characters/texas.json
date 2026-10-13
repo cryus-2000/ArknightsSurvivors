@@ -9,7 +9,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
-  "atk": 29, "cd": 1.1, "dash_len": 140, "dash_w": 44, "dash_t": 0.18, "dash_hold": 0.15, "hit_sp": 0.6,
+  "atk": 32, "cd": 1.1, "dash_len": 140, "dash_w": 44, "dash_t": 0.18, "dash_hold": 0.15, "hit_sp": 0.6,
   "s1_r": 130, "s1_mult": 1.6, "s1_stun": 0.5, "s1_sp": 0.10,
   "s2_len": 0.4, "s2_mult": 1.3, "s2_cd_mult": 0.8,
   "s3_dur": 8.0, "s3_every": 0.5, "s3_mult": 0.9, "s3_stun": 0.3, "s3_sp": 0.4, "s3_end_mult": 1.6,
