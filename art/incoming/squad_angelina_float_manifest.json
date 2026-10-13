@@ -1,0 +1,196 @@
+{
+  "assets": [
+    {
+      "file": "op_angelina_float_in.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 12,
+      "loop": false,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        24,
+        46
+      ],
+      "lowest_opaque_rows": [
+        46,
+        46,
+        42,
+        38
+      ],
+      "sha256": "f0cc1510a83bdcac369b1628500697caf1f1736fb83c49cc9f9964b34f40903e"
+    },
+    {
+      "file": "op_angelina_float_in@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 4,
+      "fps": 12,
+      "loop": false,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        48,
+        92
+      ],
+      "lowest_opaque_rows": [
+        92,
+        92,
+        84,
+        76
+      ],
+      "sha256": "dc2bcb3cf3987aa13e9edb9496c9997667e2ccccdb7b73f41c2520cec03dbf05"
+    },
+    {
+      "file": "op_angelina_float.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 8,
+      "loop": true,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        24,
+        46
+      ],
+      "lowest_opaque_rows": [
+        38,
+        37,
+        37,
+        38,
+        39,
+        39
+      ],
+      "sha256": "a7b09bca0cf4b5eb3a7e80d7684f1be9ed32d28f5b150f1577a91ff2254f3982"
+    },
+    {
+      "file": "op_angelina_float@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 8,
+      "loop": true,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        48,
+        92
+      ],
+      "lowest_opaque_rows": [
+        76,
+        74,
+        74,
+        76,
+        78,
+        78
+      ],
+      "sha256": "710e043849334f08fd6a3e704bcbf01c2b6b5d136017a33a0e607447cd75b69f"
+    },
+    {
+      "file": "op_angelina_float_move.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 10,
+      "loop": true,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        24,
+        46
+      ],
+      "lowest_opaque_rows": [
+        38,
+        37,
+        38,
+        39,
+        38,
+        37
+      ],
+      "sha256": "a8b5fde92bdb85e830af480d5536d76c0687ba052203a12f0c3a36f7d2950e3e"
+    },
+    {
+      "file": "op_angelina_float_move@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 6,
+      "fps": 10,
+      "loop": true,
+      "fire": null,
+      "event_frame_zero_based": null,
+      "anchor": [
+        48,
+        92
+      ],
+      "lowest_opaque_rows": [
+        76,
+        74,
+        76,
+        78,
+        76,
+        74
+      ],
+      "sha256": "2211d369f08d683e9b900901a2a2ccec64da25725c4abed3412f7824cdd4404d"
+    },
+    {
+      "file": "op_angelina_float_attack.png",
+      "character": "angelina",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 12,
+      "loop": false,
+      "fire": 2,
+      "event_frame_zero_based": 2,
+      "anchor": [
+        24,
+        46
+      ],
+      "lowest_opaque_rows": [
+        38,
+        38,
+        38,
+        38,
+        38
+      ],
+      "sha256": "21a1de4dc9d27b1ebfd6282e627dd745a3ec2a558a6290cf871b2535eec65ed4"
+    },
+    {
+      "file": "op_angelina_float_attack@2x.png",
+      "character": "angelina",
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 5,
+      "fps": 12,
+      "loop": false,
+      "fire": 2,
+      "event_frame_zero_based": 2,
+      "anchor": [
+        48,
+        92
+      ],
+      "lowest_opaque_rows": [
+        76,
+        76,
+        76,
+        76,
+        76
+      ],
+      "sha256": "071382d52ba5c480a9343f7198101f467cb90ae5c5c8a781f3637a134fb9b26e"
+    }
+  ],
+  "source": "imagegen pose study + approved original upper body pixels",
+  "source_image": "exec-07380d64-43b1-4a85-a3d3-02ccd6692796.png",
+  "source_sha256": "d24b760bd66472eae40dfac0aa4f1e6183127728534818437a00f88c2d80f8d1",
+  "production": "Built-in imagegen drew hover/glide/crouch pose study; generated dangling legs combined with approved source upper-body pixels; delayed lower silhouette deformation, original palette mapping, binary alpha, 1px/2px outline export. Glide/staff extent adjusted to remain inside canvas.",
+  "prompt_summary": "Same approved Angelina right-facing 3/4 identity, outfit, staff. Floating toes down, joined trailing legs while gliding, 10deg torso lean, buoyant hair/coat, no effects or shadow.",
+  "lint_limit": "Current art_lint roster reads existing game sprites only. New strips validated separately using unmodified lint_op main-body asset checks and explicit height/transition tests."
+}
