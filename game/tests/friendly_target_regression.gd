@@ -95,7 +95,8 @@ func _process(_dt: float) -> void:
 		var arc: Array = op.arc_targets(Vector2.ZERO, 0.0, PI, 300.0)
 		check(arc.size() == 1 and is_same(arc[0], hostile), cid + " attack arc excludes ally")
 		if cid == "wisadel":
-			check(is_same(op._execute_target(300.0), hostile), "Wisadel elite priority cannot consume a shot on ally")
+			var OBw = preload("res://scripts/characters/op_blocks.gd")   # 维什戴尔已迁成数据干员（docs/61 §21）：凋零处刑选目标在积木段
+			check(is_same(OBw._h4_exec_target(op, op.B.attack, 300.0), hostile), "Wisadel elite priority cannot consume a shot on ally")
 		if cid == "kaltsit":
 			game.stats.define_all(op.stat_defs())
 			op.update(0.01)   # 数据干员（docs/61 §15.9）：第一帧 trig.on_deploy 放出 Mon3tr，随行召唤物当帧选目标

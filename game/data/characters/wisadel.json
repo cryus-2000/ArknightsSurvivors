@@ -8,7 +8,7 @@
   0.22,
   0.2
  ],
- "script": "res://scripts/characters/wisadel.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 30,
@@ -225,5 +225,210 @@
    "连锁"
   ],
   "desc": "炮击 → 余震 → 残影：一发炮弹在敌群里炸三次"
+ },
+ "blocks": {
+  "_doc": "维什戴尔（docs/61 §21）：炮击（离队长最近、相仿挑最密）→ 余震 → 残影殉爆；S1 接下来 3 发 ×1.5；S2 凋零处刑（精英优先重炮）；S3 饱和炮击（装填 8 发巨炮）；精二魂灵之影挂残影标记。原手写脚本留作 tests/data_ops/wisadel_legacy.gd",
+  "attack": {
+   "shape": "cannon",
+   "src": "炮击",
+   "every": "$cd",
+   "first": 0.6,
+   "idle": 0.2,
+   "range": "$range",
+   "ref": 480,
+   "aim_r": 480,
+   "fire_r": 520,
+   "slack": 40,
+   "tip": [
+    14,
+    -34
+   ],
+   "aoe": "$aoe",
+   "aoe_mults": [
+    {
+     "cond": "elite >= 1",
+     "mult": 1.15
+    }
+   ],
+   "quake": "$quake",
+   "quakes": [
+    {
+     "cond": "elite >= 1",
+     "value": "$quake_e1"
+    }
+   ],
+   "quake_r": 1.2,
+   "quake_t": 0.45,
+   "quake_src": "余震",
+   "echo": {
+    "cond": "node:echo_quake",
+    "delay": "$quake2_delay",
+    "mult": "$quake2_mult",
+    "size": "$quake2_size"
+   },
+   "ash": {
+    "size": 1.1,
+    "rings": {
+     "cond": "node:ash_rings"
+    },
+    "stun": "$ash_stun"
+   },
+   "twin": {
+    "cond": "node:twin_shot",
+    "mult": "$twin_mult",
+    "size": 0.85
+   },
+   "shade": {
+    "cond": "elite >= 1",
+    "mult": "$shade",
+    "r": 0.8,
+    "stun": 0.6,
+    "max": 12,
+    "src": "殉爆",
+    "_doc": "天赋「残影」"
+   },
+   "mark": {
+    "dur": "$mark_dur",
+    "mult": "$mark_mult",
+    "r": 0.9,
+    "max": 12
+   },
+   "giant": {
+    "mult": "$s3_mult",
+    "size": "$s3_size",
+    "cd": "$s3_cd",
+    "src": "饱和炮击"
+   }
+  },
+  "skills": [
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 3
+    },
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "power": true
+    },
+    "status": "灰烬弹幕 ×%d",
+    "status_col": [
+     0.95,
+     0.22,
+     0.2
+    ],
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 16.0,
+       "life": 0.3,
+       "col": [
+        0.95,
+        0.22,
+        0.2
+       ],
+       "alpha": 0.5
+      },
+      "at": "self",
+      "off": [
+       14,
+       -34
+      ],
+      "face_x": true
+     },
+     {
+      "text": {
+       "s": "灰烬弹幕",
+       "col": [
+        0.95,
+        0.22,
+        0.2
+       ],
+       "size": 14
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
+      ]
+     }
+    ],
+    "do": []
+   },
+   {
+    "dur": 0,
+    "aim": "elite",
+    "aim_r": 540,
+    "do": [
+     {
+      "verb": "cannon_exec",
+      "aim_r": 540,
+      "mult": "$s2_mult",
+      "size": "$s2_size",
+      "stun": 0.8,
+      "src": "凋零处刑",
+      "mark": {
+       "cond": "node:exec_mark"
+      }
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "aim": "cluster",
+    "aim_r": 520,
+    "do": [
+     {
+      "verb": "cannon_load",
+      "n": "$s3_ammo",
+      "aim_r": 540,
+      "banner": "饱和炮击：巨炮装填 ×%d",
+      "status": "巨炮 ×%d"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [],
+    "_doc": "残影：写在 attack.shade（cond elite >= 1）；余震 60%、爆炸范围 ×1.15 写在 attack.quakes / aoe_mults"
+   }
+  ],
+  "progression": {
+   "echo_quake": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "余响：写在 attack.echo（cond node:echo_quake）"
+   },
+   "twin_shot": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "礼尚往来：写在 attack.twin（cond node:twin_shot）"
+   },
+   "ash_rings": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "余烬未冷：写在 attack.ash.rings（cond node:ash_rings）"
+   },
+   "exec_mark": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "亡者回响：写在 S2 的 verb.cannon_exec.mark（cond node:exec_mark）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "_doc": "死魂灵的余息：2 个魂灵之影每 2 秒各自给附近一名敌人挂残影标记",
+    "do": [
+     {
+      "verb": "souls",
+      "n": 2,
+      "cd": "$soul_cd",
+      "range": "$soul_range",
+      "speed": "$soul_speed"
+     }
+    ]
+   }
+  }
  }
 }

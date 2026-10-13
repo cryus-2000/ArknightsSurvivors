@@ -1584,7 +1584,8 @@ func test_saria_cleanse() -> void:
 	game.cold_t = 2.0
 	game.root_t = 0.8
 	c.sync_cold()
-	var did: bool = sa.cleanse_ctrl(false)
+	var OBs = load("res://scripts/characters/op_blocks.gd")   # 塞雷娅已迁成数据干员（docs/61 §21）：净化在积木段 h4_cleanse_ctrl
+	var did: bool = OBs.h4_cleanse_ctrl(sa, false)
 	ok(did and game.cold == 0 and game.cold_t == 0.0 and game.root_t == 0.0, "塞雷娅净化：清除寒冷与冻结 / 束缚")
 	var ops: Dictionary = Bal._data.get("operators", {})
 	var sbak = ops.get("saria", {}).duplicate()
@@ -1594,7 +1595,7 @@ func test_saria_cleanse() -> void:
 	Bal._data["operators"] = ops
 	game.cold = 2
 	game.root_t = 0.5
-	ok(not sa.cleanse_ctrl(false) and game.cold == 2 and game.root_t == 0.5, "operators/saria/cleanse = 0：不净化")
+	ok(not OBs.h4_cleanse_ctrl(sa, false) and game.cold == 2 and game.root_t == 0.5, "operators/saria/cleanse = 0：不净化")
 	ops["saria"] = sbak
 	game.cold = 0
 	game.root_t = 0.0

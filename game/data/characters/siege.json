@@ -8,7 +8,7 @@
   0.78,
   0.35
  ],
- "script": "res://scripts/characters/siege.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 35,
@@ -35,7 +35,10 @@
   "crack_len": 180,
   "crack_w": 30,
   "crack_mult": 0.6,
-  "crack_life": 0.6
+  "crack_life": 0.6,
+  "s3_dur": 8.0,
+  "leash": 200,
+  "gap": 26
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2251 / 防御 384 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -243,5 +246,253 @@
    "控制"
   ],
   "desc": "冲锋锤击，为全队加速技能循环"
+ },
+ "blocks": {
+  "_doc": "推进之王（docs/61 §21）：前压锤击（命中给其他干员技力，精一翻倍）+ 震地 / 狮吼冲击环 + 精二破阵地裂；S1 下一锤强化 + 全队技力（万兽之王号令波）；S2 跃空锤（再跃）；S3 碎颅 8 秒重锤。原手写脚本留作 tests/data_ops/siege_legacy.gd",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "h4_cross",
+     "life": 0.15,
+     "ang": [
+      0.0,
+      3.14159
+     ]
+    }
+   }
+  ],
+  "attack": {
+   "shape": "hammer",
+   "src": "锤击",
+   "r": "$reach",
+   "half": 1.2,
+   "kb": 140,
+   "y": -10,
+   "every": "$cd",
+   "first": 0.4,
+   "idle": 0.1,
+   "heavy": {
+    "cond": "skill_active:2",
+    "mult": "$s3_mult",
+    "power": true,
+    "interval": 1.33,
+    "stun_chance": 0.5,
+    "stun": 0.8,
+    "anim": "skill",
+    "ring": true,
+    "_doc": "碎颅：每一锤 ×1.8 × 技能强度、攻速 -25%（间隔 ×1.33）、命中 50% 眩晕 0.8 秒，用技能动作起手"
+   },
+   "hit_sp": "$hit_sp",
+   "hit_sp_mults": [
+    {
+     "cond": "elite >= 1",
+     "mult": 2.0,
+     "_doc": "天赋「鼓舞」：锤击命中回复的全队技力翻倍"
+    }
+   ],
+   "quake": {
+    "cond": "node:quake",
+    "r": "$quake_r",
+    "mult": "$quake_mult",
+    "src": "震地余波",
+    "roar": {
+     "cond": "node:roar",
+     "r_mult": "$roar_r_mult",
+     "kb": "$roar_kb"
+    }
+   },
+   "breach": {
+    "cond": "elite >= 2",
+    "len": "$crack_len",
+    "w": "$crack_w",
+    "mult": "$crack_mult",
+    "life": "$crack_life",
+    "max": 6,
+    "src": "破阵"
+   }
+  },
+  "skills": [
+   {
+    "dur": {
+     "next_attacks": 1
+    },
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "power": true
+    },
+    "status": "冲锋号令",
+    "status_col": [
+     1.0,
+     0.78,
+     0.35
+    ],
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 12.0,
+       "life": 0.3,
+       "col": [
+        1.0,
+        0.78,
+        0.35
+       ],
+       "alpha": 0.5
+      },
+      "at": "self",
+      "off": [
+       0,
+       -62
+      ]
+     },
+     {
+      "text": {
+       "s": "冲锋号令",
+       "col": [
+        1.0,
+        0.78,
+        0.35
+       ],
+       "size": 14
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
+      ]
+     }
+    ],
+    "do": [
+     {
+      "verb": "sp_team",
+      "pct": "$s1_sp",
+      "power": true,
+      "motes": 2
+     },
+     {
+      "verb": "cmd_wave",
+      "cond": "node:beast_king",
+      "r": "$cmd_r",
+      "dur": "$cmd_dur",
+      "mult": "$cmd_mult",
+      "kb": "$cmd_kb",
+      "max": 2,
+      "src": "号令"
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "do": [
+     {
+      "verb": "leap_slam",
+      "aim_r": 160,
+      "dist": 90,
+      "t": 0.42,
+      "h": 42,
+      "r": "$s2_r",
+      "mult": "$s2_mult",
+      "kb": 220,
+      "stun": 0.6,
+      "sp": "$s2_sp",
+      "src": "震地",
+      "again": {
+       "cond": "node:leap_again",
+       "range": "$leap2_range",
+       "dist": "$leap2_dist",
+       "mult": "$leap2_mult",
+       "near": 0.6
+      }
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "status": "碎颅",
+    "status_col": [
+     1.0,
+     0.6,
+     0.3
+    ],
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 30.0,
+       "life": 0.35,
+       "col": [
+        1.0,
+        0.6,
+        0.3
+       ],
+       "alpha": 0.6
+      },
+      "at": "self",
+      "off": [
+       0,
+       -24
+      ]
+     },
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        1.0,
+        0.78,
+        0.35
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     },
+     {
+      "banner": "碎颅"
+     }
+    ],
+    "do": []
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [],
+    "_doc": "鼓舞：写在 attack.hit_sp_mults（cond elite >= 1）"
+   }
+  ],
+  "progression": {
+   "quake": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "震地：写在 attack.quake（cond node:quake）"
+   },
+   "roar": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "狮吼：写在 attack.quake.roar（cond node:roar）"
+   },
+   "leap_again": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "再跃：写在 S2 的 verb.leap_slam.again（cond node:leap_again）"
+   },
+   "beast_king": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "万兽之王：S1 的 verb.cmd_wave（cond node:beast_king）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "破阵：写在 attack.breach（cond elite >= 2）"
+   }
+  }
  }
 }

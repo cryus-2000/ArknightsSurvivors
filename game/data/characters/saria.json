@@ -8,7 +8,7 @@
   0.72,
   0.38
  ],
- "script": "res://scripts/characters/saria.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 40,
@@ -35,7 +35,15 @@
   "suit_mult": 1.8,
   "suit_kb": 320,
   "hot_heal": 0.0085,
-  "s3_heal": 0.01275
+  "s3_heal": 0.01275,
+  "s3_dur": 8.0,
+  "s3_r": 180,
+  "hot_dur": 5.0,
+  "orb_shatter_every": 3.0,
+  "orb_shatter_reach": 260,
+  "orb_regrow": 1.0,
+  "orb_shatter_mult": 0.4,
+  "orb_shatter_n": 3
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3150 / 防御 595 / 法抗 10%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -250,5 +258,208 @@
    "推开"
   ],
   "desc": "阻挡圈推开贴身的敌人，拳击击退；技能全部是治疗"
+ },
+ "blocks": {
+  "_doc": "塞雷娅（docs/61 §21）：护卫站位 + 阻挡圈 + 持盾出拳；钙晶环绕（碎晶）；S1 急救（注射器）/ S2 药剂散布（持续回复）/ S3 钙质化区域（晶柱、碎晶）；天赋坚守减伤；精二莱茵充能护服。原手写脚本留作 tests/data_ops/saria_legacy.gd",
+  "follow": {
+   "side": [
+    40,
+    14
+   ]
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 8.0,
+     "life": 0.14,
+     "col": [
+      1.0,
+      0.72,
+      0.38
+     ],
+     "alpha": 0.5
+    }
+   },
+   {
+    "sparks": {
+     "n": 2,
+     "spd": 220.0,
+     "life": 0.2,
+     "col": [
+      1.0,
+      0.72,
+      0.38
+     ],
+     "sz": 2.0
+    }
+   }
+  ],
+  "attack": {
+   "shape": "bash",
+   "src": "拳击",
+   "r": "$reach",
+   "half": 1.1,
+   "kb": 200,
+   "stun": 0.2,
+   "y": -10,
+   "every": "$cd",
+   "first": 0.5,
+   "idle": 0.1
+  },
+  "trait": [
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "guard_ring",
+      "r": "$block_r",
+      "every": 0.25,
+      "kb": 200,
+      "kb_elite": 80,
+      "slow": 0.5
+     },
+     {
+      "verb": "calc_orbs",
+      "src": "钙晶",
+      "n_by": [
+       {
+        "cond": "node:calc_cluster",
+        "n": "$orb_n2"
+       },
+       {
+        "cond": "node:calc_orb",
+        "n": "$orb_n1"
+       }
+      ],
+      "r": "$orb_r",
+      "spin": "$orb_spin",
+      "mult": "$orb_mult",
+      "cd": "$orb_cd",
+      "shatter": {
+       "cond": "node:shatter",
+       "every": "$orb_shatter_every",
+       "reach": "$orb_shatter_reach",
+       "regrow": "$orb_regrow",
+       "mult": "$orb_shatter_mult",
+       "n": "$orb_shatter_n",
+       "src": "碎晶"
+      }
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "dur": 0,
+    "do": [
+     {
+      "verb": "saria_heal",
+      "pct": "$s1_heal",
+      "low_hp": 0.5,
+      "low_mult": 2.0,
+      "cleanse": true,
+      "ring": 40,
+      "syringe": {
+       "cond": "node:syringe",
+       "n": "$syringe_n",
+       "mult": "$syringe_mult",
+       "slow": "$syringe_slow",
+       "range": 260,
+       "speed": 460,
+       "src": "急救针剂"
+      }
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "do": [
+     {
+      "verb": "saria_heal",
+      "pct": "$s2_heal",
+      "ring": 60,
+      "hot": {
+       "dur": "$hot_dur",
+       "pct": "$hot_heal",
+       "name": "药剂散布"
+      }
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "do": [
+     {
+      "verb": "calc_field",
+      "dur": "$s3_dur",
+      "r": "$s3_r",
+      "heal": "$s3_heal",
+      "slow": 0.5,
+      "weak": 0.2,
+      "shard_every": 0.35,
+      "name": "钙质化",
+      "banner": "钙质化",
+      "shatter": {
+       "cond": "node:shatter",
+       "every": "$shatter_every",
+       "n": "$shatter_n",
+       "mult": "$shatter_mult",
+       "src": "碎晶"
+      }
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "_doc": "坚守：队长受到的伤害 -12%",
+    "do": [
+     {
+      "verb": "dr",
+      "value": 0.12
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "calc_orb": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "钙质沉积：写在 verb.calc_orbs.n_by（cond node:calc_orb）"
+   },
+   "calc_cluster": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "晶簇：写在 verb.calc_orbs.n_by（cond node:calc_cluster）"
+   },
+   "syringe": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "急救针剂：写在 S1 的 verb.saria_heal.syringe（cond node:syringe）"
+   },
+   "shatter": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "碎晶：写在 verb.calc_orbs.shatter 与 S3 的 verb.calc_field.shatter（cond node:shatter）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "_doc": "莱茵充能护服：每 5 秒充满一格，4 格满后下一拳变为全方位冲击",
+    "do": [
+     {
+      "verb": "suit",
+      "seg_t": "$suit_seg_t",
+      "segs": 4,
+      "r": "$suit_r",
+      "mult": "$suit_mult",
+      "kb": "$suit_kb",
+      "stun": 0.3,
+      "name": "护服充能"
+     }
+    ]
+   }
+  }
  }
 }

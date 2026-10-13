@@ -5,6 +5,10 @@
 ## 索敌：打离主控最近的敌人（主控是唯一会掉血的）；最近几个距离相仿时挑周围敌人最多的落点。凋零处刑精英 / Boss 优先。
 ## 特效（docs/25）：黑红。弹体是黑红彗星（一整条连续轮廓：圆头最宽，沿轨迹平滑收细到尾尖，尾上带黑色碎屑）；落点从出膛起画收缩的红色准星；
 ## 落地橙白闪 → 黑烟 → 红环 → 带火头碎片 → 地面焦痕；余震只有地面双环 + 裂纹 + 上飘余烬。全程不震镜头。
+## ⚠ 测试参照（10-14 起）：维什戴尔已迁成数据干员（data/characters/wisadel.json 的 blocks，docs/61 §21），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=wisadel=res://tests/data_ops/wisadel_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：炮口 / 巨炮火星、彗尾碎屑、魂灵之影俯冲的烟点、余震余烬、落地碎片、饱和炮击 / 凋零处刑爆炸的刀锋光条与黑烟；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const RED := Color(0.95, 0.22, 0.2)
@@ -177,13 +181,13 @@ func _release_skill() -> void:
 				return
 			_fire(tgt.pos, base("atk", 30.0) * base("s2_mult", 3.0) * skill_power(), "凋零处刑", base("s2_size", 1.6), true, 0.8)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 28.0, "life": 0.3, "col": RED, "alpha": 0.6})
-			fx_sparks(_muzzle(), EMBER, 10, 200.0, 0.3)
+			_vsparks(_muzzle(), EMBER, 10, 200.0, 0.3)
 		2:
 			# 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
 			ammo = int(base("s3_ammo", 8.0))
 			show_banner("饱和炮击：巨炮装填 ×%d" % ammo)
 			fx({"kind": "glow", "pos": _muzzle(), "r": 30.0, "life": 0.4, "col": RED, "alpha": 0.6})
-			fx_sparks(_muzzle(), EMBER, 10, 160.0, 0.3)
+			_vsparks(_muzzle(), EMBER, 10, 160.0, 0.3)
 			var tg3: Dictionary = _target(_reach(540.0))
 			if not tg3.is_empty():
 				ammo -= 1
@@ -211,7 +215,7 @@ func _fire_giant(to: Vector2) -> void:
 	var dir: Vector2 = (to - _muzzle()).normalized()
 	fx({"kind": "glow", "pos": _muzzle(), "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
 	for k in 8:
-		fx({"kind": "spark", "pos": _muzzle(), "vel": (-dir).rotated(g.rng.randf_range(-0.9, 0.9)) * g.rng.randf_range(120, 260), "life": 0.3, "col": EMBER, "sz": 2.5, "drag": 3.0})
+		fx({"kind": "spark", "pos": _muzzle(), "vel": (-dir).rotated(g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(120, 260), "life": 0.3, "col": EMBER, "sz": 2.5, "drag": 3.0})
 
 
 func _muzzle() -> Vector2:
@@ -232,7 +236,7 @@ func _fire(to: Vector2, base_dmg: float, src: String, size: float, quake: bool, 
 	fx({"kind": "muzzle", "pos": from, "dir": dir, "life": 0.07, "col": RED, "sz": 30.0 * size})
 	fx({"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
 	for k in 3:
-		fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.rng.randf_range(-0.6, 0.6)) * g.rng.randf_range(60, 140), "life": 0.2, "col": EMBER, "sz": 2.0, "drag": 3.0})
+		fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 140), "life": 0.2, "col": EMBER, "sz": 2.0, "drag": 3.0})
 	Sfx.op(id, "atk", 2.0 if size <= 1.2 else 4.0, 1.0 if size <= 1.2 else 0.85)
 
 
@@ -252,7 +256,7 @@ func _update_shells(dt: float) -> void:
 			s.trail = 0.03
 			# 彗尾上甩出的黑色碎屑（生成在彗头后方，不压在头上）
 			var p: Vector2 = _shell_pos(s) if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
-			fx({"kind": "ember_shard", "pos": p, "vel": Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-20, 30)), "life": 0.3, "col": DARK, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
+			fx({"kind": "ember_shard", "pos": p, "vel": Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-20, 30)), "life": 0.3, "col": DARK, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
 		if s.t < s.dur:
 			s.hist.append(_shell_pos(s))
 			if s.hist.size() > 9:
@@ -345,8 +349,8 @@ func _update_souls(dt: float) -> void:
 				else:
 					var to: Vector2 = tg2.pos + Vector2(0, -tg2.r - 10.0)
 					s.p = s.p.move_toward(to, spd * dt)
-					if g.rng.randf() < dt * 30.0:
-						fx({"kind": "mote", "pos": s.p + Vector2(g.rng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
+					if g.vrng.randf() < dt * 30.0:
+						fx({"kind": "mote", "pos": s.p + Vector2(g.vrng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
 					if s.p.distance_to(to) < 8.0:
 						_mark(tg2)
 						fx({"kind": "ring", "pos": tg2.pos, "r": tg2.r + 16.0, "r0": 4.0, "life": 0.3, "col": RED, "floor": true, "w": 2.0})
@@ -398,11 +402,11 @@ func _explode(c: Vector2, dmg: float, r: float, src: String, depth: int, stun: f
 			if rings:
 				# 余烬未冷：外面再推出第三圈亮橙环（慢一拍、更粗），圈内被震到的敌人眩晕
 				fx({"kind": "ring", "pos": c, "r": r * 1.3, "r0": r * 0.5, "life": 0.6, "col": Color(1.6, 0.6, 0.3), "floor": true, "w": 4.0})
-				fx_sparks(c, EMBER, 6, 160.0, 0.35, 2.5, -80.0)
+				_vsparks(c, EMBER, 6, 160.0, 0.35, 2.5, -80.0)
 			fx({"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": RED, "floor": true, "n": 7, "ang": c.x * 0.01})
 			for k in (4 if light else 8):
-				var ox: float = g.rng.randf_range(-r * 0.6, r * 0.6)
-				fx({"kind": "spark", "pos": c + Vector2(ox, 0), "vel": Vector2(ox * 0.4, g.rng.randf_range(-110, -60)), "life": 0.4, "col": RED, "sz": 2.0, "grav": 160.0})
+				var ox: float = g.vrng.randf_range(-r * 0.6, r * 0.6)
+				fx({"kind": "spark", "pos": c + Vector2(ox, 0), "vel": Vector2(ox * 0.4, g.vrng.randf_range(-110, -60)), "life": 0.4, "col": RED, "sz": 2.0, "grav": 160.0})
 		"殉爆":
 			fx({"kind": "smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": DARK})
 			_impact_fx(c, r, light)
@@ -439,9 +443,9 @@ func _impact_fx(c: Vector2, r: float, light: bool) -> void:
 		fx({"kind": "smoke", "pos": c + Vector2(r * 0.25, -r * 0.2), "r": r * 0.7, "life": 0.6, "col": DARK, "delay": 0.06})
 	fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": RED, "w": 3.0})
 	for k in (3 if light else 7):
-		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(90, 210) + Vector2(0, -90)
-		fx({"kind": "ember_shard", "pos": c, "vel": v, "life": 0.5, "col": Color(0.25, 0.16, 0.18), "sz": 5.0, "ang": g.rng.randf() * TAU, "spin": 12.0, "grav": 420.0})
-	fx_sparks(c, EMBER, 4 if light else 8, 200.0, 0.3)
+		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(90, 210) + Vector2(0, -90)
+		fx({"kind": "ember_shard", "pos": c, "vel": v, "life": 0.5, "col": Color(0.25, 0.16, 0.18), "sz": 5.0, "ang": g.vrng.randf() * TAU, "spin": 12.0, "grav": 420.0})
+	_vsparks(c, EMBER, 4 if light else 8, 200.0, 0.3)
 	fx({"kind": "scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
 
 
@@ -452,18 +456,18 @@ func _burst_fx(c: Vector2, r: float, small := false) -> void:
 	if spawn_fx_sprite("fx_wisadel_cannon", c, r * 2.8 * sc / 96.0):
 		fx({"kind": "scorch", "pos": c, "r": r * 0.9 * sc, "life": 2.0, "floor": true})
 		return
-	fx({"kind": "burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.rng.randf() * TAU, "n": 8 if small else 12})
+	fx({"kind": "burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
 	fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": RED, "floor": true, "w": 2.5, "alpha": 0.75})
 	var n: int = 3 if small else 5
-	var seed: float = g.rng.randf() * TAU
+	var seed: float = g.vrng.randf() * TAU
 	for q in n:
-		var ang: float = seed + q * TAU / n + g.rng.randf_range(-0.45, 0.45)
-		var off: Vector2 = Vector2.from_angle(ang) * r * sc * g.rng.randf_range(0.3, 0.7)
+		var ang: float = seed + q * TAU / n + g.vrng.randf_range(-0.45, 0.45)
+		var off: Vector2 = Vector2.from_angle(ang) * r * sc * g.vrng.randf_range(0.3, 0.7)
 		off.y *= 0.55
-		fx({"kind": "smoke", "pos": c + off, "r": r * sc * g.rng.randf_range(0.32, 0.5), "life": g.rng.randf_range(0.5, 0.75), "col": DARK, "delay": q * 0.035})
+		fx({"kind": "smoke", "pos": c + off, "r": r * sc * g.vrng.randf_range(0.32, 0.5), "life": g.vrng.randf_range(0.5, 0.75), "col": DARK, "delay": q * 0.035})
 	for k in (5 if small else 8):
-		var v: Vector2 = Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120, 260)
-		fx({"kind": "sliver", "pos": c, "vel": v, "life": 0.45, "col": BOLT, "sz": g.rng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
+		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(120, 260)
+		fx({"kind": "sliver", "pos": c, "vel": v, "life": 0.45, "col": BOLT, "sz": g.vrng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
 	fx({"kind": "scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
 
 
@@ -680,3 +684,11 @@ func status_items() -> Array:
 	if ammo > 0:
 		out.append(["巨炮 ×%d" % ammo, Color(1.0, 0.55, 0.45)])
 	return out
+
+
+## 画面火花（同 character.gd fx_sparks，随机数换成 g.vrng；积木等价参照用）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

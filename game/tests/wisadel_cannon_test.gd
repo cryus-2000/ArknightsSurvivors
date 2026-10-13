@@ -16,15 +16,16 @@ func _process(_dt: float) -> void:
 	set_process(false)
 	g.set_process(false)
 	var op = g.squad.get_op("wisadel")
+	var OB = load("res://scripts/characters/op_blocks.gd")   # 维什戴尔已迁成数据干员（docs/61 §21）：落地 / 爆炸画面在积木段 h4_impact_fx / h4_burst_fx
 	check(op != null, "Wisadel initialized")
 	check(g.tex.get("fx_wisadel_cannon") != null, "cannon artwork loaded")
 	if op != null:
 		for variant in 4:
 			g.fx.clear()
 			if variant < 2:
-				op._impact_fx(g.ppos + Vector2(150, 0), 80.0, variant == 0)
+				OB.h4_impact_fx(op, g.ppos + Vector2(150, 0), 80.0, variant == 0)
 			else:
-				op._burst_fx(g.ppos + Vector2(150, 0), 110.0, variant == 2)
+				OB.h4_burst_fx(op, g.ppos + Vector2(150, 0), 110.0, variant == 2)
 			var sprites: Array = g.fx.filter(func(f): return f.get("name", "") == "fx_wisadel_cannon")
 			check(sprites.size() == 1, "basic/skill cannon uses one animation: %d" % variant)
 			if not sprites.is_empty():
@@ -40,7 +41,7 @@ func _process(_dt: float) -> void:
 		var saved = g.tex["fx_wisadel_cannon"]
 		g.tex["fx_wisadel_cannon"] = null
 		g.fx.clear()
-		op._burst_fx(g.ppos, 100.0)
+		OB.h4_burst_fx(op, g.ppos, 100.0)
 		check(not op.pfx.is_empty(), "missing texture procedural fallback")
 		g.tex["fx_wisadel_cannon"] = saved
 	print("WISADEL CANNON failures=", failures)

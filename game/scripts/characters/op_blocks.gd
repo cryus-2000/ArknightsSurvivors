@@ -32,7 +32,7 @@ const OP_STATS := ["op_atk", "op_aspd", "op_range", "op_skill_power", "op_shots"
 const AURA_STAT := {"atk": "op_atk", "aspd": "op_aspd", "skill_power": "op_skill_power", "range": "op_range"}
 const COND_OPS := [">=", "<=", "==", ">", "<"]
 ## blocks.attack 能用的普攻形状（第三批追加：point_aoe 安洁莉娜、dash_line 德克萨斯、projectile 能天使）
-const ATTACK_SHAPES := ["circle", "cone", "point_aoe", "dash_line", "projectile", "shell", "bolt", "thrust", "saw", "lantern", "umbrella"]   # shell / bolt：手写迁移段（艾雅法拉 / 逻各斯）；thrust：手写迁移段第 3 批（艾丽妮）
+const ATTACK_SHAPES := ["circle", "cone", "point_aoe", "dash_line", "projectile", "shell", "bolt", "thrust", "saw", "lantern", "umbrella", "hammer", "foxfire", "cannon", "bash"]   # shell / bolt：手写迁移段（艾雅法拉 / 逻各斯）；thrust：手写迁移段第 3 批（艾丽妮）
 
 
 # ================================================================ 表达式 / 条件（docs/61 §1.2 / §1.3）
@@ -571,7 +571,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 			for k in sb:
 				if not k in ["dur", "do", "fx", "aim", "status", "status_col"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
 					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段" % [p, k])
-				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
+				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether", "elite", "cluster"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
 					errs.append("%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>" % p)
 				elif k == "attack_patch" and atk_shape == "point_aoe" and not (dv is Dictionary and dv.has("next_attacks")):
 					errs.append("%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{\"next_attacks\": N}）" % p)
@@ -809,6 +809,7 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			_num(b, "interval_mult", p, ctx, false, 0.05)
 		"verb.sp_team":
 			_num(b, "pct", p, ctx, true, 0.0, 1.0)
+			_num(b, "motes", p, ctx, false, 0.0, 6.0)   # 第 4 批：金色技力粒子飞向每名队友（画面）；power：× 技能强度
 		"aura.atk", "aura.aspd", "aura.skill_power", "aura.range":
 			_num(b, "value", p, ctx, true)
 			var sc := str(b.get("scope", ""))
@@ -2312,7 +2313,7 @@ static func _v_next_n(sb: Dictionary, p: String, perm_json: bool, ctx: Dictionar
 		errs.append(p + ".attack_patch 必须是对象")
 		return
 	for k in ap:
-		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit", "power", "aoe_mult", "on_explode", "on_first", "first_fx", "then_first", "kb", "burst", "swarm", "_doc"]:   # power / aoe_mult / on_explode：手写迁移段（法术弹普攻）；on_first / first_fx / then_first：第 3 批（刺击普攻）；kb / burst / swarm：第 3 批（伞击）
+		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit", "power", "aoe_mult", "on_explode", "on_first", "first_fx", "then_first", "kb", "burst", "swarm", "shots", "_doc"]:   # shots：第 4 批（狐火连珠）；power / aoe_mult / on_explode：手写迁移段（法术弹普攻）；on_first / first_fx / then_first：第 3 批（刺击普攻）；kb / burst / swarm：第 3 批（伞击）
 			errs.append("%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm" % [p, k])
 	_list(ap.get("on_first", []), p + ".attack_patch.on_first", "on_hit", ctx)
 	_list(ap.get("then_first", []), p + ".attack_patch.then_first", "instant", ctx)
@@ -3717,7 +3718,7 @@ static func _exu_dur(dv: Dictionary, p: String, perm_json: bool, i: int, ctx: Di
 
 ## attack_patch（技能生效期间改普攻弹道）与 end（技能结束时执行一次）
 static func _exu_skill(sb: Dictionary, p: String, ctx: Dictionary, atk_shape := "") -> void:
-	if sb.has("attack_patch") and not atk_shape in ["point_aoe", "shell", "thrust", "umbrella"]:   # shell / thrust / umbrella（手写迁移段）的补丁由 _v_next_n 查
+	if sb.has("attack_patch") and not atk_shape in ["point_aoe", "shell", "thrust", "umbrella", "hammer", "foxfire", "cannon", "bash"]:   # shell / thrust / umbrella（手写迁移段）、hammer / foxfire / cannon / bash（第 4 批）的补丁由 _v_next_n 查
 		var ap = sb.attack_patch
 		if not (ap is Dictionary):
 			ctx.errs.append(p + ".attack_patch 必须是对象")
@@ -4593,7 +4594,7 @@ const MF_FX_KINDS := ["pfx", "gfx", "sprite", "sparks", "arc", "text", "banner",
 const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_r", "ring", "r_scale", "vel_r", "ang_vel", "along", "side_x", "r_mult",
 	"first_only", "face_x", "to", "to_off", "to_jit", "_doc"]
 const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side", "rot_ang"]
-const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link"]   # crack / flame：手写迁移段（character.gd 的地裂 / 火舌）；lava_pillar：hw_draw_pfx
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross"]   # crack / flame：手写迁移段（character.gd 的地裂 / 火舌）；lava_pillar：hw_draw_pfx
 const MF_GFX_KINDS := ["beam", "rays", "cross"]
 const MF_AT := ["center", "self", "leader", "hits", "summon"]
 const MF_CLEANSE := ["nerve"]
@@ -4777,6 +4778,8 @@ static func mf_skill_aim(o, i: int) -> Vector2:
 	if a == "range":   # 手写迁移段：攻击距离（逻各斯段 hw_range）内最近的敌人
 		var tr: Array = o.nearest_enemies(1, hw_range(o), o.pos)
 		return tr[0].pos if not tr.is_empty() else Vector2.INF
+	if a == "elite" or a == "cluster":   # 手写迁移段第 4 批：凋零处刑（精英 / Boss 优先）/ 饱和炮击（离队长最近、相仿挑最密）
+		return h4_skill_aim(o, i, a)
 	if a == "nearest":   # 手写迁移段：aim_r（世界像素）内最近的敌人，没有 = 不转身
 		var ts: Array = o.nearest_enemies(1, float(sk[i].get("aim_r", 200.0)), o.pos)
 		return ts[0].pos if not ts.is_empty() else Vector2.INF
@@ -6452,6 +6455,7 @@ static func hw_init(o) -> void:
 		elif t in HW5_TAGS:
 			_hw5(o)
 	h3_init(o, tags)   # 手写迁移段第 3 批
+	h4_init(o, tags)   # 手写迁移段第 4 批
 	if o.B.get("attack", {}).has("lob"):
 		_hw5(o)
 
@@ -6472,7 +6476,7 @@ static func _hw_uses(n) -> bool:
 		for k in n:
 			if k in ["follow", "basis", "combo", "countdown", "origin_off", "aim_pad", "hit_fx", "cast", "pulses"]:
 				return true
-			if k == "_tag" and (str(n[k]) in HW_TAGS or str(n[k]) in HW2_TAGS or str(n[k]) in HW3_TAGS or str(n[k]) in HW4_TAGS or str(n[k]) in HW5_TAGS or str(n[k]) in H3_TAGS):
+			if k == "_tag" and (str(n[k]) in HW_TAGS or str(n[k]) in HW2_TAGS or str(n[k]) in HW3_TAGS or str(n[k]) in HW4_TAGS or str(n[k]) in HW5_TAGS or str(n[k]) in H3_TAGS or str(n[k]) in H4_TAGS):
 				return true
 			if _hw_uses(n[k]):
 				return true
@@ -6593,6 +6597,8 @@ static func hw_tick(o, dt: float) -> bool:
 	var b3 := false
 	if h3_on(o):   # 手写迁移段第 3 批（各人手写 update 的先后；true = 本帧不起手：替身在场 / 倒下中）
 		b3 = h3_tick(o, dt)
+	if h4_on(o):   # 手写迁移段第 4 批（true = 本帧不起手：跃空锤在空中）
+		b3 = h4_tick(o, dt) or b3
 	if h.has("anchor"):   # 乌尔比安段：计时 → 锚 → 掀飞（手写 update 开头的先后）
 		_hw4_tick(o, dt)
 	if not h.waves.is_empty():
@@ -6630,11 +6636,15 @@ static func hw_draw_over(o) -> void:
 	if o.hw.has("bolts"):
 		hw_draw_logos_over(o)
 	h3_draw_over(o)   # 手写迁移段第 3 批
+	if h4_on(o):
+		h4_draw_over(o)   # 手写迁移段第 4 批
 
 
 ## 区域层（data_operator.draw_auras）
 static func hw_draw_auras(o) -> void:
 	h3_draw_auras(o)   # 手写迁移段第 3 批
+	if h4_on(o):
+		h4_draw_auras(o)   # 手写迁移段第 4 批
 	hw_draw_pulse_ring(o)
 	hw_draw_look(o, "auras")
 	if o.hw.has("fan"):
@@ -6644,6 +6654,8 @@ static func hw_draw_auras(o) -> void:
 ## 地面层（data_operator.draw_entities_floor）
 static func hw_draw_floor(o) -> void:
 	h3_draw_floor(o)   # 手写迁移段第 3 批
+	if h4_on(o):
+		h4_draw_floor(o)   # 手写迁移段第 4 批
 	if o.hw.has("links"):
 		hw_draw_melt(o)
 	hw_draw_waves(o)
@@ -6697,6 +6709,8 @@ static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
 			hw_hook_start(o, b)
 		_:
 			h3_exec(o, b, at)   # 手写迁移段第 3 批
+			if h4_on(o):
+				h4_exec(o, b, at)   # 手写迁移段第 4 批
 
 
 # ---------------------------------------------------------------- shape.wave（斯卡蒂「跃浪」：重斩落点掀起一道向前推进的浪墙）
@@ -6918,8 +6932,12 @@ static func _hw_top(blocks: Dictionary, ctx: Dictionary) -> void:
 		if not (fw is Dictionary):
 			errs.append("blocks.follow 必须是对象 {leash, gap}")
 		else:
-			_num(fw, "leash", "blocks.follow", ctx, true, 20.0, 800.0)
-			_num(fw, "gap", "blocks.follow", ctx, true, 0.0, 200.0)
+			if fw.has("side"):   # 第 4 批：护卫站位（队长朝向一侧的固定偏移，不前压）
+				if not (fw.side is Array and fw.side.size() == 2):
+					errs.append("blocks.follow.side 必须是 [x, y]")
+			else:
+				_num(fw, "leash", "blocks.follow", ctx, true, 20.0, 800.0)
+				_num(fw, "gap", "blocks.follow", ctx, true, 0.0, 200.0)
 	if blocks.has("hit_fx"):
 		_fx(blocks.hit_fx, "blocks.hit_fx", ctx, "shape.circle")
 	if blocks.has("look"):
@@ -6984,6 +7002,8 @@ static func _hw_shape_params(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
 	if tag in H3_TAGS:   # 手写迁移段第 3 批
 		return _h3_block(b, p, kind, ctx, tag)
+	if tag in H4_TAGS:   # 手写迁移段第 4 批
+		return _h4_block(b, p, kind, ctx, tag)
 	if tag in E3_TAGS:   # 精英化第 3 批
 		return _e3_block(b, p, kind, ctx, tag)
 	if tag in HW2_TAGS:
@@ -7454,6 +7474,10 @@ static func hw_pulse_start(o, i: int, sb: Dictionary) -> void:
 static func hw_active_left(o, i: int) -> float:
 	if not hw_on(o):
 		return -1.0
+	if h4_on(o):   # 手写迁移段第 4 批：狐火迷雾 / 巨炮发数 / 钙质化
+		var v4: float = h4_active_left(o, i)
+		if v4 >= 0.0:
+			return v4
 	var pu = o.hw.get("pulse", {})
 	if pu is Dictionary and not pu.is_empty() and int(pu.i) == i:
 		return float(int(pu.n)) * float(pu.every)
@@ -7565,6 +7589,8 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	if str(f.kind).begins_with("h3_"):   # 手写迁移段第 3 批
 		return h3_draw_pfx(o, f, a)
+	if str(f.kind).begins_with("h4_"):   # 手写迁移段第 4 批
+		return h4_draw_pfx(o, f, a)
 	match str(f.kind):
 		"whirl", "chain", "rift":   # 乌尔比安段
 			return hw4_draw_pfx(o, f, a)
@@ -7591,6 +7617,8 @@ static func hw_status_items(o) -> Array:
 		out += hw4_status_items(o)
 	if h3_on(o):   # 手写迁移段第 3 批
 		out += h3_status_items(o)
+	if h4_on(o):   # 手写迁移段第 4 批
+		out += h4_status_items(o)
 	var sk: Array = o.B.get("skills", [])
 	for i in mini(3, sk.size()):
 		var st: String = str(sk[i].get("status", ""))
@@ -13100,3 +13128,2611 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
 			_src(b, p, ctx, true)
 	return true
+
+
+# ================================================================ 手写迁移段（第 4 批：推进之王 / 铃兰 / 维什戴尔 / 塞雷娅，docs/91 §19 批 4；docs/61 §21）
+# 只往后加，建在手写迁移段上（o.hw 状态、hw_tick / hw_exec / hw_draw_* 挂钩），前缀 h4_ / _h4。各人一个子字典：
+#   sg（锤击 / 跃空锤 / 号令波 / 地裂）、sz（狐火 / 光域 / 大狐火 / 金印）、wd（炮弹 / 余震 / 残影 / 标记 / 魂灵之影）、sa（拳击 / 阻挡圈 / 钙晶 / 投射物 / 护服 / 钙质化）。
+# 确定性：玩法随机只在手写版也取 g.rng 的地方取（推进之王碎颅的 50% 眩晕、塞雷娅钙质化晶柱的落点与碎晶挑哪根），次数与顺序同手写；画面一律 g.vrng。
+# 常驻的「系统积木」（光域、阻挡圈、钙晶、魂灵之影……）写在 trait / talent / 成长节点的 passive do 里，每帧按 _h4_live 现查（不缓存，精英化 / 选节点当帧生效，同手写）。
+#
+# 推进之王段（SG_TAGS）：
+#  shape.hammer     扇形锤击（普攻）：半径 r × op_range、半角 half、kb、判定原点 脚底 + (0, y)；次数型补丁（dur.next_n 的 attack_patch：mult / power）乘在这一锤上；
+#                   heavy {cond, mult, power, interval, stun_chance, stun, anim}：cond 成立时（碎颅）每一锤 × mult [× 技能强度]、间隔 × interval、用 anim 帧条起手（出手走技能出手帧）、
+#                   命中的非 Boss 敌人 stun_chance 概率（g.rng，同手写）眩晕 stun 秒（精英减半）；hit_sp + hit_sp_mults：命中时其他干员技力 + 秒数（第一条 cond 成立的倍率）；
+#                   quake {cond, r, mult, src, roar {cond, r_mult, kb}}：落点一圈贴地冲击环；breach {cond, len, w, mult, life, max, src}：沿锤击方向的直线地裂
+#  verb.leap_slam   跃空锤：朝 aim_r 内最近的敌人跃过去（至多 dist，落在它面前 24 处），t 秒、高 h 的空中翻转，落地 r × op_range 内 × mult × 技能强度、kb、stun，
+#                   其他干员技力 + sp × 技能强度；again {cond, range, dist, mult, near}：落地后再跃向身边敌人最密处砸第二下（× mult，不回技力）
+#  verb.cmd_wave    号令波：以自身为心向外扩张到 r（dur 秒，先快后慢），扫到的敌人 × mult × 技能强度、非精英击退 kb；同时至多 max 道
+#  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友
+
+const H4_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave",
+	"shape.foxfire", "verb.foxlight", "verb.fox_cast",
+	"shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls",
+	"shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+const H4_ATTACKS := ["hammer", "foxfire", "cannon", "bash"]   # 第 4 批的普攻形状（起手 / 出手由本段接管）
+const SG_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave"]
+const SZ_TAGS := ["shape.foxfire", "verb.foxlight", "verb.fox_cast"]
+const WD_TAGS := ["shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls"]
+const SA_TAGS := ["shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+const H4_GOLD := Color(1.0, 0.78, 0.35)
+const H4_FLAME := Color(1.0, 0.55, 0.15)
+const H4_FOX := Color(1.0, 0.82, 0.45)
+const H4_RED := Color(0.95, 0.22, 0.2)
+const H4_BOLT := Color(0.9, 0.08, 0.1)
+const H4_EMBER := Color(1.0, 0.55, 0.3)
+const H4_DARK := Color(0.1, 0.06, 0.08)
+const H4_AMBER := Color(1.0, 0.72, 0.38)
+
+
+static func h4_on(o) -> bool:
+	return hw_on(o) and (o.hw.has("sg") or o.hw.has("sz") or o.hw.has("wd") or o.hw.has("sa"))
+
+
+## hw_init 转来：本段的状态一开始就建好
+static func h4_init(o, tags: Dictionary) -> void:
+	for t in tags:
+		if t in SG_TAGS:
+			_h4sg(o)
+		elif t in SZ_TAGS:
+			_h4sz(o)
+		elif t in WD_TAGS:
+			_h4wd(o)
+		elif t in SA_TAGS:
+			_h4sa(o)
+
+
+## 本帧生效的某块积木（trait → talent → 已选节点 → elite1 / elite2；passive 的 do 里找，各自的 cond 都成立）；没有 = {}
+static func _h4_live(o, tag: String) -> Dictionary:
+	for t in o._trigs():
+		if not cond_true(o, t.get("cond", {})):
+			continue
+		var tg: String = str(t.get("_tag", ""))
+		if tg == tag:
+			return t
+		if tg == "trig.passive":
+			for b in t.get("do", []):
+				if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", {})):
+					return b
+	return {}
+
+
+## 条件成立的第一条 [{cond, mult}] 的倍率；没有 = 1.0
+static func _h4_first_mult(o, arr, key := "mult") -> float:
+	if arr is Array:
+		for m in arr:
+			if m is Dictionary and cond_true(o, m.get("cond", {})):
+				return float(m.get(key, 1.0))
+	return 1.0
+
+
+## 子参数块 {cond, …} 成立时返回它，否则 {}
+static func _h4_sub(o, v) -> Dictionary:
+	if v is Dictionary and not v.is_empty() and cond_true(o, v.get("cond", {})):
+		return v
+	return {}
+
+
+## 次数型技能的补丁（dur.next_n 的 attack_patch）：先到先用，用掉一次
+static func _h4_take_patch(o) -> Dictionary:
+	var sk: Array = o.B.get("skills", [])
+	for i in 3:
+		if o.ammo[i] > 0 and i < sk.size():
+			o.ammo[i] -= 1
+			return sk[i].get("attack_patch", {})
+	return {}
+
+
+static func _h4_patch_pending(o) -> bool:
+	return o.ammo[0] > 0 or o.ammo[1] > 0 or o.ammo[2] > 0
+
+
+## 普攻起手（data_operator.update：技能判定之后）
+static func h4_attack_start(o, a: Dictionary, _dt: float) -> void:
+	match str(a.get("shape", "")):
+		"hammer":
+			_h4_hammer_start(o, a)
+		"foxfire":
+			_h4_fox_start(o, a)
+		"cannon":
+			_h4_cannon_start(o, a)
+		"bash":
+			_h4_bash_start(o, a)
+
+
+## 普攻出手（data_operator._release）；音效由各形状自己播（同手写）
+static func h4_attack_fire(o, a: Dictionary) -> void:
+	match str(a.get("shape", "")):
+		"hammer":
+			_h4_hammer_release(o, a)
+		"foxfire":
+			_h4_fox_release(o, a)
+		"cannon":
+			_h4_cannon_release(o, a)
+		"bash":
+			_h4_bash_release(o, a)
+
+
+## data_operator._release_skill 开头：碎颅期间用技能动作起手的那一锤（出手走技能出手帧）。返回 true = 已处理
+static func h4_release_skill(o) -> bool:
+	if not o.hw.has("sg") or not o.hw.sg.heavy_swing:
+		return false
+	o.hw.sg.heavy_swing = false
+	o._release()
+	return true
+
+
+## 每帧（hw_tick 转来，手写 update 的先后）。返回 true = 本帧不起手（跃空锤在空中）
+static func h4_tick(o, dt: float) -> bool:
+	var h: Dictionary = o.hw
+	if h.has("sg"):
+		return _h4sg_tick(o, h.sg, dt)
+	if h.has("sz"):
+		_h4sz_tick(o, h.sz, dt)
+	if h.has("wd"):
+		_h4wd_tick(o, h.wd, dt)
+	if h.has("sa"):
+		_h4sa_tick(o, h.sa, dt)
+	return false
+
+
+## hw_exec 转来
+static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"verb.leap_slam":
+			h4_leap(o, b)
+		"verb.cmd_wave":
+			h4_cmd_wave(o, b)
+		"verb.fox_cast":
+			h4_fox_cast(o, b)
+		"verb.cannon_exec":
+			h4_cannon_exec(o, b)
+		"verb.cannon_load":
+			h4_cannon_load(o, b)
+		"verb.saria_heal":
+			h4_saria_heal(o, b)
+		"verb.calc_field":
+			h4_calc_start(o, b)
+
+
+## 技能剩余（hw_active_left 转来）：铃兰狐火迷雾 / 维什戴尔巨炮发数 / 塞雷娅钙质化按本段的计时；-1 = 本段不管
+static func h4_active_left(o, i: int) -> float:
+	var h: Dictionary = o.hw
+	if i != 2:
+		return -1.0
+	if h.has("sz"):
+		return float(h.sz.haze_t)
+	if h.has("wd"):
+		return float(h.wd.ammo)
+	if h.has("sa"):
+		return float(h.sa.calc)
+	return -1.0
+
+
+## 起手朝向（mf_skill_aim 转来）：elite = 精英 / Boss 优先（血最多）；cluster = 离队长最近、相仿时挑落点最密
+static func h4_skill_aim(o, i: int, aim: String) -> Vector2:
+	var sk: Array = o.B.get("skills", [])
+	var a: Dictionary = o.B.get("attack", {})
+	var reach: float = _h4_wd_reach(o, a, float(sk[i].get("aim_r", 520.0)))
+	var tg: Dictionary = _h4_exec_target(o, a, reach) if aim == "elite" else _h4_wd_target(o, a, reach)
+	return tg.pos if not tg.is_empty() else Vector2.INF
+
+
+## 击杀（data_operator.on_kill 转来）：维什戴尔带残影标记的敌人殉爆
+static func h4_on_kill(o, e: Dictionary) -> void:
+	if o.hw.has("wd"):
+		_h4wd_on_kill(o, e)
+
+
+## 受击询问（data_operator.dmg_taken_mult 转来）：verb.dr 按本刻生效的积木现算（精英化当帧就生效，同手写；不等下一帧 _sustain）
+static func h4_live_dr(o) -> float:
+	var dr := 1.0
+	for t in o._trigs():
+		if not cond_true(o, t.get("cond", {})) or str(t.get("_tag", "")) != "trig.passive":
+			continue
+		for b in t.get("do", []):
+			if str(b.get("_tag", "")) == "verb.dr" and cond_true(o, b.get("cond", {})):
+				dr *= 1.0 - float(b.value)
+	return dr
+
+
+## 离队：铃兰给队友的攻击加成一并撤掉（手写版不撤，这里顺手修）
+static func h4_leave(o) -> void:
+	if hw_on(o) and o.hw.has("sz"):
+		o.g.stats.remove_source(_h4_field_src(o))
+
+
+## 状态条（hw_status_items 转来）
+static func h4_status_items(o) -> Array:
+	var out: Array = []
+	if o.hw.has("wd") and int(o.hw.wd.ammo) > 0:
+		out.append([str(o.hw.wd.get("status", "×%d")) % int(o.hw.wd.ammo), Color(1.0, 0.55, 0.45)])
+	if o.hw.has("sa"):
+		var sa: Dictionary = o.hw.sa
+		if float(sa.hot_t) > 0.0:
+			out.append([str(sa.get("hot_name", "")), H4_AMBER])
+		if float(sa.calc) > 0.0:
+			out.append([str(sa.get("calc_name", "")), H4_AMBER])
+		var su: Dictionary = _h4_live(o, "verb.suit")
+		if not su.is_empty():
+			var segs: int = int(su.get("segs", 4))
+			out.append([str(su.get("name", "")) + " %d/%d" % [int(sa.seg), segs], H4_AMBER, float(sa.seg) / float(segs)])
+	return out
+
+
+# ---------------------------------------------------------------- 推进之王：锤击
+
+static func _h4sg(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("sg"):
+		h["sg"] = {"leap_t": -1.0, "leap_pos": Vector2.ZERO, "leap_to": Vector2.ZERO, "leap_n": 0, "leap_second": false, "leap_b": {},
+			"heavy_swing": false, "waves": [], "fissures": [], "spikes": []}
+	return h.sg
+
+
+static func _h4_heavy(o, a: Dictionary) -> Dictionary:
+	return _h4_sub(o, a.get("heavy", null))
+
+
+static func _h4_hammer_start(o, a: Dictionary) -> void:
+	if o.cd > 0.0:
+		return
+	var reach: float = float(a.get("r", 108.0)) * o.stat(&"op_range")
+	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 30.0, o.pos), reach)   # 手动普攻 A 类（契约 v2.5）
+	if at == Vector2.INF:
+		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+		return
+	var hv: Dictionary = _h4_heavy(o, a)
+	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd") * (float(hv.get("interval", 1.0)) if not hv.is_empty() else 1.0)
+	if not hv.is_empty():
+		# 碎颅：每一锤都是强化版砸地（播技能动作帧），出手时仍走普攻结算
+		_h4sg(o).heavy_swing = true
+		o._start_action("skill", at, 0.6, 0.3, str(hv.get("anim", "")))
+	else:
+		o.start_attack(at)
+
+
+static func _h4_hammer_release(o, a: Dictionary) -> void:
+	var g = o.g
+	var reach: float = float(a.get("r", 108.0)) * o.stat(&"op_range")
+	var ang: float = o.facing_angle()
+	var ts: Array = o.nearest_enemies(1, reach + 40.0, o.pos)
+	if not ts.is_empty():
+		ang = (ts[0].pos - o.pos).angle()
+		o.face_to(ang)
+	ang = o.atk_angle(ang)
+	var mult := 1.0
+	var patch: Dictionary = _h4_take_patch(o)
+	if not patch.is_empty():
+		mult *= float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
+	var hv: Dictionary = _h4_heavy(o, a)
+	var heavy: bool = not hv.is_empty()
+	if heavy:
+		mult *= float(hv.get("mult", 1.0)) * (o.skill_power() if hv.get("power", true) else 1.0)
+	_h3_sfx(o, "atk")
+	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o._dmg_bonus()
+	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.2)), reach, dmg, float(a.get("kb", 0.0)), 0.0, a.get("tags", []))
+	if heavy:
+		var ch: float = float(hv.get("stun_chance", 0.5))
+		for e in hits:
+			if not e.dead and not e.boss and g.rng.randf() < ch:
+				e.stun = maxf(e.stun, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))
+	o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach, H4_GOLD if not heavy else Color(1.0, 0.6, 0.3))
+	var land: Vector2 = o.pos + Vector2(0, -6) + Vector2.from_angle(ang) * reach * 0.7
+	if heavy:
+		# 碎颅的每一锤：落点一次小型砸地（闪光 + 冲击环 + 不规则地裂 + 火星）
+		o.fx({"kind": "glow", "pos": land + Vector2(0, -4), "r": 24.0, "life": 0.14, "col": Color(2.0, 1.5, 0.8), "alpha": 0.8})
+		o.fx({"kind": "ring", "pos": land + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": H4_FLAME, "floor": true, "w": 3.0})
+		o.fx({"kind": "crack", "pos": land + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": H4_FLAME, "floor": true, "n": 6})
+		_h3_vsparks(o, land, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
+		o.impact_pause(0.04)
+	hw_record(o, dmg, ang, reach, land)
+	_h4_hammer_after(o, a, hits, dmg)   # 精英化第 4 批的追加（粉碎）；迁移时没有
+	var q: Dictionary = _h4_sub(o, a.get("quake", null))
+	if not q.is_empty():
+		_h4_quake(o, q, land, mult)
+	var br: Dictionary = _h4_sub(o, a.get("breach", null))
+	if not br.is_empty():
+		_h4_breach(o, br, land, ang, mult)
+	if not hits.is_empty():
+		# 每次命中（不论几个目标）全队 +hit_sp 秒技力（精一翻倍）
+		_h4_squad_sp_seconds(o, float(a.get("hit_sp", 0.0)) * _h4_first_mult(o, a.get("hit_sp_mults", [])))
+		_h4_sp_motes(o, 1)
+		_h3_sfx(o, "hit", 2.0 if heavy else 0.0, 0.85 if heavy else 1.0)
+
+
+## 精英化第 4 批（粉碎）的挂点：迁移提交里是空的
+static func _h4_hammer_after(_o, _a: Dictionary, _hits: Array, _dmg: float) -> void:
+	pass
+
+
+## 震地 / 狮吼：锤子落地处一圈贴地冲击环（锤击 quake.mult 伤害；roar：范围 × r_mult 并击退）+ 尘土
+static func _h4_quake(o, q: Dictionary, p: Vector2, mult: float) -> void:
+	var g = o.g
+	var ro: Dictionary = _h4_sub(o, q.get("roar", null))
+	var roar: bool = not ro.is_empty()
+	var r: float = float(q.get("r", 70.0)) * (float(ro.get("r_mult", 1.0)) if roar else 1.0) * o.stat(&"op_range")
+	var kb: float = float(ro.get("kb", 0.0)) if roar else 0.0
+	o.area_hit(str(q.get("src", "")), p, r, o.base("atk", 0.0) * mult * float(q.get("mult", 0.25)) * o._dmg_bonus(), kb)
+	o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r, "r0": 10.0, "life": 0.32, "col": H4_GOLD, "floor": true, "w": 3.0 if roar else 2.0})
+	if roar:
+		o.fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r * 0.7, "r0": 6.0, "life": 0.26, "col": Color(2.0, 1.6, 0.8), "floor": true, "w": 1.5})
+	for k in (8 if roar else 5):
+		var an: float = k * TAU / (8.0 if roar else 5.0) + g.vrng.randf_range(-0.3, 0.3)
+		o.fx({"kind": "h4_dust", "pos": p + Vector2(cos(an) * r * 0.35, sin(an) * r * 0.2 + 4.0), "vel": Vector2(cos(an), sin(an) * 0.5) * r * 1.6, "drag": 5.0,
+			"r": g.vrng.randf_range(7.0, 11.0), "life": 0.45, "col": Color(0.62, 0.52, 0.4), "floor": true})
+
+
+## 破阵：锤子落点沿锤击方向砸出一道直线金色地裂（锤击 breach.mult 伤害），发光裂隙 life 秒淡出
+static func _h4_breach(o, br: Dictionary, p: Vector2, ang: float, mult: float) -> void:
+	var g = o.g
+	var sg := _h4sg(o)
+	var L: float = float(br.get("len", 180.0))
+	var w: float = float(br.get("w", 30.0))
+	var dir: Vector2 = Vector2.from_angle(ang)
+	var a: Vector2 = p + Vector2(0, 6)
+	var dmg: float = o.base("atk", 0.0) * mult * float(br.get("mult", 0.5)) * o._dmg_bonus()
+	var src: String = str(br.get("src", ""))
+	for j in o.query_ids(a + dir * L * 0.5, L * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var t: float = clampf((e.pos - a).dot(dir) / L, 0.0, 1.0)
+		if e.pos.distance_to(a + dir * L * t) > w * 0.5 + e.r:
+			continue
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		o.fx({"kind": "h4_cross", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": H4_GOLD, "ang": g.vrng.randf() * PI})
+	# 锯齿状的裂隙折线（生成一次，绘制时逐渐淡出）
+	var pts := PackedVector2Array()
+	var n: int = 9
+	var nrm: Vector2 = dir.orthogonal()
+	for i in n + 1:
+		var u: float = float(i) / n
+		var jit: float = 0.0 if i == 0 or i == n else g.vrng.randf_range(-7.0, 7.0)
+		pts.append(a + dir * L * u + nrm * jit)
+	if sg.fissures.size() >= int(br.get("max", 6)):
+		sg.fissures.pop_front()
+	var life: float = float(br.get("life", 0.6))
+	sg.fissures.append({"pts": pts, "t": life, "max": life, "w": w, "a": a, "dir": dir, "len": L, "b": br})
+	for k in 4:
+		_h3_vsparks(o, a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
+	_h4_breach_after(o, br, a, dir, L)   # 精英化第 4 批的追加（岩刺）；迁移时没有
+
+
+static func _h4_breach_after(_o, _br: Dictionary, _a: Vector2, _dir: Vector2, _L: float) -> void:
+	pass
+
+
+## 全队（不含自己）技力 + 秒数
+static func _h4_squad_sp_seconds(o, sec: float) -> void:
+	for m in o.g.squad.ops:
+		if m == o:
+			continue
+		for i in 3:
+			if m.skill_unlocked(i) and m.sp_need(i) > 0.0:
+				m.sp[i] = minf(m.sp_need(i), m.sp[i] + sec)
+
+
+## 金色技力粒子：从她飞向每名队友（verb.sp_team motes 也用它）
+static func h4_sp_motes(o, n: int) -> void:
+	_h4_sp_motes(o, n)
+
+
+static func _h4_sp_motes(o, n: int) -> void:
+	var g = o.g
+	var c: Color = o.col()
+	for m in g.squad.ops:
+		if m == o or m.pos == Vector2.INF:
+			continue
+		for k in n:
+			o.fx({"kind": "h4_spmote", "pos": o.pos + Vector2(0, -22), "start": o.pos + Vector2(0, -22), "tgt": m, "life": 0.45 + 0.08 * k, "col": c, "bend": g.vrng.randf_range(-40, 40)})
+
+
+# ---------------------------------------------------------------- 推进之王：跃空锤 / 号令波
+
+static func h4_leap(o, b: Dictionary) -> void:
+	var sg := _h4sg(o)
+	var ag: Dictionary = _h4_sub(o, b.get("again", null))
+	sg.leap_n = 1 if not ag.is_empty() else 0
+	sg.leap_second = false
+	sg.leap_b = b
+	var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 160.0)), o.pos)
+	_h4_start_leap(o, ts[0] if not ts.is_empty() else null, float(b.get("dist", 90.0)))
+
+
+## 起跳：朝目标敌人跃过去（最多 maxd），落在它面前；没有目标就原地跃起
+static func _h4_start_leap(o, tg, maxd: float) -> void:
+	var sg := _h4sg(o)
+	sg.leap_t = 0.0
+	sg.leap_pos = o.pos
+	sg.leap_to = o.pos
+	if tg != null:
+		var dv: Vector2 = tg.pos - o.pos
+		sg.leap_to = o.pos + dv.normalized() * clampf(dv.length() - 24.0, 0.0, maxd)
+		o.face = signf(dv.x) if absf(dv.x) > 1.0 else o.face
+	o.fx({"kind": "ring", "pos": o.pos, "r": 26.0, "r0": 6.0, "life": 0.2, "col": H4_GOLD, "floor": true, "w": 2.0})
+
+
+## 跃空锤落地：伤害 / 眩晕 / 全队技力；second = 再跃的第二跳（× again.mult，不回技力）
+static func _h4_slam(o, b: Dictionary, second: bool) -> void:
+	var g = o.g
+	var pos: Vector2 = o.pos
+	var r: float = float(b.get("r", 110.0)) * o.stat(&"op_range")
+	var ag = b.get("again", {})
+	var sm: float = float(ag.get("mult", 0.6)) if second else 1.0
+	o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * o.skill_power() * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
+	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
+	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
+	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
+	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
+	# 火：中心地面火圈张开 + 周围一圈大小不一的火焰；缺图退回程序水滴火苗
+	if o.spawn_fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
+		for k in 8:
+			var fa: float = k * TAU / 8.0 + g.vrng.randf_range(-0.2, 0.2)
+			var fr: float = r * g.vrng.randf_range(0.35, 0.7)
+			o.spawn_fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.vrng.randf_range(0.7, 1.05), 0.0, g.vrng.randf() < 0.5, true)
+	else:
+		for k in 16:
+			var an: float = k * TAU / 16.0 + g.vrng.randf_range(-0.15, 0.15)
+			var rr: float = r * g.vrng.randf_range(0.25, 0.75)
+			var p: Vector2 = pos + Vector2(cos(an) * rr, sin(an) * rr * 0.5 + 2.0)
+			var inner: bool = rr < r * 0.5
+			o.fx({"kind": "h4_blaze", "pos": p, "vel": Vector2(cos(an) * 24.0, -g.vrng.randf_range(10.0, 30.0)), "life": g.vrng.randf_range(0.32, 0.48),
+				"sz": g.vrng.randf_range(20.0, 28.0) if inner else g.vrng.randf_range(12.0, 18.0), "seed": g.vrng.randf() * 10.0})
+	_h3_vsparks(o, pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
+	o.impact_pause(0.07)
+	if not second:
+		g.squad.gain_sp(float(b.get("sp", 0.2)) * o.skill_power(), o)
+		_h4_sp_motes(o, 3)
+	_h3_sfx(o, "big")
+
+
+## 再跃的落点：落点半径 × near 之外、身边 again.range 以内敌人最密的一处（按 70 以内的邻居数打分）
+static func _h4_next_cluster(o, b: Dictionary):
+	var g = o.g
+	var ag = b.get("again", {})
+	var rng_r: float = float(ag.get("range", 220.0))
+	var near_r: float = float(b.get("r", 110.0)) * o.stat(&"op_range") * float(ag.get("near", 0.6))
+	var best = null
+	var best_s := -1.0
+	var cands: Array = o.query_ids(o.pos, rng_r)
+	for j in cands:
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.chest:
+			continue
+		var d: float = e.pos.distance_to(o.pos)
+		if d > rng_r or d < near_r:
+			continue
+		var s := 0.0
+		for j2 in o.query_ids(e.pos, 70.0):
+			var q: Dictionary = g.enemies[j2]
+			if not q.dead and q.pos.distance_to(e.pos) < 70.0:
+				s += 1.0
+		s -= d * 0.002
+		if s > best_s:
+			best_s = s
+			best = e
+	if best == null:
+		var ts: Array = o.nearest_enemies(1, rng_r, o.pos)
+		best = ts[0] if not ts.is_empty() else null
+	return best
+
+
+## 号令波：一圈向外扩张的金色号令波（攻击 × mult × 技能强度，推开小怪）
+static func h4_cmd_wave(o, b: Dictionary) -> void:
+	var sg := _h4sg(o)
+	if sg.waves.size() >= int(b.get("max", 2)):
+		sg.waves.pop_front()
+	sg.waves.append({"pos": o.pos, "t": 0.0, "r": 0.0, "dmg": o.base("atk", 0.0) * float(b.get("mult", 0.6)) * o._dmg_bonus() * o.skill_power(), "hit": {}, "b": b})
+	o.g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -20), "life": 0.45, "max": 0.45, "col": H4_GOLD, "op_spoke": true})
+	_h3_sfx(o, "big", -4.0, 1.2)
+
+
+static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
+	var g = o.g
+	if not sg.waves.is_empty():
+		for w in sg.waves:
+			var b: Dictionary = w.b
+			var R: float = float(b.get("r", 180.0))
+			var dur: float = float(b.get("dur", 0.4))
+			w.t += dt
+			w.r = R * (1.0 - pow(1.0 - clampf(w.t / dur, 0.0, 1.0), 2.0))
+			for j in o.query_ids(w.pos, w.r + 30.0):
+				var e: Dictionary = g.enemies[j]
+				if e.dead or w.hit.has(e.id) or e.pos.distance_to(w.pos) > w.r + e.r:
+					continue
+				w.hit[e.id] = true
+				o.log_hit(str(b.get("src", "")))
+				o.deal_damage(e, w.dmg)
+				if not e.dead and not e.boss and not e.elite:
+					e.kb += (e.pos - w.pos).normalized() * float(b.get("kb", 380.0))
+				_h3_vsparks(o, e.pos, H4_GOLD, 2, 140.0, 0.3, 2.0)
+		sg.waves = sg.waves.filter(func(w): return w.t < float(w.b.get("dur", 0.4)) + 0.25)
+	for fs in sg.fissures:
+		fs.t -= dt
+	sg.fissures = sg.fissures.filter(func(fs): return fs.t > 0.0)
+	_h4_spikes_tick(o, sg, dt)
+	if float(sg.leap_t) >= 0.0:
+		# 跃空锤：空中转一圈，落地砸击（在 follow 之后覆盖位置，沿起跳点 → 落点飞过去）
+		var b2: Dictionary = sg.leap_b
+		var ld: float = float(b2.get("t", 0.42))
+		sg.leap_t = float(sg.leap_t) + dt
+		var lu: float = clampf(float(sg.leap_t) / ld, 0.0, 1.0)
+		o.pos = sg.leap_pos.lerp(sg.leap_to, lu)
+		if float(sg.leap_t) >= ld:
+			sg.leap_t = -1.0
+			_h4_slam(o, b2, sg.leap_second)
+			# 再跃：落地后立刻跃向下一群敌人（主控时连博士挂件一起带过去）
+			if int(sg.leap_n) > 0:
+				sg.leap_n = int(sg.leap_n) - 1
+				var nc = _h4_next_cluster(o, b2)
+				if nc != null:
+					sg.leap_second = true
+					_h4_start_leap(o, nc, float(b2.get("again", {}).get("dist", 150.0)))
+		return true
+	return false
+
+
+## 精英化第 4 批（岩刺）的延迟画面：迁移提交里没有
+static func _h4_spikes_tick(_o, _sg: Dictionary, _dt: float) -> void:
+	pass
+
+
+# ---------------------------------------------------------------- 推进之王：画面
+
+## 跃空锤在空中：身体绕身体中心整圈翻转（贴图按帧画、只加旋转），高度抛物线；身后实心扇形扫光。返回 true = 已画（data_operator.draw_body 不再画本体）
+static func h4_draw_body(o) -> bool:
+	if not o.hw.has("sg") or float(o.hw.sg.leap_t) < 0.0:
+		return false
+	var g = o.g
+	var cv = o.cv
+	var sg: Dictionary = o.hw.sg
+	var st: Dictionary = o.anim_state()
+	if st.is_empty():
+		return true
+	var b: Dictionary = sg.leap_b
+	var u: float = clampf(float(sg.leap_t) / float(b.get("t", 0.42)), 0.0, 1.0)
+	var hh: float = 4.0 * float(b.get("h", 42.0)) * u * (1.0 - u)
+	var ang: float = u * TAU * (1.0 if o.face >= 0.0 else -1.0)
+	var tx: Texture2D = st.tex
+	var hf: int = st.hf
+	var fw: float = tx.get_width() / hf
+	var fh: float = tx.get_height()
+	var fo: float = o.foot_off(tx, st.get("kind", ""))
+	var pk: float = g.PX / ArtS.hires_of(tx)
+	var cy: float = (-fh + fo) / 2.0
+	var center: Vector2 = o.pos + Vector2(0, -hh + cy * pk)
+	_h4_spin_disc(o, center, u)
+	cv.draw_set_transform(center.round(), ang, Vector2(-pk if st.flip else pk, pk))
+	cv.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + fo - cy), Vector2(fw, fh)), Rect2(fw * (st.frame % hf), 0, fw, fh))
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	return true
+
+
+## 空中翻转的速度感：以干员为圆心的实心扇形渐变盘，最前端最亮、往后按角度逐渐透明，前端一小条橙色
+static func _h4_spin_disc(o, c: Vector2, u: float) -> void:
+	var cv = o.cv
+	var sgn: float = 1.0 if o.face >= 0.0 else -1.0
+	var head: float = -PI / 2.0 + u * TAU * sgn
+	var sweep: float = minf(u * TAU + 0.6, 5.8)
+	var R := 36.0
+	var N := 36
+	for i in N:
+		var t0: float = float(i) / N
+		var t1: float = float(i + 1) / N
+		var a0: float = head - sgn * sweep * t0
+		var a1: float = head - sgn * sweep * t1
+		var k: float = pow(1.0 - t0, 1.7)
+		cv.draw_colored_polygon(PackedVector2Array([c, c + Vector2.from_angle(a0) * R, c + Vector2.from_angle(a1) * R]), Color(1.9, 1.9, 2.0, 0.7 * k))
+	cv.draw_line(c, c + Vector2.from_angle(head) * R, Color(H4_FLAME.r * 1.6, H4_FLAME.g * 1.4, H4_FLAME.b, 0.9), 3.0)
+	var o0: float = head - sgn * 0.5
+	cv.draw_arc(c, R, minf(o0, head), maxf(o0, head), 6, Color(2.2, 2.2, 2.3, 0.9), 3.0)
+
+
+## 地面层：破阵地裂（深色裂口 + 金色亮芯，前 0.08 秒向前裂开）与号令波
+static func _h4sg_draw_floor(o) -> void:
+	var cv = o.cv
+	var sg: Dictionary = o.hw.sg
+	for fs in sg.fissures:
+		if _h4_draw_fissure_tex(o, fs):
+			continue
+		var a: float = clampf(fs.t / fs.max, 0.0, 1.0)
+		var grow: float = clampf((fs.max - fs.t) / 0.08, 0.0, 1.0)
+		var pts: PackedVector2Array = fs.pts
+		var m: int = maxi(2, int(ceil(pts.size() * grow)))
+		var sub: PackedVector2Array = pts.slice(0, m)
+		cv.draw_polyline(sub, Color(1.0, 0.7, 0.3, 0.2 * a), fs.w)
+		cv.draw_polyline(sub, Color(1.6, 1.1, 0.4, 0.35 * a), fs.w * 0.4)
+		cv.draw_polyline(sub, Color(0.06, 0.04, 0.03, 0.85 * minf(1.0, a * 2.0)), 5.0)
+		cv.draw_polyline(sub, Color(2.4, 1.8, 0.8, a), 2.0)
+	for w in sg.waves:
+		var dur: float = float(w.b.get("dur", 0.4))
+		var fade: float = clampf(1.0 - (w.t - dur) / 0.25, 0.0, 1.0) if w.t > dur else 1.0
+		cv.draw_set_transform(w.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, w.r, Color(H4_GOLD.r, H4_GOLD.g, H4_GOLD.b, 0.08 * fade))
+		cv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
+		cv.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(H4_GOLD.r, H4_GOLD.g, H4_GOLD.b, 0.45 * fade), 2.0)
+		for q in (16 if Dc.hit_spokes() else 0):   # 狮鬃放射纹（render/hit_spokes 缺省不画），号令波环照画
+			var dv := Vector2.from_angle(q * TAU / 16.0)
+			cv.draw_line(dv * w.r * 0.75, dv * w.r, Color(2.0, 1.6, 0.7, 0.6 * fade), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 精英化第 4 批（地裂帧条）：迁移提交里没有，画程序裂隙
+static func _h4_draw_fissure_tex(_o, _fs: Dictionary) -> bool:
+	return false
+
+
+## 区域层：碎颅期间头顶一圈橙色呼吸环（heavy.ring）
+static func _h4sg_draw_auras(o) -> void:
+	var hv: Dictionary = _h4_heavy(o, o.B.get("attack", {}))
+	if hv.is_empty() or not hv.get("ring", false) or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	o.cv.draw_arc(o.pos + Vector2(0, -22), 26.0 + 3.0 * sin(g.t * 9.0), 0.0, TAU, 24, Color(1.0, 0.6, 0.3, 0.4 + 0.15 * sin(g.t * 9.0)), 2.0)
+
+
+## 推进之王的程序粒子：尘土 / 火苗 / 落地光柱 / 技力粒子 / 命中十字闪
+static func _h4sg_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var g = o.g
+	var cv = o.cv
+	match str(f.kind):
+		"h4_dust":
+			var k0: float = 1.0 - a
+			var dc: Color = f.col
+			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.6))
+			cv.draw_circle(Vector2.ZERO, f.r * (0.7 + 0.8 * k0), Color(dc.r, dc.g, dc.b, 0.35 * a))
+			cv.draw_circle(Vector2(f.r * 0.3, -f.r * 0.2), f.r * (0.45 + 0.6 * k0), Color(dc.r * 1.1, dc.g * 1.1, dc.b * 1.1, 0.3 * a))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return true
+		"h4_blaze":
+			var k: float = 1.0 - a
+			var h: float = f.sz * (0.55 + 0.9 * minf(1.0, k * 3.0)) * (0.4 + 0.6 * a)
+			var w: float = f.sz * 0.36 * (0.5 + 0.5 * a)
+			var b: Vector2 = f.pos
+			cv.draw_circle(b + Vector2(0, -h * 0.15), w * 1.4, Color(2.0, 0.9, 0.25, 0.22 * a))
+			for layer in 2:
+				var s2: float = 1.0 if layer == 0 else 0.55
+				var hh: float = h * s2
+				var ww: float = w * s2
+				var left := PackedVector2Array()
+				var right := PackedVector2Array()
+				for i in 7:
+					var t: float = float(i) / 6.0
+					var hw: float = ww * sqrt(maxf(0.0, 1.0 - t)) * (0.75 + 1.6 * t if t < 0.15 else 1.0)
+					var wob: float = sin(g.t * 22.0 + f.seed + t * 5.0) * ww * 0.3 * t
+					left.append(b + Vector2(-hw + wob, -hh * t))
+					right.append(b + Vector2(hw + wob, -hh * t))
+				right.reverse()
+				var pts: PackedVector2Array = left
+				pts.append_array(right.slice(1))
+				cv.draw_colored_polygon(pts, Color(2.0, 0.85, 0.22, 0.8 * a) if layer == 0 else Color(2.6, 2.1, 1.1, 0.9 * a))
+			return true
+		"h4_pillar":
+			var k: float = 1.0 - a
+			var H: float = 150.0 * minf(1.0, k * 4.0)
+			var w: float = 30.0 * (1.0 - k * 0.8)
+			var b: Vector2 = f.pos
+			var c: Color = f.col
+			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w, 0), b + Vector2(-w * 0.25, -H), b + Vector2(w * 0.25, -H), b + Vector2(w, 0)]), Color(c.r, c.g, c.b, 0.35 * a))
+			cv.draw_colored_polygon(PackedVector2Array([b + Vector2(-w * 0.35, 0), b + Vector2(-2, -H * 0.9), b + Vector2(2, -H * 0.9), b + Vector2(w * 0.35, 0)]), Color(2.2, 2.1, 1.6, 0.6 * a))
+			for q in (6 if Dc.hit_spokes() else 0):
+				var an: float = -PI / 2.0 + (q - 2.5) * 0.28
+				cv.draw_line(b + Vector2(0, -8), b + Vector2(0, -8) + Vector2.from_angle(an) * H * (0.6 + 0.08 * (q % 3)), Color(c.r, c.g, c.b, 0.5 * a), 2.0)
+			return true
+		"h4_spmote":
+			var k := 1.0 - a
+			var to: Vector2 = f.tgt.pos + Vector2(0, -24)
+			var p: Vector2 = f.start.lerp(to, k) + Vector2(0, -sin(k * PI) * 30.0) + f.start.direction_to(to).orthogonal() * sin(k * PI) * f.bend
+			var tail: Vector2 = f.start.lerp(to, maxf(0.0, k - 0.12)) + Vector2(0, -sin(maxf(0.0, k - 0.12) * PI) * 30.0)
+			var c: Color = f.col
+			cv.draw_line(tail, p, Color(c.r, c.g, c.b, 0.5), 2.0)
+			cv.draw_circle(p, 3.0, Color(2.2, 1.8, 0.9))
+			return true
+		"h4_cross":
+			var L := 10.0 + 14.0 * (1.0 - a)
+			for q in 2:
+				var dv := Vector2.from_angle(float(f.get("ang", 0.0)) + q * PI / 2.0)
+				cv.draw_line(f.pos - dv * L, f.pos + dv * L, Color(2.0, 1.7, 1.0, a), 2.5)
+			cv.draw_circle(f.pos, 5.0 * a + 2.0, Color(2.4, 2.2, 1.6, a))
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- 铃兰段（第 4 批续，SZ_TAGS）
+#  shape.foxfire    追踪狐火（普攻，手动 B 类）：起手 attack_targets(aim_n, range)，出手向 aim_targets(n, range + aim_pad) 发 n 团狐火（game 的 arcane 弹：追踪、命中小范围溅射）；
+#                   n = shots + shot_adds 里 cond 成立的 n 之和；次数型补丁（狐火连珠）attack_patch {shots, mult, power}；狐火从杖头 tip 发出；同时在场的弹体 ≤ proj_max（含大狐火、围炉狐火）；
+#                   merge {cond, every, all {cond}, mult, spd, life, r}：每第 every 次普攻（all 成立时每一次）三团合成一团大狐火直线贯穿（每名敌人一次）；
+#                   seal {cond, stun, stun_elite}：狐火连珠的狐火命中后定身（Boss 不受）+ 脚下金印；狐火迷雾（光域 haze）期间不普攻
+#  verb.foxlight    光域（放 trait 的 passive）：以本干员为心，半径 (r + r_elite × 精英阶段) × op_range，暖光（warm 条件）× warm_mult、迷雾 × haze_mult；
+#                   区域内敌人减速（slow[平时 / 暖光 / 迷雾] 秒）、weak_cond 成立或迷雾时 aura_weak；暖光或迷雾期间每秒为队长回复 heal[平时 / 迷雾]；
+#                   迷雾结束时：暖光在 → 其他干员攻击 + warm_buff × 技能强度，否则撤掉；hearth {cond, n, mult, cd, src}：暖光生效后光域边缘的狐火灼伤碰到的敌人
+#  verb.fox_cast    暖光 / 狐火迷雾的出手：haze 秒迷雾（不写 = 暖光）、其他干员攻击 + buff × 技能强度、banner，光域边缘升起光柱
+
+static func _h4sz(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("sz"):
+		h["sz"] = {"haze_t": 0.0, "mote_t": 0.0, "heal_acc": 0.0, "pillar_t": 0.0, "n": 0, "merging": false,
+			"bigfox": [], "sealed": [], "seals": [], "hearth_hit": {}, "brand": [], "brands": [], "trails": []}
+	return h.sz
+
+
+static func _h4_field_src(o) -> String:
+	return "blk4:%s:field" % o.id
+
+
+## 其他干员攻击加成：只写入别的干员的 op:<id> 作用域，不给自己（同手写，施放 / 迷雾结束时整组重写）
+static func _h4_field_buff(o, v: float) -> void:
+	var src: String = _h4_field_src(o)
+	o.g.stats.remove_source(src)
+	for m in o.g.squad.ops:
+		if m != o:
+			o.g.stats.add(&"op_atk", "add", v, src, "op:" + m.id)
+	o.refresh_stats()
+
+
+static func _h4_warm(o, fl: Dictionary) -> bool:
+	return not fl.is_empty() and not _h4_sub(o, fl.get("warm", null)).is_empty()
+
+
+## 光域半径（地面圆）：迷雾 × haze_mult，否则暖光 × warm_mult
+static func h4_fox_r(o, fl: Dictionary) -> float:
+	if fl.is_empty():
+		return 0.0
+	var r: float = (float(fl.get("r", 85.0)) + float(fl.get("r_elite", 0.0)) * o.elite) * o.stat(&"op_range")
+	if float(_h4sz(o).haze_t) > 0.0:
+		return r * float(fl.get("haze_mult", 2.2))
+	return r * (float(fl.get("warm_mult", 1.6)) if _h4_warm(o, fl) else 1.0)
+
+
+static func _h4_hearth(o, fl: Dictionary) -> Dictionary:
+	if not _h4_warm(o, fl) or o.pos == Vector2.INF:
+		return {}
+	return _h4_sub(o, fl.get("hearth", null))
+
+
+static func _h4_tip(o, a: Dictionary) -> Vector2:
+	var tv = a.get("tip", [34, -42])
+	return o.pos + Vector2(float(tv[0]) * o.face, float(tv[1]))
+
+
+static func _h4_fox_shots(o, a: Dictionary) -> int:
+	var n: int = int(a.get("shots", 2))
+	for m in a.get("shot_adds", []):
+		if m is Dictionary and cond_true(o, m.get("cond", {})):
+			n += int(m.get("n", 1))
+	return n
+
+
+## 下一次普攻是否三火归一（merge.all 成立时每次都是）
+static func _h4_next_merge(o, a: Dictionary) -> bool:
+	var mg = a.get("merge", null)
+	if not (mg is Dictionary):
+		return false
+	if not _h4_sub(o, mg.get("all", null)).is_empty():
+		return true
+	var every: int = maxi(1, int(mg.get("every", 3)))
+	return cond_true(o, mg.get("cond", {})) and int(_h4sz(o).n) % every == every - 1
+
+
+## 还能再放几发弹体（普通狐火 + 大狐火 + 围炉狐火合计 ≤ proj_max）
+static func _h4_proj_room(o, a: Dictionary) -> int:
+	var sz := _h4sz(o)
+	var fl: Dictionary = _h4_live(o, "verb.foxlight")
+	var hr: Dictionary = _h4_hearth(o, fl)
+	var live: int = sz.bigfox.size() + (int(hr.get("n", 6)) if not hr.is_empty() else 0)
+	for b in o.g.bullets:
+		if b.life > 0.0 and b.get("op", "") == o.id:
+			live += 1
+	return int(a.get("proj_max", 12)) - live
+
+
+static func _h4_fox_start(o, a: Dictionary) -> void:
+	var sz := _h4sz(o)
+	if float(sz.haze_t) > 0.0:
+		return   # 狐火迷雾：期间不普攻
+	if o.cd > 0.0:
+		return
+	var ts: Array = o.attack_targets(int(a.get("aim_n", 2)), float(a.get("range", 350.0)) * o.stat(&"op_range"), o.pos)   # 手动普攻 B 类（契约 v2.5）
+	if ts.is_empty():
+		o.cd = o.idle_cd(float(a.get("idle", 0.2)))
+		return
+	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
+	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
+	o.start_attack(ts[0].pos)
+	if sz.merging:
+		o.spawn_fx_sprite("fx_suzuran_foxfire_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
+
+
+static func _h4_fox_release(o, a: Dictionary) -> void:
+	var g = o.g
+	var sz := _h4sz(o)
+	var n: int = _h4_fox_shots(o, a)
+	var mult := 1.0
+	var volley := false
+	var patch: Dictionary = _h4_take_patch(o)
+	if not patch.is_empty():
+		volley = true
+		n = int(patch.get("shots", n))
+		mult = float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
+	var big: bool = sz.merging and not volley
+	sz.merging = false
+	var reach: float = (float(a.get("range", 350.0)) + float(a.get("aim_pad", 20.0))) * o.stat(&"op_range")
+	var ts: Array = o.aim_targets(n, reach, o.pos)
+	var from: Vector2 = _h4_tip(o, a)
+	if ts.is_empty():
+		return
+	if not volley:
+		sz.n = int(sz.n) + 1
+	var room: int = _h4_proj_room(o, a)
+	if big and room > 0:
+		# 三火归一：身前汇成的一团大狐火朝最近的敌人直线射出、贯穿沿途敌人；多出来的狐火照常发射
+		room -= 1
+		n = maxi(0, n - 3)
+		var bt: Dictionary = ts[0]
+		if not o.manual_attack():
+			var lt: Array = o.los_targets(1, reach, o.pos)   # 地形阻挡：大狐火是直线弹，视线内的先
+			if not lt.is_empty():
+				bt = lt[0]
+		_h4_fire_big(o, a, from, bt)
+	var sl: Dictionary = _h4_sub(o, a.get("seal", null)) if volley else {}
+	for k in n:
+		if room <= 0:
+			break
+		room -= 1
+		var tg: Dictionary = ts[k % ts.size()]
+		var d: Vector2 = (tg.pos - o.pos).normalized().rotated(0.6 * (1 if k % 2 == 0 else -1) * (1.0 + 0.3 * (k / 2)))
+		var b := {"kind": "arcane", "pos": from, "vel": d * float(a.get("speed", 330.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o._dmg_bonus() * (o.vs_elite() if tg.elite or tg.boss else 1.0),
+			"life": float(a.get("life", 1.6)), "r": float(a.get("bullet_r", 7.0)), "aoe": float(a.get("aoe", 26.0)), "home": tg, "turn": float(a.get("turn", 7.0)), "src": str(a.get("src", "")), "op": o.id, "fx_col": H4_FOX, "hidden": true, "etrail": 0.0}
+		g.bullets.append(b)
+		if not sl.is_empty():
+			sz.sealed.append(b)   # 画地为牢：命中由 game 结算，这里记住弹体，下一帧看它是否撞上了敌人
+		_h4_fox_track(o, a, b)   # 精英化第 4 批（狐火灼印）的挂点；迁移时没有
+	o.fx({"kind": "glow", "pos": from, "r": 10.0, "life": 0.15, "col": H4_FOX, "alpha": 0.5})
+	_h3_sfx(o, "atk")
+
+
+static func _h4_fox_track(_o, _a: Dictionary, _b: Dictionary) -> void:
+	pass
+
+
+## 三火归一：大狐火（伤害 = 攻击 × merge.mult，贯穿，每名敌人只伤一次）
+static func _h4_fire_big(o, a: Dictionary, from: Vector2, tg: Dictionary) -> void:
+	var mg: Dictionary = a.get("merge", {})
+	var d: Vector2 = (tg.pos + Vector2(0, -8) - from).normalized()
+	_h4sz(o).bigfox.append({"pos": from, "vel": d * float(mg.get("spd", 340.0)), "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * float(mg.get("mult", 2.2)) * o._dmg_bonus(),
+		"life": float(mg.get("life", 1.3)), "r": float(mg.get("r", 14.0)), "hit": {}, "trail": 0.0})
+	o.fx({"kind": "glow", "pos": from, "r": 24.0, "life": 0.22, "col": H4_FOX, "alpha": 0.7})
+	o.fx({"kind": "ring", "pos": from, "r": 30.0, "r0": 6.0, "life": 0.25, "col": H4_FOX, "w": 2.0})
+
+
+static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
+	var g = o.g
+	var a: Dictionary = o.B.get("attack", {})
+	var fl: Dictionary = _h4_live(o, "verb.foxlight")
+	# 狐火弹的火舌尾（纯画面）
+	for b in g.bullets:
+		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
+			continue
+		b.etrail = b.get("etrail", 0.0) - dt
+		if b.etrail <= 0.0:
+			b.etrail = 0.05
+			o.fx({"kind": "flame", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.08 + Vector2(0, -14), "life": 0.25, "col": H4_FOX, "sz": 7.0})
+	_h4_bigfox_tick(o, sz, a, dt)
+	_h4_seals_tick(o, sz, a, dt)
+	_h4_brand_tick(o, sz, a, dt)   # 精英化第 4 批（狐火灼印 / 狐火拖尾）的挂点；迁移时没有
+	if fl.is_empty():
+		return
+	var hr: Dictionary = _h4_hearth(o, fl)
+	if not hr.is_empty():
+		_h4_hearth_tick(o, sz, fl, hr)
+	var warm: bool = _h4_warm(o, fl)
+	if warm or float(sz.haze_t) > 0.0:
+		var was_haze: bool = float(sz.haze_t) > 0.0
+		sz.haze_t = maxf(0.0, float(sz.haze_t) - dt)
+		sz.mote_t = float(sz.mote_t) - dt
+		if float(sz.mote_t) <= 0.0:
+			sz.mote_t = 0.05 if float(sz.haze_t) <= 0.0 else 0.03
+			var an: float = g.vrng.randf() * TAU
+			var rr: float = g.vrng.randf() * h4_fox_r(o, fl)
+			o.fx({"kind": "mote", "pos": o.pos + Vector2(cos(an) * rr, sin(an) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": H4_FOX, "sz": 1.8})
+		# 迷雾期间：光域里不时落下一根小光柱
+		sz.pillar_t = float(sz.pillar_t) - dt
+		if float(sz.haze_t) > 0.0 and float(sz.pillar_t) <= 0.0:
+			sz.pillar_t = 0.9
+			var a2: float = g.vrng.randf() * TAU
+			var rr2: float = g.vrng.randf_range(0.3, 0.9) * h4_fox_r(o, fl)
+			o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
+		# 光域生效时主控缓慢回复（原作：范围内友军回复）
+		sz.heal_acc = float(sz.heal_acc) + dt
+		if float(sz.heal_acc) >= 1.0:
+			sz.heal_acc = float(sz.heal_acc) - 1.0
+			if g.hp < g.max_hp:
+				var hv: Array = fl.get("heal", [0.005, 0.01])
+				o.heal_leader(g.max_hp * (float(hv[1]) if float(sz.haze_t) > 0.0 else float(hv[0])), str(fl.get("src", o.display_name())))
+		if was_haze and float(sz.haze_t) <= 0.0:
+			# 迷雾刚结束：回到暖光（永久）或清除加成
+			if warm:
+				_h4_field_buff(o, float(fl.get("warm_buff", 0.15)) * o.skill_power())
+			else:
+				g.stats.remove_source(_h4_field_src(o))
+				o.refresh_stats()
+	var rad: float = h4_fox_r(o, fl)
+	var haze: bool = float(sz.haze_t) > 0.0
+	var sl: Array = fl.get("slow", [0.2, 0.4, 0.6])
+	var slow: float = float(sl[2]) if haze else (float(sl[1]) if warm else float(sl[0]))
+	var wk = fl.get("weak", {})
+	var weak: bool = haze or not _h4_sub(o, wk).is_empty()
+	var wv: float = float(wk.get("value", 0.2)) if wk is Dictionary else 0.2
+	for j in o.query_ids(o.pos, rad + 20.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(o.pos) > rad:
+			continue
+		e.slow = maxf(e.slow, slow)
+		if weak:
+			e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), wv)
+
+
+static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void:
+	if sz.bigfox.is_empty():
+		return
+	var g = o.g
+	var src: String = str(a.get("src", ""))
+	for f in sz.bigfox:
+		f.life -= dt
+		f.pos += f.vel * dt
+		if g.map.tb_bul and g.map.bullet_blocked(f, f.pos):   # 地形阻挡：大狐火是直线弹，撞景物底座即消失
+			f.life = 0.0
+			continue
+		f.trail -= dt
+		if f.trail <= 0.0:
+			f.trail = 0.03
+			o.fx({"kind": "flame", "pos": f.pos - f.vel.normalized() * 10.0 + Vector2(g.vrng.randf_range(-4, 4), g.vrng.randf_range(-4, 4)), "vel": -f.vel * 0.12 + Vector2(0, -20), "life": 0.3, "col": H4_FOX, "sz": 11.0})
+		_h4_bigfox_path(o, sz, a, f)   # 精英化第 4 批（狐火拖尾）的挂点
+		for j in o.query_ids(f.pos, f.r + 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or f.hit.has(e.id) or e.pos.distance_to(f.pos) > f.r + e.r:
+				continue
+			f.hit[e.id] = true
+			o.log_hit(src, ["pierce"])
+			o.deal_damage(e, f.dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
+			if not e.dead:
+				e.slow = maxf(e.slow, 1.0)
+			o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
+			_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
+			_h4_fox_hit(o, a, e)   # 精英化第 4 批（狐火灼印）的挂点
+	sz.bigfox = sz.bigfox.filter(func(f): return f.life > 0.0)
+
+
+static func _h4_bigfox_path(_o, _sz: Dictionary, _a: Dictionary, _f: Dictionary) -> void:
+	pass
+
+
+static func _h4_fox_hit(_o, _a: Dictionary, _e: Dictionary) -> void:
+	pass
+
+
+static func _h4_brand_tick(_o, _sz: Dictionary, _a: Dictionary, _dt: float) -> void:
+	pass
+
+
+## 画地为牢：狐火连珠的狐火撞上敌人（game 命中时把弹体 life 置 0；自然消散是负数）→ 定身 + 金印
+static func _h4_seals_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void:
+	var g = o.g
+	var sl: Dictionary = a.get("seal", {})
+	for i in range(sz.sealed.size() - 1, -1, -1):
+		var b: Dictionary = sz.sealed[i]
+		if b.life > 0.0:
+			continue
+		sz.sealed.remove_at(i)
+		if b.life < 0.0:
+			continue
+		var best = null
+		var bd := 40.0
+		for j in o.query_ids(b.pos, 40.0):
+			var e: Dictionary = g.enemies[j]
+			var dd: float = e.pos.distance_to(b.pos) - e.r
+			if not e.dead and dd < bd:
+				bd = dd
+				best = e
+		if best == null or best.boss:
+			continue
+		var st: float = float(sl.get("stun_elite", 0.25)) if best.elite else float(sl.get("stun", 0.5))
+		best.stun = maxf(best.stun, st)
+		var found := false
+		for s2 in sz.seals:
+			if s2.e == best:
+				s2.t = maxf(s2.t, st)
+				found = true
+		if not found:
+			if sz.seals.size() >= int(sl.get("max", 6)):
+				sz.seals.pop_front()
+			sz.seals.append({"e": best, "t": st})
+	for s2 in sz.seals:
+		s2.t -= dt
+	sz.seals = sz.seals.filter(func(s2): return s2.t > 0.0 and not s2.e.dead)
+
+
+## 围炉：暖光光域边缘的狐火（与画面的位置一致）灼伤碰到的敌人，每名敌人 cd 秒一次
+static func _h4_hearth_tick(o, sz: Dictionary, fl: Dictionary, hr: Dictionary) -> void:
+	var g = o.g
+	var r: float = h4_fox_r(o, fl)
+	var n: int = int(hr.get("n", 6))
+	var dmg: float = o.base("atk", 0.0) * float(hr.get("mult", 0.3)) * o._dmg_bonus()
+	var every: float = float(hr.get("cd", 0.5))
+	var hh: Dictionary = sz.hearth_hit
+	for k in n:
+		var an: float = g.t * 0.8 + k * TAU / n
+		var p: Vector2 = o.pos + Vector2(4, 4) + Vector2(cos(an) * r, sin(an) * r * 0.55)
+		for j in o.query_ids(p, 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.pos.distance_to(p) > 14.0 + e.r or float(hh.get(e.id, -1.0)) > g.t:
+				continue
+			hh[e.id] = g.t + every
+			o.log_hit(str(hr.get("src", "")))
+			o.deal_damage(e, dmg)
+			o.fx({"kind": "flame", "pos": e.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": H4_FOX, "sz": 10.0})
+	if hh.size() > 200:
+		for key in hh.keys():
+			if hh[key] < g.t:
+				hh.erase(key)
+
+
+## 暖光 / 狐火迷雾的出手
+static func h4_fox_cast(o, b: Dictionary) -> void:
+	var g = o.g
+	var sz := _h4sz(o)
+	sz.heal_acc = 0.0
+	var haze: bool = b.has("haze")
+	if haze:
+		sz.haze_t = float(b.haze)
+		if o.cur_skill >= 0:
+			o.s_dur[o.cur_skill] = float(b.haze)
+	_h4_field_buff(o, float(b.get("buff", 0.15)) * o.skill_power())
+	if b.has("banner"):
+		o.show_banner(str(b.banner))
+	var fl: Dictionary = _h4_live(o, "verb.foxlight")
+	var rr: float = h4_fox_r(o, fl)
+	o.fx({"kind": "ring", "pos": o.pos, "r": rr, "r0": 10.0, "life": 0.6, "col": H4_FOX, "floor": true})
+	g.fx.append({"kind": "rays", "pos": o.pos + Vector2(0, -24), "life": 0.5, "max": 0.5, "col": H4_FOX, "op_spoke": true})
+	# 圣光光柱：中心一根 + 光域边缘六根小的
+	o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(0, 4), g.PX * (1.4 if haze else 1.0), 0.0, false, true)
+	for k in 6:
+		var a3: float = k * TAU / 6.0 + g.t * 0.8
+		o.spawn_fx_sprite("fx_holy_pillar", o.pos + Vector2(4, 4) + Vector2(cos(a3) * rr, sin(a3) * rr * 0.55), g.PX * 0.6, 0.0, false, true)
+	o.spawn_fx_sprite("fx_circle_gold", o.pos + Vector2(0, 4), g.PX * 2.2)
+
+
+# ---------------------------------------------------------------- 铃兰：画面
+
+static func _h4_flame(o, p: Vector2, h: float, a: float) -> void:
+	var g = o.g
+	var cv = o.cv
+	var wob: float = sin(g.t * 20.0 + p.x * 0.3) * 2.0
+	cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.35, 0), p + Vector2(wob, -h), p + Vector2(h * 0.35, 0)]), Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.75 * a))
+	cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-h * 0.15, 0), p + Vector2(wob * 0.6, -h * 0.55), p + Vector2(h * 0.15, 0)]), Color(2.2, 2.0, 1.4, 0.8 * a))
+
+
+## 区域层：九尾虚影（画在人物之下）、光域椭圆 + 边缘绕行的狐火（围炉时变大带热光）
+static func _h4sz_draw_auras(o) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cv = o.cv
+	var a: Dictionary = o.B.get("attack", {})
+	var tl: Dictionary = _h4_sub(o, a.get("tails", null))
+	if not tl.is_empty():
+		_h4_draw_tails(o, tl)
+	var fl: Dictionary = _h4_live(o, "verb.foxlight")
+	if fl.is_empty():
+		return
+	var sz: Dictionary = o.hw.sz
+	var r: float = h4_fox_r(o, fl)
+	var on: bool = _h4_warm(o, fl) or float(sz.haze_t) > 0.0
+	cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+	cv.draw_circle(Vector2.ZERO, r, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.09 if on else 0.05))
+	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, (0.45 if on else 0.25) + 0.06 * sin(g.t * 3.0)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var hr: Dictionary = _h4_hearth(o, fl)
+	if not hr.is_empty():
+		var hn: int = int(hr.get("n", 6))
+		for k in hn:
+			var an: float = g.t * 0.8 + k * TAU / hn
+			var hp: Vector2 = o.pos + Vector2(4, 4) + Vector2(cos(an) * r, sin(an) * r * 0.55)
+			cv.draw_circle(hp + Vector2(0, -6), 12.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
+			_h4_flame(o, hp, 15.0, 1.0)
+		return
+	var n: int = 9 if float(sz.haze_t) > 0.0 else 6
+	for k in n:
+		var an2: float = g.t * 0.8 + k * TAU / n
+		_h4_flame(o, o.pos + Vector2(4, 4) + Vector2(cos(an2) * r, sin(an2) * r * 0.55), 9.0 if on else 6.0, 0.9 if on else 0.6)
+
+
+## 九尾虚影：Codex 帧条（tex，底部根点放在腰后，alpha），缺图画九条程序尾巴
+static func _h4_draw_tails(o, tl: Dictionary) -> void:
+	var g = o.g
+	var cv = o.cv
+	var root: Vector2 = o.pos + Vector2(-4.0 * o.face, -28)
+	if o._fx_strip(str(tl.get("tex", "fx_suzuran_ninetails")), 4, int(g.t * 4.0), root, Vector2(0.5, 46.0 / 48.0), 0.0, Color(1, 1, 1, float(tl.get("alpha", 0.45))), o.face < 0.0):
+		return
+	var center: float = -PI / 2.0 - 0.25 * o.face
+	for k in 9:
+		var t: float = (k - 4) / 4.0
+		var a0: float = center + t * 1.25
+		var sway: float = sin(g.t * 1.8 + k * 0.7) * 0.12
+		var L: float = 92.0 - absf(t) * 22.0
+		for layer in 2:
+			var ws: float = 1.0 if layer == 0 else 0.5
+			var left := PackedVector2Array()
+			var right := PackedVector2Array()
+			for i in 9:
+				var u: float = i / 8.0
+				var an: float = a0 + sway * u * 2.0 + u * u * 0.4 * signf(t + 0.001) * o.face
+				var p: Vector2 = root + Vector2.from_angle(an) * L * u
+				var w: float = (12.0 * sin(PI * minf(1.0, u * 1.05 + 0.1)) + 0.8) * ws
+				var nv: Vector2 = Vector2.from_angle(an).orthogonal()
+				left.append(p + nv * w)
+				right.append(p - nv * w)
+			right.reverse()
+			var pts: PackedVector2Array = left
+			pts.append_array(right)
+			var al: float = (0.2 if layer == 0 else 0.22) + 0.04 * sin(g.t * 3.0 + k)
+			cv.draw_colored_polygon(pts, Color(H4_FOX.r * 1.3, H4_FOX.g * 1.2, H4_FOX.b, al) if layer == 0 else Color(2.0, 1.7, 1.0, al))
+		var tip_an: float = a0 + sway * 2.0 + 0.4 * signf(t + 0.001) * o.face
+		cv.draw_circle(root + Vector2.from_angle(tip_an) * L * 0.9, 3.5, Color(2.4, 2.2, 1.8, 0.3))
+
+
+## 技能上层：身边常驻的小狐火（数量 = 每次普攻的狐火数；三火归一那一次三团向杖头汇聚）、大狐火、狐火弹
+static func _h4sz_draw_over(o) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cv = o.cv
+	var a: Dictionary = o.B.get("attack", {})
+	var sz: Dictionary = o.hw.sz
+	var n: int = _h4_fox_shots(o, a)
+	var conv := 0.0
+	if sz.merging:
+		conv = 1.0
+	elif float(sz.haze_t) <= 0.0 and _h4_next_merge(o, a):
+		conv = clampf(1.0 - o.cd / 0.45, 0.0, 1.0)
+	var c: Vector2 = _h4_tip(o, a)
+	for k in n:
+		var an: float = g.t * 1.6 + k * TAU / n
+		var p: Vector2 = o.pos + Vector2(cos(an) * 40.0, -22.0 + sin(an) * 13.0 + sin(g.t * 3.0 + k) * 2.0)
+		if k < 3 and conv > 0.0:
+			if conv > 0.85:
+				continue
+			p = p.lerp(c, conv * conv)
+		cv.draw_circle(p + Vector2(0, -5), 9.0, Color(1.6, 1.1, 0.4, 0.35))
+		if o._fx_strip("fx_suzuran_wisp", 4, int(g.t * 8.0) + k, p + Vector2(0, -8)):
+			continue
+		_h4_flame(o, p, 13.0, 1.0)
+		cv.draw_circle(p + Vector2(0, -4), 2.5, Color(2.6, 2.4, 1.8, 0.95))
+	if conv > 0.5:
+		var hh: float = lerpf(10.0, 22.0, (conv - 0.5) * 2.0)
+		cv.draw_circle(c + Vector2(0, -hh * 0.4), hh * 0.7, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.3 * conv))
+		_h4_flame(o, c, hh, conv)
+	for f in sz.bigfox:
+		cv.draw_circle(f.pos, 24.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
+		cv.draw_circle(f.pos, 14.0, Color(2.0, 1.6, 0.8, 0.45))
+		if o._fx_strip("proj_suzuran_bigfox", 4, int(g.t * 10.0), f.pos, Vector2(0.5, 0.5), f.vel.angle()):
+			pass
+		elif g.tex.get("proj_foxfire") != null:
+			o.draw_spr_rot("proj_foxfire", int(g.t * 12.0) % 6, f.pos, f.vel.angle(), g.PX * 1.9)
+		else:
+			cv.draw_circle(f.pos, 9.0, Color(2.4, 2.0, 1.2))
+	for b in g.bullets:
+		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
+			continue
+		cv.draw_circle(b.pos, 10.0, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.22))
+		if g.tex.get("proj_foxfire") != null:
+			o.draw_spr_rot("proj_foxfire", int(g.t * 12.0 + b.pos.x * 0.05) % 6, b.pos, b.vel.angle(), g.PX)
+		else:
+			cv.draw_circle(b.pos, 5.5, Color(2.2, 1.8, 1.0))
+
+
+## 地面层：画地为牢的金色封印（跟着被定身的敌人）
+static func _h4sz_draw_floor(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	for s2 in o.hw.sz.seals:
+		var e: Dictionary = s2.e
+		var al: float = clampf(s2.t / 0.15, 0.0, 1.0)
+		var rr: float = e.r + 10.0
+		cv.draw_set_transform(e.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, rr, Color(H4_FOX.r, H4_FOX.g, H4_FOX.b, 0.12 * al))
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(2.0, 1.6, 0.8, 0.85 * al), 2.0)
+		cv.draw_arc(Vector2.ZERO, rr * 0.68, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.5 * al), 1.0)
+		for q in 4:
+			var qa: float = g.t * 2.0 + q * TAU / 4.0
+			cv.draw_line(Vector2.from_angle(qa) * rr * 0.68, Vector2.from_angle(qa) * rr, Color(2.2, 1.8, 1.0, 0.8 * al), 1.5)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_h4sz_draw_floor_e(o)   # 精英化第 4 批（灼印 / 拖尾）
+
+
+static func _h4sz_draw_floor_e(_o) -> void:
+	pass
+
+
+# ---------------------------------------------------------------- 维什戴尔段（第 4 批续，WD_TAGS）
+#  shape.cannon     炮击（普攻，手动 A 类，落点 aim_land）：目标 = 离队长最近、几个距离相仿（slack 内）时挑落点周围敌人最多的；炮弹是本干员自己的实体（高速平射 → 落点爆炸 → quake_t 秒后原地余震）。
+#                   索敌距离 = k × (range / ref) × op_range（k：aim_r 起手 / fire_r 出手 / 技能的 aim_r）；爆炸半径 = aoe × op_range × aoe_mults；
+#                   余震伤害 = 炮弹 × quake（quakes 里第一条 cond 成立的 value 取代），半径 × quake_r；echo {cond, delay, mult, size}：同一处再余震一次；
+#                   ash {size, rings {cond}, stun}：次数型补丁（灰烬弹幕）的炮弹（rings：余震三圈并眩晕）；twin {cond, mult, size}：同时向次优目标再打一发；
+#                   shade {cond, mult, r, stun, max}：被炸死的敌人留下残影，0.25 秒后殉爆；mark {dur, mult, r, max}：残影标记（死亡必殉爆）；
+#                   giant {mult, size, cd, src}：饱和炮击装填的巨炮（普攻间隔 × cd）
+#  verb.cannon_exec 凋零处刑：精英 / Boss 优先（血最多）的一发重炮（× mult × 技能强度、爆炸 × size、眩晕 stun）；mark {cond}：炸到的敌人挂残影标记
+#  verb.cannon_load 饱和炮击：装填 n 发巨炮，第一发立刻打出去，之后的普攻换成巨炮直到打完（技能剩余 = 剩余发数）
+#  verb.souls       魂灵之影（放 passive）：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记的）敌人挂上残影标记，再飞回来
+
+static func _h4wd(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("wd"):
+		h["wd"] = {"shells": [], "quakes": [], "shades": [], "ammo": 0, "marks": {}, "souls": []}
+	return h.wd
+
+
+static func _h4_wd_reach(o, a: Dictionary, k: float) -> float:
+	return k * (float(a.get("range", 340.0)) / float(a.get("ref", 480.0))) * o.stat(&"op_range")
+
+
+static func _h4_wd_aoe(o, a: Dictionary) -> float:
+	var r: float = float(a.get("aoe", 52.0)) * o.stat(&"op_range")
+	for m in a.get("aoe_mults", []):
+		if m is Dictionary and cond_true(o, m.get("cond", {})):
+			r *= float(m.get("mult", 1.0))
+	return r
+
+
+static func _h4_count_around(o, c: Vector2, r: float) -> int:
+	var n := 0
+	for j in o.query_ids(c, r):
+		var q: Dictionary = o.g.enemies[j]
+		if not q.dead and q.pos.distance_to(c) < r:
+			n += 1
+	return n
+
+
+## 普攻 / 饱和炮击的目标：离队长最近；最近几个距离相仿（slack 内）时挑落点周围敌人最多的
+static func _h4_wd_target(o, a: Dictionary, reach: float) -> Dictionary:
+	var g = o.g
+	var cands: Array = []
+	for e in o.nearest_enemies(6, reach, g.ppos):
+		if e.pos.distance_to(o.pos) <= reach:
+			cands.append(e)
+	if cands.is_empty():
+		return {}
+	var d0: float = cands[0].pos.distance_to(g.ppos)
+	var best: Dictionary = cands[0]
+	var most := -1
+	var slack: float = float(a.get("slack", 40.0))
+	for e in cands:
+		if e.pos.distance_to(g.ppos) - d0 > slack:
+			break
+		var n := _h4_count_around(o, e.pos, _h4_wd_aoe(o, a))
+		if n > most:
+			most = n
+			best = e
+	return best
+
+
+## 凋零处刑：精英 / Boss 优先（血最多的），没有就按普攻的选法
+static func _h4_exec_target(o, a: Dictionary, reach: float) -> Dictionary:
+	var best: Dictionary = {}
+	var hp := -1.0
+	for e in o.nearest_enemies(24, reach, o.pos):
+		if (e.elite or e.boss) and e.hp > hp:
+			hp = e.hp
+			best = e
+	return best if not best.is_empty() else _h4_wd_target(o, a, reach)
+
+
+static func _h4_muzzle(o, a: Dictionary) -> Vector2:
+	var tv = a.get("tip", [14, -34])
+	return o.pos + Vector2(float(tv[0]) * o.face, float(tv[1]))
+
+
+static func _h4_cannon_start(o, a: Dictionary) -> void:
+	if o.cd > 0.0:
+		return
+	var reach: float = _h4_wd_reach(o, a, float(a.get("aim_r", 480.0)))
+	var tgt: Dictionary = _h4_wd_target(o, a, reach)
+	var at: Vector2 = o.atk_point([tgt] if not tgt.is_empty() else [], reach)   # 手动普攻 A 类（契约 v2.5）：落点见 aim_land
+	if at == Vector2.INF:
+		o.cd = o.idle_cd(float(a.get("idle", 0.2)))
+	else:
+		var gi: Dictionary = a.get("giant", {})
+		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * (float(gi.get("cd", 0.6)) if int(_h4wd(o).ammo) > 0 else 1.0)
+		o.start_attack(at)
+
+
+static func _h4_cannon_release(o, a: Dictionary) -> void:
+	var wd := _h4wd(o)
+	var tgt: Dictionary = _h4_wd_target(o, a, _h4_wd_reach(o, a, float(a.get("fire_r", 520.0)))) if o.atk_aim == Vector2.ZERO else o.aim_land(_h4_wd_reach(o, a, float(a.get("aim_r", 480.0))))
+	if tgt.is_empty():
+		return
+	var atk: float = o.base(str(a.get("atk_key", "atk")), 0.0)
+	if int(wd.ammo) > 0:
+		wd.ammo = int(wd.ammo) - 1
+		_h4_fire_giant(o, a, tgt.pos)
+	else:
+		var patch: Dictionary = _h4_take_patch(o)
+		if not patch.is_empty():
+			var ash: Dictionary = a.get("ash", {})
+			var rings: bool = not _h4_sub(o, ash.get("rings", null)).is_empty()
+			var d1: float = atk * float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
+			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.1)), true, 0.0, false, rings)
+			_h4_twin(o, a, tgt, d1, rings)
+		else:
+			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
+			_h4_twin(o, a, tgt, atk, false)
+	_h4_cannon_after(o, a, tgt)   # 精英化第 4 批（好礼）的挂点；迁移时没有
+
+
+static func _h4_cannon_after(_o, _a: Dictionary, _tgt: Dictionary) -> void:
+	pass
+
+
+## 礼尚往来：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 × twin.mult
+static func _h4_twin(o, a: Dictionary, first: Dictionary, dmg: float, rings: bool) -> void:
+	var tw: Dictionary = _h4_sub(o, a.get("twin", null))
+	if tw.is_empty():
+		return
+	var g = o.g
+	var reach: float = _h4_wd_reach(o, a, float(a.get("fire_r", 520.0)))
+	var best: Dictionary = {}
+	for e in o.nearest_enemies(8, reach, g.ppos):
+		if e.id == first.id or e.pos.distance_to(o.pos) > reach:
+			continue
+		if best.is_empty():
+			best = e
+		if e.pos.distance_to(first.pos) > _h4_wd_aoe(o, a):
+			best = e
+			break
+	if best.is_empty():
+		return
+	_h4_fire(o, a, best.pos, dmg * float(tw.get("mult", 0.6)), str(a.get("src", "")), float(tw.get("size", 0.85)), true, 0.0, false, rings)
+
+
+## 巨型炮弹：伤害 × giant.mult × 技能强度、爆炸 × size、必余震；炮口焰加倍 + 后坐火星
+static func _h4_fire_giant(o, a: Dictionary, to: Vector2) -> void:
+	var g = o.g
+	var gi: Dictionary = a.get("giant", {})
+	_h4_fire(o, a, to, o.base(str(a.get("atk_key", "atk")), 0.0) * float(gi.get("mult", 1.6)) * o.skill_power(), str(gi.get("src", "")), float(gi.get("size", 2.0)), true, 0.0, false, false, "giant")
+	var mz: Vector2 = _h4_muzzle(o, a)
+	var dir: Vector2 = (to - mz).normalized()
+	o.fx({"kind": "glow", "pos": mz, "r": 26.0, "life": 0.16, "col": Color(1.8, 0.7, 0.5), "alpha": 0.8})
+	for k in 8:
+		o.fx({"kind": "spark", "pos": mz, "vel": (-dir).rotated(g.vrng.randf_range(-0.9, 0.9)) * g.vrng.randf_range(120, 260), "life": 0.3, "col": H4_EMBER, "sz": 2.5, "drag": 3.0})
+
+
+## 发一发炮弹（rings：灰烬弹幕的强化炮弹，余震三圈并眩晕；kind：画面 / 音效档（"" 普通 / giant 巨炮 / exec 凋零处刑）；mark_c：炸到的敌人挂标记的条件，爆炸时求值）
+static func _h4_fire(o, a: Dictionary, to: Vector2, base_dmg: float, src: String, size: float, quake: bool, stun: float, light := false, rings := false, kind := "", mark_c = null, from := Vector2.INF) -> Dictionary:
+	var g = o.g
+	var wd := _h4wd(o)
+	var own: bool = from == Vector2.INF
+	if own:
+		o.face = signf(to.x - o.pos.x) if absf(to.x - o.pos.x) > 2.0 else o.face
+		from = _h4_muzzle(o, a)
+	# 高速炮弹：1500px/s、最高拱 18px（平射，但炮弹本身看得见）
+	var dur: float = clampf(from.distance_to(to) / 1500.0, 0.08, 0.3)
+	var s := {"from": from, "to": to, "t": 0.0, "dur": dur, "dmg": base_dmg * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * size, "src": src,
+		"trail": 0.0, "quake": quake, "stun": stun, "light": light, "hist": [], "size": size, "rings": rings, "kind": kind, "mark_c": mark_c}
+	wd.shells.append(s)
+	if not own:
+		return s
+	# 出膛：暗红锥形炮口焰 + 向后飞的橙色火星
+	var dir := (to - from).normalized()
+	o.fx({"kind": "h4_muzzle", "pos": from, "dir": dir, "life": 0.07, "col": H4_RED, "sz": 30.0 * size})
+	o.fx({"kind": "glow", "pos": from, "r": 9.0 * size, "life": 0.06, "col": Color(2.0, 1.1, 0.8), "alpha": 0.8})
+	for k in 3:
+		o.fx({"kind": "spark", "pos": from, "vel": (-dir).rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 140), "life": 0.2, "col": H4_EMBER, "sz": 2.0, "drag": 3.0})
+	_h3_sfx(o, "atk", 2.0 if size <= 1.2 else 4.0, 1.0 if size <= 1.2 else 0.85)
+	return s
+
+
+static func _h4_shell_at(s: Dictionary, k: float) -> Vector2:
+	return s.from.lerp(s.to, k) + Vector2(0, -sin(k * PI) * minf(18.0, s.from.distance_to(s.to) * 0.05))
+
+
+## 凋零处刑：一发重炮，眩晕 + 余震
+static func h4_cannon_exec(o, b: Dictionary) -> void:
+	var a: Dictionary = o.B.get("attack", {})
+	var tgt: Dictionary = _h4_exec_target(o, a, _h4_wd_reach(o, a, float(b.get("aim_r", 540.0))))
+	if tgt.is_empty():
+		return
+	_h4_fire(o, a, tgt.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(b.get("mult", 3.0)) * o.skill_power(), str(b.get("src", "")), float(b.get("size", 1.6)), true, float(b.get("stun", 0.8)), false, false, "exec", b.get("mark", null))
+	var mz: Vector2 = _h4_muzzle(o, a)
+	o.fx({"kind": "glow", "pos": mz, "r": 28.0, "life": 0.3, "col": H4_RED, "alpha": 0.6})
+	_h3_vsparks(o, mz, H4_EMBER, 10, 200.0, 0.3)
+
+
+## 饱和炮击：装填巨型炮弹，第一发立刻打出去，之后的普攻换成巨炮直到打完
+static func h4_cannon_load(o, b: Dictionary) -> void:
+	var wd := _h4wd(o)
+	var a: Dictionary = o.B.get("attack", {})
+	wd.ammo = int(b.get("n", 8))
+	wd["status"] = str(b.get("status", "×%d"))
+	if o.cur_skill >= 0:
+		o.s_dur[o.cur_skill] = float(int(b.get("n", 8)))
+	if b.has("banner"):
+		o.show_banner(str(b.banner) % int(wd.ammo))
+	var mz: Vector2 = _h4_muzzle(o, a)
+	o.fx({"kind": "glow", "pos": mz, "r": 30.0, "life": 0.4, "col": H4_RED, "alpha": 0.6})
+	_h3_vsparks(o, mz, H4_EMBER, 10, 160.0, 0.3)
+	var tg3: Dictionary = _h4_wd_target(o, a, _h4_wd_reach(o, a, float(b.get("aim_r", 540.0))))
+	if not tg3.is_empty():
+		wd.ammo = int(wd.ammo) - 1
+		_h4_fire_giant(o, a, tg3.pos)
+		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * float(a.get("giant", {}).get("cd", 0.6))
+
+
+static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
+	var g = o.g
+	var a: Dictionary = o.B.get("attack", {})
+	# 炮弹
+	for s in wd.shells:
+		s.t += dt
+		s.trail -= dt
+		if s.trail <= 0.0 and s.t < s.dur:
+			s.trail = 0.03
+			var p: Vector2 = _h4_shell_at(s, s.t / s.dur) if s.hist.size() < 3 else s.hist[s.hist.size() - 3]
+			o.fx({"kind": "h4_ember", "pos": p, "vel": Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-20, 30)), "life": 0.3, "col": H4_DARK, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 14.0, "grav": 200.0, "cold": true})
+		if s.t < s.dur:
+			s.hist.append(_h4_shell_at(s, s.t / s.dur))
+			if s.hist.size() > 9:
+				s.hist.pop_front()
+		if s.t >= s.dur:
+			_h4_explode(o, a, s.to, s.dmg, s.r, s.src, 0, s.stun, s.light, false, str(s.kind), s.get("mark_c", null))
+			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0))})
+			if s.quake:
+				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
+				var qs: float = float(a.get("ash", {}).get("stun", 0.8)) if s.rings else 0.0
+				var qt: float = float(a.get("quake_t", 0.45))
+				wd.quakes.append({"pos": s.to, "t": qt, "dmg": qd, "r": s.r * float(a.get("quake_r", 1.2)), "rings": s.rings, "stun": qs})
+				var ec: Dictionary = _h4_sub(o, a.get("echo", null))
+				if not ec.is_empty():
+					wd.quakes.append({"pos": s.to, "t": qt + float(ec.get("delay", 0.3)), "dmg": qd * float(ec.get("mult", 1.0)),
+						"r": s.r * float(a.get("quake_r", 1.2)) * float(ec.get("size", 1.25)), "rings": s.rings, "stun": qs})
+	wd.shells = wd.shells.filter(func(s): return s.t < s.dur)
+	for q in wd.quakes:
+		q.t -= dt
+		if q.t <= 0.0:
+			_h4_explode(o, a, q.pos, q.dmg, q.r, str(a.get("quake_src", "")), 0, q.stun, false, q.rings, "quake")
+	wd.quakes = wd.quakes.filter(func(q): return q.t > 0.0)
+	var sh: Dictionary = a.get("shade", {})
+	for sd in wd.shades:
+		sd.t -= dt
+		if sd.t <= 0.0:
+			_h4_explode(o, a, sd.pos, sd.dmg, sd.r, str(sh.get("src", "")), sd.depth, float(sh.get("stun", 0.6)), false, false, "shade")
+	wd.shades = wd.shades.filter(func(sd): return sd.t > 0.0)
+	# 残影标记
+	if not wd.marks.is_empty():
+		for k in wd.marks.keys():
+			var mk: Dictionary = wd.marks[k]
+			mk.t -= dt
+			if mk.t <= 0.0 or mk.e.dead:
+				wd.marks.erase(k)
+	_h4_souls_tick(o, wd, a, dt)
+
+
+## 条件成立的第一条 [{cond, value}] 的值；没有 = dv
+static func _h4_first_val(o, arr, dv: float) -> float:
+	if arr is Array:
+		for m in arr:
+			if m is Dictionary and cond_true(o, m.get("cond", {})):
+				return float(m.get("value", dv))
+	return dv
+
+
+## 挂残影标记（亡者回响 / 魂灵之影）：mark.dur 秒内该敌人死亡（不论谁击杀）必定殉爆；同时最多 mark.max 个
+static func _h4_mark(o, a: Dictionary, e: Dictionary, gift := false) -> void:
+	if e.dead or e.get("chest", false):
+		return
+	var wd := _h4wd(o)
+	var mk: Dictionary = a.get("mark", {})
+	if not wd.marks.has(e.id) and wd.marks.size() >= int(mk.get("max", 12)):
+		return
+	var keep: bool = wd.marks.has(e.id) and wd.marks[e.id].get("gift", false)
+	wd.marks[e.id] = {"e": e, "t": float(mk.get("dur", 4.0)), "gift": gift or keep}
+	o.fx({"kind": "h4_shade", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3, "col": H4_DARK})
+
+
+## 击杀钩子：带残影标记的敌人殉爆（0.25 秒前摇 → 殉爆，伤害 = 攻击 × mark.mult）
+static func _h4wd_on_kill(o, e: Dictionary) -> void:
+	var wd: Dictionary = o.hw.wd
+	if not wd.marks.has(e.id):
+		return
+	wd.marks.erase(e.id)
+	e["wis_det"] = true
+	var a: Dictionary = o.B.get("attack", {})
+	if wd.shades.size() >= int(a.get("shade", {}).get("max", 12)):
+		return
+	var mk: Dictionary = a.get("mark", {})
+	wd.shades.append({"pos": e.pos, "t": 0.25, "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * float(mk.get("mult", 0.45)) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
+	o.fx({"kind": "h4_shade", "pos": e.pos, "life": 0.3, "col": H4_DARK})
+
+
+## 魂灵之影：悬在维什戴尔肩后；每 cd 秒各自飞向附近一名（优先未标记的）敌人挂上残影，再飞回来
+static func _h4_souls_tick(o, wd: Dictionary, a: Dictionary, dt: float) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var sb: Dictionary = _h4_live(o, "verb.souls")
+	if sb.is_empty():
+		return
+	var g = o.g
+	var souls: Array = wd.souls
+	while souls.size() < int(sb.get("n", 2)):
+		souls.append({"p": o.pos + Vector2(0, -50), "st": "idle", "tgt": null, "cd": 0.8 + 1.0 * souls.size()})
+	var spd: float = float(sb.get("speed", 520.0))
+	for k in souls.size():
+		var s: Dictionary = souls[k]
+		var home: Vector2 = _h4_soul_home(o, k)
+		match str(s.st):
+			"idle":
+				s.p = s.p.lerp(home, minf(1.0, dt * 6.0))
+				s.cd -= dt
+				if s.cd <= 0.0:
+					var tg: Dictionary = _h4_soul_target(o, sb)
+					if tg.is_empty():
+						s.cd = 0.3
+					else:
+						s.tgt = tg
+						s.st = "go"
+						s.gt = g.t
+						s.cd = float(sb.get("cd", 2.0))
+			"go":
+				var tg2 = s.tgt
+				if tg2 == null or tg2.dead:
+					s.st = "back"
+				else:
+					var to: Vector2 = tg2.pos + Vector2(0, -tg2.r - 10.0)
+					s.p = s.p.move_toward(to, spd * dt)
+					if g.vrng.randf() < dt * 30.0:
+						o.fx({"kind": "mote", "pos": s.p + Vector2(g.vrng.randf_range(-4, 4), 6), "vel": Vector2(0, -20), "life": 0.35, "col": Color(0.3, 0.05, 0.08), "sz": 2.5})
+					if s.p.distance_to(to) < 8.0:
+						_h4_mark(o, a, tg2)
+						o.fx({"kind": "ring", "pos": tg2.pos, "r": tg2.r + 16.0, "r0": 4.0, "life": 0.3, "col": H4_RED, "floor": true, "w": 2.0})
+						s.st = "back"
+			"back":
+				s.p = s.p.move_toward(home, spd * dt)
+				if s.p.distance_to(home) < 10.0:
+					s.st = "idle"
+	_h4_soul_fire_tick(o, wd, a, sb, dt)   # 精英化第 4 批（魂炮）的挂点；迁移时没有
+
+
+static func _h4_soul_fire_tick(_o, _wd: Dictionary, _a: Dictionary, _sb: Dictionary, _dt: float) -> void:
+	pass
+
+
+static func _h4_soul_home(o, k: int) -> Vector2:
+	var side: float = -1.0 if k == 0 else 1.0
+	return o.pos + Vector2(side * 32.0 - o.face * 6.0, -78.0 + sin(o.g.t * 2.2 + k * 2.0) * 4.0)
+
+
+## 魂灵之影的目标：range 以内最近的未标记敌人；都标记过就取最近的
+static func _h4_soul_target(o, sb: Dictionary) -> Dictionary:
+	var wd: Dictionary = o.hw.wd
+	var ts: Array = o.nearest_enemies(8, float(sb.get("range", 300.0)), o.pos)
+	for e in ts:
+		if not wd.marks.has(e.id) and not e.get("chest", false):
+			return e
+	return ts[0] if not ts.is_empty() else {}
+
+
+## 爆炸：范围伤害；精一起（shade.cond）被炸死的敌人留下残影，0.25 秒后殉爆并眩晕。light：减量特效；rings：三圈余震
+static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src: String, depth: int, stun: float, light := false, rings := false, kind := "", mark_c = null) -> void:
+	var g = o.g
+	var killed: Array = []
+	var mark_hit: bool = not _h4_sub(o, mark_c).is_empty()
+	for e in o.arc_targets(c, 0.0, PI, r):
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		if not e.dead and g.rfx.sniper_execute(e, g.hit):
+			o.log_hit("真实")
+			o.deal_damage(e, e.hp + 1.0)
+		if e.dead:
+			if not e.get("wis_det", false):   # 带残影标记的敌人已在 on_kill 里殉爆，这里不再重复留残影
+				killed.append(e.pos)
+		else:
+			if stun > 0.0 and not e.boss:
+				e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			if mark_hit:   # 亡者回响：凋零处刑炸到的敌人全部挂上残影标记
+				_h4_mark(o, a, e)
+	var sh: Dictionary = a.get("shade", {})
+	if kind == "quake":
+		# 只在地面：双红环 + 裂纹 + 一圈向上的余烬，不闪光不冒烟
+		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": H4_RED, "floor": true, "w": 3.0})
+		o.fx({"kind": "ring", "pos": c, "r": r * 0.65, "r0": r * 0.1, "life": 0.45, "col": Color(1.0, 0.45, 0.35), "floor": true, "w": 2.0})
+		if rings:
+			o.fx({"kind": "ring", "pos": c, "r": r * 1.3, "r0": r * 0.5, "life": 0.6, "col": Color(1.6, 0.6, 0.3), "floor": true, "w": 4.0})
+			_h3_vsparks(o, c, H4_EMBER, 6, 160.0, 0.35, 2.5, -80.0)
+		o.fx({"kind": "crack", "pos": c, "r": r * 0.7, "life": 0.35, "col": H4_RED, "floor": true, "n": 7, "ang": c.x * 0.01})
+		for k in (4 if light else 8):
+			var ox: float = g.vrng.randf_range(-r * 0.6, r * 0.6)
+			o.fx({"kind": "spark", "pos": c + Vector2(ox, 0), "vel": Vector2(ox * 0.4, g.vrng.randf_range(-110, -60)), "life": 0.4, "col": H4_RED, "sz": 2.0, "grav": 160.0})
+	elif kind == "shade":
+		o.fx({"kind": "h4_smoke", "pos": c, "r": r * 0.8, "life": 0.45, "col": H4_DARK})
+		h4_impact_fx(o, c, r, light)
+	elif kind == "giant":
+		h4_burst_fx(o, c, r)
+		o.impact_pause(0.05)   # 巨炮落地：短顿帧
+	elif kind == "exec":
+		h4_burst_fx(o, c, r, true)
+	else:
+		h4_impact_fx(o, c, r, light)
+	if kind == "quake":
+		_h3_sfx(o, "quake", 0.0, 1.0, 0.1)
+	elif kind == "giant" or kind == "exec":
+		_h3_sfx(o, "big", -1.0, 1.0, 0.04)
+	else:
+		_h3_sfx(o, "hit", -3.0 if light else 0.0, 1.0, 0.08)
+	var shc: Dictionary = _h4_sub(o, sh)
+	if not shc.is_empty() and depth < 1:
+		var wd := _h4wd(o)
+		for k in mini(killed.size(), 3):
+			if wd.shades.size() >= int(sh.get("max", 12)):
+				break
+			wd.shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
+			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
+
+
+## 落地：Codex 炮击帧条（fx_wisadel_cannon）；缺图保留程序特效（闪光 / 黑烟 / 红环 / 碎片 / 焦痕）
+static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
+	var g = o.g
+	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * (1.8 if light else 2.2) / 96.0):
+		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.7, "life": 1.2, "floor": true})
+		return
+	o.fx({"kind": "h4_flash", "pos": c, "r": r * 0.7, "life": 0.1})
+	o.fx({"kind": "h4_smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": H4_DARK})
+	if not light:
+		o.fx({"kind": "h4_smoke", "pos": c + Vector2(r * 0.25, -r * 0.2), "r": r * 0.7, "life": 0.6, "col": H4_DARK, "delay": 0.06})
+	o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": H4_RED, "w": 3.0})
+	for k in (3 if light else 7):
+		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(90, 210) + Vector2(0, -90)
+		o.fx({"kind": "h4_ember", "pos": c, "vel": v, "life": 0.5, "col": Color(0.25, 0.16, 0.18), "sz": 5.0, "ang": g.vrng.randf() * TAU, "spin": 12.0, "grav": 420.0})
+	_h3_vsparks(o, c, H4_EMBER, 4 if light else 8, 200.0, 0.3)
+	o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.8, "life": 2.0, "floor": true})
+
+
+## 饱和炮击 / 凋零处刑的爆炸：Codex 炮击帧条放大；缺图 = 白粉核心星芒 → 放射红刀锋 → 贴地冲击波 + 错落黑烟 → 红色碎刃
+static func h4_burst_fx(o, c: Vector2, r: float, small := false) -> void:
+	var g = o.g
+	var sc: float = 0.7 if small else 1.0
+	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * 2.8 * sc / 96.0):
+		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.9 * sc, "life": 2.0, "floor": true})
+		return
+	o.fx({"kind": "h4_burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
+	o.fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": H4_RED, "floor": true, "w": 2.5, "alpha": 0.75})
+	var n: int = 3 if small else 5
+	var seed: float = g.vrng.randf() * TAU
+	for q in n:
+		var ang: float = seed + q * TAU / n + g.vrng.randf_range(-0.45, 0.45)
+		var off: Vector2 = Vector2.from_angle(ang) * r * sc * g.vrng.randf_range(0.3, 0.7)
+		off.y *= 0.55
+		o.fx({"kind": "h4_smoke", "pos": c + off, "r": r * sc * g.vrng.randf_range(0.32, 0.5), "life": g.vrng.randf_range(0.5, 0.75), "col": H4_DARK, "delay": q * 0.035})
+	for k in (5 if small else 8):
+		var v: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(120, 260)
+		o.fx({"kind": "h4_sliver", "pos": c, "vel": v, "life": 0.45, "col": H4_BOLT, "sz": g.vrng.randf_range(6.0, 11.0), "ang": v.angle(), "drag": 2.5})
+	o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.9, "life": 2.0, "floor": true})
+
+
+# ---------------------------------------------------------------- 维什戴尔：画面
+
+static func _h4wd_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	match str(f.kind):
+		"h4_muzzle":
+			var d: Vector2 = f.dir
+			var n: Vector2 = d.orthogonal()
+			var L: float = f.sz * (0.6 + 0.4 * a)
+			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 3.0, f.pos + d * L, f.pos - n * 3.0, f.pos - d * 2.0]), Color(H4_RED.r, H4_RED.g, H4_RED.b, 0.7 * a))
+			cv.draw_colored_polygon(PackedVector2Array([f.pos + n * 1.4, f.pos + d * L * 0.55, f.pos - n * 1.4]), Color(2.2, 1.2, 0.8, 0.9 * a))
+			return true
+		"h4_burst":
+			var k := 1.0 - a
+			var r: float = f.r
+			var sd: float = f.seed
+			cv.draw_circle(f.pos, r * (0.3 + 0.5 * k), Color(1.3, 0.1, 0.22, 0.4 * a))
+			var nq: int = int(f.get("n", 12)) if Dc.hit_spokes() else 0
+			for q in nq:
+				var h: float = fmod(sd * 7.3 + q * 2.399, 1.0)
+				var ang: float = sd + q * TAU / nq + (h - 0.5) * 0.35
+				var dv: Vector2 = Vector2.from_angle(ang)
+				var nv: Vector2 = dv.orthogonal()
+				var L2: float = r * (0.55 + 0.7 * h) * minf(1.0, k * 2.2)
+				var w: float = (2.5 + 3.5 * h) * (1.0 - k * 0.7)
+				var s0: Vector2 = f.pos + dv * L2 * (0.1 + 0.35 * k)
+				var s1: Vector2 = f.pos + dv * L2
+				var sm: Vector2 = f.pos + dv * L2 * 0.45
+				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w, s1, sm - nv * w]), Color(1.9, 0.1, 0.26, 0.9 * a))
+				cv.draw_colored_polygon(PackedVector2Array([s0, sm + nv * w * 0.3, s1, sm - nv * w * 0.3]), Color(2.4, 0.7, 0.8, 0.7 * a))
+			var cr: float = r * 0.16 * (1.0 if k < 0.2 else maxf(0.0, 1.0 - (k - 0.2) / 0.45))
+			cv.draw_circle(f.pos, cr * 1.8, Color(1.6, 0.1, 0.12, 0.6 * a))
+			cv.draw_circle(f.pos, cr, Color(2.2, 0.5, 0.32, a))
+			cv.draw_circle(f.pos, cr * 0.45, Color(0.12, 0.02, 0.04, a))
+			return true
+		"h4_sliver":
+			var dv: Vector2 = Vector2.from_angle(f.ang) * f.sz
+			var nv: Vector2 = dv.orthogonal().normalized() * 1.6
+			cv.draw_colored_polygon(PackedVector2Array([f.pos - dv, f.pos + nv, f.pos + dv, f.pos - nv]), Color(2.2, 0.3, 0.5, a))
+			cv.draw_line(f.pos - dv * 0.6, f.pos + dv * 0.6, Color(2.8, 1.4, 1.6, a), 1.0)
+			return true
+		"h4_flash":
+			cv.draw_circle(f.pos, f.r * (0.5 + 0.5 * a), Color(2.0, 0.4, 0.3, 0.75 * a))
+			cv.draw_circle(f.pos, f.r * 0.4 * a, Color(2.8, 1.6, 1.2, a))
+			return true
+		"h4_smoke":
+			var age: float = f.max - f.life
+			if age < f.get("delay", 0.0):
+				return true
+			var k := 1.0 - a
+			var p: Vector2 = f.pos + Vector2(0, -22.0 * k)
+			cv.draw_circle(p, f.r * (0.4 + 0.8 * k), Color(0.14, 0.1, 0.12, 0.6 * a))
+			cv.draw_circle(p + Vector2(f.r * 0.25, -f.r * 0.2), f.r * (0.3 + 0.55 * k), Color(0.22, 0.15, 0.17, 0.45 * a))
+			cv.draw_circle(p + Vector2(-f.r * 0.2, -f.r * 0.1), f.r * (0.2 + 0.4 * k), Color(0.3, 0.2, 0.22, 0.3 * a))
+			return true
+		"h4_ember":
+			var sv: Vector2 = Vector2.from_angle(f.ang) * f.sz
+			cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(0.16, 0.08, 0.12, a))
+			if not f.get("cold", false):
+				cv.draw_circle(f.pos + sv, 1.6, Color(2.0, 0.9, 0.5, a))
+			return true
+		"h4_scorch":
+			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+			cv.draw_circle(Vector2.ZERO, f.r, Color(0.04, 0.02, 0.03, 0.45 * minf(1.0, a * 2.0)))
+			cv.draw_circle(Vector2(f.r * 0.15, 0), f.r * 0.55, Color(0.02, 0.01, 0.02, 0.35 * minf(1.0, a * 2.0)))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return true
+		"h4_shade":
+			var p: Vector2 = f.pos + Vector2(0, -6.0 - 10.0 * (1.0 - a))
+			cv.draw_set_transform(p, 0.0, Vector2(1.0, 1.7))
+			cv.draw_circle(Vector2.ZERO, 9.0, Color(0.05, 0.03, 0.05, 0.8 * a))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			cv.draw_circle(p + Vector2(-3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
+			cv.draw_circle(p + Vector2(3, -7), 1.5, Color(2.0, 0.3, 0.3, a))
+			return true
+	return false
+
+
+## 地面层：落点准星（出膛即出现，随炮弹接近收缩变亮）、余震前兆环
+static func _h4wd_draw_floor(o) -> void:
+	var cv = o.cv
+	var wd: Dictionary = o.hw.wd
+	for s in wd.shells:
+		var k: float = s.t / s.dur
+		var rr: float = lerpf(s.r * 1.5, s.r, k)
+		var al: float = 0.25 + 0.55 * k
+		cv.draw_set_transform(s.to, 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 28, Color(H4_RED.r, H4_RED.g, H4_RED.b, al), 1.5)
+		for q in 4:
+			var dv := Vector2.from_angle(q * PI / 2.0)
+			cv.draw_line(dv * rr * 0.55, dv * rr * 0.85, Color(H4_RED.r, H4_RED.g, H4_RED.b, al), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for q in wd.quakes:
+		if q.t > 0.45:
+			continue
+		var a: float = 1.0 - q.t / 0.45
+		cv.draw_set_transform(q.pos, 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, q.r * (0.25 + 0.2 * a), 0.0, TAU, 20, Color(H4_RED.r, H4_RED.g, H4_RED.b, 0.5 * a), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 技能上层：彗星弹体（一整条连续轮廓）、残影标记、魂灵之影
+static func _h4wd_draw_over(o) -> void:
+	var cv = o.cv
+	var wd: Dictionary = o.hw.wd
+	for s in wd.shells:
+		var p: Vector2 = _h4_shell_at(s, s.t / s.dur)
+		var pts: Array = []
+		for q in s.hist:
+			if pts.is_empty() or q.distance_to(pts[-1]) > 1.0:
+				pts.append(q)
+		if pts.is_empty() or p.distance_to(pts[-1]) > 1.0:
+			pts.append(p)
+		var wk: float = 1.0 + (float(s.get("size", 1.0)) - 1.0) * 0.6
+		if _h4_draw_shell_tex(o, s, p):
+			continue
+		if pts.size() < 2:
+			cv.draw_circle(p, 5.5 * wk, Color(0.16, 0.02, 0.04))
+			continue
+		cv.draw_colored_polygon(_h4_comet(pts, 11.0 * wk), Color(1.2, 0.08, 0.1, 0.3))
+		cv.draw_colored_polygon(_h4_comet(pts, 7.5 * wk), Color(0.34, 0.03, 0.06, 0.95))
+		cv.draw_colored_polygon(_h4_comet(pts, 4.0 * wk), Color(0.1, 0.01, 0.03, 1.0))
+	_h4wd_draw_marks(o)
+	_h4wd_draw_souls(o)
+
+
+## 精英化第 4 批（魂炮小炮弹帧条）的挂点：迁移时没有
+static func _h4_draw_shell_tex(_o, _s: Dictionary, _p: Vector2) -> bool:
+	return false
+
+
+static func _h4wd_draw_marks(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	for k in o.hw.wd.marks:
+		var mk: Dictionary = o.hw.wd.marks[k]
+		var e: Dictionary = mk.e
+		if e.dead:
+			continue
+		if mk.t < 0.6 and fmod(mk.t * 8.0, 1.0) < 0.35:
+			continue
+		var p: Vector2 = e.pos + Vector2(0, -e.r - 18.0 + sin(g.t * 4.0 + e.id) * 2.0)
+		cv.draw_circle(p, 9.0, Color(0.9, 0.05, 0.1, 0.18))
+		if _h4_draw_gift(o, mk, p):
+			continue
+		if o._fx_strip("fx_wisadel_mark", 2, int(g.t * 4.0 + e.id * 0.5), p):
+			continue
+		_h4_shade_body(o, p, 5.5, 0.85)
+
+
+## 精英化第 4 批（好礼标记帧条）的挂点：迁移时没有
+static func _h4_draw_gift(_o, _mk: Dictionary, _p: Vector2) -> bool:
+	return false
+
+
+static func _h4wd_draw_souls(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var souls: Array = o.hw.wd.souls
+	for i in souls.size():
+		var s: Dictionary = souls[i]
+		var p: Vector2 = s.p
+		if _h4_draw_soul_fire(o, s, p):
+			continue
+		if o._fx_tex("fx_wisadel_soul") != null:
+			cv.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
+			if str(s.st) == "go":
+				var tg = s.tgt
+				var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
+				o._fx_strip("fx_wisadel_soul", 6, 4 + mini(1, int((g.t - float(s.get("gt", g.t))) * 12.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
+			else:
+				o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p)
+			continue
+		var tail := PackedVector2Array()
+		for q in 5:
+			tail.append(p + Vector2(sin(g.t * 5.0 + q * 0.9) * (1.0 + q), 8.0 + q * 4.0))
+		cv.draw_polyline(tail, Color(0.08, 0.03, 0.05, 0.7), 5.0)
+		cv.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
+		_h4_shade_body(o, p, 9.5, 0.95)
+
+
+## 精英化第 4 批（魂灵之影开火帧条）的挂点：迁移时没有
+static func _h4_draw_soul_fire(_o, _s: Dictionary, _p: Vector2) -> bool:
+	return false
+
+
+static func _h4_shade_body(o, p: Vector2, r: float, al: float) -> void:
+	var cv = o.cv
+	cv.draw_set_transform(p, 0.0, Vector2(1.0, 1.7))
+	cv.draw_circle(Vector2.ZERO, r, Color(0.05, 0.03, 0.05, al))
+	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 20, Color(1.2, 0.12, 0.16, 0.8 * al), 1.2)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var ey: float = -r * 0.75
+	cv.draw_circle(p + Vector2(-r * 0.35, ey), maxf(1.2, r * 0.18), Color(2.2, 0.3, 0.3, al))
+	cv.draw_circle(p + Vector2(r * 0.35, ey), maxf(1.2, r * 0.18), Color(2.2, 0.3, 0.3, al))
+
+
+## 彗星轮廓：pts 从尾到头；半宽按 u^1.3 从 0 平滑增到 hw，头部接半圆帽
+static func _h4_comet(pts: Array, hw: float) -> PackedVector2Array:
+	var n: int = pts.size()
+	var L := PackedVector2Array()
+	var R := PackedVector2Array()
+	for i in n:
+		var a0: Vector2 = pts[maxi(i - 1, 0)]
+		var a1: Vector2 = pts[mini(i + 1, n - 1)]
+		var nv: Vector2 = (a1 - a0).normalized().orthogonal()
+		var u: float = float(i) / float(n - 1)
+		var w: float = hw * pow(u, 1.3)
+		L.append(pts[i] + nv * w)
+		R.append(pts[i] - nv * w)
+	var head: Vector2 = pts[n - 1]
+	var dir: Vector2 = (pts[n - 1] - pts[n - 2]).normalized()
+	var out := PackedVector2Array()
+	out.append_array(L)
+	var a_start: float = dir.orthogonal().angle()
+	for k in range(1, 8):
+		out.append(head + Vector2.from_angle(a_start + PI * k / 8.0) * hw)
+	R.reverse()
+	out.append_array(R)
+	return out
+
+
+# ---------------------------------------------------------------- 塞雷娅段（第 4 批续，SA_TAGS）
+#  shape.bash       持盾出拳（普攻，手动 A 类）：扇形 r × op_range、半角 half、kb、stun，判定原点 脚底 + (0, y)，伤害 = 攻击 × 加成；
+#                   护服（verb.suit）满格时这一拳换成全方位冲击
+#  verb.guard_ring  阻挡圈（放 trait 的 passive）：每 every 秒把队长周围 r × op_range 内的非 Boss 敌人推到圈外（kb / 精英 kb_elite）、减速 slow 秒
+#  verb.calc_orbs   环绕钙晶（放 passive）：n_by 里第一条 cond 成立的 n 枚绕本干员转（半径 r、角速度 spin），撞到敌人 拳击 × mult（同一敌人 cd 秒一次）；
+#                   shatter {cond, every, reach, regrow, mult, n, src}：钙质化以外每 every 秒击碎一枚，碎片飞向附近至多 n 名敌人，regrow 秒后长回
+#  verb.saria_heal  为队长回复 pct × 最大生命 × 技能强度（低于 low_hp 时 × low_mult）；cleanse 清寒冷 / 束缚；hot {dur, pct}：之后每秒再回复；
+#                   syringe {cond, n, mult, slow, range, speed, src}：同时朝附近敌人掷出注射器（拳击 × mult × 技能强度、减速）
+#  verb.calc_field  钙质化：dur 秒以队长为心 r 的琥珀区域（每帧清寒冷 / 束缚、每秒回复 heal、区域内敌人减速 slow 秒 + aura_weak），每 shard_every 秒在区域里长出一根晶柱；
+#                   shatter {cond, every, n, mult, src}：每 every 秒击碎一根晶柱，碎片飞向区域内敌人
+#  verb.suit        莱茵充能护服（放 passive）：每 seg_t 秒充满一格（共 segs 格），满格后下一次出拳变为全方位冲击（半径 r，拳击 × mult、kb、stun）
+
+static func _h4sa(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("sa"):
+		h["sa"] = {"block_t": 0.0, "calc": 0.0, "calc_acc": 0.0, "shard_t": 0.0, "hot_t": 0.0, "hot_acc": 0.0, "hot_pct": 0.0,
+			"orb_cd": {}, "orb_broken": {}, "shatter_t": 0.0, "pillars": [], "shots": [], "seg": 0, "seg_t": 0.0, "calc_b": {},
+			"hot_name": "", "calc_name": "", "slowed": [], "crystals": []}
+	return h.sa
+
+
+static func _h4_bash_dmg(o) -> float:
+	return o.base(str(o.B.get("attack", {}).get("atk_key", "atk")), 0.0) * o._dmg_bonus()
+
+
+## 净化：清除队长的寒冷（寒霜层数，满层冻结也一起解开）与束缚；balance.json operators/<id>/cleanse = 0 关掉。show = 清掉了东西时在队长头顶飘「净化」
+static func h4_cleanse_ctrl(o, show: bool) -> bool:
+	var g = o.g
+	if preload("res://scripts/core/balance.gd").v("operators/%s/cleanse" % o.id, 1.0) <= 0.0:
+		return false
+	if g.cold <= 0 and g.root_t <= 0.0:
+		return false
+	g.cold = 0
+	g.cold_t = 0.0
+	g.root_t = 0.0
+	g.combat.sync_cold()
+	if show:
+		o.float_text(g.ppos + Vector2(0, -96), "净化", H4_AMBER, 14)
+	return true
+
+
+static func _h4_bash_start(o, a: Dictionary) -> void:
+	if o.cd > 0.0:
+		return
+	var reach: float = float(a.get("r", 115.0)) * o.stat(&"op_range")
+	var at: Vector2 = o.atk_point(o.nearest_enemies(1, reach + 40.0, o.pos), reach)   # 手动普攻 A 类（契约 v2.5）
+	if at == Vector2.INF:
+		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+	else:
+		o.cd = float(a.get("every", 0.9)) / o.stat(&"op_aspd")
+		o.start_attack(at)
+
+
+static func _h4_bash_release(o, a: Dictionary) -> void:
+	var g = o.g
+	var sa := _h4sa(o)
+	var reach: float = float(a.get("r", 115.0)) * o.stat(&"op_range")
+	var ts: Array = o.nearest_enemies(1, reach + 40.0, o.pos)
+	var ang: float = o.facing_angle()
+	if not ts.is_empty():
+		ang = (ts[0].pos - o.pos).angle()
+		o.face_to(ang)
+	ang = o.atk_angle(ang)
+	# 莱茵充能护服满格：这一击变成全方位冲击，之后清零重新充能
+	var su: Dictionary = _h4_live(o, "verb.suit")
+	if not su.is_empty() and int(sa.seg) >= int(su.get("segs", 4)):
+		sa.seg = 0
+		sa.seg_t = 0.0
+		_h4_suit_blast(o, a, su)
+		return
+	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.1)), reach, _h4_bash_dmg(o), float(a.get("kb", 200.0)), float(a.get("stun", 0.2)), a.get("tags", []))
+	var d := Vector2.from_angle(ang)
+	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
+		o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach * 0.8, H4_AMBER)
+		o.fx({"kind": "line", "pos": o.pos + Vector2(0, -12) + d * 14.0, "to": o.pos + Vector2(0, -12) + d * reach * 1.3, "life": 0.15, "col": H4_AMBER, "w": 3.0})
+	_h3_sfx(o, "hit" if not hits.is_empty() else "atk")
+	_h4_bash_after(o, a, hits)   # 精英化第 4 批（钙化拳）的挂点；迁移时没有
+
+
+static func _h4_bash_after(_o, _a: Dictionary, _hits: Array) -> void:
+	pass
+
+
+## 莱茵充能护服：以自身为中心的全方位冲击；六道琥珀冲击向外撞出 + 两道贴地冲击环
+static func _h4_suit_blast(o, a: Dictionary, su: Dictionary) -> void:
+	var r: float = float(su.get("r", 110.0))
+	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, -6), 0.0, PI, r, _h4_bash_dmg(o) * float(su.get("mult", 1.8)), float(su.get("kb", 320.0)), float(su.get("stun", 0.3)), su.get("tags", ["empowered"]))
+	for k in 6:
+		o.fx({"kind": "h4_bash", "pos": o.pos + Vector2(0, -14), "ang": k * TAU / 6.0, "reach": r * 0.8, "life": 0.26, "big": true})
+	o.fx({"kind": "ring", "pos": o.pos, "r": r, "r0": 16.0, "life": 0.35, "col": H4_AMBER, "floor": true, "w": 4.0})
+	o.fx({"kind": "ring", "pos": o.pos, "r": r * 0.7, "r0": 8.0, "life": 0.45, "col": Color(1.6, 1.3, 0.8), "floor": true, "w": 2.0})
+	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -26), "r": 26.0, "life": 0.25, "col": H4_AMBER, "alpha": 0.6})
+	_h3_vsparks(o, o.pos + Vector2(0, -16), H4_AMBER, 12, 260.0, 0.4, 2.5, 160.0)
+	if not hits.is_empty():
+		o.impact_pause(0.05)
+	_h3_sfx(o, "hit", 4.0, 0.8)
+	_h4_suit_after(o, su)   # 精英化第 4 批（晶柱环）的挂点；迁移时没有
+
+
+static func _h4_suit_after(_o, _su: Dictionary) -> void:
+	pass
+
+
+static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
+	var g = o.g
+	# 阻挡圈：每 every 秒把队长周围的非 Boss 敌人推到圈外、减速
+	var gr: Dictionary = _h4_live(o, "verb.guard_ring")
+	if not gr.is_empty():
+		sa.block_t = float(sa.block_t) - dt
+		if float(sa.block_t) <= 0.0:
+			sa.block_t = float(gr.get("every", 0.25))
+			var r: float = float(gr.get("r", 62.0)) * o.stat(&"op_range")
+			var shown := 0
+			for j in o.query_ids(g.ppos, r + 30.0):
+				var e: Dictionary = g.enemies[j]
+				if e.dead or e.boss or e.chest:
+					continue
+				var off: Vector2 = e.pos - g.ppos
+				if off.length() > r + e.r:
+					continue
+				e.kb += off.normalized() * (float(gr.get("kb_elite", 80.0)) if e.elite else float(gr.get("kb", 200.0)))
+				e.slow = maxf(e.slow, float(gr.get("slow", 0.5)))
+				if shown < 4:
+					shown += 1
+					o.fx({"kind": "glow", "pos": e.pos, "r": 9.0, "life": 0.18, "col": H4_AMBER, "alpha": 0.5, "floor": true})
+	var ob: Dictionary = _h4_live(o, "verb.calc_orbs")
+	var orb_n: int = _h4_orb_n(o, ob)
+	_h4_orbs_tick(o, sa, ob, orb_n, dt)
+	_h4_shots_tick(o, sa, dt)
+	# 精二 莱茵充能护服：每 seg_t 秒充满一格，满格后等下一次出拳放出
+	var su: Dictionary = _h4_live(o, "verb.suit")
+	if not su.is_empty() and int(sa.seg) < int(su.get("segs", 4)):
+		sa.seg_t = float(sa.seg_t) + dt
+		if float(sa.seg_t) >= float(su.get("seg_t", 5.0)):
+			sa.seg_t = 0.0
+			sa.seg = int(sa.seg) + 1
+			o.fx({"kind": "glow", "pos": o.pos + Vector2(-19.5 + (int(sa.seg) - 1) * 13.0, 14), "r": 6.0, "life": 0.25, "col": H4_AMBER, "alpha": 0.7})
+	if float(sa.hot_t) > 0.0:
+		sa.hot_t = float(sa.hot_t) - dt
+		sa.hot_acc = float(sa.hot_acc) + dt
+		if float(sa.hot_acc) >= 1.0:
+			sa.hot_acc = float(sa.hot_acc) - 1.0
+			if g.hp < g.max_hp:
+				o.heal_leader(g.max_hp * float(sa.hot_pct), o.display_name())
+				o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": H4_AMBER, "sz": 2.0})
+	var shb: Dictionary = _h4_sub(o, ob.get("shatter", null)) if not ob.is_empty() else {}
+	if float(sa.calc) > 0.0:
+		var cb: Dictionary = sa.calc_b
+		var R: float = float(cb.get("r", 180.0))
+		sa.calc = float(sa.calc) - dt
+		sa.calc_acc = float(sa.calc_acc) + dt
+		h4_cleanse_ctrl(o, false)   # 钙质化区域（跟着队长）里持续清除寒冷、束缚
+		if float(sa.calc_acc) >= 1.0:
+			sa.calc_acc = float(sa.calc_acc) - 1.0
+			if g.hp < g.max_hp:
+				o.heal_leader(g.max_hp * float(cb.get("heal", 0.01275)), o.display_name())
+		for j in o.query_ids(g.ppos, R + 20.0):
+			var e2: Dictionary = g.enemies[j]
+			if e2.dead or e2.pos.distance_to(g.ppos) > R:
+				continue
+			e2.slow = maxf(e2.slow, float(cb.get("slow", 0.5)))
+			e2["aura_weak"] = maxf(float(e2.get("aura_weak", 0.0)), float(cb.get("weak", 0.2)))
+		sa.shard_t = float(sa.shard_t) - dt
+		if float(sa.shard_t) <= 0.0:
+			sa.shard_t = float(cb.get("shard_every", 0.35))
+			var an: float = g.rng.randf() * TAU   # 晶柱落点吃 g.rng（碎晶从晶柱处射出，影响玩法；同手写）
+			var rr: float = g.rng.randf_range(R * 0.3, R * 0.95)
+			_h4_calcite(o, g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55 + 4.0), g.vrng.randf_range(0.6, 0.85), g.vrng.randf_range(12, 24), 1.2)
+		# 碎晶：每 every 秒亲手击碎一根晶柱，碎片飞向区域内的敌人
+		var cs: Dictionary = _h4_sub(o, cb.get("shatter", null))
+		if not cs.is_empty():
+			sa.shatter_t = float(sa.shatter_t) - dt
+			if float(sa.shatter_t) <= 0.0 and _h4_shatter(o, sa, cb, cs):
+				sa.shatter_t = float(cs.get("every", 1.2))
+	else:
+		sa.pillars.clear()
+		# 碎晶（平时）：每 every 秒击碎一枚环绕钙晶，碎片飞向附近敌人，regrow 秒后重新长出
+		if not shb.is_empty() and orb_n > 0:
+			sa.shatter_t = float(sa.shatter_t) - dt
+			if float(sa.shatter_t) <= 0.0 and _h4_shatter_orb(o, sa, ob, shb, orb_n):
+				sa.shatter_t = float(shb.get("every", 3.0))
+	_h4sa_tick_e(o, sa, dt)   # 精英化第 4 批（钙化拳减速 / 晶柱环）的挂点；迁移时没有
+
+
+static func _h4sa_tick_e(_o, _sa: Dictionary, _dt: float) -> void:
+	pass
+
+
+static func _h4_orb_n(o, ob: Dictionary) -> int:
+	if ob.is_empty():
+		return 0
+	for m in ob.get("n_by", []):
+		if m is Dictionary and cond_true(o, m.get("cond", {})):
+			return int(m.get("n", 0))
+	return 0
+
+
+## 环绕钙晶的地面位置：绕本干员一圈（判定用真实圆，不做贴地压扁）
+static func _h4_orb_ground(o, ob: Dictionary, orb_n: int, k: int) -> Vector2:
+	var an: float = o.g.t * float(ob.get("spin", 2.2)) + k * TAU / float(maxi(1, orb_n))
+	var R: float = float(ob.get("r", 70.0))
+	return o.pos + Vector2(cos(an) * R, sin(an) * R + 2.0)
+
+
+static func _h4_orbs_tick(o, sa: Dictionary, ob: Dictionary, orb_n: int, dt: float) -> void:
+	if orb_n <= 0 or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cdd: Dictionary = sa.orb_cd
+	for k in cdd.keys():
+		cdd[k] -= dt
+		if cdd[k] <= 0.0:
+			cdd.erase(k)
+	var dmg: float = _h4_bash_dmg(o) * float(ob.get("mult", 0.18))
+	var br: Dictionary = sa.orb_broken
+	for k in br.keys():
+		br[k] -= dt
+		if br[k] <= 0.0:
+			br.erase(k)
+	for k in orb_n:
+		if br.has(k):
+			continue
+		var p: Vector2 = _h4_orb_ground(o, ob, orb_n, k)
+		for j in o.query_ids(p, 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or cdd.has(e.id) or e.pos.distance_to(p) > 12.0 + e.r:
+				continue
+			cdd[e.id] = float(ob.get("cd", 0.5))
+			o.log_hit(str(ob.get("src", "")))
+			o.deal_damage(e, dmg)
+			o.fx({"kind": "glow", "pos": p + Vector2(0, -16), "r": 7.0, "life": 0.14, "col": H4_AMBER, "alpha": 0.6})
+			o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 90.0, "life": 0.22, "col": H4_AMBER, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 12.0})
+
+
+## 投射物：直线飞行，碰到第一个敌人即命中；注射器附带减速
+static func _h4_shoot(o, sa: Dictionary, kind: String, from: Vector2, to: Vector2, spd: float, dmg: float, src: String, slow := 0.0) -> void:
+	if sa.shots.size() >= 12:
+		return
+	var d: Vector2 = (to - from).normalized() if to.distance_to(from) > 1.0 else Vector2(o.face, 0)
+	sa.shots.append({"kind": kind, "pos": from, "vel": d * spd, "t": 0.7, "dmg": dmg, "ang": d.angle(), "src": src, "slow": slow})
+
+
+static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
+	if sa.shots.is_empty():
+		return
+	var g = o.g
+	for s in sa.shots:
+		s.t -= dt
+		s.pos += s.vel * dt
+		var gp: Vector2 = s.pos + Vector2(0, 16)   # 投射物飞在腰高（-16），按地面位置判定
+		if g.map.tb_bul and g.map.bullet_blocked(s, gp):   # 地形阻挡：针剂 / 碎晶撞景物底座即消失
+			s.t = 0.0
+			continue
+		for j in o.query_ids(gp, 36.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.pos.distance_to(gp) > 6.0 + e.r:
+				continue
+			o.log_hit(str(s.src))
+			o.deal_damage(e, s.dmg)
+			if s.kind == "syringe":
+				if not e.dead:
+					e.slow = maxf(e.slow, float(s.slow))
+				o.fx({"kind": "glow", "pos": s.pos, "r": 7.0, "life": 0.18, "col": Color(0.7, 1.2, 0.9), "alpha": 0.6})
+			else:
+				o.fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": H4_AMBER, "alpha": 0.6})
+				for q in 3:
+					o.fx({"kind": "shard", "pos": s.pos, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 110.0, "life": 0.25, "col": H4_AMBER, "sz": 2.5, "ang": g.vrng.randf() * TAU, "spin": 14.0})
+			s.t = 0.0
+			break
+	sa.shots = sa.shots.filter(func(s): return s.t > 0.0)
+
+
+## 钙质晶体（Codex：冷白主体 + 琥珀边，从地面长出 → 停留 → 碎裂）；缺图退回程序琥珀晶柱。返回该晶柱的特效条目
+static func _h4_calcite(o, p: Vector2, sc: float, h: float, life: float) -> Dictionary:
+	var g = o.g
+	var sa := _h4sa(o)
+	var ref: Dictionary = {}
+	if o.spawn_fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
+		ref = g.fx.back()
+	else:
+		o.fx({"kind": "h4_crystal", "pos": p, "h": h, "life": life, "col": H4_AMBER, "lean": g.vrng.randf_range(-0.3, 0.3)})
+		ref = o.pfx.back()
+	# 碎晶：钙质化期间记下长出的晶柱，供击碎
+	if float(sa.calc) > 0.0 and not _h4_sub(o, sa.calc_b.get("shatter", null)).is_empty():
+		sa.pillars.append({"pos": p, "ref": ref})
+		if sa.pillars.size() > 12:
+			sa.pillars.pop_front()
+	return ref
+
+
+## 碎晶：挑一根已长成的晶柱击碎（g.rng，同手写），碎片飞向区域内最近的至多 n 名敌人；没有目标就先不碎
+static func _h4_shatter(o, sa: Dictionary, cb: Dictionary, cs: Dictionary) -> bool:
+	var g = o.g
+	sa.pillars = sa.pillars.filter(func(pl): return pl.ref.get("life", 0.0) > 0.25)
+	if sa.pillars.is_empty():
+		return false
+	var pl: Dictionary = sa.pillars[g.rng.randi() % sa.pillars.size()]
+	var p: Vector2 = pl.pos
+	var R: float = float(cb.get("r", 180.0))
+	var ts: Array = o.nearest_enemies(8, R * 2.0, p).filter(func(e): return e.pos.distance_to(g.ppos) <= R + e.r)
+	if ts.is_empty():
+		return false
+	ts = o.los_sort(ts, ts.size(), p)   # 地形阻挡：碎片是直线弹，视线内的先
+	sa.pillars.erase(pl)
+	pl.ref.life = 0.001
+	o.fx({"kind": "glow", "pos": p + Vector2(0, -18), "r": 16.0, "life": 0.22, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
+	o.fx({"kind": "ring", "pos": p, "r": 26.0, "r0": 4.0, "life": 0.25, "col": H4_AMBER, "floor": true, "w": 2.0})
+	for q in 8:
+		o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 170), "life": 0.35, "col": H4_AMBER,
+			"sz": g.vrng.randf_range(3.0, 5.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
+	var dmg: float = _h4_bash_dmg(o) * float(cs.get("mult", 0.6)) * o.skill_power()
+	for k in mini(int(cs.get("n", 4)), ts.size()):
+		_h4_shoot(o, sa, "shard", p + Vector2(0, -16), ts[k].pos + Vector2(0, -16), 560.0, dmg, str(cs.get("src", "")))
+	_h3_sfx(o, "hit", -2.0, 1.3)
+	return true
+
+
+## 碎晶（平时）：挑离最近敌人最近的一枚完好钙晶击碎，碎片飞向附近至多 n 名敌人；没有目标就先不碎
+static func _h4_shatter_orb(o, sa: Dictionary, ob: Dictionary, shb: Dictionary, orb_n: int) -> bool:
+	var g = o.g
+	var ts: Array = o.nearest_enemies(6, float(shb.get("reach", 260.0)), o.pos)
+	if ts.is_empty():
+		return false
+	var best := -1
+	var bd := INF
+	for k in orb_n:
+		if sa.orb_broken.has(k):
+			continue
+		var d: float = _h4_orb_ground(o, ob, orb_n, k).distance_to(ts[0].pos)
+		if d < bd:
+			bd = d
+			best = k
+	if best < 0:
+		return false
+	sa.orb_broken[best] = float(shb.get("regrow", 1.0))
+	var p: Vector2 = _h4_orb_ground(o, ob, orb_n, best) + Vector2(0, -16)
+	ts = o.los_sort(ts, ts.size(), _h4_orb_ground(o, ob, orb_n, best))
+	o.fx({"kind": "glow", "pos": p, "r": 12.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
+	for q in 6:
+		o.fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 150), "life": 0.3, "col": H4_AMBER,
+			"sz": g.vrng.randf_range(2.5, 4.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
+	var dmg: float = _h4_bash_dmg(o) * float(shb.get("mult", 0.4))
+	for k in mini(int(shb.get("n", 3)), ts.size()):
+		_h4_shoot(o, sa, "shard", p, ts[k].pos + Vector2(0, -16), 560.0, dmg, str(shb.get("src", "")))
+	_h3_sfx(o, "hit", -4.0, 1.4)
+	return true
+
+
+## 治疗画面：飘字 + 光点 + 治疗光环 + 星光（她自己是队长时光环不画、星光挪到头顶，免得盖住注射动作）
+static func _h4_heal_fx(o, h: float) -> void:
+	var g = o.g
+	o.float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), H4_AMBER, 16)
+	for k in 6:
+		o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": H4_AMBER, "sz": 2.5})
+	var me: bool = o.is_leader
+	if not me:
+		o.spawn_fx_sprite("fx_heal_aura_amber", g.ppos + Vector2(0, 6), g.PX * 1.4, 0.0, false, true)
+	o.spawn_fx_sprite("fx_holy_impact", g.ppos + Vector2(0, -72 if me else -34), g.PX * (0.7 if me else 1.0), 0.0, false, false, Color(1, 1, 1, 0.6 if me else 1.0))
+
+
+## 急救 / 药剂散布
+static func h4_saria_heal(o, b: Dictionary) -> void:
+	var g = o.g
+	var sa := _h4sa(o)
+	var h: float = g.max_hp * float(b.get("pct", 0.068)) * o.skill_power() * (float(b.get("low_mult", 1.0)) if g.hp < g.max_hp * float(b.get("low_hp", 0.0)) else 1.0)
+	o.heal_leader(h, o.display_name())
+	_h4_heal_fx(o, h)
+	if b.get("cleanse", false):
+		h4_cleanse_ctrl(o, true)
+	o.fx({"kind": "ring", "pos": g.ppos, "r": float(b.get("ring", 40.0)), "r0": 8.0 if float(b.get("ring", 40.0)) < 50.0 else 10.0, "life": 0.4 if float(b.get("ring", 40.0)) < 50.0 else 0.5, "col": H4_AMBER, "floor": true})
+	var sy: Dictionary = _h4_sub(o, b.get("syringe", null))
+	if not sy.is_empty():
+		var dmg: float = _h4_bash_dmg(o) * float(sy.get("mult", 0.8)) * o.skill_power()
+		for e in o.los_targets(int(sy.get("n", 3)), float(sy.get("range", 260.0)), o.pos):
+			_h4_shoot(o, sa, "syringe", o.pos + Vector2(8.0 * o.face, -24), e.pos + Vector2(0, -16), float(sy.get("speed", 460.0)), dmg, str(sy.get("src", "")), float(sy.get("slow", 2.0)))
+	var hot = b.get("hot", null)
+	if hot is Dictionary:
+		sa.hot_t = float(hot.get("dur", 5.0))
+		sa.hot_acc = 0.0
+		sa.hot_pct = float(hot.get("pct", 0.0085))
+		sa.hot_name = str(hot.get("name", ""))
+		if o.is_leader:
+			o.fx({"kind": "glow", "pos": g.ppos + Vector2(0, -74), "r": 12.0, "life": 0.35, "col": H4_AMBER, "alpha": 0.6})
+		else:
+			o.spawn_fx_sprite("fx_shield_amber", g.ppos + Vector2(0, -26), g.PX * 1.6)
+
+
+## 钙质化：晶柱升起 + 区域
+static func h4_calc_start(o, b: Dictionary) -> void:
+	var g = o.g
+	var sa := _h4sa(o)
+	sa.calc_b = b
+	sa.calc = float(b.get("dur", 8.0))
+	sa.calc_acc = 0.0
+	sa.calc_name = str(b.get("name", ""))
+	if o.cur_skill >= 0:
+		o.s_dur[o.cur_skill] = float(b.get("dur", 8.0))
+	for k in 8:
+		var an: float = k * TAU / 8.0 + 0.3
+		_h4_calcite(o, g.ppos + Vector2(cos(an) * 34.0, sin(an) * 34.0 * 0.55 + 4.0), g.vrng.randf_range(0.9, 1.15), g.vrng.randf_range(22, 40), 1.5 + k * 0.03)
+	var R: float = float(b.get("r", 180.0))
+	o.fx({"kind": "ring", "pos": g.ppos, "r": R, "r0": 30.0, "life": 0.5, "col": H4_AMBER, "floor": true, "w": 4.0})
+	o.fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": H4_AMBER, "floor": true, "n": 10})
+	o.spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
+	o.spawn_fx_sprite("fx_circle_amber", g.ppos + Vector2(0, 6), g.PX * 3.0)
+	if b.has("banner"):
+		o.show_banner(str(b.banner))
+	g.shake = maxf(g.shake, 3.0)
+
+
+# ---------------------------------------------------------------- 塞雷娅：画面
+
+static func _h4sa_draw_auras(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var sa: Dictionary = o.hw.sa
+	var c: Vector2 = g.ppos + Vector2(0, 4)
+	if float(sa.calc) > 0.0:
+		var R: float = float(sa.calc_b.get("r", 180.0))
+		var fade: float = clampf(float(sa.calc) / 0.6, 0.0, 1.0)
+		cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
+		cv.draw_circle(Vector2.ZERO, R, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.08 * fade))
+		cv.draw_arc(Vector2.ZERO, R, 0.0, TAU, 48, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.45 * fade), 2.5)
+		for k in 6:
+			var dv := Vector2.from_angle(k * TAU / 6.0 + g.t * 0.3)
+			cv.draw_line(dv * R * 0.85, dv * R, Color(1.6, 1.3, 0.8, 0.6 * fade), 2.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var gr: Dictionary = _h4_live(o, "verb.guard_ring")
+	if gr.is_empty():
+		return
+	var r: float = float(gr.get("r", 62.0)) * o.stat(&"op_range")
+	cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.55))
+	for k in 8:
+		var a0: float = g.t * 0.6 + k * TAU / 8.0
+		cv.draw_arc(Vector2.ZERO, r, a0, a0 + TAU / 8.0 * 0.55, 6, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.35 + 0.06 * sin(g.t * 4.0)), 2.0)
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 角色之上：环绕钙晶、注射器 / 碎晶片、护服充能格
+static func _h4sa_draw_over(o) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cv = o.cv
+	var sa: Dictionary = o.hw.sa
+	var ob: Dictionary = _h4_live(o, "verb.calc_orbs")
+	var orb_n: int = _h4_orb_n(o, ob)
+	for k in orb_n:
+		if sa.orb_broken.has(k):
+			continue
+		var gp: Vector2 = _h4_orb_ground(o, ob, orb_n, k)
+		var back: bool = gp.y < o.pos.y + 2.0
+		var p: Vector2 = gp + Vector2(0, -16 + sin(g.t * 3.0 + k) * 2.0)
+		var al: float = 0.6 if back else 1.0
+		cv.draw_set_transform(gp, 0.0, Vector2(1.0, 0.45))
+		cv.draw_circle(Vector2.ZERO, 5.0, Color(0.0, 0.0, 0.0, 0.25 * al))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_circle(p, 8.0, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.18 * al))
+		var dia := PackedVector2Array([p + Vector2(0, -9), p + Vector2(4.5, -1), p + Vector2(0, 6), p + Vector2(-4.5, -1)])
+		cv.draw_colored_polygon(dia, Color(1.35, 1.3, 1.15, 0.9 * al))
+		cv.draw_polyline(PackedVector2Array([dia[0], dia[1], dia[2], dia[3], dia[0]]), Color(H4_AMBER.r * 1.5, H4_AMBER.g * 1.3, H4_AMBER.b, al), 1.5)
+		cv.draw_line(p + Vector2(0, -7), p + Vector2(0, 4), Color(2.2, 2.0, 1.6, 0.8 * al), 1.0)
+	for s in sa.shots:
+		var d: Vector2 = Vector2.from_angle(s.ang)
+		if s.kind == "syringe":
+			cv.draw_line(s.pos - d * 7.0, s.pos + d * 4.0, Color(0.1, 0.1, 0.12, 0.8), 5.0)
+			cv.draw_line(s.pos - d * 6.0, s.pos + d * 3.0, Color(1.6, 1.6, 1.6), 3.0)
+			cv.draw_line(s.pos - d * 2.0, s.pos + d * 3.0, Color(0.6, 1.5, 0.9), 2.0)
+			cv.draw_line(s.pos + d * 4.0, s.pos + d * 9.0, Color(2.0, 2.0, 2.0), 1.0)
+			cv.draw_line(s.pos - d * 8.0 + d.orthogonal() * 3.0, s.pos - d * 8.0 - d.orthogonal() * 3.0, Color(1.4, 1.4, 1.4), 1.5)
+		else:
+			var sv: Vector2 = Vector2.from_angle(s.ang + g.t * 16.0) * 5.0
+			cv.draw_line(s.pos - d * 14.0, s.pos, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.35), 2.0)
+			cv.draw_colored_polygon(PackedVector2Array([s.pos - sv, s.pos + sv.orthogonal() * 0.5, s.pos + sv]), Color(1.9, 1.5, 0.9))
+	var su: Dictionary = _h4_live(o, "verb.suit")
+	if not su.is_empty():
+		var segs: int = int(su.get("segs", 4))
+		var full: bool = int(sa.seg) >= segs
+		var pul: float = 0.75 + 0.25 * sin(g.t * 10.0) if full else 1.0
+		for k in segs:
+			var r := Rect2(o.pos + Vector2(-25.0 + k * 13.0, 12.0), Vector2(11.0, 5.0))
+			cv.draw_rect(r.grow(1.0), Color(0.12, 0.07, 0.03, 0.85))
+			if k < int(sa.seg):
+				cv.draw_rect(r, Color(H4_AMBER.r * 1.6 * pul, H4_AMBER.g * 1.4 * pul, H4_AMBER.b * pul))
+			elif k == int(sa.seg):
+				var fr: float = clampf(float(sa.seg_t) / float(su.get("seg_t", 5.0)), 0.0, 1.0)
+				cv.draw_rect(Rect2(r.position, Vector2(11.0 * fr, 5.0)), Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.45))
+		if full:
+			cv.draw_arc(o.pos + Vector2(0, -30), 26.0 + 2.0 * sin(g.t * 10.0), 0.0, TAU, 28, Color(H4_AMBER.r * 1.5, H4_AMBER.g * 1.3, H4_AMBER.b, 0.35), 2.0)
+
+
+static func _h4sa_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	match str(f.kind):
+		"h4_bash":
+			var u: float = 1.0 - a
+			var ek: float = 1.0 - (1.0 - minf(1.0, u / 0.6)) * (1.0 - minf(1.0, u / 0.6))
+			var d: Vector2 = Vector2.from_angle(f.ang)
+			var big: bool = f.get("big", false)
+			var R: float = 30.0 if big else 24.0
+			var half: float = 1.05 if not big else 0.5
+			var c: Vector2 = f.pos + d * (10.0 + f.reach * 0.45 * ek)
+			var oc: Vector2 = c - d * R
+			var w: float = (9.0 if big else 7.0) * (0.55 + 0.45 * a)
+			cv.draw_arc(oc, R, f.ang - half, f.ang + half, 14, Color(0.25, 0.14, 0.05, 0.75 * a), w + 3.0)
+			cv.draw_arc(oc, R, f.ang - half, f.ang + half, 14, Color(H4_AMBER.r * 1.3, H4_AMBER.g * 1.2, H4_AMBER.b, 0.95 * a), w)
+			cv.draw_arc(oc, R + w * 0.4, f.ang - half * 0.85, f.ang + half * 0.85, 12, Color(2.2, 1.9, 1.3, a), 1.5)
+			cv.draw_line(c - d * 2.0, c - d * (w + 2.0), Color(2.0, 1.7, 1.1, 0.8 * a), 2.0)
+			for s in [-1.0, 0.0, 1.0]:
+				var off: Vector2 = d.orthogonal() * s * R * 0.55
+				cv.draw_line(c - d * 10.0 + off, c - d * (22.0 + 6.0 * absf(s)) + off, Color(H4_AMBER.r * 1.4, H4_AMBER.g * 1.3, H4_AMBER.b, 0.5 * a), 1.5)
+			return true
+		"h4_crystal":
+			var age: float = f.max - f.life
+			var grow: float = clampf(age / 0.25, 0.0, 1.0)
+			var fade: float = clampf(f.life / 0.4, 0.0, 1.0)
+			var h: float = f.h * (1.0 - (1.0 - grow) * (1.0 - grow))
+			var p: Vector2 = f.pos
+			var top: Vector2 = p + Vector2(f.lean * h, -h)
+			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-5, 0), top + Vector2(-2, 2), top, top + Vector2(2, 3), p + Vector2(5, 0), p + Vector2(0, 3)]), Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.85 * fade))
+			cv.draw_line(p + Vector2(-3, -1), top + Vector2(-1, 2), Color(1.9, 1.6, 1.0, 0.9 * fade), 1.5)
+			cv.draw_circle(top, 2.0, Color(2.2, 2.0, 1.4, fade))
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- 画面分发（hw_draw_* 转来）
+
+static func h4_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	if not h4_on(o):
+		return false
+	if o.hw.has("sg"):
+		return _h4sg_draw_pfx(o, f, a)
+	if o.hw.has("wd"):
+		return _h4wd_draw_pfx(o, f, a)
+	if o.hw.has("sa"):
+		return _h4sa_draw_pfx(o, f, a)
+	return _h4e_draw_pfx(o, f, a)
+
+
+## 精英化第 4 批的程序粒子（迁移时没有）
+static func _h4e_draw_pfx(_o, _f: Dictionary, _a: float) -> bool:
+	return false
+
+
+static func h4_draw_over(o) -> void:
+	if o.hw.has("sz"):
+		_h4sz_draw_over(o)
+	if o.hw.has("wd"):
+		_h4wd_draw_over(o)
+	if o.hw.has("sa"):
+		_h4sa_draw_over(o)
+	_h4e_draw_over(o)
+
+
+static func _h4e_draw_over(_o) -> void:
+	pass
+
+
+static func h4_draw_floor(o) -> void:
+	if o.hw.has("sg"):
+		_h4sg_draw_floor(o)
+	if o.hw.has("sz"):
+		_h4sz_draw_floor(o)
+	if o.hw.has("wd"):
+		_h4wd_draw_floor(o)
+	_h4e_draw_floor(o)
+
+
+static func _h4e_draw_floor(_o) -> void:
+	pass
+
+
+static func h4_draw_auras(o) -> void:
+	if o.hw.has("sg"):
+		_h4sg_draw_auras(o)
+	if o.hw.has("sz"):
+		_h4sz_draw_auras(o)
+	if o.hw.has("sa"):
+		_h4sa_draw_auras(o)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in H4_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"shape.hammer": ["attack"], "shape.foxfire": ["attack"], "shape.cannon": ["attack"], "shape.bash": ["attack"],
+		"verb.leap_slam": ["skill", "instant"], "verb.cmd_wave": ["skill", "instant"], "verb.fox_cast": ["skill", "instant"],
+		"verb.cannon_exec": ["skill", "instant"], "verb.cannon_load": ["skill", "instant"], "verb.saria_heal": ["skill", "instant"], "verb.calc_field": ["skill", "instant"],
+		"verb.foxlight": ["sustain"], "verb.souls": ["sustain"], "verb.guard_ring": ["sustain"], "verb.calc_orbs": ["sustain"], "verb.suit": ["sustain"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"shape.hammer":
+			_num(b, "r", p, ctx, true, 1.0, 600.0)
+			_num(b, "half", p, ctx, true, 0.05, PI)
+			_num(b, "hit_sp", p, ctx, false, 0.0, 10.0)
+			_src(b, p, ctx, true)
+			for k in ["quake", "breach"]:
+				if b.has(k):
+					if not (b[k] is Dictionary):
+						errs.append("%s.%s 必须是对象" % [p, k])
+					else:
+						_src(b[k], p + "." + k, ctx, true)
+						_num(b[k], "mult", p + "." + k, ctx, true, 0.0, 20.0)
+			if b.has("heavy") and not (b.heavy is Dictionary and b.heavy.has("cond")):
+				errs.append(p + ".heavy 必须是带 cond 的对象")
+			if b.has("heavy") and b.heavy is Dictionary and b.heavy.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.heavy.anim))):
+				errs.append("%s.heavy.anim「%s」不是 sprites 里的帧条键" % [p, str(b.heavy.anim)])
+			_h4e_check(b, p, ctx, tag)
+		"verb.leap_slam":
+			for k in ["r", "mult", "t", "dist"]:
+				_num(b, k, p, ctx, true, 0.0, 1000.0)
+			_src(b, p, ctx, true)
+		"verb.cmd_wave":
+			for k in ["r", "dur", "mult"]:
+				_num(b, k, p, ctx, true, 0.0, 1000.0)
+			_src(b, p, ctx, true)
+		"shape.foxfire":
+			_num(b, "range", p, ctx, true, 10.0, 2000.0)
+			_num(b, "shots", p, ctx, true, 1.0, 12.0)
+			_num(b, "speed", p, ctx, true, 10.0, 3000.0)
+			_src(b, p, ctx, true)
+			if b.has("merge") and not (b.merge is Dictionary and b.merge.has("mult")):
+				errs.append(p + ".merge 必须是对象 {cond, every, all, mult, spd, life, r}")
+			if b.has("tip") and not (b.tip is Array and b.tip.size() == 2):
+				errs.append(p + ".tip 必须是 [x, y]")
+			_h4e_check(b, p, ctx, tag)
+		"verb.foxlight":
+			_num(b, "r", p, ctx, true, 1.0, 1000.0)
+			for k in ["slow", "heal"]:
+				if b.has(k) and not (b[k] is Array):
+					errs.append("%s.%s 必须是数组" % [p, k])
+			if b.has("hearth") and b.hearth is Dictionary:
+				_src(b.hearth, p + ".hearth", ctx, true)
+		"verb.fox_cast":
+			_num(b, "buff", p, ctx, true, 0.0, 5.0)
+			_num(b, "haze", p, ctx, false, 0.1, 60.0)
+		"shape.cannon":
+			_num(b, "range", p, ctx, true, 10.0, 2000.0)
+			_num(b, "aoe", p, ctx, true, 1.0, 400.0)
+			_src(b, p, ctx, true)
+			for k in ["quake_src"]:
+				if not ctx.srcs.has(str(b.get(k, ""))):
+					errs.append("%s.%s「%s」没在 hit_sources 里登记" % [p, k, str(b.get(k, ""))])
+			if b.has("shade") and b.shade is Dictionary:
+				_src(b.shade, p + ".shade", ctx, true)
+			if b.has("giant") and b.giant is Dictionary:
+				_src(b.giant, p + ".giant", ctx, true)
+			_h4e_check(b, p, ctx, tag)
+		"verb.cannon_exec":
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_src(b, p, ctx, true)
+		"verb.cannon_load":
+			_num(b, "n", p, ctx, true, 1.0, 60.0)
+		"verb.souls":
+			_num(b, "n", p, ctx, true, 1.0, 6.0)
+			_num(b, "cd", p, ctx, true, 0.1, 60.0)
+			_h4e_check(b, p, ctx, tag)
+		"shape.bash":
+			_num(b, "r", p, ctx, true, 1.0, 600.0)
+			_src(b, p, ctx, true)
+			_h4e_check(b, p, ctx, tag)
+		"verb.guard_ring":
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "every", p, ctx, true, 0.05, 10.0)
+		"verb.calc_orbs":
+			if not (b.get("n_by", null) is Array):
+				errs.append(p + ".n_by 必须是数组 [{cond, n}]")
+			_src(b, p, ctx, true)
+		"verb.saria_heal":
+			_num(b, "pct", p, ctx, true, 0.0, 1.0)
+			if b.has("syringe") and b.syringe is Dictionary:
+				_src(b.syringe, p + ".syringe", ctx, true)
+		"verb.calc_field":
+			_num(b, "dur", p, ctx, true, 0.1, 60.0)
+			_num(b, "r", p, ctx, true, 1.0, 1000.0)
+			if b.has("shatter") and b.shatter is Dictionary:
+				_src(b.shatter, p + ".shatter", ctx, true)
+		"verb.suit":
+			_num(b, "seg_t", p, ctx, true, 0.1, 60.0)
+			_num(b, "r", p, ctx, true, 1.0, 1000.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_h4e_check(b, p, ctx, tag)
+	return true
+
+
+## 精英化第 4 批的参数校验（迁移时没有）
+static func _h4e_check(_b: Dictionary, _p: String, _ctx: Dictionary, _tag: String) -> void:
+	pass

@@ -1,6 +1,10 @@
 ## 推进之王（先锋，契约 v2.1）：节奏位。前压到主控身边的敌人面前抡锤，命中时为全队回复技力。
 ## S1 冲锋号令：全队技力 + 下一锤强化；S2 跃空锤：跃起空中转一圈、落地砸击范围晕眩 + 全队技力；S3 碎颅：8 秒重锤，命中概率眩晕，攻速下降。
 ## 特效（docs/25）：狮王金。锤击重弧 + 命中十字闪；命中后金色技力粒子飞向每名队友（回 DP）；砸地双环 + 地裂 + 火星。
+## ⚠ 测试参照（10-14 起）：推进之王已迁成数据干员（data/characters/siege.json 的 blocks，docs/61 §21），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=siege=res://tests/data_ops/siege_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：命中十字闪的角度、跃空锤落地火焰的位置 / 大小 / 翻转、程序火苗、震地尘土、破阵裂隙的折线抖动与命中闪、技力粒子的弯曲；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动（碎颅的 50% 眩晕仍是 g.rng）。
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.78, 0.35)
@@ -127,7 +131,7 @@ func _release() -> void:
 		fx({"kind": "glow", "pos": hp + Vector2(0, -4), "r": 24.0, "life": 0.14, "col": Color(2.0, 1.5, 0.8), "alpha": 0.8})
 		fx({"kind": "ring", "pos": hp + Vector2(0, 6), "r": 58.0, "r0": 8.0, "life": 0.3, "col": FLAME, "floor": true, "w": 3.0})
 		fx({"kind": "crack", "pos": hp + Vector2(0, 6), "r": 56.0, "life": 0.7, "col": FLAME, "floor": true, "n": 6})
-		fx_sparks(hp, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
+		_vsparks(hp, Color(1.0, 0.8, 0.35), 8, 220.0, 0.35, 2.5, 320.0)
 		impact_pause(0.04)
 	var land: Vector2 = pos + Vector2(0, -6) + Vector2.from_angle(ang) * _reach() * 0.7
 	if quake_on:
@@ -143,7 +147,7 @@ func _release() -> void:
 
 func _hit_fx(e: Dictionary, _origin: Vector2) -> void:
 	# 命中点十字重击闪
-	fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.rng.randf() * PI})
+	fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.vrng.randf() * PI})
 
 
 func _release_skill() -> void:
@@ -189,12 +193,12 @@ func _slam(second := false) -> void:
 	# 火（ansimuz 素材，照原作截图）：中心地面火圈张开 + 周围一圈大小不一的火焰；缺图退回程序水滴火苗
 	if spawn_fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
 		for k in 8:
-			var fa: float = k * TAU / 8.0 + g.rng.randf_range(-0.2, 0.2)
-			var fr: float = r * g.rng.randf_range(0.35, 0.7)
-			spawn_fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.rng.randf_range(0.7, 1.05), 0.0, g.rng.randf() < 0.5, true)
+			var fa: float = k * TAU / 8.0 + g.vrng.randf_range(-0.2, 0.2)
+			var fr: float = r * g.vrng.randf_range(0.35, 0.7)
+			spawn_fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.vrng.randf_range(0.7, 1.05), 0.0, g.vrng.randf() < 0.5, true)
 	else:
 		_blaze_ring(r)
-	fx_sparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
+	_vsparks(pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
 	impact_pause(0.07)
 	if not second:
 		g.squad.gain_sp(base("s2_sp", 0.2) * skill_power(), self)
@@ -253,9 +257,9 @@ func _quake(p: Vector2, mult: float) -> void:
 		fx({"kind": "ring", "pos": p + Vector2(0, 6), "r": r * 0.7, "r0": 6.0, "life": 0.26, "col": Color(2.0, 1.6, 0.8), "floor": true, "w": 1.5})
 	# 尘土：贴地向外扑的土黄色烟团
 	for k in (8 if roar_on else 5):
-		var a: float = k * TAU / (8.0 if roar_on else 5.0) + g.rng.randf_range(-0.3, 0.3)
+		var a: float = k * TAU / (8.0 if roar_on else 5.0) + g.vrng.randf_range(-0.3, 0.3)
 		fx({"kind": "dust", "pos": p + Vector2(cos(a) * r * 0.35, sin(a) * r * 0.2 + 4.0), "vel": Vector2(cos(a), sin(a) * 0.5) * r * 1.6, "drag": 5.0,
-			"r": g.rng.randf_range(7.0, 11.0), "life": 0.45, "col": Color(0.62, 0.52, 0.4), "floor": true})
+			"r": g.vrng.randf_range(7.0, 11.0), "life": 0.45, "col": Color(0.62, 0.52, 0.4), "floor": true})
 
 
 ## 破阵：锤子落点沿锤击方向砸出一道直线金色地裂（锤击 50% 伤害），发光裂隙 0.6 秒淡出
@@ -275,21 +279,21 @@ func _breach(p: Vector2, ang: float, mult: float) -> void:
 			continue
 		log_hit("破阵")
 		deal_damage(e, dmg)
-		fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.rng.randf() * PI})
+		fx({"kind": "impact", "pos": e.pos + Vector2(0, -e.r * 0.5), "life": 0.15, "col": GOLD, "ang": g.vrng.randf() * PI})
 	# 锯齿状的裂隙折线（生成一次，绘制时逐渐淡出）
 	var pts := PackedVector2Array()
 	var n: int = 9
 	var nrm: Vector2 = dir.orthogonal()
 	for i in n + 1:
 		var u: float = float(i) / n
-		var jit: float = 0.0 if i == 0 or i == n else g.rng.randf_range(-7.0, 7.0)
+		var jit: float = 0.0 if i == 0 or i == n else g.vrng.randf_range(-7.0, 7.0)
 		pts.append(a + dir * L * u + nrm * jit)
 	if fissures.size() >= FISSURE_MAX:
 		fissures.pop_front()
 	var life: float = base("crack_life", 0.6)
 	fissures.append({"pts": pts, "t": life, "max": life, "w": w})
 	for k in 4:
-		fx_sparks(a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
+		_vsparks(a + dir * L * (0.25 + 0.25 * k), Color(1.0, 0.8, 0.35), 2, 140.0, 0.3, 2.0, 280.0, true)
 
 
 ## 万兽之王：冲锋号令放出一圈向外扩张的金色号令波（锤击 60% 伤害，推开小怪）
@@ -318,19 +322,19 @@ func _update_cmd_waves(dt: float) -> void:
 			deal_damage(e, w.dmg)
 			if not e.dead and not e.boss and not e.elite:
 				e.kb += (e.pos - w.pos).normalized() * base("cmd_kb", 380.0)
-			fx_sparks(e.pos, GOLD, 2, 140.0, 0.3, 2.0)
+			_vsparks(e.pos, GOLD, 2, 140.0, 0.3, 2.0)
 	cmd_waves = cmd_waves.filter(func(w): return w.t < dur + 0.25)
 
 
 ## 程序火苗（缺 fx_flames 帧条时的后备）：落点周围贴地的椭圆上窜起，内圈高、外圈矮
 func _blaze_ring(r: float) -> void:
 	for k in 16:
-		var a: float = k * TAU / 16.0 + g.rng.randf_range(-0.15, 0.15)
-		var rr: float = r * g.rng.randf_range(0.25, 0.75)
+		var a: float = k * TAU / 16.0 + g.vrng.randf_range(-0.15, 0.15)
+		var rr: float = r * g.vrng.randf_range(0.25, 0.75)
 		var p: Vector2 = pos + Vector2(cos(a) * rr, sin(a) * rr * 0.5 + 2.0)
 		var inner: bool = rr < r * 0.5
-		fx({"kind": "blaze", "pos": p, "vel": Vector2(cos(a) * 24.0, -g.rng.randf_range(10.0, 30.0)), "life": g.rng.randf_range(0.32, 0.48),
-			"sz": g.rng.randf_range(20.0, 28.0) if inner else g.rng.randf_range(12.0, 18.0), "seed": g.rng.randf() * 10.0})
+		fx({"kind": "blaze", "pos": p, "vel": Vector2(cos(a) * 24.0, -g.vrng.randf_range(10.0, 30.0)), "life": g.vrng.randf_range(0.32, 0.48),
+			"sz": g.vrng.randf_range(20.0, 28.0) if inner else g.vrng.randf_range(12.0, 18.0), "seed": g.vrng.randf() * 10.0})
 
 
 ## 空中翻转的速度感（照原作，用户确认）：以干员为圆心的**实心**扇形渐变盘——旋转扫过的区域整块填白，
@@ -410,7 +414,7 @@ func _sp_motes(n: int) -> void:
 		if o == self or o.pos == Vector2.INF:
 			continue
 		for k in n:
-			fx({"kind": "sp_mote", "pos": pos + Vector2(0, -22), "start": pos + Vector2(0, -22), "tgt": o, "life": 0.45 + 0.08 * k, "col": GOLD, "bend": g.rng.randf_range(-40, 40)})
+			fx({"kind": "sp_mote", "pos": pos + Vector2(0, -22), "start": pos + Vector2(0, -22), "tgt": o, "life": 0.45 + 0.08 * k, "col": GOLD, "bend": g.vrng.randf_range(-40, 40)})
 
 
 func _draw_pfx(f: Dictionary, a: float) -> bool:
@@ -528,3 +532,11 @@ func status_items() -> Array:
 	if skull > 0.0:
 		out.append(["碎颅", Color(1.0, 0.6, 0.3)])
 	return out
+
+
+## 画面火花（同 character.gd fx_sparks，随机数换成 g.vrng；积木等价参照用）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

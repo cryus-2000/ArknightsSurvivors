@@ -122,6 +122,7 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 func on_leave() -> void:
 	OB.airborne_clear(self)
 	OB.sm_clear(self)   # 召唤 / 封印段
+	OB.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -176,6 +177,9 @@ func update(dt: float) -> void:
 		return
 	if str(cur_attack().get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
 		OB.h3_attack_start(self, cur_attack(), dt)
+		return
+	if str(cur_attack().get("shape", "")) in OB.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击的起手
+		OB.h4_attack_start(self, cur_attack(), dt)
 		return
 	if no_attack or cd > 0.0 or OB.el_attack_locked(self) or (not hw.is_empty() and OB.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
 		return
@@ -468,7 +472,9 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				if b.has("add"):
 					g.lamp = clampf(g.lamp + float(b.add), 0.0, g.lamp_cap)
 			"verb.sp_team":
-				g.squad.gain_sp(float(b.pct), self if b.get("exclude_self", true) else null)
+				g.squad.gain_sp(float(b.pct) * (skill_power() if b.get("power", false) else 1.0), self if b.get("exclude_self", true) else null)   # power：第 4 批（× 技能强度）
+				if b.has("motes"):
+					OB.h4_sp_motes(self, int(b.motes))   # 第 4 批：金色技力粒子飞向每名队友（画面）
 			"verb.displace":
 				OB.displace_at(self, b, at)
 			"custom":
@@ -517,10 +523,13 @@ func _release() -> void:
 			return
 	elif str(a.get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击……
 		OB.h3_attack_fire(self, a)
+	elif str(a.get("shape", "")) in OB.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击（音效由形状自己播）
+		OB.h4_attack_fire(self, a)
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
-	_sfx_op("atk")
+	if not str(a.get("shape", "")) in OB.H4_ATTACKS:
+		_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", {})):
@@ -579,6 +588,8 @@ func demo_hurt() -> void:
 func _release_skill() -> void:
 	if not hw.is_empty() and OB.h3_release_skill(self):   # 手写迁移段第 3 批：verb.followup 起的那一下（不走技能本体）
 		return
+	if not hw.is_empty() and OB.h4_release_skill(self):   # 手写迁移段第 4 批：碎颅期间用技能动作起手的那一锤
+		return
 	var i := cur_skill
 	var sk: Array = B.get("skills", [])
 	if i < 0 or i >= sk.size():
@@ -608,6 +619,7 @@ func _release_skill() -> void:
 func on_kill(e: Dictionary) -> void:
 	if not hw.is_empty():
 		hw["kill_e"] = e   # 手写迁移段：verb.stack 看是不是 Boss
+		OB.h4_on_kill(self, e)   # 手写迁移段第 4 批：残影标记殉爆
 	for t in _trigs():
 		if str(t.get("_tag", "")) != "trig.on_kill" or not OB.cond_true(self, t.get("cond", {})):
 			continue
@@ -629,6 +641,8 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	var fw: Dictionary = B.get("follow", {})
 	if fw.is_empty() or (not hw.is_empty() and OB.h3_away(self)):   # 手写迁移段第 3 批：本体离场（替身在场）时回编队位
 		return slot_pos
+	if fw.has("side"):   # 手写迁移段第 4 批：护卫站位（队长朝向一侧的固定偏移，不前压）
+		return g.ppos + Vector2(float(fw.side[0]) * g.facing, float(fw.side[1]))
 	var p := melee_spot(float(fw.get("leash", 200.0)), float(fw.get("gap", 30.0)))
 	return p if p != Vector2.INF else slot_pos
 
@@ -677,6 +691,8 @@ func draw_auras() -> void:
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
 	if not hw.is_empty() and OB.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
+		return
+	if not hw.is_empty() and OB.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
 		return
 	_draw_body_fx(false)
 	if not hw.is_empty():
@@ -977,7 +993,8 @@ func dmg_taken_mult() -> float:
 			_negate_fx(t)
 		_defer(t.get("do", []))
 	if not negated:
-		return OB.shield_mult(self, OB.mf_guard_mult(self, ext_dr))   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
+		var dr0: float = OB.h4_live_dr(self) if not hw.is_empty() and OB.h4_on(self) else ext_dr   # 手写迁移段第 4 批：verb.dr 当刻现算（精英化当帧生效，同手写）
+		return OB.shield_mult(self, OB.mf_guard_mult(self, dr0))   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
 	negate_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", {})):

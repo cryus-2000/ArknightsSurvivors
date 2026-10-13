@@ -39,6 +39,7 @@ func _init() -> void:
 	test_blocks_elite1()
 	test_blocks_handwritten()
 	test_blocks_hw3()
+	test_blocks_hw4()
 	print("%d checks, %d failed" % [n, fails])
 	if fails == 0:
 		print("CORE TESTS PASSED")
@@ -1049,3 +1050,45 @@ func test_blocks_hw3() -> void:
 					"精英化第 3 批：%s 精%d 节点有普攻卡（不写「主控」）" % [id, int(nd.level)])
 	ok(not defs["specter_unchained"].blocks.attack.has("whirl") and not defs["mizuki"].blocks.attack.tentacle.has("stake") and not defs["lumen"].blocks.attack.units.has("charge"),
 		"精英化第 3 批：精二旧形态（无尽回旋 / 固着 / 强化光弹）已被取代")
+
+
+## 手写迁移第 4 批（docs/61 §21）：推进之王 / 铃兰 / 维什戴尔 / 塞雷娅迁积木，校验通过 + 反例
+func test_blocks_hw4() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var defs := {}
+	for id in ["siege", "suzuran", "wisadel", "saria"]:
+		defs[id] = Ch.load_def(id)
+		ok(Ch.validate_operator(id, defs[id]), "手写迁移第 4 批：%s 通过积木校验" % id)
+		ok(str(defs[id].get("script", "")) == "res://scripts/characters/data_operator.gd", "手写迁移第 4 批：%s 用数据干员脚本" % id)
+	var bads := [
+		["siege", "锤击缺 r", func(d): d.blocks.attack.erase("r")],
+		["siege", "锤击缺 src", func(d): d.blocks.attack.erase("src")],
+		["siege", "地裂来源没登记", func(d): d.blocks.attack.breach["src"] = "裂地"],
+		["siege", "碎颅帧条不在 sprites", func(d): d.blocks.attack.heavy["anim"] = "smash"],
+		["siege", "跃空锤放进常驻", func(d): d.blocks.talent[0].do.append({"verb": "leap_slam", "r": 110, "mult": 2.2, "t": 0.42, "dist": 90, "src": "震地"})],
+		["siege", "号令波缺 dur", func(d): d.blocks.skills[0].do[1].erase("dur")],
+		["suzuran", "狐火缺 speed", func(d): d.blocks.attack.erase("speed")],
+		["suzuran", "光域放进技能 do", func(d): d.blocks.skills[1].do.append({"verb": "foxlight", "r": 85})],
+		["suzuran", "围炉来源没登记", func(d): d.blocks.trait[0].do[0].hearth["src"] = "炉火"],
+		["suzuran", "暖光缺 buff", func(d): d.blocks.skills[1].do[0].erase("buff")],
+		["suzuran", "补丁字段写错", func(d): d.blocks.skills[0].attack_patch["volley"] = 5],
+		["wisadel", "炮击缺 aoe", func(d): d.blocks.attack.erase("aoe")],
+		["wisadel", "余震来源没登记", func(d): d.blocks.attack["quake_src"] = "余波"],
+		["wisadel", "起手朝向写错", func(d): d.blocks.skills[1]["aim"] = "boss"],
+		["wisadel", "魂灵之影缺 cd", func(d): d.blocks.progression.elite2.do[0].erase("cd")],
+		["wisadel", "装填放进常驻", func(d): d.blocks.progression.elite2.do.append({"verb": "cannon_load", "n": 8})],
+		["saria", "拳击缺 r", func(d): d.blocks.attack.erase("r")],
+		["saria", "阻挡圈放进触发 do", func(d): d.blocks.progression.calc_orb = {"trig": "every_n", "n": 1, "do": [{"verb": "guard_ring", "r": 62, "every": 0.25}]}],
+		["saria", "钙晶 n_by 不是数组", func(d): d.blocks.trait[0].do[1]["n_by"] = 3],
+		["saria", "护服缺 seg_t", func(d): d.blocks.progression.elite2.do[0].erase("seg_t")],
+		["saria", "站位 side 不是 [x, y]", func(d): d.blocks.follow["side"] = 40],
+	]
+	for bd in bads:
+		var d2: Dictionary = defs[bd[0]].duplicate(true)
+		bd[2].call(d2)
+		ok(not Ch.validate_operator(bd[0], d2), "手写迁移第 4 批积木校验应拒绝（%s）：%s" % [bd[0], bd[1]])
+	for t in ["shape.hammer", "verb.leap_slam", "shape.foxfire", "verb.foxlight", "shape.cannon", "verb.souls", "shape.bash", "verb.suit"]:
+		ok(OB.H4_TAGS.has(t), "第 4 批积木已登记：%s" % t)
+	for sh in ["hammer", "foxfire", "cannon", "bash"]:
+		ok(OB.ATTACK_SHAPES.has(sh) and OB.H4_ATTACKS.has(sh), "第 4 批普攻形状已登记：%s" % sh)

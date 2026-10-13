@@ -3,6 +3,10 @@
 ## 特效（docs/25）：琥珀。阻挡圈为地面分段虚线环；拳击为琥珀冲击 + 推力线；钙质化在主控周围升起琥珀晶柱。
 ## 可见成长（docs/25 §5.2）：N1 钙质沉积 3 枚环绕钙晶 → N2 晶簇 5 枚；N4 急救针剂：急救掷出 3 支注射器；
 ## N5 碎晶：钙质化期间每 1.2 秒击碎一根晶柱，碎片飞向区域内敌人；精二「莱茵充能护服」：护服 4 格充能，满格下一次出拳变为全方位冲击。
+## ⚠ 测试参照（10-14 起）：塞雷娅已迁成数据干员（data/characters/saria.json 的 blocks，docs/61 §21），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=saria=res://tests/data_ops/saria_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：持续回复光点、命中火花、钙晶 / 碎晶碎片、晶柱的大小 / 高度 / 翻转 / 倾斜、治疗光点；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动（钙质化晶柱的落点、碎晶挑哪根晶柱仍是 g.rng）。
 extends "res://scripts/characters/character.gd"
 
 const AMBER := Color(1.0, 0.72, 0.38)
@@ -88,7 +92,7 @@ func update(dt: float) -> void:
 			hot_acc -= 1.0
 			if g.hp < g.max_hp:
 				heal_leader(g.max_hp * base("hot_heal", 0.0085), "塞雷娅")
-				fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
+				fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": AMBER, "sz": 2.0})
 	if calc > 0.0:
 		calc -= dt
 		calc_acc += dt
@@ -109,7 +113,7 @@ func update(dt: float) -> void:
 			shard_t = 0.35
 			var a: float = g.rng.randf() * TAU
 			var rr: float = g.rng.randf_range(S3_R * 0.3, S3_R * 0.95)
-			_calcite(g.ppos + Vector2(cos(a) * rr, sin(a) * rr * 0.55 + 4.0), g.rng.randf_range(0.6, 0.85), g.rng.randf_range(12, 24), 1.2)
+			_calcite(g.ppos + Vector2(cos(a) * rr, sin(a) * rr * 0.55 + 4.0), g.vrng.randf_range(0.6, 0.85), g.vrng.randf_range(12, 24), 1.2)
 		# N5 碎晶：每 1.2 秒亲手击碎一根晶柱，碎片飞向区域内的敌人
 		if shatter_on:
 			shatter_t -= dt
@@ -185,7 +189,7 @@ func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 	fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.14, "col": AMBER, "alpha": 0.5})
 	var dv: Vector2 = (e.pos - origin).normalized()
 	for k in 2:
-		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": dv.rotated(g.rng.randf_range(-0.7, 0.7)) * g.rng.randf_range(120, 220), "life": 0.2, "col": AMBER, "sz": 2.0, "drag": 3.0})
+		fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": dv.rotated(g.vrng.randf_range(-0.7, 0.7)) * g.vrng.randf_range(120, 220), "life": 0.2, "col": AMBER, "sz": 2.0, "drag": 3.0})
 
 
 ## 莱茵充能护服：以自身为中心的全方位冲击波；六道琥珀冲击向外撞出 + 两道贴地冲击环
@@ -197,7 +201,7 @@ func _suit_blast() -> void:
 	fx({"kind": "ring", "pos": pos, "r": r, "r0": 16.0, "life": 0.35, "col": AMBER, "floor": true, "w": 4.0})
 	fx({"kind": "ring", "pos": pos, "r": r * 0.7, "r0": 8.0, "life": 0.45, "col": Color(1.6, 1.3, 0.8), "floor": true, "w": 2.0})
 	fx({"kind": "glow", "pos": pos + Vector2(0, -26), "r": 26.0, "life": 0.25, "col": AMBER, "alpha": 0.6})
-	fx_sparks(pos + Vector2(0, -16), AMBER, 12, 260.0, 0.4, 2.5, 160.0)
+	_vsparks(pos + Vector2(0, -16), AMBER, 12, 260.0, 0.4, 2.5, 160.0)
 	if not hits.is_empty():
 		impact_pause(0.05)
 	Sfx.op(id, "hit", 4.0, 0.8)
@@ -206,10 +210,10 @@ func _suit_blast() -> void:
 ## 钙质晶体（Codex：冷白主体 + 琥珀边，从地面长出 → 停留 → 碎裂）；缺图退回程序琥珀晶柱。返回该晶柱的特效条目
 func _calcite(p: Vector2, sc: float, h: float, life: float) -> Dictionary:
 	var ref: Dictionary = {}
-	if spawn_fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.rng.randf() < 0.5, true):
+	if spawn_fx_sprite("fx_saria_calcite", p, g.PX * sc, 0.0, g.vrng.randf() < 0.5, true):
 		ref = g.fx.back()
 	else:
-		fx({"kind": "crystal", "pos": p, "h": h, "life": life, "col": AMBER, "lean": g.rng.randf_range(-0.3, 0.3)})
+		fx({"kind": "crystal", "pos": p, "h": h, "life": life, "col": AMBER, "lean": g.vrng.randf_range(-0.3, 0.3)})
 		ref = pfx.back()
 	# 碎晶：钙质化期间记下长出的晶柱，供击碎
 	if shatter_on and calc > 0.0:
@@ -254,7 +258,7 @@ func _update_orbs(dt: float) -> void:
 			log_hit("钙晶")
 			deal_damage(e, dmg)
 			fx({"kind": "glow", "pos": p + Vector2(0, -16), "r": 7.0, "life": 0.14, "col": AMBER, "alpha": 0.6})
-			fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.rng.randf() * TAU) * 90.0, "life": 0.22, "col": AMBER, "sz": 3.0, "ang": g.rng.randf() * TAU, "spin": 12.0})
+			fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 90.0, "life": 0.22, "col": AMBER, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 12.0})
 
 
 ## 投射物：直线飞行，碰到第一个敌人即命中；注射器附带减速
@@ -291,7 +295,7 @@ func _update_shots(dt: float) -> void:
 				deal_damage(e, s.dmg)
 				fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": AMBER, "alpha": 0.6})
 				for q in 3:
-					fx({"kind": "shard", "pos": s.pos, "vel": Vector2.from_angle(g.rng.randf() * TAU) * 110.0, "life": 0.25, "col": AMBER, "sz": 2.5, "ang": g.rng.randf() * TAU, "spin": 14.0})
+					fx({"kind": "shard", "pos": s.pos, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 110.0, "life": 0.25, "col": AMBER, "sz": 2.5, "ang": g.vrng.randf() * TAU, "spin": 14.0})
 			s.t = 0.0
 			break
 	shots = shots.filter(func(s): return s.t > 0.0)
@@ -314,8 +318,8 @@ func _shatter() -> bool:
 	fx({"kind": "glow", "pos": p + Vector2(0, -18), "r": 16.0, "life": 0.22, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
 	fx({"kind": "ring", "pos": p, "r": 26.0, "r0": 4.0, "life": 0.25, "col": AMBER, "floor": true, "w": 2.0})
 	for q in 8:
-		fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 170), "life": 0.35, "col": AMBER,
-			"sz": g.rng.randf_range(3.0, 5.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-14, 14), "grav": 260.0})
+		fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 170), "life": 0.35, "col": AMBER,
+			"sz": g.vrng.randf_range(3.0, 5.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
 	var dmg: float = _bash_dmg() * base("shatter_mult", 0.6) * skill_power()
 	for k in mini(int(base("shatter_n", 4.0)), ts.size()):
 		_shoot("shard", p + Vector2(0, -16), ts[k].pos + Vector2(0, -16), 560.0, dmg)
@@ -344,8 +348,8 @@ func _shatter_orb() -> bool:
 	ts = los_sort(ts, ts.size(), _orb_ground(best))   # 地形阻挡：碎片是直线弹，视线内的先
 	fx({"kind": "glow", "pos": p, "r": 12.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
 	for q in 6:
-		fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(80, 150), "life": 0.3, "col": AMBER,
-			"sz": g.rng.randf_range(2.5, 4.0), "ang": g.rng.randf() * TAU, "spin": g.rng.randf_range(-14, 14), "grav": 260.0})
+		fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 150), "life": 0.3, "col": AMBER,
+			"sz": g.vrng.randf_range(2.5, 4.0), "ang": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14, 14), "grav": 260.0})
 	var dmg: float = _bash_dmg() * base("orb_shatter_mult", 0.4)
 	for k in mini(int(base("orb_shatter_n", 3.0)), ts.size()):
 		_shoot("shard", p, ts[k].pos + Vector2(0, -16), 560.0, dmg)
@@ -356,7 +360,7 @@ func _shatter_orb() -> bool:
 func _heal_fx(h: float) -> void:
 	float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), AMBER, 16)
 	for k in 6:
-		fx({"kind": "mote", "pos": g.ppos + Vector2(g.rng.randf_range(-20, 20), g.rng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": AMBER, "sz": 2.5})
+		fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-40, -10)), "vel": Vector2(0, -35), "life": 0.8, "col": AMBER, "sz": 2.5})
 	# 治疗光环（Ninja Adventure Aura 调琥珀）+ 星光命中（Pimen）
 	# 她自己是主控时特效会盖住注射动作（docs/45 #3）：光环缩小变淡，星光挪到头顶
 	var me: bool = is_leader
@@ -398,7 +402,7 @@ func _release_skill() -> void:
 			calc_acc = 0.0
 			for k in 8:
 				var a: float = k * TAU / 8.0 + 0.3
-				_calcite(g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), g.rng.randf_range(0.9, 1.15), g.rng.randf_range(22, 40), 1.5 + k * 0.03)
+				_calcite(g.ppos + Vector2(cos(a) * 34.0, sin(a) * 34.0 * 0.55 + 4.0), g.vrng.randf_range(0.9, 1.15), g.vrng.randf_range(22, 40), 1.5 + k * 0.03)
 			fx({"kind": "ring", "pos": g.ppos, "r": S3_R, "r0": 30.0, "life": 0.5, "col": AMBER, "floor": true, "w": 4.0})
 			fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": AMBER, "floor": true, "n": 10})
 			# 琥珀光柱 + 地面法阵（Pimen / Ninja Adventure 调色）
@@ -559,3 +563,11 @@ func status_items() -> Array:
 	if suit_on:
 		out.append(["护服充能 %d/4" % suit_seg, AMBER, float(suit_seg) / 4.0])
 	return out
+
+
+## 画面火花（同 character.gd fx_sparks，随机数换成 g.vrng；积木等价参照用）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

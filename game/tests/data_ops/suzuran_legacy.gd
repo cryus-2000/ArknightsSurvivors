@@ -2,6 +2,10 @@
 ## S1 狐火连珠：下一次普攻 5 发；S2 暖光（永久型）：充能一次后光域永久扩大、其他干员加攻、主控回复；S3 狐火迷雾：10 秒大光域，减速 60%、易伤 25%，期间不普攻。
 ## 特效（docs/25）：狐火金。光域为地面淡金椭圆 + 边缘绕行的六团狐火；狐火弹金白火球带火舌尾；技能期间光点上升。
 ## 可见成长（docs/25 §5）：身边常驻小狐火 = 每次普攻狐火数；三火归一的大狐火；狐火连珠定身金印；围炉狐火；精二九尾虚影。
+## ⚠ 测试参照（10-14 起）：铃兰已迁成数据干员（data/characters/suzuran.json 的 blocks，docs/61 §21），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=suzuran=res://tests/data_ops/suzuran_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：光域光点、迷雾光柱的位置、大狐火拖尾火舌的抖动；② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const GOLD := Color(1.0, 0.82, 0.45)
@@ -96,15 +100,15 @@ func update(dt: float) -> void:
 		mote_t -= dt
 		if mote_t <= 0.0:
 			mote_t = 0.05 if haze_t <= 0.0 else 0.03
-			var a: float = g.rng.randf() * TAU
-			var rr: float = g.rng.randf() * aura_radius()
+			var a: float = g.vrng.randf() * TAU
+			var rr: float = g.vrng.randf() * aura_radius()
 			fx({"kind": "mote", "pos": pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -40), "life": 0.7, "col": GOLD, "sz": 1.8})
 		# 迷雾期间：光域里不时落下一根小光柱
 		pillar_t -= dt
 		if haze_t > 0.0 and pillar_t <= 0.0:
 			pillar_t = 0.9
-			var a2: float = g.rng.randf() * TAU
-			var rr2: float = g.rng.randf_range(0.3, 0.9) * aura_radius()
+			var a2: float = g.vrng.randf() * TAU
+			var rr2: float = g.vrng.randf_range(0.3, 0.9) * aura_radius()
 			spawn_fx_sprite("fx_holy_pillar", pos + Vector2(cos(a2) * rr2, sin(a2) * rr2 * 0.55 + 4.0), g.PX * 0.7, 0.0, false, true)
 		# 光域内的主控缓慢回复（原作：范围内友军回复）
 		heal_acc += dt
@@ -225,7 +229,7 @@ func _update_bigfox(dt: float) -> void:
 		f.trail -= dt
 		if f.trail <= 0.0:
 			f.trail = 0.03
-			fx({"kind": "flame", "pos": f.pos - f.vel.normalized() * 10.0 + Vector2(g.rng.randf_range(-4, 4), g.rng.randf_range(-4, 4)), "vel": -f.vel * 0.12 + Vector2(0, -20), "life": 0.3, "col": GOLD, "sz": 11.0})
+			fx({"kind": "flame", "pos": f.pos - f.vel.normalized() * 10.0 + Vector2(g.vrng.randf_range(-4, 4), g.vrng.randf_range(-4, 4)), "vel": -f.vel * 0.12 + Vector2(0, -20), "life": 0.3, "col": GOLD, "sz": 11.0})
 		for j in query_ids(f.pos, f.r + 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or f.hit.has(e.id) or e.pos.distance_to(f.pos) > f.r + e.r:
@@ -236,7 +240,7 @@ func _update_bigfox(dt: float) -> void:
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
 			fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": GOLD, "w": 2.5})
-			fx_sparks(e.pos, GOLD, 4, 180.0, 0.3, 2.5)
+			_vsparks(e.pos, GOLD, 4, 180.0, 0.3, 2.5)
 	bigfox = bigfox.filter(func(f): return f.life > 0.0)
 
 
@@ -500,3 +504,11 @@ func status_items() -> Array:
 	if haze_t > 0.0:
 		out.append(["狐火迷雾", GOLD])
 	return out
+
+
+## 画面火花（同 character.gd fx_sparks，随机数换成 g.vrng；积木等价参照用）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

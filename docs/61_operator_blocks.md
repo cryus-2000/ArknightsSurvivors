@@ -1641,3 +1641,50 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - `test_blocks_hw3` 加 9 条反例（起手触发放进技能 do、替身闪现缺 r / 帧条不在 sprites、收尾帧条 / 缺 every、挑刺不是命中状态、光柱缺 len、折光缺 src、水母缺 src）与精英节点普攻卡、旧精二形态已被取代的检查。
 - 其他干员同 seed 不变（对 e4444a4a，`--trace=1 --maxprog --sptest` 240 秒）：维什戴尔 + 铃兰 + 塞雷娅（全藏品，seed 1）、星熊 + 能天使 + 凯尔希（seed 2）、浊心斯卡蒂 + 艾雅法拉 + 乌尔比安（seed 3）、逻各斯 + 斯卡蒂 + 推进之王（seed 4）：TRACE 与 BALANCE 逐字节相同。
 - 木桩表与画面见 docs/91 §25。
+
+## 21. 手写干员迁积木：推进之王 / 铃兰 / 维什戴尔 / 塞雷娅（docs/91 §19 第 4 批，10-14）
+
+用户 10-14：「一律积木实现，缺积木就加新积木」。四人原来是手写脚本，照第 2、3 批（§17、§19）先**原样迁到积木**（本节），再加精一 / 精二新形态（§22）。
+JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测试参照 `tests/data_ops/<id>_legacy.gd`（`blocks_eq` 同 seed 逐行对照）。0 个 `custom`，代码里没有「是不是这名干员」的判断。
+
+代码在 `op_blocks.gd` 末尾「手写迁移段（第 4 批）」（`H4_TAGS`，前缀 `h4_` / `_h4`，只往后加）；运行时状态仍在 `o.hw`（§17 同一套挂钩），各人一个子字典：`sg` / `sz` / `wd` / `sa`。
+常驻的「系统积木」（光域、阻挡圈、钙晶、魂灵之影、护服）写在 trait / talent / 成长节点的 passive do 里，每帧按 `_h4_live` 现查（trait → talent → 已选节点 → elite1 / elite2，各自 cond 成立），精英化 / 选节点当帧生效（同手写）。
+核心部分只插了标「第 4 批」的转发：`ATTACK_SHAPES`、`MF_PFX_KINDS`（`h4_cross`）、`_hw_uses` / `hw_init` / `hw_tick`（返回「本帧不起手」）/ `hw_exec` / `hw_active_left` / `hw_draw_*` / `hw_draw_pfx` / `hw_status_items` / `_hw_block`、
+`mf_skill_aim`（`aim: elite / cluster`）、`_exu_skill` / `_v_next_n`（`attack_patch.shots`）、`_hw_top`（`follow.side`）。
+`data_operator.gd` 的挂钩：起手 / 出手（`H4_ATTACKS`，音效由形状自己播）、`_release_skill` 开头（碎颅用技能动作起手的那一锤）、`on_kill`（残影标记殉爆）、`follow_target`（`follow.side`）、
+`draw_body`（跃空锤空中翻转）、`dmg_taken_mult`（本段干员的 `verb.dr` 当刻现算）、`on_leave`（撤掉给队友的攻击加成）、`verb.sp_team` 的 `power` / `motes`。
+
+### 21.1 新积木 / 参数
+
+| 积木 / 参数 | 类 | 说明 |
+|---|---|---|
+| `shape.hammer` | 普攻 | 扇形锤击：半径 r × op_range、半角 half、kb、原点 脚底 + (0, y)；次数型补丁（`attack_patch` mult / power）；`heavy {cond, mult, power, interval, stun_chance, stun, anim, ring}`（碎颅：× 技能强度、间隔 × interval、用技能帧条起手、命中非 Boss 敌人按 g.rng 概率眩晕，同手写）；`hit_sp` + `hit_sp_mults`（命中给其他干员技力秒数）；`quake {cond, r, mult, src, roar}`（落点冲击环）；`breach {cond, len, w, mult, life, max, src}`（直线地裂） |
+| `verb.leap_slam` | 技能 do | 跃空锤：朝 aim_r 内最近敌人跃过去（至多 dist），t 秒、高 h 的空中翻转（本体按身体中心转一圈 + 身后扫光），落地 r 内 × mult × 技能强度、kb、stun，其他干员技力 + sp × 技能强度；`again {cond, range, dist, mult, near}` 再跃 |
+| `verb.cmd_wave` | 技能 do | 号令波：以自身为心先快后慢扩到 r（dur 秒），× mult × 技能强度，非精英击退 kb；同时至多 max 道 |
+| `verb.sp_team` 的 `power` / `motes` | 参数 | 技力 × 技能强度；金色技力粒子飞向每名队友 |
+| `shape.foxfire` | 普攻 | 追踪狐火（game 的 arcane 弹，手动 B 类）：n = shots + shot_adds；次数型补丁 `attack_patch {shots, mult, power}`；`merge {cond, every, all, mult, spd, life, r}` 三火归一大狐火；`seal {cond, stun, stun_elite, max}` 定身金印；`tails {cond, tex, alpha}` 九尾虚影；同时在场弹体 ≤ proj_max；光域迷雾期间不普攻 |
+| `verb.foxlight` | 常驻（passive） | 光域：以本干员为心 (r + r_elite × 精英阶段) × op_range，`warm {cond}` × warm_mult、迷雾 × haze_mult；区域内减速 / `weak {cond, value}` 易伤；暖光或迷雾期间每秒回复；迷雾结束时按暖光重写队友加成；`hearth {cond, n, mult, cd, src}` 围炉 |
+| `verb.fox_cast` | 技能 do | 暖光（不写 haze）/ 狐火迷雾（haze 秒）：其他干员攻击 + buff × 技能强度（施放 / 迷雾结束时整组重写，同手写），光柱画面 |
+| `shape.cannon` | 普攻 | 炮击（手动 A 类，aim_land）：目标离队长最近、slack 内相仿时挑最密；本干员自己的炮弹实体（平射 → 爆炸 → quake_t 秒后余震）；`aoe_mults`、`quakes`、`echo`、`ash`（次数型补丁的炮弹）、`twin`、`shade`（残影殉爆）、`mark`（残影标记）、`giant`（巨炮） |
+| `verb.cannon_exec` / `verb.cannon_load` | 技能 do | 凋零处刑（精英 / Boss 优先的重炮，`mark {cond}` 炸到的挂标记）/ 饱和炮击（装填 n 发巨炮，技能剩余 = 剩余发数） |
+| `verb.souls` | 常驻（passive） | 魂灵之影：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记）的敌人挂残影标记 |
+| 技能 `aim: elite / cluster` | 技能积木 | 起手朝向：精英 / Boss 优先（血最多）/ 离队长最近、相仿挑最密（aim_r 按炮击的距离换算） |
+| `shape.bash` | 普攻 | 持盾出拳（手动 A 类）：扇形 r × op_range、half、kb、stun；护服满格时换全方位冲击 |
+| `verb.guard_ring` / `verb.calc_orbs` / `verb.suit` | 常驻（passive） | 阻挡圈（每 every 秒把队长周围的非 Boss 敌人推开、减速）/ 环绕钙晶（`n_by` 第一条成立的枚数，`shatter` 碎晶）/ 莱茵充能护服（每 seg_t 秒一格，满 segs 格后下一拳全方位冲击） |
+| `verb.saria_heal` / `verb.calc_field` | 技能 do | 急救 / 药剂散布（低血翻倍、净化寒冷 / 束缚、`syringe` 注射器、`hot` 持续回复）/ 钙质化区域（以队长为心，清控制、回复、减速易伤、晶柱与碎晶） |
+| `blocks.follow.side` | 顶层 | 护卫站位：队长朝向一侧的固定偏移 [x, y]（不前压） |
+
+### 21.2 与手写版的差别（有意的 / 只在画面）
+
+1. 画面随机数一律 g.vrng（四人手写版都有画面粒子吃 g.rng）：**这四人在场的局，同 seed 结果相对迁移前会变**（逻辑不变），同 §17 / §19。玩法随机照手写取 g.rng（推进之王碎颅 50% 眩晕、塞雷娅钙质化晶柱落点与碎晶挑哪根）。
+2. 铃兰离队时撤掉给队友的攻击加成（手写版不撤，加成留在队友身上）。
+3. 画面：技能发动多一圈数据干员通用的地面环；塞雷娅命中火花的方向随机（原沿命中方向）、按节点数略增；维什戴尔饱和炮击的状态条文字取自积木。
+
+### 21.3 测试
+
+- **积木等价**（`python tools/check.py --only blocks_eq`）：四组各两局（seed 1 当队友全节点 240 秒，星熊队长、满编不招募；seed 1 主控全节点 + 技力常满 240 秒），数据版 ↔ `--opscript=<id>=res://tests/data_ops/<id>_legacy.gd`：TRACE 241 行逐行相同、BALANCE 逐字段相同；
+  迁移时另跑了全藏品（seed 3 当队友、seed 2 主控）与自然流程（seed 4，300 秒，含中途精英化）三局，同样逐行相同。参照只改了画面随机数（写在各文件开头）。
+- **单元**：`tests/test_core.gd test_blocks_hw4`：四人通过校验 + 21 条反例。
+- **其他干员同 seed 不变**（对迁移前 c8419a5c，基线目录带 art/incoming，`--trace=1 --maxprog --sptest` 240 秒，满编不招募）：星熊 + 能天使 + 凯尔希（seed 1）、浊心斯卡蒂 + 艾雅法拉 + 乌尔比安（seed 2）、
+  逻各斯 + 斯卡蒂 + 水月（seed 3）、艾丽妮 + 流明 + 归溟幽灵鲨（seed 4）：TRACE 与 BALANCE 逐字节相同。
+- 回归测试跟着改读积木段：`prot_test` 塞雷娅净化（`h4_cleanse_ctrl`）、`wisadel_cannon_test`（`h4_impact_fx` / `h4_burst_fx`）、`friendly_target_regression`（`_h4_exec_target`）。

@@ -8,7 +8,7 @@
   0.82,
   0.45
  ],
- "script": "res://scripts/characters/suzuran.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 29,
@@ -32,7 +32,8 @@
   "seal_stun_elite": 0.25,
   "hearth_n": 6,
   "hearth_mult": 0.3,
-  "hearth_cd": 0.5
+  "hearth_cd": 0.5,
+  "s3_dur": 10.0
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -195,5 +196,213 @@
    "增益"
   ],
   "desc": "减速光域 + 追踪狐火，技能为全队加攻"
+ },
+ "blocks": {
+  "_doc": "铃兰（docs/61 §21）：减速光域（以她为心，暖光 ×1.6、迷雾 ×2.2）+ 追踪狐火（三火归一大狐火、狐火连珠定身金印、围炉）；S1 下一次普攻 5 发；S2 暖光（永久）；S3 狐火迷雾 10 秒（期间不普攻）。原手写脚本留作 tests/data_ops/suzuran_legacy.gd",
+  "attack": {
+   "shape": "foxfire",
+   "src": "狐火",
+   "range": "$range",
+   "aim_pad": 20,
+   "aim_n": 2,
+   "every": "$cd",
+   "first": 0.5,
+   "idle": 0.2,
+   "shots": "$shots",
+   "shot_adds": [
+    {
+     "cond": "node:fox_plus",
+     "n": "$n1_shots"
+    },
+    {
+     "cond": "elite >= 1",
+     "n": 1,
+     "_doc": "天赋「祈愿」：狐火 +1"
+    }
+   ],
+   "speed": 330,
+   "life": 1.6,
+   "bullet_r": 7,
+   "turn": 7,
+   "aoe": "$aoe",
+   "tip": [
+    34,
+    -42
+   ],
+   "proj_max": 12,
+   "merge": {
+    "cond": "node:fox_merge",
+    "every": "$merge_every",
+    "all": {
+     "cond": "elite >= 2"
+    },
+    "mult": "$merge_mult",
+    "spd": "$merge_spd",
+    "life": "$merge_life",
+    "r": "$merge_r"
+   },
+   "seal": {
+    "cond": "node:fox_seal",
+    "stun": "$seal_stun",
+    "stun_elite": "$seal_stun_elite",
+    "max": 6
+   },
+   "tails": {
+    "cond": "elite >= 2",
+    "tex": "fx_suzuran_ninetails",
+    "alpha": 0.45
+   }
+  },
+  "trait": [
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "foxlight",
+      "r": "$aura",
+      "r_elite": 15,
+      "warm": {
+       "cond": "skill_active:1"
+      },
+      "warm_mult": 1.6,
+      "haze_mult": 2.2,
+      "slow": [
+       0.2,
+       0.4,
+       0.6
+      ],
+      "weak": {
+       "cond": "elite >= 1",
+       "value": 0.2
+      },
+      "heal": [
+       0.005,
+       0.01
+      ],
+      "warm_buff": "$s2_buff",
+      "src": "铃兰",
+      "hearth": {
+       "cond": "node:fox_hearth",
+       "n": "$hearth_n",
+       "mult": "$hearth_mult",
+       "cd": "$hearth_cd",
+       "src": "围炉"
+      }
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 1
+    },
+    "attack_patch": {
+     "shots": "$s1_shots",
+     "mult": "$s1_mult",
+     "power": true
+    },
+    "status": "狐火连珠",
+    "status_col": [
+     1.0,
+     0.82,
+     0.45
+    ],
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 18.0,
+       "life": 0.3,
+       "col": [
+        1.0,
+        0.82,
+        0.45
+       ],
+       "alpha": 0.5
+      },
+      "at": "self",
+      "off": [
+       0,
+       -30
+      ]
+     },
+     {
+      "sprite": {
+       "name": "fx_circle_gold",
+       "scale": 1.6
+      },
+      "at": "self",
+      "off": [
+       0,
+       4
+      ]
+     }
+    ],
+    "do": []
+   },
+   {
+    "dur": "permanent",
+    "do": [
+     {
+      "verb": "fox_cast",
+      "buff": "$s2_buff",
+      "banner": "暖光：光域永久扩大"
+     }
+    ]
+   },
+   {
+    "dur": 0,
+    "status": "狐火迷雾",
+    "status_col": [
+     1.0,
+     0.82,
+     0.45
+    ],
+    "do": [
+     {
+      "verb": "fox_cast",
+      "haze": "$s3_dur",
+      "buff": "$s3_buff",
+      "banner": "狐火迷雾"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [],
+    "_doc": "祈愿：写在 verb.foxlight 的 weak / r_elite 与 attack.shot_adds（cond elite >= 1）"
+   }
+  ],
+  "progression": {
+   "fox_plus": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "狐火点点：写在 attack.shot_adds（cond node:fox_plus）"
+   },
+   "fox_merge": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "三火归一：写在 attack.merge（cond node:fox_merge）"
+   },
+   "fox_seal": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "画地为牢：写在 attack.seal（cond node:fox_seal）"
+   },
+   "fox_hearth": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "围炉：写在 verb.foxlight.hearth（cond node:fox_hearth）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "九尾祈愿：写在 attack.merge.all 与 attack.tails（cond elite >= 2）"
+   }
+  }
  }
 }
