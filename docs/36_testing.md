@@ -124,6 +124,7 @@
 | `--realtime` | 按真实帧间隔推进、不多跑模拟步；**绘制 / 帧时间对比必须加**（批跑步长每帧 0.5 秒游戏时间，特效很快消失，绘制被低估） |
 | `--trace=秒` | 定期打印状态摘要（排查复现） |
 | `--perfmin` / `--perfab=N` / `--perfdump=路径` | 配 `--perf`：按游戏分钟分段（`m08`，`F` = 最终 Boss 在场）；每 N 帧轮换 `g.perf_alt`（同时切旧的 PlayClock 切步与顿帧规则，分 `/a` `/b` 两桶，同局对照）；逐帧 CSV（帧时间、模拟步数、各列表长度、`--prof` 分段）。开局后才读的贴图打印 `TEXLATE 名字 毫秒`（docs/50 §10） |
+| `--rtfrom=秒` / `--optab=N` / `--optmask=位` / `--optold=位` / `--gemstress` | 配 `--perf --realtime`（docs/50 §11）：到这一秒前按批跑步长快进、之后真实步长（快进段不进 `--perf` 统计）；每 N 帧在性能优化的新 / 旧实现之间轮换 `g.opt_old`（分 `/new` `/old` 两桶，`--optmask` 只轮换其中几项，位见 game.gd `OPT_*`）；`--optold` 整局走旧实现（同 seed 新旧对照）；`--gemstress`：掉落物只落地、不会被拾取 / 回收，堆满到溢出上限（改变对局，只量帧时间）。`--perfdump` 另记每帧绘制调用数 `dcalls` |
 | `--playclock` | 配 `--balance --realtime`：开垂直同步、按玩家局的 PlayClock 分步与顿帧推进，量玩家实际帧时间与顿帧（docs/50 §10） |
 | `--recframes=秒,帧数` / `--legacyfeel` | 游戏时间过了该秒后连存 N 帧 `rec_*.png` 到 `--shotdir`（配 `--playclock --fixed-fps 30` 录对照片）；`--legacyfeel` 整局用旧切步与旧顿帧规则 |
 

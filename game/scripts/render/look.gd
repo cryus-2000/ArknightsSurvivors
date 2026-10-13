@@ -111,38 +111,95 @@ static func _read() -> void:
 
 ## actor_tint > 0 时三通道不再同比例：每通道再乘 (ambient + 去暖灯色 × a) / (ambient + 灯色 × a)，软膝按去暖后的最大通道算。
 ## raw = true：只要去暖那一项、不封顶（白色保护开着时干员由 actor_light.gdshader 逐像素封顶）
+## 每帧一份的灯火参数缓存（性能，docs/50 §11）：actor_mod 每只敌人每帧都调，原来每次都读十来个灯光节点属性 / 设置。
+## 灯光只在 _process（world.update_visuals、开场演出）里改，绘制阶段不变；按「哪个 game 实例 + 第几帧」失效（图鉴演示是另一个实例）
+static var _fc_frame := -1
+static var _fc_g: Object = null
+static var _fc_on := false
+static var _fc_lpos := Vector2.ZERO
+static var _fc_ltex: Texture2D = null
+static var _fc_lscale := 1.0
+static var _fc_lenergy := 1.0
+static var _fc_lh := 0.0
+static var _fc_lcol := Color.WHITE
+static var _fc_amb := Color.WHITE
+static var _fc_br := 1.0
+
+
+static func _fc_fill(g) -> void:
+	var f: int = Engine.get_process_frames()
+	if f == _fc_frame and is_same(_fc_g, g):
+		return
+	_fc_frame = f
+	_fc_g = g
+	var L: PointLight2D = g.lamp_light
+	_fc_on = L != null and L.visible and L.enabled
+	if not _fc_on:
+		return
+	_fc_lpos = L.position
+	_fc_ltex = L.texture
+	_fc_lscale = L.texture_scale
+	_fc_lenergy = L.energy
+	_fc_lh = L.height
+	_fc_lcol = L.color
+	_fc_amb = g.map.ambient
+	_fc_br = Cfg.brightness * _gain
+
+
 static func actor_mod(g, pos: Vector2, raw := false) -> Color:
 	if _cap < 0.0:   # 开局读一次（每只敌人每帧都要调，别每次查字典 / 拆路径）
 		_read()
 	var cap := _cap
-	if (cap <= 0.0 and _tint <= 0.0 and _neu <= 0.0) or g.lamp_light == null or not g.lamp_light.visible or not g.lamp_light.enabled:
+	if cap <= 0.0 and _tint <= 0.0 and _neu <= 0.0:
+		return Color.WHITE
+	if g.opt_old & 16:   # Game.OPT_DRAW：--optab 同局对照的旧写法
+		return _actor_mod_old(g, pos, raw)
+	_fc_fill(g)
+	if not _fc_on:
+		return Color.WHITE
+	var c := pos + Vector2(0, -16.0) - _fc_lpos   # 本体中心约在脚底上方 16 世界像素
+	var d := c.length()
+	var a := _atten(_fc_ltex, d / maxf(_fc_lscale, 0.001)) * _fc_lenergy
+	if A.normal_maps:
+		a *= _fc_lh / sqrt(d * d + _fc_lh * _fc_lh)
+	return _actor_mod_tail(a, _fc_amb, _fc_lcol, _fc_br, cap, raw)
+
+
+## 旧写法（逐次读灯光节点；--optab 对照用）
+static func _actor_mod_old(g, pos: Vector2, raw: bool) -> Color:
+	var cap := _cap
+	if g.lamp_light == null or not g.lamp_light.visible or not g.lamp_light.enabled:
 		return Color.WHITE
 	var L: PointLight2D = g.lamp_light
 	var amb: Color = g.map.ambient
-	var c := pos + Vector2(0, -16.0) - L.position   # 本体中心约在脚底上方 16 世界像素
+	var c := pos + Vector2(0, -16.0) - L.position
 	var d := c.length()
 	var a := _atten(L.texture, d / maxf(L.texture_scale, 0.001)) * L.energy
 	if A.normal_maps:
 		a *= L.height / sqrt(d * d + L.height * L.height)
 	var br: float = Cfg.brightness * _gain
+	return _actor_mod_tail(a, amb, L.color, br, cap, raw)
+
+
+static func _actor_mod_tail(a: float, amb: Color, lcol: Color, br: float, cap: float, raw: bool) -> Color:
 	if _neu > 0.0:
 		# 去暖：G / B 往 R 补（只补低于 R 的部分），最大通道不变 → 软膝缩放和不去暖时一样
-		var rr := amb.r + L.color.r * a
-		var rg := amb.g + L.color.g * a
-		var rb := amb.b + L.color.b * a
+		var rr := amb.r + lcol.r * a
+		var rg := amb.g + lcol.g * a
+		var rb := amb.b + lcol.b * a
 		var s3 := knee_scale(maxf(rr, maxf(rg, rb)) * br, _knee, cap) if cap > 0.0 and not raw else 1.0
 		return Color(s3, s3 * (1.0 + _neu * maxf(rr - rg, 0.0) / maxf(rg, 0.001)), s3 * (1.0 + _neu * maxf(rr - rb, 0.0) / maxf(rb, 0.001)), 1.0)
 	if _tint <= 0.0:
-		var mx := maxf(amb.r + L.color.r * a, maxf(amb.g + L.color.g * a, amb.b + L.color.b * a)) * br
+		var mx := maxf(amb.r + lcol.r * a, maxf(amb.g + lcol.g * a, amb.b + lcol.b * a)) * br
 		var s := knee_scale(mx, _knee, cap) if cap > 0.0 and not raw else 1.0
 		return Color(s, s, s, 1.0)
-	var lc: Color = L.color.lerp(Color.WHITE, _tint)
+	var lc: Color = lcol.lerp(Color.WHITE, _tint)
 	var tr := amb.r + lc.r * a
 	var tg := amb.g + lc.g * a
 	var tb := amb.b + lc.b * a
 	var s2 := knee_scale(maxf(tr, maxf(tg, tb)) * br, _knee, cap) if cap > 0.0 and not raw else 1.0
-	return Color(s2 * tr / maxf(amb.r + L.color.r * a, 0.001), s2 * tg / maxf(amb.g + L.color.g * a, 0.001),
-		s2 * tb / maxf(amb.b + L.color.b * a, 0.001), 1.0)
+	return Color(s2 * tr / maxf(amb.r + lcol.r * a, 0.001), s2 * tg / maxf(amb.g + lcol.g * a, 0.001),
+		s2 * tb / maxf(amb.b + lcol.b * a, 0.001), 1.0)
 
 
 ## 干员本体的最终 modulate：白色保护关 = col × actor_mod；开 = col × 去暖项，RGB 取负作「走逐像素受光」标记

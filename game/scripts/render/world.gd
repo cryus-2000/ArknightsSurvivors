@@ -319,8 +319,12 @@ func _draw_mires() -> void:
 	var mvr: Rect2 = view_rect(40.0)
 	var bubbles: Array = []
 	var mote_budget: int = MIRE_MOTE_MAX if g.vfx.ambient_ok() and g.vfx.on("mire_motes") else 0   # docs/54 溟痕光尘（高画质、非触屏）
+	var vr0: Rect2 = view_rect(4.0)
+	var cull: bool = not (g.opt_old & Game.OPT_DRAW)
 	for m in g.mires:
-		if not _dbg_mire:
+		# 屏幕外的溟痕不画（性能，docs/50 §11；贴图 ±1.15 r、判定圈 r + 0.75，外扩到 1.2 r 再加 4 像素，屏幕内画面不变）
+		var mr: float = float(m.r) * 1.2
+		if not _dbg_mire and (not cull or vr0.intersects(Rect2(m.pos - Vector2(mr, mr), Vector2(mr, mr) * 2.0))):
 			g.map.draw_mire(m)
 		if mvr.has_point(m.pos):
 			if bubbles.size() < MIRE_BUBBLE_MAX:
@@ -386,6 +390,9 @@ func draw_hunt_ring() -> void:
 ## 性能（协调人 9/30：后期没捡的结晶堆积，每颗 5–8 个图元）：屏幕外的掉落不画；结晶很多时，
 ## 远处安静的小结晶按 GEM_CELL 网格合并成一颗画（只合并画面，拾取仍是一颗一颗的）；拖尾 / 辉光 / 深色底进 tb 批，贴图与闪光循环后统一画
 func _draw_pickups() -> void:
+	if not (g.opt_old & Game.OPT_GEMDRAW):
+		_draw_pickups_fast()
+		return
 	var vr: Rect2 = view_rect(40.0)
 	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
 	var crowd_gems: bool = g.gems.size() > GEM_MERGE_N
@@ -474,17 +481,236 @@ func _draw_pickups() -> void:
 			g.vfx.spr("gem_big" if big_pass else "gem_small", 1, 0, cp, Game.PX * (1.9 if big_pass else 1.45), false, Color(0.9, 0.95, 1.0, gem_qa))
 
 
+## 掉落物绘制的快速写法（性能，docs/50 §11；画面同 _draw_pickups 的旧写法）：
+## - 光晕 / 深色底 / 拖尾 / 闪光不再逐段算三角函数、逐个追加索引：单位圆的三角形表开局算一次，每个圆用 Transform2D 整组缩放平移（引擎原生运算），
+##   进一个无索引三角形批（每 3 个顶点一个三角形，和 tb_circle / tb_line 的三角形相同）；
+## - 结晶贴图直接按贴图尺寸画（vfx.spr 的同一套算式），大 / 小结晶分两组连续画（同贴图连续提交才合批）；
+## - 循环外先取好主控位置、拥挤判定与常量色，离主控 170 的判定用距离平方
+var _gt_fan14 := PackedVector2Array()   # tb_circle(seg 14) 的单位扇形三角形表
+var _gt_fan10 := PackedVector2Array()   # tb_circle(seg 10)
+var _gt_pts := PackedVector2Array()
+var _gt_cols := PackedColorArray()
+var _gt_c42 := PackedColorArray()
+var _gt_c30 := PackedColorArray()
+
+func _gt_tables() -> void:
+	for spec in [[14, _gt_fan14], [10, _gt_fan10]]:
+		var seg: int = spec[0]
+		var arr: PackedVector2Array = spec[1]
+		for q in seg:
+			var aq: float = q * TAU / seg
+			var aq2: float = ((q + 1) % seg) * TAU / seg
+			arr.append_array([Vector2.ZERO, Vector2(cos(aq), sin(aq)), Vector2(cos(aq2), sin(aq2))])
+	_gt_c42.resize(42)
+	_gt_c30.resize(30)
+
+
+func _gt_circle(c: Vector2, r: float, col: Color, fan: PackedVector2Array, cols: PackedColorArray) -> void:
+	_gt_pts.append_array(Transform2D(Vector2(r, 0.0), Vector2(0.0, r), c) * fan)
+	cols.fill(col)
+	_gt_cols.append_array(cols)
+
+
+func _gt_line(a: Vector2, b: Vector2, col: Color, w: float) -> void:
+	var n: Vector2 = (b - a).orthogonal().normalized() * w * 0.5
+	_gt_pts.append_array([a + n, b + n, b - n, a + n, b - n, a - n])
+	_gt_cols.append_array([col, col, col, col, col, col])
+
+
+func _gt_flush() -> void:
+	if _gt_pts.is_empty():
+		return
+	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _gt_pts, _gt_cols)
+	_gt_pts = PackedVector2Array()
+	_gt_cols = PackedColorArray()
+
+
+func _draw_pickups_fast() -> void:
+	if _gt_fan14.is_empty():
+		_gt_tables()
+	tb_flush()   # 之前各段留在 tb 批里的三角形先交（旧写法和掉落一起交，前后顺序相同）
+	var vr: Rect2 = view_rect(40.0)
+	gem_qa = lerpf(0.7, Dc.p("gem_quiet_a"), dcrowd)
+	var n_all: int = g.gems.size()
+	var crowd_gems: bool = n_all > GEM_MERGE_N
+	var many: bool = n_all > 60
+	var pp: Vector2 = g.ppos
+	var tgt: Vector2 = pp + Vector2(0, -12)
+	var t: float = g.t
+	var bob_t: float = t * 4.0
+	var tw_t: float = t * 6.0
+	var cells := {}
+	var small_p := PackedVector2Array()   # 小结晶贴图：位置 / 颜色
+	var small_c := PackedColorArray()
+	var big_p := PackedVector2Array()
+	var big_c := PackedColorArray()
+	var spark: Array = []   # 十字闪光：[位置, 长度, 闪烁]
+	var ing_p := PackedVector2Array()   # 落地源石锭 / 灯油的位置（已含 draw_off）
+	var oil_p := PackedVector2Array()
+	var cy := UI.CYAN
+	var glow_s0 := Color(cy.r * 1.6, cy.g * 1.6, cy.b * 1.6, 0.16)
+	var glow_s1 := Color(cy.r * 2.0, cy.g * 2.0, cy.b * 2.0, 0.22)
+	var pu := Color(0.85, 0.6, 1.0)
+	var glow_b0 := Color(pu.r * 1.6, pu.g * 1.6, pu.b * 1.6, 0.16)
+	var glow_b1 := Color(pu.r * 2.0, pu.g * 2.0, pu.b * 2.0, 0.22)
+	var dark := Color(0.0, 0.02, 0.05, 0.55)
+	var quiet_col := Color(0.9, 0.95, 1.0, gem_qa)
+	var lit_s := Color(1.25, 1.25, 1.3)
+	var lit_b := Color(1.35, 1.2, 1.5)
+	const NEAR2 := 170.0 * 170.0
+	for g_item in g.gems:
+		var pos: Vector2 = g_item.pos
+		if not vr.has_point(pos):
+			continue
+		var gz: float = g_item.z
+		var kind: String = g_item.kind
+		var mag: bool = g_item.mag
+		if kind == "xp":
+			var far: bool = not mag and pos.distance_squared_to(pp) > NEAR2
+			var big: bool = g_item.val >= 5.0
+			if crowd_gems and far and gz <= 1.0 and not big:
+				var ck := Vector2i(floori(pos.x / GEM_CELL), floori(pos.y / GEM_CELL))
+				cells[ck] = int(cells.get(ck, 0)) + 1
+				continue
+			if gz > 1.0:
+				_gem_air_shadow(pos, gz)
+			var quiet: bool = many and far
+			var tw: float = 0.75 + 0.25 * sin(tw_t + g_item.seed)
+			var gp: Vector2 = pos + Vector2(0, (sin(bob_t + pos.x) * 2.0 if gz <= 1.0 else 0.0) - gz)
+			if mag:
+				var gc: Color = pu if big else cy
+				var dv: Vector2 = (gp - tgt).normalized()
+				var tl: float = 10.0 + 24.0 * minf(1.0, g_item.mag_t * 2.0)
+				_gt_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
+				_gt_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
+			if not quiet:
+				_gt_circle(gp, (13.0 if big else 9.0) * tw, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
+				_gt_circle(gp, (7.0 if big else 4.5) * tw, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)
+			_gt_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, dark, _gt_fan10, _gt_c30)
+			var gcol: Color = quiet_col if quiet else (lit_b if big else lit_s)
+			if big:
+				big_p.append(gp)
+				big_c.append(gcol)
+			else:
+				small_p.append(gp)
+				small_c.append(gcol)
+			if not quiet:
+				spark.append([gp, 2.0 + 1.5 * tw, tw])
+			continue
+		# 落地的源石锭 / 灯油（不吸的时候数量可能上百）：先收集，循环后按贴图连续画（同 vfx.spr 的算式；画在结晶光晕批之前，同旧写法的前后关系）
+		if gz <= 1.0 and (kind == "ingot" or kind == "oil"):
+			if kind == "ingot":
+				ing_p.append(pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5) + Vector2(0, -gz))
+			else:
+				oil_p.append(pos + Vector2(0, -gz))
+			continue
+		# 其他掉落（宝箱 / 磁铁 / 回复药剂、空中的源石锭 / 灯油）：数量少，照旧写法画
+		if gz > 1.0:
+			_gem_air_shadow(pos, gz)
+		if g_item.special:
+			var ic := g.pickups.item_col(kind)
+			var age: float = g_item.age
+			if age < 0.9:
+				var ba := (1.0 - age / 0.9) * 0.55
+				g.draw_rect(Rect2(pos + Vector2(-5, -140), Vector2(10, 140)), Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, ba * 0.5))
+				g.draw_rect(Rect2(pos + Vector2(-2, -140), Vector2(4, 140)), Color(2.5, 2.5, 2.5, ba))
+			if kind != "chest":
+				var pr := 11.0 + 2.0 * sin(t * 5.0)
+				g.draw_circle(pos + Vector2(0, -gz - 2), pr + 5.0, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.12))
+				g.draw_arc(pos + Vector2(0, -gz - 2), pr, 0.0, TAU, 20, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.5), 1.5)
+		g.draw_off = Vector2(0, -gz)
+		match kind:
+			"oil":
+				g.vfx.spr("oil", 1, 0, pos)
+			"chest":
+				g.vfx.spr("chest", 1, 0, pos)
+			"ingot":
+				g.vfx.spr("ingot", 1, 0, pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
+			"magnet", "heal":
+				g.vfx.spr("pickup_" + kind, 1, 0, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+		g.draw_off = Vector2.ZERO
+	var wc1 := PackedColorArray()
+	wc1.resize(maxi(ing_p.size(), oil_p.size()))
+	wc1.fill(Color.WHITE)
+	_gem_sprites("ingot", Game.PX, ing_p, wc1)
+	_gem_sprites("oil", Game.PX, oil_p, wc1)
+	_gt_flush()
+	_gem_sprites("gem_big", Game.PX * 1.9, big_p, big_c)
+	_gem_sprites("gem_small", Game.PX * 1.45, small_p, small_c)
+	for sk in spark:
+		var gp2: Vector2 = sk[0]
+		var sp3: float = sk[1]
+		var wc := Color(2.5, 2.5, 2.5, 0.5 * sk[2])
+		_gt_line(gp2 + Vector2(-sp3, -8), gp2 + Vector2(sp3, -8), wc, 1.0)
+		_gt_line(gp2 + Vector2(0, -8 - sp3), gp2 + Vector2(0, -8 + sp3), wc, 1.0)
+	_gt_flush()
+	# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶；先画完小的再画大的（同贴图连续才合批）
+	var mp_s := PackedVector2Array()
+	var mp_b := PackedVector2Array()
+	for ck in cells:
+		var cp: Vector2 = (Vector2(ck) + Vector2(0.5, 0.5)) * GEM_CELL
+		if cells[ck] >= 3:
+			mp_b.append(cp)
+		else:
+			mp_s.append(cp)
+	var qc := PackedColorArray()
+	qc.resize(maxi(mp_s.size(), mp_b.size()))
+	qc.fill(quiet_col)
+	_gem_sprites("gem_small", Game.PX * 1.45, mp_s, qc)
+	_gem_sprites("gem_big", Game.PX * 1.9, mp_b, qc)
+
+
+## 空中掉落物的地面影子（同旧写法）
+func _gem_air_shadow(pos: Vector2, gz: float) -> void:
+	g.draw_set_transform(pos + Vector2(0, 8), 0.0, Vector2(1.0, 0.45))
+	g.draw_circle(Vector2.ZERO, 7.0 * (1.0 - clampf(gz / 80.0, 0.0, 0.6)), Color(0, 0, 0, 0.35))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 同一张结晶贴图连续画（vfx.spr 的同一套算式：单帧、锚点居中、取整）
+func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
+	if ps.is_empty():
+		return
+	var tx: Texture2D = g.tex.get(name)
+	if tx == null:
+		return
+	var fw: int = tx.get_width()
+	var fh: int = tx.get_height()
+	var src := Rect2(0, 0, fw, fh)
+	var size := Vector2(fw, fh) * sc
+	var half: Vector2 = size * Vector2(0.5, 0.5)
+	for i in ps.size():
+		g.draw_texture_rect_region(tx, Rect2((ps[i] - half).round(), size), src, cs[i])
+
+
 ## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
 func _draw_shadows(evr: Rect2) -> void:
 	g.boss_intro.draw_world()   # Boss 登场：脚下聚光圈 + 扩散环（合批；没有登场时直接返回）
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
-	for e in g.enemies:
-		if not evr.has_point(e.pos):
-			continue
-		var sc: float = Game.PX * e.r / 10.0
-		var hop: float = minf(e.kb.length() * 0.03, 14.0)
-		g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0), false, Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0))
+	var stx: Texture2D = g.tex.get("shadow")
+	if g.opt_old & Game.OPT_DRAW or stx == null:
+		for e in g.enemies:
+			if not evr.has_point(e.pos):
+				continue
+			var sc: float = Game.PX * e.r / 10.0
+			var hop: float = minf(e.kb.length() * 0.03, 14.0)
+			g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0), false, Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0))
+	else:
+		# 同上，vfx.spr 内联（性能，docs/50 §11：每只敌人省一次函数调用和贴图查表；算式与 vfx.spr 相同）
+		var sw := float(stx.get_width())
+		var sh := float(stx.get_height())
+		var src := Rect2(0, 0, stx.get_width(), stx.get_height())
+		var scol := Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0)
+		var doff: Vector2 = g.draw_off
+		for e in g.enemies:
+			var ep: Vector2 = e.pos
+			if not evr.has_point(ep):
+				continue
+			var er: float = e.r
+			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
+			var size := Vector2(sw, sh) * sc2
+			g.draw_texture_rect_region(stx, Rect2((ep + Vector2(0, er * 0.8) + doff - size * Vector2(0.5, 0.5)).round(), size), src, scol)
 	g.squad.draw_shadows()
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
@@ -2543,10 +2769,19 @@ func tb_circle(c: Vector2, r: float, col: Color, sy := 1.0, seg := 14) -> void:
 		_tb_idx.append(base + 1 + (q + 1) % seg)
 
 
+var _ring_dirs := {}   # seg -> 单位方向表（Vector2.from_angle(q * TAU / seg)，同一算式只算一次）
+
 func tb_ring(c: Vector2, r: float, w: float, col: Color, seg := 16) -> void:
 	var base: int = _tb_pts.size()
+	var dirs = _ring_dirs.get(seg)
+	if dirs == null:
+		var nd := PackedVector2Array()
+		for q in seg:
+			nd.append(Vector2.from_angle(q * TAU / seg))
+		_ring_dirs[seg] = nd
+		dirs = nd
 	for q in seg:
-		var d := Vector2.from_angle(q * TAU / seg)
+		var d: Vector2 = dirs[q]
 		_tb_pts.append(c + d * (r - w * 0.5))
 		_tb_pts.append(c + d * (r + w * 0.5))
 		_tb_cols.append(col)
