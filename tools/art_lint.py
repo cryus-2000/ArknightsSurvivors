@@ -76,16 +76,9 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
-    ("ulpianus", "facing"): "docs/84（origin/wip/ulpianus-facing）待机朝左",
-    ("eyjafjalla", "frontal"): "docs/86 待机正面朝前",
-    ("suzuran", "frontal"): "docs/86 待机正面朝前",
-    ("eyjafjalla", "run"): "docs/85 跑步近似滑行",
-    ("skadi", "run"): "docs/85 跑步腿不交替、前倾 31°",
-    ("irene", "run"): "docs/85 跑步上半身不动",
-    ("wisadel", "run"): "docs/85 跑步后仰",
-    ("doctor", "run"): "docs/85 跑步两脚同时着地",
+    ("suzuran", "facing"): "docs/86 交付 0c342d58 后 idle 已朝右侧身（目测确认）；机检用 attack + run 比对，铃兰 attack 帧条偏正面 / 朝左导致误判，attack 待以后重画",
+    ("skadi", "run"): "docs/85 交付 928b8a35 后腿部 / 前倾已达标，仅剩停顿帧 2 对（线为 ≤ 1），协调人 10-13 接受",
     # 以下为 docs/87 附录 B 基线新发现，待协调人 / 用户定是否开返修单（开单后把说明改成返修单号）
-    ("siege", "facing"): "docs/84 待机朝左（游戏内已用 mirror 标记翻转）",
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
     ("exusiai", "run"): "用户 10-13 认可现版（fafe6f1e 连续性修复后）；机检上半身变化 0.000、头部起伏 0.8px 仍低于线，暂不返修",

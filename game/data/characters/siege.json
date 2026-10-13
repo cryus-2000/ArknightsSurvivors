@@ -48,10 +48,9 @@
   "idle": {
    "tex": "op_siege_idle",
    "frames": 4,
-   "mirror": true,
    "fps": 4,
    "foot": [
-    27,
+    24,
     46
    ]
   },

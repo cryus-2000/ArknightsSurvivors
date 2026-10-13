@@ -58,10 +58,9 @@
   "idle": {
    "tex": "op_ulpianus_idle",
    "frames": 4,
-   "mirror": true,
    "fps": 4,
    "foot": [
-    28,
+    25,
     46
    ]
   },
