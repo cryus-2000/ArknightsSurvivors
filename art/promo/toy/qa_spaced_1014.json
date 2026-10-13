@@ -1,0 +1,44 @@
+{
+  "logical_resolution": [
+    200,
+    150
+  ],
+  "nearest_scale": 6,
+  "base_palette": 64,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-07b0bc1b-fd30-49af-a89e-c8e01de5b4fe.png",
+  "source_sha256": "bd7f3259d035df57b6775a3969f488bb0a589e4166c43e74ae175d3a254dcc63",
+  "files": {
+    "toy_poster_spaced_1014_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 43142,
+      "sha256": "2f7dbe7dfdfe02d901c507e0b33ae25185ede1ddb007aec03ef71de1f5a10ab7"
+    },
+    "toy_poster_spaced_1014_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 41509,
+      "sha256": "96612f4e02d0ae1cf2916e9412362bfbc8209ef8708832267df527cb290c48d1"
+    },
+    "toy_poster_spaced_1014_detail.png": {
+      "size": [
+        870,
+        600
+      ],
+      "bytes": 23812,
+      "sha256": "828b585ce90c666064e96c7ffd62a6712cab61abc748dc7d62f39ff03fc34b82"
+    },
+    "toy_poster_spaced_1014_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 28747,
+      "sha256": "4f4e8db7abc6a307ffeec0bf0f1588e81b4634e02f43b0dcd933ade423f3b9d3"
+    }
+  }
+}
