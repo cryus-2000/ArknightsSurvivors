@@ -395,8 +395,11 @@ func _pick_expert(choices: Array, master := false) -> int:
 			"growth":
 				var id: String = c.get("id", "")
 				var early := {"squad_atk": 6.0, "sp": 5.8, "squad_aspd": 5.2, "squad_crit": 4.5, "squad_range": 3.5,
-					"hp": 4.0, "regen": 3.5, "armor": 4.0, "dodge": 3.8, "wick": 3.0, "speed": 3.0, "pickup": 2.5}
+					"hp": 4.0, "regen": 3.5, "armor": 4.0, "dodge": 3.8, "wick": 3.0, "speed": 3.0, "pickup": 2.5,
+					"dash_cd": 3.2, "dash_charge": 3.4, "dash_dist": 2.4}
 				s = float(early.get(id, 3.0))
+				if id.begins_with("dash_") and not master:
+					s -= 1.5   # 冲刺卡（docs/83）：熟练机器人会主动冲刺躲招，高手机器人只在出圈时冲，价值低
 				if hurting and id in ["hp", "regen", "armor", "dodge", "wick"]:
 					s += 2.5
 				if master and g.hp < g.max_hp * 0.4 and id in ["hp", "regen"]:
@@ -427,7 +430,6 @@ func _pick_expert(choices: Array, master := false) -> int:
 # master：熟练真人（2026-09-29，用来校准新难度）
 # =====================================================================
 const M_DIRS := 24
-const DASH_LEN := 126.0          # game.gd：700 × 0.18 秒
 var m_lane := ""                 # 当前认定的藏品流派
 var m_zone_out := -1.0
 var m_bins := PackedInt32Array()
@@ -528,7 +530,7 @@ func _move_master(_dt: float) -> Vector2:
 			m_stat.next += 10.0
 			print("MDBG t=%d lv=%d hp=%d gap=%.2f hunt=%.2f gems_near=%.0f dash=%d near=%d" % [g.t, g.level, g.hp, float(m_stat.gap) / m_stat.frames, float(m_stat.hunt) / m_stat.frames, float(m_stat.gems) / m_stat.frames, m_stat.dash, near.size()])
 			m_stat.frames = 0; m_stat.gap = 0; m_stat.hunt = 0; m_stat.gems = 0; m_stat.dash = 0
-	if g.dash_cd <= 0.0 and g.dash_t <= 0.0:
+	if g.dash_ready() and g.dash_t <= 0.0:
 		var dd := _master_dash_dir(p, best_dir, spd, bullets, near, gap_dir)
 		if dd != Vector2.ZERO:
 			g.autotest_sys.want_dash = true
@@ -651,7 +653,7 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 		m_zone_out = -1.0
 	if not need or dir == Vector2.ZERO:
 		return Vector2.ZERO
-	var land: Vector2 = p + dir.normalized() * DASH_LEN
+	var land: Vector2 = p + dir.normalized() * g.dash_dist()   # 冲刺距离（balance.json dash/dist × 机动卡）
 	for m in g.mires:
 		if g.combat.ground_d(land, m.pos) < float(m.r):
 			return Vector2.ZERO

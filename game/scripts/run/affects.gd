@@ -68,7 +68,7 @@ static func of_choice(g, o: Dictionary) -> Dictionary:
 			var cat: String = g.doctor.PASSIVES.get(o.id, {}).get("cat", "")
 			if o.has("op"):
 				_mark(res, "op:" + str(o.op), false)
-			elif cat == "doctor":
+			elif cat == "doctor" or cat == "mobility":
 				_mark(res, "global" if o.id == "wick" else "leader", false)
 			else:
 				_mark(res, "all", false)

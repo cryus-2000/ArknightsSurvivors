@@ -2635,7 +2635,8 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 			if req.has("class_in_squad"):
 				parts.append("编队中有%s干员" % req.class_in_squad)
 			if req.has("doctor_passive"):
-				parts.append("博士被动「%s」" % preload("res://scripts/characters/doctor.gd").PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name)
+				var DocS = preload("res://scripts/characters/doctor.gd")
+				parts.append("%s卡「%s」" % [DocS.cat_name(req.doctor_passive), DocS.PASSIVES.get(req.doctor_passive, {"name": req.doctor_passive}).name])
 			for rid in req.get("relic", []):
 				parts.append("藏品 #%s" % str(rid))
 			if not parts.is_empty() and y + 18.0 < box.end.y:

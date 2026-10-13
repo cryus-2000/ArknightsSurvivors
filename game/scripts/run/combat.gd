@@ -666,6 +666,13 @@ func regen_time_mult() -> float:
 	return 1.0 + minf(g.t, Bal.v("sustain/regen_knee", 480.0)) / dv
 
 
+## 主控实际每秒回复（生命 / 秒）：game._update 按它回血，属性面板、「自愈」卡预览、招募卡都读它，保证三处一致（docs/83 §2）。
+## add_flat / add_pct：预览「再加一张卡」时额外加进 regen / regen_pct 的量
+func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
+	var mh: float = g.max_hp if max_hp < 0.0 else max_hp
+	return (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
+
+
 ## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
 func hit(src: String, extra_tags: Array = []) -> void:
 	var base: Dictionary = g.hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})

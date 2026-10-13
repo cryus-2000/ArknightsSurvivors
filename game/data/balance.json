@@ -174,7 +174,10 @@
   "recruit_chance": 0.55,
   "force_recruit_level_1": 5,
   "force_recruit_level_3": 9,
-  "second_deep_chance": 0.5
+  "second_deep_chance": 0.5,
+  "_mobility": "docs/83：机动类（轻盈 + 冲刺三张）的种类上限（生存 / 协同仍是 4）；dash_weight = 三张冲刺卡在被动卡里的出现权重（其余被动 1，回复类见 heal_weight），压低是为了不过多稀释原有被动",
+  "mobility_kinds": 3,
+  "dash_weight": 0.7
  },
  "relic": {
   "_doc": "藏品层旋钮（docs/35）：流派加权、守护·续航随时间的权重、藏品直接伤害（按敌人生命的时间倍率缩放）、技力类藏品上限。代码里的缺省值与这里一致",
@@ -234,7 +237,10 @@
    "dodge": 1.5,
    "speed": 1.0,
    "pickup": 1.0,
-   "wick": 0.5
+   "wick": 0.5,
+   "dash_cd": 0.6,
+   "dash_dist": 0.4,
+   "dash_charge": 0.6
   }
  },
  "boss": {
@@ -325,14 +331,24 @@
   "stagger_cd": 5
  },
  "squad": {
-  "_doc": "编队人数加主控最大生命（docs/46 §6，用户定每人 +15%）",
+  "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
   "hp_per_member": 0.15,
-  "hp_member_cap": 3
+  "hp_member_cap": 3,
+  "regen_per_member": 0.9
  },
  "sustain": {
-  "_doc": "主控生命回复随探索时间提高（docs/82，10-13：无医疗编队 6–9 分钟被持续消耗磨死，自身回复整局恒定而敌人攻击随时间涨）：回复倍率 = 1 + min(t, regen_knee) / regen_div，作用于主控 regen 与 regen_pct（含博士「自愈」、藏品），不影响干员治疗。regen_div 0 = 关（恒为 1）。300 / 480：4:00 ×1.8，6:00 ×2.2，8:00 起 ×2.6（10-13 云端 sgv1：无医疗固定队 Ⅷ 30.4% → 51.8%，p<0.001；医疗队 80.4% → 83.9%）",
-  "regen_div": 300,
-  "regen_knee": 480
+  "_doc": "主控生命回复随探索时间提高（docs/82）。10-13 用户改设计：时间成长删掉，改成入队台阶（squad/regen_per_member，docs/83），regen_div 0 = 关（恒为 1）；保留旋钮可回退：300 / 480 = docs/82 定档（8:00 起 ×2.6）",
+  "regen_div": 0,
+  "regen_knee": 480,
+  "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83）",
+  "regen_card": 0.6
+ },
+ "dash": {
+  "_doc": "主控冲刺（game.gd _try_dash，docs/83）：dist 冲刺距离（像素，冲刺时间固定 0.18 秒，速度 = dist / 0.18）；cd 冷却秒数。10-13 用户：默认距离稍微缩短，126 → 107（−15%）。机动卡（doctor.gd PASSIVES cat mobility）在此之上乘：迅捷 冷却 ×0.88 / 级（4 级），远跃 距离 +12% / 级（3 级），连冲 可储存次数 +1（1 级）",
+  "dist": 107,
+  "cd": 1.2,
+  "cd_card": 0.88,
+  "dist_card": 0.12
  },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",

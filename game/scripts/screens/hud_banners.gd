@@ -433,7 +433,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	if g.state != Game.S.PLAY or g.touch.active or g.demo_op != "":
 		return
 	var key: String = Pad.hint("空格", "Ⓑ")
-	var ready: bool = g.dash_cd <= 0.0
+	var ready: bool = g.dash_ready()
 	h.batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
 	if g.doctor.manual_attack:
@@ -450,9 +450,9 @@ func draw_dash_hint(vs: Vector2) -> void:
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
 	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 44), Vector2(w, 28))
 	h._hb.rect(r, Color(0.03, 0.035, 0.045, 0.74))
-	var k: float = 1.0 - g.dash_cd / Game.DASH_CD
+	var k: float = g.dash_frac()
 	UI.keycap(g.hud, g.font, r.position + Vector2(8, 5), cap_s, UI.CYAN if ready else UI.SUB, 11)
-	UI.text(g.hud, g.font, r.position + Vector2(16 + kw, 19), "冲刺", 13, UI.TEXT if ready else UI.SUB)
+	UI.text(g.hud, g.font, r.position + Vector2(16 + kw, 19), "冲刺" if g.dash_max() <= 1 else "冲刺×%d" % g.dash_left(), 13, UI.TEXT if ready else UI.SUB)
 	h._hb.rect(Rect2(r.position + Vector2(0, r.size.y - 2), Vector2(r.size.x * k, 2)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5))
 	h.batch_end()
 	if not g.dash_used and g.t < 25.0:

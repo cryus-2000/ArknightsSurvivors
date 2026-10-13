@@ -117,23 +117,54 @@ func remove(cid: String) -> void:
 		g.rfx.refresh_squad()
 
 
-## 编队人数加主控最大生命（2026-09-27 用户定，数值规格）：每多 1 名干员 ×(1 + per)，最多算 cap 人
-## （per = balance.json squad/hp_per_member，缺省 0 = 关；cap = squad/hp_member_cap，缺省 3）。对 max_hp 加来源 "squad" 的 mult，
-## 叠在成长卡生命之上一起放大；人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
+## 入队加成（docs/83，用户 10-13 定：每入队一名干员，编队生命与自动回复各上一个台阶；招募时写明）。
+## 每多 1 名干员（开局干员不算，最多算 squad/hp_member_cap 人）：
+##   主控最大生命 ×(1 + squad/hp_per_member × 人数)（2026-09-27 用户定每人 +15%），对 max_hp 加来源 "squad" 的 mult，叠在成长卡生命之上一起放大；
+##   主控生命回复 + squad/regen_per_member × 人数（生命 / 秒），对 regen 加来源 "squad" 的 flat，和干员 leader 段 regen、「自愈」同一个池，吃 heal_mult。
+## 人数变化时当前生命按同比例缩放（入队不显示掉血，离队反向）
 func _apply_size_hp() -> void:
 	if g.stats == null or not g.stats.has_stat(&"max_hp"):
 		return
 	var per: float = Bal.v("squad/hp_per_member", 0.0)
-	var cap: int = Bal.vi("squad/hp_member_cap", 3)
+	var rper: float = Bal.v("squad/regen_per_member", 0.0)
 	var old_max: float = g.max_hp
 	g.stats.remove_source("squad")
-	var n: int = mini(maxi(ops.size() - 1, 0), cap)
+	var n: int = member_steps(ops.size())
 	if per != 0.0 and n > 0:
 		g.stats.add(&"max_hp", "mult", 1.0 + per * n, "squad")
+	if rper != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
+		g.stats.add(&"regen", "flat", rper * n, "squad")
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
 		g.max_hp = new_max   # 先同步，game.sync_stats 看到没变化，不会再按差值补一次
+
+
+## 编队 size 人时算几个入队台阶（开局干员不算，封顶 squad/hp_member_cap）
+static func member_steps(size: int) -> int:
+	return mini(maxi(size - 1, 0), Bal.vi("squad/hp_member_cap", 3))
+
+
+## 招募卡上的入队加成说明（数字读 balance.json squad 段；这名干员入队后台阶已封顶 = 空串）
+func join_bonus_text() -> String:
+	if member_steps(ops.size() + 1) <= member_steps(ops.size()):
+		return ""
+	var parts: Array = []
+	var per: float = Bal.v("squad/hp_per_member", 0.0)
+	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	if per > 0.0:
+		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
+	if rper > 0.0:
+		parts.append("生命回复 +%s / 秒" % _num(rper * g.heal_mult))
+	return ("入队：" + "，".join(parts)) if not parts.is_empty() else ""
+
+
+## 0.9 → "0.9"，1.0 → "1"，1.25 → "1.25"（去掉多余的 0）
+static func _num(v: float) -> String:
+	var s := "%.2f" % v
+	while s.ends_with("0"):
+		s = s.substr(0, s.length() - 1)
+	return s.trim_suffix(".")
 
 
 ## 主控的自然回复（每秒回复生命）：JSON leader 段的 regen，没写就沿用博士的基础值（doctor.json 1.0）。
@@ -331,11 +362,19 @@ func draw_leader_mark() -> void:
 	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.9), 2.5)
 	cv.draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 40, Color(1, 1, 1, 0.6), 1.0)
 	# 冲刺冷却：外圈一道白弧随冷却走满，满了整圈亮一下
-	var dk: float = 1.0 - g.dash_cd / g.DASH_CD
+	var dk: float = g.dash_frac()
 	if dk < 1.0:
 		cv.draw_arc(Vector2.ZERO, 30.0, -PI / 2.0, -PI / 2.0 + TAU * dk, 32, Color(1, 1, 1, 0.35), 1.5)
 	else:
 		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1, 1, 1, 0.18), 1.0)
+	# 连冲（可储存 2 次以上）：外圈右侧一排小点 = 现在能冲几次
+	var dm: int = g.dash_max()
+	if dm > 1:
+		var dl: int = g.dash_left()
+		for di in dm:
+			var dp := Vector2(36.0 + 6.0 * di, 0.0)
+			cv.draw_circle(dp, 2.2, dark)
+			cv.draw_circle(dp, 1.5, Color(1, 1, 1, 0.85 if di < dl else 0.2))
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var fc: float = g.facing
 	var tip: Vector2 = o.pos + Vector2(30.0 * fc, 4)
