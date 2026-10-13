@@ -1,5 +1,7 @@
 # 64 · 美术验收：第三批干员帧条 squad_batch5（2026-10-11）
 
+> **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
+
 > 对象：`codex/art` 的 b2405f0b..e7f35ad7（参考审批记录 + 浊心斯卡蒂、德克萨斯、星熊、能天使、安洁莉娜 20 条帧条，各带 @2x，另有逐人 manifest / handoff / QA、整批 manifest / preview / QA、`squad_overview.png`、`squad_sources.md`）。对照 docs/63（本批工单）、docs/24 §1 §6、`squad_batch5_reference_feedback.md` / `reference_approval.json`。
 > 方法：`--no-ff` 合入一条以 main 为底的工作树分支；用自己的脚本逐条重量（不读 Codex 的 QA json）；做总览图逐帧看；量出手帧上的发射点。没有改 codex/art，没有接进游戏。
 > 结论：**建议合入**。量化项全部达标，五人在 48px 下同框可辨；剩下的是动作细节，三条请 Codex 下一轮返修（§4），都不挡合入，也不挡接入（接入时按 §5 的发射点写，返修后重量）。

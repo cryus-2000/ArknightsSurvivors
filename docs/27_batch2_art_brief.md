@@ -1,5 +1,7 @@
 # 27 · 第二批干员美术指令（给 Codex）
 
+> **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
+
 > **状态：可以开工。** 第二批五人的技能已全部定稿（docs/26，2026-09-25 用户确认）。
 > 五人原皮立绘与武器参考已由用户确认（2026-09-25），见 art/incoming/squad_batch4_reference_feedback.md 与 squad_batch4_reference_approval.json；本文 §1 已按该反馈修正装备描述。
 >

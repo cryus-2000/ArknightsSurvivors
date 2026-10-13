@@ -1,5 +1,7 @@
 # 73 · Codex 返修单：第三批五人待机动画（2026-10-12）
 
+> **2026-10-13 起人物帧条（干员 / 博士 / 敌人）的统一规格见 [docs/87_art_spec.md](87_art_spec.md)，机检 `python tools/art_lint.py`；本文与 docs/87 冲突处以 docs/87 为准。**
+
 > 用户 10-12：「现在新一批干员的待机动画好像和之前的不一样」。
 > 对象：`op_{texas,hoshiguma,exusiai,angelina,skalter}_idle.png` / `@2x`（当前 main，德克萨斯、星熊为 docs/69 新配色版）。只改 `_idle`，配色以当前 main 为准。
 

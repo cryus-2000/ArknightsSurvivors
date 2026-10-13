@@ -5,7 +5,7 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions，或单项回归名）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions / art_lint，或单项回归名）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
@@ -20,6 +20,7 @@
 （高手 / 普通机器人，跑过第一个商人）。看的是「有没有报错、能不能跑完」，不看数值。
 主控保护：Boss 来源的扣血截断（单发 / 2 秒合计 / 满血保护 / 持续伤害上限，docs/38 §1.11）的脚本测试。
 复现：同一组参数跑两次，BALANCE 结果必须逐字段相同（docs/36 §3）。
+美术帧条：tools/art_lint.py 按 docs/87 查 art/incoming 的干员帧条，未豁免的 FAIL 算失败（豁免表在 art_lint.WAIVERS）。
 """
 import argparse, datetime, glob, json, os, re, shutil, statistics, subprocess, sys, tempfile, time
 from concurrent.futures import ThreadPoolExecutor
@@ -136,6 +137,20 @@ def check_static():
         except (OSError, json.JSONDecodeError) as e:
             bad.append("%s：%s" % (os.path.relpath(p, ROOT), str(e)[:120]))
     return {"name": "数据 JSON 解析", "ok": not bad, "detail": "game/data 全部可解析" if not bad else "%d 个文件解析失败" % len(bad), "errors": bad[:5]}
+
+
+def check_art_lint():
+    """不开 Godot：tools/art_lint.py 查 art/incoming 的干员帧条（docs/87）。只有未豁免的 FAIL 算失败；
+    豁免表 art_lint.WAIVERS（已开返修单未交付的项，交付合入后删条目）；WARN 不算失败"""
+    import art_lint
+    ids, res = art_lint.run(images=False, quiet=True)
+    by, fails, waived, warns, stale = art_lint.summarize(ids, res)
+    name = lambda r: "%s · %s" % (art_lint.NAMES.get(r["op"], r["op"]), art_lint.CN[r["check"]])
+    detail = "%d 人：未豁免 FAIL %d、已豁免 %d、WARN %d" % (len(ids), len(fails), len(waived), len(warns))
+    if stale:
+        detail += "；豁免可删：" + "、".join(name(r) for r in stale)
+    errs = ["%s：%s" % (name(r), r["detail"]) for r in fails]
+    return {"name": "美术帧条 art_lint", "ok": not fails, "detail": detail + "（明细 python tools/art_lint.py）", "errors": errs[:8]}
 
 
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
@@ -531,7 +546,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--auto", action="store_true",
@@ -550,6 +565,8 @@ def main():
     load0 = GR.count_godot()
     print("快检：本次最多 %d 个 Godot 并行（全机上限 %d，开始时全机已有 %d 个）；日志 %s" % (JOBS, GR.MAX_PROCS, load0, LOG_DIR), flush=True)
     jobs = [check_static]
+    if a.only in (None, "art_lint"):
+        jobs.append(check_art_lint)   # 不开 Godot，约 10 秒；--auto 也跑（只改美术时这是唯一相关项）
     if a.auto and not a.only:
         level, ops, why = plan_auto()
         print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
