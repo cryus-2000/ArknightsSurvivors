@@ -126,14 +126,14 @@ func _apply_size_hp() -> void:
 	if g.stats == null or not g.stats.has_stat(&"max_hp"):
 		return
 	var per: float = Bal.v("squad/hp_per_member", 0.0)
-	var rper: float = Bal.v("squad/regen_per_member", 0.0)
 	var old_max: float = g.max_hp
 	g.stats.remove_source("squad")
 	var n: int = member_steps(ops.size())
 	if per != 0.0 and n > 0:
 		g.stats.add(&"max_hp", "mult", 1.0 + per * n, "squad")
-	if rper != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
-		g.stats.add(&"regen", "flat", rper * n, "squad")
+	var rb: float = regen_bonus(n)
+	if rb != 0.0 and n > 0 and g.stats.has_stat(&"regen"):
+		g.stats.add(&"regen", "flat", rb, "squad")
 	var new_max: float = maxf(20.0, g.stats.value(&"max_hp"))
 	if old_max > 0.0 and new_max != old_max and g.hp > 0.0:
 		g.hp = clampf(g.hp * new_max / old_max, 1.0, new_max)
@@ -145,6 +145,34 @@ static func member_steps(size: int) -> int:
 	return mini(maxi(size - 1, 0), Bal.vi("squad/hp_member_cap", 3))
 
 
+## 前 steps 个入队台阶合计加多少生命回复（生命 / 秒，未乘 heal_mult）。分档旋钮（协调人 10-13，云端测前期回复用）：
+## 第 1 / 第 2 名队友各加 squad/regen_t1 / regen_t2，< 0（缺省 -1）= 沿用 regen_per_member；第 3 名起（编队上限 +1 的藏品）一律 regen_per_member。
+## 两档都没设时仍按原式 regen_per_member × 台阶数算（缺省结果逐位不变）
+static func regen_bonus(steps: int) -> float:
+	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	var t1: float = Bal.v("squad/regen_t1", -1.0)
+	var t2: float = Bal.v("squad/regen_t2", -1.0)
+	if t1 < 0.0 and t2 < 0.0:
+		return rper * steps
+	var tot := 0.0
+	for k in steps:
+		var tk: float = [t1, t2][k] if k < 2 else -1.0
+		tot += tk if tk >= 0.0 else rper
+	return tot
+
+
+## 第 k 名队友（k 从 1 起）入队时这一档加的生命回复
+static func regen_step(k: int) -> float:
+	return regen_bonus(k) - regen_bonus(k - 1)
+
+
+## 指南里「生命回复 +{regen_per_member} / 秒」的数：两档相同写一个数（缺省 0.9）；分档时写「0.5 / 1.3」（第 1 / 第 2 名）
+static func regen_steps_text() -> String:
+	var a: float = regen_step(1)
+	var b: float = regen_step(2)
+	return _num(a) if is_equal_approx(a, b) else "%s / %s" % [_num(a), _num(b)]
+
+
 ## 入队加成说明（数字读 balance.json squad 段；这名干员入队后台阶已封顶 = 空串）。
 ## 用户 10-13：不再写在每张招募卡上，改在招募三选一 / 混有招募卡的升级三选一的标题说明行写一次（choice_panel.show_choices）
 func join_bonus_text() -> String:
@@ -152,7 +180,7 @@ func join_bonus_text() -> String:
 		return ""
 	var parts: Array = []
 	var per: float = Bal.v("squad/hp_per_member", 0.0)
-	var rper: float = Bal.v("squad/regen_per_member", 0.0)
+	var rper: float = regen_step(member_steps(ops.size() + 1))
 	if per > 0.0:
 		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
 	if rper > 0.0:
@@ -175,7 +203,8 @@ func _apply_leader_regen(op) -> void:
 	if g.stats == null or not g.stats.has_stat(&"regen") or Cfg.dev_args().has("--noleader"):
 		return
 	var base: float = float(g.doctor.def.get("stats", {}).get("regen", 1.0)) if g.get("doctor") != null else 1.0
-	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)))
+	# sustain/base_regen_mult（缺省 1）：只缩放队长自带的基础回复，入队台阶、「自愈」、藏品不受影响（协调人 10-13 云端测试用旋钮）
+	g.stats.set_base(&"regen", float(op.def.get("leader", {}).get("regen", base)) * Bal.v("sustain/base_regen_mult", 1.0))
 	g.sync_stats()
 
 

@@ -2088,6 +2088,17 @@ func test_squad_sustain_dash() -> void:
 	var rper: float = Bal.v("squad/regen_per_member", 0.0)
 	ok(rper > 0.0, "squad/regen_per_member 已设（%.2f）" % rper)
 	ok(game.combat.regen_time_mult() == 1.0, "回复的时间成长已关（sustain/regen_div 0）")
+	# 分档旋钮（squad/regen_t1 / regen_t2，缺省 -1 = 沿用 regen_per_member）：缺省逐位等于原式；设了按档累加，第 3 名起回到 regen_per_member
+	ok(sq.regen_bonus(2) == rper * 2 and sq.regen_steps_text() == sq._num(rper), "分档缺省：台阶 = regen_per_member × 人数（%s）" % sq.regen_steps_text())
+	var sq_sec: Dictionary = Bal._data.get("squad", {})
+	var t_old := [sq_sec.get("regen_t1", -1.0), sq_sec.get("regen_t2", -1.0)]
+	sq_sec["regen_t1"] = 0.5
+	sq_sec["regen_t2"] = 1.3
+	ok(absf(sq.regen_bonus(1) - 0.5) < 1e-6 and absf(sq.regen_bonus(2) - 1.8) < 1e-6 and absf(sq.regen_bonus(3) - 1.8 - rper) < 1e-6,
+		"分档 0.5 / 1.3：台阶合计 %.2f / %.2f / %.2f" % [sq.regen_bonus(1), sq.regen_bonus(2), sq.regen_bonus(3)])
+	ok(sq.regen_steps_text() == "0.5 / 1.3", "分档时指南写「%s」" % sq.regen_steps_text())
+	sq_sec["regen_t1"] = t_old[0]
+	sq_sec["regen_t2"] = t_old[1]
 	var added: Array = []
 	for cid in ["skadi", "kaltsit", "lumen", "eyjafjalla"]:
 		if sq.is_full() or sq.has(cid):
@@ -2100,11 +2111,11 @@ func test_squad_sustain_dash() -> void:
 		added.append(cid)
 		game.sync_stats()
 		var steps1: int = sq.member_steps(sq.size())
-		var want: float = float(steps1 - steps0) * rper * game.heal_mult
+		var want: float = (sq.regen_bonus(steps1) - sq.regen_bonus(steps0)) * game.heal_mult
 		ok(absf(game.combat.regen_per_sec() - r0 - want) < 0.001, "%s 入队：回复 %.2f → %.2f / 秒（应 +%.2f）" % [cid, r0, game.combat.regen_per_sec(), want])
 		ok((bonus != "") == (steps1 > steps0), "招募界面的入队加成说明「%s」与是否加台阶一致" % bonus)
 		if steps1 > steps0:
-			ok(bonus.contains(sq._num(rper * game.heal_mult)), "招募界面写的回复数 = 实际（%s）" % bonus)
+			ok(bonus.contains(sq._num(sq.regen_step(steps1) * game.heal_mult)), "招募界面写的回复数 = 实际（%s）" % bonus)
 			# 用户 10-13：招募卡说明里不再逐张写入队加成；三选一标题说明行写一次，数字与实际一致
 			var rc: Array = game.progression.recruit_cards()
 			ok(rc.all(func(o): return not str(o.desc).contains("入队加成")), "招募卡说明里不再写入队加成")

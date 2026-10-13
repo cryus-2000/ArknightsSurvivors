@@ -18,7 +18,7 @@ func _init(game: Game) -> void:
 ## 生命回复一行：实际每秒回复（combat.regen_per_sec，与回血逻辑同一个式子）；有入队加成时括号里写出其中多少来自入队（docs/83）
 func regen_text() -> String:
 	var Sq = preload("res://scripts/characters/squad.gd")
-	var sq: float = Sq.member_steps(g.squad.size()) * g.Bal.v("squad/regen_per_member", 0.0) * g.heal_mult * g.combat.regen_time_mult()
+	var sq: float = Sq.regen_bonus(Sq.member_steps(g.squad.size())) * g.heal_mult * g.combat.regen_time_mult()
 	var s := "%.1f / 秒" % g.combat.regen_per_sec()
 	return s + ("（入队 +%.1f）" % sq if sq > 0.0 else "")
 
