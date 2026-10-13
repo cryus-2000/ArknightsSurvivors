@@ -11,7 +11,7 @@ manifest 记录尺寸、锚点、FPS、分段 clips、循环方式和 SHA256。�
 | 文件主名 | 单帧 @1x | 帧数 | 播放 |
 |---|---|---|---|
 | fx_mizuki_jelly | 12×16 | 4 | 6fps 循环 |
-| fx_wisadel_soul | 20×28 | 6 | 0–3 悬浮 8fps 循环；4–5 俯冲 12fps 单次，不能整条循环 |
+| fx_wisadel_soul | 20×28 | 6 | 0–3 贴地脉动 8fps 循环；4–5 前倾攻击 12fps 单次，不能整条循环 |
 | fx_wisadel_mark | 8×12 | 2 | 4fps 循环 |
 | fx_suzuran_wisp | 8×12 | 4 | 8fps 循环 |
 | proj_suzuran_bigfox | 24×16 | 4 | 10fps 循环，朝右 |
@@ -29,3 +29,6 @@ manifest 记录尺寸、锚点、FPS、分段 clips、循环方式和 SHA256。�
 使用内置 imagegen 按设定生成原创特效母图，再机械裁切、独立双密度最近邻采样、限定调色板、添加描边。提示词、来源哈希、源切帧坐标见 manifest；完整源任务见 growth_fx_generation.json。九尾返修过尾数及背景；以最终九尾 PNG 为准。
 
 verify-sprites.ps1：22 strips / 94 frames 通过尺寸、透明、描边、边界、色数、帧差异和哈希检查。效果图采用 SkipBaseline（浮空/特效不要求站地）。已检查所有母图及导出总览，单项放大预览一起交付。尚未接入或运行 Godot；请 Claude cherry-pick 后按「有图画图、缺图退回程序版」接入，并以静音实战连拍核对实际大小、透明度与动画时长。
+
+## 10-13 魂灵形象覆盖
+fx_wisadel_soul / mark 已按用户原作截图重画，详见 elite_art_4_manifest.json。旧幽灵源图与旧prompt作废。保持20×28/8×12及既有中心锚点兼容；贴地基座需程序取消旧悬浮/俯冲表现。代码未在本美术提交修改。
