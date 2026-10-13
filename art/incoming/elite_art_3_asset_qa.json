@@ -1,0 +1,1505 @@
+{
+  "ok": true,
+  "checks": {
+    "op_specter_unchained_doll_spin.png": {
+      "size": [
+        288,
+        48
+      ],
+      "colors": 30,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          13,
+          15,
+          36,
+          47
+        ],
+        [
+          12,
+          18,
+          35,
+          46
+        ],
+        [
+          7,
+          13,
+          40,
+          46
+        ],
+        [
+          8,
+          13,
+          39,
+          46
+        ],
+        [
+          12,
+          16,
+          35,
+          46
+        ],
+        [
+          13,
+          15,
+          36,
+          47
+        ]
+      ]
+    },
+    "op_specter_unchained_doll_spin@2x.png": {
+      "size": [
+        576,
+        96
+      ],
+      "colors": 32,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          26,
+          28,
+          71,
+          93
+        ],
+        [
+          25,
+          37,
+          71,
+          92
+        ],
+        [
+          14,
+          27,
+          81,
+          92
+        ],
+        [
+          17,
+          27,
+          78,
+          92
+        ],
+        [
+          25,
+          32,
+          71,
+          92
+        ],
+        [
+          26,
+          28,
+          71,
+          93
+        ]
+      ]
+    },
+    "op_irene_finisher.png": {
+      "size": [
+        336,
+        48
+      ],
+      "colors": 44,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          12,
+          16,
+          35,
+          47
+        ],
+        [
+          10,
+          11,
+          37,
+          46
+        ],
+        [
+          3,
+          16,
+          44,
+          46
+        ],
+        [
+          10,
+          14,
+          38,
+          46
+        ],
+        [
+          10,
+          14,
+          37,
+          46
+        ],
+        [
+          5,
+          15,
+          43,
+          46
+        ],
+        [
+          12,
+          16,
+          35,
+          47
+        ]
+      ]
+    },
+    "op_irene_finisher@2x.png": {
+      "size": [
+        672,
+        96
+      ],
+      "colors": 45,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          23,
+          30,
+          70,
+          93
+        ],
+        [
+          21,
+          22,
+          74,
+          92
+        ],
+        [
+          7,
+          33,
+          89,
+          92
+        ],
+        [
+          20,
+          29,
+          76,
+          92
+        ],
+        [
+          21,
+          29,
+          74,
+          92
+        ],
+        [
+          10,
+          31,
+          86,
+          92
+        ],
+        [
+          23,
+          30,
+          70,
+          93
+        ]
+      ]
+    },
+    "fx_specter_saw_cold_back.png": {
+      "size": [
+        408,
+        37
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          18,
+          9,
+          50,
+          19
+        ],
+        [
+          8,
+          5,
+          59,
+          19
+        ],
+        [
+          2,
+          2,
+          65,
+          19
+        ],
+        [
+          4,
+          2,
+          66,
+          19
+        ],
+        [
+          7,
+          3,
+          59,
+          19
+        ],
+        [
+          14,
+          7,
+          50,
+          19
+        ]
+      ]
+    },
+    "fx_specter_saw_cold_back@2x.png": {
+      "size": [
+        816,
+        74
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          36,
+          18,
+          100,
+          38
+        ],
+        [
+          16,
+          10,
+          118,
+          38
+        ],
+        [
+          4,
+          4,
+          130,
+          38
+        ],
+        [
+          8,
+          4,
+          132,
+          38
+        ],
+        [
+          14,
+          6,
+          118,
+          38
+        ],
+        [
+          28,
+          14,
+          100,
+          38
+        ]
+      ]
+    },
+    "fx_specter_saw_cold_front.png": {
+      "size": [
+        408,
+        37
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          19,
+          19,
+          50,
+          28
+        ],
+        [
+          9,
+          19,
+          59,
+          32
+        ],
+        [
+          3,
+          19,
+          65,
+          35
+        ],
+        [
+          2,
+          19,
+          65,
+          34
+        ],
+        [
+          8,
+          19,
+          61,
+          34
+        ],
+        [
+          14,
+          19,
+          45,
+          32
+        ]
+      ]
+    },
+    "fx_specter_saw_cold_front@2x.png": {
+      "size": [
+        816,
+        74
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          38,
+          38,
+          100,
+          56
+        ],
+        [
+          18,
+          38,
+          118,
+          64
+        ],
+        [
+          6,
+          38,
+          130,
+          70
+        ],
+        [
+          4,
+          38,
+          130,
+          68
+        ],
+        [
+          16,
+          38,
+          122,
+          68
+        ],
+        [
+          28,
+          38,
+          90,
+          64
+        ]
+      ]
+    },
+    "fx_specter_doll_appear.png": {
+      "size": [
+        160,
+        32
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          19,
+          31,
+          32
+        ],
+        [
+          1,
+          19,
+          31,
+          32
+        ],
+        [
+          1,
+          16,
+          31,
+          32
+        ],
+        [
+          1,
+          9,
+          31,
+          32
+        ],
+        [
+          6,
+          2,
+          26,
+          30
+        ]
+      ]
+    },
+    "fx_specter_doll_appear@2x.png": {
+      "size": [
+        320,
+        64
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          38,
+          62,
+          64
+        ],
+        [
+          2,
+          38,
+          62,
+          64
+        ],
+        [
+          2,
+          32,
+          62,
+          64
+        ],
+        [
+          2,
+          18,
+          62,
+          64
+        ],
+        [
+          12,
+          4,
+          52,
+          60
+        ]
+      ]
+    },
+    "fx_specter_doll_burst.png": {
+      "size": [
+        192,
+        32
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          6,
+          2,
+          26,
+          30
+        ],
+        [
+          1,
+          2,
+          31,
+          30
+        ],
+        [
+          1,
+          1,
+          31,
+          29
+        ],
+        [
+          1,
+          1,
+          31,
+          29
+        ],
+        [
+          1,
+          0,
+          31,
+          27
+        ],
+        [
+          1,
+          9,
+          31,
+          22
+        ]
+      ]
+    },
+    "fx_specter_doll_burst@2x.png": {
+      "size": [
+        384,
+        64
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          12,
+          4,
+          52,
+          60
+        ],
+        [
+          2,
+          4,
+          62,
+          60
+        ],
+        [
+          2,
+          2,
+          62,
+          58
+        ],
+        [
+          2,
+          2,
+          62,
+          58
+        ],
+        [
+          2,
+          0,
+          62,
+          54
+        ],
+        [
+          2,
+          18,
+          62,
+          44
+        ]
+      ]
+    },
+    "fx_mizuki_jelly_dart.png": {
+      "size": [
+        120,
+        12
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          2,
+          19,
+          9
+        ],
+        [
+          1,
+          2,
+          19,
+          9
+        ],
+        [
+          1,
+          2,
+          19,
+          9
+        ],
+        [
+          1,
+          2,
+          19,
+          9
+        ],
+        [
+          1,
+          2,
+          19,
+          9
+        ],
+        [
+          1,
+          2,
+          19,
+          9
+        ]
+      ]
+    },
+    "fx_mizuki_jelly_dart@2x.png": {
+      "size": [
+        240,
+        24
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          4,
+          38,
+          18
+        ],
+        [
+          2,
+          4,
+          38,
+          18
+        ],
+        [
+          2,
+          4,
+          38,
+          18
+        ],
+        [
+          2,
+          4,
+          38,
+          18
+        ],
+        [
+          2,
+          4,
+          38,
+          18
+        ],
+        [
+          2,
+          4,
+          38,
+          18
+        ]
+      ]
+    },
+    "fx_mizuki_jelly_sting.png": {
+      "size": [
+        120,
+        24
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          7,
+          8,
+          16,
+          15
+        ],
+        [
+          4,
+          6,
+          19,
+          18
+        ],
+        [
+          1,
+          3,
+          23,
+          20
+        ],
+        [
+          1,
+          3,
+          22,
+          20
+        ],
+        [
+          1,
+          3,
+          20,
+          20
+        ]
+      ]
+    },
+    "fx_mizuki_jelly_sting@2x.png": {
+      "size": [
+        240,
+        48
+      ],
+      "colors": 6,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          14,
+          16,
+          32,
+          30
+        ],
+        [
+          8,
+          12,
+          38,
+          36
+        ],
+        [
+          2,
+          6,
+          46,
+          40
+        ],
+        [
+          2,
+          6,
+          44,
+          40
+        ],
+        [
+          2,
+          6,
+          40,
+          40
+        ]
+      ]
+    },
+    "fx_mizuki_bind_ring.png": {
+      "size": [
+        144,
+        12
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          23,
+          11
+        ],
+        [
+          1,
+          1,
+          23,
+          11
+        ],
+        [
+          1,
+          1,
+          23,
+          10
+        ],
+        [
+          1,
+          1,
+          23,
+          10
+        ],
+        [
+          1,
+          1,
+          23,
+          10
+        ],
+        [
+          1,
+          1,
+          23,
+          11
+        ]
+      ]
+    },
+    "fx_mizuki_bind_ring@2x.png": {
+      "size": [
+        288,
+        24
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          46,
+          22
+        ],
+        [
+          2,
+          2,
+          46,
+          22
+        ],
+        [
+          2,
+          2,
+          46,
+          20
+        ],
+        [
+          2,
+          2,
+          46,
+          20
+        ],
+        [
+          2,
+          2,
+          46,
+          20
+        ],
+        [
+          2,
+          2,
+          46,
+          22
+        ]
+      ]
+    },
+    "fx_irene_crescent_wide.png": {
+      "size": [
+        400,
+        56
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          32,
+          17,
+          48,
+          39
+        ],
+        [
+          26,
+          9,
+          54,
+          47
+        ],
+        [
+          20,
+          1,
+          60,
+          55
+        ],
+        [
+          20,
+          1,
+          60,
+          55
+        ],
+        [
+          22,
+          1,
+          59,
+          54
+        ]
+      ]
+    },
+    "fx_irene_crescent_wide@2x.png": {
+      "size": [
+        800,
+        112
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          64,
+          34,
+          96,
+          78
+        ],
+        [
+          52,
+          18,
+          108,
+          94
+        ],
+        [
+          40,
+          2,
+          120,
+          110
+        ],
+        [
+          40,
+          2,
+          120,
+          110
+        ],
+        [
+          44,
+          2,
+          118,
+          108
+        ]
+      ]
+    },
+    "fx_irene_gun_burst.png": {
+      "size": [
+        60,
+        12
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          8,
+          4,
+          11,
+          8
+        ],
+        [
+          10,
+          1,
+          14,
+          10
+        ],
+        [
+          10,
+          3,
+          13,
+          8
+        ]
+      ]
+    },
+    "fx_irene_gun_burst@2x.png": {
+      "size": [
+        120,
+        24
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          16,
+          8,
+          22,
+          16
+        ],
+        [
+          20,
+          2,
+          28,
+          20
+        ],
+        [
+          20,
+          6,
+          26,
+          16
+        ]
+      ]
+    },
+    "fx_lumen_beam.png": {
+      "size": [
+        128,
+        10
+      ],
+      "colors": 4,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          0,
+          1,
+          32,
+          9
+        ],
+        [
+          0,
+          2,
+          32,
+          8
+        ],
+        [
+          0,
+          3,
+          32,
+          7
+        ],
+        [
+          0,
+          4,
+          32,
+          6
+        ]
+      ]
+    },
+    "fx_lumen_beam@2x.png": {
+      "size": [
+        256,
+        20
+      ],
+      "colors": 4,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          0,
+          2,
+          64,
+          18
+        ],
+        [
+          0,
+          4,
+          64,
+          16
+        ],
+        [
+          0,
+          6,
+          64,
+          14
+        ],
+        [
+          0,
+          8,
+          64,
+          12
+        ]
+      ]
+    },
+    "fx_lumen_beam_flare.png": {
+      "size": [
+        160,
+        32
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          11,
+          11,
+          21,
+          21
+        ],
+        [
+          7,
+          7,
+          25,
+          25
+        ],
+        [
+          1,
+          3,
+          31,
+          29
+        ],
+        [
+          1,
+          3,
+          31,
+          28
+        ],
+        [
+          1,
+          3,
+          30,
+          28
+        ]
+      ]
+    },
+    "fx_lumen_beam_flare@2x.png": {
+      "size": [
+        320,
+        64
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          22,
+          22,
+          42,
+          42
+        ],
+        [
+          14,
+          14,
+          50,
+          50
+        ],
+        [
+          2,
+          6,
+          62,
+          58
+        ],
+        [
+          2,
+          6,
+          62,
+          56
+        ],
+        [
+          2,
+          6,
+          60,
+          56
+        ]
+      ]
+    },
+    "fx_lumen_beam_hit.png": {
+      "size": [
+        96,
+        24
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          7,
+          7,
+          16,
+          16
+        ],
+        [
+          3,
+          3,
+          21,
+          21
+        ],
+        [
+          1,
+          1,
+          23,
+          23
+        ],
+        [
+          3,
+          3,
+          22,
+          22
+        ]
+      ]
+    },
+    "fx_lumen_beam_hit@2x.png": {
+      "size": [
+        192,
+        48
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          14,
+          14,
+          32,
+          32
+        ],
+        [
+          6,
+          6,
+          42,
+          42
+        ],
+        [
+          2,
+          2,
+          46,
+          46
+        ],
+        [
+          6,
+          6,
+          44,
+          44
+        ]
+      ]
+    },
+    "fx_specter_inward_ripple.png": {
+      "size": [
+        576,
+        48
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          1,
+          1,
+          95,
+          47
+        ],
+        [
+          7,
+          3,
+          90,
+          44
+        ],
+        [
+          11,
+          6,
+          84,
+          42
+        ],
+        [
+          16,
+          8,
+          79,
+          39
+        ],
+        [
+          21,
+          11,
+          74,
+          36
+        ],
+        [
+          28,
+          13,
+          69,
+          34
+        ]
+      ]
+    },
+    "fx_specter_inward_ripple@2x.png": {
+      "size": [
+        1152,
+        96
+      ],
+      "colors": 9,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          2,
+          190,
+          94
+        ],
+        [
+          14,
+          6,
+          180,
+          88
+        ],
+        [
+          22,
+          12,
+          168,
+          84
+        ],
+        [
+          32,
+          16,
+          158,
+          78
+        ],
+        [
+          42,
+          22,
+          148,
+          72
+        ],
+        [
+          56,
+          26,
+          138,
+          68
+        ]
+      ]
+    },
+    "fx_mizuki_tentacle_curl.png": {
+      "size": [
+        64,
+        16
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          2,
+          4,
+          15,
+          12
+        ],
+        [
+          3,
+          4,
+          13,
+          11
+        ],
+        [
+          9,
+          5,
+          12,
+          6
+        ],
+        [
+          9,
+          6,
+          11,
+          8
+        ]
+      ]
+    },
+    "fx_mizuki_tentacle_curl@2x.png": {
+      "size": [
+        128,
+        32
+      ],
+      "colors": 5,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          4,
+          8,
+          30,
+          24
+        ],
+        [
+          6,
+          8,
+          26,
+          22
+        ],
+        [
+          18,
+          10,
+          24,
+          12
+        ],
+        [
+          18,
+          12,
+          22,
+          16
+        ]
+      ]
+    },
+    "fx_irene_lift_arc.png": {
+      "size": [
+        96,
+        24
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          10,
+          7,
+          15,
+          16
+        ],
+        [
+          5,
+          3,
+          18,
+          21
+        ],
+        [
+          4,
+          1,
+          20,
+          23
+        ],
+        [
+          6,
+          3,
+          19,
+          22
+        ]
+      ]
+    },
+    "fx_irene_lift_arc@2x.png": {
+      "size": [
+        192,
+        48
+      ],
+      "colors": 2,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          20,
+          14,
+          30,
+          32
+        ],
+        [
+          10,
+          6,
+          36,
+          42
+        ],
+        [
+          8,
+          2,
+          40,
+          46
+        ],
+        [
+          12,
+          6,
+          38,
+          44
+        ]
+      ]
+    },
+    "fx_lumen_refract_hit.png": {
+      "size": [
+        64,
+        16
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          5,
+          7,
+          11,
+          9
+        ],
+        [
+          3,
+          4,
+          12,
+          12
+        ],
+        [
+          2,
+          3,
+          13,
+          14
+        ],
+        [
+          7,
+          8,
+          8,
+          9
+        ]
+      ]
+    },
+    "fx_lumen_refract_hit@2x.png": {
+      "size": [
+        128,
+        32
+      ],
+      "colors": 1,
+      "binary_alpha": true,
+      "nonempty_frames": true,
+      "frame_bboxes": [
+        [
+          10,
+          14,
+          22,
+          18
+        ],
+        [
+          6,
+          8,
+          24,
+          24
+        ],
+        [
+          4,
+          6,
+          26,
+          28
+        ],
+        [
+          14,
+          16,
+          16,
+          18
+        ]
+      ]
+    }
+  }
+}

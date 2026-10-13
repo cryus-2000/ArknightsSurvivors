@@ -1,0 +1,1416 @@
+{
+  "batch": 3,
+  "assets": [
+    {
+      "file": "op_specter_unchained_doll_spin.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        24,
+        46
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 30,
+      "density": 1,
+      "fire": 2,
+      "sha256": "736b4a1826b8f375b8c6bc894717c14bf4f05c008ee2357467a636dafa8d950f",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "color_reference": "matching original idle / doll palette",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#081028",
+        "#181820",
+        "#181828",
+        "#202050",
+        "#282028",
+        "#304048",
+        "#403040",
+        "#404050",
+        "#484850",
+        "#504840",
+        "#506068",
+        "#685048",
+        "#686060",
+        "#808088",
+        "#887078",
+        "#909090",
+        "#a08080",
+        "#a89898",
+        "#b0a098",
+        "#b0b0b0",
+        "#b8b0b0",
+        "#c8b8b0",
+        "#d8d0c0",
+        "#e0e0d8",
+        "#e8d8d0",
+        "#f0e8e8",
+        "#f0f8f0",
+        "#f8f0e0"
+      ]
+    },
+    {
+      "file": "op_specter_unchained_doll_spin@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 6,
+      "fps": 16,
+      "origin": [
+        48,
+        92
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 32,
+      "density": 2,
+      "fire": 2,
+      "sha256": "ebc1941c933b0ace5096d81a2d56142ad76860c1402aea3ddf084dc9d11c06c8",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "color_reference": "matching original idle / doll palette",
+      "palette": [
+        "#000000",
+        "#080e18",
+        "#081028",
+        "#181820",
+        "#181828",
+        "#202050",
+        "#282028",
+        "#304048",
+        "#403040",
+        "#404050",
+        "#484850",
+        "#504840",
+        "#506068",
+        "#685048",
+        "#686060",
+        "#808088",
+        "#887078",
+        "#909090",
+        "#982038",
+        "#a08080",
+        "#a89898",
+        "#b0a098",
+        "#b0b0b0",
+        "#b8b0b0",
+        "#c8b8b0",
+        "#c8d0d0",
+        "#d8d0c0",
+        "#e0e0d8",
+        "#e8d8d0",
+        "#f0e8e8",
+        "#f0f8f0",
+        "#f8f0e0"
+      ]
+    },
+    {
+      "file": "op_irene_finisher.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 7,
+      "fps": 14,
+      "origin": [
+        24,
+        46
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 44,
+      "density": 1,
+      "fire": 2,
+      "sha256": "3dc43bfff27f5cd54a75b12cc8e9246bd6d4f872a2b2a3b66757a5ffdfd609a3",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "gun_fire_frame": 5,
+      "color_reference": "matching original idle / doll palette",
+      "palette": [
+        "#000000",
+        "#080810",
+        "#080e18",
+        "#181018",
+        "#281818",
+        "#282820",
+        "#301010",
+        "#302840",
+        "#304040",
+        "#482828",
+        "#484048",
+        "#502840",
+        "#505050",
+        "#583810",
+        "#584840",
+        "#685860",
+        "#705840",
+        "#787068",
+        "#807878",
+        "#907860",
+        "#908080",
+        "#989080",
+        "#a06038",
+        "#a09090",
+        "#b07850",
+        "#b08080",
+        "#b0a8a0",
+        "#b82858",
+        "#b89858",
+        "#c09880",
+        "#c0a090",
+        "#c8b0a0",
+        "#c8b0b0",
+        "#c8c0b8",
+        "#d8c8b0",
+        "#d8c8c8",
+        "#e03880",
+        "#e0d8c0",
+        "#e8a850",
+        "#e8e0d0",
+        "#e8e8d8",
+        "#f0d898",
+        "#f0f0e0",
+        "#f8f0f0"
+      ]
+    },
+    {
+      "file": "op_irene_finisher@2x.png",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 7,
+      "fps": 14,
+      "origin": [
+        48,
+        92
+      ],
+      "origin_1x": [
+        24,
+        46
+      ],
+      "origin_2x": [
+        48,
+        92
+      ],
+      "layer": "body",
+      "loop": false,
+      "colors": 45,
+      "density": 2,
+      "fire": 2,
+      "sha256": "37ed1bdf7a48dfb90f8d5c67d4f18b066193340ac0b54ed717ad49053ef9c111",
+      "endpoint": "first/last exactly existing idlef0",
+      "palette_exception": "legacy idle palette inherited at exact endpoints; new poses quantized24",
+      "gun_fire_frame": 5,
+      "color_reference": "matching original idle / doll palette",
+      "palette": [
+        "#000000",
+        "#080810",
+        "#080e18",
+        "#181018",
+        "#281818",
+        "#282820",
+        "#301010",
+        "#302840",
+        "#304040",
+        "#482828",
+        "#484048",
+        "#502840",
+        "#505050",
+        "#583810",
+        "#584840",
+        "#685860",
+        "#705840",
+        "#787068",
+        "#807878",
+        "#907860",
+        "#908080",
+        "#989080",
+        "#a06038",
+        "#a07878",
+        "#a09090",
+        "#b07850",
+        "#b08080",
+        "#b0a8a0",
+        "#b82858",
+        "#b89858",
+        "#c09880",
+        "#c0a090",
+        "#c8b0a0",
+        "#c8b0b0",
+        "#c8c0b8",
+        "#d8c8b0",
+        "#d8c8c8",
+        "#e03880",
+        "#e0d8c0",
+        "#e8a850",
+        "#e8e0d0",
+        "#e8e8d8",
+        "#f0d898",
+        "#f0f0e0",
+        "#f8f0f0"
+      ]
+    },
+    {
+      "file": "fx_specter_saw_cold_back.png",
+      "frame_size": [
+        68,
+        37
+      ],
+      "frames": 6,
+      "fps": 24,
+      "origin": [
+        34,
+        18
+      ],
+      "origin_1x": [
+        34,
+        18
+      ],
+      "origin_2x": [
+        68,
+        36
+      ],
+      "layer": "back",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "1dac0dacd781475940d63da0682a2bee6e77fed5221ff6d1a28e4cf2ffb578e7",
+      "reference": "fx_specter_saw.png",
+      "scale": 0.85,
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_specter_saw_cold_back@2x.png",
+      "frame_size": [
+        136,
+        74
+      ],
+      "frames": 6,
+      "fps": 24,
+      "origin": [
+        68,
+        36
+      ],
+      "origin_1x": [
+        34,
+        18
+      ],
+      "origin_2x": [
+        68,
+        36
+      ],
+      "layer": "back",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "2d676c09fcaef5a99bd4ff65ba66ea579380a7962b622ba1ed149d8c9fde704f",
+      "reference": "fx_specter_saw.png",
+      "scale": 0.85,
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_specter_saw_cold_front.png",
+      "frame_size": [
+        68,
+        37
+      ],
+      "frames": 6,
+      "fps": 24,
+      "origin": [
+        34,
+        18
+      ],
+      "origin_1x": [
+        34,
+        18
+      ],
+      "origin_2x": [
+        68,
+        36
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "cdc73a116a55e1866c4f76ee7df77f10772c44e9af18e3c5d0ad074bc4421e0b",
+      "reference": "fx_specter_saw.png",
+      "scale": 0.85,
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_specter_saw_cold_front@2x.png",
+      "frame_size": [
+        136,
+        74
+      ],
+      "frames": 6,
+      "fps": 24,
+      "origin": [
+        68,
+        36
+      ],
+      "origin_1x": [
+        34,
+        18
+      ],
+      "origin_2x": [
+        68,
+        36
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "3f5b23a970c235f7ba35f0726262e7f64303022117e6b1747fa6c75a05b8c526",
+      "reference": "fx_specter_saw.png",
+      "scale": 0.85,
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_specter_doll_appear.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "5ff0202eaa595776c6ae48ff77bd9885d124cf293a75bf14d8a28aae3448b1bb",
+      "reference": "op_specter_unchained_doll.png + fx_water_splash.png",
+      "handoff": "32px silhouette pose matches doll f0; engine switches to full48px doll at completion",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff"
+      ]
+    },
+    {
+      "file": "fx_specter_doll_appear@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "6cb6af983ad7ab3ac932ae6d93d395403e10801e4a3c71ae17dcb4bb57bb6301",
+      "reference": "op_specter_unchained_doll.png + fx_water_splash.png",
+      "handoff": "32px silhouette pose matches doll f0; engine switches to full48px doll at completion",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff"
+      ]
+    },
+    {
+      "file": "fx_specter_doll_burst.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "0868c49f1c7536d9721deb9ea36f494de0c0317955681d32680f9632ee4b858b",
+      "reference": "op_specter_unchained_doll.png + fx_water_splash.png",
+      "handoff": "32px silhouette pose matches doll f0; engine switches to full48px doll at completion",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff"
+      ]
+    },
+    {
+      "file": "fx_specter_doll_burst@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "6f31e93e1a9a6011cd270eae4c7340e94b8dd2ef048ad2324fbab0fcb98f5040",
+      "reference": "op_specter_unchained_doll.png + fx_water_splash.png",
+      "handoff": "32px silhouette pose matches doll f0; engine switches to full48px doll at completion",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_jelly_dart.png",
+      "frame_size": [
+        20,
+        12
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        10,
+        6
+      ],
+      "origin_1x": [
+        10,
+        6
+      ],
+      "origin_2x": [
+        20,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "fc5ed56434ee834467fa66c2a60e411b15cb780bfa8fbc6f73568f17305fae3d",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_jelly_dart@2x.png",
+      "frame_size": [
+        40,
+        24
+      ],
+      "frames": 6,
+      "fps": 14,
+      "origin": [
+        20,
+        12
+      ],
+      "origin_1x": [
+        10,
+        6
+      ],
+      "origin_2x": [
+        20,
+        12
+      ],
+      "layer": "front",
+      "loop": true,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "dc57ef86244b118a8d07ed6ca359cd162dc807d265c5b46244b1d5a7ccf6e9e3",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_jelly_sting.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 1,
+      "fire": null,
+      "sha256": "a81cc82c61479f04182d4fa9796920b7fe0836d4d2ccbc3381b220052ac045a3",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#85d5e0",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_jelly_sting@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 5,
+      "fps": 18,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 6,
+      "density": 2,
+      "fire": null,
+      "sha256": "ec82e2eabe9293b72890ff40a711e315326e1b4dc746d36c0a0c38816afaa250",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#85d5e0",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_bind_ring.png",
+      "frame_size": [
+        24,
+        12
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        12,
+        6
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "53db84a5a77c7f20d13d241cd6f83c320f4462d74fde2346e612f74a64ebb6d4",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_bind_ring@2x.png",
+      "frame_size": [
+        48,
+        24
+      ],
+      "frames": 6,
+      "fps": 10,
+      "origin": [
+        24,
+        12
+      ],
+      "origin_1x": [
+        12,
+        6
+      ],
+      "origin_2x": [
+        24,
+        12
+      ],
+      "layer": "ground",
+      "loop": true,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "cf463e285133e70b0d45a5790b007e88ef202543b9bf2c89eb29c5bdef9eca35",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_irene_crescent_wide.png",
+      "frame_size": [
+        80,
+        56
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        40,
+        28
+      ],
+      "origin_1x": [
+        40,
+        28
+      ],
+      "origin_2x": [
+        80,
+        56
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "d6a1fab11991da1cb91509df6356dbfb82c30060b40ec3b2218e95906722b08f",
+      "color_reference": "fx_slash_arc_deep.png",
+      "palette": [
+        "#bde6ff",
+        "#f0fbff"
+      ]
+    },
+    {
+      "file": "fx_irene_crescent_wide@2x.png",
+      "frame_size": [
+        160,
+        112
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        80,
+        56
+      ],
+      "origin_1x": [
+        40,
+        28
+      ],
+      "origin_2x": [
+        80,
+        56
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "52ce946de1d769d503a6c4e39bd70a73fc0cf0624b0f94512e6f03b4f4605615",
+      "color_reference": "fx_slash_arc_deep.png",
+      "palette": [
+        "#bde6ff",
+        "#f0fbff"
+      ]
+    },
+    {
+      "file": "fx_irene_gun_burst.png",
+      "frame_size": [
+        20,
+        12
+      ],
+      "frames": 3,
+      "fps": 24,
+      "origin": [
+        10,
+        6
+      ],
+      "origin_1x": [
+        10,
+        6
+      ],
+      "origin_2x": [
+        20,
+        12
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "982492fe8fa76c00422c305c8177980d1a1a9779a2e6f49361b10139261eaedb",
+      "color_reference": "fx_muzzle_flash.png",
+      "palette": [
+        "#ffd100",
+        "#fff799"
+      ]
+    },
+    {
+      "file": "fx_irene_gun_burst@2x.png",
+      "frame_size": [
+        40,
+        24
+      ],
+      "frames": 3,
+      "fps": 24,
+      "origin": [
+        20,
+        12
+      ],
+      "origin_1x": [
+        10,
+        6
+      ],
+      "origin_2x": [
+        20,
+        12
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "0d72b6ad52590049320bfcb1f593b31f370e570adf07357dd7f42b99610dc7d0",
+      "color_reference": "fx_muzzle_flash.png",
+      "palette": [
+        "#ffd100",
+        "#fff799"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam.png",
+      "frame_size": [
+        32,
+        10
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        16,
+        5
+      ],
+      "origin_1x": [
+        16,
+        5
+      ],
+      "origin_2x": [
+        32,
+        10
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 4,
+      "density": 1,
+      "fire": null,
+      "sha256": "394305a4318e6eaaf5473ebd2e8b2f0fdf4a6fda69eac1b805ec01145269c533",
+      "tile": "horizontal",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#facc74",
+        "#ffdc96",
+        "#ffe4aa",
+        "#fff8e0"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam@2x.png",
+      "frame_size": [
+        64,
+        20
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        32,
+        10
+      ],
+      "origin_1x": [
+        16,
+        5
+      ],
+      "origin_2x": [
+        32,
+        10
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 4,
+      "density": 2,
+      "fire": null,
+      "sha256": "7b433c196825b1b57991f6569058d27e9f3f33f994dbc068c93c1e68f97a94b2",
+      "tile": "horizontal",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#facc74",
+        "#ffdc96",
+        "#ffe4aa",
+        "#fff8e0"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam_flare.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "cf13f89dff768fd61e07c79eb5191f576fbec02e8b05acffd44c1f422459e81b",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffdc96",
+        "#ffe4aa"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam_flare@2x.png",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 5,
+      "fps": 20,
+      "origin": [
+        32,
+        32
+      ],
+      "origin_1x": [
+        16,
+        16
+      ],
+      "origin_2x": [
+        32,
+        32
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "c3fb275334d4153fb01c3dfcf19ab8be415a4de880abca2edf0aa952e53043a2",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffdc96",
+        "#ffe4aa"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam_hit.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "eb7297889c20f0729e63a7c4fbfe052a1d90166979b2dda041d015ce3d1ab84d",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffdc96",
+        "#fff8e0"
+      ]
+    },
+    {
+      "file": "fx_lumen_beam_hit@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "a1c669d8e0a2bedf782ee34c4e61bb46a564593bc8700268554e9088cb4ede08",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffdc96",
+        "#fff8e0"
+      ]
+    },
+    {
+      "file": "fx_specter_inward_ripple.png",
+      "frame_size": [
+        96,
+        48
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        48,
+        24
+      ],
+      "origin_1x": [
+        48,
+        24
+      ],
+      "origin_2x": [
+        96,
+        48
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 1,
+      "fire": null,
+      "sha256": "e2d12253c32e907eecff27f2b92b6b7792215eb8d8a23b459ff41e064f4b95f8",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_specter_inward_ripple@2x.png",
+      "frame_size": [
+        192,
+        96
+      ],
+      "frames": 6,
+      "fps": 18,
+      "origin": [
+        96,
+        48
+      ],
+      "origin_1x": [
+        48,
+        24
+      ],
+      "origin_2x": [
+        96,
+        48
+      ],
+      "layer": "ground",
+      "loop": false,
+      "colors": 9,
+      "density": 2,
+      "fire": null,
+      "sha256": "aa99373e68550aabf1a2b06872aca34769d059816bdad97be0a6a185333ed1ee",
+      "color_reference": "fx_specter_saw.png",
+      "palette": [
+        "#080e18",
+        "#24334e",
+        "#3f5876",
+        "#647d9e",
+        "#8fa3bf",
+        "#adbfd6",
+        "#c7d8eb",
+        "#e6f0ff",
+        "#f5faff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_tentacle_curl.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 14,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 5,
+      "density": 1,
+      "fire": null,
+      "sha256": "328e7c0a69d4ee22eb4309a33028d0a8428bc597ad71ad85fe735147c6a83851",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_mizuki_tentacle_curl@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 4,
+      "fps": 14,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 5,
+      "density": 2,
+      "fire": null,
+      "sha256": "1b4ffa4a614297e2588e1880e65ab18a4aee37e76d91073fd5ceb066940a43e3",
+      "color_reference": "fx_mizuki_jelly.png",
+      "palette": [
+        "#080e18",
+        "#7777bb",
+        "#a99de0",
+        "#ddeff2",
+        "#f3fbff"
+      ]
+    },
+    {
+      "file": "fx_irene_lift_arc.png",
+      "frame_size": [
+        24,
+        24
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 1,
+      "fire": null,
+      "sha256": "30da9000f2eee8add8e80d786fc6cbb9c1086c9f914ab60216dd0b7499e543ca",
+      "color_reference": "fx_slash_arc_deep.png",
+      "palette": [
+        "#bde6ff",
+        "#f0fbff"
+      ]
+    },
+    {
+      "file": "fx_irene_lift_arc@2x.png",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        24,
+        24
+      ],
+      "origin_1x": [
+        12,
+        12
+      ],
+      "origin_2x": [
+        24,
+        24
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 2,
+      "density": 2,
+      "fire": null,
+      "sha256": "bfc587aa89c03c4204252c3fde6bf46ae9fc39b3094a2ca938b435adf9c11e2e",
+      "color_reference": "fx_slash_arc_deep.png",
+      "palette": [
+        "#bde6ff",
+        "#f0fbff"
+      ]
+    },
+    {
+      "file": "fx_lumen_refract_hit.png",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 1,
+      "density": 1,
+      "fire": null,
+      "sha256": "c4d7d6e3f91fa98a1ef2fd4b5bfbda85f7cc6c1b497cf7eee04f9003038505b1",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffe4aa"
+      ]
+    },
+    {
+      "file": "fx_lumen_refract_hit@2x.png",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 4,
+      "fps": 20,
+      "origin": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "loop": false,
+      "colors": 1,
+      "density": 2,
+      "fire": null,
+      "sha256": "be7f941fab96bed393e08176dcb28b4d372c53b143f7c7da76e2471e514e1c33",
+      "color_reference": "fx_holy_impact_lantern.png",
+      "palette": [
+        "#ffe4aa"
+      ]
+    }
+  ],
+  "production": "imagegen sources, mechanical crop/transform/quantization/export",
+  "notes": "第3批：替身沿用既有修女形象；艾丽妮保留细刺剑与维多利亚式手炮，斩出2/枪击5。人物首尾复制已有idle或doll f0。替身现身/碎裂为32px剪影，末相位姿态衔接48px本体，程序需按manifest切换尺寸。冷色锯环分back/front且原点一致。各特效显式量化到对应已确认色板；流明为暖白灯火金。"
+}
