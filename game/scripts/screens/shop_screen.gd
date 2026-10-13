@@ -78,13 +78,18 @@ func build(restart := false) -> void:
 		card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机 18 起（说明区按卡高算）
 		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
-		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, (ch - 164.0 - 60.0) if touch else 64.0, szs)
+		var chips := Affects.chips(g, it)
+		# 触屏：说明区底边留到「影响」标签上方（标签行底在卡底上方 52，每行 22 高，最多 2 行）。原来固定留 60，
+		# 标签一行时压 10、两行时压 32（10-13 手机实测「炸裂之手」说明末行压在标签上）
+		var bot: float = 60.0
+		if touch and not chips.is_empty():
+			bot = 52.0 + (22.0 if UI.chip_fits(g.font, chips, cw - 16.0, 1, 10) else 44.0) + 6.0
+		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, (ch - 164.0 - bot) if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
-			fs0 = UI.fit(g.font, it.desc, cw - 20.0, (ch - 152.0 - 60.0) if touch else 80.0, szs)
+			fs0 = UI.fit(g.font, it.desc, cw - 20.0, (ch - 152.0 - bot) if touch else 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
-		var chips := Affects.chips(g, it)
 		card.set_meta("affects", chips)
 		card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, cw - 16.0, 2, 10))
 		g.panel_box.add_child(card)

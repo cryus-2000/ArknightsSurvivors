@@ -276,7 +276,10 @@ func _tap(mp: Vector2, button: int) -> void:
 			var fx: float = (mp.x - r.position.x) / r.size.x
 			var dir := 1
 			if arrows:
-				dir = -1 if fx < 0.62 else 1
+				# 以数值块中点分左右（◀ 在 vx − 10、▶ 在 vx + 180，vx 同 _draw_row）。原来按整行宽 62% 分：桌面行宽 580 时恰好在中点，
+				# 触屏行宽约 1100（面板占满）时 ◀ 落在 77% 处被当成 ▶，点 ◀ 也是加（用户 10-13「设置大小不能减小只能放大」）
+				var vx: float = r.position.x + r.size.x - (252.0 if list != null else 230.0)
+				dir = -1 if mp.x < vx + 85.0 else 1
 			if button == MOUSE_BUTTON_LEFT:
 				if ROWS[i].type == "res" and fx >= 0.62 and fx <= 0.88:
 					_apply_res()
