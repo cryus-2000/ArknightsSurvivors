@@ -346,7 +346,7 @@ func anim_state() -> Dictionary:
 		# 技能动作已播完但锚还在锚点（远距离弹射）：继续停在技能条的空手帧 f5（docs/45 #12）
 		var tx: Texture2D = anim_tex("skill")
 		if tx != null:
-			st = {"tex": tx, "frame": 5, "hf": anim_hframes(tx, "skill"), "flip": face < 0.0, "kind": "skill"}
+			st = {"tex": tx, "frame": 5, "hf": anim_hframes(tx, "skill"), "flip": (face < 0.0) != sprite_mirror("skill"), "kind": "skill"}
 	return st
 
 

@@ -418,6 +418,8 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 		if not sp.has(kind[1]):
 			continue
 		var fm: Dictionary = _sprite_form(kind[0], sp[kind[1]], kind[2], kind[1] != "death" and kind[1] != "fall")
+		if Character.strip_mirror(cd, kind[1]):
+			fm.tex = A.mirror_strip(fm.tex, int(fm.frames))   # 帧条画反了（docs/84）：用镜像副本
 		# 召唤物（凯尔希的 Mon3tr，帧条键 m_*）不单列：和本体同名动作并排站在一起（2026-09-27 用户）
 		if sp.has("m_" + kind[1]):
 			fm.pair = _sprite_form(kind[0], sp["m_" + kind[1]], kind[2], true)
@@ -447,6 +449,8 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 		frames = int(idle.frames)
 	elif tx != null:
 		frames = maxi(1, tx.get_width() / tx.get_height())
+	if Character.strip_mirror(cd, "idle"):
+		tx = A.mirror_strip(tx, frames)
 	var cls: String = cd.get("class", "")
 	var col: Color = Character.CLASS_COL.get(cls, UI.CYAN)
 	var cc = cd.get("col", null)

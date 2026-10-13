@@ -516,3 +516,35 @@ static func white_of(src: Texture2D) -> Texture2D:
 	var w := ImageTexture.create_from_image(img)
 	_hires_rid[w.get_rid()] = hires_of(src)
 	return w
+
+
+## 帧条逐帧水平镜像（2026-10-13，docs/84）：干员 json 的 sprites.<kind>.mirror = true 表示这条帧条画反了（朝左），
+## 界面（选人 / 图鉴 / 编队像 / HUD 头像 / 标题陪伴）直接贴图、不走翻转变换，用这张镜像过的副本；战斗绘制在翻转标志上处理，不用它。
+## 每帧在自己的格子里翻（帧序不变）；按源贴图缓存；读不到像素（无头空驱动）就返回原图
+static var _mirror_cache := {}
+
+static func mirror_strip(src: Texture2D, frames: int) -> Texture2D:
+	if src == null:
+		return null
+	var key := "%d:%d" % [src.get_rid().get_id(), frames]
+	if _mirror_cache.has(key):
+		return _mirror_cache[key]
+	var base: Texture2D = src.diffuse_texture if src is CanvasTexture else src
+	var img: Image = base.get_image() if base != null else null
+	if img == null or img.is_empty():
+		return src
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var n: int = maxi(1, frames)
+	var fw: int = img.get_width() / n
+	var out := Image.create(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8)
+	for f in n:
+		var fr := img.get_region(Rect2i(f * fw, 0, fw, img.get_height()))
+		fr.flip_x()
+		out.blit_rect(fr, Rect2i(Vector2i.ZERO, fr.get_size()), Vector2i(f * fw, 0))
+	var t := ImageTexture.create_from_image(out)
+	_hires_rid[t.get_rid()] = hires_of(src)
+	_mirror_cache[key] = t
+	return t

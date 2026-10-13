@@ -4687,7 +4687,7 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		if f.has("ghost") and not s.ghost.is_empty() and s.ghost.pos.distance_to(s.pos) > 3.0:
 			var gf := _mf_frame(o, s, kd, str(s.ghost.ak), float(s.ghost.at))
 			if not gf.is_empty():
-				o.draw_sprite_at(s.ghost.pos + Vector2(0, hov), float(s.ghost.face) < 0.0, _mf_col(f.ghost.get("tint", []), Color(1, 1, 1, 0.35)), gf[1], gf[0], gf[2], o.foot_off(gf[0], gf[3]))
+				o.draw_sprite_at(s.ghost.pos + Vector2(0, hov), (float(s.ghost.face) < 0.0) != o.sprite_mirror(str(gf[3])), _mf_col(f.ghost.get("tint", []), Color(1, 1, 1, 0.35)), gf[1], gf[0], gf[2], o.foot_off(gf[0], gf[3]))
 		elif f.has("mist"):
 			var m: Dictionary = f.mist
 			var mc: Color = _mf_col(m.get("col", []), Color(0.85, 0.025, 0.02, 0.12))
@@ -4698,7 +4698,7 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
-	o.draw_sprite_at(s.pos + Vector2(0, hov), float(s.face) < 0.0, col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
+	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)

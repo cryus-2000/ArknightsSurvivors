@@ -280,7 +280,12 @@ func reload_guest() -> void:
 	var gs := _slot(idle)
 	if not gs.is_empty():
 		var anchor: Array = idle.get("foot", sprites.get("foot", [24, 46])) if idle is Dictionary else sprites.get("foot", [24, 46])
-		guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps, "id": gid, "foot": Vector2(anchor[0], anchor[1])}
+		var foot := Vector2(anchor[0], anchor[1])
+		if idle is Dictionary and bool(idle.get("mirror", false)):
+			# 待机条画反了（docs/84）：用镜像副本，脚底锚点按 1x 帧宽换算成 宽 − x
+			gs.tex = A.mirror_strip(gs.tex, gs.n)
+			foot.x = gs.tex.get_width() / float(gs.n) / A.hires_of(gs.tex) - foot.x
+		guest = {"idle": gs.tex, "fi": gs.n, "fps": gs.fps, "id": gid, "foot": foot}
 	queue_redraw()
 
 
