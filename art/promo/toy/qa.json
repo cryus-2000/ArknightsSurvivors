@@ -1,0 +1,200 @@
+{
+  "brief": "docs/90_codex_toy_cover.md",
+  "default_option": "A; user may choose B",
+  "files": {
+    "toy_icon.png": {
+      "size": [
+        512,
+        512
+      ],
+      "bytes": 13393,
+      "colors": 29,
+      "sha256": "e8080155843edb90cce02488245ee67c622c76d8fea14bf2adef90eba5b3347b"
+    },
+    "toy_icon_preview_64.png": {
+      "size": [
+        64,
+        64
+      ],
+      "bytes": 3582,
+      "colors": 28,
+      "sha256": "dfee5389ce41b838417971b6c28a3a1a78419737afcff9bb0091879ab39ce487"
+    },
+    "toy_options_preview.png": {
+      "size": [
+        816,
+        316
+      ],
+      "bytes": 104466,
+      "colors": 32,
+      "sha256": "ae911133a8c458b24f0e5ef1ddf3fd56871fcf7b762051d7345b8a2276bdfc73"
+    },
+    "toy_poster_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 61377,
+      "colors": 32,
+      "sha256": "f48c60237e5b2987fe592bb58da8b0a72ee0e4a8468adc2de6adda688b23aca4"
+    },
+    "toy_poster_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 62455,
+      "colors": 32,
+      "sha256": "095fd6dc12919844398ce49ef317efca09ea7e17742475bffabe909a266bf76b"
+    },
+    "toy_poster_a_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 61377,
+      "colors": 32,
+      "sha256": "f48c60237e5b2987fe592bb58da8b0a72ee0e4a8468adc2de6adda688b23aca4"
+    },
+    "toy_poster_a_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 62455,
+      "colors": 32,
+      "sha256": "095fd6dc12919844398ce49ef317efca09ea7e17742475bffabe909a266bf76b"
+    },
+    "toy_poster_a_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 45549,
+      "colors": 32,
+      "sha256": "d010032ef9e721a45ef87b8a690ffd0e8f863672c796114b92b9913ce2bcf588"
+    },
+    "toy_poster_a_safearea.png": {
+      "size": [
+        600,
+        450
+      ],
+      "bytes": 48857,
+      "colors": 32,
+      "sha256": "391fff39737192356beec48fc9a25374da17ab3ca1aed0c3b9662685e7debc52"
+    },
+    "toy_poster_b_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 75447,
+      "colors": 32,
+      "sha256": "fd711ef8c54ea438e846ea01ba9a27f4c23d09f5d97bc047c2a11dcfa298b3ed"
+    },
+    "toy_poster_b_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 75889,
+      "colors": 32,
+      "sha256": "d0fcae486c98341cd7c7c8da6cb16f24d49e3bb0c50462d74e8117d2c1065864"
+    },
+    "toy_poster_b_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 56885,
+      "colors": 32,
+      "sha256": "62bd7cb2f49e7e9624f3ad6c19781bde4b7e60e7cafc8eb6d88c44279df5152f"
+    },
+    "toy_poster_b_safearea.png": {
+      "size": [
+        600,
+        450
+      ],
+      "bytes": 61042,
+      "colors": 32,
+      "sha256": "015fcd07415660c5d3613e0f9d7d60b44f0d59108d093ed9348edd30c731b5d0"
+    },
+    "toy_poster_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 45549,
+      "colors": 32,
+      "sha256": "d010032ef9e721a45ef87b8a690ffd0e8f863672c796114b92b9913ce2bcf588"
+    }
+  },
+  "pixel_processing": {
+    "cover_logical_size": [
+      300,
+      225
+    ],
+    "icon_logical_size": [
+      128,
+      128
+    ],
+    "integer_scale": 4,
+    "palette_max_colors": 32,
+    "dither": false
+  },
+  "safe_area": {
+    "poster": [
+      120,
+      90,
+      1080,
+      810
+    ],
+    "title_exact_bbox": [
+      184,
+      96,
+      1016,
+      316
+    ],
+    "A_manual_subject_bbox_approx": [
+      270,
+      490,
+      900,
+      745
+    ],
+    "B_manual_subject_bbox_approx": [
+      380,
+      270,
+      815,
+      735
+    ],
+    "icon": [
+      51,
+      51,
+      461,
+      461
+    ],
+    "icon_lantern_bbox_approx": [
+      130,
+      80,
+      380,
+      435
+    ],
+    "note": "Manual visual check: characters, lamp/beacon and title inside central 80%; tree branches, water and threat silhouettes intentionally bleed outside."
+  },
+  "art_lint": {
+    "exit_code": 0,
+    "characters_checked": 19,
+    "unwaived_fail": 0,
+    "waived_fail": 7,
+    "warn": 56,
+    "scope": "Existing unchanged character strips only. This tool does not validate cover artwork; separate PNG checks below."
+  },
+  "visual_review": [
+    "Two different compositions, both with exact existing fan-game title and matching no-title versions.",
+    "400x300 card previews inspected; A recommended for character readability, B emphasizes beacon and atmosphere.",
+    "512 and 64px icon checked: lantern and cyan tree remain recognizable.",
+    "No official logo, official standing art or official screenshots; no official/licensed marketing claims.",
+    "Hard edges and common finite palette; cold cyan sea with localized gold lamp."
+  ],
+  "pixel_grid_verified": true
+}
