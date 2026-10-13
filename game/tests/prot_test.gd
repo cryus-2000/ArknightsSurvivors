@@ -2102,9 +2102,17 @@ func test_squad_sustain_dash() -> void:
 		var steps1: int = sq.member_steps(sq.size())
 		var want: float = float(steps1 - steps0) * rper * game.heal_mult
 		ok(absf(game.combat.regen_per_sec() - r0 - want) < 0.001, "%s 入队：回复 %.2f → %.2f / 秒（应 +%.2f）" % [cid, r0, game.combat.regen_per_sec(), want])
-		ok((bonus != "") == (steps1 > steps0), "招募卡的入队说明「%s」与是否加台阶一致" % bonus)
+		ok((bonus != "") == (steps1 > steps0), "招募界面的入队加成说明「%s」与是否加台阶一致" % bonus)
 		if steps1 > steps0:
-			ok(bonus.contains(sq._num(rper * game.heal_mult)), "招募卡写的回复数 = 实际（%s）" % bonus)
+			ok(bonus.contains(sq._num(rper * game.heal_mult)), "招募界面写的回复数 = 实际（%s）" % bonus)
+			# 用户 10-13：招募卡说明里不再逐张写入队加成；三选一标题说明行写一次，数字与实际一致
+			var rc: Array = game.progression.recruit_cards()
+			ok(rc.all(func(o): return not str(o.desc).contains("入队加成")), "招募卡说明里不再写入队加成")
+			if not rc.is_empty():
+				game.panel_ui.show_choices("招募干员", rc.slice(0, 3), "level")
+				ok(game.panel_ui.panel_sub_text.contains(bonus), "招募三选一说明行写入队加成「%s」" % game.panel_ui.panel_sub_text)
+				game.panel.visible = false
+				game.state = game.S.PLAY
 	# 自愈卡：预览的后值 = 选中后的实际每秒回复
 	var prev: String = game.doctor.passive_preview("regen")
 	game.doctor.apply_passive("regen")

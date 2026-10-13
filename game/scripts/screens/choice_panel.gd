@@ -31,7 +31,37 @@ const CARDS_TOP_PHONE := 80.0
 const EV_COL_TOP_PHONE := 70.0
 
 
+## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放（用户 10-13「藏品还是有点太顶天立地」）：卡片按原排版画，整排（panel_box）等比缩到 0.8，
+## 382 高 → 约 306，界面逻辑高约 544 时占约 56%；图标、名字、说明、「影响」标签、选择条、卡间距一起按比例缩。
+## 标题 + 卡片整块在画面里上下居中（上下各留出一截能看到背后的战斗）。说明字最小 15 × 0.8 = 12，守住手机正文下限 12。
+## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩
+const CARD_SCALE_PHONE := 0.8
+const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
+
+
+## 手机横屏卡片内边距（用户 10-13「卡片和字体之间可以留点空隙」，设计像素，整排再缩 0.8）：
+## 左右 PAD_X_PHONE 26（卡宽 272 的 9.6%，缩放后约 21 UI 像素；原 20）；名字基线 162、说明从 186 起（原 160 / 176，名字与说明间多留 10）；
+## 「影响 / 特性」标签行中线在卡底上方 66（原 53，原来下沿贴着选择条）；选择条左右内缩 20、底边离卡底 16。
+## 说明区 = 卡高 − DESC_PAD_PHONE：186 起，到标签行顶边（卡底上方约 77）再留 20
+const PAD_X_PHONE := 26.0
+const NAME_Y_PHONE := 162.0
+const DESC_Y_PHONE := 186.0
+const CHIP_UP_PHONE := 66.0
+const DESC_PAD_PHONE := 283.0
+const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
+## 本次三选一的卡片高（未缩放的设计像素）：手机横屏按最长说明加高，0 = 用 card_h()
+var row_h := 0.0
+
+
+func card_scale() -> float:
+	return CARD_SCALE_PHONE if Cfg.phone_ui() else 1.0
+
+
 func cards_top() -> float:
+	if Cfg.phone_ui() and g.panel != null:
+		# 标题块 + 缩小后的卡片整体上下居中，卡片顶边不早于原来的 80
+		var block: float = HEADER_H + (row_h if row_h > 0.0 else card_h()) * CARD_SCALE_PHONE
+		return maxf(CARDS_TOP_PHONE, round((g.panel.size.y - block) / 2.0) + HEADER_H)
 	return CARDS_TOP_PHONE if Cfg.touch_device() else CARDS_TOP
 
 
@@ -195,6 +225,10 @@ func layout(kind: String) -> void:
 		g.panel_box.offset_left = 0.0
 		g.panel_box.offset_right = 0.0
 		g.panel_box.offset_top = cards_top()
+	# 手机横屏三选一：整排卡片以顶边中点为轴等比缩小（商店 / 事件不缩）
+	var sc: float = card_scale() if kind != "shop" and kind != "event" else 1.0
+	g.panel_box.scale = Vector2(sc, sc)
+	g.panel_box.pivot_offset = Vector2(vs.x / 2.0, 0.0)
 	g.panel_box.visible = kind != "event"
 	g.panel_col.visible = kind == "event"
 
@@ -208,7 +242,7 @@ func draw_bg() -> void:
 			draw_event_bg(vs)
 		_:
 			var en_label := "RELIC" if g.choice_kind == "relic" else "LEVEL UP"
-			if g.choices.size() > 0 and g.choices[0].kind == "recruit":
+			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
 				en_label = "RECRUIT"
 			var ph: bool = Cfg.touch_device()
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
@@ -377,15 +411,33 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 	if sub == "":
 		if kind == "relic":
 			panel_sub_text = "从发现的藏品中挑选一件带走"
-		elif opts.size() > 0 and opts[0].kind == "recruit":
-			panel_sub_text = "挑选一名干员加入编队"
+		elif opts.size() > 0 and opts.all(func(o): return o.get("kind", "") == "recruit"):
+			panel_sub_text = "挑选一名干员加入编队"   # 纯招募；升级界面混一张招募卡仍写「选择一项强化」
 		elif kind != "event":
 			panel_sub_text = "选择一项强化"
+		# 入队加成（docs/83）：用户 10-13 定不再逐张写在招募卡上，三选一里有招募卡时在标题说明行写一次（数字读 balance.json squad 段；
+		# 台阶已封顶不再加成时不写）。混有单张招募卡的升级界面也写在这里：带实际数字、不占卡片空间，比给卡片加角标更清楚
+		if kind != "event" and opts.any(func(o): return o.get("kind", "") == "recruit"):
+			var jb: String = g.squad.join_bonus_text()
+			if jb != "":
+				panel_sub_text += " · " + jb
 	Sfx.play("relic" if kind == "relic" else "levelup", -2.0, 1.0, 0.0)
 	for c in g.panel_box.get_children():
 		c.queue_free()
 	for c in g.panel_col.get_children():
 		c.queue_free()
+	row_h = 0.0
+	if Cfg.phone_ui() and kind != "event":
+		# 手机横屏：卡片缩到 0.8 后上下有空，说明在最小字号 15 下仍放不下的（长说明藏品、招募卡），整排加高到放得下，最多到画面装得下为止
+		var base_h: float = card_h()
+		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / CARD_SCALE_PHONE
+		var need := base_h
+		for o in opts:
+			var fz := UI.fit(g.font, option_description(o), CARD_W - 2.0 * PAD_X_PHONE, base_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+			if not fz.fit:
+				var f15 := UI.fit(g.font, option_description(o), CARD_W - 2.0 * PAD_X_PHONE, 9999.0, [DESC_SIZES_PHONE[-1]])
+				need = maxf(need, ceilf(f15.lines.size() * float(f15.lh)) + DESC_PAD_PHONE)
+		row_h = clampf(need, base_h, maxf(base_h, max_h))
 	layout(kind)
 	motion.start(kind, opts)
 	var ev := kind == "event"
@@ -413,7 +465,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
-		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(CARD_W, card_h())
+		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(CARD_W, row_h if row_h > 0.0 else card_h())
 		if Cfg.touch_device():
 			card.set_meta("phone", true)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -445,7 +497,11 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			if Cfg.touch_device():
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
-				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
+				if row_h > 0.0:
+					f0 = UI.fit(g.font, display_desc, CARD_W - 2.0 * PAD_X_PHONE, row_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+					card.set_meta("roomy", true)
+				else:
+					f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
 				f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11])
 			card.set_meta("fit", f0)
@@ -453,7 +509,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
 			var chips := Affects.chips(g, o)
 			card.set_meta("affects", chips)
-			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, CARD_W - 32.0))
+			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, CARD_W - (2.0 * PAD_X_PHONE if row_h > 0.0 else 32.0)))
 		(g.panel_col if ev else g.panel_box).add_child(card)
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
@@ -577,16 +633,21 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
 	var ta: float = motion.text_a   # 招募：落地后名字 / 说明 / 标签再淡入
-	UI.text(card, g.font, r.position + Vector2(0, (160.0 if ph else 184.0) if compact else 230.0), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	var roomy: bool = card.get_meta("roomy", false)   # 手机横屏缩小后的卡：加大内边距（PAD_X_PHONE 等）
+	var px: float = PAD_X_PHONE if roomy else 20.0
+	var ny: float = NAME_Y_PHONE if roomy else ((160.0 if ph else 184.0) if compact else 230.0)
+	var nx: float = px if roomy else 0.0
+	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(20, (176.0 if ph else 198.0) if compact else 244.0), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
+		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 53.0), chips, r.size.x - 32.0, 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
-	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
+	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
