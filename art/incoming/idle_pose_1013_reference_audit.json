@@ -1,0 +1,25 @@
+{
+  "eyjafjalla": {
+    "source": "user-supplied original standing art in conversation; original clipboard file expired",
+    "checks": [
+      "curved sheep horns",
+      "brown curls",
+      "gray mauve dress floral hem",
+      "white coat red lining ribbons",
+      "dark gray thigh-highs brown boots",
+      "thin straight staff, not fork wand"
+    ]
+  },
+  "suzuran": {
+    "source": "user-supplied original standing art in conversation; PRTS file page cross-check",
+    "url": "https://prts.wiki/w/文件:立绘_铃兰_1.png",
+    "checks": [
+      "green eyes",
+      "large fox ears blue headband",
+      "many pale golden tails",
+      "navy pale blue cape lavender-white skirt",
+      "white tights dark shoes",
+      "dark-silver loop-and-spoke staff, not gold sun"
+    ]
+  }
+}

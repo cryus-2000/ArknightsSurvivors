@@ -250,7 +250,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "a404b54f85c9b47d61f9d0610aa54e578f2b4d1f58a060ae056e1a13d3c7b100"
+      "sha256": "8fc2d9b3989ed94453d719b2829126385f967769de34ac0b199774ca07179ac2"
     },
     {
       "file": "op_eyjafjalla_run.png",
@@ -307,7 +307,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "05972544b1a44d0907ea0f819f83eadafca3570c976e9f29ab4408fff0d39108"
+      "sha256": "f82b26a4c8dac5e290b3345c5a8c7924d4cce98dfc07b2d3ff783ab33f7d3ecb"
     },
     {
       "file": "op_kaltsit_idle.png",
@@ -402,7 +402,7 @@
       "loop": true,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "9bc67e5b695f8bce02dee6660fc60448356ede401f738bc7f364dfee6838094b"
+      "sha256": "6c44b40b9eb2846f7eca1ba808437ac325ab36849611cd77fd52739a8d14f596"
     },
     {
       "file": "op_suzuran_run.png",
@@ -459,7 +459,7 @@
       "loop": false,
       "hold_last_frame": false,
       "direction": "right",
-      "sha256": "a20781e0f808679b9768ca6e973672194c7aa5d30ec3b20c4869d3320957311f"
+      "sha256": "4098d08468e6d03f465640b7113c24495499c4e7917196968dee7fc0cbb1d46a"
     },
     {
       "file": "op_mon3tr_idle.png",
