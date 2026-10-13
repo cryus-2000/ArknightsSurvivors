@@ -1,0 +1,31 @@
+{
+  "logical_resolution": [
+    400,
+    300
+  ],
+  "nearest_scale": 3,
+  "base_palette": 128,
+  "files": {
+    "toy_poster_pixel_redesign_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 119986
+    },
+    "toy_poster_pixel_redesign_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 117824
+    },
+    "toy_poster_pixel_redesign_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 88867
+    }
+  }
+}
