@@ -1,0 +1,30 @@
+{
+  "toy_poster_mizuki_corrected_4x3_notext.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 554218
+  },
+  "toy_poster_mizuki_corrected_4x3.png": {
+    "size": [
+      1200,
+      900
+    ],
+    "bytes": 545090
+  },
+  "toy_poster_mizuki_corrected_preview.png": {
+    "size": [
+      400,
+      300
+    ],
+    "bytes": 199795
+  },
+  "toy_mizuki_detail.png": {
+    "size": [
+      1020,
+      735
+    ],
+    "bytes": 72959
+  }
+}
