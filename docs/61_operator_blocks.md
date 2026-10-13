@@ -1763,7 +1763,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
   - `summons.ishar`：`move {chase, target: densest, speed $ishar_speed 220, leash $ishar_leash 300, anchor: leader, repick $ishar_repick 0.5}`；
     `anim {idle, run, attack, spawn}` = Codex `op_skalter_ishar_*`（4 / 6 / 4 / 6 帧，4 / 10 / 10 / 12 fps，脚底 (24, 46)，攻击出手帧 2）、`float {h 4, amp 2}`、`shadow 1.1`；
     `zone {r $ishar_r 120, share $ishar_share 0.5, mode: false, look {fx_skalter_seaborn_zone, fit 74, max_scale 2.6, 透明度 0.55, ring 0.6}}`。
-  - `trig.every_n {n: 1}` → `verb.summon_cmd {ishar, action: cast, then: [shape.circle {center: summon:ishar, r: zone, max_n $ishar_n 8, mult $ishar_mult 0.5, src: 海嗣, tags: [summon]}]}`：
+  - `trig.every_n {n: 1}` → `verb.summon_cmd {ishar, action: cast, then: [shape.circle {center: summon:ishar, r: zone, max_n $ishar_n 8, mult $ishar_mult 0.4（10-14 协调人定）, src: 海嗣, tags: [summon]}]}`：
     她每放一圈声浪，海嗣播一遍施放帧条，出手帧（约 0.25 秒后）从自身放一圈声浪；画面同她的声浪（大帧条 / 小帧条 + 余波环、明暗 `xfade`），`grow_to: summon:ishar`、扩 0.6 秒。
   - 小歌域里的干员算「在歌域内」（歌声 / 节点 / 天赋 / S1 / S2 的 `scope: in_zone` 光环与队长回复），不叠加；S3 的 ×2 不传给小歌域（`mode: false`），其余歌域扩张吃一半。
 - 伤害来源：`余音`（follow_up / area）、`海嗣`（emitter summon，entity / area，命中再带 `summon` 标签）。
