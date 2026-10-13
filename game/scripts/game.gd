@@ -173,6 +173,7 @@ var dodge_phys := 0.0            # 物理闪避（额外）
 var dodge_arts := 0.0            # 法术闪避（额外）
 var followup_mult := 1.0         # 追击与召唤物伤害（docs/35）
 var heal_mult := 1.0             # 主控干员受到的回复效果
+var phys_taken_mult := 1.0       # 队长受到的物理伤害倍率（生存卡「硬化」，docs/83）
 var corrode_taken_mult := 1.0    # 受到的侵蚀
 var nerve_taken_mult := 1.0      # 神经损伤累积
 # ---- docs/57 新接的属性（原先只在 stat_defs 里有定义、没人读）
@@ -1432,7 +1433,7 @@ const STAT_SYNC := {
 	&"sp_gain": "sp_mult", &"control_dur": "control_mult", &"light_decay": "lamp_decay", &"oil_gain": "oil_mult", &"xp_gain": "xp_mult",
 	&"shop_price": "shop_price_mult", &"ally_dmg": "ally_mult", &"shield_interval": "shield_every",
 	&"enemy_hp": "enemy_hp_mult", &"enemy_dmg": "enemy_dmg_mult",
-	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
+	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"phys_taken": "phys_taken_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
 	# docs/57 P1–P5 / P7
 	&"boss_dmg": "boss_mult", &"light_loss": "lamp_loss_mult", &"enemy_speed": "enemy_speed_mult", &"enemy_kb": "enemy_kb_mult",
 	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult",

@@ -9,6 +9,7 @@ const PLAYER := {
 	&"regen": {"base": 0.0, "old": "regen", "name": "每秒回复"},
 	&"armor": {"base": 0.0, "min": 0.0, "old": "armor", "name": "受到伤害 -N（固定）"},
 	&"dmg_taken": {"base": 1.0, "min": 0.1, "name": "受到伤害倍率"},
+	&"phys_taken": {"base": 1.0, "min": 0.1, "name": "受到的物理伤害倍率（生存卡「硬化」，docs/83；固定减伤 armor 另算）"},
 	&"dodge": {"base": 0.25, "min": 0.0, "max": 0.75, "old": "dodge", "name": "闪避率"},
 	&"dodge_phys": {"base": 0.0, "min": 0.0, "old": "dodge_phys", "name": "物理闪避（额外）"},
 	&"dodge_arts": {"base": 0.0, "min": 0.0, "old": "dodge_arts", "name": "法术闪避（额外）"},

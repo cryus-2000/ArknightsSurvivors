@@ -16,12 +16,12 @@ const Character = preload("res://scripts/characters/character.gd")
 const Combat = preload("res://scripts/run/combat.gd")
 
 ## 只作用于主控干员的属性（唯一受击体）；敌人伤害 / 攻速也只落在主控身上
-const LEADER_STATS := ["max_hp", "regen", "regen_pct", "armor", "dmg_taken", "dodge", "dodge_phys", "dodge_arts", "arts_res", "heal_mult",
+const LEADER_STATS := ["max_hp", "regen", "regen_pct", "armor", "phys_taken", "dmg_taken", "dodge", "dodge_phys", "dodge_arts", "arts_res", "heal_mult",
 	"corrode_taken", "nerve_taken", "shield_max", "shield_interval", "move_speed", "pickup", "enemy_dmg", "enemy_atk_speed"]
 ## 与干员无关的属性（资源 / 商店 / 灯火）
 const GLOBAL_STATS := ["shop_price", "light_decay", "light_loss", "oil_gain", "xp_gain"]
 ## 越小越好的属性（判断「只有坏处」用）
-const LOWER_BETTER := ["dmg_taken", "corrode_taken", "nerve_taken", "shield_interval", "enemy_dmg", "enemy_atk_speed", "enemy_hp", "enemy_speed",
+const LOWER_BETTER := ["dmg_taken", "phys_taken", "corrode_taken", "nerve_taken", "shield_interval", "enemy_dmg", "enemy_atk_speed", "enemy_hp", "enemy_speed",
 	"shop_price", "light_decay", "light_loss"]
 ## 按伤害特征生效的属性 → 特征（见 traits）
 const TRAIT_STATS := {"melee_dmg": "近战", "ranged_dmg": "远程", "physical_dmg": "物理", "arts_dmg": "法术", "followup_dmg": "追击", "control_dur": "控制"}

@@ -15,7 +15,7 @@ var rej_log: Array = []        # 每次排异的说明文字
 const PASSIVES := {
 	"hp": {"name": "坚韧", "desc": "队长最大生命 +20", "max": 99, "cat": "doctor"},
 	"regen": {"name": "自愈", "desc": "队长生命回复 +0.6 / 秒", "max": 5, "cat": "doctor"},
-	"armor": {"name": "硬化", "desc": "队长物理减伤 +2（对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
+	"armor": {"name": "硬化", "desc": "队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
 	"dodge": {"name": "水影", "desc": "队长闪避率 +5%", "max": 4, "cat": "doctor"},
 	"pickup": {"name": "感知", "desc": "队长拾取范围 +30%", "max": 5, "cat": "doctor"},
 	"wick": {"name": "护灯", "desc": "队长受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
@@ -355,7 +355,7 @@ func apply_passive(pid: String) -> bool:
 	match pid:
 		"hp": st.add(&"max_hp", "flat", 20.0, src)
 		"regen": st.add(&"regen", "flat", Bal.v("sustain/regen_card", 0.6), src)
-		"armor": st.add(&"armor", "flat", 2.0, src)
+		"armor": st.add(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08), src)
 		"dash_cd": st.add(&"dash_cd", "mult", Bal.v("dash/cd_card", 0.88), src)
 		"dash_dist": st.add(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12), src)
 		"dash_charge": st.add(&"dash_charges", "flat", 1.0, src)
@@ -378,6 +378,8 @@ func passive_desc(pid: String) -> String:
 		"regen":
 			var d: float = g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6)) - g.combat.regen_per_sec()
 			return "队长生命回复 +%s / 秒" % _num(d)
+		"armor":
+			return "队长受到的物理伤害 -%d%%（乘算；对法术、真实伤害无效）" % int(round(Bal.v("growth/armor_pct", 0.08) * 100.0))
 		"dash_cd":
 			return "冲刺冷却 -%d%%" % int(round((1.0 - Bal.v("dash/cd_card", 0.88)) * 100.0))
 		"dash_dist":
@@ -399,7 +401,7 @@ func passive_preview(pid: String) -> String:
 	match pid:
 		"hp": return "最大生命 %d → %d" % [int(g.max_hp), int(maxf(20.0, st.value_with(&"max_hp", "flat", 20.0)))]
 		"regen": return "生命回复 %.1f → %.1f / 秒" % [g.combat.regen_per_sec(), g.combat.regen_per_sec(Bal.v("sustain/regen_card", 0.6))]
-		"armor": return "物理减伤 %.1f → %.1f" % [g.armor, st.value_with(&"armor", "flat", 2.0)]
+		"armor": return "受到的物理伤害 ×%.2f → ×%.2f" % [g.phys_taken_mult, st.value_with(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08))]
 		"dodge": return "闪避 %d%% → %d%%" % [int(round(g.dodge * 100)), int(round(st.value_with(&"dodge", "flat", 0.05) * 100))]
 		"speed": return "移动速度 %d → %d" % [int(g.speed), int(st.value_with(&"move_speed", "mult", 1.1))]
 		"pickup": return "拾取范围 %d → %d" % [int(g.pickup), int(st.value_with(&"pickup", "mult", 1.3))]

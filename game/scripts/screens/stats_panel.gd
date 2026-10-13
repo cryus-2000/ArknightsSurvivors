@@ -23,6 +23,14 @@ func regen_text() -> String:
 	return s + ("（入队 +%.1f）" % sq if sq > 0.0 else "")
 
 
+## 物理减伤一行：固定减伤（armor）；有「硬化」时再写受到的物理伤害比例（docs/83），斜杠后是法抗
+func armor_text() -> String:
+	var s := "%.1f" % g.armor
+	if g.phys_taken_mult < 0.999:
+		s += "，物理伤害 -%d%%" % int(round((1.0 - g.phys_taken_mult) * 100.0))
+	return s + " / %d%%" % int(round(g.arts_res * 100.0))
+
+
 func dmg_mix_text() -> String:
 	var total := 0.0
 	for k in g.dmg_out:
@@ -123,7 +131,7 @@ func draw(vs: Vector2) -> void:
 		UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
 		y += 30
 	var rows0 := [
-		["生命回复", regen_text()], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
+		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 		["照亮范围", "%d" % int(g._lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
@@ -392,7 +400,7 @@ func draw_phone(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, Vector2(b.position.x + 92 + barw, y + 12), "%d" % int(g.lamp), 18, UI.TEXT)
 			y += 38
 			var rows0 := [
-				["生命回复", regen_text()], ["物理减伤 / 法抗", "%.1f / %d%%" % [g.armor, int(round(g.arts_res * 100.0))]], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
+				["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 				["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 				["照亮范围", "%d" % int(g._lamp_r())],
 				["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],

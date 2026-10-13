@@ -457,6 +457,8 @@ func drain_corrode(tick: float) -> void:
 func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 	if g.in_type[1] != "真实":
 		amount *= g.rfx.taken_mult()
+	if g.in_type[1] == "物理":
+		amount *= g.phys_taken_mult   # 硬化（docs/83）：所有物理伤害按比例减，在固定减伤之前；不吃护甲的冲击环也减
 	var pre := amount
 	if not ignore_armor and g.in_type[1] == "物理":
 		amount = max(1.0, amount - g.armor)

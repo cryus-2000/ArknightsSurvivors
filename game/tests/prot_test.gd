@@ -2119,11 +2119,33 @@ func test_squad_sustain_dash() -> void:
 	game.sync_stats()
 	ok(hp_prev.ends_with("→ %d" % int(game.max_hp)), "坚韧预览「%s」= 选中后最大生命 %d" % [hp_prev, int(game.max_hp)])
 	game.stats.remove_source("growth:hp")
+	# 硬化（方案 B）：受到的物理伤害 ×(1 − growth/armor_pct) / 级，乘算；固定减伤 armor 不变；法术不受影响
+	var ap: float = Bal.v("growth/armor_pct", 0.08)
+	var armor0: float = game.armor
 	var ar_prev: String = game.doctor.passive_preview("armor")
 	game.doctor.apply_passive("armor")
 	game.sync_stats()
-	ok(ar_prev.ends_with("→ %.1f" % game.armor), "硬化预览「%s」= 选中后减伤 %.1f" % [ar_prev, game.armor])
+	ok(ar_prev.ends_with("→ ×%.2f" % game.phys_taken_mult), "硬化预览「%s」= 选中后物理伤害 ×%.2f" % [ar_prev, game.phys_taken_mult])
+	ok(absf(game.phys_taken_mult - (1.0 - ap)) < 0.0001 and game.armor == armor0, "硬化 1 级：物理伤害 ×%.2f，固定减伤不变（%.1f）" % [game.phys_taken_mult, game.armor])
+	ok(game.doctor.passive_desc("armor").contains("%d%%" % int(round(ap * 100.0))), "硬化说明写的是 growth/armor_pct（%s）" % game.doctor.passive_desc("armor"))
+	for k in 3:
+		game.doctor.apply_passive("armor")
+	game.sync_stats()
+	ok(absf(game.phys_taken_mult - pow(1.0 - ap, 4)) < 0.0001, "硬化 4 级乘算：×%.3f（应 ×%.3f）" % [game.phys_taken_mult, pow(1.0 - ap, 4)])
+	var raw := 50.0
+	var keep_hp: float = game.hp
+	game.in_type = ["近战", "物理"]
+	game.invuln = 0.0
+	var lost_p: float = c.hurt(raw)
+	game.hp = keep_hp
+	ok(absf(lost_p - maxf(1.0, raw * game.rfx.taken_mult() * game.phys_taken_mult - game.armor)) < 0.01, "硬化 4 级：物理 %d 扣 %.2f（先乘比例再减固定减伤）" % [int(raw), lost_p])
+	game.in_type = ["远程", "法术"]
+	var lost_a: float = c.hurt(raw)
+	game.hp = keep_hp
+	ok(absf(lost_a - maxf(1.0, raw * game.rfx.taken_mult() * (1.0 - minf(game.arts_res, 0.7)))) < 0.01, "硬化不影响法术伤害（扣 %.2f）" % lost_a)
 	game.stats.remove_source("growth:armor")
+	game.sync_stats()
+	ok(game.phys_taken_mult == 1.0, "移除硬化后物理伤害倍率回到 1")
 	# 冲刺：默认距离、远跃、迅捷、连冲
 	ok(absf(game.dash_dist() - Bal.v("dash/dist", 107.0)) < 0.001 and game.dash_max() == 1, "默认冲刺距离 %.0f、可储存 1 次" % game.dash_dist())
 	game.doctor.apply_passive("dash_dist")
