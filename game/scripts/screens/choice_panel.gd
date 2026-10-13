@@ -39,8 +39,15 @@ const CARD_SCALE_PHONE := 0.8
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
 
 
-## 手机横屏卡片说明区：说明从 176 起，「影响」标签行顶边在卡底上方约 62，再留 14（原 233 少算了标签行高，长说明会压到标签上）
-const DESC_PAD_PHONE := 256.0
+## 手机横屏卡片内边距（用户 10-13「卡片和字体之间可以留点空隙」，设计像素，整排再缩 0.8）：
+## 左右 PAD_X_PHONE 26（卡宽 272 的 9.6%，缩放后约 21 UI 像素；原 20）；名字基线 162、说明从 186 起（原 160 / 176，名字与说明间多留 10）；
+## 「影响 / 特性」标签行中线在卡底上方 66（原 53，原来下沿贴着选择条）；选择条左右内缩 20、底边离卡底 16。
+## 说明区 = 卡高 − DESC_PAD_PHONE：186 起，到标签行顶边（卡底上方约 77）再留 20
+const PAD_X_PHONE := 26.0
+const NAME_Y_PHONE := 162.0
+const DESC_Y_PHONE := 186.0
+const CHIP_UP_PHONE := 66.0
+const DESC_PAD_PHONE := 283.0
 const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
 ## 本次三选一的卡片高（未缩放的设计像素）：手机横屏按最长说明加高，0 = 用 card_h()
 var row_h := 0.0
@@ -420,9 +427,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / CARD_SCALE_PHONE
 		var need := base_h
 		for o in opts:
-			var fz := UI.fit(g.font, option_description(o), CARD_W - 40.0, base_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+			var fz := UI.fit(g.font, option_description(o), CARD_W - 2.0 * PAD_X_PHONE, base_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
 			if not fz.fit:
-				var f15 := UI.fit(g.font, option_description(o), CARD_W - 40.0, 9999.0, [DESC_SIZES_PHONE[-1]])
+				var f15 := UI.fit(g.font, option_description(o), CARD_W - 2.0 * PAD_X_PHONE, 9999.0, [DESC_SIZES_PHONE[-1]])
 				need = maxf(need, ceilf(f15.lines.size() * float(f15.lh)) + DESC_PAD_PHONE)
 		row_h = clampf(need, base_h, maxf(base_h, max_h))
 	layout(kind)
@@ -485,7 +492,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
 				if row_h > 0.0:
-					f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, row_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+					f0 = UI.fit(g.font, display_desc, CARD_W - 2.0 * PAD_X_PHONE, row_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+					card.set_meta("roomy", true)
 				else:
 					f0 = UI.fit(g.font, display_desc, CARD_W - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
 			elif compact:
@@ -495,7 +503,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "") -> void:
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
 			var chips := Affects.chips(g, o)
 			card.set_meta("affects", chips)
-			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, CARD_W - 32.0))
+			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, CARD_W - (2.0 * PAD_X_PHONE if row_h > 0.0 else 32.0)))
 		(g.panel_col if ev else g.panel_box).add_child(card)
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
@@ -619,16 +627,21 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
 	var ta: float = motion.text_a   # 招募：落地后名字 / 说明 / 标签再淡入
-	UI.text(card, g.font, r.position + Vector2(0, (160.0 if ph else 184.0) if compact else 230.0), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 3)
+	var roomy: bool = card.get_meta("roomy", false)   # 手机横屏缩小后的卡：加大内边距（PAD_X_PHONE 等）
+	var px: float = PAD_X_PHONE if roomy else 20.0
+	var ny: float = NAME_Y_PHONE if roomy else ((160.0 if ph else 184.0) if compact else 230.0)
+	var nx: float = px if roomy else 0.0
+	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(20, (176.0 if ph else 198.0) if compact else 244.0), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 40.0)
+		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
+		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 53.0), chips, r.size.x - 32.0, 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind == "recruit" else "影响", 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
-	var ab := Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
+	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
