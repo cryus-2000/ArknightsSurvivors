@@ -12652,8 +12652,12 @@ static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
 	f.t = float(f.t) + dt
 	var ap: float = float(b.get("appear", 0.25))
 	var sw: float = float(b.get("spin", 0.3))
-	if not f.hit and float(f.t) >= ap + float(b.get("hit_at", 0.08)):
-		f.hit = true
+	var spins: int = int(b.get("spins", 1))
+	var gap: float = float(b.get("spin_gap", 0.15))
+	while int(f.get("n_hit", 0)) < spins and float(f.t) >= ap + float(b.get("hit_at", 0.08)) + int(f.get("n_hit", 0)) * gap:   # 连斩 spins 圈，每圈间隔 spin_gap 秒
+		var k: int = int(f.get("n_hit", 0))
+		f["n_hit"] = k + 1
+		var rev: bool = f.rev != (k % 2 == 1)   # 每圈换个转向
 		var r: float = float(b.get("r", 100.0)) * o.stat(&"op_range")
 		var c: Vector2 = f.pos
 		var src: String = str(b.get("src", ""))
@@ -12662,11 +12666,11 @@ static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
 			o.deal_damage(e, float(f.dmg))
 			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_COLD, "alpha": 0.5})
 		var sc: float = r / 34.0
-		var ok_b: bool = o.spawn_fx_sprite(str(b.get("saw_back", "fx_specter_saw_cold_back")), c + Vector2(0, -6), sc, 0.0, f.rev)
-		var ok_f: bool = o.spawn_fx_sprite(str(b.get("saw_front", "fx_specter_saw_cold_front")), c + Vector2(0, -6), sc, 0.0, f.rev)
+		var ok_b: bool = o.spawn_fx_sprite(str(b.get("saw_back", "fx_specter_saw_cold_back")), c + Vector2(0, -6), sc, 0.0, rev)
+		var ok_f: bool = o.spawn_fx_sprite(str(b.get("saw_front", "fx_specter_saw_cold_front")), c + Vector2(0, -6), sc, 0.0, rev)
 		if not (ok_b or ok_f):
-			o.fx({"kind": "h3_saw", "pos": c + Vector2(0, -8), "r": r, "life": 0.24, "col": H3_COLD, "spin": (-1.0 if f.rev else 1.0) * 34.0, "tooth": 5.0, "ang": g.vrng.randf() * TAU})
-		_h3_sfx(o, "atk", -3.0, 1.2, 0.06)
+			o.fx({"kind": "h3_saw", "pos": c + Vector2(0, -8), "r": r, "life": 0.24, "col": H3_COLD, "spin": (-1.0 if rev else 1.0) * 34.0, "tooth": 5.0, "ang": g.vrng.randf() * TAU})
+		_h3_sfx(o, "atk", -3.0, 1.2 + 0.08 * k, 0.06)
 	if float(f.t) >= ap + sw + float(b.get("burst", 0.3)):
 		sp.flash = {}
 
@@ -12693,7 +12697,8 @@ static func _e3_flash_draw(o) -> void:
 			_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, k), 0)
 		return
 	if t < ap + sw:
-		var ksp: float = (t - ap) / sw
+		var spins: int = maxi(1, int(b.get("spins", 1)))
+		var ksp: float = fmod((t - ap) / sw * spins, 1.0)   # 旋身帧条每圈播一遍
 		var tx: Texture2D = o.anim_tex(str(b.get("anim", "doll_spin")))
 		if tx != null:
 			var n: int = o.anim_hframes(tx, str(b.get("anim", "doll_spin")))
@@ -13086,8 +13091,9 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "range", p, ctx, true, 10.0, 1000.0)
 			_num(b, "r", p, ctx, true, 1.0, 400.0)
 			_num(b, "mult", p, ctx, true, 0.0, 10.0)
-			for k in ["appear", "spin", "burst"]:
+			for k in ["appear", "spin", "burst", "spin_gap"]:
 				_num(b, k, p, ctx, false, 0.0, 3.0)
+			_num(b, "spins", p, ctx, false, 1.0, 6.0)
 			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
 			if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):

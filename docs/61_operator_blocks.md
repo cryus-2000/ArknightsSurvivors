@@ -1619,7 +1619,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 | 积木 / 参数 | 类 | 说明 |
 |---|---|---|
 | `trig.on_windup` | 触发 | 第 3 批的普攻形状起手时执行 do（中心 = 自己）。幽灵鲨精一「卷刃」：起手时 `verb.displace` 把环斩范围外、160 内的敌人吸近 20（出手帧约在起手后 0.2 秒） |
-| `verb.doll_flash` | 瞬时（`trig.every_n` do） | 替身人偶在 range 内敌群最密处从水花里现身 appear 秒 → 旋身斩一圈（r × op_range，basis × mult，src）→ 碎成泡沫 burst 秒；同时最多 1 个，替身跟随队长期间不出。幽灵鲨精二「替身闪现」 |
+| `verb.doll_flash` | 瞬时（`trig.every_n` do） | 替身人偶在 range 内敌群最密处从水花里现身 appear 秒 → 旋身连斩 spins 圈（每 spin_gap 秒一圈、每圈换转向；r × op_range，每圈 basis × mult，src；旋斩段共 spin 秒）→ 碎成泡沫 burst 秒；同时最多 1 个，替身跟随队长期间不出。幽灵鲨精二「替身闪现」 |
 | `shape.thrust` 的 `stages[k].on_first` | 命中状态 | 第 k 段命中的第一个敌人吃的状态（可带 `cd` / `fx`）。艾丽妮精一「挑刺」 |
 | `shape.thrust` 的 `finisher {cond, every, anim, do, volley}` | 普攻参数 | 每第 every 次刺击，最后一段换成 do；收尾帧条 anim（斩出帧对准收尾那一刻）；volley {delay, n, mult[], r, src}：delay 秒后手炮补射这一斩里浮空的至多 n 名。艾丽妮精二「裂潮余波」 |
 | `shape.cleave` 的 `aim: thrust` / `look: crescent` | 参数 | 沿这一轮刺击的方向（不转身）/ 新月斩画面 |
