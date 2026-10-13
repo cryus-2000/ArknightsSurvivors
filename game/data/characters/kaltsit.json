@@ -6,7 +6,7 @@
  "col": [0.55, 1.0, 0.5],
  "base": {
   "_doc": "基础数值（docs/27 §3）。数据干员（docs/61 §15.9）：blocks 里的数值全部引用这里；m_* = Mon3tr（攻击 / 间隔 / 半径 / 扇面弧度 / 牵引 / 移速 / 贴身间距 / 瞬回距离 / 首击冷却）。10-12 削治疗（docs/72 §6）：heal_pct 0.03→0.015、s1_heal 0.068→0.026、knight_heal 0.05→0.025、天赋治疗倍率 e1_heal 1.5→1.1、精二总倍率 e2_heal 1.5（新增）",
-  "heal_pct": 0.015,
+  "heal_pct": 0.012,
   "heal_cd": 3.5,
   "s1_heal": 0.026,
   "m_atk": 25,
@@ -69,7 +69,7 @@
   "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2}
  },
  "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt"],
- "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为主控回复 1.5% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）", "heal": true},
+ "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为主控回复 1.2% 最大生命；随行的 Mon3tr 自动撕咬主控身边的敌人（物理）", "heal": true},
  "skills": [
   {"name": "医疗单元", "en": "MEDICAL UNIT", "sp": 7, "desc": "立即为主控回复 2.6% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
   {
