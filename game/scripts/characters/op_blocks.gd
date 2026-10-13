@@ -32,7 +32,7 @@ const OP_STATS := ["op_atk", "op_aspd", "op_range", "op_skill_power", "op_shots"
 const AURA_STAT := {"atk": "op_atk", "aspd": "op_aspd", "skill_power": "op_skill_power", "range": "op_range"}
 const COND_OPS := [">=", "<=", "==", ">", "<"]
 ## blocks.attack 能用的普攻形状（第三批追加：point_aoe 安洁莉娜、dash_line 德克萨斯、projectile 能天使）
-const ATTACK_SHAPES := ["circle", "cone", "point_aoe", "dash_line", "projectile"]
+const ATTACK_SHAPES := ["circle", "cone", "point_aoe", "dash_line", "projectile", "shell", "bolt"]   # shell / bolt：手写迁移段（艾雅法拉 / 逻各斯）
 
 
 # ================================================================ 表达式 / 条件（docs/61 §1.2 / §1.3）
@@ -104,6 +104,9 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	var ec := el_parse_cond(s)   # 精英化段：buff:<key>
 	if not ec.is_empty():
 		return ec
+	var hc := hw_parse_cond(s)   # 手写迁移段：timer:<key> / armed:<key>
+	if not hc.is_empty():
+		return hc
 	if s.begins_with("!"):
 		c.neg = true
 		s = s.substr(1).strip_edges()
@@ -179,6 +182,8 @@ static func _compile_node(n, base: Dictionary, counter: Array):
 		return o
 	if n is Array:
 		return n.map(func(x): return _compile_node(x, base, counter))
+	if n is String and "$" in n:   # 数组里的 $ 表达式（手写迁移段：mult 数组 = 依次乘）
+		return eval_expr(n, base)[1]
 	return n
 
 
@@ -211,6 +216,8 @@ static func cond_true(o, c) -> bool:
 				r = mc[1]
 			elif str(c.k) == "buff":   # 精英化段：限时增益 buff:<key> 生效中
 				r = el_buff_on(o, str(c.a))
+			elif str(c.k) in ["timer", "armed"]:   # 手写迁移段
+				r = hw_cond(o, c)
 			else:
 				r = ext_cond_true(o, str(c.k))
 	return r != bool(c.neg)
@@ -233,6 +240,8 @@ static func _cmp(a: float, op: String, b: float) -> bool:
 
 ## 编队里除自己以外满足 who（faction:<阵营> / class:<职业>）的人数
 static func count_others(o, who: String) -> int:
+	if who.begins_with("stack:"):   # 手写迁移段：本干员 verb.stack 的层数
+		return hw_stack_n(o, who.substr(6))
 	var n := 0
 	for m in o.g.squad.ops:
 		if m != o and member_is(m, who):
@@ -254,10 +263,14 @@ static func member_is(m, who: String) -> bool:
 static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	var g = o.g
 	var mult: float = float(b.get("mult", 1.0))
-	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * mult * float(o.loc.dmg) * o._dmg_bonus()
-	if b.get("power", false):
-		dmg *= o.skill_power()
-	dmg *= el_atk_mult(o)   # 精英化段：只乘普攻的局部倍率 atk（普攻出手时才生效；其余干员恒 1.0）
+	var dmg: float
+	if b.has("basis"):   # 手写迁移段：伤害 = 本次普攻 / 上一个形状 / 触发事件的伤害 × mult（追加打击按原伤害的百分比，同手写的 dmg × k）
+		dmg = hw_basis(o, str(b.basis)) * mult
+	else:
+		dmg = o.base(str(b.get("atk_key", "atk")), 0.0) * mult * float(o.loc.dmg) * o._dmg_bonus()
+		if b.get("power", false):
+			dmg *= o.skill_power()
+		dmg *= el_atk_mult(o)   # 精英化段：只乘普攻的局部倍率 atk（普攻出手时才生效；其余干员恒 1.0）
 	var src: String = str(b.get("src", ""))
 	var tags: Array = b.get("tags", [])
 	var kb: float = float(b.get("kb", 0.0))
@@ -274,6 +287,10 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				return []
 			var c: Vector2 = shape_center(o, b, at)
 			var r: float = shape_radius(o, b)
+			if str(b.get("center", "")) == "front":   # 手写迁移段：锚击砸在身前（朝最近敌人转身）
+				var fr: Array = hw_front(o, b, r)
+				c = fr[0]
+				fx_a = fr[1]
 			if c == Vector2.INF:
 				return []
 			if b.has("only"):   # 精英化段：只打处于某些状态的敌人（安洁莉娜失重井）
@@ -284,15 +301,30 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			fx_c = c
 			fx_r = r
+			hw_record(o, dmg, fx_a, r, c)   # 手写迁移段：记下这一下（basis prev / 普攻的 attack）
 		"cone":
 			var r2: float = shape_radius(o, b)
-			var ts: Array = o.nearest_enemies(1, r2 + 30.0, o.pos)
-			var ang: float = o.atk_angle((ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle())
-			hits = o.melee_hit(src, o.pos, ang, deg_to_rad(float(b.get("half_deg", 45.0))), r2, dmg, kb, stun, tags, max_n)
-			o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
+			var org: Vector2 = o.pos + hw_off(b)   # 手写迁移段：origin_off（判定原点相对脚底的偏移）；没写 = o.pos
+			var ang: float
+			if str(b.get("dir", "")) == "back":   # 手写迁移段：本次普攻的反方向（斯卡蒂天赋反手斩），不另找目标、不转身
+				ang = float(o.hw.get("atk_ang", o.facing_angle())) + PI
+			else:
+				var ar: float = r2   # 找目标的半径：aim_r（× op_range × aim_mult，手写「普攻半径 + aim_pad」）缺省 = 本形状半径
+				if b.has("aim_r"):
+					ar = float(b.aim_r) * o.stat(&"op_range") * float(b.aim_mult) if b.has("aim_mult") else float(b.aim_r) * o.stat(&"op_range")
+				var ts: Array = o.nearest_enemies(1, ar + float(b.get("aim_pad", 30.0)), o.pos)
+				var a0: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
+				if not ts.is_empty() and b.has("face") and hw_face_ok(o, b.face):   # 手写迁移段：face（布尔或条件串）= 朝目标转身
+					o.face_to(a0)
+				ang = o.atk_angle(a0)
+			var half: float = float(b.half) if b.has("half") else deg_to_rad(float(b.get("half_deg", 45.0)))
+			hits = o.melee_hit(src, org, ang, half, r2, dmg, kb, stun, tags, max_n)
+			if b.get("ring", true):
+				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 			fx_c = o.pos
 			fx_r = r2
 			fx_a = ang
+			hw_record(o, dmg, ang, r2, org)
 		"dash_line":
 			return tx_dash_start(o, b, dmg)   # 德克萨斯段：命中逐帧结算，这里只起冲
 		"projectile":   # 能天使段：弹体自推进，命中在 exu_tick 里结算，这里返回空
@@ -317,6 +349,8 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 		return
 	if str(s.get("st", "")) == "seal":   # 召唤 / 封印段：Boss 有自己的规则（缩短 + 免疫），不走下面的「Boss 缺省不受」
 		seal_apply(o, e, s)
+		return
+	if hw_on(o) and hw_status(o, e, s):   # 手写迁移段：点燃 / 易伤（Boss 也吃）
 		return
 	if e.boss and not (s.get("boss", false) or s.get("boss_only", false)):
 		return
@@ -367,7 +401,9 @@ static func shape_radius(o, b: Dictionary) -> float:
 	if r is String and r == "zone":
 		return o.zone_r()
 	if b.get("r_abs", false):   # 召唤物扩展段：r_abs = 半径不吃 op_range（凯尔希熔毁 130）
-		return float(r)
+		return float(r) * float(b.r_mult) if b.has("r_mult") else float(r)
+	if b.has("r_mult"):   # 手写迁移段：半径再乘 r_mult（斯卡蒂潮汐 ×1.4 这类，按手写的乘法顺序：r × op_range × r_mult）
+		return float(r) * o.stat(&"op_range") * float(b.r_mult)
 	return float(r) * o.stat(&"op_range")
 
 
@@ -383,6 +419,8 @@ static func aura_members(o, scope: String) -> Array:
 				ok = m != o
 			"leader":
 				ok = m.is_leader
+			"self":   # 手写迁移段
+				ok = m == o
 			"in_zone":
 				ok = m.pos != Vector2.INF and o.in_zone(m.pos)
 			_:
@@ -474,8 +512,9 @@ static func validate(cid: String, d: Dictionary) -> bool:
 	var srcs: Dictionary = d.get("hit_sources", {})
 	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {}), "sprites": d.get("sprites", {})}
 	for k in blocks:
-		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons"]:
-			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons）" % k)
+		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons", "follow", "hit_fx", "look", "_doc"]:
+			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look）" % k)
+	_hw_top(blocks, ctx)   # 手写迁移段：follow / hit_fx / look
 	if blocks.has("summons"):   # 召唤物种类（文件末尾「召唤 / 封印段」）
 		_sm_kinds(blocks, ctx)
 	if blocks.has("zone"):
@@ -495,6 +534,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		_block(atk, "blocks.attack", "attack", ctx)
 		_num(atk, "every", "blocks.attack", ctx, true, 0.1)
 		_num(atk, "range", "blocks.attack", ctx, false)
+		_hw_attack(atk, ctx)   # 手写迁移段：first / idle / anim / turn / combo / armed
 	var atk_shape: String = str(atk.get("shape", "")) if atk is Dictionary else ""
 	var sk = blocks.get("skills", null)
 	var skd: Array = d.get("skills", [])
@@ -511,6 +551,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 			var dv = sb.get("dur", 0)
 			if dv is Dictionary and dv.has("ammo"):   # dur.ammo（能天使段：N 发子弹）
 				_exu_dur(dv, p, perm_json, i, ctx)
+			elif dv is Dictionary and dv.has("pulses"):   # dur.pulses（手写迁移段：连续喷发，_hw_skill 查）
+				pass
 			elif dv is Dictionary:   # dur.next_n（安洁莉娜段：接下来 N 次普攻）
 				_v_next_n(sb, p, perm_json, ctx)
 			elif dv is String and dv == "permanent":
@@ -525,16 +567,18 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do", "fx", "aim", "status", "status_col"] + EXU_SKILL_KEYS:
-					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / status / status_col / attack_patch / end 这几个字段" % [p, k])
-				elif k == "aim" and not (str(sb.aim) == "leader" or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
-					errs.append("%s.aim 只能是 leader / summon:<blocks.summons 里的种类>" % p)
+				if not k in ["dur", "do", "fx", "aim", "status", "status_col"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
+					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段" % [p, k])
+				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
+					errs.append("%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>" % p)
 				elif k == "attack_patch" and atk_shape == "point_aoe" and not (dv is Dictionary and dv.has("next_attacks")):
 					errs.append("%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{\"next_attacks\": N}）" % p)
+			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
 			if sb.has("fx"):
 				_fx(sb.fx, p + ".fx", ctx, "cast")
 			_list(sb.get("do", []), p + ".do", "skill", ctx)
 			_exu_skill(sb, p, ctx, atk_shape)   # 能天使段：attack_patch（落点弹的由 _v_next_n 查）/ end
+			_hw_skill(sb, p, ctx)   # 手写迁移段：cast: instant / dur.pulses + pulse
 	for sec in ["trait", "talent"]:
 		var arr = blocks.get(sec, [])
 		if not (arr is Array):
@@ -654,6 +698,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		return
 	if _el_block(b, p, kind, ctx, tag):   # 精英化段（docs/91 第 1 批）
 		return
+	if _hw_block(b, p, kind, ctx, tag):   # 手写迁移段（精英化第 2 批：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安）
+		return
 	if nm in PLANNED.get(fam, []):
 		errs.append("%s：积木「%s」已登记（docs/61 📝）但还没实现" % [p, tag])
 		return
@@ -707,8 +753,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				_num(b, "step", p, ctx, true, 8.0, 400.0)
 				_num(b, "delay", p, ctx, false, 0.0, 5.0)
 				_num(b, "stagger", p, ctx, false, 0.0, 1.0)
-			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target"]:
-				errs.append(p + ".center 只能是 zone / self / leader / target / path / summon:<种类>")
+			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target", "front"]:
+				errs.append(p + ".center 只能是 zone / self / leader / target / path / front / summon:<种类>")
 			if b.has("only"):   # 精英化段：只打处于这些状态的敌人
 				var ol = b.only
 				if not (ol is Array) or ol.is_empty() or ol.any(func(x): return not str(x) in EL_ONLY):
@@ -717,6 +763,7 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 					errs.append(p + ".only 只用于 shape.circle")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+			_hw_shape_params(b, p, ctx, tag)   # 手写迁移段：basis / origin_off / aim_pad / face / dir / r_mult / ring
 		"shape.orbit":
 			_num(b, "n", p, ctx, true, 1.0, 12.0)
 			if not (b.get("r", null) is String and b.r == "zone"):
@@ -762,12 +809,12 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		"aura.atk", "aura.aspd", "aura.skill_power", "aura.range":
 			_num(b, "value", p, ctx, true)
 			var sc := str(b.get("scope", ""))
-			if not (sc in ["squad", "others", "in_zone", "leader"] or ((sc.begins_with("faction:") or sc.begins_with("class:")) and sc.find(":") < sc.length() - 1)):
-				errs.append("%s.scope「%s」只能是 squad / others / in_zone / leader / faction:<阵营> / class:<职业>" % [p, sc])
+			if not (sc in ["squad", "others", "in_zone", "leader", "self"] or ((sc.begins_with("faction:") or sc.begins_with("class:")) and sc.find(":") < sc.length() - 1)):
+				errs.append("%s.scope「%s」只能是 squad / others / in_zone / leader / self / faction:<阵营> / class:<职业>" % [p, sc])
 			if b.has("per"):
 				var pe := str(b.per)
-				if not ((pe.begins_with("faction:") or pe.begins_with("class:")) and pe.find(":") < pe.length() - 1):
-					errs.append("%s.per「%s」只能是 faction:<阵营> / class:<职业>" % [p, pe])
+				if not ((pe.begins_with("faction:") or pe.begins_with("class:") or pe.begins_with("stack:")) and pe.find(":") < pe.length() - 1):
+					errs.append("%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key>" % [p, pe])
 				_num(b, "cap", p, ctx, true, 1.0)
 		"st.stun", "st.slow":
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
@@ -794,6 +841,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		"trig.tick":
 			_num(b, "every", p, ctx, true, 0.1)
 			_list(b.get("do", []), p + ".do", "instant", ctx)
+			if b.has("countdown") and not (b.countdown is bool):   # 手写迁移段：倒计时写法（生效当帧起算，到点重置为 every）
+				errs.append(p + ".countdown 只能是 true / false")
 		"trig.on_kill":
 			if not str(b.get("filter", "any")) in ["any", "elite", "boss"]:
 				errs.append(p + ".filter 只能是 any / elite / boss")
@@ -868,6 +917,10 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 	if not (entries is Array):
 		return
 	for f in entries:
+		if hw_fx_is(f):   # 手写迁移段的程序条目（blade 刀光；常驻的 aura_ring / outline 在画的时候按积木生效画）
+			if float(f.get("every", 0.0)) <= 0.0 and not fx_is_hold(f) and fx_on(o, f):
+				hw_fx_spawn(o, f, {"c": c, "r": r, "hits": hits, "ang": ang})
+			continue
 		if mf_is(f):   # 召唤物扩展段的程序条目
 			if float(f.get("every", 0.0)) <= 0.0 and fx_on(o, f):
 				mf_fx_spawn(o, f, {"c": c, "r": r, "hits": hits, "ang": ang})
@@ -1217,7 +1270,7 @@ static func _wake_band(pts: PackedVector2Array, cols: PackedColorArray, idx: Pac
 
 ## 常驻跟随条目：贴身层（behind / front）、程序漩涡（vortex）或常驻跟随帧条（hold），积木生效期间一直画、退出淡出
 static func fx_is_hold(f) -> bool:
-	return f is Dictionary and (str(f.get("layer", "")) in FX_BODY or f.has("vortex") or _hold(f))
+	return f is Dictionary and (str(f.get("layer", "")) in FX_BODY or f.has("vortex") or _hold(f) or f.has("aura_ring") or f.has("outline"))
 
 
 ## 条目是不是常驻跟随帧条（hold: true；写成非布尔时按 false，校验另报错）
@@ -1670,6 +1723,8 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 		var f = arr[i]
 		if not (f is Dictionary):
 			errs.append(q + " 必须是对象")
+			continue
+		if _hw_fx_check(f, q, ctx, owner):   # 手写迁移段的程序条目（blade / aura_ring / outline）
 			continue
 		if _mf_fx_check(f, q, ctx, owner):   # 召唤物扩展段的程序条目（pfx / sprite / sparks / ghost …）
 			continue
@@ -2254,8 +2309,10 @@ static func _v_next_n(sb: Dictionary, p: String, perm_json: bool, ctx: Dictionar
 		errs.append(p + ".attack_patch 必须是对象")
 		return
 	for k in ap:
-		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit"]:
-			errs.append("%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit" % [p, k])
+		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit", "power", "aoe_mult", "on_explode"]:   # power / aoe_mult / on_explode：手写迁移段（法术弹普攻）
+			errs.append("%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode" % [p, k])
+	if ap.has("on_explode"):
+		_list(ap.on_explode, p + ".attack_patch.on_explode", "instant", ctx)
 	for k in ["mult", "r_mult", "force_mult"]:
 		_num(ap, k, p + ".attack_patch", ctx, false, 0.0, 20.0)
 	if ap.has("src"):
@@ -2289,7 +2346,14 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 	if c == Vector2.INF:
 		return []
 	var g = o.g
-	var r: float = float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.loc.get("area", 1.0))
+	var r: float
+	if str(b.get("r", "")) == "attack":   # 精英化第 2 批段：按当前普攻半径（乌尔比安收链：锚击外圈）
+		r = shape_radius(o, o.cur_attack()) * float(b.get("r_mult", 1.0)) * float(o.loc.get("area", 1.0))
+	else:
+		r = float(b.get("r", 0.0)) * o.stat(&"op_range") * float(o.loc.get("area", 1.0))
+	var r_in := -1.0
+	if b.has("r_in"):
+		r_in = shape_radius(o, o.cur_attack()) if str(b.r_in) == "attack" else float(b.r_in) * o.stat(&"op_range")
 	var by_dist: bool = b.has("dist")
 	var kb: float = float(b.get("kb", 0.0))
 	var sc: float = float(o.shot.get("force_mult", 1.0)) if by_dist else 1.0
@@ -2298,6 +2362,8 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + float(e.r):
 			continue
+		if r_in >= 0.0 and e.pos.distance_to(c) <= r_in + float(e.r):
+			continue   # r_in 内的（这一下已经打到的）不拉
 		hits.append(e)
 		if by_dist:
 			displace_one(o, e, c, b, sc)
@@ -2336,7 +2402,11 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_num(b, "dist", p, ctx, true, 0.0, 400.0)
 				_num(b, "elite_mult", p, ctx, false, 0.0, 1.0)
 			if kind != "field":
-				_num(b, "r", p, ctx, true, 1.0, 800.0)
+				if str(b.get("r", "")) != "attack":
+					_num(b, "r", p, ctx, true, 1.0, 800.0)
+				_num(b, "r_mult", p, ctx, false, 0.05, 10.0)
+				if b.has("r_in") and str(b.r_in) != "attack":
+					_num(b, "r_in", p, ctx, false, 0.0, 800.0)
 				if not str(b.get("center", "self")) in DISPLACE_CENTERS:
 					errs.append("%s.center 只能是 %s" % [p, " / ".join(DISPLACE_CENTERS)])
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
@@ -3640,7 +3710,7 @@ static func _exu_dur(dv: Dictionary, p: String, perm_json: bool, i: int, ctx: Di
 
 ## attack_patch（技能生效期间改普攻弹道）与 end（技能结束时执行一次）
 static func _exu_skill(sb: Dictionary, p: String, ctx: Dictionary, atk_shape := "") -> void:
-	if sb.has("attack_patch") and atk_shape != "point_aoe":
+	if sb.has("attack_patch") and not atk_shape in ["point_aoe", "shell"]:   # shell（手写迁移段）的补丁由 _v_next_n 查
 		var ap = sb.attack_patch
 		if not (ap is Dictionary):
 			ctx.errs.append(p + ".attack_patch 必须是对象")
@@ -4515,8 +4585,8 @@ const MF_MOD_FACTORS := ["dmg", "aspd", "reach", "arc", "speed"]
 const MF_FX_KINDS := ["pfx", "gfx", "sprite", "sparks", "arc", "text", "banner", "pause", "sfx", "ghost", "mist", "side"]
 const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_r", "ring", "r_scale", "vel_r", "ang_vel", "along", "side_x", "r_mult",
 	"first_only", "face_x", "to", "to_off", "to_jit", "_doc"]
-const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side"]
-const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray"]
+const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side", "rot_ang"]
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link"]   # crack / flame：手写迁移段（character.gd 的地裂 / 火舌）；lava_pillar：hw_draw_pfx
 const MF_GFX_KINDS := ["beam", "rays", "cross"]
 const MF_AT := ["center", "self", "leader", "hits", "summon"]
 const MF_CLEANSE := ["nerve"]
@@ -4688,6 +4758,21 @@ static func mf_skill_aim(o, i: int) -> Vector2:
 	if i < 0 or i >= sk.size() or not sk[i].has("aim"):
 		return Vector2.INF
 	var a: String = str(sk[i].aim)
+	if a == "los":   # 手写迁移段：普攻射程（attack.range）+ aim_pad（× op_range）内视线优先的最近敌人
+		var ra: float = (float(o.B.get("attack", {}).get("range", 300.0)) + float(sk[i].get("aim_pad", 0.0))) * o.stat(&"op_range")
+		var tl: Array = o.los_targets(1, ra, o.pos)
+		return tl[0].pos if not tl.is_empty() else Vector2.INF
+	if a == "tether":   # 手写迁移段：这个技能的 verb.tether 选的落点
+		for tb in sk[i].get("do", []):
+			if str(tb.get("_tag", "")) == "verb.tether":
+				return hw_tether_target(o, tb)
+		return Vector2.INF
+	if a == "range":   # 手写迁移段：攻击距离（逻各斯段 hw_range）内最近的敌人
+		var tr: Array = o.nearest_enemies(1, hw_range(o), o.pos)
+		return tr[0].pos if not tr.is_empty() else Vector2.INF
+	if a == "nearest":   # 手写迁移段：aim_r（世界像素）内最近的敌人，没有 = 不转身
+		var ts: Array = o.nearest_enemies(1, float(sk[i].get("aim_r", 200.0)), o.pos)
+		return ts[0].pos if not ts.is_empty() else Vector2.INF
 	if a.begins_with("summon") and (o.sm.is_empty() or o.sm.list.is_empty()):
 		return o.g.ppos
 	return mf_at_point(o, a)
@@ -4709,7 +4794,7 @@ static func mf_status_items(o) -> Array:
 	var out: Array = []
 	var sk: Array = o.B.get("skills", [])
 	for i in mini(3, sk.size()):
-		if sk[i].has("status") and o.skill_on(i):
+		if sk[i].has("status") and o.skill_on(i) and not "%d" in str(sk[i].status):   # 带 %d 的（次数型剩余发数）由手写迁移段 hw_status_items 画
 			out.append([str(sk[i].status), _mf_col(sk[i].get("status_col", []), o.col())])
 	if not o.mf.is_empty():
 		for nm in o.mf.guards:
@@ -5345,6 +5430,8 @@ static func _mf_sprite(o, f: Dictionary, p: Vector2, ctx: Dictionary) -> void:
 	sc *= float(sv.get("scale", 1.0)) * (float(sv.get("second_scale", 1.0)) if second else 1.0)
 	var sw: float = float(ctx.get("swing", 1.0)) * (-1.0 if second else 1.0)
 	var rot: float = sd * (float(sv.get("rot", 0.0)) + (float(sv.get("second_rot", 0.0)) if second else 0.0) + float(sv.get("swing_rot", 0.0)) * sw)
+	if sv.get("rot_ang", false):   # 手写迁移段：随这一击的方向转（锚击刀光）
+		rot = float(ctx.get("ang", 0.0))
 	o.spawn_fx_sprite(nm, p, sc, rot, sv.get("flip_side", true) and sd < 0.0, sv.get("bottom", false), _mf_col(sv.get("tint", [])))
 
 
@@ -6296,4 +6383,3501 @@ static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append(p + "：trig.on_mate_attack 只挂画面，要写 fx")
 			if b.has("do") and not (b.do is Array and b.do.is_empty()):
 				errs.append(p + "：trig.on_mate_attack 只挂画面，不写 do")
+	return true
+
+
+# ================================================================ 手写迁移段（精英化第 2 批：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安，docs/91 §19 批 2；docs/61 §17）
+# 只往后加。四名手写干员迁到积木时缺的积木 / 参数都在这里；手写参照在 tests/data_ops/<id>_legacy.gd（check.py blocks_eq 同 seed 逐行对照）。
+# 运行时状态在干员的 hw 字典（data_operator.gd var hw）：没用到本段的数据干员 hw 为空，本段的分支一个都不走（同 seed 逐行不变）。
+# 确定性：玩法随机只在手写版也取 g.rng 的地方取（同样的次数、同样的顺序）；画面一律 g.vrng。
+#
+# 基础（任何数据干员都能用）：
+#  blocks.follow {leash, gap}     近战前压：队友时站到队长 leash 内最近敌人的身前 gap 处（character.melee_spot）
+#  blocks.hit_fx [fx…]            本干员每打中一名敌人（melee_hit / area_hit）在它身上播的画面
+#  attack.first / idle            首击冷却 / 没目标时的重试间隔（缺省 0.5 / 0.2）
+#  attack.anim / turn             普攻播的帧条（sprites 键）/ false = 起手不转身（swap_attack 换上的形状也能写）
+#  attack.combo [{cond, delay, do}]  连斩：普攻出手后第 1 段 cond 成立就 delay 秒后执行它的 do，执行完再看下一段；最后一段执行完（或第 1 段不成立）触发 trig.on_combo_end
+#  trig.on_combo_end              一轮连斩收尾（basis attack = 这一轮普攻的伤害）
+#  形状参数 basis                 attack（本轮普攻这一下的伤害）/ prev（上一个伤害形状这一下的伤害）/ hit（触发事件的伤害：弹体命中、爆炸）× mult
+#  shape.cone 参数                origin_off [x, y]（判定原点偏移）、aim_pad（找目标的半径 = r + aim_pad，缺省 30）、face（true / 条件串：朝目标转身）、
+#                                 dir: back（本次普攻的反方向）、half（半角弧度）、ring: false
+#  shape.circle / cone 参数       r_mult（半径 × op_range × r_mult）
+#  trig.tick 参数 countdown       倒计时：生效当帧起算 every 秒，到点执行并重置为 every（手写干员的计时写法）
+#  verb.buff_self 局部 mult + power   局部倍率也吃技能强度（例：潮汐期间普攻 ×1.5 × 技能强度）
+#  技能积木 aim: nearest + aim_r   起手朝 aim_r（世界像素）内最近的敌人
+#  fx 程序条目 blade / aura_ring / outline（见 hw_fx_spawn / hw_draw_rings / hw_draw_outline）
+# 斯卡蒂：shape.wave（推进的浪墙）
+
+const HW_TAGS := ["shape.wave", "trig.on_combo_end"]
+const HW_FX_KINDS := ["blade", "aura_ring", "outline", "slam", "whirl"]
+const HW_FX_COMMON := ["cond", "if_tex", "at", "off", "fade", "_doc"]
+const HW_SKILL_KEYS := ["aim_r", "aim_pad", "cast", "pulse", "active_timer"]
+const HW_WAVE_MAX := 2           # 同时推进的浪墙上限（手写 skadi WAVE_MAX）
+
+
+## 本段状态（data_operator.hw）；on = 本干员用到了本段
+static func hw_st(o) -> Dictionary:
+	if o.hw.is_empty():
+		o.hw.merge({"on": true, "atk_dmg": 0.0, "atk_ang": 0.0, "atk_c": Vector2.INF, "prev_dmg": 0.0, "prev_ang": 0.0, "prev_r": 0.0, "prev_c": Vector2.INF,
+			"hit_dmg": 0.0, "cc": {}, "waves": []})
+	return o.hw
+
+
+static func hw_on(o) -> bool:
+	var h = o.get("hw")
+	return h is Dictionary and not h.is_empty()
+
+
+## data_operator._init：本干员 JSON 用到本段的积木 / 参数时打开 hw
+static func hw_init(o) -> void:
+	if not _hw_uses(o.B):
+		return
+	hw_st(o)
+	var tags := {}
+	_hw_tags(o.B, tags)
+	for t in tags:   # 各段的状态一开始就建好（免得「第一次用到才建」时，之前的询问读不到）
+		if t in HW2_TAGS:
+			_hw2(o)
+		elif t in HW3_TAGS:
+			_hw3(o)
+		elif t in HW4_TAGS:
+			_hw4(o)
+		elif t in HW5_TAGS:
+			_hw5(o)
+	if o.B.get("attack", {}).has("lob"):
+		_hw5(o)
+
+
+static func _hw_tags(n, out: Dictionary) -> void:
+	if n is Dictionary:
+		if n.has("_tag"):
+			out[str(n._tag)] = true
+		for k in n:
+			_hw_tags(n[k], out)
+	elif n is Array:
+		for x in n:
+			_hw_tags(x, out)
+
+
+static func _hw_uses(n) -> bool:
+	if n is Dictionary:
+		for k in n:
+			if k in ["follow", "basis", "combo", "countdown", "origin_off", "aim_pad", "hit_fx", "cast", "pulses"]:
+				return true
+			if k == "_tag" and (str(n[k]) in HW_TAGS or str(n[k]) in HW2_TAGS or str(n[k]) in HW3_TAGS or str(n[k]) in HW4_TAGS or str(n[k]) in HW5_TAGS):
+				return true
+			if _hw_uses(n[k]):
+				return true
+	elif n is Array:
+		for x in n:
+			if _hw_uses(x):
+				return true
+	return false
+
+
+## basis 的值：attack = 本轮普攻这一下的伤害；prev = 上一个伤害形状；hit = 触发事件的伤害
+static func hw_basis(o, k: String) -> float:
+	if not hw_on(o):
+		return 0.0
+	match k:
+		"attack":
+			return float(o.hw.atk_dmg)
+		"prev":
+			return float(o.hw.prev_dmg)
+		"hit":
+			return float(o.hw.hit_dmg)
+		"atk":   # 逻各斯段：攻击值（base × 加成 × attack.atk_mults）
+			return hw_atk(o)
+	return 0.0
+
+
+## 伤害形状执行后记一笔（data_operator.atk_live = 普攻出手的那一下时同时记成 attack）
+static func hw_record(o, dmg: float, ang: float, r: float, c: Vector2) -> void:
+	if not hw_on(o):
+		return
+	var h: Dictionary = o.hw
+	h.prev_dmg = dmg
+	h.prev_ang = ang
+	h.prev_r = r
+	h.prev_c = c
+	if o.get("atk_live") == true:
+		h.atk_dmg = dmg
+		h.atk_ang = ang
+		h.atk_c = c
+
+
+## 延迟执行（every_n delay / 连斩）要带着的 basis 快照
+static func hw_snap(o) -> Dictionary:
+	if not hw_on(o):
+		return {}
+	var h: Dictionary = o.hw
+	return {"atk_dmg": h.atk_dmg, "atk_ang": h.atk_ang, "atk_c": h.atk_c, "prev_dmg": h.prev_dmg, "prev_ang": h.prev_ang, "prev_r": h.prev_r, "prev_c": h.prev_c, "hit_dmg": h.hit_dmg}
+
+
+## 换上快照（返回原值，执行完 hw_pop 还原）
+static func hw_push(o, snap: Dictionary) -> Dictionary:
+	if snap.is_empty() or not hw_on(o):
+		return {}
+	var keep := hw_snap(o)
+	o.hw.merge(snap, true)
+	return keep
+
+
+static func hw_pop(o, keep: Dictionary) -> void:
+	if not keep.is_empty():
+		o.hw.merge(keep, true)
+
+
+static func hw_off(b: Dictionary) -> Vector2:
+	var v = b.get("origin_off", null)
+	return Vector2(float(v[0]), float(v[1])) if v is Array and v.size() == 2 else Vector2.ZERO
+
+
+## face：布尔，或条件串（缓存解析结果）
+static func hw_face_ok(o, v) -> bool:
+	if v is bool:
+		return v
+	if v is Dictionary:
+		return cond_true(o, v)
+	if not (v is String):
+		return false
+	var cc: Dictionary = hw_st(o).cc
+	if not cc.has(v):
+		cc[v] = parse_cond(v, o.def.get("base", {}))
+	return cond_true(o, cc[v])
+
+
+# ---------------------------------------------------------------- 连斩（attack.combo / trig.on_combo_end）
+
+## 普攻出手后（data_operator._release 末尾）：第 1 段成立就排进延迟队列，否则这一击就是收尾
+static func hw_combo_start(o) -> void:
+	var a: Dictionary = o.B.get("attack", {})
+	if not a.has("combo"):
+		return
+	_hw_combo_from(o, a.combo, 0)
+
+
+static func _hw_combo_from(o, cb: Array, k: int) -> void:
+	if k < cb.size() and cond_true(o, cb[k].get("cond", {})):
+		o.pending.append({"t": float(cb[k].get("delay", 0.12)), "do": cb[k].get("do", []), "combo": k, "bs": hw_snap(o)})
+	else:
+		hw_combo_end(o)
+
+
+## 第 k 段执行完（data_operator._tick_pending）：下一段 / 收尾
+static func hw_combo_next(o, k: int) -> void:
+	_hw_combo_from(o, o.B.get("attack", {}).get("combo", []), k + 1)
+
+
+static func hw_combo_end(o) -> void:
+	for t in o._trigs():
+		if str(t.get("_tag", "")) == "trig.on_combo_end" and cond_true(o, t.get("cond", {})):
+			o._exec_list(t.get("do", []))
+
+
+# ---------------------------------------------------------------- 每帧（data_operator.update：技能计时之后、延迟队列之前）
+
+## 返回 true = 本帧不再起手（手写干员的「这件事没做完就 return」）
+static func hw_tick(o, dt: float) -> bool:
+	if not hw_on(o):
+		return false
+	var h: Dictionary = o.hw
+	if h.has("anchor"):   # 乌尔比安段：计时 → 锚 → 掀飞（手写 update 开头的先后）
+		_hw4_tick(o, dt)
+	if not h.waves.is_empty():
+		_hw_waves(o, dt)
+	if h.has("bolts"):   # 逻各斯段：锁定 → 咒域（手写 update 的先后：锁定、咒域、地面咒文、咒文弹）
+		if not h.lock.is_empty():
+			_hw3_lock(o, dt)
+		if not h.fan.is_empty():
+			_hw3_fan(o, dt)
+	var busy := false
+	if h.has("shells"):   # 艾雅法拉段：地面 / 点燃 / 抛射 / 后续弹 / 喷发；喷发序列期间不起手
+		busy = _hw2_tick(o, dt)
+	if h.has("bolts"):
+		_hw3_bolts(o, dt)
+	if h.has("links"):   # 精英化第 2 批段：咒文链、低弧抛射、掷锚
+		_hw5_tick(o, dt)
+	return busy
+
+
+## 延迟队列之后、起手之前再问一次：这件事没做完就不起手（锚在外面）
+static func hw_busy(o) -> bool:
+	return hw4_busy(o)
+
+
+## 技能上层（data_operator._draw_skill_over）
+static func hw_draw_over(o) -> void:
+	hw_draw_shells(o)
+	if o.hw.has("links"):   # 精英化第 2 批段
+		hw_draw_lobs(o)
+		hw_draw_links(o)
+		hw_draw_runes(o)
+		hw_draw_hooks(o)
+	if o.hw.has("anchor"):
+		hw_draw_tether(o)
+	if o.hw.has("bolts"):
+		hw_draw_logos_over(o)
+
+
+## 区域层（data_operator.draw_auras）
+static func hw_draw_auras(o) -> void:
+	hw_draw_pulse_ring(o)
+	hw_draw_look(o, "auras")
+	if o.hw.has("fan"):
+		hw_draw_fan(o)
+
+
+## 地面层（data_operator.draw_entities_floor）
+static func hw_draw_floor(o) -> void:
+	if o.hw.has("links"):
+		hw_draw_melt(o)
+	hw_draw_waves(o)
+	hw_draw_pools(o)
+	hw_draw_rune_floor(o)
+
+
+## 本体前后（data_operator.draw_body）
+static func hw_draw_body(o, front: bool) -> void:
+	if not front:
+		hw_draw_look(o, "body")
+	if o.hw.has("fan"):
+		hw_draw_fan_body(o, front)
+
+
+# ---------------------------------------------------------------- 瞬时（data_operator._exec_list 缺省分支）
+
+static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
+	match str(b.get("_tag", "")):
+		"shape.wave":
+			hw_wave_start(o, b)
+		"shape.shell":
+			hw_shell_fire(o, b, false)
+		"verb.lob":
+			hw_lob(o, b, at)
+		"verb.affect":
+			hw_affect(o, b, at)
+		"shape.pool":
+			hw_pool(o, b, at)
+		"shape.bolt":
+			hw_bolt_fire(o, b, false)
+		"shape.hit":
+			hw_shape_hit(o, b)
+		"verb.execute":
+			hw_execute(o, b)
+		"verb.lock":
+			hw_lock_start(o, b)
+		"verb.fan":
+			hw_fan_start(o, b)
+		"verb.tether":
+			hw_tether_start(o, b)
+		"verb.stack":
+			hw_stack(o, b)
+		"verb.arm":
+			hw_arm(o, b)
+		"verb.timer":
+			hw_timer(o, b)
+		"verb.link":
+			hw_link(o, b)
+		"shape.hookshot":
+			hw_hook_start(o, b)
+
+
+# ---------------------------------------------------------------- shape.wave（斯卡蒂「跃浪」：重斩落点掀起一道向前推进的浪墙）
+# 起点 = 本干员脚底 + 上一个形状的方向 × 上一个形状的半径 × along；方向同上一个形状。每帧前进 speed × dt，
+# 浪墙（宽 w、厚 depth）扫到的敌人各吃一次 basis × mult（不乘 vs_elite，同手写），非 Boss 沿推进方向击退 kb（精英 ×0.3）；走满 dist 消失。
+
+static func hw_wave_start(o, b: Dictionary) -> void:
+	var h := hw_st(o)
+	var dmg: float = hw_basis(o, str(b.get("basis", "prev"))) * float(b.get("mult", 1.0))
+	if str(b.get("from", "prev")) == "self":   # 精英化第 2 批段：从脚底朝最近敌人放出（涌潮潮刃），fan = 几道的偏角
+		if o.pos == Vector2.INF:
+			return
+		var ang: float = o.facing_angle()
+		if str(b.get("aim", "")) == "nearest":
+			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
+			if not ts.is_empty():
+				ang = (ts[0].pos - o.pos).angle()
+		var ov = b.get("off", [0, 0])
+		var from0: Vector2 = o.pos + Vector2(float(ov[0]), float(ov[1]))
+		if b.has("release_fx"):
+			fx_play(o, b.release_fx, o.pos, 30.0, [], ang)
+		var shared := {}   # fan_once：同一轮的几道共用命中表，一名敌人每轮只吃一道
+		for fd in b.get("fan", [0]):
+			var d2 := Vector2.from_angle(ang + deg_to_rad(float(fd)))
+			if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
+				h.waves.pop_front()
+			h.waves.append({"b": b, "pos": from0, "dir": d2, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg,
+				"hit": shared if b.get("fan_once", false) else {}, "drop": 0.0})
+		return
+	var dir := Vector2.from_angle(float(h.prev_ang))
+	var from: Vector2 = o.pos + dir * float(h.prev_r) * float(b.get("along", 0.45))
+	if h.waves.size() >= int(b.get("cap", HW_WAVE_MAX)):
+		h.waves.pop_front()
+	h.waves.append({"b": b, "pos": from, "dir": dir, "dist": 0.0, "max": float(b.get("dist", 200.0)), "w": float(b.get("w", 140.0)), "dmg": dmg, "hit": {}, "drop": 0.0})
+
+
+static func _hw_waves(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	for w in h.waves:
+		var b: Dictionary = w.b
+		var step: float = float(b.get("speed", 480.0)) * dt
+		w.pos += w.dir * step
+		w.dist += step
+		var nrm: Vector2 = w.dir.orthogonal()
+		var depth: float = float(b.get("depth", 18.0))
+		for j in o.query_ids(w.pos, w.w * 0.5 + 40.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hit.has(e.id):
+				continue
+			var rel: Vector2 = e.pos - w.pos
+			if absf(rel.dot(w.dir)) > depth + e.r or absf(rel.dot(nrm)) > w.w * 0.5 + e.r:
+				continue
+			w.hit[e.id] = true
+			o.log_hit(str(b.get("src", "")), b.get("tags", []))
+			o.deal_damage(e, w.dmg)
+			if not e.dead and not e.boss:
+				e.kb += w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0)
+			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
+				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
+		w.drop -= dt
+		if w.drop <= 0.0 and not b.has("proj"):   # 浪尖甩出的水沫（画面，g.vrng；弹体式的潮刃不甩）
+			w.drop = 0.03
+			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
+			var mc: Color = _mf_col(b.get("foam", []), Color(0.8, 0.95, 1.0))
+			o.fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.vrng.randf_range(-120, -60)), "life": 0.4, "col": mc, "sz": 2.0, "grav": 320.0})
+	h.waves = h.waves.filter(func(w): return w.dist < w.max)
+
+
+## 地面层（data_operator.draw_entities_floor）：浪墙。有帧条（tex，朝右、底部锚点 anchor）时沿浪墙排三朵浪，帧按推进进度走完；缺图画程序浪墙
+static func hw_draw_waves(o) -> void:
+	if not hw_on(o) or o.hw.waves.is_empty():
+		return
+	var g = o.g
+	var cv = o.cv
+	for w in o.hw.waves:
+		var b: Dictionary = w.b
+		if b.has("proj"):   # 精英化第 2 批段：弹体式（潮刃）——旋转的弹体帧条，缺图画程序新月
+			var pn: String = str(b.proj)
+			var pa: float = clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
+			var pp: Vector2 = w.pos + Vector2(0, -16)
+			if g.tex.get(pn) != null and g.V6_FRAMES.has(pn):
+				var spec: Array = g.V6_FRAMES[pn]
+				fx_frame(cv, g, pn, int(spec[0]), int(float(g.t) * float(spec[1])), pp, g.PX * float(b.get("proj_scale", 1.0)), Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
+			else:
+				cv.draw_arc(pp - w.dir * 10.0, w.w * 0.5, w.dir.angle() - 1.0, w.dir.angle() + 1.0, 12, Color(0.6, 0.85, 1.3, 0.9 * pa), 4.0)
+			continue
+		var tn: String = str(b.get("tex", ""))
+		var tx: Texture2D = ArtS.tex(tn) if tn != "" else null
+		if tx != null and g.V6_FRAMES.has(tn):
+			var nf: int = int(g.V6_FRAMES[tn][0])
+			var av = b.get("anchor", [32, 30])
+			var anc := Vector2(float(av[0]), float(av[1]))
+			var nrm2: Vector2 = w.dir.orthogonal()
+			var wf: int = clampi(int(w.dist / w.max * nf), 0, nf - 1)
+			var pts: Array = []
+			for u in [-0.62, 0.0, 0.62]:
+				pts.append(w.pos + nrm2 * u * w.w * 0.5 - w.dir * (u * u) * 16.0)
+			pts.sort_custom(func(p1, p2): return p1.y < p2.y)
+			for bp in pts:
+				o._strip(tx, nf, wf, bp, g.PX, anc, w.dir.x < 0.0)
+			continue
+		var a: float = clampf((w.max - w.dist) / 60.0, 0.0, 1.0)
+		var nrm: Vector2 = w.dir.orthogonal()
+		var basel := PackedVector2Array()
+		var top := PackedVector2Array()
+		var N := 12
+		for i in N + 1:
+			var u: float = float(i) / N * 2.0 - 1.0
+			var bp2: Vector2 = w.pos + nrm * u * w.w * 0.5 - w.dir * (u * u) * 16.0
+			var hh: float = 26.0 * (1.0 - u * u) + 4.0 + sin(g.t * 14.0 + i) * 2.0
+			basel.append(bp2)
+			top.append(bp2 + Vector2(0, -hh))
+		var poly: PackedVector2Array = basel.duplicate()
+		var rt: PackedVector2Array = top.duplicate()
+		rt.reverse()
+		poly.append_array(rt)
+		cv.draw_colored_polygon(poly, Color(0.25, 0.45, 0.95, 0.45 * a))
+		cv.draw_polyline(top, Color(1.4, 1.8, 2.2, 0.9 * a), 3.0)
+		cv.draw_polyline(basel, Color(0.5, 0.8, 1.4, 0.5 * a), 2.0)
+
+
+# ---------------------------------------------------------------- 程序 fx 条目
+
+static func hw_fx_is(f) -> bool:
+	if not (f is Dictionary):
+		return false
+	for k in HW_FX_KINDS:
+		if f.has(k):
+			return true
+	return false
+
+
+## 一次性程序条目：blade（刀光帧条 + 程序回退 + 水珠）。ctx：c / r / ang
+static func hw_fx_spawn(o, f: Dictionary, ctx: Dictionary) -> void:
+	if f.has("blade"):
+		_hw_blade(o, f.blade, float(ctx.get("r", 0.0)), float(ctx.get("ang", 0.0)))
+	elif f.has("slam"):   # 砸地一套（尘土 / 顿帧 / 地裂 / 冲击环 / 水珠 / 火花）：中心 = 形状中心，半径 = 形状半径
+		_hw_slam_fx(o, ctx.get("c", o.pos), float(ctx.get("r", 0.0)) * float(f.slam.get("r_mult", 1.0)), float(f.slam.get("k", 1.0)))
+	elif f.has("whirl"):   # 锁链带锚甩一整圈（以本干员为心）
+		o.ground_dust(o.pos, 48.0, 12)
+		o.fx({"kind": "whirl", "pos": o.pos, "r": float(ctx.get("r", 0.0)), "life": float(f.whirl.get("life", 0.32)), "a0": o.g.vrng.randf() * TAU, "dir": float(o.face)})
+
+
+## 刀光（手写 skadi._slash 的通用版）：strip 帧条，缩放 = r × k ÷ fit（每 1x 像素的世界像素），位置 = 脚底 + (0, y) + 方向 × r × along；
+## rot（缺省 true）随出手方向转（mirror 时再转半圈并翻转 = 沿挥砍方向上下翻转）；mirror: face = 朝左时翻；缺图画两道程序弧光（col / edge）。
+## motes {n, col, along, y, sz, grav}：沿出手方向甩出的水珠 / 火星（g.vrng）
+static func _hw_blade(o, bl: Dictionary, r: float, ang: float) -> void:
+	var g = o.g
+	if o.pos == Vector2.INF:
+		return
+	var mirror: bool = false
+	var mv = bl.get("mirror", false)
+	if mv is bool:
+		mirror = mv
+	elif str(mv) == "face":
+		mirror = float(o.face) < 0.0
+	var nm: String = str(bl.get("strip", "fx_slash_arc_deep"))
+	if bl.has("r"):   # 半径另给（技能发动时没有形状半径）
+		r = float(bl.r)
+	var sc: float = r * float(bl.get("k", 1.15)) / float(bl.get("fit", 40.0))
+	var dir := Vector2.from_angle(ang)
+	var at: Vector2 = o.pos + Vector2(0, float(bl.get("y", -14.0))) + dir * r * float(bl.get("along", 0.5))
+	var rot: bool = bl.get("rot", true)
+	var sa: float = (ang + (PI if mirror else 0.0)) if rot else 0.0
+	var tint: Color = _mf_col(bl.get("tint", []), Color(0.72, 0.86, 1.05, 0.88))
+	if not o.spawn_fx_sprite(nm, at, sc, sa, mirror, false, tint):
+		var half: float = float(bl.get("half", 1.4))
+		var life: float = float(bl.get("life", 0.22))
+		o.slash_fx(o.pos + Vector2(0, -14), ang, half, r, _mf_col(bl.get("col", []), o.col()), "slash", life)
+		o.slash_fx(o.pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, _mf_col(bl.get("edge", []), Color(0.8, 0.95, 1.0)), "slash", life * 0.7)
+	var mo = bl.get("motes", null)
+	if mo is Dictionary:
+		var sp: Vector2 = o.pos + Vector2(0, float(mo.get("y", -10.0))) + dir * r * float(mo.get("along", 0.6))
+		var mc: Color = _mf_col(mo.get("col", []), Color(0.6, 0.9, 1.0))
+		for k in int(mo.get("n", 5)):
+			o.fx({"kind": "mote", "pos": sp + Vector2(g.vrng.randf_range(-12, 12), g.vrng.randf_range(-8, 8)), "vel": Vector2.from_angle(ang + g.vrng.randf_range(-0.8, 0.8)) * g.vrng.randf_range(40, 110) + Vector2(0, -60),
+				"life": float(mo.get("life", 0.4)), "col": mc, "sz": float(mo.get("sz", 2.0)), "grav": float(mo.get("grav", 260.0))})
+
+
+## 常驻程序圈（aura_ring：挂在常驻积木上，生效期间在 at 画一圈地面椭圆）：r = attack（当前普攻半径）/ 数字；col、a（透明度）、w（线宽）、
+## pulse（呼吸幅度）、hz（呼吸频率）、fill（实心底透明度）、sy（压扁，缺省 0.55）。draw_auras 调
+static func hw_draw_rings(o) -> void:
+	if o.pos == Vector2.INF:
+		return
+	var g = o.g
+	for u in o._fxb:
+		var e: Dictionary = o._fxb[u]
+		for f in e.b.get("fx", []):
+			if not (f is Dictionary) or not f.has("aura_ring") or not fx_on(o, f):
+				continue
+			var rv: Dictionary = f.aura_ring
+			var r: float
+			if str(rv.get("r", "attack")) == "attack":
+				r = shape_radius(o, o.cur_attack())
+			else:
+				r = float(rv.r)
+			var c: Vector2 = g.ppos if str(f.get("at", "self")) == "leader" else o.pos
+			var ov = f.get("off", [0, 4])
+			c += Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+			var al: float = fx_hold_alpha(f, e)
+			var col: Color = _mf_col(rv.get("col", []), o.col())
+			var hz: float = float(rv.get("hz", 5.0))
+			var pul: float = float(rv.get("pulse", 0.1)) * sin(g.t * hz)
+			o.cv.draw_set_transform(c, 0.0, Vector2(1.0, float(rv.get("sy", 0.55))))
+			if float(rv.get("fill", 0.0)) > 0.0:
+				o.cv.draw_circle(Vector2.ZERO, r, Color(col.r, col.g, col.b, (float(rv.fill) + pul * 0.5) * al))
+			o.cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 36, Color(col.r, col.g, col.b, (float(rv.get("a", 0.3)) + pul) * al), float(rv.get("w", 2.0)))
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+## blocks 顶层：follow / hit_fx / look
+static func _hw_top(blocks: Dictionary, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	if blocks.has("follow"):
+		var fw = blocks.follow
+		if not (fw is Dictionary):
+			errs.append("blocks.follow 必须是对象 {leash, gap}")
+		else:
+			_num(fw, "leash", "blocks.follow", ctx, true, 20.0, 800.0)
+			_num(fw, "gap", "blocks.follow", ctx, true, 0.0, 200.0)
+	if blocks.has("hit_fx"):
+		_fx(blocks.hit_fx, "blocks.hit_fx", ctx, "shape.circle")
+	if blocks.has("look"):
+		_fx(blocks.look, "blocks.look", ctx, "verb.buff_self")
+
+
+## blocks.attack 的追加字段
+static func _hw_attack(atk: Dictionary, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	_num(atk, "first", "blocks.attack", ctx, false, 0.0, 30.0)
+	_num(atk, "idle", "blocks.attack", ctx, false, 0.0, 5.0)
+	if atk.has("combo"):
+		var cb = atk.combo
+		if not (cb is Array) or cb.is_empty() or cb.size() > 6:
+			errs.append("blocks.attack.combo 必须是 1–6 段的数组")
+		else:
+			for i in cb.size():
+				var q := "blocks.attack.combo[%d]" % i
+				var st = cb[i]
+				if not (st is Dictionary):
+					errs.append(q + " 必须是对象 {cond, delay, do}")
+					continue
+				for k in st:
+					if not k in ["cond", "delay", "do", "_doc"]:
+						errs.append("%s.%s：连斩一段只有 cond / delay / do" % [q, k])
+				if st.has("cond") and (not (st.cond is String) or parse_cond(st.cond, ctx.base).has("err")):
+					errs.append(q + ".cond 看不懂")
+				_num(st, "delay", q, ctx, true, 0.0, 3.0)
+				_list(st.get("do", []), q + ".do", "instant", ctx)
+
+
+## shape.circle / cone 的追加参数
+static func _hw_shape_params(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
+	var errs: Array = ctx.errs
+	if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+		errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+	if b.has("basis") and (b.has("power") or b.has("atk_key")):
+		errs.append(p + "：写了 basis（按已算好的伤害取百分比）就不写 power / atk_key")
+	_num(b, "r_mult", p, ctx, false, 0.05, 10.0)
+	_num(b, "aim_pad", p, ctx, false, 0.0, 400.0)
+	_num(b, "aim_r", p, ctx, false, 1.0, 2000.0)
+	_num(b, "aim_mult", p, ctx, false, 0.05, 10.0)
+	if b.has("aim_mult") and not b.has("aim_r"):
+		errs.append(p + ".aim_mult 要配 aim_r")
+	if b.has("origin_off") and not (b.origin_off is Array and b.origin_off.size() == 2):
+		errs.append(p + ".origin_off 必须是 [x, y]")
+	if b.has("face") and not (b.face is bool or (b.face is String and not parse_cond(b.face, ctx.base).has("err"))):
+		errs.append(p + ".face 只能是 true / false 或条件串")
+	if b.has("dir") and not str(b.dir) in ["back", "face", "target"]:   # face / target：召唤物扩展段（随行召唤物的爪击方向）
+		errs.append(p + ".dir 只能是 back（本次普攻的反方向）/ face / target")
+	if b.has("dir") and tag != "shape.cone":
+		errs.append(p + ".dir 只用于 shape.cone")
+	if b.has("ring") and not (b.ring is bool):
+		errs.append(p + ".ring 只能是 true / false")
+	if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
+		errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
+	if b.has("turn") and not (b.turn is bool):
+		errs.append(p + ".turn 只能是 true / false")
+
+
+## _block 转来：本段的积木
+static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if tag in HW2_TAGS:
+		return _hw2_block(b, p, kind, ctx, tag)
+	if tag in HW3_TAGS:
+		return _hw3_block(b, p, kind, ctx, tag)
+	if tag in HW4_TAGS:
+		return _hw4_block(b, p, kind, ctx, tag)
+	if tag in HW5_TAGS:   # 精英化第 2 批段
+		return _hw5_block(b, p, kind, ctx, tag)
+	if not tag in HW_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"shape.wave": ["skill", "instant"],
+		"trig.on_combo_end": ["trig"],
+	}
+	if not kind in where_ok.get(tag, []):
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok.get(tag, []))])
+		return true
+	match tag:
+		"shape.wave":
+			_num(b, "dist", p, ctx, true, 10.0, 800.0)
+			_num(b, "w", p, ctx, true, 4.0, 400.0)
+			_num(b, "speed", p, ctx, true, 10.0, 2000.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "kb", p, ctx, false, 0.0, 2000.0)
+			_num(b, "along", p, ctx, false, -2.0, 2.0)
+			_num(b, "depth", p, ctx, false, 1.0, 100.0)
+			_num(b, "cap", p, ctx, false, 1.0, 16.0)
+			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
+			if b.has("from") and not str(b.from) in ["prev", "self"]:
+				errs.append(p + ".from 只能是 prev / self")
+			if b.has("fan") and (not (b.fan is Array) or b.fan.is_empty() or b.fan.size() > 8):
+				errs.append(p + ".fan 必须是 1–8 个偏角（度）的数组")
+			if b.has("proj") and not str(b.proj).begins_with("proj_"):
+				errs.append(p + ".proj 必须是 proj_* 帧条名")
+			for k in ["hit_fx", "release_fx"]:
+				if b.has(k):
+					_fx(b[k], p + "." + k, ctx, "shape.circle")
+			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			if b.has("tex") and not str(b.tex).begins_with("fx_"):
+				errs.append(p + ".tex 必须是 fx_* 帧条名")
+			_src(b, p, ctx, true)
+		"trig.on_combo_end":
+			_list(b.get("do", []), p + ".do", "instant", ctx)
+	return true
+
+
+## fx 程序条目（_fx 转来）：返回 true = 已校验
+static func _hw_fx_check(f: Dictionary, q: String, ctx: Dictionary, owner: String) -> bool:
+	if not hw_fx_is(f):
+		return false
+	var errs: Array = ctx.errs
+	var kinds: Array = HW_FX_KINDS.filter(func(k): return f.has(k))
+	if kinds.size() != 1:
+		errs.append("%s：程序 fx 条目恰好写一种（%s）" % [q, " / ".join(HW_FX_KINDS)])
+		return true
+	var kk: String = kinds[0]
+	for k in f:
+		if k != kk and not k in HW_FX_COMMON:
+			errs.append("%s.%s：程序 fx 条目不认识的字段" % [q, k])
+	if not (f[kk] is Dictionary):
+		errs.append("%s.%s 必须是对象" % [q, kk])
+		return true
+	if kk in ["aura_ring", "outline"] and owner in FX_INSTANT_OWNERS:
+		errs.append("%s.%s 是常驻画面，只能挂在常驻积木上" % [q, kk])
+	if f.has("cond") and (not (f.cond is String) or parse_cond(f.cond, ctx.base).has("err")):
+		errs.append(q + ".cond 看不懂")
+	if kk == "blade":
+		var sn: String = str(f.blade.get("strip", "fx_slash_arc_deep"))
+		if not sn.begins_with("fx_"):
+			errs.append(q + ".blade.strip 必须是 fx_* 帧条名")
+	return true
+
+
+# ---------------------------------------------------------------- 艾雅法拉段（手写迁移段续）：法术弹 / 抛射火团 / 点燃 / 易伤 / 地面熔岩 / 连续喷发
+# shape.shell   直线法术弹（game 的 fire 子弹，命中即在 aoe 内爆炸）：普攻（手动 A 类：自动 = 射程内视线优先的最近敌人，手动 = aim_land）或技能 do。
+#               伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；follow：后续弹（第一条 cond 成立的：n 发、每 gap 秒一发，打首发目标以外的敌人，
+#               不够就在首发目标两侧偏开 side）；on_explode：爆炸后执行的瞬时积木（center: target = 爆点，basis hit = 这一弹的伤害，r: hit = 爆炸半径）。
+#               次数型技能（dur.next_n）的 attack_patch 可写 power / aoe_mult / on_explode（追加在本体之后）。tip / tip_skill：出手点（脚底为原点、朝右）。
+# verb.lob      抛射火团（瞬时）：从 at（+ from_off）抛到 n 个落点，飞 clamp(距离 / 420, 0.25, 0.6) 秒（h > 80 再 + 0.2），落地 r 内 area_hit；同时 ≤ 12 个。
+#               pick：near_out（at 附近 cand 个里离 at 超过 aoe × out_k 的，凑不够在 aoe × pad_k 处随机方向补，g.rng）/ shuffle（cand 个打乱取 n，g.rng）/
+#               ring（随机起始角均分 n 个、距 aoe × ring_k，g.rng）。伤害 basis × mult，或不写 basis 时 base × mult × 加成 [× 技能强度]
+# verb.affect   瞬时：center 半径 r（数字 × op_range，或 hit = 爆炸半径）内活着的敌人逐个吃 on_hit 里的状态（不伤害、不登记命中）
+# st.burn       点燃：dur 秒内每 every 秒（按剩余时间跨过 every 的整数倍时）受到 basis × mult × every 的伤害（src；不乘 vs_elite）；Boss 也吃；同一敌人可叠多条
+# st.fragile    易伤：dur 秒（敌人 aura_weak，受到的伤害 +10%，取较长）；kind: arts = 受到的法术伤害 + value（melt，同名取最高、不叠层；Boss 也吃）
+# shape.pool    地面持续伤害区（瞬时生成）：center 处半径 r（× op_range × r_mult，生成时定），dur 秒，每 every 秒对区内 area_hit；伤害生成时定
+#               （basis × mult，或 base × mult × 加成 [× 技能强度]）。tick0：首跳计时（0 = 下一帧）；accum：到点 += every（否则重置为 every）；
+#               tail：剩余时间低于它不再跳（缺省不限）；group / group_cap / max：同组（例：铭文 + 墓志铭）同时上限，满了先挤掉同组最早的；
+#               burst：只在到时那一下炸一次（墓志铭）。look：lava / rune（画法）
+# 技能外壳：cast: instant（充满当帧直接生效、不播技能动作，手写「炽热」）；dur.pulses {pulses, every} + pulse {pick, r, pad, jit, delay, fx, do}
+#           （连续喷发：每 every 秒在 (r + pad) × op_range 内敌群最密处 ± jit（g.rng）标一处，delay 秒后以它为 target 执行 do；喷发期间不起手、不放别的技能）；
+#           技能积木 aim: los（起手朝普攻射程 + aim_pad 内视线优先的最近敌人）
+
+const HW2_TAGS := ["shape.shell", "verb.lob", "verb.affect", "st.burn", "st.fragile", "shape.pool"]
+const HW_LOB_MAX := 12
+const HW_POOL_MAX := 32
+const HW_LOB_PICKS := ["near_out", "shuffle", "ring"]
+const HW_ORANGE := Color(1.0, 0.5, 0.2)
+const HW_LAVA := Color(0.95, 0.3, 0.08)
+
+
+static func _hw2(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("shells"):
+		h.merge({"shells": [], "lobs": [], "pools": [], "burns": [], "erupts": [], "pulse": {}, "hit_r": 0.0, "pg": {}})
+	return h
+
+
+## 普攻 / 技能里的法术弹：出手点（tip / tip_skill，x 随朝向）
+static func hw_tip(o, b: Dictionary) -> Vector2:
+	var v = b.get("tip_skill", b.get("tip", [0, -40])) if str(o.act_kind) == "skill" else b.get("tip", [0, -40])
+	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
+
+
+## 爆炸半径：aoe × op_range × aoe_mults（cond 成立的依次乘，例：精一天赋 ×1.25）
+static func hw_aoe(o, b: Dictionary) -> float:
+	var r: float = float(b.get("aoe", 50.0)) * o.stat(&"op_range")
+	for m in b.get("aoe_mults", []):
+		if cond_true(o, m.get("cond", {})):
+			r *= float(m.get("mult", 1.0))
+	return r
+
+
+## 普攻起手点（data_operator.update 的 shell 分支）
+static func hw_shell_aim(o, a: Dictionary) -> Vector2:
+	var reach: float = float(a.get("range", 290.0)) * o.stat(&"op_range")
+	return o.atk_point(o.los_targets(1, reach, o.pos), reach)
+
+
+## 出手（普攻 is_atk = true / 技能 do）：选目标 → 次数型技能补丁 → 发射 → 后续弹排队
+static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
+	var g = o.g
+	var h := _hw2(o)
+	var ts: Array
+	if is_atk and o.atk_aim != Vector2.ZERO:
+		ts = [o.aim_land(float(b.get("range", 290.0)) * o.stat(&"op_range"))]
+	else:
+		ts = o.los_targets(1, (float(b.get("range", 290.0)) + float(b.get("fire_pad", 40.0))) * o.stat(&"op_range"), o.pos)
+	if ts.is_empty():
+		return
+	var patch := {}
+	if is_atk:
+		var sk: Array = o.B.get("skills", [])
+		for i in 3:
+			if o.ammo[i] > 0 and i < sk.size():
+				o.ammo[i] -= 1
+				patch = sk[i].get("attack_patch", {})
+				break
+	var pre: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0))
+	if b.get("power", false) or patch.get("power", false):
+		pre *= o.skill_power()
+	var aoe: float = hw_aoe(o, b) * float(b.get("aoe_mult", 1.0))
+	if patch.has("aoe_mult"):
+		aoe *= float(patch.aoe_mult)
+	var oe: Array = b.get("on_explode", []) + patch.get("on_explode", [])
+	if b.has("lob") and cond_true(o, b.lob.get("cond", {})):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
+		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
+		if b.has("fire_fx"):
+			fx_play(o, b.fire_fx, hw_tip(o, b), 10.0)
+		return
+	_hw_cast(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, 1.0, oe, not is_atk)
+	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
+	if b.has("fire_fx"):
+		fx_play(o, b.fire_fx, tip, 10.0)
+	for f in b.get("follow", []):
+		if not cond_true(o, f.get("cond", {})):
+			continue
+		var n: int = int(f.get("n", 1))
+		var tos: Array = _hw_extra_targets(o, b, ts[0], n)
+		for k in n:
+			h.shells.append({"t": float(f.get("gap", 0.12)) * (k + 1), "to": tos[k], "pre": pre * float(f.get("mult", 1.0)), "aoe": aoe * float(f.get("aoe_mult", 1.0)),
+				"sz": float(f.get("sz", 1.0)), "oe": oe, "b": b, "tip": tip - o.pos})
+		break
+
+
+## 后续弹的落点：首发目标之外最近的敌人（视线优先）；不够就在首发目标两侧垂直偏开 side（交替）
+static func _hw_extra_targets(o, b: Dictionary, first: Dictionary, n: int) -> Array:
+	var out: Array = []
+	for e in o.los_targets(n + 3, (float(b.get("range", 290.0)) + float(b.get("fire_pad", 40.0))) * o.stat(&"op_range"), o.pos):
+		if e.id != first.id and out.size() < n:
+			out.append(e.pos)
+	var side: Vector2 = (first.pos - o.pos).normalized().orthogonal() * float(b.get("side", 40.0))
+	var k := 0
+	while out.size() < n:
+		out.append(first.pos + side * (1.0 if k % 2 == 0 else -1.0))
+		k += 1
+	return out
+
+
+## 发射一弹（game 的 fire 子弹：hidden，弹体由本干员画；爆炸后回调 data_operator.bullet_exploded）
+static func _hw_cast(o, b: Dictionary, from: Vector2, target: Vector2, pre: float, aoe: float, sz: float, oe: Array, sfx: bool) -> void:
+	var g = o.g
+	var d: Vector2 = (target - from).normalized()
+	if absf(d.x) > 0.01:
+		o._set_face(signf(d.x))
+	g.bullets.append({"kind": "fire", "pos": from, "vel": d * float(b.get("speed", 360.0)), "dmg": pre * o._dmg_bonus(), "life": float(b.get("life", 1.3)), "r": float(b.get("r", 8.0)) * sz,
+		"aoe": aoe, "src": str(b.get("src", "")), "op": o.id, "on_hit": o, "burn": false, "weak": 0.0, "fx_col": _mf_col(b.get("col", []), HW_ORANGE), "hidden": true,
+		"etrail": 0.0, "sz": sz, "hw_b": b, "hw_oe": oe})
+	if sfx:
+		o._sfx_op("atk")
+
+
+## fire 子弹爆炸后（weapons.gd → data_operator.bullet_exploded）：爆点画面，然后执行 on_explode（target = 爆点，basis hit = 这一弹伤害，r: hit = 爆炸半径）
+static func hw_shell_boom(o, bl: Dictionary) -> void:
+	var g = o.g
+	var b: Dictionary = bl.get("hw_b", {})
+	var h := _hw2(o)
+	if b.has("boom_fx"):
+		fx_play(o, b.boom_fx, bl.pos, float(bl.aoe))
+	var keep := hw_snap(o)
+	var kr: float = float(h.hit_r)
+	h.hit_dmg = float(bl.dmg)
+	h.hit_r = float(bl.aoe)
+	o._exec_list(bl.get("hw_oe", []), bl.pos)
+	hw_pop(o, keep)
+	h.hit_r = kr
+
+
+# ---------------------------------------------------------------- verb.lob / verb.affect / st.burn / st.fragile / shape.pool 的执行
+
+static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
+	var g = o.g
+	var h := _hw2(o)
+	if at == Vector2.INF:
+		at = o.pos
+	var fv = b.get("from_off", [0, 0])
+	var from: Vector2 = at + Vector2(float(fv[0]), float(fv[1]))
+	var dmg: float
+	if b.has("basis"):
+		dmg = hw_basis(o, str(b.basis)) * float(b.get("mult", 1.0))
+	else:
+		dmg = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
+		if b.get("power", false):
+			dmg *= o.skill_power()
+	var aoe: float = float(h.hit_r)
+	var n: int = int(b.get("n", 2))
+	var tos: Array = []
+	match str(b.get("pick", "near_out")):
+		"near_out":
+			for e in o.nearest_enemies(int(b.get("cand", 6)), float(b.get("reach", 200.0)), at):
+				if e.pos.distance_to(at) > aoe * float(b.get("out_k", 0.6)) and tos.size() < n:
+					tos.append(e.pos)
+			while tos.size() < n:
+				tos.append(at + Vector2.from_angle(g.rng.randf() * TAU) * aoe * float(b.get("pad_k", 1.5)))
+		"shuffle":
+			var mc: Array = o.nearest_enemies(int(b.get("cand", 10)), float(b.get("reach", 320.0)), at)
+			o.shuffle_rng(mc)
+			for k in mini(n, mc.size()):
+				tos.append(mc[k].pos)
+		"ring":
+			var a0: float = g.rng.randf() * TAU
+			for k in n:
+				tos.append(at + Vector2.from_angle(a0 + k * TAU / float(n)) * aoe * float(b.get("ring_k", 1.4)))
+	var hh: float = float(b.get("h", 30.0))
+	for p in tos:
+		if h.lobs.size() >= HW_LOB_MAX:
+			break
+		var dur: float = clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)
+		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
+			"sz": float(b.get("sz", 1.0)), "trail": 0.0})
+
+
+static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
+	var c: Vector2 = field_center(o, b, at)
+	if c == Vector2.INF:
+		return
+	var rv = b.get("r", "hit")
+	var r: float = float(_hw2(o).hit_r) if str(rv) == "hit" else float(rv) * o.stat(&"op_range")
+	for e in o.arc_targets(c, 0.0, PI, r):
+		if e.dead:
+			continue
+		for s in b.get("on_hit", []):
+			apply_status(o, e, s, c)
+
+
+## apply_status 转来：本段的状态（Boss 也吃，所以在「Boss 缺省不受」之前截下）。返回 true = 已处理
+static func hw_status(o, e: Dictionary, s: Dictionary) -> bool:
+	match "st." + str(s.get("st", "")):
+		"st.burn":
+			var dps: float = hw_basis(o, str(s.get("basis", "hit"))) * float(s.get("mult", 0.1))
+			_hw2(o).burns.append({"e": e, "t": float(s.dur), "dps": dps, "ft": 0.0, "s": s})
+			return true
+		"st.requiem":   # 逻各斯段：安魂（直接覆盖剩余时间，同手写）
+			if o.hw.has("rq") and hw_requiem_stack(o, e, s):   # 精英化第 2 批段：叠层安魂（剜魂）
+				return true
+			e["requiem"] = float(s.dur)
+			return true
+		"st.fragile":
+			if str(s.get("kind", "")) == "arts":
+				var g = o.g
+				var mv: float = float(e.get("melt_v", 0.0)) if float(e.get("melt_t", 0.0)) > float(g.t) else 0.0
+				e["melt_t"] = maxf(float(e.get("melt_t", 0.0)), float(g.t) + float(s.dur))
+				e["melt_v"] = maxf(mv, float(s.get("value", 0.08)))
+				if s.has("fx"):
+					fx_play(o, s.fx, e.pos, float(e.r), [e])
+				if s.has("look"):   # 精英化第 2 批段：脚下裂纹（熔蚀）
+					hw_melt_mark(o, e, s)
+			else:
+				e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))
+			return true
+	return false
+
+
+static func hw_pool(o, b: Dictionary, at: Vector2) -> void:
+	var h := _hw2(o)
+	var c: Vector2 = field_center(o, b, at)
+	if c == Vector2.INF:
+		return
+	var grp: String = str(b.get("group", ""))
+	if b.has("max") and grp != "":
+		var same := 0
+		for q in h.pools:
+			if q.b == b:
+				same += 1
+		if same >= int(b.max):
+			return
+	if grp != "" and b.has("group_cap"):   # 同组满了：先挤掉同组里最早的、可挤的（evict: true 的）
+		var cap: int = int(b.group_cap)
+		while true:
+			var gq: Array = h.pools.filter(func(q): return str(q.b.get("group", "")) == grp)
+			if gq.size() < cap:
+				break
+			var ev: Array = gq.filter(func(q): return q.b.get("evict", false))
+			if ev.is_empty():
+				return
+			h.pools.erase(ev[0])
+	var r: float = shape_radius(o, b)
+	var dmg: float
+	if b.has("basis"):
+		dmg = hw_basis(o, str(b.basis)) * float(b.get("mult", 1.0))
+	else:
+		dmg = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
+		if b.get("power", false):
+			dmg *= o.skill_power()
+	if h.pools.size() >= HW_POOL_MAX:
+		h.pools.pop_front()
+	var dur: float = float(b.get("dur", 1.0))
+	h.pools.append({"b": b, "pos": c, "r": r, "t": dur, "dur": dur, "tick": float(b.get("tick0", 0.0)), "dmg": dmg, "bub": 0.0, "pat": o.g.vrng.randi()})
+
+
+# ---------------------------------------------------------------- 每帧（hw_tick 转来，手写 update 的先后：地面 → 点燃 → 弹体尾迹 → 抛射 → 后续弹 → 喷发落点 → 喷发序列）
+
+static func _hw2_tick(o, dt: float) -> bool:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.pools.is_empty():
+		for l in h.pools:   # 第一遍：持续跳伤的（手写：先铭文 / 熔岩池）
+			var b: Dictionary = l.b
+			if b.get("burst", false):
+				continue
+			l.t -= dt
+			l.tick -= dt
+			l.bub -= dt
+			if l.tick <= 0.0 and l.t > float(b.get("tail", -INF)):
+				l.tick = (l.tick + float(b.every)) if b.get("accum", false) else float(b.every)
+				o.area_hit(str(b.get("src", "")), l.pos, l.r, l.dmg, 0.0, 0.0, b.get("tags", []))
+			if str(b.get("look", "")) == "lava" and l.bub <= 0.0 and l.t > 0.4:   # 熔岩冒泡（画面，g.vrng）
+				l.bub = 0.18
+				var a: float = g.vrng.randf() * TAU
+				var rr: float = g.vrng.randf() * l.r * 0.8
+				o.fx({"kind": "mote", "pos": l.pos + Vector2(cos(a) * rr, sin(a) * rr * 0.55), "vel": Vector2(0, -28), "life": 0.55, "col": HW_ORANGE, "sz": 2.0})
+		for l in h.pools:   # 第二遍：到时炸一次的（手写：再墓志铭）
+			var b2: Dictionary = l.b
+			if not b2.get("burst", false):
+				continue
+			l.t -= dt
+			if l.t <= 0.0:
+				o.area_hit(str(b2.get("src", "")), l.pos, l.r, l.dmg, float(b2.get("kb", 0.0)), 0.0, b2.get("tags", []))
+				if b2.has("fx"):
+					fx_play(o, b2.fx, l.pos, l.r)
+		h.pools = h.pools.filter(func(l): return l.t > 0.0)
+	if not h.burns.is_empty():
+		for bu in h.burns:
+			var s: Dictionary = bu.s
+			bu.t -= dt
+			bu.ft -= dt
+			if bu.e.dead:
+				bu.t = 0.0
+				continue
+			if bu.ft <= 0.0:   # 火舌（画面）
+				bu.ft = 0.14
+				o.fx({"kind": "flame", "pos": bu.e.pos + Vector2(g.vrng.randf_range(-bu.e.r * 0.5, bu.e.r * 0.5), -bu.e.r * 0.4), "vel": Vector2(0, -20), "life": 0.3, "col": HW_ORANGE, "sz": 9.0})
+			var ev: float = float(s.get("every", 0.5))
+			var k: float = 1.0 / ev
+			if int((bu.t + dt) * k) != int(bu.t * k):
+				o.log_hit(str(s.get("src", "")), s.get("tags", []))
+				o.deal_damage(bu.e, bu.dps * ev)
+		h.burns = h.burns.filter(func(bu): return bu.t > 0.0)
+	for bl in g.bullets:   # 自己的法术弹：火星尾（画面）
+		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
+			continue
+		bl.etrail = float(bl.get("etrail", 0.0)) - dt
+		if bl.etrail <= 0.0:
+			bl.etrail = 0.04
+			o.fx({"kind": "spark", "pos": bl.pos - bl.vel.normalized() * 6.0, "vel": -bl.vel * 0.12 + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-30, 10)), "life": 0.3, "col": HW_ORANGE, "sz": 3.0})
+	if not h.lobs.is_empty():
+		for l in h.lobs:
+			l.t += dt
+			l.trail -= dt
+			if l.trail <= 0.0 and l.t < l.dur:
+				l.trail = 0.05
+				o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
+			if l.t >= l.dur:
+				o.area_hit(l.src, l.to, l.r, l.dmg)
+				o.fx({"kind": "ring", "pos": l.to, "r": l.r, "r0": l.r * 0.3, "life": 0.28, "col": HW_LAVA, "floor": true, "w": 2.0})
+				o.fx({"kind": "glow", "pos": l.to, "r": l.r * 0.6, "life": 0.18, "col": Color(1.6, 0.8, 0.3), "alpha": 0.6})
+				for k in (6 if l.sz >= 1.0 else 3):
+					o.fx({"kind": "mote", "pos": l.to, "vel": Vector2(g.vrng.randf_range(-80, 80), g.vrng.randf_range(-140, -50)), "life": 0.4, "col": HW_LAVA, "sz": 2.0, "grav": 320.0})
+				if l.sz >= 1.0:
+					o.spawn_fx_sprite("fx_flam_hit", l.to + Vector2(0, -6), g.PX * clampf(l.r / 60.0, 0.6, 1.1))
+		h.lobs = h.lobs.filter(func(l): return l.t < l.dur)
+	if not h.shells.is_empty():
+		for q in h.shells:
+			q.t -= dt
+			if q.t <= 0.0 and o.pos != Vector2.INF:
+				_hw_cast(o, q.b, o.pos + q.tip, q.to, q.pre, q.aoe, q.sz, q.oe, true)
+		h.shells = h.shells.filter(func(q): return q.t > 0.0)
+	if not h.erupts.is_empty():
+		for p in h.erupts:
+			p.t -= dt
+			if p.t <= 0.0:
+				o._exec_list(p.do, p.pos)
+		h.erupts = h.erupts.filter(func(p): return p.t > 0.0)
+	if not h.pulse.is_empty():
+		var pu: Dictionary = h.pulse
+		if int(pu.n) <= 0:
+			h.pulse = {}
+			return false
+		var sp: Dictionary = pu.sp
+		pu.t -= dt
+		if pu.t <= 0.0:
+			pu.t = float(pu.every)
+			pu.n = int(pu.n) - 1
+			var rr: float = (float(sp.get("r", 290.0)) + float(sp.get("pad", 60.0))) * o.stat(&"op_range")
+			var c: Vector2 = o.densest_point(rr, o.pos)
+			if c == Vector2.INF:
+				var ts: Array = o.nearest_enemies(1, rr, o.pos)
+				if ts.is_empty():
+					pu.n = 0
+					return true
+				c = ts[0].pos
+			var jv = sp.get("jit", [0, 0])
+			var at: Vector2 = c + Vector2(g.rng.randf_range(-float(jv[0]), float(jv[0])), g.rng.randf_range(-float(jv[1]), float(jv[1])))
+			h.erupts.append({"pos": at, "t": float(sp.get("delay", 0.12)), "do": sp.get("do", [])})
+			if sp.has("fx"):
+				fx_play(o, sp.fx, at, 40.0, [], at.x * 0.02)
+		return true
+	return false
+
+
+static func _hw_lob_pos(l: Dictionary) -> Vector2:
+	var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+	return l.from.lerp(l.to, k) + Vector2(0, -sin(k * PI) * l.h)
+
+
+## dur.pulses 的技能出手（data_operator._release_skill）：开喷发序列
+static func hw_pulse_start(o, i: int, sb: Dictionary) -> void:
+	var h := _hw2(o)
+	var dv: Dictionary = sb.dur
+	h.pulse = {"i": i, "n": int(dv.get("pulses", 10)), "every": float(dv.get("every", 0.2)), "t": 0.0, "sp": sb.get("pulse", {})}
+	o.s_dur[i] = float(int(dv.get("pulses", 10))) * float(dv.get("every", 0.2))
+
+
+## 技能剩余（data_operator.skill_active_left 转来）：喷发序列 = 剩余次数 × every；-1 = 本段不管
+static func hw_active_left(o, i: int) -> float:
+	if not hw_on(o):
+		return -1.0
+	var pu = o.hw.get("pulse", {})
+	if pu is Dictionary and not pu.is_empty() and int(pu.i) == i:
+		return float(int(pu.n)) * float(pu.every)
+	if o.hw.has("bolts"):
+		return _hw3_left(o, i)
+	if o.hw.has("anchor"):
+		return _hw4_left(o, i)
+	return -1.0
+
+
+## cast: instant 的技能（data_operator.update 充满当帧）：扣技力、次数型技能装填、画面 / 飘字。返回 true = 已处理
+static func hw_instant(o, i: int) -> bool:
+	var sk: Array = o.B.get("skills", [])
+	if i < 0 or i >= sk.size() or str(sk[i].get("cast", "")) != "instant":
+		return false
+	var sb: Dictionary = sk[i]
+	o.spend_sp(i)
+	var dv = sb.get("dur", 0)
+	if dv is Dictionary and dv.has("next_attacks"):
+		o.ammo[i] = int(dv.next_attacks)
+	if sb.has("fx"):
+		fx_play(o, sb.fx, o.pos, 30.0)
+	o._exec_list(sb.get("do", []))
+	return true
+
+
+# ---------------------------------------------------------------- 画面
+
+## 法术弹（g.bullets 里本干员的 fire 弹）与抛射火团（data_operator._draw_skill_over）
+static func hw_draw_shells(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	for bl in g.bullets:
+		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
+			continue
+		var lk: Dictionary = bl.hw_b.get("look", {})
+		var sz: float = float(bl.get("sz", 1.0))
+		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + bl.pos.x)
+		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
+		var big: String = str(lk.get("big_tex", ""))
+		if big != "" and g.tex.get(big) != null:
+			cv.draw_circle(bl.pos, float(lk.get("glow2", 26.0)) * fl, Color(1.6, 0.5, 0.1, 0.25))
+			o.draw_spr_rot(big, int(g.t * 14.0) % int(g.V6_FRAMES.get(big, [5])[0]), bl.pos - bl.vel.normalized() * float(lk.get("back", 14.0)), bl.vel.angle(), g.PX * float(lk.get("big_scale", 1.5)))
+		elif g.tex.get(str(lk.get("tex", "proj_lavaball"))) != null:
+			var tn: String = str(lk.get("tex", "proj_lavaball"))
+			o.draw_spr_rot(tn, int(g.t * 12.0 + bl.pos.x * 0.05) % int(g.V6_FRAMES.get(tn, [6])[0]), bl.pos, bl.vel.angle(), g.PX * float(lk.get("scale", 1.1)) * sz)
+		else:
+			cv.draw_circle(bl.pos, 7.5 * fl * sz, Color(2.2, 0.9, 0.25, 0.9))
+			cv.draw_circle(bl.pos, 3.5 * sz, Color(2.8, 2.4, 1.6))
+	if not hw_on(o) or not o.hw.has("lobs"):
+		return
+	for l in o.hw.lobs:
+		var p: Vector2 = _hw_lob_pos(l)
+		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+		cv.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
+		cv.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var rr: float = 5.5 * l.sz
+		cv.draw_circle(p, rr * 1.9, Color(1.6, 0.55, 0.12, 0.25))
+		if l.b.get("shell", false):
+			cv.draw_circle(p, rr * 1.2, Color(0.45, 0.08, 0.03, 0.95))
+		cv.draw_circle(p, rr, Color(2.2, 0.8, 0.2, 0.95))
+		cv.draw_circle(p, rr * 0.45, Color(2.8, 2.3, 1.4))
+
+
+## 地面池（data_operator.draw_entities_floor）：look lava = 暗红椭圆 + 翻滚熔岩帧条
+static func hw_draw_pools(o) -> void:
+	if not o.hw.has("pools"):
+		return
+	var g = o.g
+	var cv = o.cv
+	for l in o.hw.pools:
+		var b: Dictionary = l.b
+		match str(b.get("look", "")):
+			"lava":
+				var a: float = clampf(l.t / 0.6, 0.0, 1.0)
+				cv.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
+				cv.draw_circle(Vector2.ZERO, l.r, Color(0.7, 0.15, 0.03, 0.3 * a))
+				cv.draw_circle(Vector2.ZERO, l.r * 0.6, Color(1.5, 0.55, 0.1, 0.22 * a + 0.06 * sin(g.t * 9.0 + l.pos.x)))
+				cv.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(1.8, 0.7, 0.2, 0.5 * a), 2.0)
+				cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				if g.tex.get("fx_sunburst") != null:
+					o.draw_spr_rot("fx_sunburst", int(g.t * 16.0 + l.pos.x * 0.1) % 16, l.pos + Vector2(0, -4), 0.0, l.r * 1.3 / 62.0, Color(1.0, 1.0, 1.0, 0.75 * a))
+			"pool":   # Codex 熔池帧条（fx_eyja_lava_pool 这类循环地面件）：按半径缩放，缺图画 lava
+				var tn: String = str(b.get("tex", ""))
+				var a2: float = clampf(l.t / 0.3, 0.0, 1.0) * clampf((l.dur - l.t) / 0.12, 0.0, 1.0)
+				if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+					var spec: Array = g.V6_FRAMES[tn]
+					fx_frame(cv, g, tn, int(spec[0]), int((l.dur - l.t) * float(spec[1])), l.pos, l.r / float(b.get("fit", 22.0)), Color(1, 1, 1, a2 * float(b.get("alpha", 1.0))))
+				else:
+					cv.draw_set_transform(l.pos, 0.0, Vector2(1.0, 0.55))
+					cv.draw_circle(Vector2.ZERO, l.r, Color(0.7, 0.15, 0.03, 0.35 * a2))
+					cv.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(1.8, 0.7, 0.2, 0.55 * a2), 2.0)
+					cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 喷发期间脚下热浪环（draw_auras）
+static func hw_draw_pulse_ring(o) -> void:
+	if not o.hw.has("pulse") or o.hw.pulse.is_empty() or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	o.cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+	o.cv.draw_arc(Vector2.ZERO, 56.0 + 6.0 * sin(g.t * 6.0), 0.0, TAU, 32, Color(HW_ORANGE.r, HW_ORANGE.g, HW_ORANGE.b, 0.35), 2.0)
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 程序粒子的画法（data_operator._draw_pfx → mf_draw_pfx 之后）：lava_pillar（熔岩柱）
+static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	match str(f.kind):
+		"whirl", "chain", "rift":   # 乌尔比安段
+			return hw4_draw_pfx(o, f, a)
+		"s1link":   # 逻各斯湮灭余伤传递：黑色咒文链从起点铺向目标
+			var grow: float = minf(1.0, (1.0 - a) / 0.3)
+			_hw_draw_tiled(o, "fx_logos_s1_link", f.pos, f.pos.lerp(f.to, grow), o.g.PX * 0.8, 0.0)
+			return true
+		"lava_pillar":
+			var k: float = sin(a * PI)
+			var hh: float = (60.0 + f.r * 0.5) * k
+			var w: float = f.r * 0.45
+			var p: Vector2 = f.pos
+			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-w, 0), p + Vector2(-w * 0.35, -hh), p + Vector2(w * 0.35, -hh), p + Vector2(w, 0)]), Color(HW_LAVA.r, HW_LAVA.g, HW_LAVA.b, 0.8 * a))
+			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-w * 0.45, 0), p + Vector2(-w * 0.12, -hh * 0.9), p + Vector2(w * 0.12, -hh * 0.9), p + Vector2(w * 0.45, 0)]), Color(2.2, 1.6, 0.8, 0.85 * a))
+			cv.draw_circle(p + Vector2(0, -hh), w * 0.35, Color(2.4, 1.9, 1.2, 0.8 * a))
+			return true
+	return false
+
+
+## 状态条：次数型技能（status 里的 %d = 剩余发数）、喷发序列
+static func hw_status_items(o) -> Array:
+	var out: Array = hw3_status_items(o) if o.hw.has("bolts") else []
+	if o.hw.has("anchor"):
+		out += hw4_status_items(o)
+	var sk: Array = o.B.get("skills", [])
+	for i in mini(3, sk.size()):
+		var st: String = str(sk[i].get("status", ""))
+		if st != "" and "%d" in st and o.ammo[i] > 0:
+			out.append([st % o.ammo[i], _mf_col(sk[i].get("status_col", []), o.col())])
+	return out
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in HW2_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"shape.shell": ["attack", "skill", "instant"],
+		"verb.lob": ["skill", "instant"],
+		"verb.affect": ["skill", "instant"],
+		"st.burn": ["on_hit", "field"],
+		"st.fragile": ["on_hit", "field"],
+		"shape.pool": ["skill", "instant"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"shape.shell":
+			_num(b, "range", p, ctx, true, 10.0, 2000.0)
+			_num(b, "aoe", p, ctx, true, 1.0, 400.0)
+			_num(b, "mult", p, ctx, false, 0.0, 20.0)
+			_num(b, "speed", p, ctx, false, 10.0, 3000.0)
+			_num(b, "life", p, ctx, false, 0.05, 10.0)
+			_num(b, "aoe_mult", p, ctx, false, 0.05, 10.0)
+			_num(b, "fire_pad", p, ctx, false, 0.0, 400.0)
+			_num(b, "side", p, ctx, false, 0.0, 200.0)
+			for k in ["tip", "tip_skill"]:
+				if b.has(k) and not (b[k] is Array and b[k].size() == 2):
+					errs.append("%s.%s 必须是 [x, y]" % [p, k])
+			for m in b.get("aoe_mults", []):
+				if not (m is Dictionary) or not m.has("mult"):
+					errs.append(p + ".aoe_mults 的每一条是 {cond, mult}")
+			for f in b.get("follow", []):
+				if not (f is Dictionary):
+					errs.append(p + ".follow 的每一条是 {cond, n, gap, mult, aoe_mult, sz}")
+					continue
+				_num(f, "n", p + ".follow", ctx, true, 1.0, 6.0)
+				_num(f, "gap", p + ".follow", ctx, false, 0.0, 2.0)
+				_num(f, "mult", p + ".follow", ctx, false, 0.0, 20.0)
+			_list(b.get("on_explode", []), p + ".on_explode", "instant", ctx)
+			for k in ["fire_fx", "boom_fx"]:
+				if b.has(k):
+					_fx(b[k], p + "." + k, ctx, "shape.circle")
+			_src(b, p, ctx, true)
+			if b.has("lob"):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（docs/61 §18）
+				var lb = b.lob
+				if not (lb is Dictionary):
+					errs.append(p + ".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}")
+				else:
+					_num(lb, "n", p + ".lob", ctx, true, 1.0, 6.0)
+					_num(lb, "gap", p + ".lob", ctx, false, 0.0, 2.0)
+					_num(lb, "spacing", p + ".lob", ctx, false, 0.0, 400.0)
+					_num(lb, "flight", p + ".lob", ctx, true, 0.05, 3.0)
+					_num(lb, "apex", p + ".lob", ctx, false, 0.0, 200.0)
+					var ms = lb.get("mults", [1.0])
+					if not (ms is Array) or ms.is_empty() or ms.any(func(x): return not (x is float or x is int or (x is String and str(x).begins_with("$")))):
+						errs.append(p + ".lob.mults 必须是数字数组（第 k 发的倍率）")
+					if lb.has("tex") and not str(lb.tex).begins_with("proj_"):
+						errs.append(p + ".lob.tex 必须是 proj_* 帧条名")
+					if lb.has("boom_fx"):
+						_fx(lb.boom_fx, p + ".lob.boom_fx", ctx, "shape.circle")
+					_list(lb.get("pool", []), p + ".lob.pool", "instant", ctx)
+		"verb.lob":
+			if not str(b.get("pick", "near_out")) in HW_LOB_PICKS:
+				errs.append("%s.pick 只能是 %s" % [p, " / ".join(HW_LOB_PICKS)])
+			_num(b, "n", p, ctx, true, 1.0, 8.0)
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "h", p, ctx, false, 0.0, 400.0)
+			_num(b, "reach", p, ctx, false, 1.0, 2000.0)
+			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			_src(b, p, ctx, true)
+		"verb.affect":
+			if not (str(b.get("r", "hit")) == "hit" or b.get("r", null) is float or b.get("r", null) is int):
+				_num(b, "r", p, ctx, true, 1.0, 800.0)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+		"st.burn":
+			_num(b, "dur", p, ctx, true, 0.1, 30.0)
+			_num(b, "mult", p, ctx, true, 0.0, 5.0)
+			_num(b, "every", p, ctx, false, 0.1, 5.0)
+			_src(b, p, ctx, true)
+		"st.fragile":
+			_num(b, "dur", p, ctx, true, 0.1, 30.0)
+			if str(b.get("kind", "")) == "arts":
+				_num(b, "value", p, ctx, true, 0.0, 1.0)
+			elif b.has("kind"):
+				errs.append(p + ".kind 只能是 arts（不写 = 受到的全部伤害 +10%）")
+		"shape.pool":
+			_num(b, "r", p, ctx, true, 1.0, 600.0)
+			_num(b, "dur", p, ctx, true, 0.05, 30.0)
+			if not b.get("burst", false):
+				_num(b, "every", p, ctx, true, 0.05, 10.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "group_cap", p, ctx, false, 1.0, 16.0)
+			_num(b, "max", p, ctx, false, 1.0, 16.0)
+			if not str(b.get("center", "target")) in FIELD_CENTERS:
+				errs.append("%s.center 只能是 %s" % [p, " / ".join(FIELD_CENTERS)])
+			if b.has("look") and not str(b.look) in ["lava", "pool", "rune"]:
+				errs.append(p + ".look 只能是 lava / pool / rune")
+			_src(b, p, ctx, true)
+	return true
+
+
+## 技能积木的追加字段：cast: instant / dur.pulses + pulse
+static func _hw_skill(sb: Dictionary, p: String, ctx: Dictionary) -> void:
+	var errs: Array = ctx.errs
+	if sb.has("cast") and str(sb.cast) != "instant":
+		errs.append(p + ".cast 只能是 instant")
+	var dv = sb.get("dur", 0)
+	if dv is Dictionary and dv.has("pulses"):
+		_num(dv, "pulses", p + ".dur", ctx, true, 1.0, 60.0)
+		_num(dv, "every", p + ".dur", ctx, true, 0.05, 5.0)
+		var pu = sb.get("pulse", null)
+		if not (pu is Dictionary):
+			errs.append(p + ".pulse 必须是对象 {r, pad, jit, delay, fx, do}")
+		else:
+			_num(pu, "r", p + ".pulse", ctx, true, 1.0, 2000.0)
+			_list(pu.get("do", []), p + ".pulse.do", "instant", ctx)
+			if pu.has("fx"):
+				_fx(pu.fx, p + ".pulse.fx", ctx, "shape.circle")
+	elif sb.has("pulse"):
+		errs.append(p + ".pulse 要配 dur.pulses")
+
+
+# ---------------------------------------------------------------- 逻各斯段（手写迁移段续）：飘飞咒文弹 / 处决 / 锁定 / 扇形咒域 / 安魂
+# 攻击值 basis atk = base(atk) × 加成 × attack.atk_mults（cond 成立的依次乘，例：湮灭期间 ×1.5）；mult 可写数组 = 依次乘（同手写的 a × b × c）。
+# 攻击距离 = attack.range × op_range × attack.range_mults（同上）。
+# shape.bolt   飘飞咒文弹（普攻或触发 do）：pick aim（普攻：aim_targets，扇形咒域生效时多要 6 个再只留域内的；extra = 追加目标）/ random（射程内最近 pool 个里
+#              用 g.rng 随机抽 count 个，chance = 先用 g.rng 掷一次概率；slow = 被选中时立即减速）。每枚排进出手队列（第 k 枚晚 gap × 队列长度 秒），
+#              到点从 tip 飘出（同时 ≤ 12 枚，满了直接命中），追着目标飞（speed，左右摆动；相位 g.rng，同手写），飞到执行 then（target = 命中的敌人，
+#              basis hit = 这一枚的伤害；then_of: attack = 用普攻那块的 then）；目标半路死了改打落点 60 内最近的
+# shape.hit    瞬时：对 then 的命中敌人造成 basis × mult（src 缺省 = 这一枚的来源），on_hit 状态；splash {r, mult} = 周围 r 内其他敌人各吃 basis × mult × splash.mult
+# verb.execute 瞬时：命中的敌人非精英、生命低于 攻击值 × thr 时处决（伤害记 src），溢出伤害转给射程内 pool 个里 g.rng 随机一名（over_src，并吃 over_on_hit）；
+#              on_exec：处决时执行（target = 处决处）。halt: true = 处决了就不再执行 then 里后面的积木
+# st.requiem   安魂：dur 秒内受到的法术伤害 +15%（全队法伤受益；直接覆盖剩余时间，同手写）
+# verb.lock    锁定（技能 do）：射程内优先精英 / Boss 的最近敌人，dur 秒内每 tick 秒 攻击值 × mult × ramp × 技能强度（ramp 第 n 跳 = lerp(1, ramp_max, n / ramp_n)），
+#              减速 slow × ramp；没有目标退回 refund 比例的技力；jump（cond）= 目标死了跳到离它最近的敌人
+# verb.fan     扇形咒域（技能 do）：dur 秒，以自身为顶点、deg 度、半径 = 攻击距离 × r_mult；每 eval 秒重算敌人最多的方向，以 turn 度 / 秒转过去；
+#              每 tick 秒对域内敌人 攻击值 × mult × 技能强度（src）并挂 on_hit；域内敌方弹幕减速到 bullet_slow（寿命相应拉长），结束时清掉域内弹幕
+
+const HW3_TAGS := ["shape.bolt", "shape.hit", "verb.execute", "st.requiem", "verb.lock", "verb.fan"]
+const HW_BOLT_MAX := 12
+const HW_INK := Color(0.55, 0.6, 1.0)
+const HW_PALE := Color(0.85, 0.9, 1.0)
+## 咒文笔画（同手写 logos RUNES：单位坐标 -1..1，每条 = 起点 → 终点）
+const HW_RUNES := [
+	[[Vector2(0, -1), Vector2(0, 1)], [Vector2(-0.7, -0.5), Vector2(0.7, -0.5)], [Vector2(0, 1), Vector2(-0.45, 0.7)]],
+	[[Vector2(-0.6, -0.6), Vector2(0.6, -0.6)], [Vector2(0.6, -0.6), Vector2(0.6, 0.6)], [Vector2(0.6, 0.6), Vector2(-0.6, 0.6)], [Vector2(-0.6, 0.6), Vector2(-0.6, -0.6)], [Vector2(-0.9, -1), Vector2(0.9, 1)]],
+	[[Vector2(0, -1), Vector2(-0.8, 1)], [Vector2(-0.1, -0.2), Vector2(0.8, 1)], [Vector2(-0.6, -0.25), Vector2(0.6, -0.25)]],
+	[[Vector2(-0.5, -1), Vector2(-0.5, 1)], [Vector2(-0.5, -0.6), Vector2(0.6, -1)], [Vector2(-0.5, 0), Vector2(0.6, -0.4)]],
+	[[Vector2(-0.8, 0), Vector2(0.8, 0)], [Vector2(0, -1), Vector2(0, 1)], [Vector2(-0.55, -0.65), Vector2(-0.3, -0.4)], [Vector2(0.55, 0.45), Vector2(0.3, 0.7)]],
+]
+
+
+static func _hw3(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("bolts"):
+		h.merge({"bolts": [], "word_q": [], "lock": {}, "fan": {}, "fan_ang": 0.0, "hit_e": {}, "hit_src": ""})
+	return h
+
+
+## 攻击值（basis atk）：base(atk) × 加成 × atk_mults
+static func hw_atk(o) -> float:
+	var a: Dictionary = o.B.get("attack", {})
+	var v: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus()
+	for m in a.get("atk_mults", []):
+		if cond_true(o, m.get("cond", {})):
+			v *= float(m.get("mult", 1.0))
+	return v
+
+
+## 攻击距离：attack.range × op_range × range_mults
+static func hw_range(o) -> float:
+	var a: Dictionary = o.B.get("attack", {})
+	var v: float = float(a.get("range", 300.0)) * o.stat(&"op_range")
+	for m in a.get("range_mults", []):
+		if cond_true(o, m.get("cond", {})):
+			v *= float(m.get("mult", 1.0))
+	return v
+
+
+## mult：数字，或数组（依次乘）
+static func hw_mul(v: float, m) -> float:
+	if m is Array:
+		for x in m:
+			v *= float(x)
+		return v
+	return v * float(m)
+
+
+# ---------------------------------------------------------------- shape.bolt
+
+## 普攻起手（data_operator.update 的 bolt 分支，手动普攻 B 类）
+static func hw_bolt_aim(o, a: Dictionary) -> Vector2:
+	var ts: Array = o.attack_targets(1, hw_range(o), o.pos)
+	return ts[0].pos if not ts.is_empty() else Vector2.INF
+
+
+## 返回 false = 这一下没有目标、没出手（手写的 _release 在这里 return，后面的天赋判定也不走）
+static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
+	var g = o.g
+	var h := _hw3(o)
+	var rng_r: float = hw_range(o)
+	var src: String = str(b.get("src", ""))
+	match str(b.get("pick", "aim")):
+		"aim":
+			var n: int = int(b.get("count", 1))
+			var ex: Array = []
+			for x in b.get("extra", []):
+				if cond_true(o, x.get("cond", {})):
+					ex.append(x)
+			var fan: bool = not h.fan.is_empty() and float(h.fan.t) > 0.0 and b.get("fan_filter", false)
+			var ts: Array = o.aim_targets(n + ex.size() + (6 if fan else 0), rng_r, o.pos)
+			if fan:
+				ts = ts.filter(func(e): return hw_in_fan(o, e.pos)).slice(0, n + ex.size())
+			if ts.is_empty():
+				return false
+			var a: float = hw_atk(o)
+			for k in ts.size():
+				var d: float = hw_mul(a, b.get("mult", 1.0))
+				d = hw_mul(d, ex[k - n].get("mult", 1.0)) if k >= n else d * 1.0
+				_hw_word(o, ts[k], d, src, b)
+		"random":
+			if b.has("chance") and not roll(g, float(b.chance)):
+				return false
+			var pool: Array = o.nearest_enemies(int(b.get("pool", 8)), rng_r, o.pos)
+			for q in int(b.get("count", 1)):
+				if pool.is_empty():
+					break
+				var e2: Dictionary = pool.pop_at(g.rng.randi() % pool.size())
+				_hw_word(o, e2, hw_mul(hw_atk(o), b.get("mult", 1.0)), src, b)
+				if b.has("slow"):
+					e2.slow = maxf(e2.slow, float(b.slow))
+	return true
+
+
+static func _hw_word(o, e: Dictionary, dmg: float, src: String, b: Dictionary) -> void:
+	var h: Dictionary = o.hw
+	h.word_q.append({"t": float(b.get("gap", 0.12)) * h.word_q.size(), "e": e, "dmg": dmg, "src": src, "b": b})
+
+
+static func _hw_bolt_tip(o, b: Dictionary) -> Vector2:
+	var v = b.get("tip", [40, -36])
+	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
+
+
+## 出手队列 → 飞行 → 命中（hw_tick）
+static func _hw3_bolts(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.word_q.is_empty():
+		for q in h.word_q:
+			q.t -= dt
+			if q.t <= 0.0:
+				var e: Dictionary = q.e
+				if e.dead:
+					var near: Array = o.nearest_enemies(1, hw_range(o), o.pos)
+					e = near[0] if not near.is_empty() else {}
+				if not e.is_empty() and not e.dead:
+					var hand: Vector2 = _hw_bolt_tip(o, q.b)
+					if h.bolts.size() >= HW_BOLT_MAX:
+						hw_bolt_hit(o, e, q.dmg, q.src, q.b)
+					else:
+						h.bolts.append({"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
+							"ph": g.rng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
+						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
+		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
+	if h.bolts.is_empty():
+		return
+	for bo in h.bolts:
+		var spd: float = float(bo.b.get("speed", 260.0))
+		bo.life -= dt
+		bo.age += dt
+		if bo.life <= 0.0:
+			o.fx({"kind": "glow", "pos": bo.pos, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.4})
+			continue
+		var e: Dictionary = bo.e
+		if not e.dead:
+			bo.to = e.pos + Vector2(0, -e.r * 0.5)
+		var d: Vector2 = bo.to - bo.pos
+		var step: float = spd * dt
+		if d.length() <= step + 4.0:
+			bo.pos = bo.to
+			bo.life = -1.0
+			var tgt: Dictionary = e
+			if e.dead:
+				var near2: Array = o.nearest_enemies(1, 60.0, bo.to)
+				tgt = near2[0] if not near2.is_empty() else {}
+			if not tgt.is_empty():
+				hw_bolt_hit(o, tgt, bo.dmg, bo.src, bo.b)
+			continue
+		bo.pos += d.normalized().rotated(sin(bo.age * 7.0 + bo.ph) * 0.45) * step
+		bo.hist.append(bo.pos)
+		if bo.hist.size() > 6:
+			bo.hist.pop_front()
+	h.bolts = h.bolts.filter(func(bo): return bo.life > 0.0)
+
+
+## 命中：then（target = 这名敌人，basis hit = 这一枚的伤害）；verb.execute 处决成功且 halt 时停下
+static func hw_bolt_hit(o, e: Dictionary, dmg: float, src: String, b: Dictionary) -> void:
+	if e.dead:
+		return
+	var h: Dictionary = o.hw
+	var keep := hw_snap(o)
+	var ke = h.hit_e
+	var ks: String = h.hit_src
+	h.hit_e = e
+	h.hit_dmg = dmg
+	h.hit_src = src
+	var lst: Array = o.B.get("attack", {}).get("then", []) if str(b.get("then_of", "")) == "attack" else b.get("then", [])
+	for blk in lst:
+		if not cond_true(o, blk.get("cond", {})):
+			continue
+		if str(blk.get("_tag", "")) == "verb.execute":
+			if hw_execute(o, blk) and blk.get("halt", true):
+				break
+			continue
+		o._exec_list([blk], e.pos)
+	h.hit_e = ke
+	h.hit_src = ks
+	hw_pop(o, keep)
+
+
+static func hw_shape_hit(o, b: Dictionary) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var e: Dictionary = h.get("hit_e", {})
+	if e.is_empty() or e.dead:
+		return
+	var dmg: float = hw_mul(hw_basis(o, str(b.get("basis", "hit"))), b.get("mult", 1.0))
+	var src: String = str(b.get("src", h.hit_src))
+	o.log_hit(src, b.get("tags", []))
+	o.deal_damage(e, dmg)
+	for s in b.get("on_hit", []):
+		apply_status(o, e, s)
+	if b.has("fx"):
+		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
+	var sp = b.get("splash", null)
+	if sp is Dictionary:
+		var ar: float = float(sp.get("r", 30.0))
+		if ar > 0.0:
+			for j in o.query_ids(e.pos, ar + 20.0):
+				var q: Dictionary = g.enemies[j]
+				if q.dead or is_same(q, e) or q.pos.distance_to(e.pos) > ar + q.r:
+					continue
+				o.log_hit(src, b.get("tags", []))
+				o.deal_damage(q, dmg * float(sp.get("mult", 0.5)))
+				for s in b.get("on_hit", []):
+					apply_status(o, q, s)
+
+
+## verb.execute：返回是否处决了
+static func hw_execute(o, b: Dictionary) -> bool:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var e: Dictionary = h.get("hit_e", {})
+	if e.is_empty() or e.dead or e.elite or e.boss:
+		return false
+	if not (e.hp < hw_atk(o) * float(b.get("thr", 1.5))):
+		return false
+	var dmg: float = float(h.hit_dmg)
+	var over: float = maxf(0.0, dmg - e.hp)
+	o.log_hit(str(b.get("src", "")), b.get("tags", []))
+	o.deal_damage(e, e.hp + 1.0)
+	if b.has("fx"):
+		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
+	o._exec_list(b.get("on_exec", []), e.pos)
+	if over > 0.0:
+		var pool: Array = o.nearest_enemies(int(b.get("pool", 6)), hw_range(o), o.pos)
+		pool = pool.filter(func(q): return not is_same(q, e) and not q.dead)
+		if not pool.is_empty():
+			var q2: Dictionary = pool[g.rng.randi() % pool.size()]
+			o.log_hit(str(b.get("over_src", b.get("src", ""))), [])
+			o.deal_damage(q2, over)
+			for s in b.get("over_on_hit", []):
+				apply_status(o, q2, s)
+			var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
+			var lb: Vector2 = q2.pos + Vector2(0, -q2.r * 0.5)
+			if g.tex.get("fx_logos_s1_link") != null:
+				o.fx({"kind": "s1link", "pos": la, "to": lb, "life": 0.3})
+			else:
+				o.fx({"kind": "line", "pos": la, "to": lb, "life": 0.2, "col": HW_INK, "w": 2.0})
+	return true
+
+
+# ---------------------------------------------------------------- verb.lock / verb.fan
+
+static func hw_lock_start(o, b: Dictionary) -> void:
+	var g = o.g
+	var h := _hw3(o)
+	var best = null
+	var bd := INF
+	for j in o.query_ids(o.pos, hw_range(o)):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var score: float = e.pos.distance_to(o.pos) - (100000.0 if (e.elite or e.boss) else 0.0)
+		if score < bd:
+			bd = score
+			best = e
+	var i: int = o.cur_skill
+	if best == null:
+		if i >= 0:
+			o.sp[i] = o.sp_need(i) * float(b.get("refund", 0.6))
+		return
+	h.lock = {"e": best, "t": float(b.dur), "tick": 0.0, "n": 0, "b": b, "i": i}
+	if i >= 0:
+		o.s_dur[i] = float(b.dur)
+	if b.has("fx"):
+		fx_play(o, b.fx, best.pos, float(best.r), [best])
+
+
+static func _hw3_lock(o, dt: float) -> void:
+	var g = o.g
+	var lk: Dictionary = o.hw.lock
+	if float(lk.t) <= 0.0:
+		return
+	var b: Dictionary = lk.b
+	lk.t = float(lk.t) - dt
+	if lk.e != null and lk.e.dead and b.has("jump") and hw_face_ok(o, b.jump) and float(lk.t) > 0.0:
+		_hw_lock_jump(o, lk)
+	if lk.e == null or lk.e.dead:
+		lk.t = 0.0
+		lk.e = null
+		return
+	lk.tick = float(lk.tick) + dt
+	var tick: float = float(b.get("tick", 0.25))
+	while float(lk.tick) >= tick:
+		lk.tick = float(lk.tick) - tick
+		lk.n = int(lk.n) + 1
+		var ramp: float = lerpf(1.0, float(b.get("ramp_max", 3.0)), clampf(int(lk.n) / float(b.get("ramp_n", 12.0)), 0.0, 1.0))
+		o.log_hit(str(b.get("src", "")), b.get("tags", []))
+		if not o.acting():
+			o.face_to((lk.e.pos - o.pos).angle())
+		o.deal_damage(lk.e, hw_atk(o) * float(b.get("mult", 0.5)) * ramp * o.skill_power())
+		lk.e.slow = maxf(lk.e.slow, float(b.get("slow", 0.6)) * ramp)
+		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
+		o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
+		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
+
+
+static func _hw_lock_jump(o, lk: Dictionary) -> void:
+	var g = o.g
+	var from: Vector2 = lk.e.pos
+	var best = null
+	var bd: float = INF
+	var rr: float = hw_range(o)
+	for j in o.query_ids(from, rr):
+		var q: Dictionary = g.enemies[j]
+		if q.dead or q.pos.distance_to(o.pos) > rr:
+			continue
+		var d: float = q.pos.distance_to(from)
+		if d < bd:
+			bd = d
+			best = q
+	if best == null:
+		return
+	lk.e = best
+	var to: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
+	var mid: Vector2 = (from + to) * 0.5 + Vector2(0, -24)
+	o.fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": HW_PALE, "w": 2.5})
+	o.fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": HW_PALE, "w": 2.5})
+	o.fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": HW_INK, "floor": true})
+	var b: Dictionary = lk.b
+	if b.has("jump_fx"):
+		fx_play(o, b.jump_fx, best.pos, float(best.r), [best])
+
+
+static func hw_fan_r(o, b: Dictionary) -> float:
+	return hw_range(o) * float(b.get("r_mult", 1.25))
+
+
+static func hw_in_fan(o, p: Vector2) -> bool:
+	var fn: Dictionary = o.hw.get("fan", {})
+	if fn.is_empty():
+		return false
+	var b: Dictionary = fn.b
+	var d: Vector2 = p - o.pos
+	if d.length() > hw_fan_r(o, b):
+		return false
+	return d.length() < 8.0 or absf(wrapf(d.angle() - float(o.hw.fan_ang), -PI, PI)) <= deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+
+
+static func _hw_fan_best(o, b: Dictionary) -> float:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var r: float = hw_fan_r(o, b)
+	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+	var angs: Array = []
+	for j in o.query_ids(o.pos, r):
+		var e: Dictionary = g.enemies[j]
+		if not e.dead and e.pos.distance_to(o.pos) <= r:
+			angs.append((e.pos - o.pos).angle())
+	var on: bool = not h.fan.is_empty() and float(h.fan.t) > 0.0
+	if angs.is_empty():
+		return float(h.fan_ang) if on else o.facing_angle()
+	var best: float = o.facing_angle()
+	var bn := -1
+	var fa: float = float(h.fan_ang)
+	for k in 12:
+		var a: float = k * TAU / 12.0
+		var n := 0
+		for ea in angs:
+			if absf(wrapf(ea - a, -PI, PI)) <= half:
+				n += 1
+		if n > bn or (n == bn and absf(wrapf(a - fa, -PI, PI)) < absf(wrapf(best - fa, -PI, PI))):
+			bn = n
+			best = a
+	return best
+
+
+static func hw_fan_start(o, b: Dictionary) -> void:
+	var h := _hw3(o)
+	if h.fan.is_empty():
+		h.fan = {"t": 0.0, "b": b}
+	h.fan.b = b
+	h.fan.t = float(b.dur)
+	h.fan_ang = _hw_fan_best(o, b)
+	h.fan.want = h.fan_ang
+	h.fan.eval = 0.5
+	h.fan.tick = 0.0
+	h.fan.i = o.cur_skill
+	if o.cur_skill >= 0:
+		o.s_dur[o.cur_skill] = float(b.dur)
+	o.face_to(float(h.fan_ang))
+
+
+static func _hw3_fan(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var fn: Dictionary = h.fan
+	if float(fn.t) <= 0.0:
+		return
+	var b: Dictionary = fn.b
+	fn.t = float(fn.t) - dt
+	var r: float = hw_fan_r(o, b)
+	fn.eval = float(fn.eval) - dt
+	if float(fn.eval) <= 0.0:
+		fn.eval = float(b.get("eval", 0.5))
+		fn.want = _hw_fan_best(o, b)
+	var turn: float = deg_to_rad(float(b.get("turn", 60.0))) * dt
+	h.fan_ang = float(h.fan_ang) + clampf(wrapf(float(fn.want) - float(h.fan_ang), -PI, PI), -turn, turn)
+	fn.tick = float(fn.tick) - dt
+	if float(fn.tick) <= 0.0:
+		fn.tick = float(fn.tick) + float(b.get("tick", 0.5))
+		var dmg: float = hw_atk(o) * float(b.get("mult", 0.6)) * o.skill_power()
+		var shown := 0
+		for j in o.query_ids(o.pos, r + 30.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or not hw_in_fan(o, e.pos):
+				continue
+			o.log_hit(str(b.get("src", "")), b.get("tags", []))
+			o.deal_damage(e, dmg)
+			if not e.dead:
+				for s in b.get("on_hit", []):
+					apply_status(o, e, s)
+			if shown < 3:
+				shown += 1
+				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
+	var f: float = float(b.get("bullet_slow", 0.2))
+	for bl in g.ebullets:
+		if bl.life <= 0.0 or not hw_in_fan(o, bl.pos):
+			continue
+		if not bl.get("acuity", false):
+			bl["acuity"] = true
+			bl.vel *= f
+			bl.life = bl.life / f
+	if float(fn.t) <= 0.0:
+		var n := 0
+		for bl in g.ebullets:
+			if bl.life > 0.0 and hw_in_fan(o, bl.pos):
+				bl.life = 0.0
+				n += 1
+				o.fx({"kind": "glow", "pos": bl.pos, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
+		if n > 0:
+			o.float_text(o.pos + Vector2(0, -70), "消除弹幕 ×%d" % n, HW_INK, 15)
+		o.fx({"kind": "glow", "pos": o.pos + Vector2.from_angle(float(h.fan_ang)) * r * 0.5, "r": 40.0, "life": 0.4, "col": HW_INK, "alpha": 0.4})
+
+
+## 锁定 / 咒域的技能剩余（hw_active_left 转来）
+static func _hw3_left(o, i: int) -> float:
+	var h: Dictionary = o.hw
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and int(lk.get("i", -1)) == i:
+		return maxf(0.0, float(lk.t))
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and int(fn.get("i", -1)) == i:
+		return maxf(0.0, float(fn.t))
+	return -1.0
+
+
+# ---------------------------------------------------------------- 画面
+
+## 咒文：按笔顺逐笔写出（write 0..1），暗色描边 + 墨蓝笔画 + 亮芯；顶点对齐 2 像素网格
+static func _hw_draw_rune(o, c: Vector2, sz: float, pat: int, write: float, al: float) -> void:
+	var cv = o.cv
+	var strokes: Array = HW_RUNES[pat % HW_RUNES.size()]
+	var ns: int = strokes.size()
+	for i in ns:
+		var k: float = clampf(write * ns - i, 0.0, 1.0)
+		if k <= 0.0:
+			break
+		var a: Vector2 = ((c + strokes[i][0] * sz) / 2.0).round() * 2.0
+		var b: Vector2 = ((c + (strokes[i][0].lerp(strokes[i][1], k)) * sz) / 2.0).round() * 2.0
+		cv.draw_line(a, b, Color(0.03, 0.03, 0.08, 0.7 * al), 4.0)
+		cv.draw_line(a, b, Color(HW_INK.r * 1.5, HW_INK.g * 1.5, HW_INK.b * 1.8, 0.95 * al), 2.0)
+		cv.draw_line(a, b, Color(1.8, 1.9, 2.4, 0.6 * al), 1.0)
+
+
+## 地面层：咒文池（look rune：铭文 = 小书写圈；burst = 墓志铭的书写大圈）
+static func hw_draw_rune_floor(o) -> void:
+	if not o.hw.has("pools"):
+		return
+	var cv = o.cv
+	for l in o.hw.pools:
+		if str(l.b.get("look", "")) != "rune":
+			continue
+		if l.b.get("burst", false):
+			var k: float = 1.0 - l.t / maxf(0.01, l.dur)
+			cv.draw_set_transform(l.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+			cv.draw_circle(Vector2.ZERO, l.r, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + 0.12 * k))
+			cv.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 40, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.7, 0.4 + 0.4 * k), 2.0)
+			cv.draw_arc(Vector2.ZERO, l.r * k, 0.0, TAU, 40, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.5), 1.5)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			var al: float = clampf(l.t / 0.3, 0.0, 1.0)
+			cv.draw_set_transform(l.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+			cv.draw_circle(Vector2.ZERO, l.r, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.1 * al))
+			cv.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 24, Color(HW_INK.r * 1.3, HW_INK.g * 1.3, HW_INK.b * 1.5, 0.45 * al), 1.5)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 扇形咒域（draw_auras）
+static func hw_draw_fan(o) -> void:
+	var h: Dictionary = o.hw
+	var fn = h.get("fan", {})
+	if not (fn is Dictionary) or fn.is_empty() or float(fn.t) <= 0.0 or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var cv = o.cv
+	var b: Dictionary = fn.b
+	var r: float = hw_fan_r(o, b)
+	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+	var fa: float = float(h.fan_ang)
+	var fade: float = clampf(float(fn.t) / 0.5, 0.0, 1.0)
+	var pts := PackedVector2Array([o.pos])
+	for k in 25:
+		pts.append(o.pos + Vector2.from_angle(fa - half + half * 2.0 * k / 24.0) * r)
+	cv.draw_colored_polygon(pts, Color(HW_INK.r, HW_INK.g, HW_INK.b, (0.10 + 0.03 * sin(g.t * 3.0)) * fade))
+	var ec := Color(HW_INK.r * 1.3, HW_INK.g * 1.3, HW_INK.b * 1.4, 0.55 * fade)
+	cv.draw_line(o.pos, o.pos + Vector2.from_angle(fa - half) * r, ec, 2.0)
+	cv.draw_line(o.pos, o.pos + Vector2.from_angle(fa + half) * r, ec, 2.0)
+	cv.draw_arc(o.pos, r, fa - half, fa + half, 32, ec, 2.0)
+	for q in 6:
+		var t: float = fmod(g.t * 0.35 + q / 6.0, 1.0)
+		cv.draw_circle(o.pos + Vector2.from_angle(fa - half + half * 2.0 * t) * r, 2.5, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.7 * fade))
+
+
+## 咒域期间绕身的符咒（draw_body 前后两层；fan.b.body = [back 帧条, front 帧条, 不分层回退]）
+static func hw_draw_fan_body(o, front: bool) -> void:
+	var h: Dictionary = o.hw
+	var fn = h.get("fan", {})
+	if not (fn is Dictionary) or fn.is_empty() or float(fn.t) <= 0.0 or o.pos == Vector2.INF:
+		return
+	var g = o.g
+	var bd: Array = fn.b.get("body", [])
+	if bd.size() < 3:
+		return
+	var tn: String = str(bd[1] if front else bd[0])
+	if g.tex.get(tn) == null:
+		if front and g.tex.get(str(bd[2])) != null:
+			o.draw_spr_rot(str(bd[2]), int(g.t * 10.0) % 6, o.pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), o.face < 0.0)
+		return
+	o.draw_spr_rot(tn, int(g.t * 10.0) % 6, o.pos + Vector2(0, -36), 0.0, g.PX, Color(1, 1, 1, 0.95), Vector2(-1, -1), o.face < 0.0)
+
+
+## 技能上层：咒文弹、铭文 / 墓志铭的浮空咒文、锁定的书写带与标记、咒域头顶标记
+static func hw_draw_logos_over(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var h: Dictionary = o.hw
+	for bo in h.bolts:
+		var hh: Array = bo.hist
+		for i in range(1, hh.size()):
+			var k: float = float(i) / float(hh.size())
+			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
+		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
+		if rtx != null:
+			var fh: int = rtx.get_height()
+			var rn: int = maxi(1, rtx.get_width() / maxi(1, fh))
+			var sc: float = g.PX * 13.0 / float(fh)
+			cv.draw_set_transform(bo.pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
+			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(bo.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		elif g.tex.get("fx_logos_glyph") != null:
+			o.draw_spr_rot("fx_logos_glyph", 5, bo.pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
+		elif g.tex.get("proj_logos_ink") != null and hh.size() >= 2:
+			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, bo.pos, (bo.pos - hh[hh.size() - 2]).angle(), g.PX)
+		else:
+			cv.draw_circle(bo.pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
+			cv.draw_circle(bo.pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
+			cv.draw_circle(bo.pos, 2.5, Color(1.8, 1.9, 2.2))
+	if h.has("pools"):
+		for l in h.pools:
+			if str(l.b.get("look", "")) != "rune":
+				continue
+			if l.b.get("burst", false):
+				var k2: float = 1.0 - l.t / maxf(0.01, l.dur)
+				var c: Vector2 = l.pos + Vector2(0, -26)
+				cv.draw_circle(c, 18.0 + 6.0 * k2, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.12 + 0.2 * k2))
+				_hw_draw_rune(o, c, 16.0, int(l.pat), k2 * 1.25, 0.7 + 0.3 * k2)
+			else:
+				var al: float = clampf(l.t / 0.3, 0.0, 1.0)
+				var bob: float = sin(g.t * 5.0 + int(l.pat) % 5) * 1.5
+				cv.draw_circle(l.pos + Vector2(0, -16 + bob), 13.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.18 * al))
+				_hw_draw_rune(o, l.pos + Vector2(0, -16 + bob), 9.0, int(l.pat), (l.dur - l.t) / 0.15, al)
+	var lk = h.get("lock", {})
+	if lk is Dictionary and not lk.is_empty() and float(lk.t) > 0.0 and lk.e != null and not lk.e.dead:
+		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
+		var to: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
+		if g.tex.get("fx_logos_script") != null:
+			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
+		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
+		var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
+		cv.draw_arc(p, 6.0 + 2.0 * kk, 0.0, TAU, 12, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.9), 1.5)
+		cv.draw_line(p + Vector2(-9, 0), p + Vector2(-4, 0), HW_PALE, 1.5)
+		cv.draw_line(p + Vector2(4, 0), p + Vector2(9, 0), HW_PALE, 1.5)
+	var fn = h.get("fan", {})
+	if fn is Dictionary and not fn.is_empty() and float(fn.t) > 0.0:
+		var q: Vector2 = o.pos + Vector2(0, -80)
+		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(HW_INK.r * 1.6, HW_INK.g * 1.6, HW_INK.b * 1.4, 0.8))
+
+
+## 沿 a→b 平铺一张横向帧条（每段一帧宽），offset 为沿方向的滚动位移；最后一段按端点裁剪
+static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1) -> void:
+	var g = o.g
+	var tx: Texture2D = g.tex.get(tn)
+	if tx == null or not g.V6_FRAMES.has(tn):
+		return
+	o._cv_flush()
+	var cv = o.cv
+	var frames: int = g.V6_FRAMES[tn][0]
+	var fw: float = tx.get_width() / frames
+	var fh: float = tx.get_height()
+	var k: float = sc / ArtS.hires_of(tx)
+	var seg: float = fw * k
+	var L: float = a.distance_to(b)
+	if L < 2.0:
+		return
+	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames if fixed < 0 else fixed % frames   # fixed：停在这一帧（锁链松 / 绷直）
+	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
+	var x: float = -fmod(offset, seg)
+	while x < L:
+		var x0: float = maxf(x, 0.0)
+		var x1: float = minf(x + seg, L)
+		if x1 > x0:
+			var u0: float = (x0 - x) / k
+			var u1: float = (x1 - x) / k
+			cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
+		x += seg
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func hw3_status_items(o) -> Array:
+	var out: Array = []
+	var h: Dictionary = o.hw
+	var sk: Array = o.B.get("skills", [])
+	for key in ["lock", "fan"]:
+		var st = h.get(key, {})
+		if st is Dictionary and not st.is_empty() and float(st.t) > 0.0:
+			var i: int = int(st.get("i", -1))
+			if i >= 0 and i < sk.size() and sk[i].has("status"):
+				out.append([str(sk[i].status), _mf_col(sk[i].get("status_col", []), o.col())])
+	return out
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _hw3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in HW3_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"shape.bolt": ["attack", "skill", "instant"],
+		"shape.hit": ["instant"],
+		"verb.execute": ["instant"],
+		"st.requiem": ["on_hit", "field"],
+		"verb.lock": ["skill"],
+		"verb.fan": ["skill"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"shape.bolt":
+			if not str(b.get("pick", "aim")) in ["aim", "random"]:
+				errs.append(p + ".pick 只能是 aim / random")
+			_num(b, "count", p, ctx, false, 1.0, 8.0)
+			_num(b, "speed", p, ctx, false, 10.0, 3000.0)
+			_num(b, "life", p, ctx, false, 0.05, 10.0)
+			_num(b, "gap", p, ctx, false, 0.0, 2.0)
+			_num(b, "chance", p, ctx, false, 0.0, 1.0)
+			_num(b, "pool", p, ctx, false, 1.0, 32.0)
+			if kind == "attack":
+				_num(b, "range", p, ctx, true, 10.0, 2000.0)
+			if b.has("then"):
+				_list(b.then, p + ".then", "instant", ctx)
+			elif str(b.get("then_of", "")) != "attack":
+				errs.append(p + "：要写 then（命中后执行的积木），或 then_of: attack（用普攻那块的）")
+			_src(b, p, ctx, true)
+		"shape.hit":
+			if b.has("src"):
+				_src(b, p, ctx, true)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+			if b.has("splash") and not (b.splash is Dictionary):
+				errs.append(p + ".splash 必须是对象 {r, mult}")
+		"verb.execute":
+			_num(b, "thr", p, ctx, true, 0.0, 100.0)
+			_src(b, p, ctx, true)
+			_list(b.get("on_exec", []), p + ".on_exec", "instant", ctx)
+			_list(b.get("over_on_hit", []), p + ".over_on_hit", "on_hit", ctx)
+		"st.requiem":
+			_num(b, "dur", p, ctx, true, 0.1, 30.0)
+		"verb.lock":
+			_num(b, "dur", p, ctx, true, 0.1, 30.0)
+			_num(b, "tick", p, ctx, true, 0.05, 5.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "ramp_max", p, ctx, false, 1.0, 20.0)
+			_src(b, p, ctx, true)
+		"verb.fan":
+			_num(b, "dur", p, ctx, true, 0.1, 60.0)
+			_num(b, "deg", p, ctx, true, 5.0, 360.0)
+			_num(b, "tick", p, ctx, true, 0.05, 5.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+			_src(b, p, ctx, true)
+	return true
+
+
+# ---------------------------------------------------------------- 乌尔比安段（手写迁移段续）：掷锚（钩回 / 弹射）/ 掀飞 / 拖拽 / 叠层 / 蓄势 / 计时
+# shape.circle center: front   判定中心 = 脚底 + 朝 aim_r（× op_range，缺省 = 本形状半径）+ aim_pad 内最近敌人（转身）的方向 × 半径 × front（锚击砸在身前）
+# verb.tether  掷锚（技能 do）：pick（elite = 射程 pick_r_elite 内最近的精英 / Boss，没有退到 densest；densest = pick_r 内敌群最密处，没有退到最近的）选落点，
+#              manual: true = 当队长手动时用玩家给的落点 / 方向（aim_cone / aim_range / aim_empty / aim_free / aim_snap，契约 v2.4 / v2.5）；没有落点退回 refund 的技力。
+#              锚 throw 秒飞到落点咬地；mode reel：钩住落点 hook_r（hook_more 成立时 × r_mult）内至多 hook_n（+ hook_more.n）名非 Boss 敌人，收链拽到身前、眩晕，
+#              停 hold 秒后重砸身前（r × op_range，攻击 × mult × 加成 × 技能强度，钩中的首个精英 × elite_mult；stun；击退 slam_kb）；
+#              钩不到或钩到 Boss 就和 mode zip 一样：本干员顺锁链弹射到落点前，落地砸 r（land_kb 击退，kb_boss = Boss 也推；stun_boss / stun_elite 时长系数），
+#              落地后执行 then（target = 落点）、drag（cond：甩锁链拽来 r 内至多 n 名，伤害 = 落地伤害 × mult）、rift（cond：起跳点到落点裂开通路，
+#              宽 w，沿线 攻击 × 加成 × mult × 技能强度 并掀飞 air 秒）。锚在外面时本干员不起手、不放别的技能，动作停在技能条第 hold_frame 帧
+# verb.stack   叠层（触发 do）：key 层数 + add（Boss + add_boss），上限 cap + cap_more（cond 成立的 add）；层数变了立刻重算属性（aura 的 per: stack:<key>）
+# verb.arm     蓄势（触发 do）：key 置位（已置位不重复）；attack.armed [{key, do}]：置位时下一次普攻整个换成 do（不计普攻次数、不走 every_n），用掉清零
+# verb.timer   计时（瞬时）：key 计时 dur 秒（每帧开头倒数，同手写）；条件 timer:<key> / armed:<key>；技能积木 active_timer = 技能生效剩余按这个计时（手写的「开辟」8 秒）
+
+const HW4_TAGS := ["verb.tether", "verb.stack", "verb.arm", "verb.timer"]
+const HW_STEEL := Color(0.55, 0.75, 0.95)
+const HW_CHAIN := Color(0.62, 0.68, 0.78)
+const HW_ABYSS := Color(0.1, 0.12, 0.2)
+const HW_EDGE := Color(0.4, 0.62, 1.1)
+const HW_WATER := Color(0.45, 0.78, 1.0)
+const HW_BLOOD := Color(1.0, 0.25, 0.3)
+
+
+static func _hw4(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("anchor"):
+		h.merge({"anchor": {}, "hooked": [], "launched": [], "stacks": {}, "armed": {}, "timers": {}, "sil": {}, "blk": {}})
+	return h
+
+
+static func hw_parse_cond(s: String) -> Dictionary:
+	var neg := s.begins_with("!")
+	var t := s.substr(1).strip_edges() if neg else s
+	for k in ["timer", "armed"]:
+		if t.begins_with(k + ":") and t.length() > k.length() + 1:
+			return {"neg": neg, "k": k, "a": t.substr(k.length() + 1), "op": "", "v": 0.0}
+	return {}
+
+
+static func hw_cond(o, c: Dictionary) -> bool:
+	if not hw_on(o) or not o.hw.has("anchor"):
+		return false
+	match str(c.k):
+		"timer":
+			return float(o.hw.timers.get(str(c.a), 0.0)) > 0.0
+		"armed":
+			return o.hw.armed.get(str(c.a), false)
+	return false
+
+
+# ---------------------------------------------------------------- 锚击中心 front
+
+## shape.circle center: front 的判定中心（同时转身、记方向）。返回 [中心, 方向角]
+static func hw_front(o, b: Dictionary, r: float) -> Array:
+	var ar: float = r
+	if b.has("aim_r"):
+		ar = float(b.aim_r) * o.stat(&"op_range")
+	var ts: Array = o.nearest_enemies(1, ar + float(b.get("aim_pad", 60.0)), o.pos)
+	var ang: float = o.facing_angle()
+	if not ts.is_empty():
+		ang = (ts[0].pos - o.pos).angle()
+		o.face_to(ang)
+	ang = o.atk_angle(ang)
+	return [o.pos + Vector2.from_angle(ang) * r * float(b.get("front", 0.55)), ang]
+
+
+## 普攻起手点（data_operator.update 的 circle 分支，center: front）
+static func hw_front_aim(o, a: Dictionary) -> Vector2:
+	var r: float = shape_radius(o, a)
+	return o.atk_point(o.nearest_enemies(1, r + float(a.get("start_pad", 40.0)), o.pos), r)
+
+
+# ---------------------------------------------------------------- verb.timer / verb.arm / verb.stack
+
+static func hw_timer(o, b: Dictionary) -> void:
+	var h := _hw4(o)
+	h.timers[str(b.get("key", "t"))] = float(b.get("dur", 1.0))
+	h.blk["timer:" + str(b.get("key", "t"))] = b
+	var sk: Array = o.B.get("skills", [])
+	for i in mini(3, sk.size()):   # 技能 active_timer 用这个计时：HUD 的总时长
+		if str(sk[i].get("active_timer", "")) == str(b.get("key", "t")):
+			o.s_dur[i] = float(b.get("dur", 1.0))
+
+
+static func hw_arm(o, b: Dictionary) -> void:
+	var h := _hw4(o)
+	var k: String = str(b.get("key", "armed"))
+	if h.armed.get(k, false):
+		return
+	h.armed[k] = true
+	h.blk["armed:" + k] = b
+	if b.has("fx"):
+		fx_play(o, b.fx, o.pos, 30.0)
+
+
+static func hw_stack(o, b: Dictionary) -> void:
+	var e: Dictionary = o.hw.get("kill_e", {})
+	var h := _hw4(o)
+	var k: String = str(b.get("key", "stack"))
+	h.blk["stack:" + k] = b
+	var add: int = int(b.get("add_boss", b.get("add", 1))) if not e.is_empty() and e.get("boss", false) else int(b.get("add", 1))
+	var cap: int = hw_stack_cap(o, b)
+	var n: int = int(h.stacks.get(k, 0))
+	if add <= 0 or n >= cap:
+		return
+	h.stacks[k] = mini(cap, n + add)
+	o._restat()   # 同手写：层数一变立刻重算攻击（不等下一帧）
+	if b.has("text"):
+		o.float_text(o.pos + Vector2(0, -60), str(b.text) % int(h.stacks[k]), _mf_col(b.get("text_col", []), HW_STEEL), 13)
+	if b.has("fx"):
+		fx_play(o, b.fx, o.pos, 30.0)
+
+
+static func hw_stack_cap(o, b: Dictionary) -> int:
+	var cap: int = int(b.get("cap", 10))
+	for m in b.get("cap_more", []):
+		if cond_true(o, m.get("cond", {})):
+			cap += int(m.get("add", 0))
+	return cap
+
+
+static func hw_stack_n(o, key: String) -> int:
+	if not hw_on(o) or not o.hw.has("stacks"):
+		return 0
+	return int(o.hw.stacks.get(key, 0))
+
+
+## 蓄势的普攻（data_operator._release 开头）：attack.armed 里第一条已置位的，用掉清零、执行它的 do（target = 锚击中心）。返回 true = 这一下已换掉
+static func hw_armed_release(o, a: Dictionary) -> bool:
+	if not o.hw.has("armed"):
+		return false
+	for am in o.B.get("attack", {}).get("armed", []):   # 蓄势写在 blocks.attack 上；半径按当前普攻（含 swap_attack）
+		var k: String = str(am.get("key", ""))
+		if o.hw.armed.get(k, false):
+			o.hw.armed[k] = false
+			var r: float = shape_radius(o, a)
+			var fr: Array = hw_front(o, a, r)
+			o.hw.prev_ang = fr[1]
+			o.hw.prev_c = fr[0]
+			o.hw.prev_r = r
+			o._exec_list(am.get("do", []), fr[0])
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- verb.tether
+
+static func _hw_hand(o) -> Vector2:
+	var b: Dictionary = o.hw.anchor.get("b", {})
+	var v = b.get("hand", [33, -33])
+	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
+
+
+## 选落点：elite = pick_r_elite 内最近的精英 / Boss，没有就 densest；densest = pick_r 内最密处，没有就最近的
+static func hw_tether_target(o, b: Dictionary) -> Vector2:
+	var g = o.g
+	if str(b.get("pick", "densest")) == "elite":
+		var best: Dictionary = {}
+		var bd := INF
+		for j in o.query_ids(o.pos, float(b.get("pick_r_elite", 420.0))):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or not (e.elite or e.boss):
+				continue
+			var d: float = e.pos.distance_to(o.pos)
+			if d < bd:
+				bd = d
+				best = e
+		if not best.is_empty():
+			return best.pos
+	var pr: float = float(b.get("pick_r", 400.0))
+	var c: Vector2 = o.densest_point(pr, o.pos)
+	if c == Vector2.INF:
+		var ts: Array = o.nearest_enemies(1, pr, o.pos)
+		return ts[0].pos if not ts.is_empty() else Vector2.INF
+	return c
+
+
+## 带方向的落点（契约 v2.4）：方向 ±aim_cone° 扇形、aim_range 内敌人最密处；扇形里没有敌人落在该方向 aim_empty 远（0 = 退回自动瞄准）
+static func hw_tether_aim_dir(o, b: Dictionary, dir: Vector2) -> Vector2:
+	var g = o.g
+	var cone: float = deg_to_rad(float(b.get("aim_cone", 30.0)))
+	var reach: float = float(b.get("aim_range", 400.0))
+	var cands: Array = []
+	for j in o.query_ids(o.pos, reach):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var off: Vector2 = e.pos - o.pos
+		var d: float = off.length()
+		if d > reach or d < 1.0 or absf(dir.angle_to(off)) > cone:
+			continue
+		cands.append(e)
+	if cands.is_empty():
+		var far: float = float(b.get("aim_empty", 300.0))
+		return o.pos + dir * far if far > 0.0 else hw_tether_target(o, b)
+	var r: float = float(b.get("r", 140.0)) * o.stat(&"op_range")
+	var step: int = maxi(1, int(cands.size() / 24.0))
+	var best: Vector2 = cands[0].pos
+	var bn := -1
+	for a in range(0, cands.size(), step):
+		var c: Vector2 = cands[a].pos
+		var n := 0
+		for e in cands:
+			if e.pos.distance_squared_to(c) <= r * r:
+				n += 1
+		if n > bn:
+			bn = n
+			best = c
+	return best
+
+
+static func hw_tether_snap(o, b: Dictionary, pt: Vector2) -> Vector2:
+	var sn: float = float(b.get("aim_snap", 0.0))
+	if sn <= 0.0:
+		return pt
+	var ts: Array = o.nearest_enemies(1, sn, pt)
+	return ts[0].pos if not ts.is_empty() else pt
+
+
+static func hw_tether_start(o, b: Dictionary) -> void:
+	var h := _hw4(o)
+	var i: int = o.cur_skill
+	var to: Vector2 = hw_tether_target(o, b)
+	if b.get("manual", false):
+		if o.manual_pt != Vector2.INF:
+			to = hw_tether_snap(o, b, o.manual_pt)
+		elif o.manual_dir != Vector2.ZERO:
+			to = hw_tether_aim_dir(o, b, o.manual_dir)
+		o.manual_dir = Vector2.ZERO
+		o.manual_pt = Vector2.INF
+	if to == Vector2.INF:
+		if i >= 0:
+			o.sp[i] = o.sp_need(i) * float(b.get("refund", 0.6))
+		return
+	h.anchor = {"b": b, "phase": "throw", "t": 0.0, "dur": float(b.get("throw", 0.16)), "from": Vector2.ZERO, "to": to, "trail": []}
+	h.anchor.from = _hw_hand(o)
+
+
+static func _hw_anchor_pos(an: Dictionary, k: float) -> Vector2:
+	var travel: float = k * k * (2.0 - k)
+	return (an.from as Vector2).lerp(an.to, travel) + Vector2(0, -sin(k * PI) * 10.0)
+
+
+## 每帧（hw_tick）：飞 → 咬地 → 收链 / 停顿 / 重砸，或弹射 → 落地
+static func _hw4_anchor(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	an.t = float(an.t) + dt
+	var k: float = clampf(float(an.t) / float(an.dur), 0.0, 1.0)
+	match str(an.phase):
+		"throw":
+			an.trail.push_front(_hw_anchor_pos(an, k))
+			if an.trail.size() > 4:
+				an.trail.pop_back()
+			if k >= 1.0:
+				_hw_anchor_bite(o)
+		"reel":
+			var kr: float = 1.0 - (1.0 - k) * (1.0 - k)
+			an.head = (an.to as Vector2).lerp(an.front, kr)
+			for hk in h.hooked:
+				var e: Dictionary = hk.e
+				if e.dead:
+					continue
+				e.pos = (hk.from as Vector2).lerp(hk.to, kr)
+				e.kb = Vector2.ZERO
+				e.stun = maxf(e.stun, 0.2)
+			an.trail.push_front(an.head)
+			if an.trail.size() > 5:
+				an.trail.pop_back()
+			if k >= 1.0:
+				_hw_reel_arrive(o)
+		"hold":
+			if k >= 1.0:
+				_hw_reel_slam(o)
+				h.anchor = {}
+		_:
+			var kk: float = k * k
+			o.pos = (an.start as Vector2).lerp(an.land, kk)
+			o.face = signf(an.land.x - an.start.x) if absf(an.land.x - an.start.x) > 1.0 else o.face
+			an.trail.push_front(o.pos)
+			if an.trail.size() > 5:
+				an.trail.pop_back()
+			if k >= 1.0:
+				_hw_zip_land(o)
+				h.anchor = {}
+
+
+static func _hw_anchor_bite(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	var b: Dictionary = an.b
+	var to: Vector2 = an.to
+	var dir: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
+	var big: bool = b.get("big", false)
+	o.impact_pause(0.07 if big else 0.05)
+	o.fx({"kind": "glow", "pos": to + Vector2(0, -6), "r": 18.0 if big else 14.0, "life": 0.12, "col": Color(1.4, 1.7, 2.3), "alpha": 0.8})
+	o.fx({"kind": "ring", "pos": to, "r": 48.0 if big else 36.0, "r0": 6.0, "life": 0.22, "col": HW_STEEL, "floor": true, "w": 3.0})
+	_hw_splash(o, to, 6, 0.8)
+	for i in 6:
+		var a: float = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
+		o.fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.vrng.randf_range(160, 300), "life": 0.22, "col": HW_CHAIN, "sz": 2.5})
+	if str(b.get("mode", "zip")) == "reel" and _hw_start_reel(o, to, dir):
+		var rf = b.get("rift", null)
+		if rf is Dictionary and hw_face_ok(o, rf.get("cond", true)):
+			_hw_open_rift(o, rf, o.pos, to)
+		return
+	var land: Vector2 = to - dir * 18.0
+	an.phase = "zip"
+	an.t = 0.0
+	an.dur = clampf(o.pos.distance_to(land) / 1400.0, 0.08, 0.2)
+	an.start = o.pos
+	an.land = land
+	an.trail = []
+	o.melee_tgt = null
+
+
+static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	var b: Dictionary = an.b
+	var hm = b.get("hook_more", {})
+	var more: bool = hm is Dictionary and not hm.is_empty() and hw_face_ok(o, hm.get("cond", true))
+	var hr: float = float(b.get("hook_r", 50.0)) * (float(hm.get("r_mult", 1.0)) if more else 1.0)
+	var near: Array = o.nearest_enemies(12, hr, to)
+	if near.is_empty() or near[0].boss:
+		return false
+	var n: int = int(b.get("hook_n", 2)) + (int(hm.get("n", 0)) if more else 0)
+	var front: Vector2 = o.pos + dir * float(b.get("front", 34.0))
+	h.hooked.clear()
+	for e in near:
+		if h.hooked.size() >= n:
+			break
+		if e.dead or e.boss:
+			continue
+		var i: int = h.hooked.size()
+		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
+		var spot: Vector2 = front + dir * (e.r * 0.5) + dir.orthogonal() * side * 16.0 + dir * absf(side) * 6.0
+		h.hooked.append({"e": e, "from": e.pos, "to": spot})
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.18, "col": HW_EDGE, "alpha": 0.7})
+	if h.hooked.is_empty():
+		return false
+	an.phase = "reel"
+	an.t = 0.0
+	an.dur = clampf(o.pos.distance_to(to) / 900.0, 0.16, 0.34)
+	an.front = front
+	an.head = to
+	an.trail = []
+	an.elite = h.hooked[0].e.elite
+	if b.has("hook_text"):
+		o.float_text(to + Vector2(0, -40), str(b.hook_text), HW_STEEL, 14)
+	_hw_sfx_play(o, "tentacle", -6.0, 0.7)
+	return true
+
+
+static func _hw_reel_arrive(o) -> void:
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	var b: Dictionary = an.b
+	var c: Vector2 = an.front
+	for hk in h.hooked:
+		var e: Dictionary = hk.e
+		if e.dead:
+			continue
+		e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
+	o.impact_pause(0.05)
+	o.fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": HW_CHAIN, "floor": true, "w": 2.0})
+	for i in 5:
+		o.fx({"kind": "spark", "pos": c + Vector2(0, -30), "vel": Vector2.from_angle(i * TAU / 5.0) * 60.0, "life": 0.3, "col": Color(1.4, 1.4, 0.8), "sz": 2.0})
+	an.phase = "hold"
+	an.t = 0.0
+	an.dur = float(b.get("hold", 0.14))
+	o.face_to((c - o.pos).angle())
+
+
+static func _hw_reel_slam(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	var b: Dictionary = an.b
+	var dir: Vector2 = ((an.front as Vector2) - o.pos).normalized()
+	var reach: float = shape_radius(o, o.cur_attack())
+	var c: Vector2 = o.pos + dir * reach * 0.55
+	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
+	var first: Dictionary = h.hooked[0].e if not h.hooked.is_empty() else {}
+	var src: String = str(b.get("src", ""))
+	for j in o.query_ids(c, r + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(c) > r + e.r:
+			continue
+		o.log_hit(src)
+		o.deal_damage(e, dmg * (float(b.get("elite_mult", 1.0)) if is_same(e, first) and e.elite else 1.0))
+		if not e.dead:
+			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
+			if not e.boss:
+				e.kb += (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0))
+	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
+	_hw_slam_fx(o, c, r, 1.2)
+	o.impact_pause(0.07)
+	_hw_sfx_op(o, "atk", 2.0, 0.85)
+	h.hooked.clear()
+
+
+static func _hw_zip_land(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	var b: Dictionary = an.b
+	var c: Vector2 = an.land
+	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
+	var src: String = str(b.get("src", ""))
+	var sb: float = float(b.get("stun_boss", 0.5))
+	var se: float = float(b.get("stun_elite", 0.5))
+	var kb_boss: bool = b.get("kb_boss", false)
+	for j in o.query_ids(c, r + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or e.pos.distance_to(c) > r + e.r:
+			continue
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		if not e.dead:
+			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.elite else 1.0)))
+			if kb_boss or not e.boss:
+				e.kb += (e.pos - c).normalized() * float(b.get("land_kb", 50.0))
+	var big: bool = b.get("big", false)
+	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
+	if big:
+		_hw_splash(o, c, 10, 1.3)
+	h.prev_dmg = dmg
+	h.prev_c = c
+	h.prev_r = r
+	o._exec_list(b.get("then", []), c)
+	if b.has("land_fx"):
+		fx_play(o, b.land_fx, c, r)
+	o.impact_pause(0.1 if big else 0.06)
+	if big:
+		_hw_sfx_op(o, "big", 0.0, 1.0)
+	else:
+		_hw_sfx_op(o, "atk", 2.0, 0.85)
+	var dg = b.get("drag", null)
+	if dg is Dictionary and hw_face_ok(o, dg.get("cond", true)):
+		_hw_drag_in(o, dg, c, dmg * float(dg.get("mult", 0.6)))
+	var rf = b.get("rift", null)
+	if rf is Dictionary and hw_face_ok(o, rf.get("cond", true)):
+		_hw_open_rift(o, rf, an.start, c)
+
+
+static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
+	var cands: Array = o.nearest_enemies(12, float(dg.get("r", 200.0)), c).filter(func(e): return e.pos.distance_to(c) > 36.0)
+	var src: String = str(dg.get("src", ""))
+	for k in mini(int(dg.get("n", 3)), cands.size()):
+		var e: Dictionary = cands[k]
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		o.fx({"kind": "chain", "pos": c + Vector2(0, -12), "to": e.pos + Vector2(0, -e.r * 0.5), "life": 0.3})
+		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": HW_STEEL, "alpha": 0.6})
+		if e.dead or e.boss:
+			continue
+		var dist: float = maxf(0.0, e.pos.distance_to(c) - 24.0)
+		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
+		e.kb += (c - e.pos).normalized() * v
+		e.stun = maxf(e.stun, 0.3)
+
+
+static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
+	var g = o.g
+	if a.distance_to(b) < 8.0:
+		return
+	var dmg: float = o.base(str(rf.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(rf.get("mult", 0.8)) * o.skill_power()
+	var w: float = float(rf.get("w", 26.0))
+	var d: Vector2 = (b - a).normalized()
+	var L: float = a.distance_to(b)
+	var src: String = str(rf.get("src", ""))
+	for j in o.query_ids((a + b) * 0.5, L * 0.5 + w + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var rel: Vector2 = e.pos - a
+		var along: float = rel.dot(d)
+		if along < -e.r or along > L + e.r or absf(rel.cross(d)) > w + e.r:
+			continue
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		_hw_launch(o, e, float(rf.get("air", 0.8)), float(rf.get("h", 30.0)))
+	o.fx({"kind": "rift", "pos": a, "to": b, "life": 0.8, "floor": true, "seed": g.vrng.randf() * 100.0})
+	for k in 5:
+		var p: Vector2 = a.lerp(b, (k + 0.5) / 5.0)
+		_hw_sparks(o, p + Vector2(0, -4), HW_EDGE, 3, 160.0, 0.35, 2.5, 260.0)
+
+
+## 掀飞：眩晕 + sin 弧线高度（game 按 e.air 抬高绘制）；精英时长减半，Boss 不受；重复施加从头再来、时长取长
+static func _hw_launch(o, e: Dictionary, dur: float, hh: float) -> void:
+	if e.dead or e.boss:
+		return
+	if e.elite:
+		dur *= 0.5
+	e.stun = maxf(e.stun, dur)
+	for l in o.hw.launched:
+		if is_same(l.e, e):
+			l.t = 0.0
+			l.dur = maxf(l.dur, dur)
+			return
+	o.hw.launched.append({"e": e, "t": 0.0, "dur": dur, "h": hh})
+
+
+static func _hw4_launched(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	for l in h.launched:
+		l.t += dt
+		var e: Dictionary = l.e
+		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+		e.air = 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h
+		if not e.dead:
+			e.kb = Vector2.ZERO
+	h.launched = h.launched.filter(func(l): return l.t < l.dur and not l.e.dead)
+
+
+## 每帧（hw_tick 开头转来）：计时 → 锚 → 掀飞（手写 update 的先后）
+static func _hw4_tick(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	for k in h.timers:
+		h.timers[k] = maxf(0.0, float(h.timers[k]) - dt)
+	if not h.anchor.is_empty():
+		_hw4_anchor(o, dt)
+	if not h.launched.is_empty():
+		_hw4_launched(o, dt)
+
+
+## 锚在外面：不起手（hw_busy 转来）
+static func hw4_busy(o) -> bool:
+	return o.hw.has("anchor") and not o.hw.anchor.is_empty()
+
+
+## 技能剩余：active_timer（hw_active_left 转来）
+static func _hw4_left(o, i: int) -> float:
+	var sk: Array = o.B.get("skills", [])
+	if i < 0 or i >= sk.size() or not sk[i].has("active_timer"):
+		return -1.0
+	return float(o.hw.timers.get(str(sk[i].active_timer), 0.0))
+
+
+# ---------------------------------------------------------------- 手动技能（契约 v2.3–v2.5：data_operator 的 manual_* 转来）
+
+## 技能 i 的 verb.tether（manual: true 的）；没有 = {}
+static func hw_tether_of(o, i: int) -> Dictionary:
+	if not hw_on(o):
+		return {}
+	var sk: Array = o.B.get("skills", [])
+	if i < 0 or i >= sk.size():
+		return {}
+	for b in sk[i].get("do", []):
+		if str(b.get("_tag", "")) == "verb.tether":
+			return b
+	return {}
+
+
+static func hw_manual_ready(o, i: int, dir: Vector2) -> bool:
+	var b := hw_tether_of(o, i)
+	if b.is_empty():
+		return true
+	if not _hw4(o).anchor.is_empty():
+		return false
+	if dir != Vector2.ZERO and float(b.get("aim_free", 1.0)) > 0.0:
+		return true
+	return not o.nearest_enemies(1, float(b.get("pick_r", 400.0)), o.pos).is_empty()
+
+
+static func hw_manual_block_reason(o, i: int, dir: Vector2) -> String:
+	var b := hw_tether_of(o, i)
+	if b.is_empty():
+		return ""
+	if dir != Vector2.ZERO and float(b.get("aim_free", 1.0)) > 0.0:
+		return ""
+	if _hw4(o).anchor.is_empty() and o.pos != Vector2.INF and o.nearest_enemies(1, float(b.get("pick_r", 400.0)), o.pos).is_empty():
+		return "附近没有敌人"
+	return ""
+
+
+static func hw_manual_aim_point(o, i: int, dir: Vector2) -> Vector2:
+	var b := hw_tether_of(o, i)
+	if b.is_empty() or o.pos == Vector2.INF:
+		return Vector2.INF
+	if o.manual_point(i) and o.is_leader:
+		var p: Vector2 = o.g.doctor.point_preview(o, i)
+		return hw_tether_snap(o, b, o.clamp_point(i, p)) if p != Vector2.INF else hw_tether_target(o, b)
+	return hw_tether_aim_dir(o, b, dir.normalized()) if dir != Vector2.ZERO else hw_tether_target(o, b)
+
+
+## 锚还在飞 / 收链时停在技能条的空手帧（hold_frame），不提前回到持锚姿势；技能动作播完、锚还在外面也停在这帧
+static func hw_anim_state(o, st: Dictionary) -> Dictionary:
+	if st.is_empty() or not o.hw.has("anchor") or o.hw.anchor.is_empty():
+		return st
+	var hf: int = int(o.hw.anchor.b.get("hold_frame", 5))
+	if st.kind == "skill":
+		if int(st.frame) > hf:
+			st.frame = hf
+	else:
+		var tx: Texture2D = o.anim_tex("skill")
+		if tx != null:
+			st = {"tex": tx, "frame": hf, "hf": o.anim_hframes(tx, "skill"), "flip": (o.face < 0.0) != o.sprite_mirror("skill"), "kind": "skill"}
+	return st
+
+
+# ---------------------------------------------------------------- 画面
+
+static func _hw_sfx_op(o, kind: String, db: float, pitch: float) -> void:
+	var sfx: Node = o.g.get_node_or_null("/root/Sfx") if o.g != null and o.g.is_inside_tree() else null
+	if sfx != null:
+		sfx.op(o.id, kind, db, pitch)
+
+
+static func _hw_sfx_play(o, nm: String, db: float, pitch: float) -> void:
+	var sfx: Node = o.g.get_node_or_null("/root/Sfx") if o.g != null and o.g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play(nm, db, pitch)
+
+
+## 同 character.gd fx_sparks，散布用 g.vrng
+static func _hw_sparks(o, p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0) -> void:
+	var g = o.g
+	n = int(round(n * (1.0 + 0.2 * o.node_lv)))
+	for k in n:
+		o.fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": false})
+
+
+## 深海蓝水珠 + 落点一团蓝水花
+static func _hw_splash(o, c: Vector2, n: int, k: float) -> void:
+	var g = o.g
+	o.spawn_fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
+	for i in n:
+		var a: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
+		o.fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.vrng.randf_range(90, 190) * k,
+			"life": g.vrng.randf_range(0.35, 0.5), "col": HW_WATER, "sz": 2.0 if i % 2 == 0 else 1.5, "grav": 420.0})
+
+
+## 砸地：尘土 + 顿帧 + 地裂 + 冲击环 + 水珠 + 火花
+static func _hw_slam_fx(o, c: Vector2, r: float, k: float) -> void:
+	o.ground_dust(c, minf(r * 0.45, 42.0), 10)
+	o.impact_pause(0.045 * k)
+	o.fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": HW_STEEL, "floor": true, "n": 7})
+	o.fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": HW_STEEL, "floor": true, "w": 3.0})
+	_hw_splash(o, c, int(8 * k), 1.0 * k)
+	_hw_sparks(o, c + Vector2(0, -8), HW_CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
+
+
+static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float) -> void:
+	var cv = o.cv
+	cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
+	cv.draw_line(a, b, Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.95 * al), 2.5)
+	var tile: String = str(o.hw.get("chain_tex", ""))
+	var links: int = clampi(int(a.distance_to(b) / 10.0), 1, 50)
+	for i in links:
+		var q: Vector2 = a.lerp(b, float(i) / links)
+		if i % 2 == 0:
+			cv.draw_circle(q, 2.6, Color(HW_CHAIN.r * 0.7, HW_CHAIN.g * 0.7, HW_CHAIN.b * 0.75, al))
+		else:
+			cv.draw_circle(q, 1.3, Color(1.1, 1.2, 1.35, al))
+
+
+static func _hw_draw_anchor(o, p: Vector2, d: Vector2, a: float) -> void:
+	var g = o.g
+	var cv = o.cv
+	if g.tex.get("proj_ulpianus_anchor") != null:
+		o.draw_spr_rot("proj_ulpianus_anchor", int(g.t * 10.0) % 2, p, d.angle(), g.PX * 0.8, Color(1, 1, 1, a))
+		return
+	var n: Vector2 = d.orthogonal()
+	var outline := Color(0.02, 0.03, 0.06, 0.85 * a)
+	var body := Color(HW_ABYSS.r * 1.6, HW_ABYSS.g * 1.6, HW_ABYSS.b * 1.6, a)
+	var edge := Color(HW_EDGE.r * 1.3, HW_EDGE.g * 1.3, HW_EDGE.b * 1.3, a)
+	var head: Vector2 = p + d * 12.0
+	var tail: Vector2 = p - d * 18.0
+	cv.draw_line(tail, head, outline, 8.0)
+	cv.draw_line(tail, head, body, 5.0)
+	var hook := PackedVector2Array()
+	for i in 8:
+		var u: float = float(i) / 7.0
+		var ang: float = lerpf(0.0, 2.4, u)
+		hook.append(head + n * sin(ang) * 15.0 - d * (1.0 - cos(ang)) * 11.0)
+	cv.draw_polyline(hook, outline, 9.0)
+	cv.draw_polyline(hook, body, 5.5)
+	cv.draw_polyline(hook.slice(0, 7), edge, 1.5)
+	cv.draw_circle(hook[hook.size() - 1], 2.5, edge)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, outline, 6.0)
+	cv.draw_line(head - d * 2.0, head - d * 9.0 - n * 7.0, body, 3.0)
+	cv.draw_colored_polygon(PackedVector2Array([head + d * 7.0, head + n * 3.0, head - n * 3.0]), body)
+	cv.draw_line(head, head + d * 6.0, edge, 1.5)
+	cv.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, a), 2.0)
+
+
+## 锚与锁链、弹射残影（data_operator._draw_skill_over）
+static func hw_draw_tether(o) -> void:
+	var h: Dictionary = o.hw
+	var an: Dictionary = h.anchor
+	if an.is_empty() or o.pos == Vector2.INF:
+		return
+	var cv = o.cv
+	var k: float = clampf(float(an.t) / float(an.dur), 0.0, 1.0)
+	var hand: Vector2 = _hw_hand(o)
+	var throwing: bool = an.phase == "throw"
+	var reeling: bool = an.phase == "reel" or an.phase == "hold"
+	var p: Vector2 = _hw_anchor_pos(an, k) if throwing else (an.to as Vector2) + Vector2(0, -6)
+	var d: Vector2 = ((an.to as Vector2) - (an.from as Vector2)).normalized()
+	if reeling:
+		p = (an.head as Vector2) + Vector2(0, -6) if an.phase == "reel" else (an.front as Vector2) + Vector2(0, -6)
+		var tr3: Array = an.trail
+		for i in range(tr3.size() - 1, 0, -1):
+			_hw_draw_anchor(o, (tr3[i] as Vector2) + Vector2(0, -6), -d, 0.3 * (1.0 - float(i) / tr3.size()))
+		for hk in h.hooked:
+			if not hk.e.dead:
+				_hw_draw_chain(o, p, hk.e.pos + Vector2(0, -hk.e.r * 0.5), 0.8)
+		for s in 3:
+			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
+			if an.phase == "reel":
+				cv.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+	elif not throwing:
+		var tr: Array = an.trail
+		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
+		for i in range(tr.size() - 1, 0, -1):
+			o.draw_body_at(tr[i], o.face < 0.0, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
+		for s in 3:
+			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
+			cv.draw_line(o.pos - mv_d * 16.0 + off, o.pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
+	_hw_draw_chain(o, hand, p, 1.0)
+	if throwing:
+		var tr2: Array = an.trail
+		for i in range(tr2.size() - 1, 0, -1):
+			_hw_draw_anchor(o, tr2[i], d, 0.3 * (1.0 - float(i) / tr2.size()))
+		for s in 3:
+			var off2: Vector2 = d.orthogonal() * (s - 1) * 9.0
+			cv.draw_line(p - d * 24.0 + off2, p - d * (58.0 + s * 12.0) + off2, Color(1.3, 1.5, 1.8, 0.6), 2.0)
+	_hw_draw_anchor(o, p, -d if reeling else d, 1.0)
+
+
+## 程序粒子：whirl（锁链带锚甩一圈）/ chain（拽敌锁链）/ rift（通路裂隙）
+static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	match str(f.kind):
+		"whirl":
+			var u: float = 1.0 - a
+			var dirv: float = float(f.get("dir", 1.0))
+			var head: float = float(f.get("a0", 0.0)) + dirv * TAU * (1.0 - (1.0 - u) * (1.0 - u))
+			var c: Vector2 = f.pos + Vector2(0, -14)
+			var R: float = f.r * 0.85
+			var trail := PackedVector2Array()
+			for i in 16:
+				var an: float = head - dirv * 2.2 * float(i) / 15.0
+				trail.append(c + Vector2(cos(an) * R, sin(an) * R * 0.55))
+			for i in 15:
+				var al: float = (1.0 - float(i) / 15.0) * minf(1.0, a * 2.0)
+				cv.draw_line(trail[i], trail[i + 1], Color(HW_EDGE.r * 1.4, HW_EDGE.g * 1.4, HW_EDGE.b * 1.4, 0.7 * al), 6.0 * (1.0 - float(i) / 15.0) + 1.0)
+			_hw_draw_chain(o, f.pos + Vector2(0, -22), trail[0], minf(1.0, a * 2.0))
+			_hw_draw_anchor(o, trail[0], Vector2.from_angle(head + dirv * PI * 0.5), minf(1.0, a * 2.0))
+			return true
+		"chain":
+			var u2: float = 1.0 - a
+			var tip: Vector2 = (f.pos as Vector2).lerp(f.to, minf(1.0, u2 / 0.4)) if u2 < 0.4 else (f.to as Vector2).lerp(f.pos, (u2 - 0.4) / 0.6)
+			_hw_draw_chain(o, f.pos, tip, 1.0)
+			cv.draw_circle(tip, 4.0, Color(HW_EDGE.r * 1.5, HW_EDGE.g * 1.5, HW_EDGE.b * 1.5, 0.9))
+			return true
+		"rift":
+			var A: Vector2 = f.pos
+			var B: Vector2 = f.to
+			var L: float = A.distance_to(B)
+			var dd: Vector2 = (B - A) / maxf(1.0, L)
+			var nn: Vector2 = dd.orthogonal()
+			var m: int = clampi(int(L / 14.0), 3, 40)
+			var al2: float = minf(1.0, a * 2.0)
+			var prev: Vector2 = A
+			for i in range(1, m + 1):
+				var t: float = float(i) / m
+				var p: Vector2 = A + dd * L * t + nn * (sin(float(f.seed) + i * 1.7) * 5.0 if i < m else 0.0)
+				var w: float = 2.0 + 5.0 * sin(t * PI)
+				cv.draw_line(prev, p, Color(0.04, 0.03, 0.05, 0.9 * al2), w)
+				cv.draw_line(prev, p, Color(HW_EDGE.r * 1.6, HW_EDGE.g * 1.6, HW_EDGE.b * 1.8, 0.8 * clampf((a - 0.3) * 2.0, 0.0, 1.0)), maxf(1.0, w * 0.35))
+				prev = p
+			return true
+	return false
+
+
+## blocks.look 里的轮廓光（outline，draw_body 前）：当前帧贴图的白色剪影向 8 个方向偏移、染色，两圈（rings [[偏移, 透明度倍率]…]），呼吸
+static func hw_draw_outline(o, f: Dictionary) -> void:
+	var g = o.g
+	var ol: Dictionary = f.outline
+	var st: Dictionary = o.anim_state()
+	if st.is_empty():
+		return
+	var hz: float = float(ol.get("hz", 2.5))
+	var pul: float = 0.5 + 0.5 * sin(g.t * hz)
+	var av = ol.get("a", [0.3, 0.2])
+	var al: float = float(av[0]) + float(av[1]) * pul
+	var fo: float = o.foot_off(st.tex, st.get("kind", ""))
+	var sil: Dictionary = _hw4(o).sil
+	var wt: Texture2D = sil.get(st.tex)
+	if wt == null:
+		wt = ArtS.white_of(st.tex)
+		sil[st.tex] = wt
+	var cc: Color = _mf_col(ol.get("col", []), Color(1.0, 0.45, 0.5))
+	for ring in ol.get("rings", [[4.0, 0.3], [2.0, 0.9]]):
+		var c := Color(cc.r, cc.g, cc.b, al * float(ring[1]))
+		for i in 8:
+			var off: Vector2 = Vector2.from_angle(i * TAU / 8.0) * float(ring[0])
+			o.draw_sprite_at(o.pos + off + Vector2(o.foot_dx(st), 0), st.flip, c, st.frame, wt, st.hf, fo)
+
+
+## blocks.look：按 cond 常驻的画面（aura_ring 在区域层、outline 在本体后）
+static func hw_draw_look(o, layer: String) -> void:
+	if o.pos == Vector2.INF:
+		return
+	for f in o.B.get("look", []):
+		if not (f is Dictionary) or not fx_on(o, f):
+			continue
+		if layer == "body" and f.has("outline"):
+			hw_draw_outline(o, f)
+		elif layer == "auras" and f.has("aura_ring"):
+			_hw_ring_one(o, f, 1.0)
+
+
+static func _hw_ring_one(o, f: Dictionary, al: float) -> void:
+	var g = o.g
+	var rv: Dictionary = f.aura_ring
+	var r: float = shape_radius(o, o.cur_attack()) if str(rv.get("r", "attack")) == "attack" else float(rv.r)
+	var c: Vector2 = g.ppos if str(f.get("at", "self")) == "leader" else o.pos
+	var ov = f.get("off", [0, 4])
+	c += Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
+	var col: Color = _mf_col(rv.get("col", []), o.col())
+	var pul: float = 0.5 + 0.5 * sin(g.t * float(rv.get("hz", 5.0)))
+	o.cv.draw_set_transform(c, 0.0, Vector2(1.0, float(rv.get("sy", 0.55))))
+	if float(rv.get("fill", 0.0)) > 0.0:
+		o.cv.draw_circle(Vector2.ZERO, r, Color(col.r, col.g, col.b, (float(rv.fill) + float(rv.get("fill_pulse", 0.0)) * pul) * al))
+	o.cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 32, Color(col.r * float(rv.get("arc_k", 1.0)), col.g, col.b, float(rv.get("a", 0.3)) * (1.0 - float(rv.get("pulse", 0.0)) + float(rv.get("pulse", 0.0)) * pul) * al), float(rv.get("w", 2.0)))
+	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func hw4_status_items(o) -> Array:
+	var out: Array = []
+	var h: Dictionary = o.hw
+	for k in h.stacks:
+		var b: Dictionary = h.blk.get("stack:" + str(k), {})
+		if int(h.stacks[k]) > 0 and b.has("status"):
+			out.append([str(b.status) % int(h.stacks[k]), _mf_col(b.get("status_col", []), Color(0.9, 0.4, 0.45))])
+	for k in h.timers:
+		var b2: Dictionary = h.blk.get("timer:" + str(k), {})
+		if float(h.timers[k]) > 0.0 and b2.has("status"):
+			out.append([str(b2.status), _mf_col(b2.get("status_col", []), HW_STEEL)])
+	for k in h.armed:
+		var b3: Dictionary = h.blk.get("armed:" + str(k), {})
+		if h.armed[k] and b3.has("status"):
+			out.append([str(b3.status), _mf_col(b3.get("status_col", []), HW_BLOOD)])
+	return out
+
+
+## Tab 面板的行：verb.stack 的 row（「血脉层数」n / 上限）
+static func hw_stats_rows(o) -> Array:
+	var out: Array = []
+	if not hw_on(o) or not o.hw.has("stacks"):
+		return out
+	for t in o.B.get("trait", []) + o.B.get("talent", []):
+		for b in t.get("do", []):
+			if str(b.get("_tag", "")) == "verb.stack" and b.has("row"):
+				out.append([str(b.row), "%d / %d" % [hw_stack_n(o, str(b.get("key", "stack"))), hw_stack_cap(o, b)]])
+	return out
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _hw4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in HW4_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"verb.tether": ["skill"],
+		"verb.stack": ["instant"],
+		"verb.arm": ["instant"],
+		"verb.timer": ["skill", "instant"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"verb.tether":
+			if not str(b.get("mode", "zip")) in ["reel", "zip"]:
+				errs.append(p + ".mode 只能是 reel / zip")
+			if not str(b.get("pick", "densest")) in ["elite", "densest"]:
+				errs.append(p + ".pick 只能是 elite / densest")
+			_num(b, "throw", p, ctx, true, 0.02, 2.0)
+			_num(b, "r", p, ctx, true, 1.0, 800.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "stun", p, ctx, false, 0.0, 10.0)
+			_num(b, "hold_frame", p, ctx, false, 0.0, 30.0)
+			for k in ["drag", "rift", "hook_more"]:
+				if b.has(k) and not (b[k] is Dictionary):
+					errs.append("%s.%s 必须是对象" % [p, k])
+			_list(b.get("then", []), p + ".then", "instant", ctx)
+			_src(b, p, ctx, true)
+			for k in ["drag", "rift"]:
+				if b.get(k, null) is Dictionary:
+					_src(b[k], "%s.%s" % [p, k], ctx, true)
+		"verb.stack":
+			if str(b.get("key", "")) == "":
+				errs.append(p + " 缺 key")
+			_num(b, "add", p, ctx, false, 0.0, 50.0)
+			_num(b, "add_boss", p, ctx, false, 0.0, 50.0)
+			_num(b, "cap", p, ctx, true, 1.0, 999.0)
+		"verb.arm":
+			if str(b.get("key", "")) == "":
+				errs.append(p + " 缺 key")
+		"verb.timer":
+			if str(b.get("key", "")) == "":
+				errs.append(p + " 缺 key")
+			_num(b, "dur", p, ctx, true, 0.05, 120.0)
+	return true
+
+
+# ================================================================ 精英化第 2 批（docs/91 §19 批 2：逻各斯 / 艾雅法拉 / 斯卡蒂 / 乌尔比安的精一 / 精二形态，docs/61 §18，10-14）
+# 只往后加，建在手写迁移段上（hw 状态）。新积木：
+#  verb.requiem_stack  常驻：本干员挂的「安魂」可叠层——再挂一次 +1 层（至多 max），每层受到的法术伤害 + per（combat.gd 读 e.requiem_k；不叠层时照旧 +15%）；
+#                      look：按层数分档的头顶符文帧条（[1 层, 2 层, 3 层]）。逻各斯精一「剜魂」
+#  verb.link           瞬时（命中 then）：从命中的敌人向 r 内最近 n 名拉出链 dur 秒（同时 ≤ cap 组）；链上任一名受到本干员 kinds 类伤害（来源不在 exclude 里）时，
+#                      同组其他人各受到这次伤害 × share（src；链内不再互相传递）。tile / anchor / pulse：链节平铺、两端咒文结、传递时亮起。逻各斯精二「连缀」
+#  shape.shell 的 lob  法术弹改低弧抛射：n 发（第 k 发 × mults[k]、晚 gap × k 秒出手）在目标周围呈三角（相邻落点间距 spacing）落下，飞 flight 秒、顶点 apex，
+#                      落地在 aoe 内爆炸（同 fire 子弹：伤害发射时定、不乘 vs_elite），再执行 on_explode；整组落完在三角中心执行 pool（target = 中心，basis hit = 第一发）。
+#                      没有落点预示圈，只有地面小影子。艾雅法拉精二「三重咏唱·低抛」
+#  shape.wave 的 from: self / aim: nearest / fan / proj / hit_fx / release_fx   从本干员脚底朝最近敌人（aim_r 内，没有朝面向）放出，fan = 几道的偏角（度）；
+#                      proj = 旋转的弹体帧条；命中 / 出手画面。斯卡蒂精二「涌潮」潮刃
+#  verb.displace 的 r: attack + r_mult、r_in: attack   半径按当前普攻半径；r_in 内（已被这一下打到的）不拉。乌尔比安精一「收链」
+#  shape.hookshot      瞬时：把锚掷向 range（× op_range）内离本干员最远、且在 min_d 外的敌人（没有就最近的），飞 clamp(距离 / speed, 0.1, 0.24) 秒（低弧 apex），
+#                      落地 r 内 basis × mult（src），锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人连同锚拖回身前 front 处（drag 秒），
+#                      到了再受 basis × back_mult（back_src）；lock = 锚在外面时不普攻。乌尔比安精二「掷锚」
+# 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。
+
+const HW5_TAGS := ["verb.requiem_stack", "verb.link", "shape.hookshot"]
+const HW_LINK_CAP := 8
+const HW_HOOK_MAX := 2
+
+
+static func _hw5(o) -> Dictionary:
+	var h := hw_st(o)
+	if not h.has("links"):
+		h.merge({"links": [], "rq": {}, "rq_list": [], "melt_list": [], "lobvol": [], "hooks": [], "link_busy": false, "vid": 0})
+	return h
+
+
+# ---------------------------------------------------------------- 常驻（data_operator._sustain 末尾转来）：本帧生效的叠层安魂
+static func hw_sustain(o, act: Array) -> void:
+	if not o.hw.has("links"):
+		return
+	o.hw.rq = {}
+	for b in act:
+		if str(b.get("_tag", "")) == "verb.requiem_stack":
+			o.hw.rq = b
+			break
+
+
+## st.requiem 叠层（hw_status 转来）：返回 true = 已按叠层处理
+static func hw_requiem_stack(o, e: Dictionary, s: Dictionary) -> bool:
+	var h: Dictionary = o.hw
+	var rq: Dictionary = h.get("rq", {})
+	if rq.is_empty():
+		return false
+	var n: int = mini(int(e.get("requiem_n", 0)) + 1, int(rq.get("max", 3))) if float(e.get("requiem", 0.0)) > 0.0 else 1
+	e["requiem_n"] = n
+	e["requiem_k"] = float(rq.get("per", 0.06)) * n
+	e["requiem"] = float(s.dur)
+	var lst: Array = h.rq_list
+	if not lst.any(func(x): return is_same(x, e)):
+		lst.append(e)
+		if lst.size() > 96:
+			lst.pop_front()
+	return true
+
+
+# ---------------------------------------------------------------- verb.link
+
+static func hw_link(o, b: Dictionary) -> void:
+	var h := _hw5(o)
+	var e: Dictionary = h.get("hit_e", {})
+	if e.is_empty() or e.dead:
+		return
+	var n: int = int(b.get("n", 2))
+	var mem: Array = [e]
+	for q in o.nearest_enemies(n + 2, float(b.get("r", 120.0)), e.pos):
+		if mem.size() > n:
+			break
+		if q.dead or is_same(q, e):
+			continue
+		mem.append(q)
+	if mem.size() < 2:
+		return
+	h.links.append({"m": mem, "t": float(b.get("dur", 1.5)), "dur": float(b.get("dur", 1.5)), "b": b, "pulse": {}})
+	while h.links.size() > mini(int(b.get("cap", 4)), HW_LINK_CAP):
+		h.links.pop_front()
+
+
+static func _hw5_links(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	for lk in h.links:
+		lk.t = float(lk.t) - dt
+		for k in lk.pulse.keys():
+			lk.pulse[k] = float(lk.pulse[k]) - dt
+	h.links = h.links.filter(func(lk): return float(lk.t) > 0.0 and lk.m.filter(func(q): return not q.dead).size() >= 2)
+
+
+## 本干员造成伤害之后（data_operator.deal_damage 转来）：链上传递
+static func hw_dealt(o, e: Dictionary, dmg: float) -> void:
+	var h: Dictionary = o.hw
+	if not h.has("links") or h.links.is_empty() or h.link_busy or dmg <= 0.0:
+		return
+	var g = o.g
+	var src: String = str(g.hit.get("src", ""))
+	var hs: Dictionary = o.def.get("hit_sources", {}).get(src, {})
+	var keep = g.hit
+	h.link_busy = true
+	for lk in h.links:
+		var b: Dictionary = lk.b
+		if src in b.get("exclude", []) or not str(hs.get("kind", "")) in b.get("kinds", ["法术"]):
+			continue
+		var at: int = -1
+		for i in lk.m.size():
+			if is_same(lk.m[i], e):
+				at = i
+				break
+		if at < 0:
+			continue
+		for i in lk.m.size():
+			var q: Dictionary = lk.m[i]
+			if i == at or q.dead:
+				continue
+			o.log_hit(str(b.get("src", "")), b.get("tags", []))
+			o.deal_damage(q, dmg * float(b.get("share", 0.3)))
+			lk.pulse[i] = 0.2
+		lk.pulse[at] = 0.2
+	h.link_busy = false
+	g.hit = keep
+
+
+static func hw_draw_links(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("links"):
+		return
+	for lk in h.links:
+		var b: Dictionary = lk.b
+		var al: float = clampf(float(lk.t) / 0.25, 0.0, 1.0) * clampf((float(lk.dur) - float(lk.t)) / 0.12, 0.0, 1.0)
+		var m: Array = lk.m
+		var a0: Dictionary = m[0]
+		if a0.dead:
+			continue
+		var pa: Vector2 = a0.pos + Vector2(0, -float(a0.r) * 0.6)
+		for i in range(1, m.size()):
+			var q: Dictionary = m[i]
+			if q.dead:
+				continue
+			var pb: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+			var tile: String = str(b.get("tile", ""))
+			if tile != "" and g.tex.get(tile) != null:
+				_hw_draw_tiled(o, tile, pa, pb, g.PX, fmod(g.t * 40.0, 16.0 * g.PX), i, Color(1, 1, 1, al))
+				var pl: String = str(b.get("pulse", ""))
+				if pl != "" and g.tex.get(pl) != null and (float(lk.pulse.get(i, 0.0)) > 0.0 or float(lk.pulse.get(0, 0.0)) > 0.0):
+					var k: float = clampf(float(lk.pulse.get(i, lk.pulse.get(0, 0.0))) / 0.2, 0.0, 1.0)
+					_hw_draw_tiled(o, pl, pa, pb, g.PX, 0.0, 0, Color(1, 1, 1, al * k))
+			else:
+				o.cv.draw_line(pa, pb, Color(0.03, 0.03, 0.08, 0.6 * al), 3.0)
+				o.cv.draw_line(pa, pb, Color(HW_PALE.r * 1.4, HW_PALE.g * 1.4, HW_PALE.b * 1.5, 0.8 * al), 1.0)
+		var an: String = str(b.get("anchor", ""))
+		for q in m:
+			if q.dead:
+				continue
+			var p: Vector2 = q.pos + Vector2(0, -float(q.r) * 0.6)
+			if an != "" and g.tex.get(an) != null and g.V6_FRAMES.has(an):
+				var spec: Array = g.V6_FRAMES[an]
+				fx_frame(o.cv, g, an, int(spec[0]), int(g.t * float(spec[1])), p, g.PX, Color(1, 1, 1, al))
+			else:
+				o.cv.draw_arc(p, 6.0, 0.0, TAU, 12, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.8 * al), 1.5)
+
+
+## 叠层安魂的头顶符文（look：[1 层, 2 层, 3 层] 帧条，n 层横排 n 枚）
+static func hw_draw_runes(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("rq_list") or h.rq_list.is_empty():
+		return
+	h.rq_list = h.rq_list.filter(func(e): return not e.dead and float(e.get("requiem", 0.0)) > 0.0)
+	var rq: Dictionary = h.get("rq", {})
+	var look: Array = rq.get("look", [])
+	for e in h.rq_list:
+		var n: int = clampi(int(e.get("requiem_n", 1)), 1, 3)
+		var al: float = clampf(float(e.requiem) / 0.4, 0.0, 1.0)
+		var tn: String = str(look[n - 1]) if look.size() >= n else ""
+		var top: Vector2 = e.pos + Vector2(0, -float(e.r) * 2.0 - 12.0)
+		for i in n:
+			var p: Vector2 = top + Vector2((i - (n - 1) * 0.5) * 9.0, 0)
+			if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+				var spec: Array = g.V6_FRAMES[tn]
+				fx_frame(o.cv, g, tn, int(spec[0]), int(g.t * float(spec[1])) + i, p, g.PX, Color(1, 1, 1, al))
+			else:
+				o.cv.draw_rect(Rect2(p - Vector2(2, 3), Vector2(4, 6)), Color(1.3, 1.1, 0.5, 0.9 * al))
+
+
+## 熔蚀：被打中的敌人脚下暗红裂纹（st.fragile kind arts 的 look 帧条：前三成出现、中段停在中间帧、最后 0.3 秒淡出）
+static func hw_melt_mark(o, e: Dictionary, s: Dictionary) -> void:
+	var h := _hw5(o)
+	for m in h.melt_list:
+		if is_same(m.e, e):
+			m.until = float(e.melt_t)
+			m.tn = str(s.get("look", ""))
+			return
+	h.melt_list.append({"e": e, "t0": float(o.g.t), "until": float(e.melt_t), "tn": str(s.get("look", ""))})
+	if h.melt_list.size() > 96:
+		h.melt_list.pop_front()
+
+
+static func hw_draw_melt(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("melt_list") or h.melt_list.is_empty():
+		return
+	h.melt_list = h.melt_list.filter(func(m): return not m.e.dead and float(m.until) > float(g.t))
+	for m in h.melt_list:
+		var tn: String = str(m.tn)
+		var e: Dictionary = m.e
+		var el: float = float(g.t) - float(m.t0)
+		var left: float = float(m.until) - float(g.t)
+		if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+			var spec: Array = g.V6_FRAMES[tn]
+			var nf: int = int(spec[0])
+			var fps: float = float(spec[1])
+			var fr: int = mini(int(el * fps), nf / 2)
+			if left < 0.3:
+				fr = clampi(nf - 1 - int(left / 0.3 * (nf - 1 - nf / 2)), nf / 2, nf - 1)
+			fx_frame(o.cv, g, tn, nf, fr, e.pos + Vector2(0, float(e.r) * 0.6), g.PX * clampf(float(e.r) / 10.0, 1.0, 2.2), Color(1, 1, 1, 0.9))
+		else:
+			o.cv.draw_set_transform(e.pos + Vector2(0, float(e.r) * 0.6), 0.0, Vector2(1.0, 0.45))
+			for q in 3:
+				var a: float = q * TAU / 3.0 + float(e.id) * 0.7
+				o.cv.draw_arc(Vector2.ZERO, float(e.r) + 3.0, a, a + 0.8, 4, Color(0.9, 0.3, 0.1, 0.7 * clampf(left / 0.5, 0.0, 1.0)), 2.0)
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- shape.shell 的 lob（低弧抛射三角落点 + 熔池）
+
+static func hw_lob_volley(o, b: Dictionary, tip: Vector2, P: Vector2, pre: float, aoe: float, oe: Array) -> void:
+	var h := _hw5(o)
+	var lb: Dictionary = b.lob
+	var n: int = int(lb.get("n", 3))
+	var mults: Array = lb.get("mults", [1.0])
+	var R: float = float(lb.get("spacing", 40.0)) / sqrt(3.0)
+	var d: Vector2 = (P - tip).normalized() if P.distance_to(tip) > 1.0 else Vector2(o.face, 0)
+	h.vid = int(h.vid) + 1
+	var vol := {"id": h.vid, "left": n, "P": P, "base": pre * o._dmg_bonus(), "b": b, "aoe": aoe}
+	h.lobvol.append({"vol": vol, "shots": []})
+	var shots: Array = h.lobvol[-1].shots
+	for k in n:
+		var a: float = d.angle() + k * TAU / float(n)
+		var to: Vector2 = P + Vector2(cos(a) * R, sin(a) * R * 0.7)
+		var mk: float = float(mults[mini(k, mults.size() - 1)])
+		shots.append({"to": to, "wait": float(lb.get("gap", 0.12)) * k, "t": -1.0, "dur": float(lb.get("flight", 0.25)), "pre": pre * mk,
+			"aoe": aoe, "oe": oe, "tip": tip - o.pos, "from": tip, "dmg": 0.0, "sz": 1.0 if k == 0 else 1.15})
+
+
+static func _hw5_lobs(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	for v in h.lobvol:
+		var vol: Dictionary = v.vol
+		var b: Dictionary = vol.b
+		var lb: Dictionary = b.lob
+		for s in v.shots:
+			if float(s.t) < 0.0:
+				s.wait = float(s.wait) - dt
+				if float(s.wait) <= 0.0 and o.pos != Vector2.INF:   # 出手：伤害按此刻加成定（同 fire 子弹）
+					s.t = 0.0
+					s.from = o.pos + s.tip
+					s.dmg = float(s.pre) * o._dmg_bonus()
+					if absf(s.to.x - s.from.x) > 1.0:
+						o._set_face(signf(s.to.x - s.from.x))
+					o._sfx_op("atk")
+				continue
+			if float(s.t) >= float(s.dur):
+				continue
+			s.t = float(s.t) + dt
+			if float(s.t) >= float(s.dur):
+				_hw5_lob_land(o, b, s)
+				vol.left = int(vol.left) - 1
+				if int(vol.left) <= 0 and lb.has("pool"):
+					var keep := hw_snap(o)
+					h.hit_dmg = float(vol.base)
+					o._exec_list(lb.pool, vol.P)
+					hw_pop(o, keep)
+	h.lobvol = h.lobvol.filter(func(v): return int(v.vol.left) > 0)
+
+
+## 落地爆炸：同 weapons.gd 的 fire 子弹（登记一次来源，aoe 内每名敌人吃这一发伤害，不乘 vs_elite），再画面与 on_explode
+static func _hw5_lob_land(o, b: Dictionary, s: Dictionary) -> void:
+	var g = o.g
+	var c: Vector2 = s.to
+	var aoe: float = float(s.aoe)
+	o.log_hit(str(b.get("src", "")), b.get("tags", []))
+	for k in o.query_ids(c, aoe + 20.0):
+		var e: Dictionary = g.enemies[k]
+		if not e.dead and e.pos.distance_to(c) < aoe + e.r:
+			o.deal_damage(e, float(s.dmg))
+	o._sfx_op("hit")
+	var lb: Dictionary = b.lob
+	if lb.has("boom_fx"):
+		fx_play(o, lb.boom_fx, c, aoe)
+	hw_shell_boom(o, {"pos": c, "dmg": float(s.dmg), "aoe": aoe, "hw_b": {}, "hw_oe": s.oe})
+
+
+static func hw_draw_lobs(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("lobvol"):
+		return
+	for v in h.lobvol:
+		var lb: Dictionary = v.vol.b.lob
+		var tn: String = str(lb.get("tex", ""))
+		var apex: float = float(lb.get("apex", 20.0))
+		for s in v.shots:
+			if float(s.t) < 0.0 or float(s.t) >= float(s.dur):
+				continue
+			var k: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
+			var gp: Vector2 = (s.from as Vector2).lerp(s.to, k)
+			var hh: float = sin(k * PI) * apex
+			o.cv.draw_set_transform(gp + Vector2(0, 4), 0.0, Vector2(1.0, 0.5))
+			o.cv.draw_circle(Vector2.ZERO, 6.0 * float(s.sz) * (1.0 - 0.3 * hh / maxf(1.0, apex)), Color(0.08, 0.03, 0.02, 0.45))
+			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			var p: Vector2 = gp + Vector2(0, -hh - 8.0)
+			if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
+				var spec: Array = g.V6_FRAMES[tn]
+				fx_frame(o.cv, g, tn, int(spec[0]), int(float(g.t) * float(spec[1])), p, g.PX * float(s.sz), Color.WHITE)
+			else:
+				o.cv.draw_circle(p, 9.0 * float(s.sz), Color(1.6, 0.55, 0.12, 0.3))
+				o.cv.draw_circle(p, 5.5 * float(s.sz), Color(2.2, 0.8, 0.2, 0.95))
+				o.cv.draw_circle(p, 2.5 * float(s.sz), Color(2.8, 2.3, 1.4))
+
+
+# ---------------------------------------------------------------- shape.hookshot（乌尔比安精二「掷锚」）
+
+static func hw_hook_start(o, b: Dictionary) -> void:
+	var g = o.g
+	var h := _hw5(o)
+	if o.pos == Vector2.INF or h.hooks.size() >= HW_HOOK_MAX:
+		return
+	var rr: float = float(b.get("range", 160.0)) * o.stat(&"op_range")
+	var md: float = float(b.get("min_d", 160.0)) * o.stat(&"op_range")
+	var best: Dictionary = {}
+	var bd := -1.0
+	for e in o.nearest_enemies(24, rr, o.pos):
+		var dd: float = e.pos.distance_to(o.pos)
+		if dd >= md and dd > bd:
+			bd = dd
+			best = e
+	if best.is_empty():
+		var ts: Array = o.nearest_enemies(1, rr, o.pos)
+		if ts.is_empty():
+			return
+		best = ts[0]
+	var to: Vector2 = best.pos
+	var hv = b.get("hand", [33, -33])
+	var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
+	if absf(to.x - o.pos.x) > 2.0:
+		o._set_face(signf(to.x - o.pos.x), true)
+	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
+	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk")))})
+	if b.has("fx"):
+		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
+
+
+static func _hw5_hooks(o, dt: float) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	for hk in h.hooks:
+		var b: Dictionary = hk.b
+		hk.t = float(hk.t) + dt
+		var k: float = clampf(float(hk.t) / float(hk.dur), 0.0, 1.0)
+		match str(hk.phase):
+			"fly":
+				hk.head = (hk.from as Vector2).lerp(hk.to, k) + Vector2(0, -sin(k * PI) * float(b.get("apex", 24.0)))
+				if k >= 1.0:
+					_hw5_hook_impact(o, hk)
+			"taut":
+				if k >= 1.0:
+					_hw5_hook_drag_start(o, hk)
+			"drag":
+				var kr: float = 1.0 - (1.0 - k) * (1.0 - k)
+				hk.head = (hk.to as Vector2).lerp(hk.front, kr)
+				for dg in hk.drag:
+					var e: Dictionary = dg.e
+					if e.dead:
+						continue
+					e.pos = (dg.from as Vector2).lerp(dg.spot, kr)
+					e.kb = Vector2.ZERO
+					e.stun = maxf(e.stun, 0.15)
+					dg.dust = float(dg.get("dust", 0.0)) - dt
+					if float(dg.dust) <= 0.0 and b.has("dust_fx"):
+						dg.dust = 0.07
+						fx_play(o, b.dust_fx, e.pos, float(e.r), [e])
+				if k >= 1.0:
+					_hw5_hook_arrive(o, hk)
+					hk.phase = "done"
+	h.hooks = h.hooks.filter(func(hk): return str(hk.phase) != "done")
+
+
+static func _hw5_hook_impact(o, hk: Dictionary) -> void:
+	var g = o.g
+	var b: Dictionary = hk.b
+	var c: Vector2 = hk.to
+	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var hits: Array = o.area_hit(str(b.get("src", "")), c, r, float(hk.dmg) * float(b.get("mult", 1.2)), float(b.get("kb", 0.0)), 0.0, b.get("tags", []))
+	if b.has("impact_fx"):
+		fx_play(o, b.impact_fx, c, r, hits)
+	hk.phase = "taut"
+	hk.t = 0.0
+	hk.dur = float(b.get("taut", 0.2))
+	hk.head = c
+
+
+static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
+	var g = o.g
+	var b: Dictionary = hk.b
+	if o.pos == Vector2.INF:
+		hk.phase = "done"
+		return
+	var a: Vector2 = o.pos
+	var c: Vector2 = hk.to
+	var L: float = a.distance_to(c)
+	var d: Vector2 = (c - a) / maxf(1.0, L)
+	var w: float = float(b.get("w", 40.0))
+	var front: Vector2 = a + d * float(b.get("front", 60.0))
+	var got: Array = []
+	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w + 30.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or not _movable(e) or not line_contains(a, d, L, w, e.pos, float(e.r)):
+			continue
+		if e.pos.distance_to(a) <= float(b.get("front", 60.0)):
+			continue   # 已经在身前的不拖
+		got.append(e)
+	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
+	var mx: int = int(b.get("max_n", 12))
+	for i in mini(mx, got.size()):
+		var e: Dictionary = got[i]
+		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
+		var spot: Vector2 = front + d * (float(e.r) * 0.5) + d.orthogonal() * side * 14.0 + d * absf(side) * 6.0
+		hk.drag.append({"e": e, "from": e.pos, "spot": spot})
+	hk.phase = "drag"
+	hk.t = 0.0
+	hk.dur = float(b.get("drag", 0.18))
+	hk.front = front
+
+
+static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
+	var b: Dictionary = hk.b
+	var dmg: float = float(hk.dmg) * float(b.get("back_mult", 0.4))
+	var src: String = str(b.get("back_src", b.get("src", "")))
+	var ve: float = o.vs_elite()
+	var hits: Array = []
+	for dg in hk.drag:
+		var e: Dictionary = dg.e
+		if e.dead:
+			continue
+		o.log_hit(src, b.get("tags", []))
+		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+		hits.append(e)
+	if b.has("arrive_fx") and not hits.is_empty():
+		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+
+
+static func hw_attack_locked(o) -> bool:
+	if not o.hw.has("hooks"):
+		return false
+	for hk in o.hw.hooks:
+		if hk.b.get("lock", false):
+			return true
+	return false
+
+
+static func hw_draw_hooks(o) -> void:
+	var g = o.g
+	var h: Dictionary = o.hw
+	if not h.has("hooks") or o.pos == Vector2.INF:
+		return
+	for hk in h.hooks:
+		var b: Dictionary = hk.b
+		var hv = b.get("hand", [33, -33])
+		var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
+		var p: Vector2 = (hk.head as Vector2) + Vector2(0, -6)
+		var tile: String = str(b.get("chain", ""))
+		var taut: bool = str(hk.phase) != "fly"
+		if tile != "" and g.tex.get(tile) != null:
+			var shake: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
+			_hw_draw_tiled(o, tile, hand, p + shake, g.PX, 0.0, 0, Color.WHITE, 1 if taut else 0)
+		else:
+			_hw_draw_chain(o, hand, p, 1.0)
+		for dg in hk.drag:
+			if str(hk.phase) == "drag" and not dg.e.dead:
+				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
+		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
+		_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
+
+
+# ---------------------------------------------------------------- 每帧（hw_tick 末尾转来）
+
+static func _hw5_tick(o, dt: float) -> void:
+	var h: Dictionary = o.hw
+	if not h.links.is_empty():
+		_hw5_links(o, dt)
+	if not h.lobvol.is_empty():
+		_hw5_lobs(o, dt)
+	if not h.hooks.is_empty():
+		_hw5_hooks(o, dt)
+
+
+# ---------------------------------------------------------------- 本段的校验
+
+static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, tag: String) -> bool:
+	if not tag in HW5_TAGS:
+		return false
+	var errs: Array = ctx.errs
+	var where_ok := {
+		"verb.requiem_stack": ["sustain", "skill"],
+		"verb.link": ["instant"],
+		"shape.hookshot": ["skill", "instant"],
+	}
+	if not kind in where_ok[tag]:
+		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
+		return true
+	match tag:
+		"verb.requiem_stack":
+			_num(b, "per", p, ctx, true, 0.0, 1.0)
+			_num(b, "max", p, ctx, true, 1.0, 10.0)
+			var lk = b.get("look", [])
+			if not (lk is Array) or lk.any(func(x): return not str(x).begins_with("fx_")):
+				errs.append(p + ".look 必须是 fx_* 帧条名的数组（按层数分档）")
+		"verb.link":
+			_num(b, "n", p, ctx, true, 1.0, 6.0)
+			_num(b, "r", p, ctx, true, 1.0, 600.0)
+			_num(b, "dur", p, ctx, true, 0.1, 10.0)
+			_num(b, "share", p, ctx, true, 0.0, 2.0)
+			_num(b, "cap", p, ctx, false, 1.0, float(HW_LINK_CAP))
+			for k in ["tile", "pulse", "anchor"]:
+				if b.has(k) and not str(b[k]).begins_with("fx_"):
+					errs.append("%s.%s 必须是 fx_* 帧条名" % [p, k])
+			_src(b, p, ctx, true)
+		"shape.hookshot":
+			_num(b, "range", p, ctx, true, 10.0, 1000.0)
+			_num(b, "r", p, ctx, true, 1.0, 400.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "back_mult", p, ctx, false, 0.0, 20.0)
+			_num(b, "w", p, ctx, false, 1.0, 200.0)
+			_num(b, "taut", p, ctx, false, 0.0, 2.0)
+			_num(b, "drag", p, ctx, false, 0.02, 2.0)
+			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
+				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			if b.has("chain") and not str(b.chain).begins_with("fx_"):
+				errs.append(p + ".chain 必须是 fx_* 帧条名")
+			_src(b, p, ctx, true)
+			if b.has("back_src") and not ctx.srcs.has(str(b.back_src)):
+				errs.append("%s.back_src「%s」没在 hit_sources 里登记" % [p, str(b.back_src)])
+			for k in ["fx", "impact_fx", "arrive_fx", "dust_fx"]:
+				if b.has(k) and k != "fx":
+					_fx(b[k], p + "." + k, ctx, "shape.circle")
 	return true

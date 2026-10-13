@@ -5,6 +5,11 @@
 ## S3 延展敏锐（2026-09-27 改）：展开 100° 扇形咒域 12 秒，自动朝敌人最多方向慢转；域内每 0.5 秒法伤 + 安魂，敌方弹幕 -80%，结束清除；期间普攻只打域内。
 ## 天赋 词法演化：50% 概率额外攻击随机一名敌人（60% 伤害）并减速 0.8 秒（logos.json talent_chance）。
 ## 可见成长（docs/25 §5）：N1 铭文 / N2 复指 / N4 转喻 / N5 墓志铭 / 精二质变 众声喧哗。
+## ⚠ 测试参照（10-14 起）：逻各斯已迁成数据干员（data/characters/logos.json 的 blocks，docs/61 §17），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=logos=res://tests/data_ops/logos_legacy.gd）。相对原脚本只改了：
+## ① 画面随机数从 g.rng 换成 g.vrng：咒文弹的字形编号（rune）、墓志铭 / 铭文的笔画样式、命中咒文的左右翻转、命中光点、咒域命中咒文的翻转；玩法随机（词法演化的概率与抽人、湮灭溢出抽人、咒文弹飘动相位 ph——它决定飞行轨迹）照旧用 g.rng。
+## ② 画面火花 character.gd fx_sparks（吃 g.rng）换成同参数、用 g.vrng 的 _vsparks。
+## 玩法逻辑其余逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const INK := Color(0.55, 0.6, 1.0)
@@ -130,7 +135,7 @@ func _word(e: Dictionary, dmg: float, src: String) -> void:
 		_word_hit(e, dmg, src)
 		return
 	bolts.append({"pos": hand, "e": e, "dmg": dmg, "src": src, "hist": [hand], "life": base("word_life", 1.3), "age": 0.0,
-		"ph": g.rng.randf() * TAU, "rune": g.rng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
+		"ph": g.rng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
 	fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": PALE, "alpha": 0.7})
 
 
@@ -183,7 +188,7 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 		# （同时最多 3 枚，写满时新的处决不再写字）
 		if epitaph and epitaphs.size() < int(base("epitaph_max", 3.0)):
 			_make_room()
-			epitaphs.append({"pos": e.pos, "t": base("epitaph_delay", 1.0), "dmg": _atk() * base("epitaph_mult", 1.2), "pat": g.rng.randi() % RUNES.size()})
+			epitaphs.append({"pos": e.pos, "t": base("epitaph_delay", 1.0), "dmg": _atk() * base("epitaph_mult", 1.2), "pat": g.vrng.randi() % RUNES.size()})
 		if over > 0.0:
 			var pool: Array = nearest_enemies(6, _range(), pos)
 			pool = pool.filter(func(o): return not is_same(o, e) and not o.dead)
@@ -207,7 +212,7 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 	if inscription:
 		_make_room()
 		if glyphs.size() + epitaphs.size() < RESIDUE_MAX:
-			glyphs.append({"pos": e.pos, "t": base("glyph_dur", 1.0), "tick": base("glyph_tick", 0.25), "dmg": dmg * base("glyph_mult", 0.15), "pat": g.rng.randi() % RUNES.size()})
+			glyphs.append({"pos": e.pos, "t": base("glyph_dur", 1.0), "tick": base("glyph_tick", 0.25), "dmg": dmg * base("glyph_mult", 0.15), "pat": g.vrng.randi() % RUNES.size()})
 	# 命中处小范围溅射（纯单体清不动 1:15 的骨潮，同铃兰 P5.1 的处理）
 	var ar: float = base("aoe", 30.0)
 	if ar > 0.0:
@@ -220,11 +225,11 @@ func _word_hit(e: Dictionary, dmg: float, src: String) -> void:
 			o["requiem"] = base("requiem_dur", 5.0)
 	# 命中处墨蓝爆点（弹体自己画在 _draw_skill_over；这里不再拉瞬发光线）
 	# Codex 骨笔符文（命中单次播放）；缺图退回墨蓝爆点 / 光点
-	if not spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * HIT_GLYPH_PX / GLYPH_FRAME_PX, 0.0, g.rng.randf() < 0.5) \
-			and not spawn_fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.rng.randf() < 0.5):
+	if not spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * HIT_GLYPH_PX / GLYPH_FRAME_PX, 0.0, g.vrng.randf() < 0.5) \
+			and not spawn_fx_sprite("fx_ink_hit", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5):
 		fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.22, "col": PALE, "alpha": 0.6})
 	for k in 3:
-		fx({"kind": "mote", "pos": e.pos + Vector2(g.rng.randf_range(-8, 8), -e.r * 0.5 + g.rng.randf_range(-8, 8)), "vel": Vector2(0, -40), "life": 0.35, "col": INK, "sz": 2.0})
+		fx({"kind": "mote", "pos": e.pos + Vector2(g.vrng.randf_range(-8, 8), -e.r * 0.5 + g.vrng.randf_range(-8, 8)), "vel": Vector2(0, -40), "life": 0.35, "col": INK, "sz": 2.0})
 
 
 # ---------------------------------------------------------------- 技能
@@ -370,7 +375,7 @@ func _epitaph_burst(ep: Dictionary) -> void:
 	fx({"kind": "ring", "pos": ep.pos, "r": r * 0.7, "r0": 6.0, "life": 0.3, "col": PALE, "floor": true, "w": 2.0})
 	fx({"kind": "glow", "pos": ep.pos + Vector2(0, -20), "r": 34.0, "life": 0.35, "col": INK, "alpha": 0.6})
 	spawn_fx_sprite("fx_logos_glyph", ep.pos + Vector2(0, -20), g.PX * 1.4)
-	fx_sparks(ep.pos + Vector2(0, -20), PALE, 10, 200.0, 0.45, 2.5)
+	_vsparks(ep.pos + Vector2(0, -20), PALE, 10, 200.0, 0.45, 2.5)
 	Sfx.op(id, "big", -6.0, 1.2)
 
 
@@ -402,7 +407,7 @@ func _update_acuity(dt: float) -> void:
 				e["requiem"] = base("requiem_dur", 5.0)
 			if shown < 3:
 				shown += 1
-				spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.rng.randf() < 0.5)
+				spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
 	var f: float = base("s3_bullet_slow", 0.2)
 	for b in g.ebullets:
 		if b.life <= 0.0 or not _in_fan(b.pos):
@@ -658,3 +663,11 @@ func status_items() -> Array:
 ## 笔尖（op_logos_attack@2x 出手帧第 2 帧量得：脚底前 33、上 35；docs/32 §3）
 func _pen_tip() -> Vector2:
 	return pos + Vector2(40.0 * face, -36.0)
+
+
+## 同 character.gd fx_sparks，但散布用 g.vrng（纯画面）
+func _vsparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
+	n = int(round(n * (1.0 + 0.2 * node_lv)))
+	for k in n:
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
+			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})

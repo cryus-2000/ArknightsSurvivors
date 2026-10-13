@@ -8,7 +8,7 @@
   0.5,
   0.2
  ],
- "script": "res://scripts/characters/eyjafjalla.gd",
+ "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 25,
@@ -22,7 +22,7 @@
   "s3_mult": 1.64,
   "lava_mult": 0.23,
   "twin_mult": 0.6,
-  "tri_mult": 1.5,
+  "tri_mult": 1.4,
   "tri_size": 1.5,
   "tri_aoe": 1.2,
   "ember_mult": 0.3,
@@ -32,7 +32,43 @@
   "blob_r": 40,
   "meteor_mult": 0.3,
   "meteor_r": 45,
-  "meteor_reach": 320
+  "meteor_reach": 320,
+  "first_cd": 0.6,
+  "idle_cd": 0.2,
+  "fire_pad": 40,
+  "aim_pad": 60,
+  "shell_speed": 360,
+  "talent_aoe": 1.25,
+  "s2_aoe": 1.3,
+  "s2_weak": 6.0,
+  "burn_dur": 3.0,
+  "burn_dur_e1": 4.0,
+  "burn_dps": 0.1,
+  "burn_every": 0.5,
+  "follow_gap": 0.12,
+  "twin_size": 0.85,
+  "erupt_every": 0.2,
+  "erupt_delay": 0.12,
+  "lava_dur": 3.0,
+  "lava_every": 0.5,
+  "lava_r": 0.8,
+  "ember_out": 0.6,
+  "ember_pad": 1.5,
+  "ember_h": 30,
+  "ember_sz": 0.7,
+  "meteor_h": 120,
+  "meteor_sz": 1.2,
+  "blob_h": 44,
+  "blob_ring": 1.4,
+  "melt_v": 0.08,
+  "melt_dur": 4.0,
+  "lob_apex": 20,
+  "lob_flight": 0.25,
+  "lob_spacing": 40,
+  "pool_r": 50,
+  "pool_dur": 1.2,
+  "pool_every": 0.4,
+  "pool_mult": 0.12
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1743 / 防御 122 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -200,6 +236,16 @@
     "projectile",
     "area"
    ]
+  },
+  "熔池": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "dot",
+    "area"
+   ]
   }
  },
  "progression": [
@@ -221,7 +267,11 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「点燃」；解锁天赋「炎息」：熔岩弹爆炸范围 +25%；点燃持续时间 +1 秒"
+   "desc": "解锁二技能「点燃」；解锁天赋「炎息」：熔岩弹爆炸范围 +25%，点燃持续时间 +1 秒；熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%",
+   "attack": {
+    "name": "熔蚀",
+    "desc": "熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%（不叠层，再命中刷新时间；Boss 同样生效），脚下留一圈暗红裂纹"
+   }
   },
   {
    "type": "custom",
@@ -241,7 +291,11 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.64），每处留下 3 秒熔岩；普攻质变「三重咏唱」：每次施法投出 3 发熔岩弹，后 2 发体积 ×1.5、伤害 ×1.5（取代复咏的 60%）"
+   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 10 次（伤害 ×1.64），每处留下 3 秒熔岩；普攻质变「三重咏唱」：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×1.4），落地后中心留下熔池 1.2 秒，每 0.4 秒造成 12% 法术伤害",
+   "attack": {
+    "name": "三重咏唱",
+    "desc": "熔岩弹改为低弧抛射：每次 3 发在目标周围呈三角落下（后 2 发伤害 ×1.4），各自爆炸；3 发都落地后，三角中心留下熔池 1.2 秒，每 0.4 秒对池内敌人造成第一发 12% 的法术伤害"
+   }
   }
  ],
  "gallery": {
@@ -252,5 +306,761 @@
    "持续伤害"
   ],
   "desc": "熔岩弹清群，技能在敌群里喷发火山、留下熔岩"
+ },
+ "blocks": {
+  "_doc": "艾雅法拉（docs/61 §17.5）：熔岩弹（法术弹 + 爆炸）、炽热（次数型）、点燃（重弹 + 易伤）、火山（连续喷发 + 熔岩池）；原手写脚本作参照 tests/data_ops/eyjafjalla_legacy.gd",
+  "attack": {
+   "shape": "shell",
+   "range": "$range",
+   "fire_pad": "$fire_pad",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "aoe": "$aoe",
+   "aoe_mults": [
+    {
+     "cond": "elite >= 1",
+     "mult": "$talent_aoe"
+    }
+   ],
+   "speed": "$shell_speed",
+   "src": "熔岩弹",
+   "tip": [
+    42,
+    -49
+   ],
+   "tip_skill": [
+    42,
+    -63
+   ],
+   "col": [
+    1.0,
+    0.5,
+    0.2
+   ],
+   "look": {
+    "glow": 13,
+    "tex": "proj_lavaball",
+    "scale": 1.1
+   },
+   "fire_fx": [
+    {
+     "pfx": {
+      "kind": "glow",
+      "r": 10.0,
+      "life": 0.12,
+      "col": [
+       1.0,
+       0.5,
+       0.2
+      ],
+      "alpha": 0.6
+     }
+    }
+   ],
+   "boom_fx": [
+    {
+     "pfx": {
+      "kind": "mote",
+      "vel": [
+       [
+        -90,
+        90
+       ],
+       [
+        -160,
+        -60
+       ]
+      ],
+      "life": 0.45,
+      "col": [
+       0.95,
+       0.3,
+       0.08
+      ],
+      "sz": 2.5,
+      "grav": 320.0
+     },
+     "n": 6
+    },
+    {
+     "pfx": {
+      "kind": "ring",
+      "r": 1.0,
+      "r0": 0.3,
+      "life": 0.3,
+      "col": [
+       0.8,
+       0.2,
+       0.05
+      ],
+      "floor": true,
+      "w": 2.0
+     },
+     "r_scale": [
+      "r",
+      "r0"
+     ]
+    },
+    {
+     "sprite": {
+      "name": "fx_flam_hit",
+      "fit": [
+       60,
+       0.8,
+       1.5
+      ]
+     },
+     "off": [
+      0,
+      -8
+     ]
+    }
+   ],
+   "follow": [
+    {
+     "cond": "node:twin_cast && elite < 2",
+     "n": 1,
+     "gap": "$follow_gap",
+     "mult": "$twin_mult",
+     "sz": "$twin_size",
+     "_doc": "复咏：第 2 发（精二起由低抛三重咏唱取代）"
+    }
+   ],
+   "on_explode": [
+    {
+     "verb": "lob",
+     "cond": "node:embers",
+     "pick": "near_out",
+     "n": 2,
+     "cand": 6,
+     "reach": "$ember_reach",
+     "out_k": "$ember_out",
+     "pad_k": "$ember_pad",
+     "basis": "hit",
+     "mult": "$ember_mult",
+     "r": "$ember_r",
+     "h": "$ember_h",
+     "sz": "$ember_sz",
+     "src": "火星"
+    },
+    {
+     "verb": "affect",
+     "cond": "elite >= 1",
+     "center": "target",
+     "r": "hit",
+     "_doc": "精一熔蚀：熔岩弹命中的敌人 4 秒内受到的法术伤害 +8%",
+     "on_hit": [
+      {
+       "st": "fragile",
+       "kind": "arts",
+       "value": "$melt_v",
+       "dur": "$melt_dur",
+       "look": "fx_eyja_melt_crack"
+      }
+     ]
+    }
+   ],
+   "lob": {
+    "cond": "elite >= 2",
+    "_doc": "精二三重咏唱·低抛：3 发低弧抛射在目标周围呈三角落下（后 2 发 × tri_mult），落完中心留熔池；没有落点预示圈",
+    "n": 3,
+    "mults": [
+     1.0,
+     "$tri_mult",
+     "$tri_mult"
+    ],
+    "gap": "$follow_gap",
+    "spacing": "$lob_spacing",
+    "flight": "$lob_flight",
+    "apex": "$lob_apex",
+    "tex": "proj_eyja_lava_lob",
+    "boom_fx": [
+     {
+      "strip": "fx_eyja_lava_splash",
+      "off": [
+       0,
+       -6
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "mote",
+       "vel": [
+        [
+         -90,
+         90
+        ],
+        [
+         -160,
+         -60
+        ]
+       ],
+       "life": 0.45,
+       "col": [
+        0.95,
+        0.3,
+        0.08
+       ],
+       "sz": 2.5,
+       "grav": 320.0
+      },
+      "n": 5
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 1.0,
+       "r0": 0.3,
+       "life": 0.3,
+       "col": [
+        0.8,
+        0.2,
+        0.05
+       ],
+       "floor": true,
+       "w": 2.0
+      },
+      "r_scale": [
+       "r",
+       "r0"
+      ],
+      "if_tex": "!fx_eyja_lava_splash"
+     }
+    ],
+    "pool": [
+     {
+      "shape": "pool",
+      "center": "target",
+      "r": "$pool_r",
+      "dur": "$pool_dur",
+      "every": "$pool_every",
+      "tick0": "$pool_every",
+      "basis": "hit",
+      "mult": "$pool_mult",
+      "src": "熔池",
+      "look": "pool",
+      "tex": "fx_eyja_lava_pool",
+      "fit": 22
+     }
+    ]
+   }
+  },
+  "skills": [
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 3
+    },
+    "status": "炽热 ×%d",
+    "status_col": [
+     1.0,
+     0.5,
+     0.2
+    ],
+    "attack_patch": {
+     "power": true,
+     "aoe_mult": "$s1_aoe",
+     "on_explode": [
+      {
+       "verb": "lob",
+       "cond": "node:meteor",
+       "pick": "shuffle",
+       "n": 2,
+       "cand": 10,
+       "reach": "$meteor_reach",
+       "basis": "hit",
+       "mult": "$meteor_mult",
+       "r": "$meteor_r",
+       "h": "$meteor_h",
+       "sz": "$meteor_sz",
+       "src": "熔岩天降",
+       "shell": true,
+       "from_off": [
+        0,
+        -20
+       ]
+      },
+      {
+       "verb": "affect",
+       "center": "target",
+       "r": "hit",
+       "on_hit": [
+        {
+         "st": "burn",
+         "cond": "elite < 1",
+         "dur": "$burn_dur",
+         "mult": "$burn_dps",
+         "every": "$burn_every",
+         "src": "点燃"
+        },
+        {
+         "st": "burn",
+         "cond": "elite >= 1",
+         "dur": "$burn_dur_e1",
+         "mult": "$burn_dps",
+         "every": "$burn_every",
+         "src": "点燃"
+        }
+       ]
+      }
+     ]
+    },
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 22.0,
+       "life": 0.3,
+       "col": [
+        1.0,
+        0.5,
+        0.2
+       ],
+       "alpha": 0.5
+      },
+      "at": "self",
+      "off": [
+       0,
+       -30
+      ]
+     },
+     {
+      "text": {
+       "s": "炽热",
+       "col": [
+        1.0,
+        0.5,
+        0.2
+       ],
+       "size": 14
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
+      ]
+     }
+    ],
+    "do": []
+   },
+   {
+    "aim": "los",
+    "aim_pad": "$aim_pad",
+    "fx": [
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.4,
+       "col": [
+        1.0,
+        0.5,
+        0.2
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     }
+    ],
+    "do": [
+     {
+      "shape": "shell",
+      "range": "$range",
+      "fire_pad": "$aim_pad",
+      "aoe": "$aoe",
+      "aoe_mults": [
+       {
+        "cond": "elite >= 1",
+        "mult": "$talent_aoe"
+       }
+      ],
+      "aoe_mult": "$s2_aoe",
+      "mult": "$s2_mult",
+      "power": true,
+      "speed": "$shell_speed",
+      "src": "点燃弹",
+      "tip": [
+       42,
+       -49
+      ],
+      "tip_skill": [
+       42,
+       -63
+      ],
+      "col": [
+       1.0,
+       0.5,
+       0.2
+      ],
+      "look": {
+       "glow": 17,
+       "glow2": 26,
+       "big_tex": "proj_eyja_ignite",
+       "big_scale": 1.5,
+       "back": 14,
+       "tex": "proj_lavaball",
+       "scale": 1.5
+      },
+      "boom_fx": [
+       {
+        "pfx": {
+         "kind": "mote",
+         "vel": [
+          [
+           -90,
+           90
+          ],
+          [
+           -160,
+           -60
+          ]
+         ],
+         "life": 0.45,
+         "col": [
+          0.95,
+          0.3,
+          0.08
+         ],
+         "sz": 2.5,
+         "grav": 320.0
+        },
+        "n": 6
+       },
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.3,
+         "life": 0.3,
+         "col": [
+          0.8,
+          0.2,
+          0.05
+         ],
+         "floor": true,
+         "w": 2.0
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       },
+       {
+        "sprite": {
+         "name": "fx_eyja_ignite_boom",
+         "scale_r": 0.0338
+        },
+        "off": [
+         0,
+         -10
+        ],
+        "if_tex": "fx_eyja_ignite_boom"
+       },
+       {
+        "pause": 0.05,
+        "if_tex": "fx_eyja_ignite_boom"
+       },
+       {
+        "sprite": {
+         "name": "fx_flam_hit",
+         "fit": [
+          60,
+          0.8,
+          1.5
+         ]
+        },
+        "off": [
+         0,
+         -8
+        ],
+        "if_tex": "!fx_eyja_ignite_boom"
+       }
+      ],
+      "on_explode": [
+       {
+        "verb": "lob",
+        "cond": "node:ignite_blobs",
+        "pick": "ring",
+        "n": 4,
+        "ring_k": "$blob_ring",
+        "mult": "$blob_mult",
+        "power": true,
+        "r": "$blob_r",
+        "h": "$blob_h",
+        "sz": 1.0,
+        "src": "熔岩团"
+       },
+       {
+        "verb": "affect",
+        "center": "target",
+        "r": "hit",
+        "on_hit": [
+         {
+          "st": "burn",
+          "cond": "elite < 1",
+          "dur": "$burn_dur",
+          "mult": "$burn_dps",
+          "every": "$burn_every",
+          "src": "点燃"
+         },
+         {
+          "st": "burn",
+          "cond": "elite >= 1",
+          "dur": "$burn_dur_e1",
+          "mult": "$burn_dps",
+          "every": "$burn_every",
+          "src": "点燃"
+         },
+         {
+          "st": "fragile",
+          "dur": "$s2_weak"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "aim": "los",
+    "aim_pad": "$aim_pad",
+    "dur": {
+     "pulses": "$s3_count",
+     "every": "$erupt_every"
+    },
+    "status": "火山",
+    "status_col": [
+     1.0,
+     0.5,
+     0.2
+    ],
+    "fx": [
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        1.0,
+        0.5,
+        0.2
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     },
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 70.0,
+       "r0": 10.0,
+       "life": 0.5,
+       "col": [
+        1.0,
+        0.5,
+        0.2
+       ],
+       "floor": true
+      },
+      "at": "self"
+     }
+    ],
+    "pulse": {
+     "r": "$range",
+     "pad": "$aim_pad",
+     "jit": [
+      50,
+      40
+     ],
+     "delay": "$erupt_delay",
+     "fx": [
+      {
+       "pfx": {
+        "kind": "crack",
+        "r": 40.0,
+        "life": 0.3,
+        "col": [
+         0.95,
+         0.3,
+         0.08
+        ],
+        "floor": true,
+        "n": 6
+       }
+      }
+     ],
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$s3_r",
+       "mult": "$s3_mult",
+       "power": true,
+       "src": "火山",
+       "ring": false,
+       "fx": [
+        {
+         "pfx": {
+          "kind": "lava_pillar",
+          "r": 1.0,
+          "life": 0.5,
+          "col": [
+           1.0,
+           0.5,
+           0.2
+          ]
+         },
+         "r_scale": [
+          "r"
+         ]
+        },
+        {
+         "sprite": {
+          "name": "fx_flam_hit",
+          "scale": 1.7
+         },
+         "off": [
+          0,
+          -20
+         ]
+        },
+        {
+         "pfx": {
+          "kind": "glow",
+          "r": 0.5,
+          "life": 0.18,
+          "col": [
+           1.6,
+           0.9,
+           0.4
+          ],
+          "alpha": 0.7
+         },
+         "r_scale": [
+          "r"
+         ]
+        },
+        {
+         "pfx": {
+          "kind": "ring",
+          "r": 1.0,
+          "r0": 0.2,
+          "life": 0.35,
+          "col": [
+           1.0,
+           0.5,
+           0.2
+          ],
+          "floor": true,
+          "w": 3.0
+         },
+         "r_scale": [
+          "r",
+          "r0"
+         ]
+        },
+        {
+         "pfx": {
+          "kind": "mote",
+          "vel": [
+           [
+            -120,
+            120
+           ],
+           [
+            -260,
+            -120
+           ]
+          ],
+          "life": 0.6,
+          "col": [
+           0.95,
+           0.3,
+           0.08
+          ],
+          "sz": 3.0,
+          "grav": 420.0
+         },
+         "n": 8,
+         "jit": [
+          -8,
+          -30,
+          8,
+          -30
+         ]
+        },
+        {
+         "sfx": {
+          "kind": "big"
+         }
+        }
+       ]
+      },
+      {
+       "verb": "lob",
+       "cond": "node:meteor",
+       "pick": "shuffle",
+       "n": 2,
+       "cand": 10,
+       "reach": "$meteor_reach",
+       "basis": "prev",
+       "mult": "$meteor_mult",
+       "r": "$meteor_r",
+       "h": "$meteor_h",
+       "sz": "$meteor_sz",
+       "src": "熔岩天降",
+       "shell": true,
+       "from_off": [
+        0,
+        -30
+       ]
+      },
+      {
+       "shape": "pool",
+       "center": "target",
+       "r": "$s3_r",
+       "r_mult": "$lava_r",
+       "dur": "$lava_dur",
+       "every": "$lava_every",
+       "tick0": 0,
+       "mult": "$lava_mult",
+       "power": true,
+       "src": "熔岩",
+       "look": "lava"
+      }
+     ]
+    },
+    "do": []
+   }
+  ],
+  "trait": [],
+  "talent": [],
+  "progression": {
+   "twin_cast": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "复咏：写在 attack.follow（cond node:twin_cast）"
+   },
+   "embers": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "火星迸溅：写在 attack.on_explode（cond node:embers）"
+   },
+   "ignite_blobs": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "星火燎原：写在 S2 熔岩弹的 on_explode（cond node:ignite_blobs）"
+   },
+   "meteor": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "熔岩天降：写在 S1 attack_patch.on_explode 与 S3 喷发（cond node:meteor）"
+   }
+  }
  }
 }

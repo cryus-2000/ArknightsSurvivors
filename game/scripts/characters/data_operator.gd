@@ -28,6 +28,7 @@ var ext := {}                          # 积木扩展段的运行时状态（能
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
+var hw := {}                           # 手写迁移段（docs/91 第 2 批，op_blocks.gd 末尾）：basis、连斩、浪墙、弹体、锚……；空 = 用不到
 var atk_live := false                  # 正在结算普攻的那一下（局部倍率 atk 只乘这时的伤害）
 
 
@@ -40,6 +41,9 @@ func _init(game, def_: Dictionary) -> void:
 		if a.get("when", null) is String:
 			a.when = OB.parse_cond(str(a.when), def.get("base", {}))
 		cd = float(a.get("first", cd))
+	elif a.has("first"):   # 手写迁移段：首击冷却（手写干员各自的 var cd 初值）
+		cd = float(a.first)
+	OB.hw_init(self)
 	var dep := false
 	var mate := false
 	for sec in ["trait", "talent"]:
@@ -87,10 +91,14 @@ func in_zone(p: Vector2) -> bool:
 
 
 func skill_on(i: int) -> bool:
-	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0
+	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or (not hw.is_empty() and OB.hw_active_left(self, i) > 0.0)
 
 
 func skill_active_left(i: int) -> float:
+	if not hw.is_empty():
+		var hl: float = OB.hw_active_left(self, i)   # 手写迁移段：连续喷发 / 锁定 / 咒域按自己的计时
+		if hl >= 0.0:
+			return hl
 	return maxf(s_t[i], OB.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
@@ -142,6 +150,7 @@ func update(dt: float) -> void:
 	for i in 3:
 		if s_t[i] > 0.0:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
+	var hw_busy: bool = OB.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
 	OB.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
@@ -151,13 +160,17 @@ func update(dt: float) -> void:
 	OB.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
 	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
+	if hw_busy or (not hw.is_empty() and OB.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
+		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
+		if not hw.is_empty() and OB.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
+			return
 		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
 		return
-	if no_attack or cd > 0.0 or OB.el_attack_locked(self):   # 精英化段：往返弹体（lock）在外面时不普攻
+	if no_attack or cd > 0.0 or OB.el_attack_locked(self) or (not hw.is_empty() and OB.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
 		return
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
@@ -168,10 +181,13 @@ func update(dt: float) -> void:
 				start_attack(g.ppos)
 			return
 		"circle":
-			var c: Vector2 = OB.shape_center(self, a)
-			var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else OB.shape_radius(self, a)
-			if c != Vector2.INF:
-				at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
+			if str(a.get("center", "")) == "front":   # 手写迁移段：锚击砸在身前（手动普攻 A 类）
+				at = OB.hw_front_aim(self, a)
+			else:
+				var c: Vector2 = OB.shape_center(self, a)
+				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else OB.shape_radius(self, a)
+				if c != Vector2.INF:
+					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
 		"cone":
 			var r2: float = OB.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
@@ -186,12 +202,19 @@ func update(dt: float) -> void:
 			at = OB.tx_attack_point(self, a)   # 德克萨斯段
 		"projectile":   # 能天使段：手动普攻 B 类
 			at = OB.exu_aim(self, a)
+		"shell":   # 手写迁移段：法术弹（手动普攻 A 类，落点 aim_land）
+			at = OB.hw_shell_aim(self, a)
+		"bolt":   # 手写迁移段：飘飞咒文弹（手动普攻 B 类）
+			at = OB.hw_bolt_aim(self, a)
 	if at == Vector2.INF:
-		cd = idle_cd(0.2)
+		cd = idle_cd(float(B.get("attack", {}).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
 	else:
 		cd = float(B.get("attack", {}).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
 		var rp := _replace_trig(atk_n + 1)   # 精英化段：这一次普攻被 trig.every_n replace 换掉时播它的帧条
-		start_attack(at, 0.5, 0.25, str(rp.get("anim", "")))
+		var an: String = str(rp.get("anim", ""))
+		if an == "" and a.has("anim"):   # 手写迁移段：普攻（含 swap_attack 换上的形状）自己的帧条
+			an = str(a.anim)
+		start_attack(at if a.get("turn", true) else Vector2.INF, 0.5, 0.25, an)
 
 
 func _tick_pending(dt: float) -> void:
@@ -204,11 +227,20 @@ func _tick_pending(dt: float) -> void:
 			due.append(p)
 	pending = pending.filter(func(p): return p.t > 0.0)
 	for p in due:
+		var keep: Dictionary = OB.hw_push(self, p.get("bs", {}))   # 手写迁移段：延迟执行带着排队时的 basis
 		_exec_list(p.do, p.get("at", Vector2.INF))
+		if p.has("combo"):
+			OB.hw_combo_next(self, int(p.combo))
+		OB.hw_pop(self, keep)
+
+
+## 手写迁移段：常驻积木的局部倍率与属性立刻重算（层数变了、永久技能出手当下，同手写的 refresh_stats；不跑治疗 / 计时等副作用）
+func _restat() -> void:
+	_sustain(0.0, true)
 
 
 ## 常驻积木：先收集本帧生效的（条件在这里各求值一次），再按 局部倍率 → 属性 → 副作用 三遍执行
-func _sustain(dt: float) -> void:
+func _sustain(dt: float, stats_only := false) -> void:
 	var act: Array = []   # 常驻效果积木与 trig.tick，按固定顺序
 	for t in B.get("trait", []):
 		_collect_trig(t, act)
@@ -245,6 +277,8 @@ func _sustain(dt: float) -> void:
 				if loc.has(st):
 					if str(b.get("op", "add")) == "add":
 						add[st] += float(b.value)
+					elif b.get("power", false):   # 手写迁移段：局部倍率也吃技能强度（value × skill_power，先乘好再乘进去，同手写的 (k × 技能强度)）
+						mul[st] *= float(b.value) * skill_power()
 					else:
 						mul[st] *= float(b.value)
 			"verb.mode":
@@ -279,6 +313,8 @@ func _sustain(dt: float) -> void:
 					v *= float(mini(OB.count_others(self, str(b.per)), int(b.get("cap", 99))))
 				if v != 0.0:
 					for m in OB.aura_members(self, str(b.scope)):
+						if b.get("exclude_self", false) and m == self:
+							continue
 						want.append([OB.AURA_STAT[str(b.aura)], "add", v, "op:" + m.id])
 	OB.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
 	if want != _mods:
@@ -287,6 +323,8 @@ func _sustain(dt: float) -> void:
 			g.stats.add(StringName(m[0]), m[1], m[2], _src_tag(), m[3])
 		_mods = want
 		refresh_stats()
+	if stats_only:
+		return
 	# 三：副作用（治疗、灯火、tick、软减速、绕行体）
 	var seen := {}
 	for b in act:
@@ -304,6 +342,12 @@ func _sustain(dt: float) -> void:
 					g.lamp = clampf(g.lamp + float(b.per_sec) * dt, 0.0, g.lamp_cap)
 			"trig.tick":
 				seen[u] = true
+				if b.get("countdown", false):   # 手写迁移段：倒计时写法（生效当帧起算 every，到点执行并重置为 every）
+					_acc[u] = float(_acc.get(u, float(b.every))) - dt
+					if _acc[u] <= 0.0:
+						_acc[u] = float(b.every)
+						_exec_list(b.get("do", []))
+					continue
 				_acc[u] = float(_acc.get(u, 0.0)) + dt
 				if _acc[u] >= float(b.every):
 					_acc[u] -= float(b.every)
@@ -331,6 +375,8 @@ func _sustain(dt: float) -> void:
 		if not seen.has(u):
 			_state.erase(u)
 	_ext_sustain(act, dt)
+	if not hw.is_empty():
+		OB.hw_sustain(self, act)   # 精英化第 2 批段：叠层安魂
 	OB.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
 	OB.mf_sustain(self, act)       # 召唤物扩展段：verb.summon_mod 的倍率表
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
@@ -430,6 +476,8 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				OB.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
 				OB.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
 				OB.el_exec(self, b, at)   # 精英化段：verb.buff_timed / shape.boomerang / verb.summon_cmd
+				if not hw.is_empty():
+					OB.hw_exec(self, b, at)   # 手写迁移段
 		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			OB.fx_play(self, b.fx, zone_c(), zr)
 
@@ -441,6 +489,9 @@ func _release() -> void:
 	if str(a.get("shape", "")) == "support":   # 召唤物扩展段（§15.9）：出手帧执行 do（音效由 do 里的积木自己播）
 		_exec_list(a.get("do", []), g.ppos)
 		return
+	if not hw.is_empty() and OB.hw_armed_release(self, a):   # 手写迁移段：蓄势（attack.armed）的这一下整个换掉，不计普攻次数、不走 every_n
+		_sfx_op("atk")
+		return
 	var rp := _replace_trig(atk_n + 1)   # 精英化段：trig.every_n replace = 这一次普攻整个换成它的 do
 	atk_live = true
 	if not el.is_empty() or not rp.is_empty():
@@ -449,6 +500,12 @@ func _release() -> void:
 		_exec_list(rp.get("do", []))   # last_hit_pos 沿用上一次普攻的（热砂这类 last_hit 区域照常落在那里）
 	elif str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
+	elif str(a.get("shape", "")) == "shell":   # 手写迁移段：法术弹
+		OB.hw_shell_fire(self, a, true)
+	elif str(a.get("shape", "")) == "bolt":   # 手写迁移段：飘飞咒文弹；没有目标 = 这一下没出手（不算次数、不走 every_n，同手写的 return）
+		if not OB.hw_bolt_fire(self, a, true):
+			atk_live = false
+			return
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
@@ -456,13 +513,20 @@ func _release() -> void:
 	atk_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", {})):
+			if t.get("skip_replaced", false) and not rp.is_empty():
+				continue   # 精英化第 2 批段：这一下被 replace 换掉了（掷锚）——跟着锚击中心走的追加（定点爆破 / 收链……）不走
 			var n: int = maxi(1, int(t.n))
 			if atk_n % n == 0:
 				var dl: float = float(t.get("delay", 0.0))
 				if dl > 0.0:
-					pending.append({"t": dl, "do": t.get("do", [])})
+					if hw.is_empty():
+						pending.append({"t": dl, "do": t.get("do", [])})
+					else:   # 手写迁移段：带上 basis 快照；at: attack = 落在这一次普攻的判定中心
+						pending.append({"t": dl, "do": t.get("do", []), "bs": OB.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
 				else:
-					_exec_list(t.get("do", []))
+					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
+	if not hw.is_empty():
+		OB.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
 
 ## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）
@@ -512,6 +576,8 @@ func _release_skill() -> void:
 		perm_on[i] = true
 	elif dv is Dictionary and dv.has("ammo"):   # 能天使段：dur.ammo（N 发子弹）
 		OB.exu_skill_shell(self, i, dv)
+	elif dv is Dictionary and dv.has("pulses"):   # 手写迁移段：连续喷发（dur.pulses）
+		OB.hw_pulse_start(self, i, sb)
 	elif dv is Dictionary:
 		ammo[i] = int(dv.get("next_attacks", 0))   # 安洁莉娜段：dur.next_n，接下来 N 次普攻带 attack_patch
 	elif float(dv) > 0.0:
@@ -519,12 +585,16 @@ func _release_skill() -> void:
 		s_dur[i] = float(dv)
 	_exec_list(sb.get("do", []))
 	OB.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
+	if not hw.is_empty() and perm_on[i]:
+		_restat()   # 手写迁移段：永久技能出手当下就改属性（同手写，不等下一帧）
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		OB.fx_play(self, sb.fx, zone_c(), _zone_r_now())
 
 
 func on_kill(e: Dictionary) -> void:
+	if not hw.is_empty():
+		hw["kill_e"] = e   # 手写迁移段：verb.stack 看是不是 Boss
 	for t in _trigs():
 		if str(t.get("_tag", "")) != "trig.on_kill" or not OB.cond_true(self, t.get("cond", {})):
 			continue
@@ -541,9 +611,27 @@ func _sfx_op(kind: String) -> void:
 
 # ---------------------------------------------------------------- 绘制
 
+## 手写迁移段：近战前压（blocks.follow {leash, gap}）；没写 = 编队位
+func follow_target(slot_pos: Vector2) -> Vector2:
+	var fw: Dictionary = B.get("follow", {})
+	if fw.is_empty():
+		return slot_pos
+	var p := melee_spot(float(fw.get("leash", 200.0)), float(fw.get("gap", 30.0)))
+	return p if p != Vector2.INF else slot_pos
+
+
+## 手写迁移段：每打中一名敌人的画面（blocks.hit_fx）
+func _hit_fx(e: Dictionary, origin: Vector2) -> void:
+	if B.has("hit_fx"):
+		OB.fx_play(self, B.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], (e.pos - origin).angle())
+
+
 ## 区域：地面椭圆，灯火充盈 / 昏暗 / 其他三种色；shape.orbit 的判定点画成小菱形
 func draw_auras() -> void:
 	_draw_fields()
+	if not hw.is_empty():
+		OB.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
+		OB.hw_draw_auras(self)
 	if pos == Vector2.INF or not B.has("zone"):
 		return
 	var c := zone_c()
@@ -576,7 +664,11 @@ func draw_auras() -> void:
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
 	_draw_body_fx(false)
+	if not hw.is_empty():
+		OB.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
 	super()
+	if not hw.is_empty():
+		OB.hw_draw_body(self, true)
 	_draw_body_fx(true)
 
 
@@ -619,7 +711,7 @@ func _draw_pfx(f: Dictionary, a: float) -> bool:
 			OB.tx_rain_draw(cv, self, f)
 		return true
 	if str(f.kind) != "strip":
-		return OB.mf_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）
+		return OB.mf_draw_pfx(self, f, a) or OB.hw_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）；手写迁移段（熔岩柱……）
 	if not f.get("add", false):
 		OB.fx_draw(cv, g, f, g.world.fx_dim)
 	return true
@@ -647,7 +739,34 @@ func _find_uid(u: int) -> Dictionary:
 
 
 func stats_rows() -> Array:
+	if not hw.is_empty():
+		return OB.hw_stats_rows(self)   # 手写迁移段：没有区域的干员不显示区域半径
 	return [["区域半径", "%d" % int(zr)], ["伤害倍率", "×%.2f" % float(loc.dmg)]]
+
+
+# ---------------------------------------------------------------- 手写迁移段：手动技能（掷锚落点）、动作停帧
+
+func manual_ready(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
+	return super(i, dir) and (hw.is_empty() or OB.hw_manual_ready(self, i, dir))
+
+
+func manual_block_reason(i: int, dir: Vector2 = Vector2.ZERO) -> String:
+	return OB.hw_manual_block_reason(self, i, dir) if not hw.is_empty() else ""
+
+
+func manual_aim_point(i: int, dir: Vector2 = Vector2.ZERO) -> Vector2:
+	return OB.hw_manual_aim_point(self, i, dir) if not hw.is_empty() else Vector2.INF
+
+
+func bot_wants_manual(i: int) -> bool:
+	if not hw.is_empty() and not OB.hw_tether_of(self, i).is_empty():
+		return true   # 进攻型手动技能：就绪即放（同手写乌尔比安）
+	return super(i)
+
+
+func anim_state() -> Dictionary:
+	var st := super()
+	return OB.hw_anim_state(self, st) if not hw.is_empty() else st
 
 
 # ================================================================ 星熊 hoshiguma（docs/59 §3，docs/61「星熊」节）：新积木的执行（op_blocks.gd 末尾同名段落）
@@ -812,6 +931,8 @@ func _negate_fx(b: Dictionary) -> void:
 
 ## 地面层：区域帧条由通用 fx 在生成时播（pfx，循环到区域结束）；没写 fx / 缺图时画程序椭圆；negate_next 待命时主控脚下一圈金色盾环
 func draw_entities_floor() -> void:
+	if not hw.is_empty():
+		OB.hw_draw_floor(self)   # 手写迁移段：浪墙 / 熔岩池 / 咒文……
 	for f in fields:
 		if OB.fx_any_tex(self, f.fx):
 			continue
@@ -972,11 +1093,25 @@ func _draw_skill_over() -> void:
 	OB.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 	OB.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 	OB.el_draw_over(self)    # 精英化段：往返弹体
+	if not hw.is_empty():
+		OB.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……
 	_draw_hold_strips(cv, "over")   # 常驻跟随帧条的 over 层（精英化段：能天使祝福光环挂在队友头顶）
 
 
 func status_items() -> Array:
-	return OB.mf_status_items(self) + OB.exu_status_items(self) + OB.sm_status_items(self)
+	return OB.mf_status_items(self) + OB.exu_status_items(self) + OB.sm_status_items(self) + (OB.hw_status_items(self) if not hw.is_empty() else [])
+
+
+## 手写迁移段：自己的法术弹（shape.shell，game 的 fire 子弹）爆炸后由 weapons.gd 回调
+func bullet_exploded(b: Dictionary) -> void:
+	OB.hw_shell_boom(self, b)
+
+
+## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
+func deal_damage(e: Dictionary, dmg: float) -> void:
+	super(e, dmg)
+	if not hw.is_empty():
+		OB.hw_dealt(self, e, dmg)
 
 
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）

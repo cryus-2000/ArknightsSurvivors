@@ -3,6 +3,11 @@
 ## 特效（docs/25）：深海蓝 + 白浪。横扫双层弧光（深蓝 + 窄白边）+ 水珠飞溅；重斩抬剑时眼位红光，下劈巨大新月 + 地裂 + 水花柱。
 ## 可见成长（docs/25 §5，档案「挥剑扭曲狂放，像跳异国舞蹈」）：一击 → 两连斩（镜像弧）→ 三连斩（第三下旋身斩）；
 ## 重斩掀起海浪墙；潮汐期间脚下每秒涌出水环；精二每轮连斩收尾涌起一圈小海浪。
+## ⚠ 测试参照（10-14 起）：斯卡蒂已迁成数据干员（data/characters/skadi.json 的 blocks，docs/61 §17），这是原手写脚本，
+## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=skadi=res://tests/data_ops/skadi_legacy.gd）。相对原脚本只改了：
+## ① 画面粒子（刀光水珠 / 悲歌水珠 / 浪墙水沫 / 重斩与潮汐水珠）的随机数从 g.rng 换成 g.vrng（数据版一律 g.vrng；原脚本这几处吃了对局随机数）；
+## ② 涌潮水环的伤害乘法顺序改成 atk × (s3_mult × pulse_mult) × 加成 × 技能强度（同数据版 mult 的写法，数学上相同、浮点末位可能不同）；
+## ③ 连斩后续段同一帧到期时按排队先后执行（原来倒序遍历），同数据版的延迟队列。玩法逻辑其余逐行未动。
 extends "res://scripts/characters/character.gd"
 
 const BLUE := Color(0.35, 0.55, 0.95)
@@ -58,12 +63,14 @@ func update(dt: float) -> void:
 	tide = maxf(0.0, tide - dt)
 	_update_waves(dt)
 	# 连斩的后续段（与动作无关，按时间出手）
-	for i in range(pending.size() - 1, -1, -1):
-		var pd: Dictionary = pending[i]
+	var due: Array = []
+	for pd in pending:
 		pd.at -= dt
 		if pd.at <= 0.0:
-			pending.remove_at(i)
-			_combo_step(pd)
+			due.append(pd)
+	pending = pending.filter(func(pd): return pd.at > 0.0)
+	for pd in due:
+		_combo_step(pd)
 	# 涌潮：潮汐期间每秒一圈水环
 	if surge_on and tide > 0.0:
 		pulse_t -= dt
@@ -129,7 +136,7 @@ func _slash(ang: float, half: float, r: float, main: Color, edge: Color, life: f
 		slash_fx(pos + Vector2(0, -14), ang, half * 0.9, r * 0.9, edge, "slash", life * 0.7)
 	var sp: Vector2 = pos + Vector2(0, -10) + Vector2.from_angle(ang) * r * 0.6
 	for k in 5:
-		fx({"kind": "mote", "pos": sp + Vector2(g.rng.randf_range(-12, 12), g.rng.randf_range(-8, 8)), "vel": Vector2.from_angle(ang + g.rng.randf_range(-0.8, 0.8)) * g.rng.randf_range(40, 110) + Vector2(0, -60), "life": 0.4, "col": DROP, "sz": 2.0, "grav": 260.0})
+		fx({"kind": "mote", "pos": sp + Vector2(g.vrng.randf_range(-12, 12), g.vrng.randf_range(-8, 8)), "vel": Vector2.from_angle(ang + g.vrng.randf_range(-0.8, 0.8)) * g.vrng.randf_range(40, 110) + Vector2(0, -60), "life": 0.4, "col": DROP, "sz": 2.0, "grav": 260.0})
 
 
 func _release() -> void:
@@ -187,14 +194,14 @@ func _elegy(dmg: float) -> void:
 		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 16.0, "life": 0.4, "col": BLUE, "floor": true, "w": 5.0, "alpha": 0.8})
 		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r * 0.8, "r0": 10.0, "life": 0.32, "col": FOAM, "floor": true, "w": 2.0})
 	for k in 10:
-		var a: float = k * TAU / 10.0 + g.rng.randf_range(-0.2, 0.2)
-		fx({"kind": "mote", "pos": pos + Vector2(cos(a) * r * 0.8, sin(a) * r * 0.44 + 2.0), "vel": Vector2(cos(a) * 30.0, g.rng.randf_range(-170, -90)), "life": 0.45, "col": DROP, "sz": 2.5, "grav": 360.0})
+		var a: float = k * TAU / 10.0 + g.vrng.randf_range(-0.2, 0.2)
+		fx({"kind": "mote", "pos": pos + Vector2(cos(a) * r * 0.8, sin(a) * r * 0.44 + 2.0), "vel": Vector2(cos(a) * 30.0, g.vrng.randf_range(-170, -90)), "life": 0.45, "col": DROP, "sz": 2.5, "grav": 360.0})
 
 
 ## 涌潮（N5）：潮汐期间每秒从脚下涌出一圈水环（潮汐普攻 40% 伤害，击退）
 func _surge_pulse() -> void:
 	var r: float = base("pulse_r", 120.0)
-	var dmg: float = base("atk", 40.0) * _dmg_bonus() * base("s3_mult", 1.5) * skill_power() * base("pulse_mult", 0.4)
+	var dmg: float = base("atk", 40.0) * (base("s3_mult", 1.5) * base("pulse_mult", 0.4)) * _dmg_bonus() * skill_power()
 	area_hit("涌潮", pos, r, dmg, base("pulse_kb", 200.0))
 	if not _surge_fx(pos + Vector2(0, 4), r):
 		fx({"kind": "ring", "pos": pos + Vector2(0, 4), "r": r, "r0": 12.0, "life": 0.5, "col": Color(0.3, 0.55, 1.0), "floor": true, "w": 6.0, "alpha": 0.7})
@@ -252,8 +259,8 @@ func _update_waves(dt: float) -> void:
 		w.drop -= dt
 		if w.drop <= 0.0:
 			w.drop = 0.03
-			var l: float = g.rng.randf_range(-0.5, 0.5) * w.w
-			fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.rng.randf_range(-120, -60)), "life": 0.4, "col": FOAM, "sz": 2.0, "grav": 320.0})
+			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
+			fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.vrng.randf_range(-120, -60)), "life": 0.4, "col": FOAM, "sz": 2.0, "grav": 320.0})
 	waves = waves.filter(func(w): return w.dist < w.max)
 
 
@@ -286,7 +293,7 @@ func _release_skill() -> void:
 			fx({"kind": "ring", "pos": pos, "r": 120.0, "r0": 10.0, "life": 0.5, "col": BLUE, "floor": true})
 			g.fx.append({"kind": "rays", "pos": pos + Vector2(0, -20), "life": 0.5, "max": 0.5, "col": BLUE, "op_spoke": true})
 			for k in 16:
-				fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-40, 40), 0), "vel": Vector2(g.rng.randf_range(-40, 40), g.rng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
+				fx({"kind": "mote", "pos": pos + Vector2(g.vrng.randf_range(-40, 40), 0), "vel": Vector2(g.vrng.randf_range(-40, 40), g.vrng.randf_range(-220, -100)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 300.0})
 			show_banner("潮汐")
 
 
@@ -312,7 +319,7 @@ func _heavy(ang: float) -> void:
 	for sd in [-1.0, 1.0]:
 		spawn_fx_sprite("fx_splash_blue", c + Vector2(sd * r * 0.3, 10), g.PX * 0.9, 0.0, sd < 0.0, true)
 	for k in 18:
-		fx({"kind": "mote", "pos": c + Vector2(g.rng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.rng.randf_range(-70, 70), g.rng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
+		fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-r * 0.3, r * 0.3), 0), "vel": Vector2(g.vrng.randf_range(-70, 70), g.vrng.randf_range(-260, -120)), "life": 0.6, "col": DROP, "sz": 2.5, "grav": 380.0})
 	if wave_on:
 		_spawn_wave(ang, hdmg, c)
 	g.shake = maxf(g.shake, 4.0)
