@@ -1,0 +1,44 @@
+{
+  "logical_resolution": [
+    300,
+    225
+  ],
+  "nearest_scale": 4,
+  "base_palette": 96,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9e700198-06e4-494c-857a-6c16e453fbda.png",
+  "source_sha256": "1f80cda508e7cae72edf5175b3c212aee2762b4a80f545dd8f2978f99509b33c",
+  "files": {
+    "toy_poster_canon_1014_4x3.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 93251,
+      "sha256": "1c53d6e9943f34b4a7217c8f736d22f77c200111dbf89549713d357aea3d9e64"
+    },
+    "toy_poster_canon_1014_4x3_notext.png": {
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 91683,
+      "sha256": "5c6cd04de79aa845e4e4ae5874d100ecb018a6ebc9603b48dc0969dc1fe70602"
+    },
+    "toy_poster_canon_1014_characters.png": {
+      "size": [
+        1000,
+        510
+      ],
+      "bytes": 57243,
+      "sha256": "56a7ab5acae2885cf93b6b3159b19abceedcdaa4fffa785513dcc92c69583b10"
+    },
+    "toy_poster_canon_1014_preview.png": {
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 69575,
+      "sha256": "94094bdc8cd5a9e2bb6684311f95cea3e4ac4d12920e062ead5289c4c9fb430d"
+    }
+  }
+}
