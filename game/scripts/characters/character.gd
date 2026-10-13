@@ -72,7 +72,15 @@ static func load_def(cid: String) -> Dictionary:
 		push_error("character def missing: " + cid)
 		return {"id": cid}
 	var d = JSON.parse_string(f.get_as_text())
-	return d if d is Dictionary else {"id": cid}
+	if not (d is Dictionary):
+		return {"id": cid}
+	# 测试旋钮（docs/88）：--bal=opbase/<id>/<base 键>=值 覆盖干员 JSON 的 base 段（含数据干员 "$键" 引用）；
+	# 只在命令行带 --bal 时才有这一段（Bal 只在 debug 构建读命令行），正式游玩与发布版不受影响
+	var ob: Dictionary = preload("res://scripts/core/balance.gd").sec("opbase/" + cid)
+	if not ob.is_empty() and d.get("base") is Dictionary:
+		for k in ob:
+			d.base[k] = ob[k]
+	return d
 
 
 ## 测试专用干员（docs/61 §测试）：不在 data/characters/ 里（不进名单 / 招募池 / 图鉴），只能用 --op=<id> 指名加载

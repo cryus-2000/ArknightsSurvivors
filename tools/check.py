@@ -356,6 +356,19 @@ def _balance_core(d, drop_tags=()):
         d["bot"] = {k: v for k, v in d["bot"].items() if k not in ("peak", "peak_min")}
     if drop_tags and isinstance(d.get("out_tag"), dict):
         d["out_tag"] = {k: v for k, v in d["out_tag"].items() if k not in drop_tags}
+    # docs/88 遥测 sus.heal 的键带子项（「凯尔希·常驻 / 技能」）：数据版按积木分子项、手写参照不分，比较前按来源合并（数值仍逐项比）
+    if isinstance(d.get("sus"), dict):
+        sus = {}
+        for seg, sd in d["sus"].items():
+            sd = dict(sd)
+            merged = {}
+            for k, v in (sd.get("heal") or {}).items():
+                base = k.split("·", 1)[0]
+                a = merged.get(base, [0.0, 0.0])
+                merged[base] = [round(a[0] + v[0], 3), round(a[1] + v[1], 3)]
+            sd["heal"] = merged
+            sus[seg] = sd
+        d["sus"] = sus
     return d
 
 

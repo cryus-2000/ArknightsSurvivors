@@ -52,7 +52,7 @@ func query(pos: Vector2, radius: float) -> Array:
 
 
 func update(dt: float) -> void:
-	var dark_mod := 1.2 if g.lamp < 30.0 else 1.0
+	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
 	for i in g.enemies.size():
 		var e: Dictionary = g.enemies[i]
 		if e.dead:

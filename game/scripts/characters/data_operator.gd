@@ -378,7 +378,7 @@ func _heal(b: Dictionary) -> void:
 	if b.get("power", false):
 		h *= skill_power()
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
-	heal_leader(h, str(b.get("src", display_name())))
+	heal_leader(h, str(b.get("src", display_name())), "技能" if b.get("power", false) else "常驻")   # 子项只进 docs/88 遥测
 	if b.has("sfx"):
 		_sfx_op(str(b.sfx))
 	if over > 0.0 and b.has("on_over"):
