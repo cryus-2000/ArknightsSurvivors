@@ -12,12 +12,28 @@
  *   4. 1.5 秒内收不到回调（旧客户端不通知）：回退 CSS env(safe-area-inset-*)，同样按安全区留边。
  * window.__syToyBoot()：已有 window.toy 时手动启动（本地 mock 测试用：先在页面里装假 window.toy，再调它）。
  * window.__sySafe：当前生效的安全边距 {left, top, right, bottom, source}，给测试与 Godot 侧查看。
+ * window.__syToyWait()：Promise，SDK 加载结束（成功 / 失败 / 8 秒超时 / 非 B站环境）后给出 window.toy 或 null；
+ *   页面里已有 window.toy（本地 mock）时立刻给出。云存档（cloud.js）用它判断要不要启用。
  */
 (function () {
   var SDK = "//s1.hdslb.com/bfs/seed/toy/app/sdk/toy-sdk.js";
   var started = false;
   var frame = null;          // {vw, vh, l, t, r, b}：当前画布框（CSS px）
   var innerW = null, innerH = null;
+  var toySettled = false, toyWaiters = [];
+
+  function settleToy() {
+    if (toySettled) return;
+    toySettled = true;
+    var w = toyWaiters.splice(0);
+    for (var i = 0; i < w.length; i++) w[i](window.toy || null);
+  }
+  window.__syToyWait = function () {
+    return new Promise(function (res) {
+      if (window.toy || toySettled) res(window.toy || null);
+      else toyWaiters.push(res);
+    });
+  };
 
   function realW() { return innerW ? innerW.call(window) : document.documentElement.clientWidth; }
   function realH() { return innerH ? innerH.call(window) : document.documentElement.clientHeight; }
@@ -90,11 +106,12 @@
   window.__syToyBoot = boot;
 
   var likely = /bilibili|hdslb/i.test(location.hostname) || /bili/i.test(navigator.userAgent);
-  if (!likely) return;
+  if (!likely) { settleToy(); return; }
   var s = document.createElement("script");
   s.src = SDK;
   s.async = true;
-  s.onload = boot;
-  s.onerror = function () {};
+  s.onload = function () { settleToy(); boot(); };
+  s.onerror = settleToy;
+  setTimeout(settleToy, 8000);
   document.head.appendChild(s);
 })();

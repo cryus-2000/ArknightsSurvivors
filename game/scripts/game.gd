@@ -905,6 +905,8 @@ func _process(delta: float) -> void:
 		_last_state = state
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
+			if state == S.WIN or state == S.DEAD:
+				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0

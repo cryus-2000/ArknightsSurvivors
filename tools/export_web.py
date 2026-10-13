@@ -114,6 +114,9 @@ def main():
     # 网页容器适配（B站 Toy 横屏 / 安全区，tools/web/container.js）：接在加载器后面，同一个 <script>
     with open(os.path.join(WEB, "container.js"), encoding="utf-8") as fh:
         js += "\n" + fh.read()
+    # B站 Toy 云存档的 JS 薄封装（tools/web/cloud.js，docs/89）：非 B站环境 probe 回 unsupported，Godot 侧不启用
+    with open(os.path.join(WEB, "cloud.js"), encoding="utf-8") as fh:
+        js += "\n" + fh.read()
     with open(os.path.join(WEB, "loader.css"), encoding="utf-8") as fh:
         css = fh.read()
     html = html.replace(MARK, "<style>\n%s</style>\n<script>\n%s</script>" % (css, js))

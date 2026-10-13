@@ -38,6 +38,10 @@ const ROWS := [
 	# 测试版对局记录（docs/40，用户 10-10）：只在 Cfg.runs_log_enabled() 时列出（调试版 / 对内包），对外包没有这一行；
 	# 点一下在系统文件管理器里选中 runs.jsonl，测试者把文件发回来
 	{"cn": "对局记录", "en": "RUN LOG", "key": "runs", "type": "runs"},
+	# B站云存档（docs/89）：只在 B站 Toy 环境（Cloud.supported）多出「存档」页。状态行点一下 = 立即同步；恢复 / 覆盖要点两次确认
+	{"cn": "云存档", "en": "CLOUD SAVE", "key": "cloud", "type": "cloud"},
+	{"cn": "从云端恢复", "en": "RESTORE", "key": "cloud_pull", "type": "cloud_pull"},
+	{"cn": "以本地覆盖云端", "en": "", "key": "cloud_push", "type": "cloud_push"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
@@ -47,6 +51,14 @@ const TABS := [
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "ui_size_pct", "cam_zoom_pct", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
 	["游戏", "GAMEPLAY", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
 ]
+
+## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变
+const CLOUD_TAB := ["存档", "SAVE DATA", ["cloud", "cloud_pull", "cloud_push"]]
+const CLOUD_HINT := {"cloud_pull": "云端存档替换本机进度与设置", "cloud_push": "本机存档覆盖云端存档"}
+const CLOUD_BTN := {"cloud_pull": ["恢复", "确认恢复"], "cloud_push": ["覆盖", "确认覆盖"]}
+var confirm_key := ""        # 恢复 / 覆盖：第一次点进入确认，CONFIRM_SECS 秒内再点一次才执行
+var confirm_until := 0.0
+const CONFIRM_SECS := 4.0
 
 ## 触屏不显示的选项键名（手机设置页改版 10-06）
 const TOUCH_HIDE := ["fullscreen", "res_index"]
@@ -139,11 +151,17 @@ func set_scroll(v: float, instant := true) -> void:
 		scroll_f = scroll
 
 
+func _tabs() -> Array:
+	return TABS + [CLOUD_TAB] if Cloud.supported else TABS
+
+
 func _set_tab(t: int) -> void:
-	tab = (t + TABS.size()) % TABS.size()
+	var tabs := _tabs()
+	tab = (t + tabs.size()) % tabs.size()
 	cur.clear()
+	confirm_key = ""
 	var touch: bool = Cfg.touch_device()
-	for key in TABS[tab][2]:
+	for key in tabs[tab][2]:
 		if touch and key in TOUCH_HIDE:
 			continue
 		if not touch and key in TOUCH_ONLY:
@@ -163,6 +181,7 @@ func _set_tab(t: int) -> void:
 func close() -> void:
 	visible = false
 	Cfg.save()
+	Cloud.flush("settings")   # B站云存档：设置面板关闭时上传（只在 B站环境生效，docs/89）
 	Sfx.play("ui_ok")
 	closed.emit()
 
@@ -300,6 +319,26 @@ func _adjust(i: int, dir: int) -> void:
 		"touchpad":
 			open_touch_editor()
 			return
+		"cloud":
+			Cloud.flush("manual")
+			Sfx.play("ui_ok")
+			return
+		"cloud_pull", "cloud_push":
+			if not (Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()):
+				Sfx.play("ui_move", -4.0, 0.6)
+				return
+			if confirm_key == row.type and st < confirm_until:
+				confirm_key = ""
+				if row.type == "cloud_pull":
+					Cloud.pull()
+				else:
+					Cloud.push()
+				Sfx.play("ui_ok")
+			else:
+				confirm_key = row.type
+				confirm_until = st + CONFIRM_SECS
+				Sfx.play("ui_move")
+			return
 		"back":
 			close()
 			return
@@ -376,7 +415,8 @@ func _draw() -> void:
 	var tx := r.position.x + (40.0 if not touch else 250.0)
 	var ty := r.position.y + (84.0 if not touch else 18.0)
 	var mp := get_local_mouse_position()
-	for t in TABS.size():
+	var tabs := _tabs()
+	for t in tabs.size():
 		var tw: float = 112.0 if not touch else 150.0
 		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40 if not touch else 44)
 		tab_rects.append(tbr)
@@ -384,11 +424,12 @@ func _draw() -> void:
 		var hov := tbr.has_point(mp)
 		draw_rect(tbr, Color(0.05, 0.2, 0.24, 0.8) if ton else Color(1, 1, 1, 0.06 if hov else 0.03))
 		draw_rect(Rect2(tbr.position.x, tbr.end.y - 3, tbr.size.x, 3), UI.CYAN if ton else Color(1, 1, 1, 0.12))
-		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), TABS[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
-		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), TABS[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
+		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), tabs[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
+		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), tabs[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
 	if not Pad.touch_ui():
-		UI.keycap(self, font, Vector2(r.end.x - 118, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
-		UI.keycap(self, font, Vector2(r.end.x - 70, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
+		var kx: float = 0.0 if tabs.size() <= TABS.size() else 34.0   # 多出「存档」页（B站环境）：键位提示右移，不压标签
+		UI.keycap(self, font, Vector2(r.end.x - 118 + kx, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
+		UI.keycap(self, font, Vector2(r.end.x - 70 + kx * 0.6, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
 	UI.rule(self, Vector2(r.position.x + 30, ty + (50 if not touch else 58)), Vector2(r.end.x - 30, ty + (50 if not touch else 58)), UI.EDGE_DIM)
 	row_rects.clear()
 	if touch:
@@ -479,6 +520,22 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 		UI.text(ci, font, rr.position + Vector2(rr.size.x - (70.0 if not touch else 84.0), ty0), row.note, 11 if not touch else 13, UI.SUB)
 	var vx := rr.position.x + rr.size.x - (230.0 if not touch else 252.0)   # 触屏数值块左移 22：音量「100」（20 号字）不压到右侧滚动条
 	match row.type:
+		"cloud":
+			# 状态：已同步 / 同步中 / 待上传 / 未登录（仅本地保存）……；手动操作的结果短暂替换显示
+			var stt: String = Cloud.msg if Cloud.msg != "" else Cloud.status_text()
+			var good: bool = Cloud.msg == "" and stt == "已同步"
+			UI.text(ci, font, Vector2(rr.end.x - 16.0 - 380.0, rr.position.y + ty0), stt, fs_v - 2, UI.CYAN if good else (UI.GOLD if Cloud.msg != "" else UI.TEXT), HORIZONTAL_ALIGNMENT_RIGHT, 380)
+		"cloud_pull", "cloud_push":
+			var can: bool = Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()
+			var conf: bool = confirm_key == row.type and st < confirm_until
+			var hint: String = "再点一次确认" if conf else (CLOUD_HINT[row.type] if can else ("请更新游戏" if Cloud.st == Cloud.St.NEWER else "登录后可用"))
+			UI.text(ci, font, Vector2(vx - 14 - 230.0, rr.position.y + ty0), hint, 13 if touch else 11, UI.GOLD if conf else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
+			var bh3: float = 32.0 if touch else 26.0
+			var br3 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh3)
+			ci.draw_rect(br3, Color(0.2, 0.15, 0.05, 0.9) if conf else (Color(0.05, 0.2, 0.24, 0.9) if on and can else Color(0.04, 0.09, 0.12, 0.8)))
+			ci.draw_rect(br3, UI.GOLD if conf else (UI.CYAN if on and can else UI.CYAN_DIM), false, 1.0)
+			UI.text(ci, font, br3.position + Vector2(0, 18 if not touch else 22), CLOUD_BTN[row.type][1 if conf else 0], 14 if not touch else 16,
+				UI.GOLD if conf else (UI.CYAN if on and can else (UI.TEXT if can else UI.SUB)), HORIZONTAL_ALIGNMENT_CENTER, br3.size.x)
 		"runs":
 			# 右侧「打开记录文件夹」当按钮；说明文字放在它左边
 			# （触屏：说明右对齐到按钮左边 14 像素；桌面保持原位）
