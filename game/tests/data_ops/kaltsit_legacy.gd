@@ -636,7 +636,7 @@ func draw_extra_shadows() -> void:
 
 ## 溢出治疗后 5 秒主控受伤 -20%；结构加固护壳期间再 -35%（game.gd _enemy_hit 查询）
 func dmg_taken_mult() -> float:
-	var k: float = 0.8 if guard_t > 0.0 else 1.0
+	var k: float = (1.0 - base("guard_red", 0.2)) if guard_t > 0.0 else 1.0
 	if shell_t > 0.0:
 		k *= 1.0 - base("shell_red", 0.35)
 	return k

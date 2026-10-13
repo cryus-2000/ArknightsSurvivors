@@ -145,7 +145,11 @@
  },
  "lamp": {
   "_doc": "受击灯火损失 = (hit_base + hit_scale × 伤害/最大生命) × light_decay。原值 4 / 30：一记 16 伤害就掉 8.8，十次就熄灯进入死亡螺旋",
-  "hit_base": 3,
+  "_hit_base": "10-13 docs/88 方案：3 → 2（受击灯火损失放缓）",
+  "hit_base": 2,
+  "_dark": "灯火暗淡（< 30）倍率：dark_taken 队长受伤、dark_enemy 海嗣移速与接触伤害。10-13 docs/88 云端 mgc：1.15 / 1.2 → 1.05 / 1.1",
+  "dark_taken": 1.05,
+  "dark_enemy": 1.1,
   "hit_scale": 18,
   "oil_kill_chance": 0.006,
   "elite_oil_chance": 0.65,
