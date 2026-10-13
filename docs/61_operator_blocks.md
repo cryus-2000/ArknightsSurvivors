@@ -254,12 +254,29 @@
 | `ring` | 1 | 区域椭圆边线透明度倍率（< 1 压淡程序硬边；取所有生效漩涡的最小值） |
 | `sy` | 0.55 | 透视压扁 |
 
+**扩散缓动 / 交叉淡入淡出 / 余波环**（10-13 加，用户「浊心斯卡蒂的声浪的转变是不是也有点僵硬」；纯画面，`op_blocks.fx_draw_grow / fx_wake / fx_xw / fx_frame_r`）：
+一次性帧条条目（不是 `hold` / 贴身层 / `vortex`，不写 `life`）可加下面的字段。不写这些字段的条目画法不变。
+
+| 字段 | 缺省 | 说明 |
+|---|---|---|
+| `ease` | — | 写了就按缓动扩散：`out`（三次方先快后慢）/ `out2`（二次方，浊心斯卡蒂用）/ `linear`。半径从 `grow0 × R` 扩到 `R`（R = 形状半径 × `scale`）；**帧号跟扩散进度走**（帧数 ≥ 3 时跳过起爆的帧 0，且不选比原尺寸 `g.PX` 还要放大的小帧），每帧按**这一帧自身的半径**（不透明像素横向范围，第一次画时量好缓存）缩放到当前半径，所以帧条里的圈不论画多大都正好落在当前半径上；写了 `ease` 时 `fit` 不起作用 |
+| `grow` / `grow0` | 0.65 / 0.12 | 扩散秒数（0.1–3，也是粒子寿命）/ 起始半径比例（0–0.95） |
+| `grow_to` | — | `zone`：从区域中心扩到区域半径，**画的时候每帧跟着区域中心与当前区域半径走**（主控移动、歌域 buff 变化即时跟上） |
+| `wake` | — | 程序余波环 `{n, w, a, lag, sy, col}`（缺省 2 / 10 / 0.5 / 0.09 / 0.55 / tint 的 rgb）：n 道（≤ 4）顶点色软边环带，领头一道正好在当前半径、第 i 道晚 `i × lag` 秒；带宽 w 世界像素（随扩散略展宽，内侧拖尾长、外缘短），透明度 `a × (1 - 进度)^1.4`，越往后越淡。全部三角形攒成一组：干员合批画布（`batch_canvas.add_tris`，同 vortex）一次提交 |
+| `xfade` | — | 交叉淡入淡出秒数（0–3，要配 `cond`）：条目**不论 cond 真假都生成**，画的时候透明度乘「cond 的平滑权重」（真 → 1、假 → 0，按 xfade 秒线性靠拢；只看 `g.t`，记在干员 meta 里）。同 `strip + cond + if_tex` 的条目共用一个权重。一组按 cond 二选一的条目（灯火明 / 暗）都写上，就不再硬切，扩散途中跨阈值时同一圈也平滑换图 |
+
+纹理层透明度 = tint.a × `(1 - 进度)^1.3`；放大倍率超过 `max_scale` 后再乘 `(max_scale / 倍率)²`（小帧条放到歌域那么大会是粗方块，这时让给余波环）。
+有原尺寸大帧条时的写法（同 `if_tex` 回退）：大帧条条目写 `"if_tex": "fx_x_big"`、不写 `wake`；小帧条 + 余波环的程序版写 `"if_tex": "!fx_x_big"`。
+
 浊心斯卡蒂（§10 第 13 条）：
 
 ```jsonc
 "attack": {"shape": "circle", …, "fx": [
-  {"strip": "fx_skalter_wave",     "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp >= $talent_dark"},
-  {"strip": "fx_skalter_wave_dim", "fit": 30, "max_scale": 4, "layer": "floor", "cond": "lamp < $talent_dark"}]},
+  {"strip": "fx_skalter_wave_big",     "if_tex": "fx_skalter_wave_big",     "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "layer": "floor"},
+  {"strip": "fx_skalter_wave_big_dim", "if_tex": "fx_skalter_wave_big_dim", "cond": "lamp < $talent_dark",  …同上},
+  {"strip": "fx_skalter_wave",     "if_tex": "!fx_skalter_wave_big",     "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 4, "layer": "floor",
+   "wake": {"n": 2, "w": 12, "a": 0.55, "lag": 0.09, "col": [0.55, 0.92, 1.0]}},
+  {"strip": "fx_skalter_wave_dim", "if_tex": "!fx_skalter_wave_big_dim", "cond": "lamp < $talent_dark",  …同上, "wake": {…, "a": 0.5, "col": [0.62, 0.46, 0.88]}}]},
 "skills": [{"dur": "$s1_dur", "fx": [{"strip": "fx_skalter_note", "at": "zone", "n": 6, "spread": 0.6, "rise": 26, "life": 1.1, "scale": 1.2}], "do": […]}, …,
   {"dur": "$s3_dur", "fx": [{"strip": "fx_skalter_wave", "at": "zone", "fit": 30, "max_scale": 4, "layer": "add", …}], "do": [
     {"verb": "mode", "zone_mult": "$s3_aura", "fx": [
@@ -393,6 +410,12 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
     `fit 160 × scale 0.62`（每个 1x 像素 = 漩涡外半径 / 160，外半径 = 歌域 × 0.62，同原程序漩涡，跟着歌域 buff 变）、`max_scale 2.0625`（外半径封顶 330，同程序版 `max_r`）、透明度 0.5、tint 略压红、进出 0.45 秒淡入淡出；
     原程序漩涡（40 条流线）改成 `if_tex: "!fx_skalter_vortex_floor"`，只在缺图时画（回退）；有图时另画一条只有光点 + 淡中心光的漩涡（`n: 0`、40 个光点、区域边线照旧压到 0.4）。贴身 `_back / _front` 不变。
     「外半径」按 docs/66 §2.1 的算例（240–330 → 每 1x 像素 1.5–2 世界像素）取漩涡外半径；按整个歌域（× 1）放大时后期歌域 500+，帧条铺出画面、只看得到中心留空的那一圈（实测截图后改）。
+
+17. **声浪扩散缓动 + 明暗交叉淡入淡出**（10-13，用户「浊心斯卡蒂的声浪的转变是不是也有点僵硬」；§5.6 扩散缓动段）：普攻声浪、潮汐和声、S3 发动的声浪都改成
+    `ease: out2`、扩 0.7 秒（S3 0.8 秒）、`grow_to: zone` 从歌域中心扩到歌域边（原来小帧条放大封顶 4 倍只到约 120 像素、帧条自己匀速扩）；帧条只作内圈纹理、随扩散渐淡，
+    外圈由 1–3 道程序余波环带到歌域边（明：青 `[0.55, 0.92, 1.0]`；暗：紫 `[0.62, 0.46, 0.88]`）；明 / 暗两套 `xfade: 0.4`，灯火跨 30 时 0.4 秒交叉淡入淡出。
+    预留 Codex 原尺寸大声浪 `fx_skalter_wave_big` / `_big_dim`（`game.gd V6_FRAMES` 已登记 8 帧 12fps；1x 帧 208×120、圈心 = 帧中心、末帧外圈半径约 95，帧内自己按先快后慢扩）：
+    有图时用大帧条（`max_scale 3`、不画余波环），缺图回退到小帧条 + 余波环。只改画面：同 seed 主控 / 队友各 1 局 TRACE 241 行与 BALANCE（去 prof、画面峰值）逐字节相同。
 
 ## 测试
 

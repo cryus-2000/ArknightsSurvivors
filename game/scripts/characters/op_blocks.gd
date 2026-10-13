@@ -794,7 +794,7 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
-	"hold", "fade", "if_tex"]
+	"hold", "fade", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade"]
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
 ## 常驻跟随帧条（hold: true，10-12 加）：积木生效期间循环、跟着区域中心 / 半径走，缺省淡入淡出秒数（条目 fade 可改）
@@ -828,7 +828,7 @@ static func fx_play(o, entries, c: Vector2, r: float, hits: Array = [], ang := 0
 			continue
 		if not (f is Dictionary) or float(f.get("every", 0.0)) > 0.0 or str(f.get("at", "center")) == "orbit" or fx_is_hold(f):
 			continue
-		if fx_on(o, f):
+		if fx_on_spawn(o, f):
 			fx_spawn(o, f, c, r, hits, ang)
 
 
@@ -850,7 +850,7 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 		ts[i] = float(ts[i]) + dt
 		if ts[i] >= ev:
 			ts[i] = 0.0 if ts[i] == INF else fmod(ts[i], ev)
-			if fx_on(o, f):
+			if fx_on_spawn(o, f):
 				if mf_is(f):
 					mf_fx_spawn(o, f, {"c": c, "r": r})
 				else:
@@ -901,6 +901,10 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var layer: String = str(f.get("layer", "over"))
 	var spread: float = float(f.get("spread", 0.0)) * r
 	var rise: float = float(f.get("rise", 0.0))
+	var ease: String = str(f.get("ease", ""))
+	var grow: float = float(f.get("grow", FX_GROW))
+	if ease != "" and str(f.get("grow_to", "")) == "zone" and o.has_method("zone_c"):
+		pts = [o.zone_c()]   # grow_to = zone：从区域中心扩到区域半径（画的时候每帧跟着区域中心 / 半径走）
 	for p in pts:
 		if p == Vector2.INF:
 			continue
@@ -915,11 +919,34 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 				"floor": layer == "floor", "add": layer == "add"}
 			if rise != 0.0:
 				px["vel"] = Vector2(0, -rise)
+			if ease != "":   # 扩散缓动（§5.6 ease / grow / grow_to / wake，10-13 加）：半径在画的时候按经过时间算，见 fx_draw_grow
+				px["life"] = grow
+				px["grow"] = grow
+				px["ease"] = ease
+				px["g0"] = float(f.get("grow0", FX_GROW0))
+				px["R"] = r * float(f.get("scale", 1.0))
+				px["zmul"] = float(f.get("scale", 1.0))
+				px["zone"] = str(f.get("grow_to", "")) == "zone"
+				px["off"] = off
+				px["maxs"] = float(f.get("max_scale", FX_SCALE_MAX))
+				px["src"] = o
+				if f.get("wake", null) is Dictionary:
+					px["wake"] = f.wake
+			if float(f.get("xfade", 0.0)) > 0.0:
+				px["xe"] = f   # 交叉淡入淡出：画的时候乘条目 cond 的平滑权重（fx_xw）
+				px["src"] = o
 			o.fx(px)
 
 
 ## 画一条 strip 粒子（data_operator._draw_pfx / draw_fx_add 调）。dim：整体透明度（fx_dim）
 static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
+	if f.has("grow"):
+		fx_draw_grow(ci, g, f, dim)
+		return
+	if f.has("xe"):
+		dim *= fx_xw(f.src, f.xe)
+		if dim <= 0.004:
+			return
 	var el: float = float(f.max) - float(f.life)
 	var frames: int = int(f.fr)
 	var fr: int
@@ -944,6 +971,190 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	ci.draw_set_transform(pos, ang, Vector2(sc / h, sc / h))
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+# ---------------------------------------------------------------- 扩散缓动 / 交叉淡入淡出 / 余波环（docs/61 §5.6，10-13 加；纯画面）
+## 用户 10-13「浊心斯卡蒂的声浪的转变是不是也有点僵硬」：小帧条整条放大 4 倍、按灯火硬切两套、扩散匀速且够不到歌域边。
+## ease：半径从 grow0 × R 按缓动曲线扩到 R（grow 秒），帧号跟着扩散进度走、每帧按这一帧自身的半径缩放（帧条里的圈不论画多大都正好落在当前半径上）；
+## 帧条只作纹理层：随扩散渐淡，放大超过 max_scale 后按 (max_scale / 倍率)² 再淡（颗粒粗的大圈交给程序余波环）；
+## wake：程序余波环（顶点色软边环带，合批提交），领头一道正好在当前半径、后面几道各晚 lag 秒，外缘随扩散渐淡。
+## xfade：同一组按 cond 二选一的条目（灯火明 / 暗）不再硬切：两条都生成，透明度乘各自 cond 的平滑权重（xfade 秒从 0 到 1）。
+const FX_GROW := 0.65        # 扩散时长缺省（秒）
+const FX_GROW0 := 0.12       # 起始半径比例缺省
+const FX_EASES := ["out", "out2", "linear"]
+const FX_WAKE_DEF := {"n": 2, "w": 10.0, "a": 0.5, "lag": 0.09, "sy": 0.55, "col": null}
+const FX_WAKE_LIM := {"n": [0, 4], "w": [1.0, 60.0], "a": [0.0, 1.0], "lag": [0.0, 0.5], "sy": [0.1, 1.0]}
+static var _fr_r := {}       # 帧条名 → 每帧自身半径（1x 像素，按不透明像素的横向范围量一次缓存）
+
+
+## 缓动：out = 三次方先快后慢（缺省），out2 = 二次方，linear = 匀速
+static func fx_ease(kind: String, t: float) -> float:
+	t = clampf(t, 0.0, 1.0)
+	match kind:
+		"out2":
+			return 1.0 - (1.0 - t) * (1.0 - t)
+		"linear":
+			return t
+	return 1.0 - pow(1.0 - t, 3.0)
+
+
+## 帧条第 fr 帧自身的半径（1x 像素）：不透明像素离帧中心的最大横向距离；量不到（压缩贴图读不出图）时按帧宽一半
+static func fx_frame_r(g, name: String, frames: int, fr: int) -> float:
+	if not _fr_r.has(name):
+		var tx: Texture2D = g.tex.get(name)
+		var rs: Array = []
+		if tx != null:
+			var h: float = ArtS.hires_of(tx)
+			var fw: int = tx.get_width() / frames
+			var img: Image = tx.get_image()
+			if img != null and img.is_compressed():
+				img = null
+			for k in frames:
+				var r := fw / 2.0
+				if img != null:
+					var mn := fw
+					var mx := -1
+					for x in fw:
+						for y in range(0, img.get_height(), 1):
+							if img.get_pixel(k * fw + x, y).a > 0.1:
+								mn = mini(mn, x)
+								mx = maxi(mx, x)
+								break
+					if mx >= mn:
+						r = maxf(fw / 2.0 - mn, mx + 1 - fw / 2.0)
+				rs.append(maxf(1.0, r) / h)
+		_fr_r[name] = rs
+	var a: Array = _fr_r[name]
+	return float(a[fr]) if fr < a.size() else 0.0
+
+
+## 交叉淡入淡出权重：条目 f 的 cond 此刻为真 → 1，假 → 0，按 xfade 秒线性靠拢（只看 g.t，画面状态存在干员的 meta 里，不碰玩法）。
+## 同 strip + cond + if_tex 的条目共用一个权重（普攻与回声同一档灯火同进同出）
+static func fx_xw(o, f: Dictionary) -> float:
+	if o == null or not is_instance_valid(o):
+		return 1.0
+	var xf: float = float(f.get("xfade", 0.0))
+	var tgt: float = 1.0 if fx_on(o, f) else 0.0
+	if xf <= 0.0:
+		return tgt
+	var m: Dictionary = o.get_meta("fx_xw") if o.has_meta("fx_xw") else {}
+	if not o.has_meta("fx_xw"):
+		o.set_meta("fx_xw", m)
+	var key := "%s|%s|%s" % [f.get("strip", ""), f.get("cond", ""), f.get("if_tex", "")]
+	var t: float = float(o.g.t)
+	if not m.has(key):
+		m[key] = [tgt, t]
+		return tgt
+	var v: Array = m[key]
+	var w: float = move_toward(float(v[0]), tgt, maxf(0.0, t - float(v[1])) / xf)
+	m[key] = [w, t]
+	return w
+
+
+## 生成时的取舍：带 xfade 的条目只看 if_tex（cond 交给画的时候的权重），并先把权重推到此刻；其余同 fx_on
+static func fx_on_spawn(o, f: Dictionary) -> bool:
+	if float(f.get("xfade", 0.0)) <= 0.0 or not f.has("cond"):
+		return fx_on(o, f)
+	var it = f.get("if_tex", "")
+	if it is String and it != "":
+		var neg: bool = it.begins_with("!")
+		if (o.g.tex.get(it.substr(1) if neg else it) != null) == neg:
+			return false
+	fx_xw(o, f)   # 先把权重推到此刻
+	return true   # 两档都生成：扩散途中跨阈值时同一圈声浪也能平滑换图（权重为 0 的那条画的时候直接跳过）
+
+
+## 扩散缓动粒子（fx_spawn 写了 grow）：帧条纹理层 + 程序余波环
+static func fx_draw_grow(ci, g, f: Dictionary, dim: float) -> void:
+	var o = f.get("src")
+	var el: float = float(f.max) - float(f.life)
+	var T: float = maxf(0.05, float(f.grow))
+	var t: float = clampf(el / T, 0.0, 1.0)
+	var a: float = dim * clampf(el / 0.06, 0.0, 1.0)
+	if f.has("xe"):
+		a *= fx_xw(o, f.xe)
+	if a <= 0.004:
+		return
+	var c: Vector2 = f.pos
+	var R: float = float(f.R)
+	if f.zone and o != null and is_instance_valid(o) and o.has_method("zone_c"):
+		var zc: Vector2 = o.zone_c()
+		if zc != Vector2.INF:
+			c = zc + f.off
+			R = float(o.zr) * float(f.zmul)
+	var e: float = fx_ease(str(f.ease), t)
+	var g0: float = float(f.g0)
+	var rad: float = R * lerpf(g0, 1.0, e)
+	# 纹理层：帧号跟扩散进度走（帧 0 多是起爆小点，帧数 ≥ 3 时从帧 1 起），且不选比原尺寸（g.PX）还要放大的小帧——
+	# 当前半径够大时直接跳到自身半径 × PX ≤ 当前半径的最后一帧；每帧按自身半径缩放到当前半径
+	var frames: int = int(f.fr)
+	var fr: int = clampi(int(e * frames), 1 if frames >= 3 else 0, frames - 1)
+	for k in range(frames - 1, fr, -1):
+		if fx_frame_r(g, str(f.name), frames, k) * g.PX <= rad:
+			fr = k
+			break
+	var rf: float = fx_frame_r(g, str(f.name), frames, fr)
+	if rf > 0.0:
+		var sc: float = rad / rf
+		var ta: float = a * pow(1.0 - t, 1.3)
+		var mxs: float = float(f.maxs)
+		if sc > mxs:
+			ta *= pow(mxs / sc, 2.0)
+		if ta > 0.004:
+			fx_frame(ci, g, str(f.name), frames, fr, c, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * ta), f.anc, float(f.ang))
+	if f.has("wake"):
+		fx_wake(ci, f.wake, c, R, g0, str(f.ease), el, T, a, f.col)
+
+
+## 程序余波环：n 道软边环带（透视椭圆 y × sy），第 i 道晚 i × lag 秒起步、同一缓动扩到 R；环带宽 w（随扩散略展宽），
+## 透明度 a × (1 - 进度)^1.4 × 越往后越淡；颜色 col（缺省取条目 tint 的 rgb）。全部顶点色三角形攒成一组：合批画布走 add_tris，否则直接提交
+static func fx_wake(ci, wk: Dictionary, c: Vector2, R: float, g0: float, ease: String, el: float, T: float, a: float, tint: Color) -> void:
+	var n: int = int(wk.get("n", FX_WAKE_DEF.n))
+	var w: float = float(wk.get("w", FX_WAKE_DEF.w))
+	var wa: float = float(wk.get("a", FX_WAKE_DEF.a)) * a
+	var lag: float = float(wk.get("lag", FX_WAKE_DEF.lag))
+	var sy: float = float(wk.get("sy", FX_WAKE_DEF.sy))
+	var cv = wk.get("col", null)
+	var col := Color(tint.r, tint.g, tint.b)
+	if cv is Array and cv.size() >= 3:
+		col = Color(float(cv[0]), float(cv[1]), float(cv[2]))
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var seg: int = clampi(int(R / 5.0), 32, 72)
+	for i in n:
+		var ti: float = clampf((el - lag * i) / T, 0.0, 1.0)
+		if ti <= 0.0:
+			continue
+		var ri: float = R * lerpf(g0, 1.0, fx_ease(ease, ti))
+		var wi: float = w * (0.7 + 0.6 * ti) * (1.0 - 0.2 * i)
+		var ai: float = wa * pow(1.0 - ti, 1.4) * (1.0 - 0.3 * i) * clampf((el - lag * i) / 0.05, 0.0, 1.0)
+		if ai <= 0.004:
+			continue
+		var cin := Color(col.r, col.g, col.b, 0.0)
+		var cpk := Color(minf(col.r * 1.15, 1.0), minf(col.g * 1.1, 1.0), minf(col.b * 1.1, 1.0), ai)
+		_wake_band(pts, cols, idx, c, maxf(0.0, ri - wi), ri, cin, cpk, sy, seg)        # 内侧拖尾：透明 → 峰值
+		_wake_band(pts, cols, idx, c, ri, ri + wi * 0.35, cpk, cin, sy, seg)             # 外缘：峰值 → 透明（窄，前沿清楚）
+	if idx.is_empty():
+		return
+	if ci != null and ci.has_method("add_tris"):
+		ci.add_tris(pts, cols, idx)
+	else:
+		RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), idx, pts, cols)
+
+
+static func _wake_band(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array, c: Vector2, r0: float, r1: float, c0: Color, c1: Color, sy: float, seg: int) -> void:
+	var base: int = pts.size()
+	for q in seg:
+		var d := Vector2.from_angle(q * TAU / seg)
+		pts.append(c + Vector2(d.x * r0, d.y * r0 * sy))
+		pts.append(c + Vector2(d.x * r1, d.y * r1 * sy))
+		cols.append(c0)
+		cols.append(c1)
+	for q in seg:
+		var a0: int = base + q * 2
+		var a1: int = base + ((q + 1) % seg) * 2
+		idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
 
 
 ## 常驻跟随条目：贴身层（behind / front）、程序漩涡（vortex）或常驻跟随帧条（hold），积木生效期间一直画、退出淡出
@@ -1473,6 +1684,36 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 				var c := parse_cond(f.cond, ctx.base)
 				if c.has("err"):
 					errs.append("%s.cond：%s" % [q, c.err])
+		# 扩散缓动 ease / grow / grow0 / grow_to / wake、交叉淡入淡出 xfade（10-13 加，§5.6）
+		if f.has("ease") or f.has("grow") or f.has("grow0") or f.has("grow_to") or f.has("wake"):
+			if not str(f.get("ease", "")) in FX_EASES:
+				errs.append("%s.ease 只能是 %s（grow / grow0 / grow_to / wake 要配 ease）" % [q, " / ".join(FX_EASES)])
+			if fx_is_hold(f) or f.has("life") or f.has("vortex"):
+				errs.append(q + ".ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）")
+			if f.has("grow_to") and str(f.grow_to) != "zone":
+				errs.append(q + ".grow_to 只能是 zone（扩到区域半径、跟着区域走）")
+			if f.has("wake"):
+				var wk = f.wake
+				if not (wk is Dictionary):
+					errs.append(q + ".wake 必须是对象 {n, w, a, lag, sy, col}")
+				else:
+					for k in wk:
+						if k == "col":
+							var cv = wk.col
+							if not (cv is Array) or cv.size() != 3 or cv.any(func(x): return not (x is int or x is float)):
+								errs.append(q + ".wake.col 必须是 3 个数字 [r, g, b]")
+						elif not FX_WAKE_LIM.has(k):
+							errs.append("%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）" % [q, k])
+						elif not (wk[k] is int or wk[k] is float) or float(wk[k]) < float(FX_WAKE_LIM[k][0]) or float(wk[k]) > float(FX_WAKE_LIM[k][1]):
+							errs.append("%s.wake.%s 超出范围（%s–%s）" % [q, k, str(FX_WAKE_LIM[k][0]), str(FX_WAKE_LIM[k][1])])
+		if f.has("xfade"):
+			if fx_is_hold(f):
+				errs.append(q + ".xfade 只给一次性帧条用（常驻条目的 cond 切换另有淡入淡出）")
+			if not f.has("cond"):
+				errs.append(q + ".xfade 要配 cond（按 cond 的真假交叉淡入淡出）")
+		_num(f, "grow", q, ctx, false, 0.1, 3.0)
+		_num(f, "grow0", q, ctx, false, 0.0, 0.95)
+		_num(f, "xfade", q, ctx, false, 0.0, 3.0)
 		_num(f, "fit", q, ctx, false, 1.0, 512.0)
 		_num(f, "scale", q, ctx, false, 0.05, 8.0)
 		_num(f, "max_scale", q, ctx, false, 0.5, 16.0)
