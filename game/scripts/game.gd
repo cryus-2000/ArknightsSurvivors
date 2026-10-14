@@ -738,7 +738,7 @@ func _ready() -> void:
 	knight_light.color = Color(1.0, 0.86, 0.62)
 	knight_light.energy = 1.0
 	knight_light.height = 80.0
-	knight_light.texture_scale = 2.5   # 半径约 160（贴图半径 64）
+	knight_light.texture_scale = 3.0   # 半径约 190（贴图半径 64）
 	knight_light.visible = false
 	add_child(knight_light)
 

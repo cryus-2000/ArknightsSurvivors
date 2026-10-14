@@ -155,7 +155,7 @@ func update_visuals(dt: float) -> void:
 		if sinking:
 			var k: float = clampf(g.knight.st / g.knight.SINK_T, 0.0, 1.0)
 			g.knight_light.position = g.knight.vanish_pos + Vector2(0, -16)
-			g.knight_light.energy = 1.1 * (1.0 - k * k)
+			g.knight_light.energy = 1.5 * (1.0 - k * k)
 	Look.update_actor_mat(g)
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
