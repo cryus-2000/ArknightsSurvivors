@@ -1156,6 +1156,52 @@ Codex 第 1 批帧条（5bb3f3e9）已接：`e_paranoia_gaze`（凝视 / 叠影�
 - 同种子 TRACE（`--squad mizuki,saria,suzuran`、expert、seed 11–13、240 秒、每秒一行）：对 merge-base 0ed04d63 在 3:30 中期 Boss 出场前 210 行逐行一致，第一处不同在 215–216 秒（Boss 出场后）；基线存 `build/trace_cache/0ed04d63_<seed>_mizuki_240_squad3.txt`。
 - 云端 A/B：见协调人汇报（`cloud-results/bm2-t0` / `bm2-t2`）。
 
+
+## 17. 实现记录（第 3 批，2026-10-14，Boss与怪物）
+
+分支 `boss/moves-b3`（从 main fb38ad44 起）。改动文件：`scripts/enemies/bosses/{bishop,archon,immortal,boss_base}.gd`、`scripts/boss_ai.gd`（统一、`b_owner` 锁定冻结、新 act `breath` / `erupt`、侵蚀增幅钩子）、`run/combat.gd`（`corrode_amp`）、`scripts/enemies/boss_patterns.gd`（`gap_jitter` / `cone_dmg`）、`data/enemies.json`（三只的 patterns）、`render/world.gd`（三条出招帧条挂点）、`game.gd`（V6_FRAMES）、`run/autotest.gd`（`--bossmoves=<type>[2]+<搭档>`）、`gallery.gd`（文案）、测试 `boss_variety_test` / `enemy_demo_test`。
+
+### 17.1 底座补的东西
+
+| 名称 | 落点 | 说明 |
+|---|---|---|
+| `unite(e, mate)` | boss_ai | 统一：两体之间 17 宽直线，`b_owner` 双端跟随 0.9 秒（`lock: false`，两体可走），之后冻结、两体 `wind` 到结算；公共段和验收都调它 |
+| `b_owner` 锁定冻结 | `_update_warns` | 只在 `track` 段跟随两端；锁定那一刻冻结并给两体 `wind`；双端线不再按主控转向 |
+| tide_link 结算条件 | `_warn_resolve` | 原来要求搭档假死才结算，改为搭档已死才作废（统一平时也放） |
+| `breath` | 新 act | 蚀潮吐息：光束 + `fx_archon_breath`（左中原点、按线长拉伸）；`arts` 走近战法术 |
+| `erupt` | 新 act | 迸发：自身为心落点圈结算 + `fx_immortal_burst` |
+| `corrode_amp` / `corrode_amp_t` | `_warn_damage` → `combat.drain_corrode` | 命中后 3 秒侵蚀结算扣血 ×1.25；流出量不变，Boss 部分增幅后仍截到持续伤害余量（§1.11） |
+| `gap_jitter` / `cone_dmg` | patterns 条目 | 交错潮环两波缺口同向（0）；接潮扇浪结算时扇形本身再判定一次（e.dmg × 0.9） |
+| `_pair_p2(e)` | boss_base | 接潮组「第二幕」：任一具过了自己的 50% 卡点就算整组进第二幕 |
+| `--bossmoves=<type>[2]+<搭档>` | autotest | 搭档刷在主控左上、不死、不出招，只当统一的另一端 |
+
+### 17.2 每只 Boss 的招式实现
+
+| Boss | A | B | C | D | 二阶段 |
+|---|---|---|---|---|---|
+| 接潮主教 | 潮汐柱：3 圈 r64 改为「主教 → 主控」直线上的主控脚下 + 前后各 110，同时锁定 1.1 秒，×1.1 | 交错潮环：26 弹 × 2 波、缺口半角 0.38、两波同向（`gap_jitter` 0）、×0.65 | 统一：主教放（unite 9 秒，第二幕 7 秒，两体 120–520），主教假死时搭档放（4.5 秒）；幽灵线 0.9 + 锁定 0.6，×0.55 侵蚀 0.25 | 接潮扇浪：第二幕、主控 <260、wave 8 秒、第一次先亮名；扇形 r260 半角 0.9、追踪 0.3 总 1.4；扇形本身 ×0.9 + 7 发浪弹 320px/s | 青色着色 (0.86, 1.1, 1.16)；离搭档 >260 时朝搭档走（靠拢）；两体之间常亮低亮度幽灵线；删追潮落柱、接潮共鸣并入统一 |
+| 接潮蔑死体 | 横扫：2 段（第 1 段追踪 0.4 总 1.2；第 2 段同时画出、偏 0.42、晚 0.6 秒结算），×1.6 侵蚀 0.5 | 跃击：不变 | 蚀潮吐息：主控 100–320、breath 8 秒；320 × 30 直线，追踪 0.4 总 1.0；×1.0 法术、侵蚀 0.5、3 秒侵蚀 +25% | 裂潮：第二幕跃击同时以落点为心画缺口环（r84，缺口半角 0.5），落地后 0.3 秒结算 10 刃 400px/s ×0.8；第一次先亮名 | 绿色着色 (0.86, 1.14, 0.95)；删双爪交斩（并入横扫）、裂潮刃波、裂潮坠击 |
+| 接潮斥亡体 | 连斩：每段 0.38 → 0.6 秒（和钳制一致）、段间 0.62，3 段（第二幕 4 段），×1.1 侵蚀 0.5 | 斥亡旋刃：18 刃 × 1 波（原 2）、350px/s、×0.8 | 迸发：狂暴开始一刻、自己复苏一刻（`on_revive`）各一次，平时主控 <240 时 12 秒一次；r120 跟随本体 0.3 后锁定，总 0.9；×1.2 侵蚀 0.5 | 掠海飞刃：第二幕、主控 120–360、fan 7 秒、第一次先亮名；扇形 r300 半角 0.85、追踪 0.3 总 1.5；7 刃 430px/s ×0.8 | 淡蓝着色 (0.88, 0.98, 1.18)；删交错连斩 |
+
+**和设计稿不一样 / 实现时定的地方**：
+
+1. **「合计 50%」**：两具各有自己的 50% 卡点，按「任一具过了就整组进第二幕」实现（`_pair_p2`）；图鉴写「任一具生命降到 50% 后」。
+2. **统一的距离条件**：两体 120–520 对假死时也生效（原接潮共鸣不看距离）。
+3. **第二幕常亮的幽灵线**：画出来了（`tide_link` 低亮度，每 0.28 秒续一段），**还没计入** §1.10 溟痕带额度；「搭档假死时线亮度随倒计时同步、最后 3 秒闪烁」没做，留给试玩后定（§14 决定 7）。
+4. **横扫第 2 段**：和第 1 段同时画出、固定偏 0.42、不追踪（第 1 段追踪），这样两段一眼看得出先后。
+5. **裂潮缺口方向**：起手时主控就站在落点上，「落点 → 主控」没有方向；改成缺口在预警前 0.5 秒跟着主控转、之后固定（结算前 0.8 秒已画好，满足 §0.2）。缺口半角 0.5（r84 处 84px，≥80）。
+6. **迸发的 12 秒循环**只在主控 <240 时放（离远了放出来也打不到，只占令牌）。
+7. **侵蚀 +25%** 对普通侵蚀和 Boss 侵蚀都生效（设计稿写「再受侵蚀结算时」），Boss 部分仍受持续伤害上限。
+
+**Codex 第 3 批素材**（未交）：帧条 `e_bishop_attack`（潮汐柱 / 交错潮环 / 接潮扇浪 / 统一）、`e_archon_attack`（横扫 / 吐息）、`e_immortal_attack`（连斩 / 迸发）已挂在 `world.boss_strip_animation`（预警 f0 → f1、结算 f2 / f3），缺图沿用原帧条；特效 `fx_bishop_wave` / `fx_tide_link_tile` / `fx_archon_breath` / `fx_immortal_burst` 已登记 V6_FRAMES（`fx_tide_link_tile` 沿线平铺等素材到了再接）。
+
+### 17.3 本地验收（2026-10-14）
+
+- 截图：`--bossmoves=bishop+archon / bishop2+archon / archon+bishop / archon2+bishop / immortal+bishop / immortal2+bishop`，`build/bossmoves/shots/`；零脚本错误，D 招只在二阶段。连斩的段是之后几帧才排进预警，验收开关这一招只截到结算图。
+- 统一的冻结 / 停步在截图里看不清（线在 HUD 下面），改在 `boss_variety_test` 加断言：幽灵线段终点跟随搭档、锁定后长度不变且两体 `wind > 0`、搭档死了不结算。
+- 快检：`check.py --auto --jobs 3`（64 项）+ `--only boss_variety / boss_pressure / boss_boundary / boss_trial / enemy_attack_variety / enemy_demo` 全过（rc 进文件）。`boss_variety` 的「远距离近战 Boss 用刃弹齐射」改为「蔑死体远距离跃击贴近」+「斥亡体掠海飞刃出 7 片刃弹」（裂潮刃波按 §9.2 删了）、分组招式表去掉追潮落柱；`enemy_demo` 的原作机制关键词「接潮共鸣」改「统一」。
+- 同种子 TRACE（`tools/trace_base.py`，`--squad mizuki,saria,suzuran`、seed 11–13、240 秒，基线 main b24f62d6）：241 行逐行相同（三只都在 7:00 出场，240 秒内整局不受影响）。
+
 ---
 
 ## 附录 A · 原作出处

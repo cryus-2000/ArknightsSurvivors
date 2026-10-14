@@ -681,22 +681,26 @@
      "count": 26,
      "waves": 2,
      "speed": 300,
-     "gap": 0.38
-    },
-    {
-     "name": "追潮落柱",
-     "mode": "rain",
-     "waves": 5,
-     "radius": 56
+     "gap": 0.38,
+     "gap_jitter": 0.0,
+     "mult": 0.65
     },
     {
      "name": "接潮扇浪",
      "mode": "fan",
      "count": 7,
-     "waves": 2,
-     "spread": 1.35,
+     "waves": 1,
+     "spread": 1.8,
      "speed": 320,
-     "blade": false
+     "blade": false,
+     "manual": true,
+     "phase_min": 1,
+     "warn_r": 260,
+     "dur": 1.4,
+     "track": 0.3,
+     "cone_dmg": 0.9,
+     "cd": 8,
+     "fx": "fx_bishop_wave"
     }
    ]
   },
@@ -715,27 +719,17 @@
    "pair": true,
    "patterns": [
     {
-     "name": "双爪交斩",
-     "mode": "cleave",
-     "radius": 245,
-     "half": 0.95,
-     "waves": 2,
-     "texture": "fx_slash_arc_rose"
-    },
-    {
-     "name": "裂潮刃波",
-     "mode": "fan",
-     "count": 5,
-     "waves": 2,
-     "spread": 1.25,
+     "name": "裂潮",
+     "mode": "ring",
+     "count": 10,
+     "waves": 1,
      "speed": 400,
-     "blade": true
-    },
-    {
-     "name": "裂潮坠击",
-     "mode": "rain",
-     "waves": 3,
-     "radius": 55
+     "gap": 0.5,
+     "blade": true,
+     "manual": true,
+     "phase_min": 1,
+     "ring_r": 84,
+     "mult": 0.8
     }
    ]
   },
@@ -754,30 +748,32 @@
    "pair": true,
    "patterns": [
     {
-     "name": "交错连斩",
-     "mode": "cleave",
-     "radius": 255,
-     "half": 0.8,
-     "waves": 2,
-     "texture": "fx_slash_arc_rose"
+     "name": "斥亡旋刃",
+     "mode": "ring",
+     "count": 18,
+     "waves": 1,
+     "speed": 350,
+     "gap": 0.42,
+     "blade": true,
+     "mult": 0.8
     },
     {
      "name": "掠海飞刃",
      "mode": "fan",
      "count": 7,
-     "waves": 2,
+     "waves": 1,
      "spread": 1.7,
      "speed": 430,
-     "blade": true
-    },
-    {
-     "name": "斥亡旋刃",
-     "mode": "ring",
-     "count": 18,
-     "waves": 2,
-     "speed": 350,
-     "gap": 0.42,
-     "blade": true
+     "blade": true,
+     "manual": true,
+     "phase_min": 1,
+     "min_dist": 120,
+     "max_dist": 360,
+     "warn_r": 300,
+     "dur": 1.5,
+     "track": 0.3,
+     "mult": 0.8,
+     "cd": 7
     }
    ]
   },

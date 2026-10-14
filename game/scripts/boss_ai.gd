@@ -73,17 +73,24 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	# 封印（docs/61 §15 st.seal）：Boss 只是推迟出招——封印期间（已按 boss_mult / boss_max 缩到 ≤1.5 秒）不起新招，冷却照走；之后 boss_immune 秒免疫
 	if ready and float(e.get("seal_t", 0.0)) > g.t:
 		ready = false
-	# 原作机制转译：接潮双体的假死反击走正式预警管线（骑士的冰线 / 寒冷追击 10-14 起搬进 bosses/knight_boss.gd，作为冲锋的变体，docs/95 §4）
+	# 接潮「统一」（docs/95 §8.2 C，吸收原接潮共鸣）：两体之间的直线（b_owner 双端跟随），幽灵线 0.9 秒随两体移动、之后冻结锁定 0.6 秒、两体停步；
+	# 平时由主教放（unite 9 秒，第二幕 7 秒，两体相距 120–520），主教假死时由搭档放（boss/tide_link_cd 4.5 秒，即原接潮共鸣）；占组内共用的招式令牌。
+	# 第二幕（任一具过 50% 卡点）两体之间常亮一条低亮度幽灵线；假死时照旧画亮线。骑士的冰线 / 寒冷追击在 bosses/knight_boss.gd（docs/95 §4）
 	var mate = e.get("partner")
-	if mate != null and not mate.dead and mate.get("coma", false) and e.type in ["bishop", "archon", "immortal"]:
-		if g.t >= float(e.get("link_visual_at", 0.0)):
+	if mate != null and not mate.dead and e.type in ["bishop", "archon", "immortal"]:
+		var mcoma: bool = mate.get("coma", false)
+		var pair_p2: bool = int(e.get("gates_passed", 0)) >= 1 or int(mate.get("gates_passed", 0)) >= 1
+		var linker: bool = mcoma or e.type == "bishop"
+		if linker and (mcoma or pair_p2) and g.t >= float(e.get("link_visual_at", 0.0)):
 			e.link_visual_at = g.t + 0.28
-			g.fx.append({"kind": "tide_link", "a": e.pos, "b": mate.pos, "life": 0.36, "max": 0.36, "col": g.vfx.boss_color(e.type), "enemy": true})
-		if ready and g.t >= float(e.get("link_next_at", 0.0)):
-			e.link_next_at = g.t + Bal.v("boss/tide_link_cd", 4.5)
-			_warn(e, "line", 0.9, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos),
-				"wid": 17.0, "act": "tide_link", "name": "接潮共鸣", "col": g.vfx.boss_color(e.type),
-				"corrode": 0.25, "dmg": e.dmg * 0.55, "cancel_dead": true})
+			var lc: Color = g.vfx.boss_color(e.type)
+			if not mcoma:
+				lc = Color(lc.r * 0.5, lc.g * 0.5, lc.b * 0.5, 0.55)   # 第二幕常亮的幽灵线：低亮度、不发光（§0.2 样式 0）
+			g.fx.append({"kind": "tide_link", "a": e.pos, "b": mate.pos, "life": 0.36, "max": 0.36, "col": lc, "enemy": true})
+		var dd: float = e.pos.distance_to(mate.pos)
+		if ready and linker and dd >= 120.0 and dd <= 520.0 and g.t >= float(e.get("link_next_at", 0.0)):
+			e.link_next_at = g.t + (Bal.v("boss/tide_link_cd", 4.5) if mcoma else (7.0 if pair_p2 else 9.0))
+			unite(e, mate)
 			ready = false
 	# 招式令牌（docs/38 §1.10）：同一时刻只允许一个有名字的大招，接潮组两具也共用这一个名额（9/30 前误把搭档排除在外，7:00 双体大招会叠）；
 	# 不在 g.bosses 里的（演练 / 图鉴）不算
@@ -94,6 +101,13 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	var h = boss(e.type)
 	if h != null:
 		h.step(e, dt, dir, dist, ready, mate)
+
+
+## 接潮「统一」一次（docs/95 §8.2 C）：两体之间 17 宽直线，幽灵线 0.9 秒双端跟随、锁定 0.6 秒冻结并让两体停步（_update_warns b_owner）；
+## e.dmg × 0.55 法术、侵蚀 0.25（原接潮共鸣数值）。公共段和验收 --bossmoves 都走这里
+func unite(e: Dictionary, mate: Dictionary) -> Dictionary:
+	return _warn(e, "line", 1.5, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 17.0, "track": 0.9, "act": "tide_link", "name": "统一",
+		"col": g.vfx.boss_color(e.type), "corrode": 0.25, "dmg": e.dmg * 0.55, "arts": false, "cancel_dead": true, "b_owner": mate, "lock": false})
 
 
 ## 远程 Boss 的迫近（协调人 9/30）：离主控超过 boss/<key>_close_min（300，0 = 关）时，每 <key>_close_cd（6）秒带直线预警冲到主控前约 140 处，
@@ -201,7 +215,7 @@ func cue_cat(w: Dictionary) -> String:
 	match str(w.act):
 		"dash", "stab":
 			return "charge"
-		"shot", "beam", "pattern_line", "ishar_line", "frost_track", "tide_link", "ishar_echo":
+		"shot", "beam", "breath", "pattern_line", "ishar_line", "frost_track", "tide_link", "ishar_echo":
 			return "beam"
 		"bite", "sweep", "pattern_fan", "pattern_cleave", "spin_ring":
 			return "melee"
@@ -307,12 +321,19 @@ func _update_warns(dt: float) -> void:
 			w.pos = e.pos
 		var bo = w.get("b_owner")
 		if bo is Dictionary and not bo.dead and not e.dead:
-			# 双端跟随（接潮「统一」）：起点跟本体、终点跟另一具
-			w.pos = e.pos
-			w.ang = (bo.pos - e.pos).angle()
-			w.len = e.pos.distance_to(bo.pos)
+			if w.t < w.track or w.track <= 0.0:
+				# 双端跟随（接潮「统一」）：幽灵线段起点跟本体、终点跟另一具
+				w.pos = e.pos
+				w.ang = (bo.pos - e.pos).angle()
+				w.len = e.pos.distance_to(bo.pos)
+			elif not w.get("b_locked", false):
+				# 锁定：线冻结在这一刻，两体停步到结算（docs/95 §8.2 C：线两端都在动，锁定段必须站住，画即判）
+				w.b_locked = true
+				var rem: float = w.dur - w.t
+				e.wind = maxf(e.get("wind", 0.0), rem)
+				bo.wind = maxf(bo.get("wind", 0.0), rem)
 		if w.track > 0.0 and w.t < w.track:
-			if w.shape != "circle":
+			if w.shape != "circle" and not (bo is Dictionary):
 				var want: float = (g.ppos + Vector2(0, -14) - w.pos).angle()
 				w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
 			elif w.get("track_pos", "") != "":
@@ -387,6 +408,10 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 			if float(w.get("chill", 0.0)) > 0.0:
 				g.combat.frost_leader(float(w.chill), "boss")
 				g.vfx.add_text(g.ppos + Vector2(0, -96), "寒冷", Color(0.65, 0.9, 1.3), 14)
+			if float(w.get("corrode_amp", 0.0)) > 0.0:
+				# 蚀潮吐息（docs/95 §9.2 C）：命中后 corrode_amp_t 秒内侵蚀结算伤害 ×（1 + corrode_amp），仍受 Boss 持续伤害上限（combat.drain_corrode）
+				g.combat.corrode_amp_until = g.t + float(w.get("corrode_amp_t", 3.0))
+				g.combat.corrode_amp_mult = 1.0 + float(w.corrode_amp)
 
 
 
@@ -408,7 +433,7 @@ func _warn_resolve(w: Dictionary) -> void:
 	if str(w.act).begins_with("pattern_"):
 		patterns.resolve(w)
 		return
-	if w.act == "tide_link" and (e.get("partner") == null or not e.partner.get("coma", false)):
+	if w.act == "tide_link" and (e.get("partner") == null or e.partner.dead):
 		return
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)
@@ -575,6 +600,23 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.vfx.sparks(w.pos, Vector2.UP, Color(1.4, 1.1, 0.6), 14, 240.0)
 			Sfx.play("boom", -4.0, 1.1, 0.0)
 			g.vfx.shake_screen(0.6)
+			_warn_damage(w)
+		"breath":
+			# 蚀潮吐息（蔑死体，docs/95 §9.2 C）：口部射出的腐蚀流；Codex fx_archon_breath（左中原点朝右，按线长拉伸）缺图走程序光束
+			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
+			if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
+				g.fx[g.fx.size() - 1]["enemy"] = true
+			Sfx.play("tentacle", -6.0, 1.3)
+			g.vfx.shake_screen(0.3)
+			_warn_damage(w)
+		"erupt":
+			# 迸发（斥亡体，docs/95 §10.2 C）：以自身为心的落点圈结算；Codex fx_immortal_burst 优先，缺图走程序爆点
+			if not g.vfx.fx_sprite("fx_immortal_burst", w.pos, g.PX * w.r / 60.0, 0.0, false, false, Color.WHITE, true):
+				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+			g.fx[g.fx.size() - 1]["enemy"] = true
+			g.vfx.sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 14, 260.0)
+			Sfx.play("boom", -5.0, 1.3, 0.0)
+			g.vfx.shake_screen(0.5)
 			_warn_damage(w)
 		"leap":
 			e.pos = w.pos

@@ -37,6 +37,8 @@ var boss_log: Array = []     # [时刻, 数值]：Boss 扣血 + Boss 招式追�
 var loss_log: Array = []     # [时刻, 数值]：Boss 来源的实际扣血，含 Boss 侵蚀结算（实际掉血口径）
 var dot_log: Array = []      # [时刻, 实际扣血]：Boss 来源的持续伤害，查「每秒上限」
 var corrode_boss := 0.0      # 侵蚀池 g.corrode_pool 里由 Boss 招式追加的那部分；用之前先 _boss_pool() 截到池子以内
+var corrode_amp_until := -1.0   # 蚀潮吐息（docs/95 §9.2 C）：到这一刻之前侵蚀结算伤害 × corrode_amp_mult（Boss 部分仍受持续伤害上限）
+var corrode_amp_mult := 1.0
 var high_t := -INF           # 最近一次「扣血前生命 ≥ fullhp_guard_at」的时刻，满血保护用
 var guard_end := -INF        # 满血保护触发后兜底到的时刻（这一轮连击结束：high_t + fullhp_guard_combo）
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
@@ -446,13 +448,16 @@ func drain_corrode(tick: float) -> void:
 	var cb := _boss_pool()
 	var bt: float = tick * cb / g.corrode_pool if cb > 0.0 else 0.0
 	var nt: float = tick - bt
+	var room: float = dot_room() if bt > 0.0 else 0.0
 	if bt > 0.0:
-		bt = minf(bt, dot_room())
+		bt = minf(bt, room)
 	g.corrode_pool -= nt + bt
 	corrode_boss -= bt
-	lose_hp(nt, "corrode")
+	# 蚀潮吐息增幅：流出量不变，扣血 × corrode_amp_mult；Boss 部分增幅后仍截到持续伤害余量以内（docs/38 §1.11）
+	var amp: float = corrode_amp_mult if g.t < corrode_amp_until else 1.0
+	lose_hp(nt * amp, "corrode")
 	if bt > 0.0:
-		lose_hp(bt, "corrode", true)
+		lose_hp(minf(bt * amp, room), "corrode", true)
 
 
 ## 受击扣血（伤害类型见 g.in_type、来源见 g.dmg_src）：藏品承伤、护甲、法抗算完后走 lose_hp。返回实际扣掉的生命

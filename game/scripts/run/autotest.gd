@@ -20,9 +20,10 @@ var shop_visits := 0
 var lv_marks := {}
 var bosstest := false
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
-# --bossmoves=<type>[2]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段），按 bosses/<type>.gd demo_moves 的顺序
+# --bossmoves=<type>[2][+<搭档>]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段；+搭档 = 接潮组另一具，停在左上不出招），按 bosses/<type>.gd demo_moves 的顺序
 # 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
 var bm_boss: Dictionary = {}
+var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
 var bm_list: Array = []
 var bm_i := 0
 var bm_state := "idle"
@@ -778,14 +779,15 @@ func _bossmoves_step(spec: String) -> void:
 	var headless: bool = DisplayServer.get_name() == "headless"
 	if g.at_frames == 20:
 		bm_tag = spec
-		var type: String = spec.trim_suffix("2")
+		var parts: PackedStringArray = spec.split("+")
+		var type: String = parts[0].trim_suffix("2")
 		g.ppos = Vector2(1500, 900)
 		g.max_hp = 900.0
 		g.hp = 900.0
 		g.t = 150.0
 		var b := g.spawner.spawn_enemy(type, g.ppos + Vector2(230, -40))
 		b.age = 5.0
-		if spec.ends_with("2"):
+		if parts[0].ends_with("2"):
 			g.bai.setup_preview_phase2(b)
 			b.invuln = false
 			b.channel = 0.0
@@ -794,6 +796,13 @@ func _bossmoves_step(spec: String) -> void:
 		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
 			g.final_boss = b
 		bm_boss = b
+		if parts.size() > 1:
+			var m := g.spawner.spawn_enemy(parts[1], g.ppos + Vector2(-200, -60))
+			m.age = 5.0
+			b.partner = m
+			m.partner = b
+			g.bosses.append(m)
+			bm_mate = m
 		var h = g.bai.boss(type)
 		bm_list = h.demo_moves(b) if h != null else []
 		bm_next_t = g.t + 1.0
@@ -803,6 +812,11 @@ func _bossmoves_step(spec: String) -> void:
 		return
 	var e: Dictionary = bm_boss
 	e.hp = e.maxhp if e.phase == 1 or e.type != "knight_boss" else e.maxhp * 0.5   # 别让它死；骑士二阶段保持重生血量
+	if not bm_mate.is_empty():
+		bm_mate.hp = bm_mate.maxhp
+		bm_mate.wind = maxf(bm_mate.get("wind", 0.0), 0.5)   # 搭档只当「统一」的另一端，不出招
+		if bm_state == "idle":
+			bm_mate.pos = g.ppos + Vector2(-200, -60)
 	var mine: Array = g.warns.filter(func(w): return is_same(w.owner, e))
 	match bm_state:
 		"idle":
