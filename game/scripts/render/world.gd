@@ -115,8 +115,9 @@ func update_visuals(dt: float) -> void:
 		g.sprite.modulate = Color(1, 1, 1, 0.6)
 	else:
 		g.sprite.modulate = Color.WHITE
-	g.cam.position = g.view_center().round()
 	var rd := g.get_process_delta_time()
+	g._glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
+	g.cam.position = g.cam_center().round()
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
 	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)

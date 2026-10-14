@@ -135,6 +135,7 @@ func _arrive() -> void:
 	state = "sink"
 	st = 0.0
 	vanish_pos = pos
+	g.camera_glance(pos)   # 镜头一瞥黑潮中心（用户 10-14：圈心通常在屏幕外，让玩家看见入潮；只动镜头）
 	# 寒冰重生环缩小、淡蓝；没有帧条就画一圈冰环。粒子向下沉
 	if not g.vfx.fx_sprite("fx_knight_rebirth", pos + Vector2(0, -12), g.PX * 0.8, 0.0, false, false, Color(0.75, 0.9, 1.2, 0.8)):
 		g.fx.append({"kind": "ring", "pos": pos, "r": 50.0, "life": SINK_T, "max": SINK_T, "col": Color(0.6, 0.9, 1.4)})

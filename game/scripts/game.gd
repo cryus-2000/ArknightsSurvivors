@@ -957,6 +957,56 @@ func view_center() -> Vector2:
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
 
+## 镜头一瞥（用户 10-14 批准：骑士入潮、10:00 寒冰重生时镜头扫向黑潮中心约 1 秒再拉回，圈心通常在屏幕外 400–600）：
+## 从队长平滑移到目标（ease 秒）→ 停 hold 秒 → 平滑回到队长（ease 秒），全程只动镜头：模拟、输入、拾取回收（pickups 读 view_center）
+## 都不看它，回程回到队长当前位置。HUD 在界面层不动；暂停 / 面板时镜头冻结（_glance_step 只在 PLAY / DEAD / WIN 走）。
+## 目标本来就在屏幕中央区（render/camera_glance_near × 半视野以内，缺省 0.6）时跳过：对已经看得见的点再摆一下镜头只会像误抖，入潮 / 重生环本身就把视线带过去了。
+## 图鉴演示、无头批跑不做；开关 balance.json render/camera_glance（0 关，对照用）。
+var glance_pos := Vector2.INF
+var glance_t := 0.0
+var glance_hold := 0.6
+var glance_ease := 0.35
+
+
+func camera_glance(pos: Vector2, hold: float = 0.6, ease_t: float = 0.35) -> void:
+	if demo_op != "" or headless_batch or cam == null or Bal.vi("render/camera_glance", 1) <= 0:
+		return
+	var d: Vector2 = (pos - view_center()).abs()
+	var half: Vector2 = view_size() * 0.5 * Bal.v("render/camera_glance_near", 0.6)
+	if d.x <= half.x and d.y <= half.y:
+		return
+	glance_pos = pos
+	glance_t = 0.0
+	glance_hold = maxf(hold, 0.0)
+	glance_ease = maxf(ease_t, 0.01)
+
+
+## 每渲染帧（render/world.update_visuals）：rd 为真实帧间隔；只在 PLAY / DEAD / WIN 推进，暂停 / 选卡 / 面板时镜头停在原处
+func _glance_step(rd: float) -> void:
+	if glance_pos == Vector2.INF:
+		return
+	if state != S.PLAY and state != S.DEAD and state != S.WIN:
+		return
+	glance_t += rd
+	if glance_t >= glance_ease * 2.0 + glance_hold:
+		glance_pos = Vector2.INF
+
+
+## 镜头实际看着的位置 = view_center 加上一瞥的偏移；只给镜头与铺满视野的地面 / 地纹 / 大道具用，玩法一律读 view_center / ppos
+func cam_center() -> Vector2:
+	var c: Vector2 = view_center()
+	if glance_pos == Vector2.INF:
+		return c
+	var k: float
+	if glance_t < glance_ease:
+		k = glance_t / glance_ease
+	elif glance_t < glance_ease + glance_hold:
+		k = 1.0
+	else:
+		k = 1.0 - (glance_t - glance_ease - glance_hold) / glance_ease
+	return c.lerp(glance_pos, smoothstep(0.0, 1.0, clampf(k, 0.0, 1.0)))
+
+
 # =====================================================================
 # 主循环
 # =====================================================================
