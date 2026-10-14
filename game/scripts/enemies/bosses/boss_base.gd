@@ -25,6 +25,44 @@ func setup_preview_phase2(_e: Dictionary) -> void:
 	pass
 
 
+## 接潮假死复苏时（boss_ai 公共段）调用（docs/95 §12 on_revive；斥亡体「迸发」）
+func on_revive(_e: Dictionary) -> void:
+	pass
+
+
+## 验收（autotest --bossmoves=<type>）：这只 Boss 的招式名列表（按节奏表顺序），和 force_move 一一对应
+func demo_moves(_e: Dictionary) -> Array:
+	return []
+
+
+## 验收：无视冷却 / 距离条件立刻放出名为 name 的招（只放预警，结算走正式管线）；放了返回 true
+func force_move(_e: Dictionary, _name: String, _dir: Vector2, _dist: float) -> bool:
+	return false
+
+
+## D 招（二阶段变化招）第一次出现前副标题先亮招式名 0.6 秒再出预警（docs/95 §0.2）：
+## 第一次调用只点亮副标题并占住 0.6 秒出招窗口，返回 false；0.6 秒后再调用返回 true（之后每次都直接 true）
+func _first_tell(e: Dictionary, key: String, name: String) -> bool:
+	var k: String = "told_" + key
+	if e.has(k) and float(e[k]) < 0.0:
+		return true
+	if not e.has(k):
+		e[k] = g.t + 0.6
+		e["move_name"] = name
+		e["move_t"] = g.t
+		e.wind = maxf(e.get("wind", 0.0), 0.6)
+		return false
+	if g.t >= float(e[k]):
+		e[k] = -1.0
+		return true
+	return false
+
+
+## 二阶段常驻着色（docs/95 §0.2「阶段切换一眼可见」②）：低幅度乘色，render/world 画本体时乘上；不改帧条
+func _tint2(e: Dictionary, col: Color) -> void:
+	e["tint2"] = col
+
+
 ## ---- 转发到 boss_ai.gd（docs/38 §1.17：包装方法放基类，各 Boss 脚本只调基类）
 ## boss_ai.gd 按 type 运行时 load() 这些脚本，所以这里 preload 它不构成循环
 const SKILL_COOLDOWN_SCALE: float = preload("res://scripts/boss_ai.gd").SKILL_COOLDOWN_SCALE

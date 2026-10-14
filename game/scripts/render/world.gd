@@ -1548,11 +1548,35 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
 		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
+		var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
 		g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
-		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.18 * a * tell_fill), 10.0)
-		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
-		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, a), 4.0)
-		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+		var gh: float = float(sh.get("gap_half", 0.0))
+		var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
+		if gaps.is_empty():
+			g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
+			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, a), 4.0)
+			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+		else:
+			# 缺口环：按缺口切成几段弧画，缺口处不画，两侧亮色「出口」短线（docs/95 §12 song_ring；判定在 enemies.update）
+			var starts: Array = []
+			for ga in gaps:
+				starts.append(fposmod(float(ga) + gh, TAU))
+			starts.sort()
+			for i in starts.size():
+				var a0: float = starts[i]
+				var a1: float = starts[(i + 1) % starts.size()] - gh * 2.0
+				if a1 <= a0:
+					a1 += TAU
+				g.draw_arc(Vector2.ZERO, sh.r - 8.0, a0, a1, 32, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(0, 0, 0, 0.55 * a), 7.0)
+				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(tc.r, tc.g, tc.b, a), 4.0)
+				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(1, 1, 1, 0.9 * a), 1.5)
+			for ga in gaps:
+				for side in [-1.0, 1.0]:
+					var v := Vector2.from_angle(float(ga) + side * gh)
+					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(0, 0, 0, 0.7), 5.0)
+					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(1.0, 0.85, 0.35, 0.9), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -1708,6 +1732,10 @@ func ishar_animation(e: Dictionary) -> Dictionary:
 	var base: String = "e_ishar_t" if e.phase == 2 else "e_ishar"
 	if e.phase == 2 and g.t < float(e.get("transform_until", -1.0)):
 		return {"name": "e_ishar_transform", "frames": 6, "frame": clampi(int((g.t - float(e.transform_started)) / 0.15), 0, 5)}
+	if e.phase == 2:
+		var sa := _boss_warn_strip(e, ["song_ring"], "e_ishar_t_sing", 4)   # 大群之歌（docs/95 §2.4，Codex 第 1 批；缺图走下面的攻击帧）
+		if not sa.is_empty():
+			return sa
 	if e.get("pose", 0.0) > 0.0 and e.get("pose_max", 0.0) > 0.0:
 		return {"name": base + "_attack", "frames": 4, "frame": clampi(int((1.0 - e.pose / e.pose_max) * 4.0), 0, 3)}
 	if g.t < float(e.get("atk_until", 0.0)):
@@ -1755,6 +1783,33 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				for w in g.warns:
 					if w.act == "dash" and not w.done and is_same(w.owner, e):
 						return {"name": "e_path_charge", "frames": 4, "frame": 0 if float(w.t) < float(w.dur) * 0.5 else 1}
+		"paranoia":
+			# Codex 第 1 批（docs/95 §1.4）：一阶段凝视 / 叠影蓄力 e_paranoia_gaze（f0 睁眼 → f1 前倾，f2 出手在结算后 0.2 秒、f3 收势）；
+			# 二阶段呼号 e_paranoia_phase2_howl（f0 张口 → f1 吸气，f2 出手、f3 收口）。缺图沿用原帧条
+			var pa := _boss_warn_strip(e, ["beam", "burst"], "e_paranoia_gaze", 4) if e.phase == 1 else _boss_warn_strip(e, ["sweep"], "e_paranoia_phase2_howl", 4)
+			if not pa.is_empty():
+				return pa
+		"izumik":
+			# 分享 e_izumik_share（docs/95 §3.4）：预警 f0 收缩 → f1 鼓起，结算 f2 喷涌、f3 回落
+			var za := _boss_warn_strip(e, ["sweep"], "e_izumik_share", 4)
+			if not za.is_empty():
+				return za
+	return {}
+
+
+## Codex 出招帧条的通用挂点（docs/95 第 1 批，4 帧单次：f0 → f1 蓄力随预警进度，结算后 0.2 秒内 f2 出手、再 0.2 秒 f3 收势）：
+## 这只 Boss 有 acts 里任一招的预警在进行就播蓄力帧；刚结算就播出手 / 收势帧；贴图缺失或都不满足返回空
+func _boss_warn_strip(e: Dictionary, acts: Array, strip: String, frames: int) -> Dictionary:
+	if _lazy_tex(strip) == null:
+		return {}
+	for w in g.warns:
+		if not w.done and is_same(w.owner, e) and acts.has(str(w.act)) and w.get("lock", true):
+			return {"name": strip, "frames": frames, "frame": 0 if float(w.t) < float(w.dur) * 0.5 else 1}
+	var la = e.get("last_act")
+	if la is Dictionary and acts.has(str(la.get("act", ""))):
+		var since: float = g.t - float(la.get("t", -1.0))
+		if since < 0.4:
+			return {"name": strip, "frames": frames, "frame": 2 if since < 0.2 else 3}
 	return {}
 
 
@@ -1763,11 +1818,29 @@ func knight_animation(e: Dictionary) -> Dictionary:
 	if e.get("dash_t", 0.0) > 0.0:
 		return {"name": "e_knight_charge_form", "frames": 4, "frame": int(g.t * 10.0 + e.id * 0.37) % 4}
 	for w in g.warns:
-		if w.act == "frost" and not w.done and is_same(w.owner, e):
-			return {"name": "e_knight_plant", "frames": 4, "frame": clampi(int(float(w.t) / maxf(0.01, float(w.dur)) * 3.0), 0, 2)}
+		if w.done or not is_same(w.owner, e):
+			continue
+		var wk: float = float(w.t) / maxf(0.01, float(w.dur))
+		if w.act == "frost":
+			return {"name": "e_knight_plant", "frames": 4, "frame": clampi(int(wk * 3.0), 0, 2)}
+		# Codex 第 1 批（docs/95 §4.4）：长枪回旋 e_knight_spin（f0 收枪、f1 拧转蓄力；f2–f4 扫过在结算时播）、连刺第 3 段前刺 e_knight_thrust f0；缺图沿用原帧条
+		if w.act == "spin_ring" and _lazy_tex("e_knight_spin") != null:
+			return {"name": "e_knight_spin", "frames": 6, "frame": 0 if wk < 0.5 else 1}
+		if w.act == "bite" and w.get("thrust", false) and wk > 0.6 and _lazy_tex("e_knight_thrust") != null:
+			return {"name": "e_knight_thrust", "frames": 3, "frame": 0}
 	var la = e.get("last_act")
-	if la is Dictionary and str(la.get("act", "")) == "frost" and g.t - float(la.get("t", -1.0)) < 0.45:
-		return {"name": "e_knight_plant", "frames": 4, "frame": 3}
+	if la is Dictionary:
+		var since: float = g.t - float(la.get("t", -1.0))
+		match str(la.get("act", "")):
+			"frost":
+				if since < 0.45:
+					return {"name": "e_knight_plant", "frames": 4, "frame": 3}
+			"spin_ring":
+				if since < 0.35 and _lazy_tex("e_knight_spin") != null:
+					return {"name": "e_knight_spin", "frames": 6, "frame": clampi(2 + int(since / 0.0833), 2, 5)}
+			"bite":
+				if since < 0.22 and la.get("thrust", false) and _lazy_tex("e_knight_thrust") != null:
+					return {"name": "e_knight_thrust", "frames": 3, "frame": 1 if since < 0.12 else 2}
 	return {}
 
 
@@ -2111,6 +2184,9 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	var col: Color = ed.get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)
+	var t2 = e.get("tint2")
+	if t2 is Color:
+		col = col * t2   # Boss 二阶段常驻低幅度着色（docs/95 §0.2 ②；bosses/*.gd _tint2 写、帧条不改）
 	if e.type == "paranoia" and e.phase == 2:
 		# 偏执泡影二阶段：e_paranoia2 和一阶段几乎一样（新图已下单 v12），过渡期在画面层区分——
 		# 整体偏洋红、体量 ×1.1、身周一圈扭动的洋红光晕
@@ -3602,16 +3678,19 @@ func draw_warn_outlines() -> void:
 				g.draw_arc(w.pos, maxf(4.0, w.r * k), w.ang - w.half, w.ang + w.half, 20, Color(1, 1, 1, (0.3 + 0.4 * k) * da), 1.5)
 				if lock_flash > 0.0:
 					g.draw_colored_polygon(pts, Color(1, 1, 1, 0.3 * lock_flash))
-		# ④ 缺口环的出口：缺口两侧金色短线 + 中间「出口」小牌（缺口方向与真实弹道同一角度，不做地面压缩）
+		# ④ 缺口环的出口：缺口两侧金色短线 + 中间「出口」小牌（缺口方向与真实弹道同一角度，不做地面压缩）；多缺口（gaps）每个缺口各画一组
 		if w.has("gap_ang"):
 			var safe_col := Color(1.0, 0.85, 0.35, 0.9)
-			for side in [-1.0, 1.0]:
-				var v := Vector2.from_angle(float(w.gap_ang) + side * float(w.gap_half))
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, Color(0, 0, 0, 0.7), 5.0)
-				g.draw_line(w.pos + v * 90.0, w.pos + v * 190.0, safe_col, 2.0)
-			var mp: Vector2 = w.pos + Vector2.from_angle(float(w.gap_ang)) * 150.0
-			g.draw_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
-			UI.text(g, g.font, mp + Vector2(-20, 3), "出口", 12, safe_col, HORIZONTAL_ALIGNMENT_CENTER, 40)
+			var r_in: float = minf(90.0, float(w.r) * 0.6)
+			var r_out: float = maxf(190.0, float(w.r) + 40.0)
+			for ga in w.get("gaps", [w.gap_ang]):
+				for side in [-1.0, 1.0]:
+					var v := Vector2.from_angle(float(ga) + side * float(w.gap_half))
+					g.draw_line(w.pos + v * r_in, w.pos + v * r_out, Color(0, 0, 0, 0.7), 5.0)
+					g.draw_line(w.pos + v * r_in, w.pos + v * r_out, safe_col, 2.0)
+				var mp: Vector2 = w.pos + Vector2.from_angle(float(ga)) * (r_in + r_out) * 0.5
+				g.draw_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
+				UI.text(g, g.font, mp + Vector2(-20, 3), "出口", 12, safe_col, HORIZONTAL_ALIGNMENT_CENTER, 40)
 
 
 func draw_zone() -> void:

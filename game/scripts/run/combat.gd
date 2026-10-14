@@ -31,7 +31,7 @@ var low_warned := false
 const NO_LOG := ["tear", "dark"]
 ## 主控保护（docs/38 §1.11）：只管 Boss 来源的扣血（Boss 本体接触、Boss 预警 / 冲击环 / 子弹、Boss 子弹留下的溟痕、
 ## Boss 招式追加的侵蚀、伊莎玛拉之泪）；自然溟痕、黑潮、小怪都不算。数值旋钮 boss/*（Bal.v，默认值即现值）
-const BOSS_DOT := ["corrode", "mire"]   # 算「持续伤害」的来源：Boss 在场时合计每秒封顶
+const BOSS_DOT := ["corrode", "mire", "izu_burn"]   # 算「持续伤害」的来源：Boss 在场时合计每秒封顶（izu_burn：伊祖米克「震撼」33% 后的持续法伤，docs/95 §3.2 D）
 ## 「任意 2 秒合计 ≤50%」按两种口径同时截，同一份伤害在每个口径里只算一次：
 var boss_log: Array = []     # [时刻, 数值]：Boss 扣血 + Boss 招式追加进侵蚀池的量（docs/38 §1.11「含追加的侵蚀」；窗口满时追加的侵蚀也作废）
 var loss_log: Array = []     # [时刻, 数值]：Boss 来源的实际扣血，含 Boss 侵蚀结算（实际掉血口径）
@@ -1061,6 +1061,13 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
+	# 最后的骑士「寒冷」受击滑窗（docs/95 §4.2 C，原作「受到伤害时给伤害来源附加寒冷」）：boss/knight_frost_win（8）秒窗口内累计受到的伤害占最大生命比例，
+	# knight_boss.gd 在 step 里判 ≥ knight_frost_pct（6%）且主控在 r180 内才放寒冷；窗口到期归零重计
+	if e.type == "knight_boss":
+		if g.t - float(e.get("frost_win_t", -99.0)) > Bal.v("boss/knight_frost_win", 8.0):
+			e.frost_win_t = g.t
+			e.frost_taken = 0.0
+		e.frost_taken = float(e.get("frost_taken", 0.0)) + eff
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
 	g.telemetry.on_dmg(e, eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
 	if g.hit.origin == "relic":
@@ -1102,6 +1109,9 @@ func damage(e: Dictionary, dmg: float) -> void:
 			e.channel = 1.5
 			e.stun = 0.0
 			e.kb = Vector2.ZERO
+			e.frost_taken = 0.0
+			e["tint2"] = Color(0.82, 0.92, 1.25)   # 二阶段常驻冰蓝着色（docs/95 §4.2；render/world 乘色，不改帧条）
+			g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
 			if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士 第二阶段")
