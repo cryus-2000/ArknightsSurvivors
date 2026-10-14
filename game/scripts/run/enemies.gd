@@ -546,6 +546,47 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 	return best
 
 
+# ---- 出生口 / 槽位 / id 表（docs/101 B5，§4.3）：所有敌人经 admit 进 g.enemies（spawner.spawn_enemy / spawn_chest 两处），
+# 分配槽位 e.slot（原生端热字段平行数组的下标；空闲槽位后进先出复用）并登记 id 表；sweep_dead（game._cleanup / enemy_demo 每步）
+# 去掉已死的、回收槽位。测试里直接改 g.enemies 的敌人不经这里，不影响槽位表
+var _slot_free := PackedInt32Array()
+var _slot_n := 0               # 用过的最大槽位数（平行数组的长度）
+var _by_id := {}               # e.id -> 敌人字典（admit 时登记，sweep_dead 回收时删）
+
+
+func admit(e: Dictionary) -> void:
+	var nf: int = _slot_free.size()
+	if nf > 0:
+		e["slot"] = _slot_free[nf - 1]
+		_slot_free.resize(nf - 1)
+	else:
+		e["slot"] = _slot_n
+		_slot_n += 1
+	_by_id[e.id] = e
+	g.enemies.append(e)
+
+
+## id → 敌人字典；已被 sweep_dead 回收（或从没经 admit）的返回 null
+func by_id(id: int):
+	return _by_id.get(id)
+
+
+func slot_count() -> int:
+	return _slot_n
+
+
+## 去掉已死的敌人并回收槽位，返回新数组（顺序不变，与原来的 arr.filter(not dead) 等价；每次都返回新数组，种类登记照旧据此重建）
+func sweep_dead(arr: Array) -> Array:
+	var keep: Array = []
+	for e in arr:
+		if not e.dead:
+			keep.append(e)
+		elif e.has("slot") and is_same(_by_id.get(e.id), e):
+			_slot_free.append(int(e.slot))
+			_by_id.erase(e.id)
+	return keep
+
+
 # ---- 部件与种类登记（docs/101 S7）：消掉每次击杀 / 刷怪对 g.enemies 的全表扫描。只是索引，读的时候照样看敌人身上的实时字段（dead / part），
 # 所以不管谁在哪里把 dead 设成 true 都不会算错；结果和全表扫描逐个相同（同种子 TRACE 不变）
 var _parts: Array = []        # 设过 part 的敌人（偏执泡影茧、塑路者核心分形；只有这两处设 part）

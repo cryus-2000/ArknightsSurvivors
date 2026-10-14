@@ -123,7 +123,7 @@ func step(dt: float) -> void:
 	g.hp = g.max_hp
 	g.gems.clear()
 	g.texts = g.texts.filter(func(tx): return tx.life > 0.0)
-	g.enemies = g.enemies.filter(func(e): return not e.dead)
+	g.enemies = g.enemies_sys.sweep_dead(g.enemies)
 	# 看完一整轮再重置位置。死亡型 / 蜕变型有 2 秒收尾，Boss 留 35 秒展示三组招式。
 	var period := cycle_period()
 	if (subject.dead and elapsed > 3.0) or elapsed >= period or (subject.type == "ishar" and phase_mode == 1 and subject.phase == 2):

@@ -790,7 +790,7 @@ func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	# 休眠的敌人（钵海收割者）从屏幕外刷出来就看不到了：改放到主控周围 330–480 的海床上当伏兵；大群里的会在刷出后唤醒
 	if e.dormant and pos.distance_to(g.ppos) > 700.0:
 		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(330.0, 480.0), e.r)
-	g.enemies.append(e)
+	g.enemies_sys.admit(e)   # 唯一出生口（docs/101 B5）：槽位 + id 表
 	check_enemy(e, type)
 	return e
 
@@ -811,7 +811,7 @@ func check_enemy(e: Dictionary, where: String) -> void:
 ## 补给箱；约 15% 是伪装的箱形恐鱼
 func spawn_chest(pos: Vector2, event_id := "") -> void:
 	next_id += 1
-	g.enemies.append({
+	g.enemies_sys.admit({
 		"id": next_id, "type": "chest", "name": "补给箱" if event_id == "" else "海嗣祭坛", "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
 		"event": event_id,
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,

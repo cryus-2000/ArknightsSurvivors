@@ -1665,7 +1665,7 @@ func facing_angle() -> float:
 
 
 func _cleanup() -> void:
-	enemies = enemies.filter(func(e): return not e.dead)
+	enemies = enemies_sys.sweep_dead(enemies)   # 去掉已死的并回收槽位（docs/101 B5；顺序与原 filter 相同）
 	# 掉落物只在 pickups.gd 里被标记 dead（拾取 / 回收，计数 dead_n）：这一帧没有就不重建（满地几百颗时逐帧 filter 是常驻开销，docs/50 §11）
 	if pickups.dead_n > 0:
 		gems = gems.filter(func(g): return not g.dead)
