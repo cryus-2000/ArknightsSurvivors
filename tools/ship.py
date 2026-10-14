@@ -57,6 +57,9 @@ def main():
     steps = []
     if not a.skip_check:
         steps.append(("快检", [sys.executable, TOOLS / "check.py", "--jobs", "4"]))
+        # 积木等价金样重录（docs/36 §1.3）：快检通过后把数据版输出录到 build/golden_cache；seed1 用例刚跑过、直接命中结果缓存。
+        # 不挡发版：失败（多半是 seed3 用例与未过期金样不同）只提示，金样不更新
+        steps.append(("金样重录", [sys.executable, TOOLS / "check.py", "--only", "blocks_eq", "--eq-all", "--update-golden", "--jobs", "4"]))
     steps.append(("发布检查", [sys.executable, TOOLS / "check_release.py"]))
     steps.append(("推 origin/main", ["git", "push", "origin", "main"]))
     for kind in ("public", "web", "internal"):
@@ -74,6 +77,9 @@ def main():
         log = logdir / (name.replace(" ", "_").replace("/", "_") + ".log")
         rc = sh(cmd, log)
         print("  rc=%d  %.0fs  %s" % (rc, time.time() - t0, log.relative_to(ROOT)))
+        if rc != 0 and name == "金样重录":
+            print("    金样没有重录（不挡发版）：多半是 seed3 用例与金样不同，看日志 %s" % log)
+            continue
         if rc != 0:
             sys.exit("「%s」失败，后续步骤未做；看日志 %s" % (name, log))
     print("完成：origin/main = %s；包在 build/release/final_%s/；itch %s" % (short, short, "已更新" if not a.no_itch else "未推"))

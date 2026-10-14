@@ -1,0 +1,332 @@
+{
+"gid": "saria",
+"case": "seed1 精零 + 技力常满",
+"args": [
+"--balance",
+"--seed=1",
+"--op=saria",
+"--bot=expert",
+"--maxt=45",
+"--trace=1",
+"--sptest"
+],
+"own": "441dc75d27f065b79f5b92450e9fea6c163cb433498a7f067f4f066347c5e4f2",
+"other": "ce9c1b4186e6ca5c72f22c37e6aca56fbde4dcf65c11bc9bbb0a9ee473037ed5",
+"commit": "fd9ce553",
+"time": "2026-10-15 01:37:42",
+"trace": [
+"TRACE t=0.00 lv=1 k=0 hp=115.00 n=0 rng=-7722681714327978727 pos=0.00,0.00 h=0.000",
+"TRACE t=1.06 lv=1 k=0 hp=115.00 n=0 rng=-7722681714327978727 pos=158.40,0.00 h=0.000",
+"TRACE t=2.05 lv=1 k=0 hp=115.00 n=1 rng=-6770124085828356322 pos=306.90,0.00 h=-224.642",
+"TRACE t=3.04 lv=1 k=0 hp=115.00 n=2 rng=-1869679294319279097 pos=455.40,0.00 h=-327.648",
+"TRACE t=4.03 lv=1 k=0 hp=115.00 n=3 rng=-3586379379941937244 pos=603.90,0.00 h=137.751",
+"TRACE t=5.02 lv=1 k=0 hp=115.00 n=4 rng=-5207867171622888955 pos=750.89,-7.58 h=633.704",
+"TRACE t=6.01 lv=1 k=0 hp=115.00 n=5 rng=-5228846795448423302 pos=890.35,-53.04 h=1080.503",
+"TRACE t=7.06 lv=1 k=1 hp=115.00 n=5 rng=-6152135686892286559 pos=1003.12,-134.34 h=804.962",
+"TRACE t=8.05 lv=1 k=1 hp=115.00 n=6 rng=-332793269608262074 pos=1108.13,-239.34 h=1305.751",
+"TRACE t=9.04 lv=1 k=2 hp=115.00 n=6 rng=8861850193195784573 pos=1199.99,-342.73 h=1058.827",
+"TRACE t=10.03 lv=1 k=2 hp=115.00 n=7 rng=-8658104101837382318 pos=1256.82,-479.93 h=1808.471",
+"TRACE t=11.02 lv=1 k=3 hp=115.00 n=7 rng=7097705671140055449 pos=1319.82,-602.33 h=1866.141",
+"TRACE t=12.01 lv=1 k=3 hp=115.00 n=8 rng=-7047088398165396694 pos=1424.83,-707.34 h=2739.917",
+"TRACE t=13.00 lv=1 k=3 hp=115.00 n=9 rng=-5867099982150165143 pos=1529.83,-812.34 h=3377.619",
+"TRACE t=14.06 lv=1 k=3 hp=115.00 n=10 rng=7471859293193026978 pos=1641.84,-924.35 h=4788.756",
+"TRACE t=15.05 lv=1 k=3 hp=115.00 n=11 rng=-5631488987745524063 pos=1746.84,-1029.35 h=5613.096",
+"TRACE t=16.04 lv=1 k=3 hp=115.00 n=13 rng=-1575301134552260245 pos=1851.85,-1134.36 h=6715.621",
+"TRACE t=17.03 lv=1 k=3 hp=115.00 n=14 rng=5429334137866238052 pos=1965.44,-1226.52 h=7094.532",
+"TRACE t=18.02 lv=1 k=3 hp=115.00 n=15 rng=3171811711001331843 pos=2104.14,-1268.19 h=9432.616",
+"TRACE t=19.01 lv=1 k=4 hp=115.00 n=15 rng=-8832837269151786718 pos=2207.03,-1255.82 h=9496.838",
+"TRACE t=20.06 lv=2 k=4 hp=115.00 n=17 rng=3502214655521364403 pos=2330.53,-1176.58 h=11231.863",
+"TRACE t=21.05 lv=2 k=4 hp=115.00 n=18 rng=3308563337767597768 pos=2248.01,-1056.56 h=12251.420",
+"TRACE t=22.04 lv=2 k=4 hp=115.00 n=19 rng=-6240796365777038821 pos=2207.60,-964.40 h=12657.110",
+"TRACE t=23.03 lv=2 k=6 hp=115.00 n=18 rng=-5586210346299979062 pos=2240.38,-953.05 h=12030.475",
+"TRACE t=24.02 lv=2 k=6 hp=115.00 n=19 rng=-7826195793960560879 pos=2117.01,-969.19 h=12955.766",
+"TRACE t=25.01 lv=2 k=8 hp=115.00 n=19 rng=-1202181492753051328 pos=2126.33,-942.76 h=12854.360",
+"TRACE t=26.00 lv=3 k=11 hp=115.00 n=17 rng=1515493462736840645 pos=2122.17,-889.02 h=11173.885",
+"TRACE t=27.06 lv=3 k=12 hp=115.00 n=17 rng=669995791662648350 pos=2121.18,-1014.99 h=11194.858",
+"TRACE t=28.05 lv=3 k=12 hp=115.00 n=18 rng=3081835923841972059 pos=2137.89,-985.78 h=12131.907",
+"TRACE t=29.04 lv=3 k=12 hp=115.00 n=19 rng=-1995750451108949450 pos=2137.89,-1134.28 h=12517.570",
+"TRACE t=30.03 lv=3 k=13 hp=115.00 n=20 rng=7024163554544139922 pos=2088.83,-1170.30 h=13605.041",
+"TRACE t=31.02 lv=3 k=15 hp=115.00 n=19 rng=-2427985121403454677 pos=2007.36,-1114.85 h=12742.273",
+"TRACE t=32.01 lv=3 k=19 hp=115.00 n=16 rng=-6747223879261828530 pos=2024.51,-1072.31 h=10963.219",
+"TRACE t=33.07 lv=3 k=22 hp=115.00 n=14 rng=-4728316716462636365 pos=2083.16,-1116.15 h=9882.734",
+"TRACE t=34.06 lv=3 k=23 hp=115.00 n=15 rng=-4691208761504318049 pos=2124.53,-1221.62 h=10487.576",
+"TRACE t=35.05 lv=3 k=23 hp=115.00 n=16 rng=6890043421502109650 pos=2066.38,-1284.32 h=10712.394",
+"TRACE t=36.04 lv=3 k=25 hp=115.00 n=15 rng=985220926555669541 pos=2011.84,-1163.83 h=9783.955",
+"TRACE t=37.03 lv=3 k=27 hp=115.00 n=14 rng=-7111626158231849990 pos=2100.23,-1166.10 h=8783.529",
+"TRACE t=38.02 lv=3 k=29 hp=115.00 n=14 rng=6485008182189677226 pos=2190.30,-1166.06 h=9227.139",
+"TRACE t=39.01 lv=3 k=29 hp=115.00 n=15 rng=-7519061409807310367 pos=2190.30,-1017.56 h=9644.760",
+"TRACE t=40.06 lv=3 k=31 hp=115.00 n=14 rng=-1291008607699207836 pos=2191.87,-1069.35 h=8913.193",
+"TRACE t=41.05 lv=4 k=32 hp=115.00 n=15 rng=-4792503263383820216 pos=2061.75,-1049.25 h=9600.478",
+"TRACE t=42.04 lv=4 k=32 hp=115.00 n=16 rng=-1888732205003544735 pos=2038.75,-1124.78 h=10112.885",
+"TRACE t=43.03 lv=4 k=32 hp=115.00 n=17 rng=550109797331969148 pos=1993.86,-1262.85 h=10887.144",
+"TRACE t=44.02 lv=4 k=34 hp=115.00 n=17 rng=-8383921878557685226 pos=2048.07,-1327.44 h=10922.896",
+"TRACE t=45.01 lv=4 k=35 hp=115.00 n=17 rng=-6079293213146246709 pos=2077.73,-1338.98 h=10651.372"
+],
+"balance": {
+"allies": 0,
+"armor_cf": {},
+"boss_hp": -1.0,
+"bosses": [],
+"bot": {
+"bosses": [],
+"curve": [
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 0,
+"hp": 100,
+"hsrc": {},
+"kills": 0,
+"lamp": 100,
+"lv": 1,
+"mhp": 115,
+"squad": 1,
+"t": 0,
+"taken": 0,
+"zone": 0
+},
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 20,
+"hp": 100,
+"hsrc": {},
+"kills": 13,
+"lamp": 100,
+"lv": 3,
+"mhp": 115,
+"squad": 1,
+"t": 30,
+"taken": 0,
+"zone": 0
+}
+],
+"curve_tail": {
+"dsrc": {},
+"hsrc": {},
+"mhp": 115,
+"t": 45,
+"t0": 30,
+"taken": 0
+},
+"dark_dmg": 0,
+"dark_s": 0,
+"death_src": "",
+"elite_t": {
+"saria:1": 41
+},
+"end": {
+"boss": false,
+"hp": 115,
+"last15": {
+"corrode_out": 0.0,
+"corrode_peak": 0.0,
+"dark_s": 0.0,
+"ebullets_peak": 0,
+"enemies_peak": 20,
+"hits": [],
+"mire_s": 0.0,
+"nerve_bursts": 0,
+"t": 45.0
+},
+"src": "",
+"t": 45,
+"zone_out": false,
+"zone_phase": -1,
+"zone_state": 0
+},
+"floors": [],
+"hits": 0,
+"hits_pm": 0.0,
+"low_hp_s": 0,
+"moved_pm": 8959,
+"profile": "expert",
+"reaper_drain_deaths": 0,
+"recruit_t": [],
+"still_pct": 0,
+"taken": 0,
+"taken_pm": 0
+},
+"ctrl": {
+"aslow_slow": 0,
+"aslow_t": 0.0,
+"boss_t": 0.0,
+"floor": 0.7,
+"move_min": 1.0,
+"slow_min": 1.0,
+"stun_slow": 0,
+"stun_t": 0.0
+},
+"ctrl_src": {
+"boss": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"founder": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"other": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"skimmer": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"slow_any_t": 0.0
+},
+"dashes": 0,
+"dmg": {},
+"drone": 0,
+"elite_stage": 1,
+"elites": 1,
+"ending": "standard",
+"final_out": {
+"拳击": 683.984579969528,
+"钙晶": 341.427520616936
+},
+"floor_hits": 0,
+"floor_times": [],
+"fuse": {
+"left": 0,
+"pct": 0.0,
+"pool": 0,
+"t": -1
+},
+"growth": {},
+"heal": {
+"塞雷娅": 0.0,
+"自身回复": 0.0
+},
+"heal_offer": 3,
+"heal_offer_low": 0,
+"heal_pick": 0,
+"hordes": [],
+"ingots": 10,
+"items": {
+"heal_elite": 0,
+"heal_low": 0,
+"heal_mob": 0,
+"heal_pick": 0,
+"magnet_elite": 1,
+"magnet_mob": 0,
+"magnet_pick": 1,
+"mob_capped": 0,
+"mob_rolled": 34
+},
+"kills": 35,
+"lamp": 100,
+"low_levelups": 0,
+"lv": 4,
+"lv_times": [
+19,
+25,
+40
+],
+"marks": {},
+"maxhp": 115.0,
+"ops": [
+{
+"elite": 1,
+"id": "saria",
+"prog": 3
+}
+],
+"out": {
+"拳击": 683.984579969528,
+"钙晶": 341.427520616936
+},
+"out_tag": {
+"basic": 683.984579969528,
+"control": 683.984579969528,
+"entity": 341.427520616936,
+"follow_up": 341.427520616936
+},
+"out_type": {
+"物理": 1025.41210058646
+},
+"prog_offer": {
+"saria": 3
+},
+"prog_pick": {
+"saria": 3
+},
+"recall_backstop": 0,
+"recall_n": 0,
+"rej": {},
+"relic_offer": [
+[
+25,
+"choice",
+[
+"143",
+"205",
+"155"
+]
+]
+],
+"relic_out": 0.0,
+"relic_take": [
+[
+25,
+"143",
+[
+"重装"
+]
+]
+],
+"relics": 1,
+"squad": [
+"saria"
+],
+"sus": {
+"m0": {
+"clean": {},
+"dr": {},
+"heal": {
+"塞雷娅": [
+0.0,
+141.58
+]
+},
+"lit": 0.0
+}
+},
+"swaps": [],
+"t": 45,
+"terrain": {
+"bul": 0,
+"dash": 0,
+"ebul": 0
+},
+"win": false,
+"xp_backstop": 0.0,
+"xp_dropped": 115.0,
+"xp_ground": 0.0,
+"xp_magnet": 7.5,
+"xp_magnet_min": [
+7.5
+],
+"xp_recall": 0.0,
+"xp_recall_min": [],
+"xp_total": 115.0,
+"xp_total_min": [
+115.0
+],
+"xp_walk": 107.5,
+"xp_walk_min": [
+107.5
+]
+},
+"hand_equal": true,
+"hand_arg": "--opscript=saria=res://tests/data_ops/saria_legacy.gd"
+}

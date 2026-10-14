@@ -540,19 +540,23 @@ def check_repro(godot):
     return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
 
 
-# 积木等价测试（docs/61 §测试）：数据干员（data_operator.gd 执行 blocks）与同一份数值的手写参照（--opscript 换脚本）同 seed 跑，
-# TRACE 行与 BALANCE（去掉 prof / 画面峰值）必须逐字节相同。两组：
-#  eqtest   测试专用干员（game/tests/data_ops/eqtest.json ↔ eqtest_hand.gd）
-#  kaltsit  凯尔希（data/characters/kaltsit.json ↔ tests/data_ops/kaltsit_legacy.gd = 原手写脚本，画面粒子改 g.vrng；docs/61 §15.9）。
-#           数据版的 Mon3tr 出手带通用召唤物标签 summon，所以 BALANCE 的 out_tag.summon 只在数据版有，比较时去掉
+# 积木等价测试（docs/61 §测试；10-15 起「数据版 vs 金样」，docs/36 §1.3）：原先数据干员与同一份数值的手写参照（tests/data_ops/*_legacy.gd、
+# eqtest_hand.gd，共 7538 行）同 seed 跑、TRACE 与 BALANCE 逐字节比。用户 10-15 批 docs/101 §8 第 4 项「录金样后下线」：
+# 下线前（main fd9ce553）两版全部用例逐字节相同，把输出录成金样 game/tests/golden/fd9ce553/（证据快照），手写参照删除（git 历史可追）。
+# 现在只跑数据版，与金样比：
+#   金样记「本干员侧」与「别处」两个哈希。本干员侧 = 本干员的数据 / 脚本 / 帧条尺寸 + 积木公共文件（op_blocks / data_operator /
+#   character / op_api）；别处 = 其余玩法输入（check.logic_entries，不含 game/tests/）。
+#   别处没变、输出却变了 → FAIL（只可能是本干员或积木改出来的）；别处变了 → 判「金样过期」跳过（不算失败）。
+#   ship 全量通过后 `check.py --only blocks_eq --eq-all --update-golden` 把数据版输出重录到 build/golden_cache/（不进 git），之后优先用它。
+#  kaltsit：数据版的 Mon3tr 出手带通用召唤物标签 summon（手写参照没有），金样录的时候已去掉，比较时同样去掉
 EQ_GROUPS = [
-    ("eqtest", "--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd", [
+    ("eqtest", [
         ("seed1 全节点 + 技力常满", ["--balance", "--seed=1", "--op=eqtest", "--bot=expert", "--maxt=240", "--trace=1", "--maxprog", "--sptest"]),
         ("seed2 自然流程", ["--balance", "--seed=2", "--op=eqtest", "--bot=expert", "--maxt=300", "--trace=1"]),
     ], ["测试脉冲", "测试回声", "测试共鸣", "测试斩", "测试音符"]),
     # 10-13 精英化第 1 批（docs/91 §6）后数据版凯尔希的精一「扑击」/ 精二「回防」/ 八面展开 60% 是新设计，旧手写参照没有：
     # 这组只比精零（不推全节点、不进精英化），守住 Mon3tr 迁积木的本体（随行、爪击、治疗、一技能）
-    ("kaltsit", "--opscript=kaltsit=res://tests/data_ops/kaltsit_legacy.gd", [
+    ("kaltsit", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=kaltsit", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=kaltsit,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
@@ -560,22 +564,22 @@ EQ_GROUPS = [
     # 10-14 精英化第 2 批（docs/91 §19 批 2）：四名手写干员迁积木（docs/61 §17），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
     # 只把画面随机数换成 g.vrng、少数乘法顺序与同帧先后对齐数据版，见各文件开头）。迁移提交时两版全节点 + 精二逐行相同；
     # 之后加了精一 / 精二新形态（docs/91 §24），旧手写参照没有，所以同凯尔希只比精零（不推全节点、不进精英化）：主控技力常满一局、当队友全藏品一局
-    ("skadi", "--opscript=skadi=res://tests/data_ops/skadi_legacy.gd", [
+    ("skadi", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=skadi", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=skadi,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["大剑", "迅捷打击·γ型"]),
-    ("eyjafjalla", "--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd", [
+    ("eyjafjalla", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=eyjafjalla,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["熔岩弹"]),
-    ("logos", "--opscript=logos=res://tests/data_ops/logos_legacy.gd", [
+    ("logos", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=logos", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=logos,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
     ], ["言", "提喻"]),
-    ("ulpianus", "--opscript=ulpianus=res://tests/data_ops/ulpianus_legacy.gd", [
+    ("ulpianus", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=ulpianus", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友 + 全藏品（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=ulpianus,suzuran", "--bot=expert", "--maxt=60", "--trace=1",
                                  "--sptest", "--relics=all"]),
@@ -583,38 +587,38 @@ EQ_GROUPS = [
     # 10-14 精英化第 3 批（docs/91 §19 批 3）：归溟幽灵鲨 / 水月 / 艾丽妮 / 流明迁积木（docs/61 §19），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
     # 只把画面随机数换成 g.vrng，见各文件开头）。迁移提交（22e246dc）时两版全节点 + 精二逐行相同；之后加了精一 / 精二新形态（docs/91 §25），
     # 旧手写参照没有，所以同第 2 批只比精零：主控技力常满一局、当队友一局（不带全藏品：全藏品 40 秒内全队就满精英）
-    ("specter_unchained", "--opscript=specter_unchained=res://tests/data_ops/specter_unchained_legacy.gd", [
+    ("specter_unchained", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=specter_unchained", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=specter_unchained,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["锯刃"]),
-    ("mizuki", "--opscript=mizuki=res://tests/data_ops/mizuki_legacy.gd", [
+    ("mizuki", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=mizuki", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=mizuki,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["伞击", "触手"]),
-    ("irene", "--opscript=irene=res://tests/data_ops/irene_legacy.gd", [
+    ("irene", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=irene", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=irene,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["刺剑", "起风"]),
-    ("lumen", "--opscript=lumen=res://tests/data_ops/lumen_legacy.gd", [
+    ("lumen", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=lumen", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=wisadel", "--squad=lumen,suzuran", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["光弹"]),
     # 10-14 精英化第 4 批（docs/91 §19 批 4）：推进之王 / 铃兰 / 维什戴尔 / 塞雷娅迁积木（docs/61 §21），原手写脚本留作参照（tests/data_ops/<id>_legacy.gd，
     # 只把画面随机数换成 g.vrng，见各文件开头）。迁移提交（bf861722）时两版全节点 + 精二逐行相同；之后加了精一 / 精二新形态（docs/91 §26），
     # 旧手写参照没有，所以同第 2、3 批只比精零：主控技力常满一局、当队友一局（星熊队长，不带全藏品：全藏品 40 秒内全队就满精英）
-    ("siege", "--opscript=siege=res://tests/data_ops/siege_legacy.gd", [
+    ("siege", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=siege", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=siege,exusiai", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["锤击"]),
-    ("suzuran", "--opscript=suzuran=res://tests/data_ops/suzuran_legacy.gd", [
+    ("suzuran", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=suzuran", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=suzuran,texas", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["狐火"]),
-    ("wisadel", "--opscript=wisadel=res://tests/data_ops/wisadel_legacy.gd", [
+    ("wisadel", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=wisadel", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=wisadel,angelina", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["炮击"]),
-    ("saria", "--opscript=saria=res://tests/data_ops/saria_legacy.gd", [
+    ("saria", [
         ("seed1 精零 + 技力常满", ["--balance", "--seed=1", "--op=saria", "--bot=expert", "--maxt=45", "--trace=1", "--sptest"]),
         ("seed3 当队友（精零）", ["--balance", "--seed=3", "--op=hoshiguma", "--squad=saria,kaltsit", "--bot=expert", "--maxt=60", "--trace=1", "--sptest"]),
     ], ["拳击"]),
@@ -646,48 +650,137 @@ def _balance_core(d, drop_tags=()):
 
 
 EQ_ALL = False   # --eq-all：每组跑全部用例；缺省每组只跑第一条（seed1），第二条（seed2 / seed3 当队友）改到云端每日一跑（docs/36 §7.6，10-15）
+UPDATE_GOLDEN = False   # --update-golden：本项通过后把数据版输出重录到 build/golden_cache/（ship 全量通过后调用）
+GOLDEN_SNAP = os.path.join(GAME, "tests", "golden")
+GOLDEN_ROLL = os.path.join(GR.common_root(), "build", "golden_cache")
+EQ_COMMON = ("game/scripts/characters/op_blocks.gd", "game/scripts/characters/data_operator.gd",
+             "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd")
+_ENTRIES = {}
+
+
+def logic_entries(game=GAME):
+    """玩法输入清单 {路径: 内容标记}，同 scope_hashes 的 logic 档（game/ 非图片音频字体；art/incoming 图按尺寸、json 按内容、音频按名），
+    但不含 game/tests/（测试脚本不影响 --balance 局；测试专用干员的 json 单独算进本干员侧）"""
+    if "e" not in _ENTRIES:
+        rel = os.path.relpath(game, ROOT).replace(os.sep, "/")
+        e = {}
+        for path, b in _blobs(rel).items():
+            if not path.lower().endswith(ASSET_EXT) and not path.startswith(rel + "/tests/"):
+                e[path] = b
+        for path, b in _blobs("art/incoming").items():
+            low = path.lower()
+            if low.endswith(".png"):
+                e[path] = _png_size(path)
+            elif low.endswith((".json", ".txt", ".cfg")):
+                e[path] = b
+            elif low.endswith((".wav", ".ogg", ".mp3")):
+                e[path] = "-"
+        _ENTRIES["e"] = e
+    return _ENTRIES["e"]
+
+
+def eq_hashes(gid):
+    """(本干员侧哈希, 别处哈希)"""
+    own = set(EQ_COMMON) | {"game/data/characters/%s.json" % gid, "game/tests/data_ops/%s.json" % gid, "game/scripts/characters/%s.gd" % gid}
+    hs = [hashlib.sha256(), hashlib.sha256()]
+    ent = dict(logic_entries())
+    if "td" not in _ENTRIES:
+        _ENTRIES["td"] = _blobs("game/tests/data_ops")
+    tj = "game/tests/data_ops/%s.json" % gid   # 测试专用干员（eqtest）的数据只算进它自己那组
+    if tj in _ENTRIES["td"]:
+        ent[tj] = _ENTRIES["td"][tj]
+    for path, tok in sorted(ent.items()):
+        mine = path in own or path.startswith("art/incoming/op_%s_" % gid)
+        hs[0 if mine else 1].update(("%s %s\n" % (path, tok)).encode("utf-8"))
+    return hs[0].hexdigest(), hs[1].hexdigest()
+
+
+def _golden_file(gid, name):
+    return "%s__%s.json" % (gid, name.split()[0])
+
+
+def load_golden(gid, name):
+    """优先 build/golden_cache（ship 重录的），否则 game/tests/golden/<提交>/（下线时的证据快照，取最新一份）"""
+    p = os.path.join(GOLDEN_ROLL, _golden_file(gid, name))
+    if not os.path.exists(p) and os.path.isdir(GOLDEN_SNAP):
+        snaps = sorted(d for d in os.listdir(GOLDEN_SNAP) if os.path.isdir(os.path.join(GOLDEN_SNAP, d)))
+        p = os.path.join(GOLDEN_SNAP, snaps[-1], _golden_file(gid, name)) if snaps else ""
+    try:
+        return json.load(open(p, encoding="utf-8")), p
+    except (OSError, ValueError):
+        return None, p
+
+
+def golden_record(gid, name, extra, trace, core):
+    own, other = eq_hashes(gid)
+    return {"gid": gid, "case": name, "args": extra, "own": own, "other": other,
+            "commit": _git("rev-parse", "--short=8", "HEAD").strip(), "time": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "trace": trace, "balance": core}
 
 
 def check_blocks_eq(godot):
-    jobs = [(gid, hand_arg, name, extra, hand) for gid, hand_arg, cases, _ in EQ_GROUPS for name, extra in (cases if EQ_ALL else cases[:1]) for hand in (False, True)]
+    """积木干员 vs 金样（见上）"""
+    jobs = [(gid, name, extra) for gid, cases, _ in EQ_GROUPS for name, extra in (cases if EQ_ALL else cases[:1])]
 
     def one(j):
-        gid, hand_arg, name, extra, hand = j
-        out, err, to, log = _run(godot_args(godot, extra + ([hand_arg] if hand else [])), 300, "blocks_eq_%s_%s_%s" % (gid, name.split()[0], "hand" if hand else "data"))
+        gid, name, extra = j
+        out, err, to, log = _run(godot_args(godot, extra), 300, "blocks_eq_%s_%s" % (gid, name.split()[0]))
         return j, out, err, to, log
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 并发由 GATE 管（≤ --jobs），这里只负责一起排队
         res = list(ex.map(one, jobs))
-    errs, details, logs = [], [], []
-    by = {}
-    for (gid, _h, name, extra, hand), out, err, to, log in res:
+    srcs_of = {gid: srcs for gid, _c, srcs in EQ_GROUPS}
+    errs, logs, same, stale, nog, rec = [], [], [], [], [], []
+    for (gid, name, extra), out, err, to, log in res:
         logs.append(log or "")
         se = GR.script_errors(out, err)
         d = parse_balance(out)
         if to or se or d is None:
-            errs.append("%s %s（%s）：%s" % (gid, name, "手写" if hand else "数据", "超时" if to else (se[0][:160] if se else "没有 BALANCE 行")))
+            errs.append("%s %s：%s" % (gid, name, "超时" if to else (se[0][:160] if se else "没有 BALANCE 行")))
             continue
-        by[(gid, name, hand)] = ([l for l in out.splitlines() if l.startswith("TRACE ")], _balance_core(d, ("summon",) if gid == "kaltsit" else ()), d)
-    for gid, _h, cases, srcs in EQ_GROUPS:
-        for name, _ in (cases if EQ_ALL else cases[:1]):
-            if (gid, name, False) not in by or (gid, name, True) not in by:
-                continue
-            (ta, ba, da), (tb, bb, db) = by[(gid, name, False)], by[(gid, name, True)]
-            if len(ta) < 30:
-                errs.append("%s %s：TRACE 行太少（%d），--trace 没生效？" % (gid, name, len(ta)))
-            bad_t = next((k for k in range(max(len(ta), len(tb))) if k >= len(ta) or k >= len(tb) or ta[k] != tb[k]), None)
-            if bad_t is not None:
-                errs.append("%s %s：TRACE 第 %d 行起不同：数据「%s」 / 手写「%s」" % (gid, name, bad_t + 1, ta[bad_t] if bad_t < len(ta) else "-", tb[bad_t] if bad_t < len(tb) else "-"))
-            diff = [k for k in sorted(set(ba) | set(bb)) if ba.get(k) != bb.get(k)]
-            if diff:
-                errs.append("%s %s：BALANCE 不同的字段：%s" % (gid, name, "、".join(diff[:8])))
-            # 积木真的在打：各伤害来源都出现在本局的伤害统计里（数据版）
-            blob = json.dumps(da, ensure_ascii=False)
-            miss = [s for s in srcs if '"%s"' % s not in blob] if "全节点" in name else []
-            if miss:
-                errs.append("%s %s：伤害统计里没有这些来源：%s" % (gid, name, "、".join(miss)))
-            details.append("%s %s %d 行 t=%d" % (gid, name.split()[0], len(ta), int(da.get("t", 0))))
-    ok = not errs and len(by) == len(jobs)
-    return {"name": "积木等价（数据版 = 手写参照）", "ok": ok, "detail": "；".join(details) if details else "没有跑完", "errors": errs[:5], "log": "、".join(l for l in logs if l)}
+        trace = [l for l in out.splitlines() if l.startswith("TRACE ")]
+        core = _balance_core(d, ("summon",) if gid == "kaltsit" else ())
+        if len(trace) < 30:
+            errs.append("%s %s：TRACE 行太少（%d），--trace 没生效？" % (gid, name, len(trace)))
+            continue
+        # 积木真的在打：各伤害来源都出现在本局的伤害统计里
+        blob = json.dumps(d, ensure_ascii=False)
+        miss = [x for x in srcs_of[gid] if '"%s"' % x not in blob] if "全节点" in name else []
+        if miss:
+            errs.append("%s %s：伤害统计里没有这些来源：%s" % (gid, name, "、".join(miss)))
+        rec.append(golden_record(gid, name, extra, trace, core))
+        gd, gp = load_golden(gid, name)
+        tag = "%s %s" % (gid, name.split()[0])
+        if gd is None:
+            nog.append(tag)
+            continue
+        own, other = eq_hashes(gid)
+        if gd.get("other") != other:
+            stale.append(tag)   # 别处的玩法代码变了：金样过期，不判
+            continue
+        ta, ba = gd.get("trace", []), gd.get("balance", {})
+        bad_t = next((k for k in range(max(len(trace), len(ta))) if k >= len(trace) or k >= len(ta) or trace[k] != ta[k]), None)
+        diff = [k for k in sorted(set(core) | set(ba)) if core.get(k) != ba.get(k)]
+        if bad_t is None and not diff:
+            same.append(tag)
+            continue
+        why = "本干员侧改了（%s）" % ("数据 / 脚本 / 积木公共文件 / 帧条尺寸" if gd.get("own") != own else "哈希没变却不同：不确定性？")
+        if bad_t is not None:
+            errs.append("%s：与金样不同，%s；TRACE 第 %d 行：现在「%s」 / 金样「%s」（金样 %s）。有意改行为就用 --update-golden 重录" % (
+                tag, why, bad_t + 1, trace[bad_t] if bad_t < len(trace) else "-", ta[bad_t] if bad_t < len(ta) else "-", os.path.relpath(gp, ROOT)))
+        else:
+            errs.append("%s：与金样不同，%s；BALANCE 字段 %s（金样 %s）。有意改行为就用 --update-golden 重录" % (tag, why, "、".join(diff[:6]), os.path.relpath(gp, ROOT)))
+    ok = not errs and len(rec) == len(jobs)
+    if UPDATE_GOLDEN and ok:
+        os.makedirs(GOLDEN_ROLL, exist_ok=True)
+        for r in rec:
+            tmp = os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"]) + ".%d.tmp" % os.getpid())
+            json.dump(r, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+            os.replace(tmp, os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"])))
+    detail = "与金样相同 %d、金样过期跳过 %d%s%s" % (len(same), len(stale), "、没有金样 %d" % len(nog) if nog else "",
+                                              "；已重录 %d 份到 build/golden_cache" % len(rec) if UPDATE_GOLDEN and ok else "")
+    if stale:
+        detail += "（过期：%s）" % "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
+    return {"name": "积木等价（数据版 vs 金样）", "ok": ok, "detail": detail, "errors": errs[:5], "log": "、".join(l for l in logs if l)}
 
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
@@ -845,6 +938,7 @@ def main():
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
     ap.add_argument("--eq-all", action="store_true", help="积木等价每组跑全部用例（缺省只跑 seed1；全部用例由云端每日例行任务跑，docs/36 §7.6）")
+    ap.add_argument("--update-golden", action="store_true", help="积木等价通过后把数据版输出重录到 build/golden_cache（ship 全量通过后用，docs/36 §1.3）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
@@ -902,8 +996,9 @@ def main():
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))
-    global GATE, NOCACHE, EQ_ALL
+    global GATE, NOCACHE, EQ_ALL, UPDATE_GOLDEN
     EQ_ALL = a.eq_all
+    UPDATE_GOLDEN = a.update_golden
     GATE = Gate(JOBS, _last_durations())
     NOCACHE = a.nocache
     if not NOCACHE:

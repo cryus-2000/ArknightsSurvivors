@@ -1,0 +1,308 @@
+{
+"gid": "lumen",
+"case": "seed1 精零 + 技力常满",
+"args": [
+"--balance",
+"--seed=1",
+"--op=lumen",
+"--bot=expert",
+"--maxt=45",
+"--trace=1",
+"--sptest"
+],
+"own": "ff1dce892af377e6ee68a32a52a0d1d2c8a7deb724669ec7d88badde11c5bd57",
+"other": "dd8e52106b121f3431e8fc3741756cedecb0274480c226f5aa89fe63287850c7",
+"commit": "fd9ce553",
+"time": "2026-10-15 01:37:42",
+"trace": [
+"TRACE t=0.00 lv=1 k=0 hp=135.00 n=0 rng=-7722681714327978727 pos=0.00,0.00 h=0.000",
+"TRACE t=1.06 lv=1 k=0 hp=135.00 n=0 rng=-7722681714327978727 pos=158.40,0.00 h=0.000",
+"TRACE t=2.05 lv=1 k=0 hp=135.00 n=1 rng=-6770124085828356322 pos=306.90,0.00 h=-224.642",
+"TRACE t=3.04 lv=1 k=0 hp=135.00 n=2 rng=-1869679294319279097 pos=455.40,0.00 h=-327.648",
+"TRACE t=4.03 lv=1 k=0 hp=135.00 n=3 rng=-3586379379941937244 pos=603.90,0.00 h=137.751",
+"TRACE t=5.02 lv=1 k=0 hp=135.00 n=4 rng=-5207867171622888955 pos=752.40,0.00 h=633.723",
+"TRACE t=6.01 lv=1 k=0 hp=135.00 n=5 rng=-5228846795448423302 pos=867.00,-61.38 h=1085.620",
+"TRACE t=7.06 lv=1 k=1 hp=135.00 n=5 rng=-6152135686892286559 pos=993.07,-118.15 h=1118.610",
+"TRACE t=8.05 lv=1 k=1 hp=135.00 n=6 rng=-332793269608262074 pos=1081.44,-232.49 h=1592.789",
+"TRACE t=9.04 lv=1 k=2 hp=135.00 n=6 rng=8861850193195784573 pos=1177.76,-320.19 h=1503.410",
+"TRACE t=10.03 lv=1 k=3 hp=135.00 n=6 rng=-7850140221073651736 pos=1226.19,-443.98 h=1824.960",
+"TRACE t=11.02 lv=1 k=4 hp=135.00 n=6 rng=-341406786383520905 pos=1268.60,-558.65 h=1802.999",
+"TRACE t=12.01 lv=2 k=4 hp=135.00 n=7 rng=6862317799182437850 pos=1405.80,-615.48 h=2229.561",
+"TRACE t=13.00 lv=2 k=4 hp=135.00 n=8 rng=-8282640407235710921 pos=1543.00,-672.31 h=2654.027",
+"TRACE t=14.06 lv=2 k=4 hp=135.00 n=9 rng=-5034408915718061040 pos=1689.34,-732.93 h=3452.238",
+"TRACE t=15.05 lv=2 k=4 hp=135.00 n=10 rng=8904341643185519527 pos=1826.53,-789.76 h=4152.407",
+"TRACE t=16.04 lv=2 k=4 hp=135.00 n=12 rng=8616641904512958923 pos=1963.73,-846.58 h=6004.994",
+"TRACE t=17.03 lv=2 k=4 hp=135.00 n=13 rng=-6167914248325790644 pos=2103.18,-892.05 h=6888.753",
+"TRACE t=18.02 lv=2 k=5 hp=135.00 n=13 rng=-2826370524901807235 pos=2237.82,-931.41 h=6683.474",
+"TRACE t=19.01 lv=2 k=5 hp=135.00 n=14 rng=4926444791415052208 pos=2385.57,-935.20 h=7506.746",
+"TRACE t=20.06 lv=2 k=6 hp=135.00 n=15 rng=-5515221772615816909 pos=2478.30,-852.32 h=8697.689",
+"TRACE t=21.05 lv=2 k=6 hp=135.00 n=15 rng=-9086190421148181473 pos=2330.56,-848.53 h=9224.042",
+"TRACE t=22.04 lv=2 k=6 hp=135.00 n=16 rng=3772434157235131414 pos=2188.73,-874.48 h=10286.362",
+"TRACE t=23.03 lv=2 k=7 hp=135.00 n=16 rng=3206421684405390735 pos=2108.99,-924.52 h=10603.995",
+"TRACE t=24.02 lv=2 k=10 hp=135.00 n=14 rng=4962023296909847064 pos=1993.81,-950.20 h=9767.368",
+"TRACE t=25.01 lv=2 k=12 hp=135.00 n=14 rng=-7273931025762454028 pos=1979.18,-887.11 h=9899.540",
+"TRACE t=26.00 lv=2 k=14 hp=135.00 n=13 rng=-5452518774977547937 pos=1865.59,-880.11 h=8929.968",
+"TRACE t=27.06 lv=2 k=15 hp=135.00 n=13 rng=-362027619507440626 pos=1890.36,-936.20 h=9094.307",
+"TRACE t=28.05 lv=2 k=16 hp=135.00 n=13 rng=-6255873323740302931 pos=1966.46,-853.88 h=8872.448",
+"TRACE t=29.04 lv=2 k=17 hp=135.00 n=13 rng=1350124045636736704 pos=2045.77,-934.05 h=8760.564",
+"TRACE t=30.03 lv=2 k=18 hp=135.00 n=14 rng=-539046981859230266 pos=2049.56,-786.30 h=9448.733",
+"TRACE t=31.02 lv=2 k=19 hp=135.00 n=14 rng=7125402081863290885 pos=2026.18,-673.47 h=9178.747",
+"TRACE t=32.01 lv=2 k=21 hp=135.00 n=13 rng=-5123508015373237664 pos=2113.84,-707.55 h=8711.246",
+"TRACE t=33.07 lv=2 k=21 hp=135.00 n=14 rng=3323997194864445131 pos=2081.96,-559.79 h=9388.255",
+"TRACE t=34.06 lv=2 k=23 hp=135.00 n=14 rng=3968955313892314069 pos=1982.25,-620.71 h=9825.605",
+"TRACE t=35.05 lv=3 k=23 hp=135.00 n=15 rng=3658274087638711104 pos=2042.54,-691.61 h=10201.166",
+"TRACE t=36.04 lv=3 k=23 hp=135.00 n=16 rng=1021237881953095877 pos=1905.34,-748.44 h=11090.187",
+"TRACE t=37.03 lv=3 k=25 hp=135.00 n=15 rng=-1782318111541246744 pos=1876.01,-705.36 h=10123.303",
+"TRACE t=38.02 lv=3 k=27 hp=135.00 n=15 rng=-5792280239073320108 pos=1904.31,-801.68 h=9896.050",
+"TRACE t=39.01 lv=3 k=29 hp=135.00 n=14 rng=-3404495399149920111 pos=1845.50,-887.28 h=8805.580",
+"TRACE t=40.06 lv=3 k=31 hp=135.00 n=13 rng=919534429219485466 pos=1888.36,-844.42 h=8059.127",
+"TRACE t=41.05 lv=3 k=32 hp=135.00 n=14 rng=1654564499481219608 pos=1958.49,-866.65 h=8675.410",
+"TRACE t=42.04 lv=3 k=34 hp=135.00 n=13 rng=-4974625045692549263 pos=1953.50,-756.21 h=7751.628",
+"TRACE t=43.03 lv=3 k=35 hp=135.00 n=13 rng=-4039819287678528882 pos=1898.98,-624.59 h=7462.266",
+"TRACE t=44.02 lv=3 k=37 hp=135.00 n=13 rng=3647967570118277440 pos=1967.34,-602.09 h=7381.561",
+"TRACE t=45.01 lv=3 k=37 hp=135.00 n=14 rng=-5993091706034104451 pos=2016.96,-701.01 h=8183.625"
+],
+"balance": {
+"allies": 0,
+"armor_cf": {},
+"boss_hp": -1.0,
+"bosses": [],
+"bot": {
+"bosses": [],
+"curve": [
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 0,
+"hp": 100,
+"hsrc": {},
+"kills": 0,
+"lamp": 100,
+"lv": 1,
+"mhp": 135,
+"squad": 1,
+"t": 0,
+"taken": 0,
+"zone": 0
+},
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 14,
+"hp": 100,
+"hsrc": {},
+"kills": 18,
+"lamp": 100,
+"lv": 2,
+"mhp": 135,
+"squad": 1,
+"t": 30,
+"taken": 0,
+"zone": 0
+}
+],
+"curve_tail": {
+"dsrc": {},
+"hsrc": {},
+"mhp": 135,
+"t": 45,
+"t0": 30,
+"taken": 0
+},
+"dark_dmg": 0,
+"dark_s": 0,
+"death_src": "",
+"elite_t": {},
+"end": {
+"boss": false,
+"hp": 135,
+"last15": {
+"corrode_out": 0.0,
+"corrode_peak": 0.0,
+"dark_s": 0.0,
+"ebullets_peak": 0,
+"enemies_peak": 16,
+"hits": [],
+"mire_s": 0.0,
+"nerve_bursts": 0,
+"t": 45.0
+},
+"src": "",
+"t": 45,
+"zone_out": false,
+"zone_phase": -1,
+"zone_state": 0
+},
+"floors": [],
+"hits": 0,
+"hits_pm": 0.0,
+"low_hp_s": 0,
+"moved_pm": 8986,
+"profile": "expert",
+"reaper_drain_deaths": 0,
+"recruit_t": [],
+"still_pct": 0,
+"taken": 0,
+"taken_pm": 0
+},
+"ctrl": {
+"aslow_slow": 0,
+"aslow_t": 0.0,
+"boss_t": 0.0,
+"floor": 0.7,
+"move_min": 1.0,
+"slow_min": 1.0,
+"stun_slow": 0,
+"stun_t": 0.0
+},
+"ctrl_src": {
+"boss": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"founder": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"other": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"skimmer": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"slow_any_t": 0.0
+},
+"dashes": 0,
+"dmg": {},
+"drone": 0,
+"elite_stage": 0,
+"elites": 0,
+"ending": "standard",
+"final_out": {
+"光弹": 321.10863371889,
+"发光单元": 351.298362543506
+},
+"floor_hits": 0,
+"floor_times": [],
+"fuse": {
+"left": 0,
+"pct": 0.0,
+"pool": 0,
+"t": -1
+},
+"growth": {},
+"heal": {
+"流明": 0.0,
+"自身回复": 0.0
+},
+"heal_offer": 1,
+"heal_offer_low": 0,
+"heal_pick": 0,
+"hordes": [],
+"ingots": 5,
+"items": {
+"heal_elite": 0,
+"heal_low": 0,
+"heal_mob": 0,
+"heal_pick": 0,
+"magnet_elite": 0,
+"magnet_mob": 0,
+"magnet_pick": 0,
+"mob_capped": 0,
+"mob_rolled": 37
+},
+"kills": 37,
+"lamp": 100,
+"low_levelups": 0,
+"lv": 3,
+"lv_times": [
+11,
+34
+],
+"marks": {},
+"maxhp": 135.0,
+"ops": [
+{
+"elite": 0,
+"id": "lumen",
+"prog": 2
+}
+],
+"out": {
+"光弹": 321.10863371889,
+"发光单元": 351.298362543506
+},
+"out_tag": {
+"basic": 321.10863371889,
+"entity": 351.298362543506,
+"projectile": 672.406996262395
+},
+"out_type": {
+"法术": 672.406996262395
+},
+"prog_offer": {
+"lumen": 2
+},
+"prog_pick": {
+"lumen": 2
+},
+"recall_backstop": 0,
+"recall_n": 0,
+"rej": {},
+"relic_offer": [],
+"relic_out": 0.0,
+"relic_take": [],
+"relics": 0,
+"squad": [
+"lumen"
+],
+"sus": {
+"m0": {
+"clean": {},
+"dr": {},
+"heal": {
+"流明": [
+0.0,
+70.12
+]
+},
+"lit": 0.0
+}
+},
+"swaps": [],
+"t": 45,
+"terrain": {
+"bul": 3,
+"dash": 0,
+"ebul": 0
+},
+"win": false,
+"xp_backstop": 0.0,
+"xp_dropped": 92.5,
+"xp_ground": 2.5,
+"xp_magnet": 0.0,
+"xp_magnet_min": [],
+"xp_recall": 0.0,
+"xp_recall_min": [],
+"xp_total": 90.0,
+"xp_total_min": [
+90.0
+],
+"xp_walk": 90.0,
+"xp_walk_min": [
+90.0
+]
+},
+"hand_equal": true,
+"hand_arg": "--opscript=lumen=res://tests/data_ops/lumen_legacy.gd"
+}
