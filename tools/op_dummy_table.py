@@ -42,6 +42,9 @@ def op_defs():
     return out
 
 
+BAL = []   # --bal 段/键=值：透传给游戏（同 check.py / balance_run --extra 的 --bal=），对照旋钮用
+
+
 def run_one(godot, op, stage, scene, role, secs, warm, timeout):
     leader = op if role == "leader" else (BASELINE_ALT if op == BASELINE else BASELINE)
     args = [godot, "--headless", "--path", GAME, "res://tests/op_dummy_test.tscn", "--",
@@ -49,7 +52,7 @@ def run_one(godot, op, stage, scene, role, secs, warm, timeout):
     if role == "mate":
         args.append("--squad=" + op)
     args += ["--dummy_op=" + op, "--dummy_role=" + role, "--dummy_scene=" + scene, "--dummy_stage=%d" % stage,
-             "--dummy_secs=%g" % secs, "--dummy_warm=%g" % warm]
+             "--dummy_secs=%g" % secs, "--dummy_warm=%g" % warm] + ["--bal=" + b for b in BAL]
     t0 = time.time()
     out, err, to = GR.run_godot(args, timeout)
     errs = GR.script_errors(out, err)
@@ -250,8 +253,10 @@ def main():
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--out", default=OUT)
     ap.add_argument("--report-only", action="store_true")
+    ap.add_argument("--bal", action="append", default=[], metavar="段/键=值", help="透传 --bal=（可多次），例如 --bal enemy/density=1")
     a = ap.parse_args()
     OUT = a.out
+    BAL[:] = a.bal
     os.makedirs(os.path.join(OUT, "logs"), exist_ok=True)
     defs = op_defs()
     jpath = os.path.join(OUT, "table.json")
@@ -286,7 +291,7 @@ def main():
         with ThreadPoolExecutor(n) as ex:
             results = list(ex.map(one, jobs))
         meta = {"time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "commit": commit, "secs": a.secs, "warm": a.warm,
-                "baseline": BASELINE, "baseline_alt": BASELINE_ALT, "elapsed_s": round(time.time() - t0)}
+                "baseline": BASELINE, "baseline_alt": BASELINE_ALT, "bal": list(BAL), "elapsed_s": round(time.time() - t0)}
         json.dump({"meta": meta, "results": results}, open(jpath, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     md, flagged = build_report(results, defs, meta)
     open(os.path.join(OUT, "table.md"), "w", encoding="utf-8").write(md)
