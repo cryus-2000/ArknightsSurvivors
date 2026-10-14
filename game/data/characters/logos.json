@@ -11,7 +11,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值",
-  "atk": 29,
+  "atk": 33,
   "cd": 1.4,
   "range": 310,
   "requiem_dur": 5,
