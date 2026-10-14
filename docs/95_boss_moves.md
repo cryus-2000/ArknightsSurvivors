@@ -1067,3 +1067,21 @@ PRTS 页面 2026-10-14 经 `https://prts.wiki/api.php?action=parse&page=<名称>
 | 关卡 / 描述文本 | roguelike_topic_table.json、enemy_handbook_table.json（https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/，docs/49c 已核） | 「分离与统一」「订正」关卡名；泡影「祈望堵住喉咙」；主教「两副身体一个意志」 |
 
 标「本作原创」的招：叠影（名）、呼号、大群之歌（名）、长枪回旋、订正、轰击、环射、清膛、炮身砸击、统一（名）、蚀潮吐息、裂潮、迸发、掠海飞刃——机制取材处已在各节写明，原作没有对应技能名的不冒称原作名。
+
+## 13.1 补单（10-14）：现有 Boss 帧条高清化（@2x）
+
+用户 10-14 定：全游戏像素密度统一，**Boss 也要 @2x**（现在 8 个 Boss 只有 1x，画出来 1 美术像素 = 2 屏幕像素，比干员和小怪粗一倍）。随 §11 的三批一起交：做某批新招式帧条时，把该批 Boss **现有全部动作**按高清规格重出。
+
+规则：**尺寸、帧数、脚底行、出手帧全部不变**，只交同名 `@2x`（每帧 2 倍，重画细节，不要简单放大）；造型配色不改；二值透明、外描边 2px；与 1x 逐帧剪影一致。接入不改代码（`_lazy_tex` 自动优先 @2x）。
+
+| 批 | Boss | 现有帧条（单帧 1x） |
+|---|---|---|
+| 1 | 偏执泡影 | `e_paranoia`（48×72）、`e_paranoia_move`、`e_paranoia_phase2`、`e_paranoia_phase2_move` 及其余 `e_paranoia_*` |
+| 1 | 伊莎玛拉 | `e_ishar` / `_move` / `_attack`（40×80）、`e_ishar_t` / `_t_move` / `_t_attack`（56×96）、`e_ishar_transform` |
+| 1 | 伊祖米克 | `e_izumik` / `_move` / `_attack` / `_rooting` 等（72×72） |
+| 1 | 最后的骑士 | `e_knight` / `_move` / `_attack` / `_charge` / `_charge_form` / `_plant` / `_death`（96×80） |
+| 2 | 塑路者 | `e_path` / `_move` / `_attack`（56×56） |
+| 2 | 圣徒伊比利亚 / 卡门 | 已有 @2x，不用交；新招式帧条照常交 @2x |
+| 3 | 接潮主教 / 蔑死体 / 斥亡体 | `e_bishop*`（40×48）、`e_archon*`（44×44）、`e_immortal*`（42×40），含 `_feign` 假死帧 |
+
+每批 handoff 里列出重出的文件清单；Claude 接入后用同帧截图核对 1x / @2x 切换无跳动。
