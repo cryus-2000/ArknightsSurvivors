@@ -156,8 +156,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
 func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	var r: float = float(e.get("r", 12.0))
-	var big: bool = r >= Bal.v("fx/kill_big_r", 20.0)
-	var n: int = Bal.vi("fx/kill_sparks", 7) + int(r * Bal.v("fx/kill_sparks_per_r", 0.3))
+	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
+	var big: bool = rb >= Bal.v("fx/kill_big_r", 20.0)
+	var n: int = Bal.vi("fx/kill_sparks", 7) + int(rb * Bal.v("fx/kill_sparks_per_r", 0.3))
 	# 后期降噪（render/declutter kill_k / kill_ring，缺省不变）：普通小怪的击杀火花随拥挤度减少、拥挤过半时不画小冲击环；
 	# 火花只用 g.vrng，不碰对局随机数；精英 / Boss / 大体型照旧
 	var plain: bool = not big and not e.get("elite", false) and not e.get("boss", false)
@@ -166,7 +167,7 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
 	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col, "op_hit": true})
-	var pitch: float = clampf(1.15 - r / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
+	var pitch: float = clampf(1.15 - rb / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
@@ -572,7 +573,9 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 ## 经验结晶留青色（拾取物），溶解偏紫、描边偏中性白
 const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 
-func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
+## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
+## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
+func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1)) -> bool:
 	if g.tex.get(name) == null:
 		return false
 	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
@@ -582,10 +585,12 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		col = DISSOLVE_TINT
 	var spec: Array = Game.V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
-	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
+	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
 	if bottom:
 		var tx: Texture2D = g.tex[name]
 		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
+	elif anchor_px.x >= 0.0:
+		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
 	g.fx.append(f)
 	return true
 

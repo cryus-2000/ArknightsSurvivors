@@ -71,6 +71,80 @@ static var _hires_rid := {}
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
 const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser", "portraits/"]
 
+# ------------------------------------------------------------------ 普通 / 精英怪「祛雾」（用户 10-14「别的几个怪物可以祛雾拉高一点，不要显得雾蒙蒙的」）
+## 量过（build/enemy_pop/，tools 口径同 art_lint tone）：Codex 重画的 18 种普通 / 精英怪色板最暗一阶都在 luma 46–59/255（描边除外），
+## 近黑 0%、HSL 饱和 0.13–0.49，没有暗部锚点，在暗地面 / 图鉴暗卡上整体发闷；图鉴格子只是原图直贴再乘后期亮度 ×1.05，不是渲染层压暗。
+## 所以在**载入贴图时**把漫反射像素烘一遍：黑位下压 black（减掉再拉伸）→ 以中灰 0.5 为轴拉对比 contrast → 饱和度增量 sat，
+## 等价于 Image.adjust_bcs(B, C, S)：B = 1/(1+black)，C = contrast×(1+black)/(1−black)，S = 1+sat（原生循环，18 种约 70 条帧条几毫秒）。
+## 图鉴格子 / 展示台 / 实机演示 / 局内（图集与原路径）拿到的是同一份像素，逐帧零开销，不进画法缓存签名（docs/50 §9.9）；
+## 受击白闪（白剪影只看 alpha）、法线图（只看 alpha）、描边 #080E18（近黑，黑位下压后仍近黑）、精英暖橙标识（高饱和，只更饱和）不受影响。
+## 名单 = D.ENEMIES 里非 Boss、非骑士（e_knight）的帧条本体（同 world.build_enemy_atlas 的入集规则），后缀同图集 + Game.ENEMY_SUFFIXES；
+## 干员 / 召唤物 / Boss / 特效 / 弹道不在名单。旋钮（balance.json，--bal= 可覆盖）：
+##   render/enemy_pop        0 = 关，1 = 开（缺省 1）
+##   render/enemy_pop_black  黑位（缺省 0.10）     render/enemy_pop_contrast  对比（缺省 1.35）     render/enemy_pop_sat  饱和度增量（缺省 0.3）
+##   档位对照（build/enemy_pop/levels_*.png）：轻 0.06/1.2/0.2 差别太轻；中 0.10/1.35/0.30（缺省）明显去雾、最暗一阶 luma≈12 仍与描边分得开；
+##   强 0.14/1.5/0.4 最暗一阶压到 luma≈2 和描边合成一团（塑路者碎片 / 奠基者成黑块）
+const POP_SUFFIXES := ["", "_feign", "_dormant", "_awaken", "_enraged", "_swell", "_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]
+static var _pop_ready := false
+static var _pop_names: Dictionary = {}
+static var _pop_bcs := Vector3.ZERO   # adjust_bcs 的 (brightness, contrast, saturation)；ZERO = 关
+static var pop_ms := 0.0              # 本进程烘像素累计毫秒（--atlasinfo / --loadprof 打印）
+static var pop_n := 0
+
+
+static func _pop_setup() -> void:
+	_pop_ready = true
+	var Bal = load("res://scripts/core/balance.gd")
+	if Bal == null or Bal.v("render/enemy_pop", 1.0) <= 0.0:
+		return
+	var b: float = clampf(Bal.v("render/enemy_pop_black", 0.10), 0.0, 0.5)
+	var k: float = maxf(Bal.v("render/enemy_pop_contrast", 1.35), 0.0)
+	var s: float = maxf(Bal.v("render/enemy_pop_sat", 0.3), -1.0)
+	if b == 0.0 and k == 1.0 and s == 0.0:
+		return
+	var D = load("res://scripts/data.gd")
+	if D == null:
+		return
+	for key in D.ENEMIES:
+		var d: Dictionary = D.ENEMIES[key]
+		if str(d.get("role", "")) == "boss" or d.get("boss", false) or str(d.get("tex", "")) in ["", "e_knight"]:
+			continue
+		for sfx in POP_SUFFIXES:
+			_pop_names[str(d.tex) + sfx] = true
+	if _pop_names.is_empty():
+		return
+	_pop_bcs = Vector3(1.0 / (1.0 + b), k * (1.0 + b) / (1.0 - b), 1.0 + s)
+
+
+static func pop_wanted(name: String) -> bool:
+	if not _pop_ready:
+		_pop_setup()
+	return _pop_bcs != Vector3.ZERO and _pop_names.has(name)
+
+
+## 就地烘：img 会被改（调用方保证是自己的副本）
+static func pop_image(img: Image) -> void:
+	if img == null or img.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	if img.is_compressed():
+		img.decompress()
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	img.adjust_bcs(_pop_bcs.x, _pop_bcs.y, _pop_bcs.z)
+	pop_ms += (Time.get_ticks_usec() - t0) / 1000.0
+	pop_n += 1
+
+
+## 包内 / 内置贴图（读回像素再烘）；读不到像素（无头空驱动）原样返回
+static func _pop_tex(t: Texture2D) -> Texture2D:
+	var img: Image = t.get_image() if t != null else null
+	if img == null or img.is_empty():
+		return t
+	img = img.duplicate()
+	pop_image(img)
+	return ImageTexture.create_from_image(img)
+
 
 ## 取贴图；找不到返回 null
 static func tex(name: String) -> Texture2D:
@@ -86,10 +160,13 @@ static func tex(name: String) -> Texture2D:
 	var t: Texture2D = null
 	var density := 1.0
 	var src_path := ""   # 法线缓存键用：原图路径（磁盘 PNG 或包内资源）
+	var pop := pop_wanted(name)   # 普通 / 精英怪祛雾：磁盘原图在建贴图前烘，包内贴图读回像素再烘（法线仍按原图 alpha 算）
 	var p2 := _incoming_path(name + "@2x") if USE_HIRES else ""
 	if p2 != "":
 		var img2 := Image.load_from_file(p2)
 		if img2 != null and not img2.is_empty():
+			if pop:
+				pop_image(img2)
 			t = ImageTexture.create_from_image(img2)
 			density = 2.0
 			src_path = p2
@@ -98,6 +175,8 @@ static func tex(name: String) -> Texture2D:
 		if q2 != "":
 			t = load(q2)
 			if t != null:
+				if pop:
+					t = _pop_tex(t)
 				density = 2.0
 				src_path = q2
 	if t == null:
@@ -105,16 +184,22 @@ static func tex(name: String) -> Texture2D:
 		if p != "":
 			var img := Image.load_from_file(p)
 			if img != null and not img.is_empty():
+				if pop:
+					pop_image(img)
 				t = ImageTexture.create_from_image(img)
 				src_path = p
 		else:
 			var q := _packed_path(name)
 			if q != "":
 				t = load(q)
+				if t != null and pop:
+					t = _pop_tex(t)
 				src_path = q
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		src_path = "res://art/px/%s.png" % name
 		t = load(src_path)
+		if t != null and pop:
+			t = _pop_tex(t)
 	if t == null:
 		var ph := _placeholder(name)
 		if not ph.is_empty():

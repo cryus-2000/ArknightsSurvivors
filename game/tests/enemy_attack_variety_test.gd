@@ -133,22 +133,26 @@ func run_checks() -> void:
 	check(g.warns.size() == 12 and crowded.extra_next == 0.0, "crowded secondary warnings wait without spending cooldown")
 	g.warns.clear()
 	# The third move must be reachable through the actual boss scheduler.
+	# docs/95（10-14）起每只 Boss 4 招 = 数据招式 + 手写招式，数据条目数不再固定 3；这里只查「最后一条数据招式走得到调度器」，
+	# 没有数据招式的（伊莎玛拉、骑士全手写）跳过
 	for kind in ["path", "izumik", "iberia", "carmen", "bishop", "archon", "immortal", "paranoia", "ishar", "knight_boss"]:
 		var d: Dictionary = D.ENEMIES[kind]
-		check(d.patterns.size() >= 3, kind + " has a third boss move")
-		if d.patterns.size() < 3:
+		var pats: Array = d.get("patterns", [])
+		if pats.is_empty():
 			continue
+		var last: int = pats.size() - 1
 		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)
 		e.age = 5.0
 		if kind in ["ishar", "izumik"]:
 			g.bai.setup_preview_phase2(e)
 		g.warns.clear()
 		g.ppos = Vector2(280, 0)
-		e.pattern_cycle = 2
+		e.pattern_cycle = last
 		e.pattern_next = g.t
+		e.gates_passed = 9   # phase_min 条目也要走得到
 		check(g.bai.patterns.try_attack(e, Vector2.RIGHT, 280.0), kind + " schedules new move")
-		check(g.warns.any(func(w): return w.get("pattern_id", "") == kind + ":2"), kind + " third warning visible")
-		if str(d.patterns[2].mode) == "line" and not g.warns.is_empty():
+		check(g.warns.any(func(w): return w.get("pattern_id", "") == kind + ":" + str(last)), kind + " last warning visible")
+		if str(pats[last].mode) == "line" and not g.warns.is_empty():
 			var line_warning: Dictionary = g.warns[0]
 			check(line_warning.shape == "line" and g.warns[0].dur >= 0.6, kind + " line warning readable")
 			g.invuln = 0.0

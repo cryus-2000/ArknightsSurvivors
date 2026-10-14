@@ -434,6 +434,7 @@
 - **加一只 Boss 的步骤**：① `data/enemies.json` 加条目（`role: boss`，数值旋钮走 `Bal.v("boss/...")`）并按 docs/38 §1 配 `waves.json` 的池 / 结局；② 新建 `scripts/enemies/bosses/<type>.gd`，`extends "res://scripts/enemies/bosses/boss_base.gd"`，在 `step()` 里用 `_cd(e, "招式", 冷却)` + `_warn(e, 形状, 时长, {...})` 出招（`act` 的结算在 `boss_ai._warn_resolve`，新动作在那里加分支）；③ 在 `boss_ai.gd` 的 `SCRIPTS` 注册表加一行 `"<type>": "<文件名>"`（多个 type 共用一份脚本就指向同一个文件，如圣徒 `iberia / carmen → saint`）；④ 画面 / 血条 / 登场演出按 type 读（`vfx.boss_color`、`boss_intro.gd` 的 CARDS）各补一条；⑤ 验收：`--bosstest=<type>` 招式序列、`--forceboss= / --forceending=` 同 seed TRACE、`python tools/check.py --jobs 4`。
 - 「把 `new_enemy` 的键整体复制进旧字典」这类代码（如 `reveal_mimic`）不涉及脚本对象，照旧。
 - 不单独建 `boss_api.gd`：需要的包装方法加在 `boss_base.gd`；各 Boss 脚本只调基类。
+- **预警 / 数据招式字段约定（10-14，docs/95 §12 / §15.1）**：`_warn` 可选字段 `track_pos`（circle 追踪主控 / 本体后冻结）、`seq_no`（连发序号）、`gaps`（多缺口）、`slow_t / slow_mult / chill`（命中附加）、`b_owner`（双端跟随）、`style`（0 / ① – ⑤，缺省按形状推）；新 act `song_ring`（扩散缺口环 → `g.shocks` 的 `spd / gaps / gap_half / true`）、`spin_ring`（静止缺口环一次性判定）、`lob`；`patterns` 条目字段见 `boss_patterns.gd` 文件头（`stack` 模式、`phase_min`、`cd / cd_p2 / p2_every`、`no_ammo / ammo_cost / on_reload`、`e.pattern_force`）。每只 Boss 脚本另提供 `demo_moves(e)` / `force_move(e, name, dir, dist)` 给 `--bossmoves=` 验收；二阶段着色写 `e.tint2`（基类 `_tint2`）；D 招首次出现前用基类 `_first_tell` 先亮招式名 0.6 秒。
 - Boss 必须经 `spawner.spawn_enemy()` 生成（自动做 `check_enemy` 字段校验，docs/39 §7）；Boss 专属字段只加在 Boss 身上，所有敌人都读的字段加进 `new_enemy` 模板。
 - 数值旋钮一律 `Bal.v("boss/...", 默认值)`。
 - 随机数：抽招式、预警位置等玩法随机只用 `g.rng`；粒子、抖动等纯画面只用 `g.vrng`（05329b2 的教训）。
@@ -1258,7 +1259,7 @@
 | ④ 缺口环 | circle 带 gap_ang，或泡影 bring | 环 + 缺口处画亮色「出口」标记；环扩散时保持同样的描边 | 泡影 bring、pattern_ring（茧弹、冲击环不走 `_warn`，是子弹 / g.shocks） |
 | ⑤ 全场·必须冲刺 | must_dash == true | 白色双描边 + 冲刺图标，屏幕边缘同步提示（界面与美术 fe45db3 已做）；光圈安全区另标「安全」 | 全场地波 izu_wave（目前只有这一招） |
 
-不算伤害预警、用低亮度纹理、不发光的：寒冰领域结算后留下的减速地面、认知负担光环、溟痕、灯柱光圈；拟嗣出生预告 spawn 是 style 0（dmg 0，淡虚线细圈、不闪白）。寒冰领域的起手预警本身有伤害，归 ①。
+不算伤害预警、用低亮度纹理、不发光的：寒冰领域结算后留下的减速地面、认知负担光环、溟痕、灯柱光圈；拟嗣出生预告 spawn 是 style 0（dmg 0，淡虚线细圈、不闪白；10-14 起投嗣育母改为投嗣弹落点孵化，落点用抛射预警圈，spawn 预告暂无敌人使用）。寒冰领域的起手预警本身有伤害，归 ①。
 
 **大招固定音效**：有名字的 Boss 招式（`w.name != ""`）在预警开始时播「起手音」，结算时播「命中音」。同一类招式用同一组音，玩家听音就知道该怎么躲；每只 Boss 另有一条专属音色（音频定），叠在起手音上。
 

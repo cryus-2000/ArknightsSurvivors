@@ -13,12 +13,23 @@ var mshot: MotionShot
 var winshot := false
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
+var _lampat_done := false   # --lampat 只生效一次
 var zone_out_since := -1.0   # 普通机器人：本次出圈的开始时间（-1 = 在圈内）
 var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回圈用；game.gd 在记下移动方向后执行）
 var shop_visits := 0
 var lv_marks := {}
 var bosstest := false
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
+# --bossmoves=<type>[2]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段），按 bosses/<type>.gd demo_moves 的顺序
+# 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
+var bm_boss: Dictionary = {}
+var bm_list: Array = []
+var bm_i := 0
+var bm_state := "idle"
+var bm_shot := false
+var bm_hit_at := 0
+var bm_next_t := 0.0
+var bm_tag := ""
 var choice_wait := 0
 var choice_shot := false
 var choice_n := 0   # --choiceshots：每个选卡画面都截一张（shot_choice_<n>.png，干员文字验收）
@@ -219,30 +230,38 @@ func _bot_pick_inner() -> int:
 
 
 ## --knightshots（结局二终局验收，10-14；配 --balance --relics=222）：骑士开始走向黑潮中心后 24 帧截 shot_knight_walk.png，
-## 入潮演出中截 shot_knight_sink.png，消失后 12 帧截 shot_knight_hud.png（HUD 灰格），最终 Boss 出现后 30 帧截 shot_knight_boss.png 并退出。
-## 无头不截（只走流程）。
-var _ks := {"walk": -1, "sink": false, "hud": -1, "boss": -1}
+## 入潮演出中截 shot_knight_sink.png，消失后 12 帧截 shot_knight_hud.png（HUD 灰格），最终 Boss 出现后 30 帧截 shot_knight_boss.png，
+## 150 帧截 shot_knight_boss2.png 并退出。无头不截（只走流程）。
+## 镜头一瞥开着时（缺省，game.camera_glance）：不用 view_override，截图按一瞥的节奏（--fixed-fps 60：0.35 秒去 + 0.6 秒停 + 0.35 秒回 = 78 帧）——
+## sink（入潮 +24 帧，镜头停在圈心）、hud（+48 帧，仍在圈心）、sink_back（+90 帧，镜头已回到队长）、boss（+30 帧，圈心）、boss_back（+90 帧，队长）。
+## 关着时（--bal=render/camera_glance=0）照旧用 view_override 把镜头指过去。
+var _ks := {"walk": -1, "sink": -1, "hud": -1, "boss": -1}
 func _knight_shots() -> void:
 	var shot := func(name: String) -> void:
 		if DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_knight_%s.png" % name)
 		var kp: Vector2 = g.knight.pos - g.ppos
 		var bp: Vector2 = (g.final_boss.pos - g.ppos) if g.final_boss != null else Vector2.INF
-		print("KNIGHTSHOT %s t=%.1f knight_off=%s boss_off=%s zone_off=%s" % [name, g.t, kp.round(), bp.round(), (g.zone_c - g.ppos).round()])
+		print("KNIGHTSHOT %s t=%.1f knight_off=%s boss_off=%s zone_off=%s cam_off=%s" % [name, g.t, kp.round(), bp.round(), (g.zone_c - g.ppos).round(), (g.cam.position - g.ppos).round()])
 	var k = g.knight
-	# 黑潮中心通常在屏幕外（离队长 400–600）：入潮演出到灰格截图期间、Boss 登场后，镜头临时看向那里（只动镜头）
+	var glance: bool = Bal.vi("render/camera_glance", 1) > 0 and not g.headless_batch
+	# 黑潮中心通常在屏幕外（离队长 400–600）：一瞥关着时，入潮演出到灰格截图期间、Boss 登场后，镜头临时看向那里（只动镜头）
 	g.view_override = Vector2.INF
-	if (k.alive and k.state == "sink") or (k.submerged and _ks.hud >= 0 and g.at_frames <= _ks.hud + 12):
-		g.view_override = k.vanish_pos
-	elif _ks.boss >= 0 and g.final_boss != null:
-		g.view_override = g.final_boss.pos
+	if not glance:
+		if (k.alive and k.state == "sink") or (k.submerged and _ks.hud >= 0 and g.at_frames <= _ks.hud + 12):
+			g.view_override = k.vanish_pos
+		elif _ks.boss >= 0 and g.final_boss != null:
+			g.view_override = g.final_boss.pos
 	if _ks.walk < 0 and k.alive and k.state == "walk":
 		_ks.walk = g.at_frames
 	if _ks.walk >= 0 and g.at_frames == _ks.walk + 24:
 		shot.call("walk")
-	if not _ks.sink and k.alive and k.state == "sink" and k.st >= 0.12:
-		_ks.sink = true
+	if _ks.sink < 0 and k.alive and k.state == "sink":
+		_ks.sink = g.at_frames
+	if _ks.sink >= 0 and g.at_frames == _ks.sink + (24 if glance else 7):
 		shot.call("sink")
+	if glance and _ks.sink >= 0 and g.at_frames == _ks.sink + 90:
+		shot.call("sink_back")
 	if _ks.hud < 0 and k.submerged:
 		_ks.hud = g.at_frames
 	if _ks.hud >= 0 and g.at_frames == _ks.hud + 12:
@@ -251,6 +270,8 @@ func _knight_shots() -> void:
 		_ks.boss = g.at_frames
 	if _ks.boss >= 0 and g.at_frames == _ks.boss + 30:
 		shot.call("boss")
+	if glance and _ks.boss >= 0 and g.at_frames == _ks.boss + 90:
+		shot.call("boss_back")
 	if _ks.boss >= 0 and g.at_frames == _ks.boss + 150:
 		shot.call("boss2")   # Boss 登场演出过后，看得见 Boss 本体与场地
 		g.get_tree().quit()
@@ -418,6 +439,20 @@ func step() -> void:
 			if g.at_frames == f and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fx_%d.png" % f)
 	for a in Cfg.dev_args():
+		if a.begins_with("--spawntest="):
+			# 小怪 / 精英招式截图（docs/36 §5）：第 20 帧把逗号分隔的敌人刷在主控右侧（跳过登场保护），时间照常走（--bosstest 的 g.t 不动，
+			# 远程蓄力 shot_wind_until 永远到不了），之后每 6 帧截一张 shot_spawn_<id>_<帧>.png 到第 320 帧，第 330 帧退出
+			if g.at_frames == 20:
+				g.ppos = Vector2(1500, 900)
+				g.max_hp = 900.0
+				g.hp = 900.0
+				for st in a.substr(12).split(","):
+					var se: Dictionary = g.spawner.spawn_enemy(st, g.ppos + Vector2(230, -40))
+					se.age = 5.0
+			if g.at_frames > 20 and g.at_frames % 6 == 0 and g.at_frames <= 320 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_spawn_%s_%03d.png" % [a.substr(12).replace(",", "_"), g.at_frames])
+			if g.at_frames > 330:
+				g.get_tree().quit()
 		if a.begins_with("--bosstest="):
 			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
 			bosstest = true
@@ -444,6 +479,9 @@ func step() -> void:
 					g.bosses[1].partner = g.bosses[0]
 			if g.at_frames > 20 and g.at_frames % 30 == 0 and g.at_frames <= 600 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), g.at_frames])
+		if a.begins_with("--bossmoves="):
+			bosstest = true
+			_bossmoves_step(a.substr(12))
 		if a.begins_with("--bossintro="):
 			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
 			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
@@ -533,6 +571,12 @@ func step() -> void:
 			if a.begins_with("--grant="):
 				for rid in a.substr(8).split(","):
 					g.progression.gain_relic(rid)
+	# --lampat=<秒>:<灯火>：到这一秒把灯火设成这个值一次（截暗处画面用，docs/50 §16 怪物体型的暗处可读性；会改之后的对局）
+	if not _lampat_done and g.state == g.S.PLAY:
+		for a in Cfg.dev_args():
+			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
+				_lampat_done = true
+				g.lamp = float(a.substr(9).split(":")[1])
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
@@ -722,11 +766,92 @@ func step() -> void:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	if bosstest and g.at_frames > 610:
+	if bosstest and g.at_frames > 610 and bm_boss.is_empty():   # --bossmoves 自己数招、放完才退
 		g.get_tree().quit()
 	if (g.state == g.S.WIN and not winshot) or g.at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [g.state, g.t])
 		g.get_tree().quit()
+
+
+## --bossmoves=<type>[2]：逐招验收（docs/95 §12）。主控不动（autotest 模式没有移动输入），每招：force_move → 预警 60% 截图 → 结算后 8 帧截图
+func _bossmoves_step(spec: String) -> void:
+	var headless: bool = DisplayServer.get_name() == "headless"
+	if g.at_frames == 20:
+		bm_tag = spec
+		var type: String = spec.trim_suffix("2")
+		g.ppos = Vector2(1500, 900)
+		g.max_hp = 900.0
+		g.hp = 900.0
+		g.t = 150.0
+		var b := g.spawner.spawn_enemy(type, g.ppos + Vector2(230, -40))
+		b.age = 5.0
+		if spec.ends_with("2"):
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+			b.channel = 0.0
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+		bm_boss = b
+		var h = g.bai.boss(type)
+		bm_list = h.demo_moves(b) if h != null else []
+		bm_next_t = g.t + 1.0
+		print("BOSSMOVES %s moves=%s" % [spec, str(bm_list)])
+		return
+	if g.at_frames < 20 or bm_boss.is_empty():
+		return
+	var e: Dictionary = bm_boss
+	e.hp = e.maxhp if e.phase == 1 or e.type != "knight_boss" else e.maxhp * 0.5   # 别让它死；骑士二阶段保持重生血量
+	var mine: Array = g.warns.filter(func(w): return is_same(w.owner, e))
+	match bm_state:
+		"idle":
+			if bm_i >= bm_list.size():
+				if g.at_frames % 10 == 0:
+					print("BOSSMOVES END %s shots=%d" % [bm_tag, bm_i])
+					g.get_tree().quit()
+				return
+			if g.t < bm_next_t or not mine.is_empty():
+				return
+			e.wind = 0.0
+			e.cdt = 0.0
+			e.stun = 0.0
+			e.break_t = 0.0
+			e.dash_t = 0.0
+			e.kb = Vector2.ZERO
+			e.kb_self = false
+			e.pos = g.ppos + Vector2(230, -40)   # 每招都从主控右上 230 处放，截图里本体和预警都在画面内（冲锋 / 迫近会把它带远）
+			var name: String = str(bm_list[bm_i])
+			var dir: Vector2 = (g.ppos - e.pos).normalized()
+			if g.bai.boss(e.type).force_move(e, name, dir, e.pos.distance_to(g.ppos)):
+				bm_state = "warn"
+				bm_shot = false
+				print("BOSSMOVES fire %s" % name)
+			else:
+				print("BOSSMOVES skip %s" % name)
+				bm_i += 1
+		"warn":
+			var prog := 0.0
+			var any_done := false
+			for w in mine:
+				prog = maxf(prog, w.t / w.dur)
+				any_done = any_done or w.done
+			if mine.is_empty():
+				any_done = true
+			if prog >= 0.6 and not bm_shot and not any_done:
+				bm_shot = true
+				if not headless:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossmove_%s_%s.png" % [bm_tag, str(bm_list[bm_i])])
+			if any_done:
+				bm_state = "hit"
+				bm_hit_at = g.at_frames + 8
+		"hit":
+			if g.at_frames >= bm_hit_at:
+				if not headless:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossmove_%s_%s_hit.png" % [bm_tag, str(bm_list[bm_i])])
+				bm_i += 1
+				bm_state = "idle"
+				bm_next_t = g.t + 2.5   # 等连发 / 冲刺 / 冲击环都收完再放下一招
 
 
 ## 平衡测试用的简单 AI：躲开贴身的敌人、保持在挥伞距离、捡掉落物

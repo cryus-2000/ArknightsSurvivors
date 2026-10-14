@@ -9,6 +9,17 @@
   "idle": "player_idle",
   "run": "player_run",
   "attack": "player_attack_48",
+  "skill": {
+   "_doc": "docs/97 B（Codex 10-14，op_fix_b_manifest）：蓄力 → 举伞 → 出手 f3 → 保持 → 收回，末帧 = player_idle f0；三技能共用，skills[i].anim 可换。水月技能充满即发（flow free），这条只是画面（character.play_vis_anim），fire 只作记录",
+   "tex": "player_skill",
+   "frames": 8,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
   "hurt": "player_hurt",
   "death": "player_death",
   "size": 48,

@@ -1,33 +1,32 @@
-## 偏执泡影（type paranoia，docs/38 §2.4 / §8.5）
+## 偏执泡影（type paranoia，docs/38 §2.4 / §8.5；招式改版 docs/95 §1，10-14）
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
+## 4 招：A 凝视（② 直线，手写）/ B 泡影环（④ 缺口环，patterns 数据）/ C 叠影（① 序列落点圈，patterns stack）/ D 呼号（③ 扇形，二阶段，手写）
+## 机制不占名额：认知负担光环、茧 / 破茧、漂近
 extends "res://scripts/enemies/bosses/boss_base.gd"
+
+const COL := Color(0.9, 0.4, 1.0)
+const MOVES := ["叠影", "凝视", "泡影环", "呼号"]
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
-	# "偏执泡影"：一阶段 环形弹幕 + 多重凝视；归零结茧（docs/38 §8.5）；二阶段 泡影爆裂、多重凝视、子弹落地留溟痕
 	if e.get("cocoon_t", 0.0) > 0.0:
 		_paranoia_cocoon_step(e, dt)
 		return
 	_paranoia_aura(e, dist)
-	if ready:
-		# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
-		if e.phase == 1 and _close_in(e, dir, dist, "paranoia", "泡影漂近", Color(0.85, 0.45, 1.0)) >= 0.0:
-			pass
-		elif _cd(e, "gaze", 11.0):
-			# 多重凝视：只打主控，依次高亮、间隔 0.6 秒，都可以走开躲；一阶段 2 道、二阶段 3 道，茧没打破再 +1
-			var ng: int = (2 if e.phase == 1 else 3) + int(e.get("gaze_bonus", 0))
-			for k in ng:
-				_warn(e, "line", 1.3 + 0.6 * k, {"ang": dir.angle(), "len": 820.0, "wid": 26.0, "track": 0.65 + 0.6 * k, "act": "beam",
-					"name": "凝视" if k == 0 else "", "col": Color(0.9, 0.4, 1.0), "dmg": e.dmg * 2.0, "corrode": 0.5, "lock": k == 0})
-		elif e.phase == 1:
-			if _cd(e, "ring", 6.0):
-				_warn(e, "circle", 0.6, {"follow": true, "r": 46.0, "act": "bring", "name": "泡影", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 0.6})
-		else:
-			if _cd(e, "burst", 7.0):
-				var a0: float = g.rng.randf() * TAU
-				for k in 4:
-					_warn(e, "circle", 1.0, {"pos": g.ppos + Vector2.from_angle(a0 + TAU * k / 4.0) * 88.0, "r": 70.0, "act": "burst", "name": "泡影爆裂" if k == 0 else "", "col": Color(0.85, 0.45, 1.0), "dmg": e.dmg * 1.2, "corrode": 0.5, "lock": k == 0})
+	if not ready:
+		return
+	# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
+	if e.phase == 1 and _close_in(e, dir, dist, "paranoia", "泡影漂近", Color(0.85, 0.45, 1.0)) >= 0.0:
+		return
+	# D 呼号：落地后、主控在 260 内，howl 8 秒；第一次先亮招式名 0.6 秒（§0.2）
+	if e.phase == 2 and dist < 260.0 and float(e.get("cds", {}).get("howl", 0.0)) <= g.t:
+		if _first_tell(e, "howl", "呼号") and _cd(e, "howl", 8.0):
+			_howl(e, dir)
+		return
+	# A 凝视：gaze 11 秒（第二幕 ×0.9）；一阶段 2 道、二阶段 3 道、茧未打破 +1
+	if _cd(e, "gaze", 11.0 * (0.9 if int(e.get("gates_passed", 0)) >= 1 and e.phase == 1 else 1.0)):
+		_gaze(e, dir)
 
 
 ## 图鉴 / Boss 演练：直接进入二阶段的完整状态
@@ -35,8 +34,43 @@ func setup_preview_phase2(e: Dictionary) -> void:
 	_paranoia_p2(e)
 
 
+func demo_moves(_e: Dictionary) -> Array:
+	return MOVES
+
+
+func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
+	match name:
+		"凝视":
+			_gaze(e, dir)
+			return true
+		"呼号":
+			if e.phase != 2:
+				return false
+			_howl(e, dir)
+			return true
+		"叠影", "泡影环":
+			e.pattern_force = name
+			return g.bai.patterns.try_attack(e, dir, dist)
+	return false
+
+
+## A · 凝视（保留）：直线 820 × 26 条纹，每道从眼位射出、起点标 1 / 2 / 3，追踪 0.65 秒后锁定，每道间隔 0.6 秒；e.dmg × 2.0，侵蚀 0.5
+func _gaze(e: Dictionary, dir: Vector2) -> void:
+	var ng: int = (2 if e.phase == 1 else 3) + int(e.get("gaze_bonus", 0))
+	for k in ng:
+		_warn(e, "line", 1.3 + 0.6 * k, {"ang": dir.angle(), "len": 820.0, "wid": 26.0, "track": 0.65 + 0.6 * k, "act": "beam", "seq_no": k + 1,
+			"name": "凝视" if k == 0 else "", "col": COL, "dmg": e.dmg * 2.0, "corrode": 0.5, "lock": k == 0})
+
+
+## D · 呼号（二阶段，新；PRTS「大群的祈望堵住了她的喉咙，她发不出声音」→ 张口无声、只喷泡沫）：
+## 扇形 r220 半角 0.8 暗填 + 亮边，追踪 0.4 + 锁定 0.9（§1.9 按扇边半宽的一半算）；e.dmg × 1.3，侵蚀 0.5，命中 1.5 秒移速 −30%
+func _howl(e: Dictionary, dir: Vector2) -> void:
+	_warn(e, "cone", 1.3, {"ang": dir.angle(), "r": 220.0, "half": 0.8, "track": 0.4, "act": "sweep", "name": "呼号", "col": Color(0.85, 0.45, 1.0),
+		"dmg": e.dmg * 1.3, "corrode": 0.5, "slow_t": 1.5, "slow_mult": 0.7, "slow_kind": "howl", "howl": true})
+
+
 ## ---- 偏执泡影（docs/38 §8.5）
-## 二阶段状态（破茧后 / 图鉴预览共用）：失去悬浮、转近战、弱物理、伤害 ×1.2
+## 二阶段状态（破茧后 / 图鉴预览共用）：失去悬浮、转近战、弱物理、伤害 ×1.2；常驻淡紫着色（docs/95 §1.2）
 func _paranoia_p2(e: Dictionary) -> void:
 	if e.phase == 2:
 		return
@@ -47,17 +81,22 @@ func _paranoia_p2(e: Dictionary) -> void:
 	e.hover_lost = true
 	e.ai = "melee"
 	e.spd = 70.0
+	_tint2(e, Color(0.92, 0.82, 1.12))
 
 
-## 认知负担光环：主控站在 boss/paranoia_aura_r（220）内时，全队攻速 ×(1 − paranoia_aura_aspd)（stats 来源 "paranoia_aura"）
+## 认知负担光环：主控站在 boss/paranoia_aura_r（220；二阶段 paranoia_aura_r2 300）内时，全队攻速 ×(1 − paranoia_aura_aspd)（一阶段 0.10、二阶段 paranoia_aura_aspd2 0.15；
+## 合计攻速削减上限 −15%，§1.11；stats 来源 "paranoia_aura"）
 func _paranoia_aura(e: Dictionary, dist: float) -> void:
-	e.burden_r = Bal.v("boss/paranoia_aura_r", 220.0)   # 画面读这个半径画地面符文圈
+	var p2: bool = e.phase == 2
+	e.burden_r = Bal.v("boss/paranoia_aura_r2", 300.0) if p2 else Bal.v("boss/paranoia_aura_r", 220.0)   # 画面读这个半径画地面符文圈
 	var inside: bool = dist < e.burden_r
-	if inside != e.get("burden_in", false):
+	var want_k: int = (2 if p2 else 1) if inside else 0
+	if want_k != int(e.get("burden_k", 0)):
+		e.burden_k = want_k
 		e.burden_in = inside
 		g.stats.remove_source("paranoia_aura")
 		if inside:
-			g.stats.add(&"op_aspd", "mult", 1.0 - Bal.v("boss/paranoia_aura_aspd", 0.10), "paranoia_aura")
+			g.stats.add(&"op_aspd", "mult", 1.0 - minf(0.15, Bal.v("boss/paranoia_aura_aspd2", 0.15) if p2 else Bal.v("boss/paranoia_aura_aspd", 0.10)), "paranoia_aura")
 		g.sync_stats()
 
 
@@ -80,6 +119,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 	g.stats.remove_source("paranoia_aura")
 	e.burden_in = false
+	e.burden_k = 0
 	g.sync_stats()
 	if g.zone_frozen:
 		g.combat.freeze_zone(Bal.v("boss/paranoia_arena2", 520.0))

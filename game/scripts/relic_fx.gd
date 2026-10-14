@@ -72,6 +72,7 @@ var stakes: Array = []     # 防暴桩：{pos, life}
 # ---- docs/74（用户 10-12）：吸血 / 击杀回复 / 源石锭熔铸
 var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成），随 sp_budget_t 每秒清零
 var kh_cnt := 0            # 击杀回复：累计击杀权重（精英 / Boss 按权重计）
+var kh_frac := 0.0         # 击杀回复：怪物密度缩放过的普通怪的小数击杀权重（docs/50 §16）
 var fuse_on := false       # 源石锭熔铸：最后一位商人离开后为 true
 var fuse_pool := 0         # 已熔铸的源石锭（剩余 + 之后获得）
 var fuse_t := -1           # 熔铸开始时刻（秒，遥测）
@@ -1299,8 +1300,9 @@ func on_death() -> bool:
 
 
 func on_kill(e: Dictionary) -> void:
+	var dk: float = float(e.get("dk", 1.0))   # 怪物密度缩放过的普通怪：击杀权重 1/density（docs/50 §16），其余 1
 	if g.relics.has("252"):
-		perm_dmg = minf(0.3, perm_dmg + 0.001)
+		perm_dmg = minf(0.3, perm_dmg + 0.001 * dk)
 	# 生还者合约：每击败一个 Boss，被选中的干员再 +20%
 	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and g.relics.has("261"):
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
@@ -1311,7 +1313,12 @@ func on_kill(e: Dictionary) -> void:
 	# 击杀回复（docs/74 L2）：每 killheal_n 击杀权重回复 killheal_pct 最大生命；精英算 killheal_elite、Boss 算 killheal_boss。
 	# 宝箱 / 友方 / 泪滴（不计击杀数）不算
 	if rule("killheal") > 0 and not e.get("chest", false) and not e.get("friendly", false) and str(e.get("type", "")) != "tear":
-		kh_cnt += int(Bal.v("relic/killheal_boss", 60.0)) if e.get("boss", false) else (int(Bal.v("relic/killheal_elite", 10.0)) if e.get("elite", false) else 1)
+		if e.get("boss", false) or e.get("elite", false) or dk == 1.0:
+			kh_cnt += int(Bal.v("relic/killheal_boss", 60.0)) if e.get("boss", false) else (int(Bal.v("relic/killheal_elite", 10.0)) if e.get("elite", false) else 1)
+		else:
+			kh_frac += dk
+			kh_cnt += int(kh_frac)
+			kh_frac -= floorf(kh_frac)
 		var need: int = maxi(1, int(Bal.v("relic/killheal_n", 60.0)))
 		while kh_cnt >= need:
 			kh_cnt -= need

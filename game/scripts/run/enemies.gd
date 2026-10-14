@@ -273,6 +273,11 @@ func update(dt: float) -> void:
 				e.burst_w -= dt
 				if e.burst_w <= 0.0:
 					g.fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+					# 破膜帧条（docs/96 §1.3，纯画面）：world._draw_enemy_full 按 burst_fx_t 在本体前后各画一层；地面残留 fx_pocket_puddle 在溟痕层
+					e["burst_fx_t"] = g.t
+					var pf: String = str(D.ENEMIES[e.type].get("puddle_fx", ""))
+					if pf != "":
+						g.vfx.fx_sprite(pf, e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX + 4.0 * Game.PX), g.world.enemy_scale(e), 0.0, false, false, Color.WHITE, true)
 					Sfx.play("tentacle", -2.0, 0.7)
 					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
 						g.in_type = ["近战", "法术"]
@@ -285,7 +290,7 @@ func update(dt: float) -> void:
 
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false):
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue
@@ -308,7 +313,8 @@ func update(dt: float) -> void:
 func _devour(e: Dictionary, o: Dictionary) -> void:
 	e.hp += o.hp
 	e.maxhp += o.maxhp
-	e.r = min(e.r + 1.5, 32.0)
+	var esc: float = float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）：增量与上限同比放大
+	e.r = min(e.r + 1.5 * esc, 32.0 * esc)
 	e.xp += o.xp
 	o.dead = true
 	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
@@ -360,16 +366,51 @@ func update_lobs(dt: float) -> void:
 			g.beacon_sys.eat_fx(l.to)   # 圈内安全：落进读条光圈的抛石被灯光吞掉，不伤人、不留溟痕（docs/49g）
 			continue
 		if l.t >= l.dur:
-			g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
-			if l.get("mire", false) and g.mires.size() < 32:
-				g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
-			g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
-			Sfx.play("boom", -14.0, 1.6, 0.1)
+			if l.get("kind", "") == "brood":
+				_brood_land(l)
+			else:
+				# 落点帧条（enemies.json land_fx，docs/96 §1.4 喷吐者 fx_spitter_land，地面层、原点 (20,17)）：有图就不画程序爆圈 / 石屑火花；溟痕照旧由下面接管
+				var landed: bool = str(l.get("land_fx", "")) != "" and g.vfx.fx_sprite(l.land_fx, l.to, Game.PX, 0.0, false, false, Color.WHITE, true, Vector2(20, 17))
+				if not landed:
+					g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
+				if l.get("mire", false) and g.mires.size() < 32:
+					g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
+				if not landed:
+					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
+				Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
 				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l)
+				if str(l.get("hit_fx", "")) != "":
+					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
+
+
+## 投嗣弹落地（投嗣育母，用户 10-14 定；enemy_ai.lob 的 lob_kind brood）：酸液砸开 + 在落点孵化一只注亡拟嗣。
+## 画面：fx_brood_land（docs/96 §1.1，粘液破开 → 拟嗣展开；播完前拟嗣本体不画、不接触、不吐酸：e.hatch_until）；
+## 缺图时 fx_acid_splash + 拟嗣直接出现。场上拟嗣到 spawner.type_cap 只造成伤害不孵化（伤害在 update_lobs 统一结算）
+func _brood_land(l: Dictionary) -> void:
+	var kind: String = str(l.get("spawn", "brood"))
+	var cap: int = g.spawner.type_cap(kind)
+	var can_hatch: bool = cap <= 0 or g.spawner.type_n(kind) < cap
+	var hp: Vector2 = g.map.push_out(l.to, 10.0) if can_hatch else l.to   # 孵化点（避开景物），落地帧条对齐到它
+	var hatch := 0.0
+	# Codex enemy_fx_1：fx_brood_land 24×24，末帧含 e_brood f0（1x 嵌入偏移 (3,4)）→ 原点 (12,24) 正好是拟嗣脚底锚点，播完移交本体
+	if g.vfx.fx_sprite("fx_brood_land", hp, Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 24)):
+		var spec: Array = Game.V6_FRAMES["fx_brood_land"]
+		hatch = float(spec[0]) / float(spec[1])
+	else:
+		g.vfx.fx_sprite("fx_acid_splash", l.to + Vector2(0, 6), Game.PX, 0.0, false, true)
+	g.fx.append({"kind": "ring", "pos": l.to, "r": l.r, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.72)})   # 敌方洋红（docs/48）
+	g.vfx.sparks(l.to, Vector2.ZERO, Color(0.9, 1.6, 0.5), 8, 160.0)   # 酸绿粘液
+	Sfx.play("mire_splat", -10.0, 1.1, 0.1)
+	if not can_hatch:
+		return
+	var nb: Dictionary = g.spawner.spawn_enemy(kind, hp)
+	if hatch > 0.0:
+		nb["hatch_until"] = g.t + hatch
+		nb.cdt = maxf(nb.cdt, hatch)   # 展开期间不吐酸
 
 
 func update_ebullets(dt: float) -> void:
@@ -402,6 +443,8 @@ func update_ebullets(dt: float) -> void:
 				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:
 			b.life = 0.0
+			if str(b.get("hit_fx", "")) != "":
+				g.vfx.fx_sprite(b.hit_fx, b.pos + Vector2(0, -10), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 专属命中帧条（docs/96 §1.2 漂移体 fx_corrode_hit，原点 (12,19)，纯画面）
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			g.dmg_src = "bullet"
@@ -465,16 +508,16 @@ func update_status(dt: float) -> void:
 		mire_tick = 0.0
 	g.mires = g.mires.filter(func(m): return m.life > 0.0)
 	for s in g.shocks:
-		s.r += 320.0 * dt
+		s.r += float(s.get("spd", 320.0)) * dt   # spd：缺口环（大群之歌）扩散 ≤220px/s（docs/38 §1.9），普通冲击环 320
 		# 冲击环：环带宽 22，按地面椭圆算，且不超过最大半径（= 预警圈，docs/38 B0 第 5 项、docs/48 P0-1）
 		var sd: float = g.combat.ground_d(g.ppos, s.pos)
-		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr:
+		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr and not g.bai.in_gap(s, (g.ppos - s.pos).angle()):   # 缺口环：站在缺口弧里不算中（docs/95 §12 song_ring）
 			s.hit = true
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
 					g.pstun = max(g.pstun, 0.5)
 				g.dmg_src = "shock_" + str(s.src_type) if s.has("src_type") else "shock"   # 遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
-				g.in_type = ["近战", "物理"]
+				g.in_type = ["近战", "真实"] if s.get("true", false) else ["近战", "物理"]
 				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 

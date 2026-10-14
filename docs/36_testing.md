@@ -23,6 +23,20 @@
 
 分级只用于改的过程中；快进合入 main 前仍要跑一次不带 `--auto` 的全量。
 
+**§1.1 谁跑全量、跑几次（2026-10-14 用户：「测试流程里有好多重复跑的」）**
+
+当天实况：每个工作会话在自己的工作树跑一遍全量（10–25 分钟，本机有二三十个 Godot 时更久），合入 main 后 `tools/ship.py` 又跑一遍全量，一天发 4 版就是 8 次全量；同种子对照每个会话各建一个临时基线工作树重跑基线；56 局的平衡批跑在本机跑。改成：
+
+| 谁 | 跑什么 | 不跑什么 |
+| --- | --- | --- |
+| 工作会话 / 代理（工作树） | `check.py --auto --jobs 3`（按改动分级）+ 自己改动的回归项 `--only <名>` + 同种子 TRACE 对照（基线用缓存，见下） | **不跑全量**；不跑平衡批跑（上云，§7.5） |
+| 协调人（合入 main 后） | `tools/ship.py` 里的**一次**全量 + 发布检查 | 不逐个分支再跑全量 |
+| 云端 | 平衡批跑、A/B、胜率、木桩矩阵、等价性 A/B | 截图、帧时（云端无显示、与本机帧时不可比） |
+
+- **发版合批**：协调人不是每合一个分支就发一版——攒一批（约 2 小时或用户要看时），一次全量、一次三包、一次 itch。纯美术 / 文档的合入可以 `ship.py --skip-check`（发布检查仍跑）。
+- **基线 TRACE 缓存**：同种子对照的基线按 `build/trace_cache/<main 提交>_<seed>_<队长>_<时长>.txt` 存，其他会话同一提交直接用，不再各自建临时工作树重跑；没有的才跑一次并存下。
+- **本机并发**：所有会话合计 ≤ `GODOT_MAX_PROCS`；单个会话 `--jobs ≤ 3`；帧时测量时别人暂停批跑（协调人协调）。
+
 快检（全量）包含五项：
 
 1. **核心契约测试**（`tests/test_core.gd`）：干员结构、成长线、藏品数据、属性分层。
@@ -162,7 +176,8 @@
 
 **截图**（需要窗口，仍静音；`--shotdir=` 指定目录）
 
-`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--bossintro=<Boss>[,<Boss>]`（第 20 帧在主控旁刷出该 Boss（逗号 = 同组登场）走一遍登场演出，0.35 / 0.6 / 0.85 / 1.1 秒各截一张 `shot_bossintro_*`，演完击杀再截两张击破 `shot_bossout_*`；`--nobossintro` 关掉演出，同 seed 开窗口对照用；`screens/boss_intro.gd`）、`--bossdeath=<结局>`（最终 Boss 击破演出，docs/38 §1.8：第 20 帧在主控旁刷出该结局的最终 Boss（standard / deep / knight / resolve）并登记为 `final_boss`，登场演完 30 帧后击杀 → `victory_flow` 慢动作 + 击破名片，演出 0.2 / 0.5 / 0.9 / 1.4 / 1.8 秒各截一张 `shot_bossdeath_<结局>_*`，进结算 1.5 秒后退出；带 `--autotest`，开窗口；录片用 `--fixed-fps 30` 每帧存图）、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--creditsshot`、`--creditsscroll=<像素>`（致谢与声明页截图；滚动量超出自动截到底）、`--opshot`、`--opsel=`、`--opid=<干员>`、`--optab=0–2`、`--opskill=0–2`、`--opfilter=<职业>`、`--opscroll=<像素>`、`--reducemotion`（选人页 B+ 截图：选人 / 页签 / 技能行 / 职业筛选 / 名册滚动 / 减少动态效果）、`--opmotion`（选人页动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/opmotion/`，换人 → 换页签 → 技能行 → 筛选 → 出击浪幕 → 难度页，约 8.6 秒）、`--galleryid=<id>`、`--galleryfilter=<职业>`、`--galleryrow=<n>`（图鉴 C4' 截图：配 `--galleryshot=` 按 id 选条目 / 职业筛选 / 手机展开第 n 行；形态填 99 = 最后一个「演示」）、`--codexmotion`（图鉴动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/codexmotion/`，标题 → 斜切转场打开 → 换干员 ×2 → 换页签 ×3 → 敌人页启辉 → 换条目 → 回干员页，430 帧）、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
+`--shots=帧,…`、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--bossmoves=<Boss>[2]`（docs/95 §12 招式验收：第 20 帧在主控旁刷出该 Boss（后缀 2 = 二阶段），按 `bosses/<type>.gd` 的 `demo_moves` 顺序逐招 `force_move`，预警进度 60% 截 `shot_bossmove_<Boss>_<招>.png`、结算后 8 帧截 `_hit.png`，放完退出；主控不动，带 `--autotest` 开窗口）、`--bossintro=<Boss>[,<Boss>]`（第 20 帧在主控旁刷出该 Boss（逗号 = 同组登场）走一遍登场演出，0.35 / 0.6 / 0.85 / 1.1 秒各截一张 `shot_bossintro_*`，演完击杀再截两张击破 `shot_bossout_*`；`--nobossintro` 关掉演出，同 seed 开窗口对照用；`screens/boss_intro.gd`）、`--bossdeath=<结局>`（最终 Boss 击破演出，docs/38 §1.8：第 20 帧在主控旁刷出该结局的最终 Boss（standard / deep / knight / resolve）并登记为 `final_boss`，登场演完 30 帧后击杀 → `victory_flow` 慢动作 + 击破名片，演出 0.2 / 0.5 / 0.9 / 1.4 / 1.8 秒各截一张 `shot_bossdeath_<结局>_*`，进结算 1.5 秒后退出；带 `--autotest`，开窗口；录片用 `--fixed-fps 30` 每帧存图）、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--creditsshot`、`--creditsscroll=<像素>`（致谢与声明页截图；滚动量超出自动截到底）、`--opshot`、`--opsel=`、`--opid=<干员>`、`--optab=0–2`、`--opskill=0–2`、`--opfilter=<职业>`、`--opscroll=<像素>`、`--reducemotion`（选人页 B+ 截图：选人 / 页签 / 技能行 / 职业筛选 / 名册滚动 / 减少动态效果）、`--opmotion`（选人页动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/opmotion/`，换人 → 换页签 → 技能行 → 筛选 → 出击浪幕 → 难度页，约 8.6 秒）、`--galleryid=<id>`、`--galleryfilter=<职业>`、`--galleryrow=<n>`（图鉴 C4' 截图：配 `--galleryshot=` 按 id 选条目 / 职业筛选 / 手机展开第 n 行；形态填 99 = 最后一个「演示」）、`--codexmotion`（图鉴动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/codexmotion/`，标题 → 斜切转场打开 → 换干员 ×2 → 换页签 ×3 → 敌人页启辉 → 换条目 → 回干员页，430 帧）、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
+`--shots=帧,…`、`--spawntest=<id>[,<id>]`（第 20 帧把这些小怪 / 精英刷在主控右侧、时间照常走，每 6 帧截 `shot_spawn_<id>_<帧>.png` 到第 320 帧；`--bosstest` 的 g.t 不动，远程蓄力永远到不了，小怪招式截图用这个）、`--galleryshot=页,选中,形态,等待[,连拍,间隔]`、`--compareshot=<id>[,s]`、`--demoset=阶段,模式`、`--infotab=N`、`--allrelics`、`--allend`、`--relicshot`、`--winshot=<结局>`、`--bosstest=<Boss>`、`--bossintro=<Boss>[,<Boss>]`（第 20 帧在主控旁刷出该 Boss（逗号 = 同组登场）走一遍登场演出，0.35 / 0.6 / 0.85 / 1.1 秒各截一张 `shot_bossintro_*`，演完击杀再截两张击破 `shot_bossout_*`；`--nobossintro` 关掉演出，同 seed 开窗口对照用；`screens/boss_intro.gd`）、`--bossdeath=<结局>`（最终 Boss 击破演出，docs/38 §1.8：第 20 帧在主控旁刷出该结局的最终 Boss（standard / deep / knight / resolve）并登记为 `final_boss`，登场演完 30 帧后击杀 → `victory_flow` 慢动作 + 击破名片，演出 0.2 / 0.5 / 0.9 / 1.4 / 1.8 秒各截一张 `shot_bossdeath_<结局>_*`，进结算 1.5 秒后退出；带 `--autotest`，开窗口；录片用 `--fixed-fps 30` 每帧存图）、`--fxtest`、`--gemshot`、`--openshot`、`--introshot`、`--titleshot`、`--loadingshot`（出发后「载入中…」面板）、`--loadprof`（开窗口：打印标题页离开 → game.gd `_ready` 各阶段 → 首帧画完的毫秒数 `LOADPROF`，以及法线图预热耗时 `PRELOAD`；查进局黑屏用）、`--settingsshot`、`--creditsshot`、`--creditsscroll=<像素>`（致谢与声明页截图；滚动量超出自动截到底）、`--opshot`、`--opsel=`、`--opid=<干员>`、`--optab=0–2`、`--opskill=0–2`、`--opfilter=<职业>`、`--opscroll=<像素>`、`--reducemotion`（选人页 B+ 截图：选人 / 页签 / 技能行 / 职业筛选 / 名册滚动 / 减少动态效果）、`--opmotion`（选人页动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/opmotion/`，换人 → 换页签 → 技能行 → 筛选 → 出击浪幕 → 难度页，约 8.6 秒）、`--galleryid=<id>`、`--galleryfilter=<职业>`、`--galleryrow=<n>`（图鉴 C4' 截图：配 `--galleryshot=` 按 id 选条目 / 职业筛选 / 手机展开第 n 行；形态填 99 = 最后一个「演示」）、`--codexmotion`（图鉴动效录制：配 --fixed-fps 30 逐帧存到 `<shotdir>/codexmotion/`，标题 → 斜切转场打开 → 换干员 ×2 → 换页签 ×3 → 敌人页启辉 → 换条目 → 回干员页，430 帧）、`--opburst`、`--touchtest`、`--touch`、`--padsim`、`--drawtest`（批跑时照常重绘，验证画面不影响结果）
 
 ## 6. 报告在哪
 
@@ -254,6 +269,15 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
 5. **收尾**：合入 main 后请求方删自己的远端工作分支；`cloud-results/<名>` 由「测试与验收」在请求方看完后删除。
 
 规则照 §7.4：A/B 两边都在云端算；不拿云端报告和本机报告互比；本机快检的结果和云端快检的结果各自有效，但不能拿来当前后对照。
+
+**§7.5.1 现行做法（2026-10-14 用户：「能上云的就上云」）**：「测试与验收」会话已不存在，改为**谁需要谁直接建一次性云端例行任务**（用户 10-13 已授权，不必每次问）：
+
+1. 推自己的工作分支到 origin（`git push origin <工作分支>`；A/B 的基准用 merge-base 提交号，不用再推）。
+2. 用 RemoteTrigger 建 `run_once_at` = 现在 +2 分钟的例行任务（环境 Default，仓库 cryus-2000/ArknightsSurvivors，模型 claude-sonnet-5），提示词写清：检出哪个提交、`bash tools/cloud/setup_linux.sh` 后跑什么（`tools/cloud/run_cloud.sh` 的参数 / `balance_run` 参数 / 同种子配对两边各自的提交与 tag）、结果推到 `cloud-results/<tag>`。局数多就按难度 / 开局拆成几份并行各建一个。**工作树子代理（Agent 工具）没有 RemoteTrigger**：子代理把 create body + 提示词写到 `build/cloud_routine_<tag>.md` 并在汇报里说明，由协调人或角色会话代建（10-14 实测）。
+3. 本机继续做别的；结果用 `python tools/cloud_compare.py <tagA> <tagB>` 读（自动 fetch）。
+4. 云端跑不了的只有：截图、帧时、真机。这些留本机。
+
+本机不再跑 56 局级别的平衡批跑；本机只做 ≤ 6 局的冒烟级确认。
 
 **等价性 A/B**（重构、换读法等预期逐局完全相同的改动，2026-09-27）：两边必须在**同一台**云端机器上依次跑，同一批局，tag 分别以 `_base` / `_new` 结尾；局数多时按难度 / 开局拆份，每份仍是两边同机。读回后用 `python tools/cloud/eq_compare.py <结果分支前缀>` 逐局逐字段比较整局记录；有一局不同就是 bug，把那一局的开局、seed、档位、难度和第一个不同的字段发给请求方。另外抽查各份的胜局数确实随难度变化，确认参数真的生效（首次用于玩法系统的难度修正表，5 档 × 56 局，280 对全部相同）。
 

@@ -100,7 +100,7 @@
    "acid_range": 300,
    "acid_cd": 4.2,
    "extra": {"name": "酸蚀脉冲", "mode": "pulse", "range": 100, "cd": 15.0, "damage_mult": 0.25, "min_time": 400.0},
-   "desc": "驻留的子体，接触和酸弹命中附加侵蚀；酸弹每 4.2 秒发射一次。"
+   "desc": "由投嗣育母投出、落地孵化的子体，不移动并逐渐衰亡；接触和酸弹命中附加侵蚀，酸弹每 4.2 秒发射一次。"
   },
   "spitter": {
    "wound_hit": 1,
@@ -111,13 +111,8 @@
    "weak": "物理",
    "r": 14.0,
    "xp": 3.0,
-   "tex": "e_stone",
+   "tex": "e_spitter",
    "anchor": "foot",
-   "tint": [
-    0.6,
-    1.0,
-    0.65
-   ],
    "ai": "ranged",
    "range": 320.0,
    "cd": 3.2,
@@ -125,6 +120,9 @@
    "corrode": 0.45,
    "draw_scale": 1.17,
    "atk_anim": true,
+   "lob_tex": "proj_spitter_acid",
+   "land_fx": "fx_spitter_land",
+   "hit_fx": "fx_corrode_hit_acid",
    "desc": "朝队长预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。另会使用「酸沫扇吐」进行预警攻击。",
    "extra": {
     "name": "酸沫扇吐",
@@ -385,6 +383,8 @@
    "ai": "melee",
    "role": "elite",
    "burst": true,
+   "burst_fx": "fx_pocket_burst",
+   "puddle_fx": "fx_pocket_puddle",
    "elite_after": 0,
    "atk_anim": true,
    "extra": {
@@ -416,6 +416,13 @@
    "corrode": 0.5,
    "hover": true,
    "shot_n": 3,
+   "shot_tex": "proj_skimmer_corrode",
+   "muzzle_fx": "fx_skimmer_muzzle",
+   "muzzle_off": [
+    13,
+    -6
+   ],
+   "hit_fx": "fx_corrode_hit",
    "elite_after": 120,
    "extra": {
     "name": "掠海贯射",
@@ -445,14 +452,15 @@
    "role": "elite",
    "brood": true,
    "shot_kind": "acid",
-   "shot_home": true,
-   "shot_spd": 150,
-   "spawn_on_shot": "brood",
-   "spawn_max": 12,
+   "lob": true,
+   "lob_kind": "brood",
+   "lob_r": 30,
+   "lob_dur": 0.8,
+   "lob_spread": 40,
    "elite_after": 300,
    "atk_anim": true,
    "corrode": 0.25,
-   "desc": "发射追踪酸弹，命中附加侵蚀，并在队长附近召唤注亡拟嗣。另会使用「育嗣酸雨」进行预警攻击。",
+   "desc": "向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，随即孵化一只拟嗣（场上拟嗣到 6 只时只造成伤害）。另会使用「育嗣酸雨」进行预警攻击。",
    "extra": {
     "name": "育嗣酸雨",
     "mode": "volley",
@@ -545,27 +553,20 @@
    "act_min": 10.0,
    "patterns": [
     {
+     "name": "潮汐坠落",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 56,
+     "arc": true,
+     "arc_r": 108
+    },
+    {
      "name": "解读旋涡",
      "mode": "ring",
      "count": 36,
-     "waves": 3,
+     "waves": 2,
      "speed": 345,
      "gap": 0.38
-    },
-    {
-     "name": "潮汐坠落",
-     "mode": "rain",
-     "waves": 6,
-     "radius": 56
-    },
-    {
-     "name": "子代扇潮",
-     "mode": "fan",
-     "count": 9,
-     "waves": 2,
-     "spread": 1.25,
-     "speed": 345,
-     "blade": false
     }
    ]
   },
@@ -791,27 +792,27 @@
    "arena_r": 580.0,
    "patterns": [
     {
-     "name": "偏执涡流",
+     "name": "叠影",
+     "mode": "stack",
+     "waves": 3,
+     "waves_p2": 5,
+     "radius": 45,
+     "track": 0.5,
+     "lock": 0.65,
+     "mult": 0.8,
+     "corrode": 0.6,
+     "cd": 4.0
+    },
+    {
+     "name": "泡影环",
      "mode": "ring",
      "count": 32,
-     "waves": 3,
+     "waves": 1,
      "speed": 330,
-     "gap": 0.38
-    },
-    {
-     "name": "泡影弹幕",
-     "mode": "fan",
-     "count": 13,
-     "waves": 3,
-     "spread": 1.8,
-     "speed": 410,
-     "blade": false
-    },
-    {
-     "name": "泡影坠落",
-     "mode": "rain",
-     "waves": 5,
-     "radius": 54
+     "gap": 0.38,
+     "mult": 0.6,
+     "cd": 4.0,
+     "p2_every": 2
     }
    ]
   },
@@ -845,34 +846,11 @@
     "volley_warn": 0.8,
     "bite_range": 190.0,
     "maw_warn": 0.85,
+    "bite_warn": 1.1,
     "maw_mult": 0.9,
     "recovery": 1.25
    },
-   "patterns": [
-    {
-     "name": "腐潮旋流",
-     "mode": "ring",
-     "count": 36,
-     "waves": 3,
-     "speed": 360,
-     "gap": 0.38
-    },
-    {
-     "name": "棘鳍刃潮",
-     "mode": "fan",
-     "count": 9,
-     "waves": 3,
-     "spread": 1.9,
-     "speed": 450,
-     "blade": true
-    },
-    {
-     "name": "棘潮落柱",
-     "mode": "rain",
-     "waves": 5,
-     "radius": 54
-    }
-   ]
+   "patterns": []
   },
   "knight": {
    "cold_hit": 1,
@@ -923,32 +901,7 @@
    "move_fps": 8,
    "phases": 2,
    "draw_scale": 0.7,
-   "patterns": [
-    {
-     "name": "寒锋刃雨",
-     "mode": "fan",
-     "count": 7,
-     "waves": 3,
-     "spread": 1.65,
-     "speed": 440,
-     "blade": true
-    },
-    {
-     "name": "长枪回旋",
-     "mode": "cleave",
-     "radius": 270,
-     "half": 1.35,
-     "waves": 2,
-     "texture": "fx_slash_heavy_steel"
-    },
-    {
-     "name": "冰枪双轨",
-     "mode": "line",
-     "waves": 2,
-     "length": 610,
-     "width": 14
-    }
-   ],
+   "patterns": [],
    "frost": 2.0,
    "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
   }
