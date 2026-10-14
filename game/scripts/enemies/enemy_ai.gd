@@ -340,11 +340,13 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		g.ebullets.append({"pos": e.pos, "vel": dk * spd, "dmg": e.dmg * (0.7 if e.boss else 0.45) * (2.0 if e.has("ammo") else 1.0),
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "frost": e.get("frost", 0.0), "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
-			"mire": (e.type == "paranoia" and e.phase == 2) or d.get("shot_mire", false), "mire_r": float(d.get("shot_mire_r", 52.0)), "mire_life": float(d.get("shot_mire_life", 10.0)), "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type})
+			"mire": (e.type == "paranoia" and e.phase == 2) or d.get("shot_mire", false), "mire_r": float(d.get("shot_mire_r", 52.0)), "mire_life": float(d.get("shot_mire_life", 10.0)), "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type,
+			"tex": str(d.get("shot_tex", "")), "hit_fx": str(d.get("hit_fx", ""))})   # 专属弹体 / 命中帧条（docs/96，纯画面；缺图回退程序画法）
 	if e.boss:
 		e.pose = 0.4
 		e.pose_max = 0.4
 	e.atk_until = g.t + 0.2   # 小怪攻击帧条（atk_anim）：出手后播第 3、4 帧
+	_muzzle_fx(e, d)
 	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
 	var so: String = d.get("spawn_on_shot", "")
 	if so != "":
@@ -359,6 +361,19 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」
 			g.fx.append({"kind": "rift", "pos": sp_pos, "r": 22.0, "life": 0.5, "max": 0.5})
 			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
+
+
+## 出手帧的发射口特效（enemies.json muzzle_fx / muzzle_off，docs/96 §1.2 漂移体 fx_skimmer_muzzle）：纯画面，缺图不画。
+## muzzle_off 是攻击帧 f2 里发射口相对脚底锚点的 1x 美术像素偏移（朝右），按本体缩放、随朝向镜像；脚底 = world 的 bpos（e.pos 往下 r × 0.8 + 3 × PX）
+func _muzzle_fx(e: Dictionary, d: Dictionary) -> void:
+	var mf: String = str(d.get("muzzle_fx", ""))
+	if mf == "" or g.tex.get(mf) == null:
+		return
+	var off: Array = d.get("muzzle_off", [0, 0])
+	var s1: float = g.world.enemy_scale(e)   # 1 个 1x 美术像素 = 多少世界像素（含 draw_scale，不含 @2x 密度）
+	var flip: bool = e.fx < 0.0
+	var at: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX) + Vector2((-1.0 if flip else 1.0) * float(off[0]) * s1, float(off[1]) * s1) + g.world._eoff(e)
+	g.vfx.fx_sprite(mf, at, s1, 0.0, flip)
 
 
 ## 远程开火音（音频，协调人 9/30 定）：要躲的弹用专属声、替换通用吐射声（不叠加）——
@@ -380,5 +395,7 @@ func lob(e: Dictionary) -> void:
 	Sfx.enemy(shot_sfx(e, def_of(e)), e.pos.distance_to(g.ppos))
 	e.atk_until = g.t + 0.3
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
-	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
-		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type})
+	var d := def_of(e)
+	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": d.get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
+		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type,
+		"tex": str(d.get("lob_tex", "")), "land_fx": str(d.get("land_fx", "")), "hit_fx": str(d.get("hit_fx", ""))})   # 专属抛射物 / 落点 / 命中帧条（docs/96 §1.4 喷吐者，纯画面）

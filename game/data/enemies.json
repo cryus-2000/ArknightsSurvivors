@@ -111,13 +111,8 @@
    "weak": "物理",
    "r": 14.0,
    "xp": 3.0,
-   "tex": "e_stone",
+   "tex": "e_spitter",
    "anchor": "foot",
-   "tint": [
-    0.6,
-    1.0,
-    0.65
-   ],
    "ai": "ranged",
    "range": 320.0,
    "cd": 3.2,
@@ -125,6 +120,9 @@
    "corrode": 0.45,
    "draw_scale": 1.17,
    "atk_anim": true,
+   "lob_tex": "proj_spitter_acid",
+   "land_fx": "fx_spitter_land",
+   "hit_fx": "fx_corrode_hit_acid",
    "desc": "朝队长预判位置抛射酸液，落地前显示预警；命中附加侵蚀，落点留下溟痕。另会使用「酸沫扇吐」进行预警攻击。",
    "extra": {
     "name": "酸沫扇吐",
@@ -382,6 +380,8 @@
    "ai": "melee",
    "role": "elite",
    "burst": true,
+   "burst_fx": "fx_pocket_burst",
+   "puddle_fx": "fx_pocket_puddle",
    "elite_after": 0,
    "atk_anim": true,
    "extra": {
@@ -413,6 +413,13 @@
    "corrode": 0.5,
    "hover": true,
    "shot_n": 3,
+   "shot_tex": "proj_skimmer_corrode",
+   "muzzle_fx": "fx_skimmer_muzzle",
+   "muzzle_off": [
+    13,
+    -6
+   ],
+   "hit_fx": "fx_corrode_hit",
    "elite_after": 120,
    "extra": {
     "name": "掠海贯射",
