@@ -159,7 +159,7 @@ func update(dt: float) -> void:
 			spd *= 1.4
 		var move_dir := dir
 		if e.feed and final_target_valid(e):
-			move_dir = (e.feed_to.pos - e.pos).normalized()
+			move_dir = (by_id(e.feed_to_id).pos - e.pos).normalized()
 		elif e.get("aggro", Vector2.INF) != Vector2.INF:
 			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
 			move_dir = (e.aggro - e.pos).normalized()
@@ -312,8 +312,12 @@ func _devour(e: Dictionary, o: Dictionary) -> void:
 	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
 
 
+## 喂食目标（feed_to_id，伊祖米克）还在且未死；已被清理的 by_id 返回 null，按已死算（docs/101 B5）
 func final_target_valid(e: Dictionary) -> bool:
-	return e.has("feed_to") and e.feed_to != null and not e.feed_to.dead
+	if not e.has("feed_to_id"):
+		return false
+	var t = by_id(int(e.feed_to_id))
+	return t != null and not t.dead
 
 
 ## 伊祖米克的子代：碰到水月就蜕变成其他敌人

@@ -346,6 +346,7 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **B1**：`g.in_type / g.dmg_src`（敌人打队长）与 `combat.cur_src / cur_dmg`（队长受击询问）已改显式传参；Boss 特例进 `boss_base` 六个钩子（block_damage / absorb_damage / on_damaged / on_lethal / on_kill / on_gate）。**`g.hit` 不在 B1 改**：干员经 op_api 门面 `log_hit → deal_damage` 用它（约 56 处），嵌套结算靠存 / 恢复；改成显式参数会改变「没恢复描述符」那些路径上的伤害归属（dmg_out / 遥测，可能连带藏品倍率），同 seed 保不住。挪到 **B7 换基线**时与干员注册表一起改。
 - **B2**：预警管线搬到 `enemies/telegraph.gd`（`g.tele`），填充绘制搬到 `render/telegraph_draw.gd`。§3.2 ① 的「8 处结算合一个入口」不再另做：B1 之后这 8 处各自只剩一句带显式参数的 `enemy_hit`，几何判定本来就各不相同（地面椭圆圈 / 弹体中心距 / 环带），包一层入口没有收益。
 - **B3 拆两段**：B3a 表现事件步骤（`watch_bosses` 从 draw_world 挪到 `_process` 末尾的 `world.present_step()`、开场状态机显式调、`lvup_delay` 回到模拟步）先做；B3b「画面字段挪渲染侧」挪到 **B5 之后**——按 `e.id` 放字典会让敌人绘制热路径每只多一次字典读，B5 有了槽位后按槽位下标放数组更省。
+- **B5 收窄**：B5a 出生口 `enemies_sys.admit`（spawner 两处）+ 槽位 `e.slot`（空闲槽位后进先出复用）+ id 表 `by_id`，清理改走 `sweep_dead` 回收槽位；B5b 只把原生 EnemyCore 范围（enemies.update 移动段）里唯一的敌人→敌人引用 `feed_to` 改成 `feed_to_id`。partner、分形 / 泪的 owner、spawned_after、塑路者 `e.core`、预警的 owner / b_owner 只在 GDScript 的 Boss 逻辑里读，原生端不碰，保持字典引用（Boss与怪物 10-15 逐处核过：其中 `e.core` 被清理后下一帧还要读 dead / pos，改 id 反而要额外抄字段）。§4.3「is_same 60 处改 id」以此为准。
 
 ### 7.3 B6 准备：op_blocks 拆分方案与 `ob_geom` 清单（干员会话 10-15，只出方案、未改代码；依据 main f00e6f34）
 

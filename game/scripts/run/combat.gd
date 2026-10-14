@@ -1230,7 +1230,7 @@ func kill(e: Dictionary) -> void:
 			g.pickups.drop(e.pos + Vector2.from_angle(TAU * j / 12.0) * 30.0, "xp", 20.0)
 		# Boss 倒下时清除它召唤的东西
 		for o in g.enemies:
-			if (o.type == "tear" and e.type == "ishar") or (o.feed and is_same(o.get("feed_to"), e)):
+			if (o.type == "tear" and e.type == "ishar") or (o.feed and int(o.get("feed_to_id", -1)) == int(e.id)):
 				o.dead = true
 		# 清掉它还没结算的预警（圆形预警在放招者死后仍会结算），下一波大群至少推迟到 12 秒后，照常给 3 秒预警（docs/38 B0 第 7 项）
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))

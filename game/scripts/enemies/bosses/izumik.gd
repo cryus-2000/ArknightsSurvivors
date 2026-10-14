@@ -25,7 +25,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			for k in 2:
 				var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0))
 				o.feed = true
-				o.feed_to = e
+				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
 				o.spd = 45.0
 		if e.learn_t <= 0.0:
 			e.phase = 2
