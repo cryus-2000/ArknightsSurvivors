@@ -498,7 +498,7 @@
   "enemy_pop_contrast": 1.28,
   "enemy_pop_sat": 0.25,
   "_elite_rim_doc": "精英冷色描边（界面与美术 10-15）：Codex 10-14 把精英帧条亮边改回冷色后，照亮圈外只看帧条分不出精英和普通怪，全靠 HUD 头顶 ▼。elite_rim = 只给精英画的冷青描边不透明度（0 = 关，缺省；预览三档 0.35 / 0.55 / 0.8，截图 build/shots/elite_rim/），elite_rim_gain = 亮度倍数（冷青 × gain，> 1 才能在暗处透出来，缺省 2.2）。不受「Boss 轮廓光」开关影响；普通怪仍不画描边（docs/50 §12 A）。scripts/render/world.gd elite_rim",
-  "elite_rim": 0.0,
+  "elite_rim": 0.55.0,
   "elite_rim_gain": 2.2
  },
  "ui": {
