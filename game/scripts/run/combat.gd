@@ -1204,7 +1204,7 @@ func kill(e: Dictionary) -> void:
 		var chip: float = Bal.v("boss/part_chip", 0.05) * dk
 		if chip > 0.0:
 			var cr: float = Bal.v("boss/part_chip_r", 160.0)
-			for o in g.enemies:
+			for o in g.enemies_sys.parts():   # 部件登记表（docs/101 S7：原来每次击杀扫全表找部件），顺序同 g.enemies
 				if o.dead or not o.get("part", false) or o.pos.distance_squared_to(e.pos) > cr * cr:
 					continue
 				g.fx.append({"kind": "drain", "a": e.pos, "b": o.pos, "life": 0.45, "max": 0.45, "enemy": true})   # 部件吸取（world.gd 画）

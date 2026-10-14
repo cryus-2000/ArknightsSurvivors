@@ -105,12 +105,9 @@ func type_cap(kind: String) -> int:
 	return 0
 
 
+## 场上某一类的存活数：走 enemies_sys 的种类登记（docs/101 S7：原来每次刷怪抽到有上限的种类都扫全表），结果相同
 func type_n(kind: String) -> int:
-	var ns := 0
-	for e in g.enemies:
-		if e.type == kind and not e.dead:
-			ns += 1
-	return ns
+	return g.enemies_sys.type_alive(kind)
 
 
 func pick_elite() -> String:
