@@ -1,0 +1,1 @@
+> **已归档（2026-10-14）**：藏品曲线 × 怪物曲线实测 → [docs/archive/42_relic_enemy_curve.md](archive/42_relic_enemy_curve.md)。归档原因：09-26 一次性实测，Boss 血量定值已进 balance.json。现行依据：game/data/balance.json boss 段；docs/38 §8.12、35。
