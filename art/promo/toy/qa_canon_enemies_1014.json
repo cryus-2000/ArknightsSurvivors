@@ -1,0 +1,35 @@
+{
+  "protected_region_exact": true,
+  "grid": [
+    300,
+    225
+  ],
+  "scale": 4,
+  "edit_polygon": [
+    [
+      225,
+      120
+    ],
+    [
+      300,
+      110
+    ],
+    [
+      300,
+      225
+    ],
+    [
+      195,
+      225
+    ],
+    [
+      195,
+      160
+    ],
+    [
+      225,
+      160
+    ]
+  ],
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2864f8c8-916a-478b-bda3-620ebf7e8f36.png"
+}
