@@ -572,7 +572,9 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 ## 经验结晶留青色（拾取物），溶解偏紫、描边偏中性白
 const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 
-func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE) -> bool:
+## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
+## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
+func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1)) -> bool:
 	if g.tex.get(name) == null:
 		return false
 	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
@@ -582,10 +584,12 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		col = DISSOLVE_TINT
 	var spec: Array = Game.V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
-	var f := {"kind": "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
+	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
 	if bottom:
 		var tx: Texture2D = g.tex[name]
 		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
+	elif anchor_px.x >= 0.0:
+		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
 	g.fx.append(f)
 	return true
 

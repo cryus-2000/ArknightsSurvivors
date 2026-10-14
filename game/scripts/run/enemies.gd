@@ -273,6 +273,11 @@ func update(dt: float) -> void:
 				e.burst_w -= dt
 				if e.burst_w <= 0.0:
 					g.fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+					# 破膜帧条（docs/96 §1.3，纯画面）：world._draw_enemy_full 按 burst_fx_t 在本体前后各画一层；地面残留 fx_pocket_puddle 在溟痕层
+					e["burst_fx_t"] = g.t
+					var pf: String = str(D.ENEMIES[e.type].get("puddle_fx", ""))
+					if pf != "":
+						g.vfx.fx_sprite(pf, e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX + 4.0 * Game.PX), g.world.enemy_scale(e), 0.0, false, false, Color.WHITE, true)
 					Sfx.play("tentacle", -2.0, 0.7)
 					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
 						g.in_type = ["近战", "法术"]
@@ -360,15 +365,21 @@ func update_lobs(dt: float) -> void:
 			g.beacon_sys.eat_fx(l.to)   # 圈内安全：落进读条光圈的抛石被灯光吞掉，不伤人、不留溟痕（docs/49g）
 			continue
 		if l.t >= l.dur:
-			g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
+			# 落点帧条（enemies.json land_fx，docs/96 §1.4 喷吐者 fx_spitter_land，地面层、原点 (20,17)）：有图就不画程序爆圈 / 石屑火花；溟痕照旧由下面接管
+			var landed: bool = str(l.get("land_fx", "")) != "" and g.vfx.fx_sprite(l.land_fx, l.to, Game.PX, 0.0, false, false, Color.WHITE, true, Vector2(20, 17))
+			if not landed:
+				g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 			if l.get("mire", false) and g.mires.size() < 32:
 				g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
-			g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
+			if not landed:
+				g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 			Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.dmg_src = "bullet"
 				g.in_type = ["远程", "法术"]
 				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l)
+				if str(l.get("hit_fx", "")) != "":
+					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 
@@ -402,6 +413,8 @@ func update_ebullets(dt: float) -> void:
 				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:
 			b.life = 0.0
+			if str(b.get("hit_fx", "")) != "":
+				g.vfx.fx_sprite(b.hit_fx, b.pos + Vector2(0, -10), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 专属命中帧条（docs/96 §1.2 漂移体 fx_corrode_hit，原点 (12,19)，纯画面）
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
 			g.dmg_src = "bullet"
