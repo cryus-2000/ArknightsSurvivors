@@ -50,6 +50,15 @@ var scr_flash_max := 1.0
 var scr_flash_col := Color.WHITE
 var _gc_sink = null   # GroundCrack.TbSink（_init 里建）
 var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 210）：普通怪描边随之变淡
+## 精英冷色描边（界面与美术 10-15，协调人「精英冷色标识在局内暗处的可读性」）：Codex 10-14 把四只精英的帧条亮边改回冷色后，
+## 照亮圈外（灯火 2）只看帧条分不出精英和普通怪（截图 build/shots/elite_rim/），全靠 HUD 头顶 ▼。这里只给精英画一圈
+## 颜色 > 1 的冷青描边（抵消环境暗色，同 Boss 轮廓光的做法），不受「Boss 轮廓光」开关影响；普通怪仍不画（docs/50 §12 A）。
+##   render/elite_rim       描边不透明度，0 = 关（缺省）；预览三档 0.35 / 0.55 / 0.8
+##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
+## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
+const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
+var elite_rim := 0.0
+var elite_rim_col := Color(0, 0, 0, 0)
 var outline_skip := false         # 旧写法（--optold 位 OPT_OUTLINE）：活着的敌人 ≥ fx/outline_max 时普通怪不画描边，docs/50 §9.8
 ## 普通怪 / 精英描边（docs/50 §12 A，用户 10-13「怪物取消描边」）：正常游戏恒为 false——只有 Boss 和部件画描边（受「轮廓光」开关）；
 ## 只有同局对照的旧写法（g.opt_old & OPT_OUTLINE）才为 Cfg.outline，照原来的 fx/outline_max 满屏降级画
@@ -189,6 +198,9 @@ func update_visuals(dt: float) -> void:
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	# 满屏降级（性能 docs/50 §9.8：普通怪的描边贴图和本体贴图交替，每只多一次绘制调用）；回差 10 只，免得在阈值上来回闪
 	ol_norm = Cfg.outline and (g.opt_old & Game.OPT_OUTLINE) != 0
+	elite_rim = clampf(Bal.v("render/elite_rim", 0.0), 0.0, 1.0)
+	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
+	elite_rim_col = Color(ELITE_RIM_RGB.r * rg, ELITE_RIM_RGB.g * rg, ELITE_RIM_RGB.b * rg, elite_rim)
 	var omax: float = Bal.v("fx/outline_max", 150.0)
 	if not ol_norm:
 		outline_skip = false
@@ -1997,7 +2009,7 @@ func draw_enemy(e: Dictionary) -> void:
 		e.dpos = e.pos
 	var moving: bool = e.tex_move and g.t < e.mv_until and e.stun <= 0.0 and not e.coma
 	var c = e.get("dc")
-	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != outline_skip or c[7] != ol_norm:
+	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != outline_skip or c[7] != _ol_sig():
 		c = _dc_compute(e, moving)
 		e["dc"] = c
 	if dc_check and (e.id + Engine.get_process_frames()) % 8 == 0:
@@ -2091,11 +2103,30 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
-	var ol: bool = ol_norm and g.tex.has(name + "_white") and (e.elite or not outline_skip)
+	var ol: bool = g.tex.has(name + "_white") and ((ol_norm and (e.elite or not outline_skip)) or _rim_on(e))
 	var ra = atlas.reg.get(name) if atlas != null else null   # [17] / [18]：图集里的本体 / 白剪影区域（docs/50 §12 B），不在图集里为 null
 	var rw = atlas.reg.get(name + "_white") if atlas != null else null
-	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, outline_skip, ol_norm,
+	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, outline_skip, _ol_sig(),
 		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw]
+
+
+## 缓存签名第 [7] 项：旧写法的普通怪描边开关 + 精英冷色描边开关（任一变了缓存作废）
+func _ol_sig() -> int:
+	return (1 if ol_norm else 0) | (2 if elite_rim > 0.0 else 0)
+
+
+## 这只敌人画不画精英冷色描边
+func _rim_on(e: Dictionary) -> bool:
+	return elite_rim > 0.0 and e.elite and not e.boss
+
+
+## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
+func _ol_col(e: Dictionary) -> Color:
+	if e.elite:
+		return elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75)
+	var oc := Color(2.2, 2.0, 2.6, 0.5)
+	oc.a *= ol_mul
+	return oc
 
 
 ## 按缓存发绘制：和 _draw_enemy_full 末段同序（描边 → 本体 → 白闪 → 词条 → 弱点）
@@ -2108,10 +2139,7 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 	var sc: float = c[12]
 	var anc: Vector2 = c[13]
 	if c[15]:
-		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
-		if not e.elite:
-			oc.a *= ol_mul
-		_espr_outline(c[8], frames, frame, bpos, sc, flip, oc, anc, Vector2.ONE)
+		_espr_outline(c[8], frames, frame, bpos, sc, flip, _ol_col(e), anc, Vector2.ONE)
 	var ra = c[17]
 	if ra != null and _afast and _rec == null:
 		# 图集快速路径（docs/50 §12 B）：本体和白闪直接按缓存的图集区域画，几何与 vfx.spr 相同；翻转时两次绘制共用一对变换
@@ -2448,8 +2476,9 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if not Cfg.outline and g.tex.has(name + "_white"):
 			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
 	# 描边只给 Boss 和部件（docs/50 §12 A：普通怪 / 精英取消描边，少一层贴图切换）；ol_norm 只在同局对照的旧写法里为真
-	if Cfg.outline and g.tex.has(name + "_white") and (e.boss or e.get("part", false) or (ol_norm and (e.elite or not outline_skip))):
-		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else Color(3.2, 1.1, 0.7, 0.75)
+	# 精英冷色描边（render/elite_rim）不受「Boss 轮廓光」开关影响
+	if g.tex.has(name + "_white") and ((Cfg.outline and (e.boss or e.get("part", false) or (ol_norm and (e.elite or not outline_skip)))) or _rim_on(e)):
+		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else (elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75))
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
 		if not e.elite and not e.boss:
