@@ -272,7 +272,7 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
 **§7.5.1 现行做法（2026-10-14 用户：「能上云的就上云」）**：「测试与验收」会话已不存在，改为**谁需要谁直接建一次性云端例行任务**（用户 10-13 已授权，不必每次问）：
 
 1. 推自己的工作分支到 origin（`git push origin <工作分支>`；A/B 的基准用 merge-base 提交号，不用再推）。
-2. 用 RemoteTrigger 建 `run_once_at` = 现在 +2 分钟的例行任务（环境 Default，仓库 cryus-2000/ArknightsSurvivors，模型 claude-sonnet-5），提示词写清：检出哪个提交、`bash tools/cloud/setup_linux.sh` 后跑什么（`tools/cloud/run_cloud.sh` 的参数 / `balance_run` 参数 / 同种子配对两边各自的提交与 tag）、结果推到 `cloud-results/<tag>`。局数多就按难度 / 开局拆成几份并行各建一个。
+2. 用 RemoteTrigger 建 `run_once_at` = 现在 +2 分钟的例行任务（环境 Default，仓库 cryus-2000/ArknightsSurvivors，模型 claude-sonnet-5），提示词写清：检出哪个提交、`bash tools/cloud/setup_linux.sh` 后跑什么（`tools/cloud/run_cloud.sh` 的参数 / `balance_run` 参数 / 同种子配对两边各自的提交与 tag）、结果推到 `cloud-results/<tag>`。局数多就按难度 / 开局拆成几份并行各建一个。**工作树子代理（Agent 工具）没有 RemoteTrigger**：子代理把 create body + 提示词写到 `build/cloud_routine_<tag>.md` 并在汇报里说明，由协调人或角色会话代建（10-14 实测）。
 3. 本机继续做别的；结果用 `python tools/cloud_compare.py <tagA> <tagB>` 读（自动 fetch）。
 4. 云端跑不了的只有：截图、帧时、真机。这些留本机。
 
