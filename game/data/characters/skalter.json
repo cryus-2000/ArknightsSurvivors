@@ -61,14 +61,14 @@
  ],
  "gallery": {"tags": ["增益", "光环", "灯火", "深海猎人"], "desc": "歌域随队长移动，提高域内干员的攻击与攻击速度；灯火通明时歌域 +20%、回复翻倍，暗淡时域内敌人移速 -10%；编队里每有一名其他深海猎人，域内攻击再 +8%"},
  "blocks": {
-  "zone": {"center": "leader", "r": "$aura"},
+  "zone": {"center": "leader", "r": "$aura", "ring": 0, "_doc": "ring 0：10-14 用户去掉最外圈红色边线（纯画面；海嗣小歌域同理写 look.edge 0）"},
   "summons": {
    "ishar": {"name": "海嗣", "invuln": true, "life": "permanent", "cap": 1, "r": 14, "col": [0.3, 0.75, 0.78], "status": false,
     "move": {"mode": "chase", "target": "densest", "speed": "$ishar_speed", "leash": "$ishar_leash", "anchor": "leader", "repick": "$ishar_repick"},
     "anim": {"idle": "ishar_idle", "run": "ishar_move", "attack": "ishar_attack", "spawn": "ishar_summon"},
     "float": {"h": 4, "amp": 2, "hz": 2.2}, "shadow": 1.1,
     "zone": {"r": "$ishar_r", "share": "$ishar_share", "mode": false,
-     "look": {"strip": "fx_skalter_seaborn_zone", "fit": 74, "max_scale": 2.6, "tint": [0.9, 0.98, 0.98, 0.55], "ring": 0.6}}}
+     "look": {"strip": "fx_skalter_seaborn_zone", "fit": 74, "max_scale": 2.6, "tint": [0.9, 0.98, 0.98, 0.55], "ring": 0.6, "edge": 0}}}
   },
   "attack": {"shape": "circle", "center": "zone", "r": "zone", "every": "$cd", "mult": 0.85, "max_n": "$wave_n", "src": "声浪", "tags": ["basic"],
    "fx": [{"strip": "fx_skalter_wave_big", "if_tex": "fx_skalter_wave_big", "layer": "floor", "cond": "lamp >= $talent_dark", "xfade": 0.4, "ease": "out2", "grow": 0.7, "grow0": 0.1, "grow_to": "zone", "max_scale": 3, "tint": [0.78, 0.95, 0.9, 0.6]},

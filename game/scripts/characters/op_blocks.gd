@@ -531,6 +531,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 			if not str(z.get("center", "")) in ["leader", "self"]:
 				errs.append("blocks.zone.center 只能是 leader / self")
 			_num(z, "r", "blocks.zone", ctx, true)
+			_num(z, "ring", "blocks.zone", ctx, false, 0.0, 2.0)   # 区域边线透明度倍率（10-14 加，纯画面）
 	var atk = blocks.get("attack", null)
 	if atk is Dictionary and str(atk.get("shape", "")) == "support":   # 召唤物扩展段：不造成伤害的普攻（凯尔希的治疗）
 		_mf_support(atk, ctx)
@@ -7309,7 +7310,7 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 			break
 		var dur: float = clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)
 		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
-			"sz": float(b.get("sz", 1.0)), "trail": 0.0})
+			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
 
 
 static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
@@ -7449,11 +7450,24 @@ static func _hw2_tick(o, dt: float) -> bool:
 		for l in h.lobs:
 			l.t += dt
 			l.trail -= dt
+			var lk = l.b.get("look", null)
 			if l.trail <= 0.0 and l.t < l.dur:
-				l.trail = 0.05
-				o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
+				if lk is Dictionary:   # 熔岩块：贴着块身的短火星拖尾（往飞行反方向甩、很快熄灭）
+					l.trail = 0.035
+					var lp: Vector2 = _hw_lob_pos(l)
+					var back: Vector2 = (lp - _hw_lob_pos_at(l, maxf(0.0, l.t - 0.03))).normalized() * -40.0
+					o.fx({"kind": "spark", "pos": lp + Vector2(g.vrng.randf_range(-2, 2), g.vrng.randf_range(-2, 2)), "vel": back + Vector2(g.vrng.randf_range(-15, 15), g.vrng.randf_range(-15, 5)),
+						"life": 0.18, "col": HW_ORANGE if g.vrng.randf() < 0.6 else HW_LAVA, "sz": 2.0 * l.sz})
+				else:
+					l.trail = 0.05
+					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				o.area_hit(l.src, l.to, l.r, l.dmg)
+				if lk is Dictionary:   # 熔岩块落地：一小下溅射闪光 + 碎块（纯画面）
+					var ln: String = str(lk.get("land", ""))
+					if ln != "":
+						o.spawn_fx_sprite(ln, l.to + Vector2(0, -4), g.PX * float(lk.get("land_scale", 0.55)) * maxf(0.7, l.sz), 0.0, l.spin < 0.0)
+					o.fx({"kind": "glow", "pos": l.to + Vector2(0, -3), "r": 14.0 * l.sz, "life": 0.1, "col": Color(2.4, 1.5, 0.6), "alpha": 0.85})
 				o.fx({"kind": "ring", "pos": l.to, "r": l.r, "r0": l.r * 0.3, "life": 0.28, "col": HW_LAVA, "floor": true, "w": 2.0})
 				o.fx({"kind": "glow", "pos": l.to, "r": l.r * 0.6, "life": 0.18, "col": Color(1.6, 0.8, 0.3), "alpha": 0.6})
 				for k in (6 if l.sz >= 1.0 else 3):
@@ -7501,7 +7515,15 @@ static func _hw2_tick(o, dt: float) -> bool:
 
 
 static func _hw_lob_pos(l: Dictionary) -> Vector2:
-	var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+	return _hw_lob_pos_at(l, float(l.t))
+
+
+## 飞行中 t 秒处的位置。look（熔岩块，10-14）：拱高 × apex_k、顶点提前到约 42%（k^0.8），落下比升起快，显得沉
+static func _hw_lob_pos_at(l: Dictionary, t: float) -> Vector2:
+	var k: float = clampf(t / l.dur, 0.0, 1.0)
+	var lk = l.b.get("look", null)
+	if lk is Dictionary:
+		return l.from.lerp(l.to, k) + Vector2(0, -sin(pow(k, 0.8) * PI) * l.h * float(lk.get("apex_k", 1.0)))
 	return l.from.lerp(l.to, k) + Vector2(0, -sin(k * PI) * l.h)
 
 
@@ -7579,6 +7601,17 @@ static func hw_draw_shells(o) -> void:
 		cv.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rr: float = 5.5 * l.sz
+		var lk = l.b.get("look", null)
+		if lk is Dictionary and g.tex.get(str(lk.get("tex", ""))) != null and g.V6_FRAMES.has(str(lk.get("tex", ""))):
+			# 熔岩块（10-14 用户「小红点太抽象，改成小的熔岩块，保留力量感」）：暗红外晕 + 翻滚的熔岩块帧条
+			var tn: String = str(lk.tex)
+			cv.draw_circle(p, rr * 2.0, Color(1.6, 0.5, 0.1, 0.22))   # 外晕（同原来圆点的光晕，略收）
+			if l.b.get("shell", false):
+				cv.draw_circle(p, rr * 1.15, Color(0.4, 0.07, 0.03, 0.8))   # 熔岩天降：暗红壳
+			var spec: Array = g.V6_FRAMES[tn]
+			var mc: Color = _mf_col(lk.get("mod", []), Color(1.7, 1.35, 1.15))   # 提亮（HDR，进辉光），不然在暗处只剩一团褐色
+			o.draw_spr_rot(tn, int(l.t * float(spec[1])) % int(spec[0]), p, l.t * float(lk.get("spin", 12.0)) * float(l.get("spin", 1.0)), g.PX * float(lk.get("scale", 0.75)) * l.sz, mc)
+			continue
 		cv.draw_circle(p, rr * 1.9, Color(1.6, 0.55, 0.12, 0.25))
 		if l.b.get("shell", false):
 			cv.draw_circle(p, rr * 1.2, Color(0.45, 0.08, 0.03, 0.95))
@@ -7743,6 +7776,11 @@ static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "reach", p, ctx, false, 1.0, 2000.0)
 			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
+			if b.has("look"):
+				if not (b.look is Dictionary) or not str(b.look.get("tex", "")).begins_with("proj_"):
+					errs.append(p + ".look 必须是 {tex: proj_* 帧条名, scale, spin, apex_k, land, land_scale}")
+				elif b.look.has("land") and not str(b.look.land).begins_with("fx_"):
+					errs.append(p + ".look.land 必须是 fx_* 帧条名")
 			_src(b, p, ctx, true)
 		"verb.affect":
 			if not (str(b.get("r", "hit")) == "hit" or b.get("r", null) is float or b.get("r", null) is int):
@@ -11293,7 +11331,11 @@ static func h3_draw_shadows(o) -> void:
 		o.draw_spr("shadow", 1, 0, (sp.doll_pos as Vector2) + Vector2(0, 4), o.g.PX)
 
 
-## 地面层：血色水痕
+## 地面层：潮痕（血色潮痕节点留下的水痕圈）。10-14 用户「血色水痕容易和怪物的攻击提示重合」：敌方预警是红色填充 + 白芯深色描边（world.draw_warn_outlines），
+## 这里改成低饱和的深海青、压低透明度、线收细，不带白芯，和敌方预警分开；纯画面
+const H3SP_TIDE_FILL := Color(0.07, 0.2, 0.25)
+const H3SP_TIDE_EDGE := Color(0.3, 0.56, 0.62)
+const H3SP_TIDE_RIPPLE := Color(0.4, 0.66, 0.7)
 static func _h3sp_draw_floor(o) -> void:
 	var cv = o.cv
 	var sp: Dictionary = o.hw.sp
@@ -11301,12 +11343,12 @@ static func _h3sp_draw_floor(o) -> void:
 		var a: float = clampf(rg.t / 0.5, 0.0, 1.0)
 		var age: float = float(rg.b.get("dur", 1.5)) - rg.t
 		cv.draw_set_transform(rg.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		cv.draw_circle(Vector2.ZERO, rg.r, Color(0.55, 0.05, 0.12, 0.16 * a))
-		cv.draw_arc(Vector2.ZERO, rg.r, 0.0, TAU, 40, Color(1.0, 0.22, 0.3, 0.65 * a), 2.5)
-		cv.draw_arc(Vector2.ZERO, rg.r * (0.5 + 0.4 * fmod(age * 1.2, 1.0)), 0.0, TAU, 32, Color(1.2, 0.4, 0.45, 0.35 * a), 1.5)
+		cv.draw_circle(Vector2.ZERO, rg.r, Color(H3SP_TIDE_FILL.r, H3SP_TIDE_FILL.g, H3SP_TIDE_FILL.b, 0.12 * a))
+		cv.draw_arc(Vector2.ZERO, rg.r, 0.0, TAU, 40, Color(H3SP_TIDE_EDGE.r, H3SP_TIDE_EDGE.g, H3SP_TIDE_EDGE.b, 0.4 * a), 1.5)
+		cv.draw_arc(Vector2.ZERO, rg.r * (0.5 + 0.4 * fmod(age * 1.2, 1.0)), 0.0, TAU, 32, Color(H3SP_TIDE_RIPPLE.r, H3SP_TIDE_RIPPLE.g, H3SP_TIDE_RIPPLE.b, 0.22 * a), 1.0)
 		for q in 6:
 			var an: float = q * TAU / 6.0 + rg.pos.x * 0.01
-			cv.draw_circle(Vector2.from_angle(an) * rg.r, 3.0, Color(1.1, 0.25, 0.32, 0.55 * a))
+			cv.draw_circle(Vector2.from_angle(an) * rg.r, 2.0, Color(H3SP_TIDE_RIPPLE.r, H3SP_TIDE_RIPPLE.g, H3SP_TIDE_RIPPLE.b, 0.32 * a))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -13638,20 +13680,9 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
 	o.fx({"kind": "h4_pillar", "pos": pos + Vector2(0, 2), "life": 0.38, "col": Color(1.9, 1.7, 0.6)})
-	# 火：中心地面火圈张开 + 周围一圈大小不一的火焰；缺图退回程序水滴火苗
-	if o.spawn_fx_sprite("fx_fire_aura", pos + Vector2(0, 6), clampf(r * 1.2 / 58.0, 2.0, 3.0), 0.0, false, true):
-		for k in 8:
-			var fa: float = k * TAU / 8.0 + g.vrng.randf_range(-0.2, 0.2)
-			var fr: float = r * g.vrng.randf_range(0.35, 0.7)
-			o.spawn_fx_sprite("fx_flames", pos + Vector2(cos(fa) * fr, sin(fa) * fr * 0.5 + 4.0), g.PX * g.vrng.randf_range(0.7, 1.05), 0.0, g.vrng.randf() < 0.5, true)
-	else:
-		for k in 16:
-			var an: float = k * TAU / 16.0 + g.vrng.randf_range(-0.15, 0.15)
-			var rr: float = r * g.vrng.randf_range(0.25, 0.75)
-			var p: Vector2 = pos + Vector2(cos(an) * rr, sin(an) * rr * 0.5 + 2.0)
-			var inner: bool = rr < r * 0.5
-			o.fx({"kind": "h4_blaze", "pos": p, "vel": Vector2(cos(an) * 24.0, -g.vrng.randf_range(10.0, 30.0)), "life": g.vrng.randf_range(0.32, 0.48),
-				"sz": g.vrng.randf_range(20.0, 28.0) if inner else g.vrng.randf_range(12.0, 18.0), "seed": g.vrng.randf() * 10.0})
+	# 10-14 用户「推进之王二技能打中地面的火焰效果删除，只保留裂地效果」：去掉落地火圈与一圈火焰（fx_fire_aura / fx_flames / 程序 h4_blaze），
+	# 留裂地（crack）、冲击环、光柱、火星与扬尘；纯画面
+	o.ground_dust(pos, r * 0.6, 10)
 	_h3_vsparks(o, pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
 	o.impact_pause(0.07)
 	if not second:
@@ -14572,7 +14603,10 @@ static func _h4sz_draw_floor_e(o) -> void:
 #                   giant {mult, size, cd, src}：饱和炮击装填的巨炮（普攻间隔 × cd）
 #  verb.cannon_exec 凋零处刑：精英 / Boss 优先（血最多）的一发重炮（× mult × 技能强度、爆炸 × size、眩晕 stun）；mark {cond}：炸到的敌人挂残影标记
 #  verb.cannon_load 饱和炮击：装填 n 发巨炮，第一发立刻打出去，之后的普攻换成巨炮直到打完（技能剩余 = 剩余发数）
-#  verb.souls       魂灵之影（放 passive）：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记的）敌人挂上残影标记，再飞回来
+#  verb.souls       魂灵之影（放 passive）：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记的）敌人挂上残影标记，再飞回来。
+#                   follow: true（10-14 用户「魂灵之影只跟随维什戴尔发射炮击，而不是自己出去」）：不再飞出去，始终悬在肩后；
+#                   维什戴尔每打出一发炮击（普攻 / 次数型补丁 / 巨炮），各影子依次（第 k 个晚 fire.gap × k 秒）朝主目标附近 fire.spread 内
+#                   优先未标记、两个影子不重复的敌人（没有就主目标）开一炮（攻击 × fire.mult、同样余震）；魂炮命中时给它的目标挂上残影标记（标记机制照旧）
 
 static func _h4wd(o) -> Dictionary:
 	var h := hw_st(o)
@@ -14676,6 +14710,7 @@ static func _h4_cannon_release(o, a: Dictionary) -> void:
 			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
 			_h4_twin(o, a, tgt, atk, false)
 	_h4_cannon_after(o, a, tgt)   # 精英化第 4 批（好礼）的挂点；迁移时没有
+	_h4_souls_sync(o, a, tgt)   # 10-14：魂灵之影跟随开炮（verb.souls follow）
 
 
 ## 精一「好礼」（docs/91 §18）：炮击的主目标直接挂上残影标记（标记期间倒下必定引爆残影，攻击 × gift.mult）；手动给的落点（伪目标）不挂
@@ -14777,6 +14812,7 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 	if not tg3.is_empty():
 		wd.ammo = int(wd.ammo) - 1
 		_h4_fire_giant(o, a, tg3.pos)
+		_h4_souls_sync(o, a, tg3)
 		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * float(a.get("giant", {}).get("cd", 0.6))
 
 
@@ -14797,6 +14833,9 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 				s.hist.pop_front()
 		if s.t >= s.dur:
 			_h4_explode(o, a, s.to, s.dmg, s.r, s.src, 0, s.stun, s.light, false, str(s.kind), s.get("mark_c", null))
+			var me = s.get("mark_e", null)   # 魂炮（follow）：命中时给它的目标挂残影标记（目标还活着、在爆炸范围内）
+			if me != null and not me.dead and me.pos.distance_to(s.to) < float(s.r) + float(me.r):
+				_h4_mark(o, a, me)
 			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0))})
 			if s.quake:
 				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
@@ -14879,6 +14918,9 @@ static func _h4_souls_tick(o, wd: Dictionary, a: Dictionary, dt: float) -> void:
 	var souls: Array = wd.souls
 	while souls.size() < int(sb.get("n", 2)):
 		souls.append({"p": o.pos + Vector2(0, -50), "st": "idle", "tgt": null, "cd": 0.8 + 1.0 * souls.size()})
+	if sb.get("follow", false):
+		_h4_souls_follow_tick(o, wd, a, sb, dt)
+		return
 	var spd: float = float(sb.get("speed", 520.0))
 	for k in souls.size():
 		var s: Dictionary = souls[k]
@@ -14977,13 +15019,70 @@ static func _h4_soul_cannon_target(o, a: Dictionary, fc: Dictionary, s: Dictiona
 static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: Dictionary) -> void:
 	var g = o.g
 	var from: Vector2 = s.p + Vector2(0, 4)
-	_h4_fire(o, a, tg.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(fc.get("mult", 0.3)), str(fc.get("src", "")), float(fc.get("size", 1.0)), true, 0.0, false, false, "soul", null, from)
+	var sh: Dictionary = _h4_fire(o, a, tg.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(fc.get("mult", 0.3)), str(fc.get("src", "")), float(fc.get("size", 1.0)), true, 0.0, false, false, "soul", null, from)
+	if fc.get("mark", false):
+		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
 	if g.tex.get("fx_wisadel_soul_fire") == null:   # 没有开火帧条：炮口一团暗紫烟
 		o.spawn_fx_sprite("fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, false, Color(0.55, 0.3, 0.75))
 	for q in 3:
 		o.fx({"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", -4.0, 1.25, 0.05)
+
+
+## follow 模式（10-14）：影子一直悬在肩后；排队的魂炮按 fq 倒数开火动作（anim 秒，第 fire_at 秒出膛）
+static func _h4_souls_follow_tick(o, wd: Dictionary, a: Dictionary, sb: Dictionary, dt: float) -> void:
+	var fc: Dictionary = _h4_sub(o, sb.get("fire", null))
+	for k in wd.souls.size():
+		var s: Dictionary = wd.souls[k]
+		s.p = s.p.lerp(_h4_soul_home(o, k), minf(1.0, dt * 6.0))
+		if fc.is_empty():
+			s.ft = -1.0
+			s.fq = -1.0
+			continue
+		if float(s.get("fq", -1.0)) >= 0.0:
+			s.fq = float(s.fq) - dt
+			if float(s.fq) < 0.0:
+				s.fq = -1.0
+				s.ft = 0.0
+				s.fired = false
+		if float(s.get("ft", -1.0)) >= 0.0:
+			s.ft = float(s.ft) + dt
+			if not s.fired and float(s.ft) >= float(fc.get("fire_at", 0.16)):
+				s.fired = true
+				var tg = s.get("ftg", null)
+				if tg != null and not tg.dead:
+					_h4_soul_shot(o, a, fc, s, tg)
+			if float(s.ft) >= float(fc.get("anim", 0.32)):
+				s.ft = -1.0
+
+
+## 维什戴尔打出一发炮击：各影子排一发魂炮（正在开火的影子这次不跟）。目标 = 主目标 spread 内优先未标记、影子间不重复的敌人，没有就主目标
+static func _h4_souls_sync(o, a: Dictionary, tgt: Dictionary) -> void:
+	var sb: Dictionary = _h4_live(o, "verb.souls")
+	if sb.is_empty() or not sb.get("follow", false) or int(tgt.get("id", -1)) < 0 or tgt.get("dead", false):
+		return
+	var fc: Dictionary = _h4_sub(o, sb.get("fire", null))
+	if fc.is_empty():
+		return
+	var wd := _h4wd(o)
+	var spread: float = float(fc.get("spread", 120.0)) * o.stat(&"op_range")
+	var near: Array = o.nearest_enemies(8, spread, tgt.pos)
+	var taken: Array = [tgt.id]
+	var q := 0
+	for k in wd.souls.size():
+		var s: Dictionary = wd.souls[k]
+		if float(s.get("ft", -1.0)) >= 0.0 or float(s.get("fq", -1.0)) >= 0.0:
+			continue
+		var pick: Dictionary = tgt
+		for e in near:
+			if not e.dead and not e.get("chest", false) and not wd.marks.has(e.id) and not taken.has(e.id):
+				pick = e
+				break
+		taken.append(pick.id)
+		s.ftg = pick
+		s.fq = float(fc.get("delay", 0.05)) + float(fc.get("gap", 0.08)) * q
+		q += 1
 
 
 static func _h4_soul_home(o, k: int) -> Vector2:
@@ -16264,7 +16363,7 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "n", p, ctx, true, 1.0, 60.0)
 		"verb.souls":
 			_num(b, "n", p, ctx, true, 1.0, 6.0)
-			_num(b, "cd", p, ctx, true, 0.1, 60.0)
+			_num(b, "cd", p, ctx, not b.get("follow", false), 0.1, 60.0)
 			_h4e_check(b, p, ctx, tag)
 		"shape.bash":
 			_num(b, "r", p, ctx, true, 1.0, 600.0)
@@ -16329,8 +16428,10 @@ static func _h4e_check(b: Dictionary, p: String, ctx: Dictionary, tag: String) -
 		"verb.souls":
 			if b.get("fire", null) is Dictionary:
 				_src(b.fire, p + ".fire", ctx, true)
-				_num(b.fire, "every", p + ".fire", ctx, true, 0.1, 60.0)
+				_num(b.fire, "every", p + ".fire", ctx, not b.get("follow", false), 0.1, 60.0)
 				_num(b.fire, "mult", p + ".fire", ctx, true, 0.0, 10.0)
+				_num(b.fire, "gap", p + ".fire", ctx, false, 0.0, 2.0)
+				_num(b.fire, "spread", p + ".fire", ctx, false, 0.0, 600.0)
 		"shape.bash":
 			if b.get("calcify", null) is Dictionary:
 				_num(b.calcify, "pct", p + ".calcify", ctx, true, 0.0, 0.9)
@@ -16363,7 +16464,7 @@ static func _h4e_check(b: Dictionary, p: String, ctx: Dictionary, tag: String) -
 const E5_KIND_KEYS := ["zone"]
 const E5_MOVE_KEYS := ["repick"]
 const E5_ANIM_KEYS := ["idle", "run", "attack", "spawn"]
-const E5_LOOK_KEYS := ["strip", "fit", "scale", "max_scale", "tint", "ring", "fade"]
+const E5_LOOK_KEYS := ["strip", "fit", "scale", "max_scale", "tint", "ring", "fade", "edge"]   # edge：边线透明度倍率（10-14 加）
 
 
 ## 普攻命中表（data_operator.exec_any_shape 记下、延迟队列带走）：敌人 id → true
@@ -16556,7 +16657,9 @@ static func e5_draw_zones(o, cc: Color, on: bool) -> void:
 			continue
 		o.cv.draw_set_transform(s.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		o.cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * k))
-		o.cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 40, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0 + 1.3)) * k), 2.0)
+		var ek: float = float(lk.get("edge", 1.0))   # look.edge：边线透明度倍率（0 = 不画边线；10-14 浊心斯卡蒂伊莎玛拉区域去掉红色外圈，纯画面）
+		if ek > 0.0:
+			o.cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 40, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0 + 1.3)) * k * ek), 2.0)
 		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

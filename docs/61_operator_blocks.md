@@ -1464,7 +1464,7 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 | `shape.shell` | 普攻 / 技能 do | 直线法术弹（game 的 fire 子弹：hidden、命中即在 `aoe` 内爆炸，爆炸后回调 `bullet_exploded`）。伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；`aoe` × op_range × `aoe_mults`（cond）× `aoe_mult`；`tip / tip_skill` 出手点；`follow`（第一条 cond 成立的：n 发后续弹每 `gap` 秒一发，打首发目标以外的敌人，不够就在两侧偏开 `side`）；`on_explode`（target = 爆点、basis hit = 这一弹、r: hit = 爆炸半径）；`look` / `fire_fx` / `boom_fx` 画面 |
 | 技能 `cast: instant` + `dur.next_n` + `attack_patch {power, aoe_mult, on_explode}` | 技能 | 充满当帧生效、不播技能动作（「炽热」）；接下来 N 发法术弹带补丁；`status` 里的 `%d` = 剩余发数 |
 | 技能 `dur.pulses {pulses, every}` + `pulse {r, pad, jit, delay, fx, do}` | 技能 | 连续喷发：每 every 秒在 (r + pad) × op_range 内敌群最密处 ± jit（g.rng，同手写）标一处，delay 秒后执行 do；期间不起手、不放别的技能；技能剩余 = 剩余次数 × every |
-| `verb.lob` | 瞬时 | 抛射火团：pick `near_out` / `shuffle` / `ring`（g.rng，同手写次数与顺序），飞 clamp(距离 / 420, 0.25, 0.6) 秒（h > 80 再 + 0.2），落地 r 内 area_hit；同时 ≤ 12 个 |
+| `verb.lob` | 瞬时 | 抛射火团：pick `near_out` / `shuffle` / `ring`（g.rng，同手写次数与顺序），飞 clamp(距离 / 420, 0.25, 0.6) 秒（h > 80 再 + 0.2），落地 r 内 area_hit；同时 ≤ 12 个。`look {tex, scale, spin, apex_k, land, land_scale, mod}`（10-14，纯画面）：画成翻滚的 `proj_*` 帧条（每 1x 像素 = PX × scale × sz，HDR 提亮 mod，缺省 [1.7, 1.35, 1.15]），拱高 × apex_k、顶点提前（k^0.8），短火星拖尾，落地播 `land` 帧条 + 一下闪光；不写 look 照旧画圆点 |
 | `verb.affect` | 瞬时 | r（数字 × op_range 或 `hit`）内活着的敌人逐个吃 `on_hit` 状态（不伤害、不登记命中） |
 | `st.burn` | 状态 | 点燃：dur 秒内每跨过一个 every 整数倍受到 basis × mult × every（Boss 也吃，同一敌人可叠多条） |
 | `st.fragile` | 状态 | 易伤：dur 秒（敌人 aura_weak，受到的伤害 +10%）；`kind: arts` = 受到的法术伤害 + value（melt，同名取最高、不叠层，Boss 也吃；combat.gd 一处读） |
@@ -1668,7 +1668,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 | `verb.fox_cast` | 技能 do | 暖光（不写 haze）/ 狐火迷雾（haze 秒）：其他干员攻击 + buff × 技能强度（施放 / 迷雾结束时整组重写，同手写），光柱画面 |
 | `shape.cannon` | 普攻 | 炮击（手动 A 类，aim_land）：目标离队长最近、slack 内相仿时挑最密；本干员自己的炮弹实体（平射 → 爆炸 → quake_t 秒后余震）；`aoe_mults`、`quakes`、`echo`、`ash`（次数型补丁的炮弹）、`twin`、`shade`（残影殉爆）、`mark`（残影标记）、`giant`（巨炮） |
 | `verb.cannon_exec` / `verb.cannon_load` | 技能 do | 凋零处刑（精英 / Boss 优先的重炮，`mark {cond}` 炸到的挂标记）/ 饱和炮击（装填 n 发巨炮，技能剩余 = 剩余发数） |
-| `verb.souls` | 常驻（passive） | 魂灵之影：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记）的敌人挂残影标记 |
+| `verb.souls` | 常驻（passive） | 魂灵之影：n 个悬在肩后，每 cd 秒各自飞向 range 内（优先未标记）的敌人挂残影标记。`follow: true`（10-14 维什戴尔改用）：不飞出去，只随本干员每发炮击同步开魂炮（见下 `fire`），cd / range / speed 不用写 |
 | 技能 `aim: elite / cluster` | 技能积木 | 起手朝向：精英 / Boss 优先（血最多）/ 离队长最近、相仿挑最密（aim_r 按炮击的距离换算） |
 | `shape.bash` | 普攻 | 持盾出拳（手动 A 类）：扇形 r × op_range、half、kb、stun；护服满格时换全方位冲击 |
 | `verb.guard_ring` / `verb.calc_orbs` / `verb.suit` | 常驻（passive） | 阻挡圈（每 every 秒把队长周围的非 Boss 敌人推开、减速）/ 环绕钙晶（`n_by` 第一条成立的枚数，`shatter` 碎晶）/ 莱茵充能护服（每 seg_t 秒一格，满 segs 格后下一拳全方位冲击） |
@@ -1705,7 +1705,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 | `shape.foxfire` 的 `brand {cond, value, dur, max, tex}` | 狐火（含大狐火）命中的敌人 dur 秒内受到的伤害 + value（敌人 `frag_t / frag_v`，`combat.gd` 在易伤 aura_weak 之后乘；同名取最高、再命中刷新，Boss 也吃），脚下金印。普通狐火的命中由 game 结算，这里同「画地为牢」记住弹体、下一帧找撞上的敌人。铃兰精一「狐火灼印」 |
 | `shape.foxfire` 的 `merge.trail {cond, life, every, mult, r, step, cap, src, tex}` | 大狐火飞过的路径每 step 留一处狐火（life 秒），同一条拖尾每 every 秒灼伤**后来踏入**的敌人一次（攻击 × mult × vs_elite；这团大狐火已经贯穿过的不再烧），同时至多 cap 条。铃兰精二「九尾祈愿」补强 |
 | `shape.cannon` 的 `gift {cond, mult}` | 普攻炮击的主目标（手动落点的伪目标除外）直接挂残影标记，倒下必定殉爆（攻击 × mult；同一敌人被多种标记挂过时取高）。维什戴尔精一「好礼」 |
-| `verb.souls` 的 `fire {cond, every, mult, first, stagger, fire_at, anim, aim_r, size, src}` | 每个魂灵之影各自每 every 秒（待在肩后时）开一炮：优先离它最近的带残影标记的敌人（两个影子不打同一个），没有标记打离维什戴尔最近的；炮弹从影子处平射、同样余震（余震、余响照常），开火动作 anim 秒、第 fire_at 秒出膛。维什戴尔精二「死魂灵的余息」补强（魂炮） |
+| `verb.souls` 的 `fire {cond, every, mult, first, stagger, fire_at, anim, aim_r, size, src}` | 每个魂灵之影各自每 every 秒（待在肩后时）开一炮：优先离它最近的带残影标记的敌人（两个影子不打同一个），没有标记打离维什戴尔最近的；炮弹从影子处平射、同样余震（余震、余响照常），开火动作 anim 秒、第 fire_at 秒出膛。维什戴尔精二「死魂灵的余息」补强（魂炮）。`follow` 模式（10-14）：不用 every / first / stagger / aim_r；本干员每打出一发炮击（普攻、次数型补丁、巨炮，含饱和炮击装填的第一发），各影子（正在开火的跳过）晚 `delay + gap × k` 秒开火动作，目标 = 主目标 `spread`（× op_range）内优先未标记、影子间不重复的敌人，没有就主目标；`mark: true` = 魂炮命中时给它的目标挂残影标记（目标还活着、在爆炸范围内） |
 | `shape.bash` 的 `calcify {cond, pct, dur, elite_mult, max, tex}` | 拳击命中的非 Boss 敌人 dur 秒内移速 -pct（精英时长 × elite_mult，同一敌人刷新取长）。**不是减速状态**（不写 `e.slow`、不与其他减速叠）：本干员每帧把这名敌人这一帧**朝队长走近**的位移退回 pct（同 `st.slow_soft` 的做法；被阻挡圈推开 / 击退的位移不打折）。身上琥珀斑。塞雷娅精一「钙化拳」 |
 | `verb.suit` 的 `pillars {cond, n, r, sy, life, pr, wall, mult, cd, elite_push, arm, src}` | 满格冲击后以塞雷娅为心、在 r 处（地面椭圆 y × sy，与冲击光环同形）升起 n 根晶柱 life 秒，柱子（半径 pr）与柱间的墙（半宽 wall；wall < 0 = 柱间不挡）挡住敌人：每帧把碰到的敌人沿法线推出（精英一帧至多推回 elite_push × 自身移速 × dt，所以能慢慢挤过；Boss / 定点单位不挡；队长与队友不受影响），碰到的敌人受到拳击 × mult（× vs_elite，同一敌人 cd 秒一次）。拔起 arm 秒后才挡。塞雷娅精二「莱茵充能护服」补强（晶柱环） |
 
