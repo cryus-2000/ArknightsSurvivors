@@ -575,6 +575,7 @@ func step() -> void:
 				perf_dump.close()
 				perf_dump = null
 			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
+			print("SPAWNQ ", JSON.stringify(g.spawner.queue_report()))   # 同屏普通怪存活上限的刷怪队列统计（docs/50 §15 B）
 			g.get_tree().quit()
 		return
 	if not (Cfg.dev_args().has("--fxtest") and g.at_frames >= 90 and g.at_frames < 100):

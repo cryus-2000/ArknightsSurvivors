@@ -187,6 +187,35 @@ static func actor_mod_at(pos: Vector2) -> Color:
 	return _actor_mod_tail(a, _fc_amb, _fc_lcol, _fc_br, _cap, false)
 
 
+## 整屏统一算一次（docs/50 §15 D2，OPT_LIGHT）：受光封顶只跟「到灯的距离」有关（同一帧灯的位置 / 半径 / 能量 / 颜色、ambient、亮度都一样），
+## 每帧在 actor_mod_begin 之后按距离建一张 LUT_N + 1 格的表（灯火贴图半径 64 格均分，每格的值按 actor_mod_at 同一算式），
+## 逐只敌人只算到灯的距离、查表线性插值（原来每只都走衰减表 + 法线项 + 软膝的三层函数）。灯外（贴图半径以外）取表末格。
+## 与逐只算的差别只在格与格之间的插值（亮度差远小于 1/255 量级），见 docs/50 §15 截图
+const LUT_N := 32
+static var _lt := PackedColorArray()
+static var _lt_inv := 0.0
+
+static func actor_mod_lut_build() -> void:
+	if _lt.size() != LUT_N + 1:
+		_lt.resize(LUT_N + 1)
+	var span: float = 64.0 * maxf(_fc_lscale, 0.001)   # 灯火贴图半径（世界像素）
+	for i in LUT_N + 1:
+		var d: float = span * float(i) / float(LUT_N)
+		var a := _atten(_fc_ltex, d / maxf(_fc_lscale, 0.001)) * _fc_lenergy
+		if A.normal_maps:
+			a *= _fc_lh / sqrt(d * d + _fc_lh * _fc_lh)
+		_lt[i] = _actor_mod_tail(a, _fc_amb, _fc_lcol, _fc_br, _cap, false)
+	_lt_inv = float(LUT_N) / span
+
+
+static func actor_mod_lut(pos: Vector2) -> Color:
+	var f: float = (pos + Vector2(0, -16.0) - _fc_lpos).length() * _lt_inv
+	if f >= LUT_N:
+		return _lt[LUT_N]
+	var i := int(f)
+	return _lt[i].lerp(_lt[i + 1], f - i)
+
+
 ## 旧写法（逐次读灯光节点；--optab 对照用）
 static func _actor_mod_old(g, pos: Vector2, raw: bool) -> Color:
 	var cap := _cap
