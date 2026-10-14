@@ -1165,7 +1165,9 @@ func follow(dt: float, target: Vector2) -> void:
 	mt += dt
 	# 动画状态
 	var want := "idle"
-	if attack_t > 0.0 and anim_tex(act_anim) != null:
+	if vis_anim != "" and anim_tex(vis_anim) != null:
+		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
+	elif attack_t > 0.0 and anim_tex(act_anim) != null:
 		want = act_anim
 	elif mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER) and anim_tex("run") != null:
 		want = "run"   # 跑 / 停加滞回：起跑 RUN_ENTER、停下 RUN_EXIT，不在两者间来回闪
@@ -1175,6 +1177,8 @@ func follow(dt: float, target: Vector2) -> void:
 		anim_kind = want
 		anim_t = 0.0
 	anim_t += dt
+	if vis_anim != "" and anim_kind == vis_anim and anim_t >= vis_dur():
+		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
 	_tick_pose(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run":
@@ -1201,6 +1205,26 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 ## 干员脚本也可以重写这个函数按状态决定。出手时机按实际播放的那套帧条的 fps / fire 算。
 func skill_anim(i: int) -> String:
 	return str(skill_def(i).get("anim", "skill")) if i >= 0 else "skill"
+
+
+## 纯画面动作（2026-10-14，docs/97 B 水月技能帧条）：attack.flow = free 的干员技能充满即发（op_blocks h3_free），
+## 逻辑不等动作，所以不走 _start_action（attack_t / fire_t / 朝向都不动，同 seed 模拟不变），只把这条帧条按 fps 播一遍
+## 再回待机；期间压过普攻 / 跑步动作。帧条来自 skill_anim(i)（缺省 sprites.skill，skills[i].anim 可换）；缺图不播
+var vis_anim := ""
+
+func play_vis_anim(kind: String) -> void:
+	if anim_tex(kind) == null:
+		return
+	vis_anim = kind
+	anim_kind = kind
+	anim_t = 0.0
+
+
+## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）
+func vis_dur() -> float:
+	var spec := sprite_spec(vis_anim)
+	var n := float(spec.get("frames", anim_hframes(anim_tex(vis_anim), vis_anim)))
+	return n / float(spec.get("fps", 12.0))
 
 
 ## kind：逻辑类型（attack / skill，决定出手调哪个函数）；anim：播放的帧条（缺省同 kind）
@@ -1447,6 +1471,9 @@ func anim_state() -> Dictionary:
 			return {"tex": ptx, "frame": pf, "hf": pn, "flip": (face < 0.0) != sprite_mirror(pk), "kind": pk}
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
+	if vis_anim != "" and kind == vis_anim:
+		fr = clampi(int(anim_t * float(sprite_spec(kind).get("fps", 12.0))), 0, n - 1)   # 纯画面动作：按帧条 fps 播一遍，停在末帧
+		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	match kind:
 		"attack", "skill":
 			fr = clampi(int(anim_t / attack_dur * n), 0, n - 1)

@@ -108,10 +108,11 @@ def roster(data=DATA):
         for k in [pz.get("in"), pz.get("out")] + list((pz.get("map") or {}).values()):
             if k in acts:
                 acts[k]["_body"] = True
-        if not acts and cid == "mizuki":
-            acts = {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
-                    "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
-                    "attack": {"tex": "player_attack_48", "frames": 4, "fps": 12, "foot": foot}}
+        if cid == "mizuki":   # idle / run / attack 仍是字符串槽（world.gd 缺省帧条）；skill 自 docs/97 B 起是带 fps / fire 的字典槽，两者合并
+            for k, v in {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
+                         "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
+                         "attack": {"tex": "player_attack_48", "frames": 4, "fps": 12, "foot": foot}}.items():
+                acts.setdefault(k, v)
         for v in acts.values():
             v.setdefault("foot", foot)
         out[cid] = acts

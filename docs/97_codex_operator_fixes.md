@@ -17,6 +17,7 @@
 
 - 交 `player_skill.png` / `player_skill@2x.png`：48×48，**6–8 帧 12fps**，蓄力 → 出手帧 → 保持 → 收回，**末帧 = `player_idle` f0**（逐像素相同）；造型配色同现有 idle / run。
 - 顺手修：`player_idle` 洋红残留 1 像素；@2x 外描边第二圈补齐到 100%（现 93.3%）；色数收敛（1x 105 / @2x 201 → ≤ 24）；idle 脚底中心 x 回到 24 ± 2（现 26.2）。
+- **接入（Claude 10-14）**：Codex 交付 d86185b7（8 帧 12fps、出手 f3、脚底 (24, 46)、末帧 = idle f0）。`mizuki.json` `sprites.skill` 登记为字典槽（tex / frames / fps / foot / fire），三技能共用，`skills[i].anim` 可换；图鉴动作预览自动多出「技能」。水月是 `attack.flow = free`（技能充满即发，不等动作），所以不走 `_start_action`：`op_blocks._h3_free_skill` 在逻辑即时生效后调 `character.play_vis_anim(skill_anim(i))`，纯画面按 fps 播一遍、期间压过普攻 / 跑步、播完回待机，`attack_t / fire_t / 朝向` 都不动（同 seed TRACE 逐行相同）；`fire: 3` 只作记录。`art_lint` 的水月名单把字符串槽 idle / run / attack 与字典槽 skill 合并，「技末=待机」项从 — 变为 PASS。
 
 ## C. 技能末帧对齐（7 人，只改 `_skill` 末帧）
 
@@ -52,6 +53,7 @@ lint「明度」WARN（docs/87 §4.2 通用范围：HSL 明度 0.40–0.52、近
 
 - 脚底中心 x 偏移（能天使 run 26.6、艾雅法拉 run 27.1、艾丽妮 run 29.3、凯尔希 run 24.4、逻各斯 run 23.0、流明 run 22.0、斯卡蒂 idle 25.9 / run 32.8、浊心斯卡蒂 idle 20.8、推进之王 run 26.0、德克萨斯 idle 27.6 / run 20.2、维什戴尔 run 28.1）：Claude 按量得值改 json `foot`，不返修帧条（A / B 里重出的除外，按规范画到 24 ± 2）。
 - 已豁免的设计例外（浊心斯卡蒂悬浮、安洁莉娜浮空、能天使 / 斯卡蒂 / 幽灵鲨 / 德克萨斯跑步、铃兰朝向）维持。
+- **已改（Claude 10-14，B–E 批合入后按 lint 量得值）**：能天使 run 24→27、艾雅法拉 run 24→27、艾丽妮 run 22→29、凯尔希 run 28→24、推进之王 run 22→26、斯卡蒂 idle 22→26 / run 24→33、浊心斯卡蒂 idle 24→21、德克萨斯 idle 24→28 / run 24→20、维什戴尔 run 25→28（各自 `sprites.<动作>.foot[0]`）。逻各斯 / 流明 / 水月经 A / B 批重出后已在 24 ± 2，没动。脚底 x WARN 11 → 1（只剩博士 run 27.7，`doctor.json` 只有一个共用 foot，改了会连累 idle，不在本单范围）。
 
 ## 交付
 
