@@ -92,7 +92,7 @@ func zone_r() -> float:
 
 
 func _zone_r_now() -> float:
-	return float(B.get("zone", {}).get("r", 0.0)) * stat(&"op_range") * float(loc.zone)
+	return float(B.get("zone", _ED).get("r", 0.0)) * stat(&"op_range") * float(loc.zone)
 
 
 func in_zone(p: Vector2) -> bool:
@@ -140,7 +140,26 @@ func on_leave() -> void:
 
 
 ## 当前生效的触发积木（docs/61 §5.5 的固定顺序：trait → talent → 已选节点 → elite1 / elite2）
+const _EA: Array = []
+const _ED: Dictionary = {}
+const _ELITE_KEYS := [["elite1", 1], ["elite2", 2]]
+
+
+## 生效中的触发积木（特性 + 精一后天赋 + 已选节点 + 精英化节点）。只随精英化与节点数变，按两者缓存（docs/101 S9；调用方只遍历、不改）
+var _tg_key := -1
+var _tg: Array = []
+
 func _trigs() -> Array:
+	if g.opt_old & 65536:
+		return _trigs_build()
+	var k: int = elite * 4096 + taken.size()
+	if k != _tg_key:
+		_tg = _trigs_build()
+		_tg_key = k
+	return _tg
+
+
+func _trigs_build() -> Array:
 	var out: Array = []
 	out.append_array(B.get("trait", []))
 	if elite >= 1:
@@ -149,7 +168,7 @@ func _trigs() -> Array:
 	for nid in taken:
 		if pg.has(nid):
 			out.append_array(_node_list(pg[nid]))
-	for k in [["elite1", 1], ["elite2", 2]]:
+	for k in _ELITE_KEYS:
 		if elite >= k[1] and pg.has(k[0]):
 			out.append_array(_node_list(pg[k[0]]))
 	return out
@@ -229,9 +248,9 @@ func update(dt: float) -> void:
 		"bolt":   # 手写迁移段：飘飞咒文弹（手动普攻 B 类）
 			at = OB.hw_bolt_aim(self, a)
 	if at == Vector2.INF:
-		cd = idle_cd(float(B.get("attack", {}).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
+		cd = idle_cd(float(B.get("attack", _ED).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
 	else:
-		cd = float(B.get("attack", {}).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
+		cd = float(B.get("attack", _ED).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
 		var rp := _replace_trig(atk_n + 1)   # 精英化段：这一次普攻被 trig.every_n replace 换掉时播它的帧条
 		var an: String = str(rp.get("anim", ""))
 		if an == "" and a.has("anim"):   # 手写迁移段：普攻（含 swap_attack 换上的形状）自己的帧条
@@ -269,23 +288,23 @@ func _restat() -> void:
 ## 常驻积木：先收集本帧生效的（条件在这里各求值一次），再按 局部倍率 → 属性 → 副作用 三遍执行
 func _sustain(dt: float, stats_only := false) -> void:
 	var act: Array = []   # 常驻效果积木与 trig.tick，按固定顺序
-	for t in B.get("trait", []):
+	for t in B.get("trait", _EA):   # _EA / _ED：只读的空缺省值，不每帧新建空容器（docs/101 S9）
 		_collect_trig(t, act)
-	var sk: Array = B.get("skills", [])
+	var sk: Array = B.get("skills", _EA)
 	for i in mini(3, sk.size()):
 		if skill_on(i):
-			for b in sk[i].get("do", []):
-				if OB.cond_true(self, b.get("cond", {})):
+			for b in sk[i].get("do", _EA):
+				if OB.cond_true(self, b.get("cond", _ED)):
 					act.append(b)
 	if elite >= 1:
-		for t in B.get("talent", []):
+		for t in B.get("talent", _EA):
 			_collect_trig(t, act)
-	var pg: Dictionary = B.get("progression", {})
+	var pg: Dictionary = B.get("progression", _ED)
 	for nid in taken:
 		if pg.has(nid):
 			for t in _node_list(pg[nid]):
 				_collect_trig(t, act)
-	for k in [["elite1", 1], ["elite2", 2]]:
+	for k in _ELITE_KEYS:
 		if elite >= k[1] and pg.has(k[0]):
 			for t in _node_list(pg[k[0]]):
 				_collect_trig(t, act)
@@ -329,7 +348,7 @@ func _sustain(dt: float, stats_only := false) -> void:
 		match str(b.get("_tag", "")):
 			"verb.buff_self", "verb.buff_timed":
 				if not loc.has(str(b.stat)):
-					want.append([str(b.stat), str(b.get("op", "add")), float(b.value) * (skill_power() if b.get("power", false) else 1.0), "op:" + id])
+					want.append([str(b.stat), str(b.get("op", "add")), float(b.value) * (skill_power() if b.get("power", false) else 1.0), op_key])
 			"verb.lamp":
 				if b.has("loss_mult"):
 					want.append(["light_loss", "mult", float(b.loss_mult), ""])
@@ -347,7 +366,7 @@ func _sustain(dt: float, stats_only := false) -> void:
 					for m in OB.aura_members(self, str(b.scope)):
 						if b.get("exclude_self", false) and m == self:
 							continue
-						want.append([OB.AURA_STAT[str(b.aura)], "add", v, "op:" + m.id])
+						want.append([OB.AURA_STAT[str(b.aura)], "add", v, m.op_key])
 	OB.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
 	if want != _mods:
 		g.stats.remove_source(_src_tag())
@@ -437,12 +456,12 @@ func _sustain(dt: float, stats_only := false) -> void:
 
 ## 触发积木进本帧列表：passive → 它的 do（各自再看 cond）；tick → 它本身；裸效果积木（成长节点）→ 它本身
 func _collect_trig(t: Dictionary, act: Array) -> void:
-	if not OB.cond_true(self, t.get("cond", {})):
+	if not OB.cond_true(self, t.get("cond", _ED)):
 		return
 	match str(t.get("_tag", "")):
 		"trig.passive":
-			for b in t.get("do", []):
-				if OB.cond_true(self, b.get("cond", {})):
+			for b in t.get("do", _EA):
+				if OB.cond_true(self, b.get("cond", _ED)):
 					act.append(b)
 		"trig.tick":
 			act.append(t)
@@ -479,7 +498,7 @@ func _heal(b: Dictionary) -> void:
 ## 瞬时积木列表（技能出手、触发器触发、延迟到点）
 func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 	for b in arr:
-		if not OB.cond_true(self, b.get("cond", {})):
+		if not OB.cond_true(self, b.get("cond", _ED)):
 			continue
 		match str(b.get("_tag", "")):
 			"shape.circle", "shape.cone":
@@ -551,7 +570,7 @@ func _release() -> void:
 		_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", _ED)):
 			if t.get("skip_replaced", false) and not rp.is_empty():
 				continue   # 精英化第 2 批段：这一下被 replace 换掉了（掷锚）——跟着锚击中心走的追加（定点爆破 / 收链……）不走
 			var n: int = maxi(1, int(t.n))
@@ -582,7 +601,7 @@ func _replace_trig(n: int) -> Dictionary:
 	if not B._el_rep:
 		return {}
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false) and n % maxi(1, int(t.n)) == 0 and OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false) and n % maxi(1, int(t.n)) == 0 and OB.cond_true(self, t.get("cond", _ED)):
 			return t
 	return {}
 
@@ -641,7 +660,7 @@ func on_kill(e: Dictionary) -> void:
 		OB.h4_on_kill(self, e)   # 手写迁移段第 4 批：残影标记殉爆
 	kill_w = OB.kill_weight(g, e)
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_kill" or not OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_kill" or not OB.cond_true(self, t.get("cond", _ED)):
 			continue
 		var f: String = str(t.get("filter", "any"))
 		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss):
@@ -792,7 +811,7 @@ func _find_uid(u: int) -> Dictionary:
 	for t in _trigs():
 		if int(t.get("_uid", -1)) == u:
 			return t
-		for b in t.get("do", []):
+		for b in t.get("do", _EA):
 			if int(b.get("_uid", -1)) == u:
 				return b
 	return {}
@@ -1007,7 +1026,7 @@ func dmg_taken_mult() -> float:
 		_negate_fx(nb)
 		_defer(nb.get("on_block", []))
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_hurt" or not OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_hurt" or not OB.cond_true(self, t.get("cond", _ED)):
 			continue
 		var neg: bool = t.get("negate", false)
 		if neg and negated:
@@ -1028,7 +1047,7 @@ func dmg_taken_mult() -> float:
 		return OB.shield_mult(self, OB.mf_guard_mult(self, dr0))   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
 	negate_n += 1
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", _ED)):
 			_defer(t.get("do", []))
 	return 0.0
 
@@ -1123,7 +1142,7 @@ func _tick_shots(dt: float) -> void:
 ## 落点触发（trig.on_impact）：c = 落点；delay > 0 进延迟队列（带落点）
 func impact(c: Vector2) -> void:
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_impact" or not OB.cond_true(self, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_impact" or not OB.cond_true(self, t.get("cond", _ED)):
 			continue
 		var dl: float = float(t.get("delay", 0.0))
 		if dl > 0.0:

@@ -13,6 +13,7 @@ const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：�
 var def: Dictionary = {}   # 角色定义（JSON）
 var id := ""
 var cls := ""              # 职业：先锋/近卫/重装/狙击/术师/医疗/辅助/特种（def.class）
+var op_key := ""          # "op:" + id
 
 # ---- 场上实体：位置 / 朝向 / 移动（squad.gd 每帧调 follow）
 var pos := Vector2.INF
@@ -54,6 +55,7 @@ func _init(game, def_: Dictionary) -> void:
 	def = def_
 	id = def.get("id", "")
 	cls = def.get("class", "")
+	op_key = "op:" + id   # 本人作用域键（stats 的 scope），每帧拼接的省掉（docs/101 S9）
 
 
 static func list_ids() -> Array:
@@ -886,9 +888,19 @@ func scopes() -> Array:
 	return ["class:" + cls, "range:" + range_cls(), "op:" + id]
 
 
-## 干员视角的属性值：全局修正 + 职业 / 本人作用域的修正
+## 干员视角的属性值：全局修正 + 职业 / 本人作用域的修正。作用域数组与拼好的键按职业缓存（docs/101 S9；g.opt_old 的 OPT_OPS 位走旧写法）
+var _sc_cls := ""
+var _sc: Array = []
+var _sc_key := ""
+
 func stat(name: StringName) -> float:
-	return g.stats.value_for(name, scopes())
+	if g.opt_old & 65536:
+		return g.stats.value_for(name, scopes())
+	if _sc_cls != cls:
+		_sc_cls = cls
+		_sc = scopes()
+		_sc_key = ",".join(_sc)
+	return g.stats.value_for_key(name, _sc, _sc_key)
 
 
 ## 普攻 / 自动技能 / 天赋定义（JSON）

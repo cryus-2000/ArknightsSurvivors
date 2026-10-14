@@ -433,6 +433,7 @@ const OPT_EDRAW := 4096   # 敌人绘制：受光封顶逐只走轻量版、缓�
 const OPT_BAND := 8192    # 黑潮溟痕带：带状三角剖分（缓存索引表）一次提交，不再 draw_polygon 当场耳切三角化
 const OPT_LIGHT := 16384  # 敌人受光封顶：每帧按「到灯的距离」建一张表（整屏统一算一次），逐只只查表插值，不再逐只算衰减 / 软膝
 const OPT_PCAP := 32768   # 干员粒子 / 帧条上层数量上限（render/pfx_cap）：同屏超过上限时最旧的不画（粒子照常走完寿命，不改列表）
+const OPT_OPS := 65536    # 干员每帧分配（docs/101 S9）：stat 作用域键缓存、_trigs 按精英化 / 节点数缓存、_sustain 复用缓冲；玩法、画面不变
 var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒

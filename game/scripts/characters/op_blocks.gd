@@ -3,6 +3,9 @@
 ## 确定性（docs/36 §3）：本文件不用任何随机数；画面只往干员自己的 pfx 里加粒子（不碰 g.rng）。
 ## 本文件也被 -s 测试脚本（tests/test_core.gd，经 character.gd 的 validate_operator）加载：不许引用 Sfx 等自动加载。
 extends RefCounted
+## 只读的空缺省值：.get(k, _EA / _ED) 不每次新建空容器（docs/101 S9）；只用在只读的地方（for 遍历、条件、链式 .get）
+const _EA: Array = []
+const _ED: Dictionary = {}
 
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
 
@@ -331,7 +334,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			return tx_dash_start(o, b, dmg)   # 德克萨斯段：命中逐帧结算，这里只起冲
 		"projectile":   # 能天使段：弹体自推进，命中在 exu_tick 里结算，这里返回空
 			exu_fire(o, b)
-	for s in b.get("on_hit", []):
+	for s in b.get("on_hit", _EA):
 		for i in hits.size():
 			apply_status(o, hits[i], s, Vector2.INF, -1.0, 0.0, i)
 	if b.has("fx") and fx_c != Vector2.INF:
@@ -343,7 +346,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 ## 一名敌人吃一条状态。c / ring / ring_w：within（离 c 不超过）与 where: ring（在环带 ±ring_w 内）的筛选。
 ## Boss：缺省不受；boss: true 也受（stun ×0.25 / slow 照常）；boss_only: true 只对 Boss
 static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring := -1.0, ring_w := 0.0, idx := -1) -> void:
-	if e.dead or not cond_true(o, s.get("cond", {})):
+	if e.dead or not cond_true(o, s.get("cond", _ED)):
 		return
 	if s.has("within") and c != Vector2.INF and e.pos.distance_to(c) > float(s.within) + float(e.r) * 0.5:
 		return
@@ -598,7 +601,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		errs.append("blocks.progression 必须是对象（节点 id → 积木）")
 	else:
 		var custom_ids: Array = []
-		for n in d.get("progression", []):
+		for n in d.get("progression", _EA):
 			if n is Dictionary and n.get("type", "") == "custom":
 				custom_ids.append(str(n.get("id", "")))
 		for k in pg:
@@ -1314,7 +1317,7 @@ static func _hold(f: Dictionary) -> bool:
 
 ## 条目这一刻画不画：cond（§1.3）+ if_tex（"fx_x" = 有这条贴图才画；"!fx_x" = 缺这条贴图才画，程序回退用；10-12 加）
 static func fx_on(o, f: Dictionary) -> bool:
-	if not cond_true(o, f.get("cond", {})):
+	if not cond_true(o, f.get("cond", _ED)):
 		return false
 	var it = f.get("if_tex", "")
 	if it is String and it != "":
@@ -1721,7 +1724,7 @@ static func fx_body(ci, o, e: Dictionary, front: bool) -> void:
 static func fx_orbit(ci, o, b: Dictionary, pts: Array, dim: float) -> bool:
 	var g = o.g
 	var drew := false
-	for f in b.get("fx", []):
+	for f in b.get("fx", _EA):
 		if not (f is Dictionary) or str(f.get("at", "")) != "orbit" or not fx_on(o, f):
 			continue
 		var name: String = str(f.get("strip", ""))
@@ -2017,7 +2020,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 	for e in hits:
 		o._hit_fx(e, o.pos)
-	for s in b.get("on_hit", []):
+	for s in b.get("on_hit", _EA):
 		for e in hits:
 			apply_status(o, e, s)
 	# 画面：通用 fx（docs/61 §5.6）以线段中点为中心、半长为半径、斩击方向为角度（rot: true 随方向转）；没有 fx 或缺图时画一道程序线
@@ -2240,14 +2243,14 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 		var e: Dictionary = o.g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > st.r:
 			continue
-		for s in b.get("tick", []):
+		for s in b.get("tick", _EA):
 			if e.dead:
 				break
 			if str(s.get("_tag", "")) == "verb.displace":
-				if not cond_true(o, s.get("cond", {})):
+				if not cond_true(o, s.get("cond", _ED)):
 					continue
 				if displace_one(o, e, c, s, every if s.get("per_sec", false) else 1.0, st.ring):
-					for s2 in s.get("on_hit", []):
+					for s2 in s.get("on_hit", _EA):
 						apply_status(o, e, s2, c, st.ring, rw)
 			else:
 				apply_status(o, e, s, c, st.ring, rw)
@@ -2416,7 +2419,7 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		elif kb != 0.0 and _movable(e):
 			var dv: Vector2 = e.pos - c
 			e.kb += (dv.normalized() if dv.length() > 0.5 else Vector2.RIGHT) * kb * (0.3 if e.elite else 1.0) * kb_taken(e, g.t)
-	for s in b.get("on_hit", []):
+	for s in b.get("on_hit", _EA):
 		for e in hits:
 			apply_status(o, e, s, c)
 	if fx_any_tex(o, b.get("fx", [])):
@@ -2707,7 +2710,7 @@ static func tx_update(o, dt: float) -> bool:
 	var ld: float = float(g.dash_t)
 	if ld > 0.0 and float(tx.get("prev_ld", 0.0)) <= 0.0 and g.demo_op == "":
 		for t in o._trigs():
-			if str(t.get("_tag", "")) != "trig.on_leader_dash" or not cond_true(o, t.get("cond", {})):
+			if str(t.get("_tag", "")) != "trig.on_leader_dash" or not cond_true(o, t.get("cond", _ED)):
 				continue
 			var k: String = "ld%d" % int(t.get("_uid", 0))
 			if g.t < float(tx.get(k, -99.0)):
@@ -2720,7 +2723,7 @@ static func tx_update(o, dt: float) -> bool:
 	for i in 3:
 		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
 			for t in o._trigs():
-				if str(t.get("_tag", "")) == "trig.on_skill_end" and not t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):   # 带 at 的在 mf_tick（帧开头）
+				if str(t.get("_tag", "")) == "trig.on_skill_end" and not t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", _ED)):   # 带 at 的在 mf_tick（帧开头）
 					o._exec_list(t.get("do", []), tx.get("last_to", o.pos))
 	tx["prev_s"] = o.s_t.duplicate()
 	# 延迟队列（on_dash_end / on_skill_start 的 delay）
@@ -2784,10 +2787,10 @@ static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg:
 		hit[e.id] = true
 		o.log_hit(src, tags)
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
-		for s in b.get("on_hit", []):
+		for s in b.get("on_hit", _EA):
 			apply_status(o, e, s)
 		if dash:   # 精英化段：verb.dash_mod 的 on_hit（idx = 这次冲刺扫到的第几个，first_only 只给第 0 个）
-			for s in o.tx.get("on_hit", []):
+			for s in o.tx.get("on_hit", _EA):
 				apply_status(o, e, s, Vector2.INF, -1.0, 0.0, hit.size() - 1)
 		o.fx({"kind": "shard", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "ang": seg.angle() + 0.5, "sz": 7.0, "life": 0.16, "col": Color(1.0, 0.75, 0.4)})
 
@@ -2804,7 +2807,7 @@ static func _tx_dash_end(o) -> void:
 	if n > 0:
 		o._sfx_op("hit")
 	for t in o._trigs():
-		if str(t.get("_tag", "")) != "trig.on_dash_end" or not cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_dash_end" or not cond_true(o, t.get("cond", _ED)):
 			continue
 		if t.has("src") and str(t.src) != d.src:
 			continue
@@ -2823,7 +2826,7 @@ static func _tx_dash_end(o) -> void:
 ## 技能出手（data_operator._release_skill 转来）：trig.on_skill_start
 static func tx_skill_start(o, i: int) -> void:
 	for t in o._trigs():
-		if str(t.get("_tag", "")) != "trig.on_skill_start" or int(t.get("skill", -1)) != i or not cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_skill_start" or int(t.get("skill", -1)) != i or not cond_true(o, t.get("cond", _ED)):
 			continue
 		if t.has("at"):   # 召唤物扩展段：点在触发这一刻取，delay 进本干员延迟队列
 			mf_fire_at(o, t, mf_at_point(o, str(t.at)))
@@ -3268,9 +3271,9 @@ static func exu_st(o) -> Dictionary:
 static func _exu_used(o) -> bool:
 	if not o.ext.is_empty():
 		return true
-	if str(o.B.get("attack", {}).get("shape", "")) == "projectile":
+	if str(o.B.get("attack", _ED).get("shape", "")) == "projectile":
 		return true
-	for sb in o.B.get("skills", []):
+	for sb in o.B.get("skills", _EA):
 		var dv = sb.get("dur", 0)
 		if sb.has("end") or (dv is Dictionary and dv.has("ammo")):   # dur.next_n + attack_patch 是安洁莉娜段的落点弹，不归这里
 			return true
@@ -3278,18 +3281,18 @@ static func _exu_used(o) -> bool:
 
 
 static func _exu_main(o, b: Dictionary) -> bool:
-	return int(b.get("_uid", -1)) == int(o.B.get("attack", {}).get("_uid", -2))
+	return int(b.get("_uid", -1)) == int(o.B.get("attack", _ED).get("_uid", -2))
 
 
 ## 本帧生效的某种常驻积木（成长节点 / 精英化直接写的积木，或 trig.passive 的 do 里的），按 docs/61 §5.5 的固定顺序
 static func _exu_active(o, tag: String) -> Array:
 	var out: Array = []
 	for t in o._trigs():
-		if not cond_true(o, t.get("cond", {})):
+		if not cond_true(o, t.get("cond", _ED)):
 			continue
 		if str(t.get("_tag", "")) == "trig.passive":
-			for b in t.get("do", []):
-				if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", {})):
+			for b in t.get("do", _EA):
+				if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", _ED)):
 					out.append(b)
 		elif str(t.get("_tag", "")) == tag:
 			out.append(t)
@@ -3386,7 +3389,7 @@ static func exu_fire(o, b: Dictionary) -> void:
 	if main:
 		o.attack_t = minf(o.attack_t, maxf(0.0, o.cd))   # 射击间隔短于动作时把剩下的动作截短，下一次起手不被拖慢
 		for t in o._trigs():
-			if str(t.get("_tag", "")) != "trig.on_attack" or not cond_true(o, t.get("cond", {})):
+			if str(t.get("_tag", "")) != "trig.on_attack" or not cond_true(o, t.get("cond", _ED)):
 				continue
 			var cn := str(t.get("counter", ""))
 			var need: float = float(t.need) if t.has("need") else float(st.cap.get(cn, INF))
@@ -3656,7 +3659,7 @@ static func exu_status_items(o) -> Array:
 static func _exu_trig_counters(o) -> Array:
 	var out: Array = []
 	for t in o._trigs():
-		for b in t.get("do", []):
+		for b in t.get("do", _EA):
 			if str(b.get("_tag", "")) == "verb.counter":
 				out.append(b)
 	return out
@@ -3830,7 +3833,7 @@ static func sm_st(o) -> Dictionary:
 
 
 static func sm_kind(o, k: String) -> Dictionary:
-	return o.B.get("summons", {}).get(k, {})
+	return o.B.get("summons", _ED).get(k, {})
 
 
 ## 全编队在场的召唤物数（SM_TOTAL_CAP 用）
@@ -3903,11 +3906,11 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 		var a: float = float(st.seq) * SM_GOLD
 		var rr: float = spread * (0.5 + 0.5 * float(k + 1) / float(n))
 		var p: Vector2 = c + Vector2(cos(a) * rr, sin(a) * rr * 0.55)
-		var esc: bool = str(kd.get("move", {}).get("mode", "")) == "escort"
+		var esc: bool = str(kd.get("move", _ED).get("mode", "")) == "escort"
 		if esc and n == 1:
 			p = c   # 随行召唤物：就站在落点（rest 时 = 闲时站位）
 		var s := {"id": int(st.seq), "kind": kind, "pos": p, "face": 1.0 if esc else float(o.face), "t": 0.0, "life": life, "skill": sk,
-			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": float(kd.get("attack", {}).get("first", 0.25)), "anim": 0.0, "rt": 0.0,
+			"hp": hp, "max_hp": maxf(1.0, hp), "inv": bool(kd.get("invuln", false)), "tgt": null, "cd": float(kd.get("attack", _ED).get("first", 0.25)), "anim": 0.0, "rt": 0.0,
 			"hurt": {}, "flash": 0.0, "gone": false}
 		if esc:   # 召唤物扩展段（§15.9）的状态：动画、出手动作、绕行、追击队列、patch、残影、画面计时
 			s.merge({"mv": 0.0, "ak": "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0, "via": Vector2.INF, "via_t": 0.0, "via_off": -99.0,
@@ -4061,7 +4064,7 @@ static func sm_tick(o, dt: float) -> void:
 			continue
 		var i: int = int(idx.get(s.kind, 0))
 		idx[s.kind] = i + 1
-		if str(kd.get("move", {}).get("mode", "")) == "escort":
+		if str(kd.get("move", _ED).get("mode", "")) == "escort":
 			mf_step(o, s, kd, dt)   # 召唤物扩展段（§15.9）：随行召唤物
 		elif s.has("e5"):
 			e5_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)   # 精英化第 5 批段：带帧条 / 区域的召唤物（内部照样走 _sm_step）
@@ -4220,7 +4223,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 			if str(a.get("center", "self")) == "target":
 				c = tg.pos
 			hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
-	for stt in a.get("on_hit", []):
+	for stt in a.get("on_hit", _EA):
 		for e in hits:
 			apply_status(o, e, stt)
 	if a.has("fx") and fx_any_tex(o, a.fx):
@@ -4743,7 +4746,7 @@ static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
 			if b.has("fx"):
 				fx_play(o, b.fx, o.g.ppos, 30.0)
 		"verb.cleanse":
-			for w in b.get("what", []):
+			for w in b.get("what", _EA):
 				if str(w) == "nerve":
 					o.g.nerve = 0.0
 
@@ -4790,13 +4793,13 @@ static func mf_tick(o, dt: float, prev: Array) -> void:
 	if o.B.get("_mf_deploy", false):
 		var st := mf_st(o)
 		for t in o._trigs():
-			if str(t.get("_tag", "")) == "trig.on_deploy" and not st.deployed.has(int(t._uid)) and o.pos != Vector2.INF and cond_true(o, t.get("cond", {})):
+			if str(t.get("_tag", "")) == "trig.on_deploy" and not st.deployed.has(int(t._uid)) and o.pos != Vector2.INF and cond_true(o, t.get("cond", _ED)):
 				st.deployed[int(t._uid)] = true
 				o._exec_list(t.get("do", []))
 	for i in 3:
 		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
 			for t in o._trigs():
-				if str(t.get("_tag", "")) == "trig.on_skill_end" and t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", {})):
+				if str(t.get("_tag", "")) == "trig.on_skill_end" and t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", _ED)):
 					mf_fire_at(o, t, mf_at_point(o, str(t.at)))
 
 
@@ -4830,11 +4833,11 @@ static func mf_skill_aim(o, i: int) -> Vector2:
 		return Vector2.INF
 	var a: String = str(sk[i].aim)
 	if a == "los":   # 手写迁移段：普攻射程（attack.range）+ aim_pad（× op_range）内视线优先的最近敌人
-		var ra: float = (float(o.B.get("attack", {}).get("range", 300.0)) + float(sk[i].get("aim_pad", 0.0))) * o.stat(&"op_range")
+		var ra: float = (float(o.B.get("attack", _ED).get("range", 300.0)) + float(sk[i].get("aim_pad", 0.0))) * o.stat(&"op_range")
 		var tl: Array = o.los_targets(1, ra, o.pos)
 		return tl[0].pos if not tl.is_empty() else Vector2.INF
 	if a == "tether":   # 手写迁移段：这个技能的 verb.tether 选的落点
-		for tb in sk[i].get("do", []):
+		for tb in sk[i].get("do", _EA):
 			if str(tb.get("_tag", "")) == "verb.tether":
 				return hw_tether_target(o, tb)
 		return Vector2.INF
@@ -4992,7 +4995,7 @@ static func _mf_patch_tick(o, s: Dictionary, kd: Dictionary, dt: float) -> Dicti
 	var pl: Array = kd.get("patch", [])
 	var idx := -1
 	for i in pl.size():
-		if cond_true(o, pl[i].get("cond", {})):
+		if cond_true(o, pl[i].get("cond", _ED)):
 			idx = i
 			break
 	if idx != int(s.pidx):
@@ -5118,7 +5121,7 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		s.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 		if absf(tg.pos.x - s.pos.x) > 2.0:
 			_mf_face(o, s, signf(tg.pos.x - s.pos.x))
-		var spec: Dictionary = o.sprite_spec(str(kd.get("anim", {}).get("attack", "")))
+		var spec: Dictionary = o.sprite_spec(str(kd.get("anim", _ED).get("attack", "")))
 		var fps: float = float(spec.get("fps", 14))
 		s.act = float(spec.get("frames", 4)) / fps
 		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps
@@ -5164,7 +5167,7 @@ static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool
 		var dmg: float = mf_dmg(o, a, mods, pt) * mult * (1.0 if i == 0 else float(mi.get("mult", 1.0)))
 		var hits: Array = o.melee_hit(src, org, ang, half, reach + float(a.get("pad", 0.0)), dmg, float(a.get("kb", 0.0)), float(a.get("stun", 0.0)), tags, int(a.get("max_n", 0)))
 		any = any or not hits.is_empty()
-		for stt in a.get("on_hit", []):
+		for stt in a.get("on_hit", _EA):
 			for e in hits:
 				apply_status(o, e, stt)
 		if i > 0 and hits.is_empty():
@@ -5354,7 +5357,7 @@ static func _mf_points(o, f: Dictionary, ctx: Dictionary) -> Array:
 		"leader":
 			out.append(g.ppos)
 		"hits":
-			for e in ctx.get("hits", []):
+			for e in ctx.get("hits", _EA):
 				out.append(e.pos + Vector2(0, -float(e.r) * 0.5))
 		"summon":
 			if not o.sm.is_empty():
@@ -5448,7 +5451,7 @@ static func _mf_particle(o, f: Dictionary, tpl: Dictionary, p: Vector2, ctx: Dic
 		else:
 			px[k] = v
 	var r: float = float(ctx.get("r", 0.0))
-	for k in f.get("r_scale", []):
+	for k in f.get("r_scale", _EA):
 		if px.has(k):
 			px[k] = float(px[k]) * r
 	var q: Vector2 = p
@@ -5966,7 +5969,7 @@ static func el_stack_block(o) -> Dictionary:
 ## 命中结算：返回 [伤害倍率, 满层火花帧条名或 ""]；不是 st.stack 的来源原样 [1.0, ""]
 static func el_stack_hit(o, e: Dictionary, src: String) -> Array:
 	var b := el_stack_block(o)
-	if b.is_empty() or not src in b.get("src", []):
+	if b.is_empty() or not src in b.get("src", _EA):
 		return [1.0, ""]
 	var st := el_st(o)
 	var t: float = float(o.g.t)
@@ -6156,7 +6159,7 @@ static func el_attack_locked(o) -> bool:
 # ---------------------------------------------------------------- 召唤物：扑击（summon_mod.lunge）/ 跃回（verb.summon_cmd）
 
 static func _el_dash_spec(o, kd: Dictionary, k: String) -> Dictionary:
-	var key: String = str(kd.get("anim", {}).get(k, ""))
+	var key: String = str(kd.get("anim", _ED).get(k, ""))
 	if key == "" or o.anim_tex(key) == null:
 		return {}
 	return o.sprite_spec(key)
@@ -6248,7 +6251,7 @@ static func el_lunge_try(o, s: Dictionary, kd: Dictionary, tg: Dictionary, lg: D
 	var reach: float = mf_reach(o, kd.get("attack", {}), mf_mods(o, str(s.kind)))
 	if dv.length() <= maxf(float(lg.get("min_d", 80.0)), reach) + float(tg.r):
 		return false
-	var gap: float = float(tg.r) + float(kd.get("move", {}).get("gap", 26.0))
+	var gap: float = float(tg.r) + float(kd.get("move", _ED).get("gap", 26.0))
 	var to: Vector2 = tg.pos - dv.normalized() * gap
 	s.lunge_cd = float(g.t) + float(lg.get("cd", 1.5))
 	_el_dash_start(o, s, kd, "lunge", to, float(lg.get("t", 0.15)), 0.0, {"kind": "lunge", "b": lg})
@@ -6265,7 +6268,7 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 		return
 	var kind: String = str(b.get("kind", ""))
 	var kd := sm_kind(o, kind)
-	if kd.is_empty() or str(kd.get("move", {}).get("mode", "")) != "escort":
+	if kd.is_empty() or str(kd.get("move", _ED).get("mode", "")) != "escort":
 		return
 	var c: Vector2 = g.ppos if str(b.get("to", "leader")) == "leader" else o.pos
 	if c == Vector2.INF:
@@ -6343,7 +6346,7 @@ static func el_mate_attack(o, m) -> void:
 	if o.pos == Vector2.INF or m == o or m.pos == Vector2.INF:
 		return
 	for t in o._trigs():
-		if str(t.get("_tag", "")) != "trig.on_mate_attack" or not cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.on_mate_attack" or not cond_true(o, t.get("cond", _ED)):
 			continue
 		if not m in aura_members(o, str(t.get("scope", "others"))):
 			continue
@@ -6636,7 +6639,7 @@ static func hw_combo_start(o) -> void:
 
 
 static func _hw_combo_from(o, cb: Array, k: int) -> void:
-	if k < cb.size() and cond_true(o, cb[k].get("cond", {})):
+	if k < cb.size() and cond_true(o, cb[k].get("cond", _ED)):
 		o.pending.append({"t": float(cb[k].get("delay", 0.12)), "do": cb[k].get("do", []), "combo": k, "bs": hw_snap(o)})
 	else:
 		hw_combo_end(o)
@@ -6644,12 +6647,12 @@ static func _hw_combo_from(o, cb: Array, k: int) -> void:
 
 ## 第 k 段执行完（data_operator._tick_pending）：下一段 / 收尾
 static func hw_combo_next(o, k: int) -> void:
-	_hw_combo_from(o, o.B.get("attack", {}).get("combo", []), k + 1)
+	_hw_combo_from(o, o.B.get("attack", _ED).get("combo", []), k + 1)
 
 
 static func hw_combo_end(o) -> void:
 	for t in o._trigs():
-		if str(t.get("_tag", "")) == "trig.on_combo_end" and cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.on_combo_end" and cond_true(o, t.get("cond", _ED)):
 			o._exec_list(t.get("do", []))
 
 
@@ -6965,7 +6968,7 @@ static func hw_draw_rings(o) -> void:
 	var g = o.g
 	for u in o._fxb:
 		var e: Dictionary = o._fxb[u]
-		for f in e.b.get("fx", []):
+		for f in e.b.get("fx", _EA):
 			if not (f is Dictionary) or not f.has("aura_ring") or not fx_on(o, f):
 				continue
 			var rv: Dictionary = f.aura_ring
@@ -7190,8 +7193,8 @@ static func hw_tip(o, b: Dictionary) -> Vector2:
 ## 爆炸半径：aoe × op_range × aoe_mults（cond 成立的依次乘，例：精一天赋 ×1.25）
 static func hw_aoe(o, b: Dictionary) -> float:
 	var r: float = float(b.get("aoe", 50.0)) * o.stat(&"op_range")
-	for m in b.get("aoe_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in b.get("aoe_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			r *= float(m.get("mult", 1.0))
 	return r
 
@@ -7228,7 +7231,7 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	if patch.has("aoe_mult"):
 		aoe *= float(patch.aoe_mult)
 	var oe: Array = b.get("on_explode", []) + patch.get("on_explode", [])
-	if b.has("lob") and cond_true(o, b.lob.get("cond", {})):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
+	if b.has("lob") and cond_true(o, b.lob.get("cond", _ED)):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
 		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
 		if b.has("fire_fx"):
 			fx_play(o, b.fire_fx, hw_tip(o, b), 10.0)
@@ -7237,8 +7240,8 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
 	if b.has("fire_fx"):
 		fx_play(o, b.fire_fx, tip, 10.0)
-	for f in b.get("follow", []):
-		if not cond_true(o, f.get("cond", {})):
+	for f in b.get("follow", _EA):
+		if not cond_true(o, f.get("cond", _ED)):
 			continue
 		var n: int = int(f.get("n", 1))
 		var tos: Array = _hw_extra_targets(o, b, ts[0], n)
@@ -7360,7 +7363,7 @@ static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
 	for e in o.arc_targets(c, 0.0, PI, r):
 		if e.dead:
 			continue
-		for s in b.get("on_hit", []):
+		for s in b.get("on_hit", _EA):
 			apply_status(o, e, s, c)
 
 
@@ -7795,10 +7798,10 @@ static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			for k in ["tip", "tip_skill"]:
 				if b.has(k) and not (b[k] is Array and b[k].size() == 2):
 					errs.append("%s.%s 必须是 [x, y]" % [p, k])
-			for m in b.get("aoe_mults", []):
+			for m in b.get("aoe_mults", _EA):
 				if not (m is Dictionary) or not m.has("mult"):
 					errs.append(p + ".aoe_mults 的每一条是 {cond, mult}")
-			for f in b.get("follow", []):
+			for f in b.get("follow", _EA):
 				if not (f is Dictionary):
 					errs.append(p + ".follow 的每一条是 {cond, n, gap, mult, aoe_mult, sz}")
 					continue
@@ -7937,8 +7940,8 @@ static func _hw3(o) -> Dictionary:
 static func hw_atk(o) -> float:
 	var a: Dictionary = o.B.get("attack", {})
 	var v: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus()
-	for m in a.get("atk_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("atk_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			v *= float(m.get("mult", 1.0))
 	return v
 
@@ -7947,8 +7950,8 @@ static func hw_atk(o) -> float:
 static func hw_range(o) -> float:
 	var a: Dictionary = o.B.get("attack", {})
 	var v: float = float(a.get("range", 300.0)) * o.stat(&"op_range")
-	for m in a.get("range_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("range_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			v *= float(m.get("mult", 1.0))
 	return v
 
@@ -7980,8 +7983,8 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 		"aim":
 			var n: int = int(b.get("count", 1))
 			var ex: Array = []
-			for x in b.get("extra", []):
-				if cond_true(o, x.get("cond", {})):
+			for x in b.get("extra", _EA):
+				if cond_true(o, x.get("cond", _ED)):
 					ex.append(x)
 			var fan: bool = not h.fan.is_empty() and float(h.fan.t) > 0.0 and b.get("fan_filter", false)
 			var ts: Array = o.aim_targets(n + ex.size() + (6 if fan else 0), rng_r, o.pos)
@@ -8081,9 +8084,9 @@ static func hw_bolt_hit(o, e: Dictionary, dmg: float, src: String, b: Dictionary
 	h.hit_e = e
 	h.hit_dmg = dmg
 	h.hit_src = src
-	var lst: Array = o.B.get("attack", {}).get("then", []) if str(b.get("then_of", "")) == "attack" else b.get("then", [])
+	var lst: Array = o.B.get("attack", _ED).get("then", []) if str(b.get("then_of", "")) == "attack" else b.get("then", [])
 	for blk in lst:
-		if not cond_true(o, blk.get("cond", {})):
+		if not cond_true(o, blk.get("cond", _ED)):
 			continue
 		if str(blk.get("_tag", "")) == "verb.execute":
 			if hw_execute(o, blk) and blk.get("halt", true):
@@ -8105,7 +8108,7 @@ static func hw_shape_hit(o, b: Dictionary) -> void:
 	var src: String = str(b.get("src", h.hit_src))
 	o.log_hit(src, b.get("tags", []))
 	o.deal_damage(e, dmg)
-	for s in b.get("on_hit", []):
+	for s in b.get("on_hit", _EA):
 		apply_status(o, e, s)
 	if b.has("fx"):
 		fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e])
@@ -8119,7 +8122,7 @@ static func hw_shape_hit(o, b: Dictionary) -> void:
 					continue
 				o.log_hit(src, b.get("tags", []))
 				o.deal_damage(q, dmg * float(sp.get("mult", 0.5)))
-				for s in b.get("on_hit", []):
+				for s in b.get("on_hit", _EA):
 					apply_status(o, q, s)
 
 
@@ -8146,7 +8149,7 @@ static func hw_execute(o, b: Dictionary) -> bool:
 			var q2: Dictionary = pool[g.rng.randi() % pool.size()]
 			o.log_hit(str(b.get("over_src", b.get("src", ""))), [])
 			o.deal_damage(q2, over)
-			for s in b.get("over_on_hit", []):
+			for s in b.get("over_on_hit", _EA):
 				apply_status(o, q2, s)
 			var la: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 			var lb: Vector2 = q2.pos + Vector2(0, -q2.r * 0.5)
@@ -8326,7 +8329,7 @@ static func _hw3_fan(o, dt: float) -> void:
 			o.log_hit(str(b.get("src", "")), b.get("tags", []))
 			o.deal_damage(e, dmg)
 			if not e.dead:
-				for s in b.get("on_hit", []):
+				for s in b.get("on_hit", _EA):
 					apply_status(o, e, s)
 			if shown < 3:
 				shown += 1
@@ -8725,8 +8728,8 @@ static func hw_stack(o, b: Dictionary) -> void:
 
 static func hw_stack_cap(o, b: Dictionary) -> int:
 	var cap: int = int(b.get("cap", 10))
-	for m in b.get("cap_more", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in b.get("cap_more", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			cap += int(m.get("add", 0))
 	return cap
 
@@ -8741,7 +8744,7 @@ static func hw_stack_n(o, key: String) -> int:
 static func hw_armed_release(o, a: Dictionary) -> bool:
 	if not o.hw.has("armed"):
 		return false
-	for am in o.B.get("attack", {}).get("armed", []):   # 蓄势写在 blocks.attack 上；半径按当前普攻（含 swap_attack）
+	for am in o.B.get("attack", _ED).get("armed", _EA):   # 蓄势写在 blocks.attack 上；半径按当前普攻（含 swap_attack）
 		var k: String = str(am.get("key", ""))
 		if o.hw.armed.get(k, false):
 			o.hw.armed[k] = false
@@ -9163,7 +9166,7 @@ static func hw_tether_of(o, i: int) -> Dictionary:
 	var sk: Array = o.B.get("skills", [])
 	if i < 0 or i >= sk.size():
 		return {}
-	for b in sk[i].get("do", []):
+	for b in sk[i].get("do", _EA):
 		if str(b.get("_tag", "")) == "verb.tether":
 			return b
 	return {}
@@ -9422,7 +9425,7 @@ static func hw_draw_outline(o, f: Dictionary) -> void:
 static func hw_draw_look(o, layer: String) -> void:
 	if o.pos == Vector2.INF:
 		return
-	for f in o.B.get("look", []):
+	for f in o.B.get("look", _EA):
 		if not (f is Dictionary) or not fx_on(o, f):
 			continue
 		if layer == "body" and f.has("outline"):
@@ -9472,8 +9475,8 @@ static func hw_stats_rows(o) -> Array:
 		return out
 	if not hw_on(o) or not o.hw.has("stacks"):
 		return out
-	for t in o.B.get("trait", []) + o.B.get("talent", []):
-		for b in t.get("do", []):
+	for t in o.B.get("trait", []) + o.B.get("talent", _EA):
+		for b in t.get("do", _EA):
 			if str(b.get("_tag", "")) == "verb.stack" and b.has("row"):
 				out.append([str(b.row), "%d / %d" % [hw_stack_n(o, str(b.get("key", "stack"))), hw_stack_cap(o, b)]])
 	return out
@@ -9625,7 +9628,7 @@ static func hw_dealt(o, e: Dictionary, dmg: float) -> void:
 		return
 	var g = o.g
 	var src: String = str(g.hit.get("src", ""))
-	var hs: Dictionary = o.def.get("hit_sources", {}).get(src, {})
+	var hs: Dictionary = o.def.get("hit_sources", _ED).get(src, {})
 	var keep = g.hit
 	h.link_busy = true
 	for lk in h.links:
@@ -10146,7 +10149,7 @@ static func _h3_sfx(o, kind: String, db := 0.0, pitch := 1.0, vary := 0.0) -> vo
 static func _h3_mults(o, v: float, arr) -> float:
 	if arr is Array:
 		for m in arr:
-			if m is Dictionary and cond_true(o, m.get("cond", {})):
+			if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 				v *= float(m.get("mult", 1.0))
 	return v
 
@@ -10227,14 +10230,14 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 	_e3_fin_arm(o, a)   # 精英化第 3 批：这一轮是不是收尾换斩
 	var first: Dictionary = _h3_thrust(o, a, ang, mult, patch, 1)
 	var stg: Array = a.get("stages", [])
-	if not stg.is_empty() and cond_true(o, stg[0].get("cond", {})):
+	if not stg.is_empty() and cond_true(o, stg[0].get("cond", _ED)):
 		ir.st_t = _h3_stage_gap(o, a)
 	else:
 		ir.st_t = -1.0
 	ir.st_ang = ang
 	ir.st_mult = mult
 	if not patch.is_empty() and not first.is_empty():
-		for s in patch.get("on_first", []):
+		for s in patch.get("on_first", _EA):
 			apply_status(o, first, s, first.pos)
 		if patch.has("first_fx"):
 			fx_play(o, patch.first_fx, first.pos, float(first.r), [first])
@@ -10265,7 +10268,7 @@ static func _h3_stage_tick(o, ir: Dictionary, dt: float) -> void:
 	if k < 0 or k >= stg.size():
 		return
 	var sg: Dictionary = stg[k]
-	var more: bool = k + 1 < stg.size() and cond_true(o, stg[k + 1].get("cond", {}))
+	var more: bool = k + 1 < stg.size() and cond_true(o, stg[k + 1].get("cond", _ED))
 	if not more and ir.get("fin", false):   # 精英化第 3 批：这一轮的收尾换成 finisher（裂潮余波）
 		ir.fin = false
 		_e3_finisher(o, a)
@@ -10273,7 +10276,7 @@ static func _h3_stage_tick(o, ir: Dictionary, dt: float) -> void:
 	var m: float = float(ir.st_mult) * float(sg.mult) if sg.has("mult") else float(ir.st_mult)
 	var first: Dictionary = _h3_thrust(o, a, float(ir.st_ang), m, {}, int(ir.st_i))
 	if not first.is_empty():
-		for s in sg.get("on_first", []):   # 精英化第 3 批：这一段首中目标的状态（挑刺）
+		for s in sg.get("on_first", _EA):   # 精英化第 3 批：这一段首中目标的状态（挑刺）
 			apply_status(o, first, s, first.pos, -1.0, 0.0, 0)
 	if more:
 		ir.st_t = _h3_stage_gap(o, a)
@@ -10351,7 +10354,7 @@ static func _h3_thrust_fx(o, a: Dictionary, d: Vector2, L: float, ang: float, gu
 
 static func _h3_pursue(o, a: Dictionary) -> Dictionary:
 	var pu = a.get("pursue", null)
-	if pu is Dictionary and cond_true(o, pu.get("cond", {})):
+	if pu is Dictionary and cond_true(o, pu.get("cond", _ED)):
 		return pu
 	return {}
 
@@ -10368,10 +10371,10 @@ static func h3_ctrl_mult(o, e: Dictionary, b: Dictionary) -> float:
 
 static func _h3_ctrl_value(o) -> float:
 	for t in o._trigs():
-		if str(t.get("_tag", "")) != "trig.passive" or not cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.passive" or not cond_true(o, t.get("cond", _ED)):
 			continue
-		for b in t.get("do", []):
-			if str(b.get("_tag", "")) == "verb.ctrl_bonus" and cond_true(o, b.get("cond", {})):
+		for b in t.get("do", _EA):
+			if str(b.get("_tag", "")) == "verb.ctrl_bonus" and cond_true(o, b.get("cond", _ED)):
 				return float(b.get("value", 0.0))
 	return 0.0
 
@@ -10487,7 +10490,7 @@ static func h3_cleave(o, b: Dictionary, at: Vector2) -> Array:
 		var e: Dictionary = hits[i]
 		o.log_hit(src, b.get("tags", []))
 		o.deal_damage(e, dmg * h3_ctrl_mult(o, e, b))
-		for s in b.get("on_hit", []):
+		for s in b.get("on_hit", _EA):
 			apply_status(o, e, s, org)
 		out.append(e)
 	hw_record(o, dmg, ang, r, org)
@@ -10731,7 +10734,7 @@ static func _h3ir_draw_over(o) -> void:
 	var ir: Dictionary = o.hw.ir
 	if o.pos == Vector2.INF:
 		return
-	var lk: Dictionary = o.B.get("attack", {}).get("look", {})
+	var lk: Dictionary = o.B.get("attack", _ED).get("look", {})
 	var lamp_on: bool = o.skill_active_left(2) > 0.0 or (o.acting() and o.act_kind == "skill")
 	if lamp_on and lk.get("lantern", true):
 		var raised: bool = o.acting() and o.act_kind == "skill"
@@ -11075,11 +11078,11 @@ static func h3_saw_r(o, a: Dictionary) -> float:
 ## 普攻间隔（data_operator 起手）：every ÷ 攻速，再按 cd_div / cd_mult（同手写的除乘顺序），× 局部 interval
 static func h3_attack_cd(o, a: Dictionary) -> float:
 	var cdv: float = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
-	for m in a.get("cd_div", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("cd_div", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			cdv /= float(m.get("value", 1.0))
-	for m in a.get("cd_mult", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("cd_mult", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			cdv *= float(m.get("value", 1.0))
 	return cdv * float(o.loc.interval)
 
@@ -11091,8 +11094,8 @@ static func _h3_any_skill(o) -> bool:
 static func _h3_saw_release(o, a: Dictionary) -> void:
 	var sp := _h3sp(o)
 	var m := 1.0
-	for it in a.get("mults", []):
-		if not cond_true(o, it.get("cond", {})):
+	for it in a.get("mults", _EA):
+		if not cond_true(o, it.get("cond", _ED)):
 			continue
 		var v: float = float(it.get("value", 1.0))
 		if it.get("hp_lost", false):
@@ -11102,17 +11105,17 @@ static func _h3_saw_release(o, a: Dictionary) -> void:
 	hw_record(o, dmg, 0.0, h3_saw_r(o, a), o.pos)   # basis attack = 这一圈主环斩的伤害（替身闪现按它取百分比）
 	_h3_spin(o, a, dmg, 0)
 	var s2 = a.get("spin2", null)
-	var dbl: bool = s2 is Dictionary and cond_true(o, s2.get("cond", {}))
+	var dbl: bool = s2 is Dictionary and cond_true(o, s2.get("cond", _ED))
 	if dbl:
 		sp.spin2_t = float(s2.get("delay", 0.15))
 		sp.spin2_dmg = dmg * float(s2.get("mult", 0.7))
 	var tr = a.get("trail", null)
-	if tr is Dictionary and cond_true(o, tr.get("cond", {})):
+	if tr is Dictionary and cond_true(o, tr.get("cond", _ED)):
 		if sp.rings.size() >= int(tr.get("max", 6)):
 			sp.rings.pop_front()
 		sp.rings.append({"pos": o.pos, "r": h3_saw_r(o, a), "t": float(tr.get("dur", 1.5)), "tick": float(tr.get("tick", 0.5)), "dmg": dmg * float(tr.get("mult", 0.2)), "b": tr})
 	var wh = a.get("whirl", null)
-	if wh is Dictionary and cond_true(o, wh.get("cond", {})):
+	if wh is Dictionary and cond_true(o, wh.get("cond", _ED)):
 		var tk: float = float(wh.get("tick", 0.15))
 		sp.whirl_t = float(wh.get("dur_dark", 1.2)) if o.g.lamp < 30.0 else float(wh.get("dur", 0.6))
 		sp.whirl_n = int(round(float(sp.whirl_t) / tk)) - (1 if dbl else 0)
@@ -11127,7 +11130,7 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	var r: float = h3_saw_r(o, a)
 	var hits: Array = o.arc_targets(o.pos + Vector2(0, float(a.get("y", -10.0))), 0.0, PI, r)
 	var lh = a.get("low_hp", null)
-	var low_on: bool = lh is Dictionary and cond_true(o, lh.get("cond", {}))
+	var low_on: bool = lh is Dictionary and cond_true(o, lh.get("cond", _ED))
 	var heavy: bool = _h3_heavy(o, a)
 	var src: String = str(a.get("src", ""))
 	var kb: float = float(a.get("kb", 70.0))
@@ -11163,8 +11166,8 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 
 
 static func _h3_heavy(o, a: Dictionary) -> bool:
-	var hv = a.get("look", {}).get("heavy", null)
-	return hv is Dictionary and cond_true(o, hv.get("cond", {}))
+	var hv = a.get("look", _ED).get("heavy", null)
+	return hv is Dictionary and cond_true(o, hv.get("cond", _ED))
 
 
 static func _h3_spins_tick(o, sp: Dictionary, dt: float) -> void:
@@ -11183,7 +11186,7 @@ static func _h3_spins_tick(o, sp: Dictionary, dt: float) -> void:
 		sp.whirl_t = maxf(0.0, float(sp.whirl_t) - dt)
 		sp.whirl_tick = float(sp.whirl_tick) - dt
 		if float(sp.whirl_tick) <= 0.0 and int(sp.whirl_n) > 0:
-			sp.whirl_tick = float(sp.whirl_tick) + float(a.get("whirl", {}).get("tick", 0.15))
+			sp.whirl_tick = float(sp.whirl_tick) + float(a.get("whirl", _ED).get("tick", 0.15))
 			sp.whirl_n = int(sp.whirl_n) - 1
 			_h3_spin(o, a, float(sp.whirl_dmg), 2)
 
@@ -11219,7 +11222,7 @@ static func h3_prevent_death(o) -> bool:
 	var sk: Array = o.B.get("skills", [])
 	for i in mini(3, sk.size()):
 		if o.s_t[i] > 0.0:
-			for b in sk[i].get("do", []):
+			for b in sk[i].get("do", _EA):
 				if str(b.get("_tag", "")) == "verb.undying":
 					return true
 	return false
@@ -11232,7 +11235,7 @@ static func _h3_sub_check(o, sp: Dictionary) -> void:
 		var was: float = float(sp.last_s[i])
 		sp.last_s[i] = float(o.s_t[i])
 		if was > 0.0 and o.s_t[i] <= 0.0:
-			for b in sk[i].get("do", []):
+			for b in sk[i].get("do", _EA):
 				if str(b.get("_tag", "")) == "verb.substitute":
 					_h3_start_fall(o, sp, b)
 					break
@@ -11281,7 +11284,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 	var want: Vector2 = g.ppos + Vector2(float(fv[0]) * g.squad.side, float(fv[1]))
 	sp.doll_pos = (sp.doll_pos as Vector2).lerp(want, clampf(dt * 4.0, 0.0, 1.0))
 	var el = b.get("elegy", null)
-	if el is Dictionary and cond_true(o, el.get("cond", {})):
+	if el is Dictionary and cond_true(o, el.get("cond", _ED)):
 		sp.elegy_t = float(sp.elegy_t) - dt
 		if float(sp.elegy_t) <= 0.0:
 			sp.elegy_t = float(el.get("every", 0.8))
@@ -11290,7 +11293,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 			o.fx({"kind": "ring", "pos": dp + Vector2(0, 2), "r": er, "r0": 14.0, "life": 1.6, "col": Color(0.45, 0.75, 1.1), "floor": true, "w": 2.5, "alpha": 0.7, "keep": true})
 			o.fx({"kind": "ring", "pos": dp + Vector2(0, 2), "r": er * 0.7, "r0": 6.0, "life": 1.2, "col": Color(0.8, 0.95, 1.3), "floor": true, "w": 1.5, "alpha": 0.45, "keep": true})
 			o.fx({"kind": "mote", "pos": dp + Vector2(g.vrng.randf_range(-8, 8), -40), "vel": Vector2(g.vrng.randf_range(-10, 10), -26.0), "life": 1.0, "col": Color(0.6, 0.85, 1.2), "sz": 2.0})
-	if not au.is_empty() and cond_true(o, au.get("cond", {})):
+	if not au.is_empty() and cond_true(o, au.get("cond", _ED)):
 		sp.doll_tick = float(sp.doll_tick) + dt
 		var ev: float = float(au.get("every", 1.0))
 		if float(sp.doll_tick) >= ev:
@@ -11330,7 +11333,7 @@ static func _h3sp_tick(o, sp: Dictionary, dt: float) -> bool:
 	_h3_doll_tick(o, sp, dt)
 	_h3_rings_tick(o, sp, dt)
 	var g = o.g
-	if o.s_t[0] > 0.0 and not h3_away(o) and g.vrng.randf() < dt * 14.0 and o.B.get("attack", {}).get("look", {}).get("flame", false):
+	if o.s_t[0] > 0.0 and not h3_away(o) and g.vrng.randf() < dt * 14.0 and o.B.get("attack", _ED).get("look", {}).get("flame", false):
 		o.fx({"kind": "mote", "pos": o.pos + Vector2(g.vrng.randf_range(-16, 16), g.vrng.randf_range(-40, -4)), "vel": Vector2(0, -60), "life": 0.5, "col": Color(1.0, 0.2, 0.25), "sz": 2.0})
 	_h3_spins_tick(o, sp, dt)
 	_e3_flash_tick(o, sp, dt)   # 精英化第 3 批：替身闪现
@@ -11437,7 +11440,7 @@ static func _h3sp_draw_auras(o) -> void:
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF and not sp.sub.is_empty():
 		var au: Dictionary = sp.sub.get("doll_aura", {})
-		if not au.is_empty() and cond_true(o, au.get("cond", {})):
+		if not au.is_empty() and cond_true(o, au.get("cond", _ED)):
 			cv.draw_set_transform((sp.doll_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 			cv.draw_arc(Vector2.ZERO, float(au.get("r", 120.0)), 0.0, TAU, 36, Color(H3_GHOST.r, H3_GHOST.g, H3_GHOST.b, 0.2 + 0.08 * sin(g.t * 3.0)), 2.0)
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -11463,7 +11466,7 @@ static func _h3sp_draw_over(o) -> void:
 				cv.draw_arc(Vector2.ZERO, r - k * 2.0, a0 - k * 0.22, a0 - k * 0.22 + 1.1, 16, Color(c.r, c.g, c.b, (0.85 - k * 0.2) * fade), 4.0 - k * 0.7)
 			cv.draw_circle(Vector2.from_angle(a0 + 1.1) * r, 4.0, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.9 * fade))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if (o.s_t[1] > 0.0 or o.s_t[2] > 0.0) and a.get("look", {}).get("eye", false):
+	if (o.s_t[1] > 0.0 or o.s_t[2] > 0.0) and a.get("look", _ED).get("eye", false):
 		var p: Vector2 = o.pos + Vector2(4.0 * o.face, -38)
 		var c2: Color = H3_RED if o.s_t[2] > 0.0 else H3_GHOST
 		cv.draw_circle(p, 2.5 + sin(g.t * 24.0), Color(c2.r * 2.0, c2.g * 1.6, c2.b * 1.6, 0.9))
@@ -11509,8 +11512,8 @@ static func _h3sp_status(o) -> Array:
 		out.append(["不倒", H3_GHOST])
 	if o.s_t[2] > 0.0 and _h3_heavy(o, a):
 		out.append([str(o.skill_def(2).get("name", "")), H3_RED])
-	for m in a.get("r_mults", []):
-		if m.has("status") and cond_true(o, m.get("cond", {})):
+	for m in a.get("r_mults", _EA):
+		if m.has("status") and cond_true(o, m.get("cond", _ED)):
 			out.append([str(m.status), H3_RED])
 	if float(sp.doll_t) > 0.0:
 		out.append(["%s %d" % [str(sp.sub.get("text", "替身")), int(ceil(float(sp.doll_t)))], H3_GHOST])
@@ -11554,10 +11557,10 @@ static func _h3_heal_mult(o) -> float:
 ## 生效中的天赋积木（第一块 tag 的）
 static func _h3_trig_block(o, tag: String) -> Dictionary:
 	for t in o._trigs():
-		if str(t.get("_tag", "")) != "trig.passive" or not cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) != "trig.passive" or not cond_true(o, t.get("cond", _ED)):
 			continue
-		for b in t.get("do", []):
-			if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", {})):
+		for b in t.get("do", _EA):
+			if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", _ED)):
 				return b
 	return {}
 
@@ -11628,8 +11631,8 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 	elif g.hp < g.max_hp:
 		var pct: float = g.max_hp * float(hb.get("pct", 0.02))
 		var gm := 1.0
-		for m in hb.get("mults", []):
-			if cond_true(o, m.get("cond", {})):
+		for m in hb.get("mults", _EA):
+			if cond_true(o, m.get("cond", _ED)):
 				gm = float(m.get("mult", 1.0))
 		_h3_mend(o, pct * gm * _h3_heal_mult(o), 15, str(hb.get("sub", "")))
 		did = true
@@ -11653,7 +11656,7 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 	if lm.bolts.is_empty():
 		return
 	var g = o.g
-	var bt: Dictionary = o.B.get("attack", {}).get("bolt", {})
+	var bt: Dictionary = o.B.get("attack", _ED).get("bolt", {})
 	var main_src: String = str(bt.get("src", ""))
 	for b in lm.bolts:
 		b.pos += b.vel * dt
@@ -11708,7 +11711,7 @@ static func h3_tower_start(o, b: Dictionary) -> void:
 static func _h3_tower_i(o) -> int:
 	var sk: Array = o.B.get("skills", [])
 	for i in mini(3, sk.size()):
-		for b in sk[i].get("do", []):
+		for b in sk[i].get("do", _EA):
 			if str(b.get("_tag", "")) == "verb.tower":
 				return i
 	return -1
@@ -11784,7 +11787,7 @@ static func h3_light_mult(o) -> float:
 	var sk: Array = o.B.get("skills", [])
 	for i in mini(3, sk.size()):
 		if o.skill_on(i):
-			for b in sk[i].get("do", []):
+			for b in sk[i].get("do", _EA):
 				if str(b.get("_tag", "")) == "verb.lamp" and b.has("radius_mult"):
 					m *= float(b.radius_mult)
 	return m
@@ -11804,7 +11807,7 @@ static func _h3_tower_lamp(o) -> Vector2:
 static func _h3_units_n(o, a: Dictionary) -> int:
 	var un: Dictionary = a.get("units", {})
 	var n := 0
-	for nid in un.get("nodes", []):
+	for nid in un.get("nodes", _EA):
 		if str(nid) in o.taken:
 			n += 1
 	return mini(n, int(un.get("max", 2)))
@@ -11830,7 +11833,7 @@ static func _h3_units_tick(o, lm: Dictionary, dt: float) -> void:
 			lm.unit_cd.append(1.0)
 	var rng_r: float = _h3_bolt_range(o, a)
 	var ch = un.get("charge", null)
-	var charge_on: bool = ch is Dictionary and cond_true(o, ch.get("cond", {}))
+	var charge_on: bool = ch is Dictionary and cond_true(o, ch.get("cond", _ED))
 	for k in units:
 		lm.unit_cd[k] = float(lm.unit_cd[k]) - dt
 		if float(lm.unit_cd[k]) > 0.0:
@@ -11901,13 +11904,13 @@ static func _h3_rain_tick(o, lm: Dictionary, dt: float) -> void:
 
 static func _h3_beam_block(o) -> Dictionary:
 	for t in o._trigs():
-		if not cond_true(o, t.get("cond", {})):
+		if not cond_true(o, t.get("cond", _ED)):
 			continue
 		if str(t.get("_tag", "")) == "verb.beam":
 			return t
 		if str(t.get("_tag", "")) == "trig.passive":
-			for b in t.get("do", []):
-				if str(b.get("_tag", "")) == "verb.beam" and cond_true(o, b.get("cond", {})):
+			for b in t.get("do", _EA):
+				if str(b.get("_tag", "")) == "verb.beam" and cond_true(o, b.get("cond", _ED)):
 					return b
 	return {}
 
@@ -12061,8 +12064,8 @@ static func _h3lm_draw_units(o) -> void:
 		cv.draw_rect(Rect2(p + Vector2(-2, -2), Vector2(4, 4)), Color(2.2, 1.9, 1.2) if hot else Color(1.8, 1.5, 0.9))
 		cv.draw_rect(Rect2(p + Vector2(-4, 3), Vector2(8, 2)), Color(0.35, 0.27, 0.18))
 		cv.draw_line(p + Vector2(0, 5), p + Vector2(0, 9 + 2.0 * pulse), Color(1.4, 1.1, 0.6, 0.6), 1.0)
-	var ch = a.get("units", {}).get("charge", null)
-	if ch is Dictionary and cond_true(o, ch.get("cond", {})):
+	var ch = a.get("units", _ED).get("charge", null)
+	if ch is Dictionary and cond_true(o, ch.get("cond", _ED)):
 		var need: int = int(ch.get("need", 8))
 		var c0: Vector2 = o.pos + Vector2(-(need - 1) * 3.0, -94)
 		for q in need:
@@ -12195,7 +12198,7 @@ static func h3_sync_stats(o, st) -> void:
 	if not hw_on(o) or not o.hw.has("mz"):
 		return
 	var sc: Array = o.scopes()
-	var m: Dictionary = o.B.get("attack", {}).get("stats", {})
+	var m: Dictionary = o.B.get("attack", _ED).get("stats", {})
 	for k in m:
 		o.hw.mz.st[k] = st.value_for(StringName(str(m[k])), sc)
 
@@ -12210,8 +12213,8 @@ static func h3_dmg_bonus(o) -> float:
 	var m: float = o.stat(&"dmg") * o.stat(&"op_atk")
 	if db.get("ally", true):
 		m *= o.g.ally_mult
-	for it in db.get("mults", []):
-		if not cond_true(o, it.get("cond", {})):
+	for it in db.get("mults", _EA):
+		if not cond_true(o, it.get("cond", _ED)):
 			continue
 		var nl = it.get("near_low_hp", null)
 		if nl is Dictionary and not _h3_low_hp_near(o, float(nl.get("r", 160.0)), float(nl.get("below", 0.5))):
@@ -12275,8 +12278,8 @@ static func h3_free_update(o, dt: float) -> void:
 		var at: Vector2 = o.atk_point(o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos), radius)
 		if at != Vector2.INF:
 			var interval: float = float(a.get("every", 0.9)) * _h3_st(o, "interval", 1.0) / o.stat(&"op_aspd") * (float(a.get("slow_mult", 1.5)) if g.atk_slow > 0.0 else 1.0)
-			for m in a.get("interval_mults", []):
-				if cond_true(o, m.get("cond", {})):
+			for m in a.get("interval_mults", _EA):
+				if cond_true(o, m.get("cond", _ED)):
 					interval *= float(m.get("mult", 1.0))
 			o.cd = max(float(a.get("min_cd", 0.18)), interval)
 			_h3_umbrella(o, a, at)
@@ -12287,7 +12290,7 @@ static func h3_free_update(o, dt: float) -> void:
 static func _h3_talent_any(o, tag: String) -> Dictionary:
 	for sec in ["trait", "talent"]:
 		for t in o.B.get(sec, []):
-			for b in t.get("do", []):
+			for b in t.get("do", _EA):
 				if str(b.get("_tag", "")) == tag:
 					return b
 	return {}
@@ -12322,8 +12325,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	o.face_to(ang)
 	o.attack_t = o.attack_dur
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o._dmg_bonus()
-	for m in a.get("dmg_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("dmg_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			dmg *= float(m.get("mult", 1.0))
 	var emp := {}
 	var sk: Array = o.B.get("skills", [])
@@ -12337,8 +12340,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		dmg *= float(emp.get("mult", 1.0)) * o.skill_power()
 		radius *= float(emp.get("r_mult", 1.0))
 	var dirs: Array = [ang]
-	for dv in a.get("dirs", []):
-		if cond_true(o, dv.get("cond", {})):
+	for dv in a.get("dirs", _EA):
+		if cond_true(o, dv.get("cond", _ED)):
 			dirs = [ang, ang + TAU / 3.0, ang - TAU / 3.0]
 			break
 	var seen := {}
@@ -12355,8 +12358,8 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
 	var stun := 0.0
-	for sv in a.get("stun", []):
-		if cond_true(o, sv.get("cond", {})):
+	for sv in a.get("stun", _EA):
+		if cond_true(o, sv.get("cond", _ED)):
 			stun = float(sv.get("dur", 0.0))
 			break
 	var src: String = str(a.get("src", ""))
@@ -12385,13 +12388,13 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	var alive := hit.filter(func(e): return not e.dead)
 	alive.sort_custom(func(x, y): return x.hp < y.hp)
 	var n: int = int(_h3_st(o, "t_n", 1.0))
-	for m in tb.get("n_add", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in tb.get("n_add", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			n += int(m.get("n", 1))
 	var tdmg: float = dmg * _h3_st(o, "t_mult", 0.6)
 	var tstun := 0.0
-	for sv in tb.get("stun", []):
-		if cond_true(o, sv.get("cond", {})):
+	for sv in tb.get("stun", _EA):
+		if cond_true(o, sv.get("cond", _ED)):
 			tstun = float(sv.get("dur", 0.0))
 			break
 	for i in min(n, alive.size()):
@@ -12401,7 +12404,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		for i in mini(n - alive.size(), more.size()):
 			_h3_tentacle(o, a, more[i], tdmg, tstun)
 	var sw = emp.get("swarm", null)
-	if empowered and sw is Dictionary and cond_true(o, sw.get("cond", {})):
+	if empowered and sw is Dictionary and cond_true(o, sw.get("cond", _ED)):
 		var near: Array = o.nearest_enemies(int(sw.get("n", 2)), radius * float(sw.get("r_mult", 1.6)), o.pos)
 		for ne in near:
 			if not ne.dead:
@@ -12417,7 +12420,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 			mz.delayed.append({"at": float(bu.get("gap", 0.06)) * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * float(bu.get("mult", 0.6)), "r": float(bu.get("r", 80.0)), "b": bu})
 	# 镜花水月：镜像分身同步挥伞
 	var ec = a.get("echo", null)
-	if ec is Dictionary and cond_true(o, ec.get("cond", {})):
+	if ec is Dictionary and cond_true(o, ec.get("cond", _ED)):
 		mz.delayed.append({"at": float(ec.get("delay", 0.12)), "kind": "echo", "ang": ang, "dmg": dmg * float(ec.get("mult", 0.6)) * o.skill_power(), "half": half, "radius": radius, "dirs": dirs.size(), "b": ec})
 	# 斩击表现
 	var slash_col := Color.WHITE
@@ -12450,12 +12453,12 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 	if not target.dead:
 		target.stun = max(target.stun, stun if stun > 0.0 else float(tb.get("stun_min", 0.25)))
 		var dr = tb.get("drag", null)
-		if dr is Dictionary and cond_true(o, dr.get("cond", {})) and not target.boss:
+		if dr is Dictionary and cond_true(o, dr.get("cond", _ED)) and not target.boss:
 			target.kb += (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0)))
 		_e3_pull(o, a, target)   # 精英化第 3 批：拖拽
 		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
 	var sk = tb.get("stake", null)
-	if sk is Dictionary and cond_true(o, sk.get("cond", {})):
+	if sk is Dictionary and cond_true(o, sk.get("cond", _ED)):
 		if mz.stakes.size() >= int(sk.get("max", 6)):
 			mz.stakes.pop_front()
 		mz.stakes.append({"pos": p, "t": float(sk.get("life", 1.5)), "tick": float(sk.get("every", 0.5)), "dmg": dmg * float(sk.get("mult", 0.4)), "flip": g.vrng.randf() < 0.5, "b": sk})
@@ -12487,7 +12490,7 @@ static func _h3_stakes_tick(o, mz: Dictionary, dt: float) -> void:
 				if e.dead or e.pos.distance_to(s.pos) > sr + e.r:
 					continue
 				any = true
-				o.log_hit(str(o.B.get("attack", {}).get("tentacle", {}).get("src", "")))
+				o.log_hit(str(o.B.get("attack", _ED).get("tentacle", {}).get("src", "")))
 				o.deal_damage(e, s.dmg)
 			if any:
 				o.spawn_fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true, h3_deep_col(o))
@@ -12573,7 +12576,7 @@ static func h3_kill_heal(o, b: Dictionary) -> void:
 
 ## 触手本体的染色：look.deep（常态）/ look.deep_rej（排异后）× bright
 static func h3_deep_col(o, bright := 1.0) -> Color:
-	var lk: Dictionary = o.B.get("attack", {}).get("look", {})
+	var lk: Dictionary = o.B.get("attack", _ED).get("look", {})
 	var c: Color = _mf_col(lk.get("deep", []), Color(0.22, 0.34, 0.88)) if o.rej.is_empty() else _mf_col(lk.get("deep_rej", []), Color(0.62, 0.34, 1.0))
 	return Color(c.r * bright, c.g * bright, c.b * bright)
 
@@ -12581,7 +12584,7 @@ static func h3_deep_col(o, bright := 1.0) -> Color:
 static func h3_tentacle_col(o, bright := 1.0) -> Color:
 	if not hw_on(o) or not o.hw.has("mz"):
 		return Color(1.3, 1.1, 1.6)
-	var lk: Dictionary = o.B.get("attack", {}).get("look", {})
+	var lk: Dictionary = o.B.get("attack", _ED).get("look", {})
 	var c: Color = _mf_col(lk.get("pale", []), Color(0.62, 0.9, 1.35)) if o.rej.is_empty() else _mf_col(lk.get("pale_rej", []), Color(1.25, 0.7, 1.6))
 	return Color(c.r * bright, c.g * bright, c.b * bright)
 
@@ -12664,8 +12667,8 @@ static func _h3mz_draw_jellies(o) -> void:
 	var cv = o.cv
 	var n: int = int(_h3_st(o, "t_n", 1.0))
 	var c: Color = h3_tentacle_col(o)
-	var jg = o.B.get("attack", {}).get("look", {}).get("jelly_glow", null)
-	var glow: bool = jg is Dictionary and cond_true(o, jg.get("cond", {}))
+	var jg = o.B.get("attack", _ED).get("look", {}).get("jelly_glow", null)
+	var glow: bool = jg is Dictionary and cond_true(o, jg.get("cond", _ED))
 	for k in n:
 		var ang: float = g.t * 0.6 + k * TAU / float(n)
 		var ph: float = g.t * 1.3 + k * 2.1
@@ -12783,7 +12786,7 @@ const H3_COLD := Color(0.6, 0.8, 1.05)
 ## 起手（h3_attack_start 转来）：trig.on_windup
 static func _e3_windup(o) -> void:
 	for t in o._trigs():
-		if str(t.get("_tag", "")) == "trig.on_windup" and cond_true(o, t.get("cond", {})):
+		if str(t.get("_tag", "")) == "trig.on_windup" and cond_true(o, t.get("cond", _ED)):
 			o._exec_list(t.get("do", []), o.pos)
 
 
@@ -12908,7 +12911,7 @@ static func _e3_doll_body(o, p: Vector2, flip: bool, col: Color, fr: int) -> voi
 static func _e3_fin_arm(o, a: Dictionary) -> void:
 	var ir: Dictionary = o.hw.ir
 	var fn = a.get("finisher", null)
-	ir["fin"] = fn is Dictionary and cond_true(o, fn.get("cond", {})) and (int(o.atk_n) + 1) % maxi(1, int(fn.get("every", 3))) == 0
+	ir["fin"] = fn is Dictionary and cond_true(o, fn.get("cond", _ED)) and (int(o.atk_n) + 1) % maxi(1, int(fn.get("every", 3))) == 0
 
 
 static func _e3_finisher(o, a: Dictionary) -> void:
@@ -12935,7 +12938,7 @@ static func _e3_ir_tick(o, ir: Dictionary, dt: float) -> void:
 	ir.volley = {}
 	var b: Dictionary = vo.b
 	var n := 0
-	for e in ir.get("last_hits", []):
+	for e in ir.get("last_hits", _EA):
 		if n >= int(b.get("n", 2)):
 			break
 		if e.dead or not _h3_is_air(o, e):
@@ -12980,7 +12983,7 @@ static func _e3_crescent_fx(o, b: Dictionary, ang: float, r: float) -> void:
 ## 光弹命中已被照亮的敌人（was_lit）：折向 r 内最近的未照亮敌人
 static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	var rf = bt.get("refract", null)
-	if not (rf is Dictionary) or not cond_true(o, rf.get("cond", {})):
+	if not (rf is Dictionary) or not cond_true(o, rf.get("cond", _ED)):
 		return
 	var g = o.g
 	var r: float = float(rf.get("r", 120.0))
@@ -13008,8 +13011,8 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 
 ## 一发（流明本人 / 发光单元）：光柱攒满时这一发变光柱，返回 true（不再射光弹）；否则计数
 static func _e3_beam_shot(o, lm: Dictionary, from: Vector2, to_pt: Vector2, dmg: float) -> bool:
-	var bm = o.B.get("attack", {}).get("beam", null)
-	if not (bm is Dictionary) or not cond_true(o, bm.get("cond", {})):
+	var bm = o.B.get("attack", _ED).get("beam", null)
+	if not (bm is Dictionary) or not cond_true(o, bm.get("cond", _ED)):
 		return false
 	if int(lm.empowered) > 0:
 		lm.empowered = int(lm.empowered) - 1
@@ -13076,8 +13079,8 @@ static func _e3_draw_beam(o, f: Dictionary, a: float) -> void:
 # ---------------------------------------------------------------- 水月：拖拽 / 深蓝之籽
 
 static func _e3_pull(o, a: Dictionary, target: Dictionary) -> void:
-	var pl = a.get("tentacle", {}).get("pull", null)
-	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", {})):
+	var pl = a.get("tentacle", _ED).get("pull", null)
+	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", _ED)):
 		return
 	if displace_one(o, target, o.pos, pl):
 		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX, 0.0, target.pos.x > o.pos.x)
@@ -13092,8 +13095,8 @@ static func _e3_jelly_home(o, k: int, n: int) -> Vector2:
 
 
 static func _e3_jelly_on(o) -> Dictionary:
-	var jb = o.B.get("attack", {}).get("jelly", null)
-	if jb is Dictionary and cond_true(o, jb.get("cond", {})):
+	var jb = o.B.get("attack", _ED).get("jelly", null)
+	if jb is Dictionary and cond_true(o, jb.get("cond", _ED)):
 		return jb
 	return {}
 
@@ -13116,8 +13119,8 @@ static func _e3_jelly_tick(o, mz: Dictionary, dt: float) -> void:
 		mz.jel.pop_back()
 	var rr: float = float(jb.get("r", 200.0)) * o.stat(&"op_range")
 	var every: float = float(jb.get("every", 1.2))
-	for m in jb.get("every_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in jb.get("every_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			every *= float(m.get("mult", 1.0))
 	for k in n:
 		var j: Dictionary = mz.jel[k]
@@ -13189,8 +13192,8 @@ static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
 	var mz: Dictionary = o.hw.mz
 	var a: Dictionary = o.B.get("attack", {})
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o._dmg_bonus()
-	for m in a.get("dmg_mults", []):
-		if cond_true(o, m.get("cond", {})):
+	for m in a.get("dmg_mults", _EA):
+		if cond_true(o, m.get("cond", _ED)):
 			dmg *= float(m.get("mult", 1.0))
 	o.log_hit(str(jb.get("src", "")))
 	o.deal_damage(e, dmg * float(jb.get("mult", 0.4)))
@@ -13333,14 +13336,14 @@ static func h4_init(o, tags: Dictionary) -> void:
 ## 本帧生效的某块积木（trait → talent → 已选节点 → elite1 / elite2；passive 的 do 里找，各自的 cond 都成立）；没有 = {}
 static func _h4_live(o, tag: String) -> Dictionary:
 	for t in o._trigs():
-		if not cond_true(o, t.get("cond", {})):
+		if not cond_true(o, t.get("cond", _ED)):
 			continue
 		var tg: String = str(t.get("_tag", ""))
 		if tg == tag:
 			return t
 		if tg == "trig.passive":
-			for b in t.get("do", []):
-				if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", {})):
+			for b in t.get("do", _EA):
+				if str(b.get("_tag", "")) == tag and cond_true(o, b.get("cond", _ED)):
 					return b
 	return {}
 
@@ -13349,14 +13352,14 @@ static func _h4_live(o, tag: String) -> Dictionary:
 static func _h4_first_mult(o, arr, key := "mult") -> float:
 	if arr is Array:
 		for m in arr:
-			if m is Dictionary and cond_true(o, m.get("cond", {})):
+			if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 				return float(m.get(key, 1.0))
 	return 1.0
 
 
 ## 子参数块 {cond, …} 成立时返回它，否则 {}
 static func _h4_sub(o, v) -> Dictionary:
-	if v is Dictionary and not v.is_empty() and cond_true(o, v.get("cond", {})):
+	if v is Dictionary and not v.is_empty() and cond_true(o, v.get("cond", _ED)):
 		return v
 	return {}
 
@@ -13476,10 +13479,10 @@ static func h4_on_kill(o, e: Dictionary) -> void:
 static func h4_live_dr(o) -> float:
 	var dr := 1.0
 	for t in o._trigs():
-		if not cond_true(o, t.get("cond", {})) or str(t.get("_tag", "")) != "trig.passive":
+		if not cond_true(o, t.get("cond", _ED)) or str(t.get("_tag", "")) != "trig.passive":
 			continue
-		for b in t.get("do", []):
-			if str(b.get("_tag", "")) == "verb.dr" and cond_true(o, b.get("cond", {})):
+		for b in t.get("do", _EA):
+			if str(b.get("_tag", "")) == "verb.dr" and cond_true(o, b.get("cond", _ED)):
 				dr *= 1.0 - float(b.value)
 	return dr
 
@@ -13835,7 +13838,7 @@ static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 				var nc = _h4_next_cluster(o, b2)
 				if nc != null:
 					sg.leap_second = true
-					_h4_start_leap(o, nc, float(b2.get("again", {}).get("dist", 150.0)))
+					_h4_start_leap(o, nc, float(b2.get("again", _ED).get("dist", 150.0)))
 		return true
 	return false
 
@@ -14093,8 +14096,8 @@ static func _h4_tip(o, a: Dictionary) -> Vector2:
 
 static func _h4_fox_shots(o, a: Dictionary) -> int:
 	var n: int = int(a.get("shots", 2))
-	for m in a.get("shot_adds", []):
-		if m is Dictionary and cond_true(o, m.get("cond", {})):
+	for m in a.get("shot_adds", _EA):
+		if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 			n += int(m.get("n", 1))
 	return n
 
@@ -14107,7 +14110,7 @@ static func _h4_next_merge(o, a: Dictionary) -> bool:
 	if not _h4_sub(o, mg.get("all", null)).is_empty():
 		return true
 	var every: int = maxi(1, int(mg.get("every", 3)))
-	return cond_true(o, mg.get("cond", {})) and int(_h4sz(o).n) % every == every - 1
+	return cond_true(o, mg.get("cond", _ED)) and int(_h4sz(o).n) % every == every - 1
 
 
 ## 还能再放几发弹体（普通狐火 + 大狐火 + 围炉狐火合计 ≤ proj_max）
@@ -14329,7 +14332,7 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 ## 精二「狐火拖尾」：大狐火飞过的路径每 step 留一处狐火（life 秒），同一条拖尾每 every 秒灼伤后来踩进路径的敌人一次（攻击 × mult，对精英 / Boss × vs_elite；
 ## 这团大狐火已经贯穿过的敌人不再烧，免得原地不动的单体被同一团狐火连烧几跳）
 static func _h4_bigfox_path(o, sz: Dictionary, a: Dictionary, f: Dictionary) -> void:
-	var tr: Dictionary = _h4_sub(o, a.get("merge", {}).get("trail", null))
+	var tr: Dictionary = _h4_sub(o, a.get("merge", _ED).get("trail", null))
 	if tr.is_empty():
 		return
 	if not f.has("tg"):
@@ -14642,7 +14645,7 @@ static func _h4sz_draw_floor_e(o) -> void:
 		return
 	var g = o.g
 	var cv = o.cv
-	var br: Dictionary = o.B.get("attack", {}).get("brand", {})
+	var br: Dictionary = o.B.get("attack", _ED).get("brand", {})
 	var tn: String = str(br.get("tex", "fx_suzuran_seal"))
 	var has_tex: bool = g.tex.get(tn) != null and g.V6_FRAMES.has(tn)
 	for s2 in sz.brands:
@@ -14684,8 +14687,8 @@ static func _h4_wd_reach(o, a: Dictionary, k: float) -> float:
 
 static func _h4_wd_aoe(o, a: Dictionary) -> float:
 	var r: float = float(a.get("aoe", 52.0)) * o.stat(&"op_range")
-	for m in a.get("aoe_mults", []):
-		if m is Dictionary and cond_true(o, m.get("cond", {})):
+	for m in a.get("aoe_mults", _EA):
+		if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 			r *= float(m.get("mult", 1.0))
 	return r
 
@@ -14876,7 +14879,7 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 		wd.ammo = int(wd.ammo) - 1
 		_h4_fire_giant(o, a, tg3.pos)
 		_h4_souls_sync(o, a, tg3)
-		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * float(a.get("giant", {}).get("cd", 0.6))
+		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * float(a.get("giant", _ED).get("cd", 0.6))
 
 
 static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
@@ -14902,7 +14905,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0))})
 			if s.quake:
 				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
-				var qs: float = float(a.get("ash", {}).get("stun", 0.8)) if s.rings else 0.0
+				var qs: float = float(a.get("ash", _ED).get("stun", 0.8)) if s.rings else 0.0
 				var qt: float = float(a.get("quake_t", 0.45))
 				wd.quakes.append({"pos": s.to, "t": qt, "dmg": qd, "r": s.r * float(a.get("quake_r", 1.2)), "rings": s.rings, "stun": qs})
 				var ec: Dictionary = _h4_sub(o, a.get("echo", null))
@@ -14935,7 +14938,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 static func _h4_first_val(o, arr, dv: float) -> float:
 	if arr is Array:
 		for m in arr:
-			if m is Dictionary and cond_true(o, m.get("cond", {})):
+			if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 				return float(m.get("value", dv))
 	return dv
 
@@ -14963,7 +14966,7 @@ static func _h4wd_on_kill(o, e: Dictionary) -> void:
 	wd.marks.erase(e.id)
 	e["wis_det"] = true
 	var a: Dictionary = o.B.get("attack", {})
-	if wd.shades.size() >= int(a.get("shade", {}).get("max", 12)):
+	if wd.shades.size() >= int(a.get("shade", _ED).get("max", 12)):
 		return
 	var mk: Dictionary = a.get("mark", {})
 	wd.shades.append({"pos": e.pos, "t": 0.25, "dmg": o.base(str(a.get("atk_key", "atk")), 0.0) * (mm if mm >= 0.0 else float(mk.get("mult", 0.45))) * o._dmg_bonus(), "r": _h4_wd_aoe(o, a) * float(mk.get("r", 0.9)), "depth": 1})
@@ -15526,7 +15529,7 @@ static func _h4sa(o) -> Dictionary:
 
 
 static func _h4_bash_dmg(o) -> float:
-	return o.base(str(o.B.get("attack", {}).get("atk_key", "atk")), 0.0) * o._dmg_bonus()
+	return o.base(str(o.B.get("attack", _ED).get("atk_key", "atk")), 0.0) * o._dmg_bonus()
 
 
 ## 净化：清除队长的寒冷（寒霜层数，满层冻结也一起解开）与束缚；balance.json operators/<id>/cleanse = 0 关掉。show = 清掉了东西时在队长头顶飘「净化」
@@ -15737,7 +15740,7 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 static func _h4sa_tick_e(o, sa: Dictionary, dt: float) -> void:
 	var g = o.g
 	if not sa.slowed.is_empty():
-		var cf: Dictionary = _h4_sub(o, o.B.get("attack", {}).get("calcify", null))
+		var cf: Dictionary = _h4_sub(o, o.B.get("attack", _ED).get("calcify", null))
 		var pct: float = float(cf.get("pct", 0.15)) if not cf.is_empty() else 0.0
 		for s in sa.slowed:
 			var e: Dictionary = s.e
@@ -15894,8 +15897,8 @@ static func h4_draw_extra(o, it: Dictionary) -> void:
 static func _h4_orb_n(o, ob: Dictionary) -> int:
 	if ob.is_empty():
 		return 0
-	for m in ob.get("n_by", []):
-		if m is Dictionary and cond_true(o, m.get("cond", {})):
+	for m in ob.get("n_by", _EA):
+		if m is Dictionary and cond_true(o, m.get("cond", _ED)):
 			return int(m.get("n", 0))
 	return 0
 
@@ -16274,7 +16277,7 @@ static func _h4e_draw_over(o) -> void:
 	var g = o.g
 	var cv = o.cv
 	if o.hw.has("sz") and not o.hw.sz.trails.is_empty():
-		var tr: Dictionary = o.B.get("attack", {}).get("merge", {}).get("trail", {})
+		var tr: Dictionary = o.B.get("attack", _ED).get("merge", {}).get("trail", {})
 		var tn: String = str(tr.get("tex", "fx_suzuran_bigfox_trail"))
 		var life: float = float(tr.get("life", 1.0))
 		var spec: Array = g.V6_FRAMES.get(tn, [5, 12.0])
@@ -16289,7 +16292,7 @@ static func _h4e_draw_over(o) -> void:
 					_h4_flame(o, q.pos + Vector2(0, 4), 12.0 * (1.0 - 0.5 * u), 1.0 - u)
 				i += 1
 	if o.hw.has("sa") and not o.hw.sa.slowed.is_empty():
-		var cf: Dictionary = o.B.get("attack", {}).get("calcify", {})
+		var cf: Dictionary = o.B.get("attack", _ED).get("calcify", {})
 		var tn2: String = str(cf.get("tex", "fx_saria_amber_spot"))
 		var spec2: Array = g.V6_FRAMES.get(tn2, [4, 8.0])
 		var has2: bool = g.tex.get(tn2) != null
@@ -16673,7 +16676,7 @@ static func e5_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float)
 static func e5_cast(o, b: Dictionary) -> void:
 	var kind: String = str(b.get("kind", ""))
 	var kd := sm_kind(o, kind)
-	var ak: String = str(kd.get("anim", {}).get("attack", ""))
+	var ak: String = str(kd.get("anim", _ED).get("attack", ""))
 	for s in o.sm.list.duplicate():
 		if s.gone or str(s.kind) != kind:
 			continue
@@ -16714,7 +16717,7 @@ static func e5_draw_zones(o, cc: Color, on: bool) -> void:
 		var zr: float = float(s.get("zr", 0.0))
 		if zr <= 0.0 or s.gone:
 			continue
-		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", {}).get("look", {})
+		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", _ED).get("look", {})
 		var k: float = float(lk.get("ring", 0.6)) * e5_zone_fade(s, lk)
 		if k <= 0.004:
 			continue
@@ -16735,7 +16738,7 @@ static func e5_draw_zone_ground(o) -> void:
 		var zr: float = float(s.get("zr", 0.0))
 		if zr <= 0.0 or s.gone:
 			continue
-		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", {}).get("look", {})
+		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", _ED).get("look", {})
 		var name: String = str(lk.get("strip", ""))
 		if name == "" or g.tex.get(name) == null or not g.V6_FRAMES.has(name):
 			continue
