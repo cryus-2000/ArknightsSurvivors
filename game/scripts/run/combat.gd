@@ -51,7 +51,13 @@ func _init(game: Game) -> void:
 
 ## 敌人命中水月：闪避判定、侵蚀、神经损伤。src.boss 为真 = Boss 来源（src 是 Boss 本体，或带 boss 标记的预警 / 冲击环 / 子弹），
 ## 扣血和追加的侵蚀受主控保护（docs/38 §1.11）
-func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false) -> void:
+func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false, in_type: Array = [], dmg_src := "") -> void:
+	# 伤害上下文（docs/101 B1）：调用方显式传伤害类型 in_type（[距离, 类型]）与来源名 dmg_src，由这里写 g.in_type / g.dmg_src
+	# 给 hurt / lose_hp 读；外部模块不再自己写这两个全局。不传则沿用当前值
+	if not in_type.is_empty():
+		g.in_type = in_type
+	if dmg_src != "":
+		g.dmg_src = dmg_src
 	if g.demo_op != "" and g.demo_enemy == "":
 		return
 	if not no_dodge and g.in_type[1] != "真实" and g.rng.randf() < min(g.dodge + (g.dodge_arts if g.in_type[1] == "法术" else g.dodge_phys), 0.6):

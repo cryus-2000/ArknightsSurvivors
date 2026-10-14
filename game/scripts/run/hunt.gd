@@ -138,9 +138,7 @@ func _tick(dt: float) -> void:
 		for e in ring:
 			if not e.dead and e.pos.distance_to(g.ppos) < e.r + 16.0:
 				touch_t = 0.8
-				g.dmg_src = "hunt_ring"
-				g.in_type = ["近战", "物理"]
-				g.combat.enemy_hit(g.max_hp * Bal.v("hunt/touch_pct", 0.04), e)
+				g.combat.enemy_hit(g.max_hp * Bal.v("hunt/touch_pct", 0.04), e, false, false, ["近战", "物理"], "hunt_ring")
 				break
 	# 突围：从缺口走出圈外
 	var d := g.ppos.distance_to(c)

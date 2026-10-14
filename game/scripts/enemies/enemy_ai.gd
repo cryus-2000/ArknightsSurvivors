@@ -144,9 +144,7 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
 			Sfx.play("boom", -8.0, 1.3, 0.0)
 			if g.combat.ground_d(g.ppos, e.pos) < r and g.invuln <= 0.0:   # 画即判（§1.9）
-				g.dmg_src = "blast_" + e.type
-				g.in_type = ["近战", "法术"]
-				g.combat.enemy_hit(e.dmg, {"corrode": 0.0, "nerve": 0.0}, false)
+				g.combat.enemy_hit(e.dmg, {"corrode": 0.0, "nerve": 0.0}, false, false, ["近战", "法术"], "blast_" + e.type)
 			e.dead = true
 		return Vector2.ZERO
 	if dist < float(d.get("blast_range", 60)):
@@ -393,9 +391,9 @@ func _muzzle_fx(e: Dictionary, d: Dictionary) -> void:
 	if mf == "" or g.tex.get(mf) == null:
 		return
 	var off: Array = d.get("muzzle_off", [0, 0])
-	var s1: float = g.world.enemy_scale(e)   # 1 个 1x 美术像素 = 多少世界像素（含 draw_scale，不含 @2x 密度）
+	var s1: float = D.enemy_scale(e, g.t, g.PX)   # 1 个 1x 美术像素 = 多少世界像素（含 draw_scale，不含 @2x 密度）
 	var flip: bool = e.fx < 0.0
-	var at: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX) + Vector2((-1.0 if flip else 1.0) * float(off[0]) * s1, float(off[1]) * s1) + g.world._eoff(e)
+	var at: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX) + Vector2((-1.0 if flip else 1.0) * float(off[0]) * s1, float(off[1]) * s1) + D.enemy_offset(e, g.t, Bal.v("fx/recoil_px", 3.0), maxf(0.01, Bal.v("fx/recoil_t", 0.1)))
 	g.vfx.fx_sprite(mf, at, s1, 0.0, flip)
 
 

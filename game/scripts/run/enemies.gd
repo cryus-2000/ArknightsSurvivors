@@ -272,11 +272,10 @@ func update(dt: float) -> void:
 					e["burst_fx_t"] = g.t
 					var pf: String = str(D.ENEMIES[e.type].get("puddle_fx", ""))
 					if pf != "":
-						g.vfx.fx_sprite(pf, e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX + 4.0 * Game.PX), g.world.enemy_scale(e), 0.0, false, false, Color.WHITE, true)
+						g.vfx.fx_sprite(pf, e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX + 4.0 * Game.PX), D.enemy_scale(e, g.t, Game.PX), 0.0, false, false, Color.WHITE, true)
 					Sfx.play("tentacle", -2.0, 0.7)
 					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
-						g.in_type = ["近战", "法术"]
-						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true)
+						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true, false, ["近战", "法术"])
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
 				e.burst_w = 0.8
@@ -290,13 +289,11 @@ func update(dt: float) -> void:
 				morph(e)
 				continue
 			if g.invuln <= 0.0:
-				g.dmg_src = "contact_" + e.type
-				g.in_type = ["近战", "物理"]
 				# 底海滑动者冲刺撞击：熄灭灯火
 				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
 					g.lamp = maxf(0.0, g.lamp - 8.0 * g.lamp_loss_mult)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
-				g.combat.enemy_hit(e.dmg * dark_mod, e)
+				g.combat.enemy_hit(e.dmg * dark_mod, e, false, false, ["近战", "物理"], "contact_" + e.type)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
 		# 伊莎玛拉之泪：站在上面持续受到真实伤害（Boss 的机制物件，算 Boss 来源）
 		if e.type == "tear" and dist < e.r + 14.0:
@@ -348,9 +345,7 @@ func update_lobs(dt: float) -> void:
 					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 				Sfx.play("boom", -14.0, 1.6, 0.1)
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
-				g.dmg_src = "bullet"
-				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l)
+				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l, false, false, ["远程", "法术"], "bullet")
 				if str(l.get("hit_fx", "")) != "":
 					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
@@ -416,10 +411,8 @@ func update_ebullets(dt: float) -> void:
 				g.vfx.fx_sprite(b.hit_fx, b.pos + Vector2(0, -10), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(b.get("hit_org", [12, 19])[0]), float(b.get("hit_org", [12, 19])[1])))   # 专属命中帧条（docs/96 §1.2 漂移体 fx_corrode_hit，原点 (12,19)，纯画面）
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
 				g.atk_slow = 3.0
-			g.dmg_src = "bullet"
-			g.in_type = ["远程", "真实" if b["true"] else b.get("atk", "法术")]
 			if g.invuln <= 0.0:
-				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"])
+				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
 
 
 ## Boss 溟痕上限（docs/38 §1.7）：同时最多 12 块；场地冻结后不生成在离圈边 120 以内
@@ -485,9 +478,9 @@ func update_status(dt: float) -> void:
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
 					g.pstun = max(g.pstun, 0.5)
-				g.dmg_src = "shock_" + str(s.src_type) if s.has("src_type") else "shock"   # 遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
-				g.in_type = ["近战", "真实"] if s.get("true", false) else ["近战", "物理"]
-				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true)   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
+				# 来源名：遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
+				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true, ["近战", "真实"] if s.get("true", false) else ["近战", "物理"],
+					"shock_" + str(s.src_type) if s.has("src_type") else "shock")   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
 	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 
 

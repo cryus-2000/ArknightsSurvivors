@@ -382,17 +382,17 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	var e: Dictionary = w.owner
 	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
-	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
-	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	var dsrc: String = ("boss_" if e.boss else "atk_") + e.type
+	var it: Array = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
 	if w.get("arts", false):
-		g.in_type = ["近战", "法术"]   # 伊祖米克「分享」：近战法术溅射（PRTS）
+		it = ["近战", "法术"]   # 伊祖米克「分享」：近战法术溅射（PRTS）
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
-		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
+		it = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
 	if g.invuln <= 0.0:
 		var hp_before: float = g.hp
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
-			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type, "warn": true}, true_damage, true)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
+			"frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type, "warn": true}, true_damage, true, it, dsrc)   # 预警系统精英也在用（钻地咬击、踏地），按放招的敌人算
 		if not e.boss and g.hp < hp_before and float(w.get("stun", 0.0)) > 0.0 and g.t >= g.combat.enemy_stun_next:
 			g.combat.enemy_stun_next = g.t + 8.0
 			if not g.combat.stun_as_slow():
@@ -660,9 +660,7 @@ func warn_resolve(w: Dictionary) -> void:
 			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
 			if g.invuln <= 0.0 and not izumik_safe(e):
-				g.dmg_src = "boss_" + e.type
-				g.in_type = ["远程", "法术"]
-				g.combat.enemy_hit(w.dmg, {"boss": true, "src_type": e.type}, false, true)
+				g.combat.enemy_hit(w.dmg, {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
 				g.combat.slow_leader("wave", 1.5, 0.6)
 				if float(w.get("burn", 0.0)) > 0.0:
 					e.burn_t = 4.0
@@ -687,7 +685,7 @@ func _atk_fx(e: Dictionary, w: Dictionary, dv: Vector2) -> void:
 	var left: bool = dv.x < 0.0 and w.shape != "circle"
 	var ang: float = 0.0 if w.shape == "circle" else (w.ang - PI if left else w.ang)
 	var o: Array = w.get("atk_fx_origin", [-1, -1])
-	if g.vfx.fx_sprite(str(w.atk_fx), e.pos + Vector2(0, -e.r * 0.6), g.world.enemy_scale(e), ang, left, false, Color.WHITE, false, Vector2(float(o[0]), float(o[1]))):
+	if g.vfx.fx_sprite(str(w.atk_fx), e.pos + Vector2(0, -e.r * 0.6), D.enemy_scale(e, g.t, g.PX), ang, left, false, Color.WHITE, false, Vector2(float(o[0]), float(o[1]))):
 		g.fx[g.fx.size() - 1]["enemy"] = true
 
 

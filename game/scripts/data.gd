@@ -155,3 +155,26 @@ const WEAPONS := {
 	]},
 }
 
+
+## 敌人本体的绘制缩放（1 个 1x 美术像素 = 多少世界像素；含 draw_scale 与伊莎玛拉变身插值）。纯函数，模拟与绘制共用
+## （docs/101 B1：模拟侧不再调 render/world.gd；算式与原 world.enemy_scale 逐字相同，px 由调用方传 Game.PX）
+const _NO_DEF := {}   # 只读缺省（不给每次调用新建空字典）
+
+static func enemy_scale(e: Dictionary, t: float, px: float) -> float:
+	var d: Dictionary = ENEMIES.get(e.type, _NO_DEF)
+	var scale_key := "transformed_draw_scale" if e.type == "ishar" and e.phase == 2 else "draw_scale"
+	var factor := float(d.get(scale_key, 1.0))
+	if e.type == "ishar" and t < float(e.get("transform_until", -1.0)):
+		factor = lerpf(float(d.get("draw_scale", 0.68)), factor, clampf((t - float(e.transform_started)) / 0.9, 0.0, 1.0))
+	return px * e.r / e.r0 * factor
+
+
+## 敌人本体的画面偏移：击退跳起 + 受击后坐（fx/recoil_px、fx/recoil_t）。纯函数，算式与原 world._eoff 逐字相同（docs/101 B1）
+static func enemy_offset(e: Dictionary, t: float, rc_px: float, rc_t: float) -> Vector2:
+	var off := Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
+	if rc_px > 0.0:
+		var ra: float = e.get("rc_at", -99.0)
+		var k: float = (t - ra) / rc_t
+		if k >= 0.0 and k < 1.0:
+			off += (e.rc_dir as Vector2) * (rc_px * float(e.rc_k) * (1.0 - k))
+	return off

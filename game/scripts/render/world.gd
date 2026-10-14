@@ -93,13 +93,7 @@ var rc_px := 3.0
 var rc_t := 0.1
 
 func _eoff(e: Dictionary) -> Vector2:
-	var off := Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
-	if rc_px > 0.0:
-		var ra: float = e.get("rc_at", -99.0)
-		var k: float = (g.t - ra) / rc_t
-		if k >= 0.0 and k < 1.0:
-			off += (e.rc_dir as Vector2) * (rc_px * float(e.rc_k) * (1.0 - k))
-	return off
+	return D.enemy_offset(e, g.t, rc_px, rc_t)   # 纯函数在 data.gd（docs/101 B1）
 
 
 func update_visuals(dt: float) -> void:
@@ -1793,12 +1787,7 @@ func _burst_fx_layer(e: Dictionary, layer: String, frame: int, bpos: Vector2, fl
 
 
 func enemy_scale(e: Dictionary) -> float:
-	var d: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
-	var scale_key := "transformed_draw_scale" if e.type == "ishar" and e.phase == 2 else "draw_scale"
-	var factor := float(d.get(scale_key, 1.0))
-	if e.type == "ishar" and g.t < float(e.get("transform_until", -1.0)):
-		factor = lerpf(float(d.get("draw_scale", 0.68)), factor, clampf((g.t - float(e.transform_started)) / 0.9, 0.0, 1.0))
-	return Game.PX * e.r / e.r0 * factor
+	return D.enemy_scale(e, g.t, Game.PX)   # 纯函数在 data.gd（docs/101 B1：模拟侧直接调它，不经 render）
 
 
 ## 敌人画法缓存（docs/50 §9.9，2026-10-01，第 0 步实测稳态普通怪「选帧 + 算色」每帧约 2.2 毫秒、参数变化率 11.8%）：
