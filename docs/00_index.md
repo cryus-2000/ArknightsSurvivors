@@ -87,8 +87,8 @@
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
-| [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1 批已合入，第 2 / 3 批与 Boss @2x 待做；Boss 招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
-| [38_boss_redesign](38_boss_redesign.md) | Boss 重做 v3 | 现行规范 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；第 1 批 Boss 招式（§2.4–2.7、§8.5–8.8）以 95 为准 | 21、27、36、37、40、41 等 23 篇；run/combat.gd、boss_ai.gd、tests/prot_test.gd 等 38 个文件 |
+| [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；Boss 招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
+| [38_boss_redesign](38_boss_redesign.md) | Boss 重做 v3 | 现行规范 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；已改版 Boss 的招式（第 1、2 批：泡影、伊莎玛拉、伊祖米克、骑士、塑路者、两位圣徒）以 95 为准，接潮组暂按本文 | 21、27、36、37、40、41 等 23 篇；run/combat.gd、boss_ai.gd、tests/prot_test.gd 等 38 个文件 |
 
 ## 美术单（给 Codex，进行中）
 
@@ -104,7 +104,7 @@
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
-| [36_testing](36_testing.md) | 测试规范 | 现行规范 | 快检分级、谁跑全量（§1.1）、复现、云端（§7.5.1）、基线 | 23、27、29、38、39、40 等 22 篇；game.gd、run/autotest.gd、tools/balance_run.py 等 19 个文件 |
+| [36_testing](36_testing.md) | 测试规范 | 现行规范 | 快检分级、谁跑全量（§1.1）、复现与基线 TRACE 缓存（§3.2）、云端（§7.5.1，角色会话不推分支）、基线 | 23、27、29、38、39、40 等 22 篇；game.gd、run/autotest.gd、tools/balance_run.py 等 19 个文件 |
 | [80_ab_method](80_ab_method.md) | 平衡对照口径 | 现行规范 | 置信区间 + 同种子配对；胜率差 <10 点不下结论 | 36、38、82、83、88、91 等 7 篇；tools/cloud_compare.py |
 | [27_balance_framework](27_balance_framework.md) | 数值平衡框架 | 现行规范 | §2 分层、§3 档位与预算、§9 新干员流程在用；§1 目标看 38 §8.12，§6 口径看 80，§4 以 balance.json 为准 | data/balance.json |
 | [29_bot_testing](29_bot_testing.md) | 分档机器人 | 现行规范 | 机器人档位与指标；§3 难度目标已作废（见 38 §8.12），第五档 master 见 36 | 27、36、38、41、79、归档46 等 7 篇；tools/balance_run.py、game.gd、data.gd 等 6 个文件 |
