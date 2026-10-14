@@ -23,7 +23,7 @@
 美术帧条：tools/art_lint.py 按 docs/87 查 art/incoming 的干员帧条，未豁免的 FAIL 算失败（豁免表在 art_lint.WAIVERS）。
 发行包瘦身：tools/release_slim.py 查审阅图排除规则不误伤运行时贴图、导出预设与规则一致、扫描到的文字都在子集字体里（docs/33 §包体瘦身）。
 """
-import argparse, datetime, glob, json, os, re, shutil, statistics, subprocess, sys, tempfile, time
+import argparse, datetime, glob, heapq, itertools, json, os, re, shutil, statistics, subprocess, sys, tempfile, threading, time
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -178,12 +178,76 @@ LOG_DIR = None   # 本次快检的日志目录（main 里设置）；每次启�
 BAL_ARGS = []   # --bal 透传（见 main）
 
 
+class Gate:
+    """本次快检同时开的 Godot 不超过 --jobs（10-15：原先积木等价 / 成长节点 / 复现在外层线程池的一个槽里又开内层线程池，峰值到 2×jobs）。
+    所有检查项的线程一起来排队，空出名额时先放预计最久的（按上一次快检日志里同名进程的用时；没记录的按 30 秒），
+    最长的进程先开跑，收尾不再拖一条长尾。"""
+
+    def __init__(self, n, est):
+        self.free, self.est = n, est
+        self.cv = threading.Condition()
+        self.heap = []
+        self.seq = itertools.count()
+
+    def run(self, tag, fn):
+        me = (-self.est.get(tag, 30.0), next(self.seq))
+        with self.cv:
+            heapq.heappush(self.heap, me)
+            while not (self.free > 0 and self.heap[0] == me):
+                self.cv.wait()
+            heapq.heappop(self.heap)
+            self.free -= 1
+            self.cv.notify_all()
+        try:
+            return fn()
+        finally:
+            with self.cv:
+                self.free += 1
+                self.cv.notify_all()
+
+
+GATE = None   # main 里按 --jobs 建
+
+
+def _last_durations():
+    """上一次快检（OUT_DIR 下最新的 quick_*）各日志的「用时 N 秒」，按日志首行的 tag 取：{tag: 秒}"""
+    est = {}
+    try:
+        runs = sorted(d for d in os.listdir(OUT_DIR) if d.startswith("quick_"))
+    except OSError:
+        return est
+    for d in reversed(runs[-6:]):
+        p = os.path.join(OUT_DIR, d)
+        if p == LOG_DIR:
+            continue
+        for fn in os.listdir(p):
+            try:
+                head = open(os.path.join(p, fn), encoding="utf-8", errors="replace").read(400)
+            except OSError:
+                continue
+            m = re.match(r"# (.*)\n# .*\n# 用时 (\d+) 秒", head)
+            if m:
+                est.setdefault(m.group(1), float(m.group(2)))
+        if len(est) > 30:
+            break
+    return est
+
+
 def _run(args, timeout, tag):
-    """启动一次 Godot（经 godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
-    t0 = time.time()
+    """启动一次 Godot（经本次快检的闸门 GATE + godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
     if BAL_ARGS and "--" in args:
         args = list(args) + BAL_ARGS   # --bal=段/键=值 透传给每个 Godot 进程（balance.gd 测试探针）
-    out, err, to = GR.run_godot(args, timeout)
+    box = {}
+
+    def go():
+        box["t0"] = time.time()   # 用时从拿到名额算起（排队时间不算）
+        box["r"] = GR.run_godot(args, timeout)
+    if GATE is not None:
+        GATE.run(tag, go)
+    else:
+        go()
+    t0 = box["t0"]
+    out, err, to = box["r"]
     path = None
     if LOG_DIR:
         safe = re.sub(r"[^\w.-]+", "_", tag).strip("_") or "run"
@@ -313,7 +377,7 @@ def check_nodes(godot, only=None):
         empty = [l[3] for l in lines if not l[4].strip() and not l[5].strip()]
         return op, lines, empty, GR.script_errors(out, err), to
 
-    with ThreadPoolExecutor(max(1, min(len(ids), JOBS))) as ex:
+    with ThreadPoolExecutor(max(1, len(ids))) as ex:   # 并发由 GATE 管（≤ --jobs），这里只负责一起排队
         res = list(ex.map(one, ids))
     bad = []
     for op, lines, empty, errs, to in res:
@@ -466,7 +530,7 @@ def check_blocks_eq(godot):
         gid, hand_arg, name, extra, hand = j
         out, err, to, log = _run(godot_args(godot, extra + ([hand_arg] if hand else [])), 300, "blocks_eq_%s_%s_%s" % (gid, name.split()[0], "hand" if hand else "data"))
         return j, out, err, to, log
-    with ThreadPoolExecutor(min(len(jobs), JOBS)) as ex:
+    with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 并发由 GATE 管（≤ --jobs），这里只负责一起排队
         res = list(ex.map(one, jobs))
     errs, details, logs = [], [], []
     by = {}
@@ -711,7 +775,9 @@ def main():
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))
-    with ThreadPoolExecutor(JOBS) as ex:
+    global GATE
+    GATE = Gate(JOBS, _last_durations())
+    with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 各项一起开始，Godot 在 GATE 排队（最久的先开）；不开 Godot 的静态项不占名额
         results = list(ex.map(lambda f: f(), jobs))
     bad = [r for r in results if not r["ok"]]
     lines = []
