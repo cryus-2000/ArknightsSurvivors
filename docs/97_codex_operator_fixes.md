@@ -58,3 +58,9 @@ lint「明度」WARN（docs/87 §4.2 通用范围：HSL 明度 0.40–0.52、近
 ## 交付
 
 每批一个提交，附 `op_fix_<批>_manifest.json`、handoff（写明每人量得的站立高 / 脚底 x / 色数）、`tools/art_lint.py --ops <ids>` 输出、并排预览（本批干员与斯卡蒂 / 浊心斯卡蒂 / 流明三参照并排，脚底线对齐）。交回时告诉 Claude 提交号。
+
+## B 批补单：水月攻击帧条重出（2026-10-14 用户：「攻击帧跟别的也明显不一样，而且色彩上也不太对」）
+
+B 批交付的 `player_attack_48`（+ @2x）与同批 `player_idle` / `player_run` / `player_skill` **不是同一张画**：对比 @2x 帧条，攻击帧是旧版（9-24 cd833e02 那版伞击）量化后的结果——像素噪点 / 抖动多、整体发白发灰、对比低、头型与发量都和待机不同；图鉴「攻击」页与「待机」「技能」并排时一眼看得出是另一套。「同步统一色板」只是把颜色映射到同一调色板，没有解决造型不一致。
+
+要求：**按 B 批 idle / skill 的画法重画 `player_attack_48` + `player_attack_48@2x`**（48×48，4 帧 12–16fps，出手帧与现 manifest 一致，脚底 (24,46)，末帧 = `player_idle` f0 逐像素相同），造型、发型、帽徽（四瓣）、伞尖倒刺、瞳色（淡粉）按 `op_fix_character_constraints.md`；不要用抖动表现渐变，色数并入本人 ≤ 24。交付同 B 批（manifest `op_fix_b2_manifest.json`、handoff、`art_lint.py --ops mizuki`、与 idle / skill 并排的预览）。旧的 32px `player_attack.png` 不再使用，可不动。
