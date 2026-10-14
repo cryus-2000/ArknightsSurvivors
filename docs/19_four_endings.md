@@ -132,7 +132,7 @@
 | `scripts/relic_fx.gd` | `on_gain: rejection / recruit_knight / light（最低 10、受 lamp_cap 限制）`；`rule: deep_sea（灯火上限 70）/ bone_blood / resolve_elite / four_choices / rare_weight / final_taken` |
 | `scripts/characters/mizuki.gd` | `rej` 表 + `apply_rejection()`：六条进阶的海嗣化版本 + 兜底；`tentacle_col()` 蓝 / 紫；触手、桩、巨触、群触按它上色 |
 | `scripts/game.gd` | 事件祭坛（`_spawn_chest(pos, event_id)`，不会是拟态）、`_gain_relic()` 统一入口、结局名 HUD / Tab chip、祭坛方位箭头与小地图标记、`rej_slow` / `frost` 移速、侵蚀 DOT（`corr_t`）、分身仇恨（`aggro`）、决心线（8:40 起去弱点、少一轮收圈、精英 +1、怪物 +10% 血 / 伤）、深蓝线（直刷进化体翻倍）、骑士 Boss 二阶段重生、Tab 面板排异标记（紫色「·排异」） |
-| `scripts/allies/knight.gd` | 猎潮的骑士同伴：跟随 / 4 秒一次冲锋→刺击（冰霜减速）/ 30% 近战仇恨 / 低血撤退 6 秒并回血 / 医疗干员可治疗 / 阵亡→223 + 敌对骑士进精英池 / 9:45 走向黑潮中心 / 10:00 原地重生为 Boss |
+| `scripts/allies/knight.gd` | 猎潮的骑士同伴：跟随 / 4 秒一次冲锋→刺击（冰霜减速）/ 30% 近战仇恨 / 低血撤退 6 秒并回血 / 医疗干员可治疗 / 阵亡→223 + 敌对骑士进精英池 / 9:00 走向黑潮中心、到达入潮消失（HUD 灰格「已入潮」）/ 10:00 Boss 从黑潮中心出现（docs/18 §1，2026-10-14） |
 | `scripts/boss_ai.gd` | `knight_boss`：冲锋（直线预警，命中冰霜）、长枪连刺（三段扇形）、寒冰领域（20 秒一次、200 半径、6 秒减速）；二阶段移速 +20%、冲锋连续两次 |
 | `data/enemies.json` | `knight` 加 `no_spawn`（同伴阵亡后解锁，每局重置）；新增 `knight_boss`（5200 血、法术弱点、两阶段） |
 | `scripts/settings.gd` | `endings_cleared` 存档 |

@@ -280,8 +280,8 @@ func update(dt: float) -> void:
 		if g.zone_state != 0 and base.distance_to(g.zone_c) > g.zone_r - 90.0:
 			base = g.zone_c + (base - g.zone_c).normalized() * maxf(60.0, g.zone_r - 110.0)
 		if boss_idx == D.BOSS_TIMES.size() and group == ["knight_boss"]:
-			# 结局二：骑士在原地重生为最终 Boss；若骑士已不在，则从边缘出现
-			if g.knight.alive:
+			# 结局二：骑士（已入潮或仍在）重生为最终 Boss，从黑潮中心出现（take_over 返回位置）；若骑士已不在，则从边缘出现
+			if g.knight.alive or g.knight.submerged:
 				base = g.knight.take_over()
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
 		if boss_idx == D.BOSS_TIMES.size():

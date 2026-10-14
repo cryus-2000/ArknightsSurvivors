@@ -218,6 +218,44 @@ func _bot_pick_inner() -> int:
 	return ws.size() - 1
 
 
+## --knightshots（结局二终局验收，10-14；配 --balance --relics=222）：骑士开始走向黑潮中心后 24 帧截 shot_knight_walk.png，
+## 入潮演出中截 shot_knight_sink.png，消失后 12 帧截 shot_knight_hud.png（HUD 灰格），最终 Boss 出现后 30 帧截 shot_knight_boss.png 并退出。
+## 无头不截（只走流程）。
+var _ks := {"walk": -1, "sink": false, "hud": -1, "boss": -1}
+func _knight_shots() -> void:
+	var shot := func(name: String) -> void:
+		if DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_knight_%s.png" % name)
+		var kp: Vector2 = g.knight.pos - g.ppos
+		var bp: Vector2 = (g.final_boss.pos - g.ppos) if g.final_boss != null else Vector2.INF
+		print("KNIGHTSHOT %s t=%.1f knight_off=%s boss_off=%s zone_off=%s" % [name, g.t, kp.round(), bp.round(), (g.zone_c - g.ppos).round()])
+	var k = g.knight
+	# 黑潮中心通常在屏幕外（离队长 400–600）：入潮演出到灰格截图期间、Boss 登场后，镜头临时看向那里（只动镜头）
+	g.view_override = Vector2.INF
+	if (k.alive and k.state == "sink") or (k.submerged and _ks.hud >= 0 and g.at_frames <= _ks.hud + 12):
+		g.view_override = k.vanish_pos
+	elif _ks.boss >= 0 and g.final_boss != null:
+		g.view_override = g.final_boss.pos
+	if _ks.walk < 0 and k.alive and k.state == "walk":
+		_ks.walk = g.at_frames
+	if _ks.walk >= 0 and g.at_frames == _ks.walk + 24:
+		shot.call("walk")
+	if not _ks.sink and k.alive and k.state == "sink" and k.st >= 0.12:
+		_ks.sink = true
+		shot.call("sink")
+	if _ks.hud < 0 and k.submerged:
+		_ks.hud = g.at_frames
+	if _ks.hud >= 0 and g.at_frames == _ks.hud + 12:
+		shot.call("hud")
+	if _ks.boss < 0 and g.final_boss != null and g.final_boss.type == "knight_boss":
+		_ks.boss = g.at_frames
+	if _ks.boss >= 0 and g.at_frames == _ks.boss + 30:
+		shot.call("boss")
+	if _ks.boss >= 0 and g.at_frames == _ks.boss + 150:
+		shot.call("boss2")   # Boss 登场演出过后，看得见 Boss 本体与场地
+		g.get_tree().quit()
+
+
 ## --recframes=<起始秒>,<帧数>（docs/50 §10 顿帧前后对照录像，配 --playclock --fixed-fps 30）：游戏时间过了起始秒后连存 N 帧
 ## rec_<帧>.png 到 --shotdir；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
 var _rec_t0 := -2.0
@@ -320,6 +358,8 @@ func step() -> void:
 	for m in [120, 300, 480]:
 		if g.t >= m and not lv_marks.has(m):
 			lv_marks[m] = g.level
+	if Cfg.dev_args().has("--knightshots"):
+		_knight_shots()
 	# --tabshot=<帧>：第 <帧> 帧打开 Tab 属性面板，3 帧后截图 shot_tab.png 并退出（干员文字验收：技能 / 天赋 / 普攻形态行，10-14）
 	for a in Cfg.dev_args():
 		if a.begins_with("--tabshot="):
