@@ -300,8 +300,8 @@ func _build() -> void:
 					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
 				if k == "ishar" and A.tex("e_ishar_t") != null:
 					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
-				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）
-				if e.get("atk_anim", false) or role == "boss":
+				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）；普通怪一律列（注亡拟嗣 / 碎片 / 泪只有移动帧条，docs/94）
+				if e.get("atk_anim", false) or role == "boss" or role == "":
 					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
 						if A.tex(e.tex + fm[1]) != null:
 							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
@@ -1471,9 +1471,11 @@ func _tile_art(r: Rect2, e: Dictionary, a: float) -> void:
 		return
 	var bb := _fbb(f)
 	var area := Rect2(r.position.x + 5, r.position.y + 9, r.size.x - 10, r.size.y - 9 - 26)
-	var k: float = minf(area.size.x / bb.size.x, area.size.y / bb.size.y)
+	var hi: float = A.hires_of(tx)   # @2x 帧条（docs/94 重画）按美术像素取整数倍，和 1x 同尺寸
+	var k: float = minf(area.size.x / bb.size.x, area.size.y / bb.size.y) * hi
 	if k >= 2.0:
 		k = floorf(k)
+	k /= hi
 	var sz := bb.size * k
 	var dst := Rect2(Vector2(area.get_center().x - sz.x / 2.0, area.end.y - sz.y).round(), sz)
 	var locked: bool = e.get("locked", false)
@@ -1821,7 +1823,8 @@ func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		y += hs[i] + gap
 	if not ph:
 		var a2 := _rowm(nodes.size(), am, odx, motion)
-		UI.text_at(self, font, Vector2(x0, box.end.y - 12), "探索中升级时，成长卡按这个顺序出现；精英化同时解锁新技能。", 10, UI.fa(UI.C_L_SUB, a2))
+		var foot := UI.fit_line(font, "成长卡按此顺序出现；成长节点各带攻击 +%d%%，精英化强化普攻" % int(round(Character.NODE_ATK * 100.0)), 10, box.end.x - x0, 8)
+		UI.text_at(self, font, Vector2(x0, box.end.y - 12), foot[0], foot[1], UI.fa(UI.C_L_SUB, a2))
 
 
 ## 各行高度：桌面每行 = 标题 + 说明（字号 12 → 10，仍放不下就平分剩余高度并截断）；

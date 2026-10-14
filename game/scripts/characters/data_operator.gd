@@ -793,7 +793,9 @@ func _find_uid(u: int) -> Dictionary:
 func stats_rows() -> Array:
 	if not hw.is_empty():
 		return OB.hw_stats_rows(self)   # 手写迁移段：没有区域的干员不显示区域半径
-	return [["区域半径", "%d" % int(zr)], ["伤害倍率", "×%.2f" % float(loc.dmg)]]
+	var rows: Array = [["区域半径", "%d" % int(zr)]] if zr > 0.0 else []   # 没有区域的干员（凯尔希、能天使等）不显示「区域半径 0」
+	rows.append(["伤害倍率", "×%.2f" % float(loc.dmg)])
+	return rows
 
 
 # ---------------------------------------------------------------- 手写迁移段：手动技能（掷锚落点）、动作停帧

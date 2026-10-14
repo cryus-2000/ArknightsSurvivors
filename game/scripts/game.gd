@@ -482,13 +482,24 @@ static func preload_tex_names() -> Array:
 	return names
 
 
+## 脚底锚点：enemies.json 写了 anchor = "foot" 的贴图（docs/94 重画的 17 种 + 共用 e_stone 的 spitter，帧条按规格脚底贴画布底边）一律脚底；
+## 其余（Boss、骑士、事件 / 宝箱等）沿用原判断：美术交付的图、美术像素高度 ≥ 32（@2x 除以倍率）
+func _wants_foot(n: String) -> bool:
+	if tex.get(n) == null:
+		return false
+	for k in D.ENEMIES:
+		if str(D.ENEMIES[k].get("anchor", "")) == "foot" and D.ENEMIES[k].get("tex", "") == n:
+			return true
+	return A.has_override(n) and tex[n].get_height() / A.hires_of(tex[n]) >= 32
+
+
 ## 一个敌人贴图名的整套加载：本体 + 白色剪影 + 脚底锚点 + ENEMY_SUFFIXES 帧条（_death 不要剪影）。_ready 的预载与网页版按需加载共用
 func _load_enemy_tex(n: String) -> void:
 	if tex.get(n) == null:
 		tex[n] = A.tex(n)
 		if tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n])
-	if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
+	if _wants_foot(n):
 		foot_anchor[n] = true
 	for suffix in ENEMY_SUFFIXES:
 		var mn: String = n + suffix
@@ -614,7 +625,7 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	for n in BASE_TEX:
 		tex[n] = A.tex(n)
-		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
+		if n.begins_with("e_") and _wants_foot(n):
 			foot_anchor[n] = true
 		if n.begins_with("e_") and tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
@@ -1794,7 +1805,7 @@ const INTRO_PAGES := [
 		"神经损伤的眩晕可以用冲刺挣脱；流明「灯火不灭」的灯塔光圈内不累积。刚出圈的 2 秒不掉血，Boss 在场时暂停缩圈。"]},
 	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
 		"升级时三选一：干员深度卡（数值 / 精英化）、生存、机动、协同或医疗无人机，升级途中会出现招募卡。",
-		"精英一解锁二技能与天赋，精英二解锁三技能。编队最多 3 名干员，按 Tab 查看属性、编队与藏品。"], "more": [
+		"精英一解锁二技能与天赋，精英二解锁三技能；两次精英化都会强化普攻。编队最多 3 名干员，按 Tab 查看属性、编队与藏品。"], "more": [
 		"医疗无人机选到即加入，之后可继续升级（最高 Lv.5）；编队没有医疗干员时用它补回复。乌尔比安的三技能要按 Q / E，并自己选落点。",
 		"技能说明里的半径、射程与照亮范围用同一单位（灯火 100 时照亮范围为 360）。"]},
 	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [

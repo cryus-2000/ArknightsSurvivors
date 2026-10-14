@@ -34,6 +34,7 @@ func _init() -> void:
 	test_blocks_texas()
 	test_fx_hold()
 	test_operator_sheet()
+	test_op_text_fill()
 	test_blocks_summon_seal()
 	test_blocks_summon_ext()
 	test_blocks_elite1()
@@ -594,6 +595,26 @@ func test_fx_hold() -> void:
 
 ## 干员数值表（选人「属性」页 / 图鉴「属性」页共用，screens/initial_stats.gd）：每名可招募干员都有完整的 9 行 + 定位，
 ## 减伤保留一位小数（docs/72 §4.1 #4：0.5 档不能被截断），特殊干员的标签 / 段数说明正确
+## 干员文字的数值占位（docs/61 §1.4，character.gd fill_text）：表达式求值、格式与 tools/op_text_check.py 一致；正式名单加载后不留占位
+func test_op_text_fill() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var b := {"a": 1.15, "p": 0.02, "m": 10, "h": 0.01275, "s": 0.2, "t": 0.125}
+	ok(Ch.fill_line("+{$a*100-100}%、最多 +{$p*$m*100}%、{$h*100}%、{(1-$s)*100}%、{$t}", b) == "+15%、最多 +20%、1.275%、80%、0.125", "占位：加减乘除、括号、最多 3 位小数")
+	ok(Ch.fill_line("{hp_per_member} {x}", b) == "{hp_per_member} {x}", "不含 $ 的花括号原样保留（指南占位另有 fill_numbers）")
+	ok(Ch.fill_line("{$a*$m*13:0} / {$h*100:1}", b) == "150 / 1.3", "占位：末尾 :N 指定小数位")
+	ok(Ch.text_fmt(14.999999999) == "15" and Ch.text_fmt(0.35) == "0.35" and Ch.text_fmt(8.0) == "8", "占位格式：去掉多余小数")
+	for cid in Ch.list_ids():
+		var d: Dictionary = Ch.load_def(cid)
+		var texts: Array = [str(d.get("attack", {}).get("desc", "")), str(d.get("talent", {}).get("desc", "")), str(d.get("gallery", {}).get("desc", ""))]
+		for sk in d.get("skills", []):
+			texts.append(str(sk.get("desc", "")))
+		for nd in d.get("progression", []):
+			texts.append(str(nd.get("desc", "")))
+			if nd.get("attack", null) is Dictionary:
+				texts.append(str(nd.attack.get("desc", "")))
+		ok(not texts.any(func(t): return "{$" in t or "{(" in t), "%s 的文字占位全部填好" % cid)
+
+
 func test_operator_sheet() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
 	var IS = preload("res://scripts/screens/initial_stats.gd")

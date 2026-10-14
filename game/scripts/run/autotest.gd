@@ -21,6 +21,7 @@ var bosstest := false
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
 var choice_wait := 0
 var choice_shot := false
+var choice_n := 0   # --choiceshots：每个选卡画面都截一张（shot_choice_<n>.png，干员文字验收）
 var trace_last := -1
 # --perf（仅测试，开窗口跑 --balance 时用）：按游戏时间分段记真实帧时间、渲染 CPU / GPU 时间与同屏敌人数，
 # 结束时打印一行 PERF {...}。注意 --balance 每帧推进 0.066 秒（正常游戏约 0.017 秒），每帧的模拟量偏大，帧时间是偏保守的上界
@@ -319,6 +320,15 @@ func step() -> void:
 	for m in [120, 300, 480]:
 		if g.t >= m and not lv_marks.has(m):
 			lv_marks[m] = g.level
+	# --tabshot=<帧>：第 <帧> 帧打开 Tab 属性面板，3 帧后截图 shot_tab.png 并退出（干员文字验收：技能 / 天赋 / 普攻形态行，10-14）
+	for a in Cfg.dev_args():
+		if a.begins_with("--tabshot="):
+			var tf := int(a.substr(10))
+			if g.at_frames == tf:
+				g.state = g.S.STATS
+			if g.at_frames == tf + 3 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
+				g.get_tree().quit()
 	if Cfg.dev_args().has("--fxtest"):
 		g.ppos = Vector2(1500, 900)
 		if g.at_frames == 90:
@@ -626,10 +636,14 @@ func step() -> void:
 			g.get_tree().quit()
 	if g.state == g.S.CHOICE:
 		choice_wait += 1
+		var cshots: bool = Cfg.dev_args().has("--choiceshots")   # 等卡片全部翻面再截，选卡也相应推迟
+		if choice_wait == 90 and cshots and DisplayServer.get_name() != "headless":
+			choice_n += 1
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_choice_%d.png" % choice_n)
 		if choice_wait == 40 and not choice_shot and DisplayServer.get_name() != "headless" and (g.choice_kind == "relic" or not Cfg.dev_args().has("--relicshot")):
 			choice_shot = true
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_choice.png")
-		if choice_wait > 45:
+		if choice_wait > (95 if cshots else 45):
 			choice_wait = 0
 			# 机器人像真人一样偏好干员深度 / 精英化卡（70%），其余均匀随机（满员招募卡按 bot/swap，缺省不选；更换画面选「不替换」）
 			var ok_i: Array = g.progression.auto_choices()

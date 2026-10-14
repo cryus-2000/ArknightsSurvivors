@@ -162,6 +162,13 @@ def check_release_slim():
     return {"name": "发行包瘦身 release_slim", "ok": not errs, "detail": detail + "（明细 python tools/release_slim.py --report）", "errors": errs[:8]}
 
 
+def check_op_text():
+    """不开 Godot（约 1 秒）：干员文字的数值占位都求得出值、文字里的字面数字在 base / blocks 里对得上（tools/op_text_check.py，docs/61 §1.4）"""
+    import op_text_check
+    errs, detail = op_text_check.check()
+    return {"name": "干员文字数值 op_text_check", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
 LOG_DIR = None   # 本次快检的日志目录（main 里设置）；每次启动 Godot 的完整输出都写进去，失败时报告里给路径
 
@@ -634,7 +641,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim", "op_text"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--auto", action="store_true",
@@ -657,6 +664,8 @@ def main():
         jobs.append(check_art_lint)   # 不开 Godot，约 10 秒；--auto 也跑（只改美术时这是唯一相关项）
     if a.only in (None, "slim"):
         jobs.append(check_release_slim)   # 不开 Godot，约 5 秒；--auto 也跑（改文案 / 美术 / 预设都可能碰到）
+    if a.only in (None, "op_text"):
+        jobs.append(check_op_text)   # 不开 Godot，约 1 秒；--auto 也跑（改干员数值或文字都要对一遍）
     if a.auto and not a.only:
         level, ops, why = plan_auto()
         print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
