@@ -789,7 +789,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if _busy():
 		_skip()
 		return
-	var k: int = event.keycode
+	var k: int = Pad.kc(event)
 	if rail_focus:
 		match k:
 			KEY_UP, KEY_W:

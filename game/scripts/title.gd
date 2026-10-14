@@ -384,7 +384,7 @@ func _exit_tree() -> void:
 
 func _diff_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
+		match Pad.kc(event):
 			# 潮位尺是竖的：↑ 涨潮（更高档）/ ↓ 退潮；← → 保留（旧习惯与手柄横推）
 			KEY_UP, KEY_W, KEY_RIGHT, KEY_D:
 				_diff_step(1)
@@ -779,7 +779,7 @@ func _input(event: InputEvent) -> void:
 			_close_info()
 			Sfx.play("ui_ok")
 			return
-		match event.keycode:
+		match Pad.kc(event):
 			KEY_UP, KEY_W:
 				_menu_nav(Vector2i(0, -1))
 			KEY_DOWN, KEY_S:
@@ -1231,7 +1231,7 @@ func _credits_thumb_h() -> float:
 func _credits_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		var page: float = maxf(CREDITS_LINE, cr_vr.size.y - 60.0)
-		match event.keycode:
+		match Pad.kc(event):
 			KEY_UP, KEY_W:
 				_credits_scroll_by(-CREDITS_LINE)
 			KEY_DOWN, KEY_S:
@@ -1673,7 +1673,7 @@ func _op_input(event: InputEvent) -> void:
 	if op_press_t >= 0.0:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
+		match Pad.kc(event):
 			KEY_LEFT, KEY_A:
 				_op_step(-1)
 			KEY_RIGHT, KEY_D:

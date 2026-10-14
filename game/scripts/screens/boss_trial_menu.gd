@@ -130,7 +130,7 @@ func _start() -> void:
 	Cfg.boss_trial_request = {"group": boss_groups[boss_pick.selected].duplicate(), "operator": op_ids[op_pick.selected], "growth": growth_pick.selected, "phase": phase_pick.selected + 1, "safe": safe_pick.button_pressed}
 	get_tree().change_scene_to_file("res://game.tscn")
 func _input(event: InputEvent) -> void:
-	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	if visible and event is InputEventKey and event.pressed and Pad.kc(event) == KEY_ESCAPE:
 		close()
 		get_viewport().set_input_as_handled()
 func _draw() -> void:

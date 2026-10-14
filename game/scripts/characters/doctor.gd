@@ -172,7 +172,7 @@ func attack_held() -> bool:
 		return true
 	if _touching():
 		return false   # 触屏会模拟鼠标左键，不能当攻击
-	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Input.is_key_pressed(KEY_J):
+	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Pad.key_down(KEY_J):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.get_joy_axis(dev, JOY_AXIS_TRIGGER_RIGHT) > 0.5 or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
@@ -266,7 +266,7 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_E) or (not manual_attack and Input.is_key_pressed(KEY_J)):
+	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \

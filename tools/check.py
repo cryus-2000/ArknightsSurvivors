@@ -512,6 +512,7 @@ SCENE_REGRESSIONS = {
     "codex": ("图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配", "codex_input_test", r"CODEX INPUT: 0 failures", []),
     "menu_bgm": ("局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆", "menu_bgm_test", r"MENU BGM: 0 failures", []),
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
+    "esc_layers": ("各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭", "esc_layers_test", r"ESC LAYERS: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),

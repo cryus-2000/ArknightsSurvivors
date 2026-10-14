@@ -3,7 +3,7 @@ extends Control
 ## 分类页（2026-09-27 用户要求）：声音 / 画面 / 游戏，Q / E（手柄 LB / RB → PageUp / PageDown）或点标签切换；
 ## 每页末尾一行「返回」。选项本身（ROWS 的键名、类型、存档键）不变，TABS 只按键名分组
 ## 触屏（手机）不列 TOUCH_HIDE 里的桌面专用项（全屏 / 窗口分辨率：手机永远全屏、分辨率由系统定）；页签 / 底部提示不画键位
-## 触屏选项列表可上下滑动（10-11）：标题 / 页签和「返回」钉住，中间的选项在裁剪子控件 list 里按 scroll_f 平移，行高 88（≈ 48 pt）；
+## 选项列表可滚动（10-11 触屏、10-14 全设备）：标题 / 页签钉住，各行（含末尾「返回」）在裁剪子控件 list 里按 scroll_f 平移，触屏行高 88（≈ 48 pt）；
 ## 手指拖动 1:1 跟手、松手带惯性，拖过 TAP_SLOP 不算点选；键盘 / 手柄选到看不见的行时自动滚到可见；桌面排版逐像素不变
 
 signal closed
@@ -80,7 +80,15 @@ var pending_res := -1        # 分辨率：←→ 只选择，Enter / 点击「�
 ## 触屏滚动（只在 Cfg.touch_device() 时用）
 const T_STEP := 92.0         # 触屏行距
 const T_ROW := 88.0          # 触屏行本体高（≈ 48 pt）
-const T_BACK := 64.0         # 钉在底部的「返回」行高
+const D_STEP := 46.0         # 桌面行距
+const D_ROW := 38.0          # 桌面行本体高
+## 面板（10-14 用户：设置页不再整页铺满）：约占页面 70%、居中、四周留暗底；选项在可滚动列表里（桌面滚轮、触屏拖动），
+## 右上角「×」手动关闭（触屏也能点，点击区 ≥ 44）。手机横屏逻辑高只有约 540：面板高至少 440（否则一屏不到三行）
+const PANEL_FRAC := 0.7
+const PANEL_MIN_W := 600.0
+const PANEL_MIN_H := 440.0
+var panel_rect := Rect2()    # 面板（本控件坐标；测试读）
+var close_rect := Rect2()    # 右上角「×」的点击区
 const TAP_SLOP := 12.0       # 手指移动超过这个距离算拖动，不算点选
 var list: Control            # 裁剪用的子控件：选项行画在它里面
 var view := Rect2()          # 列表可视区（本控件坐标）
@@ -118,7 +126,7 @@ func open() -> void:
 	sel = 0
 	_set_tab(0)
 	pending_res = Cfg.res_index
-	if Cfg.touch_device() and list == null:
+	if list == null:
 		list = Control.new()
 		list.clip_contents = true
 		list.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -128,24 +136,36 @@ func open() -> void:
 	queue_redraw()
 
 
-## 滚到让第 si 行完整可见（触屏；返回行钉在底部不用滚）
+func _tl() -> bool:
+	return Cfg.touch_device()
+
+
+func _step() -> float:
+	return T_STEP if _tl() else D_STEP
+
+
+func _rowh() -> float:
+	return T_ROW if _tl() else D_ROW
+
+
+## 滚到让选中行完整可见（键盘 / 手柄换行时）
 func _follow() -> void:
-	if list == null or sel >= cur.size() - 1:
+	if list == null:
 		return
 	if view.size.y <= 0.0:
-		follow_pending = true   # 还没排过版：下一帧 _layout_touch 里再算
+		follow_pending = true   # 还没排过版：下一帧 _layout_list 里再算
 		return
-	var y0: float = sel * T_STEP
+	var y0: float = sel * _step()
 	if y0 < scroll:
 		scroll = y0
-	elif y0 + T_ROW > scroll + view.size.y:
-		scroll = y0 + T_ROW - view.size.y
+	elif y0 + _rowh() > scroll + view.size.y:
+		scroll = y0 + _rowh() - view.size.y
 	scroll = clampf(scroll, 0.0, scroll_max)
 	drag_vel = 0.0
 
 
 func set_scroll(v: float, instant := true) -> void:
-	scroll = maxf(v, 0.0)   # 上限在 _layout_touch 里截
+	scroll = maxf(v, 0.0)   # 上限在 _layout_list 里截
 	drag_vel = 0.0
 	if instant:
 		scroll_f = scroll
@@ -196,7 +216,11 @@ func _input(event: InputEvent) -> void:
 			return
 		eat_release = false
 	if event is InputEventKey and event.pressed:
-		match event.keycode:
+		# 按住不放的自动重复只给方向键（连续调音量 / 换行）；Enter / 空格 / Q / E / Esc 按住不连发（原来按住 Enter 开关来回翻）
+		if event.echo and not (Pad.kc(event) in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D]):
+			get_viewport().set_input_as_handled()
+			return
+		match Pad.kc(event):
 			KEY_UP, KEY_W:
 				sel = (sel + cur.size() - 1) % cur.size()
 				_follow()
@@ -241,7 +265,7 @@ func _input(event: InputEvent) -> void:
 		for i in row_rects.size():
 			if row_rects[i].has_point(mp):
 				sel = i
-	elif event is InputEventMouseButton and list != null and event.button_index == MOUSE_BUTTON_LEFT:
+	elif event is InputEventMouseButton and _tl() and event.button_index == MOUSE_BUTTON_LEFT:
 		# 触屏：按下只记起点，松手没拖过才当点选（拖动滚列表时不能误触开关）
 		var mp: Vector2 = make_input_local(event).position
 		if event.pressed:
@@ -261,6 +285,15 @@ func _input(event: InputEvent) -> void:
 
 ## 点选 / 滚轮：mp 是本控件坐标；桌面按下即生效，触屏在松手时调用
 func _tap(mp: Vector2, button: int) -> void:
+	if button == MOUSE_BUTTON_WHEEL_UP or button == MOUSE_BUTTON_WHEEL_DOWN:
+		# 滚轮滚列表（原来滚轮在行上 = 调数值；面板缩到 70% 后选项要滚动才看得全）
+		set_scroll(clampf(scroll + (_step() if button == MOUSE_BUTTON_WHEEL_DOWN else -_step()), 0.0, scroll_max), false)
+		get_viewport().set_input_as_handled()
+		return
+	if button == MOUSE_BUTTON_LEFT and close_rect.has_point(mp):
+		close()
+		get_viewport().set_input_as_handled()
+		return
 	if button == MOUSE_BUTTON_LEFT:
 		for t in tab_rects.size():
 			if tab_rects[t].has_point(mp) and t != tab:
@@ -271,24 +304,20 @@ func _tap(mp: Vector2, button: int) -> void:
 	for si in row_rects.size():
 		var r: Rect2 = row_rects[si]
 		var i: int = cur[si]
-		if r.has_point(mp) and (list == null or si == cur.size() - 1 or view.has_point(mp)):
+		if r.has_point(mp) and view.has_point(mp):
 			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
 			var fx: float = (mp.x - r.position.x) / r.size.x
 			var dir := 1
 			if arrows:
 				# 以数值块中点分左右（◀ 在 vx − 10、▶ 在 vx + 180，vx 同 _draw_row）。原来按整行宽 62% 分：桌面行宽 580 时恰好在中点，
 				# 触屏行宽约 1100（面板占满）时 ◀ 落在 77% 处被当成 ▶，点 ◀ 也是加（用户 10-13「设置大小不能减小只能放大」）
-				var vx: float = r.position.x + r.size.x - (252.0 if list != null else 230.0)
+				var vx: float = r.position.x + r.size.x - (252.0 if _tl() else 230.0)
 				dir = -1 if mp.x < vx + 85.0 else 1
 			if button == MOUSE_BUTTON_LEFT:
 				if ROWS[i].type == "res" and fx >= 0.62 and fx <= 0.88:
 					_apply_res()
 				else:
 					_adjust(i, dir)
-			elif button == MOUSE_BUTTON_WHEEL_UP:
-				_adjust(i, 1)
-			elif button == MOUSE_BUTTON_WHEEL_DOWN:
-				_adjust(i, -1)
 	get_viewport().set_input_as_handled()
 
 
@@ -395,34 +424,54 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var vs := size
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	var compact: bool = vs.y < 680.0
-	# 触屏（手机）：面板占满、选项列表可滚动（_layout_touch，行距 92 / 行高 88、字 21–22）；桌面不变
-	var touch: bool = Cfg.touch_device()
-	# 面板高度按最长的一页定（各页高度一致，切页不跳）：标题 + 标签 146 + 行 46 × (n - 1) + 返回行 + 底部提示
+	# 触屏（手机 / 平板）：行距 92 / 行高 88、字 21–22；桌面行距 46 / 行高 38
+	var touch: bool = _tl()
+	var pw: float = clampf(maxf(vs.x * PANEL_FRAC, PANEL_MIN_W), 0.0, vs.x - 24.0)
+	if vs.y > vs.x:
+		pw = vs.x - 48.0   # 竖屏（375×812 一类）：宽度本来就窄，面板用满宽，只留边
+	# 高：约 70%（矮屏至少 PANEL_MIN_H），但不超过最长一页全部摊开所需（竖屏 / 高窗口不留大片空白）
 	var most := 0
-	for tb in TABS:
-		most = maxi(most, tb[2].size())
-	var rh: float = minf(146.0 + most * 46.0 + 44.0 + 56.0, vs.y - 8.0)
-	var pw: float = 760.0 if touch else 640.0
-	if touch:
-		# 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：面板占满（左右各留 24），标题与分类页签同一行，
-		# 不画底部提示；选项行在可滚动区里（10-11，取代 10-06 为塞下七行而压到 52 的行距）
-		pw = vs.x - 48.0
-		rh = vs.y - 8.0
-	var r := Rect2(vs.x / 2 - pw / 2.0, vs.y / 2 - rh / 2.0, pw, rh)
+	for tb in _tabs():
+		most = maxi(most, tb[2].size() + 1)   # + 返回
+	var need: float = (86.0 + 14.0 if touch else 150.0 + 40.0) + most * _step() - (_step() - _rowh()) + 8.0
+	var rh: float = clampf(minf(maxf(vs.y * PANEL_FRAC, PANEL_MIN_H), need), 0.0, vs.y - 16.0)
+	# 顶部安全区（B站沉浸模式顶栏 / 刘海，docs/99）：面板整体往下让，「×」不落进去
+	var top_in: float = float(Cfg.safe_insets()[1])
+	var r := Rect2(roundf(vs.x / 2 - pw / 2.0), roundf(maxf(vs.y / 2 - rh / 2.0, top_in + 8.0)), pw, rh)
+	if r.end.y > vs.y - 8.0:
+		r.size.y = vs.y - 8.0 - r.position.y
+	panel_rect = r
 	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
-	UI.text(self, font, r.position + Vector2(40, 58 if not touch else 50), "设置", 28, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(112, 56 if not touch else 48), "SETTINGS", 13, UI.CYAN, 3.0)
-	# 分类标签：中文 + 英文小字，当前页青色底线；两侧写切换键
-	tab_rects.clear()
-	var tx := r.position.x + (40.0 if not touch else 250.0)
-	var ty := r.position.y + (84.0 if not touch else 18.0)
+	var hy: float = 50.0 if touch else 56.0
+	UI.text(self, font, r.position + Vector2(40, hy), "设置", 28, UI.TEXT)
+	UI.en(self, font, r.position + Vector2(112, hy - 2.0), "SETTINGS", 13, UI.CYAN, 3.0)
+	# 右上角「×」：图形 36（触屏 44），点击区 56（触屏 72），离面板边 10
 	var mp := get_local_mouse_position()
+	var hit: float = 72.0 if touch else 56.0
+	close_rect = Rect2(r.end.x - 10.0 - hit, r.position.y + 6.0, hit, hit)
+	var vis: float = 44.0 if touch else 36.0
+	var cr := Rect2(close_rect.get_center() - Vector2(vis, vis) / 2.0, Vector2(vis, vis))
+	var chov: bool = close_rect.has_point(mp) and not touch
+	draw_rect(cr, Color(0.05, 0.2, 0.24, 0.9) if chov else Color(1, 1, 1, 0.05))
+	draw_rect(cr, UI.CYAN if chov else UI.CYAN_DIM, false, 1.0)
+	var ck: float = vis * 0.26
+	var cc := cr.get_center()
+	var xc: Color = UI.TEXT if chov else UI.SUB
+	draw_line(cc - Vector2(ck, ck), cc + Vector2(ck, ck), xc, 2.0)
+	draw_line(cc + Vector2(-ck, ck), cc + Vector2(ck, -ck), xc, 2.0)
+	# 分类标签：中文 + 英文小字，当前页青色底线；桌面在标题下一行，触屏与标题同一行（宽度按面板剩余宽度分）
+	tab_rects.clear()
 	var tabs := _tabs()
+	var tx := r.position.x + (40.0 if not touch else 230.0)
+	var ty := r.position.y + (84.0 if not touch else 18.0)
+	var avail: float = (r.end.x - 10.0 - hit - 16.0) - tx
+	var tw: float = minf(112.0 if not touch else 150.0, avail / tabs.size() - 8.0)
+	if not touch:
+		tw = minf(112.0, (r.size.x - 80.0 - 120.0) / tabs.size() - 8.0)
 	for t in tabs.size():
-		var tw: float = 112.0 if not touch else 150.0
 		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40 if not touch else 44)
-		tab_rects.append(tbr)
+		# 触屏点击区上下各扩 10（44 → 64 逻辑像素，手机上约 45 CSS px）；图形不变
+		tab_rects.append(tbr.grow_individual(0, 10, 0, 10) if touch else tbr)
 		var ton := t == tab
 		var hov := tbr.has_point(mp)
 		draw_rect(tbr, Color(0.05, 0.2, 0.24, 0.8) if ton else Color(1, 1, 1, 0.06 if hov else 0.03))
@@ -430,33 +479,24 @@ func _draw() -> void:
 		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), tabs[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
 		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), tabs[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
 	if not Pad.touch_ui():
-		var kx: float = 0.0 if tabs.size() <= TABS.size() else 34.0   # 多出「存档」页（B站环境）：键位提示右移，不压标签
-		UI.keycap(self, font, Vector2(r.end.x - 118 + kx, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
-		UI.keycap(self, font, Vector2(r.end.x - 70 + kx * 0.6, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
-	UI.rule(self, Vector2(r.position.x + 30, ty + (50 if not touch else 58)), Vector2(r.end.x - 30, ty + (50 if not touch else 58)), UI.EDGE_DIM)
+		var kx: float = tx + tabs.size() * (tw + 8.0) + 8.0
+		UI.keycap(self, font, Vector2(kx, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
+		UI.keycap(self, font, Vector2(kx + 40.0, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
+	var rule_y: float = ty + (50 if not touch else 58)
+	UI.rule(self, Vector2(r.position.x + 30, rule_y), Vector2(r.end.x - 30, rule_y), UI.EDGE_DIM)
 	row_rects.clear()
-	if touch:
-		_layout_touch(r)
-		return
-	# 行距按面板高度自适应：标题 + 标签 140 + 行 + 底部提示 40 都要放得下
-	var top := r.position.y + 146.0
-	var step: float = minf(40.0 if compact else 46.0, (r.end.y - 46.0 - top - 34.0) / float(maxi(1, cur.size() - 1)))
-	var row_hh: float = minf(34.0, step)
-	for si in cur.size():
-		var back: bool = ROWS[cur[si]].type == "back"
-		var rr := Rect2(r.position.x + 30, top + si * step + (10.0 if back else 0.0), r.size.x - 60, row_hh)
-		row_rects.append(rr)
-		_draw_row(self, rr, si, false, 24.0)
+	var bottom: float = r.end.y - (14.0 if touch else 40.0)
+	_layout_list(Rect2(r.position.x + 30, rule_y + 10.0, r.size.x - 60, bottom - (rule_y + 10.0)))
 	if not touch:
-		UI.text(self, font, Vector2(r.position.x, r.end.y - 18), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		UI.text(self, font, Vector2(r.position.x, r.end.y - 16), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · 滚轮翻看 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
-## 触屏排版：标题 / 页签钉在顶部、「返回」钉在底部，其余行在 list 子控件里滚动（行距 T_STEP、行高 T_ROW）
-func _layout_touch(r: Rect2) -> void:
-	var back_rr := Rect2(r.position.x + 30, r.end.y - 14.0 - T_BACK, r.size.x - 60, T_BACK)
-	view = Rect2(r.position.x + 30, r.position.y + 90.0, r.size.x - 60, back_rr.position.y - 10.0 - (r.position.y + 90.0))
-	var n: int = cur.size() - 1   # 滚动区里的行数（不含返回）
-	scroll_max = maxf(0.0, n * T_STEP - (T_STEP - T_ROW) - view.size.y)
+## 选项列表（所有设备）：标题 / 页签钉在顶部，各行（含末尾「返回」）在 list 子控件里按 scroll_f 平移；vr = 可视区
+func _layout_list(vr: Rect2) -> void:
+	view = vr
+	var stp: float = _step()
+	var n: int = cur.size()
+	scroll_max = maxf(0.0, n * stp - (stp - _rowh()) - view.size.y)
 	if follow_pending:
 		follow_pending = false
 		_follow()
@@ -466,44 +506,43 @@ func _layout_touch(r: Rect2) -> void:
 	list.position = view.position
 	list.size = view.size
 	for si in n:
-		row_rects.append(Rect2(view.position.x, view.position.y + si * T_STEP - scroll_f, view.size.x, T_ROW))
-	row_rects.append(back_rr)
+		row_rects.append(Rect2(view.position.x, view.position.y + si * stp - scroll_f, view.size.x, _rowh()))
 	if scroll_max > 0.0:
 		# 滚动条：列表右侧 4 像素细条（同选人页），上下有内容时边缘渐隐提示
 		var track := Rect2(view.end.x - 4.0, view.position.y, 4.0, view.size.y)
 		draw_rect(track, Color(1, 1, 1, 0.06))
 		var th: float = maxf(24.0, track.size.y * view.size.y / (view.size.y + scroll_max))
 		draw_rect(Rect2(track.position.x, track.position.y + (track.size.y - th) * clampf(scroll_f / scroll_max, 0.0, 1.0), 4.0, th), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.7))
-		if scroll_f > 0.5:
-			_vfade(Rect2(view.position.x, view.position.y, view.size.x - 8.0, 18.0), true)
-		if scroll_f < scroll_max - 0.5:
-			_vfade(Rect2(view.position.x, view.end.y - 18.0, view.size.x - 8.0, 18.0), false)
-	# 返回行钉在底部；上方一道细线隔开
-	UI.rule(self, Vector2(r.position.x + 30, back_rr.position.y - 5.0), Vector2(r.end.x - 30, back_rr.position.y - 5.0), UI.EDGE_DIM)
-	_draw_row(self, back_rr, n, true, T_BACK / 2.0 + 8.0)
 	list.queue_redraw()
 
 
 ## 可视区上 / 下边缘的暗色渐隐带：提示那头还有行（top = 靠上那条，深色在上）
-func _vfade(r: Rect2, top: bool) -> void:
+func _vfade_on(ci: CanvasItem, r: Rect2, top: bool) -> void:
 	var n := 6
 	var h: float = r.size.y / n
 	for k in n:
 		var a: float = 0.5 * (1.0 - (k + 0.5) / n)
 		var y: float = r.position.y + (k if top else n - 1 - k) * h
-		draw_rect(Rect2(r.position.x, y, r.size.x, h + 0.5), Color(0, 0.02, 0.04, a))
+		ci.draw_rect(Rect2(r.position.x, y, r.size.x, h + 0.5), Color(0, 0.02, 0.04, a))
 
 
 ## list 子控件的绘制：各行按 scroll_f 平移，超出 view 的被裁掉
 func _draw_list() -> void:
 	if not visible or view.size.y <= 0.0:
 		return
-	var n: int = cur.size() - 1
-	for si in n:
-		var rr := Rect2(0.0, si * T_STEP - scroll_f, view.size.x, T_ROW)
+	var touch: bool = _tl()
+	var stp: float = _step()
+	var rh: float = _rowh()
+	for si in cur.size():
+		var rr := Rect2(0.0, si * stp - scroll_f, view.size.x - 8.0, rh)
 		if rr.end.y < 0.0 or rr.position.y > view.size.y:
 			continue
-		_draw_row(list, rr, si, true, T_ROW / 2.0 + 8.0)
+		_draw_row(list, rr, si, touch, rh / 2.0 + (8.0 if touch else 6.0))
+	# 上下还有行时边缘渐隐（画在 list 里，跟着裁剪）
+	if scroll_f > 0.5:
+		_vfade_on(list, Rect2(0.0, 0.0, view.size.x - 8.0, 18.0), true)
+	if scroll_f < scroll_max - 0.5:
+		_vfade_on(list, Rect2(0.0, view.size.y - 18.0, view.size.x - 8.0, 18.0), false)
 
 
 ## 画一行选项：rr 是 ci 坐标里的行矩形，ty0 是行内文字基线
