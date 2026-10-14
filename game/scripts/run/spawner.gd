@@ -283,6 +283,7 @@ func update(dt: float) -> void:
 			# 结局二：骑士（已入潮或仍在）重生为最终 Boss，从黑潮中心出现（take_over 返回位置）；若骑士已不在，则从边缘出现
 			if g.knight.alive or g.knight.submerged:
 				base = g.knight.take_over()
+				g.camera_glance(base)   # 镜头一瞥黑潮中心看寒冰重生（用户 10-14；只动镜头，game.camera_glance）
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
 		if boss_idx == D.BOSS_TIMES.size():
 			final_at = g.t
