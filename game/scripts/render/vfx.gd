@@ -448,9 +448,13 @@ var banner_prio := 0
 var banner_serial := 0            # 每换一条横幅 +1（hud_banners 据此重放字距收拢动效，docs/62 §3.10）
 var banner_q: Array = []          # [{text, prio}]
 var notices: Array = []           # [{text, t}]
+var banner_log: Array = []        # 本局请求过的横幅文字（按调用顺序，最多 64 条；回归测试数「某句播了几次」用）
 var _boss_words: Array = []
 
 func show_banner(text: String, prio := -1) -> void:
+	banner_log.append(text)
+	if banner_log.size() > 64:
+		banner_log.pop_front()
 	if prio < 0:
 		prio = _guess_prio(text)
 	if prio <= 1 and _boss_fight():
