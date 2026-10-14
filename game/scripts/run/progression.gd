@@ -96,7 +96,7 @@ func open_levelup() -> void:
 	var recruit: Array = recruit_cards()
 	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
-		g._shuffle(recruit)
+		g.shuffle(recruit)
 		g.panel_ui.show_choices("招募干员", recruit.slice(0, want + g.rfx.rule("recruit_extra")), "level")   # 罗德岛战术电台：招募多一个选项
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
@@ -108,7 +108,7 @@ func open_levelup() -> void:
 			if c.kind == "prog" and not c.get("avail", true):
 				continue
 			deep.append(c)
-	g._shuffle(deep)
+	g.shuffle(deep)
 	if not deep.is_empty():
 		picks.append(deep[0])
 		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
@@ -146,7 +146,7 @@ func open_levelup() -> void:
 	while picks.size() < want and fi < fillers.size():
 		picks.append(fillers[fi])
 		fi += 1
-	g._shuffle(picks)
+	g.shuffle(picks)
 	var low: bool = g.hp < g.max_hp * Bal.v("levelup/heal_low_hp", 0.5)
 	if low:
 		low_levelups += 1
@@ -401,7 +401,7 @@ func pick(i: int) -> void:
 	if not tab_hinted and not g.tab_used:
 		tab_hinted = true
 		g.tab_hint = 6.0
-	g._check_pending()
+	g.check_pending()
 
 
 func apply_relic(id: String) -> void:

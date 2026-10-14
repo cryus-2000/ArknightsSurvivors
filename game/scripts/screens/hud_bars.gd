@@ -320,7 +320,7 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["侵蚀 %d" % int(g.corrode_pool), Color(0.8, 0.5, 1.0), -1.0])
 	# 神经损伤（Boss与怪物 419c84d：0–nerve_max，站在溟痕 / 巢涌者光环里上涨；满格后 nerve_lock 秒锁定）
 	var nlock: float = float(g.get("nerve_lock")) if g.get("nerve_lock") != null else 0.0
-	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
+	var nmax: float = g.combat.nerve_max()
 	if nlock > 0.0:
 		items.append(["神经 · 锁定 %.1f" % nlock, Color(0.62, 0.6, 0.66), clampf(nlock / 5.0, 0.0, 1.0)])
 	elif g.nerve > 1.0:

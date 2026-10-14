@@ -133,7 +133,7 @@ func draw(vs: Vector2) -> void:
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
-		["照亮范围", "%d" % int(g._lamp_r())],
+		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
 	var vx0: float = 130.0 if not touch else 170.0   # 数值列的 x
@@ -402,7 +402,7 @@ func draw_phone(vs: Vector2) -> void:
 			var rows0 := [
 				["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 				["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
-				["照亮范围", "%d" % int(g._lamp_r())],
+				["照亮范围", "%d" % int(g.lamp_r())],
 				["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 			]
 			_phone_rows(b, y, rows0, fs, half)

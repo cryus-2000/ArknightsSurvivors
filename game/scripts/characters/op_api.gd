@@ -140,13 +140,13 @@ func refresh_stats() -> void:
 
 ## 用对局随机数打乱（同 seed 可复现，docs/36）
 func shuffle_rng(a: Array) -> void:
-	g._shuffle(a)
+	g.shuffle(a)
 
 
 # ---------------------------------------------------------------- 灯火
 
 func lamp_radius() -> float:
-	return g._lamp_r()
+	return g.lamp_r()
 
 
 func lamp_sp() -> float:

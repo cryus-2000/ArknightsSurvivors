@@ -74,7 +74,7 @@ func close() -> void:
 	show_cur = {}
 	g.state = Game.S.PLAY
 	Sfx.play("ui_ok", -4.0)
-	g._check_pending()
+	g.check_pending()
 
 
 ## 版面按 1280×720 设计（演示框 60–600、说明卡 620–1200、每张卡占 190 高）。界面逻辑尺寸放不下时整块等比缩小居中

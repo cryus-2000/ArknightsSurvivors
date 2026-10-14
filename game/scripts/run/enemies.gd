@@ -140,7 +140,7 @@ func update(dt: float) -> void:
 				e.dead = true
 				continue
 		if e.boss:
-			g.bai._boss_ai(e, dt, dir, dist)
+			g.bai.boss_step(e, dt, dir, dist)
 		if e.dead:
 			continue
 

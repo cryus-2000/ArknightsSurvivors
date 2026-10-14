@@ -976,8 +976,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.type == "ishar" and g.t < float(e.get("transform_until", 0.0)):
 		return   # 变身动画保护独立计时，结束后无需清理永久无敌标记。
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
-	if e.pos.distance_squared_to(g.ppos) < g._lamp_r() * g._lamp_r() or e.get("lit", 0.0) > 0.0:
-		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g._lamp_r() * g._lamp_r():
+	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:
+		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g.lamp_r() * g.lamp_r():
 			g.telemetry.sus_seg().lit += dmg * 0.25   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
 		dmg *= 1.25
 	# 偏执泡影的茧：本体无敌，伤害打在外壳上（docs/38 §8.5）
