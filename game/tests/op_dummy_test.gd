@@ -192,6 +192,15 @@ func _refill() -> void:
 		alive += 1
 
 
+## 怪群在场个体的已承伤合计（maxhp − hp），与击杀数一起做自检的「打中了」判定
+func _horde_taken() -> float:
+	var s := 0.0
+	for e in game.enemies:
+		if not e.dead and not e.chest and not e.get("friendly", false):
+			s += maxf(0.0, float(e.maxhp) - float(e.hp))
+	return s
+
+
 func _op_out() -> Dictionary:
 	return (game.telemetry.op_out.get(op.id, {}) as Dictionary).duplicate()
 
@@ -309,8 +318,8 @@ func _finish() -> void:
 		if tot <= 0.0:
 			fails += 1
 			print("FAIL 被测干员 %s 统计期内没有伤害" % op.id)
-		if scene == "horde" and game.kills - kills0 <= 0:
+		if scene == "horde" and game.kills - kills0 <= 0 and _horde_taken() <= 0.0:
 			fails += 1
-			print("FAIL 怪群场景没有击杀")
+			print("FAIL 怪群场景没有击杀也没有承伤")   # 怪物密度 k < 1 时每只 HORDE_HP / k 血，几秒自检未必打死一只：总承伤 > 0 即算打中
 		print("OP DUMMY failures=%d" % fails)
 	get_tree().quit()
