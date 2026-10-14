@@ -13,6 +13,7 @@ var mshot: MotionShot
 var winshot := false
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
+var _lampat_done := false   # --lampat 只生效一次
 var zone_out_since := -1.0   # 普通机器人：本次出圈的开始时间（-1 = 在圈内）
 var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回圈用；game.gd 在记下移动方向后执行）
 var shop_visits := 0
@@ -543,6 +544,12 @@ func step() -> void:
 			if a.begins_with("--grant="):
 				for rid in a.substr(8).split(","):
 					g.progression.gain_relic(rid)
+	# --lampat=<秒>:<灯火>：到这一秒把灯火设成这个值一次（截暗处画面用，docs/50 §16 怪物体型的暗处可读性；会改之后的对局）
+	if not _lampat_done and g.state == g.S.PLAY:
+		for a in Cfg.dev_args():
+			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
+				_lampat_done = true
+				g.lamp = float(a.substr(9).split(":")[1])
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)

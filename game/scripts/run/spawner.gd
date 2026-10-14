@@ -96,7 +96,7 @@ func pick_type() -> String:
 		for e in g.enemies:
 			if e.type == pick and not e.dead:
 				ns += 1
-		if ns >= caps[pick]:
+		if ns >= dens_cap(int(caps[pick])):   # 同种上限按怪物密度同比缩（density 1 = 原值）
 			pick = "slider" if g.threat >= 3 else "bone"
 	return pick
 
@@ -177,8 +177,8 @@ func mob_count() -> int:
 ## 机器人 / 自动测试一律用 450——上限会改玩法，批跑数据不能受玩家设置影响
 func max_alive() -> int:
 	if Cfg.quality == "low" and g.mode == g.Mode.PLAY:
-		return int(Bal.v("enemy/max_alive_low", 300.0))
-	return int(Bal.v("enemy/max_alive", float(MAX_ENEMIES)))
+		return dens_cap(int(Bal.v("enemy/max_alive_low", 300.0)))
+	return dens_cap(int(Bal.v("enemy/max_alive", float(MAX_ENEMIES))))
 
 
 ## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120），中期 Boss 读 boss/mid_mob_cap（160，协调人 9/30 定：
@@ -191,7 +191,7 @@ func boss_mob_room() -> int:
 			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap）
 	elif boss_alive():
 		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
-	return cap - mob_count() if cap > 0 else max_alive()
+	return dens_cap(cap) - mob_count() if cap > 0 else max_alive()   # 存活杂兵上限按怪物密度同比缩
 
 
 ## 最终 Boss 战停刷（用户 10-11「最终 boss 出现以后小怪就可以不用刷了」，docs/38 §8.14）：旋钮 final/<key>，难度表 final_<key> ≥ 0 时优先。
@@ -321,8 +321,10 @@ func update(dt: float) -> void:
 		g.vfx.shake_screen(0.8)
 		var fresh: Array = tr.pool.filter(func(x): return not D.THREAT[g.threat - 1].pool.has(x))
 		if not fresh.is_empty() and not mobs_stopped():
-			for k in 6:
+			_norm = true
+			for k in dens_count(6, "threat"):   # 只数 × 怪物密度（累计余数取整）
 				spawn_enemy(fresh[k % fresh.size()], edge_pos())
+			_norm = false
 	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
 	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
 	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
@@ -337,6 +339,9 @@ func update(dt: float) -> void:
 			rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
+	var dens := density()
+	if dens != 1.0:
+		rate *= dens   # 怪物密度：普通刷怪率 × density（spawn_acc 本身就是累计余数）
 	spawn_acc += rate * dt
 	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
@@ -348,7 +353,10 @@ func update(dt: float) -> void:
 	var cap: int = alive_cap()
 	if int(g.t) != _samp_s and g.t >= 420.0 and not Cfg.dev_args().is_empty():
 		_samp_s = int(g.t)
-		q_samp.append(normal_count())   # 测试统计：7 分钟后每秒一次的普通怪存活数（queue_report 给分布）
+		var nc := normal_count()
+		q_samp.append(nc)   # 测试统计：7 分钟后每秒一次的普通怪存活数（queue_report 给分布）
+		if g.t < 600.0:
+			q_samp710.append(nc)   # 7–10 分钟（最终 Boss 之前）单独一组（docs/50 §16 怪物密度）
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
 		if mob_room <= 0 or mobs_off:
@@ -369,12 +377,15 @@ func update(dt: float) -> void:
 	elif g.t >= next_elite:
 		next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 		var et := pick_elite()
+		_norm = true   # 精英也吃怪物体型 enemy/scale（不吃密度）
 		spawn_enemy(et, edge_pos())
 		if g.rfx.rule("resolve_elite") > 0:
 			spawn_enemy(pick_elite(), edge_pos())
-		if g.threat >= 4:
-			var et2 := pick_elite()
+		var et2 := pick_elite() if g.threat >= 4 else ""
+		if et2 != "":
 			spawn_enemy(et2, edge_pos())
+		_norm = false
+		if g.threat >= 4:
 			var n1: String = D.ENEMIES[et].name
 			var n2: String = D.ENEMIES[et2].name
 			g.vfx.show_banner(("两只精英「%s」同时出现！击败它们有概率获得藏品" % n1) if n1 == n2 else ("精英「%s」与「%s」同时出现！击败它们有概率获得藏品" % [n1, n2]))
@@ -401,6 +412,7 @@ func update(dt: float) -> void:
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * float(g.dmod.horde))
+		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
 		if horde_chest:
@@ -409,6 +421,7 @@ func update(dt: float) -> void:
 		var span: float = TAU - gap_half * 2.0
 		var mix := horde_mix()
 		var plan := horde_plan(mix, n)
+		_norm = true
 		var comp := {}
 		for s in plan:
 			comp[s.id] = int(comp.get(s.id, 0)) + 1
@@ -425,6 +438,7 @@ func update(dt: float) -> void:
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= 0.7
 			hl.hp += he.maxhp
+		_norm = false
 	# 补给箱
 	if g.t >= next_chest:
 		next_chest = g.t + g.rng.randf_range(35.0, 50.0)
@@ -456,7 +470,9 @@ func update(dt: float) -> void:
 
 ## 普通刷怪的一只（原来刷怪循环里的那段，原样搬出来；推迟出场的也走这里，按出场那一刻的威胁等级抽种类）
 func _spawn_mob() -> void:
+	_norm = true
 	var ne := spawn_enemy(pick_type(), edge_pos())
+	_norm = false
 	n_mob += 1
 	# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
 	if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
@@ -479,6 +495,7 @@ var n_mob := 0                    # 普通刷怪实际刷出的只数（含推�
 var q_stat := {"queued": 0, "deferred": 0, "wait_sum": 0.0, "wait_max": 0.0, "q_peak": 0, "drop_final": 0, "drop_room": 0, "forced": 0}
 var q_waits := PackedFloat32Array()   # 每只推迟出场的等待秒数（只在测试参数下记，用于分布）
 var q_samp := PackedInt32Array()
+var q_samp710 := PackedInt32Array()
 var _samp_s := -1
 
 
@@ -555,6 +572,7 @@ func queue_report() -> Dictionary:
 	return {"cap": alive_cap(), "spawned": n_mob, "queued": q_stat.queued, "deferred": q_stat.deferred, "pending_end": q_t.size(),
 		"q_peak": q_stat.q_peak, "drop_final": q_stat.drop_final, "drop_room": q_stat.drop_room, "forced": q_stat.forced, "wait_cap": alive_cap_wait(), "wait_mean": snappedf(float(q_stat.wait_sum) / maxf(1.0, float(q_stat.deferred)), 0.01),
 		"alive_420_med": _pct_i(q_samp, 0.5), "alive_420_p95": _pct_i(q_samp, 0.95), "alive_420_max": _pct_i(q_samp, 1.0),
+		"density": density(), "alive_710_med": _pct_i(q_samp710, 0.5), "alive_710_p95": _pct_i(q_samp710, 0.95), "alive_710_max": _pct_i(q_samp710, 1.0),
 		"wait_p50": pc.call(0.5), "wait_p90": pc.call(0.9), "wait_p99": pc.call(0.99), "wait_max": snappedf(float(q_stat.wait_max), 0.01), "hist": hist}
 
 
@@ -624,6 +642,11 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	roll_affix(e)
 	if tmpl_keys.is_empty():
 		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段
+	if _norm and role == "" and density() != 1.0:
+		_dens_apply(e)
+	if _norm and (role == "" or role == "elite") and escale() != 1.0:
+		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
+		e["sc"] = escale()
 	if e.elite:
 		e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
 		e.maxhp = e.hp
@@ -653,6 +676,58 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.reload_t = 20.0
 		e.channel = 0.0
 	return e
+
+
+## 怪物密度（docs/50 §16，用户 10-14「提高怪物血量和数值，削减同屏数量」「60只左右是不是比较合理的上限」，性能试验）：
+## balance.json enemy/density = k（缺省 1.0 = 原行为，同 seed 逐行相同）。k < 1 时：
+##   只数：普通刷怪率、大群只数、威胁上升那一小波只数 × k（后两者用各自的累计余数取整，不耗 g.rng）；
+##         同屏 / Boss 在场的存活杂兵上限（max_alive、boss/final_mob_cap、mid_mob_cap、final/trickle_cap）与同种上限（pick_type 的 caps）同比 × k；
+##   单只（只对这三条路径刷出的普通怪，role 为空；精英 / Boss / 事件 / 剧本 / Boss 召唤 / 友方不动）：生命、潮盾、经验 ÷ k，
+##         接触 / 子弹 / 招式伤害（都从 e.dmg 算）÷ k^density_dmg_exp（缺省 1）；e.dk = 1/k 记在敌人上，
+##         击杀时灯油量、磁铁 / 回复药剂掉率、部件削血、击杀回复 / 252 的击杀权重按 dk 放大（combat.kill、relic_fx.on_kill），总量期望不变。
+##   体型、速度、画面、击退 / 控制都不变。
+## 怪物体型（docs/50 §16，用户 10-14「普通小怪能不能大一点」）：enemy/scale = s（缺省 1.0 = 不变）。上面三条普通刷怪路径、精英刷怪（含箱形恐鱼现形）
+## 刷出的普通怪 / 精英：判定半径 e.r × s（受击 / 接触 / 分离 / 吞噬都按 e.r），e.r0 不动，所以两条绘制路径（缓存 / 原路径）的缩放 PX × r / r0 同步 × s；
+## 影子、头顶标记、弱点、击杀爆点、溶解都按 e.r 走；e.sc = s 记在敌人上（死亡帧条按它放大、击杀顿帧 / 音高按原体型判）。Boss / 召唤物 / 友方 / 事件不动
+var _norm := false      # 本次 spawn_enemy 是不是普通刷怪 / 大群 / 威胁上升小波 / 精英刷怪（密度只对其中 role 为空的普通怪，体型对普通怪与精英）
+var _dacc := {}         # 各渠道的累计余数（"horde" / "threat"）
+
+
+func density() -> float:
+	return Bal.v("enemy/density", 1.0)
+
+
+func escale() -> float:
+	return Bal.v("enemy/scale", 1.0)
+
+
+## 只数 × 密度，按渠道累计余数取整（density 1 时原样返回）
+func dens_count(n: int, ch: String) -> int:
+	var k := density()
+	if k == 1.0:
+		return n
+	var f: float = float(n) * k + float(_dacc.get(ch, 0.0))
+	var m := int(floor(f))
+	_dacc[ch] = f - float(m)
+	return m
+
+
+## 上限 × 密度（四舍五入，至少 1；density 1 时原样返回）
+func dens_cap(c: int) -> int:
+	var k := density()
+	if k == 1.0 or c <= 0:
+		return c
+	return maxi(1, roundi(float(c) * k))
+
+
+func _dens_apply(e: Dictionary) -> void:
+	var inv := 1.0 / density()
+	e.hp *= inv
+	e.maxhp *= inv
+	e.shield_hp *= inv
+	e.xp *= inv
+	e.dmg *= pow(inv, Bal.v("enemy/density_dmg_exp", 1.0))
+	e["dk"] = inv
 
 
 ## 本次大群的编成（data/waves.json，EA 1.1 大群混编）：威胁等级写了 horde_mix 就从中随机抽一套（g.rng，同 seed 可复现），
@@ -755,7 +830,9 @@ func _mimic_roll(event_id: String) -> bool:
 
 ## 箱形恐鱼现形
 func reveal_mimic(e: Dictionary) -> void:
+	_norm = true   # 箱形恐鱼现形算精英刷怪（怪物体型）
 	var m := new_enemy("mimic", e.pos)
+	_norm = false
 	for k in m.keys():
 		if k != "id":
 			e[k] = m[k]

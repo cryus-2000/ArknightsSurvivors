@@ -156,8 +156,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
 func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	var r: float = float(e.get("r", 12.0))
-	var big: bool = r >= Bal.v("fx/kill_big_r", 20.0)
-	var n: int = Bal.vi("fx/kill_sparks", 7) + int(r * Bal.v("fx/kill_sparks_per_r", 0.3))
+	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
+	var big: bool = rb >= Bal.v("fx/kill_big_r", 20.0)
+	var n: int = Bal.vi("fx/kill_sparks", 7) + int(rb * Bal.v("fx/kill_sparks_per_r", 0.3))
 	# 后期降噪（render/declutter kill_k / kill_ring，缺省不变）：普通小怪的击杀火花随拥挤度减少、拥挤过半时不画小冲击环；
 	# 火花只用 g.vrng，不碰对局随机数；精英 / Boss / 大体型照旧
 	var plain: bool = not big and not e.get("elite", false) and not e.get("boss", false)
@@ -166,7 +167,7 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
 	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col, "op_hit": true})
-	var pitch: float = clampf(1.15 - r / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
+	var pitch: float = clampf(1.15 - rb / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})

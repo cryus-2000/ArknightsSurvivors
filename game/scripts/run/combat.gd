@@ -1169,7 +1169,8 @@ func kill(e: Dictionary) -> void:
 	if e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
 		var dtx: Texture2D = g.tex[e.tex + "_death"]
 		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX)
-		g.vfx.fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * g.PX * 0.5), g.PX, 0.0)
+		var dsc: float = g.PX * float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大过的按同一倍数画
+		g.vfx.fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
 	if e.elite:
@@ -1184,8 +1185,10 @@ func kill(e: Dictionary) -> void:
 		g.stats.remove_source("paranoia_aura")
 		g.sync_stats()
 	# 部件可以靠击杀周围小怪间接削（docs/49d）：普通敌人死在部件 boss/part_chip_r 内，部件掉 part_chip 比例的血（茧掉壳）
+	# 怪物密度（spawner._dens_apply，docs/50 §16）：按密度缩放过的普通怪 dk = 1/density，掉率 / 掉量 / 削血按 dk 放大，总期望不变；其余敌人 dk = 1
+	var dk: float = float(e.get("dk", 1.0))
 	if not e.boss and not e.get("part", false):
-		var chip: float = Bal.v("boss/part_chip", 0.05)
+		var chip: float = Bal.v("boss/part_chip", 0.05) * dk
 		if chip > 0.0:
 			var cr: float = Bal.v("boss/part_chip_r", 160.0)
 			for o in g.enemies:
@@ -1211,7 +1214,7 @@ func kill(e: Dictionary) -> void:
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
-		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0)
+		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0 * dk)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）；旋钮在 balance.json pickup 段
 	if e.elite or e.boss:
 		var mag: bool = g.rng.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
@@ -1221,7 +1224,7 @@ func kill(e: Dictionary) -> void:
 		# 磁铁单独上限（协调人 9/30）：小怪掉磁铁只看场上磁铁数 < magnet_cap，不再被回复药剂占位；回复药剂仍按「道具合计 < item_cap」
 		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 0.0)):
 			g.pickups.item_log.mob_rolled += 1
-			if g.rng.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025):
+			if g.rng.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
 				g.pickups.drop(e.pos, "magnet", 1.0)
 				g.pickups.item_log.magnet_mob += 1
 		else:
@@ -1232,7 +1235,7 @@ func kill(e: Dictionary) -> void:
 		var heal_room: bool = g.pickups.count_items() < int(Bal.v("pickup/item_cap", 3.0))
 		if low_hp and not heal_room:
 			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 0.0))
-		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0)
+		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0) * dk
 		if heal_room and g.rng.randf() < hc:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
@@ -1243,11 +1246,11 @@ func kill(e: Dictionary) -> void:
 	else:
 		g.pickups.item_log.mob_rolled += 1
 		var r := g.rng.randf()
-		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025)
+		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025) * dk
 		if r < pm:
 			g.pickups.drop(e.pos, "magnet", 1.0)
 			g.pickups.item_log.magnet_mob += 1
-		elif r < pm + Bal.v("pickup/heal_kill_chance", 0.0035):   # 回复区间宽度独立，调磁铁不挤占回复
+		elif r < pm + Bal.v("pickup/heal_kill_chance", 0.0035) * dk:   # 回复区间宽度独立，调磁铁不挤占回复
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
