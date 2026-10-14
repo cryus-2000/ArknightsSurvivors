@@ -293,7 +293,8 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				var et: Texture2D = g.tex.get(["e_bone", "e_slider", "e_stone"][k])
 				if et != null:
 					var fw := et.get_width() / 2
-					g.hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0), Rect2(0, 0, fw, et.get_height()))
+					# 1 美术像素 = 2 屏幕像素：@2x 帧条（docs/94 重画）按 A.hires_of 换算，和 1x 同尺寸
+					g.hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0 / A.hires_of(et)), Rect2(0, 0, fw, et.get_height()))
 		"bars":
 			UI.en(g.hud, g.font, c + Vector2(-110, -60), "HP", 12, UI.SUB, 2.0)
 			UI.bar(g.hud, Rect2(c + Vector2(-80, -72), Vector2(180, 14)), 0.7, Color(0.35, 0.9, 0.75), 10)
@@ -345,7 +346,8 @@ func draw_icon(kind: String, c: Vector2) -> void:
 					continue
 				var frames := 2 if items[k] == "e_chest" or items[k] == "merchant" else 1
 				var fw := tx3.get_width() / frames
-				var sc: float = 3.0 if tx3.get_height() < 20 else 2.0
+				var hi3: float = A.hires_of(tx3)
+				var sc: float = (3.0 if tx3.get_height() / hi3 < 20 else 2.0) / hi3   # 按美术像素定倍数（@2x 不放大一倍）
 				var sz := Vector2(fw, tx3.get_height()) * sc
 				var p := c + Vector2(-120 + (k % 3) * 100, -70 + (k / 3) * 100)
 				g.hud.draw_texture_rect_region(tx3, Rect2(p - sz / 2.0, sz), Rect2(0, 0, fw, tx3.get_height()))
@@ -369,7 +371,8 @@ func draw_icon(kind: String, c: Vector2) -> void:
 					var an: float = TAU * k / 8.0 + g.intro_t * 0.4
 					var fw2: int = etx.get_width() / 2
 					var pp: Vector2 = c + Vector2(0, 30) + Vector2.from_angle(an) * (78.0 - 30.0 * hk)
-					g.hud.draw_texture_rect_region(etx, Rect2(pp - Vector2(fw2, etx.get_height()), Vector2(fw2, etx.get_height()) * 2.0), Rect2(0, 0, fw2, etx.get_height()))
+					var esz: Vector2 = Vector2(fw2, etx.get_height()) * 2.0 / A.hires_of(etx)   # @2x 按高清倍率换算
+					g.hud.draw_texture_rect_region(etx, Rect2(pp - esz / 2.0, esz), Rect2(0, 0, fw2, etx.get_height()))
 			UI.text(g.hud, g.font, c + Vector2(-60, 116), "大群来袭", 14, Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120)
 		"merchant":
 			var mtx: Texture2D = g.tex.get("merchant")
@@ -390,7 +393,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			if atx != null:
 				var fw4: int = atx.get_width() / 2
 				var fr4: int = int(g.intro_t * 2.0) % 2
-				var sz4 := Vector2(fw4, atx.get_height()) * 4.0
+				var sz4 := Vector2(fw4, atx.get_height()) * 4.0 / A.hires_of(atx)
 				g.hud.draw_set_transform(c + Vector2(0, 46), 0.0, Vector2(1.0, 0.45))
 				g.hud.draw_circle(Vector2.ZERO, 70.0 + 6.0 * sin(g.intro_t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
 				g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
