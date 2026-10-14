@@ -579,3 +579,54 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 			bn = n
 			best = c.pos
 	return best
+
+
+# ---- 部件与种类登记（docs/101 S7）：消掉每次击杀 / 刷怪对 g.enemies 的全表扫描。只是索引，读的时候照样看敌人身上的实时字段（dead / part），
+# 所以不管谁在哪里把 dead 设成 true 都不会算错；结果和全表扫描逐个相同（同种子 TRACE 不变）
+var _parts: Array = []        # 设过 part 的敌人（偏执泡影茧、塑路者核心分形；只有这两处设 part）
+var _ti_arr = null            # 种类登记对应的 g.enemies 数组对象（_cleanup 每帧换新数组 → 重建）
+var _ti_n := 0                # 已登记到 g.enemies 的第几个
+var _ti_last = null           # 最后登记的那一只（数组被 clear 后又塞满时用它认出来）
+var _by_type: Dictionary = {} # type -> 这一类的敌人（含已死，计数时跳过）
+
+
+## 设 part = true 的地方调用（paranoia.gd 结茧、path.gd 猎核）
+func part_add(e: Dictionary) -> void:
+	for o in _parts:
+		if is_same(o, e):
+			return
+	_parts.append(e)
+
+
+## 现存部件（未死且 part 仍为 true），顺序与 g.enemies 一致（两只以上时按 g.enemies 重排，击杀吸取的结算顺序和原来的全表扫描相同）
+func parts() -> Array:
+	_parts = _parts.filter(func(o): return not o.dead and o.get("part", false))
+	if _parts.size() > 1:
+		var ordered: Array = []
+		for e in g.enemies:
+			for o in _parts:
+				if is_same(o, e):
+					ordered.append(e)
+		_parts = ordered
+	return _parts
+
+
+## 场上某一类的存活数（spawner.type_n 用）：按 g.enemies 增量登记，只数这一类；g.enemies 换了数组 / 被清空重填时重建
+func type_alive(kind: String) -> int:
+	var arr: Array = g.enemies
+	if not is_same(_ti_arr, arr) or arr.size() < _ti_n or (_ti_n > 0 and not is_same(arr[_ti_n - 1], _ti_last)):
+		_ti_arr = arr
+		_ti_n = 0
+		_by_type = {}
+	for i in range(_ti_n, arr.size()):
+		var e: Dictionary = arr[i]
+		if not _by_type.has(e.type):
+			_by_type[e.type] = []
+		_by_type[e.type].append(e)
+	_ti_n = arr.size()
+	_ti_last = arr[_ti_n - 1] if _ti_n > 0 else null
+	var n := 0
+	for e in _by_type.get(kind, []):
+		if not e.dead:
+			n += 1
+	return n

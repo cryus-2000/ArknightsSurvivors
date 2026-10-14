@@ -110,6 +110,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	e.hp = 1.0
 	e.invuln = true
 	e.part = true
+	g.enemies_sys.part_add(e)   # 部件登记（docs/101 S7：击杀吸取不再扫全表）
 	e.shell_max = e.maxhp * Bal.v("boss/paranoia_shell", 0.08)
 	e.shell_hp = e.shell_max
 	e.shell_room = 0.0

@@ -1840,6 +1840,7 @@ func test_lore3() -> void:
 	# 部件被周围击杀间接削
 	var part: Dictionary = sp.spawn_enemy("fractal", game.ppos + Vector2(1700, 0))
 	part.part = true
+	game.enemies_sys.part_add(part)   # docs/101 S7：设 part 的地方都要登记，击杀吸取只看登记表
 	var ph: float = part.hp
 	var mob: Dictionary = sp.spawn_enemy("bone", part.pos + Vector2(30, 0))
 	c.kill(mob)

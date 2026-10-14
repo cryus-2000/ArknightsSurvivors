@@ -162,6 +162,7 @@ func _path_core(e: Dictionary) -> void:
 		if o.age > oldest.age:
 			oldest = o
 	oldest.part = true
+	g.enemies_sys.part_add(oldest)   # 部件登记（docs/101 S7）
 	oldest.core = true
 	oldest.erase("expire_at")   # 当上核心就不再自灭（倒计时看 core_until）
 	oldest.spd = 0.0
