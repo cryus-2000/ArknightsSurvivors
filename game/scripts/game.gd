@@ -950,7 +950,10 @@ func hud_ct() -> Transform2D:
 	return ct if Cfg.ui_k == 1.0 else ct.scaled(Vector2(1.0 / Cfg.ui_k, 1.0 / Cfg.ui_k))
 
 
+var view_override := Vector2.INF   # 仅测试截图（autotest --knightshots 等）：镜头临时看向这里，不影响模拟
 func view_center() -> Vector2:
+	if view_override != Vector2.INF:
+		return view_override
 	return demo_origin if demo_op != "" and demo_origin != Vector2.INF else ppos
 
 
@@ -1469,8 +1472,7 @@ func _update(dt: float) -> void:
 		endg.tick_final_warning()
 		hunt.update(dt)
 		beacon_sys.update(dt)
-		if ending == "knight" and knight.alive and t >= 585.0 and knight.state != "walk":
-			knight.walk_to_center(zone_c if zone_state != 0 else ppos + Vector2(0, -220))
+		knight.tick_final()   # 结局二：9:00 起走向黑潮中心、到达入潮消失（docs/18 §1）
 		if demo_op == "":
 			shop_sys.update(dt)
 		pickups.update(dt)

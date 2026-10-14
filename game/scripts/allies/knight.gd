@@ -1,6 +1,9 @@
 ## 猎潮的骑士（结局二同伴，docs/18 §2）：不占援护位；跟在水月侧后方，每 4 秒对 320 内目标冲锋→刺击；
 ## 有生命（固定 600，不随时间涨），会被接触与弹幕伤害，50% 的近战敌人把他当目标；血量 <30% 退到水月身后 3 秒（2026-09-27 协调人定）。
-## 阵亡 → 退行的罗辛南特 (223)，结局回退；10:00 若结局为骑士，走入黑潮中心重生为 Boss（由 game.gd 调 walk_to_center / take_over）。
+## 阵亡 → 退行的罗辛南特 (223)，结局回退。
+## 终局（2026-10-14 用户定）：结局为骑士时 9:00 起走向黑潮中心（game.gd 每帧调 tick_final），到达即「入潮」消失（0.6 秒沉入，
+## 之后不再被打、不出手、不拉仇恨、不吃治疗；HUD 骑士格变灰「已入潮」）；10:00 spawner 调 take_over，Boss 从黑潮中心出现。
+## 9:00 的提醒只由 endings.tick_final_warning 的终局预告播一次，这里不再重复播「走向黑潮中心」。
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
@@ -16,6 +19,9 @@ const CHARGE_SPD := 760.0
 const STAB_T := 0.4
 const STAB_HIT_T := 0.2      # 第 3 帧（零基 2）命中
 const FROST_T := 1.2
+const WALK_AT := 540.0       # 终局：9:00 起走向黑潮中心（2026-10-14 用户定，原 9:45）
+const WALK_SPD := 110.0
+const SINK_T := 0.6          # 入潮演出时长：寒冰重生环（缩小）+ 沉入淡出
 ## 画面缩放（2026-09-27 用户反馈：骑士帧 96×80 按 2 倍画约 192×160，是主控的两倍，挡视线）：画到 0.7 倍
 const DRAW_K := 0.7
 const ICE := Color(0.7, 0.9, 1.4)
@@ -39,6 +45,9 @@ var mv := 0.0
 var mt := 0.0
 var walk_to := Vector2.INF     # 终局：走向黑潮中心
 var arrived := false
+var walked := false            # 终局：已经开始走向黑潮中心（一次性，防止别的状态把 walk 改回去后重复触发）
+var submerged := false         # 已入潮：作为队友消失，等 10:00 以 Boss 身份从黑潮中心出现（knight_alive 仍为 true，结局二照常判定）
+var vanish_pos := Vector2.INF  # 入潮的位置（黑潮未启动时 10:00 Boss 从这里出现）
 var fallen := false            # 道中阵亡过（退行）
 var low_armed := true          # 低血撤退每个"低血阶段"只触发一次，回到 45% 以上再重新武装
 
@@ -58,6 +67,9 @@ func spawn() -> void:
 	cd = 1.5
 	walk_to = Vector2.INF
 	arrived = false
+	walked = false
+	submerged = false
+	vanish_pos = Vector2.INF
 	g.knight_alive = true
 
 
@@ -93,22 +105,72 @@ func die() -> void:
 		g.progression.gain_relic("223")
 
 
-## 终局：走向黑潮中心（9:45 起）
+## 终局每帧（game.gd 调，结局为骑士时）：9:00 起走向黑潮中心。黑潮已启动 → 目标每帧跟着圈心（收缩期圈心会动）；
+## 黑潮未启动 → 开始走时取队长前方 220，之后不再改。横幅由 endings.tick_final_warning 的终局预告负责（只播一次）。
+func tick_final() -> void:
+	if not alive or g.ending != "knight" or g.t < WALK_AT or state == "sink":
+		return
+	if g.zone_state != 0:
+		walk_to_center(g.zone_c)
+	elif not walked:
+		walk_to_center(g.ppos + Vector2(0, -220))
+
+
+## 终局：走向黑潮中心（已在走 → 只更新目标）
 func walk_to_center(target: Vector2) -> void:
-	if alive and state != "walk":
+	if not alive or state == "sink":
+		return
+	walk_to = target
+	if state != "walk":
 		state = "walk"
-		walk_to = target
-		g.vfx.show_banner("骑士走向了黑潮中心……")
+		walked = true
+		retreat_t = 0.0
+		dash_hit.clear()
+		trail.clear()
 
 
-## 10:00：在骑士所在处重生为 Boss；返回生成位置
+## 到达黑潮中心：入潮演出（SINK_T 秒），之后 _submerge 消失
+func _arrive() -> void:
+	arrived = true
+	state = "sink"
+	st = 0.0
+	vanish_pos = pos
+	# 寒冰重生环缩小、淡蓝；没有帧条就画一圈冰环。粒子向下沉
+	if not g.vfx.fx_sprite("fx_knight_rebirth", pos + Vector2(0, -12), g.PX * 0.8, 0.0, false, false, Color(0.75, 0.9, 1.2, 0.8)):
+		g.fx.append({"kind": "ring", "pos": pos, "r": 50.0, "life": SINK_T, "max": SINK_T, "col": Color(0.6, 0.9, 1.4)})
+	g.fx.append({"kind": "frost_step", "pos": pos + Vector2(0, R * 0.6), "life": 1.2, "max": 1.2, "r": 22.0})
+	g.vfx.sparks(pos + Vector2(0, -16), Vector2.DOWN, Color(0.6, 0.85, 1.3), 10, 120.0)
+	Sfx.play("knight_frost", -6.0, 0.8, 0.0)
+
+
+## 入潮：作为队友消失。不再被打、不出手、不拉仇恨、不吃治疗；HUD 骑士格变灰。
+## knight_alive 保持 true：结局二的 requires 仍成立，10:00 由 spawner 调 take_over 在黑潮中心重生为 Boss
+func _submerge() -> void:
+	alive = false
+	submerged = true
+	state = "idle"
+	trail.clear()
+	g.vfx.sparks(vanish_pos, Vector2.DOWN, Color(0.5, 0.8, 1.2), 6, 90.0)
+	g.vfx.show_banner("骑士没入了黑潮中心 —— 10:00 最后的骑士将在那里出现")
+
+
+## 10:00：重生为 Boss，返回 Boss 的出现位置：黑潮中心（黑潮未启动时用入潮的位置；还没走到就在原地）。
+## 寒冰重生环与「寒冰重生」横幅照旧（横幅在 spawner）
 func take_over() -> Vector2:
 	var p: Vector2 = pos
-	alive = false
+	if alive:
+		alive = false
+		vanish_pos = pos
+	else:
+		p = vanish_pos if vanish_pos != Vector2.INF else pos
+	if g.zone_state != 0:
+		p = g.zone_c
+	submerged = false
+	state = "idle"
 	# knight_alive 保持 true：结局判定（requires flag）在 Boss 战期间不能回退
-	if not g.vfx.fx_sprite("fx_knight_rebirth", pos + Vector2(0, -20), g.PX * 1.4, 0.0):
-		g.fx.append({"kind": "ring", "pos": pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-	g.vfx.sparks(pos, Vector2.ZERO, Color(0.7, 0.9, 1.4), 24, 260.0)
+	if not g.vfx.fx_sprite("fx_knight_rebirth", p + Vector2(0, -20), g.PX * 1.4, 0.0):
+		g.fx.append({"kind": "ring", "pos": p, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
+	g.vfx.sparks(p, Vector2.ZERO, Color(0.7, 0.9, 1.4), 24, 260.0)
 	g.vfx.shake_screen(1.2)
 	return p
 
@@ -125,10 +187,15 @@ func update(dt: float) -> void:
 		"walk":
 			var d: Vector2 = walk_to - pos
 			if d.length() > 6.0:
-				pos += d.normalized() * minf(110.0 * dt, d.length())
+				pos += d.normalized() * minf(WALK_SPD * dt, d.length())
 				face = signf(d.x) if absf(d.x) > 1.0 else face
 			else:
-				arrived = true
+				_arrive()
+		"sink":
+			st += dt
+			if st >= SINK_T:
+				_submerge()
+				return
 		"retreat":
 			retreat_t -= dt
 			var slot: Vector2 = g.ppos + Vector2(-g.facing * 44.0, 30.0)
@@ -231,14 +298,16 @@ func update(dt: float) -> void:
 	# 移动量（帧条选择用）
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
-	if state == "walk":
-		return
-	# 仇恨：50% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆；2026-09-27 原 30%）
-	for j in g.enemies_sys.query(pos, 420.0):
-		var e: Dictionary = g.enemies[j]
-		if e.dead or e.chest or e.boss or e.ai != "melee" or e.id % 10 >= 5:
-			continue
-		e.aggro = pos
+	if state == "sink":
+		return   # 入潮演出中：不再受伤、不拉仇恨
+	# 仇恨：50% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆；2026-09-27 原 30%）。走向黑潮中心时不再拉仇恨，
+	# 但仍会被路上的敌人碰到 / 被弹幕打到——途中阵亡走原阵亡逻辑（退行、结局回退），不入潮
+	if state != "walk":
+		for j in g.enemies_sys.query(pos, 420.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.chest or e.boss or e.ai != "melee" or e.id % 10 >= 5:
+				continue
+			e.aggro = pos
 	# 接触伤害（每个敌人 1 秒一次）
 	for j in g.enemies_sys.query(pos, 80.0):
 		var e: Dictionary = g.enemies[j]
@@ -325,6 +394,13 @@ func draw() -> void:
 	var sc: float = g.PX * DRAW_K
 	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
 	var flip: bool = face < 0.0
+	# 入潮演出：向下沉入 + 淡出，脚下一圈冰环收拢；不画描边 / 血条
+	if state == "sink":
+		var k: float = clampf(st / SINK_T, 0.0, 1.0)
+		var sink_col := Color(0.7, 0.85, 1.1, 1.0 - k)
+		g.vfx.spr(name, frames, frame, bpos + Vector2(0, 26.0 * k), sc, flip, sink_col, anc)
+		g.draw_arc(pos + Vector2(0, R * 0.6), 26.0 * (1.0 - 0.6 * k), 0.0, TAU, 24, Color(0.6, 0.9, 1.4, 0.7 * (1.0 - k)), 2.0)
+		return
 	# 冲锋预警线（友方冰蓝，不伤水月）：蓄力时从骑士往外长出，冲锋终点一个小冰晶
 	if state == "wind":
 		var k: float = st / CHARGE_WIND
@@ -355,17 +431,22 @@ func draw() -> void:
 
 
 ## HUD：援护栏右侧的骑士格（不占 3 个援护位）
+## 已入潮（submerged）：格子不删，整格变灰，标「已入潮」——结局二仍按「骑士在」判定
 func draw_hud(hud: CanvasItem, c: Vector2) -> void:
-	if not alive:
+	if not alive and not submerged:
 		return
 	var font: Font = g.font
-	var acol := Color(0.6, 0.85, 1.0)
-	UI.ring(hud, c, 21.0, clampf(hp / maxhp, 0.0, 1.0), acol)
+	var grey := Color(0.45, 0.5, 0.56)
+	var acol := grey if submerged else Color(0.6, 0.85, 1.0)
+	UI.ring(hud, c, 21.0, 1.0 if submerged else clampf(hp / maxhp, 0.0, 1.0), acol, false, submerged)
 	var at: Texture2D = g.tex.get("e_knight")
 	if at != null:
 		var fw := at.get_width() / 2
 		var ks: float = 34.0 / at.get_height()
-		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-	UI.text(hud, font, c + Vector2(-30, 36), "骑士", 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
-	if state == "retreat":
+		var mod := Color(0.4, 0.42, 0.46, 0.75) if submerged else Color.WHITE
+		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()), mod)
+	UI.text(hud, font, c + Vector2(-30, 36), "骑士", 11, grey if submerged else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
+	if submerged:
+		UI.text(hud, font, c + Vector2(-30, -40), "已入潮", 10, grey, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
+	elif state == "retreat":
 		UI.text(hud, font, c + Vector2(-30, -40), "撤退", 10, Color(1.0, 0.7, 0.5), HORIZONTAL_ALIGNMENT_CENTER, 60, 2)

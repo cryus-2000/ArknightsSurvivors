@@ -56,7 +56,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	var Dn: bool = part != 1  # 画每帧部分
 	var n: int = g.squad.size()
 	var x_left: float = br.x - n * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
-	if g.knight.alive and Dn:
+	if (g.knight.alive or g.knight.submerged) and Dn:   # 已入潮：格子变灰，不删
 		g.knight.draw_hud(g.hud, Vector2(x_left - 130, br.y - 30))
 	# 分四层画（性能，协调人 9/30：原来每张卡 + 三枚技能格约 15 次绘制调用，字 / 色块 / 贴图交替打断合批）：
 	# bg 底色批 → 贴图（立绘 / 技能图标 / 源石锭）→ fg 遮罩边框批 → 文字与悬停提示。同层内顺序不变
