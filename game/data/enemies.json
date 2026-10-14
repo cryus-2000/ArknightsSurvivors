@@ -100,7 +100,7 @@
    "acid_range": 300,
    "acid_cd": 4.2,
    "extra": {"name": "酸蚀脉冲", "mode": "pulse", "range": 100, "cd": 15.0, "damage_mult": 0.25, "min_time": 400.0},
-   "desc": "驻留的子体，接触和酸弹命中附加侵蚀；酸弹每 4.2 秒发射一次。"
+   "desc": "由投嗣育母投出、落地孵化的子体，不移动并逐渐衰亡；接触和酸弹命中附加侵蚀，酸弹每 4.2 秒发射一次。"
   },
   "spitter": {
    "wound_hit": 1,
@@ -449,14 +449,15 @@
    "role": "elite",
    "brood": true,
    "shot_kind": "acid",
-   "shot_home": true,
-   "shot_spd": 150,
-   "spawn_on_shot": "brood",
-   "spawn_max": 12,
+   "lob": true,
+   "lob_kind": "brood",
+   "lob_r": 30,
+   "lob_dur": 0.8,
+   "lob_spread": 40,
    "elite_after": 300,
    "atk_anim": true,
    "corrode": 0.25,
-   "desc": "发射追踪酸弹，命中附加侵蚀，并在队长附近召唤注亡拟嗣。另会使用「育嗣酸雨」进行预警攻击。",
+   "desc": "向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，随即孵化一只拟嗣（场上拟嗣到 6 只时只造成伤害）。另会使用「育嗣酸雨」进行预警攻击。",
    "extra": {
     "name": "育嗣酸雨",
     "mode": "volley",

@@ -88,17 +88,31 @@ func pick_type() -> String:
 				break
 	else:
 		pick = pool[g.rng.randi() % pool.size()]
-	var caps := {"stone": (6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)), "brood": 6, "offspring": 6 if g.t < 420.0 else 10, "spitter": 6}
-	if D.ENEMIES[pick].has("cap"):
-		caps[pick] = int(D.ENEMIES[pick].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
-	if caps.has(pick):
-		var ns := 0
-		for e in g.enemies:
-			if e.type == pick and not e.dead:
-				ns += 1
-		if ns >= caps[pick]:
-			pick = "slider" if g.threat >= 3 else "bone"
+	if type_cap(pick) > 0 and type_n(pick) >= type_cap(pick):
+		pick = "slider" if g.threat >= 3 else "bone"
 	return pick
+
+
+## 场上同种存活上限（0 = 不限；和 alive_cap 的全场存活上限是两回事）：普通刷怪抽到已满的种类换成杂兵；投嗣育母的投嗣落地时拟嗣到上限只造成伤害不孵化（run/enemies._brood_land）
+func type_cap(kind: String) -> int:
+	if D.ENEMIES[kind].has("cap"):
+		return int(D.ENEMIES[kind].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
+	match kind:
+		"stone":
+			return 6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)
+		"brood", "spitter":
+			return 6
+		"offspring":
+			return 6 if g.t < 420.0 else 10
+	return 0
+
+
+func type_n(kind: String) -> int:
+	var ns := 0
+	for e in g.enemies:
+		if e.type == kind and not e.dead:
+			ns += 1
+	return ns
 
 
 func pick_elite() -> String:

@@ -77,9 +77,20 @@ func _process(_dt: float) -> void:
 	lob_hit(acid)
 	check(game.hp == game.max_hp and game.corrode_pool == 0.0, "shielded lob adds no corrosion")
 	reset()
+	# 投嗣育母（10-14）：投出拟嗣的抛射弹落地造成伤害 + 侵蚀，并在落点孵化一只注亡拟嗣；场上拟嗣到 type_cap 只伤不孵
 	var mother: Dictionary = game.spawner.spawn_enemy("mother", game.ppos + Vector2(500, 0))
-	shot_hit(mother)
-	check(game.corrode_pool > 0.0, "mother projectile inherits corrosion")
+	game.eai.lob(mother)
+	check(not game.lobs.is_empty() and game.lobs[-1].get("kind", "") == "brood", "mother throws a brood lob")
+	game.lobs[-1].to = game.ppos
+	game.enemies_sys.update_lobs(1.0)
+	check(game.hp < game.max_hp and game.corrode_pool > 0.0, "mother brood lob applies corrosion")
+	var nbrood: int = game.spawner.type_n("brood")
+	check(nbrood == 1, "brood hatches at the lob landing point (got %d)" % nbrood)
+	reset()
+	while game.spawner.type_n("brood") < game.spawner.type_cap("brood"):
+		game.spawner.spawn_enemy("brood", game.ppos + Vector2(300, 0))
+	lob_hit(mother)
+	check(game.hp < game.max_hp and game.spawner.type_n("brood") == game.spawner.type_cap("brood"), "brood lob at cap damages without hatching")
 	reset()
 	var brood: Dictionary = game.spawner.spawn_enemy("brood", game.ppos + Vector2(100, 0))
 	brood.cdt = 0.0
