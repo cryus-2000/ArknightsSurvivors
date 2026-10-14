@@ -96,6 +96,19 @@ func value(stat: StringName) -> float:
 	return v
 
 
+## 同 value_for，作用域键（",".join(scopes)）由调用方缓存好传进来（干员 stat() 每帧几十次，docs/101 S9）
+func value_for_key(stat: StringName, scopes: Array, key: String) -> float:
+	var sc = _cache_scoped.get(stat)
+	if sc != null and sc.has(key):
+		return sc[key]
+	var v := _calc(stat, scopes)
+	if sc == null:
+		sc = {}
+		_cache_scoped[stat] = sc
+	sc[key] = v
+	return v
+
+
 ## 干员视角的值：全局修正 + scopes（如 ["class:狙击", "op:sniper"]）命中的修正
 func value_for(stat: StringName, scopes: Array) -> float:
 	if scopes.is_empty():
