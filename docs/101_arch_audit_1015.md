@@ -445,6 +445,18 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - 影响只有一种：同 seed 的 TRACE 会在第一次出现边界情况时分叉，此后局面整体漂移，属于「换基线」，胜率只是随机重排。B7 本来就要整体换基线，放进去不用另外为它跑对照。
 - G 的固定半宽 14 照传（`seg_capsule(a, b, 14, p, r)`），不要顺手改成读参数，避免把「改宽度」混进来。
 
+#### 7.3.5 ① 门面拆分（已做，干员会话 10-15，分支 claude/b6-split）
+
+- **做法**：工具化拆分（`tools/b6_split_op_blocks.py` + `tools/b6_fix_infer.py`，可复现），按 7.3.1 的行号区间把 886 个顶层条目（732 个静态函数、151 个常量、3 个静态变量）连同前导注释原样搬进 `scripts/characters/blocks/` 的 24 个文件（`ob_geom` 留到第 ⑤ 步新建）。
+  文件之间用**继承链**串起来：`ob_core → ob_check → ob_fx → ob_vortex → ob_summon → ob_elite → ob_hw → seg_hoshiguma → … → seg_skalter`，
+  `op_blocks.gd` 只剩一行 `extends "…/seg_skalter.gd"` 作门面。GDScript 的静态函数、常量、静态变量沿继承链都能不加前缀访问，也能经子类脚本引用（实测），所以链上晚的文件调早的文件一处不用改，外部 `OB.<函数>` / `OB.<常量>` 照旧。
+- **反向调用**（链上早的文件调晚的文件，主要是 `ob_hw` 的帧调度调各人段、`ob_core` 调校验）共 255 处，机械改写成 `_F().<函数>(…)`，`_F()` = 运行时 `load` 门面（`ob_core` 里缓存）。其中 7 处 `var x := _F()…` 推不出类型：2 处按被调函数的返回类型补成 `var x: T =`，5 处改成不带类型。② 直连 / ③ 单播后这些转发全部消失。
+- **常量**不能运行时转发：被链上更早的文件引用的 17 个常量（各段 tag 表 `ANGELINA_TAGS / HW2–4_TAGS / LM_TAGS / MZ_TAGS / SP_TAGS / TX_IMPL`、键表 `EXU_SKILL_KEYS / HW_SKILL_KEYS / E5_KIND_KEYS / E5_MOVE_KEYS / EL_ONLY / EXT_CONDS / FIELD_CENTERS / LEADER_STATS / FX_VORTEX_FADE`）上提到 `ob_core`（本来就是 7.3.2 说的「tag 表归 core」）。
+- **与 7.3.1 的差别**：依赖暂时不是「seg 只依赖公共」而是整条链（链是过渡形态，③ 单播改注册表时拆开）；各段「本段的校验」仍留在各自文件，`ob_check` 只放原 511–895 的校验主体。
+- **改动期间别处改 op_blocks**：拆分可复现（同一脚本对新 main 重跑），合入前若 main 的 op_blocks.gd 有新提交，就在新 main 上重新生成，不手工合并。
+- **金样**（docs/36 §1.3）：`tools/check.py` 的本干员侧加 `blocks/ob_*.gd`（公共）与 `blocks/seg_<id>.gd`（本人，`specter_unchained` → `seg_specter`）。纯搬家会动到所有 seg，每组的「别处」都含别人的 seg，所以拆分分支上金样一律判「过期」；对照改用两个新环境变量：在改前提交的临时工作树里 `ARK_GOLDEN_DIR=<临时目录> check.py --only blocks_eq --eq-all --update-golden` 录一份，分支上 `ARK_EQ_FORCE=1 ARK_GOLDEN_DIR=<同一目录>` 过期也照比。
+- **验证**：积木等价 28 / 28 与改前金样逐字相同；星熊 / 能天使 / 浊心斯卡蒂 / 维什戴尔 `--maxprog --sptest` 240 秒 TRACE 对改前逐行相同；`check --auto` 见提交说明。
+
 ## 8. 需要用户定的事项
 
 > **2026-10-15 用户全部批准（协调人转达），按建议执行**：

@@ -652,9 +652,13 @@ def _balance_core(d, drop_tags=()):
 EQ_ALL = False   # --eq-all：每组跑全部用例；缺省每组只跑第一条（seed1），第二条（seed2 / seed3 当队友）改到云端每日一跑（docs/36 §7.6，10-15）
 UPDATE_GOLDEN = False   # --update-golden：本项通过后把数据版输出重录到 build/golden_cache/（ship 全量通过后调用）
 GOLDEN_SNAP = os.path.join(GAME, "tests", "golden")
-GOLDEN_ROLL = os.path.join(GR.common_root(), "build", "golden_cache")
+GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR") or os.path.join(GR.common_root(), "build", "golden_cache")   # ARK_GOLDEN_DIR：临时金样目录（大重构对改前对照，docs/101 §7.3）
 EQ_COMMON = ("game/scripts/characters/op_blocks.gd", "game/scripts/characters/data_operator.gd",
              "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd")
+# B6 ①（docs/101 §7.3.3，10-15）：op_blocks 拆到 scripts/characters/blocks/ 后，公共段 ob_*.gd 也算积木公共文件（进本干员侧），
+# 按人的段 seg_<名>.gd 只进那名干员的本干员侧（不然拆分后的新文件落进「别处」，金样全判过期）
+EQ_COMMON_PREFIX = "game/scripts/characters/blocks/ob_"
+EQ_SEG = {"specter_unchained": "specter"}   # 干员 id → seg 文件名（不同名的）
 _ENTRIES = {}
 
 
@@ -681,7 +685,8 @@ def logic_entries(game=GAME):
 
 def eq_hashes(gid):
     """(本干员侧哈希, 别处哈希)"""
-    own = set(EQ_COMMON) | {"game/data/characters/%s.json" % gid, "game/tests/data_ops/%s.json" % gid, "game/scripts/characters/%s.gd" % gid}
+    own = set(EQ_COMMON) | {"game/data/characters/%s.json" % gid, "game/tests/data_ops/%s.json" % gid, "game/scripts/characters/%s.gd" % gid,
+                            "game/scripts/characters/blocks/seg_%s.gd" % EQ_SEG.get(gid, gid)}
     hs = [hashlib.sha256(), hashlib.sha256()]
     ent = dict(logic_entries())
     if "td" not in _ENTRIES:
@@ -690,7 +695,7 @@ def eq_hashes(gid):
     if tj in _ENTRIES["td"]:
         ent[tj] = _ENTRIES["td"][tj]
     for path, tok in sorted(ent.items()):
-        mine = path in own or path.startswith("art/incoming/op_%s_" % gid)
+        mine = path in own or path.startswith("art/incoming/op_%s_" % gid) or path.startswith(EQ_COMMON_PREFIX)
         hs[0 if mine else 1].update(("%s %s\n" % (path, tok)).encode("utf-8"))
     return hs[0].hexdigest(), hs[1].hexdigest()
 
@@ -754,7 +759,7 @@ def check_blocks_eq(godot):
             nog.append(tag)
             continue
         own, other = eq_hashes(gid)
-        if gd.get("other") != other:
+        if gd.get("other") != other and not os.environ.get("ARK_EQ_FORCE"):   # ARK_EQ_FORCE=1：过期也照比（纯搬家的大重构对改前金样，docs/101 §7.3）
             stale.append(tag)   # 别处的玩法代码变了：金样过期，不判
             continue
         ta, ba = gd.get("trace", []), gd.get("balance", {})
