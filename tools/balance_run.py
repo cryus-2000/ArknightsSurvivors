@@ -15,7 +15,7 @@
 速度与复用（docs/36）：同 seed 可复现，「游戏源文件内容 + 参数」相同的局读缓存（--nocache 关掉）；
 全机并发上限见 tools/godot_runner.py（GODOT_MAX_PROCS）；--game 指向别的工作树的 game/（A/B 对比用）。
 机器人（docs/29）：--bot 选一档，--bots 逗号分隔跑多档矩阵；afk 挂机 / bad 手残 / normal 普通（缺省）/ expert 高手。
-多档时额外输出「按机器人汇总」表，并对照 BOT_TARGETS 给出 达标 / 偏难 / 偏易。
+多档时额外输出「按机器人汇总」表：每档难度的参考机器人对照 BOT_TARGETS 给出 达标 / 偏难 / 偏易，其余机器人只作参考。
 指标：胜率、存活时间、等级里程碑（2:00 / 5:00 / 8:00）、最终 Boss 剩余、伤害占比（按干员 / 来源）、
       精英化时间、灯火、死因（承伤最大的来源）。
 """
@@ -94,12 +94,23 @@ def src_to_op():
 
 BOTS = ["afk", "bad", "normal", "expert", "master"]
 ## 各档机器人的难度目标（docs/29 §3）：win 胜率区间、t 平均存活秒数区间、s330 3:30 存活率下限
+# 难度目标（docs/38 §8.12，用户 10-01 定，取代 9/25 的按机器人分档口径）：每档难度只看它的参考机器人，
+# 通关率（含超时：打到 maxt 没打死最终 Boss 算失败）50–70%。标准 = 高手，Ⅳ / Ⅷ = 熟练；其他机器人不设目标，只作参考
 BOT_TARGETS = {
-    "afk":    {"win": (0.0, 0.0),   "t": (90, 300),  "s330": None, "desc": "挂机：3:30 前死；活过 5:00 说明太简单"},
-    "bad":    {"win": (0.0, 0.10),  "t": (180, 480), "s330": None, "desc": "手残：第一个 Boss 前后死，偶尔撑到中后期"},
-    "normal": {"win": (0.30, 0.55), "t": (420, 780), "s330": 0.9, "desc": "普通：几乎都能过 3:30，三到五成通关"},
-    "expert": {"win": (0.70, 0.95), "t": (540, 780), "s330": 1.0, "desc": "高手：大多通关，但不是必胜"},
+    0: {"bot": "expert", "win": (0.50, 0.70), "desc": "标准：高手 50–70%"},
+    1: {"bot": "master", "win": (0.50, 0.70), "desc": "Ⅳ：熟练 50–70%"},
+    2: {"bot": "master", "win": (0.50, 0.70), "desc": "Ⅷ：熟练 50–70%"},
 }
+TIER_NAMES = {0: "标准", 1: "Ⅳ", 2: "Ⅷ"}
+
+
+def extra_tier(extra):
+    """透传参数里的 --tier=N（缺省 0 = 标准）"""
+    for x in extra:
+        m = re.match(r"--tier=(\d+)$", x)
+        if m:
+            return int(m.group(1))
+    return 0
 
 
 find_godot = GR.find_godot
@@ -122,11 +133,12 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=
         hit = GR.cache_get(tkey, akey)
         if hit is not None:
             hit["cached"] = True
+            hit["tier"] = extra_tier(extra)   # 旧缓存没有这一项
             return hit
     t0 = time.time()
     out, err, _ = GR.run_godot(args, timeout)
     m = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
-    rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "wall": round(time.time() - t0, 1)}
+    rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "tier": extra_tier(extra), "wall": round(time.time() - t0, 1)}
     # 脚本错误不会让模拟停下，但可能让某段逻辑整段失效（例如 Boss 没刷出来）→ 计数并在报告顶部警告
     # Godot 把脚本错误写到 stderr（2026-09-26 前只查 stdout，漏掉了水月每次出手报错的整批数据）
     errs = GR.script_errors(out, err)
@@ -277,36 +289,33 @@ def bot_table(rows):
 
 
 def bot_summary(records):
-    """按机器人汇总（跨所有开局），对照 BOT_TARGETS 判定"""
+    """按机器人（× 难度档）汇总（跨所有开局）；该档的参考机器人对照 BOT_TARGETS 判定，其余写「参考」"""
     by = {}
     for r in records:
         if "data" in r:
-            by.setdefault(r.get("bot", "normal"), []).append(r["data"])
-    lines = ["| 机器人 | 局数 | 胜率 | 平均存活 | 3:30 存活 | 平均终局等级 | 平均击杀 | 目标（胜率 / 存活） | 判定 |",
+            by.setdefault((r.get("bot", "normal"), int(r.get("tier", 0))), []).append(r["data"])
+    lines = ["| 机器人 | 局数 | 胜率 | 平均存活 | 3:30 存活 | 平均终局等级 | 平均击杀 | 目标（通关率，docs/38 §8.12） | 判定 |",
              "|---|---|---|---|---|---|---|---|---|"]
     verdicts = {}
-    for bot in BOTS + sorted(set(by) - set(BOTS)):
-        ds = by.get(bot)
-        if not ds:
-            continue
+    keys = sorted(by, key=lambda k: (k[1], BOTS.index(k[0]) if k[0] in BOTS else len(BOTS), k[0]))
+    multi_tier = len(set(k[1] for k in keys)) > 1
+    for key in keys:
+        bot, tier = key
+        ds = by[key]
         win = sum(1 for d in ds if d.get("win")) / len(ds)
         tm = statistics.mean([d["t"] for d in ds])
         s330 = sum(1 for d in ds if d.get("win") or d["t"] >= 210) / len(ds)
-        tg = BOT_TARGETS.get(bot)
-        v = "-"
-        if tg:
+        tg = BOT_TARGETS.get(tier)
+        if tg and tg["bot"] == bot:
             w0, w1 = tg["win"]
-            t0, t1 = tg["t"]
-            if win > w1 + 1e-9 or tm > t1 + 1e-9:
-                v = "偏易"
-            elif win < w0 - 1e-9 or tm < t0 - 1e-9 or (tg["s330"] is not None and s330 < tg["s330"] - 1e-9):
-                v = "偏难"
-            else:
-                v = "达标"
-        verdicts[bot] = v
-        tgt = ("%d–%d%% / %s–%s" % (tg["win"][0] * 100, tg["win"][1] * 100, fmt_t(tg["t"][0]), fmt_t(tg["t"][1]))) if tg else "-"
+            v = "偏易" if win > w1 + 1e-9 else ("偏难" if win < w0 - 1e-9 else "达标")
+            tgt = "%d–%d%%（含超时）" % (w0 * 100, w1 * 100)
+        else:
+            v, tgt = "参考", "-"
+        verdicts[(bot, tier) if multi_tier else bot] = v
+        label = ("%s · %s" % (TIER_NAMES.get(tier, str(tier)), bot)) if multi_tier or tier else bot
         lines.append("| %s | %d | %d%% | %s | %d%% | %.1f | %.0f | %s | **%s** |" % (
-            bot, len(ds), win * 100, fmt_t(tm), s330 * 100, statistics.mean([d["lv"] for d in ds]),
+            label, len(ds), win * 100, fmt_t(tm), s330 * 100, statistics.mean([d["lv"] for d in ds]),
             statistics.mean([d.get("kills", 0) for d in ds]), tgt, v))
     return "\n".join(lines), verdicts
 
