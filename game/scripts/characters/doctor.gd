@@ -433,3 +433,33 @@ func apply_filler(fid: String) -> void:
 		"atk":
 			g.stats.add(&"op_atk", "add", 0.04, "filler", "squad")
 			g.sync_stats()
+
+
+# ---------------------------------------------------------------- 博士挂件跟随（docs/23 v0.7；10-15 从 game.gd 搬来，docs/101 S5）
+## 不受击、不攻击，慢慢跑着跟在主控身后；离太远（传送 / 开局）才直接归位。位置 / 跑停 / 朝向（g.doc_pos / doc_moving / doc_face）仍放在 game.gd（绘制与排序要读）
+const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但不会贴身
+const DOC_BEHIND := Vector2(-40, 30)
+const DOC_STOP_T := 0.15
+var doc_still_t := 0.0           # 博士连续「几乎没动」的时间：超过 DOC_STOP_T 才切站立（走停滞后，免得跑 / 站帧条来回闪）
+
+
+func update_follow(dt: float) -> void:
+	var want: Vector2 = g.ppos + Vector2(DOC_BEHIND.x * g.facing, DOC_BEHIND.y)
+	if g.doc_pos == Vector2.INF or g.doc_pos.distance_to(want) > 600.0:
+		g.doc_pos = want
+	var d: Vector2 = want - g.doc_pos
+	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
+	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
+	g.doc_pos += mv
+	# 走停滞后：起步要够快（> 30 像素 / 秒）；停下要连续慢（< 20）DOC_STOP_T 秒
+	var spd: float = mv.length() / maxf(dt, 0.0001)
+	if g.doc_moving:
+		doc_still_t = doc_still_t + dt if spd < 20.0 else 0.0
+		g.doc_moving = doc_still_t < DOC_STOP_T
+	else:
+		g.doc_moving = spd > 30.0
+		doc_still_t = 0.0
+	if absf(mv.x) > 6.0 * dt:
+		g.doc_face = signf(mv.x)
+	elif not g.doc_moving:
+		g.doc_face = g.facing

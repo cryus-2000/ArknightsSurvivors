@@ -355,7 +355,7 @@ func step() -> void:
 	if g.state == g.S.INTRO:
 		if g.intro_t > 0.5 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_intro_%d.png" % g.intro_page)
-			if g.intro_page >= g.INTRO_PAGES.size() - 1:
+			if g.intro_page >= g.intro_screen.pages().size() - 1:
 				g.get_tree().quit()
 				return
 			g.intro_page += 1

@@ -101,28 +101,26 @@ func draw_opening_hud(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
 
 
-## 触屏版指南（触屏验收 10-01）：键鼠说法逐句替换；最后一页「操作」整页换成触屏操作（lines / more 同 Game.INTRO_PAGES）
-const TOUCH_SUBS := [
-	["你负责走位（WASD）与冲刺（空格，冲刺中无敌）", "你负责走位（按住左半屏拖动）与冲刺（右下「冲刺」键，冲刺中无敌）"],
-	["乌尔比安的三技能要按 Q / E，并自己选落点", "乌尔比安的三技能要点技能键，按住拖动选落点"],
-	["按 Tab 查看", "点右侧「属性」键查看"],
-	["Tab 面板", "属性面板"],
-	["刷新一次货架（按 F）", "刷新一次货架"],
-]
-const TOUCH_CONTROLS := {"lines": [
-	"按住屏幕左半边拖动：移动　　右下「冲刺」键：冲刺",
-	"队长有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点",
-	"右侧「暂停」「属性」键：暂停菜单与属性面板。升级 / 宝箱 / 商人 / 祭坛：点击卡片选择"], "more": [
-	"普通攻击设为手动时（设置 · 游戏）：冲刺键左侧出现攻击键，按住攻击，拖动选方向",
-	"手指落下处就是摇杆中心；属性面板点任意处关闭"]}
-## 精简版（首次自动打开）最后一页末尾的提示
-const MORE_HINT := "暂停菜单里的「指南」有完整说明。祝你好运，博士。"
+## 指南文字在 data/guide.json（文案维护；10-15 从 game.gd INTRO_PAGES 与本文件的 TOUCH_SUBS / TOUCH_CONTROLS / MORE_HINT 原样搬去，docs/101 S5）：
+## pages 9 页（title / en / icon / lines / more）；touch_subs 触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls 触屏版最后一页「操作」整页；
+## more_hint 精简版（首次自动打开）最后一页末尾的提示
+static var _guide: Dictionary = {}
+
+
+static func _g() -> Dictionary:
+	if _guide.is_empty():
+		_guide = JSON.parse_string(FileAccess.get_file_as_string("res://data/guide.json"))
+	return _guide
+
+
+static func pages() -> Array:
+	return _g().pages
 
 
 static func touch_line(ln: String) -> String:
 	if not Pad.touch_ui():
 		return ln
-	for p in TOUCH_SUBS:
+	for p in _g().touch_subs:
 		ln = ln.replace(p[0], p[1])
 	return ln
 
@@ -132,13 +130,13 @@ func full_guide() -> bool:
 	return g.intro_back == Game.S.PAUSE
 
 
-## 一页要显示的段落：精简版只有 lines，最后一页末尾加 MORE_HINT；完整版接上 more
+## 一页要显示的段落：精简版只有 lines，最后一页末尾加 more_hint；完整版接上 more
 static func page_lines(pg: Dictionary, full: bool, last: bool) -> Array:
 	var out: Array = pg.get("lines", []).duplicate()
 	if full:
 		out.append_array(pg.get("more", []))
 	elif last:
-		out.append(MORE_HINT)
+		out.append(_g().more_hint)
 	return out
 
 
@@ -151,7 +149,7 @@ func open(back: int) -> void:
 
 func next_page() -> void:
 	Sfx.play("ui_move")
-	if g.intro_page < Game.INTRO_PAGES.size() - 1:
+	if g.intro_page < pages().size() - 1:
 		g.intro_page += 1
 		g.intro_t = 0.0
 	else:
@@ -167,13 +165,13 @@ func close() -> void:
 
 func draw(vs: Vector2) -> void:
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
-	var pg: Dictionary = Game.INTRO_PAGES[g.intro_page]
+	var pg: Dictionary = pages()[g.intro_page]
 	var rh: float = minf(570.0, vs.y - 16.0)
 	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - rh / 2.0, 900, rh)
 	var ea := clampf(g.intro_t / 0.25, 0.0, 1.0)
 	r.position.y += (1.0 - ea) * 20.0
 	UI.panel(g.hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)
-	UI.en(g.hud, g.font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [g.intro_page + 1, Game.INTRO_PAGES.size(), pg.en], 12, UI.CYAN, 3.0)
+	UI.en(g.hud, g.font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [g.intro_page + 1, pages().size(), pg.en], 12, UI.CYAN, 3.0)
 	UI.text(g.hud, g.font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
 	g.hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
 	# 插图区
@@ -189,8 +187,8 @@ func draw(vs: Vector2) -> void:
 	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变（手机局内再乘 UI.fk，量字画字都用 UI.fs）
 	var fsz_min := 13 if touch else 12
 	var paras: Array = []
-	var src: Dictionary = TOUCH_CONTROLS if Pad.touch_ui() and g.intro_page == Game.INTRO_PAGES.size() - 1 else pg
-	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == Game.INTRO_PAGES.size() - 1)
+	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and g.intro_page == pages().size() - 1 else pg
+	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == pages().size() - 1)
 	while true:
 		paras.clear()
 		var tot := 0.0
@@ -217,8 +215,8 @@ func draw(vs: Vector2) -> void:
 	g.intro_panel = r
 	g.intro_dots.clear()
 	var mp: Vector2 = g.hud.get_local_mouse_position()
-	for i in Game.INTRO_PAGES.size():
-		var dp := Vector2(vs.x / 2 - (Game.INTRO_PAGES.size() - 1) * 13 + i * 26, r.end.y - 30)
+	for i in pages().size():
+		var dp := Vector2(vs.x / 2 - (pages().size() - 1) * 13 + i * 26, r.end.y - 30)
 		var dr := Rect2(dp - Vector2(12, 12), Vector2(24, 24))
 		g.intro_dots.append([dr, i])
 		var hov: bool = dr.has_point(mp)
@@ -246,7 +244,7 @@ func draw(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13 if not touch else 15, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			continue
 		UI.frame(g.hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
-		UI.text(g.hud, g.font, br.position + Vector2(0, 23 if not touch else 29), btns[k][0] if k != 2 or g.intro_page < Game.INTRO_PAGES.size() - 1 else "开始探索 ›", 14 if not touch else 16, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		UI.text(g.hud, g.font, br.position + Vector2(0, 23 if not touch else 29), btns[k][0] if k != 2 or g.intro_page < pages().size() - 1 else "开始探索 ›", 14 if not touch else 16, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 	if r.end.y + 66 < vs.y:
 		UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过", "点击：下一页　　点面板左侧：上一页"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
