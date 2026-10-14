@@ -31,6 +31,8 @@ const WALK_MV := 0.7             # 摇杆量（匀速）
 const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
 const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
 const DEMO_DY := 40.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr / 跃空锤（跳高 42）别钻到下面
+const DEMO_BITE_KB := 240.0      # 贴身的怪「扑一口」后弹开的冲量：enemies.gd 按 900/s 衰减，240 ≈ 弹开 32，再以 spd 16 走回来约 2 秒
+const DEMO_BITE_CD := 1.2        # 同一只怪两次扑击至少隔这么久（弹开 + 走回来的时间里不会再扑）
 
 
 func _init(game: Game) -> void:
@@ -57,6 +59,7 @@ func step(dt: float) -> void:
 		g.demo_origin = g.ppos
 		g.demo_phases = phase_list()
 		next_phase()
+	_contact_cycle()
 	var si: int = g.demo_phases[g.demo_pi]
 	demo_ph_t += dt
 	if g.demo_basic:
@@ -104,6 +107,25 @@ func step(dt: float) -> void:
 			alive += 1
 	if alive < 4:
 		horde(10)
+
+
+## 贴身循环（用户 10-14 反馈：图鉴里怪海推到干员身边后贴着模型边缘不动 / 抖动）。
+## 原因：演示里的怪不伤人（horde 给 dmg 0），走不到 enemies.gd 的接触伤害分支；而正式局里接触也不会把怪推开，
+## 全靠玩家走位拉开距离——演示主控站定出手，骨海漂流体就一路走到主控脚下叠在身上，只剩怪与怪的分离在来回推挤。
+## 这里按正式局同一接触半径（e.r + 12）判「扑上来」：播攻击帧条（atk_until）、沿离主控方向弹开 DEMO_BITE_KB（走 e.kb，
+## 和被干员打退同一条路），再以原速走回来，每只至少隔 DEMO_BITE_CD 秒再扑一次——「扑上来 → 弹开 → 再上来」。
+## 只在 step（demo_op 模式）里调用，正式局的敌人逻辑不变
+func _contact_cycle() -> void:
+	for e in g.enemies:
+		if e.dead or e.boss or g.t < float(e.get("demo_bite", 0.0)):
+			continue
+		var off: Vector2 = e.pos - g.ppos
+		var d: float = off.length()
+		if d >= e.r + 12.0:
+			continue
+		e["demo_bite"] = g.t + DEMO_BITE_CD
+		e.atk_until = g.t + 0.25
+		e.kb += (off / d if d > 0.5 else Vector2.RIGHT) * DEMO_BITE_KB
 
 
 ## 演示走位（2026-09-26 用户定的简单方案，替代「走走停停 + 后退 + 保持间距」：那几条规则互相打架，主控来回抽）：
