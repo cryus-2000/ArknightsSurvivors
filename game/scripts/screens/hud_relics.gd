@@ -40,7 +40,7 @@ func draw_right_top(vs: Vector2) -> void:
 		if (g.tray_cells[ci][0] as Rect2).has_point(mouse):
 			hov = ci
 	var lvs: Array = g.relics.map(func(r): return g.rfx.lv.get(r, 1))
-	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp, g.opt_old & Game.OPT_HUDB], func(): draw_relic_tray(trp))
+	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp], func(): draw_relic_tray(trp))
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 12.0 + tray_layout(g.relics.size()).h + 18.0), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
@@ -52,29 +52,25 @@ func draw_speed_button(vs: Vector2) -> void:
 	var enabled: bool = g.state == Game.S.PLAY
 	var hovered: bool = enabled and not g.touch.active and rect.has_point(g.hud.get_local_mouse_position())
 	var fs: int = int(round(16.0 * clampf(rect.size.y / 34.0, 0.85, 1.3)))
-	if h.hb_on():
-		# 合批（docs/50 §13）：同 UI.button 的 outline / off 两种画法，底与边框一批（引擎同款几何），两行字按字号成组
-		var bk: String = "outline" if enabled else "off"
-		var bs: int = UI._ks(g.hud, fs)
-		var fg := Color(1, 1, 1)
-		var tb := TriBatch.new()
-		if bk == "outline":
-			tb.rect(rect, Color(0.03, 0.04, 0.05, 0.8))
-			_rect_line(tb, rect, Color(1, 1, 1, 0.6 if hovered else 0.3))
-		else:
-			tb.rect(rect, Color(0.2, 0.22, 0.25, 0.5))
-			fg = Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, 0.7)
-		if hovered and bk != "off":
-			_rect_line(tb, rect.grow(2.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
-		tb.flush(g.hud)
-		var lab: String = PlayClock.current_label()
-		var ci: CanvasItem = g.hud
-		var fnt: Font = g.font
-		h.text_flush([func(): ci.draw_string(fnt, Vector2(rect.position.x, rect.position.y + rect.size.y / 2.0 + bs * 0.36), lab, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, bs, fg),
-			func(): UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)])
+	# 合批（docs/50 §13）：同 UI.button 的 outline / off 两种画法，底与边框一批（引擎同款几何），两行字按字号成组
+	var bk: String = "outline" if enabled else "off"
+	var bs: int = UI._ks(g.hud, fs)
+	var fg := Color(1, 1, 1)
+	var tb := TriBatch.new()
+	if bk == "outline":
+		tb.rect(rect, Color(0.03, 0.04, 0.05, 0.8))
+		_rect_line(tb, rect, Color(1, 1, 1, 0.6 if hovered else 0.3))
 	else:
-		UI.button(g.hud, g.font, rect, PlayClock.current_label(), "outline" if enabled else "off", hovered, fs)
-		UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+		tb.rect(rect, Color(0.2, 0.22, 0.25, 0.5))
+		fg = Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, 0.7)
+	if hovered and bk != "off":
+		_rect_line(tb, rect.grow(2.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
+	tb.flush(g.hud)
+	var lab: String = PlayClock.current_label()
+	var ci: CanvasItem = g.hud
+	var fnt: Font = g.font
+	h.text_flush([func(): ci.draw_string(fnt, Vector2(rect.position.x, rect.position.y + rect.size.y / 2.0 + bs * 0.36), lab, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, bs, fg),
+		func(): UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)])
 	if enabled and not g.touch.active:
 		g.speed_btn = rect
 
@@ -98,77 +94,6 @@ func tray_layout(n: int) -> Dictionary:
 
 
 func draw_relic_tray(tr: Vector2) -> void:
-	if not (g.opt_old & Game.OPT_HUDB):
-		draw_relic_tray_b(tr)
-		return
-	var n := g.relics.size()
-	var L: Dictionary = tray_layout(n)
-	var compact: bool = L.compact
-	var per_row: int = L.per_row
-	var cell: float = L.cell
-	var icon_sz: float = L.icon
-	var w: float = L.w
-	var o := tr + Vector2(-w, 0)
-	var r := Rect2(o, Vector2(w, L.h))
-	# 原作底栏「收藏品 N」：暗底 + 图标 + 数量，下面一排藏品格（左上角一小段分类色）
-	g.hud.draw_rect(r, Color(0.03, 0.035, 0.045, 0.74))
-	g.hud.draw_rect(Rect2(o, Vector2(w, 1)), Color(1, 1, 1, 0.14))
-	UI.icon(g.hud, "box", o + Vector2(15, 14), 14.0, Color(0.81, 0.84, 0.86))
-	UI.text(g.hud, g.font, o + Vector2(28, 19), "藏品", 12, Color(0.81, 0.84, 0.86))
-	if w >= 220.0:
-		UI.en(g.hud, g.font, o + Vector2(70, 18), "RELICS", 9, UI.SUB, 2.0)
-	var cap: int = g.progression.relic_cap()
-	UI.ctext(g.hud, g.font, o + Vector2(w - 70, 20), str(n) if cap < 0 else "%d / %d" % [n, cap], 15, UI.GOLD if cap >= 0 and n >= cap else UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, 60)
-	g.tray_cells.clear()
-	var mouse := g.hud.get_local_mouse_position()
-	# 格底 / 边框 / 分类色攒成一批画在图标下，等级点一批画在图标上（原来每格 4–6 次绘制调用）
-	var under := Tris.new()
-	var over := Tris.new()
-	var late: Array[Callable] = []
-	var slot := 0
-	if L.more > 0:
-		# 第一格：较早获得、没画出来的件数
-		var c0 := o + Vector2(6 + cell / 2, 26 + cell / 2)
-		var r0 := Rect2(c0 - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
-		g.tray_cells.append([r0, ""])
-		var hov0: bool = r0.has_point(mouse)
-		under.rect(r0, Color(1, 1, 1, 0.10) if not hov0 else Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.22))
-		under.frame(r0, Color(1, 1, 1, 0.22) if not hov0 else UI.CYAN, 1.0)
-		var mt: String = "+%d" % L.more
-		late.append(func(): UI.text(g.hud, g.font, c0 + Vector2(-cell / 2.0, 4), mt, 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cell))
-		slot = 1
-	for i in range(L.first, n):
-		var rd: Dictionary = g.RL[g.relics[i]]
-		var col: Color = UI.CAT_COL.get(rd.cat, UI.GOLD)
-		var c := o + Vector2(6 + (slot % per_row) * cell + cell / 2, 26 + (slot / per_row) * cell + cell / 2)
-		slot += 1
-		var cellr := Rect2(c - Vector2(cell / 2.0 - 2.0, cell / 2.0 - 2.0), Vector2(cell - 4.0, cell - 4.0))
-		g.tray_cells.append([cellr, g.relics[i]])
-		var hov: bool = cellr.has_point(mouse)
-		under.rect(cellr, Color(1, 1, 1, 0.05) if not hov else Color(col.r, col.g, col.b, 0.22))
-		under.frame(cellr, Color(1, 1, 1, 0.13) if not hov else col, 1.0)
-		under.rect(Rect2(cellr.position, Vector2(8 if not compact else 5, 2)), Color(col.r, col.g, col.b, 0.85))
-		var ic: Texture2D = g.tex.get("relic_" + g.relics[i])
-		if ic != null:
-			late.append(func(): g.hud.draw_texture_rect(ic, Rect2(c - Vector2(icon_sz, icon_sz) / 2.0, Vector2(icon_sz, icon_sz)), false))
-		else:
-			under.diamond(c, icon_sz * 0.34, Color(0.03, 0.08, 0.1), col)
-			var ch: String = rd.name.substr(0, 1)
-			late.append(func(): UI.text(g.hud, g.font, c + Vector2(-15, 5), ch, 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30))
-		var rl: int = g.rfx.lv.get(g.relics[i], 1)
-		if rl > 1:
-			var pip: float = 6.0 if not compact else 3.0
-			for q in rl:
-				over.rect(Rect2(c + Vector2(-icon_sz / 2.0 + q * pip, icon_sz / 2.0 - 4.0), Vector2(pip - 2.0, 2 if compact else 3)), Color(col.r * 1.5, col.g * 1.5, col.b * 1.5))
-	under.flush(g.hud)
-	for f in late:
-		f.call()
-	over.flush(g.hud)
-
-
-## 藏品栏（合批版，docs/50 §13）：画面同 draw_relic_tray。标题栏底色、盒子图标、格底 / 边框 / 分类色一批（引擎同款几何）→
-## 藏品图标从 HUD 图标图集取（一次调用）→ 字（同字体同字号挨着画）→ 等级点一批。标题栏（y < 26）和格子区不重叠，标题字挪到格子之后画不改画面
-func draw_relic_tray_b(tr: Vector2) -> void:
 	var n := g.relics.size()
 	var L: Dictionary = tray_layout(n)
 	var compact: bool = L.compact

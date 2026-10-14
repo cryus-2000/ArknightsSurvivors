@@ -421,7 +421,7 @@ const OPT_ENEMY := 8      # 敌人更新
 const OPT_DRAW := 16      # 其他绘制
 const OPT_OUTLINE := 32   # 普通怪 / 精英描边（docs/50 §12 A：新 = 不画；旧 = 照 fx/outline_max 满屏降级画）——会改画面，只供同局量帧时间
 const OPT_ATLAS := 64     # 普通怪 / 精英帧条图集（docs/50 §12 B：新 = 图集取帧；旧 = 各自的帧条贴图），画面相同
-const OPT_HUDB := 128     # HUD 合批（docs/50 §13：图标图集、字按字体字号成组、飘字分组），画面相同
+const OPT_HUDB := 128     # HUD 合批（docs/50 §13）：旧实现已删（docs/101 S2，10-15），位保留不再选路
 const OPT_PICKB := 256    # 掉落物剩余断点合批（docs/50 §13：空中影子 / 特殊掉落的圈与光柱进三角形批、贴图成组），画面相同
 ## docs/50 §14 脚本热点（画面、玩法不变）：
 const OPT_CV := 512       # 干员合批画布（characters/batch_canvas.gd）：圆 / 弧 / 线 / 矩形整组生成顶点（单位方向表 × 变换），无索引三角形

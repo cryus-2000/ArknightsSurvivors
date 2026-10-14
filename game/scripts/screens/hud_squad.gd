@@ -40,7 +40,7 @@ func squad_top(vs: Vector2) -> float:
 
 ## 编队栏静态层的签名：这些变了才重画静态层
 func _squad_sig(br: Vector2) -> Array:
-	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots, g.opt_old & Game.OPT_HUDB]
+	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots]
 	for o in g.squad.ops:
 		var pt: Dictionary = o.portrait()
 		sig.append([o.id, o.elite, o.display_name(), o.cls, pt.tex, pt.frames])

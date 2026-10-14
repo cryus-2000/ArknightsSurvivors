@@ -38,21 +38,16 @@ var _hb: Tris = null
 func batch_begin() -> void:
 	_hb = Tris.new()
 	UI.sink = _hb
-	UI.tq = _tq_get() if hb_on() else []
+	UI.tq = _tq_get()
 
 
-## HUD 合批（docs/50 §13，OPT_HUDB）：字按字体字号成组、图标走图集、飘字分组。--optab 同局对照时旧写法照原样
-func hb_on() -> bool:
-	return not (g.opt_old & Game.OPT_HUDB)
+## HUD 合批（docs/50 §13，OPT_HUDB）：字按字体字号成组、图标走图集、飘字分组。旧写法（逐个直接画）已定案删除（docs/101 S2，10-15），
+## OPT_HUDB 位保留但不再选路
 
 
 ## 一组按原顺序画字的 Callable（各自调 UI.text / ctext / en……）：合批时按字体字号归组后再画（各行字互不重叠时用）
 func text_flush(fs: Array) -> void:
 	if fs.is_empty():
-		return
-	if not hb_on():
-		for f in fs:
-			f.call()
 		return
 	var keep = UI.tq
 	var q: TextQ = _tq_get()
@@ -73,10 +68,6 @@ func _tq_get() -> TextQ:
 ## 画一组图标 [贴图, 目标矩形(, 源矩形, 调制色)]：合批时从图标图集取区域连着画（放不下的照旧画原贴图，按原顺序）
 func icons_draw(list: Array) -> void:
 	if list.is_empty():
-		return
-	if not hb_on():
-		for it in list:
-			_icon_raw(it)
 		return
 	var regs: Array = []
 	for it in list:
@@ -188,7 +179,7 @@ func _draw_body() -> void:
 	banners.draw_hunt_pointer(vs, ct)
 	if not overlay_left():
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）
-		_layer("minimap", [Engine.get_process_frames() / 3, vs, g.opt_old & Game.OPT_HUDB], func(): bars.draw_minimap(vs))
+		_layer("minimap", [Engine.get_process_frames() / 3, vs], func(): bars.draw_minimap(vs))
 	bars.draw_lamp_strip(vs)
 	banners.draw_zone_warning(vs)
 	bars.draw_top_center(vs)   # 开合批段（顶部中央 + 右上暂停键共用一批）
@@ -247,7 +238,6 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 	draw_elite_marks(ct)
 	# 伤害数字（精英化演出期间不画：遮罩只有 86% 不透明，飘字会透出来压在横幅上）
 	var dn: Array = []   # 合批时先收集，_dmg_numbers 分层画（docs/50 §13）
-	var hb := hb_on()
 	for f in (g.texts if ((g.state != Game.S.SHOW and g.state != Game.S.DEAD) or g.demo_op != "") and not _dbg_nonum else []):   # 倒下后不画定格的飘字（会压在「探索终止」上）；--clutterdbg=nonum 量测
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		# 图鉴演示：主控身上的飘字压淡（斯卡蒂潮汐时成串数字会整块盖住她）
@@ -256,10 +246,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
 		var sz := int(f.size * pop)
-		if hb:
-			dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
-		else:
-			UI.text(g.hud, g.font, sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a), HORIZONTAL_ALIGNMENT_CENTER, 120, 4)
+		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
 	if not dn.is_empty():
 		_dmg_numbers(dn)
 
@@ -421,19 +408,13 @@ func draw_trial_result(vs: Vector2, won: bool) -> void:
 func edge_glow(vs: Vector2, col: Color, w: float) -> void:
 	var c0 := col
 	var c1 := Color(col.r, col.g, col.b, 0.0)
-	if hb_on():
-		# 合批（docs/50 §13）：四条渐变带一次提交（同样的三角化与顶点色）
-		var tb := TriBatch.new()
-		tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), Vector2(vs.x, w), Vector2(0, w)]), PackedColorArray([c0, c0, c1, c1]))
-		tb.polygon_colors(PackedVector2Array([Vector2(0, vs.y - w), Vector2(vs.x, vs.y - w), vs, Vector2(0, vs.y)]), PackedColorArray([c1, c1, c0, c0]))
-		tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(w, 0), Vector2(w, vs.y), Vector2(0, vs.y)]), PackedColorArray([c0, c1, c1, c0]))
-		tb.polygon_colors(PackedVector2Array([Vector2(vs.x - w, 0), Vector2(vs.x, 0), vs, Vector2(vs.x - w, vs.y)]), PackedColorArray([c1, c0, c0, c1]))
-		tb.flush(g.hud)
-		return
-	g.hud.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), Vector2(vs.x, w), Vector2(0, w)]), PackedColorArray([c0, c0, c1, c1]))
-	g.hud.draw_polygon(PackedVector2Array([Vector2(0, vs.y - w), Vector2(vs.x, vs.y - w), vs, Vector2(0, vs.y)]), PackedColorArray([c1, c1, c0, c0]))
-	g.hud.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(w, 0), Vector2(w, vs.y), Vector2(0, vs.y)]), PackedColorArray([c0, c1, c1, c0]))
-	g.hud.draw_polygon(PackedVector2Array([Vector2(vs.x - w, 0), Vector2(vs.x, 0), vs, Vector2(vs.x - w, vs.y)]), PackedColorArray([c1, c0, c0, c1]))
+	# 合批（docs/50 §13）：四条渐变带一次提交（同样的三角化与顶点色）
+	var tb := TriBatch.new()
+	tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(vs.x, 0), Vector2(vs.x, w), Vector2(0, w)]), PackedColorArray([c0, c0, c1, c1]))
+	tb.polygon_colors(PackedVector2Array([Vector2(0, vs.y - w), Vector2(vs.x, vs.y - w), vs, Vector2(0, vs.y)]), PackedColorArray([c1, c1, c0, c0]))
+	tb.polygon_colors(PackedVector2Array([Vector2.ZERO, Vector2(w, 0), Vector2(w, vs.y), Vector2(0, vs.y)]), PackedColorArray([c0, c1, c1, c0]))
+	tb.polygon_colors(PackedVector2Array([Vector2(vs.x - w, 0), Vector2(vs.x, 0), vs, Vector2(vs.x - w, vs.y)]), PackedColorArray([c1, c0, c0, c1]))
+	tb.flush(g.hud)
 
 
 ## 通用提示卡：贴在格子下方（越界时贴上方 / 左移），图标 + 标题 + 副标题 + 折行说明
