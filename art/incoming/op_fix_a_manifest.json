@@ -1,0 +1,297 @@
+{
+  "standard": "docs/98 + docs/97 A",
+  "method": "Existing accepted @2x frames proportionally re-exported; generated candidates rejected for identity drift. Shared 24-color quantization, binary alpha, exact 1px/2px outline, corresponding 1x export. No new costume or weapon.",
+  "posture": "Head supported by shoulders; no independent forward-head displacement. Running lean remains whole torso.",
+  "operators": {
+    "logos": {
+      "actions": {
+        "idle": {
+          "tex": "op_logos_idle",
+          "frames": 4,
+          "fps": 4,
+          "foot": [
+            24,
+            46
+          ],
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "run": {
+          "tex": "op_logos_run",
+          "frames": 6,
+          "fps": 10,
+          "foot": [
+            24,
+            46
+          ],
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "attack": {
+          "tex": "op_logos_attack",
+          "frames": 4,
+          "fps": 12,
+          "foot": [
+            24,
+            46
+          ],
+          "fire": 2,
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "skill": {
+          "tex": "op_logos_skill",
+          "frames": 8,
+          "fps": 12,
+          "foot": [
+            24,
+            46
+          ],
+          "fire": 4,
+          "frame_size": [
+            48,
+            48
+          ]
+        }
+      },
+      "idle_f0": {
+        "1x": {
+          "height_px": 34,
+          "bottom_row": 46,
+          "foot_x": 26.0,
+          "head_forward_shift": 0
+        },
+        "@2x": {
+          "height_px": 68,
+          "bottom_row": 92,
+          "foot_x": 47.5,
+          "head_forward_shift": 0
+        }
+      }
+    },
+    "lumen": {
+      "actions": {
+        "idle": {
+          "tex": "op_lumen_idle",
+          "frames": 4,
+          "fps": 4,
+          "foot": [
+            24,
+            46
+          ],
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "run": {
+          "tex": "op_lumen_run",
+          "frames": 6,
+          "fps": 10,
+          "foot": [
+            24,
+            46
+          ],
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "attack": {
+          "tex": "op_lumen_attack",
+          "frames": 4,
+          "fps": 12,
+          "foot": [
+            24,
+            46
+          ],
+          "fire": 2,
+          "frame_size": [
+            48,
+            48
+          ]
+        },
+        "skill": {
+          "tex": "op_lumen_skill",
+          "frames": 6,
+          "fps": 12,
+          "foot": [
+            24,
+            46
+          ],
+          "fire": 3,
+          "frame_size": [
+            48,
+            48
+          ]
+        }
+      },
+      "idle_f0": {
+        "1x": {
+          "height_px": 33,
+          "bottom_row": 46,
+          "foot_x": 24.0,
+          "head_forward_shift": 0
+        },
+        "@2x": {
+          "height_px": 66,
+          "bottom_row": 92,
+          "foot_x": 47.5,
+          "head_forward_shift": 0
+        }
+      }
+    }
+  },
+  "files": [
+    {
+      "name": "op_logos_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "4cc68a6b9e8e08b9f4b1a9de880414e361b2de8a9741617ee306eef800ff964e"
+    },
+    {
+      "name": "op_logos_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "415e5f65aef92f74aa1dc08d25e46e54286983f8904f4410469672caba8ccfc6"
+    },
+    {
+      "name": "op_logos_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 19,
+      "sha256": "591de755525943a9b36a0371f217cb0ada99ac67eba6fc92ebd9d811a4b95770"
+    },
+    {
+      "name": "op_logos_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 18,
+      "sha256": "75c9e4417c77a271e6eef819a72fada296635f0580cc2a6d2d16f72de6af5d61"
+    },
+    {
+      "name": "op_logos_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 21,
+      "sha256": "da58d64bfc4fecaa26d391d47f3de759031363071bcdefc7039d30caa334f60f"
+    },
+    {
+      "name": "op_logos_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 20,
+      "sha256": "80e6a72127d50e1ec8b47be90f30b685303c6ce6e7a8b47ea0ca26d715944e6a"
+    },
+    {
+      "name": "op_logos_skill.png",
+      "size": [
+        384,
+        48
+      ],
+      "colors": 23,
+      "sha256": "5af2bcd802a47514cbf12f15417e084cbaca867da4124dcc9919734736001a2b"
+    },
+    {
+      "name": "op_logos_skill@2x.png",
+      "size": [
+        768,
+        96
+      ],
+      "colors": 23,
+      "sha256": "717e10b51580d1b6ee385788d4534f466e3beb322dd137fae69ff38c2e27d884"
+    },
+    {
+      "name": "op_lumen_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 18,
+      "sha256": "e5c2b14b9dbff2617403f2c8deb1d9b2aea8be363a16f4b16cf651976fb32420"
+    },
+    {
+      "name": "op_lumen_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 18,
+      "sha256": "71a5042728f7b622973afc9b12d2c047e3d67fbca8caeca2ee1dd7c2f6edb8d4"
+    },
+    {
+      "name": "op_lumen_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 16,
+      "sha256": "31953ea8f386503b3d78b1c174af24fb960c639988a2c2ce54ad8d904e2a4012"
+    },
+    {
+      "name": "op_lumen_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 17,
+      "sha256": "564fedc7275b159e98f29d640ff615170e7c2d8c8e40969918418f248b43a609"
+    },
+    {
+      "name": "op_lumen_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 20,
+      "sha256": "838e30286334e0be3d05332aad9a0dc34c0ffd619fd4c12f99989302e8863874"
+    },
+    {
+      "name": "op_lumen_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 20,
+      "sha256": "ef2612a8e89f8ed59072e2e1e4f624fe3750f810e6934767691cd992b3465515"
+    },
+    {
+      "name": "op_lumen_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 22,
+      "sha256": "d854f7cd36737796c94c1c3edff286da9339e2974b9bcbc06df3edd38574832d"
+    },
+    {
+      "name": "op_lumen_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 22,
+      "sha256": "3f2d3a5aca790821ff19c0ca855fdfe9963ef8624244c759ed4debc5e27b57f0"
+    }
+  ]
+}
